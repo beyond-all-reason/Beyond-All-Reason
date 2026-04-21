@@ -41,9 +41,9 @@ function M.attach(doc, ctx)
 		end
 	end
 
-	-- ============ Decal Export & Analytics buttons ============
+	-- ============ Decal Heatmap buttons ============
 	do
-		local function dcExportClick(btnId, actionFn)
+		local function dcHeatClick(btnId, actionFn)
 			local btn = doc:GetElementById(btnId)
 			if btn then
 				btn:AddEventListener("click", function(event)
@@ -54,78 +54,19 @@ function M.attach(doc, ctx)
 			end
 		end
 
-		dcExportClick("btn-dc-export-all", function()
-			if WG.DecalExporter then
-				local gl4 = WG.DecalExporter.snapshotGL4() or {}
-				local eng = WG.DecalExporter.snapshotEngine() or {}
-				local combined = {}
-				for _, d in ipairs(gl4) do combined[#combined + 1] = d end
-				for _, d in ipairs(eng) do combined[#combined + 1] = d end
-				if #combined > 0 then
-					WG.DecalExporter.exportLua(combined)
-					WG.DecalExporter.exportCSV(combined)
-					WG.DecalExporter.exportStamp(combined)
-					WG.DecalExporter.exportFeatures(combined)
-				else
-					Spring.Echo("[Decal Export] No decals to export")
-				end
-			else
-				Spring.Echo("[Decal Export] Enable the 'Decal Exporter & Analytics' widget first")
-			end
-		end)
-
-		dcExportClick("btn-dc-export-stamp", function()
-			if WG.DecalExporter then
-				local snap = WG.DecalExporter.snapshotEngine()
-				if snap then WG.DecalExporter.exportStamp(snap) end
-			else
-				Spring.Echo("[Decal Export] Enable the 'Decal Exporter & Analytics' widget first")
-			end
-		end)
-
-		dcExportClick("btn-dc-export-features", function()
-			if WG.DecalExporter then
-				local gl4 = WG.DecalExporter.snapshotGL4() or {}
-				local eng = WG.DecalExporter.snapshotEngine() or {}
-				local combined = {}
-				for _, d in ipairs(gl4) do combined[#combined + 1] = d end
-				for _, d in ipairs(eng) do combined[#combined + 1] = d end
-				if #combined > 0 then
-					WG.DecalExporter.exportFeatures(combined)
-				end
-			else
-				Spring.Echo("[Decal Export] Enable the 'Decal Exporter & Analytics' widget first")
-			end
-		end)
-
-		dcExportClick("btn-dc-export-csv", function()
-			if WG.DecalExporter then
-				local gl4 = WG.DecalExporter.snapshotGL4() or {}
-				local eng = WG.DecalExporter.snapshotEngine() or {}
-				local combined = {}
-				for _, d in ipairs(gl4) do combined[#combined + 1] = d end
-				for _, d in ipairs(eng) do combined[#combined + 1] = d end
-				if #combined > 0 then
-					WG.DecalExporter.exportCSV(combined)
-				end
-			else
-				Spring.Echo("[Decal Export] Enable the 'Decal Exporter & Analytics' widget first")
-			end
-		end)
-
-		dcExportClick("btn-dc-heatmap-export", function()
+		dcHeatClick("btn-dc-heatmap-export", function()
 			if WG.DecalExporter then
 				WG.DecalExporter.exportHeatmapCSV()
 				WG.DecalExporter.exportHeatmapPGM()
 			else
-				Spring.Echo("[Decal Export] Enable the 'Decal Exporter & Analytics' widget first")
+				Spring.Echo("[Decal Heatmap] Enable the 'Decal Exporter & Analytics' widget first")
 			end
 		end)
 
-		dcExportClick("btn-dc-heatmap-reset", function()
+		dcHeatClick("btn-dc-heatmap-reset", function()
 			if WG.DecalExporter then
 				WG.DecalExporter.resetHeatmap()
-				Spring.Echo("[Decal Export] Heatmap reset")
+				Spring.Echo("[Decal Heatmap] Heatmap reset")
 			end
 		end)
 	end
@@ -165,7 +106,7 @@ function M.attach(doc, ctx)
 			if ensureDecalPlacer() then
 				local s = WG.DecalPlacer.getState()
 				if not s or not s.active then
-					WG.DecalPlacer.setMode("scatter")
+					WG.DecalPlacer.setMode("point")
 				end
 			end
 		end)

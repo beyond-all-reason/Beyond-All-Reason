@@ -24,6 +24,10 @@ local CLEAR_HEADER = "$metal_clear$"
 local CLEAR_HEADER_LEN = #CLEAR_HEADER
 local LOAD_HEADER = "$metal_load$"
 local LOAD_HEADER_LEN = #LOAD_HEADER
+local UNDO_HEADER = "$metal_undo$"
+local UNDO_HEADER_LEN = #UNDO_HEADER
+local REDO_HEADER = "$metal_redo$"
+local REDO_HEADER_LEN = #REDO_HEADER
 
 local CHEAT_SIG = "$c$"
 local CHEAT_SIG_LEN = #CHEAT_SIG
@@ -68,6 +72,59 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local scratchParts = {}
+
+-- ============================================================
+-- Undo / Redo stacks
+-- ============================================================
+local undoStack = {}
+local redoStack = {}
+local MAX_UNDO = 50
+
+local function snapshotShape(centerX, centerZ, radius, shape, angleDeg)
+	local halfSq = METAL_SQ * 0.5
+	local mxMin = max(0, floor((centerX - radius) / METAL_SQ))
+	local mxMax = min(METAL_MAP_X - 1, floor((centerX + radius) / METAL_SQ))
+	local mzMin = max(0, floor((centerZ - radius) / METAL_SQ))
+	local mzMax = min(METAL_MAP_Z - 1, floor((centerZ + radius) / METAL_SQ))
+	local snap = { cx = centerX, cz = centerZ, r = radius }
+	for mz = mzMin, mzMax do
+		local wz = mz * METAL_SQ + halfSq
+		for mx = mxMin, mxMax do
+			local wx = mx * METAL_SQ + halfSq
+			local inside = isInsideShape(wx - centerX, wz - centerZ, radius, shape, angleDeg)
+			if inside then
+				snap[#snap + 1] = mx
+				snap[#snap + 1] = mz
+				snap[#snap + 1] = spGetMetalAmount(mx, mz)
+			end
+		end
+	end
+	return snap
+end
+
+local function pushUndo(snap)
+	if #snap == 0 then return end
+	undoStack[#undoStack + 1] = snap
+	if #undoStack > MAX_UNDO then
+		table.remove(undoStack, 1)
+	end
+	-- New operation invalidates redo stack
+	for i = #redoStack, 1, -1 do redoStack[i] = nil end
+end
+
+local function applySnapshot(snap)
+	local redo = { cx = snap.cx, cz = snap.cz, r = snap.r }
+	for i = 1, #snap, 3 do
+		local mx = snap[i]
+		local mz = snap[i + 1]
+		local oldVal = snap[i + 2]
+		redo[#redo + 1] = mx
+		redo[#redo + 1] = mz
+		redo[#redo + 1] = spGetMetalAmount(mx, mz)
+		spSetMetalAmount(mx, mz, oldVal)
+	end
+	return redo
+end
 
 local function parseParts(payload)
 	local idx = 0
@@ -297,6 +354,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		curve     = max(0.1, min(5.0, curve))
 		metalTarget = max(0.01, min(50.0, metalTarget))
 
+		pushUndo(snapshotShape(centerX, centerZ, radius, shape, angleDeg))
 		applyPaint(centerX, centerZ, radius, shape, angleDeg, curve, direction, intensity, metalTarget)
 		recalcNearbyExtractors(centerX, centerZ, radius)
 		Spring.Echo("[Metal Brush] Paint applied at " .. centerX .. "," .. centerZ .. " r=" .. radius .. " shape=" .. shape .. " dir=" .. direction .. " int=" .. intensity .. " mv=" .. metalTarget)
@@ -325,6 +383,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		radius = max(8, min(2000, radius))
 		metalTarget = max(0.01, min(255.0, metalTarget))
 
+		pushUndo(snapshotShape(centerX, centerZ, radius, shape, angleDeg))
 		applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg, direction)
 		recalcNearbyExtractors(centerX, centerZ, radius)
 		Spring.Echo("[Metal Brush] Stamp applied at " .. centerX .. "," .. centerZ .. " r=" .. radius .. " mv=" .. metalTarget .. " dir=" .. direction)
@@ -415,6 +474,46 @@ function gadget:RecvLuaMsg(msg, playerID)
 			end
 		end
 		Spring.Echo("[Metal Brush] Loaded " .. loaded .. " metal squares")
+		return
+	end
+
+	-- UNDO: $metal_undo$[$c$]
+	if msg:sub(1, UNDO_HEADER_LEN) == UNDO_HEADER then
+		local rest = msg:sub(UNDO_HEADER_LEN + 1)
+		local certified = rest:sub(1, CHEAT_SIG_LEN) == CHEAT_SIG
+		if not isAllowed(certified) then return end
+		local snap = undoStack[#undoStack]
+		if not snap then
+			Spring.Echo("[Metal Brush] Undo: nothing to undo")
+			return
+		end
+		undoStack[#undoStack] = nil
+		local redo = applySnapshot(snap)
+		redoStack[#redoStack + 1] = redo
+		if snap.cx and snap.r then
+			recalcNearbyExtractors(snap.cx, snap.cz, snap.r)
+		end
+		Spring.Echo("[Metal Brush] Undo (" .. (#snap/3) .. " squares, " .. #undoStack .. " left)")
+		return
+	end
+
+	-- REDO: $metal_redo$[$c$]
+	if msg:sub(1, REDO_HEADER_LEN) == REDO_HEADER then
+		local rest = msg:sub(REDO_HEADER_LEN + 1)
+		local certified = rest:sub(1, CHEAT_SIG_LEN) == CHEAT_SIG
+		if not isAllowed(certified) then return end
+		local snap = redoStack[#redoStack]
+		if not snap then
+			Spring.Echo("[Metal Brush] Redo: nothing to redo")
+			return
+		end
+		redoStack[#redoStack] = nil
+		local undo = applySnapshot(snap)
+		undoStack[#undoStack + 1] = undo
+		if snap.cx and snap.r then
+			recalcNearbyExtractors(snap.cx, snap.cz, snap.r)
+		end
+		Spring.Echo("[Metal Brush] Redo (" .. (#snap/3) .. " squares, " .. #redoStack .. " left)")
 		return
 	end
 end

@@ -139,6 +139,12 @@ local uLocBrushRotation = nil
 -- Copy shader (blit existing texture into FBO)
 local copyShader = nil
 
+-- Splatmap overlay shader (channel-colorized world overlay)
+local overlayShader = nil
+
+-- Overlay state
+local showSplatOverlay = false
+
 -- Drawing
 local drawCacheList = nil
 local leftMouseHeld = false
@@ -395,6 +401,21 @@ local COPY_FRAG_SRC = [[
 	}
 ]]
 
+-- Overlay fragment shader: maps R/G/B/A splatmap channels to distinct indicator colors
+local OVERLAY_FRAG_SRC = [[
+	#version 130
+	uniform sampler2D tex0;  // splatmap RGBA (ch1=R, ch2=G, ch3=B, ch4=A)
+	void main() {
+		vec4 sp = texture2D(tex0, gl_TexCoord[0].st);
+		vec3 c = sp.r * vec3(1.0,  0.15, 0.15)   // ch1 = red
+		       + sp.g * vec3(0.15, 1.0,  0.15)   // ch2 = green
+		       + sp.b * vec3(0.2,  0.45, 1.0)    // ch3 = blue
+		       + sp.a * vec3(1.0,  0.85, 0.1);   // ch4 = yellow
+		float alpha = clamp(sp.r + sp.g + sp.b + sp.a, 0.0, 1.0) * 0.55;
+		gl_FragColor = vec4(c, alpha);
+	}
+]]
+
 local function createShaders()
 	paintShader = glCreateShader({
 		vertex = PAINT_VERT_SRC,
@@ -443,6 +464,18 @@ local function createShaders()
 		return false
 	end
 
+	overlayShader = glCreateShader({
+		vertex = PAINT_VERT_SRC,
+		fragment = OVERLAY_FRAG_SRC,
+		uniformInt = {
+			tex0 = 0,
+		},
+	})
+	if not overlayShader then
+		Echo("[Splat Painter] Failed to create overlay shader: " .. tostring(gl.GetShaderLog()))
+		return false
+	end
+
 	return true
 end
 
@@ -454,6 +487,10 @@ local function destroyShaders()
 	if copyShader then
 		glDeleteShader(copyShader)
 		copyShader = nil
+	end
+	if overlayShader then
+		glDeleteShader(overlayShader)
+		overlayShader = nil
 	end
 end
 
@@ -525,16 +562,46 @@ end
 
 -- ============ PAINT OPERATION ============
 
-local function paintBrushStroke(worldX, worldZ)
+local function paintBrushStroke(worldX, worldZ, rotDeg)
 	if not paintShader then return end
 
 	-- Queue stroke for execution in DrawWorld where GL context is available
-	pendingPaintStrokes[#pendingPaintStrokes + 1] = { worldX, worldZ }
+	pendingPaintStrokes[#pendingPaintStrokes + 1] = { worldX, worldZ, rotDeg or activeRotation }
+end
+
+-- Paint at a world point, integrating TerraformBrush grid-snap, angle-snap,
+-- and symmetric-position fan-out when those instruments are active.
+local function paintAtSymmetric(worldX, worldZ)
+	local tb = WG.TerraformBrush
+	local rot = activeRotation
+	if tb and tb.getState then
+		local st = tb.getState()
+		-- Protractor: use shared snap angle if active
+		if st.angleSnap then
+			rot = st.rotationDeg or rot
+		end
+		-- Grid snap
+		if st.gridSnap and tb.snapWorld then
+			worldX, worldZ = tb.snapWorld(worldX, worldZ, rot)
+		end
+		-- Symmetric fan-out
+		if st.symmetryActive and tb.getSymmetricPositions then
+			local positions = tb.getSymmetricPositions(worldX, worldZ, rot)
+			if positions and #positions > 0 then
+				for _, p in ipairs(positions) do
+					paintBrushStroke(p.x, p.z, p.rot or rot)
+				end
+				return
+			end
+		end
+	end
+	paintBrushStroke(worldX, worldZ, rot)
 end
 
 -- Actually execute a paint stroke (must be called from a Draw call-in)
-local function executePaintStroke(worldX, worldZ)
+local function executePaintStroke(worldX, worldZ, rotDeg)
 	if not fboTex or not paintShader then return end
+	rotDeg = rotDeg or activeRotation
 
 	-- We need a second FBO to ping-pong (read from current, write to new)
 	local tempTex = glCreateTexture(splatTexWidth, splatTexHeight, {
@@ -569,7 +636,7 @@ local function executePaintStroke(worldX, worldZ)
 		glUniform(uLocMapSize, Game.mapSizeX, Game.mapSizeZ)
 		glUniform(uLocBrushCurve, activeCurve)
 		glUniformInt(uLocBrushShape, SHAPE_INDEX[activeShape] or 0)
-		glUniform(uLocBrushRotation, activeRotation * pi / 180)
+		glUniform(uLocBrushRotation, rotDeg * pi / 180)
 
 		-- Smart filter uniforms
 		local sf = smartFilter
@@ -743,7 +810,12 @@ local function getState()
 		geoDecalCount = #placedGeoDecals,
 		undoCount = #undoStack,
 		redoCount = #redoStack,
+		showSplatOverlay = showSplatOverlay,
 	}
+end
+
+local function setSplatOverlay(enabled)
+	showSplatOverlay = enabled and true or false
 end
 
 local function activateSplat()
@@ -878,6 +950,7 @@ function widget:Initialize()
 		cycleExportFormat = cycleExportFormat,
 		setExportFormat = setExportFormat,
 		setGeoDecalMode = setGeoDecalMode,
+		setSplatOverlay = setSplatOverlay,
 		setGeoDecalSize = setGeoDecalSize,
 		placeGeoDecal = placeGeoDecal,
 		undoGeoDecal = undoGeoDecal,
@@ -905,6 +978,13 @@ end
 function widget:MousePress(mx, my, button)
 	if not active then return false end
 
+	-- Defer to measure tool when active so splat paint doesn't consume the click
+	do
+		local tb = WG.TerraformBrush
+		local st = tb and tb.getState and tb.getState() or nil
+		if st and st.measureActive then return false end
+	end
+
 	-- Geo decal mode: left-click places, right-click undoes
 	if geoDecalMode then
 		if button == 1 then
@@ -927,7 +1007,7 @@ function widget:MousePress(mx, my, button)
 		pendingSnapshot = true  -- snapshot before first stroke of this drag
 		local worldX, worldZ = getWorldMousePosition()
 		if worldX then
-			paintBrushStroke(worldX, worldZ)
+			paintAtSymmetric(worldX, worldZ)
 			lastPaintX = worldX
 			lastPaintZ = worldZ
 		end
@@ -939,7 +1019,7 @@ function widget:MousePress(mx, my, button)
 		pendingSnapshot = true  -- snapshot before first stroke of this drag
 		local worldX, worldZ = getWorldMousePosition()
 		if worldX then
-			paintBrushStroke(worldX, worldZ)
+			paintAtSymmetric(worldX, worldZ)
 			lastPaintX = worldX
 			lastPaintZ = worldZ
 		end
@@ -980,13 +1060,13 @@ function widget:MouseMove(mx, my, dx, dy, button)
 				local t = i / steps
 				local ix = lastPaintX + ddx * t
 				local iz = lastPaintZ + ddz * t
-				paintBrushStroke(ix, iz)
+				paintAtSymmetric(ix, iz)
 			end
 			lastPaintX = worldX
 			lastPaintZ = worldZ
 		end
 	else
-		paintBrushStroke(worldX, worldZ)
+		paintAtSymmetric(worldX, worldZ)
 		lastPaintX = worldX
 		lastPaintZ = worldZ
 	end
@@ -1290,6 +1370,44 @@ local function generateBrushOutline(centerX, centerZ, groundY)
 end
 
 function widget:DrawWorld()
+	-- Splatmap channel-colorized overlay (shown when chip is toggled, even when tool is inactive)
+	if showSplatOverlay and fboTex and overlayShader then
+		local GetGH = GetGroundHeight
+		local msX = Game.mapSizeX
+		local msZ = Game.mapSizeZ
+		local GRID_N = 32
+		local stepX = msX / GRID_N
+		local stepZ = msZ / GRID_N
+		glDepthTest(false)
+		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		glUseShader(overlayShader)
+		glTexture(0, fboTex)
+		glBeginEnd(GL_TRIANGLES, function()
+			for gx = 0, GRID_N - 1 do
+				for gz = 0, GRID_N - 1 do
+					local x1, x2 = gx * stepX, (gx + 1) * stepX
+					local z1, z2 = gz * stepZ, (gz + 1) * stepZ
+					local u1, u2 = x1 / msX, x2 / msX
+					local v1, v2 = z1 / msZ, z2 / msZ
+					local y11 = GetGH(x1, z1) + 4
+					local y21 = GetGH(x2, z1) + 4
+					local y22 = GetGH(x2, z2) + 4
+					local y12 = GetGH(x1, z2) + 4
+					glTexCoord(u1, v1); glVertex(x1, y11, z1)
+					glTexCoord(u2, v1); glVertex(x2, y21, z1)
+					glTexCoord(u2, v2); glVertex(x2, y22, z2)
+					glTexCoord(u1, v1); glVertex(x1, y11, z1)
+					glTexCoord(u2, v2); glVertex(x2, y22, z2)
+					glTexCoord(u1, v2); glVertex(x1, y12, z2)
+				end
+			end
+		end)
+		glTexture(0, false)
+		glUseShader(0)
+		glBlending(false)
+		glDepthTest(true)
+	end
+
 	-- Draw placed geo decals as textured ground quads (always, even when not active)
 	if #placedGeoDecals > 0 then
 		glDepthTest(true)
@@ -1378,7 +1496,7 @@ function widget:DrawWorld()
 	-- Execute queued paint strokes
 	if #pendingPaintStrokes > 0 then
 		for _, stroke in ipairs(pendingPaintStrokes) do
-			executePaintStroke(stroke[1], stroke[2])
+			executePaintStroke(stroke[1], stroke[2], stroke[3])
 		end
 		pendingPaintStrokes = {}
 	end

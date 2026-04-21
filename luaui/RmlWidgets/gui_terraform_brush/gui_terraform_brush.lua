@@ -638,6 +638,7 @@ end
 
 local function onModeClick(mode)
 	return function(event)
+		if widgetState.noTerraform then event:StopPropagation(); return end
 		playSound("modeSwitch")
 		clearPassthrough()
 		-- Deactivate feature placer / weather brush / splat painter / metal brush when switching to a terraform mode
@@ -689,7 +690,15 @@ local function onShapeClick(shape)
 		-- Route to feature placer, splat painter, or terraform brush based on active mode
 		local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
 		local spState = WG.SplatPainter and WG.SplatPainter.getState()
-		if fpState and fpState.active then
+		local lpState = WG.LightPlacer and WG.LightPlacer.getState()
+		local lpActive = widgetState.lightActive and lpState and lpState.active
+		if lpActive then
+			if shape ~= "circle" and shape ~= "square" then
+				event:StopPropagation()
+				return
+			end
+			WG.LightPlacer.setShape(shape)
+		elseif fpState and fpState.active then
 			if shape == "ring" or shape == "fill" then
 				event:StopPropagation()
 				return
@@ -1075,11 +1084,7 @@ local guideHints = {
 	["btn-sp-alt-max-enable"]   = "Enable a maximum altitude filter — no painting above this elevation threshold.",
 	["btn-sp-export-format"]    = "Click to cycle the export image format between PNG, DDS and TGA.",
 	["btn-sp-save"]             = "Save the current splatmap distribution texture to disk for backup or external editing.",
-	["btn-decals"]              = "Open the Decals panel: decal library (scars, explosions, tracks, builds), export & analytics, and combat heatmap tools.",
-	["btn-dc-export-all"]       = "Export ALL decals (GL4 + engine) as Lua table, CSV, stamp file, and features.lua.",
-	["btn-dc-export-stamp"]     = "Export engine decals as a re-importable stamp file that recreates them on any map via Spring.CreateGroundDecal.",
-	["btn-dc-export-features"]  = "Convert decal positions into a features.lua file — permanent map debris/craters for mappers.",
-	["btn-dc-export-csv"]       = "Export decal snapshot as CSV for use in Python, GIS tools, or spreadsheets.",
+	["btn-decals"]              = "Open the Decals panel: decal library (scars, explosions, tracks, builds) and combat heatmap tools.",
 	["btn-dc-heatmap-export"]   = "Save the combat heatmap (accumulated explosion density) as CSV grid + PGM grayscale image.",
 	["btn-dc-heatmap-reset"]    = "Reset the heatmap — clears all accumulated explosion tracking data.",
 	-- Light Placer controls
@@ -1098,10 +1103,6 @@ local guideHints = {
 	["slider-lp-brightness"]    = "Overall brightness multiplier. Higher values produce more intense light. Use with care — values above 5 can bloom significantly.",
 	["slider-lp-light-radius"]  = "How far the light reaches from its center in world units (elmos). Larger radius = softer, wider light.",
 	["slider-lp-elevation"]     = "Height offset above the ground where lights are placed (in elmos). 0 = on the ground, higher = floating above terrain. Shift+Scroll.",
-	["slider-lp-modelfactor"]   = "How strongly the light affects 3D models. 0 = light ignores models, 1 = normal, higher = exaggerated.",
-	["slider-lp-specular"]      = "Specular highlight intensity. Higher values create shinier, more reflective surfaces under the light.",
-	["slider-lp-scattering"]    = "Atmospheric scattering amount. Higher values make the light more visible in fog and atmosphere.",
-	["slider-lp-lensflare"]     = "Lens flare intensity when looking toward the light source. 0 = none, higher = more prominent flare.",
 	["slider-lp-pitch"]         = "Vertical aiming angle for cone/beam lights. -90 = straight down, 0 = horizontal, 90 = straight up.",
 	["slider-lp-yaw"]           = "Horizontal rotation angle for cone/beam lights (0–360°). Controls which compass direction the light faces.",
 	["slider-lp-roll"]          = "Roll rotation of cone/beam lights (0–360°). Mostly useful for asymmetric beam patterns.",
@@ -2213,12 +2214,12 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	-- Metal undo/redo (shares terraform undo system)
+	-- Metal undo/redo (per-tool undo via metal gadget)
 	local mbUndoBtn = doc:GetElementById("btn-mb-undo")
 	if mbUndoBtn then
 		mbUndoBtn:AddEventListener("click", function(event)
 			playSound("undo")
-			if WG.TerraformBrush then WG.TerraformBrush.undo() end
+			if WG.MetalBrush and WG.MetalBrush.undo then WG.MetalBrush.undo() end
 			event:StopPropagation()
 		end, false)
 	end
@@ -2227,7 +2228,7 @@ local function attachEventListeners()
 	if mbRedoBtn then
 		mbRedoBtn:AddEventListener("click", function(event)
 			playSound("undo")
-			if WG.TerraformBrush then WG.TerraformBrush.redo() end
+			if WG.MetalBrush and WG.MetalBrush.redo then WG.MetalBrush.redo() end
 			event:StopPropagation()
 		end, false)
 	end
@@ -3377,7 +3378,7 @@ local function attachEventListeners()
 			if WG.DecalPlacer then
 				local s = WG.DecalPlacer.getState()
 				if not s or not s.active then
-					WG.DecalPlacer.setMode("scatter")
+					WG.DecalPlacer.setMode("point")
 				end
 			end
 			local clayBtn = doc:GetElementById("btn-clay-mode")
@@ -3758,6 +3759,17 @@ local function attachEventListeners()
 
 	-- ===== Transport (auto-scroll) button listeners =====
 	widgetState.regTransports(doc)
+
+	-- Map damage disabled: show notice banner and dim terrain deformation tools
+	if Game.mapDamage == false then
+		widgetState.noTerraform = true
+		do
+			local noticeEl = doc:GetElementById("tf-mapdamage-notice")
+			if noticeEl then noticeEl:SetClass("hidden", false) end
+			local terrainSectionEl = doc:GetElementById("section-terrain")
+			if terrainSectionEl then terrainSectionEl:SetClass("tf-terrain-locked", true) end
+		end
+	end
 end
 
 
@@ -4313,6 +4325,13 @@ end
 function widget:Update()
 	local ok, err = pcall(function()
 
+	-- One-shot: when map damage is disabled, auto-switch to Features tool on first update
+	if widgetState.noTerraform and not widgetState.noTerraformInitDone and WG.FeaturePlacer then
+		widgetState.noTerraformInitDone = true
+		if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
+		WG.FeaturePlacer.setMode("scatter")
+	end
+
 	-- Poll-based window drag (position only — mouseup ends drag via doc listener)
 	local ds = windowDragState
 	if ds.active and ds.rootEl then
@@ -4619,7 +4638,10 @@ function widget:Update()
 		end
 	end
 	if widgetState.shapeRowEl then
-		widgetState.shapeRowEl:SetClass("hidden", envActive or lpActive or gbActive or clActive)
+		-- Scene (environment), clone, and startpos do not use shapes at all
+		local hideShape = envActive or clActive or stpActive
+			or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
+		widgetState.shapeRowEl:SetClass("hidden", hideShape and true or false)
 	end
 	if widgetState.smoothSubmodesEl then
 		local otherToolActive = fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive
@@ -4648,20 +4670,28 @@ function widget:Update()
 		widgetState.noiseRootEl:SetClass("hidden", not noiseActive or widgetState.noiseManuallyHidden)
 	end
 
-	-- Disable ring shape when in feature, weather, splat, or metal mode
+	-- Disable ring shape when in feature, weather, splat, metal, or light mode
 	local ringBtn = widgetState.shapeButtons.ring
 	if ringBtn then
-		ringBtn:SetClass("disabled", fpActive or wbActive or spActive or mbActive or gbActive or false)
+		ringBtn:SetClass("disabled", fpActive or wbActive or spActive or mbActive or gbActive or lpActive or false)
 	end
 
-	-- Disable fill+clay in metal mode; disable fill in feature mode
+	-- Disable hexagon/octagon/triangle in light mode (LightPlacer only supports circle/square)
+	local hexBtn = widgetState.shapeButtons.hexagon
+	if hexBtn then hexBtn:SetClass("disabled", lpActive or false) end
+	local octBtn = widgetState.shapeButtons.octagon
+	if octBtn then octBtn:SetClass("disabled", lpActive or false) end
+	local triBtn = widgetState.shapeButtons.triangle
+	if triBtn then triBtn:SetClass("disabled", lpActive or false) end
+
+	-- Disable fill+clay in metal mode; disable fill in feature/grass/weather/light/noise modes
 	local fillBtn = widgetState.shapeButtons.fill
 	if fillBtn then
-		fillBtn:SetClass("disabled", mbActive or fpActive or false)
+		fillBtn:SetClass("disabled", mbActive or fpActive or gbActive or wbActive or lpActive or noiseActive or false)
 	end
 	local clayBtn = doc and doc:GetElementById("btn-clay-mode")
 	if clayBtn then
-		clayBtn:SetClass("disabled", mbActive or false)
+		clayBtn:SetClass("disabled", mbActive or lpActive or false)
 	end
 
 	local doc = widgetState.document
@@ -4701,7 +4731,10 @@ function widget:Update()
 			local rampTypeRowEl = doc:GetElementById("tf-ramp-type-row")
 			if rampTypeRowEl then rampTypeRowEl:SetClass("hidden", true) end
 			local shapeRowEl = doc:GetElementById("tf-shape-row")
-			if shapeRowEl then shapeRowEl:SetClass("hidden", false) end
+			-- Scene (env), clone, and startpos do not use shapes — keep hidden for those
+			local hideShape2 = envActive or clActive or stpActive
+				or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
+			if shapeRowEl then shapeRowEl:SetClass("hidden", hideShape2 and true or false) end
 		end
 
 		-- Preemptively gray out the grass button on maps with no grass data.
@@ -4964,6 +4997,36 @@ function widget:Update()
 			local measureImg = doc:GetElementById("btn-measure")
 			if measureImg then
 				measureImg:SetClass("active", state.measureActive == true)
+			end
+			-- Ramp-manipulator discoverability: dot + chip pulse once a ramp is drawn
+			do
+				local curCount = state.measureChainCount or 0
+				local lastCount = widgetState.lastMeasureChainCount or 0
+				if curCount > lastCount then
+					widgetState.instrumentsHintActive = true
+				end
+				widgetState.lastMeasureChainCount = curCount
+				local instSec = doc:GetElementById("section-instruments")
+				local instDot = doc:GetElementById("instruments-notify-dot")
+				if instDot then
+					local secHidden = instSec and instSec:IsClassSet("hidden") or false
+					instDot:SetClass("hidden", not (widgetState.instrumentsHintActive and secHidden))
+				end
+				if widgetState.instrumentsPulseFrame and Spring.GetGameFrame() >= widgetState.instrumentsPulseFrame then
+					widgetState.instrumentsPulseFrame = nil
+					if widgetState.instrumentsHintActive then
+						widgetState.instrumentsHintActive = false
+						if measureImg then
+							measureImg:SetClass("tf-chip-2pulse", false)
+							measureImg:SetClass("tf-chip-2pulse", true)
+							widgetState.instrumentsPulseExpiry = (Spring.GetGameSeconds() or 0) + 1.25
+						end
+					end
+				end
+				if widgetState.instrumentsPulseExpiry and (Spring.GetGameSeconds() or 0) >= widgetState.instrumentsPulseExpiry then
+					widgetState.instrumentsPulseExpiry = nil
+					if measureImg then measureImg:SetClass("tf-chip-2pulse", false) end
+				end
 			end
 			local measureToolRow = doc:GetElementById("measure-toolbar-row")
 			if measureToolRow then

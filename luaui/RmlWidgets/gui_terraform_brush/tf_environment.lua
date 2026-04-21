@@ -398,7 +398,6 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-toggle-cl-undo",      "img-toggle-cl-undo",      "section-cl-undo",      false)
 		envSectionToggle("btn-toggle-tf-undo",      "img-toggle-tf-undo",      "section-tf-undo",      false)
 		envSectionToggle("btn-toggle-spl-channel",  "img-toggle-spl-channel",  "section-spl-channel",  true)
-		envSectionToggle("btn-toggle-dc-export",    "img-toggle-dc-export",    "section-dc-export",    false)
 		envSectionToggle("btn-toggle-dc-heatmap",   "img-toggle-dc-heatmap",   "section-dc-heatmap",   false)
 		envSectionToggle("btn-toggle-dc-library",   "img-toggle-dc-library",   "section-dc-library",   true)
 		envSectionToggle("btn-toggle-dc-dist",      "img-toggle-dc-dist",      "section-dc-dist",      true)
@@ -417,6 +416,21 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-toggle-fp-controls",     "img-toggle-fp-controls",     "section-fp-controls",     true)
 		envSectionToggle("btn-toggle-fp-smart",        "img-toggle-fp-smart",        "section-fp-smart",        false)
 		envSectionToggle("btn-toggle-gb-smart",        "img-toggle-gb-smart",        "section-gb-smart",        false)
+		envSectionToggle("btn-toggle-sp-overlays",     "img-toggle-sp-overlays",     "section-sp-overlays",     false)
+		do
+			local spOvBtn = doc:GetElementById("btn-toggle-sp-overlays")
+			if spOvBtn then
+				spOvBtn:AddEventListener("click", function()
+					local sec = doc:GetElementById("section-sp-overlays")
+					if sec and not sec:IsClassSet("hidden") then
+						widgetState.splatDisplayPulseFrame = Spring.GetGameFrame() + 1
+					end
+				end, false)
+			end
+		end
+		envSectionToggle("btn-toggle-sp-instruments",  "img-toggle-sp-instruments",  "section-sp-instruments",  false)
+		envSectionToggle("btn-toggle-sp-controls",     "img-toggle-sp-controls",     "section-sp-controls",     true)
+		envSectionToggle("btn-toggle-sp-smart",        "img-toggle-sp-smart",        "section-sp-smart",        false)
 
 		-- Pill-button tab switching for smart filter sub-panels
 		do
@@ -440,6 +454,12 @@ function M.attach(doc, ctx)
 				{ btnId = "fp-filter-chip-altitude",  contentId = "fp-smart-altitude-content" },
 			}, function()
 				if WG.FeaturePlacer then WG.FeaturePlacer.setSmartEnabled(true) end
+			end)
+			wireIndependentPills({
+				{ btnId = "sp-filter-chip-slope",    contentId = "sp-smart-slope-content" },
+				{ btnId = "sp-filter-chip-altitude", contentId = "sp-smart-altitude-content" },
+			}, function()
+				if WG.SplatPainter then WG.SplatPainter.setSmartEnabled(true) end
 			end)
 
 			-- Exclusive tab pills for grass brush (original behavior)
@@ -473,7 +493,6 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-toggle-wb-instruments",  "img-toggle-wb-instruments",  "section-wb-instruments",  false)
 		envSectionToggle("btn-toggle-wb-controls",     "img-toggle-wb-controls",     "section-wb-controls",     true)
 		envSectionToggle("btn-toggle-sp-undo",         "img-toggle-sp-undo",         "section-sp-undo",         false)
-		envSectionToggle("btn-toggle-sp-overlays",     "img-toggle-sp-overlays",     "section-sp-overlays",     false)
 		envSectionToggle("btn-toggle-sp-instruments",  "img-toggle-sp-instruments",  "section-sp-instruments",  false)
 		envSectionToggle("btn-toggle-sp-controls",     "img-toggle-sp-controls",     "section-sp-controls",     true)
 		envSectionToggle("btn-toggle-dc-overlays",     "img-toggle-dc-overlays",     "section-dc-overlays",     false)
@@ -560,6 +579,17 @@ function M.attach(doc, ctx)
 		end
 		widgetState.warningToggle("btn-toggle-overlays",    "img-toggle-overlays",    "section-overlays",    "warn-chip-overlays",    {"btn-grid-overlay","btn-height-colormap"}, false)
 		widgetState.warningToggle("btn-toggle-instruments", "img-toggle-instruments", "section-instruments", "warn-chip-instruments", {"btn-grid-snap","btn-angle-snap","btn-measure","btn-symmetry"}, false)
+		do
+			local instBtn = doc:GetElementById("btn-toggle-instruments")
+			if instBtn then
+				instBtn:AddEventListener("click", function()
+					local sec = doc:GetElementById("section-instruments")
+					if sec and not sec:IsClassSet("hidden") then
+						widgetState.instrumentsPulseFrame = Spring.GetGameFrame() + 1
+					end
+				end, false)
+			end
+		end
 
 		-- Skybox Library collapsible sections (default collapsed)
 		envSectionToggle("btn-env-toggle-skyrot",   "img-env-toggle-skyrot",   "env-section-skyrot",   false)

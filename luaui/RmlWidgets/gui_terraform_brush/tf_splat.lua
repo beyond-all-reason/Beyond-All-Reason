@@ -231,7 +231,11 @@ function M.attach(doc, ctx)
 			btn:AddEventListener("click", function(event)
 				if WG.SplatPainter then
 					local sf = WG.SplatPainter.getState().smartFilters
-					WG.SplatPainter.setSmartFilter(filterKey, not sf[filterKey])
+					local newVal = not sf[filterKey]
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.SplatPainter.setSmartFilter(filterKey, newVal)
+					-- Auto-enable smart filter when any individual filter is turned on
+					if newVal then WG.SplatPainter.setSmartEnabled(true) end
 				end
 				event:StopPropagation()
 			end, false)
@@ -242,17 +246,6 @@ function M.attach(doc, ctx)
 	wireSpSmartToggle("btn-sp-prefer-slopes",  "preferSlopes")
 	wireSpSmartToggle("btn-sp-alt-min-enable", "altMinEnable")
 	wireSpSmartToggle("btn-sp-alt-max-enable", "altMaxEnable")
-
-	local btnSpSmartToggle = doc:GetElementById("btn-sp-smart-toggle")
-	if btnSpSmartToggle then
-		btnSpSmartToggle:AddEventListener("click", function(event)
-			if WG.SplatPainter then
-				local st = WG.SplatPainter.getState()
-				WG.SplatPainter.setSmartEnabled(not st.smartEnabled)
-			end
-			event:StopPropagation()
-		end, false)
-	end
 
 	local spSliderSlopeMax = doc:GetElementById("sp-slider-slope-max")
 	if spSliderSlopeMax then
@@ -397,6 +390,310 @@ function M.attach(doc, ctx)
 		end
 	end
 
+	-- ============================================================
+	-- DISPLAY + INSTRUMENTS (mirrors tf_metal.lua pattern, prefix sp-)
+	-- ============================================================
+	do
+		local function chipToggle(id, getter, setter)
+			local el = doc:GetElementById(id)
+			if not el then return end
+			el:AddEventListener("click", function(ev)
+				if WG.TerraformBrush then
+					local newVal = not getter()
+					playSound(newVal and "toggleOn" or "toggleOff")
+					setter(newVal)
+					el:SetClass("active", newVal)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local function getTFState() return WG.TerraformBrush and WG.TerraformBrush.getState() or {} end
+
+		-- DISPLAY: grid overlay + height colormap (shared TB state, drawn by terraform widget always)
+		chipToggle("btn-sp-grid-overlay",
+			function() return getTFState().gridOverlay end,
+			function(v) WG.TerraformBrush.setGridOverlay(v) end)
+		chipToggle("btn-sp-height-colormap",
+			function() return getTFState().heightColormap end,
+			function(v) WG.TerraformBrush.setHeightColormap(v) end)
+		-- Splat Map overlay (channel-colorized world overlay, drawn by splat widget)
+		local btnSplatOverlay = doc:GetElementById("btn-sp-splat-overlay")
+		if btnSplatOverlay then
+			btnSplatOverlay:AddEventListener("click", function(ev)
+				local sp = WG.SplatPainter
+				if sp then
+					local newVal = not sp.getState().showSplatOverlay
+					sp.setSplatOverlay(newVal)
+					playSound(newVal and "toggleOn" or "toggleOff")
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+
+		-- INSTRUMENTS master chips
+		local spSnapRow    = doc:GetElementById("sp-grid-snap-size-row")
+		local spAngleRow   = doc:GetElementById("sp-angle-snap-step-row")
+		local spMeasureRow = doc:GetElementById("sp-measure-toolbar-row")
+		local spSymRow     = doc:GetElementById("sp-symmetry-toolbar-row")
+
+		local spSnapBtn = doc:GetElementById("btn-sp-grid-snap")
+		if spSnapBtn then
+			spSnapBtn:AddEventListener("click", function(ev)
+				if WG.TerraformBrush then
+					local newVal = not getTFState().gridSnap
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setGridSnap(newVal)
+					spSnapBtn:SetClass("active", newVal)
+					if spSnapRow then spSnapRow:SetClass("hidden", not newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local spMeasureBtn = doc:GetElementById("btn-sp-measure")
+		if spMeasureBtn then
+			spMeasureBtn:AddEventListener("click", function(ev)
+				if WG.TerraformBrush then
+					local newVal = not getTFState().measureActive
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setMeasureActive(newVal)
+					spMeasureBtn:SetClass("active", newVal)
+					if spMeasureRow then spMeasureRow:SetClass("hidden", not newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+
+		-- Grid snap size slider
+		local spSnapSlider = doc:GetElementById("sp-slider-grid-snap-size")
+		if spSnapSlider then
+			spSnapSlider:AddEventListener("change", function(ev)
+				if uiState.updatingFromCode then ev:StopPropagation(); return end
+				if WG.TerraformBrush then
+					local v = tonumber(spSnapSlider:GetAttribute("value")) or 48
+					WG.TerraformBrush.setGridSnapSize(v)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local function spSnapStep(delta)
+			if WG.TerraformBrush then
+				local cur = tonumber(getTFState().gridSnapSize) or 48
+				local v = math.max(16, math.min(128, cur + delta))
+				WG.TerraformBrush.setGridSnapSize(v)
+			end
+		end
+		local sd = doc:GetElementById("sp-btn-snap-size-down")
+		if sd then sd:AddEventListener("click", function(ev) spSnapStep(-16); ev:StopPropagation() end, false) end
+		local su = doc:GetElementById("sp-btn-snap-size-up")
+		if su then su:AddEventListener("click", function(ev) spSnapStep(16); ev:StopPropagation() end, false) end
+
+		-- Protractor (angle snap)
+		local spAngleBtn = doc:GetElementById("btn-sp-angle-snap")
+		if spAngleBtn then
+			spAngleBtn:AddEventListener("click", function(ev)
+				if WG.TerraformBrush then
+					local newVal = not getTFState().angleSnap
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setAngleSnap(newVal)
+					spAngleBtn:SetClass("active", newVal)
+					if spAngleRow then spAngleRow:SetClass("hidden", not newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local SP_ANGLE_PRESETS = {7.5, 15, 30, 45, 60, 90}
+		local function spFindAnglePresetIdx(val)
+			local best, bestD = 2, math.huge
+			for i, p in ipairs(SP_ANGLE_PRESETS) do
+				local d = math.abs(p - (val or 15))
+				if d < bestD then bestD = d; best = i end
+			end
+			return best
+		end
+		local function spApplyAnglePreset(idx)
+			idx = math.max(1, math.min(#SP_ANGLE_PRESETS, idx))
+			local pval = SP_ANGLE_PRESETS[idx]
+			local pstr = (pval == math.floor(pval)) and tostring(math.floor(pval)) or tostring(pval)
+			if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
+			local sl = doc:GetElementById("sp-slider-angle-snap-step")
+			if sl then sl:SetAttribute("value", tostring(idx - 1)) end
+			local lbl = doc:GetElementById("sp-angle-snap-step-label")
+			if lbl then lbl.inner_rml = pstr end
+			local nb = doc:GetElementById("sp-slider-angle-snap-step-numbox")
+			if nb then nb:SetAttribute("value", pstr) end
+		end
+		local spAngleSlider = doc:GetElementById("sp-slider-angle-snap-step")
+		if spAngleSlider then
+			spAngleSlider:AddEventListener("change", function(ev)
+				if uiState.updatingFromCode then ev:StopPropagation(); return end
+				local idx = (tonumber(spAngleSlider:GetAttribute("value")) or 1) + 1
+				spApplyAnglePreset(idx)
+				ev:StopPropagation()
+			end, false)
+		end
+		local spStepDn = doc:GetElementById("sp-btn-angle-step-down")
+		if spStepDn then spStepDn:AddEventListener("click", function(ev)
+			if WG.TerraformBrush then spApplyAnglePreset(spFindAnglePresetIdx(getTFState().angleSnapStep) - 1) end
+			ev:StopPropagation()
+		end, false) end
+		local spStepUp = doc:GetElementById("sp-btn-angle-step-up")
+		if spStepUp then spStepUp:AddEventListener("click", function(ev)
+			if WG.TerraformBrush then spApplyAnglePreset(spFindAnglePresetIdx(getTFState().angleSnapStep) + 1) end
+			ev:StopPropagation()
+		end, false) end
+		local spAutoBtn = doc:GetElementById("sp-btn-angle-autosnap")
+		if spAutoBtn then
+			spAutoBtn:AddEventListener("click", function(ev)
+				if WG.TerraformBrush then
+					local newVal = not getTFState().angleSnapAuto
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setAngleSnapAuto(newVal)
+					spAutoBtn:SetClass("active", newVal)
+					local manualRow = doc:GetElementById("sp-angle-manual-spoke-row")
+					if manualRow then manualRow:SetClass("hidden", newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local spManualSlider = doc:GetElementById("sp-slider-manual-spoke")
+		local function spApplyManualSpoke(idx)
+			if WG.TerraformBrush then
+				WG.TerraformBrush.setAngleSnapManualSpoke(idx)
+				local step = getTFState().angleSnapStep or 15
+				local deg  = (idx * step) % 360
+				local lbl  = doc:GetElementById("sp-angle-manual-spoke-label")
+				if lbl then lbl.inner_rml = tostring(deg) end
+				if spManualSlider then spManualSlider:SetAttribute("value", tostring(idx)) end
+			end
+		end
+		if spManualSlider then
+			spManualSlider:AddEventListener("change", function(ev)
+				if uiState.updatingFromCode then ev:StopPropagation(); return end
+				spApplyManualSpoke(tonumber(spManualSlider:GetAttribute("value")) or 0)
+				ev:StopPropagation()
+			end, false)
+		end
+		local spMsDn = doc:GetElementById("sp-btn-manual-spoke-down")
+		if spMsDn then spMsDn:AddEventListener("click", function(ev)
+			if WG.TerraformBrush then
+				local s = getTFState()
+				local step = s.angleSnapStep or 15
+				local num  = math.max(1, math.floor(360 / step))
+				spApplyManualSpoke(((s.angleSnapManualSpoke or 0) - 1 + num) % num)
+			end
+			ev:StopPropagation()
+		end, false) end
+		local spMsUp = doc:GetElementById("sp-btn-manual-spoke-up")
+		if spMsUp then spMsUp:AddEventListener("click", function(ev)
+			if WG.TerraformBrush then
+				local s = getTFState()
+				local step = s.angleSnapStep or 15
+				local num  = math.max(1, math.floor(360 / step))
+				spApplyManualSpoke(((s.angleSnapManualSpoke or 0) + 1) % num)
+			end
+			ev:StopPropagation()
+		end, false) end
+
+		-- Measure toolbar
+		local function spMeasureBtnClick(id, fn)
+			local el = doc:GetElementById(id)
+			if el then el:AddEventListener("click", function(ev) fn(); ev:StopPropagation() end, false) end
+		end
+		spMeasureBtnClick("sp-btn-measure-show-length", function() if WG.TerraformBrush then WG.TerraformBrush.setMeasureShowLength(not getTFState().measureShowLength) end end)
+		spMeasureBtnClick("sp-btn-measure-clear",       function() if WG.TerraformBrush then WG.TerraformBrush.clearMeasureLines() end end)
+
+		-- Symmetry master + sub-toolbar
+		local spSymBtn = doc:GetElementById("btn-sp-symmetry")
+		if spSymBtn then
+			spSymBtn:AddEventListener("click", function(ev)
+				if WG.TerraformBrush then
+					local s = getTFState()
+					local newVal = not s.symmetryActive
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setSymmetryActive(newVal)
+					if newVal and not (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) then
+						WG.TerraformBrush.setSymmetryMirrorX(true)
+						local mxBtn = doc:GetElementById("sp-btn-symmetry-mirror-x")
+						if mxBtn then mxBtn:SetClass("active", true) end
+					end
+					spSymBtn:SetClass("active", newVal)
+					if spSymRow then spSymRow:SetClass("hidden", not newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local function spSymBtnClick(id, fn)
+			local el = doc:GetElementById(id)
+			if el then el:AddEventListener("click", function(ev) fn(); ev:StopPropagation() end, false) end
+		end
+		local function spSyncSymChipClasses()
+			local s = getTFState()
+			local rEl = doc:GetElementById("sp-btn-symmetry-radial")
+			local xEl = doc:GetElementById("sp-btn-symmetry-mirror-x")
+			local yEl = doc:GetElementById("sp-btn-symmetry-mirror-y")
+			if rEl then rEl:SetClass("active", s.symmetryRadial and true or false) end
+			if xEl then xEl:SetClass("active", s.symmetryMirrorX and true or false) end
+			if yEl then yEl:SetClass("active", s.symmetryMirrorY and true or false) end
+			local countRow = doc:GetElementById("sp-symmetry-radial-count-row")
+			if countRow then countRow:SetClass("hidden", not s.symmetryRadial) end
+			local angleRow = doc:GetElementById("sp-symmetry-mirror-angle-row")
+			if angleRow then angleRow:SetClass("hidden", not (s.symmetryMirrorX or s.symmetryMirrorY)) end
+		end
+		spSymBtnClick("sp-btn-symmetry-radial",    function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryRadial(not getTFState().symmetryRadial); spSyncSymChipClasses() end end)
+		spSymBtnClick("sp-btn-symmetry-mirror-x",  function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorX(not getTFState().symmetryMirrorX); spSyncSymChipClasses() end end)
+		spSymBtnClick("sp-btn-symmetry-mirror-y",  function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorY(not getTFState().symmetryMirrorY); spSyncSymChipClasses() end end)
+		spSymBtnClick("sp-btn-symmetry-place-origin",  function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true); playSound("toggleOn") end end)
+		spSymBtnClick("sp-btn-symmetry-center-origin", function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryOrigin(nil, nil); playSound("toggleOff") end end)
+		spSymBtnClick("sp-btn-symmetry-count-down", function()
+			if WG.TerraformBrush then
+				local c = math.max(2, (getTFState().symmetryRadialCount or 2) - 1)
+				WG.TerraformBrush.setSymmetryRadialCount(c)
+			end
+		end)
+		spSymBtnClick("sp-btn-symmetry-count-up", function()
+			if WG.TerraformBrush then
+				local c = math.min(16, (getTFState().symmetryRadialCount or 2) + 1)
+				WG.TerraformBrush.setSymmetryRadialCount(c)
+			end
+		end)
+		spSymBtnClick("sp-btn-symmetry-angle-down", function()
+			if WG.TerraformBrush then
+				local a = ((getTFState().symmetryMirrorAngle or 0) - 5) % 360
+				WG.TerraformBrush.setSymmetryMirrorAngle(a)
+			end
+		end)
+		spSymBtnClick("sp-btn-symmetry-angle-up", function()
+			if WG.TerraformBrush then
+				local a = ((getTFState().symmetryMirrorAngle or 0) + 5) % 360
+				WG.TerraformBrush.setSymmetryMirrorAngle(a)
+			end
+		end)
+		local spCountSlider = doc:GetElementById("sp-slider-symmetry-radial-count")
+		if spCountSlider then
+			trackSliderDrag(spCountSlider, "sp-symmetry-radial-count")
+			spCountSlider:AddEventListener("change", function(ev)
+				if uiState.updatingFromCode then ev:StopPropagation(); return end
+				if WG.TerraformBrush then
+					local v = tonumber(spCountSlider:GetAttribute("value")) or 2
+					WG.TerraformBrush.setSymmetryRadialCount(v)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local spSymAngleSlider = doc:GetElementById("sp-slider-symmetry-mirror-angle")
+		if spSymAngleSlider then
+			trackSliderDrag(spSymAngleSlider, "sp-symmetry-mirror-angle")
+			spSymAngleSlider:AddEventListener("change", function(ev)
+				if uiState.updatingFromCode then ev:StopPropagation(); return end
+				if WG.TerraformBrush then
+					local v = tonumber(spSymAngleSlider:GetAttribute("value")) or 0
+					WG.TerraformBrush.setSymmetryMirrorAngle(v)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+	end
+
 end
 
 function M.sync(doc, ctx, spState, setSummary)
@@ -448,18 +745,18 @@ function M.sync(doc, ctx, spState, setSummary)
 			syncAndFlash(doc:GetElementById("sp-slider-curve"), "sp-curve", tostring(math.floor(spState.curve * 10 + 0.5)))
 
 			-- Smart filter UI sync
-			local spSmartOptions = doc:GetElementById("sp-smart-options")
-			if spSmartOptions then
-				local isSmart = spState.smartEnabled == true
-				spSmartOptions:SetClass("hidden", not isSmart)
-				local spSmartToggleBtn = doc:GetElementById("btn-sp-smart-toggle")
-				if spSmartToggleBtn then
-					spSmartToggleBtn:SetAttribute("src", isSmart
-						and "/luaui/images/terraform_brush/check_on.png"
-						or  "/luaui/images/terraform_brush/check_off.png")
+			do
+				local warnChip = doc:GetElementById("warn-chip-sp-smart")
+				if warnChip then
+					warnChip:SetClass("hidden", not (spState.smartEnabled == true))
 				end
 				if spState.smartFilters then
 					local sf = spState.smartFilters
+					-- Slope/Altitude chips active when any sub-filter in that category is on
+					local slopeChip = doc:GetElementById("sp-filter-chip-slope")
+					if slopeChip then slopeChip:SetClass("active", sf.avoidCliffs or sf.preferSlopes or false) end
+					local altChip = doc:GetElementById("sp-filter-chip-altitude")
+					if altChip then altChip:SetClass("active", sf.altMinEnable or sf.altMaxEnable or false) end
 
 					local avoidWaterBtn = doc:GetElementById("btn-sp-avoid-water")
 					if avoidWaterBtn then
@@ -600,6 +897,91 @@ function M.sync(doc, ctx, spState, setSummary)
 				"R ", tostring(spState.radius or 0),
 				"Str ", string.format("%.2f", spState.strength or 0),
 				"Int ", string.format("%.1f", spState.intensity or 0))
+		end
+
+		-- Sync DISPLAY + INSTRUMENTS chip states from shared TerraformBrush state
+		do
+			local tb = WG.TerraformBrush
+			if tb and tb.getState then
+				local s = tb.getState()
+				local function setChip(id, active)
+					local el = doc:GetElementById(id)
+					if el then el:SetClass("active", active and true or false) end
+				end
+				local function setHidden(id, hidden)
+					local el = doc:GetElementById(id)
+					if el then el:SetClass("hidden", hidden and true or false) end
+				end
+				setChip("btn-sp-grid-overlay",    s.gridOverlay)
+				setChip("btn-sp-height-colormap", s.heightColormap)
+				-- Splat Map overlay chip (own state from SplatPainter)
+				do
+					local sp = WG.SplatPainter
+					setChip("btn-sp-splat-overlay", sp and sp.getState and sp.getState().showSplatOverlay or false)
+				end
+				-- Hint dot: visible (pulsing) while DISPLAY section is closed
+				do
+					local hintDot = doc:GetElementById("sp-display-notify-dot")
+					if hintDot then
+						local sec = doc:GetElementById("section-sp-overlays")
+						hintDot:SetClass("hidden", sec and not sec:IsClassSet("hidden") or false)
+					end
+				end
+				-- Chip 2-pulse: fires the frame after DISPLAY section is opened
+				if widgetState.splatDisplayPulseFrame and Spring.GetGameFrame() >= widgetState.splatDisplayPulseFrame then
+					widgetState.splatDisplayPulseFrame = nil
+					local splatChip = doc:GetElementById("btn-sp-splat-overlay")
+					if splatChip then
+						splatChip:SetClass("tf-chip-2pulse", false)
+						splatChip:SetClass("tf-chip-2pulse", true)
+						widgetState.splatChip2PulseExpiry = (Spring.GetGameSeconds() or 0) + 1.25
+					end
+				end
+				-- Remove 2-pulse class after animation completes
+				if widgetState.splatChip2PulseExpiry and (Spring.GetGameSeconds() or 0) >= widgetState.splatChip2PulseExpiry then
+					widgetState.splatChip2PulseExpiry = nil
+					local splatChip = doc:GetElementById("btn-sp-splat-overlay")
+					if splatChip then splatChip:SetClass("tf-chip-2pulse", false) end
+				end
+				setChip("btn-sp-grid-snap",       s.gridSnap)
+				setChip("btn-sp-angle-snap",      s.angleSnap)
+				setChip("btn-sp-measure",         s.measureActive)
+				setChip("btn-sp-symmetry",        s.symmetryActive)
+				setHidden("sp-grid-snap-size-row",  not s.gridSnap)
+				setHidden("sp-angle-snap-step-row", not s.angleSnap)
+				setHidden("sp-measure-toolbar-row", not s.measureActive)
+				setHidden("sp-symmetry-toolbar-row",not s.symmetryActive)
+				-- Symmetry sub chips + sub rows
+				setChip("sp-btn-symmetry-radial",   s.symmetryRadial)
+				setChip("sp-btn-symmetry-mirror-x", s.symmetryMirrorX)
+				setChip("sp-btn-symmetry-mirror-y", s.symmetryMirrorY)
+				setHidden("sp-symmetry-radial-count-row",   not s.symmetryRadial)
+				setHidden("sp-symmetry-mirror-angle-row",   not (s.symmetryMirrorX or s.symmetryMirrorY))
+				-- Measure sub chips
+				setChip("sp-btn-measure-show-length", s.measureShowLength)
+				-- Angle auto-snap chip + manual spoke row
+				setChip("sp-btn-angle-autosnap", s.angleSnapAuto)
+				setHidden("sp-angle-manual-spoke-row", s.angleSnapAuto)
+				-- Labels
+				local function setLabel(id, text)
+					local el = doc:GetElementById(id)
+					if el then el.inner_rml = tostring(text) end
+				end
+				setLabel("sp-grid-snap-size-label",         s.gridSnapSize or 48)
+				setLabel("sp-symmetry-radial-count-label",  s.symmetryRadialCount or 2)
+				setLabel("sp-symmetry-mirror-angle-label",  s.symmetryMirrorAngle or 0)
+				local step = s.angleSnapStep or 15
+				setLabel("sp-angle-snap-step-label",
+					(step == math.floor(step)) and tostring(math.floor(step)) or tostring(step))
+				setLabel("sp-angle-manual-spoke-label", ((s.angleSnapManualSpoke or 0) * step) % 360)
+				-- Numbox + slider value sync (avoid re-firing change)
+				uiState.updatingFromCode = true
+				local nb = doc:GetElementById("sp-slider-grid-snap-size-numbox")
+				if nb then nb:SetAttribute("value", tostring(s.gridSnapSize or 48)) end
+				local sz = doc:GetElementById("sp-slider-grid-snap-size")
+				if sz then sz:SetAttribute("value", tostring(s.gridSnapSize or 48)) end
+				uiState.updatingFromCode = false
+			end
 		end
 
 end

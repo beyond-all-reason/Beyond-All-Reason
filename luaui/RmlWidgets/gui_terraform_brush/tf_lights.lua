@@ -168,22 +168,6 @@ function M.attach(doc, ctx)
 	end
 	end
 
-	-- Material section collapse toggle
-	do local matToggleBtn = doc:GetElementById("btn-lp-material-toggle")
-	local matSection   = doc:GetElementById("lp-material-section")
-	widgetState.lightMaterialVisible = true
-	if matToggleBtn and matSection then
-		matToggleBtn:AddEventListener("click", function(event)
-			widgetState.lightMaterialVisible = not widgetState.lightMaterialVisible
-			matSection:SetClass("hidden", not widgetState.lightMaterialVisible)
-			matToggleBtn:SetAttribute("src",
-				widgetState.lightMaterialVisible
-				and "/luaui/images/terraform_brush/check_on.png"
-				or  "/luaui/images/terraform_brush/check_off.png")
-			event:StopPropagation()
-		end, false)
-	end end
-
 	-- Brightness slider
 	local brightnessSlider = doc:GetElementById("slider-lp-brightness")
 	if brightnessSlider then
@@ -280,26 +264,6 @@ function M.attach(doc, ctx)
 		end, false)
 	end
 
-	-- Material sliders
-	local materials = {
-		{ id = "modelfactor", setter = "setModelfactor", scale = 100 },
-		{ id = "specular",    setter = "setSpecular",    scale = 100 },
-		{ id = "scattering",  setter = "setScattering",  scale = 100 },
-		{ id = "lensflare",   setter = "setLensflare",   scale = 100 },
-	}
-	for _, mat in ipairs(materials) do
-		local slider = doc:GetElementById("slider-lp-" .. mat.id)
-		if slider then
-			trackSliderDrag(slider, "lp-" .. mat.id)
-			slider:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then return end
-				local val = tonumber(slider:GetAttribute("value")) or 100
-				if WG.LightPlacer then WG.LightPlacer[mat.setter](val / mat.scale) end
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
 	-- Direction sliders (pitch, yaw, roll)
 	local dirSliders = {
 		{ id = "pitch", setter = "setPitch", scale = 10 },
@@ -341,6 +305,70 @@ function M.attach(doc, ctx)
 			if WG.LightPlacer then WG.LightPlacer.setBeamLength(val) end
 			event:StopPropagation()
 		end, false)
+	end
+
+	-- +/- buttons for direction / theta / beam-length / color channels
+	local nudgeBtns = {
+		{ id = "lp-pitch",       getter = "pitch",      setter = "setPitch",      step = 5  },
+		{ id = "lp-yaw",         getter = "yaw",        setter = "setYaw",        step = 10 },
+		{ id = "lp-roll",        getter = "roll",       setter = "setRoll",       step = 10 },
+		{ id = "lp-theta",       getter = "theta",      setter = "setTheta",      step = 0.05 },
+		{ id = "lp-beam-length", getter = "beamLength", setter = "setBeamLength", step = 50 },
+	}
+	for _, nb in ipairs(nudgeBtns) do
+		local down = doc:GetElementById("btn-" .. nb.id .. "-down")
+		if down then
+			down:AddEventListener("click", function(event)
+				if WG.LightPlacer then
+					local s = WG.LightPlacer.getState()
+					WG.LightPlacer[nb.setter](s[nb.getter] - nb.step)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+		local up = doc:GetElementById("btn-" .. nb.id .. "-up")
+		if up then
+			up:AddEventListener("click", function(event)
+				if WG.LightPlacer then
+					local s = WG.LightPlacer.getState()
+					WG.LightPlacer[nb.setter](s[nb.getter] + nb.step)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+	end
+
+	-- +/- buttons for color R/G/B channels
+	local colorChannels = { r = 1, g = 2, b = 3 }
+	for ch, idx in pairs(colorChannels) do
+		local down = doc:GetElementById("btn-lp-color-" .. ch .. "-down")
+		if down then
+			down:AddEventListener("click", function(event)
+				if WG.LightPlacer then
+					local s = WG.LightPlacer.getState()
+					local r, g, b = s.color[1], s.color[2], s.color[3]
+					if idx == 1 then r = math.max(0, r - 0.05)
+					elseif idx == 2 then g = math.max(0, g - 0.05)
+					else b = math.max(0, b - 0.05) end
+					WG.LightPlacer.setColor(r, g, b)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+		local up = doc:GetElementById("btn-lp-color-" .. ch .. "-up")
+		if up then
+			up:AddEventListener("click", function(event)
+				if WG.LightPlacer then
+					local s = WG.LightPlacer.getState()
+					local r, g, b = s.color[1], s.color[2], s.color[3]
+					if idx == 1 then r = math.min(1, r + 0.05)
+					elseif idx == 2 then g = math.min(1, g + 0.05)
+					else b = math.min(1, b + 0.05) end
+					WG.LightPlacer.setColor(r, g, b)
+				end
+				event:StopPropagation()
+			end, false)
+		end
 	end
 
 	-- Scatter count slider
@@ -798,6 +826,8 @@ function M.sync(doc, ctx, lpState, setSummary)
 		for mode, el in pairs(widgetState.lightModeButtons) do
 			el:SetClass("active", mode == lpState.mode)
 		end
+		-- Sync shape button active state to LightPlacer's shape
+		setActiveClass(widgetState.shapeButtons, lpState.shape)
 		-- Show/hide direction section for cone/beam
 		local dirSection = doc and doc:GetElementById("lp-direction-section")
 		if dirSection then dirSection:SetClass("hidden", lpState.lightType == "point") end
@@ -840,15 +870,6 @@ function M.sync(doc, ctx, lpState, setSummary)
 			local cb = math.floor(lpState.color[3] * 255)
 			colorPreview:SetAttribute("style", string.format("background-color: #%02x%02x%02x;", cr, cg, cb))
 		end
-		-- Material labels
-		local mfLabel = doc and doc:GetElementById("lp-modelfactor-label")
-		if mfLabel then mfLabel.inner_rml = string.format("%.2f", lpState.modelfactor) end
-		local spLabel = doc and doc:GetElementById("lp-specular-label")
-		if spLabel then spLabel.inner_rml = string.format("%.2f", lpState.specular) end
-		local scLabel = doc and doc:GetElementById("lp-scattering-label")
-		if scLabel then scLabel.inner_rml = string.format("%.2f", lpState.scattering) end
-		local lfLabel = doc and doc:GetElementById("lp-lensflare-label")
-		if lfLabel then lfLabel.inner_rml = string.format("%.2f", lpState.lensflare) end
 		-- Direction labels
 		local pitchLabel = doc and doc:GetElementById("lp-pitch-label")
 		if pitchLabel then pitchLabel.inner_rml = tostring(math.floor(lpState.pitch)) end
