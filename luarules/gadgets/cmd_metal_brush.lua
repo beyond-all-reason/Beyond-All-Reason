@@ -236,8 +236,13 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 		return
 	end
 
-	-- Count squares inside shape for budget calculation
+	-- Count squares inside shape, and separately count those also within extractor
+	-- radius of brush center. Stamp readout (spot: value) = sum of metal inside
+	-- extractor radius / 1000, so scale per-square such that the sum of in-radius
+	-- squares equals exactly metalTarget * 1000, regardless of brush size.
 	local squareCount = 0
+	local inExtractorCount = 0
+	local extRadSq = EXTRACTOR_RADIUS * EXTRACTOR_RADIUS
 	for mz = mzMin, mzMax do
 		local wz = mz * METAL_SQ + halfSq
 		for mx = mxMin, mxMax do
@@ -245,16 +250,18 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 			local inside = isInsideShape(wx - centerX, wz - centerZ, radius, shape, angleDeg)
 			if inside then
 				squareCount = squareCount + 1
+				local dx, dz = wx - centerX, wz - centerZ
+				if dx * dx + dz * dz < extRadSq then
+					inExtractorCount = inExtractorCount + 1
+				end
 			end
 		end
 	end
 
-	if squareCount == 0 then return end
+	if squareCount == 0 or inExtractorCount == 0 then return end
 
-	-- Per-pixel metal amount: spread the total budget evenly across all squares
-	-- Reference: standard 5x5 spot (21 squares) at metal=2.0 yields ~94 per square
-	local totalBudget = metalTarget * REF_METAL_BUDGET_PER_UNIT
-	local perSquare = totalBudget / squareCount
+	-- per-square value chosen so exactly metalTarget appears in the [spot] readout
+	local perSquare = (metalTarget * 1000) / inExtractorCount
 
 	for mz = mzMin, mzMax do
 		local wz = mz * METAL_SQ + halfSq
