@@ -727,7 +727,7 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 		end
 	end
 
-	-- SpawnLoadout actions with inline unitLoadout entries also create names.
+	-- SpawnUnits actions with inline unitLoadout entries also create names.
 	for actionID, action in pairs(actions) do
 		if action.type == actionTypes.SpawnUnits and action.parameters and action.parameters.unitLoadout then
 			for i, entry in ipairs(action.parameters.unitLoadout) do

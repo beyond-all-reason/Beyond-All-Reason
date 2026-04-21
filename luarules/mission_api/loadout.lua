@@ -80,7 +80,7 @@ end
 local function spawnUnitLoadout(unitLoadout)
 	for _, unit in ipairs(unitLoadout or {}) do
 		local spacing = unit.spacing or 0
-		local unitDef = UnitDefs[UnitDefNames[unit.unitDefName].id]
+		local unitDef = UnitDefNames[unit.unitDefName]
 		local xsize = unitDef.xsize * Game.squareSize + spacing
 		local zsize = unitDef.zsize * Game.squareSize + spacing
 
