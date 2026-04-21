@@ -48,8 +48,6 @@ local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetAllUnits = Spring.GetAllUnits
 local spGetCOBScriptID = Spring.GetCOBScriptID
 local spCallCOBScript = Spring.CallCOBScript
-local spUnitScriptGetScriptEnv = Spring.UnitScript.GetScriptEnv
-local spUnitScriptCallAsUnit = Spring.UnitScript.CallAsUnit
 local spEcho = Spring.Echo
 local spSetCustomCommandDrawData = Spring.SetCustomCommandDrawData
 local spGetGameFrame = Spring.GetGameFrame
@@ -88,11 +86,11 @@ local function GetScriptFunc(unitID, functionName)
 	if spGetCOBScriptID(unitID, functionName) then
 		return spCallCOBScript
 	end
-	local env = spUnitScriptGetScriptEnv(unitID)
+	local env = Spring.UnitScript.GetScriptEnv(unitID)
 	if env and env[functionName] then
 		return function(uid, fname, a, b, c, d, e, f, g, h, i, j, k, l)
-			local scriptEnv = spUnitScriptGetScriptEnv(uid)
-			spUnitScriptCallAsUnit(uid, scriptEnv[fname], a, b, c, d, e, f, g, h, i, j, k, l)
+			local scriptEnv = Spring.UnitScript.GetScriptEnv(uid)
+			Spring.UnitScript.CallAsUnit(uid, scriptEnv[fname], a, b, c, d, e, f, g, h, i, j, k, l)
 		end
 	end
 	return false
