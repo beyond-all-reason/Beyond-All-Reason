@@ -330,6 +330,14 @@ local function placeShapePositions(cx, cz)
 	end
 end
 
+-- Place all shape positions assigning every slot to the same allyTeam (used by symmetric copies).
+local function placeShapePositionsForTeam(cx, cz, allyTeam)
+	local pts = generateShapePositions(cx, cz)
+	for _, pt in ipairs(pts) do
+		addPosition(pt.x, pt.z, allyTeam)
+	end
+end
+
 local function placeRandomPositions(cx, cz)
 	local pts = generateRandomPositions(cx, cz)
 	for i, pt in ipairs(pts) do
@@ -773,6 +781,13 @@ end
 function widget:MousePress(mx, my, button)
 	if not active then return false end
 
+	-- Defer to measure tool when active
+	do
+		local tb = WG.TerraformBrush
+		local stb = tb and tb.getState and tb.getState() or nil
+		if stb and stb.measureActive then return false end
+	end
+
 	local wx, wz = getWorldMousePosition()
 	if not wx then return false end
 
@@ -787,9 +802,20 @@ function widget:MousePress(mx, my, button)
 				dragging = false
 				return true
 			end
-			-- Place new position for current allyteam
-			if addPosition(wx, wz, nextAllyTeam) then
-				nextAllyTeam = (nextAllyTeam % numAllyTeams) + 1
+			-- Place new position; smart-assign teams across symmetric copies when symmetry is active
+			do
+				local tb = WG.TerraformBrush
+				local stb = tb and tb.getState and tb.getState() or nil
+				if stb and stb.symmetryActive and tb.getSymmetricPositions then
+					local copies = tb.getSymmetricPositions(wx, wz, 0)
+					for k, p in ipairs(copies) do
+						local at = ((nextAllyTeam - 1 + k - 1) % numAllyTeams) + 1
+						addPosition(p.x, p.z, at)
+					end
+					nextAllyTeam = ((nextAllyTeam - 1 + #copies) % numAllyTeams) + 1
+				elseif addPosition(wx, wz, nextAllyTeam) then
+					nextAllyTeam = (nextAllyTeam % numAllyTeams) + 1
+				end
 			end
 			return true
 		elseif button == 3 then
@@ -806,7 +832,26 @@ function widget:MousePress(mx, my, button)
 	elseif subMode == "shape" then
 		if button == 1 then
 			-- LMB: Place positions using current shape at click location
-			placeShapePositions(wx, wz)
+			local tb = WG.TerraformBrush
+			local stb = tb and tb.getState and tb.getState() or nil
+			local sx, sz = wx, wz
+			if stb and stb.gridSnap and tb.snapWorld then
+				sx, sz = tb.snapWorld(wx, wz, shapeRotation)
+			end
+			if stb and stb.symmetryActive and tb.getSymmetricPositions then
+				local copies = tb.getSymmetricPositions(sx, sz, shapeRotation)
+				if copies and #copies > 0 then
+					for k, p in ipairs(copies) do
+						local at = ((nextAllyTeam - 1 + k - 1) % numAllyTeams) + 1
+						placeShapePositionsForTeam(p.x, p.z, at)
+					end
+					nextAllyTeam = ((nextAllyTeam - 1 + #copies) % numAllyTeams) + 1
+				else
+					placeShapePositions(sx, sz)
+				end
+			else
+				placeShapePositions(sx, sz)
+			end
 			return true
 		elseif button == 3 then
 			-- RMB: Remove nearest
@@ -911,14 +956,18 @@ end
 function widget:MouseWheel(up, value)
 	if not active then return false end
 
-	local _, _, _, shiftHeld = Spring.GetModKeyState()
-	local altHeld = select(2, Spring.GetModKeyState())
-	local ctrlHeld = select(1, Spring.GetModKeyState())
+	local altHeld, ctrlHeld, _, shiftHeld = Spring.GetModKeyState()
 
 	if subMode == "shape" or subMode == "express" then
-		if ctrlHeld and altHeld then
-			-- Ctrl+Alt+Scroll: rotate shape
-			local delta = up and 5 or -5
+		if altHeld then
+			-- Alt+Scroll: rotate shape (snap to TB protractor step when angleSnap on)
+			local step = 5
+			local tb = WG.TerraformBrush
+			local tbs = tb and tb.getState and tb.getState() or nil
+			if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
+				step = tbs.angleSnapStep
+			end
+			local delta = up and step or -step
 			setRotation(shapeRotation + delta)
 			return true
 		elseif ctrlHeld then
@@ -1013,15 +1062,33 @@ function widget:DrawWorld()
 
 	-- Draw express mode cursor indicator
 	if subMode == "express" and wx and not dragIdx then
-		local color = getColorForAllyTeam(nextAllyTeam)
-		local gy = GetGroundHeight(wx, wz) or 0
-		-- Ghost ring at cursor
-		glColor(color[1], color[2], color[3], 0.30)
-		glLineWidth(2.0)
-		glDrawGroundCircle(wx, gy, wz, MARKER_RADIUS, MARKER_SEGMENTS)
-		glColor(color[1], color[2], color[3], 0.15)
-		glLineWidth(1.0)
-		glDrawGroundCircle(wx, gy, wz, MARKER_RADIUS * 0.18, 12)
+		local tb = WG.TerraformBrush
+		local stb = tb and tb.getState and tb.getState() or nil
+		if stb and stb.symmetryActive and tb.getSymmetricPositions then
+			-- Show ghost rings for all symmetric copies, each colored by its assigned team
+			local copies = tb.getSymmetricPositions(wx, wz, 0)
+			for k, p in ipairs(copies) do
+				local at = ((nextAllyTeam - 1 + k - 1) % numAllyTeams) + 1
+				local color = getColorForAllyTeam(at)
+				local gy = GetGroundHeight(p.x, p.z) or 0
+				glColor(color[1], color[2], color[3], 0.30)
+				glLineWidth(2.0)
+				glDrawGroundCircle(p.x, gy, p.z, MARKER_RADIUS, MARKER_SEGMENTS)
+				glColor(color[1], color[2], color[3], 0.15)
+				glLineWidth(1.0)
+				glDrawGroundCircle(p.x, gy, p.z, MARKER_RADIUS * 0.18, 12)
+			end
+		else
+			local color = getColorForAllyTeam(nextAllyTeam)
+			local gy = GetGroundHeight(wx, wz) or 0
+			-- Ghost ring at cursor
+			glColor(color[1], color[2], color[3], 0.30)
+			glLineWidth(2.0)
+			glDrawGroundCircle(wx, gy, wz, MARKER_RADIUS, MARKER_SEGMENTS)
+			glColor(color[1], color[2], color[3], 0.15)
+			glLineWidth(1.0)
+			glDrawGroundCircle(wx, gy, wz, MARKER_RADIUS * 0.18, 12)
+		end
 	end
 
 	-- Draw startboxes

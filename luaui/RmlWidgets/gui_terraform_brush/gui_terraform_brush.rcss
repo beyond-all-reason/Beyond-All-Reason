@@ -2805,3 +2805,118 @@ margin-top: 3dp;
 .tf-chip-2pulse {
 	animation: chip-2pulse 1.1s 1;
 }
+
+/* === Light Orientation Globe === */
+.lp-orient-globe {
+	position: relative;
+	width: 110dp;
+	height: 110dp;
+	border-radius: 55dp;
+	background-color: #080e16;
+	border: 1dp solid #3a5070;
+	cursor: pointer;
+}
+.lp-orient-ring {
+	position: absolute;
+	border-radius: 50%;
+	background-color: transparent;
+}
+.lp-orient-horizon {
+	left: 4dp;
+	top: 4dp;
+	width: 102dp;
+	height: 102dp;
+	border: 1dp solid #4a6888;
+}
+.lp-orient-mid {
+	left: 24dp;
+	top: 24dp;
+	width: 62dp;
+	height: 62dp;
+	border: 1dp solid #36506870;
+}
+.lp-orient-compass {
+	position: absolute;
+	font-size: 0.8rem;
+	color: #7a9ac0;
+	font-weight: bold;
+}
+.lp-orient-N {
+	left: 49dp;
+	top: 2dp;
+}
+.lp-orient-E {
+	left: 100dp;
+	top: 48dp;
+}
+.lp-orient-S {
+	left: 49dp;
+	top: 97dp;
+}
+.lp-orient-W {
+	left: 2dp;
+	top: 48dp;
+}
+.lp-orient-center {
+	position: absolute;
+	width: 6dp;
+	height: 6dp;
+	border-radius: 3dp;
+	background-color: #4a6080;
+	left: 52dp;
+	top: 52dp;
+}
+.lp-orient-indicator {
+	position: absolute;
+	width: 16dp;
+	height: 16dp;
+	border-radius: 8dp;
+	background-color: #fbbf24e0;
+	border: 1dp solid #ffe090;
+	left: 47dp;
+	top: 47dp;
+	cursor: pointer;
+}
+.lp-orient-numbox {
+	width: 48dp;
+	height: 24dp;
+	line-height: 24dp;
+	font-size: 1.15rem;
+	padding: 0dp 4dp;
+	border: 1dp solid #40404a60;
+	border-radius: 4dp;
+	background-color: #161620;
+	color: #d8dce4;
+	text-align: right;
+	tab-index: none;
+}
+.lp-orient-numbox:focus {
+	border-color: #6a6a80cc;
+	background-color: #1c1c28;
+}
+.lp-orient-label {
+	width: 36dp;
+	text-align: right;
+	font-size: 1.0rem;
+	color: #e5e7eb;
+}
+.lp-orient-deg {
+	font-size: 0.9rem;
+	color: #9ca3af;
+}
+.lp-orient-hintbar {
+	font-size: 0.75rem;
+	color: #a0b896;
+	margin-bottom: 4dp;
+}
+.lp-orient-hint {
+	color: #a0b896;
+	font-size: 0.75rem;
+}
+
+/* Grayed-out unavailable controls (e.g. scatter/distribution for cone/beam lights) */
+.lp-unavailable {
+	opacity: 0.32;
+	pointer-events: none;
+	cursor: default;
+}

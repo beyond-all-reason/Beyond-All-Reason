@@ -489,9 +489,13 @@ function widget:MouseWheel(up, value)
 		return true
 	end
 
-	-- Alt+scroll: rotation
+	-- Alt+scroll: rotation (snap to TB protractor step when angleSnap on)
 	if alt then
-		local rot = ((st.rotationDeg or 0) + (up and 3 or -3)) % 360
+		local step = 3
+		if st.angleSnap and (st.angleSnapStep or 0) > 0 then
+			step = st.angleSnapStep
+		end
+		local rot = (((st.rotationDeg or 0) + (up and step or -step)) % 360 + 360) % 360
 		tb.setRotation(rot)
 		return true
 	end

@@ -779,6 +779,27 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			local smartOpts = doc:GetElementById("gb-smart-options")
 			if smartOpts then smartOpts:SetClass("hidden", not smartOn) end
 
+			-- Shared helper: only show the "Active" chip when the section is collapsed AND something is engaged
+			local function syncSectionWarn(chipId, sectionId, anyActive)
+				local sec = doc:GetElementById(sectionId)
+				local collapsed = sec and sec:IsClassSet("hidden")
+				local chip = doc:GetElementById(chipId)
+				if chip then chip:SetClass("hidden", not (anyActive and collapsed)) end
+			end
+
+			-- FILTERS warn-chip (avoidWater excluded; defaults on).
+			local sfEarly = gbState.smartFilters or {}
+			local anyFilter = (smartOn and (sfEarly.avoidCliffs or sfEarly.preferSlopes or sfEarly.altMinEnable or sfEarly.altMaxEnable))
+				or gbState.texFilterEnabled
+			syncSectionWarn("warn-chip-gb-smart", "section-gb-smart", anyFilter and true or false)
+
+			-- DISPLAY + INSTRUMENTS warn-chips (reflect shared TB state).
+			local tbs = (WG.TerraformBrush and WG.TerraformBrush.getState()) or {}
+			local dispActive = tbs.gridOverlay or tbs.heightColormap
+			local instActive = tbs.gridSnap or tbs.angleSnap or tbs.measureActive or tbs.symmetryActive
+			syncSectionWarn("warn-chip-gb-overlays",    "section-gb-overlays",    dispActive and true or false)
+			syncSectionWarn("warn-chip-gb-instruments", "section-gb-instruments", instActive and true or false)
+
 			local sf = gbState.smartFilters or {}
 			local function syncSmartCheck(id, key)
 				local el = doc:GetElementById(id)
@@ -817,6 +838,18 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			local altMaxLabel = doc:GetElementById("gb-smart-alt-max-label")
 			if altMaxLabel then altMaxLabel.inner_rml = tostring(sf.altMax or 200) end
 			syncAndFlash(doc:GetElementById("slider-gb-alt-max"), "gb-alt-max", tostring(sf.altMax or 200))
+
+			-- Filter category chip active state mirrors whether any sub-filter is on
+			local slopeActive = smartOn and (sf.avoidCliffs or sf.preferSlopes)
+			local altActive   = smartOn and (sf.altMinEnable or sf.altMaxEnable)
+			local slopeChip = doc:GetElementById("btn-gb-pill-slope")
+			if slopeChip then slopeChip:SetClass("active", slopeActive and true or false) end
+			local altChip = doc:GetElementById("btn-gb-pill-altitude")
+			if altChip then altChip:SetClass("active", altActive and true or false) end
+			local slopeContent = doc:GetElementById("gb-smart-slope-content")
+			if slopeContent then slopeContent:SetClass("hidden", not slopeActive) end
+			local altContent = doc:GetElementById("gb-smart-altitude-content")
+			if altContent then altContent:SetClass("hidden", not altActive) end
 		end
 
 		-- Color filter UI sync
@@ -826,6 +859,11 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			if colorToggle then colorToggle:SetAttribute("src", colorOn and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png") end
 			local colorOpts = doc:GetElementById("gb-color-options")
 			if colorOpts then colorOpts:SetClass("hidden", not colorOn) end
+			-- Color chip drives texFilterEnabled now: mirror state onto chip + content
+			local colorChip = doc:GetElementById("btn-gb-pill-color")
+			if colorChip then colorChip:SetClass("active", colorOn) end
+			local colorContent = doc:GetElementById("gb-smart-color-content")
+			if colorContent then colorContent:SetClass("hidden", not colorOn) end
 
 			local tc = gbState.texFilterColor or {}
 			local swatchEl = doc:GetElementById("gb-tex-color-swatch")

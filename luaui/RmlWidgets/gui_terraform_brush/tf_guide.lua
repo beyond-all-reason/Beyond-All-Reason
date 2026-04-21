@@ -265,22 +265,26 @@ function M.attach(doc, ctx)
 			end
 		end
 
-		-- ============ Settings: tab switching (Keybinds / DJ Mode / Stroke) ============
+		-- ============ Settings: tab switching (Keybinds / DJ Mode / Stroke / General) ============
 		do
 			local tabKeybindsBtn = doc:GetElementById("btn-settings-tab-keybinds")
 			local tabDJBtn       = doc:GetElementById("btn-settings-tab-dj")
 			local tabStrokeBtn   = doc:GetElementById("btn-settings-tab-stroke")
+			local tabGeneralBtn  = doc:GetElementById("btn-settings-tab-general")
 			local tabKeybinds    = doc:GetElementById("settings-tab-keybinds")
 			local tabDJ          = doc:GetElementById("settings-tab-dj")
 			local tabStroke      = doc:GetElementById("settings-tab-stroke")
+			local tabGeneral     = doc:GetElementById("settings-tab-general")
 
 			local function switchSettingsTab(tab)
 				if tabKeybindsBtn then tabKeybindsBtn:SetClass("active", tab == "keybinds") end
 				if tabDJBtn       then tabDJBtn:SetClass("active", tab == "dj") end
 				if tabStrokeBtn   then tabStrokeBtn:SetClass("active", tab == "stroke") end
+				if tabGeneralBtn  then tabGeneralBtn:SetClass("active", tab == "general") end
 				if tabKeybinds    then tabKeybinds:SetClass("hidden", tab ~= "keybinds") end
 				if tabDJ          then tabDJ:SetClass("hidden", tab ~= "dj") end
 				if tabStroke      then tabStroke:SetClass("hidden", tab ~= "stroke") end
+				if tabGeneral     then tabGeneral:SetClass("hidden", tab ~= "general") end
 			end
 
 			if tabKeybindsBtn then
@@ -298,6 +302,45 @@ function M.attach(doc, ctx)
 			if tabStrokeBtn then
 				tabStrokeBtn:AddEventListener("click", function(event)
 					switchSettingsTab("stroke")
+					event:StopPropagation()
+				end, false)
+			end
+			if tabGeneralBtn then
+				tabGeneralBtn:AddEventListener("click", function(event)
+					switchSettingsTab("general")
+					event:StopPropagation()
+				end, false)
+			end
+		end
+
+		-- ============ Settings: General tab — Disable tips/tool recommendations ============
+		do
+			local btn = doc:GetElementById("btn-ui-disable-tips")
+			local pill = doc:GetElementById("pill-ui-disable-tips")
+			local function syncPill()
+				local on = widgetState.uiPrefs and widgetState.uiPrefs.disableTips
+				if pill then pill.inner_rml = on and "ON" or "OFF" end
+				if btn then btn:SetClass("active", on and true or false) end
+			end
+			syncPill()
+			widgetState.syncDisableTipsPill = syncPill
+			if btn then
+				btn:AddEventListener("click", function(event)
+					widgetState.uiPrefs = widgetState.uiPrefs or {}
+					local newVal = not widgetState.uiPrefs.disableTips
+					widgetState.uiPrefs.disableTips = newVal
+					playSound(newVal and "toggleOn" or "toggleOff")
+					syncPill()
+					if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+					-- When re-enabling tips, immediately clear any suppressed transient state
+					-- so dots can surface again. When disabling, clear any current pulse state.
+					if newVal then
+						widgetState.instrumentsHintActive = false
+						local measureImg = doc:GetElementById("btn-measure")
+						if measureImg then measureImg:SetClass("tf-chip-2pulse", false) end
+						local splatChip = doc:GetElementById("btn-sp-splat-overlay")
+						if splatChip then splatChip:SetClass("tf-chip-2pulse", false) end
+					end
 					event:StopPropagation()
 				end, false)
 			end

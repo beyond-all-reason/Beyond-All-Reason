@@ -1096,9 +1096,14 @@ function widget:MouseWheel(up, value)
 		setCurve(activeCurve + delta)
 		return true
 	elseif alt then
-		-- Alt+Scroll: change rotation
-		local delta = up and 3 or -3
-		rotateBy(delta)
+		-- Alt+Scroll: change rotation (snap to TB protractor step when angleSnap on)
+		local step = 3
+		local tb = WG.TerraformBrush
+		local tbs = tb and tb.getState and tb.getState() or nil
+		if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
+			step = tbs.angleSnapStep
+		end
+		rotateBy(up and step or -step)
 		return true
 	end
 

@@ -163,6 +163,12 @@ local function playSound(name)
 	Spring.PlaySoundFile(path, uiSoundVolumes[name] or 0.4, "ui")
 end
 
+-- UI prefs persistence ("Terraform Brush/ui_prefs.lua")
+local UI_PREFS_DIR  = "Terraform Brush/"
+local UI_PREFS_FILE = UI_PREFS_DIR .. "ui_prefs.lua"
+local loadUiPrefs   -- defined after widgetState is declared
+local saveUiPrefs   -- defined after widgetState is declared
+
 local INITIAL_LEFT_VW = 78
 local INITIAL_TOP_VH = 25
 local BASE_WIDTH_DP = 162
@@ -326,7 +332,44 @@ local widgetState = {
 	floatingTipEl = nil,
 	currentHint = nil,
 	lastRenderedHint = nil,
+	-- UI prefs (persisted to "Terraform Brush/ui_prefs.lua")
+	uiPrefs = {
+		disableTips = false,
+		seenInstrumentsHint = false,
+		seenSplatDisplayHint = false,
+	},
 }
+
+function loadUiPrefs()
+	if not VFS.FileExists(UI_PREFS_FILE, VFS.RAW) then return end
+	local raw = VFS.LoadFile(UI_PREFS_FILE, VFS.RAW)
+	if not raw or raw == "" then return end
+	local chunk = loadstring(raw)
+	if not chunk then return end
+	local ok, data = pcall(chunk)
+	if not ok or type(data) ~= "table" then return end
+	if type(data.disableTips) == "boolean" then
+		widgetState.uiPrefs.disableTips = data.disableTips
+	end
+	if type(data.seenInstrumentsHint) == "boolean" then
+		widgetState.uiPrefs.seenInstrumentsHint = data.seenInstrumentsHint
+	end
+	if type(data.seenSplatDisplayHint) == "boolean" then
+		widgetState.uiPrefs.seenSplatDisplayHint = data.seenSplatDisplayHint
+	end
+end
+
+function saveUiPrefs()	Spring.CreateDir(UI_PREFS_DIR)
+	local f = io.open(UI_PREFS_FILE, "w")
+	if not f then return end
+	f:write(string.format("return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n}\n",
+		tostring(widgetState.uiPrefs.disableTips and true or false),
+		tostring(widgetState.uiPrefs.seenInstrumentsHint and true or false),
+		tostring(widgetState.uiPrefs.seenSplatDisplayHint and true or false)))
+	f:close()
+end
+
+widgetState.saveUiPrefs = saveUiPrefs
 
 -- Skybox fade transition state (outside widgetState to avoid serialisation concerns)
 local skyFade = {
@@ -1861,6 +1904,136 @@ local ctx = {
 	g3ElemGroup = g3ElemGroup,
 	g3TipGroups = g3TipGroups,
 }
+
+-- Generic DISPLAY/INSTRUMENTS chip wirer for per-tool panels.
+-- Mirrors WG.TerraformBrush shared state onto a tool's chip row. Chips forward
+-- to TB setters; M.sync callers can pass the chip ids back to set active class.
+-- All elements are optional; missing ids silently no-op.
+ctx.attachTBMirrorControls = function(doc, prefix)
+	if not doc or not prefix then return end
+	local P = prefix
+	local function byId(id) return doc:GetElementById(id) end
+	local function click(id, fn)
+		local el = byId(id)
+		if el then
+			el:AddEventListener("click", function(event)
+				fn()
+				if event and event.StopPropagation then event:StopPropagation() end
+			end, false)
+		end
+	end
+	local TB = function() return WG.TerraformBrush end
+
+	-- DISPLAY: Grid + Height Map mirrors
+	click("btn-"..P.."-grid-overlay", function()
+		local tb = TB(); if not tb then return end
+		local s = tb.getState() or {}
+		tb.setGridOverlay(not s.gridOverlay)
+		playSound("tick")
+	end)
+	click("btn-"..P.."-height-colormap", function()
+		local tb = TB(); if not tb then return end
+		local s = tb.getState() or {}
+		tb.setHeightColormap(not s.heightColormap)
+		playSound("tick")
+	end)
+
+	-- INSTRUMENTS: Grid Snap, Protractor, Measure, Symmetry mirrors
+	click("btn-"..P.."-grid-snap", function()
+		local tb = TB(); if not tb then return end
+		local s = tb.getState() or {}
+		tb.setGridSnap(not s.gridSnap)
+		playSound("tick")
+	end)
+	click("btn-"..P.."-angle-snap", function()
+		local tb = TB(); if not tb then return end
+		local s = tb.getState() or {}
+		tb.setAngleSnap(not s.angleSnap)
+		playSound("tick")
+	end)
+	click("btn-"..P.."-measure", function()
+		local tb = TB(); if not tb then return end
+		local s = tb.getState() or {}
+		tb.setMeasureActive(not s.measureActive)
+		playSound("tick")
+	end)
+	click("btn-"..P.."-symmetry", function()
+		local tb = TB(); if not tb then return end
+		local s = tb.getState() or {}
+		tb.setSymmetryActive(not s.symmetryActive)
+		playSound("tick")
+	end)
+	-- Symmetry sub-row modes
+	click("btn-"..P.."-symmetry-radial", function()
+		local tb = TB(); if not tb then return end
+		local s = tb.getState() or {}
+		tb.setSymmetryRadial(not s.symmetryRadial)
+		playSound("tick")
+	end)
+	click("btn-"..P.."-symmetry-mirror-x", function()
+		local tb = TB(); if not tb then return end
+		local s = tb.getState() or {}
+		tb.setSymmetryMirrorX(not s.symmetryMirrorX)
+		playSound("tick")
+	end)
+	click("btn-"..P.."-symmetry-mirror-y", function()
+		local tb = TB(); if not tb then return end
+		local s = tb.getState() or {}
+		tb.setSymmetryMirrorY(not s.symmetryMirrorY)
+		playSound("tick")
+	end)
+	click("btn-"..P.."-symmetry-place-origin", function()
+		local tb = TB(); if not tb then return end
+		tb.setSymmetryPlacingOrigin(true)
+		playSound("tick")
+	end)
+	click("btn-"..P.."-symmetry-center-origin", function()
+		local tb = TB(); if not tb then return end
+		tb.setSymmetryOrigin(Game.mapSizeX * 0.5, Game.mapSizeZ * 0.5)
+		playSound("tick")
+	end)
+	-- Measure sub-row
+	click("btn-"..P.."-measure-show-length", function()
+		local tb = TB(); if not tb and tb.setMeasureShowLength then return end
+		if tb.setMeasureShowLength then
+			local s = tb.getState() or {}
+			tb.setMeasureShowLength(not s.measureShowLength)
+		end
+		playSound("tick")
+	end)
+	click("btn-"..P.."-measure-clear", function()
+		local tb = TB(); if not tb then return end
+		if tb.clearMeasurePoints then tb.clearMeasurePoints() end
+		playSound("tick")
+	end)
+end
+
+-- Reflect TB shared state onto a tool's mirror chips. Called from per-tool M.sync.
+ctx.syncTBMirrorControls = function(doc, prefix)
+	if not doc or not prefix then return end
+	local P = prefix
+	local tb = WG.TerraformBrush
+	local s = tb and tb.getState() or {}
+	local function setCls(id, on)
+		local el = doc:GetElementById(id)
+		if el then el:SetClass("active", on and true or false) end
+	end
+	local function setHidden(id, on)
+		local el = doc:GetElementById(id)
+		if el then el:SetClass("hidden", not on) end
+	end
+	setCls("btn-"..P.."-grid-overlay",     s.gridOverlay)
+	setCls("btn-"..P.."-height-colormap",  s.heightColormap)
+	setCls("btn-"..P.."-grid-snap",        s.gridSnap)
+	setCls("btn-"..P.."-angle-snap",       s.angleSnap)
+	setCls("btn-"..P.."-measure",          s.measureActive)
+	setCls("btn-"..P.."-symmetry",         s.symmetryActive)
+	setCls("btn-"..P.."-symmetry-radial",   s.symmetryRadial)
+	setCls("btn-"..P.."-symmetry-mirror-x", s.symmetryMirrorX)
+	setCls("btn-"..P.."-symmetry-mirror-y", s.symmetryMirrorY)
+	setHidden(P.."-measure-toolbar-row",   s.measureActive)
+	setHidden(P.."-symmetry-toolbar-row",  s.symmetryActive)
+end
 
 local function attachEventListeners()
 	local doc = widgetState.document
@@ -3793,6 +3966,9 @@ function widget:Initialize()
 	widgetState.document = document
 	document:Show()
 
+	-- Load persisted UI prefs (disableTips, etc.)
+	if loadUiPrefs then loadUiPrefs() end
+
 	widgetState.rootElement = document:GetElementById("tf-root")
 	widgetState.rootElement:SetClass("hidden", true)
 
@@ -3868,6 +4044,24 @@ function widget:Initialize()
 			local heightPx = root.offset_height
 			if not leftPx or widthPx == 0 or heightPx == 0 then return nil end
 			-- Spring screen Y: 0=bottom, vsy=top
+			return {
+				left    = leftPx,
+				right   = leftPx + widthPx,
+				topY    = vsy - topPx,
+				bottomY = vsy - topPx - heightPx,
+			}
+		end,
+		-- Returns bounds of the light library floating window, or nil if not visible.
+		getLightLibraryBounds = function()
+			if not widgetState.lightLibraryOpen then return nil end
+			local libRoot = widgetState.lightLibraryRootEl
+			if not libRoot then return nil end
+			local vsx, vsy = Spring.GetViewGeometry()
+			local leftPx   = libRoot.absolute_left
+			local topPx    = libRoot.absolute_top
+			local widthPx  = libRoot.offset_width
+			local heightPx = libRoot.offset_height
+			if not leftPx or widthPx == 0 or heightPx == 0 then return nil end
 			return {
 				left    = leftPx,
 				right   = leftPx + widthPx,
@@ -4787,6 +4981,15 @@ function widget:Update()
 		tfDecals.sync(doc, ctx, setSummary)
 
 
+	elseif wbState and wbState.active then
+		-- Weather Brush has no M.sync; drive mirror chips directly here.
+		do
+			local weatherBtnEl = doc and doc:GetElementById("btn-weather")
+			if weatherBtnEl then weatherBtnEl:SetClass("active", true) end
+		end
+		if ctx.syncTBMirrorControls then ctx.syncTBMirrorControls(doc, "wb") end
+
+
 	elseif tfActive then
 		-- ===== Terraform mode: update terraform controls =====
 		local state = tfState
@@ -5000,9 +5203,10 @@ function widget:Update()
 			end
 			-- Ramp-manipulator discoverability: dot + chip pulse once a ramp is drawn
 			do
+				local tipsDisabled = widgetState.uiPrefs and widgetState.uiPrefs.disableTips
 				local curCount = state.measureChainCount or 0
 				local lastCount = widgetState.lastMeasureChainCount or 0
-				if curCount > lastCount then
+				if curCount > lastCount and not tipsDisabled then
 					widgetState.instrumentsHintActive = true
 				end
 				widgetState.lastMeasureChainCount = curCount
@@ -5010,11 +5214,12 @@ function widget:Update()
 				local instDot = doc:GetElementById("instruments-notify-dot")
 				if instDot then
 					local secHidden = instSec and instSec:IsClassSet("hidden") or false
-					instDot:SetClass("hidden", not (widgetState.instrumentsHintActive and secHidden))
+					local alreadySeen = widgetState.uiPrefs and widgetState.uiPrefs.seenInstrumentsHint
+					instDot:SetClass("hidden", tipsDisabled or alreadySeen or not (widgetState.instrumentsHintActive and secHidden))
 				end
 				if widgetState.instrumentsPulseFrame and Spring.GetGameFrame() >= widgetState.instrumentsPulseFrame then
 					widgetState.instrumentsPulseFrame = nil
-					if widgetState.instrumentsHintActive then
+					if widgetState.instrumentsHintActive and not tipsDisabled then
 						widgetState.instrumentsHintActive = false
 						if measureImg then
 							measureImg:SetClass("tf-chip-2pulse", false)

@@ -2,6 +2,7 @@
 local M = {}
 
 function M.attach(doc, ctx)
+	if ctx.attachTBMirrorControls then ctx.attachTBMirrorControls(doc, "lp") end
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local WG = ctx.WG
@@ -264,24 +265,8 @@ function M.attach(doc, ctx)
 		end, false)
 	end
 
-	-- Direction sliders (pitch, yaw, roll)
-	local dirSliders = {
-		{ id = "pitch", setter = "setPitch", scale = 10 },
-		{ id = "yaw",   setter = "setYaw",   scale = 10 },
-		{ id = "roll",  setter = "setRoll",  scale = 10 },
-	}
-	for _, ds in ipairs(dirSliders) do
-		local slider = doc:GetElementById("slider-lp-" .. ds.id)
-		if slider then
-			trackSliderDrag(slider, "lp-" .. ds.id)
-			slider:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then return end
-				local val = tonumber(slider:GetAttribute("value")) or 0
-				if WG.LightPlacer then WG.LightPlacer[ds.setter](val / ds.scale) end
-				event:StopPropagation()
-			end, false)
-		end
-	end
+	-- Direction sliders (roll removed; pitch/yaw use the globe widget)
+	-- (no slider elements remain for pitch/yaw/roll)
 
 	-- Theta slider (cone spread)
 	local thetaSlider = doc:GetElementById("slider-lp-theta")
@@ -309,9 +294,6 @@ function M.attach(doc, ctx)
 
 	-- +/- buttons for direction / theta / beam-length / color channels
 	local nudgeBtns = {
-		{ id = "lp-pitch",       getter = "pitch",      setter = "setPitch",      step = 5  },
-		{ id = "lp-yaw",         getter = "yaw",        setter = "setYaw",        step = 10 },
-		{ id = "lp-roll",        getter = "roll",       setter = "setRoll",       step = 10 },
 		{ id = "lp-theta",       getter = "theta",      setter = "setTheta",      step = 0.05 },
 		{ id = "lp-beam-length", getter = "beamLength", setter = "setBeamLength", step = 50 },
 	}
@@ -337,6 +319,98 @@ function M.attach(doc, ctx)
 			end, false)
 		end
 	end
+
+	-- Hemisphere orientation globe (pitch/yaw interactive widget)
+	local globeEl = doc:GetElementById("lp-orient-globe")
+	local globeDragging = false
+	local orientPitchInput = doc:GetElementById("lp-orient-pitch-input")
+	local orientYawInput   = doc:GetElementById("lp-orient-yaw-input")
+	local globeKeyReturn   -- resolved lazily on first keydown
+
+	local function applyGlobeDirection()
+		if not globeEl then return end
+		local mx, my = GetMouseState()
+		local vsy = select(2, Spring.GetViewGeometry())
+		local rml_my = vsy - my
+		local gl = globeEl.absolute_left
+		local gt = globeEl.absolute_top
+		local gw = globeEl.offset_width
+		local gh = globeEl.offset_height
+		if not gw or gw <= 0 or not gh or gh <= 0 then return end
+		local nx = ((mx - gl) / gw) * 2 - 1
+		local ny = ((rml_my - gt) / gh) * 2 - 1
+		local len = math.sqrt(nx * nx + ny * ny)
+		if len > 1 then nx = nx / len; ny = ny / len; len = 1 end
+		local pitch_deg
+		if len < 0.001 then
+			pitch_deg = -90
+		else
+			pitch_deg = -(math.acos(math.max(0, math.min(1, len))) * 180 / math.pi)
+		end
+		local yaw_deg
+		if len >= 0.001 then
+			yaw_deg = math.atan2(nx, -ny) * 180 / math.pi
+			if yaw_deg < 0 then yaw_deg = yaw_deg + 360 end
+		else
+			local s = WG.LightPlacer and WG.LightPlacer.getState()
+			yaw_deg = s and s.yaw or 0
+		end
+		if WG.LightPlacer then
+			WG.LightPlacer.setPitch(pitch_deg)
+			WG.LightPlacer.setYaw(yaw_deg)
+		end
+	end
+
+	if globeEl then
+		globeEl:AddEventListener("mousedown", function(event)
+			local p = event.parameters
+			if p and p.button == 0 then
+				globeDragging = true
+				applyGlobeDirection()
+			end
+			event:StopPropagation()
+		end, false)
+	end
+	doc:AddEventListener("mousemove", function()
+		if globeDragging then applyGlobeDirection() end
+	end, false)
+	doc:AddEventListener("mouseup", function(event)
+		local p = event.parameters
+		if p and p.button == 0 then globeDragging = false end
+	end, false)
+
+	-- Pitch/Yaw direct-entry numboxes
+	local function wireOrientNumbox(inputEl, setter, clampLo, clampHi)
+		if not inputEl then return end
+		local function applyVal()
+			local raw = inputEl:GetAttribute("value")
+			local val = tonumber(raw)
+			if not val then return end
+			val = math.max(clampLo, math.min(clampHi, val))
+			if WG.LightPlacer then WG.LightPlacer[setter](val) end
+		end
+		inputEl:AddEventListener("focus", function()
+			Spring.SDLStartTextInput()
+			widgetState.focusedRmlInput = inputEl
+		end, false)
+		inputEl:AddEventListener("blur", function()
+			applyVal()
+			Spring.SDLStopTextInput()
+			widgetState.focusedRmlInput = nil
+		end, false)
+		inputEl:AddEventListener("keydown", function(event)
+			if not globeKeyReturn then
+				pcall(function() globeKeyReturn = RmlUi.key_identifier.RETURN end)
+			end
+			local p = event.parameters
+			if p and globeKeyReturn and p.key_identifier == globeKeyReturn then
+				applyVal()
+				inputEl:Blur()
+			end
+		end, false)
+	end
+	wireOrientNumbox(orientPitchInput, "setPitch", -90, 90)
+	wireOrientNumbox(orientYawInput,   "setYaw",   0,   360)
 
 	-- +/- buttons for color R/G/B channels
 	local colorChannels = { r = 1, g = 2, b = 3 }
@@ -430,44 +504,6 @@ function M.attach(doc, ctx)
 			if WG.LightPlacer then
 				local s = WG.LightPlacer.getState()
 				WG.LightPlacer.setRadius(s.radius + 8)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	-- Smart filter toggle
-	local smartToggleBtn = doc:GetElementById("btn-lp-smart-toggle")
-	if smartToggleBtn then
-		smartToggleBtn:AddEventListener("click", function(event)
-			if WG.LightPlacer then
-				local s = WG.LightPlacer.getState()
-				WG.LightPlacer.setSmartEnabled(not s.smartEnabled)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-	local sfWaterBtn = doc:GetElementById("btn-lp-sf-water")
-	if sfWaterBtn then
-		sfWaterBtn:AddEventListener("click", function(event)
-			if WG.LightPlacer then
-				local s = WG.LightPlacer.getState()
-				WG.LightPlacer.setSmartFilter("avoidWater", not s.smartFilters.avoidWater)
-				sfWaterBtn:SetAttribute("src", (not s.smartFilters.avoidWater)
-					and "/luaui/images/terraform_brush/check_on.png"
-					or "/luaui/images/terraform_brush/check_off.png")
-			end
-			event:StopPropagation()
-		end, false)
-	end
-	local sfCliffsBtn = doc:GetElementById("btn-lp-sf-cliffs")
-	if sfCliffsBtn then
-		sfCliffsBtn:AddEventListener("click", function(event)
-			if WG.LightPlacer then
-				local s = WG.LightPlacer.getState()
-				WG.LightPlacer.setSmartFilter("avoidCliffs", not s.smartFilters.avoidCliffs)
-				sfCliffsBtn:SetAttribute("src", (not s.smartFilters.avoidCliffs)
-					and "/luaui/images/terraform_brush/check_on.png"
-					or "/luaui/images/terraform_brush/check_off.png")
 			end
 			event:StopPropagation()
 		end, false)
@@ -806,6 +842,7 @@ function M.attach(doc, ctx)
 end
 
 function M.sync(doc, ctx, lpState, setSummary)
+	if ctx.syncTBMirrorControls then ctx.syncTBMirrorControls(doc, "lp") end
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local WG = ctx.WG
@@ -841,6 +878,17 @@ function M.sync(doc, ctx, lpState, setSummary)
 		-- Show/hide distribution section (only visible for scatter)
 		local distSection = doc and doc:GetElementById("lp-distribution-section")
 		if distSection then distSection:SetClass("hidden", lpState.mode ~= "scatter") end
+		-- Gray out scatter + distribution for cone/beam (they only support single placement)
+		local directedLight = lpState.lightType == "cone" or lpState.lightType == "beam"
+		if directedLight and lpState.mode == "scatter" then
+			if WG.LightPlacer then WG.LightPlacer.setMode("point") end
+		end
+		local scatterBtn = doc and doc:GetElementById("btn-lp-scatter")
+		if scatterBtn then scatterBtn:SetClass("lp-unavailable", directedLight) end
+		local distToggleHdr = doc and doc:GetElementById("btn-toggle-lt-dist")
+		if distToggleHdr then distToggleHdr:SetClass("lp-unavailable", directedLight) end
+		local distLtSection = doc and doc:GetElementById("section-lt-dist")
+		if distLtSection then distLtSection:SetClass("lp-unavailable", directedLight) end
 		-- Update distribution buttons
 		for dist, el in pairs(widgetState.lightDistButtons) do
 			el:SetClass("active", dist == lpState.distribution)
@@ -886,16 +934,6 @@ function M.sync(doc, ctx, lpState, setSummary)
 		if placedEl and WG.LightPlacer then
 			placedEl.inner_rml = tostring(WG.LightPlacer.getPlacedCount())
 		end
-		-- Smart filter toggle icon
-		local smartToggle = doc and doc:GetElementById("btn-lp-smart-toggle")
-		if smartToggle then
-			smartToggle:SetAttribute("src", lpState.smartEnabled
-				and "/luaui/images/terraform_brush/check_on.png"
-				or "/luaui/images/terraform_brush/check_off.png")
-		end
-		local smartDetails = doc and doc:GetElementById("lp-smart-details")
-		if smartDetails then smartDetails:SetClass("hidden", not lpState.smartEnabled) end
-
 		-- Light history slider sync
 		local sliderLpHist = doc and doc:GetElementById("slider-lp-history")
 		if sliderLpHist and uiState.draggingSlider ~= "lp-history" then
@@ -906,6 +944,30 @@ function M.sync(doc, ctx, lpState, setSummary)
 			sliderLpHist:SetAttribute("max", tostring(maxVal))
 			sliderLpHist:SetAttribute("value", tostring(lpState.undoCount or 0))
 			uiState.updatingFromCode = false
+		end
+
+		-- Globe orientation indicator sync
+		local globeInd = doc and doc:GetElementById("lp-orient-indicator")
+		if globeInd then
+			local p = math.rad(lpState.pitch)
+			local y = math.rad(lpState.yaw)
+			local nx = math.cos(p) * math.sin(y)
+			local ny = -(math.cos(p) * math.cos(y))
+			local len = math.sqrt(nx * nx + ny * ny)
+			if len > 1 then nx = nx / len; ny = ny / len end
+			-- Globe R=41dp (100dp globe, 14dp indicator: center=50, half-ind=7, margin=2 → 50-7-2=41)
+			local left = 43 + nx * 41
+			local top  = 43 + ny * 41
+			globeInd:SetAttribute("style", string.format("left: %.1fdp; top: %.1fdp;", left, top))
+		end
+		-- Pitch / Yaw numbox sync (skip while user is typing)
+		local pitchInp = doc and doc:GetElementById("lp-orient-pitch-input")
+		if pitchInp and widgetState.focusedRmlInput ~= pitchInp then
+			pitchInp:SetAttribute("value", tostring(math.floor(lpState.pitch)))
+		end
+		local yawInp = doc and doc:GetElementById("lp-orient-yaw-input")
+		if yawInp and widgetState.focusedRmlInput ~= yawInp then
+			yawInp:SetAttribute("value", tostring(math.floor(lpState.yaw)))
 		end
 
 		setSummary("LIGHTS", "#fbbf24",
