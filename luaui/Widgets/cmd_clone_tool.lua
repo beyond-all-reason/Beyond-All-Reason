@@ -1206,6 +1206,13 @@ end
 function widget:MousePress(mx, my, button)
 	if not active then return false end
 
+	-- Defer to measure tool when active
+	do
+		local tb = WG.TerraformBrush
+		local stb = tb and tb.getState and tb.getState() or nil
+		if stb and stb.measureActive then return false end
+	end
+
 	if button == 1 then -- LMB
 		local wx, wz = getWorldMousePosition()
 		if not wx then return false end
@@ -1239,8 +1246,23 @@ function widget:MousePress(mx, my, button)
 			cloneBuffer = nil
 			return true
 		elseif state == "paste_preview" then
-			-- Apply paste at cursor position
-			applyPaste(wx, wz)
+			-- Apply paste at cursor position (with snap + symmetric fan-out)
+			local tb = WG.TerraformBrush
+			local stb = tb and tb.getState and tb.getState() or nil
+			local px, pz = wx, wz
+			if stb and stb.gridSnap and tb.snapWorld then
+				px, pz = tb.snapWorld(wx, wz, pasteRotation)
+			end
+			if stb and stb.symmetryActive and tb.getSymmetricPositions then
+				local positions2 = tb.getSymmetricPositions(px, pz, pasteRotation)
+				if positions2 and #positions2 > 0 then
+					for _, p in ipairs(positions2) do applyPaste(p.x, p.z) end
+				else
+					applyPaste(px, pz)
+				end
+			else
+				applyPaste(px, pz)
+			end
 			-- Stay in paste_preview for re-pasting
 			return true
 		end
@@ -1407,13 +1429,15 @@ function widget:MouseWheel(up, value)
 	local altHeld, _, _, shiftHeld = spGetModKeyState()
 
 	if altHeld then
-		-- Rotate
+		-- Rotate (snap to TB protractor step when angleSnap on)
 		local step = 15
-		if up then
-			pasteRotation = (pasteRotation + step) % 360
-		else
-			pasteRotation = (pasteRotation - step) % 360
+		local tb = WG.TerraformBrush
+		local tbs = tb and tb.getState and tb.getState() or nil
+		if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
+			step = tbs.angleSnapStep
 		end
+		local dir = up and 1 or -1
+		pasteRotation = ((pasteRotation + dir * step) % 360 + 360) % 360
 		return true
 	end
 

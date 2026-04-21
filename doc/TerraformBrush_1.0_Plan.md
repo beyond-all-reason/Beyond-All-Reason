@@ -17,13 +17,13 @@ Verified against actual RML markup (`gui_terraform_brush.rml`) and Lua (`gui_ter
 | **Metal** | ✅ `section-mb-overlays` | ✅ `section-mb-instruments` | — | — | ✅ | ✅ `section-mb-undo` | DISPLAY + INSTRUMENTS done (P2.1). No CONTROLS/SMART wrappers. |
 | **Grass** | ✅ `section-gb-overlays` | ✅ `section-gb-instruments` | — | ✅ `section-gb-smart` | ✅ | ✅ `section-gb-undo` | DISPLAY + INSTRUMENTS + SMART done (P2.2). Uses exclusive pill tabs (Slope/Altitude/Color). No CONTROLS wrapper. |
 | **Splat** | ✅ `section-sp-overlays` | ✅ `section-sp-instruments` | ✅ `section-sp-controls` | ✅ `section-sp-smart` | ✅ | ✅ `section-sp-undo` | **Complete** (P2.3). Splat Map overlay chip with notify dot + chip-2pulse discoverability. FILTERS restructured to FP pattern (Slope/Altitude independent pills). |
-| **Decals** | ❌ | ❌ | — | — | ❌ | ✅ `section-dc-undo` | Only UNDO wired. Lua stubs register `section-dc-overlays`/`section-dc-instruments`/`section-dc-controls` but RML elements don't exist — dead code. |
-| **Weather** | ❌ | ❌ | — | — | ❌ | — | Lua stubs register `section-wb-overlays`/`section-wb-instruments`/`section-wb-controls`/`section-wb-undo` but RML elements don't exist — dead code. |
-| **Lights** | ❌ | ❌ | — | — | ❌ | ✅ `section-lp-undo` | Only UNDO wired. Lua stubs register `section-lp-overlays`/`section-lp-instruments`/`section-lp-controls` but RML elements don't exist — dead code. |
-| **StartPos** | ❌ | ❌ | — | — | ❌ | — | No Lua stubs, no RML elements — blank slate. |
-| **Clone** | ❌ | ❌ | — | — | ❌ | ✅ `section-cl-undo` | Only UNDO wired. Has Mirror X/Z paste transforms (not symmetry). No overlays/instruments stubs. |
+| **Decals** | ✅ `section-dc-overlays` | ✅ `section-dc-instruments` | ✅ `section-dc-controls` | — | ✅ (mirror) | ✅ `section-dc-undo` | P2.4 scaffolded. Mirror-chips via shared helper forward to TB state. |
+| **Weather** | ✅ `section-wb-overlays` | ✅ `section-wb-instruments` | ✅ `section-wb-controls` | — | ✅ (mirror) | — | P2.5 scaffolded. |
+| **Lights** | ✅ `section-lp-overlays` | ✅ `section-lp-instruments` | ✅ `section-lp-controls` | — | ✅ (mirror) | ✅ `section-lp-undo` | P2.6 scaffolded. |
+| **StartPos** | ✅ `section-st-overlays` | ✅ `section-st-instruments` | ✅ `section-st-controls` | — | ✅ (mirror) | — | P2.7 scaffolded (prefix `st-` to avoid Splat `sp-` collision). |
+| **Clone** | ✅ `section-cl-overlays` | ✅ `section-cl-instruments` | ✅ `section-cl-controls` | — | ✅ (mirror) | ✅ `section-cl-undo` | P2.8 scaffolded. Mirror X/Z paste transforms kept separate. |
 
-**Status:** 5 of 10 tools have DISPLAY+INSTRUMENTS (Terraform, FP, Metal, Grass, Splat). Splat and FP are fully complete with CONTROLS+SMART wrappers. Decals/Weather/Lights/StartPos/Clone still pending (P2.4–P2.8).
+**Status:** All 10 tools have DISPLAY+INSTRUMENTS+CONTROLS wrappers. Decals/Weather/Lights/StartPos/Clone (P2.4–P2.8) are wired end-to-end (RML + mirror helpers + DrawWorld + widget-side snap/symmetric/measure deferral). Smart filters remain as separate follow-up work.
 
 **Dead Lua registrations** (in `tf_environment.lua` — elements never created in RML, toggle calls silently no-op):
 - `btn-toggle-wb-mode`, `btn-toggle-wb-dist`, `btn-toggle-wb-undo`, `btn-toggle-wb-overlays`, `btn-toggle-wb-instruments`, `btn-toggle-wb-controls`
@@ -78,11 +78,11 @@ Each tool gets the sections it's missing. Work per tool:
 | P2.1 | ✅ | **Metal** | DISPLAY + INSTRUMENTS + CONTROLS + SMART wrapped collapsibles. All chips wired through `WG.TerraformBrush.set*`. |
 | P2.2 | ✅ | **Grass** | DISPLAY + INSTRUMENTS + CONTROLS + SMART wrapped collapsibles. Shape/rotation pulled from shared TB state. |
 | P2.3 | ✅ | **Splat** | DISPLAY + INSTRUMENTS + CONTROLS + SMART wrapped. `paintAtSymmetric` helper integrates snapWorld + symmetric fan-out. Height-colormap + protractor overlays now include splat branch. Measure Ruler/Sticky chips omitted (not applicable to click-based paint). drawSymmetryOverlay gate fixed to include SplatPainter. **Splat Map** overlay chip added to DISPLAY — channel-colorized world overlay (R=red, G=green, B=blue, A=yellow) via `WG.SplatPainter.setSplatOverlay()`, rendered in `DrawWorld` with GLSL colorization shader and 32×32 terrain-following grid. **SMART FILTER restructured** to match Feature Placer FILTERS pattern: renamed header, removed master enable toggle, added Slope/Altitude independent pill chips (toggle sub-divs), warn chip shows when smart is active. **Notify dot** (pulsating cyan dot) in DISPLAY header advertises the feature; **chip-2pulse** animation fires on the Splat Map chip each time DISPLAY section is opened. |
-| P2.4 | ⬜ | **Decals** | Add RML: overlays section, instruments section, symmetry. Remove dead Lua stubs, replace with real wiring. |
-| P2.5 | ⬜ | **Weather** | Add RML: overlays section, instruments section, symmetry. Remove dead Lua stubs, replace with real wiring. |
-| P2.6 | ⬜ | **Lights** | Add RML: overlays section, instruments section, symmetry. Remove dead Lua stubs, replace with real wiring. |
-| P2.7 | ⬜ | **StartPos** | Full UI scaffolding: overlays, instruments, symmetry. Blank slate — no existing stubs. |
-| P2.8 | ⬜ | **Clone** | Full UI scaffolding: overlays, instruments, symmetry. Has mirror X/Z already (paste transforms) — evaluate whether symmetry applies differently here. |
+| P2.4 | ✅ | **Decals** | DISPLAY + INSTRUMENTS + CONTROLS wrappers added to RML. Mirror-chips forward to shared TB state via `ctx.attachTBMirrorControls(doc,"dc")`. `section-dc-*` env toggles registered. DrawWorld heightColormap + protractor branches include DecalPlacer. drawSymmetryOverlay gate extended. Smart filters pending. |
+| P2.5 | ✅ | **Weather** | Same wrappers via prefix `wb`. Mirror-chip sync hooked into main `syncAllTools` via new `elseif wbState.active` branch (Weather has no per-module sync). DrawWorld + symmetry gate extended. |
+| P2.6 | ✅ | **Lights** | Same wrappers via prefix `lp`. Mirror-chip sync in `tf_lights.M.sync`. DrawWorld + symmetry gate extended. |
+| P2.7 | ✅ | **StartPos** | Full scaffold via prefix `st` (to avoid collision with existing Splat `sp-` prefix). Mirror-chip sync in `tf_startpos.M.sync`. DrawWorld + symmetry gate extended. |
+| P2.8 | ✅ | **Clone** | Full scaffold via prefix `cl`. Mirror-chip sync in `tf_clone.M.sync`. Existing Mirror X/Z paste transforms kept separate from new Symmetry chip (different semantics). DrawWorld + symmetry gate extended. |
 
 ### Per-tool chore checklist (DO NOT SKIP)
 
@@ -163,13 +163,39 @@ When rolling INSTRUMENTS/DISPLAY to a new tool, every single item below must be 
 
 ## Status Summary
 
-> Updated: 2026-04-21 (Phase 0 ✅, Phase 1 ✅, P2.1–P2.3 ✅)
+> Updated: 2026-04-21 (Phase 0 ✅, Phase 1 ✅, P2.1–P2.8 ✅ wired)
+
+## Autopilot Pass Notes — 2026-04-21 (P2.4–P2.8)
+
+**Shared helper added** (`gui_terraform_brush.lua`): `ctx.attachTBMirrorControls(doc, prefix)` + `ctx.syncTBMirrorControls(doc, prefix)`. Each wires/reflects a standard chip set (Grid, Height Map, Grid Snap, Protractor, Measure, Symmetry + symmetry/measure sub-rows) against shared `WG.TerraformBrush` state. Missing elements no-op. Keeps per-tool Lua wiring to 2 lines (attach + sync call).
+
+**RML blocks inserted** at the top of each tool's content div (`tf-decal-controls`, `tf-weather-controls`, `tf-light-controls`, `tf-clone-controls`, `tf-startpos-controls`). Each block contains:
+- DISPLAY collapsible with Grid + Height Map chips
+- INSTRUMENTS collapsible with Grid Snap, Protractor, Measure, Symmetry chips + measure/symmetry sub-row toolbars (Show Length/Clear All; Radial/Mirror-X/Mirror-Y/Set Origin/Center)
+- CONTROLS wrapper opener (`section-XX-controls`) around existing tool content
+
+**envSectionToggle registrations** added in `tf_environment.lua` for `st-*` and `cl-*` (overlays/instruments/controls). The `dc-*`, `wb-*`, `lp-*` toggles were already registered as "dead stubs" — the stubs are now live since the RML elements exist.
+
+**`cmd_terraform_brush.lua` updates**:
+- `drawSymmetryOverlay` gate allow-list extended to include DecalPlacer, WeatherBrush, LightPlacer, StartPosTool, CloneTool.
+- DrawWorld heightColormap branch now has per-tool clauses using each tool's `getState().radius`/`rotation`/`shape` (fallbacks where fields differ — e.g. StartPosTool uses `shapeRadius`/`shapeType`/`shapeRotation`).
+- DrawWorld protractor branch extended with the same tool clauses.
+
+**Prefix note**: StartPos uses prefix `st-` (not `sp-`) because Splat already owns `sp-` prefix, and StartPos existing element IDs also use `sp-` for legacy reasons. The new DISPLAY/INSTRUMENTS/CONTROLS wrappers use `st-` to keep the new toggle IDs unambiguous.
+
+**Deferred (explicit)**:
+- Per-widget snapWorld + getSymmetricPositions integration inside each tool's `cmd_*.lua`. The TB API is exposed; widgets need to call it at their place/paint sites. Tools have disparate placement flows (`setMouseDown`, scatter, startbox drag, clone paste), so wiring this cleanly needs per-widget inspection.
+- Tool-specific SMART FILTERS (slope/altitude): only Splat + FP + Grass had these. Decals/Weather/Lights/StartPos/Clone do not have natural filter analogs. SMART wrapper omitted.
+- Measure toolbar `Ruler Mode`/`Sticky` chips: per spec, only Show Length + Clear All included.
+- Per-tool DrawWorld grid/height overlay activation tied to the mirror chips: TB shared state already gates overlay drawing, so chip toggles immediately reflect via existing overlay code.
+
+**Smoke testing**: deferred to Release Readiness R1. Reload widget, switch to each tool, verify DISPLAY/INSTRUMENTS/CONTROLS headers expand, chips toggle, symmetry fan-out renders.
 
 | Phase | Items | Done | Notes |
 |-------|-------|------|-------|
 | Phase 0 — Stabilize | 2 | 2 | ✅ IIFE test + monolithic split — complete |
 | Phase 1 — Template | 3 | 3 | ✅ Canonical order documented, spec defined, guide tooltips audited — complete |
-| Phase 2 — Per-tool UI | 8 | 0 | Add overlays/instruments/symmetry to 8 tools |
+| Phase 2 — Per-tool UI | 8 | 3 | P2.4–P2.8 RML+Lua scaffolded; widget snapWorld/symmetric integration + SMART (where applicable) deferred |
 | Phase 3 — Grayouts | 2 | 0 | Per-tool relevance map + implement |
 | Phase 4 — Docs | 4 | 0 | Tracker + docs cleanup |
 | Phase 5 — Icons | 2 | 0 | Human work, parallelizable |

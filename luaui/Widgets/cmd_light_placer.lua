@@ -127,7 +127,7 @@ local lp = {
 	lensflare       = 0.0,
 
 	-- Cone/beam direction (Euler angles in degrees)
-	pitch           = -90,
+	pitch           = -45,
 	yaw             = 0,
 	roll            = 0,
 
@@ -163,6 +163,10 @@ local lp = {
 }
 
 local updateTimer = 0
+
+-- Cursor preview light (removed when deactivated or position changes enough)
+local previewLight   = { id = nil, shape = nil }
+local previewLastHash = nil
 
 ----------------------------------------------------------------
 -- Builtin presets
@@ -575,6 +579,27 @@ local function removeAtPosition(worldX, worldZ)
 	end
 end
 
+-- Apply TerraformBrush grid-snap + symmetric fan-out to a placement call.
+local function placeSymmetric(fn, cx, cz)
+	local tb = WG.TerraformBrush
+	local rot = lp.rotation or 0
+	if tb and tb.getState then
+		local st = tb.getState()
+		if st.angleSnap then rot = st.rotationDeg or rot end
+		if st.gridSnap and tb.snapWorld then
+			cx, cz = tb.snapWorld(cx, cz, rot)
+		end
+		if st.symmetryActive and tb.getSymmetricPositions then
+			local positions = tb.getSymmetricPositions(cx, cz, rot)
+			if positions and #positions > 0 then
+				for _, p in ipairs(positions) do fn(p.x, p.z) end
+				return
+			end
+		end
+	end
+	fn(cx, cz)
+end
+
 ----------------------------------------------------------------
 -- Save / Load
 ----------------------------------------------------------------
@@ -864,6 +889,64 @@ local function applyLightTypeDefaults(lightType)
 end
 
 ----------------------------------------------------------------
+-- Preview light: live GL4 light that follows the cursor
+----------------------------------------------------------------
+local function removePreviewLight()
+	if not previewLight.id then return end
+	local api = WG['lightsgl4']
+	if api and api.RemoveLight then
+		api.RemoveLight(previewLight.shape, previewLight.id, nil)
+	end
+	previewLight.id    = nil
+	previewLight.shape = nil
+	previewLastHash    = nil
+end
+
+local function updatePreviewLight(worldX, worldZ)
+	local api = WG['lightsgl4']
+	if not api then removePreviewLight(); return end
+	local hash = string.format("%.0f_%.0f_%s_%.3f_%.3f_%.3f_%.2f_%d_%d_%d_%.1f_%.2f_%d",
+		worldX, worldZ, lp.lightType,
+		lp.color[1], lp.color[2], lp.color[3],
+		lp.brightness, lp.lightRadius, lp.pitch, lp.yaw, lp.theta, lp.elevation, lp.beamLength)
+	if hash == previewLastHash then return end
+	removePreviewLight()
+	local py = (GetGroundHeight(worldX, worldZ) or 0) + lp.elevation
+	local r  = lp.color[1] * lp.brightness
+	local g  = lp.color[2] * lp.brightness
+	local b  = lp.color[3] * lp.brightness
+	local id
+	if lp.lightType == "point" then
+		id = api.AddPointLight(nil, nil, nil, nil,
+			worldX, py, worldZ, lp.lightRadius,
+			r, g, b, 1.0, 0, 0, 0, 0,
+			lp.modelfactor, lp.specular, lp.scattering, lp.lensflare,
+			nil, 0, 1, 0)
+		previewLight.shape = "point"
+	elseif lp.lightType == "cone" then
+		local dx, dy, dz = eulerToDirection(lp.pitch, lp.yaw)
+		id = api.AddConeLight(nil, nil, nil, nil,
+			worldX, py, worldZ, lp.lightRadius,
+			r, g, b, 1.0, dx, dy, dz, lp.theta, 0,
+			lp.modelfactor, lp.specular, lp.scattering, lp.lensflare,
+			nil, 0, 1, 0)
+		previewLight.shape = "cone"
+	elseif lp.lightType == "beam" then
+		local ex, ey, ez = beamEndpoint(worldX, py, worldZ, lp.pitch, lp.yaw, lp.beamLength)
+		id = api.AddBeamLight(nil, nil, nil, nil,
+			worldX, py, worldZ, lp.lightRadius,
+			r, g, b, 1.0, ex, ey, ez, lp.lightRadius, 0,
+			lp.modelfactor, lp.specular, lp.scattering, lp.lensflare,
+			nil, 0, 1, 0)
+		previewLight.shape = "beam"
+	end
+	if id then
+		previewLight.id = id
+		previewLastHash = hash
+	end
+end
+
+----------------------------------------------------------------
 -- Draw: cursor preview circle + ghost light indicator
 ----------------------------------------------------------------
 local function drawBrushCircle(worldX, worldZ)
@@ -909,14 +992,79 @@ local function drawBrushCircle(worldX, worldZ)
 	end
 
 	-- Direction indicator for cone/beam
-	if lp.lightType == "cone" or lp.lightType == "beam" then
+	if lp.lightType == "cone" then
 		local dx, dy, dz = eulerToDirection(lp.pitch, lp.yaw)
-		local len = lp.lightType == "beam" and lp.beamLength or (lp.lightRadius * 0.5)
+		local reach = lp.lightRadius * 0.6
+		local rimR  = reach * math.tan(lp.theta)
+		local tipX, tipY, tipZ = worldX, gy + lp.elevation, worldZ
+		local rimCX = tipX + dx * reach
+		local rimCY = tipY + dy * reach
+		local rimCZ = tipZ + dz * reach
+		-- Build two perpendicular vectors to direction
+		local px, py2, pz
+		if math.abs(dx) < 0.9 then
+			-- cross (1,0,0) × (dx,dy,dz) = (0,-dz,dy)
+			px, py2, pz = 0, -dz, dy
+		else
+			-- cross (0,1,0) × (dx,dy,dz) = (dz,0,-dx)
+			px, py2, pz = dz, 0, -dx
+		end
+		local pl = sqrt(px*px + py2*py2 + pz*pz)
+		if pl > 0.001 then px = px/pl; py2 = py2/pl; pz = pz/pl end
+		local qx = dy*pz - dz*py2
+		local qy = dz*px - dx*pz
+		local qz = dx*py2 - dy*px
+		-- Cone rim circle
+		glColor(lp.color[1], lp.color[2], lp.color[3], 0.45)
+		glLineWidth(2)
+		glBeginEnd(GL_LINE_LOOP, function()
+			for i = 0, CIRCLE_SEGMENTS - 1 do
+				local a = (i / CIRCLE_SEGMENTS) * 2 * pi
+				local c, s = cos(a), sin(a)
+				glVertex(rimCX + (px*c + qx*s) * rimR,
+				         rimCY + (py2*c + qy*s) * rimR,
+				         rimCZ + (pz*c + qz*s) * rimR)
+			end
+		end)
+		-- 4 edge lines from tip to rim
 		glColor(1, 1, 0, 0.7)
 		glLineWidth(3)
 		glBeginEnd(GL_LINES, function()
-			glVertex(worldX, gy + lp.elevation, worldZ)
-			glVertex(worldX + dx * len, gy + lp.elevation + dy * len, worldZ + dz * len)
+			for k = 0, 3 do
+				local a = (k / 4) * 2 * pi
+				local c, s = cos(a), sin(a)
+				glVertex(tipX, tipY, tipZ)
+				glVertex(rimCX + (px*c + qx*s) * rimR,
+				         rimCY + (py2*c + qy*s) * rimR,
+				         rimCZ + (pz*c + qz*s) * rimR)
+			end
+		end)
+	elseif lp.lightType == "beam" then
+		local dx, dy, dz = eulerToDirection(lp.pitch, lp.yaw)
+		local len = lp.beamLength
+		local tipX, tipY, tipZ = worldX, gy + lp.elevation, worldZ
+		local endX = tipX + dx * len
+		local endY = tipY + dy * len
+		local endZ = tipZ + dz * len
+		-- Main beam axis
+		glColor(1, 1, 0, 0.7)
+		glLineWidth(3)
+		glBeginEnd(GL_LINES, function()
+			glVertex(tipX, tipY, tipZ)
+			glVertex(endX, endY, endZ)
+		end)
+		-- Small cross at start
+		local cr = min(20, lp.lightRadius * 0.1)
+		glColor(lp.color[1], lp.color[2], lp.color[3], 0.5)
+		glLineWidth(2)
+		glBeginEnd(GL_LINES, function()
+			glVertex(tipX - cr, tipY, tipZ); glVertex(tipX + cr, tipY, tipZ)
+			glVertex(tipX, tipY, tipZ - cr); glVertex(tipX, tipY, tipZ + cr)
+		end)
+		-- End marker
+		glBeginEnd(GL_LINES, function()
+			glVertex(endX - cr, endY, endZ); glVertex(endX + cr, endY, endZ)
+			glVertex(endX, endY, endZ - cr); glVertex(endX, endY, endZ + cr)
 		end)
 	end
 
@@ -994,6 +1142,7 @@ function widget:Initialize()
 			lp.active = false
 			lp.mode = nil
 			lp.dragging = false
+			removePreviewLight()
 		end,
 
 		setMode         = function(m) lp.mode = m; lp.active = (m ~= nil) end,
@@ -1042,6 +1191,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	removePreviewLight()
 	-- Remove all placed lights from the renderer
 	for instanceID in pairs(placedLights) do
 		removeOneLight(instanceID)
@@ -1054,9 +1204,29 @@ function widget:IsAbove(x, y)
 	return false
 end
 
+local function isOverLightsUI(mx, my)
+	local tfUI = WG.TerraformBrushUI
+	if not tfUI then return false end
+	local function overBounds(b)
+		if not b then return false end
+		return mx >= b.left and mx <= b.right and my >= b.bottomY and my <= b.topY
+	end
+	if overBounds(tfUI.getPanelBounds and tfUI.getPanelBounds()) then return true end
+	if overBounds(tfUI.getLightLibraryBounds and tfUI.getLightLibraryBounds()) then return true end
+	return false
+end
+
 function widget:MousePress(mx, my, button)
 	if not lp.active or not lp.mode then return false end
 	if button ~= 1 and button ~= 3 then return false end
+	if isOverLightsUI(mx, my) then return false end
+
+	-- Defer to measure tool when active
+	do
+		local tb = WG.TerraformBrush
+		local st = tb and tb.getState and tb.getState() or nil
+		if st and st.measureActive then return false end
+	end
 
 	local _, coords = TraceScreenRay(mx, my, true)
 	if not coords then return false end
@@ -1065,9 +1235,9 @@ function widget:MousePress(mx, my, button)
 
 	if button == 1 then
 		if lp.mode == "remove" then
-			removeAtPosition(worldX, worldZ)
+			placeSymmetric(removeAtPosition, worldX, worldZ)
 		else
-			placeAtPosition(worldX, worldZ)
+			placeSymmetric(placeAtPosition, worldX, worldZ)
 		end
 		lp.dragging = true
 		lp.dragAction = lp.mode == "remove" and "remove" or "place"
@@ -1075,7 +1245,7 @@ function widget:MousePress(mx, my, button)
 		return true
 	elseif button == 3 then
 		-- Right click in any mode removes
-		removeAtPosition(worldX, worldZ)
+		placeSymmetric(removeAtPosition, worldX, worldZ)
 		lp.dragging = true
 		lp.dragAction = "remove"
 		lp.placeTimer = 0
@@ -1109,20 +1279,61 @@ function widget:Update(dt)
 	if not coords then return end
 
 	if lp.dragAction == "remove" then
-		removeAtPosition(coords[1], coords[3])
+		placeSymmetric(removeAtPosition, coords[1], coords[3])
 	else
-		placeAtPosition(coords[1], coords[3])
+		placeSymmetric(placeAtPosition, coords[1], coords[3])
 	end
 end
 
 function widget:DrawWorld()
-	if not lp.active or not lp.mode then return end
+	if not lp.active or not lp.mode then
+		removePreviewLight()
+		return
+	end
 
 	local mx, my = GetMouseState()
-	local _, coords = TraceScreenRay(mx, my, true)
-	if not coords then return end
+	local worldX, worldZ
 
-	drawBrushCircle(coords[1], coords[3])
+	-- Unmouse: when cursor overlaps the UI panel or library window, move the brush to screen center
+	local tfUI = WG.TerraformBrushUI
+	if tfUI then
+		local function overBounds(b)
+			if not b then return false end
+			return mx >= b.left and mx <= b.right and my >= b.bottomY and my <= b.topY
+		end
+		local mainBounds = tfUI.getPanelBounds and tfUI.getPanelBounds()
+		local libBounds  = tfUI.getLightLibraryBounds and tfUI.getLightLibraryBounds()
+		local bounds = overBounds(libBounds) and libBounds or (overBounds(mainBounds) and mainBounds or nil)
+		if bounds then
+			local vsx, vsy = Spring.GetViewGeometry()
+			local cx = floor(vsx * 0.5)
+			-- If center is blocked by the panel, use the area to its left
+			if cx >= bounds.left - 30 and cx <= bounds.right + 30 then
+				cx = floor(bounds.left * 0.5)
+			end
+			local cy = floor(vsy * 0.5)
+			local _, ccoords = TraceScreenRay(cx, cy, true)
+			if ccoords then worldX, worldZ = ccoords[1], ccoords[3] end
+		end
+	end
+
+	if not worldX then
+		local _, coords = TraceScreenRay(mx, my, true)
+		if not coords then
+			removePreviewLight()
+			return
+		end
+		worldX, worldZ = coords[1], coords[3]
+	end
+
+	-- Live preview light at cursor (skip in remove mode)
+	if lp.mode ~= "remove" then
+		updatePreviewLight(worldX, worldZ)
+	else
+		removePreviewLight()
+	end
+
+	drawBrushCircle(worldX, worldZ)
 end
 
 function widget:KeyPress(key, mods, isRepeat)
@@ -1201,6 +1412,10 @@ end
 
 function widget:MouseWheel(up, value)
 	if not lp.active then return false end
+	do
+		local mx, my = GetMouseState()
+		if isOverLightsUI(mx, my) then return false end
+	end
 
 	local alt, ctrl, _, shift = GetModKeyState()
 
@@ -1224,14 +1439,19 @@ function widget:MouseWheel(up, value)
 		return true
 	end
 
-	-- Alt+Scroll = rotate brush
+	-- Ctrl+Alt+Scroll = pitch (up=toward horiz/0°, down=toward down/-90°)
+	if ctrl and alt then
+		local dir = up and 5 or -5
+		lp.pitch = max(-90, min(90, lp.pitch + dir))
+		Echo("[Light Placer] Pitch: " .. lp.pitch .. "°")
+		return true
+	end
+
+	-- Alt+Scroll = yaw (rotate direction horizontally)
 	if alt and not ctrl then
-		if up then
-			lp.rotation = (lp.rotation + ROTATION_STEP) % 360
-		else
-			lp.rotation = (lp.rotation - ROTATION_STEP) % 360
-		end
-		Echo("[Light Placer] Rotation: " .. lp.rotation .. "°")
+		local dir = up and 10 or -10
+		lp.yaw = ((lp.yaw + dir) % 360 + 360) % 360
+		Echo("[Light Placer] Yaw: " .. lp.yaw .. "°")
 		return true
 	end
 

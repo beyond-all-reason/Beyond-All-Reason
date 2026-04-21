@@ -2,6 +2,7 @@
 local M = {}
 
 function M.attach(doc, ctx)
+	if ctx.attachTBMirrorControls then ctx.attachTBMirrorControls(doc, "wb") end
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local WG = ctx.WG

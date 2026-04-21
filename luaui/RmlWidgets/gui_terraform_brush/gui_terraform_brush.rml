@@ -153,6 +153,88 @@
 
 		<!-- Start Positions controls (visible only when StartPos tool active) -->
 		<div id="tf-startpos-controls" class="hidden">
+		<div class="divider-horizontal-dark"></div>
+
+		<!-- ST: DISPLAY -->
+		<div id="btn-toggle-st-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-st-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
+		</div>
+		<div id="section-st-overlays" class="hidden">
+		<div class="flex flex-row items-center gap-1 mb-1">
+			<div id="btn-st-grid-overlay" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label">Grid</div>
+			</div>
+			<div id="btn-st-height-colormap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label">Height Map</div>
+			</div>
+		</div>
+		</div><!-- /section-st-overlays -->
+
+		<div class="divider-horizontal-dark"></div>
+
+		<!-- ST: INSTRUMENTS -->
+		<div id="btn-toggle-st-instruments" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-st-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
+		</div>
+		<div id="section-st-instruments" class="hidden">
+		<div class="flex flex-row items-center gap-1 mb-1">
+			<div id="btn-st-grid-snap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
+			</div>
+			<div id="btn-st-angle-snap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
+			</div>
+			<div id="btn-st-measure" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
+			</div>
+			<div id="btn-st-symmetry" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
+			</div>
+		</div>
+		<div id="st-measure-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-st-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
+				</div>
+				<div id="btn-st-measure-clear" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Clear All</div>
+				</div>
+			</div>
+		</div>
+		<div id="st-symmetry-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-st-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
+				</div>
+				<div id="btn-st-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
+				</div>
+				<div id="btn-st-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-st-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Set Origin</div>
+				</div>
+				<div id="btn-st-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Center</div>
+				</div>
+			</div>
+		</div>
+		</div><!-- /section-st-instruments -->
+
+		<div class="divider-horizontal-dark"></div>
+
+		<!-- ST: CONTROLS -->
+		<div id="btn-toggle-st-controls" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-st-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">CONTROLS</div>
+		</div>
+		<div id="section-st-controls">
+
 			<!-- Ally Teams count -->
 			<div class="flex flex-row items-center mb-1">
 				<div class="text-lg text-light font-bold">Ally Teams</div>
@@ -260,7 +342,6 @@
 
 			<!-- Express mode hint -->
 			<div id="sp-express-hint">
-				<div class="text-sm text-keybind mb-1">LMB: place &amp;middot; RMB: remove &amp;middot; Drag to move</div>
 			</div>
 			<!-- Startbox mode hint -->
 			<div id="sp-startbox-hint" class="hidden">
@@ -285,10 +366,93 @@
 			</div>
 
 			<div class="divider-horizontal-dark"></div>
+		</div><!-- /section-st-controls -->
 		</div>
 
 		<!-- Clone Tool controls (visible only when Clone tool active) -->
 		<div id="tf-clone-controls" class="hidden">
+		<div class="divider-horizontal-dark"></div>
+
+		<!-- CL: DISPLAY -->
+		<div id="btn-toggle-cl-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-cl-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
+		</div>
+		<div id="section-cl-overlays" class="hidden">
+		<div class="flex flex-row items-center gap-1 mb-1">
+			<div id="btn-cl-grid-overlay" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label">Grid</div>
+			</div>
+			<div id="btn-cl-height-colormap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label">Height Map</div>
+			</div>
+		</div>
+		</div><!-- /section-cl-overlays -->
+
+		<div class="divider-horizontal-dark"></div>
+
+		<!-- CL: INSTRUMENTS -->
+		<div id="btn-toggle-cl-instruments" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-cl-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
+		</div>
+		<div id="section-cl-instruments" class="hidden">
+		<div class="flex flex-row items-center gap-1 mb-1">
+			<div id="btn-cl-grid-snap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
+			</div>
+			<div id="btn-cl-angle-snap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
+			</div>
+			<div id="btn-cl-measure" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
+			</div>
+			<div id="btn-cl-symmetry" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
+			</div>
+		</div>
+		<div id="cl-measure-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-cl-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
+				</div>
+				<div id="btn-cl-measure-clear" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Clear All</div>
+				</div>
+			</div>
+		</div>
+		<div id="cl-symmetry-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-cl-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
+				</div>
+				<div id="btn-cl-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
+				</div>
+				<div id="btn-cl-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-cl-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Set Origin</div>
+				</div>
+				<div id="btn-cl-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Center</div>
+				</div>
+			</div>
+		</div>
+		</div><!-- /section-cl-instruments -->
+
+		<div class="divider-horizontal-dark"></div>
+
+		<!-- CL: CONTROLS -->
+		<div id="btn-toggle-cl-controls" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-cl-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">CONTROLS</div>
+		</div>
+		<div id="section-cl-controls">
+
 
 			<!-- Primary actions — hero buttons: COPY is the main action -->
 			<div class="flex flex-row gap-1 mb-1">
@@ -427,6 +591,7 @@
 				</div>
 			</div>
 
+		</div><!-- /section-cl-controls -->
 		</div>
 
 		<div id="tf-shape-row">
@@ -503,27 +668,6 @@
 
 		<!-- Metal controls (visible only when Metal mode active) -->
 		<div id="tf-metal-controls" class="hidden">
-
-			<div class="divider-horizontal-dark"></div>
-
-			<!-- Metal Undo & Redo -->
-			<div id="btn-toggle-mb-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
-				<img id="img-toggle-mb-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
-				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z</div>
-			</div>
-			<div id="section-mb-undo" class="hidden">
-			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-mb-undo" class="tf-history-btn">
-					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
-				</div>
-				<input type="range" id="slider-mb-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
-				<div id="btn-mb-redo" class="tf-history-btn">
-					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
-				</div>
-				<input type="text" id="slider-mb-history-numbox" class="tf-slider-numbox" value="0" />
-			</div>
-			</div><!-- /section-mb-undo -->
 
 			<div class="divider-horizontal-dark"></div>
 
@@ -783,6 +927,27 @@
 			</div>
 
 			<div class="divider-horizontal-dark"></div>
+
+			<!-- Metal Undo & Redo -->
+			<div id="btn-toggle-mb-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+				<img id="img-toggle-mb-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z</div>
+			</div>
+			<div id="section-mb-undo" class="hidden">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-mb-undo" class="tf-history-btn">
+					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
+				</div>
+				<input type="range" id="slider-mb-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
+				<div id="btn-mb-redo" class="tf-history-btn">
+					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
+				</div>
+				<input type="text" id="slider-mb-history-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+			</div><!-- /section-mb-undo -->
+
+			<div class="divider-horizontal-dark"></div>
 			<div class="flex flex-row gap-1 mb-1">
 				<div id="btn-metal-save" class="tf-action-btn tf-save-btn" style="flex: 1;">
 					<div class="tf-action-btn-text">SAVE</div>
@@ -824,31 +989,15 @@
 		<!-- Grass controls (visible only when Grass mode active) -->
 		<div id="tf-grass-controls" class="hidden">
 
-			<!-- Undo & Redo -->
-			<div id="btn-toggle-gb-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
-				<img id="img-toggle-gb-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
-				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
-			</div>
-			<div id="section-gb-undo" class="hidden">
-			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-gb-undo" class="tf-history-btn">
-					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
-				</div>
-				<input type="range" id="slider-gb-history" class="tf-slider tf-slider-history" min="0" max="0" step="1" value="0" />
-				<div id="btn-gb-redo" class="tf-history-btn">
-					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
-				</div>
-				<input type="text" id="slider-gb-history-numbox" class="tf-slider-numbox" value="0" />
-			</div>
-			</div><!-- /section-gb-undo -->
-
 			<div class="divider-horizontal-dark"></div>
 
 			<!-- Grass Brush: DISPLAY -->
 			<div id="btn-toggle-gb-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
 				<img id="img-toggle-gb-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
+				<div id="warn-chip-gb-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden">
+					<div class="tf-overlay-chip-label">Active</div>
+				</div>
 			</div>
 			<div id="section-gb-overlays" class="hidden">
 			<div class="flex flex-row items-center gap-1 mb-1">
@@ -867,6 +1016,9 @@
 			<div id="btn-toggle-gb-instruments" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
 				<img id="img-toggle-gb-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
+				<div id="warn-chip-gb-instruments" class="tf-overlay-chip tf-overlay-chip-warn hidden">
+					<div class="tf-overlay-chip-label">Active</div>
+				</div>
 			</div>
 			<div id="section-gb-instruments" class="hidden">
 			<div class="flex flex-row items-center gap-1 mb-1">
@@ -996,8 +1148,184 @@
 				</div>
 			</div>
 			</div><!-- /section-gb-instruments -->
+			<div class="divider-horizontal-dark"></div>
+
+			<!-- Grass Brush: FILTERS (collapsible, chip-driven like Feature Placer) -->
+			<div id="btn-toggle-gb-smart" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+				<img id="img-toggle-gb-smart" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+				<div class="text-base text-keybind">FILTERS</div>
+				<div id="warn-chip-gb-smart" class="tf-overlay-chip tf-overlay-chip-warn hidden">
+					<div class="tf-overlay-chip-label">Active</div>
+				</div>
+				<img id="btn-gb-smart-toggle" class="tf-icon-sm hidden" src="/luaui/images/terraform_brush/check_off.png" />
+			</div>
+			<div id="section-gb-smart" class="hidden">
+
+				<!-- Filter category chips -->
+				<div class="flex flex-row items-center gap-1 mb-1">
+					<div id="btn-gb-pill-slope" class="tf-overlay-chip">
+						<div class="tf-overlay-chip-label">Slope</div>
+					</div>
+					<div id="btn-gb-pill-altitude" class="tf-overlay-chip">
+						<div class="tf-overlay-chip-label">Altitude</div>
+					</div>
+					<div id="btn-gb-pill-color" class="tf-overlay-chip">
+						<div class="tf-overlay-chip-label">Color</div>
+					</div>
+				</div>
+
+				<!-- Avoid Water (always visible within FILTERS) -->
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<img id="btn-gb-avoid-water" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" />
+					<div class="text-lg text-light">Avoid Water</div>
+					<div class="text-sm text-keybind" style="margin-left: auto;">no underwater</div>
+				</div>
+
+				<!-- Slope content (toggled by Slope chip) -->
+				<div id="gb-smart-slope-content" class="hidden">
+				<!-- Avoid Cliffs -->
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<img id="btn-gb-avoid-cliffs" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" />
+					<div class="text-lg text-light">Avoid Cliffs</div>
+					<div class="text-sm text-keybind" style="margin-left: auto;">slope limit</div>
+				</div>
+				<div id="gb-smart-slope-max-row" class="flex flex-row items-center mb-1">
+					<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="gb-smart-slope-max-label">45</span>&#176;</div>
+					<div id="slider-gb-slope-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
+					<div id="slider-gb-slope-max-transport" class="tf-transport-group hidden">
+						<div id="slider-gb-slope-max-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
+						<div id="slider-gb-slope-max-play" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_play.png" /></div>
+						<div id="slider-gb-slope-max-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
+					</div>
+				</div>
+				<div id="gb-smart-slope-max-slider-row" class="flex flex-row gap-1 items-center mb-1">
+					<div id="btn-gb-slope-max-down" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="slider-gb-slope-max" class="tf-slider" min="5" max="89" step="1" value="45" />
+					<div id="btn-gb-slope-max-up" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+					<input type="text" id="slider-gb-slope-max-numbox" class="tf-slider-numbox" value="0" />
+				</div>
+
+				<!-- Prefer Slopes -->
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<img id="btn-gb-prefer-slopes" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
+					<div class="text-lg text-light">Prefer Slopes</div>
+				</div>
+				<div id="gb-smart-slope-min-row" class="hidden flex flex-row items-center mb-1">
+					<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="gb-smart-slope-min-label">10</span>&#176;</div>
+					<div id="slider-gb-slope-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
+					<div id="slider-gb-slope-min-transport" class="tf-transport-group hidden">
+						<div id="slider-gb-slope-min-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
+						<div id="slider-gb-slope-min-play" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_play.png" /></div>
+						<div id="slider-gb-slope-min-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
+					</div>
+				</div>
+				<div id="gb-smart-slope-min-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
+					<div id="btn-gb-slope-min-down" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="slider-gb-slope-min" class="tf-slider" min="1" max="89" step="1" value="10" />
+					<div id="btn-gb-slope-min-up" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+					<input type="text" id="slider-gb-slope-min-numbox" class="tf-slider-numbox" value="0" />
+				</div>
+				</div><!-- /gb-smart-slope-content -->
+
+				<!-- Altitude content (toggled by Altitude chip) -->
+				<div id="gb-smart-altitude-content" class="hidden">
+				<!-- Altitude Min -->
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<img id="btn-gb-alt-min-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
+					<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold" id="gb-smart-alt-min-label">0</span></div>
+					<div id="slider-gb-alt-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
+					<div id="slider-gb-alt-min-transport" class="tf-transport-group hidden">
+						<div id="slider-gb-alt-min-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
+						<div id="slider-gb-alt-min-play" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_play.png" /></div>
+						<div id="slider-gb-alt-min-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
+					</div>
+				</div>
+				<div id="gb-smart-alt-min-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
+					<div id="btn-gb-alt-min-down" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="slider-gb-alt-min" class="tf-slider" min="-500" max="500" step="1" value="0" />
+					<div id="btn-gb-alt-min-up" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+					<input type="text" id="slider-gb-alt-min-numbox" class="tf-slider-numbox" value="0" />
+				</div>
+
+				<!-- Altitude Max -->
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<img id="btn-gb-alt-max-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
+					<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold" id="gb-smart-alt-max-label">200</span></div>
+					<div id="slider-gb-alt-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
+					<div id="slider-gb-alt-max-transport" class="tf-transport-group hidden">
+						<div id="slider-gb-alt-max-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
+						<div id="slider-gb-alt-max-play" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_play.png" /></div>
+						<div id="slider-gb-alt-max-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
+					</div>
+				</div>
+				<div id="gb-smart-alt-max-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
+					<div id="btn-gb-alt-max-down" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="slider-gb-alt-max" class="tf-slider" min="-500" max="500" step="1" value="200" />
+					<div id="btn-gb-alt-max-up" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+					<input type="text" id="slider-gb-alt-max-numbox" class="tf-slider-numbox" value="0" />
+				</div>
+				</div><!-- /gb-smart-altitude-content -->
+
+				<!-- Color content (toggled by Color chip; chip active == texFilterEnabled) -->
+				<div id="gb-smart-color-content" class="hidden">
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="tf-filter-heading">COLOR FILTER</div>
+					<div id="btn-gb-pipette" class="tf-gb-pipette-btn" style="margin-left: auto;"><img src="/luaui/images/terraform_brush/gb_pipette.png" style="width: 14dp; height: 14dp; image-color: #cccccc;" /></div>
+				</div>
+				<div class="mb-1">
+					<div id="gb-tex-color-swatch" />
+				</div>
+				<!-- Exclude color row -->
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<img id="btn-gb-exclude-toggle" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
+					<div class="tf-filter-heading" style="color: #e07070;">EXCLUDE</div>
+					<div id="btn-gb-exclude-pipette" class="tf-gb-pipette-btn" style="margin-left: auto;"><img src="/luaui/images/terraform_brush/gb_pipette.png" style="width: 14dp; height: 14dp; image-color: #e07070;" /></div>
+				</div>
+				<div class="mb-1">
+					<div id="gb-tex-exclude-swatch" />
+				</div>
+				<div class="flex flex-row items-center mb-1">
+					<div class="text-lg text-light">TOLERANCE: <span class="text-xl font-bold" id="gb-color-thresh-label">35</span></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<input type="range" id="slider-gb-color-thresh" class="tf-slider" min="0" max="150" step="1" value="35" />
+					<input type="text" id="slider-gb-color-thresh-numbox" class="tf-slider-numbox" value="35" />
+				</div>
+				<div class="flex flex-row items-center mb-1">
+					<div class="text-lg text-light">EDGE PAD: <span class="text-xl font-bold" id="gb-color-pad-label">0</span></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<input type="range" id="slider-gb-color-pad" class="tf-slider" min="0" max="200" step="8" value="0" />
+					<input type="text" id="slider-gb-color-pad-numbox" class="tf-slider-numbox" value="0" />
+				</div>
+				</div><!-- /gb-smart-color-content -->
+
+			</div><!-- /section-gb-smart -->
 
 			<div class="divider-horizontal-dark"></div>
+
+			<!-- Grass Brush: CONTROLS -->
+			<div id="btn-toggle-gb-controls" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+				<img id="img-toggle-gb-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<div class="text-base text-keybind">CONTROLS</div>
+			</div>
+			<div id="section-gb-controls">
 
 			<!-- Density -->
 			<div class="flex flex-row justify-between items-center mb-1">
@@ -1102,155 +1430,6 @@
 				<input type="text" id="slider-gb-curve-numbox" class="tf-slider-numbox" value="0" />
 			</div>
 
-			<div class="divider-horizontal-dark"></div>
-
-			<!-- Smart Filter Toggle -->
-			<div class="flex flex-row gap-1 items-center mb-1">
-				<img id="btn-gb-smart-toggle" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
-				<div class="tf-filter-heading">SMART FILTER</div>
-				<div class="text-sm text-keybind" style="margin-left: auto;">terrain-aware</div>
-			</div>
-			<div id="gb-smart-options" class="hidden">
-				<div class="divider-horizontal-dark"></div>
-				<div class="tf-filter-heading mb-1">SMART FILTERS</div>
-
-				<!-- Avoid Water -->
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-gb-avoid-water" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" />
-					<div class="text-lg text-light">Avoid Water</div>
-				</div>
-
-				<!-- Avoid Cliffs -->
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-gb-avoid-cliffs" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" />
-					<div class="text-lg text-light">Avoid Cliffs</div>
-				</div>
-				<div id="gb-smart-slope-max-row" class="flex flex-row items-center mb-1">
-					<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="gb-smart-slope-max-label">45</span>&#176;</div>
-					<div id="slider-gb-slope-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
-					<div id="slider-gb-slope-max-transport" class="tf-transport-group hidden">
-						<div id="slider-gb-slope-max-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
-						<div id="slider-gb-slope-max-play" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_play.png" /></div>
-						<div id="slider-gb-slope-max-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
-					</div>
-				</div>
-				<div id="gb-smart-slope-max-slider-row" class="flex flex-row gap-1 items-center mb-1">
-					<div id="btn-gb-slope-max-down" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-					</div>
-					<input type="range" id="slider-gb-slope-max" class="tf-slider" min="5" max="89" step="1" value="45" />
-					<div id="btn-gb-slope-max-up" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-					</div>
-					<input type="text" id="slider-gb-slope-max-numbox" class="tf-slider-numbox" value="0" />
-				</div>
-
-				<!-- Prefer Slopes -->
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-gb-prefer-slopes" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
-					<div class="text-lg text-light">Prefer Slopes</div>
-				</div>
-				<div id="gb-smart-slope-min-row" class="hidden flex flex-row items-center mb-1">
-					<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="gb-smart-slope-min-label">10</span>&#176;</div>
-					<div id="slider-gb-slope-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
-					<div id="slider-gb-slope-min-transport" class="tf-transport-group hidden">
-						<div id="slider-gb-slope-min-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
-						<div id="slider-gb-slope-min-play" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_play.png" /></div>
-						<div id="slider-gb-slope-min-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
-					</div>
-				</div>
-				<div id="gb-smart-slope-min-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
-					<div id="btn-gb-slope-min-down" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-					</div>
-					<input type="range" id="slider-gb-slope-min" class="tf-slider" min="1" max="89" step="1" value="10" />
-					<div id="btn-gb-slope-min-up" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-					</div>
-					<input type="text" id="slider-gb-slope-min-numbox" class="tf-slider-numbox" value="0" />
-				</div>
-
-				<!-- Altitude Min -->
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-gb-alt-min-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
-					<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold" id="gb-smart-alt-min-label">0</span></div>
-					<div id="slider-gb-alt-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
-					<div id="slider-gb-alt-min-transport" class="tf-transport-group hidden">
-						<div id="slider-gb-alt-min-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
-						<div id="slider-gb-alt-min-play" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_play.png" /></div>
-						<div id="slider-gb-alt-min-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
-					</div>
-				</div>
-				<div id="gb-smart-alt-min-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
-					<div id="btn-gb-alt-min-down" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-					</div>
-					<input type="range" id="slider-gb-alt-min" class="tf-slider" min="-500" max="500" step="1" value="0" />
-					<div id="btn-gb-alt-min-up" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-					</div>
-					<input type="text" id="slider-gb-alt-min-numbox" class="tf-slider-numbox" value="0" />
-				</div>
-
-				<!-- Altitude Max -->
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-gb-alt-max-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
-					<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold" id="gb-smart-alt-max-label">200</span></div>
-					<div id="slider-gb-alt-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
-					<div id="slider-gb-alt-max-transport" class="tf-transport-group hidden">
-						<div id="slider-gb-alt-max-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
-						<div id="slider-gb-alt-max-play" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_play.png" /></div>
-						<div id="slider-gb-alt-max-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
-					</div>
-				</div>
-				<div id="gb-smart-alt-max-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
-					<div id="btn-gb-alt-max-down" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-					</div>
-					<input type="range" id="slider-gb-alt-max" class="tf-slider" min="-500" max="500" step="1" value="200" />
-					<div id="btn-gb-alt-max-up" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-					</div>
-					<input type="text" id="slider-gb-alt-max-numbox" class="tf-slider-numbox" value="0" />
-				</div>
-			</div>
-
-			<div class="divider-horizontal-dark"></div>
-
-			<!-- Texture Color Filter -->
-			<div class="flex flex-row gap-1 items-center mb-1">
-				<img id="btn-gb-color-toggle" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
-				<div class="tf-filter-heading">COLOR FILTER</div>
-				<div id="btn-gb-pipette" class="tf-gb-pipette-btn" style="margin-left: auto;"><img src="/luaui/images/terraform_brush/gb_pipette.png" style="width: 14dp; height: 14dp; image-color: #cccccc;" /></div>
-			</div>
-			<div id="gb-color-options" class="hidden">
-				<div class="mb-1">
-					<div id="gb-tex-color-swatch" />
-				</div>
-				<!-- Exclude color row -->
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-gb-exclude-toggle" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
-					<div class="tf-filter-heading" style="color: #e07070;">EXCLUDE</div>
-					<div id="btn-gb-exclude-pipette" class="tf-gb-pipette-btn" style="margin-left: auto;"><img src="/luaui/images/terraform_brush/gb_pipette.png" style="width: 14dp; height: 14dp; image-color: #e07070;" /></div>
-				</div>
-				<div class="mb-1">
-					<div id="gb-tex-exclude-swatch" />
-				</div>
-				<div class="flex flex-row items-center mb-1">
-					<div class="text-lg text-light">TOLERANCE: <span class="text-xl font-bold" id="gb-color-thresh-label">35</span></div>
-				</div>
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<input type="range" id="slider-gb-color-thresh" class="tf-slider" min="0" max="150" step="1" value="35" />
-					<input type="text" id="slider-gb-color-thresh-numbox" class="tf-slider-numbox" value="35" />
-				</div>
-				<div class="flex flex-row items-center mb-1">
-					<div class="text-lg text-light">EDGE PAD: <span class="text-xl font-bold" id="gb-color-pad-label">0</span></div>
-				</div>
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<input type="range" id="slider-gb-color-pad" class="tf-slider" min="0" max="200" step="8" value="0" />
-					<input type="text" id="slider-gb-color-pad-numbox" class="tf-slider-numbox" value="0" />
-				</div>
-			</div>
 
 			<div class="divider-horizontal-dark"></div>
 			<div class="flex flex-row gap-1 mb-1">
@@ -1258,6 +1437,28 @@
 					<div class="tf-action-btn-text">SAVE GRASS MAP</div>
 				</div>
 			</div>
+			</div><!-- /section-gb-controls -->
+
+			<div class="divider-horizontal-dark"></div>
+
+			<!-- Undo & Redo -->
+			<div id="btn-toggle-gb-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+				<img id="img-toggle-gb-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
+			</div>
+			<div id="section-gb-undo" class="hidden">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-gb-undo" class="tf-history-btn">
+					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
+				</div>
+				<input type="range" id="slider-gb-history" class="tf-slider tf-slider-history" min="0" max="0" step="1" value="0" />
+				<div id="btn-gb-redo" class="tf-history-btn">
+					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
+				</div>
+				<input type="text" id="slider-gb-history-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+			</div><!-- /section-gb-undo -->
 		</div>
 
 		<!-- Feature sub-mode row (visible only when Features mode active) -->
@@ -1348,6 +1549,28 @@
 				</div>
 			</div>
 			</div><!-- /section-dc-mode -->
+
+			<!-- DC: DISTRIBUTION (nested under PLACEMENT MODE) -->
+			<div id="btn-toggle-dc-dist" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+				<img id="img-toggle-dc-dist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<div class="tf-collapsible-title">DISTRIBUTION</div>
+			</div>
+			<div id="section-dc-dist">
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-dc-dist-random" class="tf-fp-dist-btn active">
+					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/fp_scatter.png" />
+					<div class="tf-btn-text">Random</div>
+				</div>
+				<div id="btn-dc-dist-regular" class="tf-fp-dist-btn">
+					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_regular.png" />
+					<div class="tf-btn-text">Regular</div>
+				</div>
+				<div id="btn-dc-dist-clustered" class="tf-fp-dist-btn">
+					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_clustered.png" />
+					<div class="tf-btn-text">Clustered</div>
+				</div>
+			</div>
+			</div><!-- /section-dc-dist -->
 			<div class="divider-horizontal-dark"></div>
 		</div>
 
@@ -1378,26 +1601,6 @@
 
 		<!-- ============ TERRAFORM-ONLY CONTROLS ============ -->
 		<div id="tf-terraform-controls">
-
-		<div class="divider-horizontal-dark"></div>
-
-		<div id="btn-toggle-tf-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
-			<img id="img-toggle-tf-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-			<div class="tf-collapsible-title">UNDO &amp; REDO</div>
-			<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
-		</div>
-		<div id="section-tf-undo" class="hidden">
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-undo" class="tf-history-btn">
-				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
-			</div>
-			<input type="range" id="slider-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
-			<div id="btn-redo" class="tf-history-btn">
-				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
-			</div>
-			<input type="text" id="slider-history-numbox" class="tf-slider-numbox" value="0" />
-		</div>
-		</div><!-- /section-tf-undo -->
 
 		<div class="divider-horizontal-dark"></div>
 
@@ -1843,6 +2046,26 @@
 
 		<div class="divider-horizontal-dark"></div>
 
+		<div id="btn-toggle-tf-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+			<img id="img-toggle-tf-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+			<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
+		</div>
+		<div id="section-tf-undo" class="hidden">
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-undo" class="tf-history-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
+			</div>
+			<input type="range" id="slider-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
+			<div id="btn-redo" class="tf-history-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
+			</div>
+			<input type="text" id="slider-history-numbox" class="tf-slider-numbox" value="0" />
+		</div>
+		</div><!-- /section-tf-undo -->
+
+		<div class="divider-horizontal-dark"></div>
+
 		<div id="btn-toggle-presets" class="flex flex-row items-center mb-1" style="cursor: pointer;">
 			<img id="img-toggle-presets" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 			<div class="tf-collapsible-title">PRESETS</div>
@@ -1905,26 +2128,6 @@
 			</div>
 		</div>
 		</div><!-- /section-fp-dist -->
-
-		<div class="divider-horizontal-dark"></div>
-
-		<div id="btn-toggle-fp-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
-			<img id="img-toggle-fp-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-			<div class="tf-collapsible-title">UNDO &amp; REDO</div>
-			<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
-		</div>
-		<div id="section-fp-undo" class="hidden">
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-fp-undo" class="tf-history-btn">
-				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
-			</div>
-			<input type="range" id="slider-fp-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
-			<div id="btn-fp-redo" class="tf-history-btn">
-				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
-			</div>
-			<input type="text" id="slider-fp-history-numbox" class="tf-slider-numbox" value="0" />
-		</div>
-		</div><!-- /section-fp-undo -->
 
 		<div class="divider-horizontal-dark"></div>
 
@@ -2284,6 +2487,28 @@
 
 		</div><!-- /section-fp-controls -->
 
+		<div class="divider-horizontal-dark"></div>
+
+		<div id="btn-toggle-fp-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+			<img id="img-toggle-fp-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+			<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
+		</div>
+		<div id="section-fp-undo" class="hidden">
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-fp-undo" class="tf-history-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
+			</div>
+			<input type="range" id="slider-fp-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
+			<div id="btn-fp-redo" class="tf-history-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
+			</div>
+			<input type="text" id="slider-fp-history-numbox" class="tf-slider-numbox" value="0" />
+		</div>
+		</div><!-- /section-fp-undo -->
+
+		<div class="divider-horizontal-dark"></div>
+
 		<div id="btn-toggle-fp-save" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 			<img id="img-toggle-fp-save" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 			<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
@@ -2311,6 +2536,88 @@
 
 		<!-- ============ WEATHER-ONLY CONTROLS ============ -->
 		<div id="tf-weather-controls" class="hidden">
+		<div class="divider-horizontal-dark"></div>
+
+		<!-- WB: DISPLAY -->
+		<div id="btn-toggle-wb-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-wb-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
+		</div>
+		<div id="section-wb-overlays" class="hidden">
+		<div class="flex flex-row items-center gap-1 mb-1">
+			<div id="btn-wb-grid-overlay" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label">Grid</div>
+			</div>
+			<div id="btn-wb-height-colormap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label">Height Map</div>
+			</div>
+		</div>
+		</div><!-- /section-wb-overlays -->
+
+		<div class="divider-horizontal-dark"></div>
+
+		<!-- WB: INSTRUMENTS -->
+		<div id="btn-toggle-wb-instruments" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-wb-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
+		</div>
+		<div id="section-wb-instruments" class="hidden">
+		<div class="flex flex-row items-center gap-1 mb-1">
+			<div id="btn-wb-grid-snap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
+			</div>
+			<div id="btn-wb-angle-snap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
+			</div>
+			<div id="btn-wb-measure" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
+			</div>
+			<div id="btn-wb-symmetry" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
+			</div>
+		</div>
+		<div id="wb-measure-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-wb-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
+				</div>
+				<div id="btn-wb-measure-clear" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Clear All</div>
+				</div>
+			</div>
+		</div>
+		<div id="wb-symmetry-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-wb-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
+				</div>
+				<div id="btn-wb-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
+				</div>
+				<div id="btn-wb-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-wb-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Set Origin</div>
+				</div>
+				<div id="btn-wb-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Center</div>
+				</div>
+			</div>
+		</div>
+		</div><!-- /section-wb-instruments -->
+
+		<div class="divider-horizontal-dark"></div>
+
+		<!-- WB: CONTROLS -->
+		<div id="btn-toggle-wb-controls" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-wb-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">CONTROLS</div>
+		</div>
+		<div id="section-wb-controls">
+
 
 		<div id="btn-toggle-wb-dist" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 			<img id="img-toggle-wb-dist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -2497,6 +2804,7 @@
 
 		<div class="divider-horizontal-dark"></div>
 
+				</div><!-- /section-wb-controls -->
 		</div><!-- /tf-weather-controls -->
 
 		<!-- ============ SPLAT PAINTER CONTROLS ============ -->
@@ -2530,27 +2838,6 @@
 			</div>
 		</div>
 		</div><!-- /section-spl-channel -->
-
-		<div class="divider-horizontal-dark"></div>
-
-		<!-- Undo & Redo -->
-		<div id="btn-toggle-sp-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
-			<img id="img-toggle-sp-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-			<div class="tf-collapsible-title">UNDO &amp; REDO</div>
-			<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
-		</div>
-		<div id="section-sp-undo" class="hidden">
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-sp-undo" class="tf-history-btn">
-				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
-			</div>
-			<input type="range" id="slider-sp-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
-			<div id="btn-sp-redo" class="tf-history-btn">
-				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
-			</div>
-			<input type="text" id="slider-sp-history-numbox" class="tf-slider-numbox" value="0" />
-		</div>
-		</div><!-- /section-sp-undo -->
 
 		<div class="divider-horizontal-dark"></div>
 
@@ -2816,6 +3103,27 @@
 
 		<div class="divider-horizontal-dark"></div>
 
+		<!-- Undo & Redo -->
+		<div id="btn-toggle-sp-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+			<img id="img-toggle-sp-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+			<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
+		</div>
+		<div id="section-sp-undo" class="hidden">
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-sp-undo" class="tf-history-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
+			</div>
+			<input type="range" id="slider-sp-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
+			<div id="btn-sp-redo" class="tf-history-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
+			</div>
+			<input type="text" id="slider-sp-history-numbox" class="tf-slider-numbox" value="0" />
+		</div>
+		</div><!-- /section-sp-undo -->
+
+		<div class="divider-horizontal-dark"></div>
+
 		<!-- Splat Painter: FILTERS -->
 		<div id="btn-toggle-sp-smart" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
 			<img id="img-toggle-sp-smart" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
@@ -2961,56 +3269,87 @@
 
 		<!-- ============ DECALS CONTROLS ============ -->
 		<div id="tf-decal-controls" class="hidden">
+		<div class="divider-horizontal-dark"></div>
 
-		<div id="btn-toggle-dc-dist" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
-			<img id="img-toggle-dc-dist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-			<div class="tf-collapsible-title">DISTRIBUTION</div>
+		<!-- DC: DISPLAY -->
+		<div id="btn-toggle-dc-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-dc-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
 		</div>
-		<div id="section-dc-dist">
-		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-dc-dist-random" class="tf-fp-dist-btn active">
-				<img class="tf-icon-dist" src="/luaui/images/terraform_brush/fp_scatter.png" />
-				<div class="tf-btn-text">Random</div>
+		<div id="section-dc-overlays" class="hidden">
+		<div class="flex flex-row items-center gap-1 mb-1">
+			<div id="btn-dc-grid-overlay" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
-			<div id="btn-dc-dist-regular" class="tf-fp-dist-btn">
-				<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_regular.png" />
-				<div class="tf-btn-text">Regular</div>
-			</div>
-			<div id="btn-dc-dist-clustered" class="tf-fp-dist-btn">
-				<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_clustered.png" />
-				<div class="tf-btn-text">Clustered</div>
+			<div id="btn-dc-height-colormap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
 		</div>
-		</div><!-- /section-dc-dist -->
+		</div><!-- /section-dc-overlays -->
 
 		<div class="divider-horizontal-dark"></div>
 
-		<!-- Undo & Redo -->
-		<div id="btn-toggle-dc-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
-			<img id="img-toggle-dc-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-			<div class="tf-collapsible-title">UNDO &amp; REDO</div>
-			<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z</div>
+		<!-- DC: INSTRUMENTS -->
+		<div id="btn-toggle-dc-instruments" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-dc-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
 		</div>
-		<div id="section-dc-undo" class="hidden">
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-dc-undo" class="tf-history-btn">
-				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
+		<div id="section-dc-instruments" class="hidden">
+		<div class="flex flex-row items-center gap-1 mb-1">
+			<div id="btn-dc-grid-snap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 			</div>
-			<input type="range" id="slider-dc-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
-			<div id="btn-dc-redo" class="tf-history-btn">
-				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
+			<div id="btn-dc-angle-snap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 			</div>
-			<input type="text" id="slider-dc-history-numbox" class="tf-slider-numbox" value="0" />
+			<div id="btn-dc-measure" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
+			</div>
+			<div id="btn-dc-symmetry" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
+			</div>
 		</div>
-		</div><!-- /section-dc-undo -->
+		<div id="dc-measure-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-dc-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
+				</div>
+				<div id="btn-dc-measure-clear" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Clear All</div>
+				</div>
+			</div>
+		</div>
+		<div id="dc-symmetry-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-dc-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
+				</div>
+				<div id="btn-dc-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
+				</div>
+				<div id="btn-dc-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-dc-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Set Origin</div>
+				</div>
+				<div id="btn-dc-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Center</div>
+				</div>
+			</div>
+		</div>
+		</div><!-- /section-dc-instruments -->
 
 		<div class="divider-horizontal-dark"></div>
 
-		<div id="btn-toggle-dc-library" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
-			<img id="img-toggle-dc-library" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+		<!-- DC: CONTROLS -->
+		<div id="btn-toggle-dc-controls" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+			<img id="img-toggle-dc-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 			<div class="tf-collapsible-title">CONTROLS</div>
 		</div>
-		<div id="section-dc-library">
+		<div id="section-dc-controls">
 
 		<div class="divider-horizontal-dark"></div>
 
@@ -3114,14 +3453,37 @@
 			<div class="text-lg text-light">Align to terrain normal</div>
 		</div>
 
+		</div><!-- /section-dc-controls -->
+
 		<div class="divider-horizontal-dark"></div>
 
-		<!-- Action buttons -->
-		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-dc-clearall" class="tf-action-btn tf-dc-reset-btn" style="flex: 1;">
-				<div class="tf-action-btn-text">CLEAR ALL</div>
-			</div>
+		<!-- Undo & Redo -->
+		<div id="btn-toggle-dc-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+			<img id="img-toggle-dc-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+			<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z</div>
 		</div>
+		<div id="section-dc-undo" class="hidden">
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-dc-undo" class="tf-history-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
+			</div>
+			<input type="range" id="slider-dc-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
+			<div id="btn-dc-redo" class="tf-history-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
+			</div>
+			<input type="text" id="slider-dc-history-numbox" class="tf-slider-numbox" value="0" />
+		</div>
+		</div><!-- /section-dc-undo -->
+
+		<div class="divider-horizontal-dark"></div>
+
+		<!-- Save / Load + Combat Heatmap -->
+		<div id="btn-toggle-dc-saveload" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+			<img id="img-toggle-dc-saveload" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
+		</div>
+		<div id="section-dc-saveload" class="hidden">
 		<div class="flex flex-row gap-1 mb-1">
 			<div id="btn-dc-save" class="tf-action-btn tf-save-btn" style="flex: 1;">
 				<div class="tf-action-btn-text">SAVE</div>
@@ -3130,16 +3492,12 @@
 				<div class="tf-action-btn-text">LOAD</div>
 			</div>
 		</div>
-
-		</div><!-- /section-dc-library -->
-
-		<div class="divider-horizontal-dark"></div>
-
-		<div id="btn-toggle-dc-heatmap" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
-			<img id="img-toggle-dc-heatmap" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-			<div class="tf-collapsible-title">COMBAT HEATMAP</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-dc-clearall" class="tf-action-btn tf-dc-reset-btn" style="flex: 1;">
+				<div class="tf-action-btn-text">CLEAR ALL</div>
+			</div>
 		</div>
-		<div id="section-dc-heatmap" class="hidden">
+		<div class="divider-horizontal-dark" style="margin-bottom: 0.5em;"></div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-medium">Explosions tracked: <span class="text-sm font-bold text-light" id="dc-heat-explosions">0</span></div>
 		</div>
@@ -3151,7 +3509,7 @@
 				<div class="tf-action-btn-text">RESET</div>
 			</div>
 		</div>
-		</div><!-- /section-dc-heatmap -->
+		</div><!-- /section-dc-saveload -->
 
 		<div class="divider-horizontal-dark"></div>
 
@@ -3229,7 +3587,10 @@
 
 		<!-- ============ LIGHT CONTROLS ============ -->
 		<div id="tf-light-controls" class="hidden">
+		<div class="divider-horizontal-dark"></div>
 
+		<!-- LP: LIGHT TYPE + PLACEMENT MODE + DISTRIBUTION (outside collapsibles, always at top) -->
+		<div id="tf-lp-submodes">
 			<div id="btn-toggle-lt-type" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 				<img id="img-toggle-lt-type" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">LIGHT TYPE</div>
@@ -3272,8 +3633,7 @@
 			</div>
 			</div><!-- /section-lt-placement -->
 
-			<div class="divider-horizontal-dark"></div>
-
+			<!-- DISTRIBUTION nested under PLACEMENT MODE -->
 			<div id="btn-toggle-lt-dist" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 				<img id="img-toggle-lt-dist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">DISTRIBUTION</div>
@@ -3294,16 +3654,244 @@
 				</div>
 			</div>
 			</div><!-- /section-lt-dist -->
+			<div class="divider-horizontal-dark"></div>
+		</div><!-- /tf-lp-submodes -->
+
+		<!-- LP: DISPLAY -->
+		<div id="btn-toggle-lp-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-lp-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
+		</div>
+		<div id="section-lp-overlays" class="hidden">
+		<div class="flex flex-row items-center gap-1 mb-1">
+			<div id="btn-lp-grid-overlay" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label">Grid</div>
+			</div>
+			<div id="btn-lp-height-colormap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label">Height Map</div>
+			</div>
+		</div>
+		</div><!-- /section-lp-overlays -->
+
+		<div class="divider-horizontal-dark"></div>
+
+		<!-- LP: INSTRUMENTS -->
+		<div id="btn-toggle-lp-instruments" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-lp-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
+		</div>
+		<div id="section-lp-instruments" class="hidden">
+		<div class="flex flex-row items-center gap-1 mb-1">
+			<div id="btn-lp-grid-snap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
+			</div>
+			<div id="btn-lp-angle-snap" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
+			</div>
+			<div id="btn-lp-measure" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
+			</div>
+			<div id="btn-lp-symmetry" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
+			</div>
+		</div>
+		<div id="lp-measure-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-lp-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
+				</div>
+				<div id="btn-lp-measure-clear" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Clear All</div>
+				</div>
+			</div>
+		</div>
+		<div id="lp-symmetry-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-lp-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
+				</div>
+				<div id="btn-lp-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
+				</div>
+				<div id="btn-lp-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-lp-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Set Origin</div>
+				</div>
+				<div id="btn-lp-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;">
+					<div class="text-sm" style="text-align: center;">Center</div>
+				</div>
+			</div>
+		</div>
+		</div><!-- /section-lp-instruments -->
+
+		<div class="divider-horizontal-dark"></div>
+
+		<!-- LP: CONTROLS (sliders only) -->
+		<div id="btn-toggle-lp-controls" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-lp-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">CONTROLS</div>
+		</div>
+		<div id="section-lp-controls">
+
+			<!-- Brightness -->
+			<div class="flex flex-row justify-between items-center mb-1">
+				<div class="text-lg text-light">BRIGHTNESS: <span class="text-xl font-bold" id="lp-brightness-label">2.0</span></div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-lp-brightness-down" class="tf-sm-btn">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+				</div>
+				<input type="range" id="slider-lp-brightness" class="tf-slider" min="1" max="1000" step="1" value="200" />
+				<div id="btn-lp-brightness-up" class="tf-sm-btn">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+				</div>
+				<input type="text" id="slider-lp-brightness-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+
+			<!-- Light Radius -->
+			<div class="flex flex-row justify-between items-center mb-1">
+				<div class="text-lg text-light">LIGHT RADIUS: <span class="text-xl font-bold" id="lp-light-radius-label">300</span></div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-lp-light-radius-down" class="tf-sm-btn">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+				</div>
+				<input type="range" id="slider-lp-light-radius" class="tf-slider" min="10" max="5000" step="10" value="300" />
+				<div id="btn-lp-light-radius-up" class="tf-sm-btn">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+				</div>
+				<input type="text" id="slider-lp-light-radius-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+
+			<!-- Elevation -->
+			<div class="flex flex-row justify-between items-center mb-1">
+				<div class="text-lg text-light">ELEVATION: <span class="text-xl font-bold" id="lp-elevation-label">20</span></div>
+				<div class="text-xs text-keybind">Shift+Scroll</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-lp-elevation-down" class="tf-sm-btn">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+				</div>
+				<input type="range" id="slider-lp-elevation" class="tf-slider" min="0" max="2000" step="5" value="20" />
+				<div id="btn-lp-elevation-up" class="tf-sm-btn">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+				</div>
+				<input type="text" id="slider-lp-elevation-numbox" class="tf-slider-numbox" value="0" />
+			</div>
 
 			<div class="divider-horizontal-dark"></div>
 
-			<!-- Light Color -->
-			<div id="btn-toggle-lp-color" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
-				<img id="img-toggle-lp-color" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-				<div class="tf-collapsible-title">COLOR</div>
+			<!-- Cone/Beam Direction (hidden for point lights) -->
+			<div id="lp-direction-section" class="hidden">
+				<div class="text-lg text-light font-bold mb-1">DIRECTION</div>
+				<!-- Hemisphere globe + pitch/yaw inputs -->
+				<div class="flex flex-row gap-2 items-center mb-1">
+					<div id="lp-orient-globe" class="lp-orient-globe">
+						<div class="lp-orient-ring lp-orient-horizon"></div>
+						<div class="lp-orient-ring lp-orient-mid"></div>
+						<div class="lp-orient-compass lp-orient-N">N</div>
+						<div class="lp-orient-compass lp-orient-E">E</div>
+						<div class="lp-orient-compass lp-orient-S">S</div>
+						<div class="lp-orient-compass lp-orient-W">W</div>
+						<div class="lp-orient-center"></div>
+						<div id="lp-orient-indicator" class="lp-orient-indicator"></div>
+					</div>
+					<div class="flex flex-col gap-2">
+						<div class="flex flex-row gap-1 items-center">
+							<div class="lp-orient-label">Pitch</div>
+							<input type="text" id="lp-orient-pitch-input" class="lp-orient-numbox" value="-45" />
+							<div class="lp-orient-deg">°</div>
+						</div>
+						<div class="flex flex-row gap-1 items-center">
+							<div class="lp-orient-label">Yaw</div>
+							<input type="text" id="lp-orient-yaw-input" class="lp-orient-numbox" value="0" />
+							<div class="lp-orient-deg">°</div>
+						</div>
+					</div>
+				</div>
+				<div class="lp-orient-hintbar">drag · ●=down, edge=horiz · Alt+Scroll=Yaw · Ctrl+Alt=Pitch</div>
 			</div>
-			<div id="section-lp-color">
-			<!-- MS Paint style color palette (18 columns Ă— 3 rows) -->
+
+			<!-- Cone Theta (visible only for cone) -->
+			<div id="lp-theta-section" class="hidden">
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="text-sm text-keybind" style="width: 60dp;">Spread</div>
+					<div id="btn-lp-theta-down" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="slider-lp-theta" class="tf-slider" min="50" max="1500" step="1" value="500" />
+					<div id="btn-lp-theta-up" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+					<input type="text" id="slider-lp-theta-numbox" class="tf-slider-numbox" value="0" />
+				</div>
+				<div class="divider-horizontal-dark"></div>
+			</div>
+
+			<!-- Beam Length (visible only for beam) -->
+			<div id="lp-beam-section" class="hidden">
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="text-sm text-keybind" style="width: 60dp;">Length</div>
+					<div id="btn-lp-beam-length-down" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="slider-lp-beam-length" class="tf-slider" min="10" max="5000" step="10" value="300" />
+					<div id="btn-lp-beam-length-up" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+					<input type="text" id="slider-lp-beam-length-numbox" class="tf-slider-numbox" value="0" />
+				</div>
+				<div class="divider-horizontal-dark"></div>
+			</div>
+
+			<!-- Scatter Controls (visible in scatter mode) -->
+			<div id="lp-scatter-section" class="hidden">
+				<div class="text-lg text-light font-bold mb-1">SCATTER</div>
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">COUNT: <span class="text-xl font-bold" id="lp-count-label">5</span></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="btn-lp-count-down" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="slider-lp-count" class="tf-slider" min="1" max="500" step="1" value="5" />
+					<div id="btn-lp-count-up" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+					<input type="text" id="slider-lp-count-numbox" class="tf-slider-numbox" value="0" />
+				</div>
+
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">BRUSH RADIUS: <span class="text-xl font-bold" id="lp-brush-radius-label">200</span></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="btn-lp-brush-radius-down" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="slider-lp-brush-radius" class="tf-slider" min="8" max="2000" step="8" value="200" />
+					<div id="btn-lp-brush-radius-up" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+					<input type="text" id="slider-lp-brush-radius-numbox" class="tf-slider-numbox" value="0" />
+				</div>
+				<div class="divider-horizontal-dark"></div>
+			</div>
+
+		</div><!-- /section-lp-controls -->
+
+		<div class="divider-horizontal-dark"></div>
+
+		<!-- LP: COLOR -->
+		<div id="btn-toggle-lp-color" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
+			<img id="img-toggle-lp-color" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+			<div class="text-base text-keybind" style="margin-right: 2dp;">COLOR</div>
+		</div>
+		<div id="section-lp-color">
+			<!-- MS Paint style color palette (18 columns × 3 rows) -->
 			<div id="lp-color-palette" class="lp-color-palette mb-1">
 				<!-- Row 1: core + warm spectrum -->
 				<div id="lp-swatch-1" class="lp-palette-swatch" style="background-color: #ffffff;"></div>
@@ -3394,223 +3982,61 @@
 				</div>
 				<input type="text" id="slider-lp-color-b-numbox" class="tf-slider-numbox" value="0" />
 			</div>
-			</div><!-- /section-lp-color -->
+		</div><!-- /section-lp-color -->
 
-			<div class="divider-horizontal-dark"></div>
+		<div class="divider-horizontal-dark"></div>
 
-			<div id="btn-toggle-lp-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
-				<img id="img-toggle-lp-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
-				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
+		<!-- LP: UNDO -->
+		<div id="btn-toggle-lp-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+			<img id="img-toggle-lp-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+			<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
+		</div>
+		<div id="section-lp-undo" class="hidden">
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-lp-undo" class="tf-history-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
 			</div>
-			<div id="section-lp-undo" class="hidden">
-			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-undo" class="tf-history-btn">
-					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
-				</div>
-				<input type="range" id="slider-lp-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
-				<div id="btn-lp-redo" class="tf-history-btn">
-					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
-				</div>
-				<input type="text" id="slider-lp-history-numbox" class="tf-slider-numbox" value="0" />
+			<input type="range" id="slider-lp-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
+			<div id="btn-lp-redo" class="tf-history-btn">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
 			</div>
-			</div><!-- /section-lp-undo -->
+			<input type="text" id="slider-lp-history-numbox" class="tf-slider-numbox" value="0" />
+		</div>
+		</div><!-- /section-lp-undo -->
 
-			<div class="divider-horizontal-dark"></div>
+		<div class="divider-horizontal-dark"></div>
 
-			<!-- Brightness -->
-			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">BRIGHTNESS: <span class="text-xl font-bold" id="lp-brightness-label">2.0</span></div>
+		<!-- LP: SAVE & LOAD -->
+		<div id="btn-toggle-lp-saveload" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+			<img id="img-toggle-lp-saveload" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+			<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
+		</div>
+		<div id="section-lp-saveload" class="hidden">
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-lp-library" class="tf-lp-action-btn" style="flex: 1;">
+				<div class="tf-action-btn-text">LIGHT LIBRARY</div>
 			</div>
-			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-brightness-down" class="tf-sm-btn">
-					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-				</div>
-				<input type="range" id="slider-lp-brightness" class="tf-slider" min="1" max="1000" step="1" value="200" />
-				<div id="btn-lp-brightness-up" class="tf-sm-btn">
-					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-				</div>
-				<input type="text" id="slider-lp-brightness-numbox" class="tf-slider-numbox" value="0" />
+		</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-lp-save" class="tf-lp-action-btn tf-save-btn" style="flex: 1;">
+				<div class="tf-action-btn-text">SAVE</div>
 			</div>
+			<div id="btn-lp-load" class="tf-lp-action-btn tf-load-btn" style="flex: 1;">
+				<div class="tf-action-btn-text">LOAD</div>
+			</div>
+		</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-lp-clear-all" class="tf-lp-action-btn" style="flex: 1;">
+				<div class="tf-action-btn-text">CLEAR ALL</div>
+			</div>
+		</div>
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-sm text-keybind">Placed: <span id="lp-placed-count">0</span></div>
+		</div>
+		</div><!-- /section-lp-saveload -->
 
-			<!-- Light Radius -->
-			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">LIGHT RADIUS: <span class="text-xl font-bold" id="lp-light-radius-label">300</span></div>
-			</div>
-			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-light-radius-down" class="tf-sm-btn">
-					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-				</div>
-				<input type="range" id="slider-lp-light-radius" class="tf-slider" min="10" max="5000" step="10" value="300" />
-				<div id="btn-lp-light-radius-up" class="tf-sm-btn">
-					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-				</div>
-				<input type="text" id="slider-lp-light-radius-numbox" class="tf-slider-numbox" value="0" />
-			</div>
-
-			<!-- Elevation -->
-			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">ELEVATION: <span class="text-xl font-bold" id="lp-elevation-label">20</span></div>
-				<div class="text-xs text-keybind">Shift+Scroll</div>
-			</div>
-			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-elevation-down" class="tf-sm-btn">
-					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-				</div>
-				<input type="range" id="slider-lp-elevation" class="tf-slider" min="0" max="2000" step="5" value="20" />
-				<div id="btn-lp-elevation-up" class="tf-sm-btn">
-					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-				</div>
-				<input type="text" id="slider-lp-elevation-numbox" class="tf-slider-numbox" value="0" />
-			</div>
-
-			<div class="divider-horizontal-dark"></div>
-
-			<!-- Cone/Beam Direction (hidden for point lights) -->
-			<div id="lp-direction-section" class="hidden">
-				<div class="text-lg text-light font-bold mb-1">DIRECTION</div>
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<div class="text-sm text-keybind" style="width: 40dp;">Pitch</div>
-					<div id="btn-lp-pitch-down" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-					</div>
-					<input type="range" id="slider-lp-pitch" class="tf-slider" min="-900" max="900" step="1" value="-900" />
-					<div id="btn-lp-pitch-up" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-					</div>
-					<input type="text" id="slider-lp-pitch-numbox" class="tf-slider-numbox" value="0" />
-				</div>
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<div class="text-sm text-keybind" style="width: 40dp;">Yaw</div>
-					<div id="btn-lp-yaw-down" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-					</div>
-					<input type="range" id="slider-lp-yaw" class="tf-slider" min="0" max="3600" step="1" value="0" />
-					<div id="btn-lp-yaw-up" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-					</div>
-					<input type="text" id="slider-lp-yaw-numbox" class="tf-slider-numbox" value="0" />
-				</div>
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<div class="text-sm text-keybind" style="width: 40dp;">Roll</div>
-					<div id="btn-lp-roll-down" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-					</div>
-					<input type="range" id="slider-lp-roll" class="tf-slider" min="0" max="3600" step="1" value="0" />
-					<div id="btn-lp-roll-up" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-					</div>
-					<input type="text" id="slider-lp-roll-numbox" class="tf-slider-numbox" value="0" />
-				</div>
-			</div>
-
-			<!-- Cone Theta (visible only for cone) -->
-			<div id="lp-theta-section" class="hidden">
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<div class="text-sm text-keybind" style="width: 60dp;">Spread</div>
-					<div id="btn-lp-theta-down" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-					</div>
-					<input type="range" id="slider-lp-theta" class="tf-slider" min="50" max="1500" step="1" value="500" />
-					<div id="btn-lp-theta-up" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-					</div>
-					<input type="text" id="slider-lp-theta-numbox" class="tf-slider-numbox" value="0" />
-				</div>
-				<div class="divider-horizontal-dark"></div>
-			</div>
-
-			<!-- Beam Length (visible only for beam) -->
-			<div id="lp-beam-section" class="hidden">
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<div class="text-sm text-keybind" style="width: 60dp;">Length</div>
-					<div id="btn-lp-beam-length-down" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-					</div>
-					<input type="range" id="slider-lp-beam-length" class="tf-slider" min="10" max="5000" step="10" value="300" />
-					<div id="btn-lp-beam-length-up" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-					</div>
-					<input type="text" id="slider-lp-beam-length-numbox" class="tf-slider-numbox" value="0" />
-				</div>
-				<div class="divider-horizontal-dark"></div>
-			</div>
-
-			<!-- Scatter Controls (visible in scatter mode) -->
-			<div id="lp-scatter-section" class="hidden">
-				<div class="text-lg text-light font-bold mb-1">SCATTER</div>
-				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">COUNT: <span class="text-xl font-bold" id="lp-count-label">5</span></div>
-				</div>
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="btn-lp-count-down" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-					</div>
-					<input type="range" id="slider-lp-count" class="tf-slider" min="1" max="500" step="1" value="5" />
-					<div id="btn-lp-count-up" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-					</div>
-					<input type="text" id="slider-lp-count-numbox" class="tf-slider-numbox" value="0" />
-				</div>
-
-				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">BRUSH RADIUS: <span class="text-xl font-bold" id="lp-brush-radius-label">200</span></div>
-				</div>
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="btn-lp-brush-radius-down" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-					</div>
-					<input type="range" id="slider-lp-brush-radius" class="tf-slider" min="8" max="2000" step="8" value="200" />
-					<div id="btn-lp-brush-radius-up" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-					</div>
-					<input type="text" id="slider-lp-brush-radius-numbox" class="tf-slider-numbox" value="0" />
-				</div>
-				<div class="divider-horizontal-dark"></div>
-			</div>
-
-			<!-- Smart Filter -->
-			<div class="flex flex-row gap-1 items-center mb-1">
-				<img id="btn-lp-smart-toggle" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
-				<div class="tf-filter-heading">SMART FILTER</div>
-				<div class="text-sm text-keybind" style="margin-left: auto;">terrain-aware</div>
-			</div>
-			<div id="lp-smart-details" class="hidden">
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-lp-sf-water" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" />
-					<div class="text-lg text-light">Avoid Water</div>
-				</div>
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-lp-sf-cliffs" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" />
-					<div class="text-lg text-light">Avoid Cliffs</div>
-				</div>
-			</div>
-
-			<div class="divider-horizontal-dark"></div>
-
-			<!-- Actions -->
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-lp-library" class="tf-lp-action-btn" style="flex: 1;">
-					<div class="tf-action-btn-text">LIGHT LIBRARY</div>
-				</div>
-			</div>
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-lp-save" class="tf-lp-action-btn tf-save-btn" style="flex: 1;">
-					<div class="tf-action-btn-text">SAVE</div>
-				</div>
-				<div id="btn-lp-load" class="tf-lp-action-btn tf-load-btn" style="flex: 1;">
-					<div class="tf-action-btn-text">LOAD</div>
-				</div>
-			</div>
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-lp-clear-all" class="tf-lp-action-btn" style="flex: 1;">
-					<div class="tf-action-btn-text">CLEAR ALL</div>
-				</div>
-			</div>
-
-			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-sm text-keybind">Placed: <span id="lp-placed-count">0</span></div>
-			</div>
+		<div class="divider-horizontal-dark"></div>
 
 		</div><!-- /tf-light-controls -->
 
@@ -5193,6 +5619,7 @@
 			<div id="btn-settings-tab-keybinds" class="tf-settings-tab active">Keybinds</div>
 			<div id="btn-settings-tab-dj" class="tf-settings-tab">DJ Mode</div>
 			<div id="btn-settings-tab-stroke" class="tf-settings-tab">Stroke</div>
+			<div id="btn-settings-tab-general" class="tf-settings-tab">General</div>
 		</div>
 
 		<!-- Keybinds tab content -->
@@ -5308,6 +5735,17 @@
 					<div id="btn-wiggle-spd-3" class="tf-wiggle-chip">S3</div>
 					<div id="btn-wiggle-spd-4" class="tf-wiggle-chip">S4</div>
 				</div>
+			</div>
+		</div>
+
+		<!-- General tab content -->
+		<div id="settings-tab-general" class="tf-settings-tab-content hidden">
+			<div id="btn-ui-disable-tips" class="tf-dj-activate-row">
+				<div>
+					<div class="tf-dj-activate-name">Disable tips/tool recommendations</div>
+					<div class="tf-dj-activate-desc">Hides the pulsing blue notification dots on collapsed section headers.</div>
+				</div>
+				<div id="pill-ui-disable-tips" class="tf-dj-toggle-pill">OFF</div>
 			</div>
 		</div>
 	</div>

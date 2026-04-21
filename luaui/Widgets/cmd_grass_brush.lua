@@ -1236,13 +1236,15 @@ function widget:MouseWheel(up, value)
 		return true
 	end
 
-	-- Alt: rotation
+	-- Alt: rotation (snap to TB protractor step when angleSnap on)
 	if alt then
-		if up then
-			setRotation(brushRotation + ROTATION_STEP)
-		else
-			setRotation(brushRotation - ROTATION_STEP)
+		local step = ROTATION_STEP
+		local tb = WG.TerraformBrush
+		local tbs = tb and tb.getState and tb.getState() or nil
+		if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
+			step = tbs.angleSnapStep
 		end
+		setRotation(brushRotation + (up and step or -step))
 		return true
 	end
 
