@@ -34,12 +34,14 @@ local version = 2.1
 local dbgDraw = 0              -- draw only the bloom-mask? [0 | 1]
 
 local glowAmplifier = 1.0            -- intensity multiplier on glow source fragments (HDR pipeline -- much lower than the old 8-bit pipeline needed)
-local maxBrightContribution = 0.9     -- per-pixel cap on the bright pass output to prevent fireflies / overwhelming bloom on intense emissive blink frames
-local illumThreshold = 0            -- soft-knee threshold for the bright pass (computed from sun lighting)
-local kneeWidth = 0.5               -- width of the soft knee around illumThreshold
+local maxBrightContribution = 0.91     -- per-pixel cap on the bright pass output to prevent fireflies / overwhelming bloom on intense emissive blink frames
+local illumThreshold = 0.1            -- soft-knee threshold for the bright pass (computed from sun lighting)
+local kneeWidth = 5               -- width of the soft knee around illumThreshold
 local upsampleRadius = 1.0          -- 3x3 tent filter radius in texels (for mip chain upsample)
 local temporalBlend = 0.55          -- 0 = no smoothing (current frame only), 1 = freeze. ~0.5 kills sub-pixel shimmer of small emissives
 local useScreenBlend = true         -- true: dst + bloom*(1-dst)  ("screen"-like, soft cap). false: pure additive (old behaviour)
+
+local glowAmplifierMult = 1.25
 
 -- Modern bloom pipeline: bright pass -> Karis-averaged mip chain (downsample 13-tap Jimenez)
 -- -> additive 3x3 tent upsample chain -> combine.
@@ -100,10 +102,10 @@ local function SetIllumThreshold()
 	local diffuseIntensity  = rd * 0.2126 + gd * 0.7152 + bd * 0.0722
 	local specularIntensity = rs * 0.2126 + gs * 0.7152 + bs * 0.0722
 
-	illumThreshold = illumThreshold*(0.8 * ambientIntensity) + (0.5 * diffuseIntensity) + (0.1 * specularIntensity)
+	illumThreshold = illumThreshold*(0.7 * ambientIntensity) + (0.4 * diffuseIntensity) + (0.1 * specularIntensity)
 	illumThreshold = math.min(illumThreshold, 0.8)
 
-	illumThreshold = (0.4 + illumThreshold) / 2
+	illumThreshold = (0.4 + illumThreshold) / 2.1
 end
 SetIllumThreshold()
 
@@ -491,7 +493,7 @@ local function MakeBloomShaders()
 		uniformFloat = {
 			illuminationThreshold = 0,
 			kneeWidth = 0.5,
-			fragGlowAmplifier = 0,
+			fragGlowAmplifier = 1.0,
 			maxBrightContribution = 1.5,
 		}
 	}, "Bloom Bright Shader")
@@ -571,7 +573,7 @@ local function Bloom()
 	brightShader:Activate()
 		brightShader:SetUniform("illuminationThreshold", illumThreshold)
 		brightShader:SetUniform("kneeWidth", kneeWidth)
-		brightShader:SetUniform("fragGlowAmplifier", glowAmplifier)
+		brightShader:SetUniform("fragGlowAmplifier", glowAmplifier*glowAmplifierMult)
 		brightShader:SetUniform("maxBrightContribution", maxBrightContribution)
 
 		glTexture(0, "$model_gbuffer_difftex")
@@ -666,9 +668,15 @@ local function Bloom()
 	end
 	combineShader:Activate()
 		combineShader:SetUniformInt("debugDraw", dbgDraw)
-		-- Each upsample additively contributed once, so we have ~mipCount-1 accumulated copies of glow.
-		-- Normalise so total brightness stays comparable to the old single-blur path.
-		local norm = 1.0 / math.max(1, #bloomMips - 1)
+		-- Each upsample additively contributed once, but smaller mips contribute less
+		-- perceived brightness than larger ones, so a linear 1/(N-1) normalization
+		-- over-attenuates higher presets. Use a sqrt-based divisor anchored at the
+		-- low preset (4 mips => 1/3) so medium/high presets stay closer in intensity
+		-- to low while still keeping their wider/softer halo.
+		local norm = 1.0 / math.sqrt(3 * math.max(1, #bloomMips - 1))
+		-- Small extra boost for the highest preset, whose extra wide mips
+		-- spread the energy further and thus look dimmer than medium.
+		if #bloomMips >= 6 then norm = norm * 1.05 end
 		combineShader:SetUniform("bloomNorm", norm)
 		glTexture(0, finalSrc)
 		rectVAO:DrawArrays(GL.TRIANGLES)
