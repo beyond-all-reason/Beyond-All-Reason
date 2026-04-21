@@ -131,8 +131,6 @@ end
 local function transferUnits(unitName, newTeamName)
 	if isUnitNameUntracked(unitName) then return end
 
-	Spring.Echo("Transferring units with name " .. unitName .. " to team " .. newTeamName)
-	Spring.Echo("And Teams are: " .. table.toString(GG['MissionAPI'].Teams))
 	local newTeamID = GG['MissionAPI'].Teams[newTeamName]
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
