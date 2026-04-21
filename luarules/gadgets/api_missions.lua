@@ -32,6 +32,7 @@ local function loadMission(scriptPath)
 	validateReferences()
 
 	if GG['MissionAPI'].HasValidationErrors then
+		GG['MissionAPI'] = nil -- stops gadget api_missions_triggers from loading
 		gadgetHandler:RemoveGadget()
 		return
 	end
