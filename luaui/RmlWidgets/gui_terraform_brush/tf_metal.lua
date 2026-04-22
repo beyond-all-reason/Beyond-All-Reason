@@ -555,7 +555,9 @@ function M.attach(doc, ctx)
 			return (WG.MetalBrush and WG.MetalBrush.getState and WG.MetalBrush.getState()) or {}
 		end
 		local clusterRow = doc:GetElementById("mb-cluster-radius-row")
+		local inspectorRow = doc:GetElementById("mb-inspector-row")
 		local lassoRow = doc:GetElementById("mb-lasso-row")
+		local axisRow = doc:GetElementById("mb-balance-axis-row")
 
 		local overlayChip = doc:GetElementById("btn-mb-mapoverlay")
 		if overlayChip then
@@ -579,6 +581,26 @@ function M.attach(doc, ctx)
 					WG.MetalBrush.setClusterCounter(newVal)
 					clusterChip:SetClass("active", newVal)
 					if clusterRow then clusterRow:SetClass("hidden", not newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+
+		-- Inspector parent chip: opens a sub-toolbar with Lasso + Balance Axis
+		local inspectorChip = doc:GetElementById("btn-mb-inspector")
+		if inspectorChip then
+			inspectorChip:AddEventListener("click", function(ev)
+				local st = mbGetMbState()
+				local open = not (widgetState.mbInspectorOpen or false)
+				widgetState.mbInspectorOpen = open
+				playSound(open and "toggleOn" or "toggleOff")
+				inspectorChip:SetClass("active", open)
+				if inspectorRow then inspectorRow:SetClass("hidden", not open) end
+				if not open and WG.MetalBrush then
+					-- Closing inspector also disables its sub-tools
+					if st.clusterCounter then WG.MetalBrush.setClusterCounter(false) end
+					if st.lassoActive or st.lassoClosed then WG.MetalBrush.clearLasso() end
+					if st.balanceAxisActive then WG.MetalBrush.setBalanceAxisActive(false) end
 				end
 				ev:StopPropagation()
 			end, false)
@@ -621,6 +643,94 @@ function M.attach(doc, ctx)
 					WG.MetalBrush.clearLasso()
 					if lassoChip then lassoChip:SetClass("active", false) end
 					if lassoRow then lassoRow:SetClass("hidden", true) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+
+		-- Balance Axis chip + controls
+		local axisChip = doc:GetElementById("btn-mb-balance-axis")
+		if axisChip then
+			axisChip:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					local newVal = not mbGetMbState().balanceAxisActive
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.MetalBrush.setBalanceAxisActive(newVal)
+					axisChip:SetClass("active", newVal)
+					if axisRow then axisRow:SetClass("hidden", not newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+
+		local axisX = doc:GetElementById("mb-btn-axis-x")
+		if axisX then
+			axisX:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					playSound("modeSwitch")
+					WG.MetalBrush.setBalanceAxisAngle(0)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local axisZ = doc:GetElementById("mb-btn-axis-z")
+		if axisZ then
+			axisZ:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					playSound("modeSwitch")
+					WG.MetalBrush.setBalanceAxisAngle(90)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local axisPlace = doc:GetElementById("mb-btn-axis-place")
+		if axisPlace then
+			axisPlace:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					playSound("modeSwitch")
+					WG.MetalBrush.setBalanceAxisPlacingOrigin(true)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local axisCenter = doc:GetElementById("mb-btn-axis-center")
+		if axisCenter then
+			axisCenter:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					playSound("reset")
+					WG.MetalBrush.setBalanceAxisOrigin(nil, nil)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local axisSlider = doc:GetElementById("mb-slider-axis-angle")
+		if axisSlider then
+			trackSliderDrag(axisSlider, "mb-axis-angle")
+			axisSlider:AddEventListener("change", function(ev)
+				if uiState.updatingFromCode then ev:StopPropagation(); return end
+				if WG.MetalBrush then
+					local v = tonumber(axisSlider:GetAttribute("value")) or 0
+					WG.MetalBrush.setBalanceAxisAngle(v)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local axisDn = doc:GetElementById("mb-btn-axis-angle-down")
+		if axisDn then
+			axisDn:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					local cur = tonumber(mbGetMbState().balanceAxisAngleDeg) or 0
+					WG.MetalBrush.setBalanceAxisAngle(cur - 5)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local axisUp = doc:GetElementById("mb-btn-axis-angle-up")
+		if axisUp then
+			axisUp:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					local cur = tonumber(mbGetMbState().balanceAxisAngleDeg) or 0
+					WG.MetalBrush.setBalanceAxisAngle(cur + 5)
 				end
 				ev:StopPropagation()
 			end, false)
@@ -766,17 +876,48 @@ function M.sync(doc, ctx, mbState, setSummary)
 		if clusterChip then clusterChip:SetClass("active", mbState.clusterCounter and true or false) end
 		local lassoChip = doc:GetElementById("btn-mb-lasso")
 		if lassoChip then lassoChip:SetClass("active", mbState.lassoActive and true or false) end
+		local axisChip = doc:GetElementById("btn-mb-balance-axis")
+		if axisChip then axisChip:SetClass("active", mbState.balanceAxisActive and true or false) end
+		local inspectorChip = doc:GetElementById("btn-mb-inspector")
+		local inspectorOpen = widgetState.mbInspectorOpen
+			or mbState.clusterCounter or mbState.lassoActive or mbState.lassoClosed or mbState.balanceAxisActive
+		if inspectorChip then inspectorChip:SetClass("active", inspectorOpen and true or false) end
+		widgetState.mbInspectorOpen = inspectorOpen and true or false
 		local clusterRow = doc:GetElementById("mb-cluster-radius-row")
 		if clusterRow then clusterRow:SetClass("hidden", not mbState.clusterCounter) end
+		local inspectorRow = doc:GetElementById("mb-inspector-row")
+		if inspectorRow then inspectorRow:SetClass("hidden", not inspectorOpen) end
 		local lassoRow = doc:GetElementById("mb-lasso-row")
 		if lassoRow then lassoRow:SetClass("hidden", not (mbState.lassoActive or mbState.lassoClosed)) end
+		local axisRow = doc:GetElementById("mb-balance-axis-row")
+		if axisRow then axisRow:SetClass("hidden", not mbState.balanceAxisActive) end
 		local lbl = doc:GetElementById("mb-cluster-radius-label")
 		if lbl then lbl.inner_rml = tostring(mbState.clusterRadius or 256) end
 		local totalLbl = doc:GetElementById("mb-lasso-total-label")
 		if totalLbl then totalLbl.inner_rml = string.format("%.2f", mbState.lassoTotal or 0) end
+		local angleLbl = doc:GetElementById("mb-axis-angle-label")
+		if angleLbl then angleLbl.inner_rml = tostring(math.floor((mbState.balanceAxisAngleDeg or 0) + 0.5)) end
+		local aLbl = doc:GetElementById("mb-axis-a-label")
+		if aLbl then aLbl.inner_rml = string.format("%.2f", mbState.balanceAxisSumA or 0) end
+		local bLbl = doc:GetElementById("mb-axis-b-label")
+		if bLbl then bLbl.inner_rml = string.format("%.2f", mbState.balanceAxisSumB or 0) end
+		local balLbl = doc:GetElementById("mb-axis-balance-label")
+		if balLbl then
+			local a = mbState.balanceAxisSumA or 0
+			local b = mbState.balanceAxisSumB or 0
+			local diff = a - b
+			local tot = a + b
+			if tot > 0.001 then
+				balLbl.inner_rml = string.format("%+.2f (%+.0f%%)", diff, diff / tot * 100)
+			else
+				balLbl.inner_rml = "--"
+			end
+		end
 		uiState.updatingFromCode = true
 		local clRadSlider = doc:GetElementById("mb-slider-cluster-radius")
 		if clRadSlider then syncAndFlash(clRadSlider, "mb-cluster-radius", tostring(mbState.clusterRadius or 256)) end
+		local axisSlider = doc:GetElementById("mb-slider-axis-angle")
+		if axisSlider then syncAndFlash(axisSlider, "mb-axis-angle", tostring(math.floor((mbState.balanceAxisAngleDeg or 0) + 0.5))) end
 		uiState.updatingFromCode = false
 	end
 end
