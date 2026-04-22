@@ -34,7 +34,7 @@ return {
 		turnrate = 550,
 		verticalspeed = 3.75,
 		customparams = {
-			loadtime = 90,
+			loadtime = 60,
 			crashable = 0,
 			model_author = "Protar",
 			normaltex = "unittextures/Arm_normal.dds",

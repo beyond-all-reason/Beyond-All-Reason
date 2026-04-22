@@ -1,5 +1,5 @@
 -- setup.lua
--- All configuration for armatlas.
+-- All configuration for corseah.
 
 return {
 
@@ -12,11 +12,20 @@ return {
     --   link4x4 needs all four 2x2 sub-slots free (they share the same physical space).
     --   Each 2x2 sub-slot needs link4x4 free for the same reason.
     cargo = {
-        primarySlot = "link2x2",
-        nSeats      = 1,   -- total seat capacity; read by the transport gadget to check available room
+        primarySlot = "flink4x4",
+        nSeats      = 8,   -- total seat capacity; read by the transport gadget to check available room
 
         slots = {
-            { name = "link2x2",   size = 1, requires = {  } },
+            { name = "flink4x4",   size = 4, requires = { "ffrlink2x2", "ffllink2x2", "fbrlink2x2", "fbllink2x2" } },
+            { name = "ffrlink2x2", size = 1, requires = { "flink4x4" } },
+            { name = "ffllink2x2", size = 1, requires = { "flink4x4" } },
+            { name = "fbrlink2x2", size = 1, requires = { "flink4x4" } },
+            { name = "fbllink2x2", size = 1, requires = { "flink4x4" } },
+            { name = "blink4x4",   size = 4, requires = { "bfrlink2x2", "bfllink2x2", "bbrlink2x2", "bbllink2x2" } },
+            { name = "bfrlink2x2", size = 1, requires = { "blink4x4" } },
+            { name = "bfllink2x2", size = 1, requires = { "blink4x4" } },
+            { name = "bbrlink2x2", size = 1, requires = { "blink4x4" } },
+            { name = "bbllink2x2", size = 1, requires = { "blink4x4" } },
         },
     },
 
@@ -29,7 +38,16 @@ return {
 
         -- Beam emitter pieces per slot name, used as CEG origin points for the tractor-beam VFX.
         beams = {
-            link2x2   = { "beam"},
+            flink4x4   = { "fbrbeam", "fblbeam", "ffrbeam", "fflbeam" },
+            ffrlink2x2 = { "ffrbeam" },
+            ffllink2x2 = { "fflbeam" },
+            fbrlink2x2 = { "fbrbeam" },
+            fbllink2x2 = { "fblbeam" },
+            blink4x4   = { "bbrbeam", "bblbeam", "bfrbeam", "bflbeam" },
+            bfrlink2x2 = { "bfrbeam" },
+            bfllink2x2 = { "bflbeam" },
+            bbrlink2x2 = { "bbrbeam" },
+            bbllink2x2 = { "bblbeam" },
         },
     },
 
@@ -45,12 +63,13 @@ return {
         },
 
         thrusters = {
-            "thrustl", "thrustr",
-            "thrustm",
+            "thrustrla", "thrustrra",
+            "thrustfla", "thrustfra",
         },
 
         jets = {
-            "jetl", "jetr",
+            "thrustrl", "thrustrr",
+            "thrustfl", "thrustfr",
         },
 
         moveRate = {
@@ -63,19 +82,14 @@ return {
         killed = {
             { maxSeverity = 25,  wreck = 1, pieces = {
                 { name="base",     sfx = "BITMAPONLY|NO_HEATCLOUD" },
-                { name="backwing", sfx = "BITMAPONLY|NO_HEATCLOUD" },
             }},
             { maxSeverity = 50,  wreck = 2, pieces = {
-                { name="body",    sfx = "BITMAPONLY|NO_HEATCLOUD" },
                 { name="base",     sfx = "BITMAPONLY|NO_HEATCLOUD" },
                 { useJets=true,    sfx = "BITMAPONLY|NO_HEATCLOUD" },
-                { name="backwing", sfx = "BITMAPONLY|NO_HEATCLOUD" },
             }},
             { maxSeverity = 100, wreck = 3, pieces = {
-                { name="body",    sfx = "BITMAPONLY|NO_HEATCLOUD" },
                 { name="base",     sfx = "BITMAPONLY|NO_HEATCLOUD" },
                 { useJets=true,    sfx = "BITMAPONLY|NO_HEATCLOUD" },
-                { name="backwing", sfx = "FALL|SMOKE|FIRE|EXPLODE_ON_HIT|BITMAP2|NO_HEATCLOUD" },
             }},
         },
     },

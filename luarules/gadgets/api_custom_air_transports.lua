@@ -17,6 +17,11 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam == false then
+	Spring.Echo("Custom transports disabled via modoption, skipping transport API gadget")
+	return false
+end
+
 GG.TransportAPI = {}
 local TransportAPI = GG.TransportAPI
 

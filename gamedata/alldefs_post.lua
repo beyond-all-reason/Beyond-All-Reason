@@ -77,7 +77,24 @@ function UnitDef_Post(name, uDef)
 		modOptions = Spring.GetModOptions()
 	end
 
-	uDef.loadingRadius = 512
+	if modOptions.beta_tractorbeam == true then
+		if uDef.transportcapacity then
+			uDef.transportcapacity = 1000
+			uDef.transportsize = 1000
+			uDef.transportunloadmethod = 0
+			uDef.transportmass = 100000
+			uDef.holdsteady = true
+			uDef.releaseheld = true
+			uDef.loadingRadius = 512
+			uDef.objectname = "units/" .. name .. "_tractorbeam.s3o"
+			if name == "armdfly" or name == "legstronghold" then
+				uDef.script = "units/weaponized_air_transport_lus.lua"
+			else
+				uDef.script = "units/generic_air_transport_lus.lua"
+			end
+		end
+	end
+
 	-- Cache holiday checks for performance
 	if not holidays then
 		holidays = Spring.Utilities.Gametype.GetCurrentHolidays()

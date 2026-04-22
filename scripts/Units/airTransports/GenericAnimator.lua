@@ -8,6 +8,7 @@ local jetPieces      = {}
 local hoverPiece, hoverScale, hoverSpeed
 local moveAngles, moveSpeeds
 local killedTiers    = {}
+local active
 
 -- convert a pipe-separated string of SFX key names (e.g. "SHATTER|EXPLODE_SHRAPNEL") into
 -- a combined SFX bitmask for use with Explode()
@@ -38,6 +39,8 @@ function GenericAnimator.Init(setup)
     moveAngles = setup.moveRate and setup.moveRate.angles or {}
     moveSpeeds = setup.moveRate and setup.moveRate.speeds or {}
 
+	active = false
+
     killedTiers = {}
     for _, tier in ipairs(setup.killed or {}) do
         local resolvedPieces = {}
@@ -57,10 +60,12 @@ end
 -- show/hide thruster smoke/flame pieces when the unit is activated or deactivated
 function GenericAnimator.Activate()
     for _, p in ipairs(thrusterPieces) do Show(p) end
+	active = true
 end
 
 function GenericAnimator.Deactivate()
     for _, p in ipairs(thrusterPieces) do Hide(p) end
+	active = false
 end
 
 -- NOTE: identical to Deactivate; exists as an explicit "startup hide" call in script.Create
@@ -119,9 +124,9 @@ end
 -- ambient up/down bob animation thread for the idle hover effect
 function GenericAnimator.IdleHover()
     while true do
-        Move(hoverPiece, 2,  hoverScale, hoverSpeed)
-        Sleep(math.random(200, 600))
-        Move(hoverPiece, 2, -hoverScale, hoverSpeed)
-        Sleep(math.random(200, 600))
+		Move(hoverPiece, 2,  (active and hoverScale) or 0, hoverSpeed)
+		Sleep(math.random(200, 600))
+		Move(hoverPiece, 2, (active and -hoverScale) or 0, hoverSpeed)
+		Sleep(math.random(200, 600))
     end
 end

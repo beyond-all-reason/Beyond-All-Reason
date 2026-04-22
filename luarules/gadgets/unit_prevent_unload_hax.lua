@@ -8,11 +8,16 @@ function gadget:GetInfo()
         date      = "12/08/2013",
         license   = "GNU GPL, v2 or later, horses",
         layer     = 0,
-        enabled   = false
+        enabled   = true
     }
 end
 
 if not gadgetHandler:IsSyncedCode() then return end
+
+if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam == true then
+	Spring.Echo("Custom transports enabled via modoption, skipping Prevent Unload Hax gadget")
+	return false
+end
 
 local frameMargin = 10
 

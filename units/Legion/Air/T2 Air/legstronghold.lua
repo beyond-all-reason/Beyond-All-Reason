@@ -37,6 +37,7 @@ return {
 		unloadspread = 0,
 		upright = true,
 		customparams = {
+			loadtime = 60,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
