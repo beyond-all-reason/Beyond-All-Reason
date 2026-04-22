@@ -4159,6 +4159,10 @@ function widget:Initialize()
 		return true
 	end, nil, "t")
 
+	-- Share widget (self) with extracted tool modules so they can register
+	-- methods callable from inline RML handlers like onclick="widget:spFoo()".
+	ctx.widget = self
+
 	attachEventListeners()
 
 	-- Pen pressure: suppress brush modulation when cursor is over the UI panel
