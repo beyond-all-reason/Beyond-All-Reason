@@ -5,7 +5,7 @@ return {
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "42 38 65",
+		collisionvolumescales = "42 28 55",
 		collisionvolumetype = "BOX",
 		corpse = "DEAD",
 		damagemodifier = 0.5,

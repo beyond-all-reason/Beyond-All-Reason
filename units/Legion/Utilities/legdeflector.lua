@@ -9,7 +9,7 @@ return {
 		canrepeat = false,
 		category = "NOWEAPON",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "69 40 66",
+		collisionvolumescales = "62 62 62",
 		collisionvolumetype = "Sphere",
 		corpse = "DEAD",
 		energycost = 55000,
