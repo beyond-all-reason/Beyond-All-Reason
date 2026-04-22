@@ -932,6 +932,30 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 		end
 	end
 
+	-- P3.2 Grass grayouts (per Phase 3 relevance matrix)
+	if doc and ctx.setDisabledIds then
+		local sm = gbState.subMode or "paint"
+		local circular = (gbState.shape == "circle")
+		local erase = (sm == "erase")
+		local rotOff = erase or circular
+		ctx.setDisabledIds(doc, {
+			"slider-gb-rotation", "slider-gb-rotation-numbox",
+			"btn-gb-rot-ccw", "btn-gb-rot-cw",
+		}, rotOff)
+		ctx.setDisabledIds(doc, {
+			"slider-gb-length", "slider-gb-length-numbox",
+			"btn-gb-length-down", "btn-gb-length-up",
+		}, rotOff)
+		ctx.setDisabledIds(doc, {
+			"slider-gb-curve", "slider-gb-curve-numbox",
+			"btn-gb-curve-down", "btn-gb-curve-up",
+		}, erase)
+		ctx.setDisabledIds(doc, {
+			"slider-grass-density", "slider-grass-density-numbox",
+			"btn-grass-density-down", "btn-grass-density-up",
+		}, erase)
+	end
+
 	do
 		local gApi = WG['grassgl4']
 		local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()

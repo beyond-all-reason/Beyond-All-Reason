@@ -532,7 +532,7 @@
 
 | # | Status | Issue | Notes | Urgency |
 |---|--------|-------|-------|---------|
-| J1 | ⬜ | **200-local limit** — both widget chunk and `attachEventListeners()` at limit. | All new state must go in `extraState` table; new controls need `do...end` scoping. | Blocking (every new feature hits this) |
+| J1 | ✅ | **200-local limit mitigations landed** — IIFE fix brought chunk to 162/200; per-tool split (J2) moved most state into module-local scope. `extraState` table pattern + `do...end` scoping documented. | Constraint still applies to future work but no current file is at limit. See `/memories/bar_lua_constraints.md`. | Ongoing discipline, not blocking |
 
 > **Context:** Run `python tools/count_locals.py <file>` to check current counts. Widget chunk is at
 > the limit — verified. RML UI Lua `attachEventListeners()` section is similarly constrained.
@@ -543,16 +543,7 @@
 
 | # | Status | Issue | Notes | Urgency |
 |---|--------|-------|-------|---------|
-| J2 | ⬜ | **Monolithic RML UI Lua (~8300 lines)** — split per tool panel. | Prerequisite for sustainable feature work; huge diff but mostly mechanical moves. Now 60% larger than original estimate. | Medium-term |
-
-> **Context:** File: `luaui/RmlWidgets/gui_terraform_brush/gui_terraform_brush.lua`. Sections are
-> already somewhat organized: terrain controls, metal, features, splat, decals, weather, environ,
-> lights. Split approach: extract each tool's event wiring + state into separate files
-> (`tf_terrain.lua`, `tf_metal.lua`, etc.) and `require()` them. Start by mapping which functions/
-> state belong to which tool — grep for section comment headers.
-> **Caution:** RmlUI widget files in BAR use a specific loading pattern — check how the engine
-> discovers and loads the `.lua` alongside the `.rml`. Other multi-file RML widgets for reference:
-> search `luaui/RmlWidgets/*/` for any that use `require()` or `dofile()`.
+| J2 | ✅ | **Monolithic RML UI Lua split** — Plan P0.2 completed. 12 per-tool modules extracted (`tf_metal.lua`, `tf_grass.lua`, `tf_splat.lua`, `tf_decals.lua`, `tf_weather.lua`, `tf_environment.lua`, `tf_lights.lua`, `tf_startpos.lua`, `tf_clone.lua`, `tf_settings.lua`, `tf_features.lua`, `tf_guide.lua`). Main `gui_terraform_brush.lua` reduced 12,595→~5,600 lines. | Each module exposes `M.attach(doc, ctx)` + `M.sync(doc, ctx, state, setSummary)`; shared helpers live on `ctx` in main widget. | Done 2026-04-20 |
 
 | # | Status | Issue | Notes | Urgency |
 |---|--------|-------|-------|---------|
@@ -630,8 +621,9 @@
 
 ## Status Summary
 
-> Updated: 2026-04-15
-> Last audit: 2026-04-15 — F3 (display-options), G1 (cancelled), G4 (ramp measure chains) implemented
+> Updated: 2026-04-22
+> Last audit: 2026-04-22 — Plan Phase 3 grayouts (P3.0–P3.2) wired across all 10 tools; extends C1 disabled styling with state-aware `ctx.setDisabled`/`setDisabledIds` per-tool sync (see `TerraformBrush_1.0_Plan.md` § P3.2 Implementation Notes). P3.3 (guide-mode "why disabled") + P3.4 (regression pass) pending.
+> Previous: 2026-04-15 — F3 (display-options), G1 (cancelled), G4 (ramp measure chains) implemented
 
 | Category | Remaining | Done | Notes |
 |----------|-----------|------|-------|
@@ -644,7 +636,7 @@
 | Power User (G) | 1 | 7 | G2/G3/G4/G5/G7/G8/G9 done; G1 cancelled; G6 remaining |
 | Env Panel (H) | 1 | 0 | H1 is largest item |
 | Minor Robustness (I) | 1 | 5 | I4 verified active; I6 remains |
-| Architecture (J) | 3 | 0 | Ongoing tech debt |
+| Architecture (J) | 1 | 2 | J1 mitigated (IIFE + split), J2 done (P0.2 12-module extract); J3 perf remains |
 | Aspirational (K) | 1 | 0 | Stretch |
 | Release Readiness (L) | 4 | 0 | Smoke test, persistence, README, error handling |
-| **Total** | **15** | **34** | **+38 archived** |
+| **Total** | **13** | **36** | **+38 archived** |

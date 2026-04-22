@@ -4,6 +4,8 @@ Custom terrain editing tool replacing BAR's default terraform commands with a un
 
 **Files:** `luaui/Widgets/cmd_terraform_brush.lua` · `luaui/RmlWidgets/gui_terraform_brush/`
 
+> **Related docs:** [1.0 Release Plan](TerraformBrush_1.0_Plan.md) · [QoL Tracker](TerraformBrush_QoL_Tracker.md) · [AutoChainMode](TerraformBrush_AutoChainMode.md) · [CloneWindows](TerraformBrush_CloneWindows.md) · [SaveLoad Tracking](TerraformBrush_SaveLoad_Tracking.md)
+
 ---
 
 ## Modes

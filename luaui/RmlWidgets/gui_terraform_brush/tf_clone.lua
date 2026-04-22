@@ -356,6 +356,28 @@ function M.sync(doc, ctx, clState, setSummary)
 				"Quality ", (clState and clState.terrainQuality or "balanced"):upper())
 		end
 
+		-- P3.2 Clone grayouts (per Phase 3 relevance matrix)
+		if doc and ctx.setDisabledIds and clState then
+			local cs = clState.state or "idle"
+			local hasBuf = clState.hasBuffer == true
+			local hasSel = (cs == "selecting" or cs == "box_drawn")
+			local inPaste = (cs == "paste_preview")
+			-- Copy: needs an active selection
+			ctx.setDisabled(doc, "btn-cl-copy", not hasSel)
+			-- Paste: needs a buffer
+			ctx.setDisabled(doc, "btn-cl-paste", not hasBuf)
+			-- Clear: meaningful when any state or buffer
+			ctx.setDisabled(doc, "btn-cl-clear", cs == "idle" and not hasBuf)
+			-- Paste-transform controls: only meaningful during paste preview
+			ctx.setDisabledIds(doc, {
+				"slider-cl-rotation", "slider-cl-rotation-numbox",
+				"btn-cl-rot-ccw", "btn-cl-rot-cw",
+				"slider-cl-height", "slider-cl-height-numbox",
+				"btn-cl-height-down", "btn-cl-height-up",
+				"btn-cl-mirror-x", "btn-cl-mirror-z",
+			}, not inPaste)
+		end
+
 end
 
 return M
