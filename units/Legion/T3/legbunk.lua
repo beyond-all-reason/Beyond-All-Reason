@@ -5,8 +5,8 @@ return {
 		canmove = true,
 		cantbetransported = true, --Need to true!!!!!!!!!!
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -10 0",
-		collisionvolumescales = "40 40 40",
+		collisionvolumeoffsets = "0 -16 0",
+		collisionvolumescales = "40 48 40",
 		collisionvolumetype = "CYLY",
 		corpse = "DEAD",
 		energycost = 42000,
