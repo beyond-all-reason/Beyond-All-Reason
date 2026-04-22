@@ -172,7 +172,6 @@ local saveUiPrefs   -- defined after widgetState is declared
 local INITIAL_LEFT_VW = 78
 local INITIAL_TOP_VH = 25
 local BASE_WIDTH_DP = 162
-local BASE_RESOLUTION = 1920
 
 local lastVsx, lastVsy = 0, 0
 local currentLeftVw = INITIAL_LEFT_VW
@@ -736,7 +735,9 @@ end
 local function clampPanelPosition()
 	local vsx, vsy = GetViewGeometry()
 	if vsx <= 0 or vsy <= 0 then return end
-	local panelWidthPx = widgetState.panelWidthDp -- dp ~= px but close enough for clamping
+	-- Prefer live rendered width (px); fall back to dp baseline for the very
+	-- first frame before layout has run.
+	local panelWidthPx = (widgetState.rootElement and widgetState.rootElement.offset_width) or widgetState.panelWidthDp
 	local panelWidthVw = (panelWidthPx / vsx) * 100
 	local maxLeftVw = math.max(0, 100 - panelWidthVw - 1)
 	local maxTopVh = 90 -- leave some room at bottom
@@ -746,29 +747,10 @@ end
 
 local function buildRootStyle()
 	clampPanelPosition()
-	return string.format("left: %.2fvw; top: %.2fvh; width: %ddp;",
-		currentLeftVw, currentTopVh, widgetState.panelWidthDp)
-end
-
--- All env sub-windows match the main panel width exactly.
-local function applyEnvWindowWidths()
-	local wDp = widgetState.panelWidthDp .. "dp"
-	local envWins = {
-		widgetState.envSunRootEl,
-		widgetState.envFogRootEl,
-		widgetState.envGroundLightingRootEl,
-		widgetState.envUnitLightingRootEl,
-		widgetState.envMapRootEl,
-		widgetState.envWaterRootEl,
-		widgetState.envDimensionsRootEl,
-		widgetState.splatTexRootEl,
-		widgetState.skyboxLibraryRootEl,
-		widgetState.noiseRootEl,
-		widgetState.lightLibraryRootEl,
-	}
-	for _, el in ipairs(envWins) do
-		if el then el.style.width = wDp end
-	end
+	-- Width lives in RCSS (.tf-root, .tf-env-float-window, .tf-*-root); we only
+	-- emit position here so dragging can override it inline.
+	return string.format("left: %.2fvw; top: %.2fvh;",
+		currentLeftVw, currentTopVh)
 end
 
 local initialModel = {
@@ -4147,15 +4129,16 @@ function widget:Initialize()
 	widgetState.document = document
 	document:Show()
 
+	if WG.RmlContextManager and WG.RmlContextManager.registerDocument then
+		WG.RmlContextManager.registerDocument("terraform_brush", document)
+	end
+
 	-- Load persisted UI prefs (disableTips, etc.)
 	if loadUiPrefs then loadUiPrefs() end
 
 	widgetState.rootElement = getCachedEl(document, "tf-root")
 	widgetState.rootElement:SetClass("hidden", true)
 
-	local vsx = GetViewGeometry()
-	local scaleFactor = math.max(1.0, vsx / BASE_RESOLUTION)
-	widgetState.panelWidthDp = math.floor(BASE_WIDTH_DP * scaleFactor)
 	lastVsx, lastVsy = GetViewGeometry()
 	currentLeftVw = INITIAL_LEFT_VW
 	currentTopVh = INITIAL_TOP_VH
@@ -4171,7 +4154,6 @@ function widget:Initialize()
 	end, nil, "t")
 
 	attachEventListeners()
-	applyEnvWindowWidths()
 
 	-- Pen pressure: suppress brush modulation when cursor is over the UI panel
 	if widgetState.rootElement then
@@ -4822,16 +4804,13 @@ function widget:Update()
 	end
 
 	updateFloatingTip()
-	-- Detect viewport resize and recalculate panel layout
+	-- Detect viewport resize and re-clamp panel position (width lives in RCSS).
 	local vsx, vsy = GetViewGeometry()
 	if vsx ~= lastVsx or vsy ~= lastVsy then
 		lastVsx, lastVsy = vsx, vsy
-		local scaleFactor = math.max(1.0, vsx / BASE_RESOLUTION)
-		widgetState.panelWidthDp = math.floor(BASE_WIDTH_DP * scaleFactor)
 		if widgetState.rootElement then
 			widgetState.rootElement:SetAttribute("style", buildRootStyle())
 		end
-		applyEnvWindowWidths()
 	end
 
 	local tfState = WG.TerraformBrush and WG.TerraformBrush.getState()
@@ -5996,6 +5975,10 @@ end
 
 function widget:Shutdown()
 	WG.TerraformBrushUI = nil
+
+	if WG.RmlContextManager and WG.RmlContextManager.unregisterDocument then
+		WG.RmlContextManager.unregisterDocument("terraform_brush")
+	end
 
 	-- If a text input had focus when we shut down, SDL text-input mode is still
 	-- active and will leak into the next session (causing key-event side-effects).

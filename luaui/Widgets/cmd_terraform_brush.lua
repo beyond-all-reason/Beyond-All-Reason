@@ -474,6 +474,9 @@ local extraState = {
 	unmouseToZ      = 0.0,
 	unmouseLastTime = nil,     -- Spring.GetTimer() of last applyUnmouse call
 	unmouseLastSpan = 0,       -- activeRadius * activeLengthScale at last target compute
+	-- Per-sub-tool unmouse animation state (keyed by tool id string).
+	-- Each entry: {active, animT, fromX, fromZ, toX, toZ, lastTime, lastSpan, lastRealX, lastRealZ}
+	subToolUnmouse = {},
 	-- Symmetry tool: mirror/radial replication of brush strokes
 	symmetryActive = false,      -- master toggle
 	symmetryOriginX = nil,       -- world X of symmetry center (nil = map center)
@@ -2131,22 +2134,16 @@ function widget:Initialize()
 			local overPanel = mx >= bounds.left and mx <= bounds.right
 			                  and my >= bounds.bottomY and my <= bounds.topY
 			if not overPanel then return nil, nil end
-			local vsx, vsy = Spring.GetViewGeometry()
-			local span = (radius or 200) * math.max(1.0, lengthScale or 1.0) + 70
-			local midY = math.floor(vsy * 0.5)
-			local candidates = {
-				math.floor(vsx * 0.5),
-				math.floor(vsx * 0.25),
-				math.floor(vsx * 0.75),
-			}
-			for _, sx in ipairs(candidates) do
-				if not (sx >= bounds.left - span and sx <= bounds.right + span) then
-					local _, pos = TraceScreenRay(sx, midY, true)
-					if pos then return pos[1], pos[3] end
-				end
-			end
-			local _, pos = TraceScreenRay(math.floor(vsx * 0.5), midY, true)
-			return pos and pos[1] or nil, pos and pos[3] or nil
+			return extraState.computeParkedTarget(bounds, radius, lengthScale)
+		end,
+
+		-- Animated sub-tool unmouse: slides the brush toward the parked spot
+		-- when the cursor enters the terraform panel, and back toward the real
+		-- cursor position when it leaves. Sub-tools call this every DrawWorld
+		-- frame with a unique toolKey and their real world position (or nil).
+		-- Returns animated (worldX, worldZ) — may be nil if nothing to show.
+		animateUnmouse = function(toolKey, realX, realZ, radius, lengthScale)
+			return extraState.tickSubToolUnmouse(toolKey, realX, realZ, radius, lengthScale)
 		end,
 
 		setNoiseType = extraState._noiseSetters.setNoiseType,
@@ -5292,6 +5289,132 @@ extraState.computeUnmouseTarget = function(bounds)
 	local _, pos = TraceScreenRay(math.floor(vsx * 0.5), midY, true)
 	return pos and pos[1] or nil, pos and pos[3] or nil
 end
+
+-- Parameterized version of computeUnmouseTarget for sub-tools with their own
+-- radius / length scale. Same candidate ladder (centre → quarter → opposite quarter).
+extraState.computeParkedTarget = function(bounds, radius, lengthScale)
+	local vsx, vsy = Spring.GetViewGeometry()
+	local brushSpan = (radius or 200) * math.max(1.0, lengthScale or 1.0) + 70
+	local midY = math.floor(vsy * 0.5)
+	local candidates = {
+		math.floor(vsx * 0.5),
+		math.floor(vsx * 0.25),
+		math.floor(vsx * 0.75),
+	}
+	for _, sx in ipairs(candidates) do
+		if not (sx >= bounds.left - brushSpan and sx <= bounds.right + brushSpan) then
+			local _, pos = TraceScreenRay(sx, midY, true)
+			if pos then return pos[1], pos[3] end
+		end
+	end
+	local _, pos = TraceScreenRay(math.floor(vsx * 0.5), midY, true)
+	return pos and pos[1] or nil, pos and pos[3] or nil
+end
+
+-- Drives the per-sub-tool unmouse slide animation. Mirrors applyUnmouse but
+-- keeps state per toolKey so each tool animates independently.
+-- realX/realZ: caller's current real ground position (or nil when ray missed).
+-- Returns the animated (worldX, worldZ) to use for brush drawing, or the real
+-- position when no animation is in progress. May return nil,nil if neither
+-- a real position nor a parked target is available.
+extraState.tickSubToolUnmouse = function(toolKey, realX, realZ, radius, lengthScale)
+	if not toolKey then return realX, realZ end
+	local tfUI = WG.TerraformBrushUI
+	if not tfUI or not tfUI.getPanelBounds then return realX, realZ end
+	local bounds = tfUI.getPanelBounds()
+	if not bounds then return realX, realZ end
+
+	local st = extraState.subToolUnmouse[toolKey]
+	if not st then
+		st = {
+			active     = false,
+			animT      = 0.0,
+			fromX      = 0.0, fromZ = 0.0,
+			toX        = 0.0, toZ   = 0.0,
+			lastTime   = nil,
+			lastSpan   = 0,
+			lastRealX  = nil, lastRealZ = nil,
+		}
+		extraState.subToolUnmouse[toolKey] = st
+	end
+
+	-- Remember last valid real position so animations have a "from" point
+	if realX and realZ then
+		st.lastRealX, st.lastRealZ = realX, realZ
+	end
+
+	local mx, my = GetMouseState()
+	local overPanel = mx >= bounds.left and mx <= bounds.right
+	                  and my >= bounds.bottomY and my <= bounds.topY
+	local now = Spring.GetTimer()
+	local dt  = st.lastTime and math.min(0.1, Spring.DiffTimers(now, st.lastTime)) or 0
+	st.lastTime = now
+
+	if overPanel then
+		local curSpan = (radius or 200) * math.max(1.0, lengthScale or 1.0)
+		local spanChanged = abs(curSpan - st.lastSpan) > 12
+		if not st.active or spanChanged then
+			if st.active and spanChanged then
+				local tc = st.animT * st.animT * (3 - 2 * st.animT)
+				st.fromX = st.fromX + (st.toX - st.fromX) * tc
+				st.fromZ = st.fromZ + (st.toZ - st.fromZ) * tc
+				st.animT = 0
+			else
+				-- Use caller's real pos, else cached last real, else a ray under cursor
+				local fx, fz = realX, realZ
+				if not fx then fx, fz = st.lastRealX, st.lastRealZ end
+				if not fx then
+					local _, pos = TraceScreenRay(mx, my, true)
+					if pos then fx, fz = pos[1], pos[3] end
+				end
+				if not fx then
+					-- No usable starting position — skip this frame, try again next tick
+					return realX, realZ
+				end
+				st.fromX = fx
+				st.fromZ = fz
+				-- Reset to start of enter-animation (may have been at 1 from idle off-panel)
+				st.animT = 0
+			end
+			st.active   = true
+			st.lastSpan = curSpan
+			local tx, tz = extraState.computeParkedTarget(bounds, radius, lengthScale)
+			st.toX = tx or st.fromX
+			st.toZ = tz or st.fromZ
+		end
+		st.animT = math.min(1, st.animT + dt * 7)
+	else
+		if st.active then
+			-- Leaving panel: flip anchors so we animate back toward the real cursor.
+			local tc = st.animT * st.animT * (3 - 2 * st.animT)
+			local curX = st.fromX + (st.toX - st.fromX) * tc
+			local curZ = st.fromZ + (st.toZ - st.fromZ) * tc
+			st.fromX, st.fromZ = curX, curZ
+			st.toX   = realX or st.lastRealX or curX
+			st.toZ   = realZ or st.lastRealZ or curZ
+			st.animT = 0
+			st.active = false
+		end
+		-- While off-panel, keep the "to" anchor tracking the cursor so the
+		-- brush doesn't drift away from the current hover point as we lerp.
+		if (realX or st.lastRealX) and st.animT < 1 then
+			st.toX = realX or st.lastRealX
+			st.toZ = realZ or st.lastRealZ
+		end
+		st.animT = math.min(1, st.animT + dt * 7)
+		if st.animT >= 1 then
+			return realX, realZ
+		end
+	end
+
+	local t = st.animT
+	t = t * t * (3 - 2 * t)
+	local outX = st.fromX + (st.toX - st.fromX) * t
+	local outZ = st.fromZ + (st.toZ - st.fromZ) * t
+	if not outX or outX ~= outX then return realX, realZ end  -- NaN guard
+	return outX, outZ
+end
+
 
 extraState.applyUnmouse = function(worldX, worldZ)
 	-- Never reposition while actively painting (brush locked to drag plane)

@@ -1445,14 +1445,17 @@ function widget:DrawWorld()
 	end
 
 	local worldX, worldZ = getWorldPos()
-	if not worldX then
+	do
 		local tb = WG.TerraformBrush
-		if tb and tb.getUnmouseTarget then
+		if tb and tb.animateUnmouse then
+			local ss2 = getSharedState()
+			worldX, worldZ = tb.animateUnmouse("metalBrush", worldX, worldZ, ss2 and ss2.radius or 200, 1.0)
+		elseif tb and tb.getUnmouseTarget and not worldX then
 			local ss2 = getSharedState()
 			worldX, worldZ = tb.getUnmouseTarget(ss2 and ss2.radius or 200, 1.0)
 		end
-		if not worldX then return end
 	end
+	if not worldX then return end
 
 	local ss = getSharedState()
 

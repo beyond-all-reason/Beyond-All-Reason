@@ -619,13 +619,15 @@ end
 
 local function drawCurrentBrush()
 	local cx, cz = getWorldMousePosition()
-	if not cx then
+	do
 		local tb = WG.TerraformBrush
-		if tb and tb.getUnmouseTarget then
+		if tb and tb.animateUnmouse then
+			cx, cz = tb.animateUnmouse("decalPlacer", cx, cz, dp.radius, 1.0)
+		elseif tb and tb.getUnmouseTarget and not cx then
 			cx, cz = tb.getUnmouseTarget(dp.radius, 1.0)
 		end
-		if not cx then return end
 	end
+	if not cx then return end
 	glDepthTest(true)
 	glLineWidth(2)
 	if dp.dragAction == "remove" or dp.mode == "remove" then
