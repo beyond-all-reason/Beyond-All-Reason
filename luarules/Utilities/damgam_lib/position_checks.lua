@@ -223,6 +223,20 @@ local function StartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStart
     if allyTeamID == GaiaAllyTeamID then
         return not returnTrueWhenNoStartbox
     end
+
+    -- try polygon-aware check first (available when explicit polygon config is loaded)
+    if GG.IsInsideStartbox then
+        local polygonResult = GG.IsInsideStartbox(posx, posz, allyTeamID)
+        if polygonResult ~= nil then
+            if polygonResult then
+                return not returnTrueWhenNoStartbox
+            else
+                return returnTrueWhenNoStartbox
+            end
+        end
+    end
+
+    -- fall back to engine AABB
     local startbox = AllyTeamStartboxes[allyTeamID+1]
 
     if startbox.allyTeamHasStartbox == false then

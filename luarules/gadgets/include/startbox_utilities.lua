@@ -39,9 +39,11 @@ local function ParseBoxes ()
 	local mapsideBoxes = "mapconfig/map_startboxes.lua"
 
 	local startBoxConfig
+	local configSource -- "modside", "mapside", "autohost_polygon", "autohost_rect", "fallback"
 
 	if VFS.FileExists (mapsideBoxes) then
 		startBoxConfig = WrappedInclude (mapsideBoxes)
+		configSource = "mapside"
 	else
 		startBoxConfig = { }
 		local startboxString = Spring.GetModOptions().startboxes
@@ -50,33 +52,57 @@ local function ParseBoxes ()
 			local springieBoxes = loadstring(startboxString)()
 			for id, box in pairs(springieBoxes) do
 				startboxStringLoadedBoxes = true -- Autohost always sends a table. Often it is empty.
-				local midX = (box[1]+box[3]) / 2
-				local midZ = (box[2]+box[4]) / 2
 
-				box[1] = box[1]*Game.mapSizeX
-				box[2] = box[2]*Game.mapSizeZ
-				box[3] = box[3]*Game.mapSizeX
-				box[4] = box[4]*Game.mapSizeZ
+				if box.boxes then
+					-- polygon format: autohost sent full polygon config
+					if not box.nameLong and not box.nameShort then
+						local bounds = box.boxes[1] or {}
+						local sumX, sumZ, count = 0, 0, 0
+						for _, v in ipairs(bounds) do
+							sumX = sumX + v[1]
+							sumZ = sumZ + v[2]
+							count = count + 1
+						end
+						if count > 0 then
+							local midX = sumX / (count * Game.mapSizeX)
+							local midZ = sumZ / (count * Game.mapSizeZ)
+							box.nameLong, box.nameShort = GetStartboxName(midX, midZ)
+						end
+					end
+					startBoxConfig[id] = box
+					configSource = configSource or "autohost_polygon"
+				else
+					-- legacy rectangle format: {xmin, zmin, xmax, zmax} in normalized 0-1 coords
+					local midX = (box[1]+box[3]) / 2
+					local midZ = (box[2]+box[4]) / 2
 
-				local longName, shortName = GetStartboxName(midX, midZ)
+					box[1] = box[1]*Game.mapSizeX
+					box[2] = box[2]*Game.mapSizeZ
+					box[3] = box[3]*Game.mapSizeX
+					box[4] = box[4]*Game.mapSizeZ
 
-				startBoxConfig[id] = {
-					boxes = {{
-						{box[1], box[2]},
-						{box[1], box[4]},
-						{box[3], box[4]},
-						{box[3], box[2]},
-					}},
-					startpoints = {
-						{(box[1]+box[3]) / 2, (box[2]+box[4]) / 2}
-					},
-					nameLong = longName,
-					nameShort = shortName
-				}
+					local longName, shortName = GetStartboxName(midX, midZ)
+
+					startBoxConfig[id] = {
+						boxes = {{
+							{box[1], box[2]},
+							{box[1], box[4]},
+							{box[3], box[4]},
+							{box[3], box[2]},
+						}},
+						startpoints = {
+							{(box[1]+box[3]) / 2, (box[2]+box[4]) / 2}
+						},
+						nameLong = longName,
+						nameShort = shortName
+					}
+					configSource = configSource or "autohost_rect"
+				end
 			end
 		end
 
 		if not startboxStringLoadedBoxes then
+			configSource = "fallback"
 			local mapSizeX = Game.mapSizeX
 			local mapSizeZ = Game.mapSizeZ
 			if mapSizeZ > mapSizeX then
@@ -152,7 +178,7 @@ local function ParseBoxes ()
 		end
 	end
 
-	return startBoxConfig
+	return startBoxConfig, configSource
 end
 
 return ParseBoxes

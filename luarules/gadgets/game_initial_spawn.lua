@@ -463,14 +463,22 @@ if gadgetHandler:IsSyncedCode() then
 		if allyTeamID == nil then
 			return false
 		end
-		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-		if xmin >= xmax or zmin >= zmax then
-			return true
-		else
-			local isOutsideStartbox = (xmin + 1 >= x) or (x >= xmax - 1) or (zmin + 1 >= z) or
-					(z >= zmax - 1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
-			if isOutsideStartbox then
+
+		local polygonResult = GG.IsInsideStartbox and GG.IsInsideStartbox(x, z, allyTeamID)
+		if polygonResult ~= nil then
+			if not polygonResult then
 				return false
+			end
+		else
+			local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
+			if xmin >= xmax or zmin >= zmax then
+				-- no startbox defined, allow placement anywhere
+			else
+				local isOutsideStartbox = (xmin + 1 >= x) or (x >= xmax - 1) or (zmin + 1 >= z) or
+						(z >= zmax - 1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
+				if isOutsideStartbox then
+					return false
+				end
 			end
 		end
 
@@ -621,7 +629,13 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function spawnRegularly(teamID, allyTeamID)
 		local x, _, z = Spring.GetTeamStartPosition(teamID)
-		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
+		local xmin, zmin, xmax, zmax
+		if GG.GetStartboxBounds then
+			xmin, zmin, xmax, zmax = GG.GetStartboxBounds(allyTeamID)
+		end
+		if not xmin then
+			xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
+		end
 		
 		if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
 			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
@@ -654,7 +668,13 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				if needsPosition then
-					local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
+					local xmin, zmin, xmax, zmax
+					if GG.GetStartboxBounds then
+						xmin, zmin, xmax, zmax = GG.GetStartboxBounds(allyTeamID)
+					end
+					if not xmin then
+						xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
+					end
 					local guessedX, guessedZ = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 					if guessedX and guessedZ then
 						local y = spGetGroundHeight(guessedX, guessedZ)

@@ -802,12 +802,34 @@ local function InitStartPolygons()
 	if Spring.GetGaiaTeamID() then
 		gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID() , false))
 	end
-	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
-		if teamID ~= gaiaAllyTeamID then
-			--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
-			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-			--spEcho("Allyteam",teamID,"startbox",xn, zn, xp, zp)
-			StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
+
+	-- try loading polygon configs from startbox_utilities
+	local configLoaded = false
+	local ok, ParseBoxes = pcall(VFS.Include, "luarules/gadgets/include/startbox_utilities.lua")
+	if ok and ParseBoxes then
+		local startBoxConfig, configSource = ParseBoxes()
+		if startBoxConfig then
+			-- Build set of active allyTeams so we only render polygons for teams in this game
+			local activeAllyTeams = {}
+			for _, atID in ipairs(Spring.GetAllyTeamList()) do
+				activeAllyTeams[atID] = true
+			end
+			for allyTeamID, entry in pairs(startBoxConfig) do
+				if allyTeamID ~= gaiaAllyTeamID and activeAllyTeams[allyTeamID] and entry.boxes then
+					StartPolygons[allyTeamID] = entry.boxes[1]
+					configLoaded = true
+				end
+			end
+		end
+	end
+
+	-- fall back to engine AABB if no polygon configs were loaded
+	if not configLoaded then
+		for i, teamID in ipairs(Spring.GetAllyTeamList()) do
+			if teamID ~= gaiaAllyTeamID then
+				local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
+				StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
+			end
 		end
 	end
 
@@ -829,13 +851,24 @@ local function InitStartPolygons()
 		end
 	end
 
-	--Case we start with only one team(no enemies)
-	--The shader doesn't like that so we have to let it think there are more then one
-	if(#StartPolygons == 0) then
-		StartPolygons[#StartPolygons+1] = StartPolygons[#StartPolygons]
+	-- Count entries reliably (# operator is unreliable with 0-based keys)
+	local numStartPolygons = 0
+	for _ in pairs(StartPolygons) do
+		numStartPolygons = numStartPolygons + 1
 	end
 
-	shaderSourceCache.shaderConfig.NUM_BOXES = #StartPolygons
+	--Case we start with only one team(no enemies)
+	--The shader doesn't like that so we have to let it think there are more then one
+	if numStartPolygons == 0 then
+		-- duplicate first entry we can find
+		for k, v in pairs(StartPolygons) do
+			StartPolygons[k] = v
+			numStartPolygons = 1
+			break
+		end
+	end
+
+	shaderSourceCache.shaderConfig.NUM_BOXES = numStartPolygons
 
 	local minY, maxY = Spring.GetGroundExtremes()
 	local waterlevel = (Spring.GetModOption and Spring.GetModOptions().map_waterlevel) or 0
