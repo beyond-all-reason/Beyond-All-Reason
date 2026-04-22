@@ -134,6 +134,8 @@ local function sendPaintMessage(worldX, worldZ)
 	spotsCacheDirty = true
 	clusterCacheDirty = true
 	overlayListDirty = true
+	clusterVisDirty = true
+	balanceAxisSumsDirty = true
 end
 
 local function sendStampMessage(worldX, worldZ)
@@ -164,6 +166,8 @@ local function sendStampMessage(worldX, worldZ)
 	spotsCacheDirty = true
 	clusterCacheDirty = true
 	overlayListDirty = true
+	clusterVisDirty = true
+	balanceAxisSumsDirty = true
 end
 
 -- ============================================================
@@ -546,6 +550,7 @@ end
 
 local function buildClusterVisList()
 	ensureClusters()
+	if clusterCacheDirty then return end -- still throttled
 	if clusterVisList then gl.DeleteList(clusterVisList); clusterVisList = nil end
 	local spots = spotsCache
 	local clusters = clusterCache
@@ -660,6 +665,7 @@ end
 
 local function buildOverlayList()
 	ensureSpotCache()
+	if spotsCacheDirty then return end -- still throttled; retry next frame
 	if overlayList then gl.DeleteList(overlayList); overlayList = nil end
 	local spots = spotsCache
 	local halfSq = METAL_SQ * 0.5
@@ -869,6 +875,203 @@ local function toggleLasso()
 end
 
 -- ============================================================
+-- Balance Axis: pick an axis line on the map; show metal sums on each side.
+-- ============================================================
+
+local balanceAxisActive = false
+local balanceAxisAngleDeg = 0           -- 0 = axis runs along X (east-west line)
+local balanceAxisOriginX = nil          -- nil -> map center
+local balanceAxisOriginZ = nil
+local balanceAxisPlacingOrigin = false  -- next LMB sets origin
+local balanceAxisSumA = 0               -- positive side (normal direction)
+local balanceAxisSumB = 0               -- negative side
+local balanceAxisSumsDirty = true
+local balanceAxisHovering = false
+local balanceAxisDragging = false
+local BALANCE_AXIS_HOVER_DIST = 48   -- world elmos perpendicular hover threshold
+
+local function getBalanceAxisOrigin()
+	local ox = balanceAxisOriginX or (Game.mapSizeX * 0.5)
+	local oz = balanceAxisOriginZ or (Game.mapSizeZ * 0.5)
+	return ox, oz
+end
+
+local function recomputeBalanceAxisSums()
+	ensureSpotCache()
+	if spotsCacheDirty then return end -- throttled; retry next frame
+	local spots = spotsCache
+	if not spots then
+		balanceAxisSumA, balanceAxisSumB = 0, 0
+		balanceAxisSumsDirty = false
+		return
+	end
+	local ox, oz = getBalanceAxisOrigin()
+	local ang = balanceAxisAngleDeg * pi / 180
+	-- axis direction (cosA, sinA); normal perpendicular is (-sinA, cosA)
+	local nx = -sin(ang)
+	local nz = cos(ang)
+	local a, b = 0, 0
+	for i = 1, #spots do
+		local s = spots[i]
+		local d = (s.wx - ox) * nx + (s.wz - oz) * nz
+		if d >= 0 then
+			a = a + s.amount
+		else
+			b = b + s.amount
+		end
+	end
+	balanceAxisSumA = a * 0.001
+	balanceAxisSumB = b * 0.001
+	balanceAxisSumsDirty = false
+end
+
+local function invalidateBalanceAxisSums()
+	balanceAxisSumsDirty = true
+end
+
+-- Extend cache invalidator so map-edits refresh axis sums too.
+local _origInvalidateMetalCaches = invalidateMetalCaches
+invalidateMetalCaches = function()
+	_origInvalidateMetalCaches()
+	balanceAxisSumsDirty = true
+end
+
+local function setBalanceAxisActive(v)
+	balanceAxisActive = v and true or false
+	if balanceAxisActive then balanceAxisSumsDirty = true end
+	if not balanceAxisActive then balanceAxisPlacingOrigin = false end
+end
+
+local function toggleBalanceAxis()
+	setBalanceAxisActive(not balanceAxisActive)
+end
+
+local function setBalanceAxisAngle(deg)
+	deg = tonumber(deg) or 0
+	deg = ((deg % 360) + 360) % 360
+	balanceAxisAngleDeg = deg
+	balanceAxisSumsDirty = true
+end
+
+local function setBalanceAxisOrigin(x, z)
+	balanceAxisOriginX = x
+	balanceAxisOriginZ = z
+	balanceAxisSumsDirty = true
+end
+
+local function setBalanceAxisPlacingOrigin(v)
+	balanceAxisPlacingOrigin = v and true or false
+end
+
+-- Clip the infinite axis line (through origin in direction dir) to the map AABB.
+-- Returns x1,z1,x2,z2 or nil if it doesn't intersect the map.
+local function clipAxisToMap(ox, oz, dx, dz)
+	local mx, mz = Game.mapSizeX, Game.mapSizeZ
+	local tmin, tmax = -1e9, 1e9
+	-- X slab
+	if abs(dx) > 1e-6 then
+		local t1 = (0 - ox) / dx
+		local t2 = (mx - ox) / dx
+		if t1 > t2 then t1, t2 = t2, t1 end
+		if t1 > tmin then tmin = t1 end
+		if t2 < tmax then tmax = t2 end
+	elseif ox < 0 or ox > mx then
+		return nil
+	end
+	-- Z slab
+	if abs(dz) > 1e-6 then
+		local t1 = (0 - oz) / dz
+		local t2 = (mz - oz) / dz
+		if t1 > t2 then t1, t2 = t2, t1 end
+		if t1 > tmin then tmin = t1 end
+		if t2 < tmax then tmax = t2 end
+	elseif oz < 0 or oz > mz then
+		return nil
+	end
+	if tmin > tmax then return nil end
+	return ox + dx * tmin, oz + dz * tmin, ox + dx * tmax, oz + dz * tmax
+end
+
+-- Draw axis line across the whole map, tinted halves, origin marker.
+local function drawBalanceAxisWorld()
+	local ox, oz = getBalanceAxisOrigin()
+	local ang = balanceAxisAngleDeg * pi / 180
+	local dx, dz = cos(ang), sin(ang)
+	local x1, z1, x2, z2 = clipAxisToMap(ox, oz, dx, dz)
+	if not x1 then return end
+	glLineWidth(balanceAxisDragging and 4 or (balanceAxisHovering and 3.5 or 3))
+	if balanceAxisDragging then
+		glColor(1.0, 1.0, 0.6, 1.0)
+	elseif balanceAxisHovering then
+		glColor(1.0, 0.95, 0.4, 1.0)
+	else
+		glColor(1.0, 0.85, 0.2, 0.95)
+	end
+	glBeginEnd(GL_LINES, function()
+		glVertex(x1, GetGroundHeight(x1, z1) + 6, z1)
+		glVertex(x2, GetGroundHeight(x2, z2) + 6, z2)
+	end)
+
+	-- Normal tick at origin to indicate "side A" (positive normal direction)
+	local nx, nz = -sin(ang), cos(ang)
+	local tL = 180
+	glLineWidth(2)
+	glColor(0.4, 1.0, 0.4, 0.9)
+	glBeginEnd(GL_LINES, function()
+		glVertex(ox, GetGroundHeight(ox, oz) + 6, oz)
+		glVertex(ox + nx * tL, GetGroundHeight(ox + nx * tL, oz + nz * tL) + 6, oz + nz * tL)
+	end)
+	glColor(1.0, 0.5, 0.5, 0.9)
+	glBeginEnd(GL_LINES, function()
+		glVertex(ox, GetGroundHeight(ox, oz) + 6, oz)
+		glVertex(ox - nx * tL, GetGroundHeight(ox - nx * tL, oz - nz * tL) + 6, oz - nz * tL)
+	end)
+
+	-- Origin marker
+	gl.PointSize(balanceAxisHovering and 12 or 9)
+	glColor(1, 1, 1, 1)
+	glBeginEnd(GL_POINTS, function()
+		glVertex(ox, GetGroundHeight(ox, oz) + 8, oz)
+	end)
+	gl.PointSize(1)
+	glLineWidth(1)
+	glColor(1, 1, 1, 1)
+end
+
+local function drawBalanceAxisInfo()
+	if balanceAxisSumsDirty then recomputeBalanceAxisSums() end
+	local ox, oz = getBalanceAxisOrigin()
+	local ang = balanceAxisAngleDeg * pi / 180
+	local nx, nz = -sin(ang), cos(ang)
+	local labelDist = 300
+	local axA = ox + nx * labelDist
+	local azA = oz + nz * labelDist
+	local axB = ox - nx * labelDist
+	local azB = oz - nz * labelDist
+
+	local function label(wx, wz, text, r, g, b)
+		local sx, sy = WorldToScreenCoords(wx, GetGroundHeight(wx, wz) + 40, wz)
+		if sx then
+			glColor(0, 0, 0, 0.92)
+			glText(text, sx + 2, sy - 2, 22, "co")
+			glColor(r, g, b, 1)
+			glText(text, sx, sy, 22, "co")
+		end
+	end
+
+	label(axA, azA, format("A: %.2f", balanceAxisSumA), 0.5, 1.0, 0.5)
+	label(axB, azB, format("B: %.2f", balanceAxisSumB), 1.0, 0.6, 0.6)
+
+	if balanceAxisPlacingOrigin then
+		local vsx, vsy = gl.GetViewSizes()
+		glColor(0, 0, 0, 0.92)
+		glText("BALANCE AXIS - click map to place origin", vsx * 0.5 + 2, vsy * 0.12 - 2, 22, "co")
+		glColor(1, 0.95, 0.5, 1)
+		glText("BALANCE AXIS - click map to place origin", vsx * 0.5, vsy * 0.12, 22, "co")
+	end
+end
+
+-- ============================================================
 -- State Management & WG Interface
 -- ============================================================
 
@@ -909,6 +1112,13 @@ local function getState()
 		lassoPointCount = #lassoPoints,
 		lassoTotal = lassoGrandTotal(),     -- back-compat: now the grand total across all committed loops
 		lassoCount = #lassos,               -- new: number of committed loops
+		balanceAxisActive = balanceAxisActive,
+		balanceAxisAngleDeg = balanceAxisAngleDeg,
+		balanceAxisOriginX = balanceAxisOriginX,
+		balanceAxisOriginZ = balanceAxisOriginZ,
+		balanceAxisPlacingOrigin = balanceAxisPlacingOrigin,
+		balanceAxisSumA = balanceAxisSumA,
+		balanceAxisSumB = balanceAxisSumB,
 	}
 end
 
@@ -933,6 +1143,11 @@ function widget:Initialize()
 		finishLasso = finishLasso,
 		clearLasso = clearLasso,
 		toggleLasso = toggleLasso,
+		setBalanceAxisActive = setBalanceAxisActive,
+		toggleBalanceAxis = toggleBalanceAxis,
+		setBalanceAxisAngle = setBalanceAxisAngle,
+		setBalanceAxisOrigin = setBalanceAxisOrigin,
+		setBalanceAxisPlacingOrigin = setBalanceAxisPlacingOrigin,
 		refreshAnalysis = invalidateMetalCaches,
 		undo = function() SendLuaRulesMsg(MSG_UNDO, "") end,
 		redo = function() SendLuaRulesMsg(MSG_REDO, "") end,
@@ -951,6 +1166,28 @@ end
 
 function widget:MousePress(mx, my, button)
 	if not active then return false end
+
+	-- Balance axis origin placement: consume next LMB as origin, RMB cancels.
+	if balanceAxisPlacingOrigin then
+		if button == 1 then
+			local wx, wz = getWorldPos()
+			if wx then
+				setBalanceAxisOrigin(wx, wz)
+			end
+			balanceAxisPlacingOrigin = false
+			return true
+		elseif button == 3 then
+			balanceAxisPlacingOrigin = false
+			return true
+		end
+	end
+
+	-- Balance axis drag: LMB on the line starts a drag (translates origin along
+	-- the axis normal so the whole line slides perpendicular to itself).
+	if balanceAxisActive and balanceAxisHovering and button == 1 then
+		balanceAxisDragging = true
+		return true
+	end
 
 	-- Lasso tool: intercepts clicks before anything else (works without cheat)
 	if lassoActive then
@@ -1021,6 +1258,19 @@ function widget:MousePress(mx, my, button)
 end
 
 function widget:MouseMove(mx, my, dx, dy, button)
+	-- Balance axis drag: slide origin along axis normal so line stays parallel.
+	if balanceAxisDragging then
+		local wx, wz = getWorldPos()
+		if wx then
+			local ox, oz = getBalanceAxisOrigin()
+			local ang = balanceAxisAngleDeg * pi / 180
+			local nx, nz = -sin(ang), cos(ang)
+			local d = (wx - ox) * nx + (wz - oz) * nz
+			setBalanceAxisOrigin(ox + nx * d, oz + nz * d)
+		end
+		return
+	end
+
 	-- Lasso free-draw: while LMB is held, append points along the cursor path
 	-- once the drag has crossed a small pixel threshold. Converts a single
 	-- click-and-drag gesture into a closed loop on release.
@@ -1052,6 +1302,10 @@ function widget:MouseMove(mx, my, dx, dy, button)
 end
 
 function widget:MouseRelease(mx, my, button)
+	if balanceAxisDragging and button == 1 then
+		balanceAxisDragging = false
+		return
+	end
 	-- Lasso free-draw auto-close on LMB release after a drag gesture.
 	if lassoActive and button == 1 and lassoDragDetected then
 		commitCurrentLasso()
@@ -1065,6 +1319,13 @@ function widget:MouseRelease(mx, my, button)
 	if painting and button == paintButton then
 		painting = false
 		paintButton = 0
+		-- Force a cache rebuild now that painting has ended (bypass throttle)
+		lastCacheBuildClock = 0
+		spotsCacheDirty = true
+		clusterCacheDirty = true
+		overlayListDirty = true
+		clusterVisDirty = true
+		balanceAxisSumsDirty = true
 	end
 end
 
@@ -1130,6 +1391,22 @@ function widget:MouseWheel(up, value)
 end
 
 function widget:Update(dt)
+	-- Balance axis hover check (when not dragging, not placing)
+	if active and balanceAxisActive and not balanceAxisDragging and not balanceAxisPlacingOrigin then
+		local wx, wz = getWorldPos()
+		if wx then
+			local ox, oz = getBalanceAxisOrigin()
+			local ang = balanceAxisAngleDeg * pi / 180
+			local nx, nz = -sin(ang), cos(ang)
+			local d = abs((wx - ox) * nx + (wz - oz) * nz)
+			balanceAxisHovering = (d <= BALANCE_AXIS_HOVER_DIST)
+		else
+			balanceAxisHovering = false
+		end
+	elseif not balanceAxisDragging then
+		balanceAxisHovering = false
+	end
+
 	if not active or not painting then return end
 
 	lastPaintTime = lastPaintTime + dt
@@ -1160,6 +1437,11 @@ function widget:DrawWorld()
 	-- Lasso polygon
 	if lassoActive or #lassos > 0 then
 		drawLassoWorld()
+	end
+
+	-- Balance axis
+	if balanceAxisActive then
+		drawBalanceAxisWorld()
 	end
 
 	local worldX, worldZ = getWorldPos()
@@ -1211,6 +1493,7 @@ function widget:DrawScreen()
 
 	if clusterCounter then drawClusterLabels() end
 	if lassoActive or #lassos > 0 then drawLassoInfo() end
+	if balanceAxisActive then drawBalanceAxisInfo() end
 
 	local worldX, worldZ = getWorldPos()
 	if not worldX then return end

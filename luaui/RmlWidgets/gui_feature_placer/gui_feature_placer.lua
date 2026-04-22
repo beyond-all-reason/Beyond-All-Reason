@@ -25,7 +25,7 @@ local INITIAL_LEFT_VW   = 60
 local INITIAL_TOP_VH    = 10
 local BASE_WIDTH_DP     = 162
 local BASE_RESOLUTION   = 1920
-local TILE_COLUMNS      = 4
+local TILE_COLUMNS      = 3
 local TILE_GAP_DP       = 2
 
 local widgetState = {
@@ -416,6 +416,7 @@ local virtualTopSpacer = nil  -- spacer div for items above viewport
 local virtualBotSpacer = nil  -- spacer div for items below viewport
 local virtualVisStart = 0     -- first visible index (0-based)
 local virtualVisEnd   = 0     -- last visible index (exclusive)
+local measuredRowHeightPx = 0 -- actual rendered tile row height in px (measured after first render)
 
 local function computeTileWidth()
 	local pw = widgetState.panelWidthDp
@@ -474,22 +475,31 @@ local function renderVirtualWindow(listEl, doc, startIdx, endIdx, selectedSet)
 
 	local tileW = virtualTileW
 	local totalItems = #virtualItems
-	-- Each row has TILE_COLUMNS items; row height ~ tileW + gap (dp)
-	-- We use tileW as approx tile height since tiles are square
-	local rowHeightDp = tileW + TILE_GAP_DP
 
-	-- Top spacer: accounts for all rows above startIdx
+	-- Compute row height in PX. Prefer the measured value from a prior render,
+	-- since CSS borders/gaps make the real rendered height differ from tileW+gap dp.
+	-- Falls back to dp estimate for the very first render (startIdx=0, topSpacer=0 so exact value doesn't matter yet).
+	local vsx = GetViewGeometry()
+	local scaleFactor = math.max(1.0, vsx / BASE_RESOLUTION)
+	local rowHeightPx = measuredRowHeightPx
+	if rowHeightPx < 1 then
+		rowHeightPx = (tileW + TILE_GAP_DP) * scaleFactor
+	end
+
+	-- Top spacer: accounts for all rows above startIdx (sized in px for exact match to real tile row height)
 	local topRows = math.floor(startIdx / TILE_COLUMNS)
 	virtualTopSpacer = doc:CreateElement("div")
 	virtualTopSpacer:SetAttribute("style", string.format(
-		"width: 100%%; height: %ddp; flex-shrink: 0;", topRows * rowHeightDp))
+		"width: 100%%; height: %dpx; flex-shrink: 0;", math.floor(topRows * rowHeightPx + 0.5)))
 	listEl:AppendChild(virtualTopSpacer)
 
 	-- Create visible tiles
+	local firstItemEl
 	for i = startIdx + 1, math.min(endIdx, totalItems) do
 		local entry = virtualItems[i]
 		local itemEl = createTileElement(doc, entry, tileW, selectedSet)
 		listEl:AppendChild(itemEl)
+		if not firstItemEl then firstItemEl = itemEl end
 	end
 
 	-- Bottom spacer: accounts for all rows below endIdx
@@ -497,11 +507,21 @@ local function renderVirtualWindow(listEl, doc, startIdx, endIdx, selectedSet)
 	local bottomRows = math.ceil(bottomItems / TILE_COLUMNS)
 	virtualBotSpacer = doc:CreateElement("div")
 	virtualBotSpacer:SetAttribute("style", string.format(
-		"width: 100%%; height: %ddp; flex-shrink: 0;", bottomRows * rowHeightDp))
+		"width: 100%%; height: %dpx; flex-shrink: 0;", math.floor(bottomRows * rowHeightPx + 0.5)))
 	listEl:AppendChild(virtualBotSpacer)
 
 	virtualVisStart = startIdx
 	virtualVisEnd = endIdx
+
+	-- Calibrate measured row height from the first rendered tile so subsequent
+	-- renders (and scroll math) use the actual pixel size including border+gap.
+	if firstItemEl then
+		local h = firstItemEl.offset_height
+		if h and h > 0 then
+			local gapPx = TILE_GAP_DP * scaleFactor
+			measuredRowHeightPx = h + gapPx
+		end
+	end
 end
 
 local function updateVirtualWindow()
@@ -513,11 +533,13 @@ local function updateVirtualWindow()
 	local viewH = listEl.client_height or 500
 
 	local tileW = virtualTileW
-	local rowHeightDp = tileW + TILE_GAP_DP
-	-- Convert dp to approximate px using the scale factor
-	local vsx = GetViewGeometry()
-	local scaleFactor = math.max(1.0, vsx / BASE_RESOLUTION)
-	local rowHeightPx = rowHeightDp * scaleFactor
+	-- Prefer the measured pixel row height (accurate, includes border+gap); fall back to dp estimate.
+	local rowHeightPx = measuredRowHeightPx
+	if rowHeightPx < 1 then
+		local vsx = GetViewGeometry()
+		local scaleFactor = math.max(1.0, vsx / BASE_RESOLUTION)
+		rowHeightPx = (tileW + TILE_GAP_DP) * scaleFactor
+	end
 
 	if rowHeightPx < 1 then rowHeightPx = 40 end
 

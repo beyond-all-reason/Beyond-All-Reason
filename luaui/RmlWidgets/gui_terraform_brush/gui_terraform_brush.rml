@@ -693,38 +693,81 @@
 				<div id="btn-mb-mapoverlay" class="tf-overlay-chip">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Metal Map</div>
 				</div>
-				<div id="btn-mb-clusters" class="tf-overlay-chip">
-					<div class="tf-overlay-chip-label" style="text-align: center;">Clusters</div>
-				</div>
-				<div id="btn-mb-lasso" class="tf-overlay-chip">
-					<div class="tf-overlay-chip-label" style="text-align: center;">Lasso</div>
+				<div id="btn-mb-inspector" class="tf-overlay-chip">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Inspector</div>
 				</div>
 			</div>
-			<div id="mb-cluster-radius-row" class="tf-instrument-sub hidden mb-1">
-				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">GRANULARITY: <span class="text-xl font-bold" id="mb-cluster-radius-label">256</span></div>
-				</div>
+			<div id="mb-inspector-row" class="tf-instrument-sub hidden mb-1">
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="mb-btn-cluster-radius-down" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					<div id="btn-mb-clusters" class="tf-overlay-chip" style="flex: 1;">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Clusters</div>
 					</div>
-					<input type="range" id="mb-slider-cluster-radius" class="tf-slider" min="64" max="1024" step="32" value="256" />
-					<div id="mb-btn-cluster-radius-up" class="tf-sm-btn">
-						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					<div id="btn-mb-lasso" class="tf-overlay-chip" style="flex: 1;">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Lasso</div>
 					</div>
-				</div>
-			</div>
-			<div id="mb-lasso-row" class="tf-instrument-sub hidden mb-1">
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="mb-btn-lasso-close" class="tf-overlay-chip" style="flex: 1;">
-						<div class="tf-overlay-chip-label" style="text-align: center;">Close Loop</div>
-					</div>
-					<div id="mb-btn-lasso-clear" class="tf-overlay-chip" style="flex: 1;">
-						<div class="tf-overlay-chip-label" style="text-align: center;">Clear</div>
+					<div id="btn-mb-balance-axis" class="tf-overlay-chip" style="flex: 1;">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Balance Axis</div>
 					</div>
 				</div>
-				<div class="flex flex-row items-center mb-1">
-					<div class="text-lg text-light">Metal in loop: <span class="text-xl font-bold" id="mb-lasso-total-label">0.00</span></div>
+				<div id="mb-cluster-radius-row" class="tf-instrument-sub hidden mb-1">
+					<div class="flex flex-row justify-between items-center mb-1">
+						<div class="text-lg text-light">GRANULARITY: <span class="text-xl font-bold" id="mb-cluster-radius-label">256</span></div>
+					</div>
+					<div class="flex flex-row gap-1 items-center mb-1">
+						<div id="mb-btn-cluster-radius-down" class="tf-sm-btn">
+							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+						</div>
+						<input type="range" id="mb-slider-cluster-radius" class="tf-slider" min="64" max="1024" step="32" value="256" />
+						<div id="mb-btn-cluster-radius-up" class="tf-sm-btn">
+							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+						</div>
+					</div>
+				</div>
+				<div id="mb-lasso-row" class="tf-instrument-sub hidden mb-1">
+					<div class="flex flex-row gap-1 items-center mb-1">
+						<div id="mb-btn-lasso-close" class="tf-overlay-chip" style="flex: 1;">
+							<div class="tf-overlay-chip-label" style="text-align: center;">Close Loop</div>
+						</div>
+						<div id="mb-btn-lasso-clear" class="tf-overlay-chip" style="flex: 1;">
+							<div class="tf-overlay-chip-label" style="text-align: center;">Clear</div>
+						</div>
+					</div>
+					<div class="flex flex-row items-center mb-1">
+						<div class="text-lg text-light">Metal in loop: <span class="text-xl font-bold" id="mb-lasso-total-label">0.00</span></div>
+					</div>
+				</div>
+				<div id="mb-balance-axis-row" class="tf-instrument-sub hidden mb-1">
+					<div class="flex flex-row gap-1 items-center mb-1">
+						<div id="mb-btn-axis-x" class="tf-overlay-chip" style="flex: 1;">
+							<div class="tf-overlay-chip-label" style="text-align: center;">X Axis</div>
+						</div>
+						<div id="mb-btn-axis-z" class="tf-overlay-chip" style="flex: 1;">
+							<div class="tf-overlay-chip-label" style="text-align: center;">Z Axis</div>
+						</div>
+						<div id="mb-btn-axis-place" class="tf-overlay-chip" style="flex: 1;">
+							<div class="tf-overlay-chip-label" style="text-align: center;">Place</div>
+						</div>
+						<div id="mb-btn-axis-center" class="tf-overlay-chip" style="flex: 1;">
+							<div class="tf-overlay-chip-label" style="text-align: center;">Center</div>
+						</div>
+					</div>
+					<div class="flex flex-row justify-between items-center mb-1">
+						<div class="text-lg text-light">ANGLE: <span class="text-xl font-bold" id="mb-axis-angle-label">0</span>&#176;</div>
+					</div>
+					<div class="flex flex-row gap-1 items-center mb-1">
+						<div id="mb-btn-axis-angle-down" class="tf-sm-btn">
+							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+						</div>
+						<input type="range" id="mb-slider-axis-angle" class="tf-slider" min="0" max="359" step="1" value="0" />
+						<div id="mb-btn-axis-angle-up" class="tf-sm-btn">
+							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+						</div>
+					</div>
+					<div class="flex flex-col mb-1">
+						<div class="text-lg text-light">Side A: <span class="text-xl font-bold" id="mb-axis-a-label">0.00</span></div>
+						<div class="text-lg text-light">Side B: <span class="text-xl font-bold" id="mb-axis-b-label">0.00</span></div>
+						<div class="text-lg text-light">Balance: <span class="text-xl font-bold" id="mb-axis-balance-label">--</span></div>
+					</div>
 				</div>
 			</div>
 			</div><!-- /section-mb-overlays -->
