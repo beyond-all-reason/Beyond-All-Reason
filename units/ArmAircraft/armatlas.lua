@@ -25,7 +25,7 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 430,
 		speed = 207,
-		transportcapacity =1,
+		transportcapacity = 1,
 		transportmass = 750,
 		transportsize = 3,
 		transportunloadmethod = 0,

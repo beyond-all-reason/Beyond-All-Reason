@@ -20,7 +20,7 @@ return {
 		metalcost = 74,
 		objectname = "Units/CORVALK.s3o",
 		releaseheld = true,
-		script = "Units/COVALK.cob",
+		script = "Units/CORVALK.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 430,
