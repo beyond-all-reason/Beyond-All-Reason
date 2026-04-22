@@ -375,10 +375,19 @@ end
 
 function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeam, cx, cy, cz, radius)
 	local teeID = findUnitToTransport(transporterID, transporterDefID, transporterTeam, cx, cz, radius)
-	while teeID do
+	
+	-- OPTION: one per frame or until filled
+	-- if perfs are a concern, or if you want units to be split among area-loading transports, use one per frame
+	-- i personnally prefer in batch as it allows the commands to be instantly performed in some edge cases
+
+	if teeID then
+		claimTransportee(transporterID, teeID, TransportAPI.GetTransporteeSize(teeID), false)
+	end
+	--[[while teeID do
 		claimTransportee(transporterID, teeID, TransportAPI.GetTransporteeSize(teeID), false)
 		teeID = findUnitToTransport(transporterID, transporterDefID, transporterTeam, cx, cz, radius)
-	end
+	end]]--
+
 	if queuedSeats[transporterID] == 0 then -- queuedSeats val ~= #transporterClaims but both are 0 when no queue.
 		areaLoadCoroutines[transporterID] = nil
 		return true -- either no claimable units, or all claims loaded, command is finished
