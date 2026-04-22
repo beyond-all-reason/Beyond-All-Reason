@@ -59,6 +59,8 @@ local spGetUnitDefID             = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt      = Spring.GetUnitIsBeingBuilt
 local spGetFeaturePosition       = Spring.GetFeaturePosition
 local spGetFeatureRadius         = Spring.GetFeatureRadius
+local spGetFeatureHealth         = Spring.GetFeatureHealth
+local spGetFeatureResources      = Spring.GetFeatureResources
 local spValidFeatureID           = Spring.ValidFeatureID
 local spValidUnitID              = Spring.ValidUnitID
 local spGetTeamColor             = Spring.GetTeamColor
@@ -149,6 +151,18 @@ local RENDER_MODE = (NANO_PARTICLE_MODE == 1) and "billboard" or "shape"
 local NanoParticleColorEqualize = 0.7   -- [0..1]
 -- Global unit particle rate/amount multiplier. 1.0 = unchanged. 0.5 = half particles per unit
 local NanoParticleRate        = 0.33   -- [0..1]
+-- Resurrect emits two legs (outbound + inbound). Scale the resurrect-specific
+-- spray here for BOTH legs: 1.0 = current BAR behaviour, 0.5 = half as many
+-- resurrect particles on both outbound and inbound legs
+local NanoParticleResurrectExtraRate = 0.5
+
+local function takeScaledEmitCount(info, accumKey, emits, scale)
+	if emits <= 0 or not scale or scale <= 0 then return 0 end
+	local accum = (info[accumKey] or 0) + emits * scale
+	local out = mathFloor(accum)
+	info[accumKey] = accum - out
+	return out
+end
 
 -- Per-mode visual settings. Edit the active mode's table to tweak its look in
 -- isolation. Billboard matches the engine spray; shape is tuned independently.
@@ -183,6 +197,7 @@ local MODE_SETTINGS = {
 		wobbleVar      = 0.3,    -- ± per-particle amplitude variation
 		wobbleFreq     = 0.7,    -- cycles per sim-second around velocity axis
 		wobbleFreqVar  = 0.5,    -- ± per-particle frequency variation
+		wobbleRampFrames = 6.0,  -- frames to ramp up from 0 to full wobble amplitude (0 = instant)
 		-- Same uniforms as shape mode but sampled in quad-UV space + v_seed.
 		-- Keep cubeNoise modest -- nanoTex already has its own falloff structure.
 		cubeNoise            = 2.0,
@@ -202,7 +217,7 @@ local MODE_SETTINGS = {
 		alphaVar    = 1.6,
 		-- View-dependent face shading: 0 = flat, 1 = full 3D depth (back faces visible-but-dimmed).
 		cubeShowInside = 4.0,
-		cubeNoise       = 3.3,
+		cubeNoise       = 3.7,
 		cubeNoiseSpeed  = 25.0,
 		cubeNoiseScale  = 1.75,
 		whiteHotspot          = 1.3,
@@ -211,7 +226,7 @@ local MODE_SETTINGS = {
 		rotValBase  = -180, rotValRange = 360,
 		rotVelBase  = -40,  rotVelRange = 80,
 		rotAccBase  = -40,  rotAccRange = 80,
-		glowIntensity = 0.17,
+		glowIntensity = 0.18,
 		glowFalloff = 11.0,
 		glowScale = 12.0,
 		glowBreath     = 3.8,
@@ -224,8 +239,9 @@ local MODE_SETTINGS = {
 
 		wobbleAmp      = 12.0,
 		wobbleVar      = 0.5,	-- 0...1 fraction of wobbleAmp
-		wobbleFreq     = 0.15,
+		wobbleFreq     = 0.18,
 		wobbleFreqVar  = 0.5,	-- 0...1 fraction of wobbleFreq
+		wobbleRampFrames = 7.0,  -- frames to ramp up from 0 to full wobble amplitude (0 = instant)
 	},
 }
 
@@ -393,6 +409,7 @@ local function applyRenderMode(name)
 	U.WOBBLE_FREQ        = MODE.wobbleFreq      or 0.0
 	U.WOBBLE_VAR         = MODE.wobbleVar       or 0.0
 	U.WOBBLE_FREQ_VAR    = MODE.wobbleFreqVar   or 0.0
+	U.WOBBLE_RAMP_FRAMES = MODE.wobbleRampFrames or 0.0
 	U.WHITE_HOTSPOT           = MODE.whiteHotspot          or 0.0
 	U.WHITE_HOTSPOT_THRESHOLD = MODE.whiteHotspotThreshold or 0.7
 	U.SHAPE_ID           = SHAPE_IDS[MODE.shape or "cube"] or 0
@@ -511,7 +528,7 @@ layout(location = 0) in vec4 vertexPosUV;
 layout(location = 1) in vec4 spawnPosAndSize;   // xyz=spawnPos, w=packed(sizeMult,fadeFrames)
 layout(location = 2) in vec4 velAndSpawnFrame;  // xyz=velocity, w=spawnFrame
 layout(location = 3) in vec4 instColor;         // rgba team color
-layout(location = 4) in vec4 rotData;           // x=rotVal0, y=rotVel0, z=rotAcc, w=deathFrame
+layout(location = 4) in vec4 rotData;           // x=rotVal0, y=rotVel0, z=wobbleStartFrame, w=deathFrame
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
@@ -524,6 +541,7 @@ uniform float wobbleAmp;      // peak vortex displacement perpendicular to vel (
 uniform float wobbleFreq;     // vortex rotation rate around vel (cycles/sim-second)
 uniform float wobbleVar;      // ± fractional per-particle amplitude variation (0..1)
 uniform float wobbleFreqVar;  // ± fractional per-particle frequency variation (0..1)
+uniform float wobbleRampFrames; // frames to linearly gate bell at spawn (0 = instant full wobble)
 
 out vec2 v_uv;
 out vec4 v_color;
@@ -551,52 +569,72 @@ void main() {
 	vec3 worldPos = spawnPosAndSize.xyz + velAndSpawnFrame.xyz * t;
 
 	// Vortex / swirl displacement perpendicular to the velocity axis.
-	// Two envelopes selected by the inverse flag (sign of spawnPosAndSize.w):
-	//   forward  (repair/build): bell = 4*p*(1-p), symmetric over p = t/lifetime --
-	//     spawn point and landing point are unchanged, spray bows out into a
-	//     curved trail. Only fires while target moves, so spawnFrame rewrites
-	//     are rare and the symmetric bell is visually stable.
-	//   inverse  (reclaim):       bell = smoothstep(0, FADE, tDeath), driven by
-	//     ABSOLUTE frames-to-death (deathFrame - currentFrame). deathFrame is
-	//     preserved across homing rewrites, so this envelope doesn't snap back
-	//     to max amplitude every time the spinner rotates -- it just smoothly
-	//     fades to zero in the last ~12 frames before landing at the builder.
-	//     A normalized p-based envelope would jitter here because reclaim
-	//     rewrites spawnFrame every tick (the piece is always moving), which
-	//     resets p to 0.
+	// Use absolute time-based ramp for consistent wobble ramp speed regardless of
+	// distance/lifetime. Both forward and inverse use the same fixed ramp-up and
+	// ramp-down envelopes (12 frames each) so wobble intensity grows at the same
+	// visual speed whether particles travel far (long lifetime) or near (short).
+	// - Ramp up: wobble starts at 0, reaches full amplitude in ~12 frames
+	// - Ramp down: wobble fades to 0 in final ~12 frames before death
 	// Per-particle phase / freq scale / direction sign so adjacent particles
 	// aren't in lockstep -- shared wobbleFreq alone would just rotate them all
 	// at the same rate in the same plane.
 	if (wobbleAmp > 0.0001) {
-		float bell;
-		if (spawnPosAndSize.w < 0.0) {
-			float tDeath = max(deathFrame - currentFrame, 0.0);
-			bell = smoothstep(0.0, 12.0, tDeath);
+		// Lifetime-normalized sine bell: always peaks at 1.0 at midpoint regardless
+		// of travel distance. Short-range and long-range particles wobble equally.
+		// An optional linear ramp gate (wobbleRampFrames) slows the attack without
+		// affecting the natural sine fade-out.
+		float wobbleT    = max(currentFrame - rotData.z, 0.0);
+		float totalLife  = max(deathFrame - rotData.z, 1.0);
+		float bell       = sin(3.14159265 * wobbleT / totalLife);
+		if (wobbleRampFrames > 0.5)
+			bell *= min(1.0, wobbleT / wobbleRampFrames);
+		// Compute wobble axis from spawn-time rotData, not homing-modified velocity.
+		// rotData.x and .y are spawn-time random (never rewritten by homing). Using
+		// these to generate a stable perpendicular basis ensures wobble doesn't flip
+		// or jitter when the particle is re-aimed during forward homing. For moving
+		// targets, velocity changes every 3 frames (HOMING_RUN_EVERY), which would
+		// cause the computed wobble axis to rotate/flip abruptly -- jittery/extreme.
+		// Deriving the basis from spawn-time values keeps it stable across updates.
+		vec3 vdir = velAndSpawnFrame.xyz;  // Use for secondary ref vector only
+		vec3 ref, axA, axB;
+		// Use rotData.x as seed for a stable reference direction
+		float refAngle = rotData.x * 0.01745329;  // ~1 degree per unit
+		// Generate two pseudo-random perpendicular vectors from the seed
+		float s1 = sin(refAngle), c1 = cos(refAngle);
+		float s2 = sin(refAngle * 2.19), c2 = cos(refAngle * 2.19);
+		// Choose reference based on vdir.y to avoid degenerate cross products
+		if (abs(vdir.y) < 0.95) {
+			ref = normalize(vec3(s1, c1, s2));
 		} else {
-			float lifetime = max(deathFrame - spawnFrame, 1.0);
-			float p        = clamp(t / lifetime, 0.0, 1.0);
-			bell = 4.0 * p * (1.0 - p);
+			ref = normalize(vec3(c1, s2, c2));
 		}
-		vec3  vdir     = velAndSpawnFrame.xyz;
-		float vlen2    = dot(vdir, vdir);
-		if (vlen2 > 1e-6) {
-			vdir /= sqrt(vlen2);
-			// Stable perpendicular basis. Pick world-up unless vel is near vertical.
-			vec3 ref = (abs(vdir.y) < 0.95) ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
-			vec3 axA = normalize(cross(vdir, ref));
-			vec3 axB = cross(vdir, axA);
-			// rotData.x and .y are spawn-time random (untouched by homing). Use
-			// hashed fract for stable per-particle freq scale (0.55..1.45) and
-			// direction sign (±1) so half spiral CW and half CCW at varying rates.
-			float phaseOff = radians(rotData.x);
-			float hash     = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
-			float freqScale = max(0.0, 1.0 + wobbleFreqVar * (2.0 * hash - 1.0));
-			float dirSign  = (fract(hash * 7.31) < 0.5) ? -1.0 : 1.0;
-			float hash2    = fract(hash * 113.7 + 0.317);
-			float ampScale = max(0.0, 1.0 + wobbleVar * (2.0 * hash2 - 1.0));
-			float ph = currentFrame * wobbleFreq * freqScale * dirSign * (6.2831853 / 30.0) + phaseOff;
-			worldPos += (axA * cos(ph) + axB * sin(ph)) * (wobbleAmp * ampScale * bell);
+		// Generate wobble basis from spawm-time seed and ref, independent of velocity
+		float h1 = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
+		float h2 = fract(sin(rotData.x * 23.1451 + rotData.y * 34.567) * 65432.0987);
+		axA = normalize(vec3(
+			sin(h1 * 6.28318),
+			sin(h2 * 6.28318),
+			cos(h1 * 3.14159 + h2 * 3.14159)
+		));
+		axB = cross(axA, ref);
+		if (dot(axB, axB) > 0.001) {
+			axB = normalize(axB);
+		} else {
+			// Degenerate case: fallback perpendicular
+			axB = cross(axA, (abs(axA.x) < 0.9) ? vec3(1, 0, 0) : vec3(0, 1, 0));
+			axB = normalize(axB);
 		}
+		// rotData.x and .y are spawn-time random (untouched by homing). Use
+		// hashed fract for stable per-particle freq scale (0.55..1.45) and
+		// direction sign (±1) so half spiral CW and half CCW at varying rates.
+		float phaseOff = radians(rotData.x);
+		float hash     = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
+		float freqScale = max(0.0, 1.0 + wobbleFreqVar * (2.0 * hash - 1.0));
+		float dirSign  = (fract(hash * 7.31) < 0.5) ? -1.0 : 1.0;
+		float hash2    = fract(hash * 113.7 + 0.317);
+		float ampScale = max(0.0, 1.0 + wobbleVar * (2.0 * hash2 - 1.0));
+		float ph = currentFrame * wobbleFreq * freqScale * dirSign * (6.2831853 / 30.0) + phaseOff;
+		worldPos += (axA * cos(ph) + axB * sin(ph)) * (wobbleAmp * ampScale * bell);
 	}
 
 	// Decode packed w: floor sizeMult times 256 in low 1024, fadeFrames times 1024 above.
@@ -612,9 +650,10 @@ void main() {
 		fade = clamp((deathFrame - currentFrame) / fadeFrames, 0.0, 1.0);
 	}
 
-	// Engine rotation model: rotVel = rotVel0 + rotAcc*t; rotVal = rotVal0 + rotVel*t
-	float rotVel = rotData.y + rotData.z * t;
-	float rotVal = rotData.x + rotVel  * t;
+	// Keep billboard rotation simple and stable. rotData.z now stores the wobble
+	// timeline, so rotData.y is treated as a constant angular velocity.
+	float rotVel = rotData.y;
+	float rotVal = rotData.x + rotVel * t;
 	float rotRad = radians(rotVal);
 	float c = cos(rotRad);
 	float s = sin(rotRad);
@@ -852,7 +891,7 @@ layout(location = 0) in vec4 vertexPosUV;
 layout(location = 1) in vec4 spawnPosAndSize;   // xyz=spawnPos, w=packed(sizeMult,fadeFrames)
 layout(location = 2) in vec4 velAndSpawnFrame;  // xyz=velocity, w=spawnFrame
 layout(location = 3) in vec4 instColor;
-layout(location = 4) in vec4 rotData;           // x=rotVal0, y=rotVel0, z=rotAcc, w=deathFrame
+layout(location = 4) in vec4 rotData;           // x=rotVal0, y=rotVel0, z=wobbleStartFrame, w=deathFrame
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
@@ -860,6 +899,7 @@ uniform float wobbleAmp;      // peak vortex displacement perpendicular to vel (
 uniform float wobbleFreq;     // vortex rotation rate around vel (cycles/sim-second)
 uniform float wobbleVar;      // ± fractional per-particle amplitude variation (0..1)
 uniform float wobbleFreqVar;  // ± fractional per-particle frequency variation (0..1)
+uniform float wobbleRampFrames; // frames to linearly gate bell at spawn (0 = instant full wobble)
 
 out vec3 v_worldPos;
 out vec4 v_color;
@@ -890,37 +930,65 @@ void main() {
 
 	vec3 worldPos = spawnPosAndSize.xyz + velAndSpawnFrame.xyz * t;
 
-	// Vortex / swirl displacement perpendicular to vel. See vsSrc for full notes
-	// on the per-particle freq/direction decoherence scheme and the inverse-flag
-	// envelope split (forward = symmetric p-based bell, inverse = death-time
-	// smoothstep so reclaim wobble doesn't jitter when spawnFrame is rewritten
-	// every tick by the homing pass).
+	// Vortex / swirl displacement perpendicular to vel. Use absolute time-based
+	// ramp for consistent wobble ramp speed regardless of distance/lifetime.
+	// Both forward and inverse use the same fixed ramp-up and ramp-down envelopes
+	// (12 frames each) so wobble intensity grows at the same visual speed whether
+	// particles travel far (long lifetime) or near (short).
+	// Compute wobble axis from spawn-time rotData, not homing-modified velocity.
+	// rotData.x and .y are spawn-time random (never rewritten by homing). Using
+	// these to generate a stable perpendicular basis ensures wobble doesn't flip
+	// or jitter when the particle is re-aimed during forward homing. For moving
+	// targets, velocity changes every 3 frames (HOMING_RUN_EVERY), which would
+	// cause the computed wobble axis to rotate/flip abruptly -- jittery/extreme.
+	// Deriving the basis from spawn-time values keeps it stable across updates.
 	if (wobbleAmp > 0.0001) {
-		float bell;
-		if (spawnPosAndSize.w < 0.0) {
-			float tDeath = max(deathFrame - currentFrame, 0.0);
-			bell = smoothstep(0.0, 12.0, tDeath);
+		// Lifetime-normalized sine bell: always peaks at 1.0 at midpoint regardless
+		// of travel distance. Short-range and long-range particles wobble equally.
+		// An optional linear ramp gate (wobbleRampFrames) slows the attack without
+		// affecting the natural sine fade-out.
+		float wobbleT   = max(currentFrame - rotData.z, 0.0);
+		float totalLife = max(deathFrame - rotData.z, 1.0);
+		float bell      = sin(3.14159265 * wobbleT / totalLife);
+		if (wobbleRampFrames > 0.5)
+			bell *= min(1.0, wobbleT / wobbleRampFrames);
+		vec3 vdir = velAndSpawnFrame.xyz;  // Use for secondary ref vector only
+		vec3 ref, axA, axB;
+		// Use rotData.x as seed for a stable reference direction
+		float refAngle = rotData.x * 0.01745329;  // ~1 degree per unit
+		// Generate two pseudo-random perpendicular vectors from the seed
+		float s1 = sin(refAngle), c1 = cos(refAngle);
+		float s2 = sin(refAngle * 2.19), c2 = cos(refAngle * 2.19);
+		// Choose reference based on vdir.y to avoid degenerate cross products
+		if (abs(vdir.y) < 0.95) {
+			ref = normalize(vec3(s1, c1, s2));
 		} else {
-			float lifetime = max(deathFrame - spawnFrame, 1.0);
-			float p        = clamp(t / lifetime, 0.0, 1.0);
-			bell = 4.0 * p * (1.0 - p);
+			ref = normalize(vec3(c1, s2, c2));
 		}
-		vec3  vdir     = velAndSpawnFrame.xyz;
-		float vlen2    = dot(vdir, vdir);
-		if (vlen2 > 1e-6) {
-			vdir /= sqrt(vlen2);
-			vec3 ref = (abs(vdir.y) < 0.95) ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
-			vec3 axA = normalize(cross(vdir, ref));
-			vec3 axB = cross(vdir, axA);
-			float phaseOff = radians(rotData.x);
-			float hash     = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
-			float freqScale = max(0.0, 1.0 + wobbleFreqVar * (2.0 * hash - 1.0));
-			float dirSign  = (fract(hash * 7.31) < 0.5) ? -1.0 : 1.0;
-			float hash2    = fract(hash * 113.7 + 0.317);
-			float ampScale = max(0.0, 1.0 + wobbleVar * (2.0 * hash2 - 1.0));
-			float ph = currentFrame * wobbleFreq * freqScale * dirSign * (6.2831853 / 30.0) + phaseOff;
-			worldPos += (axA * cos(ph) + axB * sin(ph)) * (wobbleAmp * ampScale * bell);
+		// Generate wobble basis from spawn-time seed and ref, independent of velocity
+		float h1 = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
+		float h2 = fract(sin(rotData.x * 23.1451 + rotData.y * 34.567) * 65432.0987);
+		axA = normalize(vec3(
+			sin(h1 * 6.28318),
+			sin(h2 * 6.28318),
+			cos(h1 * 3.14159 + h2 * 3.14159)
+		));
+		axB = cross(axA, ref);
+		if (dot(axB, axB) > 0.001) {
+			axB = normalize(axB);
+		} else {
+			// Degenerate case: fallback perpendicular
+			axB = cross(axA, (abs(axA.x) < 0.9) ? vec3(1, 0, 0) : vec3(0, 1, 0));
+			axB = normalize(axB);
 		}
+		float phaseOff = radians(rotData.x);
+		float hash     = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
+		float freqScale = max(0.0, 1.0 + wobbleFreqVar * (2.0 * hash - 1.0));
+		float dirSign  = (fract(hash * 7.31) < 0.5) ? -1.0 : 1.0;
+		float hash2    = fract(hash * 113.7 + 0.317);
+		float ampScale = max(0.0, 1.0 + wobbleVar * (2.0 * hash2 - 1.0));
+		float ph = currentFrame * wobbleFreq * freqScale * dirSign * (6.2831853 / 30.0) + phaseOff;
+		worldPos += (axA * cos(ph) + axB * sin(ph)) * (wobbleAmp * ampScale * bell);
 	}
 
 	// Decode packed w: sizeMult in low 1024, fadeFrames * 1024 above. Sign
@@ -933,7 +1001,7 @@ void main() {
 		? clamp((deathFrame - currentFrame) / fadeFrames, 0.0, 1.0)
 		: 1.0;
 
-	float rotVel = rotData.y + rotData.z * t;
+	float rotVel = rotData.y;
 	float rotVal = rotData.x + rotVel  * t;
 
 	v_worldPos = worldPos;
@@ -944,9 +1012,9 @@ void main() {
 	v_rotVal   = rotVal;
 	v_sizeMult = sizeMult * (0.5 + 0.5 * fade);
 	// Stable per-particle seed for cube tumble phase. Homing rewrites spawnPos
-	// every frame, so we hash spawn-time random rotData (untouched by homing)
-	// instead -- otherwise the phase jumps and the cube rotation goes wild.
-	v_phaseSeed = rotData.xyz;
+	// every frame, so derive the seed from spawn-time random rotData.x/.y only.
+	// rotData.z now tracks wobble time and must not feed the shape/noise hashes.
+	v_phaseSeed = vec3(rotData.x, rotData.y, rotData.x + rotData.y);
 	gl_Position = vec4(worldPos, 1.0);  // GS reads this
 }
 ]]
@@ -1319,7 +1387,7 @@ local function initGL4()
 		                 hueJitter = U.HUE_JITTER, glowBreath = U.GLOW_BREATH, glowBreathFreq = U.GLOW_BREATH_FREQ,
 		                 glowBreathVar = U.GLOW_BREATH_VAR, glowBreathFreqVar = U.GLOW_BREATH_FREQ_VAR,
 		                 sizePulseAmp = U.SIZE_PULSE_AMP, sizePulseFreq = U.SIZE_PULSE_FREQ,
-		                 wobbleAmp = U.WOBBLE_AMP, wobbleFreq = U.WOBBLE_FREQ, wobbleVar = U.WOBBLE_VAR, wobbleFreqVar = U.WOBBLE_FREQ_VAR,
+		                 wobbleAmp = U.WOBBLE_AMP, wobbleFreq = U.WOBBLE_FREQ, wobbleVar = U.WOBBLE_VAR, wobbleFreqVar = U.WOBBLE_FREQ_VAR, wobbleRampFrames = U.WOBBLE_RAMP_FRAMES,
 		                 whiteHotspot = U.WHITE_HOTSPOT, whiteHotspotThreshold = U.WHITE_HOTSPOT_THRESHOLD },
 		shaderConfig = {},
 		forceupdate = true,
@@ -1613,7 +1681,7 @@ local function spawnParticle(px, py, pz, vx, vy, vz, lifetime, r, g, b, frame, f
 	s[1]=px; s[2]=py; s[3]=pz;  s[4]=packSizeFade(sizeMult, fadeFrames, inverse)
 	s[5]=vx; s[6]=vy; s[7]=vz;  s[8]=frame
 	s[9]=r;  s[10]=g; s[11]=b;  s[12]=alpha
-	s[13]=rotVal; s[14]=rotVel; s[15]=rotAcc; s[16]=death
+	s[13]=rotVal; s[14]=rotVel; s[15]=frame; s[16]=death
 
 	if pushElementInstance(nanoVBO, s, id, false, true, nil) then
 		local bucket = deathBuckets[death]
@@ -1880,7 +1948,7 @@ local function resolveTarget(info, cmdID, targetID)
 		elseif cmdID == CMD_CAPTURE then
 			accept, factor = isUnit, 0.7
 		elseif cmdID < 0 or cmdID == CMD_REPAIR then
-			accept, factor = isUnit, 0.5
+			accept, factor = ((cmdID == CMD_REPAIR) and (isUnit or isFeature) or isUnit), 0.5
 		end
 		if not accept then
 			info.targetMeta = nil
@@ -2303,6 +2371,33 @@ local function scanBuilders(frame)
 					end
 				end
 				if not (bp and bp > 0) then
+					-- Resurrectors refilling a wreck's metal before the actual
+					-- resurrect step can still be actively working while reporting
+					-- zero current build power. GetUnitWorkerTask still exposes the
+					-- CMD_RESURRECT feature target, and the feature's resurrect
+					-- progress advances in that phase, so treat it as active with a
+					-- conservative fallback multiplier instead of dropping emission.
+					local fallbackCmdID, fallbackTargetID = spGetUnitWorkerTask(unitID)
+					if fallbackCmdID == CMD_RESURRECT and fallbackTargetID then
+						local featureID = fallbackTargetID
+						if featureID >= MAX_UNITS then
+							featureID = featureID - MAX_UNITS
+						end
+						if spValidFeatureID(featureID) then
+							local featureMetal, featureMaxMetal = spGetFeatureResources(featureID)
+							local _, _, resurrectProgress = spGetFeatureHealth(featureID)
+							local isRefilling = featureMetal and featureMaxMetal and featureMaxMetal > 0 and featureMetal < featureMaxMetal
+							local isResurrecting = resurrectProgress and resurrectProgress > 0 and resurrectProgress < 1
+							if isRefilling or isResurrecting then
+								bp = 1
+								bpRefetched = true
+								info.cmdID = fallbackCmdID
+								info.targetID = fallbackTargetID
+							end
+						end
+					end
+				end
+				if not (bp and bp > 0) then
 					-- Idle visit: clear lastVisitFrame so the next bp>0 visit
 					-- doesn't credit the idle gap as build time and dump a burst.
 					info.lastVisitFrame = nil
@@ -2421,16 +2516,17 @@ local function scanBuilders(frame)
 							local accum = (info.emitAccum or 0) + rate
 							local emits = mathFloor(accum)
 							info.emitAccum = accum - emits
-							if emits > 0 then
+							local resurrectEmits = isResurrect and takeScaledEmitCount(info, "resurrectEmitAccum", emits, NanoParticleResurrectExtraRate) or emits
+							if resurrectEmits > 0 then
 								local n = info.nPieces
 								if n == 1 then
 									-- Single-piece batched: amortise piece-pos
 									-- lookup, sqrt, range gate, normalize, jitter
-									-- scale across all `emits` particles.
+									-- scale across all particles in this emission.
 									local p1 = info.pieces[1]
-									emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, p1, emits)
+									emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, p1, resurrectEmits)
 									if isResurrect then
-										emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil, p1, emits)
+										emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil, p1, resurrectEmits)
 									end
 								else
 									-- Multi-piece: distribute `emits` across all nano
@@ -2442,8 +2538,8 @@ local function scanBuilders(frame)
 									-- sqrt / range / normalize cost.
 									local pieces = info.pieces
 									local startCursor = info.pieceCursor or 0
-									local base = mathFloor(emits / n)
-									local rem  = emits - base * n
+									local base = mathFloor(resurrectEmits / n)
+									local rem  = resurrectEmits - base * n
 									for i = 1, n do
 										local cnt = base
 										if i <= rem then cnt = cnt + 1 end
@@ -2457,7 +2553,7 @@ local function scanBuilders(frame)
 											end
 										end
 									end
-									local newCursor = startCursor + emits
+									local newCursor = startCursor + resurrectEmits
 									while newCursor > n do newCursor = newCursor - n end
 									info.pieceCursor = newCursor
 								end
