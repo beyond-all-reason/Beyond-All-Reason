@@ -9,11 +9,11 @@
 	<link type="text/rcss" href="../themes/theme-legion.rcss" />
 	<link type="text/rcss" href="gui_feature_placer.rcss" />
 </head>
-<body>
-	<div id="fp-root" class="fp-root hidden widget-shadow rounded-md bg-darkest p-2">
+<body data-model="feature_placer_model">
+	<div id="fp-root" class="fp-root widget-shadow rounded-md bg-darkest p-2" data-class-hidden="hidden">
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div id="fp-handle" class="fp-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Asset Library</div>
-			<div id="btn-quit" class="fp-quit-btn"><img class="fp-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+			<div id="btn-quit" class="fp-quit-btn" onclick="widget:OnQuit()"><img class="fp-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 
 		<div class="flex flex-row justify-between items-center mb-1">
@@ -37,10 +37,10 @@
 			<div id="btn-cat-other" class="fp-cat-btn"><img class="fp-cat-icon" src="/luaui/images/terraform_brush/cat_other.png" /><span class="fp-cat-label">Other</span></div>
 		</div>
 		<div class="fp-search-wrapper mb-1">
-			<input type="text" id="feature-search" class="fp-search-input" placeholder="Search features..." />
-			<div id="btn-search-clear" class="fp-search-clear-btn"><img class="fp-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+			<input type="text" id="feature-search" class="fp-search-input" placeholder="Search features..." data-value="search" onfocus="widget:OnSearchFocus()" onblur="widget:OnSearchBlur()" />
+			<div id="btn-search-clear" class="fp-search-clear-btn" onclick="widget:OnSearchClear()"><img class="fp-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
-		<div id="btn-clear-selection" class="fp-clr-btn mb-1">
+		<div id="btn-clear-selection" class="fp-clr-btn mb-1" onclick="widget:OnClearSelection()">
 			<div class="fp-btn-text">CLR</div>
 		</div>
 		<div id="feature-list" class="fp-feature-list">
