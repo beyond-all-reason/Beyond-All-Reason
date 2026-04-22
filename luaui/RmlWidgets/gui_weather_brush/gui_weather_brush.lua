@@ -24,15 +24,12 @@ local GetViewGeometry = Spring.GetViewGeometry
 
 local INITIAL_LEFT_VW = 60
 local INITIAL_TOP_VH = 25
-local BASE_WIDTH_DP = 162
-local BASE_RESOLUTION = 1920
 
 local widgetState = {
 	rmlContext = nil,
 	document = nil,
 	dmHandle = nil,
 	rootElement = nil,
-	panelWidthDp = BASE_WIDTH_DP,
 	libraryBuilt = false,
 	cegListFilter = "",
 	cegListBuilt = false,
@@ -54,8 +51,10 @@ local dragState = {
 }
 
 local function buildRootStyle()
-	return string.format("left: %.2fvw; top: %.2fvh; width: %ddp;",
-		INITIAL_LEFT_VW, INITIAL_TOP_VH, widgetState.panelWidthDp)
+	-- Width lives in RCSS (.wb-root) so it scales with dp_ratio and stays
+	-- readable via `min-width: Npx`. We only emit position here.
+	return string.format("left: %.2fvw; top: %.2fvh;",
+		INITIAL_LEFT_VW, INITIAL_TOP_VH)
 end
 
 local initialModel = {}
@@ -211,11 +210,11 @@ function widget:Initialize()
 	widgetState.document = document
 	document:Show()
 
-	widgetState.rootElement = document:GetElementById("wb-root")
+	if WG.RmlContextManager and WG.RmlContextManager.registerDocument then
+		WG.RmlContextManager.registerDocument("weather_brush", document)
+	end
 
-	local vsx = GetViewGeometry()
-	local scaleFactor = math.max(1.0, vsx / BASE_RESOLUTION)
-	widgetState.panelWidthDp = math.floor(BASE_WIDTH_DP * scaleFactor)
+	widgetState.rootElement = document:GetElementById("wb-root")
 	widgetState.rootElement:SetAttribute("style", buildRootStyle())
 
 	attachEventListeners()
@@ -247,7 +246,8 @@ function widget:Update()
 		elseif vsy - newY - eh < T then newY = vsy - eh end
 
 		-- Snap to terraform main panel
-		local mainPanel = WG.TerraformBrushPanel
+		local mainPanel = WG.RmlContextManager and WG.RmlContextManager.getElementRect
+			and WG.RmlContextManager.getElementRect("terraform_brush", "tf-root")
 		if mainPanel then
 			local ox, oy = mainPanel.left, mainPanel.top
 			local oR = ox + (mainPanel.width or 0)
@@ -293,14 +293,15 @@ function widget:Update()
 	if not wbActive then return end
 
 	-- Align to the left of the main terraform panel (only if not user-dragged)
-	local mainPanel = WG.TerraformBrushPanel
+	local mainPanel = WG.RmlContextManager and WG.RmlContextManager.getElementRect
+		and WG.RmlContextManager.getElementRect("terraform_brush", "tf-root")
 	if not userDragged and mainPanel and widgetState.rootElement then
 		local myWidth = widgetState.rootElement.offset_width
 		if myWidth and myWidth > 0 then
 			local gap = 8
 			widgetState.rootElement:SetAttribute("style",
-				string.format("left: %dpx; top: %dpx; width: %ddp;",
-					mainPanel.left - myWidth - gap, mainPanel.top, widgetState.panelWidthDp))
+				string.format("left: %dpx; top: %dpx;",
+					mainPanel.left - myWidth - gap, mainPanel.top))
 		end
 	end
 
@@ -429,6 +430,10 @@ end
 
 function widget:Shutdown()
 	WG.WeatherBrushInputFocused = nil
+
+	if WG.RmlContextManager and WG.RmlContextManager.unregisterDocument then
+		WG.RmlContextManager.unregisterDocument("weather_brush")
+	end
 
 	if widgetState.document then
 		widgetState.document:Close()

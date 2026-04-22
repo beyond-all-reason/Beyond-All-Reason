@@ -1160,14 +1160,17 @@ function widget:DrawWorld()
 	if not wb.active then return end
 
 	local wx, wy, wz = getWorldMousePosition()
-	if not wx then
+	do
 		local tb = WG.TerraformBrush
-		if tb and tb.getUnmouseTarget then
+		if tb and tb.animateUnmouse then
+			wx, wz = tb.animateUnmouse("weatherBrush", wx, wz, wb.radius, wb.lengthScale or 1.0)
+			if wx then wy = (GetGroundHeight(wx, wz) or 0) + 4 end
+		elseif tb and tb.getUnmouseTarget and not wx then
 			wx, wz = tb.getUnmouseTarget(wb.radius, wb.lengthScale or 1.0)
 			if wx then wy = (GetGroundHeight(wx, wz) or 0) + 4 end
 		end
-		if not wx then return end
 	end
+	if not wx then return end
 
 	local groundY = (GetGroundHeight(wx, wz) or 0) + 4
 

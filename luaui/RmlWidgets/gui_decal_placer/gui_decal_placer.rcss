@@ -1,7 +1,13 @@
 /* Decal Placer Library — extends fp- styles from gui_feature_placer */
 
+/*
+ * Width uses `vw` so the panel scales proportionally across 1080p / 1440p
+ * / 4k. `min-width: px` keeps it readable on small windows; `max-width: px`
+ * caps it on ultrawide / 4k.
+ */
 .dp-root {
-	width: 162dp;
+	width: 13vw;
+	min-width: 220px;
 	z-index: 901;
 }
 

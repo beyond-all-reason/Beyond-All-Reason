@@ -8,12 +8,18 @@ body {
 }
 
 /* === Root === */
+/*
+ * Width uses `vw` so the panel scales proportionally across 1080p / 1440p
+ * / 4k. `min-width: px` keeps it readable on small windows; `max-width: px`
+ * caps it on ultrawide / 4k.
+ */
 .fp-root {
 	pointer-events: auto;
 	position: absolute;
 	left: 60vw;
 	top: 10vh;
-	width: 220dp;
+	width: 15vw;
+	min-width: 300px;
 	z-index: 900;
 }
 
@@ -174,10 +180,10 @@ body {
 
 /* === Feature Name Bar (bottom of tile) === */
 .fp-feature-name {
-	height: 16dp;
+	height: 22dp;
 	flex-shrink: 0;
-	padding: 1dp 2dp;
-	font-size: 0.7rem;
+	padding: 2dp 3dp;
+	font-size: 0.95rem;
 	color: #e0e0e8;
 	background-color: #0c0c14ee;
 	display: block;
