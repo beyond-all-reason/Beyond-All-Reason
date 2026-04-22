@@ -31,13 +31,37 @@ local glDrawGroundCircle = gl.DrawGroundCircle
 local glPushMatrix    = gl.PushMatrix
 local glPopMatrix     = gl.PopMatrix
 local glTranslate     = gl.Translate
+local glRotate        = gl.Rotate
+local glScale         = gl.Scale
 local glBillboard     = gl.Billboard
 local glText          = gl.Text
 local glBeginEnd      = gl.BeginEnd
 local glVertex        = gl.Vertex
+local glTexture       = gl.Texture
+local glTexRect       = gl.TexRect
+local glBlending      = gl.Blending
+local glDepthTest     = gl.DepthTest
+local glCreateList    = gl.CreateList
+local glCallList      = gl.CallList
+local glDeleteList    = gl.DeleteList
 local GL_LINE_LOOP    = GL.LINE_LOOP
 local GL_LINE_STRIP   = GL.LINE_STRIP
 local GL_LINES        = GL.LINES
+local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
+local GL_TRIANGLE_STRIP = GL.TRIANGLE_STRIP
+local GL_TRIANGLES    = GL.TRIANGLES
+local GL_SRC_ALPHA    = GL.SRC_ALPHA
+local GL_ONE          = GL.ONE
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+
+-- Commander icons cycled by allyteam index — adds visual variety & "2026" faction flavor
+local COMMANDER_ICONS = {
+	"icons/armcom.png",
+	"icons/corcom.png",
+	"icons/legcom.png",
+}
+
+local DRAGGABLE_DIST_SQ = 120 * 120  -- world distance² inside which cursor becomes "move"
 
 local math_floor = math.floor
 local math_sqrt  = math.sqrt
@@ -59,12 +83,14 @@ local CLICK_DISTANCE_SQ   = 120*120 -- world distance^2 to pick a marker
 local MIN_RADIUS          = 64
 local MAX_RADIUS          = 16384  -- allow full-map shapes
 local RADIUS_STEP         = 32     -- scroll step for startpos mode (faster)
-local MAX_POSITIONS       = 16     -- max allyteams
+local MAX_POSITIONS       = 256    -- absolute hard cap (players)
+local MAX_ALLYTEAMS       = 32     -- max configurable ally teams
+local MAX_TEAMS_PER_ALLY  = 16     -- max team slots per ally team
 local SAVE_DIR            = "Terraform Brush/StartPositions/"
 local STARTBOX_SAVE_DIR   = "Terraform Brush/Startboxes/"
 local VERTEX_PICK_DIST_SQ = 60*60  -- world distance^2 to pick a startbox vertex
 
--- Team colors matching game_autocolors.lua FFA palette (0-1 float RGBA)
+-- Team colors matching game_autocolors.lua FFA palette (0-1 float RGBA); extended past 16 for 256-player support
 local TEAM_COLORS = {
 	{0.000, 0.302, 1.000, 1.0},  --  1: Blue       #004DFF
 	{1.000, 0.063, 0.020, 1.0},  --  2: Red        #FF1005
@@ -82,6 +108,22 @@ local TEAM_COLORS = {
 	{0.961, 0.635, 0.000, 1.0},  -- 14: Amber      #F5A200
 	{0.769, 0.663, 1.000, 1.0},  -- 15: Lavender   #C4A9FF
 	{0.043, 0.518, 0.608, 1.0},  -- 16: Teal       #0B849B
+	{0.600, 0.200, 0.800, 1.0},  -- 17: Purple
+	{0.900, 0.500, 0.100, 1.0},  -- 18: Burnt Orange
+	{0.400, 0.800, 0.700, 1.0},  -- 19: Seafoam
+	{0.800, 0.100, 0.400, 1.0},  -- 20: Magenta
+	{0.300, 0.600, 0.100, 1.0},  -- 21: Olive
+	{0.100, 0.400, 0.700, 1.0},  -- 22: Navy
+	{0.950, 0.850, 0.400, 1.0},  -- 23: Pale Gold
+	{0.500, 0.500, 0.500, 1.0},  -- 24: Gray
+	{0.900, 0.900, 0.900, 1.0},  -- 25: White
+	{0.200, 0.200, 0.200, 1.0},  -- 26: Charcoal
+	{0.700, 0.300, 0.300, 1.0},  -- 27: Rose
+	{0.300, 0.700, 0.500, 1.0},  -- 28: Jade
+	{0.500, 0.300, 0.100, 1.0},  -- 29: Chocolate
+	{0.900, 0.400, 0.600, 1.0},  -- 30: Flamingo
+	{0.200, 0.800, 0.900, 1.0},  -- 31: Sky
+	{0.700, 0.800, 0.200, 1.0},  -- 32: Lime
 }
 
 -- ============================================================
@@ -89,9 +131,12 @@ local TEAM_COLORS = {
 -- ============================================================
 local active     = false
 local subMode    = "express"  -- "express" | "shape" | "startbox"
-local positions  = {}         -- { {x=, z=, allyTeam=}, ... }
-local nextAllyTeam = 1        -- next allyteam to place in express mode
-local numAllyTeams = 2        -- configurable count
+local positions  = {}         -- { {x=, z=, allyTeam=, teamSlot=, playerIdx=}, ... }
+local nextAllyTeam = 1        -- next allyteam in rotation
+local nextTeamSlot = 1        -- next player slot within that allyteam
+local numAllyTeams = 2        -- configurable count (ally teams)
+local numTeamsPerAlly = 1     -- configurable count (players per ally)
+local placementMode = "roundrobin" -- "roundrobin" = A,B,C,A,B,C... | "sequential" = A,A,B,B,C,C...
 
 -- Shape placement state
 local shapeType      = "circle"  -- "circle"|"square"|"hexagon"|"octagon"|"triangle"
@@ -104,11 +149,32 @@ local shapeCenterZ   = nil
 
 -- Startbox state
 local startboxes     = {}   -- { {vertices={{x=,z=}, ...}, allyTeam=}, ... }
+-- Forward declarations for cached-fill-list helpers defined further down in the drawing section.
+-- Needed because removeLastStartbox / clearAllStartboxes / drag handlers reference them from
+-- this upper part of the file.
+local ensureBoxFillList, invalidateBoxFill, freeBoxFillList
+local startboxMode   = "polygon" -- "polygon" | "box" | "freedraw"
 local drawingBox     = false
 local currentBoxVerts = {}
 local boxDragIdx     = nil  -- which vertex is being dragged
 local boxDragBoxIdx  = nil  -- which box
+local boxEdgeDrag    = nil  -- { bi = <box index>, edge = "L"/"R"/"T"/"B" } for box-kind edge drag
+local hoverBoxEdge   = nil  -- { bi, edge } for hover highlight of the edge currently under cursor
 local nextBoxAllyTeam = 1
+-- Whole-box drag (mouse pressed inside a startbox body, not on a handle/edge). Records the
+-- world-space cursor delta between frames and offsets every vertex (and spline control point
+-- when applicable). Separate from vertex-drag so hover hit-tests stay simple.
+local boxBodyDrag    = nil  -- { bi = <box index>, lastX = <world x>, lastZ = <world z> }
+-- Box drag-rect (startboxMode == "box"): two corners, live-updated during drag
+local boxRectStartX  = nil
+local boxRectStartZ  = nil
+local boxRectEndX    = nil
+local boxRectEndZ    = nil
+local boxRectActive  = false
+-- Free-draw state (startboxMode == "freedraw"): collect points with minimum spacing
+local freeDrawPts    = {}
+local freeDrawActive = false
+local FREEDRAW_MIN_DIST_SQ = 40 * 40   -- minimum world distance between sample points
 
 -- Drag state
 local dragging       = false
@@ -117,6 +183,11 @@ local dragStartX     = nil
 local dragStartY     = nil  -- screen coords at mouse-down
 local mouseDownWorldX = nil
 local mouseDownWorldZ = nil
+
+-- Hover state (drives cursor + marker highlight)
+local hoverPosIdx    = nil  -- index of position currently hovered (express mode)
+local hoverBoxIdx    = nil  -- which startbox is being vertex-hovered
+local hoverVertIdx   = nil
 
 -- Undo history: each entry = { count=N, prevNextAllyTeam=M }
 -- Means: the last N entries in `positions` were added in one action;
@@ -138,6 +209,13 @@ end
 
 local function getColorForAllyTeam(at)
 	local idx = ((at - 1) % #TEAM_COLORS) + 1
+	return TEAM_COLORS[idx]
+end
+
+-- Unique color per (allyTeam, teamSlot) pair — gives every player a distinct color
+-- when multiple teams per allyteam are used. playerIdx = (allyTeam-1)*numTeamsPerAlly + teamSlot.
+local function getColorForPlayer(playerIdx)
+	local idx = ((playerIdx - 1) % #TEAM_COLORS) + 1
 	return TEAM_COLORS[idx]
 end
 
@@ -276,12 +354,111 @@ end
 -- Core Operations
 -- ============================================================
 
-local function addPosition(x, z, allyTeam)
+-- Commander-slope tolerance (cached). Engine-transferable across Recoil games: we scan
+-- UnitDefs for units flagged as commanders via common customParams conventions. If no
+-- commander-tagged units exist, we fall back to the smallest maxSlope among any grounded
+-- movedef (conservative: picks the most restrictive). Result is in the same normalized
+-- "1 - cos(angle)" space that `Spring.GetGroundNormal` returns as its 4th value.
+local _cachedCommanderMaxSlope = nil
+local function getCommanderMaxSlope()
+	if _cachedCommanderMaxSlope ~= nil then
+		return _cachedCommanderMaxSlope or nil
+	end
+	-- Mod-option override (per-game tunable without code changes)
+	local modOpt = Spring.GetModOptions and Spring.GetModOptions()
+	if modOpt and tonumber(modOpt.startpos_max_slope) then
+		_cachedCommanderMaxSlope = tonumber(modOpt.startpos_max_slope)
+		return _cachedCommanderMaxSlope
+	end
+	local best = nil
+	local function isCommander(ud)
+		local cp = ud.customParams
+		if not cp then return false end
+		-- BAR + most Recoil commander conventions
+		if cp.iscommander or cp.isCommander then return true end
+		if cp.commander or cp.is_commander then return true end
+		-- Fallback heuristic: name contains "com" AND costs metal (filters out turrets)
+		local n = ud.name and ud.name:lower()
+		return n and (n:find("commander") or n:find("^armcom") or n:find("^corcom") or n:find("^legcom")) and true or false
+	end
+	for _, ud in pairs(UnitDefs) do
+		if isCommander(ud) then
+			local md = ud.moveDef
+			local ms = md and md.maxSlope
+			if ms and ms > 0 then
+				if not best or ms < best then
+					best = ms
+				end
+			end
+		end
+	end
+	-- Conservative default when the game ships no movedef on its commander (e.g. airborne com).
+	-- 0.5 ~ 30° in the 1-cos space; generous enough to not reject reasonable slopes.
+	_cachedCommanderMaxSlope = best or 0.5
+	return _cachedCommanderMaxSlope
+end
+
+-- Returns (slopeVal, maxSlope). slopeVal is the ground slope at (x,z) in 1-cos space
+-- (same domain as movedef.maxSlope). maxSlope is the commander-tolerable limit. If
+-- `slopeVal > maxSlope` the point is commander-un-spawnable.
+local function getGroundSlopeAt(x, z)
+	-- Spring.GetGroundNormal returns nx, ny, nz, slope where slope = 1 - ny (normalized).
+	local _, _, _, slope = Spring.GetGroundNormal(x, z, false)
+	return slope or 0
+end
+
+local function isPlaceableForCommander(x, z)
+	local maxS = getCommanderMaxSlope()
+	if not maxS then return true end
+	return getGroundSlopeAt(x, z) <= maxS
+end
+
+local function addPosition(x, z, allyTeam, teamSlot)
 	if #positions >= MAX_POSITIONS then return false end
 	x, z = clampToMap(x, z)
+	-- Reject commander-unspawnable spots (ground too steep for the commander's movedef).
+	-- Transferable across Recoil games via customParams.iscommander on UnitDefs; override
+	-- via modOption `startpos_max_slope`.
+	if not isPlaceableForCommander(x, z) then
+		Echo("[StartPos Tool] Skipped: slope exceeds commander tolerance at (" ..
+			math_floor(x) .. "," .. math_floor(z) .. ")")
+		return false
+	end
 	local y = GetGroundHeight(x, z) or 0
-	positions[#positions + 1] = {x = x, z = z, y = y, allyTeam = allyTeam}
+	teamSlot = teamSlot or 1
+	local playerIdx = (allyTeam - 1) * math_max(1, numTeamsPerAlly) + teamSlot
+	positions[#positions + 1] = {
+		x = x, z = z, y = y,
+		allyTeam = allyTeam,
+		teamSlot = teamSlot,
+		playerIdx = playerIdx,
+	}
 	return true
+end
+
+-- Advance (nextAllyTeam, nextTeamSlot) per placement mode; returns the pair AFTER advancing.
+local function advanceNextPlayer()
+	local ally = nextAllyTeam
+	local slot = nextTeamSlot
+	local numAlly = math_max(1, numAllyTeams)
+	local numSlot = math_max(1, numTeamsPerAlly)
+	if placementMode == "sequential" then
+		-- Fill all slots of current ally before next ally
+		slot = slot + 1
+		if slot > numSlot then
+			slot = 1
+			ally = (ally % numAlly) + 1
+		end
+	else
+		-- Round-robin: cycle allyTeam first (A,B,C,A,B,C...); when back to start, bump slot.
+		ally = ally + 1
+		if ally > numAlly then
+			ally = 1
+			slot = (slot % numSlot) + 1
+		end
+	end
+	nextAllyTeam = ally
+	nextTeamSlot = slot
 end
 
 local function removePosition(idx)
@@ -325,30 +502,56 @@ end
 local function clearAllPositions()
 	positions = {}
 	nextAllyTeam = 1
+	nextTeamSlot = 1
 	undoHistory = {}
 end
 
+-- Shape/random placement: always distribute evenly across all allyteam×teamSlot combinations
+-- so a 4-ally × 2-team shape of 8 places yields one of each.
 local function placeShapePositions(cx, cz)
 	local pts = generateShapePositions(cx, cz)
+	local numAlly = math_max(1, numAllyTeams)
+	local numSlot = math_max(1, numTeamsPerAlly)
 	for i, pt in ipairs(pts) do
-		local at = ((i - 1) % numAllyTeams) + 1
-		addPosition(pt.x, pt.z, at)
+		local zeroIdx = i - 1
+		local at, slot
+		if placementMode == "sequential" then
+			at   = math_floor(zeroIdx / numSlot) % numAlly + 1
+			slot = (zeroIdx % numSlot) + 1
+		else
+			at   = (zeroIdx % numAlly) + 1
+			slot = math_floor(zeroIdx / numAlly) % numSlot + 1
+		end
+		addPosition(pt.x, pt.z, at, slot)
 	end
 end
 
 -- Place all shape positions assigning every slot to the same allyTeam (used by symmetric copies).
+-- teamSlot still cycles within that ally so players stay distinct.
 local function placeShapePositionsForTeam(cx, cz, allyTeam)
 	local pts = generateShapePositions(cx, cz)
-	for _, pt in ipairs(pts) do
-		addPosition(pt.x, pt.z, allyTeam)
+	local numSlot = math_max(1, numTeamsPerAlly)
+	for i, pt in ipairs(pts) do
+		local slot = ((i - 1) % numSlot) + 1
+		addPosition(pt.x, pt.z, allyTeam, slot)
 	end
 end
 
 local function placeRandomPositions(cx, cz)
 	local pts = generateRandomPositions(cx, cz)
+	local numAlly = math_max(1, numAllyTeams)
+	local numSlot = math_max(1, numTeamsPerAlly)
 	for i, pt in ipairs(pts) do
-		local at = ((i - 1) % numAllyTeams) + 1
-		addPosition(pt.x, pt.z, at)
+		local zeroIdx = i - 1
+		local at, slot
+		if placementMode == "sequential" then
+			at   = math_floor(zeroIdx / numSlot) % numAlly + 1
+			slot = (zeroIdx % numSlot) + 1
+		else
+			at   = (zeroIdx % numAlly) + 1
+			slot = math_floor(zeroIdx / numAlly) % numSlot + 1
+		end
+		addPosition(pt.x, pt.z, at, slot)
 	end
 end
 
@@ -376,8 +579,96 @@ local function finishStartbox()
 	drawingBox = false
 end
 
+-- Reduce a dense polyline to ~targetCount control points preserving high-curvature vertices.
+local function fitControlPoints(pts, targetCount)
+	targetCount = targetCount or 8
+	local n = #pts
+	if n <= targetCount then
+		local out = {}
+		for i = 1, n do out[i] = { x = pts[i].x, z = pts[i].z } end
+		return out
+	end
+	-- Curvature score per point: turning angle between (p-1 -> p) and (p -> p+1).
+	local scored = {}
+	for i = 1, n do
+		local prev = pts[((i - 2) % n) + 1]
+		local cur  = pts[i]
+		local nxt  = pts[(i % n) + 1]
+		local ax, az = cur.x - prev.x, cur.z - prev.z
+		local bx, bz = nxt.x - cur.x,  nxt.z - cur.z
+		local la = math.sqrt(ax * ax + az * az) + 1e-9
+		local lb = math.sqrt(bx * bx + bz * bz) + 1e-9
+		local d = (ax * bx + az * bz) / (la * lb)
+		if d > 1 then d = 1 elseif d < -1 then d = -1 end
+		scored[#scored + 1] = { idx = i, score = math.acos(d) }
+	end
+	table.sort(scored, function(a, b) return a.score > b.score end)
+	-- Pick top-K with minimum index spacing so handles don't clump.
+	local picked = {}
+	local minSpacing = math_max(1, math.floor(n / (targetCount * 2)))
+	for _, s in ipairs(scored) do
+		if #picked >= targetCount then break end
+		local ok = true
+		for _, pi in ipairs(picked) do
+			local di = math.abs(s.idx - pi)
+			if di > n / 2 then di = n - di end
+			if di < minSpacing then ok = false; break end
+		end
+		if ok then picked[#picked + 1] = s.idx end
+	end
+	while #picked < math_max(4, math.floor(targetCount / 2)) do
+		picked[#picked + 1] = math.floor((#picked + 1) * n / (targetCount + 1))
+	end
+	table.sort(picked)
+	local out = {}
+	for _, i in ipairs(picked) do
+		out[#out + 1] = { x = pts[i].x, z = pts[i].z }
+	end
+	return out
+end
+
+-- Closed centripetal Catmull-Rom tessellation — returns a dense polyline ready for fill/outline.
+local function tessellateClosedCatmullRom(ctrls, samplesPerSegment)
+	samplesPerSegment = samplesPerSegment or 12
+	local n = #ctrls
+	if n < 3 then
+		local out = {}
+		for i = 1, n do out[i] = { x = ctrls[i].x, z = ctrls[i].z } end
+		return out
+	end
+	local out = {}
+	for i = 1, n do
+		local p0 = ctrls[((i - 2) % n) + 1]
+		local p1 = ctrls[((i - 1) % n) + 1]
+		local p2 = ctrls[(i % n) + 1]
+		local p3 = ctrls[((i + 1) % n) + 1]
+		for s = 0, samplesPerSegment - 1 do
+			local t  = s / samplesPerSegment
+			local t2 = t * t
+			local t3 = t2 * t
+			local a = -0.5 * t3 + t2       - 0.5 * t
+			local b =  1.5 * t3 - 2.5 * t2 + 1.0
+			local c = -1.5 * t3 + 2.0 * t2 + 0.5 * t
+			local d =  0.5 * t3 - 0.5 * t2
+			out[#out + 1] = {
+				x = a * p0.x + b * p1.x + c * p2.x + d * p3.x,
+				z = a * p0.z + b * p1.z + c * p2.z + d * p3.z,
+			}
+		end
+	end
+	return out
+end
+
+-- Refresh tessellated vertices for a spline-kind startbox after its controls have changed.
+local function retessellateSpline(box)
+	if box.kind ~= "spline" or not box.controls then return end
+	box.vertices = tessellateClosedCatmullRom(box.controls, 12)
+	box._fillDirty = true
+end
+
 local function removeLastStartbox()
 	if #startboxes > 0 then
+		freeBoxFillList(startboxes[#startboxes])
 		table.remove(startboxes, #startboxes)
 		if nextBoxAllyTeam > 1 then
 			nextBoxAllyTeam = nextBoxAllyTeam - 1
@@ -386,6 +677,7 @@ local function removeLastStartbox()
 end
 
 local function clearAllStartboxes()
+	for i = 1, #startboxes do freeBoxFillList(startboxes[i]) end
 	startboxes = {}
 	currentBoxVerts = {}
 	drawingBox = false
@@ -394,9 +686,91 @@ end
 
 local function findNearestBoxVertex(wx, wz)
 	for bi, box in ipairs(startboxes) do
-		for vi, v in ipairs(box.vertices) do
-			if distSq(wx, wz, v.x, v.z) < VERTEX_PICK_DIST_SQ then
-				return bi, vi
+		-- Axis-aligned rectangles ("box" kind) are edge-draggable only — corners are NOT handles.
+		if box.kind == "box" then
+			-- skip: handled by findNearestBoxEdge
+		elseif box.kind == "spline" and box.controls then
+			-- Spline-kind boxes expose their control points as drag handles (not the dense
+			-- tessellated vertices). Dragging a control moves the whole curve smoothly.
+			for vi, v in ipairs(box.controls) do
+				if distSq(wx, wz, v.x, v.z) < VERTEX_PICK_DIST_SQ then
+					return bi, vi
+				end
+			end
+		else
+			for vi, v in ipairs(box.vertices) do
+				if distSq(wx, wz, v.x, v.z) < VERTEX_PICK_DIST_SQ then
+					return bi, vi
+				end
+			end
+		end
+	end
+	return nil, nil
+end
+
+-- Point-in-polygon test (ray-cast / crossing-number) on the XZ plane. Works for both the
+-- "box" (4 CCW corners) and spline-tessellated vertex lists.
+local function pointInPolygon(wx, wz, verts)
+	local n = verts and #verts or 0
+	if n < 3 then return false end
+	local inside = false
+	local j = n
+	for i = 1, n do
+		local vi, vj = verts[i], verts[j]
+		if ((vi.z > wz) ~= (vj.z > wz)) and
+		   (wx < (vj.x - vi.x) * (wz - vi.z) / ((vj.z - vi.z) + 1e-9) + vi.x) then
+			inside = not inside
+		end
+		j = i
+	end
+	return inside
+end
+
+-- Returns the topmost startbox whose polygon contains (wx,wz), or nil. Used for body-drag
+-- (grab a box anywhere in its interior, not just on a handle). Iterates in reverse so the
+-- most-recently-placed (visually on top) box wins.
+local function findBoxContaining(wx, wz)
+	for bi = #startboxes, 1, -1 do
+		local box = startboxes[bi]
+		if box.vertices and pointInPolygon(wx, wz, box.vertices) then
+			return bi
+		end
+	end
+	return nil
+end
+
+-- For "box"-kind startboxes: find the nearest edge (T=top/B=bottom/L=left/R=right) to (wx,wz).
+-- Returns bi, edgeName where edgeName is one of "T","B","L","R" (based on min/max bounds).
+local function findNearestBoxEdge(wx, wz)
+	local EDGE_PICK_DIST = 55  -- world units from edge line
+	for bi, box in ipairs(startboxes) do
+		if box.kind == "box" and #box.vertices == 4 then
+			local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+			for _, v in ipairs(box.vertices) do
+				if v.x < minX then minX = v.x end
+				if v.x > maxX then maxX = v.x end
+				if v.z < minZ then minZ = v.z end
+				if v.z > maxZ then maxZ = v.z end
+			end
+			-- Only consider an edge if cursor is within the perpendicular span of that edge.
+			if wx >= minX - EDGE_PICK_DIST and wx <= maxX + EDGE_PICK_DIST and
+			   wz >= minZ - EDGE_PICK_DIST and wz <= maxZ + EDGE_PICK_DIST then
+				local dL = math.abs(wx - minX)  -- left   edge (constant X = minX)
+				local dR = math.abs(wx - maxX)  -- right  edge
+				local dT = math.abs(wz - minZ)  -- top    edge (min Z)
+				local dB = math.abs(wz - maxZ)  -- bottom edge
+				local best, which = EDGE_PICK_DIST, nil
+				-- Left/right edges only valid within Z span
+				if wz >= minZ - EDGE_PICK_DIST and wz <= maxZ + EDGE_PICK_DIST then
+					if dL < best then best, which = dL, "L" end
+					if dR < best then best, which = dR, "R" end
+				end
+				-- Top/bottom edges only valid within X span
+				if wx >= minX - EDGE_PICK_DIST and wx <= maxX + EDGE_PICK_DIST then
+					if dT < best then best, which = dT, "T" end
+					if dB < best then best, which = dB, "B" end
+				end
+				if which then return bi, which end
 			end
 		end
 	end
@@ -421,7 +795,7 @@ local function saveStartPositions(name)
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "local startPositions = {"
 	for i, pos in ipairs(positions) do
-		lines[#lines + 1] = string.format("  [%d] = { x = %d, z = %d, allyTeam = %d },", i, math_floor(pos.x), math_floor(pos.z), pos.allyTeam)
+		lines[#lines + 1] = string.format("  [%d] = { x = %d, z = %d, allyTeam = %d, teamSlot = %d },", i, math_floor(pos.x), math_floor(pos.z), pos.allyTeam, pos.teamSlot or 1)
 	end
 	lines[#lines + 1] = "}"
 	lines[#lines + 1] = ""
@@ -448,7 +822,7 @@ local function loadStartPositions(name)
 	if ok and data then
 		clearAllPositions()  -- also clears undoHistory
 		for i, pos in ipairs(data) do
-			addPosition(pos.x, pos.z, pos.allyTeam or i)
+			addPosition(pos.x, pos.z, pos.allyTeam or i, pos.teamSlot or 1)
 		end
 		undoHistory = {}  -- load is a clean slate
 		Echo("[StartPos Tool] Loaded start positions from: " .. filename)
@@ -761,23 +1135,97 @@ local function setShapeCount(c)
 end
 
 local function setNumAllyTeams(n)
-	numAllyTeams = math_max(2, math_min(MAX_POSITIONS, n))
+	numAllyTeams = math_max(2, math_min(MAX_ALLYTEAMS, n))
+	if nextAllyTeam > numAllyTeams then nextAllyTeam = 1 end
+end
+
+local function setNumTeamsPerAlly(n)
+	numTeamsPerAlly = math_max(1, math_min(MAX_TEAMS_PER_ALLY, n))
+	if nextTeamSlot > numTeamsPerAlly then nextTeamSlot = 1 end
+end
+
+local function setPlacementMode(m)
+	if m == "roundrobin" or m == "sequential" then
+		placementMode = m
+	end
+end
+
+local function togglePlacementMode()
+	placementMode = (placementMode == "roundrobin") and "sequential" or "roundrobin"
+	return placementMode
+end
+
+local function setStartboxMode(m)
+	if m == "polygon" or m == "box" or m == "freedraw" then
+		startboxMode = m
+		-- Reset any in-progress drawing when switching modes
+		currentBoxVerts = {}
+		drawingBox = false
+		boxRectActive = false
+		boxRectStartX, boxRectStartZ, boxRectEndX, boxRectEndZ = nil, nil, nil, nil
+		freeDrawActive = false
+		freeDrawPts = {}
+	end
+end
+
+-- Chaikin corner-cutting smoothing: each iteration doubles point count and rounds corners.
+-- Closed polygon version. 2 iterations gives a pleasing smooth curve without blowing up point count.
+local function smoothClosedPolygon(pts, iterations)
+	local out = pts
+	for _ = 1, (iterations or 2) do
+		local smoothed = {}
+		local n = #out
+		if n < 3 then return out end
+		for i = 1, n do
+			local p0 = out[i]
+			local p1 = out[(i % n) + 1]
+			-- Q = 0.75*p0 + 0.25*p1 ; R = 0.25*p0 + 0.75*p1
+			smoothed[#smoothed + 1] = { x = 0.75 * p0.x + 0.25 * p1.x, z = 0.75 * p0.z + 0.25 * p1.z }
+			smoothed[#smoothed + 1] = { x = 0.25 * p0.x + 0.75 * p1.x, z = 0.25 * p0.z + 0.75 * p1.z }
+		end
+		out = smoothed
+	end
+	return out
+end
+
+-- Simplify: drop points that are too close to previous (post-smoothing decimation).
+local function decimatePoints(pts, minDistSq)
+	if #pts < 3 then return pts end
+	local out = { pts[1] }
+	for i = 2, #pts do
+		local prev = out[#out]
+		local dx, dz = pts[i].x - prev.x, pts[i].z - prev.z
+		if dx * dx + dz * dz >= minDistSq then
+			out[#out + 1] = pts[i]
+		end
+	end
+	return out
 end
 
 local function getState()
 	return {
-		active       = active,
-		subMode      = subMode,
-		positions    = positions,
-		numAllyTeams = numAllyTeams,
-		nextAllyTeam = nextAllyTeam,
-		shapeType    = shapeType,
-		shapeRadius  = shapeRadius,
+		active        = active,
+		subMode       = subMode,
+		positions     = positions,
+		numAllyTeams  = numAllyTeams,
+		numTeamsPerAlly = numTeamsPerAlly,
+		nextAllyTeam  = nextAllyTeam,
+		nextTeamSlot  = nextTeamSlot,
+		placementMode = placementMode,
+		totalPlayers  = numAllyTeams * numTeamsPerAlly,
+		maxAllyTeams  = MAX_ALLYTEAMS,
+		maxTeamsPerAlly = MAX_TEAMS_PER_ALLY,
+		maxPositions  = MAX_POSITIONS,
+		shapeType     = shapeType,
+		shapeRadius   = shapeRadius,
 		shapeRotation = shapeRotation,
-		shapeCount   = shapeCount,
-		startboxes   = startboxes,
-		drawingBox   = drawingBox,
+		shapeCount    = shapeCount,
+		startboxes    = startboxes,
+		startboxMode  = startboxMode,
+		drawingBox    = drawingBox,
 		currentBoxVerts = currentBoxVerts,
+		boxRectActive = boxRectActive,
+		freeDrawActive = freeDrawActive,
 	}
 end
 
@@ -814,30 +1262,43 @@ function widget:MousePress(mx, my, button)
 				local tb = WG.TerraformBrush
 				local stb = tb and tb.getState and tb.getState() or nil
 				local prevNext = nextAllyTeam
+				local prevNextSlot = nextTeamSlot
 				local prevCount = #positions
 				if stb and stb.symmetryActive and tb.getSymmetricPositions then
 					local copies = tb.getSymmetricPositions(wx, wz, 0)
-					for k, p in ipairs(copies) do
-						local at = ((nextAllyTeam - 1 + k - 1) % numAllyTeams) + 1
-						addPosition(p.x, p.z, at)
+					for _, p in ipairs(copies) do
+						addPosition(p.x, p.z, nextAllyTeam, nextTeamSlot)
+						advanceNextPlayer()
 					end
-					nextAllyTeam = ((nextAllyTeam - 1 + #copies) % numAllyTeams) + 1
-				elseif addPosition(wx, wz, nextAllyTeam) then
-					nextAllyTeam = (nextAllyTeam % numAllyTeams) + 1
+				elseif addPosition(wx, wz, nextAllyTeam, nextTeamSlot) then
+					advanceNextPlayer()
 				end
 				local added = #positions - prevCount
 				if added > 0 then
-					undoHistory[#undoHistory + 1] = { count = added, prevNextAllyTeam = prevNext }
+					undoHistory[#undoHistory + 1] = {
+						count = added,
+						prevNextAllyTeam = prevNext,
+						prevNextTeamSlot = prevNextSlot,
+					}
 				end
 			end
 			return true
 		elseif button == 3 then
-			-- RMB: Remove nearest position
-			if removeNearestPosition(wx, wz) then
-				-- Adjust nextAllyTeam if needed
-				if #positions == 0 then
-					nextAllyTeam = 1
+			-- RMB: Undo last placement (remove most recently placed player/shape-batch)
+			local entry = undoHistory[#undoHistory]
+			if entry then
+				for i = 1, entry.count do
+					if #positions > 0 then
+						positions[#positions] = nil
+					end
 				end
+				nextAllyTeam = entry.prevNextAllyTeam
+				nextTeamSlot = entry.prevNextTeamSlot or 1
+				undoHistory[#undoHistory] = nil
+			end
+			if #positions == 0 then
+				nextAllyTeam = 1
+				nextTeamSlot = 1
 			end
 			return true
 		end
@@ -852,15 +1313,15 @@ function widget:MousePress(mx, my, button)
 				sx, sz = tb.snapWorld(wx, wz, shapeRotation)
 			end
 			local prevNext = nextAllyTeam
+			local prevNextSlot = nextTeamSlot
 			local prevCount = #positions
 			if stb and stb.symmetryActive and tb.getSymmetricPositions then
 				local copies = tb.getSymmetricPositions(sx, sz, shapeRotation)
 				if copies and #copies > 0 then
-					for k, p in ipairs(copies) do
-						local at = ((nextAllyTeam - 1 + k - 1) % numAllyTeams) + 1
-						placeShapePositionsForTeam(p.x, p.z, at)
+					for _, p in ipairs(copies) do
+						placeShapePositionsForTeam(p.x, p.z, nextAllyTeam)
+						advanceNextPlayer()
 					end
-					nextAllyTeam = ((nextAllyTeam - 1 + #copies) % numAllyTeams) + 1
 				else
 					placeShapePositions(sx, sz)
 				end
@@ -869,7 +1330,11 @@ function widget:MousePress(mx, my, button)
 			end
 			local added = #positions - prevCount
 			if added > 0 then
-				undoHistory[#undoHistory + 1] = { count = added, prevNextAllyTeam = prevNext }
+				undoHistory[#undoHistory + 1] = {
+					count = added,
+					prevNextAllyTeam = prevNext,
+					prevNextTeamSlot = prevNextSlot,
+				}
 			end
 			return true
 		elseif button == 3 then
@@ -880,7 +1345,7 @@ function widget:MousePress(mx, my, button)
 
 	elseif subMode == "startbox" then
 		if button == 1 then
-			-- Check for vertex drag first
+			-- Check for vertex drag first (polygon/freedraw boxes — placed boxes are always editable)
 			local bi, vi = findNearestBoxVertex(wx, wz)
 			if bi and vi then
 				boxDragIdx = vi
@@ -890,23 +1355,65 @@ function widget:MousePress(mx, my, button)
 				dragging = false
 				return true
 			end
-			-- Start/continue drawing a box
-			if not drawingBox then
-				drawingBox = true
-				currentBoxVerts = {}
+			-- Edge drag for axis-aligned "box"-kind startboxes (4 corners, no vertex handles).
+			local ebi, edge = findNearestBoxEdge(wx, wz)
+			if ebi and edge then
+				boxEdgeDrag = { bi = ebi, edge = edge }
+				dragStartX = mx
+				dragStartY = my
+				dragging = false
+				return true
 			end
-			addStartboxVertex(wx, wz)
-			return true
-		elseif button == 3 then
-			-- RMB: Finish current box or remove last box
-			if drawingBox and #currentBoxVerts >= 3 then
-				finishStartbox()
-			elseif not drawingBox then
-				removeLastStartbox()
+
+			-- Body drag: if the click is inside an existing startbox (and not on any handle/edge
+			-- per the checks above), start a whole-box translation so the user can reposition
+			-- the entire polygon by grabbing it mid-area.
+			local containBi = findBoxContaining(wx, wz)
+			if containBi then
+				boxBodyDrag = { bi = containBi, lastX = wx, lastZ = wz }
+				dragStartX = mx
+				dragStartY = my
+				dragging = false
+				return true
+			end
+
+			if startboxMode == "box" then
+				-- Drag rectangle: press to start, release to finish (like copy tool's box)
+				boxRectActive = true
+				boxRectStartX, boxRectStartZ = wx, wz
+				boxRectEndX,   boxRectEndZ   = wx, wz
+				dragStartX, dragStartY = mx, my
+				return true
+			elseif startboxMode == "freedraw" then
+				-- Start a free-hand path; points appended during MouseMove
+				freeDrawActive = true
+				freeDrawPts = { { x = wx, z = wz } }
+				dragStartX, dragStartY = mx, my
+				return true
 			else
-				-- Cancel current drawing
+				-- polygon mode: click-to-add vertex, RMB to finish
+				if not drawingBox then
+					drawingBox = true
+					currentBoxVerts = {}
+				end
+				addStartboxVertex(wx, wz)
+				return true
+			end
+		elseif button == 3 then
+			-- RMB: Finish current polygon OR cancel drag-rect / free-draw, else remove last placed box
+			if startboxMode == "polygon" and drawingBox and #currentBoxVerts >= 3 then
+				finishStartbox()
+			elseif startboxMode == "polygon" and drawingBox then
 				currentBoxVerts = {}
 				drawingBox = false
+			elseif boxRectActive then
+				boxRectActive = false
+				boxRectStartX, boxRectStartZ, boxRectEndX, boxRectEndZ = nil, nil, nil, nil
+			elseif freeDrawActive then
+				freeDrawActive = false
+				freeDrawPts = {}
+			else
+				removeLastStartbox()
 			end
 			return true
 		end
@@ -926,8 +1433,12 @@ function widget:MouseMove(mx, my, dx, dy, button)
 		if dragging then
 			local wx, wz = getWorldMousePosition()
 			if wx and positions[dragIdx] then
-				positions[dragIdx].x, positions[dragIdx].z = clampToMap(wx, wz)
-				positions[dragIdx].y = GetGroundHeight(wx, wz) or 0
+				local cx, cz = clampToMap(wx, wz)
+				-- Only move if the new spot is commander-spawnable; else keep position (silent).
+				if isPlaceableForCommander(cx, cz) then
+					positions[dragIdx].x, positions[dragIdx].z = cx, cz
+					positions[dragIdx].y = GetGroundHeight(cx, cz) or 0
+				end
 			end
 			return true
 		end
@@ -941,13 +1452,122 @@ function widget:MouseMove(mx, my, dx, dy, button)
 		if dragging then
 			local wx, wz = getWorldMousePosition()
 			if wx and startboxes[boxDragBoxIdx] then
-				local v = startboxes[boxDragBoxIdx].vertices[boxDragIdx]
-				if v then
-					v.x, v.z = clampToMap(wx, wz)
+				local box = startboxes[boxDragBoxIdx]
+				if box.kind == "spline" and box.controls then
+					local v = box.controls[boxDragIdx]
+					if v then
+						v.x, v.z = clampToMap(wx, wz)
+						retessellateSpline(box)
+					end
+				else
+					local v = box.vertices[boxDragIdx]
+					if v then
+						v.x, v.z = clampToMap(wx, wz)
+						invalidateBoxFill(box)
+					end
 				end
 			end
 			return true
 		end
+	end
+
+	-- Startbox: whole-box body drag (translate every vertex + spline control by world delta).
+	if subMode == "startbox" and boxBodyDrag then
+		local moved = (mx - dragStartX)^2 + (my - dragStartY)^2
+		if moved > DRAG_THRESHOLD_SQ then
+			dragging = true
+		end
+		if dragging then
+			local wx, wz = getWorldMousePosition()
+			local box = wx and startboxes[boxBodyDrag.bi]
+			if box then
+				local dwx = wx - boxBodyDrag.lastX
+				local dwz = wz - boxBodyDrag.lastZ
+				boxBodyDrag.lastX = wx
+				boxBodyDrag.lastZ = wz
+				-- Translate vertices
+				if box.vertices then
+					for _, v in ipairs(box.vertices) do
+						v.x, v.z = clampToMap(v.x + dwx, v.z + dwz)
+					end
+				end
+				-- Translate spline control points in lockstep (preserves shape)
+				if box.controls then
+					for _, v in ipairs(box.controls) do
+						v.x, v.z = clampToMap(v.x + dwx, v.z + dwz)
+					end
+				end
+				invalidateBoxFill(box)
+			end
+			return true
+		end
+	end
+
+	-- Startbox: edge drag for box-kind (axis-aligned rectangle resize)
+	if subMode == "startbox" and boxEdgeDrag then
+		local moved = (mx - dragStartX)^2 + (my - dragStartY)^2
+		if moved > DRAG_THRESHOLD_SQ then
+			dragging = true
+		end
+		if dragging then
+			local wx, wz = getWorldMousePosition()
+			local box = wx and startboxes[boxEdgeDrag.bi]
+			if box and box.vertices and #box.vertices == 4 then
+				-- Recompute current bounds
+				local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+				for _, v in ipairs(box.vertices) do
+					if v.x < minX then minX = v.x end
+					if v.x > maxX then maxX = v.x end
+					if v.z < minZ then minZ = v.z end
+					if v.z > maxZ then maxZ = v.z end
+				end
+				wx, wz = clampToMap(wx, wz)
+				local MIN_SIZE = 50
+				local edge = boxEdgeDrag.edge
+				if edge == "L" then
+					minX = math_min(wx, maxX - MIN_SIZE)
+				elseif edge == "R" then
+					maxX = math_max(wx, minX + MIN_SIZE)
+				elseif edge == "T" then
+					minZ = math_min(wz, maxZ - MIN_SIZE)
+				elseif edge == "B" then
+					maxZ = math_max(wz, minZ + MIN_SIZE)
+				end
+				-- Rewrite the 4 corner vertices (CCW)
+				box.vertices[1].x, box.vertices[1].z = minX, minZ
+				box.vertices[2].x, box.vertices[2].z = maxX, minZ
+				box.vertices[3].x, box.vertices[3].z = maxX, maxZ
+				box.vertices[4].x, box.vertices[4].z = minX, maxZ
+				invalidateBoxFill(box)
+			end
+			return true
+		end
+	end
+
+	-- Startbox: drag-rect live update
+	if subMode == "startbox" and boxRectActive then
+		local wx, wz = getWorldMousePosition()
+		if wx then
+			boxRectEndX, boxRectEndZ = wx, wz
+		end
+		return true
+	end
+
+	-- Startbox: freedraw sample accumulation
+	if subMode == "startbox" and freeDrawActive then
+		local wx, wz = getWorldMousePosition()
+		if wx then
+			local last = freeDrawPts[#freeDrawPts]
+			if not last then
+				freeDrawPts[#freeDrawPts + 1] = { x = wx, z = wz }
+			else
+				local dx, dz = wx - last.x, wz - last.z
+				if dx * dx + dz * dz >= FREEDRAW_MIN_DIST_SQ then
+					freeDrawPts[#freeDrawPts + 1] = { x = wx, z = wz }
+				end
+			end
+		end
+		return true
 	end
 
 	return false
@@ -966,6 +1586,83 @@ function widget:MouseRelease(mx, my, button)
 		boxDragIdx = nil
 		boxDragBoxIdx = nil
 		dragging = false
+		return true
+	end
+
+	if subMode == "startbox" and boxEdgeDrag then
+		boxEdgeDrag = nil
+		dragging = false
+		return true
+	end
+
+	if subMode == "startbox" and boxBodyDrag then
+		boxBodyDrag = nil
+		dragging = false
+		return true
+	end
+
+	-- Startbox: finish drag-rect on release (4 corners, CCW order)
+	if subMode == "startbox" and boxRectActive and button == 1 then
+		boxRectActive = false
+		if boxRectStartX and boxRectEndX then
+			local x1, x2 = math_min(boxRectStartX, boxRectEndX), math_max(boxRectStartX, boxRectEndX)
+			local z1, z2 = math_min(boxRectStartZ, boxRectEndZ), math_max(boxRectStartZ, boxRectEndZ)
+			-- Minimum size threshold to avoid zero-area accidental clicks
+			if (x2 - x1) >= 50 and (z2 - z1) >= 50 then
+				currentBoxVerts = {
+					{ x = x1, z = z1 },
+					{ x = x2, z = z1 },
+					{ x = x2, z = z2 },
+					{ x = x1, z = z2 },
+				}
+				drawingBox = true
+				finishStartbox()
+				-- Tag the just-added box as axis-aligned rectangle (edge-drag only, no vertex handles).
+				local added = startboxes[#startboxes]
+				if added then added.kind = "box" end
+			end
+		end
+		boxRectStartX, boxRectStartZ, boxRectEndX, boxRectEndZ = nil, nil, nil, nil
+		return true
+	end
+
+	-- Startbox: finish freedraw on release — smooth via Chaikin, decimate, fit to spline
+	if subMode == "startbox" and freeDrawActive and button == 1 then
+		freeDrawActive = false
+		if #freeDrawPts >= 4 then
+			local smoothed = smoothClosedPolygon(freeDrawPts, 2)
+			smoothed = decimatePoints(smoothed, 50 * 50)
+			if #smoothed >= 3 then
+				-- Scale control-point count with drawn perimeter so longer curves get more
+				-- handles (finer control) and short loops stay simple. One handle per ~400u
+				-- of perimeter, clamped to [6, 24].
+				local perim = 0
+				for i = 1, #smoothed do
+					local a = smoothed[i]
+					local b = smoothed[(i % #smoothed) + 1]
+					local dx, dz = b.x - a.x, b.z - a.z
+					perim = perim + math.sqrt(dx * dx + dz * dz)
+				end
+				local targetCtrls = math_floor(perim / 400 + 0.5)
+				if targetCtrls < 6  then targetCtrls = 6  end
+				if targetCtrls > 24 then targetCtrls = 24 end
+				-- Fit a minimal set of control points from the smoothed trace, then store as
+				-- a spline-kind box so the user can reshape via curve handles (not raw verts).
+				local controls = fitControlPoints(smoothed, targetCtrls)
+				local vertices = tessellateClosedCatmullRom(controls, 12)
+				startboxes[#startboxes + 1] = {
+					vertices = vertices,
+					controls = controls,
+					kind     = "spline",
+					allyTeam = nextBoxAllyTeam,
+				}
+				nextBoxAllyTeam = nextBoxAllyTeam + 1
+				if nextBoxAllyTeam > numAllyTeams then
+					nextBoxAllyTeam = 1
+				end
+			end
+		end
+		freeDrawPts = {}
 		return true
 	end
 
@@ -1012,6 +1709,7 @@ function widget:KeyPress(key, mods, isRepeat)
 				end
 			end
 			nextAllyTeam = entry.prevNextAllyTeam
+			nextTeamSlot = entry.prevNextTeamSlot or 1
 			undoHistory[#undoHistory] = nil
 		end
 		return true
@@ -1023,48 +1721,333 @@ end
 -- Drawing
 -- ============================================================
 
--- Helper: draw a sleek start-position marker (outer ring + inner pip + subtle fill)
-local function drawStartPosMarker(px, pz, color, alpha)
-	local gy = (GetGroundHeight(px, pz) or 0) + 5
+-- Draw a polygon-fan disc (soft filled circle) on the ground using a vertical cylinder approximation.
+-- We fake a ground-glow by stacking multiple DrawGroundCircle calls with decreasing alpha.
+local function drawSoftDisc(px, pz, radius, r, g, b, coreAlpha, segments)
+	segments = segments or 28
+	-- 5 concentric filled rings — fake gradient glow
+	for i = 1, 5 do
+		local t = i / 5
+		local rr = radius * t
+		local a  = coreAlpha * (1 - t * 0.7)
+		glColor(r, g, b, a)
+		glDrawGroundCircle(px, 0, pz, rr, segments)
+	end
+end
+
+-- Builds a ground-hugging fan-tessellated fill mesh for a polygon and compiles it into a
+-- GL display list stored on the box itself. Called on first draw and whenever the box is
+-- mutated (vertex drag, body drag, edge drag). Eliminates per-frame table allocation +
+-- GetGroundHeight sampling that was triggering the 1.2GB LuaRAM emergency GC warning
+-- when large freedraw/polygon boxes were dragged around.
+local function buildPolygonFillList(verts, lift, cellSize)
+	local n = #verts
+	if n < 3 then return nil end
+	local cx, cz = 0, 0
+	for i = 1, n do cx = cx + verts[i].x; cz = cz + verts[i].z end
+	cx, cz = cx / n, cz / n
+	return glCreateList(function()
+		glBeginEnd(GL_TRIANGLES, function()
+			for i = 1, n do
+				local a1 = verts[i]
+				local b1 = verts[(i % n) + 1]
+				local eAB = math_sqrt((b1.x - a1.x) * (b1.x - a1.x) + (b1.z - a1.z) * (b1.z - a1.z))
+				local eCA = math_sqrt((a1.x - cx)  * (a1.x - cx)  + (a1.z - cz)  * (a1.z - cz))
+				local eCB = math_sqrt((b1.x - cx)  * (b1.x - cx)  + (b1.z - cz)  * (b1.z - cz))
+				local N   = math_max(1, math.ceil(math_max(eAB, eCA, eCB) / cellSize))
+				-- rows[ri+1][j+1] = {px, py, pz}; reuse nested table across row levels.
+				local rows = {}
+				for ri = 0, N do
+					local tC = 1 - ri / N
+					local row = {}
+					for j = 0, ri do
+						local wA = ri == 0 and 0 or (ri - j) / N
+						local wB = ri == 0 and 0 or j / N
+						local px = tC * cx + wA * a1.x + wB * b1.x
+						local pz = tC * cz + wA * a1.z + wB * b1.z
+						local py = (GetGroundHeight(px, pz) or 0) + lift
+						row[j + 1] = { px, py, pz }
+					end
+					rows[ri + 1] = row
+				end
+				for ri = 0, N - 1 do
+					local rU = rows[ri + 1]
+					local rD = rows[ri + 2]
+					for j = 0, ri do
+						local u  = rU[j + 1]
+						local d1 = rD[j + 1]
+						local d2 = rD[j + 2]
+						glVertex(u[1],  u[2],  u[3])
+						glVertex(d1[1], d1[2], d1[3])
+						glVertex(d2[1], d2[2], d2[3])
+					end
+					for j = 0, ri - 1 do
+						local u1 = rU[j + 1]
+						local d  = rD[j + 2]
+						local u2 = rU[j + 2]
+						glVertex(u1[1], u1[2], u1[3])
+						glVertex(d[1],  d[2],  d[3])
+						glVertex(u2[1], u2[2], u2[3])
+					end
+				end
+			end
+		end)
+	end)
+end
+
+-- Ensures box has a current fill display list; rebuilds only when marked dirty.
+local BOX_FILL_CELL = 20   -- world units per tessellation cell (lower = higher fidelity)
+local BOX_FILL_LIFT = 2
+ensureBoxFillList = function(box)
+	if box._fillList and not box._fillDirty then return box._fillList end
+	if box._fillList then
+		glDeleteList(box._fillList)
+		box._fillList = nil
+	end
+	box._fillList = buildPolygonFillList(box.vertices, BOX_FILL_LIFT, BOX_FILL_CELL)
+	box._fillDirty = false
+	return box._fillList
+end
+
+invalidateBoxFill = function(box)
+	if box then box._fillDirty = true end
+end
+
+freeBoxFillList = function(box)
+	if box and box._fillList then
+		glDeleteList(box._fillList)
+		box._fillList = nil
+		box._fillDirty = true
+	end
+end
+
+-- Draw N evenly-spaced arcs (gaps between them) around a circle — animated rotating "landing ring".
+-- Rendered as thick curved ribbons (triangle-strip bands between inner/outer radii) so they read
+-- like chunky indicator segments rather than a thin stroke.
+local function drawArcSegments(px, pz, radius, r, g, b, alpha, rotationRad, arcCount, arcFrac, segmentsPerArc)
+	local slotStep  = (2 * math_pi) / arcCount
+	local arcSpan   = slotStep * arcFrac
+	local stepInArc = arcSpan / segmentsPerArc
+	local halfW     = radius * 0.085        -- ribbon half-thickness (as fraction of radius)
+	local rInner    = radius - halfW
+	local rOuter    = radius + halfW
+	glColor(r, g, b, alpha)
+	for a = 0, arcCount - 1 do
+		local start = rotationRad + a * slotStep
+		glBeginEnd(GL_TRIANGLE_STRIP, function()
+			for s = 0, segmentsPerArc do
+				local ang = start + s * stepInArc
+				local cs, sn = math_cos(ang), math_sin(ang)
+				local ix = px + rInner * cs
+				local iz = pz + rInner * sn
+				local ox = px + rOuter * cs
+				local oz = pz + rOuter * sn
+				glVertex(ix, (GetGroundHeight(ix, iz) or 0) + 6, iz)
+				glVertex(ox, (GetGroundHeight(ox, oz) or 0) + 6, oz)
+			end
+		end)
+	end
+end
+
+-- Vertical beam-of-light going up from the start position.
+-- Drawn as stacked world-space line segments with decreasing alpha.
+local function drawBeam(px, pz, r, g, b, alphaBase, pulseT)
+	local gy = GetGroundHeight(px, pz) or 0
+	local steps = 6
+	local beamHeight = 280   -- fixed, no pulsing
+	glLineWidth(1.8)
+	glBeginEnd(GL_LINES, function()
+		for i = 0, steps - 1 do
+			local t0 = i / steps
+			local t1 = (i + 1) / steps
+			local a0 = alphaBase * (1 - t0) * (1 - t0)
+			local a1 = alphaBase * (1 - t1) * (1 - t1)
+			glColor(r, g, b, a0)
+			glVertex(px, gy + t0 * beamHeight, pz)
+			glColor(r, g, b, a1)
+			glVertex(px, gy + t1 * beamHeight, pz)
+		end
+	end)
+end
+
+-- Billboarded commander icon above the marker (team-tinted).
+-- Icon scales with camera distance so it stays readable when zoomed out
+-- (clamped so it doesn't balloon when zoomed in close).
+local spGetCameraPosition = Spring.GetCameraPosition
+local function drawCommanderBillboard(px, pz, r, g, b, alpha, iconPath, hovered)
+	local gy = (GetGroundHeight(px, pz) or 0)
+	-- Base size: 20% smaller than legacy. Further -10% per player-count tier (>16, >32, >64).
+	local playerScale = 0.8
+	local totalPlayers = (numAllyTeams or 2) * (numTeamsPerAlly or 1)
+	if totalPlayers > 16 then playerScale = playerScale * 0.9 end
+	if totalPlayers > 32 then playerScale = playerScale * 0.9 end
+	if totalPlayers > 64 then playerScale = playerScale * 0.9 end
+	local baseSize = (hovered and 52 or 48) * playerScale
+	-- Distance-based scale: reference camera distance ~2000u → 1.0x
+	local cx, cy, cz = spGetCameraPosition()
+	local dx, dy, dz = cx - px, cy - (gy + 110), cz - pz
+	local dist = math.sqrt(dx*dx + dy*dy + dz*dz)
+	local scale = dist / 2000
+	if scale < 0.6 then scale = 0.6 end
+	if scale > 4.0 then scale = 4.0 end
+	local iconSize = baseSize * scale
+	local lift     = 110                     -- height above ground
+	glPushMatrix()
+	glTranslate(px, gy + lift, pz)
+	glBillboard()
+	glTexture(iconPath)
+	glColor(r, g, b, alpha)
+	-- Soft outer glow quad (slightly larger, additive)
+	glBlending(GL_SRC_ALPHA, GL_ONE)
+	glColor(r, g, b, alpha * 0.35)
+	local gs = iconSize * 1.35
+	glTexRect(-gs, -gs, gs, gs)
+	-- Core icon (normal blending)
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	glColor(r, g, b, alpha)
+	glTexRect(-iconSize, -iconSize, iconSize, iconSize)
+	glTexture(false)
+	glPopMatrix()
+end
+
+-- Drop four diamond hint-dots at the cardinal points — shown only when a marker is draggable-hovered.
+local function drawDragHintDots(px, pz, radius, r, g, b, alpha)
+	local gy = (GetGroundHeight(px, pz) or 0) + 8
+	local d = radius * 1.18
+	local offsets = { { d, 0 }, { -d, 0 }, { 0, d }, { 0, -d } }
+	glColor(r, g, b, alpha)
+	for i = 1, 4 do
+		local o = offsets[i]
+		glDrawGroundCircle(px + o[1], gy, pz + o[2], 8, 10)
+	end
+end
+
+-- Main sleek marker: soft glow + subtle slow-rotating ring + inner ring + commander billboard.
+-- Gentle, not flashy — minimal pulsing, slow rotation.
+local function drawStartPosMarker(px, pz, color, alpha, iconPath, hovered, phase)
 	local a = alpha or 1.0
+	local r, g, b = color[1], color[2], color[3]
 
-	-- Subtle filled disc
-	glColor(color[1], color[2], color[3], 0.12 * a)
-	glDrawGroundCircle(px, gy, pz, MARKER_RADIUS, MARKER_SEGMENTS)
+	-- 1) Soft ground glow (barely pulses)
+	local pulse = 0.5 + 0.5 * math_sin(phase * 0.5)
+	local glowMul = hovered and 1.6 or 1.0
+	drawSoftDisc(px, pz, MARKER_RADIUS * (0.96 + 0.04 * pulse),
+		r, g, b, 0.09 * a * glowMul, 20)
 
-	-- Bright outer ring
-	glColor(color[1], color[2], color[3], 0.85 * a)
-	glLineWidth(3.0)
-	glDrawGroundCircle(px, gy, pz, MARKER_RADIUS, MARKER_SEGMENTS)
+	-- 1b) On hover: steady bright outer ring — no pulsing, no wide halo
+	if hovered then
+		glColor(1, 1, 1, 0.55 * a)
+		glLineWidth(2.5)
+		glDrawGroundCircle(px, 0, pz, MARKER_RADIUS * 1.18, 40)
+	end
 
-	-- Thin secondary ring (gives depth)
-	glColor(color[1], color[2], color[3], 0.35 * a)
+	-- 2) Crisp inner hair-ring (static)
+	glColor(r, g, b, 0.35 * a)
 	glLineWidth(1.0)
-	glDrawGroundCircle(px, gy, pz, MARKER_RADIUS * 0.72, MARKER_SEGMENTS)
+	glDrawGroundCircle(px, 0, pz, MARKER_RADIUS * 0.55, 28)
 
-	-- Central pip
-	glColor(color[1], color[2], color[3], 0.95 * a)
-	glLineWidth(2.0)
-	glDrawGroundCircle(px, gy, pz, MARKER_RADIUS * 0.18, 12)
+	-- 3) Slow rotating arc-ring (single slow layer, 3 arcs)
+	local rot = phase * 0.25   -- gentle slow spin
+	glLineWidth(hovered and 2.8 or 2.0)
+	drawArcSegments(px, pz, MARKER_RADIUS, r, g, b, (hovered and 0.85 or 0.65) * a, rot, 3, 0.66, 10)
+
+	-- 4) (removed counter-rotating inner arcs for calmer look)
+
+	-- 5) Faint vertical beam (subtle, non-pulsing)
+	drawBeam(px, pz, r, g, b, (hovered and 0.30 or 0.18) * a, 0.5)
+
+	-- 6) Commander billboard icon (static size diff on hover, no scale pulse)
+	drawCommanderBillboard(px, pz, r, g, b, (hovered and 1.0 or 0.90) * a, iconPath, hovered)
+
+	-- 7) Hover hint dots (kept, drag affordance)
+	if hovered then
+		drawDragHintDots(px, pz, MARKER_RADIUS, r, g, b, 0.7 * a)
+	end
+end
+
+-- Lightweight preview marker (used by shape mode) — skips beam and hint dots for speed & clarity.
+local function drawPreviewMarker(px, pz, color, alpha, iconPath, phase)
+	local a = alpha or 1.0
+	local r, g, b = color[1], color[2], color[3]
+	drawSoftDisc(px, pz, MARKER_RADIUS * 0.85, r, g, b, 0.08 * a, 16)
+	glColor(r, g, b, 0.55 * a)
+	glLineWidth(1.8)
+	local rot = phase * 0.4
+	drawArcSegments(px, pz, MARKER_RADIUS, r, g, b, 0.55 * a, rot, 3, 0.66, 8)
+	-- Smaller billboard icon for previews
+	local gy = GetGroundHeight(px, pz) or 0
+	glPushMatrix()
+	glTranslate(px, gy + 90, pz)
+	glBillboard()
+	glTexture(iconPath)
+	glColor(r, g, b, 0.65 * a)
+	glTexRect(-36, -36, 36, 36)
+	glTexture(false)
+	glPopMatrix()
+end
+
+function widget:Update()
+	-- Hover detection — drives cursor change + highlighted marker
+	hoverPosIdx  = nil
+	hoverBoxIdx  = nil
+	hoverVertIdx = nil
+	hoverBoxEdge = nil
+	if not active then
+		if WG.StartPosTool then WG.StartPosTool.hoveringDraggable = false end
+		return
+	end
+	-- Don't steal cursor while a drag is in progress (cursor already correct)
+	if dragIdx or boxDragIdx or boxEdgeDrag then
+		if WG.StartPosTool then WG.StartPosTool.hoveringDraggable = true end
+		return
+	end
+
+	local wx, wz = getWorldMousePosition()
+	if wx then
+		if subMode == "express" then
+			local bestIdx, bestDist = nil, DRAGGABLE_DIST_SQ
+			for i, pos in ipairs(positions) do
+				local d = distSq(wx, wz, pos.x, pos.z)
+				if d < bestDist then bestDist = d; bestIdx = i end
+			end
+			hoverPosIdx = bestIdx
+		elseif subMode == "startbox" then
+			hoverBoxIdx, hoverVertIdx = findNearestBoxVertex(wx, wz)
+			if not hoverBoxIdx then
+				local ebi, edge = findNearestBoxEdge(wx, wz)
+				if ebi and edge then
+					hoverBoxEdge = { bi = ebi, edge = edge }
+				end
+			end
+		end
+	end
+
+	local shouldMove = (hoverPosIdx ~= nil) or (hoverVertIdx ~= nil) or (hoverBoxEdge ~= nil)
+	if WG.StartPosTool then WG.StartPosTool.hoveringDraggable = shouldMove end
 end
 
 function widget:DrawWorld()
 	if not active then return end
 
+	local drawFrame = GetDrawFrame() or 0
+	local phase = drawFrame * 0.04  -- ~2.4 rad/sec @ 60fps
+
 	local wx, wz = getWorldMousePosition()
 
-	-- Draw placed start positions
+	-- Draw placed start positions (sleek 2026 style)
 	for i, pos in ipairs(positions) do
-		local color = getColorForAllyTeam(pos.allyTeam)
-		drawStartPosMarker(pos.x, pos.z, color, 1.0)
+		local pIdx = pos.playerIdx or pos.allyTeam
+		local color = getColorForPlayer(pIdx)
+		local iconPath = COMMANDER_ICONS[((pIdx - 1) % #COMMANDER_ICONS) + 1]
+		local hovered = (hoverPosIdx == i) or (dragIdx == i)
+		drawStartPosMarker(pos.x, pos.z, color, 1.0, iconPath, hovered, phase + i * 0.6)
 	end
 
-	-- Draw shape preview in shape mode
+	-- Shape mode: preview outline + preview markers
 	if subMode == "shape" and wx then
 		local previewPts = generateShapePositions(wx, wz)
-		-- Shape radius outline (dashed feel via thin + transparent)
-		glColor(1, 1, 1, 0.18)
-		glLineWidth(1.0)
+		glColor(1, 1, 1, 0.22)
+		glLineWidth(1.5)
 		local gy = GetGroundHeight(wx, wz) or 0
 
 		local sides = ({
@@ -1090,72 +2073,182 @@ function widget:DrawWorld()
 			end)
 		end
 
-		-- Draw preview markers
 		for i, pt in ipairs(previewPts) do
-			local at = ((i - 1) % numAllyTeams) + 1
-			local color = getColorForAllyTeam(at)
-			drawStartPosMarker(pt.x, pt.z, color, 0.55)
+			local zeroIdx = i - 1
+			local numSlot = math_max(1, numTeamsPerAlly)
+			local numAlly = math_max(1, numAllyTeams)
+			local at, slot
+			if placementMode == "sequential" then
+				at   = math_floor(zeroIdx / numSlot) % numAlly + 1
+				slot = (zeroIdx % numSlot) + 1
+			else
+				at   = (zeroIdx % numAlly) + 1
+				slot = math_floor(zeroIdx / numAlly) % numSlot + 1
+			end
+			local pIdx = (at - 1) * numSlot + slot
+			local color = getColorForPlayer(pIdx)
+			local iconPath = COMMANDER_ICONS[((pIdx - 1) % #COMMANDER_ICONS) + 1]
+			drawPreviewMarker(pt.x, pt.z, color, 0.55, iconPath, phase + i * 0.4)
 		end
 	end
 
-	-- Draw express mode cursor indicator
-	if subMode == "express" and wx and not dragIdx then
+	-- Express mode: ghost-cursor preview of the next position (or all symmetric copies)
+	if subMode == "express" and wx and not dragIdx and hoverPosIdx == nil then
 		local tb = WG.TerraformBrush
 		local stb = tb and tb.getState and tb.getState() or nil
+		local numSlot = math_max(1, numTeamsPerAlly)
+		local numAlly = math_max(1, numAllyTeams)
+		local baseIdx = (nextAllyTeam - 1) * numSlot + (nextTeamSlot or 1)
+		-- Desaturated gray tint when the cursor is over terrain the commander can't spawn on
+		-- (slope > unit moveDef.maxSlope). Makes the "click here" indicator read as disabled.
+		local function tintForPlace(x, z, col)
+			if isPlaceableForCommander(x, z) then return col end
+			local lum = 0.299 * col[1] + 0.587 * col[2] + 0.114 * col[3]
+			lum = lum * 0.6
+			return { lum, lum, lum }
+		end
 		if stb and stb.symmetryActive and tb.getSymmetricPositions then
-			-- Show ghost rings for all symmetric copies, each colored by its assigned team
 			local copies = tb.getSymmetricPositions(wx, wz, 0)
 			for k, p in ipairs(copies) do
-				local at = ((nextAllyTeam - 1 + k - 1) % numAllyTeams) + 1
-				local color = getColorForAllyTeam(at)
-				local gy = GetGroundHeight(p.x, p.z) or 0
-				glColor(color[1], color[2], color[3], 0.30)
-				glLineWidth(2.0)
-				glDrawGroundCircle(p.x, gy, p.z, MARKER_RADIUS, MARKER_SEGMENTS)
-				glColor(color[1], color[2], color[3], 0.15)
-				glLineWidth(1.0)
-				glDrawGroundCircle(p.x, gy, p.z, MARKER_RADIUS * 0.18, 12)
+				local pIdx = ((baseIdx - 1 + (k - 1)) % math_max(1, numAlly * numSlot)) + 1
+				local color = getColorForPlayer(pIdx)
+				local iconPath = COMMANDER_ICONS[((pIdx - 1) % #COMMANDER_ICONS) + 1]
+				drawPreviewMarker(p.x, p.z, tintForPlace(p.x, p.z, color), 0.5, iconPath, phase + k * 0.5)
 			end
 		else
-			local color = getColorForAllyTeam(nextAllyTeam)
-			local gy = GetGroundHeight(wx, wz) or 0
-			-- Ghost ring at cursor
-			glColor(color[1], color[2], color[3], 0.30)
-			glLineWidth(2.0)
-			glDrawGroundCircle(wx, gy, wz, MARKER_RADIUS, MARKER_SEGMENTS)
-			glColor(color[1], color[2], color[3], 0.15)
-			glLineWidth(1.0)
-			glDrawGroundCircle(wx, gy, wz, MARKER_RADIUS * 0.18, 12)
+			local color = getColorForPlayer(baseIdx)
+			local iconPath = COMMANDER_ICONS[((baseIdx - 1) % #COMMANDER_ICONS) + 1]
+			drawPreviewMarker(wx, wz, tintForPlace(wx, wz, color), 0.55, iconPath, phase)
 		end
 	end
 
-	-- Draw startboxes
-	for _, box in ipairs(startboxes) do
+	-- Draw startboxes (flat translucent mono-color fill via cached tessellated display list)
+	for bi, box in ipairs(startboxes) do
 		local color = getColorForAllyTeam(box.allyTeam)
 		local verts = box.vertices
 		if #verts >= 3 then
-			-- Draw polygon outline
-			glColor(color[1], color[2], color[3], 0.7)
+			local listId = ensureBoxFillList(box)
+			if listId then
+				glColor(color[1], color[2], color[3], 0.22)
+				glCallList(listId)
+			end
+			glColor(color[1], color[2], color[3], 0.9)
 			glLineWidth(2.5)
 			glBeginEnd(GL_LINE_LOOP, function()
-				for _, v in ipairs(verts) do
-					local gy = GetGroundHeight(v.x, v.z) or 0
-					glVertex(v.x, gy + 5, v.z)
+				for i = 1, #verts do
+					local v  = verts[i]
+					local vn = verts[(i % #verts) + 1]
+					local segLen = math.sqrt((vn.x - v.x)^2 + (vn.z - v.z)^2)
+					local steps = math_max(1, math.ceil(segLen / 48))
+					for s = 0, steps - 1 do
+						local t = s / steps
+						local x = v.x + (vn.x - v.x) * t
+						local z = v.z + (vn.z - v.z) * t
+						local y = (GetGroundHeight(x, z) or 0) + 5
+						glVertex(x, y, z)
+					end
 				end
 			end)
-			-- Draw filled with transparency
-			glColor(color[1], color[2], color[3], 0.12)
-			glBeginEnd(GL_LINE_LOOP, function()
+			if box.kind == "box" and #verts == 4 then
+				-- Draw edge resize handles as pairs of arrow tips (filled triangles) straddling
+				-- the edge and pointing in opposite directions along the edge's normal axis.
+				local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
 				for _, v in ipairs(verts) do
-					local gy = GetGroundHeight(v.x, v.z) or 0
-					glVertex(v.x, gy + 3, v.z)
+					if v.x < minX then minX = v.x end
+					if v.x > maxX then maxX = v.x end
+					if v.z < minZ then minZ = v.z end
+					if v.z > maxZ then maxZ = v.z end
 				end
-			end)
-			-- Draw vertex markers
-			for _, v in ipairs(verts) do
-				local vy = GetGroundHeight(v.x, v.z) or 0
-				glColor(color[1], color[2], color[3], 0.9)
-				glDrawGroundCircle(v.x, vy, v.z, 30, 12)
+				local midEdges = {
+					-- edge name -> midpoint + outward-normal axis (nx/nz) + tangent (tx/tz)
+					L = { x = minX,             z = (minZ + maxZ) * 0.5, nx = -1, nz = 0, tx = 0, tz = 1 },
+					R = { x = maxX,             z = (minZ + maxZ) * 0.5, nx =  1, nz = 0, tx = 0, tz = 1 },
+					T = { x = (minX + maxX)*.5, z = minZ,                 nx = 0, nz = -1, tx = 1, tz = 0 },
+					B = { x = (minX + maxX)*.5, z = maxZ,                 nx = 0, nz =  1, tx = 1, tz = 0 },
+				}
+				for name, mp in pairs(midEdges) do
+					local isHover = (hoverBoxEdge and hoverBoxEdge.bi == bi and hoverBoxEdge.edge == name)
+					local size = isHover and 56 or 40   -- arrow tip size (world units along normal)
+					local half = size * 0.55            -- half-base along the edge tangent
+					local gap  = size * 0.35            -- clearance from the edge line so tips don't overlap
+					glColor(color[1], color[2], color[3], isHover and 1.0 or 0.9)
+					-- Two tips: one OUTSIDE the rect (apex pointing outward = +normal) and one
+					-- INSIDE (apex pointing inward = -normal). Together they read as an
+					-- up-and-down / left-and-right resize affordance across the edge.
+					local function emitTip(signNormal)
+						-- Base center is offset `gap` off the edge along signNormal; apex is
+						-- another `size` further along the same direction.
+						local bcx = mp.x + signNormal * gap * mp.nx
+						local bcz = mp.z + signNormal * gap * mp.nz
+						local apx = bcx + signNormal * size * mp.nx
+						local apz = bcz + signNormal * size * mp.nz
+						local b1x = bcx + mp.tx *  half
+						local b1z = bcz + mp.tz *  half
+						local b2x = bcx - mp.tx *  half
+						local b2z = bcz - mp.tz *  half
+						local apy = (GetGroundHeight(apx, apz) or 0) + 6
+						local b1y = (GetGroundHeight(b1x, b1z) or 0) + 6
+						local b2y = (GetGroundHeight(b2x, b2z) or 0) + 6
+						glVertex(apx, apy, apz)
+						glVertex(b1x, b1y, b1z)
+						glVertex(b2x, b2y, b2z)
+					end
+					glBeginEnd(GL_TRIANGLES, function()
+						emitTip( 1)  -- outer tip
+						emitTip(-1)  -- inner tip
+					end)
+					if isHover then
+						-- Bright outline around both tips to highlight the picked edge
+						glColor(1, 1, 1, 0.75)
+						glLineWidth(2.0)
+						local function outlineTip(signNormal)
+							local bcx = mp.x + signNormal * gap * mp.nx
+							local bcz = mp.z + signNormal * gap * mp.nz
+							local apx = bcx + signNormal * size * mp.nx
+							local apz = bcz + signNormal * size * mp.nz
+							local b1x = bcx + mp.tx *  half
+							local b1z = bcz + mp.tz *  half
+							local b2x = bcx - mp.tx *  half
+							local b2z = bcz - mp.tz *  half
+							local apy = (GetGroundHeight(apx, apz) or 0) + 7
+							local b1y = (GetGroundHeight(b1x, b1z) or 0) + 7
+							local b2y = (GetGroundHeight(b2x, b2z) or 0) + 7
+							glBeginEnd(GL_LINE_LOOP, function()
+								glVertex(apx, apy, apz)
+								glVertex(b1x, b1y, b1z)
+								glVertex(b2x, b2y, b2z)
+							end)
+						end
+						outlineTip( 1)
+						outlineTip(-1)
+					end
+				end
+			else
+				local handles = (box.kind == "spline" and box.controls) or verts
+				for vi, v in ipairs(handles) do
+					local vy = GetGroundHeight(v.x, v.z) or 0
+					local isHoverVert = (hoverBoxIdx == bi and hoverVertIdx == vi)
+					local vertR = isHoverVert and 46 or 30
+					glColor(color[1], color[2], color[3], isHoverVert and 1.0 or 0.9)
+					glDrawGroundCircle(v.x, vy, v.z, vertR, 14)
+					if isHoverVert then
+						glColor(1, 1, 1, 0.6)
+						glLineWidth(2.0)
+						glDrawGroundCircle(v.x, vy, v.z, vertR * 1.4, 18)
+					end
+				end
+				-- Spline: show the control polygon as a faint closed polyline so the user sees
+				-- the handle skeleton behind the smoothed curve.
+				if box.kind == "spline" and box.controls and #box.controls >= 2 then
+					glColor(color[1], color[2], color[3], 0.35)
+					glLineWidth(1.0)
+					glBeginEnd(GL_LINE_LOOP, function()
+						for _, c in ipairs(box.controls) do
+							local gy = GetGroundHeight(c.x, c.z) or 0
+							glVertex(c.x, gy + 6, c.z)
+						end
+					end)
+				end
 			end
 		end
 	end
@@ -1173,13 +2266,11 @@ function widget:DrawWorld()
 				end
 			end)
 		end
-		-- Draw vertex dots
 		for _, v in ipairs(currentBoxVerts) do
 			local gy = GetGroundHeight(v.x, v.z) or 0
 			glColor(color[1], color[2], color[3], 0.8)
 			glDrawGroundCircle(v.x, gy, v.z, 30, 12)
 		end
-		-- Line from last vertex to mouse
 		if wx and #currentBoxVerts >= 1 then
 			local last = currentBoxVerts[#currentBoxVerts]
 			glColor(color[1], color[2], color[3], 0.4)
@@ -1191,6 +2282,48 @@ function widget:DrawWorld()
 				glVertex(wx, gy2 + 5, wz)
 			end)
 		end
+	end
+
+	-- Draw drag-rect preview (startboxMode == "box")
+	if subMode == "startbox" and boxRectActive and boxRectStartX and boxRectEndX then
+		local color = getColorForAllyTeam(nextBoxAllyTeam)
+		local x1, x2 = math_min(boxRectStartX, boxRectEndX), math_max(boxRectStartX, boxRectEndX)
+		local z1, z2 = math_min(boxRectStartZ, boxRectEndZ), math_max(boxRectStartZ, boxRectEndZ)
+		glColor(color[1], color[2], color[3], 0.75)
+		glLineWidth(2.5)
+		glBeginEnd(GL_LINE_LOOP, function()
+			local y = GetGroundHeight(x1, z1) or 0; glVertex(x1, y + 6, z1)
+			y = GetGroundHeight(x2, z1) or 0;       glVertex(x2, y + 6, z1)
+			y = GetGroundHeight(x2, z2) or 0;       glVertex(x2, y + 6, z2)
+			y = GetGroundHeight(x1, z2) or 0;       glVertex(x1, y + 6, z2)
+		end)
+		-- Light fill outline (second pass, fainter)
+		glColor(color[1], color[2], color[3], 0.18)
+		glLineWidth(1.0)
+		glBeginEnd(GL_LINE_LOOP, function()
+			local y = GetGroundHeight(x1, z1) or 0; glVertex(x1, y + 3, z1)
+			y = GetGroundHeight(x2, z1) or 0;       glVertex(x2, y + 3, z1)
+			y = GetGroundHeight(x2, z2) or 0;       glVertex(x2, y + 3, z2)
+			y = GetGroundHeight(x1, z2) or 0;       glVertex(x1, y + 3, z2)
+		end)
+	end
+
+	-- Draw freedraw in-progress path
+	if subMode == "startbox" and freeDrawActive and #freeDrawPts >= 2 then
+		local color = getColorForAllyTeam(nextBoxAllyTeam)
+		glColor(color[1], color[2], color[3], 0.85)
+		glLineWidth(2.2)
+		glBeginEnd(GL_LINE_STRIP, function()
+			for _, p in ipairs(freeDrawPts) do
+				local gy = GetGroundHeight(p.x, p.z) or 0
+				glVertex(p.x, gy + 5, p.z)
+			end
+		end)
+		-- Dot at start so the user sees where it will close
+		local first = freeDrawPts[1]
+		local gy = GetGroundHeight(first.x, first.z) or 0
+		glColor(1, 1, 1, 0.8)
+		glDrawGroundCircle(first.x, gy, first.z, 24, 14)
 	end
 
 	glColor(1, 1, 1, 1)
@@ -1221,33 +2354,123 @@ local function getScreenMarker(wx, wz, worldRadius)
 end
 
 -- Minimum screen-space padding between marker top and text bottom
-local LABEL_PAD = 6
+local LABEL_PAD = 18
+
+local glGetTextWidth = gl.GetTextWidth
+
+-- Draw a sleek screen-space badge: colored left-bar + large team number + faction name + allyteam tag.
+-- Uses filled quads via glBeginEnd + glText. "2026" aesthetic: minimal, high-contrast, CHUNKY.
+local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, fontSize, hovered)
+	local padX, padY = 14, 10
+	local barW = 5
+	local gap  = 10
+	local numStr = "Team" .. tostring(allyTeamNum)
+	local plStr  = "P" .. tostring(playerIdx)
+
+	-- Measure text widths in pixels (gl.GetTextWidth returns factor to multiply by fontSize)
+	local function measure(s, sz)
+		local w = glGetTextWidth and glGetTextWidth(s) or (#s * 0.55)
+		return w * sz
+	end
+	local bigSize    = fontSize
+	local smallSize  = fontSize * 0.55
+	local numW       = measure(numStr, bigSize)
+	local nameW      = measure(teamName:upper(), smallSize)
+	local plW        = measure(plStr, smallSize)
+	local textW      = math_max(numW, nameW + plW + 12)
+	local w          = barW + gap + textW + padX * 2
+	local h          = bigSize * 1.18 + smallSize * 1.1 + padY * 2
+	local bx         = cx - w * 0.5
+	local by         = cy
+
+	-- Card background (dark chamfered-corner rect — octagon fan)
+	local bgA = hovered and 0.85 or 0.68
+	glColor(0.04, 0.06, 0.09, bgA)
+	glBeginEnd(GL_TRIANGLE_FAN, function()
+		glVertex(bx + 4,     by)
+		glVertex(bx + w - 4, by)
+		glVertex(bx + w,     by + 4)
+		glVertex(bx + w,     by + h - 4)
+		glVertex(bx + w - 4, by + h)
+		glVertex(bx + 4,     by + h)
+		glVertex(bx,         by + h - 4)
+		glVertex(bx,         by + 4)
+	end)
+
+	-- Outer accent frame on hover (bright white thin ring)
+	if hovered then
+		glColor(1, 1, 1, 0.85)
+		glLineWidth(2.0)
+		glBeginEnd(GL_LINE_LOOP, function()
+			glVertex(bx + 4,     by)
+			glVertex(bx + w - 4, by)
+			glVertex(bx + w,     by + 4)
+			glVertex(bx + w,     by + h - 4)
+			glVertex(bx + w - 4, by + h)
+			glVertex(bx + 4,     by + h)
+			glVertex(bx,         by + h - 4)
+			glVertex(bx,         by + 4)
+		end)
+	end
+
+	-- Colored left accent bar
+	glColor(color[1], color[2], color[3], 1.0)
+	glBeginEnd(GL_TRIANGLE_FAN, function()
+		glVertex(bx + padX,          by + padY)
+		glVertex(bx + padX + barW,   by + padY)
+		glVertex(bx + padX + barW,   by + h - padY)
+		glVertex(bx + padX,          by + h - padY)
+	end)
+
+	-- Soft color tint bg
+	glColor(color[1], color[2], color[3], hovered and 0.22 or 0.12)
+	glBeginEnd(GL_TRIANGLE_FAN, function()
+		glVertex(bx + padX + barW + 1, by + padY)
+		glVertex(bx + w - padX,        by + padY)
+		glVertex(bx + w - padX,        by + h - padY)
+		glVertex(bx + padX + barW + 1, by + h - padY)
+	end)
+
+	-- Text
+	local textX = bx + padX + barW + gap
+	local textY = by + padY
+	-- Big allyteam label (shadow + color-bright)
+	glColor(0, 0, 0, 0.90)
+	glText(numStr, textX + 2, textY + 2, bigSize, "o")
+	glColor(math_min(1, color[1] * 0.55 + 0.45), math_min(1, color[2] * 0.55 + 0.45), math_min(1, color[3] * 0.55 + 0.45), 1.0)
+	glText(numStr, textX, textY, bigSize, "o")
+
+	-- Second line: TEAM_NAME + player index
+	local smallY = textY + bigSize * 1.05
+	glColor(0, 0, 0, 0.85)
+	glText(teamName:upper(), textX + 1, smallY + 1, smallSize, "o")
+	glColor(0.88, 0.92, 0.98, 0.95)
+	glText(teamName:upper(), textX, smallY, smallSize, "o")
+	-- Player index right-aligned-ish
+	local plX = bx + w - padX - plW
+	glColor(0, 0, 0, 0.85)
+	glText(plStr, plX + 1, smallY + 1, smallSize, "o")
+	glColor(color[1], color[2], color[3], 0.95)
+	glText(plStr, plX, smallY, smallSize, "o")
+end
 
 function widget:DrawScreenEffects()
 	if not active then return end
 
-	-- Draw position labels on screen
+	-- Screen-space sleek badges for placed positions
 	for i, pos in ipairs(positions) do
 		local sx, sy, sr, vis = getScreenMarker(pos.x, pos.z, MARKER_RADIUS)
 		if vis then
-			local color = getColorForAllyTeam(pos.allyTeam)
-			local atLabel   = "Team " .. pos.allyTeam
-			local nameLabel = "Player " .. i .. " (" .. getTeamName(pos.allyTeam) .. ")"
-			-- Position text above the marker's screen-space top edge
-			local baseY = sy + sr + LABEL_PAD
-			-- Shadow
-			glColor(0, 0, 0, 0.8)
-			glText(nameLabel, sx + 1, baseY - 1, 18, "cn")
-			glText(atLabel, sx + 1, baseY + 17, 28, "cn")
-			-- Foreground
-			glColor(color[1] * 0.7 + 0.3, color[2] * 0.7 + 0.3, color[3] * 0.7 + 0.3, 0.85)
-			glText(nameLabel, sx, baseY, 18, "cn")
-			glColor(color[1], color[2], color[3], 1.0)
-			glText(atLabel, sx, baseY + 18, 28, "cn")
+			local pIdx = pos.playerIdx or pos.allyTeam
+			local color = getColorForPlayer(pIdx)
+			local badgeY = sy + sr + LABEL_PAD
+			local fontSize = 32   -- 2026 chunky
+			local hovered = (hoverPosIdx == i) or (dragIdx == i)
+			drawScreenBadge(sx, badgeY, color, pos.allyTeam, getTeamName(pIdx), pIdx, fontSize, hovered)
 		end
 	end
 
-	-- Draw startbox allyteam labels (centroid, no marker radius to dodge)
+	-- Startbox labels: centroid card
 	for _, box in ipairs(startboxes) do
 		if #box.vertices >= 3 then
 			local cx, cz = 0, 0
@@ -1261,34 +2484,37 @@ function widget:DrawScreenEffects()
 			local bsx, bsy, bsz = WorldToScreenCoords(cx, cy, cz)
 			if bsz and bsz > 0 and bsz < 1 then
 				local color = getColorForAllyTeam(box.allyTeam)
-				local atLabel = "Team " .. box.allyTeam
-				local nameLabel = getTeamName(box.allyTeam) .. " Box"
-				glColor(0, 0, 0, 0.8)
-				glText(nameLabel, bsx + 1, bsy - 1, 16, "cn")
-				glText(atLabel, bsx + 1, bsy + 15, 24, "cn")
-				glColor(color[1] * 0.7 + 0.3, color[2] * 0.7 + 0.3, color[3] * 0.7 + 0.3, 0.85)
-				glText(nameLabel, bsx, bsy, 16, "cn")
-				glColor(color[1], color[2], color[3], 1.0)
-				glText(atLabel, bsx, bsy + 16, 24, "cn")
+				drawScreenBadge(bsx, bsy - 36, color, box.allyTeam, getTeamName(box.allyTeam) .. " BOX", box.allyTeam, 26, false)
 			end
 		end
 	end
 
-	-- Draw shape preview labels
+	-- Shape preview small badges
 	if subMode == "shape" then
 		local wx, wz = getWorldMousePosition()
 		if wx then
 			local previewPts = generateShapePositions(wx, wz)
+			local numAlly = math_max(1, numAllyTeams)
+			local numSlot = math_max(1, numTeamsPerAlly)
 			for i, pt in ipairs(previewPts) do
-				local at = ((i - 1) % numAllyTeams) + 1
+				local zeroIdx = i - 1
+				local at, slot
+				if placementMode == "sequential" then
+					at   = math_floor(zeroIdx / numSlot) % numAlly + 1
+					slot = (zeroIdx % numSlot) + 1
+				else
+					at   = (zeroIdx % numAlly) + 1
+					slot = math_floor(zeroIdx / numAlly) % numSlot + 1
+				end
+				local pIdx = (at - 1) * numSlot + slot
 				local psx, psy, psr, pvis = getScreenMarker(pt.x, pt.z, MARKER_RADIUS * 0.72)
 				if pvis then
-					local color = getColorForAllyTeam(at)
-					local label = "Team " .. at
+					local color = getColorForPlayer(pIdx)
+					local label = "Team" .. at .. " P" .. pIdx
 					local baseY = psy + psr + LABEL_PAD
-					glColor(0, 0, 0, 0.6)
-					glText(label, psx + 1, baseY - 1, 22, "cn")
-					glColor(color[1], color[2], color[3], 0.7)
+					glColor(0, 0, 0, 0.7)
+					glText(label, psx + 2, baseY - 2, 22, "cn")
+					glColor(color[1], color[2], color[3], 0.85)
 					glText(label, psx, baseY, 22, "cn")
 				end
 			end
@@ -1307,12 +2533,17 @@ function widget:Initialize()
 		activate            = activate,
 		deactivate          = deactivate,
 		getState            = getState,
+		hoveringDraggable   = false,
 		setSubMode          = setSubMode,
 		setShape            = setShape,
 		setRadius           = setRadius,
 		setRotation         = setRotation,
 		setShapeCount       = setShapeCount,
 		setNumAllyTeams     = setNumAllyTeams,
+		setNumTeamsPerAlly  = setNumTeamsPerAlly,
+		setPlacementMode    = setPlacementMode,
+		togglePlacementMode = togglePlacementMode,
+		setStartboxMode     = setStartboxMode,
 		clearAllPositions   = clearAllPositions,
 		placeRandomPositions = placeRandomPositions,
 		saveStartPositions  = saveStartPositions,
@@ -1330,4 +2561,5 @@ end
 
 function widget:Shutdown()
 	WG.StartPosTool = nil
+	for i = 1, #startboxes do freeBoxFillList(startboxes[i]) end
 end

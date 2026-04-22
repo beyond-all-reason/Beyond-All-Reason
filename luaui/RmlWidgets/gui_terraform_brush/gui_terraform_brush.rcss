@@ -678,6 +678,14 @@ body {
 	background-color: #1a1a3a;
 }
 
+/* Startbox placement sub-picker (Box / Polygon / Free) */
+.tf-sp-btn-sbx-box.active,
+.tf-sp-btn-sbx-polygon.active,
+.tf-sp-btn-sbx-freedraw.active {
+	border-color: #a78bfa;
+	background-color: #1a1a3a;
+}
+
 /* Clone tool - cyan theme */
 .tf-btn-clone.active {
 	border-color: #22d3ee;
@@ -714,6 +722,11 @@ body {
 	font-size: 1.05rem;
 	font-weight: bold;
 	color: #d1d5db;
+}
+.tf-cl-action-icon {
+	width: 24dp;
+	height: 24dp;
+	margin-bottom: 4dp;
 }
 .tf-cl-action-key {
 	font-size: 0.7rem;
