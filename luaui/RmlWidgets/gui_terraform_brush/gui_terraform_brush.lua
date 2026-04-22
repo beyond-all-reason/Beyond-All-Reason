@@ -1133,6 +1133,10 @@ local guideHints = {
 	["btn-cap-min-down"] = "Decrease the height cap minimum by one step.",
 	["btn-cap-min-up"]   = "Increase the height cap minimum by one step.",
 	["btn-sample-min"]   = "Enter height-sampling mode: hover over a topo contour line and click to set that elevation as the Min cap. Click the peak number to use the highest point in the brush area.",
+	["btn-fp-alt-min-sample"] = "Sample ground height: click this, then click the map to set Min Altitude to the sampled elevation. Enables Min filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
+	["btn-fp-alt-max-sample"] = "Sample ground height: click this, then click the map to set Max Altitude to the sampled elevation. Enables Max filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
+	["btn-gb-alt-min-sample"] = "Sample ground height: click this, then click the map to set Min Altitude to the sampled elevation. Enables Min filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
+	["btn-gb-alt-max-sample"] = "Sample ground height: click this, then click the map to set Max Altitude to the sampled elevation. Enables Max filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
 	-- Restore defaults
 	["btn-defaults"]    = "Reset all brush settings — size, intensity, fall-off curve, rotation, height caps and toggle states — back to their factory defaults.",
 	-- Presets
@@ -1153,9 +1157,11 @@ local guideHints = {
 	["btn-fp-smart-toggle"] = "Enable Smart Filter — makes placement terrain-aware by skipping water, cliffs or altitude zones you configure below.",
 	["btn-fp-grid-overlay"] = "Draws a measurement grid across the terrain to help align features and judge distances. Always visible, not just inside the brush.",
 	["btn-fp-grid-snap"]    = "Snap feature placement positions to the build grid (48 elmo intervals) for precise, aligned placement.",
-	["btn-fp-avoid-water"]  = "Skip placement on underwater terrain so features only land on dry ground above sea level.",
-	["btn-fp-avoid-cliffs"] = "Prevent features from spawning on slopes steeper than the Max Slope angle you set.",
-	["btn-fp-prefer-slopes"] = "Only place features on slopes steeper than the Min Slope angle — useful for cliff-face vegetation.",
+	["fp-filter-chip-avoid-water"]  = "Skip placement on underwater terrain so features only land on dry ground above sea level.",
+	["fp-filter-chip-slope"]        = "Enable slope filtering — defaults to Avoid Slopes (reject terrain steeper than Max Slope). Use sub-toggles inside to switch to Prefer Slopes (only hillsides steeper than Min Slope).",
+	["fp-filter-chip-altitude"]     = "Enable and configure a min/max altitude band — features will only be placed within this elevation range.",
+	["fp-slope-mode-avoid"]         = "Reject terrain steeper than Max Slope (avoid slopes). Mutually exclusive with Prefer Slopes.",
+	["fp-slope-mode-prefer"]        = "Only place on hillsides steeper than Min Slope.",
 	["btn-fp-alt-min-enable"] = "Enable a minimum altitude filter — no features will be placed below this elevation threshold.",
 	["btn-fp-alt-max-enable"] = "Enable a maximum altitude filter — no features will be placed above this elevation threshold.",
 	-- Feature sliders
@@ -4121,7 +4127,7 @@ function widget:Initialize()
 	end
 	widgetState.dmHandle = dm
 
-	local document = widgetState.rmlContext:LoadDocument(RML_PATH)
+	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not document then
 		widget:Shutdown()
 		return false
@@ -5233,11 +5239,15 @@ function widget:Update()
 		end
 
 		if widgetState.dmHandle then
-			widgetState.dmHandle.radius = state.radius
-			widgetState.dmHandle.shapeName = shapeNames[state.shape] or "Circle"
-			widgetState.dmHandle.rotationDeg = state.rotationDeg
-			widgetState.dmHandle.curve = string.format("%.1f", state.curve)
-			widgetState.dmHandle.intensity = string.format("%.1f", state.intensity)
+			local dm = widgetState.dmHandle
+			local shapeName = shapeNames[state.shape] or "Circle"
+			local curveStr = string.format("%.1f", state.curve)
+			local intensityStr = string.format("%.1f", state.intensity)
+			if dm.radius ~= state.radius then dm.radius = state.radius end
+			if dm.shapeName ~= shapeName then dm.shapeName = shapeName end
+			if dm.rotationDeg ~= state.rotationDeg then dm.rotationDeg = state.rotationDeg end
+			if dm.curve ~= curveStr then dm.curve = curveStr end
+			if dm.intensity ~= intensityStr then dm.intensity = intensityStr end
 
 			-- Stamp mode badge visibility
 			local stampBadge = doc and getCachedEl(doc, "stamp-badge")
@@ -5246,9 +5256,12 @@ function widget:Update()
 				stampBadge:SetClass("hidden", not isStamp)
 			end
 
-			widgetState.dmHandle.lengthScale = string.format("%.1f", state.lengthScale)
-			widgetState.dmHandle.heightCapMaxStr = capMaxValue ~= 0 and tostring(capMaxValue) or "--"
-			widgetState.dmHandle.heightCapMinStr = capMinValue ~= 0 and tostring(capMinValue) or "--"
+			local lengthStr = string.format("%.1f", state.lengthScale)
+			local capMaxStr = capMaxValue ~= 0 and tostring(capMaxValue) or "--"
+			local capMinStr = capMinValue ~= 0 and tostring(capMinValue) or "--"
+			if dm.lengthScale ~= lengthStr then dm.lengthScale = lengthStr end
+			if dm.heightCapMaxStr ~= capMaxStr then dm.heightCapMaxStr = capMaxStr end
+			if dm.heightCapMinStr ~= capMinStr then dm.heightCapMinStr = capMinStr end
 		end
 
 		if doc then

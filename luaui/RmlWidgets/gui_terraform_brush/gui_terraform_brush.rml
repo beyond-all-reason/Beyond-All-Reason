@@ -1249,6 +1249,9 @@
 
 				<!-- Filter category chips -->
 				<div class="flex flex-row items-center gap-1 mb-1">
+					<div id="btn-gb-pill-avoid-water" class="tf-overlay-chip">
+						<div class="tf-overlay-chip-label">Avoid Water</div>
+					</div>
 					<div id="btn-gb-pill-slope" class="tf-overlay-chip">
 						<div class="tf-overlay-chip-label">Slope</div>
 					</div>
@@ -1260,20 +1263,16 @@
 					</div>
 				</div>
 
-				<!-- Avoid Water (always visible within FILTERS) -->
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-gb-avoid-water" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" />
-					<div class="text-lg text-light">Avoid Water</div>
-					<div class="text-sm text-keybind" style="margin-left: auto;">no underwater</div>
-				</div>
-
 				<!-- Slope content (toggled by Slope chip) -->
 				<div id="gb-smart-slope-content" class="hidden">
-				<!-- Avoid Cliffs -->
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-gb-avoid-cliffs" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" />
-					<div class="text-lg text-light">Avoid Cliffs</div>
-					<div class="text-sm text-keybind" style="margin-left: auto;">slope limit</div>
+				<!-- Mutually exclusive toggle: avoid slopes vs prefer slopes (avoid default on when chip activated) -->
+				<div class="flex flex-row items-center gap-1 mb-1">
+					<div id="gb-slope-mode-avoid" class="tf-overlay-chip">
+						<div class="tf-overlay-chip-label">Avoid Slopes</div>
+					</div>
+					<div id="gb-slope-mode-prefer" class="tf-overlay-chip">
+						<div class="tf-overlay-chip-label">Prefer Slopes</div>
+					</div>
 				</div>
 				<div id="gb-smart-slope-max-row" class="flex flex-row items-center mb-1">
 					<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="gb-smart-slope-max-label">45</span>&#176;</div>
@@ -1295,11 +1294,6 @@
 					<input type="text" id="slider-gb-slope-max-numbox" class="tf-slider-numbox" value="0" />
 				</div>
 
-				<!-- Prefer Slopes -->
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-gb-prefer-slopes" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
-					<div class="text-lg text-light">Prefer Slopes</div>
-				</div>
 				<div id="gb-smart-slope-min-row" class="hidden flex flex-row items-center mb-1">
 					<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="gb-smart-slope-min-label">10</span>&#176;</div>
 					<div id="slider-gb-slope-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
@@ -1327,6 +1321,7 @@
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<img id="btn-gb-alt-min-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
 					<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold" id="gb-smart-alt-min-label">0</span></div>
+					<div id="btn-gb-alt-min-sample" class="tf-sample-btn">SAMPLE</div>
 					<div id="slider-gb-alt-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-alt-min-transport" class="tf-transport-group hidden">
 						<div id="slider-gb-alt-min-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1349,6 +1344,7 @@
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<img id="btn-gb-alt-max-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
 					<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold" id="gb-smart-alt-max-label">200</span></div>
+					<div id="btn-gb-alt-max-sample" class="tf-sample-btn">SAMPLE</div>
 					<div id="slider-gb-alt-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-alt-max-transport" class="tf-transport-group hidden">
 						<div id="slider-gb-alt-max-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1682,6 +1678,28 @@
 				</div>
 			</div>
 			</div><!-- /section-wb-mode -->
+
+			<!-- WB: DISTRIBUTION (nested under PLACEMENT MODE) -->
+			<div id="btn-toggle-wb-dist" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+				<img id="img-toggle-wb-dist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<div class="tf-collapsible-title">DISTRIBUTION</div>
+			</div>
+			<div id="section-wb-dist">
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-wb-dist-random" class="tf-fp-dist-btn active">
+					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/fp_scatter.png" />
+					<div class="tf-btn-text">Random</div>
+				</div>
+				<div id="btn-wb-dist-regular" class="tf-fp-dist-btn">
+					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_regular.png" />
+					<div class="tf-btn-text">Regular</div>
+				</div>
+				<div id="btn-wb-dist-clustered" class="tf-fp-dist-btn">
+					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_clustered.png" />
+					<div class="tf-btn-text">Clustered</div>
+				</div>
+			</div>
+			</div><!-- /section-wb-dist -->
 			<div class="divider-horizontal-dark"></div>
 		</div>
 
@@ -2320,6 +2338,9 @@
 		</div>
 		<div id="section-fp-smart" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
+			<div id="fp-filter-chip-avoid-water" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label">Avoid Water</div>
+			</div>
 			<div id="fp-filter-chip-slope" class="tf-overlay-chip">
 				<div class="tf-overlay-chip-label">Slope</div>
 			</div>
@@ -2328,18 +2349,16 @@
 			</div>
 		</div>
 
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<img id="btn-fp-avoid-water" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" />
-			<div class="text-lg text-light">Avoid Water</div>
-			<div class="text-sm text-keybind" style="margin-left: auto;">no underwater</div>
-		</div>
-
 		<!-- Slope controls (toggled by Slope chip) -->
 		<div id="fp-smart-slope-content" class="hidden">
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<img id="btn-fp-avoid-cliffs" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" />
-			<div class="text-lg text-light">Avoid Cliffs</div>
-			<div class="text-sm text-keybind" style="margin-left: auto;">slope limit</div>
+		<!-- Mutually exclusive toggle: avoid slopes vs prefer slopes (avoid default on when chip activated) -->
+		<div class="flex flex-row items-center gap-1 mb-1">
+			<div id="fp-slope-mode-avoid" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label">Avoid Slopes</div>
+			</div>
+			<div id="fp-slope-mode-prefer" class="tf-overlay-chip">
+				<div class="tf-overlay-chip-label">Prefer Slopes</div>
+			</div>
 		</div>
 		<div id="fp-smart-slope-max-row" class="flex flex-row items-center mb-1">
 			<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="fp-smart-slope-max-label">45</span>&#176;</div>
@@ -2361,11 +2380,6 @@
 			<input type="text" id="fp-slider-slope-max-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<img id="btn-fp-prefer-slopes" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
-			<div class="text-lg text-light">Prefer Slopes</div>
-			<div class="text-sm text-keybind" style="margin-left: auto;">hillsides only</div>
-		</div>
 		<div id="fp-smart-slope-min-row" class="hidden flex flex-row items-center mb-1">
 			<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="fp-smart-slope-min-label">10</span>&#176;</div>
 			<div id="fp-slider-slope-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
@@ -2392,6 +2406,7 @@
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<img id="btn-fp-alt-min-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
 			<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold" id="fp-smart-alt-min-label">0</span></div>
+			<div id="btn-fp-alt-min-sample" class="tf-sample-btn">SAMPLE</div>
 			<div id="fp-slider-alt-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-alt-min-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-alt-min-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2413,6 +2428,7 @@
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<img id="btn-fp-alt-max-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
 			<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold" id="fp-smart-alt-max-label">200</span></div>
+			<div id="btn-fp-alt-max-sample" class="tf-sample-btn">SAMPLE</div>
 			<div id="fp-slider-alt-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-alt-max-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-alt-max-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2623,7 +2639,6 @@
 
 		<!-- ============ WEATHER-ONLY CONTROLS ============ -->
 		<div id="tf-weather-controls" class="hidden">
-		<div class="divider-horizontal-dark"></div>
 
 		<!-- WB: DISPLAY -->
 		<div id="btn-toggle-wb-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
@@ -2705,30 +2720,6 @@
 			<div id="weather-persist-notify-dot" class="tf-notify-dot hidden"></div>
 		</div>
 		<div id="section-wb-controls">
-
-
-		<div id="btn-toggle-wb-dist" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
-			<img id="img-toggle-wb-dist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-			<div class="tf-collapsible-title">DISTRIBUTION</div>
-		</div>
-		<div id="section-wb-dist">
-		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-wb-dist-random" class="tf-fp-dist-btn active">
-				<img class="tf-icon-dist" src="/luaui/images/terraform_brush/fp_scatter.png" />
-				<div class="tf-btn-text">Random</div>
-			</div>
-			<div id="btn-wb-dist-regular" class="tf-fp-dist-btn">
-				<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_regular.png" />
-				<div class="tf-btn-text">Regular</div>
-			</div>
-			<div id="btn-wb-dist-clustered" class="tf-fp-dist-btn">
-				<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_clustered.png" />
-				<div class="tf-btn-text">Clustered</div>
-			</div>
-		</div>
-		</div><!-- /section-wb-dist -->
-
-		<div class="divider-horizontal-dark"></div>
 
 		<div class="flex flex-row items-center mb-1">
 			<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val" id="wb-radius-label">200</span></div>
@@ -3240,7 +3231,7 @@
 		<div id="sp-smart-slope-content" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<img id="btn-sp-avoid-cliffs" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" />
-			<div class="text-lg text-light">Avoid Cliffs</div>
+			<div class="text-lg text-light">Avoid Slopes</div>
 			<div class="text-sm text-keybind" style="margin-left: auto;">slope limit</div>
 		</div>
 		<div id="sp-smart-slope-max-row" class="flex flex-row items-center mb-1">

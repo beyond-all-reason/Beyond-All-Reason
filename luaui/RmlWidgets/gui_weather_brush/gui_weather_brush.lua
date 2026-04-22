@@ -57,7 +57,39 @@ local function buildRootStyle()
 		INITIAL_LEFT_VW, INITIAL_TOP_VH)
 end
 
-local initialModel = {}
+local initialModel = {
+	-- Root panel visibility — driven by data-class-hidden on #wb-root
+	hidden = true,
+	-- Two-way-bound CEG name filter (data-value on #wb-ceg-filter)
+	filter = "",
+}
+
+-- ===========================================================================
+-- Declarative event handlers (called from RML via onclick="widget:Foo()")
+-- ===========================================================================
+function widget:OnQuit()
+	manuallyHidden = true
+	if widgetState.dmHandle then
+		widgetState.dmHandle.hidden = true
+	end
+end
+
+function widget:OnFilterFocus()
+	WG.WeatherBrushInputFocused = true
+	Spring.SDLStartTextInput()
+end
+
+function widget:OnFilterBlur()
+	WG.WeatherBrushInputFocused = false
+	Spring.SDLStopTextInput()
+end
+
+function widget:OnClearCegs()
+	if WG.WeatherBrush then WG.WeatherBrush.clearSelectedCegs() end
+	if widgetState.dmHandle then
+		widgetState.dmHandle.filter = ""
+	end
+end
 
 -- Icon map for weather conditions (unicode weather symbols)
 local iconMap = {
@@ -113,45 +145,11 @@ local categoryGroups = {
 }
 
 -- ===========================================================================
--- Event Listeners
+-- Event Listeners (imperative — drag handle only; click/focus/blur live in RML)
 -- ===========================================================================
 local function attachEventListeners()
 	local doc = widgetState.document
 	if not doc then return end
-
-	-- Close button
-	local quitBtn = doc:GetElementById("btn-wb-quit")
-	if quitBtn then
-		quitBtn:AddEventListener("click", function(event)
-			manuallyHidden = true
-			if widgetState.rootElement then
-				widgetState.rootElement:SetClass("hidden", true)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	-- CEG filter input
-	local cegFilter = doc:GetElementById("wb-ceg-filter")
-	if cegFilter then
-		cegFilter:AddEventListener("focus", function(event)
-			WG.WeatherBrushInputFocused = true
-			Spring.SDLStartTextInput()
-		end, false)
-		cegFilter:AddEventListener("blur", function(event)
-			WG.WeatherBrushInputFocused = false
-			Spring.SDLStopTextInput()
-		end, false)
-	end
-
-	local cegClearBtn = doc:GetElementById("btn-wb-ceg-clear")
-	if cegClearBtn then
-		cegClearBtn:AddEventListener("click", function(event)
-			if WG.WeatherBrush then WG.WeatherBrush.clearSelectedCegs() end
-			if cegFilter then cegFilter:SetAttribute("value", "") end
-			event:StopPropagation()
-		end, false)
-	end
 
 	-- Drag handle
 	local handleEl = doc:GetElementById("wb-handle")
@@ -202,7 +200,7 @@ function widget:Initialize()
 	end
 	widgetState.dmHandle = dm
 
-	local document = widgetState.rmlContext:LoadDocument(RML_PATH)
+	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not document then
 		widget:Shutdown()
 		return false
@@ -282,13 +280,16 @@ function widget:Update()
 	local wbState = WG.WeatherBrush and WG.WeatherBrush.getState()
 	local wbActive = wbState and wbState.active
 
-	-- Show/hide entire panel
+	-- Show/hide entire panel (driven via data-class-hidden on #wb-root)
 	if wbActive and not lastActive then
 		manuallyHidden = false
 	end
 	lastActive = wbActive
-	if widgetState.rootElement then
-		widgetState.rootElement:SetClass("hidden", not wbActive or manuallyHidden)
+	if widgetState.dmHandle then
+		local wantHidden = (not wbActive) or manuallyHidden
+		if widgetState.dmHandle.hidden ~= wantHidden then
+			widgetState.dmHandle.hidden = wantHidden
+		end
 	end
 	if not wbActive then return end
 
@@ -379,9 +380,8 @@ function widget:Update()
 		end
 	end
 
-	-- CEG list: rebuild when filter changes
-	local cegFilter = doc:GetElementById("wb-ceg-filter")
-	local filter = cegFilter and cegFilter:GetAttribute("value") or ""
+	-- CEG list: rebuild when filter changes (filter is two-way bound via data-value)
+	local filter = (widgetState.dmHandle and widgetState.dmHandle.filter) or ""
 	if filter ~= widgetState.cegListFilter or not widgetState.cegListBuilt then
 		widgetState.cegListFilter = filter
 		widgetState.cegListBuilt = true
