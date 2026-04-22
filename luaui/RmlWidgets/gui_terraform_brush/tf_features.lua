@@ -375,11 +375,24 @@ function M.attach(doc, ctx)
 			end, false)
 		end
 	end
-	wireSmartToggle("btn-fp-avoid-water",    "avoidWater")
-	wireSmartToggle("btn-fp-avoid-cliffs",   "avoidCliffs")
-	wireSmartToggle("btn-fp-prefer-slopes",  "preferSlopes")
 	wireSmartToggle("btn-fp-alt-min-enable", "altMinEnable")
 	wireSmartToggle("btn-fp-alt-max-enable", "altMaxEnable")
+
+	-- Altitude min/max SAMPLE buttons: toggle height-sampling mode for FP filter endpoints
+	local function wireAltSampler(btnId, target)
+		local btn = doc:GetElementById(btnId)
+		if btn then
+			btn:AddEventListener("click", function(event)
+				if WG.TerraformBrush then
+					local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
+					WG.TerraformBrush.setHeightSamplingMode(cur == target and nil or target)
+				end
+				event:StopPropagation()
+			end, false)
+		end
+	end
+	wireAltSampler("btn-fp-alt-min-sample", "fpAltMin")
+	wireAltSampler("btn-fp-alt-max-sample", "fpAltMax")
 
 	-- Display overlay: Grid (feature panel)
 	local btnFpGridDisplay = doc:GetElementById("btn-fp-grid-overlay-display")
@@ -703,19 +716,13 @@ function M.sync(doc, ctx, fpState, setSummary)
 			if fpState.smartFilters then
 				local sf = fpState.smartFilters
 
-				local avoidWaterBtn = doc:GetElementById("btn-fp-avoid-water")
-				if avoidWaterBtn then
-					avoidWaterBtn:SetAttribute("src", sf.avoidWater
-						and "/luaui/images/terraform_brush/check_on.png"
-						or "/luaui/images/terraform_brush/check_off.png")
-				end
-
-				local avoidCliffsBtn = doc:GetElementById("btn-fp-avoid-cliffs")
-				if avoidCliffsBtn then
-					avoidCliffsBtn:SetAttribute("src", sf.avoidCliffs
-						and "/luaui/images/terraform_brush/check_on.png"
-						or "/luaui/images/terraform_brush/check_off.png")
-				end
+				-- Filter chips: Avoid Water mirrors filter state; slope sub-chips mirror avoidCliffs / preferSlopes
+				local avoidWaterChip = doc:GetElementById("fp-filter-chip-avoid-water")
+				if avoidWaterChip then avoidWaterChip:SetClass("active", sf.avoidWater == true) end
+				local slopeAvoidChip = doc:GetElementById("fp-slope-mode-avoid")
+				if slopeAvoidChip then slopeAvoidChip:SetClass("active", sf.avoidCliffs == true) end
+				local slopePreferChip = doc:GetElementById("fp-slope-mode-prefer")
+				if slopePreferChip then slopePreferChip:SetClass("active", sf.preferSlopes == true) end
 
 				local slopeMaxRow = doc:GetElementById("fp-smart-slope-max-row")
 				if slopeMaxRow then slopeMaxRow:SetClass("hidden", not sf.avoidCliffs) end
@@ -726,13 +733,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 				local fpSSlopeMax = doc:GetElementById("fp-slider-slope-max")
 				if fpSSlopeMax and ds ~= "fp-slope-max" then
 					fpSSlopeMax:SetAttribute("value", tostring(sf.slopeMax))
-				end
-
-				local preferSlopesBtn = doc:GetElementById("btn-fp-prefer-slopes")
-				if preferSlopesBtn then
-					preferSlopesBtn:SetAttribute("src", sf.preferSlopes
-						and "/luaui/images/terraform_brush/check_on.png"
-						or "/luaui/images/terraform_brush/check_off.png")
 				end
 
 				local slopeMinRow = doc:GetElementById("fp-smart-slope-min-row")
@@ -775,6 +775,13 @@ function M.sync(doc, ctx, fpState, setSummary)
 				if fpSAltMax and ds ~= "fp-alt-max" then
 					fpSAltMax:SetAttribute("value", tostring(sf.altMax))
 				end
+
+				-- SAMPLE button active state mirrors TerraformBrush heightSamplingMode
+				local hsm = WG.TerraformBrush and (WG.TerraformBrush.getState() or {}).heightSamplingMode
+				local sampMin = doc:GetElementById("btn-fp-alt-min-sample")
+				if sampMin then sampMin:SetClass("active", hsm == "fpAltMin") end
+				local sampMax = doc:GetElementById("btn-fp-alt-max-sample")
+				if sampMax then sampMax:SetClass("active", hsm == "fpAltMax") end
 			end
 
 			-- Grid overlay / snap chip sync

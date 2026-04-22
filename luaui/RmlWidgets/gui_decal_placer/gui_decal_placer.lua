@@ -17,6 +17,7 @@ function widget:GetInfo()
 end
 
 local RML_PATH = "luaui/RmlWidgets/gui_decal_placer/gui_decal_placer.rml"
+local MODEL_NAME = "decal_placer_model"
 
 local WG = WG
 local GetViewGeometry = Spring.GetViewGeometry
@@ -30,10 +31,18 @@ local TILE_GAP_DP     = 2
 local widgetState = {
 	rmlContext   = nil,
 	document     = nil,
+	dmHandle     = nil,
 	rootElement  = nil,
 	-- Logical (dp) width used for tile layout math. Actual rendered width
 	-- lives in RCSS (.dp-root) which applies dp_ratio + min-width floor.
 	panelWidthDp = BASE_WIDTH_DP,
+}
+
+local initialModel = {
+	-- Root panel visibility (data-class-hidden on #dp-root)
+	hidden = true,
+	-- Two-way-bound search filter (data-value on #dp-search)
+	search = "",
 }
 
 local lastSearchFilter = ""
@@ -456,6 +465,40 @@ local function bindButton(id, fn)
 end
 
 ----------------------------------------------------------------
+-- Declarative event handlers (called from RML via onclick="widget:Foo()")
+----------------------------------------------------------------
+function widget:OnQuit()
+	manuallyHidden = true
+	if widgetState.dmHandle then
+		widgetState.dmHandle.hidden = true
+	end
+end
+
+function widget:OnSearchFocus()
+	Spring.SDLStartTextInput()
+end
+
+function widget:OnSearchBlur()
+	Spring.SDLStopTextInput()
+end
+
+function widget:OnSearchClear()
+	if widgetState.dmHandle then
+		widgetState.dmHandle.search = ""
+	end
+	lastSearchFilter = ""
+	rebuildDecalList("")
+end
+
+function widget:OnClearSelection()
+	if WG.DecalPlacer then
+		WG.DecalPlacer.clearSelectedDecals()
+		for _, el in pairs(decalElements) do el:SetClass("selected", false) end
+		refreshUIFromState()
+	end
+end
+
+----------------------------------------------------------------
 -- Wire all controls
 ----------------------------------------------------------------
 local function attachEventListeners()
@@ -480,10 +523,7 @@ local function attachEventListeners()
 	end
 
 	-- Quit
-	bindButton("btn-quit", function()
-		manuallyHidden = true
-		if widgetState.rootElement then widgetState.rootElement:SetClass("hidden", true) end
-	end)
+	-- Quit button click lives in RML (onclick="widget:OnQuit()").
 
 	-- Mode buttons
 	local mb = getModeButtons()
@@ -509,31 +549,9 @@ local function attachEventListeners()
 		end
 	end
 
-	-- Search
-	local searchInput = doc:GetElementById("dp-search")
-	if searchInput then
-		searchInput:AddEventListener("focus", function() Spring.SDLStartTextInput() end, false)
-		searchInput:AddEventListener("blur",  function() Spring.SDLStopTextInput()  end, false)
-		searchInput:AddEventListener("change", function()
-			local val = searchInput:GetAttribute("value") or ""
-			if val ~= lastSearchFilter then
-				lastSearchFilter = val
-				rebuildDecalList(val)
-			end
-		end, false)
-	end
-	bindButton("btn-dp-search-clear", function()
-		if searchInput then searchInput:SetAttribute("value", "") end
-		lastSearchFilter = ""
-		rebuildDecalList("")
-	end)
-	bindButton("btn-dp-clear-selection", function()
-		if WG.DecalPlacer then
-			WG.DecalPlacer.clearSelectedDecals()
-			for _, el in pairs(decalElements) do el:SetClass("selected", false) end
-			refreshUIFromState()
-		end
-	end)
+	-- Search focus/blur/clear + clear selection + search input value all live
+	-- declaratively in the RML (data-value="search", onclick, onfocus, onblur).
+	-- Only the filter-change → rebuild sync is done from widget:Update().
 
 	-- Sliders
 	local DP = WG.DecalPlacer
@@ -663,7 +681,11 @@ function widget:Initialize()
 	widgetState.rmlContext = RmlUi.GetContext("shared")
 	if not widgetState.rmlContext then return false end
 
-	local document = widgetState.rmlContext:LoadDocument(RML_PATH)
+	local dm = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
+	if not dm then return false end
+	widgetState.dmHandle = dm
+
+	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not document then
 		widget:Shutdown()
 		return false
@@ -676,7 +698,7 @@ function widget:Initialize()
 	document:Show()
 
 	widgetState.rootElement = document:GetElementById("dp-root")
-	widgetState.rootElement:SetClass("hidden", true)
+	-- hidden state is driven via data-class-hidden; initial model starts hidden.
 
 	widgetState.rootElement:SetAttribute("style", buildRootStyle())
 
@@ -731,8 +753,14 @@ function widget:Update()
 		end
 	end
 
+	local function setHidden(v)
+		if widgetState.dmHandle and widgetState.dmHandle.hidden ~= v then
+			widgetState.dmHandle.hidden = v
+		end
+	end
+
 	if not WG.DecalPlacer then
-		if widgetState.rootElement then widgetState.rootElement:SetClass("hidden", true) end
+		setHidden(true)
 		return
 	end
 
@@ -741,10 +769,17 @@ function widget:Update()
 	local isActive = state.active
 	if isActive and not lastActive then manuallyHidden = false end
 	lastActive = isActive
-	if widgetState.rootElement then
-		widgetState.rootElement:SetClass("hidden", not isActive or manuallyHidden)
-	end
+	setHidden((not isActive) or manuallyHidden)
 	if not isActive then return end
+
+	-- Sync two-way-bound search filter back to internal state
+	if widgetState.dmHandle then
+		local searchVal = widgetState.dmHandle.search or ""
+		if searchVal ~= lastSearchFilter then
+			lastSearchFilter = searchVal
+			rebuildDecalList(searchVal)
+		end
+	end
 
 	-- Auto-position next to terraform main panel until user drags
 	local mainPanel = WG.RmlContextManager and WG.RmlContextManager.getElementRect
@@ -784,6 +819,10 @@ function widget:Shutdown()
 		widgetState.document:Close()
 		widgetState.document = nil
 	end
+	if widgetState.rmlContext then
+		widgetState.rmlContext:RemoveDataModel(MODEL_NAME)
+	end
+	widgetState.dmHandle = nil
 	widgetState.rootElement = nil
 	decalElements = {}
 	thumbDivs = {}

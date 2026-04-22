@@ -278,11 +278,24 @@ function M.attach(doc, ctx)
 			end, false)
 		end
 
-		wireGbSmartToggle("btn-gb-avoid-water",    "avoidWater")
-		wireGbSmartToggle("btn-gb-avoid-cliffs",   "avoidCliffs")
-		wireGbSmartToggle("btn-gb-prefer-slopes",  "preferSlopes")
 		wireGbSmartToggle("btn-gb-alt-min-enable", "altMinEnable")
 		wireGbSmartToggle("btn-gb-alt-max-enable", "altMaxEnable")
+
+		-- Altitude min/max SAMPLE buttons: toggle height-sampling mode for GB filter endpoints
+		local function wireGbAltSampler(btnId, target)
+			local btn = doc:GetElementById(btnId)
+			if btn then
+				btn:AddEventListener("click", function(event)
+					if WG.TerraformBrush then
+						local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
+						WG.TerraformBrush.setHeightSamplingMode(cur == target and nil or target)
+					end
+					event:StopPropagation()
+				end, false)
+			end
+		end
+		wireGbAltSampler("btn-gb-alt-min-sample", "gbAltMin")
+		wireGbAltSampler("btn-gb-alt-max-sample", "gbAltMax")
 
 		local slSlopeMax = doc:GetElementById("slider-gb-slope-max")
 		if slSlopeMax then
@@ -805,9 +818,15 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 				local el = doc:GetElementById(id)
 				if el then el:SetAttribute("src", sf[key] and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png") end
 			end
-			syncSmartCheck("btn-gb-avoid-water",    "avoidWater")
-			syncSmartCheck("btn-gb-avoid-cliffs",   "avoidCliffs")
-			syncSmartCheck("btn-gb-prefer-slopes",  "preferSlopes")
+			-- Pure toggle chips mirror their filter flag
+			local function syncChipActive(id, key)
+				local el = doc:GetElementById(id)
+				if el then el:SetClass("active", sf[key] == true) end
+			end
+			syncChipActive("btn-gb-pill-avoid-water",  "avoidWater")
+			-- Slope sub-chips mirror avoidCliffs / preferSlopes
+			syncChipActive("gb-slope-mode-avoid",  "avoidCliffs")
+			syncChipActive("gb-slope-mode-prefer", "preferSlopes")
 			syncSmartCheck("btn-gb-alt-min-enable", "altMinEnable")
 			syncSmartCheck("btn-gb-alt-max-enable", "altMaxEnable")
 
@@ -838,6 +857,13 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			local altMaxLabel = doc:GetElementById("gb-smart-alt-max-label")
 			if altMaxLabel then altMaxLabel.inner_rml = tostring(sf.altMax or 200) end
 			syncAndFlash(doc:GetElementById("slider-gb-alt-max"), "gb-alt-max", tostring(sf.altMax or 200))
+
+			-- SAMPLE button active state mirrors TerraformBrush heightSamplingMode
+			local hsm = WG.TerraformBrush and (WG.TerraformBrush.getState() or {}).heightSamplingMode
+			local sampMin = doc:GetElementById("btn-gb-alt-min-sample")
+			if sampMin then sampMin:SetClass("active", hsm == "gbAltMin") end
+			local sampMax = doc:GetElementById("btn-gb-alt-max-sample")
+			if sampMax then sampMax:SetClass("active", hsm == "gbAltMax") end
 
 			-- Filter category chip active state mirrors whether any sub-filter is on
 			local slopeActive = smartOn and (sf.avoidCliffs or sf.preferSlopes)

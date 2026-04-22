@@ -324,6 +324,8 @@ Deferred rows (require human semantic review):
 | R5 | ⬜ | **Pen pressure server** — fix or remove. Multiple failed starts (exit code 1). If shipping: fix Python script; if not: remove UI refs or mark experimental | See terminal history for error output | 🧠 |
 | R6 | ⬜ | **Performance sanity check (J3)** — large brush + curve overlay FPS test. Quick profiling pass, optimization deferred. | | 🧠 |
 | R7 | ⬜ | **Changelog entry** — summary of all new features for 1.0 release notes (noise mode, clone, startpos, grass brush, keybinds, sounds, env, etc.) | | 🧠 |
+| R8 | ✅ | **RmlUi declarative refactor — Phase 2A (perf guards)** — `LoadDocument(RML_PATH, self)` at RML UI Lua L4130 now passes `self` so inline `onclick="widget:Foo()"` handlers work. 8 per-frame `dmHandle.*` writes at L5241–L5265 (`radius`, `shapeName`, `rotationDeg`, `curve`, `intensity`, `lengthScale`, `heightCapMaxStr`, `heightCapMinStr`) now compare-before-write to avoid 2A-style perf regression. | 2026-04-22 | 🤖 |
+| R8a | ⬜ | **R8 follow-up — Phase 2B declarative refactor** — convert 200+ `AddEventListener` calls across 12 files to RML `onclick="widget:Foo()"` / `data-event-*` bindings per `rmlui-data-binding` skill. Listener counts: `gui_terraform_brush.lua` ~110, `tf_metal` 55, `tf_grass` 53, `tf_splat` 44, `tf_lights` 36, `tf_weather` 22, `tf_clone`/`tf_noise` 17 each, `tf_startpos` 14, `tf_decals` (many via `bindDCSlider`/`bindDCStep` helpers). RML `gui_terraform_brush.rml` (5542 lines) currently has zero `onclick=`/`data-event-*`. **Prereq**: `ctx.widget = self` plumbed through `ctx` before `attachEventListeners()` in `widget:Initialize`. **Do NOT convert**: drag handles (`mousedown/mousemove/mouseup` at L4039/L4072 + `tf_lights.lua` globe L365–L401), SDL text-input focus/blur on numboxes, `doc:AddEventListener("mouseup")` drag cleanup (L2202/L4072), root `mouseover/mouseout` hover passthrough (L4166/L4169). **Order** (smallest first, one per session): tf_startpos → tf_clone → tf_noise → tf_weather → tf_lights → tf_splat → tf_metal → tf_grass → gui_terraform_brush (split by group: mode / shape / sliders / cap / preset / drag). Plan detail in `/memories/session/phase2b_handoff.md`. Multi-session effort; not a single-turn refactor. | 🤖 |
 
 ---
 
@@ -365,5 +367,5 @@ Deferred rows (require human semantic review):
 | Phase 3 — Grayouts | 5 | 4 | P3.0+P3.1+P3.2 done; P3.3 ❌ skipped per user; P3.4 regression pending (manual) |
 | Phase 4 — Docs | 4 | 4 | ✅ All doc cleanup complete (2026-04-22) |
 | Phase 5 — Icons | 2 | 0 | Human work, parallelizable |
-| Release Readiness | 7 | 0 | Smoke test, persistence, README, errors, pen pressure, perf, changelog |
-| **Total** | **27** | **0** | |
+| Release Readiness | 9 | 1 | R8 (RmlUi 2A perf guards) done; R8a (2B declarative refactor) pending — smoke test, persistence, README, errors, pen pressure, perf, changelog remain |
+| **Total** | **29** | **1** | |

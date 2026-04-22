@@ -437,33 +437,101 @@ function M.attach(doc, ctx)
 
 		-- Pill-button tab switching for smart filter sub-panels
 		do
-			-- Independent toggle pills for feature placer (both can be active)
-			local function wireIndependentPills(pills, onActivate)
-				for _, p in ipairs(pills) do
-					local btn = doc:GetElementById(p.btnId)
-					local content = doc:GetElementById(p.contentId)
-					if btn and content then
-						btn:AddEventListener("click", function()
-							local isActive = btn:IsClassSet("active")
-							btn:SetClass("active", not isActive)
-							content:SetClass("hidden", isActive)
-							if not isActive and onActivate then onActivate() end
-						end)
+			-- Chip that directly toggles a single filter key (active class mirrors filter state).
+			-- Used for Avoid Water / Avoid Slopes chips (FP + GB).
+			local function wireFilterToggleChip(btnId, filterKey, getBrush)
+				local btn = doc:GetElementById(btnId)
+				if not btn then return end
+				btn:AddEventListener("click", function()
+					local brush = getBrush()
+					if not brush then return end
+					local sf = brush.getState().smartFilters or {}
+					local newVal = not sf[filterKey]
+					brush.setSmartEnabled(true)
+					brush.setSmartFilter(filterKey, newVal)
+				end)
+			end
+
+			-- Mutually-exclusive chip pair: clicking a chip turns on its filter key AND
+			-- turns off the other's, so only one of the two can be active at a time.
+			-- Clicking the already-active chip turns its filter off (nothing active).
+			local function wireMutexChipPair(btnIdA, keyA, btnIdB, keyB, getBrush)
+				local btnA = doc:GetElementById(btnIdA)
+				local btnB = doc:GetElementById(btnIdB)
+				local function makeHandler(ownKey, otherKey)
+					return function()
+						local brush = getBrush()
+						if not brush then return end
+						local sf = brush.getState().smartFilters or {}
+						local newVal = not sf[ownKey]
+						brush.setSmartEnabled(true)
+						if newVal and sf[otherKey] then
+							brush.setSmartFilter(otherKey, false)
+						end
+						brush.setSmartFilter(ownKey, newVal)
 					end
 				end
+				if btnA then btnA:AddEventListener("click", makeHandler(keyA, keyB)) end
+				if btnB then btnB:AddEventListener("click", makeHandler(keyB, keyA)) end
 			end
-			wireIndependentPills({
-				{ btnId = "fp-filter-chip-slope",    contentId = "fp-smart-slope-content" },
-				{ btnId = "fp-filter-chip-altitude",  contentId = "fp-smart-altitude-content" },
-			}, function()
-				if WG.FeaturePlacer then WG.FeaturePlacer.setSmartEnabled(true) end
-			end)
-			wireIndependentPills({
-				{ btnId = "sp-filter-chip-slope",    contentId = "sp-smart-slope-content" },
-				{ btnId = "sp-filter-chip-altitude", contentId = "sp-smart-altitude-content" },
-			}, function()
-				if WG.SplatPainter then WG.SplatPainter.setSmartEnabled(true) end
-			end)
+
+			-- Chip that toggles visibility of a content section; optional defaultKey is
+			-- enabled/disabled alongside the chip (so the category actually does something
+			-- the first time it is opened).
+			local function wireVisibilityChip(btnId, contentId, getBrush, filterKeys, defaultKey)
+				local btn = doc:GetElementById(btnId)
+				local content = doc:GetElementById(contentId)
+				if not btn or not content then return end
+				btn:AddEventListener("click", function()
+					local isActive = btn:IsClassSet("active")
+					local newActive = not isActive
+					btn:SetClass("active", newActive)
+					content:SetClass("hidden", not newActive)
+					local brush = getBrush()
+					if brush then
+						if newActive then
+							brush.setSmartEnabled(true)
+							if defaultKey then
+								local sf = brush.getState().smartFilters or {}
+								-- Only flip the default on if none of the category's keys are already on
+								local anyOn = false
+								if filterKeys then
+									for _, k in ipairs(filterKeys) do
+										if sf[k] then anyOn = true; break end
+									end
+								end
+								if not anyOn then
+									brush.setSmartFilter(defaultKey, true)
+								end
+							end
+						elseif filterKeys then
+							for _, k in ipairs(filterKeys) do
+								brush.setSmartFilter(k, false)
+							end
+						end
+					end
+				end)
+			end
+
+			local function getFP() return WG.FeaturePlacer end
+			local function getSP() return WG.SplatPainter end
+			local function getGB() return WG.GrassBrush end
+
+			-- Feature Placer chips
+			wireFilterToggleChip("fp-filter-chip-avoid-water",  "avoidWater",  getFP)
+			-- Slope chip: activating defaults avoidCliffs on (so filtering starts immediately).
+			-- Sub-chips inside fp-smart-slope-content let user switch to prefer-slopes mode.
+			wireVisibilityChip("fp-filter-chip-slope",    "fp-smart-slope-content",
+				getFP, { "avoidCliffs", "preferSlopes" }, "avoidCliffs")
+			wireVisibilityChip("fp-filter-chip-altitude", "fp-smart-altitude-content",
+				getFP, { "altMinEnable", "altMaxEnable" }, "altMinEnable")
+			-- Slope double-toggle sub-chips (inside slope content): mutually exclusive — activating one disables the other.
+			wireMutexChipPair("fp-slope-mode-avoid",  "avoidCliffs",
+			                  "fp-slope-mode-prefer", "preferSlopes", getFP)
+
+			-- Splat painter chips (unchanged: visibility-only, no default key)
+			wireVisibilityChip("sp-filter-chip-slope",    "sp-smart-slope-content",    getSP, nil, nil)
+			wireVisibilityChip("sp-filter-chip-altitude", "sp-smart-altitude-content", getSP, nil, nil)
 
 			-- Exclusive tab pills for grass brush (original behavior)
 			local function wirePillTabs(pills, onActivate)
@@ -515,6 +583,11 @@ function M.attach(doc, ctx)
 					{ "avoidCliffs", "preferSlopes" }, "avoidCliffs")
 				wireGbFilterChip("btn-gb-pill-altitude", "gb-smart-altitude-content",
 					{ "altMinEnable", "altMaxEnable" }, "altMinEnable")
+				-- Pure toggle chips (no content panel): directly flip single filter keys
+				wireFilterToggleChip("btn-gb-pill-avoid-water",  "avoidWater",  getGB)
+				-- Slope double-toggle sub-chips (inside gb-smart-slope-content): mutually exclusive
+				wireMutexChipPair("gb-slope-mode-avoid",  "avoidCliffs",
+				                  "gb-slope-mode-prefer", "preferSlopes", getGB)
 			end
 			do
 				local colorChip = doc:GetElementById("btn-gb-pill-color")

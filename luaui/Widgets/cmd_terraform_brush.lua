@@ -2072,7 +2072,12 @@ function widget:Initialize()
 		end,
 		setHeightColormap = setHeightColormap,
 		setHeightSamplingMode = function(target)
-			extraState.heightSamplingMode = (target == "max" or target == "min") and target or nil
+			local valid = {
+				max = true, min = true,
+				fpAltMax = true, fpAltMin = true,
+				gbAltMax = true, gbAltMin = true,
+			}
+			extraState.heightSamplingMode = valid[target] and target or nil
 			if extraState.heightSamplingMode then
 				setHeightColormap(true)  -- auto-enable the colormap so contours are visible
 			end
@@ -6467,6 +6472,64 @@ function widget:KeyPress(key, mods, isRepeat)
 end
 
 function widget:MousePress(mx, my, button)
+	-- ── Height sampler (works regardless of active mode — FP/Grass altitude filters
+	--    can sample ground/colormap height just like the main raise tool's cap.)
+	if button == 1 and extraState.heightSamplingMode then
+		local sampledH = nil
+		if extraState.colormapHoverPeak and extraState.colormapPeak then
+			sampledH = extraState.colormapPeak[2]
+		elseif extraState.colormapHoverContour then
+			sampledH = extraState.colormapHoverContour
+		else
+			-- Fallback: sample ground height directly under cursor (colormap off)
+			local wx, wz = getWorldMousePosition()
+			if wx then
+				sampledH = Spring.GetGroundHeight(wx, wz)
+			end
+		end
+		local sampledTarget = extraState.heightSamplingMode
+		extraState.heightSamplingMode = nil
+		if sampledH then
+			local rounded = floor(sampledH + 0.5)
+			if sampledTarget == "max" then
+				setHeightCapMax(rounded)
+			elseif sampledTarget == "min" then
+				setHeightCapMin(rounded)
+			elseif sampledTarget == "fpAltMax" and WG.FeaturePlacer then
+				local sf = (WG.FeaturePlacer.getState() or {}).smartFilters or {}
+				if sf.altMinEnable and rounded < (sf.altMin or 0) then
+					WG.FeaturePlacer.setSmartFilter("altMin", rounded)
+				end
+				WG.FeaturePlacer.setSmartFilter("altMaxEnable", true)
+				WG.FeaturePlacer.setSmartFilter("altMax", rounded)
+			elseif sampledTarget == "fpAltMin" and WG.FeaturePlacer then
+				local sf = (WG.FeaturePlacer.getState() or {}).smartFilters or {}
+				if sf.altMaxEnable and rounded > (sf.altMax or 0) then
+					WG.FeaturePlacer.setSmartFilter("altMax", rounded)
+				end
+				WG.FeaturePlacer.setSmartFilter("altMinEnable", true)
+				WG.FeaturePlacer.setSmartFilter("altMin", rounded)
+			elseif sampledTarget == "gbAltMax" and WG.GrassBrush then
+				local sf = (WG.GrassBrush.getState() or {}).smartFilters or {}
+				if sf.altMinEnable and rounded < (sf.altMin or 0) then
+					WG.GrassBrush.setSmartFilter("altMin", rounded)
+				end
+				WG.GrassBrush.setSmartFilter("altMaxEnable", true)
+				WG.GrassBrush.setSmartFilter("altMax", rounded)
+			elseif sampledTarget == "gbAltMin" and WG.GrassBrush then
+				local sf = (WG.GrassBrush.getState() or {}).smartFilters or {}
+				if sf.altMaxEnable and rounded > (sf.altMax or 0) then
+					WG.GrassBrush.setSmartFilter("altMax", rounded)
+				end
+				WG.GrassBrush.setSmartFilter("altMinEnable", true)
+				WG.GrassBrush.setSmartFilter("altMin", rounded)
+			end
+			if WG.TerraformBrushUI and WG.TerraformBrushUI.onHeightSampled then
+				WG.TerraformBrushUI.onHeightSampled(sampledTarget, rounded)
+			end
+		end
+		return true
+	end
 	-- ── Symmetry origin (works regardless of terraform mode; also during metal/grass/FP) ──
 	if button == 1 and extraState.symmetryActive then
 		if extraState.symmetryPlacingOrigin then
@@ -6603,31 +6666,6 @@ function widget:MousePress(mx, my, button)
 		return false
 	end
 	if button == 1 then
-		-- Height sampling mode: capture the hovered contour or peak height then exit
-		if extraState.heightSamplingMode then
-			local sampledH = nil
-			if extraState.colormapHoverPeak and extraState.colormapPeak then
-				sampledH = extraState.colormapPeak[2]
-			elseif extraState.colormapHoverContour then
-				sampledH = extraState.colormapHoverContour
-			end
-			local sampledTarget = extraState.heightSamplingMode
-			if sampledH then
-				local rounded = floor(sampledH + 0.5)
-				if sampledTarget == "max" then
-					setHeightCapMax(rounded)
-				else
-					setHeightCapMin(rounded)
-				end
-				extraState.heightSamplingMode = nil
-				if WG.TerraformBrushUI and WG.TerraformBrushUI.onHeightSampled then
-					WG.TerraformBrushUI.onHeightSampled(sampledTarget, rounded)
-				end
-			else
-				extraState.heightSamplingMode = nil
-			end
-			return true
-		end
 		-- Symmetry origin placement: LMB sets the origin, then exit placing mode
 		if extraState.symmetryPlacingOrigin then
 			local wx, wz = getWorldMousePosition()

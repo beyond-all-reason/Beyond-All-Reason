@@ -17,6 +17,7 @@ function widget:GetInfo()
 end
 
 local RML_PATH = "luaui/RmlWidgets/gui_feature_placer/gui_feature_placer.rml"
+local MODEL_NAME = "feature_placer_model"
 
 local WG = WG
 local GetViewGeometry = Spring.GetViewGeometry
@@ -30,10 +31,18 @@ local TILE_GAP_DP       = 2
 local widgetState = {
 	rmlContext   = nil,
 	document     = nil,
+	dmHandle     = nil,
 	rootElement  = nil,
 	-- Logical (dp) width used for tile layout math. Rendered width lives
 	-- in RCSS (.fp-root) via dp + min-width.
 	panelWidthDp = BASE_WIDTH_DP,
+}
+
+local initialModel = {
+	-- Root panel visibility (data-class-hidden on #fp-root)
+	hidden = true,
+	-- Two-way-bound search filter (data-value on #feature-search)
+	search = "",
 }
 
 local lastSearchFilter = ""
@@ -669,7 +678,44 @@ local function rebuildFeatureList(filter)
 end
 
 ----------------------------------------------------------------
--- Attach event listeners
+-- Declarative event handlers (called from RML via onclick="widget:Foo()")
+----------------------------------------------------------------
+function widget:OnQuit()
+	manuallyHidden = true
+	if widgetState.dmHandle then
+		widgetState.dmHandle.hidden = true
+	end
+end
+
+function widget:OnSearchFocus()
+	Spring.SDLStartTextInput()
+end
+
+function widget:OnSearchBlur()
+	Spring.SDLStopTextInput()
+end
+
+function widget:OnSearchClear()
+	if widgetState.dmHandle then
+		widgetState.dmHandle.search = ""
+	end
+	lastSearchFilter = ""
+	rebuildFeatureList("")
+end
+
+function widget:OnClearSelection()
+	if WG.FeaturePlacer then
+		WG.FeaturePlacer.clearSelectedFeatures()
+		for _, el in pairs(featureElements) do
+			el:SetClass("selected", false)
+		end
+		updateSelectedCount()
+	end
+end
+
+----------------------------------------------------------------
+-- Attach event listeners (imperative — drag handle + category buttons
+-- + dynamic feature tiles; all simple buttons/inputs live in RML)
 ----------------------------------------------------------------
 local function attachEventListeners()
 	local doc = widgetState.document
@@ -690,62 +736,6 @@ local function attachEventListeners()
 				event:StopPropagation()
 			end, false)
 		end
-	end
-
-	-- Quit
-	local quitBtn = doc:GetElementById("btn-quit")
-	if quitBtn then
-		quitBtn:AddEventListener("click", function(event)
-			manuallyHidden = true
-			if widgetState.rootElement then
-				widgetState.rootElement:SetClass("hidden", true)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	-- Feature search input
-	local searchInput = doc:GetElementById("feature-search")
-	if searchInput then
-		searchInput:AddEventListener("focus", function()
-			Spring.SDLStartTextInput()
-		end, false)
-		searchInput:AddEventListener("blur", function()
-			Spring.SDLStopTextInput()
-		end, false)
-		searchInput:AddEventListener("change", function(event)
-			local val = searchInput:GetAttribute("value") or ""
-			if val ~= lastSearchFilter then
-				lastSearchFilter = val
-				rebuildFeatureList(val)
-			end
-		end, false)
-	end
-
-	-- Search clear (x) button
-	local searchClearBtn = doc:GetElementById("btn-search-clear")
-	if searchClearBtn and searchInput then
-		searchClearBtn:AddEventListener("click", function(event)
-			searchInput:SetAttribute("value", "")
-			lastSearchFilter = ""
-			rebuildFeatureList("")
-			event:StopPropagation()
-		end, false)
-	end
-
-	-- Clear selection button
-	local clearBtn = doc:GetElementById("btn-clear-selection")
-	if clearBtn then
-		clearBtn:AddEventListener("click", function(event)
-			if WG.FeaturePlacer then
-				WG.FeaturePlacer.clearSelectedFeatures()
-				for _, el in pairs(featureElements) do
-					el:SetClass("selected", false)
-				end
-				updateSelectedCount()
-			end
-			event:StopPropagation()
-		end, false)
 	end
 
 	-- Build initial feature list
@@ -792,7 +782,11 @@ function widget:Initialize()
 	widgetState.rmlContext = RmlUi.GetContext("shared")
 	if not widgetState.rmlContext then return false end
 
-	local document = widgetState.rmlContext:LoadDocument(RML_PATH)
+	local dm = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
+	if not dm then return false end
+	widgetState.dmHandle = dm
+
+	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not document then
 		widget:Shutdown()
 		return false
@@ -806,11 +800,8 @@ function widget:Initialize()
 
 	widgetState.rootElement = document:GetElementById("fp-root")
 
-	-- Hide immediately so the panel is never briefly visible before Update() runs,
-	-- and to prevent the search <input> from auto-focusing and calling SDLStartTextInput()
-	-- at load time (which leaks camera-scroll key events).
-	widgetState.rootElement:SetClass("hidden", true)
-
+	-- Hidden state is driven via data-class-hidden on #fp-root; the initial
+	-- model has `hidden = true` so the panel stays invisible until Update().
 	widgetState.rootElement:SetAttribute("style", buildRootStyle())
 
 	attachEventListeners()
@@ -872,18 +863,20 @@ function widget:Update()
 		end
 	end
 
-	if not WG.FeaturePlacer then
-		if widgetState.rootElement then
-			widgetState.rootElement:SetClass("hidden", true)
+	local function setHidden(v)
+		if widgetState.dmHandle and widgetState.dmHandle.hidden ~= v then
+			widgetState.dmHandle.hidden = v
 		end
+	end
+
+	if not WG.FeaturePlacer then
+		setHidden(true)
 		return
 	end
 
 	local state = WG.FeaturePlacer.getState()
 	if not state then
-		if widgetState.rootElement then
-			widgetState.rootElement:SetClass("hidden", true)
-		end
+		setHidden(true)
 		return
 	end
 
@@ -892,11 +885,18 @@ function widget:Update()
 		manuallyHidden = false
 	end
 	lastActive = isActive
-	if widgetState.rootElement then
-		widgetState.rootElement:SetClass("hidden", not isActive or manuallyHidden)
-	end
+	setHidden((not isActive) or manuallyHidden)
 
 	if not isActive then return end
+
+	-- Sync two-way-bound search filter back to internal state
+	if widgetState.dmHandle then
+		local searchVal = widgetState.dmHandle.search or ""
+		if searchVal ~= lastSearchFilter then
+			lastSearchFilter = searchVal
+			rebuildFeatureList(searchVal)
+		end
+	end
 
 	-- Align to the left of the main terraform panel (only if not user-dragged)
 	local mainPanel = WG.RmlContextManager and WG.RmlContextManager.getElementRect
@@ -983,6 +983,10 @@ function widget:Shutdown()
 		widgetState.document:Close()
 		widgetState.document = nil
 	end
+	if widgetState.rmlContext then
+		widgetState.rmlContext:RemoveDataModel(MODEL_NAME)
+	end
+	widgetState.dmHandle = nil
 	widgetState.rootElement = nil
 	featureElements = {}
 	categoryButtons = {}
