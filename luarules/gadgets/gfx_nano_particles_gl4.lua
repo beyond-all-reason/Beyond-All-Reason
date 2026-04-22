@@ -155,12 +155,12 @@ local NanoParticleRate        = 0.33   -- [0..1]
 local MODE_SETTINGS = {
 	billboard = {
 		drawRadius  = 2.85,        -- engine: drawRadius = 3
-		nanoAlpha   = 10 / 255,
+		nanoAlpha   = 20 / 255,
 		dirJitter   = 0.15,
 		-- Per-particle randomization (± fraction of the base value). 0 disables.
-		sizeVar     = 0.18,
-		speedVar    = 0.12,
-		alphaVar    = 0,
+		sizeVar     = 0.22,
+		speedVar    = 0.15,
+		alphaVar    = 1.5,
 		-- Engine static rotation params (BAR default: -180,-50,-50,360,100,100).
 		rotValBase  = -180, rotValRange = 360,
 		rotVelBase  = -55,  rotVelRange = 110,
@@ -169,7 +169,7 @@ local MODE_SETTINGS = {
 		glowFalloff = 3.3,
 		glowScale = 3.3,
 		-- Energy enhancement (all shader-side, zero CPU cost):
-		coreBoost      = 1.0,    -- HDR overdrive on textured core (>1 pushes into bloom)
+		coreBoost      = 0.6,    -- HDR overdrive on textured core (>1 pushes into bloom)
 		hueJitter      = 0.07,   -- ± per-channel RGB modulation per particle (0.05-0.10 sweet spot)
 		glowBreath     = 0.8,    -- halo intensity oscillation (per-particle phase)
 		glowBreathFreq = 3.0,    -- cycles/sec
@@ -177,16 +177,16 @@ local MODE_SETTINGS = {
 		sizePulseFreq  = 4.0,
 		-- Vortex/swirl displacement perpendicular to velocity. Bell-shaped over
 		-- lifetime so spawn/landing points are unchanged -- the spray bows out.
-		wobbleAmp      = 0.8,    -- elmos peak displacement (mid-flight); 0 disables
-		wobbleFreq     = 1.8,    -- cycles per sim-second around velocity axis
-		wobbleVar      = 0.4,    -- ± per-particle amplitude variation
+		wobbleAmp      = 3.0,    -- elmos peak displacement (mid-flight); 0 disables
+		wobbleVar      = 0.3,    -- ± per-particle amplitude variation
+		wobbleFreq     = 0.7,    -- cycles per sim-second around velocity axis
 		wobbleFreqVar  = 0.5,    -- ± per-particle frequency variation
 		-- Same uniforms as shape mode but sampled in quad-UV space + v_seed.
 		-- Keep cubeNoise modest -- nanoTex already has its own falloff structure.
-		cubeNoise            = 1.0,
-		cubeNoiseSpeed       = 30.0,
-		cubeNoiseScale       = 22.0,
-		whiteHotspot          = 6.0,
+		cubeNoise            = 2.0,
+		cubeNoiseSpeed       = 25.0,
+		cubeNoiseScale       = 18.0,
+		whiteHotspot          = 1.3,
 		whiteHotspotThreshold = 0.6,
 	},
 	shape = {
@@ -195,14 +195,16 @@ local MODE_SETTINGS = {
 		nanoAlpha   = 40 / 255,   -- match billboard look
 		dirJitter   = 0.10,       -- chunks read better with less spread
 		-- Shapes benefit from visible variation -- they read as discrete chunks.
-		sizeVar     = 0.33,
-		speedVar    = 0.17,
-		alphaVar    = 1.8,
+		sizeVar     = 0.45,
+		speedVar    = 0.2,
+		alphaVar    = 1.6,
 		-- View-dependent face shading: 0 = flat, 1 = full 3D depth (back faces visible-but-dimmed).
 		cubeShowInside = 4.0,
 		cubeNoise       = 3.3,
 		cubeNoiseSpeed  = 25.0,
 		cubeNoiseScale  = 1.75,
+		whiteHotspot          = 1.3,
+		whiteHotspotThreshold = 0.6,
 		-- GS adds its own per-axis 3D tumble, so base 2D rotation can be slower.
 		rotValBase  = -180, rotValRange = 360,
 		rotVelBase  = -40,  rotVelRange = 80,
@@ -211,18 +213,15 @@ local MODE_SETTINGS = {
 		glowFalloff = 8.0,
 		glowScale = 11.0,
 		-- Energy enhancement (sizePulse not wired through GS; halo+jitter+breath suffice).
-		coreBoost      = 0.2,    -- multiplies face shading; modest so dark faces still read
-		hueJitter      = 0.07,
+		coreBoost      = 0.22,    -- multiplies face shading; modest so dark faces still read
+		hueJitter      = 0.1,
 		glowBreath     = 3.0,
 		glowBreathFreq = 3.0,
 
-		whiteHotspot          = 0.7,
-		whiteHotspotThreshold = 0.6,
-
-		wobbleAmp      = 1.0,
-		wobbleFreq     = 2.0,
-		wobbleVar      = 0.45,
-		wobbleFreqVar  = 0.4,
+		wobbleAmp      = 15.0,
+		wobbleVar      = 0.5,	-- 0...1 fraction of wobbleAmp
+		wobbleFreq     = 0.15,
+		wobbleFreqVar  = 0.5,	-- 0...1 fraction of wobbleFreq
 	},
 }
 
@@ -332,12 +331,16 @@ local NANO_SPEED      = 4.5	-- engine default: 3.0
 -- our per-vertex component count and so are not supported.)
 local SHAPE_IDS = { cube = 0, octahedron = 1 }
 
--- Pack per-particle sizeMult and fadeFrames into a single float for the
--- spawnPosAndSize.w attribute slot (avoids growing the VBO layout). Layout:
---   packed = floor(sizeMult * 256 + 0.5) + fadeFrames * 1024
--- sizeMult expected in [0, 4); fadeFrames integer in [0, ~120].
-local function packSizeFade(sizeMult, fadeFrames)
-	return mathFloor(sizeMult * 256 + 0.5) + (fadeFrames or 0) * 1024
+-- Pack per-particle sizeMult, fadeFrames AND inverse flag into a single float
+-- for the spawnPosAndSize.w attribute slot (avoids growing the VBO layout).
+-- Layout:
+--   magnitude = floor(sizeMult * 256 + 0.5) + fadeFrames * 1024
+--   sign      = negative iff inverse (reclaim)
+-- sizeMult expected in [0, 4); fadeFrames integer in [0, ~120]. Magnitude is
+-- always > 0 since spawnParticle uses sizeMult ~1, so the sign bit is free.
+local function packSizeFade(sizeMult, fadeFrames, inverse)
+	local v = mathFloor(sizeMult * 256 + 0.5) + (fadeFrames or 0) * 1024
+	return inverse and -v or v
 end
 
 -- The engine API takes rotVel in deg/sec and rotAcc in deg/sec^2 and internally
@@ -438,7 +441,7 @@ local cachedAllyTeamID   = spGetMyAllyTeamID()
 local cachedSpecFullView = false
 
 -- Debug instrumentation: timers + per-30f Echo. Toggle to true to profile.
-local DEBUG        = true
+local DEBUG        = false
 local _dbgFrame    = 0
 local _dbgEmits    = 0
 local _dbgBuilders = 0
@@ -541,16 +544,33 @@ void main() {
 	// World-space center: pos = spawn + vel * elapsed
 	vec3 worldPos = spawnPosAndSize.xyz + velAndSpawnFrame.xyz * t;
 
-	// Vortex / swirl displacement perpendicular to the velocity axis. Amplitude
-	// is bell-shaped over the particle lifetime (4*p*(1-p), peaks at mid-flight,
-	// zero at endpoints) so spawn point and landing point are unchanged -- the
-	// spray bows out into a curved trail. Per-particle phase / freq scale /
-	// direction sign so adjacent particles aren't in lockstep -- shared wobbleFreq
-	// alone would just rotate them all at the same rate in the same plane.
+	// Vortex / swirl displacement perpendicular to the velocity axis.
+	// Two envelopes selected by the inverse flag (sign of spawnPosAndSize.w):
+	//   forward  (repair/build): bell = 4*p*(1-p), symmetric over p = t/lifetime --
+	//     spawn point and landing point are unchanged, spray bows out into a
+	//     curved trail. Only fires while target moves, so spawnFrame rewrites
+	//     are rare and the symmetric bell is visually stable.
+	//   inverse  (reclaim):       bell = smoothstep(0, FADE, tDeath), driven by
+	//     ABSOLUTE frames-to-death (deathFrame - currentFrame). deathFrame is
+	//     preserved across homing rewrites, so this envelope doesn't snap back
+	//     to max amplitude every time the spinner rotates -- it just smoothly
+	//     fades to zero in the last ~12 frames before landing at the builder.
+	//     A normalized p-based envelope would jitter here because reclaim
+	//     rewrites spawnFrame every tick (the piece is always moving), which
+	//     resets p to 0.
+	// Per-particle phase / freq scale / direction sign so adjacent particles
+	// aren't in lockstep -- shared wobbleFreq alone would just rotate them all
+	// at the same rate in the same plane.
 	if (wobbleAmp > 0.0001) {
-		float lifetime = max(deathFrame - spawnFrame, 1.0);
-		float p        = clamp(t / lifetime, 0.0, 1.0);
-		float bell     = 4.0 * p * (1.0 - p);
+		float bell;
+		if (spawnPosAndSize.w < 0.0) {
+			float tDeath = max(deathFrame - currentFrame, 0.0);
+			bell = smoothstep(0.0, 12.0, tDeath);
+		} else {
+			float lifetime = max(deathFrame - spawnFrame, 1.0);
+			float p        = clamp(t / lifetime, 0.0, 1.0);
+			bell = 4.0 * p * (1.0 - p);
+		}
 		vec3  vdir     = velAndSpawnFrame.xyz;
 		float vlen2    = dot(vdir, vdir);
 		if (vlen2 > 1e-6) {
@@ -574,8 +594,10 @@ void main() {
 	}
 
 	// Decode packed w: floor sizeMult times 256 in low 1024, fadeFrames times 1024 above.
-	float fadeFrames = floor(spawnPosAndSize.w / 1024.0);
-	float sizeMult   = (spawnPosAndSize.w - fadeFrames * 1024.0) / 256.0;
+	// Sign of w is the inverse flag (handled above for the bell envelope) -- abs here.
+	float packedW    = abs(spawnPosAndSize.w);
+	float fadeFrames = floor(packedW / 1024.0);
+	float sizeMult   = (packedW - fadeFrames * 1024.0) / 256.0;
 
 	// End-of-life alpha fade: ramps from 1 to 0 over the last fadeFrames frames.
 	// fadeFrames == 0 disables the fade.
@@ -842,11 +864,20 @@ void main() {
 	vec3 worldPos = spawnPosAndSize.xyz + velAndSpawnFrame.xyz * t;
 
 	// Vortex / swirl displacement perpendicular to vel. See vsSrc for full notes
-	// on the per-particle freq/direction decoherence scheme.
+	// on the per-particle freq/direction decoherence scheme and the inverse-flag
+	// envelope split (forward = symmetric p-based bell, inverse = death-time
+	// smoothstep so reclaim wobble doesn't jitter when spawnFrame is rewritten
+	// every tick by the homing pass).
 	if (wobbleAmp > 0.0001) {
-		float lifetime = max(deathFrame - spawnFrame, 1.0);
-		float p        = clamp(t / lifetime, 0.0, 1.0);
-		float bell     = 4.0 * p * (1.0 - p);
+		float bell;
+		if (spawnPosAndSize.w < 0.0) {
+			float tDeath = max(deathFrame - currentFrame, 0.0);
+			bell = smoothstep(0.0, 12.0, tDeath);
+		} else {
+			float lifetime = max(deathFrame - spawnFrame, 1.0);
+			float p        = clamp(t / lifetime, 0.0, 1.0);
+			bell = 4.0 * p * (1.0 - p);
+		}
 		vec3  vdir     = velAndSpawnFrame.xyz;
 		float vlen2    = dot(vdir, vdir);
 		if (vlen2 > 1e-6) {
@@ -865,9 +896,11 @@ void main() {
 		}
 	}
 
-	// Decode packed w: sizeMult in low 1024, fadeFrames * 1024 above.
-	float fadeFrames = floor(spawnPosAndSize.w / 1024.0);
-	float sizeMult   = (spawnPosAndSize.w - fadeFrames * 1024.0) / 256.0;
+	// Decode packed w: sizeMult in low 1024, fadeFrames * 1024 above. Sign
+	// is the inverse flag (handled above) -- abs here.
+	float packedW    = abs(spawnPosAndSize.w);
+	float fadeFrames = floor(packedW / 1024.0);
+	float sizeMult   = (packedW - fadeFrames * 1024.0) / 256.0;
 
 	float fade = (fadeFrames > 0.5)
 		? clamp((deathFrame - currentFrame) / fadeFrames, 0.0, 1.0)
@@ -1514,7 +1547,7 @@ end
 -- Emission
 --------------------------------------------------------------------------------
 
-local function spawnParticle(px, py, pz, vx, vy, vz, lifetime, r, g, b, frame, fadeFrames)
+local function spawnParticle(px, py, pz, vx, vy, vz, lifetime, r, g, b, frame, fadeFrames, inverse)
 	if not nanoVBO then return end
 
 	local death = frame + lifetime
@@ -1536,7 +1569,7 @@ local function spawnParticle(px, py, pz, vx, vy, vz, lifetime, r, g, b, frame, f
 	nextID = nextID + 1
 
 	local s = instanceScratch
-	s[1]=px; s[2]=py; s[3]=pz;  s[4]=packSizeFade(sizeMult, fadeFrames)
+	s[1]=px; s[2]=py; s[3]=pz;  s[4]=packSizeFade(sizeMult, fadeFrames, inverse)
 	s[5]=vx; s[6]=vy; s[7]=vz;  s[8]=frame
 	s[9]=r;  s[10]=g; s[11]=b;  s[12]=alpha
 	s[13]=rotVal; s[14]=rotVel; s[15]=rotAcc; s[16]=death
@@ -1680,7 +1713,7 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				if not visible then break end
 			end
 
-			local pid = spawnParticle(px, py, pz, vx, vy, vz, lifetime, r, g, b, frame, fadeFrames)
+			local pid = spawnParticle(px, py, pz, vx, vy, vz, lifetime, r, g, b, frame, fadeFrames, inverse)
 
 			-- Inverse particles converge on the builder. If the builder moves
 			-- before the particle dies, the original straight-line trajectory
@@ -2823,7 +2856,32 @@ function gadget:DrawWorld()
 		nanoShader:SetUniform("losAlwaysVisible", losU)
 		lastLosUniform = losU
 	end
+
+	-- Two-pass stencil-aware draw so particles overlapping a ghost shape
+	-- (drawn earlier by gfx_DrawUnitShape_GL4.lua, which marks bit 0x40)
+	-- shine through the ghost's depth values, while particles outside ghost
+	-- areas keep regular depth-tested behavior so they're correctly hidden
+	-- by world geometry / units / cliffs / etc.
+	--   Pass 1 (stencil bit clear): normal LEQUAL depth test.
+	--   Pass 2 (stencil bit set):   depth test off, draw on top of ghost.
+	-- Bit value must match GHOST_STENCIL_BIT in gfx_DrawUnitShape_GL4.lua.
+	local GHOST_STENCIL_BIT = 0x40
+	gl.StencilTest(true)
+	gl.StencilMask(0)                                                    -- never write stencil
+	gl.StencilOp(GL.KEEP, GL.KEEP, GL.KEEP)
+	-- Pass 1.
+	gl.StencilFunc(GL.NOTEQUAL, GHOST_STENCIL_BIT, GHOST_STENCIL_BIT)
 	nanoVBO:Draw()
+	-- Pass 2.
+	gl.StencilFunc(GL.EQUAL, GHOST_STENCIL_BIT, GHOST_STENCIL_BIT)
+	glDepthTest(false)
+	nanoVBO:Draw()
+	-- Restore.
+	glDepthTest(GL.LEQUAL)
+	gl.StencilFunc(GL.ALWAYS, 0, 0xFF)
+	gl.StencilMask(0xFF)
+	gl.StencilTest(false)
+
 	nanoShader:Deactivate()
 	if not isShapeMode then
 		glTexture(0, false)

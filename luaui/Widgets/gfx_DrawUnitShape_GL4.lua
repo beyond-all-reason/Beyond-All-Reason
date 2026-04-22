@@ -620,6 +620,11 @@ function widget:Shutdown()
 end
 
 
+-- Stencil bit used to flag pixels where our ghost shapes were rendered. The
+-- nano particles gadget reads this bit to decide whether to depth-test or
+-- draw-through. Engine reserves bit 0x1 for shadow volumes; 0x40 is free.
+local GHOST_STENCIL_BIT = 0x40
+
 function widget:DrawWorldPreUnit() -- this is for UnitDef
 	local active = false
 
@@ -627,15 +632,34 @@ function widget:DrawWorldPreUnit() -- this is for UnitDef
 		if unitShapeVBOTable.usedElements > 0 then
 
 			if not active then
+				-- Full depth write so multi-piece ghost models self-occlude
+				-- correctly. Without this, back faces of one piece bleed
+				-- through front faces of an adjacent piece (alpha-blend with
+				-- no z order).
+				--
+				-- The downside of writing depth is that anything transparent
+				-- drawn afterwards (nano particles, beams, jet trails, ...)
+				-- would normally be depth-rejected wherever a ghost overlaps.
+				-- We work around that by also marking each fragment we paint
+				-- with stencil bit GHOST_STENCIL_BIT; gadgets that want to
+				-- "shine through" ghosts (currently the nano particles
+				-- gadget) read this bit and disable depth-test on those
+				-- pixels.
+				--
+				-- Clear our bit at the start of the pass so stale marks from
+				-- the previous frame don't leak. Cheap; hits stencil only.
+				gl.Clear(GL.STENCIL_BUFFER_BIT, 0)
+
 				gl.Culling(GL.BACK)
-				-- Alpha-blended ghost shapes: keep depth test (so solid world
-				-- geometry hides ghosts behind it) but DO NOT write depth, or any
-				-- transparent pass drawn after us (nano particles, beams, jet
-				-- trails, other effects) would be depth-rejected wherever a ghost
-				-- silhouette overlaps them on screen.
-				gl.DepthMask(false)
+				gl.DepthMask(true)
 				gl.DepthTest(GL.LEQUAL)
 				gl.PolygonOffset(1, 1) -- so as not to clash with engine ghosts
+
+				gl.StencilTest(true)
+				gl.StencilMask(GHOST_STENCIL_BIT)
+				gl.StencilFunc(GL.ALWAYS, GHOST_STENCIL_BIT, GHOST_STENCIL_BIT)
+				gl.StencilOp(GL.KEEP, GL.KEEP, GL.REPLACE)
+
 				unitShapeShader:Activate()
 				unitShapeShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200))
 				active = true
@@ -648,19 +672,39 @@ function widget:DrawWorldPreUnit() -- this is for UnitDef
 	if active then
 		unitShapeShader:Deactivate()
 		gl.UnitShapeTextures(udefID, false)
+		-- Restore stencil to "no test, full mask, no-op", widget defaults.
+		gl.StencilMask(0xFF)
+		gl.StencilFunc(GL.ALWAYS, 0, 0xFF)
+		gl.StencilOp(GL.KEEP, GL.KEEP, GL.KEEP)
+		gl.StencilTest(false)
+		gl.DepthMask(false)
+		gl.PolygonOffset(false)
 		gl.Culling(false)
 	end
 end
 
 function widget:DrawWorld()
 	if armDrawUnitVBOTable.usedElements > 0 or corDrawUnitVBOTable.usedElements > 0 then
+		-- Live unit copies (construction highlights, etc). Depth write back
+		-- on for self-occlusion. Nano particles render in DrawWorld too, but
+		-- gadgets run before widgets in this callin so they're already on
+		-- screen by the time we draw -- depth write here only affects later
+		-- widget passes, which is fine.
+		--
+		-- Also flag with the same stencil bit so any later transparent pass
+		-- that respects it (nano particles in case widget order is gadget-
+		-- after-widget on some engine builds, or other widgets) can still
+		-- shine through.
 		gl.Culling(GL.BACK)
-		-- Alpha-blended preview shapes: depth test only, no depth write (see
-		-- DrawWorldPreUnit comment). Otherwise these ghosts punch holes through
-		-- subsequent transparent rendering (nano particles, beams, etc.).
-		gl.DepthMask(false)
+		gl.DepthMask(true)
 		gl.DepthTest(true)
 		gl.PolygonOffset(-2, -2)
+
+		gl.StencilTest(true)
+		gl.StencilMask(GHOST_STENCIL_BIT)
+		gl.StencilFunc(GL.ALWAYS, GHOST_STENCIL_BIT, GHOST_STENCIL_BIT)
+		gl.StencilOp(GL.KEEP, GL.KEEP, GL.REPLACE)
+
 		unitShader:Activate()
 		unitShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200))
 		if (corDrawUnitVBOTable.usedElements > 0 ) then
@@ -674,6 +718,12 @@ function widget:DrawWorld()
 		end
 		unitShader:Deactivate()
 		gl.UnitShapeTextures(udefID, false)
+
+		gl.StencilMask(0xFF)
+		gl.StencilFunc(GL.ALWAYS, 0, 0xFF)
+		gl.StencilOp(GL.KEEP, GL.KEEP, GL.KEEP)
+		gl.StencilTest(false)
+		gl.DepthMask(false)
 		gl.PolygonOffset(false)
 		gl.Culling(false)
 	end
