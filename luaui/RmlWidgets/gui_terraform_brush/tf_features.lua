@@ -848,6 +848,27 @@ function M.sync(doc, ctx, fpState, setSummary)
 			end
 		end
 
+		-- P3.2 Feature Placer grayouts (per Phase 3 relevance matrix)
+		if doc and ctx.setDisabledIds then
+			local mode = fpState.mode or "scatter"
+			local circular = (fpState.shape == "circle")
+			local remove = (mode == "remove")
+			local scatter = (mode == "scatter")
+			local rotOff = circular or remove
+			ctx.setDisabledIds(doc, {
+				"fp-slider-rotation", "fp-slider-rotation-numbox",
+				"fp-btn-rot-ccw", "fp-btn-rot-cw",
+				"fp-slider-rot-random", "fp-slider-rot-random-numbox",
+			}, rotOff)
+			ctx.setDisabledIds(doc, {
+				"fp-slider-count", "fp-slider-count-numbox",
+				"fp-btn-count-down", "fp-btn-count-up",
+				"fp-slider-cadence", "fp-slider-cadence-numbox",
+				"fp-btn-cadence-down", "fp-btn-cadence-up",
+				"fp-btn-dist-random", "fp-btn-dist-regular", "fp-btn-dist-clustered",
+			}, not scatter)
+		end
+
 		setSummary("FEATURES", "#34d399",
 			"", (fpState.mode or "place"):upper(),
 			"", shapeNames[fpState.shape] or "Circle",

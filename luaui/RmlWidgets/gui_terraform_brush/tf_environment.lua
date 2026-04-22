@@ -109,7 +109,7 @@ function M.attach(doc, ctx)
 		end
 
 		if #ddsFiles == 0 then
-			gridEl.inner_rml = '<div class="text-xs text-keybind" style="padding: 8dp; text-align: center;">'
+			gridEl.inner_rml = '<div class="text-sm text-keybind" style="padding: 16dp; text-align: center; font-size: 1rem; line-height: 1.5;">'
 				.. 'No skybox textures found.<br/>'
 				.. 'Get skyboxes from the Discord <span style="color: #fbbf24;">#mapping</span> channel pins and place them in:<br/>'
 				.. '<span style="color: #9ca3af;">luaui/RmlWidgets/gui_terraform_brush/skyboxes/</span>'

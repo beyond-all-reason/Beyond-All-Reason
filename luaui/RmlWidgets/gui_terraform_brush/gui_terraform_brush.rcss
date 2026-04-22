@@ -2920,3 +2920,16 @@ margin-top: 3dp;
 	pointer-events: none;
 	cursor: default;
 }
+
+/* === Phase 3 generic grayout ============================================== */
+/* Applied via ctx.setDisabled(doc, id, on) from per-tool M.sync when a        */
+/* control is irrelevant to the current sub-mode/shape/submode. Visible but    */
+/* non-interactive. More-specific .tf-shape-btn.disabled etc. still override.  */
+.disabled {
+	opacity: 0.35;
+	pointer-events: none;
+	cursor: default;
+}
+.disabled:hover {
+	opacity: 0.35;
+}

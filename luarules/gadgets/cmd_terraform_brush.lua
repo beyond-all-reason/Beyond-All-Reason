@@ -1367,6 +1367,9 @@ local function applyFill(cx, cz)
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
+	-- Defensive: engine always passes a string, but a malformed caller or
+	-- future API change could pass nil/non-string — avoid a traceback.
+	if type(msg) ~= "string" or #msg == 0 then return false end
 	-- Strip cheat-certification prefix embedded by the widget when cheat was on.
 	-- Certified messages are trusted even when live cheat mode is false (e.g. in replays).
 	local certified = msg:sub(1, CHEAT_SIG_LEN) == CHEAT_SIG
