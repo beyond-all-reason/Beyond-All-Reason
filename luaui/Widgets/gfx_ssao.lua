@@ -153,9 +153,9 @@ local initialTonemapE = Spring.GetConfigFloat("tonemapE", 1.0)
 local preset = 3
 local presets = {
 	{ -- LOW QUALITY
-		BLUR_CLAMP = 0.16,
+		BLUR_CLAMP = 0.17,
 		BLUR_HALF_KERNEL_SIZE = 3,
-		BLUR_POWER = 1.6,
+		BLUR_POWER = 1.5,
 		BLUR_SIGMA = 2,
 		BRIGHTEN = 30,
 		DOWNSAMPLE = 2,
@@ -173,20 +173,20 @@ local presets = {
 		USE_STENCIL = 0, -- There is a non-zero cpu cost of drawing the stencil, and at low resolutions, it doesnt help really
 	},
 	{ -- MEDIUM QUALITY
-		BLUR_CLAMP = 0.269,
+		BLUR_CLAMP = 0.24,
 		BLUR_HALF_KERNEL_SIZE = 4,
-		BLUR_POWER = 1.6,
+		BLUR_POWER = 2.3,
 		BLUR_SIGMA = 3,
-		BRIGHTEN = 33,
+		BRIGHTEN = 30,
 		DOWNSAMPLE = 2, -- half-res SSAO; bilateral upsample preserves edges via full-res depth ref
 		MINCOSANGLE = 0.70,
 		OUTLIERCORRECTIONFACTOR = 0.16,
 		SSAO_FADE_DIST_0 = 7000,
 		SSAO_FADE_DIST_1 = 3500,
-		SSAO_KERNEL_SIZE = 20, -- bumped slightly vs LOW (12) to compensate for half-res; still ~3.5x cheaper than full-res 32
-		SSAO_MIN = 0.64,
+		SSAO_KERNEL_SIZE = 19, -- bumped slightly vs LOW (12) to compensate for half-res; still ~3.5x cheaper than full-res 32
+		SSAO_MIN = 0.62,
 		SSAO_RADIUS = 8,
-		SSAO_RADIUS_FAR_SCALE = 3.5,
+		SSAO_RADIUS_FAR_SCALE = 3.6,
 	},
 	{ -- HIGH QUALITY
 		BLUR_CLAMP = 0.145,

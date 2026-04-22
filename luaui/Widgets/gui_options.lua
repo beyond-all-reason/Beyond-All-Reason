@@ -2803,7 +2803,7 @@ function init()
 		},
 
 		{ id = "bloomdeferred", group = "gfx", category = types.basic, widget = "Bloom Shader Deferred", name = Spring.I18N('ui.settings.option.bloomdeferred'), type = "bool", value = GetWidgetToggleValue("Bloom Shader Deferred"), description = Spring.I18N('ui.settings.option.bloomdeferred_descr') },
-		{ id = "bloomdeferredbrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.bloomdeferredbrightness'), type = "slider", min = 0.5, max = 1.8, step = 0.05, value = 1.0, description = '',
+		{ id = "bloomdeferredbrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.bloomdeferredbrightness'), type = "slider", min = 0.5, max = 2.0, step = 0.05, value = 1.0, description = '',
 		  onload = function(i)
 			  loadWidgetData("Bloom Shader Deferred", "bloomdeferredbrightness", { 'glowAmplifier' })
 		  end,
