@@ -26,13 +26,21 @@ local function calculateDpRatio()
     return math.floor(dpRatio * 100) / 100
 end
 
+local currentDpRatio = 1
+
 local function updateContextsDpRatio()
-    local newDpRatio = calculateDpRatio()
+    currentDpRatio = calculateDpRatio()
     local contexts = RmlUi.contexts()
     for _, context in ipairs(contexts) do
-        context.dp_ratio = newDpRatio
+        context.dp_ratio = currentDpRatio
     end
 end
+
+-- Shared accessor so widgets don't reimplement calculateDpRatio().
+-- Returns the current scale factor (resolution_factor * ui_scale), matching
+-- whatever the shared RmlUi context is currently using.
+WG.RmlContextManager = WG.RmlContextManager or {}
+WG.RmlContextManager.getDpRatio = function() return currentDpRatio end
 
 function widget:Initialize()
     if not RmlUi.GetContext("shared") then
@@ -48,5 +56,8 @@ end
 -- include also a listener for the ui_scale config variable changes
 
 function widget:Shutdown()
+    if WG.RmlContextManager then
+        WG.RmlContextManager.getDpRatio = nil
+    end
     Spring.Echo("Rml Context Manager shutdown, dynamic context dp ratio updates to contexts disabled." )
 end
