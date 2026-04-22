@@ -5767,7 +5767,11 @@ function widget:DrawWorld()
 				elseif stState and stState.active then
 					local wx, wz = getWorldMousePosition()
 					if wx then
-						extraState.drawHeightColormap(wx, wz, stState.shapeRadius or 500, stState.shapeType or "circle", stState.shapeRotation or 0, 1.0)
+						-- Only show shape overlay in shape submode; express/startbox have no meaningful brush radius
+						if stState.subMode == "shape" then
+							local sr = math.min(stState.shapeRadius or 500, 800)
+							extraState.drawHeightColormap(wx, wz, sr, stState.shapeType or "circle", stState.shapeRotation or 0, 1.0)
+						end
 					end
 				elseif clState and clState.active then
 					local wx, wz = getWorldMousePosition()
@@ -5795,7 +5799,10 @@ function widget:DrawWorld()
 			elseif dcState and dcState.active then r = dcState.radius or 200
 			elseif wbState and wbState.active then r = wbState.radius or 200
 			elseif lpState and lpState.active then r = lpState.radius or 200
-			elseif stState and stState.active then r = stState.shapeRadius or 500
+			elseif stState and stState.active then
+				if stState.subMode == "shape" then
+					r = math.min(stState.shapeRadius or 500, 800)
+				end
 			elseif clState and clState.active then r = clState.radius or 300 end
 			if r then
 				local wx, wz = getWorldMousePosition()
@@ -5926,7 +5933,12 @@ function widget:DrawWorld()
 	-- G8: set per-mode cursor (replace cursor name in modeCursors table for custom artwork)
 	if not extraState.measureDrawing and not extraState.symmetryHoveringOrigin
 	   and not extraState.symmetryDraggingOrigin and not extraState.symmetryPlacingOrigin then
-		Spring.SetMouseCursor(extraState.modeCursors[activeMode] or "cursornormal")
+		-- Start-positions tool takes priority when hovering a draggable marker / box vertex
+		if WG.StartPosTool and WG.StartPosTool.hoveringDraggable then
+			Spring.SetMouseCursor("Move")
+		else
+			Spring.SetMouseCursor(extraState.modeCursors[activeMode] or "cursornormal")
+		end
 	end
 
 	-- Track shift key state for axis-lock origin capture
