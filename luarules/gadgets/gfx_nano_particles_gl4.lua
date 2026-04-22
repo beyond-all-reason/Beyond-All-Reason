@@ -154,25 +154,27 @@ local NanoParticleRate        = 0.33   -- [0..1]
 -- isolation. Billboard matches the engine spray; shape is tuned independently.
 local MODE_SETTINGS = {
 	billboard = {
-		drawRadius  = 2.85,        -- engine: drawRadius = 3
+		drawRadius  = 3.0,        -- engine: drawRadius = 3
 		nanoAlpha   = 20 / 255,
 		dirJitter   = 0.15,
 		-- Per-particle randomization (± fraction of the base value). 0 disables.
-		sizeVar     = 0.22,
-		speedVar    = 0.15,
+		sizeVar     = 0.4,
+		speedVar    = 0.17,
 		alphaVar    = 1.5,
 		-- Engine static rotation params (BAR default: -180,-50,-50,360,100,100).
 		rotValBase  = -180, rotValRange = 360,
 		rotVelBase  = -55,  rotVelRange = 110,
 		rotAccBase  = -55,  rotAccRange = 110,
-		glowIntensity = 0.05,
-		glowFalloff = 3.3,
-		glowScale = 3.3,
+		glowIntensity = 0.04,
+		glowFalloff = 8,
+		glowScale = 5.0,
+		glowBreath     = 1.5,    -- halo intensity oscillation (per-particle phase)
+		glowBreathFreq = 2.0,    -- cycles/sec
+		glowBreathVar     = 0.5,  -- ± per-particle amplitude variation (0..1 fraction)
+		glowBreathFreqVar = 0.4,  -- ± per-particle frequency variation (0..1 fraction)
 		-- Energy enhancement (all shader-side, zero CPU cost):
 		coreBoost      = 0.6,    -- HDR overdrive on textured core (>1 pushes into bloom)
 		hueJitter      = 0.07,   -- ± per-channel RGB modulation per particle (0.05-0.10 sweet spot)
-		glowBreath     = 0.8,    -- halo intensity oscillation (per-particle phase)
-		glowBreathFreq = 3.0,    -- cycles/sec
 		sizePulseAmp   = 0.05,   -- ± quad-size oscillation (keep <0.10 to avoid sub-frame jumps)
 		sizePulseFreq  = 4.0,
 		-- Vortex/swirl displacement perpendicular to velocity. Bell-shaped over
@@ -191,11 +193,11 @@ local MODE_SETTINGS = {
 	},
 	shape = {
 		shape       = "cube",   -- "cube" | "octahedron"
-		drawRadius  = 1.45,        -- shape spans ~2*drawRadius edge-to-edge
+		drawRadius  = 1.4,        -- shape spans ~2*drawRadius edge-to-edge
 		nanoAlpha   = 40 / 255,   -- match billboard look
 		dirJitter   = 0.10,       -- chunks read better with less spread
 		-- Shapes benefit from visible variation -- they read as discrete chunks.
-		sizeVar     = 0.45,
+		sizeVar     = 0.6,
 		speedVar    = 0.2,
 		alphaVar    = 1.6,
 		-- View-dependent face shading: 0 = flat, 1 = full 3D depth (back faces visible-but-dimmed).
@@ -209,16 +211,18 @@ local MODE_SETTINGS = {
 		rotValBase  = -180, rotValRange = 360,
 		rotVelBase  = -40,  rotVelRange = 80,
 		rotAccBase  = -40,  rotAccRange = 80,
-		glowIntensity = 0.22,
-		glowFalloff = 8.0,
-		glowScale = 11.0,
+		glowIntensity = 0.17,
+		glowFalloff = 11.0,
+		glowScale = 12.0,
+		glowBreath     = 3.8,
+		glowBreathFreq = 2.0,
+		glowBreathVar     = 0.5,  -- ± per-particle amplitude variation (0..1 fraction)
+		glowBreathFreqVar = 0.5,  -- ± per-particle frequency variation (0..1 fraction)
 		-- Energy enhancement (sizePulse not wired through GS; halo+jitter+breath suffice).
 		coreBoost      = 0.22,    -- multiplies face shading; modest so dark faces still read
 		hueJitter      = 0.1,
-		glowBreath     = 3.0,
-		glowBreathFreq = 3.0,
 
-		wobbleAmp      = 15.0,
+		wobbleAmp      = 12.0,
 		wobbleVar      = 0.5,	-- 0...1 fraction of wobbleAmp
 		wobbleFreq     = 0.15,
 		wobbleFreqVar  = 0.5,	-- 0...1 fraction of wobbleFreq
@@ -381,6 +385,8 @@ local function applyRenderMode(name)
 	U.HUE_JITTER         = MODE.hueJitter       or 0.0
 	U.GLOW_BREATH        = MODE.glowBreath      or 0.0
 	U.GLOW_BREATH_FREQ   = MODE.glowBreathFreq  or 0.0
+	U.GLOW_BREATH_VAR      = MODE.glowBreathVar      or 0.0
+	U.GLOW_BREATH_FREQ_VAR = MODE.glowBreathFreqVar  or 0.0
 	U.SIZE_PULSE_AMP     = MODE.sizePulseAmp    or 0.0
 	U.SIZE_PULSE_FREQ    = MODE.sizePulseFreq   or 0.0
 	U.WOBBLE_AMP         = MODE.wobbleAmp       or 0.0
@@ -684,6 +690,8 @@ uniform float coreBoost;          // brightness multiplier for the textured core
 uniform float hueJitter;          // \u00b1 per-channel modulation amplitude (0 = off)
 uniform float glowBreath;         // halo intensity oscillation amplitude (0..1)
 uniform float glowBreathFreq;     // halo oscillation frequency (cycles/sim-second)
+uniform float glowBreathVar;      // ± per-particle amplitude variation (0..1 fraction of glowBreath)
+uniform float glowBreathFreqVar;  // ± per-particle frequency variation (0..1 fraction of glowBreathFreq)
 uniform float cubeNoise;             // brightness noise on the textured core (0 = off)
 uniform float cubeNoiseSpeed;        // noise time-scroll rate
 uniform float cubeNoiseScale;        // noise spatial frequency (UV space)
@@ -777,16 +785,35 @@ void main() {
 		float t = clamp((1.0 - rd) / (1.0 - coreEdge), 0.0, 1.0);
 		float gI = glowIntensity;
 		// Animated halo "breath": small intensity oscillation, per-particle
-		// phase-offset so adjacent halos don't pulse in lockstep.
+		// phase-offset so adjacent halos don't pulse in lockstep. Per-particle
+		// amplitude and frequency variation use two INDEPENDENT sin-hashes of
+		// v_seed (different prime multipliers and offsets) so even when seeds
+		// cluster in [-pi, pi] the two hashes decorrelate cleanly. Single-hash
+		// chains produced visibly correlated amp/freq pairs in testing.
 		if (glowBreath > 0.0001) {
-			float ph = (timeInfo.x + timeInfo.w) * glowBreathFreq * (6.2831853 / 30.0) + v_seed;
-			gI *= 1.0 + glowBreath * sin(ph);
+			float hAmp  = fract(sin(v_seed * 91.7253 + 17.31) * 43758.5453);
+			float hFreq = fract(sin(v_seed * 33.1117 + 43.93) * 27183.4500);
+			float ampScale  = max(0.0, 1.0 + glowBreathVar     * (2.0 * hAmp  - 1.0));
+			float freqScale = max(0.0, 1.0 + glowBreathFreqVar * (2.0 * hFreq - 1.0));
+			float ph = (timeInfo.x + timeInfo.w) * glowBreathFreq * freqScale * (6.2831853 / 30.0) + v_seed;
+			gI *= 1.0 + glowBreath * ampScale * sin(ph);
 		}
 		glow = pow(t, max(glowFalloff, 0.01)) * gI;
 	}
 
 	float combined = (mask + glow);
-	vec3  rgb = v_color.rgb * tint * combined;
+	// Glow tint is the channel-normalized team color (max channel = 1) so each
+	// hue stays fully saturated. Brightness equalization is then done by
+	// scaling the glow CONTRIBUTION (not the tint) by GLOW_LUMA_TARGET / hueLuma
+	// -- dark hues (blue luma ~0.07) emit proportionally more energy in their
+	// own channel, hitting the same perceived brightness as bright hues without
+	// any whitewash. Cap the boost to keep HDR additive blending in check.
+	vec3  glowTint = v_color.rgb / max(max(v_color.r, max(v_color.g, v_color.b)), 0.001);
+	float gLuma    = dot(glowTint, vec3(0.2126, 0.7152, 0.0722));
+	const float GLOW_LUMA_TARGET = 0.55;
+	const float GLOW_BOOST_MAX   = 5.0;
+	float glowBoost = min(GLOW_LUMA_TARGET / max(gLuma, 0.001), GLOW_BOOST_MAX);
+	vec3  rgb = (v_color.rgb * mask + glowTint * (glow * glowBoost)) * tint;
 	float a   = v_color.a   * combined;
 
 	// White hotspot overlay on the textured core. Premultiplied-alpha trick:
@@ -1114,6 +1141,8 @@ uniform float coreBoost;        // brightness multiplier for the lit faces (>=1.
 uniform float hueJitter;        // \u00b1 per-channel modulation amplitude (0 = off)
 uniform float glowBreath;       // halo intensity oscillation amplitude (0..1)
 uniform float glowBreathFreq;   // halo oscillation frequency (cycles/sim-second)
+uniform float glowBreathVar;    // ± per-particle amplitude variation (0..1 fraction of glowBreath)
+uniform float glowBreathFreqVar;// ± per-particle frequency variation (0..1 fraction of glowBreathFreq)
 uniform float whiteHotspot;          // peak strength of noise->white mix on faces (0 = off)
 uniform float whiteHotspotThreshold; // noise value where hotspot ramp starts (0..1)
 
@@ -1186,11 +1215,22 @@ void main() {
 		float t = 1.0 - rd;
 		float gI = glowIntensity;
 		if (glowBreath > 0.0001) {
-			float ph = (timeInfo.x + timeInfo.w) * glowBreathFreq * (6.2831853 / 30.0) + g_seed;
-			gI *= 1.0 + glowBreath * sin(ph);
+			// See billboard FS for rationale; two independent sin-hashes.
+			float hAmp  = fract(sin(g_seed * 91.7253 + 17.31) * 43758.5453);
+			float hFreq = fract(sin(g_seed * 33.1117 + 43.93) * 27183.4500);
+			float ampScale  = max(0.0, 1.0 + glowBreathVar     * (2.0 * hAmp  - 1.0));
+			float freqScale = max(0.0, 1.0 + glowBreathFreqVar * (2.0 * hFreq - 1.0));
+			float ph = (timeInfo.x + timeInfo.w) * glowBreathFreq * freqScale * (6.2831853 / 30.0) + g_seed;
+			gI *= 1.0 + glowBreath * ampScale * sin(ph);
 		}
 		float glow = pow(clamp(t, 0.0, 1.0), max(glowFalloff, 0.01)) * gI;
-		fragColor = vec4(g_color.rgb * tint * glow, g_color.a * glow) * losMul;
+		// Saturation-preserving brightness equalization -- see billboard FS.
+		vec3  glowTint = g_color.rgb / max(max(g_color.r, max(g_color.g, g_color.b)), 0.001);
+		float gLuma    = dot(glowTint, vec3(0.2126, 0.7152, 0.0722));
+		const float GLOW_LUMA_TARGET = 0.55;
+		const float GLOW_BOOST_MAX   = 5.0;
+		float glowBoost = min(GLOW_LUMA_TARGET / max(gLuma, 0.001), GLOW_BOOST_MAX);
+		fragColor = vec4(glowTint * tint * (glow * glowBoost), g_color.a * glow) * losMul;
 		return;
 	}
 
@@ -1277,6 +1317,7 @@ local function initGL4()
 		                 glowScale = U.GLOW_SCALE, glowIntensity = U.GLOW_INTENSITY, glowFalloff = U.GLOW_FALLOFF,
 		                 coreBoost = U.CORE_BOOST,
 		                 hueJitter = U.HUE_JITTER, glowBreath = U.GLOW_BREATH, glowBreathFreq = U.GLOW_BREATH_FREQ,
+		                 glowBreathVar = U.GLOW_BREATH_VAR, glowBreathFreqVar = U.GLOW_BREATH_FREQ_VAR,
 		                 sizePulseAmp = U.SIZE_PULSE_AMP, sizePulseFreq = U.SIZE_PULSE_FREQ,
 		                 wobbleAmp = U.WOBBLE_AMP, wobbleFreq = U.WOBBLE_FREQ, wobbleVar = U.WOBBLE_VAR, wobbleFreqVar = U.WOBBLE_FREQ_VAR,
 		                 whiteHotspot = U.WHITE_HOTSPOT, whiteHotspotThreshold = U.WHITE_HOTSPOT_THRESHOLD },
