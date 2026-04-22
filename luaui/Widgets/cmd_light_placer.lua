@@ -168,6 +168,12 @@ local updateTimer = 0
 local previewLight   = { id = nil, shape = nil }
 local previewLastHash = nil
 
+-- Pending preset: when set, MousePress places this entire preset at cursor
+-- and the preview shows the composite of preset lights following the cursor.
+local pendingPreset      = nil   -- presetData (with .lights array) or nil
+local presetPreviewLights = {}   -- array of { shape, id }
+local presetPreviewHash   = nil
+
 ----------------------------------------------------------------
 -- Builtin presets
 ----------------------------------------------------------------
@@ -947,6 +953,79 @@ local function updatePreviewLight(worldX, worldZ)
 end
 
 ----------------------------------------------------------------
+-- Preset preview: preview lights for all lights in a pending preset
+----------------------------------------------------------------
+local function removePresetPreviewLights()
+	local api = WG['lightsgl4']
+	if api and api.RemoveLight then
+		for _, p in ipairs(presetPreviewLights) do
+			api.RemoveLight(p.shape, p.id, nil)
+		end
+	end
+	presetPreviewLights = {}
+	presetPreviewHash = nil
+end
+
+local function updatePresetPreviewLights(worldX, worldZ)
+	if not pendingPreset or not pendingPreset.lights then
+		removePresetPreviewLights()
+		return
+	end
+	local api = WG['lightsgl4']
+	if not api then removePresetPreviewLights(); return end
+	local hash = string.format("%.0f_%.0f_%d", worldX, worldZ, #pendingPreset.lights)
+	if hash == presetPreviewHash and #presetPreviewLights > 0 then return end
+	removePresetPreviewLights()
+	for _, l in ipairs(pendingPreset.lights) do
+		local px = worldX + (l.offsetX or 0)
+		local pz = worldZ + (l.offsetZ or 0)
+		local py = (GetGroundHeight(px, pz) or 0) + (l.elevation or 0)
+		local color = l.color or { 1, 1, 1 }
+		local br = l.brightness or 1
+		local r, g, b = color[1] * br, color[2] * br, color[3] * br
+		local radius = l.radius or 200
+		local id
+		local ltype = l.type or "point"
+		if ltype == "point" then
+			id = api.AddPointLight(nil, nil, nil, nil,
+				px, py, pz, radius,
+				r, g, b, 1.0, 0, 0, 0, 0,
+				l.modelfactor or 1, l.specular or 1, l.scattering or 1, l.lensflare or 0,
+				nil, 0, 1, 0)
+		elseif ltype == "cone" then
+			local dx, dy, dz = eulerToDirection(l.pitch or -90, l.yaw or 0)
+			id = api.AddConeLight(nil, nil, nil, nil,
+				px, py, pz, radius,
+				r, g, b, 1.0, dx, dy, dz, l.theta or 0.5, 0,
+				l.modelfactor or 1, l.specular or 1, l.scattering or 1, l.lensflare or 0,
+				nil, 0, 1, 0)
+		elseif ltype == "beam" then
+			local ex, ey, ez = beamEndpoint(px, py, pz, l.pitch or 0, l.yaw or 0, l.beamLength or 300)
+			id = api.AddBeamLight(nil, nil, nil, nil,
+				px, py, pz, radius,
+				r, g, b, 1.0, ex, ey, ez, radius, 0,
+				l.modelfactor or 1, l.specular or 1, l.scattering or 1, l.lensflare or 0,
+				nil, 0, 1, 0)
+		end
+		if id then
+			presetPreviewLights[#presetPreviewLights + 1] = { shape = ltype, id = id }
+		end
+	end
+	presetPreviewHash = hash
+end
+
+local function setPendingPreset(preset)
+	pendingPreset = preset
+	removePresetPreviewLights()
+	removePreviewLight()
+end
+
+local function clearPendingPreset()
+	pendingPreset = nil
+	removePresetPreviewLights()
+end
+
+----------------------------------------------------------------
 -- Draw: cursor preview circle + ghost light indicator
 ----------------------------------------------------------------
 local function drawBrushCircle(worldX, worldZ)
@@ -1143,6 +1222,7 @@ function widget:Initialize()
 			lp.mode = nil
 			lp.dragging = false
 			removePreviewLight()
+			clearPendingPreset()
 		end,
 
 		setMode         = function(m) lp.mode = m; lp.active = (m ~= nil) end,
@@ -1186,12 +1266,17 @@ function widget:Initialize()
 		placePreset     = placePreset,
 		getBuiltinPresets = function() return BUILTIN_PRESETS end,
 
+		setPendingPreset   = setPendingPreset,
+		clearPendingPreset = clearPendingPreset,
+		getPendingPreset   = function() return pendingPreset end,
+
 		getPlacedCount  = function() local n = 0; for _ in pairs(placedLights) do n = n + 1 end; return n end,
 	}
 end
 
 function widget:Shutdown()
 	removePreviewLight()
+	removePresetPreviewLights()
 	-- Remove all placed lights from the renderer
 	for instanceID in pairs(placedLights) do
 		removeOneLight(instanceID)
@@ -1219,7 +1304,7 @@ end
 function widget:MousePress(mx, my, button)
 	if not lp.active or not lp.mode then return false end
 	if button ~= 1 and button ~= 3 then return false end
-	if isOverLightsUI(mx, my) then return false end
+	if isOverLightsUI(mx, my) then return true end
 
 	-- Defer to measure tool when active
 	do
@@ -1234,6 +1319,13 @@ function widget:MousePress(mx, my, button)
 	local worldX, _, worldZ = coords[1], coords[2], coords[3]
 
 	if button == 1 then
+		-- If a preset is armed, place the entire preset at cursor; keep armed
+		-- so the user can drop it multiple times. Right click or Esc clears.
+		if pendingPreset then
+			placePreset(pendingPreset, worldX, worldZ)
+			lp.dragging = false
+			return true
+		end
 		if lp.mode == "remove" then
 			placeSymmetric(removeAtPosition, worldX, worldZ)
 		else
@@ -1244,7 +1336,11 @@ function widget:MousePress(mx, my, button)
 		lp.placeTimer = 0
 		return true
 	elseif button == 3 then
-		-- Right click in any mode removes
+		-- Right click clears armed preset if any, otherwise removes at position
+		if pendingPreset then
+			clearPendingPreset()
+			return true
+		end
 		placeSymmetric(removeAtPosition, worldX, worldZ)
 		lp.dragging = true
 		lp.dragAction = "remove"
@@ -1288,43 +1384,62 @@ end
 function widget:DrawWorld()
 	if not lp.active or not lp.mode then
 		removePreviewLight()
+		removePresetPreviewLights()
 		return
 	end
 
 	local mx, my = GetMouseState()
 	local worldX, worldZ
 
-	-- Unmouse: when cursor overlaps the UI panel or library window, move the brush to screen center
-	local tfUI = WG.TerraformBrushUI
-	if tfUI then
+	-- Real ground position under cursor (if any)
+	local _, coords = TraceScreenRay(mx, my, true)
+	if coords then worldX, worldZ = coords[1], coords[3] end
+
+	-- Animated unmouse: slide brush toward the parked spot when cursor is over
+	-- the terraform panel or the light library, and back when it leaves.
+	do
+		local tb = WG.TerraformBrush
+		local tfUI = WG.TerraformBrushUI
 		local function overBounds(b)
 			if not b then return false end
 			return mx >= b.left and mx <= b.right and my >= b.bottomY and my <= b.topY
 		end
-		local mainBounds = tfUI.getPanelBounds and tfUI.getPanelBounds()
-		local libBounds  = tfUI.getLightLibraryBounds and tfUI.getLightLibraryBounds()
-		local bounds = overBounds(libBounds) and libBounds or (overBounds(mainBounds) and mainBounds or nil)
-		if bounds then
-			local vsx, vsy = Spring.GetViewGeometry()
-			local cx = floor(vsx * 0.5)
-			-- If center is blocked by the panel, use the area to its left
-			if cx >= bounds.left - 30 and cx <= bounds.right + 30 then
-				cx = floor(bounds.left * 0.5)
+		local libBounds = tfUI and tfUI.getLightLibraryBounds and tfUI.getLightLibraryBounds()
+		local overLib   = overBounds(libBounds)
+		if tb and tb.animateUnmouse then
+			-- When cursor is over the light library but not the main panel, the
+			-- shared animateUnmouse won't detect it. Treat "over library" as if
+			-- over panel by supplying a library-derived parked position.
+			if overLib and not overBounds(tfUI and tfUI.getPanelBounds and tfUI.getPanelBounds()) then
+				local vsx, vsy = Spring.GetViewGeometry()
+				local cx = floor(vsx * 0.5)
+				if cx >= libBounds.left - 30 and cx <= libBounds.right + 30 then
+					cx = floor(libBounds.left * 0.5)
+				end
+				local cy = floor(vsy * 0.5)
+				local _, ccoords = TraceScreenRay(cx, cy, true)
+				if ccoords then worldX, worldZ = ccoords[1], ccoords[3] end
+			else
+				worldX, worldZ = tb.animateUnmouse("lightPlacer", worldX, worldZ, lp.radius, 1.0)
 			end
-			local cy = floor(vsy * 0.5)
-			local _, ccoords = TraceScreenRay(cx, cy, true)
-			if ccoords then worldX, worldZ = ccoords[1], ccoords[3] end
 		end
 	end
 
 	if not worldX then
-		local _, coords = TraceScreenRay(mx, my, true)
-		if not coords then
-			removePreviewLight()
-			return
-		end
-		worldX, worldZ = coords[1], coords[3]
+		removePreviewLight()
+		removePresetPreviewLights()
+		return
 	end
+
+	-- Armed preset preview: show all preset lights at cursor; suppress regular preview
+	if pendingPreset and lp.mode ~= "remove" then
+		removePreviewLight()
+		updatePresetPreviewLights(worldX, worldZ)
+		drawBrushCircle(worldX, worldZ)
+		return
+	end
+
+	removePresetPreviewLights()
 
 	-- Live preview light at cursor (skip in remove mode)
 	if lp.mode ~= "remove" then
@@ -1341,6 +1456,10 @@ function widget:KeyPress(key, mods, isRepeat)
 
 	-- Escape = deactivate
 	if key == 0x1B then
+		if pendingPreset then
+			clearPendingPreset()
+			return true
+		end
 		lp.active = false
 		lp.mode = nil
 		lp.dragging = false

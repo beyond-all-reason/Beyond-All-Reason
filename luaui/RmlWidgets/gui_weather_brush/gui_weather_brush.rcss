@@ -8,12 +8,18 @@ body {
 }
 
 /* === Root Positioning === */
+/*
+ * Width uses `vw` so the panel scales with viewport width across
+ * 1080p / 1440p / 4k. `min-width: px` keeps it readable on small windows;
+ * `max-width: px` caps it on ultrawide / 4k setups.
+ */
 .wb-root {
 	pointer-events: auto;
 	position: absolute;
 	left: 60vw;
 	top: 25vh;
-	width: 15vw;
+	width: 13vw;
+	min-width: 220px;
 	z-index: 900;
 }
 

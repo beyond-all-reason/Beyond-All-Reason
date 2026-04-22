@@ -515,6 +515,9 @@ function M.attach(doc, ctx)
 		libraryBtn:AddEventListener("click", function(event)
 			playSound("panelOpen")
 			widgetState.lightLibraryOpen = not widgetState.lightLibraryOpen
+			if not widgetState.lightLibraryOpen and WG.LightPlacer and WG.LightPlacer.clearPendingPreset then
+				WG.LightPlacer.clearPendingPreset()
+			end
 			event:StopPropagation()
 		end, false)
 	end
@@ -629,6 +632,9 @@ function M.attach(doc, ctx)
 			if item then
 				item:AddEventListener("click", function(event)
 					widgetState.lightLibrarySelectedPreset = preset
+					if WG.LightPlacer and WG.LightPlacer.setPendingPreset then
+						WG.LightPlacer.setPendingPreset(preset)
+					end
 					for _, e2 in ipairs(shown) do
 						local el = doc:GetElementById("ll-builtin-" .. e2.idx)
 						if el then el:SetClass("selected", e2.idx == i) end
@@ -684,6 +690,9 @@ function M.attach(doc, ctx)
 					local data = WG.LightPlacer.loadPresetFile(p.path)
 					if data then
 						widgetState.lightLibrarySelectedPreset = data
+						if WG.LightPlacer.setPendingPreset then
+							WG.LightPlacer.setPendingPreset(data)
+						end
 					end
 					for _, e2 in ipairs(shown) do
 						local el = doc:GetElementById("ll-user-" .. e2.idx)
@@ -759,6 +768,9 @@ function M.attach(doc, ctx)
 			widgetState.lightLibraryOpen = false
 			if widgetState.lightLibraryRootEl then
 				widgetState.lightLibraryRootEl:SetClass("hidden", true)
+			end
+			if WG.LightPlacer and WG.LightPlacer.clearPendingPreset then
+				WG.LightPlacer.clearPendingPreset()
 			end
 			event:StopPropagation()
 		end, false)

@@ -1075,13 +1075,15 @@ function widget:DrawWorld()
 	end
 
 	local worldX, worldZ = getWorldMousePosition()
-	if not worldX then
+	do
 		local tb = WG.TerraformBrush
-		if tb and tb.getUnmouseTarget then
+		if tb and tb.animateUnmouse then
+			worldX, worldZ = tb.animateUnmouse("featurePlacer", worldX, worldZ, fp.radius, 1.0)
+		elseif tb and tb.getUnmouseTarget and not worldX then
 			worldX, worldZ = tb.getUnmouseTarget(fp.radius, 1.0)
 		end
-		if not worldX then return end
 	end
+	if not worldX then return end
 
 	-- Grid snap + visual
 	if gridSnap then

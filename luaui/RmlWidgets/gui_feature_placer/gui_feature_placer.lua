@@ -23,8 +23,7 @@ local GetViewGeometry = Spring.GetViewGeometry
 
 local INITIAL_LEFT_VW   = 60
 local INITIAL_TOP_VH    = 10
-local BASE_WIDTH_DP     = 162
-local BASE_RESOLUTION   = 1920
+local BASE_WIDTH_DP     = 220
 local TILE_COLUMNS      = 3
 local TILE_GAP_DP       = 2
 
@@ -32,6 +31,8 @@ local widgetState = {
 	rmlContext   = nil,
 	document     = nil,
 	rootElement  = nil,
+	-- Logical (dp) width used for tile layout math. Rendered width lives
+	-- in RCSS (.fp-root) via dp + min-width.
 	panelWidthDp = BASE_WIDTH_DP,
 }
 
@@ -75,8 +76,14 @@ local needsListRefresh = false
 local depthTex  -- shared depth buffer for rendering
 
 local function buildRootStyle()
-	return string.format("left: %.2fvw; top: %.2fvh; width: %ddp;",
-		INITIAL_LEFT_VW, INITIAL_TOP_VH, widgetState.panelWidthDp)
+	-- Width lives in RCSS (.fp-root); we only set position here.
+	return string.format("left: %.2fvw; top: %.2fvh;",
+		INITIAL_LEFT_VW, INITIAL_TOP_VH)
+end
+
+local function getDpRatio()
+	return (WG.RmlContextManager and WG.RmlContextManager.getDpRatio
+		and WG.RmlContextManager.getDpRatio()) or 1.0
 end
 
 ----------------------------------------------------------------
@@ -417,18 +424,46 @@ local virtualBotSpacer = nil  -- spacer div for items below viewport
 local virtualVisStart = 0     -- first visible index (0-based)
 local virtualVisEnd   = 0     -- last visible index (exclusive)
 local measuredRowHeightPx = 0 -- actual rendered tile row height in px (measured after first render)
+local lastBuildInnerPx = 0    -- client_width of feature-list at last rebuild, for resize detection
+
+local function getListInnerPx()
+	local listEl = widgetState.document and widgetState.document:GetElementById("feature-list")
+	if listEl then
+		local cw = listEl.client_width or 0
+		if cw > 0 then return cw, listEl end
+	end
+	local dpRatio = getDpRatio()
+	local pwPx = (widgetState.rootElement and widgetState.rootElement.offset_width) or 0
+	if pwPx <= 0 then pwPx = widgetState.panelWidthDp * dpRatio end
+	-- list has padding: 4dp each side + border: 1dp each side + ~12px scrollbar
+	return pwPx - (4 + 4 + 1 + 1) * dpRatio - 12, listEl
+end
 
 local function computeTileWidth()
-	local pw = widgetState.panelWidthDp
-	local innerW = pw - 16 - 8 - 2
-	return math.floor((innerW - (TILE_COLUMNS - 1) * TILE_GAP_DP - TILE_COLUMNS * 4) / TILE_COLUMNS)
+	-- ALWAYS 3 columns. Work from the list element's actual client_width
+	-- (content area; excludes padding/border/scrollbar) and err on the side
+	-- of slightly-too-small tiles so flex-wrap never promotes us to 4 or
+	-- demotes us to 2 due to sub-pixel rounding or a scrollbar that pops in
+	-- after the rebuild.
+	local dpRatio = getDpRatio()
+	local innerPx = getListInnerPx()
+	-- Always reserve scrollbar (8dp from RCSS) even when it isn't currently
+	-- visible, so the layout doesn't collapse to 2 cols when the user scrolls
+	-- and the scrollbar pops in.
+	innerPx = innerPx - 8 * dpRatio
+	local gapPx = TILE_GAP_DP * dpRatio
+	local tileBorderPx = 4 * dpRatio  -- per-tile border: 2dp each side
+	local safetyPx = 6 * dpRatio       -- fudge against sub-pixel rounding
+	local tileW = math.floor((innerPx - (TILE_COLUMNS - 1) * gapPx - TILE_COLUMNS * tileBorderPx - safetyPx) / TILE_COLUMNS)
+	if tileW < 24 then tileW = 24 end
+	return tileW
 end
 
 local function createTileElement(doc, entry, tileW, selectedSet)
 	local name = entry.name
 	local itemEl = doc:CreateElement("div")
 	itemEl:SetClass("fp-feature-item", true)
-	itemEl:SetAttribute("style", string.format("width: %ddp; height: %ddp;", tileW, tileW))
+	itemEl:SetAttribute("style", string.format("width: %dpx; height: %dpx;", tileW, tileW))
 	if selectedSet[name] then
 		itemEl:SetClass("selected", true)
 	end
@@ -479,11 +514,10 @@ local function renderVirtualWindow(listEl, doc, startIdx, endIdx, selectedSet)
 	-- Compute row height in PX. Prefer the measured value from a prior render,
 	-- since CSS borders/gaps make the real rendered height differ from tileW+gap dp.
 	-- Falls back to dp estimate for the very first render (startIdx=0, topSpacer=0 so exact value doesn't matter yet).
-	local vsx = GetViewGeometry()
-	local scaleFactor = math.max(1.0, vsx / BASE_RESOLUTION)
+	local scaleFactor = getDpRatio()
 	local rowHeightPx = measuredRowHeightPx
 	if rowHeightPx < 1 then
-		rowHeightPx = (tileW + TILE_GAP_DP) * scaleFactor
+		rowHeightPx = tileW + TILE_GAP_DP * scaleFactor
 	end
 
 	-- Top spacer: accounts for all rows above startIdx (sized in px for exact match to real tile row height)
@@ -536,9 +570,8 @@ local function updateVirtualWindow()
 	-- Prefer the measured pixel row height (accurate, includes border+gap); fall back to dp estimate.
 	local rowHeightPx = measuredRowHeightPx
 	if rowHeightPx < 1 then
-		local vsx = GetViewGeometry()
-		local scaleFactor = math.max(1.0, vsx / BASE_RESOLUTION)
-		rowHeightPx = (tileW + TILE_GAP_DP) * scaleFactor
+		local scaleFactor = getDpRatio()
+		rowHeightPx = tileW + TILE_GAP_DP * scaleFactor
 	end
 
 	if rowHeightPx < 1 then rowHeightPx = 40 end
@@ -622,12 +655,12 @@ local function rebuildFeatureList(filter)
 	end
 
 	virtualTileW = computeTileWidth()
+	lastBuildInnerPx = getListInnerPx()
 
 	-- Render initial visible window (top of list)
 	local viewH = listEl.client_height or 500
-	local vsx = GetViewGeometry()
-	local scaleFactor = math.max(1.0, vsx / BASE_RESOLUTION)
-	local rowHeightPx = (virtualTileW + TILE_GAP_DP) * scaleFactor
+	local scaleFactor = getDpRatio()
+	local rowHeightPx = (virtualTileW + TILE_GAP_DP * scaleFactor)
 	if rowHeightPx < 1 then rowHeightPx = 40 end
 	local visibleRows = math.ceil(viewH / rowHeightPx) + 4
 	local endIdx = math.min(#virtualItems, visibleRows * TILE_COLUMNS)
@@ -767,6 +800,10 @@ function widget:Initialize()
 	widgetState.document = document
 	document:Show()
 
+	if WG.RmlContextManager and WG.RmlContextManager.registerDocument then
+		WG.RmlContextManager.registerDocument("feature_placer", document)
+	end
+
 	widgetState.rootElement = document:GetElementById("fp-root")
 
 	-- Hide immediately so the panel is never briefly visible before Update() runs,
@@ -774,9 +811,6 @@ function widget:Initialize()
 	-- at load time (which leaks camera-scroll key events).
 	widgetState.rootElement:SetClass("hidden", true)
 
-	local vsx = GetViewGeometry()
-	local scaleFactor = math.max(1.0, vsx / BASE_RESOLUTION)
-	widgetState.panelWidthDp = math.floor(BASE_WIDTH_DP * scaleFactor)
 	widgetState.rootElement:SetAttribute("style", buildRootStyle())
 
 	attachEventListeners()
@@ -805,7 +839,8 @@ function widget:Update()
 		elseif vsy - newY - eh < T then newY = vsy - eh end
 
 		-- Snap to terraform main panel
-		local mainPanel = WG.TerraformBrushPanel
+		local mainPanel = WG.RmlContextManager and WG.RmlContextManager.getElementRect
+			and WG.RmlContextManager.getElementRect("terraform_brush", "tf-root")
 		if mainPanel then
 			local ox, oy = mainPanel.left, mainPanel.top
 			local oR = ox + (mainPanel.width or 0)
@@ -864,19 +899,30 @@ function widget:Update()
 	if not isActive then return end
 
 	-- Align to the left of the main terraform panel (only if not user-dragged)
-	local mainPanel = WG.TerraformBrushPanel
+	local mainPanel = WG.RmlContextManager and WG.RmlContextManager.getElementRect
+		and WG.RmlContextManager.getElementRect("terraform_brush", "tf-root")
 	if not userDragged and mainPanel and widgetState.rootElement then
 		local myWidth = widgetState.rootElement.offset_width
 		if myWidth and myWidth > 0 then
 			local gap = 8
 			widgetState.rootElement:SetAttribute("style",
-				string.format("left: %dpx; top: %dpx; width: %ddp;",
-					mainPanel.left - myWidth - gap, mainPanel.top, widgetState.panelWidthDp))
+				string.format("left: %dpx; top: %dpx;",
+					mainPanel.left - myWidth - gap, mainPanel.top))
 		end
 	end
 
 	-- Update selected count
 	updateSelectedCount()
+
+	-- Resize/relayout: if the feature-list's client_width changed since the
+	-- last rebuild, rebuild so tile widths re-derive. Handles window resize,
+	-- scrollbar appearing/disappearing, and first-frame-where-layout-finally-settled.
+	if widgetState.document then
+		local curInner = getListInnerPx()
+		if curInner > 0 and math.abs(curInner - lastBuildInnerPx) >= 2 then
+			rebuildFeatureList(lastSearchFilter)
+		end
+	end
 
 	-- Lazy-start thumbnail generation
 	if not thumbGenAttempted and WG.FeaturePlacer then
@@ -925,6 +971,10 @@ function widget:Shutdown()
 	-- If the search input had focus when we shut down, SDL text-input mode is
 	-- still active and will leak into the next session.
 	Spring.SDLStopTextInput()
+
+	if WG.RmlContextManager and WG.RmlContextManager.unregisterDocument then
+		WG.RmlContextManager.unregisterDocument("feature_placer")
+	end
 
 	cleanupThumbs()
 	thumbGenerating = false

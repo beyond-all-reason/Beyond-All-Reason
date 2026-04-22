@@ -42,6 +42,45 @@ end
 WG.RmlContextManager = WG.RmlContextManager or {}
 WG.RmlContextManager.getDpRatio = function() return currentDpRatio end
 
+-- Cross-widget DOM-read registry. Widgets that want to be snap targets (or
+-- otherwise have their rect read by a sibling widget) should register their
+-- root document after LoadDocument(), and unregister on Shutdown().
+-- Readers call getElementRect(docName, elementId) to pull live pixel-space
+-- layout off the target element instead of mirroring position through WG.*.
+local registeredDocuments = {}
+
+WG.RmlContextManager.registerDocument = function(name, document)
+    if name and document then
+        registeredDocuments[name] = document
+    end
+end
+
+WG.RmlContextManager.unregisterDocument = function(name)
+    if name then
+        registeredDocuments[name] = nil
+    end
+end
+
+WG.RmlContextManager.getDocument = function(name)
+    return registeredDocuments[name]
+end
+
+WG.RmlContextManager.getElementRect = function(docName, elementId)
+    local doc = registeredDocuments[docName]
+    if not doc then return nil end
+    local el = elementId and doc:GetElementById(elementId) or nil
+    if not el then return nil end
+    local w = el.offset_width
+    local h = el.offset_height
+    if not w or w <= 0 then return nil end
+    return {
+        left = el.offset_left,
+        top = el.offset_top,
+        width = w,
+        height = h or 0,
+    }
+end
+
 function widget:Initialize()
     if not RmlUi.GetContext("shared") then
         RmlUi.CreateContext("shared")
@@ -58,6 +97,11 @@ end
 function widget:Shutdown()
     if WG.RmlContextManager then
         WG.RmlContextManager.getDpRatio = nil
+        WG.RmlContextManager.registerDocument = nil
+        WG.RmlContextManager.unregisterDocument = nil
+        WG.RmlContextManager.getDocument = nil
+        WG.RmlContextManager.getElementRect = nil
     end
+    registeredDocuments = {}
     Spring.Echo("Rml Context Manager shutdown, dynamic context dp ratio updates to contexts disabled." )
 end

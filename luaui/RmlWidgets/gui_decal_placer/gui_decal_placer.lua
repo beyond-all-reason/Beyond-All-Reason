@@ -24,7 +24,6 @@ local GetViewGeometry = Spring.GetViewGeometry
 local INITIAL_LEFT_VW = 60
 local INITIAL_TOP_VH  = 10
 local BASE_WIDTH_DP   = 162
-local BASE_RESOLUTION = 1920
 local TILE_COLUMNS    = 3
 local TILE_GAP_DP     = 2
 
@@ -32,6 +31,8 @@ local widgetState = {
 	rmlContext   = nil,
 	document     = nil,
 	rootElement  = nil,
+	-- Logical (dp) width used for tile layout math. Actual rendered width
+	-- lives in RCSS (.dp-root) which applies dp_ratio + min-width floor.
 	panelWidthDp = BASE_WIDTH_DP,
 }
 
@@ -42,6 +43,25 @@ local decalElements    = {}    -- { [name] = element }
 local thumbDivs        = {}    -- { [name] = thumb element }
 local manuallyHidden   = false
 local lastActive       = false
+local lastBuildInnerPx = 0  -- dp-list client_width at last rebuild, for resize detection
+
+local function getDpRatio()
+	return (WG.RmlContextManager and WG.RmlContextManager.getDpRatio
+		and WG.RmlContextManager.getDpRatio()) or 1.0
+end
+
+local function getListInnerPx()
+	local doc = widgetState.document
+	local listEl = doc and doc:GetElementById("dp-list")
+	if listEl then
+		local cw = listEl.client_width or 0
+		if cw > 0 then return cw, listEl end
+	end
+	local dpRatio = getDpRatio()
+	local pwPx = (widgetState.rootElement and widgetState.rootElement.offset_width) or 0
+	if pwPx <= 0 then pwPx = widgetState.panelWidthDp * dpRatio end
+	return pwPx - (4 + 4 + 1 + 1) * dpRatio - 12, listEl
+end
 local userDragged      = false
 
 local DP_SNAP_THRESHOLD = 30
@@ -155,8 +175,9 @@ end
 -- Helpers
 ----------------------------------------------------------------
 local function buildRootStyle()
-	return string.format("left: %.2fvw; top: %.2fvh; width: %ddp;",
-		INITIAL_LEFT_VW, INITIAL_TOP_VH, widgetState.panelWidthDp)
+	-- Width lives in RCSS (.dp-root); we only set position here.
+	return string.format("left: %.2fvw; top: %.2fvh;",
+		INITIAL_LEFT_VW, INITIAL_TOP_VH)
 end
 
 local function setLabel(id, text)
@@ -300,16 +321,26 @@ local function rebuildDecalList(filter)
 		end
 	end
 
-	local pw = widgetState.panelWidthDp
-	local innerW = pw - 16 - 8 - 2
-	local tileW = math.floor((innerW - (TILE_COLUMNS - 1) * TILE_GAP_DP - TILE_COLUMNS * 4) / TILE_COLUMNS)
+	-- ALWAYS 3 columns. Real dp-list client_width with safety margin so
+	-- flex-wrap never promotes/demotes us due to sub-pixel rounding or a
+	-- scrollbar popping in after rebuild.
+	local dpRatio = getDpRatio()
+	local innerPx = getListInnerPx()
+	-- Always reserve scrollbar (8dp from RCSS) even when not visible yet.
+	innerPx = innerPx - 8 * dpRatio
+	local gapPx = TILE_GAP_DP * dpRatio
+	local tileBorderPx = 4 * dpRatio
+	local safetyPx = 6 * dpRatio
+	local tileW = math.floor((innerPx - (TILE_COLUMNS - 1) * gapPx - TILE_COLUMNS * tileBorderPx - safetyPx) / TILE_COLUMNS)
+	if tileW < 24 then tileW = 24 end
+	lastBuildInnerPx = innerPx
 
 	for _, entry in ipairs(toShow) do
 		local name = entry.name
 		if lowerFilter == "" or name:lower():find(lowerFilter, 1, true) then
 			local itemEl = doc:CreateElement("div")
 			itemEl:SetClass("fp-feature-item", true)
-			itemEl:SetAttribute("style", string.format("width: %ddp; height: %ddp;", tileW, tileW))
+			itemEl:SetAttribute("style", string.format("width: %dpx; height: %dpx;", tileW, tileW))
 			if selectedSet[name] then itemEl:SetClass("selected", true) end
 
 			local thumbEl = doc:CreateElement("div")
@@ -638,14 +669,15 @@ function widget:Initialize()
 		return false
 	end
 	widgetState.document = document
+
+	if WG.RmlContextManager and WG.RmlContextManager.registerDocument then
+		WG.RmlContextManager.registerDocument("decal_placer", document)
+	end
 	document:Show()
 
 	widgetState.rootElement = document:GetElementById("dp-root")
 	widgetState.rootElement:SetClass("hidden", true)
 
-	local vsx = GetViewGeometry()
-	local scaleFactor = math.max(1.0, vsx / BASE_RESOLUTION)
-	widgetState.panelWidthDp = math.floor(BASE_WIDTH_DP * scaleFactor)
 	widgetState.rootElement:SetAttribute("style", buildRootStyle())
 
 	attachEventListeners()
@@ -667,7 +699,8 @@ function widget:Update()
 		if newX < T then newX = 0 elseif vsx - newX - ew < T then newX = vsx - ew end
 		if newY < T then newY = 0 elseif vsy - newY - eh < T then newY = vsy - eh end
 
-		local mainPanel = WG.TerraformBrushPanel
+		local mainPanel = WG.RmlContextManager and WG.RmlContextManager.getElementRect
+			and WG.RmlContextManager.getElementRect("terraform_brush", "tf-root")
 		if mainPanel then
 			local ox, oy = mainPanel.left, mainPanel.top
 			local oR = ox + (mainPanel.width or 0)
@@ -714,14 +747,15 @@ function widget:Update()
 	if not isActive then return end
 
 	-- Auto-position next to terraform main panel until user drags
-	local mainPanel = WG.TerraformBrushPanel
+	local mainPanel = WG.RmlContextManager and WG.RmlContextManager.getElementRect
+		and WG.RmlContextManager.getElementRect("terraform_brush", "tf-root")
 	if not userDragged and mainPanel and widgetState.rootElement then
 		local myWidth = widgetState.rootElement.offset_width
 		if myWidth and myWidth > 0 then
 			local gap = 8
 			widgetState.rootElement:SetAttribute("style",
-				string.format("left: %dpx; top: %dpx; width: %ddp;",
-					mainPanel.left - myWidth - gap, mainPanel.top, widgetState.panelWidthDp))
+				string.format("left: %dpx; top: %dpx;",
+					mainPanel.left - myWidth - gap, mainPanel.top))
 		end
 	end
 
@@ -730,10 +764,22 @@ function widget:Update()
 		local cats = WG.DecalPlacer.getDecalCategories()
 		if cats and next(cats) then rebuildDecalList(lastSearchFilter) end
 	end
+
+	-- Relayout: if dp-list client_width changed since last rebuild, rebuild
+	-- so tile widths re-derive (handles window resize + scrollbar appearance).
+	if widgetState.document and next(decalElements) then
+		local curInner = getListInnerPx()
+		if curInner > 0 and math.abs(curInner - lastBuildInnerPx) >= 2 then
+			rebuildDecalList(lastSearchFilter)
+		end
+	end
 end
 
 function widget:Shutdown()
 	Spring.SDLStopTextInput()
+	if WG.RmlContextManager and WG.RmlContextManager.unregisterDocument then
+		WG.RmlContextManager.unregisterDocument("decal_placer")
+	end
 	if widgetState.document then
 		widgetState.document:Close()
 		widgetState.document = nil

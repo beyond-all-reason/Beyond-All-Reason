@@ -1513,13 +1513,15 @@ function widget:DrawWorld()
 	end
 
 	local worldX, worldZ = getWorldMousePosition()
-	if not worldX then
+	do
 		local tb = WG.TerraformBrush
-		if tb and tb.getUnmouseTarget then
+		if tb and tb.animateUnmouse then
+			worldX, worldZ = tb.animateUnmouse("splatPainter", worldX, worldZ, activeRadius, 1.0)
+		elseif tb and tb.getUnmouseTarget and not worldX then
 			worldX, worldZ = tb.getUnmouseTarget(activeRadius, 1.0)
 		end
-		if not worldX then return end
 	end
+	if not worldX then return end
 	local groundY = GetGroundHeight(worldX, worldZ)
 
 	glPolygonOffset(1, 1)

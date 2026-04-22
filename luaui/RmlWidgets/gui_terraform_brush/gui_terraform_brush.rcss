@@ -1,4 +1,4 @@
-﻿/* Terraform Brush - Widget-specific styles */
+* Terraform Brush - Widget-specific styles */
 /* Layout utilities, palette colors, and theme classes come from shared style guide files */
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -107,12 +107,18 @@ body {
 }
 
 /* === Root Positioning === */
+/*
+ * Width uses `vw` so the panel scales with viewport width (same visual
+ * proportion across 1080p / 1440p / 4k). `min-width` in `px` keeps it
+ * readable on small windows where 15vw collapses.
+ */
 .tf-root {
 	pointer-events: auto;
 	position: absolute;
 	left: 78vw;
 	top: 25vh;
-	width: 15vw;
+	width: 13vw;
+	min-width: 220px;
 	z-index: 900;
 }
 
@@ -122,6 +128,8 @@ body {
 	position: absolute;
 	left: 62vw;
 	top: 25vh;
+	width: 13vw;
+	min-width: 220px;
 	z-index: 900;
 }
 
@@ -131,6 +139,8 @@ body {
 	position: absolute;
 	left: 55vw;
 	top: 15vh;
+	width: 13vw;
+	min-width: 220px;
 	z-index: 900;
 }
 
@@ -149,6 +159,8 @@ body {
 	pointer-events: auto;
 	position: absolute;
 	z-index: 900;
+	width: 13vw;
+	min-width: 220px;
 	max-height: 80vh;
 	overflow-x: hidden;
 	overflow-y: auto;
@@ -165,6 +177,8 @@ body {
 	position: absolute;
 	left: 62vw;
 	top: 12vh;
+	width: 13vw;
+	min-width: 220px;
 	z-index: 910;
 }
 
@@ -2813,12 +2827,12 @@ margin-top: 3dp;
 	height: 110dp;
 	border-radius: 55dp;
 	background-color: #080e16;
-	border: 1dp solid #3a5070;
+	border: 1dp #3a5070;
 	cursor: pointer;
 }
 .lp-orient-ring {
 	position: absolute;
-	border-radius: 50%;
+	border-radius: 55dp;
 	background-color: transparent;
 }
 .lp-orient-horizon {
@@ -2826,14 +2840,14 @@ margin-top: 3dp;
 	top: 4dp;
 	width: 102dp;
 	height: 102dp;
-	border: 1dp solid #4a6888;
+	border: 1dp #4a6888;
 }
 .lp-orient-mid {
 	left: 24dp;
 	top: 24dp;
 	width: 62dp;
 	height: 62dp;
-	border: 1dp solid #36506870;
+	border: 1dp #36506870;
 }
 .lp-orient-compass {
 	position: absolute;
@@ -2872,7 +2886,7 @@ margin-top: 3dp;
 	height: 16dp;
 	border-radius: 8dp;
 	background-color: #fbbf24e0;
-	border: 1dp solid #ffe090;
+	border: 1dp #ffe090;
 	left: 47dp;
 	top: 47dp;
 	cursor: pointer;
@@ -2883,7 +2897,7 @@ margin-top: 3dp;
 	line-height: 24dp;
 	font-size: 1.15rem;
 	padding: 0dp 4dp;
-	border: 1dp solid #40404a60;
+	border: 1dp #40404a60;
 	border-radius: 4dp;
 	background-color: #161620;
 	color: #d8dce4;
