@@ -987,6 +987,15 @@ function M.sync(doc, ctx, spState, setSummary)
 			end
 		end
 
+		-- P3.2 Splat grayouts (per Phase 3 relevance matrix)
+		if doc and ctx.setDisabledIds then
+			local circular = (spState.shape == "circle")
+			ctx.setDisabledIds(doc, {
+				"sp-slider-rotation", "sp-slider-rotation-numbox",
+				"btn-sp-rot-ccw", "btn-sp-rot-cw",
+			}, circular)
+		end
+
 end
 
 return M

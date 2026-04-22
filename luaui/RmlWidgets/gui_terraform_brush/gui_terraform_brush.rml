@@ -680,6 +680,7 @@
 			<div id="btn-toggle-mb-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
 				<img id="img-toggle-mb-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
+				<div id="mb-mapanalysis-notify-dot" class="tf-notify-dot hidden"></div>
 			</div>
 			<div id="section-mb-overlays" class="hidden">
 			<div class="flex flex-row items-center gap-1 mb-1">
@@ -688,6 +689,42 @@
 				</div>
 				<div id="btn-mb-height-colormap" class="tf-overlay-chip">
 					<div class="tf-overlay-chip-label">Height Map</div>
+				</div>
+				<div id="btn-mb-mapoverlay" class="tf-overlay-chip">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Metal Map</div>
+				</div>
+				<div id="btn-mb-clusters" class="tf-overlay-chip">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Clusters</div>
+				</div>
+				<div id="btn-mb-lasso" class="tf-overlay-chip">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Lasso</div>
+				</div>
+			</div>
+			<div id="mb-cluster-radius-row" class="tf-instrument-sub hidden mb-1">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">GRANULARITY: <span class="text-xl font-bold" id="mb-cluster-radius-label">256</span></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="mb-btn-cluster-radius-down" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="mb-slider-cluster-radius" class="tf-slider" min="64" max="1024" step="32" value="256" />
+					<div id="mb-btn-cluster-radius-up" class="tf-sm-btn">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+				</div>
+			</div>
+			<div id="mb-lasso-row" class="tf-instrument-sub hidden mb-1">
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="mb-btn-lasso-close" class="tf-overlay-chip" style="flex: 1;">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Close Loop</div>
+					</div>
+					<div id="mb-btn-lasso-clear" class="tf-overlay-chip" style="flex: 1;">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Clear</div>
+					</div>
+				</div>
+				<div class="flex flex-row items-center mb-1">
+					<div class="text-lg text-light">Metal in loop: <span class="text-xl font-bold" id="mb-lasso-total-label">0.00</span></div>
 				</div>
 			</div>
 			</div><!-- /section-mb-overlays -->

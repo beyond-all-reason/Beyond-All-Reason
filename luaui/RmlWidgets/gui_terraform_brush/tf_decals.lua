@@ -290,6 +290,31 @@ function M.sync(doc, ctx, setSummary)
 				slDcHist:SetAttribute("value", tostring(dcUndoCnt))
 			end
 			if nbDcHist then nbDcHist:SetAttribute("value", tostring(dcUndoCnt)) end
+
+			-- P3.2 Decals grayouts (per Phase 3 relevance matrix)
+			if ctx.setDisabledIds then
+				local mode = dpState.mode or "scatter"
+				local remove = (mode == "remove")
+				local scatter = (mode == "scatter")
+				-- Rotation + random irrelevant in remove mode
+				ctx.setDisabledIds(doc, {
+					"dc-slider-rotation", "dc-slider-rotrand",
+					"dc-btn-rot-ccw", "dc-btn-rot-cw",
+				}, remove)
+				-- Count/cadence/distribution: scatter only
+				ctx.setDisabledIds(doc, {
+					"dc-slider-count", "dc-slider-cadence",
+					"dc-btn-count-down", "dc-btn-count-up",
+					"dc-btn-cadence-down", "dc-btn-cadence-up",
+					"dc-btn-dist-random", "dc-btn-dist-regular", "dc-btn-dist-clustered",
+				}, not scatter)
+				-- Size/alpha/align: irrelevant in remove
+				ctx.setDisabledIds(doc, {
+					"dc-slider-sizemin", "dc-slider-sizemax",
+					"dc-slider-alpha",
+					"btn-dc-align-toggle",
+				}, remove)
+			end
 		else
 			setSummary("DECALS", "#e060e0", "", "LIBRARY", "", "", "", "")
 		end

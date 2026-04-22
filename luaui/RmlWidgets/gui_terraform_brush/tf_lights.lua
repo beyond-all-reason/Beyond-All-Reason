@@ -976,6 +976,30 @@ function M.sync(doc, ctx, lpState, setSummary)
 			"Rad ", tostring(lpState.lightRadius or 200),
 			"Elev ", tostring(lpState.elevation or 100))
 
+		-- P3.2 Lights grayouts (per Phase 3 relevance matrix)
+		if doc and ctx.setDisabledIds then
+			local mode = lpState.mode or "point"
+			local remove = (mode == "remove")
+			local scatter = (mode == "scatter")
+			-- Color/brightness/elevation: disabled in remove
+			ctx.setDisabledIds(doc, {
+				"slider-lp-brightness", "slider-lp-brightness-numbox",
+				"slider-lp-elevation", "slider-lp-elevation-numbox",
+				"slider-lp-color-r", "slider-lp-color-r-numbox",
+				"slider-lp-color-g", "slider-lp-color-g-numbox",
+				"slider-lp-color-b", "slider-lp-color-b-numbox",
+			}, remove)
+			-- Count/cadence: scatter only
+			ctx.setDisabledIds(doc, {
+				"slider-lp-count", "slider-lp-count-numbox",
+				"slider-lp-cadence", "slider-lp-cadence-numbox",
+			}, not scatter)
+			-- Brush radius (pick/scatter radius): irrelevant in point mode
+			ctx.setDisabledIds(doc, {
+				"slider-lp-brush-radius", "slider-lp-brush-radius-numbox",
+			}, mode == "point")
+		end
+
 end
 
 return M

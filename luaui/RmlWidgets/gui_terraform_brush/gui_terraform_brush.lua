@@ -339,6 +339,7 @@ local widgetState = {
 		seenSplatDisplayHint = false,
 		seenStartposShapeHint = false,
 		seenMetalStampHint = false,
+		seenMetalMapHint = false,
 		seenFeaturesFiltersHint = false,
 		seenGrassColorFilterHint = false,
 		seenSplatFiltersHint = false,
@@ -414,6 +415,9 @@ function loadUiPrefs()
 	if type(data.seenMetalStampHint) == "boolean" then
 		widgetState.uiPrefs.seenMetalStampHint = data.seenMetalStampHint
 	end
+	if type(data.seenMetalMapHint) == "boolean" then
+		widgetState.uiPrefs.seenMetalMapHint = data.seenMetalMapHint
+	end
 	if type(data.seenFeaturesFiltersHint) == "boolean" then
 		widgetState.uiPrefs.seenFeaturesFiltersHint = data.seenFeaturesFiltersHint
 	end
@@ -440,12 +444,13 @@ end
 function saveUiPrefs()	Spring.CreateDir(UI_PREFS_DIR)
 	local f = io.open(UI_PREFS_FILE, "w")
 	if not f then return end
-	f:write(string.format("return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n}\n",
+	f:write(string.format("return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenMetalMapHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n}\n",
 		tostring(widgetState.uiPrefs.disableTips and true or false),
 		tostring(widgetState.uiPrefs.seenInstrumentsHint and true or false),
 		tostring(widgetState.uiPrefs.seenSplatDisplayHint and true or false),
 		tostring(widgetState.uiPrefs.seenStartposShapeHint and true or false),
 		tostring(widgetState.uiPrefs.seenMetalStampHint and true or false),
+		tostring(widgetState.uiPrefs.seenMetalMapHint and true or false),
 		tostring(widgetState.uiPrefs.seenFeaturesFiltersHint and true or false),
 		tostring(widgetState.uiPrefs.seenGrassColorFilterHint and true or false),
 		tostring(widgetState.uiPrefs.seenSplatFiltersHint and true or false),
@@ -478,6 +483,11 @@ widgetState.hintDots = {
 	  markOnClick = { "btn-sp-shape", "btn-sp-startbox" } },
 	{ dotId = "metal-mode-notify-dot",         prefKey = "seenMetalStampHint",
 	  markOnClick = { "btn-mb-stamp" } },
+	{ dotId = "mb-mapanalysis-notify-dot",     prefKey = "seenMetalMapHint",
+	  markOnClick = { "btn-toggle-mb-overlays", "btn-mb-mapoverlay", "btn-mb-clusters", "btn-mb-lasso" },
+	  sectionToggleId = "btn-toggle-mb-overlays", sectionId = "section-mb-overlays",
+	  pulseTargets = { "btn-mb-mapoverlay", "btn-mb-clusters", "btn-mb-lasso" },
+	  pulseKey = "metalMapPulseFrame", pulseExpiryKey = "metalMapPulseExpiry" },
 	{ dotId = "features-filters-notify-dot",   prefKey = "seenFeaturesFiltersHint",
 	  markOnClick = { "btn-toggle-fp-smart", "fp-filter-chip-slope", "fp-filter-chip-altitude" },
 	  sectionToggleId = "btn-toggle-fp-smart", sectionId = "section-fp-smart",
@@ -2172,6 +2182,26 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	setCls("btn-"..P.."-symmetry-mirror-y", s.symmetryMirrorY)
 	setHidden(P.."-measure-toolbar-row",   s.measureActive)
 	setHidden(P.."-symmetry-toolbar-row",  s.symmetryActive)
+end
+
+-- Phase 3 grayout helper: toggle the generic ".disabled" class on an element
+-- by id. Disabled elements should be visible but non-interactive (CSS handles
+-- opacity + pointer-events). Missing ids silently no-op. Use from per-tool
+-- M.sync to gray controls that are irrelevant to the current sub-mode/shape.
+ctx.setDisabled = function(doc, id, on)
+	if not doc or not id then return end
+	local el = getCachedEl(doc, id)
+	if el then el:SetClass("disabled", on and true or false) end
+end
+
+-- Bulk version: disable a list of ids to the same state. Useful for control
+-- groups that don't share a wrapping row id (e.g. per-tool slider+buttons).
+ctx.setDisabledIds = function(doc, ids, on)
+	if not doc or not ids then return end
+	for i = 1, #ids do
+		local el = getCachedEl(doc, ids[i])
+		if el then el:SetClass("disabled", on and true or false) end
+	end
 end
 
 local function attachEventListeners()
@@ -5180,6 +5210,38 @@ function widget:Update()
 		end
 		if ctx.syncTBMirrorControls then ctx.syncTBMirrorControls(doc, "wb") end
 
+		-- P3.2 Weather grayouts (per Phase 3 relevance matrix)
+		if doc then
+			local mode = wbState.mode or "scatter"
+			local shape = wbState.shape or "circle"
+			local remove = (mode == "remove")
+			local scatter = (mode == "scatter")
+			local circular = (shape == "circle")
+			-- Rotation: non-circular shapes, non-remove
+			ctx.setDisabledIds(doc, {
+				"slider-wb-rotation", "slider-wb-rotation-numbox",
+				"btn-wb-rot-ccw", "btn-wb-rot-cw",
+			}, circular or remove)
+			-- Length: non-circular shapes, non-remove
+			ctx.setDisabledIds(doc, {
+				"slider-wb-length", "slider-wb-length-numbox",
+				"btn-wb-length-down", "btn-wb-length-up",
+			}, circular or remove)
+			-- Count/cadence/distribution: scatter-only
+			ctx.setDisabledIds(doc, {
+				"slider-wb-count", "slider-wb-count-numbox",
+				"btn-wb-count-down", "btn-wb-count-up",
+				"slider-wb-cadence", "slider-wb-cadence-numbox",
+				"btn-wb-cadence-down", "btn-wb-cadence-up",
+				"btn-wb-dist-random", "btn-wb-dist-regular", "btn-wb-dist-clustered",
+			}, not scatter)
+			-- Frequency/persist: irrelevant in remove
+			ctx.setDisabledIds(doc, {
+				"slider-wb-frequency", "slider-wb-frequency-numbox",
+				"slider-wb-persist", "slider-wb-persist-numbox",
+			}, remove)
+		end
+
 
 	elseif tfActive then
 		-- ===== Terraform mode: update terraform controls =====
@@ -5579,6 +5641,17 @@ function widget:Update()
 					local el = getCachedEl(doc, cid)
 					if el then el:SetClass("active", cv == curveVal) end
 				end
+			end
+
+			-- P3.2 Terraform grayouts (per Phase 3 relevance matrix in doc/TerraformBrush_1.0_Plan.md)
+			do
+				local tShape, tMode = state.shape, state.mode
+				local rotationIrrelevant = (tShape == "circle") or (tShape == "fill")
+				ctx.setDisabled(doc, "param-rotation-row", rotationIrrelevant)
+				-- Intensity meaningful for raise/lower/smooth/noise/ramp/restore; irrelevant only for level
+				ctx.setDisabled(doc, "param-intensity-row", tMode == "level")
+				-- Height cap (min/max) irrelevant for ramp and restore modes
+				ctx.setDisabled(doc, "section-heightcap", tMode == "ramp" or tMode == "restore")
 			end
 
 			uiState.updatingFromCode = false

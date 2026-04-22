@@ -312,6 +312,22 @@ function M.sync(doc, ctx, stpState, setSummary)
 			"", (stpState.subMode or "express"):upper(),
 			"Teams ", tostring(stpState.numAllyTeams or 2))
 
+		-- P3.2 StartPos grayouts (per Phase 3 relevance matrix)
+		if doc and ctx.setDisabledIds then
+			local sm = stpState.subMode or "express"
+			-- Ally teams slider: manual startbox submode uses drag, not team count
+			ctx.setDisabledIds(doc, {
+				"slider-sp-allyteams", "slider-sp-allyteams-numbox",
+				"btn-sp-teams-up", "btn-sp-teams-down",
+			}, sm == "startbox")
+			-- Rotation: shape-mode only AND non-circular shape type
+			local rotOff = (sm ~= "shape") or (stpState.shapeType == "circle")
+			ctx.setDisabledIds(doc, {
+				"slider-sp-rotation", "slider-sp-rotation-numbox",
+				"btn-sp-rot-ccw", "btn-sp-rot-cw",
+			}, rotOff)
+		end
+
 end
 
 return M

@@ -548,6 +548,119 @@ function M.attach(doc, ctx)
 			end, false)
 		end
 	end
+
+	-- ── METAL MAP analysis: full-map overlay, clusters, lasso ──
+	do
+		local function mbGetMbState()
+			return (WG.MetalBrush and WG.MetalBrush.getState and WG.MetalBrush.getState()) or {}
+		end
+		local clusterRow = doc:GetElementById("mb-cluster-radius-row")
+		local lassoRow = doc:GetElementById("mb-lasso-row")
+
+		local overlayChip = doc:GetElementById("btn-mb-mapoverlay")
+		if overlayChip then
+			overlayChip:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					local newVal = not mbGetMbState().mapOverlay
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.MetalBrush.setMapOverlay(newVal)
+					overlayChip:SetClass("active", newVal)
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+
+		local clusterChip = doc:GetElementById("btn-mb-clusters")
+		if clusterChip then
+			clusterChip:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					local newVal = not mbGetMbState().clusterCounter
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.MetalBrush.setClusterCounter(newVal)
+					clusterChip:SetClass("active", newVal)
+					if clusterRow then clusterRow:SetClass("hidden", not newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+
+		local lassoChip = doc:GetElementById("btn-mb-lasso")
+		if lassoChip then
+			lassoChip:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					local newVal = not mbGetMbState().lassoActive
+					playSound(newVal and "toggleOn" or "toggleOff")
+					if newVal then
+						WG.MetalBrush.startLasso()
+					else
+						WG.MetalBrush.clearLasso()
+					end
+					lassoChip:SetClass("active", newVal)
+					if lassoRow then lassoRow:SetClass("hidden", not newVal) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+
+		local lassoCloseBtn = doc:GetElementById("mb-btn-lasso-close")
+		if lassoCloseBtn then
+			lassoCloseBtn:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					playSound("apply")
+					WG.MetalBrush.finishLasso()
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+
+		local lassoClearBtn = doc:GetElementById("mb-btn-lasso-clear")
+		if lassoClearBtn then
+			lassoClearBtn:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					playSound("reset")
+					WG.MetalBrush.clearLasso()
+					if lassoChip then lassoChip:SetClass("active", false) end
+					if lassoRow then lassoRow:SetClass("hidden", true) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+
+		local clRadSlider = doc:GetElementById("mb-slider-cluster-radius")
+		if clRadSlider then
+			trackSliderDrag(clRadSlider, "mb-cluster-radius")
+			clRadSlider:AddEventListener("change", function(ev)
+				if uiState.updatingFromCode then ev:StopPropagation(); return end
+				if WG.MetalBrush then
+					local v = tonumber(clRadSlider:GetAttribute("value")) or 256
+					WG.MetalBrush.setClusterRadius(v)
+					local lbl = doc:GetElementById("mb-cluster-radius-label")
+					if lbl then lbl.inner_rml = tostring(v) end
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local clRadDn = doc:GetElementById("mb-btn-cluster-radius-down")
+		if clRadDn then
+			clRadDn:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					local cur = tonumber(mbGetMbState().clusterRadius) or 256
+					WG.MetalBrush.setClusterRadius(math.max(64, cur - 32))
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+		local clRadUp = doc:GetElementById("mb-btn-cluster-radius-up")
+		if clRadUp then
+			clRadUp:AddEventListener("click", function(ev)
+				if WG.MetalBrush then
+					local cur = tonumber(mbGetMbState().clusterRadius) or 256
+					WG.MetalBrush.setClusterRadius(math.min(1024, cur + 32))
+				end
+				ev:StopPropagation()
+			end, false)
+		end
+	end
 end
 
 function M.sync(doc, ctx, mbState, setSummary)
@@ -606,6 +719,35 @@ function M.sync(doc, ctx, mbState, setSummary)
 		setActiveClass(widgetState.shapeButtons, tfSt.shape)
 	end
 
+	-- P3.2 Metal grayouts (per Phase 3 relevance matrix)
+	if doc and tfSt then
+		local sm = mbState.subMode or "paint"
+		local circular = (tfSt.shape == "circle")
+		local nonStamp = (sm ~= "stamp")
+		-- Rotation: stamp mode AND non-circular shape
+		local rotOff = nonStamp or circular
+		ctx.setDisabledIds(doc, {
+			"slider-mb-rotation", "slider-mb-rotation-numbox",
+			"btn-mb-rot-ccw", "btn-mb-rot-cw",
+		}, rotOff)
+		-- Length: stamp mode AND non-circular shape
+		ctx.setDisabledIds(doc, {
+			"slider-mb-length", "slider-mb-length-numbox",
+			"btn-mb-length-down", "btn-mb-length-up",
+		}, rotOff)
+		-- Curve/Fall-off: stamp mode only
+		ctx.setDisabledIds(doc, {
+			"slider-mb-curve", "slider-mb-curve-numbox",
+			"btn-mb-curve-down", "btn-mb-curve-up",
+		}, nonStamp)
+		-- Metal Value: disabled in remove submode
+		local valueOff = (sm == "remove")
+		ctx.setDisabledIds(doc, {
+			"slider-metal-value", "slider-metal-value-numbox",
+			"btn-metal-value-down", "btn-metal-value-up",
+		}, valueOff)
+	end
+
 	do
 		local tfSt2 = WG.TerraformBrush and WG.TerraformBrush.getState()
 		local sm = mbState.subMode or "paint"
@@ -614,6 +756,28 @@ function M.sync(doc, ctx, mbState, setSummary)
 			"R ", tostring(tfSt2 and tfSt2.radius or "?"),
 			"Val ", string.format("%.1f", mbState.metalValue or 0),
 			"Crv ", string.format("%.1f", tfSt2 and tfSt2.curve or 0))
+	end
+
+	-- Metal map analysis chip/slider sync
+	if doc then
+		local overlayChip = doc:GetElementById("btn-mb-mapoverlay")
+		if overlayChip then overlayChip:SetClass("active", mbState.mapOverlay and true or false) end
+		local clusterChip = doc:GetElementById("btn-mb-clusters")
+		if clusterChip then clusterChip:SetClass("active", mbState.clusterCounter and true or false) end
+		local lassoChip = doc:GetElementById("btn-mb-lasso")
+		if lassoChip then lassoChip:SetClass("active", mbState.lassoActive and true or false) end
+		local clusterRow = doc:GetElementById("mb-cluster-radius-row")
+		if clusterRow then clusterRow:SetClass("hidden", not mbState.clusterCounter) end
+		local lassoRow = doc:GetElementById("mb-lasso-row")
+		if lassoRow then lassoRow:SetClass("hidden", not (mbState.lassoActive or mbState.lassoClosed)) end
+		local lbl = doc:GetElementById("mb-cluster-radius-label")
+		if lbl then lbl.inner_rml = tostring(mbState.clusterRadius or 256) end
+		local totalLbl = doc:GetElementById("mb-lasso-total-label")
+		if totalLbl then totalLbl.inner_rml = string.format("%.2f", mbState.lassoTotal or 0) end
+		uiState.updatingFromCode = true
+		local clRadSlider = doc:GetElementById("mb-slider-cluster-radius")
+		if clRadSlider then syncAndFlash(clRadSlider, "mb-cluster-radius", tostring(mbState.clusterRadius or 256)) end
+		uiState.updatingFromCode = false
 	end
 end
 
