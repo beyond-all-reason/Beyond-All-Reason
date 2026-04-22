@@ -59,6 +59,7 @@ local alliedDist = mapSizeX * mapSizeZ          -- priority offset: own team < a
 local maxDistSq = 2 * alliedDist               -- guaranteed > any real sq distance on the map
 local LOAD_RADIUS = 128    -- elmos XZ; transporter must be within this range to fire PerformLoad
 local CMD_AREA_LOAD = 39751 -- custom area-load command; needs to be logged in customcmds
+local CMD_LOAD_UNIT = 39752 -- custom load-unit command; needs to be logged in customcmds
 
 local customTransportLoad = {} -- transporterDefID → LUS function or COB script function
 local customTransportUnload = {} -- transporterDefID → LUS function or COB script function
@@ -66,6 +67,7 @@ local claimedBy = {} -- transporteeID → transporterID;
 local queuedSeats = {} -- transporterID → number seats
 local transporterClaims = {} -- transporterID → { transporteeID, transporteeID, ... }
 local areaLoadCoroutines = {} -- transporterID → coroutine
+local successiveLoadCoroutines = {} -- transporterID → coroutine
 local cylinderCache = {} -- [key] = { frame = N, units = {...} }
 local isAirTransport = {} -- transporterDefID → bool;
 
@@ -198,7 +200,14 @@ function claimTransportee(transporterID, transporteeID, teeSize, manualClaim)
 	claimedBy[transporteeID] = transporterID
 	transporterClaims[transporterID][#transporterClaims[transporterID] + 1] = transporteeID
 	local total = 0
+	local ct = 0
 	for i = #transporterClaims[transporterID], 1, -1 do
+		if transporterClaims[transporterID][i] == transporteeID then
+			ct = ct + 1
+			if ct > 1 then
+				spEcho("Error: duplicate claim for transportee " .. transporteeID .. " in transporter " .. transporterID .. "'s claims list") -- debug kept for now to debug potential double claims
+			end
+		end
 		total = total + (TransportAPI.GetTransporteeSize(transporterClaims[transporterID][i]) or 0)
 	end
 	queuedSeats[transporterID] = total
@@ -319,7 +328,6 @@ function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam, cx, 
 	local terPosX, terPosY, terPosZ = spGetUnitPosition(transporterID)
 	for i = #transporterClaims[transporterID], 1, -1 do
 		if claimedBy[transporterClaims[transporterID][i]] ~= transporterID then -- keep it during test runs so we can debug if this ever happens
-			spEcho("Error: claim mismatch for transportee " .. transporterClaims[transporterID][i])
 		end
 		local teeID = transporterClaims[transporterID][i]
 		if spValidUnitID(teeID) then
@@ -385,6 +393,77 @@ function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeam, cx, c
 	return false -- command is still in progress
 end
 
+function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeam)
+	local finished = false
+	-- 1: update the list of queued units
+	local queue = spGetUnitCommands(transporterID,  Spring.GetUnitRulesParam(transporterID, "nSeats")) --  Spring.GetUnitRulesParam(transporterID, "nSeats") being the max number of units we can queue on a single transport
+	local i = 1
+	local cmd = queue and queue[i]
+	if queuedSeats[transporterID] + Spring.GetUnitRulesParam(transporterID, "usedSeats") < Spring.GetUnitRulesParam(transporterID, "nSeats") then
+		while cmd and cmd.id == CMD_LOAD_UNIT and (queuedSeats[transporterID] + Spring.GetUnitRulesParam(transporterID, "usedSeats") < Spring.GetUnitRulesParam(transporterID, "nSeats")) do
+			local teeID = cmd.params[1]
+			if spGetUnitTransporter(teeID) == transporterID then
+			elseif transporterID ~= claimedBy[teeID] then
+				claimTransportee(transporterID, teeID, TransportAPI.GetTransporteeSize(teeID), true) -- force claim for ourselves
+			end
+			i = i + 1
+			cmd = queue and queue[i]
+		end
+	end
+
+	-- 2: proceed to loading all units in queue
+	local terPosX, terPosY, terPosZ = spGetUnitPosition(transporterID)
+	for i = #transporterClaims[transporterID], 1, -1 do
+		if claimedBy[transporterClaims[transporterID][i]] ~= transporterID then -- keep it during test runs so we can debug if this ever happens
+		end
+
+		local teeID = transporterClaims[transporterID][i]
+		if spValidUnitID(teeID) then
+			local tx, ty, tz = spGetUnitPosition(teeID)
+			local skip = false
+			if not CanTransport(transporterID, teeID, transporterDefID, false) then
+				-- can happen if we manually exceeded nSeats with successive load commands, or if the unit moved out of range after being claimed
+				-- instead of scanning cmd queue to remove the bad commmand, we release tee (even though it might get claimed again),
+				-- until we reach this unit's command in CommandFallback, and it is actually removed
+				releaseTransportee(teeID)
+				skip = true
+			elseif dist2D(tx, tz, terPosX, terPosZ) > 512 then -- hardcoded 512 for test, it's a threshold so units don't start moving towards trans from afar
+				skip = true
+			elseif inRange(transporterID, tx, ty, tz) then
+				if customTransportLoad[transporterDefID] then --nil check will be gone once code is finished
+					if spGetUnitRulesParam(transporterID, "canLoad") == 1 then
+						customTransportLoad[transporterDefID](transporterID, 'PerformLoad', teeID)
+						releaseTransportee(teeID)
+						skip = true
+					end
+				end
+			end
+			if not skip then -- do not order skipped transportees
+				spSetUnitMoveGoal(teeID, terPosX, spGetGroundHeight(terPosX, terPosZ), terPosZ,64,nil, true) -- moves to the transport
+			end
+		else
+			releaseTransportee(teeID)
+		end
+	end
+	if spValidUnitID(transporterClaims[transporterID][1]) then
+		-- move to first in queue, not avg pos, in case of blocked or immobile tees
+		local tee1x, tee1y, tee1z = spGetUnitPosition(transporterClaims[transporterID][1])
+		spSetUnitMoveGoal(transporterID, tee1x, tee1y, tee1z)
+	end
+	
+	-- 3: validate current command once the unit is loaded
+	if spGetUnitTransporter(queue[1].params[1]) == transporterID then
+		spUnitFinishCommand(transporterID) -- consume the command so the transporter proceeds to the next
+		finished = true
+	end
+	-- 4: remove invalid commands
+	if not CanTransport(transporterID, queue[1].params[1], transporterDefID, false) then -- if the next unit can't be loaded, don't get stucked on it
+		spUnitFinishCommand(transporterID) -- consume the command so the transporter proceeds to the next
+		finished = true
+	end
+
+end
+
 ------------------
 --Gadget Callins--
 ------------------
@@ -394,6 +473,8 @@ function gadget:Initialize()
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 	end
 	spSetCustomCommandDrawData(CMD_AREA_LOAD, CMD.LOAD_UNITS, {0.6, 0.6, 1, 0.5}, true)
+	spSetCustomCommandDrawData(CMD_LOAD_UNIT, CMD.LOAD_UNITS, {0.6, 0.6, 1, 0.5}, true)
+
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
@@ -457,6 +538,18 @@ function gadget:GameFrame(frame)
 				areaLoadCoroutines[transporterID] = nil
 			end
 		end
+		for transporterID, co in pairs(successiveLoadCoroutines) do
+			local status = coroutine.status(co)
+			if status == "suspended" then
+				local ok, err = coroutine.resume(co)
+				if not ok then
+					spEcho("Error in CMD_LOAD_UNIT coroutine for transporter " .. transporterID .. ": " .. err)
+					successiveLoadCoroutines[transporterID] = nil
+				end
+			else
+				successiveLoadCoroutines[transporterID] = nil
+			end
+		end
 end
 
 
@@ -467,6 +560,26 @@ end
 -- 4. When all claims are resolved, a final CommandFallback call with finished = true is required to finish the command; the coroutine will then detect this and stop.
 
 function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam, cmdID, cmdParams, cmdOptions, cmdTag)
+	if cmdID == CMD_LOAD_UNIT then
+		ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeam)
+		if not successiveLoadCoroutines[transporterID] then
+			local co = coroutine.create(function()
+					while true do
+						coroutine.yield() -- ticked by GameFrame every frame
+						local Q = spGetUnitCommands(transporterID, 1)
+						local cmd = Q and Q[1]
+						if not (cmd and cmd.id == CMD_LOAD_UNIT) then
+							successiveLoadCoroutines[transporterID] = nil
+							releaseAllClaims(transporterID)
+							break
+						end
+						ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeam)
+					end
+			end)
+			successiveLoadCoroutines[transporterID] = co
+		end
+		return true, false
+	end
 	if cmdID ~= CMD_AREA_LOAD then return false, false end -- we do not handle this command;
 	local finished = ExecuteAreaLoad(transporterID, transporterDefID, transporterTeam, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4])
 	-- 1st pass of ExecuteAreaLoad: attempt to instantly finish cmd to avoid spawning a coroutine
@@ -523,7 +636,7 @@ end
 -- which only fires during LOAD_UNITS cmds, once ter,tee dist is < Udef.loadingRadius
 -- I guess at some point this should become its own custom command instead
 
-function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
+--[[function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
 	if isUnderwater(transporteeID, goalY) then 
 		releaseTransportee(transporteeID)
 		return false 
@@ -549,7 +662,7 @@ function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, tran
 		return false
 	end
 	return true -- default for standard transports
-end
+end]]--
 
 function gadget:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
 	if isUnderwater(transporteeID, goalY) then return false end
@@ -574,16 +687,37 @@ end
 
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if not isAirTransport[unitDefID] then return true, true end
-	if cmdID == CMD.LOAD_UNITS and #cmdParams == 4 then
-		spGiveOrderToUnit(unitID, CMD_AREA_LOAD, cmdParams, cmdOptions)
+	if cmdID == CMD.LOAD_ONTO then
+		spEcho("Warning: CMD_LOAD_ONTO is deprecated and will be removed in a future update; use CMD.INSERT + CMD_LOAD_UNIT instead")
+		spGiveOrderToUnit( cmdParams[1], CMD.INSERT, { 0, CMD_LOAD_UNIT, 0, unitID }, {"alt"}) -- insert in front of queue
+		return false
+	elseif cmdID == CMD.INSERT and cmdParams[2] == CMD.LOAD_ONTO then
+		spEcho("Warning: CMD_LOAD_ONTO is deprecated and will be removed in a future update; this command will be ignored")
 		return false
 	end
-	if cmdID == CMD.INSERT and cmdParams[2] == CMD.LOAD_UNITS and #cmdParams - 3 == 4 then
-		local newParams = { cmdParams[1], CMD_AREA_LOAD, cmdParams[3],
-		                    cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7] }
-		spGiveOrderToUnit(unitID, CMD.INSERT, newParams, cmdOptions)
-		return false
+	if not isAirTransport[unitDefID] then return true, true end
+	if cmdID == CMD.LOAD_UNITS then
+		if #cmdParams == 4 then
+			spGiveOrderToUnit(unitID, CMD_AREA_LOAD, cmdParams, cmdOptions)
+			return false
+		elseif #cmdParams == 1 then
+			spGiveOrderToUnit(unitID, CMD_LOAD_UNIT, cmdParams, cmdOptions)
+			return false
+		end
+	end
+
+	if cmdID == CMD.INSERT and cmdParams[2] == CMD.LOAD_UNITS then
+		if #cmdParams - 3 == 4 then
+			local newParams = { cmdParams[1], CMD_AREA_LOAD, cmdParams[3],
+								cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7] }
+			spGiveOrderToUnit(unitID, CMD.INSERT, newParams, cmdOptions)
+			return false
+		elseif #cmdParams - 3 == 1 then
+			local newParams = { cmdParams[1], CMD_LOAD_UNIT, cmdParams[3], cmdParams[4] }
+			spGiveOrderToUnit(unitID, CMD.INSERT, newParams, cmdOptions)
+			return false
+		end
+
 	end
 	return true, true
 end
