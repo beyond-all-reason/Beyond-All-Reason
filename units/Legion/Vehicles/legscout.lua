@@ -8,7 +8,7 @@ return {
 		buildtime = 900,
 		canmove = true,
 		category = "GROUNDSCOUT",
-		collisionvolumeoffsets = "0 -3 0",
+		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "13 17 17",
 		collisionvolumetype = "CylX",
 		corpse = "DEAD",
