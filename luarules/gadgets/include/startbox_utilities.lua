@@ -1,9 +1,50 @@
+-- Compatibility shim: maps ZK-style gametype method names to BAR equivalents.
+-- Unknown methods fall back to returning false so map configs that check
+-- features BAR doesn't have (e.g. isChickens) silently take the default path.
+local gametypeShim = setmetatable({
+	isFFA = function() return Spring.Utilities.Gametype.IsFFA() end,
+	isTeams = function() return Spring.Utilities.Gametype.IsTeams() end,
+	is1v1 = function() return Spring.Utilities.Gametype.Is1v1() end,
+	isChickens = function() return Spring.Utilities.Gametype.IsRaptors() end,
+	isSinglePlayer = function() return Spring.Utilities.Gametype.IsSinglePlayer() end,
+}, {
+	__index = function()
+		return function() return false end
+	end
+})
+
+local function NormalizeConfigKeys(config)
+	if not config or config[0] ~= nil then
+		return config
+	end
+	if config[1] == nil then
+		return config
+	end
+	local normalized = {}
+	for k, v in pairs(config) do
+		if type(k) == 'number' then
+			normalized[k - 1] = v
+		else
+			normalized[k] = v
+		end
+	end
+	return normalized
+end
+
 local function WrappedInclude(x)
 	local env = getfenv()
 	local prevGTC = env.GetTeamCount -- typically nil but also works otherwise
+	local prevGT = env.gametype
 	env.GetTeamCount = Spring.Utilities.GetAllyTeamCount -- for legacy mapside boxes
-	local ret = VFS.Include(x, env)
+	if not env.gametype then
+		env.gametype = gametypeShim
+	end
+	local ok, ret = pcall(VFS.Include, x, env)
 	env.GetTeamCount = prevGTC
+	env.gametype = prevGT
+	if not ok then
+		error(ret, 2)
+	end
 	return ret
 end
 
@@ -42,7 +83,7 @@ local function ParseBoxes ()
 	local configSource -- "modside", "mapside", "autohost_polygon", "autohost_rect", "fallback"
 
 	if VFS.FileExists (mapsideBoxes) then
-		startBoxConfig = WrappedInclude (mapsideBoxes)
+		startBoxConfig = NormalizeConfigKeys(WrappedInclude(mapsideBoxes))
 		configSource = "mapside"
 	else
 		startBoxConfig = { }

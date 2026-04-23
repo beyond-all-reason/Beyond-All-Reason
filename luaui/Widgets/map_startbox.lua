@@ -807,8 +807,8 @@ local function InitStartPolygons()
 	local configLoaded = false
 	local ok, ParseBoxes = pcall(VFS.Include, "luarules/gadgets/include/startbox_utilities.lua")
 	if ok and ParseBoxes then
-		local startBoxConfig, configSource = ParseBoxes()
-		if startBoxConfig then
+		local pok, startBoxConfig, configSource = pcall(ParseBoxes)
+		if pok and startBoxConfig then
 			-- Build set of active allyTeams so we only render polygons for teams in this game
 			local activeAllyTeams = {}
 			for _, atID in ipairs(Spring.GetAllyTeamList()) do

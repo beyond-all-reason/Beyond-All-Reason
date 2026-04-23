@@ -30,7 +30,13 @@ local isExplicitConfig = false
 
 function gadget:Initialize()
 	local ParseBoxes = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
-	startBoxConfig, configSource = ParseBoxes()
+	local ok, config, source = pcall(ParseBoxes)
+	if ok then
+		startBoxConfig = config
+		configSource = source
+	else
+		Spring.Log(gadget:GetInfo().name, LOG.WARNING, 'Failed to parse startbox config: ' .. tostring(config))
+	end
 
 	isExplicitConfig = EXPLICIT_SOURCES[configSource] or false
 
