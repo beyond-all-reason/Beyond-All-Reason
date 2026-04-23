@@ -524,7 +524,7 @@ function ExecuteSuccessiveLoadUnits(terID, terDefID, terTeamID)
 			i = i + 1
 			cmd = queue and queue[i]
 		end
-	elseif (Spring.GetUnitRulesParam(terID, "usedSeats") > Spring.GetUnitRulesParam(terID, "nSeats")) then -- we still have queued commands despite being full, they can't be performed
+	elseif (Spring.GetUnitRulesParam(terID, "usedSeats") >= Spring.GetUnitRulesParam(terID, "nSeats")) then -- we still have queued commands despite being full, they can't be performed
 		while cmd and cmd.id == CMD_LOAD_UNIT do
 			local teeID = cmd.params[1]
 			idsToRemove[teeID] = true -- mark command for removal
