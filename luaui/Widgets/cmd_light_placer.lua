@@ -359,8 +359,9 @@ local function addOneLight(px, pz, lightDef)
 
 	local py = GetGroundHeight(px, pz)
 	if not py then py = 0 end
-	-- Elevate above ground by user-configurable offset
-	py = py + lp.elevation
+	-- Elevate above ground: prefer per-light elevation (e.g. from save) over live slider.
+	local elevation = lightDef.elevation or lp.elevation
+	py = py + elevation
 
 	local r = lightDef.color[1] * lightDef.brightness
 	local g = lightDef.color[2] * lightDef.brightness
@@ -415,7 +416,7 @@ local function addOneLight(px, pz, lightDef)
 			roll        = lightDef.roll,
 			theta       = lightDef.theta,
 			beamLength  = lightDef.beamLength,
-			elevation   = lp.elevation,
+			elevation   = elevation,
 			animation   = nil, -- reserved for Phase 3
 		}
 		placedLights[instanceID] = record
