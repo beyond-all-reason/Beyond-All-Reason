@@ -7,257 +7,151 @@ function M.attach(doc, ctx)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local playSound = ctx.playSound
-	local setActiveClass = ctx.setActiveClass
 	local trackSliderDrag = ctx.trackSliderDrag
 	local clearPassthrough = ctx.clearPassthrough
 	local ROTATION_STEP = ctx.ROTATION_STEP
-	local CURVE_STEP = ctx.CURVE_STEP
-	local LENGTH_SCALE_STEP = ctx.LENGTH_SCALE_STEP
-	local RADIUS_STEP = ctx.RADIUS_STEP
-	local sliderToCadence = ctx.sliderToCadence
-	local cadenceToSlider = ctx.cadenceToSlider
-	local sliderToFrequency = ctx.sliderToFrequency
-	local sliderToPersist = ctx.sliderToPersist
-	local PERSIST_PERMANENT_VAL = ctx.PERSIST_PERMANENT_VAL
-	local formatFrequency = ctx.formatFrequency
-	local guideHints = ctx.guideHints
-	local shapeNames = ctx.shapeNames
-		widgetState.cloneActive = false
-		widgetState.cloneControlsEl = doc:GetElementById("tf-clone-controls")
-		widgetState.clonePasteTransformsEl = doc:GetElementById("cl-paste-transforms")
 
-		-- Clone tool launch button
-		local cloneBtn = doc:GetElementById("btn-clone")
-		if cloneBtn then
-			cloneBtn:AddEventListener("click", function(event)
-				playSound("toolSwitch")
-				clearPassthrough()
-				if widgetState.cloneActive then
-					-- Toggle OFF
-					widgetState.cloneActive = false
-					if WG.CloneTool then WG.CloneTool.deactivate() end
-					if WG.TerraformBrush then
-						local st = WG.TerraformBrush.getState()
-						WG.TerraformBrush.setMode(st and st.mode or "raise")
-					end
-				else
-					-- Toggle ON: deactivate all other tools
-					if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-					if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
-					if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
-					if WG.SplatPainter then WG.SplatPainter.deactivate() end
-					if WG.MetalBrush then WG.MetalBrush.deactivate() end
-					if WG.GrassBrush then WG.GrassBrush.deactivate() end
-					widgetState.envActive = false
-					widgetState.lightActive = false
-					if WG.LightPlacer then WG.LightPlacer.deactivate() end
-					widgetState.startposActive = false
-					if WG.StartPosTool then WG.StartPosTool.deactivate() end
-					widgetState.decalsActive = false
-					if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
-					widgetState.cloneActive = true
-					if WG.CloneTool then WG.CloneTool.activate() end
-				end
-				event:StopPropagation()
-			end, false)
-		end
+	widgetState.cloneActive = false
+	widgetState.cloneControlsEl = doc:GetElementById("tf-clone-controls")
+	widgetState.clonePasteTransformsEl = doc:GetElementById("cl-paste-transforms")
 
-		-- Layer toggles
-		local layerNames = {"terrain", "metal", "features", "splats", "grass", "decals", "weather", "lights"}
-		for _, name in ipairs(layerNames) do
-			local el = doc:GetElementById("btn-cl-" .. name)
-			if el then
-				el:AddEventListener("click", function(event)
-					local isActive = el:IsClassSet("active")
-					el:SetClass("active", not isActive)
-					if WG.CloneTool then WG.CloneTool.setLayer(name, not isActive) end
-					event:StopPropagation()
-				end, false)
+	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
+	-- Slider change events are wired declaratively via onchange= in RML.
+	for _, sid in ipairs({ "cl-rotation", "cl-height", "cl-history" }) do
+		local sl = doc:GetElementById("slider-" .. sid)
+		if sl then trackSliderDrag(sl, sid) end
+	end
+
+	-- Register widget methods for inline onclick/onchange handlers in RML.
+	local w = ctx.widget
+	if not w then return end
+
+	w.clOnClone = function(self)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if widgetState.cloneActive then
+			-- Toggle OFF
+			widgetState.cloneActive = false
+			if WG.CloneTool then WG.CloneTool.deactivate() end
+			if WG.TerraformBrush then
+				local st = WG.TerraformBrush.getState()
+				WG.TerraformBrush.setMode(st and st.mode or "raise")
 			end
+		else
+			-- Toggle ON: deactivate all other tools
+			if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
+			if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
+			if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
+			if WG.SplatPainter then WG.SplatPainter.deactivate() end
+			if WG.MetalBrush then WG.MetalBrush.deactivate() end
+			if WG.GrassBrush then WG.GrassBrush.deactivate() end
+			widgetState.envActive = false
+			widgetState.lightActive = false
+			if WG.LightPlacer then WG.LightPlacer.deactivate() end
+			widgetState.startposActive = false
+			if WG.StartPosTool then WG.StartPosTool.deactivate() end
+			widgetState.decalsActive = false
+			if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
+			widgetState.cloneActive = true
+			if WG.CloneTool then WG.CloneTool.activate() end
 		end
+	end
 
-		-- Copy button
-		local copyBtn = doc:GetElementById("btn-cl-copy")
-		if copyBtn then
-			copyBtn:AddEventListener("click", function(event)
-				if WG.CloneTool then WG.CloneTool.doCopy() end
-				event:StopPropagation()
-			end, false)
-		end
+	w.clToggleLayer = function(self, name)
+		if not WG.CloneTool then return end
+		local st = WG.CloneTool.getState()
+		local cur = st and st.layers and st.layers[name] or false
+		WG.CloneTool.setLayer(name, not cur)
+		-- Active-class sync happens in M.sync() via clState.layers; no need to toggle here.
+	end
 
-		-- Paste button
-		local pasteBtn = doc:GetElementById("btn-cl-paste")
-		if pasteBtn then
-			pasteBtn:AddEventListener("click", function(event)
-				if WG.CloneTool then WG.CloneTool.startPaste() end
-				event:StopPropagation()
-			end, false)
-		end
+	w.clCopy = function(self)
+		if WG.CloneTool then WG.CloneTool.doCopy() end
+	end
+	w.clPaste = function(self)
+		if WG.CloneTool then WG.CloneTool.startPaste() end
+	end
+	w.clClear = function(self)
+		if WG.CloneTool then WG.CloneTool.cancelOperation() end
+	end
 
-		-- Clear button
-		local clearBtn = doc:GetElementById("btn-cl-clear")
-		if clearBtn then
-			clearBtn:AddEventListener("click", function(event)
-				if WG.CloneTool then WG.CloneTool.cancelOperation() end
-				event:StopPropagation()
-			end, false)
+	w.clOnRotChange = function(self, element)
+		if uiState.updatingFromCode then return end
+		local val = element and tonumber(element:GetAttribute("value")) or 0
+		if WG.CloneTool then WG.CloneTool.setRotation(val) end
+	end
+	w.clRotCW = function(self)
+		if WG.CloneTool then
+			local st = WG.CloneTool.getState()
+			WG.CloneTool.setRotation(((st and st.pasteRotation or 0) + ROTATION_STEP) % 360)
 		end
+	end
+	w.clRotCCW = function(self)
+		if WG.CloneTool then
+			local st = WG.CloneTool.getState()
+			WG.CloneTool.setRotation(((st and st.pasteRotation or 0) - ROTATION_STEP) % 360)
+		end
+	end
 
-		-- Rotation slider
-		local rotSlider = doc:GetElementById("slider-cl-rotation")
-		if rotSlider then
-			trackSliderDrag(rotSlider, "cl-rotation")
-			rotSlider:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then return end
-				local val = tonumber(rotSlider:GetAttribute("value")) or 0
-				if WG.CloneTool then WG.CloneTool.setRotation(val) end
-				event:StopPropagation()
-			end, false)
+	w.clOnHeightChange = function(self, element)
+		if uiState.updatingFromCode then return end
+		local val = element and tonumber(element:GetAttribute("value")) or 0
+		if WG.CloneTool then WG.CloneTool.setHeightOffset(val) end
+	end
+	w.clHeightUp = function(self)
+		if WG.CloneTool then
+			local st = WG.CloneTool.getState()
+			local cur = (st and st.pasteHeightOffset or 0)
+			WG.CloneTool.setHeightOffset(math.min(500, cur + 10))
 		end
-		local clRotCW = doc:GetElementById("btn-cl-rot-cw")
-		if clRotCW then
-			clRotCW:AddEventListener("click", function(event)
-				if WG.CloneTool then
-					local st = WG.CloneTool.getState()
-					WG.CloneTool.setRotation(((st and st.pasteRotation or 0) + ROTATION_STEP) % 360)
-				end
-				event:StopPropagation()
-			end, false)
+	end
+	w.clHeightDown = function(self)
+		if WG.CloneTool then
+			local st = WG.CloneTool.getState()
+			local cur = (st and st.pasteHeightOffset or 0)
+			WG.CloneTool.setHeightOffset(math.max(-500, cur - 10))
 		end
-		local clRotCCW = doc:GetElementById("btn-cl-rot-ccw")
-		if clRotCCW then
-			clRotCCW:AddEventListener("click", function(event)
-				if WG.CloneTool then
-					local st = WG.CloneTool.getState()
-					WG.CloneTool.setRotation(((st and st.pasteRotation or 0) - ROTATION_STEP) % 360)
-				end
-				event:StopPropagation()
-			end, false)
-		end
+	end
 
-		-- Height offset slider
-		local heightSlider = doc:GetElementById("slider-cl-height")
-		if heightSlider then
-			trackSliderDrag(heightSlider, "cl-height")
-			heightSlider:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then return end
-				local val = tonumber(heightSlider:GetAttribute("value")) or 0
-				if WG.CloneTool then WG.CloneTool.setHeightOffset(val) end
-				event:StopPropagation()
-			end, false)
-		end
-		local clHeightUp = doc:GetElementById("btn-cl-height-up")
-		if clHeightUp then
-			clHeightUp:AddEventListener("click", function(event)
-				if WG.CloneTool then
-					local st = WG.CloneTool.getState()
-					local cur = (st and st.pasteHeightOffset or 0)
-					WG.CloneTool.setHeightOffset(math.min(500, cur + 10))
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local clHeightDown = doc:GetElementById("btn-cl-height-down")
-		if clHeightDown then
-			clHeightDown:AddEventListener("click", function(event)
-				if WG.CloneTool then
-					local st = WG.CloneTool.getState()
-					local cur = (st and st.pasteHeightOffset or 0)
-					WG.CloneTool.setHeightOffset(math.max(-500, cur - 10))
-				end
-				event:StopPropagation()
-			end, false)
-		end
+	w.clToggleMirrorX = function(self)
+		if not WG.CloneTool then return end
+		local st = WG.CloneTool.getState()
+		WG.CloneTool.setMirrorX(not (st and st.pasteMirrorX))
+		-- Active-class sync happens in M.sync() via clState.pasteMirrorX.
+	end
+	w.clToggleMirrorZ = function(self)
+		if not WG.CloneTool then return end
+		local st = WG.CloneTool.getState()
+		WG.CloneTool.setMirrorZ(not (st and st.pasteMirrorZ))
+		-- Active-class sync happens in M.sync() via clState.pasteMirrorZ.
+	end
 
-		-- Mirror X button
-		local mirXBtn = doc:GetElementById("btn-cl-mirror-x")
-		if mirXBtn then
-			mirXBtn:AddEventListener("click", function(event)
-				local isActive = mirXBtn:IsClassSet("active")
-				mirXBtn:SetClass("active", not isActive)
-				if WG.CloneTool then WG.CloneTool.setMirrorX(not isActive) end
-				event:StopPropagation()
-			end, false)
-		end
+	w.clSetQuality = function(self, qName)
+		if WG.CloneTool then WG.CloneTool.setTerrainQuality(qName) end
+		-- Active-class sync happens in M.sync() via clState.terrainQuality; no need to toggle here.
+	end
 
-		-- Mirror Z button
-		local mirZBtn = doc:GetElementById("btn-cl-mirror-z")
-		if mirZBtn then
-			mirZBtn:AddEventListener("click", function(event)
-				local isActive = mirZBtn:IsClassSet("active")
-				mirZBtn:SetClass("active", not isActive)
-				if WG.CloneTool then WG.CloneTool.setMirrorZ(not isActive) end
-				event:StopPropagation()
-			end, false)
-		end
+	w.clUndo = function(self)
+		if WG.CloneTool and WG.CloneTool.undo then WG.CloneTool.undo() end
+	end
+	w.clRedo = function(self)
+		if WG.CloneTool and WG.CloneTool.redo then WG.CloneTool.redo() end
+	end
 
-		-- Terrain quality buttons
-		local qualityBtns = {
-			doc:GetElementById("btn-cl-quality-full"),
-			doc:GetElementById("btn-cl-quality-balanced"),
-			doc:GetElementById("btn-cl-quality-fast"),
-		}
-		local qualityNames = { "full", "balanced", "fast" }
-		for qi = 1, 3 do
-			local btn = qualityBtns[qi]
-			local qName = qualityNames[qi]
-			if btn then
-				btn:AddEventListener("click", function(event)
-					if WG.CloneTool then WG.CloneTool.setTerrainQuality(qName) end
-					for j = 1, 3 do
-						if qualityBtns[j] then qualityBtns[j]:SetClass("active", j == qi) end
-					end
-					event:StopPropagation()
-				end, false)
-			end
+	w.clOnHistoryChange = function(self, element)
+		if uiState.updatingFromCode then return end
+		if not WG.CloneTool then return end
+		local val = element and tonumber(element:GetAttribute("value")) or 0
+		local clSt = WG.CloneTool.getState()
+		if not clSt then return end
+		local currentUndoCount = clSt.undoCount or 0
+		local diff = val - currentUndoCount
+		if diff > 0 then
+			for i = 1, diff do WG.CloneTool.redo() end
+		elseif diff < 0 then
+			for i = 1, -diff do WG.CloneTool.undo() end
 		end
-
-		-- Undo button
-		local undoBtn = doc:GetElementById("btn-cl-undo")
-		if undoBtn then
-			undoBtn:AddEventListener("click", function(event)
-				if WG.CloneTool and WG.CloneTool.undo then
-					WG.CloneTool.undo()
-				end
-				event:StopPropagation()
-			end, false)
-		end
-
-		-- Redo button
-		local redoBtn = doc:GetElementById("btn-cl-redo")
-		if redoBtn then
-			redoBtn:AddEventListener("click", function(event)
-				if WG.CloneTool and WG.CloneTool.redo then
-					WG.CloneTool.redo()
-				end
-				event:StopPropagation()
-			end, false)
-		end
-
-		-- History slider
-		local sliderClHistory = doc:GetElementById("slider-cl-history")
-		if sliderClHistory then
-			trackSliderDrag(sliderClHistory, "cl-history")
-			sliderClHistory:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then event:StopPropagation(); return end
-				if not WG.CloneTool then event:StopPropagation(); return end
-				local val = tonumber(sliderClHistory:GetAttribute("value")) or 0
-				local clSt = WG.CloneTool.getState()
-				if not clSt then event:StopPropagation(); return end
-				local currentUndoCount = clSt.undoCount or 0
-				local diff = val - currentUndoCount
-				if diff > 0 then
-					for i = 1, diff do
-						WG.CloneTool.redo()
-					end
-				elseif diff < 0 then
-					for i = 1, -diff do
-						WG.CloneTool.undo()
-					end
-				end
-				event:StopPropagation()
-			end, false)
-		end
+	end
 end
 
 function M.sync(doc, ctx, clState, setSummary)
@@ -321,6 +215,24 @@ function M.sync(doc, ctx, clState, setSummary)
 				if mirXBtn and clState then mirXBtn:SetClass("active", clState.pasteMirrorX) end
 				local mirZBtn = doc:GetElementById("btn-cl-mirror-z")
 				if mirZBtn and clState then mirZBtn:SetClass("active", clState.pasteMirrorZ) end
+
+				-- Sync layer toggle buttons
+				if clState and clState.layers then
+					local layerIds = {
+						terrain  = "btn-cl-terrain",
+						metal    = "btn-cl-metal",
+						features = "btn-cl-features",
+						splats   = "btn-cl-splats",
+						grass    = "btn-cl-grass",
+						decals   = "btn-cl-decals",
+						weather  = "btn-cl-weather",
+						lights   = "btn-cl-lights",
+					}
+					for name, id in pairs(layerIds) do
+						local btn = doc:GetElementById(id)
+						if btn then btn:SetClass("active", clState.layers[name] == true) end
+					end
+				end
 
 				-- Sync quality buttons
 				if clState then
