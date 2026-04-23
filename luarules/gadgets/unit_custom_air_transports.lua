@@ -414,7 +414,6 @@ function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeam, cx, c
 end
 
 function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeam)
-	local finished = false
 	-- 1: update the list of queued units
 	local queue = spGetUnitCommands(transporterID,  Spring.GetUnitRulesParam(transporterID, "nSeats")) --  Spring.GetUnitRulesParam(transporterID, "nSeats") being the max number of units we can queue on a single transport
 	local i = 1
