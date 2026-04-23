@@ -116,7 +116,7 @@
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_environment.png" />
 				<div class="tf-btn-text">SCENE</div>
 			</div>
-			<div id="btn-clone" class="tf-mode-btn tf-btn-clone">
+			<div id="btn-clone" class="tf-mode-btn tf-btn-clone" onclick="widget:clOnClone(); event:StopPropagation()">
 				<div class="tf-keybind-badge">J</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_clone.png" />
 				<div class="tf-btn-text">CLONE</div>
@@ -488,15 +488,15 @@
 
 			<!-- Primary actions — hero buttons: COPY is the main action -->
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-cl-copy" class="tf-cl-action tf-cl-action-copy">
+				<div id="btn-cl-copy" class="tf-cl-action tf-cl-action-copy" onclick="widget:clCopy(); event:StopPropagation()">
 					<div class="tf-cl-action-label">COPY</div>
 					<div class="tf-cl-action-key">Ctrl+C</div>
 				</div>
-				<div id="btn-cl-paste" class="tf-cl-action tf-cl-action-paste">
+				<div id="btn-cl-paste" class="tf-cl-action tf-cl-action-paste" onclick="widget:clPaste(); event:StopPropagation()">
 					<div class="tf-cl-action-label">PASTE</div>
 					<div class="tf-cl-action-key">Ctrl+V</div>
 				</div>
-				<div id="btn-cl-clear" class="tf-cl-action tf-cl-action-clear">
+				<div id="btn-cl-clear" class="tf-cl-action tf-cl-action-clear" onclick="widget:clClear(); event:StopPropagation()">
 					<div class="tf-cl-action-label">CLEAR</div>
 				</div>
 			</div>
@@ -514,28 +514,28 @@
 				<div id="clone-layers-notify-dot" class="tf-notify-dot hidden"></div>
 			</div>
 			<div class="tf-cl-layer-grid mb-1">
-				<div id="btn-cl-terrain" class="tf-cl-chip active">
+				<div id="btn-cl-terrain" class="tf-cl-chip active" onclick="widget:clToggleLayer('terrain'); event:StopPropagation()">
 					<div class="tf-cl-chip-label">Terrain</div>
 				</div>
-				<div id="btn-cl-metal" class="tf-cl-chip active">
+				<div id="btn-cl-metal" class="tf-cl-chip active" onclick="widget:clToggleLayer('metal'); event:StopPropagation()">
 					<div class="tf-cl-chip-label">Metal</div>
 				</div>
-				<div id="btn-cl-features" class="tf-cl-chip active">
+				<div id="btn-cl-features" class="tf-cl-chip active" onclick="widget:clToggleLayer('features'); event:StopPropagation()">
 					<div class="tf-cl-chip-label">Features</div>
 				</div>
-				<div id="btn-cl-splats" class="tf-cl-chip active">
+				<div id="btn-cl-splats" class="tf-cl-chip active" onclick="widget:clToggleLayer('splats'); event:StopPropagation()">
 					<div class="tf-cl-chip-label">Splats</div>
 				</div>
-				<div id="btn-cl-grass" class="tf-cl-chip active">
+				<div id="btn-cl-grass" class="tf-cl-chip active" onclick="widget:clToggleLayer('grass'); event:StopPropagation()">
 					<div class="tf-cl-chip-label">Grass</div>
 				</div>
-				<div id="btn-cl-decals" class="tf-cl-chip">
+				<div id="btn-cl-decals" class="tf-cl-chip" onclick="widget:clToggleLayer('decals'); event:StopPropagation()">
 					<div class="tf-cl-chip-label">Decals</div>
 				</div>
-				<div id="btn-cl-weather" class="tf-cl-chip">
+				<div id="btn-cl-weather" class="tf-cl-chip" onclick="widget:clToggleLayer('weather'); event:StopPropagation()">
 					<div class="tf-cl-chip-label">Weather</div>
 				</div>
-				<div id="btn-cl-lights" class="tf-cl-chip">
+				<div id="btn-cl-lights" class="tf-cl-chip" onclick="widget:clToggleLayer('lights'); event:StopPropagation()">
 					<div class="tf-cl-chip-label">Lights</div>
 				</div>
 			</div>
@@ -550,11 +550,11 @@
 			</div>
 			<div id="section-cl-undo" class="hidden">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-cl-undo" class="tf-history-btn">
+				<div id="btn-cl-undo" class="tf-history-btn" onclick="widget:clUndo(); event:StopPropagation()">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
 				</div>
-				<input type="range" id="slider-cl-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
-				<div id="btn-cl-redo" class="tf-history-btn">
+				<input type="range" id="slider-cl-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" onchange="widget:clOnHistoryChange(element); event:StopPropagation()" />
+				<div id="btn-cl-redo" class="tf-history-btn" onclick="widget:clRedo(); event:StopPropagation()">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
 				</div>
 				<input type="text" id="slider-cl-history-numbox" class="tf-slider-numbox" value="0" />
@@ -572,13 +572,13 @@
 					<div class="text-lg text-light">TERRAIN QUALITY</div>
 				</div>
 				<div class="flex flex-row gap-1 mb-1">
-					<div id="btn-cl-quality-full" class="tf-mode-btn" style="flex: 1;">
+					<div id="btn-cl-quality-full" class="tf-mode-btn" style="flex: 1;" onclick="widget:clSetQuality('full'); event:StopPropagation()">
 						<div class="tf-btn-text">Full</div>
 					</div>
-					<div id="btn-cl-quality-balanced" class="tf-mode-btn active" style="flex: 1;">
+					<div id="btn-cl-quality-balanced" class="tf-mode-btn active" style="flex: 1;" onclick="widget:clSetQuality('balanced'); event:StopPropagation()">
 						<div class="tf-btn-text">Balanced</div>
 					</div>
-					<div id="btn-cl-quality-fast" class="tf-mode-btn" style="flex: 1;">
+					<div id="btn-cl-quality-fast" class="tf-mode-btn" style="flex: 1;" onclick="widget:clSetQuality('fast'); event:StopPropagation()">
 						<div class="tf-btn-text">Fast</div>
 					</div>
 				</div>
@@ -589,11 +589,11 @@
 					<div id="kbhint-cl-rotation" class="text-sm text-keybind">Alt+Scroll</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="btn-cl-rot-ccw" class="tf-sm-btn">
+					<div id="btn-cl-rot-ccw" class="tf-sm-btn" onclick="widget:clRotCCW(); event:StopPropagation()">
 						<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_ccw.png" />
 					</div>
-					<input id="slider-cl-rotation" type="range" class="tf-slider" min="0" max="359" step="1" value="0" />
-					<div id="btn-cl-rot-cw" class="tf-sm-btn">
+					<input id="slider-cl-rotation" type="range" class="tf-slider" min="0" max="359" step="1" value="0" onchange="widget:clOnRotChange(element); event:StopPropagation()" />
+					<div id="btn-cl-rot-cw" class="tf-sm-btn" onclick="widget:clRotCW(); event:StopPropagation()">
 						<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_cw.png" />
 					</div>
 					<input type="text" id="slider-cl-rotation-numbox" class="tf-slider-numbox" value="0" />
@@ -605,11 +605,11 @@
 					<div id="kbhint-cl-height" class="text-sm text-keybind">Shift+Scroll</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="btn-cl-height-down" class="tf-sm-btn">
+					<div id="btn-cl-height-down" class="tf-sm-btn" onclick="widget:clHeightDown(); event:StopPropagation()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input id="slider-cl-height" type="range" class="tf-slider" min="-500" max="500" step="1" value="0" />
-					<div id="btn-cl-height-up" class="tf-sm-btn">
+					<input id="slider-cl-height" type="range" class="tf-slider" min="-500" max="500" step="1" value="0" onchange="widget:clOnHeightChange(element); event:StopPropagation()" />
+					<div id="btn-cl-height-up" class="tf-sm-btn" onclick="widget:clHeightUp(); event:StopPropagation()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 					<input type="text" id="slider-cl-height-numbox" class="tf-slider-numbox" value="0" />
@@ -617,10 +617,10 @@
 
 				<!-- Mirror buttons -->
 				<div class="flex flex-row gap-1 mb-1">
-					<div id="btn-cl-mirror-x" class="tf-mode-btn" style="flex: 1;">
+					<div id="btn-cl-mirror-x" class="tf-mode-btn" style="flex: 1;" onclick="widget:clToggleMirrorX(); event:StopPropagation()">
 						<div class="tf-btn-text">Mirror X (Shift+X)</div>
 					</div>
-					<div id="btn-cl-mirror-z" class="tf-mode-btn" style="flex: 1;">
+					<div id="btn-cl-mirror-z" class="tf-mode-btn" style="flex: 1;" onclick="widget:clToggleMirrorZ(); event:StopPropagation()">
 						<div class="tf-btn-text">Mirror Z (Shift+Z)</div>
 					</div>
 				</div>
@@ -1695,15 +1695,15 @@
 			</div>
 			<div id="section-wb-mode">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-wb-scatter" class="tf-mode-btn tf-wb-btn-scatter">
+				<div id="btn-wb-scatter" class="tf-mode-btn tf-wb-btn-scatter" onclick="widget:wbSetMode('scatter'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_scatter.png" />
 					<div class="tf-btn-text">Scatter</div>
 				</div>
-				<div id="btn-wb-point" class="tf-mode-btn tf-wb-btn-point">
+				<div id="btn-wb-point" class="tf-mode-btn tf-wb-btn-point" onclick="widget:wbSetMode('point'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_point.png" />
 					<div class="tf-btn-text">Point</div>
 				</div>
-				<div id="btn-wb-remove" class="tf-mode-btn tf-wb-btn-remove">
+				<div id="btn-wb-remove" class="tf-mode-btn tf-wb-btn-remove" onclick="widget:wbSetMode('remove'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_remove.png" />
 					<div class="tf-btn-text">Remove</div>
 				</div>
@@ -1717,15 +1717,15 @@
 			</div>
 			<div id="section-wb-dist">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-wb-dist-random" class="tf-fp-dist-btn active">
+				<div id="btn-wb-dist-random" class="tf-fp-dist-btn active" onclick="widget:wbSetDist('random'); event:StopPropagation()">
 					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/fp_scatter.png" />
 					<div class="tf-btn-text">Random</div>
 				</div>
-				<div id="btn-wb-dist-regular" class="tf-fp-dist-btn">
+				<div id="btn-wb-dist-regular" class="tf-fp-dist-btn" onclick="widget:wbSetDist('regular'); event:StopPropagation()">
 					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_regular.png" />
 					<div class="tf-btn-text">Regular</div>
 				</div>
-				<div id="btn-wb-dist-clustered" class="tf-fp-dist-btn">
+				<div id="btn-wb-dist-clustered" class="tf-fp-dist-btn" onclick="widget:wbSetDist('clustered'); event:StopPropagation()">
 					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_clustered.png" />
 					<div class="tf-btn-text">Clustered</div>
 				</div>
@@ -2763,11 +2763,11 @@
 			<div id="kbhint-wb-size" class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-wb-size-down" class="tf-sm-btn">
+			<div id="btn-wb-size-down" class="tf-sm-btn" onclick="widget:wbSizeDown(); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="wb-slider-size" class="tf-slider" min="8" max="2000" step="1" value="200" />
-			<div id="btn-wb-size-up" class="tf-sm-btn">
+			<input type="range" id="wb-slider-size" class="tf-slider" min="8" max="2000" step="1" value="200" onchange="widget:wbOnSizeChange(element); event:StopPropagation()" />
+			<div id="btn-wb-size-up" class="tf-sm-btn" onclick="widget:wbSizeUp(); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="wb-slider-size-numbox" class="tf-slider-numbox" value="0" />
@@ -2784,11 +2784,11 @@
 			<div id="kbhint-wb-length" class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Alt+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-wb-length-down" class="tf-sm-btn">
+			<div id="btn-wb-length-down" class="tf-sm-btn" onclick="widget:wbLengthDown(); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="wb-slider-length" class="tf-slider" min="2" max="50" step="1" value="10" />
-			<div id="btn-wb-length-up" class="tf-sm-btn">
+			<input type="range" id="wb-slider-length" class="tf-slider" min="2" max="50" step="1" value="10" onchange="widget:wbOnLengthChange(element); event:StopPropagation()" />
+			<div id="btn-wb-length-up" class="tf-sm-btn" onclick="widget:wbLengthUp(); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="wb-slider-length-numbox" class="tf-slider-numbox" value="0" />
@@ -2806,11 +2806,11 @@
 			</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-wb-rot-ccw" class="tf-sm-btn">
+			<div id="btn-wb-rot-ccw" class="tf-sm-btn" onclick="widget:wbRotCCW(); event:StopPropagation()">
 				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_ccw.png" />
 			</div>
-			<input type="range" id="wb-slider-rotation" class="tf-slider" min="0" max="359" step="1" value="0" />
-			<div id="btn-wb-rot-cw" class="tf-sm-btn">
+			<input type="range" id="wb-slider-rotation" class="tf-slider" min="0" max="359" step="1" value="0" onchange="widget:wbOnRotChange(element); event:StopPropagation()" />
+			<div id="btn-wb-rot-cw" class="tf-sm-btn" onclick="widget:wbRotCW(); event:StopPropagation()">
 				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_cw.png" />
 			</div>
 			<input type="text" id="wb-slider-rotation-numbox" class="tf-slider-numbox" value="0" />
@@ -2828,11 +2828,11 @@
 			</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-wb-count-down" class="tf-sm-btn">
+			<div id="btn-wb-count-down" class="tf-sm-btn" onclick="widget:wbCountDown(); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="wb-slider-count" class="tf-slider" min="1" max="500" step="1" value="3" />
-			<div id="btn-wb-count-up" class="tf-sm-btn">
+			<input type="range" id="wb-slider-count" class="tf-slider" min="1" max="500" step="1" value="3" onchange="widget:wbOnCountChange(element); event:StopPropagation()" />
+			<div id="btn-wb-count-up" class="tf-sm-btn" onclick="widget:wbCountUp(); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="wb-slider-count-numbox" class="tf-slider-numbox" value="0" />
@@ -2849,11 +2849,11 @@
 			<div class="text-sm text-keybind" style="margin-left: auto;">drag speed</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-wb-cadence-down" class="tf-sm-btn">
+			<div id="btn-wb-cadence-down" class="tf-sm-btn" onclick="widget:wbCadenceDown(); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="wb-slider-cadence" class="tf-slider" min="0" max="1000" step="1" value="0" />
-			<div id="btn-wb-cadence-up" class="tf-sm-btn">
+			<input type="range" id="wb-slider-cadence" class="tf-slider" min="0" max="1000" step="1" value="0" onchange="widget:wbOnCadenceChange(element); event:StopPropagation()" />
+			<div id="btn-wb-cadence-up" class="tf-sm-btn" onclick="widget:wbCadenceUp(); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="wb-slider-cadence-numbox" class="tf-slider-numbox" value="0" />
@@ -2870,11 +2870,11 @@
 			<div class="text-sm text-keybind" style="margin-left: auto;">spawn interval</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-wb-frequency-down" class="tf-sm-btn">
+			<div id="btn-wb-frequency-down" class="tf-sm-btn" onclick="widget:wbFrequencyDown(); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="wb-slider-frequency" class="tf-slider" min="0" max="1000" step="1" value="383" />
-			<div id="btn-wb-frequency-up" class="tf-sm-btn">
+			<input type="range" id="wb-slider-frequency" class="tf-slider" min="0" max="1000" step="1" value="383" onchange="widget:wbOnFrequencyChange(element); event:StopPropagation()" />
+			<div id="btn-wb-frequency-up" class="tf-sm-btn" onclick="widget:wbFrequencyUp(); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="wb-slider-frequency-numbox" class="tf-slider-numbox" value="0" />
@@ -2893,11 +2893,11 @@
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-lg text-light" style="width: 55dp;" id="wb-persist-label">Off</div>
-			<input type="range" id="wb-slider-persist" class="tf-slider tf-slider-persist" min="0" max="1000" step="1" value="0" />
+			<input type="range" id="wb-slider-persist" class="tf-slider tf-slider-persist" min="0" max="1000" step="1" value="0" onchange="widget:wbOnPersistChange(element); event:StopPropagation()" />
 			<input type="text" id="wb-slider-persist-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<img id="btn-wb-persistent" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
+			<img id="btn-wb-persistent" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" onclick="widget:wbTogglePersistent(); event:StopPropagation()" />
 			<div class="text-lg text-light">Permanent</div>
 		</div>
 
@@ -2907,7 +2907,7 @@
 			<div class="text-lg text-light">ACTIVE EFFECTS: <span class="text-xl font-bold" id="wb-persistent-count">0</span></div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-wb-clearall" class="tf-action-btn" style="flex: 1;">
+			<div id="btn-wb-clearall" class="tf-action-btn" style="flex: 1;" onclick="widget:wbClearAll(); event:StopPropagation()">
 				<div class="tf-action-btn-text">CLEAR ALL EFFECTS</div>
 			</div>
 		</div>
@@ -5615,7 +5615,7 @@
 	<div id="tf-noise-root" class="tf-noise-root hidden widget-shadow rounded-md bg-darkest p-2-5">
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div id="tf-noise-handle" class="tf-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Noise Parameters</div>
-			<div id="btn-noise-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+			<div id="btn-noise-close" class="tf-quit-btn" onclick="widget:noClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 
 		<div id="btn-toggle-noise-type" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
@@ -5624,19 +5624,19 @@
 		</div>
 		<div id="section-noise-type">
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-noise-perlin" class="tf-mode-btn tf-noise-type-btn active">
+			<div id="btn-noise-perlin" class="tf-mode-btn tf-noise-type-btn active" onclick="widget:noSetType('perlin')">
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/noise_perlin.png" />
 				<div class="tf-btn-text">Perlin</div>
 			</div>
-			<div id="btn-noise-voronoi" class="tf-mode-btn tf-noise-type-btn">
+			<div id="btn-noise-voronoi" class="tf-mode-btn tf-noise-type-btn" onclick="widget:noSetType('voronoi')">
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/noise_voronoi.png" />
 				<div class="tf-btn-text">Voronoi</div>
 			</div>
-			<div id="btn-noise-fbm" class="tf-mode-btn tf-noise-type-btn">
+			<div id="btn-noise-fbm" class="tf-mode-btn tf-noise-type-btn" onclick="widget:noSetType('fbm')">
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/noise_fbm.png" />
 				<div class="tf-btn-text">FBM</div>
 			</div>
-			<div id="btn-noise-billow" class="tf-mode-btn tf-noise-type-btn">
+			<div id="btn-noise-billow" class="tf-mode-btn tf-noise-type-btn" onclick="widget:noSetType('billow')">
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/noise_billow.png" />
 				<div class="tf-btn-text">Billow</div>
 			</div>
@@ -5650,11 +5650,11 @@
 			<div class="text-sm text-keybind">cell size</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-noise-scale-down" class="tf-sm-btn">
+			<div id="btn-noise-scale-down" class="tf-sm-btn" onclick="widget:noScaleDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="slider-noise-scale" class="tf-slider" min="8" max="512" step="8" value="64" />
-			<div id="btn-noise-scale-up" class="tf-sm-btn">
+			<input type="range" id="slider-noise-scale" class="tf-slider" min="8" max="512" step="8" value="64" onchange="widget:noOnScaleChange(element)" />
+			<div id="btn-noise-scale-up" class="tf-sm-btn" onclick="widget:noScaleUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="slider-noise-scale-numbox" class="tf-slider-numbox" value="0" />
@@ -5665,11 +5665,11 @@
 			<div class="text-sm text-keybind">detail layers</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-noise-octaves-down" class="tf-sm-btn">
+			<div id="btn-noise-octaves-down" class="tf-sm-btn" onclick="widget:noOctavesDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="slider-noise-octaves" class="tf-slider" min="1" max="8" step="1" value="4" />
-			<div id="btn-noise-octaves-up" class="tf-sm-btn">
+			<input type="range" id="slider-noise-octaves" class="tf-slider" min="1" max="8" step="1" value="4" onchange="widget:noOnOctavesChange(element)" />
+			<div id="btn-noise-octaves-up" class="tf-sm-btn" onclick="widget:noOctavesUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="slider-noise-octaves-numbox" class="tf-slider-numbox" value="0" />
@@ -5680,11 +5680,11 @@
 			<div class="text-sm text-keybind">amplitude decay</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-noise-persist-down" class="tf-sm-btn">
+			<div id="btn-noise-persist-down" class="tf-sm-btn" onclick="widget:noPersistDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="slider-noise-persistence" class="tf-slider" min="10" max="90" step="5" value="50" />
-			<div id="btn-noise-persist-up" class="tf-sm-btn">
+			<input type="range" id="slider-noise-persistence" class="tf-slider" min="10" max="90" step="5" value="50" onchange="widget:noOnPersistChange(element)" />
+			<div id="btn-noise-persist-up" class="tf-sm-btn" onclick="widget:noPersistUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="slider-noise-persistence-numbox" class="tf-slider-numbox" value="0" />
@@ -5695,11 +5695,11 @@
 			<div class="text-sm text-keybind">frequency growth</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-noise-lacun-down" class="tf-sm-btn">
+			<div id="btn-noise-lacun-down" class="tf-sm-btn" onclick="widget:noLacunDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="slider-noise-lacunarity" class="tf-slider" min="10" max="40" step="1" value="20" />
-			<div id="btn-noise-lacun-up" class="tf-sm-btn">
+			<input type="range" id="slider-noise-lacunarity" class="tf-slider" min="10" max="40" step="1" value="20" onchange="widget:noOnLacunChange(element)" />
+			<div id="btn-noise-lacun-up" class="tf-sm-btn" onclick="widget:noLacunUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="slider-noise-lacunarity-numbox" class="tf-slider-numbox" value="0" />
@@ -5707,15 +5707,15 @@
 
 		<div class="flex flex-row items-center mb-1">
 			<div class="text-lg text-light">SEED: <span class="text-xl font-bold" id="noise-seed-label">0</span></div>
-			<div id="btn-noise-reseed" class="tf-inline-chip" style="margin-left: 4dp; cursor: pointer;">
+			<div id="btn-noise-reseed" class="tf-inline-chip" style="margin-left: 4dp; cursor: pointer;" onclick="widget:noReseed()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/rot_cw.png" style="margin-right: 2dp;" />
 				RANDOM
 			</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-noise-seed-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-			<input type="range" id="slider-noise-seed" class="tf-slider" min="0" max="9999" step="1" value="0" />
-			<div id="btn-noise-seed-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+			<div id="btn-noise-seed-down" class="tf-sm-btn" onclick="widget:noSeedDown()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+			<input type="range" id="slider-noise-seed" class="tf-slider" min="0" max="9999" step="1" value="0" onchange="widget:noOnSeedChange(element)" />
+			<div id="btn-noise-seed-up" class="tf-sm-btn" onclick="widget:noSeedUp()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
 			<input type="text" id="slider-noise-seed-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 	</div>
