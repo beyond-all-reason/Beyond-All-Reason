@@ -271,7 +271,7 @@ local HOMING_SKIP_GRACE_FRAMES = 60   -- ~2s at 30Hz
 -- streams that visibly chase the target far past the builder's actual reach.
 -- Allow up to BUILD_RANGE_MAX_EXTENSION beyond buildDistance, with a linear
 -- emission falloff inside [buildDistance, buildDistance * MAX_EXTENSION].
-local BUILD_RANGE_MAX_EXTENSION = 1.15
+local BUILD_RANGE_MAX_EXTENSION = 1.1
 
 -- Per-visit emission rate is scaled by (buildSpeed * currentBuildPower) /
 -- EMIT_REF_BUILDSPEED. This gives total particles roughly proportional to a
@@ -283,13 +283,21 @@ local BUILD_RANGE_MAX_EXTENSION = 1.15
 -- sub-1.0 rates across visits.
 local EMIT_REF_BUILDSPEED = 100
 
+-- Visibility-feedback floor: if a builder has any active build power but its
+-- proportional rate is so small that the deterministic accumulator hasn't
+-- produced a particle for this many frames, force a single particle so the
+-- player still sees that something is happening (e.g. repair/build progressing
+-- on a tiny fraction of buildpower). The forced emit is debited from the
+-- accumulator so long-term proportionality is preserved.
+local FEEDBACK_EMIT_MIN_GAP = 60   -- ~2s at 30 sim Hz
+
 -- Throttling knobs. These trade a small amount of visual latency for a large
 -- CPU win in builder-heavy games (hundreds of active nanos):
 --   * HOMING_RUN_EVERY: run per-frame in-place re-aim every Nth frame instead
 --     of every frame. Particle speed is small vs typical unit movement over
 --     1-2 frames so this is visually identical.
-local LOS_CACHE_FRAMES           = 6
-local HOMING_RUN_EVERY           = 3
+local LOS_CACHE_FRAMES           = 7
+local HOMING_RUN_EVERY           = 4
 -- Repair-completion poll cadence (sim frames). At 2Hz, HP/buildProgress polls
 -- are visually indistinguishable from per-pass and cut Spring->C calls by ~80%
 -- in mass-repair scenarios. UnitFinished/UnitDestroyed callins fade
@@ -305,18 +313,18 @@ local MAX_SCAN_RUN_EVERY         = 2
 -- (continuous-build steady state where stale samples are harmless). Idle
 -- visits always re-fetch so 0 -> non-zero edges fire on the next visit. The
 -- emit accumulator absorbs the worst-case over-emit on the falling edge.
-local BUILD_POWER_CACHE_FRAMES   = 4
+local BUILD_POWER_CACHE_FRAMES   = 8
 -- Forward homing: skip per-particle re-aim once a target has been stationary
 -- this many homing passes. Spawn-time aim is correct as long as the target
 -- hasn't moved, collapsing repair-of-static-unit cases to a near-no-op.
-local STATIONARY_SKIP_AFTER      = 3
+local STATIONARY_SKIP_AFTER      = 4
 -- Off-screen emission throttle. Builders whose spray endpoints are outside
 -- the view frustum keep only this fraction of emissions. Frustum visibility
 -- is cached for OFFSCREEN_VIS_CACHE_FRAMES (camera moves slowly vs emit rate).
 -- Keep-fraction scales with pool saturation: MAX at/below SAT_PIVOT, ramping
 -- linearly to MIN at full saturation.
-local OFFSCREEN_EMIT_KEEP_MAX       = 0.5
-local OFFSCREEN_EMIT_KEEP_MIN       = 0.25
+local OFFSCREEN_EMIT_KEEP_MAX       = 0.4
+local OFFSCREEN_EMIT_KEEP_MIN       = 0.20
 local OFFSCREEN_EMIT_KEEP_SAT_PIVOT = 0.25
 local OFFSCREEN_EMIT_KEEP_BAND_INV  = 1.0 / (1.0 - OFFSCREEN_EMIT_KEEP_SAT_PIVOT)
 local OFFSCREEN_VIS_CACHE_FRAMES = 6
@@ -326,7 +334,7 @@ local OFFSCREEN_VIS_CACHE_FRAMES = 6
 -- emission; camera position sampled once per scan frame.
 local DISTANT_EMIT_KEEP          = 0.25
 local DISTANT_EMIT_NEAR_RANGE    = 2500    -- elmos: full emission inside this
-local DISTANT_EMIT_RANGE         = 10000    -- elmos: floor reached at this
+local DISTANT_EMIT_RANGE         = 9000    -- elmos: floor reached at this
 -- Precomputed at file load (DISTANT_EMIT_* are constants).
 local DISTANT_EMIT_NEAR_SQ  = DISTANT_EMIT_NEAR_RANGE * DISTANT_EMIT_NEAR_RANGE
 local DISTANT_EMIT_FAR_SQ   = DISTANT_EMIT_RANGE      * DISTANT_EMIT_RANGE
@@ -2516,6 +2524,21 @@ local function scanBuilders(frame)
 							local accum = (info.emitAccum or 0) + rate
 							local emits = mathFloor(accum)
 							info.emitAccum = accum - emits
+							-- Feedback floor: ensure low-BP builders still spit a
+							-- particle every FEEDBACK_EMIT_MIN_GAP frames so the
+							-- player sees that work is happening. Debit the forced
+							-- emit from the accumulator (allowed to go negative) so
+							-- the long-run rate stays proportional to bp.
+							if emits == 0 and bp > 0 then
+								local lastEmit = info.lastEmitFrame or 0
+								if frame - lastEmit >= FEEDBACK_EMIT_MIN_GAP then
+									emits = 1
+									info.emitAccum = info.emitAccum - 1
+								end
+							end
+							if emits > 0 then
+								info.lastEmitFrame = frame
+							end
 							local resurrectEmits = isResurrect and takeScaledEmitCount(info, "resurrectEmitAccum", emits, NanoParticleResurrectExtraRate) or emits
 							if resurrectEmits > 0 then
 								local n = info.nPieces
