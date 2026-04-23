@@ -529,9 +529,14 @@ function M.attach(doc, ctx)
 			wireMutexChipPair("fp-slope-mode-avoid",  "avoidCliffs",
 			                  "fp-slope-mode-prefer", "preferSlopes", getFP)
 
-			-- Splat painter chips (unchanged: visibility-only, no default key)
-			wireVisibilityChip("sp-filter-chip-slope",    "sp-smart-slope-content",    getSP, nil, nil)
-			wireVisibilityChip("sp-filter-chip-altitude", "sp-smart-altitude-content", getSP, nil, nil)
+			-- Splat painter chips (mirror FP structure: avoid-water chip + slope/altitude sections with defaults + mutex slope-mode sub-chips)
+			wireFilterToggleChip("sp-filter-chip-avoid-water", "avoidWater", getSP)
+			wireVisibilityChip("sp-filter-chip-slope",    "sp-smart-slope-content",
+				getSP, { "avoidCliffs", "preferSlopes" }, "avoidCliffs")
+			wireVisibilityChip("sp-filter-chip-altitude", "sp-smart-altitude-content",
+				getSP, { "altMinEnable", "altMaxEnable" }, "altMinEnable")
+			wireMutexChipPair("sp-slope-mode-avoid",  "avoidCliffs",
+			                  "sp-slope-mode-prefer", "preferSlopes", getSP)
 
 			-- Exclusive tab pills for grass brush (original behavior)
 			local function wirePillTabs(pills, onActivate)

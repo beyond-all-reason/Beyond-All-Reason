@@ -21,754 +21,481 @@ function M.attach(doc, ctx)
 	widgetState.mbSubModeButtons.stamp = doc:GetElementById("btn-mb-stamp")
 	widgetState.mbSubModeButtons.remove = doc:GetElementById("btn-mb-remove")
 
-	for mbMode, element in pairs(widgetState.mbSubModeButtons) do
-		if element then
-			element:AddEventListener("click", function(event)
-				playSound("modeSwitch")
-				if WG.MetalBrush then WG.MetalBrush.setSubMode(mbMode) end
-				setActiveClass(widgetState.mbSubModeButtons, mbMode)
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
-	local mbSliderValue = doc:GetElementById("slider-metal-value")
-	if mbSliderValue then
-		trackSliderDrag(mbSliderValue, "mb-value")
-		mbSliderValue:AddEventListener("change", function(event)
-			if uiState.updatingFromCode then event:StopPropagation(); return end
-			local v = tonumber(mbSliderValue:GetAttribute("value")) or 0
-			-- Logarithmic mapping: 0.01 .. 50.0
-			local mv = 0.01 * math.exp(v / 1000 * math.log(50.0 / 0.01))
-			if WG.MetalBrush then WG.MetalBrush.setMetalValue(mv) end
-			local mbLabel = doc:GetElementById("mb-value-label")
-			if mbLabel then mbLabel.inner_rml = string.format("%.1f", mv) end
-			event:StopPropagation()
-		end, false)
-	end
-
-	do
-		local valUp = doc:GetElementById("btn-metal-value-up")
-		if valUp then
-			valUp:AddEventListener("click", function(event)
-				if WG.MetalBrush then
-					local s = WG.MetalBrush.getState()
-					local cur = s and s.metalValue or 2.0
-					WG.MetalBrush.setMetalValue(cur * 1.1)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local valDn = doc:GetElementById("btn-metal-value-down")
-		if valDn then
-			valDn:AddEventListener("click", function(event)
-				if WG.MetalBrush then
-					local s = WG.MetalBrush.getState()
-					local cur = s and s.metalValue or 2.0
-					WG.MetalBrush.setMetalValue(cur / 1.1)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
-	local mbSaveBtn = doc:GetElementById("btn-metal-save")
-	if mbSaveBtn then
-		mbSaveBtn:AddEventListener("click", function(event)
-			playSound("save")
-			if WG.MetalBrush then WG.MetalBrush.saveMetalMap() end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local mbLoadBtn = doc:GetElementById("btn-metal-load")
-	if mbLoadBtn then
-		mbLoadBtn:AddEventListener("click", function(event)
-			playSound("apply")
-			if WG.MetalBrush then WG.MetalBrush.loadMetalMap() end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local mbCleanBtn = doc:GetElementById("btn-metal-clean")
-	local mbCleanLabel = doc:GetElementById("metal-clean-label")
-	if mbCleanBtn then
-		mbCleanBtn:AddEventListener("click", function(event)
-			if widgetState.metalCleanConfirmExpiry > 0 then
-				-- Second click: confirmed
-				widgetState.metalCleanConfirmExpiry = 0
-				mbCleanBtn:SetClass("confirming", false)
-				if mbCleanLabel then mbCleanLabel.inner_rml = "CLEAN" end
-				playSound("reset")
-				if WG.MetalBrush then WG.MetalBrush.clearMetalMap() end
-			else
-				-- First click: ask for confirmation
-				widgetState.metalCleanConfirmExpiry = (Spring.GetGameSeconds() or 0) + 3
-				mbCleanBtn:SetClass("confirming", true)
-				if mbCleanLabel then mbCleanLabel.inner_rml = "ARE YOU SURE?" end
-				playSound("toggleOn")
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
 	-- Metal shape buttons (removed; metal now uses the shared tf-shape-row)
 	widgetState.mbShapeButtons = {}
 
-	-- Metal size slider
-	do
-		local sl = doc:GetElementById("slider-mb-size")
-		if sl then
-			trackSliderDrag(sl, "mb-size")
-			sl:AddEventListener("change", function(event)
-				if not uiState.updatingFromCode and WG.TerraformBrush then
-					local val = tonumber(sl:GetAttribute("value")) or 100
-					WG.TerraformBrush.setRadius(val)
-				end
-				event:StopPropagation()
-			end, false)
+	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
+	-- Slider change events are wired declaratively via onchange= in RML.
+	for _, entry in ipairs({
+		{ "mb-slider-cluster-radius",            "mb-cluster-radius" },
+		{ "mb-slider-axis-angle",                "mb-axis-angle" },
+		{ "mb-slider-symmetry-radial-count",     "mb-symmetry-radial-count" },
+		{ "mb-slider-symmetry-mirror-angle",     "mb-symmetry-mirror-angle" },
+	}) do
+		local sl = doc:GetElementById(entry[1])
+		if sl then trackSliderDrag(sl, entry[2]) end
+	end
+
+	-- Register widget methods for inline onclick/onchange handlers in RML.
+	local w = ctx.widget
+	if not w then return end
+
+	local function getTFState() return WG.TerraformBrush and WG.TerraformBrush.getState() or {} end
+	local function mbGetMbState()
+		return (WG.MetalBrush and WG.MetalBrush.getState and WG.MetalBrush.getState()) or {}
+	end
+
+	-- Sub-mode (paint / stamp / remove)
+	w.mbSetSubMode = function(self, mbMode)
+		playSound("modeSwitch")
+		if WG.MetalBrush then WG.MetalBrush.setSubMode(mbMode) end
+		setActiveClass(widgetState.mbSubModeButtons, mbMode)
+	end
+
+	-- Metal Value (log-mapped slider 0..1000 → 0.01..50.0)
+	w.mbOnValueChange = function(self, element)
+		if uiState.updatingFromCode or not WG.MetalBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 0
+		local mv = 0.01 * math.exp(v / 1000 * math.log(50.0 / 0.01))
+		WG.MetalBrush.setMetalValue(mv)
+		local mbLabel = doc:GetElementById("mb-value-label")
+		if mbLabel then mbLabel.inner_rml = string.format("%.1f", mv) end
+	end
+	w.mbValueUp = function(self)
+		if WG.MetalBrush then
+			local s = WG.MetalBrush.getState()
+			local cur = s and s.metalValue or 2.0
+			WG.MetalBrush.setMetalValue(cur * 1.1)
 		end
-		local up = doc:GetElementById("btn-mb-size-up")
-		if up then
-			up:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					WG.TerraformBrush.setRadius(state.radius + RADIUS_STEP)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local dn = doc:GetElementById("btn-mb-size-down")
-		if dn then
-			dn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					WG.TerraformBrush.setRadius(state.radius - RADIUS_STEP)
-				end
-				event:StopPropagation()
-			end, false)
+	end
+	w.mbValueDown = function(self)
+		if WG.MetalBrush then
+			local s = WG.MetalBrush.getState()
+			local cur = s and s.metalValue or 2.0
+			WG.MetalBrush.setMetalValue(cur / 1.1)
 		end
 	end
 
-	-- Metal rotation slider
-	do
-		local sl = doc:GetElementById("slider-mb-rotation")
-		if sl then
-			trackSliderDrag(sl, "mb-rotation")
-			sl:AddEventListener("change", function(event)
-				if not uiState.updatingFromCode and WG.TerraformBrush then
-					local val = tonumber(sl:GetAttribute("value")) or 0
-					WG.TerraformBrush.setRotation(val)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local cw = doc:GetElementById("btn-mb-rot-cw")
-		if cw then
-			cw:AddEventListener("click", function(event)
-				if WG.TerraformBrush then WG.TerraformBrush.rotate(ROTATION_STEP) end
-				event:StopPropagation()
-			end, false)
-		end
-		local ccw = doc:GetElementById("btn-mb-rot-ccw")
-		if ccw then
-			ccw:AddEventListener("click", function(event)
-				if WG.TerraformBrush then WG.TerraformBrush.rotate(-ROTATION_STEP) end
-				event:StopPropagation()
-			end, false)
+	-- Save / Load / Clean (two-click confirm on clean)
+	w.mbSave = function(self)
+		playSound("save")
+		if WG.MetalBrush then WG.MetalBrush.saveMetalMap() end
+	end
+	w.mbLoad = function(self)
+		playSound("apply")
+		if WG.MetalBrush then WG.MetalBrush.loadMetalMap() end
+	end
+	w.mbClean = function(self)
+		local mbCleanBtn = doc:GetElementById("btn-metal-clean")
+		local mbCleanLabel = doc:GetElementById("metal-clean-label")
+		if (widgetState.metalCleanConfirmExpiry or 0) > 0 then
+			widgetState.metalCleanConfirmExpiry = 0
+			if mbCleanBtn then mbCleanBtn:SetClass("confirming", false) end
+			if mbCleanLabel then mbCleanLabel.inner_rml = "CLEAN" end
+			playSound("reset")
+			if WG.MetalBrush then WG.MetalBrush.clearMetalMap() end
+		else
+			widgetState.metalCleanConfirmExpiry = (Spring.GetGameSeconds() or 0) + 3
+			if mbCleanBtn then mbCleanBtn:SetClass("confirming", true) end
+			if mbCleanLabel then mbCleanLabel.inner_rml = "ARE YOU SURE?" end
+			playSound("toggleOn")
 		end
 	end
 
-	-- Metal length slider
-	do
-		local sl = doc:GetElementById("slider-mb-length")
-		if sl then
-			trackSliderDrag(sl, "mb-length")
-			sl:AddEventListener("change", function(event)
-				if not uiState.updatingFromCode and WG.TerraformBrush then
-					local val = tonumber(sl:GetAttribute("value")) or 10
-					WG.TerraformBrush.setLengthScale(val / 10)
-				end
-				event:StopPropagation()
-			end, false)
+	-- Size (shared TerraformBrush radius)
+	w.mbOnSizeChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local val = element and tonumber(element:GetAttribute("value")) or 100
+		WG.TerraformBrush.setRadius(val)
+	end
+	w.mbSizeUp = function(self)
+		if WG.TerraformBrush then
+			local st = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setRadius(st.radius + RADIUS_STEP)
 		end
-		local up = doc:GetElementById("btn-mb-length-up")
-		if up then
-			up:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					WG.TerraformBrush.setLengthScale(state.lengthScale + LENGTH_SCALE_STEP)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local dn = doc:GetElementById("btn-mb-length-down")
-		if dn then
-			dn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					WG.TerraformBrush.setLengthScale(state.lengthScale - LENGTH_SCALE_STEP)
-				end
-				event:StopPropagation()
-			end, false)
+	end
+	w.mbSizeDown = function(self)
+		if WG.TerraformBrush then
+			local st = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setRadius(st.radius - RADIUS_STEP)
 		end
 	end
 
-	-- Metal curve/falloff slider
-	do
-		local sl = doc:GetElementById("slider-mb-curve")
-		if sl then
-			trackSliderDrag(sl, "mb-curve")
-			sl:AddEventListener("change", function(event)
-				if not uiState.updatingFromCode and WG.TerraformBrush then
-					local val = tonumber(sl:GetAttribute("value")) or 10
-					WG.TerraformBrush.setCurve(val / 10)
-				end
-				event:StopPropagation()
-			end, false)
+	-- Rotation (shared TerraformBrush)
+	w.mbOnRotChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local val = element and tonumber(element:GetAttribute("value")) or 0
+		WG.TerraformBrush.setRotation(val)
+	end
+	w.mbRotCW = function(self)
+		if WG.TerraformBrush then WG.TerraformBrush.rotate(ROTATION_STEP) end
+	end
+	w.mbRotCCW = function(self)
+		if WG.TerraformBrush then WG.TerraformBrush.rotate(-ROTATION_STEP) end
+	end
+
+	-- Length (shared TerraformBrush)
+	w.mbOnLengthChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local val = element and tonumber(element:GetAttribute("value")) or 10
+		WG.TerraformBrush.setLengthScale(val / 10)
+	end
+	w.mbLengthUp = function(self)
+		if WG.TerraformBrush then
+			local st = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setLengthScale(st.lengthScale + LENGTH_SCALE_STEP)
 		end
-		local up = doc:GetElementById("btn-mb-curve-up")
-		if up then
-			up:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					WG.TerraformBrush.setCurve(state.curve + CURVE_STEP)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local dn = doc:GetElementById("btn-mb-curve-down")
-		if dn then
-			dn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					WG.TerraformBrush.setCurve(state.curve - CURVE_STEP)
-				end
-				event:StopPropagation()
-			end, false)
+	end
+	w.mbLengthDown = function(self)
+		if WG.TerraformBrush then
+			local st = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setLengthScale(st.lengthScale - LENGTH_SCALE_STEP)
 		end
 	end
 
-	-- ── DISPLAY + INSTRUMENTS chips (forward to shared WG.TerraformBrush state) ──
-	do
-		local function chipToggle(id, getCur, setter)
-			local el = doc:GetElementById(id)
-			if not el then return end
-			el:AddEventListener("click", function(ev)
-				if WG.TerraformBrush then
-					local newVal = not getCur()
-					playSound(newVal and "toggleOn" or "toggleOff")
-					setter(newVal)
-					el:SetClass("active", newVal)
-				end
-				ev:StopPropagation()
-			end, false)
+	-- Curve / fall-off (shared TerraformBrush)
+	w.mbOnCurveChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local val = element and tonumber(element:GetAttribute("value")) or 10
+		WG.TerraformBrush.setCurve(val / 10)
+	end
+	w.mbCurveUp = function(self)
+		if WG.TerraformBrush then
+			local st = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setCurve(st.curve + CURVE_STEP)
 		end
-		local function getTFState() return WG.TerraformBrush and WG.TerraformBrush.getState() or {} end
+	end
+	w.mbCurveDown = function(self)
+		if WG.TerraformBrush then
+			local st = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setCurve(st.curve - CURVE_STEP)
+		end
+	end
 
-		-- DISPLAY
-		chipToggle("btn-mb-grid-overlay",
-			function() return getTFState().gridOverlay end,
-			function(v) WG.TerraformBrush.setGridOverlay(v) end)
-		chipToggle("btn-mb-height-colormap",
-			function() return getTFState().heightColormap end,
-			function(v) WG.TerraformBrush.setHeightColormap(v) end)
+	-- ── DISPLAY chips (forward to shared WG.TerraformBrush state) ──
+	local function chipToggleTB(id, getCur, setter)
+		local newVal = not getCur()
+		playSound(newVal and "toggleOn" or "toggleOff")
+		setter(newVal)
+		local el = doc:GetElementById(id)
+		if el then el:SetClass("active", newVal) end
+	end
+	w.mbToggleGridOverlay = function(self)
+		if WG.TerraformBrush then
+			chipToggleTB("btn-mb-grid-overlay",
+				function() return getTFState().gridOverlay end,
+				function(v) WG.TerraformBrush.setGridOverlay(v) end)
+		end
+	end
+	w.mbToggleHeightColormap = function(self)
+		if WG.TerraformBrush then
+			chipToggleTB("btn-mb-height-colormap",
+				function() return getTFState().heightColormap end,
+				function(v) WG.TerraformBrush.setHeightColormap(v) end)
+		end
+	end
 
-		-- INSTRUMENTS: Grid Snap + Measure
-		local mbSnapRow = doc:GetElementById("mb-grid-snap-size-row")
-		local mbSnapBtn = doc:GetElementById("btn-mb-grid-snap")
-		if mbSnapBtn then
-			mbSnapBtn:AddEventListener("click", function(ev)
-				if WG.TerraformBrush then
-					local newVal = not getTFState().gridSnap
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setGridSnap(newVal)
-					mbSnapBtn:SetClass("active", newVal)
-					if mbSnapRow then mbSnapRow:SetClass("hidden", not newVal) end
-					Spring.Echo("[MetalBrush UI] Grid Snap -> " .. tostring(newVal) .. " (state=" .. tostring(getTFState().gridSnap) .. ")")
-				end
-				ev:StopPropagation()
-			end, false)
+	-- ── INSTRUMENTS: Grid Snap ──
+	w.mbToggleGridSnap = function(self)
+		if not WG.TerraformBrush then return end
+		local newVal = not getTFState().gridSnap
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setGridSnap(newVal)
+		local snapBtn = doc:GetElementById("btn-mb-grid-snap")
+		if snapBtn then snapBtn:SetClass("active", newVal) end
+		local snapRow = doc:GetElementById("mb-grid-snap-size-row")
+		if snapRow then snapRow:SetClass("hidden", not newVal) end
+	end
+	w.mbOnSnapSizeChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 48
+		WG.TerraformBrush.setGridSnapSize(v)
+	end
+	w.mbSnapSizeStep = function(self, delta)
+		if WG.TerraformBrush then
+			local cur = tonumber(getTFState().gridSnapSize) or 48
+			local v = math.max(16, math.min(128, cur + delta))
+			WG.TerraformBrush.setGridSnapSize(v)
 		end
-		local mbMeasureRow = doc:GetElementById("mb-measure-toolbar-row")
-		local mbMeasureBtn = doc:GetElementById("btn-mb-measure")
-		if mbMeasureBtn then
-			mbMeasureBtn:AddEventListener("click", function(ev)
-				if WG.TerraformBrush then
-					local newVal = not getTFState().measureActive
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setMeasureActive(newVal)
-					mbMeasureBtn:SetClass("active", newVal)
-					if mbMeasureRow then mbMeasureRow:SetClass("hidden", not newVal) end
-					Spring.Echo("[MetalBrush UI] Measure -> " .. tostring(newVal) .. " (state=" .. tostring(getTFState().measureActive) .. ")")
-				end
-				ev:StopPropagation()
-			end, false)
-		end
+	end
 
-		-- Grid snap size slider
-		local mbSnapSlider = doc:GetElementById("mb-slider-grid-snap-size")
-		if mbSnapSlider then
-			mbSnapSlider:AddEventListener("change", function(ev)
-				if uiState.updatingFromCode then ev:StopPropagation(); return end
-				if WG.TerraformBrush then
-					local v = tonumber(mbSnapSlider:GetAttribute("value")) or 48
-					WG.TerraformBrush.setGridSnapSize(v)
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local function mbSnapStep(delta)
-			if WG.TerraformBrush then
-				local cur = tonumber(getTFState().gridSnapSize) or 48
-				local v = math.max(16, math.min(128, cur + delta))
-				WG.TerraformBrush.setGridSnapSize(v)
-			end
-		end
-		local sd = doc:GetElementById("mb-btn-snap-size-down")
-		if sd then sd:AddEventListener("click", function(ev) mbSnapStep(-16); ev:StopPropagation() end, false) end
-		local su = doc:GetElementById("mb-btn-snap-size-up")
-		if su then su:AddEventListener("click", function(ev) mbSnapStep(16); ev:StopPropagation() end, false) end
+	-- ── INSTRUMENTS: Protractor (angle snap) ──
+	w.mbToggleAngleSnap = function(self)
+		if not WG.TerraformBrush then return end
+		local newVal = not getTFState().angleSnap
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setAngleSnap(newVal)
+		local angleBtn = doc:GetElementById("btn-mb-angle-snap")
+		if angleBtn then angleBtn:SetClass("active", newVal) end
+		local angleRow = doc:GetElementById("mb-angle-snap-step-row")
+		if angleRow then angleRow:SetClass("hidden", not newVal) end
+	end
 
-		-- INSTRUMENTS: Protractor (angle snap) — shared state via WG.TerraformBrush
-		local mbAngleRow = doc:GetElementById("mb-angle-snap-step-row")
-		local mbAngleBtn = doc:GetElementById("btn-mb-angle-snap")
-		if mbAngleBtn then
-			mbAngleBtn:AddEventListener("click", function(ev)
-				if WG.TerraformBrush then
-					local newVal = not getTFState().angleSnap
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setAngleSnap(newVal)
-					mbAngleBtn:SetClass("active", newVal)
-					if mbAngleRow then mbAngleRow:SetClass("hidden", not newVal) end
-				end
-				ev:StopPropagation()
-			end, false)
+	local MB_ANGLE_PRESETS = { 7.5, 15, 30, 45, 60, 90 }
+	local function mbFindAnglePresetIdx(val)
+		local best, bestD = 2, math.huge
+		for i, p in ipairs(MB_ANGLE_PRESETS) do
+			local d = math.abs(p - (val or 15))
+			if d < bestD then bestD = d; best = i end
 		end
-		local MB_ANGLE_PRESETS = {7.5, 15, 30, 45, 60, 90}
-		local function mbFindAnglePresetIdx(val)
-			local best, bestD = 2, math.huge
-			for i, p in ipairs(MB_ANGLE_PRESETS) do
-				local d = math.abs(p - (val or 15))
-				if d < bestD then bestD = d; best = i end
-			end
-			return best
+		return best
+	end
+	local function mbApplyAnglePreset(idx)
+		idx = math.max(1, math.min(#MB_ANGLE_PRESETS, idx))
+		local pval = MB_ANGLE_PRESETS[idx]
+		local pstr = (pval == math.floor(pval)) and tostring(math.floor(pval)) or tostring(pval)
+		if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
+		local sl = doc:GetElementById("mb-slider-angle-snap-step")
+		if sl then sl:SetAttribute("value", tostring(idx - 1)) end
+		local lbl = doc:GetElementById("mb-angle-snap-step-label")
+		if lbl then lbl.inner_rml = pstr end
+		local nb = doc:GetElementById("mb-slider-angle-snap-step-numbox")
+		if nb then nb:SetAttribute("value", pstr) end
+	end
+	w.mbOnAngleStepChange = function(self, element)
+		if uiState.updatingFromCode then return end
+		local idx = (element and tonumber(element:GetAttribute("value")) or 1) + 1
+		mbApplyAnglePreset(idx)
+	end
+	w.mbAngleStepStep = function(self, delta)
+		if WG.TerraformBrush then
+			mbApplyAnglePreset(mbFindAnglePresetIdx(getTFState().angleSnapStep) + delta)
 		end
-		local function mbApplyAnglePreset(idx)
-			idx = math.max(1, math.min(#MB_ANGLE_PRESETS, idx))
-			local pval = MB_ANGLE_PRESETS[idx]
-			local pstr = (pval == math.floor(pval)) and tostring(math.floor(pval)) or tostring(pval)
-			if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
-			local sl = doc:GetElementById("mb-slider-angle-snap-step")
-			if sl then sl:SetAttribute("value", tostring(idx - 1)) end
-			local lbl = doc:GetElementById("mb-angle-snap-step-label")
-			if lbl then lbl.inner_rml = pstr end
-			local nb = doc:GetElementById("mb-slider-angle-snap-step-numbox")
-			if nb then nb:SetAttribute("value", pstr) end
-		end
-		local mbAngleSlider = doc:GetElementById("mb-slider-angle-snap-step")
-		if mbAngleSlider then
-			mbAngleSlider:AddEventListener("change", function(ev)
-				if uiState.updatingFromCode then ev:StopPropagation(); return end
-				local idx = (tonumber(mbAngleSlider:GetAttribute("value")) or 1) + 1
-				mbApplyAnglePreset(idx)
-				ev:StopPropagation()
-			end, false)
-		end
-		local mbStepDn = doc:GetElementById("mb-btn-angle-step-down")
-		if mbStepDn then mbStepDn:AddEventListener("click", function(ev)
-			if WG.TerraformBrush then mbApplyAnglePreset(mbFindAnglePresetIdx(getTFState().angleSnapStep) - 1) end
-			ev:StopPropagation()
-		end, false) end
-		local mbStepUp = doc:GetElementById("mb-btn-angle-step-up")
-		if mbStepUp then mbStepUp:AddEventListener("click", function(ev)
-			if WG.TerraformBrush then mbApplyAnglePreset(mbFindAnglePresetIdx(getTFState().angleSnapStep) + 1) end
-			ev:StopPropagation()
-		end, false) end
-		-- Auto-snap toggle
-		local mbAutoBtn = doc:GetElementById("mb-btn-angle-autosnap")
-		if mbAutoBtn then
-			mbAutoBtn:AddEventListener("click", function(ev)
-				if WG.TerraformBrush then
-					local newVal = not getTFState().angleSnapAuto
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setAngleSnapAuto(newVal)
-					mbAutoBtn:SetClass("active", newVal)
-					local manualRow = doc:GetElementById("mb-angle-manual-spoke-row")
-					if manualRow then manualRow:SetClass("hidden", newVal) end
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		-- Manual spoke slider + buttons
-		local mbManualSlider = doc:GetElementById("mb-slider-manual-spoke")
-		local function mbApplyManualSpoke(idx)
-			if WG.TerraformBrush then
-				WG.TerraformBrush.setAngleSnapManualSpoke(idx)
-				local step = getTFState().angleSnapStep or 15
-				local deg  = (idx * step) % 360
-				local lbl  = doc:GetElementById("mb-angle-manual-spoke-label")
-				if lbl then lbl.inner_rml = tostring(deg) end
-				if mbManualSlider then mbManualSlider:SetAttribute("value", tostring(idx)) end
-			end
-		end
-		if mbManualSlider then
-			mbManualSlider:AddEventListener("change", function(ev)
-				if uiState.updatingFromCode then ev:StopPropagation(); return end
-				mbApplyManualSpoke(tonumber(mbManualSlider:GetAttribute("value")) or 0)
-				ev:StopPropagation()
-			end, false)
-		end
-		local mbMsDn = doc:GetElementById("mb-btn-manual-spoke-down")
-		if mbMsDn then mbMsDn:AddEventListener("click", function(ev)
-			if WG.TerraformBrush then
-				local s = getTFState()
-				local step = s.angleSnapStep or 15
-				local num  = math.max(1, math.floor(360 / step))
-				mbApplyManualSpoke(((s.angleSnapManualSpoke or 0) - 1 + num) % num)
-			end
-			ev:StopPropagation()
-		end, false) end
-		local mbMsUp = doc:GetElementById("mb-btn-manual-spoke-up")
-		if mbMsUp then mbMsUp:AddEventListener("click", function(ev)
-			if WG.TerraformBrush then
-				local s = getTFState()
-				local step = s.angleSnapStep or 15
-				local num  = math.max(1, math.floor(360 / step))
-				mbApplyManualSpoke(((s.angleSnapManualSpoke or 0) + 1) % num)
-			end
-			ev:StopPropagation()
-		end, false) end
-
-		-- Measure toolbar buttons
-		local function mbMeasureBtnClick(id, fn)
-			local el = doc:GetElementById(id)
-			if el then el:AddEventListener("click", function(ev) fn(); ev:StopPropagation() end, false) end
-		end
-		mbMeasureBtnClick("mb-btn-measure-ruler",       function() if WG.TerraformBrush then WG.TerraformBrush.setMeasureRulerMode(not getTFState().measureRulerMode) end end)
-		mbMeasureBtnClick("mb-btn-measure-sticky",      function() if WG.TerraformBrush then WG.TerraformBrush.setMeasureStickyMode(not getTFState().measureStickyMode) end end)
-		mbMeasureBtnClick("mb-btn-measure-show-length", function() if WG.TerraformBrush then WG.TerraformBrush.setMeasureShowLength(not getTFState().measureShowLength) end end)
-		mbMeasureBtnClick("mb-btn-measure-clear",       function() if WG.TerraformBrush then WG.TerraformBrush.clearMeasureLines() end end)
-
-		-- INSTRUMENTS: Symmetry master + sub-toolbar
-		local mbSymRow = doc:GetElementById("mb-symmetry-toolbar-row")
-		local mbSymBtn = doc:GetElementById("btn-mb-symmetry")
-		if mbSymBtn then
-			mbSymBtn:AddEventListener("click", function(ev)
-				if WG.TerraformBrush then
-					local s = getTFState()
-					local newVal = not s.symmetryActive
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setSymmetryActive(newVal)
-					-- If enabling with no sub-mode selected, default to mirror-X so there's visible fan-out
-					if newVal and not (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) then
-						WG.TerraformBrush.setSymmetryMirrorX(true)
-						local mxBtn = doc:GetElementById("mb-btn-symmetry-mirror-x")
-						if mxBtn then mxBtn:SetClass("active", true) end
-					end
-					mbSymBtn:SetClass("active", newVal)
-					if mbSymRow then mbSymRow:SetClass("hidden", not newVal) end
-					Spring.Echo("[MetalBrush UI] Symmetry -> " .. tostring(newVal))
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-
-		local function mbSymBtnClick(id, fn)
-			local el = doc:GetElementById(id)
-			if el then el:AddEventListener("click", function(ev) fn(); ev:StopPropagation() end, false) end
-		end
-		-- Helper: sync mutually-exclusive radial vs mirror-X/Y chip classes to current state
-		local function syncSymChipClasses()
+	end
+	w.mbToggleAutoSnap = function(self)
+		if not WG.TerraformBrush then return end
+		local newVal = not getTFState().angleSnapAuto
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setAngleSnapAuto(newVal)
+		local autoBtn = doc:GetElementById("mb-btn-angle-autosnap")
+		if autoBtn then autoBtn:SetClass("active", newVal) end
+		local manualRow = doc:GetElementById("mb-angle-manual-spoke-row")
+		if manualRow then manualRow:SetClass("hidden", newVal) end
+	end
+	w.mbOnManualSpokeChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local idx = element and tonumber(element:GetAttribute("value")) or 0
+		WG.TerraformBrush.setAngleSnapManualSpoke(idx)
+	end
+	w.mbManualSpokeStep = function(self, delta)
+		if WG.TerraformBrush then
 			local s = getTFState()
-			local radialEl = doc:GetElementById("mb-btn-symmetry-radial")
-			local mxEl     = doc:GetElementById("mb-btn-symmetry-mirror-x")
-			local myEl     = doc:GetElementById("mb-btn-symmetry-mirror-y")
-			if radialEl then radialEl:SetClass("active", s.symmetryRadial and true or false) end
-			if mxEl     then mxEl:SetClass("active",     s.symmetryMirrorX and true or false) end
-			if myEl     then myEl:SetClass("active",     s.symmetryMirrorY and true or false) end
-			-- Toggle sub-rows: copies for radial, axis angle for mirror
-			local countRow = doc:GetElementById("mb-symmetry-radial-count-row")
-			if countRow then countRow:SetClass("hidden", not s.symmetryRadial) end
-			local angleRow = doc:GetElementById("mb-symmetry-mirror-angle-row")
-			if angleRow then angleRow:SetClass("hidden", not (s.symmetryMirrorX or s.symmetryMirrorY)) end
-		end
-		mbSymBtnClick("mb-btn-symmetry-radial",    function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryRadial(not getTFState().symmetryRadial); syncSymChipClasses() end end)
-		mbSymBtnClick("mb-btn-symmetry-mirror-x",  function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorX(not getTFState().symmetryMirrorX); syncSymChipClasses() end end)
-		mbSymBtnClick("mb-btn-symmetry-mirror-y",  function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorY(not getTFState().symmetryMirrorY); syncSymChipClasses() end end)
-		mbSymBtnClick("mb-btn-symmetry-place-origin",  function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true); playSound("toggleOn") end end)
-		mbSymBtnClick("mb-btn-symmetry-center-origin", function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryOrigin(nil, nil); playSound("toggleOff") end end)
-		mbSymBtnClick("mb-btn-symmetry-count-down", function()
-			if WG.TerraformBrush then
-				local c = math.max(2, (getTFState().symmetryRadialCount or 2) - 1)
-				WG.TerraformBrush.setSymmetryRadialCount(c)
-			end
-		end)
-		mbSymBtnClick("mb-btn-symmetry-count-up", function()
-			if WG.TerraformBrush then
-				local c = math.min(16, (getTFState().symmetryRadialCount or 2) + 1)
-				WG.TerraformBrush.setSymmetryRadialCount(c)
-			end
-		end)
-		mbSymBtnClick("mb-btn-symmetry-angle-down", function()
-			if WG.TerraformBrush then
-				local a = ((getTFState().symmetryMirrorAngle or 0) - 5) % 360
-				WG.TerraformBrush.setSymmetryMirrorAngle(a)
-			end
-		end)
-		mbSymBtnClick("mb-btn-symmetry-angle-up", function()
-			if WG.TerraformBrush then
-				local a = ((getTFState().symmetryMirrorAngle or 0) + 5) % 360
-				WG.TerraformBrush.setSymmetryMirrorAngle(a)
-			end
-		end)
-
-		local mbCountSlider = doc:GetElementById("mb-slider-symmetry-radial-count")
-		if mbCountSlider then
-			trackSliderDrag(mbCountSlider, "mb-symmetry-radial-count")
-			mbCountSlider:AddEventListener("change", function(ev)
-				if uiState.updatingFromCode then ev:StopPropagation(); return end
-				if WG.TerraformBrush then
-					local v = tonumber(mbCountSlider:GetAttribute("value")) or 2
-					WG.TerraformBrush.setSymmetryRadialCount(v)
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local mbAngleSlider = doc:GetElementById("mb-slider-symmetry-mirror-angle")
-		if mbAngleSlider then
-			trackSliderDrag(mbAngleSlider, "mb-symmetry-mirror-angle")
-			mbAngleSlider:AddEventListener("change", function(ev)
-				if uiState.updatingFromCode then ev:StopPropagation(); return end
-				if WG.TerraformBrush then
-					local v = tonumber(mbAngleSlider:GetAttribute("value")) or 0
-					WG.TerraformBrush.setSymmetryMirrorAngle(v)
-				end
-				ev:StopPropagation()
-			end, false)
+			local step = s.angleSnapStep or 15
+			local num = math.max(1, math.floor(360 / step))
+			local cur = s.angleSnapManualSpoke or 0
+			WG.TerraformBrush.setAngleSnapManualSpoke((cur + delta + num) % num)
 		end
 	end
 
-	-- ── METAL MAP analysis: full-map overlay, clusters, lasso ──
-	do
-		local function mbGetMbState()
-			return (WG.MetalBrush and WG.MetalBrush.getState and WG.MetalBrush.getState()) or {}
-		end
-		local clusterRow = doc:GetElementById("mb-cluster-radius-row")
-		local inspectorRow = doc:GetElementById("mb-inspector-row")
-		local lassoRow = doc:GetElementById("mb-lasso-row")
-		local axisRow = doc:GetElementById("mb-balance-axis-row")
+	-- ── INSTRUMENTS: Measure ──
+	w.mbToggleMeasure = function(self)
+		if not WG.TerraformBrush then return end
+		local newVal = not getTFState().measureActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setMeasureActive(newVal)
+		local measureBtn = doc:GetElementById("btn-mb-measure")
+		if measureBtn then measureBtn:SetClass("active", newVal) end
+		local measureRow = doc:GetElementById("mb-measure-toolbar-row")
+		if measureRow then measureRow:SetClass("hidden", not newVal) end
+	end
+	w.mbMeasureRuler = function(self)
+		if WG.TerraformBrush then WG.TerraformBrush.setMeasureRulerMode(not getTFState().measureRulerMode) end
+	end
+	w.mbMeasureSticky = function(self)
+		if WG.TerraformBrush then WG.TerraformBrush.setMeasureStickyMode(not getTFState().measureStickyMode) end
+	end
+	w.mbMeasureShowLength = function(self)
+		if WG.TerraformBrush then WG.TerraformBrush.setMeasureShowLength(not getTFState().measureShowLength) end
+	end
+	w.mbMeasureClear = function(self)
+		if WG.TerraformBrush then WG.TerraformBrush.clearMeasureLines() end
+	end
 
-		local overlayChip = doc:GetElementById("btn-mb-mapoverlay")
-		if overlayChip then
-			overlayChip:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					local newVal = not mbGetMbState().mapOverlay
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.MetalBrush.setMapOverlay(newVal)
-					overlayChip:SetClass("active", newVal)
-				end
-				ev:StopPropagation()
-			end, false)
-		end
+	-- ── INSTRUMENTS: Symmetry ──
+	local function syncSymChipClasses()
+		local s = getTFState()
+		local radialEl = doc:GetElementById("mb-btn-symmetry-radial")
+		local mxEl     = doc:GetElementById("mb-btn-symmetry-mirror-x")
+		local myEl     = doc:GetElementById("mb-btn-symmetry-mirror-y")
+		if radialEl then radialEl:SetClass("active", s.symmetryRadial and true or false) end
+		if mxEl     then mxEl:SetClass("active",     s.symmetryMirrorX and true or false) end
+		if myEl     then myEl:SetClass("active",     s.symmetryMirrorY and true or false) end
+		local countRow = doc:GetElementById("mb-symmetry-radial-count-row")
+		if countRow then countRow:SetClass("hidden", not s.symmetryRadial) end
+		local angleRow = doc:GetElementById("mb-symmetry-mirror-angle-row")
+		if angleRow then angleRow:SetClass("hidden", not (s.symmetryMirrorX or s.symmetryMirrorY)) end
+	end
 
-		local clusterChip = doc:GetElementById("btn-mb-clusters")
-		if clusterChip then
-			clusterChip:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					local newVal = not mbGetMbState().clusterCounter
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.MetalBrush.setClusterCounter(newVal)
-					clusterChip:SetClass("active", newVal)
-					if clusterRow then clusterRow:SetClass("hidden", not newVal) end
-				end
-				ev:StopPropagation()
-			end, false)
+	w.mbToggleSymmetry = function(self)
+		if not WG.TerraformBrush then return end
+		local s = getTFState()
+		local newVal = not s.symmetryActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setSymmetryActive(newVal)
+		-- If enabling with no sub-mode selected, default to mirror-X so there's visible fan-out
+		if newVal and not (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) then
+			WG.TerraformBrush.setSymmetryMirrorX(true)
+			local mxBtn = doc:GetElementById("mb-btn-symmetry-mirror-x")
+			if mxBtn then mxBtn:SetClass("active", true) end
 		end
+		local symBtn = doc:GetElementById("btn-mb-symmetry")
+		if symBtn then symBtn:SetClass("active", newVal) end
+		local symRow = doc:GetElementById("mb-symmetry-toolbar-row")
+		if symRow then symRow:SetClass("hidden", not newVal) end
+	end
+	w.mbToggleSymRadial = function(self)
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryRadial(not getTFState().symmetryRadial)
+			syncSymChipClasses()
+		end
+	end
+	w.mbToggleSymMirrorX = function(self)
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryMirrorX(not getTFState().symmetryMirrorX)
+			syncSymChipClasses()
+		end
+	end
+	w.mbToggleSymMirrorY = function(self)
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryMirrorY(not getTFState().symmetryMirrorY)
+			syncSymChipClasses()
+		end
+	end
+	w.mbSymPlaceOrigin = function(self)
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryPlacingOrigin(true)
+			playSound("toggleOn")
+		end
+	end
+	w.mbSymCenterOrigin = function(self)
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryOrigin(nil, nil)
+			playSound("toggleOff")
+		end
+	end
+	w.mbSymCountDown = function(self)
+		if WG.TerraformBrush then
+			local c = math.max(2, (getTFState().symmetryRadialCount or 2) - 1)
+			WG.TerraformBrush.setSymmetryRadialCount(c)
+		end
+	end
+	w.mbSymCountUp = function(self)
+		if WG.TerraformBrush then
+			local c = math.min(16, (getTFState().symmetryRadialCount or 2) + 1)
+			WG.TerraformBrush.setSymmetryRadialCount(c)
+		end
+	end
+	w.mbOnSymCountChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 2
+		WG.TerraformBrush.setSymmetryRadialCount(v)
+	end
+	w.mbSymAngleDown = function(self)
+		if WG.TerraformBrush then
+			local a = ((getTFState().symmetryMirrorAngle or 0) - 5) % 360
+			WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		end
+	end
+	w.mbSymAngleUp = function(self)
+		if WG.TerraformBrush then
+			local a = ((getTFState().symmetryMirrorAngle or 0) + 5) % 360
+			WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		end
+	end
+	w.mbOnSymAngleChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 0
+		WG.TerraformBrush.setSymmetryMirrorAngle(v)
+	end
 
-		-- Inspector parent chip: opens a sub-toolbar with Lasso + Balance Axis
-		local inspectorChip = doc:GetElementById("btn-mb-inspector")
-		if inspectorChip then
-			inspectorChip:AddEventListener("click", function(ev)
-				local st = mbGetMbState()
-				local open = not (widgetState.mbInspectorOpen or false)
-				widgetState.mbInspectorOpen = open
-				playSound(open and "toggleOn" or "toggleOff")
-				inspectorChip:SetClass("active", open)
-				if inspectorRow then inspectorRow:SetClass("hidden", not open) end
-				if not open and WG.MetalBrush then
-					-- Closing inspector also disables its sub-tools
-					if st.clusterCounter then WG.MetalBrush.setClusterCounter(false) end
-					if st.lassoActive or st.lassoClosed then WG.MetalBrush.clearLasso() end
-					if st.balanceAxisActive then WG.MetalBrush.setBalanceAxisActive(false) end
-				end
-				ev:StopPropagation()
-			end, false)
+	-- ── METAL MAP analysis (full-map overlay, clusters, lasso, balance axis) ──
+	w.mbToggleMapOverlay = function(self)
+		if not WG.MetalBrush then return end
+		local newVal = not mbGetMbState().mapOverlay
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.MetalBrush.setMapOverlay(newVal)
+	end
+	w.mbToggleClusters = function(self)
+		if not WG.MetalBrush then return end
+		local newVal = not mbGetMbState().clusterCounter
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.MetalBrush.setClusterCounter(newVal)
+	end
+	w.mbToggleInspector = function(self)
+		local st = mbGetMbState()
+		local open = not (widgetState.mbInspectorOpen or false)
+		widgetState.mbInspectorOpen = open
+		playSound(open and "toggleOn" or "toggleOff")
+		if not open and WG.MetalBrush then
+			if st.clusterCounter then WG.MetalBrush.setClusterCounter(false) end
+			if st.lassoActive or st.lassoClosed then WG.MetalBrush.clearLasso() end
+			if st.balanceAxisActive then WG.MetalBrush.setBalanceAxisActive(false) end
 		end
-
-		local lassoChip = doc:GetElementById("btn-mb-lasso")
-		if lassoChip then
-			lassoChip:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					local newVal = not mbGetMbState().lassoActive
-					playSound(newVal and "toggleOn" or "toggleOff")
-					if newVal then
-						WG.MetalBrush.startLasso()
-					else
-						WG.MetalBrush.clearLasso()
-					end
-					lassoChip:SetClass("active", newVal)
-					if lassoRow then lassoRow:SetClass("hidden", not newVal) end
-				end
-				ev:StopPropagation()
-			end, false)
+	end
+	w.mbToggleLasso = function(self)
+		if not WG.MetalBrush then return end
+		local newVal = not mbGetMbState().lassoActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		if newVal then WG.MetalBrush.startLasso() else WG.MetalBrush.clearLasso() end
+	end
+	w.mbLassoClose = function(self)
+		if WG.MetalBrush then playSound("apply"); WG.MetalBrush.finishLasso() end
+	end
+	w.mbLassoClear = function(self)
+		if WG.MetalBrush then playSound("reset"); WG.MetalBrush.clearLasso() end
+	end
+	w.mbToggleBalanceAxis = function(self)
+		if not WG.MetalBrush then return end
+		local newVal = not mbGetMbState().balanceAxisActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.MetalBrush.setBalanceAxisActive(newVal)
+	end
+	w.mbAxisX = function(self)
+		if WG.MetalBrush then playSound("modeSwitch"); WG.MetalBrush.setBalanceAxisAngle(0) end
+	end
+	w.mbAxisZ = function(self)
+		if WG.MetalBrush then playSound("modeSwitch"); WG.MetalBrush.setBalanceAxisAngle(90) end
+	end
+	w.mbAxisPlace = function(self)
+		if WG.MetalBrush then playSound("modeSwitch"); WG.MetalBrush.setBalanceAxisPlacingOrigin(true) end
+	end
+	w.mbAxisCenter = function(self)
+		if WG.MetalBrush then playSound("reset"); WG.MetalBrush.setBalanceAxisOrigin(nil, nil) end
+	end
+	w.mbOnAxisAngleChange = function(self, element)
+		if uiState.updatingFromCode or not WG.MetalBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 0
+		WG.MetalBrush.setBalanceAxisAngle(v)
+	end
+	w.mbAxisAngleDown = function(self)
+		if WG.MetalBrush then
+			local cur = tonumber(mbGetMbState().balanceAxisAngleDeg) or 0
+			WG.MetalBrush.setBalanceAxisAngle(cur - 5)
 		end
-
-		local lassoCloseBtn = doc:GetElementById("mb-btn-lasso-close")
-		if lassoCloseBtn then
-			lassoCloseBtn:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					playSound("apply")
-					WG.MetalBrush.finishLasso()
-				end
-				ev:StopPropagation()
-			end, false)
+	end
+	w.mbAxisAngleUp = function(self)
+		if WG.MetalBrush then
+			local cur = tonumber(mbGetMbState().balanceAxisAngleDeg) or 0
+			WG.MetalBrush.setBalanceAxisAngle(cur + 5)
 		end
-
-		local lassoClearBtn = doc:GetElementById("mb-btn-lasso-clear")
-		if lassoClearBtn then
-			lassoClearBtn:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					playSound("reset")
-					WG.MetalBrush.clearLasso()
-					if lassoChip then lassoChip:SetClass("active", false) end
-					if lassoRow then lassoRow:SetClass("hidden", true) end
-				end
-				ev:StopPropagation()
-			end, false)
+	end
+	w.mbOnClusterRadiusChange = function(self, element)
+		if uiState.updatingFromCode or not WG.MetalBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 256
+		WG.MetalBrush.setClusterRadius(v)
+		local lbl = doc:GetElementById("mb-cluster-radius-label")
+		if lbl then lbl.inner_rml = tostring(v) end
+	end
+	w.mbClusterRadiusDown = function(self)
+		if WG.MetalBrush then
+			local cur = tonumber(mbGetMbState().clusterRadius) or 256
+			WG.MetalBrush.setClusterRadius(math.max(64, cur - 32))
 		end
-
-		-- Balance Axis chip + controls
-		local axisChip = doc:GetElementById("btn-mb-balance-axis")
-		if axisChip then
-			axisChip:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					local newVal = not mbGetMbState().balanceAxisActive
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.MetalBrush.setBalanceAxisActive(newVal)
-					axisChip:SetClass("active", newVal)
-					if axisRow then axisRow:SetClass("hidden", not newVal) end
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-
-		local axisX = doc:GetElementById("mb-btn-axis-x")
-		if axisX then
-			axisX:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					playSound("modeSwitch")
-					WG.MetalBrush.setBalanceAxisAngle(0)
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local axisZ = doc:GetElementById("mb-btn-axis-z")
-		if axisZ then
-			axisZ:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					playSound("modeSwitch")
-					WG.MetalBrush.setBalanceAxisAngle(90)
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local axisPlace = doc:GetElementById("mb-btn-axis-place")
-		if axisPlace then
-			axisPlace:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					playSound("modeSwitch")
-					WG.MetalBrush.setBalanceAxisPlacingOrigin(true)
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local axisCenter = doc:GetElementById("mb-btn-axis-center")
-		if axisCenter then
-			axisCenter:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					playSound("reset")
-					WG.MetalBrush.setBalanceAxisOrigin(nil, nil)
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local axisSlider = doc:GetElementById("mb-slider-axis-angle")
-		if axisSlider then
-			trackSliderDrag(axisSlider, "mb-axis-angle")
-			axisSlider:AddEventListener("change", function(ev)
-				if uiState.updatingFromCode then ev:StopPropagation(); return end
-				if WG.MetalBrush then
-					local v = tonumber(axisSlider:GetAttribute("value")) or 0
-					WG.MetalBrush.setBalanceAxisAngle(v)
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local axisDn = doc:GetElementById("mb-btn-axis-angle-down")
-		if axisDn then
-			axisDn:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					local cur = tonumber(mbGetMbState().balanceAxisAngleDeg) or 0
-					WG.MetalBrush.setBalanceAxisAngle(cur - 5)
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local axisUp = doc:GetElementById("mb-btn-axis-angle-up")
-		if axisUp then
-			axisUp:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					local cur = tonumber(mbGetMbState().balanceAxisAngleDeg) or 0
-					WG.MetalBrush.setBalanceAxisAngle(cur + 5)
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-
-		local clRadSlider = doc:GetElementById("mb-slider-cluster-radius")
-		if clRadSlider then
-			trackSliderDrag(clRadSlider, "mb-cluster-radius")
-			clRadSlider:AddEventListener("change", function(ev)
-				if uiState.updatingFromCode then ev:StopPropagation(); return end
-				if WG.MetalBrush then
-					local v = tonumber(clRadSlider:GetAttribute("value")) or 256
-					WG.MetalBrush.setClusterRadius(v)
-					local lbl = doc:GetElementById("mb-cluster-radius-label")
-					if lbl then lbl.inner_rml = tostring(v) end
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local clRadDn = doc:GetElementById("mb-btn-cluster-radius-down")
-		if clRadDn then
-			clRadDn:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					local cur = tonumber(mbGetMbState().clusterRadius) or 256
-					WG.MetalBrush.setClusterRadius(math.max(64, cur - 32))
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local clRadUp = doc:GetElementById("mb-btn-cluster-radius-up")
-		if clRadUp then
-			clRadUp:AddEventListener("click", function(ev)
-				if WG.MetalBrush then
-					local cur = tonumber(mbGetMbState().clusterRadius) or 256
-					WG.MetalBrush.setClusterRadius(math.min(1024, cur + 32))
-				end
-				ev:StopPropagation()
-			end, false)
+	end
+	w.mbClusterRadiusUp = function(self)
+		if WG.MetalBrush then
+			local cur = tonumber(mbGetMbState().clusterRadius) or 256
+			WG.MetalBrush.setClusterRadius(math.min(1024, cur + 32))
 		end
 	end
 end

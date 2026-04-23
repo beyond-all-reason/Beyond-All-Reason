@@ -1319,8 +1319,12 @@ function widget:MouseRelease(mx, my, button)
 	if painting and button == paintButton then
 		painting = false
 		paintButton = 0
-		-- Force a cache rebuild now that painting has ended (bypass throttle)
-		lastCacheBuildClock = 0
+		-- Mark caches dirty; defer rebuild by the normal throttle window so the
+		-- gadget has time to apply queued MSG_PAINT / MSG_STAMP sim-steps before
+		-- we re-read GetMetalAmount(). Reading immediately races the gadget and
+		-- leaves the overlay stuck on stale values until the next invalidate
+		-- (e.g. overlay toggle).
+		lastCacheBuildClock = os.clock()
 		spotsCacheDirty = true
 		clusterCacheDirty = true
 		overlayListDirty = true
