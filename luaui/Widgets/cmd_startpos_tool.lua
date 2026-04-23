@@ -165,6 +165,10 @@ local nextBoxAllyTeam = 1
 -- world-space cursor delta between frames and offsets every vertex (and spline control point
 -- when applicable). Separate from vertex-drag so hover hit-tests stay simple.
 local boxBodyDrag    = nil  -- { bi = <box index>, lastX = <world x>, lastZ = <world z> }
+-- Set true whenever a startbox vertex / edge / body drag is in progress. Used by
+-- ensureBoxFillList to defer the expensive fill-list rebuild until MouseRelease.
+local isDraggingBox  = false
+local pendingFillRebuildIdx = nil  -- box index whose fill needs rebuilding on drag end
 -- Box drag-rect (startboxMode == "box"): two corners, live-updated during drag
 local boxRectStartX  = nil
 local boxRectStartZ  = nil
@@ -627,16 +631,24 @@ local function fitControlPoints(pts, targetCount)
 	return out
 end
 
--- Closed centripetal Catmull-Rom tessellation — returns a dense polyline ready for fill/outline.
-local function tessellateClosedCatmullRom(ctrls, samplesPerSegment)
+-- Closed centripetal Catmull-Rom tessellation. Writes into `out` (reused when provided) and
+-- truncates to the required length. Returning a fresh table each mousemove during drag was
+-- the dominant source of GC pressure -> LuaRAM warnings on large freedraw splines.
+local function tessellateClosedCatmullRom(ctrls, samplesPerSegment, out)
 	samplesPerSegment = samplesPerSegment or 12
 	local n = #ctrls
+	out = out or {}
 	if n < 3 then
-		local out = {}
-		for i = 1, n do out[i] = { x = ctrls[i].x, z = ctrls[i].z } end
+		for i = 1, n do
+			local v = out[i]
+			if v then v.x, v.z = ctrls[i].x, ctrls[i].z
+			else out[i] = { x = ctrls[i].x, z = ctrls[i].z } end
+		end
+		for i = #out, n + 1, -1 do out[i] = nil end
 		return out
 	end
-	local out = {}
+	local total = n * samplesPerSegment
+	local idx = 0
 	for i = 1, n do
 		local p0 = ctrls[((i - 2) % n) + 1]
 		local p1 = ctrls[((i - 1) % n) + 1]
@@ -650,20 +662,25 @@ local function tessellateClosedCatmullRom(ctrls, samplesPerSegment)
 			local b =  1.5 * t3 - 2.5 * t2 + 1.0
 			local c = -1.5 * t3 + 2.0 * t2 + 0.5 * t
 			local d =  0.5 * t3 - 0.5 * t2
-			out[#out + 1] = {
-				x = a * p0.x + b * p1.x + c * p2.x + d * p3.x,
-				z = a * p0.z + b * p1.z + c * p2.z + d * p3.z,
-			}
+			idx = idx + 1
+			local x = a * p0.x + b * p1.x + c * p2.x + d * p3.x
+			local z = a * p0.z + b * p1.z + c * p2.z + d * p3.z
+			local v = out[idx]
+			if v then v.x, v.z = x, z
+			else out[idx] = { x = x, z = z } end
 		end
 	end
+	for i = #out, total + 1, -1 do out[i] = nil end
 	return out
 end
 
 -- Refresh tessellated vertices for a spline-kind startbox after its controls have changed.
+-- Mutates box.vertices in place and only flags a *pending* fill rebuild — the actual fill
+-- display list is regenerated on drag release (see isDraggingBox gate in ensureBoxFillList).
 local function retessellateSpline(box)
 	if box.kind ~= "spline" or not box.controls then return end
-	box.vertices = tessellateClosedCatmullRom(box.controls, 12)
-	box._fillDirty = true
+	box.vertices = tessellateClosedCatmullRom(box.controls, 12, box.vertices)
+	box._fillNeedsRebuild = true
 end
 
 local function removeLastStartbox()
@@ -1450,6 +1467,8 @@ function widget:MouseMove(mx, my, dx, dy, button)
 			dragging = true
 		end
 		if dragging then
+			isDraggingBox = true
+			pendingFillRebuildIdx = boxDragBoxIdx
 			local wx, wz = getWorldMousePosition()
 			if wx and startboxes[boxDragBoxIdx] then
 				local box = startboxes[boxDragBoxIdx]
@@ -1478,6 +1497,8 @@ function widget:MouseMove(mx, my, dx, dy, button)
 			dragging = true
 		end
 		if dragging then
+			isDraggingBox = true
+			pendingFillRebuildIdx = boxBodyDrag.bi
 			local wx, wz = getWorldMousePosition()
 			local box = wx and startboxes[boxBodyDrag.bi]
 			if box then
@@ -1510,6 +1531,8 @@ function widget:MouseMove(mx, my, dx, dy, button)
 			dragging = true
 		end
 		if dragging then
+			isDraggingBox = true
+			pendingFillRebuildIdx = boxEdgeDrag.bi
 			local wx, wz = getWorldMousePosition()
 			local box = wx and startboxes[boxEdgeDrag.bi]
 			if box and box.vertices and #box.vertices == 4 then
@@ -1582,20 +1605,19 @@ function widget:MouseRelease(mx, my, button)
 		return true
 	end
 
-	if subMode == "startbox" and boxDragIdx then
+	-- Consolidated release for all startbox drag kinds (vertex / edge / body). Trigger the
+	-- deferred fill-list rebuild here so the translucent fill catches up after the user
+	-- lets go. During the drag itself ensureBoxFillList returned the stale list to avoid
+	-- O(N^2) rebuilds per mousemove.
+	if subMode == "startbox" and (boxDragIdx or boxEdgeDrag or boxBodyDrag) then
+		if pendingFillRebuildIdx and startboxes[pendingFillRebuildIdx] then
+			invalidateBoxFill(startboxes[pendingFillRebuildIdx])
+		end
+		pendingFillRebuildIdx = nil
+		isDraggingBox = false
 		boxDragIdx = nil
 		boxDragBoxIdx = nil
-		dragging = false
-		return true
-	end
-
-	if subMode == "startbox" and boxEdgeDrag then
 		boxEdgeDrag = nil
-		dragging = false
-		return true
-	end
-
-	if subMode == "startbox" and boxBodyDrag then
 		boxBodyDrag = nil
 		dragging = false
 		return true
@@ -1800,12 +1822,19 @@ local BOX_FILL_CELL = 20   -- world units per tessellation cell (lower = higher 
 local BOX_FILL_LIFT = 2
 ensureBoxFillList = function(box)
 	if box._fillList and not box._fillDirty then return box._fillList end
+	-- Defer the expensive triangulation while a drag is in progress. buildPolygonFillList
+	-- does O(N^2) fan subdivision with per-sample GetGroundHeight + nested row tables; running
+	-- it every mousemove on a large freedraw spline was burning thousands of allocs per frame
+	-- and tripping the LuaRAM warning. Outline rendering uses box.vertices directly so the
+	-- shape still updates live — only the translucent fill catches up on release.
+	if isDraggingBox and box._fillList then return box._fillList end
 	if box._fillList then
 		glDeleteList(box._fillList)
 		box._fillList = nil
 	end
 	box._fillList = buildPolygonFillList(box.vertices, BOX_FILL_LIFT, BOX_FILL_CELL)
 	box._fillDirty = false
+	box._fillNeedsRebuild = false
 	return box._fillList
 end
 
