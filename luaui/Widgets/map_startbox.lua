@@ -857,14 +857,16 @@ local function InitStartPolygons()
 		numStartPolygons = numStartPolygons + 1
 	end
 
-	--Case we start with only one team(no enemies)
-	--The shader doesn't like that so we have to let it think there are more then one
-	if numStartPolygons == 0 then
-		-- duplicate first entry we can find
-		for k, v in pairs(StartPolygons) do
-			StartPolygons[k] = v
-			numStartPolygons = 1
+	-- The shader requires at least 2 entries to avoid edge cases
+	if numStartPolygons < 2 then
+		local existing
+		for _, v in pairs(StartPolygons) do
+			existing = v
 			break
+		end
+		if existing then
+			StartPolygons[-1] = existing
+			numStartPolygons = numStartPolygons + 1
 		end
 	end
 

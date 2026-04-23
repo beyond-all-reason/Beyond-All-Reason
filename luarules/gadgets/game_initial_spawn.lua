@@ -68,6 +68,16 @@ if gadgetHandler:IsSyncedCode() then
 
 	local getValidRandom, isUnitValid
 
+	local function getEffectiveStartboxBounds(allyTeamID)
+		if GG.GetStartboxBounds then
+			local xmin, zmin, xmax, zmax = GG.GetStartboxBounds(allyTeamID)
+			if xmin then
+				return xmin, zmin, xmax, zmax
+			end
+		end
+		return spGetAllyTeamStartBox(allyTeamID)
+	end
+
 	local function updateAIManualPlacement(teamID, x, z)
 		if allowEnemyAIPlacement then
 			if x and z then
@@ -629,14 +639,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function spawnRegularly(teamID, allyTeamID)
 		local x, _, z = Spring.GetTeamStartPosition(teamID)
-		local xmin, zmin, xmax, zmax
-		if GG.GetStartboxBounds then
-			xmin, zmin, xmax, zmax = GG.GetStartboxBounds(allyTeamID)
-		end
-		if not xmin then
-			xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-		end
-		
+		local xmin, zmin, xmax, zmax = getEffectiveStartboxBounds(allyTeamID)
+
 		if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
 			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
 				-- guess points for the ones classified in startPointTable as not genuine
@@ -668,13 +672,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				if needsPosition then
-					local xmin, zmin, xmax, zmax
-					if GG.GetStartboxBounds then
-						xmin, zmin, xmax, zmax = GG.GetStartboxBounds(allyTeamID)
-					end
-					if not xmin then
-						xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-					end
+					local xmin, zmin, xmax, zmax = getEffectiveStartboxBounds(allyTeamID)
 					local guessedX, guessedZ = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 					if guessedX and guessedZ then
 						local y = spGetGroundHeight(guessedX, guessedZ)

@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Startbox Config",
-		desc = "Loads polygon startbox configurations and provides containment checks via GG",
-		author = "Harkenn",
-		date = "2026",
-		license = "GNU GPL, v2 or later",
+		name = 'Startbox Config',
+		desc = 'Loads polygon startbox configurations and provides containment checks via GG',
+		author = 'Harkenn',
+		date = '2026',
+		license = 'GNU GPL, v2 or later',
 		layer = -999, -- after FFA start setup (-1000), before initial spawn (0) and no-rush (-100)
-		enabled = true,
+		enabled = true
 	}
 end
 

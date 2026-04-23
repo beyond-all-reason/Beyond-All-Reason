@@ -1,4 +1,4 @@
-local PolygonLib = dofile("common/lib_polygon.lua")
+local PolygonLib = VFS.Include("common/lib_polygon.lua")
 
 describe("lib_polygon", function()
 
