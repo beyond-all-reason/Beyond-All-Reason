@@ -447,7 +447,7 @@ function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporter
 		local teeID = transporterClaims[transporterID][i]
 		local moveToTransporter = true
 		local removeFromQueue = false
-		local canLoadNow = false
+		local canLoadNow = true
 		if spValidUnitID(teeID) then
 			local tx, ty, tz = spGetUnitPosition(teeID)
 			local teeTeam = spGetUnitTeam(teeID)
@@ -473,18 +473,14 @@ function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporter
 			end
 			if dist2D(tx, tz, terPosX, terPosZ) > 512 then -- hardcoded 512 for test, it's a threshold so units don't start moving towards trans from afar
 				moveToTransporter = false
+				canLoadNow = false
 			end
-			if inRange(transporterID, tx, ty, tz) then
-				if customTransportLoad[transporterDefID] then --nil check will be gone once code is finished
-					if spGetUnitRulesParam(transporterID, "canLoad") == 1 then
-						local _, _, _, vw = spGetUnitVelocity(teeID)
-						if alliedTee or vw < 0.5 then
-							canLoadNow = true
-							moveToTransporter = false
-							removeFromQueue = true
-						end
-					end
-				end
+			local _, _, _, vw = spGetUnitVelocity(teeID)
+			if inRange(transporterID, tx, ty, tz) and spGetUnitRulesParam(transporterID, "canLoad") == 1  and (alliedTee or vw < 0.5)then
+				moveToTransporter = false
+				removeFromQueue = true
+			else
+				canLoadNow = false
 			end		
 			if moveToTransporter then -- do not order skipped transportees
 				spSetUnitMoveGoal(teeID, terPosX, spGetGroundHeight(terPosX, terPosZ), terPosZ,64,nil, true) -- moves to the transport
