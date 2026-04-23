@@ -9,217 +9,193 @@ function M.attach(doc, ctx)
 	local playSound = ctx.playSound
 	local setActiveClass = ctx.setActiveClass
 	local trackSliderDrag = ctx.trackSliderDrag
-	local clearPassthrough = ctx.clearPassthrough
-	local ROTATION_STEP = ctx.ROTATION_STEP
-	local CURVE_STEP = ctx.CURVE_STEP
-	local LENGTH_SCALE_STEP = ctx.LENGTH_SCALE_STEP
-	local RADIUS_STEP = ctx.RADIUS_STEP
-	local sliderToCadence = ctx.sliderToCadence
-	local cadenceToSlider = ctx.cadenceToSlider
-	local sliderToFrequency = ctx.sliderToFrequency
-	local sliderToPersist = ctx.sliderToPersist
-	local PERSIST_PERMANENT_VAL = ctx.PERSIST_PERMANENT_VAL
-	local formatFrequency = ctx.formatFrequency
-	local guideHints = ctx.guideHints
-	local shapeNames = ctx.shapeNames
 
 	widgetState.dcControlsEl  = doc:GetElementById("tf-decal-controls")
 	widgetState.dcSubmodesEl  = doc:GetElementById("tf-dc-submodes")
 
-	-- Decal distribution buttons
+	-- Cache distribution / mode button elements (used by setActiveClass in M.sync).
 	widgetState.dcDistButtons.random    = doc:GetElementById("btn-dc-dist-random")
 	widgetState.dcDistButtons.regular   = doc:GetElementById("btn-dc-dist-regular")
 	widgetState.dcDistButtons.clustered = doc:GetElementById("btn-dc-dist-clustered")
 
-	for dist, element in pairs(widgetState.dcDistButtons) do
-		if element then
-			element:AddEventListener("click", function(event)
-				playSound("shapeSwitch")
-				if WG.DecalPainter then WG.DecalPainter.setDistribution(dist) end
-				setActiveClass(widgetState.dcDistButtons, dist)
-				event:StopPropagation()
-			end, false)
+	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
+	-- Slider change events are wired declaratively via onchange= in RML.
+	for _, sid in ipairs({
+		"radius", "rotation", "rotrand", "count", "cadence",
+		"sizemin", "sizemax", "alpha",
+	}) do
+		local sl = doc:GetElementById("dc-slider-" .. sid)
+		if sl then trackSliderDrag(sl, "dc-" .. sid) end
+	end
+	local sliderDcHistory = doc:GetElementById("slider-dc-history")
+	if sliderDcHistory then trackSliderDrag(sliderDcHistory, "dc-history") end
+
+	-- Register widget methods for inline onclick/onchange handlers in RML.
+	local w = ctx.widget
+	if not w then return end
+
+	local function ensureDecalPlacer()
+		if not WG.DecalPlacer then
+			Spring.Echo("[Decal Library] Enable the 'Decal Placer' widget first")
+			return false
+		end
+		return true
+	end
+
+	-- Distribution
+	w.dcSetDist = function(self, dist)
+		playSound("shapeSwitch")
+		if WG.DecalPainter then WG.DecalPainter.setDistribution(dist) end
+		setActiveClass(widgetState.dcDistButtons, dist)
+	end
+
+	-- Heatmap
+	w.dcHeatmapExport = function(self)
+		playSound("tick")
+		if WG.DecalExporter then
+			WG.DecalExporter.exportHeatmapCSV()
+			WG.DecalExporter.exportHeatmapPGM()
+		else
+			Spring.Echo("[Decal Heatmap] Enable the 'Decal Exporter & Analytics' widget first")
+		end
+	end
+	w.dcHeatmapReset = function(self)
+		playSound("tick")
+		if WG.DecalExporter then
+			WG.DecalExporter.resetHeatmap()
+			Spring.Echo("[Decal Heatmap] Heatmap reset")
 		end
 	end
 
-	-- ============ Decal Heatmap buttons ============
-	do
-		local function dcHeatClick(btnId, actionFn)
-			local btn = doc:GetElementById(btnId)
-			if btn then
-				btn:AddEventListener("click", function(event)
-					playSound("tick")
-					actionFn()
-					event:StopPropagation()
-				end, false)
+	-- Library mode buttons
+	w.dcLibScatter = function(self)
+		playSound("tick")
+		if ensureDecalPlacer() then WG.DecalPlacer.setMode("scatter") end
+	end
+	w.dcLibPoint = function(self)
+		playSound("tick")
+		if ensureDecalPlacer() then WG.DecalPlacer.setMode("point") end
+	end
+	w.dcLibRemove = function(self)
+		playSound("tick")
+		if ensureDecalPlacer() then WG.DecalPlacer.setMode("remove") end
+	end
+	w.dcLibStop = function(self)
+		playSound("tick")
+		if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
+	end
+	w.dcLibOpen = function(self)
+		playSound("tick")
+		if ensureDecalPlacer() then
+			local s = WG.DecalPlacer.getState()
+			if not s or not s.active then
+				WG.DecalPlacer.setMode("point")
 			end
 		end
-
-		dcHeatClick("btn-dc-heatmap-export", function()
-			if WG.DecalExporter then
-				WG.DecalExporter.exportHeatmapCSV()
-				WG.DecalExporter.exportHeatmapPGM()
-			else
-				Spring.Echo("[Decal Heatmap] Enable the 'Decal Exporter & Analytics' widget first")
-			end
-		end)
-
-		dcHeatClick("btn-dc-heatmap-reset", function()
-			if WG.DecalExporter then
-				WG.DecalExporter.resetHeatmap()
-				Spring.Echo("[Decal Heatmap] Heatmap reset")
-			end
-		end)
 	end
 
-	-- ============ Decal Library buttons ============
-	do
-		local function dcLibClick(btnId, fn)
-			local btn = doc:GetElementById(btnId)
-			if btn then
-				btn:AddEventListener("click", function(event)
-					playSound("tick")
-					fn()
-					event:StopPropagation()
-				end, false)
-			end
-		end
-		local function ensureDecalPlacer()
-			if not WG.DecalPlacer then
-				Spring.Echo("[Decal Library] Enable the 'Decal Placer' widget first")
-				return false
-			end
-			return true
-		end
-		dcLibClick("btn-dc-library-scatter", function()
-			if ensureDecalPlacer() then WG.DecalPlacer.setMode("scatter") end
-		end)
-		dcLibClick("btn-dc-library-point", function()
-			if ensureDecalPlacer() then WG.DecalPlacer.setMode("point") end
-		end)
-		dcLibClick("btn-dc-library-remove", function()
-			if ensureDecalPlacer() then WG.DecalPlacer.setMode("remove") end
-		end)
-		dcLibClick("btn-dc-library-stop", function()
-			if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
-		end)
-		dcLibClick("btn-dc-library-open", function()
-			if ensureDecalPlacer() then
-				local s = WG.DecalPlacer.getState()
-				if not s or not s.active then
-					WG.DecalPlacer.setMode("point")
-				end
-			end
-		end)
-
-		-- Brush / decal option sliders + action buttons (dc-*)
-		local function bindDCSlider(sliderId, numboxId, setter, transform)
-			local slider = doc:GetElementById(sliderId)
-			local numbox = doc:GetElementById(numboxId)
-			if not slider then return end
-			local function applyFromValue(s)
-				local v = tonumber(s); if not v then return end
-				if transform then v = transform(v) end
-				setter(v)
-			end
-			slider:AddEventListener("change", function()
-				applyFromValue(slider:GetAttribute("value"))
-			end, false)
-			if numbox then
-				numbox:AddEventListener("focus", function() Spring.SDLStartTextInput(); widgetState.focusedRmlInput = numbox end, false)
-				numbox:AddEventListener("blur",  function() Spring.SDLStopTextInput(); widgetState.focusedRmlInput = nil end, false)
-				numbox:AddEventListener("change", function()
-					applyFromValue(numbox:GetAttribute("value"))
-				end, false)
-			end
-		end
-		local function bindDCStep(btnId, getCur, setter, step)
-			local btn = doc:GetElementById(btnId)
-			if btn then
-				btn:AddEventListener("click", function(event)
-					playSound("tick")
-					setter(getCur() + step)
-					event:StopPropagation()
-				end, false)
-			end
-		end
-		local DP = WG.DecalPlacer
-		if DP then
-			bindDCSlider("dc-slider-radius",   "dc-slider-radius-numbox",   DP.setRadius)
-			bindDCSlider("dc-slider-rotation", "dc-slider-rotation-numbox", DP.setRotation)
-			bindDCSlider("dc-slider-rotrand",  "dc-slider-rotrand-numbox",  DP.setRotRandom)
-			bindDCSlider("dc-slider-count",    "dc-slider-count-numbox",    DP.setDecalCount)
-			bindDCSlider("dc-slider-cadence",  "dc-slider-cadence-numbox",  DP.setCadence)
-			bindDCSlider("dc-slider-sizemin",  "dc-slider-sizemin-numbox",  DP.setSizeMin)
-			bindDCSlider("dc-slider-sizemax",  "dc-slider-sizemax-numbox",  DP.setSizeMax)
-			bindDCSlider("dc-slider-alpha",    "dc-slider-alpha-numbox",    DP.setAlpha, function(v) return v/100 end)
-
-			bindDCStep("btn-dc-radius-down",  function() return DP.getState().radius end,     DP.setRadius,    -8)
-			bindDCStep("btn-dc-radius-up",    function() return DP.getState().radius end,     DP.setRadius,     8)
-			bindDCStep("btn-dc-rot-ccw",      function() return DP.getState().rotation end,   DP.setRotation,  -5)
-			bindDCStep("btn-dc-rot-cw",       function() return DP.getState().rotation end,   DP.setRotation,   5)
-			bindDCStep("btn-dc-count-down",   function() return DP.getState().decalCount end, DP.setDecalCount,-1)
-			bindDCStep("btn-dc-count-up",     function() return DP.getState().decalCount end, DP.setDecalCount, 1)
-			bindDCStep("btn-dc-cadence-down",  function() return DP.getState().cadence end,    DP.setCadence,    -5)
-			bindDCStep("btn-dc-cadence-up",    function() return DP.getState().cadence end,    DP.setCadence,     5)
-			bindDCStep("btn-dc-rotrand-down",  function() return DP.getState().rotRandom end,  DP.setRotRandom,  -1)
-			bindDCStep("btn-dc-rotrand-up",    function() return DP.getState().rotRandom end,  DP.setRotRandom,   1)
-			bindDCStep("btn-dc-sizemin-down",  function() return DP.getState().sizeMin end,    DP.setSizeMin,    -4)
-			bindDCStep("btn-dc-sizemin-up",    function() return DP.getState().sizeMin end,    DP.setSizeMin,     4)
-			bindDCStep("btn-dc-sizemax-down",  function() return DP.getState().sizeMax end,    DP.setSizeMax,    -4)
-			bindDCStep("btn-dc-sizemax-up",    function() return DP.getState().sizeMax end,    DP.setSizeMax,     4)
-			bindDCStep("btn-dc-alpha-down",    function() return DP.getState().alpha*100 end,  function(v) DP.setAlpha(v/100) end, -1)
-			bindDCStep("btn-dc-alpha-up",      function() return DP.getState().alpha*100 end,  function(v) DP.setAlpha(v/100) end,  1)
-		end
-		dcLibClick("btn-dc-align-toggle", function()
-			if DP then
-				local s = DP.getState()
-				if s then DP.setAlignToNormal(not s.alignToNormal) end
-			end
-		end)
-		-- Decal undo/redo section (undo only — DC has no redo backend)
-		local dcUndoBtn = doc:GetElementById("btn-dc-undo")
-		if dcUndoBtn then
-			dcUndoBtn:AddEventListener("click", function(event)
-				if DP then playSound("undo"); DP.undo() end
-				event:StopPropagation()
-			end, false)
-		end
-		-- Redo button: no-op (DC redo not implemented)
-		local dcRedoBtn = doc:GetElementById("btn-dc-redo")
-		if dcRedoBtn then
-			dcRedoBtn:AddEventListener("click", function(event)
-				event:StopPropagation()
-			end, false)
-		end
-		local sliderDcHistory = doc:GetElementById("slider-dc-history")
-		if sliderDcHistory then
-			trackSliderDrag(sliderDcHistory, "dc-history")
-			sliderDcHistory:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then event:StopPropagation(); return end
-				if not DP then event:StopPropagation(); return end
-				local val = tonumber(sliderDcHistory:GetAttribute("value")) or 0
-				local dcSt = DP.getState()
-				if not dcSt then event:StopPropagation(); return end
-				local cur = dcSt.undoCount or 0
-				local diff = val - cur
-				if diff < 0 then
-					for i = 1, -diff do DP.undo() end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		dcLibClick("btn-dc-clearall", function() if DP then DP.clearAll() end end)
-		dcLibClick("btn-dc-save",     function() if DP then DP.save()     end end)
-		dcLibClick("btn-dc-load",     function()
-			if not DP then return end
-			local saves = DP.listSaves()
-			if not saves or #saves == 0 then Spring.Echo("[Decal Placer] No saved files"); return end
-			DP.load(saves[#saves])
-			Spring.Echo("[Decal Placer] Loaded " .. saves[#saves])
-		end)
+	-- Slider/numbox onchange helpers (transform optional).
+	local function dcSliderChange(element, setter, transform)
+		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		local v = element and tonumber(element:GetAttribute("value"))
+		if not v then return end
+		if transform then v = transform(v) end
+		setter(v)
 	end
 
+	w.dcOnRadiusChange   = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setRadius     or function() end) end
+	w.dcOnRotationChange = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setRotation   or function() end) end
+	w.dcOnRotRandChange  = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setRotRandom  or function() end) end
+	w.dcOnCountChange    = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setDecalCount or function() end) end
+	w.dcOnCadenceChange  = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setCadence    or function() end) end
+	w.dcOnSizeMinChange  = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setSizeMin    or function() end) end
+	w.dcOnSizeMaxChange  = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setSizeMax    or function() end) end
+	w.dcOnAlphaChange    = function(self, e)
+		if not WG.DecalPlacer then return end
+		dcSliderChange(e, WG.DecalPlacer.setAlpha, function(v) return v / 100 end)
+	end
+
+	-- Stepper buttons (re-fetch state on each click; safe if DecalPlacer enabled later).
+	local function dcStep(getter, setter, delta)
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState()
+		if not st then return end
+		setter(getter(st) + delta)
+	end
+
+	w.dcRadiusDown   = function(self) playSound("tick"); dcStep(function(s) return s.radius     end, WG.DecalPlacer and WG.DecalPlacer.setRadius     or function() end, -8) end
+	w.dcRadiusUp     = function(self) playSound("tick"); dcStep(function(s) return s.radius     end, WG.DecalPlacer and WG.DecalPlacer.setRadius     or function() end,  8) end
+	w.dcRotCCW       = function(self) playSound("tick"); dcStep(function(s) return s.rotation   end, WG.DecalPlacer and WG.DecalPlacer.setRotation   or function() end, -5) end
+	w.dcRotCW        = function(self) playSound("tick"); dcStep(function(s) return s.rotation   end, WG.DecalPlacer and WG.DecalPlacer.setRotation   or function() end,  5) end
+	w.dcRotRandDown  = function(self) playSound("tick"); dcStep(function(s) return s.rotRandom  end, WG.DecalPlacer and WG.DecalPlacer.setRotRandom  or function() end, -1) end
+	w.dcRotRandUp    = function(self) playSound("tick"); dcStep(function(s) return s.rotRandom  end, WG.DecalPlacer and WG.DecalPlacer.setRotRandom  or function() end,  1) end
+	w.dcCountDown    = function(self) playSound("tick"); dcStep(function(s) return s.decalCount end, WG.DecalPlacer and WG.DecalPlacer.setDecalCount or function() end, -1) end
+	w.dcCountUp      = function(self) playSound("tick"); dcStep(function(s) return s.decalCount end, WG.DecalPlacer and WG.DecalPlacer.setDecalCount or function() end,  1) end
+	w.dcCadenceDown  = function(self) playSound("tick"); dcStep(function(s) return s.cadence    end, WG.DecalPlacer and WG.DecalPlacer.setCadence    or function() end, -5) end
+	w.dcCadenceUp    = function(self) playSound("tick"); dcStep(function(s) return s.cadence    end, WG.DecalPlacer and WG.DecalPlacer.setCadence    or function() end,  5) end
+	w.dcSizeMinDown  = function(self) playSound("tick"); dcStep(function(s) return s.sizeMin    end, WG.DecalPlacer and WG.DecalPlacer.setSizeMin    or function() end, -4) end
+	w.dcSizeMinUp    = function(self) playSound("tick"); dcStep(function(s) return s.sizeMin    end, WG.DecalPlacer and WG.DecalPlacer.setSizeMin    or function() end,  4) end
+	w.dcSizeMaxDown  = function(self) playSound("tick"); dcStep(function(s) return s.sizeMax    end, WG.DecalPlacer and WG.DecalPlacer.setSizeMax    or function() end, -4) end
+	w.dcSizeMaxUp    = function(self) playSound("tick"); dcStep(function(s) return s.sizeMax    end, WG.DecalPlacer and WG.DecalPlacer.setSizeMax    or function() end,  4) end
+	w.dcAlphaDown    = function(self)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setAlpha(math.max(0, ((st.alpha or 0) * 100 - 1) / 100))
+	end
+	w.dcAlphaUp      = function(self)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setAlpha(math.min(1, ((st.alpha or 0) * 100 + 1) / 100))
+	end
+
+	-- Align-to-normal toggle
+	w.dcAlignToggle = function(self)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local s = WG.DecalPlacer.getState()
+		if s then WG.DecalPlacer.setAlignToNormal(not s.alignToNormal) end
+	end
+
+	-- Undo / Redo (DC has no redo backend; redo is a no-op stub)
+	w.dcUndo = function(self)
+		if WG.DecalPlacer then playSound("undo"); WG.DecalPlacer.undo() end
+	end
+	w.dcRedo = function(self)
+		-- placeholder; DC redo not implemented
+	end
+	w.dcOnHistoryChange = function(self, element)
+		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		local val = element and tonumber(element:GetAttribute("value")) or 0
+		local dcSt = WG.DecalPlacer.getState()
+		if not dcSt then return end
+		local cur = dcSt.undoCount or 0
+		local diff = val - cur
+		if diff < 0 then
+			for _ = 1, -diff do WG.DecalPlacer.undo() end
+		end
+	end
+
+	-- Save / Load / Clear
+	w.dcClearAll = function(self)
+		playSound("tick")
+		if WG.DecalPlacer then WG.DecalPlacer.clearAll() end
+	end
+	w.dcSave = function(self)
+		playSound("tick")
+		if WG.DecalPlacer then WG.DecalPlacer.save() end
+	end
+	w.dcLoad = function(self)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local saves = WG.DecalPlacer.listSaves()
+		if not saves or #saves == 0 then
+			Spring.Echo("[Decal Placer] No saved files"); return
+		end
+		WG.DecalPlacer.load(saves[#saves])
+		Spring.Echo("[Decal Placer] Loaded " .. saves[#saves])
+	end
 end
 
 function M.sync(doc, ctx, setSummary)
@@ -242,15 +218,27 @@ function M.sync(doc, ctx, setSummary)
 				"R ", tostring(dpState.radius or 0),
 				"Sel ", tostring(#(dpState.selectedDecals or {})))
 
-			-- Sync brush/option labels & sliders
+			uiState.updatingFromCode = true
+
+			-- Sync brush/option labels, sliders, and numboxes.
+			-- syncAndFlash guards against writing while user is dragging a slider,
+			-- which prevents visual choppiness from the setter ↔ sync loop.
 			local function setLbl(id, txt)
 				local e = doc and doc:GetElementById(id)
 				if e then e.inner_rml = tostring(txt) end
 			end
-			local function setSlider(id, val)
+			local function setNum(id, val)
 				local e = doc and doc:GetElementById(id)
 				if e then e:SetAttribute("value", tostring(val)) end
 			end
+			local radiusV   = tostring(dpState.radius or 0)
+			local rotV      = tostring(math.floor(dpState.rotation or 0))
+			local rotRandV  = tostring(dpState.rotRandom or 0)
+			local countV    = tostring(dpState.decalCount or 0)
+			local cadenceV  = tostring(dpState.cadence or 0)
+			local sizeMinV  = tostring(dpState.sizeMin or 0)
+			local sizeMaxV  = tostring(dpState.sizeMax or 0)
+			local alphaV    = tostring(math.floor((dpState.alpha or 0) * 100))
 			setLbl("dc-radius-label",   dpState.radius or 0)
 			setLbl("dc-rotation-label", math.floor(dpState.rotation or 0))
 			setLbl("dc-rotrand-label",  dpState.rotRandom or 0)
@@ -259,14 +247,22 @@ function M.sync(doc, ctx, setSummary)
 			setLbl("dc-sizemin-label",  dpState.sizeMin or 0)
 			setLbl("dc-sizemax-label",  dpState.sizeMax or 0)
 			setLbl("dc-alpha-label",    math.floor((dpState.alpha or 0) * 100))
-			setSlider("dc-slider-radius",   dpState.radius or 0)
-			setSlider("dc-slider-rotation", math.floor(dpState.rotation or 0))
-			setSlider("dc-slider-rotrand",  dpState.rotRandom or 0)
-			setSlider("dc-slider-count",    dpState.decalCount or 0)
-			setSlider("dc-slider-cadence",  dpState.cadence or 0)
-			setSlider("dc-slider-sizemin",  dpState.sizeMin or 0)
-			setSlider("dc-slider-sizemax",  dpState.sizeMax or 0)
-			setSlider("dc-slider-alpha",    math.floor((dpState.alpha or 0) * 100))
+			syncAndFlash(doc:GetElementById("dc-slider-radius"),   "dc-radius",   radiusV)
+			syncAndFlash(doc:GetElementById("dc-slider-rotation"), "dc-rotation", rotV)
+			syncAndFlash(doc:GetElementById("dc-slider-rotrand"),  "dc-rotrand",  rotRandV)
+			syncAndFlash(doc:GetElementById("dc-slider-count"),    "dc-count",    countV)
+			syncAndFlash(doc:GetElementById("dc-slider-cadence"),  "dc-cadence",  cadenceV)
+			syncAndFlash(doc:GetElementById("dc-slider-sizemin"),  "dc-sizemin",  sizeMinV)
+			syncAndFlash(doc:GetElementById("dc-slider-sizemax"),  "dc-sizemax",  sizeMaxV)
+			syncAndFlash(doc:GetElementById("dc-slider-alpha"),    "dc-alpha",    alphaV)
+			setNum("dc-slider-radius-numbox",   radiusV)
+			setNum("dc-slider-rotation-numbox", rotV)
+			setNum("dc-slider-rotrand-numbox",  rotRandV)
+			setNum("dc-slider-count-numbox",    countV)
+			setNum("dc-slider-cadence-numbox",  cadenceV)
+			setNum("dc-slider-sizemin-numbox",  sizeMinV)
+			setNum("dc-slider-sizemax-numbox",  sizeMaxV)
+			setNum("dc-slider-alpha-numbox",    alphaV)
 			-- Mode row active highlight
 			local modes = { scatter = "btn-dc-library-scatter", point = "btn-dc-library-point", remove = "btn-dc-library-remove" }
 			for m, id in pairs(modes) do
@@ -298,23 +294,36 @@ function M.sync(doc, ctx, setSummary)
 				local scatter = (mode == "scatter")
 				-- Rotation + random irrelevant in remove mode
 				ctx.setDisabledIds(doc, {
-					"dc-slider-rotation", "dc-slider-rotrand",
-					"dc-btn-rot-ccw", "dc-btn-rot-cw",
+					"dc-slider-rotation", "dc-slider-rotation-numbox",
+					"dc-slider-rotrand",  "dc-slider-rotrand-numbox",
+					"btn-dc-rot-ccw", "btn-dc-rot-cw",
+					"btn-dc-rotrand-down", "btn-dc-rotrand-up",
 				}, remove)
-				-- Count/cadence/distribution: scatter only
+				-- Count + distribution: scatter only (point places exactly 1 per tick)
 				ctx.setDisabledIds(doc, {
-					"dc-slider-count", "dc-slider-cadence",
-					"dc-btn-count-down", "dc-btn-count-up",
-					"dc-btn-cadence-down", "dc-btn-cadence-up",
-					"dc-btn-dist-random", "dc-btn-dist-regular", "dc-btn-dist-clustered",
+					"dc-slider-count",   "dc-slider-count-numbox",
+					"btn-dc-count-down", "btn-dc-count-up",
+					"btn-dc-dist-random", "btn-dc-dist-regular", "btn-dc-dist-clustered",
 				}, not scatter)
+				-- Cadence: applies in BOTH scatter and point drag (widget:Update spam).
+				-- Only irrelevant in remove (which places every frame while dragging).
+				ctx.setDisabledIds(doc, {
+					"dc-slider-cadence", "dc-slider-cadence-numbox",
+					"btn-dc-cadence-down", "btn-dc-cadence-up",
+				}, remove)
 				-- Size/alpha/align: irrelevant in remove
 				ctx.setDisabledIds(doc, {
-					"dc-slider-sizemin", "dc-slider-sizemax",
-					"dc-slider-alpha",
+					"dc-slider-sizemin", "dc-slider-sizemin-numbox",
+					"dc-slider-sizemax", "dc-slider-sizemax-numbox",
+					"dc-slider-alpha",   "dc-slider-alpha-numbox",
+					"btn-dc-sizemin-down", "btn-dc-sizemin-up",
+					"btn-dc-sizemax-down", "btn-dc-sizemax-up",
+					"btn-dc-alpha-down",   "btn-dc-alpha-up",
 					"btn-dc-align-toggle",
 				}, remove)
 			end
+
+			uiState.updatingFromCode = false
 		else
 			setSummary("DECALS", "#e060e0", "", "LIBRARY", "", "", "", "")
 		end

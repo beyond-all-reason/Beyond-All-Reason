@@ -156,11 +156,47 @@ local function classifyDecal(name)
 	return "other"
 end
 
+----------------------------------------------------------------
+-- Normal-map detection + main<->norm pairing.
+-- The engine decal atlas exposes both the color ("main*") and normal
+-- ("norm*") halves of a pair as individual "main" textures (from
+-- GetGroundDecalTextures' perspective), but the UX use is to pick ONE
+-- entry that bundles both. We hide the norm-only entries from the UI and
+-- bind the paired normal automatically when the main is placed.
+----------------------------------------------------------------
+local function isNormalName(lname)
+	-- Leading "norm" / "nrm" / trailing "_norm" / "_nrm" / "_normal" / "_n"
+	return lname:find("^norm") ~= nil
+		or lname:find("^nrm") ~= nil
+		or lname:find("_norm$") ~= nil
+		or lname:find("_nrm$") ~= nil
+		or lname:find("_normal$") ~= nil
+		or lname:find("_n$") ~= nil
+end
+
+local function normalBaseKey(lname)
+	-- Produce a canonical "pair key" so main and norm textures collide.
+	-- "mainscar_5" -> "scar_5", "normscar_5" -> "scar_5"
+	-- "armyork_tracks_norm" -> "armyork_tracks"
+	local k = lname
+	k = k:gsub("^main", ""):gsub("^norm", ""):gsub("^nrm", "")
+	k = k:gsub("_norm$", ""):gsub("_nrm$", ""):gsub("_normal$", ""):gsub("_n$", "")
+	return k
+end
+
+-- Exposed so UI / exporter can look up the norm partner.
+local normPartnerByMain = {}  -- { [mainName] = normName }
+
+local function getNormalPartner(mainName)
+	return normPartnerByMain[mainName]
+end
+
 local function buildDecalList()
 	if decalListBuilt then return end
 	decalListBuilt = true
 	decalList = {}
 	decalCategories = {}
+	normPartnerByMain = {}
 	for _, c in ipairs(CATEGORY_ORDER) do
 		decalCategories[c] = {}
 	end
@@ -168,25 +204,57 @@ local function buildDecalList()
 		Echo("[Decal Placer] Spring.GetGroundDecalTextures not available")
 		return
 	end
-	-- Main atlas textures (isMainTex = true), also fetch filenames for UI preview
 	local names, filenames = GetGroundDecalTextures(true, true)
 	names = names or {}
 	filenames = filenames or {}
+
+	-- Pass 1: bucket every entry into the main/norm side of its pair key.
+	local mainsByKey = {}
+	local normsByKey = {}
 	for i, name in ipairs(names) do
-		local cat = classifyDecal(name)
-		local entry = { name = name, category = cat, filename = filenames[i] }
+		local lname = name:lower()
+		local key = normalBaseKey(lname)
+		if isNormalName(lname) then
+			normsByKey[key] = normsByKey[key] or { name = name, filename = filenames[i] }
+		else
+			mainsByKey[key] = mainsByKey[key] or { name = name, filename = filenames[i] }
+		end
+	end
+
+	-- Pass 2: emit one library entry per pair, preferring the main half.
+	-- Any key that only has a norm half (orphan normal) is skipped — rendering
+	-- a raw normal map on terrain looks like nothing useful.
+	local skippedNormals = 0
+	for key, m in pairs(mainsByKey) do
+		local entry = {
+			name = m.name,
+			category = classifyDecal(m.name),
+			filename = m.filename,
+			normalName = normsByKey[key] and normsByKey[key].name or nil,
+			normalFilename = normsByKey[key] and normsByKey[key].filename or nil,
+		}
+		if entry.normalName then
+			normPartnerByMain[m.name] = entry.normalName
+		end
 		decalList[#decalList + 1] = entry
+		local cat = entry.category
 		if not decalCategories[cat] then decalCategories[cat] = {} end
 		local cl = decalCategories[cat]
 		cl[#cl + 1] = entry
 	end
+	for key, _ in pairs(normsByKey) do
+		if not mainsByKey[key] then skippedNormals = skippedNormals + 1 end
+	end
+
 	table.sort(decalList, function(a, b) return a.name < b.name end)
 	for _, c in ipairs(CATEGORY_ORDER) do
 		if decalCategories[c] then
 			table.sort(decalCategories[c], function(a, b) return a.name < b.name end)
 		end
 	end
-	Echo(string.format("[Decal Placer] Loaded %d decal textures from atlas", #decalList))
+	Echo(string.format(
+		"[Decal Placer] Loaded %d decals (%d main/norm pairs, %d orphan normals hidden)",
+		#decalList, #decalList, skippedNormals))
 end
 
 ----------------------------------------------------------------
@@ -271,6 +339,11 @@ local function applyDecal(tex, wx, wz, sizeX, sizeZ, rotRad)
 	local id = CreateGroundDecal()
 	if not id then return nil end
 	SetGroundDecalTexture(id, tex, true)
+	-- Bind matching normal map, if the atlas has one registered for this main.
+	-- Placing the main alone makes the decal unlit/flat; wiring the norm sibling
+	-- gives proper per-pixel lighting that blends with the terrain.
+	local norm = normPartnerByMain[tex]
+	if norm then SetGroundDecalTexture(id, norm, false) end
 	SetGroundDecalPosAndDims(id, wx, wz, sizeX, sizeZ)
 	SetGroundDecalRotation(id, rotRad)
 	if SetGroundDecalAlpha then SetGroundDecalAlpha(id, dp.alpha, 0) end
@@ -554,15 +627,29 @@ local function decalSave()
 end
 
 local function decalLoad(filename)
-	if not filename or filename == "" then return end
-	local f = io.open(filename, "r")
-	if not f then Echo("[Decal Placer] Cannot open " .. filename); return end
-	local content = f:read("*a")
-	f:close()
-	local fn, err = loadstring(content)
-	if not fn then Echo("[Decal Placer] Parse error: " .. tostring(err)); return end
+	if not filename or filename == "" then
+		local saves = VFS.DirList(SAVE_DIR, "*.lua", VFS.RAW) or {}
+		if #saves == 0 then Echo("[Decal Placer] No saved decal files"); return end
+		filename = saves[#saves]
+	end
+	-- Prefer loadfile (BAR's canonical pattern, see cmd_light_placer.load).
+	-- io.open + loadstring occasionally fails inside the widget sandbox for
+	-- files under SAVE_DIR; loadfile resolves the same path reliably.
+	local fn, err = loadfile(filename)
+	if not fn then
+		-- Fallback: try io.open + loadstring in case the VFS path disagrees.
+		local f = io.open(filename, "r")
+		if not f then Echo("[Decal Placer] Cannot open " .. filename .. ": " .. tostring(err)); return end
+		local content = f:read("*a")
+		f:close()
+		fn, err = loadstring(content, filename)
+		if not fn then Echo("[Decal Placer] Parse error: " .. tostring(err)); return end
+	end
 	local ok, data = pcall(fn)
-	if not ok or type(data) ~= "table" then Echo("[Decal Placer] Invalid file"); return end
+	if not ok or type(data) ~= "table" then
+		Echo("[Decal Placer] Invalid file: " .. tostring(data))
+		return
+	end
 	local placed = {}
 	for _, d in ipairs(data) do
 		if d.tex and d.x and d.z then
@@ -672,6 +759,7 @@ function widget:Initialize()
 		getDecalCategories    = getDecalCategories,
 		getCategoryOrder      = getCategoryOrder,
 		getCategoryLabels     = getCategoryLabels,
+		getNormalPartner      = getNormalPartner,
 		setMode               = setMode,
 		setShape              = setShape,
 		setRadius             = setRadius,
