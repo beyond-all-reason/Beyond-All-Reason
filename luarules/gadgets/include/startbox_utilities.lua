@@ -185,63 +185,6 @@ local function ParseBoxes ()
 
 		if not startboxStringLoadedBoxes then
 			configSource = "fallback"
-			local mapSizeX = Game.mapSizeX
-			local mapSizeZ = Game.mapSizeZ
-			if mapSizeZ > mapSizeX then
-				startBoxConfig[0] = {
-					boxes = {{
-						{0, 0},
-						{0, mapSizeZ * 0.2},
-						{mapSizeX, mapSizeZ * 0.2},
-						{mapSizeX, 0}
-					}},
-					startpoints = {
-						{mapSizeX * 0.5, mapSizeZ * 0.1}
-					},
-					nameLong = "North",
-					nameShort = "N"
-				}
-				startBoxConfig[1] = {
-					boxes = {{
-						{0, mapSizeZ * 0.8},
-						{0, mapSizeZ},
-						{mapSizeX, mapSizeZ},
-						{mapSizeX, mapSizeZ * 0.8}
-					}},
-					startpoints = {
-						{mapSizeX * 0.5, mapSizeZ * 0.9}
-					},
-					nameLong = "South",
-					nameShort = "S"
-				}
-			else
-				startBoxConfig[0] = {
-					boxes = {{
-						{0, 0},
-						{0, mapSizeZ},
-						{mapSizeX * 0.2, mapSizeZ},
-						{mapSizeX * 0.2, 0},
-					}},
-					startpoints = {
-						{mapSizeX * 0.1, mapSizeZ * 0.5}
-					},
-					nameLong = "West",
-					nameShort = "W"
-				}
-				startBoxConfig[1] = {
-					boxes = {{
-						{mapSizeX * 0.8, 0},
-						{mapSizeX * 0.8, mapSizeZ - 1},
-						{mapSizeX, mapSizeZ - 1},
-						{mapSizeX, 0},
-					}},
-					startpoints = {
-						{mapSizeX * 0.9, mapSizeZ * 0.5}
-					},
-					nameLong = "East",
-					nameShort = "E"
-				}
-			end
 		end
 	end
 
