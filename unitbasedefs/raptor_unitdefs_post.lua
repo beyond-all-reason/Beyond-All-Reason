@@ -1,4 +1,5 @@
 local function processRaptorUnitDef(uDef)
+	local customparams = uDef.customparams
 	local raptorHealth = uDef.health
 	uDef.activatewhenbuilt = true
 	uDef.metalcost = raptorHealth * 0.5

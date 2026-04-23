@@ -566,7 +566,6 @@ end
 ---AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
 ---Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
----TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex number if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
@@ -579,7 +578,14 @@ local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, 
 		autoLightInstanceID = autoLightInstanceID + 1
 		instanceID = autoLightInstanceID
 	end
-	lightparams[spawnFramePos] = gameFrame -- this might be problematic, as we will be modifying a table
+	-- Preserve spawnframe on push-updates so time-based animations (lifetime/sustain/colortime)
+	-- don't get reset every time a light is updated in-place.
+	local existingIndex = targetVBO.instanceIDtoIndex[instanceID]
+	if existingIndex then
+		lightparams[spawnFramePos] = targetVBO.instanceData[(existingIndex - 1) * targetVBO.instanceStep + spawnFramePos]
+	else
+		lightparams[spawnFramePos] = gameFrame
+	end
 	lightparams[pieceIndexPos] = pieceIndex or 0
 	--tracy.ZoneBeginN("pushElementInstance")
 	instanceID = pushElementInstance(targetVBO, lightparams, instanceID, true, noUpload, unitID)
@@ -599,9 +605,8 @@ local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, 
 end
 
 ---AddPointLight
----DEPRECTATED Note that instanceID can be nil if an auto-generated one is OK.
+---DEPRECATED Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
----TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
@@ -715,9 +720,8 @@ local function AddRandomDecayingPointLight()
 end
 
 ---AddBeamLight
----DEPRECTATED Note that instanceID can be nil if an auto-generated one is OK.
+---DEPRECATED Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
----TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
@@ -799,7 +803,6 @@ end
 ---AddConeLight
 ---DEPRECATED! Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
----TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
@@ -1171,7 +1174,6 @@ function widget:VisibleUnitRemoved(unitID) -- remove all the lights for this uni
 end
 
 function widget:Shutdown()
-	-- TODO: delete the VBOs and shaders like a good boy
 	WG['lightsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddPointLight')
 	widgetHandler:DeregisterGlobal('AddBeamLight')

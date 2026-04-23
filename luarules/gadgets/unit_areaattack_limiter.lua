@@ -48,15 +48,16 @@ end
 -- per-unit target resolution the engine performs for area attacks.
 local BATCH_LIMIT = 30
 
+local isReissuing = false
+
 function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
+	-- Guard against re-entrancy: GiveOrderArrayToUnitArray can trigger CommandNotify again
+	if isReissuing then return end
+
 	-- Only intercept area-format commands (4 params: x, y, z, radius)
 	if (cmdID ~= CMD_ATTACK and cmdID ~= CMD_AREA_ATTACK) or #cmdParams ~= 4 or cmdParams[4] <= 0 then
 		return
 	end
-
-	-- UI can report area attack as CMD_ATTACK with 4 params, but when reissuing
-	-- through GiveOrderArrayToUnitArray we must use CMD_AREA_ATTACK.
-	local issueCmdID = (cmdID == CMD_ATTACK) and CMD_AREA_ATTACK or cmdID
 
 	local selUnits = spGetSelectedUnits()
 	local count = #selUnits
@@ -95,14 +96,29 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
+	-- Use SelectUnitArray + GiveOrder to go through the normal player input
+	-- pipeline. GiveOrderArrayToUnitArray doesn't reliably deliver area attack
+	-- commands (4-param CMD_ATTACK) to the engine.
+	isReissuing = true
+
+	Spring.SelectUnitArray(attackUnits)
 	if cmdOpts.shift then
-		local shiftOpts = opts + CMD.OPT_SHIFT
-		spGiveOrderArrayToUnitArray(attackUnits, {{issueCmdID, cmdParams, shiftOpts}})
-		spGiveOrderArrayToUnitArray(fightUnits, {{CMD_FIGHT, {x, y, z}, shiftOpts}})
+		Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
 	else
-		spGiveOrderArrayToUnitArray(attackUnits, {{CMD_STOP, {}, 0}, {issueCmdID, cmdParams, CMD.OPT_SHIFT}})
-		spGiveOrderArrayToUnitArray(fightUnits, {{CMD_STOP, {}, 0}, {CMD_FIGHT, {x, y, z}, CMD.OPT_SHIFT}})
+		Spring.GiveOrder(CMD_STOP, {}, 0)
+		Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
 	end
+
+	Spring.SelectUnitArray(fightUnits)
+	if cmdOpts.shift then
+		Spring.GiveOrder(CMD_FIGHT, {x, y, z}, opts + CMD.OPT_SHIFT)
+	else
+		Spring.GiveOrder(CMD_STOP, {}, 0)
+		Spring.GiveOrder(CMD_FIGHT, {x, y, z}, opts + CMD.OPT_SHIFT)
+	end
+
+	Spring.SelectUnitArray(selUnits)
+	isReissuing = false
 
 	return true
 end

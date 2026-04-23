@@ -597,7 +597,7 @@ out vec4 fragColor;
 	}
 
 	float Fbm12(vec2 P) {
-		const int octaves = 2;
+		const int octaves = 4;
 		const float lacunarity = 1.8;
 		const float gain = 0.80;
 
@@ -635,7 +635,8 @@ out vec4 fragColor;
 	#define SNORM2NORM(value) (value * 0.5 + 0.5)
 	#define NORM2SNORM(value) (value * 2.0 - 1.0)
 
-	#define time gameFrame_vs
+	float orbTime; // per-unit offset time, set in main() before any function calls
+	#define time orbTime
 
 	vec3 LightningOrb(vec2 vUv, vec3 color) {
 		vec2 uv = NORM2SNORM(vUv);
@@ -674,15 +675,20 @@ vec3 LightningOrb2(vec2 vUv, vec3 color) {
     // Or: mirror repeat for 2 tiles
     vUv.x = mirroredRepeat(vUv.x, 2.0);
 
+    // Animated surface distortion - warp UVs with slow turbulent noise
+    vec2 distortUV = vUv * 3.0 + vec2(time * 0.3, time * 0.17);
+    vUv.x += Fbm12(distortUV) * 0.04;
+    vUv.y += Fbm12(distortUV + vec2(7.3, 3.1)) * 0.03;
+
     // From here on, continue as you did before:
     vec2 uv = NORM2SNORM(vUv);
 
     float violence = (1 - modelPos_vs.w);
-    const float strength = 0.08 + 0.4 * violence;
-    const float dx = 0.225;
+    const float strength = 0.06 + 0.3 * violence;
+    const float dx = 0.16;
 
     float t = 0.1;
-    for (int k = -4; k < 3; ++k) {
+    for (int k = -4; k < 5; ++k) {
         vec2 thisUV = uv;
         thisUV.x -= dx * float(k);
         thisUV.y += 2.0 * float(k);
@@ -742,6 +748,10 @@ vec3 LightningOrb2(vec2 vUv, vec3 color) {
 
 void main(void)
 {
+	// Per-unit time offset so orbs don't animate in sync
+	float unitPhase = fract(unitID_vs * 1337.7);
+	orbTime = gameFrame_vs + unitPhase * 120.0;
+
 	fragColor = color1_vs;
 
 	//modelPos_vs contains the sphere's coords.
@@ -749,23 +759,74 @@ void main(void)
 	if (technique_vs == 1) { // LightningOrb
 		vec3 noiseVec = modelPos_vs.xyz;
 		noiseVec = RotAroundY(noiseVec);
-		vec2 vUv = (RadialCoords(noiseVec));
-		vec3 col = LightningOrb2(vUv, fragColor.rgb);
-		fragColor.rgba = vec4(col,1.0) * 1.2; return;
+		vec3 nDir = normalize(noiseVec);
+
+		// Primary projection (poles at top/bottom of sphere)
+		vec2 vUv = RadialCoords(noiseVec);
+		vec3 baseColor = fragColor.rgb;
+		vec3 col = LightningOrb2(vUv, baseColor);
+
+		// Near the poles, blend in a second projection rotated 90° around X
+		// so its pole singularity is at the equator of the primary projection
+		float poleFade = abs(nDir.y);
+		if (poleFade > 0.45) {
+			vec3 rotatedVec = vec3(noiseVec.x, -noiseVec.z, noiseVec.y);
+			vec2 vUv2 = RadialCoords(rotatedVec);
+			vec3 col2 = LightningOrb2(vUv2, baseColor);
+			float blendWeight = smoothstep(0.45, 0.85, poleFade);
+			col = mix(col, col2, blendWeight);
+		}
+
+		// Color variation - bright white on arc peaks, base color in gaps
+		float arcIntensity = clamp(length(col) / (length(baseColor) + 0.001), 0.0, 3.0) / 3.0;
+		vec3 hotColor = mix(baseColor, vec3(1.0), 0.35);
+		col = mix(col, col * hotColor / (baseColor + 0.001), arcIntensity);
+
+		// Rim glow - bright edge halo
+		float rim = pow(1.0 - opac_vs, 2.5);
+		col += baseColor * rim * 0.8;
+
+		// Inner core glow - bright volumetric center
+		float core = pow(opac_vs, 2.0);
+		col += baseColor * core * 0.6;
+
+		// Pulse / breathing brightness
+		float pulse = 1.0 + 0.08 * sin(time * 2.3) + 0.05 * sin(time * 5.7);
+		col *= pulse;
+
+		fragColor.rgba = vec4(col, 1.0) * 1.2; return;
 		//fragColor.rgb = max(fragColor.rgb, col * col);
 		//fragColor.rgb = max(fragColor.rgb, col * 2);
 	}
 	else if (technique_vs == 2) { // MagicOrb
 		vec3 noiseVec = modelPos_vs.xyz;
 		noiseVec = RotAroundY(noiseVec);
-		vec3 col = MagicOrb(noiseVec, fragColor.rgb);
-		fragColor.rgb = max(fragColor.rgb, col * col);
+		vec3 baseColor = fragColor.rgb;
+		vec3 col = MagicOrb(noiseVec, baseColor);
+		fragColor.rgb = max(baseColor, col * col);
+
+		float rim = pow(1.0 - opac_vs, 2.5);
+		fragColor.rgb += baseColor * rim * 0.8;
+		float core = pow(opac_vs, 2.0);
+		fragColor.rgb += baseColor * core * 0.6;
+
+		float pulse = 1.0 + 0.08 * sin(time * 2.3) + 0.05 * sin(time * 5.7);
+		fragColor.rgb *= pulse;
 	}
 	else if (technique_vs == 3) { // ElectroOrb
 		vec3 noiseVec = modelPos_vs.xyz;
 		noiseVec = RotAroundY(noiseVec);
-		vec3 col = ElectroOrb(noiseVec, fragColor.rgb);
-		fragColor.rgb = max(fragColor.rgb, col * col);
+		vec3 baseColor = fragColor.rgb;
+		vec3 col = ElectroOrb(noiseVec, baseColor);
+		fragColor.rgb = max(baseColor, col * col);
+
+		float rim = pow(1.0 - opac_vs, 2.5);
+		fragColor.rgb += baseColor * rim * 0.8;
+		float core = pow(opac_vs, 2.0);
+		fragColor.rgb += baseColor * core * 0.6;
+
+		float pulse = 1.0 + 0.08 * sin(time * 2.3) + 0.05 * sin(time * 5.7);
+		fragColor.rgb *= pulse;
 	}
 
 	fragColor.a = length(fragColor.rgb);
@@ -803,7 +864,7 @@ local function initGL4()
   )
   shaderCompiled = orbShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile orbShader GL4 ") end
-  local sphereVBO, numVerts, sphereIndexVBO, numIndices = InstanceVBOTable.makeSphereVBO(24,16,1)
+  local sphereVBO, numVerts, sphereIndexVBO, numIndices = InstanceVBOTable.makeSphereVBO(32,24,1)
   --spEcho("SphereVBO has", numVerts, "vertices and ", numIndices,"indices")
   local orbVBOLayout = {
 		  {id = 3, name = 'posrad', size = 4}, -- widthlength

@@ -49,6 +49,9 @@ local spGetConfigString = Spring.GetConfigString
 local spGetAllFeatures = Spring.GetAllFeatures
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
+local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
+local mapSizeX = Game.mapSizeX
+local mapSizeZ = Game.mapSizeZ
 
 -- Localized GL functions
 local glClear = gl.Clear
@@ -1021,7 +1024,9 @@ end
 
 
 local function updateProjectileDistortions(newgameframe)
-	local nowprojectiles = spGetVisibleProjectiles()
+	-- Use GetProjectilesInRectangle to also capture BeamLaser projectiles
+	-- (spGetVisibleProjectiles misses them)
+	local nowprojectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
 	local gf = spGetGameFrame()
 	gameFrame = gf
 	local newgameframe = (gf ~= lastGameFrame)
