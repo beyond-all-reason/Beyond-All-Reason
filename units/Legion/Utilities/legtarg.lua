@@ -5,7 +5,7 @@ return {
 		buildpic = "LEGTARG.DDS",
 		buildtime = 8700,
 		canrepeat = false,
-		collisionvolumeoffsets = "0 0 0",
+		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "42 80 42",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
