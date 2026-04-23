@@ -172,22 +172,22 @@ local MODE_SETTINGS = {
 		nanoAlpha   = 20 / 255,
 		dirJitter   = 0.15,
 		-- Per-particle randomization (± fraction of the base value). 0 disables.
-		sizeVar     = 0.4,
-		speedVar    = 0.17,
+		sizeVar     = 0.3,
+		speedVar    = 0.15,
 		alphaVar    = 1.5,
 		-- Engine static rotation params (BAR default: -180,-50,-50,360,100,100).
 		rotValBase  = -180, rotValRange = 360,
 		rotVelBase  = -55,  rotVelRange = 110,
 		rotAccBase  = -55,  rotAccRange = 110,
-		glowIntensity = 0.04,
-		glowFalloff = 8,
+		glowIntensity = 0.02,
+		glowFalloff = 3,
 		glowScale = 5.0,
-		glowBreath     = 1.5,    -- halo intensity oscillation (per-particle phase)
+		glowBreath     = 0.3,    -- halo intensity oscillation (per-particle phase)
 		glowBreathFreq = 2.0,    -- cycles/sec
 		glowBreathVar     = 0.5,  -- ± per-particle amplitude variation (0..1 fraction)
 		glowBreathFreqVar = 0.4,  -- ± per-particle frequency variation (0..1 fraction)
 		-- Energy enhancement (all shader-side, zero CPU cost):
-		coreBoost      = 0.6,    -- HDR overdrive on textured core (>1 pushes into bloom)
+		coreBoost      = 0.75,    -- HDR overdrive on textured core (>1 pushes into bloom)
 		hueJitter      = 0.07,   -- ± per-channel RGB modulation per particle (0.05-0.10 sweet spot)
 		sizePulseAmp   = 0.05,   -- ± quad-size oscillation (keep <0.10 to avoid sub-frame jumps)
 		sizePulseFreq  = 4.0,
@@ -202,19 +202,19 @@ local MODE_SETTINGS = {
 		-- Keep cubeNoise modest -- nanoTex already has its own falloff structure.
 		cubeNoise            = 2.0,
 		cubeNoiseSpeed       = 25.0,
-		cubeNoiseScale       = 18.0,
-		whiteHotspot          = 1.3,
-		whiteHotspotThreshold = 0.6,
+		cubeNoiseScale       = 35.0,
+		whiteHotspot          = 1.7,
+		whiteHotspotThreshold = 0.7,
 	},
 	shape = {
 		shape       = "cube",   -- "cube" | "octahedron"
 		drawRadius  = 1.4,        -- shape spans ~2*drawRadius edge-to-edge
-		nanoAlpha   = 40 / 255,   -- match billboard look
+		nanoAlpha   = 50 / 255,   -- match billboard look
 		dirJitter   = 0.10,       -- chunks read better with less spread
 		-- Shapes benefit from visible variation -- they read as discrete chunks.
-		sizeVar     = 0.6,
-		speedVar    = 0.2,
-		alphaVar    = 1.6,
+		sizeVar     = 0.33,
+		speedVar    = 0.18,
+		alphaVar    = 2.0,
 		-- View-dependent face shading: 0 = flat, 1 = full 3D depth (back faces visible-but-dimmed).
 		cubeShowInside = 4.0,
 		cubeNoise       = 3.7,
@@ -226,20 +226,20 @@ local MODE_SETTINGS = {
 		rotValBase  = -180, rotValRange = 360,
 		rotVelBase  = -40,  rotVelRange = 80,
 		rotAccBase  = -40,  rotAccRange = 80,
-		glowIntensity = 0.18,
-		glowFalloff = 11.0,
-		glowScale = 12.0,
-		glowBreath     = 3.8,
+		glowIntensity = 0.15,
+		glowFalloff = 9.5,
+		glowScale = 11.0,
+		glowBreath     = 4.0,
 		glowBreathFreq = 2.0,
 		glowBreathVar     = 0.5,  -- ± per-particle amplitude variation (0..1 fraction)
 		glowBreathFreqVar = 0.5,  -- ± per-particle frequency variation (0..1 fraction)
 		-- Energy enhancement (sizePulse not wired through GS; halo+jitter+breath suffice).
-		coreBoost      = 0.22,    -- multiplies face shading; modest so dark faces still read
+		coreBoost      = 0.25,    -- multiplies face shading; modest so dark faces still read
 		hueJitter      = 0.1,
 
-		wobbleAmp      = 12.0,
+		wobbleAmp      = 7.0,
 		wobbleVar      = 0.5,	-- 0...1 fraction of wobbleAmp
-		wobbleFreq     = 0.18,
+		wobbleFreq     = 0.16,
 		wobbleFreqVar  = 0.5,	-- 0...1 fraction of wobbleFreq
 		wobbleRampFrames = 7.0,  -- frames to ramp up from 0 to full wobble amplitude (0 = instant)
 	},
