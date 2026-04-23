@@ -333,6 +333,7 @@ function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam, cx, 
 	local terPosX, terPosY, terPosZ = spGetUnitPosition(transporterID)
 	for i = #transporterClaims[transporterID], 1, -1 do
 		if claimedBy[transporterClaims[transporterID][i]] ~= transporterID then -- keep it during test runs so we can debug if this ever happens
+			spEcho("Error: claim inconsistency for transportee " .. transporterClaims[transporterID][i] .. " in transporter " .. transporterID .. "'s claims list")
 		end
 		local teeID = transporterClaims[transporterID][i]
 		if spValidUnitID(teeID) then
@@ -429,8 +430,8 @@ function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporter
 	local terPosX, terPosY, terPosZ = spGetUnitPosition(transporterID)
 	for i = #transporterClaims[transporterID], 1, -1 do
 		if claimedBy[transporterClaims[transporterID][i]] ~= transporterID then -- keep it during test runs so we can debug if this ever happens
+			spEcho("Error: claim inconsistency for transportee " .. transporterClaims[transporterID][i] .. " in transporter " .. transporterID .. "'s claims list")
 		end
-
 		local teeID = transporterClaims[transporterID][i]
 		if spValidUnitID(teeID) then
 			local tx, ty, tz = spGetUnitPosition(teeID)
