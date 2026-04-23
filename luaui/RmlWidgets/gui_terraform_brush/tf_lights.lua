@@ -724,6 +724,34 @@ function M.sync(doc, ctx, lpState, setSummary)
 		if countLabel then countLabel.inner_rml = tostring(lpState.lightCount) end
 		local brushRadLabel = doc and doc:GetElementById("lp-brush-radius-label")
 		if brushRadLabel then brushRadLabel.inner_rml = tostring(math.floor(lpState.radius)) end
+		-- Sync slider+numbox values for state that can mutate outside the UI
+		-- (Ctrl+Scroll = brush radius, Shift+Scroll = elevation, Space+Scroll =
+		-- brightness, Alt+Scroll = yaw, R/G/B+Scroll = color channels, etc.)
+		-- syncAndFlash is guarded against the user's active drag on that slider.
+		if syncAndFlash then
+			uiState.updatingFromCode = true
+			syncAndFlash(doc:GetElementById("slider-lp-brush-radius"),  "lp-brush-radius",  tostring(math.floor(lpState.radius)))
+			syncAndFlash(doc:GetElementById("slider-lp-brightness"),    "lp-brightness",    tostring(lpState.brightness))
+			syncAndFlash(doc:GetElementById("slider-lp-light-radius"),  "lp-light-radius",  tostring(math.floor(lpState.lightRadius)))
+			syncAndFlash(doc:GetElementById("slider-lp-elevation"),     "lp-elevation",     tostring(math.floor(lpState.elevation)))
+			syncAndFlash(doc:GetElementById("slider-lp-count"),         "lp-count",         tostring(lpState.lightCount))
+			syncAndFlash(doc:GetElementById("slider-lp-color-r"),       "lp-color-r",       tostring(lpState.color[1]))
+			syncAndFlash(doc:GetElementById("slider-lp-color-g"),       "lp-color-g",       tostring(lpState.color[2]))
+			syncAndFlash(doc:GetElementById("slider-lp-color-b"),       "lp-color-b",       tostring(lpState.color[3]))
+			local setNum = function(id, v)
+				local el = doc:GetElementById(id)
+				if el then el:SetAttribute("value", v) end
+			end
+			setNum("slider-lp-brush-radius-numbox", tostring(math.floor(lpState.radius)))
+			setNum("slider-lp-brightness-numbox",   tostring(lpState.brightness))
+			setNum("slider-lp-light-radius-numbox", tostring(math.floor(lpState.lightRadius)))
+			setNum("slider-lp-elevation-numbox",    tostring(math.floor(lpState.elevation)))
+			setNum("slider-lp-count-numbox",        tostring(lpState.lightCount))
+			setNum("slider-lp-color-r-numbox",      tostring(lpState.color[1]))
+			setNum("slider-lp-color-g-numbox",      tostring(lpState.color[2]))
+			setNum("slider-lp-color-b-numbox",      tostring(lpState.color[3]))
+			uiState.updatingFromCode = false
+		end
 		-- Update color labels and preview
 		local rLabel = doc and doc:GetElementById("lp-color-r-label")
 		if rLabel then rLabel.inner_rml = string.format("%.2f", lpState.color[1]) end

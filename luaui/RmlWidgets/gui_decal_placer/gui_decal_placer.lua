@@ -334,18 +334,22 @@ local function rebuildDecalList(filter)
 	-- flex-wrap never promotes/demotes us due to sub-pixel rounding or a
 	-- scrollbar popping in after rebuild.
 	local dpRatio = getDpRatio()
-	local innerPx = getListInnerPx()
+	local rawInnerPx = getListInnerPx()
 	-- RmlUI client_width includes padding. fp-feature-list has 4dp padding
 	-- each side (8dp total) — subtract so tile math uses the real content box.
-	innerPx = innerPx - 8 * dpRatio
 	-- Always reserve scrollbar (8dp from RCSS) even when not visible yet.
-	innerPx = innerPx - 8 * dpRatio
+	local innerPx = rawInnerPx - 8 * dpRatio - 8 * dpRatio
 	local gapPx = TILE_GAP_DP * dpRatio
 	local tileBorderPx = 4 * dpRatio
 	local safetyPx = 6 * dpRatio
 	local tileW = math.floor((innerPx - (TILE_COLUMNS - 1) * gapPx - TILE_COLUMNS * tileBorderPx - safetyPx) / TILE_COLUMNS)
 	if tileW < 24 then tileW = 24 end
-	lastBuildInnerPx = innerPx
+	-- Store the RAW getListInnerPx() value for resize comparison in Update();
+	-- Update() samples getListInnerPx() unadjusted, so storing the adjusted
+	-- innerPx here caused a constant 16dp mismatch → rebuild every frame →
+	-- new click listeners overwriting old ones → decal library tiles
+	-- impossible to click.
+	lastBuildInnerPx = rawInnerPx
 
 	for _, entry in ipairs(toShow) do
 		local name = entry.name

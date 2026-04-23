@@ -4010,6 +4010,13 @@ local function attachEventListeners()
 		end, false)
 	end
 
+	-- Share widget (self) with extracted tool modules so they can register
+	-- methods callable from inline RML handlers like onclick="widget:spFoo()".
+	-- Must be set BEFORE any module .attach() calls that read ctx.widget.
+	-- Use the upvalue `widget` (file-level `local widget = widget`) — `self`
+	-- is not bound inside this plain-function scope.
+	ctx.widget = widget
+
 	-- Metal Brush controls (extracted to tf_metal.lua)
 	tfMetal.attach(doc, ctx)
 
@@ -4176,10 +4183,6 @@ function widget:Initialize()
 		end
 		return true
 	end, nil, "t")
-
-	-- Share widget (self) with extracted tool modules so they can register
-	-- methods callable from inline RML handlers like onclick="widget:spFoo()".
-	ctx.widget = self
 
 	attachEventListeners()
 
