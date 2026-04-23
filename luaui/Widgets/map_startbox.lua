@@ -816,7 +816,9 @@ local function InitStartPolygons()
 			end
 			for allyTeamID, entry in pairs(startBoxConfig) do
 				if allyTeamID ~= gaiaAllyTeamID and activeAllyTeams[allyTeamID] and entry.boxes then
-					StartPolygons[allyTeamID] = entry.boxes[1]
+					for _, polygon in ipairs(entry.boxes) do
+						StartPolygons[#StartPolygons + 1] = {team = allyTeamID, poly = polygon}
+					end
 					configLoaded = true
 				end
 			end
@@ -828,7 +830,7 @@ local function InitStartPolygons()
 		for i, teamID in ipairs(Spring.GetAllyTeamList()) do
 			if teamID ~= gaiaAllyTeamID then
 				local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-				StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
+				StartPolygons[#StartPolygons + 1] = {team = teamID, poly = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}}
 			end
 		end
 	end
@@ -847,28 +849,33 @@ local function InitStartPolygons()
 				local y1 = mathRandom(0, Game.mapSizeZ / 5)
 				polygon[#polygon+1] = {x0+x1, y0+y1}
 			end
-			StartPolygons[#StartPolygons+1] = polygon
+			StartPolygons[#StartPolygons+1] = {team = i, poly = polygon}
 		end
 	end
 
-	-- Count entries reliably (# operator is unreliable with 0-based keys)
-	local numStartPolygons = 0
-	for _ in pairs(StartPolygons) do
+	local numStartPolygons = #StartPolygons
+
+	-- The shader requires at least 2 entries to avoid edge cases
+	if numStartPolygons < 2 and numStartPolygons > 0 then
+		StartPolygons[#StartPolygons + 1] = StartPolygons[1]
 		numStartPolygons = numStartPolygons + 1
 	end
 
-	-- The shader requires at least 2 entries to avoid edge cases
-	if numStartPolygons < 2 then
-		local existing
-		for _, v in pairs(StartPolygons) do
-			existing = v
-			break
-		end
-		if existing then
-			StartPolygons[-1] = existing
-			numStartPolygons = numStartPolygons + 1
-		end
+	-- Sort so same-team polygons are not adjacent in the buffer.
+	-- The shader merges consecutive same-teamID vertex blocks into one polygon,
+	-- so we interleave by sorting on (index within team, teamID).
+	local teamIndex = {}
+	for i = 1, numStartPolygons do
+		local t = StartPolygons[i].team
+		teamIndex[t] = (teamIndex[t] or 0) + 1
+		StartPolygons[i].sortKey = teamIndex[t]
 	end
+	table.sort(StartPolygons, function(a, b)
+		if a.sortKey ~= b.sortKey then
+			return a.sortKey < b.sortKey
+		end
+		return a.team < b.team
+	end)
 
 	shaderSourceCache.shaderConfig.NUM_BOXES = numStartPolygons
 
@@ -884,12 +891,12 @@ local function InitStartPolygons()
 	local numvertices = 0
 	local bufferdata = {}
 	local numPolygons = 0
-	for teamID, polygon in pairs(StartPolygons) do
+	for _, entry in ipairs(StartPolygons) do
 		numPolygons = numPolygons + 1
+		local polygon = entry.poly
+		local teamID = entry.team
 		local numPoints = #polygon
-		local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-		--spEcho("teamID", teamID, "at " ,xn, zn, xp, zp)
-		for vertexID, vertex in ipairs(polygon) do
+		for _, vertex in ipairs(polygon) do
 			local x, z = vertex[1], vertex[2]
 			bufferdata[#bufferdata+1] = teamID
 			bufferdata[#bufferdata+1] = numPoints
