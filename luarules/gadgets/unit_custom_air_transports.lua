@@ -611,6 +611,10 @@ end
 -- 3. The coroutine continues running until the command is either completed or removed from the queue.
 -- 4. When all claims are resolved, a final CommandFallback call with finished = true is required to finish the command; the coroutine will then detect this and stop.
 
+-- CMD_LOAD_UNIT lifecycle:
+-- 1. On CommandFallback, ExecuteSuccessiveLoadUnits runs to update the queue and attempt to load units in order. If a CMD_LOAD_UNIT command is still in the queue after this, a coroutine is started to monitor the queue and manage claiming/loading over time.
+-- 2. The coroutine continues running until the successive load commands are removed from the queue (either by being finished or by being invalidated), at which point it stops.
+
 function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 	if cmdID == CMD_LOAD_UNIT then
 		ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeam)
