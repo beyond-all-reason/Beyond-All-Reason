@@ -698,46 +698,14 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 	return true, true -- handled and finished; remove command from queue
 end
 
+-- still recquired for defaultCommand to work
 function gadget:AllowUnitTransport(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, fromAreaScan)
 	--use our helper CanTransport
 	--I separated both to avoid FindUnitToTransport calling gadget:AllowUnitTransportLoad with an additional arg
 	return CanTransport(transporterID, transporteeID, transporterUnitDefID, false)
 end
 
--- since the custom command is only CMD_AREA_LOAD
--- single targets CMD.LOAD_UNITS are handled from AllowUnitTransportLoad
--- which only fires during LOAD_UNITS cmds, once ter,tee dist is < Udef.loadingRadius
--- I guess at some point this should become its own custom command instead
-
---[[function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
-	if isUnderwater(transporteeID, goalY) then 
-		local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
-		releaseTransportee(transporteeID, transporterAllyTeam)
-		return false 
-	end
-	if not isAirTransport[transporterUnitDefID] then return true end -- we're not handling this
-	-- distance gate for individual load commands
-	claimTransportee(transporterID, transporteeID, TransportAPI.GetTransporteeSize(transporteeID),true) -- claim the transportee for this load command; will be released in UnitLoaded or if the unit dies while claimed
-	spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- move closer
-	if not inRange(transporterID, goalX, goalY, goalZ) then -- not in range yet
-		return false
-	end
-	-- make it harder to pull enemy units: velocity gate
-	if not spAreTeamsAllied(spGetUnitTeam(transporterID), spGetUnitTeam(transporteeID))
-	and select(4, spGetUnitVelocity(transporteeID)) >= 0.5 then
-		return false
-	end
-	-- handle custom transports
-	if customTransportLoad[transporterUnitDefID] then
-		if spGetUnitRulesParam(transporterID, "canLoad") == 0 then return false end -- canLoad gate
-		releaseTransportee(transporteeID) -- release the pre-queue claim; also done in UnitLoaded as a safety net
-		customTransportLoad[transporterUnitDefID](transporterID, 'PerformLoad', transporteeID)
-		spUnitFinishCommand(transporterID) -- consume the command so the transporter proceeds to the next
-		return false
-	end
-	return true -- default for standard transports
-end]]--
-
+-- unload commands haven't been changed (yet?)
 function gadget:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
 	if isUnderwater(transporteeID, goalY) then return false end
 	if not isAirTransport[transporterUnitDefID] then return true end	
