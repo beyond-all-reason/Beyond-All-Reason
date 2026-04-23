@@ -121,7 +121,7 @@ local function ParseBoxes ()
 	local mapsideBoxes = "mapconfig/map_startboxes.lua"
 
 	local startBoxConfig
-	local configSource -- "modside", "mapside", "autohost_polygon", "autohost_rect", "fallback"
+	local configSource -- "mapside", "autohost_polygon", "autohost_rect", "fallback"
 
 	if VFS.FileExists (mapsideBoxes) then
 		startBoxConfig = NormalizeConfigKeys(WrappedInclude(mapsideBoxes))
