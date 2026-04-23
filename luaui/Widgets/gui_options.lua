@@ -2287,7 +2287,7 @@ function init()
 			distortioneffects = true,
 			snow = false,
 			particles = 15000,
-			nanoparticletype = 1,
+			nanoparticletype = 2,
 			guishader = 0,
 			decalsgl4 = 1,
 			decals = 1,
