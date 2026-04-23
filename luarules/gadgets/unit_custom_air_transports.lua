@@ -338,25 +338,30 @@ function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam, cx, 
 		local teeID = transporterClaims[transporterID][i]
 		if spValidUnitID(teeID) then
 			local tx, ty, tz = spGetUnitPosition(teeID)
-			local skip = false
+			local moveToTransporter = true
+			local teeTeam = spGetUnitTeam(teeID)
+			local teeHasQ = spGetUnitCommands(teeID, 1)
+			if teeTeam ~= transporterTeam and teeHasQ and teeHasQ[1] then
+				moveToTransporter = false -- if it's performing a command, don't give it a movegoal that might interfere
+			end
 			if not CanTransport(transporterID, teeID, transporterDefID, false) then
 				-- if for some reason, we can't load anymore, release the claim so it can be targeted by future loads
 				releaseTransportee(teeID)
-				skip = true
+				moveToTransporter = false
 			elseif dist2D(tx, tz, cx, cz) > radius then
 				-- tee exited area
 				releaseTransportee(teeID)
-				skip = true
+				moveToTransporter = false
 			elseif inRange(transporterID, tx, ty, tz) then
 				if customTransportLoad[transporterDefID] then --nil check will be gone once code is finished
 					if spGetUnitRulesParam(transporterID, "canLoad") == 1 then
 						customTransportLoad[transporterDefID](transporterID, 'PerformLoad', teeID)
 						releaseTransportee(teeID)
-						skip = true
+						moveToTransporter = false
 					end
 				end
 			end
-			if not skip then -- do not order skipped transportees
+			if moveToTransporter then -- do not order skipped transportees
 				spSetUnitMoveGoal(teeID, terPosX, spGetGroundHeight(terPosX, terPosZ), terPosZ,64,nil, true) -- moves to the transport
 			end
 		else
