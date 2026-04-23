@@ -280,3 +280,82 @@ body {
 	flex: 1;
 	overflow: hidden;
 }
+
+/* === Slider row (shared style with terraform brush tf-slider family) === */
+.wb-slider-val {
+	display: inline-block;
+	min-width: 8dp;
+}
+
+.wb-sm-btn {
+	width: 18dp;
+	height: 18dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #393942;
+	border-radius: 4dp;
+	border: 1dp #50505a50;
+	cursor: pointer;
+	box-shadow: 0dp 1dp 2dp 0dp #00000030;
+	transition: background-color 0.15s, border-color 0.15s;
+}
+
+.wb-sm-btn:hover {
+	background-color: #4c4c58;
+	border-color: #7878909a;
+}
+
+.wb-slider {
+	flex: 1;
+	height: 18dp;
+	tab-index: none;
+}
+
+.wb-slider slidertrack {
+	background-color: #13131c;
+	border-radius: 3dp;
+	height: 4dp;
+	margin-top: 8dp;
+	box-shadow: inset 0dp 1dp 3dp 0dp #00000080;
+}
+
+.wb-slider sliderbar {
+	width: 10dp;
+	height: 16dp;
+	background-color: #b0b4c0;
+	border-radius: 4dp;
+	border: 1dp #ffffff28;
+	margin-top: 1dp;
+	transition: background-color 0.1s;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070;
+}
+
+.wb-slider sliderbar:hover {
+	background-color: #d4d8e4;
+	box-shadow: 0dp 2dp 6dp 0dp #00000090;
+}
+
+.wb-slider sliderarrowdec,
+.wb-slider sliderarrowinc {
+	display: none;
+}
+
+.wb-slider-numbox {
+	flex: 0 0 36dp;
+	height: 24dp;
+	padding: 0dp 4dp;
+	line-height: 24dp;
+	font-size: 1.1rem;
+	color: #d8dce4;
+	background-color: #161620;
+	border: 1dp #40404a60;
+	border-radius: 4dp;
+	text-align: right;
+	tab-index: none;
+	box-shadow: inset 0dp 1dp 2dp 0dp #00000030;
+}
+
+.wb-slider-numbox:focus {
+	border-color: #06b6d4aa;
+}

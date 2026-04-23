@@ -104,6 +104,9 @@ local weatherLibrary = {
 		spawnCount = 10,
 		radius = 500,
 		cadence = 5,
+		-- raindrop falls ~900-1400 elmo over its 34-124 frame life (speed 11).
+		-- Lift so end-of-life particles fade near ground, not underground.
+		altitude = 900,
 		persistence = 600,
 		cegLifetimeS = 4,   -- particlelife 34 + spread 90 = ~124 frames
 	},
@@ -118,6 +121,9 @@ local weatherLibrary = {
 		spawnCount = 12,
 		radius = 600,
 		cadence = 8,
+		-- Compromise: rain wants ~900 but watersplash is a ground hit.
+		-- 400 keeps rain mostly visible without floating splashes too high.
+		altitude = 400,
 		persistence = 600,
 		cegLifetimeS = 7,
 	},
@@ -132,6 +138,8 @@ local weatherLibrary = {
 		spawnCount = 8,
 		radius = 800,
 		cadence = 5,
+		-- rain wants ~900, fogdirty wants ~60; 400 is the visible compromise.
+		altitude = 400,
 		persistence = 300,
 		cegLifetimeS = 26,  -- fogdirty dominates: 520+260 frames
 	},
@@ -145,6 +153,8 @@ local weatherLibrary = {
 		spawnCount = 8,
 		radius = 500,
 		cadence = 5,
+		-- rain wants ~900, fogdirty-green wants ~60; split the difference.
+		altitude = 400,
 		persistence = 600,
 		cegLifetimeS = 26,
 	},
@@ -158,6 +168,8 @@ local weatherLibrary = {
 		spawnCount = 12,
 		radius = 500,
 		cadence = 5,
+		-- weather_snowflake pos y already at 300-600; fall ~440 fits above ground.
+		altitude = 0,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 7,   -- particlelife 90 + spread 130 = ~220 frames
 	},
@@ -172,6 +184,8 @@ local weatherLibrary = {
 		spawnCount = 8,
 		radius = 700,
 		cadence = 5,
+		-- main flakes pos y 250-600, drift 20-80; mistycloud -20..+130.
+		altitude = 20,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 27,  -- mistycloud: 300+500 frames
 	},
@@ -186,6 +200,9 @@ local weatherLibrary = {
 		spawnCount = 10,
 		radius = 400,
 		cadence = 8,
+		-- hail pos y 400-600, gravity -0.35 accelerates to ~1100 fall over life.
+		-- Lift so streaks stay visible; splash also reads OK slightly raised.
+		altitude = 600,
 		persistence = 300,
 		cegLifetimeS = 2,   -- particlelife 22 + spread 30 = ~52 frames
 	},
@@ -202,6 +219,8 @@ local weatherLibrary = {
 		spawnCount = 6,
 		radius = 600,
 		cadence = 3,
+		-- sandblast is horizontal ground-level; sandclouddense overhead at ~125.
+		altitude = 0,
 		persistence = 600,
 		cegLifetimeS = 15,  -- sandclouddense: 190+250 frames
 	},
@@ -216,6 +235,7 @@ local weatherLibrary = {
 		spawnCount = 5,
 		radius = 120,
 		cadence = 3,
+		altitude = 0,
 		persistence = 300,
 		cegLifetimeS = 8,   -- dunedust: 120+120 frames
 	},
@@ -232,6 +252,8 @@ local weatherLibrary = {
 		spawnCount = 3,
 		radius = 600,
 		cadence = 2,
+		-- fogdirty pos y -50..+25; lift so the low end is at ground.
+		altitude = 60,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 26,
 	},
@@ -245,6 +267,8 @@ local weatherLibrary = {
 		spawnCount = 2,
 		radius = 500,
 		cadence = 2,
+		-- mistycloud pos y -20..+130; lift 30 so low end sits on ground.
+		altitude = 30,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 27,
 	},
@@ -272,6 +296,8 @@ local weatherLibrary = {
 		spawnCount = 3,
 		radius = 500,
 		cadence = 2,
+		-- same geometry as fogdirty.
+		altitude = 60,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 26,
 	},
@@ -285,6 +311,8 @@ local weatherLibrary = {
 		spawnCount = 3,
 		radius = 500,
 		cadence = 2,
+		-- mistycloudpurplemistxl pos y -5..+30; tiny lift keeps it clear of terrain.
+		altitude = 10,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 18,
 	},
@@ -302,6 +330,8 @@ local weatherLibrary = {
 		spawnCount = 5,
 		radius = 500,
 		cadence = 3,
+		-- ashfall pos y 200-500 falls slow; smokeblack y -50..+25 rises. Keep low.
+		altitude = 60,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 33,  -- smokeblack: 600+400 frames
 	},
@@ -316,6 +346,7 @@ local weatherLibrary = {
 		spawnCount = 8,
 		radius = 300,
 		cadence = 5,
+		altitude = 0,
 		persistence = 600,
 		cegLifetimeS = 4,   -- embers: 45+85 frames
 	},
@@ -330,6 +361,7 @@ local weatherLibrary = {
 		spawnCount = 3,
 		radius = 300,
 		cadence = 2,
+		altitude = 0,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 8,
 	},
@@ -343,6 +375,7 @@ local weatherLibrary = {
 		spawnCount = 2,
 		radius = 100,
 		cadence = 2,
+		altitude = 0,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 3,
 	},
@@ -359,6 +392,7 @@ local weatherLibrary = {
 		spawnCount = 2,
 		radius = 300,
 		cadence = 1,
+		altitude = 0,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 25,
 	},
@@ -370,6 +404,7 @@ local weatherLibrary = {
 		spawnCount = 2,
 		radius = 300,
 		cadence = 1,
+		altitude = 0,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 25,
 	},
@@ -381,6 +416,7 @@ local weatherLibrary = {
 		spawnCount = 2,
 		radius = 300,
 		cadence = 1,
+		altitude = 0,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 25,
 	},
@@ -394,6 +430,7 @@ local weatherLibrary = {
 		spawnCount = 6,
 		radius = 400,
 		cadence = 2,
+		altitude = 0,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 10,
 	},
@@ -407,6 +444,7 @@ local weatherLibrary = {
 		spawnCount = 2,
 		radius = 500,
 		cadence = 1,
+		altitude = 0,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 25,
 	},
@@ -423,6 +461,7 @@ local weatherLibrary = {
 		spawnCount = 3,
 		radius = 500,
 		cadence = 3,
+		altitude = 0,
 		persistence = 300,
 		cegLifetimeS = 1,
 	},
@@ -434,6 +473,7 @@ local weatherLibrary = {
 		spawnCount = 3,
 		radius = 500,
 		cadence = 3,
+		altitude = 0,
 		persistence = 300,
 		cegLifetimeS = 1,
 	},
@@ -450,6 +490,8 @@ local weatherLibrary = {
 		spawnCount = 3,
 		radius = 300,
 		cadence = 2,
+		-- smokeblack pos y -50..+25; lift to clear ground.
+		altitude = 60,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 33,
 	},
@@ -464,6 +506,8 @@ local weatherLibrary = {
 		spawnCount = 5,
 		radius = 600,
 		cadence = 3,
+		-- ashfall floats high on its own; smokeblack needs ~60 lift; ground debris OK.
+		altitude = 60,
 		persistence = PERSIST_PERMANENT,
 		cegLifetimeS = 33,
 	},

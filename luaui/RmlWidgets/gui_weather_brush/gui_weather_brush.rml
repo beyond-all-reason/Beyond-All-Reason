@@ -26,6 +26,25 @@
 			<!-- Populated dynamically from weatherLibrary -->
 		</div>
 
+		<!-- Altitude section header -->
+		<div class="wb-section-header">
+			<div class="wb-section-label">ALTITUDE</div>
+			<div class="wb-section-line"></div>
+		</div>
+		<div class="flex flex-row items-center mb-1">
+			<div class="text-lg text-light">Y OFFSET: <span class="text-xl font-bold wb-slider-val">{{altitude}}m</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-2">
+			<div class="wb-sm-btn" onclick="widget:OnAltitudeStep(-50)">
+				<img class="wb-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="wb-slider-altitude" class="wb-slider" min="0" max="2000" step="10" data-value="altitude" onchange="widget:OnAltitudeChange(event)" />
+			<div class="wb-sm-btn" onclick="widget:OnAltitudeStep(50)">
+				<img class="wb-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="wb-altitude-numbox" class="wb-slider-numbox" data-value="altitude" onchange="widget:OnAltitudeChange(event)" onfocus="widget:OnAltitudeFocus()" onblur="widget:OnAltitudeBlur()" />
+		</div>
+
 		<!-- CEG Browser section header -->
 		<div class="wb-section-header">
 			<div class="wb-section-label">CEG BROWSER</div>

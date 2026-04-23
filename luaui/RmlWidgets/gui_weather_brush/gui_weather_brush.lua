@@ -62,6 +62,8 @@ local initialModel = {
 	hidden = true,
 	-- Two-way-bound CEG name filter (data-value on #wb-ceg-filter)
 	filter = "",
+	-- Two-way-bound altitude (Y offset above ground) for weather spawns
+	altitude = 0,
 }
 
 -- ===========================================================================
@@ -89,6 +91,53 @@ function widget:OnClearCegs()
 	if widgetState.dmHandle then
 		widgetState.dmHandle.filter = ""
 	end
+end
+
+local ALTITUDE_MIN = 0
+local ALTITUDE_MAX = 2000
+
+local function clampAltitude(v)
+	v = tonumber(v) or 0
+	v = math.floor(v + 0.5)
+	if v < ALTITUDE_MIN then v = ALTITUDE_MIN end
+	if v > ALTITUDE_MAX then v = ALTITUDE_MAX end
+	return v
+end
+
+function widget:OnAltitudeChange(event)
+	if not WG.WeatherBrush then return end
+	-- Prefer event.parameters.value (RmlUi 'change' payload); fall back to DM.
+	local raw
+	if event and event.parameters and event.parameters.value ~= nil then
+		raw = event.parameters.value
+	elseif widgetState.dmHandle then
+		raw = widgetState.dmHandle.altitude
+	end
+	local v = clampAltitude(raw)
+	WG.WeatherBrush.setAltitude(v)
+	if widgetState.dmHandle and widgetState.dmHandle.altitude ~= v then
+		widgetState.dmHandle.altitude = v
+	end
+end
+
+function widget:OnAltitudeStep(delta)
+	if not WG.WeatherBrush then return end
+	local st = WG.WeatherBrush.getState()
+	local v = clampAltitude((st and st.altitude or 0) + delta)
+	WG.WeatherBrush.setAltitude(v)
+	if widgetState.dmHandle then
+		widgetState.dmHandle.altitude = v
+	end
+end
+
+function widget:OnAltitudeFocus()
+	WG.WeatherBrushInputFocused = true
+	Spring.SDLStartTextInput()
+end
+
+function widget:OnAltitudeBlur()
+	WG.WeatherBrushInputFocused = false
+	Spring.SDLStopTextInput()
 end
 
 -- Icon map for weather conditions (unicode weather symbols)
@@ -289,6 +338,11 @@ function widget:Update()
 		local wantHidden = (not wbActive) or manuallyHidden
 		if widgetState.dmHandle.hidden ~= wantHidden then
 			widgetState.dmHandle.hidden = wantHidden
+		end
+		-- Mirror altitude from backend state (preset apply, hotkey changes) to DM
+		local stateAlt = math.floor((wbState and wbState.altitude or 0) + 0.5)
+		if widgetState.dmHandle.altitude ~= stateAlt then
+			widgetState.dmHandle.altitude = stateAlt
 		end
 	end
 	if not wbActive then return end
