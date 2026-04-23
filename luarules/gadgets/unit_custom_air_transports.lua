@@ -165,30 +165,17 @@ end
 --- @param terID number
 --- @param terAllyTeam number  -- transporter allyTeam (not teamID!)
 --- @return boolean
-function CanBeTransportedStatic(teeID, teeDefID, teePosY, terID, terAllyTeam) -- things that should cancel or deny queueing
+function CanBeTransportedStatic(teeID, teeDefID, terID) -- things that should cancel or deny queueing and are mostly immutable
 	if not spValidUnitID(teeID) then
 		return false
 	end
 	if teeID == terID then
 		return false	
 	end
-	if spGetUnitTransporter(teeID) ~= nil then
-		return false	
-	end
-	local losState = spGetUnitLosState(teeID, terAllyTeam, false)
-	if not losState or not (losState.los or losState.radar) then
-		return false	
-	end
 	if UnitDefs[teeDefID].cantBeTransported then
 		return false	
 	end
-	if spGetUnitIsBeingBuilt(teeID) then
-		return false	
-	end
-	if isUnderwater(teeID, teePosY) then
-		return false
-	end
-	if spGetUnitRulesParam(teeID, "inTransportAnim") == 1 then
+	if spGetUnitIsBeingBuilt(teeID) then -- considered immutable; while it can become false, it can never become true again.
 		return false	
 	end
 	return true
@@ -225,7 +212,7 @@ end
 --- @param teeID number
 --- @param terAllyTeam number  -- transporter allyTeam (not teamID!)
 --- @return boolean
-function isNotClaimed(teeID, terAllyTeam) -- things that should only deny queueing in area cmds
+function CanBeAutoClaimed(teeID, terAllyTeam) -- things that should only deny queueing if within area cmds
 	if not spValidUnitID(teeID) then
 		return false
 	end
@@ -239,7 +226,7 @@ end
 --- @param teeSize number
 --- @param includeQueue boolean
 --- @return boolean
-function CanTransporteeFitInTransporter(terID, teeID, terDefID, teeSize, includeQueue) -- size check
+function CanTransporteeFitInTransporter(terID, teeID, terDefID, teeSize, includeQueue) -- size check, either including queue (if within area cmd) or ignoring it
 	if not spValidUnitID(teeID) then
 		return false
 	end
@@ -279,7 +266,7 @@ function CanBeTransportedNow(teeID, teeTeamID, teePosX, teePosY, teePosZ, terID,
 	if not spAreTeamsAllied(teeTeamID, terTeamID) then
 		local _,_,_,vw = spGetUnitVelocity(teeID)
 		if vw > 0.5 then
-			return false -- if it's moving, don't give it a movegoal that might interfere
+			return false -- if it's moving too fast, we consider it as fleeing and don't load it.
 		end
 	end
 	return true
@@ -396,12 +383,13 @@ function findUnitToTransport(terID, terDefID, terTeamID, cx, cz, radius)
 	-- TODO: remove unclaimable units from cache at runtime
 	for idx, teeID in ipairs(units) do
 		repeat
-			if not isNotClaimed(teeID, terAllyTeam) then break end
-			local teePosX, teePosY, teePosZ = spGetUnitPosition(teeID)
+			if not CanBeAutoClaimed(teeID, terAllyTeam) then break end
 			local teeDefID = spGetUnitDefID(teeID)
 			local teeTeamID = spGetUnitTeam(teeID)
 			local teeSize = TransportAPI.GetTransporteeSize(teeID)
-			if not CanBeTransportedStatic(teeID, teeDefID, teePosY, terID, terAllyTeam) then break end
+			if not CanBeTransportedStatic(teeID, teeDefID, terID) then break end
+			local teePosX, teePosY, teePosZ = spGetUnitPosition(teeID)
+			if not CanBeTransportedDynamic(teeID, teeDefID, teePosY, terID, terAllyTeam) then break end
 			if not CanTransporteeFitInTransporter(terID, teeID, terDefID, teeSize, true) then break end
 			local dx, dz    = teePosX - terPosX, teePosZ - terPosZ
 			local rawDistSq = dx * dx + dz * dz
@@ -526,8 +514,10 @@ function ExecuteSuccessiveLoadUnits(terID, terDefID, terTeamID)
 			local teeID = cmd.params[1]
 			local teeDefID = spGetUnitDefID(teeID)
 			local _, teePosY = spGetUnitPosition(teeID)
-			if not CanBeTransportedStatic(teeID, teeDefID, teePosY, terID, terAllyTeam) then
+			if not CanBeTransportedStatic(teeID, teeDefID, terID) then
 				idsToRemove[teeID] = true -- can't be transported, mark for removal
+			elseif not CanBeTransportedDynamic(teeID, teeDefID, teePosY, terID, terAllyTeam) then
+				idsToRemove[teeID] = true -- can't be transported right now, mark for removal
 			elseif terID ~= claimedBy[terAllyTeam][teeID] then
 				claimTransportee(terID, teeID, TransportAPI.GetTransporteeSize(teeID), true) -- force claim for ourselves if not already claimed
 			end
@@ -773,7 +763,7 @@ function gadget:AllowUnitTransport(terID, terDefID, terTeamID, teeID, teeDefID, 
 	--I separated both to avoid FindUnitToTransport calling gadget:AllowUnitTransportLoad with an additional arg
 	local terAllyTeam = spGetUnitAllyTeam(terID)
 	local teePosX, teePosY, teePosZ = spGetUnitPosition(teeID)
-	return CanBeTransportedStatic(teeID, teeDefID, teePosY, terID, terAllyTeam ) and CanTransporteeFitInTransporter(terID, teeID, terDefID, TransportAPI.GetTransporteeSize(teeID), false)
+	return CanBeTransportedStatic(teeID, teeDefID, terID) and CanBeTransportedDynamic(teeID, teeDefID, teePosY, terID, terAllyTeam) and CanTransporteeFitInTransporter(terID, teeID, terDefID, TransportAPI.GetTransporteeSize(teeID), false)
 end
 
 -- unload commands haven't been changed (yet?)
