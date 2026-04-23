@@ -414,6 +414,7 @@ function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeam, cx, c
 end
 
 function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeam)
+	local idsToRemove = {}
 	-- 1: update the list of queued units
 	local queue = spGetUnitCommands(transporterID,  Spring.GetUnitRulesParam(transporterID, "nSeats")) --  Spring.GetUnitRulesParam(transporterID, "nSeats") being the max number of units we can queue on a single transport
 	local i = 1
@@ -422,9 +423,16 @@ function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporter
 		while cmd and cmd.id == CMD_LOAD_UNIT and (queuedSeats[transporterID] + Spring.GetUnitRulesParam(transporterID, "usedSeats") < Spring.GetUnitRulesParam(transporterID, "nSeats")) do
 			local teeID = cmd.params[1]
 			if spGetUnitTransporter(teeID) == transporterID then
+				idsToRemove[teeID] = true -- already loaded, mark command for removal
 			elseif transporterID ~= claimedBy[teeID] then
 				claimTransportee(transporterID, teeID, TransportAPI.GetTransporteeSize(teeID), true) -- force claim for ourselves
 			end
+			i = i + 1
+			cmd = queue and queue[i]
+		end
+	elseif not (Spring.GetUnitRulesParam(transporterID, "usedSeats") < Spring.GetUnitRulesParam(transporterID, "nSeats")) then -- we still have queued commands despite being full, they can't be performed
+		while cmd and cmd.id == CMD_LOAD_UNIT do
+			idsToRemove[cmd.params[1]] = true -- mark command for removal
 			i = i + 1
 			cmd = queue and queue[i]
 		end
@@ -437,31 +445,62 @@ function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporter
 			spEcho("Error: claim inconsistency for transportee " .. transporterClaims[transporterID][i] .. " in transporter " .. transporterID .. "'s claims list")
 		end
 		local teeID = transporterClaims[transporterID][i]
+		local moveToTransporter = true
+		local removeFromQueue = false
+		local canLoadNow = false
 		if spValidUnitID(teeID) then
 			local tx, ty, tz = spGetUnitPosition(teeID)
-			local skip = false
-			if not CanTransport(transporterID, teeID, transporterDefID, false) then
-				-- can happen if we manually exceeded nSeats with successive load commands, or if the unit moved out of range after being claimed
-				-- instead of scanning cmd queue to remove the bad commmand, we release tee (even though it might get claimed again),
-				-- until we reach this unit's command in CommandFallback, and it is actually removed
-				releaseTransportee(teeID)
-				skip = true
-			elseif dist2D(tx, tz, terPosX, terPosZ) > 512 then -- hardcoded 512 for test, it's a threshold so units don't start moving towards trans from afar
-				skip = true
-			elseif inRange(transporterID, tx, ty, tz) then
-				if customTransportLoad[transporterDefID] then --nil check will be gone once code is finished
-					if spGetUnitRulesParam(transporterID, "canLoad") == 1 then
-						customTransportLoad[transporterDefID](transporterID, 'PerformLoad', teeID)
-						releaseTransportee(teeID)
-						skip = true
-					end
+			local teeTeam = spGetUnitTeam(teeID)
+			local losState = spGetUnitLosState(teeID, spGetUnitAllyTeam(transporterID), false)
+			local alliedTee = spAreTeamsAllied(teeTeam, transporterTeam)
+			if not losState or not (losState.los or losState.radar) then
+				canLoadNow = false
+				removeFromQueue = true
+				moveToTransporter = false
+			end
+			if teeTeam ~= transporterTeam then
+				local teeHasQ = Spring.GetUnitCommands(teeID, 1)
+				if teeHasQ and teeHasQ[1] then
+					moveToTransporter = false -- if it's performing a command, don't give it a movegoal that might interfere
+				elseif not alliedTee then
+					moveToTransporter = false -- enemy unit don't give it a movegoal that would make it move towards our transport
 				end
 			end
-			if not skip then -- do not order skipped transportees
+			if not CanTransport(transporterID, teeID, transporterDefID, false) then
+				removeFromQueue = true
+				canLoadNow = false
+				moveToTransporter = false
+			end
+			if dist2D(tx, tz, terPosX, terPosZ) > 512 then -- hardcoded 512 for test, it's a threshold so units don't start moving towards trans from afar
+				moveToTransporter = false
+			end
+			if inRange(transporterID, tx, ty, tz) then
+				if customTransportLoad[transporterDefID] then --nil check will be gone once code is finished
+					if spGetUnitRulesParam(transporterID, "canLoad") == 1 then
+						local _, _, _, vw = spGetUnitVelocity(teeID)
+						if alliedTee or vw < 0.5 then
+							canLoadNow = true
+							moveToTransporter = false
+							removeFromQueue = true
+						end
+					end
+				end
+			end		
+			if moveToTransporter then -- do not order skipped transportees
 				spSetUnitMoveGoal(teeID, terPosX, spGetGroundHeight(terPosX, terPosZ), terPosZ,64,nil, true) -- moves to the transport
 			end
 		else
-			releaseTransportee(teeID)
+			removeFromQueue = true
+			moveToTransporter = false
+		end
+		if canLoadNow then
+			customTransportLoad[transporterDefID](transporterID, 'PerformLoad', teeID)
+		end
+		if moveToTransporter then
+			spSetUnitMoveGoal(teeID, terPosX, spGetGroundHeight(terPosX, terPosZ), terPosZ,64,nil, true) -- moves to the transport
+		end
+		if removeFromQueue then
+			idsToRemove[teeID] = true
 		end
 	end
 	if spValidUnitID(transporterClaims[transporterID][1]) then
@@ -469,18 +508,16 @@ function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporter
 		local tee1x, tee1y, tee1z = spGetUnitPosition(transporterClaims[transporterID][1])
 		spSetUnitMoveGoal(transporterID, tee1x, tee1y, tee1z)
 	end
-	
-	-- 3: validate current command once the unit is loaded
-	if spGetUnitTransporter(queue[1].params[1]) == transporterID then
-		spUnitFinishCommand(transporterID) -- consume the command so the transporter proceeds to the next
-		finished = true
+	-- remove invalidated/finished commands
+	for teeID,v in pairs(idsToRemove) do
+		releaseTransportee(teeID) -- release claim so it can be targeted by future loads
+		for i = 1, #queue do
+			if queue[i].id == CMD_LOAD_UNIT and queue[i].params[1] == teeID then -- find the corresponding command
+				Spring.GiveOrderToUnit(transporterID, CMD.REMOVE, {queue[i].tag}, 0) -- consume the command so the transporter proceeds to the next
+				break
+			end
+		end
 	end
-	-- 4: remove invalid commands
-	if not CanTransport(transporterID, queue[1].params[1], transporterDefID, false) then -- if the next unit can't be loaded, don't get stucked on it
-		spUnitFinishCommand(transporterID) -- consume the command so the transporter proceeds to the next
-		finished = true
-	end
-
 end
 
 ------------------
