@@ -158,7 +158,10 @@ function M.attach(doc, ctx)
 		local newVal = not sf[filterKey]
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.SplatPainter.setSmartFilter(filterKey, newVal)
-		if newVal then WG.SplatPainter.setSmartEnabled(true) end
+		local sf2 = WG.SplatPainter.getState().smartFilters
+		local anyOn = sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes
+			or sf2.altMinEnable or sf2.altMaxEnable
+		WG.SplatPainter.setSmartEnabled(anyOn and true or false)
 	end
 
 	-- Smart filter sliders
@@ -197,6 +200,13 @@ function M.attach(doc, ctx)
 			local sf = WG.SplatPainter.getState().smartFilters
 			WG.SplatPainter.setSmartFilter(filterKey, (sf[filterKey] or 0) + step)
 		end
+	end
+
+	-- Altitude SAMPLE buttons: toggle TB height-sampling mode for splat alt endpoints
+	w.splatAltSample = function(self, target)
+		if not WG.TerraformBrush then return end
+		local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
+		WG.TerraformBrush.setHeightSamplingMode(cur == target and nil or target)
 	end
 
 	-- Export / save / history
@@ -431,10 +441,7 @@ function M.sync(doc, ctx, spState, setSummary)
 					sf.avoidWater or sf.avoidCliffs or sf.preferSlopes or
 					sf.altMinEnable or sf.altMaxEnable
 				) and true or false
-				local warnChip = doc:GetElementById("warn-chip-sp-smart")
-				if warnChip then
-					warnChip:SetClass("hidden", not anyFilterOn)
-				end
+				ctx.syncWarnChip(doc, "warn-chip-sp-smart", "section-sp-smart", anyFilterOn)
 				if spState.smartFilters then
 					local sf = spState.smartFilters
 					-- NB: slope/altitude chip active class is owned by wireVisibilityChip
@@ -504,6 +511,13 @@ function M.sync(doc, ctx, spState, setSummary)
 					if spSAltMax and ds ~= "sp-alt-max" then
 						spSAltMax:SetAttribute("value", tostring(sf.altMax))
 					end
+
+					-- SAMPLE button active-class mirrors (height sampling mode indicator)
+					local hsm = WG.TerraformBrush and (WG.TerraformBrush.getState() or {}).heightSamplingMode
+					local spAltMinSample = doc:GetElementById("btn-sp-alt-min-sample")
+					if spAltMinSample then spAltMinSample:SetClass("active", hsm == "spAltMin") end
+					local spAltMaxSample = doc:GetElementById("btn-sp-alt-max-sample")
+					if spAltMaxSample then spAltMaxSample:SetClass("active", hsm == "spAltMax") end
 				end
 			end
 

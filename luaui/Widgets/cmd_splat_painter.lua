@@ -106,8 +106,8 @@ local placedGeoDecals = {} -- array of {x=, z=, rot=, size=}
 -- Smart filter state
 local smartFilterEnabled = false
 local smartFilter = {
-	avoidWater = true,
-	avoidCliffs = true,
+	avoidWater = false,
+	avoidCliffs = false,
 	slopeMax = 45,
 	preferSlopes = false,
 	slopeMin = 10,
@@ -978,11 +978,13 @@ end
 function widget:MousePress(mx, my, button)
 	if not active then return false end
 
-	-- Defer to measure tool when active so splat paint doesn't consume the click
+	-- Defer to measure / height-sampler tools when active so splat paint doesn't consume the click
 	do
 		local tb = WG.TerraformBrush
 		local st = tb and tb.getState and tb.getState() or nil
 		if st and st.measureActive then return false end
+		if st and st.heightSamplingMode then return false end
+		if tb and tb.getHeightSamplingMode and tb.getHeightSamplingMode() then return false end
 	end
 
 	-- Geo decal mode: left-click places, right-click undoes
