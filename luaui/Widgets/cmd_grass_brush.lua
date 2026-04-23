@@ -176,8 +176,8 @@ end
 -- Smart filter state
 local smartEnabled  = false
 local smartFilters  = {
-	avoidWater   = true,
-	avoidCliffs  = true,
+	avoidWater   = false,
+	avoidCliffs  = false,
 	slopeMax     = 45,
 	preferSlopes = false,
 	slopeMin     = 10,

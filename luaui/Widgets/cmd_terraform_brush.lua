@@ -1561,6 +1561,7 @@ local function getState()
 		wiggleAmpIdx  = extraState.wiggleAmpIdx,
 		wiggleSpdIdx  = extraState.wiggleSpdIdx,
 			heightColormap = extraState.heightColormap,
+			heightSamplingMode = extraState.heightSamplingMode,
 
 		gridOverlay = gridOverlay,
 		gridSnap = extraState.gridSnap,
@@ -2076,6 +2077,7 @@ function widget:Initialize()
 				max = true, min = true,
 				fpAltMax = true, fpAltMin = true,
 				gbAltMax = true, gbAltMin = true,
+				spAltMax = true, spAltMin = true,
 			}
 			extraState.heightSamplingMode = valid[target] and target or nil
 			if extraState.heightSamplingMode then
@@ -5852,6 +5854,16 @@ function widget:DrawWorld()
 				extraState.drawSymmetryOverlay(extraState.symmetryLastWorldX, extraState.symmetryLastWorldZ, gy)
 			end
 		end
+		-- Height sampling hover highlight: also runs when tool widgets (FP/grass/splat/etc.)
+		-- are active and activeMode is nil. Without this call the topo contour under the
+		-- cursor never gets highlighted in those modes.
+		if extraState.heightSamplingMode and extraState.heightColormap then
+			local wx, wz = getWorldMousePosition()
+			if wx then
+				local gy = Spring.GetGroundHeight(wx, wz) or 0
+				extraState.doSamplingHover(gy)
+			end
+		end
 		return
 	end
 
@@ -6535,6 +6547,20 @@ function widget:MousePress(mx, my, button)
 				end
 				WG.GrassBrush.setSmartFilter("altMinEnable", true)
 				WG.GrassBrush.setSmartFilter("altMin", rounded)
+			elseif sampledTarget == "spAltMax" and WG.SplatPainter then
+				local sf = (WG.SplatPainter.getState() or {}).smartFilters or {}
+				if sf.altMinEnable and rounded < (sf.altMin or 0) then
+					WG.SplatPainter.setSmartFilter("altMin", rounded)
+				end
+				WG.SplatPainter.setSmartFilter("altMaxEnable", true)
+				WG.SplatPainter.setSmartFilter("altMax", rounded)
+			elseif sampledTarget == "spAltMin" and WG.SplatPainter then
+				local sf = (WG.SplatPainter.getState() or {}).smartFilters or {}
+				if sf.altMaxEnable and rounded > (sf.altMax or 0) then
+					WG.SplatPainter.setSmartFilter("altMax", rounded)
+				end
+				WG.SplatPainter.setSmartFilter("altMinEnable", true)
+				WG.SplatPainter.setSmartFilter("altMin", rounded)
 			end
 			if WG.TerraformBrushUI and WG.TerraformBrushUI.onHeightSampled then
 				WG.TerraformBrushUI.onHeightSampled(sampledTarget, rounded)

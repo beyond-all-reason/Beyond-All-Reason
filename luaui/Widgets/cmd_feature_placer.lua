@@ -85,8 +85,8 @@ local fp = {
 	distribution  = "random",  -- "random", "regular", or "clustered"
 	smartEnabled  = false,     -- terrain-aware filtering applied on top of distribution
 	smartFilters  = {
-		avoidWater   = true,   -- reject underwater positions (height < 0)
-		avoidCliffs  = true,   -- reject terrain steeper than slopeMax degrees
+		avoidWater   = false,  -- reject underwater positions (height < 0)
+		avoidCliffs  = false,  -- reject terrain steeper than slopeMax degrees
 		slopeMax     = 45,
 		preferSlopes = false,  -- reject terrain flatter than slopeMin degrees
 		slopeMin     = 10,
@@ -500,17 +500,17 @@ end
 local saveBuffer = {}
 local saveExpectedCount = 0
 
-local function handleSaveBegin(_, _, count)
+local function handleSaveBegin(count)
 	saveBuffer = {}
 	saveExpectedCount = count or 0
 end
 
-local function handleSaveData(_, _, dataStr)
+local function handleSaveData(dataStr)
 	if not dataStr then return end
 	saveBuffer[#saveBuffer + 1] = dataStr
 end
 
-local function handleSaveEnd(_, _, count)
+local function handleSaveEnd(count)
 	Spring.CreateDir(SAVE_DIR)
 	local mapName = Game.mapName or "unknown"
 	local timestamp = os.date("%Y%m%d_%H%M%S")
@@ -560,13 +560,21 @@ local function featureLoad(filename)
 		return
 	end
 
-	local file = io.open(filename, "r")
-	if not file then
+	-- VFS.DirList returns absolute paths that io.open can't always reopen on
+	-- Windows when the path contains spaces; VFS.LoadFile with VFS.RAW handles
+	-- both absolute and relative write-dir paths consistently.
+	local content = VFS.LoadFile(filename, VFS.RAW)
+	if not content then
+		local file = io.open(filename, "r")
+		if file then
+			content = file:read("*a")
+			file:close()
+		end
+	end
+	if not content then
 		Echo("[Feature Placer] Cannot open " .. filename)
 		return
 	end
-	local content = file:read("*a")
-	file:close()
 
 	local fn, err = loadstring(content)
 	if not fn then
@@ -909,11 +917,15 @@ function widget:MousePress(mx, my, button)
 	if tb and tb.getState then
 		local st = tb.getState()
 		if st and st.measureActive then return false end
+		if st and st.heightSamplingMode then return false end
 		if st and st.symmetryActive then
 			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
 				return false
 			end
 		end
+	end
+	if tb and tb.getHeightSamplingMode and tb.getHeightSamplingMode() then
+		return false
 	end
 
 	if button == 1 then

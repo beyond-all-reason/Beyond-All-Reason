@@ -335,6 +335,9 @@ local function rebuildDecalList(filter)
 	-- scrollbar popping in after rebuild.
 	local dpRatio = getDpRatio()
 	local innerPx = getListInnerPx()
+	-- RmlUI client_width includes padding. fp-feature-list has 4dp padding
+	-- each side (8dp total) — subtract so tile math uses the real content box.
+	innerPx = innerPx - 8 * dpRatio
 	-- Always reserve scrollbar (8dp from RCSS) even when not visible yet.
 	innerPx = innerPx - 8 * dpRatio
 	local gapPx = TILE_GAP_DP * dpRatio

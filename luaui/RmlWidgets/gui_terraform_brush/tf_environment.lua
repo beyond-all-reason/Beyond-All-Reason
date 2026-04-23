@@ -422,8 +422,8 @@ function M.attach(doc, ctx)
 				spOvBtn:AddEventListener("click", function()
 					local sec = doc:GetElementById("section-sp-overlays")
 					if sec and not sec:IsClassSet("hidden") then
-						widgetState.splatDisplayPulseFrame = Spring.GetGameFrame() + 1
 						if widgetState.uiPrefs and not widgetState.uiPrefs.seenSplatDisplayHint then
+							widgetState.splatDisplayPulseFrame = Spring.GetGameFrame() + 1
 							widgetState.uiPrefs.seenSplatDisplayHint = true
 							if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
 						end
@@ -439,6 +439,18 @@ function M.attach(doc, ctx)
 		do
 			-- Chip that directly toggles a single filter key (active class mirrors filter state).
 			-- Used for Avoid Water / Avoid Slopes chips (FP + GB).
+			-- Keys that count toward "any filter on" for auto-disabling smartEnabled
+			-- when the user toggles the last active filter off.
+			local SMART_FILTER_BOOL_KEYS = {
+				"avoidWater", "avoidCliffs", "preferSlopes", "altMinEnable", "altMaxEnable",
+			}
+			local function anySmartFilterOn(sf)
+				if not sf then return false end
+				for _, k in ipairs(SMART_FILTER_BOOL_KEYS) do
+					if sf[k] then return true end
+				end
+				return false
+			end
 			local function wireFilterToggleChip(btnId, filterKey, getBrush)
 				local btn = doc:GetElementById(btnId)
 				if not btn then return end
@@ -447,8 +459,10 @@ function M.attach(doc, ctx)
 					if not brush then return end
 					local sf = brush.getState().smartFilters or {}
 					local newVal = not sf[filterKey]
-					brush.setSmartEnabled(true)
 					brush.setSmartFilter(filterKey, newVal)
+					-- Re-read state after mutation, decide smartEnabled from "any filter on"
+					local sf2 = brush.getState().smartFilters or {}
+					brush.setSmartEnabled(anySmartFilterOn(sf2))
 				end)
 			end
 
@@ -464,20 +478,22 @@ function M.attach(doc, ctx)
 						if not brush then return end
 						local sf = brush.getState().smartFilters or {}
 						local newVal = not sf[ownKey]
-						brush.setSmartEnabled(true)
 						if newVal and sf[otherKey] then
 							brush.setSmartFilter(otherKey, false)
 						end
 						brush.setSmartFilter(ownKey, newVal)
+						local sf2 = brush.getState().smartFilters or {}
+						brush.setSmartEnabled(anySmartFilterOn(sf2))
 					end
 				end
 				if btnA then btnA:AddEventListener("click", makeHandler(keyA, keyB)) end
 				if btnB then btnB:AddEventListener("click", makeHandler(keyB, keyA)) end
 			end
 
-			-- Chip that toggles visibility of a content section; optional defaultKey is
-			-- enabled/disabled alongside the chip (so the category actually does something
-			-- the first time it is opened).
+			-- Chip that toggles visibility of a content section.
+			-- Expanding the section is purely visual; the user must click a sub-filter
+			-- chip to actually enable anything. Collapsing the section disables all
+			-- sub-filters in the category so nothing stays silently active.
 			local function wireVisibilityChip(btnId, contentId, getBrush, filterKeys, defaultKey)
 				local btn = doc:GetElementById(btnId)
 				local content = doc:GetElementById(contentId)
@@ -487,24 +503,9 @@ function M.attach(doc, ctx)
 					local newActive = not isActive
 					btn:SetClass("active", newActive)
 					content:SetClass("hidden", not newActive)
-					local brush = getBrush()
-					if brush then
-						if newActive then
-							brush.setSmartEnabled(true)
-							if defaultKey then
-								local sf = brush.getState().smartFilters or {}
-								-- Only flip the default on if none of the category's keys are already on
-								local anyOn = false
-								if filterKeys then
-									for _, k in ipairs(filterKeys) do
-										if sf[k] then anyOn = true; break end
-									end
-								end
-								if not anyOn then
-									brush.setSmartFilter(defaultKey, true)
-								end
-							end
-						elseif filterKeys then
+					if not newActive then
+						local brush = getBrush()
+						if brush and filterKeys then
 							for _, k in ipairs(filterKeys) do
 								brush.setSmartFilter(k, false)
 							end
@@ -570,16 +571,10 @@ function M.attach(doc, ctx)
 						local newActive = not isActive
 						btn:SetClass("active", newActive)
 						content:SetClass("hidden", not newActive)
-						if WG.GrassBrush then
-							if newActive then
-								WG.GrassBrush.setSmartEnabled(true)
-								-- Enable the default sub-filter so the category is actually doing something
-								if defaultKey then WG.GrassBrush.setSmartFilter(defaultKey, true) end
-							else
-								-- Deactivating the chip disables all sub-filters in this category
-								for _, k in ipairs(filterKeys) do
-									WG.GrassBrush.setSmartFilter(k, false)
-								end
+						if not newActive and WG.GrassBrush then
+							-- Deactivating the chip disables all sub-filters in this category
+							for _, k in ipairs(filterKeys) do
+								WG.GrassBrush.setSmartFilter(k, false)
 							end
 						end
 					end)
@@ -714,8 +709,8 @@ function M.attach(doc, ctx)
 				instBtn:AddEventListener("click", function()
 					local sec = doc:GetElementById("section-instruments")
 					if sec and not sec:IsClassSet("hidden") then
-						widgetState.instrumentsPulseFrame = Spring.GetGameFrame() + 1
 						if widgetState.uiPrefs and not widgetState.uiPrefs.seenInstrumentsHint then
+							widgetState.instrumentsPulseFrame = Spring.GetGameFrame() + 1
 							widgetState.uiPrefs.seenInstrumentsHint = true
 							if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
 						end

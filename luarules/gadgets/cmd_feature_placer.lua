@@ -11,10 +11,22 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	function gadget:RecvFromSynced(name, undoCount, redoCount)
+	function gadget:RecvFromSynced(name, a, b)
 		if name == "FeaturePlacerHistory" then
 			if Script.LuaUI("feature_placer_history") then
-				Script.LuaUI.feature_placer_history(undoCount, redoCount)
+				Script.LuaUI.feature_placer_history(a, b)
+			end
+		elseif name == "feature_save_begin" then
+			if Script.LuaUI("feature_save_begin") then
+				Script.LuaUI.feature_save_begin(a)
+			end
+		elseif name == "feature_save_data" then
+			if Script.LuaUI("feature_save_data") then
+				Script.LuaUI.feature_save_data(a)
+			end
+		elseif name == "feature_save_end" then
+			if Script.LuaUI("feature_save_end") then
+				Script.LuaUI.feature_save_end(a)
 			end
 		end
 	end
@@ -769,7 +781,10 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 	-- Save
 	if msg == SAVE_HEADER then
-		if not Spring.IsCheatingEnabled() then return true end
+		if not Spring.IsCheatingEnabled() then
+			Spring.Echo("[Feature Placer] Save requires /cheat to be enabled")
+			return true
+		end
 		exportAllFeatures()
 		return true
 	end
