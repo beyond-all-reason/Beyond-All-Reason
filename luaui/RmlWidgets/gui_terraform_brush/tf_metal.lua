@@ -511,6 +511,15 @@ function M.sync(doc, ctx, mbState, setSummary)
 	if metalBtn then metalBtn:SetClass("active", true) end
 	setActiveClass(widgetState.modeButtons, nil)
 
+	-- DISPLAY/INSTRUMENTS warn chips (shared TB state mirror)
+	if doc and ctx.syncWarnChip then
+		local tbs = (WG.TerraformBrush and WG.TerraformBrush.getState()) or {}
+		local dispActive = tbs.gridOverlay or tbs.heightColormap
+		local instActive = tbs.gridSnap or tbs.angleSnap or tbs.measureActive or tbs.symmetryActive
+		ctx.syncWarnChip(doc, "warn-chip-mb-overlays",    "section-mb-overlays",    dispActive)
+		ctx.syncWarnChip(doc, "warn-chip-mb-instruments", "section-mb-instruments", instActive)
+	end
+
 	-- Metal sub-mode buttons
 	setActiveClass(widgetState.mbSubModeButtons, mbState.subMode)
 

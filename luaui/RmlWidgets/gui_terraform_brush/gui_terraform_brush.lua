@@ -2042,6 +2042,16 @@ local ctx = {
 	g3TipGroups = g3TipGroups,
 }
 
+-- Shared "warn chip" helper: shows the warn chip only when the section is
+-- collapsed AND something is engaged. Called from each tool's M.sync.
+ctx.syncWarnChip = function(doc, chipId, sectionId, anyActive)
+	if not doc then return end
+	local sec = doc:GetElementById(sectionId)
+	local collapsed = sec and sec:IsClassSet("hidden")
+	local chip = doc:GetElementById(chipId)
+	if chip then chip:SetClass("hidden", not (anyActive and collapsed)) end
+end
+
 -- Generic DISPLAY/INSTRUMENTS chip wirer for per-tool panels.
 -- Mirrors WG.TerraformBrush shared state onto a tool's chip row. Chips forward
 -- to TB setters; M.sync callers can pass the chip ids back to set active class.
@@ -2170,6 +2180,14 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	setCls("btn-"..P.."-symmetry-mirror-y", s.symmetryMirrorY)
 	setHidden(P.."-measure-toolbar-row",   s.measureActive)
 	setHidden(P.."-symmetry-toolbar-row",  s.symmetryActive)
+
+	-- Warn chips on DISPLAY/INSTRUMENTS toggle headers: show when the section
+	-- is collapsed AND at least one mirrored control is engaged. Missing chips
+	-- (tools that never got a warn chip added in RML) silently no-op.
+	local dispActive = s.gridOverlay or s.heightColormap
+	local instActive = s.gridSnap or s.angleSnap or s.measureActive or s.symmetryActive
+	ctx.syncWarnChip(doc, "warn-chip-"..P.."-overlays",    "section-"..P.."-overlays",    dispActive)
+	ctx.syncWarnChip(doc, "warn-chip-"..P.."-instruments", "section-"..P.."-instruments", instActive)
 end
 
 -- Phase 3 grayout helper: toggle the generic ".disabled" class on an element
