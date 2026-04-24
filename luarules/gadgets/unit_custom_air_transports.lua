@@ -236,15 +236,9 @@ local function CanTransporteeFitInTransporter(terID, teeID, terDefID, teeSize, i
 	if nSeats - usedSeats - queued < teeSize then
 		return false
 	end
-	local slotSizesStr = spGetUnitRulesParam(terID, "slotSizes") or ""
-	local foundSlot = false
-	for sizeStr in slotSizesStr:gmatch("[^,]+") do
-		if tonumber(sizeStr) == teeSize then foundSlot = true; break end
-	end
-	if not foundSlot then
-		return false
-	end
-	return true
+	local rulesParamString = "hasSlotOfSize"..teeSize
+	local foundSlot = spGetUnitRulesParam(terID, rulesParamString) == true
+	return foundSlot
 end
 
 ---

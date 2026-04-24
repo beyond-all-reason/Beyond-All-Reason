@@ -33,10 +33,9 @@ function CargoHandler.Init(setup)
     for _, slotCfg in ipairs(setup.slots) do
         if not slotSizes[slotCfg.size] then
             slotSizes[slotCfg.size] = true
-            slotSizesArr[#slotSizesArr + 1] = tostring(slotCfg.size)
         end
     end
-
+	
     -- source of truth for all cargo tracking; all load/unload operations read and write this table.
     -- on save/load the engine is queried for current transportees and this table is rebuilt from scratch (see script.Create),
     -- but outside of that reload path this is the only authoritative record of what is loaded and where.
@@ -54,9 +53,13 @@ function CargoHandler.Init(setup)
     }
 
     -- set some initial unit rules params for the gadget to read, and for UI display
+	for size, bool in pairs (slotSizes) do
+		local rulesParamString = "hasSlotOfSize"..size
+		SpSetUnitRulesParam(unitID, rulesParamString, bool)
+	end
+	
     SpSetUnitRulesParam(unitID, "nSeats",    setup.nSeats) -- used by gadget to determine if a transportee can be loaded, and by anim handler to determine whether to show hover effect
     SpSetUnitRulesParam(unitID, "usedSeats", 0) -- used by gadget to determine if a transportee can be loaded/unloaded, and by anim handler to determine whether to show hover effect
-    SpSetUnitRulesParam(unitID, "slotSizes", table.concat(slotSizesArr, ",")) -- helps know what sizes of transportees we can expect to load, in case of ie 4x 1-sized spots but no 4 sized spot (2x8 transport vs 4x4)
     CargoHandler.CanLoad(true)
     CargoHandler.CanUnload(true)
     return cargo
