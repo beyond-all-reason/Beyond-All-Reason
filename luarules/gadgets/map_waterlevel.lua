@@ -23,6 +23,29 @@ local PACKET_CLAMP_MIN_LENGTH = string.len(PACKET_CLAMP_MIN)
 local PACKET_CLAMP_MAX = "$hclampmax$"
 local PACKET_CLAMP_MAX_LENGTH = string.len(PACKET_CLAMP_MAX)
 
+local function getAccountID(playerID)
+	local _, _, _, _, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
+	return (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+end
+
+local function isWaterlevelPacket(msg)
+	if type(msg) ~= "string" then
+		return false
+	end
+
+	local prefix = string.sub(msg, 1, PACKET_HEADER_LENGTH)
+	if prefix == PACKET_HEADER then
+		return true
+	end
+
+	prefix = string.sub(msg, 1, PACKET_CLAMP_MIN_LENGTH)
+	if prefix == PACKET_CLAMP_MIN then
+		return true
+	end
+
+	return string.sub(msg, 1, PACKET_CLAMP_MAX_LENGTH) == PACKET_CLAMP_MAX
+end
+
 if gadgetHandler:IsSyncedCode() then
 
 	local waterlevel = Spring.GetModOptions().map_waterlevel
@@ -77,8 +100,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
-		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+		if not isWaterlevelPacket(msg) then
+			return
+		end
+
+		local accountID = getAccountID(playerID)
 		local authorized = _G.permissions.waterlevel[accountID]
 
 		if not (authorized or Spring.IsCheatingEnabled()) then
@@ -139,13 +165,18 @@ if gadgetHandler:IsSyncedCode() then
 else  -- UNSYNCED
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local accountInfo = select(11, Spring.GetPlayerInfo(myPlayerID))
-	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-	local authorized = SYNCED.permissions.waterlevel[accountID]
+	local function isAuthorized()
+		local perms = SYNCED.permissions and SYNCED.permissions.waterlevel
+		if not perms then
+			return false
+		end
+
+		return perms[getAccountID(myPlayerID)]
+	end
 
 	local function waterlevel(cmd, line, words, playerID)
 		if words[1] then
-			if (authorized or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
+			if (isAuthorized() or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
 				Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. words[1])
 			end
 		end
@@ -153,7 +184,7 @@ else  -- UNSYNCED
 
 	local function clampminheight(cmd, line, words, playerID)
 		if words[1] then
-			if (authorized or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
+			if (isAuthorized() or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
 				Spring.SendLuaRulesMsg(PACKET_CLAMP_MIN .. ':' .. words[1])
 			end
 		end
@@ -161,7 +192,7 @@ else  -- UNSYNCED
 
 	local function clampmaxheight(cmd, line, words, playerID)
 		if words[1] then
-			if (authorized or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
+			if (isAuthorized() or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
 				Spring.SendLuaRulesMsg(PACKET_CLAMP_MAX .. ':' .. words[1])
 			end
 		end
