@@ -175,9 +175,6 @@ local function CanBeTransportedStatic(teeID, teeDefID, terID) -- things that sho
 	if UnitDefs[teeDefID].cantBeTransported then
 		return false	
 	end
-	if spGetUnitIsBeingBuilt(teeID) then -- considered immutable; while it can become false, it can never become true again.
-		return false	
-	end
 	return true
 end
 
@@ -193,6 +190,9 @@ local function CanBeTransportedDynamic(teeID, teeDefID, teePosY, terID, terAllyT
 		return false
 	end
 	if spGetUnitTransporter(teeID) ~= nil then
+		return false	
+	end
+	if spGetUnitIsBeingBuilt(teeID) then -- moved to dynamic, to support other reclaimMode modrules that allows a unit to turn back to a nanoFrame
 		return false	
 	end
 	local losState = spGetUnitLosState(teeID, terAllyTeam, false)
