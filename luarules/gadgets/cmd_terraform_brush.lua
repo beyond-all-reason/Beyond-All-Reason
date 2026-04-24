@@ -76,7 +76,7 @@ local MAX_RADIUS = 2000
 local MIN_RADIUS = 8
 
 -- ── Diagnostics ──────────────────────────────────────────────────────────────
-local DIAG = true  -- set false to silence
+local DIAG = false  -- set false to silence
 local diagPushCount = 0   -- number of pushSnapshotFromFlat calls in current merge
 local diagMergeVerts = 0  -- vertices added during merge phase
 local ringInnerRatio = 0.6

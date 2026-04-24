@@ -2210,11 +2210,396 @@ ctx.setDisabledIds = function(doc, ids, on)
 	end
 end
 
+-- Register widget methods callable from inline RML onclick="widget:XXX()" handlers.
+-- Kept separate from attachEventListeners() to avoid consuming its local budget.
+-- All upvalues are chunk-level locals; no widget-local sharing needed here.
+local function attachDeclarativeHandlers(ctx)
+	local w = ctx.widget
+	if not w then return end
+
+	-- Helper: deactivate every tool cleanly. Called from tool-switch methods.
+	local function deactivateAllTools()
+		if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
+		if WG.FeaturePlacer  then WG.FeaturePlacer.deactivate()  end
+		if WG.WeatherBrush   then WG.WeatherBrush.deactivate()   end
+		if WG.SplatPainter   then WG.SplatPainter.deactivate()   end
+		if WG.MetalBrush     then WG.MetalBrush.deactivate()     end
+		if WG.GrassBrush     then WG.GrassBrush.deactivate()     end
+		widgetState.envActive      = false
+		widgetState.lightActive    = false
+		if WG.LightPlacer    then WG.LightPlacer.deactivate()    end
+		widgetState.startposActive = false
+		if WG.StartPosTool   then WG.StartPosTool.deactivate()   end
+		widgetState.cloneActive    = false
+		if WG.CloneTool      then WG.CloneTool.deactivate()      end
+		widgetState.decalsActive   = false
+		if WG.DecalPlacer    then WG.DecalPlacer.deactivate()    end
+	end
+
+	-- ── Terraform mode buttons ─────────────────────────────────────────────
+	-- onclick="widget:tfSetMode('raise'); event:StopPropagation()"
+	w.tfSetMode = function(self, mode)
+		if widgetState.noTerraform then return end
+		playSound("modeSwitch")
+		clearPassthrough()
+		if WG.MetalBrush   then WG.MetalBrush.deactivate()   end
+		if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
+		if WG.WeatherBrush  then WG.WeatherBrush.deactivate()  end
+		if WG.SplatPainter  then WG.SplatPainter.deactivate()  end
+		if WG.GrassBrush    then WG.GrassBrush.deactivate()    end
+		widgetState.envActive      = false
+		widgetState.lightActive    = false
+		if WG.LightPlacer   then WG.LightPlacer.deactivate()   end
+		widgetState.startposActive = false
+		if WG.StartPosTool  then WG.StartPosTool.deactivate()  end
+		widgetState.cloneActive    = false
+		if WG.CloneTool     then WG.CloneTool.deactivate()     end
+		if WG.TerraformBrush then WG.TerraformBrush.setMode(mode) end
+		setActiveClass(widgetState.modeButtons, mode)
+		local inRestore = mode == "restore"
+		local doc = widgetState.document
+		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
+		if clayBtn then
+			clayBtn:SetClass("hidden", inRestore)
+			clayBtn:SetClass("unavailable", CLAY_UNAVAILABLE_MODES[mode] == true)
+		end
+		local frEl = widgetState.fullRestoreEl or (doc and getCachedEl(doc, "btn-full-restore"))
+		if frEl then frEl:SetClass("hidden", not inRestore) end
+	end
+
+	-- ── Smooth/Level sub-mode buttons ─────────────────────────────────────
+	-- onclick="widget:tfSmoothSubMode('smooth'); event:StopPropagation()"
+	w.tfSmoothSubMode = function(self, mode)
+		playSound("modeSwitch")
+		if WG.TerraformBrush then WG.TerraformBrush.setMode(mode) end
+	end
+
+	-- ── Shape buttons ──────────────────────────────────────────────────────
+	-- onclick="widget:tfSetShape('circle'); event:StopPropagation()"
+	w.tfSetShape = function(self, shape)
+		playSound("shapeSwitch")
+		local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
+		local spState = WG.SplatPainter  and WG.SplatPainter.getState()
+		local lpState = WG.LightPlacer   and WG.LightPlacer.getState()
+		local lpActive = widgetState.lightActive and lpState and lpState.active
+		if lpActive then
+			if shape ~= "circle" and shape ~= "square" then return end
+			WG.LightPlacer.setShape(shape)
+		elseif fpState and fpState.active then
+			if shape == "ring" or shape == "fill" then return end
+			WG.FeaturePlacer.setShape(shape)
+		elseif spState and spState.active then
+			if shape == "ring" or shape == "fill" then return end
+			WG.SplatPainter.setShape(shape)
+		elseif WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			if state and state.mode == "ramp" and shape ~= "circle" and shape ~= "square" then return end
+			if state and (state.mode == "level" or state.mode == "smooth") and shape == "ring" then return end
+			WG.TerraformBrush.setShape(shape)
+		end
+		setActiveClass(widgetState.shapeButtons, shape)
+		local doc = widgetState.document
+		local ringWidthRowEl = doc and getCachedEl(doc, "ring-width-row")
+		if ringWidthRowEl then ringWidthRowEl:SetClass("hidden", shape ~= "ring") end
+		if widgetState.dmHandle then widgetState.dmHandle.shapeName = shapeNames[shape] end
+	end
+
+	-- ── Ramp type buttons ─────────────────────────────────────────────────
+	w.tfRampStraight = function(self)
+		playSound("tick")
+		if WG.TerraformBrush then WG.TerraformBrush.setShape("square") end
+	end
+	w.tfRampSpline = function(self)
+		playSound("tick")
+		if WG.TerraformBrush then WG.TerraformBrush.setShape("circle") end
+	end
+
+	-- ── Undo / Redo ───────────────────────────────────────────────────────
+	w.tfUndo = function(self)
+		playSound("undo")
+		if WG.TerraformBrush then WG.TerraformBrush.undo() end
+	end
+	w.tfRedo = function(self)
+		playSound("undo")
+		if WG.TerraformBrush then WG.TerraformBrush.redo() end
+	end
+	w.tfMbUndo = function(self)
+		playSound("undo")
+		if WG.MetalBrush and WG.MetalBrush.undo then WG.MetalBrush.undo() end
+	end
+	w.tfMbRedo = function(self)
+		playSound("undo")
+		if WG.MetalBrush and WG.MetalBrush.redo then WG.MetalBrush.redo() end
+	end
+
+	-- ── Rotation ± ────────────────────────────────────────────────────────
+	w.tfRotCW = function(self)
+		playSound("tick")
+		if WG.TerraformBrush then WG.TerraformBrush.rotate(ROTATION_STEP) end
+	end
+	w.tfRotCCW = function(self)
+		playSound("tick")
+		if WG.TerraformBrush then WG.TerraformBrush.rotate(-ROTATION_STEP) end
+	end
+
+	-- ── Curve (fall-off) ± ────────────────────────────────────────────────
+	w.tfCurveUp = function(self)
+		playSound("tick")
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setCurve(state.curve + CURVE_STEP)
+		end
+	end
+	w.tfCurveDown = function(self)
+		playSound("tick")
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setCurve(state.curve - CURVE_STEP)
+		end
+	end
+
+	-- ── Intensity ± ───────────────────────────────────────────────────────
+	w.tfIntensityUp = function(self)
+		playSound("tick")
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			local newI = state.intensity * 1.15
+			if newI < state.intensity + 0.1 then newI = state.intensity + 0.1 end
+			WG.TerraformBrush.setIntensity(newI)
+		end
+	end
+	w.tfIntensityDown = function(self)
+		playSound("tick")
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			local newI = state.intensity / 1.15
+			if newI > state.intensity - 0.1 then newI = state.intensity - 0.1 end
+			WG.TerraformBrush.setIntensity(newI)
+		end
+	end
+
+	-- ── Restore Strength ± ────────────────────────────────────────────────
+	w.tfRestoreStrUp = function(self)
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setRestoreStrength(math.min(1.0, (state.restoreStrength or 1.0) + 0.05))
+		end
+	end
+	w.tfRestoreStrDown = function(self)
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setRestoreStrength(math.max(0.0, (state.restoreStrength or 1.0) - 0.05))
+		end
+	end
+
+	-- ── Length ± ──────────────────────────────────────────────────────────
+	w.tfLengthUp = function(self)
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setLengthScale(state.lengthScale + LENGTH_SCALE_STEP)
+		end
+	end
+	w.tfLengthDown = function(self)
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setLengthScale(state.lengthScale - LENGTH_SCALE_STEP)
+		end
+	end
+
+	-- ── Size ± ────────────────────────────────────────────────────────────
+	w.tfSizeUp = function(self)
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setRadius(state.radius + RADIUS_STEP)
+		end
+	end
+	w.tfSizeDown = function(self)
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setRadius(state.radius - RADIUS_STEP)
+		end
+	end
+
+	-- ── Ring Width ± ──────────────────────────────────────────────────────
+	w.tfRingWidthUp = function(self)
+		ringWidthPct = math.min(95, ringWidthPct + 5)
+		local doc = widgetState.document
+		local sl  = doc and getCachedEl(doc, "slider-ring-width")
+		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
+		local lbl = doc and getCachedEl(doc, "ring-width-label")
+		if lbl then lbl.inner_rml = tostring(ringWidthPct) .. "%" end
+		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
+	end
+	w.tfRingWidthDown = function(self)
+		ringWidthPct = math.max(5, ringWidthPct - 5)
+		local doc = widgetState.document
+		local sl  = doc and getCachedEl(doc, "slider-ring-width")
+		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
+		local lbl = doc and getCachedEl(doc, "ring-width-label")
+		if lbl then lbl.inner_rml = tostring(ringWidthPct) .. "%" end
+		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
+	end
+
+	-- ── Height Cap ± ──────────────────────────────────────────────────────
+	w.tfCapMaxUp = function(self)
+		capMaxValue = math.min(500, capMaxValue + HEIGHT_CAP_STEP)
+		if capMinValue > capMaxValue then capMinValue = capMaxValue; applyCap("min", capMinValue) end
+		applyCap("max", capMaxValue)
+	end
+	w.tfCapMaxDown = function(self)
+		capMaxValue = math.max(-500, capMaxValue - HEIGHT_CAP_STEP)
+		if capMinValue > capMaxValue then capMinValue = capMaxValue; applyCap("min", capMinValue) end
+		applyCap("max", capMaxValue)
+	end
+	w.tfCapMinUp = function(self)
+		capMinValue = math.min(500, capMinValue + HEIGHT_CAP_STEP)
+		if capMaxValue < capMinValue then capMaxValue = capMinValue; applyCap("max", capMaxValue) end
+		applyCap("min", capMinValue)
+	end
+	w.tfCapMinDown = function(self)
+		capMinValue = math.max(-500, capMinValue - HEIGHT_CAP_STEP)
+		if capMaxValue < capMinValue then capMaxValue = capMinValue; applyCap("max", capMaxValue) end
+		applyCap("min", capMinValue)
+	end
+
+	-- ── Tool-switch buttons ───────────────────────────────────────────────
+	w.tfSwitchFeatures = function(self)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.FeaturePlacer then return end
+		deactivateAllTools()
+		WG.FeaturePlacer.setMode("scatter")
+	end
+
+	w.tfSwitchWeather = function(self)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.WeatherBrush then return end
+		deactivateAllTools()
+		WG.WeatherBrush.activate("scatter")
+	end
+
+	w.tfSwitchSplat = function(self)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.SplatPainter then return end
+		deactivateAllTools()
+		WG.SplatPainter.activate()
+		local doc = widgetState.document
+		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
+		if clayBtn then clayBtn:SetClass("unavailable", true) end
+	end
+
+	w.tfSwitchMetal = function(self)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.MetalBrush then return end
+		deactivateAllTools()
+		WG.MetalBrush.activate("paint")
+		local doc = widgetState.document
+		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
+		if clayBtn then clayBtn:SetClass("unavailable", true) end
+	end
+
+	w.tfSwitchGrass = function(self)
+		local gApi = WG['grassgl4']
+		if not (gApi and gApi.hasGrass and gApi.hasGrass()) then return end
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.GrassBrush then return end
+		deactivateAllTools()
+		WG.GrassBrush.activate("paint")
+		local doc = widgetState.document
+		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
+		if clayBtn then clayBtn:SetClass("unavailable", true) end
+	end
+
+	w.tfSwitchDecals = function(self)
+		playSound("toolSwitch")
+		clearPassthrough()
+		deactivateAllTools()
+		widgetState.decalsActive = true
+		if WG.DecalPlacer then
+			local s = WG.DecalPlacer.getState()
+			if not s or not s.active then WG.DecalPlacer.setMode("point") end
+		end
+		local doc = widgetState.document
+		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
+		if clayBtn then clayBtn:SetClass("unavailable", true) end
+	end
+
+	w.tfSwitchEnv = function(self)
+		playSound("toolSwitch")
+		clearPassthrough()
+		local ok2, err2 = pcall(function()
+			if widgetState.envActive then
+				widgetState.envActive = false
+				if WG.TerraformBrush then
+					local st = WG.TerraformBrush.getState()
+					WG.TerraformBrush.setMode(st and st.mode or "raise")
+				end
+			else
+				deactivateAllTools()
+				widgetState.envActive = true
+			end
+		end)
+		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in tfSwitchEnv: " .. tostring(err2)) end
+	end
+
+	w.tfSwitchLights = function(self)
+		playSound("toolSwitch")
+		clearPassthrough()
+		local ok2, err2 = pcall(function()
+			if widgetState.lightActive then
+				widgetState.lightActive = false
+				if WG.LightPlacer then WG.LightPlacer.deactivate() end
+				if WG.TerraformBrush then
+					local st = WG.TerraformBrush.getState()
+					WG.TerraformBrush.setMode(st and st.mode or "raise")
+				end
+			else
+				deactivateAllTools()
+				widgetState.lightActive = true
+				if WG.LightPlacer then WG.LightPlacer.setMode("point") end
+			end
+		end)
+		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in tfSwitchLights: " .. tostring(err2)) end
+	end
+
+	w.tfSwitchStartpos = function(self)
+		playSound("toolSwitch")
+		clearPassthrough()
+		local ok2, err2 = pcall(function()
+			if widgetState.startposActive then
+				widgetState.startposActive = false
+				if WG.StartPosTool then WG.StartPosTool.deactivate() end
+				widgetState.cloneActive = false
+				if WG.CloneTool then WG.CloneTool.deactivate() end
+				if WG.TerraformBrush then
+					local st = WG.TerraformBrush.getState()
+					WG.TerraformBrush.setMode(st and st.mode or "raise")
+				end
+			else
+				deactivateAllTools()
+				widgetState.startposActive = true
+				if WG.StartPosTool then WG.StartPosTool.activate("express") end
+			end
+		end)
+		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in tfSwitchStartpos: " .. tostring(err2)) end
+	end
+end
+
 local function attachEventListeners()
 	local doc = widgetState.document
 	if not doc then
 		return
 	end
+
+	-- Set ctx.widget early so inline RML onclick="widget:XXX()" handlers work.
+	-- Use the upvalue `widget` (file-level `local widget = widget`), NOT `self`
+	-- — this is a plain-function call scope, self is nil here.
+	ctx.widget = widget
+	attachDeclarativeHandlers(ctx)
 
 	-- Safety net: clear drag state if mouseup happens anywhere on document
 	doc:AddEventListener("mouseup", function() uiState.draggingSlider = nil end, false)
@@ -2231,17 +2616,6 @@ local function attachEventListeners()
 		smooth = getCachedEl(doc, "btn-smooth-sub-smooth"),
 		level  = getCachedEl(doc, "btn-smooth-sub-level"),
 	}
-	for subMode, subEl in pairs(widgetState.smoothSubModeButtons) do
-		if subEl then
-			local target = subMode
-			subEl:AddEventListener("click", function(ev)
-				playSound("modeSwitch")
-				if WG.TerraformBrush then WG.TerraformBrush.setMode(target) end
-				ev:StopPropagation()
-			end, false)
-		end
-	end
-
 	widgetState.shapeButtons.circle = getCachedEl(doc, "btn-circle")
 	widgetState.shapeButtons.square = getCachedEl(doc, "btn-square")
 	widgetState.shapeButtons.hexagon = getCachedEl(doc, "btn-hexagon")
@@ -2252,291 +2626,6 @@ local function attachEventListeners()
 
 	widgetState.rampTypeButtons.straight = getCachedEl(doc, "btn-ramp-straight")
 	widgetState.rampTypeButtons.spline   = getCachedEl(doc, "btn-ramp-spline")
-
-	for mode, element in pairs(widgetState.modeButtons) do
-		if element then
-			element:AddEventListener("click", onModeClick(mode), false)
-		end
-	end
-
-	-- Feature Placer launch button
-	local featuresBtn = getCachedEl(doc, "btn-features")
-	if featuresBtn then
-		featuresBtn:AddEventListener("click", function(event)
-			playSound("toolSwitch")
-			clearPassthrough()
-			if WG.FeaturePlacer then
-				-- Deactivate terraform brush and activate feature placer
-				if WG.TerraformBrush then
-					WG.TerraformBrush.deactivate()
-				end
-				if WG.WeatherBrush then
-					WG.WeatherBrush.deactivate()
-				end
-				if WG.SplatPainter then
-					WG.SplatPainter.deactivate()
-				end
-				if WG.MetalBrush then
-					WG.MetalBrush.deactivate()
-				end
-				if WG.GrassBrush then
-					WG.GrassBrush.deactivate()
-				end
-				widgetState.envActive = false
-				widgetState.lightActive = false
-				if WG.LightPlacer then WG.LightPlacer.deactivate() end
-				widgetState.startposActive = false
-				if WG.StartPosTool then WG.StartPosTool.deactivate() end
-				widgetState.cloneActive = false
-				if WG.CloneTool then WG.CloneTool.deactivate() end
-				WG.FeaturePlacer.setMode("scatter")
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	-- Weather Brush launch button
-	local weatherBtn = getCachedEl(doc, "btn-weather")
-	if weatherBtn then
-		weatherBtn:AddEventListener("click", function(event)
-			playSound("toolSwitch")
-			clearPassthrough()
-			if WG.WeatherBrush then
-				if WG.TerraformBrush then
-					WG.TerraformBrush.deactivate()
-				end
-				if WG.FeaturePlacer then
-					WG.FeaturePlacer.deactivate()
-				end
-				if WG.SplatPainter then
-					WG.SplatPainter.deactivate()
-				end
-				if WG.MetalBrush then
-					WG.MetalBrush.deactivate()
-				end
-				if WG.GrassBrush then
-					WG.GrassBrush.deactivate()
-				end
-				widgetState.envActive = false
-				widgetState.lightActive = false
-				if WG.LightPlacer then WG.LightPlacer.deactivate() end
-				widgetState.startposActive = false
-				if WG.StartPosTool then WG.StartPosTool.deactivate() end
-				widgetState.cloneActive = false
-				if WG.CloneTool then WG.CloneTool.deactivate() end
-				WG.WeatherBrush.activate("scatter")
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	-- Environment tool button
-	local envBtn = getCachedEl(doc, "btn-environment")
-	if envBtn then
-		envBtn:AddEventListener("click", function(event)
-			playSound("toolSwitch")
-			clearPassthrough()
-			local ok2, err2 = pcall(function()
-				if widgetState.envActive then
-					-- Toggling OFF: return to terraform brush
-					widgetState.envActive = false
-					if WG.TerraformBrush then
-						local st = WG.TerraformBrush.getState()
-						WG.TerraformBrush.setMode(st and st.mode or "raise")
-					end
-				else
-					-- Toggling ON: deactivate all other tools
-					if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-					if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
-					if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
-					if WG.SplatPainter then WG.SplatPainter.deactivate() end
-					if WG.MetalBrush then WG.MetalBrush.deactivate() end
-					if WG.GrassBrush then WG.GrassBrush.deactivate() end
-					widgetState.lightActive = false
-					if WG.LightPlacer then WG.LightPlacer.deactivate() end
-					widgetState.startposActive = false
-					if WG.StartPosTool then WG.StartPosTool.deactivate() end
-					widgetState.cloneActive = false
-					if WG.CloneTool then WG.CloneTool.deactivate() end
-					widgetState.decalsActive = false
-					if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
-					widgetState.envActive = true
-				end
-			end)
-			if not ok2 then
-				Spring.Echo("[Terraform Brush UI] ERROR in envBtn click: " .. tostring(err2))
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	-- Light Placer launch button
-	local lightsBtn = getCachedEl(doc, "btn-lights")
-	if lightsBtn then
-		lightsBtn:AddEventListener("click", function(event)
-			playSound("toolSwitch")
-			clearPassthrough()
-			local ok2, err2 = pcall(function()
-				if widgetState.lightActive then
-					-- Toggling OFF: return to terraform brush
-					widgetState.lightActive = false
-					if WG.LightPlacer then WG.LightPlacer.deactivate() end
-					if WG.TerraformBrush then
-						local st = WG.TerraformBrush.getState()
-						WG.TerraformBrush.setMode(st and st.mode or "raise")
-					end
-				else
-					-- Toggling ON: deactivate all other tools
-					if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-					if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
-					if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
-					if WG.SplatPainter then WG.SplatPainter.deactivate() end
-					if WG.MetalBrush then WG.MetalBrush.deactivate() end
-					if WG.GrassBrush then WG.GrassBrush.deactivate() end
-					widgetState.envActive = false
-					widgetState.startposActive = false
-					if WG.StartPosTool then WG.StartPosTool.deactivate() end
-					widgetState.cloneActive = false
-					if WG.CloneTool then WG.CloneTool.deactivate() end
-					widgetState.decalsActive = false
-					if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
-					widgetState.lightActive = true
-					if WG.LightPlacer then WG.LightPlacer.setMode("point") end
-				end
-			end)
-			if not ok2 then
-				Spring.Echo("[Terraform Brush UI] ERROR in lightsBtn click: " .. tostring(err2))
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	-- Start Positions Tool launch button
-	local startposBtn = getCachedEl(doc, "btn-startpos")
-	if startposBtn then
-		startposBtn:AddEventListener("click", function(event)
-			playSound("toolSwitch")
-			clearPassthrough()
-			local ok2, err2 = pcall(function()
-				if widgetState.startposActive then
-					-- Toggling OFF: return to terraform brush
-					widgetState.startposActive = false
-					if WG.StartPosTool then WG.StartPosTool.deactivate() end
-					widgetState.cloneActive = false
-					if WG.CloneTool then WG.CloneTool.deactivate() end
-					if WG.TerraformBrush then
-						local st = WG.TerraformBrush.getState()
-						WG.TerraformBrush.setMode(st and st.mode or "raise")
-					end
-				else
-					-- Toggling ON: deactivate all other tools
-					if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-					if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
-					if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
-					if WG.SplatPainter then WG.SplatPainter.deactivate() end
-					if WG.MetalBrush then WG.MetalBrush.deactivate() end
-					if WG.GrassBrush then WG.GrassBrush.deactivate() end
-					widgetState.envActive = false
-					widgetState.lightActive = false
-					if WG.LightPlacer then WG.LightPlacer.deactivate() end
-					widgetState.cloneActive = false
-					if WG.CloneTool then WG.CloneTool.deactivate() end
-					widgetState.decalsActive = false
-					if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
-					widgetState.startposActive = true
-					if WG.StartPosTool then WG.StartPosTool.activate("express") end
-				end
-			end)
-			if not ok2 then
-				Spring.Echo("[Terraform Brush UI] ERROR in startposBtn click: " .. tostring(err2))
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	-- Splat Painter launch button
-	local splatBtn = getCachedEl(doc, "btn-splat")
-	if splatBtn then
-		splatBtn:AddEventListener("click", function(event)
-			playSound("toolSwitch")
-			clearPassthrough()
-			if WG.SplatPainter then
-				if WG.TerraformBrush then
-					WG.TerraformBrush.deactivate()
-				end
-				if WG.FeaturePlacer then
-					WG.FeaturePlacer.deactivate()
-				end
-				if WG.WeatherBrush then
-					WG.WeatherBrush.deactivate()
-				end
-				if WG.MetalBrush then
-					WG.MetalBrush.deactivate()
-				end
-				if WG.GrassBrush then
-					WG.GrassBrush.deactivate()
-				end
-				widgetState.envActive = false
-				widgetState.lightActive = false
-				if WG.LightPlacer then WG.LightPlacer.deactivate() end
-				widgetState.startposActive = false
-				if WG.StartPosTool then WG.StartPosTool.deactivate() end
-				widgetState.cloneActive = false
-				if WG.CloneTool then WG.CloneTool.deactivate() end
-				widgetState.decalsActive = false
-				if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
-				WG.SplatPainter.activate()
-				local clayBtn = getCachedEl(doc, "btn-clay-mode")
-				if clayBtn then
-					clayBtn:SetClass("unavailable", true)
-				end
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	for shape, element in pairs(widgetState.shapeButtons) do
-		if element then
-			element:AddEventListener("click", onShapeClick(shape), false)
-		end
-	end
-
-	if widgetState.rampTypeButtons.straight then
-		widgetState.rampTypeButtons.straight:AddEventListener("click", function(event)
-			playSound("tick")
-			if WG.TerraformBrush then WG.TerraformBrush.setShape("square") end
-			event:StopPropagation()
-		end, false)
-	end
-	if widgetState.rampTypeButtons.spline then
-		widgetState.rampTypeButtons.spline:AddEventListener("click", function(event)
-			playSound("tick")
-			if WG.TerraformBrush then WG.TerraformBrush.setShape("circle") end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local undoBtn = getCachedEl(doc, "btn-undo")
-	if undoBtn then
-		undoBtn:AddEventListener("click", function(event)
-			playSound("undo")
-			if WG.TerraformBrush then
-				WG.TerraformBrush.undo()
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local redoBtn = getCachedEl(doc, "btn-redo")
-	if redoBtn then
-		redoBtn:AddEventListener("click", function(event)
-			playSound("undo")
-			if WG.TerraformBrush then
-				WG.TerraformBrush.redo()
-			end
-			event:StopPropagation()
-		end, false)
-	end
 
 	local sliderHistory = getCachedEl(doc, "slider-history")
 	if sliderHistory then
@@ -2569,25 +2658,6 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	-- Metal undo/redo (per-tool undo via metal gadget)
-	local mbUndoBtn = getCachedEl(doc, "btn-mb-undo")
-	if mbUndoBtn then
-		mbUndoBtn:AddEventListener("click", function(event)
-			playSound("undo")
-			if WG.MetalBrush and WG.MetalBrush.undo then WG.MetalBrush.undo() end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local mbRedoBtn = getCachedEl(doc, "btn-mb-redo")
-	if mbRedoBtn then
-		mbRedoBtn:AddEventListener("click", function(event)
-			playSound("undo")
-			if WG.MetalBrush and WG.MetalBrush.redo then WG.MetalBrush.redo() end
-			event:StopPropagation()
-		end, false)
-	end
-
 	local mbSliderHistory = getCachedEl(doc, "slider-mb-history")
 	if mbSliderHistory then
 		trackSliderDrag(mbSliderHistory, "mb-history")
@@ -2613,17 +2683,6 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local rotCW = getCachedEl(doc, "btn-rot-cw")
-	local rotCCW = getCachedEl(doc, "btn-rot-ccw")
-
-	if rotCW then
-		rotCW:AddEventListener("click", onRotateCW, false)
-	end
-
-	if rotCCW then
-		rotCCW:AddEventListener("click", onRotateCCW, false)
-	end
-
 	local sliderRotation = getCachedEl(doc, "slider-rotation")
 	if sliderRotation then
 		trackSliderDrag(sliderRotation, "rotation")
@@ -2634,28 +2693,6 @@ local function attachEventListeners()
 			end
 			event:StopPropagation()
 		end, false)
-	end
-
-	local curveUpBtn = getCachedEl(doc, "btn-curve-up")
-	local curveDownBtn = getCachedEl(doc, "btn-curve-down")
-
-	if curveUpBtn then
-		curveUpBtn:AddEventListener("click", onCurveUp, false)
-	end
-
-	if curveDownBtn then
-		curveDownBtn:AddEventListener("click", onCurveDown, false)
-	end
-
-	local intensityUpBtn = getCachedEl(doc, "btn-intensity-up")
-	local intensityDownBtn = getCachedEl(doc, "btn-intensity-down")
-
-	if intensityUpBtn then
-		intensityUpBtn:AddEventListener("click", onIntensityUp, false)
-	end
-
-	if intensityDownBtn then
-		intensityDownBtn:AddEventListener("click", onIntensityDown, false)
 	end
 
 	local sliderCurve = getCachedEl(doc, "slider-curve")
@@ -2698,30 +2735,6 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local restoreStrengthUpBtn = getCachedEl(doc, "btn-restore-strength-up")
-	if restoreStrengthUpBtn then
-		restoreStrengthUpBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				local state = WG.TerraformBrush.getState()
-				local newVal = math.min(1.0, (state.restoreStrength or 1.0) + 0.05)
-				WG.TerraformBrush.setRestoreStrength(newVal)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local restoreStrengthDownBtn = getCachedEl(doc, "btn-restore-strength-down")
-	if restoreStrengthDownBtn then
-		restoreStrengthDownBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				local state = WG.TerraformBrush.getState()
-				local newVal = math.max(0.0, (state.restoreStrength or 1.0) - 0.05)
-				WG.TerraformBrush.setRestoreStrength(newVal)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
 	local sliderLength = getCachedEl(doc, "slider-length")
 	if sliderLength then
 		trackSliderDrag(sliderLength, "length")
@@ -2729,28 +2742,6 @@ local function attachEventListeners()
 			if not uiState.updatingFromCode and WG.TerraformBrush then
 				local val = tonumber(sliderLength:GetAttribute("value")) or 20
 				WG.TerraformBrush.setLengthScale(val / 10)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local lengthUpBtn = getCachedEl(doc, "btn-length-up")
-	if lengthUpBtn then
-		lengthUpBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				local state = WG.TerraformBrush.getState()
-				WG.TerraformBrush.setLengthScale(state.lengthScale + LENGTH_SCALE_STEP)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local lengthDownBtn = getCachedEl(doc, "btn-length-down")
-	if lengthDownBtn then
-		lengthDownBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				local state = WG.TerraformBrush.getState()
-				WG.TerraformBrush.setLengthScale(state.lengthScale - LENGTH_SCALE_STEP)
 			end
 			event:StopPropagation()
 		end, false)
@@ -2768,28 +2759,6 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local sizeUpBtn = getCachedEl(doc, "btn-size-up")
-	if sizeUpBtn then
-		sizeUpBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				local state = WG.TerraformBrush.getState()
-				WG.TerraformBrush.setRadius(state.radius + RADIUS_STEP)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local sizeDownBtn = getCachedEl(doc, "btn-size-down")
-	if sizeDownBtn then
-		sizeDownBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				local state = WG.TerraformBrush.getState()
-				WG.TerraformBrush.setRadius(state.radius - RADIUS_STEP)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
 	local sliderRingWidth = getCachedEl(doc, "slider-ring-width")
 	if sliderRingWidth then
 		trackSliderDrag(sliderRingWidth, "ring-width")
@@ -2800,36 +2769,6 @@ local function attachEventListeners()
 				local lbl = getCachedEl(doc, "ring-width-label")
 				if lbl then lbl.inner_rml = tostring(val) .. "%" end
 				WG.TerraformBrush.setRingInnerRatio(1 - val / 100)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local ringWidthUpBtn = getCachedEl(doc, "btn-ring-width-up")
-	if ringWidthUpBtn then
-		ringWidthUpBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				ringWidthPct = math.min(95, ringWidthPct + 5)
-				local sl = getCachedEl(doc, "slider-ring-width")
-				if sl then sl:SetAttribute("value", tostring(ringWidthPct)) end
-				local lbl = getCachedEl(doc, "ring-width-label")
-				if lbl then lbl.inner_rml = tostring(ringWidthPct) .. "%" end
-				WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local ringWidthDownBtn = getCachedEl(doc, "btn-ring-width-down")
-	if ringWidthDownBtn then
-		ringWidthDownBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				ringWidthPct = math.max(5, ringWidthPct - 5)
-				local sl = getCachedEl(doc, "slider-ring-width")
-				if sl then sl:SetAttribute("value", tostring(ringWidthPct)) end
-				local lbl = getCachedEl(doc, "ring-width-label")
-				if lbl then lbl.inner_rml = tostring(ringWidthPct) .. "%" end
-				WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100)
 			end
 			event:StopPropagation()
 		end, false)
@@ -2858,60 +2797,6 @@ local function attachEventListeners()
 			if uiState.updatingFromCode then event:StopPropagation(); return end
 			local val = tonumber(sliderCapMin:GetAttribute("value")) or 0
 			capMinValue = val
-			if capMaxValue < capMinValue then
-				capMaxValue = capMinValue
-				applyCap("max", capMaxValue)
-			end
-			applyCap("min", capMinValue)
-			event:StopPropagation()
-		end, false)
-	end
-
-	-- Height cap +/- buttons (reuse a single local to stay under 200-local limit)
-	local capBtn
-	capBtn = getCachedEl(doc, "btn-cap-max-up")
-	if capBtn then
-		capBtn:AddEventListener("click", function(event)
-			capMaxValue = math.min(500, capMaxValue + HEIGHT_CAP_STEP)
-			if capMinValue > capMaxValue then
-				capMinValue = capMaxValue
-				applyCap("min", capMinValue)
-			end
-			applyCap("max", capMaxValue)
-			event:StopPropagation()
-		end, false)
-	end
-
-	capBtn = getCachedEl(doc, "btn-cap-max-down")
-	if capBtn then
-		capBtn:AddEventListener("click", function(event)
-			capMaxValue = math.max(-500, capMaxValue - HEIGHT_CAP_STEP)
-			if capMinValue > capMaxValue then
-				capMinValue = capMaxValue
-				applyCap("min", capMinValue)
-			end
-			applyCap("max", capMaxValue)
-			event:StopPropagation()
-		end, false)
-	end
-
-	capBtn = getCachedEl(doc, "btn-cap-min-up")
-	if capBtn then
-		capBtn:AddEventListener("click", function(event)
-			capMinValue = math.min(500, capMinValue + HEIGHT_CAP_STEP)
-			if capMaxValue < capMinValue then
-				capMaxValue = capMinValue
-				applyCap("max", capMaxValue)
-			end
-			applyCap("min", capMinValue)
-			event:StopPropagation()
-		end, false)
-	end
-
-	capBtn = getCachedEl(doc, "btn-cap-min-down")
-	if capBtn then
-		capBtn:AddEventListener("click", function(event)
-			capMinValue = math.max(-500, capMinValue - HEIGHT_CAP_STEP)
 			if capMaxValue < capMinValue then
 				capMaxValue = capMinValue
 				applyCap("max", capMaxValue)
@@ -3623,44 +3508,6 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	local metalBtn = getCachedEl(doc, "btn-metal")
-	if metalBtn then
-		metalBtn:AddEventListener("click", function(event)
-			playSound("toolSwitch")
-			clearPassthrough()
-			if WG.MetalBrush then
-				if WG.TerraformBrush then
-					WG.TerraformBrush.deactivate()
-				end
-				if WG.FeaturePlacer then
-					WG.FeaturePlacer.deactivate()
-				end
-				if WG.WeatherBrush then
-					WG.WeatherBrush.deactivate()
-				end
-				if WG.SplatPainter then
-					WG.SplatPainter.deactivate()
-				end
-				if WG.GrassBrush then
-					WG.GrassBrush.deactivate()
-				end
-				widgetState.envActive = false
-				widgetState.lightActive = false
-				if WG.LightPlacer then WG.LightPlacer.deactivate() end
-				widgetState.startposActive = false
-				if WG.StartPosTool then WG.StartPosTool.deactivate() end
-				widgetState.cloneActive = false
-				if WG.CloneTool then WG.CloneTool.deactivate() end
-				WG.MetalBrush.activate("paint")
-				local clayBtn = getCachedEl(doc, "btn-clay-mode")
-				if clayBtn then
-					clayBtn:SetClass("unavailable", true)
-				end
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
 	-- Grass launch button
 	local grassBtn = getCachedEl(doc, "btn-grass")
 	if grassBtn then
@@ -3672,82 +3519,12 @@ local function attachEventListeners()
 		grassBtn:AddEventListener("mouseout", function(event)
 			widgetState.grassHoverNoData = false
 		end, false)
-		grassBtn:AddEventListener("click", function(event)
-			-- Block activation when the map has no grass data
-			local gApi = WG['grassgl4']
-			local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()
-			if not hasGrass then
-				event:StopPropagation()
-				return
-			end
-			playSound("toolSwitch")
-			clearPassthrough()
-			if WG.GrassBrush then
-				if WG.TerraformBrush then
-					WG.TerraformBrush.deactivate()
-				end
-				if WG.FeaturePlacer then
-					WG.FeaturePlacer.deactivate()
-				end
-				if WG.WeatherBrush then
-					WG.WeatherBrush.deactivate()
-				end
-				if WG.SplatPainter then
-					WG.SplatPainter.deactivate()
-				end
-				if WG.MetalBrush then
-					WG.MetalBrush.deactivate()
-				end
-				widgetState.envActive = false
-				widgetState.lightActive = false
-				if WG.LightPlacer then WG.LightPlacer.deactivate() end
-				widgetState.startposActive = false
-				if WG.StartPosTool then WG.StartPosTool.deactivate() end
-				widgetState.cloneActive = false
-				if WG.CloneTool then WG.CloneTool.deactivate() end
-				WG.GrassBrush.activate("paint")
-				local clayBtn = getCachedEl(doc, "btn-clay-mode")
-				if clayBtn then
-					clayBtn:SetClass("unavailable", true)
-				end
-			end
-			event:StopPropagation()
-		end, false)
+		-- click handled declaratively via onclick="widget:tfSwitchGrass()"
 	end
 
 	-- Decals launch button
 	local decalsBtn = getCachedEl(doc, "btn-decals")
-	if decalsBtn then
-		decalsBtn:AddEventListener("click", function(event)
-			playSound("toolSwitch")
-			clearPassthrough()
-			if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-			if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
-			if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
-			if WG.SplatPainter then WG.SplatPainter.deactivate() end
-			if WG.MetalBrush then WG.MetalBrush.deactivate() end
-			if WG.GrassBrush then WG.GrassBrush.deactivate() end
-			widgetState.envActive = false
-			widgetState.lightActive = false
-			if WG.LightPlacer then WG.LightPlacer.deactivate() end
-			widgetState.startposActive = false
-			if WG.StartPosTool then WG.StartPosTool.deactivate() end
-			widgetState.cloneActive = false
-			if WG.CloneTool then WG.CloneTool.deactivate() end
-			widgetState.decalsActive = true
-			if WG.DecalPlacer then
-				local s = WG.DecalPlacer.getState()
-				if not s or not s.active then
-					WG.DecalPlacer.setMode("point")
-				end
-			end
-			local clayBtn = getCachedEl(doc, "btn-clay-mode")
-			if clayBtn then
-				clayBtn:SetClass("unavailable", true)
-			end
-			event:StopPropagation()
-		end, false)
-	end
+	-- (click handled declaratively via onclick="widget:tfSwitchDecals()")
 
 	local quitBtn = getCachedEl(doc, "btn-quit")
 	if quitBtn then
@@ -4009,13 +3786,6 @@ local function attachEventListeners()
 			event:StopPropagation()
 		end, false)
 	end
-
-	-- Share widget (self) with extracted tool modules so they can register
-	-- methods callable from inline RML handlers like onclick="widget:spFoo()".
-	-- Must be set BEFORE any module .attach() calls that read ctx.widget.
-	-- Use the upvalue `widget` (file-level `local widget = widget`) — `self`
-	-- is not bound inside this plain-function scope.
-	ctx.widget = widget
 
 	-- Metal Brush controls (extracted to tf_metal.lua)
 	tfMetal.attach(doc, ctx)
@@ -5072,7 +4842,7 @@ function widget:Update()
 	-- Disable fill+clay in metal mode; disable fill in feature/grass/weather/light/noise modes
 	local fillBtn = widgetState.shapeButtons.fill
 	if fillBtn then
-		fillBtn:SetClass("disabled", mbActive or fpActive or gbActive or wbActive or lpActive or noiseActive or false)
+		fillBtn:SetClass("disabled", mbActive or fpActive or gbActive or wbActive or lpActive or noiseActive or (tfActive and tfState and tfState.mode == "lower") or false)
 	end
 	local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
 	if clayBtn then
