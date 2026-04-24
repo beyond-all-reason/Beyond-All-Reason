@@ -356,16 +356,15 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 			return
 		end
 
-		statisticsTriggerCounts[triggerID] = (statisticsTriggerCounts[triggerID] or 0) + (direction or 1)
+		statisticsTriggerCounts[triggerID] = (statisticsTriggerCounts[triggerID] or 0) + direction
 
-		-- Repeat at quantity, 2*quantity, 3*quantity, ...
+		-- Repeat at quantity, 2*quantity, 3*quantity, ... (only when incrementing)
 		local nextThreshold = (trigger.repeatCount + 1) * trigger.parameters.quantity
-		if statisticsTriggerCounts[triggerID] >= nextThreshold then
+		if direction > 0 and statisticsTriggerCounts[triggerID] >= nextThreshold then
 			activateTrigger(trigger)
 		end
 	end)
 end
-
 local function incrementUnitStatistics(triggerType, teamID, unitDefName, unitNames)
 	updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, 1)
 end
