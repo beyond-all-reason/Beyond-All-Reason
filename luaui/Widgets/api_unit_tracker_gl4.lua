@@ -801,6 +801,13 @@ function widget:AddConsoleLine(lines, priority)
         if myPlayerName == username then
             -- Yes, we have desynced, time to send a LuaUIMsg to notify the server
             -- desyncee, gameID, frame, gameversion, engine version, map, chobby version?
+            local osString = nil
+            if Platform and Platform.osFamily then
+                osString = Platform.osFamily
+                if Platform.osVersion then
+                    osString = osString .. " " .. Platform.osVersion
+                end
+            end
             local jsondict = {
                 eventtype = "syncerror",
                 username = username, -- desyncee
@@ -812,6 +819,11 @@ function widget:AddConsoleLine(lines, priority)
                 frame = frameNumber, -- the frame where it happened.
                 gotChecksum = gotChecksum,
                 correctChecksum = correctChecksum,
+                cpu = Platform and Platform.hwConfig or nil,
+                gpu = Platform and Platform.gpu or nil,
+                gpuVendor = Platform and Platform.gpuVendor or nil,
+                os = osString,
+                osName = Platform and Platform.osName or nil,
             }
 			--spEcho(jsondict)
 
