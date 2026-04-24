@@ -95,9 +95,9 @@ local function GetScriptFunc(unitID, functionName)
 	end
 	local env = Spring.UnitScript.GetScriptEnv(unitID)
 	if env and env[functionName] then
-		return function(uid, fname, a, b, c, d, e, f, g, h, i, j, k, l)
+		return function(uid, fname, ...)
 			local scriptEnv = Spring.UnitScript.GetScriptEnv(uid)
-			Spring.UnitScript.CallAsUnit(uid, scriptEnv[fname], a, b, c, d, e, f, g, h, i, j, k, l)
+			Spring.UnitScript.CallAsUnit(uid, scriptEnv[fname], ...)
 		end
 	end
 	return false
