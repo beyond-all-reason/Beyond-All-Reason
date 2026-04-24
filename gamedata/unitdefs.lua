@@ -97,6 +97,27 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
+--  Load JSON format unitdef files
+--
+
+local jsonLoader = VFS.Include('gamedata/json_loader.lua')
+local jsonDefs = jsonLoader.loadJsonDefs('units/', function(filename)
+	return (legionEnabled or not filename:find('legion'))
+		and (scavengersEnabled or not filename:find('scavengers'))
+		and (raptorsEnabled or not filename:find('raptors'))
+end)
+
+for unitDefName, unitDef in pairs(jsonDefs) do
+	if unitDefs[unitDefName] then
+		Spring.Log(section, LOG.ERROR,
+			'Duplicate unitDef "' .. unitDefName .. '" from JSON (already loaded from Lua)')
+	end
+	unitDefs[unitDefName] = unitDef
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
 --  Run a post-processing script if one exists
 --
 

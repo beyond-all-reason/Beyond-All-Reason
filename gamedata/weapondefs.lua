@@ -66,6 +66,23 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
+--  Load JSON format weapondef files
+--
+
+local jsonLoader = VFS.Include('gamedata/json_loader.lua')
+local jsonDefs = jsonLoader.loadJsonDefs('weapons/')
+
+for weaponDefName, weaponDef in pairs(jsonDefs) do
+	if weaponDefs[weaponDefName] then
+		Spring.Log(section, LOG.ERROR,
+			'Duplicate weaponDef "' .. weaponDefName .. '" from JSON (already loaded from Lua)')
+	end
+	weaponDefs[weaponDefName] = weaponDef
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
 --  Run a post-processing script if one exists
 --
 

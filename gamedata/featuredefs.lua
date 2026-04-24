@@ -67,6 +67,23 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
+--  Load JSON format featuredef files
+--
+
+local jsonLoader = VFS.Include('gamedata/json_loader.lua')
+local jsonDefs = jsonLoader.loadJsonDefs('features/')
+
+for featureDefName, featureDef in pairs(jsonDefs) do
+	if featureDefs[featureDefName] then
+		Spring.Log(section, LOG.ERROR,
+			'Duplicate featureDef "' .. featureDefName .. '" from JSON (already loaded from Lua)')
+	end
+	featureDefs[featureDefName] = featureDef
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
 --  Run a post-processing script if one exists
 --
 
