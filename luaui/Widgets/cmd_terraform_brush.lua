@@ -2494,8 +2494,8 @@ extraState.reapplyRampChain = function(chain)
 end
 
 -- G4: Queue an undo+sync+reapply for a ramp chain after an endpoint/handle drag.
--- Sends one UNDO per widget:Update tick (safe, avoids batched-undo stripy terrain bug).
--- If a sticky replayQueue is active the re-apply is skipped to avoid conflicts.
+-- Sends one UNDO_STROKE to atomically undo the entire last ramp application, then re-applies
+-- the chain at its new geometry. Results in exactly one undo entry per drag operation.
 extraState.queueRampReapply = function(chain)
 	if not chain or not chain.isRampChain then return end
 	-- Don't conflict with an active sticky replay
@@ -2504,13 +2504,17 @@ extraState.queueRampReapply = function(chain)
 		return
 	end
 	local baseline = chain.rampUndoBaseline or 0
-	local undoNeeded = math.max(0, (extraState.gadgetUndoCount or 0) - baseline)
-	if undoNeeded == 0 then
+	local hasEntries = (extraState.gadgetUndoCount or 0) > baseline
+	if not hasEntries then
 		-- Nothing to undo (chain was never applied, or already clean) — just apply
 		extraState.reapplyRampChain(chain)
+		closeBrushStroke()
+		chain.rampUndoBaseline = extraState.gadgetUndoCount
 		return
 	end
-	extraState.rampReapplyQueue = { chain = chain, phase = "undo", remaining = undoNeeded }
+	-- Send one UNDO_STROKE to atomically pop all entries for the last ramp stroke.
+	SendLuaRulesMsg(MSG.UNDO_STROKE)
+	extraState.rampReapplyQueue = { chain = chain, phase = "sync" }
 end
 
 -- G4: Store a completed ramp path as a persistent chain in the measure layer.
@@ -2632,21 +2636,16 @@ function widget:Update(dt)
 	-- undo+sync+reapply cycle finishes in ~3 frames rather than ~120 frames.
 	if extraState.rampReapplyQueue and not extraState.replayQueue then
 		local rq = extraState.rampReapplyQueue
-		if rq.phase == "undo" then
-			local batch = math.min(rq.remaining, 20)
-			for _ = 1, batch do
-				SendLuaRulesMsg(MSG.UNDO)
-			end
-			rq.remaining = rq.remaining - batch
-			if rq.remaining <= 0 then
-				rq.phase = "sync"
-			end
-		elseif rq.phase == "sync" then
-			-- Snap baseline to actual post-undo depth before re-applying
-			rq.chain.rampUndoBaseline = extraState.gadgetUndoCount
+		if rq.phase == "sync" then
+			-- Wait one tick for gadget to process UNDO_STROKE and report updated stack depth
 			rq.phase = "apply"
 		elseif rq.phase == "apply" then
 			extraState.reapplyRampChain(rq.chain)
+			closeBrushStroke()
+			rq.phase = "baseline"
+		elseif rq.phase == "baseline" then
+			-- One tick after reapply+STROKE_END: gadget has pushed new entry, update baseline
+			rq.chain.rampUndoBaseline = extraState.gadgetUndoCount
 			extraState.rampReapplyQueue = nil
 		end
 	end
