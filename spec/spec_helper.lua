@@ -142,6 +142,9 @@ end
 -- if we used `require("common/tablefunction")` above here, it could potentially cause "The same file is required with different names." linter errors when `VFS.Include("common/tablefunctions.lua")` is called
 VFS.Include("common/tablefunctions.lua")
 
+-- Make Json available globally for JSON def loading (mirrors init.lua)
+_G.Json = _G.Json or VFS.Include("common/luaUtilities/json.lua")
+
 _G.VFS.SubDirs = function(path)
     -- Check case-insensitive cache for correct directory path
     if not _G.VFS._ci_file_cache then
@@ -227,6 +230,33 @@ _G.VFS.DirList = function(directory, pattern, mode, recursive)
     end
 
     return files
+end
+
+_G.VFS.LoadFile = function(path, mode)
+    -- Try direct path first
+    local realPath = path
+    local file = io.open(path, "r")
+    if not file then
+        -- Check case-insensitive cache
+        if not _G.VFS._ci_file_cache then
+            _G.VFS.FileExists("___dummy_path___")
+        end
+        local cleanPath = path:gsub("^%./", "")
+        local cachedPath = _G.VFS._ci_file_cache[cleanPath:lower()]
+        if cachedPath then
+            realPath = cachedPath
+        end
+    else
+        file:close()
+    end
+
+    local f = io.open(realPath, "r")
+    if f then
+        local content = f:read("*a")
+        f:close()
+        return content
+    end
+    return nil
 end
 
 _G.VFS.MAP = 1
