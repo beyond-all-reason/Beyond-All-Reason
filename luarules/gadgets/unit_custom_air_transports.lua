@@ -653,32 +653,32 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(frame)
-		local count = 0
-		for terID, co in pairs(areaLoadCoroutines) do count = count + 1 end
-		for terID, co in pairs(areaLoadCoroutines) do
-			local status = coroutine.status(co)
-			if status == "suspended" then
-				local ok, err = coroutine.resume(co)
-				if not ok then
-					spEcho("Error in CMD_AREA_LOAD coroutine for transporter " .. terID .. ": " .. err)
-					areaLoadCoroutines[terID] = nil
-				end
-			else
+	local count = 0
+	for terID, co in pairs(areaLoadCoroutines) do count = count + 1 end
+	for terID, co in pairs(areaLoadCoroutines) do
+		local status = coroutine.status(co)
+		if status == "suspended" then
+			local ok, err = coroutine.resume(co)
+			if not ok then
+				spEcho("Error in CMD_AREA_LOAD coroutine for transporter " .. terID .. ": " .. err)
 				areaLoadCoroutines[terID] = nil
 			end
+		else
+			areaLoadCoroutines[terID] = nil
 		end
-		for terID, co in pairs(successiveLoadCoroutines) do
-			local status = coroutine.status(co)
-			if status == "suspended" then
-				local ok, err = coroutine.resume(co)
-				if not ok then
-					spEcho("Error in CMD_LOAD_UNIT coroutine for transporter " .. terID .. ": " .. err)
-					successiveLoadCoroutines[terID] = nil
-				end
-			else
+	end
+	for terID, co in pairs(successiveLoadCoroutines) do
+		local status = coroutine.status(co)
+		if status == "suspended" then
+			local ok, err = coroutine.resume(co)
+			if not ok then
+				spEcho("Error in CMD_LOAD_UNIT coroutine for transporter " .. terID .. ": " .. err)
 				successiveLoadCoroutines[terID] = nil
 			end
+		else
+			successiveLoadCoroutines[terID] = nil
 		end
+	end
 end
 
 
