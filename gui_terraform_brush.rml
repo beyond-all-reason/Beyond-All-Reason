@@ -1,4 +1,4 @@
-<rml>
+﻿<rml>
 <head>
 	<link type="text/rcss" href="../styles.rcss" />
 	<link type="text/rcss" href="../rml-utility-classes.rcss" />
@@ -490,7 +490,7 @@
 		<div id="section-cl-controls">
 
 
-			<!-- Primary actions — hero buttons: COPY is the main action -->
+			<!-- Primary actions â€” hero buttons: COPY is the main action -->
 			<div class="flex flex-row gap-1 mb-1">
 				<div id="btn-cl-copy" class="tf-cl-action tf-cl-action-copy" onclick="widget:clCopy(); event:StopPropagation()">
 					<div class="tf-cl-action-label">COPY</div>
@@ -505,14 +505,14 @@
 				</div>
 			</div>
 
-			<!-- Status display — prominent -->
+			<!-- Status display â€” prominent -->
 			<div class="tf-cl-status-bar mb-1">
 				<div class="tf-cl-status-text" id="cl-status-label">Select an area to clone</div>
 			</div>
 
 			<div class="divider-horizontal-dark"></div>
 
-			<!-- Layer toggles — compact secondary row -->
+			<!-- Layer toggles â€” compact secondary row -->
 			<div class="flex flex-row items-center gap-1 mb-1">
 				<div class="text-sm text-keybind">Include Layers</div>
 				<div id="clone-layers-notify-dot" class="tf-notify-dot hidden"></div>
@@ -1553,14 +1553,6 @@
 			<div class="flex flex-row gap-1 mb-1">
 				<div id="btn-grass-save" onclick="widget:gbSave(); event:StopPropagation()" class="tf-action-btn tf-save-btn" style="flex: 1;">
 					<div class="tf-action-btn-text">SAVE GRASS MAP</div>
-				</div>
-			</div>
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-grass-load" onclick="widget:gbLoad(); event:StopPropagation()" class="tf-action-btn tf-load-btn" style="flex: 1;">
-					<div class="tf-action-btn-text">LOAD GRASS MAP</div>
-				</div>
-				<div id="btn-grass-clean" onclick="widget:gbClean(); event:StopPropagation()" class="tf-action-btn tf-dc-reset-btn" style="flex: 1;">
-					<div class="tf-action-btn-text">CLEAN GRASS</div>
 				</div>
 			</div>
 			</div><!-- /section-gb-controls -->
@@ -3939,16 +3931,16 @@
 						<div class="flex flex-row gap-1 items-center">
 							<div class="lp-orient-label">Pitch</div>
 							<input type="text" id="lp-orient-pitch-input" class="lp-orient-numbox" value="-45" />
-							<div class="lp-orient-deg">°</div>
+							<div class="lp-orient-deg">Â°</div>
 						</div>
 						<div class="flex flex-row gap-1 items-center">
 							<div class="lp-orient-label">Yaw</div>
 							<input type="text" id="lp-orient-yaw-input" class="lp-orient-numbox" value="0" />
-							<div class="lp-orient-deg">°</div>
+							<div class="lp-orient-deg">Â°</div>
 						</div>
 					</div>
 				</div>
-				<div class="lp-orient-hintbar">drag · ●=down, edge=horiz · Alt+Scroll=Yaw · Ctrl+Alt=Pitch</div>
+				<div class="lp-orient-hintbar">drag Â· â—Ź=down, edge=horiz Â· Alt+Scroll=Yaw Â· Ctrl+Alt=Pitch</div>
 			</div>
 
 			<!-- Cone Theta (visible only for cone) -->
@@ -4026,7 +4018,7 @@
 			<div class="text-base text-keybind" style="margin-right: 2dp;">COLOR</div>
 		</div>
 		<div id="section-lp-color">
-			<!-- MS Paint style color palette (18 columns × 3 rows) -->
+			<!-- MS Paint style color palette (18 columns Ă— 3 rows) -->
 			<div id="lp-color-palette" class="lp-color-palette mb-1">
 				<!-- Row 1: core + warm spectrum -->
 				<div id="lp-swatch-1" class="lp-palette-swatch" onclick="widget:lpSwatch(1); event:StopPropagation()" style="background-color: #ffffff;"></div>
