@@ -107,7 +107,7 @@ end
 ---@param y number
 ---@return boolean isUnderwater
 
-local function isUnderwater(teeID, y)
+local function isUnderwater(teeID, y) -- i leave it hanging for now; TODOO: use engine's phys state bit or exact same calc to match
 	local height = spGetUnitHeight(teeID)
 	return not height or y + height < 0
 end
