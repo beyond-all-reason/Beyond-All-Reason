@@ -45,8 +45,8 @@ function CargoHandler.Init(setup)
         primarySlot    = nameToID[setup.primarySlot], -- slotID used for single-unit commands
         transportees   = {},                        -- [transporteeID] = teeData  ({ id, height, slotID, beamPieces, wbX/Y/Z, animProgress })
         count          = 0,                         -- number of units currently loaded
-        usedSeats      = 0,                         -- sum of seat costs of all loaded units
-        nSeats         = setup.nSeats,              -- total seat capacity of this transporter
+        terUsedSeats      = 0,                         -- sum of seat costs of all loaded units
+        terSeats         = setup.terSeats,              -- total seat capacity of this transporter
         slotSizes      = slotSizes,                 -- set of slot sizes available, eg { [1]=true, [4]=true }
         loadingCount   = 0,                         -- number of load animations in progress
         unloadingCount = 0,                         -- number of unload animations in progress
@@ -54,12 +54,12 @@ function CargoHandler.Init(setup)
 
     -- set some initial unit rules params for the gadget to read, and for UI display
 	for size, bool in pairs (slotSizes) do
-		local rulesParamString = "hasSlotOfSize"..size
+		local rulesParamString = "transporterHasSlotOfSize"..size
 		SpSetUnitRulesParam(unitID, rulesParamString, bool)
 	end
 	
-    SpSetUnitRulesParam(unitID, "nSeats",    setup.nSeats) -- used by gadget to determine if a transportee can be loaded, and by anim handler to determine whether to show hover effect
-    SpSetUnitRulesParam(unitID, "usedSeats", 0) -- used by gadget to determine if a transportee can be loaded/unloaded, and by anim handler to determine whether to show hover effect
+    SpSetUnitRulesParam(unitID, "transporterSeats",    setup.terSeats) -- used by gadget to determine if a transportee can be loaded, and by anim handler to determine whether to show hover effect
+    SpSetUnitRulesParam(unitID, "transporterUsedSeats", 0) -- used by gadget to determine if a transportee can be loaded/unloaded, and by anim handler to determine whether to show hover effect
     CargoHandler.CanLoad(true)
     CargoHandler.CanUnload(true)
     return cargo
@@ -138,7 +138,7 @@ function CargoHandler.FindSlot(transporteeID, cargo, allowReorganize)
         end
     end
     if allowReorganize and CargoHandler.HasSlotOfSize(seats, cargo)
-           and cargo.usedSeats + seats <= cargo.nSeats then
+           and cargo.terUsedSeats + seats <= cargo.terSeats then
         CargoHandler.ReorganizeAndLoad(cargo, transporteeID)
         return nil
     end
@@ -190,8 +190,8 @@ end
 function CargoHandler.Register(transporteeID, teeData, cargo)
     cargo.transportees[transporteeID] = teeData
     cargo.count     = cargo.count + 1
-    cargo.usedSeats = cargo.usedSeats + (cargo.slots[teeData.slotID].size or 0)
-    SpSetUnitRulesParam(cargo.unitID, "usedSeats", cargo.usedSeats)
+    cargo.terUsedSeats = cargo.terUsedSeats + (cargo.slots[teeData.slotID].size or 0)
+    SpSetUnitRulesParam(cargo.unitID, "transporterUsedSeats", cargo.terUsedSeats)
     return cargo.count
 end
 
@@ -199,8 +199,8 @@ end
 function CargoHandler.Unregister(transporteeID, cargo)
     local teeData = cargo.transportees[transporteeID]
     if teeData and teeData.slotID then
-        cargo.usedSeats = math.max(0, cargo.usedSeats - (cargo.slots[teeData.slotID].size or 0))
-        SpSetUnitRulesParam(cargo.unitID, "usedSeats", cargo.usedSeats)
+        cargo.terUsedSeats = math.max(0, cargo.terUsedSeats - (cargo.slots[teeData.slotID].size or 0))
+        SpSetUnitRulesParam(cargo.unitID, "transporterUsedSeats", cargo.terUsedSeats)
         CargoHandler.ReleaseSlot(teeData.slotID, cargo)
     end
     cargo.transportees[transporteeID] = nil

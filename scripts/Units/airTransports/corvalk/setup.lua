@@ -7,7 +7,7 @@ return {
     -- Cargo hardpoint configuration.
     cargo = {
         primarySlot = "link",
-        nSeats      = 1,   -- total seat capacity; read by the transport gadget to check available room
+        terSeats      = 1,   -- total seat capacity; read by the transport gadget to check available room
 
         slots = {
             { name = "link", size = 1, requires = {} },

@@ -13,7 +13,7 @@ return {
     --   Each 2x2 sub-slot needs link4x4 free for the same reason.
     cargo = {
         primarySlot = "link2x2",
-        nSeats      = 1,   -- total seat capacity; read by the transport gadget to check available room
+        terSeats      = 1,   -- total seat capacity; read by the transport gadget to check available room
 
         slots = {
             { name = "link2x2",   size = 1, requires = {  } },

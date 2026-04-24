@@ -230,13 +230,13 @@ local function CanTransporteeFitInTransporter(terID, teeID, terDefID, teeSize, i
 	if not spValidUnitID(teeID) then
 		return false
 	end
-	local nSeats    = spGetUnitRulesParam(terID, "nSeats")    or 0
-	local usedSeats = spGetUnitRulesParam(terID, "usedSeats") or 0
+	local terSeats    = spGetUnitRulesParam(terID, "transporterSeats")    or 0
+	local terUsedSeats = spGetUnitRulesParam(terID, "transporterUsedSeats") or 0
 	local queued    = includeQueue and (queuedSeats[terID] or 0) or 0
-	if nSeats - usedSeats - queued < teeSize then
+	if terSeats - terUsedSeats - queued < teeSize then
 		return false
 	end
-	local rulesParamString = "hasSlotOfSize"..teeSize
+	local rulesParamString = "transporterHasSlotOfSize"..teeSize
 	local foundSlot = spGetUnitRulesParam(terID, rulesParamString) == true
 	return foundSlot
 end
@@ -371,7 +371,7 @@ local function findUnitToTransport(terID, terDefID, terTeamID, cx, cz, radius)
 	local units = getCachedUnitsInCylinder(cx, cz, radius, terAllyTeam)
 	local bestUnit = nil
 	local bestDist = maxDistSq
-	if spGetUnitRulesParam(terID, "nSeats") <= spGetUnitRulesParam(terID, "usedSeats") + (queuedSeats[terID] or 0) then
+	if spGetUnitRulesParam(terID, "transporterSeats") <= spGetUnitRulesParam(terID, "transporterUsedSeats") + (queuedSeats[terID] or 0) then
 		-- early exit if no seats
 		return nil
 	end
@@ -501,11 +501,11 @@ local function ExecuteSuccessiveLoadUnits(terID, terDefID, terTeamID)
 	local idsToRemove = {}
 	local terAllyTeam = spGetUnitAllyTeam(terID)
 	-- 1: Get current queue, remove invalid units, claim valid ones
-	local queue = spGetUnitCommands(terID,  Spring.GetUnitRulesParam(terID, "nSeats")) --  Spring.GetUnitRulesParam(terID, "nSeats") being the max number of units we can queue on a single transport
+	local queue = spGetUnitCommands(terID,  Spring.GetUnitRulesParam(terID, "transporterSeats")) --  Spring.GetUnitRulesParam(terID, "transporterSeats") being the max number of units we can queue on a single transport
 	local i = 1
 	local cmd = queue and queue[i]
-	if queuedSeats[terID] + Spring.GetUnitRulesParam(terID, "usedSeats") < Spring.GetUnitRulesParam(terID, "nSeats") then
-		while cmd and cmd.id == CMD_LOAD_UNIT and (queuedSeats[terID] + Spring.GetUnitRulesParam(terID, "usedSeats") < Spring.GetUnitRulesParam(terID, "nSeats")) do
+	if queuedSeats[terID] + Spring.GetUnitRulesParam(terID, "transporterUsedSeats") < Spring.GetUnitRulesParam(terID, "transporterSeats") then
+		while cmd and cmd.id == CMD_LOAD_UNIT and (queuedSeats[terID] + Spring.GetUnitRulesParam(terID, "transporterUsedSeats") < Spring.GetUnitRulesParam(terID, "transporterSeats")) do
 			local teeID = cmd.params[1]
 			local teeDefID = spGetUnitDefID(teeID)
 			local _, teePosY = spGetUnitPosition(teeID)
@@ -519,7 +519,7 @@ local function ExecuteSuccessiveLoadUnits(terID, terDefID, terTeamID)
 			i = i + 1
 			cmd = queue and queue[i]
 		end
-	elseif (Spring.GetUnitRulesParam(terID, "usedSeats") >= Spring.GetUnitRulesParam(terID, "nSeats")) then -- we still have queued commands despite being full, they can't be performed
+	elseif (Spring.GetUnitRulesParam(terID, "transporterUsedSeats") >= Spring.GetUnitRulesParam(terID, "transporterSeats")) then -- we still have queued commands despite being full, they can't be performed
 		while cmd and cmd.id == CMD_LOAD_UNIT do
 			local teeID = cmd.params[1]
 			idsToRemove[teeID] = true -- mark command for removal

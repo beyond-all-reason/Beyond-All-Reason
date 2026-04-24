@@ -13,7 +13,7 @@ return {
     --   Each 2x2 sub-slot needs link4x4 free for the same reason.
     cargo = {
         primarySlot = "flink4x4",
-        nSeats      = 8,   -- total seat capacity; read by the transport gadget to check available room
+        terSeats      = 8,   -- total seat capacity; read by the transport gadget to check available room
 
         slots = {
             { name = "flink4x4",   size = 4, requires = { "ffrlink2x2", "ffllink2x2", "fbrlink2x2", "fbllink2x2" } },
