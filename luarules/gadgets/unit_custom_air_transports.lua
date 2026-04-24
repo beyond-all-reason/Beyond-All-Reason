@@ -568,12 +568,7 @@ function ExecuteSuccessiveLoadUnits(terID, terDefID, terTeamID)
 			idsToRemove[teeID] = true
 		end
 	end
-	if spValidUnitID(transporterClaims[terID][1]) then --it could have been loaded
-		-- move to first in queue, not avg pos, in case of blocked or immobile tees
-		local tee1x, tee1y, tee1z = spGetUnitPosition(transporterClaims[terID][1])
-		spSetUnitMoveGoal(terID, tee1x, tee1y, tee1z)
-	end
-	-- remove invalidated/finished commands
+	-- remove invalidated/finished commands before giving a move goal, making sure don't accidently movegoal to a skipped unit
 	for teeID,v in pairs(idsToRemove) do
 		releaseTransportee(teeID, terAllyTeam) -- release claim so it can be targeted by future loads
 		for i = 1, #queue do
@@ -582,6 +577,11 @@ function ExecuteSuccessiveLoadUnits(terID, terDefID, terTeamID)
 				break
 			end
 		end
+	end
+	if spValidUnitID(transporterClaims[terID][1]) then --it could have been loaded
+		-- move to first in queue, not avg pos, in case of blocked or immobile tees
+		local tee1x, tee1y, tee1z = spGetUnitPosition(transporterClaims[terID][1])
+		spSetUnitMoveGoal(terID, tee1x, tee1y, tee1z)
 	end
 end
 
