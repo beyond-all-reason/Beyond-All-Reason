@@ -595,7 +595,8 @@ function gadget:Initialize()
 	end
 	spSetCustomCommandDrawData(CMD_AREA_LOAD, CMD.LOAD_UNITS, {0.6, 0.6, 1, 0.5}, true)
 	spSetCustomCommandDrawData(CMD_LOAD_UNIT, CMD.LOAD_UNITS, {0.6, 0.6, 1, 0.5}, true)
-
+	gadgetHandler:RegisterAllowCommand(CMD.LOAD_UNITS)
+	gadgetHandler:RegisterAllowCommand(CMD.LOAD_ONTO)
 	local allyTeams = Spring.GetAllyTeamList()
 	for _, allyTeam in pairs(allyTeams) do
 		claimedBy[allyTeam] = {}
@@ -790,17 +791,27 @@ function gadget:AllowUnitTransportUnload(terID, terDefID, terTeamID, teeID, teeD
 end
 
 
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
 	if cmdID == CMD.LOAD_ONTO then
+		if fromInsert then
+			spEcho("Warning: CMD_LOAD_ONTO is deprecated and will be removed in a future update; this command will be ignored")
+			return false
+		end
 		spEcho("Warning: CMD_LOAD_ONTO is deprecated and will be removed in a future update; use CMD.INSERT + CMD_LOAD_UNIT instead")
-		spGiveOrderToUnit( cmdParams[1], CMD.INSERT, { 0, CMD_LOAD_UNIT, 0, unitID }, {"alt"}) -- insert in front of queue
-		return false
-	elseif cmdID == CMD.INSERT and cmdParams[2] == CMD.LOAD_ONTO then
-		spEcho("Warning: CMD_LOAD_ONTO is deprecated and will be removed in a future update; this command will be ignored")
+		spGiveOrderToUnit( cmdParams[1], CMD.INSERT, { 0, CMD_LOAD_UNIT, 0, unitID }, {"alt"}) -- insert in front of target's queue a load units cmd
 		return false
 	end
-	if not isAirTransport[unitDefID] then return true, true end
 	if cmdID == CMD.LOAD_UNITS then
+		if fromInsert then
+			if #cmdParams == 4 then -- inserted area cmd
+				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD_AREA_LOAD, 0, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4] }, {"alt"})
+				return false
+			elseif #cmdParams == 1 then -- inserted successive cmd
+				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD_LOAD_UNIT, 0, cmdParams[1] }, {"alt"})
+				return false
+			end
+			return false -- malformed cmd ? ignore
+		end
 		if #cmdParams == 4 then
 			spGiveOrderToUnit(unitID, CMD_AREA_LOAD, cmdParams, cmdOptions)
 			return false
@@ -808,20 +819,6 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			spGiveOrderToUnit(unitID, CMD_LOAD_UNIT, cmdParams, cmdOptions)
 			return false
 		end
-	end
-
-	if cmdID == CMD.INSERT and cmdParams[2] == CMD.LOAD_UNITS then
-		if #cmdParams - 3 == 4 then
-			local newParams = { cmdParams[1], CMD_AREA_LOAD, cmdParams[3],
-								cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7] }
-			spGiveOrderToUnit(unitID, CMD.INSERT, newParams, cmdOptions)
-			return false
-		elseif #cmdParams - 3 == 1 then
-			local newParams = { cmdParams[1], CMD_LOAD_UNIT, cmdParams[3], cmdParams[4] }
-			spGiveOrderToUnit(unitID, CMD.INSERT, newParams, cmdOptions)
-			return false
-		end
-
 	end
 	return true, true
 end
