@@ -1141,6 +1141,19 @@ function widget:Initialize()
 		end
 		return not success
 	end
+	WG['grassgl4'].loadGrass = function(filename)
+		if not filename or #filename < 2 then
+			filename = Game.mapName .. "_grassDist.tga"
+		end
+		placementMode = true
+		local ok = LoadGrassTGA(filename)
+		if not ok then return end
+		defineUploadGrassInstanceVBOData()
+		MakeAndAttachToVAO()
+	end
+	WG['grassgl4'].clearGrass = function()
+		cleargrassCmd(nil, nil, {})
+	end
 
 	widgetHandler:RegisterGlobal('GadgetRemoveGrass', WG['grassgl4'].removeGrass)
 

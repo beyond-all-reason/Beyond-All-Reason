@@ -1499,9 +1499,15 @@ function widget:KeyPress(key, mods, isRepeat)
 		local spaceHeld = GetKeyState(KEYSYMS_SPACE)
 
 		if mods.ctrl then
-			local step = increase and RADIUS_STEP or -RADIUS_STEP
-			lp.radius = max(MIN_RADIUS, min(MAX_RADIUS, lp.radius + step))
-			Echo("[Light Placer] Brush radius: " .. lp.radius)
+			if lp.mode == "point" then
+				local step = increase and LIGHT_RADIUS_STEP or -LIGHT_RADIUS_STEP
+				lp.lightRadius = max(10, min(5000, lp.lightRadius + step))
+				Echo("[Light Placer] Light radius: " .. lp.lightRadius)
+			else
+				local step = increase and RADIUS_STEP or -RADIUS_STEP
+				lp.radius = max(MIN_RADIUS, min(MAX_RADIUS, lp.radius + step))
+				Echo("[Light Placer] Brush radius: " .. lp.radius)
+			end
 			return true
 		elseif mods.alt then
 			if increase then
@@ -1595,11 +1601,17 @@ function widget:MouseWheel(up, value)
 		return true
 	end
 
-	-- Ctrl+Scroll = brush radius (placement area size)
+	-- Ctrl+Scroll = light radius in point mode (visible circle), brush radius otherwise
 	if ctrl then
-		local step = up and RADIUS_STEP or -RADIUS_STEP
-		lp.radius = max(MIN_RADIUS, min(MAX_RADIUS, lp.radius + step))
-		Echo("[Light Placer] Brush radius: " .. lp.radius)
+		if lp.mode == "point" then
+			local step = up and LIGHT_RADIUS_STEP or -LIGHT_RADIUS_STEP
+			lp.lightRadius = max(10, min(5000, lp.lightRadius + step))
+			Echo("[Light Placer] Light radius: " .. lp.lightRadius)
+		else
+			local step = up and RADIUS_STEP or -RADIUS_STEP
+			lp.radius = max(MIN_RADIUS, min(MAX_RADIUS, lp.radius + step))
+			Echo("[Light Placer] Brush radius: " .. lp.radius)
+		end
 		return true
 	end
 

@@ -1,4 +1,4 @@
--- tf_grass.lua — Grass Brush attach + sync (extracted from gui_terraform_brush.lua)
+-- tf_grass.lua â€” Grass Brush attach + sync (extracted from gui_terraform_brush.lua)
 local M = {}
 
 function M.attach(doc, ctx)
@@ -14,723 +14,502 @@ function M.attach(doc, ctx)
 
 	widgetState.gbSubmodesEl = doc:GetElementById("tf-grass-submodes")
 	widgetState.gbControlsEl = doc:GetElementById("tf-grass-controls")
-	widgetState.gbSubModeButtons = {}
+	widgetState.gbSubModeButtons = widgetState.gbSubModeButtons or {}
 	widgetState.gbSubModeButtons.paint = doc:GetElementById("btn-gb-paint")
-	widgetState.gbSubModeButtons.fill = doc:GetElementById("btn-gb-fill")
+	widgetState.gbSubModeButtons.fill  = doc:GetElementById("btn-gb-fill")
 	widgetState.gbSubModeButtons.erase = doc:GetElementById("btn-gb-erase")
 
-	for gbMode, element in pairs(widgetState.gbSubModeButtons) do
-		if element then
-			element:AddEventListener("click", function(event)
-				playSound("modeSwitch")
-				if WG.GrassBrush then WG.GrassBrush.setSubMode(gbMode) end
-				setActiveClass(widgetState.gbSubModeButtons, gbMode)
-				event:StopPropagation()
-			end, false)
-		end
+	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
+	-- Slider change events wired declaratively via onchange= in RML.
+	for _, sid in ipairs({
+		"size", "rotation", "curve", "length",
+		"slope-max", "slope-min", "alt-min", "alt-max",
+		"color-thresh", "color-pad",
+		"symmetry-radial-count", "symmetry-mirror-angle",
+	}) do
+		local sl = doc:GetElementById("slider-gb-" .. sid)
+		if sl then trackSliderDrag(sl, "gb-" .. sid) end
 	end
-
 	do
 		local sl = doc:GetElementById("slider-grass-density")
-		if sl then
-			trackSliderDrag(sl, "gb-density")
-			sl:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then event:StopPropagation(); return end
-				local v = tonumber(sl:GetAttribute("value")) or 80
-				local density = v / 100
-				if WG.GrassBrush then WG.GrassBrush.setDensity(density) end
-				local label = doc:GetElementById("gb-density-label")
-				if label then label.inner_rml = tostring(math.floor(density * 100 + 0.5)) .. "%" end
-				event:StopPropagation()
-			end, false)
-		end
-		local densUp = doc:GetElementById("btn-grass-density-up")
-		if densUp then
-			densUp:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local s = WG.GrassBrush.getState()
-					local cur = s and s.density or 0.8
-					WG.GrassBrush.setDensity(math.min(1.0, cur + 0.05))
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local densDn = doc:GetElementById("btn-grass-density-down")
-		if densDn then
-			densDn:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local s = WG.GrassBrush.getState()
-					local cur = s and s.density or 0.8
-					WG.GrassBrush.setDensity(math.max(0.0, cur - 0.05))
-				end
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
-	do
-		local btn = doc:GetElementById("btn-grass-save")
-		if btn then
-			btn:AddEventListener("click", function(event)
-				playSound("save")
-				if WG.GrassBrush then WG.GrassBrush.saveGrassMap() end
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
-	-- Grass undo/redo history controls
-	do
-		local btnUndo = doc:GetElementById("btn-gb-undo")
-		if btnUndo then
-			btnUndo:AddEventListener("click", function(event)
-				if WG.GrassBrush then playSound("undo"); WG.GrassBrush.undo() end
-				event:StopPropagation()
-			end, false)
-		end
-
-		local btnRedo = doc:GetElementById("btn-gb-redo")
-		if btnRedo then
-			btnRedo:AddEventListener("click", function(event)
-				if WG.GrassBrush then playSound("redo"); WG.GrassBrush.redo() end
-				event:StopPropagation()
-			end, false)
-		end
-
+		if sl then trackSliderDrag(sl, "gb-density") end
 		local slHist = doc:GetElementById("slider-gb-history")
-		if slHist then
-			trackSliderDrag(slHist, "gb-history")
-			slHist:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then event:StopPropagation(); return end
-				local v = tonumber(slHist:GetAttribute("value")) or 0
-				if WG.GrassBrush then WG.GrassBrush.undoToIndex(v) end
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
-
-
-	-- Grass size slider
-	do
-		local sl = doc:GetElementById("slider-gb-size")
-		if sl then
-			trackSliderDrag(sl, "gb-size")
-			sl:AddEventListener("change", function(event)
-				if not uiState.updatingFromCode and WG.GrassBrush then
-					local val = tonumber(sl:GetAttribute("value")) or 100
-					WG.GrassBrush.setRadius(val)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local up = doc:GetElementById("btn-gb-size-up")
-		if up then
-			up:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local state = WG.GrassBrush.getState()
-					WG.GrassBrush.setRadius(state.radius + RADIUS_STEP)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local dn = doc:GetElementById("btn-gb-size-down")
-		if dn then
-			dn:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local state = WG.GrassBrush.getState()
-					WG.GrassBrush.setRadius(state.radius - RADIUS_STEP)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
-	-- Grass rotation slider
-	do
-		local sl = doc:GetElementById("slider-gb-rotation")
-		if sl then
-			trackSliderDrag(sl, "gb-rotation")
-			sl:AddEventListener("change", function(event)
-				if not uiState.updatingFromCode and WG.GrassBrush then
-					local val = tonumber(sl:GetAttribute("value")) or 0
-					WG.GrassBrush.setRotation(val)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local cw = doc:GetElementById("btn-gb-rot-cw")
-		if cw then
-			cw:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local state = WG.GrassBrush.getState()
-					WG.GrassBrush.setRotation((state.rotationDeg or 0) + ROTATION_STEP)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local ccw = doc:GetElementById("btn-gb-rot-ccw")
-		if ccw then
-			ccw:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local state = WG.GrassBrush.getState()
-					WG.GrassBrush.setRotation((state.rotationDeg or 0) - ROTATION_STEP)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
-	-- Grass curve/falloff slider
-	do
-		local sl = doc:GetElementById("slider-gb-curve")
-		if sl then
-			trackSliderDrag(sl, "gb-curve")
-			sl:AddEventListener("change", function(event)
-				if not uiState.updatingFromCode and WG.GrassBrush then
-					local val = tonumber(sl:GetAttribute("value")) or 10
-					WG.GrassBrush.setCurve(val / 10)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local up = doc:GetElementById("btn-gb-curve-up")
-		if up then
-			up:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local state = WG.GrassBrush.getState()
-					WG.GrassBrush.setCurve(state.curve + CURVE_STEP)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local dn = doc:GetElementById("btn-gb-curve-down")
-		if dn then
-			dn:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local state = WG.GrassBrush.getState()
-					WG.GrassBrush.setCurve(state.curve - CURVE_STEP)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
-	-- Grass length scale slider
-	do
-		local sl = doc:GetElementById("slider-gb-length")
-		if sl then
-			trackSliderDrag(sl, "gb-length")
-			sl:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then event:StopPropagation(); return end
-				local v = tonumber(sl:GetAttribute("value")) or 10
-				if WG.GrassBrush then WG.GrassBrush.setLengthScale(v / 10) end
-				event:StopPropagation()
-			end, false)
-		end
-		local up = doc:GetElementById("btn-gb-length-up")
-		if up then
-			up:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local state = WG.GrassBrush.getState()
-					WG.GrassBrush.setLengthScale(state.lengthScale + 0.1)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local dn = doc:GetElementById("btn-gb-length-down")
-		if dn then
-			dn:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local state = WG.GrassBrush.getState()
-					WG.GrassBrush.setLengthScale(state.lengthScale - 0.1)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
-	-- Grass smart filter toggles
-	do
-		local function wireGbSmartToggle(btnId, filterKey)
-			local btn = doc:GetElementById(btnId)
-			if btn then
-				btn:AddEventListener("click", function(event)
-					if WG.GrassBrush then
-						local sf = WG.GrassBrush.getState().smartFilters
-						playSound(sf[filterKey] and "toggleOff" or "toggleOn")
-						WG.GrassBrush.setSmartFilter(filterKey, not sf[filterKey])
-					end
-					event:StopPropagation()
-				end, false)
-			end
-		end
-
-		local toggle = doc:GetElementById("btn-gb-smart-toggle")
-		if toggle then
-			toggle:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local st = WG.GrassBrush.getState()
-					playSound(st.smartEnabled and "toggleOff" or "toggleOn")
-					WG.GrassBrush.setSmartEnabled(not st.smartEnabled)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-
-		wireGbSmartToggle("btn-gb-alt-min-enable", "altMinEnable")
-		wireGbSmartToggle("btn-gb-alt-max-enable", "altMaxEnable")
-
-		-- Altitude min/max SAMPLE buttons: toggle height-sampling mode for GB filter endpoints
-		local function wireGbAltSampler(btnId, target)
-			local btn = doc:GetElementById(btnId)
-			if btn then
-				btn:AddEventListener("click", function(event)
-					if WG.TerraformBrush then
-						local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
-						WG.TerraformBrush.setHeightSamplingMode(cur == target and nil or target)
-					end
-					event:StopPropagation()
-				end, false)
-			end
-		end
-		wireGbAltSampler("btn-gb-alt-min-sample", "gbAltMin")
-		wireGbAltSampler("btn-gb-alt-max-sample", "gbAltMax")
-
-		local slSlopeMax = doc:GetElementById("slider-gb-slope-max")
-		if slSlopeMax then
-			trackSliderDrag(slSlopeMax, "gb-slope-max")
-			slSlopeMax:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then event:StopPropagation(); return end
-				local v = tonumber(slSlopeMax:GetAttribute("value")) or 45
-				if WG.GrassBrush then WG.GrassBrush.setSmartFilter("slopeMax", v) end
-				event:StopPropagation()
-			end, false)
-		end
-
-		local slSlopeMin = doc:GetElementById("slider-gb-slope-min")
-		if slSlopeMin then
-			trackSliderDrag(slSlopeMin, "gb-slope-min")
-			slSlopeMin:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then event:StopPropagation(); return end
-				local v = tonumber(slSlopeMin:GetAttribute("value")) or 10
-				if WG.GrassBrush then WG.GrassBrush.setSmartFilter("slopeMin", v) end
-				event:StopPropagation()
-			end, false)
-		end
-
-		local slAltMin = doc:GetElementById("slider-gb-alt-min")
-		if slAltMin then
-			trackSliderDrag(slAltMin, "gb-alt-min")
-			slAltMin:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then event:StopPropagation(); return end
-				local v = tonumber(slAltMin:GetAttribute("value")) or 0
-				if WG.GrassBrush then WG.GrassBrush.setSmartFilter("altMin", v) end
-				event:StopPropagation()
-			end, false)
-		end
-
-		local slAltMax = doc:GetElementById("slider-gb-alt-max")
-		if slAltMax then
-			trackSliderDrag(slAltMax, "gb-alt-max")
-			slAltMax:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then event:StopPropagation(); return end
-				local v = tonumber(slAltMax:GetAttribute("value")) or 200
-				if WG.GrassBrush then WG.GrassBrush.setSmartFilter("altMax", v) end
-				event:StopPropagation()
-			end, false)
-		end
-
-		-- Grass smart filter +/- buttons
-		local function wireGbSmartBtn(btnId, filterKey, step)
-			local btn = doc:GetElementById(btnId)
-			if btn then
-				btn:AddEventListener("click", function(event)
-					if WG.GrassBrush then
-						local sf = WG.GrassBrush.getState().smartFilters
-						WG.GrassBrush.setSmartFilter(filterKey, (sf[filterKey] or 0) + step)
-					end
-					event:StopPropagation()
-				end, false)
-			end
-		end
-		wireGbSmartBtn("btn-gb-slope-max-up",   "slopeMax",  5)
-		wireGbSmartBtn("btn-gb-slope-max-down", "slopeMax", -5)
-		wireGbSmartBtn("btn-gb-slope-min-up",   "slopeMin",  5)
-		wireGbSmartBtn("btn-gb-slope-min-down", "slopeMin", -5)
-		wireGbSmartBtn("btn-gb-alt-min-up",     "altMin",   10)
-		wireGbSmartBtn("btn-gb-alt-min-down",   "altMin",  -10)
-		wireGbSmartBtn("btn-gb-alt-max-up",     "altMax",   10)
-		wireGbSmartBtn("btn-gb-alt-max-down",   "altMax",  -10)
-	end
-
-	-- Grass color filter controls
-	do
-		local colorToggle = doc:GetElementById("btn-gb-color-toggle")
-		if colorToggle then
-			colorToggle:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local st = WG.GrassBrush.getState()
-					playSound(st.texFilterEnabled and "toggleOff" or "toggleOn")
-					WG.GrassBrush.setTexFilterEnabled(not st.texFilterEnabled)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-
-		local pipetteBtn = doc:GetElementById("btn-gb-pipette")
-		if pipetteBtn then
-			pipetteBtn:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local st = WG.GrassBrush.getState()
-					if st.pipetteMode then
-						WG.GrassBrush.setPipetteMode(false)
-					else
-						playSound("click")
-						WG.GrassBrush.setPipetteMode(true)
-					end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-
-		local slThresh = doc:GetElementById("slider-gb-color-thresh")
-		if slThresh then
-			trackSliderDrag(slThresh, "gb-color-thresh")
-			slThresh:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then event:StopPropagation(); return end
-				local v = tonumber(slThresh:GetAttribute("value")) or 35
-				if WG.GrassBrush then WG.GrassBrush.setTexFilterThreshold(v / 100) end
-				event:StopPropagation()
-			end, false)
-		end
-
-		local slPad = doc:GetElementById("slider-gb-color-pad")
-		if slPad then
-			trackSliderDrag(slPad, "gb-color-pad")
-			slPad:AddEventListener("change", function(event)
-				if uiState.updatingFromCode then event:StopPropagation(); return end
-				local v = tonumber(slPad:GetAttribute("value")) or 0
-				if WG.GrassBrush then WG.GrassBrush.setTexFilterPadding(v) end
-				event:StopPropagation()
-			end, false)
-		end
-
-		local excludeToggle = doc:GetElementById("btn-gb-exclude-toggle")
-		if excludeToggle then
-			excludeToggle:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local st = WG.GrassBrush.getState()
-					playSound(st.texExcludeEnabled and "toggleOff" or "toggleOn")
-					WG.GrassBrush.setTexExcludeEnabled(not st.texExcludeEnabled)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-
-		local excludePipetteBtn = doc:GetElementById("btn-gb-exclude-pipette")
-		if excludePipetteBtn then
-			excludePipetteBtn:AddEventListener("click", function(event)
-				if WG.GrassBrush then
-					local st = WG.GrassBrush.getState()
-					if st.pipetteExcludeMode then
-						WG.GrassBrush.setPipetteExcludeMode(false)
-					else
-						playSound("click")
-						WG.GrassBrush.setPipetteExcludeMode(true)
-					end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
-	-- ── DISPLAY + INSTRUMENTS chips (forward to shared WG.TerraformBrush state) ──
-	do
-		local function chipToggle(id, getCur, setter)
-			local el = doc:GetElementById(id)
-			if not el then return end
-			el:AddEventListener("click", function(ev)
-				if WG.TerraformBrush then
-					local newVal = not getCur()
-					playSound(newVal and "toggleOn" or "toggleOff")
-					setter(newVal)
-					el:SetClass("active", newVal)
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local function getTFState() return WG.TerraformBrush and WG.TerraformBrush.getState() or {} end
-
-		chipToggle("btn-gb-grid-overlay",
-			function() return getTFState().gridOverlay end,
-			function(v) WG.TerraformBrush.setGridOverlay(v) end)
-		chipToggle("btn-gb-height-colormap",
-			function() return getTFState().heightColormap end,
-			function(v) WG.TerraformBrush.setHeightColormap(v) end)
-		local gbSnapRow = doc:GetElementById("gb-grid-snap-size-row")
-		local gbSnapBtn = doc:GetElementById("btn-gb-grid-snap")
-		if gbSnapBtn then
-			gbSnapBtn:AddEventListener("click", function(ev)
-				if WG.TerraformBrush then
-					local newVal = not getTFState().gridSnap
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setGridSnap(newVal)
-					gbSnapBtn:SetClass("active", newVal)
-					if gbSnapRow then gbSnapRow:SetClass("hidden", not newVal) end
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local gbMeasureRow = doc:GetElementById("gb-measure-toolbar-row")
-		local gbMeasureBtn = doc:GetElementById("btn-gb-measure")
-		if gbMeasureBtn then
-			gbMeasureBtn:AddEventListener("click", function(ev)
-				if WG.TerraformBrush then
-					local newVal = not getTFState().measureActive
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setMeasureActive(newVal)
-					gbMeasureBtn:SetClass("active", newVal)
-					if gbMeasureRow then gbMeasureRow:SetClass("hidden", not newVal) end
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-
+		if slHist then trackSliderDrag(slHist, "gb-history") end
 		local gbSnapSlider = doc:GetElementById("gb-slider-grid-snap-size")
-		if gbSnapSlider then
-			gbSnapSlider:AddEventListener("change", function(ev)
-				if uiState.updatingFromCode then ev:StopPropagation(); return end
-				if WG.TerraformBrush then
-					local v = tonumber(gbSnapSlider:GetAttribute("value")) or 48
-					WG.TerraformBrush.setGridSnapSize(v)
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local function gbSnapStep(delta)
-			if WG.TerraformBrush then
-				local cur = tonumber(getTFState().gridSnapSize) or 48
-				local v = math.max(16, math.min(128, cur + delta))
-				WG.TerraformBrush.setGridSnapSize(v)
-			end
-		end
-		local gsd = doc:GetElementById("gb-btn-snap-size-down")
-		if gsd then gsd:AddEventListener("click", function(ev) gbSnapStep(-16); ev:StopPropagation() end, false) end
-		local gsu = doc:GetElementById("gb-btn-snap-size-up")
-		if gsu then gsu:AddEventListener("click", function(ev) gbSnapStep(16); ev:StopPropagation() end, false) end
-
-		-- INSTRUMENTS: Protractor (angle snap) — shared state via WG.TerraformBrush
-		local gbAngleRow = doc:GetElementById("gb-angle-snap-step-row")
-		local gbAngleBtn = doc:GetElementById("btn-gb-angle-snap")
-		if gbAngleBtn then
-			gbAngleBtn:AddEventListener("click", function(ev)
-				if WG.TerraformBrush then
-					local newVal = not getTFState().angleSnap
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setAngleSnap(newVal)
-					gbAngleBtn:SetClass("active", newVal)
-					if gbAngleRow then gbAngleRow:SetClass("hidden", not newVal) end
-				end
-				ev:StopPropagation()
-			end, false)
-		end
-		local GB_ANGLE_PRESETS = {7.5, 15, 30, 45, 60, 90}
-		local function gbFindAnglePresetIdx(val)
-			local best, bestD = 2, math.huge
-			for i, p in ipairs(GB_ANGLE_PRESETS) do
-				local d = math.abs(p - (val or 15))
-				if d < bestD then bestD = d; best = i end
-			end
-			return best
-		end
-		local function gbApplyAnglePreset(idx)
-			idx = math.max(1, math.min(#GB_ANGLE_PRESETS, idx))
-			local pval = GB_ANGLE_PRESETS[idx]
-			local pstr = (pval == math.floor(pval)) and tostring(math.floor(pval)) or tostring(pval)
-			if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
-			local sl = doc:GetElementById("gb-slider-angle-snap-step")
-			if sl then sl:SetAttribute("value", tostring(idx - 1)) end
-			local lbl = doc:GetElementById("gb-angle-snap-step-label")
-			if lbl then lbl.inner_rml = pstr end
-			local nb = doc:GetElementById("gb-slider-angle-snap-step-numbox")
-			if nb then nb:SetAttribute("value", pstr) end
-		end
+		if gbSnapSlider then trackSliderDrag(gbSnapSlider, "gb-grid-snap-size") end
 		local gbAngleSlider = doc:GetElementById("gb-slider-angle-snap-step")
-		if gbAngleSlider then
-			gbAngleSlider:AddEventListener("change", function(ev)
-				if uiState.updatingFromCode then ev:StopPropagation(); return end
-				local idx = (tonumber(gbAngleSlider:GetAttribute("value")) or 1) + 1
-				gbApplyAnglePreset(idx)
-				ev:StopPropagation()
-			end, false)
-		end
-		local gbStepDn = doc:GetElementById("gb-btn-angle-step-down")
-		if gbStepDn then gbStepDn:AddEventListener("click", function(ev)
-			if WG.TerraformBrush then gbApplyAnglePreset(gbFindAnglePresetIdx(getTFState().angleSnapStep) - 1) end
-			ev:StopPropagation()
-		end, false) end
-		local gbStepUp = doc:GetElementById("gb-btn-angle-step-up")
-		if gbStepUp then gbStepUp:AddEventListener("click", function(ev)
-			if WG.TerraformBrush then gbApplyAnglePreset(gbFindAnglePresetIdx(getTFState().angleSnapStep) + 1) end
-			ev:StopPropagation()
-		end, false) end
-		local gbAutoBtn = doc:GetElementById("gb-btn-angle-autosnap")
-		if gbAutoBtn then
-			gbAutoBtn:AddEventListener("click", function(ev)
-				if WG.TerraformBrush then
-					local newVal = not getTFState().angleSnapAuto
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setAngleSnapAuto(newVal)
-					gbAutoBtn:SetClass("active", newVal)
-					local manualRow = doc:GetElementById("gb-angle-manual-spoke-row")
-					if manualRow then manualRow:SetClass("hidden", newVal) end
-				end
-				ev:StopPropagation()
-			end, false)
-		end
+		if gbAngleSlider then trackSliderDrag(gbAngleSlider, "gb-angle-snap-step") end
 		local gbManualSlider = doc:GetElementById("gb-slider-manual-spoke")
-		local function gbApplyManualSpoke(idx)
-			if WG.TerraformBrush then
-				WG.TerraformBrush.setAngleSnapManualSpoke(idx)
-				local step = getTFState().angleSnapStep or 15
-				local deg  = (idx * step) % 360
-				local lbl  = doc:GetElementById("gb-angle-manual-spoke-label")
-				if lbl then lbl.inner_rml = tostring(deg) end
-				if gbManualSlider then gbManualSlider:SetAttribute("value", tostring(idx)) end
-			end
-		end
-		if gbManualSlider then
-			gbManualSlider:AddEventListener("change", function(ev)
-				if uiState.updatingFromCode then ev:StopPropagation(); return end
-				gbApplyManualSpoke(tonumber(gbManualSlider:GetAttribute("value")) or 0)
-				ev:StopPropagation()
-			end, false)
-		end
-		local gbMsDn = doc:GetElementById("gb-btn-manual-spoke-down")
-		if gbMsDn then gbMsDn:AddEventListener("click", function(ev)
-			if WG.TerraformBrush then
-				local s = getTFState()
-				local step = s.angleSnapStep or 15
-				local num  = math.max(1, math.floor(360 / step))
-				gbApplyManualSpoke(((s.angleSnapManualSpoke or 0) - 1 + num) % num)
-			end
-			ev:StopPropagation()
-		end, false) end
-		local gbMsUp = doc:GetElementById("gb-btn-manual-spoke-up")
-		if gbMsUp then gbMsUp:AddEventListener("click", function(ev)
-			if WG.TerraformBrush then
-				local s = getTFState()
-				local step = s.angleSnapStep or 15
-				local num  = math.max(1, math.floor(360 / step))
-				gbApplyManualSpoke(((s.angleSnapManualSpoke or 0) + 1) % num)
-			end
-			ev:StopPropagation()
-		end, false) end
+		if gbManualSlider then trackSliderDrag(gbManualSlider, "gb-manual-spoke") end
+	end
 
-		local function gbMeasureBtnClick(id, fn)
-			local el = doc:GetElementById(id)
-			if el then el:AddEventListener("click", function(ev) fn(); ev:StopPropagation() end, false) end
-		end
-		gbMeasureBtnClick("gb-btn-measure-ruler",       function() if WG.TerraformBrush then WG.TerraformBrush.setMeasureRulerMode(not getTFState().measureRulerMode) end end)
-		gbMeasureBtnClick("gb-btn-measure-sticky",      function() if WG.TerraformBrush then WG.TerraformBrush.setMeasureStickyMode(not getTFState().measureStickyMode) end end)
-		gbMeasureBtnClick("gb-btn-measure-show-length", function() if WG.TerraformBrush then WG.TerraformBrush.setMeasureShowLength(not getTFState().measureShowLength) end end)
-		gbMeasureBtnClick("gb-btn-measure-clear",       function() if WG.TerraformBrush then WG.TerraformBrush.clearMeasureLines() end end)
+	-- Register widget methods for inline onclick/onchange handlers in RML.
+	local w = ctx.widget
+	if not w then return end
 
-		local gbSymRow = doc:GetElementById("gb-symmetry-toolbar-row")
-		local gbSymBtn = doc:GetElementById("btn-gb-symmetry")
-		if gbSymBtn then
-			gbSymBtn:AddEventListener("click", function(ev)
-				if WG.TerraformBrush then
-					local s = getTFState()
-					local newVal = not s.symmetryActive
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setSymmetryActive(newVal)
-					if newVal and not (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) then
-						WG.TerraformBrush.setSymmetryMirrorX(true)
-						local mxBtn = doc:GetElementById("gb-btn-symmetry-mirror-x")
-						if mxBtn then mxBtn:SetClass("active", true) end
-					end
-					gbSymBtn:SetClass("active", newVal)
-					if gbSymRow then gbSymRow:SetClass("hidden", not newVal) end
-				end
-				ev:StopPropagation()
-			end, false)
-		end
+	-- Sub-mode
+	w.gbSetSubMode = function(self, gbMode)
+		playSound("modeSwitch")
+		if WG.GrassBrush then WG.GrassBrush.setSubMode(gbMode) end
+		setActiveClass(widgetState.gbSubModeButtons, gbMode)
+	end
 
-		local function gbSymBtnClick(id, fn)
-			local el = doc:GetElementById(id)
-			if el then el:AddEventListener("click", function(ev) fn(); ev:StopPropagation() end, false) end
+	-- Density
+	w.gbOnDensityChange = function(self, element)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 80
+		WG.GrassBrush.setDensity(v / 100)
+		local label = doc:GetElementById("gb-density-label")
+		if label then label.inner_rml = tostring(math.floor(v + 0.5)) .. "%" end
+	end
+	w.gbDensityUp = function(self)
+		if not WG.GrassBrush then return end
+		local s = WG.GrassBrush.getState()
+		local cur = s and s.density or 0.8
+		WG.GrassBrush.setDensity(math.min(1.0, cur + 0.05))
+	end
+	w.gbDensityDown = function(self)
+		if not WG.GrassBrush then return end
+		local s = WG.GrassBrush.getState()
+		local cur = s and s.density or 0.8
+		WG.GrassBrush.setDensity(math.max(0.0, cur - 0.05))
+	end
+
+	-- Save / Load / Clean
+	w.gbSave = function(self)
+			local grassApi = WG['grassgl4']
+			if grassApi and grassApi.saveGrassTGA then
+				playSound("save")
+				grassApi.saveGrassTGA()
+			end
+	end
+	w.gbLoad = function(self)
+			local grassApi = WG['grassgl4']
+			if grassApi and grassApi.loadGrass then grassApi.loadGrass() end
+	end
+	w.gbClean = function(self)
+			playSound("undo")
+			local grassApi = WG['grassgl4']
+			if grassApi and grassApi.clearGrass then grassApi.clearGrass() end
+	end
+
+	-- Undo / Redo / History
+	w.gbUndo = function(self)
+		if WG.GrassBrush then playSound("undo"); WG.GrassBrush.undo() end
+	end
+	w.gbRedo = function(self)
+		if WG.GrassBrush then playSound("redo"); WG.GrassBrush.redo() end
+	end
+	w.gbOnHistoryChange = function(self, element)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 0
+		WG.GrassBrush.undoToIndex(v)
+	end
+
+	-- Size
+	w.gbOnSizeChange = function(self, element)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		local val = element and tonumber(element:GetAttribute("value")) or 100
+		WG.GrassBrush.setRadius(val)
+	end
+	w.gbSizeUp = function(self)
+		if WG.GrassBrush then
+			local s = WG.GrassBrush.getState()
+			WG.GrassBrush.setRadius((s.radius or 100) + RADIUS_STEP)
 		end
-		local function syncGbSymChipClasses()
+	end
+	w.gbSizeDown = function(self)
+		if WG.GrassBrush then
+			local s = WG.GrassBrush.getState()
+			WG.GrassBrush.setRadius((s.radius or 100) - RADIUS_STEP)
+		end
+	end
+
+	-- Rotation
+	w.gbOnRotChange = function(self, element)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		local val = element and tonumber(element:GetAttribute("value")) or 0
+		WG.GrassBrush.setRotation(val)
+	end
+	w.gbRotCW = function(self)
+		if WG.GrassBrush then
+			local s = WG.GrassBrush.getState()
+			WG.GrassBrush.setRotation((s.rotationDeg or 0) + ROTATION_STEP)
+		end
+	end
+	w.gbRotCCW = function(self)
+		if WG.GrassBrush then
+			local s = WG.GrassBrush.getState()
+			WG.GrassBrush.setRotation((s.rotationDeg or 0) - ROTATION_STEP)
+		end
+	end
+
+	-- Curve
+	w.gbOnCurveChange = function(self, element)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		local val = element and tonumber(element:GetAttribute("value")) or 10
+		WG.GrassBrush.setCurve(val / 10)
+	end
+	w.gbCurveUp = function(self)
+		if WG.GrassBrush then
+			local s = WG.GrassBrush.getState()
+			WG.GrassBrush.setCurve((s.curve or 1.0) + CURVE_STEP)
+		end
+	end
+	w.gbCurveDown = function(self)
+		if WG.GrassBrush then
+			local s = WG.GrassBrush.getState()
+			WG.GrassBrush.setCurve((s.curve or 1.0) - CURVE_STEP)
+		end
+	end
+
+	-- Length
+	w.gbOnLengthChange = function(self, element)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		local val = element and tonumber(element:GetAttribute("value")) or 10
+		WG.GrassBrush.setLengthScale(val / 10)
+	end
+	w.gbLengthUp = function(self)
+		if WG.GrassBrush then
+			local s = WG.GrassBrush.getState()
+			WG.GrassBrush.setLengthScale((s.lengthScale or 1.0) + 0.1)
+		end
+	end
+	w.gbLengthDown = function(self)
+		if WG.GrassBrush then
+			local s = WG.GrassBrush.getState()
+			WG.GrassBrush.setLengthScale((s.lengthScale or 1.0) - 0.1)
+		end
+	end
+
+	-- Smart filter master toggle (checkbox img)
+	w.gbSmartToggle = function(self)
+		if not WG.GrassBrush then return end
+		local st = WG.GrassBrush.getState()
+		playSound(st.smartEnabled and "toggleOff" or "toggleOn")
+		WG.GrassBrush.setSmartEnabled(not st.smartEnabled)
+	end
+
+	-- Smart filter sub-toggle (altMinEnable / altMaxEnable checkbox)
+	w.gbSmartSubToggle = function(self, filterKey)
+		if not WG.GrassBrush then return end
+		local sf = WG.GrassBrush.getState().smartFilters
+		playSound(sf[filterKey] and "toggleOff" or "toggleOn")
+		WG.GrassBrush.setSmartFilter(filterKey, not sf[filterKey])
+	end
+
+	-- Altitude SAMPLE toggles (shared TerraformBrush)
+	w.gbAltSample = function(self, target)
+		if WG.TerraformBrush then
+			local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
+			WG.TerraformBrush.setHeightSamplingMode(cur == target and nil or target)
+		end
+	end
+
+	-- Slope / altitude slider onchange
+	w.gbOnSlopeMaxChange = function(self, element)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 45
+		WG.GrassBrush.setSmartFilter("slopeMax", v)
+	end
+	w.gbOnSlopeMinChange = function(self, element)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 10
+		WG.GrassBrush.setSmartFilter("slopeMin", v)
+	end
+	w.gbOnAltMinChange = function(self, element)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 0
+		WG.GrassBrush.setSmartFilter("altMin", v)
+	end
+	w.gbOnAltMaxChange = function(self, element)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 200
+		WG.GrassBrush.setSmartFilter("altMax", v)
+	end
+
+	-- Slope / altitude stepper
+	w.gbSmartStep = function(self, filterKey, step)
+		if not WG.GrassBrush then return end
+		local sf = WG.GrassBrush.getState().smartFilters
+		WG.GrassBrush.setSmartFilter(filterKey, (sf[filterKey] or 0) + step)
+	end
+
+	-- Color filter
+	w.gbColorToggle = function(self)
+		if not WG.GrassBrush then return end
+		local st = WG.GrassBrush.getState()
+		playSound(st.texFilterEnabled and "toggleOff" or "toggleOn")
+		WG.GrassBrush.setTexFilterEnabled(not st.texFilterEnabled)
+	end
+	w.gbPipette = function(self)
+		if not WG.GrassBrush then return end
+		local st = WG.GrassBrush.getState()
+		if st.pipetteMode then
+			WG.GrassBrush.setPipetteMode(false)
+		else
+			playSound("click")
+			WG.GrassBrush.setPipetteMode(true)
+		end
+	end
+	w.gbOnColorThreshChange = function(self, element)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 35
+		WG.GrassBrush.setTexFilterThreshold(v / 100)
+	end
+	w.gbOnColorPadChange = function(self, element)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 0
+		WG.GrassBrush.setTexFilterPadding(v)
+	end
+	w.gbExcludeToggle = function(self)
+		if not WG.GrassBrush then return end
+		local st = WG.GrassBrush.getState()
+		playSound(st.texExcludeEnabled and "toggleOff" or "toggleOn")
+		WG.GrassBrush.setTexExcludeEnabled(not st.texExcludeEnabled)
+	end
+	w.gbExcludePipette = function(self)
+		if not WG.GrassBrush then return end
+		local st = WG.GrassBrush.getState()
+		if st.pipetteExcludeMode then
+			WG.GrassBrush.setPipetteExcludeMode(false)
+		else
+			playSound("click")
+			WG.GrassBrush.setPipetteExcludeMode(true)
+		end
+	end
+
+	-- DISPLAY chips (shared TerraformBrush state)
+	local function getTFState() return WG.TerraformBrush and WG.TerraformBrush.getState() or {} end
+	w.gbToggleGridOverlay = function(self)
+		if not WG.TerraformBrush then return end
+		local newVal = not getTFState().gridOverlay
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setGridOverlay(newVal)
+		local btn = doc:GetElementById("btn-gb-grid-overlay")
+		if btn then btn:SetClass("active", newVal) end
+	end
+	w.gbToggleHeightMap = function(self)
+		if not WG.TerraformBrush then return end
+		local newVal = not getTFState().heightColormap
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setHeightColormap(newVal)
+		local btn = doc:GetElementById("btn-gb-height-colormap")
+		if btn then btn:SetClass("active", newVal) end
+	end
+
+	-- INSTRUMENTS chips (shared TerraformBrush state)
+	w.gbToggleGridSnap = function(self)
+		if not WG.TerraformBrush then return end
+		local newVal = not getTFState().gridSnap
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setGridSnap(newVal)
+		local btn = doc:GetElementById("btn-gb-grid-snap")
+		if btn then btn:SetClass("active", newVal) end
+		local row = doc:GetElementById("gb-grid-snap-size-row")
+		if row then row:SetClass("hidden", not newVal) end
+	end
+	w.gbToggleAngleSnap = function(self)
+		if not WG.TerraformBrush then return end
+		local newVal = not getTFState().angleSnap
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setAngleSnap(newVal)
+		local btn = doc:GetElementById("btn-gb-angle-snap")
+		if btn then btn:SetClass("active", newVal) end
+		local row = doc:GetElementById("gb-angle-snap-step-row")
+		if row then row:SetClass("hidden", not newVal) end
+	end
+	w.gbToggleMeasure = function(self)
+		if not WG.TerraformBrush then return end
+		local newVal = not getTFState().measureActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setMeasureActive(newVal)
+		local btn = doc:GetElementById("btn-gb-measure")
+		if btn then btn:SetClass("active", newVal) end
+		local row = doc:GetElementById("gb-measure-toolbar-row")
+		if row then row:SetClass("hidden", not newVal) end
+	end
+	w.gbToggleSymmetry = function(self)
+		if not WG.TerraformBrush then return end
+		local s = getTFState()
+		local newVal = not s.symmetryActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setSymmetryActive(newVal)
+		if newVal and not (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) then
+			WG.TerraformBrush.setSymmetryMirrorX(true)
+			local mxBtn = doc:GetElementById("gb-btn-symmetry-mirror-x")
+			if mxBtn then mxBtn:SetClass("active", true) end
+		end
+		local btn = doc:GetElementById("btn-gb-symmetry")
+		if btn then btn:SetClass("active", newVal) end
+		local row = doc:GetElementById("gb-symmetry-toolbar-row")
+		if row then row:SetClass("hidden", not newVal) end
+	end
+
+	-- Grid snap size (shared TerraformBrush)
+	w.gbOnSnapSizeChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 48
+		WG.TerraformBrush.setGridSnapSize(v)
+	end
+	local function gbSnapStep(delta)
+		if WG.TerraformBrush then
+			local cur = tonumber(getTFState().gridSnapSize) or 48
+			local v = math.max(16, math.min(128, cur + delta))
+			WG.TerraformBrush.setGridSnapSize(v)
+		end
+	end
+	w.gbSnapSizeDown = function(self) gbSnapStep(-16) end
+	w.gbSnapSizeUp   = function(self) gbSnapStep(16) end
+
+	-- Protractor / angle step presets
+	local GB_ANGLE_PRESETS = {7.5, 15, 30, 45, 60, 90}
+	local function gbFindAnglePresetIdx(val)
+		local best, bestD = 2, math.huge
+		for i, p in ipairs(GB_ANGLE_PRESETS) do
+			local d = math.abs(p - (val or 15))
+			if d < bestD then bestD = d; best = i end
+		end
+		return best
+	end
+	local function gbApplyAnglePreset(idx)
+		idx = math.max(1, math.min(#GB_ANGLE_PRESETS, idx))
+		local pval = GB_ANGLE_PRESETS[idx]
+		local pstr = (pval == math.floor(pval)) and tostring(math.floor(pval)) or tostring(pval)
+		if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
+		local sl = doc:GetElementById("gb-slider-angle-snap-step")
+		if sl then sl:SetAttribute("value", tostring(idx - 1)) end
+		local lbl = doc:GetElementById("gb-angle-snap-step-label")
+		if lbl then lbl.inner_rml = pstr end
+		local nb = doc:GetElementById("gb-slider-angle-snap-step-numbox")
+		if nb then nb:SetAttribute("value", pstr) end
+	end
+	w.gbOnAngleStepChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local idx = (element and tonumber(element:GetAttribute("value")) or 1) + 1
+		gbApplyAnglePreset(idx)
+	end
+	w.gbAngleStepDown = function(self)
+		if WG.TerraformBrush then gbApplyAnglePreset(gbFindAnglePresetIdx(getTFState().angleSnapStep) - 1) end
+	end
+	w.gbAngleStepUp = function(self)
+		if WG.TerraformBrush then gbApplyAnglePreset(gbFindAnglePresetIdx(getTFState().angleSnapStep) + 1) end
+	end
+	w.gbAngleAutoSnap = function(self)
+		if not WG.TerraformBrush then return end
+		local newVal = not getTFState().angleSnapAuto
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setAngleSnapAuto(newVal)
+		local btn = doc:GetElementById("gb-btn-angle-autosnap")
+		if btn then btn:SetClass("active", newVal) end
+		local manualRow = doc:GetElementById("gb-angle-manual-spoke-row")
+		if manualRow then manualRow:SetClass("hidden", newVal) end
+	end
+
+	-- Manual spoke
+	local function gbApplyManualSpoke(idx)
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setAngleSnapManualSpoke(idx)
+			local step = getTFState().angleSnapStep or 15
+			local deg  = (idx * step) % 360
+			local lbl  = doc:GetElementById("gb-angle-manual-spoke-label")
+			if lbl then lbl.inner_rml = tostring(deg) end
+			local sl = doc:GetElementById("gb-slider-manual-spoke")
+			if sl then sl:SetAttribute("value", tostring(idx)) end
+		end
+	end
+	w.gbOnManualSpokeChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		gbApplyManualSpoke(element and tonumber(element:GetAttribute("value")) or 0)
+	end
+	w.gbManualSpokeDown = function(self)
+		if WG.TerraformBrush then
 			local s = getTFState()
-			local radialEl = doc:GetElementById("gb-btn-symmetry-radial")
-			local mxEl     = doc:GetElementById("gb-btn-symmetry-mirror-x")
-			local myEl     = doc:GetElementById("gb-btn-symmetry-mirror-y")
-			if radialEl then radialEl:SetClass("active", s.symmetryRadial and true or false) end
-			if mxEl     then mxEl:SetClass("active",     s.symmetryMirrorX and true or false) end
-			if myEl     then myEl:SetClass("active",     s.symmetryMirrorY and true or false) end
-			local countRow = doc:GetElementById("gb-symmetry-radial-count-row")
-			if countRow then countRow:SetClass("hidden", not s.symmetryRadial) end
-			local angleRow = doc:GetElementById("gb-symmetry-mirror-angle-row")
-			if angleRow then angleRow:SetClass("hidden", not (s.symmetryMirrorX or s.symmetryMirrorY)) end
+			local step = s.angleSnapStep or 15
+			local num  = math.max(1, math.floor(360 / step))
+			gbApplyManualSpoke(((s.angleSnapManualSpoke or 0) - 1 + num) % num)
 		end
-		gbSymBtnClick("gb-btn-symmetry-radial",    function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryRadial(not getTFState().symmetryRadial); syncGbSymChipClasses() end end)
-		gbSymBtnClick("gb-btn-symmetry-mirror-x",  function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorX(not getTFState().symmetryMirrorX); syncGbSymChipClasses() end end)
-		gbSymBtnClick("gb-btn-symmetry-mirror-y",  function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorY(not getTFState().symmetryMirrorY); syncGbSymChipClasses() end end)
-		gbSymBtnClick("gb-btn-symmetry-place-origin",  function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true); playSound("toggleOn") end end)
-		gbSymBtnClick("gb-btn-symmetry-center-origin", function() if WG.TerraformBrush then WG.TerraformBrush.setSymmetryOrigin(nil, nil); playSound("toggleOff") end end)
-		gbSymBtnClick("gb-btn-symmetry-count-down", function()
-			if WG.TerraformBrush then
-				local c = math.max(2, (getTFState().symmetryRadialCount or 2) - 1)
-				WG.TerraformBrush.setSymmetryRadialCount(c)
-			end
-		end)
-		gbSymBtnClick("gb-btn-symmetry-count-up", function()
-			if WG.TerraformBrush then
-				local c = math.min(16, (getTFState().symmetryRadialCount or 2) + 1)
-				WG.TerraformBrush.setSymmetryRadialCount(c)
-			end
-		end)
-		gbSymBtnClick("gb-btn-symmetry-angle-down", function()
-			if WG.TerraformBrush then
-				local a = ((getTFState().symmetryMirrorAngle or 0) - 5) % 360
-				WG.TerraformBrush.setSymmetryMirrorAngle(a)
-			end
-		end)
-		gbSymBtnClick("gb-btn-symmetry-angle-up", function()
-			if WG.TerraformBrush then
-				local a = ((getTFState().symmetryMirrorAngle or 0) + 5) % 360
-				WG.TerraformBrush.setSymmetryMirrorAngle(a)
-			end
-		end)
+	end
+	w.gbManualSpokeUp = function(self)
+		if WG.TerraformBrush then
+			local s = getTFState()
+			local step = s.angleSnapStep or 15
+			local num  = math.max(1, math.floor(360 / step))
+			gbApplyManualSpoke(((s.angleSnapManualSpoke or 0) + 1) % num)
+		end
+	end
 
-		local gbCountSlider = doc:GetElementById("gb-slider-symmetry-radial-count")
-		if gbCountSlider then
-			trackSliderDrag(gbCountSlider, "gb-symmetry-radial-count")
-			gbCountSlider:AddEventListener("change", function(ev)
-				if uiState.updatingFromCode then ev:StopPropagation(); return end
-				if WG.TerraformBrush then
-					local v = tonumber(gbCountSlider:GetAttribute("value")) or 2
-					WG.TerraformBrush.setSymmetryRadialCount(v)
-				end
-				ev:StopPropagation()
-			end, false)
+	-- Measure sub-row
+	w.gbMeasureRuler      = function(self) if WG.TerraformBrush then WG.TerraformBrush.setMeasureRulerMode(not getTFState().measureRulerMode) end end
+	w.gbMeasureSticky     = function(self) if WG.TerraformBrush then WG.TerraformBrush.setMeasureStickyMode(not getTFState().measureStickyMode) end end
+	w.gbMeasureShowLength = function(self) if WG.TerraformBrush then WG.TerraformBrush.setMeasureShowLength(not getTFState().measureShowLength) end end
+	w.gbMeasureClear      = function(self) if WG.TerraformBrush then WG.TerraformBrush.clearMeasureLines() end end
+
+	-- Symmetry sub-row
+	local function syncGbSymChipClasses()
+		local s = getTFState()
+		local radialEl = doc:GetElementById("gb-btn-symmetry-radial")
+		local mxEl     = doc:GetElementById("gb-btn-symmetry-mirror-x")
+		local myEl     = doc:GetElementById("gb-btn-symmetry-mirror-y")
+		if radialEl then radialEl:SetClass("active", s.symmetryRadial and true or false) end
+		if mxEl     then mxEl:SetClass("active",     s.symmetryMirrorX and true or false) end
+		if myEl     then myEl:SetClass("active",     s.symmetryMirrorY and true or false) end
+		local countRow = doc:GetElementById("gb-symmetry-radial-count-row")
+		if countRow then countRow:SetClass("hidden", not s.symmetryRadial) end
+		local angleRow = doc:GetElementById("gb-symmetry-mirror-angle-row")
+		if angleRow then angleRow:SetClass("hidden", not (s.symmetryMirrorX or s.symmetryMirrorY)) end
+	end
+	w.gbSymRadial = function(self)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryRadial(not getTFState().symmetryRadial); syncGbSymChipClasses() end
+	end
+	w.gbSymMirrorX = function(self)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorX(not getTFState().symmetryMirrorX); syncGbSymChipClasses() end
+	end
+	w.gbSymMirrorY = function(self)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorY(not getTFState().symmetryMirrorY); syncGbSymChipClasses() end
+	end
+	w.gbSymPlaceOrigin = function(self)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true); playSound("toggleOn") end
+	end
+	w.gbSymCenterOrigin = function(self)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryOrigin(nil, nil); playSound("toggleOff") end
+	end
+	w.gbSymCountDown = function(self)
+		if WG.TerraformBrush then
+			local c = math.max(2, (getTFState().symmetryRadialCount or 2) - 1)
+			WG.TerraformBrush.setSymmetryRadialCount(c)
 		end
-		local gbAngleSlider = doc:GetElementById("gb-slider-symmetry-mirror-angle")
-		if gbAngleSlider then
-			trackSliderDrag(gbAngleSlider, "gb-symmetry-mirror-angle")
-			gbAngleSlider:AddEventListener("change", function(ev)
-				if uiState.updatingFromCode then ev:StopPropagation(); return end
-				if WG.TerraformBrush then
-					local v = tonumber(gbAngleSlider:GetAttribute("value")) or 0
-					WG.TerraformBrush.setSymmetryMirrorAngle(v)
-				end
-				ev:StopPropagation()
-			end, false)
+	end
+	w.gbSymCountUp = function(self)
+		if WG.TerraformBrush then
+			local c = math.min(16, (getTFState().symmetryRadialCount or 2) + 1)
+			WG.TerraformBrush.setSymmetryRadialCount(c)
 		end
+	end
+	w.gbSymAngleDown = function(self)
+		if WG.TerraformBrush then
+			local a = ((getTFState().symmetryMirrorAngle or 0) - 5) % 360
+			WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		end
+	end
+	w.gbSymAngleUp = function(self)
+		if WG.TerraformBrush then
+			local a = ((getTFState().symmetryMirrorAngle or 0) + 5) % 360
+			WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		end
+	end
+	w.gbOnSymCountChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 2
+		WG.TerraformBrush.setSymmetryRadialCount(v)
+	end
+	w.gbOnSymAngleChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 0
+		WG.TerraformBrush.setSymmetryMirrorAngle(v)
 	end
 end
+
 
 function M.sync(doc, ctx, gbState, setSummary, sumEl)
 	local widgetState = ctx.widgetState
@@ -971,7 +750,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 		ctx.setDisabledIds(doc, {
 			"slider-gb-length", "slider-gb-length-numbox",
 			"btn-gb-length-down", "btn-gb-length-up",
-		}, rotOff)
+		}, erase)
 		ctx.setDisabledIds(doc, {
 			"slider-gb-curve", "slider-gb-curve-numbox",
 			"btn-gb-curve-down", "btn-gb-curve-up",
