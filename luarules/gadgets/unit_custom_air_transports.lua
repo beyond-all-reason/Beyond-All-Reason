@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name    = "Transport Handler",
 		desc    = "Underwater gating for all transports; distance gating, slot/seat gating and LUS load/unload dispatch for custom air transports",
-		author  = "Doo, GitHub Copilot",
+		author  = "DoodVanDaag",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = 1, -- must be > 0 (unit_script.lua is layer 0) so LUS environments are ready when UnitCreated fires

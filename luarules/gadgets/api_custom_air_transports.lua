@@ -5,7 +5,7 @@ function gadget:GetInfo()
 	return {
 		name    = "Transport Handler API",
 		desc    = "Sets up global functions and tables used by transport related scripts and gadgetry",
-		author  = "Doo, GitHub Copilot",
+		author  = "DoodVanDaag",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = -1, -- must be < 0: before unit_script and transport handler gadgets
