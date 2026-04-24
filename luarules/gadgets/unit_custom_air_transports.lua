@@ -165,7 +165,7 @@ end
 --- @param terID number
 --- @param terAllyTeam number  -- transporter allyTeam (not teamID!)
 --- @return boolean
-function CanBeTransportedStatic(teeID, teeDefID, terID) -- things that should cancel or deny queueing and are mostly immutable
+local function CanBeTransportedStatic(teeID, teeDefID, terID) -- things that should cancel or deny queueing and are mostly immutable
 	if not spValidUnitID(teeID) then
 		return false
 	end
@@ -188,7 +188,7 @@ end
 --- @param terID number
 --- @param terAllyTeam number  -- transporter allyTeam (not teamID!)
 --- @return boolean
-function CanBeTransportedDynamic(teeID, teeDefID, teePosY, terID, terAllyTeam)  -- things that might have changed since CanBeTransportedStatic and should cancel queue (lightweight check for dynamic conditions))
+local function CanBeTransportedDynamic(teeID, teeDefID, teePosY, terID, terAllyTeam)  -- things that might have changed since CanBeTransportedStatic and should cancel queue (lightweight check for dynamic conditions))
 	if not spValidUnitID(teeID) then
 		return false
 	end
@@ -212,7 +212,7 @@ end
 --- @param teeID number
 --- @param terAllyTeam number  -- transporter allyTeam (not teamID!)
 --- @return boolean
-function CanBeAutoClaimed(teeID, terAllyTeam) -- things that should only deny queueing if within area cmds
+local function CanBeAutoClaimed(teeID, terAllyTeam) -- things that should only deny queueing if within area cmds
 	if not spValidUnitID(teeID) then
 		return false
 	end
@@ -226,7 +226,7 @@ end
 --- @param teeSize number
 --- @param includeQueue boolean
 --- @return boolean
-function CanTransporteeFitInTransporter(terID, teeID, terDefID, teeSize, includeQueue) -- size check, either including queue (if within area cmd) or ignoring it
+local function CanTransporteeFitInTransporter(terID, teeID, terDefID, teeSize, includeQueue) -- size check, either including queue (if within area cmd) or ignoring it
 	if not spValidUnitID(teeID) then
 		return false
 	end
@@ -259,7 +259,7 @@ end
 --- @param terPosY number
 --- @param terPosZ number
 --- @return boolean
-function CanBeTransportedNow(teeID, teeTeamID, teePosX, teePosY, teePosZ, terID, terTeamID, terPosX, terPosY, terPosZ) -- things that should delay loading without removing from queue
+local function CanBeTransportedNow(teeID, teeTeamID, teePosX, teePosY, teePosZ, terID, terTeamID, terPosX, terPosY, terPosZ) -- things that should delay loading without removing from queue
 	if not inRange(terPosX, terPosY, terPosZ, teePosX, teePosY, teePosZ) then
 		return false
 	end
@@ -278,7 +278,7 @@ end
 --- @param terID number
 --- @param terTeamID number  -- transporter teamID
 --- @return boolean
-function CanMoveToTransporter(teeID, teeTeamID, terID, terTeamID) -- things that should allow moving towards transporter to facilitate loading
+local function CanMoveToTransporter(teeID, teeTeamID, terID, terTeamID) -- things that should allow moving towards transporter to facilitate loading
 	if teeTeamID == terTeamID then
 		return true -- if it's the same team, we can move it towards the transport to facilitate loading
 	end
@@ -291,39 +291,10 @@ function CanMoveToTransporter(teeID, teeTeamID, terID, terTeamID) -- things that
 end
 
 ---
---- @param terID number
---- @param teeID number
---- @param teeSize number
---- @param manualClaim boolean
---- @return boolean claimSuccessful
-function claimTransportee(terID, teeID, teeSize, manualClaim)
-	local terAllyTeam = spGetUnitAllyTeam(terID)
-	if not manualClaim and claimedBy[terAllyTeam][teeID] then return false end -- already claimed by another transporter from the allyTeam, and this is not a manual claim (from CMD_LOAD_UNIT))
-	if claimedBy[terAllyTeam][teeID] then 
-		releaseTransportee(teeID, terAllyTeam) -- release previous claim
-	end
-	claimedBy[terAllyTeam][teeID] = terID
-	transporterClaims[terID][#transporterClaims[terID] + 1] = teeID
-	local total = 0
-	local ct = 0
-	for i = #transporterClaims[terID], 1, -1 do
-		if transporterClaims[terID][i] == teeID then
-			ct = ct + 1
-			if ct > 1 then
-				spEcho("Error: duplicate claim for transportee " .. teeID .. " in transporter " .. terID .. "'s claims list") -- debug kept for now to debug potential double claims
-			end
-		end
-		total = total + (TransportAPI.GetTransporteeSize(transporterClaims[terID][i]) or 0)
-	end
-	queuedSeats[terID] = total
-	return true
-end
-
----
 --- @param teeID number
 --- @param terAllyTeam number  -- transporter allyTeam (not teamID!)
 --- @return nil
-function releaseTransportee(teeID, terAllyTeam)
+local function releaseTransportee(teeID, terAllyTeam)
 	local terID = claimedBy[terAllyTeam][teeID]
 	if not terID then return end
 	claimedBy[terAllyTeam][teeID] = nil
@@ -348,10 +319,40 @@ function releaseTransportee(teeID, terAllyTeam)
 		queuedSeats[terID] = 0
 	end
 end
+
+---
+--- @param terID number
+--- @param teeID number
+--- @param teeSize number
+--- @param manualClaim boolean
+--- @return boolean claimSuccessful
+local function claimTransportee(terID, teeID, teeSize, manualClaim)
+	local terAllyTeam = spGetUnitAllyTeam(terID)
+	if not manualClaim and claimedBy[terAllyTeam][teeID] then return false end -- already claimed by another transporter from the allyTeam, and this is not a manual claim (from CMD_LOAD_UNIT))
+	if claimedBy[terAllyTeam][teeID] then 
+		releaseTransportee(teeID, terAllyTeam) -- release previous claim
+	end
+	claimedBy[terAllyTeam][teeID] = terID
+	transporterClaims[terID][#transporterClaims[terID] + 1] = teeID
+	local total = 0
+	local ct = 0
+	for i = #transporterClaims[terID], 1, -1 do
+		if transporterClaims[terID][i] == teeID then
+			ct = ct + 1
+			if ct > 1 then
+				spEcho("Error: duplicate claim for transportee " .. teeID .. " in transporter " .. terID .. "'s claims list") -- debug kept for now to debug potential double claims
+			end
+		end
+		total = total + (TransportAPI.GetTransporteeSize(transporterClaims[terID][i]) or 0)
+	end
+	queuedSeats[terID] = total
+	return true
+end
+
 ---
 --- @param terID number
 --- @return nil
-function releaseAllClaims(terID)
+local function releaseAllClaims(terID)
 	local claims = transporterClaims[terID]
 	if not claims then return end
 	local terAllyTeam = spGetUnitAllyTeam(terID)
@@ -370,7 +371,7 @@ end
 --- @param cz number
 --- @param radius number
 --- @return number|nil bestUnit
-function findUnitToTransport(terID, terDefID, terTeamID, cx, cz, radius)
+local function findUnitToTransport(terID, terDefID, terTeamID, cx, cz, radius)
 	local terAllyTeam      = Spring.GetUnitAllyTeam(terID)
 	local terPosX, terPosY, terPosZ = spGetUnitPosition(terID)
 	local units = getCachedUnitsInCylinder(cx, cz, radius, terAllyTeam)
@@ -415,7 +416,7 @@ end
 --- @param cz number
 --- @param radius number
 --- @return nil
-function ExecuteLoadUnits(terID, terDefID, terTeamID, terPosX, terPosY, terPosZ, cx, cy, cz, radius)
+local function ExecuteLoadUnits(terID, terDefID, terTeamID, terPosX, terPosY, terPosZ, cx, cy, cz, radius)
 	local terAllyTeam = spGetUnitAllyTeam(terID)
 	local terTeamID = spGetUnitTeam(terID)
 	for i = #transporterClaims[terID], 1, -1 do
@@ -468,7 +469,7 @@ end
 --- @param cz number
 --- @param radius number
 --- @return boolean commandFinished
-function ExecuteAreaLoad(terID, terDefID, terTeamID, cx, cy, cz, radius)
+local function ExecuteAreaLoad(terID, terDefID, terTeamID, cx, cy, cz, radius)
 	local teeID = findUnitToTransport(terID, terDefID, terTeamID, cx, cz, radius)
 	
 	-- OPTION: one per frame or until filled
@@ -502,7 +503,7 @@ end
 --- @param terDefID number
 --- @param terTeamID number  -- transporter teamID
 --- @return nil
-function ExecuteSuccessiveLoadUnits(terID, terDefID, terTeamID)
+local function ExecuteSuccessiveLoadUnits(terID, terDefID, terTeamID)
 	local idsToRemove = {}
 	local terAllyTeam = spGetUnitAllyTeam(terID)
 	-- 1: Get current queue, remove invalid units, claim valid ones
