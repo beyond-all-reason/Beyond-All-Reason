@@ -77,9 +77,11 @@ function TransportAPI.GetTransporteeSize(unitID) -- minimal perf improvement: ca
 	local footprint = math.max(def.xsize, def.zsize) / 2
 	if     footprint <= 2  then cachedUnitSizes[udefID] = 1
 	elseif footprint <= 4  then cachedUnitSizes[udefID] = 4
-	elseif footprint <= 8  then cachedUnitSizes[udefID] = 8
-	elseif footprint <= 16 then cachedUnitSizes[udefID] = 16
-	else                        cachedUnitSizes[udefID] = 1000
+	elseif footprint <= 8  then cachedUnitSizes[udefID] = 16 
+	-- that's HUGE, sounds already way over the limit of what could be reasonably transported considering our models.
+	-- but i chose to keep defining those regardless, in case of some special event unit for experimental transportations.
+	elseif footprint <= 16 then cachedUnitSizes[udefID] = 64 -- ?
+	else                        cachedUnitSizes[udefID] = 256 -- ?
 	end
 	return cachedUnitSizes[udefID]
 end
