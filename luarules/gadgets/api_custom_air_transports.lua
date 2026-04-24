@@ -46,7 +46,7 @@ end
 -- Inspects the transporter's command queue to detect area-unload orders.
 -- Returns all currently loaded transportees for area-unload, or {transporteeID} for single-unload.
 function TransportAPI.GetUnloadTargets(transporterID, transporteeID)
-	local Q = Spring.GetUnitCommands(transporterID, -1)
+	local Q = Spring.GetUnitCommands(transporterID, 2) -- we only need the first two
 	local isAreaUnload = Q and Q[1] and (
 		Q[1].id == CMD.UNLOAD_UNITS or
 		(
