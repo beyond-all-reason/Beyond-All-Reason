@@ -28,6 +28,15 @@ local function getAccountID(playerID)
 	return (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
 end
 
+local function isAuthorizedByPerms(perms, playerID, playerName)
+	if not perms then
+		return false
+	end
+
+	local accountID = getAccountID(playerID)
+	return perms[accountID] or (playerName and perms[playerName]) or false
+end
+
 local function isWaterlevelPacket(msg)
 	if type(msg) ~= "string" then
 		return false
@@ -104,8 +113,8 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		local accountID = getAccountID(playerID)
-		local authorized = _G.permissions.waterlevel[accountID]
+		local playerName = Spring.GetPlayerInfo(playerID)
+		local authorized = isAuthorizedByPerms(_G.permissions.waterlevel, playerID, playerName)
 
 		if not (authorized or Spring.IsCheatingEnabled()) then
 			return
@@ -165,13 +174,10 @@ if gadgetHandler:IsSyncedCode() then
 else  -- UNSYNCED
 
 	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
 	local function isAuthorized()
 		local perms = SYNCED.permissions and SYNCED.permissions.waterlevel
-		if not perms then
-			return false
-		end
-
-		return perms[getAccountID(myPlayerID)]
+		return isAuthorizedByPerms(perms, myPlayerID, myPlayerName)
 	end
 
 	local function waterlevel(cmd, line, words, playerID)
