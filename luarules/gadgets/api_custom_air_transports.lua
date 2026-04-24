@@ -24,6 +24,7 @@ end
 
 GG.TransportAPI = {}
 local TransportAPI = GG.TransportAPI
+local cachedUnitSizes = {}
 
 TransportAPI.precomputedProgress = {}
 for uDefID, def in pairs(UnitDefs) do
@@ -63,17 +64,22 @@ function TransportAPI.GetUnloadTargets(transporterID, transporteeID)
 	return { transporteeID }
 end
 
-function TransportAPI.GetTransporteeSize(unitID)
+function TransportAPI.GetTransporteeSize(unitID) -- minimal perf improvement: cache per unitDefID
 	local udefID = Spring.GetUnitDefID(unitID)
+	if cachedUnitSizes[udefID] then
+		return cachedUnitSizes[udefID]
+	end
 	local def = UnitDefs[udefID]
-	if def.customParams and def.customParams.nseats then
-		return tonumber(def.customParams.nseats)
+	if def.customParams.nseats then
+		cachedUnitSizes[udefID] = tonumber(def.customParams.nseats)
+		return cachedUnitSizes[udefID]
 	end
 	local footprint = math.max(def.xsize, def.zsize) / 2
-	if     footprint <= 2  then return 1
-	elseif footprint <= 4  then return 4
-	elseif footprint <= 8  then return 8
-	elseif footprint <= 16 then return 16
-	else                        return 1000
+	if     footprint <= 2  then cachedUnitSizes[udefID] = 1
+	elseif footprint <= 4  then cachedUnitSizes[udefID] = 4
+	elseif footprint <= 8  then cachedUnitSizes[udefID] = 8
+	elseif footprint <= 16 then cachedUnitSizes[udefID] = 16
+	else                        cachedUnitSizes[udefID] = 1000
 	end
+	return cachedUnitSizes[udefID]
 end
