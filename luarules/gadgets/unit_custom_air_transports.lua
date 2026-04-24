@@ -283,7 +283,7 @@ function CanMoveToTransporter(teeID, teeTeamID, terID, terTeamID) -- things that
 		return true -- if it's the same team, we can move it towards the transport to facilitate loading
 	end
 	if spAreTeamsAllied(teeTeamID, terTeamID) then
-		local hasQ = Spring.GetUnitCommands(teeID, 1) ~= nil
+		local hasQ = Spring.GetUnitCommands(teeID, 0) >= 1
 		return not hasQ -- if it's an allied unit, we only can if it's idling
 	else
 		return false -- if it's an enemy unit, we never can
