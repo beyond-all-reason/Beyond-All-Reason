@@ -653,8 +653,6 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(frame)
-	local count = 0
-	for terID, co in pairs(areaLoadCoroutines) do count = count + 1 end
 	for terID, co in pairs(areaLoadCoroutines) do
 		local status = coroutine.status(co)
 		if status == "suspended" then
