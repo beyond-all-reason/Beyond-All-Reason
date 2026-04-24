@@ -54,6 +54,7 @@ local utilities = {
 	SafeLuaTableParser = safeLuaTableParser.SafeLuaTableParser,
 
 	FacingToHeading = facingFunctions.FacingToHeading,
+	HeadingToFacing = facingFunctions.HeadingToFacing,
 	IsFacingEW = facingFunctions.IsFacingEW,
 
 	Color = colorFunctions,
