@@ -1,0 +1,194 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://beyond-all-reason.github.io/schemas/unitdef.schema.json",
+  "title": "BAR Unit Definition File",
+  "description": "One or more unit definitions keyed by unit name. Each file must contain at least one definition.",
+  "type": "object",
+  "minProperties": 1,
+  "additionalProperties": {
+    "$ref": "#/definitions/UnitDef"
+  },
+  "definitions": {
+    "UnitDef": {
+      "type": "object",
+      "description": "A single unit definition.",
+      "properties": {
+        "buildpic": { "type": "string", "description": "Build picture filename (e.g. ARMCK.DDS)" },
+        "buildtime": { "type": "number", "description": "Time to build in engine ticks" },
+        "builder": { "type": "boolean", "description": "Whether this unit can build" },
+        "builddistance": { "type": "number", "description": "Maximum build range" },
+        "canmove": { "type": "boolean", "description": "Whether this unit can move" },
+        "collisionvolumeoffsets": { "type": "string", "description": "Collision volume offset (space-separated x y z)" },
+        "collisionvolumescales": { "type": "string", "description": "Collision volume dimensions (space-separated x y z)" },
+        "collisionvolumetype": { "type": "string", "description": "Collision volume shape (Box, CylY, etc.)" },
+        "corpse": { "type": "string", "description": "Feature def name left on death" },
+        "energycost": { "type": "number", "minimum": 0, "description": "Energy cost to build" },
+        "energymake": { "type": "number", "description": "Energy production rate" },
+        "energystorage": { "type": "number", "minimum": 0, "description": "Energy storage capacity" },
+        "explodeas": { "type": "string", "description": "Weapon def name for death explosion" },
+        "footprintx": { "type": "integer", "minimum": 1, "description": "Footprint width in squares" },
+        "footprintz": { "type": "integer", "minimum": 1, "description": "Footprint depth in squares" },
+        "health": { "type": "number", "minimum": 1, "description": "Maximum hit points" },
+        "leavetracks": { "type": "boolean", "description": "Whether unit leaves ground tracks" },
+        "maxacc": { "type": "number", "minimum": 0, "description": "Maximum acceleration" },
+        "maxdec": { "type": "number", "minimum": 0, "description": "Maximum deceleration" },
+        "maxslope": { "type": "number", "description": "Maximum terrain slope the unit can traverse" },
+        "maxwaterdepth": { "type": "number", "description": "Maximum water depth" },
+        "metalcost": { "type": "number", "minimum": 0, "description": "Metal cost to build" },
+        "movementclass": { "type": "string", "description": "Name of the movement class from movedefs" },
+        "nochasecategory": { "type": "string", "description": "Categories this unit will not chase" },
+        "objectname": { "type": "string", "description": "3D model file path" },
+        "script": { "type": "string", "description": "Animation script file path" },
+        "seismicsignature": { "type": "number", "description": "Seismic signature strength" },
+        "selfdestructas": { "type": "string", "description": "Weapon def name for self-destruct explosion" },
+        "sightdistance": { "type": "number", "minimum": 0, "description": "Line of sight range" },
+        "speed": { "type": "number", "minimum": 0, "description": "Maximum movement speed" },
+        "terraformspeed": { "type": "number", "description": "Terraforming speed" },
+        "turninplace": { "type": "boolean", "description": "Whether unit turns in place" },
+        "turninplaceanglelimit": { "type": "number", "description": "Angle limit for turn-in-place" },
+        "turninplacespeedlimit": { "type": "number", "description": "Speed limit for turn-in-place" },
+        "turnrate": { "type": "number", "minimum": 0, "description": "Turn rate" },
+        "upright": { "type": "boolean", "description": "Whether unit stays upright on slopes" },
+        "workertime": { "type": "number", "description": "Build power" },
+        "usepiececollisionvolumes": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "integer", "enum": [0, 1] }
+          ],
+          "description": "Whether to use per-piece collision volumes"
+        },
+        "trackoffset": { "type": "number", "description": "Track texture offset" },
+        "trackstrength": { "type": "number", "description": "Track visibility strength" },
+        "tracktype": { "type": "string", "description": "Track texture type" },
+        "trackwidth": { "type": "number", "description": "Track texture width" },
+        "buildoptions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Ordered list of unit names this builder can construct"
+        },
+        "customparams": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "number" }
+            ]
+          },
+          "description": "Arbitrary key-value parameters passed to gadgets/widgets"
+        },
+        "featuredefs": {
+          "type": "object",
+          "description": "Wreckage and heap feature definitions for this unit",
+          "additionalProperties": {
+            "$ref": "#/definitions/InlineFeatureDef"
+          }
+        },
+        "sounds": {
+          "$ref": "#/definitions/SoundDefs",
+          "description": "Sound event definitions"
+        },
+        "sfxtypes": {
+          "type": "object",
+          "properties": {
+            "explosiongenerators": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "CEG names for visual effects"
+            }
+          },
+          "additionalProperties": true
+        },
+        "weapondefs": {
+          "type": "object",
+          "description": "Inline weapon definitions for this unit",
+          "additionalProperties": {
+            "$ref": "#/definitions/InlineWeaponDef"
+          }
+        },
+        "weapons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/WeaponSlot"
+          },
+          "description": "Weapon slot assignments"
+        }
+      },
+      "additionalProperties": true
+    },
+    "InlineFeatureDef": {
+      "type": "object",
+      "description": "Feature definition embedded in a unit (wreckage, heap).",
+      "properties": {
+        "blocking": { "type": "boolean" },
+        "category": { "type": "string" },
+        "collisionvolumeoffsets": { "type": "string" },
+        "collisionvolumescales": { "type": "string" },
+        "collisionvolumetype": { "type": "string" },
+        "damage": { "type": "number" },
+        "featuredead": { "type": "string", "description": "Next stage feature on destruction" },
+        "footprintx": { "type": "integer" },
+        "footprintz": { "type": "integer" },
+        "height": { "type": "number" },
+        "metal": { "type": "number" },
+        "object": { "type": "string" },
+        "reclaimable": { "type": "boolean" },
+        "resurrectable": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "integer", "enum": [0, 1] }
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "InlineWeaponDef": {
+      "type": "object",
+      "description": "Weapon definition embedded in a unit.",
+      "properties": {
+        "name": { "type": "string" },
+        "range": { "type": "number" },
+        "reloadtime": { "type": "number" },
+        "weapontype": { "type": "string" },
+        "weaponvelocity": { "type": "number" },
+        "areaofeffect": { "type": "number" },
+        "turret": { "type": "boolean" },
+        "damage": {
+          "type": "object",
+          "properties": {
+            "default": { "type": "number" }
+          },
+          "additionalProperties": { "type": "number" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "WeaponSlot": {
+      "type": "object",
+      "description": "Binds a weapon def to a unit slot.",
+      "properties": {
+        "def": { "type": "string", "description": "Weapon def name (uppercase)" },
+        "badtargetcategory": { "type": "string" },
+        "onlytargetcategory": { "type": "string" }
+      },
+      "required": ["def"],
+      "additionalProperties": true
+    },
+    "SoundDefs": {
+      "type": "object",
+      "description": "Sound event assignments.",
+      "properties": {
+        "build": { "type": "string" },
+        "canceldestruct": { "type": "string" },
+        "capture": { "type": "string" },
+        "repair": { "type": "string" },
+        "underattack": { "type": "string" },
+        "working": { "type": "string" },
+        "cant": { "type": "array", "items": { "type": "string" } },
+        "count": { "type": "array", "items": { "type": "string" } },
+        "ok": { "type": "array", "items": { "type": "string" } },
+        "select": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  }
+}

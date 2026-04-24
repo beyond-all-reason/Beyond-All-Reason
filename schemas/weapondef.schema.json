@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://beyond-all-reason.github.io/schemas/weapondef.schema.json",
+  "title": "BAR Weapon Definition File",
+  "description": "One or more weapon definitions keyed by weapon name. Each file must contain at least one definition.",
+  "type": "object",
+  "minProperties": 1,
+  "additionalProperties": {
+    "$ref": "#/definitions/WeaponDef"
+  },
+  "definitions": {
+    "WeaponDef": {
+      "type": "object",
+      "description": "A single weapon definition.",
+      "properties": {
+        "name": { "type": "string", "description": "Display name of the weapon" },
+        "range": { "type": "number", "minimum": 0, "description": "Maximum firing range" },
+        "reloadtime": { "type": "number", "minimum": 0, "description": "Time between shots in seconds" },
+        "weapontype": { "type": "string", "description": "Engine weapon type (Cannon, LaserCannon, etc.)" },
+        "weaponvelocity": { "type": "number", "description": "Projectile speed" },
+        "areaofeffect": { "type": "number", "minimum": 0, "description": "Splash damage radius" },
+        "craterboost": { "type": "number", "description": "Crater depth boost" },
+        "cratermult": { "type": "number", "description": "Crater size multiplier" },
+        "edgeeffectiveness": { "type": "number", "minimum": 0, "maximum": 1, "description": "Damage at edge of AoE (0-1)" },
+        "explosiongenerator": { "type": "string", "description": "CEG name for impact effect" },
+        "firestarter": { "type": "number", "description": "Chance to set fire (0-100)" },
+        "gravityaffected": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "string", "enum": ["true", "false"] }
+          ],
+          "description": "Whether projectile is affected by gravity"
+        },
+        "impulsefactor": { "type": "number", "description": "Knockback force multiplier" },
+        "noselfdamage": { "type": "boolean", "description": "Whether weapon can damage its owner" },
+        "turret": { "type": "boolean", "description": "Whether weapon fires from a turret" },
+        "soundhit": { "type": "string", "description": "Sound on impact" },
+        "soundhitwet": { "type": "string", "description": "Sound on water impact" },
+        "soundstart": { "type": "string", "description": "Sound on firing" },
+        "soundstartvolume": { "type": "number", "description": "Firing sound volume" },
+        "avoidfeature": { "type": "boolean", "description": "Whether projectile avoids features" },
+        "craterareaofeffect": { "type": "number", "description": "Crater area of effect" },
+        "damage": {
+          "type": "object",
+          "description": "Damage values per armor class.",
+          "properties": {
+            "default": { "type": "number", "description": "Default damage value" }
+          },
+          "additionalProperties": { "type": "number" }
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://beyond-all-reason.github.io/schemas/featuredef.schema.json",
+  "title": "BAR Feature Definition File",
+  "description": "One or more feature definitions keyed by feature name. Each file must contain at least one definition.",
+  "type": "object",
+  "minProperties": 1,
+  "additionalProperties": {
+    "$ref": "#/definitions/FeatureDef"
+  },
+  "definitions": {
+    "FeatureDef": {
+      "type": "object",
+      "description": "A single feature definition (wreckage, rock, tree, etc.).",
+      "properties": {
+        "blocking": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "integer", "enum": [0, 1] }
+          ],
+          "description": "Whether the feature blocks unit movement"
+        },
+        "category": { "type": "string", "description": "Feature category (corpses, heaps, rocks, etc.)" },
+        "collisionvolumeoffsets": { "type": "string", "description": "Collision volume offset (space-separated x y z)" },
+        "collisionvolumescales": { "type": "string", "description": "Collision volume dimensions (space-separated x y z)" },
+        "collisionvolumetype": { "type": "string", "description": "Collision volume shape (Box, CylY, sphere, etc.)" },
+        "damage": { "type": "number", "description": "Hit points before destruction" },
+        "description": { "type": "string", "description": "Display description" },
+        "energy": { "type": "number", "description": "Energy given when reclaimed" },
+        "featuredead": { "type": "string", "description": "Feature def name on destruction (e.g. heap stage)" },
+        "footprintx": { "type": "integer", "minimum": 0, "description": "Footprint width in squares" },
+        "footprintz": { "type": "integer", "minimum": 0, "description": "Footprint depth in squares" },
+        "height": { "type": "number", "description": "Visual height" },
+        "hitdensity": { "type": "number", "description": "Hit density for projectile collision" },
+        "indestructible": { "type": "boolean", "description": "Whether feature cannot be destroyed" },
+        "metal": { "type": "number", "description": "Metal given when reclaimed" },
+        "noselect": { "type": "boolean", "description": "Whether feature is selectable" },
+        "object": { "type": "string", "description": "3D model file path" },
+        "reclaimable": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "integer", "enum": [0, 1] }
+          ],
+          "description": "Whether the feature can be reclaimed"
+        },
+        "resurrectable": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "integer", "enum": [0, 1] }
+          ],
+          "description": "Whether the feature can be resurrected"
+        },
+        "customparams": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Arbitrary key-value parameters"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}
