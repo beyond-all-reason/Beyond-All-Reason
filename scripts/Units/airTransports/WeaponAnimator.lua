@@ -1,6 +1,3 @@
--- TODOs:
--- port Killed() passenger damage logic from the original gadget unit_transport_dies_load_dies, which is currently disabled and slated for deletion
-
 WeaponAnimator = {}
 
 local aimPieceNum
