@@ -11,7 +11,7 @@ local function shortAngle(a)
 end
 
 -- move and rotate a slot piece to match a world-space position/rotation, converting through unit-local space
-local function MovePieceWS(pieceNum, wantedWorldSpacePosX, wantedWorldSpacePosY, wantedWorldSpacePosZ, wantedWorldSpaceRotX, wantedWorldSpaceRotY, wantedWorldSpaceRotZ, speed, tHeight, currentUnitPosX, currentUnitPosY, currentUnitPosZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ, normalizedProgress)
+local function MovePieceWS(pieceNum, wantedWorldSpacePosX, wantedWorldSpacePosY, wantedWorldSpacePosZ, wantedWorldSpaceRotX, wantedWorldSpaceRotY, wantedWorldSpaceRotZ, speed, passengerHeight, currentUnitPosX, currentUnitPosY, currentUnitPosZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ, normalizedProgress)
     local wantedUnitSpacePosX, wantedUnitSpacePosY, wantedUnitSpacePosZ, wantedUnitSpaceRotX, wantedUnitSpaceRotY, wantedUnitSpaceRotZ = TransportAPI.WorldToUnitSpace(unitID, wantedWorldSpacePosX, wantedWorldSpacePosY, wantedWorldSpacePosZ, wantedWorldSpaceRotX, wantedWorldSpaceRotY, wantedWorldSpaceRotZ, currentUnitPosX, currentUnitPosY, currentUnitPosZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ)
     -- Move() offsets are relative to the piece's own rest position, not the unit origin.
     -- Subtract the rest position so the piece ends up at the correct unit-local coordinates.
@@ -21,7 +21,7 @@ local function MovePieceWS(pieceNum, wantedWorldSpacePosX, wantedWorldSpacePosY,
     end
     local defaultPiecePosition =    defaultPiecePos[pieceNum]
     Move(pieceNum, 1, (wantedUnitSpacePosX + (1-normalizedProgress) * defaultPiecePosition[1]),           speed)
-    Move(pieceNum, 2, wantedUnitSpacePosY - tHeight - (1-normalizedProgress) * defaultPiecePosition[2], speed)
+    Move(pieceNum, 2, wantedUnitSpacePosY - passengerHeight - (1-normalizedProgress) * defaultPiecePosition[2], speed)
     Move(pieceNum, 3, wantedUnitSpacePosZ - (1-normalizedProgress) * defaultPiecePosition[3],           speed)
     Turn(pieceNum, 1, wantedUnitSpaceRotX, speed)
     Turn(pieceNum, 2, wantedUnitSpaceRotY, speed)
@@ -33,17 +33,17 @@ local progress         -- set in Init from precomputedProgress[unitDefID]
 local beamsBySlotID    = {}
 
 local cachedFrame = -1
-local currentUnitX, currentUnitY, currentUnitZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ
+local currentUnitPosX, currentUnitPosY, currentUnitPosZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ
 
 -- returns transporter position and rotation, memoized per game frame to avoid redundant API calls
 local function getTransporterState() -- caching helper: get the position only once per frame when multiple threads are running.
     local f = SpGetGameFrame()
     if f ~= cachedFrame then
-        currentUnitX, currentUnitY, currentUnitZ    = SpGetUnitPosition(unitID)
+        currentUnitPosX, currentUnitPosY, currentUnitPosZ    = SpGetUnitPosition(unitID)
         currentUnitRotX, currentUnitRotY, currentUnitRotZ = SpGetUnitRotation(unitID)
         cachedFrame = f
     end
-    return currentUnitX, currentUnitY, currentUnitZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ
+    return currentUnitPosX, currentUnitPosY, currentUnitPosZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ
 end
 
 -- zero out all transforms on a slot piece (called after animation completes or is aborted)
@@ -168,20 +168,20 @@ function TransportAnimator.Load(passengerData, doAnim)
         for frame = 0, loadTime - 1 do
             local normalizedProgress = progress[frame]
             passengerData.animProgress = normalizedProgress -- keep track of the progress for Killed() script
-            local transporterX, transporterY, transporterZ, transporterRX, transporterRY, transporterRZ = getTransporterState()
+            local transporterPosX, transporterPosY, transporterPosZ, transporterRotX, transporterRotY, transporterRotZ = getTransporterState()
 
-            local newPassengerPositionX = normalizedProgress * transporterX   + (1 - normalizedProgress) * passengerPosX
-            local newPassengerPositionY = normalizedProgress * transporterY   + (1 - normalizedProgress) * passengerPosY
-            local newPassengerPositionZ = normalizedProgress * transporterZ   + (1 - normalizedProgress) * passengerPosZ
+            local newPassengerPositionX = normalizedProgress * transporterPosX   + (1 - normalizedProgress) * passengerPosX
+            local newPassengerPositionY = normalizedProgress * transporterPosY   + (1 - normalizedProgress) * passengerPosY
+            local newPassengerPositionZ = normalizedProgress * transporterPosZ   + (1 - normalizedProgress) * passengerPosZ
             passengerData.loading = true -- flag for WatchBeams; passenger is attached so slot pos is authoritative
 
             MovePieceWS(passengerData.slotID,
                 newPassengerPositionX, newPassengerPositionY, newPassengerPositionZ,
-                passengerRotX + normalizedProgress * shortAngle(transporterRX - passengerRotX),
-                passengerRotY + normalizedProgress * shortAngle(transporterRY - passengerRotY),
-                passengerRotZ + normalizedProgress * shortAngle(transporterRZ - passengerRotZ),
+                passengerRotX + normalizedProgress * shortAngle(transporterRotX - passengerRotX),
+                passengerRotY + normalizedProgress * shortAngle(transporterRotY - passengerRotY),
+                passengerRotZ + normalizedProgress * shortAngle(transporterRotZ - passengerRotZ),
                 nil, passengerData.height * normalizedProgress,
-                transporterX, transporterY, transporterZ, transporterRX, transporterRY, transporterRZ, normalizedProgress)
+                transporterPosX, transporterPosY, transporterPosZ, transporterRotX, transporterRotY, transporterRotZ, normalizedProgress)
             Sleep(33)
             if isDead(passengerData.id) then aborted = true ; break end
         end
@@ -213,15 +213,15 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 
     if doAnim ~= false then
         Spring.SetUnitRulesParam(passengerData.id, "inTransportAnim", 1)
-        local startSlotPosUSX, startSlotPosUSY, startSlotPosUSZ    = SpGetUnitPiecePosDir(unitID, passengerData.slotID)
-        local transporterX, _, transporterZ = SpGetUnitPosition(unitID)
-        goalPosX = goalPosX + (startSlotPosUSX - transporterX)
-        goalPosZ = goalPosZ + (startSlotPosUSZ - transporterZ)
+        local startSlotPosX, startSlotPosY, startSlotPosZ    = SpGetUnitPiecePosDir(unitID, passengerData.slotID)
+        local transporterPosX, _, transporterPosZ = SpGetUnitPosition(unitID)
+        goalPosX = goalPosX + (startSlotPosX - transporterPosX)
+        goalPosZ = goalPosZ + (startSlotPosZ - transporterPosZ)
         goalPosY = SpGetGroundHeight(goalPosX, goalPosZ)
 
         SpMoveCtrl.Enable(passengerData.id) -- unlike Load(), Unload moves the unit via movectrl after detaching
         local startRotX, startRotY, startRotZ       = SpGetUnitRotation(passengerData.id)
-        local initTransporterRotX, initTransporterRotY, initTransporterRotZ = SpGetUnitRotation(unitID)
+        local startTransporterRotX, startTransporterRotY, startTransporterRotZ = SpGetUnitRotation(unitID)
         local passengerDefID = SpGetUnitDefID(passengerData.id)
         local goalRotX, goalRotY, goalRotZ
         if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].upright then
@@ -248,9 +248,9 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 
             local transporterRotX, transporterRotY, transporterRotZ = SpGetUnitRotation(unitID)
             -- track transporter rotation changes so the passenger's start-rotation follows the carrier during animation
-            local fromRotX = startRotX + shortAngle(transporterRotX - initTransporterRotX)
-            local fromRotY = startRotY + shortAngle(transporterRotY - initTransporterRotY)
-            local fromRotZ = startRotZ + shortAngle(transporterRotZ - initTransporterRotZ)
+            local fromRotX = startRotX + shortAngle(transporterRotX - startTransporterRotX)
+            local fromRotY = startRotY + shortAngle(transporterRotY - startTransporterRotY)
+            local fromRotZ = startRotZ + shortAngle(transporterRotZ - startTransporterRotZ)
             SpMoveCtrl.SetRotation(passengerData.id,
                 goalRotX * normalizedProgress + fromRotX * (1 - normalizedProgress),
                 goalRotY * normalizedProgress + fromRotY * (1 - normalizedProgress),
