@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - stable
+      - feature/3039-ci-unit-defs-export  # TODO: remove before PR
   workflow_dispatch:
 
 env:
