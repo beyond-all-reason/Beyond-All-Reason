@@ -3,51 +3,73 @@
 	<link type="text/rcss" href="../styles.rcss" />
 	<link type="text/rcss" href="../rml-utility-classes.rcss" />
 	<link type="text/rcss" href="../palette-standard-global.rcss" />
-	<link type="text/rcss" href="../themes/theme-base.rcss" />
-	<link type="text/rcss" href="../themes/theme-armada.rcss" />
-	<link type="text/rcss" href="../themes/theme-cortex.rcss" />
-	<link type="text/rcss" href="../themes/theme-legion.rcss" />
 	<link type="text/rcss" href="../gui_feature_placer/gui_feature_placer.rcss" />
 	<link type="text/rcss" href="gui_decal_placer.rcss" />
 </head>
 <body data-model="decal_placer_model">
-	<div id="dp-root" class="fp-root dp-root widget-shadow rounded-md bg-darkest p-2" data-class-hidden="hidden">
+	<div id="dp-root" class="fp-root dp-root widget-shadow rounded-md bg-darkest p-2">
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div id="dp-handle" class="fp-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Decal Library</div>
-			<div id="btn-quit" class="fp-quit-btn" onclick="widget:OnQuit()"><img class="fp-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+			<div class="fp-quit-btn" onclick="widget:OnQuit()"><img class="fp-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 
 		<div class="flex flex-row justify-between items-center mb-1">
 			<div class="text-lg text-light">DECALS</div>
 			<div class="text-sm text-keybind">
-				<span id="dp-selected-count">0</span> selected
+				<span>{{selectedCount}}</span> selected
 			</div>
 		</div>
 		<div class="text-sm text-keybind mb-1" style="text-align: right;">Shift+Click to select multiple</div>
 
-		<div id="dp-category-buttons" class="fp-cat-row">
-			<div id="btn-dp-cat-all" class="fp-cat-btn active"><span class="fp-cat-label">All</span></div>
-			<div id="btn-dp-cat-scars" class="fp-cat-btn"><span class="fp-cat-label">Scars</span></div>
-			<div id="btn-dp-cat-explosions" class="fp-cat-btn"><span class="fp-cat-label">Explos.</span></div>
-			<div id="btn-dp-cat-tracks" class="fp-cat-btn"><span class="fp-cat-label">Tracks</span></div>
-			<div id="btn-dp-cat-builds" class="fp-cat-btn"><span class="fp-cat-label">Builds</span></div>
-			<div id="btn-dp-cat-footprints" class="fp-cat-btn"><span class="fp-cat-label">Foot</span></div>
-			<div id="btn-dp-cat-scorch" class="fp-cat-btn"><span class="fp-cat-label">Scorch</span></div>
-			<div id="btn-dp-cat-groundplates" class="fp-cat-btn"><span class="fp-cat-label">Plates</span></div>
-			<div id="btn-dp-cat-other" class="fp-cat-btn"><span class="fp-cat-label">Other</span></div>
+		<div class="fp-cat-row">
+			<div class="fp-cat-btn" data-class-active="activeCategory == 'all'"          data-event-click="onCategorySelect('all')"><span class="fp-cat-label">All</span></div>
+			<div class="fp-cat-btn" data-class-active="activeCategory == 'scars'"        data-event-click="onCategorySelect('scars')"><span class="fp-cat-label">Scars</span></div>
+			<div class="fp-cat-btn" data-class-active="activeCategory == 'explosions'"   data-event-click="onCategorySelect('explosions')"><span class="fp-cat-label">Explos.</span></div>
+			<div class="fp-cat-btn" data-class-active="activeCategory == 'tracks'"       data-event-click="onCategorySelect('tracks')"><span class="fp-cat-label">Tracks</span></div>
+			<div class="fp-cat-btn" data-class-active="activeCategory == 'builds'"       data-event-click="onCategorySelect('builds')"><span class="fp-cat-label">Builds</span></div>
+			<div class="fp-cat-btn" data-class-active="activeCategory == 'footprints'"   data-event-click="onCategorySelect('footprints')"><span class="fp-cat-label">Foot</span></div>
+			<div class="fp-cat-btn" data-class-active="activeCategory == 'scorch'"       data-event-click="onCategorySelect('scorch')"><span class="fp-cat-label">Scorch</span></div>
+			<div class="fp-cat-btn" data-class-active="activeCategory == 'groundplates'" data-event-click="onCategorySelect('groundplates')"><span class="fp-cat-label">Plates</span></div>
+			<div class="fp-cat-btn" data-class-active="activeCategory == 'other'"        data-event-click="onCategorySelect('other')"><span class="fp-cat-label">Other</span></div>
 		</div>
 
 		<div class="fp-search-wrapper mb-1">
-			<input type="text" id="dp-search" class="fp-search-input" placeholder="Search decals..." data-value="search" onfocus="widget:OnSearchFocus()" onblur="widget:OnSearchBlur()" />
-			<div id="btn-dp-search-clear" class="fp-search-clear-btn" onclick="widget:OnSearchClear()"><img class="fp-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+			<input type="text" id="dp-search" class="fp-search-input" placeholder="Search decals..."
+				data-value="search"
+				data-event-focus="onSearchFocus()"
+				data-event-blur="onSearchBlur()"
+				data-event-change="onSearchChange()" />
+			<div class="fp-search-clear-btn" data-event-click="onSearchClear()">
+				<img class="fp-search-clear-icon" src="/luaui/images/terraform_brush/close.png" />
+			</div>
 		</div>
 
-		<div id="btn-dp-clear-selection" class="fp-clr-btn mb-1" onclick="widget:OnClearSelection()">
+		<div class="fp-clr-btn mb-1" onclick="widget:OnClearSelection()">
 			<div class="fp-btn-text">CLR</div>
 		</div>
 
-		<div id="dp-list" class="fp-feature-list">
-			<!-- Populated dynamically by Lua -->
+		<div class="fp-feature-list gap-2">
+			<!--
+				The outer .dp-tile-host carries ONLY data-for. All per-row d.X
+				bindings (including the click handler) live on the inner tile.
+				RmlUi re-evaluates outer (data-for) element bindings against
+				indices the new array no longer has during shrinks, producing
+				"Could not get value from data variable" warnings. Inner bindings
+				empirically don't trigger this — including data-event-click,
+				which only fires on actual user click anyway.
+				Passing d.name (instead of a loop index) lets the handler
+				dispatch directly without a Lua-side index→row lookup table.
+			-->
+			<div class="dp-tile-host" data-for="d : currentDecals">
+				<div class="fp-feature-item"
+					data-class-selected="d.selected"
+					data-event-click="onDecalClick(d.name)">
+					<div data-attr-class="'fp-feature-thumb dp-thumb-' + d.category">
+						<img data-if="d.hasImg" data-attr-src="d.srcPath" />
+					</div>
+					<div class="fp-feature-name">{{d.displayName}}</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </body>
