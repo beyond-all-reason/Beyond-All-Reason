@@ -96,13 +96,8 @@ jobs:
             exit 1
           fi
 
-      - name: Package
-        run: |
-          cd "$EXPORT_DIR/json_export"
-          zip -r "$GITHUB_WORKSPACE/unitdefs-export.zip" .
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: unitdefs-export-${{ github.sha }}
-          path: unitdefs-export.zip
+          path: ${{ env.EXPORT_DIR }}/json_export/
