@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - stable
-      - feature/3039-ci-unit-defs-export  # TODO: remove before PR
   workflow_dispatch:
 
 env:
@@ -16,8 +15,7 @@ jobs:
   export:
     name: Export UnitDefs
     runs-on: ubuntu-latest
-    # TODO: restore repo guard before PR
-    # if: github.repository == 'beyond-all-reason/Beyond-All-Reason'
+    if: github.repository == 'beyond-all-reason/Beyond-All-Reason'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
