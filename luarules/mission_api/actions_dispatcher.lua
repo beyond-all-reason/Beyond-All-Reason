@@ -38,6 +38,7 @@ local typeMapping = {
 	[types.ClearAllMarkers] = actionFunctions.ClearAllMarkers,
 	[types.Victory] = actionFunctions.Victory,
 	[types.Defeat] = actionFunctions.Defeat,
+	[types.AddResources] = actionFunctions.AddResources,
 }
 
 -- unpack() does not handle optional parameters, as it cannot pass a value as nil

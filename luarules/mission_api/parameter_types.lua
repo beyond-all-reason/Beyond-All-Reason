@@ -11,6 +11,7 @@ local types = {
 	AllyTeamIDs = 'AllyTeamIDs',
 	Orders = 'Orders',
 	Area = 'Area',
+	ResourceIncomeSources = 'ResourceIncomeSources',
 
 	-- String Validators:
 	String = 'String',
@@ -35,6 +36,12 @@ local types = {
 	Function = 'Function',
 }
 
+local enums = {
+	[types.Facing] = { [0] = true, [1] = true, [2] = true, [3] = true, n = true, s = true, e = true, w = true, north = true, south = true, east = true, west = true },
+	[types.ResourceIncomeSources] = { extractor = true, production = true, reclaim = true, transfer = true },
+}
+
 return {
 	Types = types,
+	Enums = enums,
 }

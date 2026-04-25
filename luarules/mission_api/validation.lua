@@ -29,7 +29,9 @@ local function validateField(value, fieldName, expectedType)
 	end
 end
 
-local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
+local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+local Types = parameterTypes.Types
+local parameterTypeEnums = parameterTypes.Enums
 
 local validators = {}
 
@@ -217,8 +219,7 @@ validators[Types.Orders] = function(orders)
 				-- parameters must be 3 or 4 numbers {x, y, z, optional facing}, or empty for factories
 				validateNumberArrayCurried({ 0, 3, 4 }, "3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories")()
 				if #(params or {}) == 4 then
-					local validFacings = { [0] = true, [1] = true, [2] = true, [3] = true }
-					if not validFacings[params[4]] then
+					if not parameterTypeEnums[Types.Facing][params[4]] then
 						result[#result + 1] = { message = "Invalid build order facing: " .. params[4] .. ". Must be one of 0, 1, 2, 3", parameterNameSuffix = '[' .. orderNumber .. '][2][4]' }
 					end
 				end
@@ -298,6 +299,22 @@ validators[Types.Area] = function(area)
 		end
 	end
 
+validators[Types.ResourceIncomeSources] = function(sources)
+	local luaTypeResult = validators[Types.Table](sources)
+	if luaTypeResult then return luaTypeResult end
+	if #sources == 0 then
+		return { { message = "Resource income sources table must not be empty" } }
+	end
+
+	local result = {}
+	for i, source in ipairs(sources) do
+		if not parameterTypeEnums[Types.ResourceIncomeSources][source] then
+			result[#result + 1] = { message = "Invalid resource income source [" .. i .. "]: '" .. tostring(source) .. "'. Must be one of: 'extractor', 'production', 'reclaim', 'transfer'" }
+		end
+	end
+	if #result > 0 then return result end
+end
+
 --- String Validators:
 
 validators[Types.TriggerID] = function(triggerID)
@@ -354,8 +371,7 @@ validators[Types.Facing] = function(facing)
 			return { { message = "Unexpected parameter type, expected string or number, got " .. actualType } }
 		end
 
-		local validFacings = { [0] = true, [1] = true, [2] = true, [3] = true, n = true, s = true, e = true, w = true, north = true, south = true, east = true, west = true }
-		if not validFacings[facing] then
+		if not parameterTypeEnums[Types.Facing][facing] then
 			return { { message = "Invalid facing: " .. facing .. ". Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'." } }
 		end
 	end

@@ -303,6 +303,15 @@ local function custom(func)
 	func()
 end
 
+local function addResources(teamID, metal, energy)
+	if metal then
+		Spring.AddTeamResource(teamID, 'metal', metal)
+	end
+	if energy then
+		Spring.AddTeamResource(teamID, 'energy', energy)
+	end
+end
+
 return {
 	-- Triggers
 	EnableTrigger = enableTrigger,
@@ -343,4 +352,7 @@ return {
 
 	-- Custom
 	Custom = custom,
+
+	-- Other
+	AddResources = addResources,
 }
