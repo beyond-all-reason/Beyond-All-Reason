@@ -150,7 +150,7 @@ local RENDER_MODE = (NANO_PARTICLE_MODE == 1) and "billboard" or "shape"
 -- Color brightness equalization, in [0..1]:
 local NanoParticleColorEqualize = 0.7   -- [0..1]
 -- Global unit particle rate/amount multiplier. 1.0 = unchanged. 0.5 = half particles per unit
-local NanoParticleRate        = 0.33   -- [0..1]
+local NanoParticleRate        = 0.4   -- [0..1]
 -- Resurrect emits two legs (outbound + inbound). Scale the resurrect-specific
 -- spray here for BOTH legs: 1.0 = current BAR behaviour, 0.5 = half as many
 -- resurrect particles on both outbound and inbound legs
@@ -208,19 +208,19 @@ local MODE_SETTINGS = {
 	},
 	shape = {
 		shape       = "cube",   -- "cube" | "octahedron"
-		drawRadius  = 1.4,        -- shape spans ~2*drawRadius edge-to-edge
+		drawRadius  = 1.5,        -- shape spans ~2*drawRadius edge-to-edge
 		nanoAlpha   = 50 / 255,   -- match billboard look
 		dirJitter   = 0.10,       -- chunks read better with less spread
 		-- Shapes benefit from visible variation -- they read as discrete chunks.
-		sizeVar     = 0.33,
-		speedVar    = 0.18,
-		alphaVar    = 2.0,
+		sizeVar     = 0.3,
+		speedVar    = 0.15,
+		alphaVar    = 2.5,
 		-- View-dependent face shading: 0 = flat, 1 = full 3D depth (back faces visible-but-dimmed).
 		cubeShowInside = 4.0,
-		cubeNoise       = 3.7,
+		cubeNoise       = 6,
 		cubeNoiseSpeed  = 25.0,
 		cubeNoiseScale  = 1.75,
-		whiteHotspot          = 1.3,
+		whiteHotspot          = 1.5,
 		whiteHotspotThreshold = 0.6,
 		-- GS adds its own per-axis 3D tumble, so base 2D rotation can be slower.
 		rotValBase  = -180, rotValRange = 360,
@@ -234,12 +234,12 @@ local MODE_SETTINGS = {
 		glowBreathVar     = 0.5,  -- ± per-particle amplitude variation (0..1 fraction)
 		glowBreathFreqVar = 0.5,  -- ± per-particle frequency variation (0..1 fraction)
 		-- Energy enhancement (sizePulse not wired through GS; halo+jitter+breath suffice).
-		coreBoost      = 0.25,    -- multiplies face shading; modest so dark faces still read
+		coreBoost      = 0.3,    -- multiplies face shading; modest so dark faces still read
 		hueJitter      = 0.1,
 
-		wobbleAmp      = 7.0,
+		wobbleAmp      = 5.0,
 		wobbleVar      = 0.5,	-- 0...1 fraction of wobbleAmp
-		wobbleFreq     = 0.16,
+		wobbleFreq     = 0.2,
 		wobbleFreqVar  = 0.5,	-- 0...1 fraction of wobbleFreq
 		wobbleRampFrames = 7.0,  -- frames to ramp up from 0 to full wobble amplitude (0 = instant)
 	},
