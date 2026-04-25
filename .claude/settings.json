@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(just bar::units spec/Widgets/api_blueprint_spec.lua)"
-    ]
-  }
-}
