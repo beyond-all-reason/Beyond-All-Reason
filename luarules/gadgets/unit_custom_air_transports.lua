@@ -586,6 +586,13 @@ end
 
 function gadget:Initialize()
 	for _, unitID in pairs(spGetAllUnits()) do -- save/load compat
+		if Spring.GetUnitRulesParam(unitID, "inTransportAnim") == 1 then
+			-- this unit was in the middle of an unload anim, we need to "repair" it by releasing MoveCtrl and clip it to ground level (not fall, otherwise fall damages !!)
+			Spring.MoveCtrl.Disable(unitID, false)
+			Spring.SetUnitRulesParam(unitID, "inTransportAnim", 0)
+			local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
+			Spring.SetUnitPosition(unitID, unitPosX, spGetGroundHeight(unitPosX, unitPosZ), unitPosZ)
+		end
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 	end
 	spSetCustomCommandDrawData(CMD_AREA_LOAD, CMD.LOAD_UNITS, {0.6, 0.6, 1, 0.5}, true)
