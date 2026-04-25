@@ -15,7 +15,8 @@ jobs:
   export:
     name: Export UnitDefs
     runs-on: ubuntu-latest
-    if: github.repository == 'beyond-all-reason/Beyond-All-Reason'
+    # TODO: restore repo guard before PR
+    # if: github.repository == 'beyond-all-reason/Beyond-All-Reason'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
