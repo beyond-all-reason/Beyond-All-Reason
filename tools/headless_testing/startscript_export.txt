@@ -1,0 +1,29 @@
+[GAME]
+{
+	MapName=Quicksilver Remake 1.24;
+	GameType=Beyond All Reason $VERSION;
+	GameStartDelay=0;
+	StartPosType=0;
+	RecordDemo=0;
+	MyPlayerName=TestRunner;
+	IsHost=1;
+	FixedRNGSeed = 1;
+  [MODOPTIONS]
+  {
+    debugcommands=1:luaui enablewidget Unitdefs JSON Export|2:exportdefs|3:quitforce;
+		deathmode=neverend;
+		experimentallegionfaction=1;
+  }
+  [ALLYTEAM0]
+  {
+  }
+  [TEAM0]
+  {
+    allyteam=0;
+    teamleader=0;
+  }
+  [PLAYER0]
+  {
+    team=0;
+  }
+}

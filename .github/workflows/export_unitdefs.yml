@@ -1,0 +1,106 @@
+name: Export UnitDefs JSON
+
+on:
+  push:
+    branches:
+      - stable
+  workflow_dispatch:
+
+env:
+  EXPORT_DIR: /tmp/bar-export
+  MAP_NAME: quicksilver_remake_1.24.sd7
+  MAP_URL: https://springfiles.springrts.com/files/maps/quicksilver_remake_1.24.sd7
+
+jobs:
+  export:
+    name: Export UnitDefs
+    runs-on: ubuntu-latest
+    if: github.repository == 'beyond-all-reason/Beyond-All-Reason'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve engine version
+        id: engine
+        run: |
+          CONFIG=$(curl -fsSL https://launcher-config.beyondallreason.dev/config.json)
+          ENGINE_URL=$(echo "$CONFIG" | jq -r '
+            .setups[]
+            | select(.package.id == "manual-linux-test-engine")
+            | .downloads.resources[]
+            | select(.destination | contains("engine"))
+            | .url
+          ')
+          ENGINE_DEST=$(echo "$CONFIG" | jq -r '
+            .setups[]
+            | select(.package.id == "manual-linux-test-engine")
+            | .downloads.resources[]
+            | select(.destination | contains("engine"))
+            | .destination
+          ')
+          ENGINE_VERSION=$(basename "$ENGINE_DEST")
+          echo "url=$ENGINE_URL" >> "$GITHUB_OUTPUT"
+          echo "dest=$ENGINE_DEST" >> "$GITHUB_OUTPUT"
+          echo "version=$ENGINE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved engine: $ENGINE_VERSION"
+          echo "Engine URL: $ENGINE_URL"
+
+      - name: Cache engine and map
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.EXPORT_DIR }}/engine
+            ${{ env.EXPORT_DIR }}/maps
+          key: unitdef-export-${{ steps.engine.outputs.version }}-quicksilver-1.24
+
+      - name: Download engine
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$EXPORT_DIR/${{ steps.engine.outputs.dest }}"
+          curl -fsSL "${{ steps.engine.outputs.url }}" -o /tmp/engine.7z
+          7z x /tmp/engine.7z -o"$EXPORT_DIR/${{ steps.engine.outputs.dest }}"
+          rm /tmp/engine.7z
+
+      - name: Download map
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$EXPORT_DIR/maps"
+          curl -fsSL "$MAP_URL" -o "$EXPORT_DIR/maps/$MAP_NAME"
+
+      - name: Set up workspace
+        run: |
+          mkdir -p "$EXPORT_DIR/games"
+          ln -sf "$GITHUB_WORKSPACE" "$EXPORT_DIR/games/BAR.sdd"
+          cp tools/headless_testing/springsettings.cfg "$EXPORT_DIR/"
+          cp tools/headless_testing/startscript_export.txt "$EXPORT_DIR/"
+
+      - name: Run headless export
+        run: |
+          cd "$EXPORT_DIR"
+          rm -rf LuaUI/Config
+          engine/*/spring-headless \
+            --isolation \
+            --write-dir "$(pwd)" \
+            startscript_export.txt
+        timeout-minutes: 15
+
+      - name: Validate export
+        run: |
+          FILE_COUNT=$(find "$EXPORT_DIR/json_export" -name '*.json' | wc -l)
+          echo "Exported $FILE_COUNT unit definitions"
+          if [ "$FILE_COUNT" -lt 1 ]; then
+            echo "::error::No JSON files were exported"
+            exit 1
+          fi
+
+      - name: Package
+        run: |
+          cd "$EXPORT_DIR/json_export"
+          zip -r "$GITHUB_WORKSPACE/unitdefs-export.zip" .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unitdefs-export-${{ github.sha }}
+          path: unitdefs-export.zip
