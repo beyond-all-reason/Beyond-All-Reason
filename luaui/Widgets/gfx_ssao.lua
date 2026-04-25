@@ -72,6 +72,7 @@ local shaderConfig = {
 	MERGE_MISC = 0, -- for future material indices based SSAO evaluation, completely dissabled now
 }
 
+
 local definesSlidersParamsList = {
 	{name = 'SSAO_FIBONACCI', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use uniformly distributed rays intead of randomly distributed ones'},
 	{name = 'SSAO_KERNEL_MINZ', default = 0.04, min = 0, max = 0.2, digits = 2, tooltip = 'How close vectors can be to tangent plane'},
@@ -100,7 +101,6 @@ local definesSlidersParamsList = {
 
 
 	{name = 'USE_STENCIL', default = 1, min = 0, max = 1, digits = 0, tooltip = 'USE_STENCIL set to zero if you dont wanna'},
-	{name = 'OFFSET', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Set to 2 for half-rez buffers'},
 	{name = 'DOWNSAMPLE', default = 1, min = 1, max = 2, digits = 0, tooltip = 'Set to 2 for half-rez buffers'},
 	{name = 'ENABLE', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Disable the whole SSAO'},
 	{name = 'SLOWFUSE', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Only fuse every 30 frames. DO NOT TOUCH!'},
@@ -158,11 +158,10 @@ local presets = {
 		BLUR_POWER = 1.5,
 		BLUR_SIGMA = 2,
 		BRIGHTEN = 30,
-		DOWNSAMPLE = 2,
+		DOWNSAMPLE = 3,
 		MINCOSANGLE = 0.69,
 		MINSELFWEIGHT = 0.3,
 		NOFUSE = 1, -- at low quality, some vram can be saved
-		OFFSET = 1,
 		OUTLIERCORRECTIONFACTOR = 0.66,
 		SSAO_FADE_DIST_0 = 6000, -- BAR camera zooms far past this; pushed out so AO survives strategic zoom
 		SSAO_FADE_DIST_1 = 3000,
@@ -173,12 +172,14 @@ local presets = {
 		USE_STENCIL = 0, -- There is a non-zero cpu cost of drawing the stencil, and at low resolutions, it doesnt help really
 	},
 	{ -- MEDIUM QUALITY
-		BLUR_CLAMP = 0.24,
+		BLUR_CLAMP = 0.16,
 		BLUR_HALF_KERNEL_SIZE = 4,
-		BLUR_POWER = 2.3,
-		BLUR_SIGMA = 3,
+		BLUR_POWER = 1.6,
+		BLUR_SIGMA = 2.5,
 		BRIGHTEN = 30,
 		DOWNSAMPLE = 2, -- half-res SSAO; bilateral upsample preserves edges via full-res depth ref
+		MINSELFWEIGHT = 0.2,
+		NOFUSE = 1, -- setting this to zero causes issues noticeable on heaps (especially when DOWNSAMPLE > 1)
 		MINCOSANGLE = 0.70,
 		OUTLIERCORRECTIONFACTOR = 0.16,
 		SSAO_FADE_DIST_0 = 7000,
@@ -187,6 +188,7 @@ local presets = {
 		SSAO_MIN = 0.62,
 		SSAO_RADIUS = 8,
 		SSAO_RADIUS_FAR_SCALE = 3.6,
+		USE_STENCIL = 1
 	},
 	{ -- HIGH QUALITY
 		BLUR_CLAMP = 0.145,
@@ -195,6 +197,8 @@ local presets = {
 		BLUR_SIGMA = 3.2,
 		BRIGHTEN = 30,
 		DOWNSAMPLE = 1,
+		MINSELFWEIGHT = 0.2,
+		NOFUSE = 1, -- setting this to zero causes issues noticeable on heaps (especially when DOWNSAMPLE > 1)
 		MINCOSANGLE = 0.75,
 		OUTLIERCORRECTIONFACTOR = 0.10,
 		SSAO_FADE_DIST_0 = 9000,
@@ -203,6 +207,7 @@ local presets = {
 		SSAO_MIN = 0.61,
 		SSAO_RADIUS = 7,
 		SSAO_RADIUS_FAR_SCALE = 4.5, -- HIGH gets the most reach so contact shadows stay readable at full zoom
+		USE_STENCIL = 1
 	},
 }
 
