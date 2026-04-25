@@ -248,83 +248,81 @@ local actions = {
 	spawnMetalStorage = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armmstor',
-			teamID = 0,
-			position = { x = 1900, z = 1800 },
+			unitLoadout = {
+				{ unitDefName = 'armmstor', x = 1900, z = 1800, team = 0 },
+			},
 		},
 	},
 
 	spawnEnergyStorage = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armestor',
-			teamID = 0,
-			position = { x = 1900, z = 1900 },
+			unitLoadout = {
+				{ unitDefName = 'armestor', x = 1900, z = 1900, team = 0 },
+			},
 		},
 	},
 
 	spawnMex = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armmex',
-			teamID = 0,
-			position = { x = 2220, z = 2210 },
+			unitLoadout = {
+				{ unitDefName = 'armmex', x = 2220, z = 2210, team = 0 },
+			},
 		},
 	},
 
 	spawnFusion = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armfus',
-			teamID = 0,
-			position = { x = 1800, z = 1900 },
+			unitLoadout = {
+				{ unitDefName = 'armfus', x = 1800, z = 1900, team = 0 },
+			},
 		},
 	},
 
 	spawnMetalMaker = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armmmkr',
-			teamID = 0,
-			position = { x = 1800, z = 2000 },
+			unitLoadout = {
+				{ unitDefName = 'armmmkr', x = 1800, z = 2000, team = 0 },
+			},
 		},
 	},
 
 	spawnNuke = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'corsilo',
-			teamID = 0,
-			position = { x = 2000, z = 2110 },
+			unitLoadout = {
+				{ unitDefName = 'corsilo', x = 2000, z = 2110, team = 0 },
+			},
 		},
 	},
 
 	createWreckToReclaimIncome = {
-		type = actionTypes.CreateFeature,
+		type = actionTypes.CreateFeatures,
 		parameters = {
-			featureDefName = 'armllt_dead',
-			position = { x = 2100, z = 2000 },
-			facing = 's',
+			featureLoadout = {
+				{ featureDefName = 'armllt_dead', x = 2100, z = 2000, facing = 's' },
+			},
 		},
 	},
 
 	spawnIncomeReclaimer = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'incomeReclaimer',
-			unitDefName = 'armrectr',
-			teamID = 0,
-			position = { x = 2100, z = 2100 },
+			unitLoadout = {
+				{ unitDefName = 'armrectr', x = 2100, z = 2100, team = 0, unitName = 'incomeReclaimer' },
+			},
 		},
 	},
 
 	spawnUnitReclaimTarget = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'unitReclaimTarget',
-			unitDefName = 'armllt',
-			teamID = 0,
-			position = { x = 2200, z = 2100 },
+			unitLoadout = {
+				{ unitDefName = 'armllt', x = 2200, z = 2100, team = 0, unitName = 'unitReclaimTarget' },
+			},
 		},
 	},
 
