@@ -2178,14 +2178,6 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 			local tx, ty, tz
 			if entry and entry[1] == targetPosEpoch then
 				tx, ty, tz = entry[2], entry[3], entry[4]
-			elseif entry and entry[8] >= STATIONARY_SKIP_AFTER
-			       and entry[9] and (frame - entry[9]) < HEALTH_CHECK_EVERY then
-				-- Stationary-streak target polled recently: reuse last-known pos
-				-- (entry[5..7]). The skip branch below doesn't read tx/ty/tz, but
-				-- we still need a non-nil tx so the validity check passes.
-				tx, ty, tz = entry[5], entry[6], entry[7]
-				entry[1] = targetPosEpoch
-				entry[2] = tx; entry[3] = ty; entry[4] = tz
 			else
 				-- spGetUnitPosition(uid, true) returns 6 values; want mid (4,5,6).
 				local _, _, _, mx, my, mz = spGetUnitPosition(targetID, true)
