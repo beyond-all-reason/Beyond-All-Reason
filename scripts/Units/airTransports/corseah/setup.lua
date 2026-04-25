@@ -1,7 +1,7 @@
 return {
     cargo = {
         primarySlot = "flink4x4",
-        terSeats      = 8,
+        transporterSeats      = 8,
 
         slots = {
             { name = "flink4x4",   size = 4, requires = { "ffrlink2x2", "ffllink2x2", "fbrlink2x2", "fbllink2x2" } },

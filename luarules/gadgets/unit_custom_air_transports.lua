@@ -66,15 +66,15 @@ local LOAD_RADIUS = 128    -- elmos XZ; transporter must be within this range to
 local CMD_AREA_LOAD = 39751 -- custom area-load command; needs to be logged in customcmds
 local CMD_LOAD_UNIT = 39752 -- custom load-unit command; needs to be logged in customcmds
 
-local customTransportLoad = {} -- terDefID → LUS function or COB script function
-local customTransportUnload = {} -- terDefID → LUS function or COB script function
-local claimedBy = {} -- teeID → terID;
-local queuedSeats = {} -- terID → number seats
-local transporterClaims = {} -- terID → { teeID, teeID, ... }
-local areaLoadCoroutines = {} -- terID → coroutine
-local successiveLoadCoroutines = {} -- terID → coroutine
+local customTransportLoad = {} -- transporterDefID → LUS function or COB script function
+local customTransportUnload = {} -- transporterDefID → LUS function or COB script function
+local claimedBy = {} -- passengerID → transporterID;
+local queuedSeats = {} -- transporterID → number seats
+local transporterClaims = {} -- transporterID → { passengerID, passengerID, ... }
+local areaLoadCoroutines = {} -- transporterID → coroutine
+local successiveLoadCoroutines = {} -- transporterID → coroutine
 local cylinderCache = {} -- [key] = { frame = N, units = {...} }
-local isAirTransport = {} -- terDefID → bool;
+local isAirTransport = {} -- transporterDefID → bool;
 
 for udefID, def in ipairs(UnitDefs) do
 	if def.canFly and def.isTransport then
@@ -103,12 +103,12 @@ local function GetScriptFunc(unitID, functionName)
 	return false
 end
 
----@param teeID number
+---@param passengerID number
 ---@param y number
 ---@return boolean isUnderwater
 
-local function isUnderwater(teeID, y) -- i leave it hanging for now; TODOO: use engine's phys state bit or exact same calc to match
-	local height = spGetUnitHeight(teeID)
+local function isUnderwater(passengerID, y) -- i leave it hanging for now; TODOO: use engine's phys state bit or exact same calc to match
+	local height = spGetUnitHeight(passengerID)
 	return not height or y + height < 0
 end
 
@@ -123,15 +123,15 @@ local function dist2D(x1, z1, x2, z2)
 	return mathSqrt(dx * dx + dz * dz)
 end
 
----@param terID number
+---@param transporterID number
 ---@param goalX number
 ---@param goalY number
 ---@param goalZ number
 ---@return boolean inRange
 
-local function inRange(terPosX, terPosY, terPosZ, goalX, goalY, goalZ)
-	local dY = terPosY - goalY
-	return dist2D(terPosX, terPosZ, goalX, goalZ) <= LOAD_RADIUS and dY >= 0
+local function inRange(transporterPosX, transporterPosY, transporterPosZ, goalX, goalY, goalZ)
+	local dY = transporterPosY - goalY
+	return dist2D(transporterPosX, transporterPosZ, goalX, goalZ) <= LOAD_RADIUS and dY >= 0
 end
 
 ---@param cx number
@@ -159,106 +159,106 @@ end
 
 
 ---
---- @param teeID number
---- @param teeDefID number
---- @param teePosY number
---- @param terID number
---- @param terAllyTeam number  -- transporter allyTeam (not teamID!)
+--- @param passengerID number
+--- @param passengerDefID number
+--- @param passengerPosY number
+--- @param transporterID number
+--- @param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
 --- @return boolean
-local function CanBeTransportedStatic(teeID, teeDefID, terID) -- things that should cancel or deny queueing and are mostly immutable
-	if not spValidUnitID(teeID) then
+local function CanBeTransportedStatic(passengerID, passengerDefID, transporterID) -- things that should cancel or deny queueing and are mostly immutable
+	if not spValidUnitID(passengerID) then
 		return false
 	end
-	if teeID == terID then
+	if passengerID == transporterID then
 		return false	
 	end
-	if UnitDefs[teeDefID].cantBeTransported then
+	if UnitDefs[passengerDefID].cantBeTransported then
 		return false	
 	end
 	return true
 end
 
 ---
---- @param teeID number
---- @param teeDefID number
---- @param teePosY number
---- @param terID number
---- @param terAllyTeam number  -- transporter allyTeam (not teamID!)
+--- @param passengerID number
+--- @param passengerDefID number
+--- @param passengerPosY number
+--- @param transporterID number
+--- @param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
 --- @return boolean
-local function CanBeTransportedDynamic(teeID, teeDefID, teePosY, terID, terAllyTeam)  -- things that might have changed since CanBeTransportedStatic and should cancel queue (lightweight check for dynamic conditions))
-	if not spValidUnitID(teeID) then
+local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam)  -- things that might have changed since CanBeTransportedStatic and should cancel queue (lightweight check for dynamic conditions))
+	if not spValidUnitID(passengerID) then
 		return false
 	end
-	if spGetUnitTransporter(teeID) ~= nil then
+	if spGetUnitTransporter(passengerID) ~= nil then
 		return false	
 	end
-	if spGetUnitIsBeingBuilt(teeID) then -- moved to dynamic, to support other reclaimMode modrules that allows a unit to turn back to a nanoFrame
+	if spGetUnitIsBeingBuilt(passengerID) then -- moved to dynamic, to support other reclaimMode modrules that allows a unit to turn back to a nanoFrame
 		return false	
 	end
-	local losState = spGetUnitLosState(teeID, terAllyTeam, false)
+	local losState = spGetUnitLosState(passengerID, transporterAllyTeam, false)
 	if not losState or not (losState.los or losState.radar) then
 		return false	
 	end
-	if isUnderwater(teeID, teePosY) then
+	if isUnderwater(passengerID, passengerPosY) then
 		return false
 	end
-	if spGetUnitRulesParam(teeID, "inTransportAnim") == 1 then
+	if spGetUnitRulesParam(passengerID, "inTransportAnim") == 1 then
 		return false	
 	end
 	return true
 end
 
 ---
---- @param teeID number
---- @param terAllyTeam number  -- transporter allyTeam (not teamID!)
+--- @param passengerID number
+--- @param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
 --- @return boolean
-local function CanBeAutoClaimed(teeID, terAllyTeam) -- things that should only deny queueing if within area cmds
-	if not spValidUnitID(teeID) then
+local function CanBeAutoClaimed(passengerID, transporterAllyTeam) -- things that should only deny queueing if within area cmds
+	if not spValidUnitID(passengerID) then
 		return false
 	end
-	return not claimedBy[terAllyTeam][teeID]
+	return not claimedBy[transporterAllyTeam][passengerID]
 end
 
 ---
---- @param terID number
---- @param teeID number
---- @param terDefID number
---- @param teeSize number
+--- @param transporterID number
+--- @param passengerID number
+--- @param transporterDefID number
+--- @param passengerSize number
 --- @param includeQueue boolean
 --- @return boolean
-local function CanTransporteeFitInTransporter(terID, teeID, terDefID, teeSize, includeQueue) -- size check, either including queue (if within area cmd) or ignoring it
-	if not spValidUnitID(teeID) then
+local function CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, includeQueue) -- size check, either including queue (if within area cmd) or ignoring it
+	if not spValidUnitID(passengerID) then
 		return false
 	end
-	local terSeats    = spGetUnitRulesParam(terID, "transporterSeats")    or 0
-	local terUsedSeats = spGetUnitRulesParam(terID, "transporterUsedSeats") or 0
-	local queued    = includeQueue and (queuedSeats[terID] or 0) or 0
-	if terSeats - terUsedSeats - queued < teeSize then
+	local transporterSeats    = spGetUnitRulesParam(transporterID, "transporterSeats")    or 0
+	local transporterUsedSeats = spGetUnitRulesParam(transporterID, "transporterUsedSeats") or 0
+	local queued    = includeQueue and (queuedSeats[transporterID] or 0) or 0
+	if transporterSeats - transporterUsedSeats - queued < passengerSize then
 		return false
 	end
-	local rulesParamString = "transporterHasSlotOfSize"..teeSize
-	local foundSlot = spGetUnitRulesParam(terID, rulesParamString) == true
+	local rulesParamString = "transporterHasSlotOfSize"..passengerSize
+	local foundSlot = spGetUnitRulesParam(transporterID, rulesParamString) == true
 	return foundSlot
 end
 
 ---
---- @param teeID number
---- @param teeTeamID number  -- transportee teamID
---- @param teePosX number
---- @param teePosY number
---- @param teePosZ number
---- @param terID number
---- @param terTeamID number  -- transporter teamID
---- @param terPosX number
---- @param terPosY number
---- @param terPosZ number
+--- @param passengerID number
+--- @param passengerTeamID number  -- passenger teamID
+--- @param passengerPosX number
+--- @param passengerPosY number
+--- @param passengerPosZ number
+--- @param transporterID number
+--- @param transporterTeamID number  -- transporter teamID
+--- @param transporterPosX number
+--- @param transporterPosY number
+--- @param transporterPosZ number
 --- @return boolean
-local function CanBeTransportedNow(teeID, teeTeamID, teePosX, teePosY, teePosZ, terID, terTeamID, terPosX, terPosY, terPosZ) -- things that should delay loading without removing from queue
-	if not inRange(terPosX, terPosY, terPosZ, teePosX, teePosY, teePosZ) then
+local function CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterTeamID, transporterPosX, transporterPosY, transporterPosZ) -- things that should delay loading without removing from queue
+	if not inRange(transporterPosX, transporterPosY, transporterPosZ, passengerPosX, passengerPosY, passengerPosZ) then
 		return false
 	end
-	if not spAreTeamsAllied(teeTeamID, terTeamID) then
-		local _,_,_,vw = spGetUnitVelocity(teeID)
+	if not spAreTeamsAllied(passengerTeamID, transporterTeamID) then
+		local _,_,_,vw = spGetUnitVelocity(passengerID)
 		if vw > 0.5 then
 			return false -- if it's moving too fast, we consider it as fleeing and don't load it.
 		end
@@ -267,17 +267,17 @@ local function CanBeTransportedNow(teeID, teeTeamID, teePosX, teePosY, teePosZ, 
 end
 
 ---
---- @param teeID number
---- @param teeTeamID number  -- transportee teamID
---- @param terID number
---- @param terTeamID number  -- transporter teamID
+--- @param passengerID number
+--- @param passengerTeamID number  -- passenger teamID
+--- @param transporterID number
+--- @param transporterTeamID number  -- transporter teamID
 --- @return boolean
-local function CanMoveToTransporter(teeID, teeTeamID, terID, terTeamID) -- things that should allow moving towards transporter to facilitate loading
-	if teeTeamID == terTeamID then
+local function CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID) -- things that should allow moving towards transporter to facilitate loading
+	if passengerTeamID == transporterTeamID then
 		return true -- if it's the same team, we can move it towards the transport to facilitate loading
 	end
-	if spAreTeamsAllied(teeTeamID, terTeamID) then
-		local hasQ = Spring.GetUnitCommands(teeID, 0) >= 1
+	if spAreTeamsAllied(passengerTeamID, transporterTeamID) then
+		local hasQ = Spring.GetUnitCommands(passengerID, 0) >= 1
 		return not hasQ -- if it's an allied unit, we only can if it's idling
 	else
 		return false -- if it's an enemy unit, we never can
@@ -285,298 +285,298 @@ local function CanMoveToTransporter(teeID, teeTeamID, terID, terTeamID) -- thing
 end
 
 ---
---- @param teeID number
---- @param terAllyTeam number  -- transporter allyTeam (not teamID!)
+--- @param passengerID number
+--- @param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
 --- @return nil
-local function releaseTransportee(teeID, terAllyTeam)
-	local terID = claimedBy[terAllyTeam][teeID]
-	if not terID then return end
-	claimedBy[terAllyTeam][teeID] = nil
-	if transporterClaims[terID] then
+local function releasePassenger(passengerID, transporterAllyTeam)
+	local transporterID = claimedBy[transporterAllyTeam][passengerID]
+	if not transporterID then return end
+	claimedBy[transporterAllyTeam][passengerID] = nil
+	if transporterClaims[transporterID] then
 		local total = 0
-		local resumeFrom = #transporterClaims[terID]
+		local resumeFrom = #transporterClaims[transporterID]
 		for i = resumeFrom, 1, -1 do
-			if transporterClaims[terID][i] == teeID then 
-				table.remove(transporterClaims[terID], i) 
+			if transporterClaims[transporterID][i] == passengerID then 
+				table.remove(transporterClaims[transporterID], i) 
 				resumeFrom = i - 1
 				break
 			end
-			total = total + (TransportAPI.GetTransporteeSize(transporterClaims[terID][i]) or 0)
+			total = total + (TransportAPI.GetPassengerSize(transporterClaims[transporterID][i]) or 0)
 		end
 		if resumeFrom > 0 then
 			for i = resumeFrom, 1, -1 do
-				total = total + (TransportAPI.GetTransporteeSize(transporterClaims[terID][i]) or 0)
+				total = total + (TransportAPI.GetPassengerSize(transporterClaims[transporterID][i]) or 0)
 			end
 		end
-		queuedSeats[terID] = total
+		queuedSeats[transporterID] = total
 	else
-		queuedSeats[terID] = 0
+		queuedSeats[transporterID] = 0
 	end
 end
 
 ---
---- @param terID number
---- @param teeID number
---- @param teeSize number
+--- @param transporterID number
+--- @param passengerID number
+--- @param passengerSize number
 --- @param manualClaim boolean
 --- @return boolean claimSuccessful
-local function claimTransportee(terID, teeID, teeSize, manualClaim)
-	local terAllyTeam = spGetUnitAllyTeam(terID)
-	if not manualClaim and claimedBy[terAllyTeam][teeID] then return false end -- already claimed by another transporter from the allyTeam, and this is not a manual claim (from CMD_LOAD_UNIT))
-	if claimedBy[terAllyTeam][teeID] then 
-		releaseTransportee(teeID, terAllyTeam) -- release previous claim
+local function claimPassenger(transporterID, passengerID, passengerSize, manualClaim)
+	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
+	if not manualClaim and claimedBy[transporterAllyTeam][passengerID] then return false end -- already claimed by another transporter from the allyTeam, and this is not a manual claim (from CMD_LOAD_UNIT))
+	if claimedBy[transporterAllyTeam][passengerID] then 
+		releasePassenger(passengerID, transporterAllyTeam) -- release previous claim
 	end
-	claimedBy[terAllyTeam][teeID] = terID
-	transporterClaims[terID][#transporterClaims[terID] + 1] = teeID
+	claimedBy[transporterAllyTeam][passengerID] = transporterID
+	transporterClaims[transporterID][#transporterClaims[transporterID] + 1] = passengerID
 	local total = 0
 	local ct = 0
-	for i = #transporterClaims[terID], 1, -1 do
-		if transporterClaims[terID][i] == teeID then
+	for i = #transporterClaims[transporterID], 1, -1 do
+		if transporterClaims[transporterID][i] == passengerID then
 			ct = ct + 1
 			if ct > 1 then
-				spEcho("Error: duplicate claim for transportee " .. teeID .. " in transporter " .. terID .. "'s claims list") -- debug kept for now to debug potential double claims
+				spEcho("Error: duplicate claim for passenger " .. passengerID .. " in transporter " .. transporterID .. "'s claims list") -- debug kept for now to debug potential double claims
 			end
 		end
-		total = total + (TransportAPI.GetTransporteeSize(transporterClaims[terID][i]) or 0)
+		total = total + (TransportAPI.GetPassengerSize(transporterClaims[transporterID][i]) or 0)
 	end
-	queuedSeats[terID] = total
+	queuedSeats[transporterID] = total
 	return true
 end
 
 ---
---- @param terID number
+--- @param transporterID number
 --- @return nil
-local function releaseAllClaims(terID)
-	local claims = transporterClaims[terID]
+local function releaseAllClaims(transporterID)
+	local claims = transporterClaims[transporterID]
 	if not claims then return end
-	local terAllyTeam = spGetUnitAllyTeam(terID)
-	for _, teeID in ipairs(claims) do
-		claimedBy[terAllyTeam][teeID] = nil
+	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
+	for _, passengerID in ipairs(claims) do
+		claimedBy[transporterAllyTeam][passengerID] = nil
 	end
-	transporterClaims[terID] = {}
-	queuedSeats[terID] = 0
+	transporterClaims[transporterID] = {}
+	queuedSeats[transporterID] = 0
 end
 
 ---
---- @param terID number
---- @param terDefID number
---- @param terTeamID number  -- transporter teamID
+--- @param transporterID number
+--- @param transporterDefID number
+--- @param transporterTeamID number  -- transporter teamID
 --- @param cx number
 --- @param cz number
 --- @param radius number
 --- @return number|nil bestUnit
-local function findUnitToTransport(terID, terDefID, terTeamID, cx, cz, radius)
-	local terAllyTeam      = Spring.GetUnitAllyTeam(terID)
-	local terPosX, terPosY, terPosZ = spGetUnitPosition(terID)
-	local units = getCachedUnitsInCylinder(cx, cz, radius, terAllyTeam)
+local function findUnitToTransport(transporterID, transporterDefID, transporterTeamID, cx, cz, radius)
+	local transporterAllyTeam      = Spring.GetUnitAllyTeam(transporterID)
+	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
+	local units = getCachedUnitsInCylinder(cx, cz, radius, transporterAllyTeam)
 	local bestUnit = nil
 	local bestDist = maxDistSq
-	if spGetUnitRulesParam(terID, "transporterSeats") <= spGetUnitRulesParam(terID, "transporterUsedSeats") + (queuedSeats[terID] or 0) then
+	if spGetUnitRulesParam(transporterID, "transporterSeats") <= spGetUnitRulesParam(transporterID, "transporterUsedSeats") + (queuedSeats[transporterID] or 0) then
 		-- early exit if no seats
 		return nil
 	end
 	-- TODO: remove unclaimable units from cache at runtime
-	for idx, teeID in ipairs(units) do
+	for idx, passengerID in ipairs(units) do
 		repeat
-			if not CanBeAutoClaimed(teeID, terAllyTeam) then break end
-			local teeDefID = spGetUnitDefID(teeID)
-			local teeTeamID = spGetUnitTeam(teeID)
-			local teeSize = TransportAPI.GetTransporteeSize(teeID)
-			if not CanBeTransportedStatic(teeID, teeDefID, terID) then break end
-			local teePosX, teePosY, teePosZ = spGetUnitPosition(teeID)
-			if not CanBeTransportedDynamic(teeID, teeDefID, teePosY, terID, terAllyTeam) then break end
-			if not CanTransporteeFitInTransporter(terID, teeID, terDefID, teeSize, true) then break end
-			local dx, dz    = teePosX - terPosX, teePosZ - terPosZ
+			if not CanBeAutoClaimed(passengerID, transporterAllyTeam) then break end
+			local passengerDefID = spGetUnitDefID(passengerID)
+			local passengerTeamID = spGetUnitTeam(passengerID)
+			local passengerSize = TransportAPI.GetPassengerSize(passengerID)
+			if not CanBeTransportedStatic(passengerID, passengerDefID, transporterID) then break end
+			local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
+			if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) then break end
+			if not CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, true) then break end
+			local dx, dz    = passengerPosX - transporterPosX, passengerPosZ - transporterPosZ
 			local rawDistSq = dx * dx + dz * dz
 			-- alliedDist is the offset applied to allied units, by definition dist < alliedDist for all units (alliedDist = mapSizeX*mapSizeZ)
-			local unitDist  = (teeTeamID == terTeamID) and rawDistSq or (rawDistSq + alliedDist)
+			local unitDist  = (passengerTeamID == transporterTeamID) and rawDistSq or (rawDistSq + alliedDist)
 			if unitDist >= bestDist then break end
 			bestDist = unitDist
-			bestUnit = teeID
+			bestUnit = passengerID
 		until true
 	end
 	return bestUnit
 end
 
 ---
---- @param terID number
---- @param terDefID number
---- @param terTeamID number  -- transporter teamID
---- @param terPosX number
---- @param terPosY number
---- @param terPosZ number
+--- @param transporterID number
+--- @param transporterDefID number
+--- @param transporterTeamID number  -- transporter teamID
+--- @param transporterPosX number
+--- @param transporterPosY number
+--- @param transporterPosZ number
 --- @param cx number
 --- @param cy number
 --- @param cz number
 --- @param radius number
 --- @return nil
-local function ExecuteLoadUnits(terID, terDefID, terTeamID, terPosX, terPosY, terPosZ, cx, cy, cz, radius)
-	local terAllyTeam = spGetUnitAllyTeam(terID)
-	local terTeamID = spGetUnitTeam(terID)
-	for i = #transporterClaims[terID], 1, -1 do
-		local teeID = transporterClaims[terID][i]
-		local teePosX, teePosY, teePosZ = spGetUnitPosition(teeID)
-		local teeDefID = spGetUnitDefID(teeID)
+local function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeamID, transporterPosX, transporterPosY, transporterPosZ, cx, cy, cz, radius)
+	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
+	local transporterTeamID = spGetUnitTeam(transporterID)
+	for i = #transporterClaims[transporterID], 1, -1 do
+		local passengerID = transporterClaims[transporterID][i]
+		local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
+		local passengerDefID = spGetUnitDefID(passengerID)
 		local removalFlag = false
 		local moveToTransporterFlag = false
-		if claimedBy[terAllyTeam][teeID] ~= terID then -- keep it during test runs so we can debug if this ever happens
-			spEcho("Error: claim inconsistency for transportee " .. teeID .. " in transporter " .. terID .. "'s claims list")
+		if claimedBy[transporterAllyTeam][passengerID] ~= transporterID then -- keep it during test runs so we can debug if this ever happens
+			spEcho("Error: claim inconsistency for passenger " .. passengerID .. " in transporter " .. transporterID .. "'s claims list")
 		end
-		if not CanBeTransportedDynamic(teeID, teeDefID, teePosY, terID, terAllyTeam) then
+		if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) then
 			removalFlag = true
 		end
-		local teeSize = TransportAPI.GetTransporteeSize(teeID)
-		if not CanTransporteeFitInTransporter(terID, teeID, terDefID, teeSize, false) then
+		local passengerSize = TransportAPI.GetPassengerSize(passengerID)
+		if not CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, false) then
 			removalFlag = true
 		end
-		local teeTeamID = spGetUnitTeam(teeID)
+		local passengerTeamID = spGetUnitTeam(passengerID)
 		if removalFlag then
-			releaseTransportee(teeID, terAllyTeam) -- release claim so it can be targeted by future loads
-		elseif CanBeTransportedNow(teeID, teeTeamID, teePosX, teePosY, teePosZ, terID, terAllyTeam, terPosX, terPosY, terPosZ) then
-			customTransportLoad[terDefID](terID, 'PerformLoad', teeID)
+			releasePassenger(passengerID, transporterAllyTeam) -- release claim so it can be targeted by future loads
+		elseif CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterAllyTeam, transporterPosX, transporterPosY, transporterPosZ) then
+			customTransportLoad[transporterDefID](transporterID, 'PerformLoad', passengerID)
 			removalFlag = true
-		elseif dist2D(terPosX, terPosZ, cx, cz) < radius and CanMoveToTransporter(teeID, teeTeamID, terID, terTeamID) then
+		elseif dist2D(transporterPosX, transporterPosZ, cx, cz) < radius and CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID) then
 			moveToTransporterFlag = true
 		end
 		if moveToTransporterFlag then
-			spSetUnitMoveGoal(teeID, terPosX, spGetGroundHeight(terPosX, terPosZ), terPosZ,64,nil, true) -- moves to the transport
+			spSetUnitMoveGoal(passengerID, transporterPosX, spGetGroundHeight(transporterPosX, transporterPosZ), transporterPosZ,64,nil, true) -- moves to the transport
 		end
 		if removalFlag then
-			releaseTransportee(teeID, terAllyTeam) -- release claim so it can be targeted by future loads
+			releasePassenger(passengerID, transporterAllyTeam) -- release claim so it can be targeted by future loads
 		end
 	end
 
-	if spValidUnitID(transporterClaims[terID][1]) then -- because it might now be empty after releasing claims, check before trying to access
-		-- move to first in queue, not avg pos, in case of blocked or immobile tees
-		local tee1x, tee1y, tee1z = spGetUnitPosition(transporterClaims[terID][1])
-		spSetUnitMoveGoal(terID, tee1x, tee1y, tee1z)
+	if spValidUnitID(transporterClaims[transporterID][1]) then -- because it might now be empty after releasing claims, check before trying to access
+		-- move to first in queue, not avg pos, in case of blocked or immobile passengers
+		local passenger1x, passenger1y, passenger1z = spGetUnitPosition(transporterClaims[transporterID][1])
+		spSetUnitMoveGoal(transporterID, passenger1x, passenger1y, passenger1z)
 	end
 end
 
 
 ---
---- @param terID number
---- @param terDefID number
---- @param terTeamID number  -- transporter teamID
+--- @param transporterID number
+--- @param transporterDefID number
+--- @param transporterTeamID number  -- transporter teamID
 --- @param cx number
 --- @param cy number
 --- @param cz number
 --- @param radius number
 --- @return boolean commandFinished
-local function ExecuteAreaLoad(terID, terDefID, terTeamID, cx, cy, cz, radius)
-	local teeID = findUnitToTransport(terID, terDefID, terTeamID, cx, cz, radius)
+local function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeamID, cx, cy, cz, radius)
+	local passengerID = findUnitToTransport(transporterID, transporterDefID, transporterTeamID, cx, cz, radius)
 	
 	-- OPTION: one per frame or until filled
 	-- if perfs are a concern, or if you want units to be split among area-loading transports, use one per frame
 	-- i personnally prefer in batch as it allows the commands to be instantly performed in some edge cases
 
-	if teeID then
-		claimTransportee(terID, teeID, TransportAPI.GetTransporteeSize(teeID), false)
+	if passengerID then
+		claimPassenger(transporterID, passengerID, TransportAPI.GetPassengerSize(passengerID), false)
 	end
-	--[[while teeID do
-		claimTransportee(terID, teeID, TransportAPI.GetTransporteeSize(teeID), false)
-		teeID = findUnitToTransport(terID, terDefID, terTeamID, cx, cz, radius)
+	--[[while passengerID do
+		claimPassenger(transporterID, passengerID, TransportAPI.GetPassengerSize(passengerID), false)
+		passengerID = findUnitToTransport(transporterID, transporterDefID, transporterTeamID, cx, cz, radius)
 	end]]--
 
-	if queuedSeats[terID] == 0 then -- queuedSeats val ~= #transporterClaims but both are 0 when no queue.
-		areaLoadCoroutines[terID] = nil
+	if queuedSeats[transporterID] == 0 then -- queuedSeats val ~= #transporterClaims but both are 0 when no queue.
+		areaLoadCoroutines[transporterID] = nil
 		return true -- either no claimable units, or all claims loaded, command is finished
 	end
-	local terPosX, terPosY, terPosZ = spGetUnitPosition(terID)
-	local distToArea = dist2D(terPosX, terPosZ, cx, cz)
+	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
+	local distToArea = dist2D(transporterPosX, transporterPosZ, cx, cz)
 	if distToArea < radius then
-		ExecuteLoadUnits(terID, terDefID, terTeamID, terPosX, terPosY, terPosZ, cx, cy, cz, radius)
+		ExecuteLoadUnits(transporterID, transporterDefID, transporterTeamID, transporterPosX, transporterPosY, transporterPosZ, cx, cy, cz, radius)
 	else
-		spSetUnitMoveGoal(terID, cx, cy, cz, 64)
+		spSetUnitMoveGoal(transporterID, cx, cy, cz, 64)
 	end
 	return false -- command is still in progress
 end
 
 ---
---- @param terID number
---- @param terDefID number
---- @param terTeamID number  -- transporter teamID
+--- @param transporterID number
+--- @param transporterDefID number
+--- @param transporterTeamID number  -- transporter teamID
 --- @return nil
-local function ExecuteSuccessiveLoadUnits(terID, terDefID, terTeamID)
+local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeamID)
 	local idsToRemove = {}
-	local terAllyTeam = spGetUnitAllyTeam(terID)
+	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
 	-- 1: Get current queue, remove invalid units, claim valid ones
-	local queue = spGetUnitCommands(terID,  Spring.GetUnitRulesParam(terID, "transporterSeats")) --  Spring.GetUnitRulesParam(terID, "transporterSeats") being the max number of units we can queue on a single transport
+	local queue = spGetUnitCommands(transporterID,  Spring.GetUnitRulesParam(transporterID, "transporterSeats")) --  Spring.GetUnitRulesParam(transporterID, "transporterSeats") being the max number of units we can queue on a single transport
 	local i = 1
 	local cmd = queue and queue[i]
-	if queuedSeats[terID] + Spring.GetUnitRulesParam(terID, "transporterUsedSeats") < Spring.GetUnitRulesParam(terID, "transporterSeats") then
-		while cmd and cmd.id == CMD_LOAD_UNIT and (queuedSeats[terID] + Spring.GetUnitRulesParam(terID, "transporterUsedSeats") < Spring.GetUnitRulesParam(terID, "transporterSeats")) do
-			local teeID = cmd.params[1]
-			local teeDefID = spGetUnitDefID(teeID)
-			local _, teePosY = spGetUnitPosition(teeID)
-			if not CanBeTransportedStatic(teeID, teeDefID, terID) then
-				idsToRemove[teeID] = true -- can't be transported, mark for removal
-			elseif not CanBeTransportedDynamic(teeID, teeDefID, teePosY, terID, terAllyTeam) then
-				idsToRemove[teeID] = true -- can't be transported right now, mark for removal
-			elseif terID ~= claimedBy[terAllyTeam][teeID] then
-				claimTransportee(terID, teeID, TransportAPI.GetTransporteeSize(teeID), true) -- force claim for ourselves if not already claimed
+	if queuedSeats[transporterID] + Spring.GetUnitRulesParam(transporterID, "transporterUsedSeats") < Spring.GetUnitRulesParam(transporterID, "transporterSeats") then
+		while cmd and cmd.id == CMD_LOAD_UNIT and (queuedSeats[transporterID] + Spring.GetUnitRulesParam(transporterID, "transporterUsedSeats") < Spring.GetUnitRulesParam(transporterID, "transporterSeats")) do
+			local passengerID = cmd.params[1]
+			local passengerDefID = spGetUnitDefID(passengerID)
+			local _, passengerPosY = spGetUnitPosition(passengerID)
+			if not CanBeTransportedStatic(passengerID, passengerDefID, transporterID) then
+				idsToRemove[passengerID] = true -- can't be transported, mark for removal
+			elseif not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) then
+				idsToRemove[passengerID] = true -- can't be transported right now, mark for removal
+			elseif transporterID ~= claimedBy[transporterAllyTeam][passengerID] then
+				claimPassenger(transporterID, passengerID, TransportAPI.GetPassengerSize(passengerID), true) -- force claim for ourselves if not already claimed
 			end
 			i = i + 1
 			cmd = queue and queue[i]
 		end
-	elseif (Spring.GetUnitRulesParam(terID, "transporterUsedSeats") >= Spring.GetUnitRulesParam(terID, "transporterSeats")) then -- we still have queued commands despite being full, they can't be performed
+	elseif (Spring.GetUnitRulesParam(transporterID, "transporterUsedSeats") >= Spring.GetUnitRulesParam(transporterID, "transporterSeats")) then -- we still have queued commands despite being full, they can't be performed
 		while cmd and cmd.id == CMD_LOAD_UNIT do
-			local teeID = cmd.params[1]
-			idsToRemove[teeID] = true -- mark command for removal
+			local passengerID = cmd.params[1]
+			idsToRemove[passengerID] = true -- mark command for removal
 			i = i + 1
 			cmd = queue and queue[i]
 		end
 	end
 
 	-- 2: proceed to loading all units in queue
-	local terPosX, terPosY, terPosZ = spGetUnitPosition(terID)
-	local terTeamID = spGetUnitTeam(terID)
-	for i = #transporterClaims[terID], 1, -1 do
-		local teeID = transporterClaims[terID][i]
-		local teeDefID = spGetUnitDefID(teeID)
-		local teePosX, teePosY, teePosZ = spGetUnitPosition(teeID)
+	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
+	local transporterTeamID = spGetUnitTeam(transporterID)
+	for i = #transporterClaims[transporterID], 1, -1 do
+		local passengerID = transporterClaims[transporterID][i]
+		local passengerDefID = spGetUnitDefID(passengerID)
+		local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
 		local removalFlag = false
 		local moveToTransporterFlag = false
-		if claimedBy[terAllyTeam][teeID] ~= terID then -- keep it during test runs so we can debug if this ever happens
-			spEcho("Error: claim inconsistency for transportee " .. teeID .. " in transporter " .. terID .. "'s claims list")
+		if claimedBy[transporterAllyTeam][passengerID] ~= transporterID then -- keep it during test runs so we can debug if this ever happens
+			spEcho("Error: claim inconsistency for passenger " .. passengerID .. " in transporter " .. transporterID .. "'s claims list")
 		end
-		if not CanBeTransportedDynamic(teeID, teeDefID, teePosY, terID, terAllyTeam) then
+		if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) then
 			removalFlag = true
 		end
-		local teeSize = TransportAPI.GetTransporteeSize(teeID)
-		if not CanTransporteeFitInTransporter(terID, teeID, terDefID, teeSize, false) then
+		local passengerSize = TransportAPI.GetPassengerSize(passengerID)
+		if not CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, false) then
 			removalFlag = true
 		end
-		local teeTeamID = spGetUnitTeam(teeID)
+		local passengerTeamID = spGetUnitTeam(passengerID)
 		if removalFlag then
-			idsToRemove[teeID] = true
-		elseif CanBeTransportedNow(teeID, teeTeamID, teePosX, teePosY, teePosZ, terID, terAllyTeam, terPosX, terPosY, terPosZ) then
-			customTransportLoad[terDefID](terID, 'PerformLoad', teeID)
+			idsToRemove[passengerID] = true
+		elseif CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterAllyTeam, transporterPosX, transporterPosY, transporterPosZ) then
+			customTransportLoad[transporterDefID](transporterID, 'PerformLoad', passengerID)
 			removalFlag = true
-		elseif dist2D(terPosX, terPosZ, teePosX, teePosZ) < 512  and CanMoveToTransporter(teeID, teeTeamID, terID, terTeamID) then
+		elseif dist2D(transporterPosX, transporterPosZ, passengerPosX, passengerPosZ) < 512  and CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID) then
 			moveToTransporterFlag = true
 		end
-		if moveToTransporterFlag then -- do not order skipped transportees
-			spSetUnitMoveGoal(teeID, terPosX, spGetGroundHeight(terPosX, terPosZ), terPosZ,64,nil, true) -- moves to the transport
+		if moveToTransporterFlag then -- do not order skipped passengers
+			spSetUnitMoveGoal(passengerID, transporterPosX, spGetGroundHeight(transporterPosX, transporterPosZ), transporterPosZ,64,nil, true) -- moves to the transport
 		end
 		if removalFlag then
-			idsToRemove[teeID] = true
+			idsToRemove[passengerID] = true
 		end
 	end
 	-- remove invalidated/finished commands before giving a move goal, making sure don't accidently movegoal to a skipped unit
-	for teeID,v in pairs(idsToRemove) do
-		releaseTransportee(teeID, terAllyTeam) -- release claim so it can be targeted by future loads
+	for passengerID,v in pairs(idsToRemove) do
+		releasePassenger(passengerID, transporterAllyTeam) -- release claim so it can be targeted by future loads
 		for i = 1, #queue do
-			if queue[i].id == CMD_LOAD_UNIT and queue[i].params[1] == teeID then -- find the corresponding command
-				spGiveOrderToUnit(terID, CMD.REMOVE, {queue[i].tag}, 0) -- consume the command so the transporter proceeds to the next
+			if queue[i].id == CMD_LOAD_UNIT and queue[i].params[1] == passengerID then -- find the corresponding command
+				spGiveOrderToUnit(transporterID, CMD.REMOVE, {queue[i].tag}, 0) -- consume the command so the transporter proceeds to the next
 				break
 			end
 		end
 	end
-	if spValidUnitID(transporterClaims[terID][1]) then --it could have been loaded
-		-- move to first in queue, not avg pos, in case of blocked or immobile tees
-		local tee1x, tee1y, tee1z = spGetUnitPosition(transporterClaims[terID][1])
-		spSetUnitMoveGoal(terID, tee1x, tee1y, tee1z)
+	if spValidUnitID(transporterClaims[transporterID][1]) then --it could have been loaded
+		-- move to first in queue, not avg pos, in case of blocked or immobile passengers
+		local passenger1x, passenger1y, passenger1z = spGetUnitPosition(transporterClaims[transporterID][1])
+		spSetUnitMoveGoal(transporterID, passenger1x, passenger1y, passenger1z)
 	end
 end
 
@@ -629,47 +629,47 @@ function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 end
 
 function gadget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
-	local terAllyTeam = spGetUnitAllyTeam(unitID)
-	releaseTransportee(unitID, terAllyTeam)
+	local transporterAllyTeam = spGetUnitAllyTeam(unitID)
+	releasePassenger(unitID, transporterAllyTeam)
 	releaseAllClaims(unitID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	local terAllyTeam = spGetUnitAllyTeam(unitID)
-	releaseTransportee(unitID, terAllyTeam)  -- no-op if not claimed
+	local transporterAllyTeam = spGetUnitAllyTeam(unitID)
+	releasePassenger(unitID, transporterAllyTeam)  -- no-op if not claimed
 	releaseAllClaims(unitID)    -- no-op if not a transporter with claims
-	local terID = spGetUnitTransporter(unitID)
-	if not terID then return end
-	local terDefID = spGetUnitDefID(terID)
-	if customTransportUnload[terDefID] then
-		local gx, gy, gz = spGetUnitPosition(terID)
-		customTransportUnload[terDefID](terID, 'PerformUnload', unitID, gx, gy, gz)
+	local transporterID = spGetUnitTransporter(unitID)
+	if not transporterID then return end
+	local transporterDefID = spGetUnitDefID(transporterID)
+	if customTransportUnload[transporterDefID] then
+		local gx, gy, gz = spGetUnitPosition(transporterID)
+		customTransportUnload[transporterDefID](transporterID, 'PerformUnload', unitID, gx, gy, gz)
 	end
 end
 
 function gadget:GameFrame(frame)
-	for terID, co in pairs(areaLoadCoroutines) do
+	for transporterID, co in pairs(areaLoadCoroutines) do
 		local status = coroutine.status(co)
 		if status == "suspended" then
 			local ok, err = coroutine.resume(co)
 			if not ok then
-				spEcho("Error in CMD_AREA_LOAD coroutine for transporter " .. terID .. ": " .. err)
-				areaLoadCoroutines[terID] = nil
+				spEcho("Error in CMD_AREA_LOAD coroutine for transporter " .. transporterID .. ": " .. err)
+				areaLoadCoroutines[transporterID] = nil
 			end
 		else
-			areaLoadCoroutines[terID] = nil
+			areaLoadCoroutines[transporterID] = nil
 		end
 	end
-	for terID, co in pairs(successiveLoadCoroutines) do
+	for transporterID, co in pairs(successiveLoadCoroutines) do
 		local status = coroutine.status(co)
 		if status == "suspended" then
 			local ok, err = coroutine.resume(co)
 			if not ok then
-				spEcho("Error in CMD_LOAD_UNIT coroutine for transporter " .. terID .. ": " .. err)
-				successiveLoadCoroutines[terID] = nil
+				spEcho("Error in CMD_LOAD_UNIT coroutine for transporter " .. transporterID .. ": " .. err)
+				successiveLoadCoroutines[transporterID] = nil
 			end
 		else
-			successiveLoadCoroutines[terID] = nil
+			successiveLoadCoroutines[transporterID] = nil
 		end
 	end
 end
@@ -685,37 +685,37 @@ end
 -- 1. On CommandFallback, ExecuteSuccessiveLoadUnits runs to update the queue and attempt to load units in order. If a CMD_LOAD_UNIT command is still in the queue after this, a coroutine is started to monitor the queue and manage claiming/loading over time.
 -- 2. The coroutine continues running until the successive load commands are removed from the queue (either by being finished or by being invalidated), at which point it stops.
 
-function gadget:CommandFallback(terID, terDefID, terTeamID, cmdID, cmdParams, cmdOptions, cmdTag)
+function gadget:CommandFallback(transporterID, transporterDefID, transporterTeamID, cmdID, cmdParams, cmdOptions, cmdTag)
 	if cmdID == CMD_LOAD_UNIT then
-		ExecuteSuccessiveLoadUnits(terID, terDefID, terTeamID)
-		if not successiveLoadCoroutines[terID] then
+		ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeamID)
+		if not successiveLoadCoroutines[transporterID] then
 			local co = coroutine.create(function()
 					while true do
 						coroutine.yield() -- ticked by GameFrame every frame
-						local Q = spGetUnitCommands(terID, 1)
+						local Q = spGetUnitCommands(transporterID, 1)
 						local cmd = Q and Q[1]
 						if not (cmd and cmd.id == CMD_LOAD_UNIT) then
-							successiveLoadCoroutines[terID] = nil
-							releaseAllClaims(terID)
+							successiveLoadCoroutines[transporterID] = nil
+							releaseAllClaims(transporterID)
 							break
 						end
-						ExecuteSuccessiveLoadUnits(terID, terDefID, terTeamID)
+						ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeamID)
 					end
 			end)
-			successiveLoadCoroutines[terID] = co
+			successiveLoadCoroutines[transporterID] = co
 		end
 		return true, false
 	end
 	if cmdID ~= CMD_AREA_LOAD then return false, false end -- we do not handle this command;
-	local finished = ExecuteAreaLoad(terID, terDefID, terTeamID, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4])
+	local finished = ExecuteAreaLoad(transporterID, transporterDefID, transporterTeamID, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4])
 	-- 1st pass of ExecuteAreaLoad: attempt to instantly finish cmd to avoid spawning a coroutine
-	if finished and spGetUnitRulesParam(terID, "canLoad") == 0 then
+	if finished and spGetUnitRulesParam(transporterID, "canLoad") == 0 then
 		-- optional: if we're busy unloading, don't finish the command yet
 		-- this enables overlapping area load/unload cycles
 		finished = false
 	end
 	if not finished then
-		if not areaLoadCoroutines[terID] then -- only start a coroutine if one doesn't already exist for this transporter.
+		if not areaLoadCoroutines[transporterID] then -- only start a coroutine if one doesn't already exist for this transporter.
 			local cx, cy, cz, radius = cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4]
 			-- coroutine params on start
 			local co = coroutine.create(function()
@@ -724,27 +724,27 @@ function gadget:CommandFallback(terID, terDefID, terTeamID, cmdID, cmdParams, cm
 					coroutine.lastKnownParams = { cx, cy, cz, radius }
 					-- update the coroutine's last known params 
 					-- so we can detect mid-coroutine changes, instead of exiting + recreating
-					local Q = spGetUnitCommands(terID, 1)
+					local Q = spGetUnitCommands(transporterID, 1)
 					local cmd = Q and Q[1]
 					-- are we still performing a CMD_AREA_LOAD ?
 					if not (cmd and cmd.id == CMD_AREA_LOAD) then
 						-- exit coroutine and clean up if command is finished or removed from queue
-						areaLoadCoroutines[terID] = nil
-						releaseAllClaims(terID)
+						areaLoadCoroutines[transporterID] = nil
+						releaseAllClaims(transporterID)
 						break
 					-- have our params changed mid-coroutine ?
 					elseif coroutine.lastKnownParams[1] ~= cmd.params[1] or coroutine.lastKnownParams[2] ~= cmd.params[2] or coroutine.lastKnownParams[3] ~= cmd.params[3] or coroutine.lastKnownParams[4] ~= cmd.params[4] then
 						-- release all claims but keep the coroutine alive
-						releaseAllClaims(terID)
+						releaseAllClaims(transporterID)
 						coroutine.lastKnownParams = cmd.params
 						cx, cy, cz, radius = cmd.params[1], cmd.params[2], cmd.params[3], cmd.params[4]
 					end
 					-- Execute our command logic every tick
-					ExecuteAreaLoad(terID, terDefID, terTeamID, cx, cy, cz, radius)					
+					ExecuteAreaLoad(transporterID, transporterDefID, transporterTeamID, cx, cy, cz, radius)					
 					-- Could Spring.UnitFinishCommand() here instead of waiting next CommandFallback if we need to stop the coroutine ASAP for perfs
 				end
 			end)
-			areaLoadCoroutines[terID] = co
+			areaLoadCoroutines[transporterID] = co
 		end
 		return true, false -- handled, but not finished; keep command in queue
 	end
@@ -752,32 +752,32 @@ function gadget:CommandFallback(terID, terDefID, terTeamID, cmdID, cmdParams, cm
 end
 
 -- still recquired for defaultCommand to work
-function gadget:AllowUnitTransport(terID, terDefID, terTeamID, teeID, teeDefID, teeTeamID)
+function gadget:AllowUnitTransport(transporterID, transporterDefID, transporterTeamID, passengerID, passengerDefID, passengerTeamID)
 	--use our helper CanTransport
 	--I separated both to avoid FindUnitToTransport calling gadget:AllowUnitTransportLoad with an additional arg
-	local terAllyTeam = spGetUnitAllyTeam(terID)
-	local teePosX, teePosY, teePosZ = spGetUnitPosition(teeID)
-	return CanBeTransportedStatic(teeID, teeDefID, terID) and CanBeTransportedDynamic(teeID, teeDefID, teePosY, terID, terAllyTeam) and CanTransporteeFitInTransporter(terID, teeID, terDefID, TransportAPI.GetTransporteeSize(teeID), false)
+	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
+	local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
+	return CanBeTransportedStatic(passengerID, passengerDefID, transporterID) and CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) and CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, TransportAPI.GetPassengerSize(passengerID), false)
 end
 
 -- unload commands haven't been changed (yet?)
-function gadget:AllowUnitTransportUnload(terID, terDefID, terTeamID, teeID, teeDefID, teeTeamID, goalX, goalY, goalZ)
-	if isUnderwater(teeID, goalY) then return false end
-	if not isAirTransport[terDefID] then return true end	
-	spSetUnitMoveGoal(terID, goalX, goalY, goalZ) -- move closer
+function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transporterTeamID, passengerID, passengerDefID, passengerTeamID, goalX, goalY, goalZ)
+	if isUnderwater(passengerID, goalY) then return false end
+	if not isAirTransport[transporterDefID] then return true end	
+	spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- move closer
 	-- distance gate for individual unload commands
-	local terPosX, terPosY, terPosZ = spGetUnitPosition(terID)
-	if not inRange(terPosX, terPosY, terPosZ, goalX, goalY, goalZ) then
+	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
+	if not inRange(transporterPosX, transporterPosY, transporterPosZ, goalX, goalY, goalZ) then
 		return false
 	end	
 	-- handle custom transports
-	if customTransportUnload[terDefID] then
-		if spGetUnitRulesParam(terID, "canUnload") == 0 then return false end
-		local targets = TransportAPI.GetUnloadTargets(terID, teeID)
-		for _, teeID in ipairs(targets) do
-			customTransportUnload[terDefID](terID, 'PerformUnload', teeID, goalX, goalY, goalZ)
+	if customTransportUnload[transporterDefID] then
+		if spGetUnitRulesParam(transporterID, "canUnload") == 0 then return false end
+		local targets = TransportAPI.GetUnloadTargets(transporterID, passengerID)
+		for _, passengerID in ipairs(targets) do
+			customTransportUnload[transporterDefID](transporterID, 'PerformUnload', passengerID, goalX, goalY, goalZ)
 		end
-		spUnitFinishCommand(terID) -- consume the command so the transporter proceeds to the next
+		spUnitFinishCommand(transporterID) -- consume the command so the transporter proceeds to the next
 		return false
 	end
 	return true -- default for standard transports

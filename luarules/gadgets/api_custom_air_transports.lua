@@ -25,6 +25,74 @@ end
 GG.TransportAPI = {}
 local TransportAPI = GG.TransportAPI
 local cachedUnitSizes = {}
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitRotation = Spring.GetUnitRotation
+
+
+local function rotationMatrixX(rx)
+    local c, s = math.cos(rx), math.sin(rx)
+    return { {1,0,0}, {0,c,-s}, {0,s,c} }
+end
+
+local function rotationMatrixY(ry)
+    local c, s = math.cos(ry), math.sin(ry)
+    return { {c,0,s}, {0,1,0}, {-s,0,c} }
+end
+
+local function rotationMatrixZ(rz)
+    local c, s = math.cos(rz), math.sin(rz)
+    return { {c,-s,0}, {s,c,0}, {0,0,1} }
+end
+
+local function multiplyMatrices(a, b)
+    local r = {}
+    for i = 1, 3 do
+        r[i] = {}
+        for j = 1, 3 do
+            r[i][j] = 0
+            for k = 1, 3 do r[i][j] = r[i][j] + a[i][k] * b[k][j] end
+        end
+    end
+    return r
+end
+
+local function applyRotation(m, vx, vy, vz)
+    return m[1][1]*vx + m[1][2]*vy + m[1][3]*vz,
+           m[2][1]*vx + m[2][2]*vy + m[2][3]*vz,
+           m[3][1]*vx + m[3][2]*vy + m[3][3]*vz
+end
+
+local function transposeMatrix(m)
+    return {
+        { m[1][1], m[2][1], m[3][1] },
+        { m[1][2], m[2][2], m[3][2] },
+        { m[1][3], m[2][3], m[3][3] },
+    }
+end
+
+local function shortAngle(a)
+    a = a % (2 * math.pi)
+    if a > math.pi then a = a - 2 * math.pi end
+    return a
+end
+
+-- converts a world-space position and rotation into the transporter's unit-local space
+TransportAPI.WorldToUnitSpace = function(unitID, wantedWorldSpacePosX, wantedWorldSpacePosY, wantedWorldSpacePosZ, wantedWorldSpaceRotX, wantedWorldSpaceRotY, wantedWorldSpaceRotZ, currentUnitPosX, currentUnitPosY, currentUnitPosZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ)
+    if not currentUnitPosX then
+        currentUnitPosX, currentUnitPosY, currentUnitPosZ    = spGetUnitPosition(unitID)
+        currentUnitRotX, currentUnitRotY, currentUnitRotZ = spGetUnitRotation(unitID)
+    end
+    local deltaX, deltaY, deltaZ = wantedWorldSpacePosX - currentUnitPosX, wantedWorldSpacePosY - currentUnitPosY, wantedWorldSpacePosZ - currentUnitPosZ
+    local unitRot = multiplyMatrices(
+        rotationMatrixY(-currentUnitRotY),
+        multiplyMatrices(rotationMatrixX(-currentUnitRotX), rotationMatrixZ(-currentUnitRotZ))
+    )
+    local wantedUnitSpacePosX, wantedUnitSpacePosY, wantedUnitSpacePosZ = applyRotation(transposeMatrix(unitRot), deltaX, deltaY, deltaZ)
+    return wantedUnitSpacePosX, wantedUnitSpacePosY, wantedUnitSpacePosZ,
+           shortAngle(wantedWorldSpaceRotX - currentUnitRotX),
+           shortAngle(wantedWorldSpaceRotY - currentUnitRotY),
+           shortAngle(wantedWorldSpaceRotZ - currentUnitRotZ)
+end
 
 TransportAPI.precomputedProgress = {}
 for uDefID, def in pairs(UnitDefs) do
@@ -45,8 +113,8 @@ for uDefID, def in pairs(UnitDefs) do
 end
 
 -- Inspects the transporter's command queue to detect area-unload orders.
--- Returns all currently loaded transportees for area-unload, or {transporteeID} for single-unload.
-function TransportAPI.GetUnloadTargets(transporterID, transporteeID)
+-- Returns all currently loaded passengers for area-unload, or {passengerID} for single-unload.
+function TransportAPI.GetUnloadTargets(transporterID, passengerID)
 	local Q = Spring.GetUnitCommands(transporterID, 2) -- we only need the first two
 	local isAreaUnload = Q and Q[1] and (
 		Q[1].id == CMD.UNLOAD_UNITS or
@@ -61,10 +129,10 @@ function TransportAPI.GetUnloadTargets(transporterID, transporteeID)
 	if isAreaUnload then
 		return Spring.GetUnitIsTransporting(transporterID)
 	end
-	return { transporteeID }
+	return { passengerID }
 end
 
-function TransportAPI.GetTransporteeSize(unitID) -- minimal perf improvement: cache per unitDefID
+function TransportAPI.GetPassengerSize(unitID) -- minimal perf improvement: cache per unitDefID
 	local udefID = Spring.GetUnitDefID(unitID)
 	if cachedUnitSizes[udefID] then
 		return cachedUnitSizes[udefID]

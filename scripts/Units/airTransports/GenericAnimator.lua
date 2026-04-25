@@ -1,5 +1,5 @@
 -- TODOs:
--- port Killed() transportee damage logic from the original gadget unit_transport_dies_load_dies, which is currently disabled and slated for deletion
+-- port Killed() passenger damage logic from the original gadget unit_transport_dies_load_dies, which is currently disabled and slated for deletion
 
 GenericAnimator = {}
 
@@ -82,24 +82,24 @@ function GenericAnimator.MoveRate(val)
     end
 end
 
-local CARGO_KILL_DAMAGE_RATIO = 2  -- fraction of current HP dealt to each transportee on transporter death, scaled by animProgress
+local CARGO_KILL_DAMAGE_RATIO = 2  -- fraction of current HP dealt to each passenger on transporter death, scaled by animProgress
 local CARGO_KILL_WEAPON_ID    = -6 -- -CSolidObject::DAMAGE_EXTSOURCE_KILLED; skipped by engine (releaseHeld=true), applied manually here
 
 -- handle transporter death: damage or release all carried units, then explode pieces according to
 -- the matching severity tier, returning the wreck level (or 1 as fallback)
 function GenericAnimator.Killed(severity)
-    for teeID, teeData in pairs(cargo.transportees) do
-        SpMoveCtrl.Disable(teeID)
-        if SpValidUnitID(teeID) and not SpGetUnitIsDead(teeID) then
-            Spring.SetUnitPhysicalStateBit(teeID, 128 + 512)  -- PSTATE_BIT_FLYING | PSTATE_BIT_SKIDDING (matches engine ReleaseTransportees releaseHeld path)
+    for passengerID, passengerData in pairs(cargo.passengers) do
+        SpMoveCtrl.Disable(passengerID)
+        if SpValidUnitID(passengerID) and not SpGetUnitIsDead(passengerID) then
+            Spring.SetUnitPhysicalStateBit(passengerID, 128 + 512)  -- PSTATE_BIT_FLYING | PSTATE_BIT_SKIDDING (matches engine Releasepassengers releaseHeld path)
         end
 
-        local teeDefID = Spring.GetUnitDefID(teeID)
-        local isParatrooper = teeDefID and UnitDefs[teeDefID] and UnitDefs[teeDefID].customParams.paratrooper
+        local passengerDefID = Spring.GetUnitDefID(passengerID)
+        local isParatrooper = passengerDefID and UnitDefs[passengerDefID] and UnitDefs[passengerDefID].customParams.paratrooper
         -- paratroopers survive intact; all other units take damage proportional to how far into the
         -- load/unload animation they were when the transporter died (animProgress == 1 means fully loaded)
-        if not isParatrooper and teeData.animProgress and teeData.animProgress > 0 then
-            Spring.AddUnitDamage(teeID, Spring.GetUnitHealth(teeID) * teeData.animProgress * CARGO_KILL_DAMAGE_RATIO, 0, -1, CARGO_KILL_WEAPON_ID)
+        if not isParatrooper and passengerData.animProgress and passengerData.animProgress > 0 then
+            Spring.AddUnitDamage(passengerID, Spring.GetUnitHealth(passengerID) * passengerData.animProgress * CARGO_KILL_DAMAGE_RATIO, 0, -1, CARGO_KILL_WEAPON_ID)
         end
     end
     -- walk severity tiers from least to most severe; use the first tier whose maxSeverity covers this death

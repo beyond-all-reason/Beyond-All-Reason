@@ -1,7 +1,7 @@
 return {
     cargo = {
         primarySlot = string pieceName, -- unused, will be dropped once I fully review
-        terSeats      = number seats, -- total amount of seats available at once
+        transporterSeats      = number seats, -- total amount of seats available at once
 
         slots = { -- slot ~= seat; a slot is a specific position in the cargo, with a defined size
             { 

@@ -1,5 +1,5 @@
 -- TODOs:
--- >> move command processing to gadget level entirely, script should just receive transportee and pos and perform load/unload
+-- >> move command processing to gadget level entirely, script should just receive passenger and pos and perform load/unload
 -- >> maybe move slots hiding logic to generic_air_transport_lus instead. Or maybe even erase it since link pieces are empty by definition (no model piece)
 
 CargoHandler = {}
@@ -23,7 +23,7 @@ function CargoHandler.Init(setup)
         end
         slots[pid] = {
             size     = slotCfg.size,  -- seat cost of a unit that fits this slot (1/4/8/16)
-            cargo    = nil,           -- transporteeID currently occupying this slot, nil if empty
+            cargo    = nil,           -- passengerID currently occupying this slot, nil if empty
             requires = reqs,          -- list of slotIDs that must be empty for this slot to be usable
         }
     end
@@ -37,16 +37,16 @@ function CargoHandler.Init(setup)
     end
 	
     -- source of truth for all cargo tracking; all load/unload operations read and write this table.
-    -- on save/load the engine is queried for current transportees and this table is rebuilt from scratch (see script.Create),
+    -- on save/load the engine is queried for current passengers and this table is rebuilt from scratch (see script.Create),
     -- but outside of that reload path this is the only authoritative record of what is loaded and where.
     local cargo = {
         unitID         = unitID,                    -- transporter unit ID
         slots          = slots,                     -- [slotID] = { size, cargo, requires } (see above)
         primarySlot    = nameToID[setup.primarySlot], -- slotID used for single-unit commands
-        transportees   = {},                        -- [transporteeID] = teeData  ({ id, height, slotID, beamPieces, wbX/Y/Z, animProgress })
+        passengers   = {},                        -- [passengerID] = passengerData  ({ id, height, slotID, beamPieces, wbX/Y/Z, animProgress })
         count          = 0,                         -- number of units currently loaded
-        terUsedSeats      = 0,                         -- sum of seat costs of all loaded units
-        terSeats         = setup.terSeats,              -- total seat capacity of this transporter
+        transporterUsedSeats      = 0,                         -- sum of seat costs of all loaded units
+        transporterSeats         = setup.transporterSeats,              -- total seat capacity of this transporter
         slotSizes      = slotSizes,                 -- set of slot sizes available, eg { [1]=true, [4]=true }
         loadingCount   = 0,                         -- number of load animations in progress
         unloadingCount = 0,                         -- number of unload animations in progress
@@ -58,8 +58,8 @@ function CargoHandler.Init(setup)
 		SpSetUnitRulesParam(unitID, rulesParamString, bool)
 	end
 	
-    SpSetUnitRulesParam(unitID, "transporterSeats",    setup.terSeats) -- used by gadget to determine if a transportee can be loaded, and by anim handler to determine whether to show hover effect
-    SpSetUnitRulesParam(unitID, "transporterUsedSeats", 0) -- used by gadget to determine if a transportee can be loaded/unloaded, and by anim handler to determine whether to show hover effect
+    SpSetUnitRulesParam(unitID, "transporterSeats",    setup.transporterSeats) -- used by gadget to determine if a passenger can be loaded, and by anim handler to determine whether to show hover effect
+    SpSetUnitRulesParam(unitID, "transporterUsedSeats", 0) -- used by gadget to determine if a passenger can be loaded/unloaded, and by anim handler to determine whether to show hover effect
     CargoHandler.CanLoad(true)
     CargoHandler.CanUnload(true)
     return cargo
@@ -118,10 +118,10 @@ function CargoHandler.EndUnloading(cargo)
     end
 end
 
--- assigns a slot to the incoming transportee and returns its teeData, or nil if no slot is available.
+-- assigns a slot to the incoming passenger and returns its passengerData, or nil if no slot is available.
 -- if no direct slot match is found but reorganizing could make room, triggers ReorganizeAndLoad instead.
-function CargoHandler.FindSlot(transporteeID, cargo, allowReorganize)
-    local seats = TransportAPI.GetTransporteeSize(transporteeID)
+function CargoHandler.FindSlot(passengerID, cargo, allowReorganize)
+    local seats = TransportAPI.GetPassengerSize(passengerID)
     for slotID, slotData in pairs(cargo.slots) do
         if slotData.cargo == nil and slotData.size == seats then
             local ok = true
@@ -132,78 +132,78 @@ function CargoHandler.FindSlot(transporteeID, cargo, allowReorganize)
                 end
             end
             if ok then
-                slotData.cargo = transporteeID
-                return { id = transporteeID, height = SpGetUnitHeight(transporteeID), slotID = slotID }
+                slotData.cargo = passengerID
+                return { id = passengerID, height = SpGetUnitHeight(passengerID), slotID = slotID }
             end
         end
     end
     if allowReorganize and CargoHandler.HasSlotOfSize(seats, cargo)
-           and cargo.terUsedSeats + seats <= cargo.terSeats then
-        CargoHandler.ReorganizeAndLoad(cargo, transporteeID)
+           and cargo.transporterUsedSeats + seats <= cargo.transporterSeats then
+        CargoHandler.ReorganizeAndLoad(cargo, passengerID)
         return nil
     end
     return nil
 end
 
--- instantly unloads all current cargo then reloads everything (including newTeeID) in decreasing size order,
+-- instantly unloads all current cargo then reloads everything (including newpassengerID) in decreasing size order,
 -- so that larger units always claim the most appropriate slots first
-function CargoHandler.ReorganizeAndLoad(cargo, newTeeID)
+function CargoHandler.ReorganizeAndLoad(cargo, newpassengerID)
     -- kill all in-flight Load threads at once and repair the accounting they left dangling
     Signal(TransportAnimator.SIG_LOAD)
     cargo.loadingCount = 0
     CargoHandler.CanUnload(true)
 
     local toLoad = {}
-    for teeID in pairs(cargo.transportees) do
-        toLoad[#toLoad + 1] = teeID
+    for passengerID in pairs(cargo.passengers) do
+        toLoad[#toLoad + 1] = passengerID
     end
-    toLoad[#toLoad + 1] = newTeeID
+    toLoad[#toLoad + 1] = newpassengerID
     table.sort(toLoad, function(a, b)
-        return TransportAPI.GetTransporteeSize(a) > TransportAPI.GetTransporteeSize(b)
+        return TransportAPI.GetPassengerSize(a) > TransportAPI.GetPassengerSize(b)
     end)
 
-    local teeSnapshot = {}
-    for teeID, teeData in pairs(cargo.transportees) do
-        teeSnapshot[teeID] = teeData
+    local passengerSnapshot = {}
+    for passengerID, passengerData in pairs(cargo.passengers) do
+        passengerSnapshot[passengerID] = passengerData
     end
-    for teeID, teeData in pairs(teeSnapshot) do
-        local terX, terY, terZ = SpGetUnitPosition(cargo.unitID)
-        TransportAnimator.Unload(teeData, terX, terY, terZ, false)
+    for passengerID, passengerData in pairs(passengerSnapshot) do
+        local transporterX, transporterY, transporterZ = SpGetUnitPosition(cargo.unitID)
+        TransportAnimator.Unload(passengerData, transporterX, transporterY, transporterZ, false)
     end
 
-    for _, teeID in ipairs(toLoad) do
-        local teeData = CargoHandler.FindSlot(teeID, cargo)
-        if teeData then
-            StartThread(TransportAnimator.Load, teeData)
+    for _, passengerID in ipairs(toLoad) do
+        local passengerData = CargoHandler.FindSlot(passengerID, cargo)
+        if passengerData then
+            StartThread(TransportAnimator.Load, passengerData)
         end
     end
 end
 
--- marks a slot as vacant; teeData is still held in cargo.transportees until Unregister cleans it up
+-- marks a slot as vacant; passengerData is still held in cargo.passengers until Unregister cleans it up
 function CargoHandler.ReleaseSlot(slotID, cargo)
     if cargo.slots[slotID] then
         cargo.slots[slotID].cargo = nil
     end
 end
 
--- add a transportee entry to cargo.transportees and update seat/count accounting
-function CargoHandler.Register(transporteeID, teeData, cargo)
-    cargo.transportees[transporteeID] = teeData
+-- add a passenger entry to cargo.passengers and update seat/count accounting
+function CargoHandler.Register(passengerID, passengerData, cargo)
+    cargo.passengers[passengerID] = passengerData
     cargo.count     = cargo.count + 1
-    cargo.terUsedSeats = cargo.terUsedSeats + (cargo.slots[teeData.slotID].size or 0)
-    SpSetUnitRulesParam(cargo.unitID, "transporterUsedSeats", cargo.terUsedSeats)
+    cargo.transporterUsedSeats = cargo.transporterUsedSeats + (cargo.slots[passengerData.slotID].size or 0)
+    SpSetUnitRulesParam(cargo.unitID, "transporterUsedSeats", cargo.transporterUsedSeats)
     return cargo.count
 end
 
--- remove a transportee entry from cargo.transportees, release its slot, and update seat/count accounting
-function CargoHandler.Unregister(transporteeID, cargo)
-    local teeData = cargo.transportees[transporteeID]
-    if teeData and teeData.slotID then
-        cargo.terUsedSeats = math.max(0, cargo.terUsedSeats - (cargo.slots[teeData.slotID].size or 0))
-        SpSetUnitRulesParam(cargo.unitID, "transporterUsedSeats", cargo.terUsedSeats)
-        CargoHandler.ReleaseSlot(teeData.slotID, cargo)
+-- remove a passenger entry from cargo.passengers, release its slot, and update seat/count accounting
+function CargoHandler.Unregister(passengerID, cargo)
+    local passengerData = cargo.passengers[passengerID]
+    if passengerData and passengerData.slotID then
+        cargo.transporterUsedSeats = math.max(0, cargo.transporterUsedSeats - (cargo.slots[passengerData.slotID].size or 0))
+        SpSetUnitRulesParam(cargo.unitID, "transporterUsedSeats", cargo.transporterUsedSeats)
+        CargoHandler.ReleaseSlot(passengerData.slotID, cargo)
     end
-    cargo.transportees[transporteeID] = nil
+    cargo.passengers[passengerID] = nil
     cargo.count = math.max(0, cargo.count - 1)
     return cargo.count
 end

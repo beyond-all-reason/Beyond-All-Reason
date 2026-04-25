@@ -2,50 +2,7 @@ TransportAnimator = {}
 
 local SIG_WATCH           = 2 -- signal to stop the WatchBeam thread when cargo state changes
 TransportAnimator.SIG_LOAD = 4 -- signal to kill all in-flight Load threads (used by ReorganizeAndLoad)
-
-
--- helper to move/rotate a piece to a world-space position/rotation
--- simplified: no scaling nor parent piece transforms taken into account
-local function rotationMatrixX(rx)
-    local c, s = math.cos(rx), math.sin(rx)
-    return { {1,0,0}, {0,c,-s}, {0,s,c} }
-end
-
-local function rotationMatrixY(ry)
-    local c, s = math.cos(ry), math.sin(ry)
-    return { {c,0,s}, {0,1,0}, {-s,0,c} }
-end
-
-local function rotationMatrixZ(rz)
-    local c, s = math.cos(rz), math.sin(rz)
-    return { {c,-s,0}, {s,c,0}, {0,0,1} }
-end
-
-local function multiplyMatrices(a, b)
-    local r = {}
-    for i = 1, 3 do
-        r[i] = {}
-        for j = 1, 3 do
-            r[i][j] = 0
-            for k = 1, 3 do r[i][j] = r[i][j] + a[i][k] * b[k][j] end
-        end
-    end
-    return r
-end
-
-local function applyRotation(m, vx, vy, vz)
-    return m[1][1]*vx + m[1][2]*vy + m[1][3]*vz,
-           m[2][1]*vx + m[2][2]*vy + m[2][3]*vz,
-           m[3][1]*vx + m[3][2]*vy + m[3][3]*vz
-end
-
-local function transposeMatrix(m)
-    return {
-        { m[1][1], m[2][1], m[3][1] },
-        { m[1][2], m[2][2], m[3][2] },
-        { m[1][3], m[2][3], m[3][3] },
-    }
-end
+local defaultPiecePos  = {} -- [pieceID] = {x,y,z} rest position in unit-local space, cached on first use
 
 local function shortAngle(a)
     a = a % (2 * math.pi)
@@ -53,41 +10,22 @@ local function shortAngle(a)
     return a
 end
 
--- converts a world-space position and rotation into the transporter's unit-local space
-local function WorldToUnitSpace(wsX, wsY, wsZ, wsRX, wsRY, wsRZ, ux, uy, uz, urx, ury, urz)
-    if not ux then
-        ux, uy, uz    = SpGetUnitPosition(unitID)
-        urx, ury, urz = SpGetUnitRotation(unitID)
-    end
-    local dx, dy, dz = wsX - ux, wsY - uy, wsZ - uz
-    local unitRot = multiplyMatrices(
-        rotationMatrixY(-ury),
-        multiplyMatrices(rotationMatrixX(-urx), rotationMatrixZ(-urz))
-    )
-    local usX, usY, usZ = applyRotation(transposeMatrix(unitRot), dx, dy, dz)
-    return usX, usY, usZ,
-           shortAngle(wsRX - urx),
-           shortAngle(ury - wsRY),
-           shortAngle(urz - wsRZ)
-end
-local defaultPiecePos  = {} -- [pieceID] = {x,y,z} rest position in unit-local space, cached on first use
-
 -- move and rotate a slot piece to match a world-space position/rotation, converting through unit-local space
-local function MovePieceWS(pce, wsX, wsY, wsZ, wsRX, wsRY, wsRZ, speed, tHeight, ux, uy, uz, urx, ury, urz, t)
-    local usX, usY, usZ, usRX, usRY, usRZ = WorldToUnitSpace(wsX, wsY, wsZ, wsRX, wsRY, wsRZ, ux, uy, uz, urx, ury, urz)
+local function MovePieceWS(pieceNum, wantedWorldSpacePosX, wantedWorldSpacePosY, wantedWorldSpacePosZ, wantedWorldSpaceRotX, wantedWorldSpaceRotY, wantedWorldSpaceRotZ, speed, tHeight, currentUnitPosX, currentUnitPosY, currentUnitPosZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ, normalizedProgress)
+    local wantedUnitSpacePosX, wantedUnitSpacePosY, wantedUnitSpacePosZ, wantedUnitSpaceRotX, wantedUnitSpaceRotY, wantedUnitSpaceRotZ = TransportAPI.WorldToUnitSpace(unitID, wantedWorldSpacePosX, wantedWorldSpacePosY, wantedWorldSpacePosZ, wantedWorldSpaceRotX, wantedWorldSpaceRotY, wantedWorldSpaceRotZ, currentUnitPosX, currentUnitPosY, currentUnitPosZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ)
     -- Move() offsets are relative to the piece's own rest position, not the unit origin.
     -- Subtract the rest position so the piece ends up at the correct unit-local coordinates.
-    if not defaultPiecePos[pce] then
-        local dpx, dpy, dpz = Spring.GetUnitPiecePosition(unitID, pce)
-        defaultPiecePos[pce] = { dpx, dpy, dpz }
+    if not defaultPiecePos[pieceNum] then
+        local defaultPieceUnitSpacePosX, defaultPieceUnitSpacePosY, defaultPieceUnitSpacePosZ = Spring.GetUnitPiecePosition(unitID, pieceNum)
+        defaultPiecePos[pieceNum] = { defaultPieceUnitSpacePosX, defaultPieceUnitSpacePosY, defaultPieceUnitSpacePosZ }
     end
-    local dp = defaultPiecePos[pce]
-    Move(pce, 1, (usX + (1-t) * dp[1]),           speed)
-    Move(pce, 2, usY - tHeight - (1-t) * dp[2], speed)
-    Move(pce, 3, usZ - (1-t) * dp[3],           speed)
-    Turn(pce, 1, usRX, speed)
-    Turn(pce, 2, usRY, speed)
-    Turn(pce, 3, usRZ, speed)
+    local defaultPiecePosition =    defaultPiecePos[pieceNum]
+    Move(pieceNum, 1, (wantedUnitSpacePosX + (1-normalizedProgress) * defaultPiecePosition[1]),           speed)
+    Move(pieceNum, 2, wantedUnitSpacePosY - tHeight - (1-normalizedProgress) * defaultPiecePosition[2], speed)
+    Move(pieceNum, 3, wantedUnitSpacePosZ - (1-normalizedProgress) * defaultPiecePosition[3],           speed)
+    Turn(pieceNum, 1, wantedUnitSpaceRotX, speed)
+    Turn(pieceNum, 2, wantedUnitSpaceRotY, speed)
+    Turn(pieceNum, 3, wantedUnitSpaceRotZ, speed)
 end
 
 local loadTime, ratio, ratioY, cegScaleFactor, cegName
@@ -95,17 +33,17 @@ local progress         -- set in Init from precomputedProgress[unitDefID]
 local beamsBySlotID    = {}
 
 local cachedFrame = -1
-local cUX, cUY, cUZ, cURX, cURY, cURZ
+local currentUnitX, currentUnitY, currentUnitZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ
 
 -- returns transporter position and rotation, memoized per game frame to avoid redundant API calls
 local function getTransporterState() -- caching helper: get the position only once per frame when multiple threads are running.
     local f = SpGetGameFrame()
     if f ~= cachedFrame then
-        cUX, cUY, cUZ    = SpGetUnitPosition(unitID)
-        cURX, cURY, cURZ = SpGetUnitRotation(unitID)
+        currentUnitX, currentUnitY, currentUnitZ    = SpGetUnitPosition(unitID)
+        currentUnitRotX, currentUnitRotY, currentUnitRotZ = SpGetUnitRotation(unitID)
         cachedFrame = f
     end
-    return cUX, cUY, cUZ, cURX, cURY, cURZ
+    return currentUnitX, currentUnitY, currentUnitZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ
 end
 
 -- zero out all transforms on a slot piece (called after animation completes or is aborted)
@@ -158,14 +96,14 @@ function TransportAnimator.HasCargo(hasCargo)
 end
 
 -- instantly position the slot piece at load height without animation; used when restoring from save/load
-function TransportAnimator.Snap(teeData)
-    teeData.beamPieces = beamsBySlotID[teeData.slotID]
-    Move(teeData.slotID, 1, 0)
-    Move(teeData.slotID, 2, -teeData.height)
-    Move(teeData.slotID, 3, 0)
-    Turn(teeData.slotID, 1, 0)
-    Turn(teeData.slotID, 2, 0)
-    Turn(teeData.slotID, 3, 0)
+function TransportAnimator.Snap(passengerData)
+    passengerData.beamPieces = beamsBySlotID[passengerData.slotID]
+    Move(passengerData.slotID, 1, 0)
+    Move(passengerData.slotID, 2, -passengerData.height)
+    Move(passengerData.slotID, 3, 0)
+    Turn(passengerData.slotID, 1, 0)
+    Turn(passengerData.slotID, 2, 0)
+    Turn(passengerData.slotID, 3, 0)
 end
 
 -- per-frame loop: damps transporter velocity during active animations and spawns tractor-beam CEGs
@@ -173,34 +111,34 @@ function TransportAnimator.WatchBeams()
     SetSignalMask(SIG_WATCH)
     while true do
         if (cargo.loadingCount + cargo.unloadingCount) > 0 then
-            local vx, vy, vz = SpGetUnitVelocity(unitID)
-            SpSetUnitVelocity(unitID, vx * ratio * ratio, vy * ratioY * ratioY, vz * ratio * ratio)
+            local velocityX, velocityY, velocityZ = SpGetUnitVelocity(unitID)
+            SpSetUnitVelocity(unitID, velocityX * ratio * ratio, velocityY * ratioY * ratioY, velocityZ * ratio * ratio)
         end
-        for teeID, teeData in pairs(cargo.transportees) do
-            if teeData.beamPieces then
-                for _, beamPiece in ipairs(teeData.beamPieces) do
-                    local lpx, lpy, lpz = SpGetUnitPiecePosDir(unitID, beamPiece)
-                    if teeData.loading then
-                        -- tee is attached to slot: use actual slot world position as beam target
-                        local tpx, tpy, tpz = SpGetUnitPiecePosDir(unitID, teeData.slotID)
+        for passengerID, passengerData in pairs(cargo.passengers) do
+            if passengerData.beamPieces then
+                for _, beamPiece in ipairs(passengerData.beamPieces) do
+                    local beamPieceX, beamPieceY, beamPieceZ = SpGetUnitPiecePosDir(unitID, beamPiece)
+                    if passengerData.loading then
+                        -- passenger is attached to slot: use actual slot world position as beam target
+                        local slotPosX, slotPosY, slotPosZ = SpGetUnitPiecePosDir(unitID, passengerData.slotID)
                         SpSpawnCEG(cegName,
-                            tpx, tpy + teeData.height, tpz,
-                            (lpx - tpx) * cegScaleFactor,
-                            (lpy - (tpy + teeData.height)) * cegScaleFactor,
-                            (lpz - tpz) * cegScaleFactor,
+                            slotPosX, slotPosY + passengerData.height, slotPosZ,
+                            (beamPieceX - slotPosX) * cegScaleFactor,
+                            (beamPieceY - (slotPosY + passengerData.height)) * cegScaleFactor,
+                            (beamPieceZ - slotPosZ) * cegScaleFactor,
                             1, 0)
-                    elseif teeData.wbX then
-                        -- unloading: tee is detached and moved via MoveCtrl, use cached position
+                    elseif passengerData.cachedPosX then
+                        -- unloading: passenger is detached and moved via MoveCtrl, use cached position
                         SpSpawnCEG(cegName,
-                            teeData.wbX, teeData.wbY + teeData.height, teeData.wbZ,
-                            (lpx - teeData.wbX) * cegScaleFactor,
-                            (lpy - (teeData.wbY + teeData.height)) * cegScaleFactor,
-                            (lpz - teeData.wbZ) * cegScaleFactor,
+                            passengerData.cachedPosX, passengerData.cachedPosY + passengerData.height, passengerData.cachedPosZ,
+                            (beamPieceX - passengerData.cachedPosX) * cegScaleFactor,
+                            (beamPieceY - (passengerData.cachedPosY + passengerData.height)) * cegScaleFactor,
+                            (beamPieceZ - passengerData.cachedPosZ) * cegScaleFactor,
                             1, 0)
                     else
                         -- idle: simple downward beam from the anchor piece
                         SpSpawnCEG(cegName,
-                            lpx, lpy, lpz,
+                            beamPieceX, beamPieceY, beamPieceZ,
                             0, -10, 0,
                             1, 0)
                     end
@@ -211,125 +149,127 @@ function TransportAnimator.WatchBeams()
     end
 end
 
--- Load logic for attaching and moving the transportee
-function TransportAnimator.Load(teeData, doAnim)
+-- Load logic for attaching and moving the passenger
+function TransportAnimator.Load(passengerData, doAnim)
     SetSignalMask(TransportAnimator.SIG_LOAD)
-    teeData.beamPieces = beamsBySlotID[teeData.slotID]
+    passengerData.beamPieces = beamsBySlotID[passengerData.slotID]
     CargoHandler.BeginLoading(cargo)
 
-    local teePosX, teePosY, teePosZ = SpGetUnitPosition(teeData.id)
-    local teeRotX, teeRotY, teeRotZ = SpGetUnitRotation(teeData.id)
+    local passengerPosX, passengerPosY, passengerPosZ = SpGetUnitPosition(passengerData.id)
+    local passengerRotX, passengerRotY, passengerRotZ = SpGetUnitRotation(passengerData.id)
 
-    MovePieceWS(teeData.slotID, teePosX, teePosY, teePosZ, teeRotX, teeRotY, teeRotZ, nil, 0, nil, nil, nil, nil, nil, nil, 0) -- snap slot to transportee position at start of load anim
-    SpUnitAttach(unitID, teeData.id, teeData.slotID)
-    local count = CargoHandler.Register(teeData.id, teeData, cargo)
+    MovePieceWS(passengerData.slotID, passengerPosX, passengerPosY, passengerPosZ, passengerRotX, passengerRotY, passengerRotZ, nil, 0, nil, nil, nil, nil, nil, nil, 0) -- snap slot to passenger position at start of load anim
+    SpUnitAttach(unitID, passengerData.id, passengerData.slotID)
+    local count = CargoHandler.Register(passengerData.id, passengerData, cargo)
     if count == 1 then TransportAnimator.HasCargo(true) end
 
     local aborted = false
     if doAnim ~= false then
-        for f = 0, loadTime - 1 do
-            local t = progress[f]
-            teeData.animProgress = t -- keep track of the progress for Killed() script
-            local terX, terY, terZ, terRX, terRY, terRZ = getTransporterState()
+        for frame = 0, loadTime - 1 do
+            local normalizedProgress = progress[frame]
+            passengerData.animProgress = normalizedProgress -- keep track of the progress for Killed() script
+            local transporterX, transporterY, transporterZ, transporterRX, transporterRY, transporterRZ = getTransporterState()
 
-            local cwx = t * terX   + (1 - t) * teePosX
-            local cwy = t * terY   + (1 - t) * teePosY
-            local cwz = t * terZ   + (1 - t) * teePosZ
-            teeData.loading = true -- flag for WatchBeams; tee is attached so slot pos is authoritative
+            local newPassengerPositionX = normalizedProgress * transporterX   + (1 - normalizedProgress) * passengerPosX
+            local newPassengerPositionY = normalizedProgress * transporterY   + (1 - normalizedProgress) * passengerPosY
+            local newPassengerPositionZ = normalizedProgress * transporterZ   + (1 - normalizedProgress) * passengerPosZ
+            passengerData.loading = true -- flag for WatchBeams; passenger is attached so slot pos is authoritative
 
-            MovePieceWS(teeData.slotID,
-                cwx, cwy, cwz,
-                teeRotX + t * shortAngle(terRX - teeRotX),
-                teeRotY + t * shortAngle(terRY - teeRotY),
-                teeRotZ + t * shortAngle(terRZ - teeRotZ),
-                nil, teeData.height * t,
-                terX, terY, terZ, terRX, terRY, terRZ, t)
+            MovePieceWS(passengerData.slotID,
+                newPassengerPositionX, newPassengerPositionY, newPassengerPositionZ,
+                passengerRotX + normalizedProgress * shortAngle(transporterRX - passengerRotX),
+                passengerRotY + normalizedProgress * shortAngle(transporterRY - passengerRotY),
+                passengerRotZ + normalizedProgress * shortAngle(transporterRZ - passengerRotZ),
+                nil, passengerData.height * normalizedProgress,
+                transporterX, transporterY, transporterZ, transporterRX, transporterRY, transporterRZ, normalizedProgress)
             Sleep(33)
-            if isDead(teeData.id) then aborted = true ; break end
+            if isDead(passengerData.id) then aborted = true ; break end
         end
         -- clear loading flag
-        teeData.loading = nil
-        teeData.wbX = nil
+        passengerData.loading = nil
+        passengerData.cachedPosX = nil
+        passengerData.cachedPosY = nil
+        passengerData.cachedPosZ = nil
     end
-    resetSlot(teeData.slotID)
+    resetSlot(passengerData.slotID)
     if not aborted then -- finished the anim smoothly
-        teeData.animProgress = 1
-        Move(teeData.slotID, 2, -teeData.height)
+        passengerData.animProgress = 1
+        Move(passengerData.slotID, 2, -passengerData.height)
     else -- something went wrong (unit was killed?)
-        teeData.animProgress = nil
-        local count = CargoHandler.Unregister(teeData.id, cargo)
+        passengerData.animProgress = nil
+        local count = CargoHandler.Unregister(passengerData.id, cargo)
         if count == 0 then TransportAnimator.HasCargo(false) end
     end
     CargoHandler.EndLoading(cargo)
 end
 
--- Unload logic for detaching and moving the transportee.
+-- Unload logic for detaching and moving the passenger.
 -- When doAnim == false, the unit is only detached in-place with no position change.
-function TransportAnimator.Unload(teeData, goalX, goalY, goalZ, doAnim)
-    if teeData.unloading then return end
-    teeData.unloading = true
+function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, doAnim)
+    if passengerData.unloading then return end
+    passengerData.unloading = true
     CargoHandler.BeginUnloading(cargo)
-    SpUnitDetach(teeData.id)
+    SpUnitDetach(passengerData.id)
 
     if doAnim ~= false then
-        Spring.SetUnitRulesParam(teeData.id, "inTransportAnim", 1)
-        local px, py, pz    = SpGetUnitPiecePosDir(unitID, teeData.slotID)
-        local terX, _, terZ = SpGetUnitPosition(unitID)
-        goalX = goalX + (px - terX)
-        goalZ = goalZ + (pz - terZ)
-        goalY = SpGetGroundHeight(goalX, goalZ)
+        Spring.SetUnitRulesParam(passengerData.id, "inTransportAnim", 1)
+        local startSlotPosUSX, startSlotPosUSY, startSlotPosUSZ    = SpGetUnitPiecePosDir(unitID, passengerData.slotID)
+        local transporterX, _, transporterZ = SpGetUnitPosition(unitID)
+        goalPosX = goalPosX + (startSlotPosUSX - transporterX)
+        goalPosZ = goalPosZ + (startSlotPosUSZ - transporterZ)
+        goalPosY = SpGetGroundHeight(goalPosX, goalPosZ)
 
-        SpMoveCtrl.Enable(teeData.id) -- unlike Load(), Unload moves the unit via movectrl after detaching
-        local startRX, startRY, startRZ       = SpGetUnitRotation(teeData.id)
-        local initTerRX, initTerRY, initTerRZ = SpGetUnitRotation(unitID)
-        local teeDefID = SpGetUnitDefID(teeData.id)
-        local goalRX, goalRY, goalRZ
-        if UnitDefs[teeDefID] and UnitDefs[teeDefID].upright then
-            goalRX, goalRY, goalRZ = 0, startRY, 0
+        SpMoveCtrl.Enable(passengerData.id) -- unlike Load(), Unload moves the unit via movectrl after detaching
+        local startRotX, startRotY, startRotZ       = SpGetUnitRotation(passengerData.id)
+        local initTransporterRotX, initTransporterRotY, initTransporterRotZ = SpGetUnitRotation(unitID)
+        local passengerDefID = SpGetUnitDefID(passengerData.id)
+        local goalRotX, goalRotY, goalRotZ
+        if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].upright then
+            goalRotX, goalRotY, goalRotZ = 0, startRotY, 0
         else
-            local nx, ny, nz = SpGetGroundNormal(goalX, goalZ)
-            goalRX = math.atan2(-nz, ny)
-            goalRY = startRY
-            goalRZ = math.atan2(nx, ny)
+            local normalX, normalY, normalZ = SpGetGroundNormal(goalPosX, goalPosZ)
+            goalRotX = math.atan2(-normalZ, normalY)
+            goalRotY = startRotY
+            goalRotZ = math.atan2(normalX, normalY)
         end
 
         local aborted = false
-        for f = 0, loadTime - 1 do
-            local t = progress[f]
-            teeData.animProgress = 1 - t -- keep track of our progress for Killed() script
-            local spx, spy, spz = SpGetUnitPiecePosDir(unitID, teeData.slotID)
-            local cpx = t * goalX + (1 - t) * spx
-            local cpy = t * goalY + (1 - t) * spy
-            local cpz = t * goalZ + (1 - t) * spz
-            teeData.wbX = cpx -- cache transportee position
-            teeData.wbY = cpy
-            teeData.wbZ = cpz
-            SpMoveCtrl.SetPosition(teeData.id, cpx, cpy, cpz)
+        for frame = 0, loadTime - 1 do
+            local normalizedProgress = progress[frame]
+            passengerData.animProgress = 1 - normalizedProgress -- keep track of our progress for Killed() script
+            local slotPosX, slotPosY, slotPosZ = SpGetUnitPiecePosDir(unitID, passengerData.slotID)
+            local newPassengerPosX = normalizedProgress * goalPosX + (1 - normalizedProgress) * slotPosX
+            local newPassengerPosY = normalizedProgress * goalPosY + (1 - normalizedProgress) * slotPosY
+            local newPassengerPosZ = normalizedProgress * goalPosZ + (1 - normalizedProgress) * slotPosZ
+            passengerData.cachedPosX = newPassengerPosX -- cache passenger position
+            passengerData.cachedPosY = newPassengerPosY
+            passengerData.cachedPosZ = newPassengerPosZ
+            SpMoveCtrl.SetPosition(passengerData.id, newPassengerPosX, newPassengerPosY, newPassengerPosZ)
 
-            local terRX, terRY, terRZ = SpGetUnitRotation(unitID)
-            -- track transporter rotation changes so the tee's start-rotation follows the carrier during animation
-            local fromRX = startRX + shortAngle(terRX - initTerRX)
-            local fromRY = startRY + shortAngle(terRY - initTerRY)
-            local fromRZ = startRZ + shortAngle(terRZ - initTerRZ)
-            SpMoveCtrl.SetRotation(teeData.id,
-                goalRX * t + fromRX * (1 - t),
-                goalRY * t + fromRY * (1 - t),
-                goalRZ * t + fromRZ * (1 - t))
+            local transporterRotX, transporterRotY, transporterRotZ = SpGetUnitRotation(unitID)
+            -- track transporter rotation changes so the passenger's start-rotation follows the carrier during animation
+            local fromRotX = startRotX + shortAngle(transporterRotX - initTransporterRotX)
+            local fromRotY = startRotY + shortAngle(transporterRotY - initTransporterRotY)
+            local fromRotZ = startRotZ + shortAngle(transporterRotZ - initTransporterRotZ)
+            SpMoveCtrl.SetRotation(passengerData.id,
+                goalRotX * normalizedProgress + fromRotX * (1 - normalizedProgress),
+                goalRotY * normalizedProgress + fromRotY * (1 - normalizedProgress),
+                goalRotZ * normalizedProgress + fromRotZ * (1 - normalizedProgress))
             Sleep(33)
-            if isDead(teeData.id) then aborted = true ; break end
+            if isDead(passengerData.id) then aborted = true ; break end
         end
-        teeData.wbX = nil ; teeData.wbY = nil ; teeData.wbZ = nil -- invalidate cache
+        passengerData.cachedPosX = nil ; passengerData.cachedPosY = nil ; passengerData.cachedPosZ = nil -- invalidate cache
 
         if not aborted then -- unload anim completed, ensure unit is at final position/rotation
-            SpMoveCtrl.SetPosition(teeData.id, goalX, goalY, goalZ)
-            SpMoveCtrl.SetRotation(teeData.id, goalRX, goalRY, goalRZ)
-            SpMoveCtrl.Disable(teeData.id)
+            SpMoveCtrl.SetPosition(passengerData.id, goalPosX, goalPosY, goalPosZ)
+            SpMoveCtrl.SetRotation(passengerData.id, goalRotX, goalRotY, goalRotZ)
+            SpMoveCtrl.Disable(passengerData.id)
         end
     end
 
-    resetSlot(teeData.slotID)
-    local count = CargoHandler.Unregister(teeData.id, cargo)
-    Spring.SetUnitRulesParam(teeData.id, "inTransportAnim", 0)
+    resetSlot(passengerData.slotID)
+    local count = CargoHandler.Unregister(passengerData.id, cargo)
+    Spring.SetUnitRulesParam(passengerData.id, "inTransportAnim", 0)
     if count == 0 then TransportAnimator.HasCargo(false) end
     CargoHandler.EndUnloading(cargo)
 end
