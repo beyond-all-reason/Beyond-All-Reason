@@ -45,6 +45,7 @@ end
 
 function gadget:Initialize()
 	-- TODO: Actually pass script path
+	scriptPath = 'mission-api-tests/resource_test.lua'
 	--local scriptPath = 'mission-api-tests/validation_test.lua'
 	--local scriptPath = 'mission-api-tests/test_mission.lua'
 	--local scriptPath = 'mission-api-tests/markers_test.lua'
@@ -53,6 +54,7 @@ function gadget:Initialize()
 	--local scriptPath = 'mission-api-tests/unit_triggers_test.lua'
 	--local scriptPath = 'mission-api-tests/feature_triggers_test.lua'
 	--local scriptPath = 'mission-api-tests/statistics_triggers_test.lua'
+	--local scriptPath = 'mission-api-tests/resource_test.lua'
 	local scriptPath = 'mission-api-tests/loadout_test.lua'
 
 	if not scriptPath then

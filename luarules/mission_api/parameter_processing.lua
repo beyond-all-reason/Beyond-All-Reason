@@ -35,10 +35,19 @@ local function processSoundFile(soundfile)
 	end
 end
 
+local function processResourceIncomeSources(sources)
+	local sourcesAsSet = {}
+	for _, source in ipairs(sources) do
+		sourcesAsSet[source] = true
+	end
+	return sourcesAsSet
+end
+
 local processors = {
-	[Types.Position]  = processPosition,
-	[Types.Orders]    = processOrders,
-	[Types.SoundFile] = processSoundFile,
+	[Types.Position]              = processPosition,
+	[Types.Orders]                = processOrders,
+	[Types.SoundFile]             = processSoundFile,
+	[Types.ResourceIncomeSources] = processResourceIncomeSources,
 }
 
 ----------------------------------------------------------------
@@ -51,8 +60,12 @@ local function processParameters(actionsOrTriggers, schemaParameters)
 		local schema = schemaParameters[actionOrTrigger.type] or {}
 		for _, parameter in ipairs(schema) do
 			local value = parameters[parameter.name]
-			if value ~= nil and processors[parameter.type] then
-				processors[parameter.type](value)
+			local processor = processors[parameter.type]
+			if value ~= nil and processor then
+				local result = processor(value)
+				if result ~= nil then
+					parameters[parameter.name] = result
+				end
 			end
 		end
 	end
