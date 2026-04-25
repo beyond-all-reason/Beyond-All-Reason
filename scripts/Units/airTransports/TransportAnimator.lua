@@ -187,9 +187,6 @@ function TransportAnimator.Load(passengerData, doAnim)
         end
         -- clear loading flag
         passengerData.loading = nil
-        passengerData.cachedPosX = nil
-        passengerData.cachedPosY = nil
-        passengerData.cachedPosZ = nil
     end
     resetSlot(passengerData.slotID)
     if not aborted then -- finished the anim smoothly
