@@ -92,13 +92,13 @@ local totalMapMetal = 0 -- Total metal available on the map (calculated after cl
 -- Animation settings (fade in/out + expand/shrink pulse). All packed into one
 -- table to keep top-level local count under Lua's 200-upvalue limit.
 local animCfg = {
-	fadeInDuration = 0.30,
-	fadeOutDuration = 0.30,
-	pulseExpandDuration = 0.3,
-	pulseShrinkDuration = 0.3,
+	fadeInDuration = 0.18,
+	fadeOutDuration = 0.18,
+	pulseExpandDuration = 0.25,
+	pulseShrinkDuration = 0.25,
 	pulseExpandScale = 1.03,
 	pulseShrinkScale = 0.97,
-	toggleFadeDuration = 0.30,
+	toggleFadeDuration = 0.18,
 	-- Cluster identity matching: required overlap fraction (intersection / max(old,new))
 	identityMinOverlap = 0.34,
 	-- Alpha delta beyond which we recreate the gradient display list
@@ -106,7 +106,7 @@ local animCfg = {
 	-- Minimum relative change in cluster resource value to trigger a pulse
 	-- animation. Smaller changes (e.g. a single small wreck added/removed from
 	-- a large field) are ignored so the field only pulses on meaningful changes.
-	pulseMinRelativeChange = 0.15,
+	pulseMinRelativeChange = 0.12,
 }
 
 local gameStarted = Spring.GetGameFrame() > 0
