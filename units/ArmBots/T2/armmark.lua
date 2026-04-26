@@ -15,7 +15,7 @@ return {
 		footprintz = 2,
 		health = 355,
 		maxacc = 0.05175,
-		maxdec = 0.0621,
+		maxdec = 0.2,
 		maxslope = 16,
 		maxwaterdepth = 0,
 		metalcost = 100,
