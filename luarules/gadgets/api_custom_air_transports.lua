@@ -90,7 +90,7 @@ TransportAPI.WorldToUnitSpace = function(unitID, wantedWorldSpacePosX, wantedWor
     local wantedUnitSpacePosX, wantedUnitSpacePosY, wantedUnitSpacePosZ = applyRotation(transposeMatrix(unitRot), deltaX, deltaY, deltaZ)
     return wantedUnitSpacePosX, wantedUnitSpacePosY, wantedUnitSpacePosZ,
            shortAngle(wantedWorldSpaceRotX - currentUnitRotX),
-           shortAngle(wantedWorldSpaceRotY - currentUnitRotY),
+           shortAngle(currentUnitRotY - wantedWorldSpaceRotY), -- inverted in unit space
            shortAngle(wantedWorldSpaceRotZ - currentUnitRotZ)
 end
 
