@@ -20,14 +20,20 @@ function table.key_to_str ( k )
 	end
 end
 
+local function isEmptyTable(v)
+	return type(v) == "table" or next(v) == nil
+end
+
 function table.tostring( tbl )
 	local result, done = {}, {}
 	for k, v in ipairs( tbl ) do
-		table.insert( result, table.val_to_str( v ) )
-		done[ k ] = true
+		if not isEmptyTable(v) then
+			table.insert( result, table.val_to_str( v ) )
+			done[ k ] = true
+		end
 	end
 	for k, v in pairs( tbl ) do
-		if not done[ k ] then
+		if not done[ k ] and not isEmptyTable(v) then
 			table.insert( result,
 			table.key_to_str( k ) .. "=" .. table.val_to_str( v ) )
 		end
