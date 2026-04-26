@@ -27,20 +27,28 @@ local TransportAPI = GG.TransportAPI
 local cachedUnitSizes = {}
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitRotation = Spring.GetUnitRotation
+local cachedCos, cachedSin = {}, {}
 
+local function cachedCosSin(angle)
+	angle = math.floor(angle*100)/100 -- round to 2 decimals to limit cache size; should be enough for smooth animations and avoid visible jumps
+	if not cachedCos[angle] then
+		cachedCos[angle], cachedSin[angle] = math.cos(angle), math.sin(angle)
+	end
+	return cachedCos[angle], cachedSin[angle]
+end
 
 local function rotationMatrixX(rx)
-    local c, s = math.cos(rx), math.sin(rx)
+    local c, s = cachedCosSin(rx)
     return { {1,0,0}, {0,c,-s}, {0,s,c} }
 end
 
 local function rotationMatrixY(ry)
-    local c, s = math.cos(ry), math.sin(ry)
+    local c, s = cachedCosSin(ry)
     return { {c,0,s}, {0,1,0}, {-s,0,c} }
 end
 
 local function rotationMatrixZ(rz)
-    local c, s = math.cos(rz), math.sin(rz)
+    local c, s = cachedCosSin(rz)
     return { {c,-s,0}, {s,c,0}, {0,0,1} }
 end
 

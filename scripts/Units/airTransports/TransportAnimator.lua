@@ -3,10 +3,11 @@ TransportAnimator = {}
 local SIG_WATCH           = 2 -- signal to stop the WatchBeam thread when cargo state changes
 TransportAnimator.SIG_LOAD = 4 -- signal to kill all in-flight Load threads (used by ReorganizeAndLoad)
 local defaultPiecePos  = {} -- [pieceID] = {x,y,z} rest position in unit-local space, cached on first use
+local pi = math.pi
 
 local function shortAngle(a)
-	a = a % (2 * math.pi)
-	if a > math.pi then a = a - 2 * math.pi end
+	a = a % (2 * pi)
+	if a > pi then a = a - 2 * pi end
 	return a
 end
 
@@ -15,21 +16,21 @@ local function MovePieceWS(pieceNum,
     wantedWorldSpacePosX, wantedWorldSpacePosY, wantedWorldSpacePosZ, 
     wantedWorldSpaceRotX, wantedWorldSpaceRotY, wantedWorldSpaceRotZ, 
     speed, passengerHeight, normalizedProgress,
-    currentUnitPosX, currentUnitPosY, currentUnitPosZ, 
-    currentUnitRotX, currentUnitRotY, currentUnitRotZ)
+    transporterPosX, transporterPosY, transporterPosZ, 
+    transporterRotX, transporterRotY, transporterRotZ)
 
 	local wantedUnitSpacePosX, wantedUnitSpacePosY, wantedUnitSpacePosZ,
 	    wantedUnitSpaceRotX, wantedUnitSpaceRotY, wantedUnitSpaceRotZ = 
-		    TransportAPI.WorldToUnitSpace(unitID,
+		    TransportAPI.WorldToUnitSpace(transporterID,
 			    wantedWorldSpacePosX, wantedWorldSpacePosY, wantedWorldSpacePosZ,
 			    wantedWorldSpaceRotX, wantedWorldSpaceRotY, wantedWorldSpaceRotZ,
-			    currentUnitPosX, currentUnitPosY, currentUnitPosZ,
-			    currentUnitRotX, currentUnitRotY, currentUnitRotZ)
+			    transporterPosX, transporterPosY, transporterPosZ,
+			    transporterRotX, transporterRotY, transporterRotZ)
 
 	-- Move() offsets are relative to the piece's own rest position, not the unit origin.
 	-- Subtract the rest position so the piece ends up at the correct unit-local coordinates.
 	if not defaultPiecePos[pieceNum] then
-		local defaultPieceUnitSpacePosX, defaultPieceUnitSpacePosY, defaultPieceUnitSpacePosZ = Spring.GetUnitPiecePosition(unitID, pieceNum)
+		local defaultPieceUnitSpacePosX, defaultPieceUnitSpacePosY, defaultPieceUnitSpacePosZ = Spring.GetUnitPiecePosition(transporterID, pieceNum)
 		defaultPiecePos[pieceNum] = { defaultPieceUnitSpacePosX, defaultPieceUnitSpacePosY, defaultPieceUnitSpacePosZ }
 	end
 	local defaultPiecePosition =    defaultPiecePos[pieceNum]
@@ -46,17 +47,17 @@ local progress         -- set in Init from precomputedProgress[unitDefID]
 local beamsBySlotID = {}
 
 local cachedFrame = -1
-local currentUnitPosX, currentUnitPosY, currentUnitPosZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ
+local currentTransporterPosX, currentTransporterPosY, currentTransporterPosZ, currentTransporterRotX, currentTransporterRotY, currentTransporterRotZ
 
 -- returns transporter position and rotation, memoized per game frame to avoid redundant API calls
 local function getTransporterState() -- caching helper: get the position only once per frame when multiple threads are running.
 	local f = SpGetGameFrame()
 	if f ~= cachedFrame then
-		currentUnitPosX, currentUnitPosY, currentUnitPosZ = SpGetUnitPosition(unitID)
-		currentUnitRotX, currentUnitRotY, currentUnitRotZ = SpGetUnitRotation(unitID)
+		currentTransporterPosX, currentTransporterPosY, currentTransporterPosZ = SpGetUnitPosition(transporterID)
+		currentTransporterRotX, currentTransporterRotY, currentTransporterRotZ = SpGetUnitRotation(transporterID)
 		cachedFrame = f
 	end
-	return currentUnitPosX, currentUnitPosY, currentUnitPosZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ
+	return currentTransporterPosX, currentTransporterPosY, currentTransporterPosZ, currentTransporterRotX, currentTransporterRotY, currentTransporterRotZ
 end
 
 -- zero out all transforms on a slot piece (called after animation completes or is aborted)
@@ -102,7 +103,7 @@ end
 -- called when cargo count changes: toggles dontLand move type and starts/stops the beam-watch thread
 function TransportAnimator.HasCargo(hasCargo)
 	Signal(SIG_WATCH)
-	SpMoveCtrl.SetGunshipMoveTypeData(unitID, "dontLand", hasCargo)
+	SpMoveCtrl.SetGunshipMoveTypeData(transporterID, "dontLand", hasCargo)
 	if hasCargo then
 		StartThread(TransportAnimator.WatchBeams)
 	end
@@ -120,20 +121,27 @@ function TransportAnimator.Snap(passengerData)
 end
 
 -- per-frame loop: damps transporter velocity during active animations and spawns tractor-beam CEGs
+-- we can only use cached pos during unload,
+-- during loading, the WorldSpaceToUnitSpace conversion induces a visible offset 
 function TransportAnimator.WatchBeams()
 	SetSignalMask(SIG_WATCH)
+	-- reusable local vars to avoid allocations in this hot loop
+	local velocityX, velocityY, velocityZ
+	local beamPieceX, beamPieceY, beamPieceZ
+	local slotPosX, slotPosY, slotPosZ
 	while true do
 		if (cargo.loadingCount + cargo.unloadingCount) > 0 then
-			local velocityX, velocityY, velocityZ = SpGetUnitVelocity(unitID)
+			velocityX, velocityY, velocityZ = SpGetUnitVelocity(unitID)
 			SpSetUnitVelocity(unitID, velocityX * ratio * ratio, velocityY * ratioY * ratioY, velocityZ * ratio * ratio)
 		end
 		for passengerID, passengerData in pairs(cargo.passengers) do
 			if passengerData.beamPieces then
 				for _, beamPiece in ipairs(passengerData.beamPieces) do
-					local beamPieceX, beamPieceY, beamPieceZ = SpGetUnitPiecePosDir(unitID, beamPiece)
+					beamPieceX, beamPieceY, beamPieceZ = SpGetUnitPiecePosDir(transporterID, beamPiece)
 					if passengerData.loading then
 						-- passenger is attached to slot: use actual slot world position as beam target
-						local slotPosX, slotPosY, slotPosZ = SpGetUnitPiecePosDir(unitID, passengerData.slotID)
+						-- is it more efficient to use passenger GetUnitPosition() instead?
+						slotPosX, slotPosY, slotPosZ = SpGetUnitPiecePosDir(transporterID, passengerData.slotID)
 						SpSpawnCEG(cegName,
 							slotPosX, slotPosY + passengerData.height, slotPosZ,
 							(beamPieceX - slotPosX) * cegScaleFactor,
@@ -170,31 +178,38 @@ function TransportAnimator.Load(passengerData, doAnim)
 
 	local passengerPosX, passengerPosY, passengerPosZ = SpGetUnitPosition(passengerData.id)
 	local passengerRotX, passengerRotY, passengerRotZ = SpGetUnitRotation(passengerData.id)
-
+	local transporterPosX, transporterPosY, transporterPosZ, transporterRotX, transporterRotY, transporterRotZ = getTransporterState()
 	MovePieceWS(passengerData.slotID,
 	passengerPosX, passengerPosY, passengerPosZ,
 	passengerRotX, passengerRotY, passengerRotZ,
-	nil, 0, 0) -- snap slot to passenger position at start of load anim
+	nil, 0, 0,
+	transporterPosX, transporterPosY, transporterPosZ,
+	transporterRotX, transporterRotY, transporterRotZ) -- snap slot to passenger position at start of load anim
 
-	SpUnitAttach(unitID, passengerData.id, passengerData.slotID)
+	SpUnitAttach(transporterID, passengerData.id, passengerData.slotID)
 
 	local count = CargoHandler.Register(passengerData.id, passengerData, cargo)
 	if count == 1 then TransportAnimator.HasCargo(true) end
 
 	local aborted = false
+	-- reusable local vars to avoid allocations in this hot loop
+	local newPassengerPosX, newPassengerPosY, newPassengerPosZ
+	local newPassengerRotX, newPassengerRotY, newPassengerRotZ
+	local normalizedProgress
+
 	if doAnim ~= false then
 		passengerData.loading = true -- flag for WatchBeams; passenger is attached so slot pos is authoritative
 		for frame = 0, loadTime - 1 do
-			local normalizedProgress = progress[frame]
+			normalizedProgress = progress[frame]
 			passengerData.animProgress = normalizedProgress -- keep track of the progress for Killed() script
-			local transporterPosX, transporterPosY, transporterPosZ, transporterRotX, transporterRotY, transporterRotZ = getTransporterState()
+			transporterPosX, transporterPosY, transporterPosZ, transporterRotX, transporterRotY, transporterRotZ = getTransporterState()
 
-			local newPassengerPosX, newPassengerPosY, newPassengerPosZ =
+			newPassengerPosX, newPassengerPosY, newPassengerPosZ =
 				normalizedProgress * transporterPosX   + (1 - normalizedProgress) * passengerPosX,
 				normalizedProgress * transporterPosY   + (1 - normalizedProgress) * passengerPosY,
 				normalizedProgress * transporterPosZ   + (1 - normalizedProgress) * passengerPosZ
 
-			local newPassengerRotX, newPassengerRotY, newPassengerRotZ = 
+			newPassengerRotX, newPassengerRotY, newPassengerRotZ = 
 				passengerRotX + normalizedProgress * shortAngle(transporterRotX - passengerRotX),
 				passengerRotY + normalizedProgress * shortAngle(transporterRotY - passengerRotY),
 				passengerRotZ + normalizedProgress * shortAngle(transporterRotZ - passengerRotZ)
@@ -234,19 +249,15 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 
 	if doAnim ~= false then
 		Spring.SetUnitRulesParam(passengerData.id, "inTransportAnim", 1)
-		local startSlotPosX, startSlotPosY, startSlotPosZ    = SpGetUnitPiecePosDir(unitID, passengerData.slotID)
-		local transporterPosX, _, transporterPosZ = SpGetUnitPosition(unitID)
 
-		goalPosX, goalPosZ = goalPosX + (startSlotPosX - transporterPosX), goalPosZ + (startSlotPosZ - transporterPosZ)
-		goalPosY = SpGetGroundHeight(goalPosX, goalPosZ)
+		local slotPosX, slotPosY, slotPosZ = SpGetUnitPiecePosDir(transporterID, passengerData.slotID)
+		local transporterPosX, _, transporterPosZ, startTransporterRotX, startTransporterRotY, startTransporterRotZ = getTransporterState(transporterID)
+		goalPosX, goalPosZ = goalPosX + (slotPosX - transporterPosX), goalPosZ + (slotPosZ - transporterPosZ)
+		goalPosY = SpGetGroundHeight(goalPosX, goalPosZ)	
 
-		SpMoveCtrl.Enable(passengerData.id) -- unlike Load(), Unload moves the unit via movectrl after detaching
-
-		local startRotX, startRotY, startRotZ       = SpGetUnitRotation(passengerData.id)
-		local startTransporterRotX, startTransporterRotY, startTransporterRotZ = SpGetUnitRotation(unitID)
-		local passengerDefID = SpGetUnitDefID(passengerData.id)
+		local startRotX, startRotY, startRotZ = SpGetUnitRotation(passengerData.id)
 		local goalRotX, goalRotY, goalRotZ
-
+		local passengerDefID = SpGetUnitDefID(passengerData.id)
 		if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].upright then
 			goalRotX, goalRotY, goalRotZ = 0, startRotY, 0
 		else
@@ -254,31 +265,39 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 			goalRotX, goalRotY, goalRotZ = math.atan2(-normalZ, normalY), startRotY, math.atan2(normalX, normalY)
 		end
 
+		SpMoveCtrl.Enable(passengerData.id) -- unlike Load(), Unload moves the unit via movectrl after detaching
+
 		local aborted = false
+		-- reusable local vars to avoid allocations in this hot loop
+		local newPassengerPosX, newPassengerPosY, newPassengerPosZ
+		local newPassengerRotX, newPassengerRotY, newPassengerRotZ
+		local normalizedProgress
+		local transporterRotX, transporterRotY, transporterRotZ
 		for frame = 0, loadTime - 1 do
-			local normalizedProgress = progress[frame]
+			normalizedProgress = progress[frame]
+
 			passengerData.animProgress = 1 - normalizedProgress -- keep track of our progress for Killed() script
-			local slotPosX, slotPosY, slotPosZ = SpGetUnitPiecePosDir(unitID, passengerData.slotID)
-			local newPassengerPosX, newPassengerPosY, newPassengerPosZ = 
+
+			slotPosX, slotPosY, slotPosZ = SpGetUnitPiecePosDir(transporterID, passengerData.slotID)
+			_,_,_, transporterRotX, transporterRotY, transporterRotZ = getTransporterState(transporterID)
+
+			newPassengerPosX, newPassengerPosY, newPassengerPosZ = 
 				normalizedProgress * goalPosX + (1 - normalizedProgress) * slotPosX,
 				normalizedProgress * goalPosY + (1 - normalizedProgress) * slotPosY,
 				normalizedProgress * goalPosZ + (1 - normalizedProgress) * slotPosZ
 
+			newPassengerRotX, newPassengerRotY, newPassengerRotZ = 
+				goalRotX * normalizedProgress + (startRotX + shortAngle(transporterRotX - startTransporterRotX)) * (1 - normalizedProgress),
+				goalRotY * normalizedProgress + (startRotY + shortAngle(transporterRotY - startTransporterRotY)) * (1 - normalizedProgress),
+				goalRotZ * normalizedProgress + (startRotZ + shortAngle(transporterRotZ - startTransporterRotZ)) * (1 - normalizedProgress)
+			
+			SpMoveCtrl.SetPosition(passengerData.id,
+				 newPassengerPosX, newPassengerPosY, newPassengerPosZ)
+			SpMoveCtrl.SetRotation(passengerData.id,
+				newPassengerRotX, newPassengerRotY,	newPassengerRotZ)
+
 			passengerData.cachedPosX, passengerData.cachedPosY, passengerData.cachedPosZ = newPassengerPosX, newPassengerPosY, newPassengerPosZ
 
-			SpMoveCtrl.SetPosition(passengerData.id, newPassengerPosX, newPassengerPosY, newPassengerPosZ)
-
-			local transporterRotX, transporterRotY, transporterRotZ = SpGetUnitRotation(unitID)
-			-- track transporter rotation changes so the passenger's start-rotation follows the carrier during animation
-			local fromRotX, fromRotY, fromRotZ = 
-				startRotX + shortAngle(transporterRotX - startTransporterRotX),
-				startRotY + shortAngle(transporterRotY - startTransporterRotY),
-				startRotZ + shortAngle(transporterRotZ - startTransporterRotZ)
-
-			SpMoveCtrl.SetRotation(passengerData.id,
-				goalRotX * normalizedProgress + fromRotX * (1 - normalizedProgress),
-				goalRotY * normalizedProgress + fromRotY * (1 - normalizedProgress),
-				goalRotZ * normalizedProgress + fromRotZ * (1 - normalizedProgress))
 			Sleep(33)
 			if isDead(passengerData.id) then aborted = true ; break end
 		end

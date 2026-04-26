@@ -22,6 +22,7 @@ local unitName           = unitDef.name
 local AIR_TRANSPORT_PATH = "scripts/Units/airTransports/"  -- prefix for VFS.Include (from game root)
 local AIR_TRANSPORT_INC  = "Units/airTransports/"          -- prefix for include()    (from scripts/)
 local UNIT_CONFIG_PATH   = AIR_TRANSPORT_PATH .. unitName .. "/"
+transporterID = unitID -- just to keep it consistent with other envs
 
 
 
@@ -63,11 +64,11 @@ WeaponAnimator.Init(setup.wpn)
 function script.Create()
     -- setup the default state
     GenericAnimator.HideThrusters()
-    SpMoveCtrl.SetGunshipMoveTypeData(unitID, "dontLand", false)
+    SpMoveCtrl.SetGunshipMoveTypeData(transporterID, "dontLand", false)
     CargoHandler.HideSlots(cargo)
 
     -- load preexisting cargo (save/load)
-    local existing = SpGetUnitIsTransporting(unitID)
+    local existing = SpGetUnitIsTransporting(transporterID)
     table.sort(existing, function(a, b)
         return TransportAPI.GetTransporteeSize(a) > TransportAPI.GetTransporteeSize(b) -- largest first for correct slot assignment
     end)

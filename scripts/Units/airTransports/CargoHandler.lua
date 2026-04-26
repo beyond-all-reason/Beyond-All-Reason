@@ -39,7 +39,7 @@ function CargoHandler.Init(setup)
 	-- on save/load the engine is queried for current passengers and this table is rebuilt from scratch (see script.Create),
 	-- but outside of that reload path this is the only authoritative record of what is loaded and where.
 	local cargo = {
-		unitID                  = unitID,                       -- transporter unit ID
+		transporterID                  = transporterID,                       -- transporter unit ID
 		slots                   = slots,                        -- [slotID] = { size, cargo, requires } (see above)
 		primarySlot             = nameToID[setup.primarySlot],  -- slotID used for single-unit commands
 		passengers              = {},                           -- [passengerID] = passengerData  ({ id, height, slotID, beamPieces, wbX/Y/Z, animProgress })
@@ -54,11 +54,11 @@ function CargoHandler.Init(setup)
 	-- set some initial unit rules params for the gadget to read, and for UI display
 	for size, bool in pairs (slotSizes) do
 		local rulesParamString = "transporterHasSlotOfSize"..size
-		SpSetUnitRulesParam(unitID, rulesParamString, bool)
+		SpSetUnitRulesParam(transporterID, rulesParamString, bool)
 	end
 
-	SpSetUnitRulesParam(unitID, "transporterSeats",    setup.transporterSeats) -- used by gadget to determine if a passenger can be loaded, and by anim handler to determine whether to show hover effect
-	SpSetUnitRulesParam(unitID, "transporterUsedSeats", 0) -- used by gadget to determine if a passenger can be loaded/unloaded, and by anim handler to determine whether to show hover effect
+	SpSetUnitRulesParam(transporterID, "transporterSeats",    setup.transporterSeats) -- used by gadget to determine if a passenger can be loaded, and by anim handler to determine whether to show hover effect
+	SpSetUnitRulesParam(transporterID, "transporterUsedSeats", 0) -- used by gadget to determine if a passenger can be loaded/unloaded, and by anim handler to determine whether to show hover effect
 	CargoHandler.CanLoad(true)
 	CargoHandler.CanUnload(true)
 	return cargo
@@ -79,12 +79,12 @@ end
 
 -- set the rules param the gadget reads to block or allow new load attempts
 function CargoHandler.CanLoad(bool)
-	SpSetUnitRulesParam(unitID, "canLoad", bool and 1 or 0)
+	SpSetUnitRulesParam(transporterID, "canLoad", bool and 1 or 0)
 end
 
 -- set the rules param the gadget reads to block or allow new unload attempts
 function CargoHandler.CanUnload(bool)
-	SpSetUnitRulesParam(unitID, "canUnload", bool and 1 or 0)
+	SpSetUnitRulesParam(transporterID, "canUnload", bool and 1 or 0)
 end
 
 -- track in-progress animation counts to gate CanLoad/CanUnload:
@@ -166,7 +166,7 @@ function CargoHandler.ReorganizeAndLoad(cargo, newpassengerID)
 		passengerSnapshot[passengerID] = passengerData
 	end
 	for passengerID, passengerData in pairs(passengerSnapshot) do
-		local transporterX, transporterY, transporterZ = SpGetUnitPosition(cargo.unitID)
+		local transporterX, transporterY, transporterZ = SpGetUnitPosition(cargo.transporterID)
 		TransportAnimator.Unload(passengerData, transporterX, transporterY, transporterZ, false)
 	end
 
@@ -190,7 +190,7 @@ function CargoHandler.Register(passengerID, passengerData, cargo)
 	cargo.passengers[passengerID] = passengerData
 	cargo.count     = cargo.count + 1
 	cargo.transporterUsedSeats = cargo.transporterUsedSeats + (cargo.slots[passengerData.slotID].size or 0)
-	SpSetUnitRulesParam(cargo.unitID, "transporterUsedSeats", cargo.transporterUsedSeats)
+	SpSetUnitRulesParam(cargo.transporterID, "transporterUsedSeats", cargo.transporterUsedSeats)
 	return cargo.count
 end
 
@@ -199,7 +199,7 @@ function CargoHandler.Unregister(passengerID, cargo)
 	local passengerData = cargo.passengers[passengerID]
 	if passengerData and passengerData.slotID then
 		cargo.transporterUsedSeats = math.max(0, cargo.transporterUsedSeats - (cargo.slots[passengerData.slotID].size or 0))
-		SpSetUnitRulesParam(cargo.unitID, "transporterUsedSeats", cargo.transporterUsedSeats)
+		SpSetUnitRulesParam(cargo.transporterID, "transporterUsedSeats", cargo.transporterUsedSeats)
 		CargoHandler.ReleaseSlot(passengerData.slotID, cargo)
 	end
 	cargo.passengers[passengerID] = nil
