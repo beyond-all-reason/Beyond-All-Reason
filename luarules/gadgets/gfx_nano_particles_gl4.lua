@@ -70,6 +70,7 @@ local spGetUnitHealth            = Spring.GetUnitHealth
 local spGetUnitMoveTypeData      = Spring.GetUnitMoveTypeData
 local spIsSphereInView           = Spring.IsSphereInView
 local spGetCameraPosition        = Spring.GetCameraPosition
+local spGetUnitCollisionVolumeData = Spring.GetUnitCollisionVolumeData
 
 -- Engine encodes feature targets in worker-task results as (featureID + MaxUnits()).
 -- Used for CMD_RESURRECT (always) and CMD_RECLAIM of features. See engine
@@ -95,6 +96,7 @@ local uploadElementRange     = InstanceVBOTable.uploadElementRange
 local mathRandom = math.random
 local mathSqrt   = math.sqrt
 local mathFloor  = math.floor
+local mathLog    = math.log
 local spGetTimer   = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 
@@ -253,6 +255,25 @@ local MODE_SETTINGS = {
 local FADE_FRAMES_REPAIR  = 4   -- gentle polish on outbound repair/capture
 local FADE_FRAMES_RECLAIM = 3    -- no fade -- particles converge fully
 local FADE_FRAMES_DEATH   = 35   -- dissolve when target unit dies or fully repaired
+
+-- Reclaim-completion burst: when a tracked unit finishes being reclaimed by
+-- our builders, spit a one-shot cluster of inverse particles emanating from
+-- random points within the unit's collision volume, distributed across the
+-- builders that actually reclaimed it (= teams that received the metal).
+-- Particle count is logarithmic in the unit's metal cost AND scales with the
+-- number of active reclaimers: each builder contributes its own share, so a
+-- solo reclaimer fires a modest puff while a coordinated swarm fires much more.
+local RECLAIM_BURST_BASE      = 1      -- particles per builder regardless of unit cost (the minimum each builder adds)
+local RECLAIM_BURST_LOG_K     = 40    -- controls how quickly each builder's share grows as units get more expensive.
+                                      -- raise to get more particles on mid/high-cost units; lower to flatten the curve.
+local RECLAIM_BURST_LOG_NORM  = 250   -- the "cheap" threshold: units at or below this metal cost produce close to
+                                      -- RECLAIM_BURST_BASE particles per builder. Units significantly above it start climbing.
+                                      -- raise to shift the ramp toward more expensive units; lower to ramp up sooner.
+local RECLAIM_BURST_BUILDER_EXP = 0.5  -- sub-linear exponent for builder count: total = perBuilder * nb^EXP.
+                                        -- 1.0 = fully linear (4 reclaimers → 4× particles), 0.5 = square-root curve.
+                                        -- 0.7 is a reasonable middle ground.
+local RECLAIM_BURST_MAX       = 1500    -- absolute hard cap on total particles across all builders combined
+local RECLAIM_BURST_VOL_FRAC  = 0.55   -- spawn within this fraction of collvol radius
 
 -- Skip forward-homing registration when the target unit is still being built
 -- (buildProgress < 1). Avoids the visually odd effect of particles chasing a
@@ -1600,6 +1621,15 @@ local targetPosCache    = {}    -- unitID -> [epoch, x, y, z]
 local targetIncompleteCache = {} -- unitID -> [epoch, isBeingBuilt]
 local HOMING_FWD_MAX_PER_TARGET = 192   -- safety cap per repaired/captured unit
 
+-- Reclaim-completion burst tracking. While a tracked unit is being reclaimed
+-- by one or more of our builders, we record the builder set so that on
+-- UnitDestroyed we can fire a one-shot particle burst FROM the unit center
+-- TOWARD only those builders (whose teams actually got the metal). Cleared
+-- when the target dies, when builders disengage (their cmdID/targetID change
+-- away from this target), or when the builder itself dies.
+--   reclaimedTargets[targetUnitID] = { [builderID] = true, ... }
+local reclaimedTargets = {}
+
 -- Forward emissions aimed at an UNFINISHED unit are NOT registered in
 -- homingFwdByTarget (HOMING_SKIP_INCOMPLETE early-returns) so they don't curve
 -- toward a moving factory exit. We still track them here in a fade-only list
@@ -1957,6 +1987,109 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				end
 			end
 		until true
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Reclaim-completion burst: one-shot cluster of inverse particles emanating
+-- from random points within the destroyed unit's collision volume, distributed
+-- across the builders that were actively reclaiming it. Builders are filtered
+-- by the reclaimedTargets tracker (populated in the scan loop), so only
+-- builders whose teams actually got the metal contribute -- enemy or
+-- third-party builders never see the burst.
+--------------------------------------------------------------------------------
+
+local function fireReclaimBurst(targetUnitID, targetUnitDefID, attackerTeam, frame)
+	local set = reclaimedTargets[targetUnitID]
+	if not set then return end
+	reclaimedTargets[targetUnitID] = nil
+
+	-- Collect the builders that are still alive AND belong to the team that
+	-- actually received the metal (attackerTeam). Builders from other teams
+	-- that were also reclaiming don't get the burst -- they got nothing.
+	local builders = {}
+	local nb = 0
+	for builderID in pairs(set) do
+		local info = builderCache[builderID]
+		if info and spValidUnitID(builderID) and spGetUnitTeam(builderID) == attackerTeam then
+			-- Clear the back-reference so the builder doesn't keep a stale
+			-- reclaimTarget pointing at a dead unit (would cause a spurious
+			-- removal attempt next scan).
+			if info.reclaimTarget == targetUnitID then
+				info.reclaimTarget = nil
+			end
+			nb = nb + 1
+			builders[nb] = { id = builderID, info = info }
+		end
+	end
+	if nb == 0 then return end
+
+	-- Particle count: per-builder share follows a log curve in metal cost, then
+	-- scaled by nb^BUILDER_EXP so more reclaimers always add more particles but
+	-- with diminishing returns (e.g. 4 reclaimers → ~2.6× not 4× at EXP=0.7).
+	local ud = targetUnitDefID and UnitDefs[targetUnitDefID] or nil
+	local metalCost = (ud and ud.metalCost) or 0
+	local perBuilder = RECLAIM_BURST_BASE + mathFloor(RECLAIM_BURST_LOG_K * mathLog(1 + metalCost / RECLAIM_BURST_LOG_NORM) + 0.5)
+	if perBuilder < 1 then perBuilder = 1 end
+	local total = mathFloor(perBuilder * (nb ^ RECLAIM_BURST_BUILDER_EXP) + 0.5)
+	if total > RECLAIM_BURST_MAX then total = RECLAIM_BURST_MAX end
+	if total < 1 then return end
+
+	-- Burst origin: collision volume center if available, else mid-position.
+	-- GetUnitCollisionVolumeData returns scale, offset, type, axis, disabled.
+	local cx, cy, cz, radius
+	local _, _, _, mx, my, mz = spGetUnitPosition(targetUnitID, true)
+	cx, cy, cz = mx, my, mz
+	local sx, sy, sz, ox, oy, oz = spGetUnitCollisionVolumeData(targetUnitID)
+	if sx and ox then
+		-- Offset is in unit-local space; for the symmetric majority of units
+		-- (and certainly close enough for a particle effect) treat it as a
+		-- world-space delta from mid-pos. Acceptable visual approximation
+		-- given the random spread we apply on top.
+		cx = (mx or 0) + ox
+		cy = (my or 0) + oy
+		cz = (mz or 0) + oz
+		-- Use the smallest axis as the spawn radius so we stay inside thin
+		-- volumes (e.g. flat factories) instead of poking through.
+		local r = sx
+		if sy and sy < r then r = sy end
+		if sz and sz < r then r = sz end
+		radius = (r or 0) * 0.5 * RECLAIM_BURST_VOL_FRAC
+	else
+		radius = (spGetUnitRadius(targetUnitID) or 32) * RECLAIM_BURST_VOL_FRAC
+	end
+	if not cx or radius <= 0 then return end
+
+	-- Distribute particles round-robin across contributing builders. Each
+	-- particle gets its own random spawn point inside the volume sphere
+	-- (rejection-sampled), so the cluster is spatially varied even though all
+	-- particles converge back to one builder per slot.
+	local base = mathFloor(total / nb)
+	local rem  = total - base * nb
+	for bi = 1, nb do
+		local b = builders[bi]
+		local cnt = base + (bi <= rem and 1 or 0)
+		if cnt > 0 then
+			-- emitNano handles LOS/distance/offscreen gating, piecePos lookup,
+			-- velocity composition and inverse-spawn placement. Calling it
+			-- once per particle (count=1) so each gets a distinct random
+			-- spawn point within the volume.
+			for _ = 1, cnt do
+				local jx, jy, jz
+				repeat
+					jx = mathRandom() * 2 - 1
+					jy = mathRandom() * 2 - 1
+					jz = mathRandom() * 2 - 1
+				until (jx*jx + jy*jy + jz*jz) <= 1.0
+				local ex = cx + jx * radius
+				local ey = cy + jy * radius
+				local ez = cz + jz * radius
+				-- Pass jitterRadius=nil so emitNano's per-particle direction
+				-- jitter stays at the small DIR_JITTER default; the spatial
+				-- spread already comes from the random spawn point.
+				emitNano(b.id, b.info, ex, ey, ez, true, nil, frame, nil, nil, 1, 0)
+			end
+		end
 	end
 end
 
@@ -2456,6 +2589,17 @@ local function scanBuilders(frame)
 					-- Idle visit: clear lastVisitFrame so the next bp>0 visit
 					-- doesn't credit the idle gap as build time and dump a burst.
 					info.lastVisitFrame = nil
+					-- Drop the builder from any reclaim tracking -- it's no longer
+					-- contributing, so the burst shouldn't travel to it.
+					local prev = info.reclaimTarget
+					if prev then
+						local prevSet = reclaimedTargets[prev]
+						if prevSet then
+							prevSet[unitID] = nil
+							if next(prevSet) == nil then reclaimedTargets[prev] = nil end
+						end
+						info.reclaimTarget = nil
+					end
 				end
 				if bp and bp > 0 then
 					if DEBUG then _dbgBuilders = _dbgBuilders + 1 end
@@ -2499,6 +2643,37 @@ local function scanBuilders(frame)
 					if cmdID then
 						if DEBUG then _dbgWithTask = _dbgWithTask + 1 end
 						local ex, ey, ez, inverse, jitterRadius, isResurrect, targetUnitID = resolveTarget(info, cmdID, targetID)
+						-- Record this builder as actively reclaiming `targetUnitID`
+						-- so the UnitDestroyed callin can fire a finishing burst
+						-- only from builders that contributed (= teams that got
+						-- the metal). Tracked even when this scan's emission gets
+						-- throttled away, so the burst still fires off-screen.
+						-- If the builder switched targets (or away from reclaim),
+						-- drop its membership in the previous target's set so a
+						-- later reclaim of that earlier unit doesn't credit a
+						-- builder that long-since moved on.
+						local nowReclaiming = (targetUnitID and inverse and info.targetMeta and info.targetMeta.isReclaim) and targetUnitID or nil
+						local prevReclaiming = info.reclaimTarget
+						if prevReclaiming ~= nowReclaiming then
+							if prevReclaiming then
+								local prevSet = reclaimedTargets[prevReclaiming]
+								if prevSet then
+									prevSet[unitID] = nil
+									if next(prevSet) == nil then
+										reclaimedTargets[prevReclaiming] = nil
+									end
+								end
+							end
+							info.reclaimTarget = nowReclaiming
+						end
+						if nowReclaiming then
+							local set = reclaimedTargets[nowReclaiming]
+							if set then
+								set[unitID] = true
+							else
+								reclaimedTargets[nowReclaiming] = { [unitID] = true }
+							end
+						end
 						if ex then
 							-- Off-screen throttle. Test view-frustum at the target
 							-- endpoint (covers the whole spray for a builder near its
@@ -2646,6 +2821,15 @@ local function scanBuilders(frame)
 					elseif info.targetMeta then
 						info.targetMeta = nil  -- builder went idle; drop stale cache
 						info.lastVisitFrame = nil  -- prevent burst on resume
+						local prev = info.reclaimTarget
+						if prev then
+							local prevSet = reclaimedTargets[prev]
+							if prevSet then
+								prevSet[unitID] = nil
+								if next(prevSet) == nil then reclaimedTargets[prev] = nil end
+							end
+							info.reclaimTarget = nil
+						end
 					end
 				end
 			end
@@ -3018,7 +3202,19 @@ fadeOutHomingFwd = function(unitID, includeSkipList)
 	end
 end
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	-- Reclaim-completion burst: in unsynced UnitDestroyed, when a unit is
+	-- removed by reclaim the engine populates attacker* with the reclaiming
+	-- builder (it's the agent that "killed" the unit, with no weaponDefID).
+	-- Combined with our own per-builder tracker (which holds ALL contributing
+	-- reclaimers, not just the one that landed the final tick), this is the
+	-- trigger: attackerID present + no weapon + we tracked reclaimers => fire
+	-- the burst, then distribute particles across every tracked contributor.
+	if attackerID and (not weaponDefID or weaponDefID < 0) and reclaimedTargets[unitID] then
+		fireReclaimBurst(unitID, unitDefID, attackerTeam, spGetGameFrame())
+	else
+		reclaimedTargets[unitID] = nil
+	end
 	fadeOutHomingFwd(unitID, true)
 	clearPiecePosCache(unitID)
 	builderCache[unitID] = nil
@@ -3030,6 +3226,9 @@ function gadget:UnitDestroyed(unitID)
 	untrackUnit(unitID)
 end
 function gadget:RenderUnitDestroyed(unitID)
+	-- RenderUnitDestroyed has no attacker arg; rely on whatever UnitDestroyed
+	-- already decided. If the burst ran (or skipped), the entry is gone.
+	reclaimedTargets[unitID] = nil
 	fadeOutHomingFwd(unitID, true)
 	clearPiecePosCache(unitID)
 	builderCache[unitID] = nil
