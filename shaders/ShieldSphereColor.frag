@@ -351,9 +351,9 @@ void main() {
 		const float HEX_SCALE_V    = 3.0;   // hex pattern density vertically
 		const float HEX_DRIFT_U    = 0.0014;// horizontal drift speed
 		const float HEX_DRIFT_V    = 0.0006;// vertical drift speed
-		const float SWEEP_FREQ     = 5.5;   // vertical scanline density
-		const float SWEEP_SPEED    = 0.040; // scanline upward speed
-		const float SWEEP_SHARP    = 5.0;   // higher = thinner sweep band
+		const float SWEEP_FREQ     = 5.0;   // vertical scanline density (higher = more bands on the shield at once)
+		const float SWEEP_SPEED    = 0.040; // scanline upward speed (animation speed of each band)
+		const float SWEEP_SHARP    = 5.0;   // shape exponent (2 = smooth breathe, 5 = narrow peaks)
 		const float BREATH_SPEED   = 0.018; // overall pulse speed
 		const float CRACKLE_SCALE  = 100.0;  // micro-noise frequency on rim
 		const float CRACKLE_SPEED  = 0.170; // micro-noise scroll speed
@@ -361,7 +361,7 @@ void main() {
 		const float HEX_FIRE_PROB  = 0.18;  // fraction of "charged" hex cells
 		const float HEX_FIRE_GAIN  = 1.8;   // brightness boost on charged cells
 		const float ARC_BURST_FREQ = 0.013; // arc-flash frequency (per frame)
-		const float ARC_BURST_GAIN = 1.5;   // arc-flash brightness peak
+		const float ARC_BURST_GAIN = 2.2;   // arc-flash brightness peak
 		const float CHROMA_SPLIT   = 0.5;  // cyan-positive split at extreme rim
 		const float HOT_ESCAPE     = 0.85;  // fraction of rim color to keep post-tonemap
 
@@ -377,24 +377,40 @@ void main() {
 		float hex = 1.0 - Hexagon2D(hexUV, 0.30, 0.55);
 
 		// Per-cell randomization: use floor(hexUV) as cell id, hash with Value3D
-		// to pick which cells "fire" brighter. Slow time evolution so cells
-		// charge/discharge over a few seconds.
-		vec3 cellId = vec3(floor(hexUV * 1.7), floor(gameFrame * 0.020));
-		float cellHash = Value3D(cellId);
+		// to pick which cells "fire" brighter. Cross-fade between adjacent
+		// time buckets so cells charge/discharge smoothly instead of snapping.
+		float cellTime  = gameFrame * 0.020;
+		float cellBucket = floor(cellTime);
+		float cellBlend  = smoothstep(0.0, 1.0, fract(cellTime));
+		vec3 cellIdA = vec3(floor(hexUV * 1.7), cellBucket);
+		vec3 cellIdB = vec3(floor(hexUV * 1.7), cellBucket + 1.0);
+		float cellHash = mix(Value3D(cellIdA), Value3D(cellIdB), cellBlend);
 		float cellFire = smoothstep(1.0 - HEX_FIRE_PROB, 1.0, cellHash);
 		hex *= mix(1.0, HEX_FIRE_GAIN, cellFire);
 
-		// Vertical scanline sweep traveling up the shield
-		float sweep = SNORM2NORM(sin(modelPos.y * SWEEP_FREQ - gameFrame * SWEEP_SPEED));
-		sweep = pow(sweep, SWEEP_SHARP);
+		// Vertical scanline sweep traveling up the shield. Use pow(sin, 2) for
+		// a smooth breathe shape that still ranges 0..1 (so shield body
+		// stays visible between bands). Lower SWEEP_SHARP for wider/softer
+		// bands; higher for narrower peaks.
+		float sweepRaw = SNORM2NORM(sin(modelPos.y * SWEEP_FREQ - gameFrame * SWEEP_SPEED));
+		float sweep = pow(sweepRaw, SWEEP_SHARP);
 
-		// Occasional arc-burst: a much brighter, faster, narrower sweep band
-		// that fires irregularly. Hash by gameFrame buckets for randomness.
-		float arcPhase = floor(gameFrame * ARC_BURST_FREQ);
-		float arcSeed  = Value3D(vec3(arcPhase, translationScale.x * 0.07, translationScale.z * 0.11));
-		float arcGate  = smoothstep(0.78, 0.92, arcSeed);
-		float arcLocal = SNORM2NORM(sin(modelPos.y * SWEEP_FREQ * 2.2 - gameFrame * SWEEP_SPEED * 5.0));
-		arcLocal = pow(arcLocal, SWEEP_SHARP * 1.6);
+		// Occasional arc-burst: a brighter, faster sweep band that swells
+		// irregularly. Cross-fade between adjacent randomness buckets and
+		// shape the gate with a half-sine envelope so bursts ramp in and out
+		// smoothly instead of snapping off at the bucket boundary.
+		float arcTime   = gameFrame * ARC_BURST_FREQ;
+		float arcBucket = floor(arcTime);
+		float arcFrac   = fract(arcTime);
+		float arcSeedA  = Value3D(vec3(arcBucket,       translationScale.x * 0.07, translationScale.z * 0.11));
+		float arcSeedB  = Value3D(vec3(arcBucket + 1.0, translationScale.x * 0.07, translationScale.z * 0.11));
+		float arcSeed   = mix(arcSeedA, arcSeedB, smoothstep(0.0, 1.0, arcFrac));
+		// Half-sine envelope across the bucket so even at peak seed the burst
+		// fades in/out rather than ending abruptly.
+		float arcEnvelope = sin(arcFrac * PI);
+		float arcGate   = smoothstep(0.78, 0.92, arcSeed) * arcEnvelope;
+		float arcLocal  = SNORM2NORM(sin(modelPos.y * SWEEP_FREQ * 2.2 - gameFrame * SWEEP_SPEED * 5.0));
+		arcLocal = pow(arcLocal, SWEEP_SHARP);
 		float arc = arcLocal * arcGate * ARC_BURST_GAIN;
 
 		// Slow breathing brightness modulation so idle shields feel alive
@@ -408,7 +424,7 @@ void main() {
 		float crackleMod = mix(1.0 - CRACKLE_AMOUNT, 1.0 + CRACKLE_AMOUNT, crackle);
 
 		// Combine: rim is the master mask, hex/sweep/arc are texture, breath modulates
-		float idle = rim * (0.55 + 0.30 * hex + 0.45 * sweep + arc) * breath;
+		float idle = rim * (0.45 + 0.25 * hex + 0.75 * sweep + arc) * breath;
 
 		// Rim color follows shield charge state. We derive a "warmness" from
 		// color1 itself (high R, low B = damaged orange/red), and blend the
