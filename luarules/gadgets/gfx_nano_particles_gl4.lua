@@ -1792,14 +1792,18 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 	-- target radius); buildDistance alone under-counts heavily for large
 	-- buildees. effectiveBD precomputed on meta at resolveTarget time. Hard
 	-- cull is one compare; fade-band keep is rolled per-particle inside the loop.
+	-- IMPORTANT: engine buildDistance is a horizontal cylinder (XZ only), not a
+	-- sphere. A builder on a cliff has extra vertical distance but the same XZ
+	-- reach, so we must compare effectiveBD against horizontal distance only.
 	local fadeBandKeep
 	if targetUnitID then
 		local effectiveBD = info.targetMeta and info.targetMeta.effectiveBD
 		if effectiveBD then
+			local horzLen = mathSqrt(dx*dx + dz*dz)
 			local maxLen = effectiveBD * BUILD_RANGE_MAX_EXTENSION
-			if len > maxLen then return end
-			if len > effectiveBD then
-				fadeBandKeep = (maxLen - len) / (effectiveBD * (BUILD_RANGE_MAX_EXTENSION - 1.0))
+			if horzLen > maxLen then return end
+			if horzLen > effectiveBD then
+				fadeBandKeep = (maxLen - horzLen) / (effectiveBD * (BUILD_RANGE_MAX_EXTENSION - 1.0))
 			end
 		end
 	end
