@@ -344,11 +344,21 @@ local DISTANT_EMIT_DROP     = 1.0 - DISTANT_EMIT_KEEP
 -- Dynamic scan stride: builders are scanned 1/stride per sim frame. Per-builder
 -- emit count is multiplied by stride so total rate is preserved. Grows with
 -- pool saturation (the gate would drop most emissions at high fill anyway).
-local MIN_SCAN_STRIDE = 2
-local MAX_SCAN_STRIDE = 6
+local MIN_SCAN_STRIDE = 1
+local MAX_SCAN_STRIDE = 3
 
 -- Engine constants (rts/Sim/Projectiles/ProjectileHandler.cpp)
 local NANO_SPEED      = 4.5	-- engine default: 3.0
+
+-- Anti-clump: half-width (elmos) of the symmetric stagger window around the
+-- nanopiece. Particles in a batch are spread along their velocity in
+-- [-MAX_SPREAD_AHEAD_ELMOS, +MAX_SPREAD_AHEAD_ELMOS], so a few sit slightly
+-- behind the emit point (partially occluded by the builder model) and the
+-- rest just ahead. Just enough to break up the visible "blob" without making
+-- particles appear detached from the source. Direction jitter already
+-- provides lateral spread; this only fixes the on-axis pile-up.
+local MAX_SPREAD_AHEAD_ELMOS = 6
+local MAX_SPREAD_AHEAD_FRAMES = MAX_SPREAD_AHEAD_ELMOS / NANO_SPEED
 
 -- Shape selector for cube-mode geometry shader. The GS branches on this and
 -- emits the corresponding polyhedron's faces. All shapes use the same per-face
@@ -1709,8 +1719,18 @@ end
 -- is only jitter rejection sampling, optional speed variance, spawnParticle
 -- and homing register. Used by scanBuilders' single-piece path and by the
 -- multi-piece round-robin (one batched call per piece).
-local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius, frame, targetUnitID, pieceIdx, count)
+--
+-- spreadFrames: when > 0, stagger the batch's spawn times across this many
+-- frames so a high-stride visit doesn't dump a clumped blob at the
+-- nanopiece. Each particle is advanced along its velocity by a per-particle
+-- time offset, simulating continuous emission since the last visit. The
+-- caller bounds this to ~one steady-state visit interval (stride * runEvery)
+-- so particles only get nudged a small distance ahead of the source -- they
+-- must NOT be placed partway to the target. Defaults to 0 (legacy
+-- simultaneous spawn) when omitted.
+local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius, frame, targetUnitID, pieceIdx, count, spreadFrames)
 	count = count or 1
+	spreadFrames = spreadFrames or 0
 	pieceIdx = pieceIdx or pickNanoPiece(info)
 
 	-- Spring.GetUnitPiecePosDir is the hot Spring->C call here. Cached by
@@ -1770,10 +1790,17 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 	-- gate entirely (full view, ally builder, or LOS filter disabled).
 	local needLosCheck = LOS_FILTER and (not cachedSpecFullView) and (info.allyTeam ~= cachedAllyTeamID)
 
+	-- Stagger denominator: divide the symmetric spread window
+	-- [-spreadFrames, +spreadFrames] across `count` slots so particles are
+	-- evenly spaced in time (with sub-slot RNG jitter to avoid visible banding
+	-- when count is small). spreadInv == 0 disables staggering.
+	local spreadInv = (spreadFrames > 0 and count > 0) and (2 * spreadFrames / count) or 0
+	local spreadBase = -spreadFrames
+
 	-- `repeat ... until true` with `break` is Lua 5.1's idiom for `continue`:
 	-- skip individual particles (fade-band drop, LOS hidden, lifetime
 	-- underflow, HOMING_SKIP_INCOMPLETE branches) without aborting the batch.
-	for _ = 1, count do
+	for i = 1, count do
 		repeat
 			if fadeBandKeep and mathRandom() > fadeBandKeep then break end
 
@@ -1812,6 +1839,23 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				vx, vy, vz = -vx, -vy, -vz
 			else
 				px, py, pz = sx, sy, sz
+			end
+
+			-- Stagger this particle's spawn along its velocity by `tOff` frames,
+			-- where tOff is in [-spreadFrames, +spreadFrames]. Negative offsets
+			-- place the particle slightly behind the nanopiece (partially
+			-- occluded by the builder model); positive offsets place it
+			-- slightly ahead. Lifetime is adjusted so total travel time to the
+			-- target remains constant. If the bounded window would somehow
+			-- exhaust the lifetime (very-close target), skip the particle.
+			if spreadInv > 0 then
+				local tOff = spreadBase + ((i - 1) + mathRandom()) * spreadInv
+				local newLifetime = lifetime - mathFloor(tOff)
+				if newLifetime < 1 then break end
+				px = px + vx * tOff
+				py = py + vy * tOff
+				pz = pz + vz * tOff
+				lifetime = newLifetime
 			end
 
 			-- LOS filter: enemy emissions hidden when not in our LOS / not full
@@ -2340,12 +2384,23 @@ local function scanBuilders(frame)
 	-- frame%stride always 0, and even-indexed builders never visited.
 	local scanTick = mathFloor(frame / runEvery)
 	local start = (scanTick % stride) + 1
-	for i = start, n, stride do
+	-- Iterate this scan's stride-coset (indices start, start+stride, ..., <= n)
+	-- starting from a per-scan rotating offset rather than always ascending.
+	-- The mid-scan saturation early-out otherwise consistently starves the
+	-- highest-indexed builders within each coset -- highly visible at large
+	-- stride where each visit emits a big batch and the cap is hit early.
+	-- Rotating the start position spreads the "tail position" evenly across
+	-- coset members over successive scans.
+	local cosetCount = mathFloor((n - start) / stride) + 1
+	local rotation = (cosetCount > 0) and (scanTick % cosetCount) or 0
+	for k = 0, cosetCount - 1 do
 		-- Mid-scan saturation early-out: emissions from earlier builders may push
 		-- liveCount over effectiveMax. Bail rather than do per-builder work for
 		-- emissions the gate would drop. Skipped builders catch up next tick via
 		-- the elapsed-frames-based emit rate.
 		if liveCount >= effectiveMax then break end
+		local cosetIdx = (k + rotation) % cosetCount
+		local i = start + cosetIdx * stride
 		do
 			local unitID = list[i]
 			-- Cheap idle filter: a builder with no current build power is not
@@ -2531,6 +2586,20 @@ local function scanBuilders(frame)
 							if emits > 0 then
 								info.lastEmitFrame = frame
 							end
+							-- Spread window (half-width in frames) for the in-batch
+							-- stagger inside emitNano. Particles end up in
+							-- [-spreadWindow, +spreadWindow] frames of velocity
+							-- around the nanopiece -- a few slightly behind (model
+							-- occlusion) and a few slightly ahead. Hard-capped at
+							-- MAX_SPREAD_AHEAD_FRAMES so the cluster stays close to
+							-- the source, never partway to the target. Direction
+							-- jitter already provides lateral spread -- this just
+							-- breaks the on-axis pile-up of a multi-particle batch.
+							-- Count compensation still uses full `elapsed`, so total
+							-- emission rate is preserved.
+							local spreadWindow = stride * runEvery
+							if spreadWindow > MAX_SPREAD_AHEAD_FRAMES then spreadWindow = MAX_SPREAD_AHEAD_FRAMES end
+							if spreadWindow > elapsed then spreadWindow = elapsed end
 							local resurrectEmits = isResurrect and takeScaledEmitCount(info, "resurrectEmitAccum", emits, NanoParticleResurrectExtraRate) or emits
 							if resurrectEmits > 0 then
 								local n = info.nPieces
@@ -2539,9 +2608,9 @@ local function scanBuilders(frame)
 									-- lookup, sqrt, range gate, normalize, jitter
 									-- scale across all particles in this emission.
 									local p1 = info.pieces[1]
-									emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, p1, resurrectEmits)
+									emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, p1, resurrectEmits, spreadWindow)
 									if isResurrect then
-										emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil, p1, resurrectEmits)
+										emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil, p1, resurrectEmits, spreadWindow)
 									end
 								else
 									-- Multi-piece: distribute `emits` across all nano
@@ -2562,9 +2631,9 @@ local function scanBuilders(frame)
 											local cursor = startCursor + i
 											if cursor > n then cursor = cursor - n end
 											local pIdx = pieces[cursor]
-											emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, pIdx, cnt)
+											emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, pIdx, cnt, spreadWindow)
 											if isResurrect then
-												emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil, pIdx, cnt)
+												emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil, pIdx, cnt, spreadWindow)
 											end
 										end
 									end
