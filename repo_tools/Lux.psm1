@@ -22,6 +22,10 @@
 Set-StrictMode -Version 3.0
 $ErrorActionPreference = 'Stop'
 
+# $IsLinux is not an automatic variable in Windows PowerShell 5.1 (PSEdition = 'Desktop').
+# The -and operator short-circuits, so $IsLinux is never evaluated on PS 5.1.
+$script:OnLinux = ($PSVersionTable.PSEdition -eq 'Core') -and $IsLinux
+
 # ---------- Pinned configuration (bump these together) ------------------------
 # https://github.com/lumen-oss/lux/releases
 $script:LuxVersion    = '0.28.5'
@@ -53,7 +57,7 @@ $script:LuaMarker   = Join-Path $script:LuaHome '.installed'
 # ---------- Internals ---------------------------------------------------------
 
 function Get-LuxBinName {
-    if ($IsLinux) { 'lx' } else { 'lx.exe' }
+    if ($script:OnLinux) { 'lx' } else { 'lx.exe' }
 }
 
 function Get-LuxAssetName {
@@ -61,7 +65,7 @@ function Get-LuxAssetName {
         throw "lux only ships x86_64 binaries; this OS is not 64-bit."
     }
     # Windows (PS 5.1 does not define $IsWindows, so this is the default branch)
-    if ($IsLinux) { return "lx_$($script:LuxVersion)_x86_64.tar.gz" }
+    if ($script:OnLinux) { return "lx_$($script:LuxVersion)_x86_64.tar.gz" }
     return "lx_$($script:LuxVersion)_x64_en-US.msi"
 }
 
@@ -142,7 +146,7 @@ function Expand-Archive-Auto {
 function Get-LuaBinariesAssets {
     if (-not [Environment]::Is64BitOperatingSystem) { return $null }
     $v = $script:LuaBinariesVersion
-    if ($IsLinux) {
+    if ($script:OnLinux) {
         return @(
             [PSCustomObject]@{ Name = "lua-${v}_Linux68_64_lib.tar.gz"; Subdir = 'Linux Libraries';   Kind = 'Lib'; LibGlob = 'liblua*' }
             [PSCustomObject]@{ Name = "lua-${v}_Linux68_64_bin.tar.gz"; Subdir = 'Tools Executables'; Kind = 'Bin' }
@@ -168,7 +172,7 @@ function Save-VerifiedDownload {
         [string] $UserAgent
     )
     # Windows PowerShell 5.1 defaults to TLS 1.0/1.1; GitHub and many CDNs require 1.2+.
-    if (-not $IsLinux) {
+    if (-not $script:OnLinux) {
         [Net.ServicePointManager]::SecurityProtocol =
             [Net.SecurityProtocolType]::Tls12 -bor [Net.ServicePointManager]::SecurityProtocol
     }
@@ -226,7 +230,7 @@ function Install-Lux {
 
     Write-Host "Extracting to $script:LuxHome"
     try {
-        if ($IsLinux) {
+        if ($script:OnLinux) {
             Expand-TarGz -ArchivePath $dlPath -TargetDir $script:LuxHome
         } else {
             $logPath  = Join-Path $tempDir "lx_$($script:LuxVersion)_install.log"
