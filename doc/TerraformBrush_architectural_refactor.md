@@ -25,17 +25,46 @@ Cross-widget positional mirror: `gui_terraform_brush` writes `WG.TerraformBrushP
 
 ## Progress (April 2026)
 
-### Adopted pattern: widget-method onclick/onchange
+### Adopted pattern: widget-method onclick/onchange (intermediate; superseded by model-king after PR #7527 review)
 
-Rather than full data-model binding (steps 2–4 of Phase 2), the implemented approach is:
+First-pass pattern that landed in tf_* sub-modules:
 
 - **RML**: every static button gets `onclick="widget:methodName()"` (or `onclick="widget:method('arg')"` for parameterised calls); every slider gets `onchange="widget:onXxxChange(element); event:StopPropagation()"`.
 - **Lua**: each per-tool module (`M.attach`) registers methods on `ctx.widget` (e.g. `w.fpSetMode`, `w.dcRotCW`). `ctx.widget` is the live widget table set before any `.attach()` call.
 - **Active-state** still set imperatively via `setActiveClass(table, key)` called from the method — not `data-class-*`.
-- **Section show/hide** still uses `SetClass("hidden", ...)` in `M.sync` — not `data-if`.
-- **Labels / readouts** still use `inner_rml = tostring(v)` in `M.sync` — not `{{interpolation}}`.
+- **Section show/hide** previously used `SetClass("hidden", ...)` in `M.sync` — **NOW REQUIRED to migrate** to `data-if` + `document:Hide()/Show()` (see PR #7527 paradigm shift below).
+- **Labels / readouts** still use `inner_rml = tostring(v)` in `M.sync` — to be migrated to `{{interpolation}}` per phase 2.
 
-This eliminates all `AddEventListener` handler wiring from `M.attach()` (the main reviewer complaint) while deferring the heavier data-model migration to Phase 4. Steps 2–4 of Phase 2 are deliberately deferred.
+This eliminated all `AddEventListener` handler wiring from `M.attach()`. Phase 2 steps 2–4 are no longer deferred — see paradigm shift below.
+
+### Paradigm shift after PR #7527 review (April 2026)
+
+Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer` as a reference implementation. Aligned outcomes:
+
+**Promoted from deferred to required pre-1.0:**
+- `data-class-*` for active-state. Replaces `setActiveClass()` imperative writes.
+- `data-if` for section show/hide. Replaces `SetClass("hidden", ...)` in `M.sync` — explicitly called out as wrong, not deferred.
+- `document:Hide()/Show()` for whole-panel show/hide. Replaces `SetClass("hidden", ...)` on root.
+- `{{interpolation}}` for label readouts. Replaces `inner_rml = tostring(v)` in `M.sync`.
+- **Model-king callbacks**: handlers register on `dm.onFoo = function(event, ...)` rather than `ctx.widget`. `data-event-click="onFoo(arg)"` over `onclick="widget:foo(arg)"`. The 548 existing `widget:` sites in `gui_terraform_brush.rml` get a single sweep migration as a phase-2-finisher.
+- **No `gl.*` over RmlUi**: `DrawScreen/DrawScreenPost` while a panel is open punches through and renders OVER all RmlUi panels (engine layer-order bug). Bake to image + `<img data-attr-src>` instead. Audit pre-1.0: tf-brush passthrough icons, weather brush ceg preview, light placer ring, decal placer (already fixed in #7527 via `dp_preview_bake.lua`).
+- **No `px` in RCSS**. Use `dp` (or `vw/vh` where viewport-proportional makes sense). Open: `vw + min/max-width` clamps for ultrawide vs 1080p — pending decision.
+- **Theme imports**: strip `theme-armada/cortex/legion`, keep `theme-base.rcss` only.
+- **Naming**: `dmHandle` (camelCase) locked in across all BAR widgets.
+- **`document:ReloadStyleSheet()`** mandatory in every widget Initialize.
+- **No imperative tile-packing math**. `data-for` + flex/grid in RCSS. Only legitimate Lua-side pixel math is virtual-scroll row offsets.
+- **`mousedown` for tool-press**, `click` for destructive (Quit/Delete/Reset) — UX nuance agreed.
+
+**Engine-specific gotchas (now in skill doc):**
+- `data-for` outer element must carry ONLY `data-for` — `d.X` bindings on the same element spam warnings during shrink. Inner-wrapper pattern.
+- `data-event-X` injects `event` as implicit first arg.
+- `data-for="d, i : items"` is 0-indexed.
+- `data-value` updates AFTER change event fires; read `element:GetAttribute("value")` directly in `onchange`.
+
+**Open items pending alignment with reviewer:**
+- `vw + clamp` vs pure `dp` for panel width. PtaQ pushing back: raw `vw` breaks at 32:9 ultrawide and 1080p extremes.
+- `widgetState.rootElement` cache vs re-resolve via `GetElementById` per call. Drag helper needs writable element ref.
+- `mousedown` blanket vs mixed (mousedown for tool-pick, click for destructive). PtaQ proposed mixed.
 
 ### Completed work
 
@@ -52,7 +81,7 @@ This eliminates all `AddEventListener` handler wiring from `M.attach()` (the mai
 | `tf_weather.lua` | ✅ | ✅ | 0 | 23 widget methods |
 | `tf_lights.lua` | ✅ | ✅ | 10 | 49 `w.lpXxx` methods; slider sync-back added; 10 remaining are all justified: list-item click/dblclick (dynamic library), drag mousedown/mousemove/mouseup, SDL text focus/blur/keydown |
 | `gui_terraform_brush.lua` (main panel) | ✅ | ✅ | 0 | Mode/shape/tab/stepper buttons → `onclick=`; `w.tfXxx` methods; `attachEventListeners` ~992→~446 LOC; **548 onclick/onchange in RML total** |
-| `tf_environment.lua` | ⬜ | ⬜ | 56 | Smart-filter chip UX refactored + warn-chip helper added, but handler wiring NOT converted. Remaining: skybox thumbnails, env sliders, color swatches, float window open/close. |
+| `tf_environment.lua` | 🟡 | ⬜ | 32 | 24 bespoke 1-1 click bindings converted to `w.envXxx` inline handlers (mixed mousedown/click per mupersega UX rule). 32 remaining in reusable helpers: envSlider, envCheckbox, envWindowToggle, envSectionToggle, wireColorGroup, wireFilterToggleChip, wireMutexChipPair, wireVisibilityChip, wirePillTabs, wireGbFilterChip, chipToggle, warningToggle, _attachHintDots; plus runtime loops (skybox thumbs, color swatches, water-type presets, ± sliders, splatscale); SDL focus/blur kept imperative. |
 | `tf_guide.lua` | ⬜ | ⬜ | 28 | Not converted. Remaining: keybind settings panel, guide tip buttons, sound toggle. |
 | `gui_feature_placer.lua` (standalone) | ✅ | ✅ | 4 | ~4 remaining are justified (drag, SDL text) |
 | `gui_weather_brush.lua` (standalone) | ✅ | ✅ | 4 | ~4 remaining are justified (drag, SDL text) |
@@ -107,11 +136,12 @@ This eliminates all `AddEventListener` handler wiring from `M.attach()` (the mai
 
 Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid half-refactored state):
 
-1. ✅ **Static buttons → `onclick="widget:methodName()"`** in RML. Delete matching `AddEventListener` sites. **Done for all tf_* modules except tf_environment (56 remaining) and tf_guide (28 remaining). 548 onclick/onchange attributes in gui_terraform_brush.rml. Standalone widgets also converted (gui_feature_placer, gui_weather_brush, gui_decal_placer).**
-2. ⬜ **Active-state loops → `data-class-active="activeMode == 'raise'"`** bound to `dm.activeMode` / `dm.activeShape` / `dm.activeChannel`. Removes ~70% of `:SetClass` calls. *Deferred — active state is still set imperatively via `setActiveClass()` called from widget methods.*
-3. ⬜ **Section collapse / show-hide → `data-class-hidden="!sectionTerrainOpen"` + `data-if`** for banners / notice dots / passthrough play/pause icons. *Deferred — `SetClass("hidden", ...)` in `M.sync` still used.*
-4. ⬜ **Labels → `{{radius}}` interpolation**; replaces `.inner_rml = tostring(v)` sites (~40 in terraform_brush alone). *Deferred.*
+1. ✅ **Static buttons → `onclick="widget:methodName()"`** in RML. Delete matching `AddEventListener` sites. **Done for all tf_* modules except tf_environment (56 remaining) and tf_guide (28 remaining). 548 onclick/onchange attributes in gui_terraform_brush.rml. Standalone widgets also converted (gui_feature_placer, gui_weather_brush, gui_decal_placer).** **Sweep migration to `data-event-X` + model functions queued as phase-2-finisher.**
+2. ⬜ **Active-state loops → `data-class-active="activeMode == 'raise'"`** bound to `dm.activeMode` / `dm.activeShape` / `dm.activeChannel`. Removes ~70% of `:SetClass` calls. **PROMOTED to required pre-1.0 (PR #7527 review).**
+3. ⬜ **Section collapse / show-hide → `data-if="sectionTerrainOpen"`** for banners / notice dots / passthrough play/pause icons; **whole-panel show/hide → `document:Hide()/Show()`**. **PROMOTED to required pre-1.0 (PR #7527 review). `SetClass("hidden", ...)` is wrong, not deferred.**
+4. ⬜ **Labels → `{{radius}}` interpolation**; replaces `.inner_rml = tostring(v)` sites (~40 in terraform_brush alone). **PROMOTED to required pre-1.0 (PR #7527 review).**
 5. ✅ **Sliders**: keep `updatingFromCode` feedback guard + log-curve handlers; `onchange="widget:onXxxChange(element)"` added to all sliders in converted panels.
+6. ⬜ **Model-function migration of existing `widget:` sites**. 548 `onclick="widget:foo()"` in `gui_terraform_brush.rml` swap to `data-event-click="onFoo()"` with handlers registered on `dm.*`. Single-sweep PR after 2–4 land.
 
 ### Phase 3 — `data-for` dynamic lists
 
@@ -145,9 +175,13 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | Phase 2 steps 1+5 — `tf_environment.lua` | Small-Medium | 56 AddEventListener remaining: skybox thumbnails, env sliders, color swatches, float window open/close |
 | Phase 2 steps 1+5 — `tf_guide.lua` | Small | 28 AddEventListener remaining: keybind settings, guide tips, sound toggle |
 | Phase 2 steps 1+5 — `gui_decal_placer` standalone audit | Trivial | 12 remaining — verify which are justified drag/SDL vs unconverted buttons |
-| Phase 2 steps 2–4 (data-model binding, data-class-*, {{interpolation}}) | Large | Deliberate defer; Phase 4 territory |
+| Phase 2 step 2 — `data-class-*` for active state | Large | **PROMOTED pre-1.0** (PR #7527). All `setActiveClass()` sites → `data-class-active="x == 'foo'"`. |
+| Phase 2 step 3 — `data-if` + `document:Hide/Show` | Medium | **PROMOTED pre-1.0** (PR #7527). All `SetClass("hidden", ...)` removed. |
+| Phase 2 step 4 — `{{interpolation}}` for labels | Medium | **PROMOTED pre-1.0** (PR #7527). ~40 `inner_rml = tostring(v)` sites in tf-brush. |
+| Phase 2 step 6 — model-function migration | Large | Sweep 548 `widget:foo()` → `data-event-click="onFoo()"` with `dm.*` handlers. After steps 2–4. |
+| Phase 2.5 — `gl.*` over RmlUi audit | Small-Medium | **PROMOTED pre-1.0** (PR #7527). tf-brush passthrough icons, weather ceg preview, light placer ring. Bake-to-image pattern. |
 | Phase 3 feature_placer data-for | Medium | Ideal showcase; target pre-1.0 |
-| Phase 3 decal_placer data-for | Medium | Target pre-1.0 |
+| Phase 3 decal_placer data-for | Medium | Target pre-1.0 (already done in PR #7527 if merged) |
 
 ## Verification
 
