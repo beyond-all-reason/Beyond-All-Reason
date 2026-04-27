@@ -21,7 +21,7 @@ function table.key_to_str ( k )
 end
 
 local function isEmptyTable(v)
-	return type(v) == "table" or next(v) == nil
+	return type(v) == "table" and next(v) == nil
 end
 
 function table.tostring( tbl )
