@@ -3,8 +3,8 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
     return {
         name      = "Unit transportable nanos",
-        desc      = "Prevent loading of ally and enemy nanos, prevent unloading onto cliffs and underwater",
-        author    = "Beherith",
+        desc      = "Prevent loading of ally nanos, prevent unloading onto cliffs and underwater",
+        author    = "Beherith, Chronographer",
         date      = "Jul 2012",
         license   = "GNU GPL, v2 or later",
         layer     = 0,
@@ -16,11 +16,12 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local GetUnitTeam = Spring.GetUnitTeam
-local GetUnitDefID = Spring.GetUnitDefID
-local GetGroundNormal = Spring.GetGroundNormal
-local GetUnitIsTransporting = Spring.GetUnitIsTransporting
-local ValidUnitID = Spring.ValidUnitID
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
+local spValidUnitID = Spring.ValidUnitID
+local spGetGroundNormal = Spring.GetGroundNormal
 local stringFind = string.find
 
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
@@ -51,19 +52,24 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	if not UnitDefs[unitDefID].isTransport then
 		return false
 	end
+	
 	if cmdID == CMD_LOAD_UNITS then
 		if #cmdParams == 1 then -- if unit is target
-			if ValidUnitID(cmdParams[1]) and GetUnitTeam(cmdParams[1]) ~= teamID and Nanos[GetUnitDefID(cmdParams[1])] then
+			local targetId = cmdParams[1]
+			local isvalidId = spValidUnitID(targetId)
+			local isTeamTarget = isvalidId and spGetUnitTeam(targetId) == teamID
+			local isEnemyTarget = isvalidId and spGetUnitAllyTeam(targetId) ~= spGetUnitAllyTeam(unitID)
+			if isvalidId and not isEnemyTarget and not isTeamTarget and Nanos[spGetUnitDefID(targetId)] then
 				return false
 			end
 		end
 	else	 -- CMD_UNLOAD_UNITS
-		if cmdParams[1] and cmdParams[3] and GetUnitIsTransporting(unitID) then
-			local intrans = GetUnitIsTransporting(unitID)
+		if cmdParams[1] and cmdParams[3] and spGetUnitIsTransporting(unitID) then
+			local intrans = spGetUnitIsTransporting(unitID)
 			if #intrans >= 1 then
 				-- no unloading underwater
-				local _,y,_ = GetGroundNormal(cmdParams[1], cmdParams[3])
-				if Nanos[GetUnitDefID(intrans[1])] and (cmdParams[2] < 0 or y < 0.9) then
+				local _,y,_ = spGetGroundNormal(cmdParams[1], cmdParams[3])
+				if Nanos[spGetUnitDefID(intrans[1])] and (cmdParams[2] < 0 or y < 0.9) then
 					return false
 				end
 			end
