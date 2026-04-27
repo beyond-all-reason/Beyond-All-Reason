@@ -10,13 +10,13 @@
 	<div id="tf-root" class="tf-root hidden widget-shadow rounded-md bg-darkest p-2-5">
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div id="tf-handle" class="tf-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Terraform Brush</div>
-			<div id="btn-sound" class="tf-header-btn tf-sound-btn"><img class="tf-header-icon" src="/luaui/images/terraform_brush/volume.png" /></div>
-			<div id="btn-guide" class="tf-header-btn tf-guide-btn"><span>?</span></div>
-			<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn">
+			<div id="btn-sound" class="tf-header-btn tf-sound-btn" onclick="widget:guideToggleSound(element); event:StopPropagation()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/volume.png" /></div>
+			<div id="btn-guide" class="tf-header-btn tf-guide-btn" onclick="widget:guideToggle(element); event:StopPropagation()"><span>?</span></div>
+			<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" onclick="widget:guideTogglePassthrough(); event:StopPropagation()">
 				<img id="passthrough-icon-pause" class="tf-header-icon" src="/luaui/images/terraform_brush/passthrough_pause.png" />
 				<img id="passthrough-icon-play" class="tf-header-icon hidden" src="/luaui/images/terraform_brush/passthrough_play.png" />
 			</div>
-			<div id="btn-settings" class="tf-header-btn tf-settings-btn"><img class="tf-header-icon" src="/luaui/images/terraform_brush/settings.png" /></div>
+			<div id="btn-settings" class="tf-header-btn tf-settings-btn" onclick="widget:guideToggleSettings(); event:StopPropagation()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/settings.png" /></div>
 			<div id="btn-quit" class="tf-header-btn tf-quit-btn"><img class="tf-header-icon" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 		<div id="status-summary" class="tf-status-summary mb-1"></div>
@@ -5746,15 +5746,15 @@
 	<div id="tf-settings-root" class="tf-settings-window hidden widget-shadow rounded-md bg-darkest p-2-5" style="left: 20vw; top: 10vh;">
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div id="tf-settings-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Settings</div>
-			<div id="btn-settings-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+			<div id="btn-settings-close" class="tf-quit-btn" onclick="widget:guideCloseSettings(); event:StopPropagation()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 
 		<!-- Tab bar -->
 		<div class="flex flex-row gap-1 mb-2">
-			<div id="btn-settings-tab-keybinds" class="tf-settings-tab active">Keybinds</div>
-			<div id="btn-settings-tab-dj" class="tf-settings-tab">DJ Mode</div>
-			<div id="btn-settings-tab-stroke" class="tf-settings-tab">Stroke</div>
-			<div id="btn-settings-tab-general" class="tf-settings-tab">General</div>
+			<div id="btn-settings-tab-keybinds" class="tf-settings-tab active" onclick="widget:guideTab('keybinds'); event:StopPropagation()">Keybinds</div>
+			<div id="btn-settings-tab-dj" class="tf-settings-tab" onclick="widget:guideTab('dj'); event:StopPropagation()">DJ Mode</div>
+			<div id="btn-settings-tab-stroke" class="tf-settings-tab" onclick="widget:guideTab('stroke'); event:StopPropagation()">Stroke</div>
+			<div id="btn-settings-tab-general" class="tf-settings-tab" onclick="widget:guideTab('general'); event:StopPropagation()">General</div>
 		</div>
 
 		<!-- Keybinds tab content -->
@@ -5764,16 +5764,16 @@
 				<!-- Populated dynamically by Lua -->
 			</div>
 			<div class="flex flex-row gap-1 mt-2">
-				<div id="btn-kb-save" class="tf-action-btn tf-save-btn" style="flex: 1;">
+				<div id="btn-kb-save" class="tf-action-btn tf-save-btn" style="flex: 1;" onclick="widget:guideKbSave(); event:StopPropagation()">
 					<div class="tf-action-btn-text">SAVE</div>
 				</div>
-				<div id="btn-kb-apply" class="tf-action-btn" style="flex: 1;">
+				<div id="btn-kb-apply" class="tf-action-btn" style="flex: 1;" onclick="widget:guideKbApply(); event:StopPropagation()">
 					<div class="tf-action-btn-text">APPLY</div>
 				</div>
-				<div id="btn-kb-defaults" class="tf-action-btn" style="flex: 1;">
+				<div id="btn-kb-defaults" class="tf-action-btn" style="flex: 1;" onclick="widget:guideKbDefaults(); event:StopPropagation()">
 					<div class="tf-action-btn-text">DEFAULTS</div>
 				</div>
-				<div id="btn-kb-cancel" class="tf-action-btn" style="flex: 1;">
+				<div id="btn-kb-cancel" class="tf-action-btn" style="flex: 1;" onclick="widget:guideKbCancel(); event:StopPropagation()">
 					<div class="tf-action-btn-text">CANCEL</div>
 				</div>
 			</div>
@@ -5783,7 +5783,7 @@
 		<div id="settings-tab-dj" class="tf-settings-tab-content hidden">
 			<div class="text-sm text-keybind mb-2">Special immersive mode with sensory feedback for your sculpting pleasure or live match DJ-ing! All effects are synced between players in the game.</div>
 
-			<div id="btn-dj-activate" class="tf-dj-activate-row">
+			<div id="btn-dj-activate" class="tf-dj-activate-row" onclick="widget:guideToggleDjActivate(); event:StopPropagation()">
 				<div>
 					<div class="tf-dj-activate-name">DJ Mode</div>
 					<div class="tf-dj-activate-desc">Enable all DJ Mode effects below</div>
@@ -5793,7 +5793,7 @@
 
 			<div id="dj-sub-settings" class="tf-dj-sub-settings">
 			<div class="text-base text-light font-bold mb-1">VISUAL</div>
-			<div id="btn-dust-effects" class="tf-dj-toggle-row">
+			<div id="btn-dust-effects" class="tf-dj-toggle-row" onclick="widget:guideToggleDust(); event:StopPropagation()">
 				<div>
 					<div class="tf-dj-toggle-name">Dust Visual Effects</div>
 					<div class="tf-dj-toggle-desc">Particle puffs and clouds while sculpting</div>
@@ -5803,7 +5803,7 @@
 
 			<div class="divider-horizontal-dark mb-1" style="margin-top: 6dp;"></div>
 			<div class="text-base text-light font-bold mb-1">SOUND</div>
-			<div id="btn-seismic-effects" class="tf-dj-toggle-row">
+			<div id="btn-seismic-effects" class="tf-dj-toggle-row" onclick="widget:guideToggleSeismic(); event:StopPropagation()">
 				<div>
 					<div class="tf-dj-toggle-name">Seismic Sound Effects</div>
 					<div class="tf-dj-toggle-desc">Ground impact audio while sculpting</div>
@@ -5816,7 +5816,7 @@
 		<!-- Stroke tab content -->
 		<div id="settings-tab-stroke" class="tf-settings-tab-content hidden">
 			<!-- Pen Pressure -->
-			<div id="btn-pen-pressure-toggle" class="tf-dj-activate-row">
+			<div id="btn-pen-pressure-toggle" class="tf-dj-activate-row" onclick="widget:guideTogglePenPressure(); event:StopPropagation()">
 				<div>
 					<div class="tf-dj-activate-name"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/mb_paint.png" style="margin-right: 4dp;" />Pen Pressure</div>
 					<div class="tf-dj-activate-desc">Tablet pressure modulates brush intensity</div>
@@ -5825,30 +5825,30 @@
 			</div>
 			<div id="pen-pressure-sub" class="tf-dj-sub-settings">
 				<div class="flex flex-row items-center gap-2 mb-1">
-					<img id="btn-pen-mod-intensity" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" />
+					<img id="btn-pen-mod-intensity" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" onclick="widget:guideTogglePenModInt(); event:StopPropagation()" />
 					<div class="text-lg text-light">Modulate intensity</div>
 				</div>
 				<div class="flex flex-row items-center gap-2 mb-1">
-					<img id="btn-pen-mod-size" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
+					<img id="btn-pen-mod-size" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" onclick="widget:guideTogglePenModSize(); event:StopPropagation()" />
 					<div class="text-lg text-light">Modulate size</div>
 				</div>
 				<div class="divider-horizontal-dark" style="margin-top: 4dp; margin-bottom: 4dp;"></div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div class="text-lg text-light" style="min-width: 100dp;">Sensitivity: <span class="text-xl font-bold tf-slider-val" id="pen-sensitivity-label">100</span>%</div>
-					<input type="range" id="slider-pen-sensitivity" class="tf-slider" min="10" max="300" step="1" value="100" />
+					<input type="range" id="slider-pen-sensitivity" class="tf-slider" min="10" max="300" step="1" value="100" onchange="widget:guidePenSensitivityChange(element); event:StopPropagation()" />
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div class="text-lg text-light" style="min-width: 100dp;">Curve:</div>
-					<div id="btn-curve-linear" class="tf-inline-chip" style="margin-left: 2dp;">Linear</div>
-					<div id="btn-curve-quad" class="tf-inline-chip active" style="margin-left: 2dp;">Quad</div>
-					<div id="btn-curve-cubic" class="tf-inline-chip" style="margin-left: 2dp;">Cubic</div>
-					<div id="btn-curve-scurve" class="tf-inline-chip" style="margin-left: 2dp;">S</div>
-					<div id="btn-curve-log" class="tf-inline-chip" style="margin-left: 2dp;">Log</div>
+					<div id="btn-curve-linear" class="tf-inline-chip" style="margin-left: 2dp;" onclick="widget:guideSetCurve(1); event:StopPropagation()">Linear</div>
+					<div id="btn-curve-quad" class="tf-inline-chip active" style="margin-left: 2dp;" onclick="widget:guideSetCurve(2); event:StopPropagation()">Quad</div>
+					<div id="btn-curve-cubic" class="tf-inline-chip" style="margin-left: 2dp;" onclick="widget:guideSetCurve(3); event:StopPropagation()">Cubic</div>
+					<div id="btn-curve-scurve" class="tf-inline-chip" style="margin-left: 2dp;" onclick="widget:guideSetCurve(4); event:StopPropagation()">S</div>
+					<div id="btn-curve-log" class="tf-inline-chip" style="margin-left: 2dp;" onclick="widget:guideSetCurve(5); event:StopPropagation()">Log</div>
 				</div>
 			</div>
 			<div class="divider-horizontal-dark" style="margin-top: 6dp; margin-bottom: 6dp;"></div>
 			<!-- Wiggle -->
-			<div id="btn-wiggle-toggle" class="tf-dj-activate-row">
+			<div id="btn-wiggle-toggle" class="tf-dj-activate-row" onclick="widget:guideToggleWiggle(); event:StopPropagation()">
 				<div>
 					<div class="tf-dj-activate-name">Brush Wiggle</div>
 					<div class="tf-dj-activate-desc">Sinusoidal brush offset while painting</div>
@@ -5858,24 +5858,24 @@
 			<div id="wiggle-sub" class="tf-dj-sub-settings">
 				<div class="flex flex-row items-center gap-2 mb-1">
 					<div class="tf-dj-toggle-name" style="min-width: 70dp;">Amplitude</div>
-					<div id="btn-wiggle-amp-1" class="tf-wiggle-chip active">A1</div>
-					<div id="btn-wiggle-amp-2" class="tf-wiggle-chip">A2</div>
-					<div id="btn-wiggle-amp-3" class="tf-wiggle-chip">A3</div>
-					<div id="btn-wiggle-amp-4" class="tf-wiggle-chip">A4</div>
+					<div id="btn-wiggle-amp-1" class="tf-wiggle-chip active" onclick="widget:guideWiggleAmp(1); event:StopPropagation()">A1</div>
+					<div id="btn-wiggle-amp-2" class="tf-wiggle-chip" onclick="widget:guideWiggleAmp(2); event:StopPropagation()">A2</div>
+					<div id="btn-wiggle-amp-3" class="tf-wiggle-chip" onclick="widget:guideWiggleAmp(3); event:StopPropagation()">A3</div>
+					<div id="btn-wiggle-amp-4" class="tf-wiggle-chip" onclick="widget:guideWiggleAmp(4); event:StopPropagation()">A4</div>
 				</div>
 				<div class="flex flex-row items-center gap-2">
 					<div class="tf-dj-toggle-name" style="min-width: 70dp;">Speed</div>
-					<div id="btn-wiggle-spd-1" class="tf-wiggle-chip active">S1</div>
-					<div id="btn-wiggle-spd-2" class="tf-wiggle-chip">S2</div>
-					<div id="btn-wiggle-spd-3" class="tf-wiggle-chip">S3</div>
-					<div id="btn-wiggle-spd-4" class="tf-wiggle-chip">S4</div>
+					<div id="btn-wiggle-spd-1" class="tf-wiggle-chip active" onclick="widget:guideWiggleSpd(1); event:StopPropagation()">S1</div>
+					<div id="btn-wiggle-spd-2" class="tf-wiggle-chip" onclick="widget:guideWiggleSpd(2); event:StopPropagation()">S2</div>
+					<div id="btn-wiggle-spd-3" class="tf-wiggle-chip" onclick="widget:guideWiggleSpd(3); event:StopPropagation()">S3</div>
+					<div id="btn-wiggle-spd-4" class="tf-wiggle-chip" onclick="widget:guideWiggleSpd(4); event:StopPropagation()">S4</div>
 				</div>
 			</div>
 		</div>
 
 		<!-- General tab content -->
 		<div id="settings-tab-general" class="tf-settings-tab-content hidden">
-			<div id="btn-ui-disable-tips" class="tf-dj-activate-row">
+			<div id="btn-ui-disable-tips" class="tf-dj-activate-row" onclick="widget:guideToggleDisableTips(); event:StopPropagation()">
 				<div>
 					<div class="tf-dj-activate-name">Disable tips/tool recommendations</div>
 					<div class="tf-dj-activate-desc">Hides the pulsing blue notification dots on collapsed section headers.</div>
