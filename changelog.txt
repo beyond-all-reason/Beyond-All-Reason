@@ -4,7 +4,7 @@
 	- Mostly helps slow artillery units to not skid forward, after they've reached their firing range.
 • [Sightdistance] 
     - Set to 330 for vehicles, if lower previously. 
-	- Set to 380 for bots, if lower previously.
+	- Set to 380 for bots, if lower previously. Except crawling bombs, are kept at 260.
 	- Affects mostly cons and some artillery, plus notably Fiends and rocket bots.
 • [Legion changes]
 	- New modoption added (legionsimplifiedmexes) which rebalances T1 legion to use the same T1 mexes as arm/cor.  Light T1 units are given a higher m cost and lower E cost and heavy T1 units are given a lower m cost and higher E cost
