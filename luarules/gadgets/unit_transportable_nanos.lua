@@ -56,10 +56,10 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	if cmdID == CMD_LOAD_UNITS then
 		if #cmdParams == 1 then -- if unit is target
 			local targetId = cmdParams[1]
-			local isvalidId = spValidUnitID(targetId)
-			local isTeamTarget = isvalidId and spGetUnitTeam(targetId) == teamID
-			local isEnemyTarget = isvalidId and spGetUnitAllyTeam(targetId) ~= spGetUnitAllyTeam(unitID)
-			if isvalidId and not isEnemyTarget and not isTeamTarget and Nanos[spGetUnitDefID(targetId)] then
+			local isValidId = spValidUnitID(targetId)
+			local isTeamTarget = isValidId and spGetUnitTeam(targetId) == teamID
+			local isEnemyTarget = isValidId and spGetUnitAllyTeam(targetId) ~= spGetUnitAllyTeam(unitID)
+			if isValidId and not isEnemyTarget and not isTeamTarget and Nanos[spGetUnitDefID(targetId)] then
 				return false
 			end
 		end
