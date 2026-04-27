@@ -4174,7 +4174,7 @@
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div class="flex flex-row items-center">
 				<div id="tf-skybox-library-handle" class="tf-drag-handle text-2xl font-bold text-light text-outline-darker">Skybox Library</div>
-				<div id="btn-env-reset-skybox" class="tf-env-reset-btn">RESET</div>
+				<div id="btn-env-reset-skybox" class="tf-env-reset-btn" onclick="widget:envResetSkybox(); event:StopPropagation()">RESET</div>
 			</div>
 			<div id="btn-skybox-library-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
@@ -4196,7 +4196,7 @@
 		<div id="btn-env-toggle-skyrot" class="flex flex-row items-center mb-1" style="cursor: pointer;">
 			<img id="img-env-toggle-skyrot" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 			<div class="tf-collapsible-title">SKYBOX ROTATION</div>
-			<div id="btn-env-reset-skyaxis" class="tf-env-reset-btn">RESET</div>
+			<div id="btn-env-reset-skyaxis" class="tf-env-reset-btn" onclick="widget:envResetSkyAxis(); event:StopPropagation()">RESET</div>
 		</div>
 		<div id="env-section-skyrot" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -4280,7 +4280,7 @@
 		<div id="btn-env-toggle-sundir" class="flex flex-row items-center mb-1" style="cursor: pointer;">
 			<img id="img-env-toggle-sundir" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 			<div class="tf-collapsible-title">SUN DIRECTION</div>
-			<div id="btn-env-reset-sun" class="tf-env-reset-btn">RESET</div>
+			<div id="btn-env-reset-sun" class="tf-env-reset-btn" onclick="widget:envResetSun(); event:StopPropagation()">RESET</div>
 		</div>
 		<div id="env-section-sundir">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -4344,7 +4344,7 @@
 		<div id="btn-env-toggle-suncol" class="flex flex-row items-center mb-1" style="cursor: pointer;">
 			<img id="img-env-toggle-suncol" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 			<div class="tf-collapsible-title">SUN COLOR</div>
-			<div id="btn-env-reset-suncol" class="tf-env-reset-btn">RESET</div>
+			<div id="btn-env-reset-suncol" class="tf-env-reset-btn" onclick="widget:envResetSunCol(); event:StopPropagation()">RESET</div>
 		</div>
 		<div id="env-section-suncol" class="hidden">
 		<div id="env-suncol-palette" class="lp-color-palette mb-1">
@@ -4401,7 +4401,7 @@
 		<div id="btn-env-toggle-fogdist" class="flex flex-row items-center mb-1" style="cursor: pointer;">
 			<img id="img-env-toggle-fogdist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 			<div class="tf-collapsible-title">FOG DISTANCE</div>
-			<div id="btn-env-reset-fog" class="tf-env-reset-btn">RESET</div>
+			<div id="btn-env-reset-fog" class="tf-env-reset-btn" onclick="widget:envResetFog(); event:StopPropagation()">RESET</div>
 		</div>
 		<div id="env-section-fogdist">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -4423,7 +4423,7 @@
 		<div id="btn-env-toggle-fogcol" class="flex flex-row items-center mb-1" style="cursor: pointer;">
 			<img id="img-env-toggle-fogcol" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 			<div class="tf-collapsible-title">FOG COLOR</div>
-			<div id="btn-env-reset-fogcolor" class="tf-env-reset-btn">RESET</div>
+			<div id="btn-env-reset-fogcolor" class="tf-env-reset-btn" onclick="widget:envResetFogColor(); event:StopPropagation()">RESET</div>
 		</div>
 		<div id="env-section-fogcol">
 		<div id="env-fog-palette" class="lp-color-palette mb-1">
@@ -4480,7 +4480,7 @@
 		<div id="btn-env-toggle-skycol" class="flex flex-row items-center mb-1" style="cursor: pointer;">
 			<img id="img-env-toggle-skycol" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 			<div class="tf-collapsible-title">SKY COLOR</div>
-			<div id="btn-env-reset-skycol" class="tf-env-reset-btn">RESET</div>
+			<div id="btn-env-reset-skycol" class="tf-env-reset-btn" onclick="widget:envResetSkyCol(); event:StopPropagation()">RESET</div>
 		</div>
 		<div id="env-section-skycol" class="hidden">
 		<div id="env-skycol-palette" class="lp-color-palette mb-1">
@@ -4530,7 +4530,7 @@
 		<div id="btn-env-toggle-cloudcol" class="flex flex-row items-center mb-1" style="cursor: pointer;">
 			<img id="img-env-toggle-cloudcol" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 			<div class="tf-collapsible-title">CLOUD COLOR</div>
-			<div id="btn-env-reset-cloudcol" class="tf-env-reset-btn">RESET</div>
+			<div id="btn-env-reset-cloudcol" class="tf-env-reset-btn" onclick="widget:envResetCloudCol(); event:StopPropagation()">RESET</div>
 		</div>
 		<div id="env-section-cloudcol" class="hidden">
 		<div id="env-cloudcol-palette" class="lp-color-palette mb-1">
@@ -4580,7 +4580,7 @@
 		<div id="btn-env-toggle-snow" class="flex flex-row items-center mb-1" style="cursor: pointer;">
 			<img id="img-env-toggle-snow" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 			<div class="tf-collapsible-title">SNOW</div>
-			<div id="btn-env-reset-snow" class="tf-env-reset-btn">RESET</div>
+			<div id="btn-env-reset-snow" class="tf-env-reset-btn" onclick="widget:envResetSnow(); event:StopPropagation()">RESET</div>
 		</div>
 		<div id="env-section-snow" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -4676,7 +4676,7 @@
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div class="flex flex-row items-center">
 				<div id="tf-env-ground-lighting-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker">Ground Lighting</div>
-				<div id="btn-env-reset-ground-lighting" class="tf-env-reset-btn">RESET</div>
+				<div id="btn-env-reset-ground-lighting" class="tf-env-reset-btn" onclick="widget:envResetGroundLighting(); event:StopPropagation()">RESET</div>
 			</div>
 			<div id="btn-env-ground-lighting-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
@@ -4771,7 +4771,7 @@
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div class="flex flex-row items-center">
 				<div id="tf-env-unit-lighting-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker">Unit Lighting</div>
-				<div id="btn-env-reset-unit-lighting" class="tf-env-reset-btn">RESET</div>
+				<div id="btn-env-reset-unit-lighting" class="tf-env-reset-btn" onclick="widget:envResetUnitLighting(); event:StopPropagation()">RESET</div>
 			</div>
 			<div id="btn-env-unit-lighting-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
@@ -4968,7 +4968,7 @@
 		<div id="btn-env-toggle-wcolors" class="flex flex-row items-center mb-1" style="cursor: pointer;">
 			<img id="img-env-toggle-wcolors" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 			<div class="tf-collapsible-title">WATER COLORS</div>
-			<div id="btn-env-reset-watercolors" class="tf-env-reset-btn">RESET</div>
+			<div id="btn-env-reset-watercolors" class="tf-env-reset-btn" onclick="widget:envResetWaterColors(); event:StopPropagation()">RESET</div>
 		</div>
 		<div id="env-section-wcolors" class="hidden">
 		<!-- absorb -->
@@ -5466,7 +5466,7 @@
 		<!-- WATER LEVEL -->
 		<div class="flex flex-row items-center mb-1">
 			<div class="tf-collapsible-title" style="flex: 1;">WATER LEVEL</div>
-			<div id="btn-dim-reset-waterlevel" class="tf-env-reset-btn">RESET</div>
+			<div id="btn-dim-reset-waterlevel" class="tf-env-reset-btn" onclick="widget:envResetWaterLevel(); event:StopPropagation()">RESET</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">plane level</div>
@@ -5485,7 +5485,7 @@
 		<!-- HEIGHT BOUNDS -->
 		<div class="flex flex-row items-center mb-1">
 			<div class="tf-collapsible-title" style="flex: 1;">HEIGHT BOUNDS</div>
-			<div id="btn-dim-reset-bounds" class="tf-env-reset-btn">RESET</div>
+			<div id="btn-dim-reset-bounds" class="tf-env-reset-btn" onclick="widget:envResetBounds(); event:StopPropagation()">RESET</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">min height</div>

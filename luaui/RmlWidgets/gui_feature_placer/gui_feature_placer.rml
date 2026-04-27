@@ -4,9 +4,6 @@
 	<link type="text/rcss" href="../rml-utility-classes.rcss" />
 	<link type="text/rcss" href="../palette-standard-global.rcss" />
 	<link type="text/rcss" href="../themes/theme-base.rcss" />
-	<link type="text/rcss" href="../themes/theme-armada.rcss" />
-	<link type="text/rcss" href="../themes/theme-cortex.rcss" />
-	<link type="text/rcss" href="../themes/theme-legion.rcss" />
 	<link type="text/rcss" href="gui_feature_placer.rcss" />
 </head>
 <body data-model="feature_placer_model">
