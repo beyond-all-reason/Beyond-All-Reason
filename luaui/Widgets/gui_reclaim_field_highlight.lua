@@ -1103,13 +1103,18 @@ GetClusterVisibility = function(cid, isEnergy, currentDrawCount)
 		local a = anims[cluster.uid]
 		if a then
 			local target = inView and fadeMult or 0
-			a.visTarget = target
-			a.visFrame = currentDrawCount
-			-- Snap on first observation so brand-new clusters don't double-fade
-			-- with the materialization fadein.
-			if a.vis == nil then
+			-- Snap on first observation OR after a long absence (cluster was
+			-- off-screen, draw was toggled off, or otherwise not ticked for a
+			-- while). Without this, after a deselect/reselect cycle `vis` is
+			-- stuck near 0 and the text takes the full fadeIn duration on top
+			-- of the group toggle fade to become visible — appearing as a
+			-- multi-second delay.
+			local prevFrame = a.visFrame
+			if a.vis == nil or not prevFrame or (currentDrawCount - prevFrame) > 2 then
 				a.vis = target
 			end
+			a.visTarget = target
+			a.visFrame = currentDrawCount
 		end
 	end
 
