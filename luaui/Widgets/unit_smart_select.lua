@@ -31,7 +31,7 @@ local referenceX, referenceY
 local selectBuildingsWithMobile = false		-- whether to select buildings when mobile units are inside selection rectangle
 local includeNanosAsMobile = true
 local includeBuilders = false
-local includeRezzers = false
+local includeResurrectors = false
 local includeAntinuke = false
 local includeRadar = false
 local includeJammer = false
@@ -80,7 +80,7 @@ local myTeamID = spGetMyTeamID()
 local ignoreUnits = {}
 local combatFilter = {}
 local builderFilter = {}
-local rezzerFilter = {}
+local resurrectorsFilter = {}
 local buildingFilter = {}
 local mobileFilter = {}
 local utilFilter = {}
@@ -96,7 +96,7 @@ for udid, udef in pairs(UnitDefs) do
 
 	local isMobile = not udef.isImmobile  or  (includeNanosAsMobile and (udef.isStaticBuilder and not udef.isFactory))
 	local builder = (udef.buildOptions and udef.buildOptions[1])
-	local rezzer = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0)
+	local resurrector = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0)
 	local building = (isMobile == false)
 	local isUtil = udef.customParams.unitgroup == "util"
 	local antinuke = isMobile and udef.customParams.unitgroup == "antinuke"
@@ -105,14 +105,14 @@ for udid, udef in pairs(UnitDefs) do
 
 	if udef.customParams.selectable_as_combat_unit then
 		builder = false
-		rezzer = false
+		resurrector = false
 	end
 
 	local combat = ((not builder) and isMobile and (#udef.weapons > 0)) or udef.customParams.selectable_as_combat_unit
 
 	combatFilter[udid] = combat
 	builderFilter[udid] = builder
-	rezzerFilter[udid] = rezzer
+	resurrectorFilter[udid] = resurrector
 	buildingFilter[udid] = building
 	mobileFilter[udid] = isMobile
 	utilFilter[udid] = isUtil
@@ -128,7 +128,7 @@ local function smartSelectIncludeFilter(udid)
 
 	local smartSelectFilters = {
 		{include = includeBuilders, filter = builderFilter},
-		{include = includeRezzers, filter = rezzerFilter},
+		{include = includeResurrectors, filter = resurrectorFilter},
 		{include = includeAntinuke, filter = antinukeFilter},
 		{include = includeRadar, filter = radarFilter},
 		{include = includeJammer, filter = jammerFilter}
@@ -698,11 +698,11 @@ function widget:Initialize()
 	WG['smartselect'].setIncludeBuilders = function(value)
 		includeBuilders = value
 	end
-	WG['smartselect'].getIncludeRezzers = function()
-		return includeRezzers
+	WG['smartselect'].getIncludeResurrectors = function()
+		return includeResurrectors
 	end
-	WG['smartselect'].setIncludeRezzers = function(value)
-		includeRezzers = value
+	WG['smartselect'].setIncludeResurrectors = function(value)
+		includeResurrectors = value
 	end
 	WG['smartselect'].getIncludeAntinuke = function()
 		return includeAntinuke
@@ -731,7 +731,7 @@ function widget:GetConfigData()
 		selectBuildingsWithMobile = selectBuildingsWithMobile,
 		includeNanosAsMobile = includeNanosAsMobile,
 		includeBuilders = includeBuilders,
-		includeRezzers = includeRezzers,
+		includeResurrectors = includeResurrectors,
 		includeAntinuke = includeAntinuke,
 		includeRadar = includeRadar,
 		includeJammer = includeJammer
@@ -748,8 +748,8 @@ function widget:SetConfigData(data)
 	if data.includeBuilders ~= nil then
 		includeBuilders = data.includeBuilders
 	end
-	if data.includeRezzers ~= nil then
-		includeRezzers = data.includeRezzers
+	if data.includeResurrectors ~= nil then
+		includeResurrectors = data.includeResurrectors
 	end
 	if data.includeAntinuke ~= nil then
 		includeAntinuke = data.includeAntinuke
