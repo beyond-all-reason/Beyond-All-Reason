@@ -768,6 +768,23 @@ local initialModel = {
 	passthroughActive = false,
 	settingsOpen = false,
 	settingsTab = "keybinds",
+	noiseWindowVisible = false,
+	stpSubMode = "",
+	stpStartboxMode = "",
+	-- splat smart filters
+	spAvoidCliffs = false,
+	spPreferSlopes = false,
+	spAltMinEnable = false,
+	spAltMaxEnable = false,
+	-- splat instruments
+	spGridSnap = false,
+	spAngleSnap = false,
+	spMeasureActive = false,
+	spSymmetryActive = false,
+	spSymmetryRadial = false,
+	spSymmetryMirrorAny = false,
+	spAngleSnapAuto = false,
+	spDisplayHintVisible = false,
 }
 
 local shapeNames = {
@@ -4824,8 +4841,8 @@ function widget:Update()
 		widgetState.noiseManuallyHidden = false
 	end
 	widgetState.lastNoiseActive = noiseActive
-	if widgetState.noiseRootEl then
-		widgetState.noiseRootEl:SetClass("hidden", not noiseActive or widgetState.noiseManuallyHidden)
+	if widgetState.dmHandle then
+		widgetState.dmHandle.noiseWindowVisible = noiseActive and not widgetState.noiseManuallyHidden
 	end
 
 	-- Disable ring shape when in feature, weather, splat, metal, or light mode
