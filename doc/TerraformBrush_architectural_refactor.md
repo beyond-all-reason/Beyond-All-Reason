@@ -81,11 +81,11 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 | `tf_weather.lua` | ✅ | ✅ | 0 | 23 widget methods |
 | `tf_lights.lua` | ✅ | ✅ | 10 | 49 `w.lpXxx` methods; slider sync-back added; 10 remaining are all justified: list-item click/dblclick (dynamic library), drag mousedown/mousemove/mouseup, SDL text focus/blur/keydown |
 | `gui_terraform_brush.lua` (main panel) | ✅ | ✅ | 0 | Mode/shape/tab/stepper buttons → `onclick=`; `w.tfXxx` methods; `attachEventListeners` ~992→~446 LOC; **548 onclick/onchange in RML total** |
-| `tf_environment.lua` | 🟡 | ⬜ | 32 | 24 bespoke 1-1 click bindings converted to `w.envXxx` inline handlers (mixed mousedown/click per mupersega UX rule). 32 remaining in reusable helpers: envSlider, envCheckbox, envWindowToggle, envSectionToggle, wireColorGroup, wireFilterToggleChip, wireMutexChipPair, wireVisibilityChip, wirePillTabs, wireGbFilterChip, chipToggle, warningToggle, _attachHintDots; plus runtime loops (skybox thumbs, color swatches, water-type presets, ± sliders, splatscale); SDL focus/blur kept imperative. |
+| `tf_environment.lua` | ✅ | ✅ | 32 | 24 bespoke 1-1 click bindings → `w.envXxx` inline handlers (mixed mousedown/click per mupersega UX rule). 32 remaining are all justified: reusable helpers (envSlider, envCheckbox, envWindowToggle, envSectionToggle, wireColorGroup, wireFilterToggleChip, wireMutexChipPair, wireVisibilityChip, wirePillTabs, wireGbFilterChip, chipToggle, warningToggle, _attachHintDots) wire many elements with shared logic — get rewritten as `data-class-*` / `data-if` in Phase 2 steps 2–3; runtime loops (skybox thumbs, color swatches, water-type presets, ± steppers, splatscale) are dynamic data tables; SDL focus/blur kept imperative. |
 | `tf_guide.lua` | ✅ | ✅ | 3 | 22 `w.guideXxx` methods (header buttons, settings open/close, keybind save/apply/defaults/cancel, tab-switch, dj/dust/seismic/pen/wiggle/curve/disable-tips). 3 remaining are justified: per-element hint mouseover/mouseout loop (`guideHints`) and g3 mousedown discovery loop. |
 | `gui_feature_placer.lua` (standalone) | ✅ | ✅ | 4 | ~4 remaining are justified (drag, SDL text) |
 | `gui_weather_brush.lua` (standalone) | ✅ | ✅ | 4 | ~4 remaining are justified (drag, SDL text) |
-| `gui_decal_placer.lua` (standalone) | ✅ | ✅ | 12 | Layout bug fixed (padding mismatch → rebuild loop → dead tiles). ~12 remaining — verify which are justified vs not done |
+| `gui_decal_placer.lua` (standalone) | ✅ | ✅ | 12 | Layout bug fixed (padding mismatch → rebuild loop → dead tiles). 12 remaining all justified: dynamic loops (categories, modeButtons, shapeButtons, decal items, tint sliders), `bindSlider`/`bindButton` helpers, drag mousedown/mouseup, SDL focus/blur. Standalone audit complete. |
 
 **Also landed (not in original scope):**
 - `ctx.syncWarnChip(doc, chipId, sectionId, anyActive)` — shared helper for "Active" warn chips on collapsed DISPLAY/INSTRUMENTS headers. Used by tf_splat, tf_metal, and synced via `ctx.syncTBMirrorControls`.
@@ -132,11 +132,11 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 
 ### Phase 2 — Declarative events + state (reviewer's #1 red line — THE pattern fix)
 
-**Status: Step 1 + Step 5 ✅ done for all `tf_*.lua` sub-modules except `tf_environment` and `tf_guide`. Standalone widgets also done (4/4/12 AddEventListener remaining, mostly justified). Steps 2–4 deliberately deferred.**
+**Status: Step 1 + Step 5 ✅ done for all `tf_*.lua` sub-modules. Standalone widgets also done. Steps 2–4 deliberately deferred — now PROMOTED to required pre-1.0 (see paradigm shift).**
 
 Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid half-refactored state):
 
-1. ✅ **Static buttons → `onclick="widget:methodName()"`** in RML. Delete matching `AddEventListener` sites. **Done for all tf_* modules except tf_environment (56 remaining) and tf_guide (28 remaining). 548 onclick/onchange attributes in gui_terraform_brush.rml. Standalone widgets also converted (gui_feature_placer, gui_weather_brush, gui_decal_placer).** **Sweep migration to `data-event-X` + model functions queued as phase-2-finisher.**
+1. ✅ **Static buttons → `onclick="widget:methodName()"`** in RML. Delete matching `AddEventListener` sites. **Done for all tf_* sub-modules. 548 onclick/onchange attributes in gui_terraform_brush.rml. Standalone widgets also converted (gui_feature_placer, gui_weather_brush, gui_decal_placer).** **Sweep migration to `data-event-X` + model functions queued as phase-2-finisher.**
 2. ⬜ **Active-state loops → `data-class-active="activeMode == 'raise'"`** bound to `dm.activeMode` / `dm.activeShape` / `dm.activeChannel`. Removes ~70% of `:SetClass` calls. **PROMOTED to required pre-1.0 (PR #7527 review).**
 3. ⬜ **Section collapse / show-hide → `data-if="sectionTerrainOpen"`** for banners / notice dots / passthrough play/pause icons; **whole-panel show/hide → `document:Hide()/Show()`**. **PROMOTED to required pre-1.0 (PR #7527 review). `SetClass("hidden", ...)` is wrong, not deferred.**
 4. ⬜ **Labels → `{{radius}}` interpolation**; replaces `.inner_rml = tostring(v)` sites (~40 in terraform_brush alone). **PROMOTED to required pre-1.0 (PR #7527 review).**
@@ -172,8 +172,6 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | Phase 0 — strip armada/cortex/legion theme imports | Trivial | Keep `theme-base`; strip the rest. Decision confirmed by reviewer. |
 | Phase 0 — `scaleFactor` in `gui_feature_placer.lua` | Trivial | One remaining site; replace with `getDpRatio()` call |
 | Phase 1 — `attachDraggable` drag consolidation | Small-Medium | 4 near-identical drag loops; context manager home agreed; deferred from Phase 1 to keep diff small |
-| Phase 2 steps 1+5 — `tf_environment.lua` | Small-Medium | 56 AddEventListener remaining: skybox thumbnails, env sliders, color swatches, float window open/close |
-| Phase 2 steps 1+5 — `tf_guide.lua` | Small | 28 AddEventListener remaining: keybind settings, guide tips, sound toggle |
 | Phase 2 steps 1+5 — `gui_decal_placer` standalone audit | Trivial | 12 remaining — verify which are justified drag/SDL vs unconverted buttons |
 | Phase 2 step 2 — `data-class-*` for active state | Large | **PROMOTED pre-1.0** (PR #7527). All `setActiveClass()` sites → `data-class-active="x == 'foo'"`. |
 | Phase 2 step 3 — `data-if` + `document:Hide/Show` | Medium | **PROMOTED pre-1.0** (PR #7527). All `SetClass("hidden", ...)` removed. |
