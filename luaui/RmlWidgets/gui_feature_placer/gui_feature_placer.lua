@@ -523,10 +523,10 @@ local function renderVirtualWindow(listEl, doc, startIdx, endIdx, selectedSet)
 	-- Compute row height in PX. Prefer the measured value from a prior render,
 	-- since CSS borders/gaps make the real rendered height differ from tileW+gap dp.
 	-- Falls back to dp estimate for the very first render (startIdx=0, topSpacer=0 so exact value doesn't matter yet).
-	local scaleFactor = getDpRatio()
+	local dpRatio = getDpRatio()
 	local rowHeightPx = measuredRowHeightPx
 	if rowHeightPx < 1 then
-		rowHeightPx = tileW + TILE_GAP_DP * scaleFactor
+		rowHeightPx = tileW + TILE_GAP_DP * dpRatio
 	end
 
 	-- Top spacer: accounts for all rows above startIdx (sized in px for exact match to real tile row height)
@@ -561,7 +561,7 @@ local function renderVirtualWindow(listEl, doc, startIdx, endIdx, selectedSet)
 	if firstItemEl then
 		local h = firstItemEl.offset_height
 		if h and h > 0 then
-			local gapPx = TILE_GAP_DP * scaleFactor
+			local gapPx = TILE_GAP_DP * dpRatio
 			measuredRowHeightPx = h + gapPx
 		end
 	end
@@ -579,8 +579,8 @@ local function updateVirtualWindow()
 	-- Prefer the measured pixel row height (accurate, includes border+gap); fall back to dp estimate.
 	local rowHeightPx = measuredRowHeightPx
 	if rowHeightPx < 1 then
-		local scaleFactor = getDpRatio()
-		rowHeightPx = tileW + TILE_GAP_DP * scaleFactor
+		local dpRatio = getDpRatio()
+		rowHeightPx = tileW + TILE_GAP_DP * dpRatio
 	end
 
 	if rowHeightPx < 1 then rowHeightPx = 40 end
@@ -668,8 +668,8 @@ local function rebuildFeatureList(filter)
 
 	-- Render initial visible window (top of list)
 	local viewH = listEl.client_height or 500
-	local scaleFactor = getDpRatio()
-	local rowHeightPx = (virtualTileW + TILE_GAP_DP * scaleFactor)
+	local dpRatio = getDpRatio()
+	local rowHeightPx = (virtualTileW + TILE_GAP_DP * dpRatio)
 	if rowHeightPx < 1 then rowHeightPx = 40 end
 	local visibleRows = math.ceil(viewH / rowHeightPx) + 4
 	local endIdx = math.min(#virtualItems, visibleRows * TILE_COLUMNS)

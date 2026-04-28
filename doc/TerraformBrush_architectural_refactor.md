@@ -101,14 +101,14 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 
 ### Phase 0 — Trivial must-do (parallel, ~30min commit)
 
-**Status: PARTIALLY DONE**
+**Status: DONE**
 - `BASE_RESOLUTION` constant deleted from all 4 widgets. ✅
 - `WG.RmlContextManager.getDpRatio()` accessor added to `rml_context_manager.lua`. ✅
-- Theme `<link>` imports: strip `theme-armada`, `theme-cortex`, `theme-legion`; keep `theme-base.rcss`. ⬜ Decision confirmed by reviewer: *"remove all theme styles except theme-base.rcss"*. Implementation trivial — still needs doing.
-- `scaleFactor` math: mostly removed; `gui_feature_placer.lua` still uses a local `scaleFactor = getDpRatio()` for px-conversion in virtual-scroll row height. ⬜
+- Theme `<link>` imports: only `theme-base.rcss` remains in all 4 widget RMLs. ✅ (verified — no armada/cortex/legion imports present)
+- `scaleFactor` math: ✅ renamed to `dpRatio` in `gui_feature_placer.lua` for consistency with other call sites. All 4 widgets now read `getDpRatio()` directly.
 
-1. Strip `theme-armada`, `theme-cortex`, `theme-legion` `<link>` imports; keep `theme-base.rcss` — confirmed by reviewer. ⬜
-2. Replace per-widget `BASE_RESOLUTION`/`scaleFactor` math with reads of `context.dp_ratio`. ✅ done for 3/4 widgets; feature_placer has one remaining site.
+1. Strip `theme-armada`, `theme-cortex`, `theme-legion` `<link>` imports; keep `theme-base.rcss` — confirmed by reviewer. ✅ (already only `theme-base.rcss` referenced in all 4 widget RMLs)
+2. Replace per-widget `BASE_RESOLUTION`/`scaleFactor` math with reads of `context.dp_ratio`. ✅ done for all 4 widgets.
 3. Audit utility-class usage — no code change, just confirm we don't regress `rml-utility-classes.rcss` + `palette-standard-global.rcss` usage (reviewer called this out positively).
 
 ### Phase 1.5 — RCSS-owned widths (DONE)
@@ -169,10 +169,7 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 
 | Item | Effort | Notes |
 |---|---|---|
-| Phase 0 — strip armada/cortex/legion theme imports | Trivial | Keep `theme-base`; strip the rest. Decision confirmed by reviewer. |
-| Phase 0 — `scaleFactor` in `gui_feature_placer.lua` | Trivial | One remaining site; replace with `getDpRatio()` call |
 | Phase 1 — `attachDraggable` drag consolidation | Small-Medium | 4 near-identical drag loops; context manager home agreed; deferred from Phase 1 to keep diff small |
-| Phase 2 steps 1+5 — `gui_decal_placer` standalone audit | Trivial | 12 remaining — verify which are justified drag/SDL vs unconverted buttons |
 | Phase 2 step 2 — `data-class-*` for active state | Large | **PROMOTED pre-1.0** (PR #7527). All `setActiveClass()` sites → `data-class-active="x == 'foo'"`. |
 | Phase 2 step 3 — `data-if` + `document:Hide/Show` | Medium | **PROMOTED pre-1.0** (PR #7527). All `SetClass("hidden", ...)` removed. |
 | Phase 2 step 4 — `{{interpolation}}` for labels | Medium | **PROMOTED pre-1.0** (PR #7527). ~40 `inner_rml = tostring(v)` sites in tf-brush. |
