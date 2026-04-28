@@ -159,10 +159,9 @@ local actions = {
 	spawnBot = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'bots',
-			unitDefName = 'corak',
-			teamID = 0,
-			position = { x = 1800, z = 1800 },
+			unitLoadout = {
+				{ unitDefName = 'corak', x = 1800, z = 1800, team = 0, unitName = 'bots' },
+			},
 		},
 	},
 
@@ -184,9 +183,9 @@ local actions = {
 	spawnBotDestroyer = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armllt',
-			teamID = 1,
-			position = { x = 1800, z = 2200 },
+			unitLoadout = {
+				{ unitDefName = 'armllt', x = 1800, z = 2200, team = 1 },
+			},
 		},
 	},
 

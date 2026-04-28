@@ -254,8 +254,8 @@ return {
 	[types.DisableTrigger]  = disableTrigger,
 
 	-- Stages & Objectives
-	ChangeStage = changeStage,
-	UpdateObjective = updateObjective,
+	[types.ChangeStage]     = changeStage,
+	[types.UpdateObjective] = updateObjective,
 
 	-- Orders
 	[types.IssueOrders]     = issueOrders,
