@@ -30,6 +30,7 @@ local function MovePieceWS(pieceNum,
 	-- Move() offsets are relative to the piece's own rest position, not the unit origin.
 	-- Subtract the rest position so the piece ends up at the correct unit-local coordinates.
 	if not defaultPiecePos[pieceNum] then
+		Move(pieceNum, 1, 0)  Move(pieceNum, 2, 0)  Move(pieceNum, 3, 0) -- move piece to rest pos and read it to cache the default position
 		local defaultPieceUnitSpacePosX, defaultPieceUnitSpacePosY, defaultPieceUnitSpacePosZ = Spring.GetUnitPiecePosition(transporterID, pieceNum)
 		defaultPiecePos[pieceNum] = { defaultPieceUnitSpacePosX, defaultPieceUnitSpacePosY, defaultPieceUnitSpacePosZ }
 	end
