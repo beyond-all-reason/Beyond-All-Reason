@@ -1503,7 +1503,7 @@ function widget:GameFrame(n)
 						fadeDirection = -1
 					end
 				end
-			elseif totalTime == 0 then -- there's no music
+			elseif totalTime == 0 and not fadeDirection then -- there's no music and not mid-transition
 				PlayNewTrack()
 			end
 		end
