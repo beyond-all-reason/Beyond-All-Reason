@@ -13,8 +13,8 @@
 			<div id="btn-sound" class="tf-header-btn tf-sound-btn" onclick="widget:guideToggleSound(element); event:StopPropagation()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/volume.png" /></div>
 			<div id="btn-guide" class="tf-header-btn tf-guide-btn" onclick="widget:guideToggle(element); event:StopPropagation()"><span>?</span></div>
 			<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" onclick="widget:guideTogglePassthrough(); event:StopPropagation()">
-				<img id="passthrough-icon-pause" class="tf-header-icon" src="/luaui/images/terraform_brush/passthrough_pause.png" />
-				<img id="passthrough-icon-play" class="tf-header-icon hidden" src="/luaui/images/terraform_brush/passthrough_play.png" />
+				<img id="passthrough-icon-pause" class="tf-header-icon" src="/luaui/images/terraform_brush/passthrough_pause.png" data-if="!passthroughActive" />
+				<img id="passthrough-icon-play" class="tf-header-icon" src="/luaui/images/terraform_brush/passthrough_play.png" data-if="passthroughActive" />
 			</div>
 			<div id="btn-settings" class="tf-header-btn tf-settings-btn" onclick="widget:guideToggleSettings(); event:StopPropagation()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/settings.png" /></div>
 			<div id="btn-quit" class="tf-header-btn tf-quit-btn"><img class="tf-header-icon" src="/luaui/images/terraform_brush/close.png" /></div>
@@ -5743,7 +5743,7 @@
 	</div>
 
 	<!-- ============ SETTINGS WINDOW (floating, toggled by gear button) ============ -->
-	<div id="tf-settings-root" class="tf-settings-window hidden widget-shadow rounded-md bg-darkest p-2-5" style="left: 20vw; top: 10vh;">
+	<div id="tf-settings-root" class="tf-settings-window widget-shadow rounded-md bg-darkest p-2-5" style="left: 20vw; top: 10vh;" data-if="settingsOpen">
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div id="tf-settings-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Settings</div>
 			<div id="btn-settings-close" class="tf-quit-btn" onclick="widget:guideCloseSettings(); event:StopPropagation()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
@@ -5758,7 +5758,7 @@
 		</div>
 
 		<!-- Keybinds tab content -->
-		<div id="settings-tab-keybinds" class="tf-settings-tab-content">
+		<div id="settings-tab-keybinds" class="tf-settings-tab-content" data-if="settingsTab == 'keybinds'">
 			<div class="text-base text-keybind mb-1">Click a binding to reassign. Press the new key, or Escape to cancel.</div>
 			<div id="keybind-list" class="tf-keybind-list">
 				<!-- Populated dynamically by Lua -->
@@ -5780,7 +5780,7 @@
 		</div>
 
 		<!-- DJ Mode tab content -->
-		<div id="settings-tab-dj" class="tf-settings-tab-content hidden">
+		<div id="settings-tab-dj" class="tf-settings-tab-content" data-if="settingsTab == 'dj'">
 			<div class="text-sm text-keybind mb-2">Special immersive mode with sensory feedback for your sculpting pleasure or live match DJ-ing! All effects are synced between players in the game.</div>
 
 			<div id="btn-dj-activate" class="tf-dj-activate-row" onclick="widget:guideToggleDjActivate(); event:StopPropagation()">
@@ -5814,7 +5814,7 @@
 		</div>
 
 		<!-- Stroke tab content -->
-		<div id="settings-tab-stroke" class="tf-settings-tab-content hidden">
+		<div id="settings-tab-stroke" class="tf-settings-tab-content" data-if="settingsTab == 'stroke'">
 			<!-- Pen Pressure -->
 			<div id="btn-pen-pressure-toggle" class="tf-dj-activate-row" onclick="widget:guideTogglePenPressure(); event:StopPropagation()">
 				<div>
@@ -5874,7 +5874,7 @@
 		</div>
 
 		<!-- General tab content -->
-		<div id="settings-tab-general" class="tf-settings-tab-content hidden">
+		<div id="settings-tab-general" class="tf-settings-tab-content" data-if="settingsTab == 'general'">
 			<div id="btn-ui-disable-tips" class="tf-dj-activate-row" onclick="widget:guideToggleDisableTips(); event:StopPropagation()">
 				<div>
 					<div class="tf-dj-activate-name">Disable tips/tool recommendations</div>
