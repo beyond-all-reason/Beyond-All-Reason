@@ -785,6 +785,17 @@ local initialModel = {
 	spSymmetryMirrorAny = false,
 	spAngleSnapAuto = false,
 	spDisplayHintVisible = false,
+	-- features placer smart filters
+	fpAvoidCliffs = false,
+	fpPreferSlopes = false,
+	fpAltMinEnable = false,
+	fpAltMaxEnable = false,
+	-- features placer instruments
+	fpSymmetryActive = false,
+	fpSymmetryRadial = false,
+	fpSymmetryMirrorAny = false,
+	-- features placer save/load popup
+	fpSaveLoadOpen = false,
 }
 
 local shapeNames = {

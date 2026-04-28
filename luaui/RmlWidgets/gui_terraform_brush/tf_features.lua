@@ -194,9 +194,10 @@ function M.attach(doc, ctx)
 		playSound("dropdown")
 		local listEl = doc:GetElementById("fp-save-load-list")
 		if not listEl then return end
-		local isHidden = listEl.class_name and listEl.class_name:find("hidden") ~= nil
-		listEl:SetClass("hidden", not isHidden)
-		if isHidden and WG.FeaturePlacer then
+		local dm = widgetState.dmHandle
+		local willOpen = not (dm and dm.fpSaveLoadOpen)
+		if dm then dm.fpSaveLoadOpen = willOpen end
+		if willOpen and WG.FeaturePlacer then
 			listEl.inner_rml = ""
 			local files = WG.FeaturePlacer.listSaves()
 			if #files == 0 then
@@ -211,7 +212,7 @@ function M.attach(doc, ctx)
 						if WG.FeaturePlacer then
 							WG.FeaturePlacer.load(filepath)
 						end
-						listEl:SetClass("hidden", true)
+						if widgetState.dmHandle then widgetState.dmHandle.fpSaveLoadOpen = false end
 						ev:StopPropagation()
 					end, false)
 					item:AddEventListener("mouseover", function()
@@ -297,8 +298,7 @@ function M.attach(doc, ctx)
 		WG.TerraformBrush.setSymmetryActive(newVal)
 		local btn = doc:GetElementById("btn-fp-symmetry")
 		if btn then btn:SetClass("active", newVal) end
-		local row = doc:GetElementById("fp-symmetry-toolbar-row")
-		if row then row:SetClass("hidden", not newVal) end
+		-- fp-symmetry-toolbar-row visibility driven by data-if="fpSymmetryActive" (mirrored in M.sync)
 	end
 
 	-- Symmetry sub-toolbar
@@ -486,6 +486,14 @@ function M.sync(doc, ctx, fpState, setSummary)
 			if fpState.smartFilters then
 				local sf = fpState.smartFilters
 
+				-- Mirror smart-filter flags into data-model for data-if visibility.
+				if widgetState.dmHandle then
+					widgetState.dmHandle.fpAvoidCliffs = sf.avoidCliffs == true
+					widgetState.dmHandle.fpPreferSlopes = sf.preferSlopes == true
+					widgetState.dmHandle.fpAltMinEnable = sf.altMinEnable == true
+					widgetState.dmHandle.fpAltMaxEnable = sf.altMaxEnable == true
+				end
+
 				-- Filter chips: Avoid Water mirrors filter state; slope sub-chips mirror avoidCliffs / preferSlopes
 				local avoidWaterChip = doc:GetElementById("fp-filter-chip-avoid-water")
 				if avoidWaterChip then avoidWaterChip:SetClass("active", sf.avoidWater == true) end
@@ -494,10 +502,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 				local slopePreferChip = doc:GetElementById("fp-slope-mode-prefer")
 				if slopePreferChip then slopePreferChip:SetClass("active", sf.preferSlopes == true) end
 
-				local slopeMaxRow = doc:GetElementById("fp-smart-slope-max-row")
-				if slopeMaxRow then slopeMaxRow:SetClass("hidden", not sf.avoidCliffs) end
-				local slopeMaxSliderRow = doc:GetElementById("fp-smart-slope-max-slider-row")
-				if slopeMaxSliderRow then slopeMaxSliderRow:SetClass("hidden", not sf.avoidCliffs) end
+				-- Slope-max rows visibility driven by data-if="fpAvoidCliffs"
 				local slopeMaxLabel = doc:GetElementById("fp-smart-slope-max-label")
 				if slopeMaxLabel then slopeMaxLabel.inner_rml = tostring(sf.slopeMax) end
 				local fpSSlopeMax = doc:GetElementById("fp-slider-slope-max")
@@ -505,10 +510,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 					fpSSlopeMax:SetAttribute("value", tostring(sf.slopeMax))
 				end
 
-				local slopeMinRow = doc:GetElementById("fp-smart-slope-min-row")
-				if slopeMinRow then slopeMinRow:SetClass("hidden", not sf.preferSlopes) end
-				local slopeMinSliderRow = doc:GetElementById("fp-smart-slope-min-slider-row")
-				if slopeMinSliderRow then slopeMinSliderRow:SetClass("hidden", not sf.preferSlopes) end
+				-- Slope-min rows visibility driven by data-if="fpPreferSlopes"
 				local slopeMinLabel = doc:GetElementById("fp-smart-slope-min-label")
 				if slopeMinLabel then slopeMinLabel.inner_rml = tostring(sf.slopeMin) end
 				local fpSSlopeMin = doc:GetElementById("fp-slider-slope-min")
@@ -522,8 +524,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 						and "/luaui/images/terraform_brush/check_on.png"
 						or "/luaui/images/terraform_brush/check_off.png")
 				end
-				local altMinSliderRow = doc:GetElementById("fp-smart-alt-min-slider-row")
-				if altMinSliderRow then altMinSliderRow:SetClass("hidden", not sf.altMinEnable) end
+				-- Alt-min slider-row visibility driven by data-if="fpAltMinEnable"
 				local altMinLabel = doc:GetElementById("fp-smart-alt-min-label")
 				if altMinLabel then altMinLabel.inner_rml = tostring(sf.altMin) end
 				local fpSAltMin = doc:GetElementById("fp-slider-alt-min")
@@ -537,8 +538,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 						and "/luaui/images/terraform_brush/check_on.png"
 						or "/luaui/images/terraform_brush/check_off.png")
 				end
-				local altMaxSliderRow = doc:GetElementById("fp-smart-alt-max-slider-row")
-				if altMaxSliderRow then altMaxSliderRow:SetClass("hidden", not sf.altMaxEnable) end
+				-- Alt-max slider-row visibility driven by data-if="fpAltMaxEnable"
 				local altMaxLabel = doc:GetElementById("fp-smart-alt-max-label")
 				if altMaxLabel then altMaxLabel.inner_rml = tostring(sf.altMax) end
 				local fpSAltMax = doc:GetElementById("fp-slider-alt-max")
@@ -576,24 +576,25 @@ function M.sync(doc, ctx, fpState, setSummary)
 					if fpMeas then fpMeas:SetClass("active", tbState.measureActive == true) end
 					local fpSym = doc:GetElementById("btn-fp-symmetry")
 					if fpSym then fpSym:SetClass("active", tbState.symmetryActive == true) end
-					-- fp-symmetry sub-toolbar sync
-					local fpSymRow2 = doc:GetElementById("fp-symmetry-toolbar-row")
-					if fpSymRow2 then fpSymRow2:SetClass("hidden", not tbState.symmetryActive) end
+					-- Mirror symmetry visibility flags into data-model (data-if).
+					if widgetState.dmHandle then
+						widgetState.dmHandle.fpSymmetryActive = tbState.symmetryActive == true
+						widgetState.dmHandle.fpSymmetryRadial = tbState.symmetryRadial == true
+						widgetState.dmHandle.fpSymmetryMirrorAny = (tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false
+					end
+					-- fp-symmetry-toolbar-row visibility driven by data-if="fpSymmetryActive"
 					local fpSymRadial = doc:GetElementById("fp-btn-symmetry-radial")
 					if fpSymRadial then fpSymRadial:SetClass("active", tbState.symmetryRadial == true) end
 					local fpSymMX = doc:GetElementById("fp-btn-symmetry-mirror-x")
 					if fpSymMX then fpSymMX:SetClass("active", tbState.symmetryMirrorX == true) end
 					local fpSymMY = doc:GetElementById("fp-btn-symmetry-mirror-y")
 					if fpSymMY then fpSymMY:SetClass("active", tbState.symmetryMirrorY == true) end
-					local fpSymRadRow = doc:GetElementById("fp-symmetry-radial-count-row")
-					if fpSymRadRow then fpSymRadRow:SetClass("hidden", not tbState.symmetryRadial) end
+					-- fp-symmetry-radial-count-row visibility driven by data-if="fpSymmetryRadial"
 					local fpSymRadLabel = doc:GetElementById("fp-symmetry-radial-count-label")
 					if fpSymRadLabel then fpSymRadLabel.inner_rml = tostring(tbState.symmetryRadialCount or 2) end
 					local fpSymRadSlider = doc:GetElementById("fp-slider-symmetry-radial-count")
 					if fpSymRadSlider then fpSymRadSlider:SetAttribute("value", tostring(tbState.symmetryRadialCount or 2)) end
-					local fpHasAxial = tbState.symmetryMirrorX or tbState.symmetryMirrorY
-					local fpSymAngRow = doc:GetElementById("fp-symmetry-mirror-angle-row")
-					if fpSymAngRow then fpSymAngRow:SetClass("hidden", not fpHasAxial) end
+					-- fp-symmetry-mirror-angle-row visibility driven by data-if="fpSymmetryMirrorAny"
 					local fpSymAngLabel = doc:GetElementById("fp-symmetry-mirror-angle-label")
 					if fpSymAngLabel then fpSymAngLabel.inner_rml = tostring(math.floor(tbState.symmetryMirrorAngle or 0)) end
 					local fpSymAngSlider = doc:GetElementById("fp-slider-symmetry-mirror-angle")

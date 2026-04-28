@@ -2314,7 +2314,7 @@
 			</div>
 		</div>
 		<!-- Symmetry sub-toolbar (visible when symmetry active) -->
-		<div id="fp-symmetry-toolbar-row" class="tf-instrument-sub hidden mb-1">
+		<div id="fp-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="fpSymmetryActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="fp-btn-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:fpSymRadial(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
@@ -2327,7 +2327,7 @@
 				</div>
 			</div>
 			<!-- Radial count -->
-			<div id="fp-symmetry-radial-count-row" class="hidden mb-1">
+			<div id="fp-symmetry-radial-count-row" class="mb-1" data-if="fpSymmetryRadial">
 				<div class="flex flex-row justify-between items-center mb-1">
 					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="fp-symmetry-radial-count-label">2</span></div>
 				</div>
@@ -2342,7 +2342,7 @@
 				</div>
 			</div>
 			<!-- Mirror axis angle -->
-			<div id="fp-symmetry-mirror-angle-row" class="hidden mb-1">
+			<div id="fp-symmetry-mirror-angle-row" class="mb-1" data-if="fpSymmetryMirrorAny">
 				<div class="flex flex-row justify-between items-center mb-1">
 					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="fp-symmetry-mirror-angle-label">0</span>&#176;</div>
 				</div>
@@ -2403,7 +2403,7 @@
 				<div class="tf-overlay-chip-label">Prefer Slopes</div>
 			</div>
 		</div>
-		<div id="fp-smart-slope-max-row" class="flex flex-row items-center mb-1">
+		<div id="fp-smart-slope-max-row" class="flex flex-row items-center mb-1" data-if="fpAvoidCliffs">
 			<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="fp-smart-slope-max-label">45</span>&#176;</div>
 			<div id="fp-slider-slope-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-slope-max-transport" class="tf-transport-group hidden">
@@ -2412,7 +2412,7 @@
 				<div id="fp-slider-slope-max-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 			</div>
 		</div>
-		<div id="fp-smart-slope-max-slider-row" class="flex flex-row gap-1 items-center mb-1">
+		<div id="fp-smart-slope-max-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="fpAvoidCliffs">
 			<div id="btn-fp-slope-max-down" class="tf-sm-btn" onclick="widget:fpSmartStep('slopeMax', -5); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
@@ -2423,7 +2423,7 @@
 			<input type="text" id="fp-slider-slope-max-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 
-		<div id="fp-smart-slope-min-row" class="hidden flex flex-row items-center mb-1">
+		<div id="fp-smart-slope-min-row" class="flex flex-row items-center mb-1" data-if="fpPreferSlopes">
 			<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="fp-smart-slope-min-label">10</span>&#176;</div>
 			<div id="fp-slider-slope-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-slope-min-transport" class="tf-transport-group hidden">
@@ -2432,7 +2432,7 @@
 				<div id="fp-slider-slope-min-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 			</div>
 		</div>
-		<div id="fp-smart-slope-min-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
+		<div id="fp-smart-slope-min-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="fpPreferSlopes">
 			<div id="btn-fp-slope-min-down" class="tf-sm-btn" onclick="widget:fpSmartStep('slopeMin', -5); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
@@ -2457,7 +2457,7 @@
 				<div id="fp-slider-alt-min-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 			</div>
 		</div>
-		<div id="fp-smart-alt-min-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
+		<div id="fp-smart-alt-min-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="fpAltMinEnable">
 			<div id="btn-fp-alt-min-down" class="tf-sm-btn" onclick="widget:fpSmartStep('altMin', -10); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
@@ -2479,7 +2479,7 @@
 				<div id="fp-slider-alt-max-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 			</div>
 		</div>
-		<div id="fp-smart-alt-max-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
+		<div id="fp-smart-alt-max-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="fpAltMaxEnable">
 			<div id="btn-fp-alt-max-down" class="tf-sm-btn" onclick="widget:fpSmartStep('altMax', -10); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
@@ -2671,7 +2671,7 @@
 				<div class="tf-action-btn-text">CLEAR</div>
 			</div>
 		</div>
-		<div id="fp-save-load-list" class="hidden tf-save-load-list">
+		<div id="fp-save-load-list" class="tf-save-load-list" data-if="fpSaveLoadOpen">
 			<!-- Populated dynamically with saved feature maps -->
 		</div>
 		</div><!-- /section-fp-save -->
