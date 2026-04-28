@@ -109,8 +109,7 @@ function M.attach(doc, ctx)
 						widgetState.passthroughSaved = saved
 						widgetState.passthroughMode = true
 						ptBtn:SetClass("active", true)
-						if ptIconPause then ptIconPause:SetClass("hidden", true) end
-						if ptIconPlay then ptIconPlay:SetClass("hidden", false) end
+						if widgetState.dmHandle then widgetState.dmHandle.passthroughActive = true end
 						if widgetState.rootElement then
 							widgetState.rootElement:SetClass("passthrough-dimmed", true)
 						end
@@ -119,8 +118,7 @@ function M.attach(doc, ctx)
 						-- Exit passthrough: restore saved tool
 						widgetState.passthroughMode = false
 						ptBtn:SetClass("active", false)
-						if ptIconPause then ptIconPause:SetClass("hidden", false) end
-						if ptIconPlay then ptIconPlay:SetClass("hidden", true) end
+						if widgetState.dmHandle then widgetState.dmHandle.passthroughActive = false end
 						if widgetState.rootElement then
 							widgetState.rootElement:SetClass("passthrough-dimmed", false)
 						end
@@ -165,9 +163,7 @@ function M.attach(doc, ctx)
 
 			local function toggleSettings()
 				widgetState.settingsOpen = not widgetState.settingsOpen
-				if widgetState.settingsRootEl then
-					widgetState.settingsRootEl:SetClass("hidden", not widgetState.settingsOpen)
-				end
+				if widgetState.dmHandle then widgetState.dmHandle.settingsOpen = widgetState.settingsOpen end
 				if settingsBtn then
 					settingsBtn:SetClass("active", widgetState.settingsOpen)
 				end
@@ -192,9 +188,7 @@ function M.attach(doc, ctx)
 				widgetState.settingsCapturing = nil
 				widgetState.settingsCaptureField = nil
 				widgetState.settingsCaptureEl = nil
-				if widgetState.settingsRootEl then
-					widgetState.settingsRootEl:SetClass("hidden", true)
-				end
+				if widgetState.dmHandle then widgetState.dmHandle.settingsOpen = false end
 				if settingsBtn then settingsBtn:SetClass("active", false) end
 			end
 
@@ -231,9 +225,7 @@ function M.attach(doc, ctx)
 				widgetState.settingsCaptureField = nil
 				widgetState.settingsCaptureEl = nil
 				widgetState.settingsPendingBinds = nil
-				if widgetState.settingsRootEl then
-					widgetState.settingsRootEl:SetClass("hidden", true)
-				end
+				if widgetState.dmHandle then widgetState.dmHandle.settingsOpen = false end
 				if settingsBtn then settingsBtn:SetClass("active", false) end
 			end
 		end
@@ -254,10 +246,7 @@ function M.attach(doc, ctx)
 				if tabDJBtn       then tabDJBtn:SetClass("active", tab == "dj") end
 				if tabStrokeBtn   then tabStrokeBtn:SetClass("active", tab == "stroke") end
 				if tabGeneralBtn  then tabGeneralBtn:SetClass("active", tab == "general") end
-				if tabKeybinds    then tabKeybinds:SetClass("hidden", tab ~= "keybinds") end
-				if tabDJ          then tabDJ:SetClass("hidden", tab ~= "dj") end
-				if tabStroke      then tabStroke:SetClass("hidden", tab ~= "stroke") end
-				if tabGeneral     then tabGeneral:SetClass("hidden", tab ~= "general") end
+				if widgetState.dmHandle then widgetState.dmHandle.settingsTab = tab end
 			end
 
 			if tabKeybindsBtn then
