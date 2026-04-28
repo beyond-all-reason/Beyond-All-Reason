@@ -56,6 +56,8 @@ local spCallCOBScript = Spring.CallCOBScript
 local spEcho = Spring.Echo
 local spSetCustomCommandDrawData = Spring.SetCustomCommandDrawData
 local spGetGameFrame = Spring.GetGameFrame
+local spMoveCtrlDisable = Spring.MoveCtrl.Disable
+local spMoveCtrlEnable = Spring.MoveCtrl.Enable
 
 -- Constants
 local mapSizeX = Game.mapSizeX
@@ -604,15 +606,20 @@ end
 ------------------
 
 function gadget:Initialize()
-	for _, unitID in pairs(spGetAllUnits()) do -- save/load compat
-		if Spring.GetUnitRulesParam(unitID, "inTransportAnim") == 1 then
-			-- this unit was in the middle of an unload anim, we need to "repair" it by releasing MoveCtrl and clip it to ground level (not fall, otherwise fall damages !!)
-			Spring.MoveCtrl.Disable(unitID, false)
-			Spring.SetUnitRulesParam(unitID, "inTransportAnim", 0)
-			local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
-			Spring.SetUnitPosition(unitID, unitPosX, spGetGroundHeight(unitPosX, unitPosZ), unitPosZ)
+	local AllUnits = spGetAllUnits()
+	if #AllUnits > 0 then
+		for i = 1, #AllUnits do -- save/load compat
+			local unitID = AllUnits[i]
+			if spGetUnitRulesParam(unitID, "inTransportAnim") == 1 then
+				spEcho("Repairing unit " .. unitID .. " stuck in transport anim on gadget initialization")
+				-- this unit was in the middle of an unload anim, we need to "repair" it by releasing MoveCtrl and clip it to ground level (not fall, otherwise fall damages !!)
+				spMoveCtrlDisable(unitID, false)
+				spSetUnitRulesParam(unitID, "inTransportAnim", 0)
+				local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
+				spSetUnitPosition(unitID, unitPosX, spGetGroundHeight(unitPosX, unitPosZ), unitPosZ)
+			end
+			gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 		end
-		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 	end
 	spSetCustomCommandDrawData(CMD_AREA_LOAD, CMD.LOAD_UNITS, {0.6, 0.6, 1, 0.5}, true)
 	spSetCustomCommandDrawData(CMD_LOAD_UNIT, CMD.LOAD_UNITS, {0.6, 0.6, 1, 0.5}, true)
