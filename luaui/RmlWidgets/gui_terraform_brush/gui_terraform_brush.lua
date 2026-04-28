@@ -796,6 +796,11 @@ local initialModel = {
 	fpSymmetryMirrorAny = false,
 	-- features placer save/load popup
 	fpSaveLoadOpen = false,
+	-- light placer
+	lpLightType = "point",
+	lpMode = "place",
+	lpLibraryOpen = false,
+	lpLibraryTab = "builtin",
 }
 
 local shapeNames = {

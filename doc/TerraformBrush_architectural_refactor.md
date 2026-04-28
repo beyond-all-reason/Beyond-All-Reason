@@ -150,7 +150,7 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | `tf_startpos.lua` | 8 / 8 | ✅ (`stpSubMode`, `stpStartboxMode`) |
 | `tf_splat.lua` | 8 / 8 | ✅ (12 dm flags incl. `sp*` instruments) |
 | `tf_features.lua` | 12 / 12 | ✅ (`fpAvoidCliffs`, `fpPreferSlopes`, `fpAltMinEnable`, `fpAltMaxEnable`, `fpSymmetryActive`, `fpSymmetryRadial`, `fpSymmetryMirrorAny`, `fpSaveLoadOpen`) |
-| `tf_lights.lua` | 0 / 11 | ⬜ |
+| `tf_lights.lua` | 11 / 11 | ✅ (`lpLightType`, `lpMode`, `lpLibraryOpen`, `lpLibraryTab`) |
 | `tf_metal.lua` | 0 / 11 | ⬜ |
 | `tf_grass.lua` | 0 / 19 | ⬜ |
 | `tf_environment.lua` | 0 / 18 | ⬜ (helper-heavy, hold last) |
@@ -188,7 +188,7 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 |---|---|---|
 | Phase 1 — `attachDraggable` drag consolidation | Small-Medium | 4 near-identical drag loops; context manager home agreed; deferred from Phase 1 to keep diff small |
 | Phase 2 step 2 — `data-class-*` for active state | Large | **PROMOTED pre-1.0** (PR #7527). All `setActiveClass()` sites → `data-class-active="x == 'foo'"`. |
-| Phase 2 step 3 — `data-if` + `document:Hide/Show` | Medium | 🟡 **In progress (Apr 2026)** — 5 / 11 files done (tf_guide, tf_noise, decal_placer, tf_startpos, tf_splat). Remaining: tf_features, tf_lights, tf_metal, tf_grass, tf_environment, gui_terraform_brush.lua main. |
+| Phase 2 step 3 — `data-if` + `document:Hide/Show` | Medium | 🟡 **In progress (Apr 2026)** — 7 / 11 files done (tf_guide, tf_noise, decal_placer, tf_startpos, tf_splat, tf_features, tf_lights). Remaining: tf_metal, tf_grass, tf_environment, gui_terraform_brush.lua main. |
 | Phase 2 step 4 — `{{interpolation}}` for labels | Medium | **PROMOTED pre-1.0** (PR #7527). ~40 `inner_rml = tostring(v)` sites in tf-brush. |
 | Phase 2 step 6 — model-function migration | Large | Sweep 548 `widget:foo()` → `data-event-click="onFoo()"` with `dm.*` handlers. After steps 2–4. |
 | Phase 2.5 — `gl.*` over RmlUi audit | Small-Medium | **PROMOTED pre-1.0** (PR #7527). tf-brush passthrough icons, weather ceg preview, light placer ring. Bake-to-image pattern. |

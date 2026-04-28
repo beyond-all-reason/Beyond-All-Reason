@@ -3921,7 +3921,7 @@
 			<div class="divider-horizontal-dark"></div>
 
 			<!-- Cone/Beam Direction (hidden for point lights) -->
-			<div id="lp-direction-section" class="hidden">
+			<div id="lp-direction-section" data-if="lpLightType != 'point'">
 				<div class="text-lg text-light font-bold mb-1">DIRECTION</div>
 				<!-- Hemisphere globe + pitch/yaw inputs -->
 				<div class="flex flex-row gap-2 items-center mb-1">
@@ -3952,7 +3952,7 @@
 			</div>
 
 			<!-- Cone Theta (visible only for cone) -->
-			<div id="lp-theta-section" class="hidden">
+			<div id="lp-theta-section" data-if="lpLightType == 'cone'">
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div class="text-sm text-keybind" style="width: 60dp;">Spread</div>
 					<div id="btn-lp-theta-down" class="tf-sm-btn" onclick="widget:lpThetaDown(); event:StopPropagation()">
@@ -3968,7 +3968,7 @@
 			</div>
 
 			<!-- Beam Length (visible only for beam) -->
-			<div id="lp-beam-section" class="hidden">
+			<div id="lp-beam-section" data-if="lpLightType == 'beam'">
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div class="text-sm text-keybind" style="width: 60dp;">Length</div>
 					<div id="btn-lp-beam-length-down" class="tf-sm-btn" onclick="widget:lpBeamLenDown(); event:StopPropagation()">
@@ -3984,7 +3984,7 @@
 			</div>
 
 			<!-- Scatter Controls (visible in scatter mode) -->
-			<div id="lp-scatter-section" class="hidden">
+			<div id="lp-scatter-section" data-if="lpMode == 'scatter'">
 				<div class="text-lg text-light font-bold mb-1">SCATTER</div>
 				<div class="flex flex-row justify-between items-center mb-1">
 					<div class="text-lg text-light">COUNT: <span class="text-xl font-bold" id="lp-count-label">5</span></div>
@@ -5579,7 +5579,7 @@
 	</div>
 
 	<!-- ============ LIGHT LIBRARY (separate floating window) ============ -->
-	<div id="tf-light-library-root" class="tf-light-library-root hidden widget-shadow rounded-md bg-darkest p-2-5">
+	<div id="tf-light-library-root" class="tf-light-library-root widget-shadow rounded-md bg-darkest p-2-5" data-if="lpLibraryOpen">
 		<div class="flex flex-row justify-between items-center mb-1">
 			<div id="tf-light-library-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Light Library</div>
 			<div id="btn-light-library-close" class="tf-quit-btn" onclick="widget:llClose(); event:StopPropagation()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
@@ -5602,12 +5602,12 @@
 		</div>
 
 		<!-- Builtin presets list -->
-		<div id="ll-builtin-list" class="ll-preset-list">
+		<div id="ll-builtin-list" class="ll-preset-list" data-if="lpLibraryTab == 'builtin'">
 			<!-- Populated dynamically -->
 		</div>
 
 		<!-- User presets list -->
-		<div id="ll-user-list" class="ll-preset-list hidden">
+		<div id="ll-user-list" class="ll-preset-list" data-if="lpLibraryTab == 'user'">
 			<!-- Populated dynamically -->
 		</div>
 
