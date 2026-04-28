@@ -130,6 +130,7 @@ return {
 					exclude_preaim = true,
 					norangering = 1,
 					smart_priority = true,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 350,
@@ -163,6 +164,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_backup = true,
+					weapons_group = 2,
 				},
 				damage = {
 					default = 350,
@@ -194,6 +196,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				customparams = {
+					bogus = 1,
 					exclude_preaim = true,
 					norangering = 1,
 					smart_trajectory_checker = true,

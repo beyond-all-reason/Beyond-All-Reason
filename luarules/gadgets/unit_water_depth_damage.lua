@@ -50,6 +50,10 @@ local spTestMoveOrder = Spring.TestMoveOrder
 local spGetUnitHealth = Spring.GetUnitHealth
 local spDestroyUnit = Spring.DestroyUnit
 
+local waterIsLava = Spring.GetModOptions().map_waterislava
+local largeSplashCEG = waterIsLava and 'lavasplash_large' or 'watersplash_large'
+local smallSplashCEG = waterIsLava and 'lavasplash_small' or 'watersplash_small'
+
 local unitDefData = {}
 local transportDrops = {}
 local drowningUnitsWatch = {}
@@ -99,7 +103,7 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 		local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
 		local posX, posY, posZ = spGetUnitBasePosition(unitID)
 		if velLength > velocityThreshold then
-			spSpawnCEG('watersplash_large', posX, posY, posZ)
+			spSpawnCEG(largeSplashCEG, posX, posY, posZ)
 			spPlaySoundFile('xplodep3', 0.5, posX, posY, posZ, 'sfx')
 			if unitDefData[unitDefID] then
 				local health, maxHealth = spGetUnitHealth(unitID)
@@ -111,7 +115,7 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 				end
 			end
 		else
-			spSpawnCEG('watersplash_small', posX, posY, posZ)
+			spSpawnCEG(smallSplashCEG, posX, posY, posZ)
 			spPlaySoundFile('xplodep3', 0.3, posX, posY, posZ, 'sfx')
 		end
 		transportDrops[unitID] = nil

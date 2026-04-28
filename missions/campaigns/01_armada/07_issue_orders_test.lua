@@ -106,11 +106,9 @@ local actions = {
 	spawnAttackers = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'attackers',
-            unitDefName = 'cormando',
-			teamName = 'thePlayerTeam',
-			position = { x = 1800, z = 1900 },
-			quantity = 2,
+			unitLoadout = {
+				{ unitDefName = 'cormando', x = 1800, z = 1900, teamName = 'thePlayerTeam', unitName = 'attackers', quantity = 2 },
+			},
 		},
 	},
 
@@ -134,51 +132,45 @@ local actions = {
 	spawnEyesA = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-            unitDefName = 'armeyes',
-			teamName = 'thePlayerTeam',
-			position = { x = 1800, z = 2400 },
+			unitLoadout = {
+				{ unitDefName = 'armeyes', x = 1800, z = 2400, teamName = 'thePlayerTeam' },
+			},
 		},
 	},
 
 	spawnEyesB = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-            unitDefName = 'armeyes',
-			teamName = 'thePlayerTeam',
-			position = { x = 1700, z = 2900 },
+			unitLoadout = {
+				{ unitDefName = 'armeyes', x = 1700, z = 2900, teamName = 'thePlayerTeam' },
+			},
 		},
 	},
 
 	spawnTargets1a = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'targets',
-            unitDefName = 'armsolar',
-			teamName = 'theEnemyTeam',
-
-			position = { x = 1700, z = 2300 },
+			unitLoadout = {
+				{ unitDefName = 'armsolar', x = 1700, z = 2300, teamName = 'theEnemyTeam', unitName = 'targets' },
+			},
 		},
 	},
 
 	spawnTargets1b = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'targets',
-            unitDefName = 'armsolar',
-			teamName = 'theEnemyTeam',
-
-			position = { x = 1900, z = 2350 },
+			unitLoadout = {
+				{ unitDefName = 'armsolar', x = 1900, z = 2350, teamName = 'theEnemyTeam', unitName = 'targets' },
+			},
 		},
 	},
 
 	spawnTargets1c = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'targets',
-            unitDefName = 'armsolar',
-			teamName = 'theEnemyTeam',
-
-			position = { x = 2100, z = 2300 },
+			unitLoadout = {
+				{ unitDefName = 'armsolar', x = 2100, z = 2300, teamName = 'theEnemyTeam', unitName = 'targets' },
+			},
 		},
 	},
 
@@ -201,29 +193,29 @@ local actions = {
 	},
 
 	spawnWreck1 = {
-		type = actionTypes.CreateFeature,
+		type = actionTypes.CreateFeatures,
 		parameters = {
-			featureName = 'wrecks',
-			featureDefName = 'armadvsol_dead',
-			position = { x = 2200, z = 2300 },
+			featureLoadout = {
+				{ featureDefName = 'armadvsol_dead', x = 2200, z = 2300, featureName = 'wrecks' },
+			},
 		},
 	},
 
 	spawnWreck2 = {
-		type = actionTypes.CreateFeature,
+		type = actionTypes.CreateFeatures,
 		parameters = {
-			featureName = 'wrecks',
-			featureDefName = 'armadvsol_dead',
-			position = { x = 2300, z = 2300 },
+			featureLoadout = {
+				{ featureDefName = 'armadvsol_dead', x = 2300, z = 2300, featureName = 'wrecks' },
+			},
 		},
 	},
 
 	spawnWreck3 = {
-		type = actionTypes.CreateFeature,
+		type = actionTypes.CreateFeatures,
 		parameters = {
-			featureName = 'wrecks',
-			featureDefName = 'armadvsol_dead',
-			position = { x = 2300, z = 2300 },
+			featureLoadout = {
+				{ featureDefName = 'armadvsol_dead', x = 2400, z = 2300, featureName = 'wrecks' },
+			},
 		},
 	},
 
@@ -247,23 +239,18 @@ local actions = {
 	spawnArtilleryTargets = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armwin',
-			teamName = 'theEnemyTeam',
-
-			position = { x = 1500, z = 2900 },
-			quantity = 9,
-			spacing = 16,
+			unitLoadout = {
+				{ unitDefName = 'armwin', x = 1500, z = 2900, teamName = 'theEnemyTeam', quantity = 9, spacing = 16 },
+			},
 		},
 	},
 
 	spawnTargets2 = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armwin',
-			teamName = 'theEnemyTeam',
-
-			position = { x = 2000, z = 2500 },
-			quantity = 2,
+			unitLoadout = {
+				{ unitDefName = 'armwin', x = 2000, z = 2500, teamName = 'theEnemyTeam', quantity = 2 },
+			},
 		},
 	},
 
@@ -287,11 +274,9 @@ local actions = {
 	spawnArtillery = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'artillery',
-			unitDefName = 'armart',
-			teamName = 'thePlayerTeam',
-			position = { x = 1700, z = 2500 },
-			quantity = 2,
+			unitLoadout = {
+				{ unitDefName = 'armart', x = 1700, z = 2500, teamName = 'thePlayerTeam', unitName = 'artillery', quantity = 2 },
+			},
 		},
 	},
 
@@ -315,11 +300,9 @@ local actions = {
 	spawnEnergyGrid1 = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'fusions',
-			unitDefName = 'armfus',
-			teamName = 'thePlayerTeam',
-			position = { x = 2300, z = 2500 },
-			quantity = 3,
+			unitLoadout = {
+				{ unitDefName = 'armfus', x = 2300, z = 2500, teamName = 'thePlayerTeam', unitName = 'fusions', quantity = 3 },
+			},
 		},
 	},
 

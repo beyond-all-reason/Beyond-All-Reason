@@ -23,8 +23,8 @@ local actionTypes = {
 	UnnameUnits	       = 406,
 
 	-- Features
-	CreateFeature      = 450,
-	DestroyFeature     = 451,
+	CreateFeatures     = 450,
+	DestroyFeatures    = 451,
 
 	-- SFX
 	SpawnExplosion     = 500,
@@ -53,6 +53,9 @@ local actionTypes = {
 
 	-- Custom
 	Custom             = 900,
+
+	-- Other
+	AddResources       = 1000,
 }
 
 --============================================================--
@@ -99,45 +102,10 @@ local parameters = {
 	-- Units
 	[actionTypes.SpawnUnits] = {
 		[1] = {
-			name = 'unitName',
-			required = false,
-			type = Types.UnitName,
-		},
-		[2] = {
-			name = 'unitDefName',
+			name = 'unitLoadout',
 			required = true,
-			type = Types.UnitDefName
+			type = Types.UnitLoadout,
 		},
-		[3] = {
-			name = 'teamName',
-			required = true,
-			type = Types.TeamName
-		},
-		[4] = {
-			name = 'position',
-			required = true,
-			type = Types.Position
-		},
-		[5] = {
-			name = 'quantity',
-			required = false,
-			type = Types.Number,
-		},
-		[6] = {
-			name = 'facing',
-			required = false,
-			type = Types.Facing
-		},
-		[7] = {
-			name = 'construction',
-			required = false,
-			type = Types.Boolean
-		},
-		[8] = {
-			name = 'spacing',
-			required = false,
-			type = Types.Number
-		}
 	},
 
 	[actionTypes.DespawnUnits] = {
@@ -205,29 +173,14 @@ local parameters = {
 	},
 
 	-- Features
-	[actionTypes.CreateFeature] = {
+	[actionTypes.CreateFeatures] = {
 		[1] = {
-			name = 'featureDefName',
+			name = 'featureLoadout',
 			required = true,
-			type = Types.FeatureDefName,
-		},
-		[2] = {
-			name = 'position',
-			required = true,
-			type = Types.Position,
-		},
-		[3] = {
-			name = 'featureName',
-			required = false,
-			type = Types.FeatureName,
-		},
-		[4] = {
-			name = 'facing',
-			required = false,
-			type = Types.Facing,
+			type = Types.FeatureLoadout,
 		},
 	},
-	[actionTypes.DestroyFeature] = {
+	[actionTypes.DestroyFeatures] = {
 		[1] = {
 			name = 'featureName',
 			required = true,
@@ -354,6 +307,26 @@ local parameters = {
 			required = true,
 			type = Types.Function,
 		},
+	},
+
+	-- Other
+	[actionTypes.AddResources] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'metal',
+			required = false,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'energy',
+			required = false,
+			type = Types.Number,
+		},
+		requiresOneOf = { 'metal', 'energy', },
 	},
 }
 

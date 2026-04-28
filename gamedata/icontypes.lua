@@ -2550,7 +2550,7 @@ local icontypes = {
 	},
 	legbar = {
 		bitmap = "icons/vehicle_t1_arty_napalm.png",
-		size = 1.54999995
+		size = 1.35
 	},
 	legbart = {
 		bitmap = "icons/bot_t2_arty_napalm.png",
@@ -2741,7 +2741,7 @@ local icontypes = {
 		size = 1.29999995
 	},
 	leggob = {
-		bitmap = "icons/bot_t1_raid_0.7.png",
+		bitmap = "icons/bot_t1_skirmish.png",
 		size = 0.60000002
 	},
 	leggobt3 = {

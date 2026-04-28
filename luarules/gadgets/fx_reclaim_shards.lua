@@ -46,11 +46,17 @@ for featureDefID, featureDef in pairs(FeatureDefs) do
 	end
 end
 
+local cegListTemp = {}
+
 function gadget:GameFrame(n)
-	if n % 2 == 0 then
-		for featureID, v in pairs(cegList) do
+	if n % 2 == 0 and next(cegList) then
+		-- Swap out cegList so AllowFeatureBuildStep can safely add to a fresh table
+		local toProcess = cegList
+		cegList = cegListTemp
+		cegListTemp = toProcess
+		for featureID, v in pairs(toProcess) do
 			SpawnCEG(v.ceg, v.x, v.y, v.z, 0, 1.0, 0, 0, 0)
-			cegList[featureID] = nil
+			toProcess[featureID] = nil
 		end
 	end
 end

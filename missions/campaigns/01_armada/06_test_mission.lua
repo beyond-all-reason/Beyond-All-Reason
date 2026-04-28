@@ -136,24 +136,18 @@ local actions = {
 	spawnCons1 = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'con-bots',
-            unitDefName = 'corck',
-			teamName = 'thePlayerTeam',
-			position = { x = 1800, z = 1600 },
-			quantity = 9,
-			facing = 'n',
-			spacing = 32,
+			unitLoadout = {
+				{ unitDefName = 'corck', x = 1800, z = 1600, facing = 'n', teamName = 'thePlayerTeam', unitName = 'con-bots', quantity = 9, spacing = 32 },
+			},
 		},
 	},
 
 	spawnEnergyGrid1 = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-            unitDefName = 'armfus',
-			teamName = 'thePlayerTeam',
-			position = { x = 1900, z = 2200 },
-			quantity = 18,
-			facing = 'e',
+			unitLoadout = {
+				{ unitDefName = 'armfus', x = 1900, z = 2200, facing = 'e', teamName = 'thePlayerTeam', quantity = 18 },
+			},
 		},
 	},
 

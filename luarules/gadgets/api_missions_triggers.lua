@@ -21,7 +21,8 @@ end
 
 local actionsDispatcher
 local types, triggers
-local trackedUnitNames, trackedUnitIDs, statisticsTriggerCounts
+local trackedUnitNames, trackedUnitIDs
+local statisticsTriggerCounts = {}
 
 
 ----------------------------------------------------------------
@@ -354,7 +355,7 @@ local function checkFeatureDestroyed(trigger, featureID, featureDefID, attackerA
 	activateTrigger(trigger)
 end
 
-local function incrementStatistics(triggerType, teamID, unitDefName, unitNames)
+local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, direction)
 	processTriggersOfType(triggerType, function(trigger, triggerID)
 		if teamID ~= GG['MissionAPI'].Teams[trigger.parameters.teamName] then
 			return
@@ -366,42 +367,94 @@ local function incrementStatistics(triggerType, teamID, unitDefName, unitNames)
 			return
 		end
 
-		statisticsTriggerCounts[triggerID] = (statisticsTriggerCounts[triggerID] or 0) + 1
+		statisticsTriggerCounts[triggerID] = (statisticsTriggerCounts[triggerID] or 0) + direction
 
-		-- The % is for repeating triggers
-		if statisticsTriggerCounts[triggerID] % trigger.parameters.quantity == 0 then
+		-- Repeat at quantity, 2*quantity, 3*quantity, ... (only when incrementing)
+		local nextThreshold = (trigger.repeatCount + 1) * trigger.parameters.quantity
+		if direction > 0 and statisticsTriggerCounts[triggerID] >= nextThreshold then
 			activateTrigger(trigger)
 		end
 	end)
 end
+local function incrementUnitStatistics(triggerType, teamID, unitDefName, unitNames)
+	updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, 1)
+end
+local function decrementUnitStatistics(triggerType, teamID, unitDefName, unitNames)
+	updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, -1)
+end
 
-local function checkUnitsOwned(trigger)
-	local teamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
-	local requiredUnitName = trigger.parameters.unitName
-	local requiredUnitDefName = trigger.parameters.unitDefName
+-- Return value indices as on https://recoilengine.org/docs/lua-api/#Spring.GetTeamResources
+local CURRENT_RESOURCE_LEVEL_INDEX = 1
+local RESOURCE_PULL_INDEX          = 3
+local RESOURCE_INCOME_INDEX        = 4
+local RESOURCE_RECEIVED_INDEX      = 8  -- resources received from allied teams via sharing
 
-	local unitCount
-	if requiredUnitName then
-		unitCount = 0
-		for uid in pairs(trackedUnitIDs[requiredUnitName] or {}) do
-			if Spring.GetUnitTeam(uid) == teamID then
-				if not requiredUnitDefName or UnitDefs[Spring.GetUnitDefID(uid)].name == requiredUnitDefName then
-					unitCount = unitCount + 1
-				end
+local teamReclaimIncome         = {}
+local teamReclaimIncomeSnapshot = {}
+
+local function checkTeamResources(trigger, resourceIndex)
+	if trigger.parameters.metal and select(resourceIndex, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
+		return
+	end
+	if trigger.parameters.energy and select(resourceIndex, Spring.GetTeamResources(trigger.parameters.teamID, "energy")) < trigger.parameters.energy then
+		return
+	end
+
+	activateTrigger(trigger)
+end
+
+local function getTeamResourceIncomeForSources(teamID, resourceType, sources)
+	local extractorIncome  = 0
+	local reclaimIncome    = 0
+	local productionIncome = 0
+	local transferIncome   = 0
+
+	if (sources.extractor or sources.production) and resourceType ~= "energy" then
+		for _, unitID in pairs(Spring.GetTeamUnits(teamID)) do
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			if UnitDefs[unitDefID].extractsMetal > 0 then
+				-- Extraction is only based on unitDef and metal spot, but we don't have the rate for when energy is low
+				extractorIncome = extractorIncome + (Spring.GetUnitMetalExtraction(unitID) or 0)
 			end
 		end
-	elseif requiredUnitDefName then
-		local unitDef = UnitDefNames[requiredUnitDefName]
-		unitCount = unitDef and Spring.GetTeamUnitDefCount(teamID, unitDef.id) or 0
-	else
-		unitCount = #Spring.GetTeamUnits(teamID)
 	end
 
-	-- Repeat at quantity, 2*quantity, 3*quantity, ...
-	local nextThreshold = (trigger.repeatCount + 1) * trigger.parameters.quantity
-	if unitCount >= nextThreshold then
-		activateTrigger(trigger)
+	if sources.reclaim or sources.production then
+		local snapshot = teamReclaimIncomeSnapshot[teamID]
+		reclaimIncome = snapshot and (snapshot[resourceType] or 0) or 0
 	end
+
+	if sources.production then
+		local totalIncome = select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(teamID, resourceType)) or 0
+		productionIncome = totalIncome - extractorIncome - reclaimIncome
+	end
+
+	if sources.transfer then
+		transferIncome = select(RESOURCE_RECEIVED_INDEX, Spring.GetTeamResources(teamID, resourceType)) or 0
+	end
+
+	return (sources.extractor  and extractorIncome  or 0)
+		 + (sources.reclaim    and reclaimIncome    or 0)
+		 + (sources.production and productionIncome or 0)
+		 + (sources.transfer   and transferIncome   or 0)
+end
+
+local function checkResourceIncome(trigger)
+	local sources = trigger.parameters.sources
+
+	if sources == nil then
+	    return checkTeamResources(trigger, RESOURCE_INCOME_INDEX)
+	end
+
+	-- Source-filtered income check (only meaningful for ResourceIncome triggers).
+	if trigger.parameters.metal and getTeamResourceIncomeForSources(trigger.parameters.teamID, "metal", sources) < trigger.parameters.metal then
+		return
+	end
+	if trigger.parameters.energy and getTeamResourceIncomeForSources(trigger.parameters.teamID, "energy", sources) < trigger.parameters.energy then
+		return
+	end
+
+	activateTrigger(trigger)
 end
 
 
@@ -427,11 +480,25 @@ function gadget:Initialize()
 	untrackUnitID           = tracking.UntrackUnitID
 	doesFeatureHaveName     = tracking.DoesFeatureHaveName
 	untrackFeatureID        = tracking.UntrackFeatureID
-
-	statisticsTriggerCounts = {}
 end
 
 function gadget:GameFrame(frameNumber)
+	if frameNumber % Game.gameSpeed == 0 then
+		-- Reset reclaim income counters:
+		teamReclaimIncomeSnapshot = teamReclaimIncome
+		teamReclaimIncome = {}
+
+		processTriggersOfType(types.ResourceIncome, function(trigger, _)
+			checkResourceIncome(trigger)
+		end)
+		processTriggersOfType(types.ResourcePull, function(trigger, _)
+			checkTeamResources(trigger, RESOURCE_PULL_INDEX)
+		end)
+	end
+	processTriggersOfType(types.ResourceStored, function(trigger, _)
+		checkTeamResources(trigger, CURRENT_RESOURCE_LEVEL_INDEX)
+	end)
+
 	processTriggersOfType(types.TimeElapsed, function(trigger, _)
 		checkTimeElapsed(trigger, frameNumber)
 	end)
@@ -439,11 +506,9 @@ function gadget:GameFrame(frameNumber)
 	processTriggersOfType(types.UnitEnteredLocation, function(trigger, triggerID)
 		checkUnitEnteredLocation(trigger, triggerID)
 	end)
-
 	processTriggersOfType(types.UnitLeftLocation, function(trigger, triggerID)
 		checkUnitLeftLocation(trigger, triggerID)
 	end)
-
 	processTriggersOfType(types.UnitDwellLocation, function(trigger, triggerID)
 		checkUnitDwellLocation(trigger, triggerID)
 	end)
@@ -453,15 +518,21 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	processTriggersOfType(types.UnitExists, function(trigger, _)
 		checkUnitExists(trigger, unitDefID, unitTeam)
 	end)
-	processTriggersOfType(types.UnitsOwned, function(trigger, _)
-		checkUnitsOwned(trigger)
-	end)
+
+	local unitDefName = UnitDefs[unitDefID].name
+	local unitNames = trackedUnitNames[unitID] or {}
+	incrementUnitStatistics(types.UnitsOwned, unitTeam, unitDefName, unitNames)
 end
 
 function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	processTriggersOfType(types.UnitNotExists, function(trigger, _)
 		checkUnitRemoved(trigger, unitID, unitDefID, unitTeam)
 	end)
+
+	local unitDefName = UnitDefs[unitDefID].name
+	local unitNames = trackedUnitNames[unitID] or {}
+	decrementUnitStatistics(types.UnitsOwned, unitTeam, unitDefName, unitNames)
+
 	-- Don't untrack unit here, as other call-ins run after this one (UnitDestroyed, UnitTaken, ...)
 end
 
@@ -484,11 +555,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID, attackerID, attacke
 	local unitNames = trackedUnitNames[unitID] or {}
 
 	-- The unit's team lost a unit:
-	incrementStatistics(types.TotalUnitsLost, unitTeamID, unitDefName, unitNames)
+	incrementUnitStatistics(types.TotalUnitsLost, unitTeamID, unitDefName, unitNames)
 
 	-- The attacker's team kills an enemy unit:
 	if attackerTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeamID) then
-		incrementStatistics(types.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
+		incrementUnitStatistics(types.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
 	end
 
 	untrackUnitID(unitID)
@@ -501,7 +572,7 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
-	incrementStatistics(types.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
+	incrementUnitStatistics(types.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
@@ -527,7 +598,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if Spring.GetGameFrame() <= 0 then return end
 
 	local unitDefName = UnitDefs[unitDefID].name
-	incrementStatistics(types.TotalUnitsBuilt, unitTeam, unitDefName)
+	incrementUnitStatistics(types.TotalUnitsBuilt, unitTeam, unitDefName)
 end
 
 function gadget:TeamDied(teamID)
@@ -539,8 +610,38 @@ end
 local reclaimedFeatures = {}
 function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, buildStep)
 	if buildStep < 0 then
+		local featureDef = FeatureDefs[featureDefID]
+		if not featureDef then
+			return true
+		end
+
 		-- Negative buildStep means reclaim
 		reclaimedFeatures[featureID] = builderTeamID
+
+		-- Accumulate reclaim incomes - buildStep is fraction of feature's total reclaim
+		local t = table.ensureTable(teamReclaimIncome, builderTeamID)
+		t.metal  = (t.metal  or 0) + math.abs(buildStep) * featureDef.metal
+		t.energy = (t.energy or 0) + math.abs(buildStep) * featureDef.energy
+	end
+	return true
+end
+
+local RECLAIM_UNIT_EFFICIENCY = Game.reclaimUnitEfficiency -- Engine default is 1.0 metal and 0.0 energy
+local RECLAIM_UNIT_IS_BAR_STYLE =
+	Game.reclaimUnitMethod == 1 and                        -- From SSkirmishAICallback.h: 0 = Revert to wireframe, gradual reclaim, 1 = Subtract HP, give full metal at end, default 1
+	Game.reclaimUnitDrainHealth                            -- default true in engine
+function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, buildStep)
+	if buildStep < 0 and RECLAIM_UNIT_IS_BAR_STYLE then
+		local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+		if health and maxHealth and (health + maxHealth * buildStep) <= 0 then
+			local unitDef = UnitDefs[unitDefID]
+			if unitDef then
+				local reclaimMetal = unitDef.metalCost * (buildProgress or 1) * RECLAIM_UNIT_EFFICIENCY
+
+				local t = table.ensureTable(teamReclaimIncome, builderTeamID)
+				t.metal = (t.metal or 0) + reclaimMetal
+			end
+		end
 	end
 	return true
 end

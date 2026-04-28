@@ -12,7 +12,7 @@ return {
 		explodeas = "smallexplosiongeneric-phib",
 		footprintx = 2,
 		footprintz = 2,
-		health = 1200,
+		health = 2400,
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		metalcost = 750,

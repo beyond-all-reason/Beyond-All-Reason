@@ -189,22 +189,18 @@ local actions = {
 	spawnTurret = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'bots',
-            unitDefName = 'armllt',
-			teamName = 'theEnemyTeam',
-
-			position = { x = 1800, z = 2200 },
+			unitLoadout = {
+				{ unitDefName = 'armllt', x = 1800, z = 2200, teamName = 'theEnemyTeam', unitName = 'bots' },
+			},
 		},
 	},
 
 	spawnBots = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'bots',
-            unitDefName = 'armpw',
-			teamName = 'thePlayerTeam',
-			quantity = 4,
-			position = { x = 1800, z = 1600 },
+			unitLoadout = {
+				{ unitDefName = 'armpw', x = 1800, z = 1600, teamName = 'thePlayerTeam', unitName = 'bots', quantity = 4 },
+			},
 		},
 	},
 
@@ -271,20 +267,18 @@ local actions = {
 	spawnDecoy = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'decoys',
-			unitDefName = 'armdecom',
-			teamName = 'thePlayerTeam',
-			position = { x = 1900, z = 2600 },
+			unitLoadout = {
+				{ unitDefName = 'armdecom', x = 1900, z = 2600, teamName = 'thePlayerTeam', unitName = 'decoys' },
+			},
 		},
 	},
 
 	spawnCapturable = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armwin',
-			teamName = 'theEnemyTeam',
-
-			position = { x = 1600, z = 2800 },
+			unitLoadout = {
+				{ unitDefName = 'armwin', x = 1600, z = 2800, teamName = 'theEnemyTeam' },
+			},
 		},
 	},
 
@@ -324,11 +318,9 @@ local actions = {
 	spawnResBots = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'res',
-			unitDefName = 'armrectr',
-			teamName = 'thePlayerTeam',
-			quantity = 4,
-			position = { x = 1900, z = 2600 },
+			unitLoadout = {
+				{ unitDefName = 'armrectr', x = 1900, z = 2600, teamName = 'thePlayerTeam', unitName = 'res', quantity = 4 },
+			},
 		},
 	},
 
@@ -352,11 +344,9 @@ local actions = {
 	spawnEngineer = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'engineers',
-			unitDefName = 'corfast',
-			teamName = 'theEnemyTeam',
-
-			position = { x = 1500, z = 3400 },
+			unitLoadout = {
+				{ unitDefName = 'corfast', x = 1500, z = 3400, teamName = 'theEnemyTeam', unitName = 'engineers' },
+			},
 		},
 	},
 

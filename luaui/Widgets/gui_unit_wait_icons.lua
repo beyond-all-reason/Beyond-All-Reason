@@ -220,7 +220,9 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:DrawWorld()
+function widget:DrawScreenEffects()
+	-- DrawScreenEffects so icons render after deferred lighting/distortion/bloom/tonemap;
+	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
 	if spIsGUIHidden() then return end
 	if iconVBO.usedElements > 0 then
 		local disticon = spGetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;

@@ -25,7 +25,8 @@ local triggerTypes = {
 
 	-- Resources
 	ResourceStored       = 400,
-	ResourceProduction   = 401,
+	ResourceIncome       = 401,
+	ResourcePull         = 402,
 
 	-- Statistics
 	TotalUnitsLost       = 500,
@@ -387,8 +388,67 @@ local parameters = {
 	},
 
 	-- Resources
-	[triggerTypes.ResourceStored] = {  },
-	[triggerTypes.ResourceProduction] = {  },
+	[triggerTypes.ResourceStored] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'metal',
+			required = false,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'energy',
+			required = false,
+			type = Types.Number,
+		},
+		requiresOneOf = { 'metal', 'energy', },
+	},
+	[triggerTypes.ResourceIncome] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'metal',
+			required = false,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'energy',
+			required = false,
+			type = Types.Number,
+		},
+		[4] = {
+			-- Filter income by sources: 'extractor' (metal only), 'reclaim' (features + units), 'ally' (shared), 'production' (everything else)
+			-- Example: sources = { 'extractor', 'production' }
+			name = 'sources',
+			required = false,
+			type = Types.ResourceIncomeSources,
+		},
+		requiresOneOf = { 'metal', 'energy', },
+	},
+	[triggerTypes.ResourcePull] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'metal',
+			required = false,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'energy',
+			required = false,
+			type = Types.Number,
+		},
+		requiresOneOf = { 'metal', 'energy', },
+	},
 
 	-- Statistics
 	[triggerTypes.TotalUnitsLost] = {

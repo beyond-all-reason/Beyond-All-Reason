@@ -143,13 +143,13 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
+				customparams = {
+					sweepfire = 4.5,
+				},
 				damage = {
 					default = 33,
 					vtol = 10,
 				},
-				customparams = {
-					sweepfire=4.5,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}
 			},
 			coax_depthcharge = {
 				areaofeffect = 32,
@@ -192,6 +192,9 @@ return {
 				weaponacceleration = 75,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 350,
 				},

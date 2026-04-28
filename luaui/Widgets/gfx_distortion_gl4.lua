@@ -49,6 +49,9 @@ local spGetConfigString = Spring.GetConfigString
 local spGetAllFeatures = Spring.GetAllFeatures
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
+local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
+local mapSizeX = Game.mapSizeX
+local mapSizeZ = Game.mapSizeZ
 
 -- Localized GL functions
 local glClear = gl.Clear
@@ -1021,7 +1024,9 @@ end
 
 
 local function updateProjectileDistortions(newgameframe)
-	local nowprojectiles = spGetVisibleProjectiles()
+	-- Use GetProjectilesInRectangle to also capture BeamLaser projectiles
+	-- (spGetVisibleProjectiles misses them)
+	local nowprojectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
 	local gf = spGetGameFrame()
 	gameFrame = gf
 	local newgameframe = (gf ~= lastGameFrame)
@@ -1068,7 +1073,6 @@ local function updateProjectileDistortions(newgameframe)
 						local distortionParamTable = projectileDefDistortion.distortionParamTable
 						distortionType = projectileDefDistortion.distortionType
 
-
 						distortionParamTable[1] = px
 						distortionParamTable[2] = py
 						distortionParamTable[3] = pz
@@ -1090,8 +1094,6 @@ local function updateProjectileDistortions(newgameframe)
 
 						AddDistortion(projectileID, nil, nil, projectileDistortionVBOMapCache[distortionType], distortionParamTable,noUpload)
 						--AddDistortion(projectileID, nil, nil, projectilePointDistortionVBO, distortionParamTable)
-					else
-						--spEcho("No projectile distortion defined for", projectileID, weaponDefID, px, pz)
 					end
 				end
 				numadded = numadded + 1

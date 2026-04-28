@@ -226,6 +226,7 @@ return {
 				soundhitwetvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					nodecal = true,
 					noexplosionlight = 1,
 				},

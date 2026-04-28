@@ -103,7 +103,7 @@ return {
 				beamtime = 0.07,
 				burst = 6,
 				burstrate = 0.06667,
-				corethickness = 0.35,
+				corethickness = 0.45,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,

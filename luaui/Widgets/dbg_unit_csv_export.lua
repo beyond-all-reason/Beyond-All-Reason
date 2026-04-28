@@ -23,6 +23,9 @@ local function round(num, numDecimalPlaces)
     else return math.ceil(num * mult - 0.5) / mult end
 end
 
+local weaponShowGroups = { [0] = true, [1] = true }
+local weaponHideRoles = { secondary = true }
+
 local function buildTree(conDefID, tree)
     local buildOptions = UnitDefs[conDefID].buildOptions
     for _, option in ipairs(buildOptions) do
@@ -204,12 +207,13 @@ function widget:Initialize()
                 local weaponRange = ''
                 if unitDef.weapons then
                     for wid, weapon in pairs(unitDef.weapons) do
-                        if not string.find(WeaponDefs[weapon.weaponDef].name, 'bogus') and not string.find(WeaponDefs[weapon.weaponDef].name, 'mine') then
-                            local weapName = WeaponDefs[weapon.weaponDef].type
-                            if weaponRange == '' or weaponRange < WeaponDefs[weapon.weaponDef].range then
-                                weaponRange = WeaponDefs[weapon.weaponDef].range
+						local weaponDef = WeaponDefs[weapon.weaponDef]
+                        if weaponDef.customParams.bogus ~= "1" and weaponShowGroups[weaponDef.customParams.weapons_group] then
+                            local weapName = weaponDef.type
+                            if weaponRange == '' or weaponRange < weaponDef.range then
+                                weaponRange = weaponDef.range
                             end
-                            if WeaponDefs[weapon.weaponDef].paralyzer then
+                            if weaponDef.paralyzer then
                                 if weapName == 'BeamLaser' then
                                     weapName = 'EMP-BeamLaser'
                                 elseif weapName == 'AircraftBomb' then
@@ -218,10 +222,10 @@ function widget:Initialize()
                                     weapName = 'EMP-StarburstLauncher'
                                 end
                             else
-								if WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["vtol"]] > WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["default"] or 0] then
-									dps = dps + (((WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["vtol"]]*(1/WeaponDefs[weapon.weaponDef].reload)) * WeaponDefs[weapon.weaponDef].salvoSize) * WeaponDefs[weapon.weaponDef].projectiles)
+								if weaponDef.damages[Game.armorTypes["vtol"]] > weaponDef.damages[Game.armorTypes["default"] or 0] then
+									dps = dps + (((weaponDef.damages[Game.armorTypes["vtol"]]*(1/weaponDef.reload)) * weaponDef.salvoSize) * weaponDef.projectiles)
                                 else
-                                    dps = dps + (((WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["default"] or 0]*(1/WeaponDefs[weapon.weaponDef].reload)) * WeaponDefs[weapon.weaponDef].salvoSize) * WeaponDefs[weapon.weaponDef].projectiles)
+                                    dps = dps + (((weaponDef.damages[Game.armorTypes["default"] or 0]*(1/weaponDef.reload)) * weaponDef.salvoSize) * weaponDef.projectiles)
                                 end
                             end
                             if weaponTable[weapName] then

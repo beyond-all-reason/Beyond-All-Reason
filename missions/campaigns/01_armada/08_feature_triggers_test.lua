@@ -119,62 +119,56 @@ local triggers = {
 local actions = {
 
 	createRockToReclaim = {
-		type = actionTypes.CreateFeature,
+		type = actionTypes.CreateFeatures,
 		parameters = {
-			featureName    = 'theRocks',
-			featureDefName = 'rocks30_def_01',
-			position       = { x = 1800, z = 1800 },
-			facing         = 's',
+			featureLoadout = {
+				{ featureDefName = 'rocks30_def_01', x = 1800, z = 1800, facing = 's', featureName = 'theRocks' },
+			},
 		},
 	},
 
 	createRockToDestroy = {
-		type = actionTypes.CreateFeature,
+		type = actionTypes.CreateFeatures,
 		parameters = {
-			featureName    = 'theRocks',
-			featureDefName = 'rocks30_def_01',
-			position       = { x = 1900, z = 1900 },
-			facing         = 's',
+			featureLoadout = {
+				{ featureDefName = 'rocks30_def_01', x = 1900, z = 1900, facing = 's', featureName = 'theRocks' },
+			},
 		},
 	},
 
 	createWreckToAttack = {
-		type = actionTypes.CreateFeature,
+		type = actionTypes.CreateFeatures,
 		parameters = {
-			featureName    = 'wreck-to-destroy',
-			featureDefName = 'armllt_dead',
-			position       = { x = 2000, z = 2100 },
-			facing         = 'w',
+			featureLoadout = {
+				{ featureDefName = 'armllt_dead', x = 2000, z = 2100, facing = 'w', featureName = 'wreck-to-destroy' },
+			},
 		},
 	},
 
 	createWreckToResurrect = {
-		type = actionTypes.CreateFeature,
+		type = actionTypes.CreateFeatures,
 		parameters = {
-			featureName    = 'wreck-to-resurrect',
-			featureDefName = 'armpw_dead',
-			position       = { x = 1900, z = 2000 },
-			facing         = 'w',
+			featureLoadout = {
+				{ featureDefName = 'armpw_dead', x = 1900, z = 2000, facing = 'w', featureName = 'wreck-to-resurrect' },
+			},
 		},
 	},
 
 	spawnReclaimer = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName    = 'reclaimer',
-			unitDefName = 'armrectr',
-			teamName    = 'thePlayerTeam',
-			position    = { x = 1800, z = 1900 },
+			unitLoadout = {
+				{ unitDefName = 'armrectr', x = 1800, z = 1900, teamName = 'thePlayerTeam', unitName = 'reclaimer' },
+			},
 		},
 	},
 
 	spawnAttacker = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName    = 'attacker',
-			unitDefName = 'armham',
-			teamName    = 'thePlayerTeam',
-			position    = { x = 1800, z = 2100 },
+			unitLoadout = {
+				{ unitDefName = 'armham', x = 1800, z = 2100, teamName = 'thePlayerTeam', unitName = 'attacker' },
+			},
 		},
 	},
 
@@ -200,7 +194,7 @@ local actions = {
 	},
 
 	destroyRocks = {
-		type = actionTypes.DestroyFeature,
+		type = actionTypes.DestroyFeatures,
 		parameters = {
 			featureName = 'theRocks',
 		},
