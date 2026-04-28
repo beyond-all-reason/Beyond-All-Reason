@@ -730,7 +730,7 @@
 					<div class="tf-overlay-chip-label" style="text-align: center;">Inspector</div>
 				</div>
 			</div>
-			<div id="mb-inspector-row" class="tf-instrument-sub hidden mb-1">
+			<div id="mb-inspector-row" class="tf-instrument-sub mb-1" data-if="mbInspectorOpen">
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="btn-mb-clusters" class="tf-overlay-chip" style="flex: 1;" onclick="widget:mbToggleClusters(); event:StopPropagation()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Clusters</div>
@@ -742,7 +742,7 @@
 						<div class="tf-overlay-chip-label" style="text-align: center;">Balance Axis</div>
 					</div>
 				</div>
-				<div id="mb-cluster-radius-row" class="tf-instrument-sub hidden mb-1">
+				<div id="mb-cluster-radius-row" class="tf-instrument-sub mb-1" data-if="mbClusterOpen">
 					<div class="flex flex-row justify-between items-center mb-1">
 						<div class="text-lg text-light">GRANULARITY: <span class="text-xl font-bold" id="mb-cluster-radius-label">256</span></div>
 					</div>
@@ -756,7 +756,7 @@
 						</div>
 					</div>
 				</div>
-				<div id="mb-lasso-row" class="tf-instrument-sub hidden mb-1">
+				<div id="mb-lasso-row" class="tf-instrument-sub mb-1" data-if="mbLassoOpen">
 					<div class="flex flex-row gap-1 items-center mb-1">
 						<div id="mb-btn-lasso-close" class="tf-overlay-chip" style="flex: 1;" onclick="widget:mbLassoClose(); event:StopPropagation()">
 							<div class="tf-overlay-chip-label" style="text-align: center;">Close Loop</div>
@@ -769,7 +769,7 @@
 						<div class="text-lg text-light">Metal in loop: <span class="text-xl font-bold" id="mb-lasso-total-label">0.00</span></div>
 					</div>
 				</div>
-				<div id="mb-balance-axis-row" class="tf-instrument-sub hidden mb-1">
+				<div id="mb-balance-axis-row" class="tf-instrument-sub mb-1" data-if="mbAxisOpen">
 					<div class="flex flex-row gap-1 items-center mb-1">
 						<div id="mb-btn-axis-x" class="tf-overlay-chip" style="flex: 1;" onclick="widget:mbAxisX(); event:StopPropagation()">
 							<div class="tf-overlay-chip-label" style="text-align: center;">X Axis</div>
@@ -828,7 +828,7 @@
 					<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 				</div>
 			</div>
-			<div id="mb-grid-snap-size-row" class="tf-instrument-sub hidden mb-1">
+			<div id="mb-grid-snap-size-row" class="tf-instrument-sub mb-1" data-if="mbGridSnap">
 				<div class="flex flex-row justify-between items-center mb-1">
 					<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold" id="mb-grid-snap-size-label">48</span></div>
 				</div>
@@ -843,7 +843,7 @@
 					<input type="text" id="mb-slider-grid-snap-size-numbox" class="tf-slider-numbox" readonly value="48" />
 				</div>
 			</div>
-			<div id="mb-angle-snap-step-row" class="tf-instrument-sub hidden mb-1">
+			<div id="mb-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="mbAngleSnap">
 				<div class="flex flex-row justify-between items-center mb-1">
 					<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="mb-angle-snap-step-label">15</span>&#176;</div>
 				</div>
@@ -861,7 +861,7 @@
 					<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold" id="mb-angle-manual-spoke-label">0</span>&#176;</div>
 					<div id="mb-btn-angle-autosnap" class="tf-inline-chip" style="margin-left: 4dp;" onclick="widget:mbToggleAutoSnap(); event:StopPropagation()">Auto-Snap</div>
 				</div>
-				<div id="mb-angle-manual-spoke-row" class="hidden mb-1">
+				<div id="mb-angle-manual-spoke-row" class="mb-1" data-if="!mbAngleSnapAuto">
 					<div class="flex flex-row gap-1 items-center mb-1">
 						<div id="mb-btn-manual-spoke-down" class="tf-sm-btn" onclick="widget:mbManualSpokeStep(-1); event:StopPropagation()">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
@@ -873,7 +873,7 @@
 					</div>
 				</div>
 			</div>
-			<div id="mb-measure-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div id="mb-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="mbMeasureActive">
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="mb-btn-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:mbMeasureRuler(); event:StopPropagation()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
@@ -891,7 +891,7 @@
 					</div>
 				</div>
 			</div>
-			<div id="mb-symmetry-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div id="mb-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="mbSymmetryActive">
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="mb-btn-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:mbToggleSymRadial(); event:StopPropagation()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
@@ -903,7 +903,7 @@
 						<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 					</div>
 				</div>
-				<div id="mb-symmetry-radial-count-row" class="hidden mb-1">
+				<div id="mb-symmetry-radial-count-row" class="mb-1" data-if="mbSymmetryRadial">
 					<div class="flex flex-row justify-between items-center mb-1">
 						<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="mb-symmetry-radial-count-label">2</span></div>
 					</div>
@@ -917,7 +917,7 @@
 						</div>
 					</div>
 				</div>
-				<div id="mb-symmetry-mirror-angle-row" class="hidden mb-1">
+				<div id="mb-symmetry-mirror-angle-row" class="mb-1" data-if="mbSymmetryMirrorAny">
 					<div class="flex flex-row justify-between items-center mb-1">
 						<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="mb-symmetry-mirror-angle-label">0</span>&#176;</div>
 					</div>

@@ -801,6 +801,19 @@ local initialModel = {
 	lpMode = "place",
 	lpLibraryOpen = false,
 	lpLibraryTab = "builtin",
+	-- metal brush instruments (data-if sub-rows)
+	mbGridSnap = false,
+	mbAngleSnap = false,
+	mbMeasureActive = false,
+	mbSymmetryActive = false,
+	mbSymmetryRadial = false,
+	mbSymmetryMirrorAny = false,
+	mbAngleSnapAuto = false,
+	-- metal map analysis rows
+	mbInspectorOpen = false,
+	mbClusterOpen = false,
+	mbLassoOpen = false,
+	mbAxisOpen = false,
 }
 
 local shapeNames = {
