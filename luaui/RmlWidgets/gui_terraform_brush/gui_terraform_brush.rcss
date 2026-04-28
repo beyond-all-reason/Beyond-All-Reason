@@ -469,24 +469,30 @@ body {
 /* RGB channel tinting for color sliders (thumb color indicates channel) */
 .tf-slider.lp-slider-channel-r sliderbar {
 	background-color: #e03030;
-	border: 1dp #ffffff30;
+	decorator: vertical-gradient(#ff6060 #901818);
+	border: 1dp #ffffff40;
 }
 .tf-slider.lp-slider-channel-r sliderbar:hover {
 	background-color: #ff5050;
+	decorator: vertical-gradient(#ff8080 #b02020);
 }
 .tf-slider.lp-slider-channel-g sliderbar {
 	background-color: #30c040;
-	border: 1dp #ffffff30;
+	decorator: vertical-gradient(#60e070 #186020);
+	border: 1dp #ffffff40;
 }
 .tf-slider.lp-slider-channel-g sliderbar:hover {
 	background-color: #50e060;
+	decorator: vertical-gradient(#80ff90 #208030);
 }
 .tf-slider.lp-slider-channel-b sliderbar {
 	background-color: #3060e8;
-	border: 1dp #ffffff30;
+	decorator: vertical-gradient(#6090ff #182f80);
+	border: 1dp #ffffff40;
 }
 .tf-slider.lp-slider-channel-b sliderbar:hover {
 	background-color: #5080ff;
+	decorator: vertical-gradient(#80a8ff #2040a0);
 }
 
 /* === Color Palette Grid === */
@@ -1052,16 +1058,18 @@ body {
 	width: 10dp;
 	height: 16dp;
 	background-color: #c87c00;
+	decorator: vertical-gradient(#ffaa30 #804c00);
 	border-radius: 4dp;
-	border: 1dp #ffffff28;
+	border: 1dp #ffffff40;
 	margin-top: 1dp;
-	box-shadow: 0dp 2dp 4dp 0dp #00000070;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
 	transition: background-color 0.1s;
 }
 
 .tf-slider-history sliderbar:hover {
 	background-color: #e8a020;
-	box-shadow: 0dp 2dp 6dp 0dp #00000090;
+	decorator: vertical-gradient(#ffc858 #a06000);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
 }
 
 /* === Small Buttons (rotation, fall-off, intensity) === */
@@ -1321,32 +1329,36 @@ body {
 	width: 10dp;
 	height: 16dp;
 	background-color: #d08020;
+	decorator: vertical-gradient(#ffae50 #804c10);
 	border-radius: 4dp;
-	border: 1dp #ffffff28;
+	border: 1dp #ffffff40;
 	margin-top: 1dp;
-	box-shadow: 0dp 2dp 4dp 0dp #00000070;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
 	transition: background-color 0.1s;
 }
 
 .tf-slider-cap-max sliderbar:hover {
 	background-color: #f09a38;
-	box-shadow: 0dp 2dp 6dp 0dp #00000090;
+	decorator: vertical-gradient(#ffc870 #a06018);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
 }
 
 .tf-slider-cap-min sliderbar {
 	width: 10dp;
 	height: 16dp;
 	background-color: #2080d0;
+	decorator: vertical-gradient(#50aef0 #104880);
 	border-radius: 4dp;
-	border: 1dp #ffffff28;
+	border: 1dp #ffffff40;
 	margin-top: 1dp;
-	box-shadow: 0dp 2dp 4dp 0dp #00000070;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
 	transition: background-color 0.1s;
 }
 
 .tf-slider-cap-min sliderbar:hover {
 	background-color: #38a0f0;
-	box-shadow: 0dp 2dp 6dp 0dp #00000090;
+	decorator: vertical-gradient(#70c8ff #1860a0);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
 }
 
 /* === Tooltip === */
@@ -1416,16 +1428,18 @@ body {
 	width: 10dp;
 	height: 16dp;
 	background-color: #b0b4c0;
+	decorator: vertical-gradient(#dde0ec #7d8190);
 	border-radius: 4dp;
-	border: 1dp #ffffff28;
+	border: 1dp #ffffff40;
 	margin-top: 1dp;
 	transition: background-color 0.1s;
-	box-shadow: 0dp 2dp 4dp 0dp #00000070;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
 }
 
 .tf-slider sliderbar:hover {
 	background-color: #d4d8e4;
-	box-shadow: 0dp 2dp 6dp 0dp #00000090;
+	decorator: vertical-gradient(#f4f6ff #9ea2b0);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
 }
 
 .tf-slider sliderarrowdec,

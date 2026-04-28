@@ -149,7 +149,7 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | `gui_decal_placer.lua` | 1 / 1 | ✅ (dead code removed) |
 | `tf_startpos.lua` | 8 / 8 | ✅ (`stpSubMode`, `stpStartboxMode`) |
 | `tf_splat.lua` | 8 / 8 | ✅ (12 dm flags incl. `sp*` instruments) |
-| `tf_features.lua` | 0 / 12 | ⬜ |
+| `tf_features.lua` | 12 / 12 | ✅ (`fpAvoidCliffs`, `fpPreferSlopes`, `fpAltMinEnable`, `fpAltMaxEnable`, `fpSymmetryActive`, `fpSymmetryRadial`, `fpSymmetryMirrorAny`, `fpSaveLoadOpen`) |
 | `tf_lights.lua` | 0 / 11 | ⬜ |
 | `tf_metal.lua` | 0 / 11 | ⬜ |
 | `tf_grass.lua` | 0 / 19 | ⬜ |

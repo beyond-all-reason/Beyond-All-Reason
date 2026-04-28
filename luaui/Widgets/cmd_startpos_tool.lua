@@ -192,6 +192,10 @@ local mouseDownWorldZ = nil
 local hoverPosIdx    = nil  -- index of position currently hovered (express mode)
 local hoverBoxIdx    = nil  -- which startbox is being vertex-hovered
 local hoverVertIdx   = nil
+-- Polygon edge-midpoint hover: shows a "ghost" handle at the middle of a polygon edge
+-- so the user can click/hold there to insert a new vertex (which immediately becomes a
+-- live drag handle). { bi, edgeIdx, x, z } — edgeIdx is index of the edge's start vertex.
+local hoverPolyEdge  = nil
 
 -- Undo history: each entry = { count=N, prevNextAllyTeam=M }
 -- Means: the last N entries in `positions` were added in one action;
@@ -703,9 +707,14 @@ end
 
 local function findNearestBoxVertex(wx, wz)
 	for bi, box in ipairs(startboxes) do
-		-- Axis-aligned rectangles ("box" kind) are edge-draggable only — corners are NOT handles.
 		if box.kind == "box" then
-			-- skip: handled by findNearestBoxEdge
+			-- Axis-aligned rectangles: corners ARE drag handles too (in addition to edges).
+			-- Dragging a corner moves both adjacent edges so the rect stays axis-aligned.
+			for vi, v in ipairs(box.vertices) do
+				if distSq(wx, wz, v.x, v.z) < VERTEX_PICK_DIST_SQ then
+					return bi, vi
+				end
+			end
 		elseif box.kind == "spline" and box.controls then
 			-- Spline-kind boxes expose their control points as drag handles (not the dense
 			-- tessellated vertices). Dragging a control moves the whole curve smoothly.
@@ -792,6 +801,44 @@ local function findNearestBoxEdge(wx, wz)
 		end
 	end
 	return nil, nil
+end
+
+-- Polygon-kind boxes (kind == nil or "polygon") expose an edge-midpoint "ghost" handle for
+-- inserting a new vertex. Returns box index, edge index (= start-vertex index), and the
+-- midpoint world coords; nil if no edge mid is within VERTEX_PICK_DIST_SQ of the cursor.
+local function isPolygonKind(box)
+	return box.kind == nil or box.kind == "polygon"
+end
+
+-- Returns the editable-handle list for a box (polygon: vertices; spline: controls). Nil for
+-- "box"-kind axis-aligned rects (those use edge resize, not handle insertion).
+local function getEditHandles(box)
+	if isPolygonKind(box) then return box.vertices end
+	if box.kind == "spline" then return box.controls end
+	return nil
+end
+
+local function findNearestPolygonEdgeMid(wx, wz)
+	local bestD = VERTEX_PICK_DIST_SQ
+	local bestBi, bestEi, bestMx, bestMz = nil, nil, nil, nil
+	for bi, box in ipairs(startboxes) do
+		local handles = getEditHandles(box)
+		if handles and #handles >= 3 then
+			local n = #handles
+			for i = 1, n do
+				local a = handles[i]
+				local b = handles[(i % n) + 1]
+				local mx = (a.x + b.x) * 0.5
+				local mz = (a.z + b.z) * 0.5
+				local d = distSq(wx, wz, mx, mz)
+				if d < bestD then
+					bestD = d
+					bestBi, bestEi, bestMx, bestMz = bi, i, mx, mz
+				end
+			end
+		end
+	end
+	return bestBi, bestEi, bestMx, bestMz
 end
 
 -- ============================================================
@@ -1372,6 +1419,27 @@ function widget:MousePress(mx, my, button)
 				dragging = false
 				return true
 			end
+			-- Polygon edge-midpoint: clicking the ghost handle inserts a new vertex on that edge
+			-- and immediately starts dragging it, so the user can place it where they want.
+			local pbi, pei, pmx, pmz = findNearestPolygonEdgeMid(wx, wz)
+			if pbi and pei then
+				local box = startboxes[pbi]
+				local handles = box and getEditHandles(box)
+				if handles then
+					local insertAt = pei + 1
+					table.insert(handles, insertAt, { x = pmx, z = pmz })
+					if box.kind == "spline" then
+						retessellateSpline(box)
+					end
+					invalidateBoxFill(box)
+					boxDragIdx = insertAt
+					boxDragBoxIdx = pbi
+					dragStartX = mx
+					dragStartY = my
+					dragging = false
+					return true
+				end
+			end
 			-- Edge drag for axis-aligned "box"-kind startboxes (4 corners, no vertex handles).
 			local ebi, edge = findNearestBoxEdge(wx, wz)
 			if ebi and edge then
@@ -1417,6 +1485,24 @@ function widget:MousePress(mx, my, button)
 				return true
 			end
 		elseif button == 3 then
+			-- RMB on an existing polygon vertex: delete it (must keep at least 3 verts).
+			-- Check this before the polygon-finish/cancel/remove-last branches so users can
+			-- prune vertices from a finished polygon without dropping the whole box.
+			do
+				local dbi, dvi = findNearestBoxVertex(wx, wz)
+				if dbi and dvi then
+					local box = startboxes[dbi]
+					local handles = box and getEditHandles(box)
+					if handles and #handles > 3 then
+						table.remove(handles, dvi)
+						if box.kind == "spline" then
+							retessellateSpline(box)
+						end
+						invalidateBoxFill(box)
+						return true
+					end
+				end
+			end
 			-- RMB: Finish current polygon OR cancel drag-rect / free-draw, else remove last placed box
 			if startboxMode == "polygon" and drawingBox and #currentBoxVerts >= 3 then
 				finishStartbox()
@@ -1478,6 +1564,28 @@ function widget:MouseMove(mx, my, dx, dy, button)
 						v.x, v.z = clampToMap(wx, wz)
 						retessellateSpline(box)
 					end
+				elseif box.kind == "box" and #box.vertices == 4 then
+					-- Axis-aligned corner drag: move the dragged corner, then propagate its X/Z
+					-- to its two neighbours so all 4 corners stay rectilinear (CCW order:
+					-- 1=(minX,minZ), 2=(maxX,minZ), 3=(maxX,maxZ), 4=(minX,maxZ)).
+					local cx, cz = clampToMap(wx, wz)
+					local i = boxDragIdx
+					-- Determine the diagonally-opposite corner (kept fixed) and enforce a
+					-- minimum size so the rect can't collapse / invert during the drag.
+					local opp = ((i + 1) % 4) + 1  -- 1<->3, 2<->4
+					local ox, oz = box.vertices[opp].x, box.vertices[opp].z
+					local MIN_SIZE = 50
+					if cx > ox then cx = math_max(cx, ox + MIN_SIZE)
+					else            cx = math_min(cx, ox - MIN_SIZE) end
+					if cz > oz then cz = math_max(cz, oz + MIN_SIZE)
+					else            cz = math_min(cz, oz - MIN_SIZE) end
+					local minX, maxX = math_min(cx, ox), math_max(cx, ox)
+					local minZ, maxZ = math_min(cz, oz), math_max(cz, oz)
+					box.vertices[1].x, box.vertices[1].z = minX, minZ
+					box.vertices[2].x, box.vertices[2].z = maxX, minZ
+					box.vertices[3].x, box.vertices[3].z = maxX, maxZ
+					box.vertices[4].x, box.vertices[4].z = minX, maxZ
+					invalidateBoxFill(box)
 				else
 					local v = box.vertices[boxDragIdx]
 					if v then
@@ -2021,6 +2129,7 @@ function widget:Update()
 	hoverBoxIdx  = nil
 	hoverVertIdx = nil
 	hoverBoxEdge = nil
+	hoverPolyEdge = nil
 	if not active then
 		if WG.StartPosTool then WG.StartPosTool.hoveringDraggable = false end
 		return
@@ -2046,12 +2155,17 @@ function widget:Update()
 				local ebi, edge = findNearestBoxEdge(wx, wz)
 				if ebi and edge then
 					hoverBoxEdge = { bi = ebi, edge = edge }
+				else
+					local pbi, pei, pmx, pmz = findNearestPolygonEdgeMid(wx, wz)
+					if pbi and pei then
+						hoverPolyEdge = { bi = pbi, edgeIdx = pei, x = pmx, z = pmz }
+					end
 				end
 			end
 		end
 	end
 
-	local shouldMove = (hoverPosIdx ~= nil) or (hoverVertIdx ~= nil) or (hoverBoxEdge ~= nil)
+	local shouldMove = (hoverPosIdx ~= nil) or (hoverVertIdx ~= nil) or (hoverBoxEdge ~= nil) or (hoverPolyEdge ~= nil)
 	if WG.StartPosTool then WG.StartPosTool.hoveringDraggable = shouldMove end
 end
 
@@ -2252,6 +2366,20 @@ function widget:DrawWorld()
 						outlineTip(-1)
 					end
 				end
+				-- Corner handles for box-kind: draggable to resize from a corner (rect stays
+				-- axis-aligned via the MouseMove drag handler).
+				for vi, v in ipairs(verts) do
+					local vy = GetGroundHeight(v.x, v.z) or 0
+					local isHoverVert = (hoverBoxIdx == bi and hoverVertIdx == vi)
+					local vertR = isHoverVert and 40 or 26
+					glColor(color[1], color[2], color[3], isHoverVert and 1.0 or 0.9)
+					glDrawGroundCircle(v.x, vy, v.z, vertR, 14)
+					if isHoverVert then
+						glColor(1, 1, 1, 0.6)
+						glLineWidth(2.0)
+						glDrawGroundCircle(v.x, vy, v.z, vertR * 1.4, 18)
+					end
+				end
 			else
 				local handles = (box.kind == "spline" and box.controls) or verts
 				for vi, v in ipairs(handles) do
@@ -2265,6 +2393,18 @@ function widget:DrawWorld()
 						glLineWidth(2.0)
 						glDrawGroundCircle(v.x, vy, v.z, vertR * 1.4, 18)
 					end
+				end
+				-- Polygon / spline edge-midpoint ghost handle: faint circle at the edge midpoint
+				-- under the cursor; clicking it inserts a new vertex / control point there and
+				-- starts a drag (spline retessellates on each move).
+				if hoverPolyEdge and hoverPolyEdge.bi == bi then
+					local gmx, gmz = hoverPolyEdge.x, hoverPolyEdge.z
+					local gy = GetGroundHeight(gmx, gmz) or 0
+					glColor(color[1], color[2], color[3], 0.55)
+					glDrawGroundCircle(gmx, gy, gmz, 28, 14)
+					glColor(1, 1, 1, 0.55)
+					glLineWidth(1.5)
+					glDrawGroundCircle(gmx, gy, gmz, 36, 18)
 				end
 				-- Spline: show the control polygon as a faint closed polyline so the user sees
 				-- the handle skeleton behind the smoothed curve.
