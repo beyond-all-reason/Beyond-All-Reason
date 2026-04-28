@@ -212,9 +212,11 @@ function M.sync(doc, ctx, stpState, setSummary)
 		if doc then
 			local sbxMode = stpState.startboxMode or "polygon"
 			local inStartbox = stpState.subMode == "startbox"
-			local sbxRow  = doc:GetElementById("sp-startbox-mode-row")
-			-- Always show the row (under Express/Shape); grey out when Shape isn't active.
-			if sbxRow then sbxRow:SetClass("hidden", false) end
+			-- Sync data-model flags driving data-if visibility
+			if widgetState.dmHandle then
+				widgetState.dmHandle.stpSubMode = stpState.subMode or ""
+				widgetState.dmHandle.stpStartboxMode = sbxMode
+			end
 			local boxBtn  = doc:GetElementById("btn-sp-sbx-box")
 			local polyBtn = doc:GetElementById("btn-sp-sbx-polygon")
 			local freeBtn = doc:GetElementById("btn-sp-sbx-freedraw")
@@ -230,31 +232,12 @@ function M.sync(doc, ctx, stpState, setSummary)
 				freeBtn:SetClass("active",   inStartbox and sbxMode == "freedraw")
 				freeBtn:SetClass("disabled", not inStartbox)
 			end
-			-- Swap contextual hint text (only meaningful when Shape/startbox active)
-			local hBox  = doc:GetElementById("sp-sbx-hint-box")
-			local hPoly = doc:GetElementById("sp-sbx-hint-polygon")
-			local hFree = doc:GetElementById("sp-sbx-hint-freedraw")
-			if hBox  then hBox:SetClass("hidden",  not inStartbox or sbxMode ~= "box") end
-			if hPoly then hPoly:SetClass("hidden", not inStartbox or sbxMode ~= "polygon") end
-			if hFree then hFree:SetClass("hidden", not inStartbox or sbxMode ~= "freedraw") end
+			-- Contextual hint visibility now driven by data-if on the elements.
 		end
 
-		-- Show/hide shape options and shape row (only in shape mode)
-		local isShapeMode = stpState.subMode == "shape"
-		if widgetState.stpShapeOptionsEl then
-			widgetState.stpShapeOptionsEl:SetClass("hidden", not isShapeMode)
-		end
-		if widgetState.stpShapeRowEl then
-			widgetState.stpShapeRowEl:SetClass("hidden", not isShapeMode)
-		end
-
-		-- Show/hide hint text based on sub-mode
-		if widgetState.stpExpressHintEl then
-			widgetState.stpExpressHintEl:SetClass("hidden", stpState.subMode ~= "express")
-		end
-		if widgetState.stpStartboxHintEl then
-			widgetState.stpStartboxHintEl:SetClass("hidden", stpState.subMode ~= "startbox")
-		end
+		-- Visibility for sp-shape-options, sp-shape-row, sp-express-hint, sp-startbox-hint
+		-- is driven by data-if="stpSubMode == ..." against widgetState.dmHandle.stpSubMode
+		-- (synced above). No imperative SetClass needed here.
 
 		-- Update labels
 		local allyLabel = doc and doc:GetElementById("sp-allyteams-label")

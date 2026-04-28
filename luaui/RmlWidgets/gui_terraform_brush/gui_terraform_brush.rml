@@ -142,7 +142,7 @@
 				</div>
 			</div>
 			<!-- Startbox placement-mode picker (only visible in startbox submode). Same styling as main submode row. -->
-			<div id="sp-startbox-mode-row" class="flex flex-row gap-1 mb-1 hidden">
+			<div id="sp-startbox-mode-row" class="flex flex-row gap-1 mb-1">
 				<div id="btn-sp-sbx-box" class="tf-mode-btn tf-sp-btn-sbx-box" onclick="widget:spSetStartboxMode('box'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_square.png" />
 					<div class="tf-btn-text">Box</div>
@@ -283,7 +283,7 @@
 			</div>
 
 			<!-- Shape Count (for shape mode) -->
-			<div id="sp-shape-options" class="hidden">
+			<div id="sp-shape-options" data-if="stpSubMode == 'shape'">
 				<div class="flex flex-row items-center mb-1">
 					<div class="text-lg text-light font-bold">Positions</div>
 					<div id="sp-count-label" class="text-lg text-light">4</div>
@@ -346,7 +346,7 @@
 			</div>
 
 			<!-- Shape selector -->
-			<div id="sp-shape-row" class="hidden">
+			<div id="sp-shape-row" data-if="stpSubMode == 'shape'">
 				<div class="text-lg text-light font-bold mb-1">SHAPE</div>
 				<div class="flex flex-row gap-1 mb-1">
 					<div id="btn-sp-shape-circle" class="tf-mode-btn" onclick="widget:spSetShape('circle'); event:StopPropagation()">
@@ -370,13 +370,13 @@
 			</div>
 
 			<!-- Express mode hint -->
-			<div id="sp-express-hint">
+			<div id="sp-express-hint" data-if="stpSubMode == 'express'">
 			</div>
 			<!-- Startbox mode hint -->
-			<div id="sp-startbox-hint" class="hidden">
-				<div id="sp-sbx-hint-box" class="text-sm text-keybind mb-1 hidden">LMB drag: rectangle &amp;middot; RMB: remove last box &amp;middot; Drag vertices to reshape</div>
-				<div id="sp-sbx-hint-polygon" class="text-sm text-keybind mb-1">LMB: add vertex &amp;middot; RMB: finish box &amp;middot; Drag vertices to move</div>
-				<div id="sp-sbx-hint-freedraw" class="text-sm text-keybind mb-1 hidden">LMB drag: free-draw (smoothed) &amp;middot; RMB: cancel &amp;middot; Drag vertices to tweak</div>
+			<div id="sp-startbox-hint" data-if="stpSubMode == 'startbox'">
+				<div id="sp-sbx-hint-box" class="text-sm text-keybind mb-1" data-if="stpStartboxMode == 'box'">LMB drag: rectangle &amp;middot; RMB: remove last box &amp;middot; Drag vertices to reshape</div>
+				<div id="sp-sbx-hint-polygon" class="text-sm text-keybind mb-1" data-if="stpStartboxMode == 'polygon'">LMB: add vertex &amp;middot; RMB: finish box &amp;middot; Drag vertices to move</div>
+				<div id="sp-sbx-hint-freedraw" class="text-sm text-keybind mb-1" data-if="stpStartboxMode == 'freedraw'">LMB drag: free-draw (smoothed) &amp;middot; RMB: cancel &amp;middot; Drag vertices to tweak</div>
 			</div>
 
 			<!-- Action buttons -->
@@ -2970,7 +2970,7 @@
 			<img id="img-toggle-sp-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 			<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
 			<div id="warn-chip-sp-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
-			<div id="sp-display-notify-dot" class="tf-notify-dot hidden"></div>
+			<div id="sp-display-notify-dot" class="tf-notify-dot" data-if="spDisplayHintVisible"></div>
 		</div>
 		<div id="section-sp-overlays" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
@@ -3009,7 +3009,7 @@
 				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 			</div>
 		</div>
-		<div id="sp-grid-snap-size-row" class="tf-instrument-sub hidden mb-1">
+		<div id="sp-grid-snap-size-row" class="tf-instrument-sub mb-1" data-if="spGridSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
 				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold" id="sp-grid-snap-size-label">48</span></div>
 			</div>
@@ -3024,7 +3024,7 @@
 				<input type="text" id="sp-slider-grid-snap-size-numbox" class="tf-slider-numbox" readonly value="48" />
 			</div>
 		</div>
-		<div id="sp-angle-snap-step-row" class="tf-instrument-sub hidden mb-1">
+		<div id="sp-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="spAngleSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
 				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="sp-angle-snap-step-label">15</span>&#176;</div>
 			</div>
@@ -3042,7 +3042,7 @@
 				<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold" id="sp-angle-manual-spoke-label">0</span>&#176;</div>
 				<div id="sp-btn-angle-autosnap" class="tf-inline-chip" style="margin-left: 4dp;" onclick="widget:splatToggleAutoSnap(); event:StopPropagation()">Auto-Snap</div>
 			</div>
-			<div id="sp-angle-manual-spoke-row" class="hidden mb-1">
+			<div id="sp-angle-manual-spoke-row" class="mb-1" data-if="!spAngleSnapAuto">
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="sp-btn-manual-spoke-down" class="tf-sm-btn" onclick="widget:splatManualSpokeStep(-1); event:StopPropagation()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
@@ -3054,7 +3054,7 @@
 				</div>
 			</div>
 		</div>
-		<div id="sp-measure-toolbar-row" class="tf-instrument-sub hidden mb-1">
+		<div id="sp-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="spMeasureActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="sp-btn-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:splatMeasureShowLength(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
@@ -3064,7 +3064,7 @@
 				</div>
 			</div>
 		</div>
-		<div id="sp-symmetry-toolbar-row" class="tf-instrument-sub hidden mb-1">
+		<div id="sp-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="spSymmetryActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="sp-btn-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:splatToggleSymRadial(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
@@ -3076,7 +3076,7 @@
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 				</div>
 			</div>
-			<div id="sp-symmetry-radial-count-row" class="hidden mb-1">
+			<div id="sp-symmetry-radial-count-row" class="mb-1" data-if="spSymmetryRadial">
 				<div class="flex flex-row justify-between items-center mb-1">
 					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="sp-symmetry-radial-count-label">2</span></div>
 				</div>
@@ -3090,7 +3090,7 @@
 					</div>
 				</div>
 			</div>
-			<div id="sp-symmetry-mirror-angle-row" class="hidden mb-1">
+			<div id="sp-symmetry-mirror-angle-row" class="mb-1" data-if="spSymmetryMirrorAny">
 				<div class="flex flex-row justify-between items-center mb-1">
 					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="sp-symmetry-mirror-angle-label">0</span>&#176;</div>
 				</div>
@@ -3150,7 +3150,7 @@
 				<div class="tf-overlay-chip-label">Prefer Slopes</div>
 			</div>
 		</div>
-		<div id="sp-smart-slope-max-row" class="flex flex-row items-center mb-1">
+		<div id="sp-smart-slope-max-row" class="flex flex-row items-center mb-1" data-if="spAvoidCliffs">
 			<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="sp-smart-slope-max-label">45</span>&#176;</div>
 			<div id="sp-slider-slope-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="sp-slider-slope-max-transport" class="tf-transport-group hidden">
@@ -3159,7 +3159,7 @@
 				<div id="sp-slider-slope-max-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 			</div>
 		</div>
-		<div id="sp-smart-slope-max-slider-row" class="flex flex-row gap-1 items-center mb-1">
+		<div id="sp-smart-slope-max-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="spAvoidCliffs">
 			<div id="btn-sp-slope-max-down" class="tf-sm-btn" onclick="widget:splatSmartStep('slopeMax', -1); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
@@ -3170,7 +3170,7 @@
 			<input type="text" id="sp-slider-slope-max-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 
-		<div id="sp-smart-slope-min-row" class="hidden flex flex-row items-center mb-1">
+		<div id="sp-smart-slope-min-row" class="flex flex-row items-center mb-1" data-if="spPreferSlopes">
 			<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="sp-smart-slope-min-label">10</span>&#176;</div>
 			<div id="sp-slider-slope-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="sp-slider-slope-min-transport" class="tf-transport-group hidden">
@@ -3179,7 +3179,7 @@
 				<div id="sp-slider-slope-min-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 			</div>
 		</div>
-		<div id="sp-smart-slope-min-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
+		<div id="sp-smart-slope-min-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="spPreferSlopes">
 			<div id="btn-sp-slope-min-down" class="tf-sm-btn" onclick="widget:splatSmartStep('slopeMin', -1); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
@@ -3204,7 +3204,7 @@
 				<div id="sp-slider-alt-min-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 			</div>
 		</div>
-		<div id="sp-smart-alt-min-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
+		<div id="sp-smart-alt-min-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="spAltMinEnable">
 			<div id="btn-sp-alt-min-down" class="tf-sm-btn" onclick="widget:splatSmartStep('altMin', -10); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
@@ -3226,7 +3226,7 @@
 				<div id="sp-slider-alt-max-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 			</div>
 		</div>
-		<div id="sp-smart-alt-max-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
+		<div id="sp-smart-alt-max-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="spAltMaxEnable">
 			<div id="btn-sp-alt-max-down" class="tf-sm-btn" onclick="widget:splatSmartStep('altMax', -10); event:StopPropagation()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
@@ -5634,7 +5634,7 @@
 	</div>
 
 	<!-- ============ NOISE PARAMETERS (separate floating window) ============ -->
-	<div id="tf-noise-root" class="tf-noise-root hidden widget-shadow rounded-md bg-darkest p-2-5">
+	<div id="tf-noise-root" class="tf-noise-root widget-shadow rounded-md bg-darkest p-2-5" data-if="noiseWindowVisible">
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div id="tf-noise-handle" class="tf-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Noise Parameters</div>
 			<div id="btn-noise-close" class="tf-quit-btn" onclick="widget:noClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
