@@ -814,6 +814,22 @@ local initialModel = {
 	mbClusterOpen = false,
 	mbLassoOpen = false,
 	mbAxisOpen = false,
+	-- grass brush instruments (data-if sub-rows)
+	gbGridSnap = false,
+	gbAngleSnap = false,
+	gbMeasureActive = false,
+	gbSymmetryActive = false,
+	gbSymmetryRadial = false,
+	gbSymmetryMirrorAny = false,
+	gbAngleSnapAuto = false,
+	-- grass brush smart filter visibility (data-if sub-rows)
+	gbSlopeActive = false,
+	gbAvoidCliffs = false,
+	gbPreferSlopes = false,
+	gbAltActive = false,
+	gbAltMinEnable = false,
+	gbAltMaxEnable = false,
+	gbColorOpen = false,
 }
 
 local shapeNames = {
@@ -2544,7 +2560,7 @@ local function attachDeclarativeHandlers(ctx)
 		clearPassthrough()
 		if not WG.MetalBrush then return end
 		deactivateAllTools()
-		WG.MetalBrush.activate("paint")
+		WG.MetalBrush.activate("stamp")
 		local doc = widgetState.document
 		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
 		if clayBtn then clayBtn:SetClass("unavailable", true) end

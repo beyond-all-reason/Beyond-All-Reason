@@ -1354,6 +1354,16 @@ function widget:DrawWorld()
 			worldX, worldZ = tb.getUnmouseTarget(brushRadius, brushLengthScale or 1.0)
 		end
 	end
+	-- Apply visual grid snap so cursor position matches where paint will land
+	if worldX then
+		local tb = WG.TerraformBrush
+		if tb and tb.snapWorld and tb.getState then
+			local tbs = tb.getState()
+			if tbs and tbs.gridSnap then
+				worldX, worldZ = tb.snapWorld(worldX, worldZ, brushRotation)
+			end
+		end
+	end
 	if not worldX then return end
 
 	-- Smart filter / texture filter overlay

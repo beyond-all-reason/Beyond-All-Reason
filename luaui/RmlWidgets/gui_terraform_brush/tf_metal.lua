@@ -574,7 +574,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 
 	-- P3.2 Metal grayouts (per Phase 3 relevance matrix)
 	if doc and tfSt then
-		local sm = mbState.subMode or "paint"
+		local sm = mbState.subMode or "stamp"
 		local circular = (tfSt.shape == "circle")
 		local nonStamp = (sm ~= "stamp")
 		-- Rotation: stamp mode AND non-circular shape

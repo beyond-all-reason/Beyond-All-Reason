@@ -586,17 +586,7 @@ function M.attach(doc, ctx)
 				wireMutexChipPair("gb-slope-mode-avoid",  "avoidCliffs",
 				                  "gb-slope-mode-prefer", "preferSlopes", getGB)
 			end
-			do
-				local colorChip = doc:GetElementById("btn-gb-pill-color")
-				if colorChip then
-					colorChip:AddEventListener("click", function()
-						if WG.GrassBrush then
-							local on = WG.GrassBrush.getState().texFilterEnabled
-							WG.GrassBrush.setTexFilterEnabled(not on)
-						end
-					end)
-				end
-			end
+			-- btn-gb-pill-color click handled by inline onclick="widget:gbColorToggle()" in RML
 		end
 		envSectionToggle("btn-toggle-wb-undo",         "img-toggle-wb-undo",         "section-wb-undo",         false)
 		envSectionToggle("btn-toggle-wb-overlays",     "img-toggle-wb-overlays",     "section-wb-overlays",     false)
