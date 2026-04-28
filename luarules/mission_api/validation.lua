@@ -124,7 +124,7 @@ validators[Types.AllyTeamNames] = function(allyTeamNames)
 
 		local result = {}
 		for i, allyTeamName in pairs(allyTeamNames) do
-			local fieldResult = validateField(allyTeamName, "allyTeamName #" .. i, 'number')
+			local fieldResult = validateField(allyTeamName, "allyTeamName #" .. i, 'string')
 			if fieldResult then
 				result[#result + 1] = fieldResult
 			elseif not GG['MissionAPI'].AllyTeams[allyTeamName] then
@@ -561,10 +561,10 @@ local function validateUnitLoadoutEntry(entry, index, context)
 		logError(prefix .. ", " .. positionError.message .. (positionError.parameterNameSuffix or ""))
 	end
 
-	if entry.team == nil then
-		logError(prefix .. ": missing required field 'team'")
+	if entry.teamName == nil then
+		logError(prefix .. ": missing required field 'teamName'")
 	else
-		local teamResult = validators[Types.TeamID](entry.team)
+		local teamResult = validators[Types.TeamName](entry.teamName)
 		if teamResult and not table.isEmpty(teamResult) then
 			logError(prefix .. ", field 'team': " .. (teamResult[1] and teamResult[1].message or "invalid"))
 		end

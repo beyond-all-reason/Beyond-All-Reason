@@ -28,7 +28,8 @@ local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpac
 end
 
 local function spawnUnit(unit, pos)
-	local unitID = Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, unit.facing or 's', unit.team, unit.construction)
+	local teamID = GG['MissionAPI'].Teams[unit.teamName]
+	local unitID = Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, unit.facing or 's', teamID, unit.construction)
 	if unitID and unit.neutral then
 		Spring.SetUnitNeutral(unitID, true)
 	end

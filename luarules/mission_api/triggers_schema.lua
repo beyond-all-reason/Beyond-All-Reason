@@ -390,9 +390,9 @@ local parameters = {
 	-- Resources
 	[triggerTypes.ResourceStored] = {
 		[1] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = true,
-			type = Types.TeamID,
+			type = Types.TeamName,
 		},
 		[2] = {
 			name = 'metal',
@@ -408,9 +408,9 @@ local parameters = {
 	},
 	[triggerTypes.ResourceIncome] = {
 		[1] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = true,
-			type = Types.TeamID,
+			type = Types.TeamName,
 		},
 		[2] = {
 			name = 'metal',
@@ -433,9 +433,9 @@ local parameters = {
 	},
 	[triggerTypes.ResourcePull] = {
 		[1] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = true,
-			type = Types.TeamID,
+			type = Types.TeamName,
 		},
 		[2] = {
 			name = 'metal',

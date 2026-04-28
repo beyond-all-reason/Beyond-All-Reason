@@ -249,20 +249,18 @@ local actions = {
 	spawnFriendlyBot = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'friendlyBot',
-			unitDefName = 'armwar',
-			teamName = 'thePlayerTeam',
-			position = { x = 1800, z = 1800 },
+			unitLoadout = {
+				{ unitDefName = 'armwar', x = 1800, z = 1800, teamName = 'thePlayerTeam', unitName = 'friendlyBot' },
+			},
 		},
 	},
 
 	spawnEnemyBot = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'enemyBot',
-			unitDefName = 'armpw',
-			teamName = 'theEnemyTeam',
-			position = { x = 1880, z = 1800 },
+			unitLoadout = {
+				{ unitDefName = 'armpw', x = 1880, z = 1800, teamName = 'theEnemyTeam', unitName = 'enemyBot' },
+			},
 		},
 	},
 
@@ -289,10 +287,9 @@ local actions = {
 	spawnCapturable = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'capturableSolar',
-			unitDefName = 'armsolar',
-			teamName = 'theEnemyTeam',
-			position = { x = 1800, z = 1950 },
+			unitLoadout = {
+				{ unitDefName = 'armsolar', x = 1800, z = 1950, teamName = 'theEnemyTeam', unitName = 'capturableSolar' },
+			},
 		},
 	},
 
@@ -309,21 +306,18 @@ local actions = {
 	spawnCapturer = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'capturer',
-			unitDefName = 'armdecom',
-			teamName = 'thePlayerTeam',
-			position = { x = 1900, z = 2000 },
+			unitLoadout = {
+				{ unitDefName = 'armdecom', x = 1900, z = 2000, teamName = 'thePlayerTeam', unitName = 'capturer' },
+			},
 		},
 	},
 
 	spawnConstructor = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'constructor',
-			unitDefName = 'armck',
-			teamName = 'thePlayerTeam',
-			position = { x = 1850, z = 2100 },
-			quantity = 4,
+			unitLoadout = {
+				{ unitDefName = 'armck', x = 1850, z = 2100, teamName = 'thePlayerTeam', unitName = 'constructor', quantity = 4 },
+			},
 		},
 	},
 

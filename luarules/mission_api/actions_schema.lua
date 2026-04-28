@@ -312,9 +312,9 @@ local parameters = {
 	-- Other
 	[actionTypes.AddResources] = {
 		[1] = {
-			name = 'teamID',
+			name = 'teamName',
 			required = true,
-			type = Types.TeamID,
+			type = Types.TeamName,
 		},
 		[2] = {
 			name = 'metal',

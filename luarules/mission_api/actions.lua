@@ -211,7 +211,8 @@ local function custom(func)
 	func()
 end
 
-local function addResources(teamID, metal, energy)
+local function addResources(teamName, metal, energy)
+	local teamID = GG['MissionAPI'].Teams[teamName]
 	if metal then
 		Spring.AddTeamResource(teamID, 'metal', metal)
 	end

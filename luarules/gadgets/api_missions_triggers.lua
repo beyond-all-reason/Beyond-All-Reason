@@ -393,17 +393,19 @@ local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
 
 local function checkTeamResources(trigger, resourceIndex)
-	if trigger.parameters.metal and select(resourceIndex, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
+	local teamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
+	if trigger.parameters.metal and select(resourceIndex, Spring.GetTeamResources(teamID, "metal")) < trigger.parameters.metal then
 		return
 	end
-	if trigger.parameters.energy and select(resourceIndex, Spring.GetTeamResources(trigger.parameters.teamID, "energy")) < trigger.parameters.energy then
+	if trigger.parameters.energy and select(resourceIndex, Spring.GetTeamResources(teamID, "energy")) < trigger.parameters.energy then
 		return
 	end
 
 	activateTrigger(trigger)
 end
 
-local function getTeamResourceIncomeForSources(teamID, resourceType, sources)
+local function getTeamResourceIncomeForSources(teamName, resourceType, sources)
+	local teamID = GG['MissionAPI'].Teams[teamName]
 	local extractorIncome  = 0
 	local reclaimIncome    = 0
 	local productionIncome = 0
@@ -447,10 +449,10 @@ local function checkResourceIncome(trigger)
 	end
 
 	-- Source-filtered income check (only meaningful for ResourceIncome triggers).
-	if trigger.parameters.metal and getTeamResourceIncomeForSources(trigger.parameters.teamID, "metal", sources) < trigger.parameters.metal then
+	if trigger.parameters.metal and getTeamResourceIncomeForSources(trigger.parameters.teamName, "metal", sources) < trigger.parameters.metal then
 		return
 	end
-	if trigger.parameters.energy and getTeamResourceIncomeForSources(trigger.parameters.teamID, "energy", sources) < trigger.parameters.energy then
+	if trigger.parameters.energy and getTeamResourceIncomeForSources(trigger.parameters.teamName, "energy", sources) < trigger.parameters.energy then
 		return
 	end
 
