@@ -532,9 +532,7 @@ function M.attach(doc, ctx)
 	w.lpLibrary = function(self)
 		playSound("panelOpen")
 		widgetState.lightLibraryOpen = not widgetState.lightLibraryOpen
-		if widgetState.lightLibraryRootEl then
-			widgetState.lightLibraryRootEl:SetClass("hidden", not widgetState.lightLibraryOpen)
-		end
+		if widgetState.dmHandle then widgetState.dmHandle.lpLibraryOpen = widgetState.lightLibraryOpen end
 		if widgetState.lightLibraryOpen then
 			populateBuiltinPresets()
 			if widgetState.lightLibraryTab == "user" then
@@ -588,8 +586,7 @@ function M.attach(doc, ctx)
 		local tabU = doc:GetElementById("btn-ll-tab-user")
 		if tabB then tabB:SetClass("active", true) end
 		if tabU then tabU:SetClass("active", false) end
-		if llBuiltinList then llBuiltinList:SetClass("hidden", false) end
-		if llUserList    then llUserList:SetClass("hidden", true) end
+		if widgetState.dmHandle then widgetState.dmHandle.lpLibraryTab = "builtin" end
 	end
 	w.llTabUser = function(self)
 		playSound("click")
@@ -598,16 +595,13 @@ function M.attach(doc, ctx)
 		local tabU = doc:GetElementById("btn-ll-tab-user")
 		if tabB then tabB:SetClass("active", false) end
 		if tabU then tabU:SetClass("active", true) end
-		if llBuiltinList then llBuiltinList:SetClass("hidden", true) end
-		if llUserList    then llUserList:SetClass("hidden", false) end
+		if widgetState.dmHandle then widgetState.dmHandle.lpLibraryTab = "user" end
 		populateUserPresets()
 	end
 	w.llClose = function(self)
 		playSound("click")
 		widgetState.lightLibraryOpen = false
-		if widgetState.lightLibraryRootEl then
-			widgetState.lightLibraryRootEl:SetClass("hidden", true)
-		end
+		if widgetState.dmHandle then widgetState.dmHandle.lpLibraryOpen = false end
 		if WG.LightPlacer and WG.LightPlacer.clearPendingPreset then
 			WG.LightPlacer.clearPendingPreset()
 		end
@@ -685,19 +679,12 @@ function M.sync(doc, ctx, lpState, setSummary)
 		end
 		-- Sync shape button active state to LightPlacer's shape
 		setActiveClass(widgetState.shapeButtons, lpState.shape)
-		-- Show/hide direction section for cone/beam
-		local dirSection = doc and doc:GetElementById("lp-direction-section")
-		if dirSection then dirSection:SetClass("hidden", lpState.lightType == "point") end
-		local thetaSection = doc and doc:GetElementById("lp-theta-section")
-		if thetaSection then thetaSection:SetClass("hidden", lpState.lightType ~= "cone") end
-		local beamSection = doc and doc:GetElementById("lp-beam-section")
-		if beamSection then beamSection:SetClass("hidden", lpState.lightType ~= "beam") end
-		-- Show/hide scatter section
-		local scatterSection = doc and doc:GetElementById("lp-scatter-section")
-		if scatterSection then scatterSection:SetClass("hidden", lpState.mode ~= "scatter") end
-		-- Show/hide distribution section (only visible for scatter)
-		local distSection = doc and doc:GetElementById("lp-distribution-section")
-		if distSection then distSection:SetClass("hidden", lpState.mode ~= "scatter") end
+		-- Show/hide direction/theta/beam/scatter sections via dm flags (data-if in RML)
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.lpLightType = lpState.lightType or "point"
+			dm.lpMode = lpState.mode or "place"
+		end
 		-- Gray out scatter + distribution for cone/beam (they only support single placement)
 		local directedLight = lpState.lightType == "cone" or lpState.lightType == "beam"
 		if directedLight and lpState.mode == "scatter" then

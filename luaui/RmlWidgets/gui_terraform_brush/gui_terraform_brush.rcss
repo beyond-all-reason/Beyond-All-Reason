@@ -1079,17 +1079,20 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background-color: #393942;
+	background-color: #34343d;
+	decorator: vertical-gradient(#4a4a56 #25252d);
 	border-radius: 4dp;
-	border: 1dp #50505a50;
+	border: 1dp #ffffff15;
 	cursor: pointer;
-	box-shadow: 0dp 1dp 2dp 0dp #00000030;
-	transition: background-color 0.15s, border-color 0.15s;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff20;
+	transition: background-color 0.1s, border-color 0.1s;
 }
 
 .tf-sm-btn:hover {
-	background-color: #4c4c58;
-	border-color: #7878909a;
+	background-color: #43434e;
+	decorator: vertical-gradient(#5e5e6c #303039);
+	border-color: #ffffff28;
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff35;
 }
 
 /* === Transport toggle pill â€” click to reveal the 3 transport buttons === */
@@ -2580,7 +2583,9 @@ body {
 
 .tf-env-btn:active {
 	background-color: #24242c;
-}
+}1e1e25;
+	decorator: vertical-gradient(#1e1e25 #2c2c35);
+	box-shadow: inset 0dp 2dp 4dp 0dp #00000080
 
 .tf-sm-btn:active {
 	background-color: #2a2a32;
