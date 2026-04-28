@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "tangzx.emmylua",
+    "JohnnyMorganz.stylua",
+    "llvm-vs-code-extensions.vscode-clangd"
+  ],
+  "unwantedRecommendations": [
+    "sumneko.lua"
+  ]
+}
