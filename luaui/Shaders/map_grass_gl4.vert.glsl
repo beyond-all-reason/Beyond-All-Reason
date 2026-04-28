@@ -1,4 +1,5 @@
 #version 420
+#extension GL_ARB_shader_storage_buffer_object : require
 #line 10000
 
 // This shader is Copyright (c) 2024 Beherith (mysterme@gmail.com) and licensed under the MIT License
@@ -46,6 +47,13 @@ uniform sampler2DShadow shadowTex;
 uniform sampler2D losTex;
 uniform sampler2D heightmapTex;
 
+#if UNITBENDENABLED == 1
+layout(std430, binding = 6) readonly buffer UnitBendBuffer {
+    vec4 unitBendPositions[]; // xy = worldX/worldZ, z = radius, w = unused
+};
+uniform int unitBendCount;
+#endif
+
 out DataVS {
 	//vec3 worldPos;
   //vec3 Normal;
@@ -76,6 +84,12 @@ void main() {
     return;
   }
 
+  // Early bail zero-size instances
+  if (instancePosRotSize.w <= 0.0) {
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+    return;
+  }
+
   vec3 grassVertWorldPos = vertexPos * instancePosRotSize.w; // scale it
   mat3 rotY = rotation3dY(instancePosRotSize.y); // poor mans random rotate
 
@@ -85,9 +99,9 @@ void main() {
     debuginfo.xyz = rotY*vertexNormal;
   #endif
   //--- Heightmap sampling
-  vec2 ts = vec2(textureSize(heightmapTex, 0));
-  vec2 uvHM =   vec2(clamp(grassVertWorldPos.x,8.0,mapSize.x-8.0),clamp(grassVertWorldPos.z,8.0, mapSize.y-8.0))/ mapSize.xy; // this proves to be an actually useable heightmap i think.
-  grassVertWorldPos.y = (vertexPos.y +0.5) *instancePosRotSize.w + textureLod(heightmapTex, uvHM, 0.0).x;
+  vec2 uvHM = vec2(clamp(grassVertWorldPos.x,8.0,mapSize.x-8.0),clamp(grassVertWorldPos.z,8.0, mapSize.y-8.0)) / mapSize.xy;
+  float groundHeight = textureLod(heightmapTex, uvHM, 0.0).x;
+  grassVertWorldPos.y = (vertexPos.y + 0.5) * instancePosRotSize.w + groundHeight;
 
   //--- LOS tex
   vec4 losTexSample = texture(losTex, vec2(grassVertWorldPos.x / mapSize.z, grassVertWorldPos.z / mapSize.w)); // lostex is PO2
@@ -131,8 +145,6 @@ void main() {
   //Shade the patches to be darker when 'flattened' by noise
   float shadeamount = grassNoise.y *2.0; //0-1
   shadeamount = (shadeamount -0.66) *3.0;
-  grassNoise.y *2.0;
-
 
   grassNoise.y = grassNoise.y -0.4;
 
@@ -141,12 +153,47 @@ void main() {
   grassVertWorldPos = grassVertWorldPos.xyz +  grassNoise.rgb * vertexPos.y * instancePosRotSize.w * WINDSTRENGTH * grassuniforms.z; // wind is a factor of
 
 
-  //--- FOG ----
+  //--- UNIT BENDING ---
+  #if UNITBENDENABLED == 1
+  {
+    vec2 totalBend = vec2(0.0);
+    float maxShrink = 0.0;
+    for (int i = 0; i < unitBendCount; i++) {
+      vec4 unit = unitBendPositions[i]; // xy = worldXZ, z = radius, w = strength
+      vec2 diff = instancePosRotSize.xz - unit.xy;
+      float distSq = dot(diff, diff);
+      float radius = unit.z;
+      float radiusSq = radius * radius;
+      if (distSq < radiusSq && distSq > 0.0001) {
+        float dist = sqrt(distSq);
+        float t = 1.0 - dist / radius;
+        float strength = pow(t, UNITBENDFALLOFF) * unit.w;
+        totalBend += (diff / dist) * strength;
+        maxShrink = max(maxShrink, strength);
+      }
+    }
+    // Shrink grass near units to reduce poking through models
+    float shrinkScale = 1.0 - clamp(maxShrink, 0.0, 1.0) * UNITBENDSHRINK;
+    grassVertWorldPos.y = (grassVertWorldPos.y - groundHeight) * shrinkScale + groundHeight;
 
-  float fogDist = length((cameraView * vec4(grassVertWorldPos,1.0)).xyz);
-  float fogFactor = (fogParams.y - fogDist) * fogParams.w;
-  mapColor.a = smoothstep(0.0,1.0,fogFactor);
-  mapColor.a = 1.0; // DEBUG FOR NOW AS FOG IS BORKED
+    float bendLen = length(totalBend);
+    if (bendLen > 0.001) {
+      // Clamp magnitude to prevent over-bending from overlapping sources
+      float clampedBend = min(bendLen, 1.0);
+      vec2 bendDir = totalBend / bendLen;
+      // Convert to rotation angle (0 to ~80 degrees) to preserve blade length
+      float bendAngle = clampedBend * UNITBENDSTRENGTH * 0.175;
+      float heightFromBase = max(0.0, vertexPos.y + 0.5) * instancePosRotSize.w;
+      // Rotate blade outward: sin for horizontal displacement, 1-cos for height reduction
+      grassVertWorldPos.xz += bendDir * sin(bendAngle) * heightFromBase;
+      grassVertWorldPos.y -= heightFromBase * (1.0 - cos(bendAngle));
+    }
+  }
+  #endif
+
+
+  //--- FOG ----
+  mapColor.a = 1.0; // FOG DISABLED FOR NOW
 
   //--- DISTANCE FADE ---
   vec4 camPos = cameraViewInv[3];

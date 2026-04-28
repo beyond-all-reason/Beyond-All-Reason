@@ -19,6 +19,8 @@ end
 local mathFloor = math.floor
 local mathMax = math.max
 local tableInsert = table.insert
+local tableSort = table.sort
+local tableSortStable = table.sortStable
 
 -- Localized Spring API for performance
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -206,6 +208,13 @@ local shieldsRework = not Spring.GetModOptions().experimentalshields:find("bounc
 local targetableTypes = {
 	[1] = "nuclear missiles",
 }
+
+-- Only groups 0 [always active] and 1 [primary weapon set] are aggregated.
+-- Others might be checked for abilities still, e.g. antinuke interceptors.
+local weaponGroupNumbers = table.new(#WeaponDefs, 1) -- defID [0] is hashed
+for weaponDefID = 0, #WeaponDefs do
+	weaponGroupNumbers[weaponDefID] = tonumber(WeaponDefs[weaponDefID].customParams.weapons_group or -1) or -1
+end
 
 ------------------------------------------------------------------------------------
 -- Functions
@@ -683,15 +692,18 @@ local function computeContent(uDefID, uID, shiftBool)
 	local weaponNums = {}
 	for i = 1, #uWeps do
 		local wDefID = uWeps[i].weaponDef
-		local wCount = wepCounts[wDefID]
-		if wCount then
-			wepCounts[wDefID] = wCount + 1
-		else
-			wepCounts[wDefID] = 1
-			wepsCompact[#wepsCompact + 1] = wDefID
-			weaponNums[#wepsCompact] = i
+		if weaponGroupNumbers[wDefID] >= 0 then
+			local wCount = wepCounts[wDefID]
+			if wCount then
+				wepCounts[wDefID] = wCount + 1
+			else
+				wepCounts[wDefID] = 1
+				wepsCompact[#wepsCompact + 1] = wDefID
+				weaponNums[#wepsCompact] = i
+			end
 		end
 	end
+	tableSortStable(wepsCompact, function(a, b) return weaponGroupNumbers[a] < weaponGroupNumbers[b] end)
 
 	local selfDWeaponID = WeaponDefNames[uDef.selfDExplosion].id
 	local deathWeaponID = WeaponDefNames[uDef.deathExplosion].id
@@ -709,6 +721,7 @@ local function computeContent(uDefID, uID, shiftBool)
 		wepsCompact[selfDWeaponIndex] = selfDWeaponID
 	end
 
+	local groupLast = wepsCompact[1] and weaponGroupNumbers[wepsCompact[1]]
 	local totaldps = 0
 	local totalbDamages = 0
 	local useExp = true
@@ -750,7 +763,7 @@ local function computeContent(uDefID, uID, shiftBool)
 			baseArmorDamage = baseArmorDamage + cmDamage * cmNumber
 		end
 
-		if range > 0 then
+		if range > 0 and uWep.customParams.bogus ~= "1" then
 			local oRld = max(0.00000000001, uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
 			if uID and useExp and not ((uWep.stockpile and uWep.stockpileTime)) then
 				oRld = spGetUnitWeaponState(uID, weaponNums[i] or -1, "reloadTimeXP") or
@@ -817,7 +830,7 @@ local function computeContent(uDefID, uID, shiftBool)
 					end
 				end
 				DrawText(texts.intercepts..":", table.concat(intercepts, "; ")..white..".")
-			elseif baseArmorDamage > 0 and not uWep.customParams.bogus then
+			elseif baseArmorDamage > 0 then
 				local damageString = ""
 				local burstDamage = baseArmorDamage * burst
 				if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
@@ -858,7 +871,7 @@ local function computeContent(uDefID, uID, shiftBool)
 						tableInsert(sorted, k)
 					end
 				end
-				table.sort(sorted, descending)
+				tableSort(sorted, descending)
 
 				local modifierText = { ("default = %s%d%%"):format(yellow, floor(100 * damages[defaultArmorIndex] / baseArmorDamage)) }
 				for _, armorDamage in ipairs(sorted) do
@@ -880,12 +893,20 @@ local function computeContent(uDefID, uID, shiftBool)
 
 
 			cY = cY - fontSize
-		end
-	end
 
-	if totaldps > 0 then
-		DrawText(texts.totaldmg..':', texts.dps.." = "..(format(yellow .. "%d", totaldps))..white..'; '..texts.burst.." = "..(format(yellow .. "%d", totalbDamages))..white..".")
-		cY = cY - fontSize
+			local wDefIdNext = wepsCompact[i + 1]
+			local groupNext = wDefIdNext and weaponGroupNumbers[wDefIdNext] -- nil for death explosions
+
+			if groupLast ~= groupNext and not (groupLast == 0 and groupNext == 1) then
+				groupLast = groupNext
+				if totaldps > 0 then
+					DrawText(texts.totaldmg..':', texts.dps.." = "..(format(yellow .. "%d", totaldps))..white..'; '..texts.burst.." = "..(format(yellow .. "%d", totalbDamages))..white..".")
+				end
+				totaldps = 0
+				totalbDamages = 0
+				cY = cY - fontSize
+			end
+		end
 	end
 
 	-- Cache computation results

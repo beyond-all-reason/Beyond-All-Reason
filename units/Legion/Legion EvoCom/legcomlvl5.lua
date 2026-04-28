@@ -256,6 +256,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 999,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 50,
 				},
@@ -293,6 +296,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 425,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					-- commanders = 375,
 					default = 250, --278.4375,
@@ -334,6 +340,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 250,
 				},
@@ -371,6 +380,10 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,

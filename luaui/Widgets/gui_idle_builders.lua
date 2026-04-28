@@ -673,6 +673,7 @@ local function Update()
 end
 
 function widget:DrawScreen()
+	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	if not spec or showWhenSpec then
 		Update()
 		if doUpdate or doUpdateForce then

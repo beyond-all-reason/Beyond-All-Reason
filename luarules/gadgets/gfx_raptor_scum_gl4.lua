@@ -81,10 +81,10 @@ if gadgetHandler:IsSyncedCode() then
 			raptor_turret_antinuke_t2_v1 = {radius = 400, growthrate = 0.2},
 			raptor_turret_meteor_t4_v1 = {radius = 800, growthrate = 0.8},
 
-			scavbeacon_t1_scav = {radius = 740, growthrate = 0.74},
-			scavbeacon_t2_scav = {radius = 880, growthrate = 0.88},
+			scavbeacon_t1_scav = {radius = 600, growthrate = 0.74},
+			scavbeacon_t2_scav = {radius = 800, growthrate = 0.88},
 			scavbeacon_t3_scav = {radius = 1000, growthrate = 1},
-			scavbeacon_t4_scav = {radius = 1360, growthrate = 1.36},
+			scavbeacon_t4_scav = {radius = 1200, growthrate = 1.36},
 		}
 		for unitDefName, scumParams in pairs(scumGenerators) do
 			if UnitDefNames[unitDefName] then
@@ -106,7 +106,11 @@ if gadgetHandler:IsSyncedCode() then
 		}
 		for unitDefID, unitDef in pairs(UnitDefs) do
 			if unitDef.customParams.isscavenger and not scumSpawnerExclusions[unitDef.name] and not unitDef.canMove and not string.find(unitDef.name, "lootbox") and not scumSpawnerIDs[unitDefID] and not unitDef.customParams.objectify and not unitDef.canCloak then
-				scumSpawnerIDs[unitDefID] = {radius = 600, growthrate = 1.2}
+				if unitDef.xsize and unitDef.zsize then
+					scumSpawnerIDs[unitDefID] = {radius = math.min(600, math.max(150, unitDef.xsize*unitDef.zsize*10)), growthrate = 1.2}
+				else
+					scumSpawnerIDs[unitDefID] = {radius = math.random(150,400), growthrate = 1.2}
+				end
 			end
 		end
 

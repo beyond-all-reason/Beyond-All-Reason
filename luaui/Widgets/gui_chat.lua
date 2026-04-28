@@ -493,6 +493,8 @@ local autocompleteCommands = {
 	'defrange enemy air',
 	'defrange enemy nuke',
 	'defrange enemy ground',
+	'set_camera_anchor',
+	'focus_camera_anchor',
 }
 
 local playernames = {}
@@ -792,6 +794,35 @@ local function cancelChatInput()
 	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	-- non handler = true: widgetHandler:DisownText()
 	updateDrawUi = true
+end
+
+local function ensureInputHistoryDraft()
+	if #inputHistory == 0 or inputHistory[#inputHistory] ~= '' then
+		inputHistory[#inputHistory + 1] = ''
+	end
+	inputHistoryCurrent = #inputHistory
+end
+
+local function commitInputHistory(text)
+	if not text or text == '' then
+		ensureInputHistoryDraft()
+		return
+	end
+
+	if #inputHistory > 0 and inputHistory[#inputHistory] == '' then
+		table.remove(inputHistory, #inputHistory)
+	end
+
+	for i = #inputHistory, 1, -1 do
+		if inputHistory[i] == text then
+			table.remove(inputHistory, i)
+			break
+		end
+	end
+
+	inputHistory[#inputHistory + 1] = text
+	inputHistory[#inputHistory + 1] = ''
+	inputHistoryCurrent = #inputHistory
 end
 
 local function commonUnitName(unitIDs)
@@ -2149,6 +2180,7 @@ function widget:KeyPress(key)
 			else
 				-- send chat/cmd
 				if inputText ~= '' then
+					local executedInput = inputText
 					if ssub(inputText, 1, 1) == '/' then
 						Spring.SendCommands(ssub(inputText, 2))
 					else
@@ -2161,13 +2193,9 @@ function widget:KeyPress(key)
 						end
 						lastMessage = inputText
 					end
-					-- Remove any duplicate of this message from earlier in history (move to front)
-					for i = #inputHistory - 1, 1, -1 do
-						if inputHistory[i] == inputText then
-							table.remove(inputHistory, i)
-							break  -- Only remove one duplicate (the most recent one)
-						end
-					end
+					commitInputHistory(executedInput)
+				else
+					ensureInputHistoryDraft()
 				end
 				cancelChatInput()
 			end
@@ -2179,12 +2207,7 @@ function widget:KeyPress(key)
 				maxLinesScroll = maxLinesScrollChatInput
 			end
 			widgetHandler.textOwner = self	-- non handler = true: widgetHandler:OwnText()
-			if not inputHistory[inputHistoryCurrent] or inputHistory[inputHistoryCurrent] ~= '' then
-				if inputHistoryCurrent == 1 or inputHistory[inputHistoryCurrent] ~= inputHistory[inputHistoryCurrent-1] then
-					inputHistoryCurrent = inputHistoryCurrent + 1
-				end
-				inputHistory[inputHistoryCurrent] = ''
-			end
+			ensureInputHistoryDraft()
 			if ctrl then
 				inputMode = ''
 			elseif alt then
@@ -2397,7 +2420,6 @@ function widget:KeyPress(key)
 			end
 			if inputHistory[inputHistoryCurrent] then
 				inputText = inputHistory[inputHistoryCurrent]
-				inputHistory[#inputHistory] = inputText
 			end
 			inputTextPosition = utf8.len(inputText)
 			cursorBlinkTimer = 0

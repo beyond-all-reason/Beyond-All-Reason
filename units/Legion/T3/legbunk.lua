@@ -128,8 +128,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 360,
 				customparams = {
-					noattackrangearc = 1,
 					bogus = 1,
+					noattackrangearc = 1,
 				},
 				damage = {
 					default = 0,
@@ -165,11 +165,13 @@ return {
 				waterweapon = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 600,
-				damage = {
-					commanders = 500,
-					default = 1500,},
 				customparams = {
 					overpenetrate = true,
+					weapons_role = "secondary",
+				},
+				damage = {
+					commanders = 500,
+					default = 1500,
 				},
 			},
 			railgunt2 = {
@@ -209,12 +211,12 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
+				customparams = {
+					overpenetrate = true,
+				},
 				damage = {
 					commanders = 250,
 					default = 475,
-				},
-				customparams = {
-					overpenetrate = true,
 				},
 			},
 		},
