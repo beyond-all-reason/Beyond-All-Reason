@@ -142,6 +142,12 @@ end
 
 function TransportAPI.GetPassengerSize(unitID) -- minimal perf improvement: cache per unitDefID
 	local udefID = Spring.GetUnitDefID(unitID)
+	if not udefID then
+		-- we're being called on a unit that just died but hasn't been cleaned yet from the transporterClaims lists
+		-- (ie during a releaseClaim iteration or an ExecuteSuccessiveLoadUnits or ExecuteLoadUnits) iteration, 
+		-- after being flagged for removal, but not yet removed. we can safely return 0
+		return 0 
+	end 
 	if cachedUnitSizes[udefID] then
 		return cachedUnitSizes[udefID]
 	end

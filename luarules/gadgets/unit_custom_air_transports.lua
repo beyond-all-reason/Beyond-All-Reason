@@ -327,11 +327,11 @@ local function releasePassenger(passengerID, transporterAllyTeam)
 				resumeFrom = i - 1
 				break
 			end
-			total = total + (TransportAPI.GetPassengerSize(transporterClaims[transporterID][i]) or 0)
+			total = total + (TransportAPI.GetPassengerSize(transporterClaims[transporterID][i]) or 0) -- API handles the invalid case
 		end
 		if resumeFrom > 0 then
 			for i = resumeFrom, 1, -1 do
-				total = total + (TransportAPI.GetPassengerSize(transporterClaims[transporterID][i]) or 0)
+				total = total + (TransportAPI.GetPassengerSize(transporterClaims[transporterID][i]) or 0) -- API handles the invalid case
 			end
 		end
 		queuedSeats[transporterID] = total
@@ -363,7 +363,7 @@ local function claimPassenger(transporterID, passengerID, passengerSize, manualC
 				spEcho("Error: duplicate claim for passenger " .. passengerID .. " in transporter " .. transporterID .. "'s claims list") -- debug kept for now to debug potential double claims
 			end
 		end
-		total = total + (TransportAPI.GetPassengerSize(transporterClaims[transporterID][i]) or 0)
+		total = total + (TransportAPI.GetPassengerSize(transporterClaims[transporterID][i]) or 0) -- API handles the invalid case
 	end
 	queuedSeats[transporterID] = total
 	return true
