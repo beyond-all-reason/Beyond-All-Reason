@@ -458,6 +458,7 @@ local interactionState = {
 	lastHoverCursorCheckTime = 0,  -- Throttle timer for GetUnitAtPoint hover checks
 	lastHoveredUnitID = nil,       -- Last unit found under cursor (for cursor icon updates)
 	lastHoveredFeatureID = nil,    -- Last feature found under cursor (for info widget)
+	commandIssuedWithShift = false, -- Tracks if a command was issued with shift held (cleared on shift release)
 }
 
 -- Helper: leftButtonPansCamera only active when at minimum zoom (fully zoomed out) and not tracking a player
@@ -2889,9 +2890,9 @@ v_atlasUV = atlasUV;
 vec3 col = colorFlags.rgb;
 float alpha = 1.0 - 0.25 * isRadar;  // radar icons at 75% alpha
 
-// Takeable blink: full on/off cycle at ~1.5Hz
+// Takeable blink: on/dim cycle at ~1.5Hz (never fully invisible)
 float takeableBlink = step(0.0, sin(wallClockTime * 9.42));  // square wave ~1.5Hz
-alpha *= mix(1.0, takeableBlink, isTakeable);
+alpha *= mix(1.0, mix(0.3, 1.0, takeableBlink), isTakeable);
 
 // Health indication: darken damaged units (darkening only, no color shift)
 float damage = 1.0 - healthFrac;  // 0=full health, 1=dead
@@ -17822,6 +17823,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	ownBuildingPosZ[unitID] = nil
 	miscState.transportedUnits[unitID] = nil
 end
+
 function widget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	-- Clear GL4 cache so it picks up the new team color
 	gl4Icons.unitTeamCache[unitID] = nil
@@ -17834,6 +17836,24 @@ function widget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	-- Force re-classification in keysort (new team may change colors/LOS)
 	ownBuildingPosX[unitID] = nil
 	ownBuildingPosZ[unitID] = nil
+	-- Update ghost building team color if this building was ghosted
+	if ghostBuildings[unitID] then
+		ghostBuildings[unitID].teamID = newTeamID
+	end
+end
+
+function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
+	-- Same cache invalidation as UnitGiven (covers the old-team side of the transfer)
+	gl4Icons.unitTeamCache[unitID] = nil
+	gl4Icons._bldgBlockFrame = 0
+	gl4Icons._bldgVboValid = false
+	gl4Icons._slowVboValid = false
+	gl4Icons._mobileBlock = nil
+	ownBuildingPosX[unitID] = nil
+	ownBuildingPosZ[unitID] = nil
+	if ghostBuildings[unitID] then
+		ghostBuildings[unitID].teamID = newTeamID
+	end
 end
 
 -- Handle buildings being picked up by transports — invalidate cached position
@@ -19141,6 +19161,8 @@ function widget:MousePress(mx, my, mButton)
 
 							if not shift then
 								Spring.SetActiveCommand(0)
+							else
+								interactionState.commandIssuedWithShift = true
 							end
 
 							return true
@@ -19156,6 +19178,8 @@ function widget:MousePress(mx, my, mButton)
 
 						if not shift then
 							Spring.SetActiveCommand(0)
+						else
+							interactionState.commandIssuedWithShift = true
 						end
 
 						return true
@@ -19776,6 +19800,16 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 end
 
 function widget:KeyRelease(key)
+	-- When shift is released after issuing a command with shift held,
+	-- clear the active command (matches engine behavior in the world view)
+	if (key == 304 or key == 303) and interactionState.commandIssuedWithShift then
+		interactionState.commandIssuedWithShift = false
+		local _, cmdID = Spring.GetActiveCommand()
+		if cmdID and cmdID ~= 0 then
+			Spring.SetActiveCommand(0)
+		end
+	end
+
 	-- When modifier keys change during build dragging, recalculate positions
 	if interactionState.areBuildDragging then
 		local mx, my = spFunc.GetMouseState()
@@ -20130,6 +20164,8 @@ function widget:MouseRelease(mx, my, mButton)
 				local _, _, _, shift = Spring.GetModKeyState()
 				if not shift then
 					Spring.SetActiveCommand(0)
+				else
+					interactionState.commandIssuedWithShift = true
 				end
 			end
 		end
@@ -20233,6 +20269,8 @@ function widget:MouseRelease(mx, my, mButton)
 
 			if not shift then
 				Spring.SetActiveCommand(0)
+			else
+				interactionState.commandIssuedWithShift = true
 			end
 		end
 

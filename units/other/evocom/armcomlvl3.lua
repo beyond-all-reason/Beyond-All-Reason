@@ -229,7 +229,7 @@ return {
 				firestarter = 100,
 				flighttime = 7.4,
 				impulsefactor = 0.123,
-				model = "corkbmissl1.s3o",
+				model = "corkbmissl0.s3o",
 				name = "HeavyRockets",
 				noselfdamage = true,
 				range = 435,
@@ -258,6 +258,7 @@ return {
 					overrange_distance = 501,
 					projectile_destruction_method = "descend",
 					stockpilelimit = 3,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 550,
@@ -298,6 +299,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 16000,
 				},
@@ -336,6 +340,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 300,
 					subs = 150,
@@ -374,6 +381,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
@@ -456,6 +466,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 15,
 				},
@@ -498,6 +511,10 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 1,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 20000,
 				},

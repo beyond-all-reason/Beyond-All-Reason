@@ -35,11 +35,14 @@ else
 
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
-	local accountID = Spring.Utilities.GetAccountID(myPlayerID)
-	local authorized = SYNCED.permissions.sysinfo[accountID]
+	local function isAuthorized()
+		local acID = Spring.Utilities.GetAccountID(myPlayerID)
+		local perms = SYNCED.permissions.sysinfo
+		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
+	end
 
 	local function handleSystemEvent(_,playerID,system)
-		if authorized then
+		if isAuthorized() then
 			if Script.LuaUI("SystemEvent") then
 				if systems[playerID] == nil and system ~= nil then
 					systems[playerID] = system

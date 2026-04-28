@@ -164,6 +164,9 @@ return {
 				weapontimer = 10,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 225,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 225,
 				},

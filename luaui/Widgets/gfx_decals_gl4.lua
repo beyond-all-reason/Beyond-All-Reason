@@ -889,29 +889,37 @@ for weaponDefID=1, #WeaponDefs do
 			--glowadd = 2.5
 			bwfactor = 0.05
 
-		elseif string.find(weaponDef.name, 'death_acid') then
+		elseif weaponDef.customParams.area_onhit_resistance == "_RAPTORACID_" then
 			textures = { "t_groundcrack_26_a.tga" }
-			radius = (radius * 5.5)-- * (mathRandom() * 0.25 + 0.75)
 			alpha = 6
-			heatstart = 550
-			heatdecay = 0.1
 			alphadecay = 0.012
-			glowadd = 2.5
 			fadeintime = 200
 			bwfactor = 0.17
 			waterDepthRatio = 5
+			if string.find(weaponDef.name, 'death_acid') then
+				radius = (radius * 5.5)-- * (mathRandom() * 0.25 + 0.75)
+				heatstart = 550
+				heatdecay = 0.1
+				glowadd = 2.5
+			else
+				textures = { "t_groundcrack_26_a.tga" }
+				radius = (radius * 5)-- * (mathRandom() * 0.15 + 0.85)
+				heatstart = 500
+				heatdecay = 10
+			end
 
-		elseif string.find(weaponDef.name, 'acid') then
-			textures = { "t_groundcrack_26_a.tga" }
-			radius = (radius * 5)-- * (mathRandom() * 0.15 + 0.85)
-			alpha = 6
-			heatstart = 500
-			heatdecay = 10
-			alphadecay = 0.012
-			--glowadd = 2.5
-			--glowsustain = 0
-			fadeintime = 200
-			bwfactor = 0.17
+		elseif weaponDef.customParams.area_onhit_resistance == "fire" then
+			textures = { "t_groundcrack_16_a.tga" }
+			radius = radius * 1.6
+			heatstart = 4000
+			heatdecay = 0.33
+			alpha = 0.4
+			alphadecay = 0.0002
+			glowsustain = 225
+			glowadd = 4.5
+			waterDepthRatio = 5
+
+		elseif weaponDef.customParams.area_onhit_ceg then
 			waterDepthRatio = 5
 
 		elseif string.find(weaponDef.name, 'vipersabot') then -- viper has very tiny AoE
@@ -931,17 +939,6 @@ for weaponDefID=1, #WeaponDefs do
 			heatstart = 6500
 			heatdecay = 0.8
 			glowadd = 2
-
-		elseif string.find(weaponDef.name, 'napalm') then
-			textures = { "t_groundcrack_16_a.tga" }
-			radius = radius * 1.6
-			heatstart = 4000
-			heatdecay = 0.33
-			alpha = 0.4
-			alphadecay = 0.0002
-			glowsustain = 225
-			glowadd = 4.5
-			waterDepthRatio = 5
 
 			--armliche
 		elseif string.find(weaponDef.name, 'arm_pidr') then
