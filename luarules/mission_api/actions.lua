@@ -1,35 +1,17 @@
+local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
+local types = actionsSchema.Types
+local loadout = VFS.Include('luarules/mission_api/loadout.lua')
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 local tracking = VFS.Include('luarules/mission_api/tracking.lua')
 local trackUnit = tracking.TrackUnit
-local isNameUntracked = tracking.IsNameUntracked
+local isUnitNameUntracked = tracking.IsUnitNameUntracked
 local untrackUnitName = tracking.UntrackUnitName
+local isFeatureNameUntracked = tracking.IsFeatureNameUntracked
 
 local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
+local trackedFeatureIDs = GG['MissionAPI'].trackedFeatureIDs
 local triggers = GG['MissionAPI'].Triggers
 local broadcast = VFS.Include('luarules/mission_api/broadcast.lua')
-
-
-----------------------------------------------------------------
---- Utility Functions:
-----------------------------------------------------------------
-
-local function generateGridPositions(center, quantity, xSpacing, zSpacing)
-	local positions = {}
-	local xGridSize = math.ceil(math.sqrt(quantity)) * xSpacing
-	local zGridSize = math.ceil(math.sqrt(quantity)) * zSpacing
-	local left = center.x - math.floor(xGridSize / 2)
-	local top = center.z - math.floor(zGridSize / 2)
-	local count = 0
-
-	for x = left, left + xGridSize - xSpacing, xSpacing do
-		for z = top, top + zGridSize - zSpacing, zSpacing do
-			if count >= quantity then return positions end
-			table.insert(positions, {x = x, z = z})
-			count = count + 1
-		end
-	end
-	return positions
-end
 
 
 ----------------------------------------------------------------
@@ -77,64 +59,23 @@ local function updateObjective(objectiveID, completed, text, unitName, featureNa
 end
 
 local function issueOrders(unitName, orders)
-    if isNameUntracked(unitName) then return end
+	if isUnitNameUntracked(unitName) then return end
 
-	local commandsAcceptingName = { [CMD.GUARD] = true, [CMD.REPAIR] = true, [CMD.CAPTURE] = true,
-									[CMD.ATTACK] = true, [CMD.LOAD_UNITS] = true, [CMD.RECLAIM] = true }
-
-	-- Replace name param with unitIDs, duplicating order for each unitID
-	local newOrders = {}
-	for _, order in pairs(orders) do
-		local commandID = order[1]
-		local params = order[2] or {}
-		local options = order[3] or {}
-		if commandsAcceptingName[commandID] and type(params) == 'string' then
-			local unitIDs = trackedUnitIDs[params] or {}
-			local isFirstUnitID = true
-			for _, unitID in ipairs(unitIDs) do
-				newOrders[#newOrders + 1] = { commandID, unitID, table.copy(options) }
-				if isFirstUnitID then
-					table.insert(options, 'shift')
-					isFirstUnitID = false
-				end
-			end
-		else
-			newOrders[#newOrders + 1] = order
-		end
-	end
-
-	Spring.GiveOrderArrayToUnitArray(trackedUnitIDs[unitName], newOrders)
+	local convertedOrders = loadout.ConvertOrdersTargetingNames(orders)
+	Spring.GiveOrderArrayToUnitMap(trackedUnitIDs[unitName], convertedOrders)
 end
 
-local function spawnUnits(unitName, unitDefName, teamID, position, quantity, facing, construction, spacing)
-
-	spacing = spacing or 0
-
-	local unitDef = UnitDefs[UnitDefNames[unitDefName].id]
-	local xsize = unitDef.xsize * Game.squareSize + spacing
-	local zsize = unitDef.zsize * Game.squareSize + spacing
-
-	-- adjust for facing of non-square units
-	if facing == 'e' or facing == 'w' then
-		xsize, zsize = zsize, xsize
-	end
-
-	local positions = generateGridPositions(position, quantity or 1, xsize, zsize)
-
-	for _, pos in pairs(positions) do
-		pos.y = Spring.GetGroundHeight(pos.x, pos.z)
-		local unitID = Spring.CreateUnit(unitDefName, pos.x, pos.y, pos.z, facing or 's', teamID, construction)
-		trackUnit(unitName, unitID)
-	end
+local function spawnUnits(unitLoadout)
+	loadout.SpawnUnitLoadout(unitLoadout)
 end
 
 ----------------------------------------------------------------
 
 local function despawnUnits(unitName, selfDestruct, reclaimed)
-	if isNameUntracked(unitName) then return end
+	if isUnitNameUntracked(unitName) then return end
 
 	-- Copying table as UnitKilled trigger with SpawnUnits with the same name could cause infinite loop.
-	for _, unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
+	for unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
 		if Spring.GetUnitIsDead(unitID) == false then
 			Spring.DestroyUnit(unitID, selfDestruct, reclaimed)
 		end
@@ -144,10 +85,10 @@ end
 ----------------------------------------------------------------
 
 local function transferUnits(unitName, newTeam)
-	if isNameUntracked(unitName) then return end
+	if isUnitNameUntracked(unitName) then return end
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
-	for _, unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
+	for unitID in pairs(table.copy(trackedUnitIDs[unitName])) do
 		local given = Spring.GetUnitAllyTeam(unitID) == Spring.GetTeamAllyTeamID(newTeam)
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
@@ -187,7 +128,7 @@ local function nameUnits(unitName, teamID, unitDefName, area)
 	local unitsToName = {}
 	if hasFilterOtherThanTeamID then
 		unitsToName = table.valueIntersection(
-			unpack(table.filterArray({ unitsFromDef, unitsInArea},
+			unpack(table.filterArray({ unitsFromDef, unitsInArea },
 				function(tbl) return not table.isEmpty(tbl) end)))
 	else
 		unitsToName = allUnitsOfTeam
@@ -200,6 +141,21 @@ end
 
 local function unnameUnits(unitName)
 	untrackUnitName(unitName)
+end
+
+local function createFeatures(featureLoadout)
+	loadout.SpawnFeatureLoadout(featureLoadout)
+end
+
+local function destroyFeatures(featureName)
+	if isFeatureNameUntracked(featureName) then return end
+
+	-- Copying table as FeatureDestroyed trigger with CreateFeatures with the same name could cause infinite loop.
+	for featureID in pairs(table.copy(trackedFeatureIDs[featureName])) do
+		if Spring.ValidFeatureID(featureID) then
+			Spring.DestroyFeature(featureID)
+		end
+	end
 end
 
 local function spawnExplosion(weaponDefName, position, direction)
@@ -270,7 +226,7 @@ end
 
 local function defeat(losingAllyTeamIDs)
 	local allAllyTeamIDs = Spring.GetAllyTeamList()
-	local winningAllyTeamIDs = { }
+	local winningAllyTeamIDs = {}
 	for _, allyTeamID in pairs(allAllyTeamIDs) do
 		if not table.contains(losingAllyTeamIDs, allyTeamID) then
 			table.insert(winningAllyTeamIDs, allyTeamID)
@@ -283,44 +239,60 @@ local function custom(func)
 	func()
 end
 
+local function addResources(teamID, metal, energy)
+	if metal then
+		Spring.AddTeamResource(teamID, 'metal', metal)
+	end
+	if energy then
+		Spring.AddTeamResource(teamID, 'energy', energy)
+	end
+end
+
 return {
 	-- Triggers
-	EnableTrigger = enableTrigger,
-	DisableTrigger = disableTrigger,
+	[types.EnableTrigger]   = enableTrigger,
+	[types.DisableTrigger]  = disableTrigger,
 
 	-- Stages & Objectives
 	ChangeStage = changeStage,
 	UpdateObjective = updateObjective,
 
 	-- Orders
-	IssueOrders = issueOrders,
+	[types.IssueOrders]     = issueOrders,
 
 	-- Build Options
 
 	-- Units
-	SpawnUnits = spawnUnits,
-	DespawnUnits = despawnUnits,
-	TransferUnits = transferUnits,
-	NameUnits = nameUnits,
-	UnnameUnits = unnameUnits,
+	[types.SpawnUnits]      = spawnUnits,
+	[types.DespawnUnits]    = despawnUnits,
+	[types.TransferUnits]   = transferUnits,
+	[types.NameUnits]       = nameUnits,
+	[types.UnnameUnits]     = unnameUnits,
+
+	-- Features
+	[types.CreateFeatures]  = createFeatures,
+	[types.DestroyFeatures] = destroyFeatures,
 
 	-- SFX
-	SpawnExplosion = spawnExplosion,
+	[types.SpawnExplosion]  = spawnExplosion,
 
 	-- Map
 
 	-- Media
-	PlaySound = playSound,
-	SendMessage = sendMessage,
-	AddMarker = addMarker,
-	DrawLines = drawLines,
-	EraseMarker = eraseMarker,
-	ClearAllMarkers = clearAllMarkers,
+	[types.PlaySound]       = playSound,
+	[types.SendMessage]     = sendMessage,
+	[types.AddMarker]       = addMarker,
+	[types.DrawLines]       = drawLines,
+	[types.EraseMarker]     = eraseMarker,
+	[types.ClearAllMarkers] = clearAllMarkers,
 
 	-- Win Condition
-	Victory = victory,
-	Defeat = defeat,
+	[types.Victory]         = victory,
+	[types.Defeat]          = defeat,
 
 	-- Custom
-	Custom = custom,
+	[types.Custom]          = custom,
+
+	-- Other
+	[types.AddResources]    = addResources,
 }

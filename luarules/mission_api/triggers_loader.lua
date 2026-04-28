@@ -1,5 +1,4 @@
 local validateTriggers = VFS.Include('luarules/mission_api/validation.lua').ValidateTriggers
-local processTriggersParameters = VFS.Include('luarules/mission_api/parameter_processing.lua').ProcessTriggersParameters
 
 -- Example trigger
 --[[
@@ -41,7 +40,6 @@ local function processRawTriggers(rawTriggers, rawActions)
 	end
 
 	validateTriggers(triggers, rawActions)
-	processTriggersParameters(triggers)
 	return triggers
 end
 

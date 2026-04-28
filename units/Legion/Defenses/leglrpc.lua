@@ -32,6 +32,7 @@ return {
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
+			restrictions_inclusion = "_nolrpc_",
 			canareaattack = 1,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
@@ -73,10 +74,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

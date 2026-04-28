@@ -25,13 +25,15 @@ local triggerTypes = {
 
 	-- Resources
 	ResourceStored       = 400,
-	ResourceProduction   = 401,
+	ResourceIncome       = 401,
+	ResourcePull         = 402,
 
 	-- Statistics
 	TotalUnitsLost       = 500,
 	TotalUnitsBuilt      = 501,
 	TotalUnitsKilled     = 502,
 	TotalUnitsCaptured   = 503,
+	UnitsOwned           = 504,
 
 	-- Team
 	TeamDestroyed        = 601,
@@ -92,7 +94,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -110,7 +112,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -128,7 +130,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -161,7 +163,7 @@ local parameters = {
 		[3] = {
 			name = 'featureName',
 			required = false,
-			type = Types.String,
+			type = Types.FeatureName,
 		},
 		requiresOneOf = { 'featureName', 'unitDefName' }
 	},
@@ -177,7 +179,7 @@ local parameters = {
 		[2] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[3] = {
 			name = 'unitDefName',
@@ -203,7 +205,7 @@ local parameters = {
 		[2] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[3] = {
 			name = 'unitDefName',
@@ -235,7 +237,7 @@ local parameters = {
 		[3] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[4] = {
 			name = 'unitDefName',
@@ -253,7 +255,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -276,7 +278,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -311,7 +313,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'unitDefName',
@@ -326,19 +328,235 @@ local parameters = {
 	 },
 
 	-- Features
-	[triggerTypes.FeatureCreated] = {  },
-	[triggerTypes.FeatureReclaimed] = {  },
-	[triggerTypes.FeatureDestroyed] = {  },
+	[triggerTypes.FeatureCreated] = {
+		[1] = {
+			name = 'featureDefName',
+			required = false,
+			type = Types.FeatureDefName,
+		},
+		[2] = {
+			name = 'area',
+			required = false,
+			type = Types.Area,
+		},
+		requiresOneOf = { 'featureDefName', 'area' }
+	},
+	[triggerTypes.FeatureReclaimed] = {
+		[1] = {
+			name = 'featureName',
+			required = false,
+			type = Types.FeatureName,
+		},
+		[2] = {
+			name = 'featureDefName',
+			required = false,
+			type = Types.FeatureDefName,
+		},
+		[3] = {
+			name = 'teamID',
+			required = false,
+			type = Types.TeamID,
+		},
+		[4] = {
+			name = 'area',
+			required = false,
+			type = Types.Area,
+		},
+		requiresOneOf = { 'featureName', 'featureDefName', 'teamID', 'area' }
+	},
+	[triggerTypes.FeatureDestroyed] = {
+		[1] = {
+			name = 'featureName',
+			required = false,
+			type = Types.FeatureName,
+		},
+		[2] = {
+			name = 'featureDefName',
+			required = false,
+			type = Types.FeatureDefName,
+		},
+		[3] = {
+			name = 'allyTeamID',
+			required = false,
+			type = Types.AllyTeamID,
+		},
+		[4] = {
+			name = 'area',
+			required = false,
+			type = Types.Area,
+		},
+		requiresOneOf = { 'featureName', 'featureDefName', 'allyTeamID', 'area' }
+	},
 
 	-- Resources
-	[triggerTypes.ResourceStored] = {  },
-	[triggerTypes.ResourceProduction] = {  },
+	[triggerTypes.ResourceStored] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'metal',
+			required = false,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'energy',
+			required = false,
+			type = Types.Number,
+		},
+		requiresOneOf = { 'metal', 'energy', },
+	},
+	[triggerTypes.ResourceIncome] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'metal',
+			required = false,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'energy',
+			required = false,
+			type = Types.Number,
+		},
+		[4] = {
+			-- Filter income by sources: 'extractor' (metal only), 'reclaim' (features + units), 'ally' (shared), 'production' (everything else)
+			-- Example: sources = { 'extractor', 'production' }
+			name = 'sources',
+			required = false,
+			type = Types.ResourceIncomeSources,
+		},
+		requiresOneOf = { 'metal', 'energy', },
+	},
+	[triggerTypes.ResourcePull] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'metal',
+			required = false,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'energy',
+			required = false,
+			type = Types.Number,
+		},
+		requiresOneOf = { 'metal', 'energy', },
+	},
 
 	-- Statistics
-	[triggerTypes.TotalUnitsLost] = {  },
-	[triggerTypes.TotalUnitsBuilt] = {  },
-	[triggerTypes.TotalUnitsKilled] = {  },
-	[triggerTypes.TotalUnitsCaptured] = {  },
+	[triggerTypes.TotalUnitsLost] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'unitName',
+			required = false,
+			type = Types.UnitName,
+		},
+		[4] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
+		},
+	},
+	[triggerTypes.TotalUnitsBuilt] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
+		},
+	},
+	[triggerTypes.TotalUnitsKilled] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'unitName',
+			required = false,
+			type = Types.UnitName,
+		},
+		[4] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
+		},
+	},
+	[triggerTypes.TotalUnitsCaptured] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'unitName',
+			required = false,
+			type = Types.UnitName,
+		},
+		[4] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
+		},
+	},
+	[triggerTypes.UnitsOwned] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'quantity',
+			required = true,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'unitName',
+			required = false,
+			type = Types.UnitName,
+		},
+		[4] = {
+			name = 'unitDefName',
+			required = false,
+			type = Types.UnitDefName,
+		},
+	},
 
 	-- Team
 	[triggerTypes.TeamDestroyed] = {
@@ -347,7 +565,7 @@ local parameters = {
 			required = true,
 			type = Types.Number,
 		},
-	 },
+	},
 
 	-- Win Condition
 	[triggerTypes.Victory] = {  },

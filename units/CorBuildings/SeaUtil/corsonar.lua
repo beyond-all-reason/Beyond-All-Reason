@@ -52,12 +52,6 @@ return {
 				reclaimable = true,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
-		},
 		sounds = {
 			activate = "radar1",
 			canceldestruct = "cancel2",

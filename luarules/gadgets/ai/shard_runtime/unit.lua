@@ -242,15 +242,10 @@ function Unit:ElectBehaviour()
 	local bestScore = -1
 
 	for k,behaviour in pairs(self.behaviours) do
-		if bestBehaviour == nil then
+		local score = behaviour:Priority()
+		if bestBehaviour == nil or (score > 0 and score > bestScore) then
+			bestScore = score
 			bestBehaviour = behaviour
-			bestScore = behaviour:Priority()
-		else
-			local score = behaviour:Priority()
-			if ( score > 0 ) and ( score > bestScore ) then
-				bestScore = score
-				bestBehaviour = behaviour
-			end
 		end
 	end
 

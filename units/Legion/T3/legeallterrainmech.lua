@@ -43,7 +43,7 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
-			disable_when_no_air = true,
+			restrictions_inclusion = "_noair_",
 		},
 		featuredefs = {
 			dead = {
@@ -80,11 +80,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:barrelshot-tiny-aa",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -21,17 +21,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local strSub = string.sub
 
-	local charset = {}  do -- [0-9a-zA-Z]
-		for c = 48, 57  do table.insert(charset, string.char(c)) end
-		for c = 65, 90  do table.insert(charset, string.char(c)) end
-		for c = 97, 122 do table.insert(charset, string.char(c)) end
-	end
-	local function randomString(length)
-		if not length or length <= 0 then return '' end
-		return randomString(length - 1) .. charset[math.random(1, #charset)]
-	end
-
-	local validation = randomString(2)
+	local validation = string.randomString(2)
 	_G.validationCam = validation
 
 	local SendToUnsynced = SendToUnsynced
@@ -68,14 +58,13 @@ else	-- UNSYNCED
 
 	local timeSinceBroadcast = 0
 
-	local lastPacketSent
-
 	local CAMERA_IDS = Spring.GetCameraNames()
 	local CAMERA_NAMES = {}
 	local CAMERA_STATE_FORMATS = {}
 
 	local validation = SYNCED.validationCam
 	local msgPrefix = PACKET_HEADER .. validation
+	local msgPrefixLen = #msgPrefix
 
 	------------------------------------------------
 	-- H4X
@@ -179,7 +168,7 @@ else	-- UNSYNCED
 	end
 
 	local function PacketToCameraState(p)
-		local offset = PACKET_HEADER_LENGTH + 1 + 2
+		local offset = msgPrefixLen + 1
 		local cameraID = CustomUnpackU8(p, offset)
 		local mode = CustomUnpackU8(p, offset + 1)
 		local name = CAMERA_NAMES[cameraID]
@@ -265,14 +254,50 @@ else	-- UNSYNCED
 		end
 	end
 
+	local lastCameraName
+	local lastCameraValues = {}
+
+	local function CameraStateChanged(state)
+		local name = state.name
+		if name ~= lastCameraName then
+			lastCameraName = name
+			-- Camera type changed — must rebuild cache
+			local stateFormat = CAMERA_STATE_FORMATS[name]
+			if stateFormat then
+				for i = 1, #stateFormat do
+					lastCameraValues[stateFormat[i]] = state[stateFormat[i]]
+				end
+			end
+			return true
+		end
+		local stateFormat = CAMERA_STATE_FORMATS[name]
+		if not stateFormat then return false end
+		for i = 1, #stateFormat do
+			local key = stateFormat[i]
+			if state[key] ~= lastCameraValues[key] then
+				for j = i, #stateFormat do
+					local k2 = stateFormat[j]
+					lastCameraValues[k2] = state[k2]
+				end
+				return true
+			end
+		end
+		return false
+	end
+
 	function gadget:Update()
 		local dt = GetLastUpdateSeconds()
 		timeSinceBroadcast = timeSinceBroadcast + dt
 		if timeSinceBroadcast < broadcastPeriod then
 			return
 		end
+		timeSinceBroadcast = timeSinceBroadcast - broadcastPeriod
 
 		local state = GetCameraState()
+		if not CameraStateChanged(state) then
+			return
+		end
+
 		local msg = CameraStateToPacket(state)
 
 		if not msg then
@@ -280,13 +305,7 @@ else	-- UNSYNCED
 			return
 		end
 
-		--don't send duplicates
-		if msg ~= lastPacketSent then
-			SendLuaRulesMsg(msg)
-			lastPacketSent = msg
-		end
-
-		timeSinceBroadcast = timeSinceBroadcast - broadcastPeriod
+		SendLuaRulesMsg(msg)
 	end
 end
 

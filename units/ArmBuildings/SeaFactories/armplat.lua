@@ -43,6 +43,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBuildings/SeaFactories",
 			unitgroup = "builder",
+			restrictions_inclusion = "_noair_",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
@@ -63,11 +65,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -44,7 +44,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "legvehicles/T2",
 			techlevel = 2,
-			enabled_on_no_sea_maps = true,
+			restrictions_exclusion = "_nosea_",
 			speedfactorinwater = 1.3,
 		},
 		featuredefs = {
@@ -87,11 +87,6 @@ return {
 				[3] = "custom:bowsplash-small",
 				[4] = "custom:bowsplash-medium",
 				[5] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

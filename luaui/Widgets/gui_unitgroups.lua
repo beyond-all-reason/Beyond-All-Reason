@@ -166,26 +166,17 @@ function widget:Shutdown()
 		gl.DeleteTexture(uiTex)
 	end
 	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].DeleteDlist('unitgroups')
+		WG.FlowUI.guishaderDeleteDlist('unitgroups')
 		dlistGuishader = nil
 	end
 	WG['unitgroups'] = nil
 end
 
 local function checkGuishader(force)
-	if WG['guishader'] then
-		if force and dlistGuishader then
-			WG['guishader'].RemoveDlist('unitgroups')
-			dlistGuishader = gl.DeleteList(dlistGuishader)
-		end
-		if not dlistGuishader and backgroundRect then
-			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
-			end)
-			WG['guishader'].InsertDlist(dlistGuishader, 'unitgroups')
-		end
-	elseif dlistGuishader then
-		dlistGuishader = gl.DeleteList(dlistGuishader)
+	if backgroundRect then
+		dlistGuishader = WG.FlowUI.guishaderCheckDlist(dlistGuishader, 'unitgroups', function()
+			RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
+		end, force)
 	end
 end
 
@@ -472,15 +463,7 @@ local function updateList()
 				format = GL.RGBA,
 				fbo = true,
 			})
-			gl.R2tHelper.RenderToTexture(uiBgTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawBackground()
-				end,
-				true
-			)
+			gl.R2tHelper.RenderInRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBackground, true)
 		end
 		if not uiTex then
 			uiTex = gl.CreateTexture(mathFloor(uiTexWidth)*2, mathFloor(backgroundRect[4]-backgroundRect[2])*2, {
@@ -489,15 +472,7 @@ local function updateList()
 				fbo = true,
 			})
 		end
-		gl.R2tHelper.RenderToTexture(uiTex,
-			function()
-				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-				gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-				drawContent()
-			end,
-			true
-		)
+		gl.R2tHelper.RenderInRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], drawContent, true)
 	end
 end
 

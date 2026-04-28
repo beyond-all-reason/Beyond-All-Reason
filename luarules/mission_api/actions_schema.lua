@@ -26,6 +26,10 @@ local actionTypes = {
 	NameUnits	       = 405,
 	UnnameUnits	       = 406,
 
+	-- Features
+	CreateFeatures     = 450,
+	DestroyFeatures    = 451,
+
 	-- SFX
 	SpawnExplosion     = 500,
 	SpawnWeapon        = 501, -- maybe this should be renamed to SpawnProjectile to match the Spring function?
@@ -53,6 +57,9 @@ local actionTypes = {
 
 	-- Custom
 	Custom             = 900,
+
+	-- Other
+	AddResources       = 1000,
 }
 
 --============================================================--
@@ -118,7 +125,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = true,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'orders',
@@ -137,51 +144,17 @@ local parameters = {
 	-- Units
 	[actionTypes.SpawnUnits] = {
 		[1] = {
-			name = 'unitName',
-			required = false,
-			type = Types.String,
-		},
-		[2] = {
-			name = 'unitDefName',
+			name = 'unitLoadout',
 			required = true,
-			type = Types.UnitDefName
+			type = Types.UnitLoadout,
 		},
-		[3] = {
-			name = 'teamID',
-			required = true,
-			type = Types.TeamID
-		},
-		[4] = {
-			name = 'position',
-			required = true,
-			type = Types.Position
-		},
-		[5] = {
-			name = 'quantity',
-			required = false,
-			type = Types.Number,		},
-		[6] = {
-			name = 'facing',
-			required = false,
-			type = Types.Facing
-		},
-		[7] = {
-			name = 'construction',
-			required = false,
-			type = Types.Boolean
-		},
-		[8] = {
-			name = 'spacing',
-			required = false,
-			type = Types.Number
-		}
 	},
 
 	[actionTypes.DespawnUnits] = {
 		[1] = {
 			name = 'unitName',
 			required = true,
-			type = Types.String,
+			type = Types.UnitName,
 		},
 		[2] = {
 			name = 'selfDestruct',
@@ -199,7 +172,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = true,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'newTeam',
@@ -211,7 +184,7 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = true,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[2] = {
 			name = 'teamID',
@@ -237,8 +210,24 @@ local parameters = {
 		[1] = {
 			name = 'unitName',
 			required = true,
-			type = Types.String
+			type = Types.UnitName
 		}
+	},
+
+	-- Features
+	[actionTypes.CreateFeatures] = {
+		[1] = {
+			name = 'featureLoadout',
+			required = true,
+			type = Types.FeatureLoadout,
+		},
+	},
+	[actionTypes.DestroyFeatures] = {
+		[1] = {
+			name = 'featureName',
+			required = true,
+			type = Types.FeatureName,
+		},
 	},
 
 	-- SFX
@@ -360,6 +349,26 @@ local parameters = {
 			required = true,
 			type = Types.Function,
 		},
+	},
+
+	-- Other
+	[actionTypes.AddResources] = {
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = Types.TeamID,
+		},
+		[2] = {
+			name = 'metal',
+			required = false,
+			type = Types.Number,
+		},
+		[3] = {
+			name = 'energy',
+			required = false,
+			type = Types.Number,
+		},
+		requiresOneOf = { 'metal', 'energy', },
 	},
 }
 

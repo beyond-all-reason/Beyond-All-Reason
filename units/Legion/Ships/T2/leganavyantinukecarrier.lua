@@ -57,7 +57,8 @@ return {
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
 			techlevel = 2,
-			--unitgroup = "antinuke",
+			unitgroup = "antinuke",
+			restrictions_exclusion = "_noantinuke_",
 		},
 		featuredefs = {
 			dead = {
@@ -93,11 +94,6 @@ return {
 				[1] = "custom:radarpulse_t2",
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

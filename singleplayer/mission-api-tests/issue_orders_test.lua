@@ -47,13 +47,21 @@ local triggers = {
 		parameters = {
 			gameFrame = 1100,
 		},
-		actions = { 'stop', 'messageStop' },
+		actions = { 'stop', 'messageStop', 'spawnWreck1', 'spawnWreck2', 'spawnWreck3' },
+	},
+
+	reclaimWrecks = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1200,
+		},
+		actions = { 'reclaimWrecks', 'messageReclaimWrecks' },
 	},
 
 	artilleryAreaAttack = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1200,
+			gameFrame = 1400,
 		},
 		actions = { 'spawnArtilleryTargets', 'spawnArtillery', 'artilleryAreaAttack', 'messageArtilleryAreaAttack' },
 	},
@@ -63,11 +71,9 @@ local actions = {
 	spawnAttackers = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'attackers',
-            unitDefName = 'cormando',
-			teamID = 0,
-			position = { x = 1800, z = 1900 },
-			quantity = 2,
+			unitLoadout = {
+				{ unitDefName = 'cormando', x = 1800, z = 1900, team = 0, unitName = 'attackers', quantity = 2 },
+			},
 		},
 	},
 
@@ -91,48 +97,45 @@ local actions = {
 	spawnEyesA = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-            unitDefName = 'armeyes',
-			teamID = 0,
-			position = { x = 1800, z = 2400 },
+			unitLoadout = {
+				{ unitDefName = 'armeyes', x = 1800, z = 2400, team = 0 },
+			},
 		},
 	},
 
 	spawnEyesB = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-            unitDefName = 'armeyes',
-			teamID = 0,
-			position = { x = 1700, z = 2900 },
+			unitLoadout = {
+				{ unitDefName = 'armeyes', x = 1700, z = 2900, team = 0 },
+			},
 		},
 	},
 
 	spawnTargets1a = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'targets',
-            unitDefName = 'armsolar',
-			teamID = 1,
-			position = { x = 1700, z = 2300 },
+			unitLoadout = {
+				{ unitDefName = 'armsolar', x = 1700, z = 2300, team = 1, unitName = 'targets' },
+			},
 		},
 	},
 
 	spawnTargets1b = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'targets',
-            unitDefName = 'armsolar',
-			teamID = 1,
-			position = { x = 1900, z = 2350 },
+			unitLoadout = {
+				{ unitDefName = 'armsolar', x = 1900, z = 2350, team = 1, unitName = 'targets' },
+			},
 		},
 	},
 
 	spawnTargets1c = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'targets',
-            unitDefName = 'armsolar',
-			teamID = 1,
-			position = { x = 2100, z = 2300 },
+			unitLoadout = {
+				{ unitDefName = 'armsolar', x = 2100, z = 2300, team = 1, unitName = 'targets' },
+			},
 		},
 	},
 
@@ -142,7 +145,7 @@ local actions = {
 			unitName = 'attackers',
 			orders = {
 				{ CMD.MOVE_STATE, CMD.MOVESTATE_HOLDPOS },
-				{ CMD.ATTACK, 'targets' },
+				{ CMD.ATTACK, { unitName = 'targets' } },
 			},
 		},
 	},
@@ -154,24 +157,65 @@ local actions = {
 		},
 	},
 
+	spawnWreck1 = {
+		type = actionTypes.CreateFeatures,
+		parameters = {
+			featureLoadout = {
+				{ featureDefName = 'armadvsol_dead', x = 2200, z = 2300, featureName = 'wrecks' },
+			},
+		},
+	},
+
+	spawnWreck2 = {
+		type = actionTypes.CreateFeatures,
+		parameters = {
+			featureLoadout = {
+				{ featureDefName = 'armadvsol_dead', x = 2300, z = 2300, featureName = 'wrecks' },
+			},
+		},
+	},
+
+	spawnWreck3 = {
+		type = actionTypes.CreateFeatures,
+		parameters = {
+			featureLoadout = {
+				{ featureDefName = 'armadvsol_dead', x = 2400, z = 2300, featureName = 'wrecks' },
+			},
+		},
+	},
+
+	reclaimWrecks = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'attackers',
+			orders = {
+				{ CMD.RECLAIM, { featureName = 'wrecks' } },
+			},
+		},
+	},
+
+	messageReclaimWrecks  = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Reclaiming the wrecks by name, one by one.",
+		},
+	},
+
 	spawnArtilleryTargets = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armwin',
-			teamID = 1,
-			position = { x = 1500, z = 2900 },
-			quantity = 9,
-			spacing = 16,
+			unitLoadout = {
+				{ unitDefName = 'armwin', x = 1500, z = 2900, team = 1, quantity = 9, spacing = 16 },
+			},
 		},
 	},
 
 	spawnTargets2 = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armwin',
-			teamID = 1,
-			position = { x = 2000, z = 2500 },
-			quantity = 2,
+			unitLoadout = {
+				{ unitDefName = 'armwin', x = 2000, z = 2500, team = 1, quantity = 2 },
+			},
 		},
 	},
 
@@ -195,11 +239,9 @@ local actions = {
 	spawnArtillery = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'artillery',
-			unitDefName = 'armart',
-			teamID = 0,
-			position = { x = 1700, z = 2500 },
-			quantity = 2,
+			unitLoadout = {
+				{ unitDefName = 'armart', x = 1700, z = 2500, team = 0, unitName = 'artillery', quantity = 2 },
+			},
 		},
 	},
 
@@ -223,11 +265,9 @@ local actions = {
 	spawnEnergyGrid1 = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'fusions',
-			unitDefName = 'armfus',
-			teamID = 0,
-			position = { x = 2300, z = 2500 },
-			quantity = 3,
+			unitLoadout = {
+				{ unitDefName = 'armfus', x = 2300, z = 2500, team = 0, unitName = 'fusions', quantity = 3 },
+			},
 		},
 	},
 
@@ -237,7 +277,7 @@ local actions = {
 		parameters = {
 			unitName = 'attackers',
 			orders = {
-				{ CMD.GUARD, 'fusions' },
+				{ CMD.GUARD, { unitName = 'fusions' } },
 			},
 		},
 	},
@@ -255,7 +295,7 @@ local actions = {
 			unitName = 'attackers',
 			orders = {
 				{ CMD.MOVE, { 2100, 0, 2100 }},
-				{ CMD.RECLAIM, 'fusions', { 'shift' }  },
+				{ CMD.RECLAIM, { unitName = 'fusions' }, { 'shift' }  },
 				{ CMD.MOVE, { 2300, 0, 2900 }, { 'shift' } },
 			},
 		},

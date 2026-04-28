@@ -45,7 +45,7 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
-			disable_when_no_air = true,
+			restrictions_inclusion = "_noair_",
 		},
 		featuredefs = {
 			dead = {
@@ -76,13 +76,6 @@ return {
 				object = "Units/cor2X2A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

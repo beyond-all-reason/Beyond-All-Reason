@@ -50,7 +50,7 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
-			disable_when_no_air = true,
+			restrictions_inclusion = "_noair_",
 		},
 		featuredefs = {
 			dead = {
@@ -86,11 +86,6 @@ return {
 				[1] = "custom:radarpulse_t1_slow",
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

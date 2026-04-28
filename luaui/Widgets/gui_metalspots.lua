@@ -65,7 +65,7 @@ local opacity			= 0.5
 
 local innersize			= 1.8		-- outersize-innersize = circle width
 local outersize			= 1.98		-- outersize-innersize = circle width
-local billboardsize 	= 0.28		-- actual fontsize
+local billboardsize 	= 0.38		-- actual fontsize
 
 local maxValue			= 15		-- ignore spots above this metal value (probably metalmap)
 local maxScale			= 4			-- ignore spots above this scale (probably metalmap)
@@ -90,7 +90,7 @@ local incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = mathMin(1.5, (0.5 + (vsx*vsy / 5700000)))
+local fontfileScale = 1  -- fixed scale: billboard size is resolution-independent (world-space)
 local fontfileSize = 110
 local fontfileOutlineSize = 12
 local fontfileOutlineStrength = 20
@@ -484,6 +484,19 @@ end
 
 function widget:Shutdown()
 	if MetalSpotTextAtlas then MetalSpotTextAtlas:Delete() end
+	if spotShader then
+		spotShader:Finalize()
+		spotShader = nil
+	end
+	if spotInstanceVBO then
+		if spotInstanceVBO.VAO then spotInstanceVBO.VAO:Delete() end
+		if spotInstanceVBO.instanceVBO then spotInstanceVBO.instanceVBO:Delete() end
+		spotInstanceVBO = nil
+	end
+	if spotVBO then
+		spotVBO:Delete()
+		spotVBO = nil
+	end
 	WG.metalspots = nil
 	mySpots = {}
 	gl.DeleteFont(font)
@@ -550,7 +563,8 @@ function widget:DrawWorldPreUnit()
 	gl.Culling(true)
 	gl.Texture(0, "$heightmap")
 	gl.Texture(1, AtlasTextureID)
-	gl.DepthTest(false)
+	gl.DepthTest(GL.LEQUAL)
+	gl.DepthMask(false)
 
 	local wl = getWaterLevel()
 	spotShader:Activate()
@@ -592,7 +606,6 @@ function widget:DrawWorld()
 
 	gl.PolygonOffset(false)
 	gl.DepthTest(false)
-	gl.DepthMask(true)
 	gl.Culling(false)
 	gl.Texture(0, false)
 	gl.Texture(1, false)

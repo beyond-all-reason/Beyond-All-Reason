@@ -75,8 +75,7 @@ if gadgetHandler:IsSyncedCode() then
 		if Spring.IsCheatingEnabled() then
 			return true
 		else
-			local playername, _, _, _, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
-			local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+			local accountID = Spring.Utilities.GetAccountID(playerID)
 			if _G.permissions.cmd[accountID] and not _G.isSinglePlayer then
 				return true
 			end
@@ -241,7 +240,7 @@ if gadgetHandler:IsSyncedCode() then
 		local teamMsg = (teamParam == "all") and "all teams" or ("team " .. teamParam)
 		Spring.SendMessageToPlayer(playerID, "Unblocked " .. unblockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
 	end
-	
+
 	function gadget:Initialize()
 		GG.BuildBlocking = GG.BuildBlocking or {}
 
@@ -259,7 +258,7 @@ if gadgetHandler:IsSyncedCode() then
 						GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_water")
 					end
 				end
-				
+
 				for unitDefID, unitDef in pairs(UnitDefs) do
 					if unitDef.maxThisUnit == 0 then
 						GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "max_this_unit")
