@@ -59,6 +59,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local spMoveCtrlDisable = Spring.MoveCtrl.Disable
 local spMoveCtrlEnable = Spring.MoveCtrl.Enable
 local spGetAllyTeamList = Spring.GetAllyTeamList
+local spSetUnitPosition = Spring.SetUnitPosition
 
 -- Constants
 local mapSizeX = Game.mapSizeX
@@ -788,7 +789,7 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 					end
 			end)
 			if transporterCoroutines[transporterID] then -- no need to test for type
-				RemoveAreaCoroutine(transporterID) -- if we had an area load coroutine, remove it, as successive load takes precedence and they can't run simultaneously
+				RemoveAreaLoadCoroutine(transporterID) -- if we had an area load coroutine, remove it, as successive load takes precedence and they can't run simultaneously
 			end
 			areaLoadCoroutinesCount = areaLoadCoroutinesCount + 1
 			successiveLoadCoroutines[areaLoadCoroutinesCount] = { co = co, transporterID = transporterID }
