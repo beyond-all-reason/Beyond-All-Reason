@@ -75,6 +75,10 @@ local areaLoadCoroutines = {} -- transporterID → coroutine
 local successiveLoadCoroutines = {} -- transporterID → coroutine
 local cylinderCache = {} -- [key] = { frame = N, units = {...} }
 local isAirTransport = {} -- transporterDefID → bool;
+local offset = 0 -- reusable offset for coroutines cleanup in GameFrame
+local areaLoadCoroutinesCount = 0
+local successiveLoadCoroutinesCount = 0
+local transporterCoroutines = {} -- transporterID → { type = "area" or "successive", index = number }
 
 for udefID, def in ipairs(UnitDefs) do
 	if def.canFly and def.isTransport then
@@ -157,6 +161,21 @@ end
 -- Core logic functions--
 -------------------------
 
+local function RemoveAreaLoadCoroutine(transporterID)
+	local index = transporterCoroutines[transporterID] and transporterCoroutines[transporterID].index
+	if not index then 
+		return SpEcho("Error in RemoveAreaLoadCoroutine: no coroutine found for transporterID " .. transporterID)
+	end 
+	areaLoadCoroutines[index] = nil -- no need to clean up, killed from within
+end
+
+local function RemoveSuccessiveCoroutine(transporterID)
+	local index = transporterCoroutines[transporterID] and transporterCoroutines[transporterID].index
+	if not index then 
+		return SpEcho("Error in RemoveSuccessiveCoroutine: no coroutine found for transporterID " .. transporterID)
+	end 
+	successiveLoadCoroutines[index] = nil -- no need to clean up, killed from within	
+end
 
 ---
 --- @param passengerID number
@@ -655,30 +674,53 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(frame)
-	for transporterID, co in pairs(areaLoadCoroutines) do
-		local status = coroutine.status(co)
-		if status == "suspended" then
-			local ok, err = coroutine.resume(co)
-			if not ok then
-				spEcho("Error in CMD_AREA_LOAD coroutine for transporter " .. transporterID .. ": " .. err)
-				areaLoadCoroutines[transporterID] = nil
+	offset = 0
+	for i = 1, areaLoadCoroutinesCount do
+		local co =  areaLoadCoroutines[i] and areaLoadCoroutines[i].co or nil
+		if co then
+			local transporterID = areaLoadCoroutines[i].transporterID
+			-- option 1: update the index on "frame 3" without nil checking transporterID, right before the coroutine runs, before it can get removed, so the table is updated if it gets its removal code
+			transporterCoroutines[transporterID].index = i
+			local status = coroutine.status(co)
+			if status == "suspended" then
+				local ok, err = coroutine.resume(co)
+				if not ok then
+					spEcho("Error in CMD_AREA_LOAD coroutine for transporter " .. transporterID .. ": " .. err)
+					RemoveAreaLoadCoroutine(transporterID)
+				end
+			else
+				RemoveAreaLoadCoroutine(transporterID)
 			end
 		else
-			areaLoadCoroutines[transporterID] = nil
+			offset = offset + 1
 		end
+		areaLoadCoroutines[i] = areaLoadCoroutines[i + offset]
+		-- options 2: update the index here, so on "frame 2", recquiring a nilcheck on transporterID beforehand
 	end
-	for transporterID, co in pairs(successiveLoadCoroutines) do
-		local status = coroutine.status(co)
-		if status == "suspended" then
-			local ok, err = coroutine.resume(co)
-			if not ok then
-				spEcho("Error in CMD_LOAD_UNIT coroutine for transporter " .. transporterID .. ": " .. err)
-				successiveLoadCoroutines[transporterID] = nil
+	areaLoadCoroutinesCount = areaLoadCoroutinesCount - offset
+	offset = 0 -- reuseable offset for successive loads
+	for i = 1, successiveLoadCoroutinesCount do
+		local co = successiveLoadCoroutines[i] and successiveLoadCoroutines[i].co or nil
+		if co then
+			local transporterID = successiveLoadCoroutines[i].transporterID
+			transporterCoroutines[transporterID].index = i -- keep the index updated before a possible removal
+			local status = coroutine.status(co)
+			if status == "suspended" then
+				local ok, err = coroutine.resume(co)
+				if not ok then
+					spEcho("Error in CMD_LOAD_UNIT coroutine for transporter " .. transporterID .. ": " .. err)
+					RemoveSuccessiveCoroutine(transporterID)
+				end
+			else
+				RemoveSuccessiveCoroutine(transporterID)
 			end
 		else
-			successiveLoadCoroutines[transporterID] = nil
+			offset = offset + 1
 		end
+		successiveLoadCoroutines[i] = successiveLoadCoroutines[i + offset]
+		-- do not nil the i+offset, it's either already nil, or is a valid coroutine that has to be processed first before its value is shifted to i+1+offset, until i+1+offset reaches nil
 	end
+	successiveLoadCoroutinesCount = successiveLoadCoroutinesCount - offset
 end
 
 
@@ -695,21 +737,27 @@ end
 function gadget:CommandFallback(transporterID, transporterDefID, transporterTeamID, cmdID, cmdParams, cmdOptions, cmdTag)
 	if cmdID == CMD_LOAD_UNIT then
 		ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeamID)
-		if not successiveLoadCoroutines[transporterID] then
+		if not transporterCoroutines[transporterID] or transporterCoroutines[transporterID].type ~= "successive" then
+
 			local co = coroutine.create(function()
 					while true do
 						coroutine.yield() -- ticked by GameFrame every frame
 						local Q = spGetUnitCommands(transporterID, 1)
 						local cmd = Q and Q[1]
 						if not (cmd and cmd.id == CMD_LOAD_UNIT) then
-							successiveLoadCoroutines[transporterID] = nil
+							RemoveSuccessiveCoroutine(transporterID)
 							releaseAllClaims(transporterID)
 							break
 						end
 						ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeamID)
 					end
 			end)
-			successiveLoadCoroutines[transporterID] = co
+			if transporterCoroutines[transporterID] then -- no need to test for type
+				RemoveAreaCoroutine(transporterID) -- if we had an area load coroutine, remove it, as successive load takes precedence and they can't run simultaneously
+			end
+			areaLoadCoroutinesCount = areaLoadCoroutinesCount + 1
+			successiveLoadCoroutines[areaLoadCoroutinesCount] = { co = co, transporterID = transporterID }
+			transporterCoroutines[transporterID] = { type = "successive", index = areaLoadCoroutinesCount}
 		end
 		return true, false
 	end
@@ -722,7 +770,7 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 		finished = false
 	end
 	if not finished then
-		if not areaLoadCoroutines[transporterID] then -- only start a coroutine if one doesn't already exist for this transporter.
+		if not transporterCoroutines[transporterID] or transporterCoroutines[transporterID].type ~= "area" then -- only start a coroutine if one doesn't already exist for this transporter.
 			local cx, cy, cz, radius = cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4]
 			-- coroutine params on start
 			local co = coroutine.create(function()
@@ -736,7 +784,7 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 					-- are we still performing a CMD_AREA_LOAD ?
 					if not (cmd and cmd.id == CMD_AREA_LOAD) then
 						-- exit coroutine and clean up if command is finished or removed from queue
-						areaLoadCoroutines[transporterID] = nil
+						RemoveAreaLoadCoroutine(transporterID)
 						releaseAllClaims(transporterID)
 						break
 					-- have our params changed mid-coroutine ?
@@ -751,7 +799,12 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 					-- Could Spring.UnitFinishCommand() here instead of waiting next CommandFallback if we need to stop the coroutine ASAP for perfs
 				end
 			end)
-			areaLoadCoroutines[transporterID] = co
+			if transporterCoroutines[transporterID] then -- no need to test for type
+				RemoveSuccessiveCoroutine(transporterID) -- if we had a successive load coroutine, remove it, as area load takes precedence and they can't run simultaneously
+			end
+			areaLoadCoroutinesCount = areaLoadCoroutinesCount + 1
+			areaLoadCoroutines[areaLoadCoroutinesCount] = { co = co, transporterID = transporterID }
+			transporterCoroutines[transporterID] = { type = "area", index = areaLoadCoroutinesCount }
 		end
 		return true, false -- handled, but not finished; keep command in queue
 	end
