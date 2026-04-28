@@ -68,6 +68,9 @@ local maxDistSq = 2 * alliedDist               -- guaranteed > any real sq dista
 local LOAD_RADIUS = 128    -- elmos XZ; transporter must be within this range to fire PerformLoad
 local CMD_AREA_LOAD = 39751 -- custom area-load command; needs to be logged in customcmds
 local CMD_LOAD_UNIT = 39752 -- custom load-unit command; needs to be logged in customcmds
+local cachedCylinderUnitsLifespan = 1 -- 1 frame
+local cachedCylinderUnitsRounding = 16 -- 1 how close a previously cached result do we need to be to actually use it?
+
 
 local customTransportLoad = {} -- transporterDefID → LUS function or COB script function
 local customTransportUnload = {} -- transporterDefID → LUS function or COB script function
@@ -79,6 +82,7 @@ local successiveLoadCoroutines = {} -- transporterID → coroutine
 local cylinderCache = {} -- [key] = { frame = N, units = {...} }
 local isAirTransport = {} -- transporterDefID → bool;
 local offset = 0 -- reusable offset for coroutines cleanup in GameFrame
+local unitOffset = 0 -- reusable offset for units table cleanup in findUnitToTransport; separate from couroutine's as this can run during a coroutine tick
 local areaLoadCoroutinesCount = 0
 local successiveLoadCoroutinesCount = 0
 local transporterCoroutines = {} -- transporterID → { type = "area" or "successive", index = number }
@@ -148,9 +152,10 @@ end
 ---@return number[] units
 
 local function getCachedUnitsInCylinder(cx, cz, radius, allyTeam)
+	cz, cx, radius = math.floor(cz / cachedCylinderUnitsRounding) * cachedCylinderUnitsRounding, math.floor(cx / cachedCylinderUnitsRounding) * cachedCylinderUnitsRounding, math.ceil(radius / cachedCylinderUnitsRounding) * cachedCylinderUnitsRounding
 	local key = allyTeam .. "," .. cx .. "," .. cz .. "," .. radius
 	local cached = cylinderCache[key]
-	local frame = spGetGameFrame()
+	local frame = math.floor(spGetGameFrame() / cachedCylinderUnitsLifespan) * cachedCylinderUnitsLifespan -- cache over cachedCylinderUnitsLifespan frames
 	if cached and cached.frame == frame then
 		return cached.units
 	end
@@ -158,7 +163,6 @@ local function getCachedUnitsInCylinder(cx, cz, radius, allyTeam)
 	cylinderCache[key] = { frame = frame, units = units }
 	return units
 end
-
 
 -------------------------
 -- Core logic functions--
@@ -372,7 +376,8 @@ local function releaseAllClaims(transporterID)
 	local claims = transporterClaims[transporterID]
 	if not claims then return end
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
-	for _, passengerID in ipairs(claims) do
+	for i = 1, #claims do
+		local passengerID = claims[i]
 		claimedBy[transporterAllyTeam][passengerID] = nil
 	end
 	transporterClaims[transporterID] = {}
@@ -391,6 +396,7 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 	local transporterAllyTeam      = spGetUnitAllyTeam(transporterID)
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
 	local units = getCachedUnitsInCylinder(cx, cz, radius, transporterAllyTeam)
+	local unitsCount = #units
 	local bestUnit = nil
 	local bestDist = maxDistSq
 	if spGetUnitRulesParam(transporterID, "transporterSeats") <= spGetUnitRulesParam(transporterID, "transporterUsedSeats") + (queuedSeats[transporterID] or 0) then
@@ -398,16 +404,37 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 		return nil
 	end
 	-- TODO: remove unclaimable units from cache at runtime
-	for idx, passengerID in ipairs(units) do
+	if unitsCount == 0 then
+		return nil
+	end
+	unitOffset = 0
+	for i = 1, unitsCount do
+		local passengerID = units[i]
 		repeat
-			if not CanBeAutoClaimed(passengerID, transporterAllyTeam) then break end
+			-- global checks (write back into cache)
+			if not CanBeAutoClaimed(passengerID, transporterAllyTeam) then -- at worse, will be reconsidered in 8 frames
+				unitOffset = unitOffset + 1
+				units[i] = units[i + unitOffset]
+				break 
+			end
 			local passengerDefID = spGetUnitDefID(passengerID)
 			local passengerTeamID = spGetUnitTeam(passengerID)
 			local passengerSize = TransportAPI.GetPassengerSize(passengerID)
-			if not CanBeTransportedStatic(passengerID, passengerDefID, transporterID) then break end
+			if not CanBeTransportedStatic(passengerID, passengerDefID, transporterID) then
+				unitOffset = unitOffset + 1
+				units[i] = units[i + unitOffset]
+				break 
+			end
 			local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
-			if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) then break end
-			if not CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, true) then break end
+			if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) then
+				unitOffset = unitOffset + 1
+				units[i] = units[i + unitOffset]
+				break
+			end
+			-- transporter dependant checks (should not write back into cache)
+			if not CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, true) then
+				break
+			end
 			local dx, dz    = passengerPosX - transporterPosX, passengerPosZ - transporterPosZ
 			local rawDistSq = dx * dx + dz * dz
 			-- alliedDist is the offset applied to allied units, by definition dist < alliedDist for all units (alliedDist = mapSizeX*mapSizeZ)
