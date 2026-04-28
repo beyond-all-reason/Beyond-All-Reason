@@ -255,11 +255,15 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 		local transporterPosX, _, transporterPosZ, startTransporterRotX, startTransporterRotY, startTransporterRotZ = getTransporterState(transporterID)
 		goalPosX, goalPosZ = goalPosX + (slotPosX - transporterPosX), goalPosZ + (slotPosZ - transporterPosZ)
 		goalPosY = SpGetGroundHeight(goalPosX, goalPosZ)	
+		local passengerDefID = SpGetUnitDefID(passengerData.id)
+		local passengerTeamID = Spring.GetUnitTeam(passengerData.id)
 
 		local startRotX, startRotY, startRotZ = SpGetUnitRotation(passengerData.id)
 		local goalRotX, goalRotY, goalRotZ
 		local passengerDefID = SpGetUnitDefID(passengerData.id)
 		if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].upright then
+			goalRotY = math.floor(startRotY/(pi/2) + 0.5) *(pi/2) -- cardinal facing
+		elseif UnitDefs[passengerDefID] and UnitDefs[passengerDefID].upright then
 			goalRotX, goalRotY, goalRotZ = 0, startRotY, 0
 		else
 			local normalX, normalY, normalZ = SpGetGroundNormal(goalPosX, goalPosZ)
@@ -308,6 +312,7 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 			SpMoveCtrl.SetPosition(passengerData.id, goalPosX, goalPosY, goalPosZ)
 			SpMoveCtrl.SetRotation(passengerData.id, goalRotX, goalRotY, goalRotZ)
 			SpMoveCtrl.Disable(passengerData.id)
+			Spring.SetUnitPosition(passengerData.id, goalPosX, goalPosY, goalPosZ) -- for transportable buildings, this is recquired after releasing movectrl
 		end
 	end
 
