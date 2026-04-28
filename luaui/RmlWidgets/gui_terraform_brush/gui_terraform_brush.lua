@@ -763,6 +763,11 @@ local initialModel = {
 	lengthScale = "1.0",
 	heightCapMinStr = "--",
 	heightCapMaxStr = "--",
+
+	-- Phase 2 step 3: data-if visibility flags (tf_guide pilot)
+	passthroughActive = false,
+	settingsOpen = false,
+	settingsTab = "keybinds",
 }
 
 local shapeNames = {
@@ -792,11 +797,8 @@ local function clearPassthrough()
 		if doc then
 			local ptBtn = getCachedEl(doc, "btn-passthrough")
 			if ptBtn then ptBtn:SetClass("active", false) end
-			local pauseIcon = getCachedEl(doc, "passthrough-icon-pause")
-			if pauseIcon then pauseIcon:SetClass("hidden", false) end
-			local playIcon = getCachedEl(doc, "passthrough-icon-play")
-			if playIcon then playIcon:SetClass("hidden", true) end
 		end
+		if widgetState.dmHandle then widgetState.dmHandle.passthroughActive = false end
 		if widgetState.rootElement then
 			widgetState.rootElement:SetClass("passthrough-dimmed", false)
 		end
