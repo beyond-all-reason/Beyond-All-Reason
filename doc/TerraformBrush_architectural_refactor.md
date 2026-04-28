@@ -138,7 +138,24 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 
 1. ✅ **Static buttons → `onclick="widget:methodName()"`** in RML. Delete matching `AddEventListener` sites. **Done for all tf_* sub-modules. 548 onclick/onchange attributes in gui_terraform_brush.rml. Standalone widgets also converted (gui_feature_placer, gui_weather_brush, gui_decal_placer).** **Sweep migration to `data-event-X` + model functions queued as phase-2-finisher.**
 2. ⬜ **Active-state loops → `data-class-active="activeMode == 'raise'"`** bound to `dm.activeMode` / `dm.activeShape` / `dm.activeChannel`. Removes ~70% of `:SetClass` calls. **PROMOTED to required pre-1.0 (PR #7527 review).**
-3. ⬜ **Section collapse / show-hide → `data-if="sectionTerrainOpen"`** for banners / notice dots / passthrough play/pause icons; **whole-panel show/hide → `document:Hide()/Show()`**. **PROMOTED to required pre-1.0 (PR #7527 review). `SetClass("hidden", ...)` is wrong, not deferred.**
+3. 🟡 **Section collapse / show-hide → `data-if="sectionTerrainOpen"`** for banners / notice dots / passthrough play/pause icons; **whole-panel show/hide → `document:Hide()/Show()`**. **PROMOTED to required pre-1.0 (PR #7527 review). `SetClass("hidden", ...)` is wrong, not deferred.** **In progress (Apr 2026)** — see per-file table below.
+
+#### Phase 2 step 3 per-file progress
+
+| File | Sites done / total | Status |
+|---|---|---|
+| `tf_guide.lua` | 13 / 13 | ✅ pilot |
+| `tf_noise.lua` | 1 / 1 | ✅ (`noiseWindowVisible` dm flag) |
+| `gui_decal_placer.lua` | 1 / 1 | ✅ (dead code removed) |
+| `tf_startpos.lua` | 8 / 8 | ✅ (`stpSubMode`, `stpStartboxMode`) |
+| `tf_splat.lua` | 8 / 8 | ✅ (12 dm flags incl. `sp*` instruments) |
+| `tf_features.lua` | 0 / 12 | ⬜ |
+| `tf_lights.lua` | 0 / 11 | ⬜ |
+| `tf_metal.lua` | 0 / 11 | ⬜ |
+| `tf_grass.lua` | 0 / 19 | ⬜ |
+| `tf_environment.lua` | 0 / 18 | ⬜ (helper-heavy, hold last) |
+| `gui_terraform_brush.lua` | 1 / 74 | 🟡 (noise sync done; finisher) |
+
 4. ⬜ **Labels → `{{radius}}` interpolation**; replaces `.inner_rml = tostring(v)` sites (~40 in terraform_brush alone). **PROMOTED to required pre-1.0 (PR #7527 review).**
 5. ✅ **Sliders**: keep `updatingFromCode` feedback guard + log-curve handlers; `onchange="widget:onXxxChange(element)"` added to all sliders in converted panels.
 6. ⬜ **Model-function migration of existing `widget:` sites**. 548 `onclick="widget:foo()"` in `gui_terraform_brush.rml` swap to `data-event-click="onFoo()"` with handlers registered on `dm.*`. Single-sweep PR after 2–4 land.
@@ -171,7 +188,7 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 |---|---|---|
 | Phase 1 — `attachDraggable` drag consolidation | Small-Medium | 4 near-identical drag loops; context manager home agreed; deferred from Phase 1 to keep diff small |
 | Phase 2 step 2 — `data-class-*` for active state | Large | **PROMOTED pre-1.0** (PR #7527). All `setActiveClass()` sites → `data-class-active="x == 'foo'"`. |
-| Phase 2 step 3 — `data-if` + `document:Hide/Show` | Medium | **PROMOTED pre-1.0** (PR #7527). All `SetClass("hidden", ...)` removed. |
+| Phase 2 step 3 — `data-if` + `document:Hide/Show` | Medium | 🟡 **In progress (Apr 2026)** — 5 / 11 files done (tf_guide, tf_noise, decal_placer, tf_startpos, tf_splat). Remaining: tf_features, tf_lights, tf_metal, tf_grass, tf_environment, gui_terraform_brush.lua main. |
 | Phase 2 step 4 — `{{interpolation}}` for labels | Medium | **PROMOTED pre-1.0** (PR #7527). ~40 `inner_rml = tostring(v)` sites in tf-brush. |
 | Phase 2 step 6 — model-function migration | Large | Sweep 548 `widget:foo()` → `data-event-click="onFoo()"` with `dm.*` handlers. After steps 2–4. |
 | Phase 2.5 — `gl.*` over RmlUi audit | Small-Medium | **PROMOTED pre-1.0** (PR #7527). tf-brush passthrough icons, weather ceg preview, light placer ring. Bake-to-image pattern. |

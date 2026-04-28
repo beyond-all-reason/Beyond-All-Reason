@@ -275,8 +275,6 @@ local function refreshUIFromState()
 				and "/luaui/images/terraform_brush/check_on.png"
 				or  "/luaui/images/terraform_brush/check_off.png")
 		end
-		local smartOpts = doc:GetElementById("dp-smart-options")
-		if smartOpts then smartOpts:SetClass("hidden", not state.smartEnabled) end
 		local waterBtn = doc:GetElementById("btn-dp-smart-water")
 		if waterBtn then
 			waterBtn:SetAttribute("src", state.smartFilters.avoidWater
