@@ -203,8 +203,7 @@ function M.attach(doc, ctx)
 		WG.TerraformBrush.setGridSnap(newVal)
 		local snapBtn = doc:GetElementById("btn-mb-grid-snap")
 		if snapBtn then snapBtn:SetClass("active", newVal) end
-		local snapRow = doc:GetElementById("mb-grid-snap-size-row")
-		if snapRow then snapRow:SetClass("hidden", not newVal) end
+		-- mb-grid-snap-size-row visibility driven by data-if="mbGridSnap"
 	end
 	w.mbOnSnapSizeChange = function(self, element)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
@@ -227,8 +226,7 @@ function M.attach(doc, ctx)
 		WG.TerraformBrush.setAngleSnap(newVal)
 		local angleBtn = doc:GetElementById("btn-mb-angle-snap")
 		if angleBtn then angleBtn:SetClass("active", newVal) end
-		local angleRow = doc:GetElementById("mb-angle-snap-step-row")
-		if angleRow then angleRow:SetClass("hidden", not newVal) end
+		-- mb-angle-snap-step-row visibility driven by data-if="mbAngleSnap"
 	end
 
 	local MB_ANGLE_PRESETS = { 7.5, 15, 30, 45, 60, 90 }
@@ -269,8 +267,7 @@ function M.attach(doc, ctx)
 		WG.TerraformBrush.setAngleSnapAuto(newVal)
 		local autoBtn = doc:GetElementById("mb-btn-angle-autosnap")
 		if autoBtn then autoBtn:SetClass("active", newVal) end
-		local manualRow = doc:GetElementById("mb-angle-manual-spoke-row")
-		if manualRow then manualRow:SetClass("hidden", newVal) end
+		-- mb-angle-manual-spoke-row visibility driven by data-if="!mbAngleSnapAuto"
 	end
 	w.mbOnManualSpokeChange = function(self, element)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
@@ -295,8 +292,7 @@ function M.attach(doc, ctx)
 		WG.TerraformBrush.setMeasureActive(newVal)
 		local measureBtn = doc:GetElementById("btn-mb-measure")
 		if measureBtn then measureBtn:SetClass("active", newVal) end
-		local measureRow = doc:GetElementById("mb-measure-toolbar-row")
-		if measureRow then measureRow:SetClass("hidden", not newVal) end
+		-- mb-measure-toolbar-row visibility driven by data-if="mbMeasureActive"
 	end
 	w.mbMeasureRuler = function(self)
 		if WG.TerraformBrush then WG.TerraformBrush.setMeasureRulerMode(not getTFState().measureRulerMode) end
@@ -320,10 +316,7 @@ function M.attach(doc, ctx)
 		if radialEl then radialEl:SetClass("active", s.symmetryRadial and true or false) end
 		if mxEl     then mxEl:SetClass("active",     s.symmetryMirrorX and true or false) end
 		if myEl     then myEl:SetClass("active",     s.symmetryMirrorY and true or false) end
-		local countRow = doc:GetElementById("mb-symmetry-radial-count-row")
-		if countRow then countRow:SetClass("hidden", not s.symmetryRadial) end
-		local angleRow = doc:GetElementById("mb-symmetry-mirror-angle-row")
-		if angleRow then angleRow:SetClass("hidden", not (s.symmetryMirrorX or s.symmetryMirrorY)) end
+		-- mb-symmetry-radial-count-row, mb-symmetry-mirror-angle-row driven by data-if
 	end
 
 	w.mbToggleSymmetry = function(self)
@@ -340,8 +333,7 @@ function M.attach(doc, ctx)
 		end
 		local symBtn = doc:GetElementById("btn-mb-symmetry")
 		if symBtn then symBtn:SetClass("active", newVal) end
-		local symRow = doc:GetElementById("mb-symmetry-toolbar-row")
-		if symRow then symRow:SetClass("hidden", not newVal) end
+		-- mb-symmetry-toolbar-row visibility driven by data-if="mbSymmetryActive"
 	end
 	w.mbToggleSymRadial = function(self)
 		if WG.TerraformBrush then
@@ -506,6 +498,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 	local setActiveClass = ctx.setActiveClass
 	local syncAndFlash = ctx.syncAndFlash
 	local WG = ctx.WG
+	local dm = widgetState.dmHandle
 
 	local metalBtn = doc and doc:GetElementById("btn-metal")
 	if metalBtn then metalBtn:SetClass("active", true) end
@@ -522,6 +515,20 @@ function M.sync(doc, ctx, mbState, setSummary)
 
 	-- Metal sub-mode buttons
 	setActiveClass(widgetState.mbSubModeButtons, mbState.subMode)
+
+	-- Instruments sub-row visibility flags (data-if driven)
+	do
+		local s = WG.TerraformBrush and WG.TerraformBrush.getState and WG.TerraformBrush.getState()
+		if dm and s then
+			dm.mbGridSnap        = s.gridSnap and true or false
+			dm.mbAngleSnap       = s.angleSnap and true or false
+			dm.mbMeasureActive   = s.measureActive and true or false
+			dm.mbSymmetryActive  = s.symmetryActive and true or false
+			dm.mbSymmetryRadial  = s.symmetryRadial and true or false
+			dm.mbSymmetryMirrorAny = (s.symmetryMirrorX or s.symmetryMirrorY) and true or false
+			dm.mbAngleSnapAuto   = s.angleSnapAuto and true or false
+		end
+	end
 
 	-- Metal value slider & label sync
 	if doc then
@@ -619,14 +626,13 @@ function M.sync(doc, ctx, mbState, setSummary)
 			or mbState.clusterCounter or mbState.lassoActive or mbState.lassoClosed or mbState.balanceAxisActive
 		if inspectorChip then inspectorChip:SetClass("active", inspectorOpen and true or false) end
 		widgetState.mbInspectorOpen = inspectorOpen and true or false
-		local clusterRow = doc:GetElementById("mb-cluster-radius-row")
-		if clusterRow then clusterRow:SetClass("hidden", not mbState.clusterCounter) end
-		local inspectorRow = doc:GetElementById("mb-inspector-row")
-		if inspectorRow then inspectorRow:SetClass("hidden", not inspectorOpen) end
-		local lassoRow = doc:GetElementById("mb-lasso-row")
-		if lassoRow then lassoRow:SetClass("hidden", not (mbState.lassoActive or mbState.lassoClosed)) end
-		local axisRow = doc:GetElementById("mb-balance-axis-row")
-		if axisRow then axisRow:SetClass("hidden", not mbState.balanceAxisActive) end
+		-- Map analysis sub-row visibility driven by data-if
+		if dm then
+			dm.mbInspectorOpen = inspectorOpen and true or false
+			dm.mbClusterOpen   = mbState.clusterCounter and true or false
+			dm.mbLassoOpen     = (mbState.lassoActive or mbState.lassoClosed) and true or false
+			dm.mbAxisOpen      = mbState.balanceAxisActive and true or false
+		end
 		local lbl = doc:GetElementById("mb-cluster-radius-label")
 		if lbl then lbl.inner_rml = tostring(mbState.clusterRadius or 256) end
 		local totalLbl = doc:GetElementById("mb-lasso-total-label")
