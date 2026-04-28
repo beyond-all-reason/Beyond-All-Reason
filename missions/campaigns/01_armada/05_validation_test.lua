@@ -5,6 +5,41 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
+local lobbyData = {
+	missionId = "validation_test",
+	title = "Validation Test",
+	description = "Tests invalid mission scripts, e.g. parameter values, etc. All possible validation errors should be present in the log.",
+	unlocked = true,
+}
+
+local startScript = {
+	mapName = "Quicksilver Remake 1.24",
+	startPosType = 'chooseBeforeGame',
+	allyTeams = {
+		thePlayerAllyTeam = {
+			teams = {
+				thePlayerTeam = {
+					name = "TestPlayer",
+					Side = 'Cortex',
+					StartPosX = 2200,
+					StartPosZ = 1500,
+				},
+			},
+		},
+		theEnemyAllyTeam = {
+			teams = {
+				theEnemyTeam = {
+					name = "Mission Bots",
+					Side = 'Armada',
+					StartPosX = 3000,
+					StartPosZ = 2400,
+					ai = "NullAI",
+				},
+			}
+		},
+	},
+}
+
 local triggers = {
 
 	triggerMissingTypeAndActions = {},
@@ -40,7 +75,7 @@ local triggers = {
 	triggerWithInvalidAllyTeamID = {
 		type = triggerTypes.UnitSpotted,
 		parameters = {
-			spottingAllyTeamID = 777,
+			spottingAllyTeamName = 'invalidAllyTeamName',
 		},
 		actions = { 'actionMissingType' },
 	},
@@ -56,7 +91,7 @@ local triggers = {
 	triggerWithInvalidResourceIncomeSourcesType = {
 		type = triggerTypes.ResourceIncome,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			metal = 10,
 			sources = 'notATable',
 		},
@@ -66,7 +101,7 @@ local triggers = {
 	triggerWithInvalidResourceIncomeSources = {
 		type = triggerTypes.ResourceIncome,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			metal = 10,
 			sources = { 'invalidSource1', false, 123 },
 		},
@@ -102,15 +137,15 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'invalidUnitDefName', x = 1800, z = 1600, team = 6, facing = 'invalidFacing' }, -- invalid unitDefName, invalid team, invalid facing
-				{ unitDefName = 'armcom', x = 1800, z = 1600, team = 0, facing = 4 },                           -- invalid facing type (number > 3)
-				{ unitDefName = 'armcom', x = 1800, z = 1600, team = 0, facing = true },                        -- invalid facing type (boolean)
-				{ unitDefName = 'armcom', x = 1800, z = 1600, team = 0, quantity = 'notANumber' },              -- invalid quantity type
-				{ unitDefName = 'armcom', x = 1800, z = 1600, team = 0, spacing = 'notANumber' },               -- invalid spacing type
-				{ unitDefName = 'armcom', x = 1800, z = 1600, team = 0, construction = 'notABoolean' },         -- invalid construction type
-				{ unitDefName = 'armcom', x = 1800, z = 1600, team = 0, neutral = 'notABoolean' },              -- invalid neutral type
-				{ unitDefName = 'armcom', x = 1800, z = 1600, team = 0, orders = 'notATable' },                 -- invalid orders type
-				{ unitDefName = 'armcom', x = 1800, z = 1600, team = 0, unitName = 'unusedUnitName' },          -- unitName that is never referenced – should produce an "unreferenced" warning
+				{ unitDefName = 'invalidUnitDefName', x = 1800, z = 1600, teamName = 'thePlayerTeam', facing = 'invalidFacing' }, -- invalid unitDefName, invalid team, invalid facing
+				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'thePlayerTeam', facing = 4 },                           -- invalid facing type (number > 3)
+				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'thePlayerTeam', facing = true },                        -- invalid facing type (boolean)
+				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'thePlayerTeam', quantity = 'notANumber' },              -- invalid quantity type
+				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'thePlayerTeam', spacing = 'notANumber' },               -- invalid spacing type
+				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'thePlayerTeam', construction = 'notABoolean' },         -- invalid construction type
+				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'thePlayerTeam', neutral = 'notABoolean' },              -- invalid neutral type
+				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'thePlayerTeam', orders = 'notATable' },                 -- invalid orders type
+				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'thePlayerTeam', unitName = 'unusedUnitName' },          -- unitName that is never referenced – should produce an "unreferenced" warning
 			},
 		},
 	},
@@ -118,14 +153,14 @@ local actions = {
 	actionWithInvalidAllyTeamID = {
 		type = actionTypes.Defeat,
 		parameters = {
-			allyTeamIDs = { 777 },
+			allyTeamNames = { 'invalidAllyTeamName' },
 		},
 	},
 
 	actionWithNoAllyTeamIDs = {
 		type = actionTypes.Defeat,
 		parameters = {
-			allyTeamIDs = { },
+			allyTeamNames = { },
 		},
 	},
 
@@ -304,7 +339,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armcom', x = 2000, z = 2000, facing = 'n', team = 0, unitName = 'spawnedCom' },
+				{ unitDefName = 'armcom', x = 2000, z = 2000, facing = 'n', teamName = 'thePlayerTeam', unitName = 'spawnedCom' },
 			},
 		},
 	},
@@ -337,9 +372,9 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'invalidUnit', x = 100, z = 100, facing = 'n', team = 0 },
-				{ unitDefName = 'armcom',      x = 100, z = 100, facing = 'n' }, -- missing 'team'
-				{ unitDefName = 'armcom', x = 100, z = 100, facing = 'n', team = 0,
+				{ unitDefName = 'invalidUnit', x = 100, z = 100, facing = 'n', teamName = 'thePlayerTeam' },
+				{ unitDefName = 'armcom',      x = 100, z = 100, facing = 'n' }, -- missing 'teamName'
+				{ unitDefName = 'armcom', x = 100, z = 100, facing = 'n', teamName = 'thePlayerTeam',
 				  orders = {}, -- empty orders table
 				},
 			},
@@ -374,28 +409,28 @@ local actions = {
 
 local unitLoadout = {
 	-- #1: valid entry (unitName is referenced by 'actionReferencingLoadoutUnitName')
-	{ unitDefName = 'armcom', x = 1200, z = 800, facing = 'e', team = 0, unitName = 'loadoutCom' },
+	{ unitDefName = 'armcom', x = 1200, z = 800, facing = 'e', teamName = 'thePlayerTeam', unitName = 'loadoutCom' },
 
 	-- #2: invalid unitDefName
-	{ unitDefName = 'invalidUnit', x = 1200, z = 800, facing = 'n', team = 0 },
+	{ unitDefName = 'invalidUnit', x = 1200, z = 800, facing = 'n', teamName = 'thePlayerTeam' },
 
 	-- #3: missing required field 'z'
-	{ unitDefName = 'armcom', x = 1200, facing = 'n', team = 0 },
+	{ unitDefName = 'armcom', x = 1200, facing = 'n', teamName = 'thePlayerTeam' },
 
-	-- #4: missing required field 'team'
+	-- #4: missing required field 'teamName'
 	{ unitDefName = 'armcom', x = 1200, z = 800, facing = 'n' },
 
 	-- #5: invalid facing value
-	{ unitDefName = 'armcom', x = 1200, z = 800, facing = 'q', team = 0 },
+	{ unitDefName = 'armcom', x = 1200, z = 800, facing = 'q', teamName = 'thePlayerTeam' },
 
 	-- #6: invalid type for 'neutral'
-	{ unitDefName = 'armcom', x = 1200, z = 800, facing = 's', team = 0, neutral = 1 },
+	{ unitDefName = 'armcom', x = 1200, z = 800, facing = 's', teamName = 'thePlayerTeam', neutral = 1 },
 
 	-- #7: unitName that is never referenced – should produce an "unreferenced" warning
-	{ unitDefName = 'armcom', x = 1300, z = 900, facing = 's', team = 0, unitName = 'unusedLoadoutUnitName' },
+	{ unitDefName = 'armcom', x = 1300, z = 900, facing = 's', teamName = 'thePlayerTeam', unitName = 'unusedLoadoutUnitName' },
 
 	-- #8: valid entry with orders (move, then queued patrol)
-	{ unitDefName = 'armcom', x = 1400, z = 900, facing = 'n', team = 0,
+	{ unitDefName = 'armcom', x = 1400, z = 900, facing = 'n', teamName = 'thePlayerTeam',
 	  orders = {
 	    { CMD.MOVE,   { 1500, 0, 900 },  {}         },  -- valid move
 	    { CMD.PATROL, { 1400, 0, 900 },  { 'shift' } }, -- valid queued patrol
@@ -403,7 +438,7 @@ local unitLoadout = {
 	},
 
 	-- #9: orders table is empty – should produce an "Orders table is empty" error
-	{ unitDefName = 'armcom', x = 1500, z = 900, facing = 'n', team = 0,
+	{ unitDefName = 'armcom', x = 1500, z = 900, facing = 'n', teamName = 'thePlayerTeam',
 	  orders = {},
 	},
 }
@@ -429,6 +464,8 @@ local featureLoadout = {
 }
 
 return {
+	LobbyData      = lobbyData,
+	StartScript    = startScript,
 	Triggers       = triggers,
 	Actions        = actions,
 	UnitLoadout    = unitLoadout,

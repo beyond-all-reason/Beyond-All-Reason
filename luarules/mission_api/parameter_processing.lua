@@ -16,6 +16,12 @@ local function processPosition(position)
 	position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
 end
 
+local function processPositions(positions)
+	for _, position in pairs(positions) do
+		processPosition(position)
+	end
+end
+
 local function processOrders(orders)
 	for i, order in ipairs(orders) do
 		local commandID = order[1]
@@ -45,6 +51,7 @@ end
 
 local processors = {
 	[Types.Position]              = processPosition,
+	[Types.Positions]             = processPositions,
 	[Types.Orders]                = processOrders,
 	[Types.SoundFile]             = processSoundFile,
 	[Types.ResourceIncomeSources] = processResourceIncomeSources,

@@ -1,6 +1,41 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
+local lobbyData = {
+	missionId = "issue_orders_test",
+	title = "IssueOrders Test",
+	description = "Tests issuing orders to units, including by unit name, and area attacking.",
+	unlocked = true,
+}
+
+local startScript = {
+	mapName = "Quicksilver Remake 1.24",
+	startPosType = 'chooseBeforeGame',
+	allyTeams = {
+		thePlayerAllyTeam = {
+			teams = {
+				thePlayerTeam = {
+					name = "TestPlayer",
+					Side = 'Cortex',
+					StartPosX = 2200,
+					StartPosZ = 1500,
+				},
+			},
+		},
+		theEnemyAllyTeam = {
+			teams = {
+				theEnemyTeam = {
+					name = "Mission Bots",
+					Side = 'Armada',
+					StartPosX = 3000,
+					StartPosZ = 2400,
+					ai = "NullAI",
+				},
+			}
+		},
+	},
+}
+
 local triggers = {
 	spawnAttackers = {
 		type = triggerTypes.TimeElapsed,
@@ -72,7 +107,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'cormando', x = 1800, z = 1900, team = 0, unitName = 'attackers', quantity = 2 },
+				{ unitDefName = 'cormando', x = 1800, z = 1900, teamName = 'thePlayerTeam', unitName = 'attackers', quantity = 2 },
 			},
 		},
 	},
@@ -98,7 +133,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armeyes', x = 1800, z = 2400, team = 0 },
+				{ unitDefName = 'armeyes', x = 1800, z = 2400, teamName = 'thePlayerTeam' },
 			},
 		},
 	},
@@ -107,7 +142,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armeyes', x = 1700, z = 2900, team = 0 },
+				{ unitDefName = 'armeyes', x = 1700, z = 2900, teamName = 'thePlayerTeam' },
 			},
 		},
 	},
@@ -116,7 +151,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsolar', x = 1700, z = 2300, team = 1, unitName = 'targets' },
+				{ unitDefName = 'armsolar', x = 1700, z = 2300, teamName = 'theEnemyTeam', unitName = 'targets' },
 			},
 		},
 	},
@@ -125,7 +160,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsolar', x = 1900, z = 2350, team = 1, unitName = 'targets' },
+				{ unitDefName = 'armsolar', x = 1900, z = 2350, teamName = 'theEnemyTeam', unitName = 'targets' },
 			},
 		},
 	},
@@ -134,7 +169,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsolar', x = 2100, z = 2300, team = 1, unitName = 'targets' },
+				{ unitDefName = 'armsolar', x = 2100, z = 2300, teamName = 'theEnemyTeam', unitName = 'targets' },
 			},
 		},
 	},
@@ -205,7 +240,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 1500, z = 2900, team = 1, quantity = 9, spacing = 16 },
+				{ unitDefName = 'armwin', x = 1500, z = 2900, teamName = 'theEnemyTeam', quantity = 9, spacing = 16 },
 			},
 		},
 	},
@@ -214,7 +249,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 2000, z = 2500, team = 1, quantity = 2 },
+				{ unitDefName = 'armwin', x = 2000, z = 2500, teamName = 'theEnemyTeam', quantity = 2 },
 			},
 		},
 	},
@@ -240,7 +275,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armart', x = 1700, z = 2500, team = 0, unitName = 'artillery', quantity = 2 },
+				{ unitDefName = 'armart', x = 1700, z = 2500, teamName = 'thePlayerTeam', unitName = 'artillery', quantity = 2 },
 			},
 		},
 	},
@@ -266,7 +301,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armfus', x = 2300, z = 2500, team = 0, unitName = 'fusions', quantity = 3 },
+				{ unitDefName = 'armfus', x = 2300, z = 2500, teamName = 'thePlayerTeam', unitName = 'fusions', quantity = 3 },
 			},
 		},
 	},
@@ -327,6 +362,8 @@ local actions = {
 }
 
 return {
+	LobbyData = lobbyData,
+	StartScript = startScript,
 	Triggers = triggers,
 	Actions = actions,
 }

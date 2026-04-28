@@ -1503,6 +1503,17 @@ function widget:Initialize()
 		widgetHandler:DisableWidgetRaw("Grid menu")
 	end
 
+	-- If mission disables the initial commander spawn, suppress the entire pregame build path (build menu, startDefID binding, buildmenuShows = true, etc.)
+	if preGamestartPlayer then
+		local modOptions = Spring.GetModOptions()
+		local options = modOptions.scenariooptions or modOptions.missionoptions
+		if options then
+			local optionsDecoded = Json.decode(string.base64Decode(options))
+			if optionsDecoded and (optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout)) then
+				preGamestartPlayer = false
+			end
+		end
+	end
 
 	-- Get our starting unit
 	if preGamestartPlayer then

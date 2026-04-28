@@ -1,6 +1,41 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
+local lobbyData = {
+	missionId = "unit_triggers_test",
+	title = "Unit Triggers Test",
+	description = "Tests unit related triggers and actions, such as dwelling, entering locations, being resurrected, etc.",
+	unlocked = true,
+}
+
+local startScript = {
+	mapName = "Quicksilver Remake 1.24",
+	startPosType = 'chooseBeforeGame',
+	allyTeams = {
+		thePlayerAllyTeam = {
+			teams = {
+				thePlayerTeam = {
+					name = "TestPlayer",
+					Side = 'Cortex',
+					StartPosX = 2200,
+					StartPosZ = 1500,
+				},
+			},
+		},
+		theEnemyAllyTeam = {
+			teams = {
+				theEnemyTeam = {
+					name = "Mission Bots",
+					Side = 'Armada',
+					StartPosX = 3000,
+					StartPosZ = 2400,
+					ai = "NullAI",
+				},
+			}
+		},
+	},
+}
+
 local triggers = {
 
 	spawnTurretAndBots = {
@@ -19,7 +54,7 @@ local triggers = {
 		},
 		parameters = {
 			nameRequired = 'bots',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			unitDefName = 'armpw',
 			duration = 60,
 			area = { x1 = 2000, z1 = 2300, x2 = 2200, z2 = 2500 },
@@ -36,7 +71,7 @@ local triggers = {
 		},
 		parameters = {
 			nameRequired = 'bots',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			unitDefName = 'armpw',
 			duration = 60,
 			area = { x1 = 2000, z1 = 2300, x2 = 2200, z2 = 2500 },
@@ -72,7 +107,7 @@ local triggers = {
 		type = triggerTypes.UnitEnteredLocation,
 		parameters = {
 			nameRequired = 'bots',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			unitDefName = 'armpw',
 			area = { x1 = 1700, z1 = 2300, x2 = 1900, z2 = 2600 },
 		},
@@ -83,7 +118,7 @@ local triggers = {
 		type = triggerTypes.UnitLeftLocation,
 		parameters = {
 			nameRequired = 'bots',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			unitDefName = 'armpw',
 			area = { x1 = 1700, z1 = 2300, x2 = 1900, z2 = 2600 },
 		},
@@ -103,7 +138,7 @@ local triggers = {
 		type = triggerTypes.ConstructionStarted,
 		parameters = {
 			unitDefName = 'armsolar',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 		},
 		actions = { 'messageConstructionStartedSolar' },
 	},
@@ -112,7 +147,7 @@ local triggers = {
 		type = triggerTypes.ConstructionFinished,
 		parameters = {
 			unitDefName = 'armsolar',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 		},
 		actions = { 'messageConstructionFinishedSolar' },
 	},
@@ -121,7 +156,7 @@ local triggers = {
 		type = triggerTypes.UnitResurrected,
 		parameters = {
 			unitDefName = 'armllt',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 		},
 		actions = { 'messageRessed' },
 	},
@@ -131,7 +166,8 @@ local triggers = {
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
-			owningTeamID = 1,
+			owningTeamName = 'theEnemyTeam',
+			spottingAllyTeamName = 'thePlayerAllyTeam',
 		},
 		actions = { 'messageEngineerSpotted' },
 	},
@@ -141,8 +177,8 @@ local triggers = {
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
-			owningTeamID = 1,
-			spottingAllyTeamID = 0,
+			owningTeamName = 'theEnemyTeam',
+			spottingAllyTeamName = 'thePlayerAllyTeam',
 		},
 		actions = { 'messageEngineerUnspotted' },
 	},
@@ -154,7 +190,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 1800, z = 2200, team = 1, unitName = 'bots' },
+				{ unitDefName = 'armllt', x = 1800, z = 2200, teamName = 'theEnemyTeam', unitName = 'bots' },
 			},
 		},
 	},
@@ -163,7 +199,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 1800, z = 1600, team = 0, unitName = 'bots', quantity = 4 },
+				{ unitDefName = 'armpw', x = 1800, z = 1600, teamName = 'thePlayerTeam', unitName = 'bots', quantity = 4 },
 			},
 		},
 	},
@@ -232,7 +268,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armdecom', x = 1900, z = 2600, team = 0, unitName = 'decoys' },
+				{ unitDefName = 'armdecom', x = 1900, z = 2600, teamName = 'thePlayerTeam', unitName = 'decoys' },
 			},
 		},
 	},
@@ -241,7 +277,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 1600, z = 2800, team = 1 },
+				{ unitDefName = 'armwin', x = 1600, z = 2800, teamName = 'theEnemyTeam' },
 			},
 		},
 	},
@@ -283,7 +319,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrectr', x = 1900, z = 2600, team = 0, unitName = 'res', quantity = 4 },
+				{ unitDefName = 'armrectr', x = 1900, z = 2600, teamName = 'thePlayerTeam', unitName = 'res', quantity = 4 },
 			},
 		},
 	},
@@ -309,7 +345,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corfast', x = 1500, z = 3400, team = 1, unitName = 'engineers' },
+				{ unitDefName = 'corfast', x = 1500, z = 3400, teamName = 'theEnemyTeam', unitName = 'engineers' },
 			},
 		},
 	},
@@ -341,6 +377,8 @@ local actions = {
 }
 
 return {
+	LobbyData = lobbyData,
+	StartScript = startScript,
 	Triggers = triggers,
 	Actions = actions,
 }

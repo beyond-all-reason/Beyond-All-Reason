@@ -1,9 +1,40 @@
----
---- Feature triggers test mission.
----
-
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
+
+local lobbyData = {
+	missionId = "feature_triggers_test",
+	title = "Feature Triggers Test",
+	description = "Tests triggers related to features, including creation, destruction, reclamation, and resurrection.",
+	unlocked = true,
+}
+
+local startScript = {
+	mapName = "Quicksilver Remake 1.24",
+	startPosType = 'chooseBeforeGame',
+	allyTeams = {
+		thePlayerAllyTeam = {
+			teams = {
+				thePlayerTeam = {
+					name = "TestPlayer",
+					Side = 'Cortex',
+					StartPosX = 2200,
+					StartPosZ = 1500,
+				},
+			},
+		},
+		theEnemyAllyTeam = {
+			teams = {
+				theEnemyTeam = {
+					name = "Mission Bots",
+					Side = 'Armada',
+					StartPosX = 3000,
+					StartPosZ = 2400,
+					ai = "NullAI",
+				},
+			}
+		},
+	},
+}
 
 local triggers = {
 
@@ -45,7 +76,7 @@ local triggers = {
 		type = triggerTypes.FeatureReclaimed,
 		parameters = {
 			featureName = 'theRocks',
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 		},
 		actions = { 'messageRockReclaimed' },
 	},
@@ -61,8 +92,8 @@ local triggers = {
 	unitRessed = {
 		type = triggerTypes.UnitResurrected,
 		parameters = {
-			featureName  = 'wreck-to-resurrect',
-			teamID = 0,
+			featureName = 'wreck-to-resurrect',
+			teamName    = 'thePlayerTeam',
 		},
 		actions = { 'messageWreckResurrected' },
 	},
@@ -127,7 +158,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrectr', x = 1800, z = 1900, team = 0, unitName = 'reclaimer' },
+				{ unitDefName = 'armrectr', x = 1800, z = 1900, teamName = 'thePlayerTeam', unitName = 'reclaimer' },
 			},
 		},
 	},
@@ -136,7 +167,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armham', x = 1800, z = 2100, team = 0, unitName = 'attacker' },
+				{ unitDefName = 'armham', x = 1800, z = 2100, teamName = 'thePlayerTeam', unitName = 'attacker' },
 			},
 		},
 	},
@@ -146,7 +177,7 @@ local actions = {
 		parameters = {
 			unitName = 'reclaimer',
 			orders = {
-				{ CMD.RECLAIM, { 1800, 0, 1800, 80 } },
+				{ CMD.RECLAIM,   { 1800, 0, 1800, 80 } },
 				{ CMD.RESURRECT, { 1900, 0, 2000, 80 }, { 'shift' } },
 			},
 		},
@@ -213,6 +244,8 @@ local actions = {
 }
 
 return {
-	Triggers = triggers,
-	Actions  = actions,
+	LobbyData   = lobbyData,
+	StartScript = startScript,
+	Triggers    = triggers,
+	Actions     = actions,
 }

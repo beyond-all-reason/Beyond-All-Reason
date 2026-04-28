@@ -5,7 +5,42 @@
 local triggerTypes   = GG['MissionAPI'].TriggerTypes
 local actionTypes    = GG['MissionAPI'].ActionTypes
 
-local triggers       = {
+local lobbyData = {
+	missionId = "loadout_test",
+	title = "Loadout Test",
+	description = "Tests pre-spawning units and features via UnitLoadout and FeatureLoadout, and the actions SpawnUnits and CreateFeatures.",
+	unlocked = true,
+}
+
+local startScript = {
+	mapName = "Quicksilver Remake 1.24",
+	startPosType = 'chooseBeforeGame',
+	allyTeams = {
+		thePlayerAllyTeam = {
+			teams = {
+				thePlayerTeam = {
+					name = "TestPlayer",
+					Side = 'Cortex',
+					StartPosX = 2200,
+					StartPosZ = 1500,
+				},
+			},
+		},
+		theEnemyAllyTeam = {
+			teams = {
+				theEnemyTeam = {
+					name = "Mission Bots",
+					Side = 'Armada',
+					StartPosX = 3000,
+					StartPosZ = 2400,
+					ai = "NullAI",
+				},
+			}
+		},
+	},
+}
+
+local triggers = {
 
 	intro = {
 		type = triggerTypes.TimeElapsed,
@@ -95,8 +130,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck',   x = 1900, z = 1700, facing = 'e', team = 0, unitName = 'reinforcement-con' },
-				{ unitDefName = 'armflea', x = 1900, z = 1820, facing = 'e', team = 0,
+				{ unitDefName = 'armck',   x = 1900, z = 1700, facing = 'e', teamName = 'thePlayerTeam', unitName = 'reinforcement-con' },
+				{ unitDefName = 'armflea', x = 1900, z = 1820, facing = 'e', teamName = 'thePlayerTeam',
 				  orders = {
 				    { CMD.MOVE, { 2100, 0, 2220 }, {} },
 				  },
@@ -155,23 +190,23 @@ local actions = {
 	victory = {
 		type = actionTypes.Victory,
 		parameters = {
-			allyTeamIDs = { 0 },
+			allyTeamNames = { 'thePlayerAllyTeam' },
 		},
 	},
 }
 
 local unitLoadout    = {
 	-- Player team (team 0).
-	{ unitDefName = 'armck', x = 1780, z = 1850, facing = 'e', team = 0, unitName = 'player-con' },
-	{ unitDefName = 'corck', x = 1780, z = 1800, facing = 'e', team = 0,
+	{ unitDefName = 'armck', x = 1780, z = 1850, facing = 'e', teamName = 'thePlayerTeam', unitName = 'player-con' },
+	{ unitDefName = 'corck', x = 1780, z = 1800, facing = 'e', teamName = 'thePlayerTeam',
 	  orders = {
 	    { CMD.PATROL, { 1780, 0, 1950 }, {} },
 	  },
 	},
 
 	-- Enemy team (team 1)
-	{ unitDefName = 'corsolar', x = 1700, z = 2150, facing = 'w', team = 1 },
-	{ unitDefName = 'corsolar', x = 1800, z = 2150, facing = 's', team = 1 },
+	{ unitDefName = 'corsolar', x = 1700, z = 2150, facing = 'w', teamName = 'theEnemyTeam' },
+	{ unitDefName = 'corsolar', x = 1800, z = 2150, facing = 's', teamName = 'theEnemyTeam' },
 }
 
 local featureLoadout = {
@@ -180,6 +215,8 @@ local featureLoadout = {
 }
 
 return {
+	LobbyData   = lobbyData,
+	StartScript = startScript,
 	Triggers       = triggers,
 	Actions        = actions,
 	UnitLoadout    = unitLoadout,

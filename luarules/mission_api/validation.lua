@@ -112,23 +112,23 @@ validators[Types.Positions] = function(positions)
 		return result
 	end
 
-validators[Types.AllyTeamIDs] = function(allyTeamIDs)
-		local luaTypeResult = validators[Types.Table](allyTeamIDs)
+validators[Types.AllyTeamNames] = function(allyTeamNames)
+		local luaTypeResult = validators[Types.Table](allyTeamNames)
 		if luaTypeResult then
 			return luaTypeResult
 		end
 
-		if table.isNilOrEmpty(allyTeamIDs) then
-			return { { message = "allyTeamIDs table is empty" } }
+		if table.isNilOrEmpty(allyTeamNames) then
+			return { { message = "allyTeamNames table is empty" } }
 		end
 
 		local result = {}
-		for i, allyTeamID in pairs(allyTeamIDs) do
-			local fieldResult = validateField(allyTeamID, "allyTeamID #" .. i, 'number')
+		for i, allyTeamName in pairs(allyTeamNames) do
+			local fieldResult = validateField(allyTeamName, "allyTeamName #" .. i, 'string')
 			if fieldResult then
 				result[#result + 1] = fieldResult
-			elseif not Spring.GetAllyTeamInfo(allyTeamID) then
-				result[#result + 1] = { message = "Invalid allyTeamID: " .. allyTeamID }
+			elseif not GG['MissionAPI'].AllyTeams[allyTeamName] then
+				result[#result + 1] = { message = "Invalid allyTeamName: " .. allyTeamName }
 			end
 		end
 
@@ -383,6 +383,28 @@ validators[Types.FeatureDefName] = function(featureDefName)
 	end
 end
 
+validators[Types.TeamName] = function(teamName)
+	local luaTypeResult = validators[Types.String](teamName)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not GG['MissionAPI'].Teams[teamName] then
+		return { { message = "Invalid teamName: " .. teamName } }
+	end
+end
+
+validators[Types.AllyTeamName] = function(allyTeamName)
+	local luaTypeResult = validators[Types.String](allyTeamName)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not GG['MissionAPI'].AllyTeams[allyTeamName] then
+		return { { message = "Invalid teamName: " .. allyTeamName } }
+	end
+end
+
 validators[Types.Facing] = function(facing)
 		local expectedTypes = { string = true, number = true }
 		local actualType = type(facing)
@@ -408,30 +430,6 @@ validators[Types.SoundFile] = function(soundfile)
 	local wavData = ReadWAV(soundfile)
 	if not wavData then
 		return { { message = "Invalid soundfile: " .. soundfile .. ". File is not a RIFF .wav file" } }
-	end
-end
-
---- Number Validators:
-
-validators[Types.TeamID] = function(teamID)
-		local luaTypeResult = validators[Types.Number](teamID)
-		if luaTypeResult then
-			return luaTypeResult
-		end
-
-		if not Spring.GetTeamAllyTeamID(teamID) then
-			return { { message = "Invalid teamID: " .. teamID } }
-		end
-	end
-
-validators[Types.AllyTeamID] = function(allyTeamID)
-	local luaTypeResult = validators[Types.Number](allyTeamID)
-	if luaTypeResult then
-		return luaTypeResult
-	end
-
-	if not table.contains(Spring.GetAllyTeamList(), allyTeamID) then
-		return { { message = "Invalid allyTeamID: " .. allyTeamID } }
 	end
 end
 
@@ -563,10 +561,10 @@ local function validateUnitLoadoutEntry(entry, index, context)
 		logError(prefix .. ", " .. positionError.message .. (positionError.parameterNameSuffix or ""))
 	end
 
-	if entry.team == nil then
-		logError(prefix .. ": missing required field 'team'")
+	if entry.teamName == nil then
+		logError(prefix .. ": missing required field 'teamName'")
 	else
-		local teamResult = validators[Types.TeamID](entry.team)
+		local teamResult = validators[Types.TeamName](entry.teamName)
 		if teamResult and not table.isEmpty(teamResult) then
 			logError(prefix .. ", field 'team': " .. (teamResult[1] and teamResult[1].message or "invalid"))
 		end
@@ -918,6 +916,7 @@ local function validateReferences()
 	validateLoadouts(unitLoadout, featureLoadout)
 end
 
+-- TODO: validation of difficulties once loadouts are merged and have difficulty parameters
 return {
 	ValidateTriggers = validateTriggers,
 	ValidateActions = validateActions,

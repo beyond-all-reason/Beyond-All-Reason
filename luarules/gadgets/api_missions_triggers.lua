@@ -43,10 +43,15 @@ local function isTriggerValid(trigger)
 	for _, prerequisiteTriggerID in pairs(trigger.settings.prerequisites) do
 		if not triggers[prerequisiteTriggerID].triggered then return false end
 	end
-
-	if trigger.triggered and not trigger.settings.repeating then return false end
-	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then return false end
-	if trigger.settings.difficulties ~= nil and not trigger.settings.difficulties[GG['MissionAPI'].Difficulty] then return false end
+	if trigger.triggered and not trigger.settings.repeating then
+		return false
+	end
+	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then
+		return false
+	end
+	if trigger.settings.difficulties ~= nil and not table.contains(trigger.settings.difficulties, GG['MissionAPI'].Difficulty) then
+		return false
+	end
 
 	--[[
 	--TODO: co-op check
@@ -73,7 +78,7 @@ end
 
 local function getUnitsInArea(trigger)
 	local area = trigger.parameters.area
-	local teamID = trigger.parameters.teamID
+	local teamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
 	local unitsInArea = {}
 
 	if area.x1 and area.z1 and area.x2 and area.z2 then
@@ -104,7 +109,7 @@ local function checkUnitExists(trigger, unitDefID, teamID)
 		return
 	end
 
-	local requiredTeamID = trigger.parameters.teamID
+	local requiredTeamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
 	local requiredQuantity = trigger.parameters.quantity
 	if requiredTeamID then
 		if requiredTeamID ~= teamID then
@@ -129,30 +134,32 @@ local function checkUnitExists(trigger, unitDefID, teamID)
 	activateTrigger(trigger)
 end
 
-local function checkUnitRemoved(trigger, unitID, unitDefID, unitTeam)
+local function checkUnitRemoved(trigger, unitID, unitDefID, unitTeamID)
 	if trigger.parameters.unitName and not doesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return
 	end
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+	if trigger.parameters.teamName and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeamID then
 		return
 	end
 	activateTrigger(trigger)
 end
 
-local function checkUnitCaptured(trigger, unitID, unitDefID, oldTeam, newTeam)
+local function checkUnitCaptured(trigger, unitID, unitDefID, oldTeamName, newTeamName)
+	local oldTeamID = GG['MissionAPI'].Teams[oldTeamName]
+	local newTeamID = GG['MissionAPI'].Teams[newTeamName]
 	if trigger.parameters.unitName and not doesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return
 	end
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.oldTeamID and oldTeam ~= trigger.parameters.oldTeamID then
+	if trigger.parameters.oldTeamID and oldTeamID ~= trigger.parameters.oldTeamID then
 		return
 	end
-	if trigger.parameters.newTeamID and newTeam ~= trigger.parameters.newTeamID then
+	if trigger.parameters.newTeamID and newTeamID ~= trigger.parameters.newTeamID then
 		return
 	end
 	activateTrigger(trigger)
@@ -177,7 +184,7 @@ local function checkUnitResurrected(trigger, unitDefID, unitTeam, builderID)
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+	if trigger.parameters.teamName and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeam then
 		return
 	end
 	activateTrigger(trigger)
@@ -190,7 +197,8 @@ local function checkUnitEnteredLocation(trigger, triggerID)
 	local unitsEnteredArea = table.filterArray(unitsInArea, function(unitID)
 		return not table.contains(previousUnitsInAreas[triggerID] or {}, unitID)
 			and (not trigger.parameters.unitName or doesUnitHaveName(unitID, trigger.parameters.unitName))
-			and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName)
+			and (not trigger.parameters.unitDefName or trigger.parameters.unitDefName == UnitDefs[Spring.GetUnitDefID(unitID)].name)
+			and (not trigger.parameters.teamName or GG['MissionAPI'].Teams[trigger.parameters.teamName] == Spring.GetUnitTeam(unitID))
 	end)
 	previousUnitsInAreas[triggerID] = unitsInArea
 
@@ -205,7 +213,8 @@ local function checkUnitLeftLocation(trigger, triggerID)
 	local unitsLeftArea = table.filterArray(previousUnitsInAreas[triggerID] or {}, function(unitID)
 		return not table.contains(unitsInArea, unitID)
 			and (not trigger.parameters.unitName or doesUnitHaveName(unitID, trigger.parameters.unitName))
-			and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName)
+			and (not trigger.parameters.unitDefName or trigger.parameters.unitDefName == UnitDefs[Spring.GetUnitDefID(unitID)].name)
+			and (not trigger.parameters.teamName or GG['MissionAPI'].Teams[trigger.parameters.teamName] == Spring.GetUnitTeam(unitID))
 	end)
 	previousUnitsInAreas[triggerID] = unitsInArea
 
@@ -235,7 +244,8 @@ local function checkUnitDwellLocation(trigger, triggerID)
 		-- If unit just entered area (and hasn't already triggered), start counting:
 		elseif (dwellingUnitsInAreas[triggerID] == nil or dwellingUnitsInAreas[triggerID][unitID] == nil)
 			and (not trigger.parameters.unitName or doesUnitHaveName(unitID, trigger.parameters.unitName))
-			and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName) then
+			and (not trigger.parameters.unitDefName or trigger.parameters.unitDefName == UnitDefs[Spring.GetUnitDefID(unitID)].name)
+			and (not trigger.parameters.teamName or GG['MissionAPI'].Teams[trigger.parameters.teamName] == Spring.GetUnitTeam(unitID)) then
 			table.ensureTable(dwellingUnitsInAreas, triggerID)
 			dwellingUnitsInAreas[triggerID][unitID] = 0
 		end
@@ -256,7 +266,8 @@ local function checkUnitEnteredOrLeftLos(trigger, unitID, unitTeam, losAllyTeamI
 	if trigger.parameters.owningTeamID and unitTeam ~= trigger.parameters.owningTeamID then
 		return
 	end
-	if trigger.parameters.spottingAllyTeamID and losAllyTeamID ~= trigger.parameters.spottingAllyTeamID then
+	if trigger.parameters.spottingAllyTeamName
+		and losAllyTeamID ~= GG['MissionAPI'].AllyTeams[trigger.parameters.spottingAllyTeamName] then
 		return
 	end
 	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
@@ -269,10 +280,10 @@ local function checkConstructionStarted(trigger, unitID, unitDefID, unitTeam)
 	if not Spring.GetUnitIsBeingBuilt(unitID) then
 		return
 	end
-	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+	if trigger.parameters.teamName and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeam then
 		return
 	end
 	activateTrigger(trigger)
@@ -282,17 +293,17 @@ local function checkConstructionFinished(trigger, unitID, unitDefID, unitTeam)
 	if trigger.parameters.unitName and not doesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return
 	end
-	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+	if trigger.parameters.teamName and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeam then
 		return
 	end
 	activateTrigger(trigger)
 end
 
 local function checkTeamDestroyed(trigger, teamID)
-	if teamID == trigger.parameters.teamID then
+	if teamID == GG['MissionAPI'].Teams[trigger.parameters.teamName] then
 		activateTrigger(trigger)
 	end
 end
@@ -319,7 +330,7 @@ local function checkFeatureReclaimed(trigger, featureID, featureDefID, teamID)
 	if trigger.parameters.featureDefName and trigger.parameters.featureDefName ~= FeatureDefs[featureDefID].name then
 		return
 	end
-	if trigger.parameters.teamID and teamID ~= trigger.parameters.teamID then
+	if trigger.parameters.teamName and teamID ~= GG['MissionAPI'].Teams[trigger.parameters.teamName] then
 		return
 	end
 	if trigger.parameters.area and not isFeatureInArea(featureID, trigger.parameters.area) then
@@ -346,7 +357,7 @@ end
 
 local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, direction)
 	processTriggersOfType(triggerType, function(trigger, triggerID)
-		if teamID ~= trigger.parameters.teamID then
+		if teamID ~= GG['MissionAPI'].Teams[trigger.parameters.teamName] then
 			return
 		end
 		if trigger.parameters.unitDefName and unitDefName ~= trigger.parameters.unitDefName then
@@ -382,17 +393,19 @@ local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
 
 local function checkTeamResources(trigger, resourceIndex)
-	if trigger.parameters.metal and select(resourceIndex, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
+	local teamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
+	if trigger.parameters.metal and select(resourceIndex, Spring.GetTeamResources(teamID, "metal")) < trigger.parameters.metal then
 		return
 	end
-	if trigger.parameters.energy and select(resourceIndex, Spring.GetTeamResources(trigger.parameters.teamID, "energy")) < trigger.parameters.energy then
+	if trigger.parameters.energy and select(resourceIndex, Spring.GetTeamResources(teamID, "energy")) < trigger.parameters.energy then
 		return
 	end
 
 	activateTrigger(trigger)
 end
 
-local function getTeamResourceIncomeForSources(teamID, resourceType, sources)
+local function getTeamResourceIncomeForSources(teamName, resourceType, sources)
+	local teamID = GG['MissionAPI'].Teams[teamName]
 	local extractorIncome  = 0
 	local reclaimIncome    = 0
 	local productionIncome = 0
@@ -436,10 +449,10 @@ local function checkResourceIncome(trigger)
 	end
 
 	-- Source-filtered income check (only meaningful for ResourceIncome triggers).
-	if trigger.parameters.metal and getTeamResourceIncomeForSources(trigger.parameters.teamID, "metal", sources) < trigger.parameters.metal then
+	if trigger.parameters.metal and getTeamResourceIncomeForSources(trigger.parameters.teamName, "metal", sources) < trigger.parameters.metal then
 		return
 	end
-	if trigger.parameters.energy and getTeamResourceIncomeForSources(trigger.parameters.teamID, "energy", sources) < trigger.parameters.energy then
+	if trigger.parameters.energy and getTeamResourceIncomeForSources(trigger.parameters.teamName, "energy", sources) < trigger.parameters.energy then
 		return
 	end
 
@@ -535,19 +548,19 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end)
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID, attackerID, attackerDefID, attackerTeam)
 	processTriggersOfType(types.UnitKilled, function(trigger, _)
-		checkUnitRemoved(trigger, unitID, unitDefID, unitTeam)
+		checkUnitRemoved(trigger, unitID, unitDefID, unitTeamID)
 	end)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
 
 	-- The unit's team lost a unit:
-	incrementUnitStatistics(types.TotalUnitsLost, unitTeam, unitDefName, unitNames)
+	incrementUnitStatistics(types.TotalUnitsLost, unitTeamID, unitDefName, unitNames)
 
 	-- The attacker's team kills an enemy unit:
-	if attackerTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeam) then
+	if attackerTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeamID) then
 		incrementUnitStatistics(types.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
 	end
 
