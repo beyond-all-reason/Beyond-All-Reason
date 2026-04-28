@@ -58,6 +58,7 @@ local spSetCustomCommandDrawData = Spring.SetCustomCommandDrawData
 local spGetGameFrame = Spring.GetGameFrame
 local spMoveCtrlDisable = Spring.MoveCtrl.Disable
 local spMoveCtrlEnable = Spring.MoveCtrl.Enable
+local spGetAllyTeamList = Spring.GetAllyTeamList
 
 -- Constants
 local mapSizeX = Game.mapSizeX
@@ -298,7 +299,7 @@ local function CanMoveToTransporter(passengerID, passengerTeamID, transporterID,
 		return true -- if it's the same team, we can move it towards the transport to facilitate loading
 	end
 	if spAreTeamsAllied(passengerTeamID, transporterTeamID) then
-		local hasQ = Spring.GetUnitCommands(passengerID, 0) >= 1
+		local hasQ = spGetUnitCommands(passengerID, 0) >= 1
 		return not hasQ -- if it's an allied unit, we only can if it's idling
 	else
 		return false -- if it's an enemy unit, we never can
@@ -387,7 +388,7 @@ end
 --- @param radius number
 --- @return number|nil bestUnit
 local function findUnitToTransport(transporterID, transporterDefID, transporterTeamID, cx, cz, radius)
-	local transporterAllyTeam      = Spring.GetUnitAllyTeam(transporterID)
+	local transporterAllyTeam      = spGetUnitAllyTeam(transporterID)
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
 	local units = getCachedUnitsInCylinder(cx, cz, radius, transporterAllyTeam)
 	local bestUnit = nil
@@ -522,11 +523,11 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 	local idsToRemove = {}
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
 	-- 1: Get current queue, remove invalid units, claim valid ones
-	local queue = spGetUnitCommands(transporterID,  Spring.GetUnitRulesParam(transporterID, "transporterSeats")) --  Spring.GetUnitRulesParam(transporterID, "transporterSeats") being the max number of units we can queue on a single transport
+	local queue = spGetUnitCommands(transporterID,  spGetUnitRulesParam(transporterID, "transporterSeats")) --  spGetUnitRulesParam(transporterID, "transporterSeats") being the max number of units we can queue on a single transport
 	local i = 1
 	local cmd = queue and queue[i]
-	if queuedSeats[transporterID] + Spring.GetUnitRulesParam(transporterID, "transporterUsedSeats") < Spring.GetUnitRulesParam(transporterID, "transporterSeats") then
-		while cmd and cmd.id == CMD_LOAD_UNIT and (queuedSeats[transporterID] + Spring.GetUnitRulesParam(transporterID, "transporterUsedSeats") < Spring.GetUnitRulesParam(transporterID, "transporterSeats")) do
+	if queuedSeats[transporterID] + spGetUnitRulesParam(transporterID, "transporterUsedSeats") < spGetUnitRulesParam(transporterID, "transporterSeats") then
+		while cmd and cmd.id == CMD_LOAD_UNIT and (queuedSeats[transporterID] + spGetUnitRulesParam(transporterID, "transporterUsedSeats") < spGetUnitRulesParam(transporterID, "transporterSeats")) do
 			local passengerID = cmd.params[1]
 			local passengerDefID = spGetUnitDefID(passengerID)
 			local _, passengerPosY = spGetUnitPosition(passengerID)
@@ -540,7 +541,7 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 			i = i + 1
 			cmd = queue and queue[i]
 		end
-	elseif (Spring.GetUnitRulesParam(transporterID, "transporterUsedSeats") >= Spring.GetUnitRulesParam(transporterID, "transporterSeats")) then -- we still have queued commands despite being full, they can't be performed
+	elseif (spGetUnitRulesParam(transporterID, "transporterUsedSeats") >= spGetUnitRulesParam(transporterID, "transporterSeats")) then -- we still have queued commands despite being full, they can't be performed
 		while cmd and cmd.id == CMD_LOAD_UNIT do
 			local passengerID = cmd.params[1]
 			idsToRemove[passengerID] = true -- mark command for removal
@@ -625,7 +626,7 @@ function gadget:Initialize()
 	spSetCustomCommandDrawData(CMD_LOAD_UNIT, CMD.LOAD_UNITS, {0.6, 0.6, 1, 0.5}, true)
 	gadgetHandler:RegisterAllowCommand(CMD.LOAD_UNITS)
 	gadgetHandler:RegisterAllowCommand(CMD.LOAD_ONTO)
-	local allyTeams = Spring.GetAllyTeamList()
+	local allyTeams = spGetAllyTeamList()
 	for _, allyTeam in pairs(allyTeams) do
 		claimedBy[allyTeam] = {}
 	end	
