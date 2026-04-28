@@ -1154,7 +1154,7 @@
 					<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 				</div>
 			</div>
-			<div id="gb-grid-snap-size-row" class="tf-instrument-sub hidden mb-1">
+			<div id="gb-grid-snap-size-row" class="tf-instrument-sub mb-1" data-if="gbGridSnap">
 				<div class="flex flex-row justify-between items-center mb-1">
 					<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold" id="gb-grid-snap-size-label">48</span></div>
 				</div>
@@ -1169,7 +1169,7 @@
 					<input type="text" id="gb-slider-grid-snap-size-numbox" class="tf-slider-numbox" readonly value="48" />
 				</div>
 			</div>
-			<div id="gb-angle-snap-step-row" class="tf-instrument-sub hidden mb-1">
+			<div id="gb-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="gbAngleSnap">
 				<div class="flex flex-row justify-between items-center mb-1">
 					<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="gb-angle-snap-step-label">15</span>&#176;</div>
 				</div>
@@ -1187,7 +1187,7 @@
 					<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold" id="gb-angle-manual-spoke-label">0</span>&#176;</div>
 					<div id="gb-btn-angle-autosnap" onclick="widget:gbAngleAutoSnap(); event:StopPropagation()" class="tf-inline-chip" style="margin-left: 4dp;">Auto-Snap</div>
 				</div>
-				<div id="gb-angle-manual-spoke-row" class="hidden mb-1">
+				<div id="gb-angle-manual-spoke-row" class="mb-1" data-if="!gbAngleSnapAuto">
 					<div class="flex flex-row gap-1 items-center mb-1">
 						<div id="gb-btn-manual-spoke-down" onclick="widget:gbManualSpokeDown(); event:StopPropagation()" class="tf-sm-btn">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
@@ -1199,7 +1199,7 @@
 					</div>
 				</div>
 			</div>
-			<div id="gb-measure-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div id="gb-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="gbMeasureActive">
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="gb-btn-measure-ruler" onclick="widget:gbMeasureRuler(); event:StopPropagation()" class="tf-overlay-chip" style="flex: 1; text-align: center;">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
@@ -1217,7 +1217,7 @@
 					</div>
 				</div>
 			</div>
-			<div id="gb-symmetry-toolbar-row" class="tf-instrument-sub hidden mb-1">
+			<div id="gb-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="gbSymmetryActive">
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="gb-btn-symmetry-radial" onclick="widget:gbSymRadial(); event:StopPropagation()" class="tf-overlay-chip" style="flex: 1; text-align: center;">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
@@ -1229,7 +1229,7 @@
 						<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 					</div>
 				</div>
-				<div id="gb-symmetry-radial-count-row" class="hidden mb-1">
+				<div id="gb-symmetry-radial-count-row" class="mb-1" data-if="gbSymmetryRadial">
 					<div class="flex flex-row justify-between items-center mb-1">
 						<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="gb-symmetry-radial-count-label">2</span></div>
 					</div>
@@ -1243,7 +1243,7 @@
 						</div>
 					</div>
 				</div>
-				<div id="gb-symmetry-mirror-angle-row" class="hidden mb-1">
+				<div id="gb-symmetry-mirror-angle-row" class="mb-1" data-if="gbSymmetryMirrorAny">
 					<div class="flex flex-row justify-between items-center mb-1">
 						<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="gb-symmetry-mirror-angle-label">0</span>&#176;</div>
 					</div>
@@ -1286,29 +1286,29 @@
 					<div id="btn-gb-pill-avoid-water" class="tf-overlay-chip">
 						<div class="tf-overlay-chip-label">Avoid Water</div>
 					</div>
-					<div id="btn-gb-pill-slope" class="tf-overlay-chip">
+					<div id="btn-gb-pill-slope" onclick="widget:gbPillSlope(); event:StopPropagation()" class="tf-overlay-chip">
 						<div class="tf-overlay-chip-label">Slope</div>
 					</div>
-					<div id="btn-gb-pill-altitude" class="tf-overlay-chip">
+					<div id="btn-gb-pill-altitude" onclick="widget:gbPillAlt(); event:StopPropagation()" class="tf-overlay-chip">
 						<div class="tf-overlay-chip-label">Altitude</div>
 					</div>
-					<div id="btn-gb-pill-color" class="tf-overlay-chip">
+					<div id="btn-gb-pill-color" onclick="widget:gbColorToggle(); event:StopPropagation()" class="tf-overlay-chip">
 						<div class="tf-overlay-chip-label">Color</div>
 					</div>
 				</div>
 
 				<!-- Slope content (toggled by Slope chip) -->
-				<div id="gb-smart-slope-content" class="hidden">
+				<div id="gb-smart-slope-content" data-if="gbSlopeActive">
 				<!-- Mutually exclusive toggle: avoid slopes vs prefer slopes (avoid default on when chip activated) -->
 				<div class="flex flex-row items-center gap-1 mb-1">
-					<div id="gb-slope-mode-avoid" class="tf-overlay-chip">
+					<div id="gb-slope-mode-avoid" onclick="widget:gbSlopeModeAvoid(); event:StopPropagation()" class="tf-overlay-chip">
 						<div class="tf-overlay-chip-label">Avoid Slopes</div>
 					</div>
-					<div id="gb-slope-mode-prefer" class="tf-overlay-chip">
+					<div id="gb-slope-mode-prefer" onclick="widget:gbSlopeModePrefer(); event:StopPropagation()" class="tf-overlay-chip">
 						<div class="tf-overlay-chip-label">Prefer Slopes</div>
 					</div>
 				</div>
-				<div id="gb-smart-slope-max-row" class="flex flex-row items-center mb-1">
+				<div id="gb-smart-slope-max-row" class="flex flex-row items-center mb-1" data-if="gbAvoidCliffs">
 					<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="gb-smart-slope-max-label">45</span>&#176;</div>
 					<div id="slider-gb-slope-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-slope-max-transport" class="tf-transport-group hidden">
@@ -1317,7 +1317,7 @@
 						<div id="slider-gb-slope-max-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 					</div>
 				</div>
-				<div id="gb-smart-slope-max-slider-row" class="flex flex-row gap-1 items-center mb-1">
+				<div id="gb-smart-slope-max-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="gbAvoidCliffs">
 					<div id="btn-gb-slope-max-down" onclick="widget:gbSmartStep('slopeMax', -5); event:StopPropagation()" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
@@ -1328,7 +1328,7 @@
 					<input type="text" id="slider-gb-slope-max-numbox" class="tf-slider-numbox" value="0" />
 				</div>
 
-				<div id="gb-smart-slope-min-row" class="hidden flex flex-row items-center mb-1">
+				<div id="gb-smart-slope-min-row" class="flex flex-row items-center mb-1" data-if="gbPreferSlopes">
 					<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="gb-smart-slope-min-label">10</span>&#176;</div>
 					<div id="slider-gb-slope-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-slope-min-transport" class="tf-transport-group hidden">
@@ -1337,7 +1337,7 @@
 						<div id="slider-gb-slope-min-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 					</div>
 				</div>
-				<div id="gb-smart-slope-min-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
+				<div id="gb-smart-slope-min-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="gbPreferSlopes">
 					<div id="btn-gb-slope-min-down" onclick="widget:gbSmartStep('slopeMin', -5); event:StopPropagation()" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
@@ -1350,7 +1350,7 @@
 				</div><!-- /gb-smart-slope-content -->
 
 				<!-- Altitude content (toggled by Altitude chip) -->
-				<div id="gb-smart-altitude-content" class="hidden">
+				<div id="gb-smart-altitude-content" data-if="gbAltActive">
 				<!-- Altitude Min -->
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<img id="btn-gb-alt-min-enable" onclick="widget:gbSmartSubToggle('altMinEnable'); event:StopPropagation()" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
@@ -1363,7 +1363,7 @@
 						<div id="slider-gb-alt-min-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 					</div>
 				</div>
-				<div id="gb-smart-alt-min-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
+				<div id="gb-smart-alt-min-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="gbAltMinEnable">
 					<div id="btn-gb-alt-min-down" onclick="widget:gbSmartStep('altMin', -10); event:StopPropagation()" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
@@ -1386,7 +1386,7 @@
 						<div id="slider-gb-alt-max-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 					</div>
 				</div>
-				<div id="gb-smart-alt-max-slider-row" class="hidden flex flex-row gap-1 items-center mb-1">
+				<div id="gb-smart-alt-max-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="gbAltMaxEnable">
 					<div id="btn-gb-alt-max-down" onclick="widget:gbSmartStep('altMax', -10); event:StopPropagation()" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
@@ -1399,7 +1399,7 @@
 				</div><!-- /gb-smart-altitude-content -->
 
 				<!-- Color content (toggled by Color chip; chip active == texFilterEnabled) -->
-				<div id="gb-smart-color-content" class="hidden">
+				<div id="gb-smart-color-content" data-if="gbColorOpen">
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div class="tf-filter-heading">COLOR FILTER</div>
 					<div id="btn-gb-pipette" onclick="widget:gbPipette(); event:StopPropagation()" class="tf-gb-pipette-btn" style="margin-left: auto;"><img src="/luaui/images/terraform_brush/gb_pipette.png" style="width: 14dp; height: 14dp; image-color: #cccccc;" /></div>

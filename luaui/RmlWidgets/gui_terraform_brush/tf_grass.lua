@@ -198,6 +198,62 @@ function M.attach(doc, ctx)
 		WG.GrassBrush.setSmartFilter(filterKey, not sf[filterKey])
 	end
 
+	-- Slope pill: toggle slope section (avoidCliffs default when activating)
+	-- Inline onclick replaces the broken wireGbFilterChip in tf_environment (content was nil due to data-if removal)
+	w.gbPillSlope = function(self)
+		if not WG.GrassBrush then return end
+		local sf = WG.GrassBrush.getState().smartFilters or {}
+		if sf.avoidCliffs or sf.preferSlopes then
+			playSound("toggleOff")
+			WG.GrassBrush.setSmartFilter("avoidCliffs", false)
+			WG.GrassBrush.setSmartFilter("preferSlopes", false)
+		else
+			playSound("toggleOn")
+			WG.GrassBrush.setSmartFilter("avoidCliffs", true)
+		end
+		local sf2 = WG.GrassBrush.getState().smartFilters or {}
+		WG.GrassBrush.setSmartEnabled((sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true or false)
+	end
+
+	-- Altitude pill: toggle altitude section (altMinEnable default when activating)
+	w.gbPillAlt = function(self)
+		if not WG.GrassBrush then return end
+		local sf = WG.GrassBrush.getState().smartFilters or {}
+		if sf.altMinEnable or sf.altMaxEnable then
+			playSound("toggleOff")
+			WG.GrassBrush.setSmartFilter("altMinEnable", false)
+			WG.GrassBrush.setSmartFilter("altMaxEnable", false)
+		else
+			playSound("toggleOn")
+			WG.GrassBrush.setSmartFilter("altMinEnable", true)
+		end
+		local sf2 = WG.GrassBrush.getState().smartFilters or {}
+		WG.GrassBrush.setSmartEnabled((sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true or false)
+	end
+
+	-- Slope mode sub-chips: mutually exclusive (inside gb-smart-slope-content, wired by inline onclick)
+	-- wireMutexChipPair in tf_environment couldn't wire these because data-if removes them from DOM at attach time
+	w.gbSlopeModeAvoid = function(self)
+		if not WG.GrassBrush then return end
+		local sf = WG.GrassBrush.getState().smartFilters or {}
+		local newVal = not sf.avoidCliffs
+		playSound(newVal and "toggleOn" or "toggleOff")
+		if newVal then WG.GrassBrush.setSmartFilter("preferSlopes", false) end
+		WG.GrassBrush.setSmartFilter("avoidCliffs", newVal)
+		local sf2 = WG.GrassBrush.getState().smartFilters or {}
+		WG.GrassBrush.setSmartEnabled((sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true or false)
+	end
+	w.gbSlopeModePrefer = function(self)
+		if not WG.GrassBrush then return end
+		local sf = WG.GrassBrush.getState().smartFilters or {}
+		local newVal = not sf.preferSlopes
+		playSound(newVal and "toggleOn" or "toggleOff")
+		if newVal then WG.GrassBrush.setSmartFilter("avoidCliffs", false) end
+		WG.GrassBrush.setSmartFilter("preferSlopes", newVal)
+		local sf2 = WG.GrassBrush.getState().smartFilters or {}
+		WG.GrassBrush.setSmartEnabled((sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true or false)
+	end
+
 	-- Altitude SAMPLE toggles (shared TerraformBrush)
 	w.gbAltSample = function(self, target)
 		if WG.TerraformBrush then
@@ -306,8 +362,7 @@ function M.attach(doc, ctx)
 		WG.TerraformBrush.setGridSnap(newVal)
 		local btn = doc:GetElementById("btn-gb-grid-snap")
 		if btn then btn:SetClass("active", newVal) end
-		local row = doc:GetElementById("gb-grid-snap-size-row")
-		if row then row:SetClass("hidden", not newVal) end
+		-- gb-grid-snap-size-row visibility driven by data-if="gbGridSnap"
 	end
 	w.gbToggleAngleSnap = function(self)
 		if not WG.TerraformBrush then return end
@@ -316,8 +371,7 @@ function M.attach(doc, ctx)
 		WG.TerraformBrush.setAngleSnap(newVal)
 		local btn = doc:GetElementById("btn-gb-angle-snap")
 		if btn then btn:SetClass("active", newVal) end
-		local row = doc:GetElementById("gb-angle-snap-step-row")
-		if row then row:SetClass("hidden", not newVal) end
+		-- gb-angle-snap-step-row visibility driven by data-if="gbAngleSnap"
 	end
 	w.gbToggleMeasure = function(self)
 		if not WG.TerraformBrush then return end
@@ -326,8 +380,7 @@ function M.attach(doc, ctx)
 		WG.TerraformBrush.setMeasureActive(newVal)
 		local btn = doc:GetElementById("btn-gb-measure")
 		if btn then btn:SetClass("active", newVal) end
-		local row = doc:GetElementById("gb-measure-toolbar-row")
-		if row then row:SetClass("hidden", not newVal) end
+		-- gb-measure-toolbar-row visibility driven by data-if="gbMeasureActive"
 	end
 	w.gbToggleSymmetry = function(self)
 		if not WG.TerraformBrush then return end
@@ -342,8 +395,7 @@ function M.attach(doc, ctx)
 		end
 		local btn = doc:GetElementById("btn-gb-symmetry")
 		if btn then btn:SetClass("active", newVal) end
-		local row = doc:GetElementById("gb-symmetry-toolbar-row")
-		if row then row:SetClass("hidden", not newVal) end
+		-- gb-symmetry-toolbar-row visibility driven by data-if="gbSymmetryActive"
 	end
 
 	-- Grid snap size (shared TerraformBrush)
@@ -402,8 +454,7 @@ function M.attach(doc, ctx)
 		WG.TerraformBrush.setAngleSnapAuto(newVal)
 		local btn = doc:GetElementById("gb-btn-angle-autosnap")
 		if btn then btn:SetClass("active", newVal) end
-		local manualRow = doc:GetElementById("gb-angle-manual-spoke-row")
-		if manualRow then manualRow:SetClass("hidden", newVal) end
+		-- gb-angle-manual-spoke-row visibility driven by data-if="!gbAngleSnapAuto"
 	end
 
 	-- Manual spoke
@@ -454,10 +505,8 @@ function M.attach(doc, ctx)
 		if radialEl then radialEl:SetClass("active", s.symmetryRadial and true or false) end
 		if mxEl     then mxEl:SetClass("active",     s.symmetryMirrorX and true or false) end
 		if myEl     then myEl:SetClass("active",     s.symmetryMirrorY and true or false) end
-		local countRow = doc:GetElementById("gb-symmetry-radial-count-row")
-		if countRow then countRow:SetClass("hidden", not s.symmetryRadial) end
-		local angleRow = doc:GetElementById("gb-symmetry-mirror-angle-row")
-		if angleRow then angleRow:SetClass("hidden", not (s.symmetryMirrorX or s.symmetryMirrorY)) end
+		-- gb-symmetry-radial-count-row visibility driven by data-if="gbSymmetryRadial"
+		-- gb-symmetry-mirror-angle-row visibility driven by data-if="gbSymmetryMirrorAny"
 	end
 	w.gbSymRadial = function(self)
 		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryRadial(not getTFState().symmetryRadial); syncGbSymChipClasses() end
@@ -518,6 +567,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 	local syncAndFlash = ctx.syncAndFlash
 	local shapeNames = ctx.shapeNames
 	local WG = ctx.WG
+	local dm = widgetState.dmHandle
 
 	local grassBtn = doc and doc:GetElementById("btn-grass")
 	if grassBtn then grassBtn:SetClass("active", true) end
@@ -530,6 +580,46 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 	local clayBtnG = doc and doc:GetElementById("btn-clay-mode")
 	if clayBtnG then
 		clayBtnG:SetClass("unavailable", true)
+	end
+
+	-- DISPLAY/INSTRUMENTS warn chips + instruments sub-row dm flags (data-if driven)
+	do
+		local s = WG.TerraformBrush and WG.TerraformBrush.getState and WG.TerraformBrush.getState()
+		if s then
+			local dispActive = s.gridOverlay or s.heightColormap
+			local instActive = s.gridSnap or s.angleSnap or s.measureActive or s.symmetryActive
+			if doc and ctx.syncWarnChip then
+				local sfE = gbState.smartFilters or {}
+				local anyFilter = (gbState.smartEnabled and (sfE.avoidCliffs or sfE.preferSlopes or sfE.altMinEnable or sfE.altMaxEnable))
+					or gbState.texFilterEnabled
+				ctx.syncWarnChip(doc, "warn-chip-gb-smart",       "section-gb-smart",       anyFilter and true or false)
+				ctx.syncWarnChip(doc, "warn-chip-gb-overlays",    "section-gb-overlays",    dispActive and true or false)
+				ctx.syncWarnChip(doc, "warn-chip-gb-instruments", "section-gb-instruments", instActive and true or false)
+			end
+			-- Sync active state on instrument chip buttons so they match TF state
+			-- (SetClass("active") in toggle handlers only fires on click, not on mode entry)
+			if doc then
+				local function gbSetCls(id, on)
+					local el = doc:GetElementById(id)
+					if el then el:SetClass("active", on and true or false) end
+				end
+				gbSetCls("btn-gb-grid-overlay",    s.gridOverlay)
+				gbSetCls("btn-gb-height-colormap", s.heightColormap)
+				gbSetCls("btn-gb-grid-snap",       s.gridSnap)
+				gbSetCls("btn-gb-angle-snap",      s.angleSnap)
+				gbSetCls("btn-gb-measure",         s.measureActive)
+				gbSetCls("btn-gb-symmetry",        s.symmetryActive)
+			end
+			if dm then
+				dm.gbGridSnap        = s.gridSnap and true or false
+				dm.gbAngleSnap       = s.angleSnap and true or false
+				dm.gbMeasureActive   = s.measureActive and true or false
+				dm.gbSymmetryActive  = s.symmetryActive and true or false
+				dm.gbSymmetryRadial  = s.symmetryRadial and true or false
+				dm.gbSymmetryMirrorAny = (s.symmetryMirrorX or s.symmetryMirrorY) and true or false
+				dm.gbAngleSnapAuto   = s.angleSnapAuto and true or false
+			end
+		end
 	end
 
 	-- Grass density slider & label sync
@@ -568,29 +658,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			local smartOn = gbState.smartEnabled
 			local smartToggle = doc:GetElementById("btn-gb-smart-toggle")
 			if smartToggle then smartToggle:SetAttribute("src", smartOn and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png") end
-			local smartOpts = doc:GetElementById("gb-smart-options")
-			if smartOpts then smartOpts:SetClass("hidden", not smartOn) end
-
-			-- Shared helper: only show the "Active" chip when the section is collapsed AND something is engaged
-			local function syncSectionWarn(chipId, sectionId, anyActive)
-				local sec = doc:GetElementById(sectionId)
-				local collapsed = sec and sec:IsClassSet("hidden")
-				local chip = doc:GetElementById(chipId)
-				if chip then chip:SetClass("hidden", not (anyActive and collapsed)) end
-			end
-
-			-- FILTERS warn-chip (avoidWater excluded; defaults on).
-			local sfEarly = gbState.smartFilters or {}
-			local anyFilter = (smartOn and (sfEarly.avoidCliffs or sfEarly.preferSlopes or sfEarly.altMinEnable or sfEarly.altMaxEnable))
-				or gbState.texFilterEnabled
-			syncSectionWarn("warn-chip-gb-smart", "section-gb-smart", anyFilter and true or false)
-
-			-- DISPLAY + INSTRUMENTS warn-chips (reflect shared TB state).
-			local tbs = (WG.TerraformBrush and WG.TerraformBrush.getState()) or {}
-			local dispActive = tbs.gridOverlay or tbs.heightColormap
-			local instActive = tbs.gridSnap or tbs.angleSnap or tbs.measureActive or tbs.symmetryActive
-			syncSectionWarn("warn-chip-gb-overlays",    "section-gb-overlays",    dispActive and true or false)
-			syncSectionWarn("warn-chip-gb-instruments", "section-gb-instruments", instActive and true or false)
+			-- gb-smart-options does not exist; warn chips handled above via ctx.syncWarnChip
 
 			local sf = gbState.smartFilters or {}
 			local function syncSmartCheck(id, key)
@@ -609,30 +677,22 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			syncSmartCheck("btn-gb-alt-min-enable", "altMinEnable")
 			syncSmartCheck("btn-gb-alt-max-enable", "altMaxEnable")
 
-			local slopeMaxRow = doc:GetElementById("gb-smart-slope-max-row")
-			local slopeMaxSl = doc:GetElementById("gb-smart-slope-max-slider-row")
-			if slopeMaxRow then slopeMaxRow:SetClass("hidden", not sf.avoidCliffs) end
-			if slopeMaxSl then slopeMaxSl:SetClass("hidden", not sf.avoidCliffs) end
+			-- gb-smart-slope-max-row/slider-row visibility driven by data-if="gbAvoidCliffs"
 			local slopeMaxLabel = doc:GetElementById("gb-smart-slope-max-label")
 			if slopeMaxLabel then slopeMaxLabel.inner_rml = tostring(sf.slopeMax or 45) end
 			syncAndFlash(doc:GetElementById("slider-gb-slope-max"), "gb-slope-max", tostring(sf.slopeMax or 45))
 
-			local slopeMinRow = doc:GetElementById("gb-smart-slope-min-row")
-			local slopeMinSl = doc:GetElementById("gb-smart-slope-min-slider-row")
-			if slopeMinRow then slopeMinRow:SetClass("hidden", not sf.preferSlopes) end
-			if slopeMinSl then slopeMinSl:SetClass("hidden", not sf.preferSlopes) end
+			-- gb-smart-slope-min-row/slider-row visibility driven by data-if="gbPreferSlopes"
 			local slopeMinLabel = doc:GetElementById("gb-smart-slope-min-label")
 			if slopeMinLabel then slopeMinLabel.inner_rml = tostring(sf.slopeMin or 10) end
 			syncAndFlash(doc:GetElementById("slider-gb-slope-min"), "gb-slope-min", tostring(sf.slopeMin or 10))
 
-			local altMinSl = doc:GetElementById("gb-smart-alt-min-slider-row")
-			if altMinSl then altMinSl:SetClass("hidden", not sf.altMinEnable) end
+			-- gb-smart-alt-min-slider-row visibility driven by data-if="gbAltMinEnable"
 			local altMinLabel = doc:GetElementById("gb-smart-alt-min-label")
 			if altMinLabel then altMinLabel.inner_rml = tostring(sf.altMin or 0) end
 			syncAndFlash(doc:GetElementById("slider-gb-alt-min"), "gb-alt-min", tostring(sf.altMin or 0))
 
-			local altMaxSl = doc:GetElementById("gb-smart-alt-max-slider-row")
-			if altMaxSl then altMaxSl:SetClass("hidden", not sf.altMaxEnable) end
+			-- gb-smart-alt-max-slider-row visibility driven by data-if="gbAltMaxEnable"
 			local altMaxLabel = doc:GetElementById("gb-smart-alt-max-label")
 			if altMaxLabel then altMaxLabel.inner_rml = tostring(sf.altMax or 200) end
 			syncAndFlash(doc:GetElementById("slider-gb-alt-max"), "gb-alt-max", tostring(sf.altMax or 200))
@@ -651,10 +711,15 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			if slopeChip then slopeChip:SetClass("active", slopeActive and true or false) end
 			local altChip = doc:GetElementById("btn-gb-pill-altitude")
 			if altChip then altChip:SetClass("active", altActive and true or false) end
-			local slopeContent = doc:GetElementById("gb-smart-slope-content")
-			if slopeContent then slopeContent:SetClass("hidden", not slopeActive) end
-			local altContent = doc:GetElementById("gb-smart-altitude-content")
-			if altContent then altContent:SetClass("hidden", not altActive) end
+			-- gb-smart-slope-content / gb-smart-altitude-content visibility driven by data-if
+			if dm then
+				dm.gbSlopeActive  = slopeActive and true or false
+				dm.gbAvoidCliffs  = sf.avoidCliffs and true or false
+				dm.gbPreferSlopes = sf.preferSlopes and true or false
+				dm.gbAltActive    = altActive and true or false
+				dm.gbAltMinEnable = sf.altMinEnable and true or false
+				dm.gbAltMaxEnable = sf.altMaxEnable and true or false
+			end
 		end
 
 		-- Color filter UI sync
@@ -662,13 +727,10 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			local colorOn = gbState.texFilterEnabled
 			local colorToggle = doc:GetElementById("btn-gb-color-toggle")
 			if colorToggle then colorToggle:SetAttribute("src", colorOn and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png") end
-			local colorOpts = doc:GetElementById("gb-color-options")
-			if colorOpts then colorOpts:SetClass("hidden", not colorOn) end
-			-- Color chip drives texFilterEnabled now: mirror state onto chip + content
+			-- gb-color-options does not exist; gb-smart-color-content visibility driven by data-if="gbColorOpen"
 			local colorChip = doc:GetElementById("btn-gb-pill-color")
 			if colorChip then colorChip:SetClass("active", colorOn) end
-			local colorContent = doc:GetElementById("gb-smart-color-content")
-			if colorContent then colorContent:SetClass("hidden", not colorOn) end
+			if dm then dm.gbColorOpen = colorOn and true or false end
 
 			local tc = gbState.texFilterColor or {}
 			local swatchEl = doc:GetElementById("gb-tex-color-swatch")

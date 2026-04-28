@@ -64,12 +64,12 @@ local UPDATE_INTERVAL = 0.05
 local MIN_METAL_VALUE = 0.01
 local MAX_METAL_VALUE = 50.0
 local DEFAULT_METAL_VALUE = 2.0
-local DEFAULT_RADIUS = 32
+local DEFAULT_RADIUS = METAL_SQ + METAL_SQ * 0.5  -- 3x3 metal pixels (n=1)
 local SAVE_DIR = "Terraform Brush/MetalMaps/"
 
 -- State
 local active = false
-local subMode = "paint"       -- "paint" or "stamp"
+local subMode = "stamp"       -- "paint" or "stamp"
 local metalValue = DEFAULT_METAL_VALUE
 local painting = false
 local paintButton = 0         -- 1 = LMB (raise), 3 = RMB (lower/erase)
@@ -84,6 +84,7 @@ local function getSharedState()
 			rotationDeg = st.rotationDeg or 0,
 			curve = st.curve or 1.0,
 			intensity = st.intensity or 1.0,
+			gridSnap = st.gridSnap and true or false,
 		}
 	end
 	return {
@@ -92,7 +93,14 @@ local function getSharedState()
 		rotationDeg = 0,
 		curve = 1.0,
 		intensity = 1.0,
+		gridSnap = false,
 	}
+end
+
+-- Snap a world position to the nearest metal map square centre
+local function snapToMetalGrid(wx, wz)
+	return floor(wx / METAL_SQ) * METAL_SQ + METAL_SQ * 0.5,
+	       floor(wz / METAL_SQ) * METAL_SQ + METAL_SQ * 0.5
 end
 
 local function getWorldPos()
@@ -109,7 +117,9 @@ local function sendPaintMessage(worldX, worldZ)
 	local direction = (paintButton == 1) and 1 or -1
 	local tb = WG.TerraformBrush
 	local positions
-	if tb and tb.snapWorld then
+	if ss.gridSnap then
+		worldX, worldZ = snapToMetalGrid(worldX, worldZ)
+	elseif tb and tb.snapWorld then
 		worldX, worldZ = tb.snapWorld(worldX, worldZ, ss.rotationDeg)
 	end
 	if tb and tb.getSymmetricPositions then
@@ -143,7 +153,9 @@ local function sendStampMessage(worldX, worldZ)
 	local direction = (paintButton == 3) and -1 or 1
 	local tb = WG.TerraformBrush
 	local positions
-	if tb and tb.snapWorld then
+	if ss.gridSnap then
+		worldX, worldZ = snapToMetalGrid(worldX, worldZ)
+	elseif tb and tb.snapWorld then
 		worldX, worldZ = tb.snapWorld(worldX, worldZ, ss.rotationDeg)
 	end
 	if tb and tb.getSymmetricPositions then
@@ -188,12 +200,17 @@ local function drawShapeOutline(worldX, worldZ, radius, shape, angleDeg)
 		local sides = 4
 		if shape == "hexagon" then sides = 6
 		elseif shape == "octagon" then sides = 8 end
+		-- square/hexagon isInsideShape uses inradius (center-to-edge = radius);
+		-- offset vertices by half-step and scale to circumradius so outline matches painted area.
+		-- octagon isInsideShape uses circumradius, so no correction needed.
+		local angleOffset = (shape ~= "octagon") and (pi / sides) or 0
+		local outlineRadius = (shape ~= "octagon") and (radius / cos(pi / sides)) or radius
 		local angleRad = (angleDeg or 0) * pi / 180
 		local c, s = cos(angleRad), sin(angleRad)
 		glBeginEnd(GL_LINE_LOOP, function()
 			for i = 0, sides - 1 do
-				local a = (i / sides) * 2 * pi
-				local dx0, dz0 = radius * cos(a), radius * sin(a)
+				local a = (i / sides) * 2 * pi + angleOffset
+				local dx0, dz0 = outlineRadius * cos(a), outlineRadius * sin(a)
 				local dx = dx0 * c - dz0 * s
 				local dz = dx0 * s + dz0 * c
 				local x, z = worldX + dx, worldZ + dz
@@ -388,6 +405,8 @@ end
 local DEFAULT_CLUSTER_RADIUS = 256
 
 local mapOverlay = false
+local MAP_OVERLAY_DIM = 0.45  -- darkness applied to map while overlay is active
+local savedDarknessBeforeOverlay = nil  -- non-nil while we've applied overlay dim
 local clusterCounter = false
 local clusterRadius = DEFAULT_CLUSTER_RADIUS
 local lassoActive = false
@@ -821,7 +840,20 @@ end
 
 local function setMapOverlay(v)
 	mapOverlay = v and true or false
-	if mapOverlay then invalidateMetalCaches() end
+	if mapOverlay then
+		invalidateMetalCaches()
+		-- Dim the map so metal patches stand out; save previous darkness to restore later
+		if savedDarknessBeforeOverlay == nil and WG['darkenmap'] then
+			savedDarknessBeforeOverlay = WG['darkenmap'].getMapDarkness()
+			WG['darkenmap'].setMapDarkness(MAP_OVERLAY_DIM)
+		end
+	else
+		-- Restore map brightness
+		if savedDarknessBeforeOverlay ~= nil and WG['darkenmap'] then
+			WG['darkenmap'].setMapDarkness(savedDarknessBeforeOverlay)
+		end
+		savedDarknessBeforeOverlay = nil
+	end
 end
 
 local function setClusterCounter(v)
@@ -1077,8 +1109,16 @@ end
 
 local function activate(mode)
 	active = true
-	subMode = mode or "paint"
+	subMode = mode or "stamp"
 	painting = false
+	-- Apply metal-friendly defaults: 3x3 square brush, grid snap, map overlay
+	local tb = WG.TerraformBrush
+	if tb then
+		tb.setRadius(DEFAULT_RADIUS)
+		tb.setShape("square")
+		if tb.setGridSnap then tb.setGridSnap(true) end
+	end
+	if not mapOverlay then setMapOverlay(true) end
 	Echo("[Metal Brush] Activated: " .. subMode:upper() .. " | Metal Value: " .. metalValue)
 end
 
@@ -1089,6 +1129,11 @@ local function deactivate()
 	active = false
 	painting = false
 	paintButton = 0
+	-- Restore map brightness if overlay was on when we deactivated
+	if savedDarknessBeforeOverlay ~= nil and WG['darkenmap'] then
+		WG['darkenmap'].setMapDarkness(savedDarknessBeforeOverlay)
+	end
+	savedDarknessBeforeOverlay = nil
 end
 
 local function setSubMode(mode)
@@ -1158,6 +1203,11 @@ function widget:Shutdown()
 	WG.MetalBrush = nil
 	if overlayList then gl.DeleteList(overlayList); overlayList = nil end
 	if clusterVisList then gl.DeleteList(clusterVisList); clusterVisList = nil end
+	-- Restore map brightness if overlay dim was active
+	if savedDarknessBeforeOverlay ~= nil and WG['darkenmap'] then
+		WG['darkenmap'].setMapDarkness(savedDarknessBeforeOverlay)
+		savedDarknessBeforeOverlay = nil
+	end
 end
 
 function widget:IsAbove(x, y)
@@ -1364,10 +1414,12 @@ function widget:MouseWheel(up, value)
 		return true
 	end
 
-	-- Ctrl+scroll: size
+	-- Ctrl+scroll: size — step by one metal pixel ring (METAL_SQ per step)
 	if ctrl then
-		local r = (st.radius or DEFAULT_RADIUS) + (up and 8 or -8)
-		tb.setRadius(max(8, r))
+		local currentR = st.radius or DEFAULT_RADIUS
+		local n = floor(currentR / METAL_SQ)  -- current pixel ring index
+		if up then n = n + 1 else n = max(0, n - 1) end
+		tb.setRadius(n * METAL_SQ + METAL_SQ * 0.5)  -- snapped to n*METAL_SQ + halfSq
 		return true
 	end
 
@@ -1463,6 +1515,11 @@ function widget:DrawWorld()
 
 	local ss = getSharedState()
 
+	-- Apply metal grid snap to cursor position when gridSnap is active
+	if ss.gridSnap then
+		worldX, worldZ = snapToMetalGrid(worldX, worldZ)
+	end
+
 	-- Draw metal density overlay near cursor
 	drawMetalOverlay(worldX, worldZ, ss.radius)
 
@@ -1477,9 +1534,21 @@ function widget:DrawWorld()
 	elseif paintButton == 3 then
 		colorR, colorG, colorB = 1.0, 0.3, 0.3
 	end
+	-- Draw outlines at all symmetric positions so the cursor matches what gets stamped
+	local outlineTb = WG.TerraformBrush
+	local outlinePositions = nil
+	if outlineTb and outlineTb.getSymmetricPositions then
+		outlinePositions = outlineTb.getSymmetricPositions(worldX, worldZ, ss.rotationDeg)
+	end
+	if not outlinePositions or #outlinePositions == 0 then
+		outlinePositions = {{ x = worldX, z = worldZ, rot = ss.rotationDeg }}
+	end
 	glColor(colorR, colorG, colorB, 0.85)
 	glLineWidth(2)
-	drawShapeOutline(worldX, worldZ, ss.radius, ss.shape, ss.rotationDeg)
+	for oi = 1, #outlinePositions do
+		local op = outlinePositions[oi]
+		drawShapeOutline(op.x, op.z, ss.radius, ss.shape, op.rot or ss.rotationDeg)
+	end
 
 	-- Draw center cross
 	local groundY = GetGroundHeight(worldX, worldZ)

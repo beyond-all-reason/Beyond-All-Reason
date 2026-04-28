@@ -152,7 +152,7 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | `tf_features.lua` | 12 / 12 | ✅ (`fpAvoidCliffs`, `fpPreferSlopes`, `fpAltMinEnable`, `fpAltMaxEnable`, `fpSymmetryActive`, `fpSymmetryRadial`, `fpSymmetryMirrorAny`, `fpSaveLoadOpen`) |
 | `tf_lights.lua` | 11 / 11 | ✅ (`lpLightType`, `lpMode`, `lpLibraryOpen`, `lpLibraryTab`) |
 | `tf_metal.lua` | 11 / 11 | ✅ (`mbGridSnap`, `mbAngleSnap`, `mbMeasureActive`, `mbSymmetryActive`, `mbSymmetryRadial`, `mbSymmetryMirrorAny`, `mbAngleSnapAuto`, `mbInspectorOpen`, `mbClusterOpen`, `mbLassoOpen`, `mbAxisOpen`) |
-| `tf_grass.lua` | 0 / 19 | ⬜ |
+| `tf_grass.lua` | 19 / 19 | ✅ (gbGridSnap/gbAngleSnap/gbMeasureActive/gbSymmetryActive/gbSymmetryRadial/gbSymmetryMirrorAny/gbAngleSnapAuto + gbSlopeActive/gbAvoidCliffs/gbPreferSlopes/gbAltActive/gbAltMinEnable/gbAltMaxEnable/gbColorOpen; local syncSectionWarn → ctx.syncWarnChip) |
 | `tf_environment.lua` | 0 / 18 | ⬜ (helper-heavy, hold last) |
 | `gui_terraform_brush.lua` | 1 / 74 | 🟡 (noise sync done; finisher) |
 
