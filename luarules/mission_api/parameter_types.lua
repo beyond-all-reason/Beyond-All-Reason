@@ -11,6 +11,8 @@ local types = {
 	AllyTeamIDs = 'AllyTeamIDs',
 	Orders = 'Orders',
 	Area = 'Area',
+	UnitLoadout = 'UnitLoadout',
+	FeatureLoadout = 'FeatureLoadout',
 	ResourceIncomeSources = 'ResourceIncomeSources',
 
 	-- String Validators:

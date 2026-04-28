@@ -153,21 +153,18 @@ local actions = {
 	spawnTurret = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'bots',
-            unitDefName = 'armllt',
-			teamID = 1,
-			position = { x = 1800, z = 2200 },
+			unitLoadout = {
+				{ unitDefName = 'armllt', x = 1800, z = 2200, team = 1, unitName = 'bots' },
+			},
 		},
 	},
 
 	spawnBots = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'bots',
-            unitDefName = 'armpw',
-			teamID = 0,
-			quantity = 4,
-			position = { x = 1800, z = 1600 },
+			unitLoadout = {
+				{ unitDefName = 'armpw', x = 1800, z = 1600, team = 0, unitName = 'bots', quantity = 4 },
+			},
 		},
 	},
 
@@ -234,19 +231,18 @@ local actions = {
 	spawnDecoy = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'decoys',
-			unitDefName = 'armdecom',
-			teamID = 0,
-			position = { x = 1900, z = 2600 },
+			unitLoadout = {
+				{ unitDefName = 'armdecom', x = 1900, z = 2600, team = 0, unitName = 'decoys' },
+			},
 		},
 	},
 
 	spawnCapturable = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armwin',
-			teamID = 1,
-			position = { x = 1600, z = 2800 },
+			unitLoadout = {
+				{ unitDefName = 'armwin', x = 1600, z = 2800, team = 1 },
+			},
 		},
 	},
 
@@ -286,11 +282,9 @@ local actions = {
 	spawnResBots = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'res',
-			unitDefName = 'armrectr',
-			teamID = 0,
-			quantity = 4,
-			position = { x = 1900, z = 2600 },
+			unitLoadout = {
+				{ unitDefName = 'armrectr', x = 1900, z = 2600, team = 0, unitName = 'res', quantity = 4 },
+			},
 		},
 	},
 
@@ -314,10 +308,9 @@ local actions = {
 	spawnEngineer = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'engineers',
-			unitDefName = 'corfast',
-			teamID = 1,
-			position = { x = 1500, z = 3400 },
+			unitLoadout = {
+				{ unitDefName = 'corfast', x = 1500, z = 3400, team = 1, unitName = 'engineers' },
+			},
 		},
 	},
 
