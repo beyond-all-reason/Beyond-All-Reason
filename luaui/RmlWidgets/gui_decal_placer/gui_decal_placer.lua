@@ -29,24 +29,11 @@ local INITIAL_TOP_VH  = 10
 -- Type definitions (Lua LS only — strip at compile time, no runtime cost)
 ----------------------------------------------------------------
 
----One row in the dmHandle.currentDecals array. Drives one tile via
----data-for="d, i : currentDecals" in the RML template.
----@class DecalRow
----@field name string         -- engine texture name
----@field displayName string  -- name truncated to 22 chars for tile label
----@field category string     -- one of CATEGORY_ORDER (scars, tracks, ...)
----@field selected boolean    -- true iff in WG.DecalPlacer state.selectedSet
----@field hasImg boolean      -- true iff srcPath resolves to a file
----@field srcPath string      -- VFS path with leading slash, "" if no image
-
----Shape of the data model bound to the RML document. Every field is mirrored
----into RmlUi for declarative binding.
+---Shape of the data model bound to the RML document.
 ---@class DecalPlacerModel
 ---@field search string               -- data-value on #dp-search
 ---@field activeCategory string       -- data-class-active on each fp-cat-btn
----@field currentDecals DecalRow[]    -- data-for source for tile grid
 ---@field selectedCount integer       -- {{selectedCount}} in tile header
----@field onDecalClick fun(event: any, name: string)         -- data-event-click on tile (passes d.name)
 ---@field onCategorySelect fun(event: any, key: string)       -- data-event-click on category button
 ---@field onSearchFocus fun(event: any)                       -- data-event-focus on search input
 ---@field onSearchBlur fun(event: any)                        -- data-event-blur on search input
@@ -55,8 +42,11 @@ local INITIAL_TOP_VH  = 10
 -- Note: panel visibility is NOT a model field. Show/hide is controlled at the
 -- document level via document:Show() / document:Hide() so RmlUi drops the
 -- whole document from its active set when off — no layout/draw cost when
--- closed. Class-toggle visibility (data-class-hidden) keeps the document live
--- and is the wrong tool for "this panel is closed".
+-- closed.
+-- Note: the tile grid is built imperatively via CreateElement/AppendChild.
+-- Recoil's data-for does not propagate iterator scope to child element
+-- bindings (d.field fails with "Could not find variable"), so we use the
+-- same imperative DOM approach as gui_feature_placer.
 
 ---@class WidgetState
 ---@field rmlContext any
@@ -82,25 +72,7 @@ local lastSearchFilter = ""
 local initialModel = {
 	search = "",
 	activeCategory = "all",
-	currentDecals = {},
 	selectedCount = 0,
-
-	-- RmlUi convention: data-event-click passes the Event as the implicit
-	-- first arg; explicit args from the RML expression follow.
-	-- The RML passes d.name directly so we don't need a Lua-side index→row
-	-- lookup table — the master decal list lives in WG.DecalPlacer.
-	onDecalClick = function(_event, name)
-		if not WG.DecalPlacer or not name then return end
-		local _, _, _, shift = Spring.GetModKeyState()
-		if shift then
-			WG.DecalPlacer.toggleDecal(name)
-		else
-			WG.DecalPlacer.selectDecal(name)
-		end
-		-- Re-derive the visible array so each row's `selected` flag updates.
-		-- Cheap (~200 entries, runs only on click).
-		syncDecals()
-	end,
 
 	onCategorySelect = function(_event, key)
 		local dm = widgetState.dmHandle
@@ -245,16 +217,28 @@ local function buildRootStyle()
 end
 
 ----------------------------------------------------------------
+-- Tile elements by decal name — for updating selection visuals without a
+-- full DOM rebuild. Reset on every full syncDecals call.
+local tileElements = {}
+
 -- Derive the visible decal rows from WG state + active filter/category and
--- sync them into the data model (which drives the tile grid via data-for).
--- Idempotent — same call shape for initial population and for refresh after
--- filter/category change.
+-- rebuild the tile grid imperatively.
+-- NOTE: Recoil's data-for does not propagate iterator scope to child
+-- element bindings, so we use CreateElement/AppendChild/AddEventListener
+-- instead (same pattern as gui_feature_placer).
+-- Idempotent — safe to call on category change, filter change, bake finish.
 -- (Forward-declared above so initialModel handlers can capture it.)
 ----------------------------------------------------------------
 syncDecals = function()
 	local dm = widgetState.dmHandle
 	if not WG.DecalPlacer then return end
 	if not dm then return end
+	local doc = widgetState.document
+	if not doc then return end
+
+	local listEl = doc:GetElementById("dp-tile-list")
+	if not listEl then return end
+
 	local categories = WG.DecalPlacer.getDecalCategories()
 	local order = WG.DecalPlacer.getCategoryOrder()
 	if not categories or not order then return end
@@ -264,8 +248,11 @@ syncDecals = function()
 	local lowerFilter = (lastSearchFilter or ""):lower()
 	local cat = dm.activeCategory or "all"
 
+	-- Full DOM rebuild
+	listEl.inner_rml = ""
+	tileElements = {}
+
 	local catOrder = (cat == "all") and order or { cat }
-	local newArray = {}
 	for _, catName in ipairs(catOrder) do
 		local items = categories[catName]
 		if items then
@@ -273,39 +260,67 @@ syncDecals = function()
 				local name = entry.name
 				if lowerFilter == "" or name:lower():find(lowerFilter, 1, true) then
 					local displayName = (#name > 22) and (name:sub(1, 20) .. "..") or name
-					-- Resolve a VFS path for <img>. Spring may not return a filename
-					-- for atlas-packed textures, so fall back to scanning bitmaps/
-					-- by basename. Bake.resolve handles the bake step for mask-
-					-- encoded BMPs (mainscars / tracks / footprints) so the <img>
-					-- always gets a real RGBA file with proper alpha.
+
+					-- Tile container
+					local itemEl = doc:CreateElement("div")
+					itemEl:SetClass("fp-feature-item", true)
+					if selectedSet[name] then
+						itemEl:SetClass("selected", true)
+					end
+
+					-- Thumbnail
+					local thumbEl = doc:CreateElement("div")
+					thumbEl:SetClass("fp-feature-thumb", true)
+					thumbEl:SetClass("dp-thumb-" .. (entry.category or "other"), true)
+
 					local fname = entry.filename
 					if not fname or fname == "" then
 						fname = findPreviewPath(name)
 					end
-					local srcPath = ""
-					local hasImg = false
 					if fname and fname ~= "" then
 						local sourcePath = fname:gsub("\\", "/"):gsub("^/+", "")
 						local resolved = Bake.resolve(name, sourcePath, Bake.classifyMaskMode(sourcePath))
 						if resolved then
-							srcPath = resolved
-							hasImg = true
+							local imgEl = doc:CreateElement("img")
+							imgEl:SetAttribute("src", resolved)
+							thumbEl:AppendChild(imgEl)
 						end
 					end
-					newArray[#newArray + 1] = {
-						name = name,
-						displayName = displayName,
-						category = entry.category or "other",
-						selected = selectedSet[name] or false,
-						hasImg = hasImg,
-						srcPath = srcPath,
-					}
+					itemEl:AppendChild(thumbEl)
+
+					-- Name label
+					local nameEl = doc:CreateElement("div")
+					nameEl:SetClass("fp-feature-name", true)
+					nameEl.inner_rml = displayName
+					itemEl:AppendChild(nameEl)
+
+					-- Click: select or toggle
+					local capName = name
+					itemEl:AddEventListener("click", function(event)
+						if not WG.DecalPlacer then return end
+						local _, _, _, shift = Spring.GetModKeyState()
+						if shift then
+							WG.DecalPlacer.toggleDecal(capName)
+						else
+							WG.DecalPlacer.selectDecal(capName)
+						end
+						-- Update visuals without full DOM rebuild
+						local newState = WG.DecalPlacer.getState()
+						local ss = newState and newState.selectedSet or {}
+						for n, el in pairs(tileElements) do
+							el:SetClass("selected", ss[n] or false)
+						end
+						dm.selectedCount = #(newState and newState.selectedDecals or {})
+						event:StopPropagation()
+					end, false)
+
+					tileElements[name] = itemEl
+					listEl:AppendChild(itemEl)
 				end
 			end
 		end
 	end
 
-	dm.currentDecals = newArray
 	dm.selectedCount = #(state and state.selectedDecals or {})
 	if not firstSyncDone then
 		firstSyncDone = true
@@ -379,13 +394,6 @@ function widget:Initialize()
 	widgetState.dmHandle = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
 	if not widgetState.dmHandle then return false end
 
-	-- Populate model BEFORE LoadDocument. Recoil evaluates data-for once
-	-- during document load; if currentDecals is empty at that point, no
-	-- clones are created and the binding cannot recover retroactively.
-	-- Pre-filling means data-for creates the correct number of clones on
-	-- the first parse, and later syncDecals() calls update them normally.
-	syncDecals()
-
 	widgetState.document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not widgetState.document then
 		widget:Shutdown()
@@ -409,6 +417,8 @@ function widget:Initialize()
 	widgetState.rootElement:SetAttribute("style", buildRootStyle())
 
 	wireDragHandle()
+	-- Populate tile list after document (and dp-tile-list element) exists.
+	syncDecals()
 end
 
 -- Drain bake queue. Spring restricts gl.RenderToTexture to draw callbacks,
