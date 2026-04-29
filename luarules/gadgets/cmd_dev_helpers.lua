@@ -964,6 +964,7 @@ else	-- UNSYNCED
 
 		gadgetHandler:AddChatAction('dumpunits', dumpUnits, "") -- /luarules dumpunits dumps all units on may into infolog.txt
 		gadgetHandler:AddChatAction('dumpfeatures', dumpFeatures, "") -- /luarules dumpfeatures dumps all features into infolog.txt
+		gadgetHandler:AddChatAction('dumploadout', dumpLoadout, "") -- /luarules dumploadout dumps all units and features in loadout.lua format
 		gadgetHandler:AddChatAction('removeunitdef', removeUnitDef, "") -- /luarules removeunitdef armflash removes all units, their wrecks and heaps too
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
 		gadgetHandler:AddChatAction('reducewrecks', reduceWrecks, "") -- /luarules reducewrecks applies damage to reduce wrecks to heaps and to destroy heaps
@@ -1128,6 +1129,45 @@ else	-- UNSYNCED
 			local isneutral = tostring(Spring.GetUnitNeutral(unitID))
 			Spring.Echo(string.format("{name = \'%s\', x = %d, y = %d, z = %d, rot = %d , team = %d, neutral = %s},\n",unitname,x,y,z,r,tid, isneutral)) --{ name = 'ad0_aleppo_2', x = 2900, z = 52, rot = "-1" },
 		end
+	end
+
+	--- Dumps all units and features in the loadout.lua format used by UnitLoadout / FeatureLoadout in missions.
+	--- Usage: /luarules dumploadout
+	function dumpLoadout(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
+			return
+		end
+
+		local headingToFacing = Spring.Utilities.HeadingToFacing
+
+		Spring.Echo("local unitLoadout = {")
+		for _, unitID in pairs(Spring.GetAllUnits()) do
+			local unitDefName = UnitDefs[Spring.GetUnitDefID(unitID)].name or "nil"
+			local x, y, z = Spring.GetUnitPosition(unitID)
+			local facing = headingToFacing(Spring.GetUnitHeading(unitID))
+			local team = Spring.GetUnitTeam(unitID)
+			local isBeingBuilt = Spring.GetUnitIsBeingBuilt(unitID)
+			local isNeutral = Spring.GetUnitNeutral(unitID)
+			local extras = ""
+			if isBeingBuilt then extras = extras .. ", construction = true" end
+			if isNeutral then extras = extras .. ", neutral = true" end
+			Spring.Echo(string.format("\t{ unitDefName = '%s', x = %d, z = %d, facing = '%s', team = %d%s },",
+				unitDefName, math.floor(x), math.floor(z), facing, team, extras))
+		end
+		Spring.Echo("}")
+
+		Spring.Echo("local featureLoadout = {")
+		for _, featureID in pairs(Spring.GetAllFeatures()) do
+			local featureDefName = (FeatureDefs[Spring.GetFeatureDefID(featureID)].name or "nil")
+			local x, y, z = Spring.GetFeaturePosition(featureID)
+			local facing = headingToFacing(Spring.GetFeatureHeading(featureID))
+			Spring.Echo(string.format("\t{ featureDefName = '%s', x = %d, z = %d, facing = '%s' },",
+				featureDefName, math.floor(x), math.floor(z), facing))
+		end
+		Spring.Echo("}")
 	end
 
 	local function centerCamera()
