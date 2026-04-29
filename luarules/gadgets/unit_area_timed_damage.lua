@@ -324,7 +324,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
 			if units and count > 0 then
 				blockingShields = {}
 				local allyTeam = getAllyTeam(attackerID, projectileID)
-				for i = count, 1, -1 do
+				for i = 1, count do
 					-- Don't check against the area position, but the explosion, even though it's a bit odd:
 					-- TODO: Check that the shield and weapon intercept types match.
 					-- TODO: The shield_aoe_penetration param is weird for ignoring intercept types tbh.
