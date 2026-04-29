@@ -2367,6 +2367,7 @@ local function attachDeclarativeHandlers(ctx)
 	w.tfSmoothSubMode = function(self, mode)
 		playSound("modeSwitch")
 		if WG.TerraformBrush then WG.TerraformBrush.setMode(mode) end
+		if widgetState.dmHandle then widgetState.dmHandle.tfSmoothSubMode = mode end
 	end
 
 	-- ── Shape buttons ──────────────────────────────────────────────────────
@@ -2403,10 +2404,12 @@ local function attachDeclarativeHandlers(ctx)
 	w.tfRampStraight = function(self)
 		playSound("tick")
 		if WG.TerraformBrush then WG.TerraformBrush.setShape("square") end
+		if widgetState.dmHandle then widgetState.dmHandle.tfRampType = "square" end
 	end
 	w.tfRampSpline = function(self)
 		playSound("tick")
 		if WG.TerraformBrush then WG.TerraformBrush.setShape("circle") end
+		if widgetState.dmHandle then widgetState.dmHandle.tfRampType = "circle" end
 	end
 
 	-- ── Undo / Redo ───────────────────────────────────────────────────────
