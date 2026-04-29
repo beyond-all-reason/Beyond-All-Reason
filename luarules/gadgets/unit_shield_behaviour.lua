@@ -92,6 +92,7 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 		GG.Shields.GetUnitShieldPosition = function() end -- TODO: parts of the api are not usable (nor needed)
 		GG.Shields.GetShieldUnitsInSphere = function() end -- TODO: parts of the api are not usable (nor needed)
 		GG.Shields.GetUnitShieldState = spGetUnitShieldState
+		GG.Shields.IsInShield = function() end -- TODO: parts of the api are not usable (nor needed)
 		GG.Shields.RegisterShieldPreDamaged = registerShieldPreDamaged
 	end
 
@@ -119,6 +120,7 @@ local shieldOnUnitRulesParamIndex   = 531313
 local INLOS                         = { inlos = true }
 
 local mathCeil                      = math.ceil
+local distanceSquared               = math.distance3dSquared
 
 local spSetUnitShieldRechargeDelay  = Spring.SetUnitShieldRechargeDelay
 local spDeleteProjectile            = Spring.DeleteProjectile
@@ -742,6 +744,17 @@ local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
 	return units, count
 end
 
+---Check that a position is inside a shield's bubble.
+---@param x number
+---@param y number
+---@param z number
+---@param shieldUnitID integer
+---@return boolean?
+local function isInShield(x, y, z, shieldUnitID)
+	local sx, sy, sz, sr = getUnitShieldPosition(shieldUnitID)
+	return sx and distanceSquared(x, y, z, sx, sy, sz) < sr * sr
+end
+
 ---Add a scripted weapon type to be handled by the shield behaviour gadget.
 ---@param projectileTbl table [projectileID] := true
 ---@param callback ShieldPreDamagedCallback accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
@@ -756,6 +769,7 @@ function gadget:Initialize()
 	GG.Shields.GetUnitShieldPosition = getUnitShieldPosition
 	GG.Shields.GetShieldUnitsInSphere = getShieldUnitsInSphere
 	GG.Shields.GetUnitShieldState = getUnitShieldState
+	GG.Shields.IsInShield = isInShield
 	GG.Shields.RegisterShieldPreDamaged = registerShieldPreDamaged
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
