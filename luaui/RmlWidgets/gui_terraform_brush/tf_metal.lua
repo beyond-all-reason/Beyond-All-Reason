@@ -502,7 +502,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 
 	local metalBtn = doc and doc:GetElementById("btn-metal")
 	if metalBtn then metalBtn:SetClass("active", true) end
-	setActiveClass(widgetState.modeButtons, nil)
+	if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
 
 	-- DISPLAY/INSTRUMENTS warn chips (shared TB state mirror)
 	if doc and ctx.syncWarnChip then
@@ -569,7 +569,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 	-- Shape: use terraform brush shape (shared)
 	local tfSt = WG.TerraformBrush and WG.TerraformBrush.getState()
 	if tfSt then
-		setActiveClass(widgetState.shapeButtons, tfSt.shape)
+		if widgetState.dmHandle then widgetState.dmHandle.tfShape = tfSt.shape or "circle" end
 	end
 
 	-- P3.2 Metal grayouts (per Phase 3 relevance matrix)

@@ -167,7 +167,7 @@ function M.sync(doc, ctx, clState, setSummary)
 		do
 			local clBtnU = doc and doc:GetElementById("btn-clone")
 			if clBtnU then clBtnU:SetClass("active", true) end
-			setActiveClass(widgetState.modeButtons, nil)
+			if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
 
 			-- Update status label
 			local statusLabel = doc and doc:GetElementById("cl-status-label")

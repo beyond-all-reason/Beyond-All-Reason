@@ -667,7 +667,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 		-- ===== Light Placer mode: highlight button, clear others, sync controls =====
 		local lightsBtnU = doc and doc:GetElementById("btn-lights")
 		if lightsBtnU then lightsBtnU:SetClass("active", true) end
-		setActiveClass(widgetState.modeButtons, nil)
+		if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
 
 		-- Update light type buttons
 		for lt, el in pairs(widgetState.lightTypeButtons) do
@@ -678,7 +678,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 			el:SetClass("active", mode == lpState.mode)
 		end
 		-- Sync shape button active state to LightPlacer's shape
-		setActiveClass(widgetState.shapeButtons, lpState.shape)
+		if widgetState.dmHandle then widgetState.dmHandle.tfShape = lpState.shape or "circle" end
 		-- Show/hide direction/theta/beam/scatter sections via dm flags (data-if in RML)
 		local dm = widgetState.dmHandle
 		if dm then

@@ -571,7 +571,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 
 	local grassBtn = doc and doc:GetElementById("btn-grass")
 	if grassBtn then grassBtn:SetClass("active", true) end
-	setActiveClass(widgetState.modeButtons, nil)
+	if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
 
 	-- Grass sub-mode buttons
 	setActiveClass(widgetState.gbSubModeButtons, gbState.subMode)

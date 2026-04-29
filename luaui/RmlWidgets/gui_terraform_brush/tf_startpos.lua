@@ -197,7 +197,7 @@ function M.sync(doc, ctx, stpState, setSummary)
 		-- ===== Start Positions mode: highlight button, sync controls =====
 		local stpBtnU = doc and doc:GetElementById("btn-startpos")
 		if stpBtnU then stpBtnU:SetClass("active", true) end
-		setActiveClass(widgetState.modeButtons, nil)
+		if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
 
 		-- Sub-mode buttons: Express + Shape (Shape == startbox submode internally)
 		local expressBtn = doc and doc:GetElementById("btn-sp-express")
