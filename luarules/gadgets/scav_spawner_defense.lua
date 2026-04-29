@@ -1651,18 +1651,16 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeam == scavTeamID then
 			damage = damage / config.healthMod
 
-			if math.random(0,600) == 0 and math.random() <= config.spawnChance and attackerTeam ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+300 < GetGameFrame() and attackerID and UnitDefs[unitDefID].canMove then
+			if math.random(0, 600) == 0 and math.random() <= config.spawnChance and attackerTeam ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+math.ceil(600/SetCount(humanTeams)) < GetGameFrame() and attackerID and UnitDefs[unitDefID].canMove then
 				local ux, uy, uz = GetUnitPosition(attackerID)
 				local burrow, distance = getNearestScavBeacon(ux, uy, uz)
 				--Spring.Echo("Nearest Beacon Distance", distance)
 				if ux and burrow and distance and distance < 2500 then
 					waveParameters.lastBackupSquadSpawnFrame = GetGameFrame()
 					--Spring.Echo("Spawning Backup Squad - Unit Damaged", Spring.GetGameFrame())
-					for i = 1, SetCount(humanTeams) do
-						if mRandom() <= config.spawnChance then
-							SpawnRandomOffWaveSquad(burrow)
-							burrows[burrow].lastBackupSpawn = GetGameFrame() + math.random(-300,1800)
-						end
+					if mRandom() <= config.spawnChance then
+						SpawnRandomOffWaveSquad(burrow)
+						burrows[burrow].lastBackupSpawn = GetGameFrame() + math.random(-300,1800)
 					end
 				end
 			end

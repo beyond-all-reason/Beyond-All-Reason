@@ -170,7 +170,7 @@ if gadgetHandler:IsSyncedCode() then
 							lavaUnits[unitID].currentSlow = unitSlow
 						end
 					end
-				spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
+				spAddUnitDamage(unitID, lavaDamage, nil, nil)
 				spSpawnCEG(lavaEffectDamage, x, y+5, z)
 				elseif lavaUnits[unitID] then -- unit exited lava
 					if lavaUnits[unitID].slowed then
@@ -187,7 +187,7 @@ if gadgetHandler:IsSyncedCode() then
 				if not geoThermal[FeatureDefID] then
 					x,y,z = spGetFeaturePosition(featureID)
 					if (y and y < lavaLevel) then
-						spAddFeatureDamage(featureID, lavaDamage, 0, gaiaTeamID)
+						spAddFeatureDamage(featureID, lavaDamage, nil, nil)
 						spSpawnCEG(lavaEffectDamage, x, y+5, z)
 					end
 				end

@@ -461,6 +461,10 @@ function widget:UnitDestroyed(unitID)
 end
 
 function widget:UnitLeftLos(unitID)
+	-- Spectators with fullview see all units regardless of LOS; don't strip the
+	-- effect on LOS-leave because UnitEnteredLos early-returns under fullview
+	-- and would never restore it (causes effect to vanish from paralyzed units).
+	if fullview then return end
 	StopDrawParalyzedUnitGL4(unitID)
 end
 

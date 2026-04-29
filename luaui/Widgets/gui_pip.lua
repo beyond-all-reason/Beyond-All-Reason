@@ -24,6 +24,7 @@ local config
 -- Helper function to get effective zoom minimum (accounts for minimap mode)]]]]]]]]]]]]
 
 
+
 local function GetEffectiveZoomMin()
 	if isMinimapMode and minimapModeMinZoom then
 		return minimapModeMinZoom
@@ -224,7 +225,6 @@ config = {
 	pipFrameTimeThreshold = 0.007,  -- threshold before starting to lower FPS
 	pipFrameTimeHistorySize = 10,  -- Number of frames to average
 	
-	radarWobbleSpeed = 1,
 	CMD_AREA_MEX = GameCMD and GameCMD.AREA_MEX or 10000,
 
 	-- Middle-click teleport settings (click without drag moves world camera to clicked position)
@@ -2869,8 +2869,10 @@ vec2 pipPos;
 pipPos.x = wtp_offset.x + worldPos_size.x * wtp_scale.x;
 pipPos.y = wtp_offset.y + worldPos_size.y * wtp_scale.y;
 
-// Radar wobble (only for radar-only icons)
-float wobbleAmp = iconBaseSize * 0.3 * isRadar;
+// Radar wobble (only for radar-only icons) — world-space absolute.
+// iconBaseSize ~ K*sqrt(zoom), wtp_scale.x ~ zoom, so multiplying by sqrt(wtp_scale.x)
+// makes wobbleAmp ~ K*zoom, giving a constant world-space amplitude of K*0.3 regardless of zoom.
+float wobbleAmp = iconBaseSize * sqrt(abs(wtp_scale.x)) * 0.03 * isRadar;
 pipPos.x += sin(gameTime * 3.0 + phase) * wobbleAmp;
 pipPos.y += cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp;
 

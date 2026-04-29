@@ -770,13 +770,31 @@ local function DrawParticles()
 end
 
 -- Remove expired particles from VBO (runs every frame, pops exact deathFrame queue)
+-- Processes all frames from lastRemovedFrame+1 to current to handle frame skips during fast-forward
+local lastRemovedFrame = 0
 local function removeExpiredParticles(gameFrame)
-	local queue = particleRemoveQueue[gameFrame]
-	if not queue then return end
-	for i = 1, #queue do
-		popElementInstance(particleVBO, queue[i])
+	local startFrame = lastRemovedFrame + 1
+	-- Cap catch-up window to avoid stalling on very large frame jumps
+	if gameFrame - startFrame > 300 then
+		-- Discard any queues that are too old to matter
+		for f = startFrame, gameFrame - 301 do
+			particleRemoveQueue[f] = nil
+		end
+		startFrame = gameFrame - 300
 	end
-	particleRemoveQueue[gameFrame] = nil
+	for f = startFrame, gameFrame do
+		local queue = particleRemoveQueue[f]
+		if queue then
+			for i = 1, #queue do
+				local id = queue[i]
+				if particleVBO.instanceIDtoIndex[id] then
+					popElementInstance(particleVBO, id)
+				end
+			end
+			particleRemoveQueue[f] = nil
+		end
+	end
+	lastRemovedFrame = gameFrame
 end
 
 --------------------------------------------------------------------------------
