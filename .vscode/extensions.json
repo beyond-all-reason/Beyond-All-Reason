@@ -2,7 +2,8 @@
   "recommendations": [
     "tangzx.emmylua",
     "JohnnyMorganz.stylua",
-    "llvm-vs-code-extensions.vscode-clangd"
+    "llvm-vs-code-extensions.vscode-clangd",
+    "Soulcode.vscode-unwanted-extensions"
   ],
   "unwantedRecommendations": [
     "sumneko.lua"
