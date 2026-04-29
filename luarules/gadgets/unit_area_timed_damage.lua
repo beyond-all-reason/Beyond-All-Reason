@@ -600,7 +600,7 @@ function gadget:Initialize()
 	end
 
     unitDamageImmunity = {}
-    local areaResistances = {}
+    local areaResistances = {} -- TODO: replace resistance strings with the IDs from envDamageTypes
     for weaponDefID, params in pairs(timedDamageWeapons) do
         if params.resistance == nil then
             params.resistance = "none"
