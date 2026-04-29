@@ -4684,7 +4684,8 @@ function widget:Update()
 	-- Poll-based window drag (position only — mouseup ends drag via doc listener)
 	local ds = windowDragState
 	if ds.active and ds.rootEl then
-		local mx, my = GetMouseState()
+		local mx, my, _, _, _, offscreen = GetMouseState()
+		if not offscreen then
 		local vsx, vsy = ds.vsx, ds.vsy
 		local ew, eh = ds.ew, ds.eh
 		local T = WINDOW_SNAP_THRESHOLD
@@ -4747,6 +4748,7 @@ function widget:Update()
 			ds.rootEl.style.left = ix .. "px"
 			ds.rootEl.style.top  = iy .. "px"
 		end
+		end -- not offscreen
 	end
 
 	-- When game chat input is open, auto-blur any focused RmlUI text input so
