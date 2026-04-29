@@ -24,25 +24,22 @@ local tickVolume = 0.6
 
 local selfCommandIgnoreFrames = 8
 
+-- Multi-user guard:
+-- Only the local client that recently issued /pause should take responsibility
+-- for running the countdown after a paused -> unpaused transition.
+local localPauseCommandValidFrames = 30 -- about 1 second
+
 --------------------------------------------------------------------------------
 -- SAFETY LIMITS
 --------------------------------------------------------------------------------
--- These are hard guards against accidental loops or chat/command flooding.
 
--- At most one chat countdown message every 20 frames, about 0.67 seconds.
 local minChatCommandFrames = 20
-
--- At most one injected pause command every 10 frames, about 0.33 seconds.
 local minPauseCommandFrames = 10
 
--- If this widget sends more than this many pause commands in the window below,
--- it assumes something is wrong and temporarily shuts itself up.
 local maxPauseCommandsPerWindow = 6
-local pauseCommandWindowFrames = 90 -- 3 seconds
+local pauseCommandWindowFrames = 90
 
--- After the safety breaker triggers, the widget will stop sending chat and
--- pause commands for this many frames.
-local safetyCooldownFrames = 150 -- 5 seconds
+local safetyCooldownFrames = 150
 
 --------------------------------------------------------------------------------
 -- STATE
@@ -64,6 +61,12 @@ local pauseCommandWindowStart = 0
 local pauseCommandsInWindow = 0
 local safetyCooldownUntilFrame = 0
 
+-- Updated when this local client issues /pause or /pause 0.
+-- Remote players' pause commands should not pass through this client's
+-- TextCommand(), so this helps avoid every widget-owning player starting
+-- their own countdown for someone else's unpause.
+local localPauseCommandFrame = -99999
+
 --------------------------------------------------------------------------------
 -- HELPERS
 --------------------------------------------------------------------------------
@@ -81,6 +84,10 @@ local function SafetyCooldownActive()
     return GetFrame() < safetyCooldownUntilFrame
 end
 
+local function LocalPlayerRecentlyRequestedUnpause()
+    return GetFrame() - localPauseCommandFrame <= localPauseCommandValidFrames
+end
+
 local function TriggerSafetyCooldown(reason)
     countdownActive = false
     currentStep = 1
@@ -95,13 +102,12 @@ end
 local function SendCountdownChat(text)
     local frame = GetFrame()
 
-    -- Absolute chat throttle. Even if something goes wrong, this prevents
-    -- repeated countdown messages from flooding chat.
-    if frame - lastChatFrame < minChatCommandFrames then
+    if SafetyCooldownActive() then
         return
     end
 
-    if SafetyCooldownActive() then
+    -- Hard chat throttle.
+    if frame - lastChatFrame < minChatCommandFrames then
         return
     end
 
@@ -121,13 +127,12 @@ local function SendPauseCommand(command)
     local frame = GetFrame()
 
     if SafetyCooldownActive() then
-        return
+        return false
     end
 
-    -- Absolute pause-command throttle. This prevents rapid command injection
-    -- even if TextCommand or pause-state updates behave unexpectedly.
+    -- Hard pause-command throttle.
     if frame - lastPauseCommandFrame < minPauseCommandFrames then
-        return
+        return false
     end
 
     -- Rolling-window loop breaker.
@@ -140,16 +145,14 @@ local function SendPauseCommand(command)
 
     if pauseCommandsInWindow > maxPauseCommandsPerWindow then
         TriggerSafetyCooldown("too many pause commands")
-        return
+        return false
     end
 
     lastPauseCommandFrame = frame
-
-    -- Our own pause commands may come back through TextCommand(), so ignore
-    -- pause TextCommand handling briefly after sending them.
     ignoreTextCommandFrames = selfCommandIgnoreFrames
 
     Spring.SendCommands(command)
+    return true
 end
 
 --------------------------------------------------------------------------------
@@ -157,13 +160,10 @@ end
 --------------------------------------------------------------------------------
 
 local function StartCountdown()
-    -- Do not start or restart while safety cooldown is active.
     if SafetyCooldownActive() then
         return
     end
 
-    -- Idempotency guard. Repeated unpause attempts cannot restart the countdown
-    -- or resend "Unpausing in 3...".
     if countdownActive then
         return
     end
@@ -206,21 +206,18 @@ function widget:Update()
     --------------------------------------------------------------------------
     -- Detect a real paused -> unpaused transition.
     --
-    -- This is the only place where the countdown starts. That preserves BaR's
-    -- normal pause-control behavior, where a first /pause while already paused
-    -- may simply take pause control rather than actually unpausing.
+    -- The countdown only starts if this local client recently issued /pause.
+    -- This prevents every player running the widget from responding to someone
+    -- else's unpause attempt.
     --------------------------------------------------------------------------
 
     if lastPausedState and not paused then
         if allowNextRealUnpause then
-            -- This unpause was caused by our own final "pause 0".
             allowNextRealUnpause = false
-        else
-            -- Someone actually unpaused. Re-pause and begin the courtesy delay.
+        elseif LocalPlayerRecentlyRequestedUnpause() then
             SendPauseCommand("pause 1")
             StartCountdown()
 
-            -- Treat this frame as paused so transition tracking stays stable.
             paused = true
         end
     end
@@ -244,9 +241,11 @@ function widget:Update()
 
                 SendCountdownChat("GO!")
 
-                -- Allow exactly the next real unpause transition through.
-                allowNextRealUnpause = true
-                SendPauseCommand("pause 0")
+                -- Only allow the next real unpause through if this widget
+                -- actually sent the final unpause command.
+                if SendPauseCommand("pause 0") then
+                    allowNextRealUnpause = true
+                end
             end
         end
     end
@@ -257,15 +256,11 @@ end
 --------------------------------------------------------------------------------
 -- TEXT COMMAND HOOK
 --------------------------------------------------------------------------------
--- This hook is intentionally defensive.
+-- TextCommand() catches commands typed by this local client.
 --
--- It does not start the countdown from /pause text alone. The countdown starts
--- only after the actual game state changes from paused to unpaused.
---
--- During an active countdown, repeated /pause commands are not allowed to
--- restart the countdown or produce extra chat. If the game somehow becomes
--- unpaused during the countdown, the guarded SendPauseCommand() will re-pause,
--- while still respecting the hard safety throttles.
+-- We use it to remember that the local player recently requested an unpause,
+-- but we do not start the countdown here. The countdown starts only if the game
+-- actually changes from paused to unpaused.
 --------------------------------------------------------------------------------
 
 function widget:TextCommand(command)
@@ -281,6 +276,13 @@ function widget:TextCommand(command)
 
     if SafetyCooldownActive() then
         return
+    end
+
+    -- Record only commands that can represent an unpause attempt.
+    -- Plain /pause is included because BaR uses it both for taking pause
+    -- control and for toggling pause once control is held.
+    if cmd == "pause" or cmd == "pause 0" then
+        localPauseCommandFrame = GetFrame()
     end
 
     if countdownActive then
