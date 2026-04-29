@@ -124,7 +124,7 @@
 		<div class="divider-horizontal-dark"></div>
 
 		<!-- Start Positions sub-mode row (visible only when StartPos tool active) -->
-		<div id="tf-startpos-submodes" class="hidden">
+		<div id="tf-startpos-submodes" data-if="activeTool == 'stp'">
 			<div id="btn-toggle-sp-mode" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 				<img id="img-toggle-sp-mode" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">START POSITIONS</div>
@@ -161,7 +161,7 @@
 		</div>
 
 		<!-- Start Positions controls (visible only when StartPos tool active) -->
-		<div id="tf-startpos-controls" class="hidden">
+		<div id="tf-startpos-controls" data-if="activeTool == 'stp'">
 		<div class="divider-horizontal-dark"></div>
 
 		<!-- ST: DISPLAY -->
@@ -401,7 +401,7 @@
 		</div>
 
 		<!-- Clone Tool controls (visible only when Clone tool active) -->
-		<div id="tf-clone-controls" class="hidden">
+		<div id="tf-clone-controls" data-if="activeTool == 'cl'">
 		<div class="divider-horizontal-dark"></div>
 
 		<!-- CL: DISPLAY -->
@@ -678,7 +678,7 @@
 		</div>
 
 		<!-- Metal sub-mode row (visible only when Metal mode active) -->
-		<div id="tf-metal-submodes" class="hidden">
+		<div id="tf-metal-submodes" data-if="activeTool == 'mb'">
 			<div id="btn-toggle-mb-mode" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 				<img id="img-toggle-mb-mode" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">PLACEMENT MODE</div>
@@ -704,7 +704,7 @@
 		</div>
 
 		<!-- Metal controls (visible only when Metal mode active) -->
-		<div id="tf-metal-controls" class="hidden">
+		<div id="tf-metal-controls" data-if="activeTool == 'mb'">
 
 			<div class="divider-horizontal-dark"></div>
 
@@ -1081,7 +1081,7 @@
 		</div>
 
 		<!-- Grass sub-mode row (visible only when Grass mode active) -->
-		<div id="tf-grass-submodes" class="hidden">
+		<div id="tf-grass-submodes" data-if="activeTool == 'gb'">
 			<div id="btn-toggle-gb-mode" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 				<img id="img-toggle-gb-mode" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">PLACEMENT MODE</div>
@@ -1106,7 +1106,7 @@
 		</div>
 
 		<!-- Grass controls (visible only when Grass mode active) -->
-		<div id="tf-grass-controls" class="hidden">
+		<div id="tf-grass-controls" data-if="activeTool == 'gb'">
 
 			<div class="divider-horizontal-dark"></div>
 
@@ -1585,7 +1585,7 @@
 		</div>
 
 		<!-- Feature sub-mode row (visible only when Features mode active) -->
-		<div id="tf-feature-submodes" class="hidden">
+		<div id="tf-feature-submodes" data-if="activeTool == 'fp'">
 			<div id="btn-toggle-fp-mode" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 				<img id="img-toggle-fp-mode" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">PLACEMENT MODE</div>
@@ -1651,7 +1651,7 @@
 		</div>
 
 		<!-- Decal placement mode row (visible only when Decals mode active) -->
-		<div id="tf-dc-submodes" class="hidden">
+		<div id="tf-dc-submodes" data-if="activeTool == 'dc'">
 			<div id="btn-toggle-dc-mode" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 				<img id="img-toggle-dc-mode" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">PLACEMENT MODE</div>
@@ -1698,7 +1698,7 @@
 		</div>
 
 		<!-- Weather sub-mode row (visible only when Weather mode active) -->
-		<div id="tf-weather-submodes" class="hidden">
+		<div id="tf-weather-submodes" data-if="activeTool == 'wb'">
 			<div id="btn-toggle-wb-mode" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 				<img id="img-toggle-wb-mode" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">PLACEMENT MODE</div>
@@ -1745,7 +1745,7 @@
 		</div>
 
 		<!-- ============ TERRAFORM-ONLY CONTROLS ============ -->
-		<div id="tf-terraform-controls">
+		<div id="tf-terraform-controls" data-if="activeTool == ''">
 
 		<div class="divider-horizontal-dark"></div>
 
@@ -2235,9 +2235,9 @@
 
 		<div class="flex flex-row gap-1 mt-2 mb-1" style="position: relative;">
 			<div id="btn-export" class="tf-action-btn tf-save-btn tf-action-btn-sm"><div class="tf-action-btn-text">Save Heightmap</div></div>
-			<div id="btn-import" class="tf-action-btn tf-load-btn-disabled tf-action-btn-sm"><div class="tf-action-btn-text" style="opacity: 0.4;">Load Heightmap</div></div>
-			<div id="tooltip-load" class="tf-tooltip hidden">Coming soon...</div>
+			<div id="btn-import" class="tf-action-btn tf-load-btn tf-action-btn-sm"><div class="tf-action-btn-text">Load Heightmap</div></div>
 		</div>
+		<div id="import-dropdown" class="tf-hm-browser hidden"></div>
 		<div id="import-progress-row" class="hidden mb-1">
 			<div class="text-sm text-light" style="margin-bottom: 2dp;">Importing...</div>
 			<div id="import-progress-track" style="height: 6dp; background-color: #333333; border-radius: 3dp; overflow: hidden;">
@@ -2251,7 +2251,7 @@
 		</div><!-- /tf-terraform-controls -->
 
 		<!-- ============ FEATURE-ONLY CONTROLS ============ -->
-		<div id="tf-feature-controls" class="hidden">
+		<div id="tf-feature-controls" data-if="activeTool == 'fp'">
 
 		<div id="btn-toggle-fp-dist" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 			<img id="img-toggle-fp-dist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -2681,7 +2681,7 @@
 		</div><!-- /tf-feature-controls -->
 
 		<!-- ============ WEATHER-ONLY CONTROLS ============ -->
-		<div id="tf-weather-controls" class="hidden">
+		<div id="tf-weather-controls" data-if="activeTool == 'wb'">
 
 		<!-- WB: DISPLAY -->
 		<div id="btn-toggle-wb-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
@@ -2932,7 +2932,7 @@
 		</div><!-- /tf-weather-controls -->
 
 		<!-- ============ SPLAT PAINTER CONTROLS ============ -->
-		<div id="tf-splat-controls" class="hidden">
+		<div id="tf-splat-controls" data-if="activeTool == 'sp'">
 
 		<div id="btn-toggle-spl-channel" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 			<img id="img-toggle-spl-channel" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -3394,7 +3394,7 @@
 		</div><!-- /tf-splat-controls -->
 
 		<!-- ============ DECALS CONTROLS ============ -->
-		<div id="tf-decal-controls" class="hidden">
+		<div id="tf-decal-controls" data-if="activeTool == 'dc'">
 		<div class="divider-horizontal-dark"></div>
 
 		<!-- DC: DISPLAY -->
@@ -3644,7 +3644,7 @@
 		</div><!-- /tf-decal-controls -->
 
 		<!-- ============ ENVIRONMENT CONTROLS ============ -->
-		<div id="tf-environment-controls" class="hidden">
+		<div id="tf-environment-controls" data-if="activeTool == 'env'">
 
 		<div id="btn-toggle-env-buttons" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 			<img id="img-toggle-env-buttons" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -3718,7 +3718,7 @@
 		</div><!-- /tf-environment-controls -->
 
 		<!-- ============ LIGHT CONTROLS ============ -->
-		<div id="tf-light-controls" class="hidden">
+		<div id="tf-light-controls" data-if="activeTool == 'lp'">
 		<div class="divider-horizontal-dark"></div>
 
 		<!-- LP: LIGHT TYPE + PLACEMENT MODE + DISTRIBUTION (outside collapsibles, always at top) -->
