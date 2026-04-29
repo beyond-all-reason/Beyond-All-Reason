@@ -1,269 +1,295 @@
-function gadget:GetInfo()
+function widget:GetInfo()
     return {
         name    = "Courtesy Pause",
-        desc    = "Lobby-wide courtesy countdown on resume with synced beeps",
+        desc    = "Client-side courtesy countdown before unpause",
         author  = "26Projects",
-        version = "2.4",
-        layer   = 0,
-        enabled = true,
+        version = "2.0",
+        enabled = false,
     }
 end
 
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- SYNCED
---------------------------------------------------------------------------------
+-- SETTINGS
 --------------------------------------------------------------------------------
 
-if gadgetHandler:IsSyncedCode() then
+local totalDelaySeconds = 5
+local steps = {3, 2, 1}
 
-local FRAMES_PER_SECOND = 30
+local framesPerSecond = 30
+local totalFrames = totalDelaySeconds * framesPerSecond
+local framesPerStep = math.floor(totalFrames / (#steps + 1))
 
--- Total delay for countdown
-local TOTAL_DELAY_SECONDS = 5
-local TOTAL_DELAY_FRAMES = TOTAL_DELAY_SECONDS * FRAMES_PER_SECOND
+local tickSound = "beep4"
+local tickVolume = 0.6
 
--- Countdown steps
-local STEPS = {3, 2, 1}
+local selfCommandIgnoreFrames = 8
 
--- Spread timing evenly across steps + GO
-local FRAMES_PER_STEP = math.floor(TOTAL_DELAY_FRAMES / (#STEPS + 1))
+--------------------------------------------------------------------------------
+-- SAFETY LIMITS
+--------------------------------------------------------------------------------
+-- These are hard guards against accidental loops or chat/command flooding.
 
--- Extra delay AFTER GO before actual unpause
-local POST_GO_DELAY_FRAMES = 10  -- about 0.33 seconds
+-- At most one chat countdown message every 20 frames, about 0.67 seconds.
+local minChatCommandFrames = 20
 
+-- At most one injected pause command every 10 frames, about 0.33 seconds.
+local minPauseCommandFrames = 10
+
+-- If this widget sends more than this many pause commands in the window below,
+-- it assumes something is wrong and temporarily shuts itself up.
+local maxPauseCommandsPerWindow = 6
+local pauseCommandWindowFrames = 90 -- 3 seconds
+
+-- After the safety breaker triggers, the widget will stop sending chat and
+-- pause commands for this many frames.
+local safetyCooldownFrames = 150 -- 5 seconds
+
+--------------------------------------------------------------------------------
 -- STATE
+--------------------------------------------------------------------------------
+
 local countdownActive = false
-local currentStepIndex = 0
+local currentStep = 1
 local stepFrameCounter = 0
 
-local postGoDelayActive = false
-local postGoFramesLeft = 0
-
 local allowNextRealUnpause = false
-local courtesyEnabled = true
+local lastPausedState = true
+
+local ignoreTextCommandFrames = 0
+
+local lastChatFrame = -99999
+local lastPauseCommandFrame = -99999
+
+local pauseCommandWindowStart = 0
+local pauseCommandsInWindow = 0
+local safetyCooldownUntilFrame = 0
 
 --------------------------------------------------------------------------------
 -- HELPERS
 --------------------------------------------------------------------------------
 
-local function SetCourtesyPauseActive(active)
-    Spring.SetGameRulesParam("courtesy_pause_active", active and 1 or 0, {
-        public = true,
-        allied = true,
-    })
+local function GetFrame()
+    return Spring.GetGameFrame()
 end
 
-local function SetCourtesyPauseEnabled(enabled)
-    Spring.SetGameRulesParam("courtesy_pause_enabled", enabled and 1 or 0, {
-        public = true,
-        allied = true,
-    })
+local function IsPaused()
+    local _, _, paused = Spring.GetGameSpeed()
+    return paused
 end
 
--- Count real human players only:
--- active
--- not spectators
--- not AI teams
-local function CountActiveHumanPlayers()
-    local count = 0
-    local playerList = Spring.GetPlayerList()
+local function SafetyCooldownActive()
+    return GetFrame() < safetyCooldownUntilFrame
+end
 
-    for i = 1, #playerList do
-        local playerID = playerList[i]
+local function TriggerSafetyCooldown(reason)
+    countdownActive = false
+    currentStep = 1
+    stepFrameCounter = 0
+    allowNextRealUnpause = false
 
-        -- name, active, spectator, teamID, allyTeamID, pingTime, cpuUsage, country, rank, hasSkirmishAIsInTeam, customKeys, desynced
-        local _, active, spectator, teamID = Spring.GetPlayerInfo(playerID, false)
+    safetyCooldownUntilFrame = GetFrame() + safetyCooldownFrames
 
-        if active and not spectator and teamID then
-            -- teamID, leader, isDead, isAiTeam, side, allyTeam, incomeMultiplier, customTeamKeys
-            local _, _, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
+    Spring.Echo("[Courtesy Pause] Safety cooldown triggered: " .. reason)
+end
 
-            if not isAiTeam then
-                count = count + 1
-            end
-        end
+local function SendCountdownChat(text)
+    local frame = GetFrame()
+
+    -- Absolute chat throttle. Even if something goes wrong, this prevents
+    -- repeated countdown messages from flooding chat.
+    if frame - lastChatFrame < minChatCommandFrames then
+        return
     end
 
-    return count
+    if SafetyCooldownActive() then
+        return
+    end
+
+    lastChatFrame = frame
+    Spring.SendCommands("say " .. text)
+end
+
+local function PlayTick()
+    if SafetyCooldownActive() then
+        return
+    end
+
+    Spring.PlaySoundFile(tickSound, tickVolume)
+end
+
+local function SendPauseCommand(command)
+    local frame = GetFrame()
+
+    if SafetyCooldownActive() then
+        return
+    end
+
+    -- Absolute pause-command throttle. This prevents rapid command injection
+    -- even if TextCommand or pause-state updates behave unexpectedly.
+    if frame - lastPauseCommandFrame < minPauseCommandFrames then
+        return
+    end
+
+    -- Rolling-window loop breaker.
+    if frame - pauseCommandWindowStart > pauseCommandWindowFrames then
+        pauseCommandWindowStart = frame
+        pauseCommandsInWindow = 0
+    end
+
+    pauseCommandsInWindow = pauseCommandsInWindow + 1
+
+    if pauseCommandsInWindow > maxPauseCommandsPerWindow then
+        TriggerSafetyCooldown("too many pause commands")
+        return
+    end
+
+    lastPauseCommandFrame = frame
+
+    -- Our own pause commands may come back through TextCommand(), so ignore
+    -- pause TextCommand handling briefly after sending them.
+    ignoreTextCommandFrames = selfCommandIgnoreFrames
+
+    Spring.SendCommands(command)
+end
+
+--------------------------------------------------------------------------------
+-- COUNTDOWN CONTROL
+--------------------------------------------------------------------------------
+
+local function StartCountdown()
+    -- Do not start or restart while safety cooldown is active.
+    if SafetyCooldownActive() then
+        return
+    end
+
+    -- Idempotency guard. Repeated unpause attempts cannot restart the countdown
+    -- or resend "Unpausing in 3...".
+    if countdownActive then
+        return
+    end
+
+    countdownActive = true
+    currentStep = 1
+    stepFrameCounter = 0
+
+    SendCountdownChat("Unpausing in " .. steps[currentStep] .. "...")
+    PlayTick()
 end
 
 local function CancelCountdown()
     countdownActive = false
-    currentStepIndex = 0
+    currentStep = 1
     stepFrameCounter = 0
-
-    postGoDelayActive = false
-    postGoFramesLeft = 0
-
     allowNextRealUnpause = false
-    SetCourtesyPauseActive(false)
 end
 
-local function RefreshCourtesyEnabled()
-    courtesyEnabled = CountActiveHumanPlayers() > 1
-    SetCourtesyPauseEnabled(courtesyEnabled)
+--------------------------------------------------------------------------------
+-- INIT
+--------------------------------------------------------------------------------
 
-    -- If disabled, make sure all courtesy state is cleared
-    if not courtesyEnabled then
-        CancelCountdown()
-    end
+function widget:Initialize()
+    lastPausedState = IsPaused()
+    Spring.Echo("[Courtesy Pause] Widget v2.0 loaded")
 end
 
-local function SayToAll(text)
-    Spring.SendMessage(text)
-end
+--------------------------------------------------------------------------------
+-- MAIN LOOP
+--------------------------------------------------------------------------------
 
-local function BroadcastBeep()
-    SendToUnsynced("courtesy_pause_beep")
-end
-
-local function StartCountdown()
-    countdownActive = true
-    currentStepIndex = 1
-    stepFrameCounter = 0
-
-    SetCourtesyPauseActive(true)
-
-    SayToAll("Unpausing in 3...")
-    BroadcastBeep()
-end
-
-function gadget:Initialize()
-    -- Make sure params start in a clean state
-    SetCourtesyPauseActive(false)
-    SetCourtesyPauseEnabled(false)
-    RefreshCourtesyEnabled()
-end
-
-function gadget:PlayerChanged(playerID)
-    RefreshCourtesyEnabled()
-end
-
--- Pause / unpause hook
-function gadget:GamePaused(playerID, paused)
-    -- In single-player / solo load, courtesy pause is disabled
-    if not courtesyEnabled then
-        return
+function widget:Update()
+    if ignoreTextCommandFrames > 0 then
+        ignoreTextCommandFrames = ignoreTextCommandFrames - 1
     end
 
+    local paused = IsPaused()
+
     --------------------------------------------------------------------------
-    -- CASE 1: Someone paused the game
-    -- Always allow it immediately
+    -- Detect a real paused -> unpaused transition.
+    --
+    -- This is the only place where the countdown starts. That preserves BaR's
+    -- normal pause-control behavior, where a first /pause while already paused
+    -- may simply take pause control rather than actually unpausing.
     --------------------------------------------------------------------------
-    if paused then
-        if countdownActive or postGoDelayActive then
-            CancelCountdown()
+
+    if lastPausedState and not paused then
+        if allowNextRealUnpause then
+            -- This unpause was caused by our own final "pause 0".
+            allowNextRealUnpause = false
+        else
+            -- Someone actually unpaused. Re-pause and begin the courtesy delay.
+            SendPauseCommand("pause 1")
+            StartCountdown()
+
+            -- Treat this frame as paused so transition tracking stays stable.
+            paused = true
         end
-        return
     end
 
     --------------------------------------------------------------------------
-    -- CASE 2: Someone tried to unpause the game
+    -- Countdown timing.
     --------------------------------------------------------------------------
 
-    -- Let our own final unpause happen
-    if allowNextRealUnpause then
-        allowNextRealUnpause = false
-        return
+    if countdownActive then
+        stepFrameCounter = stepFrameCounter + 1
+
+        if stepFrameCounter >= framesPerStep then
+            stepFrameCounter = 0
+            currentStep = currentStep + 1
+
+            if steps[currentStep] then
+                SendCountdownChat("Unpausing in " .. steps[currentStep] .. "...")
+                PlayTick()
+            else
+                countdownActive = false
+
+                SendCountdownChat("GO!")
+
+                -- Allow exactly the next real unpause transition through.
+                allowNextRealUnpause = true
+                SendPauseCommand("pause 0")
+            end
+        end
     end
 
-    -- Ignore extra unpause attempts during countdown/post-GO delay
-    if countdownActive or postGoDelayActive then
-        Spring.PauseGame(true)
-        return
-    end
-
-    -- Intercept unpause and start countdown
-    Spring.PauseGame(true)
-    StartCountdown()
+    lastPausedState = paused
 end
 
-function gadget:GameFrame()
-    -- If disabled, do nothing
-    if not courtesyEnabled then
+--------------------------------------------------------------------------------
+-- TEXT COMMAND HOOK
+--------------------------------------------------------------------------------
+-- This hook is intentionally defensive.
+--
+-- It does not start the countdown from /pause text alone. The countdown starts
+-- only after the actual game state changes from paused to unpaused.
+--
+-- During an active countdown, repeated /pause commands are not allowed to
+-- restart the countdown or produce extra chat. If the game somehow becomes
+-- unpaused during the countdown, the guarded SendPauseCommand() will re-pause,
+-- while still respecting the hard safety throttles.
+--------------------------------------------------------------------------------
+
+function widget:TextCommand(command)
+    local cmd = string.lower(command or "")
+
+    if cmd ~= "pause" and cmd ~= "pause 0" and cmd ~= "pause 1" then
         return
     end
 
-    --------------------------------------------------------------------------
-    -- POST GO DELAY
-    --------------------------------------------------------------------------
-    if postGoDelayActive then
-        postGoFramesLeft = postGoFramesLeft - 1
+    if ignoreTextCommandFrames > 0 then
+        return
+    end
 
-        if postGoFramesLeft <= 0 then
-            postGoDelayActive = false
+    if SafetyCooldownActive() then
+        return
+    end
 
-            -- Clear courtesy flag BEFORE the real unpause happens
-            -- so snd_notifications.lua will allow GameUnpaused
-            SetCourtesyPauseActive(false)
-
-            allowNextRealUnpause = true
-            Spring.PauseGame(false)
+    if countdownActive then
+        -- Do not send pause commands blindly on every /pause text command.
+        -- Only re-pause if the game is actually unpaused.
+        if not IsPaused() then
+            SendPauseCommand("pause 1")
         end
 
         return
     end
-
-    --------------------------------------------------------------------------
-    -- COUNTDOWN LOGIC
-    --------------------------------------------------------------------------
-    if not countdownActive then
-        return
-    end
-
-    stepFrameCounter = stepFrameCounter + 1
-
-    if stepFrameCounter < FRAMES_PER_STEP then
-        return
-    end
-
-    stepFrameCounter = 0
-    currentStepIndex = currentStepIndex + 1
-
-    if STEPS[currentStepIndex] then
-        SayToAll("Unpausing in " .. STEPS[currentStepIndex] .. "...")
-        BroadcastBeep()
-        return
-    end
-
-    --------------------------------------------------------------------------
-    -- GO STEP
-    --------------------------------------------------------------------------
-    countdownActive = false
-
-    SayToAll("GO!")
-
-    -- Start short delay before real unpause
-    postGoDelayActive = true
-    postGoFramesLeft = POST_GO_DELAY_FRAMES
-end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- UNSYNCED
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-else
-
-local TICK_SOUND = "beep4"
-local TICK_VOLUME = 0.6
-
-local function PlayTick()
-    Spring.PlaySoundFile(TICK_SOUND, TICK_VOLUME)
-end
-
-local function OnCourtesyPauseBeep()
-    PlayTick()
-end
-
-function gadget:Initialize()
-    gadgetHandler:AddSyncAction("courtesy_pause_beep", OnCourtesyPauseBeep)
-end
-
-function gadget:Shutdown()
-    gadgetHandler:RemoveSyncAction("courtesy_pause_beep", OnCourtesyPauseBeep)
-end
-
 end
