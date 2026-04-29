@@ -1503,7 +1503,7 @@ function widget:GameFrame(n)
 						fadeDirection = -1
 					end
 				end
-			elseif totalTime == 0 and not fadeDirection then -- there's no music and not mid-transition
+			elseif totalTime == 0 and (not fadeDirection or Spring.GetConfigInt("UseSoundtrackFades", 1) ~= 1) then -- there's no music and not mid-transition (or fades are disabled)
 				PlayNewTrack()
 			end
 		end
