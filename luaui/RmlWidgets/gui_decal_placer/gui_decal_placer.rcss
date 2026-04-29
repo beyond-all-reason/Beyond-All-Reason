@@ -1,19 +1,37 @@
 /* Decal Placer Library — extends fp- styles from gui_feature_placer */
 
-/*
- * Width uses `vw` so the panel scales proportionally across 1080p / 1440p
- * / 4k. `min-width: px` keeps it readable on small windows; `max-width: px`
- * caps it on ultrawide / 4k.
- */
 .dp-root {
 	width: 13vw;
-	min-width: 220px;
+	min-width: 220dp;
 	z-index: 901;
 }
 
-/* Decal tile thumbnail — when no decorator is set, show name centered on a
-   subtle diagonal-stripe pattern so engine-packed atlas textures still look
-   intentional rather than blank */
+/* Decal tiles — the .dp-tile-host wrapper is what flex-wrap sees; sizing
+   lives on the wrapper so the visible .fp-feature-item just fills it.
+   The wrapper exists to keep per-row data bindings off the outer data-for
+   element — see the RML comment for why */
+.dp-root .dp-tile-host {
+	width: 84dp;
+	height: 84dp;
+	margin: 4dp;
+}
+
+.dp-root .dp-tile-host > .fp-feature-item {
+	width: 100%;
+	height: 100%;
+}
+
+/* The decal preview img fills its thumb container. Decals with a real alpha
+   channel (PNG/TGA) show the per-category tint behind through transparent
+   pixels. Channel-encoded BMP atlases (mainscars / tracks / footprints) are
+   fully opaque RGB so the tint is hidden — those need a pre-bake pass to
+   convert the mask channels to alpha (separate workitem). */
+.dp-root .fp-feature-thumb img {
+	width: 100%;
+	height: 100%;
+}
+
+/* Category tints — visible on alpha-channel decals (PNG/TGA). */
 .dp-thumb-scars        { background-color: #6b4838; }
 .dp-thumb-explosions   { background-color: #b04030; }
 .dp-thumb-tracks       { background-color: #4a4a52; }
@@ -22,30 +40,3 @@
 .dp-thumb-scorch       { background-color: #2a2018; }
 .dp-thumb-groundplates { background-color: #506060; }
 .dp-thumb-other        { background-color: #4a4a4a; }
-
-.dp-mode-btn {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	height: 26dp;
-	background-color: #2a2a32;
-	border: 1dp #3a3a4a80;
-	border-radius: 4dp;
-	cursor: pointer;
-	transition: background-color 0.15s;
-}
-.dp-mode-btn:hover {
-	background-color: #3a3a4a;
-}
-.dp-mode-btn.active {
-	background-color: #1a3a2a;
-	border-color: #22c55e80;
-}
-.dp-mode-btn.active .dp-btn-text {
-	color: #22c55e;
-}
-.dp-btn-text {
-	font-size: 1.0rem;
-	color: #d1d5db;
-	font-weight: bold;
-}
