@@ -239,7 +239,7 @@ local MODE_SETTINGS = {
 		coreBoost      = 0.3,    -- multiplies face shading; modest so dark faces still read
 		hueJitter      = 0.1,
 
-		wobbleAmp      = 5.0,
+		wobbleAmp      = 2.5,
 		wobbleVar      = 0.5,	-- 0...1 fraction of wobbleAmp
 		wobbleFreq     = 0.2,
 		wobbleFreqVar  = 0.5,	-- 0...1 fraction of wobbleFreq
@@ -369,7 +369,7 @@ local MIN_SCAN_STRIDE = 1
 local MAX_SCAN_STRIDE = 3
 
 -- Engine constants (rts/Sim/Projectiles/ProjectileHandler.cpp)
-local NANO_SPEED      = 4.5	-- engine default: 3.0
+local NANO_SPEED      = 4.0	-- engine default: 3.0
 
 -- Anti-clump: half-width (elmos) of the symmetric stagger window around the
 -- nanopiece. Particles in a batch are spread along their velocity in
@@ -3152,6 +3152,49 @@ function gadget:UnitTaken(unitID, unitDefID)
 	trackUnit(unitID, unitDefID)
 end
 
+-- Fade out inverse-homing (reclaim) particles travelling toward a builder that
+-- just died. Mirrors fadeOutHomingFwd: shorten deathFrame and bake in a fade
+-- window so the particles dissolve rather than snapping out. The builder is
+-- already dead so applyHoming will nil the list on the next pass; we only need
+-- to touch the VBO data here.
+local function fadeOutHomingInverse(builderID)
+	if not nanoVBO then return end
+	local list = homingByBuilder[builderID]
+	if not list then return end
+	local data      = nanoVBO.instanceData
+	local idtoIndex = nanoVBO.instanceIDtoIndex
+	local step      = nanoVBO.instanceStep
+	local frame     = spGetGameFrame()
+	local dirtyMin, dirtyMax = math.huge, -1
+	for i = 1, #list do
+		local p = list[i]
+		local slot = idtoIndex[p.id]
+		if slot then
+			local remaining = p.death - frame
+			if remaining > 0 then
+				local fadeFrames = mathFloor(FADE_FRAMES_DEATH * (0.4 + mathRandom()))
+				if fadeFrames < 1 then fadeFrames = 1 end
+				if fadeFrames > remaining then fadeFrames = remaining end
+				local newDeath = frame + fadeFrames
+				local base = (slot - 1) * step
+				data[base+16] = newDeath
+				local packed    = data[base+4]
+				local absPacked = packed < 0 and -packed or packed
+				local oldFade   = mathFloor(absPacked / 1024)
+				local sizeBits  = absPacked - oldFade * 1024
+				local newPacked = sizeBits + fadeFrames * 1024
+				data[base+4]    = packed < 0 and -newPacked or newPacked
+				local s0 = slot - 1
+				if s0 < dirtyMin     then dirtyMin = s0     end
+				if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
+			end
+		end
+	end
+	if dirtyMax > dirtyMin then
+		uploadElementRange(nanoVBO, dirtyMin, dirtyMax)
+	end
+end
+
 -- Fade out forward-homing particles aimed at a unit that just died: shorten
 -- their deathFrame so the shader's end-of-life alpha ramp kicks in. Velocity
 -- and spawn are left untouched so they keep coasting along their last
@@ -3188,10 +3231,14 @@ fadeOutHomingFwd = function(unitID, includeSkipList)
 					-- Force per-particle fade window so reclaim-style (fadeFrames=0)
 					-- particles also dissolve. w is packed: preserve sizeMult bits,
 					-- replace only the fadeFrames portion.
+					-- NOTE: inverse (reclaim) particles store a negative value; use
+					-- abs before bit-manipulation and restore the sign afterward.
 					local packed   = data[base+4]
-					local oldFade  = mathFloor(packed / 1024)
-					local sizeBits = packed - oldFade * 1024
-					data[base+4]   = sizeBits + fadeFrames * 1024
+					local absPacked = packed < 0 and -packed or packed
+					local oldFade  = mathFloor(absPacked / 1024)
+					local sizeBits = absPacked - oldFade * 1024
+					local newPacked = sizeBits + fadeFrames * 1024
+					data[base+4]   = packed < 0 and -newPacked or newPacked
 					local s0 = slot - 1
 					if s0 < dirtyMin     then dirtyMin = s0     end
 					if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
@@ -3220,6 +3267,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		reclaimedTargets[unitID] = nil
 	end
 	fadeOutHomingFwd(unitID, true)
+	fadeOutHomingInverse(unitID)
 	clearPiecePosCache(unitID)
 	builderCache[unitID] = nil
 	homingByBuilder[unitID] = nil
@@ -3234,6 +3282,7 @@ function gadget:RenderUnitDestroyed(unitID)
 	-- already decided. If the burst ran (or skipped), the entry is gone.
 	reclaimedTargets[unitID] = nil
 	fadeOutHomingFwd(unitID, true)
+	fadeOutHomingInverse(unitID)
 	clearPiecePosCache(unitID)
 	builderCache[unitID] = nil
 	homingByBuilder[unitID] = nil
