@@ -163,17 +163,7 @@ local function setVisible(visible)
 	local doc = widgetState.document
 	if not doc then return end
 	documentVisible = visible
-	if visible then
-		-- Re-push model before Show() so data-for evaluates with current data.
-		-- Recoil does not process data-for dirty-flags while the document is
-		-- hidden, so array mutations made while hidden (e.g. syncDecals at
-		-- Initialize time) don't create DOM clones. Calling syncDecals here
-		-- then Show() lets RmlUi evaluate the binding against live data.
-		syncDecals()
-		doc:Show()
-	else
-		doc:Hide()
-	end
+	if visible then doc:Show() else doc:Hide() end
 end
 
 -- Polls WG.DecalPlacer.state.active once per Update tick. The X button
@@ -389,6 +379,13 @@ function widget:Initialize()
 	widgetState.dmHandle = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
 	if not widgetState.dmHandle then return false end
 
+	-- Populate model BEFORE LoadDocument. Recoil evaluates data-for once
+	-- during document load; if currentDecals is empty at that point, no
+	-- clones are created and the binding cannot recover retroactively.
+	-- Pre-filling means data-for creates the correct number of clones on
+	-- the first parse, and later syncDecals() calls update them normally.
+	syncDecals()
+
 	widgetState.document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not widgetState.document then
 		widget:Shutdown()
@@ -412,7 +409,6 @@ function widget:Initialize()
 	widgetState.rootElement:SetAttribute("style", buildRootStyle())
 
 	wireDragHandle()
-	syncDecals()
 end
 
 -- Drain bake queue. Spring restricts gl.RenderToTexture to draw callbacks,
