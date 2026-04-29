@@ -833,6 +833,11 @@ local initialModel = {
 	gbAltMinEnable = false,
 	gbAltMaxEnable = false,
 	gbColorOpen = false,
+	-- terraform active mode + shape (data-class-active)
+	tfMode = "raise",
+	tfShape = "circle",
+	tfSmoothSubMode = "",
+	tfRampType = "square",
 	-- terraform mode instrument sub-rows (data-if visibility flags)
 	tfGridSnap = false,
 	tfAngleSnap = false,
@@ -931,7 +936,7 @@ local function onModeClick(mode)
 			WG.TerraformBrush.setMode(mode)
 		end
 
-		setActiveClass(widgetState.modeButtons, mode)
+		if widgetState.dmHandle then widgetState.dmHandle.tfMode = mode end
 		local inRestore = mode == "restore"
 		local clayBtn = widgetState.document and getCachedEl(widgetState.document, "btn-clay-mode")
 		if clayBtn then
@@ -981,17 +986,16 @@ local function onShapeClick(shape)
 			WG.TerraformBrush.setShape(shape)
 		end
 
-		setActiveClass(widgetState.shapeButtons, shape)
-
 		local ringWidthRowEl = widgetState.document and getCachedEl(widgetState.document, "ring-width-row")
 		if ringWidthRowEl then
 			ringWidthRowEl:SetClass("hidden", shape ~= "ring")
 		end
 
 		if widgetState.dmHandle then
+			widgetState.dmHandle.tfRingVisible = (shape == "ring")
 			widgetState.dmHandle.shapeName = shapeNames[shape]
+			widgetState.dmHandle.tfShape = shape
 		end
-
 		event:StopPropagation()
 	end
 end
@@ -2348,7 +2352,7 @@ local function attachDeclarativeHandlers(ctx)
 		widgetState.cloneActive    = false
 		if WG.CloneTool     then WG.CloneTool.deactivate()     end
 		if WG.TerraformBrush then WG.TerraformBrush.setMode(mode) end
-		setActiveClass(widgetState.modeButtons, mode)
+		if widgetState.dmHandle then widgetState.dmHandle.tfMode = mode end
 		local inRestore = mode == "restore"
 		local doc = widgetState.document
 		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
@@ -2388,10 +2392,10 @@ local function attachDeclarativeHandlers(ctx)
 			if state and (state.mode == "level" or state.mode == "smooth") and shape == "ring" then return end
 			WG.TerraformBrush.setShape(shape)
 		end
-		setActiveClass(widgetState.shapeButtons, shape)
 		if widgetState.dmHandle then
 			widgetState.dmHandle.tfRingVisible = (shape == "ring")
 			widgetState.dmHandle.shapeName = shapeNames[shape]
+			widgetState.dmHandle.tfShape = shape
 		end
 	end
 
@@ -2695,28 +2699,7 @@ local function attachEventListeners()
 	-- Safety net: clear drag state if mouseup happens anywhere on document
 	doc:AddEventListener("mouseup", function() uiState.draggingSlider = nil end, false)
 
-	widgetState.modeButtons.raise = getCachedEl(doc, "btn-raise")
-	widgetState.modeButtons.lower = getCachedEl(doc, "btn-lower")
-	widgetState.modeButtons.smooth = getCachedEl(doc, "btn-level")
-	widgetState.modeButtons.ramp = getCachedEl(doc, "btn-ramp")
-	widgetState.modeButtons.restore = getCachedEl(doc, "btn-restore")
-	widgetState.modeButtons.noise = getCachedEl(doc, "btn-noise")
-
-	-- Smooth/Level submode buttons (child of primary SMOOTH button)
-	widgetState.smoothSubModeButtons = {
-		smooth = getCachedEl(doc, "btn-smooth-sub-smooth"),
-		level  = getCachedEl(doc, "btn-smooth-sub-level"),
-	}
-	widgetState.shapeButtons.circle = getCachedEl(doc, "btn-circle")
-	widgetState.shapeButtons.square = getCachedEl(doc, "btn-square")
-	widgetState.shapeButtons.hexagon = getCachedEl(doc, "btn-hexagon")
-	widgetState.shapeButtons.octagon = getCachedEl(doc, "btn-octagon")
-	widgetState.shapeButtons.triangle = getCachedEl(doc, "btn-triangle")
-	widgetState.shapeButtons.ring = getCachedEl(doc, "btn-ring")
-	widgetState.shapeButtons.fill = getCachedEl(doc, "btn-fill")
-
-	widgetState.rampTypeButtons.straight = getCachedEl(doc, "btn-ramp-straight")
-	widgetState.rampTypeButtons.spline   = getCachedEl(doc, "btn-ramp-spline")
+	-- (mode/shape/ramp/smoothSub buttons driven by data-class-active via dm fields; no element cache needed)
 
 	local sliderHistory = getCachedEl(doc, "slider-history")
 	if sliderHistory then
@@ -5583,14 +5566,14 @@ function widget:Update()
 
 		do
 			local primaryKey = (state.mode == "level") and "smooth" or state.mode
-			setActiveClass(widgetState.modeButtons, primaryKey)
-		end
-		setActiveClass(widgetState.shapeButtons, state.shape)
-
-		-- Smooth/Level submode active chip sync (visibility handled below, after tool-active checks)
-		if widgetState.smoothSubModeButtons then
-			local inSmoothGroup = state.mode == "smooth" or state.mode == "level"
-			setActiveClass(widgetState.smoothSubModeButtons, inSmoothGroup and state.mode or nil)
+			if dm then
+				dm.tfMode = primaryKey
+				dm.tfShape = state.shape or "circle"
+				local inSmoothGroup = state.mode == "smooth" or state.mode == "level"
+				dm.tfSmoothSubMode = inSmoothGroup and state.mode or ""
+				-- ramp type: "square"=straight, "circle"=spline
+				dm.tfRampType = state.shape or "square"
+			end
 		end
 
 		-- Show ramp-type-row when in ramp mode; hide normal shape row
@@ -5601,10 +5584,6 @@ function widget:Update()
 				widgetState.dmHandle.tfShapeRowVisible = not isRamp
 			end
 		end
-		-- Sync ramp type buttons
-		local rts = widgetState.rampTypeButtons
-		if rts.straight then rts.straight:SetClass("active", state.shape == "square") end
-		if rts.spline   then rts.spline:SetClass("active", state.shape == "circle") end
 
 		-- D4: Update contextual status summary line
 		do

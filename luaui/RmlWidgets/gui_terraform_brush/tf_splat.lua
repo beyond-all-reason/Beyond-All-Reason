@@ -397,9 +397,9 @@ function M.sync(doc, ctx, spState, setSummary)
 		-- ===== Splat Painter mode: update splat controls =====
 		local splatBtn = doc and doc:GetElementById("btn-splat")
 		if splatBtn then splatBtn:SetClass("active", true) end
-		setActiveClass(widgetState.modeButtons, nil)
+		if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
 
-		setActiveClass(widgetState.shapeButtons, spState.shape)
+		if widgetState.dmHandle then widgetState.dmHandle.tfShape = spState.shape or "circle" end
 
 		if doc then
 			uiState.updatingFromCode = true

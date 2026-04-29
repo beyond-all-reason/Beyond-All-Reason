@@ -210,7 +210,7 @@ function M.sync(doc, ctx, setSummary)
 		-- ===== Decals mode: highlight decals button =====
 		local decalsBtnA = doc and doc:GetElementById("btn-decals")
 		if decalsBtnA then decalsBtnA:SetClass("active", true) end
-		setActiveClass(widgetState.modeButtons, nil)
+		if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
 		local dpState = WG.DecalPlacer and WG.DecalPlacer.getState()
 		if dpState then
 			setSummary("DECALS", "#e060e0",

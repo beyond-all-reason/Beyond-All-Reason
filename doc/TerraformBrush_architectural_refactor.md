@@ -85,7 +85,7 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 | `tf_guide.lua` | ✅ | ✅ | 3 | 22 `w.guideXxx` methods (header buttons, settings open/close, keybind save/apply/defaults/cancel, tab-switch, dj/dust/seismic/pen/wiggle/curve/disable-tips). 3 remaining are justified: per-element hint mouseover/mouseout loop (`guideHints`) and g3 mousedown discovery loop. |
 | `gui_feature_placer.lua` (standalone) | ✅ | ✅ | 4 | ~4 remaining are justified (drag, SDL text) |
 | `gui_weather_brush.lua` (standalone) | ✅ | ✅ | 4 | ~4 remaining are justified (drag, SDL text) |
-| `gui_decal_placer.lua` (standalone) | ✅ | ✅ | ~4 | **PR #7527 (mupersega) — full declarative migration pending merge.** Replaces imperative `rebuildDecalList`/`DrawScreenPost`/`refreshUIFromState` with `data-for="d : currentDecals"`, `data-event-click="onDecalClick(d.name)"`, `data-class-active`, `document:Hide()/Show()`. Adds `dp_preview_bake.lua` module (bakes channel-encoded BMP atlases to RGBA PNG so `<img>` can render them). ~4 remaining justified after merge: drag mousedown/mouseup, SDL focus/blur. **⚠️ Post-merge naming fix needed**: PR uses `dm_handle` (snake_case) internally; rename to `dmHandle` (camelCase) per BAR convention. |
+| `gui_decal_placer.lua` (standalone) | ✅ | ✅ | ~4 | PR #7527 (mupersega) merged. Post-merge: renamed `dm_handle`→`dmHandle`, removed dead `refreshUIFromState`, replaced broken `data-for="d : currentDecals"` (Recoil struct-scope limitation) with imperative DOM builder + `dp-tile-host` RCSS wrapper. `dp_preview_bake.lua` bakes BMP atlases to PNG; `<img>` renders them. ~4 remaining justified after merge: drag mousedown/mouseup, SDL focus/blur. |
 
 **Also landed (not in original scope):**
 - `ctx.syncWarnChip(doc, chipId, sectionId, anyActive)` — shared helper for "Active" warn chips on collapsed DISPLAY/INSTRUMENTS headers. Used by tf_splat, tf_metal, and synced via `ctx.syncTBMirrorControls`.
@@ -163,8 +163,10 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 
 ### Phase 3 — `data-for` dynamic lists
 
-- **feature_placer** feature tiles (~L430) → `data-for="feature : features"` with `<div onclick='Widget:SelectFeature(it_index)'>`. Ship pre-1.0.
-- **decal_placer** decal grid → same pattern. Ship pre-1.0.
+> ⚠️ **Recoil limitation discovered Apr 2026**: `data-for="d : array"` does NOT scope `d` into child element bindings. All `{{d.field}}`, `data-class-active="d.foo"` etc. fail — Recoil registers bindings against the top-level model at parse time, not per-clone. Struct tile lists MUST be built imperatively. Phase 3 goals below revised accordingly.
+
+- **feature_placer** feature tiles (~L430) → already imperative DOM (`CreateElement`/`AppendChild`). ✅ **Correct pattern** — do NOT migrate to `data-for`.
+- **decal_placer** decal grid → similarly migrated to imperative DOM (post PR #7527 fix). ✅ **Correct pattern**. PR #7527 (mupersega) used `data-for="d : currentDecals"` with `{{d.displayName}}` etc. — this produced literal `{{d.displayName}}` text (binding silently dropped). Fixed by replacing with imperative builder + `dp-tile-host` wrapper for RCSS sizing.
 - **weather_brush** CEG library grid (L326, full `inner_rml = ""` + rebuild) → defer (smaller surface, less copied).
 - **terraform_brush** preset list / history — audit during implementation.
 
