@@ -163,7 +163,17 @@ local function setVisible(visible)
 	local doc = widgetState.document
 	if not doc then return end
 	documentVisible = visible
-	if visible then doc:Show() else doc:Hide() end
+	if visible then
+		-- Re-push model before Show() so data-for evaluates with current data.
+		-- Recoil does not process data-for dirty-flags while the document is
+		-- hidden, so array mutations made while hidden (e.g. syncDecals at
+		-- Initialize time) don't create DOM clones. Calling syncDecals here
+		-- then Show() lets RmlUi evaluate the binding against live data.
+		syncDecals()
+		doc:Show()
+	else
+		doc:Hide()
+	end
 end
 
 -- Polls WG.DecalPlacer.state.active once per Update tick. The X button
@@ -253,7 +263,8 @@ end
 ----------------------------------------------------------------
 syncDecals = function()
 	local dm = widgetState.dmHandle
-	if not WG.DecalPlacer or not dm then return end
+	if not WG.DecalPlacer then return end
+	if not dm then return end
 	local categories = WG.DecalPlacer.getDecalCategories()
 	local order = WG.DecalPlacer.getCategoryOrder()
 	if not categories or not order then return end
@@ -370,12 +381,10 @@ end
 -- Lifecycle
 ----------------------------------------------------------------
 function widget:Initialize()
-	Spring.Echo("[Decal Placer UI] Initializing")
 	Spring.CreateDir(PREVIEW_CACHE_DIR)
 	Bake.init(PREVIEW_CACHE_DIR)
 	widgetState.rmlContext = RmlUi.GetContext("shared")
 	if not widgetState.rmlContext then return false end
-	Spring.Echo("[Decal Placer UI] RmlContext obtained")
 
 	widgetState.dmHandle = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
 	if not widgetState.dmHandle then return false end
