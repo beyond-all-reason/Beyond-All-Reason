@@ -154,7 +154,7 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | `tf_metal.lua` | 11 / 11 | ✅ (`mbGridSnap`, `mbAngleSnap`, `mbMeasureActive`, `mbSymmetryActive`, `mbSymmetryRadial`, `mbSymmetryMirrorAny`, `mbAngleSnapAuto`, `mbInspectorOpen`, `mbClusterOpen`, `mbLassoOpen`, `mbAxisOpen`) |
 | `tf_grass.lua` | 19 / 19 | ✅ (gbGridSnap/gbAngleSnap/gbMeasureActive/gbSymmetryActive/gbSymmetryRadial/gbSymmetryMirrorAny/gbAngleSnapAuto + gbSlopeActive/gbAvoidCliffs/gbPreferSlopes/gbAltActive/gbAltMinEnable/gbAltMaxEnable/gbColorOpen; local syncSectionWarn → ctx.syncWarnChip) |
 | `tf_environment.lua` | 0 / 18 | ⬜ (helper-heavy, hold last) |
-| `gui_terraform_brush.lua` | 1 / 74 | 🟡 (noise sync done; finisher) |
+| `gui_terraform_brush.lua` | 15 / 74 | 🟡 (noise sync done; panel-mode swap done — single `dm.activeTool` string drives 14 control/submode sections via `data-if="activeTool == 'X'"`; remaining: env-windows, libraries, shapeRow/smoothSubmodes, clay/full-restore, ramp/shape, ringWidth, instrument sub-rows, hint dots) |
 
 4. ⬜ **Labels → `{{radius}}` interpolation**; replaces `.inner_rml = tostring(v)` sites (~40 in terraform_brush alone). **PROMOTED to required pre-1.0 (PR #7527 review).**
 5. ✅ **Sliders**: keep `updatingFromCode` feedback guard + log-curve handlers; `onchange="widget:onXxxChange(element)"` added to all sliders in converted panels.

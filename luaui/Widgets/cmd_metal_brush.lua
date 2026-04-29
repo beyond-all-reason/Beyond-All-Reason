@@ -67,6 +67,10 @@ local DEFAULT_METAL_VALUE = 2.0
 local DEFAULT_RADIUS = METAL_SQ + METAL_SQ * 0.5  -- 3x3 metal pixels (n=1)
 local SAVE_DIR = "Terraform Brush/MetalMaps/"
 
+local CACHE_REBUILD_THROTTLE   = 0.25
+local CACHE_REBUILD_DELAY      = 0.12  -- wait for gadget RecvLuaMsg to apply SetMetalAmount
+local cacheRebuildHoldUntil    = 0     -- os.clock() threshold; don't rebuild before this
+
 -- State
 local active = false
 local subMode = "stamp"       -- "paint" or "stamp"
@@ -146,6 +150,8 @@ local function sendPaintMessage(worldX, worldZ)
 	overlayListDirty = true
 	clusterVisDirty = true
 	balanceAxisSumsDirty = true
+	cacheRebuildHoldUntil = os.clock() + CACHE_REBUILD_DELAY
+	lastCacheBuildClock   = 0
 end
 
 local function sendStampMessage(worldX, worldZ)
@@ -180,6 +186,8 @@ local function sendStampMessage(worldX, worldZ)
 	overlayListDirty = true
 	clusterVisDirty = true
 	balanceAxisSumsDirty = true
+	cacheRebuildHoldUntil = os.clock() + CACHE_REBUILD_DELAY
+	lastCacheBuildClock   = 0
 end
 
 -- ============================================================
@@ -429,13 +437,14 @@ local overlayListDirty = true
 local clusterVisList = nil
 local clusterVisDirty = true
 local lastCacheBuildClock = 0
-local CACHE_REBUILD_THROTTLE = 0.25
 
 local function invalidateMetalCaches()
 	spotsCacheDirty = true
 	clusterCacheDirty = true
 	overlayListDirty = true
 	clusterVisDirty = true
+	cacheRebuildHoldUntil = os.clock() + CACHE_REBUILD_DELAY
+	lastCacheBuildClock   = 0  -- once hold elapses, bypass throttle for immediate rebuild
 end
 
 local function buildSpotCache()
@@ -457,6 +466,7 @@ local function buildSpotCache()
 end
 
 local function ensureSpotCache()
+	if os.clock() < cacheRebuildHoldUntil then return end  -- waiting for gadget to apply paint
 	if not spotsCache then
 		buildSpotCache()
 	elseif spotsCacheDirty and (os.clock() - lastCacheBuildClock) > CACHE_REBUILD_THROTTLE then
@@ -1369,12 +1379,9 @@ function widget:MouseRelease(mx, my, button)
 	if painting and button == paintButton then
 		painting = false
 		paintButton = 0
-		-- Mark caches dirty; defer rebuild by the normal throttle window so the
-		-- gadget has time to apply queued MSG_PAINT / MSG_STAMP sim-steps before
-		-- we re-read GetMetalAmount(). Reading immediately races the gadget and
-		-- leaves the overlay stuck on stale values until the next invalidate
-		-- (e.g. overlay toggle).
-		lastCacheBuildClock = os.clock()
+		-- sendPaintMessage already set cacheRebuildHoldUntil and lastCacheBuildClock=0.
+		-- Just mark the visual lists dirty; the hold mechanism defers the cache
+		-- rebuild until the gadget has had time to apply SetMetalAmount.
 		spotsCacheDirty = true
 		clusterCacheDirty = true
 		overlayListDirty = true
