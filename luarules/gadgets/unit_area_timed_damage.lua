@@ -130,6 +130,9 @@ local regexDigits = "%d+"
 local regexCegRadius = regexArea..regexDigits..regexRepeat
 local regexCegToRadius = regexArea.."("..regexDigits..")"..regexRepeat
 
+local areaDamageType = "LuaAreaDamage_"
+local areaDamageTypes = {}
+
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
 
@@ -159,6 +162,21 @@ local function getExplosionParams(def, prefix)
     range = tonumber(range)
 	dpsWanted = tonumber(dpsWanted)
 	duration = tonumber(duration)
+
+	local damageType = areaDamageType .. resistance
+	local weaponDefID = areaDamageTypes[damageType]
+
+	if not weaponDefID then
+		local envDamageTypeMin = table.reduce(
+			Game.envDamageTypes,
+			function(acc, index) return index < acc and index or acc end,
+			-1 -- The "real" weaponDefIDs start at 0
+		)
+		weaponDefID = envDamageTypeMin - 1
+		areaDamageTypes[damageType] = weaponDefID
+		areaDamageTypes[weaponDefID] = damageType
+		Game.envDamageTypes[damageType] = weaponDefID
+	end
 
 	-- With ticks between explosions, we're unable to perfectly match all weapondefs.
 	-- So we fix the last explosion to make up for any excessive/lost time or damage.
@@ -194,9 +212,10 @@ local function getExplosionParams(def, prefix)
 	return {
 		ceg        = ceg,
 		damageCeg  = damageCeg,
-		resistance = resistance,
-		damage     = damagePerTick,
 		range      = range,
+		resistance = resistance,
+		weapon     = weaponDefID,
+		damage     = damagePerTick,
 		frames     = framesFull,
 		lastFrames = framesPartial,
 		lastDamage = damagePartial,
@@ -287,7 +306,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
         end
 
         local area = {
-            weapon      = weaponDefID,
+            weapon      = explosion.weapon,
             owner       = attackerID,
             x           = px,
             y           = elevation,
@@ -484,7 +503,10 @@ end
 -- Gadget callins --------------------------------------------------------------
 
 function gadget:Initialize()
-    timedDamageWeapons = {}
+	areaDamageTypes = GG.EnvAreaWeapons or {}
+	GG.EnvAreaWeapons = areaDamageTypes
+
+	timedDamageWeapons = {}
     for weaponDefID = 0, #WeaponDefs do
         local weaponDef = WeaponDefs[weaponDefID]
         if weaponDef.customParams and weaponDef.customParams[prefixes.weapon.."ceg"] then
@@ -532,15 +554,15 @@ function gadget:Initialize()
 	end
 
     unitDamageImmunity = {}
-    local areaDamageTypes = {}
+    local areaResistances = {}
     for weaponDefID, params in pairs(timedDamageWeapons) do
         if params.resistance == nil then
             params.resistance = "none"
         elseif params.resistance ~= "none" then
-            areaDamageTypes[params.resistance] = true
+            areaResistances[params.resistance] = true
         end
     end
-    local immunities = { all = areaDamageTypes, none = {} }
+    local immunities = { all = areaResistances, none = {} }
     for unitDefID, unitDef in ipairs(UnitDefs) do
         local unitImmunity
         if unitDef.isSubmarine or unitDef.canFly or unitDef.armorType == Game.armorTypes.indestructible then
@@ -553,7 +575,7 @@ function gadget:Initialize()
                 unitImmunity = immunities[resistance]
             else
                 unitImmunity = {}
-                for damageType in pairs(areaDamageTypes) do
+                for damageType in pairs(areaResistances) do
                     if string.find(resistance, damageType, nil, false) then
                         unitImmunity[damageType] = true
                     end
