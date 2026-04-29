@@ -334,12 +334,15 @@ body {
 	cursor: pointer;
 	transition: background-color 0.15s;
 	position: relative;
-	box-shadow: 0dp 1dp 2dp 0dp #00000030;
+	decorator: vertical-gradient(#4e4e5a #2c2c34);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-mode-btn:hover {
 	background-color: #4c4c58;
 	border-color: #7878909a;
+	decorator: vertical-gradient(#626270 #3a3a46);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-btn-text {
@@ -401,11 +404,15 @@ body {
 	border: 1dp #50505a50;
 	cursor: pointer;
 	transition: background-color 0.15s;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-lp-compact-btn:hover {
 	background-color: #484858;
 	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 /* === Light Distribution Buttons === */
@@ -420,11 +427,15 @@ body {
 	border: 1dp #50505a50;
 	cursor: pointer;
 	transition: background-color 0.15s;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-lp-dist-btn:hover {
 	background-color: #484858;
 	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-lp-dist-btn .tf-btn-text {
@@ -444,11 +455,15 @@ body {
 	background-color: #32323c;
 	border-color: #55556040;
 	transition: background-color 0.15s;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-lp-action-btn:hover {
 	background-color: #484858;
 	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-lp-action-btn .tf-action-btn-text {
@@ -808,10 +823,14 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	decorator: vertical-gradient(#3a3a46 #1e1e28);
+	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
 }
 .tf-cl-chip:hover {
 	background-color: #3a3a46;
 	border-color: #5a5a6a;
+	decorator: vertical-gradient(#4a4a58 #2a2a36);
+	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff20;
 }
 .tf-cl-chip.active {
 	background-color: #0c2838;
@@ -855,7 +874,8 @@ body {
 	cursor: pointer;
 	transition: background-color 0.15s;
 	position: relative;
-	box-shadow: 0dp 1dp 2dp 0dp #00000030;
+	decorator: vertical-gradient(#4e4e5a #2c2c34);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-shape-btn.hidden {
@@ -870,6 +890,8 @@ body {
 .tf-shape-btn:hover {
 	background-color: #4c4c58;
 	border-color: #7878909a;
+	decorator: vertical-gradient(#626270 #3a3a46);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-shape-btn.active {
@@ -899,11 +921,15 @@ body {
 	flex-direction: column;
 	background-color: #3e3424;
 	border-color: #5a4228a0;
+	decorator: vertical-gradient(#524638 #2c2416);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-clay-btn:hover {
 	background-color: #584c30;
 	border-color: #907040;
+	decorator: vertical-gradient(#6a5e44 #423826);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-clay-btn.active {
@@ -947,11 +973,15 @@ body {
 	flex-direction: column;
 	background-color: #2a1238;
 	border-color: #7c3aed80;
+	decorator: vertical-gradient(#3c2450 #1c0626);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-full-restore-btn:hover {
 	background-color: #3b1a50;
 	border-color: #a855f7;
+	decorator: vertical-gradient(#4e2e66 #2a0c38);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-full-restore-label {
@@ -994,11 +1024,15 @@ body {
 .tf-undo-btn {
 	background-color: #352618;
 	border-color: #e8960070;
+	decorator: vertical-gradient(#49382c #231410);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-undo-btn:hover {
 	background-color: #504020;
 	border-color: #ffa820;
+	decorator: vertical-gradient(#60503a #3c2e16);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 /* === History Row (Undo / Slider / Redo) === */
@@ -1014,13 +1048,15 @@ body {
 	border: 1dp #e8960050;
 	cursor: pointer;
 	transition: background-color 0.15s;
-	box-shadow: 0dp 1dp 2dp 0dp #00000030;
+	decorator: vertical-gradient(#493c2c #231810);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-history-btn:hover {
 	background-color: #504020;
 	border-color: #ffa820;
-	box-shadow: 0dp 0dp 4dp 0dp #e8960030;
+	decorator: vertical-gradient(#60503a #3c2e16);
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28, 0dp 0dp 4dp 0dp #e8960030;
 }
 
 /* === Undo Mode Toggle Buttons === */
@@ -1032,11 +1068,15 @@ body {
 	border: 1dp #40404a60;
 	border-radius: 5dp;
 	transition: background-color 0.15s;
+	decorator: vertical-gradient(#343440 #1a1a22);
+	box-shadow: 0dp 1dp 3dp 0dp #00000048, inset 0dp 1dp 0dp 0dp #ffffff14;
 }
 
 .tf-undo-mode-btn:hover {
 	background-color: #3e3e4c;
 	border-color: #7878909a;
+	decorator: vertical-gradient(#4c4c5c #2c2c38);
+	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff22;
 }
 
 .tf-undo-mode-btn.active {
@@ -1207,12 +1247,16 @@ body {
 	background-color: #25252f;
 	cursor: pointer;
 	transition: background-color 0.12s;
+	decorator: vertical-gradient(#333340 #191921);
+	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
 }
 
 .tf-sample-btn:hover {
 	background-color: #35354a;
 	border-color: #ffffffaa;
 	color: #e5e7eb;
+	decorator: vertical-gradient(#444458 #262636);
+	box-shadow: 0dp 2dp 4dp 0dp #00000068, inset 0dp 1dp 0dp 0dp #ffffff22;
 }
 
 .tf-sample-btn.active {
@@ -1235,11 +1279,15 @@ body {
 	margin-right: 4dp;
 	flex-shrink: 0;
 	transition: background-color 0.15s;
+	decorator: vertical-gradient(#3a3a46 #1e1e28);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-header-btn:hover {
 	background-color: #3e3e4c;
 	border-color: #7878909a;
+	decorator: vertical-gradient(#4a4a5a #2c2c38);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-header-icon {
@@ -1572,22 +1620,30 @@ body {
 .tf-preset-save {
 	background-color: #2a4050;
 	border-color: #4880b870;
+	decorator: vertical-gradient(#3a5264 #1e303e);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-preset-save:hover {
 	background-color: #3c5e7a;
 	border-color: #68aadccc;
+	decorator: vertical-gradient(#4e7090 #2a4456);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-preset-toggle {
 	padding: 0 6dp;
 	background-color: #32323c;
 	border-color: #50505a60;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-preset-toggle:hover {
 	background-color: #484858;
 	border-color: #8888a0cc;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-preset-toggle.open {
@@ -1885,11 +1941,15 @@ body {
 	border-color: #40404a50;
 	padding: 0 6dp;
 	transition: background-color 0.15s;
+	decorator: vertical-gradient(#363e48 #1c2228);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-wtype-btn:hover {
 	background-color: #3c4650;
 	border-color: #6a7a8acc;
+	decorator: vertical-gradient(#4a5462 #2a323e);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-wtype-btn-text {
@@ -1927,12 +1987,15 @@ body {
 	background-color: #32323c;
 	border-color: #55556040;
 	transition: background-color 0.15s;
-	box-shadow: 0dp 1dp 2dp 0dp #00000028;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-action-btn:hover {
 	background-color: #484858;
 	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-action-btn:hover .tf-action-btn-text {
@@ -1954,12 +2017,15 @@ body {
 	background-color: #32323c;
 	border-color: #55556040;
 	transition: background-color 0.15s;
-	box-shadow: 0dp 1dp 2dp 0dp #00000028;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-env-btn:hover {
 	background-color: #484858;
 	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-env-btn:hover .tf-env-btn-text {
@@ -2006,11 +2072,13 @@ body {
 .tf-save-btn {
 	background-color: #2a4050;
 	border-color: #4880b880;
+	decorator: vertical-gradient(#3a5264 #1e303e);
 }
 
 .tf-save-btn:hover {
 	background-color: #3c5e7a;
 	border-color: #68aadccc;
+	decorator: vertical-gradient(#4e7090 #2a4456);
 }
 
 .tf-save-btn:hover .text-medium,
@@ -2022,11 +2090,13 @@ body {
 .tf-load-btn {
 	background-color: #3c2a50;
 	border-color: #9058c880;
+	decorator: vertical-gradient(#4e3c64 #2c1e3e);
 }
 
 .tf-load-btn:hover {
 	background-color: #5a3e78;
 	border-color: #b070f0cc;
+	decorator: vertical-gradient(#6e528e #422c5c);
 }
 
 .tf-load-btn:hover .text-medium,
@@ -2528,10 +2598,14 @@ body {
 	border: 1dp #3e3e4a50;
 	cursor: pointer;
 	transition: background-color 0.1s, border-color 0.1s;
+	decorator: vertical-gradient(#3a3a46 #1e1e28);
+	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
 }
 .tf-overlay-chip:hover {
 	background-color: #3a3a46;
 	border-color: #5a5a6a;
+	decorator: vertical-gradient(#4a4a58 #2a2a36);
+	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff20;
 }
 .tf-overlay-chip.active {
 	background-color: #0c2838;

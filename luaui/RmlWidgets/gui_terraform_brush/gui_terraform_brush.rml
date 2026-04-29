@@ -162,7 +162,6 @@
 
 		<!-- Start Positions controls (visible only when StartPos tool active) -->
 		<div id="tf-startpos-controls" data-if="activeTool == 'stp'">
-		<div class="divider-horizontal-dark"></div>
 
 		<!-- ST: DISPLAY -->
 		<div id="btn-toggle-st-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
@@ -402,7 +401,6 @@
 
 		<!-- Clone Tool controls (visible only when Clone tool active) -->
 		<div id="tf-clone-controls" data-if="activeTool == 'cl'">
-		<div class="divider-horizontal-dark"></div>
 
 		<!-- CL: DISPLAY -->
 		<div id="btn-toggle-cl-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
@@ -705,8 +703,6 @@
 
 		<!-- Metal controls (visible only when Metal mode active) -->
 		<div id="tf-metal-controls" data-if="activeTool == 'mb'">
-
-			<div class="divider-horizontal-dark"></div>
 
 			<!-- Metal Brush: DISPLAY -->
 			<div id="btn-toggle-mb-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
@@ -1107,8 +1103,6 @@
 
 		<!-- Grass controls (visible only when Grass mode active) -->
 		<div id="tf-grass-controls" data-if="activeTool == 'gb'">
-
-			<div class="divider-horizontal-dark"></div>
 
 			<!-- Grass Brush: DISPLAY -->
 			<div id="btn-toggle-gb-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
@@ -3395,7 +3389,6 @@
 
 		<!-- ============ DECALS CONTROLS ============ -->
 		<div id="tf-decal-controls" data-if="activeTool == 'dc'">
-		<div class="divider-horizontal-dark"></div>
 
 		<!-- DC: DISPLAY -->
 		<div id="btn-toggle-dc-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
