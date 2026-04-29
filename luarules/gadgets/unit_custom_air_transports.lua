@@ -175,6 +175,7 @@ local function RemoveAreaLoadCoroutine(transporterID)
 		return SpEcho("Error in RemoveAreaLoadCoroutine: no coroutine found for transporterID " .. transporterID)
 	end 
 	areaLoadCoroutines[index] = nil -- no need to clean up, killed from within
+	transporterCoroutines[transporterID] = nil
 end
 
 local function RemoveSuccessiveCoroutine(transporterID)
@@ -183,6 +184,7 @@ local function RemoveSuccessiveCoroutine(transporterID)
 		return SpEcho("Error in RemoveSuccessiveCoroutine: no coroutine found for transporterID " .. transporterID)
 	end 
 	successiveLoadCoroutines[index] = nil -- no need to clean up, killed from within	
+	transporterCoroutines[transporterID] = nil
 end
 
 ---
