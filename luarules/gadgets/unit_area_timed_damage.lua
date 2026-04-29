@@ -474,7 +474,8 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 					end
 					data.damageTaken = damageTaken + damage
 					inExplosion[1] = area
-					spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
+					-- GetFlankingBonus evaluates the zero-vector to 50% flanking bonus, so conditionally remove:
+					spAddUnitDamage(unitID, damage, nil, area.owner ~= unitID and area.owner or nil, area.weapon)
 					inExplosion[1] = nil
 				end
             end
