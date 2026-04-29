@@ -714,7 +714,7 @@ local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
 	for unitID, unitData in pairs(shieldUnitsData) do
 		if unitData.shieldEnabled then
 			local sx, sy, sz, shieldRadius = position(unitID, unitData)
-			if intersect(x - sx, y - sy, z - sz, radius, shieldRadius) then
+			if sx and intersect(x - sx, y - sy, z - sz, radius, shieldRadius) then
 				count = count + 1
 				units[count] = unitID
 			end
