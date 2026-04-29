@@ -101,8 +101,8 @@ end
 
 -- Otherwise, this gadget overrides all shield behaviors with game-side shields:
 
----- Optional unit customParams ----
--- shield_aoe_penetration = bool, if true then AOE damage will hurt units within the shield radius
+---- Optional weapon customParam ----
+-- shield_aoe_penetration = bool, when true, the weapon damages units covered by shields
 
 -- this defines what amount of the total damage a unit deals qualifies as a direct hit for units that are in the vague areas between covered and not covered by shields (typically on edges or sticking out partially)
 local directHitQualifyingMultiplier = 0.95
@@ -143,8 +143,8 @@ local unitDefIDCache                = {}
 local unitDefWeaponDefs             = {}
 local shieldedUnits                 = {}
 local shieldCoverage                = {} -- reverse mapping: [shieldUnitID] = {[unitID] = true, ...}
-local AOEWeaponDefIDs               = {}
-local projectileShieldHitCache      = {}
+local bypassCoverages               = {} -- weapon ignores shield coverage (always)
+local ignoreCoverages               = {} -- projectile ignores shield coverage (conditional)
 local highestWeapDefDamages         = {}
 local armoredUnitDefs               = {}
 local destroyedUnitData             = {}
@@ -153,25 +153,24 @@ local shieldsNeedingUpdate          = {} -- shields that are disabled or recover
 
 local gameFrame 					= 0
 
-for weaponDefID, weaponDef in ipairs(WeaponDefs) do
+for weaponDefID = 0, #WeaponDefs do
+	local weaponDef = WeaponDefs[weaponDefID]
 
 	if weaponDef.type == 'Flame' then -- flame projectiles aren't deleted when striking the shield. For compatibility with shield blocking type overrides.
 		forceDeleteWeapons[weaponDefID] = weaponDef
 	end
 
-	if not weaponDef.customParams.shield_aoe_penetration then
-		AOEWeaponDefIDs[weaponDefID] = true
+	if weaponDef.customParams.shield_aoe_penetration then
+		bypassCoverages[weaponDefID] = true
 	end
 
-	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
+	if weaponDef.type == "BeamLaser" and weaponDef.customParams.beamtime_damage_reduction_multiplier then
 		local base = weaponDef.customParams.shield_damage or 0
 		local multiplier = weaponDef.customParams.beamtime_damage_reduction_multiplier
 		originalShieldDamages[weaponDefID] = mathCeil(base * multiplier)
 	else
 		originalShieldDamages[weaponDefID] = tonumber(weaponDef.customParams.shield_damage or 0) or 0
 	end
-
-
 
 	local highestDamage = 0
 	if weaponDef.damages then
@@ -211,8 +210,7 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 		minIntensity = mathMax(minimumMinIntensity, weaponDef.minIntensity)
 	end
 
-	highestWeapDefDamages[weaponDefID] = highestDamage * beamtimeReductionMultiplier * minIntensity *
-	directHitQualifyingMultiplier
+	highestWeapDefDamages[weaponDefID] = highestDamage * beamtimeReductionMultiplier * minIntensity * directHitQualifyingMultiplier
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -391,7 +389,7 @@ local function activateShield(unitID, unitData)
 	local x, y, z, radius = getUnitShieldWeaponPosition(unitID, unitData)
 	local projectiles = spGetProjectilesInSphere(x, y, z, radius)
 	for i = 1, #projectiles do
-		projectileShieldHitCache[projectiles[i]] = true
+		ignoreCoverages[projectiles[i]] = true
 	end
 end
 
@@ -515,9 +513,9 @@ function gadget:GameFrame(frame)
 
 		shieldCheckChunkSize = mathMax(mathCeil(count / 4), 1)
 
-		-- Periodic cleanup of projectileShieldHitCache (projectiles are short-lived)
-		for proID in pairs(projectileShieldHitCache) do
-			projectileShieldHitCache[proID] = nil
+		-- Periodic cleanup of projectile coverages (projectiles are short-lived)
+		for proID in pairs(ignoreCoverages) do
+			ignoreCoverages[proID] = nil
 		end
 	end
 
@@ -556,20 +554,16 @@ function gadget:GameFrame(frame)
 	end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID,
-							   attackerDefID, attackerTeam)
-	if not AOEWeaponDefIDs[weaponDefID] or projectileShieldHitCache[projectileID] then
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+	if not shieldedUnits[unitID] or bypassCoverages[weaponDefID] or ignoreCoverages[projectileID] then
 		return damage
 	end
 
 	local directHitThreshold = highestWeapDefDamages[weaponDefID]
 	if directHitThreshold then
 		local armoredMultiple = armoredUnitDefs[unitDefID]
-		if armoredMultiple then
-			local isArmored = spGetUnitArmored(unitID)
-			if isArmored and damage >= directHitThreshold * armoredMultiple then
-				return damage
-			end
+		if armoredMultiple and spGetUnitArmored(unitID) then
+			directHitThreshold = directHitThreshold * armoredMultiple
 		end
 		if damage >= directHitThreshold then
 			return damage
@@ -630,7 +624,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 	shieldCheckFlags[shieldUnitID] = true
 
 	if shieldData.shieldEnabled then
-		if not shieldData.shieldCoverageChecked and AOEWeaponDefIDs[weaponDefID] then
+		if not shieldData.shieldCoverageChecked and not bypassCoverages[weaponDefID] then
 			setCoveredUnits(shieldUnitID)
 		end
 	else
