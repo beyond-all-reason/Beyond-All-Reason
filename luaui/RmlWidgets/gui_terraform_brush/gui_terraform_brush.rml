@@ -1741,8 +1741,6 @@
 		<!-- ============ TERRAFORM-ONLY CONTROLS ============ -->
 		<div id="tf-terraform-controls" data-if="activeTool == ''">
 
-		<div class="divider-horizontal-dark"></div>
-
 		<!-- Display-options collapse header (was OVERLAYS) -->
 		<div id="btn-toggle-overlays" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
 			<img id="img-toggle-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
