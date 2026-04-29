@@ -113,6 +113,7 @@ local gameStarted = Spring.GetGameFrame() > 0
 local lastCheckFrame = Spring.GetGameFrame() - 999
 local lastCheckFrameClock = os.clock() - 99
 local lastProcessedFrame = -1
+local vsx, vsy = Spring.GetViewGeometry()
 
 --------------------------------------------------------------------------------
 -- Speedups
@@ -130,7 +131,6 @@ local max = math.max
 local clamp = math.clamp
 local sqrt = math.sqrt
 local mathHuge = math.huge
-local atan2 = math.atan2
 local cos = math.cos
 local sin = math.sin
 local rad = math.rad
@@ -143,13 +143,11 @@ local glCallList = gl.CallList
 local glColor = gl.Color
 local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
-local glDepthMask = gl.DepthMask
 local glDepthTest = gl.DepthTest
 local glLineWidth = gl.LineWidth
 local glMultMatrix = gl.MultMatrix
 local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
-local glRotate = gl.Rotate
 local glScale = gl.Scale
 local glText = gl.Text
 local glTranslate = gl.Translate
@@ -157,7 +155,6 @@ local glVertex = gl.Vertex
 
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spGetFeatureResources = Spring.GetFeatureResources
 local spGetFeatureVelocity = Spring.GetFeatureVelocity
 local spGetFeatureRadius = Spring.GetFeatureRadius
@@ -205,28 +202,27 @@ local function IsInCameraView(x, y, z, radius, currentDrawCount)
 		local newCamX, newCamY, newCamZ = spGetCameraPosition()
 		local camVectors = spGetCameraVectors()
 		local newCamForward = camVectors.forward
-		
+
 		-- Check if camera has moved significantly (compare against cached old position)
 		local dx = newCamX - cachedCameraX
 		local dy = newCamY - cachedCameraY
 		local dz = newCamZ - cachedCameraZ
 		local moved = (dx*dx + dy*dy + dz*dz) > cameraMovementThreshold * cameraMovementThreshold
-		
+
 		-- Check if camera has rotated significantly (dot product change)
 		local oldDot = cachedCamFwdX * newCamForward[1] + cachedCamFwdY * newCamForward[2] + cachedCamFwdZ * newCamForward[3]
 		local rotated = oldDot < (1 - cameraRotationThreshold)
-		
+
 		-- Increment cache generation if camera moved or rotated
 		if moved or rotated then
 			cameraGeneration = cameraGeneration + 1
 		end
-		
+
 		-- Update cached camera state
 		cachedCameraX, cachedCameraY, cachedCameraZ = newCamX, newCamY, newCamZ
 		cachedCamFwdX, cachedCamFwdY, cachedCamFwdZ = newCamForward[1], newCamForward[2], newCamForward[3]
-		
+
 		-- Pre-compute frustum cone cosine (avoids trig per-call)
-		local vsx, vsy = Spring.GetViewGeometry()
 		local aspect = vsx / vsy
 		local vertFOV = rad(45)
 		local horizFOV = 2 * atan(tan(vertFOV * 0.5) * aspect)
@@ -274,13 +270,13 @@ local function CalculateAlwaysShowThreshold()
 	if totalMapMetal <= 0 then
 		return alwaysShowFieldsMinThreshold
 	end
-	
+
 	-- Scale threshold based on total map metal
 	-- Maps with little metal (e.g., 10k) -> use min threshold (500)
 	-- Maps with lots of metal (e.g., 100k+) -> use max threshold (2000)
 	local lowMetalMap = 10000 -- Maps with this much or less use min threshold
 	local highMetalMap = 100000 -- Maps with this much or more use max threshold
-	
+
 	if totalMapMetal <= lowMetalMap then
 		return alwaysShowFieldsMinThreshold
 	elseif totalMapMetal >= highMetalMap then
@@ -1063,7 +1059,7 @@ GetClusterVisibility = function(cid, isEnergy, currentDrawCount)
 	else
 		inView, dist = IsInCameraView(center.x, center.y, center.z, cluster.radius, currentDrawCount)
 	end
-	
+
 	local fadeMult = 0
 
 	if inView then
@@ -3096,10 +3092,10 @@ local function ProcessFlyingFeatures(frame)
 	if not next(flyingFeatures) or (frame - lastFlyingCheckFrame) < 3 then
 		return false
 	end
-	
+
 	lastFlyingCheckFrame = frame
 	local featuresAdded = false
-	
+
 	for featureID, fInfo in pairs(flyingFeatures) do
 		-- Quick validation before API call
 		if spValidFeatureID(featureID) then
@@ -3153,7 +3149,7 @@ local function ProcessFlyingFeatures(frame)
 			flyingFeatures[featureID] = nil
 		end
 	end
-	
+
 	return featuresAdded
 end
 
@@ -3291,7 +3287,7 @@ local function UpdateReclaimFields()
 	if drawEnabled == false and (not showEnergyFields or not drawEnergyEnabled or allEnergyFieldsDrained) then
 		return
 	end
-	
+
 	if not dirty.needCluster and not dirty.forceFullRedraw and frame - lastCheckFrame < checkFrequency and os.clock() - lastCheckFrameClock < (checkFrequency/30) then
 		return
 	end
@@ -3650,6 +3646,7 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	screenx, screeny = widgetHandler:GetViewSizes()
+	vsx, vsy = Spring.GetViewGeometry()
 end
 
 --------------------------------------------------------------------------------
@@ -3909,7 +3906,7 @@ function widget:DrawWorldPreUnit()
 	-- Reset GL state at the start
 	glDepthTest(false)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	glLineWidth(6.0 / cameraScale)
+	glLineWidth(((vsy / 1440) * 3.3) / cameraScale)
 
 	local tVis0 = debugTiming and osClock() or 0
 
