@@ -5,6 +5,8 @@ VFS.Include("spec/builders/team_builder.lua")
 VFS.Include("common/stringFunctions.lua")
 VFS.Include("common.tablefunctions.lua")
 
+local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
+
 ---@class SpringSyncedMock : SpringSynced
 ---@field GetUnitDefs fun(): table<string, UnitWrapper>
 ---@field GetUnitDefNames fun(): table<string, { id: number }>
@@ -146,7 +148,8 @@ function SB.new()
         alliances = {}, -- teamID -> teamID -> boolean
         gameFrame = 1,
         cheatingEnabled = false,
-        _globalUnitDefs = nil -- Shared unit definitions cache
+        unitDefs = UnitDefsBuilder.new(),
+        _globalUnitDefs = nil, -- mirror of unitDefs:GetUnitDefsByName() once loaded
     }, SB)
 end
 
@@ -825,45 +828,37 @@ function SB:WithTeam(teamBuilder)
     return self
 end
 
+---Register a unit definition. Accepts either a UnitDefBuilder or a (defID, defTable) pair.
+---Delegates to the shared UnitDefsBuilder registry.
+---@overload fun(self: SpringSyncedBuilder, udb: UnitDefBuilder): SpringSyncedBuilder
+---@param defID number
+---@param def table
+---@return SpringSyncedBuilder
+function SB:WithUnitDef(defID, def)
+    self.unitDefs:WithUnitDef(defID, def)
+    return self
+end
+
+---Load real BAR UnitDefs from gamedata into the registry.
+---Uses WithGlobalsDefined as the harness so modoptions are honored during the load.
+---After loading, normalizes the defs into the polyglot index that downstream code
+---(GetUnitDefs, BuildSpring team-resolution) expects.
 ---@param self SpringSyncedBuilder
 ---@return SpringSyncedBuilder
 function SB:WithRealUnitDefs()
-    if not self._globalUnitDefs then
-        self:WithGlobalsDefined(function()
-            -- Load unitdefs with proper VFS/Spring globals set up
-            local success, defs = pcall(require, "gamedata.unitdefs")
-            if success then
-                -- Set global UnitDefs for post-processing
-                _G.UnitDefs = defs
-                
-                -- Load alldefs_post first to ensure UnitDef_Post is available
-                local alldefsSuccess, alldefsError = pcall(require, "gamedata.alldefs_post")
-                if not alldefsSuccess then
-                    Spring.Log("UNITDEFS", LOG.ERROR, "Failed to load alldefs_post: " .. tostring(alldefsError))
-                end
+    if self._globalUnitDefs then return self end
 
-                -- Run post-processing to normalize unit definitions
-                local postSuccess, postError = pcall(require, "gamedata.unitdefs_post")
-                if not postSuccess then
-                    Spring.Log("UNITDEFS", LOG.ERROR, "Failed to run unitdefs post-processing: " .. tostring(postError))
-                end
-                
-                -- Simulate engine-level field renames (C++ does these before Lua sees UnitDefs at runtime)
-                for _, def in pairs(_G.UnitDefs) do
-                    if def.builder ~= nil and def.isBuilder == nil then
-                        def.isBuilder = def.builder
-                    end
-                end
+    self.unitDefs:WithRealUnitDefs(function(loadFn)
+        self:WithGlobalsDefined(loadFn)
+    end)
 
-                self._globalUnitDefs = buildUnitDefIndex(_G.UnitDefs, _G.UnitDefNames)
-                self._globalUnitDefNames = _G.UnitDefNames
-                _G.UnitDefs = nil
-                _G.UnitDefNames = nil
-            else
-                -- If loading fails, leave _globalUnitDefs as nil so GetUnitDefs falls back to registered unitDefs
-                self._globalUnitDefs = nil
-            end
-        end)
+    -- Build the polyglot index downstream code reads via _globalUnitDefs.
+    -- In the gamedata pre-load shape this is name-keyed (no numeric IDs);
+    -- buildUnitDefIndex also runs normalizeUnitDef to fold customParams etc.
+    local byName = self.unitDefs:GetUnitDefsByName()
+    if next(byName) ~= nil then
+        self._globalUnitDefs = buildUnitDefIndex(byName, self.unitDefs:GetUnitDefNames())
+        self._globalUnitDefNames = self.unitDefs:GetUnitDefNames()
     end
     return self
 end
