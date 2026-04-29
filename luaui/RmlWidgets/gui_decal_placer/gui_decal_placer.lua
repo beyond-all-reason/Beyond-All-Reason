@@ -244,6 +244,107 @@ local function buildRootStyle()
 		INITIAL_LEFT_VW, INITIAL_TOP_VH)
 end
 
+local function setLabel(id, text)
+	local el = widgetState.document and widgetState.document:GetElementById(id)
+	if el then el.inner_rml = text end
+end
+
+local function setSliderValue(id, val)
+	local el = widgetState.document and widgetState.document:GetElementById(id)
+	if el then el:SetAttribute("value", tostring(val)) end
+end
+
+local function getModeButtons()
+	local doc = widgetState.document
+	if not doc then return nil end
+	return {
+		scatter = doc:GetElementById("btn-dp-mode-scatter"),
+		point   = doc:GetElementById("btn-dp-mode-point"),
+		remove  = doc:GetElementById("btn-dp-mode-remove"),
+	}
+end
+
+local function getShapeButtons()
+	local doc = widgetState.document
+	if not doc then return nil end
+	return {
+		circle   = doc:GetElementById("btn-dp-shape-circle"),
+		square   = doc:GetElementById("btn-dp-shape-square"),
+		hexagon  = doc:GetElementById("btn-dp-shape-hexagon"),
+		octagon  = doc:GetElementById("btn-dp-shape-octagon"),
+		triangle = doc:GetElementById("btn-dp-shape-triangle"),
+	}
+end
+
+local function refreshUIFromState()
+	if not WG.DecalPlacer then return end
+	local state = WG.DecalPlacer.getState()
+	if not state then return end
+
+	local mb = getModeButtons()
+	if mb then
+		for k, el in pairs(mb) do el:SetClass("active", state.mode == k) end
+	end
+	local sb = getShapeButtons()
+	if sb then
+		for k, el in pairs(sb) do el:SetClass("active", state.shape == k) end
+	end
+
+	setLabel("dp-radius-label",   tostring(state.radius))
+	setLabel("dp-rotation-label", tostring(math.floor(state.rotation)) .. "°")
+	setLabel("dp-rotrand-label",  tostring(state.rotRandom))
+	setLabel("dp-count-label",    tostring(state.decalCount))
+	setLabel("dp-cadence-label",  tostring(state.cadence))
+	setLabel("dp-sizemin-label",  tostring(state.sizeMin))
+	setLabel("dp-sizemax-label",  tostring(state.sizeMax))
+	setLabel("dp-alpha-label",    tostring(math.floor(state.alpha * 100)))
+	setLabel("dp-tint-r-label",   string.format("%.2f", state.tintR))
+	setLabel("dp-tint-g-label",   string.format("%.2f", state.tintG))
+	setLabel("dp-tint-b-label",   string.format("%.2f", state.tintB))
+
+	setSliderValue("dp-slider-radius",   state.radius)
+	setSliderValue("dp-slider-rotation", math.floor(state.rotation))
+	setSliderValue("dp-slider-rotrand",  state.rotRandom)
+	setSliderValue("dp-slider-count",    state.decalCount)
+	setSliderValue("dp-slider-cadence",  state.cadence)
+	setSliderValue("dp-slider-sizemin",  state.sizeMin)
+	setSliderValue("dp-slider-sizemax",  state.sizeMax)
+	setSliderValue("dp-slider-alpha",    math.floor(state.alpha * 100))
+	setSliderValue("dp-slider-tint-r",   math.floor(state.tintR * 100))
+	setSliderValue("dp-slider-tint-g",   math.floor(state.tintG * 100))
+	setSliderValue("dp-slider-tint-b",   math.floor(state.tintB * 100))
+
+	local doc = widgetState.document
+	if doc then
+		local cnt = doc:GetElementById("dp-selected-count")
+		if cnt then cnt.inner_rml = tostring(#state.selectedDecals) end
+		local alignBtn = doc:GetElementById("btn-dp-align-toggle")
+		if alignBtn then
+			alignBtn:SetAttribute("src", state.alignToNormal
+				and "/luaui/images/terraform_brush/check_on.png"
+				or  "/luaui/images/terraform_brush/check_off.png")
+		end
+		local smartBtn = doc:GetElementById("btn-dp-smart-toggle")
+		if smartBtn then
+			smartBtn:SetAttribute("src", state.smartEnabled
+				and "/luaui/images/terraform_brush/check_on.png"
+				or  "/luaui/images/terraform_brush/check_off.png")
+		end
+		local waterBtn = doc:GetElementById("btn-dp-smart-water")
+		if waterBtn then
+			waterBtn:SetAttribute("src", state.smartFilters.avoidWater
+				and "/luaui/images/terraform_brush/check_on.png"
+				or  "/luaui/images/terraform_brush/check_off.png")
+		end
+		local cliffsBtn = doc:GetElementById("btn-dp-smart-cliffs")
+		if cliffsBtn then
+			cliffsBtn:SetAttribute("src", state.smartFilters.avoidCliffs
+				and "/luaui/images/terraform_brush/check_on.png"
+				or  "/luaui/images/terraform_brush/check_off.png")
+		end
+	end
+end
+
 ----------------------------------------------------------------
 -- Derive the visible decal rows from WG state + active filter/category and
 -- sync them into the data model (which drives the tile grid via data-for).
@@ -420,7 +521,8 @@ function widget:Update()
 	-- Window drag
 	local ds = dpDragState
 	if ds.active and ds.rootEl then
-		local mx, my = Spring.GetMouseState()
+		local mx, my, _, _, _, offscreen = Spring.GetMouseState()
+		if not offscreen then
 		local vsx, vsy = ds.vsx, ds.vsy
 		local ew, eh = ds.ew, ds.eh
 		local T = DP_SNAP_THRESHOLD
@@ -462,6 +564,7 @@ function widget:Update()
 			ds.rootEl.style.left = ix .. "px"
 			ds.rootEl.style.top  = iy .. "px"
 		end
+		end -- not offscreen
 	end
 
 	if not syncVisibilityFromTool() then return end

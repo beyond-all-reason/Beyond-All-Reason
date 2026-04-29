@@ -48,8 +48,8 @@ function M.attach(doc, ctx)
 	w.noClose = function(self)
 		playSound("click")
 		widgetState.noiseManuallyHidden = true
-		if widgetState.noiseRootEl then
-			widgetState.noiseRootEl:SetClass("hidden", true)
+		if widgetState.dmHandle then
+			widgetState.dmHandle.noiseWindowVisible = false
 		end
 	end
 

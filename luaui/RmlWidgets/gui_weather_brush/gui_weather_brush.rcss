@@ -324,16 +324,18 @@ body {
 	width: 10dp;
 	height: 16dp;
 	background-color: #b0b4c0;
+	decorator: vertical-gradient(#dde0ec #7d8190);
 	border-radius: 4dp;
-	border: 1dp #ffffff28;
+	border: 1dp #ffffff40;
 	margin-top: 1dp;
 	transition: background-color 0.1s;
-	box-shadow: 0dp 2dp 4dp 0dp #00000070;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
 }
 
 .wb-slider sliderbar:hover {
 	background-color: #d4d8e4;
-	box-shadow: 0dp 2dp 6dp 0dp #00000090;
+	decorator: vertical-gradient(#f4f6ff #9ea2b0);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
 }
 
 .wb-slider sliderarrowdec,

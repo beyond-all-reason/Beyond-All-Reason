@@ -25,39 +25,40 @@ function M.attach(doc, ctx)
 	local updateAllKeybindBadges = ctx.updateAllKeybindBadges
 	local g3ElemGroup = ctx.g3ElemGroup
 	local g3TipGroups = ctx.g3TipGroups
+	-- Widget table for inline RML handler registration (onclick="widget:guideFoo()")
+	local w = ctx.widget
+	assert(w, "tf_guide: ctx.widget required for inline RML handlers")
+
 		widgetState.floatingTipEl = doc:GetElementById("tf-guide-floating-tip")
 
 		local guideBtnEl = doc:GetElementById("btn-guide")
-		if guideBtnEl then
-			guideBtnEl:AddEventListener("click", function(event)
-				widgetState.guideMode = not widgetState.guideMode
-				guideBtnEl:SetClass("active", widgetState.guideMode)
-				if not widgetState.guideMode then
-					widgetState.currentHint = nil
-					widgetState.lastRenderedHint = nil
-					if widgetState.floatingTipEl then widgetState.floatingTipEl.inner_rml = "" end
-					widgetState.g3Toast.text   = nil
-					widgetState.g3Toast.expiry = 0
-				end
-				event:StopPropagation()
-			end, false)
+		-- onclick="widget:guideToggle()"
+		w.guideToggle = function(self, element)
+			widgetState.guideMode = not widgetState.guideMode
+			if element then element:SetClass("active", widgetState.guideMode) end
+			if not widgetState.guideMode then
+				widgetState.currentHint = nil
+				widgetState.lastRenderedHint = nil
+				if widgetState.floatingTipEl then widgetState.floatingTipEl.inner_rml = "" end
+				widgetState.g3Toast.text   = nil
+				widgetState.g3Toast.expiry = 0
+			end
 		end
 
 		local soundBtnEl = doc:GetElementById("btn-sound")
-		if soundBtnEl then
-			soundBtnEl:AddEventListener("click", function(event)
-				widgetState.soundMuted = not widgetState.soundMuted
-				soundBtnEl:SetClass("muted", widgetState.soundMuted)
-				event:StopPropagation()
-			end, false)
+		-- onclick="widget:guideToggleSound()"
+		w.guideToggleSound = function(self, element)
+			widgetState.soundMuted = not widgetState.soundMuted
+			if element then element:SetClass("muted", widgetState.soundMuted) end
 		end
 
 		do
 			local ptBtn = doc:GetElementById("btn-passthrough")
 			local ptIconPause = doc:GetElementById("passthrough-icon-pause")
 			local ptIconPlay = doc:GetElementById("passthrough-icon-play")
-			if ptBtn then
-				ptBtn:AddEventListener("click", function(event)
+			-- onclick="widget:guideTogglePassthrough()"
+			w.guideTogglePassthrough = function(self)
+				if not ptBtn then return end
 					if not widgetState.passthroughMode then
 						-- Enter passthrough: save current tool, deactivate everything
 						local saved = nil
@@ -108,8 +109,7 @@ function M.attach(doc, ctx)
 						widgetState.passthroughSaved = saved
 						widgetState.passthroughMode = true
 						ptBtn:SetClass("active", true)
-						if ptIconPause then ptIconPause:SetClass("hidden", true) end
-						if ptIconPlay then ptIconPlay:SetClass("hidden", false) end
+						if widgetState.dmHandle then widgetState.dmHandle.passthroughActive = true end
 						if widgetState.rootElement then
 							widgetState.rootElement:SetClass("passthrough-dimmed", true)
 						end
@@ -118,8 +118,7 @@ function M.attach(doc, ctx)
 						-- Exit passthrough: restore saved tool
 						widgetState.passthroughMode = false
 						ptBtn:SetClass("active", false)
-						if ptIconPause then ptIconPause:SetClass("hidden", false) end
-						if ptIconPlay then ptIconPlay:SetClass("hidden", true) end
+						if widgetState.dmHandle then widgetState.dmHandle.passthroughActive = false end
 						if widgetState.rootElement then
 							widgetState.rootElement:SetClass("passthrough-dimmed", false)
 						end
@@ -151,10 +150,8 @@ function M.attach(doc, ctx)
 								WG.CloneTool.activate()
 							end
 						end
-						playSound("modeSwitch")
-					end
-					event:StopPropagation()
-				end, false)
+					playSound("modeSwitch")
+				end
 			end
 		end
 
@@ -166,9 +163,7 @@ function M.attach(doc, ctx)
 
 			local function toggleSettings()
 				widgetState.settingsOpen = not widgetState.settingsOpen
-				if widgetState.settingsRootEl then
-					widgetState.settingsRootEl:SetClass("hidden", not widgetState.settingsOpen)
-				end
+				if widgetState.dmHandle then widgetState.dmHandle.settingsOpen = widgetState.settingsOpen end
 				if settingsBtn then
 					settingsBtn:SetClass("active", widgetState.settingsOpen)
 				end
@@ -184,84 +179,54 @@ function M.attach(doc, ctx)
 				end
 			end
 
-			if settingsBtn then
-				settingsBtn:AddEventListener("click", function(event)
-					toggleSettings()
-					event:StopPropagation()
-				end, false)
+			w.guideToggleSettings = function(self)
+				toggleSettings()
 			end
 
-			if settingsCloseBtn then
-				settingsCloseBtn:AddEventListener("click", function(event)
-					widgetState.settingsOpen = false
+			w.guideCloseSettings = function(self)
+				widgetState.settingsOpen = false
+				widgetState.settingsCapturing = nil
+				widgetState.settingsCaptureField = nil
+				widgetState.settingsCaptureEl = nil
+				if widgetState.dmHandle then widgetState.dmHandle.settingsOpen = false end
+				if settingsBtn then settingsBtn:SetClass("active", false) end
+			end
+
+			w.guideKbSave = function(self)
+				if WG.TerraformBrush and widgetState.settingsPendingBinds then
+					WG.TerraformBrush.applyKeybinds(widgetState.settingsPendingBinds)
+					WG.TerraformBrush.saveKeybinds()
+					updateAllKeybindBadges()
+					Spring.Echo("[Terraform Brush] Keybinds saved.")
+				end
+			end
+
+			w.guideKbApply = function(self)
+				if WG.TerraformBrush and widgetState.settingsPendingBinds then
+					WG.TerraformBrush.applyKeybinds(widgetState.settingsPendingBinds)
+					updateAllKeybindBadges()
+					Spring.Echo("[Terraform Brush] Keybinds applied.")
+				end
+			end
+
+			w.guideKbDefaults = function(self)
+				if WG.TerraformBrush and WG.TerraformBrush.getDefaultKeybinds then
+					widgetState.settingsPendingBinds = WG.TerraformBrush.getDefaultKeybinds()
 					widgetState.settingsCapturing = nil
 					widgetState.settingsCaptureField = nil
 					widgetState.settingsCaptureEl = nil
-					if widgetState.settingsRootEl then
-						widgetState.settingsRootEl:SetClass("hidden", true)
-					end
-					if settingsBtn then settingsBtn:SetClass("active", false) end
-					event:StopPropagation()
-				end, false)
+					populateKeybindList(doc)
+				end
 			end
 
-			-- Save button
-			local kbSaveBtn = doc:GetElementById("btn-kb-save")
-			if kbSaveBtn then
-				kbSaveBtn:AddEventListener("click", function(event)
-					if WG.TerraformBrush and widgetState.settingsPendingBinds then
-						WG.TerraformBrush.applyKeybinds(widgetState.settingsPendingBinds)
-						WG.TerraformBrush.saveKeybinds()
-						updateAllKeybindBadges()
-						Spring.Echo("[Terraform Brush] Keybinds saved.")
-					end
-					event:StopPropagation()
-				end, false)
-			end
-
-			-- Apply button (apply without saving to disk)
-			local kbApplyBtn = doc:GetElementById("btn-kb-apply")
-			if kbApplyBtn then
-				kbApplyBtn:AddEventListener("click", function(event)
-					if WG.TerraformBrush and widgetState.settingsPendingBinds then
-						WG.TerraformBrush.applyKeybinds(widgetState.settingsPendingBinds)
-						updateAllKeybindBadges()
-						Spring.Echo("[Terraform Brush] Keybinds applied.")
-					end
-					event:StopPropagation()
-				end, false)
-			end
-
-			-- Restore Defaults button
-			local kbDefaultsBtn = doc:GetElementById("btn-kb-defaults")
-			if kbDefaultsBtn then
-				kbDefaultsBtn:AddEventListener("click", function(event)
-					if WG.TerraformBrush and WG.TerraformBrush.getDefaultKeybinds then
-						widgetState.settingsPendingBinds = WG.TerraformBrush.getDefaultKeybinds()
-						widgetState.settingsCapturing = nil
-						widgetState.settingsCaptureField = nil
-						widgetState.settingsCaptureEl = nil
-						populateKeybindList(doc)
-					end
-					event:StopPropagation()
-				end, false)
-			end
-
-			-- Cancel button
-			local kbCancelBtn = doc:GetElementById("btn-kb-cancel")
-			if kbCancelBtn then
-				kbCancelBtn:AddEventListener("click", function(event)
-					widgetState.settingsOpen = false
-					widgetState.settingsCapturing = nil
-					widgetState.settingsCaptureField = nil
-					widgetState.settingsCaptureEl = nil
-					widgetState.settingsPendingBinds = nil
-					if widgetState.settingsRootEl then
-						widgetState.settingsRootEl:SetClass("hidden", true)
-					end
-					if settingsBtn then settingsBtn:SetClass("active", false) end
-					event:StopPropagation()
-				end, false)
+			w.guideKbCancel = function(self)
+				widgetState.settingsOpen = false
+				widgetState.settingsCapturing = nil
+				widgetState.settingsCaptureField = nil
+				widgetState.settingsCaptureEl = nil
+				widgetState.settingsPendingBinds = nil
+				if widgetState.dmHandle then widgetState.dmHandle.settingsOpen = false end
+				if settingsBtn then settingsBtn:SetClass("active", false) end
 			end
 		end
 
@@ -281,35 +246,14 @@ function M.attach(doc, ctx)
 				if tabDJBtn       then tabDJBtn:SetClass("active", tab == "dj") end
 				if tabStrokeBtn   then tabStrokeBtn:SetClass("active", tab == "stroke") end
 				if tabGeneralBtn  then tabGeneralBtn:SetClass("active", tab == "general") end
-				if tabKeybinds    then tabKeybinds:SetClass("hidden", tab ~= "keybinds") end
-				if tabDJ          then tabDJ:SetClass("hidden", tab ~= "dj") end
-				if tabStroke      then tabStroke:SetClass("hidden", tab ~= "stroke") end
-				if tabGeneral     then tabGeneral:SetClass("hidden", tab ~= "general") end
+				if widgetState.dmHandle then widgetState.dmHandle.settingsTab = tab end
 			end
 
 			if tabKeybindsBtn then
-				tabKeybindsBtn:AddEventListener("click", function(event)
-					switchSettingsTab("keybinds")
-					event:StopPropagation()
-				end, false)
+				-- onclick="widget:guideTab('keybinds')"
 			end
-			if tabDJBtn then
-				tabDJBtn:AddEventListener("click", function(event)
-					switchSettingsTab("dj")
-					event:StopPropagation()
-				end, false)
-			end
-			if tabStrokeBtn then
-				tabStrokeBtn:AddEventListener("click", function(event)
-					switchSettingsTab("stroke")
-					event:StopPropagation()
-				end, false)
-			end
-			if tabGeneralBtn then
-				tabGeneralBtn:AddEventListener("click", function(event)
-					switchSettingsTab("general")
-					event:StopPropagation()
-				end, false)
+			w.guideTab = function(self, name)
+				switchSettingsTab(name)
 			end
 		end
 
@@ -325,83 +269,78 @@ function M.attach(doc, ctx)
 			syncPill()
 			widgetState.syncDisableTipsPill = syncPill
 			if btn then
-				btn:AddEventListener("click", function(event)
-					widgetState.uiPrefs = widgetState.uiPrefs or {}
-					local newVal = not widgetState.uiPrefs.disableTips
-					widgetState.uiPrefs.disableTips = newVal
-					playSound(newVal and "toggleOn" or "toggleOff")
-					syncPill()
-					if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
-					-- When re-enabling tips, immediately clear any suppressed transient state
-					-- so dots can surface again. When disabling, clear any current pulse state.
-					if newVal then
-						widgetState.instrumentsHintActive = false
-						local measureImg = doc:GetElementById("btn-measure")
-						if measureImg then measureImg:SetClass("tf-chip-2pulse", false) end
-						local splatChip = doc:GetElementById("btn-sp-splat-overlay")
-						if splatChip then splatChip:SetClass("tf-chip-2pulse", false) end
-					end
-					event:StopPropagation()
-				end, false)
+				-- onclick="widget:guideToggleDisableTips()"
+			end
+			w.guideToggleDisableTips = function(self)
+				widgetState.uiPrefs = widgetState.uiPrefs or {}
+				local newVal = not widgetState.uiPrefs.disableTips
+				widgetState.uiPrefs.disableTips = newVal
+				playSound(newVal and "toggleOn" or "toggleOff")
+				syncPill()
+				if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+				if newVal then
+					widgetState.instrumentsHintActive = false
+					local measureImg = doc:GetElementById("btn-measure")
+					if measureImg then measureImg:SetClass("tf-chip-2pulse", false) end
+					local splatChip = doc:GetElementById("btn-sp-splat-overlay")
+					if splatChip then splatChip:SetClass("tf-chip-2pulse", false) end
+				end
 			end
 		end
 
 		-- ============ DJ Mode: Master Activate Toggle ============
 		do
 			local activateBtn = doc:GetElementById("btn-dj-activate")
-			if activateBtn then
-				activateBtn:AddEventListener("click", function(event)
-					if WG.TerraformBrush then
-						local state = WG.TerraformBrush.getState()
-						local newVal = not (state and state.djMode)
-						playSound(newVal and "toggleOn" or "toggleOff")
-						WG.TerraformBrush.setDjMode(newVal)
-						activateBtn:SetClass("active", newVal)
-						local pill = doc:GetElementById("pill-dj-activate")
-						if pill then pill.inner_rml = newVal and "ON" or "OFF" end
-						local subSettings = doc:GetElementById("dj-sub-settings")
-						if subSettings then subSettings:SetClass("dj-disabled", not newVal) end
-					end
-					event:StopPropagation()
-				end, false)
+			-- onclick="widget:guideToggleDjActivate()"
+			w.guideToggleDjActivate = function(self)
+				if not activateBtn then return end
+				if WG.TerraformBrush then
+					local state = WG.TerraformBrush.getState()
+					local newVal = not (state and state.djMode)
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setDjMode(newVal)
+					activateBtn:SetClass("active", newVal)
+					local pill = doc:GetElementById("pill-dj-activate")
+					if pill then pill.inner_rml = newVal and "ON" or "OFF" end
+					local subSettings = doc:GetElementById("dj-sub-settings")
+					if subSettings then subSettings:SetClass("dj-disabled", not newVal) end
+				end
 			end
 		end
 
 		-- ============ DJ Mode: Dust Visual Effects ============
 		do
 			local dustBtn = doc:GetElementById("btn-dust-effects")
-			if dustBtn then
-				dustBtn:AddEventListener("click", function(event)
-					if WG.TerraformBrush then
-						local state = WG.TerraformBrush.getState()
-						local newVal = not (state and state.dustEffects)
-						playSound(newVal and "toggleOn" or "toggleOff")
-						WG.TerraformBrush.setDustEffects(newVal)
-						dustBtn:SetClass("active", newVal)
-						local pill = doc:GetElementById("pill-dust-effects")
-						if pill then pill.inner_rml = newVal and "ON" or "OFF" end
-					end
-					event:StopPropagation()
-				end, false)
+			-- onclick="widget:guideToggleDust()"
+			w.guideToggleDust = function(self)
+				if not dustBtn then return end
+				if WG.TerraformBrush then
+					local state = WG.TerraformBrush.getState()
+					local newVal = not (state and state.dustEffects)
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setDustEffects(newVal)
+					dustBtn:SetClass("active", newVal)
+					local pill = doc:GetElementById("pill-dust-effects")
+					if pill then pill.inner_rml = newVal and "ON" or "OFF" end
+				end
 			end
 		end
 
 		-- ============ DJ Mode: Seismic Sound Effects ============
 		do
 			local seismicBtn = doc:GetElementById("btn-seismic-effects")
-			if seismicBtn then
-				seismicBtn:AddEventListener("click", function(event)
-					if WG.TerraformBrush then
-						local state = WG.TerraformBrush.getState()
-						local newVal = not (state and state.seismicEffects)
-						playSound(newVal and "toggleOn" or "toggleOff")
-						WG.TerraformBrush.setSeismicEffects(newVal)
-						seismicBtn:SetClass("active", newVal)
-						local pill = doc:GetElementById("pill-seismic-effects")
-						if pill then pill.inner_rml = newVal and "ON" or "OFF" end
-					end
-					event:StopPropagation()
-				end, false)
+			-- onclick="widget:guideToggleSeismic()"
+			w.guideToggleSeismic = function(self)
+				if not seismicBtn then return end
+				if WG.TerraformBrush then
+					local state = WG.TerraformBrush.getState()
+					local newVal = not (state and state.seismicEffects)
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setSeismicEffects(newVal)
+					seismicBtn:SetClass("active", newVal)
+					local pill = doc:GetElementById("pill-seismic-effects")
+					if pill then pill.inner_rml = newVal and "ON" or "OFF" end
+				end
 			end
 		end
 
@@ -409,74 +348,67 @@ function M.attach(doc, ctx)
 		do
 			local penToggleBtn = doc:GetElementById("btn-pen-pressure-toggle")
 			local penSub = doc:GetElementById("pen-pressure-sub")
-			if penToggleBtn then
-				penToggleBtn:AddEventListener("click", function(event)
-					if WG.TerraformBrush then
-						local state = WG.TerraformBrush.getState()
-						local newVal = not (state and state.penPressureEnabled)
-						playSound(newVal and "toggleOn" or "toggleOff")
-						WG.TerraformBrush.setPenPressure(newVal)
-						penToggleBtn:SetClass("active", newVal)
-						local pill = doc:GetElementById("pill-pen-pressure")
-						if pill then pill.inner_rml = newVal and "ON" or "OFF" end
-						if penSub then penSub:SetClass("dj-disabled", not newVal) end
-					end
-					event:StopPropagation()
-				end, false)
+			-- onclick="widget:guideTogglePenPressure()"
+			w.guideTogglePenPressure = function(self)
+				if not penToggleBtn then return end
+				if WG.TerraformBrush then
+					local state = WG.TerraformBrush.getState()
+					local newVal = not (state and state.penPressureEnabled)
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setPenPressure(newVal)
+					penToggleBtn:SetClass("active", newVal)
+					local pill = doc:GetElementById("pill-pen-pressure")
+					if pill then pill.inner_rml = newVal and "ON" or "OFF" end
+					if penSub then penSub:SetClass("dj-disabled", not newVal) end
+				end
 			end
 			local modIntBtn = doc:GetElementById("btn-pen-mod-intensity")
-			if modIntBtn then
-				modIntBtn:AddEventListener("click", function(event)
-					if WG.TerraformBrush then
-						local state = WG.TerraformBrush.getState()
-						local newVal = not (state and state.penPressureModulateIntensity)
-						WG.TerraformBrush.setPenPressureModulateIntensity(newVal)
-						modIntBtn:SetAttribute("src", newVal and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png")
-					end
-					event:StopPropagation()
-				end, false)
+			-- onclick="widget:guideTogglePenModInt()"
+			w.guideTogglePenModInt = function(self)
+				if not modIntBtn then return end
+				if WG.TerraformBrush then
+					local state = WG.TerraformBrush.getState()
+					local newVal = not (state and state.penPressureModulateIntensity)
+					WG.TerraformBrush.setPenPressureModulateIntensity(newVal)
+					modIntBtn:SetAttribute("src", newVal and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png")
+				end
 			end
 			local modSizeBtn = doc:GetElementById("btn-pen-mod-size")
-			if modSizeBtn then
-				modSizeBtn:AddEventListener("click", function(event)
-					if WG.TerraformBrush then
-						local state = WG.TerraformBrush.getState()
-						local newVal = not (state and state.penPressureModulateSize)
-						WG.TerraformBrush.setPenPressureModulateSize(newVal)
-						modSizeBtn:SetAttribute("src", newVal and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png")
-					end
-					event:StopPropagation()
-				end, false)
+			-- onclick="widget:guideTogglePenModSize()"
+			w.guideTogglePenModSize = function(self)
+				if not modSizeBtn then return end
+				if WG.TerraformBrush then
+					local state = WG.TerraformBrush.getState()
+					local newVal = not (state and state.penPressureModulateSize)
+					WG.TerraformBrush.setPenPressureModulateSize(newVal)
+					modSizeBtn:SetAttribute("src", newVal and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png")
+				end
 			end
 			local sensSlider = doc:GetElementById("slider-pen-sensitivity")
-			if sensSlider then
-				sensSlider:AddEventListener("change", function(event)
-					if uiState.updatingFromCode then return end
-					if WG.TerraformBrush then
-						local val = tonumber(sensSlider:GetAttribute("value")) or 100
-						WG.TerraformBrush.setPenPressureSensitivity(val / 100)
-						local lbl = doc:GetElementById("pen-sensitivity-label")
-						if lbl then lbl.inner_rml = tostring(math.floor(val)) end
-					end
-				end, false)
+			-- onchange="widget:guidePenSensitivityChange(element); event:StopPropagation()"
+			w.guidePenSensitivityChange = function(self, element)
+				if uiState.updatingFromCode then return end
+				if WG.TerraformBrush and element then
+					local val = tonumber(element:GetAttribute("value")) or 100
+					WG.TerraformBrush.setPenPressureSensitivity(val / 100)
+					local lbl = doc:GetElementById("pen-sensitivity-label")
+					if lbl then lbl.inner_rml = tostring(math.floor(val)) end
+				end
 			end
 			local curveIds = {
 				["btn-curve-linear"] = 1, ["btn-curve-quad"] = 2, ["btn-curve-cubic"] = 3,
 				["btn-curve-scurve"] = 4, ["btn-curve-log"] = 5,
 			}
-			for id, curveVal in pairs(curveIds) do
-				local btn = doc:GetElementById(id)
-				if btn then
-					btn:AddEventListener("click", function(event)
-						if WG.TerraformBrush then
-							WG.TerraformBrush.setPenPressureCurve(curveVal)
-							for cid, _ in pairs(curveIds) do
-								local el = doc:GetElementById(cid)
-								if el then el:SetClass("active", cid == id) end
-							end
-						end
-						event:StopPropagation()
-					end, false)
+			local curveIdsByN = {}
+			for id, n in pairs(curveIds) do curveIdsByN[n] = id end
+			-- onclick="widget:guideSetCurve(N)" with N in 1..5
+			w.guideSetCurve = function(self, n)
+				if not WG.TerraformBrush then return end
+				WG.TerraformBrush.setPenPressureCurve(n)
+				local activeId = curveIdsByN[n]
+				for cid, _ in pairs(curveIds) do
+					local el = doc:GetElementById(cid)
+					if el then el:SetClass("active", cid == activeId) end
 				end
 			end
 		end
@@ -493,44 +425,33 @@ function M.attach(doc, ctx)
 					if s then s:SetClass("active", i == spdIdx) end
 				end
 			end
-			if wiggleBtn then
-				wiggleBtn:AddEventListener("click", function(event)
-					if WG.TerraformBrush then
-						local state = WG.TerraformBrush.getState()
-						local newVal = not (state and state.wiggleEnabled)
-						playSound(newVal and "toggleOn" or "toggleOff")
-						WG.TerraformBrush.setWiggle(newVal, state and state.wiggleAmpIdx or 1, state and state.wiggleSpdIdx or 1)
-						wiggleBtn:SetClass("active", newVal)
-						local pill = doc:GetElementById("pill-wiggle-toggle")
-						if pill then pill.inner_rml = newVal and "ON" or "OFF" end
-						if wiggleSub then wiggleSub:SetClass("dj-disabled", not newVal) end
-					end
-					event:StopPropagation()
-				end, false)
+			-- onclick="widget:guideToggleWiggle()"
+			w.guideToggleWiggle = function(self)
+				if not wiggleBtn then return end
+				if WG.TerraformBrush then
+					local state = WG.TerraformBrush.getState()
+					local newVal = not (state and state.wiggleEnabled)
+					playSound(newVal and "toggleOn" or "toggleOff")
+					WG.TerraformBrush.setWiggle(newVal, state and state.wiggleAmpIdx or 1, state and state.wiggleSpdIdx or 1)
+					wiggleBtn:SetClass("active", newVal)
+					local pill = doc:GetElementById("pill-wiggle-toggle")
+					if pill then pill.inner_rml = newVal and "ON" or "OFF" end
+					if wiggleSub then wiggleSub:SetClass("dj-disabled", not newVal) end
+				end
 			end
-			for i = 1, 4 do
-				local aBtn = doc:GetElementById("btn-wiggle-amp-" .. i)
-				if aBtn then
-					aBtn:AddEventListener("click", function(event)
-						if WG.TerraformBrush then
-							local state = WG.TerraformBrush.getState()
-							WG.TerraformBrush.setWiggle(state and state.wiggleEnabled, i, state and state.wiggleSpdIdx or 1)
-							refreshWiggleChips(i, state and state.wiggleSpdIdx or 1)
-						end
-						event:StopPropagation()
-					end, false)
-				end
-				local sBtn = doc:GetElementById("btn-wiggle-spd-" .. i)
-				if sBtn then
-					sBtn:AddEventListener("click", function(event)
-						if WG.TerraformBrush then
-							local state = WG.TerraformBrush.getState()
-							WG.TerraformBrush.setWiggle(state and state.wiggleEnabled, state and state.wiggleAmpIdx or 1, i)
-							refreshWiggleChips(state and state.wiggleAmpIdx or 1, i)
-						end
-						event:StopPropagation()
-					end, false)
-				end
+			-- onclick="widget:guideWiggleAmp(N)" with N in 1..4
+			w.guideWiggleAmp = function(self, i)
+				if not WG.TerraformBrush then return end
+				local state = WG.TerraformBrush.getState()
+				WG.TerraformBrush.setWiggle(state and state.wiggleEnabled, i, state and state.wiggleSpdIdx or 1)
+				refreshWiggleChips(i, state and state.wiggleSpdIdx or 1)
+			end
+			-- onclick="widget:guideWiggleSpd(N)" with N in 1..4
+			w.guideWiggleSpd = function(self, i)
+				if not WG.TerraformBrush then return end
+				local state = WG.TerraformBrush.getState()
+				WG.TerraformBrush.setWiggle(state and state.wiggleEnabled, state and state.wiggleAmpIdx or 1, i)
+				refreshWiggleChips(state and state.wiggleAmpIdx or 1, i)
 			end
 		end
 

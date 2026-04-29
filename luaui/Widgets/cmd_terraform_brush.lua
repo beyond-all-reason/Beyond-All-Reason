@@ -19,6 +19,7 @@ local MSG = {
 	RESTORE     = "$terraform_restore$",
 	FULL_RESTORE = "$terraform_full_restore$",
 	IMPORT      = "$terraform_import$",
+	IMPORT_END  = "$terraform_import_end$",
 	UNDO        = "$terraform_undo$",
 	UNDO_STROKE = "$terraform_undo_stroke$",
 	REDO        = "$terraform_redo$",
@@ -1539,6 +1540,12 @@ local function getPreset(n)
 	return presets[n]
 end
 
+-- Heightmap import state (forward-declared before getState so import progress is visible)
+local importHeightRows = nil
+local importRowIndex = 0
+local IMPORT_ROWS_PER_FRAME = 32
+local pendingExport = false
+
 local function getState()
 	return {
 		active = activeMode ~= nil,
@@ -1621,11 +1628,6 @@ local function getState()
 		penPressureCurve = extraState.penPressureCurve,
 	}
 end
-
-local importHeightRows = nil
-local importRowIndex = 0
-local IMPORT_ROWS_PER_FRAME = 32
-local pendingExport = false
 
 -- Display list cache to avoid rebuilding geometry every frame
 local drawCacheList = nil
@@ -1713,7 +1715,10 @@ local function doExportHeightmap()
 
 	local HEIGHTMAPS_DIR = "Terraform Brush/Heightmaps/"
 	Spring.CreateDir(HEIGHTMAPS_DIR)
-	local baseName = HEIGHTMAPS_DIR .. "heightmap_export_" .. Game.mapName
+	-- Timestamped filename so multiple saves accumulate and can be listed in the
+	-- load picker (older format was a single overwriting file).
+	local stamp = os.date("%Y-%m-%d_%H-%M-%S")
+	local baseName = HEIGHTMAPS_DIR .. "heightmap_export_" .. Game.mapName .. "_" .. stamp
 	local filename = baseName .. ".png"
 
 	local fboTex = gl.CreateTexture(w, h, {
@@ -1749,7 +1754,14 @@ local function doExportHeightmap()
 				local y1 = zi / #heightGrid * 2 - 1
 				for xi = 1, #row do
 					local norm = (row[xi] - minH) / heightRange
-					gl.Color(norm, norm, norm, 1)
+					if norm < 0 then norm = 0 elseif norm > 1 then norm = 1 end
+					-- Pack 16-bit precision into R (high byte) + G (low byte).
+					-- B = 1.0 is the format marker so the loader can tell new files
+					-- from legacy 8-bit greyscale exports.
+					local packed = floor(norm * 65535 + 0.5)
+					local hi = floor(packed / 256)
+					local lo = packed - hi * 256
+					gl.Color(hi / 255, lo / 255, 1.0, 1)
 					local x0 = (xi - 1) / #row * 2 - 1
 					local x1 = xi / #row * 2 - 1
 					gl.Vertex(x0, y0, 0)
@@ -1785,12 +1797,18 @@ end
 
 local pendingImportFile = nil
 
-local function importHeightmap(_, _, args)
-	if not args or not args[1] then
+local function importHeightmap(_, optLine, args)
+	-- Filename may contain spaces (e.g. "Terraform Brush/Heightmaps/..."), so prefer
+	-- the full options line; fall back to rejoining the split args table.
+	local filename = optLine
+	if (not filename or filename == "") and args then
+		filename = table.concat(args, " ")
+	end
+	if not filename or filename == "" then
 		Echo("[Terraform Brush] Usage: /terraformimport <filename.png>")
 		return
 	end
-	pendingImportFile = args[1]
+	pendingImportFile = filename
 	Echo("[Terraform Brush] Import queued: " .. pendingImportFile)
 end
 
@@ -1879,23 +1897,41 @@ local function doImportHeightmapRead()
 	end
 
 	local heightRange = maxH - minH
+	-- gl.ReadPixels returns res[row+1][col+1] (outer = row/y, inner = col/x).
+	-- Export writes world X to image x, world Z to image y, with z=0 at bottom of FBO
+	-- (and gl.SaveImage yflip=false keeps that GL bottom-origin in the PNG). The round-trip
+	-- preserves orientation, so pixel (px, py) maps directly to (X=px*sq, Z=py*sq).
+	local pixelHeight = #res
+	local pixelWidth = #res[1]
 	local columns = {}
-	for col = 1, #res do
-		local row = res[col]
-		local numRows = #row
+	for px = 1, pixelWidth do
 		local heights = {}
-		for rowIdx = 1, numRows do
-			local flippedIdx = numRows - rowIdx + 1
-			local pixel = row[flippedIdx]
-			local grey = (pixel[1] + pixel[2] + pixel[3]) / 3
-			heights[rowIdx] = minH + grey * heightRange
+		for py = 1, pixelHeight do
+			local pixel = res[py][px]
+			local norm
+			-- B near 1.0 marks the 16-bit packed format (R = hi byte, G = lo byte).
+			-- Older greyscale exports have B == R == G, so B will not be saturated
+			-- unless the height happens to be max — fall back to grey averaging in
+			-- that case still works because packed encoding gives the same result
+			-- when R == G == 1.
+			if pixel[3] and pixel[3] > 0.95 and not (pixel[1] > 0.95 and pixel[2] > 0.95) then
+				local hi = floor(pixel[1] * 255 + 0.5)
+				local lo = floor(pixel[2] * 255 + 0.5)
+				norm = (hi * 256 + lo) / 65535
+			elseif pixel[3] and pixel[3] > 0.95 then
+				-- saturated marker AND saturated R/G → max height
+				norm = 1
+			else
+				norm = (pixel[1] + pixel[2] + pixel[3]) / 3
+			end
+			heights[py] = minH + norm * heightRange
 		end
-		columns[col] = heights
+		columns[px] = heights
 	end
 
 	importHeightRows = columns
 	importRowIndex = 0
-	Echo("[Terraform Brush] Loaded " .. filename .. " (" .. #res .. "x" .. #res[1] .. "), applying " .. IMPORT_ROWS_PER_FRAME .. " cols/frame...")
+	Echo("[Terraform Brush] Loaded " .. filename .. " (" .. pixelWidth .. "x" .. pixelHeight .. "), applying " .. IMPORT_ROWS_PER_FRAME .. " cols/frame...")
 end
 
 local function doImportHeightmapSend()
@@ -1929,6 +1965,14 @@ local function doImportHeightmapSend()
 		Echo("[Terraform Brush] Heightmap import complete!")
 		importHeightRows = nil
 		importRowIndex = 0
+		-- Synced SetHeightMap calls land asynchronously; the GPU mesh + shadow
+		-- pass don't refresh in regions the camera hasn't dirtied. Tell the
+		-- gadget to force a full-map dirty (AdjustHeightMap by 0), then run a
+		-- prolonged tessellation refresh covering normal + shadow passes so
+		-- the entire imported map redraws without requiring a local edit.
+		SendLuaRulesMsg(MSG.IMPORT_END)
+		tessellationDirtyFrames = 60
+		extraState._importNeedsShadowRefresh = 60
 	end
 end
 
@@ -2229,6 +2273,39 @@ function widget:Initialize()
 		getPresetNames = getPresetNames,
 		isBuiltinPreset = isBuiltinPreset,
 		getPreset = getPreset,
+		listHeightmaps = function()
+			local HEIGHTMAPS_DIR = "Terraform Brush/Heightmaps/"
+			local files = VFS.DirList(HEIGHTMAPS_DIR, "*.png", VFS.RAW)
+			local out = {}
+			if not files then return out end
+			local mapName = Game.mapName or ""
+			local mapPrefix = "heightmap_export_" .. mapName
+			for _, path in ipairs(files) do
+				local base = path:match("([^/\\]+)%.png$") or path
+				-- Match "heightmap_export_<mapName>_<YYYY-MM-DD_HH-MM-SS>" and the
+				-- legacy un-stamped "heightmap_export_<mapName>" form.
+				local stamp = base:match("^" .. mapPrefix:gsub("[%-%+%[%]%(%)%$%^%%%?%*%.]", "%%%1") .. "_(.+)$")
+				local isThisMap = (base == mapPrefix) or (stamp ~= nil)
+				if isThisMap then
+					local label
+					local sortKey = stamp or "0"
+					if stamp then
+						-- stamp format YYYY-MM-DD_HH-MM-SS → display as "YYYY-MM-DD HH:MM"
+						local y, mo, d, h, mi = stamp:match("^(%d+)%-(%d+)%-(%d+)_(%d+)%-(%d+)")
+						if y then
+							label = string.format("%s-%s-%s %s:%s", y, mo, d, h, mi)
+						else
+							label = stamp
+						end
+					else
+						label = "(legacy)"
+					end
+					out[#out + 1] = { path = path, label = label, sortKey = sortKey }
+				end
+			end
+			table.sort(out, function(a, b) return a.sortKey > b.sortKey end)
+			return out
+		end,
 		deactivate = deactivateTerraform,
 		undo = function()
 			if historyUndoCount > 0 then
@@ -5663,8 +5740,12 @@ end
 
 function widget:DrawWorld()
 	if tessellationDirtyFrames > 0 then
-		ForceTesselationUpdate(true)
+		local needShadow = (extraState._importNeedsShadowRefresh or 0) > 0
+		ForceTesselationUpdate(true, needShadow)
 		tessellationDirtyFrames = tessellationDirtyFrames - 1
+		if needShadow then
+			extraState._importNeedsShadowRefresh = extraState._importNeedsShadowRefresh - 1
+		end
 	end
 
 	-- Full-map grid overlay: visible across the whole map regardless of brush active state

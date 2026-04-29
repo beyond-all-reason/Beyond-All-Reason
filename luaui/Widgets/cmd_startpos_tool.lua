@@ -153,6 +153,10 @@ local startboxes     = {}   -- { {vertices={{x=,z=}, ...}, allyTeam=}, ... }
 -- Needed because removeLastStartbox / clearAllStartboxes / drag handlers reference them from
 -- this upper part of the file.
 local ensureBoxFillList, invalidateBoxFill, freeBoxFillList
+-- Forward decl: world radius needed for a constant on-screen pixel size at (wx, wz).
+-- Used by DrawWorld for handles/arrows so they keep size while zooming. Defined alongside
+-- getScreenMarker further down in the rendering section.
+local worldRadiusForScreenPx
 local startboxMode   = "polygon" -- "polygon" | "box" | "freedraw"
 local drawingBox     = false
 local currentBoxVerts = {}
@@ -192,6 +196,10 @@ local mouseDownWorldZ = nil
 local hoverPosIdx    = nil  -- index of position currently hovered (express mode)
 local hoverBoxIdx    = nil  -- which startbox is being vertex-hovered
 local hoverVertIdx   = nil
+-- Polygon edge-midpoint hover: shows a "ghost" handle at the middle of a polygon edge
+-- so the user can click/hold there to insert a new vertex (which immediately becomes a
+-- live drag handle). { bi, edgeIdx, x, z } — edgeIdx is index of the edge's start vertex.
+local hoverPolyEdge  = nil
 
 -- Undo history: each entry = { count=N, prevNextAllyTeam=M }
 -- Means: the last N entries in `positions` were added in one action;
@@ -703,9 +711,14 @@ end
 
 local function findNearestBoxVertex(wx, wz)
 	for bi, box in ipairs(startboxes) do
-		-- Axis-aligned rectangles ("box" kind) are edge-draggable only — corners are NOT handles.
 		if box.kind == "box" then
-			-- skip: handled by findNearestBoxEdge
+			-- Axis-aligned rectangles: corners ARE drag handles too (in addition to edges).
+			-- Dragging a corner moves both adjacent edges so the rect stays axis-aligned.
+			for vi, v in ipairs(box.vertices) do
+				if distSq(wx, wz, v.x, v.z) < VERTEX_PICK_DIST_SQ then
+					return bi, vi
+				end
+			end
 		elseif box.kind == "spline" and box.controls then
 			-- Spline-kind boxes expose their control points as drag handles (not the dense
 			-- tessellated vertices). Dragging a control moves the whole curve smoothly.
@@ -792,6 +805,44 @@ local function findNearestBoxEdge(wx, wz)
 		end
 	end
 	return nil, nil
+end
+
+-- Polygon-kind boxes (kind == nil or "polygon") expose an edge-midpoint "ghost" handle for
+-- inserting a new vertex. Returns box index, edge index (= start-vertex index), and the
+-- midpoint world coords; nil if no edge mid is within VERTEX_PICK_DIST_SQ of the cursor.
+local function isPolygonKind(box)
+	return box.kind == nil or box.kind == "polygon"
+end
+
+-- Returns the editable-handle list for a box (polygon: vertices; spline: controls). Nil for
+-- "box"-kind axis-aligned rects (those use edge resize, not handle insertion).
+local function getEditHandles(box)
+	if isPolygonKind(box) then return box.vertices end
+	if box.kind == "spline" then return box.controls end
+	return nil
+end
+
+local function findNearestPolygonEdgeMid(wx, wz)
+	local bestD = VERTEX_PICK_DIST_SQ
+	local bestBi, bestEi, bestMx, bestMz = nil, nil, nil, nil
+	for bi, box in ipairs(startboxes) do
+		local handles = getEditHandles(box)
+		if handles and #handles >= 3 then
+			local n = #handles
+			for i = 1, n do
+				local a = handles[i]
+				local b = handles[(i % n) + 1]
+				local mx = (a.x + b.x) * 0.5
+				local mz = (a.z + b.z) * 0.5
+				local d = distSq(wx, wz, mx, mz)
+				if d < bestD then
+					bestD = d
+					bestBi, bestEi, bestMx, bestMz = bi, i, mx, mz
+				end
+			end
+		end
+	end
+	return bestBi, bestEi, bestMx, bestMz
 end
 
 -- ============================================================
@@ -1372,6 +1423,27 @@ function widget:MousePress(mx, my, button)
 				dragging = false
 				return true
 			end
+			-- Polygon edge-midpoint: clicking the ghost handle inserts a new vertex on that edge
+			-- and immediately starts dragging it, so the user can place it where they want.
+			local pbi, pei, pmx, pmz = findNearestPolygonEdgeMid(wx, wz)
+			if pbi and pei then
+				local box = startboxes[pbi]
+				local handles = box and getEditHandles(box)
+				if handles then
+					local insertAt = pei + 1
+					table.insert(handles, insertAt, { x = pmx, z = pmz })
+					if box.kind == "spline" then
+						retessellateSpline(box)
+					end
+					invalidateBoxFill(box)
+					boxDragIdx = insertAt
+					boxDragBoxIdx = pbi
+					dragStartX = mx
+					dragStartY = my
+					dragging = false
+					return true
+				end
+			end
 			-- Edge drag for axis-aligned "box"-kind startboxes (4 corners, no vertex handles).
 			local ebi, edge = findNearestBoxEdge(wx, wz)
 			if ebi and edge then
@@ -1417,6 +1489,24 @@ function widget:MousePress(mx, my, button)
 				return true
 			end
 		elseif button == 3 then
+			-- RMB on an existing polygon vertex: delete it (must keep at least 3 verts).
+			-- Check this before the polygon-finish/cancel/remove-last branches so users can
+			-- prune vertices from a finished polygon without dropping the whole box.
+			do
+				local dbi, dvi = findNearestBoxVertex(wx, wz)
+				if dbi and dvi then
+					local box = startboxes[dbi]
+					local handles = box and getEditHandles(box)
+					if handles and #handles > 3 then
+						table.remove(handles, dvi)
+						if box.kind == "spline" then
+							retessellateSpline(box)
+						end
+						invalidateBoxFill(box)
+						return true
+					end
+				end
+			end
 			-- RMB: Finish current polygon OR cancel drag-rect / free-draw, else remove last placed box
 			if startboxMode == "polygon" and drawingBox and #currentBoxVerts >= 3 then
 				finishStartbox()
@@ -1478,6 +1568,28 @@ function widget:MouseMove(mx, my, dx, dy, button)
 						v.x, v.z = clampToMap(wx, wz)
 						retessellateSpline(box)
 					end
+				elseif box.kind == "box" and #box.vertices == 4 then
+					-- Axis-aligned corner drag: move the dragged corner, then propagate its X/Z
+					-- to its two neighbours so all 4 corners stay rectilinear (CCW order:
+					-- 1=(minX,minZ), 2=(maxX,minZ), 3=(maxX,maxZ), 4=(minX,maxZ)).
+					local cx, cz = clampToMap(wx, wz)
+					local i = boxDragIdx
+					-- Determine the diagonally-opposite corner (kept fixed) and enforce a
+					-- minimum size so the rect can't collapse / invert during the drag.
+					local opp = ((i + 1) % 4) + 1  -- 1<->3, 2<->4
+					local ox, oz = box.vertices[opp].x, box.vertices[opp].z
+					local MIN_SIZE = 50
+					if cx > ox then cx = math_max(cx, ox + MIN_SIZE)
+					else            cx = math_min(cx, ox - MIN_SIZE) end
+					if cz > oz then cz = math_max(cz, oz + MIN_SIZE)
+					else            cz = math_min(cz, oz - MIN_SIZE) end
+					local minX, maxX = math_min(cx, ox), math_max(cx, ox)
+					local minZ, maxZ = math_min(cz, oz), math_max(cz, oz)
+					box.vertices[1].x, box.vertices[1].z = minX, minZ
+					box.vertices[2].x, box.vertices[2].z = maxX, minZ
+					box.vertices[3].x, box.vertices[3].z = maxX, maxZ
+					box.vertices[4].x, box.vertices[4].z = minX, maxZ
+					invalidateBoxFill(box)
 				else
 					local v = box.vertices[boxDragIdx]
 					if v then
@@ -1504,18 +1616,50 @@ function widget:MouseMove(mx, my, dx, dy, button)
 			if box then
 				local dwx = wx - boxBodyDrag.lastX
 				local dwz = wz - boxBodyDrag.lastZ
-				boxBodyDrag.lastX = wx
-				boxBodyDrag.lastZ = wz
+				-- Clamp the delta against the union bbox of vertices+controls so the whole shape
+				-- "docks" against the map edge instead of compressing (per-vertex clampToMap was
+				-- crushing corners that crossed the boundary). This keeps the box rigid at edges.
+				local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
+				local minX, maxX = math.huge, -math.huge
+				local minZ, maxZ = math.huge, -math.huge
+				if box.vertices then
+					for _, v in ipairs(box.vertices) do
+						if v.x < minX then minX = v.x end
+						if v.x > maxX then maxX = v.x end
+						if v.z < minZ then minZ = v.z end
+						if v.z > maxZ then maxZ = v.z end
+					end
+				end
+				if box.controls then
+					for _, v in ipairs(box.controls) do
+						if v.x < minX then minX = v.x end
+						if v.x > maxX then maxX = v.x end
+						if v.z < minZ then minZ = v.z end
+						if v.z > maxZ then maxZ = v.z end
+					end
+				end
+				if minX ~= math.huge then
+					if dwx < -minX        then dwx = -minX        end
+					if dwx >  mapX - maxX then dwx =  mapX - maxX end
+					if dwz < -minZ        then dwz = -minZ        end
+					if dwz >  mapZ - maxZ then dwz =  mapZ - maxZ end
+				end
+				-- Advance the drag origin only by the delta we actually applied so the box
+				-- "sticks" to the edge while the cursor keeps moving outward (Windows-dock feel).
+				boxBodyDrag.lastX = boxBodyDrag.lastX + dwx
+				boxBodyDrag.lastZ = boxBodyDrag.lastZ + dwz
 				-- Translate vertices
 				if box.vertices then
 					for _, v in ipairs(box.vertices) do
-						v.x, v.z = clampToMap(v.x + dwx, v.z + dwz)
+						v.x = v.x + dwx
+						v.z = v.z + dwz
 					end
 				end
 				-- Translate spline control points in lockstep (preserves shape)
 				if box.controls then
 					for _, v in ipairs(box.controls) do
-						v.x, v.z = clampToMap(v.x + dwx, v.z + dwz)
+						v.x = v.x + dwx
+						v.z = v.z + dwz
 					end
 				end
 				invalidateBoxFill(box)
@@ -1770,6 +1914,10 @@ local function buildPolygonFillList(verts, lift, cellSize)
 	cx, cz = cx / n, cz / n
 	return glCreateList(function()
 		glBeginEnd(GL_TRIANGLES, function()
+			-- Flat scratch buffer reused across all triangles. row[ri] holds (ri+1) vertices,
+			-- each as 3 consecutive entries (px,py,pz). Index of vertex j (0..ri) on row ri is
+			-- (ri*(ri+1)/2 + j) * 3. One allocation per fan instead of ~50 per fan.
+			local rowBuf = {}
 			for i = 1, n do
 				local a1 = verts[i]
 				local b1 = verts[(i % n) + 1]
@@ -1777,39 +1925,40 @@ local function buildPolygonFillList(verts, lift, cellSize)
 				local eCA = math_sqrt((a1.x - cx)  * (a1.x - cx)  + (a1.z - cz)  * (a1.z - cz))
 				local eCB = math_sqrt((b1.x - cx)  * (b1.x - cx)  + (b1.z - cz)  * (b1.z - cz))
 				local N   = math_max(1, math.ceil(math_max(eAB, eCA, eCB) / cellSize))
-				-- rows[ri+1][j+1] = {px, py, pz}; reuse nested table across row levels.
-				local rows = {}
+				local invN = 1 / N
 				for ri = 0, N do
-					local tC = 1 - ri / N
-					local row = {}
+					local tC = 1 - ri * invN
+					local rowBase = ri * (ri + 1) * 0.5  -- (ri*(ri+1))/2 vertices before this row
 					for j = 0, ri do
-						local wA = ri == 0 and 0 or (ri - j) / N
-						local wB = ri == 0 and 0 or j / N
+						local wA, wB
+						if ri == 0 then wA, wB = 0, 0 else wA = (ri - j) * invN; wB = j * invN end
 						local px = tC * cx + wA * a1.x + wB * b1.x
 						local pz = tC * cz + wA * a1.z + wB * b1.z
 						local py = (GetGroundHeight(px, pz) or 0) + lift
-						row[j + 1] = { px, py, pz }
+						local k  = (rowBase + j) * 3
+						rowBuf[k + 1] = px
+						rowBuf[k + 2] = py
+						rowBuf[k + 3] = pz
 					end
-					rows[ri + 1] = row
 				end
 				for ri = 0, N - 1 do
-					local rU = rows[ri + 1]
-					local rD = rows[ri + 2]
+					local rUBase = ri * (ri + 1) * 0.5
+					local rDBase = (ri + 1) * (ri + 2) * 0.5
 					for j = 0, ri do
-						local u  = rU[j + 1]
-						local d1 = rD[j + 1]
-						local d2 = rD[j + 2]
-						glVertex(u[1],  u[2],  u[3])
-						glVertex(d1[1], d1[2], d1[3])
-						glVertex(d2[1], d2[2], d2[3])
+						local uK  = (rUBase + j)     * 3
+						local d1K = (rDBase + j)     * 3
+						local d2K = (rDBase + j + 1) * 3
+						glVertex(rowBuf[uK + 1],  rowBuf[uK + 2],  rowBuf[uK + 3])
+						glVertex(rowBuf[d1K + 1], rowBuf[d1K + 2], rowBuf[d1K + 3])
+						glVertex(rowBuf[d2K + 1], rowBuf[d2K + 2], rowBuf[d2K + 3])
 					end
 					for j = 0, ri - 1 do
-						local u1 = rU[j + 1]
-						local d  = rD[j + 2]
-						local u2 = rU[j + 2]
-						glVertex(u1[1], u1[2], u1[3])
-						glVertex(d[1],  d[2],  d[3])
-						glVertex(u2[1], u2[2], u2[3])
+						local u1K = (rUBase + j)     * 3
+						local dK  = (rDBase + j + 1) * 3
+						local u2K = (rUBase + j + 1) * 3
+						glVertex(rowBuf[u1K + 1], rowBuf[u1K + 2], rowBuf[u1K + 3])
+						glVertex(rowBuf[dK  + 1], rowBuf[dK  + 2], rowBuf[dK  + 3])
+						glVertex(rowBuf[u2K + 1], rowBuf[u2K + 2], rowBuf[u2K + 3])
 					end
 				end
 			end
@@ -1818,23 +1967,39 @@ local function buildPolygonFillList(verts, lift, cellSize)
 end
 
 -- Ensures box has a current fill display list; rebuilds only when marked dirty.
-local BOX_FILL_CELL = 20   -- world units per tessellation cell (lower = higher fidelity)
-local BOX_FILL_LIFT = 2
+local BOX_FILL_CELL          = 20   -- world units per tessellation cell (lower = higher fidelity)
+local BOX_FILL_LIFT          = 2
+local BOX_FILL_DRAG_INTERVAL = 4    -- during drag, rebuild list at most every Nth draw frame
 ensureBoxFillList = function(box)
 	if box._fillList and not box._fillDirty then return box._fillList end
-	-- Defer the expensive triangulation while a drag is in progress. buildPolygonFillList
-	-- does O(N^2) fan subdivision with per-sample GetGroundHeight + nested row tables; running
-	-- it every mousemove on a large freedraw spline was burning thousands of allocs per frame
-	-- and tripping the LuaRAM warning. Outline rendering uses box.vertices directly so the
-	-- shape still updates live — only the translucent fill catches up on release.
-	if isDraggingBox and box._fillList then return box._fillList end
+	-- During drag, large polygon/spline shapes (>12 verts) defer the expensive triangulation
+	-- to MouseRelease — buildPolygonFillList does O(N^2) fan subdivision that can burn thousands
+	-- of allocs per frame on a freedraw spline. Small shapes (boxes — 4 verts — and simple polys)
+	-- rebuild every frame so the fill follows the drag in real time. We also coarsen the cell
+	-- size during drag so even mid-size polys stay responsive.
+	local verts = box.vertices
+	local nv = verts and #verts or 0
+	if isDraggingBox and box._fillList then
+		if nv > 12 then return box._fillList end
+		-- Throttle rebuild rate during drag so the GL display list isn't recreated every frame
+		-- (each rebuild allocates ~N² entries in the row scratch buffer + one new GL list, which
+		-- previously triggered the 1.2GB LuaRAM emergency GC during edge drags). Visually this
+		-- is ~15Hz updates instead of ~60Hz — still reads as live without the alloc storm.
+		local frame = GetDrawFrame and GetDrawFrame() or 0
+		if box._fillLastFrame and (frame - box._fillLastFrame) < BOX_FILL_DRAG_INTERVAL then
+			return box._fillList
+		end
+		box._fillLastFrame = frame
+	end
 	if box._fillList then
 		glDeleteList(box._fillList)
 		box._fillList = nil
 	end
-	box._fillList = buildPolygonFillList(box.vertices, BOX_FILL_LIFT, BOX_FILL_CELL)
-	box._fillDirty = false
+	local cell = isDraggingBox and (BOX_FILL_CELL * 3) or BOX_FILL_CELL
+	box._fillList = buildPolygonFillList(verts, BOX_FILL_LIFT, cell)
+	box._fillDirty = isDraggingBox  -- final crisp rebuild on release
 	box._fillNeedsRebuild = false
+	if not isDraggingBox then box._fillLastFrame = nil end
 	return box._fillList
 end
 
@@ -2021,6 +2186,7 @@ function widget:Update()
 	hoverBoxIdx  = nil
 	hoverVertIdx = nil
 	hoverBoxEdge = nil
+	hoverPolyEdge = nil
 	if not active then
 		if WG.StartPosTool then WG.StartPosTool.hoveringDraggable = false end
 		return
@@ -2046,12 +2212,17 @@ function widget:Update()
 				local ebi, edge = findNearestBoxEdge(wx, wz)
 				if ebi and edge then
 					hoverBoxEdge = { bi = ebi, edge = edge }
+				else
+					local pbi, pei, pmx, pmz = findNearestPolygonEdgeMid(wx, wz)
+					if pbi and pei then
+						hoverPolyEdge = { bi = pbi, edgeIdx = pei, x = pmx, z = pmz }
+					end
 				end
 			end
 		end
 	end
 
-	local shouldMove = (hoverPosIdx ~= nil) or (hoverVertIdx ~= nil) or (hoverBoxEdge ~= nil)
+	local shouldMove = (hoverPosIdx ~= nil) or (hoverVertIdx ~= nil) or (hoverBoxEdge ~= nil) or (hoverPolyEdge ~= nil)
 	if WG.StartPosTool then WG.StartPosTool.hoveringDraggable = shouldMove end
 end
 
@@ -2197,24 +2368,29 @@ function widget:DrawWorld()
 				}
 				for name, mp in pairs(midEdges) do
 					local isHover = (hoverBoxEdge and hoverBoxEdge.bi == bi and hoverBoxEdge.edge == name)
-					local size = isHover and 56 or 40   -- arrow tip size (world units along normal)
+					-- Constant-screen-px sizing so arrows stay readable at any zoom.
+					local sizePx = isHover and 22 or 16
+					local size = worldRadiusForScreenPx(mp.x, mp.z, sizePx)
 					local half = size * 0.55            -- half-base along the edge tangent
 					local gap  = size * 0.35            -- clearance from the edge line so tips don't overlap
-					glColor(color[1], color[2], color[3], isHover and 1.0 or 0.9)
+					local rim  = worldRadiusForScreenPx(mp.x, mp.z, 1.5)  -- 1.5px dark rim halo
 					-- Two tips: one OUTSIDE the rect (apex pointing outward = +normal) and one
 					-- INSIDE (apex pointing inward = -normal). Together they read as an
 					-- up-and-down / left-and-right resize affordance across the edge.
-					local function emitTip(signNormal)
+					local function emitTip(signNormal, expand)
 						-- Base center is offset `gap` off the edge along signNormal; apex is
 						-- another `size` further along the same direction.
-						local bcx = mp.x + signNormal * gap * mp.nx
-						local bcz = mp.z + signNormal * gap * mp.nz
-						local apx = bcx + signNormal * size * mp.nx
-						local apz = bcz + signNormal * size * mp.nz
-						local b1x = bcx + mp.tx *  half
-						local b1z = bcz + mp.tz *  half
-						local b2x = bcx - mp.tx *  half
-						local b2z = bcz - mp.tz *  half
+						local sz   = size + (expand or 0)
+						local hf   = half + (expand or 0)
+						local gp   = math_max(0, gap - (expand or 0))
+						local bcx = mp.x + signNormal * gp * mp.nx
+						local bcz = mp.z + signNormal * gp * mp.nz
+						local apx = bcx + signNormal * sz * mp.nx
+						local apz = bcz + signNormal * sz * mp.nz
+						local b1x = bcx + mp.tx *  hf
+						local b1z = bcz + mp.tz *  hf
+						local b2x = bcx - mp.tx *  hf
+						local b2z = bcz - mp.tz *  hf
 						local apy = (GetGroundHeight(apx, apz) or 0) + 6
 						local b1y = (GetGroundHeight(b1x, b1z) or 0) + 6
 						local b2y = (GetGroundHeight(b2x, b2z) or 0) + 6
@@ -2222,9 +2398,17 @@ function widget:DrawWorld()
 						glVertex(b1x, b1y, b1z)
 						glVertex(b2x, b2y, b2z)
 					end
+					-- Dark crisp rim (slightly inflated triangle behind the colored fill).
+					glColor(0, 0, 0, isHover and 0.85 or 0.70)
 					glBeginEnd(GL_TRIANGLES, function()
-						emitTip( 1)  -- outer tip
-						emitTip(-1)  -- inner tip
+						emitTip( 1, rim)
+						emitTip(-1, rim)
+					end)
+					-- Flat solid color fill (matches handle disk styling).
+					glColor(color[1], color[2], color[3], isHover and 1.0 or 0.92)
+					glBeginEnd(GL_TRIANGLES, function()
+						emitTip( 1, 0)
+						emitTip(-1, 0)
 					end)
 					if isHover then
 						-- Bright outline around both tips to highlight the picked edge
@@ -2252,19 +2436,83 @@ function widget:DrawWorld()
 						outlineTip(-1)
 					end
 				end
+				-- Corner handles for box-kind: draggable to resize from a corner (rect stays
+				-- axis-aligned via the MouseMove drag handler).
+				for vi, v in ipairs(verts) do
+					local vy = GetGroundHeight(v.x, v.z) or 0
+					local isHoverVert = (hoverBoxIdx == bi and hoverVertIdx == vi)
+					local rPx   = isHoverVert and 22 or 14
+					local vertR = worldRadiusForScreenPx(v.x, v.z, rPx)
+					local rim   = worldRadiusForScreenPx(v.x, v.z, 1.5)
+					local cy    = vy + 5
+					local segs  = 22
+					-- Dark crisp outline (matches arrow rim aesthetic).
+					glBeginEnd(GL_TRIANGLE_FAN, function()
+						glColor(0, 0, 0, isHoverVert and 0.85 or 0.70)
+						glVertex(v.x, cy - 0.1, v.z)
+						for s = 0, segs do
+							local a = (s / segs) * 2 * math.pi
+							glVertex(v.x + math_cos(a) * (vertR + rim), cy - 0.1, v.z + math_sin(a) * (vertR + rim))
+						end
+					end)
+					-- Flat solid color disk (same color/alpha as the arrows).
+					glBeginEnd(GL_TRIANGLE_FAN, function()
+						glColor(color[1], color[2], color[3], isHoverVert and 1.0 or 0.92)
+						glVertex(v.x, cy, v.z)
+						for s = 0, segs do
+							local a = (s / segs) * 2 * math.pi
+							glVertex(v.x + math_cos(a) * vertR, cy, v.z + math_sin(a) * vertR)
+						end
+					end)
+					if isHoverVert then
+						glColor(1, 1, 1, 0.55)
+						glLineWidth(2.0)
+						glDrawGroundCircle(v.x, vy, v.z, vertR + worldRadiusForScreenPx(v.x, v.z, 4), 24)
+					end
+				end
 			else
 				local handles = (box.kind == "spline" and box.controls) or verts
 				for vi, v in ipairs(handles) do
 					local vy = GetGroundHeight(v.x, v.z) or 0
 					local isHoverVert = (hoverBoxIdx == bi and hoverVertIdx == vi)
-					local vertR = isHoverVert and 46 or 30
-					glColor(color[1], color[2], color[3], isHoverVert and 1.0 or 0.9)
-					glDrawGroundCircle(v.x, vy, v.z, vertR, 14)
+					local rPx   = isHoverVert and 22 or 14
+					local vertR = worldRadiusForScreenPx(v.x, v.z, rPx)
+					local rim   = worldRadiusForScreenPx(v.x, v.z, 1.5)
+					local cy    = vy + 5
+					local segs  = 22
+					glBeginEnd(GL_TRIANGLE_FAN, function()
+						glColor(0, 0, 0, isHoverVert and 0.85 or 0.70)
+						glVertex(v.x, cy - 0.1, v.z)
+						for s = 0, segs do
+							local a = (s / segs) * 2 * math.pi
+							glVertex(v.x + math_cos(a) * (vertR + rim), cy - 0.1, v.z + math_sin(a) * (vertR + rim))
+						end
+					end)
+					glBeginEnd(GL_TRIANGLE_FAN, function()
+						glColor(color[1], color[2], color[3], isHoverVert and 1.0 or 0.92)
+						glVertex(v.x, cy, v.z)
+						for s = 0, segs do
+							local a = (s / segs) * 2 * math.pi
+							glVertex(v.x + math_cos(a) * vertR, cy, v.z + math_sin(a) * vertR)
+						end
+					end)
 					if isHoverVert then
-						glColor(1, 1, 1, 0.6)
+						glColor(1, 1, 1, 0.55)
 						glLineWidth(2.0)
-						glDrawGroundCircle(v.x, vy, v.z, vertR * 1.4, 18)
+						glDrawGroundCircle(v.x, vy, v.z, vertR + worldRadiusForScreenPx(v.x, v.z, 4), 24)
 					end
+				end
+				-- Polygon / spline edge-midpoint ghost handle: faint circle at the edge midpoint
+				-- under the cursor; clicking it inserts a new vertex / control point there and
+				-- starts a drag (spline retessellates on each move).
+				if hoverPolyEdge and hoverPolyEdge.bi == bi then
+					local gmx, gmz = hoverPolyEdge.x, hoverPolyEdge.z
+					local gy = GetGroundHeight(gmx, gmz) or 0
+					glColor(color[1], color[2], color[3], 0.55)
+					glDrawGroundCircle(gmx, gy, gmz, 28, 14)
+					glColor(1, 1, 1, 0.55)
+					glLineWidth(1.5)
+					glDrawGroundCircle(gmx, gy, gmz, 36, 18)
 				end
 				-- Spline: show the control polygon as a faint closed polyline so the user sees
 				-- the handle skeleton behind the smoothed curve.
@@ -2382,19 +2630,32 @@ local function getScreenMarker(wx, wz, worldRadius)
 	return cx, cy, screenR, true
 end
 
+-- World radius needed at (wx, wz) so the resulting on-screen size is `screenPx` pixels.
+-- Lets handles/arrows keep a constant pixel size at any zoom level.
+worldRadiusForScreenPx = function(wx, wz, screenPx)
+	local gy = GetGroundHeight(wx, wz) or 0
+	local sx0, sy0, sz0 = WorldToScreenCoords(wx, gy, wz)
+	if not sz0 or sz0 <= 0 or sz0 >= 1 then return screenPx end
+	local probe = 100
+	local sxe, sye = WorldToScreenCoords(wx + probe, gy, wz)
+	if not sxe then return screenPx end
+	local pxPerWorld = math_sqrt((sxe - sx0) * (sxe - sx0) + (sye - sy0) * (sye - sy0)) / probe
+	if pxPerWorld < 0.0001 then return screenPx end
+	return screenPx / pxPerWorld
+end
+
 -- Minimum screen-space padding between marker top and text bottom
 local LABEL_PAD = 18
 
 local glGetTextWidth = gl.GetTextWidth
 
--- Draw a sleek screen-space badge: colored left-bar + large team number + faction name + allyteam tag.
+-- Draw a sleek screen-space badge: colored left-bar + "Team N" label.
 -- Uses filled quads via glBeginEnd + glText. "2026" aesthetic: minimal, high-contrast, CHUNKY.
 local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, fontSize, hovered)
 	local padX, padY = 14, 10
 	local barW = 5
 	local gap  = 10
-	local numStr = "Team" .. tostring(allyTeamNum)
-	local plStr  = "P" .. tostring(playerIdx)
+	local label = "Team " .. tostring(allyTeamNum)
 
 	-- Measure text widths in pixels (gl.GetTextWidth returns factor to multiply by fontSize)
 	local function measure(s, sz)
@@ -2402,13 +2663,9 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, 
 		return w * sz
 	end
 	local bigSize    = fontSize
-	local smallSize  = fontSize * 0.55
-	local numW       = measure(numStr, bigSize)
-	local nameW      = measure(teamName:upper(), smallSize)
-	local plW        = measure(plStr, smallSize)
-	local textW      = math_max(numW, nameW + plW + 12)
+	local textW      = measure(label, bigSize)
 	local w          = barW + gap + textW + padX * 2
-	local h          = bigSize * 1.18 + smallSize * 1.1 + padY * 2
+	local h          = bigSize * 1.18 + padY * 2
 	local bx         = cx - w * 0.5
 	local by         = cy
 
@@ -2460,27 +2717,13 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, 
 		glVertex(bx + padX + barW + 1, by + h - padY)
 	end)
 
-	-- Text
+	-- "Team N" label (shadow + color-bright)
 	local textX = bx + padX + barW + gap
 	local textY = by + padY
-	-- Big allyteam label (shadow + color-bright)
 	glColor(0, 0, 0, 0.90)
-	glText(numStr, textX + 2, textY + 2, bigSize, "o")
+	glText(label, textX + 2, textY + 2, bigSize, "o")
 	glColor(math_min(1, color[1] * 0.55 + 0.45), math_min(1, color[2] * 0.55 + 0.45), math_min(1, color[3] * 0.55 + 0.45), 1.0)
-	glText(numStr, textX, textY, bigSize, "o")
-
-	-- Second line: TEAM_NAME + player index
-	local smallY = textY + bigSize * 1.05
-	glColor(0, 0, 0, 0.85)
-	glText(teamName:upper(), textX + 1, smallY + 1, smallSize, "o")
-	glColor(0.88, 0.92, 0.98, 0.95)
-	glText(teamName:upper(), textX, smallY, smallSize, "o")
-	-- Player index right-aligned-ish
-	local plX = bx + w - padX - plW
-	glColor(0, 0, 0, 0.85)
-	glText(plStr, plX + 1, smallY + 1, smallSize, "o")
-	glColor(color[1], color[2], color[3], 0.95)
-	glText(plStr, plX, smallY, smallSize, "o")
+	glText(label, textX, textY, bigSize, "o")
 end
 
 function widget:DrawScreenEffects()
@@ -2502,18 +2745,34 @@ function widget:DrawScreenEffects()
 	-- Startbox labels: centroid card
 	for _, box in ipairs(startboxes) do
 		if #box.vertices >= 3 then
-			local cx, cz = 0, 0
+			-- Place the badge above the box's TOP screen edge so it doesn't sit on top of
+			-- the body-drag affordance at the centroid. Find the smallest screen-y across
+			-- the projected vertices, pick its X for horizontal anchoring, then offset up.
+			local bestSx, bestSy, bestVis
 			for _, v in ipairs(box.vertices) do
-				cx = cx + v.x
-				cz = cz + v.z
+				local vy = GetGroundHeight(v.x, v.z) or 0
+				local sx, sy, sz = WorldToScreenCoords(v.x, vy, v.z)
+				if sz and sz > 0 and sz < 1 then
+					if (not bestSy) or sy > bestSy then  -- screen y grows downward; max sy = top of screen
+						bestSy = sy
+						bestSx = sx
+						bestVis = true
+					end
+				end
 			end
-			cx = cx / #box.vertices
-			cz = cz / #box.vertices
-			local cy = GetGroundHeight(cx, cz) or 0
-			local bsx, bsy, bsz = WorldToScreenCoords(cx, cy, cz)
-			if bsz and bsz > 0 and bsz < 1 then
+			if not bestVis then
+				-- Fallback: centroid (e.g. all corners off-screen but center on-screen)
+				local ccx, ccz = 0, 0
+				for _, v in ipairs(box.vertices) do ccx = ccx + v.x; ccz = ccz + v.z end
+				ccx = ccx / #box.vertices
+				ccz = ccz / #box.vertices
+				local ccy = GetGroundHeight(ccx, ccz) or 0
+				local sx, sy, sz = WorldToScreenCoords(ccx, ccy, ccz)
+				if sz and sz > 0 and sz < 1 then bestSx, bestSy, bestVis = sx, sy, true end
+			end
+			if bestVis then
 				local color = getColorForAllyTeam(box.allyTeam)
-				drawScreenBadge(bsx, bsy - 36, color, box.allyTeam, getTeamName(box.allyTeam) .. " BOX", box.allyTeam, 26, false)
+				drawScreenBadge(bestSx, bestSy + 28, color, box.allyTeam, getTeamName(box.allyTeam) .. " BOX", box.allyTeam, 26, false)
 			end
 		end
 	end

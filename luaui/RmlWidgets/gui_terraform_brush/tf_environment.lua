@@ -23,6 +23,9 @@ function M.attach(doc, ctx)
 	local shapeNames = ctx.shapeNames
 	local skyDynamic = ctx.skyDynamic
 	local quatFromAxisAngle = ctx.quatFromAxisAngle
+	-- Widget table for inline RML handler registration (onclick="widget:envFoo()")
+	local w = ctx.widget
+	assert(w, "tf_environment: ctx.widget required for inline RML handlers")
 
 	widgetState.envControlsEl = doc:GetElementById("tf-environment-controls")
 
@@ -117,32 +120,26 @@ function M.attach(doc, ctx)
 		end
 	end
 
-	-- Reset skybox button
-	local resetSkyboxBtn = doc:GetElementById("btn-env-reset-skybox")
-	if resetSkyboxBtn then
-		resetSkyboxBtn:AddEventListener("click", function(event)
-			local resetPath = widgetState.envDefaultSkybox or ""
-			widgetState.applySkybox(resetPath)
-			widgetState.envCurrentSkybox = nil
-			for _, t in ipairs(widgetState.envSkyboxThumbs) do
-				t.element:SetClass("active", false)
-			end
-			event:StopPropagation()
-		end, false)
+	-- Reset skybox button (inline: onclick="widget:envResetSkybox()")
+	w.envResetSkybox = function(self)
+		local resetPath = widgetState.envDefaultSkybox or ""
+		widgetState.applySkybox(resetPath)
+		widgetState.envCurrentSkybox = nil
+		for _, t in ipairs(widgetState.envSkyboxThumbs) do
+			t.element:SetClass("active", false)
+		end
 	end
 
-	-- Fade transition toggle
-	local fadeToggleBtn = doc:GetElementById("btn-env-fade-toggle")
-	if fadeToggleBtn then
-		fadeToggleBtn:AddEventListener("click", function(event)
-			widgetState.envFadeEnabled = not widgetState.envFadeEnabled
-			playSound(widgetState.envFadeEnabled and "toggleOn" or "toggleOff")
-			fadeToggleBtn:SetAttribute("src",
+	-- Fade transition toggle (inline: onclick="widget:envToggleFade(element)")
+	w.envToggleFade = function(self, element)
+		widgetState.envFadeEnabled = not widgetState.envFadeEnabled
+		playSound(widgetState.envFadeEnabled and "toggleOn" or "toggleOff")
+		if element then
+			element:SetAttribute("src",
 				widgetState.envFadeEnabled
 				and "/luaui/images/terraform_brush/check_on.png"
 				or  "/luaui/images/terraform_brush/check_off.png")
-			event:StopPropagation()
-		end, false)
+		end
 	end
 
 		-- Environment sub-windows
@@ -306,13 +303,15 @@ function M.attach(doc, ctx)
 		end
 
 		-- Helper: wire a window toggle button + close button
-		local function envWindowToggle(openBtnId, closeBtnId, rootEl, stateKey)
+		-- dmKey (optional): data-model field to sync alongside widgetState[stateKey]
+		local function envWindowToggle(openBtnId, closeBtnId, rootEl, stateKey, dmKey)
 			local openBtn = doc:GetElementById(openBtnId)
 			if openBtn then
 				openBtn:AddEventListener("click", function(event)
 					widgetState[stateKey] = not widgetState[stateKey]
 					playSound(widgetState[stateKey] and "panelOpen" or "click")
 					if rootEl then rootEl:SetClass("hidden", not widgetState[stateKey]) end
+					if dmKey and widgetState.dmHandle then widgetState.dmHandle[dmKey] = widgetState[stateKey] and true or false end
 					openBtn:SetClass("env-open", widgetState[stateKey] == true)
 					event:StopPropagation()
 				end, false)
@@ -323,6 +322,7 @@ function M.attach(doc, ctx)
 					playSound("click")
 					widgetState[stateKey] = false
 					if rootEl then rootEl:SetClass("hidden", true) end
+					if dmKey and widgetState.dmHandle then widgetState.dmHandle[dmKey] = false end
 					if openBtn then openBtn:SetClass("env-open", false) end
 					event:StopPropagation()
 				end, false)
@@ -330,14 +330,14 @@ function M.attach(doc, ctx)
 		end
 
 		-- Wire toggle/close for each sub-window
-		envWindowToggle("btn-env-sun-shadows", "btn-env-sun-close", widgetState.envSunRootEl, "envSunOpen")
-		envWindowToggle("btn-env-fog-atmo", "btn-env-fog-close", widgetState.envFogRootEl, "envFogOpen")
-		envWindowToggle("btn-env-ground-lighting", "btn-env-ground-lighting-close", widgetState.envGroundLightingRootEl, "envGroundLightingOpen")
-		envWindowToggle("btn-env-unit-lighting", "btn-env-unit-lighting-close", widgetState.envUnitLightingRootEl, "envUnitLightingOpen")
-		envWindowToggle("btn-env-map-render", "btn-env-map-close", widgetState.envMapRootEl, "envMapOpen")
-		envWindowToggle("btn-env-water", "btn-env-water-close", widgetState.envWaterRootEl, "envWaterOpen")
-		envWindowToggle("btn-env-dimensions", "btn-env-dimensions-close", widgetState.envDimensionsRootEl, "envDimensionsOpen")
-		envWindowToggle("btn-sp-splattex", "btn-splattex-close", widgetState.splatTexRootEl, "splatTexOpen")
+		envWindowToggle("btn-env-sun-shadows",        "btn-env-sun-close",              widgetState.envSunRootEl,              "envSunOpen",            "envSunVisible")
+		envWindowToggle("btn-env-fog-atmo",           "btn-env-fog-close",              widgetState.envFogRootEl,              "envFogOpen",            "envFogVisible")
+		envWindowToggle("btn-env-ground-lighting",    "btn-env-ground-lighting-close",  widgetState.envGroundLightingRootEl,  "envGroundLightingOpen", "envGroundLightingVisible")
+		envWindowToggle("btn-env-unit-lighting",      "btn-env-unit-lighting-close",    widgetState.envUnitLightingRootEl,    "envUnitLightingOpen",   "envUnitLightingVisible")
+		envWindowToggle("btn-env-map-render",         "btn-env-map-close",              widgetState.envMapRootEl,             "envMapOpen",            "envMapVisible")
+		envWindowToggle("btn-env-water",              "btn-env-water-close",            widgetState.envWaterRootEl,           "envWaterOpen",          "envWaterVisible")
+		envWindowToggle("btn-env-dimensions",         "btn-env-dimensions-close",       widgetState.envDimensionsRootEl,      "envDimensionsOpen",     "envDimensionsVisible")
+		envWindowToggle("btn-sp-splattex",            "btn-splattex-close",             widgetState.splatTexRootEl,           "splatTexOpen",          "splatTexVisible")
 
 		-- Helper: wire a collapsible section toggle (click header row to expand/collapse)
 		-- Returns a ctrl table with an expand() method for programmatic expansion.
@@ -589,17 +589,7 @@ function M.attach(doc, ctx)
 				wireMutexChipPair("gb-slope-mode-avoid",  "avoidCliffs",
 				                  "gb-slope-mode-prefer", "preferSlopes", getGB)
 			end
-			do
-				local colorChip = doc:GetElementById("btn-gb-pill-color")
-				if colorChip then
-					colorChip:AddEventListener("click", function()
-						if WG.GrassBrush then
-							local on = WG.GrassBrush.getState().texFilterEnabled
-							WG.GrassBrush.setTexFilterEnabled(not on)
-						end
-					end)
-				end
-			end
+			-- btn-gb-pill-color click handled by inline onclick="widget:gbColorToggle()" in RML
 		end
 		envSectionToggle("btn-toggle-wb-undo",         "img-toggle-wb-undo",         "section-wb-undo",         false)
 		envSectionToggle("btn-toggle-wb-overlays",     "img-toggle-wb-overlays",     "section-wb-overlays",     false)
@@ -874,20 +864,16 @@ function M.attach(doc, ctx)
 			function() return gl.GetSun("shadowDensity", "unit") * 1000 end,
 			function(val) Spring.SetSunLighting({ modelShadowDensity = val }) end)
 
-		-- Sun reset
-		local resetSunBtn = doc:GetElementById("btn-env-reset-sun")
-		if resetSunBtn then
-			resetSunBtn:AddEventListener("click", function(event)
-				local d = widgetState.envDefaults
-				Spring.SetSunDirection(d.sunPos[1], d.sunPos[2], d.sunPos[3])
-				Spring.SetSunLighting({ groundShadowDensity = d.groundShadowDensity, modelShadowDensity = d.unitShadowDensity })
-				envSetSlider("slider-env-sun-y", "lbl-env-sun-y", math.floor(d.sunPos[2] * 10000 + 0.5), string.format("%.2f", d.sunPos[2]))
-				envSetSlider("slider-env-sun-x", "lbl-env-sun-x", math.floor(d.sunPos[1] * 10000 + 0.5), string.format("%.2f", d.sunPos[1]))
-				envSetSlider("slider-env-sun-z", "lbl-env-sun-z", math.floor(d.sunPos[3] * 10000 + 0.5), string.format("%.2f", d.sunPos[3]))
-				envSetSlider("slider-env-gshadow", "lbl-env-gshadow", math.floor(d.groundShadowDensity * 1000 + 0.5), string.format("%.2f", d.groundShadowDensity))
-				envSetSlider("slider-env-ushadow", "lbl-env-ushadow", math.floor(d.unitShadowDensity * 1000 + 0.5), string.format("%.2f", d.unitShadowDensity))
-				event:StopPropagation()
-			end, false)
+		-- Sun reset (inline: onclick="widget:envResetSun()")
+		w.envResetSun = function(self)
+			local d = widgetState.envDefaults
+			Spring.SetSunDirection(d.sunPos[1], d.sunPos[2], d.sunPos[3])
+			Spring.SetSunLighting({ groundShadowDensity = d.groundShadowDensity, modelShadowDensity = d.unitShadowDensity })
+			envSetSlider("slider-env-sun-y", "lbl-env-sun-y", math.floor(d.sunPos[2] * 10000 + 0.5), string.format("%.2f", d.sunPos[2]))
+			envSetSlider("slider-env-sun-x", "lbl-env-sun-x", math.floor(d.sunPos[1] * 10000 + 0.5), string.format("%.2f", d.sunPos[1]))
+			envSetSlider("slider-env-sun-z", "lbl-env-sun-z", math.floor(d.sunPos[3] * 10000 + 0.5), string.format("%.2f", d.sunPos[3]))
+			envSetSlider("slider-env-gshadow", "lbl-env-gshadow", math.floor(d.groundShadowDensity * 1000 + 0.5), string.format("%.2f", d.groundShadowDensity))
+			envSetSlider("slider-env-ushadow", "lbl-env-ushadow", math.floor(d.unitShadowDensity * 1000 + 0.5), string.format("%.2f", d.unitShadowDensity))
 		end
 
 		-- Sun intensity slider
@@ -911,16 +897,12 @@ function M.attach(doc, ctx)
 			function() return gl.GetAtmosphere("fogEnd") * 100 end,
 			function(val) Spring.SetAtmosphere({ fogEnd = val }) end)
 
-		-- Fog reset
-		local resetFogBtn = doc:GetElementById("btn-env-reset-fog")
-		if resetFogBtn then
-			resetFogBtn:AddEventListener("click", function(event)
-				local d = widgetState.envDefaults
-				Spring.SetAtmosphere({ fogStart = d.fogStart, fogEnd = d.fogEnd })
-				envSetSlider("slider-env-fog-start", "lbl-env-fog-start", math.floor(d.fogStart * 100 + 0.5), string.format("%.2f", d.fogStart))
-				envSetSlider("slider-env-fog-end", "lbl-env-fog-end", math.floor(d.fogEnd * 100 + 0.5), string.format("%.2f", d.fogEnd))
-				event:StopPropagation()
-			end, false)
+		-- Fog reset (inline: onclick="widget:envResetFog()")
+		w.envResetFog = function(self)
+			local d = widgetState.envDefaults
+			Spring.SetAtmosphere({ fogStart = d.fogStart, fogEnd = d.fogEnd })
+			envSetSlider("slider-env-fog-start", "lbl-env-fog-start", math.floor(d.fogStart * 100 + 0.5), string.format("%.2f", d.fogStart))
+			envSetSlider("slider-env-fog-end", "lbl-env-fog-end", math.floor(d.fogEnd * 100 + 0.5), string.format("%.2f", d.fogEnd))
 		end
 
 		-- Fog color
@@ -942,19 +924,15 @@ function M.attach(doc, ctx)
 		fogColorSlider("b", 3)
 		fogColorSlider("a", 4)
 
-		-- Fog color reset
-		local resetFogColorBtn = doc:GetElementById("btn-env-reset-fogcolor")
-		if resetFogColorBtn then
-			resetFogColorBtn:AddEventListener("click", function(event)
-				local d = widgetState.envDefaults
-				Spring.SetAtmosphere({ fogColor = d.fogColor })
-				for i, s in ipairs({"r", "g", "b", "a"}) do
-					envSetSlider("slider-env-fog-" .. s, "lbl-env-fog-" .. s,
-						math.floor((d.fogColor[i] or 0) * 1000 + 0.5),
-						string.format("%.2f", d.fogColor[i] or 0))
-				end
-				event:StopPropagation()
-			end, false)
+		-- Fog color reset (inline: onclick="widget:envResetFogColor()")
+		w.envResetFogColor = function(self)
+			local d = widgetState.envDefaults
+			Spring.SetAtmosphere({ fogColor = d.fogColor })
+			for i, s in ipairs({"r", "g", "b", "a"}) do
+				envSetSlider("slider-env-fog-" .. s, "lbl-env-fog-" .. s,
+					math.floor((d.fogColor[i] or 0) * 1000 + 0.5),
+					string.format("%.2f", d.fogColor[i] or 0))
+			end
 		end
 
 		-- Sun color sliders
@@ -1037,56 +1015,44 @@ function M.attach(doc, ctx)
 			setColor = function(c) Spring.SetAtmosphere({ cloudColor = c }) end,
 		})
 
-		-- Sun color reset
-		do local resetBtn = doc:GetElementById("btn-env-reset-suncol")
-		if resetBtn then
-			resetBtn:AddEventListener("click", function(event)
-				local d = widgetState.envDefaults
-				Spring.SetAtmosphere({ sunColor = d.sunColor })
-				for i, s in ipairs({"r", "g", "b"}) do
-					envSetSlider("slider-env-suncol-" .. s, "lbl-env-suncol-" .. s,
-						math.floor((d.sunColor[i] or 0) * 1000 + 0.5),
-						string.format("%.2f", d.sunColor[i] or 0))
-				end
-				local c = d.sunColor
-				updatePreview(doc:GetElementById("env-suncol-preview"), c[1], c[2], c[3])
-				event:StopPropagation()
-			end, false)
-		end end
+		-- Sun color reset (inline: onclick="widget:envResetSunCol()")
+		w.envResetSunCol = function(self)
+			local d = widgetState.envDefaults
+			Spring.SetAtmosphere({ sunColor = d.sunColor })
+			for i, s in ipairs({"r", "g", "b"}) do
+				envSetSlider("slider-env-suncol-" .. s, "lbl-env-suncol-" .. s,
+					math.floor((d.sunColor[i] or 0) * 1000 + 0.5),
+					string.format("%.2f", d.sunColor[i] or 0))
+			end
+			local c = d.sunColor
+			updatePreview(doc:GetElementById("env-suncol-preview"), c[1], c[2], c[3])
+		end
 
-		-- Sky color reset
-		do local resetBtn = doc:GetElementById("btn-env-reset-skycol")
-		if resetBtn then
-			resetBtn:AddEventListener("click", function(event)
-				local d = widgetState.envDefaults
-				Spring.SetAtmosphere({ skyColor = d.skyColor })
-				for i, s in ipairs({"r", "g", "b"}) do
-					envSetSlider("slider-env-skycol-" .. s, "lbl-env-skycol-" .. s,
-						math.floor((d.skyColor[i] or 0) * 1000 + 0.5),
-						string.format("%.2f", d.skyColor[i] or 0))
-				end
-				local c = d.skyColor
-				updatePreview(doc:GetElementById("env-skycol-preview"), c[1], c[2], c[3])
-				event:StopPropagation()
-			end, false)
-		end end
+		-- Sky color reset (inline: onclick="widget:envResetSkyCol()")
+		w.envResetSkyCol = function(self)
+			local d = widgetState.envDefaults
+			Spring.SetAtmosphere({ skyColor = d.skyColor })
+			for i, s in ipairs({"r", "g", "b"}) do
+				envSetSlider("slider-env-skycol-" .. s, "lbl-env-skycol-" .. s,
+					math.floor((d.skyColor[i] or 0) * 1000 + 0.5),
+					string.format("%.2f", d.skyColor[i] or 0))
+			end
+			local c = d.skyColor
+			updatePreview(doc:GetElementById("env-skycol-preview"), c[1], c[2], c[3])
+		end
 
-		-- Cloud color reset
-		do local resetBtn = doc:GetElementById("btn-env-reset-cloudcol")
-		if resetBtn then
-			resetBtn:AddEventListener("click", function(event)
-				local d = widgetState.envDefaults
-				Spring.SetAtmosphere({ cloudColor = d.cloudColor })
-				for i, s in ipairs({"r", "g", "b"}) do
-					envSetSlider("slider-env-cloudcol-" .. s, "lbl-env-cloudcol-" .. s,
-						math.floor((d.cloudColor[i] or 0) * 1000 + 0.5),
-						string.format("%.2f", d.cloudColor[i] or 0))
-				end
-				local c = d.cloudColor
-				updatePreview(doc:GetElementById("env-cloudcol-preview"), c[1], c[2], c[3])
-				event:StopPropagation()
-			end, false)
-		end end
+		-- Cloud color reset (inline: onclick="widget:envResetCloudCol()")
+		w.envResetCloudCol = function(self)
+			local d = widgetState.envDefaults
+			Spring.SetAtmosphere({ cloudColor = d.cloudColor })
+			for i, s in ipairs({"r", "g", "b"}) do
+				envSetSlider("slider-env-cloudcol-" .. s, "lbl-env-cloudcol-" .. s,
+					math.floor((d.cloudColor[i] or 0) * 1000 + 0.5),
+					string.format("%.2f", d.cloudColor[i] or 0))
+			end
+			local c = d.cloudColor
+			updatePreview(doc:GetElementById("env-cloudcol-preview"), c[1], c[2], c[3])
+		end
 
 		-- ---- Snow controls ----
 		envSectionToggle("btn-env-toggle-snow", "img-env-toggle-snow", "env-section-snow", false)
@@ -1211,30 +1177,26 @@ function M.attach(doc, ctx)
 			end,
 		})
 
-		-- Snow reset button
-		do local resetBtn = doc:GetElementById("btn-env-reset-snow")
-		if resetBtn then
-			resetBtn:AddEventListener("click", function(event)
-				if WG['snow'] then
-					if WG['snow'].setMultiplier then WG['snow'].setMultiplier(1.0) end
-					if WG['snow'].setSpeedMultiplier then WG['snow'].setSpeedMultiplier(1.0) end
-					if WG['snow'].setSizeMultiplier then WG['snow'].setSizeMultiplier(1.0) end
-					if WG['snow'].setWindMultiplier then WG['snow'].setWindMultiplier(4.5) end
-					if WG['snow'].setOpacity then WG['snow'].setOpacity(0.66) end
-					if WG['snow'].setColor then WG['snow'].setColor(0.8, 0.8, 0.9) end
-				end
-				envSetSlider("slider-env-snow-density", "lbl-env-snow-density", 100, "1.00")
-				envSetSlider("slider-env-snow-speed", "lbl-env-snow-speed", 100, "1.00")
-				envSetSlider("slider-env-snow-size", "lbl-env-snow-size", 100, "1.00")
-				envSetSlider("slider-env-snow-wind", "lbl-env-snow-wind", 45, "4.50")
-				envSetSlider("slider-env-snow-opacity", "lbl-env-snow-opacity", 66, "0.66")
-				envSetSlider("slider-env-snowcol-r", "lbl-env-snowcol-r", 800, "0.80")
-				envSetSlider("slider-env-snowcol-g", "lbl-env-snowcol-g", 800, "0.80")
-				envSetSlider("slider-env-snowcol-b", "lbl-env-snowcol-b", 900, "0.90")
-				updatePreview(doc:GetElementById("env-snowcol-preview"), 0.8, 0.8, 0.9)
-				event:StopPropagation()
-			end, false)
-		end end
+		-- Snow reset button (inline: onclick="widget:envResetSnow()")
+		w.envResetSnow = function(self)
+			if WG['snow'] then
+				if WG['snow'].setMultiplier then WG['snow'].setMultiplier(1.0) end
+				if WG['snow'].setSpeedMultiplier then WG['snow'].setSpeedMultiplier(1.0) end
+				if WG['snow'].setSizeMultiplier then WG['snow'].setSizeMultiplier(1.0) end
+				if WG['snow'].setWindMultiplier then WG['snow'].setWindMultiplier(4.5) end
+				if WG['snow'].setOpacity then WG['snow'].setOpacity(0.66) end
+				if WG['snow'].setColor then WG['snow'].setColor(0.8, 0.8, 0.9) end
+			end
+			envSetSlider("slider-env-snow-density", "lbl-env-snow-density", 100, "1.00")
+			envSetSlider("slider-env-snow-speed", "lbl-env-snow-speed", 100, "1.00")
+			envSetSlider("slider-env-snow-size", "lbl-env-snow-size", 100, "1.00")
+			envSetSlider("slider-env-snow-wind", "lbl-env-snow-wind", 45, "4.50")
+			envSetSlider("slider-env-snow-opacity", "lbl-env-snow-opacity", 66, "0.66")
+			envSetSlider("slider-env-snowcol-r", "lbl-env-snowcol-r", 800, "0.80")
+			envSetSlider("slider-env-snowcol-g", "lbl-env-snowcol-g", 800, "0.80")
+			envSetSlider("slider-env-snowcol-b", "lbl-env-snowcol-b", 900, "0.90")
+			updatePreview(doc:GetElementById("env-snowcol-preview"), 0.8, 0.8, 0.9)
+		end
 
 		-- ---- Lighting sliders ----
 		local function lightingSlider(prefix, sunKind, sunScope, lightingKey)
@@ -1262,55 +1224,47 @@ function M.attach(doc, ctx)
 		lightingSlider("udiffuse", "diffuse", "unit", "unitDiffuseColor")
 		lightingSlider("uspecular", "specular", "unit", "unitSpecularColor")
 
-		-- Ground lighting reset
-		do local resetBtn = doc:GetElementById("btn-env-reset-ground-lighting")
-		if resetBtn then
-			resetBtn:AddEventListener("click", function(event)
-				local d = widgetState.envDefaults
-				Spring.SetSunLighting({
-					groundAmbientColor = d.groundAmbient,
-					groundDiffuseColor = d.groundDiffuse,
-					groundSpecularColor = d.groundSpecular,
-				})
-				Spring.SendCommands("luarules updatesun")
-				local map = {
-					{"gambient", d.groundAmbient}, {"gdiffuse", d.groundDiffuse}, {"gspecular", d.groundSpecular},
-				}
-				for _, entry in ipairs(map) do
-					for i, s in ipairs({"r", "g", "b"}) do
-						envSetSlider("slider-env-" .. entry[1] .. "-" .. s, "lbl-env-" .. entry[1] .. "-" .. s,
-							math.floor((entry[2][i] or 0) * 1000 + 0.5),
-							string.format("%.2f", entry[2][i] or 0))
-					end
+		-- Ground lighting reset (inline: onclick="widget:envResetGroundLighting()")
+		w.envResetGroundLighting = function(self)
+			local d = widgetState.envDefaults
+			Spring.SetSunLighting({
+				groundAmbientColor = d.groundAmbient,
+				groundDiffuseColor = d.groundDiffuse,
+				groundSpecularColor = d.groundSpecular,
+			})
+			Spring.SendCommands("luarules updatesun")
+			local map = {
+				{"gambient", d.groundAmbient}, {"gdiffuse", d.groundDiffuse}, {"gspecular", d.groundSpecular},
+			}
+			for _, entry in ipairs(map) do
+				for i, s in ipairs({"r", "g", "b"}) do
+					envSetSlider("slider-env-" .. entry[1] .. "-" .. s, "lbl-env-" .. entry[1] .. "-" .. s,
+						math.floor((entry[2][i] or 0) * 1000 + 0.5),
+						string.format("%.2f", entry[2][i] or 0))
 				end
-				event:StopPropagation()
-			end, false)
-		end end
+			end
+		end
 
-		-- Unit lighting reset
-		do local resetBtn = doc:GetElementById("btn-env-reset-unit-lighting")
-		if resetBtn then
-			resetBtn:AddEventListener("click", function(event)
-				local d = widgetState.envDefaults
-				Spring.SetSunLighting({
-					unitAmbientColor = d.unitAmbient,
-					unitDiffuseColor = d.unitDiffuse,
-					unitSpecularColor = d.unitSpecular,
-				})
-				Spring.SendCommands("luarules updatesun")
-				local map = {
-					{"uambient", d.unitAmbient}, {"udiffuse", d.unitDiffuse}, {"uspecular", d.unitSpecular},
-				}
-				for _, entry in ipairs(map) do
-					for i, s in ipairs({"r", "g", "b"}) do
-						envSetSlider("slider-env-" .. entry[1] .. "-" .. s, "lbl-env-" .. entry[1] .. "-" .. s,
-							math.floor((entry[2][i] or 0) * 1000 + 0.5),
-							string.format("%.2f", entry[2][i] or 0))
-					end
+		-- Unit lighting reset (inline: onclick="widget:envResetUnitLighting()")
+		w.envResetUnitLighting = function(self)
+			local d = widgetState.envDefaults
+			Spring.SetSunLighting({
+				unitAmbientColor = d.unitAmbient,
+				unitDiffuseColor = d.unitDiffuse,
+				unitSpecularColor = d.unitSpecular,
+			})
+			Spring.SendCommands("luarules updatesun")
+			local map = {
+				{"uambient", d.unitAmbient}, {"udiffuse", d.unitDiffuse}, {"uspecular", d.unitSpecular},
+			}
+			for _, entry in ipairs(map) do
+				for i, s in ipairs({"r", "g", "b"}) do
+					envSetSlider("slider-env-" .. entry[1] .. "-" .. s, "lbl-env-" .. entry[1] .. "-" .. s,
+						math.floor((entry[2][i] or 0) * 1000 + 0.5),
+						string.format("%.2f", entry[2][i] or 0))
 				end
-				event:StopPropagation()
-			end, false)
-		end end
+			end
+		end
 
 		-- ---- Map Rendering controls ----
 		-- Render toggles (default to true; no engine getter available)
@@ -1410,14 +1364,10 @@ function M.attach(doc, ctx)
 		skyAxisSlider("y", 2)
 		skyAxisSlider("z", 3)
 
-		-- Sky axis reset
-		local resetSkyAxisBtn = doc:GetElementById("btn-env-reset-skyaxis")
-		if resetSkyAxisBtn then
-			resetSkyAxisBtn:AddEventListener("click", function(event)
-				local d = widgetState.envDefaults
-				Spring.SetAtmosphere({ skyAxisAngle = d.skyAxisAngle })
-				event:StopPropagation()
-			end, false)
+		-- Sky axis reset (inline: onclick="widget:envResetSkyAxis()")
+		w.envResetSkyAxis = function(self)
+			local d = widgetState.envDefaults
+			Spring.SetAtmosphere({ skyAxisAngle = d.skyAxisAngle })
 		end
 
 		-- ---- Dynamic skybox rotation controls ----
@@ -1436,27 +1386,22 @@ function M.attach(doc, ctx)
 
 		local playBtn = doc:GetElementById("btn-env-skydyn-play")
 		local pauseBtn = doc:GetElementById("btn-env-skydyn-pause")
-		if playBtn then
-			playBtn:AddEventListener("click", function(event)
-				skyDynamic.playing = true
-				-- Reset delta angles to zero; capture current skybox rotation as start quaternion
-				skyDynamic.angleX = 0
-				skyDynamic.angleY = 0
-				skyDynamic.angleZ = 0
-				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
-				local sqx, sqy, sqz, sqw = quatFromAxisAngle(x or 0, y or 1, z or 0, angle or 0)
-				skyDynamic.startQuat = { sqx, sqy, sqz, sqw }
-				-- Capture sun direction for sun-sync
-				local sx, sy, sz = gl.GetSun("pos")
-				skyDynamic.origSunDir = { sx, sy, sz }
-				event:StopPropagation()
-			end, false)
+		-- Play / pause (inline: onclick="widget:envSkyDynPlay()" / envSkyDynPause)
+		w.envSkyDynPlay = function(self)
+			skyDynamic.playing = true
+			-- Reset delta angles to zero; capture current skybox rotation as start quaternion
+			skyDynamic.angleX = 0
+			skyDynamic.angleY = 0
+			skyDynamic.angleZ = 0
+			local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			local sqx, sqy, sqz, sqw = quatFromAxisAngle(x or 0, y or 1, z or 0, angle or 0)
+			skyDynamic.startQuat = { sqx, sqy, sqz, sqw }
+			-- Capture sun direction for sun-sync
+			local sx, sy, sz = gl.GetSun("pos")
+			skyDynamic.origSunDir = { sx, sy, sz }
 		end
-		if pauseBtn then
-			pauseBtn:AddEventListener("click", function(event)
-				skyDynamic.playing = false
-				event:StopPropagation()
-			end, false)
+		w.envSkyDynPause = function(self)
+			skyDynamic.playing = false
 		end
 
 		-- ---- Water controls ----
@@ -1551,38 +1496,34 @@ function M.attach(doc, ctx)
 				})
 			end
 
-			-- Water colors reset
-			local resetWCBtn = doc:GetElementById("btn-env-reset-watercolors")
-			if resetWCBtn then
-				resetWCBtn:AddEventListener("click", function(event)
-					local d = widgetState.envDefaults
-					local resetMap = {
-						{ "absorb", d.waterAbsorb }, { "basecolor", d.waterBaseColor },
-						{ "mincolor", d.waterMinColor }, { "surfacecolor", d.waterSurfaceColor },
-						{ "planecolor", d.waterPlaneColor }, { "diffusecolor", d.waterDiffuseColor },
-						{ "specularcolor", d.waterSpecularColor },
-					}
-					local paramMap = {
-						absorb = "absorb", basecolor = "baseColor", mincolor = "minColor",
-						surfacecolor = "surfaceColor", planecolor = "planeColor",
-						diffusecolor = "diffuseColor", specularcolor = "specularColor",
-					}
-					for _, entry in ipairs(resetMap) do
-						local prefix, defVal = entry[1], entry[2]
-						Spring.SetWaterParams({ [paramMap[prefix]] = defVal })
-						for i, s in ipairs({"r", "g", "b"}) do
-							envSetSlider("slider-env-wc-" .. prefix .. "-" .. s, "lbl-env-wc-" .. prefix .. "-" .. s,
-								math.floor((defVal[i] or 0) * 1000 + 0.5),
-								string.format("%.2f", defVal[i] or 0))
-						end
-						updatePreview(doc:GetElementById("env-wc-preview-" .. prefix), defVal[1], defVal[2], defVal[3])
+			-- Water colors reset (inline: onclick="widget:envResetWaterColors()")
+			w.envResetWaterColors = function(self)
+				local d = widgetState.envDefaults
+				local resetMap = {
+					{ "absorb", d.waterAbsorb }, { "basecolor", d.waterBaseColor },
+					{ "mincolor", d.waterMinColor }, { "surfacecolor", d.waterSurfaceColor },
+					{ "planecolor", d.waterPlaneColor }, { "diffusecolor", d.waterDiffuseColor },
+					{ "specularcolor", d.waterSpecularColor },
+				}
+				local paramMap = {
+					absorb = "absorb", basecolor = "baseColor", mincolor = "minColor",
+					surfacecolor = "surfaceColor", planecolor = "planeColor",
+					diffusecolor = "diffuseColor", specularcolor = "specularColor",
+				}
+				for _, entry in ipairs(resetMap) do
+					local prefix, defVal = entry[1], entry[2]
+					Spring.SetWaterParams({ [paramMap[prefix]] = defVal })
+					for i, s in ipairs({"r", "g", "b"}) do
+						envSetSlider("slider-env-wc-" .. prefix .. "-" .. s, "lbl-env-wc-" .. prefix .. "-" .. s,
+							math.floor((defVal[i] or 0) * 1000 + 0.5),
+							string.format("%.2f", defVal[i] or 0))
 					end
-					Spring.SendCommands("water 4")
-					-- Also deactivate shader overlay on color reset
-					local overlay = WG.WaterTypeOverlay
-					if overlay then overlay.deactivate() end
-					event:StopPropagation()
-				end, false)
+					updatePreview(doc:GetElementById("env-wc-preview-" .. prefix), defVal[1], defVal[2], defVal[3])
+				end
+				Spring.SendCommands("water 4")
+				-- Also deactivate shader overlay on color reset
+				local overlay = WG.WaterTypeOverlay
+				if overlay then overlay.deactivate() end
 			end
 		end
 
@@ -1773,12 +1714,9 @@ function M.attach(doc, ctx)
 
 			refreshDimExtremes()
 
-			local refreshBtn = doc:GetElementById("btn-dim-refresh-extremes")
-			if refreshBtn then
-				refreshBtn:AddEventListener("click", function(event)
-					refreshDimExtremes()
-					event:StopPropagation()
-				end, false)
+			-- Refresh extremes (inline: onclick="widget:envDimRefresh()")
+			w.envDimRefresh = function(self)
+				refreshDimExtremes()
 			end
 
 			-- Water level input
@@ -1788,18 +1726,16 @@ function M.attach(doc, ctx)
 				wlInput:AddEventListener("blur", function() Spring.SDLStopTextInput(); widgetState.focusedRmlInput = nil end, false)
 			end
 
-			local wlApplyBtn = doc:GetElementById("btn-dim-waterlevel-apply")
-			if wlApplyBtn then
-				wlApplyBtn:AddEventListener("click", function(event)
-					local val = wlInput and tonumber(wlInput:GetAttribute("value"))
-					if val and val ~= 0 then
-						Spring.SendLuaRulesMsg("$wl$:" .. tostring(val))
-						if wlInput then wlInput:SetAttribute("value", "0") end
-						-- Refresh extremes after a short delay via next open
-						refreshDimExtremes()
-					end
-					event:StopPropagation()
-				end, false)
+			-- Water level apply (inline: onclick="widget:envApplyWaterLevel()")
+			w.envApplyWaterLevel = function(self)
+				local wlInputEl = doc:GetElementById("input-dim-waterlevel")
+				local val = wlInputEl and tonumber(wlInputEl:GetAttribute("value"))
+				if val and val ~= 0 then
+					Spring.SendLuaRulesMsg("$wl$:" .. tostring(val))
+					if wlInputEl then wlInputEl:SetAttribute("value", "0") end
+					-- Refresh extremes after a short delay via next open
+					refreshDimExtremes()
+				end
 			end
 
 			-- Min height input
@@ -1809,16 +1745,14 @@ function M.attach(doc, ctx)
 				minHInput:AddEventListener("blur", function() Spring.SDLStopTextInput(); widgetState.focusedRmlInput = nil end, false)
 			end
 
-			local minHApplyBtn = doc:GetElementById("btn-dim-minheight-apply")
-			if minHApplyBtn then
-				minHApplyBtn:AddEventListener("click", function(event)
-					local val = minHInput and tonumber(minHInput:GetAttribute("value"))
-					if val then
-						Spring.SendLuaRulesMsg("$hclampmin$:" .. tostring(val))
-						refreshDimExtremes()
-					end
-					event:StopPropagation()
-				end, false)
+			-- Min height apply (inline: onclick="widget:envApplyMinHeight()")
+			w.envApplyMinHeight = function(self)
+				local minHEl = doc:GetElementById("input-dim-minheight")
+				local val = minHEl and tonumber(minHEl:GetAttribute("value"))
+				if val then
+					Spring.SendLuaRulesMsg("$hclampmin$:" .. tostring(val))
+					refreshDimExtremes()
+				end
 			end
 
 			-- Max height input
@@ -1828,208 +1762,308 @@ function M.attach(doc, ctx)
 				maxHInput:AddEventListener("blur", function() Spring.SDLStopTextInput(); widgetState.focusedRmlInput = nil end, false)
 			end
 
-			local maxHApplyBtn = doc:GetElementById("btn-dim-maxheight-apply")
-			if maxHApplyBtn then
-				maxHApplyBtn:AddEventListener("click", function(event)
-					local val = maxHInput and tonumber(maxHInput:GetAttribute("value"))
-					if val then
-						Spring.SendLuaRulesMsg("$hclampmax$:" .. tostring(val))
-						refreshDimExtremes()
-					end
-					event:StopPropagation()
-				end, false)
+			-- Max height apply (inline: onclick="widget:envApplyMaxHeight()")
+			w.envApplyMaxHeight = function(self)
+				local maxHEl = doc:GetElementById("input-dim-maxheight")
+				local val = maxHEl and tonumber(maxHEl:GetAttribute("value"))
+				if val then
+					Spring.SendLuaRulesMsg("$hclampmax$:" .. tostring(val))
+					refreshDimExtremes()
+				end
 			end
 
-			local wlResetBtn = doc:GetElementById("btn-dim-reset-waterlevel")
-			if wlResetBtn then
-				wlResetBtn:AddEventListener("click", function(event)
-					if wlInput then wlInput:SetAttribute("value", "0") end
-					event:StopPropagation()
-				end, false)
+			-- Reset water level (inline: onclick="widget:envResetWaterLevel()")
+			w.envResetWaterLevel = function(self)
+				local wlInputEl = doc:GetElementById("input-dim-waterlevel")
+				if wlInputEl then wlInputEl:SetAttribute("value", "0") end
 			end
 
-			local boundsResetBtn = doc:GetElementById("btn-dim-reset-bounds")
-			if boundsResetBtn then
-				boundsResetBtn:AddEventListener("click", function(event)
-					if minHInput then minHInput:SetAttribute("value", "") end
-					if maxHInput then maxHInput:SetAttribute("value", "") end
-					event:StopPropagation()
-				end, false)
+			-- Reset bounds (inline: onclick="widget:envResetBounds()")
+			w.envResetBounds = function(self)
+				local minHEl = doc:GetElementById("input-dim-minheight")
+				local maxHEl = doc:GetElementById("input-dim-maxheight")
+				if minHEl then minHEl:SetAttribute("value", "") end
+				if maxHEl then maxHEl:SetAttribute("value", "") end
 			end
 		end
 
-		-- ---- Environment Save button ----
-		local envSaveBtn = doc:GetElementById("btn-env-save")
-		if envSaveBtn then
-			envSaveBtn:AddEventListener("click", function(event)
-				playSound("save")
-				-- Collect all current environment settings
-				local sX, sY, sZ = gl.GetSun("pos")
-				local grA = { gl.GetSun("ambient") }
-				local grD = { gl.GetSun("diffuse") }
-				local grS = { gl.GetSun("specular") }
-				local unA = { gl.GetSun("ambient", "unit") }
-				local unD = { gl.GetSun("diffuse", "unit") }
-				local unS = { gl.GetSun("specular", "unit") }
-				local gShadow = gl.GetSun("shadowDensity", "ground")
-				local uShadow = gl.GetSun("shadowDensity", "unit")
-				local fgS = gl.GetAtmosphere("fogStart")
-				local fgE = gl.GetAtmosphere("fogEnd")
-				local fgC = { gl.GetAtmosphere("fogColor") }
-				local snC = { gl.GetAtmosphere("sunColor") }
-				local skC = { gl.GetAtmosphere("skyColor") }
-				local skAA = { gl.GetAtmosphere("skyAxisAngle") }
-				local clC = { gl.GetAtmosphere("cloudColor") }
-				local sunIntensity = widgetState.envSunIntensity or 1.0
+		-- ---- Environment Save button (inline: onclick="widget:envSave()") ----
+		w.envSave = function(self)
+			playSound("save")
+			-- Collect all current environment settings
+			local sX, sY, sZ = gl.GetSun("pos")
+			local grA = { gl.GetSun("ambient") }
+			local grD = { gl.GetSun("diffuse") }
+			local grS = { gl.GetSun("specular") }
+			local unA = { gl.GetSun("ambient", "unit") }
+			local unD = { gl.GetSun("diffuse", "unit") }
+			local unS = { gl.GetSun("specular", "unit") }
+			local gShadow = gl.GetSun("shadowDensity", "ground")
+			local uShadow = gl.GetSun("shadowDensity", "unit")
+			local fgS = gl.GetAtmosphere("fogStart")
+			local fgE = gl.GetAtmosphere("fogEnd")
+			local fgC = { gl.GetAtmosphere("fogColor") }
+			local snC = { gl.GetAtmosphere("sunColor") }
+			local skC = { gl.GetAtmosphere("skyColor") }
+			local skAA = { gl.GetAtmosphere("skyAxisAngle") }
+			local clC = { gl.GetAtmosphere("cloudColor") }
+			local sunIntensity = widgetState.envSunIntensity or 1.0
 
-				local smR, smG, smB, smA = gl.GetMapRendering("splatTexMults")
-				local ssR, ssG, ssB, ssA = gl.GetMapRendering("splatTexScales")
-				local sdnda = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
-				local vW = gl.GetMapRendering("voidWater")
-				local vG = gl.GetMapRendering("voidGround")
+			local smR, smG, smB, smA = gl.GetMapRendering("splatTexMults")
+			local ssR, ssG, ssB, ssA = gl.GetMapRendering("splatTexScales")
+			local sdnda = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
+			local vW = gl.GetMapRendering("voidWater")
+			local vG = gl.GetMapRendering("voidGround")
 
-				local fmt3 = function(t) return string.format("{ %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0) end
-				local fmt4 = function(t) return string.format("{ %.4f, %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0, t[4] or 0) end
-				local bstr = function(v) return v and "true" or "false" end
+			local fmt3 = function(t) return string.format("{ %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0) end
+			local fmt4 = function(t) return string.format("{ %.4f, %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0, t[4] or 0) end
+			local bstr = function(v) return v and "true" or "false" end
 
-				local outLines = {
-					"-- Environment config exported from BAR Terraform Brush",
-					"-- Map: " .. (Game.mapName or "unknown"),
-					"-- Date: " .. os.date("%Y-%m-%d %H:%M:%S"),
-					"return {",
-					"\tversion = 1,",
-					"\tmapName = \"" .. (Game.mapName or "unknown") .. "\",",
-					"",
-					"\t-- Sun direction",
-					"\tsunDir = " .. fmt3({sX, sY, sZ}) .. ",",
-					"",
-					"\t-- Shadow density",
-					"\tgroundShadowDensity = " .. string.format("%.4f", gShadow) .. ",",
-					"\tmodelShadowDensity = " .. string.format("%.4f", uShadow) .. ",",
-					"",
-					"\t-- Ground lighting",
-					"\tgroundAmbientColor = " .. fmt3(grA) .. ",",
-					"\tgroundDiffuseColor = " .. fmt3(grD) .. ",",
-					"\tgroundSpecularColor = " .. fmt3(grS) .. ",",
-					"",
-					"\t-- Unit lighting",
-					"\tunitAmbientColor = " .. fmt3(unA) .. ",",
-					"\tunitDiffuseColor = " .. fmt3(unD) .. ",",
-					"\tunitSpecularColor = " .. fmt3(unS) .. ",",
-					"",
-					"\t-- Fog",
-					"\tfogStart = " .. string.format("%.4f", fgS) .. ",",
-					"\tfogEnd = " .. string.format("%.4f", fgE) .. ",",
-					"\tfogColor = " .. fmt4(fgC) .. ",",
-					"",
-					"\t-- Atmosphere colors",
-					"\tsunColor = " .. fmt3(snC) .. ",",
-					"\tskyColor = " .. fmt3(skC) .. ",",
-					"\tcloudColor = " .. fmt3(clC) .. ",",
-					"",
-					"\t-- Sun intensity",
-					"\tsunIntensity = " .. string.format("%.4f", sunIntensity) .. ",",
-					"",
-					"\t-- Skybox rotation",
-					"\tskyAxisAngle = " .. fmt4(skAA) .. ",",
-					"",
-					"\t-- Map rendering",
-					"\tsplatDetailNormalDiffuseAlpha = " .. bstr(sdnda) .. ",",
-					"\tsplatTexMults = " .. fmt4({smR, smG, smB, smA}) .. ",",
-					"\tsplatTexScales = " .. fmt4({ssR, ssG, ssB, ssA}) .. ",",
-					"\tvoidWater = " .. bstr(vW) .. ",",
-					"\tvoidGround = " .. bstr(vG) .. ",",
-					"",
-					"\t-- Water",
-					"\twater = {",
-				}
+			local outLines = {
+				"-- Environment config exported from BAR Terraform Brush",
+				"-- Map: " .. (Game.mapName or "unknown"),
+				"-- Date: " .. os.date("%Y-%m-%d %H:%M:%S"),
+				"return {",
+				"\tversion = 1,",
+				"\tmapName = \"" .. (Game.mapName or "unknown") .. "\",",
+				"",
+				"\t-- Sun direction",
+				"\tsunDir = " .. fmt3({sX, sY, sZ}) .. ",",
+				"",
+				"\t-- Shadow density",
+				"\tgroundShadowDensity = " .. string.format("%.4f", gShadow) .. ",",
+				"\tmodelShadowDensity = " .. string.format("%.4f", uShadow) .. ",",
+				"",
+				"\t-- Ground lighting",
+				"\tgroundAmbientColor = " .. fmt3(grA) .. ",",
+				"\tgroundDiffuseColor = " .. fmt3(grD) .. ",",
+				"\tgroundSpecularColor = " .. fmt3(grS) .. ",",
+				"",
+				"\t-- Unit lighting",
+				"\tunitAmbientColor = " .. fmt3(unA) .. ",",
+				"\tunitDiffuseColor = " .. fmt3(unD) .. ",",
+				"\tunitSpecularColor = " .. fmt3(unS) .. ",",
+				"",
+				"\t-- Fog",
+				"\tfogStart = " .. string.format("%.4f", fgS) .. ",",
+				"\tfogEnd = " .. string.format("%.4f", fgE) .. ",",
+				"\tfogColor = " .. fmt4(fgC) .. ",",
+				"",
+				"\t-- Atmosphere colors",
+				"\tsunColor = " .. fmt3(snC) .. ",",
+				"\tskyColor = " .. fmt3(skC) .. ",",
+				"\tcloudColor = " .. fmt3(clC) .. ",",
+				"",
+				"\t-- Sun intensity",
+				"\tsunIntensity = " .. string.format("%.4f", sunIntensity) .. ",",
+				"",
+				"\t-- Skybox rotation",
+				"\tskyAxisAngle = " .. fmt4(skAA) .. ",",
+				"",
+				"\t-- Map rendering",
+				"\tsplatDetailNormalDiffuseAlpha = " .. bstr(sdnda) .. ",",
+				"\tsplatTexMults = " .. fmt4({smR, smG, smB, smA}) .. ",",
+				"\tsplatTexScales = " .. fmt4({ssR, ssG, ssB, ssA}) .. ",",
+				"\tvoidWater = " .. bstr(vW) .. ",",
+				"\tvoidGround = " .. bstr(vG) .. ",",
+				"",
+				"\t-- Water",
+				"\twater = {",
+			}
 
-				-- Add all water params
-				local wParams = {
-					"shoreWaves", "hasWaterPlane", "forceRendering",
-					"repeatX", "repeatY", "surfaceAlpha",
-					"ambientFactor", "diffuseFactor", "specularFactor", "specularPower",
-					"fresnelMin", "fresnelMax", "fresnelPower",
-					"perlinStartFreq", "perlinLacunarity", "perlinAmplitude", "numTiles",
-					"blurBase", "blurExponent", "reflectionDistortion",
-					"waveOffsetFactor", "waveLength", "waveFoamDistortion", "waveFoamIntensity",
-					"causticsResolution", "causticsStrength",
-				}
-				local boolParams = { shoreWaves = true, hasWaterPlane = true, forceRendering = true }
-				for _, p in ipairs(wParams) do
-					local val = gl.GetWaterRendering(p)
-					if boolParams[p] then
-						outLines[#outLines + 1] = "\t\t" .. p .. " = " .. bstr(val) .. ","
-					else
-						outLines[#outLines + 1] = "\t\t" .. p .. " = " .. string.format("%.4f", val or 0) .. ","
-					end
-				end
-				outLines[#outLines + 1] = "\t},"
-				outLines[#outLines + 1] = ""
-
-				-- Water colors
-				outLines[#outLines + 1] = "\t-- Water colors"
-				local waterColorExport = {
-					{"absorb", "absorb"}, {"baseColor", "baseColor"}, {"minColor", "minColor"},
-					{"surfaceColor", "surfaceColor"}, {"planeColor", "planeColor"},
-					{"diffuseColor", "diffuseColor"}, {"specularColor", "specularColor"},
-				}
-				for _, wce in ipairs(waterColorExport) do
-					local c = { gl.GetWaterRendering(wce[2]) }
-					outLines[#outLines + 1] = "\twaterColors_" .. wce[1] .. " = " .. fmt3(c) .. ","
-				end
-				outLines[#outLines + 1] = "}"
-				outLines[#outLines + 1] = ""
-
-				local content = table.concat(outLines, "\n")
-				local mapSafe = (Game.mapName or "unknown"):gsub("[^%w_%-]", "_")
-				local timestamp = os.date("%Y%m%d_%H%M%S")
-				local LIGHTMAPS_DIR = "Terraform Brush/Lightmaps/"
-				Spring.CreateDir(LIGHTMAPS_DIR)
-				local filename = LIGHTMAPS_DIR .. mapSafe .. "_environ_" .. timestamp .. ".lua"
-
-				-- Write file
-				local file = io.open(filename, "w")
-				if file then
-					file:write(content)
-					file:close()
-					Spring.Echo("[Environ] Saved environment config to: " .. filename)
+			-- Add all water params
+			local wParams = {
+				"shoreWaves", "hasWaterPlane", "forceRendering",
+				"repeatX", "repeatY", "surfaceAlpha",
+				"ambientFactor", "diffuseFactor", "specularFactor", "specularPower",
+				"fresnelMin", "fresnelMax", "fresnelPower",
+				"perlinStartFreq", "perlinLacunarity", "perlinAmplitude", "numTiles",
+				"blurBase", "blurExponent", "reflectionDistortion",
+				"waveOffsetFactor", "waveLength", "waveFoamDistortion", "waveFoamIntensity",
+				"causticsResolution", "causticsStrength",
+			}
+			local boolParams = { shoreWaves = true, hasWaterPlane = true, forceRendering = true }
+			for _, p in ipairs(wParams) do
+				local val = gl.GetWaterRendering(p)
+				if boolParams[p] then
+					outLines[#outLines + 1] = "\t\t" .. p .. " = " .. bstr(val) .. ","
 				else
-					Spring.Echo("[Environ] ERROR: Could not write to " .. filename)
+					outLines[#outLines + 1] = "\t\t" .. p .. " = " .. string.format("%.4f", val or 0) .. ","
 				end
-				event:StopPropagation()
-			end, false)
+			end
+			outLines[#outLines + 1] = "\t},"
+			outLines[#outLines + 1] = ""
+
+			-- Water colors
+			outLines[#outLines + 1] = "\t-- Water colors"
+			local waterColorExport = {
+				{"absorb", "absorb"}, {"baseColor", "baseColor"}, {"minColor", "minColor"},
+				{"surfaceColor", "surfaceColor"}, {"planeColor", "planeColor"},
+				{"diffuseColor", "diffuseColor"}, {"specularColor", "specularColor"},
+			}
+			for _, wce in ipairs(waterColorExport) do
+				local c = { gl.GetWaterRendering(wce[2]) }
+				outLines[#outLines + 1] = "\twaterColors_" .. wce[1] .. " = " .. fmt3(c) .. ","
+			end
+			outLines[#outLines + 1] = "}"
+			outLines[#outLines + 1] = ""
+
+			local content = table.concat(outLines, "\n")
+			local mapSafe = (Game.mapName or "unknown"):gsub("[^%w_%-]", "_")
+			local timestamp = os.date("%Y%m%d_%H%M%S")
+			local LIGHTMAPS_DIR = "Terraform Brush/Lightmaps/"
+			Spring.CreateDir(LIGHTMAPS_DIR)
+			local filename = LIGHTMAPS_DIR .. mapSafe .. "_environ_" .. timestamp .. ".lua"
+
+			-- Write file
+			local file = io.open(filename, "w")
+			if file then
+				file:write(content)
+				file:close()
+				Spring.Echo("[Environ] Saved environment config to: " .. filename)
+			else
+				Spring.Echo("[Environ] ERROR: Could not write to " .. filename)
+			end
 		end
+
+		-- ---- Environment Load button (inline: onclick="widget:envLoad()") ----
+		w.envLoad = function(self)
+			local LIGHTMAPS_DIR = "Terraform Brush/Lightmaps/"
+			local mapSafe = (Game.mapName or "unknown"):gsub("[^%w_%-]", "_")
+			local pattern = mapSafe .. "_environ_"
+			local files = VFS.DirList(LIGHTMAPS_DIR, "*.lua", VFS.RAW) or {}
+			-- Filter to files for this map, sort lexicographically (timestamp suffix → newest last)
+			local matching = {}
+			for _, f in ipairs(files) do
+				local basename = f:match("[^/\\]+$") or f
+				if basename:find(pattern, 1, true) then
+					matching[#matching + 1] = f
+				end
+			end
+			if #matching == 0 then
+				Spring.Echo("[Environ] No saved environment config found for map: " .. (Game.mapName or "unknown"))
+				return
+			end
+			table.sort(matching)
+			local newest = matching[#matching]
+			local raw = VFS.LoadFile(newest, VFS.RAW)
+			if not raw or raw == "" then
+				Spring.Echo("[Environ] ERROR: Could not read " .. newest)
+				return
+			end
+			local chunk = loadstring(raw)
+			if not chunk then
+				Spring.Echo("[Environ] ERROR: Parse failed for " .. newest)
+				return
+			end
+			local ok, d = pcall(chunk)
+			if not ok or type(d) ~= "table" then
+				Spring.Echo("[Environ] ERROR: Invalid data in " .. newest)
+				return
+			end
+
+			-- Apply sun direction + intensity
+			if d.sunDir then
+				local intensity = d.sunIntensity or 1.0
+				Spring.SetSunDirection(d.sunDir[1] or 0, d.sunDir[2] or 1, d.sunDir[3] or 0, intensity)
+				widgetState.envSunIntensity = intensity
+			end
+
+			-- Apply shadow density
+			local shadowParams = {}
+			if d.groundShadowDensity then shadowParams.groundShadowDensity = d.groundShadowDensity end
+			if d.modelShadowDensity  then shadowParams.modelShadowDensity  = d.modelShadowDensity  end
+			if next(shadowParams) then Spring.SetSunLighting(shadowParams) end
+
+			-- Apply ground + unit lighting colors
+			local lightParams = {}
+			if d.groundAmbientColor  then lightParams.groundAmbientColor  = d.groundAmbientColor  end
+			if d.groundDiffuseColor  then lightParams.groundDiffuseColor  = d.groundDiffuseColor  end
+			if d.groundSpecularColor then lightParams.groundSpecularColor = d.groundSpecularColor end
+			if d.unitAmbientColor    then lightParams.unitAmbientColor    = d.unitAmbientColor    end
+			if d.unitDiffuseColor    then lightParams.unitDiffuseColor    = d.unitDiffuseColor    end
+			if d.unitSpecularColor   then lightParams.unitSpecularColor   = d.unitSpecularColor   end
+			if next(lightParams) then
+				Spring.SetSunLighting(lightParams)
+				Spring.SendCommands("luarules updatesun")
+			end
+
+			-- Apply atmosphere
+			local atmosParams = {}
+			if d.fogStart      then atmosParams.fogStart      = d.fogStart      end
+			if d.fogEnd        then atmosParams.fogEnd        = d.fogEnd        end
+			if d.fogColor      then atmosParams.fogColor      = d.fogColor      end
+			if d.sunColor      then atmosParams.sunColor      = d.sunColor      end
+			if d.skyColor      then atmosParams.skyColor      = d.skyColor      end
+			if d.cloudColor    then atmosParams.cloudColor    = d.cloudColor    end
+			if d.skyAxisAngle  then atmosParams.skyAxisAngle  = d.skyAxisAngle  end
+			if next(atmosParams) then Spring.SetAtmosphere(atmosParams) end
+
+			-- Apply map rendering
+			local mrParams = {}
+			if d.splatDetailNormalDiffuseAlpha ~= nil then mrParams.splatDetailNormalDiffuseAlpha = d.splatDetailNormalDiffuseAlpha end
+			if d.splatTexMults  then mrParams.splatTexMults  = d.splatTexMults  end
+			if d.splatTexScales then mrParams.splatTexScales = d.splatTexScales end
+			if d.voidWater      ~= nil then mrParams.voidWater  = d.voidWater  end
+			if d.voidGround     ~= nil then mrParams.voidGround = d.voidGround end
+			if next(mrParams) then Spring.SetMapRenderingParams(mrParams) end
+
+			-- Apply water params
+			if type(d.water) == "table" then
+				Spring.SetWaterParams(d.water)
+				Spring.SendCommands("water 4")
+			end
+
+			-- Apply water colors
+			local wcMap = {
+				waterColors_absorb        = "absorb",
+				waterColors_baseColor     = "baseColor",
+				waterColors_minColor      = "minColor",
+				waterColors_surfaceColor  = "surfaceColor",
+				waterColors_planeColor    = "planeColor",
+				waterColors_diffuseColor  = "diffuseColor",
+				waterColors_specularColor = "specularColor",
+			}
+			local wcParams = {}
+			for key, param in pairs(wcMap) do
+				if d[key] then wcParams[param] = d[key] end
+			end
+			if next(wcParams) then
+				Spring.SetWaterParams(wcParams)
+				Spring.SendCommands("water 4")
+			end
+
+			playSound("save")
+			Spring.Echo("[Environ] Loaded environment config: " .. newest)
+		end
+
 	-- ============ Skybox Library floating window ============
 
 	widgetState.skyboxLibraryRootEl = doc:GetElementById("tf-skybox-library-root")
 
-	-- Toggle button in environment panel
-	local skyboxLibBtn = doc:GetElementById("btn-env-skybox-library")
-	if skyboxLibBtn then
-		skyboxLibBtn:AddEventListener("click", function(event)
-			playSound(widgetState.skyboxLibraryOpen and "click" or "panelOpen")
-			widgetState.skyboxLibraryOpen = not widgetState.skyboxLibraryOpen
-			if widgetState.skyboxLibraryRootEl then
-				widgetState.skyboxLibraryRootEl:SetClass("hidden", not widgetState.skyboxLibraryOpen)
-			end
-			skyboxLibBtn:SetClass("env-open", widgetState.skyboxLibraryOpen == true)
-			event:StopPropagation()
-		end, false)
+	-- Toggle button in environment panel (inline: onclick="widget:envSkyboxLibToggle(element)")
+	w.envSkyboxLibToggle = function(self, element)
+		playSound(widgetState.skyboxLibraryOpen and "click" or "panelOpen")
+		widgetState.skyboxLibraryOpen = not widgetState.skyboxLibraryOpen
+		if widgetState.skyboxLibraryRootEl then
+			widgetState.skyboxLibraryRootEl:SetClass("hidden", not widgetState.skyboxLibraryOpen)
+		end
+		if widgetState.dmHandle then widgetState.dmHandle.skyboxLibraryVisible = widgetState.skyboxLibraryOpen and true or false end
+		if element then
+			element:SetClass("env-open", widgetState.skyboxLibraryOpen == true)
+		end
 	end
 
-	-- Close button on library window
-	local skyboxLibCloseBtn = doc:GetElementById("btn-skybox-library-close")
-	if skyboxLibCloseBtn then
-		skyboxLibCloseBtn:AddEventListener("click", function(event)
-			playSound("click")
-			widgetState.skyboxLibraryOpen = false
-			if widgetState.skyboxLibraryRootEl then
-				widgetState.skyboxLibraryRootEl:SetClass("hidden", true)
-			end
-			if skyboxLibBtn then skyboxLibBtn:SetClass("env-open", false) end
-			event:StopPropagation()
-		end, false)
+	-- Close button on library window (inline: onclick="widget:envSkyboxLibClose()")
+	w.envSkyboxLibClose = function(self)
+		playSound("click")
+		widgetState.skyboxLibraryOpen = false
+		if widgetState.skyboxLibraryRootEl then
+			widgetState.skyboxLibraryRootEl:SetClass("hidden", true)
+		end
+		if widgetState.dmHandle then widgetState.dmHandle.skyboxLibraryVisible = false end
+		local openBtn = doc:GetElementById("btn-env-skybox-library")
+		if openBtn then openBtn:SetClass("env-open", false) end
 	end
 
 	-- Blue-dot hint wiring: delegated to a module-level helper to avoid

@@ -334,12 +334,15 @@ body {
 	cursor: pointer;
 	transition: background-color 0.15s;
 	position: relative;
-	box-shadow: 0dp 1dp 2dp 0dp #00000030;
+	decorator: vertical-gradient(#4e4e5a #2c2c34);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-mode-btn:hover {
 	background-color: #4c4c58;
 	border-color: #7878909a;
+	decorator: vertical-gradient(#626270 #3a3a46);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-btn-text {
@@ -401,11 +404,15 @@ body {
 	border: 1dp #50505a50;
 	cursor: pointer;
 	transition: background-color 0.15s;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-lp-compact-btn:hover {
 	background-color: #484858;
 	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 /* === Light Distribution Buttons === */
@@ -420,11 +427,15 @@ body {
 	border: 1dp #50505a50;
 	cursor: pointer;
 	transition: background-color 0.15s;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-lp-dist-btn:hover {
 	background-color: #484858;
 	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-lp-dist-btn .tf-btn-text {
@@ -444,11 +455,15 @@ body {
 	background-color: #32323c;
 	border-color: #55556040;
 	transition: background-color 0.15s;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-lp-action-btn:hover {
 	background-color: #484858;
 	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-lp-action-btn .tf-action-btn-text {
@@ -469,24 +484,30 @@ body {
 /* RGB channel tinting for color sliders (thumb color indicates channel) */
 .tf-slider.lp-slider-channel-r sliderbar {
 	background-color: #e03030;
-	border: 1dp #ffffff30;
+	decorator: vertical-gradient(#ff6060 #901818);
+	border: 1dp #ffffff40;
 }
 .tf-slider.lp-slider-channel-r sliderbar:hover {
 	background-color: #ff5050;
+	decorator: vertical-gradient(#ff8080 #b02020);
 }
 .tf-slider.lp-slider-channel-g sliderbar {
 	background-color: #30c040;
-	border: 1dp #ffffff30;
+	decorator: vertical-gradient(#60e070 #186020);
+	border: 1dp #ffffff40;
 }
 .tf-slider.lp-slider-channel-g sliderbar:hover {
 	background-color: #50e060;
+	decorator: vertical-gradient(#80ff90 #208030);
 }
 .tf-slider.lp-slider-channel-b sliderbar {
 	background-color: #3060e8;
-	border: 1dp #ffffff30;
+	decorator: vertical-gradient(#6090ff #182f80);
+	border: 1dp #ffffff40;
 }
 .tf-slider.lp-slider-channel-b sliderbar:hover {
 	background-color: #5080ff;
+	decorator: vertical-gradient(#80a8ff #2040a0);
 }
 
 /* === Color Palette Grid === */
@@ -802,10 +823,14 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	decorator: vertical-gradient(#3a3a46 #1e1e28);
+	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
 }
 .tf-cl-chip:hover {
 	background-color: #3a3a46;
 	border-color: #5a5a6a;
+	decorator: vertical-gradient(#4a4a58 #2a2a36);
+	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff20;
 }
 .tf-cl-chip.active {
 	background-color: #0c2838;
@@ -849,7 +874,8 @@ body {
 	cursor: pointer;
 	transition: background-color 0.15s;
 	position: relative;
-	box-shadow: 0dp 1dp 2dp 0dp #00000030;
+	decorator: vertical-gradient(#4e4e5a #2c2c34);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-shape-btn.hidden {
@@ -864,6 +890,8 @@ body {
 .tf-shape-btn:hover {
 	background-color: #4c4c58;
 	border-color: #7878909a;
+	decorator: vertical-gradient(#626270 #3a3a46);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-shape-btn.active {
@@ -893,11 +921,15 @@ body {
 	flex-direction: column;
 	background-color: #3e3424;
 	border-color: #5a4228a0;
+	decorator: vertical-gradient(#524638 #2c2416);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-clay-btn:hover {
 	background-color: #584c30;
 	border-color: #907040;
+	decorator: vertical-gradient(#6a5e44 #423826);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-clay-btn.active {
@@ -941,11 +973,15 @@ body {
 	flex-direction: column;
 	background-color: #2a1238;
 	border-color: #7c3aed80;
+	decorator: vertical-gradient(#3c2450 #1c0626);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-full-restore-btn:hover {
 	background-color: #3b1a50;
 	border-color: #a855f7;
+	decorator: vertical-gradient(#4e2e66 #2a0c38);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-full-restore-label {
@@ -988,11 +1024,15 @@ body {
 .tf-undo-btn {
 	background-color: #352618;
 	border-color: #e8960070;
+	decorator: vertical-gradient(#49382c #231410);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-undo-btn:hover {
 	background-color: #504020;
 	border-color: #ffa820;
+	decorator: vertical-gradient(#60503a #3c2e16);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 /* === History Row (Undo / Slider / Redo) === */
@@ -1008,13 +1048,15 @@ body {
 	border: 1dp #e8960050;
 	cursor: pointer;
 	transition: background-color 0.15s;
-	box-shadow: 0dp 1dp 2dp 0dp #00000030;
+	decorator: vertical-gradient(#493c2c #231810);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-history-btn:hover {
 	background-color: #504020;
 	border-color: #ffa820;
-	box-shadow: 0dp 0dp 4dp 0dp #e8960030;
+	decorator: vertical-gradient(#60503a #3c2e16);
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28, 0dp 0dp 4dp 0dp #e8960030;
 }
 
 /* === Undo Mode Toggle Buttons === */
@@ -1026,11 +1068,15 @@ body {
 	border: 1dp #40404a60;
 	border-radius: 5dp;
 	transition: background-color 0.15s;
+	decorator: vertical-gradient(#343440 #1a1a22);
+	box-shadow: 0dp 1dp 3dp 0dp #00000048, inset 0dp 1dp 0dp 0dp #ffffff14;
 }
 
 .tf-undo-mode-btn:hover {
 	background-color: #3e3e4c;
 	border-color: #7878909a;
+	decorator: vertical-gradient(#4c4c5c #2c2c38);
+	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff22;
 }
 
 .tf-undo-mode-btn.active {
@@ -1052,16 +1098,18 @@ body {
 	width: 10dp;
 	height: 16dp;
 	background-color: #c87c00;
+	decorator: vertical-gradient(#ffaa30 #804c00);
 	border-radius: 4dp;
-	border: 1dp #ffffff28;
+	border: 1dp #ffffff40;
 	margin-top: 1dp;
-	box-shadow: 0dp 2dp 4dp 0dp #00000070;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
 	transition: background-color 0.1s;
 }
 
 .tf-slider-history sliderbar:hover {
 	background-color: #e8a020;
-	box-shadow: 0dp 2dp 6dp 0dp #00000090;
+	decorator: vertical-gradient(#ffc858 #a06000);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
 }
 
 /* === Small Buttons (rotation, fall-off, intensity) === */
@@ -1071,17 +1119,20 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background-color: #393942;
+	background-color: #34343d;
+	decorator: vertical-gradient(#4a4a56 #25252d);
 	border-radius: 4dp;
-	border: 1dp #50505a50;
+	border: 1dp #ffffff15;
 	cursor: pointer;
-	box-shadow: 0dp 1dp 2dp 0dp #00000030;
-	transition: background-color 0.15s, border-color 0.15s;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff20;
+	transition: background-color 0.1s, border-color 0.1s;
 }
 
 .tf-sm-btn:hover {
-	background-color: #4c4c58;
-	border-color: #7878909a;
+	background-color: #43434e;
+	decorator: vertical-gradient(#5e5e6c #303039);
+	border-color: #ffffff28;
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff35;
 }
 
 /* === Transport toggle pill â€” click to reveal the 3 transport buttons === */
@@ -1196,12 +1247,16 @@ body {
 	background-color: #25252f;
 	cursor: pointer;
 	transition: background-color 0.12s;
+	decorator: vertical-gradient(#333340 #191921);
+	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
 }
 
 .tf-sample-btn:hover {
 	background-color: #35354a;
 	border-color: #ffffffaa;
 	color: #e5e7eb;
+	decorator: vertical-gradient(#444458 #262636);
+	box-shadow: 0dp 2dp 4dp 0dp #00000068, inset 0dp 1dp 0dp 0dp #ffffff22;
 }
 
 .tf-sample-btn.active {
@@ -1224,11 +1279,15 @@ body {
 	margin-right: 4dp;
 	flex-shrink: 0;
 	transition: background-color 0.15s;
+	decorator: vertical-gradient(#3a3a46 #1e1e28);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-header-btn:hover {
 	background-color: #3e3e4c;
 	border-color: #7878909a;
+	decorator: vertical-gradient(#4a4a5a #2c2c38);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-header-icon {
@@ -1321,32 +1380,36 @@ body {
 	width: 10dp;
 	height: 16dp;
 	background-color: #d08020;
+	decorator: vertical-gradient(#ffae50 #804c10);
 	border-radius: 4dp;
-	border: 1dp #ffffff28;
+	border: 1dp #ffffff40;
 	margin-top: 1dp;
-	box-shadow: 0dp 2dp 4dp 0dp #00000070;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
 	transition: background-color 0.1s;
 }
 
 .tf-slider-cap-max sliderbar:hover {
 	background-color: #f09a38;
-	box-shadow: 0dp 2dp 6dp 0dp #00000090;
+	decorator: vertical-gradient(#ffc870 #a06018);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
 }
 
 .tf-slider-cap-min sliderbar {
 	width: 10dp;
 	height: 16dp;
 	background-color: #2080d0;
+	decorator: vertical-gradient(#50aef0 #104880);
 	border-radius: 4dp;
-	border: 1dp #ffffff28;
+	border: 1dp #ffffff40;
 	margin-top: 1dp;
-	box-shadow: 0dp 2dp 4dp 0dp #00000070;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
 	transition: background-color 0.1s;
 }
 
 .tf-slider-cap-min sliderbar:hover {
 	background-color: #38a0f0;
-	box-shadow: 0dp 2dp 6dp 0dp #00000090;
+	decorator: vertical-gradient(#70c8ff #1860a0);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
 }
 
 /* === Tooltip === */
@@ -1416,16 +1479,18 @@ body {
 	width: 10dp;
 	height: 16dp;
 	background-color: #b0b4c0;
+	decorator: vertical-gradient(#dde0ec #7d8190);
 	border-radius: 4dp;
-	border: 1dp #ffffff28;
+	border: 1dp #ffffff40;
 	margin-top: 1dp;
 	transition: background-color 0.1s;
-	box-shadow: 0dp 2dp 4dp 0dp #00000070;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
 }
 
 .tf-slider sliderbar:hover {
 	background-color: #d4d8e4;
-	box-shadow: 0dp 2dp 6dp 0dp #00000090;
+	decorator: vertical-gradient(#f4f6ff #9ea2b0);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
 }
 
 .tf-slider sliderarrowdec,
@@ -1555,22 +1620,30 @@ body {
 .tf-preset-save {
 	background-color: #2a4050;
 	border-color: #4880b870;
+	decorator: vertical-gradient(#3a5264 #1e303e);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-preset-save:hover {
 	background-color: #3c5e7a;
 	border-color: #68aadccc;
+	decorator: vertical-gradient(#4e7090 #2a4456);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-preset-toggle {
 	padding: 0 6dp;
 	background-color: #32323c;
 	border-color: #50505a60;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-preset-toggle:hover {
 	background-color: #484858;
 	border-color: #8888a0cc;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-preset-toggle.open {
@@ -1688,6 +1761,143 @@ body {
 	font-style: italic;
 }
 
+/* === Heightmap browser (Load Heightmap dropdown) === */
+.tf-hm-browser {
+	display: flex;
+	flex-direction: column;
+	max-height: 240dp;
+	overflow-y: auto;
+	background-color: #11131aee;
+	border: 1dp #3a3f4d;
+	border-radius: 6dp;
+	margin-top: 4dp;
+	margin-bottom: 4dp;
+	padding: 4dp;
+}
+
+.tf-hm-browser scrollbarvertical {
+	width: 8dp;
+	margin-left: 2dp;
+}
+.tf-hm-browser scrollbarvertical sliderbar {
+	background-color: #6a6a6a;
+	border-radius: 4dp;
+}
+.tf-hm-browser scrollbarvertical sliderbar:hover {
+	background-color: #8a8a8a;
+}
+.tf-hm-browser scrollbarvertical slidertrack {
+	background-color: #1f2027;
+	border-radius: 4dp;
+}
+
+.tf-hm-header {
+	display: flex;
+	flex-direction: row;
+	flex-shrink: 0;
+	align-items: center;
+	padding: 4dp 6dp;
+	color: #94a3b8;
+	font-size: 0.85rem;
+	font-weight: bold;
+	border-bottom: 1dp #2a2f3a;
+	margin-bottom: 4dp;
+	cursor: pointer;
+}
+.tf-hm-header:hover {
+	color: #cbd5e1;
+}
+.tf-hm-header-chevron {
+	display: inline-block;
+	width: 14dp;
+	margin-right: 4dp;
+	color: #64748b;
+	transition: transform 0.12s;
+}
+.tf-hm-header-text {
+	flex: 1;
+}
+.tf-hm-browser.collapsed .tf-hm-header {
+	border-bottom: 1dp transparent;
+	margin-bottom: 0;
+}
+.tf-hm-browser.collapsed .tf-hm-row,
+.tf-hm-browser.collapsed .tf-hm-empty {
+	display: none;
+}
+
+.tf-hm-empty {
+	padding: 14dp 8dp;
+	color: #6b7280;
+	font-size: 0.95rem;
+	font-style: italic;
+}
+
+.tf-hm-row {
+	display: flex;
+	flex-direction: column;
+	flex-shrink: 0;
+	align-items: stretch;
+	padding: 5dp 8dp;
+	margin-top: 2dp;
+	border-radius: 4dp;
+	cursor: pointer;
+	border: 1dp transparent;
+	transition: background-color 0.12s, border-color 0.12s;
+}
+.tf-hm-row:hover {
+	background-color: #232a38;
+	border: 1dp #3b82f680;
+}
+.tf-hm-row:active {
+	background-color: #1d2433;
+}
+
+.tf-hm-row-line {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 12dp;
+}
+
+.tf-hm-date {
+	color: #94a3b8;
+	font-size: 0.95rem;
+	white-space: nowrap;
+	min-width: 0;
+}
+
+.tf-hm-badge {
+	color: #93c5fd;
+	font-size: 0.8rem;
+	line-height: 1.3;
+	background-color: #1e3a5fcc;
+	border: 1dp #3b82f680;
+	border-radius: 3dp;
+	padding: 1dp 6dp;
+}
+
+.tf-hm-row.legacy .tf-hm-badge {
+	color: #fbbf24;
+	background-color: #3a2a0fcc;
+	border: 1dp #f59e0b80;
+}
+
+.tf-hm-mapname {
+	flex: 1;
+	color: #e5e7eb;
+	font-size: 1.0rem;
+	font-weight: bold;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding-right: 6dp;
+}
+
+.tf-hm-row:hover .tf-hm-mapname {
+	color: #f9fafb;
+}
+
 /* === Absolute Height Cap Toggle === */
 .tf-abs-toggle {
 	width: 20dp;
@@ -1731,11 +1941,15 @@ body {
 	border-color: #40404a50;
 	padding: 0 6dp;
 	transition: background-color 0.15s;
+	decorator: vertical-gradient(#363e48 #1c2228);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-wtype-btn:hover {
 	background-color: #3c4650;
 	border-color: #6a7a8acc;
+	decorator: vertical-gradient(#4a5462 #2a323e);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-wtype-btn-text {
@@ -1773,12 +1987,15 @@ body {
 	background-color: #32323c;
 	border-color: #55556040;
 	transition: background-color 0.15s;
-	box-shadow: 0dp 1dp 2dp 0dp #00000028;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-action-btn:hover {
 	background-color: #484858;
 	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-action-btn:hover .tf-action-btn-text {
@@ -1800,12 +2017,15 @@ body {
 	background-color: #32323c;
 	border-color: #55556040;
 	transition: background-color 0.15s;
-	box-shadow: 0dp 1dp 2dp 0dp #00000028;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-env-btn:hover {
 	background-color: #484858;
 	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-env-btn:hover .tf-env-btn-text {
@@ -1852,11 +2072,13 @@ body {
 .tf-save-btn {
 	background-color: #2a4050;
 	border-color: #4880b880;
+	decorator: vertical-gradient(#3a5264 #1e303e);
 }
 
 .tf-save-btn:hover {
 	background-color: #3c5e7a;
 	border-color: #68aadccc;
+	decorator: vertical-gradient(#4e7090 #2a4456);
 }
 
 .tf-save-btn:hover .text-medium,
@@ -1868,11 +2090,13 @@ body {
 .tf-load-btn {
 	background-color: #3c2a50;
 	border-color: #9058c880;
+	decorator: vertical-gradient(#4e3c64 #2c1e3e);
 }
 
 .tf-load-btn:hover {
 	background-color: #5a3e78;
 	border-color: #b070f0cc;
+	decorator: vertical-gradient(#6e528e #422c5c);
 }
 
 .tf-load-btn:hover .text-medium,
@@ -2374,10 +2598,14 @@ body {
 	border: 1dp #3e3e4a50;
 	cursor: pointer;
 	transition: background-color 0.1s, border-color 0.1s;
+	decorator: vertical-gradient(#3a3a46 #1e1e28);
+	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
 }
 .tf-overlay-chip:hover {
 	background-color: #3a3a46;
 	border-color: #5a5a6a;
+	decorator: vertical-gradient(#4a4a58 #2a2a36);
+	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff20;
 }
 .tf-overlay-chip.active {
 	background-color: #0c2838;
@@ -2566,7 +2794,9 @@ body {
 
 .tf-env-btn:active {
 	background-color: #24242c;
-}
+}1e1e25;
+	decorator: vertical-gradient(#1e1e25 #2c2c35);
+	box-shadow: inset 0dp 2dp 4dp 0dp #00000080
 
 .tf-sm-btn:active {
 	background-color: #2a2a32;

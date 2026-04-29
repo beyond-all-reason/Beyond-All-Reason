@@ -366,6 +366,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		pushUndo(snapshotShape(centerX, centerZ, radius, shape, angleDeg))
 		applyPaint(centerX, centerZ, radius, shape, angleDeg, curve, direction, intensity, metalTarget)
 		recalcNearbyExtractors(centerX, centerZ, radius)
+		Spring.SendLuaUIMsg("mb_metal_updated")
 		Spring.Echo("[Metal Brush] Paint applied at " .. centerX .. "," .. centerZ .. " r=" .. radius .. " shape=" .. shape .. " dir=" .. direction .. " int=" .. intensity .. " mv=" .. metalTarget)
 		return
 	end
@@ -395,6 +396,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		pushUndo(snapshotShape(centerX, centerZ, radius, shape, angleDeg))
 		applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg, direction)
 		recalcNearbyExtractors(centerX, centerZ, radius)
+		Spring.SendLuaUIMsg("mb_metal_updated")
 		Spring.Echo("[Metal Brush] Stamp applied at " .. centerX .. "," .. centerZ .. " r=" .. radius .. " mv=" .. metalTarget .. " dir=" .. direction)
 		return
 	end
@@ -428,6 +430,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 				end
 			end
 		end
+		Spring.SendLuaUIMsg("mb_metal_updated")
 		Spring.Echo("[Metal Brush] Cleared all metal (" .. cleared .. " squares)")
 		return
 	end
@@ -482,6 +485,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 				end
 			end
 		end
+		if loaded > 0 then Spring.SendLuaUIMsg("mb_metal_updated") end
 		Spring.Echo("[Metal Brush] Loaded " .. loaded .. " metal squares")
 		return
 	end
@@ -502,6 +506,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if snap.cx and snap.r then
 			recalcNearbyExtractors(snap.cx, snap.cz, snap.r)
 		end
+		Spring.SendLuaUIMsg("mb_metal_updated")
 		Spring.Echo("[Metal Brush] Undo (" .. (#snap/3) .. " squares, " .. #undoStack .. " left)")
 		return
 	end
@@ -522,6 +527,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if snap.cx and snap.r then
 			recalcNearbyExtractors(snap.cx, snap.cz, snap.r)
 		end
+		Spring.SendLuaUIMsg("mb_metal_updated")
 		Spring.Echo("[Metal Brush] Redo (" .. (#snap/3) .. " squares, " .. #redoStack .. " left)")
 		return
 	end

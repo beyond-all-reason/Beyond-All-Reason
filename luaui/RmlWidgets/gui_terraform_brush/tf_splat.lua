@@ -444,6 +444,13 @@ function M.sync(doc, ctx, spState, setSummary)
 				ctx.syncWarnChip(doc, "warn-chip-sp-smart", "section-sp-smart", anyFilterOn)
 				if spState.smartFilters then
 					local sf = spState.smartFilters
+					-- Mirror smart-filter flags into data-model for data-if visibility.
+					if widgetState.dmHandle then
+						widgetState.dmHandle.spAvoidCliffs = sf.avoidCliffs == true
+						widgetState.dmHandle.spPreferSlopes = sf.preferSlopes == true
+						widgetState.dmHandle.spAltMinEnable = sf.altMinEnable == true
+						widgetState.dmHandle.spAltMaxEnable = sf.altMaxEnable == true
+					end
 					-- NB: slope/altitude chip active class is owned by wireVisibilityChip
 					-- (tf_environment.lua) which treats active==section-expanded. Do NOT
 					-- overwrite it here based on filter flags or the click toggle fights
@@ -460,10 +467,7 @@ function M.sync(doc, ctx, spState, setSummary)
 					local slopePreferChip = doc:GetElementById("sp-slope-mode-prefer")
 					if slopePreferChip then slopePreferChip:SetClass("active", sf.preferSlopes == true) end
 
-					local slopeMaxRow = doc:GetElementById("sp-smart-slope-max-row")
-					if slopeMaxRow then slopeMaxRow:SetClass("hidden", not sf.avoidCliffs) end
-					local slopeMaxSliderRow = doc:GetElementById("sp-smart-slope-max-slider-row")
-					if slopeMaxSliderRow then slopeMaxSliderRow:SetClass("hidden", not sf.avoidCliffs) end
+					-- Slope-max row visibility driven by data-if="spAvoidCliffs"
 					local slopeMaxLabel = doc:GetElementById("sp-smart-slope-max-label")
 					if slopeMaxLabel then slopeMaxLabel.inner_rml = tostring(sf.slopeMax) end
 					local spSSlopeMax = doc:GetElementById("sp-slider-slope-max")
@@ -471,10 +475,7 @@ function M.sync(doc, ctx, spState, setSummary)
 						spSSlopeMax:SetAttribute("value", tostring(sf.slopeMax))
 					end
 
-					local slopeMinRow = doc:GetElementById("sp-smart-slope-min-row")
-					if slopeMinRow then slopeMinRow:SetClass("hidden", not sf.preferSlopes) end
-					local slopeMinSliderRow = doc:GetElementById("sp-smart-slope-min-slider-row")
-					if slopeMinSliderRow then slopeMinSliderRow:SetClass("hidden", not sf.preferSlopes) end
+					-- Slope-min row visibility driven by data-if="spPreferSlopes"
 					local slopeMinLabel = doc:GetElementById("sp-smart-slope-min-label")
 					if slopeMinLabel then slopeMinLabel.inner_rml = tostring(sf.slopeMin) end
 					local spSSlopeMin = doc:GetElementById("sp-slider-slope-min")
@@ -488,8 +489,7 @@ function M.sync(doc, ctx, spState, setSummary)
 							and "/luaui/images/terraform_brush/check_on.png"
 							or "/luaui/images/terraform_brush/check_off.png")
 					end
-					local altMinSliderRow = doc:GetElementById("sp-smart-alt-min-slider-row")
-					if altMinSliderRow then altMinSliderRow:SetClass("hidden", not sf.altMinEnable) end
+					-- Alt-min slider-row visibility driven by data-if="spAltMinEnable"
 					local altMinLabel = doc:GetElementById("sp-smart-alt-min-label")
 					if altMinLabel then altMinLabel.inner_rml = tostring(sf.altMin) end
 					local spSAltMin = doc:GetElementById("sp-slider-alt-min")
@@ -503,8 +503,7 @@ function M.sync(doc, ctx, spState, setSummary)
 							and "/luaui/images/terraform_brush/check_on.png"
 							or "/luaui/images/terraform_brush/check_off.png")
 					end
-					local altMaxSliderRow = doc:GetElementById("sp-smart-alt-max-slider-row")
-					if altMaxSliderRow then altMaxSliderRow:SetClass("hidden", not sf.altMaxEnable) end
+					-- Alt-max slider-row visibility driven by data-if="spAltMaxEnable"
 					local altMaxLabel = doc:GetElementById("sp-smart-alt-max-label")
 					if altMaxLabel then altMaxLabel.inner_rml = tostring(sf.altMax) end
 					local spSAltMax = doc:GetElementById("sp-slider-alt-max")
@@ -596,9 +595,16 @@ function M.sync(doc, ctx, spState, setSummary)
 					local el = doc:GetElementById(id)
 					if el then el:SetClass("active", active and true or false) end
 				end
-				local function setHidden(id, hidden)
-					local el = doc:GetElementById(id)
-					if el then el:SetClass("hidden", hidden and true or false) end
+				-- Visibility flags pushed to data-model (driven by data-if in RML).
+				local dm = widgetState.dmHandle
+				if dm then
+					dm.spGridSnap = s.gridSnap and true or false
+					dm.spAngleSnap = s.angleSnap and true or false
+					dm.spMeasureActive = s.measureActive and true or false
+					dm.spSymmetryActive = s.symmetryActive and true or false
+					dm.spSymmetryRadial = s.symmetryRadial and true or false
+					dm.spSymmetryMirrorAny = (s.symmetryMirrorX or s.symmetryMirrorY) and true or false
+					dm.spAngleSnapAuto = s.angleSnapAuto and true or false
 				end
 				setChip("btn-sp-grid-overlay",    s.gridOverlay)
 				setChip("btn-sp-height-colormap", s.heightColormap)
@@ -609,13 +615,11 @@ function M.sync(doc, ctx, spState, setSummary)
 				end
 				-- Hint dot: visible (pulsing) while DISPLAY section is closed
 				do
-					local hintDot = doc:GetElementById("sp-display-notify-dot")
-					if hintDot then
-						local tipsDisabled = widgetState.uiPrefs and widgetState.uiPrefs.disableTips
-						local alreadySeen = widgetState.uiPrefs and widgetState.uiPrefs.seenSplatDisplayHint
-						local sec = doc:GetElementById("section-sp-overlays")
-						hintDot:SetClass("hidden", tipsDisabled or alreadySeen or (sec and not sec:IsClassSet("hidden")) or false)
-					end
+					local tipsDisabled = widgetState.uiPrefs and widgetState.uiPrefs.disableTips
+					local alreadySeen = widgetState.uiPrefs and widgetState.uiPrefs.seenSplatDisplayHint
+					local sec = doc:GetElementById("section-sp-overlays")
+					local hidden = tipsDisabled or alreadySeen or (sec and not sec:IsClassSet("hidden")) or false
+					if dm then dm.spDisplayHintVisible = not hidden end
 				end
 				-- Chip 2-pulse: fires the frame after DISPLAY section is opened
 				if widgetState.splatDisplayPulseFrame and Spring.GetGameFrame() >= widgetState.splatDisplayPulseFrame then
@@ -638,21 +642,18 @@ function M.sync(doc, ctx, spState, setSummary)
 				setChip("btn-sp-angle-snap",      s.angleSnap)
 				setChip("btn-sp-measure",         s.measureActive)
 				setChip("btn-sp-symmetry",        s.symmetryActive)
-				setHidden("sp-grid-snap-size-row",  not s.gridSnap)
-				setHidden("sp-angle-snap-step-row", not s.angleSnap)
-				setHidden("sp-measure-toolbar-row", not s.measureActive)
-				setHidden("sp-symmetry-toolbar-row",not s.symmetryActive)
+				-- sp-grid-snap-size-row, sp-angle-snap-step-row, sp-measure-toolbar-row,
+				-- sp-symmetry-toolbar-row visibility driven by data-if (dm.sp* flags above).
 				-- Symmetry sub chips + sub rows
 				setChip("sp-btn-symmetry-radial",   s.symmetryRadial)
 				setChip("sp-btn-symmetry-mirror-x", s.symmetryMirrorX)
 				setChip("sp-btn-symmetry-mirror-y", s.symmetryMirrorY)
-				setHidden("sp-symmetry-radial-count-row",   not s.symmetryRadial)
-				setHidden("sp-symmetry-mirror-angle-row",   not (s.symmetryMirrorX or s.symmetryMirrorY))
+				-- sp-symmetry-radial-count-row, sp-symmetry-mirror-angle-row visibility
+				-- driven by data-if (dm.spSymmetryRadial / dm.spSymmetryMirrorAny).
 				-- Measure sub chips
 				setChip("sp-btn-measure-show-length", s.measureShowLength)
-				-- Angle auto-snap chip + manual spoke row
+				-- Angle auto-snap chip + manual spoke row (data-if="!spAngleSnapAuto")
 				setChip("sp-btn-angle-autosnap", s.angleSnapAuto)
-				setHidden("sp-angle-manual-spoke-row", s.angleSnapAuto)
 				-- Labels
 				local function setLabel(id, text)
 					local el = doc:GetElementById(id)
