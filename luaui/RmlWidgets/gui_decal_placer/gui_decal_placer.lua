@@ -29,7 +29,7 @@ local INITIAL_TOP_VH  = 10
 -- Type definitions (Lua LS only — strip at compile time, no runtime cost)
 ----------------------------------------------------------------
 
----One row in the dm_handle.currentDecals array. Drives one tile via
+---One row in the dmHandle.currentDecals array. Drives one tile via
 ---data-for="d, i : currentDecals" in the RML template.
 ---@class DecalRow
 ---@field name string         -- engine texture name
@@ -61,14 +61,14 @@ local INITIAL_TOP_VH  = 10
 ---@class WidgetState
 ---@field rmlContext any
 ---@field document any
----@field dm_handle DecalPlacerModel? -- nil until widget:Initialize() opens the data model
+---@field dmHandle DecalPlacerModel? -- nil until widget:Initialize() opens the data model
 ---@field rootElement any
 
 ---@type WidgetState
 local widgetState = {
 	rmlContext  = nil,
 	document    = nil,
-	dm_handle   = nil,
+	dmHandle   = nil,
 	rootElement = nil,
 }
 
@@ -103,7 +103,7 @@ local initialModel = {
 	end,
 
 	onCategorySelect = function(_event, key)
-		local dm = widgetState.dm_handle
+		local dm = widgetState.dmHandle
 		if not dm or dm.activeCategory == key then return end
 		dm.activeCategory = key
 		-- syncDecals is defined below; forward declared via the closure since
@@ -132,7 +132,7 @@ local initialModel = {
 	end,
 
 	onSearchClear = function(_event)
-		local dm = widgetState.dm_handle
+		local dm = widgetState.dmHandle
 		if not dm then return end
 		dm.search = ""
 		lastSearchFilter = ""
@@ -244,107 +244,6 @@ local function buildRootStyle()
 		INITIAL_LEFT_VW, INITIAL_TOP_VH)
 end
 
-local function setLabel(id, text)
-	local el = widgetState.document and widgetState.document:GetElementById(id)
-	if el then el.inner_rml = text end
-end
-
-local function setSliderValue(id, val)
-	local el = widgetState.document and widgetState.document:GetElementById(id)
-	if el then el:SetAttribute("value", tostring(val)) end
-end
-
-local function getModeButtons()
-	local doc = widgetState.document
-	if not doc then return nil end
-	return {
-		scatter = doc:GetElementById("btn-dp-mode-scatter"),
-		point   = doc:GetElementById("btn-dp-mode-point"),
-		remove  = doc:GetElementById("btn-dp-mode-remove"),
-	}
-end
-
-local function getShapeButtons()
-	local doc = widgetState.document
-	if not doc then return nil end
-	return {
-		circle   = doc:GetElementById("btn-dp-shape-circle"),
-		square   = doc:GetElementById("btn-dp-shape-square"),
-		hexagon  = doc:GetElementById("btn-dp-shape-hexagon"),
-		octagon  = doc:GetElementById("btn-dp-shape-octagon"),
-		triangle = doc:GetElementById("btn-dp-shape-triangle"),
-	}
-end
-
-local function refreshUIFromState()
-	if not WG.DecalPlacer then return end
-	local state = WG.DecalPlacer.getState()
-	if not state then return end
-
-	local mb = getModeButtons()
-	if mb then
-		for k, el in pairs(mb) do el:SetClass("active", state.mode == k) end
-	end
-	local sb = getShapeButtons()
-	if sb then
-		for k, el in pairs(sb) do el:SetClass("active", state.shape == k) end
-	end
-
-	setLabel("dp-radius-label",   tostring(state.radius))
-	setLabel("dp-rotation-label", tostring(math.floor(state.rotation)) .. "°")
-	setLabel("dp-rotrand-label",  tostring(state.rotRandom))
-	setLabel("dp-count-label",    tostring(state.decalCount))
-	setLabel("dp-cadence-label",  tostring(state.cadence))
-	setLabel("dp-sizemin-label",  tostring(state.sizeMin))
-	setLabel("dp-sizemax-label",  tostring(state.sizeMax))
-	setLabel("dp-alpha-label",    tostring(math.floor(state.alpha * 100)))
-	setLabel("dp-tint-r-label",   string.format("%.2f", state.tintR))
-	setLabel("dp-tint-g-label",   string.format("%.2f", state.tintG))
-	setLabel("dp-tint-b-label",   string.format("%.2f", state.tintB))
-
-	setSliderValue("dp-slider-radius",   state.radius)
-	setSliderValue("dp-slider-rotation", math.floor(state.rotation))
-	setSliderValue("dp-slider-rotrand",  state.rotRandom)
-	setSliderValue("dp-slider-count",    state.decalCount)
-	setSliderValue("dp-slider-cadence",  state.cadence)
-	setSliderValue("dp-slider-sizemin",  state.sizeMin)
-	setSliderValue("dp-slider-sizemax",  state.sizeMax)
-	setSliderValue("dp-slider-alpha",    math.floor(state.alpha * 100))
-	setSliderValue("dp-slider-tint-r",   math.floor(state.tintR * 100))
-	setSliderValue("dp-slider-tint-g",   math.floor(state.tintG * 100))
-	setSliderValue("dp-slider-tint-b",   math.floor(state.tintB * 100))
-
-	local doc = widgetState.document
-	if doc then
-		local cnt = doc:GetElementById("dp-selected-count")
-		if cnt then cnt.inner_rml = tostring(#state.selectedDecals) end
-		local alignBtn = doc:GetElementById("btn-dp-align-toggle")
-		if alignBtn then
-			alignBtn:SetAttribute("src", state.alignToNormal
-				and "/luaui/images/terraform_brush/check_on.png"
-				or  "/luaui/images/terraform_brush/check_off.png")
-		end
-		local smartBtn = doc:GetElementById("btn-dp-smart-toggle")
-		if smartBtn then
-			smartBtn:SetAttribute("src", state.smartEnabled
-				and "/luaui/images/terraform_brush/check_on.png"
-				or  "/luaui/images/terraform_brush/check_off.png")
-		end
-		local waterBtn = doc:GetElementById("btn-dp-smart-water")
-		if waterBtn then
-			waterBtn:SetAttribute("src", state.smartFilters.avoidWater
-				and "/luaui/images/terraform_brush/check_on.png"
-				or  "/luaui/images/terraform_brush/check_off.png")
-		end
-		local cliffsBtn = doc:GetElementById("btn-dp-smart-cliffs")
-		if cliffsBtn then
-			cliffsBtn:SetAttribute("src", state.smartFilters.avoidCliffs
-				and "/luaui/images/terraform_brush/check_on.png"
-				or  "/luaui/images/terraform_brush/check_off.png")
-		end
-	end
-end
-
 ----------------------------------------------------------------
 -- Derive the visible decal rows from WG state + active filter/category and
 -- sync them into the data model (which drives the tile grid via data-for).
@@ -353,7 +252,7 @@ end
 -- (Forward-declared above so initialModel handlers can capture it.)
 ----------------------------------------------------------------
 syncDecals = function()
-	local dm = widgetState.dm_handle
+	local dm = widgetState.dmHandle
 	if not WG.DecalPlacer or not dm then return end
 	local categories = WG.DecalPlacer.getDecalCategories()
 	local order = WG.DecalPlacer.getCategoryOrder()
@@ -478,8 +377,8 @@ function widget:Initialize()
 	if not widgetState.rmlContext then return false end
 	Spring.Echo("[Decal Placer UI] RmlContext obtained")
 
-	widgetState.dm_handle = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
-	if not widgetState.dm_handle then return false end
+	widgetState.dmHandle = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
+	if not widgetState.dmHandle then return false end
 
 	widgetState.document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not widgetState.document then
@@ -598,9 +497,9 @@ function widget:Shutdown()
 		WG.RmlContextManager.unregisterDocument("decal_placer")
 	end
 
-	if widgetState.rmlContext and widgetState.dm_handle then
+	if widgetState.rmlContext and widgetState.dmHandle then
 		widgetState.rmlContext:RemoveDataModel(MODEL_NAME)
-		widgetState.dm_handle = nil
+		widgetState.dmHandle = nil
 	end
 
 	if widgetState.document then
