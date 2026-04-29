@@ -421,7 +421,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 			featuresBtn:SetClass("active", true)
 		end
 		-- Clear terraform mode highlights
-		setActiveClass(widgetState.modeButtons, nil)
+		if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
 
 		-- DISPLAY/INSTRUMENTS warn chips (shared TB state mirror)
 		if doc and ctx.syncWarnChip then
@@ -439,7 +439,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 		setActiveClass(widgetState.fpDistButtons, fpState.distribution)
 
 		-- Feature shape buttons
-		setActiveClass(widgetState.shapeButtons, fpState.shape)
+		if widgetState.dmHandle then widgetState.dmHandle.tfShape = fpState.shape or "circle" end
 
 		if doc then
 			uiState.updatingFromCode = true
