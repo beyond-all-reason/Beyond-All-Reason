@@ -769,6 +769,9 @@ local initialModel = {
 	settingsOpen = false,
 	settingsTab = "keybinds",
 	noiseWindowVisible = false,
+	-- Active tool slot for panel-mode swap (data-if="activeTool == 'fp'" etc).
+	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, stp, cl.
+	activeTool = "",
 	stpSubMode = "",
 	stpStartboxMode = "",
 	-- splat smart filters
@@ -1210,6 +1213,7 @@ local guideHints = {
 	["btn-preset-toggle"] = "Open or close the preset dropdown list to load or delete a saved brush configuration.",
 	-- Export / Import
 	["btn-export"]      = "Export the current heightmap as a 16-bit PNG image to disk for backup or external editing in other tools.",
+	["btn-import"]      = "Load the previously saved heightmap PNG for this map (Terraform Brush/Heightmaps/heightmap_export_<map>.png) and apply it to the terrain.",
 	-- Feature Placer sub-modes
 	["btn-fp-scatter"]  = "Scatter features randomly across the brush area with each drag — ideal for natural-looking forests and rock fields.",
 	["btn-fp-point"]    = "Place features exactly at the cursor position. Click once to plant a single feature precisely.",
@@ -3563,13 +3567,113 @@ local function attachEventListeners()
 	end
 
 	local importBtn = getCachedEl(doc, "btn-import")
-	local tooltipLoad = getCachedEl(doc, "tooltip-load")
-	if importBtn and tooltipLoad then
-		importBtn:AddEventListener("mouseover", function(event)
-			tooltipLoad:SetClass("hidden", false)
-		end, false)
-		importBtn:AddEventListener("mouseout", function(event)
-			tooltipLoad:SetClass("hidden", true)
+	local importDropdown = getCachedEl(doc, "import-dropdown")
+	-- Guard: AddEventListener must only be called once per document instance.
+	-- attachEventListeners can be called multiple times (widget re-enable); a second
+	-- registration means two click handlers fire per click, both see isOpen=false
+	-- (deferred DOM hasn't committed yet), both call rebuildImportList → doubled rows.
+	if importBtn and not importBtn:GetAttribute("data-import-wired") then
+		importBtn:SetAttribute("data-import-wired", "1")
+		local function closeImportDropdown()
+			if importDropdown then
+				importDropdown:SetClass("hidden", true)
+			end
+		end
+		local function rebuildImportList()
+			if not importDropdown or not WG.TerraformBrush or not WG.TerraformBrush.listHeightmaps then return 0 end
+			local entries = WG.TerraformBrush.listHeightmaps()
+			local count = #entries
+
+			-- Build entire list as HTML string and assign atomically via inner_rml.
+			-- Incremental AppendChild is unreliable when rebuild fires twice per click
+			-- (deferred DOM commits mean both clears see empty element, then both appends land).
+			local function esc(s) return (s:gsub("&","&amp;"):gsub("<","&lt;"):gsub(">","&gt;")) end
+			local parts = {}
+			local isCollapsed = importDropdown:IsClassSet("collapsed")
+			local chevron = isCollapsed and "&#9656;" or "&#9662;" -- ▸ / ▾
+			local headerLabel = count > 0
+				and ("Saved heightmaps  (" .. count .. ")")
+				or  "Saved heightmaps"
+			parts[#parts+1] = string.format(
+				'<div id="tf-hm-header" class="tf-hm-header">'
+				.. '<span id="tf-hm-chevron" class="tf-hm-header-chevron">%s</span>'
+				.. '<span class="tf-hm-header-text">%s</span>'
+				.. '</div>',
+				chevron, headerLabel
+			)
+
+			for i, entry in ipairs(entries) do
+				local isLegacy = (entry.label == "(legacy)")
+				local rowClass = isLegacy and "tf-hm-row legacy" or "tf-hm-row"
+				local badge    = isLegacy and "old" or "PNG"
+				local short    = (entry.path:match("([^/\\]+)$") or entry.path)
+				short = short:gsub("^heightmap_export_", "")
+				short = short:gsub("%.png$", "")
+				short = short:gsub("_%d%d%d%d%-%d%d%-%d%d_%d%d%-%d%d%-%d%d$", "")
+				parts[#parts+1] = string.format(
+					'<div id="tf-hm-r%d" class="%s"><div class="tf-hm-row-line">'
+					.. '<div class="tf-hm-date">%s</div>'
+					.. '<div class="tf-hm-mapname">%s</div>'
+					.. '<div class="tf-hm-badge">%s</div>'
+					.. '</div></div>',
+					i, rowClass, esc(entry.label), esc(short), badge
+				)
+			end
+
+			if count == 0 then
+				parts[#parts+1] = '<div class="tf-hm-empty">No saved heightmaps yet for this map.</div>'
+			end
+
+			-- Single atomic write - guaranteed to replace all existing content.
+			importDropdown.inner_rml = table.concat(parts)
+
+			-- Wire click handlers to the freshly created row elements.
+			for i, entry in ipairs(entries) do
+				local row = doc:GetElementById("tf-hm-r" .. i)
+				if row then
+					local capturedPath = entry.path
+					row:AddEventListener("click", function(event)
+						if WG.TerraformBrush and WG.TerraformBrush.loadHeightmap then
+							WG.TerraformBrush.loadHeightmap(capturedPath)
+						else
+							Spring.SendCommands("terraformimport " .. capturedPath)
+						end
+						closeImportDropdown()
+						event:StopPropagation()
+					end, false)
+				end
+			end
+
+			-- Wire collapsible header: clicking header toggles collapsed class
+			-- and refreshes chevron without rebuilding the list.
+			local headerEl = doc:GetElementById("tf-hm-header")
+			if headerEl then
+				headerEl:AddEventListener("click", function(event)
+					local nowCollapsed = not importDropdown:IsClassSet("collapsed")
+					importDropdown:SetClass("collapsed", nowCollapsed)
+					local chevEl = doc:GetElementById("tf-hm-chevron")
+					if chevEl then
+						chevEl.inner_rml = nowCollapsed and "&#9656;" or "&#9662;"
+					end
+					event:StopPropagation()
+				end, false)
+			end
+
+			return count
+		end
+		importBtn:AddEventListener("click", function(event)
+			if not importDropdown then
+				event:StopPropagation()
+				return
+			end
+			local isOpen = not importDropdown:IsClassSet("hidden")
+			if isOpen then
+				closeImportDropdown()
+			else
+				rebuildImportList()
+				importDropdown:SetClass("hidden", false)
+			end
+			event:StopPropagation()
 		end, false)
 	end
 
@@ -4247,10 +4351,10 @@ function widget:DrawScreenPost()
 	local rootEl = widgetState.rootElement
 	if rootEl and rootEl:IsClassSet("hidden") then return end
 
-	-- Skip if splat controls panel is hidden
-	local spEl = widgetState.spControlsEl
-	local spOrigVisible = spEl and not spEl:IsClassSet("hidden")
-	if not spOrigVisible then return end
+	-- Skip unless splat tool is active (panel visibility now driven by data-if="activeTool == 'sp'",
+	-- which uses display:none rather than a `hidden` class — so query the data model instead).
+	local dm = widgetState.dmHandle
+	if not (dm and dm.activeTool == "sp") then return end
 
 	-- One-shot: find working per-layer textures (must run in a Draw call-in)
 	if not widgetState.spPreviewVerified then
@@ -4756,35 +4860,21 @@ function widget:Update()
 
 	-- Toggle section visibility
 	if panelVisible then
-	if widgetState.tfControlsEl then
-		widgetState.tfControlsEl:SetClass("hidden", fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or false)
-	end
-	if widgetState.fpControlsEl then
-		widgetState.fpControlsEl:SetClass("hidden", not fpActive)
-	end
-	if widgetState.fpSubmodesEl then
-		widgetState.fpSubmodesEl:SetClass("hidden", not fpActive)
-	end
-	if widgetState.wbControlsEl then
-		widgetState.wbControlsEl:SetClass("hidden", not wbActive)
-	end
-	if widgetState.wbSubmodesEl then
-		widgetState.wbSubmodesEl:SetClass("hidden", not wbActive)
-	end
-	if widgetState.mbControlsEl then
-		widgetState.mbControlsEl:SetClass("hidden", not mbActive)
-	end
-	if widgetState.mbSubmodesEl then
-		widgetState.mbSubmodesEl:SetClass("hidden", not mbActive)
-	end
-	if widgetState.gbControlsEl then
-		widgetState.gbControlsEl:SetClass("hidden", not gbActive)
-	end
-	if widgetState.gbSubmodesEl then
-		widgetState.gbSubmodesEl:SetClass("hidden", not gbActive)
-	end
-	if widgetState.spControlsEl then
-		widgetState.spControlsEl:SetClass("hidden", not spActive)
+	-- Drive panel-mode swap via data-if="activeTool == 'X'" — single dm field instead of 13 imperative SetClass writes.
+	do
+		local tool = ""
+		if widgetState.decalsActive then tool = "dc"
+		elseif fpActive then tool = "fp"
+		elseif wbActive then tool = "wb"
+		elseif spActive then tool = "sp"
+		elseif mbActive then tool = "mb"
+		elseif gbActive then tool = "gb"
+		elseif envActive then tool = "env"
+		elseif lpActive then tool = "lp"
+		elseif stpActive then tool = "stp"
+		elseif clActive then tool = "cl"
+		end
+		if widgetState.dmHandle then widgetState.dmHandle.activeTool = tool end
 	end
 	if widgetState.splatTexRootEl then
 		if not spActive then
@@ -4794,32 +4884,10 @@ function widget:Update()
 			widgetState.splatTexRootEl:SetClass("hidden", not widgetState.splatTexOpen)
 		end
 	end
-	if widgetState.dcControlsEl then
-		widgetState.dcControlsEl:SetClass("hidden", not widgetState.decalsActive)
-	end
-	if widgetState.dcSubmodesEl then
-		widgetState.dcSubmodesEl:SetClass("hidden", not widgetState.decalsActive)
-	end
-	if widgetState.envControlsEl then
-		widgetState.envControlsEl:SetClass("hidden", not envActive)
-	end
-	if widgetState.lightControlsEl then
-		widgetState.lightControlsEl:SetClass("hidden", not lpActive)
-	end
-	if widgetState.stpSubmodesEl then
-		widgetState.stpSubmodesEl:SetClass("hidden", not stpActive)
-	end
-	if widgetState.stpControlsEl then
-		widgetState.stpControlsEl:SetClass("hidden", not stpActive)
-	end
-	if widgetState.cloneControlsEl then
-		widgetState.cloneControlsEl:SetClass("hidden", not clActive)
-	end
 	if widgetState.clonePasteTransformsEl then
 		local showTransforms = clActive and clState and (clState.state == "paste_preview" or clState.state == "copied")
 		widgetState.clonePasteTransformsEl:SetClass("hidden", not showTransforms)
 	end
-	-- Hide skybox library when environment mode is deactivated
 	if widgetState.skyboxLibraryRootEl then
 		if not envActive then
 			widgetState.skyboxLibraryOpen = false

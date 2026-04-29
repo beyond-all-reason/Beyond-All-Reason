@@ -50,6 +50,7 @@ local RESTORE_HEADER_LENGTH = #RESTORE_HEADER
 local FULL_RESTORE_HEADER = "$terraform_full_restore$"
 local IMPORT_HEADER = "$terraform_import$"
 local IMPORT_HEADER_LENGTH = #IMPORT_HEADER
+local IMPORT_END_HEADER = "$terraform_import_end$"
 local UNDO_HEADER = "$terraform_undo$"
 local UNDO_STROKE_HEADER = "$terraform_undo_stroke$"
 local REDO_HEADER = "$terraform_redo$"
@@ -1617,6 +1618,18 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if sCount > 0 then
 			applyHeightChangesFlat(snapFlat, sCount)
 		end
+		return true
+	end
+
+	if msg == IMPORT_END_HEADER then
+		if not isTerraformAllowed(certified) then
+			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+			return true
+		end
+		-- Adding 0 across the whole map is a no-op for heights but forces the
+		-- engine to mark every heightmap chunk dirty, so the GPU mesh, normals,
+		-- shadow pass and minimap all refresh without needing a local edit.
+		Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, 0)
 		return true
 	end
 

@@ -1705,6 +1705,143 @@ body {
 	font-style: italic;
 }
 
+/* === Heightmap browser (Load Heightmap dropdown) === */
+.tf-hm-browser {
+	display: flex;
+	flex-direction: column;
+	max-height: 240dp;
+	overflow-y: auto;
+	background-color: #11131aee;
+	border: 1dp #3a3f4d;
+	border-radius: 6dp;
+	margin-top: 4dp;
+	margin-bottom: 4dp;
+	padding: 4dp;
+}
+
+.tf-hm-browser scrollbarvertical {
+	width: 8dp;
+	margin-left: 2dp;
+}
+.tf-hm-browser scrollbarvertical sliderbar {
+	background-color: #6a6a6a;
+	border-radius: 4dp;
+}
+.tf-hm-browser scrollbarvertical sliderbar:hover {
+	background-color: #8a8a8a;
+}
+.tf-hm-browser scrollbarvertical slidertrack {
+	background-color: #1f2027;
+	border-radius: 4dp;
+}
+
+.tf-hm-header {
+	display: flex;
+	flex-direction: row;
+	flex-shrink: 0;
+	align-items: center;
+	padding: 4dp 6dp;
+	color: #94a3b8;
+	font-size: 0.85rem;
+	font-weight: bold;
+	border-bottom: 1dp #2a2f3a;
+	margin-bottom: 4dp;
+	cursor: pointer;
+}
+.tf-hm-header:hover {
+	color: #cbd5e1;
+}
+.tf-hm-header-chevron {
+	display: inline-block;
+	width: 14dp;
+	margin-right: 4dp;
+	color: #64748b;
+	transition: transform 0.12s;
+}
+.tf-hm-header-text {
+	flex: 1;
+}
+.tf-hm-browser.collapsed .tf-hm-header {
+	border-bottom: 1dp transparent;
+	margin-bottom: 0;
+}
+.tf-hm-browser.collapsed .tf-hm-row,
+.tf-hm-browser.collapsed .tf-hm-empty {
+	display: none;
+}
+
+.tf-hm-empty {
+	padding: 14dp 8dp;
+	color: #6b7280;
+	font-size: 0.95rem;
+	font-style: italic;
+}
+
+.tf-hm-row {
+	display: flex;
+	flex-direction: column;
+	flex-shrink: 0;
+	align-items: stretch;
+	padding: 5dp 8dp;
+	margin-top: 2dp;
+	border-radius: 4dp;
+	cursor: pointer;
+	border: 1dp transparent;
+	transition: background-color 0.12s, border-color 0.12s;
+}
+.tf-hm-row:hover {
+	background-color: #232a38;
+	border: 1dp #3b82f680;
+}
+.tf-hm-row:active {
+	background-color: #1d2433;
+}
+
+.tf-hm-row-line {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 12dp;
+}
+
+.tf-hm-date {
+	color: #94a3b8;
+	font-size: 0.95rem;
+	white-space: nowrap;
+	min-width: 0;
+}
+
+.tf-hm-badge {
+	color: #93c5fd;
+	font-size: 0.8rem;
+	line-height: 1.3;
+	background-color: #1e3a5fcc;
+	border: 1dp #3b82f680;
+	border-radius: 3dp;
+	padding: 1dp 6dp;
+}
+
+.tf-hm-row.legacy .tf-hm-badge {
+	color: #fbbf24;
+	background-color: #3a2a0fcc;
+	border: 1dp #f59e0b80;
+}
+
+.tf-hm-mapname {
+	flex: 1;
+	color: #e5e7eb;
+	font-size: 1.0rem;
+	font-weight: bold;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding-right: 6dp;
+}
+
+.tf-hm-row:hover .tf-hm-mapname {
+	color: #f9fafb;
+}
+
 /* === Absolute Height Cap Toggle === */
 .tf-abs-toggle {
 	width: 20dp;
