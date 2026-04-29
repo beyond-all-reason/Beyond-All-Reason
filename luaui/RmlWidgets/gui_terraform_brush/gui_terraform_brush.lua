@@ -833,6 +833,34 @@ local initialModel = {
 	gbAltMinEnable = false,
 	gbAltMaxEnable = false,
 	gbColorOpen = false,
+	-- terraform mode instrument sub-rows (data-if visibility flags)
+	tfGridSnap = false,
+	tfAngleSnap = false,
+	tfAngleSnapAuto = true,
+	tfMeasureActive = false,
+	tfSymmetryActive = false,
+	tfSymmetryRadial = false,
+	tfSymmetryMirrorAny = false,
+	tfRingVisible = false,
+	tfInRestore = false,
+	tfRampMode = false,
+	tfShapeRowVisible = true,
+	tfSmoothSubmodesVisible = false,
+	-- terraform pen pressure pill visibility
+	tfPenIntVisible = false,
+	tfPenSizeVisible = false,
+	-- clone paste transforms panel
+	clonePasteTransformsVisible = false,
+	-- floating library/env sub-windows
+	splatTexVisible = false,
+	skyboxLibraryVisible = false,
+	envSunVisible = false,
+	envFogVisible = false,
+	envGroundLightingVisible = false,
+	envUnitLightingVisible = false,
+	envMapVisible = false,
+	envWaterVisible = false,
+	envDimensionsVisible = false,
 }
 
 local shapeNames = {
@@ -907,13 +935,9 @@ local function onModeClick(mode)
 		local inRestore = mode == "restore"
 		local clayBtn = widgetState.document and getCachedEl(widgetState.document, "btn-clay-mode")
 		if clayBtn then
-			clayBtn:SetClass("hidden", inRestore)
 			clayBtn:SetClass("unavailable", CLAY_UNAVAILABLE_MODES[mode] == true)
 		end
-		local frEl = widgetState.fullRestoreEl or (widgetState.document and getCachedEl(widgetState.document, "btn-full-restore"))
-		if frEl then
-			frEl:SetClass("hidden", not inRestore)
-		end
+		if widgetState.dmHandle then widgetState.dmHandle.tfInRestore = inRestore end
 		event:StopPropagation()
 	end
 end
@@ -2329,11 +2353,9 @@ local function attachDeclarativeHandlers(ctx)
 		local doc = widgetState.document
 		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
 		if clayBtn then
-			clayBtn:SetClass("hidden", inRestore)
 			clayBtn:SetClass("unavailable", CLAY_UNAVAILABLE_MODES[mode] == true)
 		end
-		local frEl = widgetState.fullRestoreEl or (doc and getCachedEl(doc, "btn-full-restore"))
-		if frEl then frEl:SetClass("hidden", not inRestore) end
+		if widgetState.dmHandle then widgetState.dmHandle.tfInRestore = inRestore end
 	end
 
 	-- ── Smooth/Level sub-mode buttons ─────────────────────────────────────
@@ -2367,10 +2389,10 @@ local function attachDeclarativeHandlers(ctx)
 			WG.TerraformBrush.setShape(shape)
 		end
 		setActiveClass(widgetState.shapeButtons, shape)
-		local doc = widgetState.document
-		local ringWidthRowEl = doc and getCachedEl(doc, "ring-width-row")
-		if ringWidthRowEl then ringWidthRowEl:SetClass("hidden", shape ~= "ring") end
-		if widgetState.dmHandle then widgetState.dmHandle.shapeName = shapeNames[shape] end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.tfRingVisible = (shape == "ring")
+			widgetState.dmHandle.shapeName = shapeNames[shape]
+		end
 	end
 
 	-- ── Ramp type buttons ─────────────────────────────────────────────────
@@ -4876,73 +4898,50 @@ function widget:Update()
 		end
 		if widgetState.dmHandle then widgetState.dmHandle.activeTool = tool end
 	end
-	if widgetState.splatTexRootEl then
-		if not spActive then
-			widgetState.splatTexOpen = false
-			widgetState.splatTexRootEl:SetClass("hidden", true)
-		else
-			widgetState.splatTexRootEl:SetClass("hidden", not widgetState.splatTexOpen)
-		end
-	end
-	if widgetState.clonePasteTransformsEl then
-		local showTransforms = clActive and clState and (clState.state == "paste_preview" or clState.state == "copied")
-		widgetState.clonePasteTransformsEl:SetClass("hidden", not showTransforms)
-	end
-	if widgetState.skyboxLibraryRootEl then
-		if not envActive then
-			widgetState.skyboxLibraryOpen = false
-			widgetState.skyboxLibraryRootEl:SetClass("hidden", true)
-		else
-			widgetState.skyboxLibraryRootEl:SetClass("hidden", not widgetState.skyboxLibraryOpen)
-		end
-	end
-	-- Hide environment sub-windows when environment mode is deactivated
-	local envWindows = {
-		{ el = widgetState.envSunRootEl, key = "envSunOpen" },
-		{ el = widgetState.envFogRootEl, key = "envFogOpen" },
-		{ el = widgetState.envGroundLightingRootEl, key = "envGroundLightingOpen" },
-		{ el = widgetState.envUnitLightingRootEl, key = "envUnitLightingOpen" },
-		{ el = widgetState.envMapRootEl, key = "envMapOpen" },
-		{ el = widgetState.envWaterRootEl, key = "envWaterOpen" },
-		{ el = widgetState.envDimensionsRootEl, key = "envDimensionsOpen" },
-	}
-	for _, w in ipairs(envWindows) do
-		if w.el then
-			if not envActive then
-				widgetState[w.key] = false
-				w.el:SetClass("hidden", true)
-			else
-				w.el:SetClass("hidden", not widgetState[w.key])
-			end
-		end
-	end
-	-- Hide light library when light mode is deactivated
-	if widgetState.lightLibraryRootEl then
-		if not lpActive then
-			widgetState.lightLibraryOpen = false
-			widgetState.lightLibraryRootEl:SetClass("hidden", true)
-		else
-			widgetState.lightLibraryRootEl:SetClass("hidden", not widgetState.lightLibraryOpen)
-		end
-	end
-	if widgetState.shapeRowEl then
-		-- Scene (environment), clone, and startpos do not use shapes at all
-		local hideShape = envActive or clActive or stpActive
-			or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
-		widgetState.shapeRowEl:SetClass("hidden", hideShape and true or false)
-	end
-	if widgetState.smoothSubmodesEl then
-		local otherToolActive = fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive
-		local inSmoothGroup = tfActive and tfState and (tfState.mode == "smooth" or tfState.mode == "level")
-		widgetState.smoothSubmodesEl:SetClass("hidden", otherToolActive or not inSmoothGroup)
-	end
-	-- Ensure full-restore button only shows in terraform restore mode
+	if not spActive then widgetState.splatTexOpen = false end
+	if not envActive then widgetState.skyboxLibraryOpen = false end
 	do
-		local inTfRestore = tfActive and tfState and tfState.mode == "restore"
-		local clayEl = doc and getCachedEl(doc, "btn-clay-mode")
-		if clayEl then clayEl:SetClass("hidden", inTfRestore == true) end
-		local frEl = widgetState.fullRestoreEl
-		if frEl then frEl:SetClass("hidden", not inTfRestore) end
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.splatTexVisible = spActive and (widgetState.splatTexOpen or false)
+			local showTransforms = clActive and clState and (clState.state == "paste_preview" or clState.state == "copied")
+			dm.clonePasteTransformsVisible = showTransforms and true or false
+			dm.skyboxLibraryVisible = envActive and (widgetState.skyboxLibraryOpen or false)
+			-- env sub-windows
+			if not envActive then
+				widgetState.envSunOpen = false
+				widgetState.envFogOpen = false
+				widgetState.envGroundLightingOpen = false
+				widgetState.envUnitLightingOpen = false
+				widgetState.envMapOpen = false
+				widgetState.envWaterOpen = false
+				widgetState.envDimensionsOpen = false
+			end
+			dm.envSunVisible            = envActive and (widgetState.envSunOpen or false)
+			dm.envFogVisible            = envActive and (widgetState.envFogOpen or false)
+			dm.envGroundLightingVisible = envActive and (widgetState.envGroundLightingOpen or false)
+			dm.envUnitLightingVisible   = envActive and (widgetState.envUnitLightingOpen or false)
+			dm.envMapVisible            = envActive and (widgetState.envMapOpen or false)
+			dm.envWaterVisible          = envActive and (widgetState.envWaterOpen or false)
+			dm.envDimensionsVisible     = envActive and (widgetState.envDimensionsOpen or false)
+			-- light library already driven by dm.lpLibraryOpen in tf_lights; just reset widgetState when tool inactive
+			if not lpActive and widgetState.lightLibraryOpen then
+				widgetState.lightLibraryOpen = false
+				dm.lpLibraryOpen = false
+			end
+			-- shape row: hidden for env/clone/startpos
+			local hideShape = envActive or clActive or stpActive
+				or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
+			dm.tfShapeRowVisible = not hideShape
+			-- smooth submodes: visible only in smooth/level terraform mode
+			local otherToolActive = fpActive or wbActive or spActive or mbActive or gbActive
+				or envActive or lpActive or stpActive or clActive or decalsActive
+			local inSmoothGroup = tfActive and tfState and (tfState.mode == "smooth" or tfState.mode == "level")
+			dm.tfSmoothSubmodesVisible = not otherToolActive and inSmoothGroup and true or false
+			-- clay/full-restore visibility
+			local inTfRestore = tfActive and tfState and tfState.mode == "restore"
+			dm.tfInRestore = inTfRestore and true or false
+		end
 	end
 	end -- if panelVisible
 
@@ -5054,15 +5053,14 @@ function widget:Update()
 			end
 		end
 
-		-- Hide ramp-type row by default; the terrain-mode branch re-shows it when in ramp mode
+		-- Reset ramp-type row and shape row visibility before per-tool branches
 		do
-			local rampTypeRowEl = getCachedEl(doc, "tf-ramp-type-row")
-			if rampTypeRowEl then rampTypeRowEl:SetClass("hidden", true) end
-			local shapeRowEl = getCachedEl(doc, "tf-shape-row")
-			-- Scene (env), clone, and startpos do not use shapes — keep hidden for those
 			local hideShape2 = envActive or clActive or stpActive
 				or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
-			if shapeRowEl then shapeRowEl:SetClass("hidden", hideShape2 and true or false) end
+			if widgetState.dmHandle then
+				widgetState.dmHandle.tfRampMode = false
+				widgetState.dmHandle.tfShapeRowVisible = not hideShape2
+			end
 		end
 
 		-- Preemptively gray out the grass button on maps with no grass data.
@@ -5234,8 +5232,9 @@ function widget:Update()
 
 			local ringWidthRowEl = getCachedEl(doc, "ring-width-row")
 			if ringWidthRowEl then
-				ringWidthRowEl:SetClass("hidden", state.shape ~= "ring")
+				-- keep for cache; visibility driven by dm.tfRingVisible
 			end
+			if widgetState.dmHandle then widgetState.dmHandle.tfRingVisible = (state.shape == "ring") end
 			-- Sync ringWidthPct from widget state (e.g. changed by Ctrl+R scroll)
 			if state.ringInnerRatio then
 				ringWidthPct = math.floor((1 - state.ringInnerRatio) * 100 + 0.5)
@@ -5246,9 +5245,10 @@ function widget:Update()
 				ringWidthLabelEl.inner_rml = tostring(ringWidthPct) .. "%"
 			end
 
+			if widgetState.dmHandle then widgetState.dmHandle.tfInRestore = (state.mode == "restore") end
 			local restoreStrengthRow = getCachedEl(doc, "restore-strength-row")
 			if restoreStrengthRow then
-				restoreStrengthRow:SetClass("hidden", state.mode ~= "restore")
+				-- visibility driven by dm.tfInRestore
 			end
 			local sliderRestoreStrength = getCachedEl(doc, "slider-restore-strength")
 			if sliderRestoreStrength and ds ~= "restoreStrength" then
@@ -5296,8 +5296,9 @@ function widget:Update()
 
 			local snapSizeRow = getCachedEl(doc, "grid-snap-size-row")
 			if snapSizeRow then
-				snapSizeRow:SetClass("hidden", not state.gridSnap)
+				-- visibility driven by dm.tfGridSnap
 			end
+			if widgetState.dmHandle then widgetState.dmHandle.tfGridSnap = state.gridSnap and true or false end
 			local sliderSnapSizeSync = getCachedEl(doc, "slider-grid-snap-size")
 			if sliderSnapSizeSync then
 				sliderSnapSizeSync:SetAttribute("value", tostring(state.gridSnapSize or 48))
@@ -5318,8 +5319,9 @@ function widget:Update()
 			end
 			local angleStepRow = getCachedEl(doc, "angle-snap-step-row")
 			if angleStepRow then
-				angleStepRow:SetClass("hidden", not state.angleSnap)
+				-- visibility driven by dm.tfAngleSnap
 			end
+			if widgetState.dmHandle then widgetState.dmHandle.tfAngleSnap = state.angleSnap and true or false end
 			local ANGLE_PRESETS_SYNC = {7.5, 15, 30, 45, 60, 90}
 			local function findAnglePresetIdxSync(val)
 				local best, bestD = 1, math.huge
@@ -5350,8 +5352,7 @@ function widget:Update()
 				local isAuto = state.angleSnapAuto ~= false
 				local asBtn = getCachedEl(doc, "btn-angle-autosnap")
 				if asBtn then asBtn:SetClass("active", isAuto) end
-				local msRow = getCachedEl(doc, "angle-manual-spoke-row")
-				if msRow then msRow:SetClass("hidden", isAuto) end
+				if widgetState.dmHandle then widgetState.dmHandle.tfAngleSnapAuto = isAuto end
 				if not isAuto then
 					local step2 = state.angleSnapStep or 15
 					local numSpokes2 = math.max(1, math.floor(360 / step2))
@@ -5408,8 +5409,9 @@ function widget:Update()
 			end
 			local measureToolRow = getCachedEl(doc, "measure-toolbar-row")
 			if measureToolRow then
-				measureToolRow:SetClass("hidden", not state.measureActive)
+				-- visibility driven by dm.tfMeasureActive
 			end
+			if widgetState.dmHandle then widgetState.dmHandle.tfMeasureActive = state.measureActive and true or false end
 			do
 				local rulerBtn = getCachedEl(doc, "btn-measure-ruler")
 				if rulerBtn then
@@ -5429,8 +5431,6 @@ function widget:Update()
 			do
 				local symBtn = getCachedEl(doc, "btn-symmetry")
 				if symBtn then symBtn:SetClass("active", state.symmetryActive == true) end
-				local symRow = getCachedEl(doc, "symmetry-toolbar-row")
-				if symRow then symRow:SetClass("hidden", not state.symmetryActive) end
 				local symRadialBtn = getCachedEl(doc, "btn-symmetry-radial")
 				if symRadialBtn then symRadialBtn:SetClass("active", state.symmetryRadial == true) end
 				local symMirrorXBtn = getCachedEl(doc, "btn-symmetry-mirror-x")
@@ -5442,24 +5442,24 @@ function widget:Update()
 				local distortBtn = getCachedEl(doc, "btn-measure-distort")
 				if distortBtn then
 					distortBtn:SetClass("active", state.measureDistortMode == true)
-					distortBtn:SetClass("hidden", not state.measureActive)
+					-- visibility driven by dm.tfMeasureActive
 				end
-				local symRadialRow = getCachedEl(doc, "symmetry-radial-count-row")
-				if symRadialRow then symRadialRow:SetClass("hidden", not state.symmetryRadial) end
 				local symCountLabel = getCachedEl(doc, "symmetry-radial-count-label")
 				if symCountLabel then symCountLabel.inner_rml = tostring(state.symmetryRadialCount or 2) end
 				local symCountSlider = getCachedEl(doc, "slider-symmetry-radial-count")
 				if symCountSlider then symCountSlider:SetAttribute("value", tostring(state.symmetryRadialCount or 2)) end
-				local hasAxial = state.symmetryMirrorX or state.symmetryMirrorY
-				local mirrorAngleRow = getCachedEl(doc, "symmetry-mirror-angle-row")
-				if mirrorAngleRow then mirrorAngleRow:SetClass("hidden", not hasAxial) end
 				local mirrorAngleLabel = getCachedEl(doc, "symmetry-mirror-angle-label")
 				if mirrorAngleLabel then mirrorAngleLabel.inner_rml = tostring(math.floor(state.symmetryMirrorAngle or 0)) end
 				local mirrorAngleSlider = getCachedEl(doc, "slider-symmetry-mirror-angle")
 				if mirrorAngleSlider then mirrorAngleSlider:SetAttribute("value", tostring(state.symmetryMirrorAngle or 0)) end
+				local hasAxial = state.symmetryMirrorX or state.symmetryMirrorY
+				if widgetState.dmHandle then
+					local dm = widgetState.dmHandle
+					dm.tfSymmetryActive = state.symmetryActive and true or false
+					dm.tfSymmetryRadial = state.symmetryRadial and true or false
+					dm.tfSymmetryMirrorAny = hasAxial and true or false
+				end
 			end
-
-			local dustEl = getCachedEl(doc, "btn-dust-effects")
 			if dustEl then
 				dustEl:SetClass("active", state.dustEffects == true)
 				local pill = getCachedEl(doc, "pill-dust-effects")
@@ -5509,31 +5509,33 @@ function widget:Update()
 				local pctStr = string.format("%d%%", math.floor(pm * 100 + 0.5))
 
 				-- Intensity pen pill: show only when pen enabled AND modulate intensity is on
+				local showInt = penEnabled and (state.penPressureModulateIntensity == true)
 				local penIntChip = getCachedEl(doc, "btn-pen-intensity")
 				if penIntChip then
-					local showInt = penEnabled and (state.penPressureModulateIntensity == true)
-					penIntChip:SetClass("hidden", not showInt)
+					-- visibility driven by dm.tfPenIntVisible
 					penIntChip:SetClass("active", showInt)
 				end
 				local penIntLabel = getCachedEl(doc, "pen-intensity-label")
 				if penIntLabel then
-					local showInt = penEnabled and (state.penPressureModulateIntensity == true)
-					penIntLabel:SetClass("hidden", not showInt)
+					-- visibility driven by dm.tfPenIntVisible
 					if showInt then penIntLabel.inner_rml = pctStr end
 				end
 
 				-- Size pen pill: show only when pen enabled AND modulate size is on
+				local showSize = penEnabled and (state.penPressureModulateSize == true)
 				local penSizeChip = getCachedEl(doc, "btn-pen-size")
 				if penSizeChip then
-					local showSize = penEnabled and (state.penPressureModulateSize == true)
-					penSizeChip:SetClass("hidden", not showSize)
+					-- visibility driven by dm.tfPenSizeVisible
 					penSizeChip:SetClass("active", showSize)
 				end
 				local penSizeLabel = getCachedEl(doc, "pen-size-label")
 				if penSizeLabel then
-					local showSize = penEnabled and (state.penPressureModulateSize == true)
-					penSizeLabel:SetClass("hidden", not showSize)
+					-- visibility driven by dm.tfPenSizeVisible
 					if showSize then penSizeLabel.inner_rml = pctStr end
+				end
+				if widgetState.dmHandle then
+					widgetState.dmHandle.tfPenIntVisible = showInt and true or false
+					widgetState.dmHandle.tfPenSizeVisible = showSize and true or false
 				end
 
 				-- Pen pressure labels only (no slider movement to avoid feedback loops)
@@ -5590,12 +5592,12 @@ function widget:Update()
 		end
 
 		-- Show ramp-type-row when in ramp mode; hide normal shape row
-		local rampTypeRowEl = doc and getCachedEl(doc, "tf-ramp-type-row")
-		local shapeRowEl    = doc and getCachedEl(doc, "tf-shape-row")
-		if rampTypeRowEl then
+		do
 			local isRamp = state.mode == "ramp"
-			rampTypeRowEl:SetClass("hidden", not isRamp)
-			if shapeRowEl then shapeRowEl:SetClass("hidden", isRamp) end
+			if widgetState.dmHandle then
+				widgetState.dmHandle.tfRampMode = isRamp
+				widgetState.dmHandle.tfShapeRowVisible = not isRamp
+			end
 		end
 		-- Sync ramp type buttons
 		local rts = widgetState.rampTypeButtons

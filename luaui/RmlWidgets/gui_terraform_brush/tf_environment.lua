@@ -303,13 +303,15 @@ function M.attach(doc, ctx)
 		end
 
 		-- Helper: wire a window toggle button + close button
-		local function envWindowToggle(openBtnId, closeBtnId, rootEl, stateKey)
+		-- dmKey (optional): data-model field to sync alongside widgetState[stateKey]
+		local function envWindowToggle(openBtnId, closeBtnId, rootEl, stateKey, dmKey)
 			local openBtn = doc:GetElementById(openBtnId)
 			if openBtn then
 				openBtn:AddEventListener("click", function(event)
 					widgetState[stateKey] = not widgetState[stateKey]
 					playSound(widgetState[stateKey] and "panelOpen" or "click")
 					if rootEl then rootEl:SetClass("hidden", not widgetState[stateKey]) end
+					if dmKey and widgetState.dmHandle then widgetState.dmHandle[dmKey] = widgetState[stateKey] and true or false end
 					openBtn:SetClass("env-open", widgetState[stateKey] == true)
 					event:StopPropagation()
 				end, false)
@@ -320,6 +322,7 @@ function M.attach(doc, ctx)
 					playSound("click")
 					widgetState[stateKey] = false
 					if rootEl then rootEl:SetClass("hidden", true) end
+					if dmKey and widgetState.dmHandle then widgetState.dmHandle[dmKey] = false end
 					if openBtn then openBtn:SetClass("env-open", false) end
 					event:StopPropagation()
 				end, false)
@@ -327,14 +330,14 @@ function M.attach(doc, ctx)
 		end
 
 		-- Wire toggle/close for each sub-window
-		envWindowToggle("btn-env-sun-shadows", "btn-env-sun-close", widgetState.envSunRootEl, "envSunOpen")
-		envWindowToggle("btn-env-fog-atmo", "btn-env-fog-close", widgetState.envFogRootEl, "envFogOpen")
-		envWindowToggle("btn-env-ground-lighting", "btn-env-ground-lighting-close", widgetState.envGroundLightingRootEl, "envGroundLightingOpen")
-		envWindowToggle("btn-env-unit-lighting", "btn-env-unit-lighting-close", widgetState.envUnitLightingRootEl, "envUnitLightingOpen")
-		envWindowToggle("btn-env-map-render", "btn-env-map-close", widgetState.envMapRootEl, "envMapOpen")
-		envWindowToggle("btn-env-water", "btn-env-water-close", widgetState.envWaterRootEl, "envWaterOpen")
-		envWindowToggle("btn-env-dimensions", "btn-env-dimensions-close", widgetState.envDimensionsRootEl, "envDimensionsOpen")
-		envWindowToggle("btn-sp-splattex", "btn-splattex-close", widgetState.splatTexRootEl, "splatTexOpen")
+		envWindowToggle("btn-env-sun-shadows",        "btn-env-sun-close",              widgetState.envSunRootEl,              "envSunOpen",            "envSunVisible")
+		envWindowToggle("btn-env-fog-atmo",           "btn-env-fog-close",              widgetState.envFogRootEl,              "envFogOpen",            "envFogVisible")
+		envWindowToggle("btn-env-ground-lighting",    "btn-env-ground-lighting-close",  widgetState.envGroundLightingRootEl,  "envGroundLightingOpen", "envGroundLightingVisible")
+		envWindowToggle("btn-env-unit-lighting",      "btn-env-unit-lighting-close",    widgetState.envUnitLightingRootEl,    "envUnitLightingOpen",   "envUnitLightingVisible")
+		envWindowToggle("btn-env-map-render",         "btn-env-map-close",              widgetState.envMapRootEl,             "envMapOpen",            "envMapVisible")
+		envWindowToggle("btn-env-water",              "btn-env-water-close",            widgetState.envWaterRootEl,           "envWaterOpen",          "envWaterVisible")
+		envWindowToggle("btn-env-dimensions",         "btn-env-dimensions-close",       widgetState.envDimensionsRootEl,      "envDimensionsOpen",     "envDimensionsVisible")
+		envWindowToggle("btn-sp-splattex",            "btn-splattex-close",             widgetState.splatTexRootEl,           "splatTexOpen",          "splatTexVisible")
 
 		-- Helper: wire a collapsible section toggle (click header row to expand/collapse)
 		-- Returns a ctrl table with an expand() method for programmatic expansion.
@@ -2045,6 +2048,7 @@ function M.attach(doc, ctx)
 		if widgetState.skyboxLibraryRootEl then
 			widgetState.skyboxLibraryRootEl:SetClass("hidden", not widgetState.skyboxLibraryOpen)
 		end
+		if widgetState.dmHandle then widgetState.dmHandle.skyboxLibraryVisible = widgetState.skyboxLibraryOpen and true or false end
 		if element then
 			element:SetClass("env-open", widgetState.skyboxLibraryOpen == true)
 		end
@@ -2057,6 +2061,7 @@ function M.attach(doc, ctx)
 		if widgetState.skyboxLibraryRootEl then
 			widgetState.skyboxLibraryRootEl:SetClass("hidden", true)
 		end
+		if widgetState.dmHandle then widgetState.dmHandle.skyboxLibraryVisible = false end
 		local openBtn = doc:GetElementById("btn-env-skybox-library")
 		if openBtn then openBtn:SetClass("env-open", false) end
 	end

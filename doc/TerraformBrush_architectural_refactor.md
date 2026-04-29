@@ -153,8 +153,8 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | `tf_lights.lua` | 11 / 11 | ✅ (`lpLightType`, `lpMode`, `lpLibraryOpen`, `lpLibraryTab`) |
 | `tf_metal.lua` | 11 / 11 | ✅ (`mbGridSnap`, `mbAngleSnap`, `mbMeasureActive`, `mbSymmetryActive`, `mbSymmetryRadial`, `mbSymmetryMirrorAny`, `mbAngleSnapAuto`, `mbInspectorOpen`, `mbClusterOpen`, `mbLassoOpen`, `mbAxisOpen`) |
 | `tf_grass.lua` | 19 / 19 | ✅ (gbGridSnap/gbAngleSnap/gbMeasureActive/gbSymmetryActive/gbSymmetryRadial/gbSymmetryMirrorAny/gbAngleSnapAuto + gbSlopeActive/gbAvoidCliffs/gbPreferSlopes/gbAltActive/gbAltMinEnable/gbAltMaxEnable/gbColorOpen; local syncSectionWarn → ctx.syncWarnChip) |
-| `tf_environment.lua` | 0 / 18 | ⬜ (helper-heavy, hold last) |
-| `gui_terraform_brush.lua` | 15 / 74 | 🟡 (noise sync done; panel-mode swap done — single `dm.activeTool` string drives 14 control/submode sections via `data-if="activeTool == 'X'"`; remaining: env-windows, libraries, shapeRow/smoothSubmodes, clay/full-restore, ramp/shape, ringWidth, instrument sub-rows, hint dots) |
+| `tf_environment.lua` | 18 / 18 | ✅ (`envWindowToggle` dmKey param + skybox toggle/close dm writes) |
+| `gui_terraform_brush.lua` | 74 / 74 | ✅ (29 dm flags added; all floating windows, instrument sub-rows, pen pills, shape/ramp/clay/restore rows → data-if; tf_environment sub-windows all data-if driven) |
 
 4. ⬜ **Labels → `{{radius}}` interpolation**; replaces `.inner_rml = tostring(v)` sites (~40 in terraform_brush alone). **PROMOTED to required pre-1.0 (PR #7527 review).**
 5. ✅ **Sliders**: keep `updatingFromCode` feedback guard + log-curve handlers; `onchange="widget:onXxxChange(element)"` added to all sliders in converted panels.
@@ -188,7 +188,7 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 |---|---|---|
 | Phase 1 — `attachDraggable` drag consolidation | Small-Medium | 4 near-identical drag loops; context manager home agreed; deferred from Phase 1 to keep diff small |
 | Phase 2 step 2 — `data-class-*` for active state | Large | **PROMOTED pre-1.0** (PR #7527). All `setActiveClass()` sites → `data-class-active="x == 'foo'"`. |
-| Phase 2 step 3 — `data-if` + `document:Hide/Show` | Medium | 🟡 **In progress (Apr 2026)** — 7 / 11 files done (tf_guide, tf_noise, decal_placer, tf_startpos, tf_splat, tf_features, tf_lights). Remaining: tf_metal, tf_grass, tf_environment, gui_terraform_brush.lua main. |
+| Phase 2 step 3 — `data-if` + `document:Hide/Show` | Medium | ✅ **COMPLETE (Apr 2026)** — 11/11 files done. All `SetClass("hidden",…)` sites in tf-brush package converted to dm flags + `data-if` bindings. |
 | Phase 2 step 4 — `{{interpolation}}` for labels | Medium | **PROMOTED pre-1.0** (PR #7527). ~40 `inner_rml = tostring(v)` sites in tf-brush. |
 | Phase 2 step 6 — model-function migration | Large | Sweep 548 `widget:foo()` → `data-event-click="onFoo()"` with `dm.*` handlers. After steps 2–4. |
 | Phase 2.5 — `gl.*` over RmlUi audit | Small-Medium | **PROMOTED pre-1.0** (PR #7527). tf-brush passthrough icons, weather ceg preview, light placer ring. Bake-to-image pattern. |
