@@ -419,7 +419,8 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 						spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
 					end
 					data.damageTaken = damageTaken + damage
-					spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
+					-- GetFlankingBonus evaluates the zero-vector to 50% flanking bonus, so conditionally remove:
+					spAddUnitDamage(unitID, damage, nil, area.owner ~= unitID and area.owner or nil, area.weapon)
 				end
             end
         end
