@@ -1166,6 +1166,7 @@
 				"mapedgeextension_curvature_descr": "Curve the mirrored edges away into the floor/seabed",
 				"lineofsight": "Fog of war",
 				"losopacity": "opacity",
+				"fogdiaglines": "diagonal lines",
 				"water": "Water quality",
 				"decals": "Unit tracks",
 				"decals_descr": "0 = Off\nNOTE: Changes might require a restart (if you turn it On/Off)",

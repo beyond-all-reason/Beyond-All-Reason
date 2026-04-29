@@ -2562,12 +2562,21 @@ function init()
 		  end,
 		},
 
-		{ id = "losopacity", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.losopacity'), type = "slider", min = 0.01, max = 1, step = 0.01, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 1, description = '',
+		{ id = "losopacity", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.losopacity'), type = "slider", min = 0.01, max = 1, step = 0.01, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 0.66, description = '',
 		  onload = function(i)
 			  loadWidgetData("LOS colors", "losopacity", { 'opacity' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('LOS colors', 'los', 'setOpacity', { 'opacity' }, value)
+		  end,
+		},
+
+		{ id = "fogdiaglines", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.fogdiaglines'), type = "slider", min = 0, max = 1, step = 0.01, value = (WG.fogdiaglines ~= nil and WG.fogdiaglines.getStrength ~= nil and WG.fogdiaglines.getStrength()) or 0.30, description = '',
+		  onload = function(i)
+			  loadWidgetData("Fog Diagonal Lines GL4", "fogdiaglines", { 'strength' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Fog Diagonal Lines GL4', 'fogdiaglines', 'setStrength', { 'strength' }, value)
 		  end,
 		},
 

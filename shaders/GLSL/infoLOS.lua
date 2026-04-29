@@ -78,11 +78,10 @@ return {
 			// Then, we add a final modifier to show jamming coverage.
 
 			// Fog of war
-			// Draw alternating diagonal lines for the fog of war.
-			// alwaysColor is the fog of war color.
-			// Squaring the diagLines sine wave causes more values to be near zero.
-			float diagonalLineStrength = diagLines(texCoord);
-			gl_FragColor = mix(alwaysColor, max(vec4(0), (alwaysColor - 0.1) * 0.5), diagonalLineStrength);
+			// Diagonal lines are drawn by the GL4 widget gfx_fog_diaglines_gl4
+			// in screen space, which keeps them sharp at all zoom levels.
+			// Here we just paint the flat fog color.
+			gl_FragColor = alwaysColor;
 
 			// Radar
 			// radarColor2 is the color of ground covered by radar.

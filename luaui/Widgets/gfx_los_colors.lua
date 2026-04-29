@@ -18,7 +18,7 @@ end
 -- v3 Radar shading is always visible, and there is no option to colorize it.
 --    Most players do not know about these settings, they are not in the setting UI, and do not have keybinds in grid.
 
-local opacity = 0.88
+local opacity = 0.66
 
 local losColors = {
 	fog =    {0.40, 0.40, 0.40},
@@ -64,7 +64,6 @@ function widget:Initialize()
 		opacity = value
 		updateLOS()
 	end
-
 	always, LOS, radar, jam, radar2 = Spring.GetLosViewColors()
 
 	updateLOS()
