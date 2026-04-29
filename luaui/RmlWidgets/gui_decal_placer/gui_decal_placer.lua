@@ -277,14 +277,18 @@ syncDecals = function()
 					if not fname or fname == "" then
 						fname = findPreviewPath(name)
 					end
+					local resolved = nil
 					if fname and fname ~= "" then
 						local sourcePath = fname:gsub("\\", "/"):gsub("^/+", "")
-						local resolved = Bake.resolve(name, sourcePath, Bake.classifyMaskMode(sourcePath))
-						if resolved then
-							local imgEl = doc:CreateElement("img")
-							imgEl:SetAttribute("src", resolved)
-							thumbEl:AppendChild(imgEl)
-						end
+						resolved = Bake.resolve(name, sourcePath, Bake.classifyMaskMode(sourcePath))
+					end
+					if not firstSyncDone then
+						Spring.Echo(string.format("[DP] tile %s fname=%s resolved=%s", name, tostring(fname), tostring(resolved)))
+					end
+					if resolved then
+						local imgEl = doc:CreateElement("img")
+						imgEl:SetAttribute("src", resolved)
+						thumbEl:AppendChild(imgEl)
 					end
 					itemEl:AppendChild(thumbEl)
 
@@ -315,7 +319,11 @@ syncDecals = function()
 					end, false)
 
 					tileElements[name] = itemEl
-					listEl:AppendChild(itemEl)
+					-- Wrap in dp-tile-host so RCSS 84dp×84dp sizing applies
+					local hostEl = doc:CreateElement("div")
+					hostEl:SetClass("dp-tile-host", true)
+					hostEl:AppendChild(itemEl)
+					listEl:AppendChild(hostEl)
 				end
 			end
 		end

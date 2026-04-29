@@ -6,10 +6,8 @@
 	z-index: 901;
 }
 
-/* Decal tiles — the .dp-tile-host wrapper is what flex-wrap sees; sizing
-   lives on the wrapper so the visible .fp-feature-item just fills it.
-   The wrapper exists to keep per-row data bindings off the outer data-for
-   element — see the RML comment for why */
+/* Decal tiles — .dp-tile-host wrapper is 84dp×84dp; .fp-feature-item
+   fills it 100%×100%. Wrapper lives in DOM so flex-wrap sizes correctly. */
 .dp-root .dp-tile-host {
 	width: 84dp;
 	height: 84dp;
