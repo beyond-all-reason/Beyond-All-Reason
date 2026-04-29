@@ -328,7 +328,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
 					-- Don't check against the area position, but the explosion, even though it's a bit odd:
 					-- TODO: Check that the shield and weapon intercept types match.
 					-- TODO: The shield_aoe_penetration param is weird for ignoring intercept types tbh.
-					if units[i] and allyTeam ~= spGetUnitAllyTeam(units[i]) and not isInShield(px, py + 2, pz, units[i]) then
+					if allyTeam ~= spGetUnitAllyTeam(units[i]) and not isInShield(px, py + 2, pz, units[i]) then
 						blockingShields[#blockingShields + 1] = units[i]
 					end
 				end
