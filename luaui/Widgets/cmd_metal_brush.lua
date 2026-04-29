@@ -1583,3 +1583,18 @@ function widget:DrawScreen()
 
 	drawCursorInfo(worldX, worldZ)
 end
+
+-- Gadget signals "mb_metal_updated" after every SetMetalAmount batch so we
+-- know the values are committed and can cancel the blind timer hold, letting
+-- the overlay cache rebuild on the very next DrawWorld call.
+function widget:RecvLuaMsg(msg, playerID)
+	if msg == "mb_metal_updated" then
+		spotsCacheDirty    = true
+		clusterCacheDirty  = true
+		overlayListDirty   = true
+		clusterVisDirty    = true
+		balanceAxisSumsDirty = true
+		cacheRebuildHoldUntil = 0  -- cancel timer hold; gadget already applied changes
+		lastCacheBuildClock   = 0  -- bypass throttle so next DrawWorld rebuilds immediately
+	end
+end

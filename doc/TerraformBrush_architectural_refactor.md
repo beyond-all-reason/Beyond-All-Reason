@@ -50,7 +50,7 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 - **No `gl.*` over RmlUi**: `DrawScreen/DrawScreenPost` while a panel is open punches through and renders OVER all RmlUi panels (engine layer-order bug). Bake to image + `<img data-attr-src>` instead. Audit pre-1.0: tf-brush passthrough icons, weather brush ceg preview, light placer ring, decal placer (already fixed in #7527 via `dp_preview_bake.lua`).
 - **No `px` in RCSS**. Use `dp` (or `vw/vh` where viewport-proportional makes sense). Open: `vw + min/max-width` clamps for ultrawide vs 1080p — pending decision.
 - **Theme imports**: strip `theme-armada/cortex/legion`, keep `theme-base.rcss` only.
-- **Naming**: `dmHandle` (camelCase) locked in across all BAR widgets.
+- **Naming**: `dmHandle` (camelCase) locked in across all BAR widgets. ⚠️ PR #7527 (mupersega) uses `dm_handle` (snake_case) in `widgetState.dm_handle` — rename on merge.
 - **`document:ReloadStyleSheet()`** mandatory in every widget Initialize.
 - **No imperative tile-packing math**. `data-for` + flex/grid in RCSS. Only legitimate Lua-side pixel math is virtual-scroll row offsets.
 - **`mousedown` for tool-press**, `click` for destructive (Quit/Delete/Reset) — UX nuance agreed.
@@ -85,11 +85,12 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 | `tf_guide.lua` | ✅ | ✅ | 3 | 22 `w.guideXxx` methods (header buttons, settings open/close, keybind save/apply/defaults/cancel, tab-switch, dj/dust/seismic/pen/wiggle/curve/disable-tips). 3 remaining are justified: per-element hint mouseover/mouseout loop (`guideHints`) and g3 mousedown discovery loop. |
 | `gui_feature_placer.lua` (standalone) | ✅ | ✅ | 4 | ~4 remaining are justified (drag, SDL text) |
 | `gui_weather_brush.lua` (standalone) | ✅ | ✅ | 4 | ~4 remaining are justified (drag, SDL text) |
-| `gui_decal_placer.lua` (standalone) | ✅ | ✅ | 12 | Layout bug fixed (padding mismatch → rebuild loop → dead tiles). 12 remaining all justified: dynamic loops (categories, modeButtons, shapeButtons, decal items, tint sliders), `bindSlider`/`bindButton` helpers, drag mousedown/mouseup, SDL focus/blur. Standalone audit complete. |
+| `gui_decal_placer.lua` (standalone) | ✅ | ✅ | ~4 | **PR #7527 (mupersega) — full declarative migration pending merge.** Replaces imperative `rebuildDecalList`/`DrawScreenPost`/`refreshUIFromState` with `data-for="d : currentDecals"`, `data-event-click="onDecalClick(d.name)"`, `data-class-active`, `document:Hide()/Show()`. Adds `dp_preview_bake.lua` module (bakes channel-encoded BMP atlases to RGBA PNG so `<img>` can render them). ~4 remaining justified after merge: drag mousedown/mouseup, SDL focus/blur. **⚠️ Post-merge naming fix needed**: PR uses `dm_handle` (snake_case) internally; rename to `dmHandle` (camelCase) per BAR convention. |
 
 **Also landed (not in original scope):**
 - `ctx.syncWarnChip(doc, chipId, sectionId, anyActive)` — shared helper for "Active" warn chips on collapsed DISPLAY/INSTRUMENTS headers. Used by tf_splat, tf_metal, and synced via `ctx.syncTBMirrorControls`.
 - `gui_decal_placer`: normal-map auto-pairing (`isNormalName`/`normalBaseKey`), `getNormalPartner` API, `loadfile`-first decal load, automatic `SetGroundDecalTexture(id, norm, false)` on placement.
+- `dp_preview_bake.lua` (PR #7527): extracted bake module — channel-encoded BMP atlases composited through one-shot shader into RGBA PNGs; widget renders via `<img data-attr-src>`. Bake runs from `DrawScreen` (4/frame); widget re-syncs when queue drains. Pattern reusable for other mask-encoded assets.
 - `map_grass_gl4`: `WG.grassgl4.loadGrass(filename)` + `clearGrass()` API exposed.
 - `cmd_light_placer`: Ctrl+Scroll mode-aware (point mode → lightRadius, other modes → brushRadius); per-light elevation preserved on load.
 - `cmd_terraform_brush.lua`: ramp reapply uses atomic `MSG.UNDO_STROKE` (one message pops entire stroke) instead of per-tick UNDO spam; `~3 frames` vs `~120 frames` to complete cycle.
@@ -173,6 +174,8 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 - Migrate pre-existing `gui_quick_start` / `gui_tech_points` / `gui_territorial_domination` inline styles to `data-style-*` (NOT in PR scope).
 - Context manager enrichment — document retrieval, theme management (reviewer owns, lands with his branch).
 - Full two-way slider binding.
+- **Terrain-filtered intelligent noise painting**: noise brush respects terrain classification (slope, altitude, texture type) — only paints cells that pass a configurable filter set. UI: per-filter threshold sliders + enable chips inside `tf_noise` panel. Backend: sample terrain data per-cell before applying noise delta.
+- **Fullmap parameterised noise apply**: one-shot "apply noise to entire map" action with the current `tf_noise` parameters (scale, octaves, amplitude, seed, filter mask). Progress bar via dm flag; runs over N ticks to avoid engine stall. Accessible as a button in `tf_noise` panel and via keybind.
 
 ## Release recommendation — what blocks 1.0
 
@@ -193,7 +196,7 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | Phase 2 step 6 — model-function migration | Large | Sweep 548 `widget:foo()` → `data-event-click="onFoo()"` with `dm.*` handlers. After steps 2–4. |
 | Phase 2.5 — `gl.*` over RmlUi audit | Small-Medium | **PROMOTED pre-1.0** (PR #7527). tf-brush passthrough icons, weather ceg preview, light placer ring. Bake-to-image pattern. |
 | Phase 3 feature_placer data-for | Medium | Ideal showcase; target pre-1.0 |
-| Phase 3 decal_placer data-for | Medium | Target pre-1.0 (already done in PR #7527 if merged) |
+| Phase 3 decal_placer data-for | ~~Medium~~ | ✅ **Done via PR #7527** (mupersega) — pending merge + `dm_handle` → `dmHandle` rename |
 
 ## Verification
 
