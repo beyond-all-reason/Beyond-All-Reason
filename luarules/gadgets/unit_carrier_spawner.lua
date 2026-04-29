@@ -1127,10 +1127,7 @@ local function updateStandaloneDrones(frame)
 			if not dronez then	-- this can happen so make sure its dealt with
 				gadget:UnitDestroyed(unitID)
 			elseif (droneData.maxAmmo > 0 and droneData.remainingAmmo <= 0) or (droneData.droneAirTime and ((droneData.droneAirTime + droneData.lastLiftOff) < frame)) then
-				spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
-				spGiveOrderToUnit(unitID, 145, 1, 0) --Order to land   TODO: replace 145 with landing constant
-				spTransferUnit(unitID, gaiaTeam, false)
-				spGiveOrderToUnit(unitID, CMD.FIRE_STATE, 0, 0)
+				spDestroyUnit(unitID, false)
 			else
 
 				local cQueue = GetUnitCommands(unitID, 4)
