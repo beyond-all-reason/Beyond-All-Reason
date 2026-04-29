@@ -413,6 +413,27 @@ local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTe
 	return false
 end
 
+-- Repeating areas have the unusual distinction of being blocked only in the initial explosion,
+-- and then being repeatably-blocked only by the same shields (iff active) from that point on.
+
+GG.EnvAreaWeapons = GG.EnvAreaWeapons or {}
+GG.InTimedDamageArea = GG.InTimedDamageArea or {}
+
+local areaWeaponDefID = GG.EnvAreaWeapons -- the repeating parts of damaging area weapons
+local currentArea = GG.InTimedDamageArea -- has only a current entry, where [1] := area|nil
+
+local function isAreaBlocked(unitID)
+	local area = currentArea[1]
+	if area and area.suppressed then
+		for _, shieldUnitID in pairs(area.suppressed) do
+			if shieldCoverage[shieldUnitID] and shieldCoverage[shieldUnitID][unitID] then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 local shieldUnitsTotalCount = 0
 local shieldUnitIndex = {}
 local shieldCheckFlags = {}
@@ -566,6 +587,14 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			directHitThreshold = directHitThreshold * armoredMultiple
 		end
 		if damage >= directHitThreshold then
+			return damage
+		end
+	end
+
+	if projectileID == -1 and areaWeaponDefID[weaponDefID] then
+		if isAreaBlocked(unitID) then
+			return 0, 0
+		else
 			return damage
 		end
 	end
