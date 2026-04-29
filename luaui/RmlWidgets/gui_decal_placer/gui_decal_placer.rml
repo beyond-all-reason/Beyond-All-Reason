@@ -49,29 +49,7 @@
 			<div class="fp-btn-text">CLR</div>
 		</div>
 
-		<div class="fp-feature-list gap-2">
-			<!--
-				The outer .dp-tile-host carries ONLY data-for. All per-row d.X
-				bindings (including the click handler) live on the inner tile.
-				RmlUi re-evaluates outer (data-for) element bindings against
-				indices the new array no longer has during shrinks, producing
-				"Could not get value from data variable" warnings. Inner bindings
-				empirically don't trigger this — including data-event-click,
-				which only fires on actual user click anyway.
-				Passing d.name (instead of a loop index) lets the handler
-				dispatch directly without a Lua-side index→row lookup table.
-			-->
-			<div class="dp-tile-host" data-for="d : currentDecals">
-				<div class="fp-feature-item"
-					data-class-selected="d.selected"
-					data-event-click="onDecalClick(d.name)">
-					<div data-attr-class="'fp-feature-thumb dp-thumb-' + d.category">
-						<img data-if="d.hasImg" data-attr-src="d.srcPath" />
-					</div>
-					<div class="fp-feature-name">{{d.displayName}}</div>
-				</div>
-			</div>
-		</div>
+		<div id="dp-tile-list" class="fp-feature-list gap-2"></div>
 	</div>
 </body>
 </rml>
