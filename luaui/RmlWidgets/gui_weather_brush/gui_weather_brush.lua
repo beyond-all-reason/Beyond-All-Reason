@@ -274,7 +274,8 @@ function widget:Update()
 	-- Poll-based window drag (position only — mouseup ends drag via doc listener)
 	local ds = dragState
 	if ds.active and ds.rootEl then
-		local mx, my = Spring.GetMouseState()
+		local mx, my, _, _, _, offscreen = Spring.GetMouseState()
+		if not offscreen then
 		local vsx, vsy = ds.vsx, ds.vsy
 		local ew, eh = ds.ew, ds.eh
 		local T = SNAP_THRESHOLD
@@ -324,6 +325,7 @@ function widget:Update()
 			ds.rootEl.style.left = ix .. "px"
 			ds.rootEl.style.top  = iy .. "px"
 		end
+		end -- not offscreen
 	end
 
 	local wbState = WG.WeatherBrush and WG.WeatherBrush.getState()
