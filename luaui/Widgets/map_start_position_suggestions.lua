@@ -6,10 +6,9 @@ function widget:GetInfo()
 		desc = "Show expert recommended starting locations on the map",
 		license = "GNU GPL, v2 or later",
 		layer = 10000,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathCeil = math.ceil
@@ -68,7 +67,7 @@ local config = {
 local CIRCLE_RADIUS_SQUARED = config.circleRadius * config.circleRadius
 
 local vsx, vsy = spGetViewGeometry()
-local resMult = vsy/1440
+local resMult = vsy / 1440
 
 -- engine call optimizations
 -- =========================
@@ -128,7 +127,6 @@ local glPopMatrix = gl.PopMatrix
 
 ---@alias WidgetStartPositions table<AllyTeamID, WidgetTeamStartPositionEntry[]>
 
-
 -- loading and processing code
 -- ===========================
 
@@ -173,14 +171,10 @@ local function processModoptionTeamConfig(positions, teamPositions)
 end
 
 local function selectModoptionConfigForPlayers(modoptionData, allyTeamCount, playersPerTeam)
-	Spring.Log(
-		widget:GetInfo().name,
-		LOG.INFO,
-		"Searching for start positions for " .. table.toString({
-			allyTeamCount = allyTeamCount,
-			playersPerTeam = playersPerTeam,
-		})
-	)
+	Spring.Log(widget:GetInfo().name, LOG.INFO, "Searching for start positions for " .. table.toString({
+		allyTeamCount = allyTeamCount,
+		playersPerTeam = playersPerTeam,
+	}))
 
 	for _, teamConfig in ipairs(modoptionData.team) do
 		if teamConfig.playersPerTeam == playersPerTeam and teamConfig.teamCount == allyTeamCount then
@@ -212,10 +206,7 @@ local function loadStartPositions()
 		return
 	end
 
-	local positions = processModoptionTeamConfig(
-		parsed.positions,
-		selectedConfig
-	)
+	local positions = processModoptionTeamConfig(parsed.positions, selectedConfig)
 
 	return positions
 end
@@ -503,11 +494,11 @@ local function getCaptions(role)
 	elseif #roles > 1 then
 		local title1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
 		local title2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".title")
-		title = Spring.I18N("ui.startPositionSuggestions.multiRole.title", { role1 = title1, role2 = title2})
+		title = Spring.I18N("ui.startPositionSuggestions.multiRole.title", { role1 = title1, role2 = title2 })
 
 		local description1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
 		local description2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".description")
-		description = Spring.I18N("ui.startPositionSuggestions.multiRole.description", { role1 = description1, role2 = description2})
+		description = Spring.I18N("ui.startPositionSuggestions.multiRole.description", { role1 = description1, role2 = description2 })
 	end
 
 	captionsCache[role] = { title = title, description = description }
@@ -561,10 +552,7 @@ local function drawAllStartLocationsText()
 	local cameraMode = cameraState.mode
 	local roundedRy = mathCeil(ry * 100) / 100
 
-	local needsRebuild = not textDisplayListID
-		or textDisplayListCameraFlipped ~= cameraFlipped
-		or textDisplayListCameraMode ~= cameraMode
-		or (cameraMode == 2 and textDisplayListCameraRy ~= roundedRy)
+	local needsRebuild = not textDisplayListID or textDisplayListCameraFlipped ~= cameraFlipped or textDisplayListCameraMode ~= cameraMode or (cameraMode == 2 and textDisplayListCameraRy ~= roundedRy)
 
 	if needsRebuild then
 		invalidateTextDisplayList()
@@ -607,12 +595,9 @@ local function wrapLine(str, maxLength)
 end
 
 local function wrapText(str, maxLength)
-	local result = string.gsub(str,
-		"[^\n]*",
-		function(s)
-			return wrapLine(s, maxLength)
-		end
-	)
+	local result = string.gsub(str, "[^\n]*", function(s)
+		return wrapLine(s, maxLength)
+	end)
 	return result
 end
 
@@ -633,20 +618,11 @@ local function drawTooltip()
 	end
 
 	if not wrappedDescriptionCache[tooltipKey] then
-		wrappedDescriptionCache[tooltipKey] = wrapText(
-			getCaptions(tooltipKey).description,
-			config.tooltipMaxWidthChars
-		)
+		wrappedDescriptionCache[tooltipKey] = wrapText(getCaptions(tooltipKey).description, config.tooltipMaxWidthChars)
 	end
 
 	local xOffset, yOffset = 20, -12
-	WG["tooltip"].ShowTooltip(
-		"startPositionTooltip",
-		wrappedDescriptionCache[tooltipKey],
-		x + xOffset,
-		y + yOffset,
-		getCaptions(tooltipKey).title
-	)
+	WG["tooltip"].ShowTooltip("startPositionTooltip", wrappedDescriptionCache[tooltipKey], x + xOffset, y + yOffset, getCaptions(tooltipKey).title)
 end
 
 local function drawTutorial()
@@ -655,44 +631,25 @@ local function drawTutorial()
 	end
 
 	if not cachedTutorialText then
-		cachedTutorialText = wrapText(
-			Spring.I18N("ui.startPositionSuggestions.tutorial"),
-			config.tutorialMaxWidthChars
-		)
+		cachedTutorialText = wrapText(Spring.I18N("ui.startPositionSuggestions.tutorial"), config.tutorialMaxWidthChars)
 	end
 
-	fontTutorial:SetOutlineColor(0,0,0,1)
+	fontTutorial:SetOutlineColor(0, 0, 0, 1)
 	fontTutorial:SetTextColor(0.9, 0.9, 0.9, 1)
-	fontTutorial:Print(
-		cachedTutorialText,
-		vsx * 0.5,
-		vsy * 0.75,
-		config.tutorialTextSize*resMult,
-		"cao"
-	)
+	fontTutorial:Print(cachedTutorialText, vsx * 0.5, vsy * 0.75, config.tutorialTextSize * resMult, "cao")
 end
 
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
-	resMult = vsy/1440
+	resMult = vsy / 1440
 	local baseFontSize = mathMax(config.playerTextSize, config.roleTextSize) * 0.6
-	font = gl.LoadFont(
-		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
-		baseFontSize*resMult,
-		(baseFontSize*resMult) / 14,
-		1
-	)
-	fontTutorial = gl.LoadFont(
-		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
-		config.tutorialTextSize*resMult,
-		(config.tutorialTextSize*resMult) / 14,
-		1
-	)
+	font = gl.LoadFont("fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"), baseFontSize * resMult, (baseFontSize * resMult) / 14, 1)
+	fontTutorial = gl.LoadFont("fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"), config.tutorialTextSize * resMult, (config.tutorialTextSize * resMult) / 14, 1)
 end
 
 function widget:GetConfigData()
 	return {
-		hasRunBefore = true
+		hasRunBefore = true,
 	}
 end
 
@@ -778,10 +735,7 @@ local function getPlacedCommanders()
 		for i = 1, #newPlacedCommanders do
 			local old = placedCommanders[i]
 			local new = newPlacedCommanders[i]
-			if old.teamID ~= new.teamID or
-			   old.position[1] ~= new.position[1] or
-			   old.position[2] ~= new.position[2] or
-			   old.position[3] ~= new.position[3] then
+			if old.teamID ~= new.teamID or old.position[1] ~= new.position[1] or old.position[2] ~= new.position[2] or old.position[3] ~= new.position[3] then
 				modified = true
 				break
 			end

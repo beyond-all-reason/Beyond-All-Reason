@@ -11,7 +11,7 @@
 
 local system = VFS.Include("gamedata/system.lua")
 
-local mapFeatureProxies = VFS.Include('gamedata/map_feature_i18n_proxies.lua')
+local mapFeatureProxies = VFS.Include("gamedata/map_feature_i18n_proxies.lua")
 
 local function normalizeFeatureDef(featureDef)
 	system.lowerkeys(featureDef)
@@ -42,7 +42,7 @@ local function processUnitDef(unitDefName, unitDef)
 
 	-- add this unitDef's featureDefs
 	for featureDefName, featureDef in pairs(features) do
-		local fullName = unitDefName .. '_' .. featureDefName
+		local fullName = unitDefName .. "_" .. featureDefName
 		FeatureDefs[fullName] = featureDef
 		normalizeFeatureDef(featureDef)
 		featureDef.customparams.fromunit = unitDefName
@@ -52,8 +52,8 @@ local function processUnitDef(unitDefName, unitDef)
 	-- FeatureDead name changes
 	for featureDefName, featureDef in pairs(features) do
 		if featureDef.featuredead then
-			local fullName = unitDefName .. '_' .. featureDef.featuredead:lower()
-			if (FeatureDefs[fullName]) then
+			local fullName = unitDefName .. "_" .. featureDef.featuredead:lower()
+			if FeatureDefs[fullName] then
 				featureDef.featuredead = fullName
 			end
 		end
@@ -61,9 +61,9 @@ local function processUnitDef(unitDefName, unitDef)
 
 	-- convert the unit corpse name
 	if unitDef.corpse then
-		local fullName = unitDefName .. '_' .. unitDef.corpse:lower()
+		local fullName = unitDefName .. "_" .. unitDef.corpse:lower()
 		local corpseFeatureDef = FeatureDefs[fullName]
-		if (corpseFeatureDef) then
+		if corpseFeatureDef then
 			unitDef.corpse = fullName
 		end
 	end
@@ -103,8 +103,7 @@ local function isModelOK(featureDef)
 	end
 
 	-- explicitly specified to use a model, but doesn't provide one (gigachad.jpg)
-	if featureDef.drawtype == 0
-	and not specifiesModel then
+	if featureDef.drawtype == 0 and not specifiesModel then
 		return false
 	end
 
@@ -114,9 +113,7 @@ local function isModelOK(featureDef)
 	end
 
 	local modelPath = "objects3d/" .. featureDef.object
-	return VFS.FileExists(modelPath          , VFS.ZIP)
-	    or VFS.FileExists(modelPath .. ".3do", VFS.ZIP)
-	    or VFS.FileExists(modelPath .. ".s3o", VFS.ZIP)
+	return VFS.FileExists(modelPath, VFS.ZIP) or VFS.FileExists(modelPath .. ".3do", VFS.ZIP) or VFS.FileExists(modelPath .. ".s3o", VFS.ZIP)
 end
 
 for name, def in pairs(FeatureDefs) do

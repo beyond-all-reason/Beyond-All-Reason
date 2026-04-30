@@ -43,7 +43,7 @@ return {
 			removewait = true,
 			selectionscalemult = 1,
 			subfolder = "Legion/Defenses",
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {

@@ -32,7 +32,7 @@ return {
 		turnrate = 1200.44,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "other/scavengers",

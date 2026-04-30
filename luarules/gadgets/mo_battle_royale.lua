@@ -2,16 +2,15 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name		= "Battle Royale",
-		desc		= "Implements a shrinking cylinder of death with configurable rate that destroys all units",
-		author		= "Beherith",
-		date		= "20210827",
-		license		= "GNU GPL, v2 or later",
-		layer		= 0,
-		enabled		= false	--	still WIP
+		name = "Battle Royale",
+		desc = "Implements a shrinking cylinder of death with configurable rate that destroys all units",
+		author = "Beherith",
+		date = "20210827",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = false, --	still WIP
 	}
 end
-
 
 --[[
   {
@@ -31,19 +30,20 @@ end
 	 	def    = 2,
 	 	section= 'options',
 	 },
-]]--
+]]
+--
 -- in minutes
 local starttime = tonumber(Spring.GetModOptions().battle_royale_starttime) or -1
 
 -- in minutes, hopefully never less than the commander's walk rate
-local shrinktime =tonumber(Spring.GetModOptions().battle_royale_shrinktime) or 5
+local shrinktime = tonumber(Spring.GetModOptions().battle_royale_shrinktime) or 5
 
-if (starttime <= 0) then
+if starttime <= 0 then
 	return false
 end
 
 local startframe = starttime * 60 * 30
-local radiussquared = math.pow(Game.mapSizeX * 0.5 , 2) + math.pow(Game.mapSizeZ * 0.5 , 2)
+local radiussquared = math.pow(Game.mapSizeX * 0.5, 2) + math.pow(Game.mapSizeZ * 0.5, 2)
 local radius = math.sqrt(radiussquared)
 local startradius = radius
 local shrinkrate = radius / (shrinktime * 60 * 30)
@@ -51,71 +51,73 @@ local mapCenterX = Game.mapSizeX * 0.5
 local mapCenterZ = Game.mapSizeZ * 0.5
 
 if gadgetHandler:IsSyncedCode() then
-  local function distsqrgreater (a,b,threshold)
-    return (a * a + b * b) > threshold
-  end
+	local function distsqrgreater(a, b, threshold)
+		return (a * a + b * b) > threshold
+	end
 
-  local function BattleRoyaleDebug()
-      Spring.Echo("Battle Royale reset to", startradius/2)
-      radius = startradius/2
-  end
+	local function BattleRoyaleDebug()
+		Spring.Echo("Battle Royale reset to", startradius / 2)
+		radius = startradius / 2
+	end
 
-  function gadget:Initialize()
-		gadgetHandler:AddChatAction('battleroyaledebug', BattleRoyaleDebug )
-  end
+	function gadget:Initialize()
+		gadgetHandler:AddChatAction("battleroyaledebug", BattleRoyaleDebug)
+	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction('battleroyaledebug')
+		gadgetHandler:RemoveChatAction("battleroyaledebug")
 	end
 
-  function gadget:GameFrame(gameFrame)
-    if gameFrame < startframe then return end
-    radius = radius - shrinkrate
-    radius = math.max(radius,0)
-    radiussquared = radius * radius
-	if gameFrame % 11 == 0 then
-		local allunits = Spring.GetAllUnits()
-		local numdestroyed = 0
-		for _,unitID in ipairs(allunits) do
-			local ux,uy,uz = Spring.GetUnitPosition(unitID)
-			if ux and distsqrgreater(ux - mapCenterX, uz - mapCenterZ, radiussquared) then
-			  --Spring.DestroyUnit(unitID, true, false)
-			  numdestroyed = numdestroyed + 1
-			end
+	function gadget:GameFrame(gameFrame)
+		if gameFrame < startframe then
+			return
 		end
-		--Spring.Echo("BattleRoyale radius =", radius, "destroyed", numdestroyed)
-	end
-    SendToUnsynced("BattleRoyaleRadius", radius)
+		radius = radius - shrinkrate
+		radius = math.max(radius, 0)
+		radiussquared = radius * radius
+		if gameFrame % 11 == 0 then
+			local allunits = Spring.GetAllUnits()
+			local numdestroyed = 0
+			for _, unitID in ipairs(allunits) do
+				local ux, uy, uz = Spring.GetUnitPosition(unitID)
+				if ux and distsqrgreater(ux - mapCenterX, uz - mapCenterZ, radiussquared) then
+					--Spring.DestroyUnit(unitID, true, false)
+					numdestroyed = numdestroyed + 1
+				end
+			end
+			--Spring.Echo("BattleRoyale radius =", radius, "destroyed", numdestroyed)
+		end
+		SendToUnsynced("BattleRoyaleRadius", radius)
 	end
 
 	function gadget:GameOver()
 		gadgetHandler:RemoveGadget(self)
 	end
-
-
 else
 	-------------------------
 	--    UNSYNCED CODE    --
 	-------------------------
 
-  local LuaShader = gl.LuaShader
-  local InstanceVBOTable = gl.InstanceVBOTable
+	local LuaShader = gl.LuaShader
+	local InstanceVBOTable = gl.InstanceVBOTable
 
-  local pushElementInstance = InstanceVBOTable.pushElementInstance
+	local pushElementInstance = InstanceVBOTable.pushElementInstance
 
-  local circleSegments = 1024
-  local circleShader = nil
-  local circleInstanceVBO = nil
+	local circleSegments = 1024
+	local circleShader = nil
+	local circleInstanceVBO = nil
 
-  local minY, maxY
-  local hextexture = "LuaUI/Images/hexgrid.tga"
+	local minY, maxY
+	local hextexture = "LuaUI/Images/hexgrid.tga"
 
-  local function goodbye(reason)
-    Spring.Echo("Ground Circle GL4 widget exiting with reason: "..reason)
-    if circleShader then circleShader:Finalize() end
-  end
+	local function goodbye(reason)
+		Spring.Echo("Ground Circle GL4 widget exiting with reason: " .. reason)
+		if circleShader then
+			circleShader:Finalize()
+		end
+	end
 
-  local vsSrc = [[
+	local vsSrc = [[
   #version 420
   #line 10000
   //__DEFINES__
@@ -160,7 +162,7 @@ else
   }
   ]]
 
-  local fsSrc =  [[
+	local fsSrc = [[
   #version 330
   #extension GL_ARB_uniform_buffer_object : require
   #extension GL_ARB_shading_language_420pack: require
@@ -202,81 +204,76 @@ else
   }
   ]]
 
-  local function initgl4()
-    local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-    vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-    fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-    circleShader =  LuaShader(
-    {
-      vertex = vsSrc:gsub("//__DEFINES__", "#define MYGRAVITY " .. tostring(Game.gravity+0.1)),
-      fragment = fsSrc:gsub("//__DEFINES__", "#define USE_STIPPLE ".. tostring(0) ),
-      --geometry = gsSrc, no geom shader for now
-      uniformInt = {
-        hexTex = 0,
-      },
-      uniformFloat = {
-        circleuniforms = {1,1,1,1}, -- unused
-      },
-    },
-    "ground circles shader GL4"
-    )
-    shaderCompiled = circleShader:Initialize()
-    if not shaderCompiled then goodbye("Failed to compile circleShader GL4 ") end
-    local circleVBO,numVertices = InstanceVBOTable.makeCylinderVBO(circleSegments)
-    local circleInstanceVBOLayout = {
-        {id = 1, name = 'posrad', size = 4}, -- the start pos + radius
-        {id = 2, name = 'color', size = 4}, --- color
-      }
-    circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout,32, "groundcirclevbo")
-    circleInstanceVBO.numVertices = numVertices
-    circleInstanceVBO.vertexVBO = circleVBO
-    circleInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO,       circleInstanceVBO.instanceVBO)
-  end
-
-  local battleroyaleradius = -1
-	local function BattleRoyaleRadius(_, radius)
-    if battleroyaleradius == -1 then
-      Spring.SendMessage("Battle Royale has begun, you have ".. tostring(shrinktime) .. " minutes left")
-    end
-    battleroyaleradius = radius
-    pushElementInstance(circleInstanceVBO,
-        {Game.mapSizeX/2, 0, Game.mapSizeZ/2, battleroyaleradius,
-        1.0,0.0,0.0, 1.0,
-        },
-        0,  -- key is gonna be zero for my dummy face
-        true -- overwrite
-      )
+	local function initgl4()
+		local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+		vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+		fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+		circleShader = LuaShader({
+			vertex = vsSrc:gsub("//__DEFINES__", "#define MYGRAVITY " .. tostring(Game.gravity + 0.1)),
+			fragment = fsSrc:gsub("//__DEFINES__", "#define USE_STIPPLE " .. tostring(0)),
+			--geometry = gsSrc, no geom shader for now
+			uniformInt = {
+				hexTex = 0,
+			},
+			uniformFloat = {
+				circleuniforms = { 1, 1, 1, 1 }, -- unused
+			},
+		}, "ground circles shader GL4")
+		shaderCompiled = circleShader:Initialize()
+		if not shaderCompiled then
+			goodbye("Failed to compile circleShader GL4 ")
+		end
+		local circleVBO, numVertices = InstanceVBOTable.makeCylinderVBO(circleSegments)
+		local circleInstanceVBOLayout = {
+			{ id = 1, name = "posrad", size = 4 }, -- the start pos + radius
+			{ id = 2, name = "color", size = 4 }, --- color
+		}
+		circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 32, "groundcirclevbo")
+		circleInstanceVBO.numVertices = numVertices
+		circleInstanceVBO.vertexVBO = circleVBO
+		circleInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
 	end
 
-  local function BattleRoyaleDebug()
-  end
+	local battleroyaleradius = -1
+	local function BattleRoyaleRadius(_, radius)
+		if battleroyaleradius == -1 then
+			Spring.SendMessage("Battle Royale has begun, you have " .. tostring(shrinktime) .. " minutes left")
+		end
+		battleroyaleradius = radius
+		pushElementInstance(
+			circleInstanceVBO,
+			{ Game.mapSizeX / 2, 0, Game.mapSizeZ / 2, battleroyaleradius, 1.0, 0.0, 0.0, 1.0 },
+			0, -- key is gonna be zero for my dummy face
+			true -- overwrite
+		)
+	end
 
-  function gadget:Initialize()
-    minY, maxY = Spring.GetGroundExtremes ( )
+	local function BattleRoyaleDebug() end
+
+	function gadget:Initialize()
+		minY, maxY = Spring.GetGroundExtremes()
 		gadgetHandler:AddSyncAction("BattleRoyaleRadius", BattleRoyaleRadius)
-    initgl4()
-  end
+		initgl4()
+	end
 
-	function gadget:Shutdown()
-  end
+	function gadget:Shutdown() end
 
-  function gadget:DrawWorld()
-    if circleInstanceVBO.usedElements > 0 then
-      gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
-      gl.DepthTest(true)
-      gl.AlphaTest(GL.GREATER, 0)
-      gl.Blending(GL.SRC_ALPHA, GL.ONE)
-      gl.Texture(0,hextexture)
-      circleShader:Activate()
-      circleShader:SetUniform("circleuniforms", minY, maxY + 32, 1.0, 1.0) -- unused
-      circleInstanceVBO.VAO:DrawArrays(GL.TRIANGLES, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
-      circleShader:Deactivate()
-      gl.Texture(0, false)
-      gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-      gl.AlphaTest(false)
-      gl.DepthTest(false)
-      --gl.DepthMask(false)  --"BK OpenGL state resets", already set as false
-    end
-  end
-
+	function gadget:DrawWorld()
+		if circleInstanceVBO.usedElements > 0 then
+			gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
+			gl.DepthTest(true)
+			gl.AlphaTest(GL.GREATER, 0)
+			gl.Blending(GL.SRC_ALPHA, GL.ONE)
+			gl.Texture(0, hextexture)
+			circleShader:Activate()
+			circleShader:SetUniform("circleuniforms", minY, maxY + 32, 1.0, 1.0) -- unused
+			circleInstanceVBO.VAO:DrawArrays(GL.TRIANGLES, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
+			circleShader:Deactivate()
+			gl.Texture(0, false)
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			gl.AlphaTest(false)
+			gl.DepthTest(false)
+			--gl.DepthMask(false)  --"BK OpenGL state resets", already set as false
+		end
+	end
 end

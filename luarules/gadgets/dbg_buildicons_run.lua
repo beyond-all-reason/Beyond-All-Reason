@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "2015",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -23,8 +23,7 @@ end
 --cd..
 --)
 
-
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
@@ -51,13 +50,13 @@ function buildslowly(_, _, params)
 			index = tonumber(params[1])
 		end
 	end
-	Spring.Echo('building icons all slow-like, starting from ' .. index)
+	Spring.Echo("building icons all slow-like, starting from " .. index)
 
 	local counter = 1
 	for unitName, unitdefname in pairs(UnitDefNames) do
 		counter = counter + 1
 		--Spring.Echo('unitdefname',i,unitdefname)
-		local filepath = '../buildicons/__256x256/' .. unitName .. '.png'
+		local filepath = "../buildicons/__256x256/" .. unitName .. ".png"
 		if VFS.FileExists(filepath, VFS.RAW) then
 			--Spring.Echo("File exists for: "..i.. ' '..filepath)
 		else
@@ -74,7 +73,7 @@ end
 local framenumLength = string.len(tostring(animationFrames))
 function addZeros(number)
 	for length = string.len(tostring(number)), framenumLength - 1 do
-		number = '0' .. number
+		number = "0" .. number
 	end
 	return number
 end
@@ -82,7 +81,7 @@ end
 function buildUnitAnim(unitName)
 	local angleStep = 360 / animationFrames
 	for frame = 0, animationFrames - 1 do
-		unitnames[#unitnames + 1] = unitName .. ' ' .. (angleStep * frame) .. ' ' .. addZeros(frame)
+		unitnames[#unitnames + 1] = unitName .. " " .. (angleStep * frame) .. " " .. addZeros(frame)
 	end
 end
 
@@ -101,9 +100,9 @@ function buildanim(_, _, params)
 				end
 			end
 		end
-		Spring.Echo('building icon with animation frames all slow-like, starting from ' .. index)
+		Spring.Echo("building icon with animation frames all slow-like, starting from " .. index)
 
-		local filepath = '../buildicons/__256x256/' .. unitName .. '.png'
+		local filepath = "../buildicons/__256x256/" .. unitName .. ".png"
 		if VFS.FileExists(filepath, VFS.RAW) then
 			--Spring.Echo("File exists for: "..unitName.. ' '..filepath)
 		else
@@ -120,15 +119,15 @@ function buildanimslowly(_, _, params)
 			unitnumber = tonumber(params[1])
 		end
 	end
-	Spring.Echo('building icons with animation frames all slow-like, starting from ' .. index)
+	Spring.Echo("building icons with animation frames all slow-like, starting from " .. index)
 
 	local counter = 1
 	for unitName, _ in pairs(UnitDefNames) do
 		counter = counter + 1
 		if not unitnumber or counter >= unitnumber then
-			local filepath = '../buildicons/256x256/' .. unitName .. '.png'
+			local filepath = "../buildicons/256x256/" .. unitName .. ".png"
 			if VFS.FileExists(filepath, VFS.RAW) then
-				Spring.Echo("File exists for: " .. unitName .. ' ' .. filepath)
+				Spring.Echo("File exists for: " .. unitName .. " " .. filepath)
 			else
 				if not skipUnits[unitName] then
 					Spring.Echo("Building filepath: " .. filepath)
@@ -140,12 +139,12 @@ function buildanimslowly(_, _, params)
 end
 
 function gadget:Initialize()
-	gadgetHandler:AddChatAction('buildiconslow', buildslowly, "")
-	gadgetHandler:AddChatAction('buildiconanim', buildanim, "")
-	gadgetHandler:AddChatAction('buildiconanimslow', buildanimslowly, "")
+	gadgetHandler:AddChatAction("buildiconslow", buildslowly, "")
+	gadgetHandler:AddChatAction("buildiconanim", buildanim, "")
+	gadgetHandler:AddChatAction("buildiconanimslow", buildanimslowly, "")
 end
 
-local unitConfigs = {   -- copy from configs/icon_generator.lua, included.. because else it will miss frames when animating
+local unitConfigs = { -- copy from configs/icon_generator.lua, included.. because else it will miss frames when animating
 	[UnitDefNames.cormex.id] = {
 		wait = 60,
 	},
@@ -167,26 +166,25 @@ local unitConfigs = {   -- copy from configs/icon_generator.lua, included.. beca
 	[UnitDefNames.armplat.id] = {
 		wait = 65,
 	},
-
 }
 function gadget:GameFrame(n)
-	if (nextFrame and n > nextFrame and index <= #unitnames) then
+	if nextFrame and n > nextFrame and index <= #unitnames then
 		Spring.SendCommands("luarules buildicon " .. unitnames[index])
 		index = index + 1
 		counter = counter + 1
 
-		if not string.find(unitnames[index], ' ') then
+		if not string.find(unitnames[index], " ") then
 			-- single buildpic
 			nextFrame = n + timedelay
 		else
 			-- animation
-			if not string.find(unitnames[index], ' ') or string.match(unitnames[index], ' 1$') then
+			if not string.find(unitnames[index], " ") or string.match(unitnames[index], " 1$") then
 				nextFrame = n + timedelayFirstFrame
 			else
 				nextFrame = n + timedelayFrame
 			end
 			-- added custom wait period on top, because else it will miss frames
-			local unitName = string.match(unitnames[index], '[a-zA-Z0-9]*')
+			local unitName = string.match(unitnames[index], "[a-zA-Z0-9]*")
 			if unitName then
 				if unitConfigs and unitConfigs[UnitDefNames[unitName].id] and unitConfigs[UnitDefNames[unitName].id].wait then
 					nextFrame = nextFrame + unitConfigs[UnitDefNames[unitName].id].wait
@@ -197,7 +195,7 @@ function gadget:GameFrame(n)
 end
 
 function gadget:Shutdown()
-	gadgetHandler:RemoveChatAction('buildiconslow')
-	gadgetHandler:RemoveChatAction('buildiconanim')
-	gadgetHandler:RemoveChatAction('buildiconanimslow')
+	gadgetHandler:RemoveChatAction("buildiconslow")
+	gadgetHandler:RemoveChatAction("buildiconanim")
+	gadgetHandler:RemoveChatAction("buildiconanimslow")
 end

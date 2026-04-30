@@ -5,7 +5,9 @@
 -- energy shapes that mimic the old staged trailing ball look.
 --------------------------------------------------------------------------------
 
-if gadgetHandler:IsSyncedCode() then return end
+if gadgetHandler:IsSyncedCode() then
+	return
+end
 
 function gadget:GetInfo()
 	return {
@@ -22,31 +24,31 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spEcho                      = Spring.Echo
-local spGetVisibleProjectiles     = Spring.GetVisibleProjectiles
-local spGetProjectilePosition     = Spring.GetProjectilePosition
-local spGetProjectileVelocity     = Spring.GetProjectileVelocity
-local spGetProjectileDefID        = Spring.GetProjectileDefID
-local spGetProjectileTeamID       = Spring.GetProjectileTeamID
-local spGetTeamAllyTeamID         = Spring.GetTeamAllyTeamID
-local spIsPosInAirLos             = Spring.IsPosInAirLos
-local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
-local spGetSpectatingState        = Spring.GetSpectatingState
-local spGetGameFrame              = Spring.GetGameFrame
-local spGetFrameTimeOffset        = Spring.GetFrameTimeOffset
+local spEcho = Spring.Echo
+local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
+local spGetProjectilePosition = Spring.GetProjectilePosition
+local spGetProjectileVelocity = Spring.GetProjectileVelocity
+local spGetProjectileDefID = Spring.GetProjectileDefID
+local spGetProjectileTeamID = Spring.GetProjectileTeamID
+local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
+local spIsPosInAirLos = Spring.IsPosInAirLos
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = Spring.GetGameFrame
+local spGetFrameTimeOffset = Spring.GetFrameTimeOffset
 
-local glBlending  = gl.Blending
-local glTexture   = gl.Texture
+local glBlending = gl.Blending
+local glTexture = gl.Texture
 local glDepthTest = gl.DepthTest
 local glDepthMask = gl.DepthMask
-local glCulling   = gl.Culling
+local glCulling = gl.Culling
 
-local GL_ONE                  = GL.ONE
-local GL_ONE_MINUS_SRC_ALPHA  = GL.ONE_MINUS_SRC_ALPHA
-local GL_SRC_ALPHA            = GL.SRC_ALPHA
+local GL_ONE = GL.ONE
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_SRC_ALPHA = GL.SRC_ALPHA
 
-local mathMin    = math.min
-local mathSqrt   = math.sqrt
+local mathMin = math.min
+local mathSqrt = math.sqrt
 
 local LuaShader = gl.LuaShader
 local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
@@ -56,53 +58,53 @@ local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
 --------------------------------------------------------------------------------
 
 -- Limits
-local INITIAL_VBO_SIZE = 128   -- starting VBO capacity (doubles automatically when exceeded)
-local IDLE_SKIP_FRAMES = 3    -- draw-frames to skip polling when no projectiles active
+local INITIAL_VBO_SIZE = 128 -- starting VBO capacity (doubles automatically when exceeded)
+local IDLE_SKIP_FRAMES = 3 -- draw-frames to skip polling when no projectiles active
 
 -- Textures
 local plasmaTexture = "bitmaps/projectiletextures/plasmaball.tga"
-local glowTexture   = "bitmaps/projectiletextures/glow2.tga"
+local glowTexture = "bitmaps/projectiletextures/glow2.tga"
 
 -- Glow billboard config
-local GLOW_SIZE_MULT   = 10   -- glow billboard size as multiple of projectile cross-section size
-local GLOW_BRIGHTNESS  = 0.1   -- glow color multiplier (faint)
-local GLOW_REF_SIZE    = 5.0   -- weapons at this size (after SIZE_MULT) get full glow; smaller ones dim proportionally
+local GLOW_SIZE_MULT = 10 -- glow billboard size as multiple of projectile cross-section size
+local GLOW_BRIGHTNESS = 0.1 -- glow color multiplier (faint)
+local GLOW_REF_SIZE = 5.0 -- weapons at this size (after SIZE_MULT) get full glow; smaller ones dim proportionally
 
 -- Cross-section billboard (camera-facing round blob, visible when looking along velocity)
-local CROSS_SECTION_BRIGHTNESS = 0.7  -- brightness multiplier for the head-on cross-section
+local CROSS_SECTION_BRIGHTNESS = 0.7 -- brightness multiplier for the head-on cross-section
 
 -- Projectile sizing: the quad is elongated along velocity to create the trail shape
-local SIZE_MULT          = 1.5    -- global multiplier on weapon projectile size (cross-section width)
-local RANGE_SIZE_BONUS   = 2.0    -- max extra size added for long-range weapons (at RANGE_SIZE_REF range)
-local RANGE_SIZE_REF     = 1500   -- weapon range (elmos) at which full RANGE_SIZE_BONUS is applied
+local SIZE_MULT = 1.5 -- global multiplier on weapon projectile size (cross-section width)
+local RANGE_SIZE_BONUS = 2.0 -- max extra size added for long-range weapons (at RANGE_SIZE_REF range)
+local RANGE_SIZE_REF = 1500 -- weapon range (elmos) at which full RANGE_SIZE_BONUS is applied
 
 -- Core color boost
-local CORE_COLOR_ADD     = 0.4  -- added to weapon RGB to create brighter core color
+local CORE_COLOR_ADD = 0.4 -- added to weapon RGB to create brighter core color
 
 -- Shader config (injected as #defines)
 local shaderConfig = {
 	-- Shape (elongation scales with speed: min at rest, max at ELONGATION_SPEED_REF elmos/frame)
-	ELONGATION_MIN     = 2.2,  -- elongation at zero speed (nearly round)
-	ELONGATION_MAX     = 6.5,  -- elongation at or above reference speed
+	ELONGATION_MIN = 2.2, -- elongation at zero speed (nearly round)
+	ELONGATION_MAX = 6.5, -- elongation at or above reference speed
 	ELONGATION_SPEED_REF = 25, -- speed (elmos/frame) at which max elongation is reached
 
 	-- Noise displacement for blobby organic shape
-	NOISE_SCALE        = 4.5,    -- frequency of noise pattern (lower = bigger blobs)
-	NOISE_STRENGTH     = 1.1,   -- how much noise distorts the shape (higher = more blobby)
-	NOISE_SPEED        = 50.0,    -- animation speed of noise
-	SWIRL_SPEED        = 365.0,    -- rotation speed of swirl effect
-	SWIRL_STRENGTH     = 5,    -- intensity of swirl distortion (higher = more visible rotation)
+	NOISE_SCALE = 4.5, -- frequency of noise pattern (lower = bigger blobs)
+	NOISE_STRENGTH = 1.1, -- how much noise distorts the shape (higher = more blobby)
+	NOISE_SPEED = 50.0, -- animation speed of noise
+	SWIRL_SPEED = 365.0, -- rotation speed of swirl effect
+	SWIRL_STRENGTH = 5, -- intensity of swirl distortion (higher = more visible rotation)
 
 	-- Core/edge color blending (radially from center)
-	CORE_EDGE_START    = 0.1,   -- radial distance where core-to-edge blend starts
-	CORE_EDGE_END      = 0.25,    -- radial distance where blend is fully edge color
-	CORE_BRIGHTNESS    = 1.0,    -- extra brightness for core center
-	BRIGHTNESS_MULT    = 0.75,    -- overall brightness multiplier (compensates for 2 additive cross passes)
-	EDGE_SOFTNESS      = 0.22,    -- how soft the outer edge is
+	CORE_EDGE_START = 0.1, -- radial distance where core-to-edge blend starts
+	CORE_EDGE_END = 0.25, -- radial distance where blend is fully edge color
+	CORE_BRIGHTNESS = 1.0, -- extra brightness for core center
+	BRIGHTNESS_MULT = 0.75, -- overall brightness multiplier (compensates for 2 additive cross passes)
+	EDGE_SOFTNESS = 0.22, -- how soft the outer edge is
 
 	-- Trail shape: the blob is shifted forward and fades toward the back
-	TRAIL_SHIFT        = 0,    -- how much the bright center shifts toward the front (0 = centered)
-	TRAIL_FALLOFF      = 2,    -- how quickly brightness drops off toward the back (higher = sharper tail)
+	TRAIL_SHIFT = 0, -- how much the bright center shifts toward the front (0 = centered)
+	TRAIL_FALLOFF = 2, -- how quickly brightness drops off toward the back (higher = sharper tail)
 }
 
 --------------------------------------------------------------------------------
@@ -123,24 +125,31 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 
 		local cp = weaponDef.customParams or {}
 		if not cp.bogus then
-		local size = tonumber(cp.plasma_size_orig) or weaponDef.size or 1.5
-		local range = weaponDef.range or 300
+			local size = tonumber(cp.plasma_size_orig) or weaponDef.size or 1.5
+			local range = weaponDef.range or 300
 
-		size = (size * 0.55) + (weaponDef.damageAreaOfEffect / 66)  -- add blast radius to size for better core/edge color distribution
-		size = size + RANGE_SIZE_BONUS * mathMin(1, range / RANGE_SIZE_REF)  -- longer-range weapons get bigger projectiles
+			size = (size * 0.55) + (weaponDef.damageAreaOfEffect / 66) -- add blast radius to size for better core/edge color distribution
+			size = size + RANGE_SIZE_BONUS * mathMin(1, range / RANGE_SIZE_REF) -- longer-range weapons get bigger projectiles
 
-		weaponConfigs[weaponID] = {
-			colorR = r,    colorG = g,    colorB = b,
-			coreR = coreR, coreG = coreG, coreB = coreB,
-			size = size * SIZE_MULT,
-		}
+			weaponConfigs[weaponID] = {
+				colorR = r,
+				colorG = g,
+				colorB = b,
+				coreR = coreR,
+				coreG = coreG,
+				coreB = coreB,
+				size = size * SIZE_MULT,
+			}
 		end
 	end
 end
 
 -- Check if we have any cannon weapons
 local hasConfigs = false
-for _ in pairs(weaponConfigs) do hasConfigs = true; break end
+for _ in pairs(weaponConfigs) do
+	hasConfigs = true
+	break
+end
 if not hasConfigs then
 	function gadget:Initialize()
 		gadgetHandler:RemoveGadget()
@@ -151,7 +160,7 @@ end
 --------------------------------------------------------------------------------
 -- Projectile tracking (stable noise seed per projectile)
 --------------------------------------------------------------------------------
-local projectileSeeds = {}  -- proID -> random seed
+local projectileSeeds = {} -- proID -> random seed
 
 --------------------------------------------------------------------------------
 -- Shader sources: Plasma (velocity-aligned elongated billboard)
@@ -681,7 +690,7 @@ void main(void)
 --------------------------------------------------------------------------------
 local plasmaVBO
 local plasmaShader
-local crossShader        -- 90-degree rotated copy for volume from all angles
+local crossShader -- 90-degree rotated copy for volume from all angles
 local crossSectionShader -- camera-facing circular billboard for head-on view
 local glowShader
 
@@ -776,19 +785,15 @@ local function initGL4()
 	end
 
 	-- Shared quad VBOs
-	local quadVBO, numVertices = gl.InstanceVBOTable.makeRectVBO(
-		-1, -1, 1, 1,
-		0, 0, 1, 1,
-		"plasmaQuadVBO"
-	)
+	local quadVBO, numVertices = gl.InstanceVBOTable.makeRectVBO(-1, -1, 1, 1, 0, 0, 1, 1, "plasmaQuadVBO")
 	local indexVBO = gl.InstanceVBOTable.makeRectIndexVBO("plasmaIndexVBO")
 
 	-- Instance VBO layout: 4 vec4s = stride 16
 	local plasmaLayout = {
-		{id = 1, name = 'posAndSize',       size = 4},  -- xyz = pos, w = size
-		{id = 2, name = 'coreColor',        size = 4},  -- rgb = core, a = alpha
-		{id = 3, name = 'edgeColorAndSeed', size = 4},  -- rgb = edge, a = noise seed
-		{id = 4, name = 'velocityAndLife',  size = 4},  -- xyz = velDir (normalized), w = speed
+		{ id = 1, name = "posAndSize", size = 4 }, -- xyz = pos, w = size
+		{ id = 2, name = "coreColor", size = 4 }, -- rgb = core, a = alpha
+		{ id = 3, name = "edgeColorAndSeed", size = 4 }, -- rgb = edge, a = noise seed
+		{ id = 4, name = "velocityAndLife", size = 4 }, -- xyz = velDir (normalized), w = speed
 	}
 	plasmaVBO = gl.InstanceVBOTable.makeInstanceVBOTable(plasmaLayout, INITIAL_VBO_SIZE, "plasmaCannonVBO")
 	if not plasmaVBO then
@@ -807,7 +812,9 @@ end
 
 local function resizePlasmaVBO(needed)
 	local newMax = plasmaVBO.maxElements
-	while newMax < needed do newMax = newMax * 2 end
+	while newMax < needed do
+		newMax = newMax * 2
+	end
 	plasmaVBO.maxElements = newMax
 	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	newInstanceVBO:Define(newMax, plasmaVBO.layout)
@@ -815,21 +822,28 @@ local function resizePlasmaVBO(needed)
 	plasmaVBO.instanceVBO = newInstanceVBO
 	local data = plasmaVBO.instanceData
 	local step = plasmaVBO.instanceStep
-	for i = #data + 1, step * newMax do data[i] = 0 end
+	for i = #data + 1, step * newMax do
+		data[i] = 0
+	end
 	plasmaVBO.VAO:Delete()
 	plasmaVBO.VAO = plasmaVBO:makeVAOandAttach(plasmaVBO.vertexVBO, plasmaVBO.instanceVBO)
 	plasmaVBO.VAO:AttachIndexBuffer(plasmaVBO.indexVBO)
 end
 
 local function cleanupGL4()
-	if plasmaVBO then plasmaVBO:Delete(); plasmaVBO = nil end
+	if plasmaVBO then
+		plasmaVBO:Delete()
+		plasmaVBO = nil
+	end
 end
 
 --------------------------------------------------------------------------------
 -- Drawing
 --------------------------------------------------------------------------------
 local function drawAll()
-	if plasmaVBO.usedElements == 0 then return end
+	if plasmaVBO.usedElements == 0 then
+		return
+	end
 
 	glDepthTest(true)
 	glDepthMask(false)
@@ -910,13 +924,13 @@ local function updateProjectiles()
 					local proTeam = spGetProjectileTeamID(proID)
 					local proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
 					if proAlly ~= myAllyTeam and not spIsPosInAirLos(px, 0, pz, myAllyTeam) then
-						cfg = nil  -- reuse variable to skip without deep nesting
+						cfg = nil -- reuse variable to skip without deep nesting
 					end
 				end
 				if cfg then
 					local vx, vy, vz = spGetProjectileVelocity(proID)
 					if vx then
-						local speed = mathSqrt(vx*vx + vy*vy + vz*vz)
+						local speed = mathSqrt(vx * vx + vy * vy + vz * vz)
 						local dirX, dirY, dirZ
 						if speed > 0.001 then
 							local invSpeed = 1.0 / speed
@@ -938,15 +952,15 @@ local function updateProjectiles()
 
 						count = count + 1
 						local offset = (count - 1) * 16
-						data[offset + 1]  = px
-						data[offset + 2]  = py
-						data[offset + 3]  = pz
-						data[offset + 4]  = cfg.size
-						data[offset + 5]  = cfg.coreR
-						data[offset + 6]  = cfg.coreG
-						data[offset + 7]  = cfg.coreB
-						data[offset + 8]  = 1.0
-						data[offset + 9]  = cfg.colorR
+						data[offset + 1] = px
+						data[offset + 2] = py
+						data[offset + 3] = pz
+						data[offset + 4] = cfg.size
+						data[offset + 5] = cfg.coreR
+						data[offset + 6] = cfg.coreG
+						data[offset + 7] = cfg.coreB
+						data[offset + 8] = 1.0
+						data[offset + 9] = cfg.colorR
 						data[offset + 10] = cfg.colorG
 						data[offset + 11] = cfg.colorB
 						data[offset + 12] = seed
@@ -989,9 +1003,13 @@ end
 --------------------------------------------------------------------------------
 
 function gadget:Initialize()
-	if not initGL4() then return end
+	if not initGL4() then
+		return
+	end
 	local n = 0
-	for _ in pairs(weaponConfigs) do n = n + 1 end
+	for _ in pairs(weaponConfigs) do
+		n = n + 1
+	end
 	spEcho("Plasma Cannon GL4: initialized with " .. n .. " cannon weapon configs")
 end
 

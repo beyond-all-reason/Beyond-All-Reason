@@ -1,5 +1,5 @@
-local trackedUnits = GG['MissionAPI'].TrackedUnits
-local triggers = GG['MissionAPI'].Triggers
+local trackedUnits = GG["MissionAPI"].TrackedUnits
+local triggers = GG["MissionAPI"].Triggers
 
 local function enableTrigger(triggerId)
 	triggers[triggerId].settings.active = true

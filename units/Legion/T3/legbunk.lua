@@ -35,7 +35,7 @@ return {
 		upright = true,
 		customparams = {
 			maxrange = "10",
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "leggantry",

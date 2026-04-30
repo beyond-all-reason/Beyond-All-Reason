@@ -1,6 +1,6 @@
 if Spring.GetModOptions then
 	local modOptions = Spring.GetModOptions()
-	local modOptionsFile = VFS.Include('modoptions.lua')
+	local modOptionsFile = VFS.Include("modoptions.lua")
 
 	for _, modOption in ipairs(modOptionsFile) do
 		local key = modOption.key
@@ -10,12 +10,12 @@ if Spring.GetModOptions then
 				modOptions[key] = modOption.def
 			end
 
-			if (modOption.type == 'bool') and (type(modOptions[key]) ~= 'boolean') then
+			if (modOption.type == "bool") and (type(modOptions[key]) ~= "boolean") then
 				local value = tonumber(modOptions[key])
 				modOptions[key] = value == 1 and true or false
 			end
 
-			if modOption.type == 'number' then
+			if modOption.type == "number" then
 				modOptions[key] = tonumber(modOptions[key])
 			end
 		end
@@ -27,17 +27,17 @@ if Spring.GetModOptions then
 	setmetatable(readOnlyModOptions, {
 		__index = modOptions,
 		__newindex = function(t, k, v)
-			  error("attempt to update a read-only Spring.GetModOptions table", 2)
-			end
+			error("attempt to update a read-only Spring.GetModOptions table", 2)
+		end,
 	})
 
-	Spring.GetModOptions = function ()
+	Spring.GetModOptions = function()
 		return readOnlyModOptions
 	end
 
 	-- Returns a copy of the modOptions table. Slower, but allows iterating over
 	-- the returned table using pairs/ipairs.
-	Spring.GetModOptionsCopy = function ()
+	Spring.GetModOptionsCopy = function()
 		return table.copy(modOptions)
 	end
 end
@@ -47,12 +47,12 @@ if Spring.Echo then
 	local printOptions = { pretty = true }
 
 	local function multiEcho(...)
-		local n = select('#', ...)
+		local n = select("#", ...)
 		local firstTableIndex
 		local tableCount = 0
 
 		for index = 1, n do
-			if type(select(index, ...)) == 'table' then
+			if type(select(index, ...)) == "table" then
 				tableCount = tableCount + 1
 				if not firstTableIndex then
 					firstTableIndex = index
@@ -75,7 +75,7 @@ if Spring.Echo then
 
 		local args = table.pack(...)
 		for index = firstTableIndex, n do
-			if type(args[index]) == 'table' then
+			if type(args[index]) == "table" then
 				echo(table.toString(args[index], printOptions))
 			end
 		end

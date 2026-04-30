@@ -18,7 +18,8 @@ LoadFromLua(Shader::IProgramObject* program, const std::string& filename)
 for k,v in pairs(Spring) do 
 	Spring.Echo(k,v)
 end
-]]--
+]]
+--
 
 -- Author: Beherith (mysterme@gmail.com)
 

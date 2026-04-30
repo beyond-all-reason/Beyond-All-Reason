@@ -2,14 +2,14 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "CMD limiter",
-		desc      = "",
-		author    = "Floris",
-		version   = "1",
-		date      = "September 2023",
-		license   = "GNU GPL, v2 or later",
-		layer     = -999999,
-		enabled   = true,
+		name = "CMD limiter",
+		desc = "",
+		author = "Floris",
+		version = "1",
+		date = "September 2023",
+		license = "GNU GPL, v2 or later",
+		layer = -999999,
+		enabled = true,
 	}
 end
 
@@ -36,7 +36,7 @@ function gadget:PlayerChanged(playerID)
 end
 
 function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	if cmdID < 0 and not spec then	-- is build order
+	if cmdID < 0 and not spec then -- is build order
 		if cmdOpts.shift then
 			local gf = Spring.GetGameFrame()
 			if offenceFrames[gf] then
@@ -57,14 +57,13 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 						Spring.Echo("\255\255\085\085YOU HAVE QUEUED TOO MUCH BUILDINGS IN A SHORT PERIOD, KEEP DOING THIS AND YOU WILL GET AUTO RESIGNED!")
 					end
 				end
-				totalCmdCount = totalCmdCount - mathFloor(maxCommands/2)	-- remove some so user can instantly queue something next without instantly being warned again
+				totalCmdCount = totalCmdCount - mathFloor(maxCommands / 2) -- remove some so user can instantly queue something next without instantly being warned again
 				return true
 			end
 		end
 	end
 	return false
 end
-
 
 function gadget:GameFrame(gf)
 	local oldFrame = gf - historyFrames

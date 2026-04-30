@@ -21,7 +21,7 @@ function gadget:GetInfo()
 		date = "May 27, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -63,7 +63,9 @@ local math_ceil = math.ceil
 local math_random = math.random
 local math_max = math.max
 local math_min = math.min
-local damageSortFunc = function(m1, m2) return m1.damage < m2.damage end
+local damageSortFunc = function(m1, m2)
+	return m1.damage < m2.damage
+end
 
 local GL_GREATER = GL.GREATER
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -248,9 +250,9 @@ local function drawDeathDPS(damage, ux, uy, uz, textSize, red, alpha)
 			drawTextListsDeath[damage] = gl.CreateList(function()
 				font:Begin()
 				font:SetTextColor(1, 0.5, 0.5)
-				font:Print(damage, 0, 0, textSize, 'cnO')
+				font:Print(damage, 0, 0, textSize, "cnO")
 				font:End()
-			end)	-- rare error on this line: "table index is NaN"
+			end) -- rare error on this line: "table index is NaN"
 		end
 		glCallList(drawTextListsDeath[damage])
 	else
@@ -258,7 +260,7 @@ local function drawDeathDPS(damage, ux, uy, uz, textSize, red, alpha)
 			drawTextLists[damage] = gl.CreateList(function()
 				font:Begin()
 				font:SetTextColor(1, 1, 1)
-				font:Print(damage, 0, 0, textSize, 'cnO')
+				font:Print(damage, 0, 0, textSize, "cnO")
 				font:End()
 			end)
 		end
@@ -277,7 +279,7 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
 			drawTextListsEmp[damage] = gl.CreateList(function()
 				font:Begin()
 				font:SetTextColor(0.5, 0.5, 1)
-				font:Print(damage, 0, 0, textSize, 'cnO')
+				font:Print(damage, 0, 0, textSize, "cnO")
 				font:End()
 			end)
 		end
@@ -287,7 +289,7 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
 			drawTextLists[damage] = gl.CreateList(function()
 				font:Begin()
 				font:SetTextColor(1, 1, 1)
-				font:Print(damage, 0, 0, textSize, 'cnO')
+				font:Print(damage, 0, 0, textSize, "cnO")
 				font:End()
 			end)
 		end
@@ -301,8 +303,8 @@ function gadget:PlayerChanged(playerID)
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == "LobbyOverlayActive" then
+		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 	end
 end
 
@@ -385,8 +387,7 @@ function gadget:DrawWorld()
 			damageTable[i] = nil
 		else
 			if fullview or CallAsTeam(myTeamID, IsUnitInView, damage.unitID) then
-				glDrawFuncAtUnit(damage.unitID, false, DrawUnitFunc, (damage.height + damage.heightOffset),
-					damage.offset, damage.damage, damage.textSize, damage.lifeSpan, damage.paralyze)
+				glDrawFuncAtUnit(damage.unitID, false, DrawUnitFunc, (damage.height + damage.heightOffset), damage.offset, damage.damage, damage.textSize, damage.lifeSpan, damage.paralyze)
 			end
 			if not paused then
 				--if damage.paralyze then
@@ -394,7 +395,7 @@ function gadget:DrawWorld()
 				--  damage.textSize = (damage.textSize + 0.2)
 				--else
 				damage.heightOffset = (damage.heightOffset + damage.riseTime)
-				if (damage.heightOffset > 25) then
+				if damage.heightOffset > 25 then
 					damage.lifeSpan = (damage.lifeSpan - damage.fadeTime)
 				end
 				--end
@@ -404,7 +405,7 @@ function gadget:DrawWorld()
 	for i, death in pairs(deadList) do
 		if death.lifeSpan <= 0 then
 			deadList[i] = nil
-		elseif type(death.damage) == "number" then	-- checking this cause someone got an error that this was being NaN ...UPDATE: STILL ERRORS REGARDLESS
+		elseif type(death.damage) == "number" then -- checking this cause someone got an error that this was being NaN ...UPDATE: STILL ERRORS REGARDLESS
 			drawDeathDPS(death.damage, death.x, death.y, death.z, death.textSize, death.red, death.lifeSpan)
 			if not paused then
 				death.y = (death.y + death.riseTime)

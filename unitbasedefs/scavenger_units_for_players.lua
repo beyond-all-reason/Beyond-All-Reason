@@ -36,7 +36,7 @@ local function scavengerUnitsForPlayers(name, unitDef)
 	if name == "armasy" then
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "armdronecarry" -- Nexus - Drone Carrier
-		buildoptions[numBuildoptions + 2] = "armptt2"  -- Epic Skater
+		buildoptions[numBuildoptions + 2] = "armptt2" -- Epic Skater
 		buildoptions[numBuildoptions + 3] = "armdecadet3" -- Epic Dolphin
 		buildoptions[numBuildoptions + 4] = "armpshipt3" -- Epic Ellysaw
 		buildoptions[numBuildoptions + 5] = "armserpt3" -- Epic Serpent
@@ -46,10 +46,10 @@ local function scavengerUnitsForPlayers(name, unitDef)
 	-- Armada T3 Gantry
 	if name == "armshltx" then
 		local numBuildoptions = #buildoptions
-		buildoptions[numBuildoptions + 1] = "armrattet4"   -- Ratte - Very Heavy Tank
-		buildoptions[numBuildoptions + 2] = "armsptkt4"    -- Epic Recluse
-		buildoptions[numBuildoptions + 3] = "armpwt4"      -- Epic Pawn
-		buildoptions[numBuildoptions + 4] = "armvadert4"   -- Epic Tumbleweed - Nuclear Rolling Bomb
+		buildoptions[numBuildoptions + 1] = "armrattet4" -- Ratte - Very Heavy Tank
+		buildoptions[numBuildoptions + 2] = "armsptkt4" -- Epic Recluse
+		buildoptions[numBuildoptions + 3] = "armpwt4" -- Epic Pawn
+		buildoptions[numBuildoptions + 4] = "armvadert4" -- Epic Tumbleweed - Nuclear Rolling Bomb
 		buildoptions[numBuildoptions + 5] = "armdronecarryland" -- Nexus Terra - Drone Carrier
 	end
 
@@ -114,8 +114,8 @@ local function scavengerUnitsForPlayers(name, unitDef)
 	if name == "corgant" then
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "corkarganetht4" -- Epic Karganeth
-		buildoptions[numBuildoptions + 2] = "corgolt4"  -- Epic Tzar
-		buildoptions[numBuildoptions + 3] = "corakt4"   -- Epic Grunt
+		buildoptions[numBuildoptions + 2] = "corgolt4" -- Epic Tzar
+		buildoptions[numBuildoptions + 3] = "corakt4" -- Epic Grunt
 		buildoptions[numBuildoptions + 4] = "corthermite" -- Thermite/Epic Termite
 		buildoptions[numBuildoptions + 5] = "cormandot4" -- Epic Commando
 	end
@@ -124,8 +124,8 @@ local function scavengerUnitsForPlayers(name, unitDef)
 	if name == "corgantuw" then
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "corkarganetht4" -- Epic Karganeth
-		buildoptions[numBuildoptions + 2] = "corgolt4"  -- Epic Tzar
-		buildoptions[numBuildoptions + 3] = "corakt4"   -- Epic Grunt
+		buildoptions[numBuildoptions + 2] = "corgolt4" -- Epic Tzar
+		buildoptions[numBuildoptions + 3] = "corakt4" -- Epic Grunt
 		buildoptions[numBuildoptions + 4] = "cormandot4" -- Epic Commando
 	end
 
@@ -137,18 +137,18 @@ local function scavengerUnitsForPlayers(name, unitDef)
 	-- Legion T2 Land Constructors
 	if name == "legaca" or name == "legack" or name == "legacv" then
 		local numBuildoptions = #buildoptions
-		buildoptions[numBuildoptions + 1] = "legapt3"    -- T3 Aircraft Gantry
+		buildoptions[numBuildoptions + 1] = "legapt3" -- T3 Aircraft Gantry
 		buildoptions[numBuildoptions + 2] = "legministarfall" -- Mini Starfall
-		buildoptions[numBuildoptions + 3] = "legafust3"  -- Epic Fusion Reactor
+		buildoptions[numBuildoptions + 3] = "legafust3" -- Epic Fusion Reactor
 		buildoptions[numBuildoptions + 4] = "legadveconvt3" -- Epic Energy Converter
 	end
 
 	-- Legion T3 Gantry
 	if name == "leggant" then
 		local numBuildoptions = #buildoptions
-		buildoptions[numBuildoptions + 1] = "legsrailt4"     -- Epic Arquebus
-		buildoptions[numBuildoptions + 2] = "leggobt3"       -- Epic Goblin
-		buildoptions[numBuildoptions + 3] = "legpede"        -- Mukade - Heavy Multi Weapon Centipede
+		buildoptions[numBuildoptions + 1] = "legsrailt4" -- Epic Arquebus
+		buildoptions[numBuildoptions + 2] = "leggobt3" -- Epic Goblin
+		buildoptions[numBuildoptions + 3] = "legpede" -- Mukade - Heavy Multi Weapon Centipede
 		buildoptions[numBuildoptions + 4] = "legeheatraymech_old" -- Old Sol Invictus - Quad Heatray Mech
 	end
 end

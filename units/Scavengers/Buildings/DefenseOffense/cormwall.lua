@@ -38,7 +38,7 @@ return {
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			decoyfor = "armfort",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
@@ -205,7 +205,7 @@ return {
 					exclude_preaim = true,
 					overrange_distance = 777,
 					projectile_destruction_method = "descend",
-				}
+				},
 			},
 		},
 		weapons = {

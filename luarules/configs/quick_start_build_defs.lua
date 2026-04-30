@@ -1,8 +1,23 @@
 local quickStartConfig = {
 	discountableFactories = {
-		armap = true, armfhp = true, armhp = true, armlab = true, armsy = true, armvp = true,
-		corap = true, corfhp = true, corhp = true, corlab = true, corsy = true, corvp = true,
-		legap = true, legfhp = true, leghp = true, leglab = true, legsy = true, legvp = true,
+		armap = true,
+		armfhp = true,
+		armhp = true,
+		armlab = true,
+		armsy = true,
+		armvp = true,
+		corap = true,
+		corfhp = true,
+		corhp = true,
+		corlab = true,
+		corsy = true,
+		corvp = true,
+		legap = true,
+		legfhp = true,
+		leghp = true,
+		leglab = true,
+		legsy = true,
+		legvp = true,
 	},
 	commanderNonLabOptions = {
 		armcom = {
@@ -34,7 +49,7 @@ local quickStartConfig = {
 			floatingConverter = "legfeconv",
 			landEnergyStorage = "legestor",
 			waterEnergyStorage = "leguwestore",
-		}
+		},
 	},
 	optionsToNodeType = {
 		windmill = "other",
@@ -78,7 +93,7 @@ local quickStartConfig = {
 					"mex",
 					"mex",
 					"solar",
-				}
+				},
 			},
 			["water"] = {
 				["badWind"] = {
@@ -108,8 +123,8 @@ local quickStartConfig = {
 					"mex",
 					"tidal",
 					"waterEnergyStorage",
-				}
-			}
+				},
+			},
 		},
 		["nonMetalMap"] = {
 			["land"] = {
@@ -146,7 +161,7 @@ local quickStartConfig = {
 					"windmill",
 					"windmill",
 					"converter",
-				}
+				},
 			},
 			["water"] = {
 				["badWind"] = {
@@ -178,11 +193,10 @@ local quickStartConfig = {
 					"tidal",
 					"tidal",
 					"tidal",
-				}
-			}
-		}
-	}
+				},
+			},
+		},
+	},
 }
 
 return quickStartConfig
-

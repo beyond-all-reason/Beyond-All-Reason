@@ -65,7 +65,7 @@ return {
 			"legavantinuke",
 			"legavjam",
 			"legavrad",
-			"legafcv"
+			"legafcv",
 		},
 		customparams = {
 			usebuildinggrounddecal = false,
@@ -73,7 +73,7 @@ return {
 			buildinggrounddecalsizey = 12,
 			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 0.01,
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",

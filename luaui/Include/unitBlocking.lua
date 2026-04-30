@@ -12,7 +12,9 @@ local unitBlocking = {}
 ---   local specificBlocked = unitBlocking.getBlockedUnitDefs({123, 456})
 function unitBlocking.getBlockedUnitDefs(unitDefIDs)
 	local myTeamID = Spring.GetMyTeamID()
-	if not myTeamID then return {} end
+	if not myTeamID then
+		return {}
+	end
 
 	local teamRules = Spring.GetTeamRulesParams(myTeamID) or {}
 	local blockedUnits = {}

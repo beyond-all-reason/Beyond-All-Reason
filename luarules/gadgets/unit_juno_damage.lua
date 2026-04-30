@@ -2,14 +2,14 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = 'Juno Damage',
-		desc = 'Handles Juno damage',
-		author = 'Niobium, Bluestone',
-		version = 'v2.0',
-		date = '05/2013',
-		license = 'GNU GPL, v2 or later',
+		name = "Juno Damage",
+		desc = "Handles Juno damage",
+		author = "Niobium, Bluestone",
+		version = "v2.0",
+		date = "05/2013",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = not Spring.GetModOptions().junorework
+		enabled = not Spring.GetModOptions().junorework,
 	}
 end
 
@@ -17,72 +17,71 @@ end
 -- Synced only
 ----------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
-
 	----------------------------------------------------------------
 	-- Config
 	----------------------------------------------------------------
 	local tokillUnitsNames = {
-		['armarad'] = true,
-		['armaser'] = true,
-		['armason'] = true,
-		['armeyes'] = true,
-		['armfrad'] = true,
-		['armjam'] = true,
-		['armjamt'] = true,
-		['armmark'] = true,
-		['armrad'] = true,
-		['armseer'] = true,
-		['armsjam'] = true,
-		['armsonar'] = true,
-		['armveil'] = true,
-		['corarad'] = true,
-		['corason'] = true,
-		['coreter'] = true,
-		['coreyes'] = true,
-		['corfrad'] = true,
-		['corjamt'] = true,
-		['corrad'] = true,
-		['legjam'] = true,
-		['legrad'] = true,
-		['corshroud'] = true,
-		['corsjam'] = true,
-		['corsonar'] = true,
-		['corspec'] = true,
-		['corvoyr'] = true,
-		['corvrad'] = true,
-		['legarad'] = true,
-		['legajam'] = true,
-		['legavrad'] = true,
-		['legavjam'] = true,
-		['legaradk'] = true,
-		['legajamk'] = true,
-		['legfrad'] = true,
+		["armarad"] = true,
+		["armaser"] = true,
+		["armason"] = true,
+		["armeyes"] = true,
+		["armfrad"] = true,
+		["armjam"] = true,
+		["armjamt"] = true,
+		["armmark"] = true,
+		["armrad"] = true,
+		["armseer"] = true,
+		["armsjam"] = true,
+		["armsonar"] = true,
+		["armveil"] = true,
+		["corarad"] = true,
+		["corason"] = true,
+		["coreter"] = true,
+		["coreyes"] = true,
+		["corfrad"] = true,
+		["corjamt"] = true,
+		["corrad"] = true,
+		["legjam"] = true,
+		["legrad"] = true,
+		["corshroud"] = true,
+		["corsjam"] = true,
+		["corsonar"] = true,
+		["corspec"] = true,
+		["corvoyr"] = true,
+		["corvrad"] = true,
+		["legarad"] = true,
+		["legajam"] = true,
+		["legavrad"] = true,
+		["legavjam"] = true,
+		["legaradk"] = true,
+		["legajamk"] = true,
+		["legfrad"] = true,
 
-		['armmine1'] = true,
-		['armmine2'] = true,
-		['armmine3'] = true,
-		['armfmine3'] = true,
-		['cormine1'] = true,
-		['cormine2'] = true,
-		['cormine3'] = true,
-		['cormine4'] = true,
-		['corfmine3'] = true,
-		['legmine1'] = true,
-		['legmine2'] = true,
-		['legmine3'] = true,
+		["armmine1"] = true,
+		["armmine2"] = true,
+		["armmine3"] = true,
+		["armfmine3"] = true,
+		["cormine1"] = true,
+		["cormine2"] = true,
+		["cormine3"] = true,
+		["cormine4"] = true,
+		["corfmine3"] = true,
+		["legmine1"] = true,
+		["legmine2"] = true,
+		["legmine3"] = true,
 
-		['corfav'] = true,
-		['armfav'] = true,
-		['armflea'] = true,
-		['legscout'] = true,
-		['raptor_land_swarmer_brood_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t2_v1'] = true,
-		['raptor_land_kamikaze_emp_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t4_v1'] = true,
-		['raptor_land_kamikaze_emp_t4_v1'] = true,
-		['scavmist'] = true,
-		['scavmistxl'] = true,
-		['scavmistxxl'] = true,
+		["corfav"] = true,
+		["armfav"] = true,
+		["armflea"] = true,
+		["legscout"] = true,
+		["raptor_land_swarmer_brood_t2_v1"] = true,
+		["raptor_land_kamikaze_basic_t2_v1"] = true,
+		["raptor_land_kamikaze_emp_t2_v1"] = true,
+		["raptor_land_kamikaze_basic_t4_v1"] = true,
+		["raptor_land_kamikaze_emp_t4_v1"] = true,
+		["scavmist"] = true,
+		["scavmistxl"] = true,
+		["scavmistxxl"] = true,
 	}
 	-- convert unitname -> unitDefID
 	local tokillUnits = {}
@@ -94,18 +93,18 @@ if gadgetHandler:IsSyncedCode() then
 	tokillUnitsNames = nil
 
 	local todenyUnitsNames = {
-		['corfav'] = true,
-		['armfav'] = true,
-		['armflea'] = true,
-		['legscout'] = true,
-		['raptor_land_swarmer_brood_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t2_v1'] = true,
-		['raptor_land_kamikaze_emp_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t4_v1'] = true,
-		['raptor_land_kamikaze_emp_t4_v1'] = true,
-		['scavmist'] = true,
-		['scavmistxl'] = true,
-		['scavmistxxl'] = true,
+		["corfav"] = true,
+		["armfav"] = true,
+		["armflea"] = true,
+		["legscout"] = true,
+		["raptor_land_swarmer_brood_t2_v1"] = true,
+		["raptor_land_kamikaze_basic_t2_v1"] = true,
+		["raptor_land_kamikaze_emp_t2_v1"] = true,
+		["raptor_land_kamikaze_basic_t4_v1"] = true,
+		["raptor_land_kamikaze_emp_t4_v1"] = true,
+		["scavmist"] = true,
+		["scavmistxl"] = true,
+		["scavmistxxl"] = true,
 	}
 	-- convert unitname -> unitDefID
 	local todenyUnits = {}
@@ -116,22 +115,20 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	todenyUnitsNames = nil
 
-
 	for udid, ud in pairs(UnitDefs) do
 		for id, v in pairs(tokillUnits) do
 			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
-			--if string.find(ud.name, UnitDefs[id].name) then
+				--if string.find(ud.name, UnitDefs[id].name) then
 				tokillUnits[udid] = v
 			end
 		end
 		for id, v in pairs(todenyUnits) do
 			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
-			--if string.find(ud.name, UnitDefs[id].name) then
+				--if string.find(ud.name, UnitDefs[id].name) then
 				todenyUnits[udid] = v
 			end
 		end
 	end
-
 
 	--config -- see also in unsynced
 	local radius = 450 --outer radius of area denial ring. This value is used in gui_attack_aoe.lua, make sure to keep them in sync
@@ -148,7 +145,6 @@ if gadgetHandler:IsSyncedCode() then
 	local SpGetUnitPosition = Spring.GetUnitPosition
 	local SpSpawnCEG = Spring.SpawnCEG
 	local Mmin = math.min
-
 
 	-- kill appropriate things from initial juno blast --
 
@@ -237,7 +233,7 @@ if gadgetHandler:IsSyncedCode() then
 					-- linear and not O(n^2)
 					local unitID = unitIDsBig[i]
 					local unitDefID = SpGetUnitDefID(unitID)
-				if todenyUnits[unitDefID] then
+					if todenyUnits[unitDefID] then
 						local px, py, pz = SpGetUnitPosition(unitID)
 						local dx = expl.x - px
 						local dz = expl.z - pz
@@ -526,7 +522,6 @@ else
 		end
 
 
-	]]--
-
+	]]
+	--
 end
-

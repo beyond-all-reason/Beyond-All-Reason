@@ -1,19 +1,17 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-  return {
-    name      = "Map Edge Extension",
-    version   = "v0.7",
-    desc      = "Draws a mirrored map next to the edges of the real map",
-    author    = "ivand",
-    date      = "2020",
-    license   = "GPL",
-    layer     = 0,
-    enabled   = true,
-  }
+	return {
+		name = "Map Edge Extension",
+		version = "v0.7",
+		desc = "Draws a mirrored map next to the edges of the real map",
+		author = "ivand",
+		date = "2020",
+		license = "GPL",
+		layer = 0,
+		enabled = true,
+	}
 end
-
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
@@ -27,10 +25,10 @@ local nightFactor = 1.0
 local curvature = true
 local fogEffect = true
 
-local mapBorderStyle = 'texture'	-- either 'texture' or 'cutaway'
+local mapBorderStyle = "texture" -- either 'texture' or 'cutaway'
 
 local gridSize = 32
-local gridSizeDeferred = 2*gridSize
+local gridSizeDeferred = 2 * gridSize
 
 local hasBadCulling = false
 
@@ -45,15 +43,14 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 
 local gridTex = "LuaUI/Images/vr_grid_large.dds"
 local realTex = "$grass"
-local colorTex = (mapBorderStyle == 'texture' and realTex) or gridTex
-local normalTex = '$ssmf_normals'
+local colorTex = (mapBorderStyle == "texture" and realTex) or gridTex
+local normalTex = "$ssmf_normals"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -123,7 +120,6 @@ void main() {
 	
 }
 ]]
-
 
 local gsSrc = [[
 #version 330
@@ -290,7 +286,6 @@ void main() {
 }
 ]]
 
-
 --[[
 
 Results:
@@ -302,7 +297,8 @@ depth only (GBUFFER_COUNT ==0) 423fps
 4 buffers: 379 fps
 5 buffers: 370 fps 
 
-]]--
+]]
+--
 
 local fsSrc = [[
 #version 330
@@ -519,7 +515,6 @@ void main() {
 local numPoints
 local mirrorParams = {}
 
-
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
@@ -529,23 +524,23 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget(self)
 	end
 
-	WG['mapedgeextension'] = {}
-	WG['mapedgeextension'].getBrightness = function()
+	WG["mapedgeextension"] = {}
+	WG["mapedgeextension"].getBrightness = function()
 		return brightness
 	end
-	WG['mapedgeextension'].setBrightness = function(value)
+	WG["mapedgeextension"].setBrightness = function(value)
 		brightness = value
 		--UpdateShader()
 	end
-	WG['mapedgeextension'].getCurvature = function()
+	WG["mapedgeextension"].getCurvature = function()
 		return curvature
 	end
-	WG['mapedgeextension'].setCurvature = function(value)
+	WG["mapedgeextension"].setCurvature = function(value)
 		curvature = value
 		--UpdateShader()
 	end
 
-	Spring.SendCommands("mapborder 1")--..(mapBorderStyle == 'cutaway' and "1" or "0"))
+	Spring.SendCommands("mapborder 1") --..(mapBorderStyle == 'cutaway' and "1" or "0"))
 
 	if gl.GetMapRendering("voidGround") then
 		restoreMapBorder = false
@@ -569,32 +564,29 @@ function widget:Initialize()
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
 	end
-	
+
 	-----------
 
 	numPoints = (mapSizeX / gridSize) * (mapSizeZ / gridSize)
 
 	terrainInstanceVBO:Define(9, {
-		{id = 0, name = "mirrorParams", size = 4},
+		{ id = 0, name = "mirrorParams", size = 4 },
 	})
 
 	terrainVAO:AttachInstanceBuffer(terrainInstanceVBO)
-	
-	
-	
+
 	terrainInstanceVBODeferred = gl.GetVBO(GL.ARRAY_BUFFER, true)
-	
+
 	terrainInstanceVBODeferred:Define(9, {
-		{id = 1, name = "mirrorParams", size = 4},
+		{ id = 1, name = "mirrorParams", size = 4 },
 	})
-	
-	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
-	local planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
+
+	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1, 1, Game.mapSizeX / gridSizeDeferred, Game.mapSizeZ / gridSizeDeferred)
+	local planeIndexVBO, numIndices = InstanceVBOTable.makePlaneIndexVBO(Game.mapSizeX / gridSizeDeferred, Game.mapSizeZ / gridSizeDeferred)
 	planeVAO = gl.GetVAO()
 	planeVAO:AttachVertexBuffer(planeVBO)
 	planeVAO:AttachIndexBuffer(planeIndexVBO)
 	planeVAO:AttachInstanceBuffer(terrainInstanceVBODeferred)
-
 
 	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == false)
 	--spEcho(gsSrc)
@@ -614,7 +606,7 @@ function widget:Initialize()
 			mapNormalTex = 2,
 		},
 		uniformFloat = {
-			shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
+			shaderParams = { gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0 },
 		},
 	}, "Map Extension Shader2")
 	local shaderCompiled = mapExtensionShader:Initialize()
@@ -623,20 +615,19 @@ function widget:Initialize()
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
 	end
-	
-	
+
 	vsSrcDeferred = vsSrcDeferred:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	mapExtensionShaderDeferred = LuaShader({
-		vertex = vsSrcDeferred:gsub("//__DEFINES__","#define DEFERRED_MODE 1"),
+		vertex = vsSrcDeferred:gsub("//__DEFINES__", "#define DEFERRED_MODE 1"),
 		--geometry = gsSrc:gsub("//__DEFINES__","#define DEFERRED_MODE 1"),
-		fragment = fsSrc:gsub("//__DEFINES__","#define DEFERRED_MODE 1"),
+		fragment = fsSrc:gsub("//__DEFINES__", "#define DEFERRED_MODE 1"),
 		uniformInt = {
 			colorTex = 0,
 			heightTex = 1,
 			mapNormalTex = 2,
 		},
 		uniformFloat = {
-			shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
+			shaderParams = { gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0 },
 		},
 	}, "Map Extension Shader Deferred")
 	local shaderCompiled = mapExtensionShaderDeferred:Initialize()
@@ -650,7 +641,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	Spring.SendCommands('mapborder '..(restoreMapBorder and '1' or '0'))
+	Spring.SendCommands("mapborder " .. (restoreMapBorder and "1" or "0"))
 
 	if mapExtensionShader then
 		mapExtensionShader:Finalize()
@@ -669,16 +660,16 @@ function widget:Shutdown()
 end
 
 local borderMargin = 40
-local cachedCameraPosDir = {0, 0, 0, 0, 0, 0}
+local cachedCameraPosDir = { 0, 0, 0, 0, 0, 0 }
 local function UpdateMirrorParams()
 	local function Distance2(x1, y1, z1, x2, y2, z2)
 		local dx, dy, dz = x1 - x2, y1 - y2, z1 - z2
-		return dx*dx + dy*dy + dz*dz
+		return dx * dx + dy * dy + dz * dz
 	end
 
 	-- presumes normalized vectors
 	local function DotProduct(x1, y1, z1, x2, y2, z2)
-		return x1*x2 + y1*y2 + z1*z2
+		return x1 * x2 + y1 * y2 + z1 * z2
 	end
 
 	local cpX, cpY, cpZ = Spring.GetCameraPosition()
@@ -706,76 +697,75 @@ local function UpdateMirrorParams()
 
 	local minY, maxY = Spring.GetGroundExtremes()
 
-	mirrorParams = {} 
+	mirrorParams = {}
 	-- spIsAABBInView params are copied from map_edge_extension.lua
 	if spIsAABBInView(-Game.mapSizeX, minY, -Game.mapSizeZ, borderMargin, maxY, borderMargin) then
 		--TL {1, 1, -1, -1}
-		mirrorParams[#mirrorParams + 1] =  1
-		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] = 1
+		mirrorParams[#mirrorParams + 1] = 1
 		mirrorParams[#mirrorParams + 1] = -1
 		mirrorParams[#mirrorParams + 1] = -1
 	end
 
 	if spIsAABBInView(-Game.mapSizeX, minY, -borderMargin, 0, maxY, Game.mapSizeZ) then
 		--ML {1, 0, -1,  0}
-		mirrorParams[#mirrorParams + 1] =  1
-		mirrorParams[#mirrorParams + 1] =  0
+		mirrorParams[#mirrorParams + 1] = 1
+		mirrorParams[#mirrorParams + 1] = 0
 		mirrorParams[#mirrorParams + 1] = -1
-		mirrorParams[#mirrorParams + 1] =  0
+		mirrorParams[#mirrorParams + 1] = 0
 	end
 
 	if spIsAABBInView(-Game.mapSizeX, minY, Game.mapSizeZ - borderMargin, borderMargin, maxY, Game.mapSizeZ * 2) then
 		--BL {1, 1, -1,  1}
-		mirrorParams[#mirrorParams + 1] =  1
-		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] = 1
+		mirrorParams[#mirrorParams + 1] = 1
 		mirrorParams[#mirrorParams + 1] = -1
-		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] = 1
 	end
 
 	if spIsAABBInView(-borderMargin, minY, -Game.mapSizeZ, Game.mapSizeX + borderMargin, maxY, borderMargin) then
 		--TM {0, 1,  0, -1}
-		mirrorParams[#mirrorParams + 1] =  0
-		mirrorParams[#mirrorParams + 1] =  1
-		mirrorParams[#mirrorParams + 1] =  0
+		mirrorParams[#mirrorParams + 1] = 0
+		mirrorParams[#mirrorParams + 1] = 1
+		mirrorParams[#mirrorParams + 1] = 0
 		mirrorParams[#mirrorParams + 1] = -1
 	end
 
 	if spIsAABBInView(-borderMargin, minY, Game.mapSizeZ * 2, Game.mapSizeX + borderMargin, maxY, Game.mapSizeZ - borderMargin) then
 		--BM {0, 1,  0,  1}
-		mirrorParams[#mirrorParams + 1] =  0
-		mirrorParams[#mirrorParams + 1] =  1
-		mirrorParams[#mirrorParams + 1] =  0
-		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] = 0
+		mirrorParams[#mirrorParams + 1] = 1
+		mirrorParams[#mirrorParams + 1] = 0
+		mirrorParams[#mirrorParams + 1] = 1
 	end
 
 	if spIsAABBInView(Game.mapSizeX - borderMargin, minY, -Game.mapSizeZ, Game.mapSizeX * 2, maxY, borderMargin) then
 		--TR {1, 1,  1, -1}
-		mirrorParams[#mirrorParams + 1] =  1
-		mirrorParams[#mirrorParams + 1] =  1
-		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] = 1
+		mirrorParams[#mirrorParams + 1] = 1
+		mirrorParams[#mirrorParams + 1] = 1
 		mirrorParams[#mirrorParams + 1] = -1
 	end
 
 	if spIsAABBInView(Game.mapSizeX - borderMargin, minY, -borderMargin, Game.mapSizeX * 2, maxY, Game.mapSizeZ) then
 		--MR {1, 0,  1,  0}
-		mirrorParams[#mirrorParams + 1] =  1
-		mirrorParams[#mirrorParams + 1] =  0
-		mirrorParams[#mirrorParams + 1] =  1
-		mirrorParams[#mirrorParams + 1] =  0
+		mirrorParams[#mirrorParams + 1] = 1
+		mirrorParams[#mirrorParams + 1] = 0
+		mirrorParams[#mirrorParams + 1] = 1
+		mirrorParams[#mirrorParams + 1] = 0
 	end
 
 	if spIsAABBInView(Game.mapSizeX - borderMargin, minY, Game.mapSizeZ - borderMargin, Game.mapSizeX * 2, maxY, Game.mapSizeZ * 2) then
 		--BR {1, 1,  1,  1}
-		mirrorParams[#mirrorParams + 1] =  1
-		mirrorParams[#mirrorParams + 1] =  1
-		mirrorParams[#mirrorParams + 1] =  1
-		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] = 1
+		mirrorParams[#mirrorParams + 1] = 1
+		mirrorParams[#mirrorParams + 1] = 1
+		mirrorParams[#mirrorParams + 1] = 1
 	end
 	if #mirrorParams > 0 then
-		
 		terrainInstanceVBODeferred:Upload(mirrorParams)
-		
-		-- EXTREMELY IMPORTANT: 
+
+		-- EXTREMELY IMPORTANT:
 		-- Add a blank, non-mirrored or offset one to the forward pass for the edge seams
 		mirrorParams[#mirrorParams + 1] = 0
 		mirrorParams[#mirrorParams + 1] = 0
@@ -785,30 +775,29 @@ local function UpdateMirrorParams()
 	end
 end
 
-
-
 -- depth defaults:
 --[[
 	false
 	false
 	GL_DEPTH_FUNC = GL_ALWAYS
-]]--
+]]
+--
 -- blending defaults:
 --[[
 	true
 	GL_SRC_ALPHA
 	GL_ONE_MINUS_SRC_ALPHA
-]]--
+]]
+--
 -- culling defaults
 --[[
 	false
 	GL_CULL_FACE_MODE = GL_BACK
-]]--
-
+]]
+--
 
 -- This requires both the callin and the config int to be enabled
 -- Note that the performance of this draw call is somehow much greater than the screen space one. Very sad :?
-
 
 function widget:DrawGroundDeferred()
 	--spEcho("widget:DrawGroundDeferred")
@@ -825,17 +814,17 @@ function widget:DrawGroundDeferred()
 	--gl.DepthTest(GL.LEQUAL)
 	--gl.DepthMask(true)
 
-		--gl.Culling(false) -- needed for deferred one, as flipping fucks tri order	
+	--gl.Culling(false) -- needed for deferred one, as flipping fucks tri order
 	gl.Texture(0, colorTex)
 	gl.Texture(1, "$heightmap")
 	gl.Texture(2, "$normals")
 	mapExtensionShaderDeferred:Activate()
 	mapExtensionShaderDeferred:SetUniform("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
 	--gl.RunQuery(q, function()
-		--terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
-		--planeVAO:DrawElements(GL.TRIANGLES, 1000, 0, 8 ,0)
-		-- draw one less element as that is unmirrored one for the seam
-		planeVAO:DrawElements(GL.TRIANGLES, nil, 0, math.max(0, (#mirrorParams / 4)-1) )
+	--terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
+	--planeVAO:DrawElements(GL.TRIANGLES, 1000, 0, 8 ,0)
+	-- draw one less element as that is unmirrored one for the seam
+	planeVAO:DrawElements(GL.TRIANGLES, nil, 0, math.max(0, (#mirrorParams / 4) - 1))
 	--end)
 	mapExtensionShaderDeferred:Deactivate()
 	gl.Texture(0, false)
@@ -846,9 +835,7 @@ function widget:DrawGroundDeferred()
 	--gl.DepthTest(false)
 	--gl.DepthMask(false)
 	gl.Culling(GL.BACK)
-
 end
-
 
 function widget:DrawWorldPreUnit()
 	UpdateMirrorParams()
@@ -872,7 +859,7 @@ function widget:DrawWorldPreUnit()
 	mapExtensionShader:Activate()
 	mapExtensionShader:SetUniform("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
 	--gl.RunQuery(q, function()
-		terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
+	terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
 	--end)
 	mapExtensionShader:Deactivate()
 	gl.Texture(0, false)
@@ -889,11 +876,13 @@ local lastSunChanged = -1
 function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
 	local df = Spring.GetDrawFrame()
 
-	if df == lastSunChanged then return end
+	if df == lastSunChanged then
+		return
+	end
 	lastSunChanged = df
 	-- Do the math:
-	if WG['NightFactor'] then
-		nightFactor = (WG['NightFactor'].red + WG['NightFactor'].green + WG['NightFactor'].blue) * 0.33
+	if WG["NightFactor"] then
+		nightFactor = (WG["NightFactor"].red + WG["NightFactor"].green + WG["NightFactor"].blue) * 0.33
 	end
 end
 
@@ -901,10 +890,9 @@ function widget:GetConfigData(data)
 	return {
 		brightness = brightness,
 		curvature = curvature,
-		fogEffect = fogEffect
+		fogEffect = fogEffect,
 	}
 end
-
 
 function widget:SetConfigData(data)
 	if data.brightness ~= nil then

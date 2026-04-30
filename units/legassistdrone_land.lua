@@ -36,7 +36,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.9504,
 		turnrate = 1000,
-		workertime = 100*Spring.GetModOptions().assistdronesbuildpowermultiplier,
+		workertime = 100 * Spring.GetModOptions().assistdronesbuildpowermultiplier,
 		buildoptions = {
 			"legsolar",
 			"legwin",
@@ -67,7 +67,7 @@ return {
 			"legfhp",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorVehicles",

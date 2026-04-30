@@ -12,7 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spEcho = Spring.Echo
@@ -51,24 +50,23 @@ local luaShaderDir = "LuaUI/Include/"
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local popElementInstance  = InstanceVBOTable.popElementInstance
-
+local popElementInstance = InstanceVBOTable.popElementInstance
 
 local hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 -- Localize for speedups:
-local glStencilFunc         = gl.StencilFunc
-local glStencilOp           = gl.StencilOp
-local glStencilTest         = gl.StencilTest
-local glStencilMask         = gl.StencilMask
-local glDepthTest           = gl.DepthTest
-local glTexture             = gl.Texture
-local glClear               = gl.Clear
-local GL_ALWAYS             = GL.ALWAYS
-local GL_NOTEQUAL           = GL.NOTEQUAL
-local GL_KEEP               = 0x1E00 --GL.KEEP
+local glStencilFunc = gl.StencilFunc
+local glStencilOp = gl.StencilOp
+local glStencilTest = gl.StencilTest
+local glStencilMask = gl.StencilMask
+local glDepthTest = gl.DepthTest
+local glTexture = gl.Texture
+local glClear = gl.Clear
+local GL_ALWAYS = GL.ALWAYS
+local GL_NOTEQUAL = GL.NOTEQUAL
+local GL_KEEP = 0x1E00 --GL.KEEP
 local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
-local GL_REPLACE            = GL.REPLACE
-local GL_POINTS				= GL.POINTS
+local GL_REPLACE = GL.REPLACE
+local GL_POINTS = GL.POINTS
 
 local selUnits = {}
 local updateSelection = true
@@ -84,18 +82,18 @@ local unitScale = {}
 local unitCanFly = {}
 local unitBuilding = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitScale[unitDefID] = (7.5 * ( unitDef.xsize*unitDef.xsize + unitDef.zsize*unitDef.zsize ) ^ 0.5) + 8
+	unitScale[unitDefID] = (7.5 * (unitDef.xsize * unitDef.xsize + unitDef.zsize * unitDef.zsize) ^ 0.5) + 8
 	if unitDef.canFly then
 		unitCanFly[unitDefID] = true
 		unitScale[unitDefID] = unitScale[unitDefID] * 0.7
-	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
+	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed == 0 then
 		unitBuilding[unitDefID] = {
 			unitDef.xsize * 8.2 + 12,
-			unitDef.zsize * 8.2 + 12
+			unitDef.zsize * 8.2 + 12,
 		}
 	end
 end
-local unitBufferUniformCache = {0}
+local unitBufferUniformCache = { 0 }
 
 local function getWaterLevel()
 	local lrs = WG.lavaRenderState
@@ -110,9 +108,13 @@ local function getWaterLevel()
 end
 
 local function shouldUseWaterPass(unitID, unitDefID)
-	if not mapHasWater or unitCanFly[unitDefID] then return false end
+	if not mapHasWater or unitCanFly[unitDefID] then
+		return false
+	end
 	local x, y, z = spGetUnitPosition(unitID)
-	if not x or not y or not z then return false end
+	if not x or not y or not z then
+		return false
+	end
 	local waterLevel = getWaterLevel()
 	local groundY = spGetGroundHeight(x, z)
 	-- Route ships/submerged units to post-water pass to avoid water distortion.
@@ -120,17 +122,22 @@ local function shouldUseWaterPass(unitID, unitDefID)
 end
 
 local function shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
-	if not mapHasWater or unitCanFly[unitDefID] then return false end
+	if not mapHasWater or unitCanFly[unitDefID] then
+		return false
+	end
 	local x, y, z = spGetUnitPosition(unitID)
-	if not x or not y or not z then return false end
+	if not x or not y or not z then
+		return false
+	end
 	local groundY = spGetGroundHeight(x, z)
 	-- Route ships/submerged units to post-water pass to avoid water distortion.
 	return (groundY < waterLevel + 1) and (y <= waterLevel + 20)
 end
 
-
 local function AddPrimitiveAtUnit(unitID)
-	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true or Spring.IsGUIHidden() then return end
+	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true or Spring.IsGUIHidden() then
+		return
+	end
 	local gf = Spring.GetGameFrame()
 	local _, _, isPaused = Spring.GetGameSpeed()
 	if isPaused then
@@ -141,7 +148,9 @@ local function AddPrimitiveAtUnit(unitID)
 		unitUnitDefID[unitID] = Spring.GetUnitDefID(unitID)
 	end
 	local unitDefID = unitUnitDefID[unitID]
-	if unitDefID == nil then return end -- these cant be selected
+	if unitDefID == nil then
+		return
+	end -- these cant be selected
 
 	local numVertices = 64 -- default to cornered rectangle
 	local cornersize = 0
@@ -185,12 +194,24 @@ local function AddPrimitiveAtUnit(unitID)
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
 		{
-			length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
+			length,
+			width,
+			cornersize,
+			additionalheight, -- lengthwidthcornerheight
 			unitTeam[unitID], -- teamID
 			numVertices, -- how many trianges should we make
-			gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			0, 1, 0, 1, -- These are our default UV atlas tranformations
-			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
+			gf,
+			0,
+			0,
+			0, -- the gameFrame (for animations), and any other parameters one might want to add
+			0,
+			1,
+			0,
+			1, -- These are our default UV atlas tranformations
+			0,
+			0,
+			0,
+			0, -- these are just padding zeros, that will get filled in
 		},
 		unitID, -- this is the key inside the VBO TAble,
 		true, -- update existing element
@@ -198,7 +219,6 @@ local function AddPrimitiveAtUnit(unitID)
 		unitID -- last one should be UNITID?
 	)
 end
-
 
 local function DrawSelections(selectionVBO, isAir)
 	if selectionVBO.usedElements > 0 then
@@ -212,7 +232,7 @@ local function DrawSelections(selectionVBO, isAir)
 		glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		glDepthTest(true) -- One really interesting thing is that the depth test does not seem to be obeyed within DrawWorldPreUnit
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
-		glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
+		glClear(GL_STENCIL_BUFFER_BIT) -- set stencil buffer to 0
 
 		glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
 		glStencilMask(1)
@@ -233,7 +253,6 @@ local function DrawSelections(selectionVBO, isAir)
 
 		selectShader:Deactivate()
 		glTexture(0, false)
-
 
 		-- This is the correct way to exit out of the stencil mode, to not break drawing of area commands:
 		glStencilTest(false)
@@ -260,9 +279,15 @@ end
 
 local function RemovePrimitive(unitID)
 	local selectionVBO
-	if selectionVBOGround.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOGround end
-	if selectionVBOWater and selectionVBOWater.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOWater end
-	if selectionVBOAir.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOAir end
+	if selectionVBOGround.instanceIDtoIndex[unitID] then
+		selectionVBO = selectionVBOGround
+	end
+	if selectionVBOWater and selectionVBOWater.instanceIDtoIndex[unitID] then
+		selectionVBO = selectionVBOWater
+	end
+	if selectionVBOAir.instanceIDtoIndex[unitID] then
+		selectionVBO = selectionVBOAir
+	end
 
 	if selectionVBO and selectionVBO.instanceIDtoIndex[unitID] then
 		if selectionHighlight then
@@ -280,12 +305,11 @@ function widget:SelectionChanged(sel)
 	updateSelection = true
 end
 
-
 local lastMouseOverUnitID = nil
 local lastMouseOverFeatureID = nil
 local cleanedForHiddenUI = false
-local mouseOverUnitUniform = {0}
-local mouseOverFeatureUniform = {0}
+local mouseOverUnitUniform = { 0 }
+local mouseOverFeatureUniform = { 0 }
 
 local function ClearLastMouseOver()
 	if lastMouseOverUnitID then
@@ -303,8 +327,6 @@ local function ClearLastMouseOver()
 		lastMouseOverFeatureID = nil
 	end
 end
-
-
 
 function widget:Update(dt)
 	local guiHidden = spIsGUIHidden()
@@ -374,22 +396,22 @@ function widget:Update(dt)
 	-- +0.5 means ally also selected unit
 	-- +2 means its mouseovered
 	if mouseoverHighlight then
-		local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode  = spGetMouseState()
+		local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode = spGetMouseState()
 		if mouseOffScreen or cameraPanMode or mmb or p1 then
 			ClearLastMouseOver()
 		else
 			local result, data = spTraceScreenRay(mx, my)
 			--spEcho(result, (type(data) == 'table') or data, lastMouseOverUnitID, lastMouseOverFeatureID)
-			if result == 'unit' and not guiHidden then
+			if result == "unit" and not guiHidden then
 				local unitID = data
 				if lastMouseOverUnitID ~= unitID then
 					ClearLastMouseOver()
-					local newUniform = (selUnits[unitID] and 1 or 0 ) + 2
+					local newUniform = (selUnits[unitID] and 1 or 0) + 2
 					mouseOverUnitUniform[1] = newUniform
 					spSetUnitBufferUniforms(unitID, mouseOverUnitUniform, 6)
 					lastMouseOverUnitID = unitID
 				end
-			elseif result == 'feature' and not guiHidden then
+			elseif result == "feature" and not guiHidden then
 				local featureID = data
 				if lastMouseOverFeatureID ~= featureID then
 					ClearLastMouseOver()
@@ -423,16 +445,16 @@ end
 local function init()
 	updateSelection = true
 	selUnits = {}
-	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local DPatUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
 	shaderConfig.BILLBOARD = 0
 	shaderConfig.TRANSPARENCY = opacity
 	shaderConfig.INITIALSIZE = 0.75
 	shaderConfig.GROWTHRATE = 3.5
-	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity	-- not implemented, doing it via POST_SHADING below instead
+	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity -- not implemented, doing it via POST_SHADING below instead
 	shaderConfig.HEIGHTOFFSET = 4
-	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
+	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), " .. (1 - teamcolorOpacity) .. ") , texcolor.a * TRANSPARENCY + addRadius);"
 	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsGround")
 	if mapHasWater then
 		selectionVBOWater = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsWater")
@@ -462,7 +484,9 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if not init() then return end
+	if not init() then
+		return
+	end
 	WG.selectedunits = {}
 	WG.selectedunits.getOpacity = function()
 		return opacity
@@ -495,12 +519,12 @@ function widget:Initialize()
 		return selectimouseoverHighlightonHighlight
 	end
 
-	Spring.LoadCmdColorsConfig('unitBox  0 1 0 0')
+	Spring.LoadCmdColorsConfig("unitBox  0 1 0 0")
 end
 
 function widget:Shutdown()
 	if not (WG.teamplatter or WG.highlightselunits) then
-		Spring.LoadCmdColorsConfig('unitBox  0 1 0 1')
+		Spring.LoadCmdColorsConfig("unitBox  0 1 0 1")
 	end
 	WG.selectedunits = nil
 end

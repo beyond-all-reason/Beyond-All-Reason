@@ -5,7 +5,6 @@
 -- -- Since you can't actually remove parameters normally, it will do it when you set string: 'nil' as value
 -- -- Normally an empty table as value will be ignored when merging, but not here, it will overwrite what it had with an empty table
 
-
 local customDefs = {}
 
 -- local scavDifficulty = Spring.GetModOptions().scavdifficulty
@@ -30,9 +29,9 @@ local customDefs = {}
 -- end
 
 local scavUnit = {}
-for name,uDef in pairs(UnitDefs) do
+for name, uDef in pairs(UnitDefs) do
 	if string.sub(name, 1, 3) == "arm" or string.sub(name, 1, 3) == "cor" or string.sub(name, 1, 3) == "leg" then
-		scavUnit[#scavUnit+1] = name .. '_scav'
+		scavUnit[#scavUnit + 1] = name .. "_scav"
 	end
 end
 
@@ -130,9 +129,9 @@ customDefs.legcomlvl3 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legdecomlvl3 = {
@@ -147,9 +146,9 @@ customDefs.legdecomlvl3 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl4 = {
@@ -164,9 +163,9 @@ customDefs.legcomlvl4 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl5 = {
@@ -181,9 +180,9 @@ customDefs.legcomlvl5 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl6 = {
@@ -198,9 +197,9 @@ customDefs.legcomlvl6 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legdecomlvl6 = {
@@ -215,9 +214,9 @@ customDefs.legdecomlvl6 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl7 = {
@@ -232,9 +231,9 @@ customDefs.legcomlvl7 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl8 = {
@@ -249,9 +248,9 @@ customDefs.legcomlvl8 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl9 = {
@@ -266,9 +265,9 @@ customDefs.legcomlvl9 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl10 = {
@@ -283,9 +282,9 @@ customDefs.legcomlvl10 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legdecomlvl10 = {
@@ -300,9 +299,9 @@ customDefs.legdecomlvl10 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.armrectr = {
@@ -328,9 +327,9 @@ customDefs.legkam = {
 				spawns_name = "cormine1_scav",
 				spawns_surface = "LAND",
 				spawns_expire = 99999,
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 -- local scavConstructorsList = {
@@ -1008,7 +1007,6 @@ customDefs.legkam = {
 -- 	mincloakdistance = 144,
 -- }
 
-
 -- -- Cloaked Jammers
 
 -- customDefs.armjamt = {
@@ -1244,7 +1242,6 @@ customDefs.legkam = {
 -- 		}
 -- 	}
 -- }
-
 
 -- -- Faster LLT - unique sound - shorter beamtime
 -- customDefs.armllt = {

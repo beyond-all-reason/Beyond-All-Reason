@@ -1,10 +1,10 @@
-local base = piece "base"
+local base = piece("base")
 local f = 0
 
 function script.Create()
-	Turn (base, x_axis, math.random()*360, 90)
-	Turn (base, y_axis, math.random()*360, 90)
-	Turn (base, z_axis, math.random()*360, 90)
+	Turn(base, x_axis, math.random() * 360, 90)
+	Turn(base, y_axis, math.random() * 360, 90)
+	Turn(base, z_axis, math.random() * 360, 90)
 end
 
 function Sink()

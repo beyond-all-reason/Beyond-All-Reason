@@ -1,8 +1,7 @@
 local playerCountScale = 1
 if Spring.Utilities.Gametype.IsRaptors() then
-	playerCountScale = (#Spring.GetTeamList() - 2)/8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
+	playerCountScale = (#Spring.GetTeamList() - 2) / 8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
 end
-
 
 return {
 	raptor_queen_veryhard = {
@@ -112,7 +111,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 400,
 				damage = {
-					default = 1500*playerCountScale,
+					default = 1500 * playerCountScale,
 				},
 			},
 			melee = {
@@ -141,7 +140,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2500,
 				damage = {
-					default = 7500*playerCountScale,
+					default = 7500 * playerCountScale,
 				},
 			},
 			yellow_missile = {
@@ -192,7 +191,7 @@ return {
 				},
 				damage = {
 					default = 1,
-					vtol = 1000*playerCountScale,
+					vtol = 1000 * playerCountScale,
 				},
 			},
 		},

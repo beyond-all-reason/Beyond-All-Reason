@@ -49,14 +49,7 @@ function test()
 	local bpCount = 5
 
 	local blueprintUnitID = SyncedRun(function(locals)
-		return Spring.CreateUnit(
-			locals.blueprintUnitDefName,
-			locals.x,
-			locals.y,
-			locals.z,
-			locals.facing,
-			locals.myTeamID
-		)
+		return Spring.CreateUnit(locals.blueprintUnitDefName, locals.x, locals.y, locals.z, locals.facing, locals.myTeamID)
 	end)
 
 	Spring.SelectUnit(blueprintUnitID)
@@ -65,35 +58,19 @@ function test()
 
 	widget:CommandNotify(GameCMD.BLUEPRINT_CREATE, {}, {})
 
-	assert(#(widget.blueprints) == 1)
+	assert(#widget.blueprints == 1)
 
 	Test.clearMap()
 
 	local builderUnitID = SyncedRun(function(locals)
-		return Spring.CreateUnit(
-			locals.builderUnitDefName,
-			locals.x + 100,
-			locals.y,
-			locals.z,
-			locals.facing,
-			locals.myTeamID
-		)
+		return Spring.CreateUnit(locals.builderUnitDefName, locals.x + 100, locals.y, locals.z, locals.facing, locals.myTeamID)
 	end)
 
 	Spring.SelectUnit(builderUnitID)
 
 	Test.waitFrames(delay)
 
-	Spring.SetActiveCommand(
-		Spring.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE),
-		1,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false
-	)
+	Spring.SetActiveCommand(Spring.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE), 1, true, false, false, false, false, false)
 
 	Test.waitFrames(delay)
 

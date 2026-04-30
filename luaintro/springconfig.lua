@@ -20,12 +20,11 @@ Spring.SetConfigFloat("unitSunMult", 1.0)
 Spring.SetConfigFloat("unitExposureMult", 1.0)
 Spring.SetConfigFloat("modelGamma", 1.0)
 
-
 -- BAR requires higher textureatlas size for particles than the default of 2048x2048
 local maxTextureAtlasSize = 8192
 Spring.SetConfigInt("MaxTextureAtlasSizeX", maxTextureAtlasSize)
 Spring.SetConfigInt("MaxTextureAtlasSizeY", maxTextureAtlasSize)
-if tonumber(Spring.GetConfigInt("MaxTextureAtlasSizeX",2048) or 2048) < maxTextureAtlasSize then
+if tonumber(Spring.GetConfigInt("MaxTextureAtlasSizeX", 2048) or 2048) < maxTextureAtlasSize then
 	Spring.SetConfigInt("MaxTextureAtlasSizeX", maxTextureAtlasSize)
 	Spring.SetConfigInt("MaxTextureAtlasSizeY", maxTextureAtlasSize)
 end
@@ -33,7 +32,6 @@ end
 -- Sets necessary spring configuration parameters, so shaded units look the way they should (pbr gadget also does this)
 Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
 Spring.SetConfigInt("CubeTexSizeReflection", 1024)
-
 
 Spring.SetConfigInt("AdvSky", 0)
 
@@ -56,12 +54,12 @@ if Spring.GetConfigFloat("ui_tilescale", 7) < 0 then
 end
 
 -- disable ForceDisableShaders
-if Spring.GetConfigInt("ForceDisableShaders",0) == 1 then
+if Spring.GetConfigInt("ForceDisableShaders", 0) == 1 then
 	Spring.SetConfigInt("ForceDisableShaders", 0)
 end
 
 -- enable lua shaders
-if not tonumber(Spring.GetConfigInt("LuaShaders",0) or 0) then
+if not tonumber(Spring.GetConfigInt("LuaShaders", 0) or 0) then
 	Spring.SetConfigInt("LuaShaders", 1)
 end
 
@@ -85,7 +83,6 @@ Spring.SetConfigInt("LuaGarbageCollectionMemLoadMult", 1)
 -- Reduce the max runtime of GC to 1 ms instead of 5 (2022.08.16)
 Spring.SetConfigInt("LuaGarbageCollectionRunTimeMult", 1)
 
-
 -- we used 3 as default toggle, changing to 4
 if (Spring.GetConfigInt("GroundDecals", 3) or 3) >= 4 then
 	Spring.SetConfigInt("GroundDecals", 3)
@@ -102,7 +99,7 @@ Spring.SetConfigInt("SmoothTimeOffset", 2) -- New in BAR engine
 
 -- This is needed for better profiling info, and (theoretically better frame timing).
 -- Notably a decade ago windows had issues with this
-Spring.SetConfigInt("UseHighResTimer", 1)  -- Default off
+Spring.SetConfigInt("UseHighResTimer", 1) -- Default off
 
 -- This changes the sleep time of the game server thread to make it wake up every 1.999 ms instead of the default 5.999 ms
 -- This hopefully gets us less variance in issuing new sim frames
@@ -111,7 +108,7 @@ Spring.SetConfigInt("ServerSleepTime", 1)
 -- The default of 256 is just too tiny, at this size the VS load outpaces FS load anyway, makes for actually pretty reflections with CUS GL4
 Spring.SetConfigInt("BumpWaterTexSizeReflection", 1024)
 
-Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
+Spring.SetConfigFloat("CrossAlpha", 0) -- will be in effect next launch
 
 if not Spring.GetConfigFloat("UnitIconFadeAmount") then
 	Spring.SetConfigFloat("UnitIconFadeAmount", 0.1)
@@ -161,12 +158,11 @@ version = 8
 if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
-	local voiceset = Spring.GetConfigString("voiceset", '')
-	if voiceset == 'en/allison' then
-		Spring.SetConfigString("voiceset", 'en/cephis')
+	local voiceset = Spring.GetConfigString("voiceset", "")
+	if voiceset == "en/allison" then
+		Spring.SetConfigString("voiceset", "en/cephis")
 	end
 end
-
 
 -- apply the old pre-engine implementation stored camera minimum zoom level
 local oldMinCamHeight = Spring.GetConfigInt("MinimumCameraHeight", -1)
@@ -201,16 +197,15 @@ else
 	Spring.SetConfigInt("KeyChainTimeout", userKeyChainTimeout)
 end
 
-
 -- The default mouse drag threshold is set extremely low for engine by default, and fast clicking often results in a drag.
 -- This is bad for single unit commands, which turn into empty area commmands as a result of the small drag
 local xresolution = math.max(Spring.GetConfigInt("XResolution", 1920), Spring.GetConfigInt("XResolutionWindowed", 1920))
 local yresolution = math.max(Spring.GetConfigInt("YResolution", 1080), Spring.GetConfigInt("YResolutionWindowed", 1080))
 
 local baseDragThreshold = 16
-baseDragThreshold = math.round(baseDragThreshold * (xresolution + yresolution) * ( 1/3000) ) -- is 16 at 1080p
+baseDragThreshold = math.round(baseDragThreshold * (xresolution + yresolution) * (1 / 3000)) -- is 16 at 1080p
 baseDragThreshold = math.clamp(baseDragThreshold, 8, 40)
-Spring.Echo(string.format("Setting Mouse Drag thresholds based on resolution (%dx%d) for Selection to %d, and Command to %d", xresolution,yresolution,baseDragThreshold, baseDragThreshold + 16))
+Spring.Echo(string.format("Setting Mouse Drag thresholds based on resolution (%dx%d) for Selection to %d, and Command to %d", xresolution, yresolution, baseDragThreshold, baseDragThreshold + 16))
 Spring.SetConfigInt("MouseDragSelectionThreshold", baseDragThreshold)
 Spring.SetConfigInt("MouseDragCircleCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("MouseDragBoxCommandThreshold", baseDragThreshold + 16)
