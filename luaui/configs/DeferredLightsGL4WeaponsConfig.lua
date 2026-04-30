@@ -592,7 +592,7 @@ local ColorSets = { -- TODO add advanced dual-color sets!
 	Team = { r = -1, g = -1, b = -1 },
 }
 
-local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
+local globalDamageMult = SpringShared.GetModOptions().multiplier_weapondamage or 1
 
 local function GetClosestSizeClass(desiredsize)
 	local delta = math.huge
@@ -1020,7 +1020,7 @@ local function AssignLightsToAllWeapons()
 			end
 		end
 	end
-	Spring.Echo(Spring.GetGameFrame(), "DLGL4 weapons conf using", usedclasses, "light types")
+	SpringShared.Echo(SpringShared.GetGameFrame(), "DLGL4 weapons conf using", usedclasses, "light types")
 end
 AssignLightsToAllWeapons()
 

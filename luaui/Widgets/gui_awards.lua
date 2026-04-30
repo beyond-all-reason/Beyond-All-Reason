@@ -17,7 +17,7 @@ local mathFloor = math.floor
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local glCallList = gl.CallList
 
@@ -42,7 +42,7 @@ local threshold = 150000
 local CowAward
 local OtherAwards
 
-local chobbyLoaded = (Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), "chobby") ~= nil)
+local chobbyLoaded = (SpringUnsynced.GetMenuName and string.find(string.lower(SpringUnsynced.GetMenuName()), "chobby") ~= nil)
 
 local white = "\255" .. string.char(251) .. string.char(251) .. string.char(251)
 
@@ -58,7 +58,7 @@ local function colourNames(teamID)
 	if teamID < 0 then
 		return ""
 	end
-	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
+	local nameColourR, nameColourG, nameColourB, nameColourA = SpringUnsynced.GetTeamColor(teamID)
 	return Spring.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
 end
 
@@ -282,7 +282,7 @@ local function ProcessAwards(awards)
 	drawAwards = true
 
 	-- don't show graph
-	Spring.SendCommands("endgraph 0")
+	SpringUnsynced.SendCommands("endgraph 0")
 end
 
 function widget:MousePress(x, y, button)
@@ -294,15 +294,15 @@ function widget:MousePress(x, y, button)
 		-- Leave button
 		if x > widgetX + widgetWidthScaled - quitRightX - mathFloor(5 * widgetScale) and (x < widgetX + widgetWidthScaled - quitRightX + mathFloor(20 * widgetScale) * font:GetTextWidth(Spring.I18N("ui.awards.leave")) + mathFloor(5 * widgetScale)) and (y > widgetY + mathFloor((50 - 5) * widgetScale)) and (y < widgetY + mathFloor((50 + 17 + 5) * widgetScale)) then
 			if chobbyLoaded then
-				Spring.Reload("")
+				SpringUnsynced.Reload("")
 			else
-				Spring.SendCommands("quitforce")
+				SpringUnsynced.SendCommands("quitforce")
 			end
 		end
 
 		-- Show Graphs button
 		if (x > widgetX + widgetWidthScaled - graphsRightX - mathFloor(5 * widgetScale)) and (x < widgetX + widgetWidthScaled - graphsRightX + mathFloor(20 * widgetScale) * font:GetTextWidth(Spring.I18N("ui.awards.showGraphs")) + mathFloor(5 * widgetScale)) and (y > widgetY + mathFloor((50 - 5) * widgetScale) and (y < widgetY + mathFloor((50 + 17 + 5) * widgetScale))) then
-			Spring.SendCommands("endgraph 2")
+			SpringUnsynced.SendCommands("endgraph 2")
 
 			if WG["guishader"] then
 				WG["guishader"].RemoveRect("awards")
@@ -348,7 +348,7 @@ function widget:DrawScreen()
 		glCallList(FourthAward)
 	end
 
-	local x, y = Spring.GetMouseState()
+	local x, y = SpringUnsynced.GetMouseState()
 	local quitColour
 	local graphColour
 	font2:Begin()
@@ -385,18 +385,18 @@ function widget:LanguageChanged()
 end
 
 function widget:Initialize()
-	Spring.SendCommands("endgraph 2")
+	SpringUnsynced.SendCommands("endgraph 2")
 
 	widget:ViewResize(viewScreenX, viewScreenY)
 	widgetHandler:RegisterGlobal("GadgetReceiveAwards", ProcessAwards)
 
 	-- load a list of players for each team into playerListByTeam
-	local teamList = Spring.GetTeamList()
+	local teamList = SpringShared.GetTeamList()
 	for _, teamID in pairs(teamList) do
-		local playerList = Spring.GetPlayerList(teamID)
+		local playerList = SpringShared.GetPlayerList(teamID)
 		local list = {} --without specs
 		for _, playerID in pairs(playerList) do
-			local name, _, isSpec = Spring.GetPlayerInfo(playerID, false)
+			local name, _, isSpec = SpringShared.GetPlayerInfo(playerID, false)
 			if not isSpec then
 				tableInsert(list, name)
 			end
@@ -409,7 +409,7 @@ end
 
 function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("GadgetReceiveAwards")
-	Spring.SendCommands("endgraph 2")
+	SpringUnsynced.SendCommands("endgraph 2")
 	if Background then
 		gl.DeleteList(Background)
 	end

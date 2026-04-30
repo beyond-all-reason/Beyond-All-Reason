@@ -19,12 +19,12 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spSetUnitLosState = Spring.SetUnitLosState
-local spSetUnitLosMask = Spring.SetUnitLosMask
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
+local spSetUnitLosState = SpringSynced.SetUnitLosState
+local spSetUnitLosMask = SpringSynced.SetUnitLosMask
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitsInCylinder = SpringShared.GetUnitsInCylinder
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
 local minesweeperRanges = {}
 local minesweepers = {}
@@ -44,8 +44,8 @@ if table.count(minesweeperRanges) == 0 or table.count(mineDefIDs) == 0 then
 end
 
 local teamIDs = {}
-for _, teamID in pairs(Spring.GetTeamList()) do
-	local _, _, _, _, _, allyTeam = Spring.GetTeamInfo(teamID, false)
+for _, teamID in pairs(SpringShared.GetTeamList()) do
+	local _, _, _, _, _, allyTeam = SpringShared.GetTeamInfo(teamID, false)
 	teamIDs[teamID] = allyTeam
 	revealedMines[teamID] = {}
 	minesweepers[teamID] = {}
@@ -108,9 +108,9 @@ function gadget:GameFrame(n)
 end
 
 function gadget:Initialize()
-	for _, unitID in pairs(Spring.GetAllUnits()) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		local unitTeam = Spring.GetUnitTeam(unitID)
+	for _, unitID in pairs(SpringShared.GetAllUnits()) do
+		local unitDefID = SpringShared.GetUnitDefID(unitID)
+		local unitTeam = SpringShared.GetUnitTeam(unitID)
 		if minesweeperRanges[unitDefID] then
 			minesweepers[unitTeam][unitID] = unitDefID
 		end

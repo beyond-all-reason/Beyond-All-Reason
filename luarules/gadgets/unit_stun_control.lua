@@ -33,7 +33,7 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	-- accepts: CMD.ONOFF
-	if Spring.GetUnitIsStunned(unitID) then
+	if SpringShared.GetUnitIsStunned(unitID) then
 		return false
 	else
 		return true

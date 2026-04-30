@@ -97,7 +97,7 @@ function script.Create()
 		StandStance()
 	end
 	-- should do this instead of query nano piece
-	Spring.SetUnitNanoPieces(unitID, { nano })
+	SpringSynced.SetUnitNanoPieces(unitID, { nano })
 end
 
 -----------------------------------------------------------------------
@@ -161,7 +161,7 @@ function script.AimWeapon(weaponID, heading, pitch)
 	-- Spring.Echo("AimWeapon " .. weaponID)
 	-- weapon2 is supposed to only fire underwater, check for it.
 	if weaponID == 2 then
-		local _, basepos, _ = Spring.GetUnitPosition(unitID)
+		local _, basepos, _ = SpringShared.GetUnitPosition(unitID)
 		if basepos > -16 then
 			return false
 		end
@@ -224,7 +224,7 @@ end
 function script.StartBuilding(heading, pitch)
 	Show(nano)
 	--	Spring.Echo("StartBuilding")
-	Spring.SetUnitNanoPieces(unitID, { nano })
+	SpringSynced.SetUnitNanoPieces(unitID, { nano })
 	isBuilding = true
 
 	Turn(base, x_axis, 0, math.rad(395))

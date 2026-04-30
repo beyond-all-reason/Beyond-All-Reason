@@ -15,8 +15,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spEcho = Spring.Echo
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spEcho = SpringShared.Echo
 
 -- TODO: correctly track add/remove per vbotable
 -- Dont Allow mixed types, it will fuck with textures anyway
@@ -429,7 +429,7 @@ if TESTMODE then
 	local unitDefIDtoUniqueID = {}
 	function widget:UnitCreated(unitID, unitDefID)
 		unitIDtoUniqueID[unitID] = DrawUnitGL4(unitID, unitDefID, 0, 0, 0, math.random() * 2, 0.6)
-		local px, py, pz = Spring.GetUnitPosition(unitID)
+		local px, py, pz = SpringShared.GetUnitPosition(unitID)
 		unitDefIDtoUniqueID[unitID] = DrawUnitShapeGL4(spGetUnitDefID(unitID), px + 20, py + 50, pz + 20, 0, 0.6)
 	end
 
@@ -542,7 +542,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 	end
 	if TESTMODE then
-		for i, unitID in ipairs(Spring.GetAllUnits()) do
+		for i, unitID in ipairs(SpringShared.GetAllUnits()) do
 			widget:UnitCreated(unitID)
 		end
 	end
@@ -644,7 +644,7 @@ function widget:DrawWorldPreUnit() -- this is for UnitDef
 				gl.StencilOp(GL.KEEP, GL.KEEP, GL.REPLACE)
 
 				unitShapeShader:Activate()
-				unitShapeShader:SetUniform("iconDistance", 27 * Spring.GetConfigInt("UnitIconDist", 200))
+				unitShapeShader:SetUniform("iconDistance", 27 * SpringUnsynced.GetConfigInt("UnitIconDist", 200))
 				active = true
 			end
 
@@ -689,7 +689,7 @@ function widget:DrawWorld()
 		gl.StencilOp(GL.KEEP, GL.KEEP, GL.REPLACE)
 
 		unitShader:Activate()
-		unitShader:SetUniform("iconDistance", 27 * Spring.GetConfigInt("UnitIconDist", 200))
+		unitShader:SetUniform("iconDistance", 27 * SpringUnsynced.GetConfigInt("UnitIconDist", 200))
 		if corDrawUnitVBOTable.usedElements > 0 then
 			gl.UnitShapeTextures(corcomUnitDefID, true)
 			corDrawUnitVBOTable.VAO:Submit()

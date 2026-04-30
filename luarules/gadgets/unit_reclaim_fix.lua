@@ -16,10 +16,10 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local SetFeatureReclaim = Spring.SetFeatureReclaim
-local GetFeaturePosition = Spring.GetFeaturePosition
-local GetUnitDefID = Spring.GetUnitDefID
-local GetFeatureResources = Spring.GetFeatureResources
+local SetFeatureReclaim = SpringSynced.SetFeatureReclaim
+local GetFeaturePosition = SpringShared.GetFeaturePosition
+local GetUnitDefID = SpringShared.GetUnitDefID
+local GetFeatureResources = SpringShared.GetFeatureResources
 local mathMax = math.max
 
 local featureListMaxResource = {}

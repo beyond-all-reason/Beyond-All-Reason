@@ -16,10 +16,10 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
-local spGetGameSpeed = Spring.GetGameSpeed
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameSpeed = SpringUnsynced.GetGameSpeed
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local glColor = gl.Color
 local glTexture = gl.Texture
@@ -80,7 +80,7 @@ local alphaLoc, showPauseScreen, nonShaderAlpha
 local gameover = false
 local noNewGameframes = false
 local cachedPauseText = nil
-local spIsGUIHidden = Spring.IsGUIHidden
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
 
 -- Pre-allocated color tables
 local textColor = { 1.0, 1.0, 1.0, 0 }
@@ -261,7 +261,7 @@ function widget:Initialize()
 			alphaLoc = glGetUniformLocation(shaderProgram, "alpha")
 		end
 	else
-		Spring.Echo("<Screen Shader>: GLSL not supported.")
+		SpringShared.Echo("<Screen Shader>: GLSL not supported.")
 	end
 end
 

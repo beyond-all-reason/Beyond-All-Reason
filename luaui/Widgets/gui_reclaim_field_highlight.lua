@@ -109,11 +109,11 @@ local animCfg = {
 	pulseMinRelativeChange = 0.12,
 }
 
-local gameStarted = Spring.GetGameFrame() > 0
-local lastCheckFrame = Spring.GetGameFrame() - 999
+local gameStarted = SpringShared.GetGameFrame() > 0
+local lastCheckFrame = SpringShared.GetGameFrame() - 999
 local lastCheckFrameClock = os.clock() - 99
 local lastProcessedFrame = -1
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 
 --------------------------------------------------------------------------------
 -- Speedups
@@ -153,20 +153,20 @@ local glText = gl.Text
 local glTranslate = gl.Translate
 local glVertex = gl.Vertex
 
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetFeatureResources = Spring.GetFeatureResources
-local spGetFeatureVelocity = Spring.GetFeatureVelocity
-local spGetFeatureRadius = Spring.GetFeatureRadius
-local spValidFeatureID = Spring.ValidFeatureID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spIsGUIHidden = Spring.IsGUIHidden
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetMapDrawMode = Spring.GetMapDrawMode
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetCameraVectors = Spring.GetCameraVectors
-local spGetGameFrame = Spring.GetGameFrame
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
+local spGetFeatureResources = SpringShared.GetFeatureResources
+local spGetFeatureVelocity = SpringShared.GetFeatureVelocity
+local spGetFeatureRadius = SpringShared.GetFeatureRadius
+local spValidFeatureID = SpringShared.ValidFeatureID
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGetMapDrawMode = SpringUnsynced.GetMapDrawMode
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetCameraVectors = SpringUnsynced.GetCameraVectors
+local spGetGameFrame = SpringShared.GetGameFrame
 
 -- TIMING INSTRUMENTATION (set to true to enable periodic timing echo)
 local debugTiming = false
@@ -3475,7 +3475,7 @@ end
 -- Widget call-ins
 
 function widget:Initialize()
-	gameStarted = Spring.GetGameFrame() > 0
+	gameStarted = SpringShared.GetGameFrame() > 0
 	screenx, screeny = widgetHandler:GetViewSizes()
 
 	-- Initialize camera scale early to avoid thick lines on first draw
@@ -3595,13 +3595,13 @@ function widget:Initialize()
 	opticsObject = Optics.new()
 	cachedKnownFeaturesCount = 0 -- Reset cached count
 
-	for _, featureID in ipairs(Spring.GetAllFeatures()) do
+	for _, featureID in ipairs(SpringShared.GetAllFeatures()) do
 		widget:FeatureCreated(featureID)
 	end
 
 	camUpVector = spGetCameraVectors().up
 
-	widget:SelectionChanged(Spring.GetSelectedUnits())
+	widget:SelectionChanged(SpringUnsynced.GetSelectedUnits())
 end
 
 function widget:Shutdown()
@@ -3775,7 +3775,7 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	screenx, screeny = widgetHandler:GetViewSizes()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = SpringUnsynced.GetViewGeometry()
 end
 
 --------------------------------------------------------------------------------
@@ -4104,7 +4104,7 @@ function widget:DrawWorldPreUnit()
 	timingCount = timingCount + 1
 	if debugTiming and timingCount >= timingInterval then
 		local div = timingCount
-		Spring.Echo(string.format("[ReclaimField TIMING] per-call avg (ms): UpdateReclaim=%.3f  DrawWorldText=%.3f  DrawPreUnit=%.3f  | Update()=%.3f  | clusters=%d  features=%d", timingAccum.updateReclaim / div * 1000, timingAccum.drawWorldText / div * 1000, timingAccum.drawPreUnit / div * 1000, timingAccum.updateFunc / div * 1000, #featureClusters, cachedKnownFeaturesCount))
+		SpringShared.Echo(string.format("[ReclaimField TIMING] per-call avg (ms): UpdateReclaim=%.3f  DrawWorldText=%.3f  DrawPreUnit=%.3f  | Update()=%.3f  | clusters=%d  features=%d", timingAccum.updateReclaim / div * 1000, timingAccum.drawWorldText / div * 1000, timingAccum.drawPreUnit / div * 1000, timingAccum.updateFunc / div * 1000, #featureClusters, cachedKnownFeaturesCount))
 		for k in pairs(timingAccum) do
 			timingAccum[k] = 0
 		end

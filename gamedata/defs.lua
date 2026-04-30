@@ -27,7 +27,7 @@ local function LoadDefs(name)
 	local success, result = pcall(VFS.Include, filename, nil, VFS_MODES)
 
 	if not success then
-		Spring.Log(section, LOG.ERROR, "Failed to load " .. name)
+		SpringShared.Log(section, LOG.ERROR, "Failed to load " .. name)
 		error(result)
 	end
 
@@ -41,7 +41,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-Spring.TimeCheck("Loading all definitions: ", function()
+SpringShared.TimeCheck("Loading all definitions: ", function()
 	DEFS.unitDefs = LoadDefs("unitDefs")
 	DEFS.featureDefs = LoadDefs("featureDefs")
 	DEFS.weaponDefs = LoadDefs("weaponDefs")

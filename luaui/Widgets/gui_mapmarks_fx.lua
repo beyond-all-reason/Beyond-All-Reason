@@ -13,9 +13,9 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamColor = Spring.GetTeamColor
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetTeamColor = SpringUnsynced.GetTeamColor
 
 -- Localized gl functions
 local glBlending = gl.Blending
@@ -199,7 +199,7 @@ function widget:DrawWorldPreUnit()
 	if chobbyInterface then
 		return
 	end
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 	if WG.clearmapmarks and WG.clearmapmarks.continuous then

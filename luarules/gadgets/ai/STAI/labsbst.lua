@@ -43,7 +43,7 @@ end
 
 function LabsBST:ExitCheck()
 	for i, v in pairs(self.ai.armyhst.unitTable[self.name].unitsCanBuild) do
-		if not Spring.TestMoveOrder(self.ai.armyhst.unitTable[v].defId, self.position.x, self.position.y, self.position.z) then
+		if not SpringShared.TestMoveOrder(self.ai.armyhst.unitTable[v].defId, self.position.x, self.position.y, self.position.z) then
 			self:EchoDebug("exitcheck failed", self.name)
 			self.ai.cleanhst.cleanableByID[self.id] = self.id
 			self.exitClosed = true
@@ -112,7 +112,7 @@ function LabsBST:Update()
 	end
 	local f = self.game:Frame()
 	self:preFilter() -- work or no resource??
-	if Spring.GetFactoryCommandCount(self.id) > 1 then
+	if SpringShared.GetFactoryCommandCount(self.id) > 1 then
 		return
 	end -- factory already work
 	self:GetAmpOrGroundWeapon() -- need more amph to attack in this map?

@@ -16,13 +16,13 @@ end
 
 -- Localized Spring API for performance
 local spGetMyTeamID = Spring.GetMyTeamID
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local CMD_PRIORITY = GameCMD.PRIORITY
 
 -- symbol localization optimization for engine calls
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
 
 local myTeamID = spGetMyTeamID()
 
@@ -116,13 +116,13 @@ end
 
 function widget:PlayerChanged(playerID)
 	myTeamID = spGetMyTeamID()
-	if Spring.GetSpectatingState() then
+	if SpringUnsynced.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or SpringShared.GetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
 
@@ -149,7 +149,7 @@ function widget:Initialize()
 		toggleCons()
 	end
 
-	local myUnits = Spring.GetTeamUnits(myTeamID)
+	local myUnits = SpringShared.GetTeamUnits(myTeamID)
 	for i = 1, #myUnits do
 		local unitID = myUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)

@@ -244,7 +244,7 @@ local function MakeAtlasOnDemand(config)
 	-- @return an array of UV coordinates in xXyY format
 	function AtlasOnDemand:ReserveSpace(id, xsize, ysize)
 		if self.uvcoords[id] then
-			Spring.Echo(string.format("AtlasOnDemand %s Warning: ID %s is already added to this atlas", self.name, tostring(id)))
+			SpringShared.Echo(string.format("AtlasOnDemand %s Warning: ID %s is already added to this atlas", self.name, tostring(id)))
 			return self.uvcoords[id]
 		end
 
@@ -327,7 +327,7 @@ local function MakeAtlasOnDemand(config)
 				end
 				if columnfull then
 					if self.debug then
-						Spring.Echo("Column Full!", self.firstemptycolumn)
+						SpringShared.Echo("Column Full!", self.firstemptycolumn)
 					end
 					self.firstemptycolumn = self.firstemptycolumn + 1
 				end
@@ -337,7 +337,7 @@ local function MakeAtlasOnDemand(config)
 			self.hastasks = true
 			return uvcoords, task
 		else
-			Spring.Echo(string.format("AtlasOnDemand %s Error: cant find space for %s of size %d x %d", self.name, tostring(id), xsize, ysize))
+			SpringShared.Echo(string.format("AtlasOnDemand %s Error: cant find space for %s of size %d x %d", self.name, tostring(id), xsize, ysize))
 			return { x = 0, y = 0, X = 1, Y = 1, w = xsize, h = ysize, d = 0 }
 		end
 	end
@@ -353,7 +353,7 @@ local function MakeAtlasOnDemand(config)
 			return { x = 0, X = 1, y = 0, Y = 1, w = 1, h = 1, id = image }
 		end
 		if self.uvcoords[image] then
-			Spring.Echo(string.format("AtlasOnDemand %s Warning: image %s is already added to this atlas", self.name, tostring(image)))
+			SpringShared.Echo(string.format("AtlasOnDemand %s Warning: image %s is already added to this atlas", self.name, tostring(image)))
 			return self.uvcoords[image]
 		end
 		if xsize and ysize then
@@ -361,7 +361,7 @@ local function MakeAtlasOnDemand(config)
 		else
 			local texInfo = gl.TextureInfo(image)
 			if texInfo and (texInfo.xsize ~= xsize or texInfo.ysize ~= ysize) then
-				Spring.Echo(string.format("AtlasOnDemand %s Warning: image %s size does not match %dx%d given, %dx%d from TextureInfo", self.name, tostring(image), xsize or -1, ysize or -1, texInfo.xsize, texInfo.ysize))
+				SpringShared.Echo(string.format("AtlasOnDemand %s Warning: image %s size does not match %dx%d given, %dx%d from TextureInfo", self.name, tostring(image), xsize or -1, ysize or -1, texInfo.xsize, texInfo.ysize))
 				if xsize == nil then
 					xsize = texInfo.xsize
 				end
@@ -393,7 +393,7 @@ local function MakeAtlasOnDemand(config)
 			self.hastasks = true
 			return #self.renderImageTaskList
 		else
-			Spring.Echo(string.format("AtlasOnDemand %s Warning:   unable to read gl.TextureInfo(%s)", self.name, tostring(image)))
+			SpringShared.Echo(string.format("AtlasOnDemand %s Warning:   unable to read gl.TextureInfo(%s)", self.name, tostring(image)))
 		end
 	end
 	-- This should return a width, height and UV set for pixel-perfect rendering
@@ -417,7 +417,7 @@ local function MakeAtlasOnDemand(config)
 				return self.uvcoords[text]
 			else
 				if not self.defaultfont then
-					Spring.Echo(string.format("AtlasOnDemand %s Warning: text %s without font cannot be added because atlas has no default font set", self.name, tostring(id)))
+					SpringShared.Echo(string.format("AtlasOnDemand %s Warning: text %s without font cannot be added because atlas has no default font set", self.name, tostring(id)))
 					self.uvcoords[text] = { x = 0, X = 1, y = 0, Y = 1, w = 1, h = 1, id = id } -- add a fallback so we only warn once per item
 					return self.uvcoords[text]
 				else
@@ -462,7 +462,7 @@ local function MakeAtlasOnDemand(config)
 		-- textparams.options = 'N' .. textparams.options
 
 		if self.uvcoords[textparams.id] then
-			Spring.Echo(string.format("AtlasOnDemand %s Warning: text %s is already added to this atlas", self.name, tostring(textparams.id)))
+			SpringShared.Echo(string.format("AtlasOnDemand %s Warning: text %s is already added to this atlas", self.name, tostring(textparams.id)))
 			return self.uvcoords[textparams.id]
 		end
 		-- get the actual width and height of the text object:
@@ -474,7 +474,7 @@ local function MakeAtlasOnDemand(config)
 		local height = math.ceil((textheight + textdescender) * textparams.size)
 		textdescender = -1 * textdescender * textparams.size -- descender is negative for 'b' ?
 		if self.debug then
-			Spring.Echo(string.format("Pre adjusted textsize for %s at size %d is w=%d h=%d descender=%d", textparams.text, textparams.size, width, height, textdescender))
+			SpringShared.Echo(string.format("Pre adjusted textsize for %s at size %d is w=%d h=%d descender=%d", textparams.text, textparams.size, width, height, textdescender))
 		end
 		local pad = 1
 		if string.find(textparams.options, "o", nil, true) then
@@ -493,10 +493,10 @@ local function MakeAtlasOnDemand(config)
 		width = width + 2 * pad
 		height = height + 2 * pad + textdescender
 		textdescender = math.round(textdescender + pad, 0)
-		local vsx, vsy = Spring.GetViewGeometry()
+		local vsx, vsy = SpringUnsynced.GetViewGeometry()
 
 		if self.debug then
-			Spring.Echo(string.format('AddText: "%s", size=%d, w=%d h=%d d=%d pad =%f', textparams.text, textparams.size, width, height, textdescender, pad))
+			SpringShared.Echo(string.format('AddText: "%s", size=%d, w=%d h=%d d=%d pad =%f', textparams.text, textparams.size, width, height, textdescender, pad))
 		end
 
 		local uvcoords, task = self:ReserveSpace(textparams.id, width, height)
@@ -592,7 +592,7 @@ local function MakeAtlasOnDemand(config)
 				end
 				textparams.font:Begin()
 				if self.debug then
-					Spring.Echo("Font set to", textparams.font.path, textparams.size)
+					SpringShared.Echo("Font set to", textparams.font.path, textparams.size)
 				end
 				currentParams.font = textparams.font
 			end
@@ -642,8 +642,8 @@ local function MakeAtlasOnDemand(config)
 
 			-- So, a big problem seems to be using fonts that are not size-allocated correctly!
 			if self.debug then
-				Spring.Echo(string.format("Task params: id = %s w=%.3f h=%.3f x=%.3f y=%.3f", task.id, task.w, task.h, task.x, task.y))
-				Spring.Echo(string.format("renderText: text = %s, x = %f, y = %.3f, size = %.3f, opts = %s", textparams.text, x, y, textparams.size, textparams.options))
+				SpringShared.Echo(string.format("Task params: id = %s w=%.3f h=%.3f x=%.3f y=%.3f", task.id, task.w, task.h, task.x, task.y))
+				SpringShared.Echo(string.format("renderText: text = %s, x = %f, y = %.3f, size = %.3f, opts = %s", textparams.text, x, y, textparams.size, textparams.options))
 			end
 			font:Print(textparams.text, x, y, textparams.size, textparams.options)
 			--font:Print(textparams.text, x,y, 36, textparams.options..'')
@@ -660,7 +660,7 @@ local function MakeAtlasOnDemand(config)
 	function AtlasOnDemand:TextRect(id, x, y, align)
 		local uvcoords = self.uvcoords[id]
 		if not uvcoords then
-			Spring.Echo("AtlasOnDemand:TextRect cannot find id", id)
+			SpringShared.Echo("AtlasOnDemand:TextRect cannot find id", id)
 			return
 		end
 		local ypos = y
@@ -707,7 +707,7 @@ local function MakeAtlasOnDemand(config)
 			for y = 1, self.yslots do
 				parts[y] = string.format("% 5s", fillRow[y])
 			end
-			Spring.Echo(table.concat(parts))
+			SpringShared.Echo(table.concat(parts))
 		end
 	end
 
@@ -727,14 +727,14 @@ local function MakeAtlasOnDemand(config)
 
 		gl.Texture(0, self.textureID)
 		--o = o + math.sin(Spring.GetDrawFrame()*0.01)
-		local vsx, vsy = Spring.GetViewGeometry()
+		local vsx, vsy = SpringUnsynced.GetViewGeometry()
 		local o = 10
 
 		gl.TexRect(o, o, math.min(vsx - o, self.xsize + o), math.min(vsy - o, self.ysize + o), 0, 0, 1, 1)
 
 		if aliastest then
 			local aliasUV = self.uvcoords[self.aliasing_grid_test_image]
-			Spring.Echo(aliasUV.x, aliasUV.y, aliasUV.X, aliasUV.Y, aliasUV.w, aliasUV.h)
+			SpringShared.Echo(aliasUV.x, aliasUV.y, aliasUV.X, aliasUV.Y, aliasUV.w, aliasUV.h)
 			local xs = 0
 			for i = 1, 6 do
 				gl.TexRect(xs, vsy - i * aliasUV.h, xs + i * aliasUV.w, vsy, aliasUV.x, aliasUV.y, aliasUV.X, aliasUV.Y)

@@ -145,7 +145,7 @@ function i18n.translate(key, data)
 	local usedLocale = data.locale or locale
 
 	-- if user elected to use English unit names, force `en` locale when translating a unit name
-	if (Spring.GetConfigInt("language_english_unit_names", 1) == 1) and key:sub(1, #"units.names.") == "units.names." then
+	if (SpringUnsynced.GetConfigInt("language_english_unit_names", 1) == 1) and key:sub(1, #"units.names.") == "units.names." then
 		usedLocale = "en"
 	end
 
@@ -161,7 +161,7 @@ function i18n.translate(key, data)
 			end
 			local missingTranslation = missingTranslations[key]
 			if not missingTranslation[fallback] and not (fallback == "en" and data.default) then
-				Spring.Log("i18n", "notice", '"' .. key .. '" is not translated in ' .. fallback)
+				SpringShared.Log("i18n", "notice", '"' .. key .. '" is not translated in ' .. fallback)
 				missingTranslation[fallback] = true
 			end
 		end
@@ -171,7 +171,7 @@ function i18n.translate(key, data)
 	end
 	local missingTranslation = missingTranslations[key]
 	if not missingTranslation["_all"] and data.default == nil then
-		Spring.Log("i18n", "notice", 'No translation found for "' .. key .. '"')
+		SpringShared.Log("i18n", "notice", 'No translation found for "' .. key .. '"')
 		missingTranslation["_all"] = true
 	end
 	return data.default or key
@@ -215,8 +215,8 @@ function i18n.loadFile(path)
 		return x()
 	end)
 	if not success then
-		Spring.Log("i18n", LOG.ERROR, "Failed to parse file " .. path .. ": ")
-		Spring.Log("i18n", LOG.ERROR, data)
+		SpringShared.Log("i18n", LOG.ERROR, "Failed to parse file " .. path .. ": ")
+		SpringShared.Log("i18n", LOG.ERROR, data)
 		return nil
 	end
 	i18n.load(data)

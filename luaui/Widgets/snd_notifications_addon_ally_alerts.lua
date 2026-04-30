@@ -18,9 +18,9 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 
 	-- Get local and sender ally team ID and spectator status
-	local myAllyTeamID = Spring.GetLocalAllyTeamID()
-	local isSpec = Spring.GetSpectatingState()
-	local _, _, senderIsSpec, _, senderAllyTeamID = Spring.GetPlayerInfo(playerID, false)
+	local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+	local isSpec = SpringUnsynced.GetSpectatingState()
+	local _, _, senderIsSpec, _, senderAllyTeamID = SpringShared.GetPlayerInfo(playerID, false)
 
 	-- Ignore if I am spectator, sender is spectator or sender is not an ally
 	if isSpec or senderIsSpec or (myAllyTeamID ~= senderAllyTeamID) then

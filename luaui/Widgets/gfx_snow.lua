@@ -18,9 +18,9 @@ local mathRandom = math.random
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 --------------------------------------------------------------------------------
 -- /snow    -- toggles snow on current map (also remembers this)
@@ -87,10 +87,10 @@ local widgetDisabledSnow = false
 
 local shader
 
-local startTimer = Spring.GetTimer()
+local startTimer = SpringUnsynced.GetTimer()
 local diffTime = 0
 
-local spGetFPS = Spring.GetFPS
+local spGetFPS = SpringUnsynced.GetFPS
 local averageFps = 60
 
 local camX, camY, camZ
@@ -116,7 +116,7 @@ local previousParticleAmount = particleDensity
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spGetWind = Spring.GetWind
+local spGetWind = SpringShared.GetWind
 
 local glBlending = gl.Blending
 local glCallList = gl.CallList
@@ -425,23 +425,23 @@ function widget:Shutdown()
 end
 
 local pausedTime = 0
-local lastFrametime = Spring.GetTimer()
+local lastFrametime = SpringUnsynced.GetTimer()
 
 function widget:DrawWorld()
 	if not enabled then
 		return
 	end
 
-	local _, _, isPaused = Spring.GetGameSpeed()
+	local _, _, isPaused = SpringUnsynced.GetGameSpeed()
 	if isPaused then
-		pausedTime = pausedTime + Spring.DiffTimers(Spring.GetTimer(), lastFrametime)
+		pausedTime = pausedTime + SpringUnsynced.DiffTimers(SpringUnsynced.GetTimer(), lastFrametime)
 	end
-	lastFrametime = Spring.GetTimer()
+	lastFrametime = SpringUnsynced.GetTimer()
 	if os.clock() - startOsClock > 0.5 then -- delay to prevent no textures being shown
 		if shader ~= nil and particleLists[#particleTypes] ~= nil and particleLists[#particleTypes][particleStep] ~= nil then
 			shader:Activate()
-			camX, camY, camZ = Spring.GetCameraPosition()
-			diffTime = Spring.DiffTimers(lastFrametime, startTimer) - pausedTime
+			camX, camY, camZ = SpringUnsynced.GetCameraPosition()
+			diffTime = SpringUnsynced.DiffTimers(lastFrametime, startTimer) - pausedTime
 			shader:SetUniform("time", diffTime)
 			shader:SetUniform("camPos", camX, camY, camZ)
 

@@ -14,11 +14,11 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
-local spGetAllUnits = Spring.GetAllUnits
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
+local spGetAllUnits = SpringShared.GetAllUnits
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOIdTable
@@ -334,7 +334,7 @@ local paralyzeSourceShaderCache = {
 }
 
 --holy hacks batman
-if Spring.GetModOptions().emprework then
+if SpringShared.GetModOptions().emprework then
 	fsSrc = string.gsub(fsSrc, "//empreworktagdonotremove", "paralysis_level = paralysis_level*3; if (paralysis_level> 1) { paralysis_level = 1; }")
 	fsSrc = string.gsub(fsSrc, "//empreworkherealsodonotremove", "if (paralysis_level > 0.49) { wholeunitbasecolor = vec4(0.35, 0.43, 0.94, 0.18); }")
 end
@@ -380,7 +380,7 @@ local function DrawParalyzedUnitGL4(unitID, unitDefID, red_start, green_start, b
 	if paralyzedDrawUnitVBOTable.instanceIDtoIndex[unitID] then
 		return
 	end -- already got this unit
-	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
+	if SpringShared.ValidUnitID(unitID) ~= true or SpringShared.GetUnitIsDead(unitID) == true then
 		return
 	end
 	red_start = red_start or 1.0
@@ -440,7 +440,7 @@ local function init()
 end
 
 function widget:PlayerChanged(playerID)
-	spec, fullview = Spring.GetSpectatingState()
+	spec, fullview = SpringUnsynced.GetSpectatingState()
 	local prevMyTeamID = myTeamID
 	myTeamID = Spring.GetMyTeamID()
 	if myTeamID ~= prevMyTeamID then -- TODO only really needed if onlyShowOwnTeam, or if allyteam changed?

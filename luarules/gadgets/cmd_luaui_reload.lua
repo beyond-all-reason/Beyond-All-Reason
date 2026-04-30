@@ -18,7 +18,7 @@ end
 
 function LuaUIReload(cmd, line, words, playerID)
 	if playerID and playerID == Spring.GetMyPlayerID() then
-		Spring.SendCommands("luaui reload")
+		SpringUnsynced.SendCommands("luaui reload")
 	end
 end
 

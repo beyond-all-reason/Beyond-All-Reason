@@ -30,13 +30,13 @@ local mathMin = math.min
 local mathRandom = math.random
 
 -- Localized Spring API for performance
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetCameraPosition = Spring.GetCameraPosition
-local spEcho = Spring.Echo
-local spGetAllUnits = Spring.GetAllUnits
-local spGetVisibleUnits = Spring.GetVisibleUnits
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spEcho = SpringShared.Echo
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetVisibleUnits = SpringUnsynced.GetVisibleUnits
 
 ----------IMPORTANT USAGE INSTRUCTIONS/ README----------
 
@@ -212,12 +212,12 @@ end
 
 --------------------------------------------------------------------------------
 local patchResolution = grassConfig.patchResolution
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGrass = Spring.GetGrass
-local spGetUnitDefID = Spring.GetUnitDefID
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetGrass = SpringShared.GetGrass
+local spGetUnitDefID = SpringShared.GetUnitDefID
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local vsx, vsy = gl.GetViewSizes()
-local minHeight, maxHeight = Spring.GetGroundExtremes()
+local minHeight, maxHeight = SpringShared.GetGroundExtremes()
 local removedBelowHeight
 local lastLavaLevel
 local lavaCheckInterval = 30 -- check every N game frames
@@ -297,7 +297,7 @@ local function scanUnitPositions(gf)
 	end
 
 	local cx, cy, cz = spGetCameraPosition()
-	local gh = Spring.GetGroundHeight(cx, cz) or 0
+	local gh = SpringShared.GetGroundHeight(cx, cz) or 0
 	local camHeight = cy - gh
 	-- Skip bending when camera is too high to see grass detail
 	if camHeight > grassConfig.grassShaderParams.FADEEND * distanceMult then
@@ -471,7 +471,7 @@ local function testForGrass(mx, mz)
 			return nil
 		end
 	else
-		local gx, gy, gz, gs = Spring.GetGroundNormal(mx, mz)
+		local gx, gy, gz, gs = SpringShared.GetGroundNormal(mx, mz)
 		local gh = spGetGroundHeight(mx, mz)
 		if (gh > grassConfig.grassMinHeight) and (gh < grassConfig.grassMaxHeight) and (gy > grassConfig.grassMaxSlope) then
 			return gh
@@ -554,7 +554,7 @@ local function updateGrassInstanceVBO(wx, wz, size, sizemod, vboOffset)
 
 	local shift = false
 	if placementMode then
-		_, _, _, shift = Spring.GetModKeyState()
+		_, _, _, shift = SpringUnsynced.GetModKeyState()
 	end
 	if sizemod < 1 then
 		if size < grassConfig.grassMinSize or shift then
@@ -685,7 +685,7 @@ end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if processChanges and not placementMode and buildingRadius[unitDefID] and not unitGrassRemovedHistory[unitID] then
-		local isBuilding = Spring.GetUnitIsBeingBuilt(unitID)
+		local isBuilding = SpringShared.GetUnitIsBeingBuilt(unitID)
 		if isBuilding then
 			removeUnitGrassQueue[unitID] = removeUnitGrassFrames
 		else
@@ -729,7 +729,7 @@ function widget:GameFrame(gf)
 
 	-- check lava level and remove grass where lava is higher than ground
 	if gf % lavaCheckInterval == 0 then
-		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+		local lavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 		if lavaLevel and lavaLevel ~= -99999 and (not lastLavaLevel or lavaLevel > lastLavaLevel) then
 			lastLavaLevel = lavaLevel
 			if WG["grassgl4"] and WG["grassgl4"].removeGrassBelowHeight then
@@ -748,7 +748,7 @@ function widget:GameFrame(gf)
 		end
 		local allUnits = spGetAllUnits()
 		for _, unitID in pairs(allUnits) do
-			if isCommander[Spring.GetUnitDefID(unitID)] then
+			if isCommander[SpringShared.GetUnitDefID(unitID)] then
 				local x, _, z = spGetUnitPosition(unitID)
 				adjustGrass(x, z, 90, 1)
 			end
@@ -1138,7 +1138,7 @@ function widget:Initialize()
 		WG["grassgl4"].removeGrassBelowHeight(20)
 	end
 	-- initial lava check
-	local initLavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	local initLavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 	if initLavaLevel and initLavaLevel ~= -99999 then
 		lastLavaLevel = initLavaLevel
 		WG["grassgl4"].removeGrassBelowHeight(initLavaLevel)
@@ -1182,7 +1182,7 @@ function widget:GetConfigData()
 end
 
 local function getWindSpeed()
-	windDirX, _, windDirZ, _ = Spring.GetWind()
+	windDirX, _, windDirZ, _ = SpringShared.GetWind()
 	-- cap windspeed while preserving direction
 	if windDirX > grassConfig.maxWindSpeed and windDirX > windDirZ then
 		windDirZ = (windDirZ / windDirX) * grassConfig.maxWindSpeed
@@ -1199,7 +1199,7 @@ local function mapcoordtorow(mapz, offset) -- is this even worth it?
 	return grassRowInstance[rownum]
 end
 
-local spIsAABBInView = Spring.IsAABBInView
+local spIsAABBInView = SpringUnsynced.IsAABBInView
 
 local viewtables = { { 0, 0 }, { vsx - 1, 0 }, { 0, vsy - 1 }, { vsx - 1, vsy - 1 } }
 
@@ -1269,7 +1269,7 @@ function widget:DrawWorldPreUnit()
 	if #grassInstanceData == 0 then
 		return
 	end
-	local mapDrawMode = Spring.GetMapDrawMode()
+	local mapDrawMode = SpringUnsynced.GetMapDrawMode()
 	if mapDrawMode ~= "normal" and mapDrawMode ~= "los" then
 		return
 	end
@@ -1284,7 +1284,7 @@ function widget:DrawWorldPreUnit()
 	oldGameSeconds = newGameSeconds
 
 	local cx, cy, cz = spGetCameraPosition()
-	local gh = (Spring.GetGroundHeight(cx, cz) or 0)
+	local gh = (SpringShared.GetGroundHeight(cx, cz) or 0)
 
 	local fadeEnd = grassConfig.grassShaderParams.FADEEND * distanceMult
 	local fadeStart = grassConfig.grassShaderParams.FADESTART * distanceMult
@@ -1304,7 +1304,7 @@ function widget:DrawWorldPreUnit()
 		if instanceCount <= 0 or startInstanceIndex == grassDataLen / 4 then
 			return
 		end
-		local _, _, isPaused = Spring.GetGameSpeed()
+		local _, _, isPaused = SpringUnsynced.GetGameSpeed()
 		if not isPaused then
 			getWindSpeed()
 			offsetX = offsetX - ((windDirX * grassConfig.grassWindMult) * timePassed)
@@ -1341,7 +1341,7 @@ function widget:DrawWorldPreUnit()
 		-- NOTE THAT INDEXED DRAWING DOESNT WORK YET!
 		grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, instanceCount, startInstanceIndex)
 
-		if placementMode and Spring.GetGameFrame() % 30 == 0 then
+		if placementMode and SpringShared.GetGameFrame() % 30 == 0 then
 			spEcho("Drawing", instanceCount, "grass patches")
 		end
 		grassShader:Deactivate()
@@ -1365,7 +1365,7 @@ end
 
 local lastSunChanged = -1
 function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
-	local df = Spring.GetDrawFrame()
+	local df = SpringUnsynced.GetDrawFrame()
 	--spEcho("widget:SunChanged", df)
 	if df == lastSunChanged then
 		return

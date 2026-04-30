@@ -2246,7 +2246,7 @@ end
 unitDistortions = nil
 
 -- oof this should not be a GetConfigInt :/
-if not (Spring.GetConfigInt("headdistortions", 1) == 1) then
+if not (SpringUnsynced.GetConfigInt("headdistortions", 1) == 1) then
 	for unitDefID, distortions in pairs(unitDefDistortions) do
 		for name, params in pairs(distortions) do
 			if string.find(name, "headdistortion") or string.find(name, "searchdistortion") then
@@ -2256,7 +2256,7 @@ if not (Spring.GetConfigInt("headdistortions", 1) == 1) then
 	end
 end
 
-if not (Spring.GetConfigInt("builddistortions", 1) == 1) then
+if not (SpringUnsynced.GetConfigInt("builddistortions", 1) == 1) then
 	for unitDefID, distortions in pairs(unitDefDistortions) do
 		for name, params in pairs(distortions) do
 			if string.find(name, "builddistortion") then

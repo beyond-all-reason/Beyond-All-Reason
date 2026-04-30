@@ -45,7 +45,7 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if krogkickWeapon[weaponDefID] then
 		if unitTeam and attackerTeam then
-			if Spring.AreTeamsAllied(unitTeam, attackerTeam) == false then
+			if SpringShared.AreTeamsAllied(unitTeam, attackerTeam) == false then
 				if stompableDefs[unitDefID] then
 					return 2000, 0
 				else

@@ -28,8 +28,8 @@ end
 -- Localized functions for performance
 local mathFloor = math.floor
 
-local spSetCameraOffset = Spring.SetCameraOffset
-local spSetShockFrontFactors = Spring.SetShockFrontFactors
+local spSetCameraOffset = SpringUnsynced.SetCameraOffset
+local spSetShockFrontFactors = SpringShared.SetShockFrontFactors
 local math_random = math.random
 
 local exps = 0

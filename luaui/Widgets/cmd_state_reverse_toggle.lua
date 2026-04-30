@@ -12,10 +12,10 @@ function widget:GetInfo()
 	}
 end
 
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetActiveCmdDesc = Spring.GetActiveCmdDesc
-local spGetCmdDescIndex = Spring.GetCmdDescIndex
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spGetActiveCmdDesc = SpringUnsynced.GetActiveCmdDesc
+local spGetCmdDescIndex = SpringUnsynced.GetCmdDescIndex
 
 function widget:CommandNotify(id, params, options)
 	local index = spGetCmdDescIndex(id)

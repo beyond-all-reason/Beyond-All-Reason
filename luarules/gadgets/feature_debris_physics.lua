@@ -21,7 +21,7 @@ for i = 1, #FeatureDefs do
 end
 
 function gadget:FeatureCreated(featureID)
-	if validFeatureDefID[Spring.GetFeatureDefID(featureID)] then
-		Spring.SetFeatureMoveCtrl(featureID, false, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+	if validFeatureDefID[SpringShared.GetFeatureDefID(featureID)] then
+		SpringSynced.SetFeatureMoveCtrl(featureID, false, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 	end
 end

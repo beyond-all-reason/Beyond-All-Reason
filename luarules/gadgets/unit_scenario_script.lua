@@ -19,8 +19,8 @@ else
 end
 
 local function GetScenarioID()
-	if Spring.GetModOptions().scenariooptions then
-		local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
+	if SpringShared.GetModOptions().scenariooptions then
+		local scenariooptions = string.base64Decode(SpringShared.GetModOptions().scenariooptions)
 		scenariooptions = Json.decode(scenariooptions)
 		return scenariooptions.scenarioid
 	end
@@ -36,5 +36,5 @@ if not VFS.FileExists("singleplayer/scenarios/scenarioscripts/" .. scenarioid ..
 	return
 end
 
-Spring.Echo("Scenario ID: " .. scenarioid)
+SpringShared.Echo("Scenario ID: " .. scenarioid)
 VFS.Include("singleplayer/scenarios/scenarioscripts/" .. scenarioid .. ".lua")

@@ -134,10 +134,10 @@ if gadgetHandler:IsSyncedCode() then
 	local function CobDebug(unitID, unitDefID, team, cmdid, line, p1, p2, p3, p4, p5, p6, p7, p8)
 		ResolveLine(unitDefID, line)
 
-		if lastgf == Spring.GetGameFrame() then
+		if lastgf == SpringShared.GetGameFrame() then
 			count = count + 1
 		else
-			lastgf = Spring.GetGameFrame()
+			lastgf = SpringShared.GetGameFrame()
 			count = 0
 		end
 		--  f:<01368.000> u:27656 armstump.FireWeapon1:97
@@ -174,7 +174,7 @@ if gadgetHandler:IsSyncedCode() then
 			msg = msg .. " p8=" .. tostring(p8)
 		end
 
-		Spring.Echo(msg)
+		SpringShared.Echo(msg)
 	end
 
 	function gadget:Initialize()

@@ -13,8 +13,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
-local spGetUnitTeam = Spring.GetUnitTeam
+local spEcho = SpringShared.Echo
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
 -- Configurable Parts:
 local texture = "luaui/images/backgroundtile.png"
@@ -46,15 +46,15 @@ local GL_REPLACE = GL.REPLACE
 local GL_POINTS = GL.POINTS
 
 local function AddPrimitiveAtUnit(unitID, unitDefID)
-	local gf = Spring.GetGameFrame()
-	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+	local gf = SpringShared.GetGameFrame()
+	unitDefID = unitDefID or SpringShared.GetUnitDefID(unitID)
 	if unitDefID == nil then
 		return
 	end -- these cant be selected
 	local numVertices = 64 -- default to cornered rectangle
 	local cornersize = 0
 
-	local radius = Spring.GetUnitRadius(unitID) * 2.6 or 64
+	local radius = SpringShared.GetUnitRadius(unitID) * 2.6 or 64
 	local width = radius
 	local length = radius
 	local additionalheight = 0
@@ -109,7 +109,7 @@ function widget:DrawWorldPreUnit()
 		if drawFrame % 100 == 0 then
 			spEcho("selectionVBO.usedElements", selectionVBO.usedElements)
 		end
-		local disticon = Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
+		local disticon = SpringUnsynced.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--gl.Culling(false)
 		disticon = disticon * 27 -- should be sqrt(750) but not really
 		glTexture(0, texture)
@@ -188,7 +188,7 @@ function widget:Initialize()
 		return
 	end
 	if true then -- FOR TESTING
-		local units = Spring.GetAllUnits()
+		local units = SpringShared.GetAllUnits()
 		for _, unitID in ipairs(units) do
 			AddPrimitiveAtUnit(unitID)
 		end

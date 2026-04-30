@@ -16,7 +16,7 @@ function widget:GetInfo()
 	}
 end
 
-local modOptions = Spring.GetModOptions()
+local modOptions = SpringShared.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then
 	return false
 end
@@ -27,17 +27,17 @@ end
 local MODEL_NAME = "territorial_score_model"
 local RML_PATH = "luaui/RmlWidgets/gui_territorial_domination/gui_territorial_domination.rml"
 
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spGetGameRulesParam = Spring.GetGameRulesParam
-local spGetAllyTeamList = Spring.GetAllyTeamList
-local spGetTeamList = Spring.GetTeamList
-local spGetTeamColor = Spring.GetTeamColor
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetTeamRulesParam = SpringShared.GetTeamRulesParam
+local spGetGameRulesParam = SpringShared.GetGameRulesParam
+local spGetAllyTeamList = SpringShared.GetAllyTeamList
+local spGetTeamList = SpringShared.GetTeamList
+local spGetTeamColor = SpringUnsynced.GetTeamColor
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 local spI18N = Spring.I18N
-local spGetGaiaTeamID = Spring.GetGaiaTeamID
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetAIInfo = Spring.GetAIInfo
+local spGetGaiaTeamID = SpringShared.GetGaiaTeamID
+local spGetTeamInfo = SpringShared.GetTeamInfo
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetAIInfo = SpringShared.GetAIInfo
 local ColorString = Spring.Utilities.Color.ToString
 
 local DEFAULT_MAX_ROUNDS = 7
@@ -148,7 +148,7 @@ end
 
 local function getAIName(teamID)
 	local _, _, _, name, _, options = spGetAIInfo(teamID)
-	local niceName = Spring.GetGameRulesParam("ainame_" .. teamID)
+	local niceName = SpringShared.GetGameRulesParam("ainame_" .. teamID)
 
 	if niceName then
 		name = niceName
@@ -171,7 +171,7 @@ local function fetchAllyTeamPlayerNames(allyTeamID)
 	local seenPlayerIDs = {}
 	local myTeamID = Spring.GetMyTeamID()
 	local mySpecStatus = spGetSpectatingState()
-	local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+	local anonymousMode = SpringShared.GetModOptions().teamcolors_anonymous_mode
 
 	for i = 1, #teamList do
 		local teamID = teamList[i]
@@ -181,9 +181,9 @@ local function fetchAllyTeamPlayerNames(allyTeamID)
 			local name = getAIName(teamID)
 			local r, g, b = spGetTeamColor(teamID)
 			if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
-				local anonymousColorR = Spring.GetConfigInt("anonymousColorR", COLOR_BYTE_MAX) / COLOR_BYTE_MAX
-				local anonymousColorG = Spring.GetConfigInt("anonymousColorG", 0) / COLOR_BYTE_MAX
-				local anonymousColorB = Spring.GetConfigInt("anonymousColorB", 0) / COLOR_BYTE_MAX
+				local anonymousColorR = SpringUnsynced.GetConfigInt("anonymousColorR", COLOR_BYTE_MAX) / COLOR_BYTE_MAX
+				local anonymousColorG = SpringUnsynced.GetConfigInt("anonymousColorG", 0) / COLOR_BYTE_MAX
+				local anonymousColorB = SpringUnsynced.GetConfigInt("anonymousColorB", 0) / COLOR_BYTE_MAX
 				r, g, b = anonymousColorR, anonymousColorG, anonymousColorB
 			end
 
@@ -206,9 +206,9 @@ local function fetchAllyTeamPlayerNames(allyTeamID)
 
 				local r, g, b = spGetTeamColor(teamID)
 				if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
-					local anonymousColorR = Spring.GetConfigInt("anonymousColorR", COLOR_BYTE_MAX) / COLOR_BYTE_MAX
-					local anonymousColorG = Spring.GetConfigInt("anonymousColorG", 0) / COLOR_BYTE_MAX
-					local anonymousColorB = Spring.GetConfigInt("anonymousColorB", 0) / COLOR_BYTE_MAX
+					local anonymousColorR = SpringUnsynced.GetConfigInt("anonymousColorR", COLOR_BYTE_MAX) / COLOR_BYTE_MAX
+					local anonymousColorG = SpringUnsynced.GetConfigInt("anonymousColorG", 0) / COLOR_BYTE_MAX
+					local anonymousColorB = SpringUnsynced.GetConfigInt("anonymousColorB", 0) / COLOR_BYTE_MAX
 					r, g, b = anonymousColorR, anonymousColorG, anonymousColorB
 				end
 
@@ -474,8 +474,8 @@ end
 
 local function checkDocumentVisibility()
 	local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
-	local currentTime = Spring.GetGameSeconds()
-	local _, _, isClientPaused, _ = Spring.GetGameState()
+	local currentTime = SpringShared.GetGameSeconds()
+	local _, _, isClientPaused, _ = SpringUnsynced.GetGameState()
 	local isGameStarted = currentTime > 0
 	local shouldShow = pointsCap and pointsCap > 0 and isGameStarted and not isClientPaused and not widgetState.hiddenByLobby and widgetState.hasValidAdvPlayerListPosition
 
@@ -534,7 +534,7 @@ local function calculateUILayout()
 
 	widgetState.hasValidAdvPlayerListPosition = true
 
-	local screenWidth, screenHeight = Spring.GetViewGeometry()
+	local screenWidth, screenHeight = SpringUnsynced.GetViewGeometry()
 	if not screenWidth or screenWidth <= 0 then
 		return
 	end
@@ -658,8 +658,8 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 	popupElement.class_name = "popup-round-end visible"
 	widgetState.popupState.isVisible = true
 	widgetState.popupState.showTime = os.clock()
-	Spring.PlaySoundFile("sounds/global-events/scavlootdrop.wav", 0.8, "ui")
-	Spring.PlaySoundFile("sounds/replies/servlrg3.wav", 1.0, "ui")
+	SpringUnsynced.PlaySoundFile("sounds/global-events/scavlootdrop.wav", 0.8, "ui")
+	SpringUnsynced.PlaySoundFile("sounds/replies/servlrg3.wav", 1.0, "ui")
 end
 
 local function hideRoundEndPopup()
@@ -803,7 +803,7 @@ local function updateRoundInfo()
 	local isCountdownWarning = false
 
 	if roundEndTime > 0 then
-		timeRemainingSeconds = math.max(0, roundEndTime - Spring.GetGameSeconds())
+		timeRemainingSeconds = math.max(0, roundEndTime - SpringShared.GetGameSeconds())
 		timeString = string.format("%d:%02d", math.floor(timeRemainingSeconds / SECONDS_PER_MINUTE), math.floor(timeRemainingSeconds % SECONDS_PER_MINUTE))
 		if timeRemainingSeconds < 1 then
 			timeString = TIME_ZERO_STRING
@@ -1059,7 +1059,7 @@ local function resetCache()
 end
 
 local function shouldSkipUpdate()
-	local currentTime = Spring.GetGameSeconds()
+	local currentTime = SpringShared.GetGameSeconds()
 
 	if currentTime <= 0 then
 		return true
@@ -1082,12 +1082,12 @@ local function shouldSkipUpdate()
 end
 
 local function shouldUpdateScores()
-	local currentTime = Spring.GetGameSeconds()
+	local currentTime = SpringShared.GetGameSeconds()
 	return currentTime - widgetState.lastScoreUpdateTime >= SCORE_UPDATE_INTERVAL
 end
 
 local function shouldUpdateTime()
-	local currentTime = Spring.GetGameSeconds()
+	local currentTime = SpringShared.GetGameSeconds()
 	local roundEndTime = spGetGameRulesParam("territorialDominationRoundEndTimestamp") or 0
 
 	if roundEndTime <= 0 then
@@ -1102,7 +1102,7 @@ local function shouldUpdateTime()
 end
 
 local function shouldFullUpdate()
-	local currentTime = Spring.GetGameSeconds()
+	local currentTime = SpringShared.GetGameSeconds()
 	return currentTime - widgetState.lastUpdateTime >= UPDATE_INTERVAL
 end
 
@@ -1204,7 +1204,7 @@ function widget:Initialize()
 
 	widgetState.dmHandle = dmHandle
 
-	local language = Spring.GetConfigString("language", "en")
+	local language = SpringUnsynced.GetConfigString("language", "en")
 
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not document then
@@ -1245,12 +1245,12 @@ function widget:Initialize()
 	end
 
 	resetCache()
-	widgetState.lastUpdateTime = Spring.GetGameSeconds()
-	widgetState.lastScoreUpdateTime = Spring.GetGameSeconds()
-	widgetState.lastTimeUpdateTime = Spring.GetGameSeconds()
+	widgetState.lastUpdateTime = SpringShared.GetGameSeconds()
+	widgetState.lastScoreUpdateTime = SpringShared.GetGameSeconds()
+	widgetState.lastTimeUpdateTime = SpringShared.GetGameSeconds()
 
 	calculateUILayout()
-	if Spring.GetGameSeconds() > 0 then
+	if SpringShared.GetGameSeconds() > 0 then
 		updateDataModel()
 		updateCountdownColor()
 	end
@@ -1296,7 +1296,7 @@ function widget:Shutdown()
 end
 
 function widget:Update()
-	local currentTime = Spring.GetGameSeconds()
+	local currentTime = SpringShared.GetGameSeconds()
 	local currentOSClock = os.clock()
 
 	checkDocumentVisibility()
@@ -1360,7 +1360,7 @@ function widget:KeyPress(key)
 end
 
 function widget:DrawScreen()
-	if Spring.GetGameSeconds() <= 0 then
+	if SpringShared.GetGameSeconds() <= 0 then
 		return
 	end
 end

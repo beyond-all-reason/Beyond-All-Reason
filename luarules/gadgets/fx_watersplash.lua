@@ -18,7 +18,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local abs = math.abs
-local GetGroundBlocked = Spring.GetGroundBlocked
+local GetGroundBlocked = SpringShared.GetGroundBlocked
 local nonexplosiveWeapons = {
 	LaserCannon = true,
 	BeamLaser = true,
@@ -27,7 +27,7 @@ local nonexplosiveWeapons = {
 	LightningCannon = true,
 }
 
-local waterIsLava = Spring.GetModOptions().map_waterislava
+local waterIsLava = SpringShared.GetModOptions().map_waterislava
 
 local splashCEGs = {
 	"splash-tiny",
@@ -120,12 +120,12 @@ for weaponDefID, def in pairs(WeaponDefs) do
 end
 
 function gadget:Explosion(weaponID, px, py, pz, ownerID)
-	if Spring.GetGroundHeight(px, pz) < 0 then
+	if SpringShared.GetGroundHeight(px, pz) < 0 then
 		local aoe = weaponAoe[weaponID]
 		if not weaponNoSplash[weaponID] and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) then
 			local splashCEG = weaponSplashCEG[weaponID]
 			if splashCEG then
-				Spring.SpawnCEG(splashCEG, px, 0, pz)
+				SpringSynced.SpawnCEG(splashCEG, px, 0, pz)
 			end
 			return true
 		else
@@ -137,7 +137,7 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 end
 
 function gadget:Initialize()
-	local minHeight, maxHeight = Spring.GetGroundExtremes()
+	local minHeight, maxHeight = SpringShared.GetGroundExtremes()
 	if minHeight < 100 then
 		for wDefID, wDef in pairs(WeaponDefs) do
 			if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect > 8 and not weaponNoSplash[wDefID] then

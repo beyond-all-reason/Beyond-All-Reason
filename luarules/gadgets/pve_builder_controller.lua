@@ -17,11 +17,11 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 if Spring.Utilities.Gametype.IsRaptors() then
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
+	SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
 elseif Spring.Utilities.Gametype.IsScavengers() then
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
+	SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
 else
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Defense Spawner Deactivated!")
+	SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "Defense Spawner Deactivated!")
 	return false
 end
 
@@ -60,10 +60,10 @@ function gadget:GameFrame(frame)
 	if frame > lastTurretFrame + 150 then
 		if frame % 30 == 9 then
 			for unitID, data in pairs(aliveBuilders) do
-				if (Spring.GetUnitNearestEnemy(unitID, data.range * 5, true) and math.random(0, 15) == 0) or data.isFactory then
+				if (SpringShared.GetUnitNearestEnemy(unitID, data.range * 5, true) and math.random(0, 15) == 0) or data.isFactory then
 					--Spring.Echo(data.unitDefName, "NearestEnemyInRange")
-					local unitCommands = not data.isFactory and Spring.GetUnitCommands(unitID, 1) or {}
-					if (data.isFactory and #Spring.GetFullBuildQueue(unitID) < 5) or (not data.isFactory and (not unitCommands[1] or (unitCommands[1] and unitCommands[1].id > 0 and unitCommands[1].id ~= CMD.REPAIR))) then
+					local unitCommands = not data.isFactory and SpringShared.GetUnitCommands(unitID, 1) or {}
+					if (data.isFactory and #SpringShared.GetFullBuildQueue(unitID) < 5) or (not data.isFactory and (not unitCommands[1] or (unitCommands[1] and unitCommands[1].id > 0 and unitCommands[1].id ~= CMD.REPAIR))) then
 						--Spring.Echo(data.unitDefName, "Isn't building anything")
 						local turretOptions = {}
 						for buildOptionIndex, buildOptionID in pairs(data.buildOptions) do
@@ -75,11 +75,11 @@ function gadget:GameFrame(frame)
 						end
 						if #turretOptions > 1 then
 							local turret = turretOptions[math.random(1, #turretOptions)]
-							local x, y, z = Spring.GetUnitPosition(unitID)
-							Spring.GiveOrderToUnit(unitID, -turret, { x + math.random(-data.range, data.range), y, z + math.random(-data.range, data.range) }, {})
+							local x, y, z = SpringShared.GetUnitPosition(unitID)
+							SpringShared.GiveOrderToUnit(unitID, -turret, { x + math.random(-data.range, data.range), y, z + math.random(-data.range, data.range) }, {})
 							if data.isFactory then
 								for i = 1, math.random(1, 5) do
-									Spring.GiveOrderToUnit(unitID, -turret, { x + math.random(-data.range, data.range), y, z + math.random(-data.range, data.range) }, {})
+									SpringShared.GiveOrderToUnit(unitID, -turret, { x + math.random(-data.range, data.range), y, z + math.random(-data.range, data.range) }, {})
 								end
 							else
 								lastTurretFrame = frame

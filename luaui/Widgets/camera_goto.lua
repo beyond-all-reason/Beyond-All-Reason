@@ -20,7 +20,7 @@ local function handleGoto(_, _, args)
 	if not x or not z then
 		return
 	end
-	Spring.SetCameraTarget(x, Spring.GetGroundHeight(x, z), z)
+	SpringUnsynced.SetCameraTarget(x, SpringShared.GetGroundHeight(x, z), z)
 end
 
 function widget:Shutdown()

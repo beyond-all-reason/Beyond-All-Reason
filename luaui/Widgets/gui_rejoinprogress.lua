@@ -16,7 +16,7 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local showRejoinUI = false
 local CATCH_UP_THRESHOLD = 11 * Game.gameSpeed -- only show the window if behind this much
@@ -24,7 +24,7 @@ local UPDATE_RATE_F = 5 -- frames
 local UPDATE_RATE_S = UPDATE_RATE_F / Game.gameSpeed
 local t = UPDATE_RATE_S
 
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = 1
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
@@ -33,7 +33,7 @@ local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local rejoinArea = {}
 local gameStarted = (spGetGameFrame() > 0)
-local isReplay = Spring.IsReplay()
+local isReplay = SpringUnsynced.IsReplay()
 local RectRound, TexturedRectRound, UiElement, font2
 local dlistRejoin, dlistRejoinGuishader, serverFrame
 local posY = 0.22
@@ -149,12 +149,12 @@ function widget:Update(dt)
 		if t <= 0 then
 			t = t + UPDATE_RATE_S
 
-			if Spring.IsGameOver() then -- not sure if widget:GameOver() even works so I do this here as well
+			if SpringShared.IsGameOver() then -- not sure if widget:GameOver() even works so I do this here as well
 				widgetHandler:RemoveWidget()
 				return
 			end
 
-			local speedFactor, _, isPaused = Spring.GetGameSpeed()
+			local speedFactor, _, isPaused = SpringUnsynced.GetGameSpeed()
 
 			-- update/estimate serverFrame (because widget:GameProgress(n) only happens every 150 frames)
 			if gameStarted and not isPaused then

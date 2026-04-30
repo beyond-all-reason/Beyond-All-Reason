@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local watchForTime = 3 --How long to monitor the energy level after the dgun command is given
 
@@ -31,15 +31,15 @@ local gameStarted
 ----------------------------------------------------------------
 -- Speedups
 ----------------------------------------------------------------
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetFactoryCommands = Spring.GetFactoryCommands
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGiveOrderToUnitArray = SpringShared.GiveOrderToUnitArray
+local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+local spGetFactoryCommands = SpringShared.GetFactoryCommands
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetTeamResources = Spring.GetTeamResources
-local spGetTeamUnits = Spring.GetTeamUnits
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetTeamResources = SpringShared.GetTeamResources
+local spGetTeamUnits = SpringShared.GetTeamUnits
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
 
 local CMD_DGUN = CMD.DGUN
 local CMD_WAIT = CMD.WAIT
@@ -52,7 +52,7 @@ local CMD_RECLAIM = CMD.RECLAIM
 ----------------------------------------------------------------
 
 function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if SpringUnsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -67,7 +67,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 
@@ -84,7 +84,7 @@ end
 function widget:Update(dt)
 	local _, activeCmdID = spGetActiveCommand()
 	if activeCmdID == CMD_DGUN then
-		local selection = Spring.GetSelectedUnitsCounts()
+		local selection = SpringUnsynced.GetSelectedUnitsCounts()
 		local stallUnitSelected = false
 
 		for uDefID, _ in next, selection do

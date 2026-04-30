@@ -27,8 +27,8 @@ end
 
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 	if cmdType == "point" then
-		Spring.PlaySoundFile(mapmarkFile, volume * 20, x, y, z, nil, nil, nil, "ui")
-		Spring.PlaySoundFile(mapmarkFile, volume * 0.3, nil, "ui") -- to make sure it's still somewhat audible when far away
+		SpringUnsynced.PlaySoundFile(mapmarkFile, volume * 20, x, y, z, nil, nil, nil, "ui")
+		SpringUnsynced.PlaySoundFile(mapmarkFile, volume * 0.3, nil, "ui") -- to make sure it's still somewhat audible when far away
 	end
 end
 

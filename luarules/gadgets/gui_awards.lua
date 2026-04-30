@@ -15,8 +15,8 @@ end
 local topPlacementsCount = 3 -- Only report the top N places for each award
 
 if gadgetHandler:IsSyncedCode() then
-	local spAreTeamsAllied = Spring.AreTeamsAllied
-	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local spAreTeamsAllied = SpringShared.AreTeamsAllied
+	local gaiaTeamID = SpringShared.GetGaiaTeamID()
 
 	local teamInfo = {}
 	local coopInfo = {}
@@ -74,17 +74,17 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameStart()
 		-- make table of teams eligible for awards
-		local allyTeamIDs = Spring.GetAllyTeamList()
+		local allyTeamIDs = SpringShared.GetAllyTeamList()
 		for i = 1, #allyTeamIDs do
-			local teamIDs = Spring.GetTeamList(allyTeamIDs[i])
+			local teamIDs = SpringShared.GetTeamList(allyTeamIDs[i])
 			for j = 1, #teamIDs do
-				local isLuaAI = (Spring.GetTeamLuaAI(teamIDs[j]) ~= nil)
-				local isAiTeam = select(4, Spring.GetTeamInfo(teamIDs[j]))
+				local isLuaAI = (SpringShared.GetTeamLuaAI(teamIDs[j]) ~= nil)
+				local isAiTeam = select(4, SpringShared.GetTeamInfo(teamIDs[j]))
 				if not (isLuaAI or isAiTeam or teamIDs[j] == gaiaTeamID) then
-					local playerIDs = Spring.GetPlayerList(teamIDs[j])
+					local playerIDs = SpringShared.GetPlayerList(teamIDs[j])
 					local numPlayers = 0
 					for _, playerID in pairs(playerIDs) do
-						if not select(3, Spring.GetPlayerInfo(playerID, false)) then
+						if not select(3, SpringShared.GetPlayerInfo(playerID, false)) then
 							numPlayers = numPlayers + 1
 						end
 					end
@@ -129,7 +129,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		--keep track of who didn't kill for longest (sleeptimes)
-		local curTime = Spring.GetGameSeconds()
+		local curTime = SpringShared.GetGameSeconds()
 		if curTime - teamInfo[attackerTeamID].lastKill > teamInfo[attackerTeamID].sleepTime then
 			teamInfo[attackerTeamID].sleepTime = curTime - teamInfo[attackerTeamID].lastKill
 		end
@@ -158,16 +158,16 @@ if gadgetHandler:IsSyncedCode() then
 		local totalEco = 1
 		local nTeams = 0
 		for tID, _ in pairs(teamInfo) do
-			local cur_max = Spring.GetTeamStatsHistory(tID)
-			local stats = Spring.GetTeamStatsHistory(tID, cur_max, cur_max)
+			local cur_max = SpringShared.GetTeamStatsHistory(tID)
+			local stats = SpringShared.GetTeamStatsHistory(tID, cur_max, cur_max)
 			totalDmg = totalDmg + teamInfo[tID].allDmg
 			totalEco = totalEco + stats[1].energyUsed + 60 * stats[1].metalUsed -- don't count excessed & reclaimed res
 			nTeams = nTeams + 1
 		end
 
 		-- calculate efficiency score
-		local cur_max = Spring.GetTeamStatsHistory(teamID)
-		local stats = Spring.GetTeamStatsHistory(teamID, cur_max, cur_max)
+		local cur_max = SpringShared.GetTeamStatsHistory(teamID)
+		local stats = SpringShared.GetTeamStatsHistory(teamID, cur_max, cur_max)
 		local teamEco = stats[1].energyProduced + 60 * stats[1].metalProduced -- do count excessed & reclaimed res
 		local pEco = teamEco / totalEco -- [0,1]
 		local pDmg = teamInfo[teamID].allDmg / totalDmg -- [0,infty), due to m/e excessed, but typically [0,1]
@@ -179,8 +179,8 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameOver(winningAllyTeams)
 		--get stuff from engine stats (not all of which is currently used)
 		for teamID, _ in pairs(teamInfo) do
-			local cur_max = Spring.GetTeamStatsHistory(teamID)
-			local stats = Spring.GetTeamStatsHistory(teamID, cur_max, cur_max)
+			local cur_max = SpringShared.GetTeamStatsHistory(teamID)
+			local stats = SpringShared.GetTeamStatsHistory(teamID, cur_max, cur_max)
 			teamInfo[teamID].ecoUsed = teamInfo[teamID].ecoUsed + stats[1].energyUsed + 60 * stats[1].metalUsed -- might already be non-zero due to accounting in UnitTaken
 			teamInfo[teamID].ecoProd = stats[1].energyProduced + 60 * stats[1].metalProduced
 			teamInfo[teamID].dmgDealt = stats[1].damageDealt
@@ -227,7 +227,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		for teamID, _ in pairs(teamInfo) do
 			--deal with sleep times
-			local curTime = Spring.GetGameSeconds()
+			local curTime = SpringShared.GetGameSeconds()
 			if curTime - teamInfo[teamID].lastKill > teamInfo[teamID].sleepTime then
 				teamInfo[teamID].sleepTime = curTime - teamInfo[teamID].lastKill
 			end
@@ -304,7 +304,7 @@ else
 		local otherLine = "\164" .. tostring(1 + awards.goldenCow[1].teamID) .. "\165" .. tostring(1 + awards.eco[1].teamID) .. ":" .. tostring(awards.eco[1].score) .. "\166" .. tostring(1 + awards.damageReceived[1].teamID) .. ":" .. tostring(awards.damageReceived[1].score) .. "\167" .. tostring(1 + awards.sleep[1].teamID) .. ":" .. tostring(awards.sleep[1].score)
 		local awardsMsg = ecoKillLine .. fightKillLine .. efficientKillLine .. otherLine
 
-		Spring.SendLuaRulesMsg(awardsMsg)
+		SpringUnsynced.SendLuaRulesMsg(awardsMsg)
 
 		-- send to awards widget
 		if Script.LuaUI("GadgetReceiveAwards") then
