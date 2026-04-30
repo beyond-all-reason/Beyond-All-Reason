@@ -64,7 +64,8 @@ local spSetUnitPosition = Spring.SetUnitPosition
 -- Constants
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
-local alliedDist = mapSizeX * mapSizeZ          -- priority offset: own team < allied < enemy (never)
+local mobilityDist = mapSizeX * mapSizeZ          -- priority offset: mobile < immobile
+local alliedDist = 2 * mobilityDist          -- priority offset: own team < allied < enemy (never)
 local maxDistSq = 2 * alliedDist               -- guaranteed > any real sq distance on the map
 local LOAD_RADIUS = 128    -- elmos XZ; transporter must be within this range to fire PerformLoad
 local CMD_AREA_LOAD = 39751 -- custom area-load command; needs to be logged in customcmds
@@ -441,7 +442,11 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 			local dx, dz    = passengerPosX - transporterPosX, passengerPosZ - transporterPosZ
 			local rawDistSq = dx * dx + dz * dz
 			-- alliedDist is the offset applied to allied units, by definition dist < alliedDist for all units (alliedDist = mapSizeX*mapSizeZ)
-			local unitDist  = (passengerTeamID == transporterTeamID) and rawDistSq or (rawDistSq + alliedDist)
+			-- mobilityDist is the offset applied to immobile units, by definition dist < mobilityDist for mobile units.
+			-- this gives priority order: mobile own > immobile own > mobile allied > immobile allied
+			local mDist = UnitDefs[passengerDefID].speed>0 and 0 or mobilityDist
+			local aDist = (passengerTeamID ~= transporterTeamID) and alliedDist or 0
+			local unitDist  =  rawDistSq + aDist + mDist
 			if unitDist >= bestDist then break end
 			bestDist = unitDist
 			bestUnit = passengerID
