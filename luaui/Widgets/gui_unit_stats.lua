@@ -26,6 +26,7 @@ local tableSortStable = table.sortStable
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
 
 local texts = {}
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
@@ -133,10 +134,12 @@ local energyColor = '\255\255\255\128' -- Light yellow
 local buildColor = '\255\128\255\128' -- Light green
 
 local simSpeed = Game.gameSpeed
+local simSpeedInv = 1 / simSpeed
 local armorTypes = Game.armorTypes
 
 local max = mathMax
 local floor = mathFloor
+local round = math.round
 local ceil = math.ceil
 local bit_and = math.bit_and
 local format = string.format
@@ -202,6 +205,8 @@ local showStats = false
 
 -- TODO: Shield damages are overridden in the shields rework (now in main game)
 local shieldsRework = not Spring.GetModOptions().experimentalshields:find("bounce")
+local veterancyRework = Spring.GetModOptions().veterancy_upgrades
+local reloadTimeState = veterancyRework and "reloadTime" or "reloadTimeXP"
 
 -- TODO: Localize, same as armorTypes
 -- TODO: Compose this list somewhere and reinclude it here
@@ -477,6 +482,7 @@ local function computeContent(uDefID, uID, shiftBool)
 
 	local uDef = uDefs[uDefID]
 	local maxHP = uDef.health
+	local autoHeal = uDef.autoHeal
 	local uTeam = Spring.GetMyTeamID()
 	local losRadius = uDef.sightDistance
 	local airLosRadius = uDef.airSightDistance
@@ -493,11 +499,13 @@ local function computeContent(uDefID, uID, shiftBool)
 	local transportable = not (uDef.cantBeTransported and uDef.cantBeTransported or false)
 	local mass = uDef.mass and uDef.mass or 0
 	local size = uDef.xsize and uDef.xsize / 2 or 0
+	local damageMultiplier = 1.0
 	local isBuilding, buildProg, uExp
 
 	if uID then
 		isBuilding, buildProg = Spring.GetUnitIsBeingBuilt(uID)
-		maxHP = select(2,Spring.GetUnitHealth(uID))
+		maxHP = select(2,Spring.GetUnitHealth(uID)) or 0
+		autoHeal = autoHeal + (spGetUnitRulesParam(uID, "veterancy_autoheal") or 0)
 		uTeam = spGetUnitTeam(uID)
 		losRadius = spGetUnitSensorRadius(uID, 'los') or 0
 		airLosRadius = spGetUnitSensorRadius(uID, 'airLos') or 0
@@ -508,6 +516,7 @@ local function computeContent(uDefID, uID, shiftBool)
 		seismicRadius = spGetUnitSensorRadius(uID, 'seismic') or 0
 		uExp = spGetUnitExperience(uID)
 		armoredMultiple = select(2,Spring.GetUnitArmored(uID))
+		damageMultiplier = spGetUnitRulesParam(uID, "veterancy_damages_multiplier") or damageMultiplier
 	end
 
 	maxWidth = 0
@@ -609,11 +618,17 @@ local function computeContent(uDefID, uID, shiftBool)
 
 	DrawText(texts.armor..":", texts.class .. armorTypes[uDef.armorType or 0] or '???')
 
-	if uID and uExp ~= 0 then
-		if maxHP then
-			DrawText(texts.exp..":", format("+%d%% "..texts.health, (maxHP/uDef.health-1)*100))
-		else
-			--DrawText("Exp:                 unknown",'\255\255\77\77')
+	if uExp and uExp ~= 0 then
+		local bonuses = {}
+		if maxHP    ~= 0 then bonuses[#bonuses + 1] = ("+%d%% %s"):format(100 * (maxHP / uDef.health - 1), texts.health  ) end
+		if autoHeal ~= 0 then bonuses[#bonuses + 1] = ("+%d %s"  ):format(       autoHeal - uDef.autoHeal, texts.autoheal) end
+		for b = #bonuses, 1, -1 do
+			if bonuses[b]:match("^[+-]0") then
+				table.remove(bonuses, b)
+			end
+		end
+		if bonuses[1] then
+			DrawText(texts.exp..":", table.concat(bonuses, ", "))
 		end
 	end
 	if paralyzeMult < 1 then
@@ -689,7 +704,6 @@ local function computeContent(uDefID, uID, shiftBool)
 	local uWeps = uDef.weapons
 	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
-	local weaponNums = {}
 	for i = 1, #uWeps do
 		local wDefID = uWeps[i].weaponDef
 		if weaponGroupNumbers[wDefID] >= 0 then
@@ -699,26 +713,37 @@ local function computeContent(uDefID, uID, shiftBool)
 			else
 				wepCounts[wDefID] = 1
 				wepsCompact[#wepsCompact + 1] = wDefID
-				weaponNums[#wepsCompact] = i
 			end
 		end
 	end
 	tableSortStable(wepsCompact, function(a, b) return weaponGroupNumbers[a] < weaponGroupNumbers[b] end)
 
-	local selfDWeaponID = WeaponDefNames[uDef.selfDExplosion].id
+	local wepNums = {}
+
 	local deathWeaponID = WeaponDefNames[uDef.deathExplosion].id
-	local selfDWeaponIndex
+	local selfDWeaponID = WeaponDefNames[uDef.selfDExplosion].id
 	local deathWeaponIndex
+	local selfDWeaponIndex
 
 	if shift then
-		wepCounts = {}
-		wepsCompact = {}
-		wepCounts[selfDWeaponID] = 1
-		wepCounts[deathWeaponID] = 1
-		deathWeaponIndex = #wepsCompact+1
+		wepCounts, wepsCompact = {}, {}
+		deathWeaponIndex = 1
 		wepsCompact[deathWeaponIndex] = deathWeaponID
-		selfDWeaponIndex = #wepsCompact+1
+		wepNums[deathWeaponIndex] = 0
+		wepCounts[deathWeaponID] = 1
+		selfDWeaponIndex = 2
 		wepsCompact[selfDWeaponIndex] = selfDWeaponID
+		wepNums[selfDWeaponIndex] = 0
+		wepCounts[selfDWeaponID] = 1
+	else
+		for i = 1, #wepsCompact do
+			for j = 1, #uWeps do
+				if wepsCompact[i] == uWeps[j].weaponDef then
+					wepNums[i] = j
+					break
+				end
+			end
+		end
 	end
 
 	local groupLast = wepsCompact[1] and weaponGroupNumbers[wepsCompact[1]]
@@ -726,8 +751,8 @@ local function computeContent(uDefID, uID, shiftBool)
 	local totalbDamages = 0
 	local useExp = true
 	for i = 1, #wepsCompact do
-
 		local wDefId = wepsCompact[i]
+		local wNum = wepNums[i]
 		local uWep = wDefs[wDefId]
 
 		-- Handle projectiles that spawn additional projectiles.
@@ -763,21 +788,31 @@ local function computeContent(uDefID, uID, shiftBool)
 			baseArmorDamage = baseArmorDamage + cmDamage * cmNumber
 		end
 
-		if range > 0 and uWep.customParams.bogus ~= "1" then
-			local oRld = max(0.00000000001, uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
-			if uID and useExp and not ((uWep.stockpile and uWep.stockpileTime)) then
-				oRld = spGetUnitWeaponState(uID, weaponNums[i] or -1, "reloadTimeXP") or
-				       spGetUnitWeaponState(uID, weaponNums[i] or -1, "reloadTime")   or oRld
+		if range > 0 and custom.bogus ~= "1" then
+			-- Time to fire might differ from the reload time:
+			local fireTime = max(simSpeedInv, uWep.stockpile and uWep.stockpileTime * simSpeedInv or uWep.reload)
+
+			if useExp and wNum > 0 then
+				if not uWep.stockpile then
+					local reloadTime = spGetUnitWeaponState(uID, wNum, reloadTimeState)
+					reload = max(simSpeedInv, reloadTime or reload)
+					fireTime = reload or reloadTime or fireTime
+				end
+				range = spGetUnitWeaponState(uID, wNum, "range") or range
 			end
+
+			-- We can get non-quantized values from dynamic weapon states.
+			reload = max(1, round(reload * simSpeed)) * simSpeedInv
+			fireTime = max(1, round(fireTime * simSpeed)) * simSpeedInv
 
 			local wpnName = uWep.description
 			local wepCount = wepCounts[wDefId]
 			if i == deathWeaponIndex then
 				wpnName = texts.deathexplosion
-				oRld = 1
+				fireTime = 1
 			elseif i == selfDWeaponIndex then
 				wpnName = texts.selfdestruct
-				oRld = uDef.selfDestructCountdown
+				fireTime = uDef.selfDestructCountdown
 			end
 			if wepCount > 1 then
 				DrawText(texts.weap..":", format(yellow .. "%dx" .. white .. " %s", wepCount, wpnName))
@@ -785,12 +820,23 @@ local function computeContent(uDefID, uID, shiftBool)
 				DrawText(texts.weap..":", wpnName)
 			end
 
-			if uExp ~= 0 then
-				local rangeBonus = range ~= 0 and (range/uWep.range-1) or 0
-				local reloadBonus = reload ~= 0 and (uWep.reload/reload-1) or 0
-				local accuracyBonus = accuracy ~= 0 and (uWep.accuracy/accuracy-1) or 0
-				local moveErrorBonus = moveError ~= 0 and (uWep.targetMoveError/moveError-1) or 0
-				DrawText(texts.exp..":", format("+%d%% "..texts.accuracy..", +%d%% "..texts.aim..", +%d%% "..texts.firerate..", +%d%% "..texts.range, accuracyBonus*100, moveErrorBonus*100, reloadBonus*100, rangeBonus*100 ))
+			local damageMod = not custom.nodamagexpscale and damageMultiplier or 1.0
+
+			if uExp and uExp ~= 0 then
+				local bonuses = {}
+				if accuracy  ~= 0 then bonuses[#bonuses + 1] = ("+%d%% %s"):format(100 * (uWep.accuracy / accuracy         - 1), texts.accuracy) end
+				if moveError ~= 0 then bonuses[#bonuses + 1] = ("+%d%% %s"):format(100 * (uWep.targetMoveError / moveError - 1), texts.aim     ) end
+				if range     ~= 0 then bonuses[#bonuses + 1] = ("+%d%% %s"):format(100 * (range / uWep.range               - 1), texts.range   ) end
+				if damageMod ~= 1 then bonuses[#bonuses + 1] = ("+%d%% %s"):format(100 * (damageMod                        - 1), texts.damages ) end
+				if reload    ~= 0 then bonuses[#bonuses + 1] = ("-%d%% %s"):format(100 * (1             - reload / uWep.reload), texts.reload  ) end
+				for b = #bonuses, 1, -1 do
+					if bonuses[b]:match("^[+-]0") then
+						table.remove(bonuses, b)
+					end
+				end
+				if bonuses[1] then
+					DrawText(texts.exp..":", table.concat(bonuses, ", "))
+				end
 			end
 
 			local infoText = ""
@@ -836,15 +882,16 @@ local function computeContent(uDefID, uID, shiftBool)
 				if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
 					damageString = texts.burst.." = "..(format(yellow .. "%d", burstDamage))..white.."."
 				else
-					local dps = burstDamage / (useExp and reload or uWep.reload)
+					local dmg = custom.nodamagexpscale and burstDamage or burstDamage * damageMod
+					local dps = dmg / (useExp and reload or uWep.reload)
 					if custom.area_onhit_damage and custom.area_onhit_time then
-						local areaDps = custom.area_onhit_damage * burst
+						local areaDps = custom.area_onhit_damage * dmg
 						local duration = custom.area_onhit_time
 						dps = max(dps + areaDps, areaDps * duration / (useExp and reload or uWep.reload))
 					end
 					totaldps = totaldps + wepCount*dps
-					totalbDamages = totalbDamages + wepCount* burstDamage
-					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
+					totalbDamages = totalbDamages + wepCount * dmg
+					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", dmg)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
 				end
 				DrawText(texts.dmg..":", damageString)
 
@@ -871,13 +918,15 @@ local function computeContent(uDefID, uID, shiftBool)
 						tableInsert(sorted, k)
 					end
 				end
-				tableSort(sorted, descending)
 
-				local modifierText = { ("default = %s%d%%"):format(yellow, floor(100 * damages[defaultArmorIndex] / baseArmorDamage)) }
-				for _, armorDamage in ipairs(sorted) do
-					tableInsert(modifierText, ("%s = %s%d%%"):format(table.concat(modifiers[armorDamage], ", "), yellow, floor(100 * armorDamage / baseArmorDamage)))
+				if sorted[1] then
+					tableSort(sorted, descending)
+					local modifierText = { ("default = %s%d%%"):format(yellow, floor(100 * damages[defaultArmorIndex] / baseArmorDamage)) }
+					for _, armorDamage in ipairs(sorted) do
+						tableInsert(modifierText, ("%s = %s%d%%"):format(table.concat(modifiers[armorDamage], ", "), yellow, floor(100 * armorDamage / baseArmorDamage)))
+					end
+					DrawText(texts.modifiers..":", table.concat(modifierText, white.."; ") .. white .. ".")
 				end
-				DrawText(texts.modifiers..":", table.concat(modifierText, white.."; ") .. white .. ".")
 			end
 
 			if uWep.metalCost > 0 or uWep.energyCost > 0 then
@@ -887,12 +936,12 @@ local function computeContent(uDefID, uID, shiftBool)
 					energyColor .. '-%d' .. white .. ' '..texts.persecond,
 					uWep.metalCost,
 					uWep.energyCost,
-					uWep.metalCost / oRld,
-					uWep.energyCost / oRld))
+					uWep.metalCost / reload,
+					uWep.energyCost / reload))
 			end
 
-
 			cY = cY - fontSize
+
 
 			local wDefIdNext = wepsCompact[i + 1]
 			local groupNext = wDefIdNext and weaponGroupNumbers[wDefIdNext] -- nil for death explosions
