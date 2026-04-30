@@ -820,7 +820,7 @@ local function computeContent(uDefID, uID, shiftBool)
 				DrawText(texts.weap..":", wpnName)
 			end
 
-			local damageMod = not custom.nodamagexpscale and damageMultiplier or 1.0
+			local damageMod = wNum > 0 and not custom.nodamagexpscale and damageMultiplier or 1.0
 
 			if uExp and uExp ~= 0 then
 				local bonuses = {}
