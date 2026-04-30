@@ -50,7 +50,7 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 - **No `gl.*` over RmlUi**: `DrawScreen/DrawScreenPost` while a panel is open punches through and renders OVER all RmlUi panels (engine layer-order bug). Bake to image + `<img data-attr-src>` instead. Audit pre-1.0: tf-brush passthrough icons, weather brush ceg preview, light placer ring, decal placer (already fixed in #7527 via `dp_preview_bake.lua`).
 - **No `px` in RCSS**. Use `dp` (or `vw/vh` where viewport-proportional makes sense). Open: `vw + min/max-width` clamps for ultrawide vs 1080p — pending decision.
 - **Theme imports**: strip `theme-armada/cortex/legion`, keep `theme-base.rcss` only.
-- **Naming**: `dmHandle` (camelCase) locked in across all BAR widgets. ⚠️ PR #7527 (mupersega) uses `dm_handle` (snake_case) in `widgetState.dm_handle` — rename on merge.
+- **Naming**: `dmHandle` (camelCase) locked in across all BAR widgets.
 - **`document:ReloadStyleSheet()`** mandatory in every widget Initialize.
 - **No imperative tile-packing math**. `data-for` + flex/grid in RCSS. Only legitimate Lua-side pixel math is virtual-scroll row offsets.
 - **`mousedown` for tool-press**, `click` for destructive (Quit/Delete/Reset) — UX nuance agreed.
@@ -85,12 +85,11 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 | `tf_guide.lua` | ✅ | ✅ | 3 | 22 `w.guideXxx` methods (header buttons, settings open/close, keybind save/apply/defaults/cancel, tab-switch, dj/dust/seismic/pen/wiggle/curve/disable-tips). 3 remaining are justified: per-element hint mouseover/mouseout loop (`guideHints`) and g3 mousedown discovery loop. |
 | `gui_feature_placer.lua` (standalone) | ✅ | ✅ | 4 | ~4 remaining are justified (drag, SDL text) |
 | `gui_weather_brush.lua` (standalone) | ✅ | ✅ | 4 | ~4 remaining are justified (drag, SDL text) |
-| `gui_decal_placer.lua` (standalone) | ✅ | ✅ | ~4 | PR #7527 (mupersega) merged. Post-merge: renamed `dm_handle`→`dmHandle`, removed dead `refreshUIFromState`, replaced broken `data-for="d : currentDecals"` (Recoil struct-scope limitation) with imperative DOM builder + `dp-tile-host` RCSS wrapper. `dp_preview_bake.lua` bakes BMP atlases to PNG; `<img>` renders them. ~4 remaining justified after merge: drag mousedown/mouseup, SDL focus/blur. |
+| `gui_decal_placer.lua` (standalone) | ✅ | ✅ | 12 | Layout bug fixed (padding mismatch → rebuild loop → dead tiles). 12 remaining all justified: dynamic loops (categories, modeButtons, shapeButtons, decal items, tint sliders), `bindSlider`/`bindButton` helpers, drag mousedown/mouseup, SDL focus/blur. Standalone audit complete. |
 
 **Also landed (not in original scope):**
 - `ctx.syncWarnChip(doc, chipId, sectionId, anyActive)` — shared helper for "Active" warn chips on collapsed DISPLAY/INSTRUMENTS headers. Used by tf_splat, tf_metal, and synced via `ctx.syncTBMirrorControls`.
 - `gui_decal_placer`: normal-map auto-pairing (`isNormalName`/`normalBaseKey`), `getNormalPartner` API, `loadfile`-first decal load, automatic `SetGroundDecalTexture(id, norm, false)` on placement.
-- `dp_preview_bake.lua` (PR #7527): extracted bake module — channel-encoded BMP atlases composited through one-shot shader into RGBA PNGs; widget renders via `<img data-attr-src>`. Bake runs from `DrawScreen` (4/frame); widget re-syncs when queue drains. Pattern reusable for other mask-encoded assets.
 - `map_grass_gl4`: `WG.grassgl4.loadGrass(filename)` + `clearGrass()` API exposed.
 - `cmd_light_placer`: Ctrl+Scroll mode-aware (point mode → lightRadius, other modes → brushRadius); per-light elevation preserved on load.
 - `cmd_terraform_brush.lua`: ramp reapply uses atomic `MSG.UNDO_STROKE` (one message pops entire stroke) instead of per-tick UNDO spam; `~3 frames` vs `~120 frames` to complete cycle.
@@ -157,16 +156,14 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | `tf_environment.lua` | 18 / 18 | ✅ (`envWindowToggle` dmKey param + skybox toggle/close dm writes) |
 | `gui_terraform_brush.lua` | 74 / 74 | ✅ (29 dm flags added; all floating windows, instrument sub-rows, pen pills, shape/ramp/clay/restore rows → data-if; tf_environment sub-windows all data-if driven) |
 
-4. ⬜ **Labels → `{{radius}}` interpolation**; replaces `.inner_rml = tostring(v)` sites (~40 in terraform_brush alone). **PROMOTED to required pre-1.0 (PR #7527 review).**
+4. ⬜ **Labels → `{{radius}}` interpolation**; replaces `.inner_rml = tostring(v)` sites (~40 in terraform_brush alone). **PROMOTED to required pre-1.0 (PR #7527 review).** **Pilot landed (Apr 2026): tf_startpos.lua — 6 sites converted via `dm.stp{AllyTeams,TeamsPerAlly,Count,Size,Rotation,PlacementMode}Str` fields + `{{...}}` interpolation in RML.**
 5. ✅ **Sliders**: keep `updatingFromCode` feedback guard + log-curve handlers; `onchange="widget:onXxxChange(element)"` added to all sliders in converted panels.
 6. ⬜ **Model-function migration of existing `widget:` sites**. 548 `onclick="widget:foo()"` in `gui_terraform_brush.rml` swap to `data-event-click="onFoo()"` with handlers registered on `dm.*`. Single-sweep PR after 2–4 land.
 
 ### Phase 3 — `data-for` dynamic lists
 
-> ⚠️ **Recoil limitation discovered Apr 2026**: `data-for="d : array"` does NOT scope `d` into child element bindings. All `{{d.field}}`, `data-class-active="d.foo"` etc. fail — Recoil registers bindings against the top-level model at parse time, not per-clone. Struct tile lists MUST be built imperatively. Phase 3 goals below revised accordingly.
-
-- **feature_placer** feature tiles (~L430) → already imperative DOM (`CreateElement`/`AppendChild`). ✅ **Correct pattern** — do NOT migrate to `data-for`.
-- **decal_placer** decal grid → similarly migrated to imperative DOM (post PR #7527 fix). ✅ **Correct pattern**. PR #7527 (mupersega) used `data-for="d : currentDecals"` with `{{d.displayName}}` etc. — this produced literal `{{d.displayName}}` text (binding silently dropped). Fixed by replacing with imperative builder + `dp-tile-host` wrapper for RCSS sizing.
+- **feature_placer** feature tiles (~L430) → `data-for="feature : features"` with `<div onclick='Widget:SelectFeature(it_index)'>`. Ship pre-1.0.
+- **decal_placer** decal grid → same pattern. Ship pre-1.0.
 - **weather_brush** CEG library grid (L326, full `inner_rml = ""` + rebuild) → defer (smaller surface, less copied).
 - **terraform_brush** preset list / history — audit during implementation.
 
@@ -176,8 +173,6 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 - Migrate pre-existing `gui_quick_start` / `gui_tech_points` / `gui_territorial_domination` inline styles to `data-style-*` (NOT in PR scope).
 - Context manager enrichment — document retrieval, theme management (reviewer owns, lands with his branch).
 - Full two-way slider binding.
-- **Terrain-filtered intelligent noise painting**: noise brush respects terrain classification (slope, altitude, texture type) — only paints cells that pass a configurable filter set. UI: per-filter threshold sliders + enable chips inside `tf_noise` panel. Backend: sample terrain data per-cell before applying noise delta.
-- **Fullmap parameterised noise apply**: one-shot "apply noise to entire map" action with the current `tf_noise` parameters (scale, octaves, amplitude, seed, filter mask). Progress bar via dm flag; runs over N ticks to avoid engine stall. Accessible as a button in `tf_noise` panel and via keybind.
 
 ## Release recommendation — what blocks 1.0
 
@@ -194,11 +189,11 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | Phase 1 — `attachDraggable` drag consolidation | Small-Medium | 4 near-identical drag loops; context manager home agreed; deferred from Phase 1 to keep diff small |
 | Phase 2 step 2 — `data-class-*` for active state | Large | **PROMOTED pre-1.0** (PR #7527). All `setActiveClass()` sites → `data-class-active="x == 'foo'"`. |
 | Phase 2 step 3 — `data-if` + `document:Hide/Show` | Medium | ✅ **COMPLETE (Apr 2026)** — 11/11 files done. All `SetClass("hidden",…)` sites in tf-brush package converted to dm flags + `data-if` bindings. |
-| Phase 2 step 4 — `{{interpolation}}` for labels | Medium | **PROMOTED pre-1.0** (PR #7527). ~40 `inner_rml = tostring(v)` sites in tf-brush. |
+| Phase 2 step 4 — `{{interpolation}}` for labels | Medium | **PROMOTED pre-1.0** (PR #7527). ~40 `inner_rml = tostring(v)` sites in tf-brush. **Landed Apr 2026: tf_startpos (6), tf_splat (11), tf_metal (13), tf_grass (14), tf_features (11), tf_lights (6 of 14 — 8 IDs not in RML), tf_clone (3), tf_environment dim panel (7), gui_terraform_brush ring-width + restore-strength (3 sites). tf_weather had zero. Remaining: tf_decals/tf_noise generic helpers (justified imperative — bulk setLbl by id), keybind editor + history list builders (Phase 3 / data-for territory).** |
 | Phase 2 step 6 — model-function migration | Large | Sweep 548 `widget:foo()` → `data-event-click="onFoo()"` with `dm.*` handlers. After steps 2–4. |
 | Phase 2.5 — `gl.*` over RmlUi audit | Small-Medium | **PROMOTED pre-1.0** (PR #7527). tf-brush passthrough icons, weather ceg preview, light placer ring. Bake-to-image pattern. |
 | Phase 3 feature_placer data-for | Medium | Ideal showcase; target pre-1.0 |
-| Phase 3 decal_placer data-for | ~~Medium~~ | ✅ **Done via PR #7527** (mupersega) — pending merge + `dm_handle` → `dmHandle` rename |
+| Phase 3 decal_placer data-for | Medium | Target pre-1.0 (already done in PR #7527 if merged) |
 
 ## Verification
 

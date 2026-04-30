@@ -56,6 +56,10 @@ function M.attach(doc, ctx)
 		WG.MetalBrush.setMetalValue(mv)
 		local mbLabel = doc:GetElementById("mb-value-label")
 		if mbLabel then mbLabel.inner_rml = string.format("%.1f", mv) end
+		if widgetState.dmHandle then
+			local v = string.format("%.1f", mv)
+			if widgetState.dmHandle.mbValueStr ~= v then widgetState.dmHandle.mbValueStr = v end
+		end
 	end
 	w.mbValueUp = function(self)
 		if WG.MetalBrush then
@@ -88,12 +92,14 @@ function M.attach(doc, ctx)
 			widgetState.metalCleanConfirmExpiry = 0
 			if mbCleanBtn then mbCleanBtn:SetClass("confirming", false) end
 			if mbCleanLabel then mbCleanLabel.inner_rml = "CLEAN" end
+			if widgetState.dmHandle and widgetState.dmHandle.mbCleanLabelStr ~= "CLEAN" then widgetState.dmHandle.mbCleanLabelStr = "CLEAN" end
 			playSound("reset")
 			if WG.MetalBrush then WG.MetalBrush.clearMetalMap() end
 		else
 			widgetState.metalCleanConfirmExpiry = (Spring.GetGameSeconds() or 0) + 3
 			if mbCleanBtn then mbCleanBtn:SetClass("confirming", true) end
 			if mbCleanLabel then mbCleanLabel.inner_rml = "ARE YOU SURE?" end
+			if widgetState.dmHandle and widgetState.dmHandle.mbCleanLabelStr ~= "ARE YOU SURE?" then widgetState.dmHandle.mbCleanLabelStr = "ARE YOU SURE?" end
 			playSound("toggleOn")
 		end
 	end
@@ -243,6 +249,7 @@ function M.attach(doc, ctx)
 		if sl then sl:SetAttribute("value", tostring(idx - 1)) end
 		local lbl = doc:GetElementById("mb-angle-snap-step-label")
 		if lbl then lbl.inner_rml = pstr end
+		if widgetState.dmHandle and widgetState.dmHandle.mbAngleStepStr ~= pstr then widgetState.dmHandle.mbAngleStepStr = pstr end
 		local nb = doc:GetElementById("mb-slider-angle-snap-step-numbox")
 		if nb then nb:SetAttribute("value", pstr) end
 	end
@@ -473,6 +480,10 @@ function M.attach(doc, ctx)
 		WG.MetalBrush.setClusterRadius(v)
 		local lbl = doc:GetElementById("mb-cluster-radius-label")
 		if lbl then lbl.inner_rml = tostring(v) end
+		if widgetState.dmHandle then
+			local vs = tostring(v)
+			if widgetState.dmHandle.mbClusterRadiusStr ~= vs then widgetState.dmHandle.mbClusterRadiusStr = vs end
+		end
 	end
 	w.mbClusterRadiusDown = function(self)
 		if WG.MetalBrush then
@@ -531,6 +542,10 @@ function M.sync(doc, ctx, mbState, setSummary)
 
 		local mbValueLabel = doc:GetElementById("mb-value-label")
 		if mbValueLabel then mbValueLabel.inner_rml = string.format("%.1f", mbState.metalValue) end
+		if dm then
+			local v = string.format("%.1f", mbState.metalValue)
+			if dm.mbValueStr ~= v then dm.mbValueStr = v end
+		end
 
 		do
 			local mv = math.max(0.01, mbState.metalValue)
@@ -543,18 +558,34 @@ function M.sync(doc, ctx, mbState, setSummary)
 		if tfSt2 then
 			local mbSizeLabel = doc:GetElementById("mb-size-label")
 			if mbSizeLabel then mbSizeLabel.inner_rml = tostring(tfSt2.radius) end
+			if dm then
+				local v = tostring(tfSt2.radius)
+				if dm.mbSizeStr ~= v then dm.mbSizeStr = v end
+			end
 			syncAndFlash(doc:GetElementById("slider-mb-size"), "mb-size", tostring(tfSt2.radius))
 
 			local mbRotLabel = doc:GetElementById("mb-rotation-label")
 			if mbRotLabel then mbRotLabel.inner_rml = tostring(tfSt2.rotationDeg) .. "&#176;" end
+			if dm then
+				local v = tostring(tfSt2.rotationDeg) .. "\194\176"
+				if dm.mbRotStr ~= v then dm.mbRotStr = v end
+			end
 			syncAndFlash(doc:GetElementById("slider-mb-rotation"), "mb-rotation", tostring(tfSt2.rotationDeg))
 
 			local mbLenLabel = doc:GetElementById("mb-length-label")
 			if mbLenLabel then mbLenLabel.inner_rml = string.format("%.1f", tfSt2.lengthScale) end
+			if dm then
+				local v = string.format("%.1f", tfSt2.lengthScale)
+				if dm.mbLengthStr ~= v then dm.mbLengthStr = v end
+			end
 			syncAndFlash(doc:GetElementById("slider-mb-length"), "mb-length", tostring(math.floor(tfSt2.lengthScale * 10 + 0.5)))
 
 			local mbCurveLabel = doc:GetElementById("mb-curve-label")
 			if mbCurveLabel then mbCurveLabel.inner_rml = string.format("%.1f", tfSt2.curve) end
+			if dm then
+				local v = string.format("%.1f", tfSt2.curve)
+				if dm.mbCurveStr ~= v then dm.mbCurveStr = v end
+			end
 			syncAndFlash(doc:GetElementById("slider-mb-curve"), "mb-curve", tostring(math.floor(tfSt2.curve * 10 + 0.5)))
 		end
 
@@ -630,25 +661,48 @@ function M.sync(doc, ctx, mbState, setSummary)
 		end
 		local lbl = doc:GetElementById("mb-cluster-radius-label")
 		if lbl then lbl.inner_rml = tostring(mbState.clusterRadius or 256) end
+		if dm then
+			local v = tostring(mbState.clusterRadius or 256)
+			if dm.mbClusterRadiusStr ~= v then dm.mbClusterRadiusStr = v end
+		end
 		local totalLbl = doc:GetElementById("mb-lasso-total-label")
 		if totalLbl then totalLbl.inner_rml = string.format("%.2f", mbState.lassoTotal or 0) end
+		if dm then
+			local v = string.format("%.2f", mbState.lassoTotal or 0)
+			if dm.mbLassoTotalStr ~= v then dm.mbLassoTotalStr = v end
+		end
 		local angleLbl = doc:GetElementById("mb-axis-angle-label")
 		if angleLbl then angleLbl.inner_rml = tostring(math.floor((mbState.balanceAxisAngleDeg or 0) + 0.5)) end
+		if dm then
+			local v = tostring(math.floor((mbState.balanceAxisAngleDeg or 0) + 0.5))
+			if dm.mbAxisAngleStr ~= v then dm.mbAxisAngleStr = v end
+		end
 		local aLbl = doc:GetElementById("mb-axis-a-label")
 		if aLbl then aLbl.inner_rml = string.format("%.2f", mbState.balanceAxisSumA or 0) end
+		if dm then
+			local v = string.format("%.2f", mbState.balanceAxisSumA or 0)
+			if dm.mbAxisAStr ~= v then dm.mbAxisAStr = v end
+		end
 		local bLbl = doc:GetElementById("mb-axis-b-label")
 		if bLbl then bLbl.inner_rml = string.format("%.2f", mbState.balanceAxisSumB or 0) end
+		if dm then
+			local v = string.format("%.2f", mbState.balanceAxisSumB or 0)
+			if dm.mbAxisBStr ~= v then dm.mbAxisBStr = v end
+		end
 		local balLbl = doc:GetElementById("mb-axis-balance-label")
 		if balLbl then
 			local a = mbState.balanceAxisSumA or 0
 			local b = mbState.balanceAxisSumB or 0
 			local diff = a - b
 			local tot = a + b
+			local balStr
 			if tot > 0.001 then
-				balLbl.inner_rml = string.format("%+.2f (%+.0f%%)", diff, diff / tot * 100)
+				balStr = string.format("%+.2f (%+.0f%%)", diff, diff / tot * 100)
 			else
-				balLbl.inner_rml = "--"
+				balStr = "--"
 			end
+			balLbl.inner_rml = balStr
+			if dm and dm.mbAxisBalanceStr ~= balStr then dm.mbAxisBalanceStr = balStr end
 		end
 		uiState.updatingFromCode = true
 		local clRadSlider = doc:GetElementById("mb-slider-cluster-radius")
