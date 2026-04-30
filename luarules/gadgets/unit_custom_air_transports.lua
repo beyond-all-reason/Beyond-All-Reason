@@ -720,7 +720,7 @@ function gadget:GameFrame(frame)
 		if co then
 			local transporterID = areaLoadCoroutines[i].transporterID
 			-- option 1: update the index on "frame 3" without nil checking transporterID, right before the coroutine runs, before it can get removed, so the table is updated if it gets its removal code
-			transporterCoroutines[transporterID].index = i
+			transporterCoroutines[transporterID].index = i - offset
 			local status = coroutine.status(co)
 			if status == "suspended" then
 				local ok, err = coroutine.resume(co)
@@ -743,7 +743,7 @@ function gadget:GameFrame(frame)
 		local co = successiveLoadCoroutines[i] and successiveLoadCoroutines[i].co or nil
 		if co then
 			local transporterID = successiveLoadCoroutines[i].transporterID
-			transporterCoroutines[transporterID].index = i -- keep the index updated before a possible removal
+			transporterCoroutines[transporterID].index = i - offset -- keep the index updated before a possible removal
 			local status = coroutine.status(co)
 			if status == "suspended" then
 				local ok, err = coroutine.resume(co)
@@ -795,9 +795,9 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 			if transporterCoroutines[transporterID] then -- no need to test for type
 				RemoveAreaLoadCoroutine(transporterID) -- if we had an area load coroutine, remove it, as successive load takes precedence and they can't run simultaneously
 			end
-			areaLoadCoroutinesCount = areaLoadCoroutinesCount + 1
-			successiveLoadCoroutines[areaLoadCoroutinesCount] = { co = co, transporterID = transporterID }
-			transporterCoroutines[transporterID] = { type = "successive", index = areaLoadCoroutinesCount}
+			successiveLoadCoroutinesCount = successiveLoadCoroutinesCount + 1
+			successiveLoadCoroutines[successiveLoadCoroutinesCount] = { co = co, transporterID = transporterID }
+			transporterCoroutines[transporterID] = { type = "successive", index = successiveLoadCoroutinesCount}
 		end
 		return true, false
 	end
