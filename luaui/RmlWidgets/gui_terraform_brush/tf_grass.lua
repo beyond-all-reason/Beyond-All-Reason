@@ -5,7 +5,6 @@ function M.attach(doc, ctx)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local playSound = ctx.playSound
-	local setActiveClass = ctx.setActiveClass
 	local trackSliderDrag = ctx.trackSliderDrag
 	local WG = ctx.WG
 	local RADIUS_STEP = ctx.RADIUS_STEP
@@ -14,10 +13,6 @@ function M.attach(doc, ctx)
 
 	widgetState.gbSubmodesEl = doc:GetElementById("tf-grass-submodes")
 	widgetState.gbControlsEl = doc:GetElementById("tf-grass-controls")
-	widgetState.gbSubModeButtons = widgetState.gbSubModeButtons or {}
-	widgetState.gbSubModeButtons.paint = doc:GetElementById("btn-gb-paint")
-	widgetState.gbSubModeButtons.fill  = doc:GetElementById("btn-gb-fill")
-	widgetState.gbSubModeButtons.erase = doc:GetElementById("btn-gb-erase")
 
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 	-- Slider change events wired declaratively via onchange= in RML.
@@ -51,7 +46,7 @@ function M.attach(doc, ctx)
 	w.gbSetSubMode = function(self, gbMode)
 		playSound("modeSwitch")
 		if WG.GrassBrush then WG.GrassBrush.setSubMode(gbMode) end
-		setActiveClass(widgetState.gbSubModeButtons, gbMode)
+		if widgetState.dmHandle then widgetState.dmHandle.gbSubMode = gbMode end
 	end
 
 	-- Density
@@ -563,7 +558,6 @@ end
 function M.sync(doc, ctx, gbState, setSummary, sumEl)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
-	local setActiveClass = ctx.setActiveClass
 	local syncAndFlash = ctx.syncAndFlash
 	local shapeNames = ctx.shapeNames
 	local WG = ctx.WG
@@ -571,10 +565,10 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 
 	local grassBtn = doc and doc:GetElementById("btn-grass")
 	if grassBtn then grassBtn:SetClass("active", true) end
-	if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
 
-	-- Grass sub-mode buttons
-	setActiveClass(widgetState.gbSubModeButtons, gbState.subMode)
+
+	-- Grass sub-mode buttons (driven by dm.gbSubMode via data-class-active)
+	if widgetState.dmHandle then widgetState.dmHandle.gbSubMode = gbState.subMode or "paint" end
 
 	-- Update clay button: unavailable in grass mode
 	local clayBtnG = doc and doc:GetElementById("btn-clay-mode")
@@ -787,9 +781,9 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 		uiState.updatingFromCode = false
 	end
 
-	-- Shape: use grass brush shape (own state)
-	if gbState.shape then
-		setActiveClass(widgetState.gbShapeButtons, gbState.shape)
+	-- Shape: grass brush uses shared activeShape dm field
+	if gbState.shape and widgetState.dmHandle then
+		widgetState.dmHandle.activeShape = gbState.shape
 	end
 
 	-- Gray out ring and unsupported shapes

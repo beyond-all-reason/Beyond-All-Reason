@@ -7,7 +7,6 @@ function M.attach(doc, ctx)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local playSound = ctx.playSound
-	local setActiveClass = ctx.setActiveClass
 	local trackSliderDrag = ctx.trackSliderDrag
 	local ROTATION_STEP = ctx.ROTATION_STEP
 	local LENGTH_SCALE_STEP = ctx.LENGTH_SCALE_STEP
@@ -20,16 +19,6 @@ function M.attach(doc, ctx)
 
 	widgetState.wbSubmodesEl = doc:GetElementById("tf-weather-submodes")
 	widgetState.wbControlsEl = doc:GetElementById("tf-weather-controls")
-
-	-- Weather sub-mode buttons (cached for setActiveClass sync)
-	widgetState.wbSubModeButtons.scatter = doc:GetElementById("btn-wb-scatter")
-	widgetState.wbSubModeButtons.point = doc:GetElementById("btn-wb-point")
-	widgetState.wbSubModeButtons.remove = doc:GetElementById("btn-wb-remove")
-
-	-- Weather distribution buttons (cached for setActiveClass sync)
-	widgetState.wbDistButtons.random = doc:GetElementById("btn-wb-dist-random")
-	widgetState.wbDistButtons.regular = doc:GetElementById("btn-wb-dist-regular")
-	widgetState.wbDistButtons.clustered = doc:GetElementById("btn-wb-dist-clustered")
 
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 	-- Slider change events are wired declaratively via onchange= in RML.
@@ -45,13 +34,13 @@ function M.attach(doc, ctx)
 	w.wbSetMode = function(self, wmode)
 		playSound("modeSwitch")
 		if WG.WeatherBrush then WG.WeatherBrush.setMode(wmode) end
-		setActiveClass(widgetState.wbSubModeButtons, wmode)
+		if widgetState.dmHandle then widgetState.dmHandle.wbSubMode = wmode end
 	end
 
 	w.wbSetDist = function(self, dist)
 		playSound("shapeSwitch")
 		if WG.WeatherBrush then WG.WeatherBrush.setDistribution(dist) end
-		setActiveClass(widgetState.wbDistButtons, dist)
+		if widgetState.dmHandle then widgetState.dmHandle.wbDistMode = dist end
 	end
 
 	-- Size

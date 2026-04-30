@@ -5,7 +5,6 @@ function M.attach(doc, ctx)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local playSound = ctx.playSound
-	local setActiveClass = ctx.setActiveClass
 	local trackSliderDrag = ctx.trackSliderDrag
 	local WG = ctx.WG
 	local RADIUS_STEP = ctx.RADIUS_STEP
@@ -17,9 +16,6 @@ function M.attach(doc, ctx)
 	widgetState.mbControlsEl = doc:GetElementById("tf-metal-controls")
 
 	widgetState.mbSubModeButtons = {}
-	widgetState.mbSubModeButtons.paint = doc:GetElementById("btn-mb-paint")
-	widgetState.mbSubModeButtons.stamp = doc:GetElementById("btn-mb-stamp")
-	widgetState.mbSubModeButtons.remove = doc:GetElementById("btn-mb-remove")
 
 	-- Metal shape buttons (removed; metal now uses the shared tf-shape-row)
 	widgetState.mbShapeButtons = {}
@@ -49,7 +45,7 @@ function M.attach(doc, ctx)
 	w.mbSetSubMode = function(self, mbMode)
 		playSound("modeSwitch")
 		if WG.MetalBrush then WG.MetalBrush.setSubMode(mbMode) end
-		setActiveClass(widgetState.mbSubModeButtons, mbMode)
+		if widgetState.dmHandle then widgetState.dmHandle.mbSubMode = mbMode end
 	end
 
 	-- Metal Value (log-mapped slider 0..1000 → 0.01..50.0)
@@ -495,14 +491,13 @@ end
 function M.sync(doc, ctx, mbState, setSummary)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
-	local setActiveClass = ctx.setActiveClass
 	local syncAndFlash = ctx.syncAndFlash
 	local WG = ctx.WG
 	local dm = widgetState.dmHandle
 
 	local metalBtn = doc and doc:GetElementById("btn-metal")
 	if metalBtn then metalBtn:SetClass("active", true) end
-	if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
+
 
 	-- DISPLAY/INSTRUMENTS warn chips (shared TB state mirror)
 	if doc and ctx.syncWarnChip then
@@ -513,8 +508,8 @@ function M.sync(doc, ctx, mbState, setSummary)
 		ctx.syncWarnChip(doc, "warn-chip-mb-instruments", "section-mb-instruments", instActive)
 	end
 
-	-- Metal sub-mode buttons
-	setActiveClass(widgetState.mbSubModeButtons, mbState.subMode)
+	-- Metal sub-mode buttons (driven by dm.mbSubMode via data-class-active)
+	if widgetState.dmHandle then widgetState.dmHandle.mbSubMode = mbState.subMode or "paint" end
 
 	-- Instruments sub-row visibility flags (data-if driven)
 	do
@@ -569,7 +564,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 	-- Shape: use terraform brush shape (shared)
 	local tfSt = WG.TerraformBrush and WG.TerraformBrush.getState()
 	if tfSt then
-		if widgetState.dmHandle then widgetState.dmHandle.tfShape = tfSt.shape or "circle" end
+		if widgetState.dmHandle then widgetState.dmHandle.activeShape = tfSt.shape or "circle" end
 	end
 
 	-- P3.2 Metal grayouts (per Phase 3 relevance matrix)

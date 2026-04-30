@@ -1,4 +1,4 @@
-﻿<rml>
+<rml>
 <head>
 	<link type="text/rcss" href="../styles.rcss" />
 	<link type="text/rcss" href="../rml-utility-classes.rcss" />
@@ -27,32 +27,32 @@
 		<div id="section-terrain">
 		<div id="tf-mapdamage-notice" class="tf-notice-banner hidden">Map deformation is disabled on this map. Enable it via the <span class="tf-notice-highlight">Disable Map Deformation</span> mod option before starting to use terrain editing tools.</div>
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-raise" class="tf-mode-btn tf-btn-raise" data-class-active="tfMode == 'raise'" onclick="widget:tfSetMode('raise'); event:StopPropagation()">
+			<div id="btn-raise" class="tf-mode-btn tf-btn-raise" data-class-active="activeMode == 'raise'" onclick="widget:tfSetMode('raise'); event:StopPropagation()">
 				<div class="tf-keybind-badge">LMB</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_raise.png" />
 				<div class="tf-btn-text">RAISE</div>
 			</div>
-			<div id="btn-lower" class="tf-mode-btn tf-btn-lower" data-class-active="tfMode == 'lower'" onclick="widget:tfSetMode('lower'); event:StopPropagation()">
+			<div id="btn-lower" class="tf-mode-btn tf-btn-lower" data-class-active="activeMode == 'lower'" onclick="widget:tfSetMode('lower'); event:StopPropagation()">
 				<div class="tf-keybind-badge">RMB</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_lower.png" />
 				<div class="tf-btn-text">LOWER</div>
 			</div>
-			<div id="btn-level" class="tf-mode-btn tf-btn-level" data-class-active="tfMode == 'smooth'" onclick="widget:tfSetMode('smooth'); event:StopPropagation()">
+			<div id="btn-level" class="tf-mode-btn tf-btn-level" data-class-active="activeMode == 'smooth'" onclick="widget:tfSetMode('smooth'); event:StopPropagation()">
 				<div class="tf-keybind-badge">L</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_level.png" />
 				<div class="tf-btn-text">MODIFY</div>
 			</div>
-			<div id="btn-ramp" class="tf-mode-btn tf-btn-ramp" data-class-active="tfMode == 'ramp'" onclick="widget:tfSetMode('ramp'); event:StopPropagation()">
+			<div id="btn-ramp" class="tf-mode-btn tf-btn-ramp" data-class-active="activeMode == 'ramp'" onclick="widget:tfSetMode('ramp'); event:StopPropagation()">
 				<div class="tf-keybind-badge">R</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_ramp.png" />
 				<div class="tf-btn-text">RAMP</div>
 			</div>
-			<div id="btn-restore" class="tf-mode-btn tf-btn-restore" data-class-active="tfMode == 'restore'" onclick="widget:tfSetMode('restore'); event:StopPropagation()">
+			<div id="btn-restore" class="tf-mode-btn tf-btn-restore" data-class-active="activeMode == 'restore'" onclick="widget:tfSetMode('restore'); event:StopPropagation()">
 				<div class="tf-keybind-badge">E</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_restore.png" />
 				<div class="tf-btn-text">RESTORE</div>
 			</div>
-			<div id="btn-noise" class="tf-mode-btn tf-btn-noise" data-class-active="tfMode == 'noise'" onclick="widget:tfSetMode('noise'); event:StopPropagation()">
+			<div id="btn-noise" class="tf-mode-btn tf-btn-noise" data-class-active="activeMode == 'noise'" onclick="widget:tfSetMode('noise'); event:StopPropagation()">
 				<div class="tf-keybind-badge">N</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_noise.png" />
 				<div class="tf-btn-text">NOISE</div>
@@ -66,54 +66,54 @@
 		</div>
 		<div id="section-tools">
 		<div id="tf-tools-rows" class="flex flex-row gap-1 mb-1">
-			<div id="btn-metal" class="tf-mode-btn tf-btn-metal" onclick="widget:tfSwitchMetal(); event:StopPropagation()">
+			<div id="btn-metal" class="tf-mode-btn tf-btn-metal" data-class-active="activeTool == 'mb'" onclick="widget:tfSwitchMetal(); event:StopPropagation()">
 				<div class="tf-keybind-badge">M</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_metal.png" />
 				<div class="tf-btn-text">METAL</div>
 			</div>
-			<div id="btn-features" class="tf-mode-btn tf-btn-features" onclick="widget:tfSwitchFeatures(); event:StopPropagation()">
+			<div id="btn-features" class="tf-mode-btn tf-btn-features" data-class-active="activeTool == 'fp'" onclick="widget:tfSwitchFeatures(); event:StopPropagation()">
 				<div class="tf-keybind-badge">F</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_features.png" />
 				<div class="tf-btn-text">FEATURES</div>
 			</div>
-			<div id="btn-grass" class="tf-mode-btn tf-btn-grass" onclick="widget:tfSwitchGrass(); event:StopPropagation()">
+			<div id="btn-grass" class="tf-mode-btn tf-btn-grass" data-class-active="activeTool == 'gb'" onclick="widget:tfSwitchGrass(); event:StopPropagation()">
 				<div class="tf-keybind-badge">K</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_grass.png" />
 				<div class="tf-btn-text">GRASS</div>
 			</div>
-			<div id="btn-splat" class="tf-mode-btn tf-btn-splat" onclick="widget:tfSwitchSplat(); event:StopPropagation()">
+			<div id="btn-splat" class="tf-mode-btn tf-btn-splat" data-class-active="activeTool == 'sp'" onclick="widget:tfSwitchSplat(); event:StopPropagation()">
 				<div class="tf-keybind-badge">P</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_splat.png" />
 				<div class="tf-btn-text">SPLAT</div>
 			</div>
-			<div id="btn-decals" class="tf-mode-btn tf-btn-decals" onclick="widget:tfSwitchDecals(); event:StopPropagation()">
+			<div id="btn-decals" class="tf-mode-btn tf-btn-decals" data-class-active="activeTool == 'dc'" onclick="widget:tfSwitchDecals(); event:StopPropagation()">
 				<div class="tf-keybind-badge">G</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_decals.png" />
 				<div class="tf-btn-text">DECALS</div>
 			</div>
 		</div>
 		<div id="tf-tools-rows2" class="flex flex-row gap-1 mb-1">
-			<div id="btn-weather" class="tf-mode-btn tf-btn-weather" onclick="widget:tfSwitchWeather(); event:StopPropagation()">
+			<div id="btn-weather" class="tf-mode-btn tf-btn-weather" data-class-active="activeTool == 'wb'" onclick="widget:tfSwitchWeather(); event:StopPropagation()">
 				<div class="tf-keybind-badge">W</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_weather.png" />
 				<div class="tf-btn-text">WEATHER</div>
 			</div>
-			<div id="btn-lights" class="tf-mode-btn tf-btn-lights" onclick="widget:tfSwitchLights(); event:StopPropagation()">
+			<div id="btn-lights" class="tf-mode-btn tf-btn-lights" data-class-active="activeTool == 'lp'" onclick="widget:tfSwitchLights(); event:StopPropagation()">
 				<div class="tf-keybind-badge">L</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_lights.png" />
 				<div class="tf-btn-text">LIGHTS</div>
 			</div>
-			<div id="btn-startpos" class="tf-mode-btn tf-btn-startpos" onclick="widget:tfSwitchStartpos(); event:StopPropagation()">
+			<div id="btn-startpos" class="tf-mode-btn tf-btn-startpos" data-class-active="activeTool == 'stp'" onclick="widget:tfSwitchStartpos(); event:StopPropagation()">
 				<div class="tf-keybind-badge">S</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_startpos.png" />
 				<div class="tf-btn-text">STARTS</div>
 			</div>
-			<div id="btn-environment" class="tf-mode-btn tf-btn-environment" onclick="widget:tfSwitchEnv(); event:StopPropagation()">
+			<div id="btn-environment" class="tf-mode-btn tf-btn-environment" data-class-active="activeTool == 'env'" onclick="widget:tfSwitchEnv(); event:StopPropagation()">
 				<div class="tf-keybind-badge">V</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_environment.png" />
 				<div class="tf-btn-text">SCENE</div>
 			</div>
-			<div id="btn-clone" class="tf-mode-btn tf-btn-clone" onclick="widget:clOnClone(); event:StopPropagation()">
+			<div id="btn-clone" class="tf-mode-btn tf-btn-clone" data-class-active="activeTool == 'cl'" onclick="widget:clOnClone(); event:StopPropagation()">
 				<div class="tf-keybind-badge">J</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_clone.png" />
 				<div class="tf-btn-text">CLONE</div>
@@ -132,26 +132,26 @@
 			</div>
 			<div id="section-sp-mode">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-sp-express" class="tf-mode-btn tf-sp-btn-express" onclick="widget:spSetSubMode('express'); event:StopPropagation()">
+				<div id="btn-sp-express" class="tf-mode-btn tf-sp-btn-express" data-class-active="stpSubMode == 'express'" onclick="widget:spSetSubMode('express'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_point.png" />
 					<div class="tf-btn-text">Express</div>
 				</div>
-				<div id="btn-sp-shape" class="tf-mode-btn tf-sp-btn-shape" onclick="widget:spSetSubMode('startbox'); event:StopPropagation()">
+				<div id="btn-sp-shape" class="tf-mode-btn tf-sp-btn-shape" data-class-active="stpSubMode == 'startbox'" onclick="widget:spSetSubMode('startbox'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_hexagon.png" />
 					<div class="tf-btn-text">Shape</div>
 				</div>
 			</div>
 			<!-- Startbox placement-mode picker (only visible in startbox submode). Same styling as main submode row. -->
 			<div id="sp-startbox-mode-row" class="flex flex-row gap-1 mb-1">
-				<div id="btn-sp-sbx-box" class="tf-mode-btn tf-sp-btn-sbx-box" onclick="widget:spSetStartboxMode('box'); event:StopPropagation()">
+				<div id="btn-sp-sbx-box" class="tf-mode-btn tf-sp-btn-sbx-box" data-class-active="stpStartboxMode == 'box'" onclick="widget:spSetStartboxMode('box'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_square.png" />
 					<div class="tf-btn-text">Box</div>
 				</div>
-				<div id="btn-sp-sbx-polygon" class="tf-mode-btn tf-sp-btn-sbx-polygon active" onclick="widget:spSetStartboxMode('polygon'); event:StopPropagation()">
+				<div id="btn-sp-sbx-polygon" class="tf-mode-btn tf-sp-btn-sbx-polygon" data-class-active="stpStartboxMode == 'polygon'" onclick="widget:spSetStartboxMode('polygon'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_hexagon.png" />
 					<div class="tf-btn-text">Polygon</div>
 				</div>
-				<div id="btn-sp-sbx-freedraw" class="tf-mode-btn tf-sp-btn-sbx-freedraw" onclick="widget:spSetStartboxMode('freedraw'); event:StopPropagation()">
+				<div id="btn-sp-sbx-freedraw" class="tf-mode-btn tf-sp-btn-sbx-freedraw" data-class-active="stpStartboxMode == 'freedraw'" onclick="widget:spSetStartboxMode('freedraw'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/freedraw.png" />
 					<div class="tf-btn-text">Free</div>
 				</div>
@@ -348,19 +348,19 @@
 			<div id="sp-shape-row" data-if="stpSubMode == 'shape'">
 				<div class="text-lg text-light font-bold mb-1">SHAPE</div>
 				<div class="flex flex-row gap-1 mb-1">
-					<div id="btn-sp-shape-circle" class="tf-mode-btn" onclick="widget:spSetShape('circle'); event:StopPropagation()">
+					<div id="btn-sp-shape-circle" class="tf-mode-btn" data-class-active="stpShapeMode == 'circle'" onclick="widget:spSetShape('circle'); event:StopPropagation()">
 						<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_circle.png" />
 						<div class="tf-btn-text">Circle</div>
 					</div>
-					<div id="btn-sp-shape-square" class="tf-mode-btn" onclick="widget:spSetShape('square'); event:StopPropagation()">
+					<div id="btn-sp-shape-square" class="tf-mode-btn" data-class-active="stpShapeMode == 'square'" onclick="widget:spSetShape('square'); event:StopPropagation()">
 						<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_square.png" />
 						<div class="tf-btn-text">Square</div>
 					</div>
-					<div id="btn-sp-shape-hexagon" class="tf-mode-btn" onclick="widget:spSetShape('hexagon'); event:StopPropagation()">
+					<div id="btn-sp-shape-hexagon" class="tf-mode-btn" data-class-active="stpShapeMode == 'hexagon'" onclick="widget:spSetShape('hexagon'); event:StopPropagation()">
 						<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_hexagon.png" />
 						<div class="tf-btn-text">Hex</div>
 					</div>
-					<div id="btn-sp-shape-triangle" class="tf-mode-btn" onclick="widget:spSetShape('triangle'); event:StopPropagation()">
+					<div id="btn-sp-shape-triangle" class="tf-mode-btn" data-class-active="stpShapeMode == 'triangle'" onclick="widget:spSetShape('triangle'); event:StopPropagation()">
 						<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_triangle.png" />
 						<div class="tf-btn-text">Tri</div>
 					</div>
@@ -641,30 +641,30 @@
 		</div>
 		<div id="section-shape">
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-circle" class="tf-shape-btn" data-class-active="tfShape == 'circle'" onclick="widget:tfSetShape('circle'); event:StopPropagation()">
+			<div id="btn-circle" class="tf-shape-btn" data-class-active="activeShape == 'circle'" onclick="widget:tfSetShape('circle'); event:StopPropagation()">
 				<div class="tf-keybind-badge">C</div>
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_circle.png" />
 			</div>
-			<div id="btn-square" class="tf-shape-btn" data-class-active="tfShape == 'square'" onclick="widget:tfSetShape('square'); event:StopPropagation()">
+			<div id="btn-square" class="tf-shape-btn" data-class-active="activeShape == 'square'" onclick="widget:tfSetShape('square'); event:StopPropagation()">
 				<div class="tf-keybind-badge">S</div>
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_square.png" />
 			</div>
-			<div id="btn-hexagon" class="tf-shape-btn" data-class-active="tfShape == 'hexagon'" onclick="widget:tfSetShape('hexagon'); event:StopPropagation()">
+			<div id="btn-hexagon" class="tf-shape-btn" data-class-active="activeShape == 'hexagon'" onclick="widget:tfSetShape('hexagon'); event:StopPropagation()">
 				<div class="tf-keybind-badge">H</div>
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_hexagon.png" />
 			</div>
-			<div id="btn-octagon" class="tf-shape-btn" data-class-active="tfShape == 'octagon'" onclick="widget:tfSetShape('octagon'); event:StopPropagation()">
+			<div id="btn-octagon" class="tf-shape-btn" data-class-active="activeShape == 'octagon'" onclick="widget:tfSetShape('octagon'); event:StopPropagation()">
 				<div class="tf-keybind-badge">O</div>
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_octagon.png" />
 			</div>
-			<div id="btn-triangle" class="tf-shape-btn" data-class-active="tfShape == 'triangle'" onclick="widget:tfSetShape('triangle'); event:StopPropagation()">
+			<div id="btn-triangle" class="tf-shape-btn" data-class-active="activeShape == 'triangle'" onclick="widget:tfSetShape('triangle'); event:StopPropagation()">
 				<div class="tf-keybind-badge">T</div>
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_triangle.png" />
 			</div>
-			<div id="btn-ring" class="tf-shape-btn" data-class-active="tfShape == 'ring'" onclick="widget:tfSetShape('ring'); event:StopPropagation()">
+			<div id="btn-ring" class="tf-shape-btn" data-class-active="activeShape == 'ring'" onclick="widget:tfSetShape('ring'); event:StopPropagation()">
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_ring.png" />
 			</div>
-			<div id="btn-fill" class="tf-shape-btn" data-class-active="tfShape == 'fill'" onclick="widget:tfSetShape('fill'); event:StopPropagation()">
+			<div id="btn-fill" class="tf-shape-btn" data-class-active="activeShape == 'fill'" onclick="widget:tfSetShape('fill'); event:StopPropagation()">
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_fill.png" />
 			</div>
 			<div class="tf-clay-spacer"></div>
@@ -690,15 +690,15 @@
 			</div>
 			<div id="section-mb-mode">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-mb-paint" class="tf-mode-btn tf-mb-btn-paint" onclick="widget:mbSetSubMode('paint'); event:StopPropagation()">
+				<div id="btn-mb-paint" class="tf-mode-btn tf-mb-btn-paint" data-class-active="mbSubMode == 'paint'" onclick="widget:mbSetSubMode('paint'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/mb_paint.png" />
 					<div class="tf-btn-text">Paint</div>
 				</div>
-				<div id="btn-mb-stamp" class="tf-mode-btn tf-mb-btn-stamp" onclick="widget:mbSetSubMode('stamp'); event:StopPropagation()">
+				<div id="btn-mb-stamp" class="tf-mode-btn tf-mb-btn-stamp" data-class-active="mbSubMode == 'stamp'" onclick="widget:mbSetSubMode('stamp'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_decals.png" />
 					<div class="tf-btn-text">Stamp</div>
 				</div>
-				<div id="btn-mb-remove" class="tf-mode-btn tf-mb-btn-remove" onclick="widget:mbSetSubMode('remove'); event:StopPropagation()">
+				<div id="btn-mb-remove" class="tf-mode-btn tf-mb-btn-remove" data-class-active="mbSubMode == 'remove'" onclick="widget:mbSetSubMode('remove'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_remove.png" />
 					<div class="tf-btn-text">Remove</div>
 				</div>
@@ -1090,15 +1090,15 @@
 			</div>
 			<div id="section-gb-mode">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-gb-paint" onclick="widget:gbSetSubMode('paint'); event:StopPropagation()" class="tf-mode-btn tf-gb-btn-paint">
+				<div id="btn-gb-paint" data-class-active="gbSubMode == 'paint'" onclick="widget:gbSetSubMode('paint'); event:StopPropagation()" class="tf-mode-btn tf-gb-btn-paint">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/mb_paint.png" />
 					<div class="tf-btn-text">Paint</div>
 				</div>
-				<div id="btn-gb-fill" onclick="widget:gbSetSubMode('fill'); event:StopPropagation()" class="tf-mode-btn tf-gb-btn-fill">
+				<div id="btn-gb-fill" data-class-active="gbSubMode == 'fill'" onclick="widget:gbSetSubMode('fill'); event:StopPropagation()" class="tf-mode-btn tf-gb-btn-fill">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_fill.png" />
 					<div class="tf-btn-text">Fill</div>
 				</div>
-				<div id="btn-gb-erase" onclick="widget:gbSetSubMode('erase'); event:StopPropagation()" class="tf-mode-btn tf-gb-btn-erase">
+				<div id="btn-gb-erase" data-class-active="gbSubMode == 'erase'" onclick="widget:gbSetSubMode('erase'); event:StopPropagation()" class="tf-mode-btn tf-gb-btn-erase">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_remove.png" />
 					<div class="tf-btn-text">Remove</div>
 				</div>
@@ -1592,15 +1592,15 @@
 			</div>
 			<div id="section-fp-mode">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-fp-scatter" class="tf-mode-btn tf-fp-btn-scatter" onclick="widget:fpSetMode('scatter'); event:StopPropagation()">
+				<div id="btn-fp-scatter" class="tf-mode-btn tf-fp-btn-scatter" data-class-active="fpSubMode == 'scatter'" onclick="widget:fpSetMode('scatter'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_scatter.png" />
 					<div class="tf-btn-text">Scatter</div>
 				</div>
-				<div id="btn-fp-point" class="tf-mode-btn tf-fp-btn-point" onclick="widget:fpSetMode('point'); event:StopPropagation()">
+				<div id="btn-fp-point" class="tf-mode-btn tf-fp-btn-point" data-class-active="fpSubMode == 'point'" onclick="widget:fpSetMode('point'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_point.png" />
 					<div class="tf-btn-text">Point</div>
 				</div>
-				<div id="btn-fp-remove" class="tf-mode-btn tf-fp-btn-remove" onclick="widget:fpSetMode('remove'); event:StopPropagation()">
+				<div id="btn-fp-remove" class="tf-mode-btn tf-fp-btn-remove" data-class-active="fpSubMode == 'remove'" onclick="widget:fpSetMode('remove'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_remove.png" />
 					<div class="tf-btn-text">Remove</div>
 				</div>
@@ -1617,11 +1617,11 @@
 			</div>
 			<div id="section-ramp-type">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-ramp-straight" class="tf-mode-btn tf-ramp-btn-straight" data-class-active="tfRampType == 'square'" onclick="widget:tfRampStraight(); event:StopPropagation()">
+				<div id="btn-ramp-straight" class="tf-mode-btn tf-ramp-btn-straight" data-class-active="activeShape == 'square'" onclick="widget:tfRampStraight(); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_ramp_straight.png" />
 					<div class="tf-btn-text">Straight</div>
 				</div>
-				<div id="btn-ramp-spline" class="tf-mode-btn tf-ramp-btn-spline" data-class-active="tfRampType == 'circle'" onclick="widget:tfRampSpline(); event:StopPropagation()">
+				<div id="btn-ramp-spline" class="tf-mode-btn tf-ramp-btn-spline" data-class-active="activeShape == 'circle'" onclick="widget:tfRampSpline(); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_ramp_spline.png" />
 					<div class="tf-btn-text">Spline</div>
 				</div>
@@ -1637,11 +1637,11 @@
 			</div>
 			<div id="section-smooth-mode">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-smooth-sub-smooth" class="tf-mode-btn tf-sm-btn-smooth" data-class-active="tfSmoothSubMode == 'smooth'" onclick="widget:tfSmoothSubMode('smooth'); event:StopPropagation()">
+				<div id="btn-smooth-sub-smooth" class="tf-mode-btn tf-sm-btn-smooth" data-class-active="activeSmoothMode == 'smooth'" onclick="widget:tfSmoothSubMode('smooth'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/sm_smooth.png" />
 					<div class="tf-btn-text">Smooth</div>
 				</div>
-				<div id="btn-smooth-sub-level" class="tf-mode-btn tf-sm-btn-level" data-class-active="tfSmoothSubMode == 'level'" onclick="widget:tfSmoothSubMode('level'); event:StopPropagation()">
+				<div id="btn-smooth-sub-level" class="tf-mode-btn tf-sm-btn-level" data-class-active="activeSmoothMode == 'level'" onclick="widget:tfSmoothSubMode('level'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/sm_level.png" />
 					<div class="tf-btn-text">Level</div>
 				</div>
@@ -1680,15 +1680,15 @@
 			</div>
 			<div id="section-dc-dist">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-dc-dist-random" class="tf-fp-dist-btn active" onclick="widget:dcSetDist('random'); event:StopPropagation()">
+				<div id="btn-dc-dist-random" class="tf-fp-dist-btn" data-class-active="dcDistMode == 'random'" onclick="widget:dcSetDist('random'); event:StopPropagation()">
 					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/fp_scatter.png" />
 					<div class="tf-btn-text">Random</div>
 				</div>
-				<div id="btn-dc-dist-regular" class="tf-fp-dist-btn" onclick="widget:dcSetDist('regular'); event:StopPropagation()">
+				<div id="btn-dc-dist-regular" class="tf-fp-dist-btn" data-class-active="dcDistMode == 'regular'" onclick="widget:dcSetDist('regular'); event:StopPropagation()">
 					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_regular.png" />
 					<div class="tf-btn-text">Regular</div>
 				</div>
-				<div id="btn-dc-dist-clustered" class="tf-fp-dist-btn" onclick="widget:dcSetDist('clustered'); event:StopPropagation()">
+				<div id="btn-dc-dist-clustered" class="tf-fp-dist-btn" data-class-active="dcDistMode == 'clustered'" onclick="widget:dcSetDist('clustered'); event:StopPropagation()">
 					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_clustered.png" />
 					<div class="tf-btn-text">Clustered</div>
 				</div>
@@ -1705,15 +1705,15 @@
 			</div>
 			<div id="section-wb-mode">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-wb-scatter" class="tf-mode-btn tf-wb-btn-scatter">
+				<div id="btn-wb-scatter" class="tf-mode-btn tf-wb-btn-scatter" data-class-active="wbSubMode == 'scatter'" onclick="widget:wbSetMode('scatter'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_scatter.png" />
 					<div class="tf-btn-text">Scatter</div>
 				</div>
-				<div id="btn-wb-point" class="tf-mode-btn tf-wb-btn-point">
+				<div id="btn-wb-point" class="tf-mode-btn tf-wb-btn-point" data-class-active="wbSubMode == 'point'" onclick="widget:wbSetMode('point'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_point.png" />
 					<div class="tf-btn-text">Point</div>
 				</div>
-				<div id="btn-wb-remove" class="tf-mode-btn tf-wb-btn-remove">
+				<div id="btn-wb-remove" class="tf-mode-btn tf-wb-btn-remove" data-class-active="wbSubMode == 'remove'" onclick="widget:wbSetMode('remove'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_remove.png" />
 					<div class="tf-btn-text">Remove</div>
 				</div>
@@ -1727,15 +1727,15 @@
 			</div>
 			<div id="section-wb-dist">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-wb-dist-random" class="tf-fp-dist-btn active">
+				<div id="btn-wb-dist-random" class="tf-fp-dist-btn" data-class-active="wbDistMode == 'random'" onclick="widget:wbSetDist('random'); event:StopPropagation()">
 					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/fp_scatter.png" />
 					<div class="tf-btn-text">Random</div>
 				</div>
-				<div id="btn-wb-dist-regular" class="tf-fp-dist-btn">
+				<div id="btn-wb-dist-regular" class="tf-fp-dist-btn" data-class-active="wbDistMode == 'regular'" onclick="widget:wbSetDist('regular'); event:StopPropagation()">
 					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_regular.png" />
 					<div class="tf-btn-text">Regular</div>
 				</div>
-				<div id="btn-wb-dist-clustered" class="tf-fp-dist-btn">
+				<div id="btn-wb-dist-clustered" class="tf-fp-dist-btn" data-class-active="wbDistMode == 'clustered'" onclick="widget:wbSetDist('clustered'); event:StopPropagation()">
 					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_clustered.png" />
 					<div class="tf-btn-text">Clustered</div>
 				</div>
@@ -2257,15 +2257,15 @@
 		</div>
 		<div id="section-fp-dist">
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-fp-dist-random" class="tf-fp-dist-btn active" onclick="widget:fpSetDist('random'); event:StopPropagation()">
+			<div id="btn-fp-dist-random" class="tf-fp-dist-btn" data-class-active="fpDistMode == 'random'" onclick="widget:fpSetDist('random'); event:StopPropagation()">
 				<img class="tf-icon-dist" src="/luaui/images/terraform_brush/fp_scatter.png" />
 				<div class="tf-btn-text">Random</div>
 			</div>
-			<div id="btn-fp-dist-regular" class="tf-fp-dist-btn" onclick="widget:fpSetDist('regular'); event:StopPropagation()">
+			<div id="btn-fp-dist-regular" class="tf-fp-dist-btn" data-class-active="fpDistMode == 'regular'" onclick="widget:fpSetDist('regular'); event:StopPropagation()">
 				<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_regular.png" />
 				<div class="tf-btn-text">Regular</div>
 			</div>
-			<div id="btn-fp-dist-clustered" class="tf-fp-dist-btn" onclick="widget:fpSetDist('clustered'); event:StopPropagation()">
+			<div id="btn-fp-dist-clustered" class="tf-fp-dist-btn" data-class-active="fpDistMode == 'clustered'" onclick="widget:fpSetDist('clustered'); event:StopPropagation()">
 				<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_clustered.png" />
 				<div class="tf-btn-text">Clustered</div>
 			</div>
@@ -3936,16 +3936,16 @@
 						<div class="flex flex-row gap-1 items-center">
 							<div class="lp-orient-label">Pitch</div>
 							<input type="text" id="lp-orient-pitch-input" class="lp-orient-numbox" value="-45" />
-							<div class="lp-orient-deg">°</div>
+							<div class="lp-orient-deg">Â°</div>
 						</div>
 						<div class="flex flex-row gap-1 items-center">
 							<div class="lp-orient-label">Yaw</div>
 							<input type="text" id="lp-orient-yaw-input" class="lp-orient-numbox" value="0" />
-							<div class="lp-orient-deg">°</div>
+							<div class="lp-orient-deg">Â°</div>
 						</div>
 					</div>
 				</div>
-				<div class="lp-orient-hintbar">drag · ●=down, edge=horiz · Alt+Scroll=Yaw · Ctrl+Alt=Pitch</div>
+				<div class="lp-orient-hintbar">drag Â· â—Ź=down, edge=horiz Â· Alt+Scroll=Yaw Â· Ctrl+Alt=Pitch</div>
 			</div>
 
 			<!-- Cone Theta (visible only for cone) -->
@@ -4023,7 +4023,7 @@
 			<div class="text-base text-keybind" style="margin-right: 2dp;">COLOR</div>
 		</div>
 		<div id="section-lp-color">
-			<!-- MS Paint style color palette (18 columns × 3 rows) -->
+			<!-- MS Paint style color palette (18 columns Ă— 3 rows) -->
 			<div id="lp-color-palette" class="lp-color-palette mb-1">
 				<!-- Row 1: core + warm spectrum -->
 				<div id="lp-swatch-1" class="lp-palette-swatch" onclick="widget:lpSwatch(1); event:StopPropagation()" style="background-color: #ffffff;"></div>
@@ -5643,19 +5643,19 @@
 		</div>
 		<div id="section-noise-type">
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-noise-perlin" class="tf-mode-btn tf-noise-type-btn active" onclick="widget:noSetType('perlin')">
+			<div id="btn-noise-perlin" class="tf-mode-btn tf-noise-type-btn" data-class-active="noiseType == 'perlin'" onclick="widget:noSetType('perlin')">
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/noise_perlin.png" />
 				<div class="tf-btn-text">Perlin</div>
 			</div>
-			<div id="btn-noise-voronoi" class="tf-mode-btn tf-noise-type-btn" onclick="widget:noSetType('voronoi')">
+			<div id="btn-noise-voronoi" class="tf-mode-btn tf-noise-type-btn" data-class-active="noiseType == 'voronoi'" onclick="widget:noSetType('voronoi')">
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/noise_voronoi.png" />
 				<div class="tf-btn-text">Voronoi</div>
 			</div>
-			<div id="btn-noise-fbm" class="tf-mode-btn tf-noise-type-btn" onclick="widget:noSetType('fbm')">
+			<div id="btn-noise-fbm" class="tf-mode-btn tf-noise-type-btn" data-class-active="noiseType == 'fbm'" onclick="widget:noSetType('fbm')">
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/noise_fbm.png" />
 				<div class="tf-btn-text">FBM</div>
 			</div>
-			<div id="btn-noise-billow" class="tf-mode-btn tf-noise-type-btn" onclick="widget:noSetType('billow')">
+			<div id="btn-noise-billow" class="tf-mode-btn tf-noise-type-btn" data-class-active="noiseType == 'billow'" onclick="widget:noSetType('billow')">
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/noise_billow.png" />
 				<div class="tf-btn-text">Billow</div>
 			</div>

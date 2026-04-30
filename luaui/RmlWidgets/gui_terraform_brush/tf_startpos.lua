@@ -20,16 +20,6 @@ function M.attach(doc, ctx)
 		widgetState.stpExpressHintEl = doc:GetElementById("sp-express-hint")
 		widgetState.stpStartboxHintEl = doc:GetElementById("sp-startbox-hint")
 
-		-- Cache sub-mode / shape button elements (sync still drives active class)
-		for _, sm in ipairs({ "express", "shape", "startbox" }) do
-			local btn = doc:GetElementById("btn-sp-" .. sm)
-			if btn then widgetState.stpSubModeButtons[sm] = btn end
-		end
-		for _, sh in ipairs({ "circle", "square", "hexagon", "triangle" }) do
-			local btn = doc:GetElementById("btn-sp-shape-" .. sh)
-			if btn then widgetState.stpShapeButtons[sh] = btn end
-		end
-
 		-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 		-- Slider change events are wired declaratively via onchange= in RML.
 		for _, sid in ipairs({ "sp-allyteams", "sp-count", "sp-size", "sp-rotation" }) do
@@ -190,23 +180,21 @@ function M.sync(doc, ctx, stpState, setSummary)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local WG = ctx.WG
-	local setActiveClass = ctx.setActiveClass
 	local syncAndFlash = ctx.syncAndFlash
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
 		-- ===== Start Positions mode: highlight button, sync controls =====
 		local stpBtnU = doc and doc:GetElementById("btn-startpos")
 		if stpBtnU then stpBtnU:SetClass("active", true) end
-		if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
 
-		-- Sub-mode buttons: Express + Shape (Shape == startbox submode internally)
-		local expressBtn = doc and doc:GetElementById("btn-sp-express")
-		local shapeBtn   = doc and doc:GetElementById("btn-sp-shape")
-		if expressBtn then expressBtn:SetClass("active", stpState.subMode == "express") end
-		if shapeBtn   then shapeBtn:SetClass("active",   stpState.subMode == "startbox") end
 
-		-- Shape buttons
-		setActiveClass(widgetState.stpShapeButtons, stpState.shapeType)
+		-- Sub-mode and shape buttons driven by dm fields via data-class-active
+		-- (stpSubMode is set below at widgetState.dmHandle.stpSubMode)
+
+		-- Startpos shape (stpShapeMode dm field)
+		if widgetState.dmHandle then
+			widgetState.dmHandle.stpShapeMode = stpState.shapeType or "circle"
+		end
 
 		-- Startbox placement-mode buttons (box / polygon / freedraw)
 		if doc then
@@ -221,15 +209,12 @@ function M.sync(doc, ctx, stpState, setSummary)
 			local polyBtn = doc:GetElementById("btn-sp-sbx-polygon")
 			local freeBtn = doc:GetElementById("btn-sp-sbx-freedraw")
 			if boxBtn  then
-				boxBtn:SetClass("active",   inStartbox and sbxMode == "box")
 				boxBtn:SetClass("disabled", not inStartbox)
 			end
 			if polyBtn then
-				polyBtn:SetClass("active",   inStartbox and sbxMode == "polygon")
 				polyBtn:SetClass("disabled", not inStartbox)
 			end
 			if freeBtn then
-				freeBtn:SetClass("active",   inStartbox and sbxMode == "freedraw")
 				freeBtn:SetClass("disabled", not inStartbox)
 			end
 			-- Contextual hint visibility now driven by data-if on the elements.

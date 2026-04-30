@@ -7,16 +7,10 @@ function M.attach(doc, ctx)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local playSound = ctx.playSound
-	local setActiveClass = ctx.setActiveClass
 	local trackSliderDrag = ctx.trackSliderDrag
 
 	widgetState.dcControlsEl  = doc:GetElementById("tf-decal-controls")
 	widgetState.dcSubmodesEl  = doc:GetElementById("tf-dc-submodes")
-
-	-- Cache distribution / mode button elements (used by setActiveClass in M.sync).
-	widgetState.dcDistButtons.random    = doc:GetElementById("btn-dc-dist-random")
-	widgetState.dcDistButtons.regular   = doc:GetElementById("btn-dc-dist-regular")
-	widgetState.dcDistButtons.clustered = doc:GetElementById("btn-dc-dist-clustered")
 
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 	-- Slider change events are wired declaratively via onchange= in RML.
@@ -46,7 +40,7 @@ function M.attach(doc, ctx)
 	w.dcSetDist = function(self, dist)
 		playSound("shapeSwitch")
 		if WG.DecalPainter then WG.DecalPainter.setDistribution(dist) end
-		setActiveClass(widgetState.dcDistButtons, dist)
+		if widgetState.dmHandle then widgetState.dmHandle.dcDistMode = dist end
 	end
 
 	-- Heatmap
@@ -203,14 +197,13 @@ function M.sync(doc, ctx, setSummary)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local WG = ctx.WG
-	local setActiveClass = ctx.setActiveClass
 	local syncAndFlash = ctx.syncAndFlash
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
 		-- ===== Decals mode: highlight decals button =====
 		local decalsBtnA = doc and doc:GetElementById("btn-decals")
 		if decalsBtnA then decalsBtnA:SetClass("active", true) end
-		if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
+
 		local dpState = WG.DecalPlacer and WG.DecalPlacer.getState()
 		if dpState then
 			setSummary("DECALS", "#e060e0",
