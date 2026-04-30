@@ -2280,8 +2280,7 @@ local featureDefDistortions = {}
 
 local crystalDistortionBase = {
 	distortionType = "point",
-	distortionConfig = { posx = 0, posy = 8, posz = 0, radius = 20, onlyModelMap = 0, riseRate = 0.5, windAffected = -0.5, 
-noiseStrength = 0.4, noiseScaleSpace = 2.2, distanceFalloff = 1.2, lifeTime = 0, effectType = 0 },
+	distortionConfig = { posx = 0, posy = 8, posz = 0, radius = 20, onlyModelMap = 0, riseRate = 0.5, windAffected = -0.5, noiseStrength = 0.4, noiseScaleSpace = 2.2, distanceFalloff = 1.2, lifeTime = 0, effectType = 0 },
 }
 
 local crystalColors = { -- note that the underscores are needed here
