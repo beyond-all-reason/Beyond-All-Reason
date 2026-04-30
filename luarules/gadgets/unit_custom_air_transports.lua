@@ -657,6 +657,7 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.LOAD_UNITS)
 	gadgetHandler:RegisterAllowCommand(CMD.LOAD_ONTO)
 	gadgetHandler:RegisterAllowCommand(CMD.UNLOAD_UNIT)
+	gadgetHandler:RegisterAllowCommand(CMD.UNLOAD_UNITS)
 	local allyTeams = spGetAllyTeamList()
 	for _, allyTeam in pairs(allyTeams) do
 		claimedBy[allyTeam] = {}
@@ -934,6 +935,26 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			Spring.Echo("Original position: " .. posX .. ", " .. posY .. ", " .. posZ)
 			Spring.Echo("Adjusted position: " .. newPosX .. ", " .. newPosY .. ", " .. newPosZ)
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
+			if fromInsert then
+				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD.UNLOAD_UNIT, 0, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4] }, {"alt"})
+				return false
+			end
+			spGiveOrderToUnit(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions)
+			return false
+		end
+	end
+	if cmdID == CMD.UNLOAD_UNITS then
+		if cmdParams[4] then
+			spEcho("Warning: CMD.UNLOAD_UNITS areas deprecated, replacing with single point CMD.UNLOAD_UNIT command")
+		end
+		local posX, posY, posZ = cmdParams[1], cmdParams[2], cmdParams[3]
+		local newPosX, newPosY, newPosZ = Spring.ClosestBuildPos(unitTeam, UnitDefNames["unloadpad8x8"].id, posX, posY, posZ, 512, 0, 0)
+		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
+			Spring.Echo("Original position: " .. posX .. ", " .. posY .. ", " .. posZ)
+			Spring.Echo("Adjusted position: " .. newPosX .. ", " .. newPosY .. ", " .. newPosZ)
+			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
+			cmdParams[4] = nil
+			cmdParams[5] = nil
 			if fromInsert then
 				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD.UNLOAD_UNIT, 0, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4] }, {"alt"})
 				return false
