@@ -84,6 +84,13 @@ if System == nil then
 		Json = Json,
 		RmlUi = RmlUi,
 
+		-- BAR modules (set by init.lua; detached from Spring table)
+		Utilities = Utilities,
+		I18N = I18N,
+		Debug = Debug,
+		Lava = Lava,
+		GetModOptionsCopy = GetModOptionsCopy,
+
 		-- luasocket
 		socket = socket,
 

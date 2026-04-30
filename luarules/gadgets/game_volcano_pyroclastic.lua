@@ -124,7 +124,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		gadgetHandler:AddChatAction("volcano", function(cmd, line, words, playerID)
-			local accountID = Spring.Utilities.GetAccountID(playerID)
+			local accountID = Utilities.GetAccountID(playerID)
 			local authorized = _G.permissions.volcano[accountID]
 
 			if not (authorized or Spring.IsCheatingEnabled()) then

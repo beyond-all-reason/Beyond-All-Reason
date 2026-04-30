@@ -285,7 +285,7 @@ local projectileDefLights -- one light per weaponDefID
 local explosionLights -- one light per weaponDefID
 local gibLight -- one light for all pieceprojectiles
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSinglePlayer = Utilities.Gametype.IsSinglePlayer()
 
 local shaderConfig = {
 	MIERAYLEIGHRATIO = 0.1, -- The ratio of Rayleigh scattering to Mie scattering
@@ -577,7 +577,7 @@ local function InitializeLight(lightTable, unitID)
 				lightparams[i] = 0
 			end
 			if lightTable.lightConfig == nil then
-				Spring.Debug.TraceFullEcho()
+				Debug.TraceFullEcho()
 			end
 			for paramname, tablepos in pairs(lightParamKeyOrder) do
 				lightparams[tablepos] = lightTable.lightConfig[paramname] or lightparams[tablepos]
@@ -1490,7 +1490,7 @@ local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
 	local weapon, piece = Spring.GetProjectileType(projectileID)
 	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
-	Spring.Debug.TraceFullEcho()
+	Debug.TraceFullEcho()
 end
 
 local function updateProjectileLights(newgameframe)
@@ -1857,7 +1857,7 @@ function widget:TextCommand(command)
 end
 
 function widget:Initialize()
-	Spring.Debug.TraceEcho("Initialize DLGL4")
+	Debug.TraceEcho("Initialize DLGL4")
 	if spGetConfigString("AllowDeferredMapRendering") == "0" or spGetConfigString("AllowDeferredModelRendering") == "0" then
 		spEcho("Deferred Rendering (gfx_deferred_rendering.lua) requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!")
 		widgetHandler:RemoveWidget()

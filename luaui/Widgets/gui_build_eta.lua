@@ -43,8 +43,8 @@ local blinkTime = 20
 local minETASecs = 5 -- Don't show ETA if it is less than 5 seconds
 
 -- Pre-cache I18N strings to avoid per-unit per-frame lookups
-local i18n_buildTime = "\255\255\255\1" .. Spring.I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
-local i18n_cancelled = Spring.I18N("ui.buildEstimate.cancelled") .. " "
+local i18n_buildTime = "\255\255\255\1" .. I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
+local i18n_cancelled = I18N("ui.buildEstimate.cancelled") .. " "
 
 local unitHeight = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -129,8 +129,8 @@ function widget:Shutdown()
 end
 
 function widget:LanguageChanged()
-	i18n_buildTime = "\255\255\255\1" .. Spring.I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
-	i18n_cancelled = Spring.I18N("ui.buildEstimate.cancelled") .. " "
+	i18n_buildTime = "\255\255\255\1" .. I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
+	i18n_cancelled = I18N("ui.buildEstimate.cancelled") .. " "
 end
 
 local function updateEta(eta, newProgress, gameSeconds, abs)

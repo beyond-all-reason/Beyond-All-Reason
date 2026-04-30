@@ -100,7 +100,7 @@ function widget:GameOver()
 	if not info or Spring.IsReplay() then
 		return
 	end
-	if Spring.Utilities.IsDevMode() then
+	if Utilities.IsDevMode() then
 		return
 	end
 

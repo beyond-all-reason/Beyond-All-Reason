@@ -76,7 +76,7 @@ if gadgetHandler:IsSyncedCode() then
 	local playerIDtoAIs = {}
 	local playerList = GetPlayerList()
 	local killTeamQueue = {}
-	local isFFA = Spring.Utilities.Gametype.IsFFA()
+	local isFFA = Utilities.Gametype.IsFFA()
 
 	local gameoverFrame
 	local gameoverWinners

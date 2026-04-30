@@ -21,7 +21,7 @@ local trustedNames = powerusers.trustedNames
 powerusers.trustedNames = nil
 if trustedNames then
 	for _, playerID in ipairs(Spring.GetPlayerList()) do
-		local accountID = Spring.Utilities.GetAccountID(playerID)
+		local accountID = Utilities.GetAccountID(playerID)
 		local name = Spring.GetPlayerInfo(playerID)
 		if name and trustedNames[name] then
 			-- Register under accountID for synced gadgets
@@ -36,12 +36,12 @@ if trustedNames then
 	end
 end
 
-local numPlayers = Spring.Utilities.GetPlayerCount()
+local numPlayers = Utilities.GetPlayerCount()
 
 -- give permissions when in singleplayer
 if numPlayers <= 1 then
 	for _, playerID in ipairs(Spring.GetPlayerList()) do
-		local accountID = Spring.Utilities.GetAccountID(playerID)
+		local accountID = Utilities.GetAccountID(playerID)
 		local _, _, spec = Spring.GetPlayerInfo(playerID)
 
 		-- dont give permissions to the spectators when there is a player is playing
@@ -76,8 +76,8 @@ _G.isSinglePlayer = isSinglePlayer
 -- The patched GetAccountID is used by synced gadgets. Unsynced gadgets use name-based lookup.
 local trustedNameAccountIDs = {}
 local nextSyntheticAccountID = -1000
-local originalGetAccountID = Spring.Utilities.GetAccountID
-Spring.Utilities.GetAccountID = function(playerID)
+local originalGetAccountID = Utilities.GetAccountID
+Utilities.GetAccountID = function(playerID)
 	local syntheticID = trustedNameAccountIDs[playerID]
 	if syntheticID then
 		return syntheticID

@@ -6,6 +6,12 @@
 	"diagnostics": {
 		"disable": ["duplicate-set-field"],
 		"globals": [
+			"Utilities",
+			"Debug",
+			"Lava",
+			"GetModOptionsCopy",
+			"I18N",
+
 			"Turn",
 			"Move",
 			"Spin",

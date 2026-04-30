@@ -2955,7 +2955,7 @@ if Spring.GetModOptions().experimentalextraunits or Spring.GetModOptions().scavu
 	unitGrids["coracsub"][4][1][3] = "cornanotc2plat"
 end
 
-if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallunits then
+if Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallunits then
 	local scavLabGrids = {}
 	local scavUnitGrids = {}
 	for unitName, content in pairs(labGrids) do

@@ -12,18 +12,18 @@ local function refreshUnitDefs()
 			local proxyUnitDef = UnitDefNames[proxyUnitDefName]
 			proxyUnitDefName = proxyUnitDef and proxyUnitDef.customParams.i18nfromunit or proxyUnitDefName
 
-			local fromUnitHumanName = Spring.I18N("units.names." .. proxyUnitDefName)
-			humanName = Spring.I18N("units.scavenger", { name = fromUnitHumanName })
+			local fromUnitHumanName = I18N("units.names." .. proxyUnitDefName)
+			humanName = I18N("units.scavenger", { name = fromUnitHumanName })
 
 			if i18nDescriptionEntries[unitDefName] then
-				tooltip = Spring.I18N("units.descriptions." .. unitDefName)
+				tooltip = I18N("units.descriptions." .. unitDefName)
 			else
-				tooltip = Spring.I18N("units.descriptions." .. proxyUnitDefName)
+				tooltip = I18N("units.descriptions." .. proxyUnitDefName)
 			end
 		else
 			local proxyUnitDefName = unitDef.customParams.i18nfromunit or unitDefName
-			humanName = Spring.I18N("units.names." .. proxyUnitDefName)
-			tooltip = Spring.I18N("units.descriptions." .. proxyUnitDefName)
+			humanName = I18N("units.names." .. proxyUnitDefName)
+			tooltip = I18N("units.descriptions." .. proxyUnitDefName)
 		end
 
 		unitDef.translatedHumanName = humanName
@@ -33,9 +33,9 @@ end
 
 local function setCorpseDescription(unitHumanName, featureDef)
 	if featureDef.customParams.category == "corpses" then
-		featureDef.translatedDescription = Spring.I18N("units.dead", { name = unitHumanName })
+		featureDef.translatedDescription = I18N("units.dead", { name = unitHumanName })
 	elseif featureDef.customParams.category == "heaps" then
-		featureDef.translatedDescription = Spring.I18N("units.heap", { name = unitHumanName })
+		featureDef.translatedDescription = I18N("units.heap", { name = unitHumanName })
 	end
 end
 
@@ -55,7 +55,7 @@ local function refreshFeatureDefs()
 	for name, featureDef in pairs(FeatureDefNames) do
 		if not processedFeatureDefs[featureDef.id] then
 			local proxyName = featureDef.customParams.i18nfrom or name
-			featureDef.translatedDescription = Spring.I18N("features.names." .. proxyName)
+			featureDef.translatedDescription = I18N("features.names." .. proxyName)
 		end
 	end
 end

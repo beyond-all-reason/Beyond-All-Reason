@@ -347,7 +347,7 @@ local function GetTeamColorCode(teamID)
 	if not R then
 		return "\255\255\255\255"
 	end
-	return Spring.Utilities.ConvertColor(R, G, B)
+	return Utilities.ConvertColor(R, G, B)
 end
 
 local function GetTeamName(teamID)
@@ -418,7 +418,7 @@ local function disableStats()
 end
 
 function widget:Initialize()
-	texts = Spring.I18N("ui.unitstats")
+	texts = I18N("ui.unitstats")
 
 	widget:ViewResize(vsx, vsy)
 

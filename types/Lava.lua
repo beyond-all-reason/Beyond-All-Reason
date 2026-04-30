@@ -1,0 +1,38 @@
+---@meta
+
+---@class Lava
+---@field isLavaMap boolean
+---@field diffuseEmitTex string
+---@field normalHeightTex string
+---@field level number
+---@field grow number
+---@field damage number
+---@field damageFeatures boolean|number
+---@field uvScale number
+---@field colorCorrection string
+---@field losDarkness number
+---@field swirlFreq number
+---@field swirlAmp number
+---@field specularExp number
+---@field shadowStrength number
+---@field coastWidth number
+---@field coastColor string
+---@field coastLightBoost number
+---@field lavaParallaxDepth number?
+---@field lavaParallaxOffset number?
+---@field fogColor string
+---@field fogFactor number
+---@field fogHeight number
+---@field fogAbove number
+---@field fogEnabled boolean
+---@field fogDistortion number
+---@field tideAmplitude number
+---@field tidePeriod number
+---@field tideRhythm number[][]
+---@field effectDamage string
+---@field effectBurst string|false
+---@field effectBurstSounds table[]
+---@field ambientSounds table[]|false
+
+---@type Lava
+Lava = {}

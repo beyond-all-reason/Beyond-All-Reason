@@ -396,7 +396,7 @@ end
 
 function widget:Shutdown()
 	if highlightUnitVBOTable and highlightUnitVBOTable.VAO then
-		if Spring.Utilities.IsDevMode() then
+		if Utilities.IsDevMode() then
 			InstanceVBOTable.dumpAndCompareInstanceData(highlightUnitVBOTable)
 		end
 		highlightUnitVBOTable.VAO:Delete()

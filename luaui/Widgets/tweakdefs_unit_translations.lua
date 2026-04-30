@@ -24,11 +24,11 @@ local function updateTranslations()
 		local customTooltip = unitDef.customParams[tooltipKey]
 
 		if customHumanName then
-			Spring.I18N.set(currentLanguage .. ".units.names." .. unitDefName, customHumanName)
+			I18N.set(currentLanguage .. ".units.names." .. unitDefName, customHumanName)
 		end
 
 		if customTooltip then
-			Spring.I18N.set(currentLanguage .. ".units.descriptions." .. unitDefName, customTooltip)
+			I18N.set(currentLanguage .. ".units.descriptions." .. unitDefName, customTooltip)
 		end
 	end
 end
