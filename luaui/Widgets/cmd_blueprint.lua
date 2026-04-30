@@ -235,12 +235,6 @@ local blueprintPlacementActive = false
 
 local lastExplicitlySelectedBlueprintIndex = nil
 
--- capture mode state
-local captureMode = false
-local captureStartScreenPos = nil
-local captureEndScreenPos = nil
-local captureStartWorldPos = nil
-
 local state = {
 	---@type Point|nil
 	---non-nil implies that we are dragging
@@ -742,10 +736,6 @@ local drawCursorText = glListCache(function(index)
 			name = "Delete",
 			key = keyConfig.sanitizeKey(actionHotkeys["blueprint_delete"], currentLayout),
 		},
-		{
-			name = "Capture Area",
-			key = keyConfig.sanitizeKey(actionHotkeys["blueprint_capture"], currentLayout),
-		},
 	}
 
 	local hotkeyText = ""
@@ -768,50 +758,6 @@ local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 	drawCursorText.invalidate()
-end
-
-function widget:KeyPress(key, mods, isRepeat)
-	-- Escape exits capture mode
-	if captureMode and key == 27 then
-		captureMode = false
-		captureStartScreenPos = nil
-		captureEndScreenPos = nil
-		captureStartWorldPos = nil
-		FeedbackForUser("[Blueprint] capture mode off")
-		return true
-	end
-end
-
-function widget:DrawScreen()
-	-- draw capture box if in capture mode and dragging
-	if captureMode and captureStartScreenPos and captureEndScreenPos then
-		local x1, y1 = captureStartScreenPos[1], captureStartScreenPos[2]
-		local x2, y2 = captureEndScreenPos[1], captureEndScreenPos[2]
-
-		gl.PushMatrix()
-
-		-- semi-transparent fill
-		gl.Color(0.2, 0.6, 1.0, 0.08)
-		gl.Rect(x1, y1, x2, y2)
-
-		-- outline
-		gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
-		gl.LineWidth(2)
-		gl.Color(0.3, 0.7, 1.0, 0.9)
-		gl.Rect(x1, y1, x2, y2)
-		gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
-
-		gl.PopMatrix()
-	elseif captureMode then
-		-- show hint text near cursor
-		local mx, my = SpringGetMouseState()
-		if mx and my then
-			gl.PushMatrix()
-			gl.Translate(mx + 15, my - 12, 0)
-			gl.Text("\255\100\200\255Blueprint Capture: drag to select area", 0, 0, 14, "ao")
-			gl.PopMatrix()
-		end
-	end
 end
 
 function widget:DrawScreenEffects()
@@ -951,63 +897,6 @@ local function handleBlueprintDeleteAction()
 	return true
 end
 
--- capture helpers
--- ================
-
-local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
-
-local function screenToWorldPos(sx, sy)
-	local _, pos = SpringTraceScreenRay(sx, sy, true, true, false, true)
-	return pos
-end
-
-local function handleBlueprintCaptureAction()
-	if captureMode then
-		captureMode = false
-		captureStartScreenPos = nil
-		captureEndScreenPos = nil
-		captureStartWorldPos = nil
-		FeedbackForUser("[Blueprint] capture mode off")
-	else
-		captureMode = true
-		captureStartScreenPos = nil
-		captureEndScreenPos = nil
-		captureStartWorldPos = nil
-		FeedbackForUser("[Blueprint] capture mode on - drag a box on the map to capture buildings")
-	end
-	return true
-end
-
-local function finishCapture(x1, z1, x2, z2)
-	local xmin = math.min(x1, x2)
-	local xmax = math.max(x1, x2)
-	local zmin = math.min(z1, z2)
-	local zmax = math.max(z1, z2)
-
-	-- get own units in the rectangle
-	local unitsInArea = spGetUnitsInRectangle(xmin, zmin, xmax, zmax, -2)
-	if not unitsInArea or #unitsInArea == 0 then
-		FeedbackForUser("[Blueprint] no own units found in capture area")
-		return
-	end
-
-	-- filter to blueprint-buildable units only
-	local buildableUnits = table.filterArray(unitsInArea, function(unitID)
-		local unitDefID = spGetUnitDefID(unitID)
-		return blueprintBuildableUnitDefs[unitDefID]
-	end)
-
-	if #buildableUnits == 0 then
-		FeedbackForUser("[Blueprint] no buildings found in capture area")
-		return
-	end
-
-	createBlueprint(buildableUnits, false)
-	setSelectedBlueprintIndex(#blueprints)
-
-	Spring.PlaySoundFile(sounds.createBlueprint, 0.75, "ui")
-end
-
 local FACING_MAP = { south = 0, east = 1, north = 2, west = 3 }
 local function handleFacingAction(_, _, args)
 	local bp = getSelectedBlueprint()
@@ -1063,18 +952,6 @@ local function handleSpacingAction(_, _, args)
 end
 
 function widget:MousePress(x, y, button)
-	-- capture mode: intercept left click to start drawing area box
-	if captureMode and button == 1 then
-		local worldPos = screenToWorldPos(x, y)
-		if worldPos then
-			captureStartScreenPos = { x, y }
-			captureEndScreenPos = { x, y }
-			captureStartWorldPos = worldPos
-			return true
-		end
-		return false
-	end
-
 	if button ~= 1 or not blueprintPlacementActive or not getSelectedBlueprint() then
 		return
 	end
@@ -1086,35 +963,9 @@ function widget:MousePress(x, y, button)
 	return false
 end
 
-function widget:MouseMove(x, y, dx, dy, button)
-	if captureMode and captureStartScreenPos then
-		captureEndScreenPos = { x, y }
-	end
-end
-
-function widget:MouseRelease(x, y, button)
-	if captureMode and button == 1 and captureStartWorldPos then
-		local endWorldPos = screenToWorldPos(x, y)
-		if endWorldPos then
-			finishCapture(
-				captureStartWorldPos[1], captureStartWorldPos[3],
-				endWorldPos[1], endWorldPos[3]
-			)
-		end
-		captureStartScreenPos = nil
-		captureEndScreenPos = nil
-		captureStartWorldPos = nil
-		return true
-	end
-end
-
 local MOUSE_WHEEL_RATE_LIMIT = 1 / 15
 local lastMouseWheelChange = nil
 function widget:MouseWheel(up, value)
-	if captureMode then
-		return false
-	end
-
 	if not blueprintPlacementActive or state.startPosition then
 		return
 	end
@@ -1389,7 +1240,6 @@ function widget:Initialize()
 	loadedBlueprints = true
 
 	widgetHandler.actionHandler:AddAction(self, "blueprint_create", handleBlueprintCreateAction, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "blueprint_capture", handleBlueprintCaptureAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "blueprint_next", handleBlueprintNextAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "blueprint_prev", handleBlueprintPrevAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "blueprint_delete", handleBlueprintDeleteAction, nil, "p")
@@ -1416,7 +1266,6 @@ function widget:Shutdown()
 	end
 
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_create", "p")
-	widgetHandler.actionHandler:RemoveAction(self, "blueprint_capture", "p")
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_next", "p")
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_prev", "p")
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_delete", "p")
