@@ -6,17 +6,10 @@ function M.attach(doc, ctx)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local playSound = ctx.playSound
-	local setActiveClass = ctx.setActiveClass
 	local trackSliderDrag = ctx.trackSliderDrag
 	-- ============ Noise Brush controls ============
 
 	widgetState.noiseRootEl = doc:GetElementById("tf-noise-root")
-
-	-- Cache noise type button elements for setActiveClass sync.
-	widgetState.noiseTypeButtons.perlin = doc:GetElementById("btn-noise-perlin")
-	widgetState.noiseTypeButtons.voronoi = doc:GetElementById("btn-noise-voronoi")
-	widgetState.noiseTypeButtons.fbm = doc:GetElementById("btn-noise-fbm")
-	widgetState.noiseTypeButtons.billow = doc:GetElementById("btn-noise-billow")
 
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 	-- Slider change events are wired declaratively via onchange= in RML.
@@ -56,7 +49,7 @@ function M.attach(doc, ctx)
 	w.noSetType = function(self, ntype)
 		playSound("modeSwitch")
 		if WG.TerraformBrush then WG.TerraformBrush.setNoiseType(ntype) end
-		setActiveClass(widgetState.noiseTypeButtons, ntype)
+		if widgetState.dmHandle then widgetState.dmHandle.noiseType = ntype end
 	end
 
 	-- Scale

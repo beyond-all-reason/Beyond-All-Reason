@@ -6,7 +6,6 @@ function M.attach(doc, ctx)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local playSound = ctx.playSound
-	local setActiveClass = ctx.setActiveClass
 	local trackSliderDrag = ctx.trackSliderDrag
 	local ROTATION_STEP = ctx.ROTATION_STEP
 	local RADIUS_STEP = ctx.RADIUS_STEP
@@ -17,20 +16,6 @@ function M.attach(doc, ctx)
 	widgetState.fpControlsEl = doc:GetElementById("tf-feature-controls")
 	widgetState.fpSubmodesEl = doc:GetElementById("tf-feature-submodes")
 	widgetState.shapeRowEl = doc:GetElementById("tf-shape-row")
-	widgetState.smoothSubmodesEl = doc:GetElementById("tf-smooth-submodes")
-	widgetState.fullRestoreEl = doc:GetElementById("btn-full-restore")
-	widgetState.fullRestoreLabel1 = doc:GetElementById("full-restore-label-1")
-	widgetState.fullRestoreLabel2 = doc:GetElementById("full-restore-label-2")
-	widgetState.metalCleanEl = doc:GetElementById("btn-metal-clean")
-	widgetState.metalCleanLabel = doc:GetElementById("metal-clean-label")
-
-	-- Cache FP sub-mode / distribution buttons (used by setActiveClass in M.sync)
-	widgetState.fpSubModeButtons.scatter = doc:GetElementById("btn-fp-scatter")
-	widgetState.fpSubModeButtons.point   = doc:GetElementById("btn-fp-point")
-	widgetState.fpSubModeButtons.remove  = doc:GetElementById("btn-fp-remove")
-	widgetState.fpDistButtons.random     = doc:GetElementById("btn-fp-dist-random")
-	widgetState.fpDistButtons.regular    = doc:GetElementById("btn-fp-dist-regular")
-	widgetState.fpDistButtons.clustered  = doc:GetElementById("btn-fp-dist-clustered")
 
 	-- Slider drag tracking (legitimate imperative state).
 	-- Slider change events wired declaratively via onchange= in RML.
@@ -53,14 +38,14 @@ function M.attach(doc, ctx)
 	w.fpSetMode = function(self, fmode)
 		playSound("modeSwitch")
 		if WG.FeaturePlacer then WG.FeaturePlacer.setMode(fmode) end
-		setActiveClass(widgetState.fpSubModeButtons, fmode)
+		if widgetState.dmHandle then widgetState.dmHandle.fpSubMode = fmode end
 	end
 
 	-- Distribution
 	w.fpSetDist = function(self, dist)
 		playSound("shapeSwitch")
 		if WG.FeaturePlacer then WG.FeaturePlacer.setDistribution(dist) end
-		setActiveClass(widgetState.fpDistButtons, dist)
+		if widgetState.dmHandle then widgetState.dmHandle.fpDistMode = dist end
 	end
 
 	-- Size
@@ -411,7 +396,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local WG = ctx.WG
-	local setActiveClass = ctx.setActiveClass
 	local syncAndFlash = ctx.syncAndFlash
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
@@ -421,7 +405,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 			featuresBtn:SetClass("active", true)
 		end
 		-- Clear terraform mode highlights
-		if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
+
 
 		-- DISPLAY/INSTRUMENTS warn chips (shared TB state mirror)
 		if doc and ctx.syncWarnChip then
@@ -432,14 +416,14 @@ function M.sync(doc, ctx, fpState, setSummary)
 			ctx.syncWarnChip(doc, "warn-chip-fp-instruments", "section-fp-instruments", instActive)
 		end
 
-		-- Feature sub-mode buttons
-		setActiveClass(widgetState.fpSubModeButtons, fpState.mode)
-
-		-- Feature distribution buttons
-		setActiveClass(widgetState.fpDistButtons, fpState.distribution)
+		-- Feature sub-mode and distribution (driven by dm fields via data-class-active)
+		if widgetState.dmHandle then
+			widgetState.dmHandle.fpSubMode = fpState.mode or "scatter"
+			widgetState.dmHandle.fpDistMode = fpState.distribution or "random"
+		end
 
 		-- Feature shape buttons
-		if widgetState.dmHandle then widgetState.dmHandle.tfShape = fpState.shape or "circle" end
+		if widgetState.dmHandle then widgetState.dmHandle.activeShape = fpState.shape or "circle" end
 
 		if doc then
 			uiState.updatingFromCode = true

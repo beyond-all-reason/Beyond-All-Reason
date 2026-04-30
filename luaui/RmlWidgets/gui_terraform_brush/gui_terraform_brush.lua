@@ -833,11 +833,20 @@ local initialModel = {
 	gbAltMinEnable = false,
 	gbAltMaxEnable = false,
 	gbColorOpen = false,
-	-- terraform active mode + shape (data-class-active)
-	tfMode = "raise",
-	tfShape = "circle",
-	tfSmoothSubMode = "",
-	tfRampType = "square",
+	-- Phase 2 step 2: active-state dm fields (data-class-active bindings)
+	activeMode = "",           -- "raise"/"lower"/"smooth"/"ramp"/"restore"/"noise"
+	activeShape = "circle",    -- shared shape for all tools
+	activeSmoothMode = "",     -- "smooth"/"level" when in smooth/level group, else ""
+	noiseType = "perlin",      -- noise type selection
+	mbSubMode = "paint",       -- metal brush sub-mode
+	gbSubMode = "paint",       -- grass brush sub-mode
+	fpSubMode = "scatter",     -- feature placer sub-mode
+	fpDistMode = "random",     -- feature placer distribution
+	dcDistMode = "random",     -- decal distribution
+	wbSubMode = "scatter",     -- weather brush sub-mode
+	wbDistMode = "random",     -- weather distribution
+	stpShapeMode = "circle",   -- startpos shape selection
+
 	-- terraform mode instrument sub-rows (data-if visibility flags)
 	tfGridSnap = false,
 	tfAngleSnap = false,
@@ -900,103 +909,6 @@ local function clearPassthrough()
 		if widgetState.rootElement then
 			widgetState.rootElement:SetClass("passthrough-dimmed", false)
 		end
-	end
-end
-
-local function onModeClick(mode)
-	return function(event)
-		if widgetState.noTerraform then event:StopPropagation(); return end
-		playSound("modeSwitch")
-		clearPassthrough()
-		-- Deactivate feature placer / weather brush / splat painter / metal brush when switching to a terraform mode
-		if WG.MetalBrush then
-			WG.MetalBrush.deactivate()
-		end
-		if WG.FeaturePlacer then
-			WG.FeaturePlacer.deactivate()
-		end
-		if WG.WeatherBrush then
-			WG.WeatherBrush.deactivate()
-		end
-		if WG.SplatPainter then
-			WG.SplatPainter.deactivate()
-		end
-		if WG.GrassBrush then
-			WG.GrassBrush.deactivate()
-		end
-		widgetState.envActive = false
-		widgetState.lightActive = false
-		if WG.LightPlacer then WG.LightPlacer.deactivate() end
-		widgetState.startposActive = false
-		if WG.StartPosTool then WG.StartPosTool.deactivate() end
-		widgetState.cloneActive = false
-		if WG.CloneTool then WG.CloneTool.deactivate() end
-
-		if WG.TerraformBrush then
-			WG.TerraformBrush.setMode(mode)
-		end
-
-		if widgetState.dmHandle then widgetState.dmHandle.tfMode = mode end
-		local inRestore = mode == "restore"
-		local clayBtn = widgetState.document and getCachedEl(widgetState.document, "btn-clay-mode")
-		if clayBtn then
-			clayBtn:SetClass("unavailable", CLAY_UNAVAILABLE_MODES[mode] == true)
-		end
-		if widgetState.dmHandle then widgetState.dmHandle.tfInRestore = inRestore end
-		event:StopPropagation()
-	end
-end
-
-local function onShapeClick(shape)
-	return function(event)
-		playSound("shapeSwitch")
-		-- Route to feature placer, splat painter, or terraform brush based on active mode
-		local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
-		local spState = WG.SplatPainter and WG.SplatPainter.getState()
-		local lpState = WG.LightPlacer and WG.LightPlacer.getState()
-		local lpActive = widgetState.lightActive and lpState and lpState.active
-		if lpActive then
-			if shape ~= "circle" and shape ~= "square" then
-				event:StopPropagation()
-				return
-			end
-			WG.LightPlacer.setShape(shape)
-		elseif fpState and fpState.active then
-			if shape == "ring" or shape == "fill" then
-				event:StopPropagation()
-				return
-			end
-			WG.FeaturePlacer.setShape(shape)
-		elseif spState and spState.active then
-			if shape == "ring" or shape == "fill" then
-				event:StopPropagation()
-				return
-			end
-			WG.SplatPainter.setShape(shape)
-		elseif WG.TerraformBrush then
-			local state = WG.TerraformBrush.getState()
-			if state and state.mode == "ramp" and shape ~= "circle" and shape ~= "square" then
-				event:StopPropagation()
-				return
-			end
-			if state and (state.mode == "level" or state.mode == "smooth") and shape == "ring" then
-				event:StopPropagation()
-				return
-			end
-			WG.TerraformBrush.setShape(shape)
-		end
-
-		local ringWidthRowEl = widgetState.document and getCachedEl(widgetState.document, "ring-width-row")
-		if ringWidthRowEl then
-			ringWidthRowEl:SetClass("hidden", shape ~= "ring")
-		end
-
-		if widgetState.dmHandle then
-			widgetState.dmHandle.tfRingVisible = (shape == "ring")
-			widgetState.dmHandle.shapeName = shapeNames[shape]
-			widgetState.dmHandle.tfShape = shape
-		end
-		event:StopPropagation()
 	end
 end
 
@@ -2352,7 +2264,7 @@ local function attachDeclarativeHandlers(ctx)
 		widgetState.cloneActive    = false
 		if WG.CloneTool     then WG.CloneTool.deactivate()     end
 		if WG.TerraformBrush then WG.TerraformBrush.setMode(mode) end
-		if widgetState.dmHandle then widgetState.dmHandle.tfMode = mode end
+		if widgetState.dmHandle then widgetState.dmHandle.activeMode = mode end
 		local inRestore = mode == "restore"
 		local doc = widgetState.document
 		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
@@ -2367,7 +2279,7 @@ local function attachDeclarativeHandlers(ctx)
 	w.tfSmoothSubMode = function(self, mode)
 		playSound("modeSwitch")
 		if WG.TerraformBrush then WG.TerraformBrush.setMode(mode) end
-		if widgetState.dmHandle then widgetState.dmHandle.tfSmoothSubMode = mode end
+		if widgetState.dmHandle then widgetState.dmHandle.activeSmoothMode = mode end
 	end
 
 	-- ── Shape buttons ──────────────────────────────────────────────────────
@@ -2394,9 +2306,9 @@ local function attachDeclarativeHandlers(ctx)
 			WG.TerraformBrush.setShape(shape)
 		end
 		if widgetState.dmHandle then
+			widgetState.dmHandle.activeShape = shape
 			widgetState.dmHandle.tfRingVisible = (shape == "ring")
 			widgetState.dmHandle.shapeName = shapeNames[shape]
-			widgetState.dmHandle.tfShape = shape
 		end
 	end
 
@@ -2404,12 +2316,12 @@ local function attachDeclarativeHandlers(ctx)
 	w.tfRampStraight = function(self)
 		playSound("tick")
 		if WG.TerraformBrush then WG.TerraformBrush.setShape("square") end
-		if widgetState.dmHandle then widgetState.dmHandle.tfRampType = "square" end
+		if widgetState.dmHandle then widgetState.dmHandle.activeShape = "square" end
 	end
 	w.tfRampSpline = function(self)
 		playSound("tick")
 		if WG.TerraformBrush then WG.TerraformBrush.setShape("circle") end
-		if widgetState.dmHandle then widgetState.dmHandle.tfRampType = "circle" end
+		if widgetState.dmHandle then widgetState.dmHandle.activeShape = "circle" end
 	end
 
 	-- ── Undo / Redo ───────────────────────────────────────────────────────
@@ -2702,7 +2614,14 @@ local function attachEventListeners()
 	-- Safety net: clear drag state if mouseup happens anywhere on document
 	doc:AddEventListener("mouseup", function() uiState.draggingSlider = nil end, false)
 
-	-- (mode/shape/ramp/smoothSub buttons driven by data-class-active via dm fields; no element cache needed)
+	-- Shape buttons: still cached for disabled-state management (SetClass("disabled",...))
+	widgetState.shapeButtons.circle   = getCachedEl(doc, "btn-circle")
+	widgetState.shapeButtons.square   = getCachedEl(doc, "btn-square")
+	widgetState.shapeButtons.hexagon  = getCachedEl(doc, "btn-hexagon")
+	widgetState.shapeButtons.octagon  = getCachedEl(doc, "btn-octagon")
+	widgetState.shapeButtons.triangle = getCachedEl(doc, "btn-triangle")
+	widgetState.shapeButtons.ring     = getCachedEl(doc, "btn-ring")
+	widgetState.shapeButtons.fill     = getCachedEl(doc, "btn-fill")
 
 	local sliderHistory = getCachedEl(doc, "slider-history")
 	if sliderHistory then
@@ -4670,8 +4589,7 @@ function widget:Update()
 	-- Poll-based window drag (position only — mouseup ends drag via doc listener)
 	local ds = windowDragState
 	if ds.active and ds.rootEl then
-		local mx, my, _, _, _, offscreen = GetMouseState()
-		if not offscreen then
+		local mx, my = GetMouseState()
 		local vsx, vsy = ds.vsx, ds.vsy
 		local ew, eh = ds.ew, ds.eh
 		local T = WINDOW_SNAP_THRESHOLD
@@ -4734,7 +4652,6 @@ function widget:Update()
 			ds.rootEl.style.left = ix .. "px"
 			ds.rootEl.style.top  = iy .. "px"
 		end
-		end -- not offscreen
 	end
 
 	-- When game chat input is open, auto-blur any focused RmlUI text input so
@@ -5567,16 +5484,17 @@ function widget:Update()
 			uiState.updatingFromCode = false
 		end
 
+		local dm = widgetState.dmHandle
 		do
 			local primaryKey = (state.mode == "level") and "smooth" or state.mode
-			if dm then
-				dm.tfMode = primaryKey
-				dm.tfShape = state.shape or "circle"
-				local inSmoothGroup = state.mode == "smooth" or state.mode == "level"
-				dm.tfSmoothSubMode = inSmoothGroup and state.mode or ""
-				-- ramp type: "square"=straight, "circle"=spline
-				dm.tfRampType = state.shape or "square"
-			end
+			if dm then dm.activeMode = primaryKey end
+		end
+		if dm then dm.activeShape = state.shape end
+
+		-- Smooth/Level submode active chip sync (visibility handled below, after tool-active checks)
+		do
+			local inSmoothGroup = state.mode == "smooth" or state.mode == "level"
+			if dm then dm.activeSmoothMode = (inSmoothGroup and state.mode) or "" end
 		end
 
 		-- Show ramp-type-row when in ramp mode; hide normal shape row
@@ -5587,6 +5505,7 @@ function widget:Update()
 				widgetState.dmHandle.tfShapeRowVisible = not isRamp
 			end
 		end
+		-- Ramp type active state driven by dm.activeShape (data-class-active in RML)
 
 		-- D4: Update contextual status summary line
 		do
@@ -5627,7 +5546,7 @@ function widget:Update()
 
 		-- Sync noise type buttons when in noise mode
 		if state.mode == "noise" and state.noiseType then
-			setActiveClass(widgetState.noiseTypeButtons, state.noiseType)
+			if dm then dm.noiseType = state.noiseType end
 
 			-- Sync noise sliders from state (handles preset loads, keyboard changes, etc.)
 			uiState.updatingFromCode = true
