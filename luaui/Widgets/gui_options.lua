@@ -1191,6 +1191,7 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+local showToggledOff = false
 local function checkPause()
 	-- pause/unpause when the options/quitscreen interface shows
 	local _, _, isClientPaused, _ = SpringUnsynced.GetGameState()
@@ -1198,7 +1199,7 @@ local function checkPause()
 		skipUnpauseOnHide = false
 		skipUnpauseOnLobbyHide = false
 	end
-	local showToggledOff = false
+	showToggledOff = false
 	if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and prevShow ~= show then
 		if show and isClientPaused then
 			skipUnpauseOnHide = true
@@ -10068,7 +10069,7 @@ local function optionsCmd(_, _, params)
 	show = newShow
 	if showTextInput then
 		if show then
-			widgetHandler.textOwner = self --widgetHandler:OwnText()
+			widgetHandler.textOwner = widget --widgetHandler:OwnText()
 			SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		else
 			cancelChatInput()
@@ -10092,7 +10093,7 @@ local function optionCmd(_, _, params)
 		else
 			show = true
 			if showTextInput then
-				widgetHandler.textOwner = self --widgetHandler:OwnText()
+				widgetHandler.textOwner = widget --widgetHandler:OwnText()
 				SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			end
 		end
@@ -10288,7 +10289,7 @@ function widget:Initialize()
 		show = newShow
 		if showTextInput then
 			if show then
-				widgetHandler.textOwner = self --widgetHandler:OwnText()
+				widgetHandler.textOwner = widget --widgetHandler:OwnText()
 				SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			else
 				cancelChatInput()
@@ -10480,7 +10481,7 @@ function widget:SetConfigData(data)
 		if data.show ~= nil then
 			show = data.show
 			if show and showTextInput then
-				widgetHandler.textOwner = self --widgetHandler:OwnText()
+				widgetHandler.textOwner = widget --widgetHandler:OwnText()
 				SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			end
 		end

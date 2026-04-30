@@ -95,7 +95,7 @@ if tracy then
 		tracy.ZoneEnd()
 	end
 
-	function AIBase:tracyZoneBeginMem()
+	function AIBase:tracyZoneBeginMem(fname)
 		if logRAM then
 			lastGCinfo = gcinfo()
 		end

@@ -56,6 +56,7 @@ local decode_scanWhitespace
 local encodeString
 local isArray
 local isEncodable
+local null  -- forward decl; assigned via `function null()` further down
 
 -----------------------------------------------------------------------------
 -- PUBLIC FUNCTIONS
@@ -124,7 +125,9 @@ end
 
 --- The null function allows one to specify a null value in an associative array (which is otherwise
 -- discarded if you set the value with 'nil' in Lua. Simply set t = { first=json.null }
-local function null()
+-- (Reassigns the file-scope forward declaration above so encode/decode can
+-- reference it before this point.)
+function null()
   return null -- so json.null() will also return null ;-)
 end
 

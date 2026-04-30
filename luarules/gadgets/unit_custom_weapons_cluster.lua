@@ -106,7 +106,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 
 		if clusterDefName then
 			local clusterDef = WeaponDefNames[clusterDefName]
-			local clusterCount = tonumber(weaponDef.customParams.cluster_number)
+			local clusterCount = tonumber(weaponDef.customParams.cluster_number) or 0
 
 			if clusterCount < minSpawnNumber or clusterCount > maxSpawnNumber then
 				SpringShared.Log(gadget:GetInfo().name, LOG.WARNING, weaponDef.name .. ": cluster_count of " .. clusterCount .. ", clamping to " .. minSpawnNumber .. "-" .. maxSpawnNumber)
@@ -429,7 +429,7 @@ end
 local function inheritMomentum(projectileID)
 	local vx, vy, vz, vw = spGetProjectileVelocity(projectileID)
 	-- Apply major loss from scattering (~50%) and reduce hyperspeeds (1 is convenient).
-	local scale = 0.5 / max(vw, 1)
+	local scale = 0.5 / max(vw or 0, 1)
 	return vx * scale, vy * scale, vz * scale
 end
 
@@ -526,7 +526,7 @@ function gadget:GameFramePost(frame)
 end
 
 ---@type ShieldPreDamagedCallback
-local function shieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+local shieldPreDamaged = function(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 	if projectileID > -1 and clusterWeaponDefs[spGetProjectileDefID(projectileID)] then
 		local hitShields = projectileHitShield[projectileID]
 		if hitShields then

@@ -28,6 +28,7 @@
 ---@field pixels number[]
 
 ---@class Utilities
+---@field [string] any
 ---@field LoadTGA fun(filename: string): UtilitiesTGA
 ---@field SaveTGA fun(filename: string, tga: UtilitiesTGA): boolean
 ---@field NewTGA fun(width: number, height: number, channels: number): UtilitiesTGA
@@ -50,4 +51,5 @@
 ---@field GetAccountID fun(playerID: number): number
 
 ---@type Utilities
+---@diagnostic disable-next-line: missing-fields
 Utilities = {}

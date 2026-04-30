@@ -3662,6 +3662,10 @@ function widget:GetConfigData()
 			gameFrame = spGetGameFrame(),
 			lastSystemData = lastSystemData,
 			alwaysHideSpecs = alwaysHideSpecs,
+			-- transitionTime was a previously-tracked field whose owning local
+			-- got removed. Kept here as a config-stub so existing saved configs
+			-- don't lose the slot on round-trip; reads back as nil.
+			---@diagnostic disable-next-line: undefined-global
 			transitionTime = transitionTime,
 			hasresetskill = true,
 			absoluteResbarValues = absoluteResbarValues,

@@ -446,6 +446,7 @@ local teamColorsTable = {}
 local trueTeamColorsTable = {} -- run first as if we were specs so when we become specs, we can restore the true intended team colors
 local trueFfaColors = table.copy(ffaColors) -- run first as if we were specs so when we become specs, we can restore the true intended ffa colors
 local trueSurvivalColors = table.copy(survivalColors) -- run first as if we were specs so when we become specs, we can restore the true intended survival colors
+local mySpecState -- initialized in UNSYNCED block; visible to setupTeamColor as upvalue
 
 local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 	if iconDevModeColor then
@@ -647,7 +648,7 @@ if gadgetHandler:IsSyncedCode() then --- NOTE: STUFF DONE IN SYNCED IS FOR REPLA
 	SpringUnsynced.SendLuaRulesMsg("AutoColors" .. Json.encode(AutoColors))
 else -- UNSYNCED
 	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
-	local mySpecState = SpringUnsynced.GetSpectatingState()
+	mySpecState = SpringUnsynced.GetSpectatingState()
 
 	if anonymousMode == "local" then
 		shuffleAllColors()

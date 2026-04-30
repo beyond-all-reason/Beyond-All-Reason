@@ -768,7 +768,10 @@ end
 
 return {
 	IRON_BEAM_RING,
-	PROTECTED_GANTRY,
+	-- Was `PROTECTED_GANTRY` (never defined). PROTECTED_REACTOR is defined
+	-- at L101 but was missing from the return list — likely the intended
+	-- export. Restored here.
+	PROTECTED_REACTOR,
 	PROTECTED_FAST_GANTRY,
 	VIPER_PIT,
 	PROTECTED_ARTI_X,

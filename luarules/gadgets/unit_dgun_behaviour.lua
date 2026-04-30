@@ -113,7 +113,7 @@ end
 function gadget:GameFrame(frame)
 	for proID in pairsNext, flyingDGuns do
 		local x, y, z = spGetProjectilePosition(proID)
-		local h = spGetGroundHeight(x, z)
+		local h = spGetGroundHeight(x or 0, z or 0)
 
 		if y < h + 1 or y < 1 then -- assume ground or water collision
 			-- normalize horizontal velocity
@@ -137,7 +137,7 @@ function gadget:GameFrame(frame)
 		local x, y, z = spGetProjectilePosition(proID)
 		-- place projectile slightly under ground to ensure fiery trail
 		local verticalOffset = 1
-		spSetProjectilePosition(proID, x, mathMax(spGetGroundHeight(x, z), 0) - verticalOffset, z)
+		spSetProjectilePosition(proID, x or 0, mathMax(spGetGroundHeight(x or 0, z or 0), 0) - verticalOffset, z or 0)
 
 		-- NB: no removal; do this every frame so that it doesn't fly off a cliff or something
 	end
@@ -177,7 +177,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 end
 
 ---@type ShieldPreDamagedCallback
-local function shieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+local shieldPreDamaged = function(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 	if proID > -1 and dgunData[proID] then
 		local proData = dgunData[proID]
 		local weaponDefID = proData.weaponDefID

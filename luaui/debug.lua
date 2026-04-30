@@ -52,9 +52,12 @@ function PrintCommandQueue(uid)
 		local msg = ""
 		local count = 0
 		for i, cmd in pairs(queue) do
+			-- TODO: CommandNames is never defined — this branch is likely dead code.
+			---@diagnostic disable-next-line: undefined-global
 			local name = CommandNames[cmd]
 			if name ~= nil then
 				count = count + 1
+				---@diagnostic disable-next-line: undefined-global
 				msg = msg .. "  " .. CommandNames[cmd] .. ","
 				if count >= 8 then
 					break
@@ -268,7 +271,7 @@ function PrintCommands(commands)
 	end
 end
 
-function Debug()
+function DebugDumpDefs()
 	for i, v in pairs(UnitDefs) do
 		if v ~= nil then
 			print(i .. " " .. v.name)

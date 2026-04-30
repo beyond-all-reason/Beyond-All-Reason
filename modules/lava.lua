@@ -91,9 +91,11 @@ local function getLavaConfig(mapName)
 	-- Get lava config for map.
 	-- mapConfig has preference over gameConfig, unless game sets 'overrideMap'
 	local gameConfig, mapConfig
+	-- Hoisted so the MAP_CONFIG_PATH log below can reference it even when
+	-- the gameConfig path didn't run (mapName == nil).
+	local mapNameNoVersion = mapName and trimMapVersion(mapName) or mapName
 	if mapName then
 		-- Look for full name (with version), and otherwise try with trimmed version.
-		local mapNameNoVersion = trimMapVersion(mapName)
 		if VFS.FileExists(gameConfigPath(mapName)) then
 			gameConfig = VFS.Include(gameConfigPath(mapName))
 			SpringShared.Log("Lava", LOG.INFO, "Loaded map config for", mapName)

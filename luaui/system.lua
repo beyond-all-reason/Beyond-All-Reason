@@ -39,7 +39,7 @@ if System == nil then
 		--
 		--  Custom LuaUI variables
 		--
-		Commands = Commands,
+		Commands = Game.Commands,
 		fontHandler = fontHandler,
 		LUAUI_DIRNAME = LUAUI_DIRNAME,
 
@@ -49,6 +49,9 @@ if System == nil then
 		VFS = VFS,
 		Script = Script,
 		Spring = Spring,
+		SpringShared = SpringShared,
+		SpringSynced = SpringSynced,
+		SpringUnsynced = SpringUnsynced,
 		Engine = Engine,
 		Platform = Platform,
 		Game = Game,

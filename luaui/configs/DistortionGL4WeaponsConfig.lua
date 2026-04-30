@@ -2690,7 +2690,7 @@ for name, distortionList in pairs(muzzleFlashDistortionsNames) do
 	if WeaponDefNames[name] then
 		muzzleFlashDistortions[WeaponDefNames[name].id] = distortionList
 	end
-	local scavName, paramsScav = applyScavVariants(name, params)
+	local scavName, paramsScav = applyScavVariants(name, distortionList)
 	if scavName and WeaponDefNames[scavName] then
 		muzzleFlashDistortions[WeaponDefNames[scavName].id] = paramsScav
 	end

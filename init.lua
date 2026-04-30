@@ -1,5 +1,16 @@
 -- This file includes common functionality that should be available globally
 
+-- Backwards-compat aliases for the Spring API type split. The engine PR
+-- (RecoilEngine LuaSpringContext::SetupAliases) creates these as globals in
+-- every Lua sandbox, but engines without that commit only expose `Spring`.
+-- This shim lets the spring-split codemod output (Spring.X → SpringShared.X
+-- etc.) run on both old and new engine builds. Once the engine PR is merged
+-- into mainline this block becomes a harmless no-op (the globals already
+-- exist and `or Spring` never fires).
+SpringShared = SpringShared or Spring
+SpringSynced = SpringSynced or Spring
+SpringUnsynced = SpringUnsynced or Spring
+
 -- Universal Lua functions applicable to any Lua code
 -- These add missing base lua functionality
 VFS.Include("common/numberfunctions.lua")

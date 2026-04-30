@@ -310,6 +310,20 @@ for k in pairs(spotlightTypes) do
 	objectOwners[k] = {}
 end
 
+---Adds a new spotlight for a given object. Only one call is needed to create the spotlight (the position is handled in
+---the shader), but this can be called again to update extra options. Unless a duration is provided, calling
+---removeSpotlight later is necessary to remove the spotlight.
+---@param objectType string "unit", "feature", or "ground"
+---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
+---@param objectID number|number[] unitID, featureID, or {x,y,z} table for a location
+---@param color table RGBA color used for the spotlight
+---@param options table extra optional parameters
+---@param options.duration number if specified, the spotlight will fade out over this period of seconds
+---@param options.radius number override the radius (default: the radius of the object, or 100 if that's not present)
+---@param options.radiusCoefficient number multiplicative factor for the radius (default: 1)
+---@param options.height number override the height (default: 300)
+---@param options.heightCoefficient number multiplicative factor for the height (default: 1)
+---@return nil
 local function addSpotlight(objectType, owner, objectID, color, options)
 	if not spotlightTypes[objectType] then
 		error("invalid spotlight target type: " .. (objectType or "<nil>"))
@@ -381,6 +395,11 @@ local function addSpotlight(objectType, owner, objectID, color, options)
 	}, objectInstanceIDs[objectType][objectID][owner], true, false, instanceObjectID)
 end
 
+---Removes the spotlight for a given object. This can be called even if a spotlight might not be present.
+---@param objectType string "unit" or "feature", or "ground"
+---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
+---@param objectID number|number[] unitID, featureID, or {x,y,z} table for a location
+---@return nil
 local function removeSpotlight(objectType, owner, objectID)
 	if not spotlightTypes[objectType] then
 		error("invalid spotlight target type: " .. (objectType or "<nil>"))
@@ -414,6 +433,10 @@ local function removeSpotlight(objectType, owner, objectID)
 	end
 end
 
+---Returns the objectID for all spotlights with the specified type and owner.
+---@param objectType string "unit" or "feature", or "ground"
+---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
+---@return (number|number[])[]
 local function getSpotlights(objectType, owner)
 	return table.reduce(objectOwners[objectType], function(acc, v, k)
 		if v[owner] then
@@ -423,6 +446,9 @@ local function getSpotlights(objectType, owner)
 	end, {})
 end
 
+---Removes all spotlights with the specified owner.
+---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
+---@return nil
 local function removeAllSpotlights(owner)
 	for objectType in pairs(spotlightTypes) do
 		for _, id in ipairs(getSpotlights(objectType, owner)) do
@@ -500,38 +526,9 @@ function widget:Initialize()
 	end
 
 	WG.ObjectSpotlight = {
-		---Adds a new spotlight for a given object. Only one call is needed to create the spotlight (the position is handled in
-		---the shader), but this can be called again to update extra options. Unless a duration is provided, calling
-		---removeSpotlight later is necessary to remove the spotlight.
-		---@param objectType string "unit", "feature", or "ground"
-		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
-		---@param objectID number|number[] unitID, featureID, or {x,y,z} table for a location
-		---@param color table RGBA color used for the spotlight
-		---@param options table extra optional parameters
-		---@param options.duration number if specified, the spotlight will fade out over this period of seconds
-		---@param options.radius number override the radius (default: the radius of the object, or 100 if that's not present)
-		---@param options.radiusCoefficient number multiplicative factor for the radius (default: 1)
-		---@param options.height number override the height (default: 300)
-		---@param options.heightCoefficient number multiplicative factor for the height (default: 1)
-		---@return nil
 		addSpotlight = addSpotlight,
-
-		---Removes the spotlight for a given object. This can be called even if a spotlight might not be present.
-		---@param objectType string "unit" or "feature", or "ground"
-		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
-		---@param objectID number|number[] unitID, featureID, or {x,y,z} table for a location
-		---@return nil
 		removeSpotlight = removeSpotlight,
-
-		---Returns the objectID for all spotlights with the specified type and owner.
-		---@param objectType string "unit" or "feature", or "ground"
-		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
-		---@return (number|number[])[]
 		getSpotlights = getSpotlights,
-
-		---Removes all spotlights with the specified owner.
-		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
-		---@return nil
 		removeAllSpotlights = removeAllSpotlights,
 	}
 end

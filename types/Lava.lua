@@ -34,5 +34,4 @@
 ---@field effectBurstSounds table[]
 ---@field ambientSounds table[]|false
 
----@type Lava
 Lava = {}

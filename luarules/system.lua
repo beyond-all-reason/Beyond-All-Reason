@@ -40,6 +40,9 @@ if System == nil then
 		--
 		Script = Script,
 		Spring = Spring,
+		SpringShared = SpringShared,
+		SpringSynced = SpringSynced,
+		SpringUnsynced = SpringUnsynced,
 		Engine = Engine,
 		Platform = Platform,
 		Game = Game,

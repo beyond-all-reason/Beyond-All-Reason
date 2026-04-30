@@ -92,14 +92,14 @@ local depthModCrawlingBombs = {
 -- TODO: Random capitalization. Pick one and use it.
 ---@class MoveDefData
 ---@field footprint integer equal to both `footprintx` and `footprintz`
----@field crushstrength integer [0, 1e6) mass equivalent for crushing and collisions
----@field maxslope number? [0, 90] degrees
----@field slopeMod number? [4, 4000] unitless
----@field minwaterdepth integer? [-1e6, 1e6]
----@field maxwaterdepth integer? [0, 1e6]
+---@field crushstrength integer mass equivalent for crushing and collisions, in `[0, 1e6)`
+---@field maxslope number? slope in degrees, in `[0, 90]`
+---@field slopeMod number? slope modifier, unitless, in `[4, 4000]`
+---@field minwaterdepth integer? in `[-1e6, 1e6]`
+---@field maxwaterdepth integer? in `[0, 1e6]`
 ---@field subMarine boolean?
----@field maxwaterslope integer? [0, 90] degrees; does nothing
----@field badwaterslope integer? [0, 90] degrees; does nothing
+---@field maxwaterslope integer? slope in degrees, in `[0, 90]`; does nothing
+---@field badwaterslope integer? slope in degrees, in `[0, 90]`; does nothing
 ---@field depthMod number? shorthand for DepthModParams.linearCoeff
 ---@field depthModParams DepthModParams? used by Tank and KBot only
 ---@field speedModClass integer?
@@ -532,12 +532,12 @@ local moveDatas = {
 ---@field allowTerrainCollisions boolean
 ---@field footprintx integer
 ---@field footprintz integer
----@field crushstrength integer [0, 1e6) mass equivalence for crushing and collisions
----@field maxslope number? [0, 90] degrees
----@field slopeMod number? [4, 4000] unitless, derived
----@field minwaterdepth integer? [-1e6, 1e6]
----@field maxwaterdepth integer? [0, 1e6]
----@field maxwaterslope integer? [0, 90] degrees; does nothing
+---@field crushstrength integer mass equivalence for crushing and collisions, in `[0, 1e6)`
+---@field maxslope number? slope in degrees, in `[0, 90]`
+---@field slopeMod number? unitless, derived, in `[4, 4000]`
+---@field minwaterdepth integer? in `[-1e6, 1e6]`
+---@field maxwaterdepth integer? in `[0, 1e6]`
+---@field maxwaterslope integer? slope in degrees, in `[0, 90]`; does nothing
 ---@field depthMod number?
 ---@field depthModParams table?
 ---@field speedModClass integer?
