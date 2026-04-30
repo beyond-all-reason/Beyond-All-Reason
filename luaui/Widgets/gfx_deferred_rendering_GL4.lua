@@ -1411,8 +1411,8 @@ function widget:UnitCreated(unitID, unitDefID, teamID)
 	eventLightSpawner("UnitCreated", unitID, unitDefID, teamID)
 end
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
-	eventLightSpawner("UnitFromFactory", unitID, unitDefID, teamID) -- i have no idea of the differences here
-	eventLightSpawner("UnitFromFactoryBuilder", factID, factDefID, teamID)
+	eventLightSpawner("UnitFromFactory", unitID, unitDefID, unitTeam) -- i have no idea of the differences here
+	eventLightSpawner("UnitFromFactoryBuilder", factID, factDefID, unitTeam)
 end
 function widget:UnitDestroyed(unitID, unitDefID, teamID) -- dont do piece-attached lights here!
 	eventLightSpawner("UnitDestroyed", unitID, unitDefID, teamID)

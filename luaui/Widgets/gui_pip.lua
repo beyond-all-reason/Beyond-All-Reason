@@ -46,6 +46,7 @@ end
 
 -- Forward declaration (defined after config and cameraState)
 local IsLeftClickPanActive
+local gameFrame = 0
 
 function widget:GetInfo()
 	return {
@@ -2251,6 +2252,7 @@ local buttons = {
 					end
 				else
 					-- Non-spectator: Cycle through alive teammates
+					---@diagnostic disable-next-line: undefined-global
 					local teammates = GetAliveTeammates()
 					if #teammates > 0 then
 						-- Find current index or start at beginning
@@ -4779,7 +4781,7 @@ local function DrawFeature(fID, noTextures)
 	end
 
 	-- Skip energy-only features if option is enabled
-	if hideEnergyOnlyFeatures then
+	if config.hideEnergyOnlyFeatures then
 		local fDef = FeatureDefs[fDefID]
 		if fDef and (not fDef.metal or fDef.metal <= 0) and fDef.energy and fDef.energy > 0 then
 			return

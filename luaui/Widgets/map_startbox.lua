@@ -23,6 +23,7 @@ local mathAbs = math.abs
 local spGetGameFrame = SpringShared.GetGameFrame
 local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
 local spEcho = SpringShared.Echo
+local goodbye = SpringShared.Echo
 local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 local spGetTeamList = SpringShared.GetTeamList
 local spGetTeamInfo = SpringShared.GetTeamInfo

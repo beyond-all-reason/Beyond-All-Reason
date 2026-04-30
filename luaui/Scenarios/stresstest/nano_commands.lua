@@ -84,6 +84,7 @@ function run_nano_commands(nturrets, ntargets, turretDef, targetDef)
 
 	-- give orders
 	local arr = {}
+	local opts = {}
 	for _, unitID in pairs(turrets) do
 		for idx, targetID in pairs(targets) do
 			currOpt = (idx == 1) and opts or shiftOpts

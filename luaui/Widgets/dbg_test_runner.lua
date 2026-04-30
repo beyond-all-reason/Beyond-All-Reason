@@ -906,6 +906,7 @@ local function runTestInternal()
 		}))
 	end
 
+	local cleanup = config.cleanup
 	-- always try to run cleanup
 	local cleanupOk, cleanupResult
 	if cleanup ~= nil then

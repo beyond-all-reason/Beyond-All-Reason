@@ -27,7 +27,7 @@ local debuglevel = 0
 -- debuglevel 2 is verbose
 -- debuglevel 3 is super verbose mode
 
-local debugdrawvisible = false
+local drawdebugvisible = false
 local L_DEPRECATED = LOG.DEPRECATED
 -- This widget's job is to provide a common interface for GL4 drawing widgets, that rely on having visible units present
 -- Widget draw classes:

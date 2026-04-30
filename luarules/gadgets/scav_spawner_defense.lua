@@ -1095,7 +1095,7 @@ if gadgetHandler:IsSyncedCode() then
 			if bestBurrowID then
 				SpringSynced.DestroyUnit(bestBurrowID, true, false)
 			end
-			return CreateUnit(config.bossName, sx, sy, sz, mRandom(0, 3), scavTeamID), burrowID
+			return CreateUnit(config.bossName, sx, sy, sz, mRandom(0, 3), scavTeamID), bestBurrowID
 		end
 
 		local x, z, y

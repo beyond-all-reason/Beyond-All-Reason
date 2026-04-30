@@ -104,6 +104,7 @@ function run_commands(nattackers, ntargets, attackerDef, targetDef)
 
 	-- give orders
 	local arr = {}
+	local opts = {}
 	for _, unitID in pairs(attackers) do
 		for idx, targetID in pairs(targets) do
 			currOpt = (idx == 1) and opts or shiftOpts

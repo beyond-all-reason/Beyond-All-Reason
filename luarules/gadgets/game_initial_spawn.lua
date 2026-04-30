@@ -194,6 +194,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local teams = {} -- teams[teamID] = allyID
 	local teamsCount
+	local scenarioSpawnsUnits = SpringShared.GetModOptions().scenariooptions ~= nil
 
 	-- each player gets to choose a faction
 	local playerStartingUnits = {} -- playerStartingUnits[unitID] = unitDefID

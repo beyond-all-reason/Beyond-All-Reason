@@ -1912,7 +1912,7 @@ function CreateBackground()
 	if absRight > vsx + margin then -- lazy bugfix needed when playerScale < 1 is in effect
 		absRight = vsx + margin
 	end
-	apiAbsPosition = { absTop, absLeft, absBottom, absRight, widgetScale, right, false }
+	apiAbsPosition = { absTop, absLeft, absBottom, absRight, widgetScale, absRight, false }
 
 	local paddingBottom = bgpadding
 	local paddingRight = bgpadding

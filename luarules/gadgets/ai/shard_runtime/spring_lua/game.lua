@@ -58,7 +58,7 @@ function game:GetAllyTeamID()
 end
 
 function game:getUnitsInCylinder(pos, range)
-	return SpringShared.GetUnitsInCylinder(pos.x, pos.z, range, team)
+	return SpringShared.GetUnitsInCylinder(pos.x, pos.z, range, self.ai.id)
 end
 
 function game:GetTeamUnitDefCount(team, unitDef)

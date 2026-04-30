@@ -114,6 +114,8 @@ function poser()
 	end
 end
 
+---@diagnostic disable: undefined-global
+
 function StandStance()
 	Sleep(200)
 	Move(cod, y_axis, 0, now)

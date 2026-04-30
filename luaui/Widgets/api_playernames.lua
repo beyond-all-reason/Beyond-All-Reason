@@ -55,7 +55,7 @@ local function getPlayername(playerID, accountID, skipAlias)
 	if name ~= "unknown" then
 		if accountID then
 			-- find if name exists inhistory
-			local inHistory = falses
+			local inHistory = false
 			if history[accountID] then
 				for i, historyName in pairs(history[accountID]) do -- using pairs only in case people carelessly delete names from widgetconfig (BYAR.lua)
 					if historyName == name then

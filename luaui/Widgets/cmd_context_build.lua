@@ -26,6 +26,7 @@ local tableInsert = table.insert
 
 -- Localized Spring API for performance
 local spGetGameFrame = SpringShared.GetGameFrame
+local _, _, isSpec = SpringUnsynced.GetSpectatingState()
 
 local isPregame = spGetGameFrame() == 0 and not isSpec
 

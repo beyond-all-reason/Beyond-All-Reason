@@ -92,7 +92,7 @@ local function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a ve
 	local newVAO = nil
 	newVAO = gl.GetVAO()
 	if newVAO == nil then
-		goodbye("Failed to create newVAO")
+		SpringShared.Echo("Failed to create newVAO")
 	end
 	if vertexVBO == nil then -- the special case where are using 'vertices' as 'instances'
 		newVAO:AttachVertexBuffer(instanceVBO)
@@ -639,5 +639,6 @@ return {
 	dumpAndCompareInstanceData = dumpAndCompareInstanceData,
 	uploadAllElements = uploadAllElements,
 	validateInstanceVBOIDTable = validateInstanceVBOIDTable,
+	---@diagnostic disable-next-line: undefined-global
 	uploadElementRange = uploadElementRange,
 }

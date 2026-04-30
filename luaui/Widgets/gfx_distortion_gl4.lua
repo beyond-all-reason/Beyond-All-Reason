@@ -998,8 +998,8 @@ function widget:UnitCreated(unitID, unitDefID, teamID)
 	eventDistortionSpawner("UnitCreated", unitID, unitDefID, teamID)
 end
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
-	eventDistortionSpawner("UnitFromFactory", unitID, unitDefID, teamID) -- i have no idea of the differences here
-	eventDistortionSpawner("UnitFromFactoryBuilder", factID, factDefID, teamID)
+	eventDistortionSpawner("UnitFromFactory", unitID, unitDefID, unitTeam) -- i have no idea of the differences here
+	eventDistortionSpawner("UnitFromFactoryBuilder", factID, factDefID, unitTeam)
 end
 function widget:UnitDestroyed(unitID, unitDefID, teamID) -- dont do piece-attached distortions here!
 	eventDistortionSpawner("UnitDestroyed", unitID, unitDefID, teamID)

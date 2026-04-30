@@ -703,7 +703,7 @@ WG.FlowUI.Draw.Button = function(px, py, sx, sy, tl, tr, br, bl, ptl, ptr, pbr, 
 
 	-- Layer 6: White feathered inner outline glow
 	local outlineWidth = 7
-	local outlineAlpha = opaque and 0.12 or 0.06
+	local outlineAlpha = 0.06
 	WG.FlowUI.Draw.RectRoundOutline(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, outlineWidth, tl, tr, br, bl, { 1, 1, 1, outlineAlpha }, { 1, 1, 1, 0 })
 end
 

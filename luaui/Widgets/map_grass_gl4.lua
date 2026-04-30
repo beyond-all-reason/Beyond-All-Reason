@@ -1238,7 +1238,7 @@ local function GetStartEndRows() -- returns start and end indices of the instanc
 		maxZ = mathMax(maxZ, coordsTopRight[3])
 	end
 
-	if topseen or minZ == mapSizeX or (coordsTopLeft == nil and coordTopRight == nil) then
+	if topseen or minZ == mapSizeX or (coordsTopLeft == nil and coordsTopRight == nil) then
 		minZ = 0
 	end
 	if botseen or maxZ == 0 then

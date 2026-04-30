@@ -34,6 +34,8 @@ local timerstart = nil
 ----------------------------GL4 vars----------------------------
 
 local rectShader = nil
+local alpha = 1
+local lastframeduration = 0
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable

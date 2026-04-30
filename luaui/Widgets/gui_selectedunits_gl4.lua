@@ -516,7 +516,7 @@ function widget:Initialize()
 		init()
 	end
 	WG.selectedunits.getMouseoverHighlight = function()
-		return selectimouseoverHighlightonHighlight
+		return mouseoverHighlight
 	end
 
 	SpringUnsynced.LoadCmdColorsConfig("unitBox  0 1 0 0")
