@@ -23,6 +23,12 @@ local data = {}
 function gadget:Initialize()
     data.mapName = Game.mapName
     data.gameVersion = Game.gameVersion
+
+    if not os then
+        Spring.Log("ReplayMetadata", LOG.ERROR, "os library is not (yet) available, cannot log game start time")
+        return
+    end
+
     data.gameLoaded = os.time() -- epoch
 
     GG.ReplayMetadata.SetReplayMetadata("gameInfo", data)
