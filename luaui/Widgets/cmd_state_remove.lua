@@ -12,9 +12,9 @@ function widget:GetInfo()
 	}
 end
 
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitDefID = Spring.GetUnitDefID
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spGetUnitDefID = SpringShared.GetUnitDefID
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_MOVE_STATE = CMD.MOVE_STATE
 

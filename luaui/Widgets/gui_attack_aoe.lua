@@ -36,22 +36,22 @@ local rad = math.rad
 
 local osClock = os.clock
 
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetMouseState = Spring.GetMouseState
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitRadius = Spring.GetUnitRadius
-local spGetUnitStates = Spring.GetUnitStates
-local spTraceScreenRay = Spring.TraceScreenRay
-local spIsUnitAllied = Spring.IsUnitAllied
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetTeamResources = Spring.GetTeamResources
-local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
-local spGetUnitStockpile = Spring.GetUnitStockpile
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetSelectedUnitsSorted = SpringUnsynced.GetSelectedUnitsSorted
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitRadius = SpringShared.GetUnitRadius
+local spGetUnitStates = SpringShared.GetUnitStates
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spIsUnitAllied = SpringUnsynced.IsUnitAllied
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetTeamResources = SpringShared.GetTeamResources
+local spGetUnitWeaponTestRange = SpringShared.GetUnitWeaponTestRange
+local spGetUnitStockpile = SpringShared.GetUnitStockpile
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
@@ -310,9 +310,9 @@ local function GetMouseTargetPosition(weaponType, aimingUnitID)
 		local shouldIgnoreUnit = false
 
 		if isDgun then
-			shouldIgnoreUnit = (isAlly and WG["dgunnoally"]) or (not isAlly and WG["dgunnoenemy"])
+			shouldIgnoreUnit = (isAlly and WG.dgunnoally) or (not isAlly and WG.dgunnoenemy)
 		else
-			shouldIgnoreUnit = (isAlly and WG["attacknoally"])
+			shouldIgnoreUnit = (isAlly and WG.attacknoally)
 		end
 
 		if not shouldIgnoreUnit then

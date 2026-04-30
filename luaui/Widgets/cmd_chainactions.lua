@@ -47,7 +47,7 @@ local function tryRawCmd(rawCmd, isRepeat, isRelease)
 	end
 
 	-- Attempt text command (for engine cmds)
-	Spring.SendCommands(rawCmd)
+	SpringUnsynced.SendCommands(rawCmd)
 
 	return false
 end

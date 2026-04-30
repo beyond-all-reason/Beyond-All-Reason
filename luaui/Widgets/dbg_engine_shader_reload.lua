@@ -1,4 +1,4 @@
-if not Spring.Utilities.IsDevMode() then -- and not Spring.Utilities.ShowDevUI() then
+if not Utilities.IsDevMode() then -- and not Spring.Utilities.ShowDevUI() then
 	return
 end
 
@@ -25,12 +25,12 @@ function widget:Initialize()
 	end
 end
 
-local lastUpdate = Spring.GetTimer()
+local lastUpdate = SpringUnsynced.GetTimer()
 function widget:Update()
-	if Spring.DiffTimers(Spring.GetTimer(), lastUpdate) < interval then
+	if SpringUnsynced.DiffTimers(SpringUnsynced.GetTimer(), lastUpdate) < interval then
 		return
 	end
-	lastUpdate = Spring.GetTimer()
+	lastUpdate = SpringUnsynced.GetTimer()
 	local changed = false
 	for fileName, oldContents in pairs(shaderContents) do
 		local newContents = VFS.LoadFile(fileName)
@@ -38,10 +38,10 @@ function widget:Update()
 			interval = 1
 			changed = true
 			shaderContents[fileName] = newContents
-			Spring.Echo("Reloading shader: " .. fileName)
+			SpringShared.Echo("Reloading shader: " .. fileName)
 		end
 	end
 	if changed then
-		Spring.SendCommands("reloadshaders")
+		SpringUnsynced.SendCommands("reloadshaders")
 	end
 end

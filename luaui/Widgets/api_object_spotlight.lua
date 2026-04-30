@@ -25,22 +25,22 @@ local spotlightTypes = {
 			if not unitID then
 				return nil
 			end
-			local unitDefID = Spring.GetUnitDefID(unitID)
+			local unitDefID = SpringShared.GetUnitDefID(unitID)
 			if not unitDefID then
 				return nil
 			end
 			return UnitDefs[unitDefID].radius
 		end,
 		isValid = function(unitID)
-			return Spring.ValidUnitID(unitID)
+			return SpringShared.ValidUnitID(unitID)
 		end,
 	},
 	feature = {
 		getDefaultRadius = function(featureID)
-			return FeatureDefs[Spring.GetFeatureDefID(featureID)].radius
+			return FeatureDefs[SpringShared.GetFeatureDefID(featureID)].radius
 		end,
 		isValid = function(featureID)
-			return Spring.ValidFeatureID(featureID)
+			return SpringShared.ValidFeatureID(featureID)
 		end,
 		postProcessVBO = function(vbo)
 			vbo.featureIDs = true
@@ -316,7 +316,7 @@ local function addSpotlight(objectType, owner, objectID, color, options)
 	end
 
 	if not spotlightTypes[objectType].isValid(objectID) then
-		Spring.Echo("invalid spotlight object id: " .. (objectID or "<nil>"))
+		SpringShared.Echo("invalid spotlight object id: " .. (objectID or "<nil>"))
 		return
 	end
 
@@ -332,7 +332,7 @@ local function addSpotlight(objectType, owner, objectID, color, options)
 	local startTime
 	local expireTime
 	if options.duration ~= nil then
-		startTime = Spring.GetDrawSeconds()
+		startTime = SpringUnsynced.GetDrawSeconds()
 		expireTime = startTime + options.duration
 	end
 
@@ -432,16 +432,16 @@ local function removeAllSpotlights(owner)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if objectOwners["unit"][unitID] then
-		for owner in pairs(objectOwners["unit"][unitID]) do
+	if objectOwners.unit[unitID] then
+		for owner in pairs(objectOwners.unit[unitID]) do
 			removeSpotlight("unit", owner, unitID)
 		end
 	end
 end
 
 function widget:FeatureDestroyed(featureID, allyTeamID)
-	if objectOwners["feature"][featureID] then
-		for owner in pairs(objectOwners["feature"][featureID]) do
+	if objectOwners.feature[featureID] then
+		for owner in pairs(objectOwners.feature[featureID]) do
 			removeSpotlight("feature", owner, featureID)
 		end
 	end
@@ -457,7 +457,7 @@ function widget:Update(dt)
 
 	-- remove expired spotlights
 	local toRemove = {}
-	local gs = Spring.GetDrawSeconds()
+	local gs = SpringUnsynced.GetDrawSeconds()
 	for objectType, objectOwnerTimes in pairs(objectExpireTimes) do
 		for objectID, ownerTimes in pairs(objectOwnerTimes) do
 			for owner, expireTime in pairs(ownerTimes) do
@@ -474,7 +474,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 
@@ -499,7 +499,7 @@ function widget:Initialize()
 		return
 	end
 
-	WG["ObjectSpotlight"] = {
+	WG.ObjectSpotlight = {
 		---Adds a new spotlight for a given object. Only one call is needed to create the spotlight (the position is handled in
 		---the shader), but this can be called again to update extra options. Unless a duration is provided, calling
 		---removeSpotlight later is necessary to remove the spotlight.
@@ -547,5 +547,5 @@ function widget:Shutdown()
 		shader:Finalize()
 	end
 
-	WG["ObjectSpotlight"] = nil
+	WG.ObjectSpotlight = nil
 end

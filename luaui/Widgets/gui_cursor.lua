@@ -16,10 +16,10 @@ end
 local mathAbs = math.abs
 
 local Settings = {}
-Settings["cursorSet"] = "icexuick"
-Settings["cursorSize"] = 100
-Settings["sizeMult"] = Spring.GetConfigFloat("cursorsize", 1)
-Settings["version"] = 6 -- just so it wont restore configdata on load if it differs format
+Settings.cursorSet = "icexuick"
+Settings.cursorSize = 100
+Settings.sizeMult = SpringUnsynced.GetConfigFloat("cursorsize", 1)
+Settings.version = 6 -- just so it wont restore configdata on load if it differs format
 
 local force = true
 local autoCursorSize
@@ -48,44 +48,44 @@ function NearestValue(table, number)
 end
 
 function widget:ViewResize()
-	local ssx, ssy = Spring.GetScreenGeometry() -- doesnt change when you unplug external display
-	autoCursorSize = 100 * (0.6 + (ssx * ssy / 10000000)) * Spring.GetConfigFloat("cursorsize", 1)
-	SetCursor(Settings["cursorSet"])
+	local ssx, ssy = SpringUnsynced.GetScreenGeometry() -- doesnt change when you unplug external display
+	autoCursorSize = 100 * (0.6 + (ssx * ssy / 10000000)) * SpringUnsynced.GetConfigFloat("cursorsize", 1)
+	SetCursor(Settings.cursorSet)
 end
 
 function widget:Initialize()
 	force = true
 	widget:ViewResize()
 
-	WG["cursors"] = {}
-	WG["cursors"].getcursor = function()
-		return Settings["cursorSet"]
+	WG.cursors = {}
+	WG.cursors.getcursor = function()
+		return Settings.cursorSet
 	end
-	WG["cursors"].getcursorsets = function()
+	WG.cursors.getcursorsets = function()
 		local sets = {}
 		for i, y in pairs(cursorSets) do
 			sets[#sets + 1] = i
 		end
 		return sets
 	end
-	WG["cursors"].setcursor = function(value)
+	WG.cursors.setcursor = function(value)
 		force = true
 		SetCursor(value)
 	end
-	WG["cursors"].getsizemult = function()
-		return Spring.GetConfigFloat("cursorsize", 1)
+	WG.cursors.getsizemult = function()
+		return SpringUnsynced.GetConfigFloat("cursorsize", 1)
 	end
-	WG["cursors"].setsizemult = function(value)
-		Spring.SetConfigFloat("cursorsize", value)
+	WG.cursors.setsizemult = function(value)
+		SpringUnsynced.SetConfigFloat("cursorsize", value)
 		widget:ViewResize()
 	end
 end
 
 function widget:Shutdown()
-	WG["cursors"] = nil
+	WG.cursors = nil
 	local file = VFS.LoadFile("cmdcolors.txt")
 	if file then
-		Spring.LoadCmdColorsConfig(file)
+		SpringUnsynced.LoadCmdColorsConfig(file)
 	end
 end
 
@@ -93,10 +93,10 @@ end
 -- load cursors
 function SetCursor(cursorSet)
 	--Spring.Echo(autoCursorSize..'   '..cursorSets[cursorSet][NearestValue(cursorSets[cursorSet], autoCursorSize)])
-	local oldSetName = Settings["cursorSet"] .. "_" .. Settings["cursorSize"]
-	Settings["cursorSet"] = cursorSet
-	Settings["cursorSize"] = cursorSets[cursorSet][NearestValue(cursorSets[cursorSet], autoCursorSize)]
-	local cursorDir = cursorSet .. "_" .. Settings["cursorSize"]
+	local oldSetName = Settings.cursorSet .. "_" .. Settings.cursorSize
+	Settings.cursorSet = cursorSet
+	Settings.cursorSize = cursorSets[cursorSet][NearestValue(cursorSets[cursorSet], autoCursorSize)]
+	local cursorDir = cursorSet .. "_" .. Settings.cursorSize
 	if cursorDir ~= oldSetName or force then
 		force = false
 		local cursorNames = {
@@ -134,7 +134,7 @@ function SetCursor(cursorSet)
 			"uimove",
 		}
 		for i = 1, #cursorNames do
-			Spring.ReplaceMouseCursor(cursorNames[i], cursorDir .. "/" .. cursorNames[i], (cursorNames[i] == "cursornormal"))
+			SpringUnsynced.ReplaceMouseCursor(cursorNames[i], cursorDir .. "/" .. cursorNames[i], (cursorNames[i] == "cursornormal"))
 		end
 
 		--local files = VFS.DirList("anims/"..cursorDir.."/")
@@ -149,17 +149,17 @@ function SetCursor(cursorSet)
 
 		local file = VFS.LoadFile("cmdcolors_" .. cursorSet .. ".txt")
 		if file then
-			Spring.LoadCmdColorsConfig(file)
+			SpringUnsynced.LoadCmdColorsConfig(file)
 		end
 
 		-- hide engine unit selection box
 		if WG.selectedunits or WG.teamplatter or WG.highlightselunits then
-			Spring.LoadCmdColorsConfig("unitBox  0 1 0 0")
+			SpringUnsynced.LoadCmdColorsConfig("unitBox  0 1 0 0")
 		end
 
 		-- Hide metal extractor circles on non-metal maps
-		if WG["resource_spot_finder"] and not WG["resource_spot_finder"].isMetalMap then
-			Spring.LoadCmdColorsConfig("rangeExtract         1.0  0.3  0.3  0.0")
+		if WG.resource_spot_finder and not WG.resource_spot_finder.isMetalMap then
+			SpringUnsynced.LoadCmdColorsConfig("rangeExtract         1.0  0.3  0.3  0.0")
 		end
 	end
 end
@@ -171,9 +171,9 @@ end
 function widget:SetConfigData(data)
 	if data and type(data) == "table" and data.version then
 		if data.version < 6 and data.sizeMult then
-			Spring.SetConfigFloat("cursorsize", data.sizeMult)
+			SpringUnsynced.SetConfigFloat("cursorsize", data.sizeMult)
 		end
 		Settings = data
-		Settings["sizeMult"] = Spring.GetConfigFloat("cursorsize", 1)
+		Settings.sizeMult = SpringUnsynced.GetConfigFloat("cursorsize", 1)
 	end
 end

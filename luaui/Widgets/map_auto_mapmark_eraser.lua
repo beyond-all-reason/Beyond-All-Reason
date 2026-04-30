@@ -18,14 +18,14 @@ local pointsToErase = {}
 local recentlyErased = {}
 
 function widget:Initialize()
-	WG["autoeraser"] = {}
-	WG["autoeraser"].getEraseTime = function()
+	WG.autoeraser = {}
+	WG.autoeraser.getEraseTime = function()
 		return eraseTime
 	end
-	WG["autoeraser"].setEraseTime = function(value)
+	WG.autoeraser.setEraseTime = function(value)
 		eraseTime = value
 	end
-	WG["autoeraser"].getRecentlyErased = function(value) -- so mapmarks fx widget can call this and wont activate on auto erasing
+	WG.autoeraser.getRecentlyErased = function(value) -- so mapmarks fx widget can call this and wont activate on auto erasing
 		return recentlyErased
 	end
 end
@@ -47,7 +47,7 @@ function widget:GameFrame(f)
 	if pointsToErase[f] then
 		for i = 1, #pointsToErase[f] do
 			local point = pointsToErase[f][i]
-			Spring.MarkerErasePosition(point[1], point[2], point[3], nil, true, point[4], true)
+			SpringUnsynced.MarkerErasePosition(point[1], point[2], point[3], nil, true, point[4], true)
 			recentlyErased[#recentlyErased + 1] = { f, point[1], point[2], point[3] }
 		end
 		pointsToErase[f] = nil
@@ -75,7 +75,7 @@ function widget:SetConfigData(data)
 	if data.version and data.eraseTime ~= nil then
 		eraseTime = data.eraseTime
 	end
-	if data.pointsToErase ~= nil and Spring.GetGameFrame() > 0 then
+	if data.pointsToErase ~= nil and SpringShared.GetGameFrame() > 0 then
 		pointsToErase = data.pointsToErase
 	end
 end

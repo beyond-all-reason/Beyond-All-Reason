@@ -31,14 +31,14 @@ local showEngineTooltip = false -- straight up display old engine delivered text
 
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 
 local hoverType, hoverData = "", ""
 local customHoverType, customHoverData = nil, nil -- For external widgets (like PIP) to supply hover info
 local sound_button = "LuaUI/Sounds/buildbar_add.wav"
 local sound_button2 = "LuaUI/Sounds/buildbar_rem.wav"
 
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
 
 local backgroundRect = { 0, 0, 0, 0 }
 local currentTooltip = ""
@@ -73,27 +73,27 @@ local contentWidth, bfcolormap, selUnitTypes
 
 local RectRound, UiElement, UiUnit, elementCorner
 
-local spGetCurrentTooltip = Spring.GetCurrentTooltip
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
-local selectedUnits = Spring.GetSelectedUnits()
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetMouseState = Spring.GetMouseState
-local spGetModKeyState = Spring.GetModKeyState
-local spSelectUnitArray = Spring.SelectUnitArray
-local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
-local spSelectUnitMap = Spring.SelectUnitMap
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitResources = Spring.GetUnitResources
-local spGetUnitExperience = Spring.GetUnitExperience
-local spGetUnitWeaponState = Spring.GetUnitWeaponState
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spColorString = Spring.Utilities.Color.ToString
+local spGetCurrentTooltip = SpringUnsynced.GetCurrentTooltip
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetSelectedUnitsCounts = SpringUnsynced.GetSelectedUnitsCounts
+local spGetSelectedUnitsSorted = SpringUnsynced.GetSelectedUnitsSorted
+local spGetSelectedUnitsCount = SpringUnsynced.GetSelectedUnitsCount
+local SelectedUnitsCount = SpringUnsynced.GetSelectedUnitsCount()
+local selectedUnits = SpringUnsynced.GetSelectedUnits()
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetFeatureDefID = SpringShared.GetFeatureDefID
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetModKeyState = SpringUnsynced.GetModKeyState
+local spSelectUnitArray = SpringUnsynced.SelectUnitArray
+local spGetTeamUnitsSorted = SpringShared.GetTeamUnitsSorted
+local spSelectUnitMap = SpringUnsynced.SelectUnitMap
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spGetUnitResources = SpringShared.GetUnitResources
+local spGetUnitExperience = SpringShared.GetUnitExperience
+local spGetUnitWeaponState = SpringShared.GetUnitWeaponState
+local spGetUnitRulesParam = SpringShared.GetUnitRulesParam
+local spColorString = Utilities.Color.ToString
 
 local math_floor = math.floor
 local math_ceil = math.ceil
@@ -104,8 +104,8 @@ local string_lines = string.lines
 
 local os_clock = os.clock
 
-local myTeamID = Spring.GetMyTeamID()
-local mySpec = Spring.GetSpectatingState()
+local myTeamID = SpringUnsynced.GetLocalTeamID()
+local mySpec = SpringUnsynced.GetSpectatingState()
 
 local GL_QUADS = GL.QUADS
 local glTexture = gl.Texture
@@ -141,7 +141,7 @@ local isGeothermalUnit = {}
 local cachedTranslations = {}
 local function getCachedTranslation(key)
 	if not cachedTranslations[key] then
-		cachedTranslations[key] = Spring.I18N(key)
+		cachedTranslations[key] = I18N(key)
 	end
 	return cachedTranslations[key]
 end
@@ -200,8 +200,8 @@ local function refreshUnitInfo()
 			unitDefInfo[unitDefID].icontype = iconTypes[unitDef.iconType].bitmap
 		end
 
-		if unitDef.name == "armdl" or unitDef.name == "cordl" or unitDef.name == "armlance" or unitDef.name == "cortitan" or (unitDef.minWaterDepth > 0 or unitDef.modCategories["ship"]) then
-			if not (unitDef.modCategories["hover"] or (unitDef.modCategories["mobile"] and unitDef.modCategories["canbeuw"])) then
+		if unitDef.name == "armdl" or unitDef.name == "cordl" or unitDef.name == "armlance" or unitDef.name == "cortitan" or (unitDef.minWaterDepth > 0 or unitDef.modCategories.ship) then
+			if not (unitDef.modCategories.hover or (unitDef.modCategories.mobile and unitDef.modCategories.canbeuw)) then
 				isWaterUnit[unitDefID] = true
 			end
 		end
@@ -361,7 +361,7 @@ local function refreshUnitInfo()
 		local function refreshUnitWeaponInfo(i, weaponDef, isPrimaryWeapon)
 			unitDefInfo[unitDefID].weapons[i] = weaponDef
 
-			if isPrimaryWeapon and weapons[i].onlyTargets["vtol"] then
+			if isPrimaryWeapon and weapons[i].onlyTargets.vtol then
 				unitDefInfo[unitDefID].isAaUnit = true -- displays airLOS range
 			end
 
@@ -407,7 +407,7 @@ local function refreshUnitInfo()
 							addDPS(calculateLaserDPS(weaponDef, weaponDef.damages[0]))
 						elseif weaponDef.customParams.cluster then -- Bullets that shoot other, smaller bullets
 							addDPS(calculateClusterDPS(weaponDef, weaponDef.damages[0]))
-						elseif weapons[i].onlyTargets["vtol"] ~= nil then
+						elseif weapons[i].onlyTargets.vtol ~= nil then
 							addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[armorIndex.vtol])) --Damage to air category
 						else
 							addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0])) --Damage to default armor category
@@ -461,7 +461,7 @@ local function refreshUnitInfo()
 				if weaponDef.type == "BeamLaser" and not unitExempt then -- BeamLaser dps calc
 					local defDmg
 
-					if weapons[1].onlyTargets["vtol"] ~= nil then --if main weapon isn't dedicated aa, then all weapons calculate using default armor category
+					if weapons[1].onlyTargets.vtol ~= nil then --if main weapon isn't dedicated aa, then all weapons calculate using default armor category
 						defDmg = weaponDef.damages[armorIndex.vtol]
 					else
 						defDmg = weaponDef.damages[0]
@@ -502,7 +502,7 @@ local function refreshUnitInfo()
 				if weaponDef.type ~= "BeamLaser" and weaponDef.paralyzer ~= true and not unitExempt then
 					local defDmg
 
-					if weapons[1].onlyTargets["vtol"] ~= nil then --if main weapon isn't dedicated aa, then all weapons calculate using default armor category
+					if weapons[1].onlyTargets.vtol ~= nil then --if main weapon isn't dedicated aa, then all weapons calculate using default armor category
 						defDmg = weaponDef.damages[armorIndex.vtol]
 					else
 						defDmg = weaponDef.damages[0]
@@ -538,7 +538,7 @@ local function refreshUnitInfo()
 		if unitDef.customParams.unitgroup and unitDef.customParams.unitgroup == "explo" and unitDef.deathExplosion and WeaponDefNames[unitDef.deathExplosion] then
 			local weapon = WeaponDefs[WeaponDefNames[unitDef.deathExplosion].id]
 			if weapon then
-				local dmg = weapon.damages[Game.armorTypes["default"]]
+				local dmg = weapon.damages[Game.armorTypes.default]
 				unitDefInfo[unitDefID].mindps = dmg
 				unitDefInfo[unitDefID].maxdps = dmg
 				unitDefInfo[unitDefID].reloadTime = nil
@@ -590,7 +590,7 @@ local unitOrder = {} -- retrieves from buildmenu in initialize
 local unitDisabled = {}
 local minWaterUnitDepth = -11
 local showWaterUnits = false
-local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+local _, _, mapMinWater, _ = SpringShared.GetGroundExtremes()
 if mapMinWater <= minWaterUnitDepth then
 	showWaterUnits = true
 end
@@ -610,9 +610,9 @@ local function checkGeothermalFeatures()
 			geoThermalFeatures[defID] = true
 		end
 	end
-	local features = Spring.GetAllFeatures()
+	local features = SpringShared.GetAllFeatures()
 	for i = 1, #features do
-		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
+		if geoThermalFeatures[SpringShared.GetFeatureDefID(features[i])] then
 			showGeothermalUnits = true
 			break
 		end
@@ -636,14 +636,14 @@ local function checkGuishader(force)
 end
 
 function widget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
-	mySpec = Spring.GetSpectatingState()
+	myTeamID = SpringUnsynced.GetLocalTeamID()
+	mySpec = SpringUnsynced.GetSpectatingState()
 end
 
 function widget:ViewResize()
 	ViewResizeUpdate = true
 
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = SpringUnsynced.GetViewGeometry()
 
 	width = 0.2125
 	height = 0.14 * ui_scale
@@ -674,8 +674,8 @@ function widget:ViewResize()
 
 	checkGuishader(true)
 
-	font, loadedFontSize = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font, loadedFontSize = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 end
 
 function GetColor(colormap, slider)
@@ -709,7 +709,7 @@ function widget:GameFrame()
 end
 
 function widget:Initialize()
-	isPregame = Spring.GetGameFrame() < 1
+	isPregame = SpringShared.GetGameFrame() < 1
 
 	refreshUnitInfo()
 
@@ -717,58 +717,58 @@ function widget:Initialize()
 
 	widget:ViewResize()
 
-	WG["info"] = {}
-	WG["info"].getShowBuilderBuildlist = function()
+	WG.info = {}
+	WG.info.getShowBuilderBuildlist = function()
 		return showBuilderBuildlist
 	end
-	WG["info"].setShowBuilderBuildlist = function(value)
+	WG.info.setShowBuilderBuildlist = function(value)
 		showBuilderBuildlist = value
 	end
-	WG["info"].getDisplayMapPosition = function()
+	WG.info.getDisplayMapPosition = function()
 		return displayMapPosition
 	end
-	WG["info"].setDisplayMapPosition = function(value)
+	WG.info.setDisplayMapPosition = function(value)
 		displayMapPosition = value
 	end
-	WG["info"].getAlwaysShow = function()
+	WG.info.getAlwaysShow = function()
 		return alwaysShow
 	end
-	WG["info"].setAlwaysShow = function(value)
+	WG.info.setAlwaysShow = function(value)
 		alwaysShow = value
 	end
-	WG["info"].displayUnitID = function(unitID)
+	WG.info.displayUnitID = function(unitID)
 		cfgDisplayUnitID = unitID
 	end
-	WG["info"].clearDisplayUnitID = function()
+	WG.info.clearDisplayUnitID = function()
 		cfgDisplayUnitID = nil
 	end
-	WG["info"].displayUnitDefID = function(unitDefID)
+	WG.info.displayUnitDefID = function(unitDefID)
 		cfgDisplayUnitDefID = unitDefID
 	end
-	WG["info"].clearDisplayUnitDefID = function()
+	WG.info.clearDisplayUnitDefID = function()
 		cfgDisplayUnitDefID = nil
 	end
-	WG["info"].getPosition = function()
+	WG.info.getPosition = function()
 		return width, height
 	end
-	WG["info"].getIsShowing = function()
+	WG.info.getIsShowing = function()
 		return infoShows
 	end
-	WG["info"].setCustomHover = function(hType, hData)
+	WG.info.setCustomHover = function(hType, hData)
 		-- Allow external widgets to supply custom hover info (e.g., PIP window)
 		customHoverType = hType
 		customHoverData = hData
 	end
-	WG["info"].clearCustomHover = function()
+	WG.info.clearCustomHover = function()
 		customHoverType = nil
 		customHoverData = nil
 	end
-	if WG["buildmenu"] then
-		if WG["buildmenu"].getGroups then
-			groups, unitGroup = WG["buildmenu"].getGroups()
+	if WG.buildmenu then
+		if WG.buildmenu.getGroups then
+			groups, unitGroup = WG.buildmenu.getGroups()
 		end
-		if WG["buildmenu"].getOrder then
-			unitOrder = WG["buildmenu"].getOrder()
+		if WG.buildmenu.getOrder then
+			unitOrder = WG.buildmenu.getOrder()
 
 			-- order buildoptions
 			for uDefID, def in pairs(unitDefInfo) do
@@ -791,11 +791,11 @@ function widget:Initialize()
 		end
 	end
 
-	Spring.SetDrawSelectionInfo(false) -- disables springs default display of selected units count
-	Spring.SendCommands("tooltip 0")
+	SpringUnsynced.SetDrawSelectionInfo(false) -- disables springs default display of selected units count
+	SpringUnsynced.SendCommands("tooltip 0")
 
-	if WG["rankicons"] then
-		rankTextures = WG["rankicons"].getRankTextures()
+	if WG.rankicons then
+		rankTextures = WG.rankicons.getRankTextures()
 	end
 
 	bfcolormap = {}
@@ -806,15 +806,15 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	Spring.SetDrawSelectionInfo(true) --disables springs default display of selected units count
-	Spring.SendCommands("tooltip 1")
+	SpringUnsynced.SetDrawSelectionInfo(true) --disables springs default display of selected units count
+	SpringUnsynced.SendCommands("tooltip 1")
 	if infoBgTex then
 		gl.DeleteTexture(infoBgTex)
 	end
 	if infoTex then
 		gl.DeleteTexture(infoTex)
 	end
-	if WG["guishader"] and dlistGuishader then
+	if WG.guishader and dlistGuishader then
 		WG.FlowUI.guishaderDeleteDlist("info")
 		dlistGuishader = nil
 	end
@@ -832,7 +832,7 @@ function widget:Update(dt)
 	if not alwaysShow and ((cameraPanMode and not doUpdate) or mouseOffScreen) and not isPregame then
 		if SelectedUnitsCount == 0 then
 			if dlistGuishader then
-				WG["guishader"].DeleteDlist("info")
+				WG.guishader.DeleteDlist("info")
 				dlistGuishader = nil
 			end
 		end
@@ -851,11 +851,11 @@ function widget:Update(dt)
 	if sec2 > 0.5 then
 		sec2 = 0
 
-		if not rankTextures and WG["rankicons"] then
-			rankTextures = WG["rankicons"].getRankTextures()
+		if not rankTextures and WG.rankicons then
+			rankTextures = WG.rankicons.getRankTextures()
 		end
 
-		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+		local _, _, mapMinWater, _ = SpringShared.GetGroundExtremes()
 		if mapMinWater <= minWaterUnitDepth then
 			if not showWaterUnits then
 				showWaterUnits = true
@@ -890,7 +890,7 @@ function widget:Update(dt)
 		lastUpdateClock = os_clock()
 	end
 
-	if displayUnitID and not Spring.ValidUnitID(displayUnitID) then
+	if displayUnitID and not SpringShared.ValidUnitID(displayUnitID) then
 		displayMode = "text"
 		displayUnitID = nil
 		displayUnitDefID = nil
@@ -1214,15 +1214,15 @@ local function drawSelection()
 end
 
 local function GetAIName(teamID)
-	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
-	local niceName = Spring.GetGameRulesParam("ainame_" .. teamID)
+	local _, _, _, name, _, options = SpringShared.GetAIInfo(teamID)
+	local niceName = SpringShared.GetGameRulesParam("ainame_" .. teamID)
 	if niceName then
 		name = niceName
 		--if Spring.Utilities.ShowDevUI() and options.profile then
 		--	name = name .. " [" .. options.profile .. "]"
 		--end
 	end
-	return Spring.I18N("ui.playersList.aiName", { name = name })
+	return I18N("ui.playersList.aiName", { name = name })
 end
 
 local function drawUnitInfo()
@@ -1264,9 +1264,9 @@ local function drawUnitInfo()
 
 	if displayUnitID then
 		exp = spGetUnitExperience(displayUnitID)
-		if exp and exp > 0.009 and WG["rankicons"] and rankTextures then
+		if exp and exp > 0.009 and WG.rankicons and rankTextures then
 			if displayUnitID then
-				local rank = WG["rankicons"].getRank(displayUnitDefID, exp)
+				local rank = WG.rankicons.getRank(displayUnitDefID, exp)
 				if rankTextures[rank] then
 					local rankIconSize = math_floor((height * vsy * 0.24) + 0.5)
 					local rankIconMarginX = math_floor((height * vsy * 0.015) + 0.5)
@@ -1297,7 +1297,7 @@ local function drawUnitInfo()
 
 	local unitNameColor = tooltipTitleColor
 	if SelectedUnitsCount > 0 then
-		if displayMode ~= "unitdef" or (WG["buildmenu"] and (activeCmdID and activeCmdID < 0 and (not WG["buildmenu"].hoverID or (-activeCmdID == WG["buildmenu"].hoverID)))) then
+		if displayMode ~= "unitdef" or (WG.buildmenu and (activeCmdID and activeCmdID < 0 and (not WG.buildmenu.hoverID or (-activeCmdID == WG.buildmenu.hoverID)))) then
 			unitNameColor = "\255\125\255\125"
 		end
 	end
@@ -1339,7 +1339,7 @@ local function drawUnitInfo()
 	-- custom unit info area
 	customInfoArea = { math_floor(backgroundRect[3] - width - bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3] - bgpadding), math_floor(backgroundRect[2] + height) }
 
-	if displayMode ~= "unitdef" or not showBuilderBuildlist or not unitDefInfo[displayUnitDefID].buildOptions or not (WG["buildmenu"] and WG["buildmenu"].hoverID) then
+	if displayMode ~= "unitdef" or not showBuilderBuildlist or not unitDefInfo[displayUnitDefID].buildOptions or not (WG.buildmenu and WG.buildmenu.hoverID) then
 		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner * 0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.07 }, { 0.8, 0.8, 0.8, 0.1 })
 	end
 
@@ -1372,19 +1372,19 @@ local function drawUnitInfo()
 		health, maxHealth = spGetUnitHealth(displayUnitID)
 		if health then
 			local color = bfcolormap[math.clamp(math_floor((health / maxHealth) * 100), 0, 100)]
-			valueY3 = Spring.Utilities.ConvertColor(color[1], color[2], color[3]) .. math_floor(health)
+			valueY3 = Utilities.ConvertColor(color[1], color[2], color[3]) .. math_floor(health)
 		end
 
 		-- display unit owner name
-		local teamID = Spring.GetUnitTeam(displayUnitID)
+		local teamID = SpringShared.GetUnitTeam(displayUnitID)
 		if mySpec or (myTeamID ~= teamID) then
-			local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
-			local name = Spring.GetPlayerInfo(playerID, false)
+			local _, playerID, _, isAiTeam = SpringShared.GetTeamInfo(teamID, false)
+			local name = SpringShared.GetPlayerInfo(playerID, false)
 			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 			if isAiTeam then
 				name = GetAIName(teamID)
 			end
-			if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode ~= "disabled" then
+			if not mySpec and SpringShared.GetModOptions().teamcolors_anonymous_mode ~= "disabled" then
 				name = anonymousName
 			end
 			if name then
@@ -1392,7 +1392,7 @@ local function drawUnitInfo()
 				--if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode ~= 'disabled' then
 				--	name = ColourString(Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255) .. name
 				--else
-				name = spColorString(Spring.GetTeamColor(teamID)) .. name
+				name = spColorString(SpringUnsynced.GetTeamColor(teamID)) .. name
 				--end
 				font2:Print(name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 			end
@@ -1480,8 +1480,8 @@ local function drawUnitInfo()
 		glColor(1, 1, 1, 1)
 
 		-- draw transported unit list
-	elseif displayMode == "unit" and unitDefInfo[displayUnitDefID].transport and (Spring.GetUnitIsTransporting(displayUnitID) and #Spring.GetUnitIsTransporting(displayUnitID) or 0) > 0 then
-		local units = Spring.GetUnitIsTransporting(displayUnitID)
+	elseif displayMode == "unit" and unitDefInfo[displayUnitDefID].transport and (SpringShared.GetUnitIsTransporting(displayUnitID) and #SpringShared.GetUnitIsTransporting(displayUnitID) or 0) > 0 then
+		local units = SpringShared.GetUnitIsTransporting(displayUnitID)
 		if #units > 0 then
 			gridHeight = math_ceil(height * 0.975)
 			local rows = 2
@@ -1577,7 +1577,7 @@ local function drawUnitInfo()
 		if displayMode == "unit" then
 			-- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
 			if unitDefInfo[displayUnitDefID].mainWeapon ~= nil then
-				maxRange = Spring.GetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, "range")
+				maxRange = SpringShared.GetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, "range")
 			else
 				maxRange = range
 			end
@@ -1595,14 +1595,14 @@ local function drawUnitInfo()
 			local reloadTimeSpeedup = 1.0
 			local currentReloadTime = unitDefInfo[displayUnitDefID].reloadTime
 			if exp and exp > 0.009 then
-				addTextInfo(Spring.I18N("ui.info.xp"), round(exp, 2))
-				addTextInfo(Spring.I18N("ui.info.maxhealth"), "+" .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. "%")
+				addTextInfo(I18N("ui.info.xp"), round(exp, 2))
+				addTextInfo(I18N("ui.info.maxhealth"), "+" .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. "%")
 				currentReloadTime = spGetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, "reloadTimeXP")
 				if unitDefInfo[displayUnitDefID].reloadTime then
 					reloadTimeSpeedup = currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
 					local reloadTimeSpeedupPercentage = tonumber(round((1 - reloadTimeSpeedup) * 100, 0))
 					if reloadTimeSpeedupPercentage > 0 then
-						addTextInfo(Spring.I18N("ui.info.reload"), "-" .. reloadTimeSpeedupPercentage .. "%")
+						addTextInfo(I18N("ui.info.reload"), "-" .. reloadTimeSpeedupPercentage .. "%")
 					end
 				end
 			end
@@ -1610,7 +1610,7 @@ local function drawUnitInfo()
 			-- basic dps display
 			if mindps and mindps > 0 and mindps == maxdps then
 				local dps = round(mindps / reloadTimeSpeedup, 0)
-				addTextInfo(Spring.I18N("ui.info.dps"), dps)
+				addTextInfo(I18N("ui.info.dps"), dps)
 
 			-- dps range
 			elseif mindps ~= maxdps then
@@ -1632,54 +1632,54 @@ local function drawUnitInfo()
 			end
 
 			if unitDefInfo[displayUnitDefID].maxCoverage then
-				addTextInfo(Spring.I18N("ui.info.coverrange"), unitDefInfo[displayUnitDefID].maxCoverage)
+				addTextInfo(I18N("ui.info.coverrange"), unitDefInfo[displayUnitDefID].maxCoverage)
 			elseif maxRange and not unitDefInfo[displayUnitDefID].shieldOnly then
-				addTextInfo(Spring.I18N("ui.info.weaponrange"), math_floor(maxRange))
+				addTextInfo(I18N("ui.info.weaponrange"), math_floor(maxRange))
 			end
 			if currentReloadTime and currentReloadTime > 0 then
-				addTextInfo(Spring.I18N("ui.info.reloadtime"), round(currentReloadTime, 2))
+				addTextInfo(I18N("ui.info.reloadtime"), round(currentReloadTime, 2))
 			end
 
 			if unitDefInfo[displayUnitDefID].energyPerShot then
-				addTextInfo(Spring.I18N("ui.info.energyshot"), unitDefInfo[displayUnitDefID].energyPerShot)
+				addTextInfo(I18N("ui.info.energyshot"), unitDefInfo[displayUnitDefID].energyPerShot)
 			end
 			if unitDefInfo[displayUnitDefID].metalPerShot then
-				addTextInfo(Spring.I18N("ui.info.metalshot"), unitDefInfo[displayUnitDefID].metalPerShot)
+				addTextInfo(I18N("ui.info.metalshot"), unitDefInfo[displayUnitDefID].metalPerShot)
 			end
 		end
 		-- shield display
 		if unitDefInfo[displayUnitDefID].shieldCapacity then
-			addTextInfo(Spring.I18N("ui.info.shieldcapacity"), unitDefInfo[displayUnitDefID].shieldCapacity)
-			addTextInfo(Spring.I18N("ui.info.shieldrange"), unitDefInfo[displayUnitDefID].shieldRange)
-			addTextInfo(Spring.I18N("ui.info.shieldrechargerate"), unitDefInfo[displayUnitDefID].shieldRechargeRate)
-			addTextInfo(Spring.I18N("ui.info.shieldrechargecost"), unitDefInfo[displayUnitDefID].shieldRechargeCost)
+			addTextInfo(I18N("ui.info.shieldcapacity"), unitDefInfo[displayUnitDefID].shieldCapacity)
+			addTextInfo(I18N("ui.info.shieldrange"), unitDefInfo[displayUnitDefID].shieldRange)
+			addTextInfo(I18N("ui.info.shieldrechargerate"), unitDefInfo[displayUnitDefID].shieldRechargeRate)
+			addTextInfo(I18N("ui.info.shieldrechargecost"), unitDefInfo[displayUnitDefID].shieldRechargeCost)
 		end
 
 		if unitDefInfo[displayUnitDefID].stealth then
-			addTextInfo(Spring.I18N("ui.info.stealthy"), nil)
+			addTextInfo(I18N("ui.info.stealthy"), nil)
 		end
 
 		if unitDefInfo[displayUnitDefID].cloakCost then
 			if unitDefInfo[displayUnitDefID].cloakCostMoving then
-				addTextInfo(Spring.I18N("ui.info.cloakcost"), unitDefInfo[displayUnitDefID].cloakCost .. "/" .. unitDefInfo[displayUnitDefID].cloakCostMoving)
+				addTextInfo(I18N("ui.info.cloakcost"), unitDefInfo[displayUnitDefID].cloakCost .. "/" .. unitDefInfo[displayUnitDefID].cloakCostMoving)
 			else
-				addTextInfo(Spring.I18N("ui.info.cloakcost"), unitDefInfo[displayUnitDefID].cloakCost)
+				addTextInfo(I18N("ui.info.cloakcost"), unitDefInfo[displayUnitDefID].cloakCost)
 			end
 		end
 
 		if unitDefInfo[displayUnitDefID].speed then
-			addTextInfo(Spring.I18N("ui.info.speed"), unitDefInfo[displayUnitDefID].speed)
+			addTextInfo(I18N("ui.info.speed"), unitDefInfo[displayUnitDefID].speed)
 		elseif unitDefInfo[displayUnitDefID].speedMin then
 			local min = unitDefInfo[displayUnitDefID].speedMin
 			local max = unitDefInfo[displayUnitDefID].speedMax
-			addTextInfo(Spring.I18N("ui.info.speed"), min .. "-" .. max)
+			addTextInfo(I18N("ui.info.speed"), min .. "-" .. max)
 		end
 		if unitDefInfo[displayUnitDefID].reverseSpeed then
-			addTextInfo(Spring.I18N("ui.info.reversespeed"), unitDefInfo[displayUnitDefID].reverseSpeed)
+			addTextInfo(I18N("ui.info.reversespeed"), unitDefInfo[displayUnitDefID].reverseSpeed)
 		end
 
 		if unitDefInfo[displayUnitDefID].buildSpeed then
-			addTextInfo(Spring.I18N("ui.info.buildpower"), unitDefInfo[displayUnitDefID].buildSpeed)
+			addTextInfo(I18N("ui.info.buildpower"), unitDefInfo[displayUnitDefID].buildSpeed)
 		end
 
 		--if unitDefInfo[displayUnitDefID].armorType and unitDefInfo[displayUnitDefID].armorType ~= 'standard' then
@@ -1687,49 +1687,49 @@ local function drawUnitInfo()
 		--end
 
 		if unitDefInfo[displayUnitDefID].sightDistance then
-			addTextInfo(Spring.I18N("ui.info.los"), round(unitDefInfo[displayUnitDefID].sightDistance, 0))
+			addTextInfo(I18N("ui.info.los"), round(unitDefInfo[displayUnitDefID].sightDistance, 0))
 		end
 		if unitDefInfo[displayUnitDefID].airSightDistance and (unitDefInfo[displayUnitDefID].airUnit or unitDefInfo[displayUnitDefID].isAaUnit) then
-			addTextInfo(Spring.I18N("ui.info.airlos"), round(unitDefInfo[displayUnitDefID].airSightDistance, 0))
+			addTextInfo(I18N("ui.info.airlos"), round(unitDefInfo[displayUnitDefID].airSightDistance, 0))
 		end
 		if unitDefInfo[displayUnitDefID].radarDistance then
-			addTextInfo(Spring.I18N("ui.info.radar"), round(unitDefInfo[displayUnitDefID].radarDistance, 0))
+			addTextInfo(I18N("ui.info.radar"), round(unitDefInfo[displayUnitDefID].radarDistance, 0))
 		end
 		if unitDefInfo[displayUnitDefID].sonarDistance then
-			addTextInfo(Spring.I18N("ui.info.sonar"), round(unitDefInfo[displayUnitDefID].sonarDistance, 0))
+			addTextInfo(I18N("ui.info.sonar"), round(unitDefInfo[displayUnitDefID].sonarDistance, 0))
 		end
 		if unitDefInfo[displayUnitDefID].radarDistanceJam then
-			addTextInfo(Spring.I18N("ui.info.jamrange"), round(unitDefInfo[displayUnitDefID].radarDistanceJam, 0))
+			addTextInfo(I18N("ui.info.jamrange"), round(unitDefInfo[displayUnitDefID].radarDistanceJam, 0))
 		end
 		if unitDefInfo[displayUnitDefID].sonarDistanceJam then
-			addTextInfo(Spring.I18N("ui.info.sonarjamrange"), round(unitDefInfo[displayUnitDefID].sonarDistanceJam, 0))
+			addTextInfo(I18N("ui.info.sonarjamrange"), round(unitDefInfo[displayUnitDefID].sonarDistanceJam, 0))
 		end
 		if unitDefInfo[displayUnitDefID].seismicDistance then
-			addTextInfo(Spring.I18N("ui.info.seismic"), unitDefInfo[displayUnitDefID].seismicDistance)
+			addTextInfo(I18N("ui.info.seismic"), unitDefInfo[displayUnitDefID].seismicDistance)
 		end
 		--addTextInfo('mass', round(Spring.GetUnitMass(displayUnitID),0))
 		--addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
 		--addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
 
 		if unitDefInfo[displayUnitDefID].metalmaker then
-			addTextInfo(Spring.I18N("ui.info.eneededforconversion"), unitDefInfo[displayUnitDefID].metalmaker[1])
-			addTextInfo(Spring.I18N("ui.info.convertedm"), round(unitDefInfo[displayUnitDefID].metalmaker[1] / (1 / unitDefInfo[displayUnitDefID].metalmaker[2]), 1))
+			addTextInfo(I18N("ui.info.eneededforconversion"), unitDefInfo[displayUnitDefID].metalmaker[1])
+			addTextInfo(I18N("ui.info.convertedm"), round(unitDefInfo[displayUnitDefID].metalmaker[1] / (1 / unitDefInfo[displayUnitDefID].metalmaker[2]), 1))
 		end
 		if unitDefInfo[displayUnitDefID].energyStorage > 0 then
-			addTextInfo(Spring.I18N("ui.info.estorage"), unitDefInfo[displayUnitDefID].energyStorage)
+			addTextInfo(I18N("ui.info.estorage"), unitDefInfo[displayUnitDefID].energyStorage)
 		end
 		if unitDefInfo[displayUnitDefID].metalStorage > 0 then
-			addTextInfo(Spring.I18N("ui.info.mstorage"), unitDefInfo[displayUnitDefID].metalStorage)
+			addTextInfo(I18N("ui.info.mstorage"), unitDefInfo[displayUnitDefID].metalStorage)
 		end
 
 		if unitDefInfo[displayUnitDefID].transport then
 			if unitDefInfo[displayUnitDefID].transport[1] < 5001 then
-				addTextInfo(Spring.I18N("ui.info.transport_light", { highlightColor = valueColor }), nil)
+				addTextInfo(I18N("ui.info.transport_light", { highlightColor = valueColor }), nil)
 			end
 			if unitDefInfo[displayUnitDefID].transport[1] > 5000 then
-				addTextInfo(Spring.I18N("ui.info.transport_heavy", { highlightColor = valueColor }), nil)
+				addTextInfo(I18N("ui.info.transport_heavy", { highlightColor = valueColor }), nil)
 			end
-			addTextInfo(Spring.I18N("ui.info.transportcapacity"), unitDefInfo[displayUnitDefID].transport[3])
+			addTextInfo(I18N("ui.info.transportcapacity"), unitDefInfo[displayUnitDefID].transport[3])
 		end
 
 		-- Build final text from buffer
@@ -1784,7 +1784,7 @@ local function drawEngineTooltip()
 			end
 			if hoverType == "ground" then
 				local desc, coords = spTraceScreenRay(mouseX, mouseY, true)
-				local groundType1, groundType2, metal, hardness, tankSpeed, botSpeed, hoverSpeed, shipSpeed, receiveTracks = Spring.GetGroundInfo(coords[1], coords[3])
+				local groundType1, groundType2, metal, hardness, tankSpeed, botSpeed, hoverSpeed, shipSpeed, receiveTracks = SpringShared.GetGroundInfo(coords[1], coords[3])
 				local text = ""
 				local height = 0
 				font:Begin(true)
@@ -1793,22 +1793,22 @@ local function drawEngineTooltip()
 				if displayMapPosition then
 					font:Print(tooltipValueColor .. math.floor(hoverData[1]) .. ",", backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 					font:Print(math.floor(hoverData[3]), backgroundRect[1] + contentPadding + (fontSize * 3.2), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
-					font:Print(tooltipLabelTextColor .. Spring.I18N("ui.info.elevation") .. "  " .. tooltipValueColor .. math.floor(Spring.GetGroundHeight(coords[1], coords[3])), backgroundRect[1] + contentPadding + (fontSize * 6.6), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+					font:Print(tooltipLabelTextColor .. I18N("ui.info.elevation") .. "  " .. tooltipValueColor .. math.floor(SpringShared.GetGroundHeight(coords[1], coords[3])), backgroundRect[1] + contentPadding + (fontSize * 6.6), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 					height = height + heightStep
 				end
 				if tankSpeed ~= 1 or botSpeed ~= 1 or hoverSpeed ~= 1 or (shipSpeed ~= 1 and coords[2] <= 0) then
 					text = ""
 					if tankSpeed ~= 1 then
-						text = text .. (text ~= "" and "   " or "") .. tooltipLabelTextColor .. Spring.I18N("ui.info.tank") .. " " .. tooltipValueColor .. math.floor(tankSpeed * 100) .. "%"
+						text = text .. (text ~= "" and "   " or "") .. tooltipLabelTextColor .. I18N("ui.info.tank") .. " " .. tooltipValueColor .. math.floor(tankSpeed * 100) .. "%"
 					end
 					if botSpeed ~= 1 then
-						text = text .. (text ~= "" and "   " or "") .. tooltipLabelTextColor .. Spring.I18N("ui.info.bot") .. " " .. tooltipValueColor .. math.floor(botSpeed * 100) .. "%"
+						text = text .. (text ~= "" and "   " or "") .. tooltipLabelTextColor .. I18N("ui.info.bot") .. " " .. tooltipValueColor .. math.floor(botSpeed * 100) .. "%"
 					end
 					if hoverSpeed ~= 1 then
-						text = text .. (text ~= "" and "   " or "") .. tooltipLabelTextColor .. Spring.I18N("ui.info.hover") .. " " .. tooltipValueColor .. math.floor(hoverSpeed * 100) .. "%"
+						text = text .. (text ~= "" and "   " or "") .. tooltipLabelTextColor .. I18N("ui.info.hover") .. " " .. tooltipValueColor .. math.floor(hoverSpeed * 100) .. "%"
 					end
 					if shipSpeed ~= 1 and coords[2] <= 0 then
-						text = text .. (text ~= "" and "   " or "") .. tooltipLabelTextColor .. Spring.I18N("ui.info.ship") .. " " .. tooltipValueColor .. math.floor(shipSpeed * 100) .. "%"
+						text = text .. (text ~= "" and "   " or "") .. tooltipLabelTextColor .. I18N("ui.info.ship") .. " " .. tooltipValueColor .. math.floor(shipSpeed * 100) .. "%"
 					end
 					if groundType2 and groundType2 ~= "" then
 						font2:Begin(true)
@@ -1818,7 +1818,7 @@ local function drawEngineTooltip()
 						height = height + (fontSize * 0.25)
 						height = height + heightStep
 					end
-					font:Print(tooltipDarkTextColor .. Spring.I18N("ui.info.speedmultipliers") .. "   " .. text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+					font:Print(tooltipDarkTextColor .. I18N("ui.info.speedmultipliers") .. "   " .. text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				elseif not displayMapPosition then
 					emptyInfo = true
 				end
@@ -1832,7 +1832,7 @@ local function drawEngineTooltip()
 				--end
 				font:End()
 			elseif hoverType == "feature" then
-				local featureDefID = Spring.GetFeatureDefID(hoverData)
+				local featureDefID = SpringShared.GetFeatureDefID(hoverData)
 				local text = FeatureDefs[featureDefID].tooltip
 				local height = 0
 				if text == "" then
@@ -1849,15 +1849,15 @@ local function drawEngineTooltip()
 				font:SetTextColor(1, 1, 1, 1)
 				font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 				text = ""
-				local metal, _, energy, _ = Spring.GetFeatureResources(hoverData)
+				local metal, _, energy, _ = SpringShared.GetFeatureResources(hoverData)
 				if energy > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor .. Spring.I18N("ui.info.energy") .. "  \255\255\255\000" .. string.formatSI(energy)
+					text = tooltipLabelTextColor .. I18N("ui.info.energy") .. "  \255\255\255\000" .. string.formatSI(energy)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				if metal > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor .. Spring.I18N("ui.info.metal") .. "  " .. tooltipValueColor .. string.formatSI(metal)
+					text = tooltipLabelTextColor .. I18N("ui.info.metal") .. "  " .. tooltipValueColor .. string.formatSI(metal)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				font:End()
@@ -1917,7 +1917,7 @@ local function LeftMouseButton(unitDefID, unitTable)
 	selectedUnits = spGetSelectedUnits()
 	SelectedUnitsCount = spGetSelectedUnitsCount()
 	if acted then
-		Spring.PlaySoundFile(sound_button, 0.5, "ui")
+		SpringUnsynced.PlaySoundFile(sound_button, 0.5, "ui")
 	end
 end
 
@@ -1925,16 +1925,16 @@ local function MiddleMouseButton(unitDefID, unitTable)
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	if ctrl then
 		-- center the view on the entire selection
-		Spring.SendCommands(viewSelectionCmd)
+		SpringUnsynced.SendCommands(viewSelectionCmd)
 	else
 		-- center the view on this type on unit
 		spSelectUnitArray(unitTable)
-		Spring.SendCommands(viewSelectionCmd)
+		SpringUnsynced.SendCommands(viewSelectionCmd)
 		spSelectUnitArray(selectedUnits)
 	end
 	selectedUnits = spGetSelectedUnits()
 	SelectedUnitsCount = spGetSelectedUnitsCount()
-	Spring.PlaySoundFile(sound_button, 0.5, "ui")
+	SpringUnsynced.PlaySoundFile(sound_button, 0.5, "ui")
 end
 
 local function RightMouseButton(unitDefID, unitTable)
@@ -1957,11 +1957,11 @@ local function RightMouseButton(unitDefID, unitTable)
 	spSelectUnitMap(rightMouseButtonMap)
 	selectedUnits = spGetSelectedUnits()
 	SelectedUnitsCount = spGetSelectedUnitsCount()
-	Spring.PlaySoundFile(sound_button2, 0.5, "ui")
+	SpringUnsynced.PlaySoundFile(sound_button2, 0.5, "ui")
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 	if infoShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
@@ -1977,12 +1977,12 @@ local function unloadTransport(transportID, unitID, x, z, shift, depth)
 	end
 	local radius = 20 * depth
 	local orgX, orgZ = x, z
-	local y = Spring.GetGroundHeight(x, z)
+	local y = SpringShared.GetGroundHeight(x, z)
 	local unitSphereRadius = 60 -- too low value will result in unload conflicts
-	local areaUnits = Spring.GetUnitsInSphere(x, y, z, unitSphereRadius)
+	local areaUnits = SpringShared.GetUnitsInSphere(x, y, z, unitSphereRadius)
 	if #areaUnits == 0 then -- unblocked spot!
 		unloadParams[1], unloadParams[2], unloadParams[3], unloadParams[4] = x, y, z, unitID
-		Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
+		SpringShared.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
 	else
 		-- unload is blocked by unit at ground just lets find free alternative spot in a radius around it
 		local samples = 8
@@ -1992,13 +1992,13 @@ local function unloadTransport(transportID, unitID, x, z, shift, depth)
 			x = x + (radius * math.cos(i * sideAngle))
 			z = z + (radius * math.sin(i * sideAngle))
 			if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
-				y = Spring.GetGroundHeight(x, z)
-				areaUnits = Spring.GetUnitsInSphere(x, y, z, unitSphereRadius)
+				y = SpringShared.GetGroundHeight(x, z)
+				areaUnits = SpringShared.GetUnitsInSphere(x, y, z, unitSphereRadius)
 				if #areaUnits == 0 then -- unblocked spot!
-					local areaFeatures = Spring.GetFeaturesInSphere(x, y, z, unitSphereRadius)
+					local areaFeatures = SpringShared.GetFeaturesInSphere(x, y, z, unitSphereRadius)
 					if #areaFeatures == 0 then
 						unloadParams[1], unloadParams[2], unloadParams[3], unloadParams[4] = x, y, z, unitID
-						Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
+						SpringShared.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
 						foundUnloadSpot = true
 						break
 					end
@@ -2013,7 +2013,7 @@ local function unloadTransport(transportID, unitID, x, z, shift, depth)
 end
 
 function widget:MouseRelease(x, y, button)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 
@@ -2049,22 +2049,22 @@ function widget:MouseRelease(x, y, button)
 
 		-- transported unit list
 		if displayMode == "unit" and button == 1 then
-			local units = Spring.GetUnitIsTransporting(displayUnitID)
+			local units = SpringShared.GetUnitIsTransporting(displayUnitID)
 			if units and #units > 0 then
 				for cellID, unitID in pairs(units) do
 					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
-						local x, y, z = Spring.GetUnitPosition(displayUnitID)
+						local x, y, z = SpringShared.GetUnitPosition(displayUnitID)
 						local alt, ctrl, meta, shift = spGetModKeyState()
 						if shift then
-							local cmdQueue = Spring.GetUnitCommands(displayUnitID, 35) or {}
+							local cmdQueue = SpringShared.GetUnitCommands(displayUnitID, 35) or {}
 							if cmdQueue[1] then
 								if cmdQueue[#cmdQueue] and cmdQueue[#cmdQueue].id == CMD.MOVE and cmdQueue[#cmdQueue].params[3] then
 									x, z = cmdQueue[#cmdQueue].params[1], cmdQueue[#cmdQueue].params[3]
 									-- remove the last move command (to replace it with the unload cmd after)
-									Spring.GiveOrderToUnit(displayUnitID, CMD.STOP, emptyTable, 0)
+									SpringShared.GiveOrderToUnit(displayUnitID, CMD.STOP, emptyTable, 0)
 									for c = 1, #cmdQueue do
 										if c < #cmdQueue then
-											Spring.GiveOrderToUnit(displayUnitID, cmdQueue[c].id, cmdQueue[c].params, shiftTable)
+											SpringShared.GiveOrderToUnit(displayUnitID, cmdQueue[c].id, cmdQueue[c].params, shiftTable)
 										end
 									end
 								end
@@ -2086,7 +2086,7 @@ function widget:DrawScreen()
 
 	if not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and not isPregame then
 		if dlistGuishader then
-			WG["guishader"].DeleteDlist("info")
+			WG.guishader.DeleteDlist("info")
 			dlistGuishader = nil
 		end
 		return
@@ -2130,13 +2130,13 @@ function widget:DrawScreen()
 			gl.R2tHelper.BlendTexRect(infoTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 		end
 	elseif dlistGuishader then
-		WG["guishader"].DeleteDlist("info")
+		WG.guishader.DeleteDlist("info")
 		dlistGuishader = nil
 	end
 
 	-- widget hovered
 	if infoShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-		Spring.SetMouseCursor("cursornormal")
+		SpringUnsynced.SetMouseCursor("cursornormal")
 
 		-- selection grid
 		if displayMode == "selection" and selectionCells and selectionCells[1] and cellRect then
@@ -2174,7 +2174,7 @@ function widget:DrawScreen()
 				end
 			end
 
-			if WG["tooltip"] then
+			if WG.tooltip then
 				local statsIndent = "  "
 				local stats = ""
 				--local cells = cellHovered and { [cellHovered] = selectionCells[cellHovered] } or selectionCells
@@ -2193,13 +2193,13 @@ function widget:DrawScreen()
 					text = selectionHowto
 				end
 
-				WG["tooltip"].ShowTooltip("info", text, nil, nil, textTitle)
+				WG.tooltip.ShowTooltip("info", text, nil, nil, textTitle)
 			end
 		end
 
 		-- transport load list
 		if displayMode == "unit" and unitDefInfo[displayUnitDefID].transport and cellRect then
-			local units = Spring.GetUnitIsTransporting(displayUnitID)
+			local units = SpringShared.GetUnitIsTransporting(displayUnitID)
 			if #units > 0 then
 				for cellID, unitID in pairs(units) do
 					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
@@ -2230,8 +2230,8 @@ function widget:DrawScreen()
 				end
 			end
 		elseif displayMode == "unit" then
-			if WG["unitstats"] and WG["unitstats"].showUnit then
-				WG["unitstats"].showUnit(displayUnitID)
+			if WG.unitstats and WG.unitstats.showUnit then
+				WG.unitstats.showUnit(displayUnitID)
 			end
 		end
 	end
@@ -2246,7 +2246,7 @@ function checkChanges()
 	if customHoverType and customHoverData then
 		hoverType = customHoverType
 		hoverData = customHoverData
-	elseif WG["guiPip"] and WG["guiPip"].IsAbove and WG["guiPip"].IsAbove(x, y) then
+	elseif WG.guiPip and WG.guiPip.IsAbove and WG.guiPip.IsAbove(x, y) then
 		-- PIP window is above the cursor, don't detect anything below it
 		hoverType = nil
 		hoverData = nil
@@ -2267,20 +2267,20 @@ function checkChanges()
 		activeCmdID = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
 		activeCmdID = activeCmdID and -activeCmdID
 	else
-		activeCmdID = select(2, Spring.GetActiveCommand())
+		activeCmdID = select(2, SpringUnsynced.GetActiveCommand())
 	end
 
 	-- buildmenu unitdef
-	if WG["buildmenu"] and WG["buildmenu"].hoverID then
+	if WG.buildmenu and WG.buildmenu.hoverID then
 		displayMode = "unitdef"
-		displayUnitDefID = WG["buildmenu"].hoverID
+		displayUnitDefID = WG.buildmenu.hoverID
 	elseif cfgDisplayUnitDefID then
 		displayMode = "unitdef"
 		displayUnitDefID = cfgDisplayUnitDefID
 	elseif activeCmdID and activeCmdID < 0 then
 		displayMode = "unitdef"
 		displayUnitDefID = -activeCmdID
-	elseif cfgDisplayUnitID and Spring.ValidUnitID(cfgDisplayUnitID) then
+	elseif cfgDisplayUnitID and SpringShared.ValidUnitID(cfgDisplayUnitID) then
 		displayMode = "unit"
 		displayUnitID = cfgDisplayUnitID
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
@@ -2319,8 +2319,8 @@ function checkChanges()
 		local newTooltip = featureDef.translatedDescription or ""
 
 		if featureDef.reclaimable then
-			local metal, _, energy, _ = Spring.GetFeatureResources(featureID)
-			local reclaimText = Spring.I18N("ui.reclaimInfo.metal", { metal = string.formatSI(metal) }) .. "\255\255\255\128" .. " " .. Spring.I18N("ui.reclaimInfo.energy", { energy = string.formatSI(energy) })
+			local metal, _, energy, _ = SpringShared.GetFeatureResources(featureID)
+			local reclaimText = I18N("ui.reclaimInfo.metal", { metal = string.formatSI(metal) }) .. "\255\255\255\128" .. " " .. I18N("ui.reclaimInfo.energy", { energy = string.formatSI(energy) })
 			newTooltip = newTooltip .. "\n\n" .. reclaimText
 		end
 
@@ -2361,7 +2361,7 @@ function checkChanges()
 	if displayMode == "text" and isPregame then
 		if not mySpec then
 			displayMode = "unitdef"
-			displayUnitDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+			displayUnitDefID = SpringShared.GetTeamRulesParam(myTeamID, "startUnit")
 			hideBuildlist = true
 		else
 			emptyInfo = true

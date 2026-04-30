@@ -1,42 +1,42 @@
 local widgetName = "Self-Destruct Icons"
 
-function skip()
-	return Spring.GetGameFrame() <= 0
+local function skip()
+	return SpringShared.GetGameFrame() <= 0
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 
 	Test.prepareWidget(widgetName)
 	Test.expectCallin("UnitCommand")
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 end
 
-function test()
+local function test()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
-	local y = Spring.GetGroundHeight(x, z)
+	local y = SpringShared.GetGroundHeight(x, z)
 
 	unitID = SyncedRun(function(locals)
-		return Spring.CreateUnit("armvp", locals.x, locals.y, locals.z, 0, 0)
+		return SpringSynced.CreateUnit("armvp", locals.x, locals.y, locals.z, 0, 0)
 	end)
 
 	assert(table.count(widget.activeSelfD) == 0)
 	assert(table.count(widget.queuedSelfD) == 0)
 
 	-- standard selfd command
-	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+	SpringShared.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 	Test.waitUntilCallinArgs("UnitCommand", { unitID, nil, nil, CMD.SELFD })
 	assert(table.count(widget.activeSelfD) == 1)
 	assert(table.count(widget.queuedSelfD) == 0)
 
 	-- cancel selfd order
-	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+	SpringShared.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 	Test.waitUntilCallinArgs("UnitCommand", { unitID, nil, nil, CMD.SELFD })
 	assert(table.count(widget.activeSelfD) == 0)
 	assert(table.count(widget.queuedSelfD) == 0)
@@ -49,3 +49,5 @@ function test()
 	--assert(table.count(widget.activeSelfD) == 0)
 	--assert(table.count(widget.queuedSelfD) == 0)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

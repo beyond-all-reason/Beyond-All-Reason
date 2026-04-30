@@ -12,20 +12,20 @@ function widget:GetInfo()
 	}
 end
 
-local lastGameUpdate = Spring.GetGameSeconds()
+local lastGameUpdate = SpringShared.GetGameSeconds()
 
-local spGetUnitViewPosition = Spring.GetUnitViewPosition
-local spGetGameSeconds = Spring.GetGameSeconds
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetFeatureResources = Spring.GetFeatureResources
-local spGetFeatureHealth = Spring.GetFeatureHealth
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetUnitViewPosition = SpringUnsynced.GetUnitViewPosition
+local spGetGameSeconds = SpringShared.GetGameSeconds
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetFeatureResources = SpringShared.GetFeatureResources
+local spGetFeatureHealth = SpringShared.GetFeatureHealth
+local spGetFeatureDefID = SpringShared.GetFeatureDefID
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
 local spec, fullview = spGetSpectatingState()
-local myAllyTeam = Spring.GetMyAllyTeamID()
+local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 
 local glColor = gl.Color
 local glDepthTest = gl.DepthTest
@@ -43,8 +43,8 @@ local blinkTime = 20
 local minETASecs = 5 -- Don't show ETA if it is less than 5 seconds
 
 -- Pre-cache I18N strings to avoid per-unit per-frame lookups
-local i18n_buildTime = "\255\255\255\1" .. Spring.I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
-local i18n_cancelled = Spring.I18N("ui.buildEstimate.cancelled") .. " "
+local i18n_buildTime = "\255\255\255\1" .. I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
+local i18n_cancelled = I18N("ui.buildEstimate.cancelled") .. " "
 
 local unitHeight = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -56,7 +56,7 @@ for featureDefID, featureDef in pairs(FeatureDefs) do
 end
 
 function widget:ViewResize()
-	font = WG["fonts"].getFont(nil, 1.2, 0.2, 20)
+	font = WG.fonts.getFont(nil, 1.2, 0.2, 20)
 end
 
 local function makeUnitETA(unitID, unitDefID)
@@ -100,11 +100,11 @@ end
 
 local function init()
 	unitETATable = {}
-	local units = Spring.GetAllUnits()
+	local units = SpringShared.GetAllUnits()
 	for i = 1, #units do
 		local unitID = units[i]
 		if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
-			unitETATable[unitID] = makeUnitETA(unitID, Spring.GetUnitDefID(unitID))
+			unitETATable[unitID] = makeUnitETA(unitID, SpringShared.GetUnitDefID(unitID))
 		end
 	end
 end
@@ -129,8 +129,8 @@ function widget:Shutdown()
 end
 
 function widget:LanguageChanged()
-	i18n_buildTime = "\255\255\255\1" .. Spring.I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
-	i18n_cancelled = Spring.I18N("ui.buildEstimate.cancelled") .. " "
+	i18n_buildTime = "\255\255\255\1" .. I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
+	i18n_cancelled = I18N("ui.buildEstimate.cancelled") .. " "
 end
 
 local function updateEta(eta, newProgress, gameSeconds, abs)
@@ -216,8 +216,8 @@ function widget:Update(dt)
 end
 
 function widget:PlayerChanged()
-	if myAllyTeam ~= Spring.GetMyAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
-		myAllyTeam = Spring.GetMyAllyTeamID()
+	if myAllyTeam ~= SpringUnsynced.GetLocalAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
+		myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 		spec, fullview = spGetSpectatingState()
 		init()
 	end
@@ -268,8 +268,8 @@ local function drawEtaText(timeLeft, yoffset)
 end
 
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() == false then
-		local cx, cy, cz = Spring.GetCameraPosition()
+	if SpringUnsynced.IsGUIHidden() == false then
+		local cx, cy, cz = SpringUnsynced.GetCameraPosition()
 		glDepthTest(false)
 
 		for unitID, eta in pairs(unitETATable) do

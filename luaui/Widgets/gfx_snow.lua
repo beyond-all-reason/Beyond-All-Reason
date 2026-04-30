@@ -18,9 +18,9 @@ local mathRandom = math.random
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 --------------------------------------------------------------------------------
 -- /snow    -- toggles snow on current map (also remembers this)
@@ -87,10 +87,10 @@ local widgetDisabledSnow = false
 
 local shader
 
-local startTimer = Spring.GetTimer()
+local startTimer = SpringUnsynced.GetTimer()
 local diffTime = 0
 
-local spGetFPS = Spring.GetFPS
+local spGetFPS = SpringUnsynced.GetFPS
 local averageFps = 60
 
 local camX, camY, camZ
@@ -116,7 +116,7 @@ local previousParticleAmount = particleDensity
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spGetWind = Spring.GetWind
+local spGetWind = SpringShared.GetWind
 
 local glBlending = gl.Blending
 local glCallList = gl.CallList
@@ -156,7 +156,7 @@ end
 
 function widget:Shutdown()
 	removeSnow()
-	WG["snow"] = nil
+	WG.snow = nil
 end
 
 -- creating multiple lists per particleType so we can switch to less particles without causing lag
@@ -303,21 +303,21 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 
-	WG["snow"] = {}
-	WG["snow"].getSnowMap = function()
+	WG.snow = {}
+	WG.snow.getSnowMap = function()
 		if enabled or widgetDisabledSnow then
 			return true
 		else
 			return false
 		end
 	end
-	WG["snow"].setMultiplier = function(value)
+	WG.snow.setMultiplier = function(value)
 		customParticleMultiplier = value
 		if enabled or widgetDisabledSnow then
 			CreateParticleLists()
 		end
 	end
-	WG["snow"].setAutoReduce = function(value)
+	WG.snow.setAutoReduce = function(value)
 		autoReduce = value
 		if autoReduce == false then
 			enabled = true
@@ -327,7 +327,7 @@ function widget:Initialize()
 			averageFps = spGetFPS()
 		end
 	end
-	WG["snow"].setSnowMap = function(value)
+	WG.snow.setSnowMap = function(value)
 		snowMaps[currentMapname] = value
 		enabled = value
 		if value then
@@ -425,23 +425,23 @@ function widget:Shutdown()
 end
 
 local pausedTime = 0
-local lastFrametime = Spring.GetTimer()
+local lastFrametime = SpringUnsynced.GetTimer()
 
 function widget:DrawWorld()
 	if not enabled then
 		return
 	end
 
-	local _, _, isPaused = Spring.GetGameSpeed()
+	local _, _, isPaused = SpringUnsynced.GetGameSpeed()
 	if isPaused then
-		pausedTime = pausedTime + Spring.DiffTimers(Spring.GetTimer(), lastFrametime)
+		pausedTime = pausedTime + SpringUnsynced.DiffTimers(SpringUnsynced.GetTimer(), lastFrametime)
 	end
-	lastFrametime = Spring.GetTimer()
+	lastFrametime = SpringUnsynced.GetTimer()
 	if os.clock() - startOsClock > 0.5 then -- delay to prevent no textures being shown
 		if shader ~= nil and particleLists[#particleTypes] ~= nil and particleLists[#particleTypes][particleStep] ~= nil then
 			shader:Activate()
-			camX, camY, camZ = Spring.GetCameraPosition()
-			diffTime = Spring.DiffTimers(lastFrametime, startTimer) - pausedTime
+			camX, camY, camZ = SpringUnsynced.GetCameraPosition()
+			diffTime = SpringUnsynced.DiffTimers(lastFrametime, startTimer) - pausedTime
 			shader:SetUniform("time", diffTime)
 			shader:SetUniform("camPos", camX, camY, camZ)
 

@@ -16,12 +16,12 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local spSetUnitBlocking = Spring.SetUnitBlocking
-local spSetUnitIconDraw = Spring.SetUnitIconDraw
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spMoveCtrlEnable = Spring.MoveCtrl.Enable
-local spMoveCtrlDisable = Spring.MoveCtrl.Disable
-local spMoveCtrlSetVelocity = Spring.MoveCtrl.SetVelocity
+local spSetUnitBlocking = SpringSynced.SetUnitBlocking
+local spSetUnitIconDraw = SpringUnsynced.SetUnitIconDraw
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spMoveCtrlEnable = SpringSynced.MoveCtrl.Enable
+local spMoveCtrlDisable = SpringSynced.MoveCtrl.Disable
+local spMoveCtrlSetVelocity = SpringSynced.MoveCtrl.SetVelocity
 local stringFind = string.find
 local tableCopy = table.copy
 

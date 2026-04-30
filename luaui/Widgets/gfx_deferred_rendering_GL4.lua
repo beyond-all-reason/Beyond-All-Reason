@@ -31,39 +31,39 @@ local stringFormat = string.format
 local stringLower = string.lower
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetPlayerList = Spring.GetPlayerList
-local spGetTeamColor = Spring.GetTeamColor
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spIsUnitAllied = Spring.IsUnitAllied
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPieceMap = Spring.GetUnitPieceMap
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetPlayerList = SpringShared.GetPlayerList
+local spGetTeamColor = SpringUnsynced.GetTeamColor
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spIsUnitAllied = SpringUnsynced.IsUnitAllied
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitPieceMap = SpringShared.GetUnitPieceMap
 local spGetProjectileName = Spring.GetProjectileName
-local spGetWind = Spring.GetWind
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetModKeyState = Spring.GetModKeyState
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetCameraDirection = Spring.GetCameraDirection
-local spGetConfigInt = Spring.GetConfigInt
-local spSetSunLighting = Spring.SetSunLighting
-local spGetAllFeatures = Spring.GetAllFeatures
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetUnitHeight = Spring.GetUnitHeight
-local spGetUnitLosState = Spring.GetUnitLosState
-local spDiffTimers = Spring.DiffTimers
-local spGetTimer = Spring.GetTimer
-local spGetTimerMicros = Spring.GetTimerMicros
-local spGetDrawFrame = Spring.GetDrawFrame
-local spGetFPS = Spring.GetFPS
-local spGetConfigString = Spring.GetConfigString
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetAllyTeamList = Spring.GetAllyTeamList
-local spGetTeamList = Spring.GetTeamList
+local spGetWind = SpringShared.GetWind
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spGetModKeyState = SpringUnsynced.GetModKeyState
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spGetCameraDirection = SpringUnsynced.GetCameraDirection
+local spGetConfigInt = SpringUnsynced.GetConfigInt
+local spSetSunLighting = SpringUnsynced.SetSunLighting
+local spGetAllFeatures = SpringShared.GetAllFeatures
+local spGetFeatureDefID = SpringShared.GetFeatureDefID
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
+local spGetUnitHeight = SpringShared.GetUnitHeight
+local spGetUnitLosState = SpringShared.GetUnitLosState
+local spDiffTimers = SpringUnsynced.DiffTimers
+local spGetTimer = SpringUnsynced.GetTimer
+local spGetTimerMicros = SpringUnsynced.GetTimerMicros
+local spGetDrawFrame = SpringUnsynced.GetDrawFrame
+local spGetFPS = SpringUnsynced.GetFPS
+local spGetConfigString = SpringUnsynced.GetConfigString
+local spGetTeamInfo = SpringShared.GetTeamInfo
+local spGetAllyTeamList = SpringShared.GetAllyTeamList
+local spGetTeamList = SpringShared.GetTeamList
 
 -------------------------------- Notes, TODO ----------------------------------
 do
@@ -248,19 +248,19 @@ local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
 -- Strong:
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileType = Spring.GetProjectileType
-local spGetPieceProjectileParams = Spring.GetPieceProjectileParams
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spIsSphereInView = Spring.IsSphereInView
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spValidUnitID = Spring.ValidUnitID
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
+local spGetProjectileVelocity = SpringShared.GetProjectileVelocity
+local spGetProjectileType = SpringShared.GetProjectileType
+local spGetPieceProjectileParams = SpringShared.GetPieceProjectileParams
+local spGetProjectileDefID = SpringShared.GetProjectileDefID
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spIsSphereInView = SpringUnsynced.IsSphereInView
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spValidUnitID = SpringShared.ValidUnitID
 
 -- Weak:
-local spIsGUIHidden = Spring.IsGUIHidden
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
 
 local math_max = mathMax
 local math_ceil = mathCeil
@@ -285,7 +285,7 @@ local projectileDefLights -- one light per weaponDefID
 local explosionLights -- one light per weaponDefID
 local gibLight -- one light for all pieceprojectiles
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSinglePlayer = Utilities.Gametype.IsSinglePlayer()
 
 local shaderConfig = {
 	MIERAYLEIGHRATIO = 0.1, -- The ratio of Rayleigh scattering to Mie scattering
@@ -577,7 +577,7 @@ local function InitializeLight(lightTable, unitID)
 				lightparams[i] = 0
 			end
 			if lightTable.lightConfig == nil then
-				Spring.Debug.TraceFullEcho()
+				Debug.TraceFullEcho()
 			end
 			for paramname, tablepos in pairs(lightParamKeyOrder) do
 				lightparams[tablepos] = lightTable.lightConfig[paramname] or lightparams[tablepos]
@@ -1164,7 +1164,7 @@ for wdid, wd in pairs(WeaponDefs) do
 end
 
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if targetable[weaponID] and py - 300 > Spring.GetGroundHeight(px, pz) then -- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
+	if targetable[weaponID] and py - 300 > SpringShared.GetGroundHeight(px, pz) then -- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
 		return
 	end
 	if explosionLights[weaponID] then
@@ -1262,7 +1262,7 @@ function widget:VisibleUnitRemoved(unitID) -- remove all the lights for this uni
 end
 
 function widget:Shutdown()
-	WG["lightsgl4"] = nil
+	WG.lightsgl4 = nil
 	widgetHandler:DeregisterGlobal("AddPointLight")
 	widgetHandler:DeregisterGlobal("AddBeamLight")
 	widgetHandler:DeregisterGlobal("AddConeLight")
@@ -1337,7 +1337,7 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and unitEventLights[eventName] then
 		if unitEventLights[eventName] then
 			-- get the default event if it is defined
-			local lightList = unitEventLights[eventName][unitDefID] or unitEventLights[eventName]["default"]
+			local lightList = unitEventLights[eventName][unitDefID] or unitEventLights[eventName].default
 			if lightList then
 				for lightname, lightTable in pairs(lightList) do
 					local visible = lightTable.alwaysVisible
@@ -1488,13 +1488,13 @@ end
 
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
-	local weapon, piece = Spring.GetProjectileType(projectileID)
-	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
-	Spring.Debug.TraceFullEcho()
+	local weapon, piece = SpringShared.GetProjectileType(projectileID)
+	local weaponDefID = weapon and SpringShared.GetProjectileDefID(projectileID)
+	Debug.TraceFullEcho()
 end
 
 local function updateProjectileLights(newgameframe)
-	local nowprojectiles = Spring.GetVisibleProjectiles()
+	local nowprojectiles = SpringUnsynced.GetVisibleProjectiles()
 	gameFrame = spGetGameFrame()
 	local newgameframe = true
 	if gameFrame == lastGameFrame then
@@ -1621,15 +1621,15 @@ local function updateProjectileLights(newgameframe)
 	--end
 end
 
-local configCache = { lastUpdate = Spring.GetTimer() }
+local configCache = { lastUpdate = SpringUnsynced.GetTimer() }
 local function checkConfigUpdates()
 	if spDiffTimers(spGetTimer(), configCache.lastUpdate) > 0.5 then
 		local newconfa = VFS.LoadFile("luaui/configs/DeferredLightsGL4config.lua")
 		local newconfb = VFS.LoadFile("luaui/configs/DeferredLightsGL4WeaponsConfig.lua")
 		if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
 			LoadLightConfig()
-			if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-				widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+			if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+				widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 			end
 			local allFeatures = spGetAllFeatures()
 			local allFeaturesLen = #allFeatures
@@ -1658,13 +1658,13 @@ function widget:Update(dt)
 	local tus = spGetTimerMicros()
 
 	-- update/handle Cursor Lights!
-	if WG["allycursors"] and WG["allycursors"].getLights() then
+	if WG.allycursors and WG.allycursors.getLights() then
 		sec = sec + dt
 		if sec >= 0.25 then
-			if cursorLightAlpha ~= WG["allycursors"].getLightStrength() or cursorLightRadius ~= WG["allycursors"].getLightRadius() or cursorLightSelfShadowing ~= WG["allycursors"].getLightSelfShadowing() then
-				cursorLightAlpha = WG["allycursors"].getLightStrength()
-				cursorLightRadius = WG["allycursors"].getLightRadius()
-				cursorLightSelfShadowing = WG["allycursors"].getLightSelfShadowing()
+			if cursorLightAlpha ~= WG.allycursors.getLightStrength() or cursorLightRadius ~= WG.allycursors.getLightRadius() or cursorLightSelfShadowing ~= WG.allycursors.getLightSelfShadowing() then
+				cursorLightAlpha = WG.allycursors.getLightStrength()
+				cursorLightRadius = WG.allycursors.getLightRadius()
+				cursorLightSelfShadowing = WG.allycursors.getLightSelfShadowing()
 				InstanceVBOTable.clearInstanceTable(cursorPointLightVBO)
 				cursorLights = nil
 			end
@@ -1672,7 +1672,7 @@ function widget:Update(dt)
 		if not cursorLights then
 			cursorLights = {}
 		end
-		local cursors, notIdle = WG["allycursors"].getCursors()
+		local cursors, notIdle = WG.allycursors.getCursors()
 		for playerID, cursor in pairs(cursors) do
 			local teamColor = teamColors[playerID]
 			if teamColor and not cursor[8] and notIdle[playerID] then
@@ -1713,7 +1713,7 @@ function widget:Update(dt)
 			params[12] = playerCursorLightBrightness * 0.1
 			AddLight("PLAYERCURSOR", nil, nil, cursorPointLightVBO, params)
 		else
-			if cursorPointLightVBO.instanceIDtoIndex["PLAYERCURSOR"] then
+			if cursorPointLightVBO.instanceIDtoIndex.PLAYERCURSOR then
 				popElementInstance(cursorPointLightVBO, "PLAYERCURSOR")
 			end
 		end
@@ -1857,7 +1857,7 @@ function widget:TextCommand(command)
 end
 
 function widget:Initialize()
-	Spring.Debug.TraceEcho("Initialize DLGL4")
+	Debug.TraceEcho("Initialize DLGL4")
 	if spGetConfigString("AllowDeferredMapRendering") == "0" or spGetConfigString("AllowDeferredModelRendering") == "0" then
 		spEcho("Deferred Rendering (gfx_deferred_rendering.lua) requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!")
 		widgetHandler:RemoveWidget()
@@ -1902,8 +1902,8 @@ function widget:Initialize()
 		end
 	end
 
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 
 	local allFeatures = spGetAllFeatures()
@@ -1912,44 +1912,44 @@ function widget:Initialize()
 		widget:FeatureCreated(allFeatures[i])
 	end
 
-	WG["lightsgl4"] = {}
-	WG["lightsgl4"].AddPointLight = AddPointLight
-	WG["lightsgl4"].AddBeamLight = AddBeamLight
-	WG["lightsgl4"].AddConeLight = AddConeLight
-	WG["lightsgl4"].AddLight = AddLight
-	WG["lightsgl4"].RemoveLight = RemoveLight
-	WG["lightsgl4"].GetLightVBO = GetLightVBO
+	WG.lightsgl4 = {}
+	WG.lightsgl4.AddPointLight = AddPointLight
+	WG.lightsgl4.AddBeamLight = AddBeamLight
+	WG.lightsgl4.AddConeLight = AddConeLight
+	WG.lightsgl4.AddLight = AddLight
+	WG.lightsgl4.RemoveLight = RemoveLight
+	WG.lightsgl4.GetLightVBO = GetLightVBO
 
-	WG["lightsgl4"].IntensityMultiplier = function(value)
+	WG.lightsgl4.IntensityMultiplier = function(value)
 		intensityMultiplier = value
 	end
-	WG["lightsgl4"].RadiusMultiplier = function(value)
+	WG.lightsgl4.RadiusMultiplier = function(value)
 		radiusMultiplier = value
 	end
-	WG["lightsgl4"].ScreenSpaceShadows = function(value)
+	WG.lightsgl4.ScreenSpaceShadows = function(value)
 		screenSpaceShadows = value
 	end
 
-	WG["lightsgl4"].ShowPlayerCursorLight = function(value)
+	WG.lightsgl4.ShowPlayerCursorLight = function(value)
 		showPlayerCursorLight = value
 		-- Remove the player's cursor light on disabling this feature
-		if not showPlayerCursorLight and cursorPointLightVBO.instanceIDtoIndex["PLAYERCURSOR"] then
+		if not showPlayerCursorLight and cursorPointLightVBO.instanceIDtoIndex.PLAYERCURSOR then
 			popElementInstance(cursorPointLightVBO, "PLAYERCURSOR")
 		end
 	end
-	WG["lightsgl4"].PlayerCursorLightRadius = function(value)
+	WG.lightsgl4.PlayerCursorLightRadius = function(value)
 		playerCursorLightRadius = value
 	end
-	WG["lightsgl4"].PlayerCursorLightBrightness = function(value)
+	WG.lightsgl4.PlayerCursorLightBrightness = function(value)
 		playerCursorLightBrightness = value
 	end
 
-	widgetHandler:RegisterGlobal("AddPointLight", WG["lightsgl4"].AddPointLight)
-	widgetHandler:RegisterGlobal("AddBeamLight", WG["lightsgl4"].AddBeamLight)
-	widgetHandler:RegisterGlobal("AddConeLight", WG["lightsgl4"].AddConeLight)
-	widgetHandler:RegisterGlobal("AddLight", WG["lightsgl4"].AddLight)
-	widgetHandler:RegisterGlobal("RemoveLight", WG["lightsgl4"].RemoveLight)
-	widgetHandler:RegisterGlobal("GetLightVBO", WG["lightsgl4"].GetLightVBO)
+	widgetHandler:RegisterGlobal("AddPointLight", WG.lightsgl4.AddPointLight)
+	widgetHandler:RegisterGlobal("AddBeamLight", WG.lightsgl4.AddBeamLight)
+	widgetHandler:RegisterGlobal("AddConeLight", WG.lightsgl4.AddConeLight)
+	widgetHandler:RegisterGlobal("AddLight", WG.lightsgl4.AddLight)
+	widgetHandler:RegisterGlobal("RemoveLight", WG.lightsgl4.RemoveLight)
+	widgetHandler:RegisterGlobal("GetLightVBO", WG.lightsgl4.GetLightVBO)
 
 	widgetHandler:RegisterGlobal("UnitScriptLight", UnitScriptLight)
 end

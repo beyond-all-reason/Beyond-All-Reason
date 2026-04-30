@@ -17,10 +17,10 @@ local mathCeil = math.ceil
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetGameFrame = Spring.GetGameFrame
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
@@ -77,8 +77,8 @@ local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 
 local soundButton = "LuaUI/Sounds/buildbar_waypoint.wav"
 
-local uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
-local uiScale = Spring.GetConfigFloat("ui_scale", 1)
+local uiOpacity = SpringUnsynced.GetConfigFloat("ui_opacity", 0.7)
+local uiScale = SpringUnsynced.GetConfigFloat("ui_scale", 1)
 
 local backgroundRect = {}
 local activeRect = {}
@@ -103,10 +103,10 @@ local translationCache = {}
 local function getCachedTranslation(key, params)
 	if params then
 		-- Don't cache when params are provided since they can vary
-		return Spring.I18N(key, params)
+		return I18N(key, params)
 	end
 	if not translationCache[key] then
-		translationCache[key] = Spring.I18N(key)
+		translationCache[key] = I18N(key)
 	end
 	return translationCache[key]
 end
@@ -169,8 +169,8 @@ local hiddenCommandTypes = {
 local CMDTYPE_ICON_BUILDING = CMDTYPE.ICON_BUILDING
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGetActiveCmdDescs = SpringUnsynced.GetActiveCmdDescs
 
 local os_clock = os.clock
 
@@ -203,7 +203,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local function checkGuiShader(force)
-	if WG["guishader"] then
+	if WG.guishader then
 		if force and displayListGuiShader then
 			displayListGuiShader = gl.DeleteList(displayListGuiShader)
 		end
@@ -309,12 +309,12 @@ local function computeWaitState()
 	end
 	-- Use cached first unit instead of calling spGetSelectedUnits() which allocates a large table
 	local ref = cachedFirstUnit
-	if ref and Spring.ValidUnitID(ref) and Spring.FindUnitCmdDesc(ref, CMD.WAIT) then
+	if ref and SpringShared.ValidUnitID(ref) and SpringShared.FindUnitCmdDesc(ref, CMD.WAIT) then
 		local commandQueue
-		if isFactory[Spring.GetUnitDefID(ref)] then
-			commandQueue = Spring.GetFactoryCommands(ref, 1)
+		if isFactory[SpringShared.GetUnitDefID(ref)] then
+			commandQueue = SpringShared.GetFactoryCommands(ref, 1)
 		else
-			commandQueue = Spring.GetUnitCommands(ref, 1)
+			commandQueue = SpringShared.GetUnitCommands(ref, 1)
 		end
 		if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
 			cachedWaitState = 2
@@ -475,11 +475,11 @@ function widget:ViewResize()
 	width = mathFloor(width * vsx) / vsx
 	height = mathFloor(height * vsy) / vsy
 
-	if WG["buildmenu"] then
-		buildmenuBottomPosition = WG["buildmenu"].getBottomPosition()
+	if WG.buildmenu then
+		buildmenuBottomPosition = WG.buildmenu.getBottomPosition()
 	end
 
-	font = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -491,8 +491,8 @@ function widget:ViewResize()
 
 	widgetSpaceMargin = WG.FlowUI.elementMargin
 
-	if WG["minimap"] then
-		minimapHeight = WG["minimap"].getHeight()
+	if WG.minimap then
+		minimapHeight = WG.minimap.getHeight()
 	end
 	if stickToBottom then
 		posY = height
@@ -501,11 +501,11 @@ function widget:ViewResize()
 		if buildmenuBottomPosition then
 			posX = 0
 			posY = height + height + (widgetSpaceMargin / vsy)
-		elseif WG["buildmenu"] then
-			local posY2, _ = WG["buildmenu"].getSize()
+		elseif WG.buildmenu then
+			local posY2, _ = WG.buildmenu.getSize()
 			posY2 = posY2 + (widgetSpaceMargin / vsy)
 			posY = posY2 + height
-			if WG["minimap"] then
+			if WG.minimap then
 				posY = 1 - (minimapHeight / vsy) - (widgetSpaceMargin / vsy)
 			end
 			posX = 0
@@ -550,7 +550,7 @@ function widget:ViewResize()
 end
 
 local function reloadBindings()
-	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+	currentLayout = SpringUnsynced.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 end
 
@@ -559,30 +559,30 @@ function widget:Initialize()
 	widget:ViewResize()
 	widget:SelectionChanged(spGetSelectedUnits())
 
-	WG["ordermenu"] = {}
-	WG["ordermenu"].getPosition = function()
+	WG.ordermenu = {}
+	WG.ordermenu.getPosition = function()
 		return posX, posY, width, height
 	end
-	WG["ordermenu"].reloadBindings = reloadBindings
-	WG["ordermenu"].setBottomPosition = function(value)
+	WG.ordermenu.reloadBindings = reloadBindings
+	WG.ordermenu.setBottomPosition = function(value)
 		stickToBottom = value
 		doUpdate = true
 		widget:ViewResize()
 	end
-	WG["ordermenu"].getAlwaysShow = function()
+	WG.ordermenu.getAlwaysShow = function()
 		return alwaysShow
 	end
-	WG["ordermenu"].setAlwaysShow = function(value)
+	WG.ordermenu.setAlwaysShow = function(value)
 		alwaysShow = value
 		doUpdate = true
 	end
-	WG["ordermenu"].getBottomPosition = function()
+	WG.ordermenu.getBottomPosition = function()
 		return stickToBottom
 	end
-	WG["ordermenu"].getDisabledCmd = function(cmd)
+	WG.ordermenu.getDisabledCmd = function(cmd)
 		return disabledCommand[cmd]
 	end
-	WG["ordermenu"].setDisabledCmd = function(params)
+	WG.ordermenu.setDisabledCmd = function(params)
 		if params[2] then
 			disabledCommand[params[1]] = true
 		else
@@ -590,24 +590,24 @@ function widget:Initialize()
 		end
 		doUpdate = true
 	end
-	WG["ordermenu"].getColorize = function()
+	WG.ordermenu.getColorize = function()
 		return colorize
 	end
-	WG["ordermenu"].setColorize = function(value)
+	WG.ordermenu.setColorize = function(value)
 		doUpdate = true
 		colorize = value
 		if colorize > 1 then
 			colorize = 1
 		end
 	end
-	WG["ordermenu"].getIsShowing = function()
+	WG.ordermenu.getIsShowing = function()
 		return ordermenuShows
 	end
 end
 
 function widget:Shutdown()
-	if WG["guishader"] and displayListGuiShader then
-		WG["guishader"].DeleteDlist("ordermenu")
+	if WG.guishader and displayListGuiShader then
+		WG.guishader.DeleteDlist("ordermenu")
 		displayListGuiShader = nil
 	end
 	if displayListOrders then
@@ -621,7 +621,7 @@ function widget:Shutdown()
 		gl.DeleteTexture(ordermenuTex)
 		ordermenuTex = nil
 	end
-	WG["ordermenu"] = nil
+	WG.ordermenu = nil
 end
 
 local buildmenuBottomPos = false
@@ -634,22 +634,22 @@ function widget:Update(dt)
 		sec = 0
 		checkGuiShader()
 
-		if WG["buildmenu"] and WG["buildmenu"].getBottomPosition then
+		if WG.buildmenu and WG.buildmenu.getBottomPosition then
 			local prevbuildmenuBottomPos = buildmenuBottomPos
-			buildmenuBottomPos = WG["buildmenu"].getBottomPosition()
+			buildmenuBottomPos = WG.buildmenu.getBottomPosition()
 			if buildmenuBottomPos ~= prevbuildmenuBottomPos then
 				widget:ViewResize()
 			end
 		end
 
-		if WG["minimap"] and minimapHeight ~= WG["minimap"].getHeight() then
+		if WG.minimap and minimapHeight ~= WG.minimap.getHeight() then
 			widget:ViewResize()
 			setupCellGrid(true)
 			doUpdate = true
 		end
 
 		disableInput = isSpectating
-		if Spring.IsGodModeEnabled() then
+		if SpringShared.IsGodModeEnabled() then
 			disableInput = false
 		end
 	end
@@ -664,7 +664,7 @@ function widget:Update(dt)
 		doUpdate = true
 	end
 
-	if (WG["guishader"] and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0)) then
+	if (WG.guishader and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0)) then
 		ordermenuShows = false
 	else
 		ordermenuShows = true
@@ -720,7 +720,7 @@ local function drawCell(cell, zoom)
 			color1 = { 0.66, 0.66, 0.66, math_clamp(uiOpacity, 0.75, 0.95) } -- bottom
 			color2 = { 1, 1, 1, math_clamp(uiOpacity, 0.75, 0.95) } -- top
 		else
-			if WG["guishader"] then
+			if WG.guishader then
 				color1 = isStateCommand[cmd.id] and { 0.5, 0.5, 0.5, math_clamp(uiOpacity / 1.5, 0.35, 0.55) } or { 0.6, 0.6, 0.6, math_clamp(uiOpacity / 1.5, 0.35, 0.55) }
 				color1[4] = math_clamp(uiOpacity - 0.3, 0, 0.35)
 				color2 = { 1, 1, 1, math_clamp(uiOpacity - 0.3, 0, 0.35) }
@@ -806,7 +806,7 @@ local function drawCell(cell, zoom)
 					local info = commandInfo[cmd.action]
 					local part = (1 / colorize)
 					local grey = (0.93 * (part - 1))
-					colorStrCache[cmd.action] = Spring.Utilities.ConvertColor((grey + info.red) / part, (grey + info.green) / part, (grey + info.blue) / part)
+					colorStrCache[cmd.action] = Utilities.ConvertColor((grey + info.red) / part, (grey + info.green) / part, (grey + info.blue) / part)
 				end
 				textColor = colorStrCache[cmd.action]
 			else
@@ -908,16 +908,16 @@ end
 
 function widget:DrawScreen()
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	local x, y = Spring.GetMouseState()
+	local x, y = SpringUnsynced.GetMouseState()
 	local cellHovered
-	if not WG["topbar"] or not WG["topbar"].showingQuit() then
+	if not WG.topbar or not WG.topbar.showingQuit() then
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-			Spring.SetMouseCursor("cursornormal")
+			SpringUnsynced.SetMouseCursor("cursornormal")
 			for cell = 1, #cellRects do
 				if commands[cell] then
 					if math_isInRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
 						local cmd = commands[cell]
-						if WG["tooltip"] then
+						if WG.tooltip then
 							local tooltipKey = cmd.action .. "_tooltip"
 							local tooltip = getCachedTranslation("ui.orderMenu." .. tooltipKey)
 
@@ -943,7 +943,7 @@ function widget:DrawScreen()
 								else
 									title = getCachedTranslation("ui.orderMenu." .. cmd.action)
 								end
-								WG["tooltip"].ShowTooltip("ordermenu", tooltip, nil, nil, title)
+								WG.tooltip.ShowTooltip("ordermenu", tooltip, nil, nil, title)
 							end
 						end
 						cellHovered = cell
@@ -984,13 +984,13 @@ function widget:DrawScreen()
 	end
 
 	if #commands == 0 and (not alwaysShow or spGetGameFrame() == 0) then -- dont show pregame because factions interface is shown
-		if displayListGuiShader and WG["guishader"] then
-			WG["guishader"].RemoveDlist("ordermenu")
+		if displayListGuiShader and WG.guishader then
+			WG.guishader.RemoveDlist("ordermenu")
 		end
 		doUpdate = nil
 	else
-		if displayListGuiShader and WG["guishader"] then
-			WG["guishader"].InsertDlist(displayListGuiShader, "ordermenu")
+		if displayListGuiShader and WG.guishader then
+			WG.guishader.InsertDlist(displayListGuiShader, "ordermenu")
 		end
 		if doUpdate and displayListOrders then
 			displayListOrders = gl.DeleteList(displayListOrders)
@@ -1029,7 +1029,7 @@ function widget:DrawScreen()
 
 		if #commands > 0 then
 			-- draw highlight on top of button
-			if not WG["topbar"] or not WG["topbar"].showingQuit() then
+			if not WG.topbar or not WG.topbar.showingQuit() then
 				if commands and cellHovered then
 					local cell = cellHovered
 					if cellRects[cell] and cellRects[cell][4] then
@@ -1114,7 +1114,7 @@ function widget:DrawScreen()
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 	if ordermenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
@@ -1145,10 +1145,10 @@ function widget:MousePress(x, y, button)
 							end
 
 							if playSounds then
-								Spring.PlaySoundFile(soundButton, 0.6, "ui")
+								SpringUnsynced.PlaySoundFile(soundButton, 0.6, "ui")
 							end
-							if cmd.id and Spring.GetCmdDescIndex(cmd.id) then
-								Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id), button, true, false, Spring.GetModKeyState())
+							if cmd.id and SpringUnsynced.GetCmdDescIndex(cmd.id) then
+								SpringUnsynced.SetActiveCommand(SpringUnsynced.GetCmdDescIndex(cmd.id), button, true, false, SpringUnsynced.GetModKeyState())
 							end
 							break
 						end

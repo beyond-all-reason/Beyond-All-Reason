@@ -148,7 +148,7 @@ function ScoutBST:Scouting()
 end
 
 function ScoutBST:ImmediateEnemy()
-	local nearestEnemy = Spring.GetUnitNearestEnemy(self.id, self.ai.armyhst.unitTable[self.name].sightDistance, true)
+	local nearestEnemy = SpringShared.GetUnitNearestEnemy(self.id, self.ai.armyhst.unitTable[self.name].sightDistance, true)
 
 	if nearestEnemy then
 		local enemyPos = game:GetUnitByID(nearestEnemy):GetPosition()

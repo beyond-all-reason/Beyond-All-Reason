@@ -13,29 +13,29 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetViewGeometry = Spring.GetViewGeometry
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetPlayerList = Spring.GetPlayerList
-local spGetTeamColor = Spring.GetTeamColor
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
-local spIsUnitVisible = Spring.IsUnitVisible
-local spIsUnitIcon = Spring.IsUnitIcon
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetTeamLuaAI = Spring.GetTeamLuaAI
-local spGetGameRulesParam = Spring.GetGameRulesParam
-local spGetTeamList = Spring.GetTeamList
-local spGetGaiaTeamID = Spring.GetGaiaTeamID
-local spGetModOptions = Spring.GetModOptions
-local spGetConfigString = Spring.GetConfigString
-local spIsGUIHidden = Spring.IsGUIHidden
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spWorldToScreenCoords = SpringUnsynced.WorldToScreenCoords
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetTeamInfo = SpringShared.GetTeamInfo
+local spGetPlayerList = SpringShared.GetPlayerList
+local spGetTeamColor = SpringUnsynced.GetTeamColor
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetTeamUnitsByDefs = SpringShared.GetTeamUnitsByDefs
+local spIsUnitVisible = SpringUnsynced.IsUnitVisible
+local spIsUnitIcon = SpringUnsynced.IsUnitIcon
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetTeamLuaAI = SpringShared.GetTeamLuaAI
+local spGetGameRulesParam = SpringShared.GetGameRulesParam
+local spGetTeamList = SpringShared.GetTeamList
+local spGetGaiaTeamID = SpringShared.GetGaiaTeamID
+local spGetModOptions = SpringShared.GetModOptions
+local spGetConfigString = SpringUnsynced.GetConfigString
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
 
 -- Localized Lua functions
 local mathFloor = math.floor
@@ -86,7 +86,7 @@ local playerRankImages = "luaui\\images\\advplayerslist\\ranks\\"
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local ColorIsDark = Spring.Utilities.Color.ColorIsDark
+local ColorIsDark = Utilities.Color.ColorIsDark
 
 local GL_GREATER = GL.GREATER
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -109,12 +109,12 @@ local fonticon = glLoadFont(fontfile, fontfileSize * fontfileScale2, fontfileOut
 
 local singleTeams = false
 local teamListLen = #spGetTeamList()
-local allyTeamListLen = #Spring.GetAllyTeamList()
+local allyTeamListLen = #SpringShared.GetAllyTeamList()
 if teamListLen - 1 == allyTeamListLen - 1 then
 	singleTeams = true
 end
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSinglePlayer = Utilities.Gametype.IsSinglePlayer()
 
 local anonymousMode = spGetModOptions().teamcolors_anonymous_mode
 local anonymousName = "?????"
@@ -157,8 +157,8 @@ for unitDefID, defs in pairs(UnitDefs) do
 end
 
 local sameTeamColors = false
-if WG["playercolorpalette"] ~= nil and WG["playercolorpalette"].getSameTeamColors ~= nil then
-	sameTeamColors = WG["playercolorpalette"].getSameTeamColors()
+if WG.playercolorpalette ~= nil and WG.playercolorpalette.getSameTeamColors ~= nil then
+	sameTeamColors = WG.playercolorpalette.getSameTeamColors()
 end
 
 --------------------------------------------------------------------------------
@@ -183,21 +183,21 @@ local function GetCommAttributes(unitID, unitDefID)
 		--name = "Scav Commander" -- todo: i18n this thing
 		local unitDefCustomParams = UnitDefs[unitDefID].customParams
 		if unitDefCustomParams.decoyfor then
-			name = Spring.I18N("units.scavDecoyCommanderNameTag")
+			name = I18N("units.scavDecoyCommanderNameTag")
 		else
-			name = Spring.I18N("units.scavCommanderNameTag")
+			name = I18N("units.scavCommanderNameTag")
 		end
 	elseif spGetGameRulesParam("ainame_" .. team) then
 		local unitDefCustomParams = UnitDefs[unitDefID].customParams
 		if unitDefCustomParams.decoyfor then
-			name = Spring.I18N("units.decoyCommanderNameTag")
+			name = I18N("units.decoyCommanderNameTag")
 		else
-			name = Spring.I18N("ui.playersList.aiName", { name = spGetGameRulesParam("ainame_" .. team) })
+			name = I18N("ui.playersList.aiName", { name = spGetGameRulesParam("ainame_" .. team) })
 		end
 	else
 		local unitDefCustomParams = UnitDefs[unitDefID].customParams
 		if unitDefCustomParams.decoyfor then
-			name = Spring.I18N("units.decoyCommanderNameTag")
+			name = I18N("units.decoyCommanderNameTag")
 		else
 			local players = spGetPlayerList(team)
 			local playersLen = players and #players or 0
@@ -406,7 +406,7 @@ function widget:Update(dt)
 	-- Check color palette changes less frequently (every 0.5 seconds instead of every frame)
 	if colorCheckSec > 0.5 then
 		colorCheckSec = 0
-		local playerColorPalette = WG["playercolorpalette"]
+		local playerColorPalette = WG.playercolorpalette
 		if playerColorPalette ~= nil then
 			local getSameTeamColors = playerColorPalette.getSameTeamColors
 			if getSameTeamColors and sameTeamColors ~= getSameTeamColors() then
@@ -458,7 +458,7 @@ function widget:Update(dt)
 	end
 end
 
-local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundHeight = SpringShared.GetGroundHeight
 
 local function DrawName(attributes)
 	if comnameList[attributes[1]] == nil then
@@ -690,9 +690,9 @@ function widget:Initialize()
 			local name = ""
 			local luaAI = spGetTeamLuaAI(teamID)
 			if luaAI and luaAI ~= "" and stringFind(luaAI, "Scavengers") then
-				name = Spring.I18N("units.scavCommanderNameTag")
+				name = I18N("units.scavCommanderNameTag")
 			elseif spGetGameRulesParam("ainame_" .. teamID) then
-				name = Spring.I18N("ui.playersList.aiName", { name = spGetGameRulesParam("ainame_" .. teamID) })
+				name = I18N("ui.playersList.aiName", { name = spGetGameRulesParam("ainame_" .. teamID) })
 			else
 				local players = spGetPlayerList(teamID)
 				local playersLen = players and #players or 0

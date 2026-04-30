@@ -3,7 +3,7 @@
 
 local bit_and = math.bit_and
 
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
 
 local CMD_INSERT = CMD.INSERT
 

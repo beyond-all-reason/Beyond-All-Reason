@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local modOptions = Spring.GetModOptions()
+local modOptions = SpringShared.GetModOptions()
 
 local ZOMBIE_GUARD_RADIUS = 500 -- Radius for zombies to guard allies
 local ZOMBIE_MAX_ORDER_ATTEMPTS = 10
@@ -89,46 +89,46 @@ local UNAUTHORIZED_TEXT = "You are not authorized to use zombie commands" --i18n
 local MAP_SIZE_X = Game.mapSizeX
 local MAP_SIZE_Z = Game.mapSizeZ
 
-local spGetUnitRotation = Spring.GetUnitRotation
-local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
-local spValidUnitID = Spring.ValidUnitID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spCreateUnit = Spring.CreateUnit
-local spTransferUnit = Spring.TransferUnit
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetAllUnits = Spring.GetAllUnits
-local spGetGameFrame = Spring.GetGameFrame
-local spGetAllFeatures = Spring.GetAllFeatures
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spDestroyFeature = Spring.DestroyFeature
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spSetTeamResource = Spring.SetTeamResource
-local spGetUnitHealth = Spring.GetUnitHealth
-local spSetUnitHealth = Spring.SetUnitHealth
-local spSetUnitRulesParam = Spring.SetUnitRulesParam
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spTestMoveOrder = Spring.TestMoveOrder
-local spSpawnCEG = Spring.SpawnCEG
-local spGetFeatureResources = Spring.GetFeatureResources
-local spGetFeatureHealth = Spring.GetFeatureHealth
-local spDestroyUnit = Spring.DestroyUnit
-local spGetUnitDirection = Spring.GetUnitDirection
-local spCreateFeature = Spring.CreateFeature
-local spSpawnExplosion = Spring.SpawnExplosion
-local spPlaySoundFile = Spring.PlaySoundFile
-local spGetFeatureRadius = Spring.GetFeatureRadius
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spSetUnitExperience = Spring.SetUnitExperience
-local spGetUnitExperience = Spring.GetUnitExperience
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitHeight = Spring.GetUnitHeight
+local spGetUnitRotation = SpringShared.GetUnitRotation
+local spGetUnitNearestEnemy = SpringShared.GetUnitNearestEnemy
+local spValidUnitID = SpringShared.ValidUnitID
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
+local spCreateUnit = SpringSynced.CreateUnit
+local spTransferUnit = SpringSynced.TransferUnit
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetAllFeatures = SpringShared.GetAllFeatures
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spGetUnitCommandCount = SpringShared.GetUnitCommandCount
+local spDestroyFeature = SpringSynced.DestroyFeature
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spGiveOrderArrayToUnit = SpringShared.GiveOrderArrayToUnit
+local spGetUnitsInCylinder = SpringShared.GetUnitsInCylinder
+local spSetTeamResource = SpringSynced.SetTeamResource
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spSetUnitHealth = SpringSynced.SetUnitHealth
+local spSetUnitRulesParam = SpringSynced.SetUnitRulesParam
+local spGetUnitRulesParam = SpringShared.GetUnitRulesParam
+local spGetFeatureDefID = SpringShared.GetFeatureDefID
+local spTestMoveOrder = SpringShared.TestMoveOrder
+local spSpawnCEG = SpringSynced.SpawnCEG
+local spGetFeatureResources = SpringShared.GetFeatureResources
+local spGetFeatureHealth = SpringShared.GetFeatureHealth
+local spDestroyUnit = SpringSynced.DestroyUnit
+local spGetUnitDirection = SpringShared.GetUnitDirection
+local spCreateFeature = SpringSynced.CreateFeature
+local spSpawnExplosion = SpringSynced.SpawnExplosion
+local spPlaySoundFile = SpringUnsynced.PlaySoundFile
+local spGetFeatureRadius = SpringShared.GetFeatureRadius
+local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+local spSetUnitExperience = SpringSynced.SetUnitExperience
+local spGetUnitExperience = SpringShared.GetUnitExperience
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitHeight = SpringShared.GetUnitHeight
 local random = math.random
 local distance2dSquared = math.distance2dSquared
 local pi = math.pi
@@ -139,11 +139,11 @@ local floor = math.floor
 local clamp = math.clamp
 local ceil = math.ceil
 
-local teams = Spring.GetTeamList()
+local teams = SpringShared.GetTeamList()
 local scavTeamID
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
 for _, teamID in ipairs(teams) do
-	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
+	local teamLuaAI = SpringShared.GetTeamLuaAI(teamID)
 	if teamLuaAI and string.find(teamLuaAI, "ScavengersAI") then
 		scavTeamID = teamID
 	end
@@ -299,12 +299,12 @@ local function setGaiaStorage()
 	local metalStorageToSet = 1000000
 	local energyStorageToSet = 1000000
 
-	local _, currentMetalStorage = Spring.GetTeamResources(gaiaTeamID, "metal")
+	local _, currentMetalStorage = SpringShared.GetTeamResources(gaiaTeamID, "metal")
 	if currentMetalStorage and currentMetalStorage < metalStorageToSet then
 		spSetTeamResource(gaiaTeamID, "ms", metalStorageToSet)
 	end
 
-	local _, currentEnergyStorage = Spring.GetTeamResources(gaiaTeamID, "energy")
+	local _, currentEnergyStorage = SpringShared.GetTeamResources(gaiaTeamID, "energy")
 	if currentEnergyStorage and currentEnergyStorage < energyStorageToSet then
 		spSetTeamResource(gaiaTeamID, "es", energyStorageToSet)
 	end
@@ -526,7 +526,7 @@ local function updateOrders(unitID, unitDefID, closestKnownEnemy, currentCommand
 	end
 
 	if factoriesWithCombatOptions[unitDefID] then
-		local factoryCommands = Spring.GetFactoryCommands(unitID, -1) or {}
+		local factoryCommands = SpringShared.GetFactoryCommands(unitID, -1) or {}
 		local currentCommandCount = #factoryCommands
 		if currentCommandCount < ZOMBIE_FACTORY_BUILD_COUNT then
 			issueRandomFactoryBuildOrders(unitID, unitDefID)
@@ -721,8 +721,8 @@ function gadget:GameFrame(frame)
 	end
 
 	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
-		Spring.AddTeamResource(gaiaTeamID, "metal", 1000000)
-		Spring.AddTeamResource(gaiaTeamID, "energy", 1000000)
+		SpringSynced.AddTeamResource(gaiaTeamID, "metal", 1000000)
+		SpringSynced.AddTeamResource(gaiaTeamID, "energy", 1000000)
 		for featureID, featureData in pairs(corpsesData) do
 			local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
 			if not featureX then --doesn't exist anymore
@@ -883,7 +883,7 @@ local function createZombieFromFeature(featureID)
 end
 
 local function queueAllCorpsesForSpawning()
-	local features = Spring.GetAllFeatures()
+	local features = SpringShared.GetAllFeatures()
 	for _, featureID in ipairs(features) do
 		queueCorpseForSpawning(featureID, true)
 	end
@@ -901,7 +901,7 @@ local function pacifyZombies(enabled)
 	end
 	for zombieID, _ in pairs(zombieWatch) do
 		if spValidUnitID(zombieID) then
-			Spring.GiveOrderToUnit(zombieID, CMD.FIRE_STATE, fireState)
+			SpringShared.GiveOrderToUnit(zombieID, CMD.FIRE_STATE, fireState)
 		end
 	end
 end
@@ -932,7 +932,7 @@ local function fightNearTargets(targetUnits)
 					local fightZ = targetZ + sin(angle) * offsetDistance
 					local fightY = spGetGroundHeight(fightX, fightZ)
 
-					Spring.GiveOrderToUnit(zombieID, CMD.FIGHT, { fightX, fightY, fightZ }, {})
+					SpringShared.GiveOrderToUnit(zombieID, CMD.FIGHT, { fightX, fightY, fightZ }, {})
 				end
 			end
 		end
@@ -944,13 +944,13 @@ end
 local function aggroTeamID(teamID)
 	clearAllOrders()
 
-	local isDead = select(3, Spring.GetTeamInfo(teamID))
+	local isDead = select(3, SpringShared.GetTeamInfo(teamID))
 
 	if isDead or isDead == nil then
 		return false
 	end
 
-	local targetUnits = Spring.GetTeamUnits(teamID) or {}
+	local targetUnits = SpringShared.GetTeamUnits(teamID) or {}
 	return fightNearTargets(targetUnits)
 end
 
@@ -958,14 +958,14 @@ local function aggroAllyID(allyID)
 	clearAllOrders()
 
 	local targetUnits = {}
-	local allyTeams = Spring.GetTeamList(allyID)
+	local allyTeams = SpringShared.GetTeamList(allyID)
 
 	if not allyTeams then
 		return false
 	end
 
 	for _, teamID in pairs(allyTeams) do
-		local unitsToAdd = Spring.GetTeamUnits(teamID)
+		local unitsToAdd = SpringShared.GetTeamUnits(teamID)
 		for _, unitID in pairs(unitsToAdd) do
 			table.insert(targetUnits, unitID)
 		end
@@ -976,10 +976,10 @@ end
 
 local function killAllZombies()
 	for zombieID, zombieData in pairs(zombieWatch) do
-		if spValidUnitID(zombieID) and not Spring.GetUnitIsDead(zombieID) then
+		if spValidUnitID(zombieID) and not SpringShared.GetUnitIsDead(zombieID) then
 			local currentHealth = spGetUnitHealth(zombieID)
 			if currentHealth and currentHealth > 0 then
-				Spring.AddUnitDamage(zombieID, currentHealth, 0, NULL_ATTACKER, ENVIRONMENTAL_DAMAGE_ID)
+				SpringSynced.AddUnitDamage(zombieID, currentHealth, 0, NULL_ATTACKER, ENVIRONMENTAL_DAMAGE_ID)
 			end
 		end
 	end
@@ -998,11 +998,11 @@ local function clearAllZombieSpawns()
 end
 
 local function isAuthorized(playerID)
-	if Spring.IsCheatingEnabled() then
+	if SpringShared.IsCheatingEnabled() then
 		return true
 	end
-	local playername = Spring.GetPlayerInfo(playerID)
-	local accountID = Spring.Utilities.GetAccountID(playerID)
+	local playername = SpringShared.GetPlayerInfo(playerID)
+	local accountID = Utilities.GetAccountID(playerID)
 	if (_G and _G.permissions.devhelpers and (_G.permissions.devhelpers[accountID] or (playername and _G.permissions.devhelpers[playername]))) or (SYNCED and SYNCED.permissions.devhelpers and (SYNCED.permissions.devhelpers[accountID] or (playername and SYNCED.permissions.devhelpers[playername]))) then
 		return true
 	end
@@ -1026,11 +1026,11 @@ local function convertUnitsToZombies(unitIDs)
 end
 
 local function setAllGaiaToZombies()
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	local convertedCount = 0
 
 	for _, unitID in ipairs(allUnits) do
-		local unitTeam = Spring.GetUnitTeam(unitID)
+		local unitTeam = SpringShared.GetUnitTeam(unitID)
 		if unitTeam == gaiaTeamID and not isZombie(unitID) then
 			setZombie(unitID)
 			convertedCount = convertedCount + 1
@@ -1042,186 +1042,186 @@ end
 
 local function commandSetAllGaiaToZombies(_, line, words, playerID)
 	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+		SpringUnsynced.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
 		return
 	end
 
 	local convertedCount = setAllGaiaToZombies()
-	Spring.SendMessageToPlayer(playerID, "Set " .. convertedCount .. " Gaia units as zombies")
+	SpringUnsynced.SendMessageToPlayer(playerID, "Set " .. convertedCount .. " Gaia units as zombies")
 end
 
 local function commandQueueAllCorpsesForReanimation(_, line, words, playerID)
 	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+		SpringUnsynced.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
 		return
 	end
 
 	queueAllCorpsesForSpawning()
-	Spring.SendMessageToPlayer(playerID, "Queued all corpses for spawning")
+	SpringUnsynced.SendMessageToPlayer(playerID, "Queued all corpses for spawning")
 end
 
 local function commandToggleAutoReanimation(_, line, words, playerID)
 	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+		SpringUnsynced.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
 		return
 	end
 
 	if #words == 0 then
-		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieautospawn 0|1")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Usage: /luarules zombieautospawn 0|1")
 		return
 	end
 
 	local enabled = tonumber(words[1])
 	if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
-		Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
 		return
 	end
 
 	setAutoSpawning(enabled == 1)
-	Spring.SendMessageToPlayer(playerID, "Auto spawning " .. (enabled == 1 and "enabled" or "disabled"))
+	SpringUnsynced.SendMessageToPlayer(playerID, "Auto spawning " .. (enabled == 1 and "enabled" or "disabled"))
 end
 
 local function commandPacifyZombies(_, line, words, playerID)
 	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+		SpringUnsynced.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
 		return
 	end
 
 	if #words == 0 then
-		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiepacify 0|1")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Usage: /luarules zombiepacify 0|1")
 		return
 	end
 
 	local enabled = tonumber(words[1])
 	if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
-		Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
 		return
 	end
 
 	pacifyZombies(enabled == 1)
-	Spring.SendMessageToPlayer(playerID, "Zombies " .. (enabled == 1 and "pacified" or "unpacified"))
+	SpringUnsynced.SendMessageToPlayer(playerID, "Zombies " .. (enabled == 1 and "pacified" or "unpacified"))
 end
 
 local function commandSuspendAutoOrders(_, line, words, playerID)
 	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+		SpringUnsynced.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
 		return
 	end
 
 	if #words == 0 then
-		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiesuspendorders 0|1")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Usage: /luarules zombiesuspendorders 0|1")
 		return
 	end
 
 	local enabled = tonumber(words[1])
 	if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
-		Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
 		return
 	end
 
 	suspendAutoOrders(enabled == 1)
-	Spring.SendMessageToPlayer(playerID, "Zombie auto-orders " .. (enabled == 1 and "suspended" or "resumed"))
+	SpringUnsynced.SendMessageToPlayer(playerID, "Zombie auto-orders " .. (enabled == 1 and "suspended" or "resumed"))
 end
 
 local function commandAggroZombiesToTeam(_, line, words, playerID)
 	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+		SpringUnsynced.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
 		return
 	end
 
 	if #words == 0 then
-		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroteam <teamID>")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroteam <teamID>")
 		return
 	end
 
 	local targetTeamID = tonumber(words[1])
 	if not targetTeamID or targetTeamID < 0 then
-		Spring.SendMessageToPlayer(playerID, "Invalid team ID")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Invalid team ID")
 		return
 	end
 
 	local success = aggroTeamID(targetTeamID)
 	if success then
-		Spring.SendMessageToPlayer(playerID, "Zombies aggroed to team " .. targetTeamID)
+		SpringUnsynced.SendMessageToPlayer(playerID, "Zombies aggroed to team " .. targetTeamID)
 	else
-		Spring.SendMessageToPlayer(playerID, "Team " .. targetTeamID .. " not found or has no units")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Team " .. targetTeamID .. " not found or has no units")
 	end
 end
 
 local function commandAggroZombiesToAlly(_, line, words, playerID)
 	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+		SpringUnsynced.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
 		return
 	end
 
 	if #words == 0 then
-		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroally <allyID>")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroally <allyID>")
 		return
 	end
 
 	local targetAllyID = tonumber(words[1])
 	if not targetAllyID or targetAllyID < 0 then
-		Spring.SendMessageToPlayer(playerID, "Invalid ally ID")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Invalid ally ID")
 		return
 	end
 
 	local success = aggroAllyID(targetAllyID)
 	if success then
-		Spring.SendMessageToPlayer(playerID, "Zombies aggroed to ally team " .. targetAllyID)
+		SpringUnsynced.SendMessageToPlayer(playerID, "Zombies aggroed to ally team " .. targetAllyID)
 	else
-		Spring.SendMessageToPlayer(playerID, "Ally team " .. targetAllyID .. " not found or has no units")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Ally team " .. targetAllyID .. " not found or has no units")
 	end
 end
 
 local function commandKillAllZombies(_, line, words, playerID)
 	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+		SpringUnsynced.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
 		return
 	end
 
 	killAllZombies()
-	Spring.SendMessageToPlayer(playerID, "Killed all zombies")
+	SpringUnsynced.SendMessageToPlayer(playerID, "Killed all zombies")
 end
 
 local function commandClearAllZombieOrders(_, line, words, playerID)
 	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+		SpringUnsynced.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
 		return
 	end
 
 	clearAllOrders()
-	Spring.SendMessageToPlayer(playerID, "Cleared zombie orders")
+	SpringUnsynced.SendMessageToPlayer(playerID, "Cleared zombie orders")
 end
 
 local function commandClearZombieSpawns(_, line, words, playerID)
 	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+		SpringUnsynced.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
 		return
 	end
 
 	clearAllZombieSpawns()
-	Spring.SendMessageToPlayer(playerID, "Cleared all queued zombie spawns")
+	SpringUnsynced.SendMessageToPlayer(playerID, "Cleared all queued zombie spawns")
 end
 
 local function commandToggleDebugMode(_, line, words, playerID)
 	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+		SpringUnsynced.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
 		return
 	end
 
 	if #words == 0 then
-		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiedebug 0|1")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Usage: /luarules zombiedebug 0|1")
 		return
 	end
 
 	local enabled = tonumber(words[1])
 	if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
-		Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
 		return
 	end
 
 	debugMode = enabled == 1
-	Spring.SendMessageToPlayer(playerID, "Zombie debug mode " .. (debugMode and "enabled" or "disabled"))
+	SpringUnsynced.SendMessageToPlayer(playerID, "Zombie debug mode " .. (debugMode and "enabled" or "disabled"))
 end
 
 local function setZombieMode(mode)
@@ -1236,26 +1236,26 @@ end
 
 local function commandSetZombieMode(_, line, words, playerID)
 	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+		SpringUnsynced.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
 		return
 	end
 
 	if #words == 0 then
-		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiemode normal|hard|nightmare|extreme")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Usage: /luarules zombiemode normal|hard|nightmare|extreme")
 		return
 	end
 
 	local mode = string.lower(words[1])
 	if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "extreme" then
-		Spring.SendMessageToPlayer(playerID, "Invalid mode. Use: normal, hard, nightmare, or extreme")
+		SpringUnsynced.SendMessageToPlayer(playerID, "Invalid mode. Use: normal, hard, nightmare, or extreme")
 		return
 	end
 
 	local success = setZombieMode(mode)
 	if success then
-		Spring.SendMessageToPlayer(playerID, "Zombie mode set to " .. mode)
+		SpringUnsynced.SendMessageToPlayer(playerID, "Zombie mode set to " .. mode)
 	else
-		Spring.SendMessageToPlayer(playerID, "Failed to set zombie mode to " .. mode)
+		SpringUnsynced.SendMessageToPlayer(playerID, "Failed to set zombie mode to " .. mode)
 	end
 end
 

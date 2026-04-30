@@ -17,8 +17,8 @@ local mathSin = math.sin
 local mathCos = math.cos
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local showValue = false
 local metalViewOnly = false
@@ -30,11 +30,11 @@ local opacity = 0.5
 local innersize = 3.0 -- outersize-innersize = circle width
 local outersize = 3.32 -- outersize-innersize = circle width
 
-local spIsGUIHidden = Spring.IsGUIHidden
-local spGetUnitsInSphere = Spring.GetUnitsInSphere
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMapDrawMode = Spring.GetMapDrawMode
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
+local spGetUnitsInSphere = SpringShared.GetUnitsInSphere
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetMapDrawMode = SpringUnsynced.GetMapDrawMode
 
 local spots = {}
 local numSpots = 0
@@ -42,7 +42,7 @@ local checkspots = true
 local sceduledCheckedSpotsFrame = spGetGameFrame()
 
 local isSpec, fullview = spGetSpectatingState()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 
 local chobbyInterface
 
@@ -66,9 +66,9 @@ for defID, def in pairs(FeatureDefs) do
 	end
 end
 
-local spGetAllFeatures = Spring.GetAllFeatures
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetAllFeatures = SpringShared.GetAllFeatures
+local spGetFeatureDefID = SpringShared.GetFeatureDefID
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
 
 local showGeothermalUnits = false
 local function checkGeothermalFeatures()
@@ -175,7 +175,7 @@ void main(void)
 ]]
 
 local function goodbye(reason)
-	Spring.Echo("Geothermalspots GL4 widget exiting with reason: " .. reason)
+	SpringShared.Echo("Geothermalspots GL4 widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
 end
 
@@ -393,7 +393,7 @@ end
 
 function widget:ViewResize()
 	local old_vsx, old_vsy = vsx, vsy
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = SpringUnsynced.GetViewGeometry()
 	if old_vsx ~= vsx or old_vsy ~= vsy then
 		widget:Initialize()
 	end
@@ -467,7 +467,7 @@ function widget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
 	isSpec, fullview = spGetSpectatingState()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
 		checkGeothermalspots()
 	end

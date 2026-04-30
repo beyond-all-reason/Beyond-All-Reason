@@ -30,18 +30,18 @@ local mathFloor = math.floor
 local mathSqrt = math.sqrt
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetMouseState = Spring.GetMouseState
-local spGetMouseCursor = Spring.GetMouseCursor
-local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
-local spGetFeatureResources = Spring.GetFeatureResources
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
-local spGetGroundHeight = Spring.GetGroundHeight
-local spI18N = Spring.I18N
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetMouseCursor = SpringUnsynced.GetMouseCursor
+local spGetFeaturesInCylinder = SpringShared.GetFeaturesInCylinder
+local spGetFeatureResources = SpringShared.GetFeatureResources
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetMiniMapGeometry = SpringUnsynced.GetMiniMapGeometry
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spI18N = I18N
 
 local start = false --reclaim area cylinder drawing has been started
 local metal = 0 --metal count from features in cylinder
@@ -86,8 +86,8 @@ function widget:Initialize()
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
-	font = WG["fonts"].getFont(1, 1.5)
+	vsx, vsy = SpringUnsynced.GetViewGeometry()
+	font = WG.fonts.getFont(1, 1.5)
 	form = mathFloor(vsx / 87)
 end
 

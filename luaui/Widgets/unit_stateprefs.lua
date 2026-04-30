@@ -16,9 +16,9 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spEcho = Spring.Echo
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spEcho = SpringShared.Echo
 
 --[[------------------------------------------------------------------------------
 
@@ -81,7 +81,7 @@ local function GetCmdOpts(alt, ctrl, meta, shift, right)
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() then
+	if SpringUnsynced.GetSpectatingState() then
 		widget:GameOver()
 	end
 end
@@ -91,7 +91,7 @@ function widget:Initialize()
 	for i, v in pairs(unitArray) do
 		unitSet[i] = v
 	end
-	if Spring.IsReplay() then
+	if SpringUnsynced.IsReplay() then
 		widget:GameOver()
 	end
 
@@ -131,7 +131,7 @@ function doClearUnit()
 		unitSet[name] = {}
 		spEcho("All state prefs removed for unit: " .. name)
 	end
-	Spring.PlaySoundFile(clearSound, 0.6, "ui")
+	SpringUnsynced.PlaySoundFile(clearSound, 0.6, "ui")
 	saveStatePrefs()
 end
 
@@ -140,8 +140,8 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return false
 	end
 
-	local index = Spring.GetCmdDescIndex(cmdID)
-	local command = Spring.GetActiveCmdDesc(index)
+	local index = SpringUnsynced.GetCmdDescIndex(cmdID)
+	local command = SpringUnsynced.GetActiveCmdDesc(index)
 	-- need to filter only state commands!
 	if type(command) ~= "table" or command.type ~= CMDTYPE_ICON_MODE then
 		return
@@ -172,12 +172,12 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	local name = unitName[unitDefID]
 
 	unitSet[name] = unitSet[unitName[unitDefID]] or {}
-	if unitTeam == Spring.GetMyTeamID() then
+	if unitTeam == SpringUnsynced.GetLocalTeamID() then
 		for cmdID, cmdParam in pairs(unitSet[name]) do
 			if cmdID == 115 then
 				return
 			end -- we're skipping "repeat" command here for now
-			local success = Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
+			local success = SpringShared.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
 			--spEcho("".. name .. ", " .. tostring(cmdID) .. ", " .. tostring(cmdParam) .. " success: ".. tostring(success))
 		end
 	end

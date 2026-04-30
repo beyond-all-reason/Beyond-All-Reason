@@ -14,8 +14,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
+local spEcho = SpringShared.Echo
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 -- So in total about 168/162 fps delta just going from 1 to 2 screencopies!
 
@@ -87,7 +87,7 @@ function widget:ViewResize()
 end
 
 local function GetScreenCopy()
-	local df = Spring.GetDrawFrame()
+	local df = SpringUnsynced.GetDrawFrame()
 	--spEcho("GetScreenCopy", df)
 	if df ~= lastScreenCopyFrame then
 		gl.CopyToTexture(ScreenCopy, 0, 0, vpx, vpy, vsx, vsy)
@@ -101,7 +101,7 @@ local function GetScreenCopy()
 end
 
 local function GetDepthCopy()
-	local df = Spring.GetDrawFrame()
+	local df = SpringUnsynced.GetDrawFrame()
 	--spEcho("GetScreenCopy", df)
 	if df ~= lastDepthCopyFrame then
 		gl.CopyToTexture(DepthCopy, 0, 0, vpx, vpy, vsx, vsy)
@@ -121,17 +121,17 @@ function widget:Initialize()
 		return false
 	end
 	self:ViewResize(vsx, vsy)
-	WG["screencopymanager"] = {}
-	WG["screencopymanager"].GetScreenCopy = GetScreenCopy
-	WG["screencopymanager"].GetDepthCopy = GetDepthCopy
-	widgetHandler:RegisterGlobal("GetScreenCopy", WG["screencopymanager"].GetScreenCopy)
-	widgetHandler:RegisterGlobal("GetDepthCopy", WG["screencopymanager"].GetDepthCopy)
+	WG.screencopymanager = {}
+	WG.screencopymanager.GetScreenCopy = GetScreenCopy
+	WG.screencopymanager.GetDepthCopy = GetDepthCopy
+	widgetHandler:RegisterGlobal("GetScreenCopy", WG.screencopymanager.GetScreenCopy)
+	widgetHandler:RegisterGlobal("GetDepthCopy", WG.screencopymanager.GetDepthCopy)
 end
 
 function widget:Shutdown()
 	gl.DeleteTexture(ScreenCopy or 0)
 	gl.DeleteTexture(DepthCopy or 0)
-	WG["screencopymanager"] = nil
+	WG.screencopymanager = nil
 	widgetHandler:DeregisterGlobal("GetScreenCopy")
 	widgetHandler:DeregisterGlobal("GetDepthCopy")
 end

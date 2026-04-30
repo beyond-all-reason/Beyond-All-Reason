@@ -20,18 +20,18 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local COM_BLAST = WeaponDefNames["commanderexplosion"].id
+local COM_BLAST = WeaponDefNames.commanderexplosion.id
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam) --we use UnitPreDamaged so as we get in before unit_transportfix has its effect
 	--Spring.Echo("UnitPreDamaged called with unitID " .. unitID .. " and attackerID ", attackerID)
 
-	if weaponDefID == COM_BLAST and attackerID ~= nil and Spring.ValidUnitID(attackerID) then -- we control the damage inflicted on units by the COM_BLAST. Very rarely an invalid attackerID is returned with weaponID=COM_BLAST, I have no idea why/how.
+	if weaponDefID == COM_BLAST and attackerID ~= nil and SpringShared.ValidUnitID(attackerID) then -- we control the damage inflicted on units by the COM_BLAST. Very rarely an invalid attackerID is returned with weaponID=COM_BLAST, I have no idea why/how.
 		--Spring.Echo("weapon is comblast from unloaded com " .. attackerID)
-		local x, y, z = Spring.GetUnitBasePosition(attackerID)
-		local h = Spring.GetGroundHeight(x, z)
+		local x, y, z = SpringShared.GetUnitBasePosition(attackerID)
+		local h = SpringShared.GetGroundHeight(x, z)
 		--Spring.Echo(x .. " " .. y .. " " .. z .. " " .. h)
 		if y - h > 10 then
-			local newdamage = select(2, Spring.GetUnitHealth(unitID)) * 0.6
+			local newdamage = select(2, SpringShared.GetUnitHealth(unitID)) * 0.6
 			if newdamage < 400 then
 				newdamage = 400
 			end

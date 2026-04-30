@@ -27,28 +27,28 @@ local pcall = pcall
 local select = select
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetWind = Spring.GetWind
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spIsUnitAllied = Spring.IsUnitAllied
-local spGetUnitPieceMap = Spring.GetUnitPieceMap
-local spGetUnitHeight = Spring.GetUnitHeight
-local spGetUnitLosState = Spring.GetUnitLosState
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetWind = SpringShared.GetWind
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spIsUnitAllied = SpringUnsynced.IsUnitAllied
+local spGetUnitPieceMap = SpringShared.GetUnitPieceMap
+local spGetUnitHeight = SpringShared.GetUnitHeight
+local spGetUnitLosState = SpringShared.GetUnitLosState
+local spGetFeatureDefID = SpringShared.GetFeatureDefID
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
 local spGetProjectileName = Spring.GetProjectileName
-local spGetModKeyState = Spring.GetModKeyState
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
-local spGetTimerMicros = Spring.GetTimerMicros
-local spGetConfigString = Spring.GetConfigString
-local spGetAllFeatures = Spring.GetAllFeatures
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
-local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
+local spGetModKeyState = SpringUnsynced.GetModKeyState
+local spGetTimer = SpringUnsynced.GetTimer
+local spDiffTimers = SpringUnsynced.DiffTimers
+local spGetTimerMicros = SpringUnsynced.GetTimerMicros
+local spGetConfigString = SpringUnsynced.GetConfigString
+local spGetAllFeatures = SpringShared.GetAllFeatures
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetVisibleProjectiles = SpringUnsynced.GetVisibleProjectiles
+local spGetProjectilesInRectangle = SpringShared.GetProjectilesInRectangle
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
 
@@ -81,19 +81,19 @@ local glBlending = gl.Blending
 local glTexture = gl.Texture
 
 -- Strong:
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileType = Spring.GetProjectileType
-local spGetPieceProjectileParams = Spring.GetPieceProjectileParams
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spIsSphereInView = Spring.IsSphereInView
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spValidUnitID = Spring.ValidUnitID
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
+local spGetProjectileVelocity = SpringShared.GetProjectileVelocity
+local spGetProjectileType = SpringShared.GetProjectileType
+local spGetPieceProjectileParams = SpringShared.GetPieceProjectileParams
+local spGetProjectileDefID = SpringShared.GetProjectileDefID
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spIsSphereInView = SpringUnsynced.IsSphereInView
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spValidUnitID = SpringShared.ValidUnitID
 
 -- Weak:
-local spIsGUIHidden = Spring.IsGUIHidden
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
 
 local math_max = mathMax
 local math_ceil = mathCeil
@@ -118,7 +118,7 @@ local projectileDefDistortions -- one distortion per weaponDefID
 local explosionDistortions -- one distortion per weaponDefID
 local gibDistortion -- one distortion for all pieceprojectiles
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSinglePlayer = Utilities.Gametype.IsSinglePlayer()
 
 local shaderConfig = {
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
@@ -437,7 +437,7 @@ local function InitializeDistortion(distortionTable, unitID)
 				distortionparams[i] = 0
 			end
 			if distortionTable.distortionConfig == nil then
-				Spring.Debug.TraceFullEcho()
+				Debug.TraceFullEcho()
 			end
 			for paramname, tablepos in pairs(distortionParamKeyOrder) do
 				if paramname == "effectType" and type(distortionTable.distortionConfig[paramname]) == "string" then
@@ -768,7 +768,7 @@ for wdid, wd in pairs(WeaponDefs) do
 end
 
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if targetable[weaponID] and py - 7300 > Spring.GetGroundHeight(px, pz) then -- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
+	if targetable[weaponID] and py - 7300 > SpringShared.GetGroundHeight(px, pz) then -- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
 		return
 	end
 	if explosionDistortions[weaponID] then
@@ -854,7 +854,7 @@ end
 
 function widget:Shutdown()
 	-- TODO: delete the VBOs and shaders like a good boy
-	WG["distortionsgl4"] = nil
+	WG.distortionsgl4 = nil
 	widgetHandler:DeregisterGlobal("AddDistortion")
 	widgetHandler:DeregisterGlobal("RemoveDistortion")
 
@@ -924,7 +924,7 @@ local function eventDistortionSpawner(eventName, unitID, unitDefID, teamID)
 	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and unitEventDistortions[eventName] then
 		if unitEventDistortions[eventName] then
 			-- get the default event if it is defined
-			local distortionList = unitEventDistortions[eventName][unitDefID] or unitEventDistortions[eventName]["default"]
+			local distortionList = unitEventDistortions[eventName][unitDefID] or unitEventDistortions[eventName].default
 			if distortionList then
 				for distortionname, distortionTable in pairs(distortionList) do
 					local visible = distortionTable.alwaysVisible
@@ -1067,9 +1067,9 @@ end
 
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
-	local weapon, piece = Spring.GetProjectileType(projectileID)
-	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
-	Spring.Debug.TraceFullEcho()
+	local weapon, piece = SpringShared.GetProjectileType(projectileID)
+	local weaponDefID = weapon and SpringShared.GetProjectileDefID(projectileID)
+	Debug.TraceFullEcho()
 end
 
 local function updateProjectileDistortions(newgameframe)
@@ -1211,8 +1211,8 @@ local function checkConfigUpdates()
 		local newconfb = VFS.LoadFile("luaui/configs/DistortionGL4WeaponsConfig.lua")
 		if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
 			LoadDistortionConfig()
-			if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-				widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+			if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+				widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 			end
 			configCache.confa = newconfa
 			configCache.confb = newconfb
@@ -1253,7 +1253,7 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 	glTexture(5, "$model_gbuffer_difftex")
 	glTexture(6, noisetex3dcube)
 	if shaderConfig.UNIFORMSBUFFERCOPY then
-		local UniformsBufferCopy = WG["api_unitbufferuniform_copy"].GetUnitUniformBufferCopy()
+		local UniformsBufferCopy = WG.api_unitbufferuniform_copy.GetUnitUniformBufferCopy()
 		if not UniformsBufferCopy then
 			spEcho("DistortionGL4: UniformsBufferCopy not found")
 			return
@@ -1391,7 +1391,7 @@ function widget:TextCommand(command)
 end
 
 function widget:Initialize()
-	Spring.Debug.TraceEcho("Initialize distortionGL4")
+	Debug.TraceEcho("Initialize distortionGL4")
 	if spGetConfigString("AllowDeferredMapRendering") == "0" or spGetConfigString("AllowDeferredModelRendering") == "0" then
 		spEcho("Distortion GL4  requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!")
 		widgetHandler:RemoveWidget()
@@ -1408,29 +1408,29 @@ function widget:Initialize()
 
 	local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua confs
 
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 
 	for _, featureID in ipairs(spGetAllFeatures()) do
 		widget:FeatureCreated(featureID)
 	end
 
-	WG["distortionsgl4"] = {}
-	WG["distortionsgl4"].AddDistortion = AddDistortion
-	WG["distortionsgl4"].RemoveDistortion = RemoveDistortion
-	WG["distortionsgl4"].GetDistortionVBO = GetDistortionVBO
+	WG.distortionsgl4 = {}
+	WG.distortionsgl4.AddDistortion = AddDistortion
+	WG.distortionsgl4.RemoveDistortion = RemoveDistortion
+	WG.distortionsgl4.GetDistortionVBO = GetDistortionVBO
 
-	WG["distortionsgl4"].IntensityMultiplier = function(value)
+	WG.distortionsgl4.IntensityMultiplier = function(value)
 		intensityMultiplier = value
 	end
-	WG["distortionsgl4"].RadiusMultiplier = function(value)
+	WG.distortionsgl4.RadiusMultiplier = function(value)
 		radiusMultiplier = value
 	end
 
-	widgetHandler:RegisterGlobal("AddDistortion", WG["distortionsgl4"].AddDistortion)
-	widgetHandler:RegisterGlobal("RemoveDistortion", WG["distortionsgl4"].RemoveDistortion)
-	widgetHandler:RegisterGlobal("GetDistortionVBO", WG["distortionsgl4"].GetDistortionVBO)
+	widgetHandler:RegisterGlobal("AddDistortion", WG.distortionsgl4.AddDistortion)
+	widgetHandler:RegisterGlobal("RemoveDistortion", WG.distortionsgl4.RemoveDistortion)
+	widgetHandler:RegisterGlobal("GetDistortionVBO", WG.distortionsgl4.GetDistortionVBO)
 
 	widgetHandler:RegisterGlobal("UnitScriptDistortion", UnitScriptDistortion)
 end

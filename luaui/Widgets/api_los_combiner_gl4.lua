@@ -16,7 +16,7 @@ end
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -153,9 +153,9 @@ local function UpdateInfoLOSTexture(count)
 	infoShader:SetUniformFloat("outputAlpha", outputAlpha)
 	for i = 1, count do
 		if i == count then
-			infoShader:SetUniformFloat("time", (Spring.GetDrawFrame() + 0) / 1000)
+			infoShader:SetUniformFloat("time", (SpringUnsynced.GetDrawFrame() + 0) / 1000)
 		else
-			infoShader:SetUniformFloat("time", (Spring.GetDrawFrame() + math.random()) / 1000)
+			infoShader:SetUniformFloat("time", (SpringUnsynced.GetDrawFrame() + math.random()) / 1000)
 		end
 		gl.RenderToTexture(infoTextures[currentAllyTeam], renderToTextureFunc)
 	end
@@ -164,7 +164,7 @@ local function UpdateInfoLOSTexture(count)
 end
 
 function widget:PlayerChanged(playerID)
-	local newAllyTeam = Spring.GetMyAllyTeamID()
+	local newAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 	if currentAllyTeam ~= newAllyTeam then -- do a few quick renders
 		currentAllyTeam = newAllyTeam
 		updateInfoLOSTexture = numFastUpdates
@@ -186,9 +186,9 @@ function widget:Initialize()
 		shaderConfig[name .. "XSIZE"] = texInfo.xsize
 		shaderConfig[name .. "YSIZE"] = texInfo.ysize
 	end
-	currentAllyTeam = Spring.GetMyAllyTeamID()
+	currentAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 
-	for _, a in ipairs(Spring.GetAllyTeamList()) do
+	for _, a in ipairs(SpringShared.GetAllyTeamList()) do
 		infoTextures[a] = CreateLosTexture()
 	end
 
@@ -208,16 +208,16 @@ function widget:Initialize()
 
 	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO() --  -1, -1, 1, 0,   0,0,1, 0.5
 
-	WG["api_los_combiner"] = {}
-	WG["api_los_combiner"].GetInfoLOSTexture = GetInfoLOSTexture
-	widgetHandler:RegisterGlobal("GetInfoLOSTexture", WG["api_los_combiner"].GetInfoLOSTexture)
+	WG.api_los_combiner = {}
+	WG.api_los_combiner.GetInfoLOSTexture = GetInfoLOSTexture
+	widgetHandler:RegisterGlobal("GetInfoLOSTexture", WG.api_los_combiner.GetInfoLOSTexture)
 end
 
 function widget:Shutdown()
 	for i, infoTexture in pairs(infoTextures) do
 		gl.DeleteTexture(infoTexture)
 	end
-	WG["api_los_combiner"] = nil
+	WG.api_los_combiner = nil
 	widgetHandler:DeregisterGlobal("GetInfoLOSTexture")
 end
 
@@ -226,7 +226,7 @@ function widget:GameFrame(n)
 		updateInfoLOSTexture = mathMax(1, updateInfoLOSTexture)
 	end
 end
-local lastUpdate = Spring.GetTimer()
+local lastUpdate = SpringUnsynced.GetTimer()
 
 function widget:DrawGenesis()
 	-- local nowtime = Spring.GetTimer()
@@ -257,7 +257,7 @@ if autoreload then
 
 		gl.Text(tostring(currentAllyTeam), shaderConfig.TEXX, shaderConfig.TEXY, 16)
 		gl.Texture(0, "$info:los")
-		gl.TexRect(texX, 0, texX + shaderConfig["LOSXSIZE"], shaderConfig["LOSYSIZE"], 0, 1, 1, 0)
+		gl.TexRect(texX, 0, texX + shaderConfig.LOSXSIZE, shaderConfig.LOSYSIZE, 0, 1, 1, 0)
 		gl.Texture(0, false)
 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)

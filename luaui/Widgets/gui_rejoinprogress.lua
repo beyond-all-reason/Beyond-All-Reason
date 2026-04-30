@@ -16,7 +16,7 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local showRejoinUI = false
 local CATCH_UP_THRESHOLD = 11 * Game.gameSpeed -- only show the window if behind this much
@@ -24,7 +24,7 @@ local UPDATE_RATE_F = 5 -- frames
 local UPDATE_RATE_S = UPDATE_RATE_F / Game.gameSpeed
 local t = UPDATE_RATE_S
 
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = 1
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
@@ -33,7 +33,7 @@ local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local rejoinArea = {}
 local gameStarted = (spGetGameFrame() > 0)
-local isReplay = Spring.IsReplay()
+local isReplay = SpringUnsynced.IsReplay()
 local RectRound, TexturedRectRound, UiElement, font2
 local dlistRejoin, dlistRejoinGuishader, serverFrame
 local posY = 0.22
@@ -61,8 +61,8 @@ local function updateRejoin()
 			dlistRejoinGuishader = gl.CreateList(function()
 				RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
 			end)
-			if WG["guishader"] then
-				WG["guishader"].InsertDlist(dlistRejoinGuishader, "rejoinprogress")
+			if WG.guishader then
+				WG.guishader.InsertDlist(dlistRejoinGuishader, "rejoinprogress")
 			end
 		end
 
@@ -136,7 +136,7 @@ local function updateRejoin()
 			font2:Begin()
 			font2:SetTextColor(0.92, 0.92, 0.92, 1)
 			font2:SetOutlineColor(0, 0, 0, 1)
-			font2:Print("\255\225\255\225" .. Spring.I18N("ui.rejoin.catchingUp") .. " \255\166\166\166" .. gametime, area[1] + ((area[3] - area[1]) / 2), area[2] + barHeight * 2 + (fontsize * 0.89), fontsize, "cor")
+			font2:Print("\255\225\255\225" .. I18N("ui.rejoin.catchingUp") .. " \255\166\166\166" .. gametime, area[1] + ((area[3] - area[1]) / 2), area[2] + barHeight * 2 + (fontsize * 0.89), fontsize, "cor")
 			font2:End()
 		end)
 	end
@@ -149,12 +149,12 @@ function widget:Update(dt)
 		if t <= 0 then
 			t = t + UPDATE_RATE_S
 
-			if Spring.IsGameOver() then -- not sure if widget:GameOver() even works so I do this here as well
+			if SpringShared.IsGameOver() then -- not sure if widget:GameOver() even works so I do this here as well
 				widgetHandler:RemoveWidget()
 				return
 			end
 
-			local speedFactor, _, isPaused = Spring.GetGameSpeed()
+			local speedFactor, _, isPaused = SpringUnsynced.GetGameSpeed()
 
 			-- update/estimate serverFrame (because widget:GameProgress(n) only happens every 150 frames)
 			if gameStarted and not isPaused then
@@ -168,8 +168,8 @@ function widget:Update(dt)
 			elseif showRejoinUI then
 				showRejoinUI = false
 				if dlistRejoinGuishader ~= nil then
-					if WG["guishader"] then
-						WG["guishader"].RemoveDlist("rejoinprogress")
+					if WG.guishader then
+						WG.guishader.RemoveDlist("rejoinprogress")
 					end
 					gl.DeleteList(dlistRejoinGuishader)
 					dlistRejoinGuishader = nil
@@ -196,13 +196,13 @@ function widget:ViewResize()
 	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	font2 = WG["fonts"].getFont(2)
+	font2 = WG.fonts.getFont(2)
 
 	rejoinArea = { mathFloor(0.5 * vsx) - mathFloor(width * 0.5), mathFloor(posY * vsy) - mathFloor(height * 0.5), mathFloor(0.5 * vsx) + mathFloor(width * 0.5), mathFloor(posY * vsy) + mathFloor(height * 0.5) }
 
 	if dlistRejoinGuishader ~= nil then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("rejoinprogress")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("rejoinprogress")
 		end
 		gl.DeleteList(dlistRejoinGuishader)
 		dlistRejoinGuishader = nil
@@ -232,8 +232,8 @@ end
 
 function widget:Initialize()
 	widget:ViewResize()
-	WG["rejoin"] = {}
-	WG["rejoin"].showingRejoining = function()
+	WG.rejoin = {}
+	WG.rejoin.showingRejoining = function()
 		return showRejoinUI
 	end
 end
@@ -242,8 +242,8 @@ function widget:Shutdown()
 	if dlistRejoin ~= nil then
 		gl.DeleteList(dlistRejoin)
 	end
-	if dlistRejoinGuishader ~= nil and WG["guishader"] then
-		WG["guishader"].RemoveDlist("rejoinprogress")
+	if dlistRejoinGuishader ~= nil and WG.guishader then
+		WG.guishader.RemoveDlist("rejoinprogress")
 	end
-	WG["rejoin"] = nil
+	WG.rejoin = nil
 end

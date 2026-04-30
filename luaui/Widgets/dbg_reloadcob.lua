@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 include("keysym.h.lua")
 
@@ -31,7 +31,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 end
 
 function widget:Initialize()
-	if not Spring.Utilities.IsDevMode() then
+	if not Utilities.IsDevMode() then
 		spEcho("ReloadCob widget requires devmode")
 		widgetHandler:RemoveWidget()
 		return
@@ -41,12 +41,12 @@ end
 function widget:Update()
 	if doReload then
 		local reloadedCobDefs = {}
-		local selection = Spring.GetSelectedUnits()
+		local selection = SpringUnsynced.GetSelectedUnits()
 		for i, unitID in ipairs(selection) do
-			local unitDefID = Spring.GetUnitDefID(unitID)
+			local unitDefID = SpringShared.GetUnitDefID(unitID)
 			if not reloadedCobDefs[unitDefID] then
 				local unitDefName = UnitDefs[unitDefID].name
-				Spring.SendCommands("reloadcob " .. unitDefName)
+				SpringUnsynced.SendCommands("reloadcob " .. unitDefName)
 				spEcho("Reloaded COB: " .. unitDefName .. " from " .. UnitDefs[unitDefID].scriptName)
 				reloadedCobDefs[unitDefID] = true
 			end

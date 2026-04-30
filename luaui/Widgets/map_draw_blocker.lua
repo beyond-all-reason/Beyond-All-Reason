@@ -17,9 +17,9 @@ local counterNum = 25
 local blocklimit = 8
 local unblocklimit = 0.5
 
-local GetPlayerList = Spring.GetPlayerList
-local GetPlayerInfo = Spring.GetPlayerInfo
-local Echo = Spring.Echo
+local GetPlayerList = SpringShared.GetPlayerList
+local GetPlayerInfo = SpringShared.GetPlayerInfo
+local Echo = SpringShared.Echo
 
 -- drawCmds[playerid] = {counters = {point = {}, line = {}, erase = {}}, labels = {...}, blocked = false}
 local drawCmds = {}
@@ -60,12 +60,12 @@ local function CheckTresholds()
 			local wasBlocked = data.blocked
 			data.blocked = timerCmd
 			if not wasBlocked then
-				Echo(Spring.I18N("ui.mapDrawBlocker.block", { player = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(player) or GetPlayerInfo(player, false) }))
+				Echo(I18N("ui.mapDrawBlocker.block", { player = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(player) or GetPlayerInfo(player, false) }))
 			end
 		end
 		if sum < unblocklimit and data.blocked and (currentCounter - data.blocked > unblocklimit) then
 			data.blocked = false
-			Echo(Spring.I18N("ui.mapDrawBlocker.unblock", { player = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(player) or GetPlayerInfo(player, false) }))
+			Echo(I18N("ui.mapDrawBlocker.unblock", { player = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(player) or GetPlayerInfo(player, false) }))
 		end
 	end
 end

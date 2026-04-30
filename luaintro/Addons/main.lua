@@ -69,9 +69,9 @@ end
 local loadscreens = {}
 local loadscreenPath = "bitmaps/loadpictures/"
 
-local teamList = Spring.GetTeamList()
+local teamList = SpringShared.GetTeamList()
 for _, teamID in ipairs(teamList) do
-	local luaAI = Spring.GetTeamLuaAI(teamID)
+	local luaAI = SpringShared.GetTeamLuaAI(teamID)
 	if luaAI then
 		if luaAI:find("Raptors") then
 			loadscreens = VFS.DirList(loadscreenPath .. "manual/raptors/")
@@ -96,7 +96,7 @@ if math.random(1, 15) == 1 then
 	backgroundTexture = "bitmaps/loadpictures/manual/donations.jpg"
 end
 
-local showTips = (Spring.GetConfigInt("loadscreen_tips", 1) == 1)
+local showTips = (SpringUnsynced.GetConfigInt("loadscreen_tips", 1) == 1)
 if string.find(backgroundTexture, "guide") then
 	showTips = false
 end
@@ -173,11 +173,11 @@ local tipKeys = {
 local randomTip = ""
 if showTips then
 	local index = math.random(#tipKeys)
-	randomTip = Spring.I18N("tips.loadscreen." .. tipKeys[index])
+	randomTip = I18N("tips.loadscreen." .. tipKeys[index])
 end
 
 if showDonationTip then
-	randomTip = Spring.I18N("tips.loadscreen.donations")
+	randomTip = I18N("tips.loadscreen.donations")
 end
 
 -- for guishader
@@ -212,11 +212,11 @@ local blurtex2
 local stenciltex
 local guishaderRects = {}
 local guishaderDlists = {}
-local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+local vsx, vsy, vpx, vpy = SpringUnsynced.GetViewGeometry()
 local ivsx, ivsy = vsx, vsy
 
-local wsx, wsy, _, _ = Spring.GetWindowGeometry()
-local ssx, ssy, _, _ = Spring.GetScreenGeometry()
+local wsx, wsy, _, _ = SpringUnsynced.GetWindowGeometry()
+local ssx, ssy, _, _ = SpringUnsynced.GetScreenGeometry()
 if wsx > ssx or wsy > ssy then
 end
 
@@ -231,16 +231,16 @@ function lines(str)
 end
 
 local defaultFont = "Poppins-Regular.otf"
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", defaultFont)
+local fontfile = "fonts/" .. SpringUnsynced.GetConfigString("bar_font", defaultFont)
 if not VFS.FileExists(fontfile) then
-	Spring.SetConfigString("bar_font", defaultFont)
+	SpringUnsynced.SetConfigString("bar_font", defaultFont)
 	fontfile = "fonts/" .. defaultFont
 end
 
 local defaultFont2 = "Exo2-SemiBold.otf"
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", defaultFont2)
+local fontfile2 = "fonts/" .. SpringUnsynced.GetConfigString("bar_font2", defaultFont2)
 if not VFS.FileExists(fontfile2) then
-	Spring.SetConfigString("bar_font2", defaultFont2)
+	SpringUnsynced.SetConfigString("bar_font2", defaultFont2)
 	fontfile2 = "fonts/" .. defaultFont2
 end
 
@@ -411,12 +411,12 @@ local progressByLastLine = {
 	["Loading Square Textures"] = { 43, 55 },
 	["Creating Projectile Textures"] = { 48, 60 },
 	["Creating Water"] = { 54, 65 },
-	["PathCosts"] = { 58, 65 },
+	PathCosts = { 58, 65 },
 	["[LoadFinalize] finalizing PFS"] = { 62, 65 },
 	["Loading LuaRules"] = { 69, 75 },
 	["Loading LuaUI"] = { 82, 85 },
 	["Loading Skirmish AIs"] = { 90, 95 },
-	["Finalizing"] = { 100, 100 },
+	Finalizing = { 100, 100 },
 }
 for name, val in pairs(progressByLastLine) do
 	progressByLastLine[name] = { val[1] * 0.01, val[2] * 0.01 }
@@ -451,7 +451,7 @@ function addon.DrawLoadScreen()
 		aspectRatio = texInfo.xsize / texInfo.ysize
 	end
 
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	vsx, vsy, vpx, vpy = SpringUnsynced.GetViewGeometry()
 
 	-- Handle viewport resize: recalculate layout and recreate shader resources
 	if vsx ~= ivsx or vsy ~= ivsy then
@@ -491,7 +491,7 @@ function addon.DrawLoadScreen()
 
 	-- background
 	local scale = 1
-	local ssx, ssy, spx, spy = Spring.GetScreenGeometry()
+	local ssx, ssy, spx, spy = SpringUnsynced.GetScreenGeometry()
 	if ssx / vsx < 1 then -- adjust when window is larger than the screen resolution
 		--scale = ssx / vsx
 		--xDiv = xDiv * scale	-- this doesnt work
@@ -527,12 +527,12 @@ function addon.DrawLoadScreen()
 	if guishader then
 		if not blurShader then
 			CreateShaders()
-			guishaderRects["loadprocess1"] = { (posX * vsx) - borderSize, (posY * vsy) - borderSize, (vsx - (posX * vsx)) + borderSize, ((posY * vsy) + height + borderSize) }
+			guishaderRects.loadprocess1 = { (posX * vsx) - borderSize, (posY * vsy) - borderSize, (vsx - (posX * vsx)) + borderSize, ((posY * vsy) + height + borderSize) }
 			if showTips and showTipAboveBar and showTipBackground then
-				guishaderRects["loadprocess2"] = { (posX * vsx) - borderSize, ((posY * vsy) + height + borderSize), (vsx - (posX * vsx)) + borderSize, tipPosYtop * vsy }
+				guishaderRects.loadprocess2 = { (posX * vsx) - borderSize, ((posY * vsy) + height + borderSize), (vsx - (posX * vsx)) + borderSize, tipPosYtop * vsy }
 			end
 			if usingIntelPotato or hasLowRam then
-				guishaderRects["loadprocess3"] = { 0, ((usingIntelPotato and hasLowRam) and 0.9 or 0.95) * vsy, vsx, vsy }
+				guishaderRects.loadprocess3 = { 0, ((usingIntelPotato and hasLowRam) and 0.9 or 0.95) * vsy, vsx, vsy }
 			end
 			DrawStencilTexture()
 		end
@@ -606,7 +606,7 @@ function addon.DrawLoadScreen()
 		loadProgress = math.clamp(loadProgress, lastProgress[1], lastProgress[2])
 	end
 
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	vsx, vsy, vpx, vpy = SpringUnsynced.GetViewGeometry()
 
 	local loadvalue = math.max(0, loadProgress) * (1 - posX - posX)
 	loadvalue = math.floor((loadvalue * vsx) + 0.5) / vsx
@@ -707,7 +707,7 @@ function addon.DrawLoadScreen()
 		gl.Translate(vsx / 2, (usingIntelPotato and 0.938 or 0.988) * vsy, 0)
 		font2:SetTextColor(0.8, 0.8, 0.8, 1)
 		font2:SetOutlineColor(0, 0, 0, 0.8)
-		font2:Print(Spring.I18N("ui.loadScreen.lowRamWarning", { textColor = "\255\200\200\200", warnColor = "\255\255\255\255" }), 0, 0, height * 0.66, "oac")
+		font2:Print(I18N("ui.loadScreen.lowRamWarning", { textColor = "\255\200\200\200", warnColor = "\255\255\255\255" }), 0, 0, height * 0.66, "oac")
 		gl.PopMatrix()
 	end
 end

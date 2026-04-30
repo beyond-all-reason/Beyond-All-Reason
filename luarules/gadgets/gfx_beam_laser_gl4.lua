@@ -24,21 +24,21 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spEcho = Spring.Echo
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local spIsPosInLos = Spring.IsPosInLos
-local spIsPosInAirLos = Spring.IsPosInAirLos
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetGameFrame = Spring.GetGameFrame
-local spGetFrameTimeOffset = Spring.GetFrameTimeOffset
-local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
-local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
-local spIsAABBInView = Spring.IsAABBInView
+local spEcho = SpringShared.Echo
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
+local spGetProjectileVelocity = SpringShared.GetProjectileVelocity
+local spGetProjectileDefID = SpringShared.GetProjectileDefID
+local spGetProjectileTeamID = SpringShared.GetProjectileTeamID
+local spGetTeamAllyTeamID = SpringShared.GetTeamAllyTeamID
+local spIsPosInLos = SpringShared.IsPosInLos
+local spIsPosInAirLos = SpringShared.IsPosInAirLos
+local spGetMyAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetFrameTimeOffset = SpringUnsynced.GetFrameTimeOffset
+local spGetProjectileOwnerID = SpringShared.GetProjectileOwnerID
+local spGetProjectilesInRectangle = SpringShared.GetProjectilesInRectangle
+local spIsAABBInView = SpringUnsynced.IsAABBInView
 
 local glBlending = gl.Blending
 local glTexture = gl.Texture

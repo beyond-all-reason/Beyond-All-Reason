@@ -17,13 +17,13 @@ end
 -- Spring API Imports
 --------------------------------------------------------------------------------
 
-local spGetUnitCommands = Spring.GetUnitCommands
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetAllUnits = Spring.GetAllUnits
-local spEcho = Spring.Echo
+local spGetUnitCommands = SpringShared.GetUnitCommands
+local spGetUnitCommandCount = SpringShared.GetUnitCommandCount
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetAllUnits = SpringShared.GetAllUnits
+local spEcho = SpringShared.Echo
 
 -- Localize frequently used functions
 local mathFloor = math.floor
@@ -518,7 +518,7 @@ end
 
 function widget:PlayerChanged(playerId)
 	-- Clear all data when player changes (spectating state changes)
-	local myPlayerId = Spring.GetMyPlayerID()
+	local myPlayerId = SpringUnsynced.GetLocalPlayerID()
 	if playerId == myPlayerId then
 		resetStateAndReinitialize()
 	end

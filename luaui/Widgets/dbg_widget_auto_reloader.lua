@@ -1,4 +1,4 @@
-if not Spring.Utilities.IsDevMode() then -- and not Spring.Utilities.ShowDevUI() then
+if not Utilities.IsDevMode() then -- and not Spring.Utilities.ShowDevUI() then
 	return
 end
 
@@ -18,8 +18,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetMouseState = Spring.GetMouseState
-local spEcho = Spring.Echo
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spEcho = SpringShared.Echo
 
 local widgetContents = {} -- maps widgetname to raw code
 local widgetFilesNames = {} -- maps widgetname to filename
@@ -72,12 +72,12 @@ local function CheckForChanges(widgetName, fileName)
 	end
 end
 
-local lastUpdate = Spring.GetTimer()
+local lastUpdate = SpringUnsynced.GetTimer()
 function widget:Update()
-	if Spring.DiffTimers(Spring.GetTimer(), lastUpdate) < 1 then
+	if SpringUnsynced.DiffTimers(SpringUnsynced.GetTimer(), lastUpdate) < 1 then
 		return
 	end
-	lastUpdate = Spring.GetTimer()
+	lastUpdate = SpringUnsynced.GetTimer()
 
 	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, spGetMouseState())

@@ -28,8 +28,8 @@ function addon.Initialize()
 	--if Spring.GetConfigInt('music', 1) == 0 then
 	--	return
 	--end
-	local originalSoundtrackEnabled = Spring.GetConfigInt("UseSoundtrackNew", 1)
-	local customSoundtrackEnabled = Spring.GetConfigInt("UseSoundtrackCustom", 1)
+	local originalSoundtrackEnabled = SpringUnsynced.GetConfigInt("UseSoundtrackNew", 1)
+	local customSoundtrackEnabled = SpringUnsynced.GetConfigInt("UseSoundtrackCustom", 1)
 	local allowedExtensions = "{*.ogg,*.mp3}"
 	local musicPlaylist = {}
 	local musicPlaylistEvent = {}
@@ -40,52 +40,52 @@ function addon.Initialize()
 		-- Events ----------------------------------------------------------------------------------------------------------------------
 
 		-- Raptors
-		if Spring.Utilities.Gametype.IsRaptors() then
+		if Utilities.Gametype.IsRaptors() then
 			table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal .. "/events/raptors/loading", allowedExtensions))
-		elseif Spring.GetConfigInt("UseSoundtrackRaptors", 0) == 1 then
+		elseif SpringUnsynced.GetConfigInt("UseSoundtrackRaptors", 0) == 1 then
 			table.append(musicPlaylist, VFS.DirList(musicDirOriginal .. "/events/raptors/loading", allowedExtensions))
 		end
 
 		-- Scavengers
-		if Spring.Utilities.Gametype.IsScavengers() then
+		if Utilities.Gametype.IsScavengers() then
 			table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal .. "/events/scavengers/loading", allowedExtensions))
-		elseif Spring.GetConfigInt("UseSoundtrackScavengers", 0) == 1 then
+		elseif SpringUnsynced.GetConfigInt("UseSoundtrackScavengers", 0) == 1 then
 			table.append(musicPlaylist, VFS.DirList(musicDirOriginal .. "/events/scavengers/loading", allowedExtensions))
 		end
 
 		-- April Fools
 		---- Day 1 - 100% chance
-		if Spring.GetConfigInt("UseSoundtrackAprilFools", 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools_specialDay"] then
+		if SpringUnsynced.GetConfigInt("UseSoundtrackAprilFools", 1) == 1 and Utilities.Gametype.GetCurrentHolidays().aprilfools_specialDay then
 			table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal .. "/events/aprilfools/loading", allowedExtensions))
 		---- Day 2-7 - 50% chance
-		elseif Spring.GetConfigInt("UseSoundtrackAprilFools", 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] and math.random() <= 0.5 then
+		elseif SpringUnsynced.GetConfigInt("UseSoundtrackAprilFools", 1) == 1 and Utilities.Gametype.GetCurrentHolidays().aprilfools and math.random() <= 0.5 then
 			table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal .. "/events/aprilfools/loading", allowedExtensions))
 		---- Post Event - Add to regular playlist
-		elseif Spring.GetConfigInt("UseSoundtrackAprilFoolsPostEvent", 0) == 1 and not Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] then
+		elseif SpringUnsynced.GetConfigInt("UseSoundtrackAprilFoolsPostEvent", 0) == 1 and not Utilities.Gametype.GetCurrentHolidays().aprilfools then
 			table.append(musicPlaylist, VFS.DirList(musicDirOriginal .. "/events/aprilfools/loading", allowedExtensions))
 		end
 
 		-- Halloween
 		---- Halloween Day - 100% chance
-		if Spring.GetConfigInt("UseSoundtrackHalloween", 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["halloween_specialDay"] then
+		if SpringUnsynced.GetConfigInt("UseSoundtrackHalloween", 1) == 1 and Utilities.Gametype.GetCurrentHolidays().halloween_specialDay then
 			table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal .. "/events/halloween/loading", allowedExtensions))
 		---- 2 Weeks Before Halloween - 50% chance
-		elseif Spring.GetConfigInt("UseSoundtrackHalloween", 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] and math.random() <= 0.5 then
+		elseif SpringUnsynced.GetConfigInt("UseSoundtrackHalloween", 1) == 1 and Utilities.Gametype.GetCurrentHolidays().halloween and math.random() <= 0.5 then
 			table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal .. "/events/halloween/loading", allowedExtensions))
 		---- Post Event - Add to regular playlist
-		elseif Spring.GetConfigInt("UseSoundtrackHalloweenPostEvent", 0) == 1 and not Spring.Utilities.Gametype.GetCurrentHolidays()["halloween_specialDay"] then
+		elseif SpringUnsynced.GetConfigInt("UseSoundtrackHalloweenPostEvent", 0) == 1 and not Utilities.Gametype.GetCurrentHolidays().halloween_specialDay then
 			table.append(musicPlaylist, VFS.DirList(musicDirOriginal .. "/events/halloween/loading", allowedExtensions))
 		end
 
 		-- Xmas
 		---- Christmas Days - 100% chance
-		if Spring.GetConfigInt("UseSoundtrackXmas", 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["xmas_specialDay"] then
+		if SpringUnsynced.GetConfigInt("UseSoundtrackXmas", 1) == 1 and Utilities.Gametype.GetCurrentHolidays().xmas_specialDay then
 			table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal .. "/events/xmas/loading", allowedExtensions))
 		---- The Rest of the event - 50% chance
-		elseif Spring.GetConfigInt("UseSoundtrackXmas", 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] and math.random() <= 0.5 then
+		elseif SpringUnsynced.GetConfigInt("UseSoundtrackXmas", 1) == 1 and Utilities.Gametype.GetCurrentHolidays().xmas and math.random() <= 0.5 then
 			table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal .. "/events/xmas/loading", allowedExtensions))
 		---- Post Event - Add to regular playlist
-		elseif Spring.GetConfigInt("UseSoundtrackXmasPostEvent", 0) == 1 and not Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
+		elseif SpringUnsynced.GetConfigInt("UseSoundtrackXmasPostEvent", 0) == 1 and not Utilities.Gametype.GetCurrentHolidays().xmas then
 			table.append(musicPlaylist, VFS.DirList(musicDirOriginal .. "/events/xmas/loading", allowedExtensions))
 		end
 
@@ -112,16 +112,16 @@ function addon.Initialize()
 		end
 	end
 
-	local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
+	local musicvolume = SpringUnsynced.GetConfigInt("snd_volmusic", 50) * 0.01
 	if #musicPlaylistEvent > 0 then
 		local pickedTrack = musicPlaylistEvent[math.random(1, #musicPlaylistEvent)]
-		Spring.PlaySoundStream(pickedTrack, 1)
-		Spring.SetSoundStreamVolume(musicvolume)
-		Spring.SetConfigString("music_loadscreen_track", pickedTrack)
+		SpringUnsynced.PlaySoundStream(pickedTrack, 1)
+		SpringUnsynced.SetSoundStreamVolume(musicvolume)
+		SpringUnsynced.SetConfigString("music_loadscreen_track", pickedTrack)
 	elseif #musicPlaylist > 0 then
 		local pickedTrack = musicPlaylist[math.random(1, #musicPlaylist)]
-		Spring.PlaySoundStream(pickedTrack, 1)
-		Spring.SetSoundStreamVolume(musicvolume)
-		Spring.SetConfigString("music_loadscreen_track", pickedTrack)
+		SpringUnsynced.PlaySoundStream(pickedTrack, 1)
+		SpringUnsynced.SetSoundStreamVolume(musicvolume)
+		SpringUnsynced.SetConfigString("music_loadscreen_track", pickedTrack)
 	end
 end

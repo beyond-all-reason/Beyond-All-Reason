@@ -12,13 +12,13 @@ function gadget:GetInfo()
 	}
 end
 
-if not Spring.Utilities.Gametype.IsScavengers() then
+if not Utilities.Gametype.IsScavengers() then
 	return
 end
 
 if gadgetHandler:IsSyncedCode() then -- Synced
-	local teams = Spring.GetTeamList()
-	local scavTeamID = Spring.Utilities.GetScavTeamID()
+	local teams = SpringShared.GetTeamList()
+	local scavTeamID = Utilities.GetScavTeamID()
 	local mapx = Game.mapSizeX
 	local mapz = Game.mapSizeZ
 	local cloudMult = math.ceil((math.ceil(((mapx + mapz) * 0.5) / 512) ^ 2) / 18)
@@ -26,28 +26,28 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 	local aliveMists = {}
 	local aliveWrecks = {}
 	local mistDefIDs = {
-		[UnitDefNames["scavmist_scav"].id] = true,
-		[UnitDefNames["scavmistxl_scav"].id] = true,
-		[UnitDefNames["scavmistxxl_scav"].id] = true,
+		[UnitDefNames.scavmist_scav.id] = true,
+		[UnitDefNames.scavmistxl_scav.id] = true,
+		[UnitDefNames.scavmistxxl_scav.id] = true,
 	}
 
 	VFS.Include("common/wav.lua")
 	local cooldown = 0 -- 1 minute cooldown at the start
 
 	local mRandom = math.random
-	local spGetGroundHeight = Spring.GetGroundHeight
-	local spSpawnCEG = Spring.SpawnCEG
-	local spPlaySoundFile = Spring.PlaySoundFile
-	local spGetUnitPosition = Spring.GetUnitPosition
-	local spDestroyUnit = Spring.DestroyUnit
-	local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
-	local spGetFeaturePosition = Spring.GetFeaturePosition
-	local spGetFeatureResurrect = Spring.GetFeatureResurrect
-	local spGetFeatureHealth = Spring.GetFeatureHealth
-	local spSetFeatureResurrect = Spring.SetFeatureResurrect
-	local spSetFeatureHealth = Spring.SetFeatureHealth
-	local spDestroyFeature = Spring.DestroyFeature
-	local spCreateUnit = Spring.CreateUnit
+	local spGetGroundHeight = SpringShared.GetGroundHeight
+	local spSpawnCEG = SpringSynced.SpawnCEG
+	local spPlaySoundFile = SpringUnsynced.PlaySoundFile
+	local spGetUnitPosition = SpringShared.GetUnitPosition
+	local spDestroyUnit = SpringSynced.DestroyUnit
+	local spGetTeamUnitDefCount = SpringShared.GetTeamUnitDefCount
+	local spGetFeaturePosition = SpringShared.GetFeaturePosition
+	local spGetFeatureResurrect = SpringShared.GetFeatureResurrect
+	local spGetFeatureHealth = SpringShared.GetFeatureHealth
+	local spSetFeatureResurrect = SpringSynced.SetFeatureResurrect
+	local spSetFeatureHealth = SpringSynced.SetFeatureHealth
+	local spDestroyFeature = SpringSynced.DestroyFeature
+	local spCreateUnit = SpringSynced.CreateUnit
 	local SendToUnsynced = SendToUnsynced
 
 	function gadget:GameFrame(frame)

@@ -82,24 +82,24 @@ local stringLower = string.lower
 local tableInsert = table.insert
 local tableRemove = table.remove
 
-local spAddUnitDamage = Spring.AddUnitDamage
-local spAddFeatureDamage = Spring.AddFeatureDamage
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
-local spGetFeatureRadius = Spring.GetFeatureRadius
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGroundNormal = Spring.GetGroundNormal
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitRadius = Spring.GetUnitRadius
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spGetWaterPlaneLevel = Spring.GetWaterPlaneLevel
-local spSpawnCEG = Spring.SpawnCEG
+local spAddUnitDamage = SpringSynced.AddUnitDamage
+local spAddFeatureDamage = SpringSynced.AddFeatureDamage
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
+local spGetFeaturesInCylinder = SpringShared.GetFeaturesInCylinder
+local spGetFeatureRadius = SpringShared.GetFeatureRadius
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetGroundNormal = SpringShared.GetGroundNormal
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitRadius = SpringShared.GetUnitRadius
+local spGetUnitsInCylinder = SpringShared.GetUnitsInCylinder
+local spGetWaterPlaneLevel = SpringShared.GetWaterPlaneLevel
+local spSpawnCEG = SpringSynced.SpawnCEG
 
 local gameSpeed = Game.gameSpeed
 
 local waterPlaneLevel = spGetWaterPlaneLevel()
-local lavaWater = Spring.Lava.isLavaMap
+local lavaWater = Lava.isLavaMap
 local voidWater = false
 
 local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
@@ -523,17 +523,17 @@ function gadget:Initialize()
 				if params.ceg ~= ceg or params.range ~= range then
 					params.ceg = ceg
 					params.range = range
-					Spring.Log(gadget:GetInfo().name, LOG.INFO, "Set " .. name .. " to range, ceg = " .. range .. ", " .. ceg)
+					SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "Set " .. name .. " to range, ceg = " .. range .. ", " .. ceg)
 				end
 			else
 				timedDamageWeapons[weaponDefID] = nil
-				Spring.Log(gadget:GetInfo().name, LOG.WARN, "Removed " .. name .. " from area timed damage weapons.")
+				SpringShared.Log(gadget:GetInfo().name, LOG.WARN, "Removed " .. name .. " from area timed damage weapons.")
 			end
 		end
 	end
 
 	if not next(timedDamageWeapons) then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
+		SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
 		gadgetHandler:RemoveGadget(self)
 		return
 	end
@@ -602,18 +602,18 @@ function gadget:Initialize()
 		aliveExplosions[ii] = {}
 	end
 
-	frameNumber = Spring.GetGameFrame()
+	frameNumber = SpringShared.GetGameFrame()
 	frameExplosions = aliveExplosions[1 + (frameNumber % frameInterval)]
 	for frame = frameNumber - 1, frameNumber + gameSpeed do
 		unitDamageReset[frame] = {}
 		featDamageReset[frame] = {}
 	end
 
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
+	for _, unitID in ipairs(SpringShared.GetAllUnits()) do
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 	end
 
-	for _, featureID in ipairs(Spring.GetAllFeatures()) do
+	for _, featureID in ipairs(SpringShared.GetAllFeatures()) do
 		gadget:FeatureCreated(featureID)
 	end
 end
@@ -651,7 +651,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:FeatureCreated(featureID, allyTeam)
-	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local featureDefID = SpringShared.GetFeatureDefID(featureID)
 	featureData[featureID] = {
 		damageTaken = 0,
 		damageImmune = featureDamageImmunity[featureDefID],
@@ -665,8 +665,8 @@ end
 if lavaWater then
 	local positionError = 24
 
-	local spGetProjectilePosition = Spring.GetProjectilePosition
-	local spSetProjectileCollision = Spring.SetProjectileCollision
+	local spGetProjectilePosition = SpringShared.GetProjectilePosition
+	local spSetProjectileCollision = SpringSynced.SetProjectileCollision
 
 	local projectiles = {}
 	local lastAreaElevation = waterPlaneLevel

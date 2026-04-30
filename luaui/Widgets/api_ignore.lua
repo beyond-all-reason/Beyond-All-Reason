@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local playernames = {} -- current game: playername to playerID
 local validAccounts = {} -- current game: accountID to playername
@@ -23,9 +23,9 @@ local ignoredPlayers = {} -- old playernames method, we'll keep storing and try 
 
 -- late rejoined/added spectators dont get a their own accountid but the last assigned playerID one instead so we'll have to ignore those
 -- THIS IS FUCKED UP BUT IT IS WHAT IT IS SOMEHOW
-local playerList = Spring.GetPlayerList()
+local playerList = SpringShared.GetPlayerList()
 for _, playerID in ipairs(playerList) do
-	local name, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID)
+	local name, _, _, _, _, _, _, _, _, _, playerInfo = SpringShared.GetPlayerInfo(playerID)
 	accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
 	if accountID and not validAccounts[accountID] then
 		validAccounts[accountID] = name
@@ -33,9 +33,9 @@ for _, playerID in ipairs(playerList) do
 end
 
 local function processPlayerlist()
-	local playerList = Spring.GetPlayerList()
+	local playerList = SpringShared.GetPlayerList()
 	for _, playerID in ipairs(playerList) do
-		local name, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID)
+		local name, _, _, _, _, _, _, _, _, _, playerInfo = SpringShared.GetPlayerInfo(playerID)
 		if name and name ~= "" then
 			playernames[name] = playerID
 		end
@@ -79,14 +79,14 @@ local function ignoreAccount(accountID)
 			if resolvedName ~= "" then
 				ignoredAccountsAndNames[resolvedName] = playerID or true
 			end
-			spEcho(Spring.I18N("ui.ignore.ignored", { name = resolvedName, accountID = accountID }))
+			spEcho(I18N("ui.ignore.ignored", { name = resolvedName, accountID = accountID }))
 		end
 	elseif accountID ~= "" then -- if accountID wasnt known and player name was supplied instead
 		local name = accountID
 		if playernames[name] then
 			ignoredPlayers[name] = true
 			ignoredAccountsAndNames[name] = playernames[name]
-			spEcho(Spring.I18N("ui.ignore.ignored", { name = name, accountID = Spring.I18N("ui.ignore.unknown") }))
+			spEcho(I18N("ui.ignore.ignored", { name = name, accountID = I18N("ui.ignore.unknown") }))
 		end
 	end
 end
@@ -95,7 +95,7 @@ local function unignoreAccount(accountID)
 	if type(tonumber(accountID)) == "number" then
 		accountID = tonumber(accountID)
 		if ignoredAccounts[accountID] and validAccounts[accountID] then
-			spEcho(Spring.I18N("ui.ignore.unignored", { name = ignoredAccounts[accountID], accountID = accountID }))
+			spEcho(I18N("ui.ignore.unignored", { name = ignoredAccounts[accountID], accountID = accountID }))
 			ignoredAccountsAndNames[accountID] = nil
 			ignoredAccountsAndNames[ignoredAccounts[accountID]] = nil
 			ignoredAccountsAndNames[validAccounts[accountID]] = nil
@@ -106,7 +106,7 @@ local function unignoreAccount(accountID)
 		if playernames[name] then
 			ignoredPlayers[name] = nil
 			ignoredAccountsAndNames[name] = nil
-			spEcho(Spring.I18N("ui.ignore.unignored", { name = name, accountID = Spring.I18N("ui.ignore.unknown") }))
+			spEcho(I18N("ui.ignore.unignored", { name = name, accountID = I18N("ui.ignore.unknown") }))
 		end
 	end
 end
@@ -147,7 +147,7 @@ function widget:PlayerChanged()
 end
 
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
-	local _, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID, false)
+	local _, _, _, _, _, _, _, _, _, _, playerInfo = SpringShared.GetPlayerInfo(playerID, false)
 	local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
 	if accountID and ignoredAccounts[accountID] then
 		return true

@@ -32,37 +32,37 @@ local select = select
 local osClock = os.clock
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
-local spEcho = Spring.Echo
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
-local spGetGameSeconds = Spring.GetGameSeconds
-local spGetGameSpeed = Spring.GetGameSpeed
-local spGetTeamUnitCount = Spring.GetTeamUnitCount
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetTeamList = Spring.GetTeamList
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamColor = Spring.GetTeamColor
-local spGetTeamResources = Spring.GetTeamResources
-local spGetUnitResources = Spring.GetUnitResources
-local spGetMyPlayerID = Spring.GetMyPlayerID
-local spGetGaiaTeamID = Spring.GetGaiaTeamID
-local spGetAllyTeamList = Spring.GetAllyTeamList
-local spIsReplay = Spring.IsReplay
-local spGetLocalAllyTeamID = Spring.GetLocalAllyTeamID
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetTeamStartPosition = Spring.GetTeamStartPosition
-local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetAllUnits = Spring.GetAllUnits
-local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetMouseState = Spring.GetMouseState
-local spSetMouseCursor = Spring.SetMouseCursor
-local spGetConfigFloat = Spring.GetConfigFloat
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spEcho = SpringShared.Echo
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetTeamUnitsByDefs = SpringShared.GetTeamUnitsByDefs
+local spGetGameSeconds = SpringShared.GetGameSeconds
+local spGetGameSpeed = SpringUnsynced.GetGameSpeed
+local spGetTeamUnitCount = SpringShared.GetTeamUnitCount
+local spGetMyAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetTeamList = SpringShared.GetTeamList
+local spGetTeamInfo = SpringShared.GetTeamInfo
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetTeamColor = SpringUnsynced.GetTeamColor
+local spGetTeamResources = SpringShared.GetTeamResources
+local spGetUnitResources = SpringShared.GetUnitResources
+local spGetMyPlayerID = SpringUnsynced.GetLocalPlayerID
+local spGetGaiaTeamID = SpringShared.GetGaiaTeamID
+local spGetAllyTeamList = SpringShared.GetAllyTeamList
+local spIsReplay = SpringUnsynced.IsReplay
+local spGetLocalAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetTeamStartPosition = SpringShared.GetTeamStartPosition
+local spGetTeamUnitDefCount = SpringShared.GetTeamUnitDefCount
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetTeamUnitsByDefs = SpringShared.GetTeamUnitsByDefs
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spSetMouseCursor = SpringUnsynced.SetMouseCursor
+local spGetConfigFloat = SpringUnsynced.GetConfigFloat
 
 -- Localized GL API
 local glColor = gl.Color
@@ -164,7 +164,7 @@ local widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 local teamListLen = #spGetTeamList()
 local allyTeamListLen2 = #spGetAllyTeamList()
 local singleTeams = (teamListLen - 1 == allyTeamListLen2 - 1)
-local enableStartposbuttons = not Spring.Utilities.Gametype.IsFFA() -- spots wont match when ffa
+local enableStartposbuttons = not Utilities.Gametype.IsFFA() -- spots wont match when ffa
 local myFullview = select(2, spGetSpectatingState())
 local myTeamID = spGetMyTeamID()
 local myPlayerID = spGetMyPlayerID()
@@ -355,8 +355,8 @@ local function updateButtons()
 		widgetPosY = vsy - widgetHeight
 	end
 
-	if cfgSticktotopbar and WG["topbar"] ~= nil then
-		local topbarArea = WG["topbar"].GetPosition()
+	if cfgSticktotopbar and WG.topbar ~= nil then
+		local topbarArea = WG.topbar.GetPosition()
 		if not topbarShowButtons then
 			topbarArea[2] = topbarArea[4]
 		end
@@ -540,8 +540,8 @@ local function setAllyData(allyID)
 		allyData[index] = nil
 		local key = eco.ecoKey[allyID] or ("ecostats_" .. allyID)
 		guishaderRects[key] = nil
-		if WG["guishader"] and guishaderRectsDlists[key] then
-			WG["guishader"].DeleteDlist(key)
+		if WG.guishader and guishaderRectsDlists[key] then
+			WG.guishader.DeleteDlist(key)
 			guishaderRectsDlists[key] = nil
 		end
 	end
@@ -651,17 +651,17 @@ function widget:Initialize()
 		gamestarted = true
 	end
 
-	WG["ecostats"] = {}
-	WG["ecostats"].getShowText = function()
+	WG.ecostats = {}
+	WG.ecostats.getShowText = function()
 		return cfgResText
 	end
-	WG["ecostats"].setShowText = function(value)
+	WG.ecostats.setShowText = function(value)
 		cfgResText = value
 	end
-	WG["ecostats"].getReclaim = function()
+	WG.ecostats.getReclaim = function()
 		return cfgTrackReclaim
 	end
-	WG["ecostats"].setReclaim = function(value)
+	WG.ecostats.setReclaim = function(value)
 		cfgTrackReclaim = value
 	end
 
@@ -670,29 +670,29 @@ function widget:Initialize()
 end
 
 local function removeGuiShaderRects()
-	if WG["guishader"] then
+	if WG.guishader then
 		for _, data in pairs(allyData) do
 			local aID = data.aID
 			if isTeamReal(aID) and (aID == spGetMyAllyTeamID() or inSpecMode) and aID ~= gaiaAllyID then
 				local key = eco.ecoKey[aID] or ("ecostats_" .. aID)
-				WG["guishader"].DeleteDlist(key)
+				WG.guishader.DeleteDlist(key)
 				guishaderRectsDlists[key] = nil
 				guishaderRects[key] = nil
 			end
 		end
 	end
 
-	if WG["tooltip"] ~= nil then
+	if WG.tooltip ~= nil then
 		for _, data in pairs(allyData) do
 			local aID = data.aID
 			if isTeamReal(aID) and (aID == spGetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID) then
 				local key = eco.ecoKey[aID] or ("ecostats_" .. aID)
 				if tooltipAreas[key] ~= nil then
-					WG["tooltip"].RemoveTooltip(key)
+					WG.tooltip.RemoveTooltip(key)
 					tooltipAreas[key] = nil
-					local teams = Spring.GetTeamList(aID)
+					local teams = SpringShared.GetTeamList(aID)
 					for _, tID in ipairs(teams) do
-						WG["tooltip"].RemoveTooltip(eco.ecoTeamKey[tID] or ("ecostats_team_" .. tID))
+						WG.tooltip.RemoveTooltip(eco.ecoTeamKey[tID] or ("ecostats_team_" .. tID))
 					end
 				end
 			end
@@ -710,7 +710,7 @@ function widget:Shutdown()
 		glDeleteTexture(uiTex)
 		uiTex = nil
 	end
-	WG["ecostats"] = nil
+	WG.ecostats = nil
 end
 
 local areaRect = {}
@@ -774,7 +774,7 @@ local function makeTeamCompositionList()
 			end
 		end, true)
 	end
-	if WG["guishader"] then
+	if WG.guishader then
 		for id, rect in pairs(guishaderRects) do
 			if guishaderRectsDlists[id] then
 				gl.DeleteList(guishaderRectsDlists[id])
@@ -783,7 +783,7 @@ local function makeTeamCompositionList()
 			guishaderRectsDlists[id] = gl.CreateList(function()
 				RectRound(r1, r2, r3, r4, r5, 1, 0, 0, 1)
 			end)
-			WG["guishader"].InsertDlist(guishaderRectsDlists[id], id)
+			WG.guishader.InsertDlist(guishaderRectsDlists[id], id)
 		end
 	end
 end
@@ -1010,14 +1010,14 @@ local function DrawBackground(posY, allyID, teamWidth)
 
 	local areaX1 = widgetPosX + (widgetWidth / 12)
 	local areaKey = areaX1 * 1000000000 + y1 * 1000000 + (widgetPosX + widgetWidth) * 1000 + y2
-	if WG["tooltip"] ~= nil and (tooltipAreas[key] == nil or tooltipAreas[key] ~= areaKey or refreshCaptions) then
+	if WG.tooltip ~= nil and (tooltipAreas[key] == nil or tooltipAreas[key] ~= areaKey or refreshCaptions) then
 		refreshCaptions = false
 		if not cachedTooltipText then
-			cachedTooltipText = Spring.I18N("ui.teamEconomy.tooltip")
-			cachedTooltipTitle = Spring.I18N("ui.teamEconomy.tooltipTitle")
+			cachedTooltipText = I18N("ui.teamEconomy.tooltip")
+			cachedTooltipTitle = I18N("ui.teamEconomy.tooltipTitle")
 		end
 		bgArea[1], bgArea[2], bgArea[3], bgArea[4] = areaX1, y1, widgetPosX + widgetWidth, y2
-		WG["tooltip"].AddTooltip(key, bgArea, cachedTooltipText, nil, cachedTooltipTitle)
+		WG.tooltip.AddTooltip(key, bgArea, cachedTooltipText, nil, cachedTooltipTitle)
 		tooltipAreas[key] = areaKey
 	end
 end
@@ -1086,9 +1086,9 @@ local function DrawTeamCompositionTeam(hOffset, vOffset, r, g, b, a, small, mous
 		btn.y2 = y2
 		btn.pID = tID
 	end
-	if WG["tooltip"] then
+	if WG.tooltip then
 		tctArea[1], tctArea[2], tctArea[3], tctArea[4] = x1, y1, x2, y2
-		WG["tooltip"].AddTooltip(eco.ecoTeamKey[tID], tctArea, teamData[tID].leaderName)
+		WG.tooltip.AddTooltip(eco.ecoTeamKey[tID], tctArea, teamData[tID].leaderName)
 	end
 
 	tctColorBot[1], tctColorBot[2], tctColorBot[3] = r * 0.75, g * 0.75, b * 0.75
@@ -1262,7 +1262,7 @@ function widget:PlayerChanged(playerID)
 			removeGuiShaderRects()
 		end
 	end
-	if myFullview and not singleTeams and WG["playercolorpalette"] ~= nil and WG["playercolorpalette"].getSameTeamColors() then
+	if myFullview and not singleTeams and WG.playercolorpalette ~= nil and WG.playercolorpalette.getSameTeamColors() then
 		if myTeamID ~= spGetMyTeamID() then
 			UpdateAllTeams()
 			refreshTeamCompositionList = true
@@ -1354,36 +1354,36 @@ function widget:MousePress(x, y, button)
 
 					if com then
 						local cx, cy, cz
-						local camState = Spring.GetCameraState()
-						cx, cy, cz = Spring.GetUnitPosition(com)
+						local camState = SpringUnsynced.GetCameraState()
+						cx, cy, cz = SpringShared.GetUnitPosition(com)
 						if camState and cx then
 							camState.px = cx
 							camState.py = cy
 							camState.pz = cz
 							camState.height = 800
 
-							Spring.SetCameraState(camState, 0.75)
+							SpringUnsynced.SetCameraState(camState, 0.75)
 							if inSpecMode then
-								Spring.SelectUnitArray({ com })
+								SpringUnsynced.SelectUnitArray({ com })
 							end
 						elseif cx then
-							Spring.SetCameraTarget(cx, cy, cz, 0.5)
+							SpringUnsynced.SetCameraTarget(cx, cy, cz, 0.5)
 						end
 					end
 				elseif not ctrlDown then
 					local sx = teamData[teamID].startx
 					local sz = teamData[teamID].starty
 					if sx ~= nil and sz ~= nil then
-						local sy = Spring.GetGroundHeight(sx, sz)
-						local camState = Spring.GetCameraState()
+						local sy = SpringShared.GetGroundHeight(sx, sz)
+						local camState = SpringUnsynced.GetCameraState()
 						if camState and sx and sz and sx > 0 and sz > 0 then
 							camState.px = sx
 							camState.py = sy
 							camState.pz = sz
 							camState.height = 5000
-							Spring.SetCameraState(camState, 2)
+							SpringUnsynced.SetCameraState(camState, 2)
 						elseif sx then
-							Spring.SetCameraTarget(sx, sy, sz, 0.5)
+							SpringUnsynced.SetCameraTarget(sx, sy, sz, 0.5)
 						end
 					end
 				end
@@ -1404,7 +1404,7 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	font = WG["fonts"].getFont()
+	font = WG.fonts.getFont()
 
 	Reinit()
 end
@@ -1462,16 +1462,16 @@ function widget:Update(dt)
 	end
 
 	local prevTopbarShowButtons = topbarShowButtons
-	topbarShowButtons = WG["topbar"] and WG["topbar"].getShowButtons()
-	if topbarShowButtons ~= prevTopbarShowButtons or not prevTopbar and (WG["topbar"] ~= nil) or prevTopbar ~= (WG["topbar"] ~= nil) then
+	topbarShowButtons = WG.topbar and WG.topbar.getShowButtons()
+	if topbarShowButtons ~= prevTopbarShowButtons or not prevTopbar and (WG.topbar ~= nil) or prevTopbar ~= (WG.topbar ~= nil) then
 		Reinit()
 		lastBarsUpdate = 0
 		lastTextListUpdate = 0
 	end
-	prevTopbar = WG["topbar"] ~= nil and true or false
+	prevTopbar = WG.topbar ~= nil and true or false
 
 	-- detect guishader widget being toggled back on
-	local guishaderNow = WG["guishader"] ~= nil
+	local guishaderNow = WG.guishader ~= nil
 	if guishaderNow and not guishaderWasActive then
 		guishaderRectsDlists = {}
 		refreshTeamCompositionList = true

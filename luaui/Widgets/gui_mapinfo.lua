@@ -16,7 +16,7 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local scale = 1
 local offset = 5
@@ -28,9 +28,9 @@ local dlistAmount = 20 -- amount of dlists created, one for each opacity value
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetGroundHeight = Spring.GetGroundHeight
-local spIsAABBInView = Spring.IsAABBInView
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spIsAABBInView = SpringUnsynced.IsAABBInView
 
 local glColor = gl.Color
 local glScale = gl.Scale
@@ -58,7 +58,7 @@ local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua c
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 
-	font = WG["fonts"].getFont()
+	font = WG.fonts.getFont()
 
 	for opacity, list in pairs(mapinfoList) do
 		glDeleteList(list)
@@ -146,7 +146,7 @@ local function createMapinfoList(opacityMultiplier)
 			usedTextOffsetY = usedTextOffsetY + textOffsetY
 			text = Game.mapDescription
 			font:SetTextColor(1, 1, 1, textOpacity * 0.6 * opacityMultiplier)
-			font:Print(Spring.I18N("ui.mapinfo.author") .. ":  " .. mapinfo.author, textOffsetX, -usedTextOffsetY + 0.8, textSize, "n")
+			font:Print(I18N("ui.mapinfo.author") .. ":  " .. mapinfo.author, textOffsetX, -usedTextOffsetY + 0.8, textSize, "n")
 		end
 
 		--map size
@@ -205,7 +205,7 @@ function widget:Shutdown()
 end
 
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 

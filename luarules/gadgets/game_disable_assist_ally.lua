@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "April 2024",
 		license = "GNU GPL, v2 or later",
 		layer = 1, -- after unit_mex_upgrade_reclaimer and unit_geo_upgrade_reclaimer
-		enabled = Spring.GetModOptions().disable_assist_ally_construction, -- or Spring.GetModOptions().easytax,  -- disabled for easytax and replaced with tax in game_tax_resource_sharing.lua
+		enabled = SpringShared.GetModOptions().disable_assist_ally_construction, -- or Spring.GetModOptions().easytax,  -- disabled for easytax and replaced with tax in game_tax_resource_sharing.lua
 	}
 end
 
@@ -16,12 +16,12 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spAreTeamsAllied = SpringShared.AreTeamsAllied
+local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitsInCylinder = SpringShared.GetUnitsInCylinder
 local mathRandom = math.random
 
 local CMD_GUARD = CMD.GUARD
@@ -41,7 +41,7 @@ local builderMoveStateCmdDesc = {
 	},
 }
 
-local gaiaTeam = Spring.GetGaiaTeamID()
+local gaiaTeam = SpringShared.GetGaiaTeamID()
 
 local isFactory = {}
 local canBuildStep = {} -- i.e. anything that spends resources when assisted
@@ -55,12 +55,12 @@ local checkUnitCommandList = {} -- Delay validating given units so the order of 
 -- Local functions
 
 local function removeRoamMoveState(unitID)
-	local index = Spring.FindUnitCmdDesc(unitID, CMD_MOVESTATE)
+	local index = SpringShared.FindUnitCmdDesc(unitID, CMD_MOVESTATE)
 	if index then
-		local moveState = select(2, Spring.GetUnitStates(unitID, false))
+		local moveState = select(2, SpringShared.GetUnitStates(unitID, false))
 		local params = builderMoveStateCmdDesc.params
 		params[1] = math.min(moveState or 1, MOVESTATE_ROAM - 1)
-		Spring.EditUnitCmdDesc(unitID, index, builderMoveStateCmdDesc)
+		SpringSynced.EditUnitCmdDesc(unitID, index, builderMoveStateCmdDesc)
 	end
 end
 
@@ -94,7 +94,7 @@ local function validateCommands(unitID, unitTeam)
 	local GetUnitCurrentCommand = spGetUnitCurrentCommand
 	local tags, count = {}, 0
 
-	for index = 1, Spring.GetUnitCommandCount(unitID) do
+	for index = 1, SpringShared.GetUnitCommandCount(unitID) do
 		local command, _, tag, p1, p2, _, _, p5, p6 = GetUnitCurrentCommand(unitID, index)
 		if not isBuilderAllowedCommand(command, p1, p2, p5, p6, unitTeam) then
 			count = count + 1
@@ -103,7 +103,7 @@ local function validateCommands(unitID, unitTeam)
 	end
 
 	if count > 0 then
-		Spring.GiveOrderToUnit(unitID, CMD.REMOVE, tags)
+		SpringShared.GiveOrderToUnit(unitID, CMD.REMOVE, tags)
 	end
 end
 
@@ -159,7 +159,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 end
 
 local function _GameFramePost(unitList)
-	local GetUnitIsDead = Spring.GetUnitIsDead
+	local GetUnitIsDead = SpringShared.GetUnitIsDead
 	for unitID, newTeam in pairs(unitList) do
 		unitList[unitID] = nil
 		if GetUnitIsDead(unitID) == false then

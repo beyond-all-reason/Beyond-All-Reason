@@ -13,8 +13,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
 
 local timeToLive = 330
 local lineWidth = 1.0
@@ -25,10 +25,10 @@ local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils
 --speedups
 ----------------------------------------------------------------
 
-local ArePlayersAllied = Spring.ArePlayersAllied
-local GetPlayerInfo = Spring.GetPlayerInfo
-local GetTeamColor = Spring.GetTeamColor
-local GetSpectatingState = Spring.GetSpectatingState
+local ArePlayersAllied = SpringShared.ArePlayersAllied
+local GetPlayerInfo = SpringShared.GetPlayerInfo
+local GetTeamColor = SpringUnsynced.GetTeamColor
+local GetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local glLineWidth = gl.LineWidth
 
@@ -47,7 +47,7 @@ local instanceIDgen = 1
 local function GetPlayerColor(playerID)
 	local _, _, isSpec, teamID = GetPlayerInfo(playerID, false)
 	if isSpec then
-		return GetTeamColor(Spring.GetGaiaTeamID())
+		return GetTeamColor(SpringShared.GetGaiaTeamID())
 	end
 	if not teamID then
 		return nil
@@ -307,8 +307,8 @@ function DrawMapMarksWorld(isMiniMap)
 		mapMarkShader:SetUniform("mapRotation", getCurrentMiniMapRotationOption() or 0)
 
 		-- Pass PIP visible area if drawing in PIP minimap
-		if isMiniMap > 0 and WG["minimap"] and WG["minimap"].isDrawingInPip and WG["minimap"].getNormalizedVisibleArea then
-			local left, right, bottom, top = WG["minimap"].getNormalizedVisibleArea()
+		if isMiniMap > 0 and WG.minimap and WG.minimap.isDrawingInPip and WG.minimap.getNormalizedVisibleArea then
+			local left, right, bottom, top = WG.minimap.getNormalizedVisibleArea()
 			mapMarkShader:SetUniform("pipVisibleArea", left, right, bottom, top)
 		else
 			mapMarkShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
@@ -329,7 +329,7 @@ function widget:Initialize()
 		return
 	end
 	initGL4()
-	myPlayerID = Spring.GetMyPlayerID()
+	myPlayerID = SpringUnsynced.GetLocalPlayerID()
 	WG.PointTracker = {
 		ClearPoints = ClearPoints,
 	}
@@ -391,7 +391,7 @@ function widget:DrawInMiniMap(sx, sy)
 		return
 	end
 	-- Don't draw map marks inside the PIP minimap
-	if WG["minimap"] and WG["minimap"].isDrawingInPip then
+	if WG.minimap and WG.minimap.isDrawingInPip then
 		return
 	end
 	-- this fixes drawing on only 1 quadrant of minimap as pwe

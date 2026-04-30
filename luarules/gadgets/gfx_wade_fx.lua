@@ -24,12 +24,12 @@ local fold_frames = 4 -- every X-th frame
 local n_folds = 3 -- check every X-th unit
 local current_fold = 1
 
-local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitDefDimensions = Spring.GetUnitDefDimensions
-local spSpawnCEG = Spring.SpawnCEG
+local spGetUnitIsCloaked = SpringShared.GetUnitIsCloaked
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitVelocity = SpringShared.GetUnitVelocity
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitDefDimensions = SpringShared.GetUnitDefDimensions
+local spSpawnCEG = SpringSynced.SpawnCEG
 
 local wadeDepth = {}
 local wadeSfxID = {}
@@ -111,7 +111,7 @@ end
 function gadget:GameFrame(n)
 	if n % fold_frames == 0 then
 		if n <= fold_frames then
-			local minheight = Spring.GetGroundExtremes()
+			local minheight = SpringShared.GetGroundExtremes()
 			if minheight > 20 then
 				gadgetHandler:RemoveGadget(self)
 				return
@@ -142,7 +142,7 @@ function gadget:GameFrame(n)
 end
 
 function gadget:Initialize()
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))

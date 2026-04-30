@@ -13,9 +13,9 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 ---------------------------------------------------------------------------------------------------
 --  Declarations
@@ -50,7 +50,7 @@ end
 
 function widget:Initialize()
 	createList()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
 end
@@ -63,7 +63,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if damage > 3 and unitTeam == myTeamID and comUnitDefIDs[unitDefID] and not Spring.IsUnitVisible(unitID) then
+	if damage > 3 and unitTeam == myTeamID and comUnitDefIDs[unitDefID] and not SpringUnsynced.IsUnitVisible(unitID) then
 		if spGetSpectatingState() then
 			widgetHandler:RemoveWidget()
 			return

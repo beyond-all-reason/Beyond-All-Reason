@@ -45,34 +45,34 @@ end
 -- Imports / locals
 --------------------------------------------------------------------------------
 
-local spEcho = Spring.Echo
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spIsPosInLos = Spring.IsPosInLos
-local spGetAllUnits = Spring.GetAllUnits
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetUnitNanoPieces = Spring.GetUnitNanoPieces
-local spGetUnitPiecePosDir = Spring.GetUnitPiecePosDir
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitRadius = Spring.GetUnitRadius
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetFeatureRadius = Spring.GetFeatureRadius
-local spGetFeatureHealth = Spring.GetFeatureHealth
-local spGetFeatureResources = Spring.GetFeatureResources
-local spValidFeatureID = Spring.ValidFeatureID
-local spValidUnitID = Spring.ValidUnitID
-local spGetTeamColor = Spring.GetTeamColor
-local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
-local spGetUnitWorkerTask = Spring.GetUnitWorkerTask
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
-local spIsSphereInView = Spring.IsSphereInView
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetUnitCollisionVolumeData = Spring.GetUnitCollisionVolumeData
+local spEcho = SpringShared.Echo
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetMyAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spIsPosInLos = SpringShared.IsPosInLos
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+local spGetUnitNanoPieces = SpringShared.GetUnitNanoPieces
+local spGetUnitPiecePosDir = SpringShared.GetUnitPiecePosDir
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitRadius = SpringShared.GetUnitRadius
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
+local spGetFeatureRadius = SpringShared.GetFeatureRadius
+local spGetFeatureHealth = SpringShared.GetFeatureHealth
+local spGetFeatureResources = SpringShared.GetFeatureResources
+local spValidFeatureID = SpringShared.ValidFeatureID
+local spValidUnitID = SpringShared.ValidUnitID
+local spGetTeamColor = SpringUnsynced.GetTeamColor
+local spGetUnitCurrentBuildPower = SpringShared.GetUnitCurrentBuildPower
+local spGetUnitWorkerTask = SpringShared.GetUnitWorkerTask
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spGetUnitMoveTypeData = SpringShared.GetUnitMoveTypeData
+local spIsSphereInView = SpringUnsynced.IsSphereInView
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spGetUnitCollisionVolumeData = SpringShared.GetUnitCollisionVolumeData
 
 -- Engine encodes feature targets in worker-task results as (featureID + MaxUnits()).
 -- Used for CMD_RESURRECT (always) and CMD_RECLAIM of features. See engine
@@ -99,8 +99,8 @@ local mathRandom = math.random
 local mathSqrt = math.sqrt
 local mathFloor = math.floor
 local mathLog = math.log
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
+local spGetTimer = SpringUnsynced.GetTimer
+local spDiffTimers = SpringUnsynced.DiffTimers
 
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_RESURRECT = CMD.RESURRECT
@@ -122,7 +122,7 @@ local MAX_PARTICLES_VBO = 15000
 local MAX_PARTICLES_FLOOR = 5000
 local MAX_PARTICLES_FRACTION = 0.33
 local function computeMaxParticles()
-	local cfg = Spring.GetConfigInt("MaxParticles", 15000) or 15000
+	local cfg = SpringUnsynced.GetConfigInt("MaxParticles", 15000) or 15000
 	local soft = math.max(MAX_PARTICLES_FLOOR, math.floor(cfg * MAX_PARTICLES_FRACTION))
 	return math.min(MAX_PARTICLES_VBO, soft)
 end
@@ -147,7 +147,7 @@ local DEBUG_FLAT_FS = false
 --   1 = gadget billboards
 --   2 = gadget 3D shapes
 -- Polled live in GameFrame so changes take effect without a /luarules reload.
-local NANO_PARTICLE_MODE = Spring.GetConfigInt("NanoParticleMode", 2)
+local NANO_PARTICLE_MODE = SpringUnsynced.GetConfigInt("NanoParticleMode", 2)
 local RENDER_MODE = (NANO_PARTICLE_MODE == 1) and "billboard" or "shape"
 
 -- Color brightness equalization, in [0..1]:
@@ -541,7 +541,7 @@ local GAMESPEED_MAX_CUT = 0.85 -- effective-max cut at full throttle (0..1)
 local speedThrottle = 0.0 -- 0 = none, 1 = max (set in GameFrame)
 
 local function refreshSpeedThrottle()
-	local _, speedFactor = Spring.GetGameSpeed()
+	local _, speedFactor = SpringUnsynced.GetGameSpeed()
 	if not speedFactor or speedFactor <= GAMESPEED_THROTTLE_START then
 		speedThrottle = 0.0
 		return
@@ -561,7 +561,7 @@ end
 -- Polled on the same 1s GameFrame cadence as the speed throttle.
 local cachedInfoIsLos = true
 local function refreshInfoIsLos()
-	local m = Spring.GetMapDrawMode()
+	local m = SpringUnsynced.GetMapDrawMode()
 	cachedInfoIsLos = (m == nil or m == "" or m == "los")
 end
 
@@ -3106,17 +3106,17 @@ local function applyParticleMode(newMode, force)
 
 	if newMode == 0 then
 		-- Hand the spray budget back to the engine.
-		Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
+		SpringUnsynced.SetConfigInt("MaxNanoParticles", math.floor(SpringUnsynced.GetConfigInt("MaxParticles", 15000) * 0.34))
 		return
 	end
 
 	-- Modes 1/2: silence the engine spray, swap to the matching shader pair.
-	Spring.SetConfigInt("MaxNanoParticles", 0)
+	SpringUnsynced.SetConfigInt("MaxNanoParticles", 0)
 	applyRenderMode((newMode == 1) and "billboard" or "shape")
 	if not initGL4() then
 		spEcho("Nano Particles GL4: GL init failed; falling back to engine spray.")
 		NANO_PARTICLE_MODE = 0
-		Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
+		SpringUnsynced.SetConfigInt("MaxNanoParticles", math.floor(SpringUnsynced.GetConfigInt("MaxParticles", 15000) * 0.34))
 	end
 end
 
@@ -3156,15 +3156,15 @@ function gadget:GameFrame(n)
 	-- Cheap (one GetConfigInt) and 1s latency on a settings-menu toggle is
 	-- imperceptible.
 	if n % 30 == 0 then
-		local mode = Spring.GetConfigInt("NanoParticleMode", 2)
+		local mode = SpringUnsynced.GetConfigInt("NanoParticleMode", 2)
 		if mode ~= NANO_PARTICLE_MODE then
 			applyParticleMode(mode, false)
 		elseif NANO_PARTICLE_MODE ~= 0 then
 			-- Defensive: another widget/gadget (or the user via /set) may have
 			-- re-enabled the engine spray underneath us. Re-silence it so we
 			-- don't double-spray.
-			if Spring.GetConfigInt("MaxNanoParticles", 0) ~= 0 then
-				Spring.SetConfigInt("MaxNanoParticles", 0)
+			if SpringUnsynced.GetConfigInt("MaxNanoParticles", 0) ~= 0 then
+				SpringUnsynced.SetConfigInt("MaxNanoParticles", 0)
 			end
 		end
 		-- Refresh high-gamespeed throttle (reconnect catchup, user /speed) and
@@ -3266,7 +3266,7 @@ function trackUnit(unitID, unitDefID)
 	if trackedBuilders[unitID] then
 		return
 	end
-	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+	unitDefID = unitDefID or SpringShared.GetUnitDefID(unitID)
 	if not unitDefID then
 		return
 	end

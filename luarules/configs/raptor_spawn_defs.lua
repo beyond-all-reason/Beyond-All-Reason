@@ -8,8 +8,8 @@ local difficulties = {
 	--survival = 6,
 }
 
-local difficulty = difficulties[Spring.GetModOptions().raptor_difficulty]
-local economyScale = 1 * Spring.GetModOptions().multiplier_resourceincome * (0.67 + (Spring.GetModOptions().multiplier_metalextraction * 0.33)) * (0.67 + (Spring.GetModOptions().multiplier_energyconversion * 0.33)) * (0.67 + (Spring.GetModOptions().multiplier_energyproduction * 0.33)) * (((((Spring.GetModOptions().startmetal - 1000) / 9000) + 1) * 0.1) + 0.9) * (((((Spring.GetModOptions().startenergy - 1000) / 9000) + 1) * 0.1) + 0.9)
+local difficulty = difficulties[SpringShared.GetModOptions().raptor_difficulty]
+local economyScale = 1 * SpringShared.GetModOptions().multiplier_resourceincome * (0.67 + (SpringShared.GetModOptions().multiplier_metalextraction * 0.33)) * (0.67 + (SpringShared.GetModOptions().multiplier_energyconversion * 0.33)) * (0.67 + (SpringShared.GetModOptions().multiplier_energyproduction * 0.33)) * (((((SpringShared.GetModOptions().startmetal - 1000) / 9000) + 1) * 0.1) + 0.9) * (((((SpringShared.GetModOptions().startenergy - 1000) / 9000) + 1) * 0.1) + 0.9)
 
 economyScale = math.min(5, (economyScale * 0.33) + 0.67)
 
@@ -19,27 +19,27 @@ local raptorTurrets = {}
 
 -- If you use fractions in spawnerPerWave, it becomes a percentage chance to spawn one.
 
-raptorTurrets["raptor_turret_basic_t2_v1"] = { minQueenAnger = 0, spawnedPerWave = 0.5, maxExisting = 20, maxQueenAnger = 1000 }
-raptorTurrets["raptor_turret_acid_t2_v1"] = { minQueenAnger = 15, spawnedPerWave = 0.25, maxExisting = 10, maxQueenAnger = 1000 }
-raptorTurrets["raptor_turret_emp_t2_v1"] = { minQueenAnger = 15, spawnedPerWave = 0.25, maxExisting = 10, maxQueenAnger = 1000 }
-raptorTurrets["raptor_turret_basic_t3_v1"] = { minQueenAnger = 30, spawnedPerWave = 0.5, maxExisting = 6, maxQueenAnger = 1000 }
-raptorTurrets["raptor_turret_acid_t3_v1"] = { minQueenAnger = 45, spawnedPerWave = 0.25, maxExisting = 3, maxQueenAnger = 1000 }
-raptorTurrets["raptor_turret_emp_t3_v1"] = { minQueenAnger = 45, spawnedPerWave = 0.25, maxExisting = 3, maxQueenAnger = 1000 }
+raptorTurrets.raptor_turret_basic_t2_v1 = { minQueenAnger = 0, spawnedPerWave = 0.5, maxExisting = 20, maxQueenAnger = 1000 }
+raptorTurrets.raptor_turret_acid_t2_v1 = { minQueenAnger = 15, spawnedPerWave = 0.25, maxExisting = 10, maxQueenAnger = 1000 }
+raptorTurrets.raptor_turret_emp_t2_v1 = { minQueenAnger = 15, spawnedPerWave = 0.25, maxExisting = 10, maxQueenAnger = 1000 }
+raptorTurrets.raptor_turret_basic_t3_v1 = { minQueenAnger = 30, spawnedPerWave = 0.5, maxExisting = 6, maxQueenAnger = 1000 }
+raptorTurrets.raptor_turret_acid_t3_v1 = { minQueenAnger = 45, spawnedPerWave = 0.25, maxExisting = 3, maxQueenAnger = 1000 }
+raptorTurrets.raptor_turret_emp_t3_v1 = { minQueenAnger = 45, spawnedPerWave = 0.25, maxExisting = 3, maxQueenAnger = 1000 }
 
-if not Spring.GetModOptions().unit_restrictions_nonukes then
-	raptorTurrets["raptor_turret_antinuke_t2_v1"] = { minQueenAnger = 15, spawnedPerWave = 0.25, maxExisting = 10, maxQueenAnger = 1000 }
-	raptorTurrets["raptor_turret_antinuke_t3_v1"] = { minQueenAnger = 45, spawnedPerWave = 0.25, maxExisting = 3, maxQueenAnger = 1000 }
-	raptorTurrets["raptor_turret_meteor_t4_v1"] = { minQueenAnger = 75, spawnedPerWave = 0.5, maxExisting = 6, maxQueenAnger = 1000 }
+if not SpringShared.GetModOptions().unit_restrictions_nonukes then
+	raptorTurrets.raptor_turret_antinuke_t2_v1 = { minQueenAnger = 15, spawnedPerWave = 0.25, maxExisting = 10, maxQueenAnger = 1000 }
+	raptorTurrets.raptor_turret_antinuke_t3_v1 = { minQueenAnger = 45, spawnedPerWave = 0.25, maxExisting = 3, maxQueenAnger = 1000 }
+	raptorTurrets.raptor_turret_meteor_t4_v1 = { minQueenAnger = 75, spawnedPerWave = 0.5, maxExisting = 6, maxQueenAnger = 1000 }
 end
-if not Spring.GetModOptions().unit_restrictions_noair then
-	raptorTurrets["raptor_turret_antiair_t2_v1"] = { minQueenAnger = 0, spawnedPerWave = 0.5, maxExisting = 20, maxQueenAnger = 1000 }
-	raptorTurrets["raptor_turret_antiair_t3_v1"] = { minQueenAnger = 30, spawnedPerWave = 0.5, maxExisting = 6, maxQueenAnger = 1000 }
-	raptorTurrets["raptor_turret_antiair_t4_v1"] = { minQueenAnger = 60, spawnedPerWave = 0.25, maxExisting = 2, maxQueenAnger = 1000 }
+if not SpringShared.GetModOptions().unit_restrictions_noair then
+	raptorTurrets.raptor_turret_antiair_t2_v1 = { minQueenAnger = 0, spawnedPerWave = 0.5, maxExisting = 20, maxQueenAnger = 1000 }
+	raptorTurrets.raptor_turret_antiair_t3_v1 = { minQueenAnger = 30, spawnedPerWave = 0.5, maxExisting = 6, maxQueenAnger = 1000 }
+	raptorTurrets.raptor_turret_antiair_t4_v1 = { minQueenAnger = 60, spawnedPerWave = 0.25, maxExisting = 2, maxQueenAnger = 1000 }
 end
-if not Spring.GetModOptions().unit_restrictions_nolrpc then
-	raptorTurrets["raptor_turret_basic_t4_v1"] = { minQueenAnger = 60, spawnedPerWave = 0.25, maxExisting = 2, maxQueenAnger = 1000 }
-	raptorTurrets["raptor_turret_emp_t4_v1"] = { minQueenAnger = 75, spawnedPerWave = 0.25, maxExisting = 1, maxQueenAnger = 1000 }
-	raptorTurrets["raptor_turret_acid_t4_v1"] = { minQueenAnger = 75, spawnedPerWave = 0.25, maxExisting = 1, maxQueenAnger = 1000 }
+if not SpringShared.GetModOptions().unit_restrictions_nolrpc then
+	raptorTurrets.raptor_turret_basic_t4_v1 = { minQueenAnger = 60, spawnedPerWave = 0.25, maxExisting = 2, maxQueenAnger = 1000 }
+	raptorTurrets.raptor_turret_emp_t4_v1 = { minQueenAnger = 75, spawnedPerWave = 0.25, maxExisting = 1, maxQueenAnger = 1000 }
+	raptorTurrets.raptor_turret_acid_t4_v1 = { minQueenAnger = 75, spawnedPerWave = 0.25, maxExisting = 1, maxQueenAnger = 1000 }
 end
 
 local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to be true, if some unit is not specified here, it drops random egg colors.
@@ -152,152 +152,152 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 
 raptorBehaviours = {
 	SKIRMISH = { -- Run away from target after target gets hit
-		[UnitDefNames["raptor_land_spiker_basic_t2_v1"].id] = { distance = 270, chance = 0.5 },
-		[UnitDefNames["raptor_land_spiker_basic_t4_v1"].id] = { distance = 250, chance = 0.5 },
-		[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = { distance = 500, chance = 0.1 },
-		[UnitDefNames["raptor_allterrain_arty_basic_t4_v1"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["raptor_land_swarmer_emp_t2_v1"].id] = { distance = 300, chance = 1 },
-		[UnitDefNames["raptor_land_assault_emp_t2_v1"].id] = { distance = 200, chance = 0.01 },
-		[UnitDefNames["raptor_allterrain_assault_emp_t2_v1"].id] = { distance = 200, chance = 0.01 },
-		[UnitDefNames["raptor_allterrain_arty_emp_t2_v1"].id] = { distance = 500, chance = 0.1 },
-		[UnitDefNames["raptor_allterrain_arty_emp_t4_v1"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["raptor_allterrain_swarmer_emp_t2_v1"].id] = { distance = 300, chance = 1 },
-		[UnitDefNames["raptor_land_swarmer_acids_t2_v1"].id] = { distance = 300, chance = 1 },
-		[UnitDefNames["raptor_land_assault_acid_t2_v1"].id] = { distance = 200, chance = 1 },
-		[UnitDefNames["raptor_allterrain_assault_acid_t2_v1"].id] = { distance = 200, chance = 1 },
-		[UnitDefNames["raptor_allterrain_arty_acid_t2_v1"].id] = { distance = 500, chance = 0.1 },
-		[UnitDefNames["raptor_allterrain_arty_acid_t4_v1"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["raptor_allterrain_swarmer_acid_t2_v1"].id] = { distance = 300, chance = 1 },
-		[UnitDefNames["raptor_land_swarmer_brood_t4_v1"].id] = { distance = 500, chance = 0.25 },
-		[UnitDefNames["raptor_allterrain_arty_brood_t2_v1"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptor_allterrain_arty_brood_t4_v1"].id] = { distance = 500, chance = 0.1 },
-		[UnitDefNames["raptor_land_swarmer_spectre_t3_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
-		[UnitDefNames["raptor_land_swarmer_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
-		[UnitDefNames["raptor_land_spiker_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
-		[UnitDefNames["raptor_land_assault_spectre_t2_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
-		[UnitDefNames["raptor_land_assault_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
-		[UnitDefNames["raptor_matriarch_spectre"].id] = { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 2 },
-		[UnitDefNames["raptor_matriarch_electric"].id] = { distance = 500, chance = 0.001 },
-		[UnitDefNames["raptor_matriarch_acid"].id] = { distance = 500, chance = 0.001 },
-		[UnitDefNames["raptor_matriarch_healer"].id] = { distance = 500, chance = 0.001 },
-		[UnitDefNames["raptor_matriarch_basic"].id] = { distance = 500, chance = 0.001 },
-		[UnitDefNames["raptor_matriarch_fire"].id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames.raptor_land_spiker_basic_t2_v1.id] = { distance = 270, chance = 0.5 },
+		[UnitDefNames.raptor_land_spiker_basic_t4_v1.id] = { distance = 250, chance = 0.5 },
+		[UnitDefNames.raptor_allterrain_arty_basic_t2_v1.id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames.raptor_allterrain_arty_basic_t4_v1.id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames.raptor_land_swarmer_emp_t2_v1.id] = { distance = 300, chance = 1 },
+		[UnitDefNames.raptor_land_assault_emp_t2_v1.id] = { distance = 200, chance = 0.01 },
+		[UnitDefNames.raptor_allterrain_assault_emp_t2_v1.id] = { distance = 200, chance = 0.01 },
+		[UnitDefNames.raptor_allterrain_arty_emp_t2_v1.id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames.raptor_allterrain_arty_emp_t4_v1.id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames.raptor_allterrain_swarmer_emp_t2_v1.id] = { distance = 300, chance = 1 },
+		[UnitDefNames.raptor_land_swarmer_acids_t2_v1.id] = { distance = 300, chance = 1 },
+		[UnitDefNames.raptor_land_assault_acid_t2_v1.id] = { distance = 200, chance = 1 },
+		[UnitDefNames.raptor_allterrain_assault_acid_t2_v1.id] = { distance = 200, chance = 1 },
+		[UnitDefNames.raptor_allterrain_arty_acid_t2_v1.id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames.raptor_allterrain_arty_acid_t4_v1.id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames.raptor_allterrain_swarmer_acid_t2_v1.id] = { distance = 300, chance = 1 },
+		[UnitDefNames.raptor_land_swarmer_brood_t4_v1.id] = { distance = 500, chance = 0.25 },
+		[UnitDefNames.raptor_allterrain_arty_brood_t2_v1.id] = { distance = 500, chance = 1 },
+		[UnitDefNames.raptor_allterrain_arty_brood_t4_v1.id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames.raptor_land_swarmer_spectre_t3_v1.id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames.raptor_land_swarmer_spectre_t4_v1.id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames.raptor_land_spiker_spectre_t4_v1.id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames.raptor_land_assault_spectre_t2_v1.id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames.raptor_land_assault_spectre_t4_v1.id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames.raptor_matriarch_spectre.id] = { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames.raptor_matriarch_electric.id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames.raptor_matriarch_acid.id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames.raptor_matriarch_healer.id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames.raptor_matriarch_basic.id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames.raptor_matriarch_fire.id] = { distance = 500, chance = 0.001 },
 	},
 	COWARD = { -- Run away from target after getting hit by enemy
-		[UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptor_land_swarmer_heal_t2_v1"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptor_land_swarmer_heal_t3_v1"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptor_land_swarmer_heal_t4_v1"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptorh1b"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptor_land_spiker_basic_t2_v1"].id] = { distance = 270, chance = 0.5 },
-		[UnitDefNames["raptor_land_spiker_basic_t4_v1"].id] = { distance = 250, chance = 0.5 },
-		[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptor_allterrain_arty_basic_t4_v1"].id] = { distance = 500, chance = 0.1 },
-		[UnitDefNames["raptor_allterrain_arty_emp_t2_v1"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptor_allterrain_arty_emp_t4_v1"].id] = { distance = 500, chance = 0.1 },
-		[UnitDefNames["raptor_allterrain_arty_acid_t2_v1"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptor_allterrain_arty_acid_t4_v1"].id] = { distance = 500, chance = 0.1 },
-		[UnitDefNames["raptor_allterrain_arty_brood_t2_v1"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptor_allterrain_arty_brood_t4_v1"].id] = { distance = 500, chance = 0.1 },
-		[UnitDefNames["raptor_land_swarmer_brood_t4_v1"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptor_land_swarmer_brood_t3_v1"].id] = { distance = 500, chance = 0.25 },
-		[UnitDefNames["raptor_land_swarmer_spectre_t3_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
-		[UnitDefNames["raptor_land_swarmer_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
-		[UnitDefNames["raptor_land_spiker_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
-		[UnitDefNames["raptor_land_assault_spectre_t2_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
-		[UnitDefNames["raptor_land_assault_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
-		[UnitDefNames["raptor_matriarch_spectre"].id] = { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 2 },
-		[UnitDefNames["raptor_matriarch_electric"].id] = { distance = 500, chance = 0.001 },
-		[UnitDefNames["raptor_matriarch_acid"].id] = { distance = 500, chance = 0.001 },
-		[UnitDefNames["raptor_matriarch_healer"].id] = { distance = 500, chance = 0.001 },
-		[UnitDefNames["raptor_matriarch_basic"].id] = { distance = 500, chance = 0.001 },
-		[UnitDefNames["raptor_matriarch_fire"].id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames.raptor_land_swarmer_heal_t1_v1.id] = { distance = 500, chance = 1 },
+		[UnitDefNames.raptor_land_swarmer_heal_t2_v1.id] = { distance = 500, chance = 1 },
+		[UnitDefNames.raptor_land_swarmer_heal_t3_v1.id] = { distance = 500, chance = 1 },
+		[UnitDefNames.raptor_land_swarmer_heal_t4_v1.id] = { distance = 500, chance = 1 },
+		[UnitDefNames.raptorh1b.id] = { distance = 500, chance = 1 },
+		[UnitDefNames.raptor_land_spiker_basic_t2_v1.id] = { distance = 270, chance = 0.5 },
+		[UnitDefNames.raptor_land_spiker_basic_t4_v1.id] = { distance = 250, chance = 0.5 },
+		[UnitDefNames.raptor_allterrain_arty_basic_t2_v1.id] = { distance = 500, chance = 1 },
+		[UnitDefNames.raptor_allterrain_arty_basic_t4_v1.id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames.raptor_allterrain_arty_emp_t2_v1.id] = { distance = 500, chance = 1 },
+		[UnitDefNames.raptor_allterrain_arty_emp_t4_v1.id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames.raptor_allterrain_arty_acid_t2_v1.id] = { distance = 500, chance = 1 },
+		[UnitDefNames.raptor_allterrain_arty_acid_t4_v1.id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames.raptor_allterrain_arty_brood_t2_v1.id] = { distance = 500, chance = 1 },
+		[UnitDefNames.raptor_allterrain_arty_brood_t4_v1.id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames.raptor_land_swarmer_brood_t4_v1.id] = { distance = 500, chance = 1 },
+		[UnitDefNames.raptor_land_swarmer_brood_t3_v1.id] = { distance = 500, chance = 0.25 },
+		[UnitDefNames.raptor_land_swarmer_spectre_t3_v1.id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames.raptor_land_swarmer_spectre_t4_v1.id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames.raptor_land_spiker_spectre_t4_v1.id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames.raptor_land_assault_spectre_t2_v1.id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames.raptor_land_assault_spectre_t4_v1.id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames.raptor_matriarch_spectre.id] = { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames.raptor_matriarch_electric.id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames.raptor_matriarch_acid.id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames.raptor_matriarch_healer.id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames.raptor_matriarch_basic.id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames.raptor_matriarch_fire.id] = { distance = 500, chance = 0.001 },
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
-		[UnitDefNames["raptor_land_spiker_basic_t4_v1"].id] = { chance = 0.2, distance = 750 },
-		[UnitDefNames["raptor_land_assault_basic_t2_v1"].id] = { chance = 0.2, distance = 1500 },
-		[UnitDefNames["raptor_land_assault_basic_t2_v2"].id] = { chance = 0.2, distance = 1500 },
-		[UnitDefNames["raptor_land_assault_basic_t2_v3"].id] = { chance = 0.2, distance = 1500 },
-		[UnitDefNames["raptor_allterrain_assault_basic_t2_v1"].id] = { chance = 0.2, distance = 1500 },
-		[UnitDefNames["raptor_allterrain_assault_basic_t2_v2"].id] = { chance = 0.2, distance = 1500 },
-		[UnitDefNames["raptor_allterrain_assault_basic_t2_v3"].id] = { chance = 0.2, distance = 1500 },
-		[UnitDefNames["raptor_land_assault_basic_t4_v1"].id] = { chance = 0.2, distance = 3000 },
-		[UnitDefNames["raptor_land_assault_basic_t4_v2"].id] = { chance = 0.2, distance = 3000 },
-		[UnitDefNames["raptor_allterrain_assault_basic_t4_v1"].id] = { chance = 0.2, distance = 3000 },
-		[UnitDefNames["raptor_allterrain_assault_basic_t4_v2"].id] = { chance = 0.2, distance = 3000 },
-		[UnitDefNames["raptor_land_assault_emp_t2_v1"].id] = { chance = 0.05 },
-		[UnitDefNames["raptor_allterrain_assault_emp_t2_v1"].id] = { chance = 0.05 },
-		[UnitDefNames["raptor_land_assault_acid_t2_v1"].id] = { chance = 0.05 },
-		[UnitDefNames["raptor_allterrain_assault_acid_t2_v1"].id] = { chance = 0.05 },
-		[UnitDefNames["raptor_land_swarmer_acids_t2_v1"].id] = { chance = 0.01 },
-		[UnitDefNames["raptor_allterrain_swarmer_acid_t2_v1"].id] = { chance = 0.01 },
-		[UnitDefNames["raptor_land_swarmer_fire_t2_v1"].id] = { chance = 0.2 },
-		[UnitDefNames["raptor_land_swarmer_fire_t4_v1"].id] = { chance = 0.2 },
-		[UnitDefNames["raptor_allterrain_swarmer_fire_t2_v1"].id] = { chance = 0.2 },
-		[UnitDefNames["raptor_land_swarmer_brood_t2_v1"].id] = { chance = 1 },
-		[UnitDefNames["raptor_land_swarmer_spectre_t3_v1"].id] = { distance = 1000, chance = 0.25 },
-		[UnitDefNames["raptor_land_swarmer_spectre_t4_v1"].id] = { distance = 1000, chance = 0.25 },
-		[UnitDefNames["raptor_land_assault_spectre_t2_v1"].id] = { distance = 1000, chance = 0.25 },
-		[UnitDefNames["raptor_land_assault_spectre_t4_v1"].id] = { distance = 1000, chance = 0.25 },
-		[UnitDefNames["raptor_land_spiker_spectre_t4_v1"].id] = { distance = 1000, chance = 0.25 },
-		[UnitDefNames["raptor_matriarch_spectre"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["raptor_matriarch_electric"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["raptor_matriarch_acid"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["raptor_matriarch_healer"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["raptor_matriarch_basic"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["raptor_matriarch_fire"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["raptor_queen_veryeasy"].id] = { chance = 0.005 },
-		[UnitDefNames["raptor_queen_easy"].id] = { chance = 0.005 },
-		[UnitDefNames["raptor_queen_normal"].id] = { chance = 0.005 },
-		[UnitDefNames["raptor_queen_hard"].id] = { chance = 0.005 },
-		[UnitDefNames["raptor_queen_veryhard"].id] = { chance = 0.005 },
-		[UnitDefNames["raptor_queen_epic"].id] = { chance = 0.005 },
+		[UnitDefNames.raptor_land_spiker_basic_t4_v1.id] = { chance = 0.2, distance = 750 },
+		[UnitDefNames.raptor_land_assault_basic_t2_v1.id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames.raptor_land_assault_basic_t2_v2.id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames.raptor_land_assault_basic_t2_v3.id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames.raptor_allterrain_assault_basic_t2_v1.id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames.raptor_allterrain_assault_basic_t2_v2.id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames.raptor_allterrain_assault_basic_t2_v3.id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames.raptor_land_assault_basic_t4_v1.id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames.raptor_land_assault_basic_t4_v2.id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames.raptor_allterrain_assault_basic_t4_v1.id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames.raptor_allterrain_assault_basic_t4_v2.id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames.raptor_land_assault_emp_t2_v1.id] = { chance = 0.05 },
+		[UnitDefNames.raptor_allterrain_assault_emp_t2_v1.id] = { chance = 0.05 },
+		[UnitDefNames.raptor_land_assault_acid_t2_v1.id] = { chance = 0.05 },
+		[UnitDefNames.raptor_allterrain_assault_acid_t2_v1.id] = { chance = 0.05 },
+		[UnitDefNames.raptor_land_swarmer_acids_t2_v1.id] = { chance = 0.01 },
+		[UnitDefNames.raptor_allterrain_swarmer_acid_t2_v1.id] = { chance = 0.01 },
+		[UnitDefNames.raptor_land_swarmer_fire_t2_v1.id] = { chance = 0.2 },
+		[UnitDefNames.raptor_land_swarmer_fire_t4_v1.id] = { chance = 0.2 },
+		[UnitDefNames.raptor_allterrain_swarmer_fire_t2_v1.id] = { chance = 0.2 },
+		[UnitDefNames.raptor_land_swarmer_brood_t2_v1.id] = { chance = 1 },
+		[UnitDefNames.raptor_land_swarmer_spectre_t3_v1.id] = { distance = 1000, chance = 0.25 },
+		[UnitDefNames.raptor_land_swarmer_spectre_t4_v1.id] = { distance = 1000, chance = 0.25 },
+		[UnitDefNames.raptor_land_assault_spectre_t2_v1.id] = { distance = 1000, chance = 0.25 },
+		[UnitDefNames.raptor_land_assault_spectre_t4_v1.id] = { distance = 1000, chance = 0.25 },
+		[UnitDefNames.raptor_land_spiker_spectre_t4_v1.id] = { distance = 1000, chance = 0.25 },
+		[UnitDefNames.raptor_matriarch_spectre.id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames.raptor_matriarch_electric.id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames.raptor_matriarch_acid.id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames.raptor_matriarch_healer.id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames.raptor_matriarch_basic.id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames.raptor_matriarch_fire.id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames.raptor_queen_veryeasy.id] = { chance = 0.005 },
+		[UnitDefNames.raptor_queen_easy.id] = { chance = 0.005 },
+		[UnitDefNames.raptor_queen_normal.id] = { chance = 0.005 },
+		[UnitDefNames.raptor_queen_hard.id] = { chance = 0.005 },
+		[UnitDefNames.raptor_queen_veryhard.id] = { chance = 0.005 },
+		[UnitDefNames.raptor_queen_epic.id] = { chance = 0.005 },
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
-		[UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = true,
-		[UnitDefNames["raptor_land_swarmer_heal_t2_v1"].id] = true,
-		[UnitDefNames["raptor_land_swarmer_heal_t3_v1"].id] = true,
-		[UnitDefNames["raptor_land_swarmer_heal_t4_v1"].id] = true,
-		[UnitDefNames["raptorh1b"].id] = true,
+		[UnitDefNames.raptor_land_swarmer_heal_t1_v1.id] = true,
+		[UnitDefNames.raptor_land_swarmer_heal_t2_v1.id] = true,
+		[UnitDefNames.raptor_land_swarmer_heal_t3_v1.id] = true,
+		[UnitDefNames.raptor_land_swarmer_heal_t4_v1.id] = true,
+		[UnitDefNames.raptorh1b.id] = true,
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance, friendly fire enabled (assuming nothing else in the game stops it)
-		[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = true,
-		[UnitDefNames["raptor_allterrain_arty_basic_t4_v1"].id] = true,
-		[UnitDefNames["raptor_allterrain_arty_emp_t2_v1"].id] = true,
-		[UnitDefNames["raptor_allterrain_arty_emp_t4_v1"].id] = true,
-		[UnitDefNames["raptor_allterrain_arty_acid_t2_v1"].id] = true,
-		[UnitDefNames["raptor_allterrain_arty_acid_t4_v1"].id] = true,
-		[UnitDefNames["raptor_allterrain_arty_brood_t4_v1"].id] = true,
-		[UnitDefNames["raptor_allterrain_arty_brood_t2_v1"].id] = true,
-		[UnitDefNames["raptor_turret_meteor_t4_v1"].id] = true,
+		[UnitDefNames.raptor_allterrain_arty_basic_t2_v1.id] = true,
+		[UnitDefNames.raptor_allterrain_arty_basic_t4_v1.id] = true,
+		[UnitDefNames.raptor_allterrain_arty_emp_t2_v1.id] = true,
+		[UnitDefNames.raptor_allterrain_arty_emp_t4_v1.id] = true,
+		[UnitDefNames.raptor_allterrain_arty_acid_t2_v1.id] = true,
+		[UnitDefNames.raptor_allterrain_arty_acid_t4_v1.id] = true,
+		[UnitDefNames.raptor_allterrain_arty_brood_t4_v1.id] = true,
+		[UnitDefNames.raptor_allterrain_arty_brood_t2_v1.id] = true,
+		[UnitDefNames.raptor_turret_meteor_t4_v1.id] = true,
 	},
 	KAMIKAZE = { -- Long lifetime and no regrouping, always uses Move command to rush into the enemy
-		[UnitDefNames["raptor_land_kamikaze_basic_t2_v1"].id] = true,
-		[UnitDefNames["raptor_land_kamikaze_basic_t4_v1"].id] = true,
-		[UnitDefNames["raptor_land_kamikaze_emp_t2_v1"].id] = true,
-		[UnitDefNames["raptor_land_kamikaze_emp_t4_v1"].id] = true,
-		[UnitDefNames["raptor_air_kamikaze_basic_t2_v1"].id] = true,
+		[UnitDefNames.raptor_land_kamikaze_basic_t2_v1.id] = true,
+		[UnitDefNames.raptor_land_kamikaze_basic_t4_v1.id] = true,
+		[UnitDefNames.raptor_land_kamikaze_emp_t2_v1.id] = true,
+		[UnitDefNames.raptor_land_kamikaze_emp_t4_v1.id] = true,
+		[UnitDefNames.raptor_air_kamikaze_basic_t2_v1.id] = true,
 	},
 	ALLOWFRIENDLYFIRE = {
-		[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = true,
-		[UnitDefNames["raptor_allterrain_arty_basic_t4_v1"].id] = true,
-		[UnitDefNames["raptor_turret_basic_t2_v1"].id] = true,
-		[UnitDefNames["raptor_turret_basic_t3_v1"].id] = true,
-		[UnitDefNames["raptor_turret_basic_t4_v1"].id] = true,
-		[UnitDefNames["raptor_turret_meteor_t4_v1"].id] = true,
-		[UnitDefNames["raptor_hive"].id] = true,
+		[UnitDefNames.raptor_allterrain_arty_basic_t2_v1.id] = true,
+		[UnitDefNames.raptor_allterrain_arty_basic_t4_v1.id] = true,
+		[UnitDefNames.raptor_turret_basic_t2_v1.id] = true,
+		[UnitDefNames.raptor_turret_basic_t3_v1.id] = true,
+		[UnitDefNames.raptor_turret_basic_t4_v1.id] = true,
+		[UnitDefNames.raptor_turret_meteor_t4_v1.id] = true,
+		[UnitDefNames.raptor_hive.id] = true,
 	},
-	PROBE_UNIT = UnitDefNames["raptor_land_swarmer_basic_t4_v1"].id, -- tester unit for picking viable spawn positions - use some medium sized unit
+	PROBE_UNIT = UnitDefNames.raptor_land_swarmer_basic_t4_v1.id, -- tester unit for picking viable spawn positions - use some medium sized unit
 }
 
 local optionValues = {
 
 	[difficulties.veryeasy] = {
-		gracePeriod = 9 * Spring.GetModOptions().raptor_graceperiodmult * 60,
-		queenTime = 55 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, seconds
-		raptorSpawnRate = 120 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
-		burrowSpawnRate = 240 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
-		turretSpawnRate = 120 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
+		gracePeriod = 9 * SpringShared.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime = 55 * SpringShared.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, seconds
+		raptorSpawnRate = 120 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
+		burrowSpawnRate = 240 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
+		turretSpawnRate = 120 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
 		queenSpawnMult = 1,
 		angerBonus = 0.1,
 		maxXP = 0.5 * economyScale,
@@ -313,11 +313,11 @@ local optionValues = {
 	},
 
 	[difficulties.easy] = {
-		gracePeriod = 8 * Spring.GetModOptions().raptor_graceperiodmult * 60,
-		queenTime = 50 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, seconds
-		raptorSpawnRate = 90 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
-		burrowSpawnRate = 210 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
-		turretSpawnRate = 100 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
+		gracePeriod = 8 * SpringShared.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime = 50 * SpringShared.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, seconds
+		raptorSpawnRate = 90 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
+		burrowSpawnRate = 210 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
+		turretSpawnRate = 100 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
 		queenSpawnMult = 1,
 		angerBonus = 0.15,
 		maxXP = 1 * economyScale,
@@ -332,11 +332,11 @@ local optionValues = {
 		queenResistanceMult = 0.75 * economyScale,
 	},
 	[difficulties.normal] = {
-		gracePeriod = 7 * Spring.GetModOptions().raptor_graceperiodmult * 60,
-		queenTime = 45 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, seconds
-		raptorSpawnRate = 60 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
-		burrowSpawnRate = 180 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
-		turretSpawnRate = 80 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
+		gracePeriod = 7 * SpringShared.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime = 45 * SpringShared.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, seconds
+		raptorSpawnRate = 60 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
+		burrowSpawnRate = 180 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
+		turretSpawnRate = 80 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
 		queenSpawnMult = 3,
 		angerBonus = 0.20,
 		maxXP = 1.5 * economyScale,
@@ -351,11 +351,11 @@ local optionValues = {
 		queenResistanceMult = 1 * economyScale,
 	},
 	[difficulties.hard] = {
-		gracePeriod = 6 * Spring.GetModOptions().raptor_graceperiodmult * 60,
-		queenTime = 40 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, seconds
-		raptorSpawnRate = 50 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
-		burrowSpawnRate = 150 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
-		turretSpawnRate = 60 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
+		gracePeriod = 6 * SpringShared.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime = 40 * SpringShared.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, seconds
+		raptorSpawnRate = 50 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
+		burrowSpawnRate = 150 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
+		turretSpawnRate = 60 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
 		queenSpawnMult = 3,
 		angerBonus = 0.25,
 		maxXP = 2 * economyScale,
@@ -370,11 +370,11 @@ local optionValues = {
 		queenResistanceMult = 1.33 * economyScale,
 	},
 	[difficulties.veryhard] = {
-		gracePeriod = 5 * Spring.GetModOptions().raptor_graceperiodmult * 60,
-		queenTime = 35 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, seconds
-		raptorSpawnRate = 40 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
-		burrowSpawnRate = 120 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
-		turretSpawnRate = 40 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
+		gracePeriod = 5 * SpringShared.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime = 35 * SpringShared.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, seconds
+		raptorSpawnRate = 40 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
+		burrowSpawnRate = 120 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
+		turretSpawnRate = 40 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
 		queenSpawnMult = 3,
 		angerBonus = 0.30,
 		maxXP = 2.5 * economyScale,
@@ -389,11 +389,11 @@ local optionValues = {
 		queenResistanceMult = 1.67 * economyScale,
 	},
 	[difficulties.epic] = {
-		gracePeriod = 4 * Spring.GetModOptions().raptor_graceperiodmult * 60,
-		queenTime = 30 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, seconds
-		raptorSpawnRate = 30 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
-		burrowSpawnRate = 90 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
-		turretSpawnRate = 20 / Spring.GetModOptions().raptor_spawntimemult / economyScale,
+		gracePeriod = 4 * SpringShared.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime = 30 * SpringShared.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, seconds
+		raptorSpawnRate = 30 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
+		burrowSpawnRate = 90 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
+		turretSpawnRate = 20 / SpringShared.GetModOptions().raptor_spawntimemult / economyScale,
 		queenSpawnMult = 3,
 		angerBonus = 0.35,
 		maxXP = 3 * economyScale,
@@ -480,63 +480,63 @@ local miniBosses = { -- Units that spawn alongside queen
 }
 
 local raptorMinions = { -- Units spawning other units
-	["raptor_matriarch_electric"] = {
+	raptor_matriarch_electric = {
 		"raptor_land_swarmer_emp_t2_v1",
 		"raptor_land_assault_emp_t2_v1",
 		--"raptor_allterrain_arty_emp_t2_v1",
 		"raptor_allterrain_swarmer_emp_t2_v1",
 		"raptor_allterrain_assault_emp_t2_v1",
 	},
-	["raptor_matriarch_acid"] = {
+	raptor_matriarch_acid = {
 		"raptor_land_swarmer_acids_t2_v1",
 		"raptor_land_assault_acid_t2_v1",
 		--"raptor_allterrain_arty_acid_t2_v1",
 		"raptor_allterrain_swarmer_acid_t2_v1",
 		"raptor_allterrain_assault_acid_t2_v1",
 	},
-	["raptor_matriarch_healer"] = {
+	raptor_matriarch_healer = {
 		"raptor_land_swarmer_heal_t1_v1",
 		"raptor_land_swarmer_heal_t2_v1",
 		"raptor_land_swarmer_heal_t3_v1",
 		"raptor_land_swarmer_heal_t4_v1",
 		--"raptorh1b",
 	},
-	["raptor_matriarch_basic"] = {
+	raptor_matriarch_basic = {
 		"raptor_land_swarmer_basic_t2_v1",
 		"raptor_land_swarmer_basic_t3_v1",
 		"raptor_land_swarmer_basic_t4_v1",
 		"raptor_land_swarmer_basic_t4_v2",
 		"raptor_allterrain_swarmer_basic_t4_v1",
 	},
-	["raptor_matriarch_fire"] = {
+	raptor_matriarch_fire = {
 		"raptor_land_swarmer_fire_t2_v1",
 		"raptor_land_swarmer_fire_t4_v1",
 		"raptor_allterrain_swarmer_fire_t2_v1",
 	},
-	["raptor_matriarch_spectre"] = {
+	raptor_matriarch_spectre = {
 		"raptor_land_spiker_spectre_t4_v1",
 		"raptor_land_swarmer_spectre_t3_v1",
 		"raptor_land_swarmer_spectre_t4_v1",
 		"raptor_land_assault_spectre_t2_v1",
 		"raptor_land_assault_spectre_t4_v1",
 	},
-	["raptor_land_swarmer_brood_t4_v1"] = {
+	raptor_land_swarmer_brood_t4_v1 = {
 		"raptor_land_swarmer_brood_t3_v1",
 		"raptor_land_swarmer_brood_t2_v1",
 	},
-	["raptor_land_swarmer_brood_t3_v1"] = {
+	raptor_land_swarmer_brood_t3_v1 = {
 		"raptor_land_swarmer_brood_t2_v1",
 	},
-	["raptor_allterrain_arty_brood_t4_v1"] = {
+	raptor_allterrain_arty_brood_t4_v1 = {
 		"raptor_land_swarmer_brood_t2_v1",
 	},
-	["raptor_queen_veryeasy"] = {
+	raptor_queen_veryeasy = {
 		"raptor_land_swarmer_brood_t4_v1",
 		"raptor_land_swarmer_brood_t3_v1",
 		"raptor_land_swarmer_brood_t2_v1",
 		"raptor_land_swarmer_heal_t1_v1",
 	},
-	["raptor_queen_easy"] = {
+	raptor_queen_easy = {
 		"raptor_land_swarmer_brood_t4_v1",
 		"raptor_land_swarmer_brood_t3_v1",
 		"raptor_land_swarmer_brood_t2_v1",
@@ -544,7 +544,7 @@ local raptorMinions = { -- Units spawning other units
 		"raptor_land_swarmer_heal_t1_v1",
 		"raptor_land_swarmer_heal_t2_v1",
 	},
-	["raptor_queen_normal"] = {
+	raptor_queen_normal = {
 		"raptor_land_swarmer_brood_t4_v1",
 		"raptor_land_swarmer_brood_t3_v1",
 		"raptor_land_swarmer_brood_t2_v1",
@@ -552,7 +552,7 @@ local raptorMinions = { -- Units spawning other units
 		"raptor_land_swarmer_heal_t2_v1",
 		"raptor_land_swarmer_heal_t3_v1",
 	},
-	["raptor_queen_hard"] = {
+	raptor_queen_hard = {
 		"raptor_land_swarmer_brood_t4_v1",
 		"raptor_land_swarmer_brood_t3_v1",
 		"raptor_land_swarmer_brood_t2_v1",
@@ -560,7 +560,7 @@ local raptorMinions = { -- Units spawning other units
 		"raptor_land_swarmer_heal_t2_v1",
 		"raptor_land_swarmer_heal_t3_v1",
 	},
-	["raptor_queen_veryhard"] = {
+	raptor_queen_veryhard = {
 		"raptor_land_swarmer_brood_t4_v1",
 		"raptor_land_swarmer_brood_t3_v1",
 		"raptor_land_swarmer_brood_t2_v1",
@@ -568,7 +568,7 @@ local raptorMinions = { -- Units spawning other units
 		"raptor_land_swarmer_heal_t3_v1",
 		"raptor_land_swarmer_heal_t4_v1",
 	},
-	["raptor_queen_epic"] = {
+	raptor_queen_epic = {
 		"raptor_land_swarmer_brood_t4_v1",
 		"raptor_land_swarmer_brood_t3_v1",
 		"raptor_land_swarmer_brood_t2_v1",
@@ -2347,7 +2347,7 @@ end
 ---------------------------------------------
 
 local airStartAnger = 0 -- needed for air waves to work correctly.
-if Spring.GetModOptions().unit_restrictions_noair then
+if SpringShared.GetModOptions().unit_restrictions_noair then
 	airStartAnger = 10000
 end
 --Scouts------------------------------------------------------------------------------------------------------
@@ -3042,9 +3042,9 @@ local config = { -- Don't touch this! ------------------------------------------
 	raptorEggs = table.copy(raptorEggs),
 	burrowName = burrowName, -- burrow unit name
 	burrowDef = UnitDefNames[burrowName] and UnitDefNames[burrowName].id,
-	raptorSpawnMultiplier = Spring.GetModOptions().raptor_spawncountmult,
-	burrowSpawnType = Spring.GetModOptions().raptor_raptorstart,
-	swarmMode = Spring.GetModOptions().raptor_swarmmode,
+	raptorSpawnMultiplier = SpringShared.GetModOptions().raptor_spawncountmult,
+	burrowSpawnType = SpringShared.GetModOptions().raptor_raptorstart,
+	swarmMode = SpringShared.GetModOptions().raptor_swarmmode,
 	spawnSquare = spawnSquare,
 	spawnSquareIncrement = spawnSquareIncrement,
 	raptorTurrets = table.copy(raptorTurrets),

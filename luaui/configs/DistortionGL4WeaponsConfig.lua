@@ -1327,7 +1327,7 @@ local SizeRadius = {
 	Planetary = 5000,
 }
 
-local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
+local globalDamageMult = SpringShared.GetModOptions().multiplier_weapondamage or 1
 
 local function GetClosestSizeClass(desiredsize)
 	local delta = math.huge
@@ -1414,7 +1414,7 @@ local gibDistortion = {
 local muzzleFlashDistortions = {}
 local explosionDistortions = {}
 local projectileDefDistortions = {
-	["default"] = {
+	default = {
 		distortionType = "point",
 		distortionConfig = { posx = 0, posy = 16, posz = 0, radius = 420, lifeTime = 50, sustain = 20, effectType = 0 },
 	},
@@ -1550,7 +1550,7 @@ local function AssignDistortionsToAllWeapons()
 
 			-- if it's a machine-gun or rapid-fire, give it NO distortion
 			if lname:find("mg_weapon") or lname:find("legflak") or lname:find("machinegun") or lname:find("shotgun") then
-				Spring.Echo("LaserCannon no distortion for " .. weaponDef.name)
+				SpringShared.Echo("LaserCannon no distortion for " .. weaponDef.name)
 				--projectileDefDistortions[weaponID] = GetDistortionClass("NoEffect", sizeclass, overrideTable)
 
 				-- otherwise give it the regular cannon distortion
@@ -1731,7 +1731,7 @@ local function AssignDistortionsToAllWeapons()
 			end
 		end
 	end
-	Spring.Echo(Spring.GetGameFrame(), "DLGL4 weapons conf using", usedclasses, "distortion types")
+	SpringShared.Echo(SpringShared.GetGameFrame(), "DLGL4 weapons conf using", usedclasses, "distortion types")
 end
 AssignDistortionsToAllWeapons() -- disable this if it doest work
 
@@ -1744,18 +1744,18 @@ local projectileDefDistortionsNames = {}
 -- 	GetDistortionClass("ProjectileDgun", "Micro")
 -- 	GetDistortionClass("AirShockWaveDgun", "Micro")
 
-projectileDefDistortionsNames["corjugg_juggernaut_fire"] = GetDistortionClass("AirShockWaveDgun", "Nano", {
+projectileDefDistortionsNames.corjugg_juggernaut_fire = GetDistortionClass("AirShockWaveDgun", "Nano", {
 	lifeTime = 40,
 })
 
-explosionDistortionsNames["corjugg_juggernaut_fire"] = {
+explosionDistortionsNames.corjugg_juggernaut_fire = {
 	--GetDistortionClass("GroundShockWave", "Smaller", {
 	--	lifeTime = 24, }),
 	--GetDistortionClass("AirShockWaveDgun", "Smaller"),
 	GetDistortionClass("ExplosionRadiationDgun", "Micro"),
 }
 
-projectileDefDistortionsNames["cormort_cor_mort"] = GetDistortionClass("PlasmaTrailProjectile", "Small", {
+projectileDefDistortionsNames.cormort_cor_mort = GetDistortionClass("PlasmaTrailProjectile", "Small", {
 	theta = 0.08,
 	noiseStrength = 5,
 	noiseScaleSpace = 0.88,
@@ -1768,7 +1768,7 @@ projectileDefDistortionsNames["cormort_cor_mort"] = GetDistortionClass("PlasmaTr
 	startRadius = 0.1,
 	yoffset = 8,
 })
-explosionDistortionsNames["cormort_cor_mort"] = {
+explosionDistortionsNames.cormort_cor_mort = {
 	-- GetDistortionClass("GroundShockWave", "Pico", {
 	-- 	lifeTime = 18, }),
 	GetDistortionClass("AirShockWaveXS", "Femto", {
@@ -1777,7 +1777,7 @@ explosionDistortionsNames["cormort_cor_mort"] = {
 	}),
 }
 
-projectileDefDistortionsNames["armmav_armmav_weapon"] = GetDistortionClass("PlasmaTrailProjectile", "Smaller", {
+projectileDefDistortionsNames.armmav_armmav_weapon = GetDistortionClass("PlasmaTrailProjectile", "Smaller", {
 	theta = 0.11,
 	noiseStrength = 15,
 	noiseScaleSpace = 0.55,
@@ -1786,14 +1786,14 @@ projectileDefDistortionsNames["armmav_armmav_weapon"] = GetDistortionClass("Plas
 	decay = 0,
 	radius = 40,
 })
-explosionDistortionsNames["armmav_armmav_weapon"] = {
+explosionDistortionsNames.armmav_armmav_weapon = {
 	GetDistortionClass("GroundShockWave", "Micro", {
 		lifeTime = 19,
 		effectStrength = 1.0,
 	}),
 }
 
-explosionDistortionsNames["armemp_armemp_weapon"] = {
+explosionDistortionsNames.armemp_armemp_weapon = {
 	GetDistortionClass("EMPShockWave", "Medium", {
 		effectStrength = -2.5,
 	}),
@@ -1802,7 +1802,7 @@ explosionDistortionsNames["armemp_armemp_weapon"] = {
 	GetDistortionClass("AirShockWaveEMP", "Tiny", {}),
 }
 
-explosionDistortionsNames["armthor_empmissile"] = {
+explosionDistortionsNames.armthor_empmissile = {
 	GetDistortionClass("EMPShockWave", "Small", {
 		effectStrength = -2.5,
 	}),
@@ -1811,7 +1811,7 @@ explosionDistortionsNames["armthor_empmissile"] = {
 	GetDistortionClass("AirShockWaveEMP", "Nano", {}),
 }
 
-explosionDistortionsNames["spybombx"] = {
+explosionDistortionsNames.spybombx = {
 	GetDistortionClass("EMPShockWave", "Medium", {
 		effectStrength = -2.5,
 	}),
@@ -1820,7 +1820,7 @@ explosionDistortionsNames["spybombx"] = {
 	GetDistortionClass("AirShockWaveEMP", "Tiny", {}),
 }
 
-explosionDistortionsNames["armstil_stiletto_bomb"] = {
+explosionDistortionsNames.armstil_stiletto_bomb = {
 	GetDistortionClass("EMPShockWave", "Smaller", {}),
 	GetDistortionClass("EMPNoise", "Smaller", {}),
 	GetDistortionClass("EMPRipples", "SmallMedium", {}),
@@ -1837,7 +1837,7 @@ explosionDistortionsNames["armstil_stiletto_bomb"] = {
 -- 	}),
 -- }
 
-explosionDistortionsNames["raptor_air_bomber_acid_t2_v1_acidbomb"] = {
+explosionDistortionsNames.raptor_air_bomber_acid_t2_v1_acidbomb = {
 	GetDistortionClass("GroundAcidExplo", "Small", {
 		-- noiseStrength = 15.0, noiseScaleSpace = 0.90, distanceFalloff = 0.9, onlyModelMap = 1,
 		-- lifeTime = 190, effectStrength = 2,
@@ -1847,7 +1847,7 @@ explosionDistortionsNames["raptor_air_bomber_acid_t2_v1_acidbomb"] = {
 	GetDistortionClass("AirShockWave", "Smaller"),
 }
 
-explosionDistortionsNames["raptor_land_assault_acid_t2_v1_acidspit"] = {
+explosionDistortionsNames.raptor_land_assault_acid_t2_v1_acidspit = {
 	GetDistortionClass("GroundAcidExplo", "SmallMedium", {
 		-- noiseStrength = 15.0, noiseScaleSpace = 0.90, distanceFalloff = 0.9, onlyModelMap = 1,
 		-- lifeTime = 190, effectStrength = 2,
@@ -1857,7 +1857,7 @@ explosionDistortionsNames["raptor_land_assault_acid_t2_v1_acidspit"] = {
 	--GetDistortionClass("AirShockWave", "Smaller"),
 }
 
-explosionDistortionsNames["raptor_allterrain_arty_acid_t2_v1_acidspit"] = {
+explosionDistortionsNames.raptor_allterrain_arty_acid_t2_v1_acidspit = {
 	GetDistortionClass("GroundAcidExplo", "Medium", {
 		noiseStrength = 0.9,
 		noiseScaleSpace = 0.50,
@@ -1871,7 +1871,7 @@ explosionDistortionsNames["raptor_allterrain_arty_acid_t2_v1_acidspit"] = {
 	--GetDistortionClass("AirShockWave", "Smaller"),
 }
 
-explosionDistortionsNames["armjuno_juno_pulse"] = {
+explosionDistortionsNames.armjuno_juno_pulse = {
 	-- GetDistortionClass("JunoHeat", "Juno", {
 	-- 	pos2x = 0, pos2y = 0, pos2z = 0,
 	-- 	noiseStrength = 6.5, noiseScaleSpace = 0.5, distanceFalloff = -0.1,
@@ -1892,18 +1892,18 @@ explosionDistortionsNames["armjuno_juno_pulse"] = {
 	-- }),
 }
 
-explosionDistortionsNames["corjuno_juno_pulse"] = {
+explosionDistortionsNames.corjuno_juno_pulse = {
 	GetDistortionClass("JunoShockWave", "Juno", {}),
 	GetDistortionClass("JunoNoise", "Juno", {}),
 }
 
-explosionDistortionsNames["legjuno_juno_pulse"] = {
+explosionDistortionsNames.legjuno_juno_pulse = {
 	GetDistortionClass("JunoShockWave", "Juno", {}),
 	GetDistortionClass("JunoNoise", "Juno", {}),
 }
 
 -- corlevlr
-projectileDefDistortionsNames["corlevlr_corlevlr_weapon"] = GetDistortionClass("PlasmaTrailProjectile", "Smaller", {
+projectileDefDistortionsNames.corlevlr_corlevlr_weapon = GetDistortionClass("PlasmaTrailProjectile", "Smaller", {
 	theta = 0.11,
 	noiseStrength = 24,
 	noiseScaleSpace = 0.55,
@@ -1914,7 +1914,7 @@ projectileDefDistortionsNames["corlevlr_corlevlr_weapon"] = GetDistortionClass("
 	yoffset = 8,
 })
 
-explosionDistortionsNames["corlevlr_corlevlr_weapon"] = {
+explosionDistortionsNames.corlevlr_corlevlr_weapon = {
 	GetDistortionClass("GroundShockWave", "Tiny", {
 		lifeTime = 12,
 		effectStrength = 1.5,
@@ -1945,13 +1945,13 @@ explosionDistortionsNames["corlevlr_corlevlr_weapon"] = {
 -- 	lifeTime = 0, rampUp = 0, decay = 0, radius = 3, yoffset = 5,
 -- })
 
-muzzleFlashDistortionsNames["armguard_plasma"] = {
+muzzleFlashDistortionsNames.armguard_plasma = {
 	GetDistortionClass("MuzzleShockWave", "Nano", {
 		lifeTime = 8,
 		effectStrength = 1.2,
 	}),
 }
-muzzleFlashDistortionsNames["armguard_plasma_high"] = {
+muzzleFlashDistortionsNames.armguard_plasma_high = {
 	GetDistortionClass("MuzzleShockWave", "Tiny"),
 }
 
@@ -1962,37 +1962,37 @@ muzzleFlashDistortionsNames["armguard_plasma_high"] = {
 -- 	GetDistortionClass("MuzzleShockWaveXL", "Tiniest")
 -- }
 
-explosionDistortionsNames["corape_vtol_rocket"] = {
+explosionDistortionsNames.corape_vtol_rocket = {
 	GetDistortionClass("AirShockWave", "Nano", {
 		lifeTime = 6,
 		rampUp = 1,
 	}),
 }
-explosionDistortionsNames["armepoch_heavyplasma"] = {
+explosionDistortionsNames.armepoch_heavyplasma = {
 	GetDistortionClass("AirShockWave", "Tiny"),
 	GetDistortionClass("ExplosionHeat", "Micro"),
 }
 
-muzzleFlashDistortionsNames["armepoch_heavyplasma"] = {
+muzzleFlashDistortionsNames.armepoch_heavyplasma = {
 	GetDistortionClass("MuzzleShockWave", "Nano"),
 }
 
-muzzleFlashDistortionsNames["corblackhy_heavyplasma"] = {
+muzzleFlashDistortionsNames.corblackhy_heavyplasma = {
 	GetDistortionClass("MuzzleShockWave", "Tiny"),
 }
-explosionDistortionsNames["corblackhy_heavyplasma"] = {
+explosionDistortionsNames.corblackhy_heavyplasma = {
 	GetDistortionClass("AirShockWave", "Tiny"),
 	GetDistortionClass("ExplosionHeat", "Micro"),
 }
 
-projectileDefDistortionsNames["cormaw_dmaw"] = GetDistortionClass("FlameProjectile", "Micro", {
+projectileDefDistortionsNames.cormaw_dmaw = GetDistortionClass("FlameProjectile", "Micro", {
 	lifeTime = 42,
 	rampUp = 30,
 })
 
-projectileDefDistortionsNames["corpyro_flamethrower"] = GetDistortionClass("FlameProjectile", "Micro")
+projectileDefDistortionsNames.corpyro_flamethrower = GetDistortionClass("FlameProjectile", "Micro")
 
-projectileDefDistortionsNames["cordemon_newdmaw"] = GetDistortionClass("FlameProjectileXL", "Smaller", {
+projectileDefDistortionsNames.cordemon_newdmaw = GetDistortionClass("FlameProjectileXL", "Smaller", {
 	noiseStrength = 11,
 	startRadius = 0.4, --noiseScaleSpace = 0.20,
 	lifeTime = 55,
@@ -2000,7 +2000,7 @@ projectileDefDistortionsNames["cordemon_newdmaw"] = GetDistortionClass("FlamePro
 	decay = 60,
 })
 
-projectileDefDistortionsNames["corcrwh_dragonmawh"] = GetDistortionClass("FlameProjectileXL", "Smaller", {
+projectileDefDistortionsNames.corcrwh_dragonmawh = GetDistortionClass("FlameProjectileXL", "Smaller", {
 	noiseStrength = 11,
 	startRadius = 0.4, --noiseScaleSpace = -0.20,
 	lifeTime = 50,
@@ -2008,9 +2008,9 @@ projectileDefDistortionsNames["corcrwh_dragonmawh"] = GetDistortionClass("FlameP
 	decay = 70,
 })
 
-projectileDefDistortionsNames["corfship_dmaw"] = GetDistortionClass("FlameProjectile", "Tiny")
+projectileDefDistortionsNames.corfship_dmaw = GetDistortionClass("FlameProjectile", "Tiny")
 
-projectileDefDistortionsNames["corvipe_vipersabot"] = GetDistortionClass("PlasmaTrailProjectile", "Smaller", {
+projectileDefDistortionsNames.corvipe_vipersabot = GetDistortionClass("PlasmaTrailProjectile", "Smaller", {
 	theta = 0.07,
 	noiseStrength = 10,
 	noiseScaleSpace = 0.35,
@@ -2020,7 +2020,7 @@ projectileDefDistortionsNames["corvipe_vipersabot"] = GetDistortionClass("Plasma
 	radius = 120,
 	yoffset = 18,
 })
-explosionDistortionsNames["corvipe_vipersabot"] = {
+explosionDistortionsNames.corvipe_vipersabot = {
 	GetDistortionClass("GroundShockWaveXS", "Micro", {
 		startRadius = 0.50,
 	}),
@@ -2031,7 +2031,7 @@ explosionDistortionsNames["corvipe_vipersabot"] = {
 	GetDistortionClass("ExplosionHeatXS", "Nano"),
 }
 
-projectileDefDistortionsNames["armmship_rocket"] = GetDistortionClass("MissileProjectile", "Medium", {
+projectileDefDistortionsNames.armmship_rocket = GetDistortionClass("MissileProjectile", "Medium", {
 	theta = 0.16,
 	noiseStrength = 5,
 	noiseScaleSpace = 0.35,
@@ -2057,7 +2057,7 @@ projectileDefDistortionsNames["armmship_rocket"] = GetDistortionClass("MissilePr
 -- 	effectStrength = 2.2, distanceFalloff = 1.3,
 -- 	startRadius = 0.3, onlyModelMap = 1,
 -- })
-explosionDistortionsNames["corkarg_super_missile"] = {
+explosionDistortionsNames.corkarg_super_missile = {
 	GetDistortionClass("GroundShockWaveXS", "Tiny", {
 		lifeTime = 8,
 		decay = 3,
@@ -2082,21 +2082,21 @@ explosionDistortionsNames["corkarg_super_missile"] = {
 
 --projectileDefDistortionsNames["corban_banisher"] = GetDistortionClass("MissileProjectile", "Medium")
 
-projectileDefDistortionsNames["armsubk_armsmart_torpedo"] = GetDistortionClass("TorpedoProjectile", "SmallMedium")
+projectileDefDistortionsNames.armsubk_armsmart_torpedo = GetDistortionClass("TorpedoProjectile", "SmallMedium")
 
-explosionDistortionsNames["armsubk_armsmart_torpedo"] = { GetDistortionClass("TorpedoShockWave", "Nano") }
+explosionDistortionsNames.armsubk_armsmart_torpedo = { GetDistortionClass("TorpedoShockWave", "Nano") }
 
 -- projectileDefDistortionsNames['armmanni_atam'] =
 -- 	GetDistortionClass("AirShockWaveBeam", "Small")
 
-projectileDefDistortionsNames["armmanni_atam"] = GetDistortionClass("TachyonBeam", "Femto", {
+projectileDefDistortionsNames.armmanni_atam = GetDistortionClass("TachyonBeam", "Femto", {
 	noiseStrength = 1,
 	noiseScaleSpace = 0.03,
 	windAffected = -0.8,
 	riseRate = -0.2,
 })
 
-projectileDefDistortionsNames["armanni_ata"] = GetDistortionClass("TachyonBeam", "Femto", {
+projectileDefDistortionsNames.armanni_ata = GetDistortionClass("TachyonBeam", "Femto", {
 	noiseStrength = 1.0,
 	noiseScaleSpace = 0.04,
 	windAffected = -0.9,
@@ -2104,7 +2104,7 @@ projectileDefDistortionsNames["armanni_ata"] = GetDistortionClass("TachyonBeam",
 	--lifeTime = 0, rampUp = 20, decay = 0,
 })
 
-projectileDefDistortionsNames["cordoom_atadr"] = GetDistortionClass("TachyonBeam", "Femto", {
+projectileDefDistortionsNames.cordoom_atadr = GetDistortionClass("TachyonBeam", "Femto", {
 	noiseStrength = 1.0,
 	noiseScaleSpace = 0.04,
 	windAffected = -0.9,
@@ -2124,16 +2124,16 @@ projectileDefDistortionsNames["cordoom_atadr"] = GetDistortionClass("TachyonBeam
 -- 	GetDistortionClass("TachyonBeam2", "Atto", {
 -- 	})
 
-projectileDefDistortionsNames["armbanth_tehlazerofdewm"] = GetDistortionClass("TachyonBeam3", "Banthlaser", {})
+projectileDefDistortionsNames.armbanth_tehlazerofdewm = GetDistortionClass("TachyonBeam3", "Banthlaser", {})
 
-projectileDefDistortionsNames["corhlt_cor_laserh1"] = GetDistortionClass("LaserBeamHeat", "Atto")
+projectileDefDistortionsNames.corhlt_cor_laserh1 = GetDistortionClass("LaserBeamHeat", "Atto")
 
 -- Heatrays should all get this class
-projectileDefDistortionsNames["corsala_cor_heat_laser"] = GetDistortionClass("HeatRayHeat", "Atto")
+projectileDefDistortionsNames.corsala_cor_heat_laser = GetDistortionClass("HeatRayHeat", "Atto")
 
-projectileDefDistortionsNames["corkorg_corkorg_laser"] = GetDistortionClass("HeatRayHeatXL", "KorgLaser")
+projectileDefDistortionsNames.corkorg_corkorg_laser = GetDistortionClass("HeatRayHeatXL", "KorgLaser")
 
-muzzleFlashDistortionsNames["corkorg_corkorg_fire"] = {
+muzzleFlashDistortionsNames.corkorg_corkorg_fire = {
 	GetDistortionClass("MuzzleShockWaveXL", "Nano", {
 		decay = 5,
 		rampUp = 0,
@@ -2146,26 +2146,26 @@ muzzleFlashDistortionsNames["corkorg_corkorg_fire"] = {
 	}),
 }
 
-muzzleFlashDistortionsNames["armguard_plasma"] = {
+muzzleFlashDistortionsNames.armguard_plasma = {
 	GetDistortionClass("MuzzleShockWave", "Nano", {
 		lifeTime = 8,
 		effectStrength = 1.2,
 	}),
 }
 
-projectileDefDistortionsNames["armspid_spider"] = --doesnt work on lightning cannon
+projectileDefDistortionsNames.armspid_spider = --doesnt work on lightning cannon
 	GetDistortionClass("EMPBeam", "Quaco")
 
-projectileDefDistortionsNames["armdfly_armdfly_paralyzer"] = --doesnt work on lightning cannon
+projectileDefDistortionsNames.armdfly_armdfly_paralyzer = --doesnt work on lightning cannon
 	GetDistortionClass("EMPBeamXL", "Zetto")
 
-projectileDefDistortionsNames["corbw_bladewing_lyzer"] = --doesnt work on lightning cannon
+projectileDefDistortionsNames.corbw_bladewing_lyzer = --doesnt work on lightning cannon
 	GetDistortionClass("EMPBeam", "Quaco")
 
-projectileDefDistortionsNames["armclaw_dclaw"] = --doesnt work on lightning cannon
+projectileDefDistortionsNames.armclaw_dclaw = --doesnt work on lightning cannon
 	GetDistortionClass("LightningBeam", "Femto")
 
-projectileDefDistortionsNames["armthor_emp"] = --doesnt work on lightning cannon
+projectileDefDistortionsNames.armthor_emp = --doesnt work on lightning cannon
 	GetDistortionClass("EMPBeam", "Quaco")
 
 -- projectileDefDistortionsNames["armzeus_lightning"] = --doesnt work on lightning cannon
@@ -2174,10 +2174,10 @@ projectileDefDistortionsNames["armthor_emp"] = --doesnt work on lightning cannon
 -- projectileDefDistortionsNames["armlship_lightning"] = --doesnt work on lightning cannon
 -- 	GetDistortionClass("LightningBeam", "Femto")
 
-projectileDefDistortionsNames["armthor_thunder"] = --doesnt work on lightning cannon
+projectileDefDistortionsNames.armthor_thunder = --doesnt work on lightning cannon
 	GetDistortionClass("LightningBeam", "Pico")
 
-muzzleFlashDistortionsNames["armthor_thunder"] = {
+muzzleFlashDistortionsNames.armthor_thunder = {
 	GetDistortionClass("MuzzleShockWave", "Micro"),
 }
 
@@ -2187,11 +2187,11 @@ muzzleFlashDistortionsNames["armthor_thunder"] = {
 -- 	--GetDistortionClass("ExplosionHeatXS", "Nano"),
 -- }
 
-muzzleFlashDistortionsNames["armbull_arm_bull"] = {
+muzzleFlashDistortionsNames.armbull_arm_bull = {
 	GetDistortionClass("MuzzleShockWave", "Femto"),
 }
 
-explosionDistortionsNames["cortrem_tremor_spread_fire"] = {
+explosionDistortionsNames.cortrem_tremor_spread_fire = {
 	GetDistortionClass("AirShockWaveXS", "Micro", {
 		lifeTime = 6,
 		effectStrength = 2.5,
@@ -2211,7 +2211,7 @@ explosionDistortionsNames["cortrem_tremor_spread_fire"] = {
 -- 	GetDistortionClass("ExplosionHeatXS", "Nano"),
 -- }
 
-explosionDistortionsNames["armthund_armbomb"] = {
+explosionDistortionsNames.armthund_armbomb = {
 	GetDistortionClass("AirShockWave", "Nano", {
 		lifeTime = 15,
 		effectStrength = 1.6,
@@ -2222,7 +2222,7 @@ explosionDistortionsNames["armthund_armbomb"] = {
 	GetDistortionClass("ExplosionHeat", "Pico"),
 }
 
-explosionDistortionsNames["legphoenix_skybeam"] = {
+explosionDistortionsNames.legphoenix_skybeam = {
 	--GetDistortionClass("AirShockWave", "Small"),
 	--GetDistortionClass("GroundShockWave", "Smallest"),
 	GetDistortionClass("GroundShockWaveHeat", "Tiniest"),
@@ -2231,27 +2231,27 @@ explosionDistortionsNames["legphoenix_skybeam"] = {
 
 -- a
 
-explosionDistortionsNames["legphoenix_legphtarg"] = {
+explosionDistortionsNames.legphoenix_legphtarg = {
 	--GetDistortionClass("AirShockWave", "Small"),
 }
 
-explosionDistortionsNames["corscreamer_cor_advsam"] = {
+explosionDistortionsNames.corscreamer_cor_advsam = {
 	GetDistortionClass("AirShockWave", "Small"),
 }
 
-explosionDistortionsNames["armmercury_arm_advsam"] = {
+explosionDistortionsNames.armmercury_arm_advsam = {
 	GetDistortionClass("AirShockWave", "Small"),
 }
 
-projectileDefDistortionsNames["legphoenix_legphtarg"] = GetDistortionClass("NoEffect", 0)
+projectileDefDistortionsNames.legphoenix_legphtarg = GetDistortionClass("NoEffect", 0)
 
-explosionDistortionsNames["armfboy_arm_fatboy_notalaser"] = {
+explosionDistortionsNames.armfboy_arm_fatboy_notalaser = {
 	GetDistortionClass("AirShockWave", "Small"),
 	--GetDistortionClass("GroundShockWave", "SmallMedium"),
 	GetDistortionClass("ExplosionHeat", "Tiniest"),
 }
 
-explosionDistortionsNames["armliche_arm_pidr"] = {
+explosionDistortionsNames.armliche_arm_pidr = {
 	GetDistortionClass("GroundShockWaveNuke", "Larger", {
 		shockWidth = 8,
 	}),
@@ -2272,20 +2272,20 @@ explosionDistortionsNames["armliche_arm_pidr"] = {
 	}),
 }
 
-explosionDistortionsNames["armlichet4_nuclear_missile"] = {
+explosionDistortionsNames.armlichet4_nuclear_missile = {
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
 	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
 }
 
-explosionDistortionsNames["commanderexplosion"] = {
+explosionDistortionsNames.commanderexplosion = {
 	--GetDistortionClass("ExplosionHeatNuke", "Large"),
 	GetDistortionClass("AirShockWaveCommander", "Large"),
 	GetDistortionClass("GroundShockWaveCommander", "Mega"),
 	GetDistortionClass("GroundShockWaveCommanderSlow", "Large"),
 }
 
-explosionDistortionsNames["armsilo_nuclear_missile"] = {
+explosionDistortionsNames.armsilo_nuclear_missile = {
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
 	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
@@ -2298,7 +2298,7 @@ explosionDistortionsNames["armsilo_nuclear_missile"] = {
 -- projectileDefDistortionsNames["armsilo_nuclear_missile"] = --armnuke
 -- 	GetDistortionClass("MissileNukeProjectile", "Large")
 
-explosionDistortionsNames["geo"] = {
+explosionDistortionsNames.geo = {
 	--GetDistortionClass("ExplosionHeatNuke", "Larger"),
 	GetDistortionClass("AirShockWaveNuke", "Medium", {
 		lifeTime = 13,
@@ -2313,7 +2313,7 @@ explosionDistortionsNames["geo"] = {
 	}),
 }
 
-explosionDistortionsNames["customfusionexplo"] = {
+explosionDistortionsNames.customfusionexplo = {
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
 	GetDistortionClass("AirShockWaveNuke", "Armnuke", {
 		lifeTime = 20,
@@ -2343,7 +2343,7 @@ explosionDistortionsNames["fusionExplosion-uw"] = {
 	}),
 }
 
-explosionDistortionsNames["crawl_blastsmlscavboss"] = {
+explosionDistortionsNames.crawl_blastsmlscavboss = {
 	GetDistortionClass("ExplosionHeatNuke", "MegaXL", {
 		lifeTime = 30,
 		decay = 20,
@@ -2368,25 +2368,25 @@ explosionDistortionsNames["crawl_blastsmlscavboss"] = {
 	}),
 }
 
-explosionDistortionsNames["korgexplosion"] = {
+explosionDistortionsNames.korgexplosion = {
 	--GetDistortionClass("ExplosionHeatNuke", "Larger"),
 	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
 }
 
-explosionDistortionsNames["korgexplosionselfd"] = {
+explosionDistortionsNames.korgexplosionselfd = {
 	--GetDistortionClass("ExplosionHeatNuke", "Mega"),
 	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
 }
 
-explosionDistortionsNames["advancedfusionexplosionselfd"] = {
+explosionDistortionsNames.advancedfusionexplosionselfd = {
 	GetDistortionClass("ExplosionHeatNuke", "Mega"),
 	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
 }
 
-explosionDistortionsNames["corsilo_crblmssl"] = {
+explosionDistortionsNames.corsilo_crblmssl = {
 	GetDistortionClass("ExplosionHeatNuke", "Mega"),
 	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
@@ -2395,7 +2395,7 @@ explosionDistortionsNames["corsilo_crblmssl"] = {
 -- projectileDefDistortionsNames["corsilo_crblmssl"] = --armnuke
 -- 	GetDistortionClass("MissileNukeProjectile", "Large")
 
-explosionDistortionsNames["legsilo_legicbm"] = {
+explosionDistortionsNames.legsilo_legicbm = {
 	GetDistortionClass("ExplosionHeatNuke", "Mega"),
 	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
@@ -2405,25 +2405,25 @@ explosionDistortionsNames["legsilo_legicbm"] = {
 -- 	GetDistortionClass("MissileNukeProjectile", "Large")
 
 -- RAPTOR meteor Nuke Tentacle
-explosionDistortionsNames["raptor_turret_meteor_t4_v1_weapon"] = {
+explosionDistortionsNames.raptor_turret_meteor_t4_v1_weapon = {
 	GetDistortionClass("ExplosionHeatNuke", "Mega"),
 	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
 }
 
-explosionDistortionsNames["nuketest_nuketest"] = {
+explosionDistortionsNames.nuketest_nuketest = {
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
 	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
 }
 
-explosionDistortionsNames["nuketestcor_nuketestcor"] = {
+explosionDistortionsNames.nuketestcor_nuketestcor = {
 	GetDistortionClass("ExplosionHeatNuke", "Mega"),
 	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
 }
 
-explosionDistortionsNames["armguardnuke_plasma"] = {
+explosionDistortionsNames.armguardnuke_plasma = {
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
 	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
 	--GetDistortionClass("ExplosionRadiationNuke", "Larger"), --no use yet
@@ -2435,7 +2435,7 @@ explosionDistortionsNames["armguardnuke_plasma"] = {
 -- projectileDefDistortionsNames["armguardnuke_plasma_high"] = --armnuke
 -- 	GetDistortionClass("MissileNukeProjectile", "Large")
 
-explosionDistortionsNames["armguardnuke_plasma_high"] = { --cornuke
+explosionDistortionsNames.armguardnuke_plasma_high = { --cornuke
 	GetDistortionClass("ExplosionHeatNuke", "Mega"),
 	--GetDistortionClass("GroundShockWave", "Medium"),
 	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
@@ -2443,7 +2443,7 @@ explosionDistortionsNames["armguardnuke_plasma_high"] = { --cornuke
 	--GetDistortionClass("ExplosionHeat", "Smallest"),
 }
 
-explosionDistortionsNames["cortron_cortron_weapon"] = {
+explosionDistortionsNames.cortron_cortron_weapon = {
 	GetDistortionClass("GroundShockWaveNuke", "MediumLarge"),
 	GetDistortionClass("AirShockWaveNuke", "SmallMedium"),
 	GetDistortionClass("ExplosionHeatNuke", "Medium"),
@@ -2466,7 +2466,7 @@ explosionDistortionsNames["cortron_cortron_weapon"] = {
 --GetDistortionClass("ExplosionDistort", "Atto"),
 --}
 
-explosionDistortionsNames["corgol_cor_gol"] = {
+explosionDistortionsNames.corgol_cor_gol = {
 	GetDistortionClass("AirShockWave", "Small"),
 	--GetDistortionClass("GroundShockWave", "SmallMedium"),
 	GetDistortionClass("ExplosionHeat", "Tiniest"),
@@ -2497,7 +2497,7 @@ explosionDistortionsNames["corgol_cor_gol"] = {
 -- 		lifeTime = 40, decay = 10, rampup = 5, startRadius = 50}),
 -- }
 
-explosionDistortionsNames["corcat_exp_heavyrocket"] = {
+explosionDistortionsNames.corcat_exp_heavyrocket = {
 	GetDistortionClass("AirShockWave", "Smallest", {
 		lifeTime = 8,
 		effectStrength = 1.0,
@@ -2513,13 +2513,13 @@ explosionDistortionsNames["corcat_exp_heavyrocket"] = {
 	-- }),
 }
 
-muzzleFlashDistortionsNames["armmav_armmav_weapon"] = {
+muzzleFlashDistortionsNames.armmav_armmav_weapon = {
 	GetDistortionClass("MuzzleShockWave", "Atto"),
 }
-muzzleFlashDistortionsNames["corint_lrpc"] = {
+muzzleFlashDistortionsNames.corint_lrpc = {
 	GetDistortionClass("MuzzleShockWaveXL", "Tiny"),
 }
-explosionDistortionsNames["corint_lrpc"] = {
+explosionDistortionsNames.corint_lrpc = {
 	GetDistortionClass("AirShockWave", "Smaller", {
 		lifeTime = 11,
 		refractiveIndex = -1.5,
@@ -2535,10 +2535,10 @@ explosionDistortionsNames["corint_lrpc"] = {
 		rampup = 5,
 	}),
 }
-muzzleFlashDistortionsNames["armbrtha_lrpc"] = {
+muzzleFlashDistortionsNames.armbrtha_lrpc = {
 	GetDistortionClass("MuzzleShockWaveXL", "Tiny"),
 }
-explosionDistortionsNames["armbrtha_lrpc"] = {
+explosionDistortionsNames.armbrtha_lrpc = {
 	GetDistortionClass("ExploShockWaveXL", "Smaller", {
 		--lifeTime = 11, refractiveIndex = -1.5, decay = 4,
 		--shockWidth = -0.5, effectStrength =  1.0,
@@ -2552,7 +2552,7 @@ explosionDistortionsNames["armbrtha_lrpc"] = {
 	}),
 }
 
-muzzleFlashDistortionsNames["corbuzz_rflrpc"] = {
+muzzleFlashDistortionsNames.corbuzz_rflrpc = {
 	GetDistortionClass("MuzzleShockWaveXL", "Tiny", {
 		lifeTime = 18,
 		effectStrength = 4.0,
@@ -2561,7 +2561,7 @@ muzzleFlashDistortionsNames["corbuzz_rflrpc"] = {
 		rampUp = 1,
 	}),
 }
-projectileDefDistortionsNames["corbuzz_rflrpc"] = GetDistortionClass("PlasmaTrailProjectile", "Smallish", {
+projectileDefDistortionsNames.corbuzz_rflrpc = GetDistortionClass("PlasmaTrailProjectile", "Smallish", {
 	theta = 0.09,
 	noiseStrength = 15,
 	noiseScaleSpace = 0.12,
@@ -2569,7 +2569,7 @@ projectileDefDistortionsNames["corbuzz_rflrpc"] = GetDistortionClass("PlasmaTrai
 	distanceFalloff = 2.2,
 	effectStrength = 3.8,
 })
-explosionDistortionsNames["corbuzz_rflrpc"] = {
+explosionDistortionsNames.corbuzz_rflrpc = {
 	GetDistortionClass("AirShockWave", "Smaller", {
 		lifeTime = 9,
 		refractiveIndex = -1.5,
@@ -2592,7 +2592,7 @@ explosionDistortionsNames["corbuzz_rflrpc"] = {
 -- 		decay = 8, rampUp = 3, shockWidth = -0.55,
 -- 	})
 -- }
-projectileDefDistortionsNames["corbhmth_corbhmth_weapon"] = GetDistortionClass("PlasmaTrailProjectile", "Smallish", {
+projectileDefDistortionsNames.corbhmth_corbhmth_weapon = GetDistortionClass("PlasmaTrailProjectile", "Smallish", {
 	theta = 0.09,
 	noiseStrength = 3,
 	noiseScaleSpace = 0.5,
@@ -2600,14 +2600,14 @@ projectileDefDistortionsNames["corbhmth_corbhmth_weapon"] = GetDistortionClass("
 	distanceFalloff = 0.94,
 })
 
-projectileDefDistortionsNames["armvulc_rflrpc"] = GetDistortionClass("PlasmaTrailProjectile", "Smallish", {
+projectileDefDistortionsNames.armvulc_rflrpc = GetDistortionClass("PlasmaTrailProjectile", "Smallish", {
 	theta = 0.09,
 	noiseStrength = 5,
 	noiseScaleSpace = 0.4,
 	radius = 380,
 	distanceFalloff = 0.9,
 })
-explosionDistortionsNames["armvulc_rflrpc"] = {
+explosionDistortionsNames.armvulc_rflrpc = {
 	GetDistortionClass("ExploShockWaveL", "Smaller", {
 		--lifeTime = 9, refractiveIndex = -1.5, decay = 4,
 		--shockWidth = -0.5, effectStrength =  1.0,
@@ -2621,7 +2621,7 @@ explosionDistortionsNames["armvulc_rflrpc"] = {
 	}),
 }
 
-projectileDefDistortionsNames["legerailtank_t3_rail_accelerator"] = GetDistortionClass("RailgunTrailProjectile", "Femto", {})
+projectileDefDistortionsNames.legerailtank_t3_rail_accelerator = GetDistortionClass("RailgunTrailProjectile", "Femto", {})
 
 local scavbosses = {
 	"veryeasy",

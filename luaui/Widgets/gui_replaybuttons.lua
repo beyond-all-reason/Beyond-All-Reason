@@ -18,14 +18,14 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMouseState = Spring.GetMouseState
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local vsx, vsy = spGetViewGeometry()
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
-local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+local ui_opacity = SpringUnsynced.GetConfigFloat("ui_opacity", 0.7)
+local ui_scale = SpringUnsynced.GetConfigFloat("ui_scale", 1)
 
 local buttonWidth = 0.037
 local buttonHeight = 0.033
@@ -80,7 +80,7 @@ local function clicked_button(b)
 end
 
 local function setReplaySpeed(speed)
-	Spring.SendCommands("setspeed " .. speed)
+	SpringUnsynced.SendCommands("setspeed " .. speed)
 end
 
 local function draw_buttons(b)
@@ -108,12 +108,12 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiButton = WG.FlowUI.Draw.Button
 
-	font = WG["fonts"].getFont(2, 1.6)
+	font = WG.fonts.getFont(2, 1.6)
 end
 
 function widget:Initialize()
 	widget:ViewResize()
-	if not Spring.IsReplay() then
+	if not SpringUnsynced.IsReplay() then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -128,8 +128,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if WG["guishader"] then
-		WG["guishader"].DeleteDlist("replaybuttons")
+	if WG.guishader then
+		WG.guishader.DeleteDlist("replaybuttons")
 	end
 	gl.DeleteList(buttonsList)
 end
@@ -137,8 +137,8 @@ end
 function widget:DrawScreen()
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	if not isActive then
-		if WG["guishader"] and prevIsActive ~= isActive then
-			WG["guishader"].RemoveDlist("replaybuttons")
+		if WG.guishader and prevIsActive ~= isActive then
+			WG.guishader.RemoveDlist("replaybuttons")
 		end
 		return
 	end
@@ -159,8 +159,8 @@ function widget:DrawScreen()
 		end)
 	end
 
-	if WG["guishader"] and isActive and prevIsActive ~= isActive then
-		WG["guishader"].InsertDlist(backgroundGuishader, "replaybuttons")
+	if WG.guishader and isActive and prevIsActive ~= isActive then
+		WG.guishader.InsertDlist(backgroundGuishader, "replaybuttons")
 	end
 
 	if buttonsList then
@@ -196,10 +196,10 @@ function widget:MousePress(x, y, button)
 	if cb == "playpauseskip" then
 		if spGetGameFrame() > 1 then
 			isPaused = not isPaused
-			Spring.SendCommands("pause " .. (isPaused and "1" or "0"))
+			SpringUnsynced.SendCommands("pause " .. (isPaused and "1" or "0"))
 			buttons[i].text = (isPaused and "  >>" or "  ||")
 		else
-			Spring.SendCommands("skip 1")
+			SpringUnsynced.SendCommands("skip 1")
 			buttons[i].text = "  ||"
 		end
 		sceduleUpdate = true
@@ -213,7 +213,7 @@ end
 
 function widget:Update(dt)
 	prevIsActive = isActive
-	isActive = #Spring.GetSelectedUnits() == 0
+	isActive = #SpringUnsynced.GetSelectedUnits() == 0
 end
 
 function widget:GameStart()

@@ -14,7 +14,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 -- Configurable Parts:
 local groundaoplatealpha = 1.0
@@ -43,8 +43,8 @@ local glDepthMask = gl.DepthMask
 local GL_BACK = GL.BACK
 local GL_LEQUAL = GL.LEQUAL
 local GL_POINTS = GL.POINTS
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason)
 	local gf = spGetGameFrame()
@@ -160,8 +160,8 @@ function widget:Initialize()
 	end
 
 	-- Add all units
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 end
 
@@ -180,7 +180,7 @@ end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
 	if debugmode then
-		Spring.Debug.TraceEcho("remove", unitID, reason)
+		Debug.TraceEcho("remove", unitID, reason)
 	end
 	if groundPlateVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(groundPlateVBO, unitID)

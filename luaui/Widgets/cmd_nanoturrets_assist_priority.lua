@@ -11,15 +11,15 @@ function widget:GetInfo()
 	}
 end
 
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitsInSphere = Spring.GetUnitsInSphere
-local GetUnitCommands = Spring.GetUnitCommands
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local GetUnitDefID = Spring.GetUnitDefID
+local GetUnitPosition = SpringShared.GetUnitPosition
+local GetUnitsInSphere = SpringShared.GetUnitsInSphere
+local GetUnitCommands = SpringShared.GetUnitCommands
+local GiveOrderToUnit = SpringShared.GiveOrderToUnit
+local GetUnitDefID = SpringShared.GetUnitDefID
 local UnitDefs = UnitDefs
 local CMD_REPAIR = CMD.REPAIR
 local CMD_FIGHT = CMD.FIGHT
-local myTeam = Spring.GetMyTeamID()
+local myTeam = SpringUnsynced.GetLocalTeamID()
 
 local nanoDefs = {}
 
@@ -41,7 +41,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		for _, id in ipairs(unitsNear) do
 			if nanoDefs[GetUnitDefID(id)] ~= nil then
 				local commandQueue = GetUnitCommands(id, 10)
-				if (commandQueue[2] ~= nil and commandQueue[2]["id"] == CMD_FIGHT) or (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_FIGHT) or commandQueue[1] == nil then
+				if (commandQueue[2] ~= nil and commandQueue[2].id == CMD_FIGHT) or (commandQueue[1] ~= nil and commandQueue[1].id == CMD_FIGHT) or commandQueue[1] == nil then
 					-- Echo("giving repair command to " .. id)
 					GiveOrderToUnit(id, CMD_REPAIR, unitID, {})
 				end

@@ -44,7 +44,7 @@ factionColors = function(faction)
 		Blue = { 0, 0, 0 },
 		Red = { 1, 1, 1 },
 	}
-	Spring.Echo("Queried faction: " .. faction .. ", scheme: " .. scheme)
+	SpringShared.Echo("Queried faction: " .. faction .. ", scheme: " .. scheme)
 
 	if color[faction] then
 		return color[faction]
@@ -52,7 +52,7 @@ factionColors = function(faction)
 		if color[scheme] then
 			return color[scheme]
 		else
-			return color["unknown"]
+			return color.unknown
 		end
 	end
 end

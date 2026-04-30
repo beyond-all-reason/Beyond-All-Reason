@@ -191,8 +191,8 @@ function LosHST:cleanEnemy(id)
 end
 
 function LosHST:viewPos(upos)
-	local LosOrRadar, inLos, inRadar, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
-	if Spring.IsPosInAirLos(upos.x, upos.y, upos.z, self.ai.allyId) then
+	local LosOrRadar, inLos, inRadar, jammed = SpringShared.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
+	if SpringShared.IsPosInAirLos(upos.x, upos.y, upos.z, self.ai.allyId) then
 		return 1
 	end
 	if inLos and upos.y < 0 then
@@ -222,7 +222,7 @@ function LosHST:setPosLayer(unitName, Pos)
 	if (ut.mtype == "sub" or ut.mtype == "amp") and Pos.y < -5 then
 		return -1
 	end
-	if Spring.GetGroundHeight(Pos.x, Pos.z) < 0 then --TEST  WARNING
+	if SpringShared.GetGroundHeight(Pos.x, Pos.z) < 0 then --TEST  WARNING
 		floating = true
 	end
 	return 0, floating
@@ -238,7 +238,7 @@ function LosHST:setPosLayer2(unitName, x, y, z)
 	if (ut.mtype == "sub" or ut.mtype == "amp") and y < -5 then
 		return -1
 	end
-	if Spring.GetGroundHeight(x, z) < 0 then --TEST  WARNING
+	if SpringShared.GetGroundHeight(x, z) < 0 then --TEST  WARNING
 		floating = true
 	end
 	return 0, floating
@@ -367,7 +367,7 @@ function LosHST:setCellRadar(grid, unit, X, Z)
 	CELL.metal = CELL.metal + CELL.metalMedia
 	local M = CELL.metalMedia
 	--local uPos = unit:GetPosition()
-	local speedX, speedY, speedZ, SPEED = Spring.GetUnitVelocity(unit:ID())
+	local speedX, speedY, speedZ, SPEED = SpringShared.GetUnitVelocity(unit:ID())
 
 	--local target = {x = uPos.x+( speedX*100),y = uPos.y,z = uPos.z + (speedZ*100)} -- NEVER USED!
 	CELL.SPEED = CELL.SPEED + SPEED
@@ -437,7 +437,7 @@ function LosHST:setCellLos(grid, unit, X, Z)
 	local M = ut.metalCost
 	local mobile = ut.speed > 0
 	local layer = self:setPosLayer2(ut.name, x, y, z)
-	local speedX, speedY, speedZ, SPEED = Spring.GetUnitVelocity(unit:ID())
+	local speedX, speedY, speedZ, SPEED = SpringShared.GetUnitVelocity(unit:ID())
 	--local target = {x = uPos.x+( speedX*100),y = uPos.y,z = uPos.z + (speedZ*100)} -- NEVER USED
 	CELL.SPEED = CELL.SPEED + SPEED
 	CELL.metal = CELL.metal + M
@@ -552,8 +552,8 @@ function LosHST:Draw()
 			local pos1, pos2 = api.Position(), api.Position() --z,api.Position(),api.Position(),api.Position()
 			pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
 			pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf
-			pos1.y = Spring.GetGroundHeight(pos1.x, pos1.z)
-			pos2.y = Spring.GetGroundHeight(pos2.x, pos2.z)
+			pos1.y = SpringShared.GetGroundHeight(pos1.x, pos1.z)
+			pos2.y = SpringShared.GetGroundHeight(pos2.x, pos2.z)
 			self:EchoDebug("drawing", pos1.x, pos1.z, pos2.x, pos2.z)
 			if cell.ENEMY_BALANCE > 0 then
 				map:DrawRectangle(pos1, pos2, colours.balance, cell.ENEMY_BALANCE, false, ch)
@@ -583,8 +583,8 @@ function LosHST:Draw()
 			local pos1, pos2 = api.Position(), api.Position() --z,api.Position(),api.Position(),api.Position()
 			pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
 			pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf
-			pos1.y = Spring.GetGroundHeight(pos1.x, pos1.z)
-			pos2.y = Spring.GetGroundHeight(pos2.x, pos2.z)
+			pos1.y = SpringShared.GetGroundHeight(pos1.x, pos1.z)
+			pos2.y = SpringShared.GetGroundHeight(pos2.x, pos2.z)
 			self:EchoDebug("drawing", pos1.x, pos1.z, pos2.x, pos2.z)
 			if cell.ENEMY_BALANCE > 0 then
 				map:DrawRectangle(pos1, pos2, colours.p, cell.ENEMY_BALANCE, false, ch)

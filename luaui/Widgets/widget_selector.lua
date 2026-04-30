@@ -37,9 +37,9 @@ local mathMax = math.max
 local mathMin = math.min
 
 -- Localized Spring API for performance
-local spGetMouseState = Spring.GetMouseState
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spEcho = SpringShared.Echo
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -73,14 +73,14 @@ local fontSize = 14.25
 local fontSpace = 8.5
 local yStep = fontSize + fontSpace
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local fontfile = "fonts/" .. SpringUnsynced.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx, vsy = spGetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 36
 local fontfileOutlineSize = 6
 local fontfileOutlineStrength = 1.3
 local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfile2 = "fonts/" .. SpringUnsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 local bgPadding = 4.5
@@ -121,7 +121,7 @@ local dlistGuishader, dlistGuishader2, lastStart
 local widgetScale = (vsy / 1080)
 
 local allowuserwidgets = true
-if not Spring.GetModOptions().allowuserwidgets and not Spring.IsReplay() then
+if not SpringShared.GetModOptions().allowuserwidgets and not SpringUnsynced.IsReplay() then
 	allowuserwidgets = false
 	buttons[3] = ""
 end
@@ -153,7 +153,7 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:TextInput(char) -- if it isnt working: chobby probably hijacked it
-	if not chobbyInterface and not Spring.IsGUIHidden() and showTextInput and show then
+	if not chobbyInterface and not SpringUnsynced.IsGUIHidden() and showTextInput and show then
 		if inputTextInsertActive then
 			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition + 2)
 			if inputTextPosition <= utf8.len(inputText) then
@@ -171,8 +171,8 @@ function widget:TextInput(char) -- if it isnt working: chobby probably hijacked 
 		end
 		cursorBlinkTimer = 0
 		updateTextInputDlist = true
-		if WG["limitidlefps"] and WG["limitidlefps"].update then
-			WG["limitidlefps"].update()
+		if WG.limitidlefps and WG.limitidlefps.update then
+			WG.limitidlefps.update()
 		end
 		UpdateList(true)
 		return true
@@ -185,15 +185,15 @@ local function clearChatInput()
 	inputTextPosition = 0
 	inputTextInsertActive = false
 	--backgroundGuishader = gl.DeleteList(backgroundGuishader)
-	if WG["guishader"] then
-		WG["guishader"].RemoveRect("selectorinput")
+	if WG.guishader then
+		WG.guishader.RemoveRect("selectorinput")
 	end
 	UpdateList(true)
 end
 
 local function cancelChatInput()
 	clearChatInput()
-	Spring.SDLStopTextInput()
+	SpringUnsynced.SDLStopTextInput()
 	widgetHandler.textOwner = nil --widgetHandler:DisownText()
 	UpdateList(true)
 end
@@ -222,7 +222,7 @@ function drawChatInput()
 			local leftOffset = floor(lineHeight * 0.7)
 			local distance = 0 --elementMargin
 			local usedFont = inputMode == "" and font3 or font
-			local modeText = Spring.I18N("ui.settings.filter")
+			local modeText = I18N("ui.settings.filter")
 			if inputMode ~= "" then
 				modeText = inputMode
 			end
@@ -239,8 +239,8 @@ function drawChatInput()
 			chatInputArea = { activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance }
 			UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0, 0, nil, nil, 0, nil, nil, nil, WG.FlowUI.clampedOpacity)
 
-			if WG["guishader"] and activeGuishader then
-				WG["guishader"].InsertRect(activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance, "selectorinput")
+			if WG.guishader and activeGuishader then
+				WG.guishader.InsertRect(activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance, "selectorinput")
 			end
 
 			-- button background
@@ -315,10 +315,10 @@ local function widgetselectorCmd(_, _, params)
 	show = not show
 	if show then
 		widgetHandler.textOwner = self --widgetHandler:OwnText()
-		Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-		Spring.SetConfigInt("widgetselector", 1)
+		SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		SpringUnsynced.SetConfigInt("widgetselector", 1)
 	else
-		Spring.SDLStopTextInput()
+		SpringUnsynced.SDLStopTextInput()
 		widgetHandler.textOwner = nil --widgetHandler:DisownText()
 	end
 end
@@ -326,7 +326,7 @@ end
 local function factoryresetCmd(_, _, params)
 	widgetHandler.__blankOutConfig = true
 	--widgetHandler.__allowUserWidgets = false
-	Spring.SendCommands("luarules reloadluaui")
+	SpringUnsynced.SendCommands("luarules reloadluaui")
 end
 
 local function userwidgetsCmd(_, _, params)
@@ -337,53 +337,53 @@ local function userwidgetsCmd(_, _, params)
 		widgetHandler.__allowUserWidgets = true
 		spEcho("Allowed user widgets, reloading...")
 	end
-	Spring.SendCommands("luarules reloadluaui")
+	SpringUnsynced.SendCommands("luarules reloadluaui")
 end
 
 function widget:Initialize()
 	buttons = { --see MouseRelease for which functions are called by which buttons
-		[1] = Spring.I18N("ui.widgetselector.button_reloadluaui"),
-		[2] = Spring.I18N("ui.widgetselector.button_unloadallwidgets"),
-		[3] = Spring.I18N("ui.widgetselector.button_disallowuserwidgets"),
-		[4] = Spring.I18N("ui.widgetselector.button_resetluaui"),
-		[5] = Spring.I18N("ui.widgetselector.button_factoryresetluaui"),
+		[1] = I18N("ui.widgetselector.button_reloadluaui"),
+		[2] = I18N("ui.widgetselector.button_unloadallwidgets"),
+		[3] = I18N("ui.widgetselector.button_disallowuserwidgets"),
+		[4] = I18N("ui.widgetselector.button_resetluaui"),
+		[5] = I18N("ui.widgetselector.button_factoryresetluaui"),
 	}
 	if not allowuserwidgets then
 		buttons[3] = ""
 	else
 		if widgetHandler.allowUserWidgets then
-			buttons[3] = Spring.I18N("ui.widgetselector.button_disallowuserwidgets")
+			buttons[3] = I18N("ui.widgetselector.button_disallowuserwidgets")
 		else
-			buttons[3] = Spring.I18N("ui.widgetselector.button_allowuserwidgets")
+			buttons[3] = I18N("ui.widgetselector.button_allowuserwidgets")
 		end
 	end
 
 	widgetHandler.knownChanged = true
-	Spring.SendCommands("unbindkeyset f11")
+	SpringUnsynced.SendCommands("unbindkeyset f11")
 
-	WG["widgetselector"] = {}
-	WG["widgetselector"].toggle = function(state)
+	WG.widgetselector = {}
+	WG.widgetselector.toggle = function(state)
 		local newShow = state
 		if newShow == nil then
 			newShow = not show
 		end
-		if newShow and WG["topbar"] then
-			WG["topbar"].hideWindows()
+		if newShow and WG.topbar then
+			WG.topbar.hideWindows()
 		end
 		show = newShow
 		if show then
 			widgetHandler.textOwner = self --widgetHandler:OwnText()
-			Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-			Spring.SetConfigInt("widgetselector", 1)
+			SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			SpringUnsynced.SetConfigInt("widgetselector", 1)
 		else
-			Spring.SDLStopTextInput()
+			SpringUnsynced.SDLStopTextInput()
 			widgetHandler.textOwner = nil --widgetHandler:DisownText()
 		end
 	end
-	WG["widgetselector"].isvisible = function()
+	WG.widgetselector.isvisible = function()
 		return show
 	end
-	WG["widgetselector"].getLocalWidgetCount = function()
+	WG.widgetselector.getLocalWidgetCount = function()
 		return localWidgetCount
 	end
 
@@ -410,7 +410,7 @@ function widget:MouseWheel(up, value)
 		return false
 	end
 
-	local a, c, m, s = Spring.GetModKeyState()
+	local a, c, m, s = SpringUnsynced.GetModKeyState()
 	if a or m then
 		return false -- alt and meta allow normal control
 	end
@@ -628,11 +628,11 @@ function UpdateList(force)
 		end
 	end
 
-	if force and WG["guishader"] then
+	if force and WG.guishader then
 		activeGuishader = false
-		WG["guishader"].RemoveDlist("widgetselector")
-		WG["guishader"].RemoveDlist("widgetselector2")
-		WG["guishader"].RemoveRect("selectorinput")
+		WG.guishader.RemoveDlist("widgetselector")
+		WG.guishader.RemoveDlist("widgetselector2")
+		WG.guishader.RemoveRect("selectorinput")
 		if textInputDlist then
 			textInputDlist = gl.DeleteList(textInputDlist)
 		end
@@ -674,19 +674,19 @@ function widget:KeyPress(key, mods, isRepeat)
 			clearChatInput()
 		else
 			local newShow = not show
-			if newShow and WG["topbar"] then
-				WG["topbar"].hideWindows()
+			if newShow and WG.topbar then
+				WG.topbar.hideWindows()
 			end
 			show = newShow
-			if show and not (Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI() or Spring.GetConfigInt("widgetselector", 0) == 1 or localWidgetCount > 0) then
+			if show and not (Utilities.IsDevMode() or Utilities.ShowDevUI() or SpringUnsynced.GetConfigInt("widgetselector", 0) == 1 or localWidgetCount > 0) then
 				show = false
 			end
 			if show then
 				widgetHandler.textOwner = self --widgetHandler:OwnText()
-				Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-				Spring.SetConfigInt("widgetselector", 1)
+				SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+				SpringUnsynced.SetConfigInt("widgetselector", 1)
 			else
-				Spring.SDLStopTextInput()
+				SpringUnsynced.SDLStopTextInput()
 				widgetHandler.textOwner = nil --widgetHandler:DisownText()
 			end
 		end
@@ -773,11 +773,11 @@ end
 
 function widget:DrawScreen()
 	if not show then
-		if WG["guishader"] and activeGuishader then
+		if WG.guishader and activeGuishader then
 			activeGuishader = false
-			WG["guishader"].RemoveDlist("widgetselector")
-			WG["guishader"].RemoveDlist("widgetselector2")
-			WG["guishader"].RemoveRect("selectorinput")
+			WG.guishader.RemoveDlist("widgetselector")
+			WG.guishader.RemoveDlist("widgetselector2")
+			WG.guishader.RemoveRect("selectorinput")
 			if textInputDlist then
 				textInputDlist = gl.DeleteList(textInputDlist)
 			end
@@ -785,7 +785,7 @@ function widget:DrawScreen()
 		return
 	end
 
-	if not WG["guishader"] then
+	if not WG.guishader then
 		activeGuishader = false
 	end
 
@@ -807,7 +807,7 @@ function widget:DrawScreen()
 
 	if updateUi then
 		updateTextInputDlist = true
-		local title = Spring.I18N("ui.widgetselector.title")
+		local title = I18N("ui.widgetselector.title")
 		local titleFontSize = 18 * widgetScale
 		titleRect = { backgroundRect[1], backgroundRect[4], mathFloor(backgroundRect[1] + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize * 1.5)), mathFloor(backgroundRect[4] + (titleFontSize * 1.7)) }
 		dlistGuishader = gl.DeleteList(dlistGuishader)
@@ -836,11 +836,11 @@ function widget:DrawScreen()
 		end)
 	end
 
-	if WG["guishader"] and not activeGuishader then
+	if WG.guishader and not activeGuishader then
 		activeGuishader = true
 		if dlistGuishader then
-			WG["guishader"].InsertDlist(dlistGuishader, "widgetselector")
-			WG["guishader"].InsertDlist(dlistGuishader2, "widgetselector2")
+			WG.guishader.InsertDlist(dlistGuishader, "widgetselector")
+			WG.guishader.InsertDlist(dlistGuishader2, "widgetselector2")
 		end
 	end
 
@@ -875,7 +875,7 @@ function widget:DrawScreen()
 				if prevFromZip ~= data.fromZip then
 					customWidgetPosy = posy
 					font2:SetTextColor(0.5, 0.5, 0.5, 0.4)
-					font2:Print(Spring.I18N("ui.widgetselector.islocal"), minx + fontSize * sizeMultiplier * 0.25, posy + (fontSize * sizeMultiplier) * 0.33, fontSize * sizeMultiplier, "")
+					font2:Print(I18N("ui.widgetselector.islocal"), minx + fontSize * sizeMultiplier * 0.25, posy + (fontSize * sizeMultiplier) * 0.33, fontSize * sizeMultiplier, "")
 				end
 
 				local color = ""
@@ -988,7 +988,7 @@ function widget:DrawScreen()
 		font:End()
 	end
 
-	if WG["tooltip"] ~= nil then
+	if WG.tooltip ~= nil then
 		if aboveWidget then
 			local n = aboveWidget[1]
 			local d = aboveWidget[2]
@@ -1008,18 +1008,18 @@ function widget:DrawScreen()
 				end
 			end
 			local tooltip = ""
-			local maxWidth = WG["tooltip"].getFontsize() * 90
+			local maxWidth = WG.tooltip.getFontsize() * 90
 			if d.desc and d.desc ~= "" then
 				local textLines, numLines = font:WrapText(d.desc, maxWidth)
 				tooltip = tooltip .. WhiteStr .. string.gsub(textLines, "[\n]", "\n" .. WhiteStr) .. "\n"
 			end
 			if d.author and d.author ~= "" then
 				local textLines, numLines = font:WrapText(d.author, maxWidth)
-				tooltip = tooltip .. "\255\175\175\175" .. Spring.I18N("ui.widgetselector.author") .. ":  " .. string.gsub(textLines, "[\n]", "\n\255\175\175\175") .. "\n"
+				tooltip = tooltip .. "\255\175\175\175" .. I18N("ui.widgetselector.author") .. ":  " .. string.gsub(textLines, "[\n]", "\n\255\175\175\175") .. "\n"
 			end
-			tooltip = tooltip .. "\255\175\175\175" .. Spring.I18N("ui.widgetselector.file") .. ":  " .. d.basename .. (not d.fromZip and "   (" .. Spring.I18N("ui.widgetselector.islocal") .. ")" or "")
-			if WG["tooltip"] then
-				WG["tooltip"].ShowTooltip("info", tooltip, nil, nil, tooltipTitle)
+			tooltip = tooltip .. "\255\175\175\175" .. I18N("ui.widgetselector.file") .. ":  " .. d.basename .. (not d.fromZip and "   (" .. I18N("ui.widgetselector.islocal") .. ")" or "")
+			if WG.tooltip then
+				WG.tooltip.ShowTooltip("info", tooltip, nil, nil, tooltipTitle)
 			end
 		end
 	end
@@ -1030,8 +1030,8 @@ function widget:DrawScreen()
 	if showTextInput and textInputDlist then
 		gl.CallList(textInputDlist)
 		drawChatInputCursor()
-	elseif WG["guishader"] then
-		WG["guishader"].RemoveRect("selectorinput")
+	elseif WG.guishader then
+		WG.guishader.RemoveRect("selectorinput")
 		textInputDlist = gl.DeleteList(textInputDlist)
 	end
 
@@ -1044,7 +1044,7 @@ function widget:DrawScreen()
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() or not show then
+	if SpringUnsynced.IsGUIHidden() or not show then
 		return false
 	end
 
@@ -1102,7 +1102,7 @@ function widget:MousePress(x, y, button)
 		return true
 	else
 		show = false
-		Spring.SDLStopTextInput()
+		SpringUnsynced.SDLStopTextInput()
 		widgetHandler.textOwner = nil --widgetHandler:DisownText()
 		return false
 	end
@@ -1118,7 +1118,7 @@ function widget:MouseMove(x, y, dx, dy, button)
 end
 
 function widget:MouseRelease(x, y, mb)
-	if Spring.IsGUIHidden() or not show then
+	if SpringUnsynced.IsGUIHidden() or not show then
 		return -1
 	end
 
@@ -1140,7 +1140,7 @@ function widget:MouseRelease(x, y, mb)
 			curMaxEntries = curMaxEntries + 1
 			UpdateListScroll()
 			UpdateGeometry()
-			Spring.WarpMouse(x, y + 0.5 * (fontSize + fontSpace))
+			SpringUnsynced.WarpMouse(x, y + 0.5 * (fontSize + fontSpace))
 			return -1
 		end
 		if minx < x and x < minx + 10 and maxy + bgPadding < y and y < maxy + buttonFontSize + 7 + bgPadding then
@@ -1149,7 +1149,7 @@ function widget:MouseRelease(x, y, mb)
 				curMaxEntries = curMaxEntries - 1
 				UpdateListScroll()
 				UpdateGeometry()
-				Spring.WarpMouse(x, y - 0.5 * (fontSize + fontSpace))
+				SpringUnsynced.WarpMouse(x, y - 0.5 * (fontSize + fontSpace))
 			end
 			return -1
 		end
@@ -1164,7 +1164,7 @@ function widget:MouseRelease(x, y, mb)
 			end
 		end
 		if buttonID == 1 then
-			Spring.SendCommands("luarules reloadluaui")
+			SpringUnsynced.SendCommands("luarules reloadluaui")
 			return -1
 		end
 		if buttonID == 2 then
@@ -1184,15 +1184,15 @@ function widget:MouseRelease(x, y, mb)
 				widgetHandler.__allowUserWidgets = true
 				spEcho("Allowed user widgets, reloading...")
 			end
-			Spring.SendCommands("luarules reloadluaui")
+			SpringUnsynced.SendCommands("luarules reloadluaui")
 			return -1
 		end
 		if buttonID == 4 then
-			Spring.SendCommands("luaui reset")
+			SpringUnsynced.SendCommands("luaui reset")
 			return -1
 		end
 		if buttonID == 5 then
-			Spring.SendCommands("luaui factoryreset")
+			SpringUnsynced.SendCommands("luaui factoryreset")
 			return -1
 		end
 	end
@@ -1253,16 +1253,16 @@ function widget:SetConfigData(data)
 	show = data.show or show
 	if show then
 		widgetHandler.textOwner = self --widgetHandler:OwnText()
-		Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 	end
 end
 
 function widget:Shutdown()
-	Spring.SendCommands("bind f11 luaui selector") -- if this one is removed or crashes, then have the backup one take over.
+	SpringUnsynced.SendCommands("bind f11 luaui selector") -- if this one is removed or crashes, then have the backup one take over.
 	cancelChatInput()
-	if WG["guishader"] then
-		WG["guishader"].DeleteDlist("widgetselector")
-		WG["guishader"].DeleteDlist("widgetselector2")
+	if WG.guishader then
+		WG.guishader.DeleteDlist("widgetselector")
+		WG.guishader.DeleteDlist("widgetselector2")
 	end
 	uiList = gl.DeleteList(uiList)
 	uiList2 = gl.DeleteList(uiList2)

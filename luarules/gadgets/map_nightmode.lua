@@ -111,16 +111,16 @@ if not gadgetHandler:IsSyncedCode() then
 		end
 
 		for _, s in ipairs({ "lighting", "atmosphere" }) do
-			Spring.Echo(s)
+			SpringShared.Echo(s)
 			for k, v in pairs(l[s]) do
 				if type(v) == "table" then
-					Spring.Echo(string.format("  %s = {%s},", k, quicktablestring(v)))
+					SpringShared.Echo(string.format("  %s = {%s},", k, quicktablestring(v)))
 				else
-					Spring.Echo(string.format("  %s = %s,", k, tostring(v)))
+					SpringShared.Echo(string.format("  %s = %s,", k, tostring(v)))
 				end
 			end
 		end
-		Spring.Echo("sunDir = " .. quicktablestring(l["sunDir"]))
+		SpringShared.Echo("sunDir = " .. quicktablestring(l.sunDir))
 	end
 
 	local function GetLightingAndAtmosphere() -- returns a table of the common parameters
@@ -159,11 +159,11 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	local currentNightFactor = { red = 1, green = 1, blue = 1, shadow = 1, altitude = 1 }
-	GG["NightFactor"] = currentNightFactor
+	GG.NightFactor = currentNightFactor
 
 	local function SetLightingAndAtmosphere(lightandatmos)
 		for k, _ in pairs(currentNightFactor) do
-			GG["NightFactor"][k] = lightandatmos.nightFactor[k]
+			GG.NightFactor[k] = lightandatmos.nightFactor[k]
 		end
 
 		if Script.LuaUI("NightFactorChanged") then
@@ -175,17 +175,17 @@ if not gadgetHandler:IsSyncedCode() then
 		--if lightandatmos.water then Spring.SetWaterParams(lightandatmos.water) end
 
 		if lightandatmos.lighting then
-			Spring.SetSunLighting(lightandatmos.lighting)
+			SpringUnsynced.SetSunLighting(lightandatmos.lighting)
 		end
 		if lightandatmos.sunDir then
-			Spring.SetSunDirection(lightandatmos.sunDir[1], lightandatmos.sunDir[2], lightandatmos.sunDir[3])
+			SpringUnsynced.SetSunDirection(lightandatmos.sunDir[1], lightandatmos.sunDir[2], lightandatmos.sunDir[3])
 		end
 		if lightandatmos.atmosphere then
-			Spring.SetAtmosphere(lightandatmos.atmosphere)
+			SpringUnsynced.SetAtmosphere(lightandatmos.atmosphere)
 		end
 		--if lightandatmos.lighting then Spring.SetSunLighting({groundShadowDensity = lightandatmos.lighting.groundShadowDensity}) end -- for some godforsaken reason, this needs to be set TWICE!
 		if lightandatmos.lighting then
-			Spring.SetSunLighting({})
+			SpringUnsynced.SetSunLighting({})
 		end -- for some godforsaken reason, this needs to be set TWICE!
 
 		--gadgetHandler:SetGlobal("NightModeParams", {r=1, g=1, b=1, s=1, a= 1})
@@ -252,12 +252,12 @@ if not gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		if a["sunDir"] and b["sunDir"] then
-			local asun = a["sunDir"]
-			local bsun = b["sunDir"]
+		if a.sunDir and b.sunDir then
+			local asun = a.sunDir
+			local bsun = b.sunDir
 
-			local aworldrot, aheight = SunDirToAzimuthHeight(a["sunDir"])
-			local bworldrot, bheight = SunDirToAzimuthHeight(b["sunDir"])
+			local aworldrot, aheight = SunDirToAzimuthHeight(a.sunDir)
+			local bworldrot, bheight = SunDirToAzimuthHeight(b.sunDir)
 			--Spring.Echo(("Arot = %.2f, Brot = %.2f"):format(aworldrot, bworldrot))
 
 			-- if close to 180 degrees, then rotate clockwise
@@ -272,7 +272,7 @@ if not gadgetHandler:IsSyncedCode() then
 			local targetrot = mix(aworldrot, bworldrot, mixfactor)
 			local targetheight = mix(aheight, bheight, mixfactor)
 
-			SunAzimuthHeightToDir(targetrot, targetheight, target["sunDir"])
+			SunAzimuthHeightToDir(targetrot, targetheight, target.sunDir)
 			--Spring.Echo("sunDir", mixfactor, "targetrot",targetrot, "targetheight", targetheight, aworldrot ,  bworldrot)
 		end
 		if a.nightFactor and b.nightFactor then
@@ -359,14 +359,14 @@ if not gadgetHandler:IsSyncedCode() then
 	local function SetNightMode(cmd, line, words, playerID)
 		-- line is the full line
 		-- words is a table here, of each of the words AFTER /luarules NightMode a b c -> {a,b,c}
-		Spring.Echo("SetNightMode", cmd, line, words, playerID)
+		SpringShared.Echo("SetNightMode", cmd, line, words, playerID)
 		if #words <= 1 then
-			Spring.Echo("Resetting Lighting")
+			SpringShared.Echo("Resetting Lighting")
 			SetLightingAndAtmosphere(initial_atmosphere_lighting)
 			return
 		end
 
-		Spring.Echo("Expecting /luarules NightMode nightR nightG nightB azimuth altitude shadowfactor")
+		SpringShared.Echo("Expecting /luarules NightMode nightR nightG nightB azimuth altitude shadowfactor")
 		local nightR = (words[1] and tonumber(words[1])) or 1
 		local nightG = (words[2] and tonumber(words[2])) or 1
 		local nightB = (words[3] and tonumber(words[3])) or 1
@@ -375,7 +375,7 @@ if not gadgetHandler:IsSyncedCode() then
 		local shadowfactor = (words[6] and tonumber(words[6])) or 1
 
 		local newNightLight = GetNightLight(nil, { nightR, nightG, nightB, shadowfactor }, azimuth, altitude)
-		Spring.Echo(newNightLight)
+		SpringShared.Echo(newNightLight)
 		-- If this command is recieved, immediately stop any existing nightModeConfig
 		transitionenabled = false
 		SetLightingAndAtmosphere(newNightLight)
@@ -386,7 +386,7 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	local function PrintSun(cmd, line, words, playerID)
-		Spring.Echo("Current sun settings are")
+		SpringShared.Echo("Current sun settings are")
 		local sun = GetLightingAndAtmosphere()
 		EchoSun(sun)
 	end
@@ -431,7 +431,7 @@ if not gadgetHandler:IsSyncedCode() then
 
 	local lastSunChanged = -1
 	function gadget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
-		local df = Spring.GetDrawFrame()
+		local df = SpringUnsynced.GetDrawFrame()
 		if df == lastSunChanged then
 			return
 		end

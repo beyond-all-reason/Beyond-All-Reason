@@ -26,13 +26,13 @@ end
 -------------------------------------------------------------------------------
 --- CACHED VALUES
 -------------------------------------------------------------------------------
-local spGetCmdDescIndex = Spring.GetCmdDescIndex
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetCmdDescIndex = SpringUnsynced.GetCmdDescIndex
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitIsBuilding = SpringShared.GetUnitIsBuilding
+local spGetSelectedUnitsSorted = SpringUnsynced.GetSelectedUnitsSorted
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
 
 local math_floor = math.floor
 local math_ceil = math.ceil
@@ -56,15 +56,15 @@ local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 --- STATIC VALUES
 -------------------------------------------------------------------------------
 
-local BUILDCAT_ECONOMY = Spring.I18N("ui.buildMenu.category_econ")
-local BUILDCAT_COMBAT = Spring.I18N("ui.buildMenu.category_combat")
-local BUILDCAT_UTILITY = Spring.I18N("ui.buildMenu.category_utility")
-local BUILDCAT_PRODUCTION = Spring.I18N("ui.buildMenu.category_production")
+local BUILDCAT_ECONOMY = I18N("ui.buildMenu.category_econ")
+local BUILDCAT_COMBAT = I18N("ui.buildMenu.category_combat")
+local BUILDCAT_UTILITY = I18N("ui.buildMenu.category_utility")
+local BUILDCAT_PRODUCTION = I18N("ui.buildMenu.category_production")
 local categoryTooltips = {
-	[BUILDCAT_ECONOMY] = Spring.I18N("ui.buildMenu.category_econ_descr"),
-	[BUILDCAT_COMBAT] = Spring.I18N("ui.buildMenu.category_combat_descr"),
-	[BUILDCAT_UTILITY] = Spring.I18N("ui.buildMenu.category_utility_descr"),
-	[BUILDCAT_PRODUCTION] = Spring.I18N("ui.buildMenu.category_production_descr"),
+	[BUILDCAT_ECONOMY] = I18N("ui.buildMenu.category_econ_descr"),
+	[BUILDCAT_COMBAT] = I18N("ui.buildMenu.category_combat_descr"),
+	[BUILDCAT_UTILITY] = I18N("ui.buildMenu.category_utility_descr"),
+	[BUILDCAT_PRODUCTION] = I18N("ui.buildMenu.category_production_descr"),
 }
 
 local folder = "LuaUI/Images/groupicons/"
@@ -164,7 +164,7 @@ include("keysym.h.lua")
 local unitBlocking = VFS.Include("luaui/Include/unitBlocking.lua")
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
-local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+local currentLayout = SpringUnsynced.GetConfigString("KeyboardLayout", "qwerty")
 local categoryKeys = {}
 local keyLayout = {}
 local nextPageKey
@@ -217,7 +217,7 @@ end
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner, TexRectRound
 local ui_opacity, ui_scale
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 
 local ordermenuLeft = math.floor(vsx / 5)
 local advplayerlistLeft = vsx * 0.8
@@ -329,7 +329,7 @@ end
 
 -- starting units
 local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
-if Spring.GetModOptions().experimentallegionfaction then
+if SpringShared.GetModOptions().experimentallegionfaction then
 	startUnits[#startUnits + 1] = UnitDefNames.legcom.id
 end
 local startBuildOptions = {}
@@ -356,7 +356,7 @@ local function resetHovered()
 		rect.opts.hovered = false
 	end
 
-	WG["buildmenu"].hoverID = nil
+	WG.buildmenu.hoverID = nil
 	labBuildModeRect.opts.hovered = false
 	nextBuilderRect.opts.hovered = false
 	backRect.opts.hovered = false
@@ -390,22 +390,22 @@ end
 local function setHoveredRectTooltip(rect, text, title, clicked)
 	setHoveredRect(rect, clicked)
 
-	if WG["tooltip"] then
-		WG["tooltip"].ShowTooltip("buildmenu", text, nil, nil, title)
+	if WG.tooltip then
+		WG.tooltip.ShowTooltip("buildmenu", text, nil, nil, title)
 	end
 end
 
 local function updateHoverState()
-	local x, y, left, _, right = Spring.GetMouseState()
+	local x, y, left, _, right = SpringUnsynced.GetMouseState()
 	local isAboveBg = backgroundRect:contains(x, y)
 	local isAboveBuilders = not isAboveBg and selectedBuildersCount > 1 and (buildersRect:contains(x, y) or nextBuilderRect:contains(x, y))
 
 	if isAboveBuilders then
-		Spring.SetMouseCursor("cursornormal")
+		SpringUnsynced.SetMouseCursor("cursornormal")
 
 		-- builder buttons
 		if nextBuilderRect:contains(x, y) then
-			setHoveredRectTooltip(nextBuilderRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextBuilder"))
+			setHoveredRectTooltip(nextBuilderRect, "\255\240\240\240" .. I18N("ui.buildMenu.nextBuilder"))
 
 			return
 		end
@@ -438,7 +438,7 @@ local function updateHoverState()
 		return
 	end
 
-	Spring.SetMouseCursor("cursornormal")
+	SpringUnsynced.SetMouseCursor("cursornormal")
 
 	for _, cellRect in pairs(cellRects) do
 		if cellRect:contains(x, y) then
@@ -455,7 +455,7 @@ local function updateHoverState()
 			local text
 			local textColor = "\255\215\255\215"
 			if cellRect.opts.disabled then
-				text = Spring.I18N("ui.buildMenu.disabled", {
+				text = I18N("ui.buildMenu.disabled", {
 					unit = unitTranslatedHumanName[uDefID],
 					textColor = textColor,
 					warnColor = "\255\166\166\166",
@@ -465,11 +465,11 @@ local function updateHoverState()
 			end
 			local tooltip = unitTranslatedTooltip[uDefID]
 			if unitMetal_extractor[uDefID] then
-				tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
+				tooltip = tooltip .. "\n" .. I18N("ui.buildMenu.areamex_tooltip")
 			end
 
 			setHoveredRectTooltip(cellRect, "\255\240\240\240" .. tooltip, text, left or right)
-			WG["buildmenu"].hoverID = uDefID
+			WG.buildmenu.hoverID = uDefID
 
 			return
 		end
@@ -490,7 +490,7 @@ local function updateHoverState()
 
 	-- build mode button
 	if builderIsFactory and (useLabBuildMode and not labBuildModeActive) and labBuildModeRect:contains(x, y) then
-		setHoveredRectTooltip(labBuildModeRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.buildmode_descr"))
+		setHoveredRectTooltip(labBuildModeRect, "\255\240\240\240" .. I18N("ui.buildMenu.buildmode_descr"))
 
 		return
 	end
@@ -498,7 +498,7 @@ local function updateHoverState()
 	if currentCategory or labBuildModeActive then
 		-- back button
 		if backRect and backRect:contains(x, y) then
-			setHoveredRectTooltip(backRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.homePage"))
+			setHoveredRectTooltip(backRect, "\255\240\240\240" .. I18N("ui.buildMenu.homePage"))
 
 			return
 		end
@@ -506,7 +506,7 @@ local function updateHoverState()
 
 	-- paginator buttons
 	if pages > 1 and nextPageRect and nextPageRect:contains(x, y) then
-		setHoveredRectTooltip(nextPageRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextPage"))
+		setHoveredRectTooltip(nextPageRect, "\255\240\240\240" .. I18N("ui.buildMenu.nextPage"))
 
 		return
 	end
@@ -551,7 +551,7 @@ local function updateQuotaNumber(unitDefID, quantity)
 	end
 	local cellRect = cellRects[cellId]
 	if WG.Quotas then
-		for _, builderID in ipairs(Spring.GetSelectedUnitsSorted()[activeBuilder]) do
+		for _, builderID in ipairs(SpringUnsynced.GetSelectedUnitsSorted()[activeBuilder]) do
 			local quotas = WG.Quotas.getQuotas()
 			quotas[builderID] = quotas[builderID] or {}
 			quotas[builderID][unitDefID] = quotas[builderID][unitDefID] or 0
@@ -559,9 +559,9 @@ local function updateQuotaNumber(unitDefID, quantity)
 			cellRect.opts.quotanumber = quotas[builderID][unitDefID]
 		end
 		if quantity > 0 then
-			Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+			SpringUnsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 		else
-			Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+			SpringUnsynced.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 		end
 	end
 	redraw = true
@@ -870,7 +870,7 @@ local function refreshCommands()
 			return
 		end
 	elseif builderIsFactory then
-		local activeCmdDescs = Spring.GetUnitCmdDescs(activeBuilderID)
+		local activeCmdDescs = SpringShared.GetUnitCmdDescs(activeBuilderID)
 
 		if activeCmdDescs then
 			gridOpts = grid.getSortedGridForLab(activeBuilder, activeCmdDescs)
@@ -903,7 +903,7 @@ end
 
 local function getActionHotkey(action)
 	local key
-	for _, keybinding in pairs(Spring.GetActionHotKeys(action)) do
+	for _, keybinding in pairs(SpringUnsynced.GetActionHotKeys(action)) do
 		if (not key) or keybinding:len() < key:len() then
 			key = keybinding
 		end
@@ -924,7 +924,7 @@ local function getGridKey(action)
 end
 
 local function reloadBindings()
-	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+	currentLayout = SpringUnsynced.GetConfigString("KeyboardLayout", "qwerty")
 
 	keyLayout = { {}, {}, {} }
 
@@ -965,10 +965,10 @@ local function setLabBuildMode(value)
 end
 
 local function setActiveCommand(cmd, button, leftClick, rightClick)
-	local didChangeCmd = button and Spring.SetActiveCommand(cmd, button, leftClick, rightClick, Spring.GetModKeyState()) or Spring.SetActiveCommand(cmd)
+	local didChangeCmd = button and SpringUnsynced.SetActiveCommand(cmd, button, leftClick, rightClick, SpringUnsynced.GetModKeyState()) or SpringUnsynced.SetActiveCommand(cmd)
 
 	if not didChangeCmd then
-		Spring.Echo("<Grid menu> Unable to change active command", cmd)
+		SpringShared.Echo("<Grid menu> Unable to change active command", cmd)
 		return
 	end
 
@@ -979,9 +979,9 @@ end
 
 local function pickBlueprint(uDefID)
 	local isRepeatMex = unitMetal_extractor[uDefID] and -uDefID == activeCmd
-	local cmd = (WG["areamex"] and isRepeatMex and "areamex") or spGetCmdDescIndex(-uDefID)
-	if isRepeatMex and WG["areamex"] then
-		WG["areamex"].setAreaMexType(-uDefID)
+	local cmd = (WG.areamex and isRepeatMex and "areamex") or spGetCmdDescIndex(-uDefID)
+	if isRepeatMex and WG.areamex then
+		WG.areamex.setAreaMexType(-uDefID)
 	end
 	setActiveCommand(cmd)
 end
@@ -1079,7 +1079,7 @@ local function gridmenuCategoryHandler(_, _, args)
 		return
 	end
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
-		Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+		SpringUnsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 		setLabBuildMode(true)
 		refreshCommands()
 		return true
@@ -1089,7 +1089,7 @@ local function gridmenuCategoryHandler(_, _, args)
 		return
 	end
 
-	local alt, ctrl, meta, _ = Spring.GetModKeyState()
+	local alt, ctrl, meta, _ = SpringUnsynced.GetModKeyState()
 	if alt or ctrl or meta then
 		return
 	end
@@ -1130,7 +1130,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		return currentCategory and true or false
 	end
 
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 
 	if builderIsFactory then
 		local quantity = 1
@@ -1155,9 +1155,9 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 			if quantity < 0 then
 				quantity = quantity * -1
 				removing = true
-				Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+				SpringUnsynced.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 			else
-				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+				SpringUnsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 			end
 			--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
 			quantity = multiQueue(uDefID, quantity, 100, { "ctrl", "shift", alt and "alt", removing and "right" })
@@ -1260,7 +1260,7 @@ function widget:Initialize()
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	for unitDefID, reasons in pairs(blockedUnitsData) do
 		units.unitRestricted[unitDefID] = next(reasons) ~= nil
-		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+		units.unitHidden[unitDefID] = reasons.hidden ~= nil
 	end
 
 	if widgetHandler:IsWidgetKnown("Build menu") then
@@ -1269,12 +1269,12 @@ function widget:Initialize()
 		widgetHandler:DisableWidgetRaw("Build menu")
 	end
 
-	myTeamID = Spring.GetMyTeamID()
-	isSpec = Spring.GetSpectatingState()
-	isPregame = Spring.GetGameFrame() == 0 and not isSpec
+	myTeamID = SpringUnsynced.GetLocalTeamID()
+	isSpec = SpringUnsynced.GetSpectatingState()
+	isPregame = SpringShared.GetGameFrame() == 0 and not isSpec
 
-	WG["gridmenu"] = {}
-	WG["buildmenu"] = {}
+	WG.gridmenu = {}
+	WG.buildmenu = {}
 
 	doUpdateClock = os.clock()
 
@@ -1301,7 +1301,7 @@ function widget:Initialize()
 
 	-- Get our starting unit
 	if isPregame then
-		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+		startDefID = SpringShared.GetTeamRulesParam(myTeamID, "startUnit")
 	end
 
 	widget:ViewResize()
@@ -1309,97 +1309,97 @@ function widget:Initialize()
 	if isPregame then
 		refreshCommands()
 	else
-		widget:SelectionChanged(Spring.GetSelectedUnits())
+		widget:SelectionChanged(SpringUnsynced.GetSelectedUnits())
 	end
 
-	WG["gridmenu"].getAlwaysReturn = function()
+	WG.gridmenu.getAlwaysReturn = function()
 		return alwaysReturn
 	end
-	WG["gridmenu"].setAlwaysReturn = function(value)
+	WG.gridmenu.setAlwaysReturn = function(value)
 		alwaysReturn = value
 	end
-	WG["gridmenu"].getAutoSelectFirst = function()
+	WG.gridmenu.getAutoSelectFirst = function()
 		return autoSelectFirst
 	end
-	WG["gridmenu"].setAutoSelectFirst = function(value)
+	WG.gridmenu.setAutoSelectFirst = function(value)
 		autoSelectFirst = value
 	end
-	WG["gridmenu"].getUseLabBuildMode = function()
+	WG.gridmenu.getUseLabBuildMode = function()
 		return useLabBuildMode
 	end
-	WG["gridmenu"].setUseLabBuildMode = function(value)
+	WG.gridmenu.setUseLabBuildMode = function(value)
 		useLabBuildMode = value
 		updateGrid()
 	end
-	WG["gridmenu"].setCurrentCategory = function(category)
+	WG.gridmenu.setCurrentCategory = function(category)
 		setCurrentCategory(category)
 	end
-	WG["gridmenu"].clearCategory = function()
+	WG.gridmenu.clearCategory = function()
 		clearCategory()
 	end
 
-	WG["gridmenu"].getCtrlKeyModifier = function()
+	WG.gridmenu.getCtrlKeyModifier = function()
 		return modKeyMultiplier.keyPress.ctrl
 	end
-	WG["gridmenu"].setCtrlKeyModifier = function(value)
+	WG.gridmenu.setCtrlKeyModifier = function(value)
 		modKeyMultiplier.keyPress.ctrl = value
 	end
-	WG["gridmenu"].getShiftKeyModifier = function()
+	WG.gridmenu.getShiftKeyModifier = function()
 		return modKeyMultiplier.keyPress.shift
 	end
-	WG["gridmenu"].setShiftKeyModifier = function(value)
+	WG.gridmenu.setShiftKeyModifier = function(value)
 		modKeyMultiplier.keyPress.shift = value
 	end
 
-	WG["buildmenu"].getGroups = function()
+	WG.buildmenu.getGroups = function()
 		return groups, units.unitGroup
 	end
-	WG["buildmenu"].getOrder = function()
+	WG.buildmenu.getOrder = function()
 		return units.unitOrder
 	end
-	WG["buildmenu"].getShowPrice = function()
+	WG.buildmenu.getShowPrice = function()
 		return showPrice
 	end
-	WG["buildmenu"].setShowPrice = function(value)
+	WG.buildmenu.setShowPrice = function(value)
 		showPrice = value
 		updateGrid()
 	end
-	WG["buildmenu"].getAlwaysShow = function()
+	WG.buildmenu.getAlwaysShow = function()
 		return alwaysShow
 	end
-	WG["buildmenu"].setAlwaysShow = function(value)
+	WG.buildmenu.setAlwaysShow = function(value)
 		alwaysShow = value
 		refreshCommands()
 	end
-	WG["buildmenu"].getShowRadarIcon = function()
+	WG.buildmenu.getShowRadarIcon = function()
 		return showRadarIcon
 	end
-	WG["buildmenu"].setShowRadarIcon = function(value)
+	WG.buildmenu.setShowRadarIcon = function(value)
 		showRadarIcon = value
 		updateGrid()
 	end
-	WG["buildmenu"].getShowGroupIcon = function()
+	WG.buildmenu.getShowGroupIcon = function()
 		return showGroupIcon
 	end
-	WG["buildmenu"].setShowGroupIcon = function(value)
+	WG.buildmenu.setShowGroupIcon = function(value)
 		showGroupIcon = value
 		updateGrid()
 	end
-	WG["buildmenu"].getBottomPosition = function()
+	WG.buildmenu.getBottomPosition = function()
 		return stickToBottom
 	end
-	WG["buildmenu"].setBottomPosition = function(value)
+	WG.buildmenu.setBottomPosition = function(value)
 		stickToBottom = value
 		widget:ViewResize()
 	end
-	WG["buildmenu"].getSize = function()
+	WG.buildmenu.getSize = function()
 		return backgroundRect.y, backgroundRect.yEnd
 	end
-	WG["buildmenu"].reloadBindings = function()
+	WG.buildmenu.reloadBindings = function()
 		reloadBindings()
 		refreshCommands()
 	end
-	WG["buildmenu"].getIsShowing = function()
+	WG.buildmenu.getIsShowing = function()
 		return buildmenuShows
 	end
 	---@class CostLine
@@ -1415,7 +1415,7 @@ function widget:Initialize()
 	---Override the cost display for a specific unit in the grid menu
 	---@param unitDefID number The unit definition ID to override costs for
 	---@param costData CostData Cost override configuration table with optional properties
-	WG["gridmenu"].setCostOverride = function(unitDefID, costData)
+	WG.gridmenu.setCostOverride = function(unitDefID, costData)
 		if unitDefID and costData then
 			costOverrides[unitDefID] = costData
 			redraw = true
@@ -1425,7 +1425,7 @@ function widget:Initialize()
 
 	---Clear cost overrides for a specific unit or all units
 	---@param unitDefID number? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
-	WG["gridmenu"].clearCostOverrides = function(unitDefID)
+	WG.gridmenu.clearCostOverrides = function(unitDefID)
 		if unitDefID then
 			costOverrides[unitDefID] = nil
 		else
@@ -1442,7 +1442,7 @@ function widget:Initialize()
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	for unitDefID, reasons in pairs(blockedUnitsData) do
 		units.unitRestricted[unitDefID] = next(reasons) ~= nil
-		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+		units.unitHidden[unitDefID] = reasons.hidden ~= nil
 	end
 end
 
@@ -1451,7 +1451,7 @@ end
 -------------------------------------------------------------------------------
 
 local function checkGuishader(force)
-	if WG["guishader"] then
+	if WG.guishader then
 		if force and dlistGuishader then
 			dlistGuishader = gl.DeleteList(dlistGuishader)
 		end
@@ -1460,7 +1460,7 @@ local function checkGuishader(force)
 				RectRound(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, elementCorner)
 			end)
 			if activeBuilder then
-				WG["guishader"].InsertDlist(dlistGuishader, "buildmenu")
+				WG.guishader.InsertDlist(dlistGuishader, "buildmenu")
 			end
 		end
 	elseif dlistGuishader then
@@ -1470,7 +1470,7 @@ end
 
 -- Set up all of the UI positioning
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = SpringUnsynced.GetViewGeometry()
 
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
@@ -1490,7 +1490,7 @@ function widget:ViewResize()
 
 	activeAreaMargin = math_ceil(bgpadding * CONFIG.activeAreaMargin)
 
-	font2 = WG["fonts"].getFont(2)
+	font2 = WG.fonts.getFont(2)
 
 	for i, rectOpts in ipairs(defaultCategoryOpts) do
 		defaultCategoryOpts[i].nameHeight = font2:GetTextHeight(rectOpts.name)
@@ -1499,8 +1499,8 @@ function widget:ViewResize()
 
 	backRect.opts.keyTextHeight = font2:GetTextHeight(backRect.opts.name)
 
-	if WG["minimap"] then
-		minimapHeight = WG["minimap"].getHeight()
+	if WG.minimap then
+		minimapHeight = WG.minimap.getHeight()
 	end
 
 	-- if stick to bottom we know cells are 2 row by 6 column
@@ -1543,8 +1543,8 @@ function widget:ViewResize()
 		local posY = math_floor(posYEnd + ((0.74 * vsx) * width)) / vsy
 		local posX = 0
 
-		if WG["ordermenu"] and not WG["ordermenu"].getBottomPosition() then
-			local _, oposY, _, oheight = WG["ordermenu"].getPosition()
+		if WG.ordermenu and not WG.ordermenu.getBottomPosition() then
+			local _, oposY, _, oheight = WG.ordermenu.getPosition()
 			if posY > oposY then
 				posY = (oposY - oheight - (widgetSpaceMargin / vsy))
 			end
@@ -1624,14 +1624,14 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.33 then
 		sec = 0
-		if delayRefresh and Spring.GetGameSeconds() >= delayRefresh then
+		if delayRefresh and SpringShared.GetGameSeconds() >= delayRefresh then
 			redraw = true
 			doUpdate = true
 			updateGrid()
 			delayRefresh = nil
 		end
 		checkGuishader()
-		if WG["minimap"] and minimapHeight ~= WG["minimap"].getHeight() then
+		if WG.minimap and minimapHeight ~= WG.minimap.getHeight() then
 			widget:ViewResize()
 
 			if not isPregame then
@@ -1640,8 +1640,8 @@ function widget:Update(dt)
 		end
 		local prevOrdermenuLeft = ordermenuLeft
 		local prevOrdermenuHeight = ordermenuHeight
-		if WG["ordermenu"] then
-			local oposX, _, owidth, oheight = WG["ordermenu"].getPosition()
+		if WG.ordermenu then
+			local oposX, _, owidth, oheight = WG.ordermenu.getPosition()
 			ordermenuLeft = math_floor((oposX + owidth) * vsx)
 			ordermenuHeight = oheight
 		end
@@ -1654,7 +1654,7 @@ function widget:Update(dt)
 		end
 
 		disableInput = CONFIG.disableInputWhenSpec and isSpec
-		if Spring.IsGodModeEnabled() then
+		if SpringShared.IsGodModeEnabled() then
 			disableInput = false
 		end
 	end
@@ -1666,11 +1666,11 @@ function widget:Update(dt)
 		buildmenuShows = true
 	end
 
-	if WG["guishader"] and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
+	if WG.guishader and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
 		if buildmenuShows then
-			WG["guishader"].InsertDlist(dlistGuishader, "buildmenu")
+			WG.guishader.InsertDlist(dlistGuishader, "buildmenu")
 		else
-			WG["guishader"].RemoveDlist("buildmenu")
+			WG.guishader.RemoveDlist("buildmenu")
 		end
 	end
 
@@ -1687,7 +1687,7 @@ function widget:Update(dt)
 	-- PERF: Maybe make this slow-ish-update?
 	if isPregame then
 		local previousStartDefID = startDefID
-		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+		startDefID = SpringShared.GetTeamRulesParam(myTeamID, "startUnit")
 
 		-- Don't update unless defid has changed
 		doUpdate = previousStartDefID ~= startDefID
@@ -2196,10 +2196,10 @@ function widget:KeyRelease(key)
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
-	if WG["topbar"] and WG["topbar"].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		return
 	end
 
@@ -2207,7 +2207,7 @@ function widget:MousePress(x, y, button)
 		if activeBuilder then
 			if pages > 1 then
 				if nextPageRect and nextPageRect:contains(x, y) then
-					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+					SpringUnsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 					nextPageHandler()
 					return true
 				end
@@ -2215,7 +2215,7 @@ function widget:MousePress(x, y, button)
 
 			if currentCategory or labBuildModeActive then
 				if backRect and backRect:contains(x, y) then
-					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+					SpringUnsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 					clearCategory()
 					return true
 				end
@@ -2223,7 +2223,7 @@ function widget:MousePress(x, y, button)
 
 			if useLabBuildMode and builderIsFactory and not labBuildModeActive then
 				if labBuildModeRect:contains(x, y) then
-					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+					SpringUnsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 					setLabBuildMode(true)
 					updateGrid()
 					return true
@@ -2251,7 +2251,7 @@ function widget:MousePress(x, y, button)
 					for cat, catRect in pairs(catRects) do
 						if catRect:contains(x, y) then
 							setCurrentCategory(cat)
-							Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+							SpringUnsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 							return true
 						end
 					end
@@ -2260,7 +2260,7 @@ function widget:MousePress(x, y, button)
 				for _, cellRect in pairs(cellRects) do
 					local unitDefID = cellRect.opts.uDefID
 					if unitDefID and unitTranslatedHumanName[unitDefID] and cellRect:contains(x, y) and not cellRect.opts.disabled then
-						local alt, ctrl, meta, shift = Spring.GetModKeyState()
+						local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 						if button ~= 3 then
 							if builderIsFactory and WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
 								local amount = 1
@@ -2273,7 +2273,7 @@ function widget:MousePress(x, y, button)
 								updateQuotaNumber(unitDefID, amount)
 								return true
 							end
-							Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+							SpringUnsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 
 							if isPregame then
 								setPregameBlueprint(unitDefID)
@@ -2293,7 +2293,7 @@ function widget:MousePress(x, y, button)
 							end
 
 							local function decreaseQueue()
-								Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+								SpringUnsynced.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 								setActiveCommand(spGetCmdDescIndex(-unitDefID), 3, false, true)
 							end
 
@@ -2346,16 +2346,16 @@ local function checkGuishaderBuilders()
 			dlistGuishaderBuilders = gl.CreateList(function()
 				RectRound(buildersRect.x, buildersRect.y, buildersRect.xEnd + (bgpadding * 2), buildersRect.yEnd + bgpadding + (iconMargin * 2), elementCorner)
 			end)
-			WG["guishader"].InsertDlist(dlistGuishaderBuilders, "buildmenubuilders")
+			WG.guishader.InsertDlist(dlistGuishaderBuilders, "buildmenubuilders")
 			dlistGuishaderBuildersNext = gl.CreateList(function()
 				RectRound(nextBuilderRect.x, nextBuilderRect.y, nextBuilderRect.xEnd, nextBuilderRect.yEnd, elementCorner * 0.5)
 			end)
-			WG["guishader"].InsertDlist(dlistGuishaderBuildersNext, "buildmenubuildersnext")
+			WG.guishader.InsertDlist(dlistGuishaderBuildersNext, "buildmenubuildersnext")
 		end
 	elseif dlistGuishaderBuilders then
 		prevSelectedBuildersCount = 0
-		WG["guishader"].DeleteDlist("buildmenubuilders")
-		WG["guishader"].DeleteDlist("buildmenubuildersNext")
+		WG.guishader.DeleteDlist("buildmenubuilders")
+		WG.guishader.DeleteDlist("buildmenubuildersNext")
 		dlistGuishaderBuilders = nil
 		dlistGuishaderBuildersNext = nil
 	end
@@ -2368,19 +2368,19 @@ end
 function widget:DrawScreen()
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	if not (activeBuilder or alwaysShow) then
-		if WG["guishader"] and dlistGuishader then
+		if WG.guishader and dlistGuishader then
 			if dlistGuishader then
-				WG["guishader"].RemoveDlist("buildmenu")
+				WG.guishader.RemoveDlist("buildmenu")
 			end
 			if dlistGuishaderBuilders then
-				WG["guishader"].RemoveDlist("buildmenubuilders")
-				WG["guishader"].RemoveDlist("buildmenubuildersnext")
+				WG.guishader.RemoveDlist("buildmenubuilders")
+				WG.guishader.RemoveDlist("buildmenubuildersnext")
 			end
 		end
 	else
-		if WG["guishader"] then
+		if WG.guishader then
 			if dlistGuishader then
-				WG["guishader"].InsertDlist(dlistGuishader, "buildmenu")
+				WG.guishader.InsertDlist(dlistGuishader, "buildmenu")
 			end
 			checkGuishaderBuilders()
 		end
@@ -2507,7 +2507,7 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, optio
 	end
 
 	-- If factory is in repeat, queue does not change, except if it is alt-queued
-	local factoryRepeat = select(4, Spring.GetUnitStates(unitID, false, true))
+	local factoryRepeat = select(4, SpringShared.GetUnitStates(unitID, false, true))
 
 	if factoryRepeat and not options.alt then
 		return
@@ -2535,7 +2535,7 @@ function widget:SelectionChanged(newSel)
 		if alwaysShow then
 			refreshCommands()
 		else
-			WG["buildmenu"].hoverID = nil
+			WG.buildmenu.hoverID = nil
 		end
 
 		return
@@ -2561,7 +2561,7 @@ function widget:SelectionChanged(newSel)
 		if alwaysShow then
 			refreshCommands()
 		else
-			WG["buildmenu"].hoverID = nil
+			WG.buildmenu.hoverID = nil
 		end
 
 		return
@@ -2589,8 +2589,8 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged()
-	isSpec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	isSpec = SpringUnsynced.GetSpectatingState()
+	myTeamID = SpringUnsynced.GetLocalTeamID()
 end
 
 function widget:GetConfigData()
@@ -2602,7 +2602,7 @@ function widget:GetConfigData()
 		showRadarIcon = showRadarIcon,
 		showGroupIcon = showGroupIcon,
 		stickToBottom = stickToBottom,
-		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
+		gameID = Game.gameID and Game.gameID or SpringShared.GetGameRulesParam("GameID"),
 		alwaysShow = alwaysShow,
 		ctrlKeyModifier = modKeyMultiplier.keyPress.ctrl,
 		shiftKeyModifier = modKeyMultiplier.keyPress.shift,
@@ -2644,9 +2644,9 @@ end
 
 function widget:UnitBlocked(unitDefID, reasons)
 	units.unitRestricted[unitDefID] = next(reasons) ~= nil
-	units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
-	if not delayRefresh or delayRefresh < Spring.GetGameSeconds() then
-		delayRefresh = Spring.GetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
+	units.unitHidden[unitDefID] = reasons.hidden ~= nil
+	if not delayRefresh or delayRefresh < SpringShared.GetGameSeconds() then
+		delayRefresh = SpringShared.GetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
 	end
 end
 
@@ -2659,11 +2659,11 @@ function widget:Shutdown()
 		gl.DeleteTexture(buildmenuTex)
 		buildmenuTex = nil
 	end
-	if WG["guishader"] and dlistGuishader then
-		WG["guishader"].DeleteDlist("buildmenu")
-		WG["guishader"].DeleteDlist("buildmenubuilders")
-		WG["guishader"].DeleteDlist("buildmenubuildersnext")
+	if WG.guishader and dlistGuishader then
+		WG.guishader.DeleteDlist("buildmenu")
+		WG.guishader.DeleteDlist("buildmenubuilders")
+		WG.guishader.DeleteDlist("buildmenubuildersnext")
 		dlistGuishader = nil
 	end
-	WG["buildmenu"] = nil
+	WG.buildmenu = nil
 end

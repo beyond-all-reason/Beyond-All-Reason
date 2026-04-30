@@ -1,16 +1,16 @@
-function skip()
-	return Spring.GetGameFrame() <= 0
+local function skip()
+	return SpringShared.GetGameFrame() <= 0
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 end
 
-function runBaseTests()
+local function runBaseTests()
 	-- double expect should throw
 	Test.expectCallin("UnitCommand")
 
@@ -39,21 +39,21 @@ function runBaseTests()
 	Test.clearCallins()
 end
 
-function runWaitUntil(countOnly, reallyCountOnly, wait, expect, clear)
+local function runWaitUntil(countOnly, reallyCountOnly, wait, expect, clear)
 	-- test waitUntilCallinArgs with and without expectCallin preregister
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = SpringUnsynced.GetLocalTeamID()
 	if expect then
 		Test.expectCallin("UnitCommand", reallyCountOnly)
 	end
 
 	local unitID = SyncedRun(function(locals)
 		local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
-		local y = Spring.GetGroundHeight(x, z)
-		return Spring.CreateUnit("armpw", x, y, z, 0, locals.myTeamID)
+		local y = SpringShared.GetGroundHeight(x, z)
+		return SpringSynced.CreateUnit("armpw", x, y, z, 0, locals.myTeamID)
 	end)
 
 	-- issue selfd
-	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+	SpringShared.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 
 	-- actual test
 	if wait > 0 then
@@ -64,14 +64,14 @@ function runWaitUntil(countOnly, reallyCountOnly, wait, expect, clear)
 	else
 		Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.SELFD, nil, nil, nil })
 	end
-	assert(Spring.GetUnitSelfDTime(unitID) > 0)
+	assert(SpringShared.GetUnitSelfDTime(unitID) > 0)
 
 	if clear then
 		Test.clearCallins()
 	end
 end
 
-function test()
+local function test()
 	local FULL = false
 	local COUNT = true
 	local EXPECT = true
@@ -98,3 +98,5 @@ function test()
 	runWaitUntil(FULL, FULL, 0, not EXPECT, CLEAR)
 	Test.setUnsafeCallins(false)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

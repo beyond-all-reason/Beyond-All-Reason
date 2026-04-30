@@ -1,4 +1,4 @@
-if Spring.Utilities.Gametype.IsSinglePlayer() then
+if Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
@@ -21,9 +21,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	local CMD_SELFD = CMD.SELFD
 	local selfdCheckTeamUnits = {}
-	local spGetUnitSelfDTime = Spring.GetUnitSelfDTime
-	local spGetTeamUnits = Spring.GetTeamUnits
-	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local spGetUnitSelfDTime = SpringShared.GetUnitSelfDTime
+	local spGetTeamUnits = SpringShared.GetTeamUnits
+	local gaiaTeamID = SpringShared.GetGaiaTeamID()
 
 	local function forceResignTeam(teamID)
 		-- cancel self-d orders
@@ -31,16 +31,16 @@ if gadgetHandler:IsSyncedCode() then
 		for i = 1, #units do
 			local unitID = units[i]
 			if spGetUnitSelfDTime(unitID) > 0 then
-				Spring.GiveOrderToUnit(unitID, CMD_SELFD, {}, 0)
+				SpringShared.GiveOrderToUnit(unitID, CMD_SELFD, {}, 0)
 			end
 		end
 
-		Spring.KillTeam(teamID)
+		SpringSynced.KillTeam(teamID)
 
 		-- notify players in this team
-		local players = Spring.GetPlayerList()
+		local players = SpringShared.GetPlayerList()
 		for _, playerID in pairs(players) do
-			if teamID == select(4, Spring.GetPlayerInfo(playerID, false)) then
+			if teamID == select(4, SpringShared.GetPlayerInfo(playerID, false)) then
 				SendToUnsynced("forceResignMessage", playerID)
 			end
 		end
@@ -82,7 +82,7 @@ if gadgetHandler:IsSyncedCode() then
 					if skippedUnitCount >= skipResignAmount then
 						break
 					elseif selfdUnitCount >= triggerResignAmount then
-						local LuaAI = Spring.GetTeamLuaAI(teamID)
+						local LuaAI = SpringShared.GetTeamLuaAI(teamID)
 						if not LuaAI or not (string.find(LuaAI, "Scavengers") or string.find(LuaAI, "Raptors")) then
 							forceResignTeam(teamID)
 						end
@@ -102,24 +102,24 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 else -- UNSYNCED
-	local myPlayerID = Spring.GetMyPlayerID()
-	local myTeamID = Spring.GetMyTeamID()
+	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
+	local myTeamID = SpringUnsynced.GetLocalTeamID()
 
 	local function forceResignMessage(_, playerID)
 		if playerID == myPlayerID then
-			if not Spring.GetSpectatingState() then
+			if not SpringUnsynced.GetSpectatingState() then
 				-- check first if player has team players
 				local numActiveTeamPlayers = 0
-				local allyID = select(6, Spring.GetTeamInfo(myTeamID, false))
-				local teamList = Spring.GetTeamList(allyID)
+				local allyID = select(6, SpringShared.GetTeamInfo(myTeamID, false))
+				local teamList = SpringShared.GetTeamList(allyID)
 				for _, tID in ipairs(teamList) do
-					local luaAI = Spring.GetTeamLuaAI(tID)
-					if tID ~= myTeamID and not select(4, Spring.GetTeamInfo(tID, false)) and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(tID, "numActivePlayers") > 0 then
+					local luaAI = SpringShared.GetTeamLuaAI(tID)
+					if tID ~= myTeamID and not select(4, SpringShared.GetTeamInfo(tID, false)) and (not luaAI or luaAI == "") and SpringShared.GetTeamRulesParam(tID, "numActivePlayers") > 0 then
 						numActiveTeamPlayers = numActiveTeamPlayers + 1
 					end
 				end
 				if numActiveTeamPlayers > 0 and Script.LuaUI("GadgetMessageProxy") then
-					Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy("ui.forceResignMessage"))
+					SpringShared.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy("ui.forceResignMessage"))
 				end
 			end
 		end

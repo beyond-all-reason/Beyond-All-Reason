@@ -18,7 +18,7 @@ local mathMax = math.max
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local titlecolor = "\255\255\205\100"
 local keycolor = ""
@@ -30,12 +30,12 @@ local font, font2, loadedFontSize, mainDList, titleRect, backgroundGuishader, sh
 local maxLines = 22
 local math_isInRect = math.isInRect
 
-local raptorsEnabled = Spring.Utilities.Gametype.IsRaptors()
+local raptorsEnabled = Utilities.Gametype.IsRaptors()
 
 local content = ""
 
 local tidal = Game.tidal
-local map_tidal = Spring.GetModOptions().map_tidal
+local map_tidal = SpringShared.GetModOptions().map_tidal
 local reclaimable_metal = 0
 local reclaimable_energy = 0
 
@@ -48,8 +48,8 @@ elseif map_tidal == "high" then
 	tidal = 23
 end
 
-if Spring.GetTidal then
-	tidal = Spring.GetTidal()
+if SpringShared.GetTidal then
+	tidal = SpringShared.GetTidal()
 end
 
 -- modoptions
@@ -59,7 +59,7 @@ for key, value in pairs(defaultModoptions) do
 	modoptionsDefault[value.key] = { name = value.name, desc = value.desc, def = value.def }
 end
 
-local modoptions = Spring.GetModOptionsCopy()
+local modoptions = GetModOptionsCopy()
 local changedModoptions = {}
 local unchangedModoptions = {}
 local changedRaptorModoptions = {}
@@ -113,11 +113,11 @@ for key, value in pairs(modoptions) do
 		else
 			if string.find(key, "tweakdefs") then
 				local decodeSuccess, postsFuncStr = pcall(string.base64Decode, value)
-				changedModoptions[key] = "\n" .. (decodeSuccess and postsFuncStr or "\255\255\100\100 - " .. Spring.I18N("ui.gameInfo.decodefailed") .. " - ")
+				changedModoptions[key] = "\n" .. (decodeSuccess and postsFuncStr or "\255\255\100\100 - " .. I18N("ui.gameInfo.decodefailed") .. " - ")
 			else
 				local dataRaw = string.gsub(value, "_", "=")
 				local decodeSuccess, postsFuncStr = pcall(string.base64Decode, dataRaw)
-				local success, tweaks = pcall(Spring.Utilities.SafeLuaTableParser, postsFuncStr)
+				local success, tweaks = pcall(Utilities.SafeLuaTableParser, postsFuncStr)
 
 				if success and type(tweaks) == "table" then
 					local text = ""
@@ -200,8 +200,8 @@ function widget:ViewResize()
 	screenX = mathFloor((vsx * 0.5) - (screenWidth / 2))
 	screenY = mathFloor((vsy * 0.5) + (screenHeight / 2))
 
-	font, loadedFontSize = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font, loadedFontSize = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 
@@ -295,7 +295,7 @@ end
 function DrawWindow()
 	-- title
 	local titleFontSize = 18 * widgetScale
-	titleRect = { screenX, screenY, mathFloor(screenX + (font2:GetTextWidth(Spring.I18N("ui.gameInfo.title")) * titleFontSize) + (titleFontSize * 1.5)), mathFloor(screenY + (titleFontSize * 1.7)) }
+	titleRect = { screenX, screenY, mathFloor(screenX + (font2:GetTextWidth(I18N("ui.gameInfo.title")) * titleFontSize) + (titleFontSize * 1.5)), mathFloor(screenY + (titleFontSize * 1.7)) }
 
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 	gl.Color(0, 0, 0, WG.FlowUI.clampedOpacity)
@@ -304,7 +304,7 @@ function DrawWindow()
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.4)
-	font2:Print(Spring.I18N("ui.gameInfo.title"), screenX + (titleFontSize * 0.75), screenY + (8 * widgetScale), titleFontSize, "on")
+	font2:Print(I18N("ui.gameInfo.title"), screenX + (titleFontSize * 0.75), screenY + (8 * widgetScale), titleFontSize, "on")
 	font2:End()
 
 	-- textarea
@@ -320,7 +320,7 @@ function widget:DrawScreen()
 	if show or showOnceMore then
 		-- draw the panel
 		glCallList(mainDList)
-		if WG["guishader"] then
+		if WG.guishader then
 			if backgroundGuishader then
 				backgroundGuishader = glDeleteList(backgroundGuishader)
 			end
@@ -330,18 +330,18 @@ function widget:DrawScreen()
 				-- title
 				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
-			WG["guishader"].InsertDlist(backgroundGuishader, "gameinfo")
+			WG.guishader.InsertDlist(backgroundGuishader, "gameinfo")
 		end
 		showOnceMore = false
 
-		local x, y, pressed = Spring.GetMouseState()
+		local x, y, pressed = SpringUnsynced.GetMouseState()
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-			Spring.SetMouseCursor("cursornormal")
+			SpringUnsynced.SetMouseCursor("cursornormal")
 		end
 	else
 		if backgroundGuishader then
-			if WG["guishader"] then
-				WG["guishader"].RemoveDlist("gameinfo")
+			if WG.guishader then
+				WG.guishader.RemoveDlist("gameinfo")
 			end
 			backgroundGuishader = glDeleteList(backgroundGuishader)
 		end
@@ -380,7 +380,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return false
 	end
 
@@ -396,8 +396,8 @@ end
 
 function toggle()
 	local newShow = not show
-	if newShow and WG["topbar"] then
-		WG["topbar"].hideWindows()
+	if newShow and WG.topbar then
+		WG.topbar.hideWindows()
 	end
 	show = newShow
 
@@ -407,23 +407,23 @@ end
 local function refreshContent()
 	content = ""
 	content = content .. titlecolor .. Game.gameName .. valuegreycolor .. " (" .. Game.gameMutator .. ") " .. titlecolor .. Game.gameVersion .. "\n"
-	content = content .. keycolor .. Spring.I18N("ui.gameInfo.engine") .. separator .. valuegreycolor .. ((Game and Game.version) or (Engine and Engine.version) or Spring.I18N("ui.gameInfo.engineVersionError")) .. "\n"
+	content = content .. keycolor .. I18N("ui.gameInfo.engine") .. separator .. valuegreycolor .. ((Game and Game.version) or (Engine and Engine.version) or I18N("ui.gameInfo.engineVersionError")) .. "\n"
 	content = content .. "\n"
 
 	-- map info
 	content = content .. titlecolor .. Game.mapName .. "\n"
 	content = content .. valuegreycolor .. Game.mapDescription .. "\n"
-	content = content .. keycolor .. Spring.I18N("ui.gameInfo.size") .. separator .. valuegreycolor .. Game.mapX .. valuegreycolor .. " x " .. valuegreycolor .. Game.mapY .. "\n"
-	content = content .. keycolor .. Spring.I18N("ui.gameInfo.gravity") .. separator .. valuegreycolor .. Game.gravity .. "\n"
-	content = content .. keycolor .. Spring.I18N("ui.gameInfo.hardness") .. separator .. valuegreycolor .. Game.mapHardness .. keycolor .. "\n"
-	content = content .. keycolor .. Spring.I18N("ui.gameInfo.tidalStrength") .. separator .. valuegreycolor .. tidal .. keycolor .. "\n"
-	content = content .. keycolor .. Spring.I18N("ui.gameInfo.reclaimableMetal") .. separator .. valuegreycolor .. reclaimable_metal .. keycolor .. "\n"
-	content = content .. keycolor .. Spring.I18N("ui.gameInfo.reclaimableEnergy") .. separator .. valuegreycolor .. reclaimable_energy .. keycolor .. "\n"
+	content = content .. keycolor .. I18N("ui.gameInfo.size") .. separator .. valuegreycolor .. Game.mapX .. valuegreycolor .. " x " .. valuegreycolor .. Game.mapY .. "\n"
+	content = content .. keycolor .. I18N("ui.gameInfo.gravity") .. separator .. valuegreycolor .. Game.gravity .. "\n"
+	content = content .. keycolor .. I18N("ui.gameInfo.hardness") .. separator .. valuegreycolor .. Game.mapHardness .. keycolor .. "\n"
+	content = content .. keycolor .. I18N("ui.gameInfo.tidalStrength") .. separator .. valuegreycolor .. tidal .. keycolor .. "\n"
+	content = content .. keycolor .. I18N("ui.gameInfo.reclaimableMetal") .. separator .. valuegreycolor .. reclaimable_metal .. keycolor .. "\n"
+	content = content .. keycolor .. I18N("ui.gameInfo.reclaimableEnergy") .. separator .. valuegreycolor .. reclaimable_energy .. keycolor .. "\n"
 
 	if Game.windMin == Game.windMax then
-		content = content .. keycolor .. Spring.I18N("ui.gameInfo.windStrength") .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "\n"
+		content = content .. keycolor .. I18N("ui.gameInfo.windStrength") .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "\n"
 	else
-		content = content .. keycolor .. Spring.I18N("ui.gameInfo.windStrength") .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "  -  " .. valuegreycolor .. Game.windMax .. "\n"
+		content = content .. keycolor .. I18N("ui.gameInfo.windStrength") .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "  -  " .. valuegreycolor .. Game.windMax .. "\n"
 	end
 	local vcolor
 	if Game.waterDamage == 0 then
@@ -431,11 +431,11 @@ local function refreshContent()
 	else
 		vcolor = valuecolor
 	end
-	content = content .. keycolor .. Spring.I18N("ui.gameInfo.waterDamage") .. separator .. vcolor .. Game.waterDamage .. keycolor .. "\n"
+	content = content .. keycolor .. I18N("ui.gameInfo.waterDamage") .. separator .. vcolor .. Game.waterDamage .. keycolor .. "\n"
 	content = content .. "\n"
 	if raptorsEnabled then
 		-- filter raptor modoptions
-		content = content .. titlecolor .. Spring.I18N("ui.gameInfo.raptorOptions") .. "\n"
+		content = content .. titlecolor .. I18N("ui.gameInfo.raptorOptions") .. "\n"
 		for key, params in pairs(changedRaptorModoptions) do
 			content = content .. keycolor .. string.sub(params.key, 9) .. separator .. valuecolor .. params.value .. "\n"
 		end
@@ -444,7 +444,7 @@ local function refreshContent()
 		end
 		content = content .. "\n"
 	end
-	content = content .. titlecolor .. Spring.I18N("ui.gameInfo.modOptions") .. "\n"
+	content = content .. titlecolor .. I18N("ui.gameInfo.modOptions") .. "\n"
 	for key, params in pairs(changedModoptions) do
 		local name = params.key --modoptionsDefault[params.key].name
 		content = content .. keycolor .. name .. separator .. valuecolor .. params.value .. "\n"
@@ -466,10 +466,10 @@ local function closeInfoHandler()
 	end
 end
 
-local spGetAllFeatures = Spring.GetAllFeatures
-local spGetFeatureResources = Spring.GetFeatureResources
-local spGetFeatureTeam = Spring.GetFeatureTeam
-local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local spGetAllFeatures = SpringShared.GetAllFeatures
+local spGetFeatureResources = SpringShared.GetFeatureResources
+local spGetFeatureTeam = SpringShared.GetFeatureTeam
+local spGetGaiaTeamID = SpringShared.GetGaiaTeamID
 local gaiaTeamId = spGetGaiaTeamID()
 
 function widget:GamePreload()
@@ -490,18 +490,18 @@ function widget:Initialize()
 	widgetHandler:AddAction("customgameinfo", toggle, nil, "p")
 	widgetHandler:AddAction("customgameinfo_close", closeInfoHandler, nil, "p")
 
-	WG["gameinfo"] = {}
-	WG["gameinfo"].toggle = function(state)
+	WG.gameinfo = {}
+	WG.gameinfo.toggle = function(state)
 		local newShow = state
 		if newShow == nil then
 			newShow = not show
 		end
-		if newShow and WG["topbar"] then
-			WG["topbar"].hideWindows()
+		if newShow and WG.topbar then
+			WG.topbar.hideWindows()
 		end
 		show = newShow
 	end
-	WG["gameinfo"].isvisible = function()
+	WG.gameinfo.isvisible = function()
 		return show
 	end
 
@@ -516,8 +516,8 @@ function widget:Shutdown()
 		glDeleteList(mainDList)
 		mainDList = nil
 	end
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist("gameinfo")
+	if WG.guishader then
+		WG.guishader.RemoveDlist("gameinfo")
 	end
 	if backgroundGuishader then
 		glDeleteList(backgroundGuishader)

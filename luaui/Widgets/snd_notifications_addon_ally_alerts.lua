@@ -18,22 +18,22 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 
 	-- Get local and sender ally team ID and spectator status
-	local myAllyTeamID = Spring.GetLocalAllyTeamID()
-	local isSpec = Spring.GetSpectatingState()
-	local _, _, senderIsSpec, _, senderAllyTeamID = Spring.GetPlayerInfo(playerID, false)
+	local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+	local isSpec = SpringUnsynced.GetSpectatingState()
+	local _, _, senderIsSpec, _, senderAllyTeamID = SpringShared.GetPlayerInfo(playerID, false)
 
 	-- Ignore if I am spectator, sender is spectator or sender is not an ally
 	if isSpec or senderIsSpec or (myAllyTeamID ~= senderAllyTeamID) then
 		return
 	end
 
-	if WG["notifications"] and WG["notifications"].queueNotification then
+	if WG.notifications and WG.notifications.queueNotification then
 		-- Check which resource is being requested
 		if msg == "alert:allyRequest:energy" then
-			WG["notifications"].queueNotification("AllyRequestEnergy")
+			WG.notifications.queueNotification("AllyRequestEnergy")
 			return true
 		elseif msg == "alert:allyRequest:metal" then
-			WG["notifications"].queueNotification("AllyRequestMetal")
+			WG.notifications.queueNotification("AllyRequestMetal")
 			return true
 		end
 	end

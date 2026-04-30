@@ -17,17 +17,17 @@ local mathAbs = math.abs
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 local vsx, vsy = spGetViewGeometry()
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
 
 -- saved values
 local bar_side = 1 --left:0,top:2,right:1,bottom:3
@@ -113,21 +113,21 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local glBlending = gl.Blending
 local math_floor = mathFloor
 local math_ceil = math.ceil
-local GetUnitDefID = Spring.GetUnitDefID
-local GetMouseState = Spring.GetMouseState
-local GetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local GetUnitStates = Spring.GetUnitStates
-local DrawUnitCommands = Spring.DrawUnitCommands
-local GetFullBuildQueue = Spring.GetFullBuildQueue
-local GetUnitIsBuilding = Spring.GetUnitIsBuilding
+local GetUnitDefID = SpringShared.GetUnitDefID
+local GetMouseState = SpringUnsynced.GetMouseState
+local GetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local GetUnitStates = SpringShared.GetUnitStates
+local DrawUnitCommands = SpringUnsynced.DrawUnitCommands
+local GetFullBuildQueue = SpringShared.GetFullBuildQueue
+local GetUnitIsBuilding = SpringShared.GetUnitIsBuilding
 local glColor = gl.Color
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 
 local RectRound, RectRoundProgress, UiElement, UiUnit, elementCorner
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = { Spring.GetConfigInt("anonymousColorR", 255) / 255, Spring.GetConfigInt("anonymousColorG", 0) / 255, Spring.GetConfigInt("anonymousColorB", 0) / 255 }
+local anonymousMode = SpringShared.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = { SpringUnsynced.GetConfigInt("anonymousColorR", 255) / 255, SpringUnsynced.GetConfigInt("anonymousColorG", 0) / 255, SpringUnsynced.GetConfigInt("anonymousColorB", 0) / 255 }
 
 -------------------------------------------------------------------------------
 -- SOUNDS
@@ -143,7 +143,7 @@ local sound_queue_rem = "LuaUI/Sounds/buildbar_rem.wav"
 -------------------------------------------------------------------------------
 
 local function checkGuishader(force)
-	if WG["guishader"] and backgroundRect then
+	if WG.guishader and backgroundRect then
 		if force then
 			if dlistGuishader then
 				dlistGuishader = gl.DeleteList(dlistGuishader)
@@ -187,7 +187,7 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	font = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont(2)
 
 	iconSizeY = mathFloor((vsy / 19) * (1 + (ui_scale - 1) / 1.5))
 	iconSizeX = iconSizeY
@@ -323,7 +323,7 @@ local function updateFactoryList()
 	facs = {}
 	local count = 0
 
-	local teamUnits = Spring.GetTeamUnits(myTeamID)
+	local teamUnits = SpringShared.GetTeamUnits(myTeamID)
 	for num = 1, #teamUnits do
 		local unitID = teamUnits[num]
 		local unitDefID = GetUnitDefID(unitID)
@@ -389,12 +389,12 @@ end
 -------------------------------------------------------------------------------
 
 function widget:Initialize()
-	if WG["buildmenu"] then
-		if WG["buildmenu"].getGroups then
-			groups, unitGroup = WG["buildmenu"].getGroups()
+	if WG.buildmenu then
+		if WG.buildmenu.getGroups then
+			groups, unitGroup = WG.buildmenu.getGroups()
 		end
-		if WG["buildmenu"].getOrder then
-			unitOrder = WG["buildmenu"].getOrder()
+		if WG.buildmenu.getOrder then
+			unitOrder = WG.buildmenu.getOrder()
 
 			-- order buildoptions
 			for uDefID, def in pairs(unitBuildOptions) do
@@ -416,7 +416,7 @@ function widget:Initialize()
 	end
 
 	if not gl.R2tHelper then
-		Spring.Echo("BuildBar: gl.R2tHelper not available")
+		SpringShared.Echo("BuildBar: gl.R2tHelper not available")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -454,9 +454,9 @@ function widget:Shutdown()
 		buildOptionsTex = nil
 	end
 
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist("buildbar")
-		WG["guishader"].RemoveDlist("buildbar2")
+	if WG.guishader then
+		WG.guishader.RemoveDlist("buildbar")
+		WG.guishader.RemoveDlist("buildbar2")
 		if dlistGuishader then
 			dlistGuishader = gl.DeleteList(dlistGuishader)
 		end
@@ -647,7 +647,7 @@ function widget:Update(dt)
 		myTeamID = spGetMyTeamID()
 		updateFactoryList()
 	end
-	if WG["topbar"] and WG["topbar"].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		openedMenu = -1
 		return false
 	end
@@ -660,27 +660,27 @@ function widget:Update(dt)
 	hoveredFac = mouseOverIcon(mx, my)
 	hoveredBOpt = mouseOverSubIcon(mx, my)
 	-- set hover unitdef id for buildmenu so info widget can show it
-	if WG["info"] then
+	if WG.info then
 		if hoveredFac >= 0 then
 			if not setInfoDisplayUnitID or (hoveredBOpt < 0 and setInfoDisplayUnitID ~= facs[hoveredFac + 1].unitID) then
-				Spring.PlaySoundFile(sound_hover, 0.8, "ui")
+				SpringUnsynced.PlaySoundFile(sound_hover, 0.8, "ui")
 				setInfoDisplayUnitID = facs[hoveredFac + 1].unitID
-				WG["info"].displayUnitID(setInfoDisplayUnitID)
+				WG.info.displayUnitID(setInfoDisplayUnitID)
 			end
 		elseif hoveredBOpt >= 0 then
 			if setInfoDisplayUnitID and setInfoDisplayUnitDefID ~= facs[openedMenu + 1].buildList[hoveredBOpt + 1] then
-				Spring.PlaySoundFile(sound_hover, 0.8, "ui")
+				SpringUnsynced.PlaySoundFile(sound_hover, 0.8, "ui")
 				setInfoDisplayUnitDefID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
-				WG["info"].displayUnitDefID(setInfoDisplayUnitDefID)
+				WG.info.displayUnitDefID(setInfoDisplayUnitDefID)
 			end
 		else
 			if setInfoDisplayUnitID then
 				setInfoDisplayUnitID = nil
-				WG["info"].clearDisplayUnitID()
+				WG.info.clearDisplayUnitID()
 			end
 			if setInfoDisplayUnitDefID then
 				setInfoDisplayUnitDefID = nil
-				WG["info"].clearDisplayUnitDefID()
+				WG.info.clearDisplayUnitDefID()
 			end
 		end
 	end
@@ -830,7 +830,7 @@ function widget:Update(dt)
 
 		if factoriesArea then
 			dlists[1] = gl.CreateList(drawBackground)
-			if WG["guishader"] then
+			if WG.guishader then
 				if hoveredFac >= 0 then
 					dlists[dlistsCount + 1] = gl.CreateList(drawOptionsBackground)
 
@@ -842,12 +842,12 @@ function widget:Update(dt)
 					end)
 
 					if dlistGuishader2 then
-						WG["guishader"].RemoveDlist("buildbar2")
-						WG["guishader"].InsertDlist(dlistGuishader2, "buildbar2")
+						WG.guishader.RemoveDlist("buildbar2")
+						WG.guishader.InsertDlist(dlistGuishader2, "buildbar2")
 					end
 				else
 					backgroundOptionsRect = nil
-					WG["guishader"].RemoveDlist("buildbar2")
+					WG.guishader.RemoveDlist("buildbar2")
 				end
 			end
 		end
@@ -1236,14 +1236,14 @@ end
 function widget:DrawScreen()
 	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
 
-	if WG["guishader"] then
+	if WG.guishader then
 		if #dlists == 0 then
 			if dlistGuishader then
-				WG["guishader"].RemoveDlist("buildbar")
+				WG.guishader.RemoveDlist("buildbar")
 			end
 		else
 			if dlistGuishader then
-				WG["guishader"].InsertDlist(dlistGuishader, "buildbar")
+				WG.guishader.InsertDlist(dlistGuishader, "buildbar")
 			end
 		end
 	end
@@ -1302,7 +1302,7 @@ function widget:DrawScreen()
 		renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 
 		-- Update guishader for build options background only when menu changes
-		if WG["guishader"] and backgroundOptionsRect and openedMenu >= 0 and lastGuishaderMenu ~= openedMenu then
+		if WG.guishader and backgroundOptionsRect and openedMenu >= 0 and lastGuishaderMenu ~= openedMenu then
 			if dlistGuishader2 then
 				dlistGuishader2 = gl.DeleteList(dlistGuishader2)
 			end
@@ -1310,16 +1310,16 @@ function widget:DrawScreen()
 				RectRound(backgroundOptionsRect[1], backgroundOptionsRect[2], backgroundOptionsRect[3], backgroundOptionsRect[4], elementCorner * ui_scale)
 			end)
 			if dlistGuishader2 then
-				WG["guishader"].RemoveDlist("buildbar2")
-				WG["guishader"].InsertDlist(dlistGuishader2, "buildbar2")
+				WG.guishader.RemoveDlist("buildbar2")
+				WG.guishader.InsertDlist(dlistGuishader2, "buildbar2")
 			end
 			lastGuishaderMenu = openedMenu
 		end
 	else
 		buildoptionsArea = nil
 		backgroundOptionsRect = nil
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("buildbar2")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("buildbar2")
 		end
 		lastGuishaderMenu = -1
 	end
@@ -1364,10 +1364,10 @@ function widget:DrawInMiniMap(sx, sy)
 		if anonymousMode ~= "disabled" then
 			r, g, b = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 		else
-			r, g, b = Spring.GetTeamColor(myTeamID)
+			r, g, b = SpringUnsynced.GetTeamColor(myTeamID)
 		end
-		local alpha = 0.5 + mathAbs((Spring.GetGameSeconds() % 0.25) * 4 - 0.5)
-		local x, _, z = Spring.GetUnitBasePosition(facs[openedMenu + 1].unitID)
+		local alpha = 0.5 + mathAbs((SpringShared.GetGameSeconds() % 0.25) * 4 - 0.5)
+		local x, _, z = SpringShared.GetUnitBasePosition(facs[openedMenu + 1].unitID)
 
 		if x ~= nil then
 			gl.PointSize(pt * 0.066)
@@ -1404,20 +1404,20 @@ local function menuHandler(x, y, button)
 				onoff = { 0 }
 			end
 			spGiveOrderToUnit(factoryUnitID, CMD.REPEAT, onoff, 0)
-			Spring.PlaySoundFile(sound_click, 0.8, "ui")
+			SpringUnsynced.PlaySoundFile(sound_click, 0.8, "ui")
 		else
-			Spring.SelectUnitArray({ factoryUnitID })
+			SpringUnsynced.SelectUnitArray({ factoryUnitID })
 		end
 	elseif button == 3 then
-		Spring.SelectUnitArray({ factoryUnitID })
-		Spring.SetCameraTarget(Spring.GetUnitPosition(factoryUnitID))
+		SpringUnsynced.SelectUnitArray({ factoryUnitID })
+		SpringUnsynced.SetCameraTarget(SpringShared.GetUnitPosition(factoryUnitID))
 	end
 
 	return
 end
 
 local function buildHandler(button)
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 	local opt = {}
 	if alt then
 		opt[#opt + 1] = "alt"
@@ -1434,11 +1434,11 @@ local function buildHandler(button)
 
 	if button == 1 then
 		spGiveOrderToUnit(facs[openedMenu + 1].unitID, -facs[openedMenu + 1].buildList[pressedBOpt + 1], {}, opt)
-		Spring.PlaySoundFile(sound_queue_add, 0.75, "ui")
+		SpringUnsynced.PlaySoundFile(sound_queue_add, 0.75, "ui")
 	elseif button == 3 then
 		opt[#opt + 1] = "right"
 		spGiveOrderToUnit(facs[openedMenu + 1].unitID, -facs[openedMenu + 1].buildList[pressedBOpt + 1], {}, opt)
-		Spring.PlaySoundFile(sound_queue_rem, 0.75, "ui")
+		SpringUnsynced.PlaySoundFile(sound_queue_rem, 0.75, "ui")
 	end
 end
 

@@ -15,7 +15,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 -- Shameless port from https://gist.github.com/martymcmodding/30304c4bffa6e2bd2eb59ff8bb09d135
 
@@ -182,7 +182,7 @@ function widget:Initialize()
 		return
 	end
 
-	_, _, vpx, vpy = Spring.GetViewGeometry()
+	_, _, vpx, vpy = SpringUnsynced.GetViewGeometry()
 
 	--local commonTexOpts = {
 	--	target = GL_TEXTURE_2D,
@@ -247,11 +247,11 @@ end
 
 function widget:DrawScreenEffects()
 	--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-	if WG["screencopymanager"] and WG["screencopymanager"].GetScreenCopy then
-		screenCopyTex = WG["screencopymanager"].GetScreenCopy()
+	if WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
+		screenCopyTex = WG.screencopymanager.GetScreenCopy()
 	else
 		--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-		spEcho("Missing Screencopy Manager, exiting", WG["screencopymanager"])
+		spEcho("Missing Screencopy Manager, exiting", WG.screencopymanager)
 		widgetHandler:RemoveWidget()
 		return false
 	end

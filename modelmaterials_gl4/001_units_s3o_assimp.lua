@@ -15,7 +15,7 @@ local unitsNormalMapTemplate = table.merge(matTemplate, {
 
 		"#define ROUGHNESS_AA 1.0",
 
-		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+		"#define ENV_SMPL_NUM " .. tostring(SpringUnsynced.GetConfigInt("ENV_SMPL_NUM", 64)),
 		"#define USE_ENVIRONMENT_DIFFUSE 1",
 		"#define USE_ENVIRONMENT_SPECULAR 1",
 
@@ -30,7 +30,7 @@ local unitsNormalMapTemplate = table.merge(matTemplate, {
 
 		"#define ROUGHNESS_AA 1.0",
 
-		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+		"#define ENV_SMPL_NUM " .. tostring(SpringUnsynced.GetConfigInt("ENV_SMPL_NUM", 64)),
 		"#define USE_ENVIRONMENT_DIFFUSE 1",
 		"#define USE_ENVIRONMENT_SPECULAR 1",
 
@@ -61,15 +61,15 @@ local GL_FLOAT = 0x1406
 local GL_INT = 0x1404
 -- args=<objID, matName, lodMatNum, uniformName, uniformType, uniformData>
 local mySetMaterialUniform = {
-	[false] = Spring.UnitRendering.SetForwardMaterialUniform,
-	[true] = Spring.UnitRendering.SetDeferredMaterialUniform,
+	[false] = SpringUnsynced.UnitRendering.SetForwardMaterialUniform,
+	[true] = SpringUnsynced.UnitRendering.SetDeferredMaterialUniform,
 }
 
 local armTanks = {}
 local corTanks = {}
 local raptorUnits = {}
 local otherUnits = {}
-local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitHealth = SpringShared.GetUnitHealth
 local unitsHealth = {} --cache
 local healthArray = { [1] = 0.0 }
 
@@ -147,8 +147,8 @@ local function SendUnitID(unitID, hasStd, hasDef, hasShad)
 	end
 end
 
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spGetUnitDirection = Spring.GetUnitDirection
+local spGetUnitVelocity = SpringShared.GetUnitVelocity
+local spGetUnitDirection = SpringShared.GetUnitDirection
 local floor = math.floor
 local treadSpeeds = {} --cache
 local treadsArray = { [1] = 0.0 }
@@ -375,24 +375,24 @@ local cusUnitMaterials = GG.CUS.unitMaterialDefs
 local unitMaterials = {}
 
 local wreckAtlases = {
-	["arm"] = {
+	arm = {
 		"unittextures/Arm_wreck_color.dds",
 		"unittextures/Arm_wreck_other.dds",
 		"unittextures/Arm_wreck_color_normal.dds",
 	},
-	["cor"] = {
+	cor = {
 		"unittextures/cor_color_wreck.dds",
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
 	},
 }
 local wreckAtlases = {
-	["arm"] = {
+	arm = {
 		"unittextures/Arm_wreck_color.dds",
 		"unittextures/Arm_wreck_other.dds",
 		"unittextures/Arm_wreck_color_normal.dds",
 	},
-	["cor"] = {
+	cor = {
 		"unittextures/cor_color_wreck.dds",
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
@@ -414,7 +414,7 @@ for id = 1, #UnitDefs do
 
 		local wreckAtlas = wreckAtlases[facName]
 
-		if udef.modCategories["tank"] then
+		if udef.modCategories.tank then
 			if facName == "arm" then
 				unitMaterials[id] = { "unitsNormalMapArmTanks", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3] }
 			elseif facName == "cor" then

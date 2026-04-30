@@ -15,8 +15,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spEcho = Spring.Echo
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spEcho = SpringShared.Echo
 
 -- TODO: correctly track add/remove per vbotable
 -- Dont Allow mixed types, it will fuck with textures anyway
@@ -221,10 +221,10 @@ void main() {
 }
 ]]
 
-local udefID = UnitDefNames["armcom"].id
+local udefID = UnitDefNames.armcom.id
 
-local corcomUnitDefID = UnitDefNames["corcom"].id
-local armcomUnitDefID = UnitDefNames["armcom"].id
+local corcomUnitDefID = UnitDefNames.corcom.id
+local armcomUnitDefID = UnitDefNames.armcom.id
 
 local corDrawUnitVBOTable, corDrawUnitShapeVBOTable
 local armDrawUnitVBOTable, armDrawUnitShapeVBOTable
@@ -293,7 +293,7 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 		DrawUnitVBOTable = armDrawUnitVBOTable
 	else
 		spEcho("DrawUnitGL4 : The given unitDefID", unitDefID, UnitDefs[unitDefID].name, "is neither arm nor cor, only those two are supported at the moment")
-		Spring.Debug.TraceFullEcho(nil, nil, nil, "DrawUnitGL4")
+		Debug.TraceFullEcho(nil, nil, nil, "DrawUnitGL4")
 		return nil
 	end
 
@@ -339,7 +339,7 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 
 	if not DrawUnitShapeVBOTable then
 		spEcho("DrawUnitShapeGL4: The given unitDefID", unitDefID, UnitDefs[unitDefID].name, "is missing a target DrawUnitShapeVBOTable")
-		Spring.Debug.TraceFullEcho(nil, nil, nil, "DrawUnitGL4")
+		Debug.TraceFullEcho(nil, nil, nil, "DrawUnitGL4")
 		return nil
 	end
 	uniqueIDtoUnitShapeVBOTable[uniqueID] = DrawUnitShapeVBOTable
@@ -429,7 +429,7 @@ if TESTMODE then
 	local unitDefIDtoUniqueID = {}
 	function widget:UnitCreated(unitID, unitDefID)
 		unitIDtoUniqueID[unitID] = DrawUnitGL4(unitID, unitDefID, 0, 0, 0, math.random() * 2, 0.6)
-		local px, py, pz = Spring.GetUnitPosition(unitID)
+		local px, py, pz = SpringShared.GetUnitPosition(unitID)
 		unitDefIDtoUniqueID[unitID] = DrawUnitShapeGL4(spGetUnitDefID(unitID), px + 20, py + 50, pz + 20, 0, 0.6)
 	end
 
@@ -542,17 +542,17 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 	end
 	if TESTMODE then
-		for i, unitID in ipairs(Spring.GetAllUnits()) do
+		for i, unitID in ipairs(SpringShared.GetAllUnits()) do
 			widget:UnitCreated(unitID)
 		end
 	end
-	WG["DrawUnitGL4"] = DrawUnitGL4
-	WG["DrawUnitShapeGL4"] = DrawUnitShapeGL4
-	WG["StopDrawUnitGL4"] = StopDrawUnitGL4
-	WG["StopDrawUnitShapeGL4"] = StopDrawUnitShapeGL4
-	WG["StopDrawAll"] = StopDrawAll
-	WG["armDrawUnitShapeVBOTable"] = armDrawUnitShapeVBOTable
-	WG["corDrawUnitShapeVBOTable"] = corDrawUnitShapeVBOTable
+	WG.DrawUnitGL4 = DrawUnitGL4
+	WG.DrawUnitShapeGL4 = DrawUnitShapeGL4
+	WG.StopDrawUnitGL4 = StopDrawUnitGL4
+	WG.StopDrawUnitShapeGL4 = StopDrawUnitShapeGL4
+	WG.StopDrawAll = StopDrawAll
+	WG.armDrawUnitShapeVBOTable = armDrawUnitShapeVBOTable
+	WG.corDrawUnitShapeVBOTable = corDrawUnitShapeVBOTable
 	widgetHandler:RegisterGlobal("DrawUnitGL4", DrawUnitGL4)
 	widgetHandler:RegisterGlobal("DrawUnitShapeGL4", DrawUnitShapeGL4)
 	widgetHandler:RegisterGlobal("StopDrawUnitGL4", StopDrawUnitGL4)
@@ -565,7 +565,7 @@ end
 function widget:Shutdown()
 	for i, VBOTable in ipairs(VBOTables) do
 		if VBOTable.VAO then
-			if Spring.Utilities.IsDevMode() then
+			if Utilities.IsDevMode() then
 				InstanceVBOTable.dumpAndCompareInstanceData(VBOTable)
 			end
 			VBOTable.VAO:Delete()
@@ -574,7 +574,7 @@ function widget:Shutdown()
 
 	for tex1, VBOTable in ipairs(tex1ToVBO) do
 		if VBOTable.VAO then
-			if Spring.Utilities.IsDevMode() then
+			if Utilities.IsDevMode() then
 				InstanceVBOTable.dumpAndCompareInstanceData(VBOTable)
 			end
 			VBOTable.VAO:Delete()
@@ -588,13 +588,13 @@ function widget:Shutdown()
 		unitShapeShader:Finalize()
 	end
 
-	WG["DrawUnitGL4"] = nil
-	WG["DrawUnitShapeGL4"] = nil
-	WG["StopDrawUnitGL4"] = nil
-	WG["StopDrawUnitShapeGL4"] = nil
-	WG["StopDrawAll"] = nil
-	WG["armDrawUnitShapeVBOTable"] = nil
-	WG["corDrawUnitShapeVBOTable"] = nil
+	WG.DrawUnitGL4 = nil
+	WG.DrawUnitShapeGL4 = nil
+	WG.StopDrawUnitGL4 = nil
+	WG.StopDrawUnitShapeGL4 = nil
+	WG.StopDrawAll = nil
+	WG.armDrawUnitShapeVBOTable = nil
+	WG.corDrawUnitShapeVBOTable = nil
 	widgetHandler:DeregisterGlobal("DrawUnitGL4")
 	widgetHandler:DeregisterGlobal("DrawUnitShapeGL4")
 	widgetHandler:DeregisterGlobal("StopDrawUnitGL4")
@@ -644,7 +644,7 @@ function widget:DrawWorldPreUnit() -- this is for UnitDef
 				gl.StencilOp(GL.KEEP, GL.KEEP, GL.REPLACE)
 
 				unitShapeShader:Activate()
-				unitShapeShader:SetUniform("iconDistance", 27 * Spring.GetConfigInt("UnitIconDist", 200))
+				unitShapeShader:SetUniform("iconDistance", 27 * SpringUnsynced.GetConfigInt("UnitIconDist", 200))
 				active = true
 			end
 
@@ -689,7 +689,7 @@ function widget:DrawWorld()
 		gl.StencilOp(GL.KEEP, GL.KEEP, GL.REPLACE)
 
 		unitShader:Activate()
-		unitShader:SetUniform("iconDistance", 27 * Spring.GetConfigInt("UnitIconDist", 200))
+		unitShader:SetUniform("iconDistance", 27 * SpringUnsynced.GetConfigInt("UnitIconDist", 200))
 		if corDrawUnitVBOTable.usedElements > 0 then
 			gl.UnitShapeTextures(corcomUnitDefID, true)
 			corDrawUnitVBOTable.VAO:Submit()

@@ -1,90 +1,90 @@
 local UDN = UnitDefNames
-local gaiaTeamID = Spring.Utilities.GetScavTeamID() or Spring.GetGaiaTeamID()
+local gaiaTeamID = Utilities.GetScavTeamID() or SpringShared.GetGaiaTeamID()
 
 local wallUnitDefs = {
-	["arm"] = {
+	arm = {
 		[1] = {
-			["land"] = {
+			land = {
 				unarmed = { "armdrag" },
 				armed = { "armclaw" },
 			},
-			["sea"] = {
+			sea = {
 				unarmed = { "armfdrag" },
 				armed = { "armfdrag" }, -- placeholder,
 			},
 		},
 		[2] = {
-			["land"] = {
+			land = {
 				unarmed = { "armfort" },
 				armed = { "armlwall" },
 			},
-			["sea"] = {
+			sea = {
 				unarmed = { "armfdrag" }, -- placeholder,
 				armed = { "armfdrag" }, -- placeholder,
 			},
 		},
 	},
-	["cor"] = {
+	cor = {
 		[1] = {
-			["land"] = {
+			land = {
 				unarmed = { "cordrag" },
 				armed = { "cormaw" },
 			},
-			["sea"] = {
+			sea = {
 				unarmed = { "corfdrag" },
 				armed = { "corfdrag" }, -- placeholder,
 			},
 		},
 		[2] = {
-			["land"] = {
+			land = {
 				unarmed = { "corfort" },
 				armed = { "cormwall" },
 			},
-			["sea"] = {
+			sea = {
 				unarmed = { "corfdrag" }, -- placeholder,
 				armed = { "corfdrag" }, -- placeholder,
 			},
 		},
 	},
-	["leg"] = {
+	leg = {
 		[1] = {
-			["land"] = {
+			land = {
 				unarmed = { "legdrag" },
 				armed = { "legdtr" },
 			},
-			["sea"] = {
+			sea = {
 				unarmed = { "legfdrag" },
 				armed = { "legfdrag" }, -- placeholder,
 			},
 		},
 		[2] = {
-			["land"] = {
+			land = {
 				unarmed = { "legforti" },
 				armed = { "legrwall" },
 			},
-			["sea"] = {
+			sea = {
 				unarmed = { "legfdrag" }, -- placeholder,
 				armed = { "legfdrag" }, -- placeholder,
 			},
 		},
 	},
-	["scav"] = {
+	scav = {
 		[1] = {
-			["land"] = {
+			land = {
 				unarmed = { "corscavdrag" },
 				armed = { "corscavdtf", "corscavdtl", "corscavdtm" },
 			},
-			["sea"] = {
+			sea = {
 				unarmed = { "corfdrag" }, -- placeholder,
 				armed = { "corfdrag" }, -- placeholder,
 			},
 		},
 		[2] = {
-			["land"] = {
+			land = {
 				unarmed = { "corscavfort" },
 				armed = { "corscavfort" }, -- placeholder,
 			},
-			["sea"] = {
+			sea = {
 				unarmed = { "corfdrag" }, -- placeholder,
 				armed = { "corfdrag" }, -- placeholder,
 			},

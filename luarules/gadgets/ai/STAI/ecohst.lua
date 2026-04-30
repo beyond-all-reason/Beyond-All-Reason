@@ -16,14 +16,14 @@ function EcoHST:Init()
 	self.samples = {}
 	self.Index = 1
 
-	local McurrentLevel, Mstorage, Mpull, Mincome, Mexpense, Mshare, Msent, Mreceived = Spring.GetTeamResources(self.ai.id, "metal")
-	local EcurrentLevel, Estorage, Epull, Eincome, Eexpense, Eshare, Esent, Ereceived = Spring.GetTeamResources(self.ai.id, "energy")
+	local McurrentLevel, Mstorage, Mpull, Mincome, Mexpense, Mshare, Msent, Mreceived = SpringShared.GetTeamResources(self.ai.id, "metal")
+	local EcurrentLevel, Estorage, Epull, Eincome, Eexpense, Eshare, Esent, Ereceived = SpringShared.GetTeamResources(self.ai.id, "energy")
 	for i = 1, average do
 		for idx, name in pairs(self.resourceNames) do
 			self.samples[i] = {}
 			self.samples[i].Metal = {}
 			self.samples[i].Energy = {}
-			local M = self.samples[i]["Metal"]
+			local M = self.samples[i].Metal
 			M.reserves = McurrentLevel
 			M.capacity = Mstorage
 			M.pull = Mpull
@@ -34,7 +34,7 @@ function EcoHST:Init()
 			M.received = Mreceived
 			M.full = 1
 
-			local E = self.samples[i]["Energy"]
+			local E = self.samples[i].Energy
 			E.reserves = EcurrentLevel
 			E.capacity = Estorage
 			E.pull = Epull
@@ -55,7 +55,7 @@ function EcoHST:Update()
 		return
 	end
 	local currentSample = self.samples[self.Index]
-	local currentLevel, storage, pull, income, expense, share, sent, received = Spring.GetTeamResources(self.ai.id, "metal")
+	local currentLevel, storage, pull, income, expense, share, sent, received = SpringShared.GetTeamResources(self.ai.id, "metal")
 	local M = currentSample.Metal
 	M.reserves = currentLevel
 	M.capacity = storage
@@ -66,7 +66,7 @@ function EcoHST:Update()
 	M.sent = sent
 	M.received = received
 
-	currentLevel, storage, pull, income, expense, share, sent, received = Spring.GetTeamResources(self.ai.id, "energy")
+	currentLevel, storage, pull, income, expense, share, sent, received = SpringShared.GetTeamResources(self.ai.id, "energy")
 	local E = currentSample.Energy
 	E.reserves = currentLevel
 	E.capacity = storage

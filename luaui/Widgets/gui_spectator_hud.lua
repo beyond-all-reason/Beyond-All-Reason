@@ -68,15 +68,15 @@ local glRect = gl.Rect
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
-local gaiaID = Spring.GetGaiaTeamID()
-local gaiaAllyID = select(6, Spring.GetTeamInfo(gaiaID, false))
+local gaiaID = SpringShared.GetGaiaTeamID()
+local gaiaAllyID = select(6, SpringShared.GetTeamInfo(gaiaID, false))
 
 local widgetEnabled = nil
 local ecostatsHidden = false
 
 local haveFullView = false
 
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
 local scaleMultiplier = nil
 
 local widgetDimensions = {}
@@ -272,7 +272,7 @@ local unitDefsToTrack = {}
 
 local function checkAndUpdateHaveFullView()
 	local haveFullViewOld = haveFullView
-	haveFullView = select(2, Spring.GetSpectatingState())
+	haveFullView = select(2, SpringUnsynced.GetSpectatingState())
 	return haveFullView ~= haveFullViewOld
 end
 
@@ -445,7 +445,7 @@ local function buildUnitCache()
 		update = function(unitID, value)
 			local reclaimMetal = 0
 			local reclaimEnergy = 0
-			local metalMake, metalUse, energyMake, energyUse = Spring.GetUnitResources(unitID)
+			local metalMake, metalUse, energyMake, energyUse = SpringShared.GetUnitResources(unitID)
 			if metalMake then
 				if value[1] then
 					reclaimMetal = metalMake - value[1]
@@ -465,7 +465,7 @@ local function buildUnitCache()
 	unitCache.energyConverters = {
 		add = nil,
 		update = function(unitID, value)
-			local metalMake, metalUse, energyMake, energyUse = Spring.GetUnitResources(unitID)
+			local metalMake, metalUse, energyMake, energyUse = SpringShared.GetUnitResources(unitID)
 			if metalMake then
 				return metalMake
 			end
@@ -503,9 +503,9 @@ local function buildUnitCache()
 	unitCache.utilityUnits = unitCache.armyUnits
 	unitCache.economyBuildings = unitCache.armyUnits
 
-	for _, allyID in ipairs(Spring.GetAllyTeamList()) do
+	for _, allyID in ipairs(SpringShared.GetAllyTeamList()) do
 		if allyID ~= gaiaAllyID then
-			local teamList = Spring.GetTeamList(allyID)
+			local teamList = SpringShared.GetTeamList(allyID)
 			for _, teamID in ipairs(teamList) do
 				unitCache[teamID] = {}
 				cachedTotals[teamID] = {}
@@ -523,11 +523,11 @@ local function buildUnitCache()
 				cachedTotals[teamID].utilityUnits = 0
 				unitCache[teamID].economyBuildings = {}
 				cachedTotals[teamID].economyBuildings = 0
-				local unitIDs = Spring.GetTeamUnits(teamID)
+				local unitIDs = SpringShared.GetTeamUnits(teamID)
 				for i = 1, #unitIDs do
 					local unitID = unitIDs[i]
-					if not Spring.GetUnitIsBeingBuilt(unitID) then
-						local unitDefID = Spring.GetUnitDefID(unitID)
+					if not SpringShared.GetUnitIsBeingBuilt(unitID) then
+						local unitDefID = SpringShared.GetUnitDefID(unitID)
 						addToUnitCache(teamID, unitID, unitDefID)
 					end
 				end
@@ -538,18 +538,18 @@ end
 
 local function buildPlayerData()
 	playerData = {}
-	for _, allyID in ipairs(Spring.GetAllyTeamList()) do
+	for _, allyID in ipairs(SpringShared.GetAllyTeamList()) do
 		if allyID ~= gaiaAllyID then
-			local teamList = Spring.GetTeamList(allyID)
+			local teamList = SpringShared.GetTeamList(allyID)
 			for _, teamID in ipairs(teamList) do
 				local playerName = nil
-				local playerID = Spring.GetPlayerList(teamID, false)
+				local playerID = SpringShared.GetPlayerList(teamID, false)
 				if playerID and playerID[1] then
 					-- it's a player
-					playerName = select(1, Spring.GetPlayerInfo(playerID[1], false))
+					playerName = select(1, SpringShared.GetPlayerInfo(playerID[1], false))
 					playerName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID[1])) or playerName
 				else
-					local aiName = Spring.GetGameRulesParam("ainame_" .. teamID)
+					local aiName = SpringShared.GetGameRulesParam("ainame_" .. teamID)
 					if aiName then
 						-- it's AI
 						playerName = aiName
@@ -562,7 +562,7 @@ local function buildPlayerData()
 				playerData[teamID] = {}
 				playerData[teamID].name = playerName
 
-				local teamColor = { Spring.GetTeamColor(teamID) }
+				local teamColor = { SpringUnsynced.GetTeamColor(teamID) }
 				playerData[teamID].color = teamColor
 			end
 		end
@@ -640,13 +640,13 @@ local function buildAllyTeamTable()
 	allyTeamTable = {}
 
 	local allyTeamIndex = 1
-	for _, allyID in ipairs(Spring.GetAllyTeamList()) do
+	for _, allyID in ipairs(SpringShared.GetAllyTeamList()) do
 		if allyID ~= gaiaAllyID then
 			allyTeamTable[allyTeamIndex] = {}
 
-			local teamList = Spring.GetTeamList(allyID)
+			local teamList = SpringShared.GetTeamList(allyID)
 			if teamList and teamList[1] then
-				local colorCaptain = (playerData[teamList[1]] and playerData[teamList[1]].color) or { Spring.GetTeamColor(teamList[1]) }
+				local colorCaptain = (playerData[teamList[1]] and playerData[teamList[1]].color) or { SpringUnsynced.GetTeamColor(teamList[1]) }
 				allyTeamTable[allyTeamIndex].color = colorCaptain
 				allyTeamTable[allyTeamIndex].colorBar = makeDarkerColor(colorCaptain, constants.darkerBarsFactor)
 				allyTeamTable[allyTeamIndex].colorLine = makeDarkerColor(colorCaptain, constants.darkerLinesFactor)
@@ -670,7 +670,7 @@ end
 
 local function getAmountOfAllyTeams()
 	local amountOfAllyTeams = 0
-	for _, allyID in ipairs(Spring.GetAllyTeamList()) do
+	for _, allyID in ipairs(SpringShared.GetAllyTeamList()) do
 		if allyID ~= gaiaAllyID then
 			amountOfAllyTeams = amountOfAllyTeams + 1
 		end
@@ -696,9 +696,9 @@ local function buildMetricsEnabled()
 			metricEnabled.id = index
 			metricsEnabled[index] = metricEnabled
 			local i18nTitleKey = "ui.spectator_hud." .. metricEnabled.key .. "_title"
-			metricEnabled.title = Spring.I18N(i18nTitleKey)
+			metricEnabled.title = I18N(i18nTitleKey)
 			local i18nTooltipKey = "ui.spectator_hud." .. metricEnabled.key .. "_tooltip"
-			metricEnabled.tooltip = Spring.I18N(i18nTooltipKey)
+			metricEnabled.tooltip = I18N(i18nTooltipKey)
 			index = index + 1
 		end
 	end
@@ -733,8 +733,8 @@ local function calculateWidgetDimensions()
 	widgetDimensions.left = viewScreenWidth - widgetDimensions.width
 
 	widgetDimensions.distanceFromTopBar = mathfloor(defaults.widgetDimensions.distanceFromTopBar * scaleMultiplier)
-	if WG["topbar"] and WG["topbar"].getShowButtons() then
-		local topBarPosition = WG["topbar"].GetPosition()
+	if WG.topbar and WG.topbar.getShowButtons() then
+		local topBarPosition = WG.topbar.GetPosition()
 		widgetDimensions.top = topBarPosition[2] -- widgetDimensions.distanceFromTopBar
 	else
 		widgetDimensions.top = viewScreenHeight
@@ -831,7 +831,7 @@ local function deleteTextures()
 end
 
 local function updateMetricTextTooltips()
-	if WG["tooltip"] then
+	if WG.tooltip then
 		for metricIndex, metric in ipairs(metricsEnabled) do
 			local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
 			local top = bottom + metricDimensions.height
@@ -839,7 +839,7 @@ local function updateMetricTextTooltips()
 			local left = titleDimensions.left
 			local right = titleDimensions.right
 
-			WG["tooltip"].AddTooltip(string.format("spectator_hud_vsmode_%d", metric.id), { left, bottom, right, top }, metric.tooltip, nil, metric.title)
+			WG.tooltip.AddTooltip(string.format("spectator_hud_vsmode_%d", metric.id), { left, bottom, right, top }, metric.tooltip, nil, metric.title)
 		end
 	end
 end
@@ -894,27 +894,27 @@ local function getOneStat(statKey, teamID)
 	local result = 0
 
 	if statKey == metricKeys.metalIncome then
-		result = select(4, Spring.GetTeamResources(teamID, "metal")) or 0
+		result = select(4, SpringShared.GetTeamResources(teamID, "metal")) or 0
 	elseif statKey == metricKeys.energyConversionMetalIncome then
 		for unitID, _ in pairs(unitCache[teamID].energyConverters) do
 			result = result + unitCache.energyConverters.update(unitID, 0)
 		end
 	elseif statKey == metricKeys.energyIncome then
-		result = select(4, Spring.GetTeamResources(teamID, "energy")) or 0
+		result = select(4, SpringShared.GetTeamResources(teamID, "energy")) or 0
 	elseif statKey == metricKeys.buildPower then
 		result = cachedTotals[teamID].buildPower
 	elseif statKey == metricKeys.metalProduced then
 		--local metalUsed, metalProduced, metalExcessed, metalReceived, metalSent
-		local _, metalProduced, _, _, _ = Spring.GetTeamResourceStats(teamID, "m")
+		local _, metalProduced, _, _, _ = SpringShared.GetTeamResourceStats(teamID, "m")
 		result = metalProduced
 	elseif statKey == metricKeys.energyProduced then
-		local _, energyProduced, _, _, _ = Spring.GetTeamResourceStats(teamID, "e")
+		local _, energyProduced, _, _, _ = SpringShared.GetTeamResourceStats(teamID, "e")
 		result = energyProduced
 	elseif statKey == metricKeys.metalExcess then
-		local _, _, metalExcess, _, _ = Spring.GetTeamResourceStats(teamID, "m")
+		local _, _, metalExcess, _, _ = SpringShared.GetTeamResourceStats(teamID, "m")
 		result = metalExcess
 	elseif statKey == metricKeys.energyExcess then
-		local _, _, energyExcess, _, _ = Spring.GetTeamResourceStats(teamID, "e")
+		local _, _, energyExcess, _, _ = SpringShared.GetTeamResourceStats(teamID, "e")
 		result = energyExcess
 	elseif statKey == metricKeys.armyValue then
 		result = cachedTotals[teamID].armyUnits
@@ -925,24 +925,24 @@ local function getOneStat(statKey, teamID)
 	elseif statKey == metricKeys.economyValue then
 		result = cachedTotals[teamID].economyBuildings
 	elseif statKey == metricKeys.damageDealt then
-		local historyMax = Spring.GetTeamStatsHistory(teamID)
-		local statsHistory = Spring.GetTeamStatsHistory(teamID, historyMax)
+		local historyMax = SpringShared.GetTeamStatsHistory(teamID)
+		local statsHistory = SpringShared.GetTeamStatsHistory(teamID, historyMax)
 		local damageDealt = 0
 		if statsHistory and #statsHistory > 0 then
 			damageDealt = statsHistory[1].damageDealt
 		end
 		result = damageDealt
 	elseif statKey == metricKeys.damageReceived then
-		local historyMax = Spring.GetTeamStatsHistory(teamID)
-		local statsHistory = Spring.GetTeamStatsHistory(teamID, historyMax)
+		local historyMax = SpringShared.GetTeamStatsHistory(teamID)
+		local statsHistory = SpringShared.GetTeamStatsHistory(teamID, historyMax)
 		local damageReceived = 0
 		if statsHistory and #statsHistory > 0 then
 			damageReceived = statsHistory[1].damageReceived
 		end
 		result = damageReceived
 	elseif statKey == metricKeys.damageEfficiency then
-		local historyMax = Spring.GetTeamStatsHistory(teamID)
-		local statsHistory = Spring.GetTeamStatsHistory(teamID, historyMax)
+		local historyMax = SpringShared.GetTeamStatsHistory(teamID)
+		local statsHistory = SpringShared.GetTeamStatsHistory(teamID, historyMax)
 		local damageDealt = 0
 		local damageReceived = 0
 		if statsHistory and #statsHistory > 0 then
@@ -1086,7 +1086,7 @@ local function drawBars()
 	local indexLeft = teamOrder and teamOrder[1] or 1
 	local indexRight = teamOrder and teamOrder[2] or 2
 
-	local mouseX, mouseY = Spring.GetMouseState()
+	local mouseX, mouseY = SpringUnsynced.GetMouseState()
 	local mouseOnBar = false
 	if (mouseX > barDimensions.left) and (mouseX < barDimensions.right) and (mouseY > widgetDimensions.bottom) and (mouseY < widgetDimensions.top) then
 		mouseOnBar = true
@@ -1642,9 +1642,9 @@ local function showEcostats()
 end
 
 local function init()
-	font = WG["fonts"].getFont()
+	font = WG.fonts.getFont()
 
-	viewScreenWidth, viewScreenHeight = Spring.GetViewGeometry()
+	viewScreenWidth, viewScreenHeight = SpringUnsynced.GetViewGeometry()
 
 	buildMetricsEnabled()
 
@@ -1720,28 +1720,28 @@ function widget:Initialize()
 		return
 	end
 
-	WG["spectator_hud"] = {}
+	WG.spectator_hud = {}
 
-	WG["spectator_hud"].getWidgetSize = function()
+	WG.spectator_hud.getWidgetSize = function()
 		return settings.widgetScale
 	end
-	WG["spectator_hud"].setWidgetSize = function(value)
+	WG.spectator_hud.setWidgetSize = function(value)
 		settings.widgetScale = value
 		reInit()
 	end
 
-	WG["spectator_hud"].getConfig = function()
+	WG.spectator_hud.getConfig = function()
 		return settings.widgetConfig
 	end
-	WG["spectator_hud"].setConfig = function(value)
+	WG.spectator_hud.setConfig = function(value)
 		settings.widgetConfig = value
 		reInit()
 	end
 
-	WG["spectator_hud"].getMetricEnabled = function(metric)
+	WG.spectator_hud.getMetricEnabled = function(metric)
 		return settings.metricsEnabled[metric]
 	end
-	WG["spectator_hud"].setMetricEnabled = function(args)
+	WG.spectator_hud.setMetricEnabled = function(args)
 		settings.metricsEnabled[args[1]] = args[2]
 		reInit()
 	end
@@ -1765,15 +1765,15 @@ end
 
 function widget:Shutdown()
 	deInit()
-	WG["spectator_hud"] = {}
+	WG.spectator_hud = {}
 	showEcostats()
 
 	if shader then
 		shader:Finalize()
 	end
 	if guishaderDlist then
-		if WG["guishader"] then
-			WG["guishader"].DeleteDlist("spechud")
+		if WG.guishader then
+			WG.guishader.DeleteDlist("spechud")
 		else
 			gl.DeleteList(guishaderDlist)
 		end
@@ -1797,7 +1797,7 @@ function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	end
 
 	-- only track units that have been completely built
-	if Spring.GetUnitIsBeingBuilt(unitID) then
+	if SpringShared.GetUnitIsBeingBuilt(unitID) then
 		return
 	end
 
@@ -1816,7 +1816,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 
 	-- unit might've been a nanoframe
-	if Spring.GetUnitIsBeingBuilt(unitID) then
+	if SpringShared.GetUnitIsBeingBuilt(unitID) then
 		return
 	end
 
@@ -1849,12 +1849,12 @@ function widget:GameFrame(frameNum)
 	if (frameNum > 0) and not teamOrder then
 		-- collect player start positions
 		local teamStartAverages = {}
-		for _, allyID in ipairs(Spring.GetAllyTeamList()) do
+		for _, allyID in ipairs(SpringShared.GetAllyTeamList()) do
 			if allyID ~= gaiaAllyID then
 				local accumulator = { x = 0, z = 0 }
-				local teamList = Spring.GetTeamList(allyID)
+				local teamList = SpringShared.GetTeamList(allyID)
 				for _, teamID in ipairs(teamList) do
-					local x, _, z = Spring.GetTeamStartPosition(teamID)
+					local x, _, z = SpringShared.GetTeamStartPosition(teamID)
 					accumulator.x = accumulator.x + x
 					accumulator.z = accumulator.z + z
 				end
@@ -1863,7 +1863,7 @@ function widget:GameFrame(frameNum)
 			end
 		end
 
-		local _, rotY, _ = Spring.GetCameraRotation()
+		local _, rotY, _ = SpringUnsynced.GetCameraRotation()
 
 		-- sort averages and create team order (from left to right)
 		table.sort(teamStartAverages, function(left, right)
@@ -1896,10 +1896,10 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.05 then
 		sec = 0
-		if WG["topbar"] then
+		if WG.topbar then
 			local prevShowButtons = topbarShowButtons
-			if WG["topbar"].getShowButtons() ~= prevShowButtons then
-				topbarShowButtons = WG["topbar"].getShowButtons()
+			if WG.topbar.getShowButtons() ~= prevShowButtons then
+				topbarShowButtons = WG.topbar.getShowButtons()
 				if haveFullView then
 					init()
 				else
@@ -1932,14 +1932,14 @@ function widget:DrawScreen()
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	if not widgetEnabled or not haveFullView then
-		if WG["guishader"] and guishaderDlist then
-			WG["guishader"].DeleteDlist("spechud")
+		if WG.guishader and guishaderDlist then
+			WG.guishader.DeleteDlist("spechud")
 			guishaderDlist = nil
 		end
 		return
 	end
 
-	if WG["guishader"] and (displayListsChanged or not guishaderDlist) then
+	if WG.guishader and (displayListsChanged or not guishaderDlist) then
 		if guishaderDlist then
 			gl.DeleteList(guishaderDlist)
 			guishaderDlist = nil
@@ -1949,7 +1949,7 @@ function widget:DrawScreen()
 				gl.CallList(metricDisplayList)
 			end
 		end)
-		WG["guishader"].InsertDlist(guishaderDlist, "spechud")
+		WG.guishader.InsertDlist(guishaderDlist, "spechud")
 		displayListsChanged = nil
 	end
 
@@ -1990,10 +1990,10 @@ function widget:SetConfigData(data)
 		settings.oneTimeEcostatsEnableDone = data.oneTimeEcostatsEnableDone
 	end
 
-	if data["metricsEnabled"] then
+	if data.metricsEnabled then
 		for _, metric in pairs(metricKeys) do
-			if data["metricsEnabled"][metric] then
-				settings.metricsEnabled[metric] = data["metricsEnabled"][metric]
+			if data.metricsEnabled[metric] then
+				settings.metricsEnabled[metric] = data.metricsEnabled[metric]
 			end
 		end
 	end

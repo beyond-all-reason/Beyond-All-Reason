@@ -20,7 +20,7 @@ local mathMin = math.min
 local mathRandom = math.random
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -151,7 +151,7 @@ iconTypes = nil
 -- and to use a smaller number elements
 
 local Draw = {}
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 local nameCounter = 0
 local ROOT -- this is the global root, its children can only be layers!
 local Layers = {} -- A sorted list of Layer objects, each containing its own text list, its own scissor, and all kinds of other fun stuff. Maybe even setting its own stying like textcolor, outlinecolor? , keyed with layername
@@ -248,7 +248,7 @@ local function newElement(o) -- This table contains the default properties
 		o = {}
 	end
 	if type(o) ~= "table" then
-		Spring.Debug.TraceEcho()
+		Debug.TraceEcho()
 	end
 	if o.name == nil then -- auto namer
 		nameCounter = nameCounter + 1
@@ -299,7 +299,7 @@ local function newElement(o) -- This table contains the default properties
 		if parent.layer then
 			obj.layer = parent.layer
 		else
-			Spring.Debug.TraceEcho(obj.name .. " parented to " .. obj.parent.name .. " has no layer")
+			Debug.TraceEcho(obj.name .. " parented to " .. obj.parent.name .. " has no layer")
 		end
 	end
 	-- Ok, so this is where parent-relative positioning comes in, and is expressed in percent
@@ -328,10 +328,10 @@ end
 -- [7 8 9]
 function metaElement:UpdateTextPosition(newtext) -- for internal use only!
 	if newtext.text == nil then
-		Spring.Debug.TraceEcho()
+		Debug.TraceEcho()
 	end
 	if newtext.fontsize == nil then
-		Spring.Debug.TraceEcho()
+		Debug.TraceEcho()
 	end
 	newtext.textwidth = font:GetTextWidth(newtext.text) * newtext.fontsize
 	newtext.textheight = font:GetTextHeight(newtext.text) * newtext.fontsize
@@ -375,7 +375,7 @@ end
 function metaElement:AddText(ox, oy, text, fontsize, textoptions, alignment, textcolor, outlinecolor)
 	-- it is now that we need to cache text height, and width
 	if self.layer == nil then
-		Spring.Debug.TraceEcho(self.name)
+		Debug.TraceEcho(self.name)
 		--Spring.Debug.TraceFullEcho()
 	end
 	self.layer.textChanged = true
@@ -480,7 +480,7 @@ function metaElement:UpdateVBOKeys(keyname, value, delta)
 			local success = getElementInstanceData(VBO, instanceKey, self.vboCache) -- this is empty! probbly instance does not exist in this
 			if success == nil then
 				spEcho("element not found", self.name, VBO.myName, instanceKey)
-				Spring.Debug.TraceFullEcho()
+				Debug.TraceFullEcho()
 			end
 
 			if delta then
@@ -669,8 +669,8 @@ function metaElement:NewSlider(o)
 			end
 		end,
 		hover = function(obj, mx, my)
-			if obj.tooltip and WG and WG["tooltip"] and WG["tooltip"].ShowTooltip then
-				WG["tooltip"].ShowTooltip(obj.name, obj.tooltip) -- x/y (optional): display coordinates
+			if obj.tooltip and WG and WG.tooltip and WG.tooltip.ShowTooltip then
+				WG.tooltip.ShowTooltip(obj.name, obj.tooltip) -- x/y (optional): display coordinates
 			end
 		end,
 	}
@@ -1221,7 +1221,7 @@ local function makeunitbuttonarray()
 		right = vsx,
 	})
 	-- what can my boy build?
-	local unitDef = UnitDefs[UnitDefNames["armcom"].id]
+	local unitDef = UnitDefs[UnitDefNames.armcom.id]
 	for k, v in pairs(unitDef.buildOptions) do
 		spEcho(k, v)
 	end
@@ -2056,15 +2056,15 @@ end
 --
 
 Draw.Element = function(VBO, instanceID, z, px, py, sx, sy, tl, tr, br, bl, ptl, ptr, pbr, pbl, opacity, color1, color2, bgpadding)
-	local opacity = opacity or Spring.GetConfigFloat("ui_opacity", 0.7)
+	local opacity = opacity or SpringUnsynced.GetConfigFloat("ui_opacity", 0.7)
 	local color1 = color1 or { 0, 0, 0, opacity }
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1 }
-	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+	local ui_scale = SpringUnsynced.GetConfigFloat("ui_scale", 1)
 	local bgpadding = bgpadding or WG.FlowUI.elementPadding
 	local cs = WG.FlowUI.elementCorner * (bgpadding / WG.FlowUI.elementPadding)
 	local glossMult = 1 + (2 - (opacity * 1.5))
-	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.014)
-	local bgtexScale = Spring.GetConfigFloat("ui_tilescale", 7)
+	local tileopacity = SpringUnsynced.GetConfigFloat("ui_tileopacity", 0.014)
+	local bgtexScale = SpringUnsynced.GetConfigFloat("ui_tilescale", 7)
 	local bgtexSize = mathFloor(WG.FlowUI.elementPadding * bgtexScale)
 
 	local tl = tl or 1
@@ -2559,23 +2559,23 @@ function widget:Initialize()
 	rectRoundVBO = makeRectRoundVBO("ROOT")
 	makeShaders()
 
-	WG["flowui_gl4"] = {}
-	WG["flowui_gl4"].forwardslider = forwardslider
-	WG["flowui_gl4"].requestWidgetLayer = requestWidgetLayer
+	WG.flowui_gl4 = {}
+	WG.flowui_gl4.forwardslider = forwardslider
+	WG.flowui_gl4.requestWidgetLayer = requestWidgetLayer
 
 	--WG['flowui_shader'] = rectRoundShader
 	--WG['flowui_draw'] = Draw
 
-	font, loadedFontSize = WG["fonts"].getFont(nil, 1.4, 0.35, 1.4)
-	if WG["buildmenu"] then
-		if WG["buildmenu"].getGroups then
-			groups, unitGroup = WG["buildmenu"].getGroups()
+	font, loadedFontSize = WG.fonts.getFont(nil, 1.4, 0.35, 1.4)
+	if WG.buildmenu then
+		if WG.buildmenu.getGroups then
+			groups, unitGroup = WG.buildmenu.getGroups()
 		end
 	end
 
 	if atlasID == nil then
-		atlasID = WG["flowui_atlas"]
-		atlassedImages = WG["flowui_atlassedImages"]
+		atlasID = WG.flowui_atlas
+		atlassedImages = WG.flowui_atlassedImages
 	end
 
 	--makebuttonarray()
@@ -2586,7 +2586,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG["flowui_gl4"] = nil
+	WG.flowui_gl4 = nil
 
 	if rectRoundShader then
 		rectRoundShader:Finalize()
@@ -2636,8 +2636,8 @@ end
 
 function widget:DrawScreen()
 	if atlasID == nil then
-		atlasID = WG["flowui_atlas"]
-		atlassedImages = WG["flowui_atlassedImages"]
+		atlasID = WG.flowui_atlas
+		atlassedImages = WG.flowui_atlassedImages
 	end
 	if elems < 0 then
 		elems = elems + 1
@@ -2662,8 +2662,7 @@ function widget:DrawScreen()
 			Draw.Toggle(rectRoundVBO, nil, 0.5, x, y, w, h, true)
 		elseif r < 0.8 then
 			--Draw.TexturedRectRound(rectRoundVBO, nil, 0.5, x,y,w,h, 10,1,1,1,1,nil,nil,nil,"icons/armpwt4.png")
-			Draw.Element(rectRoundVBO, nil, 0.5, x, y, w, h, 1, 1, 1, 1, 1, 1, 1, 1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.8, 0.2, 0.8 }, nil
-)
+			Draw.Element(rectRoundVBO, nil, 0.5, x, y, w, h, 1, 1, 1, 1, 1, 1, 1, 1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.8, 0.2, 0.8 }, nil)
 		elseif r < 0.9 then
 			Draw.Unit(
 				rectRoundVBO,
@@ -2694,7 +2693,7 @@ function widget:DrawScreen()
 	--local UiButton = WG.FlowUI.Draw.Button
 	--UiButton(500, 500, 600, 550, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.8, 0.2, 0.8 }, WG.FlowUI.elementCorner * 0.5)
 
-	local mx, my, left, middle, right = Spring.GetMouseState()
+	local mx, my, left, middle, right = SpringUnsynced.GetMouseState()
 	uiUpdate(mx, my, left, middle, right)
 	RefreshText()
 

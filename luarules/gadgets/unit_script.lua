@@ -121,29 +121,29 @@ local co_running = coroutine.running
 local bit_and = math.bit_and
 local floor = math.floor
 
-local sp_GetGameFrame = Spring.GetGameFrame
-local sp_GetUnitWeaponState = Spring.GetUnitWeaponState
-local sp_SetUnitWeaponState = Spring.SetUnitWeaponState
-local sp_SetUnitShieldState = Spring.SetUnitShieldState
-local sp_GetUnitDefID = Spring.GetUnitDefID
-local sp_GetAllUnits = Spring.GetAllUnits
-local sp_GetUnitPieceMap = Spring.GetUnitPieceMap
+local sp_GetGameFrame = SpringShared.GetGameFrame
+local sp_GetUnitWeaponState = SpringShared.GetUnitWeaponState
+local sp_SetUnitWeaponState = SpringSynced.SetUnitWeaponState
+local sp_SetUnitShieldState = SpringSynced.SetUnitShieldState
+local sp_GetUnitDefID = SpringShared.GetUnitDefID
+local sp_GetAllUnits = SpringShared.GetAllUnits
+local sp_GetUnitPieceMap = SpringShared.GetUnitPieceMap
 
 -- Keep local reference to engine's CallAsUnit/WaitForMove/WaitForTurn,
 -- as we overwrite them with (safer) framework version later on.
-local sp_CallAsUnit = Spring.UnitScript.CallAsUnit
-local sp_WaitForMove = Spring.UnitScript.WaitForMove
-local sp_WaitForTurn = Spring.UnitScript.WaitForTurn
-local sp_WaitForScale = Spring.UnitScript.WaitForScale
-local sp_SetPieceVisibility = Spring.UnitScript.SetPieceVisibility
-local sp_SetDeathScriptFinished = Spring.UnitScript.SetDeathScriptFinished
+local sp_CallAsUnit = SpringSynced.UnitScript.CallAsUnit
+local sp_WaitForMove = SpringSynced.UnitScript.WaitForMove
+local sp_WaitForTurn = SpringSynced.UnitScript.WaitForTurn
+local sp_WaitForScale = SpringSynced.UnitScript.WaitForScale
+local sp_SetPieceVisibility = SpringSynced.UnitScript.SetPieceVisibility
+local sp_SetDeathScriptFinished = SpringSynced.UnitScript.SetDeathScriptFinished
 
 local LUA_WEAPON_MIN_INDEX = 1
 local LUA_WEAPON_MAX_INDEX = LUA_WEAPON_MIN_INDEX + 31
 
 local UNITSCRIPT_DIR = (UNITSCRIPT_DIR or "scripts/"):lower()
 local VFSMODE = VFS.ZIP_ONLY
-if Spring.IsDevLuaEnabled() then
+if SpringShared.IsDevLuaEnabled() then
 	VFSMODE = VFS.RAW_ONLY
 end
 
@@ -261,7 +261,7 @@ local function RunOnError(thread)
 	if fun then
 		local good, err = pcall(fun, err)
 		if not good then
-			Spring.Log(section, LOG.ERROR, "error in error handler: " .. tostring(err))
+			SpringShared.Log(section, LOG.ERROR, "error in error handler: " .. tostring(err))
 		end
 	end
 end
@@ -273,9 +273,9 @@ local function WakeUp(thread, ...)
 	local co = thread.thread
 	local good, err = co_resume(co, ...)
 	if not good then
-		Spring.Log(section, LOG.ERROR, err)
+		SpringShared.Log(section, LOG.ERROR, err)
 		if debug and debug.traceback then
-			Spring.Log(section, LOG.ERROR, debug.traceback(co))
+			SpringShared.Log(section, LOG.ERROR, debug.traceback(co))
 		end
 		RunOnError(thread)
 	end
@@ -537,12 +537,12 @@ end
 local function LoadChunk(filename)
 	local text = VFS.LoadFile(filename, VFSMODE)
 	if text == nil then
-		Spring.Log(section, LOG.ERROR, "Failed to load: " .. filename)
+		SpringShared.Log(section, LOG.ERROR, "Failed to load: " .. filename)
 		return nil
 	end
 	local chunk, err = loadstring(scriptHeader .. text, filename)
 	if chunk == nil then
-		Spring.Log(section, LOG.ERROR, "Failed to load: " .. Basename(filename) .. "  (" .. err .. ")")
+		SpringShared.Log(section, LOG.ERROR, "Failed to load: " .. Basename(filename) .. "  (" .. err .. ")")
 		return nil
 	end
 	return chunk
@@ -555,7 +555,7 @@ local function LoadScript(scriptName, filename)
 end
 
 function gadget:Initialize()
-	Spring.Log(section, LOG.INFO, string.format("Loading gadget: %-18s  <%s>", ghInfo.name, ghInfo.basename))
+	SpringShared.Log(section, LOG.INFO, string.format("Loading gadget: %-18s  <%s>", ghInfo.name, ghInfo.basename))
 
 	-- This initialization code has following properties:
 	--  * all used scripts are loaded => early syntax error detection
@@ -588,7 +588,7 @@ function gadget:Initialize()
 			local cbn = bn:gsub("%.cob$", "%.lua")
 			local filename = scriptFiles[fn] or scriptFiles[bn] or scriptFiles[cfn] or scriptFiles[cbn]
 			if filename then
-				Spring.Log(section, LOG.INFO, "  Loading unit script: " .. filename)
+				SpringShared.Log(section, LOG.INFO, "  Loading unit script: " .. filename)
 				LoadScript(unitDef.scriptName, filename)
 			end
 		end
@@ -604,10 +604,10 @@ end
 
 --------------------------------------------------------------------------------
 
-local StartThread = Spring.UnitScript.StartThread
+local StartThread = SpringSynced.UnitScript.StartThread
 
 local function Wrap_AimWeapon(unitID, callins)
-	local AimWeapon = callins["AimWeapon"]
+	local AimWeapon = callins.AimWeapon
 	if not AimWeapon then
 		return
 	end
@@ -629,13 +629,13 @@ local function Wrap_AimWeapon(unitID, callins)
 		return sp_SetUnitWeaponState(unitID, weaponNum, "aimReady", fAimReady)
 	end
 
-	callins["AimWeapon"] = function(weaponNum, heading, pitch)
+	callins.AimWeapon = function(weaponNum, heading, pitch)
 		return StartThread(AimWeaponThread, weaponNum, heading, pitch)
 	end
 end
 
 local function Wrap_AimShield(unitID, callins)
-	local AimShield = callins["AimShield"]
+	local AimShield = callins.AimShield
 	if not AimShield then
 		return
 	end
@@ -648,13 +648,13 @@ local function Wrap_AimShield(unitID, callins)
 		return sp_SetUnitShieldState(unitID, weaponNum, enabled)
 	end
 
-	callins["AimShield"] = function(weaponNum)
+	callins.AimShield = function(weaponNum)
 		return StartThread(AimShieldThread, weaponNum)
 	end
 end
 
 local function Wrap_Killed(unitID, callins)
-	local Killed = callins["Killed"]
+	local Killed = callins.Killed
 	if not Killed then
 		return
 	end
@@ -666,7 +666,7 @@ local function Wrap_Killed(unitID, callins)
 		sp_SetDeathScriptFinished(wreckLevel)
 	end
 
-	callins["Killed"] = function(recentDamage, maxHealth)
+	callins.Killed = function(recentDamage, maxHealth)
 		StartThread(KilledThread, recentDamage, maxHealth)
 		return -- no return value signals Spring to wait for SetDeathScriptFinished call.
 	end
@@ -824,7 +824,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 	end
 
 	-- Register the callins with Spring.
-	Spring.UnitScript.CreateScript(unitID, callins)
+	SpringSynced.UnitScript.CreateScript(unitID, callins)
 
 	-- Register (must be last: it shouldn't be done in case of error.)
 	units[unitID] = {

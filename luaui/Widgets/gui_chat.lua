@@ -21,10 +21,10 @@ local mathFloor = math.floor
 local mathMin = math.min
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetMouseState = Spring.GetMouseState
-local spEcho = Spring.Echo
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spEcho = SpringShared.Echo
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local LineTypes = {
 	Console = -1,
@@ -39,7 +39,7 @@ local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
 local badWords = VFS.Include("luaui/configs/badwords.lua")
 
 local L_DEPRECATED = LOG.DEPRECATED
-local isDevSingle = (Spring.Utilities.IsDevMode() and Spring.Utilities.Gametype.IsSinglePlayer())
+local isDevSingle = (Utilities.IsDevMode() and Utilities.Gametype.IsSinglePlayer())
 
 -- Configuration consolidated into table to reduce local variable count
 local vsx, vsy = gl.GetViewSizes()
@@ -58,17 +58,17 @@ local config = {
 	maxLinesScrollChatInput = 9,
 	lineHeightMult = 1.36,
 	lineTTL = 40,
-	consoleLineCleanupTarget = Spring.Utilities.IsDevMode() and 1200 or 400,
-	orgLineCleanupTarget = Spring.Utilities.IsDevMode() and 1400 or 600,
+	consoleLineCleanupTarget = Utilities.IsDevMode() and 1200 or 400,
+	orgLineCleanupTarget = Utilities.IsDevMode() and 1400 or 600,
 	backgroundOpacity = 0.25,
 	handleTextInput = true,
 	maxTextInputChars = 127,
 	inputButton = true,
 	allowMultiAutocomplete = true,
 	allowMultiAutocompleteMax = 10,
-	soundErrorsLimit = Spring.Utilities.IsDevMode() and 999 or 10,
-	ui_scale = Spring.GetConfigFloat("ui_scale", 1),
-	ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7),
+	soundErrorsLimit = Utilities.IsDevMode() and 999 or 10,
+	ui_scale = SpringUnsynced.GetConfigFloat("ui_scale", 1),
+	ui_opacity = SpringUnsynced.GetConfigFloat("ui_opacity", 0.7),
 	widgetScale = 1,
 	maxLinesScroll = 16, -- maxLinesScrollFull
 	hide = false,
@@ -76,8 +76,8 @@ local config = {
 	fontsizeMult = 1,
 	scrollingPosY = 0.66,
 	consolePosY = 0.9,
-	hideSpecChat = (Spring.GetConfigInt("HideSpecChat", 0) == 1),
-	hideSpecChatPlayer = (Spring.GetConfigInt("HideSpecChatPlayer", 1) == 1),
+	hideSpecChat = (SpringUnsynced.GetConfigInt("HideSpecChat", 0) == 1),
+	hideSpecChatPlayer = (SpringUnsynced.GetConfigInt("HideSpecChatPlayer", 1) == 1),
 	playSound = true,
 	sndChatFile = "beep4",
 	sndChatFileVolume = 0.55,
@@ -143,10 +143,10 @@ local state = {
 	lastUnitShare = nil,
 	lastLineUnitShare = nil,
 	lastDrawUiUpdate = os.clock(),
-	myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false),
+	myName = SpringShared.GetPlayerInfo(SpringUnsynced.GetLocalPlayerID(), false),
 	mySpec = spGetSpectatingState(),
 	myTeamID = spGetMyTeamID(),
-	myAllyTeamID = Spring.GetMyAllyTeamID(),
+	myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID(),
 	font = nil,
 	font2 = nil,
 	font3 = nil,
@@ -198,16 +198,16 @@ local gameOver = state.gameOver
 local prevGameID, prevOrgLines = state.prevGameID, state.prevOrgLines
 local ignoredAccounts = state.ignoredAccounts
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = { Spring.GetConfigInt("anonymousColorR", 255) / 255, Spring.GetConfigInt("anonymousColorG", 0) / 255, Spring.GetConfigInt("anonymousColorB", 0) / 255 }
+local anonymousMode = SpringShared.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = { SpringUnsynced.GetConfigInt("anonymousColorR", 255) / 255, SpringUnsynced.GetConfigInt("anonymousColorG", 0) / 255, SpringUnsynced.GetConfigInt("anonymousColorB", 0) / 255 }
 
 -- Keep only essential locals for GL/Spring/strings (heavily used in loops)
 local glPopMatrix, glPushMatrix, glDeleteList, glCreateList, glCallList, glTranslate, glColor = gl.PopMatrix, gl.PushMatrix, gl.DeleteList, gl.CreateList, gl.CallList, gl.Translate, gl.Color
 local string_lines, schar, slen, ssub, sfind = string.lines, string.char, string.len, string.sub, string.find
 local math_isInRect, floor, clock = math.isInRect, mathFloor, os.clock
-local spGetTeamColor, spGetPlayerInfo, spPlaySoundFile = Spring.GetTeamColor, Spring.GetPlayerInfo, Spring.PlaySoundFile
-local spGetGameFrame, spGetTeamInfo = Spring.GetGameFrame, Spring.GetTeamInfo
-local ColorString, ColorIsDark = Spring.Utilities and Spring.Utilities.Color and Spring.Utilities.Color.ToString, Spring.Utilities and Spring.Utilities.Color and Spring.Utilities.Color.ColorIsDark
+local spGetTeamColor, spGetPlayerInfo, spPlaySoundFile = SpringUnsynced.GetTeamColor, SpringShared.GetPlayerInfo, SpringUnsynced.PlaySoundFile
+local spGetGameFrame, spGetTeamInfo = SpringShared.GetGameFrame, SpringShared.GetTeamInfo
+local ColorString, ColorIsDark = Utilities and Utilities.Color and Utilities.Color.ToString, Utilities and Utilities.Color and Utilities.Color.ColorIsDark
 
 local soundErrors = {}
 local teamColorKeys = {}
@@ -497,7 +497,7 @@ local autocompleteCommands = {
 }
 
 local playernames = {}
-local playersList = Spring.GetPlayerList()
+local playersList = SpringShared.GetPlayerList()
 local chatProcessors = {}
 local unitTranslatedHumanName = {}
 local autocompleteText
@@ -528,15 +528,15 @@ end
 
 function widget:LanguageChanged()
 	I18N = {
-		energy = Spring.I18N("ui.topbar.resources.energy"):lower(),
-		metal = Spring.I18N("ui.topbar.resources.metal"):lower(),
-		everyone = Spring.I18N("ui.chat.everyone"),
-		allies = Spring.I18N("ui.chat.allies"),
-		spectators = Spring.I18N("ui.chat.spectators"),
-		cmd = Spring.I18N("ui.chat.cmd"),
-		shortcut = Spring.I18N("ui.chat.shortcut"),
-		nohistory = Spring.I18N("ui.chat.nohistory"),
-		scroll = Spring.I18N("ui.chat.scroll", { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" }),
+		energy = I18N("ui.topbar.resources.energy"):lower(),
+		metal = I18N("ui.topbar.resources.metal"):lower(),
+		everyone = I18N("ui.chat.everyone"),
+		allies = I18N("ui.chat.allies"),
+		spectators = I18N("ui.chat.spectators"),
+		cmd = I18N("ui.chat.cmd"),
+		shortcut = I18N("ui.chat.shortcut"),
+		nohistory = I18N("ui.chat.nohistory"),
+		scroll = I18N("ui.chat.scroll", { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" }),
 	}
 	refreshUnitDefs()
 	-- Cache color strings after language change (optimization)
@@ -557,15 +557,15 @@ end
 widget:LanguageChanged()
 
 local function getAIName(teamID)
-	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
-	local niceName = Spring.GetGameRulesParam("ainame_" .. teamID)
+	local _, _, _, name, _, options = SpringShared.GetAIInfo(teamID)
+	local niceName = SpringShared.GetGameRulesParam("ainame_" .. teamID)
 	if niceName then
 		name = niceName
-		if Spring.Utilities.ShowDevUI() and options.profile then
+		if Utilities.ShowDevUI() and options.profile then
 			name = name .. " [" .. options.profile .. "]"
 		end
 	end
-	return Spring.I18N("ui.playersList.aiName", { name = name })
+	return I18N("ui.playersList.aiName", { name = name })
 end
 
 local lastMessage
@@ -717,7 +717,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 					end
 				end
 			end
-			text = Spring.I18N(params[1], t)
+			text = I18N(params[1], t)
 			-- Fix a widget crash that could occur with message "> ."
 			if type(text) ~= "string" then
 				text = text_orig
@@ -776,7 +776,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 	end
 
 	-- play sound for new player/spectator chat
-	if not ignore and #orgLines == orgLineID and (lineType == LineTypes.Player or lineType == LineTypes.Spectator) and playSound and not Spring.IsGUIHidden() then
+	if not ignore and #orgLines == orgLineID and (lineType == LineTypes.Player or lineType == LineTypes.Spectator) and playSound and not SpringUnsynced.IsGUIHidden() then
 		spPlaySoundFile(sndChatFile, sndChatFileVolume, nil, "ui")
 	end
 end
@@ -794,11 +794,11 @@ local function cancelChatInput()
 	inputHistoryCurrent = #inputHistory
 	autocompleteText = nil
 	autocompleteWords = {}
-	if WG["guishader"] then
-		WG["guishader"].RemoveRect("chatinput")
-		WG["guishader"].RemoveRect("chatinputautocomplete")
+	if WG.guishader then
+		WG.guishader.RemoveRect("chatinput")
+		WG.guishader.RemoveRect("chatinputautocomplete")
 	end
-	Spring.SDLStopTextInput()
+	SpringUnsynced.SDLStopTextInput()
 	widgetHandler.textOwner = nil -- non handler = true: widgetHandler:DisownText()
 	updateDrawUi = true
 end
@@ -835,7 +835,7 @@ end
 local function commonUnitName(unitIDs)
 	local commonUnitDefID = nil
 	for _, unitID in pairs(unitIDs) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitDefID = SpringShared.GetUnitDefID(unitID)
 
 		-- unitDefID will be nil if shared units are visible only as unidentified radar dots
 		-- (when spectating with PlayerView ON from enemy team's point of view)
@@ -882,8 +882,8 @@ end
 -- Helper function to check if spectator messages should be hidden
 local function shouldHideSpecMessage()
 	-- Check config values directly to ensure we have the latest settings
-	local currentHideSpecChat = (Spring.GetConfigInt("HideSpecChat", 0) == 1)
-	local currentHideSpecChatPlayer = (Spring.GetConfigInt("HideSpecChatPlayer", 1) == 1)
+	local currentHideSpecChat = (SpringUnsynced.GetConfigInt("HideSpecChat", 0) == 1)
+	local currentHideSpecChatPlayer = (SpringUnsynced.GetConfigInt("HideSpecChatPlayer", 1) == 1)
 	return currentHideSpecChat and (not currentHideSpecChatPlayer or not mySpec)
 end
 
@@ -911,7 +911,7 @@ local function formatSystemMessage(i18nKey, playername, gameFrame, lineColor, ex
 	local params = extraParams or {}
 	params.name = getPlayerColorString(playername, gameFrame) .. playername
 	params.textColor = lineColor
-	return Spring.I18N(i18nKey, params)
+	return I18N(i18nKey, params)
 end
 
 local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
@@ -1022,7 +1022,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		-- shared 5 Wind Turbine to Player2
 		if newTeamName and newTeamName ~= "" and shareDesc and shareDesc ~= "" then
 			local displayName = (playernames[newTeamName] and playernames[newTeamName][7]) or newTeamName
-			text = msgColor .. Spring.I18N("ui.unitShare.shared", {
+			text = msgColor .. I18N("ui.unitShare.shared", {
 				units = msgHighlightColor .. shareDesc .. msgColor,
 				name = getPlayerColorString(newTeamName, gameFrame) .. displayName,
 			})
@@ -1102,16 +1102,16 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 				lineColor = msgHighlightColor
 				local startPos, endPos = sfind(line, "Connection attempt from ", nil, true)
 				local playername = ssub(line, endPos + 1)
-				local spectator = (playernames[playername] and playernames[playername][2]) and msgColor .. " (" .. Spring.I18N("ui.chat.spectator") .. ")" or ""
+				local spectator = (playernames[playername] and playernames[playername][2]) and msgColor .. " (" .. I18N("ui.chat.spectator") .. ")" or ""
 				-- Format message and append spectator suffix if needed
 				local params = { textColor = lineColor, textColor2 = msgColor }
 				params.name = getPlayerColorString(playername, gameFrame) .. playername .. spectator
-				line = Spring.I18N("ui.chat.connectionattemptfrom", params)
+				line = I18N("ui.chat.connectionattemptfrom", params)
 			elseif sfind(line, "left the game:  normal quit", nil, true) then
 				local isSpec = sfind(line, "Spectator", nil, true)
 				local playername = ssub(line, isSpec and 11 or 8, sfind(line, " left the game", nil, true) - 1)
 				lineColor = isSpec and msgHighlightColor or "\255\255\133\133"
-				local spectator = isSpec and msgColor .. " (" .. Spring.I18N("ui.chat.spectator") .. ")" or ""
+				local spectator = isSpec and msgColor .. " (" .. I18N("ui.chat.spectator") .. ")" or ""
 				line = formatSystemMessage("ui.chat.leftthegamenormal", playername, gameFrame, lineColor, { textColor2 = isSpec and msgColor or lineColor })
 				if spectator ~= "" then
 					-- Append spectator suffix
@@ -1121,7 +1121,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 				local isSpec = sfind(line, "Spectator", nil, true)
 				local playername = ssub(line, isSpec and 11 or 8, sfind(line, " left the game", nil, true) - 1)
 				lineColor = isSpec and msgHighlightColor or "\255\255\133\133"
-				local spectator = isSpec and msgColor .. " (" .. Spring.I18N("ui.chat.spectator") .. ")" or ""
+				local spectator = isSpec and msgColor .. " (" .. I18N("ui.chat.spectator") .. ")" or ""
 				line = formatSystemMessage("ui.chat.leftthegametimeout", playername, gameFrame, lineColor, { textColor2 = isSpec and msgColor or lineColor })
 				if spectator ~= "" then
 					-- Append spectator suffix
@@ -1198,7 +1198,7 @@ function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 	local allyTeamShare = (oldAllyTeamID == myAllyTeamID and newAllyTeamID == myAllyTeamID)
 	local selfShare = (oldTeamID == newTeamID) -- may happen if took other player
 
-	local _, _, _, captureProgress, _ = Spring.GetUnitHealth(unitID)
+	local _, _, _, captureProgress, _ = SpringShared.GetUnitHealth(unitID)
 	local captured = (captureProgress == 1)
 	if (not mySpec and not allyTeamShare) or selfShare or captured then
 		return
@@ -1359,13 +1359,13 @@ function widget:Update(dt)
 		-- detect team colors changes
 		local changeDetected = false
 		local changedPlayers = {}
-		local teams = Spring.GetTeamList()
+		local teams = SpringShared.GetTeamList()
 		for i = 1, #teams do
 			local r, g, b = spGetTeamColor(teams[i])
 			if teamColorKeys[teams[i]] ~= r .. "_" .. g .. "_" .. b then
 				teamColorKeys[teams[i]] = r .. "_" .. g .. "_" .. b
 				changeDetected = true
-				for _, playerID in ipairs(Spring.GetPlayerList(teams[i])) do
+				for _, playerID in ipairs(SpringShared.GetPlayerList(teams[i])) do
 					local name = spGetPlayerInfo(playerID, false)
 					name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 					changedPlayers[name] = true
@@ -1399,8 +1399,8 @@ function widget:Update(dt)
 		end
 
 		-- add settings option commands
-		if not addedOptionsList and WG["options"] and WG["options"].getOptionsList then
-			local optionsList = WG["options"].getOptionsList()
+		if not addedOptionsList and WG.options and WG.options.getOptionsList then
+			local optionsList = WG.options.getOptionsList()
 			if optionsList and #optionsList > 0 then
 				addedOptionsList = true
 				for i, option in ipairs(optionsList) do
@@ -1410,9 +1410,9 @@ function widget:Update(dt)
 		end
 
 		-- detect spectator filter change
-		if hideSpecChat ~= (Spring.GetConfigInt("HideSpecChat", 0) == 1) or hideSpecChatPlayer ~= (Spring.GetConfigInt("HideSpecChatPlayer", 1) == 1) then
-			hideSpecChat = (Spring.GetConfigInt("HideSpecChat", 0) == 1)
-			hideSpecChatPlayer = (Spring.GetConfigInt("HideSpecChatPlayer", 1) == 1)
+		if hideSpecChat ~= (SpringUnsynced.GetConfigInt("HideSpecChat", 0) == 1) or hideSpecChatPlayer ~= (SpringUnsynced.GetConfigInt("HideSpecChatPlayer", 1) == 1) then
+			hideSpecChat = (SpringUnsynced.GetConfigInt("HideSpecChat", 0) == 1)
+			hideSpecChatPlayer = (SpringUnsynced.GetConfigInt("HideSpecChatPlayer", 1) == 1)
 			for i = 1, #chatLines do
 				if chatLines[i].lineType == LineTypes.Spectator then
 					if shouldHideSpecMessage() then
@@ -1442,11 +1442,11 @@ function widget:Update(dt)
 	end
 
 	local chatlogHeightDiff = historyMode and floor(vsy * (scrollingPosY - posY)) or 0
-	if WG["topbar"] and WG["topbar"].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		historyMode = false
 		setCurrentChatLine(#chatLines)
 	elseif math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 		if showHistoryWhenCtrlShift and ctrl and shift then
 			if math_isInRect(x, y, consoleActivationArea[1], consoleActivationArea[2], consoleActivationArea[3], consoleActivationArea[4]) then
 				historyMode = "console"
@@ -1469,7 +1469,7 @@ function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == "LobbyOverlayActive" then
 		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 		if not chobbyInterface then
-			Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		end
 	end
 end
@@ -1519,8 +1519,8 @@ drawChatInput = function()
 			local inputAlpha = mathMin(0.36, ui_opacity * 0.66)
 			local x2 = math.max(textPosX + lineHeight + floor(usedFont:GetTextWidth(inputText .. (autocompleteText and autocompleteText or "")) * inputFontSize), floor(activationArea[1] + ((activationArea[3] - activationArea[1]) / 3)))
 			UiElement(activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance, nil, nil, nil, nil, nil, nil, nil, nil, inputAlpha)
-			if WG["guishader"] then
-				WG["guishader"].InsertRect(activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance, "chatinput")
+			if WG.guishader then
+				WG.guishader.InsertRect(activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance, "chatinput")
 			end
 
 			-- button background
@@ -1630,8 +1630,8 @@ drawChatInput = function()
 				local height = (autocLineHeight * mathMin(allowMultiAutocompleteMax, #autocompleteWords - 1) + leftOffset) + (#autocompleteWords > allowMultiAutocompleteMax + 1 and autocLineHeight or 0)
 				glColor(0, 0, 0, inputAlpha)
 				RectRound(xPos - leftOffset, yPos - height, x2 - elementMargin, yPos, elementCorner * 0.6, 0, 0, 1, 1)
-				if WG["guishader"] then
-					WG["guishader"].InsertRect(xPos - leftOffset, yPos - height, x2 - elementPadding, yPos, "chatinputautocomplete")
+				if WG.guishader then
+					WG.guishader.InsertRect(xPos - leftOffset, yPos - height, x2 - elementPadding, yPos, "chatinputautocomplete")
 				end
 				local addHeight = floor((inputFontSize * scale) * 1.35) - autocLineHeight
 				for i, word in ipairs(autocompleteWords) do
@@ -1653,8 +1653,8 @@ drawChatInput = function()
 					end
 				end
 			else
-				if WG["guishader"] then
-					WG["guishader"].RemoveRect("chatinputautocomplete")
+				if WG.guishader then
+					WG.guishader.RemoveRect("chatinputautocomplete")
 				end
 			end
 
@@ -1839,13 +1839,13 @@ drawTextInput = function()
 			-- button hover
 			local x, y, b = spGetMouseState()
 			if inputButtonRect[1] and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
-				Spring.SetMouseCursor("cursornormal")
+				SpringUnsynced.SetMouseCursor("cursornormal")
 				glColor(1, 1, 1, 0.075)
 				RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner * 0.6, 1, 0, 0, 1)
 			end
-		elseif WG["guishader"] then
-			WG["guishader"].RemoveRect("chatinput")
-			WG["guishader"].RemoveRect("chatinputautocomplete")
+		elseif WG.guishader then
+			WG.guishader.RemoveRect("chatinput")
+			WG.guishader.RemoveRect("chatinputautocomplete")
 			textInputDlist = glDeleteList(textInputDlist)
 		end
 	end
@@ -1859,11 +1859,11 @@ function widget:DrawScreen()
 		return
 	end
 
-	local _, ctrl, _, _ = Spring.GetModKeyState()
+	local _, ctrl, _, _ = SpringUnsynced.GetModKeyState()
 	local x, y, b = spGetMouseState()
 	local chatlogHeightDiff = historyMode and floor(vsy * (scrollingPosY - posY)) or 0
-	if hovering and WG["guishader"] then
-		WG["guishader"].RemoveRect("chat")
+	if hovering and WG.guishader then
+		WG.guishader.RemoveRect("chat")
 	end
 
 	-- draw chat input
@@ -1877,8 +1877,8 @@ function widget:DrawScreen()
 		hovering = true
 		if historyMode then
 			UiElement(activationArea[1], activationArea[2] + chatlogHeightDiff, activationArea[3], activationArea[4])
-			if WG["guishader"] then
-				WG["guishader"].InsertRect(activationArea[1], activationArea[2] + chatlogHeightDiff, activationArea[3], activationArea[4], "chat")
+			if WG.guishader then
+				WG.guishader.InsertRect(activationArea[1], activationArea[2] + chatlogHeightDiff, activationArea[3], activationArea[4], "chat")
 			end
 
 			-- player name background
@@ -1947,12 +1947,12 @@ function widget:DrawScreen()
 							if b then
 								-- mapmark highlight
 								if chatLines[i].coords then
-									Spring.SetCameraTarget(chatLines[i].coords[1], chatLines[i].coords[2], chatLines[i].coords[3])
+									SpringUnsynced.SetCameraTarget(chatLines[i].coords[1], chatLines[i].coords[2], chatLines[i].coords[3])
 								end
 								-- unit share
 								if chatLines[i].selectUnits then
-									Spring.SelectUnitArray(chatLines[i].selectUnits)
-									Spring.SendCommands("viewselection")
+									SpringUnsynced.SelectUnitArray(chatLines[i].selectUnits)
+									SpringUnsynced.SendCommands("viewselection")
 								end
 							end
 						end
@@ -2123,7 +2123,7 @@ local function autocomplete(text, fresh)
 end
 
 function widget:TextInput(char) -- if it isnt working: chobby probably hijacked it
-	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
+	if handleTextInput and not chobbyInterface and not SpringUnsynced.IsGUIHidden() and showTextInput then
 		-- If there's a selection, delete it first
 		if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
 			local selStart = math.min(inputSelectionStart, inputTextPosition)
@@ -2151,8 +2151,8 @@ function widget:TextInput(char) -- if it isnt working: chobby probably hijacked 
 		cursorBlinkTimer = 0
 		autocomplete(inputText)
 		updateTextInputDlist = true
-		if WG["limitidlefps"] and WG["limitidlefps"].update then
-			WG["limitidlefps"].update()
+		if WG.limitidlefps and WG.limitidlefps.update then
+			WG.limitidlefps.update()
 		end
 		return true
 	end
@@ -2164,11 +2164,11 @@ function widget:KeyRelease()
 end
 
 function widget:KeyPress(key)
-	if Spring.IsGUIHidden() or not handleTextInput then
+	if SpringUnsynced.IsGUIHidden() or not handleTextInput then
 		return
 	end
 
-	local alt, ctrl, _, shift = Spring.GetModKeyState()
+	local alt, ctrl, _, shift = SpringUnsynced.GetModKeyState()
 
 	if key == 13 then -- RETURN	 (keypad enter = 271)
 		if showTextInput then
@@ -2186,13 +2186,13 @@ function widget:KeyPress(key)
 				if inputText ~= "" then
 					local executedInput = inputText
 					if ssub(inputText, 1, 1) == "/" then
-						Spring.SendCommands(ssub(inputText, 2))
+						SpringUnsynced.SendCommands(ssub(inputText, 2))
 					else
 						local badWord = findBadWords(inputText)
 						if badWord ~= nil and inputText ~= lastMessage then
-							addChatLine(Spring.GetGameFrame(), LineTypes.System, "Moderation", "\255\255\000\000" .. Spring.I18N("ui.chat.moderation.prefix"), Spring.I18N("ui.chat.moderation.blocked", { badWord = badWord }))
+							addChatLine(SpringShared.GetGameFrame(), LineTypes.System, "Moderation", "\255\255\000\000" .. I18N("ui.chat.moderation.prefix"), I18N("ui.chat.moderation.blocked", { badWord = badWord }))
 						else
-							Spring.SendCommands("say " .. inputMode .. inputText)
+							SpringUnsynced.SendCommands("say " .. inputMode .. inputText)
 						end
 						lastMessage = inputText
 					end
@@ -2222,7 +2222,7 @@ function widget:KeyPress(key)
 				inputMode = mySpec and "s:" or "a:"
 			end
 			-- again just to be safe, had report locking could still happen
-			Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		end
 
 		updateTextInputDlist = true
@@ -2242,7 +2242,7 @@ function widget:KeyPress(key)
 			inputTextPosition = selStart
 			inputSelectionStart = nil
 		end
-		local clipboardText = Spring.GetClipboard()
+		local clipboardText = SpringUnsynced.GetClipboard()
 		inputText = utf8.sub(inputText, 1, inputTextPosition) .. clipboardText .. utf8.sub(inputText, inputTextPosition + 1)
 		inputTextPosition = inputTextPosition + utf8.len(clipboardText)
 		if string.len(inputText) > maxTextInputChars then
@@ -2259,14 +2259,14 @@ function widget:KeyPress(key)
 			local selStart = math.min(inputSelectionStart, inputTextPosition)
 			local selEnd = math.max(inputSelectionStart, inputTextPosition)
 			local selectedText = utf8.sub(inputText, selStart + 1, selEnd)
-			Spring.SetClipboard(selectedText)
+			SpringUnsynced.SetClipboard(selectedText)
 		end
 	elseif ctrl and key == 120 then -- CTRL + X
 		if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
 			local selStart = math.min(inputSelectionStart, inputTextPosition)
 			local selEnd = math.max(inputSelectionStart, inputTextPosition)
 			local selectedText = utf8.sub(inputText, selStart + 1, selEnd)
-			Spring.SetClipboard(selectedText)
+			SpringUnsynced.SetClipboard(selectedText)
 			inputText = utf8.sub(inputText, 1, selStart) .. utf8.sub(inputText, selEnd + 1)
 			inputTextPosition = selStart
 			inputSelectionStart = nil
@@ -2450,7 +2450,7 @@ function widget:KeyPress(key)
 end
 
 function widget:MousePress(x, y, button)
-	if button == 1 and handleTextInput and showTextInput and inputButton and inputButtonRect and not Spring.IsGUIHidden() and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
+	if button == 1 and handleTextInput and showTextInput and inputButton and inputButtonRect and not SpringUnsynced.IsGUIHidden() and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
 		if inputMode == "a:" then
 			inputMode = ""
 		elseif inputMode == "s:" then
@@ -2464,8 +2464,8 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseWheel(up, value)
-	if historyMode and not Spring.IsGUIHidden() then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	if historyMode and not SpringUnsynced.IsGUIHidden() then
+		local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 		if historyMode == "chat" then
 			local scrollCount = 0
 			local scrollAmount = (shift and maxLinesScroll or (ctrl and 3 or 1))
@@ -2545,7 +2545,7 @@ function widget:AddConsoleLine(lines, priority)
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = SpringUnsynced.GetViewGeometry()
 
 	widgetScale = vsy * 0.00075 * ui_scale
 
@@ -2560,9 +2560,9 @@ function widget:ViewResize()
 	usedFontSize = charSize * widgetScale * fontsizeMult
 	usedConsoleFontSize = usedFontSize * consoleFontSizeMult
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2, 1.2, 0.13, 20)
-	font3 = WG["fonts"].getFont(3)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2, 1.2, 0.13, 20)
+	font3 = WG.fonts.getFont(3)
 
 	-- get longest player name and calc its width
 	if not font or not longestPlayername then
@@ -2589,8 +2589,8 @@ function widget:ViewResize()
 	backgroundPadding = elementPadding + floor(lineHeight * 0.5)
 
 	local posY2 = 0.94
-	if WG["topbar"] ~= nil then
-		topbarArea = WG["topbar"].GetPosition()
+	if WG.topbar ~= nil then
+		topbarArea = WG.topbar.GetPosition()
 		posY2 = floor(topbarArea[2] - elementMargin) / vsy
 		posX = topbarArea[1] / vsx
 		scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight * maxLinesScroll)) / vsy
@@ -2621,7 +2621,7 @@ end
 function widget:PlayerChanged(playerID)
 	mySpec = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 	if mySpec and inputMode == "a:" then
 		inputMode = "s:"
 	end
@@ -2633,7 +2633,7 @@ function widget:PlayerChanged(playerID)
 		if isSpec ~= playernames[name].isSpec then
 			playernames[name][2] = isSpec
 			if isSpec then
-				playernames[name][8] = Spring.GetGameFrame() -- log frame of death
+				playernames[name][8] = SpringShared.GetGameFrame() -- log frame of death
 			end
 		end
 	end
@@ -2666,7 +2666,7 @@ local function hidespecchatCmd(_, _, params)
 	else
 		hideSpecChat = not hideSpecChat
 	end
-	Spring.SetConfigInt("HideSpecChat", hideSpecChat and 1 or 0)
+	SpringUnsynced.SetConfigInt("HideSpecChat", hideSpecChat and 1 or 0)
 	if hideSpecChat then
 		spEcho("Hiding all spectator chat")
 	else
@@ -2680,7 +2680,7 @@ local function hidespecchatplayerCmd(_, _, params)
 	else
 		hideSpecChatPlayer = not hideSpecChatPlayer
 	end
-	Spring.SetConfigInt("HideSpecChatPlayer", hideSpecChatPlayer and 1 or 0)
+	SpringUnsynced.SetConfigInt("HideSpecChatPlayer", hideSpecChatPlayer and 1 or 0)
 	if hideSpecChat then
 		spEcho("Hiding all spectator chat when player")
 	else
@@ -2699,12 +2699,12 @@ local function preventhistorymodeCmd(_, _, params)
 end
 
 function widget:Initialize()
-	Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+	SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 
 	-- Ensure ColorString and ColorIsDark are initialized
-	if not ColorString and Spring.Utilities and Spring.Utilities.Color then
-		ColorString = Spring.Utilities.Color.ToString
-		ColorIsDark = Spring.Utilities.Color.ColorIsDark
+	if not ColorString and Utilities and Utilities.Color then
+		ColorString = Utilities.Color.ToString
+		ColorIsDark = Utilities.Color.ColorIsDark
 	end
 
 	if WG.ignoredAccounts then
@@ -2712,8 +2712,8 @@ function widget:Initialize()
 	end
 
 	-- Initialize team data
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local teams = Spring.GetTeamList()
+	local gaiaTeamID = SpringShared.GetGaiaTeamID()
+	local teams = SpringShared.GetTeamList()
 	for i = 1, #teams do
 		local teamID = teams[i]
 		local r, g, b = spGetTeamColor(teamID)
@@ -2740,84 +2740,84 @@ function widget:Initialize()
 	end
 
 	widget:ViewResize()
-	widget:PlayerChanged(Spring.GetMyPlayerID())
+	widget:PlayerChanged(SpringUnsynced.GetLocalPlayerID())
 
-	Spring.SendCommands("console 0")
+	SpringUnsynced.SendCommands("console 0")
 
-	WG["chat"] = {}
-	WG["chat"].isInputActive = function()
+	WG.chat = {}
+	WG.chat.isInputActive = function()
 		return showTextInput
 	end
-	WG["chat"].getInputButton = function()
+	WG.chat.getInputButton = function()
 		return inputButton
 	end
-	WG["chat"].setHide = function(value)
+	WG.chat.setHide = function(value)
 		hide = value
 	end
-	WG["chat"].getHide = function()
+	WG.chat.getHide = function()
 		return hide
 	end
-	WG["chat"].setChatInputHistory = function(value)
+	WG.chat.setChatInputHistory = function(value)
 		showHistoryWhenChatInput = value
 	end
-	WG["chat"].getChatInputHistory = function()
+	WG.chat.getChatInputHistory = function()
 		return showHistoryWhenChatInput
 	end
-	WG["chat"].setInputButton = function(value)
+	WG.chat.setInputButton = function(value)
 		inputButton = value
 	end
-	WG["chat"].getHandleInput = function()
+	WG.chat.getHandleInput = function()
 		return handleTextInput
 	end
-	WG["chat"].setHandleInput = function(value)
+	WG.chat.setHandleInput = function(value)
 		handleTextInput = value
 		if not handleTextInput then
 			cancelChatInput()
 		end
-		Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 	end
-	WG["chat"].getChatVolume = function()
+	WG.chat.getChatVolume = function()
 		return sndChatFileVolume
 	end
-	WG["chat"].setChatVolume = function(value)
+	WG.chat.setChatVolume = function(value)
 		sndChatFileVolume = value
 	end
-	WG["chat"].getBackgroundOpacity = function()
+	WG.chat.getBackgroundOpacity = function()
 		return backgroundOpacity
 	end
-	WG["chat"].setBackgroundOpacity = function(value)
+	WG.chat.setBackgroundOpacity = function(value)
 		backgroundOpacity = value
 	end
-	WG["chat"].getMaxLines = function()
+	WG.chat.getMaxLines = function()
 		return maxLines
 	end
-	WG["chat"].setMaxLines = function(value)
+	WG.chat.setMaxLines = function(value)
 		maxLines = value
 		widget:ViewResize()
 	end
-	WG["chat"].getMaxConsoleLines = function()
+	WG.chat.getMaxConsoleLines = function()
 		return maxLines
 	end
-	WG["chat"].setMaxConsoleLines = function(value)
+	WG.chat.setMaxConsoleLines = function(value)
 		maxConsoleLines = value
 		widget:ViewResize()
 	end
-	WG["chat"].getFontsize = function()
+	WG.chat.getFontsize = function()
 		return fontsizeMult
 	end
-	WG["chat"].setFontsize = function(value)
+	WG.chat.setFontsize = function(value)
 		fontsizeMult = value
 		widget:ViewResize()
 	end
-	WG["chat"].addChatLine = function(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID)
+	WG.chat.addChatLine = function(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID)
 		addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, true)
 	end
-	WG["chat"].addChatProcessor = function(id, func)
+	WG.chat.addChatProcessor = function(id, func)
 		if type(func) == "function" then
 			chatProcessors[id] = func
 		end
 	end
-	WG["chat"].removeChatProcessor = function(id)
+	WG.chat.removeChatProcessor = function(id)
 		chatProcessors[id] = nil
 	end
 
@@ -2844,11 +2844,11 @@ end
 function widget:Shutdown()
 	clearDisplayLists() -- console/chat displaylists
 	glDeleteList(textInputDlist)
-	WG["chat"] = nil
-	if WG["guishader"] then
-		WG["guishader"].RemoveRect("chat")
-		WG["guishader"].RemoveRect("chatinput")
-		WG["guishader"].RemoveRect("chatinputautocomplete")
+	WG.chat = nil
+	if WG.guishader then
+		WG.guishader.RemoveRect("chat")
+		WG.guishader.RemoveRect("chatinput")
+		WG.guishader.RemoveRect("chatinputautocomplete")
 	end
 	if uiTex then
 		gl.DeleteTexture(uiTex)
@@ -2883,8 +2883,8 @@ function widget:GetConfigData(data)
 	end
 
 	return {
-		gameFrame = Spring.GetGameFrame(),
-		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
+		gameFrame = SpringShared.GetGameFrame(),
+		gameID = Game.gameID and Game.gameID or SpringShared.GetGameRulesParam("GameID"),
 		orgLines = gameOver and nil or orgLines,
 		inputHistory = inputHistoryLimited,
 		maxLines = maxLines,
@@ -2907,7 +2907,7 @@ end
 
 function widget:SetConfigData(data)
 	if data.orgLines ~= nil then
-		if Spring.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))) then
+		if SpringShared.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or SpringShared.GetGameRulesParam("GameID"))) then
 			if data.playernames then
 				playernames = data.playernames
 			end

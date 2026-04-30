@@ -41,9 +41,9 @@ end
 -- DEFS POST PROCESSING
 -------------------------
 
-local modOptions = Spring.GetModOptions()
+local modOptions = SpringShared.GetModOptions()
 
-local holidays = Spring.Utilities.Gametype.GetCurrentHolidays()
+local holidays = Utilities.Gametype.GetCurrentHolidays()
 local isAprilFools = holidays.aprilfools
 local isHalloween = holidays.halloween
 local isXmas = holidays.xmas
@@ -146,58 +146,58 @@ local categories = {}
 -- Manual categories: OBJECT T4AIR LIGHTAIRSCOUT GROUNDSCOUT RAPTOR
 -- Deprecated caregories: BOT TANK PHIB NOTLAND SPACE
 
-categories["ALL"] = function()
+categories.ALL = function()
 	return true
 end
-categories["MOBILE"] = function(uDef)
+categories.MOBILE = function(uDef)
 	return uDef.speed and uDef.speed > 0
 end
-categories["NOTMOBILE"] = function(uDef)
+categories.NOTMOBILE = function(uDef)
 	return not categories.MOBILE(uDef)
 end
-categories["WEAPON"] = function(uDef)
+categories.WEAPON = function(uDef)
 	return next(uDef.weapondefs) ~= nil
 end
-categories["NOWEAPON"] = function(uDef)
+categories.NOWEAPON = function(uDef)
 	return next(uDef.weapondefs) == nil
 end
-categories["VTOL"] = function(uDef)
+categories.VTOL = function(uDef)
 	return uDef.canfly == true
 end
-categories["NOTAIR"] = function(uDef)
+categories.NOTAIR = function(uDef)
 	return not categories.VTOL(uDef)
 end
-categories["HOVER"] = function(uDef)
+categories.HOVER = function(uDef)
 	return hoverList[uDef.movementclass] and (uDef.maxwaterdepth == nil or uDef.maxwaterdepth < 1)
 end -- convertible tank/boats have maxwaterdepth
-categories["NOTHOVER"] = function(uDef)
+categories.NOTHOVER = function(uDef)
 	return not categories.HOVER(uDef)
 end
-categories["SHIP"] = function(uDef)
+categories.SHIP = function(uDef)
 	return shipList[uDef.movementclass] or (hoverList[uDef.movementclass] and uDef.maxwaterdepth and uDef.maxwaterdepth >= 1)
 end
-categories["NOTSHIP"] = function(uDef)
+categories.NOTSHIP = function(uDef)
 	return not categories.SHIP(uDef)
 end
-categories["NOTSUB"] = function(uDef)
+categories.NOTSUB = function(uDef)
 	return not subList[uDef.movementclass]
 end
-categories["CANBEUW"] = function(uDef)
+categories.CANBEUW = function(uDef)
 	return amphibList[uDef.movementclass] or uDef.cansubmerge == true
 end
-categories["UNDERWATER"] = function(uDef)
+categories.UNDERWATER = function(uDef)
 	return (uDef.minwaterdepth and uDef.waterline == nil) or (uDef.minwaterdepth and uDef.waterline > uDef.minwaterdepth and uDef.speed and uDef.speed > 0)
 end
-categories["SURFACE"] = function(uDef)
+categories.SURFACE = function(uDef)
 	return not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef)
 end
-categories["MINE"] = function(uDef)
+categories.MINE = function(uDef)
 	return uDef.weapondefs.minerange
 end
-categories["COMMANDER"] = function(uDef)
+categories.COMMANDER = function(uDef)
 	return commanderList[uDef.movementclass]
 end
-categories["EMPABLE"] = function(uDef)
+categories.EMPABLE = function(uDef)
 	return categories.SURFACE(uDef) and uDef.customparams.paralyzemultiplier ~= 0
 end
 
@@ -776,10 +776,10 @@ local function unitDef_Post(name, uDef)
 			if oldscript:find(".cob", nil, true) and (not oldscript:find("_clean.", nil, true)) then
 				local newscript = string.sub(oldscript, 1, -5) .. "_clean.cob"
 				if VFS.FileExists("scripts/" .. newscript) then
-					Spring.Echo("Using new script for", name, oldscript, "->", newscript)
+					SpringShared.Echo("Using new script for", name, oldscript, "->", newscript)
 					uDef.script = newscript
 				else
-					Spring.Echo("Unable to find new script for", name, oldscript, "->", newscript, "using old one")
+					SpringShared.Echo("Unable to find new script for", name, oldscript, "->", newscript, "using old one")
 				end
 			end
 		end
@@ -789,7 +789,7 @@ local function unitDef_Post(name, uDef)
 		-- Remove invalid unit defs.
 		for index, option in pairs(buildoptions) do
 			if not UnitDefs[option] then
-				Spring.Log("AllDefs", LOG.INFO, "Removed buildoption (unit not loaded?): " .. tostring(option))
+				SpringShared.Log("AllDefs", LOG.INFO, "Removed buildoption (unit not loaded?): " .. tostring(option))
 				buildoptions[index] = nil
 			end
 		end
@@ -1204,13 +1204,13 @@ local function explosionDef_Post(name, eDef) end
 -- process modoptions (last, because they should not get baked)
 local function modOptions_Post(UnitDefs, WeaponDefs)
 	-- transporting enemy coms
-	if Spring.GetModOptions().transportenemy == "notcoms" then
+	if SpringShared.GetModOptions().transportenemy == "notcoms" then
 		for name, ud in pairs(UnitDefs) do
 			if ud.customparams.iscommander then
 				ud.transportbyenemy = false
 			end
 		end
-	elseif Spring.GetModOptions().transportenemy == "none" then
+	elseif SpringShared.GetModOptions().transportenemy == "none" then
 		for name, ud in pairs(UnitDefs) do
 			ud.transportbyenemy = false
 		end

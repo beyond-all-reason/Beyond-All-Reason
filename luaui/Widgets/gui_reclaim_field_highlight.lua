@@ -109,11 +109,11 @@ local animCfg = {
 	pulseMinRelativeChange = 0.12,
 }
 
-local gameStarted = Spring.GetGameFrame() > 0
-local lastCheckFrame = Spring.GetGameFrame() - 999
+local gameStarted = SpringShared.GetGameFrame() > 0
+local lastCheckFrame = SpringShared.GetGameFrame() - 999
 local lastCheckFrameClock = os.clock() - 99
 local lastProcessedFrame = -1
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 
 --------------------------------------------------------------------------------
 -- Speedups
@@ -153,20 +153,20 @@ local glText = gl.Text
 local glTranslate = gl.Translate
 local glVertex = gl.Vertex
 
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetFeatureResources = Spring.GetFeatureResources
-local spGetFeatureVelocity = Spring.GetFeatureVelocity
-local spGetFeatureRadius = Spring.GetFeatureRadius
-local spValidFeatureID = Spring.ValidFeatureID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spIsGUIHidden = Spring.IsGUIHidden
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetMapDrawMode = Spring.GetMapDrawMode
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetCameraVectors = Spring.GetCameraVectors
-local spGetGameFrame = Spring.GetGameFrame
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
+local spGetFeatureResources = SpringShared.GetFeatureResources
+local spGetFeatureVelocity = SpringShared.GetFeatureVelocity
+local spGetFeatureRadius = SpringShared.GetFeatureRadius
+local spValidFeatureID = SpringShared.ValidFeatureID
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGetMapDrawMode = SpringUnsynced.GetMapDrawMode
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetCameraVectors = SpringUnsynced.GetCameraVectors
+local spGetGameFrame = SpringShared.GetGameFrame
 
 -- TIMING INSTRUMENTATION (set to true to enable periodic timing echo)
 local debugTiming = false
@@ -3475,7 +3475,7 @@ end
 -- Widget call-ins
 
 function widget:Initialize()
-	gameStarted = Spring.GetGameFrame() > 0
+	gameStarted = SpringShared.GetGameFrame() > 0
 	screenx, screeny = widgetHandler:GetViewSizes()
 
 	-- Initialize camera scale early to avoid thick lines on first draw
@@ -3491,96 +3491,96 @@ function widget:Initialize()
 	widgetHandler:AddAction("reclaim_highlight", enableHighlight, nil, "p")
 	widgetHandler:AddAction("reclaim_highlight", disableHighlight, nil, "r")
 
-	WG["reclaimfieldhighlight"] = {}
-	WG["reclaimfieldhighlight"].getShowOption = function()
+	WG.reclaimfieldhighlight = {}
+	WG.reclaimfieldhighlight.getShowOption = function()
 		return showOption
 	end
-	WG["reclaimfieldhighlight"].setShowOption = function(value)
+	WG.reclaimfieldhighlight.setShowOption = function(value)
 		showOption = value
 	end
-	WG["reclaimfieldhighlight"].getSmoothingSegments = function()
+	WG.reclaimfieldhighlight.getSmoothingSegments = function()
 		return smoothingSegments
 	end
-	WG["reclaimfieldhighlight"].setSmoothingSegments = function(value)
+	WG.reclaimfieldhighlight.setSmoothingSegments = function(value)
 		smoothingSegments = clamp(value, 4, 40) -- Clamp to reasonable range
 		dirty.needCluster = true -- Force recluster with new settings
 	end
-	WG["reclaimfieldhighlight"].getShowEnergyFields = function()
+	WG.reclaimfieldhighlight.getShowEnergyFields = function()
 		return showEnergyFields
 	end
-	WG["reclaimfieldhighlight"].setShowEnergyFields = function(value)
+	WG.reclaimfieldhighlight.setShowEnergyFields = function(value)
 		showEnergyFields = value
 		dirty.needCluster = true -- Force recluster with new settings
 	end
-	WG["reclaimfieldhighlight"].getShowEnergyOption = function()
+	WG.reclaimfieldhighlight.getShowEnergyOption = function()
 		return showEnergyOption
 	end
-	WG["reclaimfieldhighlight"].setShowEnergyOption = function(value)
+	WG.reclaimfieldhighlight.setShowEnergyOption = function(value)
 		showEnergyOption = value
 	end
-	WG["reclaimfieldhighlight"].getFadeStartDistance = function()
+	WG.reclaimfieldhighlight.getFadeStartDistance = function()
 		return fadeStartDistance
 	end
-	WG["reclaimfieldhighlight"].setFadeStartDistance = function(value)
+	WG.reclaimfieldhighlight.setFadeStartDistance = function(value)
 		fadeStartDistance = max(100, value)
 		-- Ensure start < end
 		if fadeStartDistance >= fadeEndDistance then
 			fadeEndDistance = fadeStartDistance + 1000
 		end
 	end
-	WG["reclaimfieldhighlight"].getFadeEndDistance = function()
+	WG.reclaimfieldhighlight.getFadeEndDistance = function()
 		return fadeEndDistance
 	end
-	WG["reclaimfieldhighlight"].setFadeEndDistance = function(value)
+	WG.reclaimfieldhighlight.setFadeEndDistance = function(value)
 		fadeEndDistance = max(fadeStartDistance + 100, value)
 	end
 
-	WG["reclaimfieldhighlight"].getAlwaysShowFields = function()
+	WG.reclaimfieldhighlight.getAlwaysShowFields = function()
 		return alwaysShowFields
 	end
-	WG["reclaimfieldhighlight"].setAlwaysShowFields = function(value)
+	WG.reclaimfieldhighlight.setAlwaysShowFields = function(value)
 		alwaysShowFields = value
 	end
 
-	WG["reclaimfieldhighlight"].getAlwaysShowFieldsThreshold = function()
+	WG.reclaimfieldhighlight.getAlwaysShowFieldsThreshold = function()
 		return alwaysShowFieldsThreshold
 	end
-	WG["reclaimfieldhighlight"].setAlwaysShowFieldsThreshold = function(value)
+	WG.reclaimfieldhighlight.setAlwaysShowFieldsThreshold = function(value)
 		-- Deprecated - threshold is now auto-calculated
 		-- This function kept for backwards compatibility
 	end
 
-	WG["reclaimfieldhighlight"].getAlwaysShowFieldsMinThreshold = function()
+	WG.reclaimfieldhighlight.getAlwaysShowFieldsMinThreshold = function()
 		return alwaysShowFieldsMinThreshold
 	end
-	WG["reclaimfieldhighlight"].setAlwaysShowFieldsMinThreshold = function(value)
+	WG.reclaimfieldhighlight.setAlwaysShowFieldsMinThreshold = function(value)
 		alwaysShowFieldsMinThreshold = max(0, value)
 		alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
 	end
 
-	WG["reclaimfieldhighlight"].getAlwaysShowFieldsMaxThreshold = function()
+	WG.reclaimfieldhighlight.getAlwaysShowFieldsMaxThreshold = function()
 		return alwaysShowFieldsMaxThreshold
 	end
-	WG["reclaimfieldhighlight"].setAlwaysShowFieldsMaxThreshold = function(value)
+	WG.reclaimfieldhighlight.setAlwaysShowFieldsMaxThreshold = function(value)
 		alwaysShowFieldsMaxThreshold = max(alwaysShowFieldsMinThreshold, value)
 		alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
 	end
 
-	WG["reclaimfieldhighlight"].getTotalMapMetal = function()
+	WG.reclaimfieldhighlight.getTotalMapMetal = function()
 		return totalMapMetal
 	end
 
 	-- Deferred update settings
-	WG["reclaimfieldhighlight"].getDeferOutOfViewUpdates = function()
+	WG.reclaimfieldhighlight.getDeferOutOfViewUpdates = function()
 		return batch.deferOutOfView
 	end
-	WG["reclaimfieldhighlight"].setDeferOutOfViewUpdates = function(value)
+	WG.reclaimfieldhighlight.setDeferOutOfViewUpdates = function(value)
 		batch.deferOutOfView = value
 	end
-	WG["reclaimfieldhighlight"].getOutOfViewMargin = function()
+	WG.reclaimfieldhighlight.getOutOfViewMargin = function()
 		return batch.outOfViewMargin
 	end
-	WG["reclaimfieldhighlight"].setOutOfViewMargin = function(value)
+	WG.reclaimfieldhighlight.setOutOfViewMargin = function(value)
 		batch.outOfViewMargin = max(0, value)
 	end
 
@@ -3595,20 +3595,20 @@ function widget:Initialize()
 	opticsObject = Optics.new()
 	cachedKnownFeaturesCount = 0 -- Reset cached count
 
-	for _, featureID in ipairs(Spring.GetAllFeatures()) do
+	for _, featureID in ipairs(SpringShared.GetAllFeatures()) do
 		widget:FeatureCreated(featureID)
 	end
 
 	camUpVector = spGetCameraVectors().up
 
-	widget:SelectionChanged(Spring.GetSelectedUnits())
+	widget:SelectionChanged(SpringUnsynced.GetSelectedUnits())
 end
 
 function widget:Shutdown()
 	widgetHandler:RemoveAction("reclaim_highlight", "p")
 	widgetHandler:RemoveAction("reclaim_highlight", "r")
 
-	WG["reclaimfieldhighlight"] = nil -- todo: register/deregister, right?
+	WG.reclaimfieldhighlight = nil -- todo: register/deregister, right?
 
 	-- Clean up per-cluster display lists
 	for cid in pairs(clusterDisplayLists) do
@@ -3775,7 +3775,7 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	screenx, screeny = widgetHandler:GetViewSizes()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = SpringUnsynced.GetViewGeometry()
 end
 
 --------------------------------------------------------------------------------
@@ -4104,7 +4104,7 @@ function widget:DrawWorldPreUnit()
 	timingCount = timingCount + 1
 	if debugTiming and timingCount >= timingInterval then
 		local div = timingCount
-		Spring.Echo(string.format("[ReclaimField TIMING] per-call avg (ms): UpdateReclaim=%.3f  DrawWorldText=%.3f  DrawPreUnit=%.3f  | Update()=%.3f  | clusters=%d  features=%d", timingAccum.updateReclaim / div * 1000, timingAccum.drawWorldText / div * 1000, timingAccum.drawPreUnit / div * 1000, timingAccum.updateFunc / div * 1000, #featureClusters, cachedKnownFeaturesCount))
+		SpringShared.Echo(string.format("[ReclaimField TIMING] per-call avg (ms): UpdateReclaim=%.3f  DrawWorldText=%.3f  DrawPreUnit=%.3f  | Update()=%.3f  | clusters=%d  features=%d", timingAccum.updateReclaim / div * 1000, timingAccum.drawWorldText / div * 1000, timingAccum.drawPreUnit / div * 1000, timingAccum.updateFunc / div * 1000, #featureClusters, cachedKnownFeaturesCount))
 		for k in pairs(timingAccum) do
 			timingAccum[k] = 0
 		end

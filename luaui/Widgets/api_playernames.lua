@@ -16,7 +16,7 @@ end
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local applyFirstEncounteredName = false
 local maxHistorySize = 3000 -- max number of accounts in history
@@ -30,7 +30,7 @@ local currentAccounts = {} -- accountID to name
 
 local reconnected = false -- flag to track if this is a reconnection/reload
 
-local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
 
 local function getPlayername(playerID, accountID, skipAlias)
 	if playerID then
@@ -176,7 +176,7 @@ local function setaliasCmd(_, _, params)
 			if accountID then
 				local alias = params[2]
 				if alias then
-					spEcho(Spring.I18N("ui.playernames.setalias", { name = name, accountID = accountID, alias = alias }))
+					spEcho(I18N("ui.playernames.setalias", { name = name, accountID = accountID, alias = alias }))
 					-- ensure history entry exists
 					if not history[accountID] then
 						history[accountID] = { i = 1, d = tonumber(os.date("%y%m%d")), [1] = name }
@@ -187,7 +187,7 @@ local function setaliasCmd(_, _, params)
 				else
 					-- ensure history entry exists before accessing alias
 					if history[accountID] and history[accountID].alias then
-						spEcho(Spring.I18N("ui.playernames.removealias", { name = name, accountID = accountID, alias = history[accountID].alias }))
+						spEcho(I18N("ui.playernames.removealias", { name = name, accountID = accountID, alias = history[accountID].alias }))
 						currentNames[playerID] = name
 						currentAccounts[accountID] = name
 						history[accountID].alias = nil
@@ -195,16 +195,16 @@ local function setaliasCmd(_, _, params)
 				end
 				-- reload the whole UI
 				-- TODO: add a small delay to allow the echo to be readable
-				Spring.SendCommands("luaui reload")
+				SpringUnsynced.SendCommands("luaui reload")
 			end
 		else
-			spEcho(Spring.I18N("ui.playernames.notfound", { param = params[1] }))
+			spEcho(I18N("ui.playernames.notfound", { param = params[1] }))
 		end
 	end
 end
 
 function widget:Initialize()
-	local playerList = Spring.GetPlayerList()
+	local playerList = SpringShared.GetPlayerList()
 	for _, playerID in ipairs(playerList) do
 		local _, _, _, _, _, _, _, _, _, _, playerInfo = spGetPlayerInfo(playerID)
 		local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
@@ -250,7 +250,7 @@ end
 
 function widget:GetConfigData()
 	return {
-		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
+		gameID = Game.gameID and Game.gameID or SpringShared.GetGameRulesParam("GameID"),
 		applyFirstEncounteredName = applyFirstEncounteredName,
 		history = history,
 		currentNames = currentNames,
@@ -260,7 +260,7 @@ end
 
 function widget:SetConfigData(data)
 	history = data.history or {}
-	if data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")) then
+	if data.gameID and data.gameID == (Game.gameID and Game.gameID or SpringShared.GetGameRulesParam("GameID")) then
 		currentNames = data.currentNames or {}
 		currentAccounts = data.currentAccounts or {}
 		reconnected = true

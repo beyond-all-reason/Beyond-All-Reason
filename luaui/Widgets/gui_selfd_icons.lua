@@ -13,8 +13,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local ignoreUnitDefs = {}
 local unitConf = {}
@@ -40,14 +40,14 @@ local drawLists = {}
 local glDrawListAtUnit = gl.DrawListAtUnit
 local glDepthTest = gl.DepthTest
 local spGetUnitDefID = spGetUnitDefID
-local spIsUnitInView = Spring.IsUnitInView
-local spGetUnitSelfDTime = Spring.GetUnitSelfDTime
-local spGetAllUnits = Spring.GetAllUnits
-local spGetUnitCommands = Spring.GetUnitCommands
-local spIsUnitAllied = Spring.IsUnitAllied
-local spGetCameraDirection = Spring.GetCameraDirection
-local spIsGUIHidden = Spring.IsGUIHidden
-local spGetUnitTransporter = Spring.GetUnitTransporter
+local spIsUnitInView = SpringUnsynced.IsUnitInView
+local spGetUnitSelfDTime = SpringShared.GetUnitSelfDTime
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetUnitCommands = SpringShared.GetUnitCommands
+local spIsUnitAllied = SpringUnsynced.IsUnitAllied
+local spGetCameraDirection = SpringUnsynced.GetCameraDirection
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
+local spGetUnitTransporter = SpringShared.GetUnitTransporter
 
 local spec = spGetSpectatingState()
 
@@ -114,7 +114,7 @@ local function init()
 		gl.DeleteList(drawLists[k])
 	end
 	drawLists = {}
-	font = WG["fonts"].getFont(2, 1.5)
+	font = WG.fonts.getFont(2, 1.5)
 
 	spec = spGetSpectatingState()
 

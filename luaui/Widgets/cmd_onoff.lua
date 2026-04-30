@@ -12,9 +12,9 @@ function widget:GetInfo()
 	}
 end
 
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGetUnitStates = Spring.GetUnitStates
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetSelectedUnitsSorted = SpringUnsynced.GetSelectedUnitsSorted
+local spGetUnitStates = SpringShared.GetUnitStates
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
 
 local unitOnOffable = {}
 for udid, ud in pairs(UnitDefs) do
@@ -36,7 +36,7 @@ local function onoff(_, _, args)
 			anyOnOffable = true
 
 			if state == nil then
-				local isActive = spGetUnitStates(units[1])["active"]
+				local isActive = spGetUnitStates(units[1]).active
 				if isActive then
 					state = 0
 				else

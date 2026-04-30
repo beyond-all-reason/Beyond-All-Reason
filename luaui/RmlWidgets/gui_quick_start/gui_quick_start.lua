@@ -16,7 +16,7 @@ function widget:GetInfo()
 	}
 end
 
-local modOptions = Spring.GetModOptions()
+local modOptions = SpringShared.GetModOptions()
 
 if not modOptions or not modOptions.quick_start then
 	return false
@@ -32,9 +32,9 @@ end
 
 local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or (modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
-local spGetGameRulesParam = Spring.GetGameRulesParam
-local spGetMyTeamID = Spring.GetMyTeamID
-local spI18N = Spring.I18N
+local spGetGameRulesParam = SpringShared.GetGameRulesParam
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spI18N = I18N
 
 local wgBuildMenu, wgGridMenu, wgTopbar, wgPregameBuild, wgPregameUI, wgPregameUIDraft, wgGetBuildQueueFunc, wgGetBuildPositionsFunc, wgGetPregameUnitSelectedFunc
 
@@ -144,7 +144,7 @@ local function createBuildRangeCircleDisplayList(commanderX, commanderZ, buildRa
 	return gl.CreateList(function()
 		gl.LineWidth(2)
 		gl.Color(1.0, 0.0, 1.0, 0.7)
-		local y = Spring.GetGroundHeight(commanderX, commanderZ) + 10
+		local y = SpringShared.GetGroundHeight(commanderX, commanderZ) + 10
 		gl.DrawGroundCircle(commanderX, y, commanderZ, buildRadius, 64)
 		gl.Color(1, 1, 1, 1)
 		gl.LineWidth(1)
@@ -187,7 +187,7 @@ local function updateDisplayList(commanderX, commanderZ)
 				for stepIndex = 0, subdivisionCount do
 					local x = segmentStart.x + deltaX * stepIndex
 					local z = segmentStart.z + deltaZ * stepIndex
-					local y = Spring.GetGroundHeight(x, z) + 10
+					local y = SpringShared.GetGroundHeight(x, z) + 10
 					gl.Vertex(x, y, z)
 				end
 			end)
@@ -283,12 +283,12 @@ local function updateTraversabilityGrid()
 		return
 	end
 
-	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	local startDefID = SpringShared.GetTeamRulesParam(myTeamID, "startUnit")
 	if not startDefID then
 		return
 	end
 
-	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
+	local commanderX, commanderY, commanderZ = SpringShared.GetTeamStartPosition(myTeamID)
 	-- Returns 0, 0, 0 when none chosen (was -100, -100, -100 previously)
 	local startChosen = (commanderX ~= 0) or (commanderY ~= 0) or (commanderZ ~= 0)
 	if not startChosen then
@@ -412,7 +412,7 @@ local function calculateBudgetForItem(unitDefID, gameRules, shouldApplyDiscount,
 end
 
 local function getCommanderPosition(myTeamID)
-	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
+	local commanderX, commanderY, commanderZ = SpringShared.GetTeamStartPosition(myTeamID)
 	return commanderX or 0, commanderZ or 0
 end
 
@@ -446,7 +446,7 @@ local function computeProjectedUsage()
 	local budgetProjected = 0
 	if pregameUnitSelected > 0 and UnitDefs[pregameUnitSelected] then
 		local uDef = UnitDefs[pregameUnitSelected]
-		local mx, my = Spring.GetMouseState()
+		local mx, my = SpringUnsynced.GetMouseState()
 
 		local positionsToCheck = {}
 		local getBuildPositions = wgGetBuildPositionsFunc
@@ -455,7 +455,7 @@ local function computeProjectedUsage()
 		if buildPositions and #buildPositions > 0 then
 			positionsToCheck = buildPositions
 		else
-			local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, uDef.modCategories and uDef.modCategories.underwater)
+			local _, pos = SpringUnsynced.TraceScreenRay(mx, my, true, false, false, uDef.modCategories and uDef.modCategories.underwater)
 			if pos then
 				positionsToCheck = { { x = pos[1], y = pos[2], z = pos[3] } }
 			end
@@ -604,12 +604,12 @@ local function updateDataModel(forceUpdate)
 	if currentQueueLength > widgetState.lastQueueLength then
 		if currentBudgetRemaining < widgetState.lastBudgetRemaining then
 			if modelUpdate.budgetTotal >= modelUpdate.budgetUsed then
-				Spring.PlaySoundFile("beep6", 0.5, nil, nil, nil, nil, nil, nil, "ui")
+				SpringUnsynced.PlaySoundFile("beep6", 0.5, nil, nil, nil, nil, nil, nil, "ui")
 			else
-				Spring.PlaySoundFile("cmd-build", 0.5, nil, nil, nil, nil, nil, nil, "ui")
+				SpringUnsynced.PlaySoundFile("cmd-build", 0.5, nil, nil, nil, nil, nil, nil, "ui")
 			end
 		elseif widgetState.lastBudgetRemaining == currentBudgetRemaining then
-			Spring.PlaySoundFile("cmd-build", 1.0, nil, nil, nil, nil, nil, nil, "ui")
+			SpringUnsynced.PlaySoundFile("cmd-build", 1.0, nil, nil, nil, nil, nil, nil, "ui")
 		end
 	end
 
@@ -734,7 +734,7 @@ local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
 end
 
 function widget:Initialize()
-	local isSpectating = Spring.GetSpectatingState()
+	local isSpectating = SpringUnsynced.GetSpectatingState()
 	if isSpectating then
 		widgetHandler:RemoveWidget(self)
 	end
@@ -758,12 +758,12 @@ function widget:Initialize()
 	widgetState.document = document
 	document:Show()
 
-	wgBuildMenu = WG["buildmenu"]
-	wgGridMenu = WG["gridmenu"]
-	wgTopbar = WG["topbar"]
+	wgBuildMenu = WG.buildmenu
+	wgGridMenu = WG.gridmenu
+	wgTopbar = WG.topbar
 	wgPregameBuild = WG["pregame-build"]
-	wgPregameUI = WG["pregameui"]
-	wgPregameUIDraft = WG["pregameui_draft"]
+	wgPregameUI = WG.pregameui
+	wgPregameUIDraft = WG.pregameui_draft
 	wgGetBuildQueueFunc = wgPregameBuild and wgPregameBuild.getBuildQueue
 	wgGetBuildPositionsFunc = wgPregameBuild and wgPregameBuild.getBuildPositions
 	wgGetPregameUnitSelectedFunc = function()
@@ -794,8 +794,8 @@ function widget:Initialize()
 		wgTopbar.setResourceBarsVisible(false)
 	end
 
-	WG["getBuildQueueSpawnStatus"] = getBuildQueueSpawnStatus
-	WG["quick_start_updateSpawnPositions"] = updateSpawnPositions
+	WG.getBuildQueueSpawnStatus = getBuildQueueSpawnStatus
+	WG.quick_start_updateSpawnPositions = updateSpawnPositions
 
 	for id, def in pairs(UnitDefs) do
 		if def.isFactory then
@@ -815,8 +815,8 @@ function widget:Shutdown()
 		wgTopbar.setResourceBarsVisible(true)
 	end
 
-	WG["getBuildQueueSpawnStatus"] = nil
-	WG["quick_start_updateSpawnPositions"] = nil
+	WG.getBuildQueueSpawnStatus = nil
+	WG.quick_start_updateSpawnPositions = nil
 
 	if wgBuildMenu and wgBuildMenu.clearCostOverrides then
 		wgBuildMenu.clearCostOverrides()
@@ -848,7 +848,7 @@ function widget:Shutdown()
 end
 
 function widget:Update()
-	local currentGameFrame = Spring.GetGameFrame()
+	local currentGameFrame = SpringShared.GetGameFrame()
 	if currentGameFrame > 0 then
 		hideWarnings()
 		if wgTopbar and wgTopbar.setResourceBarsVisible then

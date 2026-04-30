@@ -1,19 +1,19 @@
 -- run test using BAR command (in chat): `/runtests select_api`
-local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitDefID = SpringShared.GetUnitDefID
 local selectApi = VFS.Include("luaui/Include/select_api.lua")
 local nameLookup = {}
 local passed = true
 
-function skip()
-	return Spring.GetGameFrame() <= 0 or not Platform.gl
+local function skip()
+	return SpringShared.GetGameFrame() <= 0 or not Platform.gl
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 end
 
-function cleanup()
-	Spring.SendCommands("setspeed " .. 1)
+local function cleanup()
+	SpringUnsynced.SendCommands("setspeed " .. 1)
 end
 
 local function printTable(tbl, indent)
@@ -95,11 +95,11 @@ local function createAndAddUnit(udefid, name, x, z, uids, group)
 		local z = locals.z
 		local group = locals.group
 
-		local y = Spring.GetGroundHeight(x, z)
-		local unitID = Spring.CreateUnit(udefid, x, y, z, "east", 0)
+		local y = SpringShared.GetGroundHeight(x, z)
+		local unitID = SpringSynced.CreateUnit(udefid, x, y, z, "east", 0)
 
 		if group == 1 then
-			Spring.SetUnitGroup(unitID, 1)
+			SpringUnsynced.SetUnitGroup(unitID, 1)
 		end
 		return unitID
 	end)
@@ -172,18 +172,18 @@ local function test_command(preSelectedUnitIDs, filter, command, conclusion)
 	-- api command
 	local apiCommand = selectApi.getCommand(command)
 	local apiCommandUnitSet = {}
-	Spring.SelectUnitArray(preSelectedUnitIDs)
+	SpringUnsynced.SelectUnitArray(preSelectedUnitIDs)
 	apiCommand()
-	local apiUnits = Spring.GetSelectedUnits()
+	local apiUnits = SpringUnsynced.GetSelectedUnits()
 	for _, uid in pairs(apiUnits) do
 		apiCommandUnitSet[uid] = true
 	end
 
 	-- spring
 	local springUnitSet = {}
-	Spring.SelectUnitArray(preSelectedUnitIDs)
-	Spring.SendCommands(springCommand)
-	local springUnits = Spring.GetSelectedUnits()
+	SpringUnsynced.SelectUnitArray(preSelectedUnitIDs)
+	SpringUnsynced.SendCommands(springCommand)
+	local springUnits = SpringUnsynced.GetSelectedUnits()
 	for _, uid in pairs(springUnits) do
 		springUnitSet[uid] = true
 	end
@@ -227,7 +227,7 @@ end
 -- for each filter, the sum of {{filter}} and Not_{{filter}} always equals 537.
 -- this means 6 units are being created but then not included in the tests
 -- could be 'dbg_sphere' 'dbg_sphere_fullmetal' 'pbr_cube'
-function test()
+local function test()
 	passed = true
 	local uids = createUnits()
 	local halfSize = math.floor(#uids / 2)
@@ -342,3 +342,5 @@ function test()
 	end
 	assert(passed, "read errors above")
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

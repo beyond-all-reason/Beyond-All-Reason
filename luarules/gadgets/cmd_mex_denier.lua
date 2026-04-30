@@ -17,12 +17,12 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetTeamAllyTeamID = SpringShared.GetTeamAllyTeamID
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitsInCylinder = SpringShared.GetUnitsInCylinder
 
 local gExtractorRadius = Game.extractorRadius
 
@@ -37,12 +37,12 @@ local metalSpotsList
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
-	local isMetalMap = GG["resource_spot_finder"].isMetalMap
+	local isMetalMap = GG.resource_spot_finder.isMetalMap
 	if isMetalMap then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Metal map detected, removing self")
+		SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "Metal map detected, removing self")
 		gadgetHandler:RemoveGadget(self)
 	end
-	metalSpotsList = GG["resource_spot_finder"].metalSpotsList
+	metalSpotsList = GG.resource_spot_finder.metalSpotsList
 end
 
 local function mexExists(spot, allyTeamID, cmdX, cmdZ)
@@ -69,7 +69,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	local closestSpot = math.getClosestPosition(bx, bz, metalSpotsList)
 
 	-- We check if current order is to build mex in closest spot
-	if not (closestSpot and GG["resource_spot_finder"].IsMexPositionValid(closestSpot, bx, bz)) then
+	if not (closestSpot and GG.resource_spot_finder.IsMexPositionValid(closestSpot, bx, bz)) then
 		return false
 	end
 

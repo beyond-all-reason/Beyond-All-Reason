@@ -52,7 +52,7 @@ local exampleLight = {
 
 local unitLights = {
 
-	["armpw"] = {
+	armpw = {
 		headlightpw = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "head", -- invalid ones will attach to the worldpos of the unit
@@ -84,7 +84,7 @@ local unitLights = {
 			lightConfig = { posx = -4, posy = 3.5, posz = -8, radius = 3.5, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = -1, g = 1, b = 1, a = 2.5, modelfactor = 0.2, specular = 0.3, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armwar"] = {
+	armwar = {
 		arm1 = {
 			lightType = "point",
 			pieceName = "luparm",
@@ -111,7 +111,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 17, posz = -10, radius = 7, color2r = 1, color2g = 1, color2b = 1, colortime = -2, r = -1, g = 1, b = 1, a = 2.5, modelfactor = 0.4, specular = 0.4, scattering = 0, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfatf"] = {
+	armfatf = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "light",
@@ -138,7 +138,7 @@ local unitLights = {
 			lightConfig = { posx = -19, posy = 6.5, posz = -19, radius = 6.5, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1.2, g = 1, b = 0.2, a = 0.45, modelfactor = 0.3, specular = 0.4, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfrad"] = {
+	armfrad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "turret",
@@ -185,14 +185,14 @@ local unitLights = {
 			lightConfig = { posx = -15, posy = 7, posz = -15, radius = 7, color2r = 0, color2g = 0, color2b = 0, colortime = -1.1, r = 1.2, g = 1, b = 0.2, a = 0.45, modelfactor = 0.3, specular = 0.4, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armamex"] = {
+	armamex = {
 		mid1 = {
 			lightType = "point",
 			pieceName = "dish",
 			lightConfig = { posx = 0, posy = 34, posz = 0, radius = 8, color2r = 0, color2g = 0, color2b = 0, colortime = -1.1, r = 1.2, g = 1, b = 0.2, a = 0.5, modelfactor = 0.4, specular = 0, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsonar"] = {
+	armsonar = {
 		mid1 = {
 			lightType = "point",
 			pieceName = "dish",
@@ -214,7 +214,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 24.5, posz = -4, radius = 8, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 1, g = 1, b = 1, a = 0.05, modelfactor = 0.4, specular = 0, scattering = 0.6, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armrad"] = {
+	armrad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "turret",
@@ -246,21 +246,21 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -9, radius = 32, color2r = 1, color2g = 1, color2b = 1, colortime = -2, r = 1, g = 1, b = 1, a = 0.4, modelfactor = 0.1, specular = 0.5, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corrad"] = {
+	corrad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "turret",
 			lightConfig = { posx = 0, posy = 82, posz = 0, radius = 20, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.60000002, modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corfrad"] = {
+	corfrad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "turret",
 			lightConfig = { posx = 0, posy = 82, posz = 0, radius = 20, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.60000002, modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cortide"] = {
+	cortide = {
 		energy1 = {
 			lightType = "beam",
 			pieceName = "base",
@@ -272,7 +272,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 22.8, posz = -16.2, radius = 1.4, pos2x = 0, pos2y = 22.8, pos2z = -18.2, color2r = 0.0, color2g = 0.0, color2b = 0.0, colortime = -1.0, r = 1.1, g = 0.85, b = 0.25, a = 0.9, modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armmart"] = {
+	armmart = {
 		-- front = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'sleeve',
@@ -298,7 +298,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 8, posz = 0.5, radius = 8, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1.2, g = 1, b = 0.2, a = 0.65, modelfactor = 0.4, specular = 0.3, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armferret"] = {
+	armferret = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -320,14 +320,14 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 12, posz = -17, radius = 8, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legrhapsis"] = {
+	legrhapsis = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "searchLight",
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 475, dirx = 0, diry = 0, dirz = 1, theta = 0.12, r = 1, g = 1, b = 1, a = 0.45, modelfactor = 0, specular = 0.5, scattering = 2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armkraken"] = {
+	armkraken = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -389,7 +389,7 @@ local unitLights = {
 			lightConfig = { posx = -14, posy = -2, posz = 8, radius = 7, color2r = 0, color2g = 0, color2b = 0, colortime = -1.1, r = 1.2, g = 1, b = 0.2, a = 0.65, modelfactor = 0.4, specular = 0.3, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armflak"] = {
+	armflak = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -451,7 +451,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0.0, posz = 23.0, radius = 4, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfflak"] = {
+	armfflak = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -494,7 +494,7 @@ local unitLights = {
 		},
 	},
 
-	["armdl"] = {
+	armdl = {
 		top = {
 			lightType = "point",
 			pieceName = "turret",
@@ -590,7 +590,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cordl"] = {
+	cordl = {
 		depthchargeflashl = {
 			lightType = "point",
 			pieceName = "turret",
@@ -632,14 +632,14 @@ local unitLights = {
 			lightConfig = { posx = 12, posy = 8, posz = 12, radius = 9, color2r = 0, color2g = 0, color2b = 0, colortime = 120, r = 1, g = 1, b = 1, a = 0.45, modelfactor = 0.8, specular = 0.4, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armmark"] = {
+	armmark = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "torso",
 			lightConfig = { posx = 0, posy = 10.5, posz = 0, radius = 17, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.33, modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legaradk"] = {
+	legaradk = {
 		leggreenblob = {
 			lightType = "point",
 			pieceName = "dishTower",
@@ -647,7 +647,7 @@ local unitLights = {
 		},
 	},
 
-	["legavrad"] = {
+	legavrad = {
 		greenbloba = {
 			lightType = "point",
 			pieceName = "radarlight1",
@@ -669,7 +669,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.15, modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	["corvoyr"] = {
+	corvoyr = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "torso",
@@ -701,7 +701,7 @@ local unitLights = {
 			lightConfig = { posx = 8.1, posy = 0, posz = 0, radius = 3.5, color2r = 0, color2g = 0, color2b = 0, colortime = -2, r = 1, g = 1, b = 0.3, a = 0.9, modelfactor = 0.4, specular = 0, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cortrem"] = {
+	cortrem = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -762,7 +762,7 @@ local unitLights = {
 			lightConfig = { posx = 16, posy = 9, posz = 15, radius = 30, colortime = -2, dirx = 0.6, diry = -0.5, dirz = 1, theta = 0.5, r = 1, g = 1, b = 0.89, a = 0.25, modelfactor = -0.5, specular = -0.3, scattering = 1.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corvroc"] = {
+	corvroc = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -826,7 +826,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmerl"] = {
+	armmerl = {
 		eyesleft = {
 			lightType = "beam",
 			pieceName = "base",
@@ -853,7 +853,7 @@ local unitLights = {
 			lightConfig = { posx = 4.6, posy = -4.8, posz = 8, radius = 5.3, dirx = 0, diry = 0, dirz = 1, theta = -10.8, color2r = -1, color2g = -1, color2b = -1, colortime = 30, r = -1, g = 1, b = 1, a = 3, modelfactor = 0.6, specular = 0.1, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cortron"] = {
+	cortron = {
 		--UNStockpiled
 		base1 = {
 			lightType = "beam",
@@ -937,7 +937,7 @@ local unitLights = {
 			lightConfig = { posx = 24.9, posy = -2.9, posz = -13.9, radius = 1.3, pos2x = 24.9, pos2y = -2.9, pos2z = -12.1, color2r = 0, color2g = 0, color2b = 0, colortime = 15, r = 1, g = 0.2, b = 0.0, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armseer"] = {
+	armseer = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "eye",
@@ -949,7 +949,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 5, radius = 10, color2r = 1, color2g = 1, color2b = 0.2, colortime = 0, r = 1, g = 1, b = 0.2, a = 0.065, modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corvrad"] = {
+	corvrad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "blink",
@@ -1008,7 +1008,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armarad"] = {
+	armarad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "base",
@@ -1056,7 +1056,7 @@ local unitLights = {
 		},
 	},
 
-	["corarad"] = {
+	corarad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "base",
@@ -1064,7 +1064,7 @@ local unitLights = {
 		},
 	},
 
-	["armtarg"] = {
+	armtarg = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "base",
@@ -1077,7 +1077,7 @@ local unitLights = {
 		},
 	},
 
-	["armllt"] = {
+	armllt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "sleeve",
@@ -1156,7 +1156,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corllt"] = {
+	corllt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -1182,7 +1182,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corhllt"] = {
+	corhllt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret2",
@@ -1209,7 +1209,7 @@ local unitLights = {
 			lightConfig = { posx = -4.8, posy = 3.5, posz = 2.9, radius = 4, dirx = 0, diry = 0, dirz = 0.6666667, theta = -1.8, color2r = -1, color2g = -1, color2b = -1, colortime = 45, r = -1, g = 1, b = 1, a = 3, modelfactor = 0.3, specular = 0.4, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corhlt"] = {
+	corhlt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -1240,7 +1240,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmercury"] = {
+	armmercury = {
 		base2 = {
 			lightType = "point",
 			pieceName = "turret",
@@ -1297,7 +1297,7 @@ local unitLights = {
 			lightConfig = { posx = -4.2, posy = 7.8, posz = -13.5, radius = 4, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armbeamer"] = {
+	armbeamer = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "sleeve",
@@ -1395,7 +1395,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armassistdrone_land"] = {
+	armassistdrone_land = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -1412,7 +1412,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.2, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corassistdrone_land"] = {
+	corassistdrone_land = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -1429,28 +1429,28 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.2, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armnanotct2"] = {
+	armnanotct2 = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "emitnano1",
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 33, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.4, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cornanotct2"] = {
+	cornanotct2 = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "emitnano",
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 33, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.4, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legnanotc"] = {
+	legnanotc = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "emitnano",
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 33, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.4, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legmohoconct"] = {
+	legmohoconct = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -1462,7 +1462,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 33, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.4, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legmohocon"] = {
+	legmohocon = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -1474,14 +1474,14 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 33, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.4, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legnanotcplat"] = {
+	legnanotcplat = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "emitnano",
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 33, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.4, modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armnanotc"] = {
+	armnanotc = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "emitnano",
@@ -1513,7 +1513,7 @@ local unitLights = {
 			lightConfig = { posx = 5, posy = 26.3, posz = -5, radius = 12, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1, g = 1, b = 1, a = 0.45, modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cornanotc"] = {
+	cornanotc = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "emitnano",
@@ -1530,7 +1530,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 15, posz = 0, radius = 8, color2r = -11, color2g = -11, color2b = -11, colortime = 45, r = 1, g = 0.8, b = 0.2, a = 0.9, modelfactor = 0.4, specular = 0.4, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armhlt"] = {
+	armhlt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "gunl",
@@ -1572,7 +1572,7 @@ local unitLights = {
 			lightConfig = { posx = 13, posy = 0, posz = 15, radius = 9, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.15, g = 1, b = 0.4, a = 0.85, modelfactor = 0.4, specular = 0.5, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfhlt"] = {
+	armfhlt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "gunl",
@@ -1623,7 +1623,7 @@ local unitLights = {
 			lightConfig = { posx = 13, posy = 0, posz = 15, radius = 9, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.15, g = 1, b = 0.4, a = 0.85, modelfactor = 0.4, specular = 0.5, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armrl"] = {
+	armrl = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "sleeve",
@@ -1708,7 +1708,7 @@ local unitLights = {
 			lightConfig = { posx = 9, posy = 20, posz = 3, radius = 10, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfrt"] = {
+	armfrt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "sleeve",
@@ -1760,7 +1760,7 @@ local unitLights = {
 			lightConfig = { posx = -9, posy = 21, posz = -1, radius = 13, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 1, g = 1, b = 1, a = 0.055, modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corrl"] = {
+	corrl = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -1787,7 +1787,7 @@ local unitLights = {
 			lightConfig = { posx = 11.2, posy = 3, posz = 11.2, radius = 5, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corfrt"] = {
+	corfrt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -1814,7 +1814,7 @@ local unitLights = {
 			lightConfig = { posx = 11.2, posy = 17, posz = 11.2, radius = 5, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armcir"] = {
+	armcir = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "spindle",
@@ -1841,7 +1841,7 @@ local unitLights = {
 			lightConfig = { posx = 19, posy = 20, posz = -1, radius = 4, pos2x = 19, pos2y = 20, pos2z = 1, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormadsam"] = {
+	cormadsam = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "launcher",
@@ -1858,7 +1858,7 @@ local unitLights = {
 			lightConfig = { posx = 13.5, posy = 9.0, posz = 7.0, radius = 4, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 1.2, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corflak"] = {
+	corflak = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "gunbase",
@@ -1875,7 +1875,7 @@ local unitLights = {
 			lightConfig = { posx = 11.5, posy = 3.0, posz = 35.0, radius = 4, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corenaa"] = {
+	corenaa = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "gunbase",
@@ -1892,7 +1892,7 @@ local unitLights = {
 			lightConfig = { posx = 11.5, posy = 3.0, posz = 35.0, radius = 4, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corfrock"] = {
+	corfrock = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "sleeve",
@@ -1909,7 +1909,7 @@ local unitLights = {
 			lightConfig = { posx = 13.5, posy = 9.0, posz = 7.0, radius = 4, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corerad"] = {
+	corerad = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -1931,7 +1931,7 @@ local unitLights = {
 			lightConfig = { posx = 21.0, posy = 23.0, posz = 0.0, radius = 4, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armjamt"] = {
+	armjamt = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
@@ -1958,14 +1958,14 @@ local unitLights = {
 			lightConfig = { posx = 6.5, posy = 21, posz = -6.5, radius = 8, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1, g = 1, b = 1, a = 0.55, modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corshroud"] = {
+	corshroud = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30, color2r = 0.6, color2g = 0, color2b = 0, colortime = 30, r = 1, g = 0, b = 0, a = 0.9, modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armjuno"] = {
+	armjuno = {
 		top = {
 			lightType = "point",
 			pieceName = "base",
@@ -2012,21 +2012,21 @@ local unitLights = {
 			lightConfig = { posx = 10.3, posy = 42, posz = -10.3, radius = 4, color2r = -5, color2g = -5, color2b = -5, colortime = 45, r = 1, g = 1, b = 0.2, a = 0.75, modelfactor = 0.4, specular = 0, scattering = 1.2, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corjuno"] = {
+	corjuno = {
 		top = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 68, posz = 0, radius = 24, color2r = 0, color2g = 0, color2b = 0.2, colortime = -1, r = 1.1, g = 0.2, b = 0.2, a = 0.8, modelfactor = 0.4, specular = 0.4, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legjuno"] = {
+	legjuno = {
 		top = {
 			lightType = "point",
 			pieceName = "junoSphere",
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 24, color2r = 0, color2g = 0, color2b = 0.2, colortime = -1, r = 1.1, g = 0.2, b = 0.2, a = 0.8, modelfactor = 0.4, specular = 0.4, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armjam"] = {
+	armjam = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
@@ -2038,14 +2038,14 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 16.5, posz = 13.5, radius = 4, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1.2, g = 1, b = 0.2, a = 0.7, modelfactor = 0.4, specular = 0.5, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corjamt"] = {
+	corjamt = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 25, color2r = 0.6, color2g = 0, color2b = 0, colortime = 30, r = 1, g = 0, b = 0, a = 1, modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coreter"] = {
+	coreter = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
@@ -2105,35 +2105,35 @@ local unitLights = {
 			lightConfig = { posx = 11, posy = 14.5, posz = -0.3, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = 15, r = 1, g = 0.2, b = 0.2, a = 1.8, modelfactor = 0.4, specular = 0.5, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armaser"] = {
+	armaser = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
 			lightConfig = { posx = -5, posy = 0, posz = 0, radius = 22, color2r = 0, color2g = 0, color2b = 0, colortime = -3, r = 1, g = 0, b = 0, a = 0.7, modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corspec"] = {
+	corspec = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 18, color2r = 0.6, color2g = 0, color2b = 0, colortime = 30, r = 1, g = 0, b = 0, a = 0.9, modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legavjam"] = {
+	legavjam = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "cloaklight",
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 16, color2r = 0.6, color2g = 0, color2b = 0, colortime = 30, r = 1, g = 0, b = 0, a = 0.9, modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legajamk"] = {
+	legajamk = {
 		legcloaklightred = {
 			lightType = "point",
 			pieceName = "blob",
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 14, color2r = 0.6, color2g = 0, color2b = 0, colortime = 30, r = 1, g = 0, b = 0, a = 0.9, modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["leganavyradjamship"] = {
+	leganavyradjamship = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "cloaklight",
@@ -2160,7 +2160,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.15, modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	["armveil"] = {
+	armveil = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
@@ -2208,7 +2208,7 @@ local unitLights = {
 		},
 	},
 
-	["corsiegebreaker"] = {
+	corsiegebreaker = {
 
 		eyes1 = {
 			lightType = "point",
@@ -2267,7 +2267,7 @@ local unitLights = {
 		},
 	},
 
-	["corack"] = {
+	corack = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -2354,7 +2354,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["legack"] = {
+	legack = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -2376,7 +2376,7 @@ local unitLights = {
 			lightConfig = { posx = -2.4, posy = 2.9, posz = 16.75, radius = 15, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 0.2, g = 1, b = 0.2, a = 0.15, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legamphtank"] = {
+	legamphtank = {
 		frontlight = {
 			lightType = "point",
 			pieceName = "base",
@@ -2388,7 +2388,7 @@ local unitLights = {
 			lightConfig = { posx = 9, posy = 10, posz = -9, radius = 14, color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0, r = 0.2, g = 1, b = 0.2, a = 0.09, modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legaabot"] = {
+	legaabot = {
 		frontlight1 = {
 			lightType = "point",
 			pieceName = "frontLight1",
@@ -2421,7 +2421,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 7, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 0.2, g = 1, b = 0.2, a = 0.2, modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legadveconv"] = {
+	legadveconv = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "lightFlare1",
@@ -2448,7 +2448,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 42, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0.9, g = 0.9, b = 0.45, a = 0.3, modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["leganavaleconv"] = {
+	leganavaleconv = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "toprightLight",
@@ -2475,7 +2475,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 42, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0.9, g = 0.9, b = 0.45, a = 0.3, modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legeconv"] = {
+	legeconv = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "flare",
@@ -2492,7 +2492,7 @@ local unitLights = {
 			lightConfig = { posx = 14, posy = 6, posz = 0, radius = 32, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0.9, g = 0.9, b = 0.45, a = 0.1, modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["leghp"] = {
+	leghp = {
 		buildlight1 = {
 			lightType = "cone",
 			pieceName = "buildlight1Point",
@@ -2535,7 +2535,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.3, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	["legfhp"] = {
+	legfhp = {
 		buildlight1 = {
 			lightType = "cone",
 			pieceName = "buildlight1Point",
@@ -2578,7 +2578,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.3, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	["legfeconv"] = {
+	legfeconv = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "light",
@@ -2636,7 +2636,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -1, posz = 0, radius = 2, dirx = 0.25, diry = 0.25, dirz = 0, theta = -1.3, color2r = -1, color2g = -1, color2b = -1, colortime = 60, r = 0.35, g = 1, b = 0.35, a = 0.8, modelfactor = 0.4, specular = 0, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["leguwestore"] = {
+	leguwestore = {
 		sidelight1 = {
 			lightType = "point",
 			pieceName = "sidelight1",
@@ -2719,14 +2719,14 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 5, dirx = 0.5, diry = 0, dirz = 0, theta = -9, color2r = -1, color2g = -1, color2b = -1, colortime = 60, r = 0.9, g = 0.7, b = 0.45, a = 0.5, modelfactor = 0.4, specular = 0, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legscout"] = {
+	legscout = {
 		bodylight = {
 			lightType = "point",
 			pieceName = "bodylight",
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10, color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0, r = 0.2, g = 1, b = 0.2, a = 0.09, modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["leggat"] = {
+	leggat = {
 		gatbodylighta = {
 			lightType = "point",
 			pieceName = "body",
@@ -2738,7 +2738,7 @@ local unitLights = {
 			lightConfig = { posx = 4.5, posy = 4, posz = 20, radius = 24, color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0, r = 0.2, g = 1, b = 0.2, a = 0.09, modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legafcv"] = {
+	legafcv = {
 		buildlight1 = { --top spinning light
 			lightType = "cone",
 			pieceName = "conLight1",
@@ -2760,7 +2760,7 @@ local unitLights = {
 			lightConfig = { posx = 2, posy = 0, posz = 0, radius = 24, color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0, r = 0.2, g = 1, b = 0.2, a = 0.1, modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	["legvcarry"] = {
+	legvcarry = {
 		lightglowtarget = {
 			lightType = "point",
 			pieceName = "targetLightGlow",
@@ -2772,7 +2772,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 4, color2r = 0, color2g = 0, color2b = 0, colortime = 15, r = 0.2, g = 1, b = 0.2, a = 1, modelfactor = 0.1, specular = 0.5, scattering = 0.66, lensflare = 8, lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	["armack"] = {
+	armack = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight1emit",
@@ -2829,7 +2829,7 @@ local unitLights = {
 			lightConfig = { posx = 8.3, posy = 6, posz = 14.8, radius = 6, color2r = 0, color2g = 0, color2b = 0, colortime = 90, r = 1, g = 1, b = 1, a = 0.7, modelfactor = 0.3, specular = 0.4, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfark"] = {
+	armfark = {
 		armbuildlight = {
 			lightType = "point",
 			pieceName = "armhexl_emit",
@@ -2876,7 +2876,7 @@ local unitLights = {
 			lightConfig = { posx = -2.7, posy = 3.3, posz = 2.3, radius = 0.7, dirx = 0, diry = 0, dirz = 0.6666667, theta = -1.7, color2r = -1, color2g = -1, color2b = -1, colortime = 45, r = -1, g = 1, b = 0.2, a = 2.8, modelfactor = 0.4, specular = 0.2, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfido"] = {
+	armfido = {
 		-- eyesglow = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'torso',
@@ -2946,7 +2946,7 @@ local unitLights = {
 			lightConfig = { posx = 4.5, posy = 1.6, posz = -4.8, radius = 3.5, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1.1, g = 1, b = 0.33, a = 0.9, modelfactor = 0.15, specular = 0.4, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armham"] = {
+	armham = {
 		body = {
 			lightType = "point",
 			pieceName = "torso",
@@ -2958,7 +2958,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -5, posz = 5, radius = 8, color2r = 0.8, color2g = 0.9, color2b = 1, colortime = 0, r = 0.8, g = 0.9, b = 1, a = 0.6, modelfactor = 0.3, specular = 1, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armshltx"] = {
+	armshltx = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -3108,7 +3108,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armasy"] = {
+	armasy = {
 		buildlight1 = { -- this is the lightname
 			lightType = "point",
 			pieceName = "beam1",
@@ -3230,7 +3230,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 6.5, posz = 0, radius = 7, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.2, a = 0.6, modelfactor = 0.3, specular = 0.4, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coraap"] = {
+	coraap = {
 		buildlight1A = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -3332,7 +3332,7 @@ local unitLights = {
 			lightConfig = { posx = -53, posy = 25, posz = 7.5, radius = 20, olor2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.3, a = 0.7, modelfactor = 0.3, specular = 0.4, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coramsub"] = {
+	coramsub = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -3389,7 +3389,7 @@ local unitLights = {
 			lightConfig = { posx = 35.5, posy = 19.5, posz = -25, radius = 16, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.3, a = 0.7, modelfactor = 0.3, specular = 0.4, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legamsub"] = {
+	legamsub = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -3431,7 +3431,7 @@ local unitLights = {
 			lightConfig = { posx = 39.5, posy = 19.5, posz = -25, radius = 30, color2r = 1, color2g = 1, color2b = 0.3, colortime = 0, r = 1, g = 1, b = 0.3, a = 0.08, modelfactor = 0.4, specular = 0, scattering = 0.6, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coralab"] = {
+	coralab = {
 		buildflash = {
 			lightType = "point",
 			pieceName = "cagelight",
@@ -3503,7 +3503,7 @@ local unitLights = {
 			lightConfig = { posx = -49, posy = 28, posz = -29, radius = 9, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.3, a = 0.75, modelfactor = 0.6, specular = 0.3, scattering = 0.6, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corasy"] = {
+	corasy = {
 		buildflash1 = {
 			lightType = "point",
 			pieceName = "cagelight1",
@@ -3585,7 +3585,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.3, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corgant"] = {
+	corgant = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -3682,7 +3682,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = -1.5, r = -1, g = 1, b = 1, a = 0.7, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corsy"] = {
+	corsy = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -3724,7 +3724,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = -1.5, r = -1, g = 1, b = 1, a = 0.7, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armason"] = {
+	armason = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -3751,7 +3751,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 69, posz = 0, radius = 3.7, color2r = -2, color2g = -2, color2b = -2, colortime = 50, r = 0.6, g = 0.8, b = 1, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.5, lensflare = 20, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsub"] = {
+	armsub = {
 		headlighttorpedo = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "base", -- invalid ones will attach to the worldpos of the unit
@@ -3783,7 +3783,7 @@ local unitLights = {
 			lightConfig = { posx = -11.6, posy = 8.0, posz = 11.0, radius = 1.3, color2r = -2, color2g = -2, color2b = -2, colortime = 25, r = 0.6, g = 0.8, b = 1, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.5, lensflare = 20, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armroy"] = {
+	armroy = {
 		sidelightl = {
 			lightType = "beam",
 			pieceName = "turret",
@@ -3845,7 +3845,7 @@ local unitLights = {
 			lightConfig = { posx = 4, posy = 10, posz = -33.5, radius = 6, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.2, a = 0.5, modelfactor = 0.3, specular = 0.4, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armcs"] = {
+	armcs = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -3902,7 +3902,7 @@ local unitLights = {
 			lightConfig = { posx = 8, posy = 15, posz = -6.5, radius = 3.5, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1, g = 1, b = 1, a = 0.4, modelfactor = 0.4, specular = 0.5, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corpt"] = {
+	corpt = {
 		searchlightaa = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -3933,7 +3933,7 @@ local unitLights = {
 			lightConfig = { posx = 8.5, posy = 0, posz = 2, radius = 4, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.33, modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corcs"] = {
+	corcs = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -3979,7 +3979,7 @@ local unitLights = {
 			lightConfig = { posx = -1.7, posy = 10.5, posz = 8.8, radius = 3, color2r = -3, color2g = -3, color2b = -3, colortime = 45, r = 1, g = 1, b = 1, a = 1.2, modelfactor = 0.3, specular = 0.4, scattering = 0.3, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armcsa"] = {
+	armcsa = {
 		buildlight = {
 			lightType = "point",
 			pieceName = "emit",
@@ -4040,7 +4040,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -6, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0.6, g = 1, b = 0.6, a = 0.75, modelfactor = 0.4, specular = 0.5, scattering = 0.3, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corcsa"] = {
+	corcsa = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano",
@@ -4091,7 +4091,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armdronecarry"] = {
+	armdronecarry = {
 		tower = {
 			lightType = "point",
 			pieceName = "base",
@@ -4108,7 +4108,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 2, posz = 0, radius = 14, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.33, modelfactor = 0.4, specular = 0.4, scattering = 1, lensflare = 5, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armtrident"] = {
+	armtrident = {
 		tower = {
 			lightType = "point",
 			pieceName = "base",
@@ -4120,7 +4120,7 @@ local unitLights = {
 			lightConfig = { posx = 22.5, posy = 11, posz = 10.5, radius = 22, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 1, g = 1, b = 0.2, a = 0.08, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armdronecarryland"] = {
+	armdronecarryland = {
 		tower = {
 			lightType = "point",
 			pieceName = "base",
@@ -4137,7 +4137,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 2, posz = 0, radius = 14, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.33, modelfactor = 0.4, specular = 0.4, scattering = 1, lensflare = 5, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armcarry"] = {
+	armcarry = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nanoemit1",
@@ -4241,7 +4241,7 @@ local unitLights = {
 			lightConfig = { posx = 22, posy = 11, posz = -34, radius = 10, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 1, g = 1, b = 0.2, a = 0.055, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armantiship"] = {
+	armantiship = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "radar",
@@ -4300,14 +4300,14 @@ local unitLights = {
 			lightConfig = { posx = -8, posy = 5, posz = -11, radius = 8, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.2, a = 0.6, modelfactor = 0.3, specular = 0.4, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cordrone"] = {
+	cordrone = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 3.5, posz = 8, radius = 10, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 1, g = 0.2, b = 0.2, a = 0.09, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cordronecarry"] = {
+	cordronecarry = {
 		tower = {
 			lightType = "point",
 			pieceName = "base",
@@ -4319,7 +4319,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 2, posz = 0, radius = 4, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.33, modelfactor = 0.4, specular = 0.4, scattering = 1, lensflare = 5, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corsentinel"] = {
+	corsentinel = {
 		tower = {
 			lightType = "point",
 			pieceName = "base",
@@ -4331,7 +4331,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 2, posz = 0, radius = 4, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.33, modelfactor = 0.4, specular = 0.4, scattering = 1, lensflare = 5, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cordronecarryair"] = {
+	cordronecarryair = {
 		tower = {
 			lightType = "point",
 			pieceName = "base",
@@ -4343,7 +4343,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 2, posz = 0, radius = 4, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.33, modelfactor = 0.4, specular = 0.4, scattering = 1, lensflare = 5, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corcarry"] = {
+	corcarry = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -4375,7 +4375,7 @@ local unitLights = {
 			lightConfig = { posx = -13, posy = 47, posz = -5, radius = 25, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 1, g = 0.2, b = 0.2, a = 0.06, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corantiship"] = {
+	corantiship = {
 		eyesfronttop = {
 			lightType = "beam",
 			pieceName = "base",
@@ -4484,7 +4484,7 @@ local unitLights = {
 			lightConfig = { posx = 9, posy = 26, posz = -28, radius = 14, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.2, a = 0.6, modelfactor = 0.3, specular = 0.4, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corfship"] = {
+	corfship = {
 		flamelight = {
 			lightType = "point",
 			pieceName = "sleeve",
@@ -4631,7 +4631,7 @@ local unitLights = {
 			lightConfig = { posx = 3.5, posy = 7.0, posz = -0.7, radius = 2, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coracsub"] = {
+	coracsub = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "flare",
@@ -4680,7 +4680,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armacsub"] = {
+	armacsub = {
 		buildflash = {
 			lightType = "point",
 			pieceName = "base",
@@ -4716,7 +4716,7 @@ local unitLights = {
 			lightConfig = { posx = 5, posy = 15, posz = 30, radius = 7, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.3, g = 1, b = 0.2, a = 0.6, modelfactor = 0.3, specular = 0.4, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormls"] = {
+	cormls = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano",
@@ -4747,7 +4747,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corshark"] = {
+	corshark = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -4787,7 +4787,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cordesolator"] = {
+	cordesolator = {
 		nukelight = {
 			lightType = "cone",
 			pieceName = "firing1",
@@ -4817,7 +4817,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 9, posz = 58, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = -1.5, r = 1, g = 0.2, b = 0.2, a = 0.7, modelfactor = 0.3, specular = 0.1, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coronager"] = {
+	coronager = {
 		engine = {
 			lightType = "point",
 			pieceName = "base",
@@ -4829,7 +4829,7 @@ local unitLights = {
 			lightConfig = { posx = -2, posy = 10, posz = 8, radius = 15, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 1, g = 0.2, b = 0.2, a = 0.065, modelfactor = 0.3, specular = 0, scattering = 3.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corblackhy"] = {
+	corblackhy = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "tur1",
@@ -4983,7 +4983,7 @@ local unitLights = {
 			lightConfig = { posx = 25, posy = 27, posz = 36.8, radius = 75, colortime = -2, dirx = 1, diry = -0.3, dirz = 0, theta = 0.45, r = 1, g = 1, b = 0.89, a = 0.55, modelfactor = 0.1, specular = 0.3, scattering = 1.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corfblackhyt4"] = {
+	corfblackhyt4 = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -5050,7 +5050,7 @@ local unitLights = {
 			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 125, dirx = 0, diry = 0, dirz = -1, theta = 0.8, r = 1, g = 0.7, b = 0.4, a = 0.3, modelfactor = 0.4, specular = 1, scattering = 0.3, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormship"] = {
+	cormship = {
 		-- eyes1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -5115,7 +5115,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 160, colortime = -1.5, dirx = 0, diry = 0.3, dirz = 1, theta = 0.16, r = 1, g = 1, b = 1, a = 0.32, modelfactor = 0, specular = 1, scattering = 2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corcrus"] = {
+	corcrus = {
 		headlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "sleeve", -- invalid ones will attach to the worldpos of the unit
@@ -5201,7 +5201,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corbats"] = {
+	corbats = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "turretb",
@@ -5311,7 +5311,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corssub"] = {
+	corssub = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -5333,7 +5333,7 @@ local unitLights = {
 			lightConfig = { posx = -17.9, posy = 8.2, posz = 6.2, radius = 1.8, color2r = -2, color2g = -2, color2b = -2, colortime = 25, r = 0.6, g = 0.8, b = 1, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.5, lensflare = 20, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corarch"] = {
+	corarch = {
 		searchlight1 = {
 			lightType = "cone",
 			pieceName = "sleeve",
@@ -5360,7 +5360,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 4.5, posz = 1.5, radius = 4, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1, g = 0.2, b = 0.2, a = 0.4, modelfactor = 0.3, specular = 0.4, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armmship"] = {
+	armmship = {
 		frontlight = {
 			lightType = "beam",
 			pieceName = "base",
@@ -5446,7 +5446,7 @@ local unitLights = {
 			lightConfig = { posx = -13.6, posy = -3, posz = 10.8, radius = 1.4, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 2.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsjam"] = {
+	armsjam = {
 		mid1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -5477,7 +5477,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armsubk"] = {
+	armsubk = {
 		headlighttorpedo = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "base", -- invalid ones will attach to the worldpos of the unit
@@ -5514,7 +5514,7 @@ local unitLights = {
 			lightConfig = { posx = -11.1, posy = 6.8, posz = 19.2, radius = 1.2, color2r = -2, color2g = -2, color2b = -2, colortime = 25, r = 0.6, g = 0.8, b = 1, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.5, lensflare = 20, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armseadragon"] = {
+	armseadragon = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -5538,7 +5538,7 @@ local unitLights = {
 		-- },
 	},
 
-	["armexcalibur"] = {
+	armexcalibur = {
 		antenna = {
 			lightType = "point",
 			pieceName = "antenna",
@@ -5566,7 +5566,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 10, posz = -33, radius = 20, color2r = 1, color2g = 0.9, color2b = 0.2, colortime = 0, r = 0.6, g = 0.45, b = 0.1, a = 0.115, modelfactor = 0.3, specular = 0, scattering = 2.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armbats"] = {
+	armbats = {
 		top = {
 			lightType = "point",
 			pieceName = "base",
@@ -5618,7 +5618,7 @@ local unitLights = {
 			lightConfig = { posx = 21, posy = 7.8, posz = -3.9, radius = 3.5, pos2x = 21, pos2y = 7.8, pos2z = 2.2, color2r = 0, color2g = 0, color2b = 0, colortime = -1.5, r = -1, g = 1, b = 1, a = 3, modelfactor = 0.4, specular = 0.3, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armepoch"] = {
+	armepoch = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "misbox2",
@@ -5808,7 +5808,7 @@ local unitLights = {
 			lightConfig = { posx = -28.7, posy = 8, posz = 13.3, radius = 1.5, color2r = -8, color2g = -8, color2b = -8, colortime = 40, r = -1, g = 0.8, b = 1, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.5, lensflare = 20, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfepocht4"] = {
+	armfepocht4 = {
 		turret1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -5895,7 +5895,7 @@ local unitLights = {
 			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 125, dirx = 0, diry = 0, dirz = -1, theta = 0.8, r = 1, g = 0.7, b = 0.4, a = 0.3, modelfactor = 0.4, specular = 1, scattering = 0.3, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armcrus"] = {
+	armcrus = {
 		teamtopglow = {
 			lightType = "beam",
 			pieceName = "turret",
@@ -5947,7 +5947,7 @@ local unitLights = {
 			lightConfig = { posx = -6, posy = 5.2, posz = -7, radius = 200, color2r = 0.35, color2g = 0.37, color2b = 0.45, colortime = 120, dirx = 0, diry = -0.7, dirz = 0.6, theta = 0.55, r = 0.69, g = 0.75, b = 0.9, a = 0.1, modelfactor = 0.5, specular = 0.3, scattering = 14.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armserp"] = {
+	armserp = {
 		headlighttorpedo1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "base", -- invalid ones will attach to the worldpos of the unit
@@ -5973,7 +5973,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armaas"] = {
+	armaas = {
 		eyes = {
 			lightType = "beam",
 			pieceName = "base",
@@ -6057,7 +6057,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmls"] = {
+	armmls = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nanoemit",
@@ -6107,7 +6107,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armrecl"] = {
+	armrecl = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "flare",
@@ -6134,7 +6134,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 6.5, posz = -5, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.3, g = 0.9, b = 0.1, a = 1.2, modelfactor = 0.3, specular = 0.4, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corplat"] = {
+	corplat = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -6196,7 +6196,7 @@ local unitLights = {
 			lightConfig = { posx = -37, posy = 19, posz = 7.5, radius = 13, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.3, a = 0.7, modelfactor = 0.3, specular = 0.4, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coravp"] = {
+	coravp = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -6288,7 +6288,7 @@ local unitLights = {
 			lightConfig = { posx = 27, posy = 7, posz = -62, radius = 11, color2r = 0, color2g = 0, color2b = -1, colortime = -1.2, r = 1.2, g = 1, b = 0.3, a = 0.75, modelfactor = 0.3, specular = 0.4, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armdecade"] = {
+	armdecade = {
 		frontlight = {
 			lightType = "beam",
 			pieceName = "base",
@@ -6365,7 +6365,7 @@ local unitLights = {
 		},
 	},
 
-	["coresupp"] = {
+	coresupp = {
 		-- front = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -6482,7 +6482,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armlship"] = {
+	armlship = {
 		back = {
 			lightType = "point",
 			pieceName = "base",
@@ -6548,7 +6548,7 @@ local unitLights = {
 			lightConfig = { posx = 3, posy = 3, posz = 4.3, radius = 0.9, pos2x = 3, pos2y = 3, pos2z = 2.7, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = 45, r = 1, g = 0.7, b = 0.85, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["correcl"] = {
+	correcl = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -6697,14 +6697,14 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corsd"] = {
+	corsd = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 17, posz = 0, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1, g = 0.2, b = 0.2, a = 0.9, modelfactor = 0.4, specular = 0, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corscreamer"] = {
+	corscreamer = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "turret",
@@ -6759,7 +6759,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corsub"] = {
+	corsub = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -6794,7 +6794,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corpship"] = {
+	corpship = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "turret",
@@ -6821,7 +6821,7 @@ local unitLights = {
 			lightConfig = { posx = 2.5, posy = 32, posz = -29.5, radius = 2, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1, g = 0.2, b = 0.2, a = 0.7, modelfactor = 0.4, specular = 0.2, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corsjam"] = {
+	corsjam = {
 		-- eyes1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -6871,7 +6871,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corroy"] = {
+	corroy = {
 		eyeshighfront = {
 			lightType = "beam",
 			pieceName = "turret",
@@ -6958,7 +6958,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armpt"] = {
+	armpt = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -6985,7 +6985,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 2, posz = 0, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.33, modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armpship"] = {
+	armpship = {
 		-- front1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -7038,7 +7038,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 2, posz = 0, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.33, modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsy"] = {
+	armsy = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -7115,7 +7115,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 3, posz = 0, radius = 3, color2r = 0, color2g = 0, color2b = 0, colortime = 30, r = 1.2, g = 1, b = 0.2, a = 0.65, modelfactor = 0.3, specular = 0.4, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armavp"] = {
+	armavp = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -7346,7 +7346,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armalab"] = {
+	armalab = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -7543,7 +7543,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armamsub"] = {
+	armamsub = {
 		buildlight1 = { -- this is the lightname
 			lightType = "point",
 			pieceName = "beam1",
@@ -7610,7 +7610,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.3, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armplat"] = {
+	armplat = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -7642,7 +7642,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.3, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armaap"] = {
+	armaap = {
 		buildlightflare1 = {
 			lightType = "point",
 			pieceName = "cagelight_emit1",
@@ -7861,7 +7861,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corlab"] = {
+	corlab = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -7919,7 +7919,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["leglab"] = {
+	leglab = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "flare1",
@@ -7956,7 +7956,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 24, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 1, g = 0.5, b = 0.1, a = 0.8, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legsy"] = {
+	legsy = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "beam1",
@@ -7988,7 +7988,7 @@ local unitLights = {
 			lightConfig = { posx = -1, posy = 0, posz = 0, radius = 32, dirx = -1, diry = 0, dirz = 0, theta = 0.99000001, r = 1.29999995, g = 0.89999998, b = 0.1, a = 2, modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legadvshipyard"] = {
+	legadvshipyard = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "flare1",
@@ -8070,7 +8070,7 @@ local unitLights = {
 			lightConfig = { posx = -40, posy = 12, posz = 240, radius = 1.5, color2r = -10, color2g = -10, color2b = -10, colortime = 45, r = -1, g = 0.1, b = 0.1, a = 2.5, modelfactor = 0.8, specular = 0.2, scattering = 0.5, lensflare = 1.5, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corvp"] = {
+	corvp = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -8155,7 +8155,7 @@ local unitLights = {
 			lightConfig = { posx = 27.5, posy = 29, posz = 42, radius = 9, color2r = 0, color2g = 0, color2b = -1, colortime = -1, r = 1.2, g = 1, b = 0.3, a = 0.75, modelfactor = 0.3, specular = 0.4, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corhp"] = {
+	corhp = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -8217,7 +8217,7 @@ local unitLights = {
 			lightConfig = { posx = 38, posy = 10, posz = -37, radius = 7, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1.2, g = 1, b = 0.3, a = 0.7, modelfactor = 0.3, specular = 0.4, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corfhp"] = {
+	corfhp = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -8279,7 +8279,7 @@ local unitLights = {
 			lightConfig = { posx = 38, posy = 10, posz = -37, radius = 7, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1.2, g = 1, b = 0.3, a = 0.7, modelfactor = 0.3, specular = 0.4, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corap"] = {
+	corap = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "blink",
@@ -8326,7 +8326,7 @@ local unitLights = {
 			lightConfig = { posx = 46, posy = 12, posz = -31, radius = 9, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.3, a = 0.7, modelfactor = 0.3, specular = 0.4, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corapt3"] = {
+	corapt3 = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -8353,7 +8353,7 @@ local unitLights = {
 			lightConfig = { posx = 90, posy = 20, posz = -62, radius = 42, color2r = 1, color2g = 1, color2b = 0.3, colortime = 0, r = 1, g = 1, b = 0.3, a = 0.07, modelfactor = 0.3, specular = 0.4, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legap"] = {
+	legap = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "blink",
@@ -8385,7 +8385,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 32, dirx = 1, diry = 0, dirz = 0, theta = 0.99000001, r = 1.29999995, g = 0.89999998, b = 0.1, a = 2, modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legaap"] = {
+	legaap = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "blink",
@@ -8422,7 +8422,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 32, dirx = 1, diry = 0, dirz = 0, theta = 0.99000001, r = 1.29999995, g = 0.89999998, b = 0.1, a = 2, modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legalab"] = {
+	legalab = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "flare1",
@@ -8454,7 +8454,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 32, dirx = -1, diry = 0, dirz = 0, theta = 0.99000001, r = 1.29999995, g = 0.89999998, b = 0.1, a = 2, modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legafus"] = {
+	legafus = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -8479,7 +8479,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["legafust3"] = {
+	legafust3 = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -8500,7 +8500,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["legapt3"] = {
+	legapt3 = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -8527,7 +8527,7 @@ local unitLights = {
 			lightConfig = { posx = 90, posy = 20, posz = -62, radius = 42, color2r = 1, color2g = 1, color2b = 0.3, colortime = 0, r = 1, g = 1, b = 0.3, a = 0.07, modelfactor = 0.3, specular = 0.4, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armhp"] = {
+	armhp = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -8579,7 +8579,7 @@ local unitLights = {
 			lightConfig = { posx = 40, posy = 4, posz = -36, radius = 15.6, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.2, a = 0.8, modelfactor = 0.3, specular = 0.4, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfhp"] = {
+	armfhp = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -8631,7 +8631,7 @@ local unitLights = {
 			lightConfig = { posx = 40, posy = 4, posz = -36, radius = 15.6, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.2, a = 0.8, modelfactor = 0.3, specular = 0.4, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armvp"] = {
+	armvp = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -8683,7 +8683,7 @@ local unitLights = {
 			lightConfig = { posx = 39, posy = 11, posz = 1, radius = 9.5, color2r = 0, color2g = 0, color2b = 0, colortime = -1.5, r = 1, g = 1, b = 1, a = 0.75, modelfactor = 0.3, specular = 0.4, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armap"] = {
+	armap = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -8759,7 +8759,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armlab"] = {
+	armlab = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -8844,7 +8844,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armck"] = {
+	armck = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -8872,7 +8872,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 12, posz = -7, radius = 12, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1.2, g = 1, b = 0.4, a = 0.7, modelfactor = 0.3, specular = 0.4, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armart"] = {
+	armart = {
 		light = {
 			lightType = "point",
 			pieceName = "turret",
@@ -8909,7 +8909,7 @@ local unitLights = {
 			lightConfig = { posx = 1.5, posy = 6.6, posz = -12.8, radius = 6, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = -1, g = 1, b = 1, a = 0.8, modelfactor = 0.4, specular = 0.2, scattering = 0.97, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armflash"] = {
+	armflash = {
 		back1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -8979,7 +8979,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corfav"] = {
+	corfav = {
 		back = {
 			lightType = "point",
 			pieceName = "base",
@@ -9006,7 +9006,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 8, posz = 3, radius = 70, dirx = 0, diry = -0.05, dirz = 1, theta = 0.21, r = 1, g = 1, b = 0.89, a = 0.44, modelfactor = -0.5, specular = -0.3, scattering = 1.8, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfav"] = {
+	armfav = {
 		light = {
 			lightType = "point",
 			pieceName = "base",
@@ -9033,7 +9033,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 12, posz = -11.2, radius = 2.1, color2r = 0, color2g = 0, color2b = 0, colortime = 45, r = -1, g = 1, b = 1, a = 1.5, modelfactor = 0.6, specular = 0.3, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armjanus"] = {
+	armjanus = {
 		turretlamp = {
 			lightType = "point",
 			pieceName = "turret",
@@ -9093,7 +9093,7 @@ local unitLights = {
 			lightConfig = { posx = -0.3, posy = 0, posz = 5.7, radius = 4, color2r = 0.2, color2g = 0.01, color2b = 0.01, colortime = 120, r = 1, g = 0, b = 0, a = 1, modelfactor = 0.2, specular = 0.1, scattering = 0.9, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armpincer"] = {
+	armpincer = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "base",
@@ -9130,7 +9130,7 @@ local unitLights = {
 			lightConfig = { posx = 8.5, posy = 14.5, posz = 6.6, radius = 3, color2r = 0.6, color2g = 0.6, color2b = 0.6, colortime = 60, r = -1, g = 1, b = 1, a = 1.1, modelfactor = 0.5, specular = 0.2, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsaber"] = {
+	armsaber = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -9152,7 +9152,7 @@ local unitLights = {
 			lightConfig = { posx = -3, posy = 4.5, posz = -5, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = -1.1, r = 1.1, g = 1, b = 0.2, a = 0.5, modelfactor = 0.4, specular = 0.5, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsb"] = {
+	armsb = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -9194,7 +9194,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 28, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 0.6, g = 1, b = 0.6, a = 0.35, modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsam"] = {
+	armsam = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -9303,7 +9303,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armstump"] = {
+	armstump = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "base",
@@ -9330,7 +9330,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 2.5, posz = -6, radius = 8, color2r = 0, color2g = 0, color2b = 0, colortime = -1.0, r = 1.15, g = 0.9, b = 0.4, a = 0.85, modelfactor = 0.25, specular = 0.4, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corcrash"] = {
+	corcrash = {
 		eyes = {
 			lightType = "point",
 			pieceName = "head",
@@ -9357,7 +9357,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 10, posz = 0, radius = 300, colortime = -1.5, dirx = 0, diry = 0.7, dirz = 1, theta = 0.12, r = 1, g = 1, b = 1, a = 0.32, modelfactor = 0, specular = 1, scattering = 2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corfast"] = {
+	corfast = {
 		eyes = {
 			lightType = "point",
 			pieceName = "head",
@@ -9379,7 +9379,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -2, posz = 4.5, radius = 6, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1, g = 1, b = 0.4, a = 0.9, modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cornecro"] = {
+	cornecro = {
 		corbuildlight = {
 			lightType = "point",
 			pieceName = "corhexl_emit",
@@ -9406,7 +9406,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 2.5, posz = -1.5, radius = 7, color2r = -11, color2g = -11, color2b = -11, colortime = 45, r = 1, g = 0.8, b = 0.2, a = 0.9, modelfactor = 0.4, specular = 0.4, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armrectr"] = {
+	armrectr = {
 		armbuildlight = {
 			lightType = "point",
 			pieceName = "armhexl_emit",
@@ -9446,7 +9446,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmlv"] = {
+	armmlv = {
 		backpack = {
 			lightType = "point",
 			pieceName = "base",
@@ -9488,7 +9488,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 20, posz = 9, radius = 26, color2r = 0, color2g = 0, color2b = 0, colortime = 24, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.9, specular = 0.35, scattering = 0.7, lensflare = 0, lifetime = 12, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armbanth"] = {
+	armbanth = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -9629,7 +9629,7 @@ local unitLights = {
 			lightConfig = { posx = 7, posy = -17, posz = 0.5, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1, g = 1, b = 1, a = 0.6, modelfactor = 0.2, specular = 0.2, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corkarg"] = {
+	corkarg = {
 		eyesbeam = {
 			lightType = "beam",
 			pieceName = "turret",
@@ -9695,7 +9695,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corjugg"] = {
+	corjugg = {
 		antenna1 = {
 			lightType = "point",
 			pieceName = "torso",
@@ -9810,7 +9810,7 @@ local unitLights = {
 			lightConfig = { posx = -2.2, posy = 2.2, posz = 0, radius = 2, dirx = 0, diry = 0, dirz = 0.6666667, theta = -2.4, color2r = -1, color2g = -1, color2b = -1, colortime = 45, r = -1, g = 1, b = 1, a = 2, modelfactor = 0.6, specular = 0.1, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armvang"] = {
+	armvang = {
 		top = {
 			lightType = "point",
 			pieceName = "sleeve",
@@ -10067,7 +10067,7 @@ local unitLights = {
 	-- 						lifetime = 0, sustain = 0, selfshadowing = 0},
 	-- 	},
 	-- },
-	["corkorg"] = {
+	corkorg = {
 		-- searchlight = {
 		-- 	lightType = 'cone',
 		-- 	pieceName = 'head',
@@ -10131,7 +10131,7 @@ local unitLights = {
 			lightConfig = { posx = -2.5, posy = -16.2, posz = 11.5, radius = 4, dirx = 0, diry = -0.6666667, dirz = 0, theta = -2.5, color2r = -1, color2g = -1, color2b = -1, colortime = 45, r = -1, g = 1, b = 1, a = 2, modelfactor = 0.6, specular = 0.1, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armcom"] = {
+	armcom = {
 		headlightarmcom = {
 			lightType = "cone",
 			pieceName = "head",
@@ -10319,7 +10319,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 23, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armcomlvl3"] = {
+	armcomlvl3 = {
 		headlightarmcom = {
 			lightType = "cone",
 			pieceName = "head",
@@ -10443,7 +10443,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 23, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armcomboss"] = {
+	armcomboss = {
 		--headlightarmcom = {
 		--	lightType = 'cone',
 		--	pieceName = 'head',
@@ -10510,7 +10510,7 @@ local unitLights = {
 		},
 	},
 
-	["scavengerbossv4_normal"] = {
+	scavengerbossv4_normal = {
 		vortex1 = {
 			lightType = "point",
 			pieceName = "vortex3",
@@ -10573,7 +10573,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 10, radius = 300, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0.75, g = 0.1, b = 1, a = 0.8, modelfact3r = 0.1, specular = 1.6, scattering = 1.5, lensflare = 5, lifetime = 0, sustain = 1, selfshadowing = 0 },
 		},
 	},
-	["legcom"] = {
+	legcom = {
 		headlightcomteam = {
 			lightType = "cone",
 			pieceName = "head",
@@ -10625,7 +10625,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 24, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.66, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corcom"] = {
+	corcom = {
 		headlightcorcoml = {
 			lightType = "cone",
 			pieceName = "head",
@@ -10822,7 +10822,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 2, radius = 16, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.75, modelfactor = 0.5, specular = 0.2, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corcomboss"] = {
+	corcomboss = {
 		--headlightcorcom = {
 		--	lightType = 'cone',
 		--	pieceName = 'head',
@@ -10873,7 +10873,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 60, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armbull"] = {
+	armbull = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -10940,7 +10940,7 @@ local unitLights = {
 			lightConfig = { posx = -20.5, posy = 6.8, posz = -14.6, radius = 1.5, color2r = 0, color2g = 0, color2b = 0, colortime = -2, r = -1, g = 1, b = 1, a = 1.5, modelfactor = 0.4, specular = 0.2, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armcroc"] = {
+	armcroc = {
 		frontlighteye = {
 			lightType = "beam",
 			pieceName = "base",
@@ -10966,7 +10966,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armconsul"] = {
+	armconsul = {
 		front = {
 			lightType = "point",
 			pieceName = "base",
@@ -11023,7 +11023,7 @@ local unitLights = {
 			lightConfig = { posx = -3.7, posy = 2.6, posz = 10.8, radius = 4, color2r = -4, color2g = -4, color2b = -4, colortime = 45, r = 1.1, g = 0.8, b = 0.2, a = 0.6, modelfactor = 0.4, specular = 0.5, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corcan"] = {
+	corcan = {
 		footfront1 = {
 			lightType = "point",
 			pieceName = "lfoot",
@@ -11070,14 +11070,14 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 7, posz = -11.5, radius = 4, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1, g = 1, b = 0.4, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corspy"] = {
+	corspy = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "torso",
 			lightConfig = { posx = 0, posy = 19, posz = 8, radius = 4, color2r = 0, color2g = 0, color2b = 0, colortime = -1.5, r = 1, g = 0.2, b = 0.2, a = 0.9, modelfactor = 0.4, specular = 0.2, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormando"] = {
+	cormando = {
 		-- eyes1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'head',
@@ -11127,7 +11127,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 2, posz = 7, radius = 3, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.4, a = 0.7, modelfactor = 0.4, specular = 0.5, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormandot4"] = {
+	cormandot4 = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "head",
@@ -11149,7 +11149,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15, color2r = 1, color2g = 1, color2b = 0.3, colortime = 60, r = 0.7, g = 0.7, b = 1, a = 0.7, modelfactor = 0.4, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corphantom"] = {
+	corphantom = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "body",
@@ -11157,7 +11157,7 @@ local unitLights = {
 		},
 	},
 
-	["cortoast"] = {
+	cortoast = {
 		doorlight1a = {
 			lightType = "beam",
 			pieceName = "door1",
@@ -11180,7 +11180,7 @@ local unitLights = {
 		},
 	},
 
-	["corvipe"] = {
+	corvipe = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "turret",
@@ -11218,7 +11218,7 @@ local unitLights = {
 		},
 	},
 
-	["corparrow"] = {
+	corparrow = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -11291,7 +11291,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cormart"] = {
+	cormart = {
 		rackbl1 = {
 			lightType = "point",
 			pieceName = "trackbl",
@@ -11421,7 +11421,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 12, posz = 20, radius = 40, colortime = -2, dirx = 0, diry = -0.95, dirz = 0.8, theta = 0.9, r = 1, g = 1, b = 0.89, a = 0.25, modelfactor = -0.5, specular = -0.3, scattering = 1.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corban"] = {
+	corban = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -11517,7 +11517,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -1, posz = 0, radius = 180, colortime = -1.5, dirx = 0, diry = 0.1, dirz = 1, theta = 0.12, r = 1, g = 1, b = 1, a = 0.32, modelfactor = 0, specular = 1, scattering = 2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["correap"] = {
+	correap = {
 		-- headlight = { -- this is the lightname
 		-- 	lightType = 'cone',
 		-- 	pieceName = 'base', -- invalid ones will attach to the worldpos of the unit
@@ -11630,7 +11630,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corhrk"] = {
+	corhrk = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "torso",
@@ -11667,7 +11667,7 @@ local unitLights = {
 			lightConfig = { posx = 2.6, posy = 0.5, posz = 10.5, radius = 1.3, color2r = -4, color2g = -4, color2b = -4, colortime = 25, r = 1, g = 0, b = 0, a = 2.5, modelfactor = 0.5, specular = 0.3, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corak"] = {
+	corak = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "torso",
@@ -11730,7 +11730,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corgator"] = {
+	corgator = {
 		headlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "justattachtobase", -- invalid ones will attach to the worldpos of the unit
@@ -11757,7 +11757,7 @@ local unitLights = {
 			lightConfig = { posx = 7.5, posy = 5.5, posz = -5, radius = 5, color2r = 0.15, color2g = 0.15, color2b = 0.15, colortime = 30, r = 1, g = 0.15, b = 0.15, a = 0.8, modelfactor = 0.5, specular = 0, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corca"] = {
+	corca = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "nano",
@@ -11808,7 +11808,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -3, radius = 14, color2r = 0.5, color2g = 0.7, color2b = 0.9, r = 0.8, g = 0.9, b = 1.1, a = 0.45, colortime = 14, modelfactor = 0.4, specular = 0.1, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corfink"] = {
+	corfink = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -11830,7 +11830,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -2, radius = 12, color2r = 0.4, color2g = 0.3, color2b = 0.02, colortime = 14, r = 1.3, g = 0.75, b = 0.2, a = 0.8, modelfactor = 0.6, specular = 0.2, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corsb"] = {
+	corsb = {
 		thrustera = {
 			lightType = "point",
 			pieceName = "base",
@@ -11857,7 +11857,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 7, posz = 27, radius = 17, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 1, g = 0.2, b = 0.2, a = 0.065, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cords"] = {
+	cords = {
 		antenna = {
 			lightType = "point",
 			pieceName = "sleeve",
@@ -11969,7 +11969,7 @@ local unitLights = {
 			lightConfig = { posx = 2.9, posy = -2.5, posz = 7.2, radius = 10, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 1, g = 0.2, b = 0.2, a = 0.09, modelfactor = 0.4, specular = 0, scattering = 1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corsfig"] = {
+	corsfig = {
 		thruster = {
 			lightType = "point",
 			pieceName = "base",
@@ -11991,7 +11991,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 8.5, posz = -4, radius = 7, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1, g = 0.2, b = 0.2, a = 0.65, modelfactor = 0.4, specular = 0, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corseap"] = {
+	corseap = {
 		thruster = {
 			lightType = "point",
 			pieceName = "base",
@@ -12013,7 +12013,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 13, posz = 9, radius = 4, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1, g = 0.2, b = 0.2, a = 0.65, modelfactor = 0.4, specular = 0.4, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corhunt"] = {
+	corhunt = {
 		thruster = {
 			lightType = "point",
 			pieceName = "base",
@@ -12030,7 +12030,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 6.5, posz = 21, radius = 4, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1, g = 0.2, b = 0.2, a = 0.65, modelfactor = 0.4, specular = 0.4, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corcut"] = {
+	corcut = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -12089,7 +12089,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corhurc"] = {
+	corhurc = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -12131,7 +12131,7 @@ local unitLights = {
 			lightConfig = { posx = -3.2, posy = 12.8, posz = 31.5, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1, g = 0.2, b = 0.2, a = 0.75, modelfactor = 0.4, specular = 0.4, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corshad"] = {
+	corshad = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -12203,7 +12203,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cortitan"] = {
+	cortitan = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -12259,7 +12259,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 28, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 0.45, g = 0.7, b = 1, a = 0.3, modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coraca"] = {
+	coraca = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "nano",
@@ -12296,7 +12296,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 25, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 0.45, g = 0.7, b = 1, a = 0.3, modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfig"] = {
+	armfig = {
 		front1 = {
 			lightType = "point",
 			pieceName = "turret",
@@ -12333,7 +12333,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 14, color2r = 0.7, color2g = 0.5, color2b = 0.25, colortime = 10, r = 1.1, g = 0.8, b = 0.5, a = 0.8, modelfactor = 0.4, specular = 0, scattering = 1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armca"] = {
+	armca = {
 		--nanolightarmca = {
 		--	lightType = 'cone',
 		--	pieceName = 'nano',
@@ -12416,7 +12416,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 1, posz = -3, radius = 16, color2r = 0.7, color2g = 0.5, color2b = 0.25, colortime = 28, r = 1.1, g = 0.8, b = 0.5, a = 0.8, modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armpb"] = {
+	armpb = {
 		turrettop = {
 			lightType = "point",
 			pieceName = "turret",
@@ -12496,7 +12496,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armtide"] = {
+	armtide = {
 		enabled_mainglowbeam = {
 			lightType = "beam",
 			pieceName = "base",
@@ -12530,7 +12530,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armthund"] = {
+	armthund = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -12681,7 +12681,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armstil"] = {
+	armstil = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -12738,7 +12738,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 17, posz = -2, radius = 12, color2r = 0.15, color2g = 0.15, color2b = 0.35, colortime = 25, r = 0.80, g = 0.85, b = 1.3, a = 0.8, modelfactor = 0.2, specular = 0.3, scattering = 0.7, lensflare = 15, lifetime = 0, selfshadowing = 0 },
 		},
 	},
-	["armhawk"] = {
+	armhawk = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -12765,7 +12765,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 25, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 0.45, g = 0.7, b = 1, a = 0.33, modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armpeep"] = {
+	armpeep = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -12797,7 +12797,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 5, posz = 5, radius = 12, color2r = 0, color2g = 1, color2b = 0, colortime = 30, r = 0, g = 2, b = 0, a = 0.33, modelfactor = 0.8, specular = 0.3, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armkam"] = {
+	armkam = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -12824,7 +12824,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 12, color2r = 0.7, color2g = 0.5, color2b = 0.25, colortime = 25, r = 1, g = 0.8, b = 0.5, a = 0.7, modelfactor = 0.4, specular = 0, scattering = 1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armlance"] = {
+	armlance = {
 		thrust = {
 			lightType = "point",
 			pieceName = "thrust1",
@@ -12841,7 +12841,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 6, posz = 0, radius = 4.7, color2r = -2, color2g = -2, color2b = -2, colortime = 25, r = 0.6, g = 0.8, b = 1, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armbrawl"] = {
+	armbrawl = {
 		frontcockpit = {
 			lightType = "point",
 			pieceName = "base",
@@ -12873,7 +12873,7 @@ local unitLights = {
 			lightConfig = { posx = 0.3, posy = 8.5, posz = 24.5, radius = 8, color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 45, r = 1, g = 1, b = 1, a = 0.9, modelfactor = 0.25, specular = 0.4, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armpnix"] = {
+	armpnix = {
 		front1 = {
 			lightType = "point",
 			pieceName = "turret",
@@ -12925,7 +12925,7 @@ local unitLights = {
 			lightConfig = { posx = 17, posy = 2, posz = -17.5, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.1, g = 1, b = 0.2, a = 0.55, modelfactor = 0.4, specular = 0.2, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armaca"] = {
+	armaca = {
 		buildlight = {
 			lightType = "point",
 			pieceName = "nanolight",
@@ -13013,7 +13013,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 0.45, g = 0.7, b = 1, a = 0.33, modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armgremlin"] = {
+	armgremlin = {
 		-- cloaklightred1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'flleg',
@@ -13084,7 +13084,7 @@ local unitLights = {
 			lightConfig = { posx = 8.8, posy = 7.6, posz = -8.8, radius = 4, color2r = 0, color2g = 0, color2b = 0, colortime = 30, r = 1, g = 1, b = 1, a = 0.7, modelfactor = 0.3, specular = 0.4, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armamd"] = {
+	armamd = {
 		orangelightamd = {
 			lightType = "point",
 			pieceName = "orangelight",
@@ -13155,7 +13155,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corfmd"] = {
+	corfmd = {
 		orangelightcenter = {
 			lightType = "point",
 			pieceName = "orangelight",
@@ -13229,7 +13229,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corvalk"] = {
+	corvalk = {
 		-- eyes1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -13360,7 +13360,7 @@ local unitLights = {
 			lightConfig = { posx = -2, posy = 0, posz = 4, radius = 50, dirx = 0, diry = 0, dirz = -1, theta = 0.6, color2r = 0.7, color2g = 0.66, color2b = 0.15, r = 1, g = 0.8, b = 0.33, a = 0.1, colortime = 63, modelfactor = -1.5, specular = -0.3, scattering = 1.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corhvytrans"] = {
+	corhvytrans = {
 		-- eyes1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -13470,7 +13470,7 @@ local unitLights = {
 			lightConfig = { posx = -2, posy = 0, posz = 4, radius = 50, dirx = 0, diry = 0, dirz = -1, theta = 0.6, color2r = 0.7, color2g = 0.66, color2b = 0.15, r = 1, g = 0.8, b = 0.33, a = 0.1, colortime = 63, modelfactor = -1.5, specular = -0.3, scattering = 1.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armemp"] = {
+	armemp = {
 		emplight1 = {
 			lightType = "point",
 			pieceName = "orangelight",
@@ -13512,7 +13512,7 @@ local unitLights = {
 			lightConfig = { posx = 23, posy = 20.5, posz = 0, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = -1.1, r = 1.2, g = 1, b = 0.2, a = 0.7, modelfactor = 0.4, specular = 0.4, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armgplat"] = {
+	armgplat = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -13544,7 +13544,7 @@ local unitLights = {
 			lightConfig = { posx = 2, posy = -8, posz = 2.5, radius = 16, color2r = 1, color2g = 1, color2b = 0, colortime = 0, r = 1, g = 1, b = 0.2, a = 0.06, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armatl"] = {
+	armatl = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -13566,7 +13566,7 @@ local unitLights = {
 			lightConfig = { posx = -14.8, posy = 24, posz = -15.5, radius = 12, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1, g = 1, b = 1, a = 0.7, modelfactor = 0.4, specular = 0.5, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coratl"] = {
+	coratl = {
 		torpedoflash1 = {
 			lightType = "point",
 			pieceName = "turret",
@@ -13578,7 +13578,7 @@ local unitLights = {
 			lightConfig = { posx = 16.7, posy = -2.2, posz = 9, radius = 2.0, color2r = -2, color2g = -2, color2b = -2, colortime = 25, r = 0.6, g = 0.8, b = 1, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.5, lensflare = 20, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armatlas"] = {
+	armatlas = {
 		jetm = {
 			lightType = "point",
 			pieceName = "base",
@@ -13635,7 +13635,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -3, posz = -8, radius = 12, color2r = -3, color2g = -3, color2b = -3, colortime = 40, r = -1, g = 1, b = 0, a = 1.1, modelfactor = 0.4, specular = 0.1, scattering = 2.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armhvytrans"] = {
+	armhvytrans = {
 		jetbltop = {
 			lightType = "point",
 			pieceName = "jetbl",
@@ -13707,7 +13707,7 @@ local unitLights = {
 			lightConfig = { posx = -7, posy = 6, posz = -10, radius = 12, color2r = -3, color2g = -3, color2b = -3, colortime = 40, r = -1, g = 1, b = 0, a = 1.1, modelfactor = 0.4, specular = 0.1, scattering = 2.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armeyes"] = {
+	armeyes = {
 		light = {
 			lightType = "point",
 			pieceName = "sphere",
@@ -13719,7 +13719,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 22, posz = 0, radius = 110, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0.8, g = 0.8, b = 0.8, a = 0.14, modelfactor = 0.1, specular = -0.1, scattering = 0.7, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 2 },
 		},
 	},
-	["coreyes"] = {
+	coreyes = {
 		eyeglow = {
 			lightType = "point",
 			pieceName = "sphere",
@@ -13746,7 +13746,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 13, posz = -10, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1, g = 0.2, b = 0.2, a = 0.5, modelfactor = 0.4, specular = 0.3, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armanni"] = {
+	armanni = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "light",
@@ -13848,7 +13848,7 @@ local unitLights = {
 			lightConfig = { posx = 2, posy = 12, posz = -2, radius = 7, color2r = 0, color2g = 0, color2b = 0, colortime = -2.0, r = 1, g = 1, b = 0.2, a = 0.7, modelfactor = 0.4, specular = 0.5, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armannit3"] = {
+	armannit3 = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "light",
@@ -13910,7 +13910,7 @@ local unitLights = {
 			lightConfig = { posx = -9.7, posy = 39.5, posz = -15.4, radius = 7.5, color2r = 1, color2g = 1, color2b = 0.2, colortime = 0, r = 1, g = 1, b = 0.2, a = 0.07, modelfactor = 0.4, specular = 0.5, scattering = 1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armblade"] = {
+	armblade = {
 		fan = {
 			lightType = "point",
 			pieceName = "base",
@@ -13946,7 +13946,7 @@ local unitLights = {
 			lightConfig = { posx = 0.3, posy = 3.5, posz = 20, radius = 80, dirx = -0.1, diry = -0.4, dirz = 1, theta = 0.28, r = 1, g = 1, b = 0.89, a = 0.34, modelfactor = -0.9, specular = -0.3, scattering = 1.5, lensflare = 0.6, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armdfly"] = {
+	armdfly = {
 		flashtop = {
 			lightType = "point",
 			pieceName = "barrel",
@@ -14047,7 +14047,7 @@ local unitLights = {
 			lightConfig = { posx = 17, posy = 5.5, posz = -20, radius = 10, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1, g = 1, b = 1, a = 0.33, modelfactor = 0.3, specular = 0.3, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corbw"] = {
+	corbw = {
 		emplight = {
 			lightType = "point",
 			pieceName = "base",
@@ -14074,7 +14074,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 3, posz = -4, radius = 6, color2r = 0, color2g = 0, color2b = 0, colortime = -1.5, r = 0.45, g = 0.7, b = 1, a = 1.1, modelfactor = 0.4, specular = 0.2, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corawac"] = {
+	corawac = {
 		dish = {
 			lightType = "point",
 			pieceName = "base",
@@ -14111,7 +14111,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 33, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 0.45, g = 0.7, b = 1, a = 0.3, modelfactor = 0.3, specular = 0.4, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armseap"] = {
+	armseap = {
 		thruster = {
 			lightType = "point",
 			pieceName = "base",
@@ -14123,7 +14123,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 17, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0.5, g = 1, b = 0.5, a = 0.75, modelfactor = 0.4, specular = 0.5, scattering = 0.3, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsfig"] = {
+	armsfig = {
 		front = {
 			lightType = "point",
 			pieceName = "base",
@@ -14168,7 +14168,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 17, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 0.5, g = 1, b = 0.5, a = 0.75, modelfactor = 0.4, specular = 0.4, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsehak"] = {
+	armsehak = {
 		greenblob1 = {
 			lightType = "point",
 			pieceName = "dish",
@@ -14256,7 +14256,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 4, posz = 0, radius = 7, color2r = 0, color2g = 0, color2b = 0, colortime = -1.1, r = 1.1, g = 1, b = 0.2, a = 0.5, modelfactor = 0.4, specular = 0.5, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armminebomber"] = {
+	armminebomber = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -14268,7 +14268,7 @@ local unitLights = {
 			lightConfig = { posx = 15, posy = 0, posz = -62.5, radius = 22, color2r = 1, color2g = 0.6, color2b = 0.2, colortime = 7, r = 0.88, g = 0.5, b = 0.14, a = 0.1, modelfactor = 0.4, specular = 0, scattering = 1.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armliche"] = {
+	armliche = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -14325,7 +14325,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0.3, posz = 10.6, radius = 4.5, color2r = -1, color2g = -1, color2b = -1, colortime = 22, r = 1, g = 0.1, b = 0.1, a = 2.5, modelfactor = 0.3, specular = 0.2, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corape"] = {
+	corape = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "rjet",
@@ -14347,7 +14347,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 26, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 0.45, g = 0.7, b = 1, a = 0.25, modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armawac"] = {
+	armawac = {
 		greenblob1 = {
 			lightType = "point",
 			pieceName = "dish",
@@ -14389,14 +14389,14 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -4, radius = 22, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 0.45, g = 0.7, b = 1, a = 0.5, modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormine4"] = {
+	cormine4 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 3, posz = 0, radius = 4.5, color2r = -10, color2g = -10, color2b = -10, colortime = 25, r = 1.2, g = 1, b = 0.2, a = 1.5, modelfactor = 0.4, specular = 0.3, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corfmine3"] = {
+	corfmine3 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -14408,7 +14408,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 8, posz = 0, radius = 6.5, color2r = -1, color2g = -1, color2b = -1, colortime = -1, r = 1.2, g = 1, b = 0.2, a = 1.5, modelfactor = 0.4, specular = 0.3, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormine3"] = {
+	cormine3 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -14420,49 +14420,49 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 5, posz = 0, radius = 6.5, color2r = -1, color2g = -1, color2b = -1, colortime = -1, r = 1.2, g = 1, b = 0.2, a = 1.2, modelfactor = 0.4, specular = 0.3, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormine2"] = {
+	cormine2 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 4, posz = 0, radius = 4.5, color2r = -10, color2g = -10, color2b = -10, colortime = 25, r = 1.2, g = 1, b = 0.2, a = 1.5, modelfactor = 0.4, specular = 0.3, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormine1"] = {
+	cormine1 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 3.8, posz = 0, radius = 4.5, color2r = -10, color2g = -10, color2b = -10, colortime = 25, r = 1.2, g = 1, b = 0.2, a = 1.5, modelfactor = 0.4, specular = 0.3, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfmine3"] = {
+	armfmine3 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 10.5, posz = 0, radius = 4.0, color2r = -7, color2g = -7, color2b = -7, colortime = 25, r = 1.2, g = 1, b = 0.2, a = 1.5, modelfactor = 0.4, specular = 0.3, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armmine3"] = {
+	armmine3 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 3.8, posz = 0, radius = 4.5, color2r = -7, color2g = -7, color2b = -7, colortime = 25, r = 1.2, g = 1, b = 0.2, a = 1.5, modelfactor = 0.4, specular = 0.3, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armmine2"] = {
+	armmine2 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 4.2, posz = 0, radius = 4.0, color2r = -7, color2g = -7, color2b = -7, colortime = 25, r = 1.2, g = 1, b = 0.2, a = 1.5, modelfactor = 0.4, specular = 0.3, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armmine1"] = {
+	armmine1 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 7.2, posz = 0, radius = 3.5, color2r = -7, color2g = -7, color2b = -7, colortime = 25, r = 1.2, g = 1, b = 0.2, a = 1.5, modelfactor = 0.4, specular = 0.3, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsd"] = {
+	armsd = {
 		antenna = {
 			lightType = "point",
 			pieceName = "base",
@@ -14474,7 +14474,7 @@ local unitLights = {
 			lightConfig = { posx = -3.5, posy = 9, posz = 12, radius = 18, color2r = 0, color2g = 0, color2b = 0, colortime = 20, r = 1, g = 1, b = 1, a = 0.45, modelfactor = 0.3, specular = 0.4, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 3 },
 		},
 	},
-	["armvulc"] = {
+	armvulc = {
 		whitemid1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -14758,7 +14758,7 @@ local unitLights = {
 			lightConfig = { posx = -16, posy = 67, posz = -18, radius = 15, color2r = -2, color2g = -2, color2b = -2, colortime = 30, r = 1.2, g = 1, b = 0.2, a = 0.8, modelfactor = 0.3, specular = 0.4, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 4 },
 		},
 	},
-	["armtl"] = {
+	armtl = {
 		barrel1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -14785,14 +14785,14 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 3.7, color2r = -2, color2g = -2, color2b = -2, colortime = 25, r = 0.6, g = 0.8, b = 1, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.5, lensflare = 20, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cortl"] = {
+	cortl = {
 		torpedoflash = {
 			lightType = "point",
 			pieceName = "gun",
 			lightConfig = { posx = 0.2, posy = -4.3, posz = 17.5, radius = 2.0, color2r = -2, color2g = -2, color2b = -2, colortime = 25, r = 0.6, g = 0.8, b = 1, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.5, lensflare = 20, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armbotrail"] = {
+	armbotrail = {
 		top = {
 			lightType = "point",
 			pieceName = "rail",
@@ -14804,7 +14804,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 33, posz = -70, radius = 32, color2r = 1, color2g = 1, color2b = 0.2, colortime = 0, r = 1, g = 1, b = 0.2, a = 0.13, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfus"] = {
+	armfus = {
 		fusionglow1 = {
 			lightType = "point",
 			pieceName = "emit1",
@@ -15184,7 +15184,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corfus"] = {
+	corfus = {
 		-- fusionglowcoretimed = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'emit',
@@ -15305,7 +15305,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["legfus"] = {
+	legfus = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -15317,7 +15317,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 5, posz = 0, radius = 55, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.1, specular = 1.2, scattering = 1.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corafus"] = {
+	corafus = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -15398,7 +15398,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corafust3"] = {
+	corafust3 = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -15414,7 +15414,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armafus"] = {
+	armafus = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -15431,7 +15431,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 28, color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 80, r = 1, g = 1, b = 1, a = 0.8, modelfactor = 0.1, specular = 0.1, scattering = 3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armafust3"] = {
+	armafust3 = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -15452,7 +15452,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["resourcecheat"] = {
+	resourcecheat = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -15464,7 +15464,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 28, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 1, g = 1, b = 1, a = 0.2, modelfactor = 0.1, specular = 1, scattering = 9, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 1 },
 		},
 	},
-	["armzeus"] = {
+	armzeus = {
 		eyes = {
 			lightType = "point",
 			pieceName = "torso",
@@ -15491,7 +15491,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10, color2r = 0.4, color2g = 0.7, color2b = 1.2, colortime = 30, r = 0.2, g = 0.5, b = 1, a = 0.65, modelfactor = 0.1, specular = 0.75, scattering = 2, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armclaw"] = {
+	armclaw = {
 		weaponglow = {
 			lightType = "point",
 			pieceName = "glow",
@@ -15503,7 +15503,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -4, posz = 0, radius = 46, color2r = 0, color2g = 0, color2b = 0, colortime = 2, r = 0.6, g = 0.8, b = 1, a = 0.70, modelfactor = 0.1, specular = 0.05, scattering = 0.2, lensflare = 7, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armyork"] = {
+	armyork = {
 		searchlightsource = {
 			lightType = "beam",
 			pieceName = "turret",
@@ -15568,7 +15568,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmanni"] = {
+	armmanni = {
 		antenna = {
 			lightType = "point",
 			pieceName = "sleeve",
@@ -15624,7 +15624,7 @@ local unitLights = {
 			lightConfig = { posx = -6, posy = 8, posz = 14, radius = 6, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.2, a = 1.2, modelfactor = 0.4, specular = 0.5, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armlatnk"] = {
+	armlatnk = {
 		lightningweaponglow = {
 			lightType = "point",
 			pieceName = "emit_spark",
@@ -15684,7 +15684,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armsptk"] = {
+	armsptk = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -15716,7 +15716,7 @@ local unitLights = {
 			lightConfig = { posx = 4.5, posy = 8.5, posz = -0.3, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = 45, r = 1, g = 1, b = 1, a = 0.7, modelfactor = 0.3, specular = 0.4, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsptkt4"] = {
+	armsptkt4 = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -15743,7 +15743,7 @@ local unitLights = {
 			lightConfig = { posx = 7.7, posy = 16, posz = 0, radius = 19, color2r = 1, color2g = 1, color2b = 0.3, colortime = 0, r = 1, g = 1, b = 1, a = 0.07, modelfactor = 0.4, specular = 0.8, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armspid"] = {
+	armspid = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "flare",
@@ -15775,7 +15775,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 13, posz = -9, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = -1.0, r = 1.2, g = 1, b = 0.3, a = 0.6, modelfactor = 0.4, specular = 0.2, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armjeth"] = {
+	armjeth = {
 		eyes = {
 			lightType = "point",
 			pieceName = "torso",
@@ -15807,7 +15807,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 12, posz = 0, radius = 300, dirx = 0, diry = 0.5, dirz = 1, theta = 0.16, r = 1, g = 1, b = 1, a = 0.28, colortime = -1.5, modelfactor = 0, specular = 1, scattering = 2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfboy"] = {
+	armfboy = {
 		top = {
 			lightType = "point",
 			pieceName = "turret",
@@ -15859,7 +15859,7 @@ local unitLights = {
 			lightConfig = { posx = -8, posy = 2.8, posz = 14, radius = 30, dirx = -0.95, diry = -0.9, dirz = 0.9, theta = 0.5, r = 1, g = 1, b = 0.89, a = 0.36, modelfactor = -0.9, specular = -0.3, scattering = 1.8, lensflare = 0.0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfast"] = {
+	armfast = {
 		top = {
 			lightType = "point",
 			pieceName = "head",
@@ -15905,7 +15905,7 @@ local unitLights = {
 			lightConfig = { posx = 2.3, posy = -6.8, posz = 1, radius = 2.2, dirx = 0, diry = -2, dirz = 0, theta = -2.7, color2r = -1, color2g = -1, color2b = -1, colortime = 15, r = -1, g = 0.1, b = 0.1, a = 2.5, modelfactor = 0.4, specular = 0.9, scattering = 0, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armscab"] = {
+	armscab = {
 		eyes = {
 			lightType = "point",
 			pieceName = "body",
@@ -15934,7 +15934,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 12, posz = 0, radius = 17, color2r = 1, color2g = 1, color2b = 0.25, colortime = 0, r = 1, g = 1, b = 0.25, a = 0.11, modelfactor = 0.4, specular = 0.8, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armmav"] = {
+	armmav = {
 		eyes = {
 			lightType = "point",
 			pieceName = "head",
@@ -15976,7 +15976,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 6, posz = 1, radius = 35, dirx = 0, diry = -1, dirz = -0.01, theta = 0.17, color2r = 1, color2g = 0.95, color2b = 0.7, colortime = 60, r = 0, g = 0, b = 0, a = 0.9, modelfactor = -0.4, specular = -1.5, scattering = 2.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armrock"] = {
+	armrock = {
 		barrel = {
 			lightType = "point",
 			pieceName = "lmisspod",
@@ -16007,7 +16007,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["coramph"] = {
+	coramph = {
 		front1 = {
 			lightType = "point",
 			pieceName = "torso",
@@ -16029,7 +16029,7 @@ local unitLights = {
 			lightConfig = { posx = -8.8, posy = 10, posz = -5, radius = 2.5, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1, g = 0.2, b = 0.2, a = 0.9, modelfactor = 0.4, specular = 0.3, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armamph"] = {
+	armamph = {
 		top = {
 			lightType = "point",
 			pieceName = "pelvis",
@@ -16056,7 +16056,7 @@ local unitLights = {
 			lightConfig = { posx = -8, posy = 8.5, posz = 0, radius = 300, dirx = 0, diry = 0.5, dirz = 1, theta = 0.16, r = 1, g = 1, b = 1, a = 0.28, colortime = -1.5, modelfactor = 0, specular = 1, scattering = 2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armaak"] = {
+	armaak = {
 		top = {
 			lightType = "point",
 			pieceName = "torso",
@@ -16078,7 +16078,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -2, posz = -4, radius = 300, dirx = 0, diry = 0.5, dirz = 1, theta = 0.16, r = 1, g = 1, b = 1, a = 0.28, colortime = -1.5, modelfactor = 0, specular = 1, scattering = 2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coraak"] = {
+	coraak = {
 		top = {
 			lightType = "point",
 			pieceName = "flakgun",
@@ -16095,7 +16095,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 5, posz = 0, radius = 300, colortime = -1.5, dirx = 0, diry = 0.7, dirz = 1, theta = 0.16, r = 1, g = 1, b = 1, a = 0.32, modelfactor = 0, specular = 1, scattering = 2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corsent"] = {
+	corsent = {
 		-- top = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'turret',
@@ -16116,7 +16116,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -2, radius = 150, colortime = -1.5, dirx = 0, diry = 0.2, dirz = 1, theta = 0.16, r = 1, g = 1, b = 1, a = 0.32, modelfactor = 0, specular = 1, scattering = 2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armflea"] = {
+	armflea = {
 		body = {
 			lightType = "point",
 			pieceName = "torso",
@@ -16137,7 +16137,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 9.5, posz = 10.5, radius = 6, color2r = -5, color2g = -5, color2b = -5, colortime = -1, r = -1, g = 1, b = 1, a = 0.75, modelfactor = 0.7, specular = 0.3, scattering = 0.6, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corpyro"] = {
+	corpyro = {
 		flamelight = {
 			lightType = "point",
 			pieceName = "lloarm",
@@ -16169,7 +16169,7 @@ local unitLights = {
 			lightConfig = { posx = 6, posy = 7, posz = -4, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = -1.5, r = 1.2, g = 1, b = 0.75, a = 0.6, modelfactor = 0.15, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corsumo"] = {
+	corsumo = {
 		-- eyesl = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'torso',
@@ -16352,7 +16352,7 @@ local unitLights = {
 	-- 						lifetime = 0, sustain = 0, selfshadowing = 0},
 	-- 	},
 	-- },
-	["corsala"] = {
+	corsala = {
 		teamtopfront = {
 			lightType = "point",
 			pieceName = "turret",
@@ -16431,7 +16431,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cortermite"] = {
+	cortermite = {
 		-- eyes = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'head',
@@ -16529,14 +16529,14 @@ local unitLights = {
 			},
 		},
 	},
-	["corthermite"] = {
+	corthermite = {
 		eyes = {
 			lightType = "point",
 			pieceName = "head",
 			lightConfig = { posx = 0, posy = 6, posz = 8, radius = 28, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 1, g = 0.2, b = 0.2, a = 0.15, modelfactor = 0.4, specular = 0, scattering = 1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corstorm"] = {
+	corstorm = {
 		eyes = {
 			lightType = "point",
 			pieceName = "pelvis",
@@ -16573,7 +16573,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cormort"] = {
+	cormort = {
 		eyes = {
 			lightType = "point",
 			pieceName = "head",
@@ -16610,7 +16610,7 @@ local unitLights = {
 			lightConfig = { posx = 4.3, posy = 6.5, posz = -9, radius = 4, color2r = 0, color2g = 0, color2b = 0, colortime = -1.5, r = 1, g = 0.2, b = 0.2, a = 0.9, modelfactor = 0.25, specular = 0.5, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corthud"] = {
+	corthud = {
 		-- eyes = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'torso',
@@ -16636,7 +16636,7 @@ local unitLights = {
 			lightConfig = { posx = 8.3, posy = 2, posz = 11, radius = 3, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = -1, g = 0.2, b = 0.2, a = 0.75, modelfactor = 1.8, specular = 0.2, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corsktl"] = {
+	corsktl = {
 		-- eyes = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -16657,7 +16657,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0.5, posz = -9.5, radius = 5, color2r = -10, color2g = -10, color2b = -10, colortime = 25, r = 1.2, g = 1, b = 0.2, a = 1.9, modelfactor = 0.4, specular = 0.3, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corroach"] = {
+	corroach = {
 		-- baseback = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -16688,7 +16688,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 2, posz = -7, radius = 40, colortime = -1.5, dirx = 0, diry = 0, dirz = 1, theta = 0.35, r = 1, g = 1, b = 1, a = 0.45, modelfactor = 0, specular = 1, scattering = 2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legsnapper"] = {
+	legsnapper = {
 		base = {
 			lightType = "point",
 			pieceName = "base",
@@ -16700,7 +16700,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 4.4, posz = 7.2, radius = 12, color2r = 0.1, color2g = 1, color2b = 0.2, colortime = 0, r = 0.2, g = 1, b = 0.2, a = 0.20, modelfactor = 0.6, specular = 0, scattering = 1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legca"] = {
+	legca = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "beam",
@@ -16727,7 +16727,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 1.5, posz = 15.5, radius = 14, color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0, r = 0.2, g = 1, b = 0.2, a = 0.09, modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legatrans"] = {
+	legatrans = {
 		lgThrust = {
 			lightType = "cone",
 			pieceName = "leftGroundThrust",
@@ -16767,7 +16767,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 4.3, posz = 15.5, radius = 14, color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0, r = 0.2, g = 1, b = 0.2, a = 0.09, modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legcib"] = {
+	legcib = {
 		eyes = {
 			lightType = "point",
 			pieceName = "chassis",
@@ -16784,7 +16784,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30, dirx = 0, diry = 0, dirz = -1, theta = 0.8, r = 1, g = 0.8, b = 0.33, a = 0.1, modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legmos"] = {
+	legmos = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -16806,7 +16806,7 @@ local unitLights = {
 			lightConfig = { posx = -3, posy = 0, posz = 2.5, radius = 35, dirx = -1, diry = -0.1, dirz = 0, theta = 0.6, r = -1, g = 1, b = 1, a = 4.9, modelfactor = 0.3, specular = 0.5, scattering = 1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legkam"] = {
+	legkam = {
 		thrustMain = {
 			lightType = "cone",
 			pieceName = "thrust",
@@ -16823,7 +16823,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -9.9, radius = 10, color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 6, r = 0.88, g = 0.83, b = 0.2, a = 0.6, modelfactor = 0.4, specular = 0.5, scattering = 2.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legatorpbomber"] = {
+	legatorpbomber = {
 		thrustrightAJet = {
 			lightType = "cone",
 			pieceName = "rightAJet",
@@ -16845,7 +16845,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20, dirx = 0, diry = 0, dirz = -1, theta = 0.8, r = 0.33, g = 1, b = 0.33, a = 0.1, modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legaheattank"] = {
+	legaheattank = {
 
 		gunglow1 = {
 			lightType = "point",
@@ -16858,7 +16858,7 @@ local unitLights = {
 			lightConfig = { posx = 8.4, posy = -2.9, posz = 11.4, radius = 10, color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 60, r = 0.88, g = 0.83, b = 0.2, a = 0.4, modelfactor = 0.4, specular = 0.5, scattering = 2.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legionnaire"] = {
+	legionnaire = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -16880,7 +16880,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 0.45, g = 0.7, b = 1, a = 0.3, modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legvenator"] = {
+	legvenator = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "lthrust",
@@ -16893,7 +16893,7 @@ local unitLights = {
 		},
 	},
 
-	["legphoenix"] = {
+	legphoenix = {
 		dish = {
 			lightType = "point",
 			pieceName = "base",
@@ -16931,7 +16931,7 @@ local unitLights = {
 		},
 	},
 
-	["legbastion"] = {
+	legbastion = {
 		dish = {
 			lightType = "point",
 			pieceName = "ambienttop",
@@ -16964,7 +16964,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 150, dirx = -2, diry = 6, dirz = 2, theta = 0.67, r = 1, g = 1, b = 1, a = 0.30, modelfactor = 0, specular = 1, scattering = 2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["leganavyartyship"] = {
+	leganavyartyship = {
 		exhaustlights = {
 			lightType = "point",
 			pieceName = "cell2",
@@ -16976,7 +16976,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 10, posz = -5, radius = 40, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0.9, g = 0.7, b = 0.45, a = 0.2, modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["leganavyflagship"] = {
+	leganavyflagship = {
 		bigtoroid = {
 			lightType = "point",
 			pieceName = "torus1",
@@ -17050,14 +17050,14 @@ local unitLights = {
 	-- 					modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
 	-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 	-- },
-	["legbart"] = {
+	legbart = {
 		cannisterlight = {
 			lightType = "point",
 			pieceName = "cannisterFlare",
 			lightConfig = { posx = -1, posy = 1, posz = 0, radius = 38, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0.9, g = 0.7, b = 0.45, a = 0.25, modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["leginf"] = {
+	leginf = {
 		cannisterlightl = {
 			lightType = "point",
 			pieceName = "leftCannisterLight",
@@ -17089,7 +17089,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 5, color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 6, r = 0.88, g = 0.83, b = 0.2, a = 0.3, modelfactor = 0.4, specular = 0.5, scattering = 2.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legeheatraymech"] = {
+	legeheatraymech = {
 		bigtoroid = {
 			lightType = "point",
 			pieceName = "torso",
@@ -17187,7 +17187,7 @@ local unitLights = {
 		},
 	},
 
-	["legeheatraymech_old"] = {
+	legeheatraymech_old = {
 		bigtoroid = {
 			lightType = "point",
 			pieceName = "bigToroidLight",
@@ -17215,7 +17215,7 @@ local unitLights = {
 		},
 	},
 
-	["legehovertank"] = {
+	legehovertank = {
 		bigtoroid = {
 			lightType = "point",
 			pieceName = "outter_ring",
@@ -17238,7 +17238,7 @@ local unitLights = {
 		},
 	},
 
-	["armvader"] = {
+	armvader = {
 		-- redlight = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'body',
@@ -17277,7 +17277,7 @@ local unitLights = {
 		-- },
 	},
 
-	["armthor"] = {
+	armthor = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "base",
@@ -17359,7 +17359,7 @@ local unitLights = {
 			lightConfig = { posx = 10.5, posy = 16, posz = -25, radius = 6, color2r = 0, color2g = 0, color2b = 0, colortime = 45, r = 1.3, g = 1, b = 0.2, a = 1.9, modelfactor = 0.3, specular = 0.4, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armthundt4"] = {
+	armthundt4 = {
 		tipleft = {
 			lightType = "point",
 			pieceName = "blinka",
@@ -17453,7 +17453,7 @@ local unitLights = {
 			lightConfig = { posx = -5, posy = 0, posz = -5, radius = 250, dirx = 0, diry = 0, dirz = -1, theta = 0.8, r = 1, g = 0.8, b = 0.33, a = 0.3, modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsnipe"] = {
+	armsnipe = {
 		-- headreddot = {
 		-- 	lightType = 'cone',
 		-- 	pieceName = 'head',
@@ -17507,7 +17507,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -5, posz = 9.5, radius = 14, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 1, g = 1, b = 1, a = 0.12, modelfactor = 0.4, specular = 0.8, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corvamp"] = {
+	corvamp = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -17529,7 +17529,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 0.45, g = 0.7, b = 1, a = 0.3, modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corveng"] = {
+	corveng = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -17566,7 +17566,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -2, radius = 13, color2r = 0.4, color2g = 0.3, color2b = 0.02, colortime = 15, r = 1.3, g = 0.75, b = 0.2, a = 0.8, modelfactor = 0.6, specular = 0.2, scattering = 0.15, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corseah"] = {
+	corseah = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -17640,7 +17640,7 @@ local unitLights = {
 			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 90, dirx = 0, diry = 0, dirz = -1, theta = 0.8, r = 0.45, g = 0.7, b = 1, a = 0.3, modelfactor = 0.4, specular = 1, scattering = 0.3, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corcrwt4"] = {
+	corcrwt4 = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -17717,7 +17717,7 @@ local unitLights = {
 			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 150, dirx = 0, diry = 0, dirz = -1, theta = 0.8, r = 0.45, g = 0.7, b = 1, a = 0.3, modelfactor = 0.4, specular = 1, scattering = 0.3, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corcrw"] = {
+	corcrw = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -17794,7 +17794,7 @@ local unitLights = {
 			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 120, dirx = 0, diry = 0, dirz = -1, theta = 0.74, r = 0.45, g = 0.7, b = 1, a = 0.24, modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corcrwh"] = {
+	corcrwh = {
 		flamelight = {
 			lightType = "point",
 			pieceName = "sleevef",
@@ -17975,7 +17975,7 @@ local unitLights = {
 			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 80, dirx = 0, diry = 0, dirz = -1, theta = 0.74, r = 0.45, g = 0.7, b = 1, a = 0.24, modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armwin"] = {
+	armwin = {
 		light1 = {
 			lightType = "point",
 			pieceName = "emit",
@@ -17992,14 +17992,14 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 2, posz = 9.5, radius = 8, color2r = -28, color2g = -28, color2b = -28, colortime = -1.5, r = -1, g = 0.8, b = 0.8, a = 2.0, modelfactor = 0.3, specular = 0.5, scattering = 0.05, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armwint2"] = {
+	armwint2 = {
 		light = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 73, posz = 0, radius = 28, color2r = 1, color2g = 1, color2b = 0, colortime = 0, r = 1, g = 1, b = 0.2, a = 0.2, modelfactor = 0.4, specular = 0.5, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corwin"] = {
+	corwin = {
 		antennalight = {
 			lightType = "point",
 			pieceName = "cradle",
@@ -18016,7 +18016,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 50, posz = -6, radius = 55, dirx = 0, diry = -1, dirz = 0.01, theta = 0.22, r = 1, g = 1, b = 0.89, a = 0.45, colortime = -1.5, modelfactor = 0.3, specular = 0.2, scattering = 2.2, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corestor"] = {
+	corestor = {
 		top = {
 			lightType = "point",
 			pieceName = "emit",
@@ -18107,14 +18107,14 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["coruwfus"] = {
+	coruwfus = {
 		light = {
 			lightType = "point",
 			pieceName = "emit",
 			lightConfig = { posx = 0, posy = 25, posz = 0, radius = 47, color2r = 0, color2g = 0, color2b = 0, colortime = -1.1, r = 1.1, g = 0.86, b = 0.25, a = 0.5, modelfactor = 0.3, specular = 0.4, scattering = 2.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coruwmmm"] = {
+	coruwmmm = {
 		botright = {
 			lightType = "beam",
 			pieceName = "emit",
@@ -18193,7 +18193,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["coruwmme"] = {
+	coruwmme = {
 		metalglowtop = {
 			lightType = "point",
 			pieceName = "emit",
@@ -18205,14 +18205,14 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -10, posz = 0, radius = 44, color2r = 0.2, color2g = 0.2, color2b = 0.2, colortime = 30, r = 1, g = 1, b = 1, a = 1, modelfactor = 0.3, specular = 0.6, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coruwes"] = {
+	coruwes = {
 		light = {
 			lightType = "point",
 			pieceName = "emit",
 			lightConfig = { posx = 0, posy = 4, posz = 0, radius = 47, color2r = 0, color2g = 0, color2b = 0, colortime = -1.1, r = 1.1, g = 0.86, b = 0.25, a = 0.5, modelfactor = 0.1, specular = 0, scattering = 2.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coruwadves"] = {
+	coruwadves = {
 		light = {
 			lightType = "point",
 			pieceName = "emit",
@@ -18239,7 +18239,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 32, posz = 0, radius = 69, dirx = 0, diry = -0.75, dirz = 1, theta = 0.4, color2r = 0, color2g = 0, color2b = 0.0, colortime = -1, r = 1.1, g = 1, b = 0.89, a = 0.7, modelfactor = 0.3, specular = 0.2, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armestor"] = {
+	armestor = {
 		top = {
 			lightType = "point",
 			pieceName = "emit",
@@ -18307,7 +18307,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmstor"] = {
+	armmstor = {
 		mid = {
 			lightType = "point",
 			pieceName = "base",
@@ -18323,7 +18323,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cormstor"] = {
+	cormstor = {
 		mid = {
 			lightType = "point",
 			pieceName = "base",
@@ -18339,14 +18339,14 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armuwmex"] = {
+	armuwmex = {
 		light = {
 			lightType = "point",
 			pieceName = "spinner",
 			lightConfig = { posx = 0, posy = 2, posz = 0, radius = 25, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 1, g = 0.2, b = 0.2, a = 0.15, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armuwes"] = {
+	armuwes = {
 		light = {
 			lightType = "point",
 			pieceName = "emit",
@@ -18373,7 +18373,7 @@ local unitLights = {
 			lightConfig = { posx = -19, posy = -25, posz = -19, radius = 28, color2r = 1, color2g = 1, color2b = 0.25, colortime = 0, r = 1, g = 1, b = 0.25, a = 0.09, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armuwadves"] = {
+	armuwadves = {
 		light1 = {
 			lightType = "point",
 			pieceName = "emit1",
@@ -18469,7 +18469,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armbrtha"] = {
+	armbrtha = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -18628,7 +18628,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armgmm"] = {
+	armgmm = {
 		-- light = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -18815,7 +18815,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corbhmth"] = {
+	corbhmth = {
 		corner1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -18862,7 +18862,7 @@ local unitLights = {
 			lightConfig = { posx = -14.2, posy = 33, posz = -8.5, radius = 1.4, pos2x = -16.2, pos2y = 33, pos2z = -8.5, color2r = -10, color2g = -10, color2b = -10, colortime = 90, r = -1, g = 0.8, b = 0.2, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corgeo"] = {
+	corgeo = {
 		--top1 = {
 		--	lightType = 'point',
 		--	pieceName = 'base',
@@ -18902,7 +18902,7 @@ local unitLights = {
 			lightConfig = { posx = -25, posy = 28, posz = -15, radius = 18, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 0.9, b = 0.2, a = 0.9, modelfactor = 0.3, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coruwgeo"] = {
+	coruwgeo = {
 		chimney = {
 			lightType = "point",
 			pieceName = "base",
@@ -18924,7 +18924,7 @@ local unitLights = {
 			lightConfig = { posx = -25, posy = 28, posz = 15, radius = 18, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 0.9, b = 0.2, a = 0.9, modelfactor = 0.3, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corageo"] = {
+	corageo = {
 		chimney = {
 			lightType = "point",
 			pieceName = "base",
@@ -18961,7 +18961,7 @@ local unitLights = {
 			lightConfig = { posx = -27, posy = 40, posz = -16, radius = 20, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 0.9, b = 0.2, a = 0.9, modelfactor = 0.3, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coruwageo"] = {
+	coruwageo = {
 		chimney = {
 			lightType = "point",
 			pieceName = "base",
@@ -18998,7 +18998,7 @@ local unitLights = {
 			lightConfig = { posx = -27, posy = 40, posz = 16, radius = 20, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 0.9, b = 0.2, a = 0.9, modelfactor = 0.3, specular = 0, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armgeo"] = {
+	armgeo = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -19182,7 +19182,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 7.5, color2r = 1, color2g = 0.7, color2b = 0.15, colortime = 0, r = 1, g = 0.35, b = 0.1, a = 0.9, modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armgeo"] = {
+	armgeo = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -19367,7 +19367,7 @@ local unitLights = {
 		},
 	},
 
-	["armuwgeo"] = {
+	armuwgeo = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -19449,21 +19449,21 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["legestor"] = {
+	legestor = {
 		rturbb = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 24, posz = 0, radius = 32, color2r = 1, color2g = 0.7, color2b = 0.15, colortime = 0, r = 1, g = 0.9, b = 0.3, a = 0.3, modelfactor = 0.5, specular = 0.5, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["leggeo"] = {
+	leggeo = {
 		turb1 = {
 			lightType = "point",
 			pieceName = "turbine",
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 40, color2r = 1, color2g = 0.7, color2b = 0.15, colortime = 0, r = 1, g = 0.9, b = 0.3, a = 0.3, modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["leguwgeo"] = {
+	leguwgeo = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "turbine",
@@ -19475,7 +19475,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 55, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 0.9, g = 0.9, b = 0.45, a = 0.45, modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legageo"] = {
+	legageo = {
 		aturbf = {
 			lightType = "point",
 			pieceName = "turbinef",
@@ -19492,7 +19492,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 40, color2r = 1, color2g = 0.7, color2b = 0.15, colortime = 0, r = 1, g = 0.9, b = 0.3, a = 0.3, modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legrampart"] = {
+	legrampart = {
 		rturbb = {
 			lightType = "point",
 			pieceName = "turbinef",
@@ -19524,7 +19524,7 @@ local unitLights = {
 			lightConfig = { posx = 27.5, posy = 58, posz = -16, radius = 25, color2r = 0, color2g = 0, color2b = 1, colortime = 0, r = 1, g = 0, b = 0, a = 0.2, modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armageo"] = {
+	armageo = {
 		--light = {
 		--	lightType = 'point',
 		--	pieceName = 'base',
@@ -19625,7 +19625,7 @@ local unitLights = {
 			lightConfig = { posx = -35, posy = 10, posz = 19, radius = 12, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 0.6, g = 0.42, b = 0.05, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armuwageo"] = {
+	armuwageo = {
 		--light = {
 		--	lightType = 'point',
 		--	pieceName = 'base',
@@ -19764,7 +19764,7 @@ local unitLights = {
 			lightConfig = { posx = -35, posy = 10, posz = -19, radius = 12, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 0.6, g = 0.42, b = 0.05, a = 0.8, modelfactor = 0.4, specular = 0.5, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armuwmme"] = {
+	armuwmme = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -19816,7 +19816,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 22, color2r = 0, color2g = 0, color2b = 0, colortime = -1.5, r = 1, g = 0.8, b = 0.6, a = 0.12, modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armmoho"] = {
+	armmoho = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -19872,7 +19872,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armshockwave"] = {
+	armshockwave = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -19924,7 +19924,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0.5, posz = 22.5, radius = 5, color2r = 0.15, color2g = 0.15, color2b = 0.35, colortime = 25, r = 0.80, g = 0.85, b = 1.3, a = 0.8, modelfactor = 0.2, specular = 0.3, scattering = 0.7, lensflare = 15, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corsolar"] = {
+	corsolar = {
 		light_small_1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -20011,7 +20011,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 28, posz = 0, radius = 15, color2r = -100, color2g = 0.18, color2b = 0, colortime = -1, r = 0, g = 0, b = 0, a = 0.6, modelfactor = 0.4, specular = 0.3, scattering = 0.4, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armmex"] = {
+	armmex = {
 		base = {
 			lightType = "point",
 			pieceName = "base",
@@ -20056,14 +20056,14 @@ local unitLights = {
 			lightConfig = { posx = 18.5, posy = -9, posz = -18.5, radius = 18, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1.2, g = 1, b = 0.4, a = 0.33, modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 2 },
 		},
 	},
-	["armsolar"] = {
+	armsolar = {
 		light = {
 			lightType = "point",
 			pieceName = "emit",
 			lightConfig = { posx = 0, posy = 2, posz = 0, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.3, a = 0.7, modelfactor = 0.4, specular = 0.3, scattering = 0.25, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armadvsol"] = {
+	armadvsol = {
 		side1cone = {
 			lightType = "cone",
 			pieceName = "base",
@@ -20111,7 +20111,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cormex"] = {
+	cormex = {
 		base = {
 			lightType = "point",
 			pieceName = "base",
@@ -20151,7 +20151,7 @@ local unitLights = {
 			lightConfig = { posx = 16, posy = 7.5, posz = -9, radius = 13, color2r = 1, color2g = 1, color2b = 0.4, colortime = 0, r = 1, g = 1, b = 1, a = 0.33, modelfactor = 0.3, specular = 0.6, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corexp"] = {
+	corexp = {
 		base = {
 			lightType = "point",
 			pieceName = "base",
@@ -20183,7 +20183,7 @@ local unitLights = {
 			lightConfig = { posx = 16, posy = 7.5, posz = -9, radius = 13, color2r = 1, color2g = 1, color2b = 0.4, colortime = 0, r = 1, g = 1, b = 1, a = 0.33, modelfactor = 0.3, specular = 0.6, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormoho"] = {
+	cormoho = {
 		side1 = {
 			lightType = "point",
 			pieceName = "column",
@@ -20200,7 +20200,7 @@ local unitLights = {
 			lightConfig = { posx = 16, posy = -4, posz = -9, radius = 17, color2r = 0.2, color2g = 0.2, color2b = 0.2, colortime = 30, r = 1, g = 1, b = 1, a = 1, modelfactor = 0.3, specular = 0.6, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coradvsol"] = {
+	coradvsol = {
 		glow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -20208,7 +20208,7 @@ local unitLights = {
 		},
 	},
 
-	["legadvsol"] = {
+	legadvsol = {
 		glow1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -20226,7 +20226,7 @@ local unitLights = {
 		},
 	},
 
-	["cormakr"] = {
+	cormakr = {
 		side1cone = {
 			lightType = "cone",
 			pieceName = "light",
@@ -20253,7 +20253,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 15, posz = 0, radius = 18, color2r = 0.0, color2g = 0.0, color2b = 0.0, colortime = -1.5, r = 1.2, g = 0.85, b = 0.25, a = 0.6, modelfactor = 0.5, specular = 0.3, scattering = 0.6, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corfmkr"] = {
+	corfmkr = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "light",
@@ -20316,7 +20316,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armuwmmm"] = {
+	armuwmmm = {
 		-- light1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'light1',
@@ -20419,7 +20419,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmakr"] = {
+	armmakr = {
 		side1cone = {
 			lightType = "cone",
 			pieceName = "light",
@@ -20458,7 +20458,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armfmkr"] = {
+	armfmkr = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "light",
@@ -20475,7 +20475,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 3, posz = 18, radius = 26, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0.9, g = 0.7, b = 0.45, a = 0.065, modelfactor = 0.4, specular = 0, scattering = 0.35, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormmkr"] = {
+	cormmkr = {
 		enabled_top = {
 			lightType = "point",
 			pieceName = "light",
@@ -20497,7 +20497,7 @@ local unitLights = {
 			lightConfig = { posx = 30, posy = -13, posz = 0, radius = 11, color2r = 0, color2g = 0, color2b = 0.0, colortime = -1, r = 1, g = 1, b = 0.89, a = 0.4, modelfactor = 0.3, specular = 0.1, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armmmkr"] = {
+	armmmkr = {
 		-- enabled_cone1x = {
 		-- 	lightType = 'cone',
 		-- 	pieceName = 'light',
@@ -20541,7 +20541,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 4, posz = -15, radius = 30, dirx = 0, diry = -0.9, dirz = -0.5, theta = 0.80, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1.0, b = 0.6, a = 0.6, modelfactor = 0.3, specular = 0.2, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["lootboxbronze"] = {
+	lootboxbronze = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blinka",
@@ -20573,7 +20573,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 50, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["lootboxsilver"] = {
+	lootboxsilver = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blinka",
@@ -20605,7 +20605,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 100, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["lootboxgold"] = {
+	lootboxgold = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blinka",
@@ -20637,7 +20637,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 150, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["lootboxplatinum"] = {
+	lootboxplatinum = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blinka",
@@ -20669,7 +20669,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 200, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["lootboxsilver"] = {
+	lootboxsilver = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blinka",
@@ -20701,7 +20701,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 100, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["scavbeacon_t1"] = {
+	scavbeacon_t1 = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blink1",
@@ -20738,7 +20738,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 50, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["scavbeacon_t2"] = {
+	scavbeacon_t2 = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blink1",
@@ -20775,7 +20775,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 150, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["scavbeacon_t3"] = {
+	scavbeacon_t3 = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blink1",
@@ -20812,7 +20812,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 150, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["scavbeacon_t4"] = {
+	scavbeacon_t4 = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blink1",
@@ -20849,7 +20849,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 150, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsilo"] = {
+	armsilo = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -20931,7 +20931,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 25, color2r = 0, color2g = 0, color2b = 0, colortime = 15, r = 3, g = 0, b = 0, a = 1, modelfactor = 0.1, specular = 0.5, scattering = 0.5, lensflare = 8, lifetime = 0, sustain = 0, selfshadowing = 4 },
 		},
 	},
-	["corsilo"] = {
+	corsilo = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -20993,7 +20993,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30, dirx = 1, diry = 0, dirz = 0, theta = 0.99000001, r = 1.29999995, g = 0.1, b = 0, a = 2, modelfactor = 0.1, specular = 0.2, scattering = 1, lensflare = 2, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legsilo"] = {
+	legsilo = {
 		launchlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -21010,7 +21010,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30, dirx = 1, diry = 0, dirz = 0, theta = 0.99000001, r = 1.0, g = 0.8, b = 0, a = 2, modelfactor = 0.1, specular = 0.2, scattering = 1, lensflare = 2, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corint"] = {
+	corint = {
 		teamflashr = {
 			lightType = "point",
 			pieceName = "turret",
@@ -21045,14 +21045,14 @@ local unitLights = {
 		-- 		lifetime = 300, sustain = 1, selfshadowing = 0},
 		-- },
 	},
-	["corgplat"] = {
+	corgplat = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 12, posz = 11, radius = 14, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 1, g = 0.2, b = 0.2, a = 0.11, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corfhlt"] = {
+	corfhlt = {
 		eyes = {
 			lightType = "point",
 			pieceName = "turret1",
@@ -21064,7 +21064,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 7, radius = 440, dirx = 0, diry = 0.1, dirz = 1, theta = 0.18, r = 0.95, g = 0.95, b = 0.88, a = 0.4, modelfactor = -0.3, specular = -1.2, scattering = 1.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corcv"] = {
+	corcv = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -21096,7 +21096,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 21, posz = 21, radius = 34, dirx = -0.06, diry = -0.77, dirz = 1, theta = 0.6, r = 1, g = 1, b = 0.89, a = 0.25, colortime = -3, modelfactor = -0.5, specular = -0.3, scattering = 1.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legcv"] = {
+	legcv = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -21108,7 +21108,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 17, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.3, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legacv"] = {
+	legacv = {
 		buildlight1 = { --top spinning light
 			lightType = "cone",
 			pieceName = "conLightA",
@@ -21130,7 +21130,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.3, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	["legavantinuke"] = {
+	legavantinuke = {
 		cannisterlightambient = {
 			lightType = "point",
 			pieceName = "base",
@@ -21167,7 +21167,7 @@ local unitLights = {
 			lightConfig = { posx = 1, posy = 6.1, posz = 25.7, radius = 32, dirx = 0, diry = 0, dirz = 1, theta = 0.99000001, r = 0.4, g = 1, b = 0.8, a = 0.75, modelfactor = -0.9, specular = -0.3, scattering = 1.5, lensflare = 0.6, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legnavyconship"] = {
+	legnavyconship = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nanoFlare",
@@ -21195,7 +21195,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20, dirx = 0, diry = 0, dirz = -1, theta = 0.99000001, r = 1.29999995, g = 0.89999998, b = 0.1, a = 1, modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 8, lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	["legnavyrezsub"] = {
+	legnavyrezsub = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nanoFlare",
@@ -21207,7 +21207,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -1.5, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = -1, g = 1, b = 1, a = 0.35, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	["leganavyengineer"] = {
+	leganavyengineer = {
 		--spin lights
 		buildlight1a = { --top spinning light
 			lightType = "cone",
@@ -21240,7 +21240,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -1.5, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = -1, g = 1, b = 1, a = 0.2, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	["leganavyconsub"] = {
+	leganavyconsub = {
 		--spin lights
 		buildlight1a = { --top spinning light
 			lightType = "cone",
@@ -21273,7 +21273,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -1.5, radius = 15, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = -1, g = 1, b = 1, a = 0.2, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	["legnavyaaship"] = {
+	legnavyaaship = {
 		greenblobA = {
 			lightType = "point",
 			pieceName = "dishA",
@@ -21285,7 +21285,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.3, modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legaca"] = {
+	legaca = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nanoFlare1",
@@ -21307,7 +21307,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30, dirx = 0, diry = 0, dirz = -1, theta = 0.8, r = 0.33, g = 1, b = 0.33, a = 0.1, modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legwhisper"] = {
+	legwhisper = {
 		airjet1 = {
 			lightType = "cone",
 			pieceName = "bigAirJet1",
@@ -21365,7 +21365,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 7, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 0.2, g = 1, b = 0.2, a = 0.2, modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legafigdef"] = {
+	legafigdef = {
 		airjet1 = {
 			lightType = "cone",
 			pieceName = "leftAirjet",
@@ -21382,7 +21382,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 50, dirx = 0, diry = 0, dirz = -1, theta = 0.8, r = 0.33, g = 1, b = 0.33, a = 0.6, modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legrezbot"] = {
+	legrezbot = {
 		buildlight1 = { --top spinning light
 			lightType = "cone",
 			pieceName = "buildLightFlareLeft",
@@ -21415,7 +21415,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -2, posz = 1, radius = 7, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 0.2, g = 1, b = 0.2, a = 0.2, modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legamphlab"] = {
+	legamphlab = {
 		buildlight1 = { --top spinning light
 			lightType = "cone",
 			pieceName = "buildFlare1",
@@ -21491,7 +21491,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -2, posz = 1, radius = 14, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 0.2, g = 1, b = 0.2, a = 0.3, modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["leggant"] = {
+	leggant = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nanofr",
@@ -21566,7 +21566,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -2, posz = 1, radius = 20, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1, g = 0.5, b = 0.2, a = 0.3, modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legch"] = {
+	legch = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -21578,7 +21578,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 17, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = -1, g = 1, b = 1, a = 0.3, modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armraz"] = {
+	armraz = {
 		searchlightl = {
 			lightType = "cone",
 			pieceName = "torso",
@@ -21780,7 +21780,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0 },
 		-- },
 	},
-	["armmar"] = {
+	armmar = {
 		foot1 = {
 			lightType = "point",
 			pieceName = "rfoot",
@@ -21924,7 +21924,7 @@ local unitLights = {
 			lightConfig = { posx = 2, posy = -9, posz = 0, radius = 6, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.2, a = 0.44, modelfactor = 0.4, specular = 0.2, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armamb"] = {
+	armamb = {
 		-- sleeve1beam = { --needs BOS update to show/hide part - light shines through closed version
 		-- 	lightType = 'beam',
 		-- 	pieceName = 'turret',
@@ -21947,7 +21947,7 @@ local unitLights = {
 			lightConfig = { posx = -12.5, posy = 0, posz = 0, radius = 2.4, color2r = -3, color2g = -3, color2b = -3, colortime = 45, r = -1, g = 0.8, b = 0.2, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armguard"] = {
+	armguard = {
 		base1 = {
 			lightType = "point",
 			pieceName = "head",
@@ -22065,7 +22065,7 @@ local unitLights = {
 			lightConfig = { posx = -15, posy = 0, posz = 0, radius = 2.4, color2r = -3, color2g = -3, color2b = -3, colortime = 45, r = -1, g = 0.8, b = 0.2, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corpun"] = {
+	corpun = {
 		-- base1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'head',
@@ -22182,7 +22182,7 @@ local unitLights = {
 			lightConfig = { posx = -12, posy = 0, posz = -4, radius = 2.4, color2r = -3, color2g = -3, color2b = -3, colortime = 45, r = -1, g = 0.8, b = 0.2, a = 3, modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corbuzz"] = {
+	corbuzz = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -22276,7 +22276,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corcat"] = {
+	corcat = {
 		eyes = {
 			lightType = "point",
 			pieceName = "head",
@@ -22344,7 +22344,7 @@ local unitLights = {
 		},
 	},
 
-	["corshiva"] = {
+	corshiva = {
 		eyes = {
 			lightType = "beam",
 			pieceName = "torso",
@@ -22396,7 +22396,7 @@ local unitLights = {
 		},
 	},
 
-	["cordoom"] = {
+	cordoom = {
 		-- searchlightmaintop = {
 		-- 	lightType = 'cone',
 		-- 	pieceName = 'mainbarrel',
@@ -22506,7 +22506,7 @@ local unitLights = {
 		},
 	},
 
-	["corfdoom"] = {
+	corfdoom = {
 		searchlightyellow = {
 			lightType = "cone",
 			pieceName = "barrelb",
@@ -22539,7 +22539,7 @@ local unitLights = {
 		},
 	},
 
-	["cordemon"] = {
+	cordemon = {
 		eyes = {
 			lightType = "beam",
 			pieceName = "head",
@@ -22606,7 +22606,7 @@ local unitLights = {
 			lightConfig = { posx = -0.5, posy = 3.2, posz = 0.6, radius = 1.3, pos2x = 0.5, pos2y = 3.2, pos2z = 0.6, color2r = -0.6, color2g = -0.4, color2b = -0.5, colortime = -1, r = 1, g = 0.1, b = 0.1, a = 0.5, modelfactor = 0.4, specular = 0.1, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["coracv"] = {
+	coracv = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -22685,7 +22685,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corgol"] = {
+	corgol = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -22792,7 +22792,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 8.9, radius = 3, color2r = 0.7, color2g = 0.35, color2b = 0.05, colortime = 60, r = 1.2, g = 0.80, b = 0.12, a = 1.5, modelfactor = 0.2, specular = 0.1, scattering = 0.9, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corgolt4"] = {
+	corgolt4 = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -22824,7 +22824,7 @@ local unitLights = {
 			lightConfig = { posx = -52, posy = 34, posz = -42, radius = 44, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 1, g = 0.2, b = 0.2, a = 0.08, modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormabm"] = {
+	cormabm = {
 		orangelightcenter = {
 			lightType = "point",
 			pieceName = "orangelight",
@@ -22965,14 +22965,14 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corgarp"] = {
+	corgarp = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 5.5, posz = 20.8, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = -2, r = 1, g = 0.2, b = 0.2, a = 0.65, modelfactor = 0.4, specular = 0.2, scattering = 0.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corlevlr"] = {
+	corlevlr = {
 		headlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "base", -- invalid ones will attach to the worldpos of the unit
@@ -23122,7 +23122,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corraid"] = {
+	corraid = {
 		headlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "justattachtobase", -- invalid ones will attach to the worldpos of the unit
@@ -23144,7 +23144,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 13, posz = 13.5, radius = 8, color2r = 0.3, color2g = 0.3, color2b = 0.3, colortime = 0, r = -1, g = 0.15, b = 0.15, a = 0.4, modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corwolv"] = {
+	corwolv = {
 		headlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "base", -- invalid ones will attach to the worldpos of the unit
@@ -23166,7 +23166,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 6, posz = 6.5, radius = 6, color2r = 0.3, color2g = 0.3, color2b = 0.3, colortime = 0, r = 1, g = 1, b = 1, a = 0.4, modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormlv"] = {
+	cormlv = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "flare",
@@ -23223,7 +23223,7 @@ local unitLights = {
 			lightConfig = { posx = 9.8, posy = 11.5, posz = -7, radius = 4, color2r = -4, color2g = -4, color2b = -4, colortime = 25, r = 1.1, g = 1, b = 0.4, a = 0.8, modelfactor = 0.5, specular = 0.3, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legmlv"] = {
+	legmlv = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -23235,7 +23235,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -2, radius = 40, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 1, g = 0.2, b = 0.2, a = 0.33, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legrwall"] = {
+	legrwall = {
 		eye1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -23262,7 +23262,7 @@ local unitLights = {
 			lightConfig = { posx = 0.0, posy = 0.0, posz = 0.0, radius = 16.0, color2r = 1, color2g = 0.5, color2b = 0.2, colortime = 90, r = 0.8, g = 0.3, b = 0.1, a = 0.33, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legjav"] = {
+	legjav = {
 		eye1 = {
 			lightType = "point",
 			pieceName = "torso",
@@ -23289,14 +23289,14 @@ local unitLights = {
 			lightConfig = { posx = -4, posy = -6.5, posz = 11.4, radius = 2.5, color2r = 0, color2g = 0, color2b = 0, colortime = 70, r = 0.3, g = 0.85, b = 0.3, a = 0.6, modelfactor = 0.15, specular = 0.3, scattering = 0.7, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legbunk"] = {
+	legbunk = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "torch",
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 425, dirx = 0, diry = 0, dirz = 1, theta = 0.18, r = 0.2, g = 1.0, b = 0.2, a = 0.45, modelfactor = 0, specular = 1, scattering = 2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legkark"] = {
+	legkark = {
 		eye1 = {
 			lightType = "point",
 			pieceName = "armortorso",
@@ -23328,7 +23328,7 @@ local unitLights = {
 			lightConfig = { posx = -5.6, posy = 12.5, posz = -10.5, radius = 6, color2r = 0, color2g = 0, color2b = 0, colortime = 70, r = 0.3, g = 0.85, b = 0.3, a = 0.6, modelfactor = 0.15, specular = 0.3, scattering = 0.7, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormuskrat"] = {
+	cormuskrat = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -23383,7 +23383,7 @@ local unitLights = {
 			lightConfig = { posx = -6, posy = 15.5, posz = 4, radius = 6, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 0.9, b = 0.4, a = 0.75, modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legotter"] = {
+	legotter = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -23410,7 +23410,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = -31, radius = 18, color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0, r = 0.2, g = 1, b = 0.2, a = 0.09, modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormist"] = {
+	cormist = {
 		-- eyes1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -23473,7 +23473,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armbeaver"] = {
+	armbeaver = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -23510,7 +23510,7 @@ local unitLights = {
 			lightConfig = { posx = 3, posy = 17, posz = 22, radius = 30, dirx = -0.06, diry = -0.75, dirz = 1, theta = 0.6, r = 1, g = 1, b = 0.89, a = 0.25, colortime = -3, modelfactor = -0.5, specular = -0.3, scattering = 1.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armch"] = {
+	armch = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -23557,7 +23557,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 1, posz = -16, radius = 6, color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 15, r = 1.3, g = 0.9, b = 0.1, a = 0.5, modelfactor = 0.4, specular = 0.4, scattering = 0.2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corhal"] = {
+	corhal = {
 		back1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -23599,14 +23599,14 @@ local unitLights = {
 			lightConfig = { posx = -12.5, posy = -1, posz = 12, radius = 55, dirx = 0, diry = -0.03, dirz = 1, theta = 0.4, r = 1, g = 1, b = 0.89, a = 0.35, modelfactor = -0.5, specular = -0.3, scattering = 1.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corsh"] = {
+	corsh = {
 		thruster = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 3, posz = -12.5, radius = 10, color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 6, r = 0.88, g = 0.83, b = 0.2, a = 0.1, modelfactor = 0.4, specular = 0.5, scattering = 1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corch"] = {
+	corch = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -23648,7 +23648,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 11, posz = 15, radius = 6, color2r = 0, color2g = 0, color2b = 0, colortime = -1.2, r = 1, g = 0.2, b = 0.2, a = 0.5, modelfactor = 0.4, specular = 0.4, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corsnap"] = {
+	corsnap = {
 		lightfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -23660,7 +23660,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 9, posz = 14, radius = 75, dirx = 0, diry = -0.07, dirz = 1, theta = 0.8, r = 1, g = 1, b = 0.89, a = 0.35, modelfactor = -0.5, specular = -0.3, scattering = 1.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corsh"] = {
+	corsh = {
 		lightfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -23677,7 +23677,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 3, posz = 2, radius = 75, dirx = 0, diry = -0.05, dirz = 1, theta = 0.21, r = 1, g = 1, b = 0.89, a = 0.35, modelfactor = -0.5, specular = -0.3, scattering = 1.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["cormh"] = {
+	cormh = {
 		lightfront1 = {
 			lightType = "beam",
 			pieceName = "base",
@@ -23714,7 +23714,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 2.4, posz = -12.5, radius = 6, color2r = 0, color2g = 0, color2b = 0, colortime = -1.8, r = 1.2, g = 0.9, b = 0.4, a = 0.45, modelfactor = 0.3, specular = 0.4, scattering = 1.9, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armah"] = {
+	armah = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -23736,7 +23736,7 @@ local unitLights = {
 			lightConfig = { posx = 2.3, posy = 1.4, posz = -12.5, radius = 6, color2r = 0, color2g = 0, color2b = 0, colortime = -1.0, r = 1.15, g = 0.9, b = 0.4, a = 0.45, modelfactor = 0.3, specular = 0.4, scattering = 0.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armanac"] = {
+	armanac = {
 		front = {
 			lightType = "point",
 			pieceName = "base",
@@ -23783,7 +23783,7 @@ local unitLights = {
 			lightConfig = { posx = -2.8, posy = 1.7, posz = 7, radius = 4, color2r = 1, color2g = 1, color2b = 0.2, colortime = 0, r = 1, g = 1, b = 0.2, a = 0.08, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armmh"] = {
+	armmh = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -23815,7 +23815,7 @@ local unitLights = {
 			lightConfig = { posx = 10.5, posy = 12, posz = -4, radius = 5, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 1.2, g = 1, b = 0.5, a = 0.7, modelfactor = 0.3, specular = 0.4, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armsh"] = {
+	armsh = {
 		searchlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "base", -- invalid ones will attach to the worldpos of the unit
@@ -23832,7 +23832,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 4.5, posz = 1, radius = 5, color2r = 1, color2g = 1, color2b = 1, colortime = 0, r = 1, g = 1, b = 1, a = 0.06, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armlun"] = {
+	armlun = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "base",
@@ -23864,7 +23864,7 @@ local unitLights = {
 			lightConfig = { posx = 7.3, posy = 12.8, posz = -30.5, radius = 6, color2r = 0, color2g = 0, color2b = 0, colortime = -1.0, r = -1, g = 0.9, b = 0.4, a = 1.75, modelfactor = 0.3, specular = 0.4, scattering = 0, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corah"] = {
+	corah = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -23881,7 +23881,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 10, radius = 300, colortime = -1.5, dirx = 0, diry = 0, dirz = 1, theta = 0.12, r = 1, g = 1, b = 1, a = 0.32, modelfactor = 0, specular = 1, scattering = 2, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corsok"] = {
+	corsok = {
 		lightfront1 = {
 			lightType = "beam",
 			pieceName = "base",
@@ -23963,7 +23963,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -5.0, posz = 0, radius = 7, color2r = 1.05, color2g = 0.78, color2b = 0.40, colortime = 5, r = 1.25, g = 0.9, b = 0.4, a = 0.45, modelfactor = 0.3, specular = 0.4, scattering = 1.5, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armcv"] = {
+	armcv = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -24000,7 +24000,7 @@ local unitLights = {
 			lightConfig = { posx = 3, posy = 11, posz = 21, radius = 32, dirx = -0.06, diry = -0.33, dirz = 1, theta = 0.6, r = 1, g = 1, b = 0.89, a = 0.25, colortime = -3, modelfactor = -0.5, specular = -0.3, scattering = 1.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armacv"] = {
+	armacv = {
 		buildflash1 = {
 			lightType = "point",
 			pieceName = "ldoor",
@@ -24046,7 +24046,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 21, posz = 21, radius = 34, dirx = -0.06, diry = -0.77, dirz = 1, theta = 0.6, r = 1, g = 1, b = 0.89, a = 0.25, colortime = -3, modelfactor = -0.5, specular = -0.3, scattering = 1.8, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corck"] = {
+	corck = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -24088,7 +24088,7 @@ local unitLights = {
 			lightConfig = { posx = -5.7, posy = 4, posz = 17, radius = 5, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = -1, r = 1, g = 0.2, b = 0.2, a = 0.6, modelfactor = 0.4, specular = 0.2, scattering = 0.1, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legck"] = {
+	legck = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -24120,7 +24120,7 @@ local unitLights = {
 			lightConfig = { posx = -4, posy = 7, posz = 4, radius = 10, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 0.2, g = 1, b = 0.2, a = 0.15, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legaceb"] = {
+	legaceb = {
 		tankglow = {
 			lightType = "point",
 			pieceName = "torso",
@@ -24142,7 +24142,7 @@ local unitLights = {
 			lightConfig = { posx = -1.5, posy = 3, posz = 13, radius = 10, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 0.2, g = 1, b = 0.2, a = 0.15, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legrail"] = {
+	legrail = {
 		eye1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -24189,7 +24189,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 16, radius = 2.5, dirx = 0, diry = 0, dirz = 1, theta = -6.5, color2r = -1, color2g = -1, color2b = -1, colortime = 30, r = 0.5, g = 1.0, b = 1.0, a = 2.5, modelfactor = 0.8, specular = 0.2, scattering = 0, lensflare = 2.0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legsrail"] = {
+	legsrail = {
 		eye1 = {
 			lightType = "point",
 			pieceName = "pelvis",
@@ -24216,7 +24216,7 @@ local unitLights = {
 			lightConfig = { posx = 0.0, posy = 0.0, posz = -4.0, radius = 8.0, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 0.6, g = 0.3, b = 0.1, a = 0.25, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legsrailt4"] = {
+	legsrailt4 = {
 		eye1 = {
 			lightType = "point",
 			pieceName = "pelvis",
@@ -24243,7 +24243,7 @@ local unitLights = {
 			lightConfig = { posx = 0.0, posy = 0.0, posz = -4.0, radius = 8.0, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 0.6, g = 0.3, b = 0.1, a = 0.25, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legelrpcmech"] = {
+	legelrpcmech = {
 		chassislight1 = {
 			lightType = "point",
 			pieceName = "chassisLightLeft",
@@ -24265,7 +24265,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10.0, color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0, r = 0.2, g = 1, b = 0.2, a = 0.4, modelfactor = 0.0, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legstarfall"] = {
+	legstarfall = {
 		--other glows
 		otherglow1 = {
 			lightType = "point",
@@ -24293,7 +24293,7 @@ local unitLights = {
 			lightConfig = { posx = 7, posy = 2, posz = 49, radius = 32, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 0.3, g = 1, b = 0.4, a = 0.25, modelfactor = 0.0, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 1 },
 		},
 	},
-	["legministarfall"] = {
+	legministarfall = {
 		--other glows
 		otherglow1 = {
 			lightType = "point",
@@ -24321,7 +24321,7 @@ local unitLights = {
 			lightConfig = { posx = 3.5, posy = 1, posz = 24.5, radius = 16, color2r = 0, color2g = 0, color2b = 0, colortime = -1, r = 0.3, g = 1, b = 0.4, a = 0.25, modelfactor = 0.0, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 1 },
 		},
 	},
-	["armgate"] = {
+	armgate = {
 		shieldglow = {
 			lightType = "point",
 			pieceName = "base",
@@ -24343,14 +24343,14 @@ local unitLights = {
 			lightConfig = { posx = 6.2, posy = 20, posz = 26, radius = 18, color2r = 1, color2g = 1, color2b = 0.2, colortime = 0, r = 1, g = 1, b = 0.2, a = 0.07, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["armfgate"] = {
+	armfgate = {
 		shieldglow = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 32, posz = -4, radius = 38, color2r = 0, color2g = 0, color2b = 0, colortime = -1.5, r = 0.2, g = 0.9, b = 0.3, a = 0.5, modelfactor = 0.4, specular = 0.4, scattering = 2.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 5 },
 		},
 	},
-	["armgatet3"] = {
+	armgatet3 = {
 		shieldglow = {
 			lightType = "point",
 			pieceName = "base",
@@ -24372,7 +24372,7 @@ local unitLights = {
 			lightConfig = { posx = 6.2, posy = 20, posz = 26, radius = 28, color2r = 1, color2g = 1, color2b = 0.2, colortime = 0, r = 1, g = 1, b = 0.2, a = 0.07, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["leggatet3"] = {
+	leggatet3 = {
 		shieldglow = {
 			lightType = "point",
 			pieceName = "base",
@@ -24394,7 +24394,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 28, color2r = 1, color2g = 1, color2b = 0.2, colortime = 0, r = 1, g = 1, b = 0.2, a = 0.21, modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0.5, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["corgate"] = {
+	corgate = {
 		-- shieldglowold = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -24410,21 +24410,21 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 44, posz = 0, radius = 55, color2r = 0.1, color2g = 0.45, color2b = 0.15, colortime = 70, r = 0.2, g = 0.9, b = 0.3, a = 0.8, modelfactor = 0.4, specular = 1.0, scattering = 0.7, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 4 },
 		},
 	},
-	["corgatet3"] = {
+	corgatet3 = {
 		shieldglow = {
 			lightType = "point",
 			pieceName = "base",
 			lightConfig = { posx = 0, posy = 42, posz = 0, radius = 55, color2r = 0.15, color2g = 0.45, color2b = 0.15, colortime = 70, r = 0.2, g = 0.9, b = 0.3, a = 0.25, modelfactor = 0.4, specular = 1.0, scattering = 1.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legdeflector"] = {
+	legdeflector = {
 		shieldglow = {
 			lightType = "point",
 			pieceName = "shieldFlare",
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 55, color2r = 0.1, color2g = 0.45, color2b = 0.15, colortime = 70, r = 0.2, g = 0.9, b = 0.3, a = 0.25, modelfactor = 0.4, specular = 1.0, scattering = 1.3, lensflare = 0, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legrad"] = {
+	legrad = {
 		greenblobA = {
 			lightType = "point",
 			pieceName = "dishA",
@@ -24436,21 +24436,21 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20, color2r = 0, color2g = 0, color2b = 0, colortime = 0, r = 0, g = 1, b = 0, a = 0.60000002, modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legjam"] = {
+	legjam = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "strut",
 			lightConfig = { posx = 0, posy = 7, posz = 0, radius = 32, color2r = 0, color2g = 0, color2b = 1, colortime = 0, r = 1, g = 0, b = 0, a = 0.6, modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["leginc"] = {
+	leginc = {
 		bigheatray = {
 			lightType = "point",
 			pieceName = "flare",
 			lightConfig = { posx = 0, posy = 7, posz = 0, radius = 32, color2r = 0, color2g = 0, color2b = 1, colortime = 0, r = 1, g = 1, b = 0.2, a = 0.6, modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10, lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
-	["legrl"] = {
+	legrl = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "barrel",
@@ -24459,21 +24459,21 @@ local unitLights = {
 	},
 }
 
-unitLights["armtorps"] = unitLights["armmls"]
+unitLights.armtorps = unitLights.armmls
 --unitLights['coruwgeo'] = unitLights['corgeo']
 --unitLights['coruwageo'] = unitLights['corageo']
 --unitLights['armuwgeo'] = unitLights['armgeo']
 --unitLights['armuwageo'] = unitLights['armageo']
-unitLights["armshltxuw"] = unitLights["armshltx"]
-unitLights["corgantuw"] = unitLights["corgant"]
-unitLights["armdecom"] = unitLights["armcom"]
-unitLights["cordecom"] = unitLights["corcom"]
-unitLights["armcomcon"] = unitLights["armcom"]
-unitLights["corcomcon"] = unitLights["corcom"]
-unitLights["armdf"] = table.copy(unitLights["armfus"])
-unitLights["armuwfus"] = table.copy(unitLights["armfus"])
-unitLights["armckfus"] = table.copy(unitLights["armfus"])
-unitLights["legdecom"] = unitLights["legcom"]
+unitLights.armshltxuw = unitLights.armshltx
+unitLights.corgantuw = unitLights.corgant
+unitLights.armdecom = unitLights.armcom
+unitLights.cordecom = unitLights.corcom
+unitLights.armcomcon = unitLights.armcom
+unitLights.corcomcon = unitLights.corcom
+unitLights.armdf = table.copy(unitLights.armfus)
+unitLights.armuwfus = table.copy(unitLights.armfus)
+unitLights.armckfus = table.copy(unitLights.armfus)
+unitLights.legdecom = unitLights.legcom
 
 local unitEventLightsNames = {
 	------------------------------------ Put lights that are slaved to ProjectileCreated here! ---------------------------------
@@ -24509,7 +24509,7 @@ local unitEventLightsNames = {
 	--corint disabled for now since it has static positioning - now only 'working' when shooting to east:
 
 	UnitScriptLights = {
-		["armcom"] = {
+		armcom = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lflare",
@@ -24519,7 +24519,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armdecom"] = {
+		armdecom = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lflare",
@@ -24529,7 +24529,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corcom"] = {
+		corcom = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "biggun",
@@ -24539,7 +24539,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["cordecom"] = {
+		cordecom = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "biggun",
@@ -24549,7 +24549,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legheavydrone"] = {
+		legheavydrone = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "flare",
@@ -24559,7 +24559,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["leghelios"] = {
+		leghelios = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "turret",
@@ -24569,7 +24569,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legkark"] = {
+		legkark = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rflare",
@@ -24579,7 +24579,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legcom"] = {
+		legcom = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "flare",
@@ -24602,7 +24602,7 @@ local unitEventLightsNames = {
 				lightConfig = { posx = 0, posy = 0, posz = 15, radius = 16, color2r = 0.55, color2g = 0.1, color2b = 0, colortime = 400, r = 1, g = 0.3, b = 0, a = 0.55, modelfactor = 2, specular = 1, scattering = 0, lensflare = 0, lifetime = 200, sustain = 2 },
 			},
 		},
-		["legjav"] = {
+		legjav = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lbarrel",
@@ -24619,7 +24619,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legrwall"] = {
+		legrwall = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rgbarrel",
@@ -24629,7 +24629,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corint"] = {
+		corint = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "light",
@@ -24646,7 +24646,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armbrtha"] = {
+		armbrtha = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel",
@@ -24670,7 +24670,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legaheattank"] = {
+		legaheattank = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "gun",
@@ -24686,7 +24686,7 @@ local unitEventLightsNames = {
 				lightConfig = { posx = 8, posy = 8, posz = -6.4, radius = 64, color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 160, r = 0.88, g = 0.83, b = 0.2, a = 0.09, modelfactor = 1.5, specular = 2, scattering = 2, lensflare = 0, lifetime = 80, sustain = 5 },
 			},
 		},
-		["legelrpcmech"] = {
+		legelrpcmech = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rightTopFlare",
@@ -24776,7 +24776,7 @@ local unitEventLightsNames = {
 				lightConfig = { posx = 0, posy = 0, posz = 0, radius = 36, color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 600, r = 0.2, g = 1, b = 0.2, a = 0.09, modelfactor = 1.5, specular = 2, scattering = 2, lensflare = 0, lifetime = 320, sustain = 20 },
 			},
 		},
-		["leganavyartyship"] = {
+		leganavyartyship = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rightTopFlare1",
@@ -24856,7 +24856,7 @@ local unitEventLightsNames = {
 				lightConfig = { posx = 0, posy = 5, posz = 0, radius = 32, color2r = 1, color2g = 0.87, color2b = 0.3, colortime = 600, r = 0.7, g = 0.4, b = 0.05, a = 0.18, modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 9, lifetime = 320, sustain = 20 },
 			},
 		},
-		["leglrpc"] = {
+		leglrpc = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrelA",
@@ -24936,7 +24936,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legstarfall"] = {
+		legstarfall = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "flare1",
@@ -25082,7 +25082,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legministarfall"] = {
+		legministarfall = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "flare1",
@@ -25206,7 +25206,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["leglraa"] = {
+		leglraa = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "flare",
@@ -25230,7 +25230,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armvulc"] = {
+		armvulc = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel01",
@@ -25341,7 +25341,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armsnipe"] = {
+		armsnipe = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel2",
@@ -25351,7 +25351,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legrail"] = {
+		legrail = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "beam",
 				pieceName = "flare",
@@ -25368,7 +25368,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legsrail"] = {
+		legsrail = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "flare1",
@@ -25385,7 +25385,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legsrailt4"] = {
+		legsrailt4 = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "beam",
 				pieceName = "flare1",
@@ -25402,7 +25402,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legerailtank"] = {
+		legerailtank = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rightFlare",
@@ -25426,7 +25426,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legphoenix"] = {
+		legphoenix = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "ringlight",
@@ -25436,7 +25436,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legbastion"] = {
+		legbastion = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lightpoint",
@@ -25446,7 +25446,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["leganavyflagship"] = {
+		leganavyflagship = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "torus3",
@@ -25456,7 +25456,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legeheatraymech"] = {
+		legeheatraymech = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rightToroidLight",
@@ -25472,7 +25472,7 @@ local unitEventLightsNames = {
 				lightConfig = { posx = 0, posy = 0, posz = 0, radius = 78, color2r = 1, color2g = 0.87, color2b = 0.3, colortime = 400, r = 1.0, g = 0.8, b = 0.1, a = 0.66, modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 9, lifetime = 200, sustain = 15, selfshadowing = 0 },
 			},
 		},
-		["legeheatraymech_old"] = {
+		legeheatraymech_old = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rightToroidLight",
@@ -25489,7 +25489,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["cordemon"] = {
+		cordemon = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lfbarrel2",
@@ -25506,7 +25506,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corthermite"] = {
+		corthermite = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel1",
@@ -25530,7 +25530,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corsiegebreaker"] = {
+		corsiegebreaker = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel_glow",
@@ -25548,7 +25548,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corsok"] = {
+		corsok = {
 			[1] = {
 				lightType = "point",
 				pieceName = "flare1",
@@ -25608,7 +25608,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armraz"] = {
+		armraz = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lcannon",
@@ -25653,7 +25653,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corcat"] = {
+		corcat = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lturret",
@@ -25684,7 +25684,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armanni"] = {
+		armanni = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel",
@@ -25693,7 +25693,7 @@ local unitEventLightsNames = {
 				lightConfig = { posx = 0, posy = 15, posz = -8, radius = 23, color2r = 1.1, color2g = 0.22, color2b = 0, colortime = 150, r = 0.3, g = 0.05, b = 0, a = 0.5, modelfactor = 1, specular = 1, scattering = 0.3, lensflare = 0, lifetime = 200, sustain = 10 },
 			},
 		},
-		[UnitDefNames["armexcalibur"].id] = {
+		[UnitDefNames.armexcalibur.id] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel",
@@ -25703,7 +25703,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corsilo"] = {
+		corsilo = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "base",
@@ -25720,7 +25720,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legsilo"] = {
+		legsilo = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "base",
@@ -25737,7 +25737,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armsilo"] = {
+		armsilo = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "base",
@@ -25757,28 +25757,28 @@ local unitEventLightsNames = {
 
 	------------------------------- Put additional lights tied to events here! --------------------------------
 	UnitIdle = {
-		["armcom"] = {
+		armcom = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "head",
 				lightConfig = { posx = 0, posy = 22, posz = 12, radius = 90, color2r = 0, color2g = 0, color2b = 0, colortime = 24, r = -1, g = 1, b = 1, a = 0.7, modelfactor = 0.4, specular = 0.6, scattering = 0.7, lensflare = 0, lifetime = 12, sustain = 0, selfshadowing = 0 },
 			},
 		},
-		["corcom"] = {
+		corcom = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "head",
 				lightConfig = { posx = 0, posy = 25, posz = 0, radius = 110, color2r = 0, color2g = 0, color2b = 0, colortime = 24, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.4, specular = 0.6, scattering = 0.7, lensflare = 0, lifetime = 12, sustain = 0, selfshadowing = 0 },
 			},
 		},
-		["legcom"] = {
+		legcom = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "head",
 				lightConfig = { posx = 0, posy = 25, posz = 0, radius = 110, color2r = 0, color2g = 0, color2b = 0, colortime = 24, r = -1, g = 1, b = 1, a = 0.5, modelfactor = 0.4, specular = 0.6, scattering = 0.7, lensflare = 0, lifetime = 12, sustain = 0, selfshadowing = 0 },
 			},
 		},
-		["armck"] = {
+		armck = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -25807,7 +25807,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["armcv"] = {
+		armcv = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -25815,7 +25815,7 @@ local unitEventLightsNames = {
 				lightConfig = { posx = 0, posy = 0, posz = 0, radius = 44, color2r = 0, color2g = 0, color2b = 0, colortime = 24, r = -1, g = 1, b = 1, a = 0.9, modelfactor = 0.9, specular = 0.2, scattering = 0.2, lensflare = 0, lifetime = 12, sustain = 0, selfshadowing = 0 },
 			},
 		},
-		["armbeaver"] = {
+		armbeaver = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -25823,7 +25823,7 @@ local unitEventLightsNames = {
 				lightConfig = { posx = 0, posy = 0, posz = 0, radius = 39, color2r = 0, color2g = 0, color2b = 0, colortime = 24, r = -1, g = 1, b = 1, a = 0.8, modelfactor = 0.9, specular = 0.2, scattering = 0.1, lensflare = 0, lifetime = 12, sustain = 0, selfshadowing = 0 },
 			},
 		},
-		["armca"] = {
+		armca = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -25831,7 +25831,7 @@ local unitEventLightsNames = {
 				lightConfig = { posx = 0, posy = 0, posz = 0, radius = 28, color2r = 0, color2g = 0, color2b = 0, colortime = 24, r = -1, g = 1, b = 1, a = 0.9, modelfactor = 0.9, specular = 0.3, scattering = 0.35, lensflare = 0, lifetime = 12, sustain = 0, selfshadowing = 0 },
 			},
 		},
-		["armcsa"] = {
+		armcsa = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -25839,7 +25839,7 @@ local unitEventLightsNames = {
 				lightConfig = { posx = 0, posy = 11, posz = 0, radius = 28, color2r = 0, color2g = 0, color2b = 0, colortime = 24, r = -1, g = 1, b = 1, a = 0.85, modelfactor = 0.9, specular = 0.3, scattering = 0.35, lensflare = 0, lifetime = 12, sustain = 0, selfshadowing = 0 },
 			},
 		},
-		["armcs"] = {
+		armcs = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -25856,14 +25856,14 @@ local unitEventLightsNames = {
 				lightConfig = { posx = -18, posy = 12, posz = 0, radius = 28, color2r = 0, color2g = 0, color2b = 0, colortime = 24, r = -1, g = 1, b = 1, a = 1, modelfactor = 1, specular = 0.9, scattering = 0.35, lensflare = 0, lifetime = 12, sustain = 0, selfshadowing = 0 },
 			},
 		},
-		["armacsub"] = {
+		armacsub = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
 				lightConfig = { posx = 0, posy = 35, posz = 0, radius = 42, color2r = 0, color2g = 0, color2b = 0, colortime = 24, r = -1, g = 1, b = 1, a = 1, modelfactor = 0.9, specular = 0.5, scattering = 0.35, lensflare = 0, lifetime = 12, sustain = 0, selfshadowing = 0 },
 			},
 		},
-		["armch"] = {
+		armch = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -25875,21 +25875,21 @@ local unitEventLightsNames = {
 				lightConfig = { posx = 0, posy = 19, posz = -14, radius = 26, color2r = 0, color2g = 0, color2b = 0, colortime = 24, r = -1, g = 1, b = 1, a = 1, modelfactor = 1, specular = 0.75, scattering = 0.35, lensflare = 0, lifetime = 12, sustain = 0, selfshadowing = 0 },
 			},
 		},
-		["armack"] = {
+		armack = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
 				lightConfig = { posx = 0, posy = 36, posz = -3, radius = 28, color2r = 0, color2g = 0, color2b = 0, colortime = 24, r = -1, g = 1, b = 1, a = 0.95, modelfactor = 0.95, specular = 0.2, scattering = 0.35, lensflare = 0, lifetime = 12, sustain = 0, selfshadowing = 0 },
 			},
 		},
-		["armacv"] = {
+		armacv = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
 				lightConfig = { posx = -1, posy = 24, posz = 25, radius = 26, color2r = 0, color2g = 0, color2b = 0, colortime = 24, r = -1, g = 1, b = 1, a = 1, modelfactor = 0.9, specular = 0.2, scattering = 0.75, lensflare = 0, lifetime = 12, sustain = 0, selfshadowing = 0 },
 			},
 		},
-		["armaca"] = {
+		armaca = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -25935,7 +25935,7 @@ local unitEventLightsNames = {
 	},
 
 	UnitCloaked = {
-		["armcom"] = {
+		armcom = {
 			cloakBlink = {
 				lightType = "point",
 				pieceName = "head",
@@ -25962,7 +25962,7 @@ local unitEventLightsNames = {
 	},
 
 	UnitDecloaked = {
-		["armcom"] = {
+		armcom = {
 			cloakBlink = {
 				lightType = "point",
 				pieceName = "head",
@@ -25980,7 +25980,7 @@ local unitEventLightsNames = {
 	},
 
 	StockpileChanged = {
-		["legmos"] = {
+		legmos = {
 			cloakBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -26043,35 +26043,35 @@ local unitEventLightsNames = {
 local armComTable = { "armcomlvl2", "armcomlvl4", "armcomlvl5", "armcomlvl6", "armcomlvl7", "armcomlvl8", "armcomlvl9", "armcomlvl10" }
 for _, name in pairs(armComTable) do
 	if name == "armcomlvl2" then
-		unitLights[name] = table.copy(unitLights["armcom"])
+		unitLights[name] = table.copy(unitLights.armcom)
 	else
-		unitLights[name] = table.copy(unitLights["armcomlvl3"])
+		unitLights[name] = table.copy(unitLights.armcomlvl3)
 	end
-	unitEventLightsNames.UnitDecloaked[name] = table.copy(unitEventLightsNames.UnitDecloaked["armcom"])
-	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle["armcom"])
-	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights["armcom"])
+	unitEventLightsNames.UnitDecloaked[name] = table.copy(unitEventLightsNames.UnitDecloaked.armcom)
+	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle.armcom)
+	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights.armcom)
 end
 
 --duplicate lights from corcom for Cortex Evocom
 local corComTable = { "corcomlvl2", "corcomlvl3", "corcomlvl4", "corcomlvl5", "corcomlvl6", "corcomlvl7", "corcomlvl8", "corcomlvl9", "corcomlvl10" }
 for _, name in pairs(corComTable) do
-	unitLights[name] = table.copy(unitLights["corcom"])
-	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle["corcom"])
-	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights["corcom"])
+	unitLights[name] = table.copy(unitLights.corcom)
+	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle.corcom)
+	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights.corcom)
 end
 
 --duplicate lights from legcom for Legion Evocom
 local legComTable = { "legcomlvl2", "legcomlvl3", "legcomlvl4", "legcomlvl5", "legcomlvl6", "legcomlvl7", "legcomlvl8", "legcomlvl9", "legcomlvl10", "legdecomlvl3", "legdecomlvl6", "legdecomlvl10" }
 for _, name in pairs(legComTable) do
-	unitLights[name] = table.copy(unitLights["legcom"])
-	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle["legcom"])
-	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights["legcom"])
+	unitLights[name] = table.copy(unitLights.legcom)
+	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle.legcom)
+	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights.legcom)
 end
 
 --duplicate lights from scavengerbossv4_normal for all scavengerbossv4 variants
 local scavengerBossV4Table = { "scavengerbossv4_veryeasy", "scavengerbossv4_easy", "scavengerbossv4_hard", "scavengerbossv4_veryhard", "scavengerbossv4_epic" }
 for _, name in pairs(scavengerBossV4Table) do
-	unitLights[name] = table.copy(unitLights["scavengerbossv4_normal"])
+	unitLights[name] = table.copy(unitLights.scavengerbossv4_normal)
 end
 
 --AND THE REST
@@ -26098,7 +26098,7 @@ for unitName, lights in pairs(unitLights) do
 end
 unitLights = nil
 
-if not (Spring.GetConfigInt("headlights", 1) == 1) then
+if not (SpringUnsynced.GetConfigInt("headlights", 1) == 1) then
 	for unitDefID, lights in pairs(unitDefLights) do
 		for name, params in pairs(lights) do
 			if string.find(name, "headlight") or string.find(name, "searchlight") then
@@ -26108,7 +26108,7 @@ if not (Spring.GetConfigInt("headlights", 1) == 1) then
 	end
 end
 
-if not (Spring.GetConfigInt("buildlights", 1) == 1) then
+if not (SpringUnsynced.GetConfigInt("buildlights", 1) == 1) then
 	for unitDefID, lights in pairs(unitDefLights) do
 		for name, params in pairs(lights) do
 			if string.find(name, "buildlight") then
@@ -26292,7 +26292,7 @@ local xmaslightbase = {
 -- White Fire Remake 1.3
 -- Ice Scream v2.5.1
 -- add colorful xmas lights to a percentage of certain snowy trees
-if Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then --and  os.date("%d") <= "26"
+if Utilities.Gametype.GetCurrentHolidays().xmas then --and  os.date("%d") <= "26"
 	local snowy_tree_keys = { allpinesb_ad0 = 60, __tree_fir_tall_3 = 60, __tree_fir_ = 60 }
 	local xmasColors = {
 		[1] = { 234, 13, 13 }, -- red

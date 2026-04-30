@@ -62,16 +62,16 @@ function PlacementHandler:NewJob(details)
 	}
 	]]
 	--
-	if details["start_position"] == nil then
+	if details.start_position == nil then
 		return false
 	end
-	if details["unittype"] == nil then
+	if details.unittype == nil then
 		return false
 	end
-	if details["max_radius"] == nil then
+	if details.max_radius == nil then
 		details.max_radius = 1500
 	end
-	if details["increment"] == nil then
+	if details.increment == nil then
 		details.increment = 16
 	end
 	if details.increment < 16 then
@@ -337,7 +337,7 @@ be cleaned up to save cpu
 ]]
 function PlacementHandler:UnitDead(engineunit)
 	for i, j in ipairs(self.jobs) do
-		if j["cleanup_on_unit_death"] ~= nil then
+		if j.cleanup_on_unit_death ~= nil then
 			if j.cleanup_on_unit_death == engineunit:ID() then
 				j.status = "cleanup"
 			end

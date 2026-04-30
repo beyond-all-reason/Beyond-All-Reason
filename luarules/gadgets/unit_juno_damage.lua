@@ -9,7 +9,7 @@ function gadget:GetInfo()
 		date = "05/2013",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = not Spring.GetModOptions().junorework,
+		enabled = not SpringShared.GetModOptions().junorework,
 	}
 end
 
@@ -21,67 +21,67 @@ if gadgetHandler:IsSyncedCode() then
 	-- Config
 	----------------------------------------------------------------
 	local tokillUnitsNames = {
-		["armarad"] = true,
-		["armaser"] = true,
-		["armason"] = true,
-		["armeyes"] = true,
-		["armfrad"] = true,
-		["armjam"] = true,
-		["armjamt"] = true,
-		["armmark"] = true,
-		["armrad"] = true,
-		["armseer"] = true,
-		["armsjam"] = true,
-		["armsonar"] = true,
-		["armveil"] = true,
-		["corarad"] = true,
-		["corason"] = true,
-		["coreter"] = true,
-		["coreyes"] = true,
-		["corfrad"] = true,
-		["corjamt"] = true,
-		["corrad"] = true,
-		["legjam"] = true,
-		["legrad"] = true,
-		["corshroud"] = true,
-		["corsjam"] = true,
-		["corsonar"] = true,
-		["corspec"] = true,
-		["corvoyr"] = true,
-		["corvrad"] = true,
-		["legarad"] = true,
-		["legajam"] = true,
-		["legavrad"] = true,
-		["legavjam"] = true,
-		["legaradk"] = true,
-		["legajamk"] = true,
-		["legfrad"] = true,
+		armarad = true,
+		armaser = true,
+		armason = true,
+		armeyes = true,
+		armfrad = true,
+		armjam = true,
+		armjamt = true,
+		armmark = true,
+		armrad = true,
+		armseer = true,
+		armsjam = true,
+		armsonar = true,
+		armveil = true,
+		corarad = true,
+		corason = true,
+		coreter = true,
+		coreyes = true,
+		corfrad = true,
+		corjamt = true,
+		corrad = true,
+		legjam = true,
+		legrad = true,
+		corshroud = true,
+		corsjam = true,
+		corsonar = true,
+		corspec = true,
+		corvoyr = true,
+		corvrad = true,
+		legarad = true,
+		legajam = true,
+		legavrad = true,
+		legavjam = true,
+		legaradk = true,
+		legajamk = true,
+		legfrad = true,
 
-		["armmine1"] = true,
-		["armmine2"] = true,
-		["armmine3"] = true,
-		["armfmine3"] = true,
-		["cormine1"] = true,
-		["cormine2"] = true,
-		["cormine3"] = true,
-		["cormine4"] = true,
-		["corfmine3"] = true,
-		["legmine1"] = true,
-		["legmine2"] = true,
-		["legmine3"] = true,
+		armmine1 = true,
+		armmine2 = true,
+		armmine3 = true,
+		armfmine3 = true,
+		cormine1 = true,
+		cormine2 = true,
+		cormine3 = true,
+		cormine4 = true,
+		corfmine3 = true,
+		legmine1 = true,
+		legmine2 = true,
+		legmine3 = true,
 
-		["corfav"] = true,
-		["armfav"] = true,
-		["armflea"] = true,
-		["legscout"] = true,
-		["raptor_land_swarmer_brood_t2_v1"] = true,
-		["raptor_land_kamikaze_basic_t2_v1"] = true,
-		["raptor_land_kamikaze_emp_t2_v1"] = true,
-		["raptor_land_kamikaze_basic_t4_v1"] = true,
-		["raptor_land_kamikaze_emp_t4_v1"] = true,
-		["scavmist"] = true,
-		["scavmistxl"] = true,
-		["scavmistxxl"] = true,
+		corfav = true,
+		armfav = true,
+		armflea = true,
+		legscout = true,
+		raptor_land_swarmer_brood_t2_v1 = true,
+		raptor_land_kamikaze_basic_t2_v1 = true,
+		raptor_land_kamikaze_emp_t2_v1 = true,
+		raptor_land_kamikaze_basic_t4_v1 = true,
+		raptor_land_kamikaze_emp_t4_v1 = true,
+		scavmist = true,
+		scavmistxl = true,
+		scavmistxxl = true,
 	}
 	-- convert unitname -> unitDefID
 	local tokillUnits = {}
@@ -93,18 +93,18 @@ if gadgetHandler:IsSyncedCode() then
 	tokillUnitsNames = nil
 
 	local todenyUnitsNames = {
-		["corfav"] = true,
-		["armfav"] = true,
-		["armflea"] = true,
-		["legscout"] = true,
-		["raptor_land_swarmer_brood_t2_v1"] = true,
-		["raptor_land_kamikaze_basic_t2_v1"] = true,
-		["raptor_land_kamikaze_emp_t2_v1"] = true,
-		["raptor_land_kamikaze_basic_t4_v1"] = true,
-		["raptor_land_kamikaze_emp_t4_v1"] = true,
-		["scavmist"] = true,
-		["scavmistxl"] = true,
-		["scavmistxxl"] = true,
+		corfav = true,
+		armfav = true,
+		armflea = true,
+		legscout = true,
+		raptor_land_swarmer_brood_t2_v1 = true,
+		raptor_land_kamikaze_basic_t2_v1 = true,
+		raptor_land_kamikaze_emp_t2_v1 = true,
+		raptor_land_kamikaze_basic_t4_v1 = true,
+		raptor_land_kamikaze_emp_t4_v1 = true,
+		scavmist = true,
+		scavmistxl = true,
+		scavmistxxl = true,
 	}
 	-- convert unitname -> unitDefID
 	local todenyUnits = {}
@@ -137,24 +137,24 @@ if gadgetHandler:IsSyncedCode() then
 	local fadetime = 2 --how long fade in/out effect lasts, in seconds
 
 	--locals
-	local SpGetGameSeconds = Spring.GetGameSeconds
-	local SpGetUnitsInCylinder = Spring.GetUnitsInCylinder
-	local SpDestroyUnit = Spring.DestroyUnit
-	local SpGetUnitDefID = Spring.GetUnitDefID
-	local SpValidUnitID = Spring.ValidUnitID
-	local SpGetUnitPosition = Spring.GetUnitPosition
-	local SpSpawnCEG = Spring.SpawnCEG
+	local SpGetGameSeconds = SpringShared.GetGameSeconds
+	local SpGetUnitsInCylinder = SpringShared.GetUnitsInCylinder
+	local SpDestroyUnit = SpringSynced.DestroyUnit
+	local SpGetUnitDefID = SpringShared.GetUnitDefID
+	local SpValidUnitID = SpringShared.ValidUnitID
+	local SpGetUnitPosition = SpringShared.GetUnitPosition
+	local SpSpawnCEG = SpringSynced.SpawnCEG
 	local Mmin = math.min
 
 	-- kill appropriate things from initial juno blast --
 
 	local junoWeaponsNames = {
-		["armjuno_juno_pulse"] = true,
-		["legjuno_juno_pulse"] = true,
-		["corjuno_juno_pulse"] = true,
-		["armjuno_scav_juno_pulse"] = true,
-		["legjuno_scav_juno_pulse"] = true,
-		["corjuno_scav_juno_pulse"] = true,
+		armjuno_juno_pulse = true,
+		legjuno_juno_pulse = true,
+		corjuno_juno_pulse = true,
+		armjuno_scav_juno_pulse = true,
+		legjuno_scav_juno_pulse = true,
+		corjuno_scav_juno_pulse = true,
 	}
 	-- convert unitname -> unitDefID
 	local junoWeapons = {}

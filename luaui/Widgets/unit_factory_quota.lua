@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
 
 local maxBuildProg = 0.075 -- maximum build progress that gets replaced in a repeat queue
 local maxMetal = 500 -- maximum metal cost that gets replaced in a repeat queue(7.5% of a juggernaut is still over 2k metal)
@@ -41,11 +41,11 @@ end
 
 ----- Speed ups ------
 local myTeam = spGetMyTeamID()
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetFactoryCommands = Spring.GetFactoryCommands
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spGetFactoryCommands = SpringShared.GetFactoryCommands
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitCmdDescs = SpringShared.GetUnitCmdDescs
+local spFindUnitCmdDesc = SpringShared.FindUnitCmdDesc
 
 local CMD_INSERT = CMD.INSERT
 local CMD_OPT_ALT = CMD.OPT_ALT
@@ -95,10 +95,10 @@ local function isFactoryUsable(factoryID)
 end
 
 local function appendToFactoryQueue(factoryID, unitDefID)
-	local currentCmdID, targetID = Spring.GetUnitWorkerTask(factoryID)
+	local currentCmdID, targetID = SpringShared.GetUnitWorkerTask(factoryID)
 	local insertPosition = 1
 	if targetID then
-		local _, _, _, _, buildProgress = Spring.GetUnitHealth(targetID)
+		local _, _, _, _, buildProgress = SpringShared.GetUnitHealth(targetID)
 		if buildProgress < maxBuildProg and metalcosts[-currentCmdID] and (buildProgress * metalcosts[-currentCmdID]) < maxMetal then -- 7.5 % is the most that it is willing to cancel, and maximally 500 metal
 			insertPosition = 0
 		end
@@ -172,7 +172,7 @@ function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() then
+	if SpringUnsynced.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 	myTeam = spGetMyTeamID()

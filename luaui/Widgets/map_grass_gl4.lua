@@ -30,13 +30,13 @@ local mathMin = math.min
 local mathRandom = math.random
 
 -- Localized Spring API for performance
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetCameraPosition = Spring.GetCameraPosition
-local spEcho = Spring.Echo
-local spGetAllUnits = Spring.GetAllUnits
-local spGetVisibleUnits = Spring.GetVisibleUnits
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spEcho = SpringShared.Echo
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetVisibleUnits = SpringUnsynced.GetVisibleUnits
 
 ----------IMPORTANT USAGE INSTRUCTIONS/ README----------
 
@@ -167,27 +167,27 @@ local mapoverrides = {
 			MAPCOLORFACTOR = 0.6,
 		},
 	},
-	["DeltaSiegeDry"] = {
+	DeltaSiegeDry = {
 		patchResolution = 32,
 		grassShaderParams = {
 			MAPCOLORFACTOR = 0.6,
 			SHADOWFACTOR = 0.001,
 		},
 	},
-	["Pentos_V1"] = {
+	Pentos_V1 = {
 		patchResolution = 32,
 		grassShaderParams = {
 			MAPCOLORFACTOR = 0.6,
 		},
 	},
-	["Taldarim_V3"] = {
+	Taldarim_V3 = {
 		patchResolution = 32,
 		grassShaderParams = {
 			MAPCOLORFACTOR = 0.5,
 		},
 		grassDistTGA = "LuaUI/Images/luagrass/Taldarim_V3_grassDist.tga",
 	},
-	["Altair_Crossing_V4"] = {
+	Altair_Crossing_V4 = {
 		patchResolution = 32,
 		grassMinSize = 0.5, --Size for grassmap value of 1 , min and max should be equal for old style binary grassmap (because its only 0,1)
 		grassMaxSize = 2.0, -- Size for grassmap value of 254
@@ -212,12 +212,12 @@ end
 
 --------------------------------------------------------------------------------
 local patchResolution = grassConfig.patchResolution
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGrass = Spring.GetGrass
-local spGetUnitDefID = Spring.GetUnitDefID
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetGrass = SpringShared.GetGrass
+local spGetUnitDefID = SpringShared.GetUnitDefID
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local vsx, vsy = gl.GetViewSizes()
-local minHeight, maxHeight = Spring.GetGroundExtremes()
+local minHeight, maxHeight = SpringShared.GetGroundExtremes()
 local removedBelowHeight
 local lastLavaLevel
 local lavaCheckInterval = 30 -- check every N game frames
@@ -297,7 +297,7 @@ local function scanUnitPositions(gf)
 	end
 
 	local cx, cy, cz = spGetCameraPosition()
-	local gh = Spring.GetGroundHeight(cx, cz) or 0
+	local gh = SpringShared.GetGroundHeight(cx, cz) or 0
 	local camHeight = cy - gh
 	-- Skip bending when camera is too high to see grass detail
 	if camHeight > grassConfig.grassShaderParams.FADEEND * distanceMult then
@@ -471,7 +471,7 @@ local function testForGrass(mx, mz)
 			return nil
 		end
 	else
-		local gx, gy, gz, gs = Spring.GetGroundNormal(mx, mz)
+		local gx, gy, gz, gs = SpringShared.GetGroundNormal(mx, mz)
 		local gh = spGetGroundHeight(mx, mz)
 		if (gh > grassConfig.grassMinHeight) and (gh < grassConfig.grassMaxHeight) and (gy > grassConfig.grassMaxSlope) then
 			return gh
@@ -554,7 +554,7 @@ local function updateGrassInstanceVBO(wx, wz, size, sizemod, vboOffset)
 
 	local shift = false
 	if placementMode then
-		_, _, _, shift = Spring.GetModKeyState()
+		_, _, _, shift = SpringUnsynced.GetModKeyState()
 	end
 	if sizemod < 1 then
 		if size < grassConfig.grassMinSize or shift then
@@ -654,8 +654,8 @@ local function clearAllUnitGrass()
 end
 
 local function clearGeothermalGrass()
-	if WG["resource_spot_finder"] then
-		local spots = WG["resource_spot_finder"].geoSpotsList
+	if WG.resource_spot_finder then
+		local spots = WG.resource_spot_finder.geoSpotsList
 		if spots then
 			local maxValue = 15
 			for i = 1, #spots do
@@ -668,8 +668,8 @@ end
 
 -- because not all maps have done this for us
 local function clearMetalspotGrass()
-	if WG["resource_spot_finder"] then
-		local spots = WG["resource_spot_finder"].metalSpotsList
+	if WG.resource_spot_finder then
+		local spots = WG.resource_spot_finder.metalSpotsList
 		if spots then
 			local maxValue = 15
 			for i = 1, #spots do
@@ -685,7 +685,7 @@ end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if processChanges and not placementMode and buildingRadius[unitDefID] and not unitGrassRemovedHistory[unitID] then
-		local isBuilding = Spring.GetUnitIsBeingBuilt(unitID)
+		local isBuilding = SpringShared.GetUnitIsBeingBuilt(unitID)
 		if isBuilding then
 			removeUnitGrassQueue[unitID] = removeUnitGrassFrames
 		else
@@ -729,11 +729,11 @@ function widget:GameFrame(gf)
 
 	-- check lava level and remove grass where lava is higher than ground
 	if gf % lavaCheckInterval == 0 then
-		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+		local lavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 		if lavaLevel and lavaLevel ~= -99999 and (not lastLavaLevel or lavaLevel > lastLavaLevel) then
 			lastLavaLevel = lavaLevel
-			if WG["grassgl4"] and WG["grassgl4"].removeGrassBelowHeight then
-				WG["grassgl4"].removeGrassBelowHeight(lavaLevel)
+			if WG.grassgl4 and WG.grassgl4.removeGrassBelowHeight then
+				WG.grassgl4.removeGrassBelowHeight(lavaLevel)
 			end
 		end
 	end
@@ -748,7 +748,7 @@ function widget:GameFrame(gf)
 		end
 		local allUnits = spGetAllUnits()
 		for _, unitID in pairs(allUnits) do
-			if isCommander[Spring.GetUnitDefID(unitID)] then
+			if isCommander[SpringShared.GetUnitDefID(unitID)] then
 				local x, _, z = spGetUnitPosition(unitID)
 				adjustGrass(x, z, 90, 1)
 			end
@@ -832,7 +832,7 @@ local function defineUploadGrassInstanceVBOData()
 end
 
 local function LoadGrassTGA(filename)
-	local texture, loadfailed = Spring.Utilities.LoadTGA(filename)
+	local texture, loadfailed = Utilities.LoadTGA(filename)
 	if loadfailed then
 		spEcho("Grass: Failed to load image for grass:", filename, loadfailed)
 		return nil
@@ -998,7 +998,7 @@ local function savegrassCmd(_, _, params)
 	end
 	spEcho("Savegrass: ", filename)
 
-	texture = Spring.Utilities.NewTGA(mathFloor(mapSizeX / grassConfig.patchResolution), mathFloor(mapSizeZ / grassConfig.patchResolution), 1)
+	texture = Utilities.NewTGA(mathFloor(mapSizeX / grassConfig.patchResolution), mathFloor(mapSizeZ / grassConfig.patchResolution), 1)
 	local offset = 0
 	for y = 1, texture.height do
 		for x = 1, texture.width do
@@ -1006,7 +1006,7 @@ local function savegrassCmd(_, _, params)
 			offset = offset + 1
 		end
 	end
-	local success = Spring.Utilities.SaveTGA(texture, filename)
+	local success = Utilities.SaveTGA(texture, filename)
 	if success then
 		spEcho("Saving grass map image failed", filename, success)
 	end
@@ -1071,17 +1071,17 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	WG["grassgl4"] = {}
-	WG["grassgl4"].getDistanceMult = function()
+	WG.grassgl4 = {}
+	WG.grassgl4.getDistanceMult = function()
 		return distanceMult
 	end
-	WG["grassgl4"].setDistanceMult = function(value)
+	WG.grassgl4.setDistanceMult = function(value)
 		distanceMult = value
 	end
-	WG["grassgl4"].getUnitBendEnabled = function()
+	WG.grassgl4.getUnitBendEnabled = function()
 		return unitBendSSBO ~= nil
 	end
-	WG["grassgl4"].removeGrass = function(wx, wz, radius)
+	WG.grassgl4.removeGrass = function(wx, wz, radius)
 		radius = radius or grassConfig.patchResolution
 		for x = wx - radius, wx + radius, grassConfig.patchResolution do
 			for z = wz - radius, wz + radius, grassConfig.patchResolution do
@@ -1093,7 +1093,7 @@ function widget:Initialize()
 			end
 		end
 	end
-	WG["grassgl4"].removeGrassBelowHeight = function(height)
+	WG.grassgl4.removeGrassBelowHeight = function(height)
 		if #grassInstanceData == 0 then
 			return nil
 		end
@@ -1135,15 +1135,15 @@ function widget:Initialize()
 	clearAllUnitGrass()
 	clearMetalspotGrass()
 	if Game.waterDamage > 0 then
-		WG["grassgl4"].removeGrassBelowHeight(20)
+		WG.grassgl4.removeGrassBelowHeight(20)
 	end
 	-- initial lava check
-	local initLavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	local initLavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 	if initLavaLevel and initLavaLevel ~= -99999 then
 		lastLavaLevel = initLavaLevel
-		WG["grassgl4"].removeGrassBelowHeight(initLavaLevel)
+		WG.grassgl4.removeGrassBelowHeight(initLavaLevel)
 	end
-	widgetHandler:RegisterGlobal("GadgetRemoveGrass", WG["grassgl4"].removeGrass)
+	widgetHandler:RegisterGlobal("GadgetRemoveGrass", WG.grassgl4.removeGrass)
 
 	processChanges = next(grassInstanceData) ~= nil
 
@@ -1182,7 +1182,7 @@ function widget:GetConfigData()
 end
 
 local function getWindSpeed()
-	windDirX, _, windDirZ, _ = Spring.GetWind()
+	windDirX, _, windDirZ, _ = SpringShared.GetWind()
 	-- cap windspeed while preserving direction
 	if windDirX > grassConfig.maxWindSpeed and windDirX > windDirZ then
 		windDirZ = (windDirZ / windDirX) * grassConfig.maxWindSpeed
@@ -1199,7 +1199,7 @@ local function mapcoordtorow(mapz, offset) -- is this even worth it?
 	return grassRowInstance[rownum]
 end
 
-local spIsAABBInView = Spring.IsAABBInView
+local spIsAABBInView = SpringUnsynced.IsAABBInView
 
 local viewtables = { { 0, 0 }, { vsx - 1, 0 }, { 0, vsy - 1 }, { vsx - 1, vsy - 1 } }
 
@@ -1269,7 +1269,7 @@ function widget:DrawWorldPreUnit()
 	if #grassInstanceData == 0 then
 		return
 	end
-	local mapDrawMode = Spring.GetMapDrawMode()
+	local mapDrawMode = SpringUnsynced.GetMapDrawMode()
 	if mapDrawMode ~= "normal" and mapDrawMode ~= "los" then
 		return
 	end
@@ -1284,7 +1284,7 @@ function widget:DrawWorldPreUnit()
 	oldGameSeconds = newGameSeconds
 
 	local cx, cy, cz = spGetCameraPosition()
-	local gh = (Spring.GetGroundHeight(cx, cz) or 0)
+	local gh = (SpringShared.GetGroundHeight(cx, cz) or 0)
 
 	local fadeEnd = grassConfig.grassShaderParams.FADEEND * distanceMult
 	local fadeStart = grassConfig.grassShaderParams.FADESTART * distanceMult
@@ -1304,7 +1304,7 @@ function widget:DrawWorldPreUnit()
 		if instanceCount <= 0 or startInstanceIndex == grassDataLen / 4 then
 			return
 		end
-		local _, _, isPaused = Spring.GetGameSpeed()
+		local _, _, isPaused = SpringUnsynced.GetGameSpeed()
 		if not isPaused then
 			getWindSpeed()
 			offsetX = offsetX - ((windDirX * grassConfig.grassWindMult) * timePassed)
@@ -1341,7 +1341,7 @@ function widget:DrawWorldPreUnit()
 		-- NOTE THAT INDEXED DRAWING DOESNT WORK YET!
 		grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, instanceCount, startInstanceIndex)
 
-		if placementMode and Spring.GetGameFrame() % 30 == 0 then
+		if placementMode and SpringShared.GetGameFrame() % 30 == 0 then
 			spEcho("Drawing", instanceCount, "grass patches")
 		end
 		grassShader:Deactivate()
@@ -1365,7 +1365,7 @@ end
 
 local lastSunChanged = -1
 function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
-	local df = Spring.GetDrawFrame()
+	local df = SpringUnsynced.GetDrawFrame()
 	--spEcho("widget:SunChanged", df)
 	if df == lastSunChanged then
 		return
@@ -1373,12 +1373,12 @@ function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change
 	lastSunChanged = df
 
 	-- Do the math:
-	if WG["NightFactor"] then
+	if WG.NightFactor then
 		local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
-		nightFactor[1] = WG["NightFactor"].red * altitudefactor
-		nightFactor[2] = WG["NightFactor"].green * altitudefactor
-		nightFactor[3] = WG["NightFactor"].blue * altitudefactor
-		nightFactor[4] = WG["NightFactor"].shadow
+		nightFactor[1] = WG.NightFactor.red * altitudefactor
+		nightFactor[2] = WG.NightFactor.green * altitudefactor
+		nightFactor[3] = WG.NightFactor.blue * altitudefactor
+		nightFactor[4] = WG.NightFactor.shadow
 	end
 end
 

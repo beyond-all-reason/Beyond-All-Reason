@@ -24,8 +24,8 @@ local mathMax = math.max
 local mathPi = math.pi
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
-local spEcho = Spring.Echo
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spEcho = SpringShared.Echo
 
 ---------------------------
 
@@ -187,8 +187,8 @@ local weaponTypeMap = { "ground", "nano", "AA", "cannon", "lrpc" }
 
 local unitDefRings = {} --each entry should be a unitdefIDkey to a table:
 
-local vtoldamagetag = Game.armorTypes["vtol"]
-local defaultdamagetag = Game.armorTypes["default"]
+local vtoldamagetag = Game.armorTypes.vtol
+local defaultdamagetag = Game.armorTypes.default
 
 -- globals
 local minimapUtils = VFS.Include("luaui/Include/minimap_utils.lua")
@@ -274,7 +274,7 @@ end
 
 local function initializeUnitDefRing(unitDefID)
 	local weapons = unitWeapons[unitDefID]
-	unitDefRings[unitDefID]["rings"] = {}
+	unitDefRings[unitDefID].rings = {}
 	local weaponCount = #weapons or 0
 	for weaponNum = 1, #weapons do
 		local weaponDefID = weapons[weaponNum].weaponDef
@@ -288,7 +288,7 @@ local function initializeUnitDefRing(unitDefID)
 
 		local range = weaponDef.range
 		local dps = 0
-		local weaponType = unitDefRings[unitDefID]["weapons"][weaponNum]
+		local weaponType = unitDefRings[unitDefID].weapons[weaponNum]
 
 		if weaponType ~= nil and weaponType > 0 then
 			local damage = 0
@@ -416,19 +416,19 @@ local function initializeUnitDefRing(unitDefID)
 				isDgun, --16
 				maxangledif, --17
 			}
-			unitDefRings[unitDefID]["rings"][weaponNum] = ringParams
+			unitDefRings[unitDefID].rings[weaponNum] = ringParams
 		end
 	end
 
 	-- for builders, we need to add a special nano ring def
 	if unitBuilder[unitDefID] then
 		local range = unitBuildDistance[unitDefID]
-		local color = colorConfig["nano"].color
-		local fadeparams = colorConfig["nano"].fadeparams
-		local groupselectionfadescale = colorConfig["nano"].groupselectionfadescale
+		local color = colorConfig.nano.color
+		local fadeparams = colorConfig.nano.fadeparams
+		local groupselectionfadescale = colorConfig.nano.groupselectionfadescale
 
 		local ringParams = { range, color[1], color[2], color[3], color[4], fadeparams[1], fadeparams[2], fadeparams[3], fadeparams[4], 1, false, 0, 0, groupselectionfadescale, 2, 0 }
-		unitDefRings[unitDefID]["rings"][weaponCount + 1] = ringParams -- weaponCount + 1 is nano
+		unitDefRings[unitDefID].rings[weaponCount + 1] = ringParams -- weaponCount + 1 is nano
 	end
 end
 
@@ -443,7 +443,7 @@ end
 --Button display configuration
 --position only relevant if no saved config data found
 
-local myAllyTeam = Spring.GetMyAllyTeamID()
+local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 local myTeamID = spGetMyTeamID()
 
 --------------------------------------------------------------------------------
@@ -466,16 +466,16 @@ local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_KEEP = 0x1E00 --GL.KEEP
 local GL_REPLACE = GL.REPLACE --GL.KEEP
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitWeaponVectors = Spring.GetUnitWeaponVectors
-local spGetUnitWeaponState = Spring.GetUnitWeaponState
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local GetModKeyState = Spring.GetModKeyState
-local GetActiveCommand = Spring.GetActiveCommand
-local GetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitWeaponVectors = SpringShared.GetUnitWeaponVectors
+local spGetUnitWeaponState = SpringShared.GetUnitWeaponState
+local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local GetModKeyState = SpringUnsynced.GetModKeyState
+local GetActiveCommand = SpringUnsynced.GetActiveCommand
+local GetSelectedUnits = SpringUnsynced.GetSelectedUnits
 local chobbyInterface
 
 local CMD_ATTACK = CMD.ATTACK
@@ -684,7 +684,7 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 
 	--for weaponNum = 1, #weapons do
 	local addedRings = 0
-	local weaponTypes = unitDefRings[unitDefID]["weapons"]
+	local weaponTypes = unitDefRings[unitDefID].weapons
 	for j, weaponType in pairs(weaponTypes) do
 		local drawIt = true
 		-- we need to check if the unit has on/off weapon states, and only add the one active
@@ -716,11 +716,11 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 		local ringParams = {}
 		if newRange then
 			for i = 2, 17 do -- See line 405.
-				ringParams[i] = unitDefRings[unitDefID]["rings"][j][i] -- Preserves default range from unitDefs for use with enemy units.
+				ringParams[i] = unitDefRings[unitDefID].rings[j][i] -- Preserves default range from unitDefs for use with enemy units.
 			end
 			ringParams[1] = newRange[j]
 		else
-			ringParams = unitDefRings[unitDefID]["rings"][j]
+			ringParams = unitDefRings[unitDefID].rings[j]
 		end
 		if drawIt and ringParams[1] > 0 then
 			local weaponID = j
@@ -822,7 +822,7 @@ end
 
 local function InitializeBuilders()
 	builders = {}
-	for _, unitID in ipairs(Spring.GetTeamUnits(spGetMyTeamID())) do
+	for _, unitID in ipairs(SpringShared.GetTeamUnits(spGetMyTeamID())) do
 		if unitBuilder[spGetUnitDefID(unitID)] then
 			builders[unitID] = true
 		end
@@ -962,20 +962,20 @@ local function cycleUnitDisplay(direction)
 		soundEffect = soundEffectOff
 		volume = 0.6
 	end
-	Spring.PlaySoundFile(soundEffect, volume, "ui")
+	SpringUnsynced.PlaySoundFile(soundEffect, volume, "ui")
 
 	RefreshEverything()
 end
 
 local function cycleUnitDisplayHandler(_, _, _, data)
 	local data = data or {}
-	local direction = data["direction"]
+	local direction = data.direction
 	cycleUnitDisplay(direction)
 end
 
 function widget:PlayerChanged(playerID)
-	myAllyTeamID = Spring.GetLocalAllyTeamID()
-	myTeamID = Spring.GetLocalTeamID()
+	myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+	myTeamID = SpringUnsynced.GetLocalTeamID()
 
 	InitializeBuilders()
 end
@@ -997,7 +997,7 @@ function widget:Initialize()
 	widgetHandler:AddAction("attack_range_inc", cycleUnitDisplayHandler, { direction = 1 }, "p")
 	widgetHandler:AddAction("attack_range_dec", cycleUnitDisplayHandler, { direction = -1 }, "p")
 
-	myAllyTeam = Spring.GetMyAllyTeamID()
+	myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 	myTeamID = spGetMyTeamID()
 
 	updateSelection = true
@@ -1236,9 +1236,9 @@ function widget:DrawWorld(inMiniMap)
 	if chobbyInterface or not (selUnitCount > 0 or mouseUnit) then
 		return
 	end
-	if not Spring.IsGUIHidden() and (not WG["topbar"] or not WG["topbar"].showingQuit()) then
+	if not SpringUnsynced.IsGUIHidden() and (not WG.topbar or not WG.topbar.showingQuit()) then
 		-- For PIP minimap, use thicker lines since PIP is larger than engine minimap
-		local inPip = inMiniMap and WG["minimap"] and WG["minimap"].isDrawingInPip
+		local inPip = inMiniMap and WG.minimap and WG.minimap.isDrawingInPip
 		if inPip then
 			cameraHeightFactor = 2.5 -- PIP is larger, needs thicker lines
 		else
@@ -1272,8 +1272,8 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
 
 			-- Pass PIP visible area if drawing in PIP minimap
-			if inMiniMap and WG["minimap"] and WG["minimap"].isDrawingInPip and WG["minimap"].getNormalizedVisibleArea then
-				local left, right, bottom, top = WG["minimap"].getNormalizedVisibleArea()
+			if inMiniMap and WG.minimap and WG.minimap.isDrawingInPip and WG.minimap.getNormalizedVisibleArea then
+				local left, right, bottom, top = WG.minimap.getNormalizedVisibleArea()
 				attackRangeShader:SetUniform("pipVisibleArea", left, right, bottom, top)
 			else
 				attackRangeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
@@ -1331,7 +1331,7 @@ end
 
 function widget:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
-	unitTeam = unitTeam or Spring.GetUnitTeam(unitID)
+	unitTeam = unitTeam or SpringShared.GetUnitTeam(unitID)
 	RemoveSelectedUnit(unitID, false)
 	builders[unitID] = nil
 end

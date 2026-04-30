@@ -7,17 +7,17 @@ local unitDef_Post = alldefs.UnitDef_Post
 local saveDefToCustomParams = savedefs.SaveDefToCustomParams
 
 local scavengersEnabled = false
-if Spring.GetTeamList then
-	local teamList = Spring.GetTeamList()
+if SpringShared.GetTeamList then
+	local teamList = SpringShared.GetTeamList()
 	for _, teamID in ipairs(teamList) do
-		local luaAI = Spring.GetTeamLuaAI(teamID)
+		local luaAI = SpringShared.GetTeamLuaAI(teamID)
 		if luaAI and luaAI:find("Scavengers") then
 			scavengersEnabled = true
 		end
 	end
 end
 
-local modOptions = Spring.GetModOptions()
+local modOptions = SpringShared.GetModOptions()
 if modOptions.ruins == "enabled" or modOptions.forceallunits == true or modOptions.zombies ~= "disabled" or (GG and GG.Zombies and GG.Zombies.IdleMode == true) then
 	scavengersEnabled = true
 end
@@ -214,8 +214,8 @@ end
 
 local function preProcessTweakOptions()
 	local modOptions = {}
-	if Spring.GetModOptionsCopy then
-		modOptions = Spring.GetModOptionsCopy()
+	if GetModOptionsCopy then
+		modOptions = GetModOptionsCopy()
 	end
 
 	--------------------------------------------------------------------------------
@@ -251,37 +251,37 @@ local function preProcessTweakOptions()
 			if decodeSuccess then
 				local postfunc, err = loadstring(postsFuncStr)
 				if err then
-					Spring.Echo("Error parsing modoption", name, "from string", postsFuncStr, "Error: " .. err)
+					SpringShared.Echo("Error parsing modoption", name, "from string", postsFuncStr, "Error: " .. err)
 				else
-					Spring.Echo("Loading " .. name .. " modoption")
-					Spring.Echo(postsFuncStr)
+					SpringShared.Echo("Loading " .. name .. " modoption")
+					SpringShared.Echo(postsFuncStr)
 					if postfunc then
 						local success, result = pcall(postfunc)
 						if success then
 							shouldNormalizeUnitDefs = true -- tweakdefs can add or denormalize units
 						else
-							Spring.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
+							SpringShared.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
 						end
 					end
 				end
 			else
-				Spring.Echo("Error parsing and decoding tweakdef", name, modOptions[name], "Error :" .. postsFuncStr)
+				SpringShared.Echo("Error parsing and decoding tweakdef", name, modOptions[name], "Error :" .. postsFuncStr)
 			end
 		else
-			local success, tweakunits = pcall(Spring.Utilities.CustomKeyToUsefulTable, modOptions[name])
+			local success, tweakunits = pcall(Utilities.CustomKeyToUsefulTable, modOptions[name])
 			if success then
 				if type(tweakunits) == "table" then
-					Spring.Echo("Loading " .. name .. " modoption")
+					SpringShared.Echo("Loading " .. name .. " modoption")
 					for unitName, ud in pairs(UnitDefs) do
 						if tweakunits[unitName] then
-							Spring.Echo("Loading tweakunits for " .. unitName)
+							SpringShared.Echo("Loading tweakunits for " .. unitName)
 							table.mergeInPlace(ud, system.lowerkeys(tweakunits[unitName]), true)
 							normalizeUnitDef(ud) -- tweakunits can set required tables to nil
 						end
 					end
 				end
 			else
-				Spring.Echo("Failed to parse modoption", name, "with value", modOptions[name])
+				SpringShared.Echo("Failed to parse modoption", name, "with value", modOptions[name])
 			end
 		end
 	end

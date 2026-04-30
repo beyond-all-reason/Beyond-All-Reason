@@ -20,9 +20,9 @@ local isSinglePlayer = false
 local trustedNames = powerusers.trustedNames
 powerusers.trustedNames = nil
 if trustedNames then
-	for _, playerID in ipairs(Spring.GetPlayerList()) do
-		local accountID = Spring.Utilities.GetAccountID(playerID)
-		local name = Spring.GetPlayerInfo(playerID)
+	for _, playerID in ipairs(SpringShared.GetPlayerList()) do
+		local accountID = Utilities.GetAccountID(playerID)
+		local name = SpringShared.GetPlayerInfo(playerID)
 		if name and trustedNames[name] then
 			-- Register under accountID for synced gadgets
 			if not powerusers[accountID] then
@@ -36,13 +36,13 @@ if trustedNames then
 	end
 end
 
-local numPlayers = Spring.Utilities.GetPlayerCount()
+local numPlayers = Utilities.GetPlayerCount()
 
 -- give permissions when in singleplayer
 if numPlayers <= 1 then
-	for _, playerID in ipairs(Spring.GetPlayerList()) do
-		local accountID = Spring.Utilities.GetAccountID(playerID)
-		local _, _, spec = Spring.GetPlayerInfo(playerID)
+	for _, playerID in ipairs(SpringShared.GetPlayerList()) do
+		local accountID = Utilities.GetAccountID(playerID)
+		local _, _, spec = SpringShared.GetPlayerInfo(playerID)
 
 		-- dont give permissions to the spectators when there is a player is playing
 		if not spec or numPlayers == 0 then
@@ -76,8 +76,8 @@ _G.isSinglePlayer = isSinglePlayer
 -- The patched GetAccountID is used by synced gadgets. Unsynced gadgets use name-based lookup.
 local trustedNameAccountIDs = {}
 local nextSyntheticAccountID = -1000
-local originalGetAccountID = Spring.Utilities.GetAccountID
-Spring.Utilities.GetAccountID = function(playerID)
+local originalGetAccountID = Utilities.GetAccountID
+Utilities.GetAccountID = function(playerID)
 	local syntheticID = trustedNameAccountIDs[playerID]
 	if syntheticID then
 		return syntheticID
@@ -86,7 +86,7 @@ Spring.Utilities.GetAccountID = function(playerID)
 end
 
 local function ResolveTrustedName(playerID)
-	local name = Spring.GetPlayerInfo(playerID)
+	local name = SpringShared.GetPlayerInfo(playerID)
 	if not name or not trustedNames[name] then
 		return false
 	end
@@ -114,7 +114,7 @@ local function ResolveTrustedName(playerID)
 		permissions[permission][accountID] = value
 		permissions[permission][name] = value
 	end
-	Spring.Log("Permissions", LOG.INFO, "Granted permissions to '" .. name .. "' (accountID: " .. accountID .. ")")
+	SpringShared.Log("Permissions", LOG.INFO, "Granted permissions to '" .. name .. "' (accountID: " .. accountID .. ")")
 	return true
 end
 
@@ -125,7 +125,7 @@ function gadget:PlayerChanged(playerID)
 	if not trustedNames then
 		return
 	end
-	local name = Spring.GetPlayerInfo(playerID)
+	local name = SpringShared.GetPlayerInfo(playerID)
 	if not name or not trustedNames[name] then
 		return
 	end
@@ -147,8 +147,8 @@ function gadget:GameFrame(frame)
 	if frame % 150 ~= 0 then
 		return
 	end
-	for _, playerID in ipairs(Spring.GetPlayerList()) do
-		local name = Spring.GetPlayerInfo(playerID)
+	for _, playerID in ipairs(SpringShared.GetPlayerList()) do
+		local name = SpringShared.GetPlayerInfo(playerID)
 		if name and trustedNames[name] then
 			local currentAccountID = originalGetAccountID(playerID)
 			local prevAccountID = resolvedAccountIDs[playerID]

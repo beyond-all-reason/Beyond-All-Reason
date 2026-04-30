@@ -1,4 +1,4 @@
-if not Spring.GetModOptions().map_atmosphere then
+if not SpringShared.GetModOptions().map_atmosphere then
 	return
 end
 
@@ -16,7 +16,7 @@ function gadget:GetInfo()
 	}
 end
 
-local enableGenericConfig = Spring.GetModOptions().mapatmospherics or "enabled"
+local enableGenericConfig = SpringShared.GetModOptions().mapatmospherics or "enabled"
 
 --if VFS.FileExists("luarules/configs/Atmosphereconfigs/" .. Game.mapName .. ".lua") then
 --elseif enableGenericConfig ~= "disabled" then
@@ -25,16 +25,16 @@ local enableGenericConfig = Spring.GetModOptions().mapatmospherics or "enabled"
 local currentMapname = Game.mapName:lower()
 local mapList = VFS.DirList("luarules/configs/Atmosphereconfigs/", "*.lua")
 
-Spring.Echo("[ATMOSPHERIC] Current map: " .. currentMapname)
+SpringShared.Echo("[ATMOSPHERIC] Current map: " .. currentMapname)
 local mapFileName = "" -- (Include at bottom of this file)
 for i = 1, #mapList + 1 do
 	if i == #mapList + 1 then
-		Spring.Echo("[ATMOSPHERIC] No map config found. Turning off the gadget")
+		SpringShared.Echo("[ATMOSPHERIC] No map config found. Turning off the gadget")
 		return
 	end
 	mapFileName = string.sub(mapList[i], 36, string.len(mapList[i]) - 4):lower()
 	if string.find(currentMapname, mapFileName) then
-		Spring.Echo("[ATMOSPHERIC] Success! Map names match!: " .. mapFileName)
+		SpringShared.Echo("[ATMOSPHERIC] Success! Map names match!: " .. mapFileName)
 		break
 	else
 		--Spring.Echo("[ATMOSPHERIC] Map names don't match: " ..mapFileName)
@@ -90,13 +90,13 @@ if not gadgetHandler:IsSyncedCode() then
 
 	local function SetLightingAndAtmosphere(lightandatmos)
 		if lightandatmos.atmosphere then
-			Spring.SetAtmosphere(lightandatmos.atmosphere)
+			SpringUnsynced.SetAtmosphere(lightandatmos.atmosphere)
 		end
 		if lightandatmos.lighting then
-			Spring.SetSunLighting(lightandatmos.lighting)
+			SpringUnsynced.SetSunLighting(lightandatmos.lighting)
 		end
 		if lightandatmos.sunDir then
-			Spring.SetSunDirection(lightandatmos.sunDir[1], lightandatmos.sunDir[2], lightandatmos.sunDir[3])
+			SpringUnsynced.SetSunDirection(lightandatmos.sunDir[1], lightandatmos.sunDir[2], lightandatmos.sunDir[3])
 		end
 	end
 
@@ -131,9 +131,9 @@ if not gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		if a["sunDir"] and b["sunDir"] then
-			local asun = a["sunDir"]
-			local bsun = b["sunDir"]
+		if a.sunDir and b.sunDir then
+			local asun = a.sunDir
+			local bsun = b.sunDir
 			local alength = 1.0 / diag(asun[1], asun[2], asun[3])
 			local blength = 1.0 / diag(bsun[1], bsun[2], bsun[3])
 
@@ -157,12 +157,12 @@ if not gadgetHandler:IsSyncedCode() then
 			local targetrot = mix(aworldrot, bworldrot, mixfactor)
 			local targetheight = mix(aheight, bheight, mixfactor)
 
-			if target["sunDir"] == nil then
-				target["sunDir"] = { 0, 1, 0 }
+			if target.sunDir == nil then
+				target.sunDir = { 0, 1, 0 }
 			end
-			target["sunDir"][1] = sin(targetrot) * cos(targetheight)
-			target["sunDir"][2] = sin(targetheight)
-			target["sunDir"][3] = cos(targetrot) * cos(targetheight)
+			target.sunDir[1] = sin(targetrot) * cos(targetheight)
+			target.sunDir[2] = sin(targetheight)
+			target.sunDir[3] = cos(targetrot) * cos(targetheight)
 			--Spring.Echo("sunDir", mixfactor, "targetrot",targetrot, "targetheight", targetheight, aworldrot ,  bworldrot)
 		end
 	end
@@ -301,19 +301,19 @@ if not gadgetHandler:IsSyncedCode() then
 			local origheight = math.atan2(sundirx, sundiry)
 		end
 
-		Spring.SetSunLighting({ groundAmbientColor = { transitionred * gar, transitiongreen * gag, transitionblue * gab } })
-		Spring.SetSunLighting({ unitAmbientColor = { transitionred * uar, transitiongreen * uag, transitionblue * uab } })
-		Spring.SetSunLighting({ groundDiffuseColor = { transitionred * gdr, transitiongreen * gdg, transitionblue * gdb } })
-		Spring.SetSunLighting({ unitDiffuseColor = { transitionred * udr, transitiongreen * udg, transitionblue * udb } })
-		Spring.SetSunLighting({ groundSpecularColor = { transitionred * gsr, transitiongreen * gsg, transitionblue * gsb } })
-		Spring.SetSunLighting({ unitSpecularColor = { transitionred * usr, transitiongreen * usg, transitionblue * usb } })
+		SpringUnsynced.SetSunLighting({ groundAmbientColor = { transitionred * gar, transitiongreen * gag, transitionblue * gab } })
+		SpringUnsynced.SetSunLighting({ unitAmbientColor = { transitionred * uar, transitiongreen * uag, transitionblue * uab } })
+		SpringUnsynced.SetSunLighting({ groundDiffuseColor = { transitionred * gdr, transitiongreen * gdg, transitionblue * gdb } })
+		SpringUnsynced.SetSunLighting({ unitDiffuseColor = { transitionred * udr, transitiongreen * udg, transitionblue * udb } })
+		SpringUnsynced.SetSunLighting({ groundSpecularColor = { transitionred * gsr, transitiongreen * gsg, transitionblue * gsb } })
+		SpringUnsynced.SetSunLighting({ unitSpecularColor = { transitionred * usr, transitiongreen * usg, transitionblue * usb } })
 
-		Spring.SetAtmosphere({ skyColor = { transitionred * skycr, transitiongreen * skycg, transitionblue * skycb } })
-		Spring.SetAtmosphere({ sunColor = { transitionred * suncr, transitiongreen * suncg, transitionblue * suncb } })
-		Spring.SetAtmosphere({ cloudColor = { transitionred * clocr, transitiongreen * clocg, transitionblue * clocb } })
-		Spring.SetAtmosphere({ fogColor = { transitionred * fogcr, transitiongreen * fogcg, transitionblue * fogcb } })
+		SpringUnsynced.SetAtmosphere({ skyColor = { transitionred * skycr, transitiongreen * skycg, transitionblue * skycb } })
+		SpringUnsynced.SetAtmosphere({ sunColor = { transitionred * suncr, transitiongreen * suncg, transitionblue * suncb } })
+		SpringUnsynced.SetAtmosphere({ cloudColor = { transitionred * clocr, transitiongreen * clocg, transitionblue * clocb } })
+		SpringUnsynced.SetAtmosphere({ fogColor = { transitionred * fogcr, transitiongreen * fogcg, transitionblue * fogcb } })
 
-		Spring.SetSunLighting({ groundShadowDensity = transition * shadowdensity, modelShadowDensity = transition * shadowdensity })
+		SpringUnsynced.SetSunLighting({ groundShadowDensity = transition * shadowdensity, modelShadowDensity = transition * shadowdensity })
 	end
 
 	local function MapAtmosphereConfigSetFog(_, targetstart, targetend, transitionspeedstart, transitionspeedend)
@@ -338,13 +338,13 @@ if not gadgetHandler:IsSyncedCode() then
 			transitionend = transitionend - transitionspeedpercentedend
 		end
 
-		Spring.SetAtmosphere({ fogStart = transitionstart * fogstartdefault })
-		Spring.SetAtmosphere({ fogEnd = transitionend * fogenddefault })
+		SpringUnsynced.SetAtmosphere({ fogStart = transitionstart * fogstartdefault })
+		SpringUnsynced.SetAtmosphere({ fogEnd = transitionend * fogenddefault })
 	end
 
 	function gadget:TextCommand(msg)
 		if string.sub(msg, 1, 18) == "atmosplaysoundfile" then
-			Spring.PlaySoundFile(string.sub(msg, 20), 0.85, "ui")
+			SpringUnsynced.PlaySoundFile(string.sub(msg, 20), 0.85, "ui")
 		end
 	end
 
@@ -372,8 +372,8 @@ else
 	mapsizeZ = Game.mapSizeZ
 
 	local math_random = math.random
-	local spSpawnCEG = Spring.SpawnCEG
-	local spGetGroundHeight = Spring.GetGroundHeight
+	local spSpawnCEG = SpringSynced.SpawnCEG
+	local spGetGroundHeight = SpringShared.GetGroundHeight
 
 	function AtmosSendMessage(_, msg)
 		if Script.LuaUI("GadgetAddMessage") then
@@ -382,24 +382,24 @@ else
 	end
 
 	function AtmosSendVoiceMessage(filedirectory)
-		Spring.SendCommands("atmosplaysoundfile " .. filedirectory)
+		SpringUnsynced.SendCommands("atmosplaysoundfile " .. filedirectory)
 	end
 
 	function SpawnCEGInPosition(cegname, posx, posy, posz, damage, paralyzetime, damageradius, sound, soundvolume)
 		spSpawnCEG(cegname, posx, posy, posz)
 		if sound then
-			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
+			SpringUnsynced.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 		end
 		if damage or paralyzetime then
-			local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
+			local units = SpringShared.GetUnitsInCylinder(posx, posz, damageradius)
 			for i = 1, #units do
-				local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
+				local uhealth, umaxhealth, uparalyze = SpringShared.GetUnitHealth(units[i])
 				if damage then
 					--Spring.Echo("Damaged")
 					if uhealth > damage then
-						Spring.SetUnitHealth(units[i], uhealth - damage)
+						SpringSynced.SetUnitHealth(units[i], uhealth - damage)
 					else
-						Spring.DestroyUnit(units[i])
+						SpringSynced.DestroyUnit(units[i])
 					end
 				end
 				if paralyzetime then
@@ -407,10 +407,10 @@ else
 					local paralyzemult = paralyzetime * 0.025
 					if uparalyze <= umaxhealth then
 						local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					else
 						local paralyzedamage = (umaxhealth * paralyzemult) + uparalyze
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					end
 				end
 			end
@@ -421,18 +421,18 @@ else
 		local posy = spGetGroundHeight(posx, posz) + (groundOffset or 0)
 		spSpawnCEG(cegname, posx, posy, posz)
 		if sound then
-			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
+			SpringUnsynced.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 		end
 		if damage or paralyzetime then
-			local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
+			local units = SpringShared.GetUnitsInCylinder(posx, posz, damageradius)
 			for i = 1, #units do
-				local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
+				local uhealth, umaxhealth, uparalyze = SpringShared.GetUnitHealth(units[i])
 				if damage then
 					--Spring.Echo("Damaged")
 					if uhealth > damage then
-						Spring.SetUnitHealth(units[i], uhealth - damage)
+						SpringSynced.SetUnitHealth(units[i], uhealth - damage)
 					else
-						Spring.DestroyUnit(units[i])
+						SpringSynced.DestroyUnit(units[i])
 					end
 				end
 				if paralyzetime then
@@ -440,10 +440,10 @@ else
 					local paralyzemult = paralyzetime * 0.025
 					if uparalyze <= umaxhealth then
 						local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					else
 						local paralyzedamage = (umaxhealth * paralyzemult) + uparalyze
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					end
 				end
 			end
@@ -455,18 +455,18 @@ else
 		local posz = midposz + math_random(-radius, radius)
 		spSpawnCEG(cegname, posx, posy, posz)
 		if sound then
-			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
+			SpringUnsynced.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 		end
 		if damage or paralyzetime then
-			local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
+			local units = SpringShared.GetUnitsInCylinder(posx, posz, damageradius)
 			for i = 1, #units do
-				local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
+				local uhealth, umaxhealth, uparalyze = SpringShared.GetUnitHealth(units[i])
 				if damage then
 					--Spring.Echo("Damaged")
 					if uhealth > damage then
-						Spring.SetUnitHealth(units[i], uhealth - damage)
+						SpringSynced.SetUnitHealth(units[i], uhealth - damage)
 					else
-						Spring.DestroyUnit(units[i])
+						SpringSynced.DestroyUnit(units[i])
 					end
 				end
 				if paralyzetime then
@@ -474,10 +474,10 @@ else
 					local paralyzemult = paralyzetime * 0.025
 					if uparalyze <= umaxhealth then
 						local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					else
 						local paralyzedamage = (umaxhealth * paralyzemult) + uparalyze
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					end
 				end
 			end
@@ -490,18 +490,18 @@ else
 		local posy = spGetGroundHeight(posx, posz) + (groundOffset or 0)
 		spSpawnCEG(cegname, posx, posy, posz)
 		if sound then
-			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
+			SpringUnsynced.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 		end
 		if damage or paralyzetime then
-			local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
+			local units = SpringShared.GetUnitsInCylinder(posx, posz, damageradius)
 			for i = 1, #units do
-				local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
+				local uhealth, umaxhealth, uparalyze = SpringShared.GetUnitHealth(units[i])
 				if damage then
 					--Spring.Echo("Damaged")
 					if uhealth > damage then
-						Spring.SetUnitHealth(units[i], uhealth - damage)
+						SpringSynced.SetUnitHealth(units[i], uhealth - damage)
 					else
-						Spring.DestroyUnit(units[i])
+						SpringSynced.DestroyUnit(units[i])
 					end
 				end
 				if paralyzetime then
@@ -509,10 +509,10 @@ else
 					local paralyzemult = paralyzetime * 0.025
 					if uparalyze <= umaxhealth then
 						local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					else
 						local paralyzedamage = (umaxhealth * paralyzemult) + uparalyze
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					end
 				end
 			end
@@ -525,18 +525,18 @@ else
 		local posy = spGetGroundHeight(posx, posz) + (groundOffset or 0)
 		spSpawnCEG(cegname, posx, posy, posz)
 		if sound then
-			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
+			SpringUnsynced.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 		end
 		if damage or paralyzetime then
-			local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
+			local units = SpringShared.GetUnitsInCylinder(posx, posz, damageradius)
 			for i = 1, #units do
-				local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
+				local uhealth, umaxhealth, uparalyze = SpringShared.GetUnitHealth(units[i])
 				if damage then
 					--Spring.Echo("Damaged")
 					if uhealth > damage then
-						Spring.SetUnitHealth(units[i], uhealth - damage)
+						SpringSynced.SetUnitHealth(units[i], uhealth - damage)
 					else
-						Spring.DestroyUnit(units[i])
+						SpringSynced.DestroyUnit(units[i])
 					end
 				end
 				if paralyzetime then
@@ -544,10 +544,10 @@ else
 					local paralyzemult = paralyzetime * 0.025
 					if uparalyze <= umaxhealth then
 						local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					else
 						local paralyzedamage = (umaxhealth * paralyzemult) + uparalyze
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					end
 				end
 			end
@@ -559,11 +559,11 @@ else
 			local posx = math_random(0, mapsizeX)
 			local posz = math_random(0, mapsizeZ)
 			local posy = spGetGroundHeight(posx, posz) + (groundOffset or 0)
-			local units = Spring.GetUnitsInCylinder(posx, posz, radius)
+			local units = SpringShared.GetUnitsInCylinder(posx, posz, radius)
 			if #units == 0 then
 				spSpawnCEG(cegname, posx, posy, posz)
 				if sound then
-					Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
+					SpringUnsynced.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 				end
 				break
 			end
@@ -579,7 +579,7 @@ else
 			if groundposy <= spawnOnlyBelowY then
 				spSpawnCEG(cegname, posx, posy, posz)
 				if sound then
-					Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
+					SpringUnsynced.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 				end
 				break
 			end
@@ -587,15 +587,15 @@ else
 		if damage or paralyzetime then
 			local posx = math_random(0, mapsizeX)
 			local posz = math_random(0, mapsizeZ)
-			local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
+			local units = SpringShared.GetUnitsInCylinder(posx, posz, damageradius)
 			for i = 1, #units do
-				local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
+				local uhealth, umaxhealth, uparalyze = SpringShared.GetUnitHealth(units[i])
 				if damage then
 					--Spring.Echo("Damaged")
 					if uhealth > damage then
-						Spring.SetUnitHealth(units[i], uhealth - damage)
+						SpringSynced.SetUnitHealth(units[i], uhealth - damage)
 					else
-						Spring.DestroyUnit(units[i])
+						SpringSynced.DestroyUnit(units[i])
 					end
 				end
 				if paralyzetime then
@@ -603,10 +603,10 @@ else
 					local paralyzemult = paralyzetime * 0.025
 					if uparalyze <= umaxhealth then
 						local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					else
 						local paralyzedamage = (umaxhealth * paralyzemult) + uparalyze
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					end
 				end
 			end
@@ -618,18 +618,18 @@ else
 		local posz = math_random(0, mapsizeZ)
 		spSpawnCEG(cegname, posx, posy, posz)
 		if sound then
-			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
+			SpringUnsynced.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 		end
 		if damage or paralyzetime then
-			local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
+			local units = SpringShared.GetUnitsInCylinder(posx, posz, damageradius)
 			for i = 1, #units do
-				local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
+				local uhealth, umaxhealth, uparalyze = SpringShared.GetUnitHealth(units[i])
 				if damage then
 					--Spring.Echo("Damaged")
 					if uhealth > damage then
-						Spring.SetUnitHealth(units[i], uhealth - damage)
+						SpringSynced.SetUnitHealth(units[i], uhealth - damage)
 					else
-						Spring.DestroyUnit(units[i])
+						SpringSynced.DestroyUnit(units[i])
 					end
 				end
 				if paralyzetime then
@@ -637,10 +637,10 @@ else
 					local paralyzemult = paralyzetime * 0.025
 					if uparalyze <= umaxhealth then
 						local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					else
 						local paralyzedamage = (umaxhealth * paralyzemult) + uparalyze
-						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
+						SpringSynced.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					end
 				end
 			end

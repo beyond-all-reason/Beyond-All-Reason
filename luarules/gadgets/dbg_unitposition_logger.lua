@@ -23,11 +23,11 @@ end
 ]]
 
 if not gadgetHandler:IsSyncedCode() then
-	if Spring.IsReplay() then
+	if SpringUnsynced.IsReplay() then
 		return
 	end
 
-	local DEBUG = select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) == "[teh]Flow"
+	local DEBUG = select(1, SpringShared.GetPlayerInfo(SpringUnsynced.GetLocalPlayerID())) == "[teh]Flow"
 
 	local gameFramesPerSecond = 30 -- engine constant
 	local pingCutoff = 1500 -- players with higher ping wont participate in sending unit positions log
@@ -47,12 +47,12 @@ if not gadgetHandler:IsSyncedCode() then
 
 	local validation = SYNCED.validationLogger
 
-	local spGetUnitPosition = Spring.GetUnitPosition
+	local spGetUnitPosition = SpringShared.GetUnitPosition
 	local math_floor = math.floor
 	local math_ceil = math.ceil
 
-	local myPlayerID = Spring.GetMyPlayerID()
-	local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
+	local isSinglePlayer = Utilities.Gametype.IsSinglePlayer()
 
 	local logRate = minLogRate
 	local lastLogFrame = 30 - minLogRate
@@ -125,7 +125,7 @@ if not gadgetHandler:IsSyncedCode() then
 			if noParts then
 				log[frame] = nil
 				if DEBUG and (attempts ~= "1" or part > tonumber(numParts)) then
-					Spring.Echo('UNITLOG: "all received": frame:' .. frame .. " part:" .. part .. " parts:" .. numParts .. " attempts:" .. attempts)
+					SpringShared.Echo('UNITLOG: "all received": frame:' .. frame .. " part:" .. part .. " parts:" .. numParts .. " attempts:" .. attempts)
 				end
 			end
 		end
@@ -142,12 +142,12 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	local function sendLog(frame, part, attempts)
-		Spring.SendLuaRulesMsg("log" .. validation .. frame .. ";" .. part .. ";" .. #log[frame].participants .. ";" .. attempts .. ";" .. VFS.ZlibCompress(Json.encode(log[frame].parts[part])))
+		SpringUnsynced.SendLuaRulesMsg("log" .. validation .. frame .. ";" .. part .. ";" .. #log[frame].participants .. ";" .. attempts .. ";" .. VFS.ZlibCompress(Json.encode(log[frame].parts[part])))
 	end
 
 	function gadget:Initialize()
-		for ct, unitID in pairs(Spring.GetAllUnits()) do
-			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		for ct, unitID in pairs(SpringShared.GetAllUnits()) do
+			gadget:UnitCreated(unitID, SpringShared.GetUnitDefID(unitID), SpringShared.GetUnitTeam(unitID))
 		end
 		gadgetHandler:AddSyncAction("receivedPart", receivedPart)
 	end
@@ -177,7 +177,7 @@ if not gadgetHandler:IsSyncedCode() then
 								missingUnits = missingUnits + #units
 							end
 						end
-						Spring.Echo('UNITLOG: "max attempts reached": frame:' .. frame .. " attempts:" .. log[frame].attempts .. "of " .. #log[frame].participants .. " missing parts:" .. missingParts .. " missing units:" .. missingUnits)
+						SpringShared.Echo('UNITLOG: "max attempts reached": frame:' .. frame .. " attempts:" .. log[frame].attempts .. "of " .. #log[frame].participants .. " missing parts:" .. missingParts .. " missing units:" .. missingUnits)
 					end
 					log[frame] = nil
 				else
@@ -218,7 +218,7 @@ if not gadgetHandler:IsSyncedCode() then
 								missingUnits = missingUnits + #units
 							end
 						end
-						Spring.Echo('UNITLOG: "timeout": frame:' .. frame .. " attempts:" .. log[frame].attempts .. "of " .. #log[frame].participants .. " missing parts:" .. missingParts .. " missing units:" .. missingUnits)
+						SpringShared.Echo('UNITLOG: "timeout": frame:' .. frame .. " attempts:" .. log[frame].attempts .. "of " .. #log[frame].participants .. " missing parts:" .. missingParts .. " missing units:" .. missingUnits)
 					end
 					log[frame] = nil
 				end
@@ -230,12 +230,12 @@ if not gadgetHandler:IsSyncedCode() then
 			-- find out which players/specs aren't lagged behind and available to send a part of all unit position data
 			local participants = {}
 			local myPart
-			for _, playerID in ipairs(Spring.GetPlayerList()) do
-				local name, _, _, teamID, _, ping = Spring.GetPlayerInfo(playerID, false)
+			for _, playerID in ipairs(SpringShared.GetPlayerList()) do
+				local name, _, _, teamID, _, ping = SpringShared.GetPlayerInfo(playerID, false)
 				-- exclude lagged out players and AI
 				-- NOTE: ping is 0 when player is catching up or playing local (local can be slightly above 0 when low fps 0.033)
-				local isDead = select(4, Spring.GetTeamInfo(teamID))
-				if (ping > 0.01 or isSinglePlayer) and ping < pingCutoff / 1000 and not Spring.GetTeamLuaAI(teamID) and not isDead then
+				local isDead = select(4, SpringShared.GetTeamInfo(teamID))
+				if (ping > 0.01 or isSinglePlayer) and ping < pingCutoff / 1000 and not SpringShared.GetTeamLuaAI(teamID) and not isDead then
 					participants[#participants + 1] = playerID
 					if playerID == myPlayerID then
 						myPart = #participants

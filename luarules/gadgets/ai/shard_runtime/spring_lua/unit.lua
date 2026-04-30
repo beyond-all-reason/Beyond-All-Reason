@@ -1,7 +1,7 @@
 ShardUnit = class(function(a, id)
 	a.id = id
 	a.className = "unit"
-	local udefid = Spring.GetUnitDefID(id)
+	local udefid = SpringShared.GetUnitDefID(id)
 	a.UnitDefID = udefid
 	a.type = ShardUnitType(udefid)
 end)
@@ -9,7 +9,7 @@ end)
 function ShardUnit:Unit_to_id(unit)
 	local gid = unit
 	if type(unit) == "table" then
-		if unit["id"] ~= nil then
+		if unit.id ~= nil then
 			gid = unit.id
 		else
 			-- error!
@@ -24,19 +24,19 @@ function ShardUnit:ID()
 end
 
 function ShardUnit:Team()
-	return Spring.GetUnitTeam(self.id)
+	return SpringShared.GetUnitTeam(self.id)
 end
 
 function ShardUnit:Radius()
-	return Spring.GetUnitRadius(self.id)
+	return SpringShared.GetUnitRadius(self.id)
 end
 
 function ShardUnit:AllyTeam()
-	return Spring.GetUnitAllyTeam(self.id)
+	return SpringShared.GetUnitAllyTeam(self.id)
 end
 
 function ShardUnit:isNeutral()
-	return Spring.GetUnitNeutral(self.id)
+	return SpringShared.GetUnitNeutral(self.id)
 end
 
 function ShardUnit:IsMine(myTeam)
@@ -56,7 +56,7 @@ function ShardUnit:IsEnemy(myAllyTeam)
 end
 
 function ShardUnit:Stunned()
-	local stunned_or_inbuild, stunned, inbuild = Spring.GetUnitIsStunned(self.id)
+	local stunned_or_inbuild, stunned, inbuild = SpringShared.GetUnitIsStunned(self.id)
 	return stunned
 end
 
@@ -80,7 +80,7 @@ function ShardUnit:InList(unitTypeNames)
 end
 
 function ShardUnit:IsAlive()
-	if Spring.GetUnitIsDead(self.id) == false then
+	if SpringShared.GetUnitIsDead(self.id) == false then
 		return true
 	else
 		return false -- cause return true for a short period and then nil
@@ -89,7 +89,7 @@ end
 
 function ShardUnit:GetLos(bitmask)
 	bitmask = bitmask or true
-	return Spring.GetUnitLosState(self.id, self:GetUnitAllyTeam(), bitmask)
+	return SpringShared.GetUnitLosState(self.id, self:GetUnitAllyTeam(), bitmask)
 end
 
 function ShardUnit:IsCloaked()
@@ -97,23 +97,23 @@ function ShardUnit:IsCloaked()
 end
 
 function ShardUnit:Cloaked()
-	return Spring.GetUnitIsCloaked(self.id)
+	return SpringShared.GetUnitIsCloaked(self.id)
 end
 
 function ShardUnit:GetUnitIsBuilding()
-	return Spring.GetUnitIsBuilding(self.id)
+	return SpringShared.GetUnitIsBuilding(self.id)
 end
 
 function ShardUnit:GetCurrentBuildPower()
-	return Spring.GetUnitCurrentBuildPower(self.id)
+	return SpringShared.GetUnitCurrentBuildPower(self.id)
 end
 
 function ShardUnit:IsBlocking()
-	return Spring.GetUnitBlocking(self.unitid)
+	return SpringShared.GetUnitBlocking(self.unitid)
 end
 
 function ShardUnit:CurrentStockpile()
-	local numStockpiled, numStockpileQued, buildPercent = Spring.GetUnitStockpile(self.id)
+	local numStockpiled, numStockpileQued, buildPercent = SpringShared.GetUnitStockpile(self.id)
 	return numStockpiled, numStockpileQued, buildPercent
 end
 
@@ -134,7 +134,7 @@ function ShardUnit:CanMorph()
 end
 
 function ShardUnit:IsBeingBuilt()
-	return Spring.GetUnitIsBeingBuilt(self.id)
+	return SpringShared.GetUnitIsBeingBuilt(self.id)
 end
 
 function ShardUnit:IsMorphing()
@@ -168,7 +168,7 @@ function ShardUnit:CanBuildWhenNotDeployed()
 end
 
 function ShardUnit:FactoryWait()
-	local topQueue = Spring.GetFactoryCommands(self.id, 1)[1]
+	local topQueue = SpringShared.GetFactoryCommands(self.id, 1)[1]
 	if topQueue and topQueue.id ~= CMD.WAIT then
 		local order = self:SyncOrder(self.id, CMD.WAIT, { 0 }, 0)
 		--Spring.GiveOrderToUnit( self.id, CMD.WAIT, {}, 0 )
@@ -176,7 +176,7 @@ function ShardUnit:FactoryWait()
 end
 
 function ShardUnit:FactoryUnWait()
-	local topQueue = Spring.GetFactoryCommands(self.id, 1)[1]
+	local topQueue = SpringShared.GetFactoryCommands(self.id, 1)[1]
 	if topQueue and topQueue.id == CMD.WAIT then
 		local order = self:SyncOrder(self.id, CMD.WAIT, { 0 }, 0)
 		--Spring.GiveOrderToUnit( self.id, CMD.WAIT, {}, 0 )
@@ -184,14 +184,14 @@ function ShardUnit:FactoryUnWait()
 end
 
 function ShardUnit:IsWaiting()
-	local topQueue = Spring.GetFactoryCommands(self.id, 1)[1]
+	local topQueue = SpringShared.GetFactoryCommands(self.id, 1)[1]
 	if topQueue and topQueue.id == CMD.WAIT then
 		return true
 	end
 end
 
 function ShardUnit:getFactoryCommands()
-	return Spring.GetFactoryCommands(self.id, 1)
+	return SpringShared.GetFactoryCommands(self.id, 1)
 end
 
 --[[
@@ -215,12 +215,12 @@ end
 
 function ShardUnit:GetUnitCommands(count)
 	if count == 0 then
-		Spring.Echo(self:Name(), self.id, "Get Unit Commands received 0 as parameter index")
+		SpringShared.Echo(self:Name(), self.id, "Get Unit Commands received 0 as parameter index")
 		return {} -- FIXME: Why am I receiving 0 count?
 	end
 
 	count = count or 1
-	local currentOrder = Spring.GetUnitCommands(self.id, count)
+	local currentOrder = SpringShared.GetUnitCommands(self.id, count)
 	return currentOrder
 end
 
@@ -454,12 +454,12 @@ function ShardUnit:IdleModeLand()
 end
 
 function ShardUnit:CurrentCommand()
-	return Spring.GetUnitCurrentCommand(self.id)
+	return SpringShared.GetUnitCurrentCommand(self.id)
 end
 
 function ShardUnit:GetPosition()
-	local bpx, bpy, bpz = Spring.GetUnitPosition(self.id)
-	local isDead = Spring.GetUnitIsDead(self.id)
+	local bpx, bpy, bpz = SpringShared.GetUnitPosition(self.id)
+	local isDead = SpringShared.GetUnitIsDead(self.id)
 	if not bpx then
 		--Spring.Echo(self:Name(), self.id, "Get Position return nil position")
 		return
@@ -476,37 +476,37 @@ function ShardUnit:GetPosition()
 end
 
 function ShardUnit:GetRawPos()
-	local bpx, bpy, bpz = Spring.GetUnitPosition(self.id)
+	local bpx, bpy, bpz = SpringShared.GetUnitPosition(self.id)
 	return bpx, bpy, bpz
 end
 
 function ShardUnit:GetHealtsParams()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth(self.id)
+	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpringShared.GetUnitHealth(self.id)
 	return health, maxHealth, paralyzeDamage, captureProgress, buildProgress, health / maxHealth
 end
 
 function ShardUnit:GetHealth()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth(self.id)
+	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpringShared.GetUnitHealth(self.id)
 	return health
 end
 
 function ShardUnit:GetMaxHealth()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth(self.id)
+	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpringShared.GetUnitHealth(self.id)
 	return maxHealth
 end
 
 function ShardUnit:ParalysisDamage()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth(self.id)
+	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpringShared.GetUnitHealth(self.id)
 	return paralyzeDamage
 end
 
 function ShardUnit:CaptureProgress()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth(self.id)
+	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpringShared.GetUnitHealth(self.id)
 	return captureProgress
 end
 
 function ShardUnit:BuildProgress()
-	local isBuilding, buildProgress = Spring.GetUnitIsBeingBuilt(self.id)
+	local isBuilding, buildProgress = SpringShared.GetUnitIsBeingBuilt(self.id)
 	return buildProgress
 end
 
@@ -515,7 +515,7 @@ function ShardUnit:WeaponCount()
 end
 
 function ShardUnit:MaxWeaponsRange()
-	return Spring.GetUnitMaxRange(self.id)
+	return SpringShared.GetUnitMaxRange(self.id)
 end
 
 function ShardUnit:CanBuild(uType)
@@ -526,7 +526,7 @@ function ShardUnit:CanBuild(uType)
 end
 
 function ShardUnit:GetFacing(id)
-	return Spring.GetUnitBuildFacing(id)
+	return SpringShared.GetUnitBuildFacing(id)
 	-- 	0, "s", "south"
 	--     1, "e", "east"
 	--     2, "n", "north"
@@ -534,7 +534,7 @@ function ShardUnit:GetFacing(id)
 end
 
 function ShardUnit:GetResourceUsage(idx)
-	local metalMake, metalUse, energyMake, energyUse = Spring.GetUnitResources(self.id)
+	local metalMake, metalUse, energyMake, energyUse = SpringShared.GetUnitResources(self.id)
 	local SResourceTransfer = { gameframe = Spring.GameFrame(), rate = 1 }
 	if Shard.resourceIds[idx] == "metal" then
 		SResourceTransfer.generation = metalMake
@@ -547,7 +547,7 @@ function ShardUnit:GetResourceUsage(idx)
 end
 
 function ShardUnit:TestMoveOrder(p)
-	return Spring.TestMoveOrder(self.UnitDefID, p.x, p.y, p.z, nil, nil, nil, true, true, false)
+	return SpringShared.TestMoveOrder(self.UnitDefID, p.x, p.y, p.z, nil, nil, nil, true, true, false)
 end
 
 function ShardUnit:SyncOrder(

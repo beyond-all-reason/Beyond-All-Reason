@@ -16,12 +16,12 @@ local losGraceRadius = 75
 local monitorTargets = {}
 local CMD_ATTACK = CMD.ATTACK
 local CMD_STOP = CMD.STOP
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGiveOrder = Spring.GiveOrder
-local spGetUnitCommands = Spring.GetUnitCommands
-local spIsPosInLos = Spring.IsPosInLos
-local spValidUnitID = Spring.ValidUnitID
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGiveOrder = SpringUnsynced.GiveOrder
+local spGetUnitCommands = SpringShared.GetUnitCommands
+local spIsPosInLos = SpringShared.IsPosInLos
+local spValidUnitID = SpringShared.ValidUnitID
 
 local isBuilding = {}
 local isBomber = {}
@@ -35,7 +35,7 @@ for udid, ud in pairs(UnitDefs) do
 	if ud.isBuilding or string.find(ud.name, "nanotc") then
 		isBuilding[udid] = true
 	end
-	if (ud["weapons"] and ud["weapons"][1] and isBomb[ud["weapons"][1].weaponDef] == true) or (string.find(ud.name, "armlance") or string.find(ud.name, "cortitan") or string.find(ud.name, "legatorpbomber")) then
+	if (ud.weapons and ud.weapons[1] and isBomb[ud.weapons[1].weaponDef] == true) or (string.find(ud.name, "armlance") or string.find(ud.name, "cortitan") or string.find(ud.name, "legatorpbomber")) then
 		isBomber[udid] = true
 	end
 end
@@ -91,9 +91,9 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if not isBuilding[spGetUnitDefID(targetBuildingID)] then
 		return false
 	end
-	local targetBuildingPosX, targetBuildingPosY, targetBuildingPosZ = Spring.GetUnitPosition(targetBuildingID)
+	local targetBuildingPosX, targetBuildingPosY, targetBuildingPosZ = SpringShared.GetUnitPosition(targetBuildingID)
 
-	local units = Spring.GetSelectedUnits()
+	local units = SpringUnsynced.GetSelectedUnits()
 	local hasBomber = false
 	for i = 1, #units do
 		local unitID = units[i]

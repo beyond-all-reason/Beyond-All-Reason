@@ -27,7 +27,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local vsx, vsy = spGetViewGeometry()
 local widgetScale = 0.80 + (vsx * vsy / 6000000)
@@ -36,19 +36,19 @@ local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
 local glScale = gl.Scale
 local glTranslate = gl.Translate
-local spGetGameSeconds = Spring.GetGameSeconds
+local spGetGameSeconds = SpringShared.GetGameSeconds
 
 local messages = {}
 
 local font
 
-local draftMode = Spring.GetModOptions().draft_mode
+local draftMode = SpringShared.GetModOptions().draft_mode
 
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-	font = WG["fonts"].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 
 	if messages[1] then
 		messages[1].x = widgetScale * 60
@@ -67,14 +67,14 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
-	if Spring.GetModOptions().deathmode == "neverend" then
+	if SpringShared.GetModOptions().deathmode == "neverend" then
 		widgetHandler:RemoveWidget()
 		return
 	end
 
 	messages[1] = {}
 
-	if Spring.GetModOptions().deathmode == "own_com" then
+	if SpringShared.GetModOptions().deathmode == "own_com" then
 		messages[3] = {}
 	end
 
@@ -85,22 +85,22 @@ end
 
 function widget:LanguageChanged()
 	local key
-	local deathmode = Spring.GetModOptions().deathmode
+	local deathmode = SpringShared.GetModOptions().deathmode
 
 	if deathmode == "killall" then
 		key = "killAllUnits"
 	elseif deathmode == "builders" then
 		key = "killAllBuilders"
-	elseif deathmode == "territorial_domination" and not Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
+	elseif deathmode == "territorial_domination" and not Utilities.Gametype.IsRaptors() and not Utilities.Gametype.IsScavengers() then
 		key = "territorialDomination"
 	else
 		key = "killAllCommanders"
 	end
 
-	messages[1].str = "\255\255\255\255" .. Spring.I18N("ui.gametypeInfo.victoryCondition") .. ": " .. Spring.I18N("ui.gametypeInfo." .. key)
+	messages[1].str = "\255\255\255\255" .. I18N("ui.gametypeInfo.victoryCondition") .. ": " .. I18N("ui.gametypeInfo." .. key)
 
 	if deathmode == "own_com" then
-		messages[3].str = "\255\255\150\150" .. Spring.I18N("ui.gametypeInfo.owncomends")
+		messages[3].str = "\255\255\150\150" .. I18N("ui.gametypeInfo.owncomends")
 	end
 end
 

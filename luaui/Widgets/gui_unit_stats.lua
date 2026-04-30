@@ -21,9 +21,9 @@ local tableSort = table.sort
 local tableSortStable = table.sortStable
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetSelectedUnitsCount = SpringUnsynced.GetSelectedUnitsCount
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local texts = {}
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
@@ -113,7 +113,7 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = 1
 local xOffset = (32 + (fontSize * 0.9)) * widgetScale
 local yOffset = -((32 - (fontSize * 0.9)) * widgetScale)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -142,21 +142,21 @@ local char = string.char
 
 local glColor = gl.Color
 
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetTeamResources = Spring.GetTeamResources
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamColor = Spring.GetTeamColor
-local spIsUserWriting = Spring.IsUserWriting
-local spGetModKeyState = Spring.GetModKeyState
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetTeamResources = SpringShared.GetTeamResources
+local spGetTeamInfo = SpringShared.GetTeamInfo
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetTeamColor = SpringUnsynced.GetTeamColor
+local spIsUserWriting = SpringUnsynced.IsUserWriting
+local spGetModKeyState = SpringUnsynced.GetModKeyState
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitExperience = Spring.GetUnitExperience
-local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
-local spGetUnitWeaponState = Spring.GetUnitWeaponState
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitExperience = SpringShared.GetUnitExperience
+local spGetUnitSensorRadius = SpringShared.GetUnitSensorRadius
+local spGetUnitWeaponState = SpringShared.GetUnitWeaponState
 
 local uDefs = UnitDefs
 local wDefs = WeaponDefs
@@ -193,13 +193,13 @@ local cachedGuishaderX, cachedGuishaderY = nil, nil
 
 local spec = spGetSpectatingState()
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousMode = SpringShared.GetModOptions().teamcolors_anonymous_mode
 local anonymousName = "?????"
 
 local showStats = false
 
 -- TODO: Shield damages are overridden in the shields rework (now in main game)
-local shieldsRework = not Spring.GetModOptions().experimentalshields:find("bounce")
+local shieldsRework = not SpringShared.GetModOptions().experimentalshields:find("bounce")
 
 -- TODO: Localize, same as armorTypes
 -- TODO: Compose this list somewhere and reinclude it here
@@ -347,7 +347,7 @@ local function GetTeamColorCode(teamID)
 	if not R then
 		return "\255\255\255\255"
 	end
-	return Spring.Utilities.ConvertColor(R, G, B)
+	return Utilities.ConvertColor(R, G, B)
 end
 
 local function GetTeamName(teamID)
@@ -362,8 +362,8 @@ local function GetTeamName(teamID)
 
 	local leaderName = spGetPlayerInfo(teamLeader, false)
 	leaderName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamLeader)) or leaderName
-	if Spring.GetGameRulesParam("ainame_" .. teamID) then
-		leaderName = Spring.GetGameRulesParam("ainame_" .. teamID)
+	if SpringShared.GetGameRulesParam("ainame_" .. teamID) then
+		leaderName = SpringShared.GetGameRulesParam("ainame_" .. teamID)
 	end
 
 	if not spec and anonymousMode ~= "disabled" then
@@ -375,9 +375,9 @@ end
 
 local guishaderEnabled = false -- not a config var
 function RemoveGuishader()
-	if guishaderEnabled and WG["guishader"] then
-		WG["guishader"].DeleteScreenDlist("unit_stats_title")
-		WG["guishader"].DeleteScreenDlist("unit_stats_data")
+	if guishaderEnabled and WG.guishader then
+		WG.guishader.DeleteScreenDlist("unit_stats_title")
+		WG.guishader.DeleteScreenDlist("unit_stats_data")
 		guishaderEnabled = false
 	end
 	if dlistGuishaderTitle then
@@ -418,23 +418,23 @@ local function disableStats()
 end
 
 function widget:Initialize()
-	texts = Spring.I18N("ui.unitstats")
+	texts = I18N("ui.unitstats")
 
 	widget:ViewResize(vsx, vsy)
 
-	WG["unitstats"] = {}
-	WG["unitstats"].showUnit = function(unitID)
+	WG.unitstats = {}
+	WG.unitstats.showUnit = function(unitID)
 		showUnitID = unitID
 	end
 
 	widgetHandler:AddAction("unit_stats", enableStats, nil, "p")
 	widgetHandler:AddAction("unit_stats", disableStats, nil, "r")
 
-	spTraceScreenRay = Spring.TraceScreenRay -- fix for monkey-patching
+	spTraceScreenRay = SpringUnsynced.TraceScreenRay -- fix for monkey-patching
 end
 
 function widget:Shutdown()
-	WG["unitstats"] = nil
+	WG.unitstats = nil
 	RemoveGuishader()
 	invalidateContent()
 end
@@ -453,7 +453,7 @@ function init()
 end
 
 function widget:ViewResize(n_vsx, n_vsy)
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = SpringUnsynced.GetViewGeometry()
 	widgetScale = (1 + ((vsy - 850) / 1800)) * (0.95 + (ui_scale - 1) / 2.5)
 
 	bgpadding = WG.FlowUI.elementPadding
@@ -463,7 +463,7 @@ function widget:ViewResize(n_vsx, n_vsy)
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	font = WG["fonts"].getFont()
+	font = WG.fonts.getFont()
 
 	init()
 	invalidateContent()
@@ -483,7 +483,7 @@ local function computeContent(uDefID, uID, shiftBool)
 
 	local uDef = uDefs[uDefID]
 	local maxHP = uDef.health
-	local uTeam = Spring.GetMyTeamID()
+	local uTeam = SpringUnsynced.GetLocalTeamID()
 	local losRadius = uDef.sightDistance
 	local airLosRadius = uDef.airSightDistance
 	local radarRadius = uDef.radarDistance
@@ -502,8 +502,8 @@ local function computeContent(uDefID, uID, shiftBool)
 	local isBuilding, buildProg, uExp
 
 	if uID then
-		isBuilding, buildProg = Spring.GetUnitIsBeingBuilt(uID)
-		maxHP = select(2, Spring.GetUnitHealth(uID))
+		isBuilding, buildProg = SpringShared.GetUnitIsBeingBuilt(uID)
+		maxHP = select(2, SpringShared.GetUnitHealth(uID))
 		uTeam = spGetUnitTeam(uID)
 		losRadius = spGetUnitSensorRadius(uID, "los") or 0
 		airLosRadius = spGetUnitSensorRadius(uID, "airLos") or 0
@@ -513,7 +513,7 @@ local function computeContent(uDefID, uID, shiftBool)
 		sonarJammingRadius = spGetUnitSensorRadius(uID, "sonarJammer") or 0
 		seismicRadius = spGetUnitSensorRadius(uID, "seismic") or 0
 		uExp = spGetUnitExperience(uID)
-		armoredMultiple = select(2, Spring.GetUnitArmored(uID))
+		armoredMultiple = select(2, SpringShared.GetUnitArmored(uID))
 	end
 
 	maxWidth = 0
@@ -572,10 +572,10 @@ local function computeContent(uDefID, uID, shiftBool)
 	DrawText(texts.cost .. ":", format(metalColor .. "%d" .. white .. " / " .. energyColor .. "%d" .. white .. " / " .. buildColor .. "%d", uDef.metalCost, uDef.energyCost, uDef.buildTime))
 
 	if not (uDef.isBuilding or uDef.isFactory) then
-		if not uID or not Spring.GetUnitMoveTypeData(uID) then
+		if not uID or not SpringShared.GetUnitMoveTypeData(uID) then
 			DrawText(texts.move .. ":", format("%.1f / %.1f / %.0f (" .. texts.speedaccelturn .. ")", uDef.speed, 900 * uDef.maxAcc, simSpeed * uDef.turnRate * (180 / 32767)))
 		else
-			local mData = Spring.GetUnitMoveTypeData(uID)
+			local mData = SpringShared.GetUnitMoveTypeData(uID)
 			local mSpeed = mData.maxSpeed or uDef.speed
 			local mAccel = mData.accRate or uDef.maxAcc
 			local mTurnRate = mData.baseTurnRate or uDef.turnRate
@@ -915,8 +915,8 @@ local function computeContent(uDefID, uID, shiftBool)
 
 	-- Compute title text
 	local effectivenessRate = ""
-	if damageStats and damageStats[gameName] and damageStats[gameName]["team"] and damageStats[gameName]["team"][uDef.name] and damageStats[gameName]["team"][uDef.name].cost and damageStats[gameName]["team"][uDef.name].killed_cost then
-		effectivenessRate = "   " .. damageStats[gameName]["team"][uDef.name].killed_cost / damageStats[gameName]["team"][uDef.name].cost
+	if damageStats and damageStats[gameName] and damageStats[gameName].team and damageStats[gameName].team[uDef.name] and damageStats[gameName].team[uDef.name].cost and damageStats[gameName].team[uDef.name].killed_cost then
+		effectivenessRate = "   " .. damageStats[gameName].team[uDef.name].killed_cost / damageStats[gameName].team[uDef.name].cost
 	end
 	cachedTitleText = "\255\190\255\190" .. UnitDefs[uDefID].translatedHumanName
 	if uID then
@@ -926,7 +926,7 @@ local function computeContent(uDefID, uID, shiftBool)
 
 	-- Cache dynamic data for future dirty checks
 	if uID then
-		cachedBuildProg = select(2, Spring.GetUnitIsBeingBuilt(uID))
+		cachedBuildProg = select(2, SpringShared.GetUnitIsBeingBuilt(uID))
 		cachedExp = spGetUnitExperience(uID)
 	else
 		cachedBuildProg = nil
@@ -943,19 +943,19 @@ end
 local function drawStats(uDefID, uID)
 	local mx, my = spGetMouseState()
 	local alt, ctrl, meta, shift = spGetModKeyState()
-	if WG["chat"] and WG["chat"].isInputActive then
-		if WG["chat"].isInputActive() then
+	if WG.chat and WG.chat.isInputActive then
+		if WG.chat.isInputActive() then
 			showStats = false
 		end
 	end
 
 	-- Dirty check for content caching
-	local gameFrame = Spring.GetGameFrame()
+	local gameFrame = SpringShared.GetGameFrame()
 	local shiftBool = (shift ~= false)
 	local contentDirty = (uDefID ~= cachedDefID) or (uID ~= cachedUnitID) or (shiftBool ~= cachedShift)
 
 	if not contentDirty and uID and (gameFrame - lastComputeFrame >= COMPUTE_INTERVAL) then
-		local _, bp = Spring.GetUnitIsBeingBuilt(uID)
+		local _, bp = SpringShared.GetUnitIsBeingBuilt(uID)
 		if bp ~= cachedBuildProg then
 			contentDirty = true
 		elseif spGetUnitExperience(uID) ~= cachedExp then
@@ -995,7 +995,7 @@ local function drawStats(uDefID, uID)
 	gl.R2tHelper.BlendTexRect(panelTex, screenX + panelOffsets[1], screenY + panelOffsets[2], screenX + panelOffsets[3], screenY + panelOffsets[4], true)
 
 	-- Update guishader only when position changed
-	if WG["guishader"] then
+	if WG.guishader then
 		if cachedGuishaderX ~= screenX or cachedGuishaderY ~= screenY then
 			guishaderEnabled = true
 			cachedGuishaderX = screenX
@@ -1013,7 +1013,7 @@ local function drawStats(uDefID, uID)
 			dlistGuishaderTitle = gl.CreateList(function()
 				RectRound(tLeft, tBottom, tRight, tTop, elementCorner, 1, 1, 1, 0)
 			end)
-			WG["guishader"].InsertScreenDlist(dlistGuishaderTitle, "unit_stats_title")
+			WG.guishader.InsertScreenDlist(dlistGuishaderTitle, "unit_stats_title")
 
 			local sLeft = floor(screenX - bgpadding)
 			local sBottom = ceil(screenY + cachedContentBottom + (fontSize / 3) + (bgpadding * 0.3))
@@ -1026,18 +1026,18 @@ local function drawStats(uDefID, uID)
 			dlistGuishaderStats = gl.CreateList(function()
 				RectRound(sLeft, sBottom, sRight, sTop, elementCorner, 0, 1, 1, 1)
 			end)
-			WG["guishader"].InsertScreenDlist(dlistGuishaderStats, "unit_stats_data")
+			WG.guishader.InsertScreenDlist(dlistGuishaderStats, "unit_stats_data")
 		end
 	end
 end
 
 function widget:DrawScreen()
-	if WG["topbar"] and WG["topbar"].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		return
 	end
 
-	if WG["chat"] and WG["chat"].isInputActive then
-		if WG["chat"].isInputActive() then
+	if WG.chat and WG.chat.isInputActive then
+		if WG.chat.isInputActive() then
 			showStats = false
 		end
 	end
@@ -1061,25 +1061,25 @@ function widget:DrawScreen()
 		showUnitID = nil
 	end
 	local useHoverID = false
-	local _, activeID = Spring.GetActiveCommand()
+	local _, activeID = SpringUnsynced.GetActiveCommand()
 	if not activeID then
 		activeID = 0
 	end
-	if not uID and (WG["buildmenu"] and not WG["buildmenu"].hoverID) and not (activeID < 0) then
+	if not uID and (WG.buildmenu and not WG.buildmenu.hoverID) and not (activeID < 0) then
 		RemoveGuishader()
 		return
-	elseif WG["buildmenu"] and WG["buildmenu"].hoverID and not (activeID < 0) then
+	elseif WG.buildmenu and WG.buildmenu.hoverID and not (activeID < 0) then
 		uID = nil
 		useHoverID = true
 	elseif activeID < 0 then
 		uID = nil
 		useHoverID = false
 	end
-	if uID and not Spring.ValidUnitID(uID) then
+	if uID and not SpringShared.ValidUnitID(uID) then
 		RemoveGuishader()
 		return
 	end
-	local uDefID = (uID and spGetUnitDefID(uID)) or (useHoverID and WG["buildmenu"] and WG["buildmenu"].hoverID) or (UnitDefs[-activeID] and -activeID)
+	local uDefID = (uID and spGetUnitDefID(uID)) or (useHoverID and WG.buildmenu and WG.buildmenu.hoverID) or (UnitDefs[-activeID] and -activeID)
 
 	if not uDefID then
 		RemoveGuishader()

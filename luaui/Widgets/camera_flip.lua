@@ -18,7 +18,7 @@ local mathPi = math.pi
 local halfpi = mathPi / 2
 
 local function cameraFlipHandler()
-	local camState = Spring.GetCameraState()
+	local camState = SpringUnsynced.GetCameraState()
 
 	if camState.mode ~= 1 and camState.mode ~= 2 then
 		return false
@@ -27,7 +27,7 @@ local function cameraFlipHandler()
 	if camState.flipped then -- camera is overhead cam
 		camState.flipped = camState.flipped * -1
 
-		Spring.SetCameraState(camState, 0)
+		SpringUnsynced.SetCameraState(camState, 0)
 
 		return true
 	end
@@ -52,7 +52,7 @@ local function cameraFlipHandler()
 	The interpolation formula is at `static float GetRotationWithCardinalLock(float rot)`
 	in `SpringController.cpp`
 	]]
-	local cardinalLock = Spring.GetConfigInt("CamSpringLockCardinalDirections")
+	local cardinalLock = SpringUnsynced.GetConfigInt("CamSpringLockCardinalDirections")
 	local lockCorrection = 0
 	if cardinalLock == 1 and math.abs(camState.ry) < 0.1 * halfpi then
 		-- Edge case around 0.0f: camera ry's with absolute value less than 0.1 * halfpi
@@ -65,7 +65,7 @@ local function cameraFlipHandler()
 		camState.ry = camState.ry - mathPi - lockCorrection
 	end
 
-	Spring.SetCameraState(camState, 0)
+	SpringUnsynced.SetCameraState(camState, 0)
 
 	return true
 end

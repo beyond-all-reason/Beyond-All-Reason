@@ -2942,20 +2942,20 @@ local unitGrids = {
 
 local priorityUnits = { "armshltx", "armshltxuw", "corgant", "corgantuw", "leggant", "leggantuw", "armalab", "armavp", "armasy", "armaap", "coralab", "coravp", "corasy", "coraap", "legalab", "legavp", "legadvshipyard", "legaap" }
 
-unitGrids["dummycom"] = unitGrids["armcom"]
+unitGrids.dummycom = unitGrids.armcom
 
-if Spring.GetModOptions().experimentalextraunits or Spring.GetModOptions().scavunitsforplayers then
+if SpringShared.GetModOptions().experimentalextraunits or SpringShared.GetModOptions().scavunitsforplayers then
 	for _, builder in pairs({ "armaca", "coraca", "legaca", "armack", "corack", "legack", "armacv", "coracv", "legacv" }) do
 		local faction = builder:sub(1, 3)
 		unitGrids[builder][1][3][3] = faction .. "wint2"
 		unitGrids[builder][4][1][2] = faction .. "apt3"
 		unitGrids[builder][4][1][3] = faction .. "nanotct2"
 	end
-	unitGrids["armacsub"][4][1][3] = "armnanotc2plat"
-	unitGrids["coracsub"][4][1][3] = "cornanotc2plat"
+	unitGrids.armacsub[4][1][3] = "armnanotc2plat"
+	unitGrids.coracsub[4][1][3] = "cornanotc2plat"
 end
 
-if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallunits then
+if Utilities.Gametype.IsScavengers() or SpringShared.GetModOptions().forceallunits then
 	local scavLabGrids = {}
 	local scavUnitGrids = {}
 	for unitName, content in pairs(labGrids) do
@@ -2998,10 +2998,10 @@ if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallun
 	table.mergeInPlace(unitGrids, scavUnitGrids)
 end
 
-if Spring.GetModOptions().techsplit then
+if SpringShared.GetModOptions().techsplit then
 	-- Unit Grids
 
-	unitGrids["armck"] = {
+	unitGrids.armck = {
 		{
 			{ "armmex", "armsolar", "armwin", "" }, -- mex, solar, wind, adv. solar
 			{ "armmakr", "armgeo", "armamex" }, -- T1 converter, geo, twilight, (tidal)
@@ -3024,7 +3024,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["armcs"] = {
+	unitGrids.armcs = {
 		{
 			{ "armmex", "armtide" }, -- mex, tidal
 			{ "armfmkr", "" }, -- floating T1 converter, geo
@@ -3047,7 +3047,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["armcv"] = {
+	unitGrids.armcv = {
 		{
 			{ "armmex", "armsolar", "armwin", "" }, -- mex, solar, wind, adv. solar
 			{ "armmakr", "armgeo", "armamex" }, -- T1 converter, geo, twilight, (tidal)
@@ -3070,7 +3070,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["armbeaver"] = {
+	unitGrids.armbeaver = {
 		{
 			{ "armmex", "armsolar", "armwin", "armtide" }, -- mex, solar, wind, adv. solar
 			{ "armmakr", "armgeo", "armamex", "armfmkr" }, -- T1 converter, geo, twilight, (tidal)
@@ -3093,7 +3093,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["armca"] = {
+	unitGrids.armca = {
 		{
 			{ "armmex", "armsolar", "armwin", "" }, -- mex, solar, wind, adv. solar
 			{ "armmakr", "armgeo", "armamex" }, -- T1 converter, geo, twilight, (tidal)
@@ -3116,7 +3116,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["armack"] = {
+	unitGrids.armack = {
 		{
 			{ "armmoho", "armfus", "", "armadvsol" },
 			{ "armmakr", "armageo", "armckfus", "armgmm" },
@@ -3139,7 +3139,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["armacv"] = {
+	unitGrids.armacv = {
 		{
 			{ "armmoho", "armfus", "", "armadvsol" },
 			{ "armmakr", "armageo", "armckfus", "armgmm" },
@@ -3162,7 +3162,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["armch"] = {
+	unitGrids.armch = {
 		{
 			{ "armmoho", "armfus", "", "armadvsol" },
 			{ "armmakr", "armageo", "armckfus", "armgmm" },
@@ -3185,7 +3185,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["armaca"] = {
+	unitGrids.armaca = {
 		{
 			{ "armmoho", "armfus", "", "armadvsol" },
 			{ "armmakr", "armageo", "armckfus", "armgmm" },
@@ -3208,7 +3208,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["armacsub"] = {
+	unitGrids.armacsub = {
 		{
 			{ "armuwmme", "armtide", "armuwfus" }, -- uw moho, uw fusion,
 			{ "armuwmmm", "armuwageo" }, -- floating T2 converter, adv geo powerplant
@@ -3231,7 +3231,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["corck"] = {
+	unitGrids.corck = {
 		{
 			{ "cormex", "corsolar", "corwin", "" }, -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "corexp" }, -- T1 converter, geo, exploiter, (tidal)
@@ -3254,7 +3254,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["corcv"] = {
+	unitGrids.corcv = {
 		{
 			{ "cormex", "corsolar", "corwin", "" }, -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "corexp" }, -- T1 converter, geo, exploiter, (tidal)
@@ -3277,7 +3277,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["cormuskrat"] = {
+	unitGrids.cormuskrat = {
 		{
 			{ "cormex", "corsolar", "corwin", "" }, -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "corexp" }, -- T1 converter, geo, exploiter, (tidal)
@@ -3300,7 +3300,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["corca"] = {
+	unitGrids.corca = {
 		{
 			{ "cormex", "corsolar", "corwin", "" }, -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "corexp" }, -- T1 converter, geo, exploiter, (tidal)
@@ -3323,7 +3323,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["corcs"] = {
+	unitGrids.corcs = {
 		{
 			{ "cormex", "cortide" }, -- mex, tidal
 			{ "corfmkr", "coruwgeo" }, -- floating T1 converter, geo
@@ -3346,7 +3346,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["corack"] = {
+	unitGrids.corack = {
 		{
 			{ "cormoho", "corfus", "", "coradvsol" },
 			{ "cormakr", "corageo", "", "corbhmth" },
@@ -3369,7 +3369,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["coracv"] = {
+	unitGrids.coracv = {
 		{
 			{ "cormoho", "corfus", "", "coradvsol" },
 			{ "cormakr", "corageo", "", "corbhmth" },
@@ -3392,7 +3392,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["corch"] = {
+	unitGrids.corch = {
 		{
 			{ "cormoho", "corfus", "", "coradvsol" },
 			{ "cormakr", "corageo", "", "corbhmth" },
@@ -3415,7 +3415,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["coraca"] = {
+	unitGrids.coraca = {
 		{
 			{ "cormoho", "corfus", "", "coradvsol" },
 			{ "cormakr", "corageo", "", "corbhmth" },
@@ -3438,7 +3438,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["coracsub"] = {
+	unitGrids.coracsub = {
 		{
 			{ "cormoho", "corfus", "", "coradvsol" },
 			{ "cormakr", "corageo", "", "corbhmth" },
@@ -3460,7 +3460,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["legck"] = {
+	unitGrids.legck = {
 		{
 			{ "legmex", "legsolar", "legwin", "legadvsol" }, -- mex, solar, wind, adv. solar
 			{ "legeconv", "leggeo", "legmext15" }, -- T1 converter, geo, T1.5 legion mex, (tidal)
@@ -3483,7 +3483,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["legca"] = {
+	unitGrids.legca = {
 		{
 			{ "legmex", "legsolar", "legwin", "legadvsol" }, -- mex, solar, wind, adv. solar
 			{ "legeconv", "leggeo", "legmext15" }, -- T1 converter, geo, T1.5 legion mex, (tidal)
@@ -3506,7 +3506,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["legcv"] = {
+	unitGrids.legcv = {
 		{
 			{ "legmex", "legsolar", "legwin", "legadvsol" }, -- mex, solar, wind, adv. solar
 			{ "legeconv", "leggeo", "legmext15" }, -- T1 converter, geo, T1.5 legion mex, (tidal)
@@ -3529,7 +3529,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["legotter"] = {
+	unitGrids.legotter = {
 		{
 			{ "legmex", "legsolar", "legwin", "legadvsol" }, -- mex, solar, wind, adv. solar
 			{ "legeconv", "leggeo", "legmext15" }, -- T1 converter, geo, T1.5 legion mex, (tidal)
@@ -3552,7 +3552,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["legack"] = {
+	unitGrids.legack = {
 		{
 			{ "legmoho", "legfus", "", "legadvsol" },
 			{ "legeconv", "legageo", "", "legrampart" },
@@ -3575,7 +3575,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["legacv"] = {
+	unitGrids.legacv = {
 		{
 			{ "legmoho", "legfus", "", "legadvsol" },
 			{ "legeconv", "legageo", "", "legrampart" },
@@ -3598,7 +3598,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["legch"] = {
+	unitGrids.legch = {
 		{
 			{ "legmoho", "legfus", "", "legadvsol" },
 			{ "legeconv", "legageo", "", "legrampart" },
@@ -3621,7 +3621,7 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
-	unitGrids["legaca"] = {
+	unitGrids.legaca = {
 		{
 			{ "legmoho", "legfus", "", "legadvsol" },
 			{ "legeconv", "legageo", "", "legrampart" },
@@ -3645,7 +3645,7 @@ if Spring.GetModOptions().techsplit then
 	}
 	-- Lab Grids
 
-	labGrids["armlab"] = {
+	labGrids.armlab = {
 		"armck",
 		"armrectr",
 		"armpw",
@@ -3659,7 +3659,7 @@ if Spring.GetModOptions().techsplit then
 		"armjeth",
 	}
 
-	labGrids["armvp"] = {
+	labGrids.armvp = {
 		"armcv",
 		"armmlv",
 		"armflash",
@@ -3674,7 +3674,7 @@ if Spring.GetModOptions().techsplit then
 		"", -- amphib con, amphib tank, missile truck
 	}
 
-	labGrids["corvp"] = {
+	labGrids.corvp = {
 		"corcv",
 		"cormlv",
 		"corgator",
@@ -3689,7 +3689,7 @@ if Spring.GetModOptions().techsplit then
 		"", -- amphib con, amphib tank, missile truck
 	}
 
-	labGrids["armalab"] = {
+	labGrids.armalab = {
 		"armack",
 		"armspid",
 		"armfast",
@@ -3704,7 +3704,7 @@ if Spring.GetModOptions().techsplit then
 		"armmav",
 	}
 
-	labGrids["coralab"] = {
+	labGrids.coralab = {
 		"corack",
 		"cormando",
 		"corpyro",
@@ -3719,7 +3719,7 @@ if Spring.GetModOptions().techsplit then
 		"cortermite",
 	}
 
-	labGrids["legalab"] = {
+	labGrids.legalab = {
 		"legack",
 		"leginfestor",
 		"legstr",
@@ -3734,7 +3734,7 @@ if Spring.GetModOptions().techsplit then
 		"",
 	}
 
-	labGrids["armavp"] = {
+	labGrids.armavp = {
 		"armacv",
 		"armch",
 		"armlatnk",
@@ -3749,7 +3749,7 @@ if Spring.GetModOptions().techsplit then
 		"armgremlin",
 	}
 
-	labGrids["coravp"] = {
+	labGrids.coravp = {
 		"coracv",
 		"corch",
 		"corsala",
@@ -3764,7 +3764,7 @@ if Spring.GetModOptions().techsplit then
 		"cormh",
 	}
 
-	labGrids["legavp"] = {
+	labGrids.legavp = {
 		"legacv",
 		"legvcarry",
 		"legmrv",
@@ -3779,7 +3779,7 @@ if Spring.GetModOptions().techsplit then
 		"legmh",
 	}
 
-	labGrids["armasy"] = {
+	labGrids.armasy = {
 		"armacsub",
 		"armch",
 		"armlship",
@@ -3794,7 +3794,7 @@ if Spring.GetModOptions().techsplit then
 		"armmh",
 	}
 
-	labGrids["corasy"] = {
+	labGrids.corasy = {
 		"coracsub",
 		"corch",
 		"corfship",
@@ -3809,7 +3809,7 @@ if Spring.GetModOptions().techsplit then
 		"cormh",
 	}
 
-	labGrids["coraap"] = {
+	labGrids.coraap = {
 		"coraca",
 		"corsfig",
 		"corcut",
@@ -3824,7 +3824,7 @@ if Spring.GetModOptions().techsplit then
 		"",
 	}
 
-	labGrids["armaap"] = {
+	labGrids.armaap = {
 		"armaca",
 		"armsfig",
 		"armsaber",
@@ -3839,7 +3839,7 @@ if Spring.GetModOptions().techsplit then
 		"",
 	}
 
-	labGrids["legaap"] = {
+	labGrids.legaap = {
 		"legaca",
 		"corsfig",
 		"corcut",

@@ -585,18 +585,18 @@ local objectiveUnitsAlive = {}
 
 local function Fail()
 	GG.wipeoutAllyTeam(0) -- kill all units when failed
-	GameOver = Spring.GameOver({ 2 }) --winningAllyTeamN where N is Ally ID
+	GameOver = SpringSynced.GameOver({ 2 }) --winningAllyTeamN where N is Ally ID
 end
 
 local function Loadout()
 	for k, unit in pairs(loadout) do
 		if UnitDefNames[unit.name] then
 			-- Spring.Echo("trying to spawn a unit, synced is", Script.GetSynced())
-			local unitID = Spring.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
+			local unitID = SpringSynced.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
 			for i = 1, #unit.queue do
 				local order = unit.queue[i]
-				local position = { order.position["px"], order.position["py"], order.position["pz"] }
-				Spring.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
+				local position = { order.position.px, order.position.py, order.position.pz }
+				SpringShared.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
 			end
 		end
 	end
@@ -606,14 +606,14 @@ function ObjectiveLoadout()
 	for i, unitGroup in ipairs(objectiveUnits) do
 		for j, unit in ipairs(unitGroup) do
 			if UnitDefNames[unit.name] then
-				local unitID = Spring.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
+				local unitID = SpringSynced.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
 				objectiveUnitsAlive[unitID] = true
 				if unit.objectiveUnitID then
 					objectiveUnits[unitID] = unit.objectiveUnitID
 				end
 				for k, order in ipairs(unit.queue) do
-					local position = { order.position["px"], order.position["py"], order.position["pz"] }
-					Spring.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
+					local position = { order.position.px, order.position.py, order.position.pz }
+					SpringShared.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
 				end
 			end
 		end
@@ -627,7 +627,7 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 			for j, unit in ipairs(unitGroup) do
 				if unit.objectiveUnitID == 2 then
 					Fail()
-					Spring.Echo("\n\n\nYOU LOST CRITICAL BUILDING!!\nMISSION FAILED!!!")
+					SpringShared.Echo("\n\n\nYOU LOST CRITICAL BUILDING!!\nMISSION FAILED!!!")
 					objectiveUnits[unitID] = nil
 					return
 				end
@@ -640,11 +640,11 @@ local function BackupOne()
 	for k, unit in pairs(backupOne) do
 		if UnitDefNames[unit.name] then
 			-- Spring.Echo("trying to spawn a unit, synced is", Script.GetSynced())
-			local unitID = Spring.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
+			local unitID = SpringSynced.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
 			for i = 1, #unit.queue do
 				local order = unit.queue[i]
-				local position = { order.position["px"], order.position["py"], order.position["pz"] }
-				Spring.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
+				local position = { order.position.px, order.position.py, order.position.pz }
+				SpringShared.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
 			end
 		end
 	end
@@ -654,11 +654,11 @@ local function BackupTwo()
 	for k, unit in pairs(backupTwo) do
 		if UnitDefNames[unit.name] then
 			-- Spring.Echo("trying to spawn a unit, synced is", Script.GetSynced())
-			local unitID = Spring.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
+			local unitID = SpringSynced.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
 			for i = 1, #unit.queue do
 				local order = unit.queue[i]
-				local position = { order.position["px"], order.position["py"], order.position["pz"] }
-				Spring.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
+				local position = { order.position.px, order.position.py, order.position.pz }
+				SpringShared.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
 			end
 		end
 	end
@@ -668,11 +668,11 @@ local function Timed()
 	for k, unit in pairs(timed) do
 		if UnitDefNames[unit.name] then
 			-- Spring.Echo("trying to spawn a unit, synced is", Script.GetSynced())
-			local unitID = Spring.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
+			local unitID = SpringSynced.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
 			for i = 1, #unit.queue do
 				local order = unit.queue[i]
-				local position = { order.position["px"], order.position["py"], order.position["pz"] }
-				Spring.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
+				local position = { order.position.px, order.position.py, order.position.pz }
+				SpringShared.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
 			end
 		end
 	end
@@ -682,11 +682,11 @@ local function Special()
 	for k, unit in pairs(special) do
 		if UnitDefNames[unit.name] then
 			-- Spring.Echo("trying to spawn a unit, synced is", Script.GetSynced())
-			local unitID = Spring.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
+			local unitID = SpringSynced.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
 			for i = 1, #unit.queue do
 				local order = unit.queue[i]
-				local position = { order.position["px"], order.position["py"], order.position["pz"] }
-				Spring.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
+				local position = { order.position.px, order.position.py, order.position.pz }
+				SpringShared.GiveOrderToUnit(unitID, order.cmdID, position, CMD.OPT_SHIFT)
 			end
 		end
 	end

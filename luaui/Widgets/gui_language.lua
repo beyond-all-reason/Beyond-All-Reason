@@ -20,9 +20,9 @@ local customMessageProxies = {
 
 local function getMessageProxy(messageKey, parameters)
 	if customMessageProxies[messageKey] then
-		return Spring.I18N(messageKey, customMessageProxies[messageKey](parameters))
+		return I18N(messageKey, customMessageProxies[messageKey](parameters))
 	else
-		return Spring.I18N(messageKey, parameters)
+		return I18N(messageKey, parameters)
 	end
 end
 
@@ -35,19 +35,19 @@ function widget:Initialize()
 
 	widgetHandler:RegisterGlobal("GadgetMessageProxy", getMessageProxy)
 
-	WG["language"] = {}
+	WG.language = {}
 
-	WG["language"].setLanguage = function(language)
-		Spring.SetConfigString("language", language)
-		Spring.I18N.setLanguage(language)
+	WG.language.setLanguage = function(language)
+		SpringUnsynced.SetConfigString("language", language)
+		I18N.setLanguage(language)
 
 		if Script.LuaUI("LanguageChanged") then
 			Script.LuaUI.LanguageChanged()
 		end
 	end
 
-	WG["language"].setEnglishUnitNames = function(value)
-		Spring.SetConfigInt("language_english_unit_names", value and 1 or 0)
+	WG.language.setEnglishUnitNames = function(value)
+		SpringUnsynced.SetConfigInt("language_english_unit_names", value and 1 or 0)
 
 		if Script.LuaUI("LanguageChanged") then
 			Script.LuaUI.LanguageChanged()
@@ -56,5 +56,5 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG["lang"] = nil
+	WG.lang = nil
 end

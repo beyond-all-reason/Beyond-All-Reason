@@ -1,4 +1,4 @@
-if not (Spring.Utilities.Gametype.IsScavengers() and not Spring.Utilities.Gametype.IsRaptors()) then
+if not (Utilities.Gametype.IsScavengers() and not Utilities.Gametype.IsRaptors()) then
 	return false
 end
 
@@ -23,7 +23,7 @@ local mathFloor = math.floor
 local mathMin = math.min
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local config = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
 
@@ -34,15 +34,15 @@ local messageArgs, marqueeMessage
 local refreshMarqueeMessage = false
 local showMarqueeMessage = false
 
-if not Spring.Utilities.Gametype.IsScavengers() then
+if not Utilities.Gametype.IsScavengers() then
 	return false
 end
 
-if not Spring.GetGameRulesParam("scavDifficulty") then
+if not SpringShared.GetGameRulesParam("scavDifficulty") then
 	return false
 end
 
-local GetGameSeconds = Spring.GetGameSeconds
+local GetGameSeconds = SpringShared.GetGameSeconds
 
 local displayList
 local panelTexture = ":n:LuaUI/Images/scavpanel.png"
@@ -67,7 +67,7 @@ local gameInfo
 local waveSpeed = 0.1
 local waveCount = 0
 local waveTime
-local bossToastTimer = Spring.GetTimer()
+local bossToastTimer = SpringUnsynced.GetTimer()
 local enabled
 local gotScore
 local scoreCount = 0
@@ -79,8 +79,8 @@ local guiPanel --// a displayList
 local updatePanel
 local hasScavEvent = false
 
-local difficultyOption = Spring.GetModOptions().scav_difficulty
-local nBosses = Spring.GetModOptions().scav_boss_count
+local difficultyOption = SpringShared.GetModOptions().scav_difficulty
+local nBosses = SpringShared.GetModOptions().scav_boss_count
 
 local rules = {
 	"scavBossTime",
@@ -142,14 +142,14 @@ local function CreatePanelDisplayList()
 	if currentTime > gameInfo.scavGracePeriod then
 		if gameInfo.scavBossAnger < 100 then
 			local gain = 0
-			if Spring.GetGameRulesParam("ScavBossAngerGain_Base") then
-				font:Print(textColor .. Spring.I18N("ui.scavs.bossAngerBase", { value = math.round(Spring.GetGameRulesParam("ScavBossAngerGain_Base"), 3) }), panelMarginX + 5, PanelRow(3), panelFontSize, "")
-				font:Print(textColor .. Spring.I18N("ui.scavs.bossAngerAggression", { value = math.round(Spring.GetGameRulesParam("ScavBossAngerGain_Aggression"), 3) }), panelMarginX + 5, PanelRow(4), panelFontSize, "")
+			if SpringShared.GetGameRulesParam("ScavBossAngerGain_Base") then
+				font:Print(textColor .. I18N("ui.scavs.bossAngerBase", { value = math.round(SpringShared.GetGameRulesParam("ScavBossAngerGain_Base"), 3) }), panelMarginX + 5, PanelRow(3), panelFontSize, "")
+				font:Print(textColor .. I18N("ui.scavs.bossAngerAggression", { value = math.round(SpringShared.GetGameRulesParam("ScavBossAngerGain_Aggression"), 3) }), panelMarginX + 5, PanelRow(4), panelFontSize, "")
 				--font:Print(textColor .. Spring.I18N('ui.scavs.bossAngerEco', { value = math.round(Spring.GetGameRulesParam("ScavBossAngerGain_Eco"), 3) }), panelMarginX+5, PanelRow(5), panelFontSize, "")
-				gain = math.round(Spring.GetGameRulesParam("ScavBossAngerGain_Base"), 3) + math.round(Spring.GetGameRulesParam("ScavBossAngerGain_Aggression"), 3) + math.round(Spring.GetGameRulesParam("ScavBossAngerGain_Eco"), 3)
+				gain = math.round(SpringShared.GetGameRulesParam("ScavBossAngerGain_Base"), 3) + math.round(SpringShared.GetGameRulesParam("ScavBossAngerGain_Aggression"), 3) + math.round(SpringShared.GetGameRulesParam("ScavBossAngerGain_Eco"), 3)
 			end
 			--font:Print(textColor .. Spring.I18N('ui.scavs.bossAngerWithGain', { anger = gameInfo.scavBossAnger, gain = math.round(gain, 3) }), panelMarginX, PanelRow(1), panelFontSize, "")
-			font:Print(textColor .. Spring.I18N("ui.scavs.bossAngerWithTech", { anger = mathFloor(0.5 + gameInfo.scavBossAnger), techAnger = gameInfo.scavTechAnger }), panelMarginX, PanelRow(1), panelFontSize, "")
+			font:Print(textColor .. I18N("ui.scavs.bossAngerWithTech", { anger = mathFloor(0.5 + gameInfo.scavBossAnger), techAnger = gameInfo.scavTechAnger }), panelMarginX, PanelRow(1), panelFontSize, "")
 
 			local totalSeconds = ((100 - gameInfo.scavBossAnger) / gain)
 			if currentTime <= gameInfo.scavGracePeriod then
@@ -160,35 +160,35 @@ local function CreatePanelDisplayList()
 				if not revealedBossEta then
 					revealedBossEta = true
 				end
-				font:Print(textColor .. Spring.I18N("ui.scavs.bossETA", { count = nBosses, time = time }), panelMarginX + 5, PanelRow(2), panelFontSize, "")
+				font:Print(textColor .. I18N("ui.scavs.bossETA", { count = nBosses, time = time }), panelMarginX + 5, PanelRow(2), panelFontSize, "")
 			end
 			if #currentlyResistantToNames > 0 then
 				currentlyResistantToNames = {}
 				currentlyResistantTo = {}
 			end
 		else
-			font:Print(textColor .. Spring.I18N("ui.scavs.bossHealth", { count = nBosses, health = gameInfo.scavBossHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
+			font:Print(textColor .. I18N("ui.scavs.bossHealth", { count = nBosses, health = gameInfo.scavBossHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
 			if nBosses > 1 then
-				font:Print(textColor .. Spring.I18N("ui.scavs.bossesKilled", { nKilled = gameInfo.scavBossesKilled, nTotal = nBosses }), panelMarginX, PanelRow(2), panelFontSize, "")
+				font:Print(textColor .. I18N("ui.scavs.bossesKilled", { nKilled = gameInfo.scavBossesKilled, nTotal = nBosses }), panelMarginX, PanelRow(2), panelFontSize, "")
 			end
 			for i = 1, #currentlyResistantToNames do
 				if i == 1 then
-					font:Print(textColor .. Spring.I18N("ui.scavs.bossResistantToList", { count = nBosses }), panelMarginX, PanelRow(12), panelFontSize, "")
+					font:Print(textColor .. I18N("ui.scavs.bossResistantToList", { count = nBosses }), panelMarginX, PanelRow(12), panelFontSize, "")
 				end
 				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX + 20, PanelRow(12 + i), panelFontSize, "")
 			end
 		end
 	else
-		font:Print(textColor .. Spring.I18N("ui.scavs.gracePeriod", { time = string.formatTime(mathCeil(((currentTime - gameInfo.scavGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
+		font:Print(textColor .. I18N("ui.scavs.gracePeriod", { time = string.formatTime(mathCeil(((currentTime - gameInfo.scavGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
 	end
 
 	-- font:Print(textColor .. Spring.I18N('ui.scavs.scavKillCount', { count = gameInfo.scavKills }), panelMarginX, PanelRow(6), panelFontSize, "")
 	local endless = ""
-	if Spring.GetModOptions().scav_endless then
-		endless = " (" .. Spring.I18N("ui.scavs.difficulty.endless") .. ")"
+	if SpringShared.GetModOptions().scav_endless then
+		endless = " (" .. I18N("ui.scavs.difficulty.endless") .. ")"
 	end
-	local difficultyCaption = Spring.I18N("ui.scavs.difficulty." .. difficultyOption)
-	font:Print(textColor .. Spring.I18N("ui.scavs.mode", { mode = difficultyCaption }) .. endless, panelMarginX, h - 195, panelFontSize, "")
+	local difficultyCaption = I18N("ui.scavs.difficulty." .. difficultyOption)
+	font:Print(textColor .. I18N("ui.scavs.mode", { mode = difficultyCaption }) .. endless, panelMarginX, h - 195, panelFontSize, "")
 	font:End()
 
 	gl.Texture(false)
@@ -198,18 +198,18 @@ end
 local function getMarqueeMessage(scavEventArgs)
 	local messages = {}
 	if scavEventArgs.type == "firstWave" then
-		messages[1] = textColor .. Spring.I18N("ui.scavs.firstWave1")
-		messages[2] = textColor .. Spring.I18N("ui.scavs.firstWave2")
+		messages[1] = textColor .. I18N("ui.scavs.firstWave1")
+		messages[2] = textColor .. I18N("ui.scavs.firstWave2")
 	elseif scavEventArgs.type == "boss" then
-		messages[1] = textColor .. Spring.I18N("ui.scavs.bossIsAngry1", { count = nBosses })
-		messages[2] = textColor .. Spring.I18N("ui.scavs.bossIsAngry2")
+		messages[1] = textColor .. I18N("ui.scavs.bossIsAngry1", { count = nBosses })
+		messages[2] = textColor .. I18N("ui.scavs.bossIsAngry2")
 	elseif scavEventArgs.type == "airWave" then
-		messages[1] = textColor .. Spring.I18N("ui.scavs.wave1", { waveNumber = scavEventArgs.waveCount })
-		messages[2] = textColor .. Spring.I18N("ui.scavs.airWave1")
-		messages[3] = textColor .. Spring.I18N("ui.scavs.airWave2", { unitCount = scavEventArgs.number })
+		messages[1] = textColor .. I18N("ui.scavs.wave1", { waveNumber = scavEventArgs.waveCount })
+		messages[2] = textColor .. I18N("ui.scavs.airWave1")
+		messages[3] = textColor .. I18N("ui.scavs.airWave2", { unitCount = scavEventArgs.number })
 	elseif scavEventArgs.type == "wave" then
-		messages[1] = textColor .. Spring.I18N("ui.scavs.wave1", { waveNumber = scavEventArgs.waveCount })
-		messages[2] = textColor .. Spring.I18N("ui.scavs.wave2", { unitCount = scavEventArgs.number })
+		messages[1] = textColor .. I18N("ui.scavs.wave1", { waveNumber = scavEventArgs.waveCount })
+		messages[2] = textColor .. I18N("ui.scavs.wave2", { unitCount = scavEventArgs.number })
 	end
 
 	refreshMarqueeMessage = false
@@ -219,7 +219,7 @@ end
 
 local function getResistancesMessage()
 	local messages = {}
-	messages[1] = textColor .. (Spring.I18N("ui.scavs.resistanceUnits", { count = nBosses }))
+	messages[1] = textColor .. (I18N("ui.scavs.resistanceUnits", { count = nBosses }))
 	for i = 1, #resistancesTable do
 		local attackerName = UnitDefs[resistancesTable[i]].name
 		if string.sub(attackerName, -5, -1) == "_scav" then
@@ -227,14 +227,14 @@ local function getResistancesMessage()
 			if UnitDefNames[attackerNameNonScav].customParams.i18nfromunit then
 				attackerNameNonScav = UnitDefNames[attackerNameNonScav].customParams.i18nfromunit
 			end
-			messages[i + 1] = textColor .. "Scav " .. Spring.I18N("units.names." .. attackerNameNonScav)
-			currentlyResistantToNames[#currentlyResistantToNames + 1] = "Scav " .. Spring.I18N("units.names." .. attackerNameNonScav)
+			messages[i + 1] = textColor .. "Scav " .. I18N.unitName(attackerNameNonScav)
+			currentlyResistantToNames[#currentlyResistantToNames + 1] = "Scav " .. I18N.unitName(attackerNameNonScav)
 		else
 			if UnitDefNames[attackerName].customParams.i18nfromunit then
 				attackerName = UnitDefNames[attackerName].customParams.i18nfromunit
 			end
-			messages[i + 1] = textColor .. Spring.I18N("units.names." .. attackerName)
-			currentlyResistantToNames[#currentlyResistantToNames + 1] = Spring.I18N("units.names." .. attackerName)
+			messages[i + 1] = textColor .. I18N.unitName(attackerName)
+			currentlyResistantToNames[#currentlyResistantToNames + 1] = I18N.unitName(attackerName)
 		end
 	end
 	resistancesTable = {}
@@ -263,9 +263,9 @@ local function Draw()
 	end
 
 	if showMarqueeMessage then
-		local t = Spring.GetTimer()
+		local t = SpringUnsynced.GetTimer()
 
-		local waveY = viewSizeY - Spring.DiffTimers(t, waveTime) * waveSpeed * viewSizeY
+		local waveY = viewSizeY - SpringUnsynced.DiffTimers(t, waveTime) * waveSpeed * viewSizeY
 		if waveY > 0 then
 			if refreshMarqueeMessage or not marqueeMessage then
 				marqueeMessage = getMarqueeMessage(messageArgs)
@@ -283,7 +283,7 @@ local function Draw()
 		end
 	elseif #resistancesTable > 0 then
 		marqueeMessage = getResistancesMessage()
-		waveTime = Spring.GetTimer()
+		waveTime = SpringUnsynced.GetTimer()
 		showMarqueeMessage = true
 	end
 end
@@ -294,7 +294,7 @@ local function UpdateRules()
 	end
 
 	for _, rule in ipairs(rules) do
-		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 0
+		gameInfo[rule] = SpringShared.GetGameRulesParam(rule) or 0
 	end
 	gameInfo.scavCounts = getScavCounts("Count")
 	gameInfo.scavKills = getScavCounts("Kills")
@@ -303,13 +303,13 @@ local function UpdateRules()
 end
 
 function ScavEvent(scavEventArgs)
-	if scavEventArgs.type == "firstWave" or (scavEventArgs.type == "boss" and Spring.DiffTimers(Spring.GetTimer(), bossToastTimer) > 10) then
+	if scavEventArgs.type == "firstWave" or (scavEventArgs.type == "boss" and SpringUnsynced.DiffTimers(SpringUnsynced.GetTimer(), bossToastTimer) > 10) then
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
 		messageArgs = scavEventArgs
-		waveTime = Spring.GetTimer()
+		waveTime = SpringUnsynced.GetTimer()
 		if scavEventArgs.type == "boss" then
-			bossToastTimer = Spring.GetTimer()
+			bossToastTimer = SpringUnsynced.GetTimer()
 		end
 	end
 
@@ -328,7 +328,7 @@ function ScavEvent(scavEventArgs)
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
 		messageArgs = scavEventArgs
-		waveTime = Spring.GetTimer()
+		waveTime = SpringUnsynced.GetTimer()
 	end
 end
 
@@ -358,7 +358,7 @@ end
 
 function widget:Shutdown()
 	if hasScavEvent then
-		Spring.SendCommands({ "luarules HasScavEvent 0" })
+		SpringUnsynced.SendCommands({ "luarules HasScavEvent 0" })
 	end
 
 	if guiPanel then
@@ -373,7 +373,7 @@ end
 
 function widget:GameFrame(n)
 	if not hasScavEvent and n > 1 then
-		Spring.SendCommands({ "luarules HasScavEvent 1" })
+		SpringUnsynced.SendCommands({ "luarules HasScavEvent 1" })
 		hasScavEvent = true
 	end
 	if n % 30 < 1 then
@@ -425,8 +425,8 @@ end
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 
 	x1 = mathFloor(x1 - viewSizeX)
 	y1 = mathFloor(y1 - viewSizeY)

@@ -1,6 +1,76 @@
-local currentDirectory = "modules/i18n/"
-I18N_PATH = currentDirectory .. "i18nlib/i18n/" -- I18N_PATH is expected to be global inside the i18n module
-local i18n = VFS.Include(I18N_PATH .. "init.lua", nil, VFS.ZIP)
+local function _findI18nBase()
+	local luxDirs = VFS.SubDirs(".lux/5.1/", VFS.RAW_ONLY) or {}
+	for _, dir in ipairs(luxDirs) do
+		if dir:match("i18n@") then
+			local initPath = dir .. "src/i18n/init.lua"
+			if VFS.FileExists(initPath, VFS.RAW_ONLY) then
+				return dir .. "src/"
+			end
+		end
+	end
+	error("i18n library not found. Run 'lx sync' to install dependencies.")
+end
+
+local _origRequire = require
+do
+	local _loaded = {}
+	local _base = _findI18nBase()
+	require = function(modname)
+		if _loaded[modname] then
+			return _loaded[modname]
+		end
+		local rel = modname:gsub("%.", "/")
+		local path = _base .. rel .. "/init.lua"
+		if not VFS.FileExists(path, VFS.RAW_FIRST) then
+			path = _base .. rel .. ".lua"
+		end
+		local src = VFS.LoadFile(path, VFS.RAW_FIRST)
+		if not src then
+			error("module '" .. modname .. "' not found at " .. path)
+		end
+		local chunk = assert(loadstring(src, path))
+		local result = chunk(modname)
+		_loaded[modname] = result or true
+		return _loaded[modname]
+	end
+end
+local i18n = require("i18n")
+require = _origRequire
+
+function i18n.loadFile(path)
+	local success, data = pcall(function()
+		local chunk = VFS.LoadFile(path, VFS.ZIP_FIRST)
+		return assert(loadstring(chunk))()
+	end)
+	if not success then
+		SpringShared.Log("i18n", LOG.ERROR, "Failed to parse file " .. path)
+		SpringShared.Log("i18n", LOG.ERROR, data)
+		return nil
+	end
+	i18n.load(data)
+end
+
+local _translate = i18n.translate
+local missingTranslations = {}
+function i18n.translate(key, data)
+	local result = _translate(key, data)
+	if result ~= nil then
+		return result
+	end
+	if not missingTranslations[key] then
+		missingTranslations[key] = true
+		SpringShared.Log("i18n", "notice", 'No translation found for "' .. key .. '"')
+	end
+	return (data and data.default) or key
+end
+
+function i18n.unitName(unitDefName, data)
+	data = data or {}
+	if SpringUnsynced.GetConfigInt("language_english_unit_names", 1) == 1 then
+		data.locale = "en"
+	end
+	return i18n.translate("units.names." .. unitDefName, data)
+end
 
 local asianFont = "fallbacks/SourceHanSans-Regular.ttc"
 local translationDirs = VFS.SubDirs("language")
@@ -94,16 +164,16 @@ function i18n.setLanguage(language)
 	-- Manually switching fonts is requred until Spring handles font substitution at the engine level
 	-- LuaUI reload must be invoked for widgets to refresh all their font objects
 	local asianLanguage = language == "zh"
-	local currentFont = Spring.GetConfigString("bar_font")
+	local currentFont = SpringUnsynced.GetConfigString("bar_font")
 
 	if asianLanguage and currentFont ~= asianFont then
-		Spring.SetConfigString("bar_font", asianFont)
-		Spring.SetConfigString("bar_font2", asianFont)
-		Spring.SendCommands("luarules reloadluaui")
+		SpringUnsynced.SetConfigString("bar_font", asianFont)
+		SpringUnsynced.SetConfigString("bar_font2", asianFont)
+		SpringUnsynced.SendCommands("luarules reloadluaui")
 	elseif not asianLanguage and currentFont == asianFont then
-		Spring.SetConfigString("bar_font", "Poppins-Regular.otf")
-		Spring.SetConfigString("bar_font2", "Exo2-SemiBold.otf")
-		Spring.SendCommands("luarules reloadluaui")
+		SpringUnsynced.SetConfigString("bar_font", "Poppins-Regular.otf")
+		SpringUnsynced.SetConfigString("bar_font2", "Exo2-SemiBold.otf")
+		SpringUnsynced.SendCommands("luarules reloadluaui")
 	end
 end
 

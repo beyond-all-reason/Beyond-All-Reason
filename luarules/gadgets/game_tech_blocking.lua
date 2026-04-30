@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local modOptions = Spring.GetModOptions()
+local modOptions = SpringShared.GetModOptions()
 local techMode = modOptions.tech_blocking
 local t2TechThreshold = modOptions.t2_tech_threshold or 100
 local t3TechThreshold = modOptions.t3_tech_threshold or 1000
@@ -27,9 +27,9 @@ if not techMode then
 	return
 end
 
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spSetTeamRulesParam = Spring.SetTeamRulesParam
+local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+local spGetTeamRulesParam = SpringShared.GetTeamRulesParam
+local spSetTeamRulesParam = SpringSynced.SetTeamRulesParam
 
 local UPDATE_INTERVAL = Game.gameSpeed
 
@@ -37,13 +37,13 @@ local blockTechDefs = {}
 local techPointsGeneratorDefs = {}
 local techCoreValueDefs = {}
 local ignoredTeams = {
-	[Spring.GetGaiaTeamID()] = true,
+	[SpringShared.GetGaiaTeamID()] = true,
 }
-local scavTeamID = Spring.Utilities.GetScavTeamID()
+local scavTeamID = Utilities.GetScavTeamID()
 if scavTeamID then
 	ignoredTeams[scavTeamID] = true
 end
-local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
+local raptorTeamID = Utilities.GetRaptorTeamID()
 if raptorTeamID then
 	ignoredTeams[raptorTeamID] = true
 end
@@ -64,13 +64,13 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			blockTechDefs[unitDefID] = techLevel
 		end
 		if customParams.tech_points_gain and tonumber(customParams.tech_points_gain) > 0 then
-			Spring.Echo("Tech points gain found for ", unitDef.name, ": ", tostring(customParams.tech_points_gain))
+			SpringShared.Echo("Tech points gain found for ", unitDef.name, ": ", tostring(customParams.tech_points_gain))
 			removeGadget = false
 			local techXP = tonumber(customParams.tech_points_gain)
 			techPointsGeneratorDefs[unitDefID] = techXP
 		end
 		if customParams.tech_core_value and tonumber(customParams.tech_core_value) > 0 then
-			Spring.Echo("Tech core value found for ", unitDef.name, ": ", tostring(customParams.tech_core_value))
+			SpringShared.Echo("Tech core value found for ", unitDef.name, ": ", tostring(customParams.tech_core_value))
 			removeGadget = false
 			local coreValue = tonumber(customParams.tech_core_value)
 			techCoreValueDefs[unitDefID] = coreValue
@@ -81,16 +81,16 @@ if removeGadget then
 	gadgetHandler:RemoveGadget(gadget)
 end
 
-local allyTeamList = Spring.GetAllyTeamList()
+local allyTeamList = SpringShared.GetAllyTeamList()
 for _, allyTeamID in ipairs(allyTeamList) do
-	local teamList = Spring.GetTeamList(allyTeamID)
+	local teamList = SpringShared.GetTeamList(allyTeamID)
 	allyWatch[allyTeamID] = teamList
 end
 
 local function increaseTechLevel(teamList, notificationEvent, techLevel)
 	for _, teamID in ipairs(teamList) do
 		if not ignoredTeams[teamID] then
-			local players = Spring.GetPlayerList(teamID)
+			local players = SpringShared.GetPlayerList(teamID)
 			if players then
 				for _, playerID in ipairs(players) do
 					SendToUnsynced("NotificationEvent", notificationEvent, tostring(playerID))
@@ -111,7 +111,7 @@ end
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
 
-	local teamList = Spring.GetTeamList()
+	local teamList = SpringShared.GetTeamList()
 	for _, teamID in ipairs(teamList) do
 		if not ignoredTeams[teamID] then
 			spSetTeamRulesParam(teamID, "tech_points", 0)
@@ -119,17 +119,17 @@ function gadget:Initialize()
 		end
 	end
 
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	for _, unitID in ipairs(allUnits) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		local unitTeam = Spring.GetUnitTeam(unitID)
+		local unitDefID = SpringShared.GetUnitDefID(unitID)
+		local unitTeam = SpringShared.GetUnitTeam(unitID)
 		if unitDefID and unitTeam then
 			gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 	end
 end
 function gadget:GameStart()
-	local teamList = Spring.GetTeamList()
+	local teamList = SpringShared.GetTeamList()
 	for _, teamID in ipairs(teamList) do
 		if not ignoredTeams[teamID] then
 			local techLevel = spGetTeamRulesParam(teamID, "tech_level") or 1

@@ -747,7 +747,7 @@ function SB:WithGlobalsDefined(fn, persist)
 			return default or 0
 		end
 	end
-	_G.Spring.Utilities = _G.Spring.Utilities or { Gametype = {
+	_G.Utilities = _G.Utilities or { Gametype = {
 		IsScavengers = function()
 			return false
 		end,
@@ -864,13 +864,13 @@ function SB:WithRealUnitDefs()
 				-- Load alldefs_post first to ensure UnitDef_Post is available
 				local alldefsSuccess, alldefsError = pcall(require, "gamedata.alldefs_post")
 				if not alldefsSuccess then
-					Spring.Log("UNITDEFS", LOG.ERROR, "Failed to load alldefs_post: " .. tostring(alldefsError))
+					SpringShared.Log("UNITDEFS", LOG.ERROR, "Failed to load alldefs_post: " .. tostring(alldefsError))
 				end
 
 				-- Run post-processing to normalize unit definitions
 				local postSuccess, postError = pcall(require, "gamedata.unitdefs_post")
 				if not postSuccess then
-					Spring.Log("UNITDEFS", LOG.ERROR, "Failed to run unitdefs post-processing: " .. tostring(postError))
+					SpringShared.Log("UNITDEFS", LOG.ERROR, "Failed to run unitdefs post-processing: " .. tostring(postError))
 				end
 
 				-- Simulate engine-level field renames (C++ does these before Lua sees UnitDefs at runtime)

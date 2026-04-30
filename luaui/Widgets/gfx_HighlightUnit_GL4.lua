@@ -14,8 +14,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spEcho = Spring.Echo
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spEcho = SpringShared.Echo
 
 -- Notes: this API can be considered mildly deprecated, as CUS GL4 now handles the major consumers of this API.
 -- This API is now fully deprecated, as the swith to quaternions breaks it entirely.
@@ -382,21 +382,21 @@ function widget:Initialize()
 		return
 	end
 	if TESTMODE then
-		for i, unitID in ipairs(Spring.GetAllUnits()) do
+		for i, unitID in ipairs(SpringShared.GetAllUnits()) do
 			widget:UnitCreated(unitID)
 		end
-		for i, featureID in ipairs(Spring.GetAllFeatures()) do
+		for i, featureID in ipairs(SpringShared.GetAllFeatures()) do
 			HighlightUnitGL4(featureID, "featureID", 0.0, 0.25, 1, 0.2, 0.5, 3.0, 0.0)
 		end
 	end
-	WG["HighlightUnitGL4"] = HighlightUnitGL4
-	WG["StopHighlightUnitGL4"] = StopHighlightUnitGL4
-	WG["RefreshHighlightUnitGL4"] = RefreshHighlightUnitGL4
+	WG.HighlightUnitGL4 = HighlightUnitGL4
+	WG.StopHighlightUnitGL4 = StopHighlightUnitGL4
+	WG.RefreshHighlightUnitGL4 = RefreshHighlightUnitGL4
 end
 
 function widget:Shutdown()
 	if highlightUnitVBOTable and highlightUnitVBOTable.VAO then
-		if Spring.Utilities.IsDevMode() then
+		if Utilities.IsDevMode() then
 			InstanceVBOTable.dumpAndCompareInstanceData(highlightUnitVBOTable)
 		end
 		highlightUnitVBOTable.VAO:Delete()
@@ -405,9 +405,9 @@ function widget:Shutdown()
 		highlightunitShader:Finalize()
 	end
 
-	WG["HighlightUnitGL4"] = nil
-	WG["StopHighlightUnitGL4"] = nil
-	WG["RefreshHighlightUnitGL4"] = nil
+	WG.HighlightUnitGL4 = nil
+	WG.StopHighlightUnitGL4 = nil
+	WG.RefreshHighlightUnitGL4 = nil
 end
 
 function widget:TextCommand(command)
@@ -447,7 +447,7 @@ function widget:DrawWorld()
 		gl.Blending(GL.SRC_ALPHA, GL.ONE)
 		gl.PolygonOffset(-0.1, -0.1) -- too much here bleeds
 		highlightunitShader:Activate()
-		highlightunitShader:SetUniform("iconDistance", 27 * Spring.GetConfigInt("UnitIconDist", 200))
+		highlightunitShader:SetUniform("iconDistance", 27 * SpringUnsynced.GetConfigInt("UnitIconDist", 200))
 		highlightUnitVBOTable.VAO:Submit()
 		highlightunitShader:Deactivate()
 		gl.PolygonOffset(false)

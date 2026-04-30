@@ -35,16 +35,16 @@ else
 	local floor = math.floor
 	local ZlibCompress = Spring.ZlibCompress
 	local ZlibDeCompress = Spring.ZlibDeCompress
-	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
-	local GetSelectedUnits = Spring.GetSelectedUnits
-	local IsUnitSelected = Spring.IsUnitSelected
-	local GetSpectatingState = Spring.GetSpectatingState
-	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
-	local GetPlayerInfo = Spring.GetPlayerInfo
+	local SendLuaRulesMsg = SpringUnsynced.SendLuaRulesMsg
+	local GetSelectedUnits = SpringUnsynced.GetSelectedUnits
+	local IsUnitSelected = SpringUnsynced.IsUnitSelected
+	local GetSpectatingState = SpringUnsynced.GetSpectatingState
+	local GetLastUpdateSeconds = SpringUnsynced.GetLastUpdateSeconds
+	local GetPlayerInfo = SpringShared.GetPlayerInfo
 	local PackU16 = VFS.PackU16
 	local UnpackU16 = VFS.UnpackU16
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
 
 	local time = 0
 	local timeSeconds = 0

@@ -17,8 +17,8 @@ local mathFloor = math.floor
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local alwaysShow = true -- always show AT LEAST the label
 local alwaysShowLabel = true -- always show the label regardless
@@ -39,10 +39,10 @@ local spec = spGetSpectatingState()
 
 local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, UiElement, UiUnit
 
-local spGetGroupList = Spring.GetGroupList
-local spGetGroupUnitsCounts = Spring.GetGroupUnitsCounts
-local spGetGroupUnitsCount = Spring.GetGroupUnitsCount
-local spGetMouseState = Spring.GetMouseState
+local spGetGroupList = SpringUnsynced.GetGroupList
+local spGetGroupUnitsCounts = SpringUnsynced.GetGroupUnitsCounts
+local spGetGroupUnitsCount = SpringUnsynced.GetGroupUnitsCount
+local spGetMouseState = SpringUnsynced.GetMouseState
 local floor = mathFloor
 local ceil = math.ceil
 local min = math.min
@@ -53,7 +53,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
-local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local uiScale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
 local height = setHeight * uiScale
 local posX = 0
 local posY = 0
@@ -64,7 +64,7 @@ local usedHeight = 0
 local uiTexWidth = 1
 local hovered = false
 local numGroups = 0
-local selectedUnits = Spring.GetSelectedUnits() or {}
+local selectedUnits = SpringUnsynced.GetSelectedUnits() or {}
 local selectionHasChanged = true
 local selectedGroups = {}
 local doUpdate = true
@@ -80,8 +80,8 @@ function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	height = setHeight * uiScale
 
-	font2 = WG["fonts"].getFont()
-	font = WG["fonts"].getFont(2)
+	font2 = WG.fonts.getFont()
+	font = WG.fonts.getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -91,14 +91,14 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	if WG["buildmenu"] then
-		buildmenuBottomPosition = WG["buildmenu"].getBottomPosition()
-		buildmenuAlwaysShow = WG["buildmenu"].getAlwaysShow()
+	if WG.buildmenu then
+		buildmenuBottomPosition = WG.buildmenu.getBottomPosition()
+		buildmenuAlwaysShow = WG.buildmenu.getAlwaysShow()
 	end
 
 	local omPosX, omPosY, omWidth, omHeight = 0, 0, 0, 0
-	if WG["ordermenu"] then
-		omPosX, omPosY, omWidth, omHeight = WG["ordermenu"].getPosition()
+	if WG.ordermenu then
+		omPosX, omPosY, omWidth, omHeight = WG.ordermenu.getPosition()
 	end
 	ordermenuPosY = omPosY
 
@@ -116,7 +116,7 @@ function widget:ViewResize()
 
 	if buildmenuBottomPosition and not buildmenuAlwaysShow then
 		buildmenuShowingPosY = posY
-		if not selectedUnits[1] or not WG["buildmenu"].getIsShowing() then
+		if not selectedUnits[1] or not WG.buildmenu.getIsShowing() then
 			posY = 0
 		end
 	end
@@ -135,7 +135,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	spec = spGetSpectatingState()
-	if not showWhenSpec and Spring.GetGameFrame() > 1 and spec then
+	if not showWhenSpec and SpringShared.GetGameFrame() > 1 and spec then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -148,8 +148,8 @@ function widget:Initialize()
 	end
 	widget:ViewResize()
 	widget:PlayerChanged()
-	WG["unitgroups"] = {}
-	WG["unitgroups"].getPosition = function()
+	WG.unitgroups = {}
+	WG.unitgroups.getPosition = function()
 		return posX, backgroundRect and backgroundRect[2] or posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY + usedHeight
 	end
 end
@@ -164,11 +164,11 @@ function widget:Shutdown()
 	if uiTex then
 		gl.DeleteTexture(uiTex)
 	end
-	if WG["guishader"] and dlistGuishader then
+	if WG.guishader and dlistGuishader then
 		WG.FlowUI.guishaderDeleteDlist("unitgroups")
 		dlistGuishader = nil
 	end
-	WG["unitgroups"] = nil
+	WG.unitgroups = nil
 end
 
 local function checkGuishader(force)
@@ -472,7 +472,7 @@ function widget:Update(dt)
 		return
 	end
 
-	if WG["topbar"] and WG["topbar"].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		return
 	end
 
@@ -480,13 +480,13 @@ function widget:Update(dt)
 	sec = sec + dt
 	sec2 = sec2 + dt
 
-	if WG["buildmenu"] then
-		if buildmenuAlwaysShow ~= WG["buildmenu"].getAlwaysShow() then
+	if WG.buildmenu then
+		if buildmenuAlwaysShow ~= WG.buildmenu.getAlwaysShow() then
 			widget:ViewResize()
 			doUpdate = true
 		end
-		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG["info"] then
-			if (not selectedUnits[1] or not WG["buildmenu"].getIsShowing()) and (posX > 0 or not WG["info"].getIsShowing()) then
+		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG.info then
+			if (not selectedUnits[1] or not WG.buildmenu.getIsShowing()) and (posX > 0 or not WG.info.getIsShowing()) then
 				if posY ~= 0 then
 					posY = 0
 					doUpdate = true
@@ -505,16 +505,16 @@ function widget:Update(dt)
 		hovered = true
 		local tooltipAddition = ""
 		if numGroups >= 1 then
-			tooltipAddition = tooltipAddition .. Spring.I18N("ui.unitGroups.shiftclick") .. "\n" .. Spring.I18N("ui.unitGroups.ctrlclick") .. "\n" .. Spring.I18N("ui.unitGroups.rightclick")
+			tooltipAddition = tooltipAddition .. I18N("ui.unitGroups.shiftclick") .. "\n" .. I18N("ui.unitGroups.ctrlclick") .. "\n" .. I18N("ui.unitGroups.rightclick")
 		end
-		tooltipAddition = tooltipAddition .. (tooltipAddition ~= "" and "\n" or "") .. Spring.I18N("ui.unitGroups.tooltip")
-		if WG["autogroup"] ~= nil then
-			tooltipAddition = tooltipAddition .. (tooltipAddition ~= "" and "\n\n" or "") .. "\255\200\255\200" .. Spring.I18N("ui.unitGroups.autogroupTooltip")
+		tooltipAddition = tooltipAddition .. (tooltipAddition ~= "" and "\n" or "") .. I18N("ui.unitGroups.tooltip")
+		if WG.autogroup ~= nil then
+			tooltipAddition = tooltipAddition .. (tooltipAddition ~= "" and "\n\n" or "") .. "\255\200\255\200" .. I18N("ui.unitGroups.autogroupTooltip")
 		end
-		if WG["tooltip"] then
-			WG["tooltip"].ShowTooltip("unitgroups", tooltipAddition, nil, nil, Spring.I18N("ui.unitGroups.name"))
+		if WG.tooltip then
+			WG.tooltip.ShowTooltip("unitgroups", tooltipAddition, nil, nil, I18N("ui.unitGroups.name"))
 		end
-		Spring.SetMouseCursor("cursornormal")
+		SpringUnsynced.SetMouseCursor("cursornormal")
 		if b then
 			sec = sec + 0.4
 		end
@@ -539,7 +539,7 @@ function widget:Update(dt)
 			local groupUnitSelectedCount = {}
 			for group, _ in pairs(existingGroups) do
 				groupUnitSelectedCount[group] = 0
-				local groupUnits = Spring.GetGroupUnits(group)
+				local groupUnits = SpringUnsynced.GetGroupUnits(group)
 				groupUnitCount[group] = #groupUnits
 				for i = 1, #groupUnits do
 					if selectedUnitID[groupUnits[i]] then
@@ -571,17 +571,17 @@ function widget:Update(dt)
 			end
 		end
 
-		if WG["buildmenu"] and WG["buildmenu"].getBottomPosition then
+		if WG.buildmenu and WG.buildmenu.getBottomPosition then
 			local prevbuildmenuBottomPos = buildmenuBottomPos
-			buildmenuBottomPos = WG["buildmenu"].getBottomPosition()
+			buildmenuBottomPos = WG.buildmenu.getBottomPosition()
 			if buildmenuBottomPos ~= prevbuildmenuBottomPos then
 				widget:ViewResize()
 				doUpdate = true
 			end
 		end
-		if WG["ordermenu"] then
+		if WG.ordermenu then
 			local prevOrdermenuPosY = ordermenuPosY
-			ordermenuPosY = select(2, WG["ordermenu"].getPosition())
+			ordermenuPosY = select(2, WG.ordermenu.getPosition())
 			if ordermenuPosY ~= prevOrdermenuPosY then
 				widget:ViewResize()
 				doUpdate = true
@@ -591,7 +591,7 @@ function widget:Update(dt)
 		doUpdate = true -- TODO: find a way to detect group changes and only doUpdate then
 
 		-- detect guishader toggle: force refresh when it comes back on
-		local guishaderActive = WG["guishader"] ~= nil
+		local guishaderActive = WG.guishader ~= nil
 		if guishaderActive and not guishaderWasActive then
 			checkGuishader(true)
 		end
@@ -603,27 +603,27 @@ function widget:Update(dt)
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 
 	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 		if button == 1 or button == 3 then
 			for i, v in pairs(groupButtons) do
 				if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
 					if shift then
 						local units = selectedUnits
-						local groupUnits = Spring.GetGroupUnits(groupButtons[i][5])
+						local groupUnits = SpringUnsynced.GetGroupUnits(groupButtons[i][5])
 						for i = 1, #groupUnits do
 							units[#units + 1] = groupUnits[i]
 						end
 						selectedUnits = units
 						selectionHasChanged = true
-						Spring.SelectUnitArray(units)
+						SpringUnsynced.SelectUnitArray(units)
 					elseif ctrl then
 						local units = selectedUnits
-						local groupUnits = Spring.GetGroupUnits(groupButtons[i][5])
+						local groupUnits = SpringUnsynced.GetGroupUnits(groupButtons[i][5])
 						local keyGroupUnits = {}
 						for i = 1, #groupUnits do
 							keyGroupUnits[groupUnits[i]] = true
@@ -636,17 +636,17 @@ function widget:MousePress(x, y, button)
 						end
 						selectedUnits = newUnits
 						selectionHasChanged = true
-						Spring.SelectUnitArray(selectedUnits)
+						SpringUnsynced.SelectUnitArray(selectedUnits)
 					else
-						selectedUnits = Spring.GetGroupUnits(groupButtons[i][5])
+						selectedUnits = SpringUnsynced.GetGroupUnits(groupButtons[i][5])
 						selectionHasChanged = true
-						Spring.SelectUnitArray(selectedUnits)
+						SpringUnsynced.SelectUnitArray(selectedUnits)
 					end
 					if button == 3 then
-						Spring.SendCommands("viewselection")
+						SpringUnsynced.SendCommands("viewselection")
 					end
 					if playSounds then
-						Spring.PlaySoundFile((button == 3 and rightclick or leftclick), soundVolume, "ui")
+						SpringUnsynced.PlaySoundFile((button == 3 and rightclick or leftclick), soundVolume, "ui")
 					end
 					return true
 				end

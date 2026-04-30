@@ -16,7 +16,7 @@ end
 local mathRandom = math.random
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 -- Note: this is now updated to support arbitrary start polygons via GL.SHADER_STORAGE_BUFFER
 
@@ -40,8 +40,8 @@ local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
-local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
-local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
+local scavengerAIAllyTeamID = Utilities.GetScavAllyTeamID()
+local raptorsAIAllyTeamID = Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
@@ -51,7 +51,7 @@ local StartPolygons = {} -- list of points in clockwise order
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local minY, maxY = Spring.GetGroundExtremes()
+local minY, maxY = SpringShared.GetGroundExtremes()
 
 local shaderSourceCache = {
 	vssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.vert.glsl",
@@ -87,13 +87,13 @@ local startPolygonShader
 local startPolygonBuffer = nil -- GL.SHADER_STORAGE_BUFFER for polygon
 
 local function DrawStartPolygons(inminimap)
-	local _, advMapShading = Spring.HaveAdvShading()
+	local _, advMapShading = SpringUnsynced.HaveAdvShading()
 
 	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
-		if WG["screencopymanager"] and WG["screencopymanager"].GetDepthCopy() then
-			gl.Texture(0, WG["screencopymanager"].GetDepthCopy())
+		if WG.screencopymanager and WG.screencopymanager.GetDepthCopy() then
+			gl.Texture(0, WG.screencopymanager.GetDepthCopy())
 		else
 			spEcho("Start Polygons: Adv map shading not available, and no depth copy available")
 			return
@@ -116,7 +116,7 @@ local function DrawStartPolygons(inminimap)
 	startPolygonShader:SetUniform("noRushTimer", noRushTime)
 	startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
 	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
-	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1)
+	startPolygonShader:SetUniformInt("myAllyTeamID", SpringUnsynced.GetLocalAllyTeamID() or -1)
 
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	startPolygonShader:Deactivate()
@@ -142,13 +142,13 @@ end
 
 function widget:Initialize()
 	local gaiaAllyTeamID
-	if Spring.GetGaiaTeamID() then
-		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
+	if SpringShared.GetGaiaTeamID() then
+		gaiaAllyTeamID = select(6, SpringShared.GetTeamInfo(SpringShared.GetGaiaTeamID(), false))
 	end
-	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
+	for i, teamID in ipairs(SpringShared.GetAllyTeamList()) do
 		if teamID ~= gaiaAllyTeamID then
 			--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
-			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
+			local xn, zn, xp, zp = SpringShared.GetAllyTeamStartBox(teamID)
 			--spEcho("Allyteam",teamID,"startbox",xn, zn, xp, zp)
 			StartPolygons[teamID] = { { xn, zn }, { xp, zn }, { xp, zp }, { xn, zp } }
 		end
@@ -180,7 +180,7 @@ function widget:Initialize()
 	for teamID, polygon in pairs(StartPolygons) do
 		numPolygons = numPolygons + 1
 		local numPoints = #polygon
-		local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
+		local xn, zn, xp, zp = SpringShared.GetAllyTeamStartBox(teamID)
 		--spEcho("teamID", teamID, "at " ,xn, zn, xp, zp)
 		for vertexID, vertex in ipairs(polygon) do
 			local x, z = vertex[1], vertex[2]

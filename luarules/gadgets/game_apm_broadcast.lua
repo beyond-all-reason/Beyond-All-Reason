@@ -15,12 +15,12 @@ end
 if gadgetHandler:IsSyncedCode() then
 	local teamAddedActionFrame = {}
 	local ignoreUnits = {}
-	local gameFrame = Spring.GetGameFrame()
-	local startFrame = Spring.GetGameFrame() -- used in case of luarules reload
-	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+	local gameFrame = SpringShared.GetGameFrame()
+	local startFrame = SpringShared.GetGameFrame() -- used in case of luarules reload
+	local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
 
 	local totalTeamActions = {}
-	local teamList = Spring.GetTeamList()
+	local teamList = SpringShared.GetTeamList()
 	for i = 1, #teamList do
 		totalTeamActions[teamList[i]] = 0
 	end
@@ -36,8 +36,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		GG["apm"] = {}
-		GG["apm"].addSkipOrder = addSkipOrder
+		GG.apm = {}
+		GG.apm.addSkipOrder = addSkipOrder
 
 		gadgetHandler:RegisterAllowCommand(CMD.ANY)
 	end

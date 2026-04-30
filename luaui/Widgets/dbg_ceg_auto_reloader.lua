@@ -1,4 +1,4 @@
-if not Spring.Utilities.IsDevMode() then -- and not Spring.Utilities.ShowDevUI() then
+if not Utilities.IsDevMode() then -- and not Spring.Utilities.ShowDevUI() then
 	return
 end
 
@@ -20,8 +20,8 @@ end
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetMouseState = Spring.GetMouseState
-local spEcho = Spring.Echo
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spEcho = SpringShared.Echo
 
 local mouseOffscreen = select(6, spGetMouseState())
 
@@ -783,8 +783,8 @@ end
 
 local function validateCEG(cegTable, cegName)
 	for spawnername, spawnerTable in pairs(cegTable) do
-		if type(spawnerTable) == "table" and spawnerTable["class"] then
-			local class = spawnerTable["class"]
+		if type(spawnerTable) == "table" and spawnerTable.class then
+			local class = spawnerTable.class
 			if not spawnerDefs[class] then
 				local msg = string.format('Error: CEG {%s = {%s = {%s = "%s" ,...}}} : %s', tostring(cegName), tostring(spawnername), "class", class, "class does not exist")
 				return false, msg
@@ -972,7 +972,7 @@ local function ScanChanges()
 	if allok then
 		for cegDefname, cegDefFile in pairs(needsReload) do
 			spEcho("Reloading: " .. cegDefname)
-			Spring.SendCommands("reloadcegs")
+			SpringUnsynced.SendCommands("reloadcegs")
 		end
 	end
 end
@@ -994,12 +994,12 @@ function widget:Initialize()
 	LoadAllCegs()
 end
 
-local lastUpdate = Spring.GetTimer()
+local lastUpdate = SpringUnsynced.GetTimer()
 function widget:Update()
-	if Spring.DiffTimers(Spring.GetTimer(), lastUpdate) < 1 then
+	if SpringUnsynced.DiffTimers(SpringUnsynced.GetTimer(), lastUpdate) < 1 then
 		return
 	end
-	lastUpdate = Spring.GetTimer()
+	lastUpdate = SpringUnsynced.GetTimer()
 
 	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, spGetMouseState())
@@ -1009,6 +1009,6 @@ function widget:Update()
 	--end
 
 	if spamCeg then
-		Spring.SendCommands("luarules spawnceg " .. spamCeg .. " 0")
+		SpringUnsynced.SendCommands("luarules spawnceg " .. spamCeg .. " 0")
 	end
 end

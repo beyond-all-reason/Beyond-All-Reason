@@ -12,7 +12,7 @@
 --------------------------------------------------------------------------------
 if System == nil then
 	if tracy == nil then
-		Spring.Echo("Gadgetside tracy: No support detected, replacing tracy.* with function stubs.")
+		SpringShared.Echo("Gadgetside tracy: No support detected, replacing tracy.* with function stubs.")
 		tracy = {}
 		tracy.ZoneBeginN = function()
 			return
@@ -96,6 +96,13 @@ if System == nil then
 		--  Custom libraries
 		--
 		Json = Json,
+
+		-- BAR modules (set by init.lua; detached from Spring table)
+		Utilities = Utilities,
+		I18N = I18N,
+		Debug = Debug,
+		Lava = Lava,
+		GetModOptionsCopy = GetModOptionsCopy,
 
 		--
 		--  Standard functions and variables

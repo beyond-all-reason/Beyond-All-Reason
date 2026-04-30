@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local export_folder_path = "json_export"
 
@@ -29,7 +29,7 @@ end
 
 local function ExportDefs()
 	if not VFS.FileExists(export_folder_path) then
-		Spring.CreateDir(export_folder_path)
+		SpringUnsynced.CreateDir(export_folder_path)
 	end
 
 	for id, unitDef in pairs(UnitDefs) do
@@ -49,11 +49,11 @@ local function ExportDefs()
 		end
 
 		-- parse wDefs, a list of weaponDef metatables
-		tbl["wDefs"] = {}
+		tbl.wDefs = {}
 		for i, weaponDef in pairs(unitDef.wDefs) do
-			tbl["wDefs"][weaponDef.id] = {}
+			tbl.wDefs[weaponDef.id] = {}
 			for field_name, value in weaponDef:pairs() do
-				tbl["wDefs"][weaponDef.id][field_name] = value
+				tbl.wDefs[weaponDef.id][field_name] = value
 			end
 		end
 

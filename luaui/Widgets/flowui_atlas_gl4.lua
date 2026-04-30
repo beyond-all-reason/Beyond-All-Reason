@@ -14,7 +14,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 -- TODO 2022.10.21
 -- Dont load all the 3d shit from luaui images root!
@@ -69,8 +69,8 @@ end
 
 function widget:Initialize()
 	makeAtlas()
-	WG["flowui_atlas"] = atlasID
-	WG["flowui_atlassedImages"] = atlassedImages
+	WG.flowui_atlas = atlasID
+	WG.flowui_atlassedImages = atlassedImages
 end
 
 function widget:Shutdown()

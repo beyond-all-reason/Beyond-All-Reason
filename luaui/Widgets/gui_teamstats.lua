@@ -19,9 +19,9 @@ local mathMax = math.max
 local mathMin = math.min
 
 -- Localized Spring API for performance
-local spGetMouseState = Spring.GetMouseState
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local vsx, vsy = spGetViewGeometry()
 
@@ -46,7 +46,7 @@ local buttonclick = "LuaUI/Sounds/buildbar_waypoint.wav"
 
 local lineHeight = fontSize
 
-local isFFA = Spring.Utilities.Gametype.IsFFA()
+local isFFA = Utilities.Gametype.IsFFA()
 
 local header = {
 	"frame",
@@ -87,21 +87,21 @@ local guiData = {
 }
 guiData.mainPanel.relSizes.x.length = (guiData.mainPanel.relSizes.x.max - guiData.mainPanel.relSizes.x.min) * 0.92
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+local ui_opacity = SpringUnsynced.GetConfigFloat("ui_opacity", 0.7)
 
 local glColor = gl.Color
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
-local GetGaiaTeamID = Spring.GetGaiaTeamID
-local GetAllyTeamList = Spring.GetAllyTeamList
-local GetTeamList = Spring.GetTeamList
-local GetTeamStatsHistory = Spring.GetTeamStatsHistory
-local GetTeamInfo = Spring.GetTeamInfo
-local GetPlayerInfo = Spring.GetPlayerInfo
+local GetGaiaTeamID = SpringShared.GetGaiaTeamID
+local GetAllyTeamList = SpringShared.GetAllyTeamList
+local GetTeamList = SpringShared.GetTeamList
+local GetTeamStatsHistory = SpringShared.GetTeamStatsHistory
+local GetTeamInfo = SpringShared.GetTeamInfo
+local GetPlayerInfo = SpringShared.GetPlayerInfo
 local GetMouseState = spGetMouseState
-local GetGameFrame = Spring.GetGameFrame
+local GetGameFrame = SpringShared.GetGameFrame
 local min = mathMin
 local max = mathMax
 local clamp = math.clamp
@@ -117,12 +117,12 @@ local RectRound, UiElement, elementCorner
 
 local font, font2, backgroundGuishader, gameStarted, bgpadding, gameover
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = { Spring.GetConfigInt("anonymousColorR", 255) / 255, Spring.GetConfigInt("anonymousColorG", 0) / 255, Spring.GetConfigInt("anonymousColorB", 0) / 255 }
+local anonymousMode = SpringShared.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = { SpringUnsynced.GetConfigInt("anonymousColorR", 255) / 255, SpringUnsynced.GetConfigInt("anonymousColorG", 0) / 255, SpringUnsynced.GetConfigInt("anonymousColorB", 0) / 255 }
 
 local isSpec = spGetSpectatingState()
 
-local playerScale = math.clamp(25 / #Spring.GetTeamList(), 0.3, 1)
+local playerScale = math.clamp(25 / #SpringShared.GetTeamList(), 0.3, 1)
 
 function aboveRectangle(mousePos, boxData)
 	local included = true
@@ -203,8 +203,8 @@ function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	widgetScale = (vsy / 1080)
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 	for _, data in pairs(headerRemap) do
 		maxColumnTextSize = max(font:GetTextWidth(data[2]), max(font:GetTextWidth(data[1]), maxColumnTextSize))
 	end
@@ -222,19 +222,19 @@ end
 
 local function refreshHeaders()
 	headerRemap = {
-		frame = { " ", Spring.I18N("ui.teamStats.player") },
-		metalProduced = { Spring.I18N("ui.teamStats.metal"), Spring.I18N("ui.teamStats.resourceProduced") },
-		metalExcess = { Spring.I18N("ui.teamStats.metal"), Spring.I18N("ui.teamStats.resourceExcess") },
-		energyProduced = { Spring.I18N("ui.teamStats.energy"), Spring.I18N("ui.teamStats.resourceProduced") },
-		energyExcess = { Spring.I18N("ui.teamStats.energy"), Spring.I18N("ui.teamStats.resourceExcess") },
-		damageDealt = { Spring.I18N("ui.teamStats.damage"), Spring.I18N("ui.teamStats.damageDealt") },
-		damageReceived = { Spring.I18N("ui.teamStats.damage"), Spring.I18N("ui.teamStats.damageReceived") },
-		damageEfficiency = { Spring.I18N("ui.teamStats.damage"), Spring.I18N("ui.teamStats.damageEfficiency") },
-		unitsProduced = { Spring.I18N("ui.teamStats.units"), Spring.I18N("ui.teamStats.unitsProduced") },
-		unitsDied = { Spring.I18N("ui.teamStats.units"), Spring.I18N("ui.teamStats.unitsDied") },
-		unitsKilled = { Spring.I18N("ui.teamStats.units"), Spring.I18N("ui.teamStats.unitsKilled") },
-		aggressionLevel = { Spring.I18N("ui.teamStats.aggression"), Spring.I18N("ui.teamStats.aggressionLevel") },
-		actionsPerMinute = { Spring.I18N("ui.teamStats.actionsPerMinute1"), Spring.I18N("ui.teamStats.actionsPerMinute2") },
+		frame = { " ", I18N("ui.teamStats.player") },
+		metalProduced = { I18N("ui.teamStats.metal"), I18N("ui.teamStats.resourceProduced") },
+		metalExcess = { I18N("ui.teamStats.metal"), I18N("ui.teamStats.resourceExcess") },
+		energyProduced = { I18N("ui.teamStats.energy"), I18N("ui.teamStats.resourceProduced") },
+		energyExcess = { I18N("ui.teamStats.energy"), I18N("ui.teamStats.resourceExcess") },
+		damageDealt = { I18N("ui.teamStats.damage"), I18N("ui.teamStats.damageDealt") },
+		damageReceived = { I18N("ui.teamStats.damage"), I18N("ui.teamStats.damageReceived") },
+		damageEfficiency = { I18N("ui.teamStats.damage"), I18N("ui.teamStats.damageEfficiency") },
+		unitsProduced = { I18N("ui.teamStats.units"), I18N("ui.teamStats.unitsProduced") },
+		unitsDied = { I18N("ui.teamStats.units"), I18N("ui.teamStats.unitsDied") },
+		unitsKilled = { I18N("ui.teamStats.units"), I18N("ui.teamStats.unitsKilled") },
+		aggressionLevel = { I18N("ui.teamStats.aggression"), I18N("ui.teamStats.aggressionLevel") },
+		actionsPerMinute = { I18N("ui.teamStats.actionsPerMinute1"), I18N("ui.teamStats.actionsPerMinute2") },
 	}
 end
 
@@ -252,13 +252,13 @@ function widget:Initialize()
 	refreshHeaders()
 	guiData.mainPanel.visible = false
 	widget:ViewResize()
-	local _, _, paused = Spring.GetGameSpeed()
+	local _, _, paused = SpringUnsynced.GetGameSpeed()
 	if paused then
 		widget:GameFrame(GetGameFrame(), true)
 	end
 
-	WG["teamstats"] = {}
-	WG["teamstats"].toggle = function(state)
+	WG.teamstats = {}
+	WG.teamstats.toggle = function(state)
 		if state ~= nil then
 			guiData.mainPanel.visible = state
 		else
@@ -268,7 +268,7 @@ function widget:Initialize()
 			widget:GameFrame(GetGameFrame(), true)
 		end
 	end
-	WG["teamstats"].isvisible = function()
+	WG.teamstats.isvisible = function()
 		return guiData.mainPanel.visible
 	end
 end
@@ -276,8 +276,8 @@ end
 function widget:Shutdown()
 	glDeleteList(textDisplayList)
 	glDeleteList(backgroundDisplayList)
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist("teamstats_window")
+	if WG.guishader then
+		WG.guishader.RemoveDlist("teamstats_window")
 	end
 	if backgroundGuishader ~= nil then
 		glDeleteList(backgroundGuishader)
@@ -343,27 +343,27 @@ function widget:GameFrame(n, forceupdate)
 					end
 					history.time = nil
 					local teamColor
-					if not isSpec and anonymousMode ~= "disabled" and teamID ~= Spring.GetLocalTeamID() then
+					if not isSpec and anonymousMode ~= "disabled" and teamID ~= SpringUnsynced.GetLocalTeamID() then
 						teamColor = { anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3] }
 					else
-						teamColor = { Spring.GetTeamColor(teamID) }
+						teamColor = { SpringUnsynced.GetTeamColor(teamID) }
 					end
 					local _, leader, isDead = GetTeamInfo(teamID, false)
 					local playerName, isActive = GetPlayerInfo(leader, false)
 					playerName = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(leader) or playerName
-					if Spring.GetGameRulesParam("ainame_" .. teamID) then
-						playerName = Spring.GetGameRulesParam("ainame_" .. teamID)
+					if SpringShared.GetGameRulesParam("ainame_" .. teamID) then
+						playerName = SpringShared.GetGameRulesParam("ainame_" .. teamID)
 					end
 					if gameStarted ~= nil then
 						if not playerName then
-							playerName = teamControllers[teamID] or Spring.I18N("ui.teamStats.gone", { player = "" })
+							playerName = teamControllers[teamID] or I18N("ui.teamStats.gone", { player = "" })
 						else
 							teamControllers[teamID] = playerName
 						end
 						if isDead then
-							playerName = Spring.I18N("ui.teamStats.dead", { player = playerName })
+							playerName = I18N("ui.teamStats.dead", { player = playerName })
 						elseif not isActive then
-							playerName = Spring.I18N("ui.teamStats.gone", { player = playerName })
+							playerName = I18N("ui.teamStats.gone", { player = playerName })
 						end
 					end
 					if history.damageReceived ~= 0 then
@@ -385,7 +385,7 @@ function widget:GameFrame(n, forceupdate)
 
 					playerName = playerName or ""
 
-					history.frame = Spring.Utilities.ConvertColor(teamColor[1], teamColor[2], teamColor[3]) .. playerName .. "    "
+					history.frame = Utilities.ConvertColor(teamColor[1], teamColor[2], teamColor[3]) .. playerName .. "    "
 
 					allyVec[teamInsertCount] = history
 					totalNumLines = totalNumLines + 1
@@ -439,7 +439,7 @@ function widget:GameOver()
 	if replaceEndStats then
 		guiData.mainPanel.visible = true
 		widget:GameFrame(GetGameFrame(), true)
-		Spring.SendCommands("endgraph 0")
+		SpringUnsynced.SendCommands("endgraph 0")
 	end
 end
 
@@ -473,7 +473,7 @@ function mouseEvent(mx, my, button, release)
 				local newSort = header[column]
 				if newSort then
 					if playSounds then
-						Spring.PlaySoundFile(buttonclick, 0.6, "ui")
+						SpringUnsynced.PlaySoundFile(buttonclick, 0.6, "ui")
 					end
 					if sortVar == newSort then
 						sortAscending = not sortAscending
@@ -533,17 +533,17 @@ local function DrawBackground()
 		return
 	end
 
-	gl.Color(0, 0, 0, WG["guishader"] and 0.8 or 0.85)
+	gl.Color(0, 0, 0, WG.guishader and 0.8 or 0.85)
 	local x1, y1, x2, y2 = mathFloor(guiData.mainPanel.absSizes.x.min), mathFloor(guiData.mainPanel.absSizes.y.min), mathFloor(guiData.mainPanel.absSizes.x.max), mathFloor(guiData.mainPanel.absSizes.y.max)
 	UiElement(x1 - bgpadding, y1 - bgpadding, x2 + bgpadding, y2 + bgpadding, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
-	if WG["guishader"] then
+	if WG.guishader then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = glCreateList(function()
 			RectRound(x1 - bgpadding, y1 - bgpadding, x2 + bgpadding, y2 + bgpadding, elementCorner)
 		end)
-		WG["guishader"].InsertDlist(backgroundGuishader, "teamstats_window")
+		WG.guishader.InsertDlist(backgroundGuishader, "teamstats_window")
 	end
 
 	if backgroundDisplayList then
@@ -562,8 +562,8 @@ end
 
 function widget:DrawScreen()
 	if not guiData.mainPanel.visible then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("teamstats_window")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("teamstats_window")
 		end
 		return
 	end
@@ -574,7 +574,7 @@ function widget:DrawScreen()
 	local mx, my = spGetMouseState()
 	local x1, y1, x2, y2 = mathFloor(guiData.mainPanel.absSizes.x.min), mathFloor(guiData.mainPanel.absSizes.y.min), mathFloor(guiData.mainPanel.absSizes.x.max), mathFloor(guiData.mainPanel.absSizes.y.max)
 	if math_isInRect(mx, my, x1, y1, x2, y2) then
-		Spring.SetMouseCursor("cursornormal")
+		SpringUnsynced.SetMouseCursor("cursornormal")
 	end
 end
 

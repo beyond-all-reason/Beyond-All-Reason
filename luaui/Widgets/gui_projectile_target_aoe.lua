@@ -27,20 +27,20 @@ local rad = math.rad
 
 local osClock = os.clock
 
-local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetProjectileTarget = Spring.GetProjectileTarget
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetViewGeometry = Spring.GetViewGeometry
-local spIsGUIHidden = Spring.IsGUIHidden
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetMyTeamID = Spring.GetMyTeamID
-local spIsSphereInView = Spring.IsSphereInView
+local spGetProjectilesInRectangle = SpringShared.GetProjectilesInRectangle
+local spGetProjectileDefID = SpringShared.GetProjectileDefID
+local spGetProjectileTarget = SpringShared.GetProjectileTarget
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetMyAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetProjectileTeamID = SpringShared.GetProjectileTeamID
+local spGetTeamInfo = SpringShared.GetTeamInfo
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spIsSphereInView = SpringUnsynced.IsSphereInView
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ

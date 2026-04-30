@@ -17,14 +17,14 @@ local mathRandom = math.random
 
 local alarmInterval = 15 --seconds
 
-local spGetLocalTeamID = Spring.GetLocalTeamID
-local spPlaySoundFile = Spring.PlaySoundFile
-local spEcho = Spring.Echo
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
-local spIsUnitInView = Spring.IsUnitInView
-local spGetUnitPosition = Spring.GetUnitPosition
-local spSetLastMessagePosition = Spring.SetLastMessagePosition
+local spGetLocalTeamID = SpringUnsynced.GetLocalTeamID
+local spPlaySoundFile = SpringUnsynced.PlaySoundFile
+local spEcho = SpringShared.Echo
+local spGetTimer = SpringUnsynced.GetTimer
+local spDiffTimers = SpringUnsynced.DiffTimers
+local spIsUnitInView = SpringUnsynced.IsUnitInView
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spSetLastMessagePosition = SpringUnsynced.SetLastMessagePosition
 local random = mathRandom
 
 local lastAlarmTime = nil
@@ -50,7 +50,7 @@ local function refreshUnitInfo()
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() then
+	if SpringUnsynced.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 	localTeamID = spGetLocalTeamID()
@@ -63,7 +63,7 @@ end
 function widget:Initialize()
 	refreshUnitInfo()
 
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or SpringShared.GetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
 
@@ -96,7 +96,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	end
 	if unitHumanName[unitDefID] then
 		lastAlarmTime = now
-		spEcho(Spring.I18N("ui.moveAttackNotify.underAttack", { unit = unitHumanName[unitDefID] }))
+		spEcho(I18N("ui.moveAttackNotify.underAttack", { unit = unitHumanName[unitDefID] }))
 
 		if unitUnderattackSounds[unitDefID] then
 			local id = random(1, #unitUnderattackSounds[unitDefID]) --pick a sound from the table by random --(id 138, name warning2, volume 1)
@@ -114,7 +114,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 end
 
 function widget:UnitMoveFailed(unitID, unitDefID, unitTeam)
-	spEcho(Spring.I18N("ui.moveAttackNotify.cantMove", { unit = unitHumanName[unitDefID] }))
+	spEcho(I18N("ui.moveAttackNotify.cantMove", { unit = unitHumanName[unitDefID] }))
 end
 
 function widget:LanguageChanged()

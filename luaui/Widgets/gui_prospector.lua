@@ -25,12 +25,12 @@ local textSize = 16
 -- speedups
 ------------------------------------------------
 
-local GetActiveCommand = Spring.GetActiveCommand
-local GetMouseState = Spring.GetMouseState
-local TraceScreenRay = Spring.TraceScreenRay
-local GetGroundInfo = Spring.GetGroundInfo
-local GetGameFrame = Spring.GetGameFrame
-local GetMapDrawMode = Spring.GetMapDrawMode
+local GetActiveCommand = SpringUnsynced.GetActiveCommand
+local GetMouseState = SpringUnsynced.GetMouseState
+local TraceScreenRay = SpringUnsynced.TraceScreenRay
+local GetGroundInfo = SpringShared.GetGroundInfo
+local GetGameFrame = SpringShared.GetGameFrame
+local GetMapDrawMode = SpringUnsynced.GetMapDrawMode
 
 local glColor = gl.Color
 local glRect = gl.Rect
@@ -49,7 +49,7 @@ local strFormat = string.format
 -- vars
 ------------------------------------------------
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 --unitDefID = {extractsMetal, extractSquare, oddX, oddZ}
 local mexDefInfos = {}
 local defaultDefID
@@ -101,10 +101,10 @@ end
 local function SetupMexDefInfos()
 	local minExtractsMetal
 
-	local armMexDef = UnitDefNames["armmex"]
+	local armMexDef = UnitDefNames.armmex
 
 	if armMexDef and armMexDef.extractsMetal > 0 then
-		defaultDefID = UnitDefNames["armmex"].id
+		defaultDefID = UnitDefNames.armmex.id
 		minExtractsMetal = 0
 	end
 
@@ -187,7 +187,7 @@ end
 function widget:Initialize()
 	SetupMexDefInfos()
 	once = true
-	metalMap = WG["resource_spot_finder"].isMetalMap
+	metalMap = WG.resource_spot_finder.isMetalMap
 end
 
 function widget:DrawScreen()
@@ -228,7 +228,7 @@ function widget:DrawScreen()
 		return
 	end
 	if not metalMap then
-		local pos = WG["resource_spot_finder"].GetClosestMexSpot(coords[1], coords[3])
+		local pos = WG.resource_spot_finder.GetClosestMexSpot(coords[1], coords[3])
 		if not pos then
 			return
 		end
@@ -236,10 +236,10 @@ function widget:DrawScreen()
 		coords[3] = pos.z
 	end
 	IntegrateMetal(mexDefInfo, coords[1], coords[3], forceUpdate)
-	DrawTextWithBackground(Spring.I18N("ui.prospector.metalExtraction", { amount = strFormat("%.2f", extraction) }), mx, my, textSize, "do")
+	DrawTextWithBackground(I18N("ui.prospector.metalExtraction", { amount = strFormat("%.2f", extraction) }), mx, my, textSize, "do")
 	glColor(1, 1, 1, 1)
 end
 
 function widget:ViewResize()
-	font = WG["fonts"].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 end

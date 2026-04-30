@@ -1,4 +1,4 @@
-if not Spring.GetModOptions().emprework then
+if not SpringShared.GetModOptions().emprework then
 	return
 end
 
@@ -20,13 +20,13 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local spValidUnitID = Spring.ValidUnitID
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitHealth = Spring.GetUnitHealth
-local spSetUnitRulesParam = Spring.SetUnitRulesParam
-local spGetUnitTeam = Spring.GetUnitTeam
-local spSetUnitTarget = Spring.SetUnitTarget
-local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
+local spValidUnitID = SpringShared.ValidUnitID
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spSetUnitRulesParam = SpringSynced.SetUnitRulesParam
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spSetUnitTarget = SpringSynced.SetUnitTarget
+local spGetUnitNearestEnemy = SpringShared.GetUnitNearestEnemy
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_REMOVE = CMD.REMOVE
@@ -35,12 +35,12 @@ local CMD_FIGHT = CMD.FIGHT
 local CMD_SET_WANTED_MAX_SPEED = CMD.SET_WANTED_MAX_SPEED
 local LOS_ACCESS = { inlos = true }
 
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
 
 local attritionWeaponDefs, MAX_SLOW_FACTOR, DEGRADE_TIMER, DEGRADE_FACTOR, UPDATE_PERIOD = include("LuaRules/Configs/timeslow_defs.lua")
 local slowedUnits = {}
 
-Spring.SetGameRulesParam("slowState", 1)
+SpringSynced.SetGameRulesParam("slowState", 1)
 
 local function updateSlow(unitID, state)
 	--Spring.Echo("hornet upd slow unit id " .. unitID .. "  state.slowDamage " .. state.slowDamage)--  .. "  max slow factor " .. MAX_SLOW_FACTOR)

@@ -37,6 +37,10 @@ _G.Spring.Echo = _G.Spring.Echo or function(...)
 	print(...)
 end
 
+_G.SpringSynced = _G.SpringSynced or _G.Spring
+_G.SpringUnsynced = _G.SpringUnsynced or _G.Spring
+_G.SpringShared = _G.SpringShared or _G.Spring
+
 _G.GG = _G.GG or {}
 
 _G.unpack = _G.unpack or table.unpack or function(t, i, j)

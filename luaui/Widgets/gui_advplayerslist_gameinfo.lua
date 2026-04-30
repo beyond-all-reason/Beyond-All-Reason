@@ -16,8 +16,8 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local timeNotation = 24
 
@@ -56,7 +56,7 @@ local function drawContent()
 	local textsize = 11 * widgetScale * math.clamp(1 + ((1 - (vsy / 1200)) * 0.4), 1, 1.15)
 	local textXPadding = 10 * widgetScale
 
-	local fps = Spring.GetFPS()
+	local fps = SpringUnsynced.GetFPS()
 	local titleColor = "\255\210\210\210"
 	local valueColor = "\255\245\245\245"
 	local minutes = mathFloor((gameframe / 30 / 60))
@@ -98,14 +98,14 @@ local function drawContent()
 end
 
 local function refreshUiDrawing()
-	if WG["guishader"] then
+	if WG.guishader then
 		if guishaderList then
 			guishaderList = glDeleteList(guishaderList)
 		end
 		guishaderList = glCreateList(function()
 			RectRound(left, bottom, right, top, elementCorner, 1, 0, 0, 1)
 		end)
-		WG["guishader"].InsertDlist(guishaderList, "displayinfo", true)
+		WG.guishader.InsertDlist(guishaderList, "displayinfo", true)
 	end
 
 	if right - left >= 1 and top - bottom >= 1 then
@@ -130,14 +130,14 @@ end
 
 local function updatePosition(force)
 	local prevPos = advplayerlistPos
-	if WG["unittotals"] ~= nil then
-		advplayerlistPos = WG["unittotals"].GetPosition()
-	elseif WG["music"] ~= nil then
-		advplayerlistPos = WG["music"].GetPosition()
-	elseif WG["advplayerlist_api"] then
-		advplayerlistPos = WG["advplayerlist_api"].GetPosition()
+	if WG.unittotals ~= nil then
+		advplayerlistPos = WG.unittotals.GetPosition()
+	elseif WG.music ~= nil then
+		advplayerlistPos = WG.music.GetPosition()
+	elseif WG.advplayerlist_api then
+		advplayerlistPos = WG.advplayerlist_api.GetPosition()
 	else
-		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
+		local scale = (vsy / 880) * (1 + (SpringUnsynced.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
 		advplayerlistPos = { 0, vsx - (220 * scale), 0, vsx, scale }
 	end
 	if advplayerlistPos[5] ~= nil then
@@ -155,18 +155,18 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 	updatePosition()
-	WG["displayinfo"] = {}
-	WG["displayinfo"].GetPosition = function()
+	WG.displayinfo = {}
+	WG.displayinfo.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end
-	Spring.SendCommands("fps 0")
-	Spring.SendCommands("clock 0")
-	Spring.SendCommands("speed 0")
+	SpringUnsynced.SendCommands("fps 0")
+	SpringUnsynced.SendCommands("clock 0")
+	SpringUnsynced.SendCommands("speed 0")
 end
 
 function widget:Shutdown()
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist("displayinfo")
+	if WG.guishader then
+		WG.guishader.RemoveDlist("displayinfo")
 	end
 	for i = 1, #drawlist do
 		glDeleteList(drawlist[i])
@@ -182,10 +182,10 @@ function widget:Shutdown()
 		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
-	Spring.SendCommands("fps 1")
-	Spring.SendCommands("clock 1")
-	Spring.SendCommands("speed 1")
-	WG["displayinfo"] = nil
+	SpringUnsynced.SendCommands("fps 1")
+	SpringUnsynced.SendCommands("clock 1")
+	SpringUnsynced.SendCommands("speed 1")
+	WG.displayinfo = nil
 end
 
 function widget:Update(dt)
@@ -222,7 +222,7 @@ end
 function widget:ViewResize(newX, newY)
 	vsx, vsy = spGetViewGeometry()
 
-	font = WG["fonts"].getFont()
+	font = WG.fonts.getFont()
 
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound

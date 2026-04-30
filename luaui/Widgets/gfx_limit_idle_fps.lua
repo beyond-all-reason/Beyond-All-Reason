@@ -13,15 +13,15 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetMouseState = Spring.GetMouseState
-local spGetCameraPosition = Spring.GetCameraPosition
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
 
 local offscreenDelay = 3
-local idleDelay = Spring.GetConfigInt("LimitIdleFpsDelay", 60)
-local vsyncValueActive = Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1)
-local vsyncValueIdle = Spring.GetConfigInt("IdleFpsDivider", 4) -- sometimes vsync > 4 doesnt work at all
+local idleDelay = SpringUnsynced.GetConfigInt("LimitIdleFpsDelay", 60)
+local vsyncValueActive = SpringUnsynced.GetConfigInt("VSyncGame", -1) * SpringUnsynced.GetConfigInt("VSyncFraction", 1)
+local vsyncValueIdle = SpringUnsynced.GetConfigInt("IdleFpsDivider", 4) -- sometimes vsync > 4 doesnt work at all
 
-local limitFpsWhenIdle = Spring.GetConfigInt("LimitIdleFps", 0) == 1
+local limitFpsWhenIdle = SpringUnsynced.GetConfigInt("LimitIdleFps", 0) == 1
 
 local restrictFps = false
 local lastUserInputTime = os.clock()
@@ -31,8 +31,8 @@ local lastMouseOffScreen = false
 local chobbyInterface = false
 
 function widget:Shutdown()
-	Spring.SetConfigInt("VSync", vsyncValueActive)
-	WG["limitidlefps"] = nil
+	SpringUnsynced.SetConfigInt("VSync", vsyncValueActive)
+	WG.limitidlefps = nil
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -41,17 +41,17 @@ function widget:RecvLuaMsg(msg, playerID)
 		lastUserInputTime = os.clock()
 		if chobbyInterface then
 			restrictFps = false
-			Spring.SetConfigInt("VSync", (restrictFps and vsyncValueIdle or vsyncValueActive))
+			SpringUnsynced.SetConfigInt("VSync", (restrictFps and vsyncValueIdle or vsyncValueActive))
 		end
 	end
 end
 
 function widget:Initialize()
-	WG["limitidlefps"] = {}
-	WG["limitidlefps"].restrictFps = function()
+	WG.limitidlefps = {}
+	WG.limitidlefps.restrictFps = function()
 		return restrictFps
 	end
-	WG["limitidlefps"].update = function()
+	WG.limitidlefps.update = function()
 		lastUserInputTime = os.clock()
 	end
 end
@@ -61,12 +61,12 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 2 then
 		sec = 0
-		vsyncValueActive = Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1)
-		limitFpsWhenIdle = Spring.GetConfigInt("LimitIdleFps", 0) == 1
-		idleDelay = Spring.GetConfigInt("LimitIdleFpsDelay", 40)
+		vsyncValueActive = SpringUnsynced.GetConfigInt("VSyncGame", -1) * SpringUnsynced.GetConfigInt("VSyncFraction", 1)
+		limitFpsWhenIdle = SpringUnsynced.GetConfigInt("LimitIdleFps", 0) == 1
+		idleDelay = SpringUnsynced.GetConfigInt("LimitIdleFpsDelay", 40)
 	end
 	-- detect change by user
-	local curVsync = Spring.GetConfigInt("VSync", 1)
+	local curVsync = SpringUnsynced.GetConfigInt("VSync", 1)
 	if curVsync ~= vsyncValueIdle and curVsync ~= vsyncValueActive then
 		vsyncValueActive = curVsync
 	end
@@ -97,7 +97,7 @@ function widget:Update(dt)
 			restrictFps = false
 		end
 		if restrictFps ~= prevRestrictFps then
-			Spring.SetConfigInt("VSync", (restrictFps and vsyncValueIdle or vsyncValueActive))
+			SpringUnsynced.SetConfigInt("VSync", (restrictFps and vsyncValueIdle or vsyncValueActive))
 		end
 	end
 end

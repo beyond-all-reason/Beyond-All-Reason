@@ -31,7 +31,7 @@ return {
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
 		turnrate = 740,
-		workertime = 100 * Spring.GetModOptions().assistdronesbuildpowermultiplier,
+		workertime = 100 * SpringShared.GetModOptions().assistdronesbuildpowermultiplier,
 		buildoptions = {
 			"corsolar",
 			"coradvsol",

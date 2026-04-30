@@ -1,10 +1,10 @@
 local widgetName = "Blueprint"
 
-function skip()
+local function skip()
 	return not Platform.gl
 end
 
-function setup()
+local function setup()
 	assert(widgetHandler.knownWidgets[widgetName] ~= nil)
 
 	Test.clearMap()
@@ -14,21 +14,21 @@ function setup()
 	assert(widget)
 	mock_saveBlueprintsToFile = Test.mock(widget, "saveBlueprintsToFile")
 
-	initialCameraState = Spring.GetCameraState()
+	initialCameraState = SpringUnsynced.GetCameraState()
 
-	Spring.SetCameraState({
+	SpringUnsynced.SetCameraState({
 		mode = 5,
 	})
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 
-	Spring.SetCameraState(initialCameraState)
+	SpringUnsynced.SetCameraState(initialCameraState)
 end
 
 local delay = 5
-function test()
+local function test()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
@@ -40,19 +40,19 @@ function test()
 
 	local blueprintUnitDefID = UnitDefNames[blueprintUnitDefName].id
 
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = SpringUnsynced.GetLocalTeamID()
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
-	local y = Spring.GetGroundHeight(x, z)
+	local y = SpringShared.GetGroundHeight(x, z)
 	local facing = 1
-	local bpW, bpH = WG["api_blueprint"].getBuildingDimensions(blueprintUnitDefID, facing)
+	local bpW, bpH = WG.api_blueprint.getBuildingDimensions(blueprintUnitDefID, facing)
 
 	local bpCount = 5
 
 	local blueprintUnitID = SyncedRun(function(locals)
-		return Spring.CreateUnit(locals.blueprintUnitDefName, locals.x, locals.y, locals.z, locals.facing, locals.myTeamID)
+		return SpringSynced.CreateUnit(locals.blueprintUnitDefName, locals.x, locals.y, locals.z, locals.facing, locals.myTeamID)
 	end)
 
-	Spring.SelectUnit(blueprintUnitID)
+	SpringUnsynced.SelectUnit(blueprintUnitID)
 
 	Test.waitFrames(delay)
 
@@ -63,14 +63,14 @@ function test()
 	Test.clearMap()
 
 	local builderUnitID = SyncedRun(function(locals)
-		return Spring.CreateUnit(locals.builderUnitDefName, locals.x + 100, locals.y, locals.z, locals.facing, locals.myTeamID)
+		return SpringSynced.CreateUnit(locals.builderUnitDefName, locals.x + 100, locals.y, locals.z, locals.facing, locals.myTeamID)
 	end)
 
-	Spring.SelectUnit(builderUnitID)
+	SpringUnsynced.SelectUnit(builderUnitID)
 
 	Test.waitFrames(delay)
 
-	Spring.SetActiveCommand(Spring.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE), 1, true, false, false, false, false, false)
+	SpringUnsynced.SetActiveCommand(SpringUnsynced.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE), 1, true, false, false, false, false, false)
 
 	Test.waitFrames(delay)
 
@@ -81,17 +81,17 @@ function test()
 	end)
 
 	mockSpringGetMouseState = Test.mock(widget, "SpringGetMouseState", function()
-		local mx, my = Spring.GetMouseState()
+		local mx, my = SpringUnsynced.GetMouseState()
 		return mx, my, true
 	end)
 
-	local sx, sy = Spring.WorldToScreenCoords(x, y, z)
-	Spring.WarpMouse(sx, sy)
+	local sx, sy = SpringUnsynced.WorldToScreenCoords(x, y, z)
+	SpringUnsynced.WarpMouse(sx, sy)
 
 	Script.LuaUI.MousePress(sx, sy, 1)
 
-	sx, sy = Spring.WorldToScreenCoords(x, y, z + bpH * (bpCount - 1))
-	Spring.WarpMouse(sx, sy)
+	sx, sy = SpringUnsynced.WorldToScreenCoords(x, y, z + bpH * (bpCount - 1))
+	SpringUnsynced.WarpMouse(sx, sy)
 
 	Test.waitFrames(delay)
 
@@ -100,8 +100,10 @@ function test()
 
 	Test.waitFrames(delay)
 
-	local builderQueue = Spring.GetUnitCommands(builderUnitID, -1)
+	local builderQueue = SpringShared.GetUnitCommands(builderUnitID, -1)
 
 	assert(#builderQueue == bpCount, #builderQueue)
 	assert(builderQueue[1].id == -blueprintUnitDefID)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

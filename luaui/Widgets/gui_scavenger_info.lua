@@ -1,4 +1,4 @@
-local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
+local scavengersAIEnabled = Utilities.Gametype.IsScavengers()
 
 if not scavengersAIEnabled then
 	return
@@ -23,7 +23,7 @@ local mathFloor = math.floor
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local show = true -- gets disabled when it has been loaded before
 
@@ -74,8 +74,8 @@ function widget:ViewResize()
 	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
-	font, loadedFontSize = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font, loadedFontSize = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 	elementCorner = WG.FlowUI.elementCorner
 
 	RectRound = WG.FlowUI.Draw.RectRound
@@ -156,7 +156,7 @@ function DrawWindow()
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	-- title background
-	local title = Spring.I18N("ui.topbar.button.scavengers")
+	local title = I18N("ui.topbar.button.scavengers")
 	local titleFontSize = 18 * widgetScale
 	titleRect = { screenX, screenY, mathFloor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize * 1.5)), mathFloor(screenY + (titleFontSize * 1.7)) }
 
@@ -186,7 +186,7 @@ function widget:DrawScreen()
 		-- draw the text panel
 		glCallList(textList)
 
-		if WG["guishader"] then
+		if WG.guishader then
 			if backgroundGuishader ~= nil then
 				glDeleteList(backgroundGuishader)
 			end
@@ -197,16 +197,16 @@ function widget:DrawScreen()
 				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
 			dlistcreated = true
-			WG["guishader"].InsertDlist(backgroundGuishader, "text")
+			WG.guishader.InsertDlist(backgroundGuishader, "text")
 		end
 		showOnceMore = false
 
-		local x, y, pressed = Spring.GetMouseState()
+		local x, y, pressed = SpringUnsynced.GetMouseState()
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-			Spring.SetMouseCursor("cursornormal")
+			SpringUnsynced.SetMouseCursor("cursornormal")
 		end
-	elseif dlistcreated and WG["guishader"] then
-		WG["guishader"].DeleteDlist("text")
+	elseif dlistcreated and WG.guishader then
+		WG.guishader.DeleteDlist("text")
 		dlistcreated = nil
 	end
 end
@@ -249,7 +249,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 
@@ -269,15 +269,15 @@ end
 
 function widget:Initialize()
 	if textFile then
-		WG["scavengerinfo"] = {}
-		WG["scavengerinfo"].toggle = function(state)
+		WG.scavengerinfo = {}
+		WG.scavengerinfo.toggle = function(state)
 			if state ~= nil then
 				show = state
 			else
 				show = not show
 			end
 		end
-		WG["scavengerinfo"].isvisible = function()
+		WG.scavengerinfo.isvisible = function()
 			return show
 		end
 
@@ -292,7 +292,7 @@ function widget:Initialize()
 		end
 		widget:ViewResize()
 	else
-		Spring.Echo("Text: couldn't load the text file")
+		SpringShared.Echo("Text: couldn't load the text file")
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -302,8 +302,8 @@ function widget:Shutdown()
 		glDeleteList(textList)
 		textList = nil
 	end
-	if WG["guishader"] then
-		WG["guishader"].DeleteDlist("text")
+	if WG.guishader then
+		WG.guishader.DeleteDlist("text")
 	end
 end
 

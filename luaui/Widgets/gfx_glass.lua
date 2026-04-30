@@ -1,4 +1,4 @@
-if gl.CreateShader == nil or Spring.GetSpectatingState() then
+if gl.CreateShader == nil or SpringUnsynced.GetSpectatingState() then
 	return
 end
 
@@ -15,7 +15,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 -- Shameless port from https://gist.github.com/martymcmodding/30304c4bffa6e2bd2eb59ff8bb09d135
 
@@ -239,7 +239,7 @@ if next(glasstriggerfeaturedefsids) == nil then
 end
 
 function widget:Initialize()
-	if Spring.Utilities.Gametype.IsSinglePlayer ~= true then
+	if Utilities.Gametype.IsSinglePlayer ~= true then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -286,27 +286,27 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged()
-	if Spring.GetSpectatingState() then
+	if SpringUnsynced.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 end
 
-local gaiaTeamID = Spring.GetGaiaTeamID()
-local myteamid = Spring.GetMyTeamID()
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
+local myteamid = SpringUnsynced.GetLocalTeamID()
 local effectOn = false
 local effectStart = 0
 
 function widget:FeatureDestroyed(featureID, allyTeam)
-	if allyTeam == gaiaTeamID and glasstriggerfeaturedefsids[Spring.GetFeatureDefID(featureID)] then
-		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
-		local featureHealth = Spring.GetFeatureHealth(featureID)
-		local mr, mm, er, em, rl = Spring.GetFeatureResources(featureID)
+	if allyTeam == gaiaTeamID and glasstriggerfeaturedefsids[SpringShared.GetFeatureDefID(featureID)] then
+		local fx, fy, fz = SpringShared.GetFeaturePosition(featureID)
+		local featureHealth = SpringShared.GetFeatureHealth(featureID)
+		local mr, mm, er, em, rl = SpringShared.GetFeatureResources(featureID)
 		spEcho("Reclaiming that was probably not a good idea...", featureHealth, mr, mm, er, em, rl)
 		if featureHealth > 0 and er == 0 then
-			local unitsnearby = Spring.GetUnitsInCylinder(fx, fz, 170, myteamid)
+			local unitsnearby = SpringShared.GetUnitsInCylinder(fx, fz, 170, myteamid)
 			for i, unitID in ipairs(unitsnearby) do
 				--spEcho("nearby", unitID)
-				local unitDefID = Spring.GetUnitDefID(unitID)
+				local unitDefID = SpringShared.GetUnitDefID(unitID)
 				--spEcho("nearby", unitID, UnitDefs[unitDefID].name)
 				if UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom" then
 					if effectOn == false then
@@ -323,11 +323,11 @@ end
 function widget:DrawScreenEffects()
 	if effectOn then
 		--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-		if WG["screencopymanager"] and WG["screencopymanager"].GetScreenCopy then
-			screenCopyTex = WG["screencopymanager"].GetScreenCopy()
+		if WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
+			screenCopyTex = WG.screencopymanager.GetScreenCopy()
 		else
 			--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-			spEcho("Missing Screencopy Manager, exiting", WG["screencopymanager"])
+			spEcho("Missing Screencopy Manager, exiting", WG.screencopymanager)
 			widgetHandler:RemoveWidget()
 			return false
 		end
@@ -347,7 +347,7 @@ function widget:DrawScreenEffects()
 		glTexture(0, screenCopyTex)
 		glBlending(true)
 		glassShader:Activate()
-		glassShader:SetUniform("iTime", 0.01 * Spring.GetGameFrame())
+		glassShader:SetUniform("iTime", 0.01 * SpringShared.GetGameFrame())
 		glassShader:SetUniform("strength", strength)
 		fullTexQuad:DrawArrays(GL.TRIANGLES, 3)
 		glassShader:Deactivate()

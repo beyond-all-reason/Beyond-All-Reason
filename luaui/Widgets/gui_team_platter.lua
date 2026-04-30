@@ -43,10 +43,10 @@ local GL_POINTS = GL.POINTS
 
 local hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
-local myTeamID = Spring.GetMyTeamID()
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local myTeamID = SpringUnsynced.GetLocalTeamID()
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
 
 local unitScale = {}
 local unitCanFly = {}
@@ -70,7 +70,7 @@ end
 
 local function AddPrimitiveAtUnit(unitID, unitDefID, unitTeamID, noUpload)
 	if (not skipOwnTeam or unitTeamID ~= myTeamID) and unitTeamID ~= gaiaTeamID and not unitDecoration[unitDefID] then
-		local gf = Spring.GetGameFrame()
+		local gf = SpringShared.GetGameFrame()
 
 		local numVertices = 64 -- default to circle
 		local cornersize = 0
@@ -125,7 +125,7 @@ end
 
 local drawFrame = 0
 function widget:DrawWorldPreUnit()
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 	drawFrame = drawFrame + 1
@@ -208,8 +208,8 @@ local function init()
 		return false
 	end
 
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 	return true
 end
@@ -218,25 +218,25 @@ function widget:Initialize()
 	if not init() then
 		return
 	end
-	WG["teamplatter"] = {}
-	WG["teamplatter"].getOpacity = function()
+	WG.teamplatter = {}
+	WG.teamplatter.getOpacity = function()
 		return opacity
 	end
-	WG["teamplatter"].setOpacity = function(value)
+	WG.teamplatter.setOpacity = function(value)
 		opacity = value
 		init()
 	end
-	WG["teamplatter"].getSkipOwnTeam = function()
+	WG.teamplatter.getSkipOwnTeam = function()
 		return skipOwnTeam
 	end
-	WG["teamplatter"].setSkipOwnTeam = function(value)
+	WG.teamplatter.setSkipOwnTeam = function(value)
 		skipOwnTeam = value
 		init()
 	end
 end
 
 function widget:Shutdown()
-	WG["teamplatter"] = nil
+	WG.teamplatter = nil
 end
 
 function widget:GetConfigData(data)

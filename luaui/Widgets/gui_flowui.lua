@@ -19,28 +19,28 @@ local mathMin = math.min
 local mathPi = math.pi
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 WG.FlowUI = WG.FlowUI or {}
 WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
 
-WG.FlowUI.opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+WG.FlowUI.opacity = SpringUnsynced.GetConfigFloat("ui_opacity", 0.7)
 WG.FlowUI.clampedOpacity = mathMax(0.75, WG.FlowUI.opacity)
-WG.FlowUI.scale = Spring.GetConfigFloat("ui_scale", 1)
-WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.014)
-WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)
+WG.FlowUI.scale = SpringUnsynced.GetConfigFloat("ui_scale", 1)
+WG.FlowUI.tileOpacity = SpringUnsynced.GetConfigFloat("ui_tileopacity", 0.014)
+WG.FlowUI.tileScale = SpringUnsynced.GetConfigFloat("ui_tilescale", 7)
 WG.FlowUI.tileSize = WG.FlowUI.tileScale
 
 -- Guishader display list lifecycle helpers
 WG.FlowUI.guishaderCheckDlist = function(currentDlist, name, drawFn, force)
-	if WG["guishader"] then
+	if WG.guishader then
 		if force and currentDlist then
 			currentDlist = gl.DeleteList(currentDlist)
 		end
 		if not currentDlist then
 			currentDlist = gl.CreateList(drawFn)
-			WG["guishader"].InsertDlist(currentDlist, name)
+			WG.guishader.InsertDlist(currentDlist, name)
 		end
 		return currentDlist
 	elseif currentDlist then
@@ -50,8 +50,8 @@ WG.FlowUI.guishaderCheckDlist = function(currentDlist, name, drawFn, force)
 end
 
 WG.FlowUI.guishaderRemoveDlist = function(currentDlist, name)
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist(name)
+	if WG.guishader then
+		WG.guishader.RemoveDlist(name)
 	end
 	if currentDlist then
 		gl.DeleteList(currentDlist)
@@ -60,8 +60,8 @@ WG.FlowUI.guishaderRemoveDlist = function(currentDlist, name)
 end
 
 WG.FlowUI.guishaderDeleteDlist = function(name)
-	if WG["guishader"] then
-		WG["guishader"].DeleteDlist(name)
+	if WG.guishader then
+		WG.guishader.DeleteDlist(name)
 	end
 end
 
@@ -107,7 +107,7 @@ function widget:Shutdown()
 end
 
 function widget:DrawScreenEffects()
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 end

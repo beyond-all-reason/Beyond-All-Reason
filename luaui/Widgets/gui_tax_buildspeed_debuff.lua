@@ -12,13 +12,13 @@ function widget:GetInfo()
 	}
 end
 
-if not Spring.GetModOptions().easytax then
+if not SpringShared.GetModOptions().easytax then
 	return false
 end
 
 local debuffedUnits = {} -- unitID -> { startFrame, expireFrame, yoffset }
 
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 local glDrawFuncAtUnit = gl.DrawFuncAtUnit
 local glTranslate = gl.Translate
 local glBillboard = gl.Billboard
@@ -64,7 +64,7 @@ function widget:DrawWorld()
 	if next(debuffedUnits) == nil then
 		return
 	end
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 	local gf = spGetGameFrame()
@@ -80,7 +80,7 @@ function widget:DrawWorld()
 end
 
 local function onUnitBuildspeedDebuff(unitID, startFrame, expireFrame)
-	local unitDefID = Spring.GetUnitDefID(unitID)
+	local unitDefID = SpringShared.GetUnitDefID(unitID)
 	debuffedUnits[unitID] = {
 		startFrame = startFrame,
 		expireFrame = expireFrame,
@@ -97,7 +97,7 @@ function widget:UnitDestroyed(unitID)
 end
 
 function widget:ViewResize()
-	font = WG["fonts"].getFont(nil, 1.2, 0.2, 20)
+	font = WG.fonts.getFont(nil, 1.2, 0.2, 20)
 end
 
 function widget:Initialize()

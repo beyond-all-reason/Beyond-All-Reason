@@ -10,16 +10,16 @@ function widget:GetInfo()
 	}
 end
 
-local GetUnitCommands = Spring.GetUnitCommands
-local GetUnitCommandCount = Spring.GetUnitCommandCount
-local GetUnitStates = Spring.GetUnitStates
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitDefID = Spring.GetUnitDefID
-local GetTeamUnits = Spring.GetTeamUnits
-local GetMyTeamID = Spring.GetMyTeamID
-local GetSpectatingState = Spring.GetSpectatingState
-local GetUnitsInCylinder = Spring.GetUnitsInCylinder
+local GetUnitCommands = SpringShared.GetUnitCommands
+local GetUnitCommandCount = SpringShared.GetUnitCommandCount
+local GetUnitStates = SpringShared.GetUnitStates
+local GiveOrderToUnit = SpringShared.GiveOrderToUnit
+local GetUnitPosition = SpringShared.GetUnitPosition
+local GetUnitDefID = SpringShared.GetUnitDefID
+local GetTeamUnits = SpringShared.GetTeamUnits
+local GetMyTeamID = SpringUnsynced.GetLocalTeamID
+local GetSpectatingState = SpringUnsynced.GetSpectatingState
+local GetUnitsInCylinder = SpringShared.GetUnitsInCylinder
 local select = select
 
 local CMD_REMOVE = CMD.REMOVE

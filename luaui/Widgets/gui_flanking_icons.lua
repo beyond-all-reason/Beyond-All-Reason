@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 -- Configurable Parts:
 local texture = "luaui/images/flank_icon.tga"
@@ -37,13 +37,13 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local spec, fullview = spGetSpectatingState()
-local allyTeamID = Spring.GetMyAllyTeamID()
+local allyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitRadius = Spring.GetUnitRadius
-local spGetUnitFlanking = Spring.GetUnitFlanking
-local spGetGameFrame = Spring.GetGameFrame
-local spIsUnitAllied = Spring.IsUnitAllied
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitRadius = SpringShared.GetUnitRadius
+local spGetUnitFlanking = SpringShared.GetUnitFlanking
+local spGetGameFrame = SpringShared.GetGameFrame
+local spIsUnitAllied = SpringUnsynced.IsUnitAllied
 
 local instanceCache = {
 	0,
@@ -101,11 +101,11 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 end
 
 function widget:DrawWorldPreUnit()
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 	if flankingVBO.usedElements > 0 then
-		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
+		local disticon = 27 * SpringUnsynced.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		glTexture(0, texture)
 		flankingShader:Activate()
 		flankingShader:SetUniform("iconDistance", disticon)
@@ -135,8 +135,8 @@ end
 
 local function init()
 	InstanceVBOTable.clearInstanceTable(flankingVBO)
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		local visibleUnits = WG["unittrackerapi"].visibleUnits
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		local visibleUnits = WG.unittrackerapi.visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), true)
 		end
@@ -171,7 +171,7 @@ function widget:PlayerChanged()
 	local prevFullview = fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
-	allyTeamID = Spring.GetMyAllyTeamID()
+	allyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
 		InstanceVBOTable.clearInstanceTable(flankingVBO)
 		init()

@@ -14,7 +14,7 @@ local function makeInstanceVBOTable(layout, maxElements, myName, objectTypeAttri
 	end
 	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if newInstanceVBO == nil then
-		Spring.Echo("makeInstanceVBOTable, cannot get VBO for", myName)
+		SpringShared.Echo("makeInstanceVBOTable, cannot get VBO for", myName)
 		return nil
 	end
 	newInstanceVBO:Define(maxElements, layout)
@@ -110,31 +110,31 @@ end
 local function comparetables(t1, t2, name)
 	for k, v in pairs(t1) do
 		if t2[k] == nil then
-			Spring.Echo("Key ", k, "with value", v, "existing in t1 does not exist in t2 in ", name)
+			SpringShared.Echo("Key ", k, "with value", v, "existing in t1 does not exist in t2 in ", name)
 		elseif t2[k] ~= v then
-			Spring.Echo("Value ", v, "for", k, "existing in t1 does not match value for t2", t2[k], " in ", name)
+			SpringShared.Echo("Value ", v, "for", k, "existing in t1 does not match value for t2", t2[k], " in ", name)
 		end
 	end
 
 	for k, v in pairs(t2) do
 		if t1[k] == nil then
-			Spring.Echo("Key ", k, "with value", v, "existing in t2 does not exist in t1 in ", name)
+			SpringShared.Echo("Key ", k, "with value", v, "existing in t2 does not exist in t1 in ", name)
 		elseif t1[k] ~= v then
-			Spring.Echo("Value ", v, "for", k, "existing in t2 does not match value for t1", t1[k], " in ", name)
+			SpringShared.Echo("Value ", v, "for", k, "existing in t2 does not match value for t1", t1[k], " in ", name)
 		end
 	end
 end
 
 local function dbgt(t, name)
 	name = name or ""
-	local gf = Spring.GetGameFrame()
+	local gf = SpringShared.GetGameFrame()
 	local count = 0
 	local res = ""
 	for k, v in pairs(t) do
 		res = res .. tostring(k) .. ":" .. tostring(v) .. ","
 		count = count + 1
 	end
-	Spring.Echo(tostring(gf) .. " " .. name .. " #" .. tostring(count) .. " {" .. res .. "}")
+	SpringShared.Echo(tostring(gf) .. " " .. name .. " #" .. tostring(count) .. " {" .. res .. "}")
 	return res
 end
 
@@ -180,8 +180,8 @@ local function resizeInstanceVBOTable(iT)
 		--Spring.Echo("Resize", iT.myName, i, unitID, objecttype)
 		if objecttype == "unitID" then
 			-- Sanity check for unitIDs
-			if Spring.ValidUnitID(unitID) ~= true then
-				Spring.Echo("Invalid unitID", unitID, "at", i, "during resizing", iT.myName)
+			if SpringShared.ValidUnitID(unitID) ~= true then
+				SpringShared.Echo("Invalid unitID", unitID, "at", i, "during resizing", iT.myName)
 			else
 				iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.objectTypeAttribID, i - 1)
 			end
@@ -190,8 +190,8 @@ local function resizeInstanceVBOTable(iT)
 			iT.instanceVBO:InstanceDataFromUnitDefIDs(unitID, iT.objectTypeAttribID, nil, i - 1)
 			iT.VAO:AddUnitDefsToSubmission(unitID)
 		elseif objecttype == "featureID" then
-			if Spring.ValidFeatureID(unitID) ~= true then
-				Spring.Echo("Invalid featureID", unitID, "at", i, "during resizing", iT.myName)
+			if SpringShared.ValidFeatureID(unitID) ~= true then
+				SpringShared.Echo("Invalid featureID", unitID, "at", i, "during resizing", iT.myName)
 			else
 				iT.instanceVBO:InstanceDataFromFeatureIDs(unitID, iT.objectTypeAttribID, i - 1)
 			end
@@ -224,13 +224,13 @@ local function pushElementInstance(iT, thisInstance, instanceID, updateExisting,
 	-- noUpload: prevent the VBO from being uploaded, if you feel like you are going to do a lot of ops and wish to manually upload when done instead
 	-- unitID: if given, it will store then unitID corresponding to this instance, and will try to update the InstanceDataFromUnitIDs for this unit
 	-- returns: the index of the instanceID in the table on success, else nil
-	if (objecttype == "unitID" and (Spring.ValidUnitID(unitID) == false)) or (objecttype == "featureID" and (Spring.ValidFeatureID(unitID) == false)) or (objecttype == "unitDefID" and (UnitDefs[unitID] == nil)) or (objecttype == "featureDefID" and (FeatureDefs[unitID] == nil)) then
-		Spring.Echo("Tried to push invalid", objecttype, unitID, "into", iT.myName, "with instanceID", instanceID, "returning nil")
+	if (objecttype == "unitID" and (SpringShared.ValidUnitID(unitID) == false)) or (objecttype == "featureID" and (SpringShared.ValidFeatureID(unitID) == false)) or (objecttype == "unitDefID" and (UnitDefs[unitID] == nil)) or (objecttype == "featureDefID" and (FeatureDefs[unitID] == nil)) then
+		SpringShared.Echo("Tried to push invalid", objecttype, unitID, "into", iT.myName, "with instanceID", instanceID, "returning nil")
 		return nil
 	end
 
 	if #thisInstance ~= iT.instanceStep then
-		Spring.Echo("Trying to upload an oddly sized instance into", iT.myName, #thisInstance, "instead of ", iT.instanceStep)
+		SpringShared.Echo("Trying to upload an oddly sized instance into", iT.myName, #thisInstance, "instead of ", iT.instanceStep)
 	end
 	local iTusedElements = iT.usedElements
 	local iTStep = iT.instanceStep
@@ -254,7 +254,7 @@ local function pushElementInstance(iT, thisInstance, instanceID, updateExisting,
 		isnewid = true
 	else -- pre-existing ID, update or bail
 		if updateExisting == nil then
-			Spring.Echo("Tried to add existing element to an instanceTable", iT.myName, instanceID)
+			SpringShared.Echo("Tried to add existing element to an instanceTable", iT.myName, instanceID)
 			return nil
 		else
 			endOffset = (thisInstanceIndex - 1) * iTStep
@@ -317,11 +317,11 @@ local function popElementInstance(iT, instanceID, noUpload)
 	end
 
 	if iT.instanceIDtoIndex[instanceID] == nil then -- if key is instanceID yet does not exist, then warn and bail
-		Spring.Echo("Tried to remove element ", instanceID, "From instanceTable", iT.myName, "but it does not exist in it")
+		SpringShared.Echo("Tried to remove element ", instanceID, "From instanceTable", iT.myName, "but it does not exist in it")
 		return nil
 	end
 	if iT.usedElements == 0 then -- Dont remove the last element
-		Spring.Echo("Tried to remove element ", instanceID, "From instanceTable", iT.myName, "but it should be empty")
+		SpringShared.Echo("Tried to remove element ", instanceID, "From instanceTable", iT.myName, "but it should be empty")
 		return nil
 	end
 
@@ -386,7 +386,7 @@ local function popElementInstance(iT, instanceID, noUpload)
 				--Spring.Echo("Removing",instanceID,"/",iT.indextoUnitID[oldElementIndex], "Popping back", myunitID, "is it valid?", Spring.ValidUnitID(myunitID), oldElementIndex, lastElementIndex)
 
 				if iT.debugZombies then
-					local gf = Spring.GetGameFrame()
+					local gf = SpringShared.GetGameFrame()
 					--Spring.Echo("Popping", instanceID)
 					if iT.lastpopgameframe == nil then
 						iT.lastpopgameframe = gf
@@ -408,8 +408,8 @@ local function popElementInstance(iT, instanceID, noUpload)
 									s = s .. " " .. tostring(zombie)
 									--Spring.SendCommands({"pause 1"})
 								end
-								Spring.Echo(s)
-								Spring.Debug.TraceFullEcho(nil, nil, nil, dbgt(iT.indextoUnitID), dbgt(iT.indextoInstanceID))
+								SpringShared.Echo(s)
+								Debug.TraceFullEcho(nil, nil, nil, dbgt(iT.indextoUnitID), dbgt(iT.indextoInstanceID))
 								iT.zombies = {}
 								iT.numZombies = 0
 							end
@@ -436,10 +436,10 @@ local function popElementInstance(iT, instanceID, noUpload)
 				end
 
 				if objecttype == "unitID" or objecttype == "featureID" then
-					if objecttype == "unitID" and Spring.ValidUnitID(myunitID) then
+					if objecttype == "unitID" and SpringShared.ValidUnitID(myunitID) then
 						iT.instanceVBO:InstanceDataFromUnitIDs(myunitID, iT.objectTypeAttribID, oldElementIndex - 1)
 					--iT.VAO:AddUnitDefsToSubmission(unitID)
-					elseif objecttype == "featureID" and Spring.ValidFeatureID(myunitID) then
+					elseif objecttype == "featureID" and SpringShared.ValidFeatureID(myunitID) then
 						iT.instanceVBO:InstanceDataFromFeatureIDs(myunitID, iT.objectTypeAttribID, oldElementIndex - 1)
 					else
 						if iT.debugZombies then
@@ -447,7 +447,7 @@ local function popElementInstance(iT, instanceID, noUpload)
 							--Spring.Debug.TraceFullEcho()
 							--dbgt(iT.indextoUnitID)
 							--dbgt(iT.indextoInstanceID)
-							local gf = Spring.GetGameFrame()
+							local gf = SpringShared.GetGameFrame()
 							if iT.lastpopgameframe == nil or iT.lastpopgameframe ~= gf then -- New gameframe
 								iT.lastpopgameframe = gf
 								iT.zombies = {}
@@ -461,8 +461,8 @@ local function popElementInstance(iT, instanceID, noUpload)
 								iT.numZombies = iT.numZombies + 1
 							end
 						else
-							Spring.Echo("Tried to pop back an invalid unitID ", myunitID, "from", iT.myName, "while removing instance", instanceID, ". Ensure that you remove invalid units from your instance tables")
-							Spring.Debug.TraceFullEcho()
+							SpringShared.Echo("Tried to pop back an invalid unitID ", myunitID, "from", iT.myName, "while removing instance", instanceID, ". Ensure that you remove invalid units from your instance tables")
+							Debug.TraceFullEcho()
 						end
 					end
 				elseif objecttype == "unitDefID" then
@@ -500,7 +500,7 @@ end
 local function dumpAndCompareInstanceData(iT)
 	local gpuContents = iT.instanceVBO:Download(nil, nil, nil, true)
 	for i = 1, iT.usedElements do
-		Spring.Echo(string.format("%s, instanceID =%s, element %d of %d", iT.myName, tostring(iT.indextoInstanceID[i]), i, iT.usedElements))
+		SpringShared.Echo(string.format("%s, instanceID =%s, element %d of %d", iT.myName, tostring(iT.indextoInstanceID[i]), i, iT.usedElements))
 		local index = 1
 		local offset = (i - 1) * iT.instanceStep
 		for j, layout in ipairs(iT.layout) do
@@ -512,7 +512,7 @@ local function dumpAndCompareInstanceData(iT)
 				index = index + 1
 			end
 			local layoutstr = string.format("  ID=%d, name = %s, size = %d, type = %d, luaData = {%s}, gpuData={%s}", layout.id, layout.name, layout.size, layout.type or GL.FLOAT, luaData, gpuData)
-			Spring.Echo(layoutstr)
+			SpringShared.Echo(layoutstr)
 		end
 	end
 end
@@ -534,8 +534,8 @@ local function uploadAllElements(iT)
 		--Spring.Echo("Resize", iT.myName, i, unitID, objecttype)
 		if objecttype == "unitID" then
 			-- Sanity check for unitIDs
-			if Spring.ValidUnitID(unitID) ~= true then
-				Spring.Echo("Invalid unitID", unitID, "at", i, "during resizing", iT.myName)
+			if SpringShared.ValidUnitID(unitID) ~= true then
+				SpringShared.Echo("Invalid unitID", unitID, "at", i, "during resizing", iT.myName)
 			else
 				iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.objectTypeAttribID, i - 1)
 			end
@@ -544,8 +544,8 @@ local function uploadAllElements(iT)
 			iT.instanceVBO:InstanceDataFromUnitDefIDs(unitID, iT.objectTypeAttribID, nil, i - 1)
 			iT.VAO:AddUnitDefsToSubmission(unitID)
 		elseif objecttype == "featureID" then
-			if Spring.ValidFeatureID(unitID) ~= true then
-				Spring.Echo("Invalid featureID", unitID, "at", i, "during resizing", iT.myName)
+			if SpringShared.ValidFeatureID(unitID) ~= true then
+				SpringShared.Echo("Invalid featureID", unitID, "at", i, "during resizing", iT.myName)
 			else
 				iT.instanceVBO:InstanceDataFromFeatureIDs(unitID, iT.objectTypeAttribID, i - 1)
 			end
@@ -564,25 +564,25 @@ local function validateInstanceVBOIDTable(iT, calledfrom)
 	local removethese = {}
 	for i = 1, iT.usedElements do
 		if iT.indextoInstanceID[i] == nil then
-			Spring.Echo(errorKey, "There is a hole in indextoInstanceID", iT.myName, "at", i, "out of", iT.usedElements, calledfrom)
+			SpringShared.Echo(errorKey, "There is a hole in indextoInstanceID", iT.myName, "at", i, "out of", iT.usedElements, calledfrom)
 			--Spring.Echo()
 			if iT.indextoUnitID[i] == nil then
-				Spring.Echo(errorKey, "It is also missing from indextoUnitID")
+				SpringShared.Echo(errorKey, "It is also missing from indextoUnitID")
 			else
-				Spring.Echo(errorKey, "But it does exist in indextoUnitID with an unitID of ", iT.indextoUnitID[i])
-				Spring.Echo(errorKey, "This is valid?", Spring.GetUnitPosition(iT.indextoUnitID[i]))
+				SpringShared.Echo(errorKey, "But it does exist in indextoUnitID with an unitID of ", iT.indextoUnitID[i])
+				SpringShared.Echo(errorKey, "This is valid?", SpringShared.GetUnitPosition(iT.indextoUnitID[i]))
 			end
 		else
 			local instanceID = iT.indextoInstanceID[i]
 			local objecttype = iT.indextoObjectType[i]
 			if iT.instanceIDtoIndex[instanceID] == nil then
-				Spring.Echo(errorKey, "There is a hole instanceIDtoIndex", iT.myName, "at", i, " iT.instanceIDtoIndex[instanceID] == nil ")
+				SpringShared.Echo(errorKey, "There is a hole instanceIDtoIndex", iT.myName, "at", i, " iT.instanceIDtoIndex[instanceID] == nil ")
 			elseif iT.instanceIDtoIndex[instanceID] ~= i then
-				Spring.Echo(errorKey, "There is a problem in indextoInstanceID", iT.myName, "at i =", i, "  iT.indextoInstanceID[instanceID] ~= i, it is instead: ", iT.indextoInstanceID[instanceID])
+				SpringShared.Echo(errorKey, "There is a problem in indextoInstanceID", iT.myName, "at i =", i, "  iT.indextoInstanceID[instanceID] ~= i, it is instead: ", iT.indextoInstanceID[instanceID])
 			end
 			if instanceID and objecttype and objecttype == "unitID" then
 				local unitID = iT.indextoUnitID[i]
-				if Spring.ValidUnitID(unitID) ~= true then
+				if SpringShared.ValidUnitID(unitID) ~= true then
 					removethese[instanceID] = true
 				end
 			end
@@ -594,7 +594,7 @@ local function validateInstanceVBOIDTable(iT, calledfrom)
 		popElementInstance(iT, instanceID)
 	end
 	if string.len(idsremoved) > 1 then
-		Spring.Echo(errorKey, " removed invalid instanceIDs", idsremoved)
+		SpringShared.Echo(errorKey, " removed invalid instanceIDs", idsremoved)
 	end
 	--[[
 	local indextoInstanceIDsize = counttable(iT.indextoInstanceID)

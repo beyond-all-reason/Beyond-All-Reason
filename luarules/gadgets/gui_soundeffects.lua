@@ -17,7 +17,7 @@ function gadget:GetInfo()
 end
 
 -- no need to enable when sound is muted
-local enabled = ((Spring.GetConfigInt("snd_unitsound", 1) or 1) ~= 0 and (Spring.GetConfigInt("snd_volmaster", 1) or 100) > 0 and ((Spring.GetConfigInt("snd_volui", 1) or 100) > 0 or (Spring.GetConfigInt("snd_volbattle", 1) or 100) > 0))
+local enabled = ((SpringUnsynced.GetConfigInt("snd_unitsound", 1) or 1) ~= 0 and (SpringUnsynced.GetConfigInt("snd_volmaster", 1) or 100) > 0 and ((SpringUnsynced.GetConfigInt("snd_volui", 1) or 100) > 0 or (SpringUnsynced.GetConfigInt("snd_volbattle", 1) or 100) > 0))
 
 local DelayRandomization = 2 -- frames
 
@@ -108,26 +108,26 @@ end
 GUIUnitSoundEffects = newGUIUnitSoundEffects
 newGUIUnitSoundEffects = nil
 
-local CurrentGameFrame = Spring.GetGameFrame()
-local myTeamID = Spring.GetMyTeamID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
-local spectator, fullview = Spring.GetSpectatingState()
+local CurrentGameFrame = SpringShared.GetGameFrame()
+local myTeamID = SpringUnsynced.GetLocalTeamID()
+local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+local spectator, fullview = SpringUnsynced.GetSpectatingState()
 
-local spGetUnitIsActive = Spring.GetUnitIsActive
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetUnitPosition = Spring.GetUnitPosition
-local spIsUnitInView = Spring.IsUnitInView
-local spIsUnitInLos = Spring.IsUnitInLos
-local spIsUnitSelected = Spring.IsUnitSelected
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetMouseState = Spring.GetMouseState
-local spGetMyPlayerID = Spring.GetMyPlayerID
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetGameFrame = Spring.GetGameFrame
-local spPlaySoundFile = Spring.PlaySoundFile
+local spGetUnitIsActive = SpringShared.GetUnitIsActive
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spIsUnitInView = SpringUnsynced.IsUnitInView
+local spIsUnitInLos = SpringShared.IsUnitInLos
+local spIsUnitSelected = SpringUnsynced.IsUnitSelected
+local spGetSelectedUnitsCount = SpringUnsynced.GetSelectedUnitsCount
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetMyPlayerID = SpringUnsynced.GetLocalPlayerID
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetGameFrame = SpringShared.GetGameFrame
+local spPlaySoundFile = SpringUnsynced.PlaySoundFile
 
 local math_random = math.random
 
@@ -205,7 +205,7 @@ end
 
 function gadget:Initialize()
 	units = {}
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
@@ -254,7 +254,7 @@ end
 
 local slowTimer, fastTimer = 0, 0
 function gadget:Update()
-	local dt = Spring.GetLastUpdateSeconds()
+	local dt = SpringUnsynced.GetLastUpdateSeconds()
 	fastTimer = fastTimer + dt
 	if fastTimer > commandSoundTimer then
 		fastTimer = 0
@@ -263,10 +263,10 @@ function gadget:Update()
 	slowTimer = slowTimer + dt
 	if slowTimer > 0.5 then
 		slowTimer = 0
-		myTeamID = Spring.GetMyTeamID()
-		myAllyTeamID = Spring.GetMyAllyTeamID()
-		spectator, fullview = Spring.GetSpectatingState()
-		enabled = ((Spring.GetConfigInt("snd_unitsound", 1) or 1) ~= 0 and (Spring.GetConfigInt("snd_volmaster", 1) or 100) > 0 and ((Spring.GetConfigInt("snd_volui", 1) or 100) > 0 or (Spring.GetConfigInt("snd_volbattle", 1) or 100) > 0))
+		myTeamID = SpringUnsynced.GetLocalTeamID()
+		myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+		spectator, fullview = SpringUnsynced.GetSpectatingState()
+		enabled = ((SpringUnsynced.GetConfigInt("snd_unitsound", 1) or 1) ~= 0 and (SpringUnsynced.GetConfigInt("snd_volmaster", 1) or 100) > 0 and ((SpringUnsynced.GetConfigInt("snd_volui", 1) or 100) > 0 or (SpringUnsynced.GetConfigInt("snd_volbattle", 1) or 100) > 0))
 	end
 end
 
@@ -365,7 +365,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		return
 	end
 	if builderID and GUIUnitSoundEffects[unitDefID] then
-		local _, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
+		local _, buildProgress = SpringShared.GetUnitIsBeingBuilt(unitID)
 		if buildProgress < 0.05 then --buildProgress
 			if myTeamID == spGetUnitTeam(builderID) then
 				local posx, posy, posz = spGetUnitPosition(unitID)

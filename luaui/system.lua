@@ -13,7 +13,7 @@
 
 if System == nil then
 	if tracy == nil then
-		Spring.Echo("Tracy: No support detected, replacing tracy.* with function stubs.")
+		SpringShared.Echo("Tracy: No support detected, replacing tracy.* with function stubs.")
 		tracy = {}
 		tracy.ZoneBeginN = function()
 			return
@@ -83,6 +83,13 @@ if System == nil then
 
 		Json = Json,
 		RmlUi = RmlUi,
+
+		-- BAR modules (set by init.lua; detached from Spring table)
+		Utilities = Utilities,
+		I18N = I18N,
+		Debug = Debug,
+		Lava = Lava,
+		GetModOptionsCopy = GetModOptionsCopy,
 
 		-- luasocket
 		socket = socket,

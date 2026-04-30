@@ -16,18 +16,18 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local GetTeamInfo = Spring.GetTeamInfo
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitHealth = Spring.GetUnitHealth
-local GetGroundHeight = Spring.GetGroundHeight
-local GetTeamUnitDefCount = Spring.GetTeamUnitDefCount
-local GetTeamList = Spring.GetTeamList
-local MoveCtrlEnable = Spring.MoveCtrl.Enable
-local MoveCtrlDisable = Spring.MoveCtrl.Disable
-local MoveCtrlSetPosition = Spring.MoveCtrl.SetPosition
-local GetGameFrame = Spring.GetGameFrame
-local DestroyUnit = Spring.DestroyUnit
-local GetUnitTeam = Spring.GetUnitTeam
+local GetTeamInfo = SpringShared.GetTeamInfo
+local GetUnitPosition = SpringShared.GetUnitPosition
+local GetUnitHealth = SpringShared.GetUnitHealth
+local GetGroundHeight = SpringShared.GetGroundHeight
+local GetTeamUnitDefCount = SpringShared.GetTeamUnitDefCount
+local GetTeamList = SpringShared.GetTeamList
+local MoveCtrlEnable = SpringSynced.MoveCtrl.Enable
+local MoveCtrlDisable = SpringSynced.MoveCtrl.Disable
+local MoveCtrlSetPosition = SpringSynced.MoveCtrl.SetPosition
+local GetGameFrame = SpringShared.GetGameFrame
+local DestroyUnit = SpringSynced.DestroyUnit
+local GetUnitTeam = SpringShared.GetUnitTeam
 local math_random = math.random
 
 local immuneDgunList = {}
@@ -38,7 +38,7 @@ local cantFall = {}
 local commCountCache = {}
 local commCountCacheFrame = -1
 
-local COM_BLAST = WeaponDefNames["commanderexplosion"].id
+local COM_BLAST = WeaponDefNames.commanderexplosion.id
 
 local isCommander = {}
 local commanderDefIDs = {}

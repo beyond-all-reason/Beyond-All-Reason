@@ -17,7 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local modOptions = Spring.GetModOptions()
+local modOptions = SpringShared.GetModOptions()
 
 local maxTime = modOptions.emprework == true and 10 or 20 --- bug fixed
 
@@ -146,8 +146,8 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
-local spGetUnitHealth = Spring.GetUnitHealth
-local spSetUnitHealth = Spring.SetUnitHealth
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spSetUnitHealth = SpringSynced.SetUnitHealth
 local math_min = math.min
 local math_max = math.max
 

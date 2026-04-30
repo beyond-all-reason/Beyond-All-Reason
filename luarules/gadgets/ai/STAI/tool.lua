@@ -628,13 +628,13 @@ function Tool:WhatHurtsUnit(unitName, mtype, position)
 		end
 	end
 	if mtype == "veh" or mtype == "bot" or mtype == "amp" or mtype == "hov" or mtype == "shp" then
-		hurts["ground"] = true
+		hurts.ground = true
 	end
 	if mtype == "air" then
-		hurts["air"] = true
+		hurts.air = true
 	end
 	if mtype == "sub" or mtype == "shp" or mtype == "amp" then
-		hurts["submerged"] = true
+		hurts.submerged = true
 	end
 	if unitName then
 		whatHurtsUnit[unitName] = hurts

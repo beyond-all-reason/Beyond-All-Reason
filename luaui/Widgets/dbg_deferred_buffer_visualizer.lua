@@ -13,8 +13,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
+local spEcho = SpringShared.Echo
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local myshader = nil
 local myshaderDebgDrawLoc = nil
@@ -51,7 +51,7 @@ deferredbuffer_info = {
 	["$model_gbuffer_emittex"] = "for emissive materials (bloom would be the canonical use) New in version 95",
 	["$model_gbuffer_misctex"] = "for arbitrary shader data New in version 95",
 	["$model_gbuffer_zvaltex"] = "contains the depth values (z-buffer) of the models in view. ",
-	["depthcopy"] = "A copy of the current depth buffer. ",
+	depthcopy = "A copy of the current depth buffer. ",
 }
 
 local currentbuffer = 13 -- starts with model_gbuffer_normtex
@@ -196,7 +196,7 @@ function widget:Initialize()
 		RemoveMe("[deferred buffer visualizer] removing widget, no shader support")
 		return
 	end
-	hasdeferredrendering = (Spring.GetConfigString("AllowDeferredModelRendering") == "1") and (Spring.GetConfigString("AllowDeferredMapRendering") == "1")
+	hasdeferredrendering = (SpringUnsynced.GetConfigString("AllowDeferredModelRendering") == "1") and (SpringUnsynced.GetConfigString("AllowDeferredMapRendering") == "1")
 	if hasdeferredrendering == false then
 		RemoveMe("[deferred buffer visualizer] removing widget, AllowDeferred Model and Map Rendering is required")
 	end

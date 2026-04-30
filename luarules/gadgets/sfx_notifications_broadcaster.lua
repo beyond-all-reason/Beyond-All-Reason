@@ -18,7 +18,7 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	function BroadcastEvent(_, event, player, forceplay)
-		if Script.LuaUI("NotificationEvent") and (forceplay or (tonumber(player) and ((tonumber(player) == Spring.GetMyPlayerID()) or Spring.GetSpectatingState()))) then
+		if Script.LuaUI("NotificationEvent") and (forceplay or (tonumber(player) and ((tonumber(player) == SpringUnsynced.GetLocalPlayerID()) or SpringUnsynced.GetSpectatingState()))) then
 			if forceplay then
 				forceplay = " y"
 			else
@@ -29,26 +29,26 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 end
 
-GG["notifications"] = {}
+GG.notifications = {}
 ---@param event string Notification event name (e.g., "commanderDetected", "EnemyCommanderDied"). Must match an event defined in sounds/voice/config.lua with properties: delay (integer), stackedDelay (bool), resetOtherEventDelay (string), soundEffect (string), notext (bool), tutorial (bool)
 ---@param idtype "playerID"|"teamID"|"allyTeamID" Type of ID to target: "playerID" for specific player, "teamID" for all players on a team, "allyTeamID" for all players in an ally team
 ---@param id number|string PlayerID, TeamID, or AllyTeamID (converted to number internally)
 ---@param forceplay boolean|nil If true, skips spectator check and allows playing in pregame
-GG["notifications"].queueNotification = function(event, idtype, id, forceplay)
+GG.notifications.queueNotification = function(event, idtype, id, forceplay)
 	local playerIDs = {}
 	id = tonumber(id)
 
 	if idtype == "playerID" then
 		playerIDs[#playerIDs + 1] = id
 	elseif idtype == "teamID" then
-		local playerList = Spring.GetPlayerList(id)
+		local playerList = SpringShared.GetPlayerList(id)
 		for i = 1, #playerList do
 			playerIDs[#playerIDs + 1] = playerList[i]
 		end
 	elseif idtype == "allyTeamID" then
-		local teamList = Spring.GetTeamList(id)
+		local teamList = SpringShared.GetTeamList(id)
 		for i = 1, #teamList do
-			local playerList = Spring.GetPlayerList(teamList[i])
+			local playerList = SpringShared.GetPlayerList(teamList[i])
 			for j = 1, #playerList do
 				playerIDs[#playerIDs + 1] = playerList[j]
 			end

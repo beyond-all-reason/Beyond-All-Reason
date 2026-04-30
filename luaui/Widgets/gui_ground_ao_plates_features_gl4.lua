@@ -13,8 +13,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
-local spGetSpectatingState = Spring.GetSpectatingState
+local spEcho = SpringShared.Echo
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 --------------- Configurables -------------------
 local decalAlpha = 0.66
@@ -96,8 +96,8 @@ local GL_BACK = GL.BACK
 local GL_LEQUAL = GL.LEQUAL
 
 local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
-	local gf = Spring.GetGameFrame()
-	featureDefID = featureDefID or Spring.GetFeatureDefID(featureID)
+	local gf = SpringShared.GetGameFrame()
+	featureDefID = featureDefID or SpringShared.GetFeatureDefID(featureID)
 
 	if featureDefID == nil or featureDefIDtoDecalInfo[featureDefID] == nil then
 		return
@@ -143,7 +143,7 @@ end
 
 local function ProcessAllFeatures()
 	InstanceVBOTable.clearInstanceTable(groundPlateVBO)
-	local features = Spring.GetAllFeatures()
+	local features = SpringShared.GetAllFeatures()
 	--spEcho("Refreshing Ground Plates", #features)
 	for _, featureID in ipairs(features) do
 		AddPrimitiveAtUnit(featureID, nil, true)
@@ -159,7 +159,7 @@ function widget:DrawWorldPreUnit()
 	end
 
 	if groundPlateVBO.usedElements > 0 then
-		local disticon = Spring.GetConfigInt("FeatureFadeDistance", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
+		local disticon = SpringUnsynced.GetConfigInt("FeatureFadeDistance", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		glCulling(GL_BACK)
 		glDepthTest(GL_LEQUAL)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
@@ -201,7 +201,7 @@ function widget:Initialize()
 	end
 	makeAtlas()
 	--if true then return end
-	local knownheaps3os = { ["arm3x3"] = 1 }
+	local knownheaps3os = { arm3x3 = 1 }
 	for id, featureDefID in pairs(FeatureDefs) do
 		local FD = FeatureDefs[id]
 		if FD.modelname and (string.find(FD.modelname:lower(), "_dead", nil, true) or string.find(FD.name, "_heap", nil, true)) then -- todo TREES!
@@ -268,13 +268,13 @@ function widget:Initialize()
 end
 
 local spec, fullview = spGetSpectatingState()
-local allyTeamID = Spring.GetMyAllyTeamID()
+local allyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 
 function widget:PlayerChanged()
 	local prevFullview = fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
-	allyTeamID = Spring.GetMyAllyTeamID()
+	allyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 end
 
 local commandqueue = {}
@@ -290,8 +290,8 @@ function widget:TextCommand(command)
 			end
 		end
 		if #matches > 0 then
-			local mx, my, mb = Spring.GetMouseState()
-			local _, coords = Spring.TraceScreenRay(mx, my, true)
+			local mx, my, mb = SpringUnsynced.GetMouseState()
+			local _, coords = SpringUnsynced.TraceScreenRay(mx, my, true)
 			local maxx = math.ceil(math.sqrt(#matches))
 			local size = 80
 			local i = 1
@@ -299,7 +299,7 @@ function widget:TextCommand(command)
 				for z = coords[3], coords[3] + size * maxx, size do
 					for x = coords[1], coords[1] + size * maxx, size do
 						if i <= #matches then
-							commandqueue[#commandqueue + 1] = string.format("give %s @%d,%d,%d", matches[i], x, Spring.GetGroundHeight(x, z), z)
+							commandqueue[#commandqueue + 1] = string.format("give %s @%d,%d,%d", matches[i], x, SpringShared.GetGroundHeight(x, z), z)
 							i = i + 1
 						end
 					end
@@ -311,7 +311,7 @@ end
 
 function widget:GameFrame()
 	if #commandqueue > 0 then
-		Spring.SendCommands({ commandqueue[#commandqueue] })
+		SpringUnsynced.SendCommands({ commandqueue[#commandqueue] })
 		commandqueue[#commandqueue] = nil
 	end
 end

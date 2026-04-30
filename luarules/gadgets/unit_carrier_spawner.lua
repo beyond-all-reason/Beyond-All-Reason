@@ -16,52 +16,52 @@ function gadget:GetInfo()
 	}
 end
 
-local spCreateUnit = Spring.CreateUnit
-local spDestroyUnit = Spring.DestroyUnit
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spSetUnitRulesParam = Spring.SetUnitRulesParam
-local spGetUnitPosition = Spring.GetUnitPosition
-local SetUnitNoSelect = Spring.SetUnitNoSelect
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spUseTeamResource = Spring.UseTeamResource
-local spGetTeamResources = Spring.GetTeamResources
-local GetUnitCommands = Spring.GetUnitCommands
-local spSetUnitArmored = Spring.SetUnitArmored
-local spGetUnitStates = Spring.GetUnitStates
-local spGetUnitDefID = Spring.GetUnitDefID
-local spSetUnitVelocity = Spring.SetUnitVelocity
-local spUnitAttach = Spring.UnitAttach
-local spUnitDetach = Spring.UnitDetach
-local spSetUnitHealth = Spring.SetUnitHealth
-local spSetUnitMaxHealth = Spring.SetUnitMaxHealth
-local spSetUnitUseAirLos = Spring.SetUnitUseAirLos
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
-local spTransferUnit = Spring.TransferUnit
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
-local EditUnitCmdDesc = Spring.EditUnitCmdDesc
-local FindUnitCmdDesc = Spring.FindUnitCmdDesc
-local InsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-local spGetGameSeconds = Spring.GetGameSeconds
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetUnitStockpile = Spring.GetUnitStockpile
-local spSetUnitStockpile = Spring.SetUnitStockpile
-local spCallCOBScript = Spring.CallCOBScript
+local spCreateUnit = SpringSynced.CreateUnit
+local spDestroyUnit = SpringSynced.DestroyUnit
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spSetUnitRulesParam = SpringSynced.SetUnitRulesParam
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local SetUnitNoSelect = SpringUnsynced.SetUnitNoSelect
+local spGetUnitRulesParam = SpringShared.GetUnitRulesParam
+local spUseTeamResource = SpringSynced.UseTeamResource
+local spGetTeamResources = SpringShared.GetTeamResources
+local GetUnitCommands = SpringShared.GetUnitCommands
+local spSetUnitArmored = SpringSynced.SetUnitArmored
+local spGetUnitStates = SpringShared.GetUnitStates
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spSetUnitVelocity = SpringSynced.SetUnitVelocity
+local spUnitAttach = SpringSynced.UnitAttach
+local spUnitDetach = SpringSynced.UnitDetach
+local spSetUnitHealth = SpringSynced.SetUnitHealth
+local spSetUnitMaxHealth = SpringSynced.SetUnitMaxHealth
+local spSetUnitUseAirLos = SpringSynced.SetUnitUseAirLos
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetUnitNearestEnemy = SpringShared.GetUnitNearestEnemy
+local spTransferUnit = SpringSynced.TransferUnit
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetUnitHealth = SpringShared.GetUnitHealth
+local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+local spGetUnitWeaponTarget = SpringShared.GetUnitWeaponTarget
+local EditUnitCmdDesc = SpringSynced.EditUnitCmdDesc
+local FindUnitCmdDesc = SpringShared.FindUnitCmdDesc
+local InsertUnitCmdDesc = SpringSynced.InsertUnitCmdDesc
+local spGetGameSeconds = SpringShared.GetGameSeconds
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitsInCylinder = SpringShared.GetUnitsInCylinder
+local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+local spGetUnitStockpile = SpringShared.GetUnitStockpile
+local spSetUnitStockpile = SpringSynced.SetUnitStockpile
+local spCallCOBScript = SpringSynced.CallCOBScript
 local spSetUnitCOBValue = Spring.SetUnitCOBValue
-local spGetUnitPiecePosDir = Spring.GetUnitPiecePosDir
-local spGetUnitPiecePosition = Spring.GetUnitPiecePosition
-local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitPiecePosDir = SpringShared.GetUnitPiecePosDir
+local spGetUnitPiecePosition = SpringShared.GetUnitPiecePosition
+local spGetGameFrame = SpringShared.GetGameFrame
 
-local mcEnable = Spring.MoveCtrl.Enable
-local mcDisable = Spring.MoveCtrl.Disable
-local mcSetPosition = Spring.MoveCtrl.SetPosition
-local mcSetRotation = Spring.MoveCtrl.SetRotation
-local mcSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
+local mcEnable = SpringSynced.MoveCtrl.Enable
+local mcDisable = SpringSynced.MoveCtrl.Disable
+local mcSetPosition = SpringSynced.MoveCtrl.SetPosition
+local mcSetRotation = SpringSynced.MoveCtrl.SetRotation
+local mcSetAirMoveTypeData = SpringSynced.MoveCtrl.SetAirMoveTypeData
 
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
@@ -681,7 +681,7 @@ local function attachToNewCarrier(newCarrier, subUnitID)
 		carrierMetaList[newCarrier].subUnitsList[subUnitID] = droneData
 		totalDroneCount = totalDroneCount + 1
 	else
-		local oldCarrierID = Spring.GetUnitRulesParam(subUnitID, "carrier_host_unit_id")
+		local oldCarrierID = SpringShared.GetUnitRulesParam(subUnitID, "carrier_host_unit_id")
 		if oldCarrierID and carrierMetaList[oldCarrierID] then
 			carrierMetaList[newCarrier] = carrierMetaList[oldCarrierID]
 			carrierMetaList[newCarrier].docking = nil
@@ -724,7 +724,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 
 					local availableSections = {}
 
-					local f = Spring.GetGameFrame()
+					local f = SpringShared.GetGameFrame()
 
 					for sectionIndex, dockingpieces in pairs(dockingsections) do
 						local availableSectionsData = {
@@ -892,7 +892,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 			if droneMetaData.dronetype == "bomber" and bomberStage > 0 then
 				local currentTime = spGetGameSeconds()
 				if (currentTime - lastBombing) >= 4 then
-					Spring.MoveCtrl.SetAirMoveTypeData(proOwnerID, "maxRudder", droneMetaData.originalmaxrudder)
+					SpringSynced.MoveCtrl.SetAirMoveTypeData(proOwnerID, "maxRudder", droneMetaData.originalmaxrudder)
 					bomberStage = bomberStage + 1
 					lastBombing = spGetGameSeconds()
 				end
@@ -1135,7 +1135,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 		idleRadius = carrierMetaData.droneminimumidleradius
 	end
 
-	local weapontargettype, _, weapontarget = Spring.GetUnitWeaponTarget(carrierID, carrierMetaData.weaponNr)
+	local weapontargettype, _, weapontarget = SpringShared.GetUnitWeaponTarget(carrierID, carrierMetaData.weaponNr)
 
 	--Handles an attack order given to the carrier.
 	if not recallDrones and cmdID == CMD.ATTACK or weapontarget then
@@ -1288,7 +1288,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 										elseif carrierMetaData.dronebombingside == 1 then
 											carrierMetaData.dronebombingside = -1
 										end
-										Spring.MoveCtrl.SetAirMoveTypeData(subUnitID, "maxRudder", 0.05)
+										SpringSynced.MoveCtrl.SetAirMoveTypeData(subUnitID, "maxRudder", 0.05)
 										carrierMetaData.dronebombertimer = spGetGameSeconds()
 										bomberStage = 1
 									end
@@ -1361,11 +1361,11 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 										end
 									else
 										if droneType == "abductor" then
-											local transportedUnit = Spring.GetUnitIsTransporting(subUnitID)
+											local transportedUnit = SpringShared.GetUnitIsTransporting(subUnitID)
 											if transportedUnit[1] then
 												dockUnitQueue(carrierID, subUnitID)
 											else
-												local targetMoveTypeData = Spring.GetUnitMoveTypeData(target)
+												local targetMoveTypeData = SpringShared.GetUnitMoveTypeData(target)
 												if targetMoveTypeData and targetMoveTypeData.maxSpeed and targetMoveTypeData.maxSpeed > 0 then
 													spGiveOrderToUnit(subUnitID, CMD.LOAD_UNITS, target)
 												end
@@ -1484,7 +1484,7 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 		end
 	elseif carrierMetaList[unitID] and (cmdID ~= CMD.MOVE and cmdID ~= CMD.FIRE_STATE and cmdID ~= CMD.STOCKPILE) then
 		carrierMetaList[unitID].activeRecall = false
-		local f = Spring.GetGameFrame()
+		local f = SpringShared.GetGameFrame()
 		updateCarrier(unitID, carrierMetaList[unitID], f)
 	end
 	inUnitCommand = false
@@ -1540,9 +1540,9 @@ local function dockUnits(dockingqueue, queuestart, queueend)
 								end
 								local vx, vy, vz = px - subx, py - suby, pz - subz
 								vx, vy, vz = landingspeed * vx / magnitude, landingspeed * vy / magnitude, landingspeed * vz / magnitude
-								Spring.MoveCtrl.Enable(subUnitID)
+								SpringSynced.MoveCtrl.Enable(subUnitID)
 								mcSetPosition(subUnitID, subx + vx, suby, subz + vz)
-								Spring.MoveCtrl.Disable(subUnitID)
+								SpringSynced.MoveCtrl.Disable(subUnitID)
 								spSetUnitVelocity(subUnitID, vx, 0, vz)
 								heightDifference = 0
 							else
@@ -1565,7 +1565,7 @@ local function dockUnits(dockingqueue, queuestart, queueend)
 								spUnitAttach(unitID, subUnitID, pieceNumber)
 								spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
 								spGiveOrderToUnit(subUnitID, CMD.FIRE_STATE, 0, 0)
-								Spring.MoveCtrl.Disable(subUnitID)
+								SpringSynced.MoveCtrl.Disable(subUnitID)
 								spSetUnitVelocity(subUnitID, 0, 0, 0)
 								if not carrierMetaList[unitID].manualDrones then
 									SetUnitNoSelect(subUnitID, true)
@@ -1582,9 +1582,9 @@ local function dockUnits(dockingqueue, queuestart, queueend)
 								spCallCOBScript(subUnitID, "Docked", 0, carrierMetaList[unitID].cobdockparam, pieceNumber, pieceAngle)
 
 								if dronetype == "abductor" then
-									local transportedUnit = Spring.GetUnitIsTransporting(subUnitID)
+									local transportedUnit = SpringShared.GetUnitIsTransporting(subUnitID)
 									if transportedUnit[1] then
-										local transportedUnitDefID = Spring.GetUnitDefID(transportedUnit[1])
+										local transportedUnitDefID = SpringShared.GetUnitDefID(transportedUnit[1])
 										if transportedUnitDefID then
 											for dronetypeIndex, dronename in pairs(carrierMetaList[unitID].dronenames) do
 												if carrierMetaList[unitID].dronetypes[dronetypeIndex] == "printer" then
@@ -1710,13 +1710,13 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_CARRIER_SPAWN_ONOFF)
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	local unitCount = #allUnits
 	for i = 1, unitCount do
 		local unitID = allUnits[i]
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
-	gaiaTeam = Spring.GetGaiaTeamID()
+	gaiaTeam = SpringShared.GetGaiaTeamID()
 	gadgetHandler:RegisterGlobal("CobUndockSequenceFinished", CobUndockSequenceFinished)
 	gadgetHandler:RegisterGlobal("CobDroneSpawnSequenceFinished", CobDroneSpawnSequenceFinished)
 end
