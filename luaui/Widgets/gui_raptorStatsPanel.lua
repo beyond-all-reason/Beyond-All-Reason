@@ -264,8 +264,8 @@ local function getResistancesMessage()
 		if UnitDefNames[attackerName].customParams.i18nfromunit then
 			attackerName = UnitDefNames[attackerName].customParams.i18nfromunit
 		end
-		messages[i + 1] = textColor .. I18N("units.names." .. attackerName)
-		currentlyResistantToNames[#currentlyResistantToNames + 1] = I18N("units.names." .. attackerName)
+		messages[i + 1] = textColor .. I18N.unitName(attackerName)
+		currentlyResistantToNames[#currentlyResistantToNames + 1] = I18N.unitName(attackerName)
 	end
 	resistancesTable = {}
 
