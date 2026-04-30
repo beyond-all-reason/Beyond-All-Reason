@@ -26,7 +26,7 @@ local draftMode = Spring.GetModOptions().draft_mode
 local vsx, vsy = spGetViewGeometry()
 
 local uiScale = (0.7 + (vsx * vsy / 6500000))
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = Spring.GetLocalPlayerID()
 local myPlayerName, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 myPlayerName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(myPlayerID)) or myPlayerName
 local isFFA = Spring.Utilities.Gametype.IsFFA()
@@ -180,7 +180,7 @@ function widget:GameSetup(state, ready, playerStates)
 	local spec, fullview = Spring.GetSpectatingState()
 	-- sends a "I arrived" message
 	-- NOTE: Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") seems to be always nil!
-	if not spec and not ihavejoined and Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") == nil then
+	if not spec and not ihavejoined and Spring.GetGameRulesParam("player_" .. Spring.GetLocalPlayerID() .. "_joined") == nil then
 		Spring.SendLuaRulesMsg("joined_game")
 		ihavejoined = true
 	end

@@ -446,7 +446,7 @@ else -- UNSYNCED
 	end
 
 	function benchmark(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		Spring.Echo("Benchmark", line, words, playerID, action)

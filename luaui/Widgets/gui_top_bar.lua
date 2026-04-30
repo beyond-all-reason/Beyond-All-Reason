@@ -31,11 +31,11 @@ local sp = {
 	GetTeamRulesParam = Spring.GetTeamRulesParam,
 	GetTeamList = Spring.GetTeamList,
 	SetMouseCursor = Spring.SetMouseCursor,
-	GetMyAllyTeamID = Spring.GetMyAllyTeamID,
+	GetMyAllyTeamID = Spring.GetLocalAllyTeamID,
 	GetTeamUnitDefCount = Spring.GetTeamUnitDefCount,
 	GetSpectatingState = Spring.GetSpectatingState,
 	GetTeamResources = Spring.GetTeamResources,
-	GetMyTeamID = Spring.GetMyTeamID,
+	GetMyTeamID = Spring.GetLocalTeamID,
 	GetMouseState = Spring.GetMouseState,
 	GetWind = Spring.GetWind,
 	GetGameSpeed = Spring.GetGameSpeed,
@@ -2255,8 +2255,8 @@ function widget:Initialize()
 		displayComCounter = true
 	end
 
-	if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), "startUnit")] then
-		textures.com = ":n:Icons/" .. UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), "startUnit")].name .. ".png"
+	if UnitDefs[Spring.GetTeamRulesParam(Spring.GetLocalTeamID(), "startUnit")] then
+		textures.com = ":n:Icons/" .. UnitDefs[Spring.GetTeamRulesParam(Spring.GetLocalTeamID(), "startUnit")].name .. ".png"
 	end
 
 	for _, teamID in ipairs(myAllyTeamList) do

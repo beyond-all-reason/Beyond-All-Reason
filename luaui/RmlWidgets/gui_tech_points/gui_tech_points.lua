@@ -23,7 +23,7 @@ if not modOptions.tech_blocking then
 end
 
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spI18N = Spring.I18N
 
 local POPUP_DELAY_FRAMES = Game.gameSpeed * 10
@@ -120,7 +120,7 @@ local function getTechData()
 
 	if techBlockingPerTeam then
 		if currentTime - widgetState.lastTeamCountUpdate > CACHE_INTERVAL then
-			local myAllyTeamID = Spring.GetMyAllyTeamID()
+			local myAllyTeamID = Spring.GetLocalAllyTeamID()
 			local teamList = Spring.GetTeamList(myAllyTeamID)
 			local newTeamCount = #teamList
 
@@ -307,7 +307,7 @@ function widget:Initialize()
 	local baseT3 = modOptions.t3_tech_threshold or 1000
 
 	if modOptions.tech_blocking_per_team then
-		local myAllyTeamID = Spring.GetMyAllyTeamID()
+		local myAllyTeamID = Spring.GetLocalAllyTeamID()
 		local teamList = Spring.GetTeamList(myAllyTeamID)
 		widgetState.cachedTeamCount = #teamList
 		widgetState.lastTeamCountUpdate = os.clock()

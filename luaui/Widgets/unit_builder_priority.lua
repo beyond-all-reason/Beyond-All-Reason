@@ -15,7 +15,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spEcho = Spring.Echo
 
 local CMD_PRIORITY = GameCMD.PRIORITY

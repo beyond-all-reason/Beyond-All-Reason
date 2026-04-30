@@ -16,7 +16,7 @@ local function test()
 	widget = widgetHandler:FindWidget("Stop means Stop")
 	assert(widget)
 
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 
 	unitID = SyncedRun(function(locals)
 		local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
