@@ -88,8 +88,8 @@ local function CloseVote()
 		voteName = nil
 		weAreVoteOwner = nil
 		eligibleToVote = false
-		if WG["guishader"] then
-			WG["guishader"].DeleteDlist("voteinterface")
+		if WG.guishader then
+			WG.guishader.DeleteDlist("voteinterface")
 		end
 		gl.DeleteList(voteDlist)
 	end
@@ -135,8 +135,8 @@ local function StartVote(name) -- when called without params its just to refresh
 		local xpos = mathFloor(width / 2)
 		local ypos = mathFloor(vsy - (height / 2))
 
-		if WG["topbar"] ~= nil then
-			local topbarArea = WG["topbar"].GetPosition()
+		if WG.topbar ~= nil then
+			local topbarArea = WG.topbar.GetPosition()
 			xpos = mathFloor(topbarArea[1] + (width / 2) + widgetSpaceMargin + ((topbarArea[3] - topbarArea[1]) / 2))
 			ypos = mathFloor(topbarArea[2] - widgetSpaceMargin - (height / 2))
 		end
@@ -279,11 +279,11 @@ local function StartVote(name) -- when called without params its just to refresh
 	end)
 
 	-- background blur
-	if WG["guishader"] then
+	if WG.guishader then
 		dlistGuishader = gl.CreateList(function()
 			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], elementCorner)
 		end)
-		WG["guishader"].InsertDlist(dlistGuishader, "voteinterface")
+		WG.guishader.InsertDlist(dlistGuishader, "voteinterface")
 	end
 end
 
@@ -303,8 +303,8 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 end
 
 function widget:PlayerChanged(playerID)
@@ -383,7 +383,7 @@ function widget:AddConsoleLine(lines, priority)
 	if priority and priority == L_DEPRECATED then
 		return
 	end
-	if not WG["rejoin"] or not WG["rejoin"].showingRejoining() then
+	if not WG.rejoin or not WG.rejoin.showingRejoining() then
 		lines = lines:match("^%[f=[0-9]+%] (.*)$") or lines
 		for line in lines:gmatch("[^\n]+") do
 			-- system message
@@ -567,7 +567,7 @@ end
 
 function widget:DrawScreen()
 	if voteDlist then
-		if not WG["topbar"] or not WG["topbar"].showingQuit() then
+		if not WG.topbar or not WG.topbar.showingQuit() then
 			if eligibleToVote then
 				local x, y, b = spGetMouseState()
 				if hovered then

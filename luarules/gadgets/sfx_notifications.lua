@@ -73,9 +73,9 @@ if gadgetHandler:IsSyncedCode() then
 			for ct, player in pairs(players) do
 				if tostring(player) then
 					if GetAllyTeamID(newTeam) == GetAllyTeamID(oldTeam) then -- We got it from a teammate
-						GG["notifications"].queueNotification("UnitsReceived", "playerID", tostring(player))
+						GG.notifications.queueNotification("UnitsReceived", "playerID", tostring(player))
 					else -- We got it from an enemy
-						GG["notifications"].queueNotification("UnitsCaptured", "playerID", tostring(player))
+						GG.notifications.queueNotification("UnitsCaptured", "playerID", tostring(player))
 					end
 				end
 			end
@@ -88,14 +88,14 @@ if gadgetHandler:IsSyncedCode() then
 			local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
 			for ct, player in pairs(players) do
 				if tostring(player) then
-					GG["notifications"].queueNotification("NukeLaunched", "playerID", tostring(player))
+					GG.notifications.queueNotification("NukeLaunched", "playerID", tostring(player))
 				end
 			end
 
 			local players = PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
 			for ct, player in pairs(players) do
 				if tostring(player) then
-					GG["notifications"].queueNotification("AlliedNukeLaunched", "playerID", tostring(player))
+					GG.notifications.queueNotification("AlliedNukeLaunched", "playerID", tostring(player))
 				end
 			end
 		end
@@ -110,7 +110,7 @@ if gadgetHandler:IsSyncedCode() then
 			if tostring(playerID) then
 				_, _, spec, _, playerAllyTeam = spGetPlayerInfo(playerID, false)
 				if not spec and playerAllyTeam == allyTeam and unitAllyTeam ~= playerAllyTeam then
-					GG["notifications"].queueNotification(event, "playerID", tostring(playerID))
+					GG.notifications.queueNotification(event, "playerID", tostring(playerID))
 				end
 			end
 		end
@@ -194,7 +194,7 @@ else
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
-			GG["notifications"].queueNotification("LrpcTargetUnits", "playerID", tostring(myPlayerID))
+			GG.notifications.queueNotification("LrpcTargetUnits", "playerID", tostring(myPlayerID))
 		end
 		if isCommander[unitDefID] then
 			commanderLastDamaged[unitID] = Spring.GetGameFrame()
@@ -204,18 +204,18 @@ else
 				local health, maxhealth = Spring.GetUnitHealth(unitID)
 				local healthPercent = health / maxhealth
 				if healthPercent < 0.2 then
-					GG["notifications"].queueNotification("ComHeavyDamage", "playerID", tostring(myPlayerID))
+					GG.notifications.queueNotification("ComHeavyDamage", "playerID", tostring(myPlayerID))
 				else
-					GG["notifications"].queueNotification("CommanderUnderAttack", "playerID", tostring(myPlayerID))
+					GG.notifications.queueNotification("CommanderUnderAttack", "playerID", tostring(myPlayerID))
 				end
 			elseif isFactory[unitDefID] then
-				GG["notifications"].queueNotification("FactoryUnderAttack", "playerID", tostring(myPlayerID))
+				GG.notifications.queueNotification("FactoryUnderAttack", "playerID", tostring(myPlayerID))
 			elseif isBuilding[unitDefID] == true and not isMex[unitDefID] and isEconomy[unitDefID] then
-				GG["notifications"].queueNotification("EconomyUnderAttack", "playerID", tostring(myPlayerID))
+				GG.notifications.queueNotification("EconomyUnderAttack", "playerID", tostring(myPlayerID))
 			elseif isBuilding[unitDefID] == true and not isMex[unitDefID] and isDefenseTurret[unitDefID] then
-				GG["notifications"].queueNotification("DefenseUnderAttack", "playerID", tostring(myPlayerID))
+				GG.notifications.queueNotification("DefenseUnderAttack", "playerID", tostring(myPlayerID))
 			else
-				GG["notifications"].queueNotification("UnitsUnderAttack", "playerID", tostring(myPlayerID))
+				GG.notifications.queueNotification("UnitsUnderAttack", "playerID", tostring(myPlayerID))
 			end
 		end
 	end
@@ -229,15 +229,15 @@ else
 		if not isSpec and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam and not isObjectified[unitDefID] then -- and not unitInView
 			if isRadar[unitDefID] then
 				local event = isRadar[unitDefID] > 2800 and "AdvRadarLost" or "RadarLost"
-				GG["notifications"].queueNotification(event, "playerID", tostring(myPlayerID))
+				GG.notifications.queueNotification(event, "playerID", tostring(myPlayerID))
 				return
 			end
 			if isMex[unitDefID] then
-				GG["notifications"].queueNotification("MetalExtractorLost", "playerID", tostring(myPlayerID))
+				GG.notifications.queueNotification("MetalExtractorLost", "playerID", tostring(myPlayerID))
 				return
 			end
 			if not isCommander[unitDefID] then
-				GG["notifications"].queueNotification("UnitLost", "playerID", tostring(myPlayerID))
+				GG.notifications.queueNotification("UnitLost", "playerID", tostring(myPlayerID))
 				return
 			end
 		end
@@ -269,16 +269,16 @@ else
 							--if not unitInView then
 							if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
 							elseif not attackerTeam and select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID] + 150 < Spring.GetGameFrame()) then
-								GG["notifications"].queueNotification("FriendlyCommanderSelfD", "playerID", tostring(player))
+								GG.notifications.queueNotification("FriendlyCommanderSelfD", "playerID", tostring(player))
 							else
-								GG["notifications"].queueNotification("FriendlyCommanderDied", "playerID", tostring(player))
+								GG.notifications.queueNotification("FriendlyCommanderDied", "playerID", tostring(player))
 							end
 							--end
 							if enableLastcomNotif and allyComCount == 1 then
 								if myComCount == 1 then
-									GG["notifications"].queueNotification("YouHaveLastCommander", "playerID", tostring(player))
+									GG.notifications.queueNotification("YouHaveLastCommander", "playerID", tostring(player))
 								else
-									GG["notifications"].queueNotification("TeamDownLastCommander", "playerID", tostring(player))
+									GG.notifications.queueNotification("TeamDownLastCommander", "playerID", tostring(player))
 								end
 							end
 						end
@@ -288,7 +288,7 @@ else
 				local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs(players) do
 					if tostring(player) and not Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-						GG["notifications"].queueNotification("EnemyCommanderDied", "playerID", tostring(player))
+						GG.notifications.queueNotification("EnemyCommanderDied", "playerID", tostring(player))
 					end
 				end
 				--end
@@ -298,9 +298,9 @@ else
 					if tostring(player) then
 						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
 						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID] + 150 < Spring.GetGameFrame()) then
-							GG["notifications"].queueNotification("NeutralCommanderSelfD", "playerID", tostring(player), true)
+							GG.notifications.queueNotification("NeutralCommanderSelfD", "playerID", tostring(player), true)
 						else
-							GG["notifications"].queueNotification("NeutralCommanderDied", "playerID", tostring(player), true)
+							GG.notifications.queueNotification("NeutralCommanderDied", "playerID", tostring(player), true)
 						end
 					end
 				end
@@ -309,9 +309,9 @@ else
 					if tostring(player) then
 						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
 						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID] + 150 < Spring.GetGameFrame()) then
-							GG["notifications"].queueNotification("NeutralCommanderSelfD", "playerID", tostring(player), true)
+							GG.notifications.queueNotification("NeutralCommanderSelfD", "playerID", tostring(player), true)
 						else
-							GG["notifications"].queueNotification("NeutralCommanderDied", "playerID", tostring(player), true)
+							GG.notifications.queueNotification("NeutralCommanderDied", "playerID", tostring(player), true)
 						end
 					end
 				end

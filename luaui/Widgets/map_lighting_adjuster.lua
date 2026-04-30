@@ -8,7 +8,7 @@ local mapSunLighting = {
 		unitSpecularColor = { 0.95, 0.75, 0.7 },
 		modelShadowDensity = 0.55,
 	},
-	["valles_marineris_v2"] = {
+	valles_marineris_v2 = {
 		groundAmbientColor = { 0.4, 0.55, 0.55 },
 		groundDiffuseColor = { 0.92, 0.58, 0.45 },
 		unitAmbientColor = { 0.66, 0.5, 0.43 },
@@ -22,7 +22,7 @@ local mapSunLighting = {
 		modelShadowDensity = 0.66,
 		unitAmbientColor = { 0.83, 0.73, 0.63 },
 	},
-	["tempest"] = {
+	tempest = {
 		groundDiffuseColor = { 0.32, 0.28, 0.34 },
 		unitAmbientColor = { 0.8, 0.77, 0.77 },
 		unitDiffuseColor = { 0.66, 0.65, 0.63 },
@@ -36,13 +36,13 @@ local mapSunLighting = {
 		unitSpecularColor = { 0.5, 0.5, 0.5 },
 		modelShadowDensity = 0.77,
 	},
-	["seths_ravine_v4"] = {
+	seths_ravine_v4 = {
 		unitAmbientColor = { 0.36, 0.36, 0.36 },
 		unitDiffuseColor = { 0.88, 0.78, 0.68 },
 		unitSpecularColor = { 0.88, 0.78, 0.68 },
 		modelShadowDensity = 0.77,
 	},
-	["kolmogorov"] = {
+	kolmogorov = {
 		groundDiffuseColor = { 0.95, 0.75, 0.4 },
 		unitAmbientColor = { 0.6, 0.5, 0.45 },
 		unitDiffuseColor = { 1.2, 0.75, 0.35 },
@@ -67,11 +67,11 @@ local mapSunLighting = {
 		modelShadowDensity = 0.5,
 		groundShadowDensity = 0.8,
 	},
-	["mescaline_v2"] = {
+	mescaline_v2 = {
 		modelShadowDensity = 0.9,
 		groundShadowDensity = 0.88,
 	},
-	["downs_of_destruction_fix"] = {
+	downs_of_destruction_fix = {
 		unitDiffuseColor = { 1.4, 1.4, 1.3 },
 	},
 	["twin lakes park 1"] = {
@@ -128,13 +128,13 @@ local mapSun = {
 	["eye of horus v13"] = { 0.23, 0.62, 0.6 },
 	["tabula-v4"] = { 0.45, 0.65, 0.25 },
 	["titan v3.1"] = { 0.6, 0.82, -0.33 },
-	["tempest"] = { -0.35, 0.83, 0.47 },
+	tempest = { -0.35, 0.83, 0.47 },
 	["tempest dry"] = { -0.35, 0.83, 0.47 },
-	["seths_ravine_v4"] = { -0.6, 0.63, 0.43 },
-	["kolmogorov"] = { 0.4, 0.75, -0.43 },
+	seths_ravine_v4 = { -0.6, 0.63, 0.43 },
+	kolmogorov = { 0.4, 0.75, -0.43 },
 	["otago 1.4"] = { -0.55, 0.5, 0.55 },
 	["tropical-v2"] = { 0.6, 0.33, 0.27 },
-	["downs_of_destruction_fix"] = { 0.65, 0.43, -65 },
+	downs_of_destruction_fix = { 0.65, 0.43, -65 },
 	["flats and forests remake v1"] = { 0.55, 0.5, -0.5 },
 }
 
@@ -153,16 +153,16 @@ function widget:GetInfo()
 end
 
 local function NightFactorChanged(red, green, blue, shadow, altitude)
-	WG["NightFactor"].red = red
-	WG["NightFactor"].green = green
-	WG["NightFactor"].blue = blue
-	WG["NightFactor"].shadow = shadow
-	WG["NightFactor"].altitude = altitude
+	WG.NightFactor.red = red
+	WG.NightFactor.green = green
+	WG.NightFactor.blue = blue
+	WG.NightFactor.shadow = shadow
+	WG.NightFactor.altitude = altitude
 	--Spring.Echo("Widget NightFactorChanged")
 end
 function widget:Initialize()
 	widgetHandler:RegisterGlobal("NightFactorChanged", NightFactorChanged)
-	WG["NightFactor"] = { red = 1, green = 1, blue = 1, shadow = 1, altitude = 1 }
+	WG.NightFactor = { red = 1, green = 1, blue = 1, shadow = 1, altitude = 1 }
 
 	if not mapSunLighting[currentMapname] and not mapSun[currentMapname] then
 		return

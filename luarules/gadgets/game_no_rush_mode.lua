@@ -53,8 +53,8 @@ local CommandsToCatchFeature = { -- CMDTYPES: ICON_UNIT_FEATURE_OR_AREA
 }
 
 local LuaAIsToExclude = {
-	["ScavengersAI"] = true,
-	["RaptorsAI"] = true,
+	ScavengersAI = true,
+	RaptorsAI = true,
 }
 
 local TeamIDsToExclude = {} -- dynamically filled below

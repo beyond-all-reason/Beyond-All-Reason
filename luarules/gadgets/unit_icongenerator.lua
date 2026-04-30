@@ -224,11 +224,11 @@ else
 
 	local function LoadScheme()
 		local G = getfenv()
-		G["scheme"] = scheme
-		G["ratio"] = ratio
-		G["ratio_name"] = ratio_name
-		G["iconX"] = iconX
-		G["iconY"] = iconY
+		G.scheme = scheme
+		G.ratio = ratio
+		G.ratio_name = ratio_name
+		G.iconX = iconX
+		G.iconY = iconY
 
 		autoConfigs = {} --// reset
 

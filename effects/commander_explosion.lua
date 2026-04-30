@@ -1,5 +1,5 @@
 return {
-	["COMMANDER_EXPLOSION"] = {
+	COMMANDER_EXPLOSION = {
 		centerflare = {
 			air = true,
 			class = [[CHeatCloudProjectile]],

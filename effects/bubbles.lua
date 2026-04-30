@@ -1,5 +1,5 @@
 return {
-	["geobubbles"] = {
+	geobubbles = {
 		bubbles = {
 			air = false,
 			class = [[CSimpleParticleSystem]],
@@ -31,7 +31,7 @@ return {
 			},
 		},
 	},
-	["subbubbles"] = {
+	subbubbles = {
 		bubbles = {
 			air = false,
 			class = [[CSimpleParticleSystem]],
@@ -63,7 +63,7 @@ return {
 			},
 		},
 	},
-	["subwake"] = {
+	subwake = {
 		subwake = {
 			air = false,
 			class = [[CBitmapMuzzleFlame]],

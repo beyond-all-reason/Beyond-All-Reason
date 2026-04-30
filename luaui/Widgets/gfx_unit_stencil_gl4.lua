@@ -429,13 +429,13 @@ function widget:Initialize()
 	unitStencilShader = InitDrawPrimitiveAtUnit(shaderConfig, "unitStencils")
 	widget:ViewResize()
 
-	WG["unitstencilapi"] = {}
-	WG["unitstencilapi"].GetUnitStencilTexture = GetUnitStencilTexture
-	WG["unitstencilapi"].members = { ok = "yes", vsSrc = vsSrc, gsSrc = gsSrc, fsSrc = fsSrc, unitStencilVBO = unitStencilVBO, featureStencilVBO = featureStencilVBO }
-	widgetHandler:RegisterGlobal("GetUnitStencilTexture", WG["unitstencilapi"].GetUnitStencilTexture)
+	WG.unitstencilapi = {}
+	WG.unitstencilapi.GetUnitStencilTexture = GetUnitStencilTexture
+	WG.unitstencilapi.members = { ok = "yes", vsSrc = vsSrc, gsSrc = gsSrc, fsSrc = fsSrc, unitStencilVBO = unitStencilVBO, featureStencilVBO = featureStencilVBO }
+	widgetHandler:RegisterGlobal("GetUnitStencilTexture", WG.unitstencilapi.GetUnitStencilTexture)
 
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		local visibleUnits = WG["unittrackerapi"].visibleUnits
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		local visibleUnits = WG.unittrackerapi.visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID)
 		end
@@ -448,6 +448,6 @@ end
 function widget:Shutdown()
 	gl.DeleteTexture(unitFeatureStencilTex)
 	unitFeatureStencilTex = nil
-	WG["unitstencilapi"] = nil
+	WG.unitstencilapi = nil
 	widgetHandler:DeregisterGlobal("GetUnitStencilTexture")
 end

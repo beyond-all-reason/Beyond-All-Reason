@@ -13,11 +13,11 @@ function widget:GetInfo()
 end
 
 function widget:Initialize()
-	WG["dgunnoenemy"] = true
+	WG.dgunnoenemy = true
 end
 
 function widget:Shutdown()
-	WG["dgunnoenemy"] = nil
+	WG.dgunnoenemy = nil
 end
 
 local isAirUnit = {}

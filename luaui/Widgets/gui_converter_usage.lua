@@ -53,8 +53,8 @@ local converterUse
 local formatOptions = { showSign = true }
 
 local function updateUI()
-	if WG["topbar"] then
-		local freeArea = WG["topbar"].GetFreeArea()
+	if WG.topbar then
+		local freeArea = WG.topbar.GetFreeArea()
 		widgetScale = freeArea[5]
 		area[1] = freeArea[1]
 		area[2] = freeArea[2]
@@ -65,8 +65,8 @@ local function updateUI()
 		area[4] = freeArea[4]
 	end
 	if dlistGuishader ~= nil then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("converter_usage")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("converter_usage")
 		end
 		glDeleteList(dlistGuishader)
 	end
@@ -85,8 +85,8 @@ local function updateUI()
 	dlistCU = glCreateList(function()
 		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
 
-		if WG["guishader"] then
-			WG["guishader"].InsertDlist(dlistGuishader, "converter_usage")
+		if WG.guishader then
+			WG.guishader.InsertDlist(dlistGuishader, "converter_usage")
 		end
 
 		--Some coloring and tooltip text
@@ -117,8 +117,8 @@ local function updateUI()
 		font2:Print("\255\240\255\240" .. string.formatSI(mConverted, formatOptions), area[3] - (fontSize * 0.42), area[2] + 0.8 * ((area[4] - area[2]) / 4) - (fontSize / 5), fontSize, "or")
 		font2:End()
 
-		if WG["tooltip"] ~= nil then
-			WG["tooltip"].AddTooltip("converter_usage", area, tooltipText, nil, tooltipTitle)
+		if WG.tooltip ~= nil then
+			WG.tooltip.AddTooltip("converter_usage", area, tooltipText, nil, tooltipTitle)
 		end
 	end)
 end
@@ -147,15 +147,15 @@ end
 
 function widget:Shutdown()
 	if dlistGuishader ~= nil then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("converter_usage")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("converter_usage")
 		end
 		glDeleteList(dlistGuishader)
 	end
 	if dlistCU ~= nil then
 		glDeleteList(dlistCU)
 	end
-	WG["converter_usage"] = nil
+	WG.converter_usage = nil
 end
 
 function widget:ViewResize()
@@ -164,14 +164,14 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	font2 = WG["fonts"].getFont(2)
+	font2 = WG.fonts.getFont(2)
 end
 
 function widget:Initialize()
 	widget:ViewResize()
 
-	WG["converter_usage"] = {}
-	WG["converter_usage"].GetPosition = function()
+	WG.converter_usage = {}
+	WG.converter_usage.GetPosition = function()
 		return area
 	end
 end
@@ -221,8 +221,8 @@ function widget:Update(dt)
 
 	-- Dont draw if there are no converters
 	if dlistGuishader ~= nil then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("converter_usage")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("converter_usage")
 		end
 		dlistGuishader = glDeleteList(dlistGuishader)
 	end
