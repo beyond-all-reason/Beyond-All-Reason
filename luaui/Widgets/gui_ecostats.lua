@@ -164,7 +164,7 @@ local widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 local teamListLen = #spGetTeamList()
 local allyTeamListLen2 = #spGetAllyTeamList()
 local singleTeams = (teamListLen - 1 == allyTeamListLen2 - 1)
-local enableStartposbuttons = not Spring.Utilities.Gametype.IsFFA() -- spots wont match when ffa
+local enableStartposbuttons = not Utilities.Gametype.IsFFA() -- spots wont match when ffa
 local myFullview = select(2, spGetSpectatingState())
 local myTeamID = spGetMyTeamID()
 local myPlayerID = spGetMyPlayerID()
@@ -1013,8 +1013,8 @@ local function DrawBackground(posY, allyID, teamWidth)
 	if WG.tooltip ~= nil and (tooltipAreas[key] == nil or tooltipAreas[key] ~= areaKey or refreshCaptions) then
 		refreshCaptions = false
 		if not cachedTooltipText then
-			cachedTooltipText = Spring.I18N("ui.teamEconomy.tooltip")
-			cachedTooltipTitle = Spring.I18N("ui.teamEconomy.tooltipTitle")
+			cachedTooltipText = I18N("ui.teamEconomy.tooltip")
+			cachedTooltipTitle = I18N("ui.teamEconomy.tooltipTitle")
 		end
 		bgArea[1], bgArea[2], bgArea[3], bgArea[4] = areaX1, y1, widgetPosX + widgetWidth, y2
 		WG.tooltip.AddTooltip(key, bgArea, cachedTooltipText, nil, cachedTooltipTitle)

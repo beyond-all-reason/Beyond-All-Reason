@@ -580,7 +580,7 @@ end
 local function addBarForUnit(unitID, unitDefID, barname, reason)
 	--Spring.Debug.TraceFullEcho()
 	if debugmode then
-		Spring.Debug.TraceEcho(unitBars[unitID])
+		Debug.TraceEcho(unitBars[unitID])
 	end
 	--spEcho("Caller1:", tostring()".name), "caller2:", tostring(debug.getinfo(3).name))
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
@@ -606,7 +606,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 
 	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then -- dead or invalid
 		if debugmode then
-			Spring.Debug.TraceEcho("Tried to add a bar to dead/invalid/nounitdef unit", unitID, unitdefID, barname)
+			Debug.TraceEcho("Tried to add a bar to dead/invalid/nounitdef unit", unitID, unitdefID, barname)
 		end
 		return nil
 	end
@@ -614,7 +614,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	if unitBars[unitID] == nil then
 		if debugmode then
 			spEcho("A unit has no bars yet", UnitDefs[unitDefID].name, spGetUnitPosition(unitID))
-			Spring.Debug.TraceFullEcho()
+			Debug.TraceFullEcho()
 			Spring.SendCommands({ "pause 1" })
 			spEcho("No bars unit, last seen at", unitID)
 			Spring.MarkerAddPoint(spGetUnitPosition(unitID))
@@ -670,7 +670,7 @@ local function removeBarFromUnit(unitID, barname, reason) -- this will bite me i
 	local instanceKey = unitID .. "_" .. barname
 	if healthBarVBO.instanceIDtoIndex[instanceKey] then
 		if debugmode then
-			Spring.Debug.TraceEcho(reason)
+			Debug.TraceEcho(reason)
 		end
 		unitBars[unitID] = unitBars[unitID] - 1
 		popElementInstance(healthBarVBO, instanceKey)
@@ -776,7 +776,7 @@ end
 
 local function addBarToFeature(featureID, barname)
 	if debugmode then
-		Spring.Debug.TraceEcho()
+		Debug.TraceEcho()
 	end
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 
@@ -1213,7 +1213,7 @@ function widget:GameFrame(n)
 				-- we somehow need to forward 3 vars, all 3 of the above. packed into a float, this is nasty
 				--spEcho("Stockpiling", numStockpiled, numStockpileQued, stockpileBuild)
 				if numStockpiled == nil then
-					Spring.Debug.TraceFullEcho(nil, nil, nil, "nostockpile", unitID, spGetUnitPosition(unitID))
+					Debug.TraceFullEcho(nil, nil, nil, "nostockpile", unitID, spGetUnitPosition(unitID))
 				end
 
 				uniformcache[1] = numStockpiled + stockpileBuild -- less hacky

@@ -43,7 +43,7 @@ end
 
 local modOptions = Spring.GetModOptions()
 
-local holidays = Spring.Utilities.Gametype.GetCurrentHolidays()
+local holidays = Utilities.Gametype.GetCurrentHolidays()
 local isAprilFools = holidays.aprilfools
 local isHalloween = holidays.halloween
 local isXmas = holidays.xmas

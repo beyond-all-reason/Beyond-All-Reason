@@ -14,7 +14,7 @@ end
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 
-if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() then
+if not Utilities.IsDevMode() or not Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
@@ -1275,7 +1275,7 @@ end
 function widget:Initialize()
 	widgetHandler:DisableWidget("Test Runner Watchdog")
 
-	if not Spring.Utilities.IsDevMode() then
+	if not Utilities.IsDevMode() then
 		widgetHandler:RemoveWidget(self)
 	end
 

@@ -464,7 +464,7 @@ local function pushElementInstance(iT, thisInstance, instanceID, updateExisting,
 	-- returns: the index of the instanceID in the table on success, else nil
 	if #thisInstance ~= iT.instanceStep then
 		Spring.Echo("Trying to upload an oddly sized instance into", iT.myName, #thisInstance, "instead of ", iT.instanceStep)
-		Spring.Debug.TraceFullEcho(20, 20, 20, "pushElementInstance Failure:" .. iT.myName)
+		Debug.TraceFullEcho(20, 20, 20, "pushElementInstance Failure:" .. iT.myName)
 	end
 	local iTusedElements = iT.usedElements
 	local iTStep = iT.instanceStep
@@ -508,7 +508,7 @@ local function pushElementInstance(iT, thisInstance, instanceID, updateExisting,
 		if isvalidid == false then
 			Spring.Echo("Error: Attempted to push an invalid unit/featureID", unitID, "into", iT.myName)
 			noUpload = true
-			Spring.Debug.TraceFullEcho(20, 20, 20, "invalid unit/featureID in " .. iT.myName)
+			Debug.TraceFullEcho(20, 20, 20, "invalid unit/featureID in " .. iT.myName)
 		end
 		iT.indextoUnitID[thisInstanceIndex] = unitID
 	end
@@ -545,7 +545,7 @@ local function popElementInstance(iT, instanceID, noUpload)
 
 	if iT.instanceIDtoIndex[instanceID] == nil then -- if key is instanceID yet does not exist, then warn and bail
 		Spring.Echo("Tried to remove element ", instanceID, "From instanceTable", iT.myName, "but it does not exist in it")
-		Spring.Debug.TraceFullEcho(10, 10, 3, iT.myName)
+		Debug.TraceFullEcho(10, 10, 3, iT.myName)
 		return nil
 	end
 	if iT.usedElements == 0 then -- Dont remove the last element
@@ -629,7 +629,7 @@ local function popElementInstance(iT, instanceID, noUpload)
 								s = s .. " " .. tostring(zombie) .. "/" .. tostring(gf)
 								Spring.Echo("ZOMBIE instanceID", zombie, "gf", gf)
 								--Spring.SendCommands({"pause 1"})
-								Spring.Debug.TraceFullEcho(nil, nil, nil, iT.myName)
+								Debug.TraceFullEcho(nil, nil, nil, iT.myName)
 							end
 							Spring.Echo(s)
 							iT.zombies = {}

@@ -1,5 +1,5 @@
-local devUI = Spring.Utilities.ShowDevUI()
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local devUI = Utilities.ShowDevUI()
+local isSinglePlayer = Utilities.Gametype.IsSinglePlayer()
 local isSpectator = Spring.GetSpectatingState()
 
 pipNumber = pipNumber or 1
@@ -1905,7 +1905,7 @@ do
 	}
 	mapInfo.minGroundHeight, mapInfo.maxGroundHeight = Spring.GetGroundExtremes()
 	local waterIsLava = Spring.GetModOptions().map_waterislava
-	mapInfo.isLava = Spring.Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
+	mapInfo.isLava = Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
 end
 mapInfo.hasWater = mapInfo.minGroundHeight < 0 or mapInfo.isLava
 mapInfo.dynamicWaterLevel = nil -- current water/lava level (nil = static sea level = 0)
@@ -1921,15 +1921,15 @@ mapInfo.lavaSwirlAmp = 0.003
 mapInfo.mapRatio = Game.mapSizeZ / Game.mapSizeX -- Y/X aspect ratio for square-texel tiling
 mapInfo.lavaColorCorrection = { 1.0, 1.0, 1.0 } -- default: no color correction
 if mapInfo.isLava then
-	mapInfo.lavaCoastWidth = Spring.Lava.coastWidth or 25.0
-	mapInfo.lavaUvScale = Spring.Lava.uvScale or 2.0
-	mapInfo.lavaSwirlFreq = Spring.Lava.swirlFreq or 0.025
-	mapInfo.lavaSwirlAmp = Spring.Lava.swirlAmp or 0.003
-	mapInfo.lavaDiffuseEmitTex = Spring.Lava.diffuseEmitTex -- e.g. "LuaUI/images/lava/lava2_diffuseemit.dds"
+	mapInfo.lavaCoastWidth = Lava.coastWidth or 25.0
+	mapInfo.lavaUvScale = Lava.uvScale or 2.0
+	mapInfo.lavaSwirlFreq = Lava.swirlFreq or 0.025
+	mapInfo.lavaSwirlAmp = Lava.swirlAmp or 0.003
+	mapInfo.lavaDiffuseEmitTex = Lava.diffuseEmitTex -- e.g. "LuaUI/images/lava/lava2_diffuseemit.dds"
 	mapInfo.lavaDistortionTex = "LuaUI/images/lavadistortion.png" -- big flowing distortion texture
-	mapInfo.lavaTideAmplitude = Spring.Lava.tideAmplitude or 2
-	mapInfo.lavaTidePeriod = Spring.Lava.tidePeriod or 200
-	local cc = Spring.Lava.coastColor
+	mapInfo.lavaTideAmplitude = Lava.tideAmplitude or 2
+	mapInfo.lavaTidePeriod = Lava.tidePeriod or 200
+	local cc = Lava.coastColor
 	if cc and type(cc) == "string" then
 		local cr, cg, cb = cc:match("vec3%s*%((.-),%s*(.-),%s*(.-)%)")
 		if cr then
@@ -1939,7 +1939,7 @@ if mapInfo.isLava then
 	-- Parse colorCorrection: a final color multiplier applied to ALL lava output.
 	-- Acid/green lava maps use e.g. vec3(0.15, 1.0, 0.45) while red lava uses (1,1,1).
 	mapInfo.lavaColorCorrection = { 1.0, 1.0, 1.0 }
-	local ccStr = Spring.Lava.colorCorrection
+	local ccStr = Lava.colorCorrection
 	if ccStr and type(ccStr) == "string" then
 		local cr2, cg2, cb2 = ccStr:match("vec3%s*%((.-),%s*(.-),%s*(.-)%)")
 		if cr2 then
@@ -12007,12 +12007,12 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 						local displayName
 						if cache.isDecoyCommander[dID] then
 							if cache.isScavCommander[dID] then
-								displayName = Spring.I18N("units.scavDecoyCommanderNameTag")
+								displayName = I18N("units.scavDecoyCommanderNameTag")
 							else
-								displayName = Spring.I18N("units.decoyCommanderNameTag")
+								displayName = I18N("units.decoyCommanderNameTag")
 							end
 						elseif cache.isScavCommander[dID] then
-							displayName = Spring.I18N("units.scavCommanderNameTag")
+							displayName = I18N("units.scavCommanderNameTag")
 						elseif entry then
 							displayName = entry.name
 						end
@@ -15885,10 +15885,10 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 						end
 					end
 					-- Generate tooltip with shortcut key on new line if available
-					local tooltipText = Spring.I18N(tooltipKey)
+					local tooltipText = I18N(tooltipKey)
 					-- For help button: append left-click hint only when leftButtonPansCamera is enabled
 					if visibleButtons[i].command == "pip_help" and config.leftButtonPansCamera then
-						tooltipText = tooltipText .. Spring.I18N("ui.pip.help_leftclick")
+						tooltipText = tooltipText .. I18N("ui.pip.help_leftclick")
 					end
 					-- Use button's shortcut from getActionHotkey
 					-- In minimap mode, don't show shorcut for track units button
@@ -15986,7 +15986,7 @@ function widget:DrawScreen()
 		-- Hover highlight
 		if mx >= btnL and mx <= btnR and my >= btnB and my <= btnT then
 			if WG.tooltip then
-				WG.tooltip.ShowTooltip("pip" .. pipNumber, Spring.I18N("ui.pip.minimap_maximize"), nil, nil, nil)
+				WG.tooltip.ShowTooltip("pip" .. pipNumber, I18N("ui.pip.minimap_maximize"), nil, nil, nil)
 			end
 			glFunc.Color(1, 1, 1, 0.12)
 			glFunc.Texture(false)
@@ -16064,7 +16064,7 @@ function widget:DrawScreen()
 		glFunc.Texture(false)
 		if mx >= uiState.minModeL - render.elementPadding and mx <= uiState.minModeL + buttonSize + render.elementPadding and my >= uiState.minModeB - render.elementPadding and my <= uiState.minModeB + buttonSize + render.elementPadding then
 			if WG.tooltip then
-				WG.tooltip.ShowTooltip("pip" .. pipNumber, Spring.I18N("ui.pip.tooltip"), nil, nil, nil)
+				WG.tooltip.ShowTooltip("pip" .. pipNumber, I18N("ui.pip.tooltip"), nil, nil, nil)
 			end
 			glFunc.Color(1, 1, 1, 0.12)
 			glFunc.Texture(false)
@@ -16553,7 +16553,7 @@ function widget:DrawScreen()
 				if render.dim.r - mx + my - render.dim.b <= render.usedButtonSize then
 					hover = true
 					if WG.tooltip then
-						WG.tooltip.ShowTooltip("pip" .. pipNumber, Spring.I18N("ui.pip.resize"), nil, nil, nil)
+						WG.tooltip.ShowTooltip("pip" .. pipNumber, I18N("ui.pip.resize"), nil, nil, nil)
 					end
 				end
 			end
@@ -16592,7 +16592,7 @@ function widget:DrawScreen()
 			if mx >= render.dim.r - render.usedButtonSize - render.elementPadding and mx <= render.dim.r - render.elementPadding and my >= render.dim.t - render.usedButtonSize - render.elementPadding and my <= render.dim.t - render.elementPadding then
 				hover = true
 				if WG.tooltip then
-					WG.tooltip.ShowTooltip("pip" .. pipNumber, Spring.I18N(isMinimapMode and "ui.pip.minimap_minimize" or "ui.pip.minimize"), nil, nil, nil)
+					WG.tooltip.ShowTooltip("pip" .. pipNumber, I18N(isMinimapMode and "ui.pip.minimap_minimize" or "ui.pip.minimize"), nil, nil, nil)
 				end
 				glFunc.Color(1, 1, 1, 0.12)
 				glFunc.Texture(false)

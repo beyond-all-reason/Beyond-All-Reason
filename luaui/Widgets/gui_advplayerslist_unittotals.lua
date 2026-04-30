@@ -69,7 +69,7 @@ local function drawContent()
 	local textXPadding = 10 * widgetScale
 
 	local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
-	local text = Spring.I18N("ui.unitTotals.totals", { titleColor = "\255\210\210\210", textColor = "\255\245\245\245", units = currentUnits, maxUnits = maxUnits, totalUnits = totalUnits })
+	local text = I18N("ui.unitTotals.totals", { titleColor = "\255\210\210\210", textColor = "\255\245\245\245", units = currentUnits, maxUnits = maxUnits, totalUnits = totalUnits })
 
 	if displayFeatureCount then
 		local features = Spring.GetAllFeatures()

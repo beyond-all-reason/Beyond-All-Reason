@@ -34,7 +34,7 @@ local GetUnitTeam = Spring.GetUnitTeam
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetTeamAllyTeamID = Spring.GetTeamAllyTeamID
 local ShareResources = Spring.ShareResources
-local I18N = Spring.I18N
+local I18N = I18N
 local GetSpectatingState = Spring.GetSpectatingState
 local WorldToScreenCoords = Spring.WorldToScreenCoords
 local PlaySoundFile = Spring.PlaySoundFile
@@ -202,7 +202,7 @@ local function colourNames(teamId)
 		return ""
 	end
 	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamId)
-	return Spring.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
+	return Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
 end
 
 local function drawName(teamId)

@@ -12,9 +12,9 @@ function gadget:GetInfo()
 	}
 end
 
-if (not gadgetHandler:IsSyncedCode()) or (not Spring.Utilities.Gametype.IsScavengers()) or Spring.GetModOptions().unit_restrictions_noair then
+if (not gadgetHandler:IsSyncedCode()) or (not Utilities.Gametype.IsScavengers()) or Spring.GetModOptions().unit_restrictions_noair then
 	return false
-elseif Spring.Utilities.Gametype.IsRaptors() then
+elseif Utilities.Gametype.IsRaptors() then
 	return false
 end
 
@@ -51,8 +51,8 @@ if UnitDefNames.scavbeacon_t1_scav then
 	spawnerList[UnitDefNames.scavbeacon_t4_scav.id] = true
 end
 
-local scavTeamID = Spring.Utilities.GetScavTeamID()
-local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
+local scavTeamID = Utilities.GetScavTeamID()
+local scavAllyTeamID = Utilities.GetScavAllyTeamID()
 local aliveLootboxes = {}
 local aliveLootboxesCount = 0
 local aliveSpawners = {}

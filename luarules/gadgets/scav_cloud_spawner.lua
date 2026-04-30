@@ -12,13 +12,13 @@ function gadget:GetInfo()
 	}
 end
 
-if not Spring.Utilities.Gametype.IsScavengers() then
+if not Utilities.Gametype.IsScavengers() then
 	return
 end
 
 if gadgetHandler:IsSyncedCode() then -- Synced
 	local teams = Spring.GetTeamList()
-	local scavTeamID = Spring.Utilities.GetScavTeamID()
+	local scavTeamID = Utilities.GetScavTeamID()
 	local mapx = Game.mapSizeX
 	local mapz = Game.mapSizeZ
 	local cloudMult = math.ceil((math.ceil(((mapx + mapz) * 0.5) / 512) ^ 2) / 18)

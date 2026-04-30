@@ -18,10 +18,10 @@ end
 
 local difficulty = "normal"
 
-if Spring.Utilities.Gametype.IsRaptors() then
+if Utilities.Gametype.IsRaptors() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
 	difficulty = Spring.GetModOptions().raptor_difficulty
-elseif Spring.Utilities.Gametype.IsScavengers() then
+elseif Utilities.Gametype.IsScavengers() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
 	difficulty = Spring.GetModOptions().scav_difficulty
 else
@@ -29,7 +29,7 @@ else
 	return false
 end
 
-local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetRaptorTeamID()
+local pveTeamID = Utilities.GetScavTeamID() or Utilities.GetRaptorTeamID()
 
 local nukeDefs = {}
 for unitDefID, def in ipairs(UnitDefs) do

@@ -42,7 +42,7 @@ local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myP
 
 local isreplay = Spring.IsReplay()
 
-local ColorString = Spring.Utilities.Color.ToString
+local ColorString = Utilities.Color.ToString
 local math_isInRect = math.isInRect
 local sfind = string.find
 local ssub = string.sub
@@ -248,7 +248,7 @@ local function StartVote(name) -- when called without params its just to refresh
 			fontSize = fontSize * 0.85
 			font2:SetOutlineColor(0, 0, 0, 0.4)
 			font2:SetTextColor(1, 1, 1, 1)
-			font2:Print((weAreVoteOwner and Spring.I18N("ui.voting.endVote") or Spring.I18N("ui.voting.no")), noButtonArea[1] + ((noButtonArea[3] - noButtonArea[1]) / 2), noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+			font2:Print((weAreVoteOwner and I18N("ui.voting.endVote") or I18N("ui.voting.no")), noButtonArea[1] + ((noButtonArea[3] - noButtonArea[1]) / 2), noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 
 			-- YES
 			if not weAreVoteOwner then
@@ -263,7 +263,7 @@ local function StartVote(name) -- when called without params its just to refresh
 					mult = 1
 				end
 				UiButton(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, color1, color2, elementCorner * 0.4)
-				font2:Print(Spring.I18N("ui.voting.yes"), yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				font2:Print(I18N("ui.voting.yes"), yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 			end
 			font2:End()
 		end
@@ -463,9 +463,9 @@ function widget:AddConsoleLine(lines, priority)
 					if sfind(line, "* Vote for command", nil, true) then
 						voteEndTime = os.clock() + voteEndDelay
 						if sfind(line, " passed", nil, true) then
-							voteEndText = Spring.I18N("ui.voting.votepassed")
+							voteEndText = I18N("ui.voting.votepassed")
 						elseif sfind(line, " failed", nil, true) then
-							voteEndText = Spring.I18N("ui.voting.votefailed")
+							voteEndText = I18N("ui.voting.votefailed")
 						end
 						MinimizeVote()
 					end
@@ -474,7 +474,7 @@ function widget:AddConsoleLine(lines, priority)
 					-- > [teh]cluster2[00] * Cancelling "gKick Raiser" vote (command executed directly by Flaka)
 					if sfind(line, "* Vote cancelled", nil, true) or sfind(line, "* Game starting, cancelling ", nil, true) or sfind(line, " vote (command executed directly by ", nil, true) then
 						voteEndTime = os.clock() + voteEndDelay
-						voteEndText = Spring.I18N("ui.voting.votecancelled")
+						voteEndText = I18N("ui.voting.votecancelled")
 						MinimizeVote()
 					end
 					-- > [teh]cluster2[00] * [Z]kynet, you cannot vote currently, there is no vote in progress.

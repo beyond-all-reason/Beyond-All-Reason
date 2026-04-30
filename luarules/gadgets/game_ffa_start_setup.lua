@@ -7,7 +7,7 @@ The gadget will only be enabled in FFA / TeamFFA games, and only in a synced
 context, and runs in one-shot before disabling itself.
 ]]
 
-if not Spring.Utilities.Gametype.IsFFA() or not gadgetHandler:IsSyncedCode() then
+if not Utilities.Gametype.IsFFA() or not gadgetHandler:IsSyncedCode() then
 	return
 end
 
@@ -151,7 +151,7 @@ end
 
 function gadget:Initialize()
 	-- list of ally teams (humans and AIs, but not Raptors and Scavengers)
-	local allyTeamList = Spring.Utilities.GetAllyTeamList()
+	local allyTeamList = Utilities.GetAllyTeamList()
 
 	setFFAStartPoints(allyTeamList)
 	if Spring.GetModOptions().teamffa_start_boxes_shuffle then

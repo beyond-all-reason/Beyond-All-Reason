@@ -24,7 +24,7 @@ end
 
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetMyTeamID = Spring.GetLocalTeamID
-local spI18N = Spring.I18N
+local spI18N = I18N
 
 local POPUP_DELAY_FRAMES = Game.gameSpeed * 10
 local UPDATE_INTERVAL = 1.0
