@@ -227,14 +227,14 @@ local function getResistancesMessage()
 			if UnitDefNames[attackerNameNonScav].customParams.i18nfromunit then
 				attackerNameNonScav = UnitDefNames[attackerNameNonScav].customParams.i18nfromunit
 			end
-			messages[i + 1] = textColor .. "Scav " .. Spring.I18N("units.names." .. attackerNameNonScav)
-			currentlyResistantToNames[#currentlyResistantToNames + 1] = "Scav " .. Spring.I18N("units.names." .. attackerNameNonScav)
+			messages[i + 1] = textColor .. "Scav " .. Spring.I18N.unitName(attackerNameNonScav)
+			currentlyResistantToNames[#currentlyResistantToNames + 1] = "Scav " .. Spring.I18N.unitName(attackerNameNonScav)
 		else
 			if UnitDefNames[attackerName].customParams.i18nfromunit then
 				attackerName = UnitDefNames[attackerName].customParams.i18nfromunit
 			end
-			messages[i + 1] = textColor .. Spring.I18N("units.names." .. attackerName)
-			currentlyResistantToNames[#currentlyResistantToNames + 1] = Spring.I18N("units.names." .. attackerName)
+			messages[i + 1] = textColor .. Spring.I18N.unitName(attackerName)
+			currentlyResistantToNames[#currentlyResistantToNames + 1] = Spring.I18N.unitName(attackerName)
 		end
 	end
 	resistancesTable = {}
