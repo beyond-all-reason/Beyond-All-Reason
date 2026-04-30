@@ -2131,7 +2131,7 @@ function M.sync(doc, ctx, setSummary)
 		-- ===== Environment mode: highlight button, clear other highlights =====
 		local envBtnU = doc and doc:GetElementById("btn-environment")
 		if envBtnU then envBtnU:SetClass("active", true) end
-		if widgetState.dmHandle then widgetState.dmHandle.tfMode = "" end
+		if widgetState.dmHandle then widgetState.dmHandle.activeMode = "" end
 
 		setSummary("ENVIRONMENT", "#9ca3af")
 
