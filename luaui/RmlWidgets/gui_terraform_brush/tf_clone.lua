@@ -236,7 +236,7 @@ function M.sync(doc, ctx, clState, setSummary)
 
 				-- Sync quality buttons
 				if clState then
-					local tq = clState.terrainQuality or "balanced"
+					local tq = clState.terrainQuality or "full"
 					local qFull = doc:GetElementById("btn-cl-quality-full")
 					local qBal  = doc:GetElementById("btn-cl-quality-balanced")
 					local qFast = doc:GetElementById("btn-cl-quality-fast")
@@ -265,7 +265,7 @@ function M.sync(doc, ctx, clState, setSummary)
 			setSummary("CLONE", "#22d3ee",
 				"", stateLabels[cs] or cs:upper(),
 				"Rot ", tostring(math.floor(clState and clState.pasteRotation or 0)) .. "\194\176",
-				"Quality ", (clState and clState.terrainQuality or "balanced"):upper())
+				"Quality ", (clState and clState.terrainQuality or "full"):upper())
 		end
 
 		-- P3.2 Clone grayouts (per Phase 3 relevance matrix)

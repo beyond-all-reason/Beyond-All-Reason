@@ -725,87 +725,7 @@ body {
 	box-shadow: 0dp 0dp 5dp 0dp #22d3ee25;
 }
 
-/* Clone tool â€” hero action buttons */
-.tf-cl-action {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 8dp 4dp 6dp;
-	border-radius: 6dp;
-	border: 1dp #3e3e4a80;
-	cursor: pointer;
-	background-color: #2a2a34;
-	transition: background-color 0.12s, border-color 0.12s;
-}
-.tf-cl-action-label {
-	font-size: 1.05rem;
-	font-weight: bold;
-	color: #d1d5db;
-}
-.tf-cl-action-icon {
-	width: 24dp;
-	height: 24dp;
-	margin-bottom: 4dp;
-}
-.tf-cl-action-key {
-	font-size: 0.7rem;
-	color: #6b7280;
-	margin-top: 1dp;
-}
-/* Copy â€” cyan accent (primary action) */
-.tf-cl-action-copy {
-	background-color: #0d2d3c;
-	border-color: #22d3ee60;
-}
-.tf-cl-action-copy:hover {
-	background-color: #10384c;
-	border-color: #22d3ee;
-}
-.tf-cl-action-copy .tf-cl-action-label {
-	color: #67e8f9;
-}
-/* Paste â€” green accent */
-.tf-cl-action-paste {
-	background-color: #0d2d1e;
-	border-color: #34d39960;
-}
-.tf-cl-action-paste:hover {
-	background-color: #10382a;
-	border-color: #34d399;
-}
-.tf-cl-action-paste .tf-cl-action-label {
-	color: #6ee7b7;
-}
-/* Clear â€” muted destructive */
-.tf-cl-action-clear {
-	flex: 0 0 auto;
-	padding: 8dp 12dp 6dp;
-	background-color: #2a2a34;
-	border-color: #3e3e4a50;
-}
-.tf-cl-action-clear:hover {
-	background-color: #3a2228;
-	border-color: #f87171aa;
-}
-.tf-cl-action-clear:hover .tf-cl-action-label {
-	color: #fca5a5;
-}
-
-/* Clone tool â€” status bar */
-.tf-cl-status-bar {
-	background-color: #12121a;
-	border-radius: 4dp;
-	padding: 5dp 8dp;
-	border: 1dp #ffffff0a;
-}
-.tf-cl-status-text {
-	font-size: 0.85rem;
-	color: #94a3b8;
-}
-
-/* Clone tool â€” layer chip grid */
+/* Clone tool â€” layer chip grid (legacy, retained for compatibility) */
 .tf-cl-layer-grid {
 	display: flex;
 	flex-direction: row;
@@ -859,6 +779,10 @@ body {
 	font-size: 0.72rem;
 	color: #6b728080;
 	margin-bottom: 1dp;
+}
+.tf-cl-status {
+	font-size: 0.9rem;
+	color: #d1d5db;
 }
 
 /* === Shape Buttons === */

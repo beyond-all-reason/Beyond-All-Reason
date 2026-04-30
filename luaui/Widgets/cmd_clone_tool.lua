@@ -126,7 +126,7 @@ local pasteMirrorX = false
 local pasteMirrorZ = false
 
 -- Terrain quality: "full" (float, step=8), "balanced" (int, step=8), "fast" (int, step=24, gadget fill)
-local terrainQuality = "balanced"
+local terrainQuality = "full"
 
 -- Undo/redo history counts (synced from gadget via CloneToolStackUpdate)
 local historyUndoCount = 0
