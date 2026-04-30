@@ -19,7 +19,7 @@ end
 -- Speedups
 --------------------------------------------------------------------------------
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetViewGeometry = Spring.GetViewGeometry
 

@@ -154,7 +154,7 @@ local lastGameFrame = Spring.GetGameFrame()
 local updateSec = 0
 
 local spec, fullview = spGetSpectatingState()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 
 local enabled = true
 local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
@@ -760,7 +760,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	local currentspec, currentfullview = spGetSpectatingState()
-	local currentAllyTeamID = Spring.GetMyAllyTeamID()
+	local currentAllyTeamID = Spring.GetLocalAllyTeamID()
 	local reinit = false
 	if
 		(currentspec ~= spec)

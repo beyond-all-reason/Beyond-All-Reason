@@ -292,7 +292,7 @@ function widget:PlayerChanged()
 end
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local myteamid = Spring.GetMyTeamID()
+local myteamid = Spring.GetLocalTeamID()
 local effectOn = false
 local effectStart = 0
 

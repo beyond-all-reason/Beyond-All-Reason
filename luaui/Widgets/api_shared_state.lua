@@ -14,9 +14,9 @@ function widget:GetInfo()
 end
 
 -- Local references to Spring API calls
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyTeamID = Spring.GetLocalTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetGameFrame = Spring.GetGameFrame
 local spIsGUIHidden = Spring.IsGUIHidden

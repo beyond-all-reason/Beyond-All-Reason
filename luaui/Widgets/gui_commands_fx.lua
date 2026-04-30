@@ -16,7 +16,7 @@ end
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 
 -- future:          hotkey to show all current cmds? (like current shift+space)

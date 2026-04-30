@@ -33,7 +33,7 @@ end
 local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or (modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
 local spGetGameRulesParam = Spring.GetGameRulesParam
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spI18N = Spring.I18N
 
 local wgBuildMenu, wgGridMenu, wgTopbar, wgPregameBuild, wgPregameUI, wgPregameUIDraft, wgGetBuildQueueFunc, wgGetBuildPositionsFunc, wgGetPregameUnitSelectedFunc

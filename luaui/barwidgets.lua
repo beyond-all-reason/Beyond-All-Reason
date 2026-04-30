@@ -424,7 +424,7 @@ function widgetHandler:AddSpadsMessage(contents)
 	-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds>
 	-- will get parsed by barmanager, and forwarded to autohostmonitor as:
 	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35>
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID, false)
 	local gameSeconds = math.max(0, math.round(Spring.GetGameFrame() / 30))
 	if type(contents) == "table" then

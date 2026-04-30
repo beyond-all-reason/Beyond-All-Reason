@@ -1269,7 +1269,7 @@ function widget:Initialize()
 		widgetHandler:DisableWidgetRaw("Build menu")
 	end
 
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
@@ -2590,7 +2590,7 @@ end
 
 function widget:PlayerChanged()
 	isSpec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 end
 
 function widget:GetConfigData()

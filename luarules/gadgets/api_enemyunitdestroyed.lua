@@ -14,11 +14,11 @@ end
 
 if not gadgetHandler:IsSyncedCode() then
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local myAllyTeamID = Spring.GetLocalAllyTeamID()
 	local spec, fullView = Spring.GetSpectatingState()
 
 	function gadget:Initialize()
-		myAllyTeamID = Spring.GetMyAllyTeamID()
+		myAllyTeamID = Spring.GetLocalAllyTeamID()
 		spec, fullView = Spring.GetSpectatingState()
 	end
 
