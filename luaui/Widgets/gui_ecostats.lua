@@ -32,37 +32,37 @@ local select = select
 local osClock = os.clock
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetLocalTeamID
-local spEcho = Spring.Echo
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
-local spGetGameSeconds = Spring.GetGameSeconds
-local spGetGameSpeed = Spring.GetGameSpeed
-local spGetTeamUnitCount = Spring.GetTeamUnitCount
-local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
-local spGetTeamList = Spring.GetTeamList
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamColor = Spring.GetTeamColor
-local spGetTeamResources = Spring.GetTeamResources
-local spGetUnitResources = Spring.GetUnitResources
-local spGetMyPlayerID = Spring.GetLocalPlayerID
-local spGetGaiaTeamID = Spring.GetGaiaTeamID
-local spGetAllyTeamList = Spring.GetAllyTeamList
-local spIsReplay = Spring.IsReplay
-local spGetLocalAllyTeamID = Spring.GetLocalAllyTeamID
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetTeamStartPosition = Spring.GetTeamStartPosition
-local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetAllUnits = Spring.GetAllUnits
-local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetMouseState = Spring.GetMouseState
-local spSetMouseCursor = Spring.SetMouseCursor
-local spGetConfigFloat = Spring.GetConfigFloat
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spEcho = SpringShared.Echo
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetTeamUnitsByDefs = SpringShared.GetTeamUnitsByDefs
+local spGetGameSeconds = SpringShared.GetGameSeconds
+local spGetGameSpeed = SpringUnsynced.GetGameSpeed
+local spGetTeamUnitCount = SpringShared.GetTeamUnitCount
+local spGetMyAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetTeamList = SpringShared.GetTeamList
+local spGetTeamInfo = SpringShared.GetTeamInfo
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spGetTeamColor = SpringUnsynced.GetTeamColor
+local spGetTeamResources = SpringShared.GetTeamResources
+local spGetUnitResources = SpringShared.GetUnitResources
+local spGetMyPlayerID = SpringUnsynced.GetLocalPlayerID
+local spGetGaiaTeamID = SpringShared.GetGaiaTeamID
+local spGetAllyTeamList = SpringShared.GetAllyTeamList
+local spIsReplay = SpringUnsynced.IsReplay
+local spGetLocalAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetTeamStartPosition = SpringShared.GetTeamStartPosition
+local spGetTeamUnitDefCount = SpringShared.GetTeamUnitDefCount
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetTeamUnitsByDefs = SpringShared.GetTeamUnitsByDefs
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spSetMouseCursor = SpringUnsynced.SetMouseCursor
+local spGetConfigFloat = SpringUnsynced.GetConfigFloat
 
 -- Localized GL API
 local glColor = gl.Color
@@ -690,7 +690,7 @@ local function removeGuiShaderRects()
 				if tooltipAreas[key] ~= nil then
 					WG.tooltip.RemoveTooltip(key)
 					tooltipAreas[key] = nil
-					local teams = Spring.GetTeamList(aID)
+					local teams = SpringShared.GetTeamList(aID)
 					for _, tID in ipairs(teams) do
 						WG.tooltip.RemoveTooltip(eco.ecoTeamKey[tID] or ("ecostats_team_" .. tID))
 					end
@@ -1354,36 +1354,36 @@ function widget:MousePress(x, y, button)
 
 					if com then
 						local cx, cy, cz
-						local camState = Spring.GetCameraState()
-						cx, cy, cz = Spring.GetUnitPosition(com)
+						local camState = SpringUnsynced.GetCameraState()
+						cx, cy, cz = SpringShared.GetUnitPosition(com)
 						if camState and cx then
 							camState.px = cx
 							camState.py = cy
 							camState.pz = cz
 							camState.height = 800
 
-							Spring.SetCameraState(camState, 0.75)
+							SpringUnsynced.SetCameraState(camState, 0.75)
 							if inSpecMode then
-								Spring.SelectUnitArray({ com })
+								SpringUnsynced.SelectUnitArray({ com })
 							end
 						elseif cx then
-							Spring.SetCameraTarget(cx, cy, cz, 0.5)
+							SpringUnsynced.SetCameraTarget(cx, cy, cz, 0.5)
 						end
 					end
 				elseif not ctrlDown then
 					local sx = teamData[teamID].startx
 					local sz = teamData[teamID].starty
 					if sx ~= nil and sz ~= nil then
-						local sy = Spring.GetGroundHeight(sx, sz)
-						local camState = Spring.GetCameraState()
+						local sy = SpringShared.GetGroundHeight(sx, sz)
+						local camState = SpringUnsynced.GetCameraState()
 						if camState and sx and sz and sx > 0 and sz > 0 then
 							camState.px = sx
 							camState.py = sy
 							camState.pz = sz
 							camState.height = 5000
-							Spring.SetCameraState(camState, 2)
+							SpringUnsynced.SetCameraState(camState, 2)
 						elseif sx then
-							Spring.SetCameraTarget(sx, sy, sz, 0.5)
+							SpringUnsynced.SetCameraTarget(sx, sy, sz, 0.5)
 						end
 					end
 				end

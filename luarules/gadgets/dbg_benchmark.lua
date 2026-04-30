@@ -20,10 +20,10 @@ if gadgetHandler:IsSyncedCode() then
 end
 
 function isAuthorized(playerID, subPermission)
-	if Spring.IsCheatingEnabled() then
+	if SpringShared.IsCheatingEnabled() then
 		return true
 	end
-	local playername = Spring.GetPlayerInfo(playerID)
+	local playername = SpringShared.GetPlayerInfo(playerID)
 	local accountID = Utilities.GetAccountID(playerID)
 	local hasPermission = false
 	-- check catch-all devhelpers permission (by accountID and by name for late joiners)
@@ -47,9 +47,9 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	function checkStartPlayers()
-		for _, playerID in ipairs(Spring.GetPlayerList()) do
+		for _, playerID in ipairs(SpringShared.GetPlayerList()) do
 			-- update player infos
-			local playername, _, spec = Spring.GetPlayerInfo(playerID, false)
+			local playername, _, spec = SpringShared.GetPlayerInfo(playerID, false)
 			if not spec then
 				startPlayers[playername] = true
 			end
@@ -64,7 +64,7 @@ if gadgetHandler:IsSyncedCode() then
 	local feedstep = 20
 	local mapcx = Game.mapSizeX / 2
 	local mapcz = Game.mapSizeZ / 2
-	local mapcy = Spring.GetGroundHeight(mapcx, mapcz)
+	local mapcy = SpringShared.GetGroundHeight(mapcx, mapcz)
 	local benchmarkenabled = false
 	local placementradius = 2000
 	local keepfeatures = 150
@@ -100,7 +100,7 @@ if gadgetHandler:IsSyncedCode() then
 		--return: nil | number count
 		local unitDefID = UnitDefNames[unitDefName].id
 
-		local unitcount = Spring.GetTeamUnitDefCount(teamID, unitDefID)
+		local unitcount = SpringShared.GetTeamUnitDefCount(teamID, unitDefID)
 
 		if unitcount < maxunits then
 			local cx = mapcx + placementradius * (getrandom() - 0.5)
@@ -115,8 +115,8 @@ if gadgetHandler:IsSyncedCode() then
 					if numspawned < feedstep then
 						local px = cx + 12 * footprint * x
 						local pz = cz + 12 * footprint * z
-						local py = Spring.GetGroundHeight(px, pz)
-						local unitID = Spring.CreateUnit(unitDefID, px, py, pz, "n", teamID)
+						local py = SpringShared.GetGroundHeight(px, pz)
+						local unitID = SpringSynced.CreateUnit(unitDefID, px, py, pz, "n", teamID)
 						if unitID then
 							numspawned = numspawned + 1
 							newUnitIDs[#newUnitIDs + 1] = unitID
@@ -128,20 +128,20 @@ if gadgetHandler:IsSyncedCode() then
 			--Spring.GiveOrderToUnitArray ( table unitArray = { [1] = number unitID, etc... }, number cmdID, table params = {number, etc...}, table options = {"alt", "ctrl", "shift", "right"} )
 			--return: nil | bool true
 			--CMD.MOVE, { p.x, p.y, p.z }, 0 )
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.REPEAT, { 1 }, 0)
+			SpringShared.GiveOrderToUnitArray(newUnitIDs, CMD.REPEAT, { 1 }, 0)
 
 			local ncx = mapcx + placementradius * (getrandom() - 0.5)
 			local ncz = mapcz + placementradius * (getrandom() - 0.5)
-			local gh = Spring.GetGroundHeight(ncx, ncz)
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, { ncx, gh, ncz }, { "shift" })
+			local gh = SpringShared.GetGroundHeight(ncx, ncz)
+			SpringShared.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, { ncx, gh, ncz }, { "shift" })
 
 			ncx = mapcx + placementradius * (getrandom() - 0.5)
 			ncz = mapcz + placementradius * (getrandom() - 0.5)
-			gh = Spring.GetGroundHeight(ncx, ncz)
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, { ncx, gh, ncz }, { "shift" })
+			gh = SpringShared.GetGroundHeight(ncx, ncz)
+			SpringShared.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, { ncx, gh, ncz }, { "shift" })
 
-			gh = Spring.GetGroundHeight(cx, cz)
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, { cx, gh, cz }, { "shift" })
+			gh = SpringShared.GetGroundHeight(cx, cz)
+			SpringShared.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, { cx, gh, cz }, { "shift" })
 
 			benchmarktotalunitsspawned = benchmarktotalunitsspawned + numspawned
 		end
@@ -158,62 +158,62 @@ if gadgetHandler:IsSyncedCode() then
 			if FeatureDefNames[unitdefname .. "_heap"] then
 				heapFeatureDefID = FeatureDefNames[unitdefname .. "_heap"].id
 			end
-			local allunits = Spring.GetAllUnits()
+			local allunits = SpringShared.GetAllUnits()
 			local removedunits = 0
 			local removedwrecks = 0
 			local removedheaps = 0
 			for i, unitID in ipairs(allunits) do
-				if unitDefID == Spring.GetUnitDefID(unitID) then
-					Spring.DestroyUnit(unitID, false, true)
+				if unitDefID == SpringShared.GetUnitDefID(unitID) then
+					SpringSynced.DestroyUnit(unitID, false, true)
 					removedunits = removedunits + 1
 				end
 			end
-			local allfeatures = Spring.GetAllFeatures()
+			local allfeatures = SpringShared.GetAllFeatures()
 			for i, featureID in ipairs(allfeatures) do
-				local featureDefID = Spring.GetFeatureDefID(featureID)
+				local featureDefID = SpringShared.GetFeatureDefID(featureID)
 				if featureDefID == wreckFeatureDefID then
-					Spring.DestroyFeature(featureID)
+					SpringSynced.DestroyFeature(featureID)
 					removedwrecks = removedwrecks + 1
 				end
 				if featureDefID == heapFeatureDefID then
-					Spring.DestroyFeature(featureID)
+					SpringSynced.DestroyFeature(featureID)
 					removedheaps = removedheaps + 1
 				end
 			end
 
-			Spring.Echo(string.format("Removed %i units, %i wrecks, %i heaps for unitDefName %s", removedunits, removedwrecks, removedheaps, unitdefname))
+			SpringShared.Echo(string.format("Removed %i units, %i wrecks, %i heaps for unitDefName %s", removedunits, removedwrecks, removedheaps, unitdefname))
 		else
-			Spring.Echo("Removeunitdef:", unitdefname, "is not a valid UnitDefName")
+			SpringShared.Echo("Removeunitdef:", unitdefname, "is not a valid UnitDefName")
 		end
 	end
 
 	function benchmark(words)
 		benchmarkenabled = not benchmarkenabled
 		if not benchmarkenabled then
-			Spring.Echo(string.format("Benchmark ended, %d units spawned over %d gameframes, Units/frame = %f", benchmarktotalunitsspawned, Spring.GetGameFrame() - benchmarkstartgameframe, benchmarktotalunitsspawned * (1.0 / (Spring.GetGameFrame() - benchmarkstartgameframe))))
+			SpringShared.Echo(string.format("Benchmark ended, %d units spawned over %d gameframes, Units/frame = %f", benchmarktotalunitsspawned, SpringShared.GetGameFrame() - benchmarkstartgameframe, benchmarktotalunitsspawned * (1.0 / (SpringShared.GetGameFrame() - benchmarkstartgameframe))))
 			ExecuteRemoveUnitDefName(team1unitDefName)
 			ExecuteRemoveUnitDefName(team2unitDefName)
 			return
 		end
-		benchmarkstartgameframe = Spring.GetGameFrame()
+		benchmarkstartgameframe = SpringShared.GetGameFrame()
 		benchmarktotalunitsspawned = 0
 		initrandom(7654321)
 		if words[2] and UnitDefNames[words[2]] then
 			team1unitDefName = words[2]
 		else
-			Spring.Echo(words[2], "is not a valid unitDefName, using", team1unitDefName, "instead")
+			SpringShared.Echo(words[2], "is not a valid unitDefName, using", team1unitDefName, "instead")
 		end
 
 		if words[3] and UnitDefNames[words[3]] then
 			team2unitDefName = words[3]
 		else
-			Spring.Echo(words[3], "is not a valid unitDefName, using", team2unitDefName, "instead")
+			SpringShared.Echo(words[3], "is not a valid unitDefName, using", team2unitDefName, "instead")
 		end
 
 		if words[4] then
 			local maxunitsint = tonumber(words[4])
 			if maxunitsint == nil then
-				Spring.Echo(words[4], "must be the number of max units to keep spawning, using", maxunits, "instead")
+				SpringShared.Echo(words[4], "must be the number of max units to keep spawning, using", maxunits, "instead")
 			else
 				maxunits = math.floor(maxunitsint)
 			end
@@ -221,7 +221,7 @@ if gadgetHandler:IsSyncedCode() then
 		if words[5] then
 			local feedstepint = tonumber(words[5])
 			if feedstepint == nil then
-				Spring.Echo(words[5], "must be the number units to spawn each step, using", maxunits, "instead")
+				SpringShared.Echo(words[5], "must be the number units to spawn each step, using", maxunits, "instead")
 			else
 				feedstep = math.floor(feedstepint)
 			end
@@ -229,7 +229,7 @@ if gadgetHandler:IsSyncedCode() then
 		if words[6] then
 			local placementradiusint = tonumber(words[6])
 			if placementradiusint == nil then
-				Spring.Echo(words[6], "must be the radius in which to spawn units, using ", placementradius, "instead")
+				SpringShared.Echo(words[6], "must be the radius in which to spawn units, using ", placementradius, "instead")
 			else
 				placementradius = math.floor(placementradiusint)
 			end
@@ -237,19 +237,19 @@ if gadgetHandler:IsSyncedCode() then
 		if words[7] then
 			local keepfeaturesint = tonumber(words[7])
 			if keepfeaturesint == nil then
-				Spring.Echo(words[7], "must be the number of frames wrecks will live ", placementradius, "instead")
+				SpringShared.Echo(words[7], "must be the number of frames wrecks will live ", placementradius, "instead")
 			else
 				keepfeatures = math.floor(keepfeaturesint)
 			end
 		end
 
-		Spring.Echo(string.format("Starting benchmark %s vs %s with %i maxunits and %i units per step in a %d radius, features live %d frames", team1unitDefName, team2unitDefName, maxunits, feedstep, placementradius, keepfeatures))
+		SpringShared.Echo(string.format("Starting benchmark %s vs %s with %i maxunits and %i units per step in a %d radius, features live %d frames", team1unitDefName, team2unitDefName, maxunits, feedstep, placementradius, keepfeatures))
 		featuredefstoremove = {}
 		for _, udn in ipairs({ team1unitDefName, team2unitDefName }) do
 			for _, wreckheap in ipairs({ "_dead", "_heap" }) do
 				if FeatureDefNames[udn .. wreckheap] and FeatureDefNames[udn .. wreckheap].id then
 					featuredefstoremove[FeatureDefNames[udn .. wreckheap].id] = true
-					Spring.Echo(udn .. wreckheap)
+					SpringShared.Echo(udn .. wreckheap)
 				end
 			end
 		end
@@ -258,9 +258,9 @@ if gadgetHandler:IsSyncedCode() then
 	local featurestoremove = {}
 	function gadget:FeatureCreated(featureID, allyTeam)
 		if benchmarkenabled then
-			local featureDefID = Spring.GetFeatureDefID(featureID)
+			local featureDefID = SpringShared.GetFeatureDefID(featureID)
 			if featureDefID and featuredefstoremove[featureDefID] then
-				featurestoremove[featureID] = Spring.GetGameFrame() + keepfeatures
+				featurestoremove[featureID] = SpringShared.GetGameFrame() + keepfeatures
 			end
 		end
 	end
@@ -275,8 +275,8 @@ if gadgetHandler:IsSyncedCode() then
 			if n % 3 == 1 then
 				for featureID, deathtime in pairs(featurestoremove) do
 					if deathtime < n then
-						if Spring.ValidFeatureID(featureID) then
-							Spring.DestroyFeature(featureID)
+						if SpringShared.ValidFeatureID(featureID) then
+							SpringSynced.DestroyFeature(featureID)
 						end
 						featurestoremove[featureID] = nil
 					end
@@ -311,15 +311,15 @@ if gadgetHandler:IsSyncedCode() then
 		checkStartPlayers()
 	end
 else -- UNSYNCED
-	local vsx, vsy = Spring.GetViewGeometry()
+	local vsx, vsy = SpringUnsynced.GetViewGeometry()
 	local uiScale = vsy / 1080
 
 	local function centerCamera()
-		local camState = Spring.GetCameraState()
+		local camState = SpringUnsynced.GetCameraState()
 		if camState then
 			local mapcx = Game.mapSizeX / 2
 			local mapcz = Game.mapSizeZ / 2
-			local mapcy = Spring.GetGroundHeight(mapcx, mapcz)
+			local mapcy = SpringShared.GetGroundHeight(mapcx, mapcz)
 
 			camState.px = mapcx
 			camState.py = mapcy
@@ -332,7 +332,7 @@ else -- UNSYNCED
 			camState.dist = mapcy + 2000
 			camState.name = "spring"
 
-			Spring.SetCameraState(camState, 0.75)
+			SpringUnsynced.SetCameraState(camState, 0.75)
 		end
 	end
 
@@ -351,9 +351,9 @@ else -- UNSYNCED
 
 	-- Spring.DiffTimers(Spring.GetTimerMicros(),tus)
 
-	local lastDrawTimerUS = Spring.GetTimerMicros()
-	local lastSimTimerUS = Spring.GetTimerMicros()
-	local lastUpdateTimerUs = Spring.GetTimerMicros()
+	local lastDrawTimerUS = SpringUnsynced.GetTimerMicros()
+	local lastSimTimerUS = SpringUnsynced.GetTimerMicros()
+	local lastUpdateTimerUs = SpringUnsynced.GetTimerMicros()
 	local lastFrameType = "draw" -- can be draw, sim, update
 	local simTime = 0
 	local drawTime = 0
@@ -367,31 +367,31 @@ else -- UNSYNCED
 	local alpha = 0.98
 
 	function gadget:ViewResize()
-		vsx, vsy = Spring.GetViewGeometry()
+		vsx, vsy = SpringUnsynced.GetViewGeometry()
 		uiScale = vsy / 1080
 	end
 
 	function gadget:Update() -- START OF UPDATE
 		if benchmarkactive then
-			local now = Spring.GetTimerMicros()
+			local now = SpringUnsynced.GetTimerMicros()
 			if lastFrameType == "draw" then
 				-- We are doing a double draw
 			else
 				-- We are ending a sim frame, so better push the sim frame time number
-				simTime = Spring.DiffTimers(now, lastSimTimerUS)
+				simTime = SpringUnsynced.DiffTimers(now, lastSimTimerUS)
 				benchmarkstats.simFrameTimes[#benchmarkstats.simFrameTimes + 1] = simTime
 				ss = alpha * ss + (1 - alpha) * simTime
 			end
-			lastUpdateTimerUs = Spring.GetTimerMicros()
+			lastUpdateTimerUs = SpringUnsynced.GetTimerMicros()
 		end
 	end
 
 	function gadget:GameFrame(n) -- START OF SIM FRAME
 		if benchmarkactive then
-			local now = Spring.GetTimerMicros()
+			local now = SpringUnsynced.GetTimerMicros()
 			if lastFrameType == "sim" then
 				-- We are doing double sim, push a sim frame time number
-				simTime = Spring.DiffTimers(now, lastSimTimerUS)
+				simTime = SpringUnsynced.DiffTimers(now, lastSimTimerUS)
 				benchmarkstats.simFrameTimes[#benchmarkstats.simFrameTimes + 1] = simTime
 				ss = alpha * ss + (1 - alpha) * simTime
 			else -- we are coming off a draw frame
@@ -403,8 +403,8 @@ else -- UNSYNCED
 
 	function gadget:DrawGenesis() -- START OF DRAW
 		if benchmarkactive then
-			local now = Spring.GetTimerMicros()
-			updateTime = Spring.DiffTimers(now, lastUpdateTimerUs)
+			local now = SpringUnsynced.GetTimerMicros()
+			updateTime = SpringUnsynced.DiffTimers(now, lastUpdateTimerUs)
 			benchmarkstats.updateFrameTimes[#benchmarkstats.updateFrameTimes + 1] = updateTime
 			su = alpha * su + (1 - alpha) * updateTime
 			lastDrawTimerUS = now
@@ -413,7 +413,7 @@ else -- UNSYNCED
 
 	function gadget:DrawScreenPost() -- END OF DRAW
 		if benchmarkactive then
-			drawTime = Spring.DiffTimers(Spring.GetTimerMicros(), lastDrawTimerUS)
+			drawTime = SpringUnsynced.DiffTimers(SpringUnsynced.GetTimerMicros(), lastDrawTimerUS)
 			benchmarkstats.drawFrameTimes[#benchmarkstats.drawFrameTimes + 1] = drawTime
 			sd = alpha * sd + (1 - alpha) * drawTime
 
@@ -446,17 +446,17 @@ else -- UNSYNCED
 	end
 
 	function benchmark(_, line, words, playerID, action)
-		if playerID ~= Spring.GetLocalPlayerID() then
+		if playerID ~= SpringUnsynced.GetLocalPlayerID() then
 			return
 		end
-		Spring.Echo("Benchmark", line, words, playerID, action)
+		SpringShared.Echo("Benchmark", line, words, playerID, action)
 		if not isAuthorized(playerID, "terrain") then
 			return
 		end
 		if benchmarkactive then
 			-- We need to dump the stats
 			local s1 = string.format("Benchmark complete, #created = %d, #destroyed = %d", benchmarkstats.numunitscreated, benchmarkstats.numunitsdestroyed)
-			Spring.Echo(s1)
+			SpringShared.Echo(s1)
 			local res = {}
 			local stats = {}
 			for n, t in pairs({ Sim = benchmarkstats.simFrameTimes, Draw = benchmarkstats.drawFrameTimes, Update = benchmarkstats.updateFrameTimes }) do
@@ -499,7 +499,7 @@ else -- UNSYNCED
 
 				local s2 = string.format("%s %d frames, %3.2fms per frame, %4.2fs total", n, ms.count, ms.mean, ms.total)
 				res[#res + 1] = s2
-				Spring.Echo(s2)
+				SpringShared.Echo(s2)
 			end
 
 			if isBenchMark then
@@ -512,24 +512,24 @@ else -- UNSYNCED
 				stats.cpu = Platform.hwConfig
 				stats.display = tostring(vsx) .. "x" .. tostring(vsy)
 
-				Spring.Echo("Benchmark Results")
-				Spring.Echo(stats)
+				SpringShared.Echo("Benchmark Results")
+				SpringShared.Echo(stats)
 
-				if Spring.GetMenuName then
+				if SpringUnsynced.GetMenuName then
 					local message = Json.encode(stats)
 					--Spring.Echo("Sending Message", message)
-					Spring.SendLuaMenuMsg("ScenarioGameEnd " .. message)
+					SpringUnsynced.SendLuaMenuMsg("ScenarioGameEnd " .. message)
 				end
 			end
 
 			-- clean up
 			--benchmarkstats = {}
 		else
-			Spring.Echo("Starting Benchmark")
-			if Spring.GetModOptions().scenariooptions then
+			SpringShared.Echo("Starting Benchmark")
+			if SpringShared.GetModOptions().scenariooptions then
 				--Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
-				local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
-				Spring.Echo(scenariooptions)
+				local scenariooptions = string.base64Decode(SpringShared.GetModOptions().scenariooptions)
+				SpringShared.Echo(scenariooptions)
 				scenariooptions = Json.decode(scenariooptions)
 				if scenariooptions and scenariooptions.benchmarkcommand then
 					--This is where the magic happens!
@@ -546,9 +546,9 @@ else -- UNSYNCED
 				numunitscreated = 0,
 				numunitsdestroyed = 0,
 			}
-			lastDrawTimerUS = Spring.GetTimerMicros()
-			lastSimTimerUS = Spring.GetTimerMicros()
-			lastUpdateTimerUs = Spring.GetTimerMicros()
+			lastDrawTimerUS = SpringUnsynced.GetTimerMicros()
+			lastSimTimerUS = SpringUnsynced.GetTimerMicros()
+			lastUpdateTimerUs = SpringUnsynced.GetTimerMicros()
 		end
 		benchmarkactive = not benchmarkactive
 		local msg = PACKET_HEADER .. ":benchmark"
@@ -558,7 +558,7 @@ else -- UNSYNCED
 			end
 		end
 		centerCamera()
-		Spring.SendLuaRulesMsg(msg)
+		SpringUnsynced.SendLuaRulesMsg(msg)
 	end
 
 	function gadget:Initialize()

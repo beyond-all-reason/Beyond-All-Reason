@@ -18,7 +18,7 @@ end
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local GL_RGBA32F_ARB = 0x8814
 --------------------------------------------------------------------------------
@@ -71,7 +71,7 @@ local shaderConfig = {
 }
 ---------------------------------------------------------------------------
 
-local alwaysColor, losColor, radarColor, jamColor, radarColor2 = Spring.GetLosViewColors() --unused
+local alwaysColor, losColor, radarColor, jamColor, radarColor2 = SpringUnsynced.GetLosViewColors() --unused
 local outputAlpha = 0.07
 local numFastUpdates = 10 -- how many quick updates to do on large-scale changes
 local updateRate = 2 -- on each Nth frame
@@ -152,9 +152,9 @@ local function UpdateInfoLOSTexture(count)
 	infoShader:SetUniformFloat("outputAlpha", outputAlpha)
 	for i = 1, count do
 		if i == count then
-			infoShader:SetUniformFloat("time", (Spring.GetDrawFrame() + 0) / 1000)
+			infoShader:SetUniformFloat("time", (SpringUnsynced.GetDrawFrame() + 0) / 1000)
 		else
-			infoShader:SetUniformFloat("time", (Spring.GetDrawFrame() + math.random()) / 1000)
+			infoShader:SetUniformFloat("time", (SpringUnsynced.GetDrawFrame() + math.random()) / 1000)
 		end
 		gl.RenderToTexture(infoTextures[currentAllyTeam], renderToTextureFunc)
 	end
@@ -163,7 +163,7 @@ local function UpdateInfoLOSTexture(count)
 end
 
 function widget:PlayerChanged(playerID)
-	local newAllyTeam = Spring.GetLocalAllyTeamID()
+	local newAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 	if currentAllyTeam ~= newAllyTeam then -- do a few quick renders
 		currentAllyTeam = newAllyTeam
 		updateInfoLOSTexture = numFastUpdates
@@ -188,9 +188,9 @@ function widget:Initialize()
 		shaderConfig[name .. "XSIZE"] = texInfo.xsize
 		shaderConfig[name .. "YSIZE"] = texInfo.ysize
 	end
-	currentAllyTeam = Spring.GetLocalAllyTeamID()
+	currentAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 
-	for _, a in ipairs(Spring.GetAllyTeamList()) do
+	for _, a in ipairs(SpringShared.GetAllyTeamList()) do
 		infoTextures[a] = CreateLosTexture()
 	end
 

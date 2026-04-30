@@ -8,13 +8,13 @@ function gadget:GetInfo()
 		date = "2022",
 		license = "GNU GPL, v2 or later",
 		layer = -100,
-		enabled = Spring.GetModOptions().norushtimer > 0,
+		enabled = SpringShared.GetModOptions().norushtimer > 0,
 	}
 end
 
 -- Get Startbox Area of every player
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-local norushtimer = Spring.GetModOptions().norushtimer * 1800 -- modoption is stating minutes, and we need frames. 60 seconds * 30 frames = 1800
+local norushtimer = SpringShared.GetModOptions().norushtimer * 1800 -- modoption is stating minutes, and we need frames. 60 seconds * 30 frames = 1800
 
 local CommandsToCatchMap = { -- CMDTYPES: ICON_MAP, ICON_AREA, ICON_UNIT_OR_MAP, ICON_UNIT_OR_AREA, ICON_UNIT_FEATURE_OR_AREA, ICON_BUILDING
 	[CMD.MOVE] = true,
@@ -59,8 +59,8 @@ local LuaAIsToExclude = {
 
 local TeamIDsToExclude = {} -- dynamically filled below
 
-for _, teamID in ipairs(Spring.GetTeamList()) do
-	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
+for _, teamID in ipairs(SpringShared.GetTeamList()) do
+	local teamLuaAI = SpringShared.GetTeamLuaAI(teamID)
 	if teamLuaAI and LuaAIsToExclude[teamLuaAI] then
 		TeamIDsToExclude[teamID] = true
 	end
@@ -84,10 +84,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 		local allowed = true
-		local frame = Spring.GetGameFrame()
+		local frame = SpringShared.GetGameFrame()
 
 		if frame < norushtimer and not TeamIDsToExclude[unitTeam] then
-			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam, false)
+			local _, _, _, _, _, allyTeamID = SpringShared.GetTeamInfo(unitTeam, false)
 
 			if cmdID < 0 then
 				if cmdParams[1] and cmdParams[2] and cmdParams[3] then
@@ -107,21 +107,21 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			elseif CommandsToCatchUnit[cmdID] and #cmdParams == 1 then
 				local targetUnitID = cmdParams[1]
-				if Spring.GetUnitDefID(targetUnitID) then
-					local x, y, z = Spring.GetUnitPosition(targetUnitID)
+				if SpringShared.GetUnitDefID(targetUnitID) then
+					local x, y, z = SpringShared.GetUnitPosition(targetUnitID)
 					if not positionCheckLibrary.StartboxCheck(x, y, z, allyTeamID) then
 						allowed = false
 					end
-				elseif Spring.GetFeatureDefID(targetUnitID - Game.maxUnits) and CommandsToCatchFeature[cmdID] then -- maybe it's a feature that we want to reclaim?
-					local x, y, z = Spring.GetFeaturePosition(targetUnitID - Game.maxUnits)
+				elseif SpringShared.GetFeatureDefID(targetUnitID - Game.maxUnits) and CommandsToCatchFeature[cmdID] then -- maybe it's a feature that we want to reclaim?
+					local x, y, z = SpringShared.GetFeaturePosition(targetUnitID - Game.maxUnits)
 					if not positionCheckLibrary.StartboxCheck(x, y, z, allyTeamID) then
 						allowed = false
 					end
 				end
 			elseif CommandsToCatchFeature[cmdID] and #cmdParams == 1 then
 				local targetFeatureID = cmdParams[1]
-				if Spring.GetFeatureDefID(targetFeatureID - Game.maxUnits) then
-					local x, y, z = Spring.GetFeaturePosition(targetFeatureID - Game.maxUnits)
+				if SpringShared.GetFeatureDefID(targetFeatureID - Game.maxUnits) then
+					local x, y, z = SpringShared.GetFeaturePosition(targetFeatureID - Game.maxUnits)
 					if not positionCheckLibrary.StartboxCheck(x, y, z, allyTeamID) then
 						allowed = false
 					end

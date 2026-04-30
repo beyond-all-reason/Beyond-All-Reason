@@ -3,27 +3,27 @@ local game = {}
 
 -- prints 'message' to ingame chat console
 function game:SendToConsole(...)
-	Spring.Echo(...)
+	SpringShared.Echo(...)
 	return true
 end
 
 function game:Frame() -- returns int/game frame number
-	return Spring.GetGameFrame() -- Spring Gadget API
+	return SpringShared.GetGameFrame() -- Spring Gadget API
 end
 
 function game:Test() -- debug
-	Spring.Echo("Testing API")
+	SpringShared.Echo("Testing API")
 	return true
 end
 
 function game:IsPaused() -- if the game is paused, returns true
-	local _, _, paused = Spring.GetGameSpeed()
+	local _, _, paused = SpringUnsynced.GetGameSpeed()
 	return paused
 end
 
 function game:GetTypeByName(typename) -- returns unittype
 	if not UnitDefNames[typename] then
-		Spring.Echo('shard: debug: could not find "' .. typename .. '" in UnitDefNames')
+		SpringShared.Echo('shard: debug: could not find "' .. typename .. '" in UnitDefNames')
 		return nil
 	end
 	local def = UnitDefNames[typename]
@@ -32,7 +32,7 @@ end
 
 function game:GetUnitLos(id, bitmask)
 	bitmask = bitmask or true
-	return Spring.GetUnitLosState(id, self.ai.allyId, bitmask)
+	return SpringShared.GetUnitLosState(id, self.ai.allyId, bitmask)
 end
 
 function game:ConfigFolderPath() -- returns string with path to the folder
@@ -58,19 +58,19 @@ function game:GetAllyTeamID()
 end
 
 function game:getUnitsInCylinder(pos, range)
-	return Spring.GetUnitsInCylinder(pos.x, pos.z, range, team)
+	return SpringShared.GetUnitsInCylinder(pos.x, pos.z, range, team)
 end
 
 function game:GetTeamUnitDefCount(team, unitDef)
-	return Spring.GetTeamUnitDefCount(team, unitDef)
+	return SpringShared.GetTeamUnitDefCount(team, unitDef)
 end
 
 function game:GetTeamUnitsByDefs(team, unitDef)
-	return Spring.GetTeamUnitsByDefs(team, unitDef)
+	return SpringShared.GetTeamUnitsByDefs(team, unitDef)
 end
 
 function game:GetUnitSeparation(Id1, Id2, d2d, surface)
-	return Spring.GetUnitSeparation(Id1, Id2, d2d, surface)
+	return SpringShared.GetUnitSeparation(Id1, Id2, d2d, surface)
 end
 
 function game:GetEnemies()
@@ -120,7 +120,7 @@ function game:GameName() -- returns the shortname of this game
 end
 
 function game:AddMarker(position, label) -- adds a marker
-	Spring.MarkerAddPoint(position.x, position.y, position.z, label)
+	SpringUnsynced.MarkerAddPoint(position.x, position.y, position.z, label)
 	return true
 end
 -- 		gadgetHandler:AddSyncAction('ShardDrawDisplay', sdDisplay)
@@ -153,7 +153,7 @@ function game:SendToContent(stringvar) -- returns a string passed from any lua g
 end
 
 function game:GetResource(idx) --  returns a Resource object
-	local currentLevel, storage, pull, income, expense, share, sent, received = Spring.GetTeamResources(self.ai.id, Shard.resourceIds[idx])
+	local currentLevel, storage, pull, income, expense, share, sent, received = SpringShared.GetTeamResources(self.ai.id, Shard.resourceIds[idx])
 	return Shard:shardify_resource({ currentLevel = currentLevel, storage = storage, pull = pull, income = income, expense = expense, share = share, sent = sent, received = received })
 end
 
@@ -163,7 +163,7 @@ end
 
 function game:GetResourceByName(name) -- returns a Resource object, takes the name of the resource
 	name = string.lower(name)
-	local currentLevel, storage, pull, income, expense, share, sent, received = Spring.GetTeamResources(self.ai.id, name)
+	local currentLevel, storage, pull, income, expense, share, sent, received = SpringShared.GetTeamResources(self.ai.id, name)
 	return Shard:shardify_resource({ currentLevel = currentLevel, storage = storage, pull = pull, income = income, expense = expense, share = share, sent = sent, received = received })
 end
 
@@ -178,11 +178,11 @@ end
 
 function game:SendLuaRulesMessage(message) -- sends a message to the engine to give an order
 	message = "@Shard" .. message .. "Shard@"
-	Spring.SendLuaRulesMsg(message)
+	SpringUnsynced.SendLuaRulesMsg(message)
 end
 
 function game:Pause() -- pauses the game
-	Spring.SendCommands("pause")
+	SpringUnsynced.SendCommands("pause")
 end
 
 function game:GetResources() -- returns a table of Resource objects, takes the name of the resource

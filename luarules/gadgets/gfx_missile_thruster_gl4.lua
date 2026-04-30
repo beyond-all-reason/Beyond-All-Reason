@@ -23,18 +23,18 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spEcho = Spring.Echo
-local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
-local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local spIsPosInAirLos = Spring.IsPosInAirLos
-local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetFrameTimeOffset = Spring.GetFrameTimeOffset
+local spEcho = SpringShared.Echo
+local spGetVisibleProjectiles = SpringUnsynced.GetVisibleProjectiles
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
+local spGetProjectileVelocity = SpringShared.GetProjectileVelocity
+local spGetProjectileDefID = SpringShared.GetProjectileDefID
+local spGetProjectileTeamID = SpringShared.GetProjectileTeamID
+local spGetProjectileTimeToLive = SpringShared.GetProjectileTimeToLive
+local spGetTeamAllyTeamID = SpringShared.GetTeamAllyTeamID
+local spIsPosInAirLos = SpringShared.IsPosInAirLos
+local spGetMyAllyTeamID = SpringUnsynced.GetLocalAllyTeamID
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetFrameTimeOffset = SpringUnsynced.GetFrameTimeOffset
 
 local glBlending = gl.Blending
 local glTexture = gl.Texture

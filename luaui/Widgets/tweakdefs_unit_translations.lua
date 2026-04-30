@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 local function updateTranslations()
-	local currentLanguage = Spring.GetConfigString("language", "en")
+	local currentLanguage = SpringUnsynced.GetConfigString("language", "en")
 
 	for unitDefName, unitDef in pairs(UnitDefNames) do
 		--Naming convention for language overrides

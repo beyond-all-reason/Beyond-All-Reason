@@ -18,29 +18,29 @@ local mathAbs = math.abs
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
 ------------------------------------------------------------
 -- Speedups
 ------------------------------------------------------------
 local CMD_GUARD = CMD.GUARD
 
-local spGetBuildFacing = Spring.GetBuildFacing
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spPos2BuildPos = Spring.Pos2BuildPos
-local spGetTeamUnits = Spring.GetTeamUnits
-local spGetMyTeamID = Spring.GetLocalTeamID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitDefID = Spring.GetUnitDefID
+local spGetBuildFacing = SpringUnsynced.GetBuildFacing
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spPos2BuildPos = SpringShared.Pos2BuildPos
+local spGetTeamUnits = SpringShared.GetTeamUnits
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitDefID = SpringShared.GetUnitDefID
 
 local selectedUnits = spGetSelectedUnits()
 
 local Game_extractorRadius = Game.extractorRadius
 
-local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
+local isPregame = SpringShared.GetGameFrame() == 0 and not SpringUnsynced.GetSpectatingState()
 
 ------------------------------------------------------------
 -- unit tables
@@ -101,7 +101,7 @@ end
 ---Checks if there is an existing extractor (mex or geo) in the given spot
 ---@param spot table
 local function spotHasExtractor(spot)
-	local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
+	local units = SpringShared.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
 	local type = spot.isMex and mexBuildings or geoBuildings
 	for j = 1, #units do
 		if type[spGetUnitDefID(units[j])] then
@@ -142,7 +142,7 @@ local function spotHasExtractorQueued(spot, builders)
 		return checkQueue(queue)
 	else
 		for i = 1, #builders do
-			local hasOrder = checkQueue(Spring.GetUnitCommands(builders[i], 100))
+			local hasOrder = checkQueue(SpringShared.GetUnitCommands(builders[i], 100))
 			if hasOrder then
 				return true
 			end
@@ -179,7 +179,7 @@ end
 ---@param currentExtractorUuid number uuid of current extractor
 ---@param newExtractorId number unitDefID of new extractor
 local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
-	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), spGetUnitTeam(currentExtractorUuid))
+	local isAllied = SpringShared.AreTeamsAllied(spGetMyTeamID(), spGetUnitTeam(currentExtractorUuid))
 	if not isAllied then
 		return false
 	end
@@ -213,7 +213,7 @@ end
 ---@param extractorId table
 ---@return boolean
 local function extractorCanBeBuiltOnSpot(spot, extractorId)
-	local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
+	local units = SpringShared.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
 
 	if #units == 0 then
 		return true
@@ -300,7 +300,7 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 	end
 
 	local function hasExistingGuardOrder(uid)
-		local queue = Spring.GetUnitCommands(uid, 10)
+		local queue = SpringShared.GetUnitCommands(uid, 10)
 		for i = 1, #queue do
 			local cmd = queue[i]
 			if cmd.id == CMD_GUARD and (cmd.params and cmd.params[1] and isMainBuilderOfId(cmd.params[1])) then
@@ -402,7 +402,7 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 		return
 	end
 
-	local _, _, meta, _ = Spring.GetModKeyState()
+	local _, _, meta, _ = SpringUnsynced.GetModKeyState()
 
 	local unitArray = {} -- make unit array to avoid extra work
 	for i = 1, #mainBuilders do
@@ -417,7 +417,7 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 			-- cmd insert layout is really weird, it needs to be formatted like:
 			-- { CMD.INSERT, { queue_pos, cmd_id, opt, params_flattened, }, { "alt }}
 			-- this an engine command so index starts at 0. Increment position by command count
-			Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, { i - 1, -buildingId, 0, unpack(orderParams) }, { "alt" })
+			SpringShared.GiveOrderToUnitArray(unitArray, CMD.INSERT, { i - 1, -buildingId, 0, unpack(orderParams) }, { "alt" })
 		else
 			-- we don't want to give a stop command to clear queue because it plays an unwanted sound
 			-- issuing any command without shift will clear the queue for us,
@@ -431,7 +431,7 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 				fakeShift = true
 			end
 			local opt = fakeShift and { "shift" } or {}
-			Spring.GiveOrderToUnitArray(unitArray, -buildingId, orderParams, opt)
+			SpringShared.GiveOrderToUnitArray(unitArray, -buildingId, orderParams, opt)
 		end
 	end
 end

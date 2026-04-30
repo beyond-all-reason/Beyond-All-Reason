@@ -13,9 +13,9 @@ local function setup()
 
 	widget = Test.prepareWidget(widgetName)
 
-	initialCameraState = Spring.GetCameraState()
+	initialCameraState = SpringUnsynced.GetCameraState()
 
-	Spring.SetCameraState({
+	SpringUnsynced.SetCameraState({
 		mode = 5,
 	})
 end
@@ -23,7 +23,7 @@ end
 local function cleanup()
 	Test.clearMap()
 
-	Spring.SetCameraState(initialCameraState)
+	SpringUnsynced.SetCameraState(initialCameraState)
 end
 
 local delay = 5
@@ -40,20 +40,20 @@ local function test()
 
 	local builderUnitDefName = "armck"
 
-	local myTeamID = Spring.GetLocalTeamID()
+	local myTeamID = SpringUnsynced.GetLocalTeamID()
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
-	local y = Spring.GetGroundHeight(x, z)
+	local y = SpringShared.GetGroundHeight(x, z)
 	local facing = 1
 
 	local builderUnitID = SyncedRun(function(locals)
-		return Spring.CreateUnit(locals.builderUnitDefName, locals.x, locals.y, locals.z, locals.facing, locals.myTeamID)
+		return SpringSynced.CreateUnit(locals.builderUnitDefName, locals.x, locals.y, locals.z, locals.facing, locals.myTeamID)
 	end)
 
-	Spring.SelectUnit(builderUnitID)
+	SpringUnsynced.SelectUnit(builderUnitID)
 
 	Test.waitFrames(delay)
 
-	Spring.SetActiveCommand(Spring.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE), 1, true, false, false, false, false, false)
+	SpringUnsynced.SetActiveCommand(SpringUnsynced.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE), 1, true, false, false, false, false, false)
 
 	Test.waitFrames(delay)
 

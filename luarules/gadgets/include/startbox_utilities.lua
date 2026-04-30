@@ -44,7 +44,7 @@ local function ParseBoxes()
 		startBoxConfig = WrappedInclude(mapsideBoxes)
 	else
 		startBoxConfig = {}
-		local startboxString = Spring.GetModOptions().startboxes
+		local startboxString = SpringShared.GetModOptions().startboxes
 		local startboxStringLoadedBoxes = false
 		if startboxString then
 			local springieBoxes = loadstring(startboxString)()

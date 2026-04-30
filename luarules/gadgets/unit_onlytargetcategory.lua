@@ -51,7 +51,7 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	-- accepts: CMD.ATTACK
-	if cmdParams[2] == nil and unitOnlyTargetsCategory[unitDefID] and type(cmdParams[1]) == "number" and not (unitCategories[Spring.GetUnitDefID(cmdParams[1])] and unitCategories[Spring.GetUnitDefID(cmdParams[1])][unitOnlyTargetsCategory[unitDefID]]) then
+	if cmdParams[2] == nil and unitOnlyTargetsCategory[unitDefID] and type(cmdParams[1]) == "number" and not (unitCategories[SpringShared.GetUnitDefID(cmdParams[1])] and unitCategories[SpringShared.GetUnitDefID(cmdParams[1])][unitOnlyTargetsCategory[unitDefID]]) then
 		return false
 	else
 		if cmdParams[2] and unitDontAttackGround[unitDefID] then

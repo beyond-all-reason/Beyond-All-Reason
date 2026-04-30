@@ -31,39 +31,39 @@ local stringFormat = string.format
 local stringLower = string.lower
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetPlayerList = Spring.GetPlayerList
-local spGetTeamColor = Spring.GetTeamColor
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spIsUnitAllied = Spring.IsUnitAllied
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPieceMap = Spring.GetUnitPieceMap
+local spGetGameFrame = SpringShared.GetGameFrame
+local spEcho = SpringShared.Echo
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetPlayerList = SpringShared.GetPlayerList
+local spGetTeamColor = SpringUnsynced.GetTeamColor
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
+local spIsUnitAllied = SpringUnsynced.IsUnitAllied
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitPieceMap = SpringShared.GetUnitPieceMap
 local spGetProjectileName = Spring.GetProjectileName
-local spGetWind = Spring.GetWind
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetModKeyState = Spring.GetModKeyState
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetCameraDirection = Spring.GetCameraDirection
-local spGetConfigInt = Spring.GetConfigInt
-local spSetSunLighting = Spring.SetSunLighting
-local spGetAllFeatures = Spring.GetAllFeatures
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetUnitHeight = Spring.GetUnitHeight
-local spGetUnitLosState = Spring.GetUnitLosState
-local spDiffTimers = Spring.DiffTimers
-local spGetTimer = Spring.GetTimer
-local spGetTimerMicros = Spring.GetTimerMicros
-local spGetDrawFrame = Spring.GetDrawFrame
-local spGetFPS = Spring.GetFPS
-local spGetConfigString = Spring.GetConfigString
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetAllyTeamList = Spring.GetAllyTeamList
-local spGetTeamList = Spring.GetTeamList
+local spGetWind = SpringShared.GetWind
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spGetModKeyState = SpringUnsynced.GetModKeyState
+local spGetCameraPosition = SpringUnsynced.GetCameraPosition
+local spGetCameraDirection = SpringUnsynced.GetCameraDirection
+local spGetConfigInt = SpringUnsynced.GetConfigInt
+local spSetSunLighting = SpringUnsynced.SetSunLighting
+local spGetAllFeatures = SpringShared.GetAllFeatures
+local spGetFeatureDefID = SpringShared.GetFeatureDefID
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
+local spGetUnitHeight = SpringShared.GetUnitHeight
+local spGetUnitLosState = SpringShared.GetUnitLosState
+local spDiffTimers = SpringUnsynced.DiffTimers
+local spGetTimer = SpringUnsynced.GetTimer
+local spGetTimerMicros = SpringUnsynced.GetTimerMicros
+local spGetDrawFrame = SpringUnsynced.GetDrawFrame
+local spGetFPS = SpringUnsynced.GetFPS
+local spGetConfigString = SpringUnsynced.GetConfigString
+local spGetTeamInfo = SpringShared.GetTeamInfo
+local spGetAllyTeamList = SpringShared.GetAllyTeamList
+local spGetTeamList = SpringShared.GetTeamList
 
 -------------------------------- Notes, TODO ----------------------------------
 do
@@ -248,19 +248,19 @@ local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
 -- Strong:
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileType = Spring.GetProjectileType
-local spGetPieceProjectileParams = Spring.GetPieceProjectileParams
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spIsSphereInView = Spring.IsSphereInView
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spValidUnitID = Spring.ValidUnitID
+local spGetProjectilePosition = SpringShared.GetProjectilePosition
+local spGetProjectileVelocity = SpringShared.GetProjectileVelocity
+local spGetProjectileType = SpringShared.GetProjectileType
+local spGetPieceProjectileParams = SpringShared.GetPieceProjectileParams
+local spGetProjectileDefID = SpringShared.GetProjectileDefID
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spIsSphereInView = SpringUnsynced.IsSphereInView
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spValidUnitID = SpringShared.ValidUnitID
 
 -- Weak:
-local spIsGUIHidden = Spring.IsGUIHidden
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
 
 local math_max = mathMax
 local math_ceil = mathCeil
@@ -1164,7 +1164,7 @@ for wdid, wd in pairs(WeaponDefs) do
 end
 
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if targetable[weaponID] and py - 300 > Spring.GetGroundHeight(px, pz) then -- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
+	if targetable[weaponID] and py - 300 > SpringShared.GetGroundHeight(px, pz) then -- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
 		return
 	end
 	if explosionLights[weaponID] then
@@ -1488,13 +1488,13 @@ end
 
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
-	local weapon, piece = Spring.GetProjectileType(projectileID)
-	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
+	local weapon, piece = SpringShared.GetProjectileType(projectileID)
+	local weaponDefID = weapon and SpringShared.GetProjectileDefID(projectileID)
 	Debug.TraceFullEcho()
 end
 
 local function updateProjectileLights(newgameframe)
-	local nowprojectiles = Spring.GetVisibleProjectiles()
+	local nowprojectiles = SpringUnsynced.GetVisibleProjectiles()
 	gameFrame = spGetGameFrame()
 	local newgameframe = true
 	if gameFrame == lastGameFrame then
@@ -1621,7 +1621,7 @@ local function updateProjectileLights(newgameframe)
 	--end
 end
 
-local configCache = { lastUpdate = Spring.GetTimer() }
+local configCache = { lastUpdate = SpringUnsynced.GetTimer() }
 local function checkConfigUpdates()
 	if spDiffTimers(spGetTimer(), configCache.lastUpdate) > 0.5 then
 		local newconfa = VFS.LoadFile("luaui/configs/DeferredLightsGL4config.lua")

@@ -27,7 +27,7 @@ end
 
 -- set default logging to INFO since it's kinda important to know when this
 -- gadget does things with start points and start boxes
-Spring.SetLogSectionFilterLevel(gadget:GetInfo().name, LOG.INFO)
+SpringUnsynced.SetLogSectionFilterLevel(gadget:GetInfo().name, LOG.INFO)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ local function tryLoadConfigFromBAR(currentMapName)
 	for _, configFile in pairs(availableConfigFiles) do
 		local basename = configFile:gsub(configsDirectory, ""):gsub(".lua", ""):gsub("_", " "):lower()
 		if string.find(sanitizedCurrentMapName, basename) then
-			Spring.Log(gadget:GetInfo().name, LOG.INFO, string.format("found FFA start points config %s provided by BAR for current map %s", configFile, currentMapName))
+			SpringShared.Log(gadget:GetInfo().name, LOG.INFO, string.format("found FFA start points config %s provided by BAR for current map %s", configFile, currentMapName))
 			return VFS.Include(configFile), true
 		end
 	end
@@ -50,7 +50,7 @@ end
 local function tryLoadConfigFromMap(currentMapName)
 	local configFile = "luarules/configs/ffa_startpoints.lua"
 	if VFS.FileExists(configFile) then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, string.format("found FFA start points config %s provided by current map %s", configFile, currentMapName))
+		SpringShared.Log(gadget:GetInfo().name, LOG.INFO, string.format("found FFA start points config %s provided by current map %s", configFile, currentMapName))
 		return VFS.Include(configFile), true
 	end
 	return nil, false
@@ -64,7 +64,7 @@ local function tryLoadConfig(currentMapName, requiredStartPointCount)
 		config, found = tryLoadConfigFromMap(currentMapName)
 	end
 	if not found then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, string.format("did not find a FFA start points config for current map %s", currentMapName))
+		SpringShared.Log(gadget:GetInfo().name, LOG.INFO, string.format("did not find a FFA start points config for current map %s", currentMapName))
 		return nil
 	end
 
@@ -76,13 +76,13 @@ local function tryLoadConfig(currentMapName, requiredStartPointCount)
 	-- here, but we also add additional backwards compatibility logic in case any such legacy start points config exists
 	-- in the wild.
 	if ffaStartPoints and ffaStartPoints[requiredStartPointCount] then
-		Spring.Log(gadget:GetInfo().name, LOG.WARNING, string.format("backwards compatibility layer: using legacy FFA start points config for %s start points", requiredStartPointCount))
+		SpringShared.Log(gadget:GetInfo().name, LOG.WARNING, string.format("backwards compatibility layer: using legacy FFA start points config for %s start points", requiredStartPointCount))
 		layout = ffaStartPoints[requiredStartPointCount]
 	end
 
 	-- if a FFA start points config file has been found and a layout for the required number of start points is available
 	if config and config.startPoints and config.byAllyTeamCount and config.byAllyTeamCount[requiredStartPointCount] then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, string.format("using FFA start points config for %s start points", requiredStartPointCount))
+		SpringShared.Log(gadget:GetInfo().name, LOG.INFO, string.format("using FFA start points config for %s start points", requiredStartPointCount))
 
 		-- pick a random layout from the ones available
 		local layouts = config.byAllyTeamCount[requiredStartPointCount]
@@ -97,11 +97,11 @@ local function tryLoadConfig(currentMapName, requiredStartPointCount)
 	end
 
 	if not layout then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, string.format("did not find a layout for %s start points for current map %s", requiredStartPointCount, currentMapName))
+		SpringShared.Log(gadget:GetInfo().name, LOG.INFO, string.format("did not find a layout for %s start points for current map %s", requiredStartPointCount, currentMapName))
 		return nil
 	elseif #layout ~= requiredStartPointCount then
-		Spring.Log(gadget:GetInfo().name, LOG.ERROR, string.format("incorrect number of start points found in layout (actual: %s, expected: %s)", #layout, requiredStartPointCount))
-		Spring.Log(gadget:GetInfo().name, LOG.ERROR, "FFA start points config is malformed and will NOT be used")
+		SpringShared.Log(gadget:GetInfo().name, LOG.ERROR, string.format("incorrect number of start points found in layout (actual: %s, expected: %s)", #layout, requiredStartPointCount))
+		SpringShared.Log(gadget:GetInfo().name, LOG.ERROR, "FFA start points config is malformed and will NOT be used")
 		return nil
 	else
 		return layout
@@ -126,14 +126,14 @@ local function setFFAStartPoints(allyTeamList)
 			GG.ffaStartPoints[allyTeamID] = layout[i]
 		end
 
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "set up start points from FFA start points config for current map")
+		SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "set up start points from FFA start points config for current map")
 	end
 end
 
 local function shuffleStartBoxes(allyTeamList)
 	local startBoxes = {}
 	for _, allyTeamID in pairs(allyTeamList) do
-		local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyTeamID)
+		local xmin, zmin, xmax, zmax = SpringShared.GetAllyTeamStartBox(allyTeamID)
 		startBoxes[allyTeamID] = { xmin, zmin, xmax, zmax }
 	end
 
@@ -142,11 +142,11 @@ local function shuffleStartBoxes(allyTeamList)
 	for _, allyTeamID in pairs(allyTeamList) do
 		if startBoxes[allyTeamID] then
 			local xmin, zmin, xmax, zmax = unpack(startBoxes[allyTeamID])
-			Spring.SetAllyTeamStartBox(allyTeamID, xmin, zmin, xmax, zmax)
+			SpringSynced.SetAllyTeamStartBox(allyTeamID, xmin, zmin, xmax, zmax)
 		end
 	end
 
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "shuffled start boxes for ally teams (humans and AIs, but not Raptors and Scavengers)")
+	SpringShared.Log(gadget:GetInfo().name, LOG.INFO, "shuffled start boxes for ally teams (humans and AIs, but not Raptors and Scavengers)")
 end
 
 function gadget:Initialize()
@@ -154,7 +154,7 @@ function gadget:Initialize()
 	local allyTeamList = Utilities.GetAllyTeamList()
 
 	setFFAStartPoints(allyTeamList)
-	if Spring.GetModOptions().teamffa_start_boxes_shuffle then
+	if SpringShared.GetModOptions().teamffa_start_boxes_shuffle then
 		shuffleStartBoxes(allyTeamList)
 	end
 

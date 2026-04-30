@@ -9,9 +9,9 @@ local function setup()
 
 	mock_saveBlueprintsToFile = Test.mock(widget, "saveBlueprintsToFile")
 
-	initialCameraState = Spring.GetCameraState()
+	initialCameraState = SpringUnsynced.GetCameraState()
 
-	Spring.SetCameraState({
+	SpringUnsynced.SetCameraState({
 		mode = 5,
 	})
 end
@@ -19,7 +19,7 @@ end
 local function cleanup()
 	Test.clearMap()
 
-	Spring.SetCameraState(initialCameraState)
+	SpringUnsynced.SetCameraState(initialCameraState)
 end
 
 local delay = 5
@@ -35,16 +35,16 @@ local function test()
 
 	local blueprintUnitDefID = UnitDefNames[blueprintUnitDefName].id
 
-	local myTeamID = Spring.GetLocalTeamID()
+	local myTeamID = SpringUnsynced.GetLocalTeamID()
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
-	local y = Spring.GetGroundHeight(x, z)
+	local y = SpringShared.GetGroundHeight(x, z)
 	local facing = 1
 
 	local blueprintUnitID = SyncedRun(function(locals)
-		return Spring.CreateUnit(locals.blueprintUnitDefName, locals.x, locals.y, locals.z, locals.facing, locals.myTeamID)
+		return SpringSynced.CreateUnit(locals.blueprintUnitDefName, locals.x, locals.y, locals.z, locals.facing, locals.myTeamID)
 	end)
 
-	Spring.SelectUnit(blueprintUnitID)
+	SpringUnsynced.SelectUnit(blueprintUnitID)
 
 	Test.waitFrames(delay)
 
@@ -55,21 +55,21 @@ local function test()
 	Test.clearMap()
 
 	local builderUnitID = SyncedRun(function(locals)
-		return Spring.CreateUnit(locals.builderUnitDefName, locals.x + 100, locals.y, locals.z, locals.facing, locals.myTeamID)
+		return SpringSynced.CreateUnit(locals.builderUnitDefName, locals.x + 100, locals.y, locals.z, locals.facing, locals.myTeamID)
 	end)
 
-	Spring.SelectUnit(builderUnitID)
+	SpringUnsynced.SelectUnit(builderUnitID)
 
 	Test.waitFrames(delay)
 
-	Spring.SetActiveCommand(Spring.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE), 1, true, false, false, false, false, false)
+	SpringUnsynced.SetActiveCommand(SpringUnsynced.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE), 1, true, false, false, false, false, false)
 
 	Test.waitFrames(delay)
 
 	assert(widget.blueprintPlacementActive)
 
-	local sx, sy = Spring.WorldToScreenCoords(x, y, z)
-	Spring.WarpMouse(sx, sy)
+	local sx, sy = SpringUnsynced.WorldToScreenCoords(x, y, z)
+	SpringUnsynced.WarpMouse(sx, sy)
 
 	Test.waitFrames(delay)
 
@@ -77,7 +77,7 @@ local function test()
 
 	Test.waitFrames(delay)
 
-	local builderQueue = Spring.GetUnitCommands(builderUnitID, -1)
+	local builderQueue = SpringShared.GetUnitCommands(builderUnitID, -1)
 
 	assert(#builderQueue == 1)
 	assert(builderQueue[1].id == -blueprintUnitDefID)

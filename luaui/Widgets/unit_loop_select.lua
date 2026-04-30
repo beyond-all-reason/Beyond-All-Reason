@@ -44,15 +44,15 @@ local glLineWidth = gl.LineWidth
 local glVertex = gl.Vertex
 local glBeginEnd = gl.BeginEnd
 
-local spGetMouseState = Spring.GetMouseState
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetSpecState = Spring.GetSpectatingState
-local spGetMyTeamID = Spring.GetLocalTeamID
-local spGetVisibleUnits = Spring.GetVisibleUnits
-local spGetUnitPos = Spring.GetUnitPosition
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetSelUnits = Spring.GetSelectedUnits
-local spSelUnitArray = Spring.SelectUnitArray
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGetSpecState = SpringUnsynced.GetSpectatingState
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetVisibleUnits = SpringUnsynced.GetVisibleUnits
+local spGetUnitPos = SpringShared.GetUnitPosition
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
+local spGetSelUnits = SpringUnsynced.GetSelectedUnits
+local spSelUnitArray = SpringUnsynced.SelectUnitArray
 
 local tremove = table.remove
 

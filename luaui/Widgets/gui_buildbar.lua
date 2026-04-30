@@ -17,17 +17,17 @@ local mathAbs = math.abs
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetLocalTeamID
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 local vsx, vsy = spGetViewGeometry()
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1)
 
 -- saved values
 local bar_side = 1 --left:0,top:2,right:1,bottom:3
@@ -113,21 +113,21 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local glBlending = gl.Blending
 local math_floor = mathFloor
 local math_ceil = math.ceil
-local GetUnitDefID = Spring.GetUnitDefID
-local GetMouseState = Spring.GetMouseState
-local GetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local GetUnitStates = Spring.GetUnitStates
-local DrawUnitCommands = Spring.DrawUnitCommands
-local GetFullBuildQueue = Spring.GetFullBuildQueue
-local GetUnitIsBuilding = Spring.GetUnitIsBuilding
+local GetUnitDefID = SpringShared.GetUnitDefID
+local GetMouseState = SpringUnsynced.GetMouseState
+local GetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local GetUnitStates = SpringShared.GetUnitStates
+local DrawUnitCommands = SpringUnsynced.DrawUnitCommands
+local GetFullBuildQueue = SpringShared.GetFullBuildQueue
+local GetUnitIsBuilding = SpringShared.GetUnitIsBuilding
 local glColor = gl.Color
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 
 local RectRound, RectRoundProgress, UiElement, UiUnit, elementCorner
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = { Spring.GetConfigInt("anonymousColorR", 255) / 255, Spring.GetConfigInt("anonymousColorG", 0) / 255, Spring.GetConfigInt("anonymousColorB", 0) / 255 }
+local anonymousMode = SpringShared.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = { SpringUnsynced.GetConfigInt("anonymousColorR", 255) / 255, SpringUnsynced.GetConfigInt("anonymousColorG", 0) / 255, SpringUnsynced.GetConfigInt("anonymousColorB", 0) / 255 }
 
 -------------------------------------------------------------------------------
 -- SOUNDS
@@ -323,7 +323,7 @@ local function updateFactoryList()
 	facs = {}
 	local count = 0
 
-	local teamUnits = Spring.GetTeamUnits(myTeamID)
+	local teamUnits = SpringShared.GetTeamUnits(myTeamID)
 	for num = 1, #teamUnits do
 		local unitID = teamUnits[num]
 		local unitDefID = GetUnitDefID(unitID)
@@ -416,7 +416,7 @@ function widget:Initialize()
 	end
 
 	if not gl.R2tHelper then
-		Spring.Echo("BuildBar: gl.R2tHelper not available")
+		SpringShared.Echo("BuildBar: gl.R2tHelper not available")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -663,13 +663,13 @@ function widget:Update(dt)
 	if WG.info then
 		if hoveredFac >= 0 then
 			if not setInfoDisplayUnitID or (hoveredBOpt < 0 and setInfoDisplayUnitID ~= facs[hoveredFac + 1].unitID) then
-				Spring.PlaySoundFile(sound_hover, 0.8, "ui")
+				SpringUnsynced.PlaySoundFile(sound_hover, 0.8, "ui")
 				setInfoDisplayUnitID = facs[hoveredFac + 1].unitID
 				WG.info.displayUnitID(setInfoDisplayUnitID)
 			end
 		elseif hoveredBOpt >= 0 then
 			if setInfoDisplayUnitID and setInfoDisplayUnitDefID ~= facs[openedMenu + 1].buildList[hoveredBOpt + 1] then
-				Spring.PlaySoundFile(sound_hover, 0.8, "ui")
+				SpringUnsynced.PlaySoundFile(sound_hover, 0.8, "ui")
 				setInfoDisplayUnitDefID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
 				WG.info.displayUnitDefID(setInfoDisplayUnitDefID)
 			end
@@ -1364,10 +1364,10 @@ function widget:DrawInMiniMap(sx, sy)
 		if anonymousMode ~= "disabled" then
 			r, g, b = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 		else
-			r, g, b = Spring.GetTeamColor(myTeamID)
+			r, g, b = SpringUnsynced.GetTeamColor(myTeamID)
 		end
-		local alpha = 0.5 + mathAbs((Spring.GetGameSeconds() % 0.25) * 4 - 0.5)
-		local x, _, z = Spring.GetUnitBasePosition(facs[openedMenu + 1].unitID)
+		local alpha = 0.5 + mathAbs((SpringShared.GetGameSeconds() % 0.25) * 4 - 0.5)
+		local x, _, z = SpringShared.GetUnitBasePosition(facs[openedMenu + 1].unitID)
 
 		if x ~= nil then
 			gl.PointSize(pt * 0.066)
@@ -1404,20 +1404,20 @@ local function menuHandler(x, y, button)
 				onoff = { 0 }
 			end
 			spGiveOrderToUnit(factoryUnitID, CMD.REPEAT, onoff, 0)
-			Spring.PlaySoundFile(sound_click, 0.8, "ui")
+			SpringUnsynced.PlaySoundFile(sound_click, 0.8, "ui")
 		else
-			Spring.SelectUnitArray({ factoryUnitID })
+			SpringUnsynced.SelectUnitArray({ factoryUnitID })
 		end
 	elseif button == 3 then
-		Spring.SelectUnitArray({ factoryUnitID })
-		Spring.SetCameraTarget(Spring.GetUnitPosition(factoryUnitID))
+		SpringUnsynced.SelectUnitArray({ factoryUnitID })
+		SpringUnsynced.SetCameraTarget(SpringShared.GetUnitPosition(factoryUnitID))
 	end
 
 	return
 end
 
 local function buildHandler(button)
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 	local opt = {}
 	if alt then
 		opt[#opt + 1] = "alt"
@@ -1434,11 +1434,11 @@ local function buildHandler(button)
 
 	if button == 1 then
 		spGiveOrderToUnit(facs[openedMenu + 1].unitID, -facs[openedMenu + 1].buildList[pressedBOpt + 1], {}, opt)
-		Spring.PlaySoundFile(sound_queue_add, 0.75, "ui")
+		SpringUnsynced.PlaySoundFile(sound_queue_add, 0.75, "ui")
 	elseif button == 3 then
 		opt[#opt + 1] = "right"
 		spGiveOrderToUnit(facs[openedMenu + 1].unitID, -facs[openedMenu + 1].buildList[pressedBOpt + 1], {}, opt)
-		Spring.PlaySoundFile(sound_queue_rem, 0.75, "ui")
+		SpringUnsynced.PlaySoundFile(sound_queue_rem, 0.75, "ui")
 	end
 end
 

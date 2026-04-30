@@ -18,9 +18,9 @@ local maxBuildSpacing = 16 -- you can still increase build spacing, it just will
 local lastCmdID = nil
 local buildSpacing = {}
 
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetBuildSpacing = Spring.GetBuildSpacing
-local spSetBuildSpacing = Spring.SetBuildSpacing
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGetBuildSpacing = SpringUnsynced.GetBuildSpacing
+local spSetBuildSpacing = SpringUnsynced.SetBuildSpacing
 
 local unitNames = {}
 for udid, ud in pairs(UnitDefs) do

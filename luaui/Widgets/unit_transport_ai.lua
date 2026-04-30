@@ -41,17 +41,17 @@ local ST_STOPPED = 3 -- unit is enroute from factory but stopped
 local timer = 0
 local myTeamID
 
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitDefID = Spring.GetUnitDefID
-local GetPlayerInfo = Spring.GetPlayerInfo
-local GetUnitCommands = Spring.GetUnitCommands
-local GetUnitSeparation = Spring.GetUnitSeparation
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local GetUnitDefDimensions = Spring.GetUnitDefDimensions
-local GetTeamUnits = Spring.GetTeamUnits
-local GetSelectedUnits = Spring.GetSelectedUnits
-local GetUnitIsTransporting = Spring.GetUnitIsTransporting
-local GetGroundHeight = Spring.GetGroundHeight
+local GetUnitPosition = SpringShared.GetUnitPosition
+local GetUnitDefID = SpringShared.GetUnitDefID
+local GetPlayerInfo = SpringShared.GetPlayerInfo
+local GetUnitCommands = SpringShared.GetUnitCommands
+local GetUnitSeparation = SpringShared.GetUnitSeparation
+local GiveOrderToUnit = SpringShared.GiveOrderToUnit
+local GetUnitDefDimensions = SpringShared.GetUnitDefDimensions
+local GetTeamUnits = SpringShared.GetTeamUnits
+local GetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local GetUnitIsTransporting = SpringShared.GetUnitIsTransporting
+local GetGroundHeight = SpringShared.GetGroundHeight
 local math_sqrt = math.sqrt
 
 local isFactory = {}
@@ -174,17 +174,17 @@ function AddToPick(transportID, unitID, stopped, fact)
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() then
+	if SpringUnsynced.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or SpringShared.GetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
 
-	local _, _, _, teamID = GetPlayerInfo(Spring.GetLocalPlayerID(), false)
+	local _, _, _, teamID = GetPlayerInfo(SpringUnsynced.GetLocalPlayerID(), false)
 	myTeamID = teamID
 	widgetHandler:RegisterGlobal("taiEmbark", taiEmbark)
 
@@ -480,7 +480,7 @@ function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		GiveOrderToUnit(unitID, x[1], x[2], x[3])
 	end
 	storedQueue[unitID] = nil
-	local cmdID = Spring.GetUnitCurrentCommand(unitID, 1) --GetUnitCommands(unitID,2) -- not sure if bug or that this old code actually meant to get the 2nd cmd in queue
+	local cmdID = SpringShared.GetUnitCurrentCommand(unitID, 1) --GetUnitCommands(unitID,2) -- not sure if bug or that this old code actually meant to get the 2nd cmd in queue
 	if cmdID and cmdID == CMD.WAIT then
 		GiveOrderToUnit(unitID, CMD.WAIT, {}, 0) -- workaround: clears wait order if STOP fails to do so
 	end

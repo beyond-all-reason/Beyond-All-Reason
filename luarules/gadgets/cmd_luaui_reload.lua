@@ -17,8 +17,8 @@ if gadgetHandler:IsSyncedCode() then
 end
 
 function LuaUIReload(cmd, line, words, playerID)
-	if playerID and playerID == Spring.GetLocalPlayerID() then
-		Spring.SendCommands("luaui reload")
+	if playerID and playerID == SpringUnsynced.GetLocalPlayerID() then
+		SpringUnsynced.SendCommands("luaui reload")
 	end
 end
 

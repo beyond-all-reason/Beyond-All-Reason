@@ -1,6 +1,6 @@
 local devUI = Utilities.ShowDevUI()
 local isSinglePlayer = Utilities.Gametype.IsSinglePlayer()
-local isSpectator = Spring.GetSpectatingState()
+local isSpectator = SpringUnsynced.GetSpectatingState()
 
 pipNumber = pipNumber or 1
 
@@ -75,8 +75,8 @@ local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 ----------------------------------------------------------------------------------------------------
 -- Helper function to get a formatted hotkey string for an action
 local function getActionHotkey(action)
-	local currentKeyboardLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-	local hotkeys = Spring.GetActionHotKeys(action)
+	local currentKeyboardLayout = SpringUnsynced.GetConfigString("KeyboardLayout", "qwerty")
+	local hotkeys = SpringUnsynced.GetActionHotKeys(action)
 	if not hotkeys or #hotkeys == 0 then
 		return ""
 	end
@@ -171,7 +171,7 @@ config = {
 	iconDensityZoomFadeEnd = 0.8, -- Zoom level above which density scaling is completely off
 
 	drawDecals = true, -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
-	drawCommandFX = Spring.GetConfigInt("PipDrawCommandFX", 1) == 1, -- Show brief fading command lines when orders are given (like Commands FX widget)
+	drawCommandFX = SpringUnsynced.GetConfigInt("PipDrawCommandFX", 1) == 1, -- Show brief fading command lines when orders are given (like Commands FX widget)
 	commandFXIgnoreNewUnits = true, -- Ignore commands given to newly finished units (rally point orders)
 	commandFXOpacity = 0.2, -- Initial opacity of command FX lines
 	commandFXDuration = 0.66, -- Seconds for command FX lines to fully fade out
@@ -191,12 +191,12 @@ config = {
 	drawComNametags = true, -- Draw player names above commander icons
 	comNametagZoomThreshold = 0.18, -- Minimum zoom to show nametags (below this they'd overlap)
 	drawComHealthBars = true, -- Draw health bars below commander icons when health < 99%
-	leftButtonPansCamera = isMinimapMode and (Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1) or false,
+	leftButtonPansCamera = isMinimapMode and (SpringUnsynced.GetConfigInt("MinimapLeftClickMove", 1) == 1) or false,
 	maximizeSizemult = 1.25,
 	screenMargin = 0.00,
 	drawProjectiles = true,
 	zoomToCursor = true,
-	altKeyRequiredForZoom = Spring.GetConfigInt("PipAltKeyRequiredForZoom", 1) == 1, -- When true, scrolling over the PIP only zooms if ALT is held (otherwise passes through to the game)
+	altKeyRequiredForZoom = SpringUnsynced.GetConfigInt("PipAltKeyRequiredForZoom", 1) == 1, -- When true, scrolling over the PIP only zooms if ALT is held (otherwise passes through to the game)
 	mapEdgeMargin = 0,
 	showButtonsOnHoverOnly = true,
 	switchInheritsTracking = false,
@@ -234,7 +234,7 @@ config = {
 	minimapMiddleClickZoomMax = 0.95, -- auto zoom out to this zoom level
 
 	-- Minimap mode settings (when pipNumber == 0)
-	minimapModeMaxHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32), -- Shared with gui_minimap.lua via ConfigFloat
+	minimapModeMaxHeight = SpringUnsynced.GetConfigFloat("MinimapMaxHeight", 0.32), -- Shared with gui_minimap.lua via ConfigFloat
 	minimapModeMaxWidth = 0.26, -- Max width as fraction of screen width
 	minimapModeScreenMargin = 0, -- No margin in minimap mode (edge-to-edge)
 	minimapModeShowButtons = false, -- Hide buttons in minimap mode
@@ -263,7 +263,7 @@ local state = {
 
 -- Consolidated rendering state
 local render = {
-	uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1),
+	uiScale = tonumber(SpringUnsynced.GetConfigFloat("ui_scale", 1) or 1),
 	vsx = nil,
 	vsy = nil,
 	widgetScale = nil,
@@ -286,7 +286,7 @@ local render = {
 }
 
 -- Initialize render dimensions
-render.vsx, render.vsy = Spring.GetViewGeometry()
+render.vsx, render.vsy = SpringUnsynced.GetViewGeometry()
 render.widgetScale = (render.vsy / 2000) * render.uiScale
 render.usedButtonSize = math.floor(config.buttonSize * render.widgetScale * render.uiScale)
 render.dim.l = math.floor(render.vsx * 0.7)
@@ -302,7 +302,7 @@ local cameraState = {
 	wcz = 1000,
 	targetWcx = 1000,
 	targetWcz = 1000,
-	mySpecState = Spring.GetSpectatingState(),
+	mySpecState = SpringUnsynced.GetSpectatingState(),
 	lastTrackedCameraState = nil,
 	zoomToCursorActive = false,
 	zoomToCursorWorldX = 0,
@@ -604,7 +604,7 @@ function pipTV.BuildHotspots(now)
 		local ev = events[i]
 		if ev then
 			local age = now - ev.time
-			if age < decayTime and (not losFilter or Spring.IsPosInLos(ev.x, 0, ev.z, losFilter)) then
+			if age < decayTime and (not losFilter or SpringShared.IsPosInLos(ev.x, 0, ev.z, losFilter)) then
 				-- Time-based decay: linear falloff
 				local decayFactor = 1 - (age / decayTime)
 				local w = ev.weight * decayFactor
@@ -714,7 +714,7 @@ function pipTV.ScanAnticipation(now)
 
 	-- Gather all visible units with their positions. Use Spring.GetAllUnits (spectator-safe).
 	-- We batch-collect positions to avoid N*M GetUnitPosition calls.
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = SpringShared.GetAllUnits()
 	if not allUnits or #allUnits == 0 then
 		return
 	end
@@ -733,11 +733,11 @@ function pipTV.ScanAnticipation(now)
 
 	for i = 1, #allUnits do
 		local uID = allUnits[i]
-		local defID = Spring.GetUnitDefID(uID)
+		local defID = SpringShared.GetUnitDefID(uID)
 		if defID then
-			local teamID = Spring.GetUnitTeam(uID)
-			local allyTeam = teamID and Spring.GetTeamAllyTeamID(teamID)
-			local x, _, z = Spring.GetUnitBasePosition(uID)
+			local teamID = SpringShared.GetUnitTeam(uID)
+			local allyTeam = teamID and SpringShared.GetTeamAllyTeamID(teamID)
+			local x, _, z = SpringShared.GetUnitBasePosition(uID)
 			if x and allyTeam then
 				-- Collect non-air ground/sea units for proximity checks (low-HP danger detection)
 				if not cache.canFly[defID] then
@@ -794,7 +794,7 @@ function pipTV.ScanAnticipation(now)
 
 				-- Low-HP commanders (health < 50%)
 				if cache.isCommander[defID] then
-					local hp, maxHP = Spring.GetUnitHealth(uID)
+					local hp, maxHP = SpringShared.GetUnitHealth(uID)
 					if hp and maxHP and maxHP > 0 then
 						local hpFrac = hp / maxHP
 						if hpFrac < 0.5 then
@@ -814,7 +814,7 @@ function pipTV.ScanAnticipation(now)
 
 				-- Low-HP expensive eco buildings (health < 40%)
 				if cache.isExpensiveEco[defID] then
-					local hp, maxHP = Spring.GetUnitHealth(uID)
+					local hp, maxHP = SpringShared.GetUnitHealth(uID)
 					if hp and maxHP and maxHP > 0 then
 						local hpFrac = hp / maxHP
 						if hpFrac < 0.4 then
@@ -912,18 +912,18 @@ function pipTV.DirectorTick(dt)
 	-- When detected, signal effective game-over so Update() can trigger zoom-out
 	if not dir.effectiveGameOver and now - dir.lastAliveCheck >= 2.0 then
 		dir.lastAliveCheck = now
-		local gf = Spring.GetGameFrame()
+		local gf = SpringShared.GetGameFrame()
 		if gf > 30 * 30 then -- Only check after first 30 seconds (avoid false positive at spawn)
-			local gaiaAT = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
+			local gaiaAT = select(6, SpringShared.GetTeamInfo(SpringShared.GetGaiaTeamID()))
 			local aliveCount = 0
-			local allyTeams = Spring.GetAllyTeamList()
+			local allyTeams = SpringShared.GetAllyTeamList()
 			for a = 1, #allyTeams do
 				local atID = allyTeams[a]
 				if atID ~= gaiaAT then
 					-- Check if any team in this allyteam is still alive
-					local teams = Spring.GetTeamList(atID)
+					local teams = SpringShared.GetTeamList(atID)
 					for t = 1, #teams do
-						local _, _, isDead = Spring.GetTeamInfo(teams[t], false)
+						local _, _, isDead = SpringShared.GetTeamInfo(teams[t], false)
 						if not isDead then
 							aliveCount = aliveCount + 1
 							break -- This allyteam is alive, move to next
@@ -963,7 +963,7 @@ function pipTV.DirectorTick(dt)
 	-- Time factor: 0→1 over first 2 minutes (baseline)
 	-- Activity factor: 0→1 as peak hotspot weight reaches combat levels (~10+)
 	-- Use whichever is higher — so early fights on small maps instantly ramp up
-	local gameFrame = Spring.GetGameFrame()
+	local gameFrame = SpringShared.GetGameFrame()
 	local timeFactor = math.min(1, gameFrame / (30 * 60 * 2)) -- 0→1 over 2 minutes
 
 	-- Track peak activity across all current hotspots
@@ -1733,8 +1733,8 @@ local seismicPingDlists = {
 	innerOutlines = {},
 }
 local gameHasStarted
-local gaiaTeamID = Spring.GetGaiaTeamID()
-cache.gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
+cache.gaiaAllyTeamID = select(6, SpringShared.GetTeamInfo(gaiaTeamID))
 
 -- Build AI team lookup tables at load time
 -- aiTeams: all AI-controlled teams (for optional hiding)
@@ -1747,13 +1747,13 @@ local scavRaptorTeams = {}
 local comNametagCache = { dirty = true, lastRefresh = 0 }
 
 do
-	local teamList = Spring.GetTeamList()
+	local teamList = SpringShared.GetTeamList()
 	for i = 1, #teamList do
 		local teamID = teamList[i]
-		local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
+		local _, _, _, isAI = SpringShared.GetTeamInfo(teamID, false)
 		if isAI then
 			aiTeams[teamID] = true
-			local luaAI = Spring.GetTeamLuaAI(teamID) or ""
+			local luaAI = SpringShared.GetTeamLuaAI(teamID) or ""
 			if string.find(luaAI, "Scavenger") or string.find(luaAI, "Raptor") then
 				scavRaptorTeams[teamID] = true
 			end
@@ -1852,36 +1852,36 @@ local glFunc = {
 
 -- Spring function speedups
 local spFunc = {
-	GetGroundHeight = Spring.GetGroundHeight,
-	GetUnitsInRectangle = Spring.GetUnitsInRectangle,
-	GetUnitPosition = Spring.GetUnitPosition,
-	GetUnitBasePosition = Spring.GetUnitBasePosition,
-	GetUnitTeam = Spring.GetUnitTeam,
-	GetUnitDefID = Spring.GetUnitDefID,
-	GetTeamInfo = Spring.GetTeamInfo,
-	IsPosInLos = Spring.IsPosInLos,
-	IsPosInRadar = Spring.IsPosInRadar,
-	GetUnitLosState = Spring.GetUnitLosState,
-	GetFeatureDefID = Spring.GetFeatureDefID,
-	GetFeatureDirection = Spring.GetFeatureDirection,
-	GetFeaturePosition = Spring.GetFeaturePosition,
-	GetFeatureTeam = Spring.GetFeatureTeam,
-	GetFeaturesInRectangle = Spring.GetFeaturesInRectangle,
-	IsUnitSelected = Spring.IsUnitSelected,
-	GetUnitHealth = Spring.GetUnitHealth,
-	GetMouseState = Spring.GetMouseState,
-	GetProjectilesInRectangle = Spring.GetProjectilesInRectangle,
-	GetProjectilePosition = Spring.GetProjectilePosition,
-	GetProjectileDefID = Spring.GetProjectileDefID,
-	GetProjectileTarget = Spring.GetProjectileTarget,
-	GetProjectileOwnerID = Spring.GetProjectileOwnerID,
-	GetProjectileVelocity = Spring.GetProjectileVelocity,
-	GetUnitCommands = Spring.GetUnitCommands,
-	GetPlayerInfo = Spring.GetPlayerInfo,
-	GetUnitIsStunned = Spring.GetUnitIsStunned,
-	GetTeamAllyTeamID = Spring.GetTeamAllyTeamID,
-	GetUnitSelfDTime = Spring.GetUnitSelfDTime,
-	GetSelectedUnitsCount = Spring.GetSelectedUnitsCount,
+	GetGroundHeight = SpringShared.GetGroundHeight,
+	GetUnitsInRectangle = SpringShared.GetUnitsInRectangle,
+	GetUnitPosition = SpringShared.GetUnitPosition,
+	GetUnitBasePosition = SpringShared.GetUnitBasePosition,
+	GetUnitTeam = SpringShared.GetUnitTeam,
+	GetUnitDefID = SpringShared.GetUnitDefID,
+	GetTeamInfo = SpringShared.GetTeamInfo,
+	IsPosInLos = SpringShared.IsPosInLos,
+	IsPosInRadar = SpringShared.IsPosInRadar,
+	GetUnitLosState = SpringShared.GetUnitLosState,
+	GetFeatureDefID = SpringShared.GetFeatureDefID,
+	GetFeatureDirection = SpringShared.GetFeatureDirection,
+	GetFeaturePosition = SpringShared.GetFeaturePosition,
+	GetFeatureTeam = SpringShared.GetFeatureTeam,
+	GetFeaturesInRectangle = SpringShared.GetFeaturesInRectangle,
+	IsUnitSelected = SpringUnsynced.IsUnitSelected,
+	GetUnitHealth = SpringShared.GetUnitHealth,
+	GetMouseState = SpringUnsynced.GetMouseState,
+	GetProjectilesInRectangle = SpringShared.GetProjectilesInRectangle,
+	GetProjectilePosition = SpringShared.GetProjectilePosition,
+	GetProjectileDefID = SpringShared.GetProjectileDefID,
+	GetProjectileTarget = SpringShared.GetProjectileTarget,
+	GetProjectileOwnerID = SpringShared.GetProjectileOwnerID,
+	GetProjectileVelocity = SpringShared.GetProjectileVelocity,
+	GetUnitCommands = SpringShared.GetUnitCommands,
+	GetPlayerInfo = SpringShared.GetPlayerInfo,
+	GetUnitIsStunned = SpringShared.GetUnitIsStunned,
+	GetTeamAllyTeamID = SpringShared.GetTeamAllyTeamID,
+	GetUnitSelfDTime = SpringShared.GetUnitSelfDTime,
+	GetSelectedUnitsCount = SpringUnsynced.GetSelectedUnitsCount,
 }
 
 -- Map/game constants
@@ -1903,8 +1903,8 @@ do
 		isLava = false,
 		voidWater = voidWater,
 	}
-	mapInfo.minGroundHeight, mapInfo.maxGroundHeight = Spring.GetGroundExtremes()
-	local waterIsLava = Spring.GetModOptions().map_waterislava
+	mapInfo.minGroundHeight, mapInfo.maxGroundHeight = SpringShared.GetGroundExtremes()
+	local waterIsLava = SpringShared.GetModOptions().map_waterislava
 	mapInfo.isLava = Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
 end
 mapInfo.hasWater = mapInfo.minGroundHeight < 0 or mapInfo.isLava
@@ -1991,7 +1991,7 @@ end
 
 -- Eagerly read lava level if available (avoids wrong first R2T render on lava maps)
 if mapInfo.isLava or mapInfo.hasWater then
-	local initLavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	local initLavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 	if initLavaLevel and initLavaLevel ~= -99999 then
 		mapInfo.dynamicWaterLevel = initLavaLevel
 	end
@@ -2006,8 +2006,8 @@ local buttons = {
 		tooltipKey = "ui.pip.copy",
 		command = "pip_copy",
 		OnPress = function()
-			local sizex, sizez = Spring.GetWindowGeometry()
-			local _, pos = Spring.TraceScreenRay(sizex / 2, sizez / 2, true)
+			local sizex, sizez = SpringUnsynced.GetWindowGeometry()
+			local _, pos = SpringUnsynced.TraceScreenRay(sizex / 2, sizez / 2, true)
 			if pos and pos[2] > -10000 then
 				-- Set PIP camera to main camera position with rounding to match switch behavior
 				local copiedX = math.floor(pos[1] + 0.5)
@@ -2035,8 +2035,8 @@ local buttons = {
 		tooltipKey = "ui.pip.switch",
 		command = "pip_switch",
 		OnPress = function()
-			local sizex, sizez = Spring.GetWindowGeometry()
-			local _, pos = Spring.TraceScreenRay(sizex / 2, sizez / 2, true)
+			local sizex, sizez = SpringUnsynced.GetWindowGeometry()
+			local _, pos = SpringUnsynced.TraceScreenRay(sizex / 2, sizez / 2, true)
 			if pos and pos[2] > -10000 then
 				-- Always read the current main camera position
 				local mainCamX = math.floor(pos[1] + 0.5)
@@ -2063,14 +2063,14 @@ local buttons = {
 					end
 
 					-- First untrack anything in main view
-					Spring.SendCommands("track")
+					SpringUnsynced.SendCommands("track")
 					-- Then track the PIP units in main view
 					for i = 1, #interactionState.areTracking do
-						Spring.SendCommands("track " .. interactionState.areTracking[i])
+						SpringUnsynced.SendCommands("track " .. interactionState.areTracking[i])
 					end
 				else
 					-- If not tracking in PIP or feature disabled, untrack in main view
-					Spring.SendCommands("track")
+					SpringUnsynced.SendCommands("track")
 				end
 
 				-- Swap tracking state: current PIP tracking <-> backup
@@ -2096,7 +2096,7 @@ local buttons = {
 					camX = currentPipCamX,
 					camZ = currentPipCamZ,
 				} -- Switch camera positions - use rounded coordinates
-				Spring.SetCameraTarget(pipCameraTargetX, 0, pipCameraTargetZ, config.switchTransitionTime)
+				SpringUnsynced.SetCameraTarget(pipCameraTargetX, 0, pipCameraTargetZ, config.switchTransitionTime)
 				-- Set PIP camera target for smooth transition (don't set cameraState.wcx/cameraState.wcz directly)
 				cameraState.targetWcx, cameraState.targetWcz = mainCamX, mainCamZ
 				miscState.isSwitchingViews = true -- Enable fast transition for pip_switch
@@ -2105,7 +2105,7 @@ local buttons = {
 
 				-- If feature is disabled, ensure main camera is not tracking
 				if not config.switchInheritsTracking then
-					Spring.SendCommands("track")
+					SpringUnsynced.SendCommands("track")
 				end
 			end
 		end,
@@ -2116,7 +2116,7 @@ local buttons = {
 		tooltipActiveKey = "ui.pip.untrack",
 		command = "pip_track",
 		OnPress = function()
-			local selectedUnits = Spring.GetSelectedUnits()
+			local selectedUnits = SpringUnsynced.GetSelectedUnits()
 			if #selectedUnits > 0 then
 				-- Add selected units to tracking (or start tracking if not already)
 				if interactionState.areTracking then
@@ -2167,7 +2167,7 @@ local buttons = {
 			state.losViewEnabled = not state.losViewEnabled
 			if state.losViewEnabled then
 				-- Store the current allyteam when enabling LOS view
-				state.losViewAllyTeam = Spring.GetLocalAllyTeamID()
+				state.losViewAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 				-- Immediately scan enemy buildings the viewed allyteam knows about
 				-- Only include buildings the allyteam has seen (LOS_INLOS or LOS_PREVLOS)
 				if cameraState.mySpecState then
@@ -2175,17 +2175,17 @@ local buttons = {
 						ghostBuildings[k] = nil
 					end
 					local scanAllyTeam = state.losViewAllyTeam
-					local allUnits = Spring.GetAllUnits()
+					local allUnits = SpringShared.GetAllUnits()
 					for _, uID in ipairs(allUnits) do
-						local defID = Spring.GetUnitDefID(uID)
+						local defID = SpringShared.GetUnitDefID(uID)
 						if defID and cache.isBuilding[defID] then
-							local uTeam = Spring.GetUnitTeam(uID)
-							local uAllyTeam = Spring.GetTeamAllyTeamID(uTeam)
+							local uTeam = SpringShared.GetUnitTeam(uID)
+							local uAllyTeam = SpringShared.GetTeamAllyTeamID(uTeam)
 							if uAllyTeam ~= scanAllyTeam then
 								-- Only ghost buildings the viewed allyteam has ever seen
-								local losBits = Spring.GetUnitLosState(uID, scanAllyTeam, true)
+								local losBits = SpringShared.GetUnitLosState(uID, scanAllyTeam, true)
 								if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
-									local x, _, z = Spring.GetUnitBasePosition(uID)
+									local x, _, z = SpringShared.GetUnitBasePosition(uID)
 									if x then
 										ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = uTeam }
 									end
@@ -2221,11 +2221,11 @@ local buttons = {
 				interactionState.trackingPlayerID = nil
 				pipR2T.frameNeedsUpdate = true
 			else
-				local _, _, isSpec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
+				local _, _, isSpec = spFunc.GetPlayerInfo(SpringUnsynced.GetLocalPlayerID(), false)
 
 				if isSpec then
 					-- Spectator: Track team leader (keep existing behavior)
-					local myTeamID = Spring.GetLocalTeamID()
+					local myTeamID = SpringUnsynced.GetLocalTeamID()
 					local targetPlayerID = nil
 
 					-- Get the team leader's player ID from team info
@@ -2233,7 +2233,7 @@ local buttons = {
 
 					-- Verify this player is active and not self
 					if leaderPlayerID then
-						local myPlayerID = Spring.GetLocalPlayerID()
+						local myPlayerID = SpringUnsynced.GetLocalPlayerID()
 						if leaderPlayerID ~= myPlayerID then
 							local name, active = spFunc.GetPlayerInfo(leaderPlayerID, false)
 							if name and active then
@@ -2267,7 +2267,7 @@ local buttons = {
 						local targetPlayerID = teammates[currentIndex]
 
 						-- Double-check we're not tracking ourselves
-						if targetPlayerID ~= Spring.GetLocalPlayerID() then
+						if targetPlayerID ~= SpringUnsynced.GetLocalPlayerID() then
 							interactionState.trackingPlayerID = targetPlayerID
 							interactionState.lastTrackedTeammate = targetPlayerID
 							-- Clear unit tracking when starting player tracking
@@ -2883,11 +2883,11 @@ void main() {
 
 local teamColors = {}
 local teamAllyTeamCache = {} -- teamID -> allyTeamID mapping (avoids per-unit GetTeamInfo calls)
-local teamList = Spring.GetTeamList()
+local teamList = SpringShared.GetTeamList()
 for i = 1, #teamList do
 	local tID = teamList[i]
-	teamColors[tID] = { Spring.GetTeamColor(tID) }
-	teamAllyTeamCache[tID] = select(6, Spring.GetTeamInfo(tID, false))
+	teamColors[tID] = { SpringUnsynced.GetTeamColor(tID) }
+	teamAllyTeamCache[tID] = select(6, SpringShared.GetTeamInfo(tID, false))
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -3282,24 +3282,24 @@ local function InitGL4Icons()
 	end
 
 	if not gl.GetVAO or not gl.GetVBO then
-		Spring.Echo("[PIP] GL4 icons: VAO/VBO not available, falling back to legacy")
+		SpringShared.Echo("[PIP] GL4 icons: VAO/VBO not available, falling back to legacy")
 		return
 	end
 
-	if not Spring.GetIconData then
-		Spring.Echo("[PIP] GL4 icons: Spring.GetIconData not available, falling back to legacy")
+	if not SpringUnsynced.GetIconData then
+		SpringShared.Echo("[PIP] GL4 icons: Spring.GetIconData not available, falling back to legacy")
 		return
 	end
 
-	local defaultIconData = Spring.GetIconData("default")
+	local defaultIconData = SpringUnsynced.GetIconData("default")
 	if not defaultIconData or not defaultIconData.atlasTexCoords then
-		Spring.Echo("[PIP] GL4 icons: Engine icon atlas data not available, falling back to legacy")
+		SpringShared.Echo("[PIP] GL4 icons: Engine icon atlas data not available, falling back to legacy")
 		return
 	end
 
 	local iconsTexInfo = gl.TextureInfo("$icons")
 	if not iconsTexInfo or iconsTexInfo.xsize <= 0 then
-		Spring.Echo("[PIP] GL4 icons: $icons texture not available, falling back to legacy")
+		SpringShared.Echo("[PIP] GL4 icons: $icons texture not available, falling back to legacy")
 		return
 	end
 
@@ -3308,7 +3308,7 @@ local function InitGL4Icons()
 
 	for uDefID, uDef in pairs(UnitDefs) do
 		local iconName = uDef.iconType or "default"
-		local iconInfo = Spring.GetIconData(iconName)
+		local iconInfo = SpringUnsynced.GetIconData(iconName)
 		if iconInfo and iconInfo.atlasTexCoords then
 			local atc = iconInfo.atlasTexCoords
 			gl4Icons.atlasUVs[uDefID] = { atc.x0, atc.y1, atc.x1, atc.y0 }
@@ -3329,7 +3329,7 @@ local function InitGL4Icons()
 	}
 	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not vbo then
-		Spring.Echo("[PIP] GL4 icons: Failed to create VBO")
+		SpringShared.Echo("[PIP] GL4 icons: Failed to create VBO")
 		gl4Icons.atlas = nil
 		return
 	end
@@ -3346,7 +3346,7 @@ local function InitGL4Icons()
 	-- Create VAO: attach VBO as vertex buffer (geometry shader expands points → quads)
 	local vao = gl.GetVAO()
 	if not vao then
-		Spring.Echo("[PIP] GL4 icons: Failed to create VAO")
+		SpringShared.Echo("[PIP] GL4 icons: Failed to create VAO")
 		vbo:Delete()
 		gl4Icons.atlas = nil
 		gl4Icons.vbo = nil
@@ -3359,7 +3359,7 @@ local function InitGL4Icons()
 	-- Buildings rarely change, so this VBO is uploaded much less frequently than the mobile VBO.
 	local bldgVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not bldgVbo then
-		Spring.Echo("[PIP] GL4 icons: Failed to create building VBO")
+		SpringShared.Echo("[PIP] GL4 icons: Failed to create building VBO")
 		vao:Delete()
 		vbo:Delete()
 		gl4Icons.atlas = nil
@@ -3370,7 +3370,7 @@ local function InitGL4Icons()
 	bldgVbo:Define(gl4Icons.MAX_INSTANCES, vboLayout)
 	local bldgVao = gl.GetVAO()
 	if not bldgVao then
-		Spring.Echo("[PIP] GL4 icons: Failed to create building VAO")
+		SpringShared.Echo("[PIP] GL4 icons: Failed to create building VAO")
 		bldgVbo:Delete()
 		vao:Delete()
 		vbo:Delete()
@@ -3394,7 +3394,7 @@ local function InitGL4Icons()
 	-- Ground units move slowly, so this VBO is updated less frequently than the fast mobile VBO.
 	local slowVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not slowVbo then
-		Spring.Echo("[PIP] GL4 icons: Failed to create slow mobile VBO")
+		SpringShared.Echo("[PIP] GL4 icons: Failed to create slow mobile VBO")
 		bldgVao:Delete()
 		bldgVbo:Delete()
 		vao:Delete()
@@ -3409,7 +3409,7 @@ local function InitGL4Icons()
 	slowVbo:Define(gl4Icons.MAX_INSTANCES, vboLayout)
 	local slowVao = gl.GetVAO()
 	if not slowVao then
-		Spring.Echo("[PIP] GL4 icons: Failed to create slow mobile VAO")
+		SpringShared.Echo("[PIP] GL4 icons: Failed to create slow mobile VAO")
 		slowVbo:Delete()
 		bldgVao:Delete()
 		bldgVbo:Delete()
@@ -3436,7 +3436,7 @@ local function InitGL4Icons()
 	-- Compile shader
 	local shader = gl.CreateShader(gl4Icons.shaderCode)
 	if not shader then
-		Spring.Echo("[PIP] GL4 icons: Shader compilation failed: " .. tostring(gl.GetShaderLog()))
+		SpringShared.Echo("[PIP] GL4 icons: Shader compilation failed: " .. tostring(gl.GetShaderLog()))
 		vao:Delete()
 		vbo:Delete()
 		gl4Icons.atlas = nil
@@ -3632,7 +3632,7 @@ local function InitGL4Primitives()
 	-- Compile shaders
 	local cShader = gl.CreateShader(gl4Prim.circleShaderCode)
 	if not cShader then
-		Spring.Echo("[PIP] GL4 circle shader failed: " .. tostring(gl.GetShaderLog()))
+		SpringShared.Echo("[PIP] GL4 circle shader failed: " .. tostring(gl.GetShaderLog()))
 		-- cleanup all
 		nlVao:Delete()
 		nlVbo:Delete()
@@ -3650,7 +3650,7 @@ local function InitGL4Primitives()
 
 	local qShader = gl.CreateShader(gl4Prim.quadShaderCode)
 	if not qShader then
-		Spring.Echo("[PIP] GL4 quad shader failed: " .. tostring(gl.GetShaderLog()))
+		SpringShared.Echo("[PIP] GL4 quad shader failed: " .. tostring(gl.GetShaderLog()))
 		gl.DeleteShader(cShader)
 		nlVao:Delete()
 		nlVbo:Delete()
@@ -3668,7 +3668,7 @@ local function InitGL4Primitives()
 
 	local lShader = gl.CreateShader(gl4Prim.lineShaderCode)
 	if not lShader then
-		Spring.Echo("[PIP] GL4 line shader failed: " .. tostring(gl.GetShaderLog()))
+		SpringShared.Echo("[PIP] GL4 line shader failed: " .. tostring(gl.GetShaderLog()))
 		gl.DeleteShader(qShader)
 		gl.DeleteShader(cShader)
 		nlVao:Delete()
@@ -4364,7 +4364,7 @@ local function UpdateCentering(mx, my)
 		return
 	end
 
-	local _, pos = Spring.TraceScreenRay(mx, my, true)
+	local _, pos = SpringUnsynced.TraceScreenRay(mx, my, true)
 	if pos and pos[2] > -10000 then
 		cameraState.wcx, cameraState.wcz = pos[1], pos[3]
 		cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz -- Set targets instantly for centering
@@ -4426,14 +4426,14 @@ end
 
 -- Helper function to get alive teammates (excluding self and AI)
 local function GetAliveTeammates()
-	local myPlayerID = Spring.GetLocalPlayerID()
+	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
 	local _, _, _, myTeamID = spFunc.GetPlayerInfo(myPlayerID, false)
 	if not myTeamID then
 		return {}
 	end
 
 	local teammates = {}
-	local playerList = Spring.GetPlayerList()
+	local playerList = SpringShared.GetPlayerList()
 
 	for _, playerID in ipairs(playerList) do
 		if playerID ~= myPlayerID then
@@ -4465,7 +4465,7 @@ local function FindNextBestTeamPlayer(excludePlayerID)
 	end
 
 	-- Find all active players on the same allyteam
-	local playerList = Spring.GetPlayerList()
+	local playerList = SpringShared.GetPlayerList()
 	local candidatePlayers = {}
 
 	for _, playerID in ipairs(playerList) do
@@ -4656,7 +4656,7 @@ end
 
 local function PipToWorldCoords(mx, my)
 	-- Get current minimap rotation (must fetch fresh, not use cached render.minimapRotation)
-	local minimapRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+	local minimapRotation = SpringUnsynced.GetMiniMapRotation and SpringUnsynced.GetMiniMapRotation() or 0
 
 	-- Convert screen coordinates to normalized PIP coordinates (0-1)
 	local normX = (mx - render.dim.l) / (render.dim.r - render.dim.l)
@@ -5486,7 +5486,7 @@ local function DrawProjectile(pID)
 		local trailColor = inPlasmaViewport and not skipProjectileTrails and config.drawPlasmaTrails and cache.weaponPlasmaTrailColor[pDefID]
 		if trailColor then
 			local trail = cache.plasmaTrails[pID]
-			local gameFrame = Spring.GetGameFrame()
+			local gameFrame = SpringShared.GetGameFrame()
 			if not trail then
 				-- Short ring buffer: 6 slots for max ~4 visible line segments
 				local projSpeed = 10
@@ -5799,7 +5799,7 @@ local function DrawIconShatters()
 		return
 	end
 
-	local _, _, isPaused = Spring.GetGameSpeed()
+	local _, _, isPaused = SpringUnsynced.GetGameSpeed()
 
 	local wcx_cached = cameraState.wcx
 	local wcz_cached = cameraState.wcz
@@ -6135,7 +6135,7 @@ local function ExpireExplosions()
 	if n == 0 then
 		return
 	end
-	local currentFrame = Spring.GetGameFrame()
+	local currentFrame = SpringShared.GetGameFrame()
 	local i = 1
 	while i <= n do
 		local explosion = cache.explosions[i]
@@ -6215,7 +6215,7 @@ local function DrawExplosions()
 		end
 	end
 
-	local currentFrame = Spring.GetGameFrame()
+	local currentFrame = SpringShared.GetGameFrame()
 
 	local n = #cache.explosions
 	while i <= n do
@@ -6445,7 +6445,7 @@ local function DrawExplosionOverlay()
 		return
 	end
 
-	local currentFrame = Spring.GetGameFrame()
+	local currentFrame = SpringShared.GetGameFrame()
 
 	-- When LOS view is active, hide explosions outside the viewed allyteam's LOS
 	local expLosAlly = state.losViewEnabled and state.losViewAllyTeam or nil
@@ -6759,7 +6759,7 @@ local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
-	Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
+	SpringUnsynced.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
 end
 
 local function GetBuildingDimensions(uDefID, facing)
@@ -6781,12 +6781,12 @@ end
 
 local function FindMyCommander()
 	-- Find the player's starting commander unit
-	local myTeamID = Spring.GetLocalTeamID()
+	local myTeamID = SpringUnsynced.GetLocalTeamID()
 	if not myTeamID then
 		return nil
 	end
 
-	local teamUnits = Spring.GetTeamUnits(myTeamID)
+	local teamUnits = SpringShared.GetTeamUnits(myTeamID)
 	if not teamUnits then
 		return nil
 	end
@@ -6815,14 +6815,14 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 	for i = #positions, 1, -1 do
 		positions[i] = nil
 	end
-	local buildFacing = Spring.GetBuildFacing()
+	local buildFacing = SpringUnsynced.GetBuildFacing()
 	local buildWidth, buildHeight = GetBuildingDimensions(buildDefID, buildFacing)
 
 	-- Snap ONLY the start position - this becomes our anchor
-	local sx, sy, sz = Spring.Pos2BuildPos(buildDefID, startWX, spFunc.GetGroundHeight(startWX, startWZ), startWZ)
+	local sx, sy, sz = SpringShared.Pos2BuildPos(buildDefID, startWX, spFunc.GetGroundHeight(startWX, startWZ), startWZ)
 
 	-- For end position, snap it too to know the intended area
-	local ex, ey, ez = Spring.Pos2BuildPos(buildDefID, endWX, spFunc.GetGroundHeight(endWX, endWZ), endWZ)
+	local ex, ey, ez = SpringShared.Pos2BuildPos(buildDefID, endWX, spFunc.GetGroundHeight(endWX, endWZ), endWZ)
 
 	-- Calculate direction and distance
 	local dx = ex - sx
@@ -6882,7 +6882,7 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 			local testZ = sz + dirZ * searchDist
 
 			-- Snap this test position
-			local snappedX, _, snappedZ = Spring.Pos2BuildPos(buildDefID, testX, spFunc.GetGroundHeight(testX, testZ), testZ)
+			local snappedX, _, snappedZ = SpringShared.Pos2BuildPos(buildDefID, testX, spFunc.GetGroundHeight(testX, testZ), testZ)
 
 			-- Check distance from last placed building
 			local lastPos = positions[#positions]
@@ -6930,7 +6930,7 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 				local wz = minZ + row * spacingZ
 
 				-- Snap each position to engine's build grid
-				local snappedX, _, snappedZ = Spring.Pos2BuildPos(buildDefID, wx, spFunc.GetGroundHeight(wx, wz), wz)
+				local snappedX, _, snappedZ = SpringShared.Pos2BuildPos(buildDefID, wx, spFunc.GetGroundHeight(wx, wz), wz)
 
 				-- Check if this snapped position is too close to a previous one (engine would reject it)
 				local tooClose = false
@@ -6969,7 +6969,7 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 					local wz = minZ + row * spacingZ
 
 					-- Snap each position to engine's build grid
-					local snappedX, _, snappedZ = Spring.Pos2BuildPos(buildDefID, wx, spFunc.GetGroundHeight(wx, wz), wz)
+					local snappedX, _, snappedZ = SpringShared.Pos2BuildPos(buildDefID, wx, spFunc.GetGroundHeight(wx, wz), wz)
 
 					-- Check if too close to previous
 					local tooClose = false
@@ -7048,9 +7048,9 @@ local function CanTransportLoadUnit(transportUnitID, targetUnitID)
 end
 
 local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 	-- Respect InvertQueueKey setting (same as customformations widget)
-	if Spring.GetInvertQueueKey() then
+	if SpringUnsynced.GetInvertQueueKey() then
 		shift = not shift
 	end
 	-- Force queue commands when explicitly requested (e.g., during formation drags)
@@ -7068,21 +7068,21 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 
 		-- For ATTACK command, only target if it's an enemy unit
 		if id and cmdID == CMD.ATTACK then
-			if Spring.IsUnitAllied(id) then
+			if SpringUnsynced.IsUnitAllied(id) then
 				id = nil -- Don't target allied units with ATTACK, use ground position instead
 			end
 		end
 
 		-- For area RECLAIM command (radius > 0), don't target enemy units
 		if id and cmdID == CMD.RECLAIM and radius and radius > 0 then
-			if not Spring.IsUnitAllied(id) then
+			if not SpringUnsynced.IsUnitAllied(id) then
 				id = nil -- Don't target enemy units with area RECLAIM
 			end
 		end
 
 		-- For area REPAIR command (radius > 0), don't target enemy units
 		if id and cmdID == CMD.REPAIR and radius and radius > 0 then
-			if not Spring.IsUnitAllied(id) then
+			if not SpringUnsynced.IsUnitAllied(id) then
 				id = nil -- Don't target enemy units with area REPAIR
 			end
 		end
@@ -7091,7 +7091,7 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 	if id then
 		-- For LOAD_UNITS command, give order only to transport units
 		if cmdID == CMD.LOAD_UNITS then
-			local selectedUnits = Spring.GetSelectedUnits()
+			local selectedUnits = SpringUnsynced.GetSelectedUnits()
 			local transports = {}
 
 			-- Collect all transport units (using cache)
@@ -7109,12 +7109,12 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 						-- Use a small radius area command so transports will find different nearby units
 						local smallRadius = 150
 						for i = 1, #transports do
-							Spring.GiveOrderToUnit(transports[i], cmdID, { ux, uy, uz, smallRadius }, cmdOpts.coded)
+							SpringShared.GiveOrderToUnit(transports[i], cmdID, { ux, uy, uz, smallRadius }, cmdOpts.coded)
 						end
 					end
 				else
 					-- Single transport, give direct unit target
-					Spring.GiveOrderToUnit(transports[1], cmdID, { id }, cmdOpts.coded)
+					SpringShared.GiveOrderToUnit(transports[1], cmdID, { id }, cmdOpts.coded)
 				end
 			end
 		else
@@ -7133,14 +7133,14 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 			if radius and radius > 0 then
 				-- For area LOAD_UNITS command, give order only to transport units individually
 				if cmdID == CMD.LOAD_UNITS then
-					local selectedUnits = Spring.GetSelectedUnits()
+					local selectedUnits = SpringUnsynced.GetSelectedUnits()
 
 					-- Give order to each transport unit individually (using cache)
 					-- This allows the engine to distribute targets naturally across multiple transports
 					for i = 1, #selectedUnits do
 						local unitDefID = spFunc.GetUnitDefID(selectedUnits[i])
 						if unitDefID and cache.isTransport[unitDefID] and (cache.transportCapacity[unitDefID] or 0) > 0 then
-							Spring.GiveOrderToUnit(selectedUnits[i], cmdID, { wx, spFunc.GetGroundHeight(wx, wz), wz, radius }, cmdOpts.coded)
+							SpringShared.GiveOrderToUnit(selectedUnits[i], cmdID, { wx, spFunc.GetGroundHeight(wx, wz), wz, radius }, cmdOpts.coded)
 						end
 					end
 				else
@@ -7194,7 +7194,7 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 
 			-- Regular building - just pass the position as-is (no additional snapping)
 			-- The position should already be snapped from CalculateBuildDragPositions
-			GiveNotifyingOrder(cmdID, { wx, spFunc.GetGroundHeight(wx, wz), wz, Spring.GetBuildFacing() }, cmdOpts)
+			GiveNotifyingOrder(cmdID, { wx, spFunc.GetGroundHeight(wx, wz), wz, SpringUnsynced.GetBuildFacing() }, cmdOpts)
 		end
 	end
 end
@@ -7342,7 +7342,7 @@ local function RegisterMinimapWGAPI()
 		return math.floor(config.minimapModeMaxHeight * render.vsy), config.minimapModeMaxHeight
 	end
 	WG.minimap.setMaxHeight = function(value)
-		Spring.SetConfigFloat("MinimapMaxHeight", value)
+		SpringUnsynced.SetConfigFloat("MinimapMaxHeight", value)
 		config.minimapModeMaxHeight = value
 		widget:ViewResize()
 	end
@@ -7351,7 +7351,7 @@ local function RegisterMinimapWGAPI()
 	end
 	WG.minimap.setLeftClickMove = function(value)
 		config.leftButtonPansCamera = value
-		Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
+		SpringUnsynced.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
 	end
 	WG.minimap.isPipMinimapActive = function()
 		return true
@@ -7390,11 +7390,11 @@ local function RegisterMinimapWGAPI()
 		if not value and miscState.engineMinimapActive then
 			-- Turning off fallback while engine minimap is showing: restore icon scale and re-minimize
 			if miscState.baseMinimapIconScale then
-				Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
-				Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+				SpringUnsynced.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
+				SpringUnsynced.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
 				miscState.baseMinimapIconScale = nil
 			end
-			Spring.SendCommands("minimap minimize 1")
+			SpringUnsynced.SendCommands("minimap minimize 1")
 			miscState.engineMinimapActive = false
 			pipR2T.contentNeedsUpdate = true
 			pipR2T.unitsNeedsUpdate = true
@@ -7575,8 +7575,8 @@ function widget:Initialize()
 	-- Initialize LOS shader for red-to-greyscale conversion
 	shaders.los = gl.CreateShader(shaders.losCode)
 	if not shaders.los then
-		Spring.Echo("PIP: Failed to compile LOS shader, LOS overlay will be disabled")
-		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
+		SpringShared.Echo("PIP: Failed to compile LOS shader, LOS overlay will be disabled")
+		SpringShared.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
 		if pipR2T.losTex then
 			gl.DeleteTexture(pipR2T.losTex)
 			pipR2T.losTex = nil
@@ -7586,8 +7586,8 @@ function widget:Initialize()
 	-- Initialize decal overlay shader + GL4 VBO/VAO
 	shaders.decal = gl.CreateShader(shaders.decalCode)
 	if not shaders.decal then
-		Spring.Echo("PIP: Failed to compile decal shader")
-		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
+		SpringShared.Echo("PIP: Failed to compile decal shader")
+		SpringShared.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
 	else
 		InitGL4Decals()
 	end
@@ -7599,23 +7599,23 @@ function widget:Initialize()
 			strength = gl.GetUniformLocation(shaders.decalBlit, "strength"),
 		}
 	else
-		Spring.Echo("PIP: Failed to compile decal blit shader")
-		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
+		SpringShared.Echo("PIP: Failed to compile decal blit shader")
+		SpringShared.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
 	end
 
 	-- Initialize minimap+shading compositing shader
 	shaders.minimapShading = gl.CreateShader(shaders.minimapShadingCode)
 	if not shaders.minimapShading then
-		Spring.Echo("PIP: Failed to compile minimap shading shader")
-		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
+		SpringShared.Echo("PIP: Failed to compile minimap shading shader")
+		SpringShared.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
 	end
 
 	-- Initialize water shader if map has water
 	if mapInfo.hasWater then
 		shaders.water = gl.CreateShader(shaders.waterCode)
 		if not shaders.water then
-			Spring.Echo("PIP: Failed to compile water shader")
-			Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
+			SpringShared.Echo("PIP: Failed to compile water shader")
+			SpringShared.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
 		end
 	end
 
@@ -7754,8 +7754,8 @@ function widget:Initialize()
 		end
 	end
 
-	gameHasStarted = (Spring.GetGameFrame() > 0)
-	miscState.startX, _, miscState.startZ = Spring.GetTeamStartPosition(Spring.GetLocalTeamID())
+	gameHasStarted = (SpringShared.GetGameFrame() > 0)
+	miscState.startX, _, miscState.startZ = SpringShared.GetTeamStartPosition(SpringUnsynced.GetLocalTeamID())
 
 	-- Initialize GL4 instanced icon rendering (after cache is built so unitIcon data is available)
 	InitGL4Icons()
@@ -7782,35 +7782,35 @@ function widget:Initialize()
 	-- For spectators with LOS view, also pre-scan to populate ghosts on reload
 	do
 		local initScanAllyTeam = nil
-		local initScanIsSpec, initScanFullview = Spring.GetSpectatingState()
+		local initScanIsSpec, initScanFullview = SpringUnsynced.GetSpectatingState()
 		if not initScanIsSpec then
-			initScanAllyTeam = Spring.GetLocalAllyTeamID()
+			initScanAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 		elseif state.losViewEnabled and state.losViewAllyTeam then
 			initScanAllyTeam = state.losViewAllyTeam
 		elseif initScanIsSpec and not initScanFullview then
 			-- Spectator without fullview: scan ghosts from their allyteam's perspective
-			initScanAllyTeam = Spring.GetLocalAllyTeamID()
+			initScanAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 		end
 		if initScanAllyTeam then
-			local allUnits = Spring.GetAllUnits()
+			local allUnits = SpringShared.GetAllUnits()
 			for _, uID in ipairs(allUnits) do
-				local defID = Spring.GetUnitDefID(uID)
+				local defID = SpringShared.GetUnitDefID(uID)
 				if defID and cache.isBuilding[defID] then
-					local uTeam = Spring.GetUnitTeam(uID)
-					local uAllyTeam = Spring.GetTeamAllyTeamID(uTeam)
+					local uTeam = SpringShared.GetUnitTeam(uID)
+					local uAllyTeam = SpringShared.GetTeamAllyTeamID(uTeam)
 					if uAllyTeam ~= initScanAllyTeam then
 						if initScanIsSpec then
 							-- As spectator, only ghost buildings the viewed allyteam has ever seen
-							local losBits = Spring.GetUnitLosState(uID, initScanAllyTeam, true)
+							local losBits = SpringShared.GetUnitLosState(uID, initScanAllyTeam, true)
 							if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
-								local x, _, z = Spring.GetUnitBasePosition(uID)
+								local x, _, z = SpringShared.GetUnitBasePosition(uID)
 								if x then
 									ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = uTeam }
 								end
 							end
 						else
 							-- As player, we can see all units returned (only own-LOS units are returned)
-							local x, _, z = Spring.GetUnitBasePosition(uID)
+							local x, _, z = SpringShared.GetUnitBasePosition(uID)
 							if x then
 								ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = uTeam }
 							end
@@ -7823,7 +7823,7 @@ function widget:Initialize()
 
 	-- For spectators, center on map and zoom out more (always on new game, even if has saved config)
 	do
-		local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
+		local currentGameID = Game.gameID and Game.gameID or SpringShared.GetGameRulesParam("GameID")
 		local isNewGame = not miscState.savedGameID or miscState.savedGameID ~= currentGameID
 		if isSpectator and isNewGame then
 			-- Center on map
@@ -7852,14 +7852,14 @@ function widget:Initialize()
 	-- Minimap mode: hide the engine minimap since we're replacing it
 	if isMinimapMode then
 		-- Store original minimap geometry and minimize state for restoration on shutdown
-		miscState.oldMinimapGeometry = Spring.GetMiniMapGeometry()
-		miscState.oldMinimapMinimized = Spring.GetConfigInt("MinimapMinimize", 0)
-		miscState.oldMinimapDrawPings = Spring.GetConfigInt("MiniMapDrawPings", 1)
+		miscState.oldMinimapGeometry = SpringUnsynced.GetMiniMapGeometry()
+		miscState.oldMinimapMinimized = SpringUnsynced.GetConfigInt("MinimapMinimize", 0)
+		miscState.oldMinimapDrawPings = SpringUnsynced.GetConfigInt("MiniMapDrawPings", 1)
 		-- Fully hide the engine minimap: slave it so it only renders when we call gl.DrawMiniMap() (which we don't)
-		Spring.SendCommands("minimap minimize 1")
+		SpringUnsynced.SendCommands("minimap minimize 1")
 		gl.SlaveMiniMap(true)
 		-- Disable engine minimap pings (the PIP draws its own)
-		Spring.SetConfigInt("MiniMapDrawPings", 0)
+		SpringUnsynced.SetConfigInt("MiniMapDrawPings", 0)
 		-- Disable the gui_minimap widget if it's running (we're replacing it)
 		-- Use FindWidget which works reliably during luaui reload
 		if widgetHandler:FindWidget("Minimap") then
@@ -7918,7 +7918,7 @@ function widget:Initialize()
 	WG["pip" .. pipNumber].TrackPlayer = function(playerID)
 		if playerID and type(playerID) == "number" then
 			-- Prevent tracking yourself
-			local myPlayerID = Spring.GetLocalPlayerID()
+			local myPlayerID = SpringUnsynced.GetLocalPlayerID()
 			if playerID == myPlayerID then
 				return false
 			end
@@ -8018,7 +8018,7 @@ function widget:ViewResize()
 	font = WG.fonts.getFont(2)
 
 	local oldVsx, oldVsy = render.vsx, render.vsy
-	render.vsx, render.vsy = Spring.GetViewGeometry()
+	render.vsx, render.vsy = SpringUnsynced.GetViewGeometry()
 
 	-- In minimap mode, calculate position and size like the minimap widget does
 	if isMinimapMode then
@@ -8030,7 +8030,7 @@ function widget:ViewResize()
 
 		-- Get current rotation to determine if dimensions should be swapped
 		-- When rotation is 90° or 270°, the map appears rotated so width/height swap visually
-		local minimapRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+		local minimapRotation = SpringUnsynced.GetMiniMapRotation and SpringUnsynced.GetMiniMapRotation() or 0
 		render.minimapRotation = minimapRotation
 		render.lastMinimapRotation = minimapRotation
 
@@ -8182,7 +8182,7 @@ function widget:ViewResize()
 				render.dim.l, render.dim.r, render.dim.b, render.dim.t = render.dim.l / oldVsx, render.dim.r / oldVsx, render.dim.b / oldVsy, render.dim.t / oldVsy
 			else
 				-- Initialize with default values positioned in upper-right area of screen
-				Spring.Echo("PIP: Detected invalid dimensions, resetting to default position")
+				SpringShared.Echo("PIP: Detected invalid dimensions, resetting to default position")
 				render.dim.l = 0.7
 				render.dim.r = 0.7 + (config.minPanelSize * render.widgetScale * 1.4) / render.vsx
 				render.dim.b = 0.7
@@ -8259,7 +8259,7 @@ function widget:ViewResize()
 
 	if savedDimsValid then
 		-- Position based on where the window was (same logic as manual minimize)
-		local sw, sh = Spring.GetWindowGeometry()
+		local sw, sh = SpringUnsynced.GetWindowGeometry()
 		if uiState.savedDimensions.l < sw * 0.5 then
 			uiState.minModeL = uiState.savedDimensions.l
 		else
@@ -8364,7 +8364,7 @@ function widget:ViewResize()
 	if miscState.engineMinimapActive then
 		local w = render.dim.r - render.dim.l
 		local h = render.dim.t - render.dim.b
-		Spring.SendCommands(string.format("minimap geometry %d %d %d %d", math.floor(render.dim.l), math.floor(render.vsy - render.dim.t), math.floor(w), math.floor(h)))
+		SpringUnsynced.SendCommands(string.format("minimap geometry %d %d %d %d", math.floor(render.dim.l), math.floor(render.vsy - render.dim.t), math.floor(w), math.floor(h)))
 	end
 
 	-- Force several frames of re-rendering so engine textures ($minimap, $shading)
@@ -8383,7 +8383,7 @@ function widget:PlayerChanged(playerID)
 	miscState.cachedTakeableTeams = nil
 
 	-- Update spec state
-	cameraState.mySpecState = Spring.GetSpectatingState()
+	cameraState.mySpecState = SpringUnsynced.GetSpectatingState()
 
 	-- Don't clear ghost buildings here: PlayerChanged fires frequently (on any player's
 	-- state change, team switches, etc.) and clearing ghosts causes them to vanish.
@@ -8562,20 +8562,20 @@ function widget:Shutdown()
 		gl.SlaveMiniMap(false)
 		-- Restore original icon scale if engine fallback was active
 		if miscState.baseMinimapIconScale then
-			Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
-			Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+			SpringUnsynced.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
+			SpringUnsynced.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
 			miscState.baseMinimapIconScale = nil
 		end
 		-- Restore original minimize state
 		if miscState.oldMinimapMinimized == 0 then
-			Spring.SendCommands("minimap minimize 0")
+			SpringUnsynced.SendCommands("minimap minimize 0")
 		end
 		if miscState.oldMinimapGeometry then
-			Spring.SendCommands("minimap geometry " .. miscState.oldMinimapGeometry)
+			SpringUnsynced.SendCommands("minimap geometry " .. miscState.oldMinimapGeometry)
 		end
 		-- Restore original MiniMapDrawPings
 		if miscState.oldMinimapDrawPings then
-			Spring.SetConfigInt("MiniMapDrawPings", miscState.oldMinimapDrawPings)
+			SpringUnsynced.SetConfigInt("MiniMapDrawPings", miscState.oldMinimapDrawPings)
 		end
 		-- Re-enable the gui_minimap widget if it exists
 		if widgetHandler.knownWidgets and widgetHandler.knownWidgets.Minimap then
@@ -8659,7 +8659,7 @@ function widget:GetConfigData()
 		activityFocusIgnoreSpectators = config.activityFocusIgnoreSpectators,
 		tvEnabled = miscState.tvEnabled,
 		hideAICommands = config.hideAICommands,
-		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
+		gameID = Game.gameID or SpringShared.GetGameRulesParam("GameID"),
 		-- minimapModeMaxHeight now stored as ConfigFloat "MinimapMaxHeight"
 		-- leftButtonPansCamera now stored as Spring ConfigInt "MinimapLeftClickMove"
 		-- Minimap mode camera state (for luaui reload restoration)
@@ -8736,17 +8736,17 @@ function widget:SetConfigData(data)
 				uiState.savedDimensions.t = render.dim.t
 			else
 				-- Invalid dimensions - use default center position
-				Spring.Echo("PIP: Invalid saved dimensions detected, resetting to default position")
+				SpringShared.Echo("PIP: Invalid saved dimensions detected, resetting to default position")
 			end
 		else
 			-- Invalid position data - don't restore
-			Spring.Echo("PIP: Corrupted position data detected, resetting to default position")
+			SpringShared.Echo("PIP: Corrupted position data detected, resetting to default position")
 		end
 	end
 
 	-- Always force minimize if in pregame AND it's a new game (different gameID)
-	local gameFrame = Spring.GetGameFrame()
-	local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
+	local gameFrame = SpringShared.GetGameFrame()
+	local currentGameID = Game.gameID and Game.gameID or SpringShared.GetGameRulesParam("GameID")
 	local isSameGame = (data.gameID and currentGameID and data.gameID == currentGameID)
 
 	if gameFrame == 0 and not isSameGame then
@@ -8839,7 +8839,7 @@ function widget:SetConfigData(data)
 	--if data.engineMinimapFallbackThreshold ~= nil then config.engineMinimapFallbackThreshold = data.engineMinimapFallbackThreshold end
 	if data.tvEnabled ~= nil then
 		-- Only restore TV mode if we're a spectator (or tvModeSpectatorsOnly is off)
-		if data.tvEnabled and config.tvModeSpectatorsOnly and not Spring.GetSpectatingState() then
+		if data.tvEnabled and config.tvModeSpectatorsOnly and not SpringUnsynced.GetSpectatingState() then
 			miscState.tvEnabled = false
 		else
 			miscState.tvEnabled = data.tvEnabled
@@ -8854,19 +8854,19 @@ function widget:SetConfigData(data)
 
 	-- Migrate old minimapModeMaxHeight config data to ConfigFloat (one-time)
 	if data.minimapModeMaxHeight and type(data.minimapModeMaxHeight) == "number" and data.minimapModeMaxHeight > 0 and data.minimapModeMaxHeight <= 1 then
-		if Spring.GetConfigFloat("MinimapMaxHeight", -1) == -1 then
-			Spring.SetConfigFloat("MinimapMaxHeight", data.minimapModeMaxHeight)
+		if SpringUnsynced.GetConfigFloat("MinimapMaxHeight", -1) == -1 then
+			SpringUnsynced.SetConfigFloat("MinimapMaxHeight", data.minimapModeMaxHeight)
 		end
-		config.minimapModeMaxHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32)
+		config.minimapModeMaxHeight = SpringUnsynced.GetConfigFloat("MinimapMaxHeight", 0.32)
 	end
 	-- leftButtonPansCamera now read from Spring ConfigInt "MinimapLeftClickMove"
-	if data.leftButtonPansCamera ~= nil and Spring.GetConfigInt("MinimapLeftClickMove", -1) == -1 then
+	if data.leftButtonPansCamera ~= nil and SpringUnsynced.GetConfigInt("MinimapLeftClickMove", -1) == -1 then
 		-- Migrate old config data to new ConfigInt (one-time)
 		config.leftButtonPansCamera = data.leftButtonPansCamera
-		Spring.SetConfigInt("MinimapLeftClickMove", data.leftButtonPansCamera and 1 or 0)
+		SpringUnsynced.SetConfigInt("MinimapLeftClickMove", data.leftButtonPansCamera and 1 or 0)
 	end
 
-	local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
+	local currentGameID = Game.gameID and Game.gameID or SpringShared.GetGameRulesParam("GameID")
 	local isSameGame = (data.gameID and currentGameID and data.gameID == currentGameID)
 
 	-- Restore ghost buildings from saved config (same game only — positions are game-specific)
@@ -8874,7 +8874,7 @@ function widget:SetConfigData(data)
 		ghostBuildings = data.ghostBuildings
 	end
 
-	if Spring.GetGameFrame() > 0 or isSameGame then
+	if SpringShared.GetGameFrame() > 0 or isSameGame then
 		interactionState.areTracking = data.areTracking
 
 		-- Restore player tracking if same game and player still exists
@@ -9069,7 +9069,7 @@ local function DrawCommandFXOverlay()
 	elseif not cameraState.mySpecState then
 		useCommandColors = true -- player viewing own ally commands
 	end
-	local myTeamID = not useCommandColors and Spring.GetLocalTeamID() or nil
+	local myTeamID = not useCommandColors and SpringUnsynced.GetLocalTeamID() or nil
 
 	if useGL4 then
 		gl4Prim.normLines.count = 0
@@ -9128,7 +9128,7 @@ end
 
 local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	-- Check if Shift+Space (meta) is held to show all visible units
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 	local showAllUnits = shift and meta
 
 	-- Reuse pool table instead of allocating new one
@@ -9412,7 +9412,7 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 		return
 	end
 
-	local _, activeCmdID = Spring.GetActiveCommand()
+	local _, activeCmdID = SpringUnsynced.GetActiveCommand()
 
 	-- Exit early if no active command
 	if not activeCmdID then
@@ -9447,7 +9447,7 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 			local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
 			if mexBuildings then
 				if not frameSel then
-					frameSel = Spring.GetSelectedUnits()
+					frameSel = SpringUnsynced.GetSelectedUnits()
 				end
 				local selectedUnits = frameSel
 				local mexConstructors = WG.resource_spot_builder and WG.resource_spot_builder.GetMexConstructors()
@@ -9523,14 +9523,14 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 		if buildIcon then
 			local iconSize = iconRadiusZoomDistMult * buildIcon.size
 			local cx, cy = WorldToPipCoords(wx, wz)
-			local buildFacing = Spring.GetBuildFacing()
-			local canBuild = Spring.TestBuildOrder(buildDefID, wx, wy, wz, buildFacing)
+			local buildFacing = SpringUnsynced.GetBuildFacing()
+			local canBuild = SpringShared.TestBuildOrder(buildDefID, wx, wy, wz, buildFacing)
 
 			if canBuild == 2 then
 				glFunc.Color(1, 1, 1, 0.5)
 			elseif canBuild == 1 then
 				local blockedByMobile = false
-				local nearbyUnits = Spring.GetUnitsInCylinder(wx, wz, 64)
+				local nearbyUnits = SpringShared.GetUnitsInCylinder(wx, wz, 64)
 				if nearbyUnits then
 					for _, unitID in ipairs(nearbyUnits) do
 						local unitDefID = spFunc.GetUnitDefID(unitID)
@@ -9574,7 +9574,7 @@ local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 		return
 	end
 
-	local _, cmdID = Spring.GetActiveCommand()
+	local _, cmdID = SpringUnsynced.GetActiveCommand()
 	if not cmdID or cmdID >= 0 then
 		return
 	end
@@ -9585,7 +9585,7 @@ local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 		return
 	end
 
-	local buildFacing = Spring.GetBuildFacing()
+	local buildFacing = SpringUnsynced.GetBuildFacing()
 	local buildWidth, buildHeight = GetBuildingDimensions(buildDefID, buildFacing)
 	local centerX, centerY = WorldToPipCoords(0, 0)
 	local edgeX, edgeY = WorldToPipCoords(buildWidth, 0)
@@ -9596,14 +9596,14 @@ local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 	for i = 1, #interactionState.buildDragPositions do
 		local pos = interactionState.buildDragPositions[i]
 		local cx, cy = WorldToPipCoords(pos.wx, pos.wz)
-		local canBuild = Spring.TestBuildOrder(buildDefID, pos.wx, spFunc.GetGroundHeight(pos.wx, pos.wz), pos.wz, buildFacing)
+		local canBuild = SpringShared.TestBuildOrder(buildDefID, pos.wx, spFunc.GetGroundHeight(pos.wx, pos.wz), pos.wz, buildFacing)
 		local alpha = math.max(0.3, 0.6 - (i - 1) * 0.05)
 
 		if canBuild == 2 then
 			glFunc.Color(1, 1, 1, alpha)
 		elseif canBuild == 1 then
 			local blockedByMobile = false
-			local nearbyUnits = Spring.GetUnitsInCylinder(pos.wx, pos.wz, 64)
+			local nearbyUnits = SpringShared.GetUnitsInCylinder(pos.wx, pos.wz, 64)
 			if nearbyUnits then
 				for _, unitID in ipairs(nearbyUnits) do
 					local unitDefID = spFunc.GetUnitDefID(unitID)
@@ -9853,7 +9853,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- Simplifies to: unitBaseSize * (mapX*mapZ/40000)^0.25 * sqrt(zoom).
 	-- Independent of PIP pixel dimensions (aspect ratio doesn't affect icon size).
 	local resScale = render.contentScale or 1
-	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+	local unitBaseSize = SpringUnsynced.GetConfigFloat("MinimapIconScale", 3.5)
 	local iconRadiusZoomDistMult = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale
 
 	-- Resolution boost: icons look relatively small on high-res screens, so scale them up
@@ -10007,8 +10007,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	if not miscState.cachedTakeableTeams then
 		miscState.cachedTakeableTeams = {}
 		if not miscState.isGameOver then
-			for _, tID in ipairs(Spring.GetTeamList()) do
-				local _, leader, isDead, hasAI = Spring.GetTeamInfo(tID, false)
+			for _, tID in ipairs(SpringShared.GetTeamList()) do
+				local _, leader, isDead, hasAI = SpringShared.GetTeamInfo(tID, false)
 				if leader == -1 and not isDead and not hasAI then
 					miscState.cachedTakeableTeams[tID] = true
 				end
@@ -10310,8 +10310,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- they almost certainly won't this frame either. Worst case: one extra rebuild.
 	-- At low zoom, extend forced rebuild interval (LOS changes less visible at full-map view)
 	local bldgBlockGameFrameLimit = cameraState.zoom < 0.15 and 90 or 30
-	local bldgBlockWillRebuild = useUnitpics or not gl4Icons._bldgBlock or (Spring.GetGameFrame() - (gl4Icons._bldgBlockFrame or 0)) >= bldgBlockGameFrameLimit
-	local currentGameFrameKeysort = Spring.GetGameFrame()
+	local bldgBlockWillRebuild = useUnitpics or not gl4Icons._bldgBlock or (SpringShared.GetGameFrame() - (gl4Icons._bldgBlockFrame or 0)) >= bldgBlockGameFrameLimit
+	local currentGameFrameKeysort = SpringShared.GetGameFrame()
 	for i = 1, unitCount do
 		local uID = pipUnits[i]
 		-- Skip crashing/recently-died units.
@@ -10449,7 +10449,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local bldgProcessed = 0
 	local mobileProcessed = 0
 	local slowMobileProcessed = 0
-	local currentGameFrame = Spring.GetGameFrame()
+	local currentGameFrame = SpringShared.GetGameFrame()
 	local bldgUsedElements = 0 -- Total building+ghost elements for building VBO
 
 	-- ========================================================================
@@ -11398,8 +11398,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 	-- Draw start unit icon before game starts (when commander is not yet placed)
 	if not gameHasStarted and not isMinimapMode and miscState.startX and miscState.startX >= 0 then
-		local myTeamID = Spring.GetLocalTeamID()
-		local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+		local myTeamID = SpringUnsynced.GetLocalTeamID()
+		local startDefID = SpringShared.GetTeamRulesParam(myTeamID, "startUnit")
 		if startDefID and cacheUnitIcon[startDefID] then
 			local iconData = cacheUnitIcon[startDefID]
 			local iconSize = iconRadiusZoomDistMult * iconData.size
@@ -11451,7 +11451,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Otherwise, GetUnitsInRectangle returns units visible to our team
 	if interactionState.trackingPlayerID and cameraState.mySpecState then
 		-- Spectating and tracking: get all units (pass -1 to get all units regardless of visibility)
-		miscState.pipUnits = Spring.GetAllUnits()
+		miscState.pipUnits = SpringShared.GetAllUnits()
 		-- Filter to only units in the rectangle (do this manually since we got all units)
 		local unitsInRect = {}
 		for i = 1, #miscState.pipUnits do
@@ -11472,12 +11472,12 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 	-- Pre-compute per-frame visibility context (avoids redundant API calls per unit)
 	local checkAllyTeamID = nil
-	local _, fullview = Spring.GetSpectatingState()
-	local myAllyTeam = Spring.GetLocalAllyTeamID()
+	local _, fullview = SpringUnsynced.GetSpectatingState()
+	local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 	if interactionState.trackingPlayerID and cameraState.mySpecState then
 		local _, _, _, playerTeamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if playerTeamID then
-			local playerAllyTeamID = teamAllyTeamCache[playerTeamID] or Spring.GetTeamAllyTeamID(playerTeamID)
+			local playerAllyTeamID = teamAllyTeamCache[playerTeamID] or SpringShared.GetTeamAllyTeamID(playerTeamID)
 			if not fullview and playerAllyTeamID ~= myAllyTeam then
 				checkAllyTeamID = myAllyTeam
 			else
@@ -11487,8 +11487,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	elseif state.losViewEnabled and state.losViewAllyTeam then
 		checkAllyTeamID = state.losViewAllyTeam
 	elseif not cameraState.mySpecState then
-		local myTeamID = Spring.GetLocalTeamID()
-		checkAllyTeamID = teamAllyTeamCache[myTeamID] or Spring.GetTeamAllyTeamID(myTeamID)
+		local myTeamID = SpringUnsynced.GetLocalTeamID()
+		checkAllyTeamID = teamAllyTeamCache[myTeamID] or SpringShared.GetTeamAllyTeamID(myTeamID)
 	elseif cameraState.mySpecState then
 		if not fullview then
 			checkAllyTeamID = myAllyTeam
@@ -11823,7 +11823,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	if interactionState.trackingPlayerID then
 		selectedSet = WG.allyselectedunits and WG.allyselectedunits.getPlayerSelectedUnits(interactionState.trackingPlayerID)
 	else
-		local selUnits2 = cachedSelectedUnits or Spring.GetSelectedUnits()
+		local selUnits2 = cachedSelectedUnits or SpringUnsynced.GetSelectedUnits()
 		local set = pools.selectedSet
 		if not set then
 			set = {}
@@ -11850,32 +11850,32 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		-- Rebuild name cache if dirty (player changed, periodic refresh)
 		if comNametagCache.dirty then
 			comNametagCache.dirty = false
-			local tList = Spring.GetTeamList()
+			local tList = SpringShared.GetTeamList()
 			for ti = 1, #tList do
 				local tID = tList[ti]
 				if tID ~= gaiaTeamID and not scavRaptorTeams[tID] then
 					local name
-					local luaAI = Spring.GetTeamLuaAI(tID) or ""
+					local luaAI = SpringShared.GetTeamLuaAI(tID) or ""
 					if luaAI ~= "" then
 						-- Lua AI team (e.g. Scavengers): use AI display name from game rules
-						local aiDisplayName = Spring.GetGameRulesParam("ainame_" .. tID)
+						local aiDisplayName = SpringShared.GetGameRulesParam("ainame_" .. tID)
 						if aiDisplayName then
 							name = aiDisplayName .. " (AI)"
 						else
 							name = luaAI .. " (AI)"
 						end
-					elseif Spring.GetGameRulesParam("ainame_" .. tID) then
+					elseif SpringShared.GetGameRulesParam("ainame_" .. tID) then
 						-- Native/C++ AI team (e.g. BARb): no LuaAI, but has ainame_ game rule
-						name = Spring.GetGameRulesParam("ainame_" .. tID) .. " (AI)"
+						name = SpringShared.GetGameRulesParam("ainame_" .. tID) .. " (AI)"
 					else
 						-- Human player: find the best player on this team
 						-- Prefer active non-spec, fall back to any non-spec (disconnected), then any player
-						local players = Spring.GetPlayerList(tID)
+						local players = SpringShared.GetPlayerList(tID)
 						if players then
 							local fallbackName
 							for pi = 1, #players do
 								local pID = players[pi]
-								local pname, active, isspec = Spring.GetPlayerInfo(pID, false)
+								local pname, active, isspec = SpringShared.GetPlayerInfo(pID, false)
 								if not isspec then
 									local resolvedName = (WG.playernames and WG.playernames.getPlayername and WG.playernames.getPlayername(pID)) or pname
 									if active then
@@ -11930,7 +11930,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		local localCacheUnitIcon = cache.unitIcon
 		local resScale = render.contentScale or 1
 		-- Cap icon size for nametag/health bar positioning to match the capped shader icons
-		local cappedIconRadius = math.min(iconRadiusZoomDistMult, Spring.GetConfigFloat("MinimapIconScale", 3.5) * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale)
+		local cappedIconRadius = math.min(iconRadiusZoomDistMult, SpringUnsynced.GetConfigFloat("MinimapIconScale", 3.5) * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale)
 		-- When unitpics are shown, icons are rendered larger (unitpicSizeMult + borders).
 		-- Precompute the per-icon multiplier and total border size to position nametags correctly.
 		local unitpicsActive = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
@@ -12132,7 +12132,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			-- Get player's team color
 			local _, _, _, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 			if teamID then
-				local r, g, b = Spring.GetTeamColor(teamID)
+				local r, g, b = SpringUnsynced.GetTeamColor(teamID)
 				-- Scale cursor size: larger at low zoom, stays reasonable at high zoom
 				local resScale = config.contentResolutionScale or 1
 				local cursorSize = render.vsy * 0.0073 * resScale
@@ -12226,9 +12226,9 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Debug echo every 2 seconds
 	if config.showPipTimers and tEnd - perfTimers.lastEchoTime > 2.0 then
 		perfTimers.lastEchoTime = tEnd
-		Spring.Echo(string.format("[PIP%d] total=%.1fms  feat=%.2fms  proj=%.2fms  expl=%.2fms  icons=%.2fms  items=%d", pipNumber, perfTimers.total * 1000, perfTimers.features * 1000, perfTimers.projectiles * 1000, perfTimers.explosions * 1000, perfTimers.icons * 1000, perfTimers.itemCount))
-		Spring.Echo(string.format("  icons: ghost=%.2fms  keysort=%.2fms  sort=%.2fms  process=%.2fms  upload=%.2fms  draw=%.2fms  unitpics=%.2fms  vboReuse=%.0f%%", perfTimers.icGhost * 1000, perfTimers.icKeysort * 1000, perfTimers.icSort * 1000, perfTimers.icProcess * 1000, perfTimers.icUpload * 1000, perfTimers.icDraw * 1000, perfTimers.icUnitpics * 1000, perfTimers.icVboReuse * 100))
-		Spring.Echo(string.format("    process: bldg=%.2fms(%d)  slowMob=%.2fms(%d)  fastMob=%.2fms(%d)", perfTimers.icProcBldg * 1000, perfTimers.icProcBldgN, perfTimers.icProcSlowMobile * 1000, perfTimers.icProcSlowMobileN, perfTimers.icProcMobile * 1000, perfTimers.icProcMobileN))
+		SpringShared.Echo(string.format("[PIP%d] total=%.1fms  feat=%.2fms  proj=%.2fms  expl=%.2fms  icons=%.2fms  items=%d", pipNumber, perfTimers.total * 1000, perfTimers.features * 1000, perfTimers.projectiles * 1000, perfTimers.explosions * 1000, perfTimers.icons * 1000, perfTimers.itemCount))
+		SpringShared.Echo(string.format("  icons: ghost=%.2fms  keysort=%.2fms  sort=%.2fms  process=%.2fms  upload=%.2fms  draw=%.2fms  unitpics=%.2fms  vboReuse=%.0f%%", perfTimers.icGhost * 1000, perfTimers.icKeysort * 1000, perfTimers.icSort * 1000, perfTimers.icProcess * 1000, perfTimers.icUpload * 1000, perfTimers.icDraw * 1000, perfTimers.icUnitpics * 1000, perfTimers.icVboReuse * 100))
+		SpringShared.Echo(string.format("    process: bldg=%.2fms(%d)  slowMob=%.2fms(%d)  fastMob=%.2fms(%d)", perfTimers.icProcBldg * 1000, perfTimers.icProcBldgN, perfTimers.icProcSlowMobile * 1000, perfTimers.icProcSlowMobileN, perfTimers.icProcMobile * 1000, perfTimers.icProcMobileN))
 	end
 end
 
@@ -12259,7 +12259,7 @@ end
 -- Helper function to calculate maximize icon rotation angle based on expansion direction
 local function GetMaximizeIconRotation()
 	-- Determine expansion direction based on current or minimize button position
-	local sw, sh = Spring.GetWindowGeometry()
+	local sw, sh = SpringUnsynced.GetWindowGeometry()
 	local posL, posB
 
 	-- Use current position when maximized (for minimize button rotation during drag/resize)
@@ -12352,7 +12352,7 @@ local function RenderFrameButtons()
 	local isTracking = interactionState.areTracking ~= nil
 	local isTrackingPlayer = interactionState.trackingPlayerID ~= nil
 	-- Show player tracking button when tracking, when spectating, or when having alive teammates
-	local spec = Spring.GetSpectatingState()
+	local spec = SpringUnsynced.GetSpectatingState()
 	local aliveTeammates = GetAliveTeammates()
 	local showPlayerTrackButton = isTrackingPlayer or spec or (#aliveTeammates > 0)
 	local visibleButtons = pools.visibleButtons
@@ -12377,7 +12377,7 @@ local function RenderFrameButtons()
 				if btn.command == "pip_switch" or btn.command == "pip_copy" then
 					skipButton = true
 				elseif btn.command == "pip_view" then
-					local _, fullview = Spring.GetSpectatingState()
+					local _, fullview = SpringUnsynced.GetSpectatingState()
 					if not fullview then
 						skipButton = true
 					end
@@ -12446,14 +12446,14 @@ end
 -- Helper function to render PIP contents (units, features, ground, command queues)
 -- Helper function to determine if LOS overlay should be shown and which allyteam to use
 local function ShouldShowLOS()
-	local myAllyTeam = Spring.GetLocalAllyTeamID()
-	local mySpec, fullview = Spring.GetSpectatingState()
+	local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
+	local mySpec, fullview = SpringUnsynced.GetSpectatingState()
 
 	-- If tracking a player's camera, use their allyteam (priority over LOS view)
 	if interactionState.trackingPlayerID then
 		local _, _, isSpec, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if teamID then
-			local allyTeamID = Spring.GetTeamAllyTeamID(teamID)
+			local allyTeamID = SpringShared.GetTeamAllyTeamID(teamID)
 			-- Always return the tracked player's allyteam for LOS generation
 			-- Even without fullview, we can manually generate their LOS at this location
 			return true, allyTeamID
@@ -12502,7 +12502,7 @@ local function GetWaterLevel()
 	-- Lazy fallback: try reading game rule on first use (covers the gap between
 	-- widget init and the first Update() poll, avoiding wrong waterLevel=0 on lava maps)
 	if mapInfo.isLava then
-		local level = Spring.GetGameRulesParam("lavaLevel")
+		local level = SpringShared.GetGameRulesParam("lavaLevel")
 		if level and level ~= -99999 then
 			mapInfo.dynamicWaterLevel = level
 			return level
@@ -12530,20 +12530,20 @@ local function UpdateLavaRenderState()
 	end -- gadget is handling it
 
 	-- Compute tide-adjusted level (same formula as gadget's GameFrame)
-	local baseLavaLevel = Spring.GetGameRulesParam("lavaLevel")
+	local baseLavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 	if baseLavaLevel and baseLavaLevel ~= -99999 then
-		local gameFrame = Spring.GetGameFrame()
+		local gameFrame = SpringShared.GetGameFrame()
 		local tidePeriod = mapInfo.lavaTidePeriod or 200
 		local tideAmplitude = mapInfo.lavaTideAmplitude or 2
 		lrs.level = math.sin(gameFrame / tidePeriod) * tideAmplitude + baseLavaLevel
 	end
 
 	-- Compute heat distortion (same formula as gadget's DrawWorldPreUnit)
-	local _, _, isPaused = Spring.GetGameSpeed()
+	local _, _, isPaused = SpringUnsynced.GetGameSpeed()
 	if not isPaused then
-		local camX, camY, camZ = Spring.GetCameraDirection()
+		local camX, camY, camZ = SpringUnsynced.GetCameraDirection()
 		local camvlength = math.sqrt(camX * camX + camZ * camZ + 0.01)
-		lrs.smoothFPS = 0.9 * lrs.smoothFPS + 0.1 * math.max(Spring.GetFPS(), 15)
+		lrs.smoothFPS = 0.9 * lrs.smoothFPS + 0.1 * math.max(SpringUnsynced.GetFPS(), 15)
 		lrs.heatDistortX = lrs.heatDistortX - camX / (camvlength * lrs.smoothFPS)
 		lrs.heatDistortZ = lrs.heatDistortZ - camZ / (camvlength * lrs.smoothFPS)
 	end
@@ -12573,7 +12573,7 @@ local function DrawWaterAndLOSOverlays()
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterLevel"), GetWaterLevel())
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "isLava"), mapInfo.isLava and 1.0 or 0.0)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasLavaTex"), mapInfo.lavaDiffuseEmitTex and 1.0 or 0.0)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), Spring.GetGameFrame())
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), SpringShared.GetGameFrame())
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastColor"), mapInfo.lavaCoastColor[1], mapInfo.lavaCoastColor[2], mapInfo.lavaCoastColor[3])
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "colorCorrection"), mapInfo.lavaColorCorrection[1], mapInfo.lavaColorCorrection[2], mapInfo.lavaColorCorrection[3])
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastWidth"), mapInfo.lavaCoastWidth)
@@ -12717,7 +12717,7 @@ local function DrawMapMarkers()
 			-- Filter markers by allyteam if LOS view is limited
 			local shouldDraw = true
 			if filterByAllyTeam and marker.teamID then
-				local markerAllyTeam = Spring.GetTeamAllyTeamID(marker.teamID)
+				local markerAllyTeam = SpringShared.GetTeamAllyTeamID(marker.teamID)
 				shouldDraw = (markerAllyTeam == losAllyTeam)
 			end
 
@@ -12767,7 +12767,7 @@ local function DrawMapMarkers()
 					if marker.isSpectator then
 						r, g, b = 1, 1, 1 -- White for spectators
 					elseif marker.teamID then
-						r, g, b = Spring.GetTeamColor(marker.teamID)
+						r, g, b = SpringUnsynced.GetTeamColor(marker.teamID)
 					end
 
 					-- Draw rotating rectangle
@@ -12811,7 +12811,7 @@ local function DrawBuildCursorWithRotation()
 	local mx, my = spFunc.GetMouseState()
 
 	-- Get active command
-	local _, cmdID = Spring.GetActiveCommand()
+	local _, cmdID = SpringUnsynced.GetActiveCommand()
 	if not cmdID then
 		return
 	end
@@ -12822,7 +12822,7 @@ local function DrawBuildCursorWithRotation()
 	-- then show the preview if that world position falls within the PIP's visible area
 	local worldTraceX, worldTraceZ
 	if not mouseOverPip then
-		local _, pos = Spring.TraceScreenRay(mx, my, true)
+		local _, pos = SpringUnsynced.TraceScreenRay(mx, my, true)
 		if pos then
 			worldTraceX, worldTraceZ = pos[1], pos[3]
 			-- Check if the traced world position is visible in the PIP
@@ -12878,7 +12878,7 @@ local function DrawBuildCursorWithRotation()
 			local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
 			if mexBuildings then
 				if not frameSel then
-					frameSel = Spring.GetSelectedUnits()
+					frameSel = SpringUnsynced.GetSelectedUnits()
 				end
 				local selectedUnits = frameSel
 				local mexConstructors = WG.resource_spot_builder and WG.resource_spot_builder.GetMexConstructors()
@@ -12888,7 +12888,7 @@ local function DrawBuildCursorWithRotation()
 					local buildIcon = cache.unitIcon[selectedMex]
 					if buildIcon then
 						local resScale = render.contentScale or 1
-						local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+						local unitBaseSize = SpringUnsynced.GetConfigFloat("MinimapIconScale", 3.5)
 						local iconRadiusZoomDistMult = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale
 						local iconSize = iconRadiusZoomDistMult * buildIcon.size * 0.8
 						local mapRotDeg = render.minimapRotation ~= 0 and (-render.minimapRotation * 180 / math.pi) or 0
@@ -12988,8 +12988,8 @@ local function DrawBuildCursorWithRotation()
 		wy = spFunc.GetGroundHeight(wx, wz)
 	end
 
-	local buildFacing = Spring.GetBuildFacing()
-	local buildTest = Spring.TestBuildOrder(buildDefID, wx, wy, wz, buildFacing)
+	local buildFacing = SpringUnsynced.GetBuildFacing()
+	local buildTest = SpringShared.TestBuildOrder(buildDefID, wx, wy, wz, buildFacing)
 
 	-- Draw unit icon with buildability coloring
 	if cache.unitIcon[buildDefID] then
@@ -12997,7 +12997,7 @@ local function DrawBuildCursorWithRotation()
 		local texture = iconData.bitmap
 		-- Engine-matching icon size (same as GL4DrawIcons/DrawIcons)
 		local resScale = render.contentScale or 1
-		local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+		local unitBaseSize = SpringUnsynced.GetConfigFloat("MinimapIconScale", 3.5)
 		local iconSize = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale * iconData.size
 		local sx, sy = WorldToPipCoords(wx, wz)
 
@@ -13006,7 +13006,7 @@ local function DrawBuildCursorWithRotation()
 			glFunc.Color(1, 1, 1, 0.7)
 		elseif buildTest == 1 then
 			local blockedByMobile = false
-			local nearbyUnits = Spring.GetUnitsInCylinder(wx, wz, 64)
+			local nearbyUnits = SpringShared.GetUnitsInCylinder(wx, wz, 64)
 			if nearbyUnits then
 				for _, unitID in ipairs(nearbyUnits) do
 					local unitDefID = spFunc.GetUnitDefID(unitID)
@@ -13124,14 +13124,14 @@ local function DrawCameraViewBounds()
 	end
 
 	-- Get screen dimensions
-	local vsx, vsy = Spring.GetViewGeometry()
+	local vsx, vsy = SpringUnsynced.GetViewGeometry()
 
 	-- Get camera position for ray origin
-	local camX, camY, camZ = Spring.GetCameraPosition()
+	local camX, camY, camZ = SpringUnsynced.GetCameraPosition()
 
 	-- Trace screen center to find ground Y (matches engine's TraceRay::GuiTraceRay at screen center)
 	local groundY
-	local _, centerPos = Spring.TraceScreenRay(math.floor(vsx / 2), math.floor(vsy / 2), true)
+	local _, centerPos = SpringUnsynced.TraceScreenRay(math.floor(vsx / 2), math.floor(vsy / 2), true)
 	if centerPos then
 		groundY = centerPos[2]
 	else
@@ -13145,7 +13145,7 @@ local function DrawCameraViewBounds()
 	local farDist = 50000 -- reference distance for behind-camera projection scaling
 	local negCount = 0
 	local function screenToGround(sx, sy)
-		local dirX, dirY, dirZ = Spring.GetPixelDir(sx, sy)
+		local dirX, dirY, dirZ = SpringUnsynced.GetPixelDir(sx, sy)
 
 		-- Compute intersection parameter with groundY plane
 		-- Use farDist-scaled direction so t=1 means the far reference point (like engine's frustum vert)
@@ -13685,7 +13685,7 @@ end
 -- Called inside R2T context for the oversized unitsTex
 local function RenderExpensiveLayers()
 	if not frameSel then
-		frameSel = Spring.GetSelectedUnits()
+		frameSel = SpringUnsynced.GetSelectedUnits()
 	end
 	local cachedSelectedUnits = frameSel
 
@@ -13717,7 +13717,7 @@ end
 local function RenderPipContents()
 	-- Use frame-cached selected units to avoid redundant API call
 	if not frameSel then
-		frameSel = Spring.GetSelectedUnits()
+		frameSel = SpringUnsynced.GetSelectedUnits()
 	end
 	local cachedSelectedUnits = frameSel
 
@@ -13781,7 +13781,7 @@ local function RenderPipContents()
 	-- Blit map ruler AFTER rotation pop so marks stay at screen edges
 	-- The ruler texture already maps world coordinates for the current rotation angle
 	if uiState.drawingGround and config.showMapRuler then
-		local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
+		local _, _, spec = spFunc.GetPlayerInfo(SpringUnsynced.GetLocalPlayerID(), false)
 		if not spec then
 			BlitMapRuler()
 		end
@@ -13816,7 +13816,7 @@ local function DrawBoxSelection()
 	local selectionboxEnabled = widgetHandler:IsWidgetKnown("Selectionbox") and (widgetHandler.orderList.Selectionbox and widgetHandler.knownWidgets.Selectionbox.active)
 
 	-- Get modifier key states (ignoring alt as requested)
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 
 	-- Determine background color based on modifier keys (only if selectionbox widget is enabled)
 	local bgAlpha = 0.03
@@ -13886,7 +13886,7 @@ local function DrawAreaCommand()
 	end
 
 	local mx, my = spFunc.GetMouseState()
-	local _, cmdID = Spring.GetActiveCommand()
+	local _, cmdID = SpringUnsynced.GetActiveCommand()
 	if not cmdID or cmdID <= 0 then
 		return
 	end
@@ -13946,7 +13946,7 @@ local function DrawBuildCursor()
 	end
 
 	-- Get active command
-	local _, cmdID = Spring.GetActiveCommand()
+	local _, cmdID = SpringUnsynced.GetActiveCommand()
 	if not cmdID or cmdID >= 0 then
 		return
 	end
@@ -13969,10 +13969,10 @@ local function DrawBuildCursor()
 	local wy = spFunc.GetGroundHeight(wx, wz)
 
 	-- Get build facing
-	local buildFacing = Spring.GetBuildFacing()
+	local buildFacing = SpringUnsynced.GetBuildFacing()
 
 	-- Test if building can be placed here (returns 0 if not buildable, or a positive value if buildable)
-	local buildTest = Spring.TestBuildOrder(buildDefID, wx, wy, wz, buildFacing)
+	local buildTest = SpringShared.TestBuildOrder(buildDefID, wx, wy, wz, buildFacing)
 	local canBuild = (buildTest and buildTest > 0)
 
 	-- Draw unit icon at cursor position with 0.7 opacity
@@ -13982,7 +13982,7 @@ local function DrawBuildCursor()
 
 		-- Engine-matching icon size (same as GL4DrawIcons/DrawIcons)
 		local resScale = render.contentScale or 1
-		local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+		local unitBaseSize = SpringUnsynced.GetConfigFloat("MinimapIconScale", 3.5)
 		local iconSize = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale * iconData.size
 
 		local sx, sy = WorldToPipCoords(wx, wz)
@@ -14097,7 +14097,7 @@ local function DrawTrackedPlayerName()
 		end
 
 		-- Get team color
-		local r, g, b = Spring.GetTeamColor(teamID)
+		local r, g, b = SpringUnsynced.GetTeamColor(teamID)
 		local fontSize = math.floor(20 * render.widgetScale)
 		local padding = math.floor(17 * render.widgetScale)
 		local centerX = (render.dim.l + render.dim.r) / 2
@@ -14152,22 +14152,22 @@ local function DrawTrackedPlayerResourceBars()
 
 	-- Get team resources - this works for spectators viewing any team
 	-- Returns: current, storage, pull, income, expense, share
-	local metalCur, metalMax, metalPull, metalIncome, metalExpense, metalShare = Spring.GetTeamResources(teamID, "metal")
-	local energyCur, energyMax, energyPull, energyIncome, energyExpense, energyShare = Spring.GetTeamResources(teamID, "energy")
+	local metalCur, metalMax, metalPull, metalIncome, metalExpense, metalShare = SpringShared.GetTeamResources(teamID, "metal")
+	local energyCur, energyMax, energyPull, energyIncome, energyExpense, energyShare = SpringShared.GetTeamResources(teamID, "energy")
 
 	if not (metalCur and energyCur) then
 		return
 	end
 
 	-- Get energy conversion level (mmLevel)
-	local mmLevel = Spring.GetTeamRulesParam(teamID, "mmLevel")
+	local mmLevel = SpringShared.GetTeamRulesParam(teamID, "mmLevel")
 	if mmLevel == nil then
 		mmLevel = 1
 	end
 
 	-- Check if player has teammates (for share slider)
-	local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
-	local allyTeamList = Spring.GetTeamList(allyTeamID)
+	local _, _, _, _, _, allyTeamID = SpringShared.GetTeamInfo(teamID, false)
+	local allyTeamList = SpringShared.GetTeamList(allyTeamID)
 	local hasTeammates = allyTeamList and #allyTeamList > 1
 
 	-- Calculate bar dimensions - compact version at top of PIP
@@ -14384,7 +14384,7 @@ local function DrawTrackedPlayerMinimap()
 		playerName, active, isSpec, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 	else
 		-- Use local player's team
-		teamID = Spring.GetLocalTeamID()
+		teamID = SpringUnsynced.GetLocalTeamID()
 	end
 	if not teamID then
 		interactionState.pipMinimapBounds = nil
@@ -14625,7 +14625,7 @@ local function DrawTrackedPlayerMinimap()
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterLevel"), GetWaterLevel())
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "isLava"), mapInfo.isLava and 1.0 or 0.0)
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasLavaTex"), mapInfo.lavaDiffuseEmitTex and 1.0 or 0.0)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), Spring.GetGameFrame())
+		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), SpringShared.GetGameFrame())
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastColor"), mapInfo.lavaCoastColor[1], mapInfo.lavaCoastColor[2], mapInfo.lavaCoastColor[3])
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "colorCorrection"), mapInfo.lavaColorCorrection[1], mapInfo.lavaColorCorrection[2], mapInfo.lavaColorCorrection[3])
 		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastWidth"), mapInfo.lavaCoastWidth)
@@ -14894,7 +14894,7 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 	end
 
 	-- Get current rotation early (before shouldUpdate check) so rotation changes are detected
-	local currentRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+	local currentRotation = SpringUnsynced.GetMiniMapRotation and SpringUnsynced.GetMiniMapRotation() or 0
 
 	local resScale = config.contentResolutionScale
 	local margin = config.smoothCameraMargin
@@ -15014,7 +15014,7 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 			-- Use pcall so restore always runs even if rendering errors
 			local ok, err = pcall(RenderExpensiveLayers)
 			if not ok then
-				Spring.Echo("[PIP] Units render error: " .. tostring(err))
+				SpringShared.Echo("[PIP] Units render error: " .. tostring(err))
 				-- Emergency GL state cleanup: RenderExpensiveLayers may have left dirty state
 				gl.UseShader(0)
 				glFunc.Texture(0, false)
@@ -15061,7 +15061,7 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 	local sizeChanged = math.floor(pipWidth) ~= pipR2T.contentLastWidth or math.floor(pipHeight) ~= pipR2T.contentLastHeight
 
 	-- Check if rotation changed (rotation is baked into the texture)
-	local currentRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+	local currentRotation = SpringUnsynced.GetMiniMapRotation and SpringUnsynced.GetMiniMapRotation() or 0
 	local rotChanged = pipR2T.contentRotation ~= currentRotation
 
 	-- Check if camera has drifted far enough to consume most of the margin
@@ -15180,7 +15180,7 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 			-- Render cheap layers (ground, water, LOS)
 			local ok, err = pcall(RenderCheapLayers)
 			if not ok then
-				Spring.Echo("[PIP] Cheap layers render error: " .. tostring(err))
+				SpringShared.Echo("[PIP] Cheap layers render error: " .. tostring(err))
 				-- Emergency GL state cleanup: RenderCheapLayers may have left dirty state
 				-- (active shader, wrong blend equation, pushed matrix, bound textures, scissor)
 				gl.UseShader(0)
@@ -15242,7 +15242,7 @@ InitGL4Decals = function()
 
 	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not vbo then
-		Spring.Echo("[PIP] GL4 decals: Failed to create VBO")
+		SpringShared.Echo("[PIP] GL4 decals: Failed to create VBO")
 		return
 	end
 	vbo:Define(decalGL4.MAX_INSTANCES, {
@@ -15254,7 +15254,7 @@ InitGL4Decals = function()
 
 	local vao = gl.GetVAO()
 	if not vao then
-		Spring.Echo("[PIP] GL4 decals: Failed to create VAO")
+		SpringShared.Echo("[PIP] GL4 decals: Failed to create VAO")
 		vbo:Delete()
 		return
 	end
@@ -15276,7 +15276,7 @@ InitGL4Decals = function()
 		invMapSize = gl.GetUniformLocation(shaders.decal, "invMapSize"),
 	}
 
-	Spring.Echo("[PIP] GL4 instanced decal rendering enabled")
+	SpringShared.Echo("[PIP] GL4 instanced decal rendering enabled")
 end
 
 -- Destroy GL4 decal resources
@@ -15405,7 +15405,7 @@ local function UpdateDecalTexture()
 	end
 
 	-- Rate-limit: only run every N game frames (~1 sec)
-	local frame = Spring.GetGameFrame()
+	local frame = SpringShared.GetGameFrame()
 	if (frame - pipR2T.decalLastCheckFrame) < pipR2T.decalCheckInterval then
 		return
 	end
@@ -15450,14 +15450,14 @@ local function UpdateLOSTexture(currentTime)
 		return
 	end
 
-	local myAllyTeam = Spring.GetLocalAllyTeamID()
+	local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 	-- Can only use engine LOS if:
 	-- 1. Same allyteam as us
 	-- 2. If tracking a player, must have fullview enabled (engine LOS requires fullview for enemy teams)
 	local useEngineLOS = (losAllyTeam == myAllyTeam)
 	if interactionState.trackingPlayerID and losAllyTeam ~= myAllyTeam then
 		-- Tracking an enemy player - must have fullview to use engine LOS
-		local _, fullview = Spring.GetSpectatingState()
+		local _, fullview = SpringUnsynced.GetSpectatingState()
 		if not fullview then
 			-- Without fullview, must manually generate enemy LOS
 			useEngineLOS = false
@@ -15503,7 +15503,7 @@ local function UpdateLOSTexture(currentTime)
 	-- Check if we can actually query this allyTeam's LOS
 	-- Without fullview, we can only query our own allyTeam
 	if losAllyTeam ~= myAllyTeam then
-		local _, fullview = Spring.GetSpectatingState()
+		local _, fullview = SpringUnsynced.GetSpectatingState()
 		if not fullview then
 			-- Can't query enemy LOS without fullview - skip update
 			return
@@ -15636,7 +15636,7 @@ local function DrawTrackingIndicators()
 	if interactionState.trackingPlayerID then
 		local playerName, active, isSpec, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if teamID then
-			local r, g, b = Spring.GetTeamColor(teamID)
+			local r, g, b = SpringUnsynced.GetTeamColor(teamID)
 			local lineWidth = math.ceil(3 * (render.vsx / 1920))
 			glFunc.Color(r, g, b, 0.5)
 			render.RectRoundOutline(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner * 0.5, lineWidth, 1, 1, 1, 1, { r, g, b, 0.5 }, { r, g, b, 0.5 })
@@ -15699,24 +15699,24 @@ local function HandleHoverAndCursor(mx, my)
 
 	-- Handle cursor - this runs every frame for smooth cursor updates
 	-- Don't change cursor for spectators (unless config allows it)
-	local isSpec = Spring.GetSpectatingState()
+	local isSpec = SpringUnsynced.GetSpectatingState()
 	local canGiveCommands = not isSpec or config.allowCommandsWhenSpectating
 	local lastHoveredUnitID = interactionState.lastHoveredUnitID
 	if canGiveCommands then
-		local _, activeCmdID = Spring.GetActiveCommand()
+		local _, activeCmdID = SpringUnsynced.GetActiveCommand()
 		if not activeCmdID then
-			local defaultCmd = Spring.GetDefaultCommand()
+			local defaultCmd = SpringUnsynced.GetDefaultCommand()
 
 			if not defaultCmd or defaultCmd == 0 then
 				if frameSelCount > 0 then
 					if not frameSel then
-						frameSel = Spring.GetSelectedUnits()
+						frameSel = SpringUnsynced.GetSelectedUnits()
 					end
 					local selectedUnits = frameSel
 					-- Check if hovering over an enemy unit with units that can attack
 					-- But don't show attack cursor for neutral units
-					if lastHoveredUnitID and not Spring.IsUnitAllied(lastHoveredUnitID) then
-						local allyTeam = Spring.GetUnitAllyTeam(lastHoveredUnitID)
+					if lastHoveredUnitID and not SpringUnsynced.IsUnitAllied(lastHoveredUnitID) then
+						local allyTeam = SpringShared.GetUnitAllyTeam(lastHoveredUnitID)
 						local isNeutral = (allyTeam == cache.gaiaAllyTeamID)
 
 						-- Check if unit is visible (LOS or radar)
@@ -15733,7 +15733,7 @@ local function HandleHoverAndCursor(mx, my)
 							for i = 1, #selectedUnits do
 								local uDefID = spFunc.GetUnitDefID(selectedUnits[i])
 								if uDefID and cache.canAttack[uDefID] then
-									Spring.SetMouseCursor("Attack")
+									SpringUnsynced.SetMouseCursor("Attack")
 									return
 								end
 							end
@@ -15742,11 +15742,11 @@ local function HandleHoverAndCursor(mx, my)
 
 					-- Check if we have a transport and are hovering over a transportable unit
 					-- Use cached result from throttled check above
-					if lastHoveredUnitID and Spring.IsUnitAllied(lastHoveredUnitID) then
+					if lastHoveredUnitID and SpringUnsynced.IsUnitAllied(lastHoveredUnitID) then
 						-- Check if any transport in selection can load this unit
 						for i = 1, #selectedUnits do
 							if CanTransportLoadUnit(selectedUnits[i], lastHoveredUnitID) then
-								Spring.SetMouseCursor("Load")
+								SpringUnsynced.SetMouseCursor("Load")
 								return
 							end
 						end
@@ -15756,20 +15756,20 @@ local function HandleHoverAndCursor(mx, my)
 					for i = 1, #selectedUnits do
 						local uDefID = spFunc.GetUnitDefID(selectedUnits[i])
 						if uDefID and (cache.canMove[uDefID] or cache.canFly[uDefID]) then
-							Spring.SetMouseCursor("Move")
+							SpringUnsynced.SetMouseCursor("Move")
 							return
 						end
 					end
 				end
-			elseif defaultCmd == CMD.ATTACK and lastHoveredUnitID and not Spring.IsUnitAllied(lastHoveredUnitID) then
+			elseif defaultCmd == CMD.ATTACK and lastHoveredUnitID and not SpringUnsynced.IsUnitAllied(lastHoveredUnitID) then
 				-- Hovering over enemy unit with units that can attack
-				Spring.SetMouseCursor("Attack")
+				SpringUnsynced.SetMouseCursor("Attack")
 				return
 			end
 		else
 			local cursorName = cmdCursors[activeCmdID]
 			if cursorName then
-				Spring.SetMouseCursor(cursorName)
+				SpringUnsynced.SetMouseCursor(cursorName)
 			end
 		end
 	end
@@ -15811,7 +15811,7 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 			if btn.command == "pip_switch" or btn.command == "pip_copy" then
 				skipButton = true
 			elseif btn.command == "pip_view" then
-				local _, fullview = Spring.GetSpectatingState()
+				local _, fullview = SpringUnsynced.GetSpectatingState()
 				if not fullview then
 					skipButton = true
 				end
@@ -15824,13 +15824,13 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			elseif btn.command == "pip_trackplayer" then
-				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
+				local _, _, spec = spFunc.GetPlayerInfo(SpringUnsynced.GetLocalPlayerID(), false)
 				local aliveTeammates = GetAliveTeammates()
 				if (interactionState.trackingPlayerID or spec or (#aliveTeammates > 0)) and not miscState.tvEnabled then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			elseif btn.command == "pip_view" then
-				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
+				local _, _, spec = spFunc.GetPlayerInfo(SpringUnsynced.GetLocalPlayerID(), false)
 				if spec then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
@@ -15941,7 +15941,7 @@ function widget:DrawScreen()
 	-- Guards against other widgets (e.g. Minimap widget briefly enabled during reload)
 	-- or engine commands resetting the minimize/slave state between frames.
 	if isMinimapMode and not miscState.engineMinimapActive then
-		Spring.SendCommands("minimap minimize 1")
+		SpringUnsynced.SendCommands("minimap minimize 1")
 	end
 
 	-- In minimap mode, honour MinimapMinimize to hide the PIP minimap
@@ -15958,7 +15958,7 @@ function widget:DrawScreen()
 		render.UiElement(btnL - render.elementPadding, btnB - render.elementPadding, btnR + render.elementPadding, btnT + render.elementPadding, tl, tr, br, bl, nil, nil, nil, nil, nil, nil, nil, nil)
 
 		-- Icon with rotation based on expansion direction
-		local sw, sh = Spring.GetWindowGeometry()
+		local sw, sh = SpringUnsynced.GetWindowGeometry()
 		local onLeftSide = (btnL < sw * 0.5)
 		local onBottomSide = (btnB < sh * 0.25)
 		local rotation
@@ -16008,7 +16008,7 @@ function widget:DrawScreen()
 		local offset = render.elementPadding + 2 -- to prevent touching screen edges and FlowUI Element will remove borders
 
 		-- Check if we need to recreate display list due to position change (affects rotation)
-		local sw, sh = Spring.GetWindowGeometry()
+		local sw, sh = SpringUnsynced.GetWindowGeometry()
 		local currentQuadrant = (uiState.minModeL < sw * 0.5 and 1 or 2) + (uiState.minModeB < sh * 0.25 and 0 or 2)
 		-- Also track edge state for chamfered corners
 		local actualL = uiState.minModeL - render.elementPadding
@@ -16108,24 +16108,24 @@ function widget:DrawScreen()
 	if useEngineMinimapFallback then
 		-- Transition: PIP → engine minimap
 		if not miscState.engineMinimapActive then
-			miscState.baseMinimapIconScale = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+			miscState.baseMinimapIconScale = SpringUnsynced.GetConfigFloat("MinimapIconScale", 3.5)
 			miscState.engineMinimapActive = true
 		end
 		-- Always update geometry (handles animation, resize, position changes)
-		Spring.SendCommands(string.format("minimap geometry %d %d %d %d", math.floor(render.dim.l), math.floor(render.vsy - render.dim.t), math.floor(pipWidth), math.floor(pipHeight)))
+		SpringUnsynced.SendCommands(string.format("minimap geometry %d %d %d %d", math.floor(render.dim.l), math.floor(render.vsy - render.dim.t), math.floor(pipWidth), math.floor(pipHeight)))
 		-- Apply density-scaled icon size for engine minimap
 		if config.iconDensityScaling and miscState.baseMinimapIconScale then
 			local totalUnits = #miscState.pipUnits
 			local unitFraction = math.min(totalUnits / config.iconDensityMaxUnits, 1.0)
 			local densityScale = 1.0 - (1.0 - config.iconDensityMinScale) * unitFraction
 			local resBoost = 1.0 + 0.18 * math.min(math.max((render.vsy - 1080) / (2880 - 1080), 0), 1)
-			Spring.SendCommands("minimap unitsize " .. (miscState.baseMinimapIconScale * densityScale * resBoost))
+			SpringUnsynced.SendCommands("minimap unitsize " .. (miscState.baseMinimapIconScale * densityScale * resBoost))
 		end
 		-- Keep minimap unminimized so the engine updates its internal FBO each frame.
 		-- SlaveMiniMap(true) prevents the engine from drawing it visually — we control
 		-- when it appears via gl.DrawMiniMap(). Without this, the minimap FBO is stale
 		-- because the engine skips updating minimized minimaps.
-		Spring.SendCommands("minimap minimize 0")
+		SpringUnsynced.SendCommands("minimap minimize 0")
 		gl.SlaveMiniMap(true)
 		gl.DrawMiniMap()
 
@@ -16171,11 +16171,11 @@ function widget:DrawScreen()
 		if miscState.engineMinimapActive then
 			-- Restore original icon scale
 			if miscState.baseMinimapIconScale then
-				Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
-				Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+				SpringUnsynced.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
+				SpringUnsynced.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
 				miscState.baseMinimapIconScale = nil
 			end
-			Spring.SendCommands("minimap minimize 1")
+			SpringUnsynced.SendCommands("minimap minimize 1")
 			miscState.engineMinimapActive = false
 			pipR2T.contentNeedsUpdate = true
 			pipR2T.unitsNeedsUpdate = true
@@ -16215,7 +16215,7 @@ function widget:DrawScreen()
 		-- The main transition detection code (below) runs AFTER UpdateR2TUnits,
 		-- so detect the change here to ensure the ghost pass runs on the same frame.
 		do
-			local _, fv = Spring.GetSpectatingState()
+			local _, fv = SpringUnsynced.GetSpectatingState()
 			if miscState.lastFullview ~= nil and miscState.lastFullview ~= fv then
 				pipR2T.unitsNeedsUpdate = true
 			end
@@ -16353,7 +16353,7 @@ function widget:DrawScreen()
 
 			-- Blit map ruler directly to screen (not in oversized texture — rulers are edge-fixed)
 			if uiState.drawingGround and config.showMapRuler then
-				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
+				local _, _, spec = spFunc.GetPlayerInfo(SpringUnsynced.GetLocalPlayerID(), false)
 				if not spec then
 					UpdateMapRulerTexture()
 					if pipR2T.rulerTex then
@@ -16727,7 +16727,7 @@ function widget:DrawWorld()
 		local radius = math.sqrt(dx * dx + dz * dz)
 
 		if radius > 5 then -- Only draw if dragged more than 5 elmos
-			local _, cmdID = Spring.GetActiveCommand()
+			local _, cmdID = SpringUnsynced.GetActiveCommand()
 			if cmdID and cmdID > 0 then
 				local color = cmdColors[cmdID] or cmdColors.unknown
 				local wy = spFunc.GetGroundHeight(startWX, startWZ)
@@ -16850,7 +16850,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	if interactionState.trackingPlayerID then
 		local _, _, _, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if teamID then
-			r, g, b = Spring.GetTeamColor(teamID)
+			r, g, b = SpringUnsynced.GetTeamColor(teamID)
 		end
 	end
 
@@ -16900,7 +16900,7 @@ function widget:Update(dt)
 		cache.guishaderWasActive = guishaderActive
 		-- Poll ConfigFloat for external changes (e.g. from gui_options)
 		if isMinimapMode then
-			local cfgMaxHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32)
+			local cfgMaxHeight = SpringUnsynced.GetConfigFloat("MinimapMaxHeight", 0.32)
 			if cfgMaxHeight ~= config.minimapModeMaxHeight then
 				config.minimapModeMaxHeight = cfgMaxHeight
 				widget:ViewResize()
@@ -16909,7 +16909,7 @@ function widget:Update(dt)
 		-- Detect team color changes (e.g. anonymous mode toggle, player swaps)
 		local colorsChanged = false
 		for tID, cached in pairs(teamColors) do
-			local r, g, b, a = Spring.GetTeamColor(tID)
+			local r, g, b, a = SpringUnsynced.GetTeamColor(tID)
 			if r ~= cached[1] or g ~= cached[2] or b ~= cached[3] then
 				cached[1], cached[2], cached[3], cached[4] = r, g, b, a
 				colorsChanged = true
@@ -16931,10 +16931,10 @@ function widget:Update(dt)
 	-- Auto-disable LOS view when the watched allyteam is fully dead
 	if state.losViewEnabled and state.losViewAllyTeam then
 		local allDead = true
-		local teams = Spring.GetTeamList(state.losViewAllyTeam)
+		local teams = SpringShared.GetTeamList(state.losViewAllyTeam)
 		if teams then
 			for t = 1, #teams do
-				local _, _, isDead = Spring.GetTeamInfo(teams[t], false)
+				local _, _, isDead = SpringShared.GetTeamInfo(teams[t], false)
 				if not isDead then
 					allDead = false
 					break
@@ -16962,7 +16962,7 @@ function widget:Update(dt)
 	-- The draw-path check only catches ghosts within the PIP viewport; this catches all of them
 	local cleanupAllyTeam
 	if not cameraState.mySpecState then
-		cleanupAllyTeam = Spring.GetLocalAllyTeamID()
+		cleanupAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 	elseif state.losViewEnabled and state.losViewAllyTeam then
 		cleanupAllyTeam = state.losViewAllyTeam
 	end
@@ -17000,7 +17000,7 @@ function widget:Update(dt)
 		cache.leftClickMoveTimer = (cache.leftClickMoveTimer or 0) + dt
 		if cache.leftClickMoveTimer >= 2.0 then
 			cache.leftClickMoveTimer = 0
-			local cur = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1
+			local cur = SpringUnsynced.GetConfigInt("MinimapLeftClickMove", 1) == 1
 			if cur ~= config.leftButtonPansCamera then
 				config.leftButtonPansCamera = cur
 			end
@@ -17009,7 +17009,7 @@ function widget:Update(dt)
 
 	-- In minimap mode, check if rotation changed and recalculate dimensions if needed
 	if isMinimapMode then
-		local currentRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+		local currentRotation = SpringUnsynced.GetMiniMapRotation and SpringUnsynced.GetMiniMapRotation() or 0
 
 		-- Only care about rotation category changes (0°/180° vs 90°/270°)
 		local function getRotationCategory(rot)
@@ -17045,7 +17045,7 @@ function widget:Update(dt)
 		end
 	else
 		-- Non-minimap mode: detect rotation category changes and re-clamp camera
-		local currentRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+		local currentRotation = SpringUnsynced.GetMiniMapRotation and SpringUnsynced.GetMiniMapRotation() or 0
 		local function getRotCat(rot)
 			local rotDeg = math.abs(rot * 180 / math.pi) % 180
 			return (rotDeg > 45 and rotDeg < 135) and 1 or 0
@@ -17097,7 +17097,7 @@ function widget:Update(dt)
 			pipR2T.contentNeedsUpdate = true
 		end
 		-- Non-lava water: poll base water level from game rules
-		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+		local lavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 		if lavaLevel and lavaLevel ~= -99999 then
 			if mapInfo.dynamicWaterLevel ~= lavaLevel then
 				local oldLevel = mapInfo.dynamicWaterLevel
@@ -17117,7 +17117,7 @@ function widget:Update(dt)
 			widgetHandler:DisableWidget("Minimap")
 		end
 		-- Also ensure the engine minimap stays minimized
-		Spring.SendCommands("minimap minimize 1")
+		SpringUnsynced.SendCommands("minimap minimize 1")
 		-- Re-register WG['minimap'] API: the standard Minimap widget's Initialize
 		-- may have overwritten our registration (it has a higher layer number so
 		-- it initializes after us during luaui reload)
@@ -17128,20 +17128,20 @@ function widget:Update(dt)
 	-- In minimap mode, poll MinimapMinimize to honour the user's minimize setting
 	-- Skip while animation is in progress (animation completion handles the state change)
 	if isMinimapMode and not miscState.minimapMinimizeAnimating and not uiState.isAnimating then
-		local wantMinimized = Spring.GetConfigInt("MinimapMinimize", 0) == 1
+		local wantMinimized = SpringUnsynced.GetConfigInt("MinimapMinimize", 0) == 1
 		if wantMinimized ~= miscState.minimapMinimized then
 			miscState.minimapMinimized = wantMinimized
 			-- Deactivate engine minimap fallback if active (transition code re-fires on next DrawScreen)
 			if miscState.engineMinimapActive then
 				if miscState.baseMinimapIconScale then
-					Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
-					Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+					SpringUnsynced.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
+					SpringUnsynced.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
 					miscState.baseMinimapIconScale = nil
 				end
 				miscState.engineMinimapActive = false
 			end
 			-- Ensure engine minimap stays minimized and slaved (PIP controls rendering)
-			Spring.SendCommands("minimap minimize 1")
+			SpringUnsynced.SendCommands("minimap minimize 1")
 			gl.SlaveMiniMap(true)
 			-- Update guishader blur: remove when hidden, re-add when shown
 			if wantMinimized then
@@ -17181,7 +17181,7 @@ function widget:Update(dt)
 
 	-- Update spectating state and check if it changed
 	local oldSpecState = cameraState.mySpecState
-	local specState, fullviewState = Spring.GetSpectatingState()
+	local specState, fullviewState = SpringUnsynced.GetSpectatingState()
 	cameraState.mySpecState = specState
 
 	-- If spec state changed, update LOS texture
@@ -17233,29 +17233,29 @@ function widget:Update(dt)
 		if now - miscState.specGhostScanTime >= 2.0 then
 			miscState.specGhostScanTime = now
 			-- Use losViewAllyTeam when LOS view is active, otherwise GetMyAllyTeamID()
-			local scanAllyTeam = (state.losViewEnabled and state.losViewAllyTeam) or Spring.GetLocalAllyTeamID()
+			local scanAllyTeam = (state.losViewEnabled and state.losViewAllyTeam) or SpringUnsynced.GetLocalAllyTeamID()
 			-- Mark all existing ghosts for sweep
 			local stale = {}
 			for gID in pairs(ghostBuildings) do
 				stale[gID] = true
 			end
-			local allUnits = Spring.GetAllUnits()
+			local allUnits = SpringShared.GetAllUnits()
 			for i = 1, #allUnits do
 				local uID = allUnits[i]
-				local defID = Spring.GetUnitDefID(uID)
+				local defID = SpringShared.GetUnitDefID(uID)
 				if defID and cache.isBuilding[defID] then
-					local uTeam = Spring.GetUnitTeam(uID)
+					local uTeam = SpringShared.GetUnitTeam(uID)
 					if uTeam then
-						local uAllyTeam = Spring.GetTeamAllyTeamID(uTeam)
+						local uAllyTeam = SpringShared.GetTeamAllyTeamID(uTeam)
 						if uAllyTeam ~= scanAllyTeam then
 							-- Only record/keep buildings the viewed allyteam has seen (INLOS or PREVLOS).
 							-- With fullview, GetUnitLosState reliably returns any allyteam's LOS.
 							-- stale[uID] is only cleared inside the PREVLOS check so ghosts for
 							-- buildings the allyteam has NEVER seen get swept (not preserved).
-							local losBits = Spring.GetUnitLosState(uID, scanAllyTeam, true)
+							local losBits = SpringShared.GetUnitLosState(uID, scanAllyTeam, true)
 							if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
 								stale[uID] = nil -- seen and still alive, don't sweep
-								local x, _, z = Spring.GetUnitBasePosition(uID)
+								local x, _, z = SpringShared.GetUnitBasePosition(uID)
 								if x then
 									local g = ghostBuildings[uID]
 									if g then
@@ -17304,7 +17304,7 @@ function widget:Update(dt)
 		interactionState.lastHoverCheckX = mx
 		interactionState.lastHoverCheckY = my
 
-		local _, cmdID = Spring.GetActiveCommand()
+		local _, cmdID = SpringUnsynced.GetActiveCommand()
 		local wx, wz = PipToWorldCoords(mx, my)
 		local unitID = GetUnitAtPoint(wx, wz)
 
@@ -17316,7 +17316,7 @@ function widget:Update(dt)
 			-- Validate if this unit is a valid target for the command
 			elseif unitID then
 				local isValidTarget = true
-				local isAlly = Spring.IsUnitAllied(unitID)
+				local isAlly = SpringUnsynced.IsUnitAllied(unitID)
 				local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET_NO_GROUND
 
 				-- Commands that can only target enemy units
@@ -17335,11 +17335,11 @@ function widget:Update(dt)
 		-- No active command - check if we should highlight for transport loading or attack
 		elseif unitID then
 			if not frameSel then
-				frameSel = Spring.GetSelectedUnits()
+				frameSel = SpringUnsynced.GetSelectedUnits()
 			end
 			local selectedUnits = frameSel
 			local shouldHighlight = false
-			local isAlly = Spring.IsUnitAllied(unitID)
+			local isAlly = SpringUnsynced.IsUnitAllied(unitID)
 
 			if isAlly then
 				-- Check if any transport in selection can load this target unit
@@ -17352,7 +17352,7 @@ function widget:Update(dt)
 			else
 				-- Enemy unit - check if any selected unit can attack
 				-- But don't highlight neutral units
-				local allyTeam = Spring.GetUnitAllyTeam(unitID)
+				local allyTeam = SpringShared.GetUnitAllyTeam(unitID)
 				local isNeutral = (allyTeam == cache.gaiaAllyTeamID)
 
 				-- Check if unit is visible (LOS or radar)
@@ -17420,10 +17420,10 @@ function widget:Update(dt)
 		drawData.lastSelectionboxEnabled = selectionboxEnabled
 		if selectionboxEnabled then
 			-- Selectionbox widget is now enabled, disable engine's default selection box
-			Spring.LoadCmdColorsConfig("mouseBoxLineWidth 0")
+			SpringUnsynced.LoadCmdColorsConfig("mouseBoxLineWidth 0")
 		else
 			-- Selectionbox widget is now disabled, restore engine's default selection box
-			Spring.LoadCmdColorsConfig("mouseBoxLineWidth 1.5")
+			SpringUnsynced.LoadCmdColorsConfig("mouseBoxLineWidth 1.5")
 		end
 	end
 
@@ -17452,7 +17452,7 @@ function widget:Update(dt)
 	wallClockTime = wallClockTime + dt
 
 	-- Update game time (only when game is not paused)
-	local _, _, isPaused = Spring.GetGameSpeed()
+	local _, _, isPaused = SpringUnsynced.GetGameSpeed()
 	if not isPaused then
 		gameTime = gameTime + dt
 	end
@@ -17483,11 +17483,11 @@ function widget:Update(dt)
 					-- (so transition code re-fires correctly on next unminimize)
 					if miscState.engineMinimapActive then
 						if miscState.baseMinimapIconScale then
-							Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
-							Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+							SpringUnsynced.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
+							SpringUnsynced.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
 							miscState.baseMinimapIconScale = nil
 						end
-						Spring.SendCommands("minimap minimize 1")
+						SpringUnsynced.SendCommands("minimap minimize 1")
 						miscState.engineMinimapActive = false
 					end
 					-- Restore full dimensions so maximize animation can use them
@@ -18000,9 +18000,9 @@ function widget:Update(dt)
 	if not gameHasStarted and not isMinimapMode then
 		-- Only auto-focus on start position if not spectating or not tracking another player
 		-- Don't do this in minimap mode - the minimap should show the full map
-		local isSpec = Spring.GetSpectatingState()
+		local isSpec = SpringUnsynced.GetSpectatingState()
 		if not isSpec and not interactionState.trackingPlayerID then
-			local newX, _, newZ = Spring.GetTeamStartPosition(Spring.GetLocalTeamID())
+			local newX, _, newZ = SpringShared.GetTeamStartPosition(SpringUnsynced.GetLocalTeamID())
 			if newX ~= miscState.startX then
 				miscState.startX, miscState.startZ = newX, newZ
 				-- Apply map margin limits to start position
@@ -18025,7 +18025,7 @@ function widget:Update(dt)
 
 	-- Check for modifier key changes during box selection
 	if interactionState.areBoxSelecting then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 		local modifiersChanged = alt ~= interactionState.lastModifierState[1] or ctrl ~= interactionState.lastModifierState[2] or meta ~= interactionState.lastModifierState[3] or shift ~= interactionState.lastModifierState[4]
 
 		-- Also check for units moving in/out of selection box (throttled to ~15fps for continuous updates)
@@ -18048,7 +18048,7 @@ function widget:Update(dt)
 				WG.SmartSelect_SelectUnits(unitsInBox)
 			else
 				-- Fallback to engine default if smart select is disabled
-				Spring.SelectUnitArray(unitsInBox, shift) -- shift = append mode
+				SpringUnsynced.SelectUnitArray(unitsInBox, shift) -- shift = append mode
 			end
 		end
 	end
@@ -18063,7 +18063,7 @@ function widget:GameStart()
 	end
 
 	-- Automatically track the commander at game start (not for spectators or minimap mode)
-	local spec = Spring.GetSpectatingState()
+	local spec = SpringUnsynced.GetSpectatingState()
 	if not spec and not isMinimapMode then
 		local commanderID = FindMyCommander()
 		if commanderID then
@@ -18074,7 +18074,7 @@ function widget:GameStart()
 	-- On lava/water maps, read the lava level now that the gadget has initialized
 	-- (may not have been available during widget module-level init)
 	if mapInfo.isLava or mapInfo.hasWater then
-		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+		local lavaLevel = SpringShared.GetGameRulesParam("lavaLevel")
 		if lavaLevel and lavaLevel ~= -99999 then
 			if mapInfo.dynamicWaterLevel ~= lavaLevel then
 				mapInfo.dynamicWaterLevel = lavaLevel
@@ -18089,9 +18089,9 @@ function widget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 		return
 	end
 
-	local myAllyTeam = Spring.GetLocalAllyTeamID()
-	local spec, fullview = Spring.GetSpectatingState()
-	local unitAllyTeam = unitID and Spring.GetUnitAllyTeam(unitID) or allyTeam
+	local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
+	local spec, fullview = SpringUnsynced.GetSpectatingState()
+	local unitAllyTeam = unitID and SpringShared.GetUnitAllyTeam(unitID) or allyTeam
 
 	if (spec or allyTeam == myAllyTeam) and unitAllyTeam ~= allyTeam then
 		-- Calculate ping radius based on strength (strength is typically 1-10)
@@ -18173,7 +18173,7 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 	end -- Ensure icon has size data
 	-- Engine-matching icon size (same as GL4DrawIcons/DrawIcons)
 	local resScale = render.contentScale or 1
-	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+	local unitBaseSize = SpringUnsynced.GetConfigFloat("MinimapIconScale", 3.5)
 	local iconSize = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale * iconData.size
 
 	-- Skip shattering for tiny icons (too small to see fragments when zoomed out)
@@ -18283,7 +18283,7 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 
 	-- Create shatter effect with unit's current velocity (skip when minimized)
 	if not uiState.inMinMode then
-		local vx, vy, vz = Spring.GetUnitVelocity(unitID)
+		local vx, vy, vz = SpringShared.GetUnitVelocity(unitID)
 		CreateIconShatter(unitID, unitDefID, teamID, vx, vz)
 	end
 end
@@ -18310,14 +18310,14 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	-- Skip when minimized — nothing is being drawn, shatters would be wasted
 	if not miscState.crashingUnits[unitID] and not uiState.inMinMode then
 		-- Get unit velocity so shatter fragments carry the unit's momentum
-		local vx, vy, vz = Spring.GetUnitVelocity(unitID)
+		local vx, vy, vz = SpringShared.GetUnitVelocity(unitID)
 		CreateIconShatter(unitID, unitDefID, unitTeam, vx, vz)
 	end
 	-- Stamp with the death frame instead of clearing immediately.
 	-- The unit may still appear in GetUnitsInRectangle during the same frame's DrawScreen,
 	-- so we keep it suppressed. The keysort will clear entries older than 1 frame,
 	-- freeing the ID for reuse by newly created units.
-	miscState.crashingUnits[unitID] = Spring.GetGameFrame()
+	miscState.crashingUnits[unitID] = SpringShared.GetGameFrame()
 
 	-- Clear GL4 caches for this unit
 	gl4Icons.unitDefCache[unitID] = nil
@@ -18334,8 +18334,8 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if ghostBuildings[unitID] then
 		local ghost = ghostBuildings[unitID]
 		if state.losViewEnabled and state.losViewAllyTeam then
-			local gy = Spring.GetGroundHeight(ghost.x, ghost.z)
-			if Spring.IsPosInLos(ghost.x, gy, ghost.z, state.losViewAllyTeam) then
+			local gy = SpringShared.GetGroundHeight(ghost.x, ghost.z)
+			if SpringShared.IsPosInLos(ghost.x, gy, ghost.z, state.losViewAllyTeam) then
 				ghostBuildings[unitID] = nil -- destroyed in LOS, remove ghost
 			end
 			-- else: destroyed in FoW, ghost persists until LOS reaches the position
@@ -18442,21 +18442,21 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 		if interactionState.trackingPlayerID then
 			local _, _, _, playerTeamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 			if playerTeamID then
-				viewAllyTeam = teamAllyTeamCache[playerTeamID] or Spring.GetTeamAllyTeamID(playerTeamID)
+				viewAllyTeam = teamAllyTeamCache[playerTeamID] or SpringShared.GetTeamAllyTeamID(playerTeamID)
 			end
 		elseif state.losViewEnabled and state.losViewAllyTeam then
 			viewAllyTeam = state.losViewAllyTeam
 		else
-			local _, fullview = Spring.GetSpectatingState()
+			local _, fullview = SpringUnsynced.GetSpectatingState()
 			if not fullview then
-				viewAllyTeam = Spring.GetLocalAllyTeamID()
+				viewAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 			end
 		end
 		if viewAllyTeam and unitAllyTeam ~= viewAllyTeam then
 			return
 		end
 	else
-		local myAllyTeam = Spring.GetLocalAllyTeamID()
+		local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 		if unitAllyTeam ~= myAllyTeam then
 			return
 		end
@@ -18564,12 +18564,12 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	-- Catches buildings built outside the PIP viewport while fullview is ON
 	-- Only ghost buildings the viewed allyteam has actually seen (PREVLOS or INLOS)
 	if cameraState.mySpecState and cache.isBuilding[unitDefID] then
-		local myAllyTeam = Spring.GetLocalAllyTeamID()
-		local uAllyTeam = Spring.GetTeamAllyTeamID(unitTeam)
+		local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
+		local uAllyTeam = SpringShared.GetTeamAllyTeamID(unitTeam)
 		if uAllyTeam ~= myAllyTeam then
-			local losBits = Spring.GetUnitLosState(unitID, myAllyTeam, true)
+			local losBits = SpringShared.GetUnitLosState(unitID, myAllyTeam, true)
 			if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
-				local x, _, z = Spring.GetUnitBasePosition(unitID)
+				local x, _, z = SpringShared.GetUnitBasePosition(unitID)
 				if x then
 					ghostBuildings[unitID] = { defID = unitDefID, x = x, z = z, teamID = unitTeam }
 				end
@@ -18627,7 +18627,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 					-- Bonus scales from +3 at 50% HP to +12 at 0% HP
 					local dangerBonus = (1 - healthFrac * 2) * 12
 					-- Verify enemy is actually nearby (within 600 elmos)
-					local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 600, true)
+					local nearestEnemy = SpringShared.GetUnitNearestEnemy(unitID, 600, true)
 					if nearestEnemy then
 						weight = weight + dangerBonus
 					end
@@ -18647,7 +18647,7 @@ end
 function widget:UnitEnteredLos(unitID, unitTeam)
 	-- Skip for fullview spectators (they see everything, ghosts are recorded in processUnit)
 	if cameraState.mySpecState then
-		local _, fullview = Spring.GetSpectatingState()
+		local _, fullview = SpringUnsynced.GetSpectatingState()
 		if fullview then
 			return
 		end
@@ -18726,7 +18726,7 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		y = py,
 		z = pz,
 		radius = radius,
-		startFrame = Spring.GetGameFrame(), -- game-frame based: freezes when paused
+		startFrame = SpringShared.GetGameFrame(), -- game-frame based: freezes when paused
 		randomSeed = math.random() * 1000, -- For consistent per-explosion randomness
 		rotationSpeed = (math.random() - 0.5) * 4, -- Random rotation speed
 		particles = {}, -- Will store particle debris
@@ -18745,7 +18745,7 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		if radius >= 100 then
 			explosion.isBigFlash = true
 		elseif isUnitExplosion and ownerID then
-			local ownerDefID = Spring.GetUnitDefID(ownerID)
+			local ownerDefID = SpringShared.GetUnitDefID(ownerID)
 			if ownerDefID and cache.isCommander[ownerDefID] then
 				explosion.isBigFlash = true
 			end
@@ -18828,7 +18828,7 @@ function widget:DefaultCommand()
 		local wx, wz = PipToWorldCoords(mx, my)
 		local uID = GetUnitAtPoint(wx, wz)
 		if uID then
-			if Spring.IsUnitAllied(uID) then
+			if SpringUnsynced.IsUnitAllied(uID) then
 				return CMD.GUARD
 			else
 				return CMD.ATTACK
@@ -18854,7 +18854,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 	-- Store point markers for rendering (from any player, but not spectators)
 	if cmdType == "point" then
 		-- Get player's team and spec status
-		local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID, false)
+		local _, _, isSpec, teamID = SpringShared.GetPlayerInfo(playerID, false)
 
 		-- Add marker if player is not a spectator, or if spectator pings are enabled in minimap mode
 		local showMarker = not isSpec or (isMinimapMode and config.showSpectatorPings)
@@ -18899,7 +18899,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			if triggerFocus and config.activityFocusHideForSpectators and cameraState.mySpecState then
 				triggerFocus = false
 			end
-			if triggerFocus and playerID == Spring.GetLocalPlayerID() then
+			if triggerFocus and playerID == SpringUnsynced.GetLocalPlayerID() then
 				triggerFocus = false
 			end
 			if triggerFocus and isSpec and config.activityFocusIgnoreSpectators then
@@ -18907,7 +18907,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			end
 			-- Block activity focus for ignored players (uses WG.ignoredAccounts from api_ignore widget)
 			if triggerFocus and config.activityFocusBlockIgnoredPlayers and WG.ignoredAccounts then
-				local pName, _, _, _, _, _, _, _, _, _, pInfo = Spring.GetPlayerInfo(playerID)
+				local pName, _, _, _, _, _, _, _, _, _, pInfo = SpringShared.GetPlayerInfo(playerID)
 				local pAccountID = pInfo and pInfo.accountid and tonumber(pInfo.accountid)
 				if (pName and WG.ignoredAccounts[pName]) or (pAccountID and WG.ignoredAccounts[pAccountID]) then
 					triggerFocus = false
@@ -18989,7 +18989,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 	end
 
 	-- Only process our own mapmarks for placement logic (not from other players)
-	local myPlayerID = Spring.GetLocalPlayerID()
+	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
 	if playerID ~= myPlayerID then
 		return false
 	end
@@ -19039,14 +19039,14 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 
 		if cmdType == "point" then
 			-- Place marker at PiP location
-			Spring.MarkerAddPoint(wx, markerHeight, wz, c or "")
+			SpringUnsynced.MarkerAddPoint(wx, markerHeight, wz, c or "")
 		elseif cmdType == "line" then
 			-- For line drawing in PiP - track for continuous drawing
 
 			-- If we have a previous position, draw line from there to here
 			if interactionState.lastMapDrawX and interactionState.lastMapDrawZ then
 				local lastY = spFunc.GetGroundHeight(interactionState.lastMapDrawX, interactionState.lastMapDrawZ) + 5
-				Spring.MarkerAddLine(interactionState.lastMapDrawX, lastY, interactionState.lastMapDrawZ, wx, markerHeight, wz)
+				SpringUnsynced.MarkerAddLine(interactionState.lastMapDrawX, lastY, interactionState.lastMapDrawZ, wx, markerHeight, wz)
 			end
 
 			-- Update last position for next segment
@@ -19054,7 +19054,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			interactionState.lastMapDrawZ = wz
 		elseif cmdType == "erase" then
 			-- Erase at the PiP location - use ground height for better detection
-			Spring.MarkerErasePosition(wx, wy, wz)
+			SpringUnsynced.MarkerErasePosition(wx, wy, wz)
 		end
 
 		miscState.isProcessingMapDraw = false
@@ -19118,7 +19118,7 @@ function widget:MouseWheel(up, value)
 		if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 			-- When altKeyRequiredForZoom is enabled, pass scroll through unless ALT or middle mouse is held
 			if config.altKeyRequiredForZoom then
-				local alt = Spring.GetModKeyState()
+				local alt = SpringUnsynced.GetModKeyState()
 				local _, _, _, middleButton = spFunc.GetMouseState()
 				if not alt and not middleButton then
 					return
@@ -19144,7 +19144,7 @@ function widget:MouseWheel(up, value)
 			end
 			local zoomFactor = config.zoomWheel ^ absValue
 
-			if Spring.GetConfigInt("ScrollWheelSpeed", 1) > 0 then
+			if SpringUnsynced.GetConfigInt("ScrollWheelSpeed", 1) > 0 then
 				if up then
 					cameraState.targetZoom = math.max(cameraState.targetZoom / zoomFactor, GetEffectiveZoomMin())
 				else
@@ -19232,11 +19232,11 @@ function widget:MousePress(mx, my, mButton)
 			local btnT = render.dim.t
 			if mx >= btnL and mx <= btnR and my >= btnB and my <= btnT then
 				-- Clear minimized state and start expand animation
-				Spring.SetConfigInt("MinimapMinimize", 0)
+				SpringUnsynced.SetConfigInt("MinimapMinimize", 0)
 				miscState.minimapMinimized = false
 				-- Re-establish engine minimap slave and reset fallback so transition code re-fires
 				gl.SlaveMiniMap(true)
-				Spring.SendCommands("minimap minimize 1")
+				SpringUnsynced.SendCommands("minimap minimize 1")
 				miscState.engineMinimapActive = false
 				-- Delete stale R2T textures and force full recreation
 				if pipR2T.contentTex then
@@ -19294,7 +19294,7 @@ function widget:MousePress(mx, my, mButton)
 			local relY = 1 - ((my - mmBounds.drawB) / mmHeight) -- Flip Y (screen Y is bottom-up, map Z is top-down)
 
 			-- Apply rotation to account for minimap rotation
-			local minimapRotation = Spring.GetMiniMapRotation()
+			local minimapRotation = SpringUnsynced.GetMiniMapRotation()
 			if minimapRotation ~= 0 then
 				-- Convert to center-based coordinates (0.5, 0.5 is center)
 				local centeredX = relX - 0.5
@@ -19405,7 +19405,7 @@ function widget:MousePress(mx, my, mButton)
 
 		-- Was maximize clicked? (or ALT+drag/middle drag to move window)
 		if (mButton == 1 or mButton == 2) and mx >= uiState.minModeL and mx <= uiState.minModeL + math.floor(render.usedButtonSize * config.maximizeSizemult) and my >= uiState.minModeB and my <= uiState.minModeB + math.floor(render.usedButtonSize * config.maximizeSizemult) then
-			local altKey = Spring.GetModKeyState()
+			local altKey = SpringUnsynced.GetModKeyState()
 
 			-- If ALT is held or middle mouse, start tracking for drag (to move window)
 			if altKey or mButton == 2 then
@@ -19480,8 +19480,8 @@ function widget:MousePress(mx, my, mButton)
 			-- Minimizing? (or ALT+drag/middle drag to move window)
 			-- In minimap mode, clicking the minimize button triggers MinimapMinimize (with animation)
 			if isMinimapMode and mx >= render.dim.r - render.usedButtonSize and my >= render.dim.t - render.usedButtonSize then
-				Spring.SetConfigInt("MinimapMinimize", 1)
-				Spring.SendCommands("minimap minimize 1")
+				SpringUnsynced.SetConfigInt("MinimapMinimize", 1)
+				SpringUnsynced.SendCommands("minimap minimize 1")
 				-- Animate shrink to the maximize button position (top-left corner)
 				local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
 				uiState.savedDimensions = {
@@ -19508,7 +19508,7 @@ function widget:MousePress(mx, my, mButton)
 				return true
 			end
 			if not isMinimapMode and mx >= render.dim.r - render.usedButtonSize and my >= render.dim.t - render.usedButtonSize then
-				local altKey = Spring.GetModKeyState()
+				local altKey = SpringUnsynced.GetModKeyState()
 
 				-- If ALT is held or middle mouse, start tracking for drag (to move window)
 				if altKey or mButton == 2 then
@@ -19518,7 +19518,7 @@ function widget:MousePress(mx, my, mButton)
 				end
 
 				-- Normal minimize (no ALT, left click only)
-				local sw, sh = Spring.GetWindowGeometry()
+				local sw, sh = SpringUnsynced.GetWindowGeometry()
 
 				-- Save current dimensions before minimizing
 				uiState.savedDimensions = {
@@ -19587,14 +19587,14 @@ function widget:MousePress(mx, my, mButton)
 			-- Button row
 			if my <= render.dim.b + render.usedButtonSize then
 				-- Calculate visible buttons
-				local selectedUnits = Spring.GetSelectedUnits()
+				local selectedUnits = SpringUnsynced.GetSelectedUnits()
 				local hasSelection = #selectedUnits > 0
 				local isTracking = interactionState.areTracking ~= nil
 				local isTrackingPlayer = interactionState.trackingPlayerID ~= nil
 				-- Show player tracking button when tracking, when spectating, or when having alive teammates
 				local showPlayerTrackButton = isTrackingPlayer
 				if not showPlayerTrackButton then
-					local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
+					local _, _, spec = spFunc.GetPlayerInfo(SpringUnsynced.GetLocalPlayerID(), false)
 					local aliveTeammates = GetAliveTeammates()
 					showPlayerTrackButton = spec or (#aliveTeammates > 0)
 				end
@@ -19614,7 +19614,7 @@ function widget:MousePress(mx, my, mButton)
 						if btn.command == "pip_switch" or btn.command == "pip_copy" then
 							skipButton = true
 						elseif btn.command == "pip_view" then
-							local _, fullview = Spring.GetSpectatingState()
+							local _, fullview = SpringUnsynced.GetSpectatingState()
 							if not fullview then
 								skipButton = true
 							end
@@ -19634,7 +19634,7 @@ function widget:MousePress(mx, my, mButton)
 							end
 						-- Show pip_view button only for spectators
 						elseif btn.command == "pip_view" then
-							local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
+							local _, _, spec = spFunc.GetPlayerInfo(SpringUnsynced.GetLocalPlayerID(), false)
 							if spec then
 								visibleButtons[#visibleButtons + 1] = btn
 							end
@@ -19666,22 +19666,22 @@ function widget:MousePress(mx, my, mButton)
 
 			-- In minimap mode with leftButtonPansCamera enabled, left-click moves the world camera
 			-- Skip when ALT is held (ALT+left-click is used for panning)
-			local alt = Spring.GetModKeyState()
+			local alt = SpringUnsynced.GetModKeyState()
 			if isMinimapMode and IsLeftClickPanActive() and not alt then
-				local _, cmdID = Spring.GetActiveCommand()
+				local _, cmdID = SpringUnsynced.GetActiveCommand()
 				-- Only move world camera if there's no active command
 				if not cmdID or cmdID == 0 then
 					local groundHeight = spFunc.GetGroundHeight(wx, wz) or 0
-					Spring.SetCameraTarget(wx, groundHeight, wz, 0.2)
+					SpringUnsynced.SetCameraTarget(wx, groundHeight, wz, 0.2)
 					interactionState.worldCameraDragging = true
 					return true
 				end
 			end
 
-			local _, cmdID = Spring.GetActiveCommand()
+			local _, cmdID = SpringUnsynced.GetActiveCommand()
 			if cmdID then
 				-- Check if this is a build command with shift modifier for drag-to-build
-				local alt, ctrl, meta, shift = Spring.GetModKeyState()
+				local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 
 				-- Don't issue commands if alt is held without shift (user wants to pan instead)
 				-- But if both alt+shift are held with a build command, allow build dragging
@@ -19722,7 +19722,7 @@ function widget:MousePress(mx, my, mButton)
 						local supportsArea = (cmdID == CMD.ATTACK or cmdID == CMD.RECLAIM or cmdID == CMD.REPAIR or cmdID == CMD.RESURRECT or cmdID == CMD.CAPTURE or cmdID == CMD.RESTORE or cmdID == CMD.LOAD_UNITS or (setTargetCmd and cmdID == setTargetCmd))
 						if supportsArea then
 							-- Don't allow area commands as spectator (unless config allows it)
-							local isSpec = Spring.GetSpectatingState()
+							local isSpec = SpringUnsynced.GetSpectatingState()
 							local canGiveCommands = not isSpec or config.allowCommandsWhenSpectating
 							if canGiveCommands then
 								-- Start area command drag
@@ -19736,7 +19736,7 @@ function widget:MousePress(mx, my, mButton)
 							IssueCommandAtPoint(cmdID, wx, wz, false, false)
 
 							if not shift then
-								Spring.SetActiveCommand(0)
+								SpringUnsynced.SetActiveCommand(0)
 							else
 								interactionState.commandIssuedWithShift = true
 							end
@@ -19753,7 +19753,7 @@ function widget:MousePress(mx, my, mButton)
 						IssueCommandAtPoint(cmdID, wx, wz, false, false)
 
 						if not shift then
-							Spring.SetActiveCommand(0)
+							SpringUnsynced.SetActiveCommand(0)
 						else
 							interactionState.commandIssuedWithShift = true
 						end
@@ -19769,7 +19769,7 @@ function widget:MousePress(mx, my, mButton)
 			if not interactionState.arePanning then
 				-- Check if alt is held - if so, don't start box selection (panning will be handled in MouseMove)
 				-- Also don't allow box selection when tracking a player's camera
-				local alt, ctrl, meta, shift = Spring.GetModKeyState()
+				local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 				if not alt and not interactionState.trackingPlayerID then
 					if IsLeftClickPanActive() and not interactionState.trackingPlayerID then
 						interactionState.arePanning = true
@@ -19784,7 +19784,7 @@ function widget:MousePress(mx, my, mButton)
 					else
 						-- Start box selection instead
 						-- Save current selection before starting box selection
-						interactionState.selectionBeforeBox = Spring.GetSelectedUnits()
+						interactionState.selectionBeforeBox = SpringUnsynced.GetSelectedUnits()
 
 						interactionState.areBoxSelecting = true
 						interactionState.boxSelectStartX = mx
@@ -19792,7 +19792,7 @@ function widget:MousePress(mx, my, mButton)
 						interactionState.boxSelectEndX = mx
 						interactionState.boxSelectEndY = my
 						-- Initialize modifier state
-						local alt, ctrl, meta, shift = Spring.GetModKeyState()
+						local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 						interactionState.lastModifierState = { alt, ctrl, meta, shift }
 						-- Check if we're starting a deselection (Ctrl held)
 						interactionState.areBoxDeselecting = ctrl
@@ -19813,11 +19813,11 @@ function widget:MousePress(mx, my, mButton)
 			end
 
 			-- Check if there's an active command (FIGHT, ATTACK, PATROL can be formation commands)
-			local _, activeCmd = Spring.GetActiveCommand()
+			local _, activeCmd = SpringUnsynced.GetActiveCommand()
 
 			-- If it's a non-formation command, just clear it
 			if activeCmd and activeCmd ~= CMD.FIGHT and activeCmd ~= CMD.ATTACK and activeCmd ~= CMD.PATROL then
-				Spring.SetActiveCommand(0)
+				SpringUnsynced.SetActiveCommand(0)
 				return true
 			end
 
@@ -19834,9 +19834,9 @@ function widget:MousePress(mx, my, mButton)
 				if not cmdID then
 					local uID = GetUnitAtPoint(wx, wz)
 					if uID then
-						if Spring.IsUnitAllied(uID) then
+						if SpringUnsynced.IsUnitAllied(uID) then
 							-- Check if we should use LOAD_UNITS command
-							local selectedUnits = Spring.GetSelectedUnits()
+							local selectedUnits = SpringUnsynced.GetSelectedUnits()
 							local canLoadTarget = false
 
 							-- Check if any transport in selection can load this target unit
@@ -19849,7 +19849,7 @@ function widget:MousePress(mx, my, mButton)
 
 							if canLoadTarget then
 								-- Don't allow area LOAD_UNITS as spectator (unless config allows it)
-								local isSpec = Spring.GetSpectatingState()
+								local isSpec = SpringUnsynced.GetSpectatingState()
 								local canGiveCommands = not isSpec or config.allowCommandsWhenSpectating
 								if canGiveCommands then
 									-- Start area LOAD_UNITS drag instead of formation
@@ -19857,7 +19857,7 @@ function widget:MousePress(mx, my, mButton)
 									interactionState.areaCommandStartX = mx
 									interactionState.areaCommandStartY = my
 									-- Temporarily set LOAD_UNITS as active command for area drag
-									Spring.SetActiveCommand(Spring.GetCmdDescIndex(CMD.LOAD_UNITS))
+									SpringUnsynced.SetActiveCommand(SpringUnsynced.GetCmdDescIndex(CMD.LOAD_UNITS))
 									return true
 								end
 							else
@@ -19887,13 +19887,13 @@ function widget:MousePress(mx, my, mButton)
 
 				if actualCmd then
 					-- Don't allow formation dragging as spectator (unless config allows it)
-					local isSpec = Spring.GetSpectatingState()
+					local isSpec = SpringUnsynced.GetSpectatingState()
 					local canGiveCommands = not isSpec or config.allowCommandsWhenSpectating
 					if canGiveCommands then
 						-- Start formation with world position
 						-- Note: third parameter is fromMinimap, not shift behavior
 						-- Check if we should queue commands (only for single unit)
-						local selectedUnits = Spring.GetSelectedUnits()
+						local selectedUnits = SpringUnsynced.GetSelectedUnits()
 						local shouldQueue = selectedUnits and #selectedUnits == 1
 
 						-- Don't set pipForceShift yet - first command should replace, not queue
@@ -19919,14 +19919,14 @@ end
 
 function widget:MouseMove(mx, my, dx, dy, mButton)
 	-- Get modifier key states
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 
 	-- Handle world camera dragging (leftButtonPansCamera mode in minimap mode)
 	if interactionState.worldCameraDragging then
 		-- Convert PIP coordinates to world coordinates and move world camera
 		local wx, wz = PipToWorldCoords(mx, my)
 		local groundHeight = spFunc.GetGroundHeight(wx, wz) or 0
-		Spring.SetCameraTarget(wx, groundHeight, wz, 0.04)
+		SpringUnsynced.SetCameraTarget(wx, groundHeight, wz, 0.04)
 		return true
 	end
 
@@ -19941,7 +19941,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			local relY = 1 - ((my - mmBounds.drawB) / mmHeight) -- Flip Y (screen Y is bottom-up, map Z is top-down)
 
 			-- Apply inverse rotation to account for minimap rotation
-			local minimapRotation = Spring.GetMiniMapRotation()
+			local minimapRotation = SpringUnsynced.GetMiniMapRotation()
 			if minimapRotation ~= 0 then
 				-- Convert to center-based coordinates (0.5, 0.5 is center)
 				local centeredX = relX - 0.5
@@ -20107,7 +20107,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 	-- Skip if we're already doing minimize button drag
 	if interactionState.leftMousePressed and alt and not interactionState.arePanning and not interactionState.minimizeButtonDragging and interactionState.minimizeButtonClickStartX == 0 and mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 		-- Check if we're holding a build command with shift (queuing buildings)
-		local _, cmdID = Spring.GetActiveCommand()
+		local _, cmdID = SpringUnsynced.GetActiveCommand()
 		local isBuildCommand = (cmdID and cmdID < 0)
 		local isQueueingBuilds = (isBuildCommand and shift)
 
@@ -20125,7 +20125,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 					interactionState.areBoxDeselecting = false
 					-- Restore selection to what it was before box selection started
 					if interactionState.selectionBeforeBox then
-						Spring.SelectUnitArray(interactionState.selectionBeforeBox)
+						SpringUnsynced.SelectUnitArray(interactionState.selectionBeforeBox)
 						interactionState.selectionBeforeBox = nil
 					end
 					if WG.SmartSelect_ClearReference then
@@ -20260,7 +20260,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		-- Pan the camera based on mouse movement (only if there's movement)
 		if dx ~= 0 or dy ~= 0 then
 			-- Get current minimap rotation (must fetch fresh)
-			local minimapRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+			local minimapRotation = SpringUnsynced.GetMiniMapRotation and SpringUnsynced.GetMiniMapRotation() or 0
 
 			-- Apply inverse rotation to mouse deltas if minimap is rotated
 			local panDx, panDy = dx, dy
@@ -20296,9 +20296,9 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			-- Warp mouse back to center after processing movement
 			local centerX = math.floor((render.dim.l + render.dim.r) / 2)
 			local centerY = math.floor((render.dim.b + render.dim.t) / 2)
-			Spring.WarpMouse(centerX, centerY)
+			SpringUnsynced.WarpMouse(centerX, centerY)
 			-- Reapply the current cursor to prevent it from disappearing after warp
-			Spring.SetMouseCursor(Spring.GetMouseCursor())
+			SpringUnsynced.SetMouseCursor(SpringUnsynced.GetMouseCursor())
 		end
 	elseif interactionState.areBoxSelecting then
 		-- Update the end position of the box selection
@@ -20316,10 +20316,10 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 				WG.SmartSelect_SelectUnits(unitsInBox)
 			else
 				-- Fallback to engine default if smart select is disabled
-				local _, ctrl, _, shift = Spring.GetModKeyState()
+				local _, ctrl, _, shift = SpringUnsynced.GetModKeyState()
 				if ctrl then
 					-- Deselect mode
-					local currentSelection = Spring.GetSelectedUnits()
+					local currentSelection = SpringUnsynced.GetSelectedUnits()
 					local newSelection = {}
 					local unitsToDeselect = {}
 					local boxCount = #unitsInBox
@@ -20333,9 +20333,9 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 							newSelection[#newSelection + 1] = unitID
 						end
 					end
-					Spring.SelectUnitArray(newSelection)
+					SpringUnsynced.SelectUnitArray(newSelection)
 				else
-					Spring.SelectUnitArray(unitsInBox, shift) -- shift = append mode
+					SpringUnsynced.SelectUnitArray(unitsInBox, shift) -- shift = append mode
 				end
 			end
 		end
@@ -20360,10 +20360,10 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			local startWX, startWZ = PipToWorldCoords(interactionState.buildDragStartX, interactionState.buildDragStartY)
 			local endWX, endWZ = PipToWorldCoords(mx, my)
 
-			local _, cmdID = Spring.GetActiveCommand()
+			local _, cmdID = SpringUnsynced.GetActiveCommand()
 			if cmdID and cmdID < 0 then
 				local buildDefID = -cmdID
-				local alt, ctrl, meta, shift = Spring.GetModKeyState()
+				local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 
 				interactionState.buildDragPositions = CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, buildDefID, alt, ctrl, shift)
 			end
@@ -20376,9 +20376,9 @@ function widget:KeyRelease(key)
 	-- clear the active command (matches engine behavior in the world view)
 	if (key == 304 or key == 303) and interactionState.commandIssuedWithShift then
 		interactionState.commandIssuedWithShift = false
-		local _, cmdID = Spring.GetActiveCommand()
+		local _, cmdID = SpringUnsynced.GetActiveCommand()
 		if cmdID and cmdID ~= 0 then
-			Spring.SetActiveCommand(0)
+			SpringUnsynced.SetActiveCommand(0)
 		end
 	end
 
@@ -20389,10 +20389,10 @@ function widget:KeyRelease(key)
 			local startWX, startWZ = PipToWorldCoords(interactionState.buildDragStartX, interactionState.buildDragStartY)
 			local endWX, endWZ = PipToWorldCoords(mx, my)
 
-			local _, cmdID = Spring.GetActiveCommand()
+			local _, cmdID = SpringUnsynced.GetActiveCommand()
 			if cmdID and cmdID < 0 then
 				local buildDefID = -cmdID
-				local alt, ctrl, meta, shift = Spring.GetModKeyState()
+				local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 
 				interactionState.buildDragPositions = CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, buildDefID, alt, ctrl, shift)
 			end
@@ -20435,7 +20435,7 @@ function widget:MouseRelease(mx, my, mButton)
 				interactionState.isMouseOverPip = false
 			else
 				-- Minimize (we were in maximized mode)
-				local sw, sh = Spring.GetWindowGeometry()
+				local sw, sh = SpringUnsynced.GetWindowGeometry()
 
 				-- Save current dimensions before minimizing
 				uiState.savedDimensions = {
@@ -20541,33 +20541,33 @@ function widget:MouseRelease(mx, my, mButton)
 
 			if uID then
 				-- Clicked on a unit - select it
-				local alt, ctrl, meta, shift = Spring.GetModKeyState()
+				local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 				if ctrl then
 					-- Ctrl+click: toggle selection
 					if spFunc.IsUnitSelected(uID) then
-						local currentSelection = Spring.GetSelectedUnits()
+						local currentSelection = SpringUnsynced.GetSelectedUnits()
 						local newSelection = {}
 						for i = 1, #currentSelection do
 							if currentSelection[i] ~= uID then
 								newSelection[#newSelection + 1] = currentSelection[i]
 							end
 						end
-						Spring.SelectUnitArray(newSelection)
+						SpringUnsynced.SelectUnitArray(newSelection)
 					else
-						Spring.SelectUnitArray({ uID }, true)
+						SpringUnsynced.SelectUnitArray({ uID }, true)
 					end
 				elseif shift then
 					-- Shift+click: add to selection
-					Spring.SelectUnitArray({ uID }, true)
+					SpringUnsynced.SelectUnitArray({ uID }, true)
 				else
 					-- Normal click: select only this unit
-					Spring.SelectUnitArray({ uID }, false)
+					SpringUnsynced.SelectUnitArray({ uID }, false)
 				end
 			else
 				-- Clicked empty space - deselect unless shift is held
-				local _, _, _, shift = Spring.GetModKeyState()
+				local _, _, _, shift = SpringUnsynced.GetModKeyState()
 				if not shift then
-					Spring.SelectUnitArray({})
+					SpringUnsynced.SelectUnitArray({})
 				end
 			end
 
@@ -20601,7 +20601,7 @@ function widget:MouseRelease(mx, my, mButton)
 
 			if interactionState.areBoxDeselecting then
 				-- Final deselection - remove units in box from current selection
-				local currentSelection = Spring.GetSelectedUnits()
+				local currentSelection = SpringUnsynced.GetSelectedUnits()
 				local newSelection = {}
 				-- Create a set for fast lookup of units to deselect
 				local unitsToDeselect = {}
@@ -20615,20 +20615,20 @@ function widget:MouseRelease(mx, my, mButton)
 						newSelection[#newSelection + 1] = unitID
 					end
 				end
-				Spring.SelectUnitArray(newSelection)
+				SpringUnsynced.SelectUnitArray(newSelection)
 			else
 				-- Regular selection
 				if WG.SmartSelect_SelectUnits then
 					WG.SmartSelect_SelectUnits(unitsInBox)
 				else
 					-- Fallback if smart select is not available
-					local _, _, _, shift = Spring.GetModKeyState()
+					local _, _, _, shift = SpringUnsynced.GetModKeyState()
 					if #unitsInBox > 0 then
-						Spring.SelectUnitArray(unitsInBox, shift)
+						SpringUnsynced.SelectUnitArray(unitsInBox, shift)
 					else
 						-- No units in box - clear selection unless shift is held
 						if not shift then
-							Spring.SelectUnitArray({})
+							SpringUnsynced.SelectUnitArray({})
 						end
 					end
 				end
@@ -20638,35 +20638,35 @@ function widget:MouseRelease(mx, my, mButton)
 			local wx, wz = PipToWorldCoords(mx, my)
 			local uID = GetUnitAtPoint(wx, wz)
 			if uID then
-				local alt, ctrl, meta, shift = Spring.GetModKeyState()
+				local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 				if ctrl then
 					-- Ctrl+click: toggle selection (add if not selected, remove if selected)
 					if spFunc.IsUnitSelected(uID) then
 						-- Deselect it
-						local currentSelection = Spring.GetSelectedUnits()
+						local currentSelection = SpringUnsynced.GetSelectedUnits()
 						local newSelection = {}
 						for i = 1, #currentSelection do
 							if currentSelection[i] ~= uID then
 								newSelection[#newSelection + 1] = currentSelection[i]
 							end
 						end
-						Spring.SelectUnitArray(newSelection)
+						SpringUnsynced.SelectUnitArray(newSelection)
 					else
 						-- Add to selection
-						Spring.SelectUnitArray({ uID }, true)
+						SpringUnsynced.SelectUnitArray({ uID }, true)
 					end
 				elseif shift then
 					-- Shift+click: add to selection
-					Spring.SelectUnitArray({ uID }, true)
+					SpringUnsynced.SelectUnitArray({ uID }, true)
 				else
 					-- Normal click without modifier: select only this unit (replace selection)
-					Spring.SelectUnitArray({ uID }, false)
+					SpringUnsynced.SelectUnitArray({ uID }, false)
 				end
 			else
 				-- Clicked empty space - deselect unless shift is held
-				local _, _, _, shift = Spring.GetModKeyState()
+				local _, _, _, shift = SpringUnsynced.GetModKeyState()
 				if not shift then
-					Spring.SelectUnitArray({})
+					SpringUnsynced.SelectUnitArray({})
 				end
 			end
 		end
@@ -20688,7 +20688,7 @@ function widget:MouseRelease(mx, my, mButton)
 		if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 			local wx, wz = PipToWorldCoords(mx, my)
 			local startWX, startWZ = PipToWorldCoords(interactionState.areaCommandStartX, interactionState.areaCommandStartY)
-			local _, cmdID = Spring.GetActiveCommand()
+			local _, cmdID = SpringUnsynced.GetActiveCommand()
 
 			if cmdID and cmdID > 0 then
 				-- Check if this is a set target command
@@ -20706,12 +20706,12 @@ function widget:MouseRelease(mx, my, mButton)
 
 						if dragDistX > minDragDistance or dragDistY > minDragDistance then
 							-- It's a drag - issue area set target command
-							local alt, ctrl, meta, shift = Spring.GetModKeyState()
+							local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 							local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, false)
 							GiveNotifyingOrder(cmdID, { targetID, startWX, spFunc.GetGroundHeight(startWX, startWZ), startWZ, radius }, cmdOpts)
 						else
 							-- It's a click - issue single set target command
-							local alt, ctrl, meta, shift = Spring.GetModKeyState()
+							local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 							local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, false)
 							GiveNotifyingOrder(cmdID, { targetID }, cmdOpts)
 						end
@@ -20732,9 +20732,9 @@ function widget:MouseRelease(mx, my, mButton)
 					end
 				end
 
-				local _, _, _, shift = Spring.GetModKeyState()
+				local _, _, _, shift = SpringUnsynced.GetModKeyState()
 				if not shift then
-					Spring.SetActiveCommand(0)
+					SpringUnsynced.SetActiveCommand(0)
 				else
 					interactionState.commandIssuedWithShift = true
 				end
@@ -20775,9 +20775,9 @@ function widget:MouseRelease(mx, my, mButton)
 			local cmdID = nil
 			local uID = GetUnitAtPoint(wx, wz)
 			if uID then
-				if Spring.IsUnitAllied(uID) then
+				if SpringUnsynced.IsUnitAllied(uID) then
 					-- Check if we should use LOAD_UNITS command
-					local selectedUnits = Spring.GetSelectedUnits()
+					local selectedUnits = SpringUnsynced.GetSelectedUnits()
 					local canLoadTarget = false
 
 					-- Check if any transport in selection can load this target unit
@@ -20819,10 +20819,10 @@ function widget:MouseRelease(mx, my, mButton)
 		local dragDistY = math.abs(my - interactionState.buildDragStartY)
 		local isDrag = dragDistX > minDragDistance or dragDistY > minDragDistance
 
-		local _, cmdID = Spring.GetActiveCommand()
+		local _, cmdID = SpringUnsynced.GetActiveCommand()
 		if cmdID and cmdID < 0 then
 			local buildDefID = -cmdID
-			local alt, ctrl, meta, shift = Spring.GetModKeyState()
+			local alt, ctrl, meta, shift = SpringUnsynced.GetModKeyState()
 
 			if isDrag and #interactionState.buildDragPositions > 0 then
 				-- Issue build commands for all positions (force queue for multiple commands)
@@ -20837,7 +20837,7 @@ function widget:MouseRelease(mx, my, mButton)
 			end
 
 			if not shift then
-				Spring.SetActiveCommand(0)
+				SpringUnsynced.SetActiveCommand(0)
 			else
 				interactionState.commandIssuedWithShift = true
 			end
@@ -20863,7 +20863,7 @@ function widget:MouseRelease(mx, my, mButton)
 				local groundHeight = spFunc.GetGroundHeight(wx, wz) or 0
 
 				-- Get current camera state
-				local curCamState = Spring.GetCameraState()
+				local curCamState = SpringUnsynced.GetCameraState()
 				if curCamState then
 					-- Set position
 					curCamState.px = wx
@@ -20919,10 +20919,10 @@ function widget:MouseRelease(mx, my, mButton)
 						end
 					end
 
-					Spring.SetCameraState(curCamState, 0.2)
+					SpringUnsynced.SetCameraState(curCamState, 0.2)
 				else
 					-- Fallback: just move camera target without zoom change
-					Spring.SetCameraTarget(wx, groundHeight, wz, 0.2)
+					SpringUnsynced.SetCameraTarget(wx, groundHeight, wz, 0.2)
 				end
 			end
 

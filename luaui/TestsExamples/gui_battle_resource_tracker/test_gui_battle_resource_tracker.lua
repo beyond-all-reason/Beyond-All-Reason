@@ -1,7 +1,7 @@
 local widgetName = "Battle Resource Tracker"
 
 local function skip()
-	return Spring.GetGameFrame() <= 0
+	return SpringShared.GetGameFrame() <= 0
 end
 
 local function setup()
@@ -25,7 +25,7 @@ local function test()
 	combineEventsSpy = Test.spy(widget, "combineEvents")
 
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
-	local y = Spring.GetGroundHeight(x, z)
+	local y = SpringShared.GetGroundHeight(x, z)
 	local n = 5
 
 	local unit = "armpw"
@@ -35,7 +35,7 @@ local function test()
 
 	SyncedRun(function(locals)
 		for i = 1, locals.n do
-			Spring.CreateUnit(locals.unit, locals.x, locals.y, locals.z + 10 * i, 0, 0)
+			SpringSynced.CreateUnit(locals.unit, locals.x, locals.y, locals.z + 10 * i, 0, 0)
 		end
 	end)
 

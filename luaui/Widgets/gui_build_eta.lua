@@ -12,20 +12,20 @@ function widget:GetInfo()
 	}
 end
 
-local lastGameUpdate = Spring.GetGameSeconds()
+local lastGameUpdate = SpringShared.GetGameSeconds()
 
-local spGetUnitViewPosition = Spring.GetUnitViewPosition
-local spGetGameSeconds = Spring.GetGameSeconds
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetFeatureResources = Spring.GetFeatureResources
-local spGetFeatureHealth = Spring.GetFeatureHealth
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetUnitViewPosition = SpringUnsynced.GetUnitViewPosition
+local spGetGameSeconds = SpringShared.GetGameSeconds
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetFeatureResources = SpringShared.GetFeatureResources
+local spGetFeatureHealth = SpringShared.GetFeatureHealth
+local spGetFeatureDefID = SpringShared.GetFeatureDefID
+local spGetFeaturePosition = SpringShared.GetFeaturePosition
 local spec, fullview = spGetSpectatingState()
-local myAllyTeam = Spring.GetLocalAllyTeamID()
+local myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 
 local glColor = gl.Color
 local glDepthTest = gl.DepthTest
@@ -100,11 +100,11 @@ end
 
 local function init()
 	unitETATable = {}
-	local units = Spring.GetAllUnits()
+	local units = SpringShared.GetAllUnits()
 	for i = 1, #units do
 		local unitID = units[i]
 		if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
-			unitETATable[unitID] = makeUnitETA(unitID, Spring.GetUnitDefID(unitID))
+			unitETATable[unitID] = makeUnitETA(unitID, SpringShared.GetUnitDefID(unitID))
 		end
 	end
 end
@@ -216,8 +216,8 @@ function widget:Update(dt)
 end
 
 function widget:PlayerChanged()
-	if myAllyTeam ~= Spring.GetLocalAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
-		myAllyTeam = Spring.GetLocalAllyTeamID()
+	if myAllyTeam ~= SpringUnsynced.GetLocalAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
+		myAllyTeam = SpringUnsynced.GetLocalAllyTeamID()
 		spec, fullview = spGetSpectatingState()
 		init()
 	end
@@ -268,8 +268,8 @@ local function drawEtaText(timeLeft, yoffset)
 end
 
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() == false then
-		local cx, cy, cz = Spring.GetCameraPosition()
+	if SpringUnsynced.IsGUIHidden() == false then
+		local cx, cy, cz = SpringUnsynced.GetCameraPosition()
 		glDepthTest(false)
 
 		for unitID, eta in pairs(unitETATable) do

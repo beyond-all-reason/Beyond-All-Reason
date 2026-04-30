@@ -13,10 +13,10 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetMyTeamID = Spring.GetLocalTeamID
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
 local selectApi = VFS.Include("luaui/Include/select_api.lua")
@@ -51,25 +51,25 @@ local lastMouseSelection = {}
 local lastMouseSelectionCount = 0
 local externalSelectionReference = {} -- Track initial selection for external (PIP) box drags
 
-local spGetMouseState = Spring.GetMouseState
-local spGetModKeyState = Spring.GetModKeyState
-local spGetSelectionBox = Spring.GetSelectionBox
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetModKeyState = SpringUnsynced.GetModKeyState
+local spGetSelectionBox = SpringUnsynced.GetSelectionBox
 
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spIsGodModeEnabled = Spring.IsGodModeEnabled
+local spGetUnitCommandCount = SpringShared.GetUnitCommandCount
+local spIsGodModeEnabled = SpringShared.IsGodModeEnabled
 
-local spGetUnitsInScreenRectangle = Spring.GetUnitsInScreenRectangle
-local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
-local spSelectUnitArray = Spring.SelectUnitArray
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitsInScreenRectangle = SpringUnsynced.GetUnitsInScreenRectangle
+local spGetUnitsInRectangle = SpringShared.GetUnitsInRectangle
+local spSelectUnitArray = SpringUnsynced.SelectUnitArray
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGetUnitTeam = SpringShared.GetUnitTeam
 
-local spIsAboveMiniMap = Spring.IsAboveMiniMap
+local spIsAboveMiniMap = SpringUnsynced.IsAboveMiniMap
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitNoSelect = Spring.GetUnitNoSelect
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitNoSelect = SpringUnsynced.GetUnitNoSelect
 
-local GaiaTeamID = Spring.GetGaiaTeamID()
+local GaiaTeamID = SpringShared.GetGaiaTeamID()
 local selectedUnits = spGetSelectedUnits()
 
 local spec = spGetSpectatingState()
@@ -173,7 +173,7 @@ local function handleClearCustomFilter(_, _, _)
 end
 
 function widget:ViewResize()
-	dualScreen = Spring.GetMiniMapDualScreen()
+	dualScreen = SpringUnsynced.GetMiniMapDualScreen()
 	_, _, _, vpy = spGetViewGeometry()
 end
 

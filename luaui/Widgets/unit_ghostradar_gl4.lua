@@ -13,19 +13,19 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local shapeOpacity = 0.5
 local addHeight = 8 -- compensate for unit wobbling underground
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spIsUnitInView = Spring.IsUnitInView
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spIsUnitInView = SpringUnsynced.IsUnitInView
 
 local unitshapes = {}
 local dots = {}
 local spec, specFullView = spGetSpectatingState()
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
 
 local includedUnitDefIDs = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
@@ -177,7 +177,7 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	if Spring.GetGameFrame() > 0 and data.dots ~= nil then
+	if SpringShared.GetGameFrame() > 0 and data.dots ~= nil then
 		dots = data.dots
 	end
 end

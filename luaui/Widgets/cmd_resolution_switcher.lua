@@ -27,7 +27,7 @@ local windowType = {
 -- Gets geometries for each screen and orders them by posX (left to right)
 local function refreshScreenGeometries(numDisplays)
 	for displayIndex = 1, numDisplays do
-		local sx, sy, px, py = Spring.GetScreenGeometry(displayIndex - 1)
+		local sx, sy, px, py = SpringUnsynced.GetScreenGeometry(displayIndex - 1)
 		screenGeometries[displayIndex] = { px, py, sx, sy, displayIndex }
 	end
 
@@ -43,7 +43,7 @@ local function getMaximalWindowGeometry(minI, maxI)
 	local maxY = screenGeometries[minI][2] + screenGeometries[minI][4]
 	local di = screenGeometries[minI][5]
 
-	for displayNum = 2, Spring.GetNumDisplays() do
+	for displayNum = 2, SpringUnsynced.GetNumDisplays() do
 		local py = screenGeometries[displayNum][2]
 		local sy = screenGeometries[displayNum][4]
 		if py < minY then
@@ -73,7 +73,7 @@ local function insertMaximalScreenMode(minI, maxI, modes)
 end
 
 local function insertMultiMonitorModes(modes)
-	local numDisplays = Spring.GetNumDisplays()
+	local numDisplays = SpringUnsynced.GetNumDisplays()
 
 	if numDisplays <= 1 then
 		return
@@ -106,7 +106,7 @@ local function refreshScreenModes()
 		-- Only capture the first occurence of the display index, it will contain maximum supported resolution
 		if display ~= videoMode.display then
 			display = videoMode.display
-			local w, h, x, y = Spring.GetScreenGeometry(display - 1)
+			local w, h, x, y = SpringUnsynced.GetScreenGeometry(display - 1)
 			displays[display] = {
 				name = videoMode.displayName,
 				width = w, --videoMode.w,
@@ -153,7 +153,7 @@ local function refreshScreenModes()
 		end
 	end
 
-	local numDisplays = Spring.GetNumDisplays()
+	local numDisplays = SpringUnsynced.GetNumDisplays()
 	if numDisplays > 1 then
 		refreshScreenGeometries(numDisplays)
 
@@ -164,8 +164,8 @@ local function refreshScreenModes()
 		for display = 1, numDisplays do
 			for display2 = 1, numDisplays do
 				if display ~= display2 then
-					local w, h, x, y = Spring.GetScreenGeometry(display - 1)
-					local w2, h2, x2, y2 = Spring.GetScreenGeometry(display2 - 1)
+					local w, h, x, y = SpringUnsynced.GetScreenGeometry(display - 1)
+					local w2, h2, x2, y2 = SpringUnsynced.GetScreenGeometry(display2 - 1)
 					if w > 0 and w2 > 0 then
 						if x + w == x2 or x2 + w2 == x or x2 - w == x or x - w2 == x2 then -- make sure they are next to eachother
 							if not addedDisplayCombo[display] or addedDisplayCombo[display] ~= display2 then
@@ -227,24 +227,24 @@ local function changeScreenMode(index)
 	local screenMode = screenModes[index]
 
 	if screenMode.type == windowType.fullscreen then
-		Spring.SetWindowGeometry(screenMode.display, 0, 0, screenMode.width, screenMode.height, true, false)
+		SpringUnsynced.SetWindowGeometry(screenMode.display, 0, 0, screenMode.width, screenMode.height, true, false)
 	elseif screenMode.type == windowType.borderless then
-		Spring.SetWindowGeometry(screenMode.display, screenMode.x or 0, screenMode.y or 0, screenMode.width, screenMode.height, true, true)
+		SpringUnsynced.SetWindowGeometry(screenMode.display, screenMode.x or 0, screenMode.y or 0, screenMode.width, screenMode.height, true, true)
 	elseif screenMode.type == windowType.multimonitor then
-		Spring.SetWindowGeometry(screenMode.actualDisplay, screenMode.x or 0, screenMode.y or 0, screenMode.width, screenMode.height, false, true)
+		SpringUnsynced.SetWindowGeometry(screenMode.actualDisplay, screenMode.x or 0, screenMode.y or 0, screenMode.width, screenMode.height, false, true)
 	elseif screenMode.type == windowType.windowed then
 		-- Windowed mode has a raptor-and-egg problem, where window borders can't be known until after switching to windowed mode
 		-- This cannot be done in two consecutive SetWindowGeometry() calls, as there must be a two draw frame delay
 		-- (one to write, one to read), before the values of GetWindowGeometry() are updated
-		local _, _, _, _, borderTop, borderLeft, borderBottom, borderRight = Spring.GetWindowGeometry()
+		local _, _, _, _, borderTop, borderLeft, borderBottom, borderRight = SpringUnsynced.GetWindowGeometry()
 		local width = screenMode.width - borderLeft - borderRight
 		local height = screenMode.height - borderTop - borderBottom
-		Spring.SetWindowGeometry(screenMode.display, borderLeft, borderTop, width, height, false, false)
+		SpringUnsynced.SetWindowGeometry(screenMode.display, borderLeft, borderTop, width, height, false, false)
 
 		if firstPassDrawFrame then
 			firstPassDrawFrame = nil
 		else
-			firstPassDrawFrame = Spring.GetDrawFrame()
+			firstPassDrawFrame = SpringUnsynced.GetDrawFrame()
 		end
 	end
 end
@@ -253,7 +253,7 @@ function widget:Update()
 	if firstPassDrawFrame == nil then
 		return
 	end
-	if Spring.GetDrawFrame() - firstPassDrawFrame <= 2 then
+	if SpringUnsynced.GetDrawFrame() - firstPassDrawFrame <= 2 then
 		return
 	end -- 2 draw frame delay for engine to update window borders
 	changeScreenMode(screenModeIndex)

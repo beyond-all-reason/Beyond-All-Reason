@@ -83,7 +83,7 @@ function AIBase:EchoDebug(...)
 end
 
 if tracy then
-	Spring.Echo("Enabled Tracy support for AIBase")
+	SpringShared.Echo("Enabled Tracy support for AIBase")
 	AIBase.lastGCinfo = 0
 	local logRAM = true
 	--local function tracyZoneBeginMem() return end

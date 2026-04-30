@@ -23,10 +23,10 @@ local stringFormat = string.format
 local stringFind = string.find
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetLocalTeamID
-local spEcho = Spring.Echo
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = SpringShared.GetGameFrame
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spEcho = SpringShared.Echo
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 --2023.05.21 TODO list
 -- Add occupied circle to center
@@ -51,7 +51,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
 -- move font init into initialize instead of load
 -- untie from os.clock thats stupid too
 
-if Spring.GetModOptions().unit_restrictions_noextractorDefs then
+if SpringShared.GetModOptions().unit_restrictions_noextractorDefs then
 	return
 end
 
@@ -72,12 +72,12 @@ local maxScale = 4 -- ignore spots above this scale (probably metalmap)
 
 local extractorRadius = Game.extractorRadius * 1.2
 
-local spGetUnitsInSphere = Spring.GetUnitsInSphere
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMapDrawMode = Spring.GetMapDrawMode
-local spIsUnitAllied = Spring.IsUnitAllied
-local spIsGUIHidden = Spring.IsGUIHidden
+local spGetUnitsInSphere = SpringShared.GetUnitsInSphere
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetGroundHeight = SpringShared.GetGroundHeight
+local spGetMapDrawMode = SpringUnsynced.GetMapDrawMode
+local spIsUnitAllied = SpringUnsynced.IsUnitAllied
+local spIsGUIHidden = SpringUnsynced.IsGUIHidden
 
 local mySpots = {} -- {spotKey  = {x = spot.x, y= spGetGroundHeight(spot.x, spot.z), z = spot.z, value = value, scale = scale, occupied = occupied, t = currentClock, ally = false, enemy = false, instanceID = "1024_1023"}}
 
@@ -85,11 +85,11 @@ local checkspots = true
 local sceduledCheckedSpotsFrame = spGetGameFrame()
 
 local isSpec, fullview = spGetSpectatingState()
-local myAllyTeamID = Spring.GetLocalAllyTeamID()
-local incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
+local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+local incomeMultiplier = select(7, SpringShared.GetTeamInfo(spGetMyTeamID(), false))
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local vsx, vsy = Spring.GetViewGeometry()
+local fontfile = "fonts/" .. SpringUnsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local vsx, vsy = SpringUnsynced.GetViewGeometry()
 local fontfileScale = 1 -- fixed scale: billboard size is resolution-independent (world-space)
 local fontfileSize = 110
 local fontfileOutlineSize = 12
@@ -399,8 +399,8 @@ end
 
 local function InitializeAtlas(mSpots)
 	local multipliers = { [1] = true } -- all unique multipliers
-	for i, teamID in ipairs(Spring.GetTeamList()) do
-		local incomeMultiplier = select(7, Spring.GetTeamInfo(teamID, false))
+	for i, teamID in ipairs(SpringShared.GetTeamList()) do
+		local incomeMultiplier = select(7, SpringShared.GetTeamInfo(teamID, false))
 		if multipliers[incomeMultiplier] == nil then
 			multipliers[incomeMultiplier] = teamID
 		end
@@ -465,7 +465,7 @@ local function InitializeSpots(mSpots)
 
 				local uvcoords = valueToUVs[value]
 				if uvcoords then
-					local gh = Spring.GetGroundHeight(spot.x, spot.z)
+					local gh = SpringShared.GetGroundHeight(spot.x, spot.z)
 					pushElementInstance(
 						spotInstanceVBO, -- vbo
 						{ spot.x, gh, spot.z, scale, (occupied and 0) or 1, -1000, uvcoords.w, uvcoords.h, uvcoords.x, uvcoords.X, uvcoords.y, uvcoords.Y }, -- instanceData
@@ -604,9 +604,9 @@ function widget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
 	isSpec, fullview = spGetSpectatingState()
-	myAllyTeamID = Spring.GetLocalAllyTeamID()
+	myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
 	local oldIncomeMultiplier = incomeMultiplier
-	incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
+	incomeMultiplier = select(7, SpringShared.GetTeamInfo(spGetMyTeamID(), false))
 	if incomeMultiplier ~= oldIncomeMultiplier then
 		UpdateSpotValues()
 	end
@@ -638,7 +638,7 @@ local function getWaterLevel()
 	if lrs and lrs.level then
 		return lrs.level
 	end
-	local level = Spring.GetGameRulesParam("lavaLevel")
+	local level = SpringShared.GetGameRulesParam("lavaLevel")
 	if level and level ~= -99999 then
 		return level
 	end

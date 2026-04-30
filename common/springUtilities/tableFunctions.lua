@@ -3,7 +3,7 @@ local function customKeyToUsefulTable(dataRaw)
 		return
 	end
 	if not type(dataRaw) == "string" then
-		Spring.Echo("Customkey data error! type == " .. type(dataRaw))
+		SpringShared.Echo("Customkey data error! type == " .. type(dataRaw))
 	else
 		dataRaw = string.gsub(dataRaw, "_", "=")
 		dataRaw = string.base64Decode(dataRaw)
@@ -15,7 +15,7 @@ local function customKeyToUsefulTable(dataRaw)
 			end
 		end
 		if err then
-			Spring.Echo("Customkey error", err)
+			SpringShared.Echo("Customkey error", err)
 		end
 	end
 end

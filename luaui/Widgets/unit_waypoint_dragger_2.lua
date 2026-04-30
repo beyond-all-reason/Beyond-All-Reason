@@ -12,17 +12,17 @@ function widget:GetInfo()
 	}
 end
 
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetGameSeconds = Spring.GetGameSeconds
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetUnitCommands = Spring.GetUnitCommands
-local spGetMouseState = Spring.GetMouseState
-local spGetModKeyState = Spring.GetModKeyState
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spIsAboveMiniMap = Spring.IsAboveMiniMap
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
+local spGetGameSeconds = SpringShared.GetGameSeconds
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetUnitCommands = SpringShared.GetUnitCommands
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetModKeyState = SpringUnsynced.GetModKeyState
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spIsAboveMiniMap = SpringUnsynced.IsAboveMiniMap
 
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
-local spTraceScreenRay = Spring.TraceScreenRay
+local spWorldToScreenCoords = SpringUnsynced.WorldToScreenCoords
+local spTraceScreenRay = SpringUnsynced.TraceScreenRay
 
 local floor = math.floor
 

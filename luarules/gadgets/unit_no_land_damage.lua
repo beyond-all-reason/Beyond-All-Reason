@@ -19,7 +19,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false --  silent removal
 end
 
-local GetUnitBasePosition = Spring.GetUnitBasePosition
+local GetUnitBasePosition = SpringShared.GetUnitBasePosition
 
 local weapons = { "armair_torpedo", "armseap_weapon" }
 local NO_LAND_DAMAGE = {}

@@ -20,14 +20,14 @@ local facingNames = { [0] = "s", [1] = "e", [2] = "n", [3] = "w" }
 ---@param facing string|integer
 ---@return integer heading value in 0-65535 range
 local function facingToHeading(facing)
-	return Spring.GetHeadingFromFacing(facingMap[facing or 0])
+	return SpringShared.GetHeadingFromFacing(facingMap[facing or 0])
 end
 
 ---Convert a heading integer (engine 0-65535) to a named facing letter.
 ---@param heading integer
 ---@return string facing one of 's', 'e', 'n', 'w'
 local function headingToFacing(heading)
-	return facingNames[Spring.GetFacingFromHeading(heading)]
+	return facingNames[SpringShared.GetFacingFromHeading(heading)]
 end
 
 --- Whether the given facing is east or west

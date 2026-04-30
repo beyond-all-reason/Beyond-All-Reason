@@ -42,9 +42,9 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
 	if manualLaunchUnits[unitDefID] then
-		local manualFireCommand = Spring.FindUnitCmdDesc(unitID, CMD.MANUALFIRE)
-		Spring.RemoveUnitCmdDesc(unitID, manualFireCommand)
-		Spring.InsertUnitCmdDesc(unitID, launchCommand)
+		local manualFireCommand = SpringShared.FindUnitCmdDesc(unitID, CMD.MANUALFIRE)
+		SpringSynced.RemoveUnitCmdDesc(unitID, manualFireCommand)
+		SpringSynced.InsertUnitCmdDesc(unitID, launchCommand)
 	end
 end
 

@@ -14,7 +14,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	local SendToUnsynced = SendToUnsynced
-	local spGetGameFrame = Spring.GetGameFrame
+	local spGetGameFrame = SpringShared.GetGameFrame
 	local fps = Game.gameSpeed
 	local dayFrames = fps * 24 * 60 * 60
 	local noProgressTimeout = 5 * fps -- ETAs will disappear after this many frames without progress
@@ -76,24 +76,24 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-			for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
+		for _, allyTeamID in ipairs(SpringShared.GetAllyTeamList()) do
+			for _, teamID in ipairs(SpringShared.GetTeamList(allyTeamID)) do
 				teamToAllyTeam[teamID] = allyTeamID
 			end
 		end
 	end
 else
-	local myPlayerID = Spring.GetLocalPlayerID()
-	local myAllyTeamID = Spring.GetLocalAllyTeamID()
-	local _, fullview = Spring.GetSpectatingState()
+	local myPlayerID = SpringUnsynced.GetLocalPlayerID()
+	local myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+	local _, fullview = SpringUnsynced.GetSpectatingState()
 
 	--Map of allyTeamID to set of featureIDs. Used to resend ETAs when player changes ally team
 	local featureETATeamCache = {}
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
-			myAllyTeamID = Spring.GetLocalAllyTeamID()
-			_, fullview = Spring.GetSpectatingState()
+			myAllyTeamID = SpringUnsynced.GetLocalAllyTeamID()
+			_, fullview = SpringUnsynced.GetSpectatingState()
 
 			--Resend feature ETAs when team changes so that we can see active ETAs of new team and stop seeing ETAs of old team
 			local myAllyTeamCache = featureETATeamCache[myAllyTeamID]
@@ -114,7 +114,7 @@ else
 	end
 
 	function gadget:Initialize()
-		for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+		for _, allyTeamID in ipairs(SpringShared.GetAllyTeamList()) do
 			featureETATeamCache[allyTeamID] = {}
 		end
 		gadgetHandler:AddSyncAction("etaFeatureReclaimStartFrame", etaFeatureReclaimStartFrame)

@@ -1,7 +1,7 @@
 local widget = widget ---@type Widget
 
 -- makes the intent of our usage of Spring.Echo clear
-local FeedbackForUser = Spring.Echo
+local FeedbackForUser = SpringShared.Echo
 
 local SIDES = VFS.Include("gamedata/sides_enum.lua")
 local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
@@ -28,8 +28,8 @@ local tableInsert = table.insert
 local tableSort = table.sort
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
 
 -- types
 -- =====
@@ -49,11 +49,11 @@ local spGetSelectedUnits = Spring.GetSelectedUnits
 -- optimization
 -- ============
 
-local SpringGetMouseState = Spring.GetMouseState
-local SpringGetModKeyState = Spring.GetModKeyState
-local SpringGetActiveCommand = Spring.GetActiveCommand
-local SpringTraceScreenRay = Spring.TraceScreenRay
-local SpringGetUnitPosition = Spring.GetUnitPosition
+local SpringGetMouseState = SpringUnsynced.GetMouseState
+local SpringGetModKeyState = SpringUnsynced.GetModKeyState
+local SpringGetActiveCommand = SpringUnsynced.GetActiveCommand
+local SpringTraceScreenRay = SpringUnsynced.TraceScreenRay
+local SpringGetUnitPosition = SpringShared.GetUnitPosition
 
 -- util
 -- ====
@@ -435,7 +435,7 @@ local function createBlueprint(unitIDs, ordered)
 				blueprintUnitID = nextBlueprintUnitID(),
 				unitDefID = unitDefID,
 				position = { x, y, z },
-				facing = Spring.GetUnitBuildFacing(unitID),
+				facing = SpringShared.GetUnitBuildFacing(unitID),
 				originalName = unitName,
 			}
 		end),
@@ -539,7 +539,7 @@ local function setBlueprintPlacementActive(active)
 	if active then
 		widget:SelectionChanged(spGetSelectedUnits())
 
-		Spring.PlaySoundFile(sounds.activateBlueprint, 0.75, "ui")
+		SpringUnsynced.PlaySoundFile(sounds.activateBlueprint, 0.75, "ui")
 	else
 		WG.api_blueprint.setActiveBlueprint(nil)
 		WG.api_blueprint.setBlueprintPositions({})
@@ -608,7 +608,7 @@ function widget:Update(dt)
 	end
 	t = 0
 
-	if pendingBoxSelect and not Spring.GetSelectionBox() then
+	if pendingBoxSelect and not SpringUnsynced.GetSelectionBox() then
 		updateSelectedUnits(spGetSelectedUnits())
 		pendingBoxSelect = false
 	end
@@ -725,7 +725,7 @@ local drawCursorText = glListCache(function(index)
 end)
 
 local function reloadBindings()
-	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+	currentLayout = SpringUnsynced.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 	drawCursorText.invalidate()
 end
@@ -759,7 +759,7 @@ function widget:SelectionChanged(selection)
 	end
 
 	-- track selection order (skip if we're still box selecting)
-	if Spring.GetSelectionBox() then
+	if SpringUnsynced.GetSelectionBox() then
 		pendingBoxSelect = true
 	else
 		updateSelectedUnits(selection)
@@ -808,7 +808,7 @@ local function handleBlueprintNextAction()
 	setSelectedBlueprintIndex(getNextFilteredBlueprintIndex())
 	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
-	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
+	SpringUnsynced.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
 
 	return true
 end
@@ -826,7 +826,7 @@ local function handleBlueprintPrevAction()
 	setSelectedBlueprintIndex(getPrevFilteredBlueprintIndex())
 	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
-	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
+	SpringUnsynced.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
 
 	return true
 end
@@ -837,7 +837,7 @@ local function handleBlueprintCreateAction()
 	createBlueprint(unitIDs, true)
 	setSelectedBlueprintIndex(#blueprints)
 
-	Spring.PlaySoundFile(sounds.createBlueprint, 0.75, "ui")
+	SpringUnsynced.PlaySoundFile(sounds.createBlueprint, 0.75, "ui")
 
 	return true
 end
@@ -859,7 +859,7 @@ local function handleBlueprintDeleteAction()
 
 	deleteBlueprint(selectedBlueprintIndex)
 
-	Spring.PlaySoundFile(sounds.deleteBlueprint, 0.75, "ui")
+	SpringUnsynced.PlaySoundFile(sounds.deleteBlueprint, 0.75, "ui")
 
 	return true
 end
@@ -883,7 +883,7 @@ local function handleFacingAction(_, _, args)
 	if newFacing then
 		setBlueprintFacing(newFacing)
 
-		Spring.PlaySoundFile(sounds.facing, 0.75, "ui")
+		SpringUnsynced.PlaySoundFile(sounds.facing, 0.75, "ui")
 
 		return true
 	end
@@ -909,7 +909,7 @@ local function handleSpacingAction(_, _, args)
 	if newSpacing then
 		setBlueprintSpacing(newSpacing)
 
-		Spring.PlaySoundFile(sounds.spacing, 0.75, "ui")
+		SpringUnsynced.PlaySoundFile(sounds.spacing, 0.75, "ui")
 
 		return true
 	end
@@ -958,8 +958,8 @@ end
 
 local function createBuildingComparator(sortSpec)
 	return function(a, b)
-		a = pack(Spring.Pos2BuildPos(a.unitDefID, a.position[1], a.position[2], a.position[3], a.facing))
-		b = pack(Spring.Pos2BuildPos(b.unitDefID, b.position[1], b.position[2], b.position[3], b.facing))
+		a = pack(SpringShared.Pos2BuildPos(a.unitDefID, a.position[1], a.position[2], a.position[3], a.facing))
+		b = pack(SpringShared.Pos2BuildPos(b.unitDefID, b.position[1], b.position[2], b.position[3], b.facing))
 		for _, index in ipairs(sortSpec) do
 			local ascending = index > 0
 			index = mathAbs(index)
@@ -1030,9 +1030,9 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				table.map(blueprint.units, function(bpu)
 					local x = pos[1] + bpu.position[1]
 					local z = pos[3] + bpu.position[3]
-					local y = Spring.GetGroundHeight(x, z)
+					local y = SpringShared.GetGroundHeight(x, z)
 
-					local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
+					local sx, sy, sz = SpringShared.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
 
 					return {
 						blueprintUnitID = bpu.blueprintUnitID,
@@ -1059,7 +1059,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			}
 		end)
 
-		Spring.GiveOrderArrayToUnitArray(builders, orders, false)
+		SpringShared.GiveOrderArrayToUnitArray(builders, orders, false)
 
 		local alt, ctrl, meta, shift = unpack(state.modKeys)
 		if not shift then

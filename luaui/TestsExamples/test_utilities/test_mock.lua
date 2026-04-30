@@ -3,7 +3,7 @@ local function test()
 		return true, false, true, false
 	end)
 
-	assertTablesEqual(pack(Spring.GetModKeyState()), { true, false, true, false })
+	assertTablesEqual(pack(SpringUnsynced.GetModKeyState()), { true, false, true, false })
 
 	assert(#mock_SpringGetModKeyState.calls == 1)
 end

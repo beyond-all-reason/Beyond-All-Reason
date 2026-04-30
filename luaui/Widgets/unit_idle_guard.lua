@@ -14,10 +14,10 @@ end
 
 local CMD_GUARD = CMD.GUARD
 local OPT_SHIFT = CMD.OPT_SHIFT
-local spGetMyTeamID = Spring.GetLocalTeamID
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitsInSphere = Spring.GetUnitsInSphere
-local spGetUnitDefID = Spring.GetUnitDefID
+local spGetMyTeamID = SpringUnsynced.GetLocalTeamID
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spGetUnitsInSphere = SpringShared.GetUnitsInSphere
+local spGetUnitDefID = SpringShared.GetUnitDefID
 local validGuardingBuilders = {}
 for unitDefID, ud in pairs(UnitDefs) do
 	validGuardingBuilders[unitDefID] = (ud.isBuilder and ud.canAssist and ud.canMove and not ud.isFactory)
@@ -34,7 +34,7 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, _, _)
 	if unitTeam ~= spGetMyTeamID() then
 		return
 	end
-	if Spring.GetUnitCommandCount(unitID) > 0 then
+	if SpringShared.GetUnitCommandCount(unitID) > 0 then
 		return
 	end
 

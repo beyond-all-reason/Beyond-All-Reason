@@ -17,11 +17,11 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local monitorPlayers = {}
-local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetPlayerInfo = SpringShared.GetPlayerInfo
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	if Spring.GetUnitSelfDTime(unitID) > 0 then
-		Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+	if SpringShared.GetUnitSelfDTime(unitID) > 0 then
+		SpringShared.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 	end
 	return true
 end
@@ -39,20 +39,20 @@ local function removeSelfdOrders(teamID)
 	--end
 
 	-- cancel any self d orders
-	local units = Spring.GetTeamUnits(teamID)
+	local units = SpringShared.GetTeamUnits(teamID)
 	for i = 1, #units do
 		local unitID = units[i]
-		if Spring.GetUnitSelfDTime(unitID) > 0 then
-			Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+		if SpringShared.GetUnitSelfDTime(unitID) > 0 then
+			SpringShared.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 		end
 	end
 end
 
 function gadget:Initialize()
-	local players = Spring.GetPlayerList()
+	local players = SpringShared.GetPlayerList()
 	for _, playerID in pairs(players) do
 		local _, active, spec, teamID = spGetPlayerInfo(playerID, false)
-		local leaderPlayerID, isDead, isAiTeam = Spring.GetTeamInfo(teamID, false)
+		local leaderPlayerID, isDead, isAiTeam = SpringShared.GetTeamInfo(teamID, false)
 		if isDead == 0 and not isAiTeam then
 			--_, active, spec = spGetPlayerInfo(leaderPlayerID, false)
 			if active and not spec then

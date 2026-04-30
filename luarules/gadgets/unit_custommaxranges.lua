@@ -23,9 +23,9 @@ end
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-local spGetAllUnits = Spring.GetAllUnits
-local spGetUnitDefID = Spring.GetUnitDefID
-local spSetUnitMaxRange = Spring.SetUnitMaxRange
+local spGetAllUnits = SpringShared.GetAllUnits
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spSetUnitMaxRange = SpringSynced.SetUnitMaxRange
 
 local unitMaxRange = {}
 for unitDefID, unitDef in pairs(UnitDefs) do

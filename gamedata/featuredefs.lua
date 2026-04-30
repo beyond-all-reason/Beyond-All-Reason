@@ -53,9 +53,9 @@ for _, filename in ipairs(luaFiles) do
 	local success, defs = pcall(VFS.Include, filename, featureDefsEnv, VFS_MODES)
 
 	if not success then
-		Spring.Log(section, LOG.ERROR, "Error parsing " .. filename .. ": " .. tostring(defs))
+		SpringShared.Log(section, LOG.ERROR, "Error parsing " .. filename .. ": " .. tostring(defs))
 	elseif defs == nil then
-		Spring.Log(section, LOG.ERROR, "Missing return table from: " .. filename)
+		SpringShared.Log(section, LOG.ERROR, "Missing return table from: " .. filename)
 	else
 		for featureDefName, featureDef in pairs(defs) do
 			if (type(featureDefName) == "string") and (type(featureDef) == "table") then
