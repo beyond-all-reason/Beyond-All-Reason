@@ -1,9 +1,9 @@
-function skip()
+local function skip()
 	return Spring.GetGameFrame() > 0
 end
 
 -- Test whether mexes are able to clear queued buildings by shift-clicking
-function setup()
+local function setup()
 	Test.clearMap()
 
 	local widget_cmd_extractor_snap = widgetHandler:FindWidget("Extractor Snap (mex/geo)")
@@ -25,7 +25,7 @@ function setup()
 	Test.waitTime(10)
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 
 	WG["pregame-build"].setBuildQueue({})
@@ -35,7 +35,7 @@ function cleanup()
 end
 
 -- tests both pregame mex snap behavior, as well as basic queue and blueprint handling
-function test()
+local function test()
 	local mexUnitDefId = UnitDefNames["armmex"].id
 	local metalSpots = WG["resource_spot_finder"].metalSpotsList
 
@@ -103,3 +103,5 @@ function test()
 	local buildQueue = WG["pregame-build"].getBuildQueue()
 	assert(#buildQueue == 0, "Build queue should be empty")
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

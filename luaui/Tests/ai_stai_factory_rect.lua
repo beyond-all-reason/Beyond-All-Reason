@@ -18,31 +18,33 @@ local function assertRect(expectedX, expectedZ, got)
 	assert(got.outZ == expectedZ, ("outZ mismatch: expected %d, got %s"):format(expectedZ, tostring(got.outZ)))
 end
 
-function test_factory_apron_for_unknown_exit()
+local function test_factory_apron_for_unknown_exit()
 	-- Factories not listed in factoryExitSides get the generous apron.
 	local got = factoryRect.getOutsets("fac_unknown_exit", unitTable, factoryExitSides)
 	assertRect(10 * 6, 12 * 9, got)
 end
 
-function test_air_factory_uses_default_rect()
+local function test_air_factory_uses_default_rect()
 	-- Air factories (exit side 0) should fall back to default building spacing, not apron/lane.
 	local got = factoryRect.getOutsets("fac_air_exit", unitTable, factoryExitSides)
 	assertRect(5 * 4, 7 * 4, got)
 end
 
-function test_default_rect_for_non_factory()
+local function test_default_rect_for_non_factory()
 	local got = factoryRect.getOutsets("builder", unitTable, factoryExitSides)
 	assertRect(3 * 4, 4 * 4, got)
 end
 
-function test_nil_when_exit_side_known()
+local function test_nil_when_exit_side_known()
 	local got = factoryRect.getOutsets("fac_known_exit", unitTable, factoryExitSides)
 	assert(got == nil, "expected nil when exit side is known (lane handled elsewhere)")
 end
 
-function test()
+local function test()
 	test_factory_apron_for_unknown_exit()
 	test_air_factory_uses_default_rect()
 	test_default_rect_for_non_factory()
 	test_nil_when_exit_side_known()
 end
+
+return { test = test }

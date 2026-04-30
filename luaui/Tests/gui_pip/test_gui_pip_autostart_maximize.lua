@@ -1,11 +1,11 @@
 local widgetName = "Picture-in-Picture"
 local originalGetSpectatingState = nil
 
-function skip()
+local function skip()
 	return Spring.GetGameFrame() <= 0 or widgetHandler.knownWidgets[widgetName] == nil
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 	originalGetSpectatingState = Spring.GetSpectatingState
 	Spring.GetSpectatingState = function()
@@ -15,7 +15,7 @@ function setup()
 	assert(widget)
 end
 
-function cleanup()
+local function cleanup()
 	if originalGetSpectatingState ~= nil then
 		Spring.GetSpectatingState = originalGetSpectatingState
 		originalGetSpectatingState = nil
@@ -23,7 +23,7 @@ function cleanup()
 	Test.clearMap()
 end
 
-function test()
+local function test()
 	local vsx, vsy = Spring.GetViewGeometry()
 	local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 	local widgetScale = (vsy / 2000) * uiScale
@@ -46,3 +46,5 @@ function test()
 	assert(expandedWidth >= minExpandedSize, string.format("expandedWidth too small: %.2f < %d", expandedWidth, minExpandedSize))
 	assert(expandedHeight >= minExpandedSize, string.format("expandedHeight too small: %.2f < %d", expandedHeight, minExpandedSize))
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

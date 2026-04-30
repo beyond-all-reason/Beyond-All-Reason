@@ -1,4 +1,4 @@
-function test()
+local function test()
 	mock_SpringGetModKeyState = Test.mock(Spring, "GetModKeyState", function()
 		return true, false, true, false
 	end)
@@ -7,3 +7,5 @@ function test()
 
 	assert(#mock_SpringGetModKeyState.calls == 1)
 end
+
+return { test = test }
