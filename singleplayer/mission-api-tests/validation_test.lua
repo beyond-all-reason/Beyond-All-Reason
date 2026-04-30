@@ -325,7 +325,7 @@ local actions = {
 			objectiveID = 'invalidObjectiveID',
 			completed = true,
 		},
-	}
+	},
 
 	-- Valid SpawnUnits - 'spawnedCom' is referenced in actionReferencingSpawnedUnitName.
 	actionSpawnUnitsValid = {
