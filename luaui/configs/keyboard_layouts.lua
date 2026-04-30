@@ -19,22 +19,24 @@ scanToCode["qwertz"]["-"] = "-"
 scanToCode["qwertz"]["="] = "="
 scanToCode["qwertz"]["\\"] = "\\"
 	-- NEEDS CORRECTION ABOVE
-
-scanToCode["azerty"]["Z"] = "W"
-scanToCode["azerty"]["A"] = "Q"
-scanToCode["azerty"]["Q"] = "A"
-scanToCode["azerty"]["W"] = "Z"
-	-- NEEDS CORRECTION BELOW
-scanToCode["azerty"][";"] = ";"
-scanToCode["azerty"]["'"] = "'"
-scanToCode["azerty"][","] = ","
-scanToCode["azerty"]["."] = "."
-scanToCode["azerty"]["/"] = "/"
-scanToCode["azerty"]["`"] = "`"
-scanToCode["azerty"]["-"] = "-"
-scanToCode["azerty"]["="] = "="
-scanToCode["azerty"]["\\"] = "\\"
-	-- NEEDS CORRECTION ABOVE
+scanToCode["azerty"] = {
+	Q = "A",
+	W = "Z",
+	Z = "W",
+	A = "Q",
+	M = ",",
+	[";"] = "M",
+	[","] = ";",
+	["."] = ":",
+	["/"] = "!",
+	["["] = "^",
+	["]"] = "$",
+	["-"] = ")",
+	["="] = "=",
+	["'"] = "ù",
+	["`"] = "²",
+	["\\"] = "\\",	-- NEEDS CORRECTION
+}
 
 scanToCode["colemak"] = {
 	Q = "Q",
