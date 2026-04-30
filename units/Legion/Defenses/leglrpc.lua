@@ -31,7 +31,7 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			restrictions_inclusion = "_nolrpc_",
 			canareaattack = 1,
 			model_author = "ZephyrSkies",
@@ -132,7 +132,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1100,
 				customparams = {
-					cluster_def = 'cluster_munition',
+					cluster_def = "cluster_munition",
 					cluster_number = 6,
 				},
 				damage = {

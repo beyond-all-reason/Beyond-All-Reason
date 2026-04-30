@@ -5,75 +5,75 @@ function gadget:GameFrame(n)
 		Spring.Echo("Loaded atmosphere CEGs config for map: " .. Game.mapName)
 	end
 
--- ## Atmosphere Functions
--- SpawnCEGInPosition (cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInArea(cegname, midposx, posy, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInRandomMapPos(cegname, groundOffset, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInRandomMapPosBelowY(cegname, groundOffset, spawnOnlyBelowY, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInRandomMapPosPresetY(cegname, posy, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- ## Atmosphere Functions
+	-- SpawnCEGInPosition (cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInArea(cegname, midposx, posy, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInRandomMapPos(cegname, groundOffset, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInRandomMapPosBelowY(cegname, groundOffset, spawnOnlyBelowY, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInRandomMapPosPresetY(cegname, posy, damage, paralyzedamage, damageradius, sound, soundvolume)
 
--- Use _ for damage, paralyzedamage, damageradius if you want to disable
+	-- Use _ for damage, paralyzedamage, damageradius if you want to disable
 
--- SND windy locations
-	if n%500 == 0 then
+	-- SND windy locations
+	if n % 500 == 0 then
 		SpawnCEGInRandomMapPosBelowY("noceg", 300, 75, _, _, _, "windy", 0.27)
 	end
 
--- low middle foggy cliffs	
-	if n%420 == 0 then
+	-- low middle foggy cliffs
+	if n % 420 == 0 then
 		-- SpawnCEGInPositionGround("fogdirty-brown", 4090, 100, 3116)
 		SpawnCEGInAreaGround("fogdirty-brown", 4118, 100, 3150, 300)
 	end
 
--- canyon middle foggy cliffs	
-	if n%380 == 150 then
+	-- canyon middle foggy cliffs
+	if n % 380 == 150 then
 		SpawnCEGInPositionGround("fogdirty-brown", 3553, 0, 3428)
 	end
 
-	if n%390 == 160 then
+	if n % 390 == 160 then
 		SpawnCEGInPositionGround("fogdirty-brown", 4551, 0, 2788)
 	end
 
--- -- mistyclouds	
-	if n%21 == 0 then
+	-- -- mistyclouds
+	if n % 21 == 0 then
 		--SpawnCEGInRandomMapPosBelowY("mistycloudbrownmistxl", 145, 50)
 		SpawnCEGInRandomMapPosPresetY("mistycloudbrownmistxl", 145)
 	end
 
-local windgustsounds = {
-	"windgust2",
-	"windgust1",
-	"windgust3",
-}
+	local windgustsounds = {
+		"windgust2",
+		"windgust1",
+		"windgust3",
+	}
 
--- -- rare sanddune dust
-	if n%75 == 11 then
-		local r = math.random(1,4)
+	-- -- rare sanddune dust
+	if n % 75 == 11 then
+		local r = math.random(1, 4)
 		if r == 1 then
-			SpawnCEGInAreaGround("dunecloud", 2940, 28, 2460, 750, _, _, _, windgustsounds[math.random(1,#windgustsounds)], 0.30)
-			SpawnCEGInAreaGround("dunecloud", 5180, 28, 3720, 750, _, _, _, windgustsounds[math.random(1,#windgustsounds)], 0.30)
+			SpawnCEGInAreaGround("dunecloud", 2940, 28, 2460, 750, _, _, _, windgustsounds[math.random(1, #windgustsounds)], 0.30)
+			SpawnCEGInAreaGround("dunecloud", 5180, 28, 3720, 750, _, _, _, windgustsounds[math.random(1, #windgustsounds)], 0.30)
 		end
 	end
 
--- alternate rare foggy cliffs	
+	-- alternate rare foggy cliffs
 	-- if n%620 == 300 then
 	-- 	SpawnCEGInPositionGround("fogdirty", 9585, 0, 304)
 	-- 	SpawnCEGInPositionGround("fogdirty", 275, 0, 6675)
 	-- 	SpawnCEGInPositionGround("fogdirty", 10163, 0, 1763)
 	-- end
 
--- super rare foggy cliffs	
-	if n%1440 == 0 then
+	-- super rare foggy cliffs
+	if n % 1440 == 0 then
 		SpawnCEGInAreaGround("firefliespurple", 3262, 20, 2400, 75, _, _, _, "magicalhum", 0.26)
 	end
 
-	if n%1500 == 770 then
+	if n % 1500 == 770 then
 		SpawnCEGInAreaGround("firefliespurple", 4988, 20, 3809, 75, _, _, _, "magicalhum", 0.26)
 	end
 
--- fireflies
+	-- fireflies
 	-- if n%1400 == 0 then
 	-- 	SpawnCEGInPositionGround("firefliesgreen", 3423, 32, 5559)
 	-- 	SpawnCEGInPositionGround("firefliesgreen", 7079, 32, 4449)
@@ -81,10 +81,9 @@ local windgustsounds = {
 	-- 	SpawnCEGInPositionGround("fireflies", 223, 32, 249)
 	-- end
 
--- pollen
-	if n%150 == 0 then
+	-- pollen
+	if n % 150 == 0 then
 		SpawnCEGInRandomMapPos("dustparticles", 50)
-
 	end
 
 	-- if n%1270 == 100 then
@@ -99,7 +98,7 @@ local windgustsounds = {
 	-- 	SpawnCEGInPositionGround("noceg", 9700, 600, 6560, _, _, _, "windy", 0.35)
 	-- end
 
--- SND dam hum
+	-- SND dam hum
 	-- if n%820 == 0 then
 	-- 	SpawnCEGInPositionGround("noceg", 5115, 100, 4095, _, _, _, "humheavy", 0.7)
 	-- end
@@ -108,7 +107,7 @@ local windgustsounds = {
 	-- 	SpawnCEGInPositionGround("noceg", 5115, 100, 3078, _, _, _, "humheavy", 0.7)
 	-- end
 
--- SND water ocean gentle
+	-- SND water ocean gentle
 	-- if n%1330 == 0 then
 	-- 	SpawnCEGInPositionGround("noceg", 6400, 100, 8500, _, _, _, "oceangentlesurf", 0.35)
 	-- end
@@ -121,9 +120,8 @@ local windgustsounds = {
 	-- 	SpawnCEGInPositionGround("noceg", 5101, 300, 1455, _, _, _, "tropicalbeach", 0.5)
 	-- end
 
--- SND hive airbursts
- --    if n%15 == 5 then
+	-- SND hive airbursts
+	--    if n%15 == 5 then
 	-- 	SpawnCEGInRandomMapPosBelowY("ventairburst", 400, -50, _, _, _, "ventair", 0.45)
-	-- end	
-		
+	-- end
 end

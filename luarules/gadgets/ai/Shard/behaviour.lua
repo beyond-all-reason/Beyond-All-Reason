@@ -5,41 +5,29 @@ function Behaviour:init()
 	self.priority = 0
 end
 
-function Behaviour:Init()
-end
+function Behaviour:Init() end
 
-function Behaviour:Update()
-end
+function Behaviour:Update() end
 
-function Behaviour:GameEnd()
-end
+function Behaviour:GameEnd() end
 
-function Behaviour:UnitCreated(unit)
-end
+function Behaviour:UnitCreated(unit) end
 
-function Behaviour:UnitBuilt(unit)
-end
+function Behaviour:UnitBuilt(unit) end
 
-function Behaviour:OwnerBuilt()
-end
+function Behaviour:OwnerBuilt() end
 
-function Behaviour:UnitDead(unit)
-end
+function Behaviour:UnitDead(unit) end
 
-function Behaviour:OwnerDead()
-end
+function Behaviour:OwnerDead() end
 
-function Behaviour:UnitDamaged(unit,attacker,damage)
-end
+function Behaviour:UnitDamaged(unit, attacker, damage) end
 
-function Behaviour:OwnerDamaged(attacker,damage)
-end
+function Behaviour:OwnerDamaged(attacker, damage) end
 
-function Behaviour:UnitIdle(unit)
-end
+function Behaviour:UnitIdle(unit) end
 
-function Behaviour:OwnerIdle()
-end
+function Behaviour:OwnerIdle() end
 
 function Behaviour:UnitMoveFailed(unit)
 	self:UnitIdle(unit)
@@ -59,7 +47,6 @@ function Behaviour:SetAI(ai)
 	self.game = ai.game
 	self.map = ai.map
 end
-
 
 function Behaviour:IsActive()
 	return self.active
@@ -83,15 +70,13 @@ function Behaviour:PreActivate()
 	self.active = true
 end
 
-function Behaviour:Activate()
-end
+function Behaviour:Activate() end
 
 function Behaviour:PreDeactivate()
 	self.active = false
 end
 
-function Behaviour:Deactivate()
-end
+function Behaviour:Deactivate() end
 
 function Behaviour:Priority()
 	return self.priority
@@ -106,7 +91,7 @@ function Behaviour:IsActive()
 end
 
 function Behaviour:Name()
-	return 'Behaviour'
+	return "Behaviour"
 end
 
 function Behaviour:EchoDebug(...)

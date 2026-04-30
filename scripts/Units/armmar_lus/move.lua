@@ -1,35 +1,25 @@
-stepTimes = {12800,	12800,	12800,	12800, 12800,12800,12800,12800}
-keyFramesWalk = {				--Step1						Step2						Step3						Step4...
-								--x		y		z			x		y		z			x		y		z			x		y		z
-	[lthigh] = 			{Turn = {{40,0,0},{30,0,0},{0,0,0},{-25,0,0},{-30,0,0},{-10,0,0},{0,0,0},{10,0,0}},
-							Move = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}}},
-	 
-	[lleg] = 				{Turn = {{20,0,0},{-15,0,0},{-30,0,0},{-40,0,0},{0,0,0},{20,0,0},{30,0,0},{20,0,0}},
-							Move = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}}},
-	 
-	[lfoot] =				{Turn = {{20,0,0},{45,0,0},{30,0,0},{15,0,0},{-30,0,0},{-30,0,0},{-30,0,0},{-10,0,0}},
-							Move = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}}},
+stepTimes = { 12800, 12800, 12800, 12800, 12800, 12800, 12800, 12800 }
+keyFramesWalk = { --Step1						Step2						Step3						Step4...
+	--x		y		z			x		y		z			x		y		z			x		y		z
+	[lthigh] = { Turn = { { 40, 0, 0 }, { 30, 0, 0 }, { 0, 0, 0 }, { -25, 0, 0 }, { -30, 0, 0 }, { -10, 0, 0 }, { 0, 0, 0 }, { 10, 0, 0 } }, Move = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } } },
 
-	[rthigh] = 				{Turn = {{-30,0,0},{-10,0,0},{0,0,0},{10,0,0},{40,0,0},{30,0,0},{0,0,0},{-25,0,0}},
-							Move = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}}},
-	 
-	[rleg] = 				{Turn = {{0,0,0},{20,0,0},{30,0,0},{20,0,0},{20,0,0},{-15,0,0},{-30,0,0},{-40,0,0}},
-							Move = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}}},
-	 
-	[rfoot] = 				{Turn = {{-30,0,0},{-30,0,0},{-30,0,0},{-10,0,0},{20,0,0},{45,0,0},{30,0,0},{15,0,0}},
-							Move = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}}},
-	 
-	[pelvis] = 				{Turn = {{0,0,2},{0,0,1},{0,0,0.5},{0,0,0},{0,0,-2},{0,0,-1},{0,0,-0.5},{0,0,0}},
-							Move = {{0,1.5,0},{0,3,0},{0,1.5,0},{0,1.5,0},{0,1.5,0},{0,3,0},{0,1.5,0},{0,1.5,0}}},
-	 
-	[torso] = 				{Turn = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}},
-							Move = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}}},
-	 
-	[luparm] =				{Turn = {{-5,0,0},{-2.5,0,0},{0,0,0},{2.5,0,0},{5,0,0},{2.5,0,0},{0,0,0},{-2.5,0,0}},
-							Move = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}}},
-	 
-	[ruparm] = 				{Turn = {{5,0,0},{2.5,0,0},{0,0,0},{-2.5,0,0},{-5,0,0},{-2.5,0,0},{0,0,0},{2.5,0,0}},
-							Move = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}}},
+	[lleg] = { Turn = { { 20, 0, 0 }, { -15, 0, 0 }, { -30, 0, 0 }, { -40, 0, 0 }, { 0, 0, 0 }, { 20, 0, 0 }, { 30, 0, 0 }, { 20, 0, 0 } }, Move = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } } },
+
+	[lfoot] = { Turn = { { 20, 0, 0 }, { 45, 0, 0 }, { 30, 0, 0 }, { 15, 0, 0 }, { -30, 0, 0 }, { -30, 0, 0 }, { -30, 0, 0 }, { -10, 0, 0 } }, Move = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } } },
+
+	[rthigh] = { Turn = { { -30, 0, 0 }, { -10, 0, 0 }, { 0, 0, 0 }, { 10, 0, 0 }, { 40, 0, 0 }, { 30, 0, 0 }, { 0, 0, 0 }, { -25, 0, 0 } }, Move = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } } },
+
+	[rleg] = { Turn = { { 0, 0, 0 }, { 20, 0, 0 }, { 30, 0, 0 }, { 20, 0, 0 }, { 20, 0, 0 }, { -15, 0, 0 }, { -30, 0, 0 }, { -40, 0, 0 } }, Move = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } } },
+
+	[rfoot] = { Turn = { { -30, 0, 0 }, { -30, 0, 0 }, { -30, 0, 0 }, { -10, 0, 0 }, { 20, 0, 0 }, { 45, 0, 0 }, { 30, 0, 0 }, { 15, 0, 0 } }, Move = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } } },
+
+	[pelvis] = { Turn = { { 0, 0, 2 }, { 0, 0, 1 }, { 0, 0, 0.5 }, { 0, 0, 0 }, { 0, 0, -2 }, { 0, 0, -1 }, { 0, 0, -0.5 }, { 0, 0, 0 } }, Move = { { 0, 1.5, 0 }, { 0, 3, 0 }, { 0, 1.5, 0 }, { 0, 1.5, 0 }, { 0, 1.5, 0 }, { 0, 3, 0 }, { 0, 1.5, 0 }, { 0, 1.5, 0 } } },
+
+	[torso] = { Turn = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, Move = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } } },
+
+	[luparm] = { Turn = { { -5, 0, 0 }, { -2.5, 0, 0 }, { 0, 0, 0 }, { 2.5, 0, 0 }, { 5, 0, 0 }, { 2.5, 0, 0 }, { 0, 0, 0 }, { -2.5, 0, 0 } }, Move = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } } },
+
+	[ruparm] = { Turn = { { 5, 0, 0 }, { 2.5, 0, 0 }, { 0, 0, 0 }, { -2.5, 0, 0 }, { -5, 0, 0 }, { -2.5, 0, 0 }, { 0, 0, 0 }, { 2.5, 0, 0 } }, Move = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } } },
 }
 
 PiecesToLock = { -- what pieces should be excluded from animation when moving? (and restored before aiming)
@@ -47,7 +37,7 @@ for pieceNum, v in pairs(keyFramesWalk) do
 		for step, goal in pairs(steps) do
 			local timer = stepTimes[step]
 			if Type == "Turn" then
-				for i = 1,3 do
+				for i = 1, 3 do
 					goal[i] = math.rad(goal[i])
 				end
 			end
@@ -58,23 +48,22 @@ for pieceNum, v in pairs(keyFramesWalk) do
 	for Type, steps in pairs(v) do
 		for step, goal in pairs(steps) do
 			local timer = stepTimes[step]
-			if keyFramesWalk[pieceNum][Type][step-1] then
-				for i = 1,3 do
-					keyFramesWalk[pieceNum][Type][step][i+3] = math.abs(goal[i] - keyFramesWalk[pieceNum][Type][step-1][i])
-				end	
+			if keyFramesWalk[pieceNum][Type][step - 1] then
+				for i = 1, 3 do
+					keyFramesWalk[pieceNum][Type][step][i + 3] = math.abs(goal[i] - keyFramesWalk[pieceNum][Type][step - 1][i])
+				end
 			elseif keyFramesWalk[pieceNum][Type][#stepTimes] then
-				for i = 1,3 do
-					keyFramesWalk[pieceNum][Type][step][i+3] = math.abs(goal[i] - keyFramesWalk[pieceNum][Type][#stepTimes][i])
+				for i = 1, 3 do
+					keyFramesWalk[pieceNum][Type][step][i + 3] = math.abs(goal[i] - keyFramesWalk[pieceNum][Type][#stepTimes][i])
 				end
 			end
 		end
 	end
 end
 
-
 function walk()
 	isInLoop = true
-	while (isMoving) and not (isAiming) and not (isUW) do
+	while isMoving and not isAiming and not isUW do
 		local keyFrame = keyFramesWalk
 		local timer = stepTimes[step]
 		for pieceNum, anims in pairs(keyFrame) do
@@ -98,7 +87,7 @@ end
 
 function walklegs()
 	isInLoop = true
-	while (isMoving) and (isAiming) and not (isUW) do
+	while isMoving and isAiming and not isUW do
 		local keyFrame = keyFramesWalk
 		local timer = stepTimes[step]
 		for pieceNum, anims in pairs(keyFrame) do
@@ -124,36 +113,36 @@ end
 
 function swim()
 	isInLoop = true
-	if (isMoving) and (isUW) then
-		-- swim transform anim	
+	if isMoving and isUW then
+		-- swim transform anim
 		Move(ruparm, 3, 14, 14)
 		Move(luparm, 3, 14, 14)
 		Move(ruparm, 2, -5, 5)
 		Move(luparm, 2, -5, 5)
-		Turn(ruparm, 1, ang(175),ang(80))	
-		Turn(luparm, 1, ang(175),ang(80))	
-		Turn(rthigh, 1, ang(85), ang(100))	
-		Turn(lthigh, 1, ang(85), ang(100))	
-		Turn(rleg, 1, ang(30),ang(50))	
-		Turn(lleg, 1, ang(30),ang(50))	
-		Turn(rfoot, 1, ang(45),ang(60))	
-		Turn(lfoot, 1, ang(45),ang(60))	
+		Turn(ruparm, 1, ang(175), ang(80))
+		Turn(luparm, 1, ang(175), ang(80))
+		Turn(rthigh, 1, ang(85), ang(100))
+		Turn(lthigh, 1, ang(85), ang(100))
+		Turn(rleg, 1, ang(30), ang(50))
+		Turn(lleg, 1, ang(30), ang(50))
+		Turn(rfoot, 1, ang(45), ang(60))
+		Turn(lfoot, 1, ang(45), ang(60))
 		Sleep(500)
 	end
-	while (isMoving) and (isUW) do
-		-- swim transform anim	
+	while isMoving and isUW do
+		-- swim transform anim
 		Move(ruparm, 3, 14, 14)
 		Move(luparm, 3, 14, 14)
 		Move(ruparm, 2, -5, 5)
 		Move(luparm, 2, -5, 5)
-		Turn(ruparm, 1, ang(180),ang(80))	
-		Turn(luparm, 1, ang(180),ang(80))	
-		Turn(rthigh, 1, ang(85), ang(100))	
-		Turn(lthigh, 1, ang(85), ang(100))	
-		Turn(rleg, 1, ang(30),ang(50))	
-		Turn(lleg, 1, ang(30),ang(50))	
-		Turn(rfoot, 1, ang(45),ang(60))	
-		Turn(lfoot, 1, ang(45),ang(60))	
+		Turn(ruparm, 1, ang(180), ang(80))
+		Turn(luparm, 1, ang(180), ang(80))
+		Turn(rthigh, 1, ang(85), ang(100))
+		Turn(lthigh, 1, ang(85), ang(100))
+		Turn(rleg, 1, ang(30), ang(50))
+		Turn(lleg, 1, ang(30), ang(50))
+		Turn(rfoot, 1, ang(45), ang(60))
+		Turn(lfoot, 1, ang(45), ang(60))
 		Sleep(500)
 	end
 	RestoreArms()
@@ -161,15 +150,14 @@ function swim()
 	isInLoop = false
 end
 
-
 function RestoreLegs()
 	if isUW then
-		Turn(rthigh, 1, ang(85), ang(100))	
+		Turn(rthigh, 1, ang(85), ang(100))
 		Turn(lthigh, 1, ang(85), ang(100))
-		Turn(rleg, 1, ang(30), ang(50))	
-		Turn(lleg, 1, ang(30), ang(50))	
-		Turn(rfoot, 1, ang(45), ang(60))	
-		Turn(lfoot, 1, ang(45), ang(60))	
+		Turn(rleg, 1, ang(30), ang(50))
+		Turn(lleg, 1, ang(30), ang(50))
+		Turn(rfoot, 1, ang(45), ang(60))
+		Turn(lfoot, 1, ang(45), ang(60))
 	else
 		for pieceNum, data in pairs(keyFramesWalk) do
 			if not PiecesToLock[pieceNum] then
@@ -191,8 +179,8 @@ function RestoreArms()
 		Move(luparm, 3, 14, 14)
 		Move(ruparm, 2, -5, 5)
 		Move(luparm, 2, -5, 5)
-		Turn(ruparm, 1, ang(180),ang(80))	
-		Turn(luparm, 1, ang(180),ang(80))	
+		Turn(ruparm, 1, ang(180), ang(80))
+		Turn(luparm, 1, ang(180), ang(80))
 		Move(laaturret, 2, -5.5)
 		Move(raaturret, 2, -5.5)
 		Turn(laacannon, 1, ang(27.5))

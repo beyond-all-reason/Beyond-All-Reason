@@ -2,16 +2,15 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "DGun Stall Assist",
-		desc      = "Waits cons/facs when trying to dgun and stalling",
-		author    = "Niobium",
-		date      = "2 April 2010",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "DGun Stall Assist",
+		desc = "Waits cons/facs when trying to dgun and stalling",
+		author = "Niobium",
+		date = "2 April 2010",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
@@ -53,24 +52,24 @@ local CMD_RECLAIM = CMD.RECLAIM
 ----------------------------------------------------------------
 
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget()
-    end
+	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 function widget:GameStart()
-    gameStarted = true
-    maybeRemoveSelf()
+	gameStarted = true
+	maybeRemoveSelf()
 end
 
 function widget:PlayerChanged(playerID)
-    maybeRemoveSelf()
+	maybeRemoveSelf()
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or spGetGameFrame() > 0 then
-        maybeRemoveSelf()
-    end
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
+		maybeRemoveSelf()
+	end
 
 	for uDefID, uDef in pairs(UnitDefs) do
 		if uDef.buildSpeed > 0 and not uDef.canManualFire and (uDef.canAssist or uDef.buildOptions[1]) then
@@ -83,7 +82,6 @@ function widget:Initialize()
 end
 
 function widget:Update(dt)
-
 	local _, activeCmdID = spGetActiveCommand()
 	if activeCmdID == CMD_DGUN then
 		local selection = Spring.GetSelectedUnitsCounts()
@@ -110,7 +108,6 @@ function widget:Update(dt)
 		watchTime = watchTime - dt
 
 		if waitedUnits and watchTime < 0 then
-
 			local toUnwait = {}
 			for i = 1, #waitedUnits do
 				local uID = waitedUnits[i]
@@ -134,11 +131,9 @@ function widget:Update(dt)
 	end
 
 	if watchTime > 0 and not waitedUnits then
-
 		local myTeamID = spGetMyTeamID()
 		local currentEnergy, energyStorage = spGetTeamResources(myTeamID, "energy")
 		if currentEnergy < targetEnergy and energyStorage >= targetEnergy then
-
 			waitedUnits = {}
 			local myUnits = spGetTeamUnits(myTeamID)
 			for i = 1, #myUnits do

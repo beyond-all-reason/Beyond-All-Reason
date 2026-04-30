@@ -1,14 +1,14 @@
 local scenariodata = {
-	index			= 17, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
-	scenarioid		= "archsimkatshelpers017", -- no spaces, lowercase, this will be used to save the score
-    version         = "1.0", -- increment this to keep the score when changing a mission
-	title			= "A Helping Hand", -- can be anything
-	author			= "Beherith", -- your name here
+	index = 17, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
+	scenarioid = "archsimkatshelpers017", -- no spaces, lowercase, this will be used to save the score
+	version = "1.0", -- increment this to keep the score when changing a mission
+	title = "A Helping Hand", -- can be anything
+	author = "Beherith", -- your name here
 	isnew = true,
-	imagepath		= "scenario017.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Construction units and Nano turrets can assist in building anything.", -- This text will be drawn over image
-    summary         = [[You and a team of two other Commanders are tasked with destroying all other Commanders on the enemy team.]],
-	briefing 		= [[Three enemy Commanders are also gaining a foothold in this area. The map is made up of three main lanes, you must push through your lane to destroy all of them. Two friendly Commanders have joined in the fight with you, and while they arent the brightest bulbs, they will make holding your portion of the map easier. 
+	imagepath = "scenario017.jpg", -- placed next to lua file, should be 3:1 ratio banner style
+	imageflavor = "Construction units and Nano turrets can assist in building anything.", -- This text will be drawn over image
+	summary = [[You and a team of two other Commanders are tasked with destroying all other Commanders on the enemy team.]],
+	briefing = [[Three enemy Commanders are also gaining a foothold in this area. The map is made up of three main lanes, you must push through your lane to destroy all of them. Two friendly Commanders have joined in the fight with you, and while they arent the brightest bulbs, they will make holding your portion of the map easier. 
  
 Tips:
  - Almost all units can pass the shallow water separating the lanes on the map. 
@@ -28,38 +28,38 @@ The difficulty modifier will change the amount of resources you and the enemy re
  - Brutal: Regular resources for you, +100% for the enemy
     ]],
 
-	mapfilename		= "Archsimkats_Valley_V1", -- the name of the map to be displayed here
-	playerstartx	= "10%", -- X position of where player comm icon should be drawn, from top left of the map
-	playerstarty	= "50%", -- Y position of where player comm icon should be drawn, from top left of the map
-	partime 		= 1500, -- par time in seconds
-	parresources	= 50000, -- par resource amount
-	difficulty		= 1, -- Percieved difficulty at 'normal' level: integer 1-10
-    defaultdifficulty = "Normal", -- an entry of the difficulty table
-    difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
-        {name = "Beginner", playerhandicap = 50 , enemyhandicap = -50},
-        {name = "Novice"  , playerhandicap = 25 , enemyhandicap = -25},
-        {name = "Normal"  , playerhandicap = 0  , enemyhandicap = 0  },
-        {name = "Hard"    , playerhandicap = 0, enemyhandicap = 50 },
-        {name = "Brutal"  , playerhandicap = 0, enemyhandicap = 100 },
-    },
-    allowedsides     = {"Armada","Cortex","Random"}, --these are the permitted factions for this mission
-	victorycondition= "Kill all enemy Commanders", -- This is plaintext, but should be reflected in startscript
-	losscondition	= "Loss of all allied Commanders",  -- This is plaintext, but should be reflected in startscript
-    unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
-	-- dont use the one in startscript, put it here!
-        --armavp = 0,
-        --coravp = 0,
-    } ,
-    scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
-        myoption = "dostuff",
-        scenarioid = "archsimkatshelpers017", --must be present for scores
+	mapfilename = "Archsimkats_Valley_V1", -- the name of the map to be displayed here
+	playerstartx = "10%", -- X position of where player comm icon should be drawn, from top left of the map
+	playerstarty = "50%", -- Y position of where player comm icon should be drawn, from top left of the map
+	partime = 1500, -- par time in seconds
+	parresources = 50000, -- par resource amount
+	difficulty = 1, -- Percieved difficulty at 'normal' level: integer 1-10
+	defaultdifficulty = "Normal", -- an entry of the difficulty table
+	difficulties = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
+		{ name = "Beginner", playerhandicap = 50, enemyhandicap = -50 },
+		{ name = "Novice", playerhandicap = 25, enemyhandicap = -25 },
+		{ name = "Normal", playerhandicap = 0, enemyhandicap = 0 },
+		{ name = "Hard", playerhandicap = 0, enemyhandicap = 50 },
+		{ name = "Brutal", playerhandicap = 0, enemyhandicap = 100 },
+	},
+	allowedsides = { "Armada", "Cortex", "Random" }, --these are the permitted factions for this mission
+	victorycondition = "Kill all enemy Commanders", -- This is plaintext, but should be reflected in startscript
+	losscondition = "Loss of all allied Commanders", -- This is plaintext, but should be reflected in startscript
+	unitlimits = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
+		-- dont use the one in startscript, put it here!
+		--armavp = 0,
+		--coravp = 0,
+	},
+	scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
+		myoption = "dostuff",
+		scenarioid = "archsimkatshelpers017", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
 		--unitloadout = {
 		--	{name = 'corrad', x = 5760, y = 751, z = 5616, rot = 0 , team = 7},
 		--}
-    },
-    -- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
-	startscript		= [[
+	},
+	-- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
+	startscript = [[
 [Game]
 {
 	[allyTeam0]
@@ -226,7 +226,6 @@ The difficulty modifier will change the amount of resources you and the enemy re
 
 
 	]],
-
 }
 
 return scenariodata -- scenariodata

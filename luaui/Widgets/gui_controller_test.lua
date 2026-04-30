@@ -2,15 +2,14 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Controller Test",
-		desc      = "Tests Controller Stuff",
-		author    = "badosu",
-		date      = "Oct 2022",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0
+		name = "Controller Test",
+		desc = "Tests Controller Stuff",
+		author = "badosu",
+		date = "Oct 2022",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo

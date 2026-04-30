@@ -1,15 +1,14 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "UnitDefs Turret TurnSpeeds",
-		desc      = "Allows to set units' turret turnspeeds from UnitDefs tables",
-		author    = "Doo",
-		date      = "May 2018",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true,
+		name = "UnitDefs Turret TurnSpeeds",
+		desc = "Allows to set units' turret turnspeeds from UnitDefs tables",
+		author = "Doo",
+		date = "May 2018",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -42,7 +41,9 @@ in bos. noone uses that.
 -- finds fields weapon1turretx/weapon1turrety, up to 10.
 -- if these are renamed please update this comment accordingly so no sneaky code is lost :)
 
-if not gadgetHandler:IsSyncedCode() then return end
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
 
 local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -55,14 +56,14 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	local weapons = unitDef.weapons
 	if weapons and not stringFind((stringLower(unitDef.scriptName)), "lua", 1, true) then
 		for weaponID, weapon in pairs(weapons) do
-			local customParamName = 'weapon'..weaponID..'turret'
-			if unitDef.customParams[customParamName..'x'] and unitDef.customParams[customParamName..'y'] then
-				local TurretX = (tonumber(unitDef.customParams[customParamName..'x']))*182
-				local TurretY = (tonumber(unitDef.customParams[customParamName..'y']))*182
+			local customParamName = "weapon" .. weaponID .. "turret"
+			if unitDef.customParams[customParamName .. "x"] and unitDef.customParams[customParamName .. "y"] then
+				local TurretX = (tonumber(unitDef.customParams[customParamName .. "x"])) * 182
+				local TurretY = (tonumber(unitDef.customParams[customParamName .. "y"])) * 182
 				if not unitConf[unitDefID] then
 					unitConf[unitDefID] = {}
 				end
-				unitConf[unitDefID][#unitConf[unitDefID]+1] = {'SetWeapon'..weaponID..'TurretSpeed', 0, TurretX, TurretY}
+				unitConf[unitDefID][#unitConf[unitDefID] + 1] = { "SetWeapon" .. weaponID .. "TurretSpeed", 0, TurretX, TurretY }
 			end
 		end
 	end
@@ -78,7 +79,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID)
 	if unitConf[unitDefID] then
-		for i=1, #unitConf[unitDefID] do
+		for i = 1, #unitConf[unitDefID] do
 			spCallCOBScript(unitID, unitConf[unitDefID][i][1], unitConf[unitDefID][i][2], unitConf[unitDefID][i][3], unitConf[unitDefID][i][4])
 		end
 	end

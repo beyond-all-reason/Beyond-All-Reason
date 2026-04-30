@@ -85,7 +85,7 @@ local function lateGameRebalanceTweaks(name, unitDef)
 		weapondefs.stiletto_bomb.burst = 3
 		weapondefs.stiletto_bomb.burstrate = 0.2333
 		weapondefs.stiletto_bomb.damage = {
-			default = 3000
+			default = 3000,
 		}
 	end
 	if name == "armlance" then

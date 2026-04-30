@@ -37,20 +37,20 @@ local function unpackInsertParams(cmdParams)
 	for i = 1, n - 3 do
 		cmdParams[i] = cmdParams[i + 3]
 	end
-	cmdParams[n    ] = nil
+	cmdParams[n] = nil
 	cmdParams[n - 1] = nil
 	cmdParams[n - 2] = nil
 
 	local band = bit_and
 
 	local innerOptions = {
-		coded    = innerOptionBits,
+		coded = innerOptionBits,
 		internal = 0 ~= band(innerOptionBits, OPT_INTERNAL),
-		alt      = 0 ~= band(innerOptionBits, OPT_ALT),
-		ctrl     = 0 ~= band(innerOptionBits, OPT_CTRL),
-		meta     = 0 ~= band(innerOptionBits, OPT_META),
-		right    = 0 ~= band(innerOptionBits, OPT_RIGHT),
-		shift    = 0 ~= band(innerOptionBits, OPT_SHIFT),
+		alt = 0 ~= band(innerOptionBits, OPT_ALT),
+		ctrl = 0 ~= band(innerOptionBits, OPT_CTRL),
+		meta = 0 ~= band(innerOptionBits, OPT_META),
+		right = 0 ~= band(innerOptionBits, OPT_RIGHT),
+		shift = 0 ~= band(innerOptionBits, OPT_SHIFT),
 	}
 
 	---@diagnostic disable-next-line:return-type-mismatch -- OK: CMD/number
@@ -87,7 +87,7 @@ end
 -- Export module ---------------------------------------------------------------
 
 return {
-	UnpackInsertParams    = unpackInsertParams,
+	UnpackInsertParams = unpackInsertParams,
 	GiveInsertOrderToUnit = giveInsertOrderToUnit,
-	ReissueOrder          = reissueOrder,
+	ReissueOrder = reissueOrder,
 }

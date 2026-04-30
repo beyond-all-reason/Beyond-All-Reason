@@ -207,7 +207,7 @@ return {
 				fastautoretargeting = true,
 				burstControlWhenOutOfArc = 2,
 				maxangledif = 180,
-				maindir = "0 0 1"
+				maindir = "0 0 1",
 			},
 			[2] = {
 				def = "COAX_DEPTHCHARGE",

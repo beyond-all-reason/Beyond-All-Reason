@@ -9,10 +9,9 @@ function widget:GetInfo()
 		license = "GNU GPL v2",
 		layer = 999,
 		enabled = true,
-		depends = {'gl4'},
+		depends = { "gl4" },
 	}
 end
-
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -28,37 +27,37 @@ local spEcho = Spring.Echo
 -- yes these are geometry shader decals
 -- we are gonna try to smaple heightmap
 -- atlasColor is diffuse + alpha
-	-- The color is expected to blend up to 0.5,
+-- The color is expected to blend up to 0.5,
 -- atlasNormals is normals + emission
 
 -- advanced geoshader tricount for quads
 -- 4x4 - 40
 -- KNOWN BUG:
-	-- the pop-back can change the render order of decals to be a tad annoying.... maybe a better method of managing this is needed?
-	-- possibly solvable via batched decal removal, a good amount of time after they become transparent?
+-- the pop-back can change the render order of decals to be a tad annoying.... maybe a better method of managing this is needed?
+-- possibly solvable via batched decal removal, a good amount of time after they become transparent?
 -- TODO:
-	-- use global sun params for lighting calcs
-	-- DONE disable parallax
-	-- DONE enable support for old-style decals
-	-- paint emission
-	-- soften and make large decal creation above saturation threshold more probabilistic
-	-- always allow the creation of small decals
-	-- DONE control parallax via config
-	-- SKIP fix parallax to work
-	-- DONE Validate normals
-	-- DONE decal fade-in?
-	-- DONE cache decal UV's
-	-- Add team/clan/etc sprays
-		-- determine clan from first [] of playername
-		-- which can be done on initialize?
-		-- cursor
-	-- DONE: SHADOWS SUPPORT!
-	-- FOG SUPPORT?
-	-- Better LOS SUPPORT
-	-- DONE: BWfactor
-	-- DONE: glowsustain
-	-- DONE: glowadd
-	-- Fix unused decals having 1.0 alpha in normal resulting in heavy glow on zoomed out small decals bleeding
+-- use global sun params for lighting calcs
+-- DONE disable parallax
+-- DONE enable support for old-style decals
+-- paint emission
+-- soften and make large decal creation above saturation threshold more probabilistic
+-- always allow the creation of small decals
+-- DONE control parallax via config
+-- SKIP fix parallax to work
+-- DONE Validate normals
+-- DONE decal fade-in?
+-- DONE cache decal UV's
+-- Add team/clan/etc sprays
+-- determine clan from first [] of playername
+-- which can be done on initialize?
+-- cursor
+-- DONE: SHADOWS SUPPORT!
+-- FOG SUPPORT?
+-- Better LOS SUPPORT
+-- DONE: BWfactor
+-- DONE: glowsustain
+-- DONE: glowadd
+-- Fix unused decals having 1.0 alpha in normal resulting in heavy glow on zoomed out small decals bleeding
 ------------------------ CONFIGURABLES -----------------------------------------------
 
 local shaderConfig = {
@@ -76,20 +75,18 @@ local shaderConfig = {
 	SINGLEQUADDECALSIZETHRESHOLD = 24, -- if length and width of decal is less than this, then only spawn 1 quad instead of 16
 }
 
-local groundscarsPath = "luaui/images/decals_gl4/groundscars/"	-- old: "luaui/images/decals_gl4/oldscars/"
-local footprintsPath = "luaui/images/decals_gl4/footprints/"	-- old: "luaui/images/decals_gl4/oldscars/"
-
+local groundscarsPath = "luaui/images/decals_gl4/groundscars/" -- old: "luaui/images/decals_gl4/oldscars/"
+local footprintsPath = "luaui/images/decals_gl4/footprints/" -- old: "luaui/images/decals_gl4/oldscars/"
 
 -- large decal resolution, 16x16 grid is ok
 local resolution = 16 -- 32 is 2k tris, a tad pricey...
-local largesizethreshold  = 512 -- if min(width,height)> than this, then we use the large version!
+local largesizethreshold = 512 -- if min(width,height)> than this, then we use the large version!
 local extralargesizeThreshold = 1024 -- if min(width,height)> than this, then we use the extra large version!
-local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 2000) / 1000	-- used for the initial value of lifeTimeMult
+local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 2000) / 1000 -- used for the initial value of lifeTimeMult
 local lifeTimeMult = 0.7 + math.min(gpuMem / 6000, 2.3) -- A global lifetime multiplier for configurability
 local lifeTimeMultMult = 1.5 -- an additional liftime multiplier that isnt saved to user config, so changing thsi will affect everyones lifetiem regardless of their save config value
 
 local autoupdate = false -- auto update shader, for debugging only!
-
 
 -- for automatic oversaturation prevention, not sure if it even works, but hey!
 local areaResolution = 256 -- elmos per square, for a 64x map this is uh, big? for 32x32 its 4k
@@ -101,14 +98,14 @@ local atlasHeights = nil
 
 local atlas = VFS.Include("luaui/images/decals_gl4/decalsgl4_atlas_diffuse.lua")
 local upperkeys = {}
-for k,v in pairs(atlas) do
+for k, v in pairs(atlas) do
 	if type(v) == "table" then
 		if string.lower(k) ~= k then
 			upperkeys[k] = true
 		end
 	end
 end
-for k,_ in pairs(upperkeys) do
+for k, _ in pairs(upperkeys) do
 	atlas[string.lower(k)] = atlas[k]
 	atlas[k] = nil
 end
@@ -117,11 +114,11 @@ upperkeys = nil
 --function(t,p) for k,v in pairs(t) do if type(v) == "table" then p = p or 0.5; local px,py = p/t.width, p/t.height; v[1], v[2], v[3], v[4] = v[1] + px, v[2]-px, v[3] + py, v[4] - py end end end ,
 
 -- FIXME: Actually fix the unused scars having full white alpha (all emissive) in normal texture!
-for k,v in pairs(atlas) do
-	if type(v) =='table' then -- do 8/512 padding
-		local px = (8/512) * v[5]/ atlas.width
-		local py = (8/512) * v[6]/ atlas.height
-		v[1], v[2], v[3], v[4] = v[1] + px, v[2]-px, v[3] + py, v[4] - py
+for k, v in pairs(atlas) do
+	if type(v) == "table" then -- do 8/512 padding
+		local px = (8 / 512) * v[5] / atlas.width
+		local py = (8 / 512) * v[6] / atlas.height
+		v[1], v[2], v[3], v[4] = v[1] + px, v[2] - px, v[3] + py, v[4] - py
 	end
 end
 
@@ -133,7 +130,6 @@ local decalExtraLargeVBO = nil
 
 local decalShader = nil
 local decalLargeShader = nil
-
 
 local hasBadCulling = false -- AMD+Linux combo
 
@@ -147,17 +143,15 @@ local glCulling = gl.Culling
 local glDepthTest = gl.DepthTest
 local GL_LEQUAL = GL.LEQUAL
 
-
-
 ---- GL4 Backend Stuff----
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local uploadAllElements   = InstanceVBOTable.uploadAllElements
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local uploadAllElements = InstanceVBOTable.uploadAllElements
+local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local compactInstanceVBO  = InstanceVBOTable.compactInstanceVBO
+local compactInstanceVBO = InstanceVBOTable.compactInstanceVBO
 
 local vsSrcPath = "LuaUI/Shaders/decals_gl4.vert.glsl"
 local fsSrcPath = "LuaUI/Shaders/decals_gl4.frag.glsl"
@@ -165,7 +159,7 @@ local gsSrcPath = "LuaUI/Shaders/decals_gl4.geom.glsl"
 
 local vsSrcLargePath = "LuaUI/Shaders/decals_large_gl4.vert.glsl"
 
-local uniformInts =  {
+local uniformInts = {
 
 	heightmapTex = 0,
 	miniMapTex = 1,
@@ -174,9 +168,9 @@ local uniformInts =  {
 	mapNormalsTex = 4,
 	atlasColorAlpha = 5,
 	atlasNormals = 6,
-	atlasHeights = ((shaderConfig.PARALLAX == 1) and 7 ) or nil,
-	atlasORM = ((shaderConfig.AMBIENTOCCLUSION == 1) and 8 ) or nil,
-	atlasRG = ((shaderConfig.USEGLOW == 1) and 9 ) or nil,
+	atlasHeights = ((shaderConfig.PARALLAX == 1) and 7) or nil,
+	atlasORM = ((shaderConfig.AMBIENTOCCLUSION == 1) and 8) or nil,
+	atlasRG = ((shaderConfig.USEGLOW == 1) and 9) or nil,
 }
 
 local shaderSourceCache = {
@@ -203,82 +197,84 @@ local shaderLargeSourceCache = {
 }
 
 local function goodbye(reason)
-  spEcho("DrawPrimitiveAtUnits GL4 widget exiting with reason: "..reason)
-  widgetHandler:RemoveWidget()
+	spEcho("DrawPrimitiveAtUnits GL4 widget exiting with reason: " .. reason)
+	widgetHandler:RemoveWidget()
 end
 
-local function initGL4( DPATname)
+local function initGL4(DPATname)
 	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
-	if hasBadCulling then spEcho("Decals GL4 detected AMD + Linux platform, attempting to fix culling") end
+	if hasBadCulling then
+		spEcho("Decals GL4 detected AMD + Linux platform, attempting to fix culling")
+	end
 	decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
 	decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache)
 
-	if (not decalShader) or (not decalLargeShader) then goodbye("Failed to compile ".. DPATname .." GL4 ") end
+	if (not decalShader) or not decalLargeShader then
+		goodbye("Failed to compile " .. DPATname .. " GL4 ")
+	end
 
 	decalVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
-			{id = 0, name = 'lengthwidthrotation', size = 4},
-			{id = 1, name = 'uv_atlaspos', size = 4},
-			{id = 2, name = 'alphastart_alphadecay_heatstart_heatdecay', size = 4},
-			{id = 3, name = 'worldPos', size = 4},
-			{id = 4, name = 'parameters', size = 4},
+			{ id = 0, name = "lengthwidthrotation", size = 4 },
+			{ id = 1, name = "uv_atlaspos", size = 4 },
+			{ id = 2, name = "alphastart_alphadecay_heatstart_heatdecay", size = 4 },
+			{ id = 3, name = "worldPos", size = 4 },
+			{ id = 4, name = "parameters", size = 4 },
 		},
 		64, -- maxelements
 		DPATname .. "VBO" -- name
 	)
-	if decalVBO == nil then goodbye("Failed to create decalVBO") end
+	if decalVBO == nil then
+		goodbye("Failed to create decalVBO")
+	end
 
 	local smallDecalVAO = gl.GetVAO()
 	smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
 	decalVBO.VAO = smallDecalVAO
 
-	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,resolution,resolution)
-	local planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(resolution,resolution) --, true) -- add true to cull into a circle
+	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1, 1, resolution, resolution)
+	local planeIndexVBO, numIndices = InstanceVBOTable.makePlaneIndexVBO(resolution, resolution) --, true) -- add true to cull into a circle
 
 	decalLargeVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
-			{id = 1, name = 'lengthwidthrotation', size = 4},
-			{id = 2, name = 'uv_atlaspos', size = 4},
-			{id = 3, name = 'alphastart_alphadecay_heatstart_heatdecay', size = 4},
-			{id = 4, name = 'worldPos', size = 4},
-			{id = 5, name = 'parameters', size = 4},
+			{ id = 1, name = "lengthwidthrotation", size = 4 },
+			{ id = 2, name = "uv_atlaspos", size = 4 },
+			{ id = 3, name = "alphastart_alphadecay_heatstart_heatdecay", size = 4 },
+			{ id = 4, name = "worldPos", size = 4 },
+			{ id = 5, name = "parameters", size = 4 },
 		},
 		64, -- maxelements
 		DPATname .. "Large VBO" -- name
 	)
-	if decalLargeVBO == nil then goodbye("Failed to create decalLargeVBO") end
+	if decalLargeVBO == nil then
+		goodbye("Failed to create decalLargeVBO")
+	end
 
 	decalLargeVBO.vertexVBO = planeVBO
 	decalLargeVBO.indexVBO = planeIndexVBO
-	decalLargeVBO.VAO = InstanceVBOTable.makeVAOandAttach(
-		decalLargeVBO.vertexVBO,
-		decalLargeVBO.instanceVBO,
-		decalLargeVBO.indexVBO
-	)
+	decalLargeVBO.VAO = InstanceVBOTable.makeVAOandAttach(decalLargeVBO.vertexVBO, decalLargeVBO.instanceVBO, decalLargeVBO.indexVBO)
 
-	planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,resolution*4,resolution*4)
-	planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(resolution*4,resolution*4) --, true) -- add true to cull into a circle
+	planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1, 1, resolution * 4, resolution * 4)
+	planeIndexVBO, numIndices = InstanceVBOTable.makePlaneIndexVBO(resolution * 4, resolution * 4) --, true) -- add true to cull into a circle
 
 	decalExtraLargeVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
-			{id = 1, name = 'lengthwidthrotation', size = 4},
-			{id = 2, name = 'uv_atlaspos', size = 4},
-			{id = 3, name = 'alphastart_alphadecay_heatstart_heatdecay', size = 4},
-			{id = 4, name = 'worldPos', size = 4},
-			{id = 5, name = 'parameters', size = 4},
+			{ id = 1, name = "lengthwidthrotation", size = 4 },
+			{ id = 2, name = "uv_atlaspos", size = 4 },
+			{ id = 3, name = "alphastart_alphadecay_heatstart_heatdecay", size = 4 },
+			{ id = 4, name = "worldPos", size = 4 },
+			{ id = 5, name = "parameters", size = 4 },
 		},
 		64, -- maxelements
 		DPATname .. "Extra Large VBO" -- name
 	)
-	if decalExtraLargeVBO == nil then goodbye("Failed to create decalExtraLargeVBO") end
+	if decalExtraLargeVBO == nil then
+		goodbye("Failed to create decalExtraLargeVBO")
+	end
 
 	decalExtraLargeVBO.vertexVBO = planeVBO
 	decalExtraLargeVBO.indexVBO = planeIndexVBO
-	decalExtraLargeVBO.VAO = InstanceVBOTable.makeVAOandAttach(
-		decalExtraLargeVBO.vertexVBO,
-		decalExtraLargeVBO.instanceVBO,
-		decalExtraLargeVBO.indexVBO
-	)
+	decalExtraLargeVBO.VAO = InstanceVBOTable.makeVAOandAttach(decalExtraLargeVBO.vertexVBO, decalExtraLargeVBO.instanceVBO, decalExtraLargeVBO.indexVBO)
 	return decalLargeVBO ~= nil and decalVBO ~= nil and decalExtraLargeVBO ~= nil
 end
 
@@ -289,14 +285,14 @@ local decalRemoveList = {} -- maps instanceID's of decals that need to be batch 
 -- Lightweight table of active decals for external widget consumption (e.g. minimap overlays)
 -- activeDecalData[decalIndex] = {posx, posz, size, alphastart, alphadecay, spawnframe, isFootprint, width, length, rotation, p, q, s, t}
 local activeDecalData = {}
-local footprintDecalSet = {}  -- tracks which decalIndex values are footprints (for rebuild)
+local footprintDecalSet = {} -- tracks which decalIndex values are footprints (for rebuild)
 
 -- Rebuild activeDecalData from existing VBO instance data.
 -- Called when external consumers (e.g. PIP) need the current decal state after a reload or re-enable.
 local function RebuildActiveDecalData()
 	activeDecalData = {}
 	local mathMax = math.max
-	local vboTables = {decalVBO, decalLargeVBO, decalExtraLargeVBO}
+	local vboTables = { decalVBO, decalLargeVBO, decalExtraLargeVBO }
 	for _, vbo in ipairs(vboTables) do
 		if vbo and vbo.usedElements > 0 then
 			local step = vbo.instanceStep
@@ -316,7 +312,7 @@ local function RebuildActiveDecalData()
 				local alphastart = data[offset + 9]
 				local alphadecay = data[offset + 10]
 				local spawnframe = data[offset + 16]
-				activeDecalData[instanceID] = {posx, posz, size, alphastart, alphadecay, spawnframe, footprintDecalSet[instanceID] or false, width, length, rotation, p, q, s, t}
+				activeDecalData[instanceID] = { posx, posz, size, alphastart, alphadecay, spawnframe, footprintDecalSet[instanceID] or false, width, length, rotation, p, q, s, t }
 			end
 		end
 	end
@@ -335,24 +331,26 @@ local function hashPos(mapx, mapz) -- packs XZ into 1000*x + z
 		Spring.Debug.TraceFullEcho()
 	end
 
-	return floor(mapx / areaResolution) * 1000 + floor(mapz/areaResolution)
+	return floor(mapx / areaResolution) * 1000 + floor(mapz / areaResolution)
 end
 
 local function initAreas()
-	for x= areaResolution /2, Game.mapSizeX, areaResolution do
-		for z= areaResolution /2, Game.mapSizeZ, areaResolution do
-			local gh = spGetGroundHeight(x,z)
-			areaDecals[hashPos(x,z)] = {instanceIDs = {}, totalarea = 0, x = x, y = gh, z = z, smoothness = 0}
+	for x = areaResolution / 2, Game.mapSizeX, areaResolution do
+		for z = areaResolution / 2, Game.mapSizeZ, areaResolution do
+			local gh = spGetGroundHeight(x, z)
+			areaDecals[hashPos(x, z)] = { instanceIDs = {}, totalarea = 0, x = x, y = gh, z = z, smoothness = 0 }
 		end
 	end
 end
 
 local function AddDecalToArea(instanceID, posx, posz, width, length)
-	local hash = hashPos(posx,posz)
+	local hash = hashPos(posx, posz)
 	local maparea = areaDecals[hash]
-	if maparea == nil then return end
+	if maparea == nil then
+		return
+	end
 	local area = width * length
-	maparea.instanceIDs[instanceID] =  area
+	maparea.instanceIDs[instanceID] = area
 	maparea.totalarea = maparea.totalarea + area
 	decalToArea[instanceID] = hash
 end
@@ -362,7 +360,7 @@ local function RemoveDecalFromArea(instanceID)
 	if hashpos then
 		local maparea = areaDecals[hashpos]
 		if maparea and maparea.instanceIDs[instanceID] then
-			maparea.totalarea = math.max(0,maparea.totalarea - maparea.instanceIDs[instanceID])
+			maparea.totalarea = math.max(0, maparea.totalarea - maparea.instanceIDs[instanceID])
 			maparea.instanceIDs[instanceID] = nil
 		end
 		decalToArea[instanceID] = nil
@@ -370,12 +368,12 @@ local function RemoveDecalFromArea(instanceID)
 end
 
 local function CheckDecalAreaSaturation(posx, posz, width, length)
-	local hash = hashPos(posx,posz)
+	local hash = hashPos(posx, posz)
 	--spEcho(hash,posx,posz, next(areaDecals))
 	if not hash then
 		return false
 	else
-		local areaD = areaDecals[hashPos(posx,posz)]
+		local areaD = areaDecals[hashPos(posx, posz)]
 		if not areaD then
 			return false
 		else
@@ -389,10 +387,12 @@ local updatePositionZ = 0
 function widget:Update() -- this is pointlessly expensive!
 	if autoupdate then
 		decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or decalShader
-		decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache) or		decalLargeShader
+		decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache) or decalLargeShader
 	end
 
-	if true then return end
+	if true then
+		return
+	end
 	-- run over the map, one area per frame, and calc its smoothness
 	updatePositionX = updatePositionX + areaResolution
 	if updatePositionX >= Game.mapSizeX then
@@ -408,14 +408,14 @@ function widget:Update() -- this is pointlessly expensive!
 	end
 	local hash = hashPos(updatePositionX, updatePositionZ)
 	--spEcho("Updateing smoothness at",updatePositionX, updatePositionZ)
-	local step = areaResolution/ 16
+	local step = areaResolution / 16
 	local totalsmoothness = 0
 	local prevHeight = spGetGroundHeight(updatePositionX, updatePositionZ)
 	local prevX = prevHeight
 	for x = updatePositionX, updatePositionX + areaResolution, step do
 		for z = updatePositionZ, updatePositionZ + areaResolution, step do
-			local h = spGetGroundHeight(x,z)
-			totalsmoothness = totalsmoothness + abs(h-prevHeight)
+			local h = spGetGroundHeight(x, z)
+			totalsmoothness = totalsmoothness + abs(h - prevHeight)
 			prevHeight = h
 		end
 		prevX = prevHeight
@@ -424,15 +424,15 @@ function widget:Update() -- this is pointlessly expensive!
 end
 
 local function DrawSmoothness()
-	gl.Color(1,1,1,1)
+	gl.Color(1, 1, 1, 1)
 	for areaHash, areaInfo in pairs(areaDecals) do
 		--spEcho(areaHash, areaInfo.x, areaInfo.y, areaInfo.z)
 		if Spring.IsSphereInView(areaInfo.x, areaInfo.y, areaInfo.z, 128) then
 			gl.PushMatrix()
-			local text = string.format("Smoothness = %d",areaInfo.smoothness)
+			local text = string.format("Smoothness = %d", areaInfo.smoothness)
 			local w = gl.GetTextWidth(text) * 16.0
 			gl.Translate(areaInfo.x - w, areaInfo.y + 64, areaInfo.z)
-			gl.Text( text,0,0,16,'n')
+			gl.Text(text, 0, 0, 16, "n")
 			gl.PopMatrix()
 		end
 	end
@@ -442,12 +442,7 @@ end
 
 local dCT = {} -- decalCacheTable
 
-
-local function AddDecal(decaltexturename, posx, posz, rotation,
-	width, length,
-	heatstart, heatdecay, alphastart, alphadecay,
-	maxalpha,
-	bwfactor, glowsustain, glowadd, fadeintime, spawnframe)
+local function AddDecal(decaltexturename, posx, posz, rotation, width, length, heatstart, heatdecay, alphastart, alphadecay, maxalpha, bwfactor, glowsustain, glowadd, fadeintime, spawnframe)
 	-- Documentation
 	-- decaltexturename, full path to the decal texture name, it must have been added to the atlasses, e.g. 'bitmaps/scars/scar1.bmp'
 	-- posx, posz, world pos to place center of decal
@@ -466,7 +461,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	heatstart = heatstart or 0
 	heatdecay = heatdecay or 1
 	alphastart = alphastart or 1
-	alphadecay = (alphadecay or 0) / (lifeTimeMult*lifeTimeMultMult)
+	alphadecay = (alphadecay or 0) / (lifeTimeMult * lifeTimeMultMult)
 
 	bwfactor = bwfactor or 1 -- default force to black and white
 	glowsustain = glowsustain or 1 -- how many frames to keep max heat for
@@ -479,19 +474,18 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 		end
 		return nil
 	else
-
 	end
 
 	spawnframe = spawnframe or spGetGameFrame()
 	--spEcho(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
-	local p,q,s,t = 0,1,0,1
+	local p, q, s, t = 0, 1, 0, 1
 
 	--spEcho(decaltexturename) --used for displaying which decal texture is spawned
 	if atlas[decaltexturename] == nil then
-		spEcho("Tried to spawn a decal gl4 with a texture not present in the atlas:",decaltexturename)
+		spEcho("Tried to spawn a decal gl4 with a texture not present in the atlas:", decaltexturename)
 	else
 		local uvs = atlas[decaltexturename]
-		p,q,s,t = uvs[1], uvs[2], uvs[3], uvs[4]
+		p, q, s, t = uvs[1], uvs[2], uvs[3], uvs[4]
 	end
 
 	local posy = Spring.GetGroundHeight(posx, posz)
@@ -499,40 +493,40 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	-- match the vertex shader on lifetime:
 	-- 	float currentAlpha = min(1.0, (lifetonow / FADEINTIME))  * alphastart - lifetonow* alphadecay;
 	--  currentAlpha = min(currentAlpha, lengthwidthrotation.w);
-	local lifetime = mathFloor(alphastart/alphadecay)
+	local lifetime = mathFloor(alphastart / alphadecay)
 	decalIndex = decalIndex + 1
 	local targetVBO = decalVBO
 
-	if mathMin(width,length) > extralargesizeThreshold then
+	if mathMin(width, length) > extralargesizeThreshold then
 		targetVBO = decalExtraLargeVBO
-	elseif mathMin(width,length) > largesizethreshold then
+	elseif mathMin(width, length) > largesizethreshold then
 		targetVBO = decalLargeVBO
 	end
 
-	dCT[1],  dCT[2],  dCT[3],  dCT[4]  = length, width, rotation, maxalpha   -- lengthwidthrotation maxalpha
-	dCT[5],  dCT[6],  dCT[7],  dCT[8]  = p,q,s,t -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-	dCT[9],  dCT[10], dCT[11], dCT[12] = alphastart, alphadecay, heatstart, heatdecay -- alphastart_alphadecay_heatstart_heatdecay
+	dCT[1], dCT[2], dCT[3], dCT[4] = length, width, rotation, maxalpha -- lengthwidthrotation maxalpha
+	dCT[5], dCT[6], dCT[7], dCT[8] = p, q, s, t -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+	dCT[9], dCT[10], dCT[11], dCT[12] = alphastart, alphadecay, heatstart, heatdecay -- alphastart_alphadecay_heatstart_heatdecay
 	dCT[13], dCT[14], dCT[15], dCT[16] = posx, posy, posz, spawnframe
 	dCT[17], dCT[18], dCT[19], dCT[20] = bwfactor, glowsustain, glowadd, fadeintime -- params
 
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
-			dCT,-- decalCacheTable
+		dCT, -- decalCacheTable
 		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
-		false) -- noupload, dont use unless you know what you want to batch push/pop
+		false
+	) -- noupload, dont use unless you know what you want to batch push/pop
 	local deathtime = spawnframe + lifetime
 	if decalRemoveQueue[deathtime] == nil then
-		decalRemoveQueue[deathtime] = {decalIndex}
+		decalRemoveQueue[deathtime] = { decalIndex }
 	else
-		decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1 ] = decalIndex
+		decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1] = decalIndex
 	end
 
 	AddDecalToArea(decalIndex, posx, posz, width, length)
 
 	return decalIndex, lifetime
 end
-
 
 local skipdraw = false
 local firstRun = true
@@ -545,10 +539,11 @@ local function DrawDecals()
 		glTexture(0, false)
 	end
 
-	if skipdraw then return end
+	if skipdraw then
+		return
+	end
 	--local alt, ctrl = Spring.GetModKeyState()
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
-
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--spEcho(decalVBO.usedElements,decalLargeVBO.usedElements)
@@ -559,22 +554,23 @@ local function DrawDecals()
 		end
 		glDepthTest(GL_LEQUAL)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
-		glTexture(0, '$heightmap')
-		glTexture(1, '$minimap')
-		glTexture(2, '$info')
-		glTexture(3, '$shadow')
-		glTexture(4, '$normals')
+		glTexture(0, "$heightmap")
+		glTexture(1, "$minimap")
+		glTexture(2, "$info")
+		glTexture(3, "$shadow")
+		glTexture(4, "$normals")
 		glTexture(5, "luaui/images/decals_gl4/decalsgl4_atlas_diffuse.dds")
 		glTexture(6, "luaui/images/decals_gl4/decalsgl4_atlas_normal.dds")
-		if shaderConfig.PARALLAX == 1 then glTexture(7, atlasHeights) end
+		if shaderConfig.PARALLAX == 1 then
+			glTexture(7, atlasHeights)
+		end
 		--glTexture(9, '$map_gbuffer_zvaltex')
 		--glTexture(10, '$map_gbuffer_difftex')
 		--glTexture(11, '$map_gbuffer_normtex')
 
-
-		if decalVBO.usedElements > 0  then
+		if decalVBO.usedElements > 0 then
 			decalShader:Activate()
-			decalShader:SetUniform("fadeDistance",disticon * 1000)
+			decalShader:SetUniform("fadeDistance", disticon * 1000)
 			decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
 			decalShader:Deactivate()
 		end
@@ -593,7 +589,9 @@ local function DrawDecals()
 		end
 
 		-- Restore the GL state
-		for i = 0, 8 do glTexture(i, false) end
+		for i = 0, 8 do
+			glTexture(i, false)
+		end
 		glCulling(false) -- This is the correct default mode!
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
 	end
@@ -601,12 +599,8 @@ end
 
 function widget:TextCommand(command)
 	if string.find(command, "decalsgl4stats", nil, true) then
-		local tricount = 4*4*2 * decalVBO.usedElements + resolution*resolution*2*decalLargeVBO.usedElements + 4*4*resolution*resolution*2*decalExtraLargeVBO.usedElements
-		spEcho(string.format("Small decal = %d, Medium decal = %d, Large decal = %d, tris = %d",
-			decalVBO.usedElements,
-			decalLargeVBO.usedElements,
-			decalExtraLargeVBO.usedElements,
-			tricount))
+		local tricount = 4 * 4 * 2 * decalVBO.usedElements + resolution * resolution * 2 * decalLargeVBO.usedElements + 4 * 4 * resolution * resolution * 2 * decalExtraLargeVBO.usedElements
+		spEcho(string.format("Small decal = %d, Medium decal = %d, Large decal = %d, tris = %d", decalVBO.usedElements, decalLargeVBO.usedElements, decalExtraLargeVBO.usedElements, tricount))
 		return true
 	end
 	if string.find(command, "decalsgl4skipdraw", nil, true) then
@@ -627,7 +621,6 @@ else
 	end
 end
 
-
 local function RemoveDecal(instanceID)
 	RemoveDecalFromArea(instanceID)
 	footprintDecalSet[instanceID] = nil
@@ -644,7 +637,7 @@ local numDecalsToRemove = 0
 
 function widget:GameFrame(n)
 	if decalRemoveQueue[n] then
-		for i=1, #decalRemoveQueue[n] do
+		for i = 1, #decalRemoveQueue[n] do
 			local decalID = decalRemoveQueue[n][i]
 			decalRemoveList[decalID] = true
 			footprintDecalSet[decalID] = nil
@@ -655,10 +648,12 @@ function widget:GameFrame(n)
 	end
 
 	if n % 67 == 0 then -- About every 2 seconds
-		local totalDecalCount = decalVBO.usedElements + decalLargeVBO.usedElements +  decalExtraLargeVBO.usedElements
+		local totalDecalCount = decalVBO.usedElements + decalLargeVBO.usedElements + decalExtraLargeVBO.usedElements
 
 		-- Perform a compacting step if about half of our decals should be removed
-		if totalDecalCount == 0 or (numDecalsToRemove/totalDecalCount < 0.5) then return end
+		if totalDecalCount == 0 or (numDecalsToRemove / totalDecalCount < 0.5) then
+			return
+		end
 
 		numDecalsToRemove = 0
 		local removed = 0
@@ -668,27 +663,34 @@ function widget:GameFrame(n)
 		decalRemoveList = {}
 
 		if autoupdate and removed > 0 then
-			spEcho("Removed",removed,"decals from decal instance tables: s=",decalVBO.usedElements,' l=', decalLargeVBO.usedElements,'xl=', decalExtraLargeVBO.usedElements, "Tot=", totalDecalCount, "Rem=",numDecalsToRemove)
+			spEcho("Removed", removed, "decals from decal instance tables: s=", decalVBO.usedElements, " l=", decalLargeVBO.usedElements, "xl=", decalExtraLargeVBO.usedElements, "Tot=", totalDecalCount, "Rem=", numDecalsToRemove)
 		end
-		if decalVBO.dirty then 	uploadAllElements(	decalVBO) end
-		if decalLargeVBO.dirty then 	uploadAllElements(	decalLargeVBO) end
-		if decalExtraLargeVBO.dirty then 	uploadAllElements(	decalExtraLargeVBO) end
-
+		if decalVBO.dirty then
+			uploadAllElements(decalVBO)
+		end
+		if decalLargeVBO.dirty then
+			uploadAllElements(decalLargeVBO)
+		end
+		if decalExtraLargeVBO.dirty then
+			uploadAllElements(decalExtraLargeVBO)
+		end
 	end
 end
 
-local function randtablechoice (t)
+local function randtablechoice(t)
 	local i = 0
-	for k,v in pairs(t) do
+	for k, v in pairs(t) do
 		if type(v) == "table" then
-			i = i+1
+			i = i + 1
 		end
 	end
-	local randi = mathFloor(mathRandom()*i)
+	local randi = mathFloor(mathRandom() * i)
 	local j = 0
-	for k,v in pairs(t) do
-		if type(v) == "table" and j > randi then return k,v end
-		j = j+1
+	for k, v in pairs(t) do
+		if type(v) == "table" and j > randi then
+			return k, v
+		end
+		j = j + 1
 	end
 	return next(t)
 end
@@ -710,7 +712,7 @@ local buildingExplosionPositionVariation = {
 
 local isWaterVoid = false
 do
-	local success, mapinfo = pcall(VFS.Include,"mapinfo.lua")
+	local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
 	if success and mapinfo then
 		isWaterVoid = mapinfo.voidwater
 	end
@@ -720,32 +722,47 @@ local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
 local damageCoefficient = (1 / globalDamageMult + 0.25 * globalDamageMult - 0.25) -- for sane values with high modifiers
 
 local weaponConfig = {}
-for weaponDefID=1, #WeaponDefs do
+for weaponDefID = 1, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
 	local nodecal = (weaponDef.customParams and weaponDef.customParams.nodecal)
-	if (not nodecal) and (not string.find(weaponDef.cegTag, 'aa')) then
-		--[[  1 ]] local textures          = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga" }
-		--[[  2 ]] local radius            = weaponDef.damageAreaOfEffect * 1.4
-		--[[  3 ]] local radiusVariation   = 0.3 -- 0.3 -> 30% larger or smaller radius
-		--[[  4 ]] local heatstart         = nil
-		--[[  5 ]] local heatdecay         = nil
-		--[[  6 ]] local alpha             = nil
-		--[[  7 ]] local alphadecay        = nil
-		--[[  8 ]] local bwfactor          = 0.5 -- the mix factor of the diffuse texture to black and whiteness, 0 is original color, 1 is black and white
-		--[[  9 ]] local glowsustain       = nil
-		--[[ 10 ]] local glowadd           = nil
-		--[[ 11 ]] local radiusToHeatDecay = weaponDef.damageAreaOfEffect / 2250 -- scaling value as a fallback for heatdecay
-		--[[ 12 ]] local damage            = weaponDef.damages[Game.armorTypes.default] * damageCoefficient
-		--[[ 13 ]] local fadeintime        = nil
-		--[[ 14 ]] local positionVariation = 0
-		--[[ 15 ]] local waterDepthRatio   = isWaterVoid and 1 or 2.5 -- increased extinction in water height (vs air height)
+	if (not nodecal) and (not string.find(weaponDef.cegTag, "aa")) then
+		--[[  1 ]]
+		local textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga" }
+		--[[  2 ]]
+		local radius = weaponDef.damageAreaOfEffect * 1.4
+		--[[  3 ]]
+		local radiusVariation = 0.3 -- 0.3 -> 30% larger or smaller radius
+		--[[  4 ]]
+		local heatstart = nil
+		--[[  5 ]]
+		local heatdecay = nil
+		--[[  6 ]]
+		local alpha = nil
+		--[[  7 ]]
+		local alphadecay = nil
+		--[[  8 ]]
+		local bwfactor = 0.5 -- the mix factor of the diffuse texture to black and whiteness, 0 is original color, 1 is black and white
+		--[[  9 ]]
+		local glowsustain = nil
+		--[[ 10 ]]
+		local glowadd = nil
+		--[[ 11 ]]
+		local radiusToHeatDecay = weaponDef.damageAreaOfEffect / 2250 -- scaling value as a fallback for heatdecay
+		--[[ 12 ]]
+		local damage = weaponDef.damages[Game.armorTypes.default] * damageCoefficient
+		--[[ 13 ]]
+		local fadeintime = nil
+		--[[ 14 ]]
+		local positionVariation = 0
+		--[[ 15 ]]
+		local waterDepthRatio = isWaterVoid and 1 or 2.5 -- increased extinction in water height (vs air height)
 
 		if weaponDef.paralyzer then
 			textures = { "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga", "t_groundcrack_10_a.tga" }
 			heatstart = 0
 			glowadd = 0
-			if weaponDef.type == 'AircraftBomb' then
-				textures = {"t_groundcrack_16_a.tga" }
+			if weaponDef.type == "AircraftBomb" then
+				textures = { "t_groundcrack_16_a.tga" }
 				alpha = 0.44
 				alphadecay = 0.00015
 				radius = radius * 0.75
@@ -755,9 +772,8 @@ for weaponDefID=1, #WeaponDefs do
 				--glowsustain = 35
 				glowadd = 4
 			end
-
-		elseif weaponDef.type == 'Cannon' then
-			if string.find(weaponDef.name, 'old_armsnipe_weapon') then
+		elseif weaponDef.type == "Cannon" then
+			if string.find(weaponDef.name, "old_armsnipe_weapon") then
 				textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga" }
 				radius = 50
 				heatstart = 6000
@@ -768,16 +784,14 @@ for weaponDefID=1, #WeaponDefs do
 			if weaponDef.highTrajectory == 1 then
 				textures = { "t_groundcrack_21_a.tga", "t_groundcrack_22_a.tga", "t_groundcrack_10_a.tga" }
 				alphadecay = 0.0024
-
-			elseif string.find(weaponDef.name, 'lrpc') then
+			elseif string.find(weaponDef.name, "lrpc") then
 				textures = { "t_groundcrack_09_a.tga", "t_groundcrack_05_a.tga" }
 				radius = radius * 1.3
 				radiusVariation = 0.7
 				heatstart = 6000
 				heatdecay = 0.78
 				glowadd = 2
-
-			elseif string.find(weaponDef.name, 'tremor') then
+			elseif string.find(weaponDef.name, "tremor") then
 				textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga", "t_groundcrack_09_a.tga" }
 				radius = radius * 0.96
 				radiusVariation = 0.85
@@ -785,8 +799,7 @@ for weaponDefID=1, #WeaponDefs do
 				heatstart = 6000
 				heatdecay = 1.5
 				glowadd = 2
-
-			elseif string.find(weaponDef.name, 'crawl_blastsmlscavboss') then
+			elseif string.find(weaponDef.name, "crawl_blastsmlscavboss") then
 				textures = { "t_groundcrack_21_a.tga" }
 				radius = radius * 1.7
 				--radiusVariation = 0.7
@@ -794,8 +807,7 @@ for weaponDefID=1, #WeaponDefs do
 				heatdecay = 0.78
 				glowadd = 2
 			end
-
-		elseif weaponDef.type == 'Flame' then
+		elseif weaponDef.type == "Flame" then
 			-- FLAME does not work - probably does not apply a decal on engine level
 			-- textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga" }
 			-- if string.find(weaponDef.name, 'flamethrower') then
@@ -806,8 +818,7 @@ for weaponDefID=1, #WeaponDefs do
 			-- 	alphadecay = 0.0024
 			-- 	glowadd = 2
 			-- end
-
-		elseif weaponDef.type == 'LightningCannon' then
+		elseif weaponDef.type == "LightningCannon" then
 			heatstart = 4000
 			heatdecay = 1.0
 			glowsustain = 10
@@ -816,15 +827,11 @@ for weaponDefID=1, #WeaponDefs do
 			fadeintime = 15
 			bwfactor = 0.8
 			waterDepthRatio = 5
-
-		elseif weaponDef.type == 'BeamLaser' then
-
-		elseif weaponDef.type == 'LaserCannon' then
-
-		elseif weaponDef.type == 'StarburstLauncher' then
-
-		elseif weaponDef.type == 'AircraftBomb' then
-			if string.find(weaponDef.name, '.advbomb') then
+		elseif weaponDef.type == "BeamLaser" then
+		elseif weaponDef.type == "LaserCannon" then
+		elseif weaponDef.type == "StarburstLauncher" then
+		elseif weaponDef.type == "AircraftBomb" then
+			if string.find(weaponDef.name, ".advbomb") then
 				alpha = 1.1
 				radius = radius * 1.5
 				heatstart = 5500
@@ -843,16 +850,15 @@ for weaponDefID=1, #WeaponDefs do
 				glowadd = 1.2
 			end
 			bwfactor = 0.01
-
-		elseif weaponDef.type == 'DGun' then
+		elseif weaponDef.type == "DGun" then
 			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga" }
-			if string.find(weaponDef.name, 'juggernaut_fire') then
+			if string.find(weaponDef.name, "juggernaut_fire") then
 				radius = radius * 2.4
 				heatdecay = 0.65
 				glowsustain = 40
 				glowadd = 1.3
 				bwfactor = 0.1
-			elseif string.find(weaponDef.name, 'disintegratorxl') then
+			elseif string.find(weaponDef.name, "disintegratorxl") then
 				textures = { "t_groundcrack_21_a.tga", "t_groundcrack_16_a.tga" }
 				alphadecay = 0.004
 				radius = radius * 1.7 --* (mathRandom() * 20 + 0.2)
@@ -879,7 +885,7 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.1
 		end
 
-		if string.find(weaponDef.name, 'juno') then
+		if string.find(weaponDef.name, "juno") then
 			textures = { "t_groundcrack_10_a.tga" }
 			radius = 700
 			alpha = 0.4
@@ -888,7 +894,6 @@ for weaponDefID=1, #WeaponDefs do
 			alphadecay = 0.00005
 			--glowadd = 2.5
 			bwfactor = 0.05
-
 		elseif weaponDef.customParams.area_onhit_resistance == "_RAPTORACID_" then
 			textures = { "t_groundcrack_26_a.tga" }
 			alpha = 6
@@ -896,18 +901,17 @@ for weaponDefID=1, #WeaponDefs do
 			fadeintime = 200
 			bwfactor = 0.17
 			waterDepthRatio = 5
-			if string.find(weaponDef.name, 'death_acid') then
-				radius = (radius * 5.5)-- * (mathRandom() * 0.25 + 0.75)
+			if string.find(weaponDef.name, "death_acid") then
+				radius = (radius * 5.5) -- * (mathRandom() * 0.25 + 0.75)
 				heatstart = 550
 				heatdecay = 0.1
 				glowadd = 2.5
 			else
 				textures = { "t_groundcrack_26_a.tga" }
-				radius = (radius * 5)-- * (mathRandom() * 0.15 + 0.85)
+				radius = (radius * 5) -- * (mathRandom() * 0.15 + 0.85)
 				heatstart = 500
 				heatdecay = 10
 			end
-
 		elseif weaponDef.customParams.area_onhit_resistance == "fire" then
 			textures = { "t_groundcrack_16_a.tga" }
 			radius = radius * 1.6
@@ -918,20 +922,15 @@ for weaponDefID=1, #WeaponDefs do
 			glowsustain = 225
 			glowadd = 4.5
 			waterDepthRatio = 5
-
 		elseif weaponDef.customParams.area_onhit_ceg then
 			waterDepthRatio = 5
-
-		elseif string.find(weaponDef.name, 'vipersabot') then -- viper has very tiny AoE
+		elseif string.find(weaponDef.name, "vipersabot") then -- viper has very tiny AoE
 			radius = (radius * 4)
-
-		elseif string.find(weaponDef.name, 'armmav_weapon') then -- armmav has very tiny AoE
+		elseif string.find(weaponDef.name, "armmav_weapon") then -- armmav has very tiny AoE
 			radius = (radius * 6)
-
-		elseif string.find(weaponDef.name, 'corkorg_fire') then -- Juggernaut has lots of decals on shotgun
+		elseif string.find(weaponDef.name, "corkorg_fire") then -- Juggernaut has lots of decals on shotgun
 			alphadecay = 0.004
-
-		elseif string.find(weaponDef.name, 'exp_heavyrocket') then -- Catapult has lower AoE but big explo
+		elseif string.find(weaponDef.name, "exp_heavyrocket") then -- Catapult has lower AoE but big explo
 			textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga", "t_groundcrack_09_a.tga" }
 			radius = radius * 2.1
 			radiusVariation = 0.8
@@ -941,7 +940,7 @@ for weaponDefID=1, #WeaponDefs do
 			glowadd = 2
 
 			--armliche
-		elseif string.find(weaponDef.name, 'arm_pidr') then
+		elseif string.find(weaponDef.name, "arm_pidr") then
 			textures = { "t_groundcrack_21_a.tga" }
 			radius = radius * 1.8
 			heatstart = 5500
@@ -949,10 +948,9 @@ for weaponDefID=1, #WeaponDefs do
 			glowsustain = 100
 			glowadd = 1.5
 			bwfactor = 0.1
-
-		elseif string.find(weaponDef.name, 'flamebug') then
+		elseif string.find(weaponDef.name, "flamebug") then
 			textures = { "t_groundcrack_23_a.tga", "t_groundcrack_24_a.tga", "t_groundcrack_25_a.tga", "t_groundcrack_27_a.tga" }
-			radius = (radius * 5)-- * (mathRandom() * 0.7 + 0.52)
+			radius = (radius * 5) -- * (mathRandom() * 0.7 + 0.52)
 			alpha = 15
 			heatstart = 500
 			heatdecay = 0.12
@@ -961,13 +959,12 @@ for weaponDefID=1, #WeaponDefs do
 			glowadd = 2.5
 			fadeintime = 150
 			bwfactor = 0.6
-
-		elseif string.find(weaponDef.name, 'bug') then
+		elseif string.find(weaponDef.name, "bug") then
 			textures = { "t_groundcrack_23_a.tga", "t_groundcrack_24_a.tga", "t_groundcrack_25_a.tga", "t_groundcrack_27_a.tga" }
-			if string.find(weaponDef.name, 'flamebug') then
+			if string.find(weaponDef.name, "flamebug") then
 				radius = (radius * 5)
 			else
-				radius = (radius * 10)-- * (mathRandom() * 0.7 + 0.52)
+				radius = (radius * 10) -- * (mathRandom() * 0.7 + 0.52)
 				alpha = 15
 				heatstart = 500
 				heatdecay = 0.12
@@ -977,10 +974,9 @@ for weaponDefID=1, #WeaponDefs do
 				fadeintime = 75
 				bwfactor = 0.6
 			end
-
-		elseif string.find(weaponDef.name, 'bloodyeggs') then
+		elseif string.find(weaponDef.name, "bloodyeggs") then
 			textures = { "t_groundcrack_23_a.tga" }
-			radius = (radius * 1.5)-- * (mathRandom() * 1.2 + 0.25)
+			radius = (radius * 1.5) -- * (mathRandom() * 1.2 + 0.25)
 			alpha = 10
 			heatstart = 490
 			heatdecay = 0.1
@@ -988,28 +984,25 @@ for weaponDefID=1, #WeaponDefs do
 			glowadd = 2.5
 			fadeintime = 75
 			bwfactor = 0.6
-
-		elseif string.find(weaponDef.name, 'dodo') then
+		elseif string.find(weaponDef.name, "dodo") then
 			textures = { "t_groundcrack_23_a.tga", "t_groundcrack_24_a.tga" }
-			radius = (radius * 1.2)-- * (mathRandom() * 0.15 + 0.85)
+			radius = (radius * 1.2) -- * (mathRandom() * 0.15 + 0.85)
 			alpha = 10
 			heatstart = 490
 			heatdecay = 0.1
 			alphadecay = 0.002
 			glowadd = 2.5
 			bwfactor = 0.7
-
-		elseif string.find(weaponDef.name, 'armagmheat') then
+		elseif string.find(weaponDef.name, "armagmheat") then
 			textures = { "t_groundcrack_10_a.tga" }
-			radius = (radius * 1.6)-- * (mathRandom() * 0.15 + 0.85)
+			radius = (radius * 1.6) -- * (mathRandom() * 0.15 + 0.85)
 			alpha = 1
 			heatstart = 6500
 			heatdecay = 0.5
 			alphadecay = 0.002
 			glowadd = 2.5
 			--bwfactor = 0.15
-
-		elseif string.find(weaponDef.name, 'corkorg_laser') then
+		elseif string.find(weaponDef.name, "corkorg_laser") then
 			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga" }
 			alphadecay = 0.004
 			radius = radius * 1.1 --* (mathRandom() * 20 + 0.2)
@@ -1019,8 +1012,7 @@ for weaponDefID=1, #WeaponDefs do
 			glowsustain = 45
 			glowadd = 1.8
 			bwfactor = 0.1
-
-		elseif string.find(weaponDef.name, 'pineappleofdoom') or string.find(weaponDef.name, 'heatraylarge') or string.find(weaponDef.name, 'skybeam') or string.find(weaponDef.name, 'heat_ray') then --legbastion leginc legphoenix legaheattank
+		elseif string.find(weaponDef.name, "pineappleofdoom") or string.find(weaponDef.name, "heatraylarge") or string.find(weaponDef.name, "skybeam") or string.find(weaponDef.name, "heat_ray") then --legbastion leginc legphoenix legaheattank
 			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_05_a.tga" }
 			--textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga" }
 			alphadecay = 0.004
@@ -1031,8 +1023,7 @@ for weaponDefID=1, #WeaponDefs do
 			glowsustain = 20
 			glowadd = 2.8
 			bwfactor = 0.1
-
-		elseif string.find(weaponDef.name, 'starfire') then
+		elseif string.find(weaponDef.name, "starfire") then
 			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_09_a.tga", "t_groundcrack_10_a.tga" }
 			alphadecay = 0.003
 			radius = radius * 1.2 --* (mathRandom() * 20 + 0.2)
@@ -1042,8 +1033,7 @@ for weaponDefID=1, #WeaponDefs do
 			glowsustain = 0
 			glowadd = 2.5
 			bwfactor = 0.3
-
-		elseif string.find(weaponDef.name, 'footstep') then
+		elseif string.find(weaponDef.name, "footstep") then
 			--textures = { "f_corkorg_a.tga" }
 			textures = { "t_groundcrack_10_a.tga" }
 			--radius = 70
@@ -1055,28 +1045,42 @@ for weaponDefID=1, #WeaponDefs do
 			alphadecay = 0.00055 --0.00055
 			--glowadd = 2.5
 			bwfactor = 0.4
-
 		end
 		if buildingExplosionPositionVariation[weaponDef.name] then
 			positionVariation = buildingExplosionPositionVariation[weaponDef.name]
 		end
 
 		weaponConfig[weaponDefID] = {
-			--[[  1 ]] textures,
-			--[[  2 ]] radius,
-			--[[  3 ]] radiusVariation,
-			--[[  4 ]] heatstart,
-			--[[  5 ]] heatdecay,
-			--[[  6 ]] alpha,
-			--[[  7 ]] alphadecay,
-			--[[  8 ]] bwfactor,
-			--[[  9 ]] glowsustain,
-			--[[ 10 ]] glowadd,
-			--[[ 11 ]] radiusToHeatDecay,
-			--[[ 12 ]] damage,
-			--[[ 13 ]] fadeintime,
-			--[[ 14 ]] positionVariation,
-			--[[ 15 ]] waterDepthRatio,
+			--[[  1 ]]
+			textures,
+			--[[  2 ]]
+			radius,
+			--[[  3 ]]
+			radiusVariation,
+			--[[  4 ]]
+			heatstart,
+			--[[  5 ]]
+			heatdecay,
+			--[[  6 ]]
+			alpha,
+			--[[  7 ]]
+			alphadecay,
+			--[[  8 ]]
+			bwfactor,
+			--[[  9 ]]
+			glowsustain,
+			--[[ 10 ]]
+			glowadd,
+			--[[ 11 ]]
+			radiusToHeatDecay,
+			--[[ 12 ]]
+			damage,
+			--[[ 13 ]]
+			fadeintime,
+			--[[ 14 ]]
+			positionVariation,
+			--[[ 15 ]]
+			waterDepthRatio,
 		}
 	end
 end
@@ -1089,14 +1093,14 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 
 	local random = mathRandom
 
-	local radius = params[2] * (1 + (random()-0.5) * params[3])
+	local radius = params[2] * (1 + (random() - 0.5) * params[3])
 	local elevation = spGetGroundHeight(px, pz)
 	local exploHeight = py - (elevation >= 0 and elevation or elevation * params[15])
 	if exploHeight >= radius then
 		return
 	end
 
-	local texture = params[1][ random(1,#params[1]) ]
+	local texture = params[1][random(1, #params[1])]
 
 	-- reduce severity when explosion is above ground
 	local heightMult = 1 - (exploHeight / radius)
@@ -1116,20 +1120,19 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	local fadeintime = params[13]
 
 	if params[14] > 0 then --positionVariation
-		px = px + (random() - 0.5 ) * radius * 0.2
-		pz = pz + (random() - 0.5 ) * radius * 0.2
+		px = px + (random() - 0.5) * radius * 0.2
+		pz = pz + (random() - 0.5) * radius * 0.2
 	end
 
-
 	AddDecal(
-		groundscarsPath..texture,
+		groundscarsPath .. texture,
 		px, --posx
 		pz, --posz
 		random() * 6.28, -- rotation
 		radius, -- width
 		radius, -- height
 		heatstart * heightMult, -- heatstart
-		heatdecay * (1+(1-heightMult)), -- heatdecay
+		heatdecay * (1 + (1 - heightMult)), -- heatdecay
 		(random() * 0.38 + 0.72) * alpha, -- alphastart
 		alphadecay, -- alphadecay
 		random() * 0.2 + 0.8, -- maxalpha
@@ -1141,9 +1144,9 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 end
 
 local UnitScriptDecalsNames = {
-	['corkorg'] = {
+	["corkorg"] = {
 		[1] = {
-			texture = footprintsPath..'f_corkorg_a.png',
+			texture = footprintsPath .. "f_corkorg_a.png",
 			offsetx = 2, --offset from what the UnitScriptDecal returns
 			offsetz = -25, --
 			offsetrot = 0, -- in radians
@@ -1158,12 +1161,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			}
 		},
+	},
 
-	['armfboy'] = {
+	["armfboy"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armfboy_a.png',
+			texture = footprintsPath .. "f_armfboy_a.png",
 			offsetx = -1, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0, -- in radians
@@ -1178,9 +1181,9 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
+		},
 		[2] = { -- RFOOT
-			texture = footprintsPath..'f_armfboy_a.png',
+			texture = footprintsPath .. "f_armfboy_a.png",
 			offsetx = 1, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0, -- in radians
@@ -1195,11 +1198,11 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			}
 		},
-	['armwar'] = {
+	},
+	["armwar"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armwar_a.png',
+			texture = footprintsPath .. "f_armwar_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.2, -- in radians
@@ -1214,9 +1217,9 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
+		},
 		[2] = { -- RFOOT
-			texture = footprintsPath..'f_armwar_a.png',
+			texture = footprintsPath .. "f_armwar_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = -0.2, -- in radians
@@ -1231,12 +1234,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
+	},
 
-	['armck'] = {
+	["armck"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armck_a.png',
+			texture = footprintsPath .. "f_armck_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 7, --
 			offsetrot = 0.0, -- in radians
@@ -1251,12 +1254,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
+	},
 
-	['armrock'] = {
+	["armrock"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armrock_a.png',
+			texture = footprintsPath .. "f_armrock_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = -3, --
 			offsetrot = 0.0, -- in radians
@@ -1271,11 +1274,11 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
-	['armham'] = {
+	},
+	["armham"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armham_a.png',
+			texture = footprintsPath .. "f_armham_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = -1, --
 			offsetrot = 0.0, -- in radians
@@ -1290,12 +1293,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
+	},
 
-	['armack'] = {
+	["armack"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armack_a.png',
+			texture = footprintsPath .. "f_armack_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 1, --
 			offsetrot = 0.0, -- in radians
@@ -1310,12 +1313,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
+	},
 
-	['armzeus'] = {
+	["armzeus"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armzeus_a.png',
+			texture = footprintsPath .. "f_armzeus_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1330,12 +1333,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
+	},
 
-	['armmav'] = {
+	["armmav"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armmav_a.png',
+			texture = footprintsPath .. "f_armmav_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1350,12 +1353,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
+	},
 
-	['armmar'] = {
+	["armmar"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armmar_a.png',
+			texture = footprintsPath .. "f_armmar_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1370,12 +1373,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
+	},
 
-	['armraz'] = {
+	["armraz"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armraz_a.png',
+			texture = footprintsPath .. "f_armraz_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1390,12 +1393,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
+	},
 
-	['armvang'] = {
+	["armvang"] = {
 		[1] = { -- FOOT
-			texture = footprintsPath..'f_armvang_a.png',
+			texture = footprintsPath .. "f_armvang_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.8, -- in radians
@@ -1410,10 +1413,10 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
+		},
 
 		[2] = { -- ankle
-			texture = footprintsPath..'f_armvang_a.png',
+			texture = footprintsPath .. "f_armvang_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 3.14, -- in radians
@@ -1428,12 +1431,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
+	},
 
-	['armbanth'] = {
+	["armbanth"] = {
 		[1] = {
-			texture = footprintsPath..'f_armbanth_a.png',
+			texture = footprintsPath .. "f_armbanth_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = -7, --
 			offsetrot = 0, -- in radians
@@ -1448,12 +1451,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 10,
 			glowadd = 0.0,
 			fadeintime = 5,
-			}
 		},
+	},
 
-	['corck'] = {
+	["corck"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corck_a.png',
+			texture = footprintsPath .. "f_corck_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1468,12 +1471,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
+	},
 
-	['corstorm'] = {
+	["corstorm"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corstorm_a.png',
+			texture = footprintsPath .. "f_corstorm_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1488,12 +1491,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
+	},
 
-	['corthud'] = {
+	["corthud"] = {
 		[1] = {
-			texture = footprintsPath..'f_corthud_a.png',
+			texture = footprintsPath .. "f_corthud_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = -2, --
 			offsetrot = 0, -- in radians
@@ -1508,12 +1511,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			}
 		},
+	},
 
-	['corack'] = {
+	["corack"] = {
 		[1] = {
-			texture = footprintsPath..'f_corthud_a.png',
+			texture = footprintsPath .. "f_corthud_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = -2, --
 			offsetrot = 0, -- in radians
@@ -1528,13 +1531,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			}
 		},
+	},
 
-
-	['cormando'] = {
+	["cormando"] = {
 		[1] = { --lfoot
-			texture = footprintsPath..'f_cormando_a.png',
+			texture = footprintsPath .. "f_cormando_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.15, -- in radians
@@ -1549,9 +1551,9 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
+		},
 		[2] = { --rfoot
-			texture = footprintsPath..'f_cormando_a.png',
+			texture = footprintsPath .. "f_cormando_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = -0.15, -- in radians
@@ -1566,13 +1568,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			}
 		},
+	},
 
-
-	['corpyro'] = {
+	["corpyro"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corpyro_a.png',
+			texture = footprintsPath .. "f_corpyro_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1587,11 +1588,11 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 2,
-			},
 		},
-	['corhrk'] = {
+	},
+	["corhrk"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corhrk_a.png',
+			texture = footprintsPath .. "f_corhrk_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1606,11 +1607,11 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 2,
-			},
 		},
-	['corcan'] = {
+	},
+	["corcan"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corcan_a.png',
+			texture = footprintsPath .. "f_corcan_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 3.14, -- in radians
@@ -1625,9 +1626,9 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 2,
-			},
+		},
 		[2] = { -- RFOOT
-			texture = footprintsPath..'f_corcan_a.png',
+			texture = footprintsPath .. "f_corcan_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1642,12 +1643,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 2,
-			},
 		},
+	},
 
-	['corsumo'] = {
+	["corsumo"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corsumo_a.png',
+			texture = footprintsPath .. "f_corsumo_a.png",
 			offsetx = -1, --offset from what the UnitScriptDecal returns
 			offsetz = -1, --
 			offsetrot = 0.0, -- in radians
@@ -1662,11 +1663,11 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
-	['coramph'] = {
+	},
+	["coramph"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_coramph_a.png',
+			texture = footprintsPath .. "f_coramph_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 3, --
 			offsetrot = 0.0, -- in radians
@@ -1681,11 +1682,11 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 2,
-			},
 		},
-	['corcat'] = {
+	},
+	["corcat"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corcat_a.png',
+			texture = footprintsPath .. "f_corcat_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 3, --
 			offsetrot = 0.0, -- in radians
@@ -1700,11 +1701,11 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 2,
-			},
 		},
-	['corshiva'] = {
+	},
+	["corshiva"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corshiva_a.png',
+			texture = footprintsPath .. "f_corshiva_a.png",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1719,11 +1720,11 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 2,
-			},
 		},
-	['corjugg'] = {
+	},
+	["corjugg"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corjugg_a.png',
+			texture = footprintsPath .. "f_corjugg_a.png",
 			offsetx = -1, --offset from what the UnitScriptDecal returns
 			offsetz = -3, --
 			offsetrot = 0.0, -- in radians
@@ -1738,12 +1739,12 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
+	},
 
-	['raptor_land_swarmer_basic_t1_v1'] = {
+	["raptor_land_swarmer_basic_t1_v1"] = {
 		[1] = { -- LFOOT
-			texture = footprintsPath..'f_raptor_a.tga',
+			texture = footprintsPath .. "f_raptor_a.tga",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1758,9 +1759,9 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
+		},
 		[2] = { -- RFOOT
-			texture = footprintsPath..'f_raptor_a.tga',
+			texture = footprintsPath .. "f_raptor_a.tga",
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1776,9 +1777,8 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			},
 		},
-
+	},
 }
 -- convert unitname -> unitDefID
 local UnitScriptDecals = {}
@@ -1789,7 +1789,6 @@ for unitName, decals in pairs(UnitScriptDecalsNames) do
 end
 UnitScriptDecalsNames = nil
 
-
 --[[
 Shit needed in the cob script:
 
@@ -1799,11 +1798,12 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 }
 
 call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
-]]--
+]]
+--
 local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, heading)
 	--spEcho("Widgetside UnitScriptDecal", unitID, unitDefID, whichDecal, posx,posz, heading)
 	if Spring.ValidUnitID(unitID) and Spring.GetUnitIsDead(unitID) == false and UnitScriptDecals[unitDefID] and UnitScriptDecals[unitDefID][whichDecal] then
-		local decalTable =  UnitScriptDecals[unitDefID][whichDecal]
+		local decalTable = UnitScriptDecals[unitDefID][whichDecal]
 
 		-- So order of transformations is, get heading, rotate that into world space , heading 0 is +Z direction
 		-- Then place at worldpos
@@ -1845,12 +1845,12 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 			decalCache[14] = Spring.GetGroundHeight(posx, posz)
 			decalCache[15] = worldposz
 
-			decalCache[10] = decalTable.alphadecay / (lifeTimeMult*lifeTimeMultMult)
+			decalCache[10] = decalTable.alphadecay / (lifeTimeMult * lifeTimeMultMult)
 
 			local spawnframe = spGetGameFrame()
 			decalCache[16] = spawnframe
 
-			local lifetime = mathFloor(decalTable.alphastart/decalCache[10])
+			local lifetime = mathFloor(decalTable.alphastart / decalCache[10])
 			decalIndex = decalIndex + 1
 			--spEcho(decalIndex)
 			pushElementInstance(
@@ -1858,12 +1858,13 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 				decalCache, -- params
 				decalIndex, -- this is the key inside the VBO Table, should be unique per unit
 				true, -- update existing element
-				false) -- noupload, dont use unless you know what you want to batch push/pop
+				false
+			) -- noupload, dont use unless you know what you want to batch push/pop
 			local deathtime = spawnframe + lifetime
 			if decalRemoveQueue[deathtime] == nil then
-				decalRemoveQueue[deathtime] = {decalIndex}
+				decalRemoveQueue[deathtime] = { decalIndex }
 			else
-				decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1 ] = decalIndex
+				decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1] = decalIndex
 			end
 
 			AddDecalToArea(decalIndex, worldposx, worldposz, decalTable.width, decalTable.height)
@@ -1873,7 +1874,7 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 	end
 end
 
-local pendingRestore = nil  -- Holds saved decal data between SetConfigData and Initialize
+local pendingRestore = nil -- Holds saved decal data between SetConfigData and Initialize
 
 function widget:Initialize()
 	--if makeAtlases() == false then
@@ -1888,10 +1889,10 @@ function widget:Initialize()
 	initAreas()
 	if autoupdate then
 		math.randomseed(1)
-		for i= 1, 100 do
+		for i = 1, 100 do
 			local w = mathRandom() * 15 + 7
 			w = w * w
-			local texture =  randtablechoice(atlas)
+			local texture = randtablechoice(atlas)
 			--spEcho(texture)
 			AddDecal(
 				texture,
@@ -1909,21 +1910,27 @@ function widget:Initialize()
 		end
 	end
 
-	WG['decalsgl4'] = {}
-	WG['decalsgl4'].AddDecalGL4 = AddDecal
-	WG['decalsgl4'].RemoveDecalGL4 = RemoveDecal
-	WG['decalsgl4'].SetLifeTimeMult = function(value)
+	WG["decalsgl4"] = {}
+	WG["decalsgl4"].AddDecalGL4 = AddDecal
+	WG["decalsgl4"].RemoveDecalGL4 = RemoveDecal
+	WG["decalsgl4"].SetLifeTimeMult = function(value)
 		lifeTimeMult = value
 	end
-	WG['decalsgl4'].GetActiveDecals = function() return activeDecalData end
-	WG['decalsgl4'].GetLifeTimeMult = function() return lifeTimeMult end
-	WG['decalsgl4'].RebuildActiveDecalData = RebuildActiveDecalData
-	local vboTableCache = {decalVBO, decalLargeVBO, decalExtraLargeVBO}
-	WG['decalsgl4'].GetVBOData = function() return vboTableCache, footprintDecalSet end
+	WG["decalsgl4"].GetActiveDecals = function()
+		return activeDecalData
+	end
+	WG["decalsgl4"].GetLifeTimeMult = function()
+		return lifeTimeMult
+	end
+	WG["decalsgl4"].RebuildActiveDecalData = RebuildActiveDecalData
+	local vboTableCache = { decalVBO, decalLargeVBO, decalExtraLargeVBO }
+	WG["decalsgl4"].GetVBOData = function()
+		return vboTableCache, footprintDecalSet
+	end
 
-	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
-	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
-	widgetHandler:RegisterGlobal('UnitScriptDecal', UnitScriptDecal)
+	widgetHandler:RegisterGlobal("AddDecalGL4", WG["decalsgl4"].AddDecalGL4)
+	widgetHandler:RegisterGlobal("RemoveDecalGL4", WG["decalsgl4"].RemoveDecalGL4)
+	widgetHandler:RegisterGlobal("UnitScriptDecal", UnitScriptDecal)
 	--spEcho(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
 	--spEcho("Trying to access _G[NightModeParams]", _G["NightModeParams"])
 
@@ -1931,74 +1938,95 @@ function widget:Initialize()
 	if pendingRestore and pendingRestore.decals then
 		local curFrame = spGetGameFrame()
 		if curFrame > 0 then
-		local restoredCount = 0
-		local frameOffset = curFrame - (pendingRestore.saveFrame or 0)
-		for _, entry in ipairs(pendingRestore.decals) do
-			local step = #entry
-			-- Support compact 13-field format and legacy 20-field format
-			local vboEntry
-			if step == 13 then
-				-- Compact: reconstruct full 20-float VBO entry
-				local posx, posz = entry[11], entry[12]
-				local posy = Spring.GetGroundHeight(posx, posz) or 0
-				vboEntry = {
-					entry[1],  entry[2],  entry[3],  entry[4],   -- length, width, rotation, maxalpha
-					entry[5],  entry[6],  entry[7],  entry[8],   -- UV p,q,s,t
-					entry[9],  entry[10], 0,         0,           -- alphastart, alphadecay, heatstart=0, heatdecay=0
-					posx,      posy,      posz,      entry[13],   -- posx, posy, posz, spawnframe
-					0.5,       0,         0,         0,           -- bwfactor=0.5, glowsustain=0, glowadd=0, fadeintime=0
-				}
-			elseif step == 20 then
-				vboEntry = entry
-			end
-			if vboEntry then
-				-- Adjust spawnframe by the elapsed time between save and restore
-				vboEntry[16] = vboEntry[16] + frameOffset
+			local restoredCount = 0
+			local frameOffset = curFrame - (pendingRestore.saveFrame or 0)
+			for _, entry in ipairs(pendingRestore.decals) do
+				local step = #entry
+				-- Support compact 13-field format and legacy 20-field format
+				local vboEntry
+				if step == 13 then
+					-- Compact: reconstruct full 20-float VBO entry
+					local posx, posz = entry[11], entry[12]
+					local posy = Spring.GetGroundHeight(posx, posz) or 0
+					vboEntry = {
+						entry[1],
+						entry[2],
+						entry[3],
+						entry[4], -- length, width, rotation, maxalpha
+						entry[5],
+						entry[6],
+						entry[7],
+						entry[8], -- UV p,q,s,t
+						entry[9],
+						entry[10],
+						0,
+						0, -- alphastart, alphadecay, heatstart=0, heatdecay=0
+						posx,
+						posy,
+						posz,
+						entry[13], -- posx, posy, posz, spawnframe
+						0.5,
+						0,
+						0,
+						0, -- bwfactor=0.5, glowsustain=0, glowadd=0, fadeintime=0
+					}
+				elseif step == 20 then
+					vboEntry = entry
+				end
+				if vboEntry then
+					-- Adjust spawnframe by the elapsed time between save and restore
+					vboEntry[16] = vboEntry[16] + frameOffset
 
-				local alphastart = vboEntry[9]
-				local alphadecay = vboEntry[10]
-				if alphadecay > 0 then
-					local age = curFrame - vboEntry[16]
-					local alpha = alphastart - alphadecay * age
-					if alpha > 0 then
-						local lifetime = mathFloor(alphastart / alphadecay)
-						decalIndex = decalIndex + 1
+					local alphastart = vboEntry[9]
+					local alphadecay = vboEntry[10]
+					if alphadecay > 0 then
+						local age = curFrame - vboEntry[16]
+						local alpha = alphastart - alphadecay * age
+						if alpha > 0 then
+							local lifetime = mathFloor(alphastart / alphadecay)
+							decalIndex = decalIndex + 1
 
-						local length_v = vboEntry[1]
-						local width_v = vboEntry[2]
-						local targetVBO = decalVBO
-						if mathMin(width_v, length_v) > extralargesizeThreshold then
-							targetVBO = decalExtraLargeVBO
-						elseif mathMin(width_v, length_v) > largesizethreshold then
-							targetVBO = decalLargeVBO
+							local length_v = vboEntry[1]
+							local width_v = vboEntry[2]
+							local targetVBO = decalVBO
+							if mathMin(width_v, length_v) > extralargesizeThreshold then
+								targetVBO = decalExtraLargeVBO
+							elseif mathMin(width_v, length_v) > largesizethreshold then
+								targetVBO = decalLargeVBO
+							end
+
+							pushElementInstance(targetVBO, vboEntry, decalIndex, true, true)
+
+							local deathtime = vboEntry[16] + lifetime
+							if decalRemoveQueue[deathtime] == nil then
+								decalRemoveQueue[deathtime] = { decalIndex }
+							else
+								decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1] = decalIndex
+							end
+
+							local posx = vboEntry[13]
+							local posz = vboEntry[15]
+							local rotation = vboEntry[3]
+							local p, q2, s, t = vboEntry[5], vboEntry[6], vboEntry[7], vboEntry[8]
+							AddDecalToArea(decalIndex, posx, posz, width_v, length_v)
+							restoredCount = restoredCount + 1
 						end
-
-						pushElementInstance(targetVBO, vboEntry, decalIndex, true, true)
-
-						local deathtime = vboEntry[16] + lifetime
-						if decalRemoveQueue[deathtime] == nil then
-							decalRemoveQueue[deathtime] = {decalIndex}
-						else
-							decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1] = decalIndex
-						end
-
-						local posx = vboEntry[13]
-						local posz = vboEntry[15]
-						local rotation = vboEntry[3]
-						local p, q2, s, t = vboEntry[5], vboEntry[6], vboEntry[7], vboEntry[8]
-						AddDecalToArea(decalIndex, posx, posz, width_v, length_v)
-						restoredCount = restoredCount + 1
 					end
 				end
 			end
-		end
-		-- Batch upload all restored decals
-		if decalVBO.dirty then uploadAllElements(decalVBO) end
-		if decalLargeVBO.dirty then uploadAllElements(decalLargeVBO) end
-		if decalExtraLargeVBO.dirty then uploadAllElements(decalExtraLargeVBO) end
-		if restoredCount > 0 then
-			spEcho(string.format("[DecalsGL4] Restored %d decals from previous session", restoredCount))
-		end
+			-- Batch upload all restored decals
+			if decalVBO.dirty then
+				uploadAllElements(decalVBO)
+			end
+			if decalLargeVBO.dirty then
+				uploadAllElements(decalLargeVBO)
+			end
+			if decalExtraLargeVBO.dirty then
+				uploadAllElements(decalExtraLargeVBO)
+			end
+			if restoredCount > 0 then
+				spEcho(string.format("[DecalsGL4] Restored %d decals from previous session", restoredCount))
+			end
 		end -- curFrame > 0
 		pendingRestore = nil
 	end
@@ -2006,13 +2034,13 @@ function widget:Initialize()
 	--pre-optimize UnitScriptDecals:
 	for unitDefID, UnitScriptDecalSet in pairs(UnitScriptDecals) do
 		for i, decalTable in ipairs(UnitScriptDecalSet) do
-			local p,q,s,t = 0,1,0,1
+			local p, q, s, t = 0, 1, 0, 1
 
 			if atlas[decalTable.texture] == nil then
-				spEcho("Tried to spawn a decal gl4 with a texture not present in the atlas:",decalTable.texture)
+				spEcho("Tried to spawn a decal gl4 with a texture not present in the atlas:", decalTable.texture)
 			else
 				local uvs = atlas[decalTable.texture]
-				p,q,s,t = uvs[1], uvs[2], uvs[3], uvs[4]
+				p, q, s, t = uvs[1], uvs[2], uvs[3], uvs[4]
 				if decalTable.fliphorizontal then
 					p, q = q, p
 				end
@@ -2022,22 +2050,29 @@ function widget:Initialize()
 			end
 
 			decalTable.cacheTable = {
-				decalTable.width, decalTable.height, 0,	decalTable.maxalpha,
-				p,q,s,t,
+				decalTable.width,
+				decalTable.height,
+				0,
+				decalTable.maxalpha,
+				p,
+				q,
+				s,
+				t,
 				decalTable.alphastart or 1,
-				(decalTable.alphadecay) or 0 / (lifeTimeMult*lifeTimeMultMult),
+				decalTable.alphadecay or 0 / (lifeTimeMult * lifeTimeMultMult),
 				decalTable.heatstart or 0,
 				decalTable.heatdecay or 1,
-				0,0,0,0,
+				0,
+				0,
+				0,
+				0,
 				decalTable.bwfactor or 1,
 				decalTable.glowsustain or 1,
 				decalTable.glowadd or 1,
-				decalTable.fadeintime or shaderConfig.FADEINTIME or 1
+				decalTable.fadeintime or shaderConfig.FADEINTIME or 1,
 			}
 		end
 	end
-
-
 end
 
 function widget:SunChanged()
@@ -2046,11 +2081,10 @@ function widget:SunChanged()
 end
 
 function widget:ShutDown()
-
-	WG['decalsgl4'] = nil
-	widgetHandler:DeregisterGlobal('AddDecalGL4')
-	widgetHandler:DeregisterGlobal('RemoveDecalGL4')
-	widgetHandler:DeregisterGlobal('UnitScriptDecal')
+	WG["decalsgl4"] = nil
+	widgetHandler:DeregisterGlobal("AddDecalGL4")
+	widgetHandler:DeregisterGlobal("RemoveDecalGL4")
+	widgetHandler:DeregisterGlobal("UnitScriptDecal")
 end
 
 function widget:GetConfigData(_) -- Called by RemoveWidget
@@ -2060,7 +2094,7 @@ function widget:GetConfigData(_) -- Called by RemoveWidget
 	local frame = spGetGameFrame()
 	local scars = {}
 	local footprints = {}
-	local vboTables = {decalVBO, decalLargeVBO, decalExtraLargeVBO}
+	local vboTables = { decalVBO, decalLargeVBO, decalExtraLargeVBO }
 	local floor = mathFloor
 	for _, vbo in ipairs(vboTables) do
 		if vbo and vbo.usedElements > 0 then
@@ -2080,24 +2114,24 @@ function widget:GetConfigData(_) -- Called by RemoveWidget
 					-- Compact format: 13 fields instead of 20
 					-- Drops: posy (recalculated), heatstart, heatdecay, bwfactor, glowsustain, glowadd, fadeintime
 					local entry = {
-						floor(length),                           -- [1] length
-						floor(width),                            -- [2] width
-						floor(data[offset + 3] * 100) / 100,     -- [3] rotation
-						floor(data[offset + 4] * 100) / 100,     -- [4] maxalpha
-						round(data[offset + 5], 2),     -- [5] UV p
-						round(data[offset + 6], 2),     -- [6] UV q
-						round(data[offset + 7], 2),     -- [7] UV s
-						round(data[offset + 8], 2),     -- [8] UV t
-						round(data[offset + 9], 2),     -- [9] alphastart
-						data[offset + 10],                       -- [10] alphadecay
-						floor(data[offset + 13]),                -- [11] posx (int)
-						floor(data[offset + 15]),                -- [12] posz (int)
-						spawnframe,                              -- [13] spawnframe
+						floor(length), -- [1] length
+						floor(width), -- [2] width
+						floor(data[offset + 3] * 100) / 100, -- [3] rotation
+						floor(data[offset + 4] * 100) / 100, -- [4] maxalpha
+						round(data[offset + 5], 2), -- [5] UV p
+						round(data[offset + 6], 2), -- [6] UV q
+						round(data[offset + 7], 2), -- [7] UV s
+						round(data[offset + 8], 2), -- [8] UV t
+						round(data[offset + 9], 2), -- [9] alphastart
+						data[offset + 10], -- [10] alphadecay
+						floor(data[offset + 13]), -- [11] posx (int)
+						floor(data[offset + 15]), -- [12] posz (int)
+						spawnframe, -- [13] spawnframe
 					}
 					if footprintDecalSet[instanceID] then
-						footprints[#footprints + 1] = {size = size, data = entry}
+						footprints[#footprints + 1] = { size = size, data = entry }
 					else
-						scars[#scars + 1] = {size = size, data = entry}
+						scars[#scars + 1] = { size = size, data = entry }
 					end
 				end
 			end
@@ -2105,20 +2139,28 @@ function widget:GetConfigData(_) -- Called by RemoveWidget
 	end
 
 	-- Sort both lists by size descending (biggest first)
-	table.sort(scars, function(a, b) return a.size > b.size end)
-	table.sort(footprints, function(a, b) return a.size > b.size end)
+	table.sort(scars, function(a, b)
+		return a.size > b.size
+	end)
+	table.sort(footprints, function(a, b)
+		return a.size > b.size
+	end)
 
 	local savedDecals = {}
 	local savedCount = 0
 	-- Add biggest scars first
 	for i = 1, #scars do
-		if savedCount >= maxSave then break end
+		if savedCount >= maxSave then
+			break
+		end
 		savedCount = savedCount + 1
 		savedDecals[savedCount] = scars[i].data
 	end
 	-- Fill remaining slots with biggest footprints
 	for i = 1, #footprints do
-		if savedCount >= maxSave then break end
+		if savedCount >= maxSave then
+			break
+		end
 		savedCount = savedCount + 1
 		savedDecals[savedCount] = footprints[i].data
 	end

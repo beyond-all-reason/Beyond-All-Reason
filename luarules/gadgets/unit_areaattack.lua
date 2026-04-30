@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "2008-01-20",
 		license = "Public domain",
 		layer = 1,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -17,7 +17,6 @@ end
 local CMD_AREA_ATTACK_GROUND = GameCMD.AREA_ATTACK_GROUND
 
 if gadgetHandler:IsSyncedCode() then
-
 	local attackList = {}
 	local closeList = {}
 
@@ -45,17 +44,17 @@ if gadgetHandler:IsSyncedCode() then
 	}
 
 	function gadget:GameFrame(f)
-		for i,o in pairs(attackList) do
+		for i, o in pairs(attackList) do
 			attackList[i] = nil
-			local phase = math_random(200*math_pi)/100.0
+			local phase = math_random(200 * math_pi) / 100.0
 			if o.radius > 0 then
 				local amp = math_random(o.radius)
-				Spring.GiveOrderToUnit(o.unit, CMD.INSERT, {0, CMD.ATTACK, 0, o.x + math_cos(phase)*amp, o.y, o.z + math_sin(phase)*amp}, {"alt"})
+				Spring.GiveOrderToUnit(o.unit, CMD.INSERT, { 0, CMD.ATTACK, 0, o.x + math_cos(phase) * amp, o.y, o.z + math_sin(phase) * amp }, { "alt" })
 			end
 		end
-		for i,o in pairs(closeList) do
+		for i, o in pairs(closeList) do
 			closeList[i] = nil
-			Spring.SetUnitMoveGoal(o.unit,o.x,o.y,o.z,o.radius)
+			Spring.SetUnitMoveGoal(o.unit, o.x, o.y, o.z, o.radius)
 		end
 	end
 
@@ -68,17 +67,17 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:CommandFallback(u,ud,team,cmd,param,opt)
+	function gadget:CommandFallback(u, ud, team, cmd, param, opt)
 		if cmd == CMD_AREA_ATTACK_GROUND then
-			local x,_,z = Spring.GetUnitPosition(u)
+			local x, _, z = Spring.GetUnitPosition(u)
 			if not x then
 				return true, true
 			end
-			local dist = math_sqrt((x-param[1])*(x-param[1]) + (z-param[3])*(z-param[3]))
+			local dist = math_sqrt((x - param[1]) * (x - param[1]) + (z - param[3]) * (z - param[3]))
 			if dist <= range[ud] - param[4] then
-				attackList[#attackList+1] = {unit = u, x=param[1], y=param[2], z=param[3], radius=param[4]}
+				attackList[#attackList + 1] = { unit = u, x = param[1], y = param[2], z = param[3], radius = param[4] }
 			else
-				closeList[#closeList+1] ={unit = u, x=param[1], y=param[2], z=param[3], radius=range[ud]-param[4]}
+				closeList[#closeList + 1] = { unit = u, x = param[1], y = param[2], z = param[3], radius = range[ud] - param[4] }
 			end
 			return true, false
 		end
@@ -87,7 +86,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(u, ud, team)
 		if canAreaAttack[ud] then
-			Spring.InsertUnitCmdDesc(u,aadesc)
+			Spring.InsertUnitCmdDesc(u, aadesc)
 		end
 	end
 
@@ -95,11 +94,8 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RegisterCMDID(CMD_AREA_ATTACK_GROUND)
 		gadgetHandler:RegisterAllowCommand(CMD_AREA_ATTACK_GROUND)
 	end
-
-else	-- UNSYNCED
-
+else -- UNSYNCED
 	function gadget:Initialize()
-		Spring.SetCustomCommandDrawData(CMD_AREA_ATTACK_GROUND, CMDTYPE.ICON_UNIT_OR_AREA, {1,0,0,.8},true)
+		Spring.SetCustomCommandDrawData(CMD_AREA_ATTACK_GROUND, CMDTYPE.ICON_UNIT_OR_AREA, { 1, 0, 0, 0.8 }, true)
 	end
-
 end

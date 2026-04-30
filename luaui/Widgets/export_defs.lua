@@ -8,10 +8,9 @@ function widget:GetInfo()
 		date = "June 2023",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = false
+		enabled = false,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
@@ -67,8 +66,3 @@ function widget:TextCommand(command)
 		ExportDefs()
 	end
 end
-
-
-
-
-

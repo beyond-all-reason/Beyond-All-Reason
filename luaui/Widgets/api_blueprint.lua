@@ -2,7 +2,6 @@ local widget = widget ---@type Widget
 
 local BpDefs = VFS.Include("luaui/Include/blueprint_substitution/definitions.lua")
 
-
 local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
 
 local ENABLE_REPORTS = Spring.Utilities.IsDevMode()
@@ -24,10 +23,9 @@ function widget:GetInfo()
 		desc = "Utilities for interacting with and drawing blueprints",
 		license = "GNU GPL, v2 or later",
 		layer = -1,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathAbs = math.abs
@@ -127,24 +125,17 @@ end
 ---@param facing number
 ---@return Blueprint
 local function rotateBlueprint(bp, facing)
-	return table.merge(
-		bp,
-		{
-			units = table.map(bp.units, function(bpu)
-				return {
-					blueprintUnitID = bpu.blueprintUnitID,
-					unitDefID = bpu.unitDefID,
-					position = rotatePointXZ(
-						bpu.position,
-						{ 0, 0, 0 },
-						-facing * (mathPi / 2)
-					),
-					facing = (bpu.facing + facing) % 4
-				}
-			end),
-			facing = 0
-		}
-	)
+	return table.merge(bp, {
+		units = table.map(bp.units, function(bpu)
+			return {
+				blueprintUnitID = bpu.blueprintUnitID,
+				unitDefID = bpu.unitDefID,
+				position = rotatePointXZ(bpu.position, { 0, 0, 0 }, -facing * (mathPi / 2)),
+				facing = (bpu.facing + facing) % 4,
+			}
+		end),
+		facing = 0,
+	})
 end
 
 -- GL4
@@ -154,8 +145,7 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local popElementInstance  = InstanceVBOTable.popElementInstance
-
+local popElementInstance = InstanceVBOTable.popElementInstance
 
 ---@language Glsl
 local vsSrc = [[
@@ -217,9 +207,9 @@ local outlineVertexVBOLayout = {
 
 local outlineInstanceVBO = nil
 local outlineInstanceVBOLayout = {
-	{ id = 1, name = 'position', size = 3 },
-	{ id = 2, name = 'dimensions', size = 2 },
-	{ id = 3, name = 'color', size = 4 },
+	{ id = 1, name = "position", size = 3 },
+	{ id = 2, name = "dimensions", size = 2 },
+	{ id = 3, name = "color", size = 4 },
 }
 
 local function makeOutlineVBO()
@@ -244,10 +234,7 @@ local function makeOutlineVBO()
 
 	local numVertices = #vboData / 2
 
-	vbo:Define(
-		numVertices,
-		outlineVertexVBOLayout
-	)
+	vbo:Define(numVertices, outlineVertexVBOLayout)
 	vbo:Upload(vboData)
 
 	return vbo, numVertices
@@ -268,16 +255,13 @@ local function initGL4()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	outlineShader = LuaShader(
-		{
-			vertex = vsSrc,
-			fragment = fsSrc,
-			uniformInt = {
-				heightmapTex = 0
-			},
+	outlineShader = LuaShader({
+		vertex = vsSrc,
+		fragment = fsSrc,
+		uniformInt = {
+			heightmapTex = 0,
 		},
-		widget:GetInfo().name
-	)
+	}, widget:GetInfo().name)
 	local shaderCompiled = outlineShader:Initialize()
 	return shaderCompiled
 end
@@ -286,23 +270,18 @@ end
 -- ====
 
 local SQUARE_SIZE = 8
-local BUILD_SQUARE_SIZE = SQUARE_SIZE * 2;
+local BUILD_SQUARE_SIZE = SQUARE_SIZE * 2
 
 local UNIT_ALPHA = 0.6
 
-local BUILD_MODES = enum(
-	"SINGLE",
-	"LINE",
-	"SNAPLINE",
-	"GRID",
-	"BOX",
-	"AROUND"
-)
+local BUILD_MODES = enum("SINGLE", "LINE", "SNAPLINE", "GRID", "BOX", "AROUND")
 
 local function getBuildingDimensions(unitDefID, facing)
-	if not unitDefID then return 0, 0 end
+	if not unitDefID then
+		return 0, 0
+	end
 	local unitDef = UnitDefs[unitDefID]
-	if (facing % 2 == 1) then
+	if facing % 2 == 1 then
 		return SQUARE_SIZE * unitDef.zsize, SQUARE_SIZE * unitDef.xsize
 	else
 		return SQUARE_SIZE * unitDef.xsize, SQUARE_SIZE * unitDef.zsize
@@ -314,25 +293,23 @@ local function getUnitsBounds(units)
 		return nil, nil, nil, nil
 	end
 
-	local r = table.reduce(
-		units,
-		function(acc, unit)
-			if not unit.unitDefID then return acc end
-			local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
-			local bxMin = unit.position[1] - bw / 2
-			local bxMax = unit.position[1] + bw / 2
-			local bzMin = unit.position[3] - bh / 2
-			local bzMax = unit.position[3] + bh / 2
-
-			acc.xMin = acc.xMin and mathMin(acc.xMin, bxMin) or bxMin
-			acc.xMax = acc.xMax and mathMax(acc.xMax, bxMax) or bxMax
-			acc.zMin = acc.zMin and mathMin(acc.zMin, bzMin) or bzMin
-			acc.zMax = acc.zMax and mathMax(acc.zMax, bzMax) or bzMax
-
+	local r = table.reduce(units, function(acc, unit)
+		if not unit.unitDefID then
 			return acc
-		end,
-		{}
-	)
+		end
+		local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
+		local bxMin = unit.position[1] - bw / 2
+		local bxMax = unit.position[1] + bw / 2
+		local bzMin = unit.position[3] - bh / 2
+		local bzMax = unit.position[3] + bh / 2
+
+		acc.xMin = acc.xMin and mathMin(acc.xMin, bxMin) or bxMin
+		acc.xMax = acc.xMax and mathMax(acc.xMax, bxMax) or bxMax
+		acc.zMin = acc.zMin and mathMin(acc.zMin, bzMin) or bzMin
+		acc.zMax = acc.zMax and mathMax(acc.zMax, bzMax) or bzMax
+
+		return acc
+	end, {})
 
 	return r.xMin, r.xMax, r.zMin, r.zMax
 end
@@ -364,18 +341,18 @@ local function snapBlueprint(blueprint, pos, facing)
 
 	-- snap build-positions to 16-elmo grid
 	if mathFloor(xSize / 16) % 2 > 0 then
-		result[1] = mathFloor((pos[1]) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE;
+		result[1] = mathFloor(pos[1] / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
 	else
-		result[1] = mathFloor((pos[1] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE;
+		result[1] = mathFloor((pos[1] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
 	end
 
 	if mathFloor(zSize / 16) % 2 > 0 then
-		result[3] = mathFloor((pos[3]) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE;
+		result[3] = mathFloor(pos[3] / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
 	else
-		result[3] = mathFloor((pos[3] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE;
+		result[3] = mathFloor((pos[3] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
 	end
 
-	return result;
+	return result
 end
 
 ---See FillRowOfBuildPos
@@ -564,7 +541,9 @@ local BUILD_MODES_HANDLERS = {
 local instanceIDs = {}
 
 local function clearInstances()
-	if isHeadless then return end
+	if isHeadless then
+		return
+	end
 	if outlineInstanceVBO then
 		InstanceVBOTable.clearInstanceTable(outlineInstanceVBO)
 	end
@@ -604,11 +583,7 @@ local function createInstancesForPosition(blueprint, teamID, copyPosition, posit
 
 			local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
 
-			local blocking = SpringTestBuildOrder(
-				unit.unitDefID,
-				sx, sy, sz,
-				unit.facing
-			)
+			local blocking = SpringTestBuildOrder(unit.unitDefID, sx, sy, sz, unit.facing)
 
 			local color
 			if blocking == 0 then
@@ -620,31 +595,18 @@ local function createInstancesForPosition(blueprint, teamID, copyPosition, posit
 			end
 
 			-- outline
-			local outlineInstanceID = pushElementInstance(
-				outlineInstanceVBO,
-				{
-					sx, sy, sz,
-					bw, bh,
-					unpack(color),
-				},
-				nil,
-				true,
-				true
-			)
+			local outlineInstanceID = pushElementInstance(outlineInstanceVBO, {
+				sx,
+				sy,
+				sz,
+				bw,
+				bh,
+				unpack(color),
+			}, nil, true, true)
 			tableInsert(instanceIDs[positionKey].outline, outlineInstanceID)
 
 			-- building
-			tableInsert(instanceIDs[positionKey].unit, WG.DrawUnitShapeGL4(
-				unit.unitDefID,
-				sx, sy, sz,
-				unit.facing * (mathPi / 2),
-				UNIT_ALPHA,
-				teamID,
-				nil,
-				nil,
-				nil,
-				widget:GetInfo().name
-			))
+			tableInsert(instanceIDs[positionKey].unit, WG.DrawUnitShapeGL4(unit.unitDefID, sx, sy, sz, unit.facing * (mathPi / 2), UNIT_ALPHA, teamID, nil, nil, nil, widget:GetInfo().name))
 		end
 	end
 end
@@ -654,7 +616,9 @@ end
 ---@param buildPositions StartPoints
 ---@param teamID number
 local function updateInstances(blueprint, buildPositions, teamID)
-	if isHeadless then return end
+	if isHeadless then
+		return
+	end
 
 	if not blueprint or not buildPositions then
 		clearInstances()
@@ -700,13 +664,7 @@ local function drawOutlines()
 	gl.DepthMask(false) -- so that we dont write the depth of the drawn pixels
 	gl.Texture(0, "$heightmap")
 	outlineShader:Activate()
-	outlineInstanceVBO.VAO:DrawArrays(
-		GL.LINE_STRIP,
-		outlineInstanceVBO.numVertices,
-		0,
-		outlineInstanceVBO.usedElements,
-		0
-	)
+	outlineInstanceVBO.VAO:DrawArrays(GL.LINE_STRIP, outlineInstanceVBO.numVertices, 0, outlineInstanceVBO.usedElements, 0)
 	outlineShader:Deactivate()
 	gl.Texture(0, false)
 	gl.DepthTest(false)
@@ -781,20 +739,20 @@ local function calculateBuildPositions(blueprint, mode, ...)
 end
 
 local function setActiveBuilders(unitIDs)
-	activeBuilderBuildOptions = table.reduce(
-		unitIDs,
-		function(acc, cur)
-			local unitDefID = SpringGetUnitDefID(cur)
-			if unitDefID == nil then return acc end
-			local unitDef = UnitDefs[unitDefID]
-			if unitDef == nil then return acc end
-			for _, buildOption in ipairs(unitDef.buildOptions) do
-				acc[buildOption] = true
-			end
+	activeBuilderBuildOptions = table.reduce(unitIDs, function(acc, cur)
+		local unitDefID = SpringGetUnitDefID(cur)
+		if unitDefID == nil then
 			return acc
-		end,
-		{}
-	)
+		end
+		local unitDef = UnitDefs[unitDefID]
+		if unitDef == nil then
+			return acc
+		end
+		for _, buildOption in ipairs(unitDef.buildOptions) do
+			acc[buildOption] = true
+		end
+		return acc
+	end, {})
 
 	currentAPITargetSide = nil
 	if unitIDs and #unitIDs > 0 then
@@ -828,11 +786,11 @@ local function createBlueprintFromSerialized(serializedBlueprint)
 	for _, serializedUnit in ipairs(serializedBlueprint.units) do
 		local unitDefID = UnitDefNames[serializedUnit.unitName] and UnitDefNames[serializedUnit.unitName].id
 		tableInsert(result.units, {
-			blueprintUnitID = WG['cmd_blueprint'].nextBlueprintUnitID(),
+			blueprintUnitID = WG["cmd_blueprint"].nextBlueprintUnitID(),
 			position = serializedUnit.position,
 			facing = serializedUnit.facing,
 			unitDefID = unitDefID,
-			originalName = serializedUnit.unitName
+			originalName = serializedUnit.unitName,
 		})
 	end
 
@@ -858,7 +816,7 @@ function widget:Initialize()
 		local reportPath = "luaui/Include/blueprint_substitution/reports.lua"
 		if VFS.FileExists(reportPath) then
 			local includedReports = VFS.Include(reportPath)
-			if includedReports and type(includedReports.SetDependencies) == 'function' then
+			if includedReports and type(includedReports.SetDependencies) == "function" then
 				includedReports.SetDependencies(SubLogic)
 				reportFunctions = includedReports
 				Spring.Log("BlueprintAPI", LOG.INFO, "Report functions loaded and dependencies set using local SubLogic.")
@@ -873,7 +831,9 @@ function widget:Initialize()
 	end
 
 	WG["api_blueprint"] = {
-		getActiveBlueprint = function() return activeBlueprint end,
+		getActiveBlueprint = function()
+			return activeBlueprint
+		end,
 		setActiveBlueprint = setActiveBlueprint,
 		setActiveBuilders = setActiveBuilders,
 		setBlueprintPositions = setBlueprintPositions,
@@ -902,7 +862,9 @@ function widget:Shutdown()
 	WG["api_blueprint"] = nil
 	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API shutdown.")
 
-	if isHeadless then return end
+	if isHeadless then
+		return
+	end
 
 	clearInstances()
 
@@ -919,6 +881,3 @@ function widget:Shutdown()
 	end
 	reportFunctions = nil
 end
-
-
-

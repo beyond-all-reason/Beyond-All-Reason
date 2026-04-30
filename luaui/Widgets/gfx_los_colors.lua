@@ -2,14 +2,14 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "LOS colors",
-		desc      = "custom colors for LOS",
-		author    = "[teh]decay (thx to Floris, BrainDamage, hokomoko, [teh]Teddy)",
-		date      = "23 jul 2015",
-		license   = "public domain",
-		layer     = 0,
-		version   = 2,
-		enabled   = true
+		name = "LOS colors",
+		desc = "custom colors for LOS",
+		author = "[teh]decay (thx to Floris, BrainDamage, hokomoko, [teh]Teddy)",
+		date = "23 jul 2015",
+		license = "public domain",
+		layer = 0,
+		version = 2,
+		enabled = true,
 	}
 end
 
@@ -22,39 +22,37 @@ local specDetected = false
 local opacity = 0.88
 
 local losColorsWithRadarsGray = {
-	fog =    {0.20, 0.20, 0.20},
-	los =    {0.25, 0.25, 0.25},
-	radar =  {0.12, 0.12, 0.12},
-	jam =    {0.10, 0.02, 0.02},
-	radar2 = {0.40, 0.40, 0.40},
+	fog = { 0.20, 0.20, 0.20 },
+	los = { 0.25, 0.25, 0.25 },
+	radar = { 0.12, 0.12, 0.12 },
+	jam = { 0.10, 0.02, 0.02 },
+	radar2 = { 0.40, 0.40, 0.40 },
 }
 
 local losColorsWithRadarsColor = {
-	fog =    {0.17, 0.17, 0.17},
-	los =    {0.30, 0.30, 0.30},
-	radar2 = {0.08, 0.16, 0.00},
-	jam =    {0.20, 0.00, 0.00},
-	radar =  {0.08, 0.16, 0.00},
+	fog = { 0.17, 0.17, 0.17 },
+	los = { 0.30, 0.30, 0.30 },
+	radar2 = { 0.08, 0.16, 0.00 },
+	jam = { 0.20, 0.00, 0.00 },
+	radar = { 0.08, 0.16, 0.00 },
 }
 
 local losColorsWithoutRadars = {
-	fog =    {0.30, 0.30, 0.30},
-	los =    {0.20, 0.20, 0.20},
-	radar =  {0.00, 0.00, 0.00},
-	jam =    {0.10, 0.02, 0.02},
-	radar2 = {0.00, 0.00, 0.00},
+	fog = { 0.30, 0.30, 0.30 },
+	los = { 0.20, 0.20, 0.20 },
+	radar = { 0.00, 0.00, 0.00 },
+	jam = { 0.10, 0.02, 0.02 },
+	radar2 = { 0.00, 0.00, 0.00 },
 }
-
 
 local always, LOS, radar, jam, radar2
 local spSetLosViewColors = Spring.SetLosViewColors
 
-
 local function applyOpacity(colors)
 	local newColors = table.copy(colors)
-	for i,c in pairs(newColors.fog) do
+	for i, c in pairs(newColors.fog) do
 		newColors.fog[i] = c * opacity
-		newColors.los[i] = c / ((1+opacity)/2)
+		newColors.los[i] = c / ((1 + opacity) / 2)
 	end
 	return newColors
 end
@@ -136,23 +134,23 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("losradar", toggleLOSRadars, nil, 'p')
-	widgetHandler:AddAction("loscolor", toggleLOSColors, nil, 'p')
+	widgetHandler:AddAction("losradar", toggleLOSRadars, nil, "p")
+	widgetHandler:AddAction("loscolor", toggleLOSColors, nil, "p")
 
-	WG['los'] = {}
-	WG['los'].getColorize = function()
+	WG["los"] = {}
+	WG["los"].getColorize = function()
 		return colorize
 	end
-	WG['los'].setColorize = function(value)
+	WG["los"].setColorize = function(value)
 		colorize = value
 		if not losWithRadarEnabled or not specDetected then
 			refreshLOS()
 		end
 	end
-	WG['los'].getOpacity = function()
+	WG["los"].getOpacity = function()
 		return opacity
 	end
-	WG['los'].setOpacity = function(value)
+	WG["los"].setOpacity = function(value)
 		opacity = value
 		if not losWithRadarEnabled or not specDetected then
 			refreshLOS()
@@ -191,6 +189,6 @@ function widget:GetConfigData()
 	return {
 		losWithRadarEnabled = losWithRadarEnabled,
 		colorize = colorize,
-		opacity = opacity
+		opacity = opacity,
 	}
 end

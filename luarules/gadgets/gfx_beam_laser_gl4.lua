@@ -5,7 +5,9 @@
 -- edge glow, and range-based intensity falloff.
 --------------------------------------------------------------------------------
 
-if gadgetHandler:IsSyncedCode() then return end
+if gadgetHandler:IsSyncedCode() then
+	return
+end
 
 function gadget:GetInfo()
 	return {
@@ -22,35 +24,35 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spEcho                      = Spring.Echo
-local spGetProjectilePosition     = Spring.GetProjectilePosition
-local spGetProjectileVelocity     = Spring.GetProjectileVelocity
-local spGetProjectileDefID        = Spring.GetProjectileDefID
-local spGetProjectileTeamID       = Spring.GetProjectileTeamID
-local spGetTeamAllyTeamID         = Spring.GetTeamAllyTeamID
-local spIsPosInLos                = Spring.IsPosInLos
-local spIsPosInAirLos             = Spring.IsPosInAirLos
-local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
-local spGetSpectatingState        = Spring.GetSpectatingState
-local spGetGameFrame              = Spring.GetGameFrame
-local spGetFrameTimeOffset        = Spring.GetFrameTimeOffset
-local spGetProjectileOwnerID      = Spring.GetProjectileOwnerID
+local spEcho = Spring.Echo
+local spGetProjectilePosition = Spring.GetProjectilePosition
+local spGetProjectileVelocity = Spring.GetProjectileVelocity
+local spGetProjectileDefID = Spring.GetProjectileDefID
+local spGetProjectileTeamID = Spring.GetProjectileTeamID
+local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
+local spIsPosInLos = Spring.IsPosInLos
+local spIsPosInAirLos = Spring.IsPosInAirLos
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = Spring.GetGameFrame
+local spGetFrameTimeOffset = Spring.GetFrameTimeOffset
+local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
-local spIsAABBInView              = Spring.IsAABBInView
+local spIsAABBInView = Spring.IsAABBInView
 
-local glBlending  = gl.Blending
-local glTexture   = gl.Texture
+local glBlending = gl.Blending
+local glTexture = gl.Texture
 local glDepthTest = gl.DepthTest
 local glDepthMask = gl.DepthMask
-local glCulling   = gl.Culling
+local glCulling = gl.Culling
 
-local GL_ONE                  = GL.ONE
-local GL_ONE_MINUS_SRC_ALPHA  = GL.ONE_MINUS_SRC_ALPHA
-local GL_SRC_ALPHA            = GL.SRC_ALPHA
+local GL_ONE = GL.ONE
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_SRC_ALPHA = GL.SRC_ALPHA
 
-local mathMin    = math.min
-local mathMax    = math.max
-local mathSqrt   = math.sqrt
+local mathMin = math.min
+local mathMax = math.max
+local mathSqrt = math.sqrt
 
 local LuaShader = gl.LuaShader
 local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
@@ -61,25 +63,25 @@ local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
 --------------------------------------------------------------------------------
 
 -- Limits
-local INITIAL_VBO_SIZE = 64    -- starting VBO capacity (doubles automatically when exceeded)
-local IDLE_SKIP_FRAMES = 3     -- draw-frames to skip polling when no beams active
+local INITIAL_VBO_SIZE = 64 -- starting VBO capacity (doubles automatically when exceeded)
+local IDLE_SKIP_FRAMES = 3 -- draw-frames to skip polling when no beams active
 
 -- Per-weapon ghost frames: scaled by beam thickness so small lasers fade fast
-local GHOST_FRAMES_MIN      = 3     -- ghost frames for thinnest beams
-local GHOST_FRAMES_MAX      = 8     -- ghost frames for thickest beams
-local GHOST_THICKNESS_MIN   = 1.5   -- thickness at or below which gets min ghost frames
-local GHOST_THICKNESS_MAX   = 5.0   -- thickness at or above which gets max ghost frames
-local FLARE_GHOST_FRAC      = 0.4   -- fraction of weapon ghostFrames where flare stays visible (0..1)
+local GHOST_FRAMES_MIN = 3 -- ghost frames for thinnest beams
+local GHOST_FRAMES_MAX = 8 -- ghost frames for thickest beams
+local GHOST_THICKNESS_MIN = 1.5 -- thickness at or below which gets min ghost frames
+local GHOST_THICKNESS_MAX = 5.0 -- thickness at or above which gets max ghost frames
+local FLARE_GHOST_FRAC = 0.4 -- fraction of weapon ghostFrames where flare stays visible (0..1)
 
 -- Textures
-local beamTexture  = "bitmaps/projectiletextures/largebeam.tga"
+local beamTexture = "bitmaps/projectiletextures/largebeam.tga"
 local flareTexture = "bitmaps/projectiletextures/flare2.tga"
 
 -- LOS clipping
-local CLIP_BEAM_TO_LOS = true  -- when true, only the portion of enemy beams inside LOS is rendered
-local USE_AIR_LOS      = true  -- use air los instead of regular los
-local LOS_CLIP_STEPS   = 6    -- binary search iterations to find the LOS boundary (6 ≈ 1.5% precision)
-local LOS_BONUS_RANGE  = 100   -- when not USE_AIR_LOS then extra elmos of beam shown beyond strict LOS boundary (so beams always render a bit more)
+local CLIP_BEAM_TO_LOS = true -- when true, only the portion of enemy beams inside LOS is rendered
+local USE_AIR_LOS = true -- use air los instead of regular los
+local LOS_CLIP_STEPS = 6 -- binary search iterations to find the LOS boundary (6 ≈ 1.5% precision)
+local LOS_BONUS_RANGE = 100 -- when not USE_AIR_LOS then extra elmos of beam shown beyond strict LOS boundary (so beams always render a bit more)
 
 -- Resolve LOS check function once (avoids per-call branch in hot loop)
 local spLosCheck = USE_AIR_LOS and spIsPosInAirLos or spIsPosInLos
@@ -92,127 +94,134 @@ local spLosCheck = USE_AIR_LOS and spIsPosInAirLos or spIsPosInLos
 -- every target switch, which was more disruptive than the original snap.
 
 -- Beam body
-local BEAM_WIDTH_MULT         = 0.3   -- multiplier on weapon thickness for beam quad width
-local BEAM_SUSTAIN_LIFEFRAC   = 0.33   -- lifeFrac value for live beams (must be between FADE_IN_END and FADE_OUT_START)
-local BEAM_RANGE_FALLOFF_BASE = 0.1   -- minimum intensity falloff along beam length
-local BEAM_RANGE_FALLOFF_MULT = 0.5  -- additional falloff scaled by beam-length / weapon-range
+local BEAM_WIDTH_MULT = 0.3 -- multiplier on weapon thickness for beam quad width
+local BEAM_SUSTAIN_LIFEFRAC = 0.33 -- lifeFrac value for live beams (must be between FADE_IN_END and FADE_OUT_START)
+local BEAM_RANGE_FALLOFF_BASE = 0.1 -- minimum intensity falloff along beam length
+local BEAM_RANGE_FALLOFF_MULT = 0.5 -- additional falloff scaled by beam-length / weapon-range
 
 -- Core color boost (applied in weaponConfigs build)
-local CORE_COLOR_ADD = 0.5  -- added to weapon RGB to create brighter core color (clamped to 1)
+local CORE_COLOR_ADD = 0.5 -- added to weapon RGB to create brighter core color (clamped to 1)
 
 -- Flare billboard
-local FLARE_SIZE_MULT       = 0.7   -- multiplier on (laserflaresize * thickness)
-local FLARE_COLOR_MULT      = 1.0   -- multiplier on core color for flare RGB
-local FLARE_LIFE_DIM        = 0.7   -- how much flare dims over beam lifetime (0 = none, 1 = fully dark at end)
+local FLARE_SIZE_MULT = 0.7 -- multiplier on (laserflaresize * thickness)
+local FLARE_COLOR_MULT = 1.0 -- multiplier on core color for flare RGB
+local FLARE_LIFE_DIM = 0.7 -- how much flare dims over beam lifetime (0 = none, 1 = fully dark at end)
 
 -- Beam glow halo
-local GLOW_WIDTH_MULT       = 8.0   -- glow quad width as multiple of beam width
-local GLOW_BRIGHTNESS       = 0.17  -- glow intensity (additive)
-local GLOW_FALLOFF_POWER    = 1.8  -- falloff curve exponent (<1 = fast initial drop + long tail, 1 = linear, >1 = slow start + sharp cutoff)
-local GLOW_THICKNESS_DIM    = 2.0   -- beams thinner than this get minimum glow
-local GLOW_THICKNESS_FULL   = 4.0   -- beams thicker than this get full glow
-local GLOW_DIM_FACTOR       = 0.2  -- glow brightness multiplier for thinnest beams (0..1)
+local GLOW_WIDTH_MULT = 8.0 -- glow quad width as multiple of beam width
+local GLOW_BRIGHTNESS = 0.17 -- glow intensity (additive)
+local GLOW_FALLOFF_POWER = 1.8 -- falloff curve exponent (<1 = fast initial drop + long tail, 1 = linear, >1 = slow start + sharp cutoff)
+local GLOW_THICKNESS_DIM = 2.0 -- beams thinner than this get minimum glow
+local GLOW_THICKNESS_FULL = 4.0 -- beams thicker than this get full glow
+local GLOW_DIM_FACTOR = 0.2 -- glow brightness multiplier for thinnest beams (0..1)
 
 -- Traveling pulse
-local PULSE_WIDTH_MULT      = 2.0   -- pulse quad width as multiple of beam width
-local PULSE_BRIGHTNESS      = 3.3   -- pulse intensity (additive, on top of beam)
-local PULSE_SPEED           = 950.0 -- pulse travel speed in world units (elmos) per second
-local PULSE_SPACING         = 200.0  -- distance between pulse centers in world units (elmos)
-local PULSE_SIGMA           = 35.0  -- gaussian half-width of each pulse in world units (elmos)
-local PULSE_CORE_FRAC       = 0.3   -- fraction of pulse width that is bright core (0..1)
+local PULSE_WIDTH_MULT = 2.0 -- pulse quad width as multiple of beam width
+local PULSE_BRIGHTNESS = 3.3 -- pulse intensity (additive, on top of beam)
+local PULSE_SPEED = 950.0 -- pulse travel speed in world units (elmos) per second
+local PULSE_SPACING = 200.0 -- distance between pulse centers in world units (elmos)
+local PULSE_SIGMA = 35.0 -- gaussian half-width of each pulse in world units (elmos)
+local PULSE_CORE_FRAC = 0.3 -- fraction of pulse width that is bright core (0..1)
 
 -- Paralyzer beam pulse overrides (faster, brighter, tighter)
-local PULSE_PARA_BRIGHTNESS = 8.0    -- pulse intensity for paralyzer beams
-local PULSE_PARA_SPEED      = 250.0 -- pulse travel speed for paralyzer beams (elmos/sec)
-local PULSE_PARA_SPACING    = 15.0  -- distance between pulses for paralyzer beams (elmos)
-local PULSE_PARA_SIGMA      = 1.1   -- gaussian half-width of each pulse for paralyzer beams (elmos)
-local PULSE_PARA_WIDTH_MULT = 2.5   -- pulse quad width as multiple of beam width for paralyzer beams
+local PULSE_PARA_BRIGHTNESS = 8.0 -- pulse intensity for paralyzer beams
+local PULSE_PARA_SPEED = 250.0 -- pulse travel speed for paralyzer beams (elmos/sec)
+local PULSE_PARA_SPACING = 15.0 -- distance between pulses for paralyzer beams (elmos)
+local PULSE_PARA_SIGMA = 1.1 -- gaussian half-width of each pulse for paralyzer beams (elmos)
+local PULSE_PARA_WIDTH_MULT = 2.5 -- pulse quad width as multiple of beam width for paralyzer beams
 
 -- Shader config (injected as #defines into beam vertex+fragment shaders)
 local shaderConfig = {
-	FADE_IN_END        = 0.1,    -- lifeFrac where width/alpha fade-in completes
-	FADE_OUT_START     = 0.85,   -- lifeFrac where width/alpha fade-out begins
-	RANGE_TAPER        = 0.3,   -- width reduction at beam end (0 = none, 1 = full taper to zero)
-	SHIMMER_AMPLITUDE  = 0.13,   -- width oscillation strength (0 = off)
-	SHIMMER_SPEED      = 40.0,   -- width oscillation speed (timeInfo.z multiplier)
-	CORE_EDGE_START    = 0.02,   -- |x| distance where core-to-edge color blend starts (0 = only center pixel)
-	CORE_EDGE_END      = 0.44,    -- |x| distance where blend is fully edge color
-	CORE_BRIGHTNESS    = 1.1,    -- extra brightness multiplier for core (squared falloff)
-	BRIGHTNESS_MULT    = 1.5,    -- overall beam brightness multiplier
-	MIN_PIXEL_WIDTH    = 0.0018, -- minimum beam width as fraction of camera distance (prevents sub-pixel aliasing at distance)
-	TIP_FADE_START     = 0.93,   -- beam length fraction (0..1) where tip fade-out begins
+	FADE_IN_END = 0.1, -- lifeFrac where width/alpha fade-in completes
+	FADE_OUT_START = 0.85, -- lifeFrac where width/alpha fade-out begins
+	RANGE_TAPER = 0.3, -- width reduction at beam end (0 = none, 1 = full taper to zero)
+	SHIMMER_AMPLITUDE = 0.13, -- width oscillation strength (0 = off)
+	SHIMMER_SPEED = 40.0, -- width oscillation speed (timeInfo.z multiplier)
+	CORE_EDGE_START = 0.02, -- |x| distance where core-to-edge color blend starts (0 = only center pixel)
+	CORE_EDGE_END = 0.44, -- |x| distance where blend is fully edge color
+	CORE_BRIGHTNESS = 1.1, -- extra brightness multiplier for core (squared falloff)
+	BRIGHTNESS_MULT = 1.5, -- overall beam brightness multiplier
+	MIN_PIXEL_WIDTH = 0.0018, -- minimum beam width as fraction of camera distance (prevents sub-pixel aliasing at distance)
+	TIP_FADE_START = 0.93, -- beam length fraction (0..1) where tip fade-out begins
 }
 
 --------------------------------------------------------------------------------
 -- Build weaponDefID -> beam config lookup
 -- Reads weapon colors, thickness, flare size, range, beamtime from WeaponDefs
 --------------------------------------------------------------------------------
-local weaponConfigs = {}  -- weaponDefID -> config table
-local LIVE_FLARE_PULSE_INIT = 1.0 - BEAM_SUSTAIN_LIFEFRAC * FLARE_LIFE_DIM  -- pre-computed for weaponConfigs
+local weaponConfigs = {} -- weaponDefID -> config table
+local LIVE_FLARE_PULSE_INIT = 1.0 - BEAM_SUSTAIN_LIFEFRAC * FLARE_LIFE_DIM -- pre-computed for weaponConfigs
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
 	if weaponDef.type == "BeamLaser" then
 		local cp = weaponDef.customParams or {}
 		if not cp.bogus then
-		local vis = weaponDef.visuals or {}
-		local r = vis.colorR or 1
-		local g = vis.colorG or 1
-		local b = vis.colorB or 1
+			local vis = weaponDef.visuals or {}
+			local r = vis.colorR or 1
+			local g = vis.colorG or 1
+			local b = vis.colorB or 1
 
-		-- Core is brighter, edge is the weapon color
-		local coreR = mathMin(1, r + CORE_COLOR_ADD)
-		local coreG = mathMin(1, g + CORE_COLOR_ADD)
-		local coreB = mathMin(1, b + CORE_COLOR_ADD)
+			-- Core is brighter, edge is the weapon color
+			local coreR = mathMin(1, r + CORE_COLOR_ADD)
+			local coreG = mathMin(1, g + CORE_COLOR_ADD)
+			local coreB = mathMin(1, b + CORE_COLOR_ADD)
 
-		-- Read original visual properties from customparams (alldefs_post stores them before zeroing)
-		local thickness     = tonumber(cp.beam_thickness_orig) or weaponDef.thickness or 2
-		local corethickness = tonumber(cp.beam_corethickness_orig) or weaponDef.corethickness or 0.3
-		local laserflaresize = tonumber(cp.beam_laserflaresize_orig) or weaponDef.laserflaresize or 7
-		local range         = weaponDef.range or 300
-		local beamttl       = weaponDef.beamttl or 3
-		local beamtime      = weaponDef.beamtime or 0.1
+			-- Read original visual properties from customparams (alldefs_post stores them before zeroing)
+			local thickness = tonumber(cp.beam_thickness_orig) or weaponDef.thickness or 2
+			local corethickness = tonumber(cp.beam_corethickness_orig) or weaponDef.corethickness or 0.3
+			local laserflaresize = tonumber(cp.beam_laserflaresize_orig) or weaponDef.laserflaresize or 7
+			local range = weaponDef.range or 300
+			local beamttl = weaponDef.beamttl or 3
+			local beamtime = weaponDef.beamtime or 0.1
 
-		-- Paralyzer beams get a unique tint
-		local isParalyzer = weaponDef.paralyzer or false
+			-- Paralyzer beams get a unique tint
+			local isParalyzer = weaponDef.paralyzer or false
 
-		-- Per-weapon ghost frames based on thickness
-		local ghostFrac = mathMin(1, mathMax(0, (thickness - GHOST_THICKNESS_MIN) / (GHOST_THICKNESS_MAX - GHOST_THICKNESS_MIN)))
-		local ghostFrames = math.floor(GHOST_FRAMES_MIN + ghostFrac * (GHOST_FRAMES_MAX - GHOST_FRAMES_MIN) + 0.5)
-		local flareGhostFrames = mathMax(1, math.floor(ghostFrames * FLARE_GHOST_FRAC + 0.5))
+			-- Per-weapon ghost frames based on thickness
+			local ghostFrac = mathMin(1, mathMax(0, (thickness - GHOST_THICKNESS_MIN) / (GHOST_THICKNESS_MAX - GHOST_THICKNESS_MIN)))
+			local ghostFrames = math.floor(GHOST_FRAMES_MIN + ghostFrac * (GHOST_FRAMES_MAX - GHOST_FRAMES_MIN) + 0.5)
+			local flareGhostFrames = mathMax(1, math.floor(ghostFrames * FLARE_GHOST_FRAC + 0.5))
 
-		weaponConfigs[weaponID] = {
-			colorR = r,     colorG = g,     colorB = b,
-			coreR = coreR,  coreG = coreG,  coreB = coreB,
-			thickness = thickness,
-			corethickness = corethickness,
-			flareSize = laserflaresize * thickness,
-			range = range,
-			beamttl = beamttl,
-			beamtime = beamtime,
-			isParalyzer = isParalyzer,
-			-- Per-weapon ghost config
-			ghostFrames = ghostFrames,
-			flareGhostFrames = flareGhostFrames,
-			invGhostFrames = 1.0 / ghostFrames,
-			-- Pre-computed for hot loop
-			beamWidth = thickness * BEAM_WIDTH_MULT,
-			invRangeSq = 1.0 / mathMax(range * range, 1),
-			aabbPad = thickness * BEAM_WIDTH_MULT * GLOW_WIDTH_MULT, -- padding for AABB view check (covers glow quad)
-			flareColorR = coreR * FLARE_COLOR_MULT,
-			flareColorG = coreG * FLARE_COLOR_MULT,
-			flareColorB = coreB * FLARE_COLOR_MULT,
-			liveFlareSize = laserflaresize * thickness * LIVE_FLARE_PULSE_INIT * FLARE_SIZE_MULT,
-			liveFlareR = coreR * FLARE_COLOR_MULT * LIVE_FLARE_PULSE_INIT,
-			liveFlareG = coreG * FLARE_COLOR_MULT * LIVE_FLARE_PULSE_INIT,
-			liveFlareB = coreB * FLARE_COLOR_MULT * LIVE_FLARE_PULSE_INIT,
-		}
+			weaponConfigs[weaponID] = {
+				colorR = r,
+				colorG = g,
+				colorB = b,
+				coreR = coreR,
+				coreG = coreG,
+				coreB = coreB,
+				thickness = thickness,
+				corethickness = corethickness,
+				flareSize = laserflaresize * thickness,
+				range = range,
+				beamttl = beamttl,
+				beamtime = beamtime,
+				isParalyzer = isParalyzer,
+				-- Per-weapon ghost config
+				ghostFrames = ghostFrames,
+				flareGhostFrames = flareGhostFrames,
+				invGhostFrames = 1.0 / ghostFrames,
+				-- Pre-computed for hot loop
+				beamWidth = thickness * BEAM_WIDTH_MULT,
+				invRangeSq = 1.0 / mathMax(range * range, 1),
+				aabbPad = thickness * BEAM_WIDTH_MULT * GLOW_WIDTH_MULT, -- padding for AABB view check (covers glow quad)
+				flareColorR = coreR * FLARE_COLOR_MULT,
+				flareColorG = coreG * FLARE_COLOR_MULT,
+				flareColorB = coreB * FLARE_COLOR_MULT,
+				liveFlareSize = laserflaresize * thickness * LIVE_FLARE_PULSE_INIT * FLARE_SIZE_MULT,
+				liveFlareR = coreR * FLARE_COLOR_MULT * LIVE_FLARE_PULSE_INIT,
+				liveFlareG = coreG * FLARE_COLOR_MULT * LIVE_FLARE_PULSE_INIT,
+				liveFlareB = coreB * FLARE_COLOR_MULT * LIVE_FLARE_PULSE_INIT,
+			}
 		end
 	end
 end
 
 -- Check if we have any beam weapons
 local hasConfigs = false
-for _ in pairs(weaponConfigs) do hasConfigs = true; break end
+for _ in pairs(weaponConfigs) do
+	hasConfigs = true
+	break
+end
 if not hasConfigs then
 	function gadget:Initialize()
 		gadgetHandler:RemoveGadget()
@@ -226,13 +235,13 @@ end
 -- has ONE ghost beam per weapon, at its most recent position.
 -- Key = unitID * 65536 + weaponDefID  (fast integer key, no string alloc)
 --------------------------------------------------------------------------------
-local weaponBeams = {}   -- key -> { cfg, px, py, pz, endX, endY, endZ, lastSeenFrame }
+local weaponBeams = {} -- key -> { cfg, px, py, pz, endX, endY, endZ, lastSeenFrame }
 local beamCleanupFrame = 0
-local hasGhosts = false    -- true when weaponBeams has any entries (skip ghost loop when empty)
-local liveKeys = {}        -- reused each frame, nil-cleared instead of reallocated
-local liveKeysList = {}    -- tracks keys to clear
-local liveBeamSlot = {}    -- wbKey -> offset slot in beamData (dedupe multiple projectiles per emitter)
-local removeList = {}      -- reused across cleanup cycles
+local hasGhosts = false -- true when weaponBeams has any entries (skip ghost loop when empty)
+local liveKeys = {} -- reused each frame, nil-cleared instead of reallocated
+local liveKeysList = {} -- tracks keys to clear
+local liveBeamSlot = {} -- wbKey -> offset slot in beamData (dedupe multiple projectiles per emitter)
+local removeList = {} -- reused across cleanup cycles
 local removeCount = 0
 
 --------------------------------------------------------------------------------
@@ -512,17 +521,17 @@ void main(void)
 -- Smooth radial falloff + soft ends at both start and tip.
 --------------------------------------------------------------------------------
 local glowShaderConfig = {
-	FADE_IN_END        = shaderConfig.FADE_IN_END,
-	FADE_OUT_START     = shaderConfig.FADE_OUT_START,
-	SHIMMER_AMPLITUDE  = shaderConfig.SHIMMER_AMPLITUDE * 0.5,
-	SHIMMER_SPEED      = shaderConfig.SHIMMER_SPEED,
-	GLOW_WIDTH_MULT    = GLOW_WIDTH_MULT,
-	GLOW_BRIGHTNESS    = GLOW_BRIGHTNESS,
+	FADE_IN_END = shaderConfig.FADE_IN_END,
+	FADE_OUT_START = shaderConfig.FADE_OUT_START,
+	SHIMMER_AMPLITUDE = shaderConfig.SHIMMER_AMPLITUDE * 0.5,
+	SHIMMER_SPEED = shaderConfig.SHIMMER_SPEED,
+	GLOW_WIDTH_MULT = GLOW_WIDTH_MULT,
+	GLOW_BRIGHTNESS = GLOW_BRIGHTNESS,
 	GLOW_FALLOFF_POWER = GLOW_FALLOFF_POWER,
-	GLOW_WIDTH_DIM     = GLOW_THICKNESS_DIM * BEAM_WIDTH_MULT,
-	GLOW_WIDTH_FULL    = GLOW_THICKNESS_FULL * BEAM_WIDTH_MULT,
-	GLOW_DIM_FACTOR    = GLOW_DIM_FACTOR,
-	MIN_PIXEL_WIDTH    = shaderConfig.MIN_PIXEL_WIDTH,
+	GLOW_WIDTH_DIM = GLOW_THICKNESS_DIM * BEAM_WIDTH_MULT,
+	GLOW_WIDTH_FULL = GLOW_THICKNESS_FULL * BEAM_WIDTH_MULT,
+	GLOW_DIM_FACTOR = GLOW_DIM_FACTOR,
+	MIN_PIXEL_WIDTH = shaderConfig.MIN_PIXEL_WIDTH,
 }
 
 local glowVsSrc = [[
@@ -673,20 +682,20 @@ void main(void)
 -- Reuses the same VBO. Renders bright spots that travel from origin to target.
 --------------------------------------------------------------------------------
 local pulseShaderConfig = {
-	FADE_IN_END             = shaderConfig.FADE_IN_END,
-	FADE_OUT_START          = shaderConfig.FADE_OUT_START,
-	PULSE_WIDTH_MULT        = PULSE_WIDTH_MULT,
-	PULSE_BRIGHTNESS        = PULSE_BRIGHTNESS,
-	PULSE_SPEED             = PULSE_SPEED,
-	PULSE_SPACING           = PULSE_SPACING,
-	PULSE_SIGMA             = PULSE_SIGMA,
-	PULSE_CORE_FRAC         = PULSE_CORE_FRAC,
-	PULSE_PARA_BRIGHTNESS   = PULSE_PARA_BRIGHTNESS,
-	PULSE_PARA_SPEED        = PULSE_PARA_SPEED,
-	PULSE_PARA_SPACING      = PULSE_PARA_SPACING,
-	PULSE_PARA_SIGMA        = PULSE_PARA_SIGMA,
-	PULSE_PARA_WIDTH_MULT   = PULSE_PARA_WIDTH_MULT,
-	MIN_PIXEL_WIDTH         = shaderConfig.MIN_PIXEL_WIDTH,
+	FADE_IN_END = shaderConfig.FADE_IN_END,
+	FADE_OUT_START = shaderConfig.FADE_OUT_START,
+	PULSE_WIDTH_MULT = PULSE_WIDTH_MULT,
+	PULSE_BRIGHTNESS = PULSE_BRIGHTNESS,
+	PULSE_SPEED = PULSE_SPEED,
+	PULSE_SPACING = PULSE_SPACING,
+	PULSE_SIGMA = PULSE_SIGMA,
+	PULSE_CORE_FRAC = PULSE_CORE_FRAC,
+	PULSE_PARA_BRIGHTNESS = PULSE_PARA_BRIGHTNESS,
+	PULSE_PARA_SPEED = PULSE_PARA_SPEED,
+	PULSE_PARA_SPACING = PULSE_PARA_SPACING,
+	PULSE_PARA_SIGMA = PULSE_PARA_SIGMA,
+	PULSE_PARA_WIDTH_MULT = PULSE_PARA_WIDTH_MULT,
+	MIN_PIXEL_WIDTH = shaderConfig.MIN_PIXEL_WIDTH,
 }
 
 local pulseVsSrc = [[
@@ -964,20 +973,16 @@ local function initGL4()
 	end
 
 	-- Shared quad VBOs
-	local quadVBO, numVertices = gl.InstanceVBOTable.makeRectVBO(
-		-1, -1, 1, 1,
-		0, 0, 1, 1,
-		"beamLaserQuadVBO"
-	)
+	local quadVBO, numVertices = gl.InstanceVBOTable.makeRectVBO(-1, -1, 1, 1, 0, 0, 1, 1, "beamLaserQuadVBO")
 	local indexVBO = gl.InstanceVBOTable.makeRectIndexVBO("beamLaserIndexVBO")
 
 	-- Beam VBO layout: beam data + flare data
 	local beamLayout = {
-		{id = 1, name = 'startPosAndWidth', size = 4},
-		{id = 2, name = 'endPosAndLife',    size = 4},
-		{id = 3, name = 'coreColor',        size = 4},
-		{id = 4, name = 'edgeColor',        size = 4},
-		{id = 5, name = 'flareData',        size = 4},
+		{ id = 1, name = "startPosAndWidth", size = 4 },
+		{ id = 2, name = "endPosAndLife", size = 4 },
+		{ id = 3, name = "coreColor", size = 4 },
+		{ id = 4, name = "edgeColor", size = 4 },
+		{ id = 5, name = "flareData", size = 4 },
 	}
 	beamVBO = gl.InstanceVBOTable.makeInstanceVBOTable(beamLayout, INITIAL_VBO_SIZE, "beamLaserVBO")
 	if not beamVBO then
@@ -996,7 +1001,9 @@ end
 
 local function resizeBeamVBO(needed)
 	local newMax = beamVBO.maxElements
-	while newMax < needed do newMax = newMax * 2 end
+	while newMax < needed do
+		newMax = newMax * 2
+	end
 	beamVBO.maxElements = newMax
 	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	newInstanceVBO:Define(newMax, beamVBO.layout)
@@ -1005,7 +1012,9 @@ local function resizeBeamVBO(needed)
 	-- Extend instanceData array
 	local data = beamVBO.instanceData
 	local step = beamVBO.instanceStep
-	for i = #data + 1, step * newMax do data[i] = 0 end
+	for i = #data + 1, step * newMax do
+		data[i] = 0
+	end
 	-- Reattach VAO
 	beamVBO.VAO:Delete()
 	beamVBO.VAO = beamVBO:makeVAOandAttach(beamVBO.vertexVBO, beamVBO.instanceVBO)
@@ -1013,14 +1022,19 @@ local function resizeBeamVBO(needed)
 end
 
 local function cleanupGL4()
-	if beamVBO then beamVBO:Delete(); beamVBO = nil end
+	if beamVBO then
+		beamVBO:Delete()
+		beamVBO = nil
+	end
 end
 
 --------------------------------------------------------------------------------
 -- Drawing
 --------------------------------------------------------------------------------
 local function drawAll()
-	if beamVBO.usedElements == 0 then return end
+	if beamVBO.usedElements == 0 then
+		return
+	end
 
 	glDepthTest(true)
 	glDepthMask(false)
@@ -1128,26 +1142,25 @@ local function updateBeams()
 				if px then
 					local vx, vy, vz = spGetProjectileVelocity(proID)
 					if vx then
-					local endX = px + vx
-					local endY = py + vy
-					local endZ = pz + vz
+						local endX = px + vx
+						local endY = py + vy
+						local endZ = pz + vz
 
-					-- LOS check: beam is visible if start OR end is in LOS
-					local visible = true
-					local startInLos = true
-					local endInLos = true
-					local proAlly
-					if needLosCheck then
-						local proTeam = spGetProjectileTeamID(proID)
-						proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
-						if proAlly ~= myAllyTeam then
-							startInLos = spLosCheck(px, 0, pz, myAllyTeam)
-							endInLos   = spLosCheck(endX, 0, endZ, myAllyTeam)
-							visible = startInLos or endInLos
+						-- LOS check: beam is visible if start OR end is in LOS
+						local visible = true
+						local startInLos = true
+						local endInLos = true
+						local proAlly
+						if needLosCheck then
+							local proTeam = spGetProjectileTeamID(proID)
+							proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
+							if proAlly ~= myAllyTeam then
+								startInLos = spLosCheck(px, 0, pz, myAllyTeam)
+								endInLos = spLosCheck(endX, 0, endZ, myAllyTeam)
+								visible = startInLos or endInLos
+							end
 						end
-					end
-					if visible then
-
+						if visible then
 							-- Save original (unclipped) positions for ghost beam tracking
 							local origPx, origPy, origPz = px, py, pz
 							local origEndX, origEndY, origEndZ = endX, endY, endZ
@@ -1158,7 +1171,7 @@ local function updateBeams()
 								local t = findLosBoundary(px, pz, endX, endZ, myAllyTeam, startInLos)
 								-- Extend visible portion by bonus range (ground LOS only)
 								if not USE_AIR_LOS and LOS_BONUS_RANGE > 0 then
-									local beamLen = mathSqrt(vx*vx + vy*vy + vz*vz)
+									local beamLen = mathSqrt(vx * vx + vy * vy + vz * vz)
 									local bonusFrac = LOS_BONUS_RANGE / mathMax(beamLen, 1)
 									if startInLos then
 										t = mathMin(1, t + bonusFrac)
@@ -1182,10 +1195,7 @@ local function updateBeams()
 
 							-- Check if any part of the beam is in the camera view (padded for glow quad)
 							local pad = cfg.aabbPad
-							if spIsAABBInView(
-								mathMin(px, endX) - pad, mathMin(py, endY) - pad, mathMin(pz, endZ) - pad,
-								mathMax(px, endX) + pad, mathMax(py, endY) + pad, mathMax(pz, endZ) + pad
-							) then
+							if spIsAABBInView(mathMin(px, endX) - pad, mathMin(py, endY) - pad, mathMin(pz, endZ) - pad, mathMax(px, endX) + pad, mathMax(py, endY) + pad, mathMax(pz, endZ) + pad) then
 								local ownerID = spGetProjectileOwnerID(proID) or 0
 								-- Key = "ownerID|wDefID". Muzzle position deliberately
 								-- excluded: turrets rotate between shots, so including the
@@ -1213,13 +1223,17 @@ local function updateBeams()
 									hasGhosts = true
 								end
 
-								tracked.px = origPx;   tracked.py = origPy;   tracked.pz = origPz
-								tracked.endX = origEndX; tracked.endY = origEndY; tracked.endZ = origEndZ
+								tracked.px = origPx
+								tracked.py = origPy
+								tracked.pz = origPz
+								tracked.endX = origEndX
+								tracked.endY = origEndY
+								tracked.endZ = origEndZ
 								tracked.lastSeenFrame = gameFrame
 								tracked.ownerAllyTeam = proAlly
 
 								-- Range falloff: use squared length (avoid sqrt)
-								local beamLenSq = vx*vx + vy*vy + vz*vz
+								local beamLenSq = vx * vx + vy * vy + vz * vz
 								local rangeFracSq = beamLenSq * cfg.invRangeSq
 								local intensityFalloff = BEAM_RANGE_FALLOFF_BASE + BEAM_RANGE_FALLOFF_MULT * mathMin(rangeFracSq, 1.0)
 
@@ -1236,15 +1250,15 @@ local function updateBeams()
 									beamCount = beamCount + 1
 									liveBeamSlot[wbKey] = offset
 								end
-								beamData[offset + 1]  = px
-								beamData[offset + 2]  = py
-								beamData[offset + 3]  = pz
-								beamData[offset + 4]  = cfg.beamWidth
-								beamData[offset + 5]  = endX
-								beamData[offset + 6]  = endY
-								beamData[offset + 7]  = endZ
-								beamData[offset + 8]  = LIVE_LIFEFRAC
-								beamData[offset + 9]  = cfg.coreR
+								beamData[offset + 1] = px
+								beamData[offset + 2] = py
+								beamData[offset + 3] = pz
+								beamData[offset + 4] = cfg.beamWidth
+								beamData[offset + 5] = endX
+								beamData[offset + 6] = endY
+								beamData[offset + 7] = endZ
+								beamData[offset + 8] = LIVE_LIFEFRAC
+								beamData[offset + 9] = cfg.coreR
 								beamData[offset + 10] = cfg.coreG
 								beamData[offset + 11] = cfg.coreB
 								beamData[offset + 12] = 1.0
@@ -1260,7 +1274,7 @@ local function updateBeams()
 									beamData[offset + 20] = 0
 								else
 									beamData[offset + 17] = cfg.liveFlareSize
-									beamData[offset + 18] = cfg.isParalyzer and 1.0 or 0.0  -- flareData.y: paralyzer flag for pulse shader
+									beamData[offset + 18] = cfg.isParalyzer and 1.0 or 0.0 -- flareData.y: paralyzer flag for pulse shader
 									beamData[offset + 19] = cfg.liveFlareG
 									beamData[offset + 20] = cfg.liveFlareB
 								end
@@ -1270,7 +1284,7 @@ local function updateBeams()
 									offset = offset + 20
 								end
 							end -- spIsAABBInView
-					end -- visible
+						end -- visible
 					end -- vx
 				end -- px
 			end -- cfg
@@ -1278,7 +1292,9 @@ local function updateBeams()
 	end
 
 	-- Trim liveKeysList
-	for i = liveKeysCount + 1, #liveKeysList do liveKeysList[i] = nil end
+	for i = liveKeysCount + 1, #liveKeysList do
+		liveKeysList[i] = nil
+	end
 
 	-- Ghost beams: skip entire loop when no tracked beams exist
 	if hasGhosts then
@@ -1295,7 +1311,7 @@ local function updateBeams()
 					local ghostClipStart = false
 					if needLosCheck and tracked.ownerAllyTeam ~= myAllyTeam then
 						local startInLos = spLosCheck(gpx, 0, gpz, myAllyTeam)
-						local endInLos   = spLosCheck(gex, 0, gez, myAllyTeam)
+						local endInLos = spLosCheck(gex, 0, gez, myAllyTeam)
 						ghostVisible = startInLos or endInLos
 						if ghostVisible and CLIP_BEAM_TO_LOS and startInLos ~= endInLos then
 							local dvx = gex - gpx
@@ -1304,7 +1320,7 @@ local function updateBeams()
 							local t = findLosBoundary(gpx, gpz, gex, gez, myAllyTeam, startInLos)
 							-- Extend visible portion by bonus range (ground LOS only)
 							if not USE_AIR_LOS and LOS_BONUS_RANGE > 0 then
-								local beamLen = mathSqrt(dvx*dvx + dvy*dvy + dvz*dvz)
+								local beamLen = mathSqrt(dvx * dvx + dvy * dvy + dvz * dvz)
 								local bonusFrac = LOS_BONUS_RANGE / mathMax(beamLen, 1)
 								if startInLos then
 									t = mathMin(1, t + bonusFrac)
@@ -1326,45 +1342,42 @@ local function updateBeams()
 					end
 
 					if ghostVisible then
-					-- Check if any part of the ghost beam is in the camera view (padded for glow quad)
-					local pad = cfg.aabbPad
-					if spIsAABBInView(
-						mathMin(gpx, gex) - pad, mathMin(gpy, gey) - pad, mathMin(gpz, gez) - pad,
-						mathMax(gpx, gex) + pad, mathMax(gpy, gey) + pad, mathMax(gpz, gez) + pad
-					) then
-						local lifeFrac = FADE_OUT_START_CACHED + (ghostAge * cfg.invGhostFrames) * ONE_MINUS_FADE_OUT
+						-- Check if any part of the ghost beam is in the camera view (padded for glow quad)
+						local pad = cfg.aabbPad
+						if spIsAABBInView(mathMin(gpx, gex) - pad, mathMin(gpy, gey) - pad, mathMin(gpz, gez) - pad, mathMax(gpx, gex) + pad, mathMax(gpy, gey) + pad, mathMax(gpz, gez) + pad) then
+							local lifeFrac = FADE_OUT_START_CACHED + (ghostAge * cfg.invGhostFrames) * ONE_MINUS_FADE_OUT
 
-						local vx = gex - gpx
-						local vy = gey - gpy
-						local vz = gez - gpz
-						local beamLenSq = vx*vx + vy*vy + vz*vz
-						local intensityFalloff = BEAM_RANGE_FALLOFF_BASE + BEAM_RANGE_FALLOFF_MULT * mathMin(beamLenSq * cfg.invRangeSq, 1.0)
-						local flareVisible = ghostAge <= cfg.flareGhostFrames
-						local flarePulse = (flareVisible and not ghostClipStart) and (1.0 - lifeFrac * FLARE_LIFE_DIM) or 0
+							local vx = gex - gpx
+							local vy = gey - gpy
+							local vz = gez - gpz
+							local beamLenSq = vx * vx + vy * vy + vz * vz
+							local intensityFalloff = BEAM_RANGE_FALLOFF_BASE + BEAM_RANGE_FALLOFF_MULT * mathMin(beamLenSq * cfg.invRangeSq, 1.0)
+							local flareVisible = ghostAge <= cfg.flareGhostFrames
+							local flarePulse = (flareVisible and not ghostClipStart) and (1.0 - lifeFrac * FLARE_LIFE_DIM) or 0
 
-						beamCount = beamCount + 1
-						beamData[offset + 1]  = gpx
-						beamData[offset + 2]  = gpy
-						beamData[offset + 3]  = gpz
-						beamData[offset + 4]  = cfg.beamWidth
-						beamData[offset + 5]  = gex
-						beamData[offset + 6]  = gey
-						beamData[offset + 7]  = gez
-						beamData[offset + 8]  = lifeFrac
-						beamData[offset + 9]  = cfg.coreR
-						beamData[offset + 10] = cfg.coreG
-						beamData[offset + 11] = cfg.coreB
-						beamData[offset + 12] = 1.0
-						beamData[offset + 13] = cfg.colorR
-						beamData[offset + 14] = cfg.colorG
-						beamData[offset + 15] = cfg.colorB
-						beamData[offset + 16] = intensityFalloff
-						beamData[offset + 17] = cfg.flareSize * flarePulse * FLARE_SIZE_MULT
-						beamData[offset + 18] = cfg.isParalyzer and 1.0 or 0.0  -- flareData.y: paralyzer flag for pulse shader
-						beamData[offset + 19] = cfg.flareColorG * flarePulse
-						beamData[offset + 20] = cfg.flareColorB * flarePulse
-						offset = offset + 20
-					end
+							beamCount = beamCount + 1
+							beamData[offset + 1] = gpx
+							beamData[offset + 2] = gpy
+							beamData[offset + 3] = gpz
+							beamData[offset + 4] = cfg.beamWidth
+							beamData[offset + 5] = gex
+							beamData[offset + 6] = gey
+							beamData[offset + 7] = gez
+							beamData[offset + 8] = lifeFrac
+							beamData[offset + 9] = cfg.coreR
+							beamData[offset + 10] = cfg.coreG
+							beamData[offset + 11] = cfg.coreB
+							beamData[offset + 12] = 1.0
+							beamData[offset + 13] = cfg.colorR
+							beamData[offset + 14] = cfg.colorG
+							beamData[offset + 15] = cfg.colorB
+							beamData[offset + 16] = intensityFalloff
+							beamData[offset + 17] = cfg.flareSize * flarePulse * FLARE_SIZE_MULT
+							beamData[offset + 18] = cfg.isParalyzer and 1.0 or 0.0 -- flareData.y: paralyzer flag for pulse shader
+							beamData[offset + 19] = cfg.flareColorG * flarePulse
+							beamData[offset + 20] = cfg.flareColorB * flarePulse
+							offset = offset + 20
+						end
 					end -- ghostVisible
 				end
 			end
@@ -1389,9 +1402,13 @@ end
 --------------------------------------------------------------------------------
 
 function gadget:Initialize()
-	if not initGL4() then return end
+	if not initGL4() then
+		return
+	end
 	local n = 0
-	for _ in pairs(weaponConfigs) do n = n + 1 end
+	for _ in pairs(weaponConfigs) do
+		n = n + 1
+	end
 end
 
 function gadget:GameFrame(n)

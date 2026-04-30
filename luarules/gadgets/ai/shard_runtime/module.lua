@@ -20,7 +20,7 @@ function Module:internalName()
 end
 
 function Module:Warn(...)
-	self.game:SendToConsole(self.game:GetTeamID(), self.ai:Name(), self:Name(), 'Warning:', ...)
+	self.game:SendToConsole(self.game:GetTeamID(), self.ai:Name(), self:Name(), "Warning:", ...)
 end
 
 function Module:EchoDebug(...)

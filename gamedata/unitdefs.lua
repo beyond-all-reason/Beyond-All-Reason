@@ -14,12 +14,12 @@
 local unitDefs = {}
 local shared = {} -- shared amongst the lua unitdef enviroments
 
-local preProcFile  = 'gamedata/unitdefs_pre.lua'
-local postProcFile = 'gamedata/unitdefs_post.lua'
+local preProcFile = "gamedata/unitdefs_pre.lua"
+local postProcFile = "gamedata/unitdefs_post.lua"
 
-local system = VFS.Include('gamedata/system.lua')
+local system = VFS.Include("gamedata/system.lua")
 
-local section = 'unitdefs.lua'
+local section = "unitdefs.lua"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -28,13 +28,12 @@ local section = 'unitdefs.lua'
 --
 
 if VFS.FileExists(preProcFile) then
-	Shared   = shared    -- make it global
-	UnitDefs = unitDefs  -- make it global
+	Shared = shared -- make it global
+	UnitDefs = unitDefs -- make it global
 	VFS.Include(preProcFile)
 	UnitDefs = nil
-	Shared   = nil
+	Shared = nil
 end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -43,7 +42,7 @@ end
 --  (these will override the SWU versions)
 --
 
-local luaFiles = VFS.DirList('units/', '*.lua', nil, true)
+local luaFiles = VFS.DirList("units/", "*.lua", nil, true)
 
 local legionEnabled = Spring.GetModOptions().experimentallegionfaction
 local scavengersEnabled = Spring.Utilities.Gametype.IsScavengers()
@@ -67,27 +66,27 @@ if Spring.GetModOptions().forceallunits then
 end
 
 for _, filename in ipairs(luaFiles) do
-	local loadFile = (legionEnabled or not filename:find('legion'))
-					and (scavengersEnabled or not filename:find('scavengers'))
-					and (raptorsEnabled or not filename:find('raptors'))
+	local loadFile = (legionEnabled or not filename:find("legion")) and (scavengersEnabled or not filename:find("scavengers")) and (raptorsEnabled or not filename:find("raptors"))
 
 	if loadFile then
 		local unitDefsEnv = {}
 		unitDefsEnv._G = unitDefsEnv
 		unitDefsEnv.Shared = shared
-		unitDefsEnv.GetFilename = function() return filename end
+		unitDefsEnv.GetFilename = function()
+			return filename
+		end
 		setmetatable(unitDefsEnv, { __index = system })
 		local success, defs = pcall(VFS.Include, filename, unitDefsEnv, VFS_MODES)
 		if not success then
-			Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(defs))
-		elseif type(defs) ~= 'table' then
-			Spring.Log(section, LOG.ERROR, 'Bad return table from: ' .. filename)
+			Spring.Log(section, LOG.ERROR, "Error parsing " .. filename .. ": " .. tostring(defs))
+		elseif type(defs) ~= "table" then
+			Spring.Log(section, LOG.ERROR, "Bad return table from: " .. filename)
 		else
 			for unitDefName, unitDef in pairs(defs) do
-				if ((type(unitDefName) == 'string') and (type(unitDef) == 'table')) then
+				if (type(unitDefName) == "string") and (type(unitDef) == "table") then
 					unitDefs[unitDefName] = unitDef
 				else
-					Spring.Log(section, LOG.ERROR, 'Bad return table entry from: ' .. filename)
+					Spring.Log(section, LOG.ERROR, "Bad return table entry from: " .. filename)
 				end
 			end
 		end
@@ -101,11 +100,11 @@ end
 --
 
 if VFS.FileExists(postProcFile) then
-	Shared   = shared    -- make it global
-	UnitDefs = unitDefs  -- make it global
+	Shared = shared -- make it global
+	UnitDefs = unitDefs -- make it global
 	VFS.Include(postProcFile)
 	UnitDefs = nil
-	Shared   = nil
+	Shared = nil
 end
 
 --------------------------------------------------------------------------------
@@ -118,12 +117,12 @@ for name, def in pairs(unitDefs) do
 	local model = def.objectname
 	if model == nil then
 		unitDefs[name] = nil
-		Spring.Log(section, LOG.ERROR, 'removed ' .. name .. ' unitDef, missing objectname param')
+		Spring.Log(section, LOG.ERROR, "removed " .. name .. " unitDef, missing objectname param")
 	else
-		local objfile = 'objects3d/' .. model
+		local objfile = "objects3d/" .. model
 		if not VFS.FileExists(objfile) then
 			unitDefs[name] = nil
-			Spring.Log(section, LOG.ERROR, 'removed ' .. name .. ' unitDef, missing model file  (' .. model .. ')')
+			Spring.Log(section, LOG.ERROR, "removed " .. name .. " unitDef, missing model file  (" .. model .. ")")
 		end
 	end
 end

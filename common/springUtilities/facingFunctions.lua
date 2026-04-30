@@ -1,19 +1,19 @@
 local facingMap = {
 	south = 0,
-	east  = 1,
+	east = 1,
 	north = 2,
-	west  = 3,
+	west = 3,
 	s = 0,
-	e  = 1,
+	e = 1,
 	n = 2,
-	w  = 3,
+	w = 3,
 	[0] = 0,
 	[1] = 1,
 	[2] = 2,
 	[3] = 3,
 }
 
-local facingNames = { [0] = 's', [1] = 'e', [2] = 'n', [3] = 'w' }
+local facingNames = { [0] = "s", [1] = "e", [2] = "n", [3] = "w" }
 
 -- TODO: remove this if/when Spring.CreateFeature and/or Spring.GetHeadingFromFacing supports named facings
 ---Convert a named facing to a heading integer (engine uses 0-65535 headings).

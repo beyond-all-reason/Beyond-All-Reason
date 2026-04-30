@@ -8,11 +8,13 @@ function gadget:GetInfo()
 		date = "2024.8.29",
 		license = "GNU GPL, v2 or later",
 		layer = -1,
-		enabled = true
+		enabled = true,
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then return end
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
 
 --customparams.fall_damage_multiplier = <number> a multiplier that's applied to defaultDamageMultiplier which affects the amount of damage taken from falling/collisions.
 
@@ -99,7 +101,7 @@ end
 
 for weaponDefID, wDef in ipairs(WeaponDefs) do
 	if wDef.damages and wDef.damages.impulseBoost and wDef.damages.impulseFactor then
-		weaponDefIDImpulses[weaponDefID] = {impulseBoost = wDef.damages.impulseBoost, impulseFactor = wDef.damages.impulseFactor}
+		weaponDefIDImpulses[weaponDefID] = { impulseBoost = wDef.damages.impulseBoost, impulseFactor = wDef.damages.impulseFactor }
 		if wDef.beamtime then
 			weaponDefIDImpulses[weaponDefID].impulseBoost = weaponDefIDImpulses[weaponDefID].impulseBoost * 1 / math.floor(wDef.beamtime * Game.gameSpeed) --this splits up impulseBoost across the number of frames that damage is dealt
 		end
@@ -112,10 +114,9 @@ for weaponDefID, wDef in ipairs(WeaponDefs) do
 		end
 		return damage
 	end
-	
+
 	--generate list of exempted weapons to improve performance
-	if wDef.damages and wDef.damages.impulseFactor == 0 or
-		(wDef.damages.impulseFactor < minImpulseFactor and wDef.damages.impulseBoost < maxDamage(wDef.damages) * minImpulseToDamageRatio) then
+	if wDef.damages and wDef.damages.impulseFactor == 0 or (wDef.damages.impulseFactor < minImpulseFactor and wDef.damages.impulseBoost < maxDamage(wDef.damages) * minImpulseToDamageRatio) then
 		weaponDefIgnored[weaponDefID] = true
 	end
 end
@@ -132,7 +133,7 @@ local function getImpulseMultiplier(unitDefID, weaponDefID, damage)
 	if impulse < unitsMinImpulse[unitDefID] then
 		impulseMultiplier = 0
 	else
-		impulseMultiplier = mathMin(unitsMaxImpulse[unitDefID]/impulse, 1) -- negative impulse values are not capped.
+		impulseMultiplier = mathMin(unitsMaxImpulse[unitDefID] / impulse, 1) -- negative impulse values are not capped.
 	end
 	return impulseMultiplier
 end
@@ -159,18 +160,18 @@ end
 
 local function isValidCollisionDirection(unitID)
 	local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
-		-- y-velocity check prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
-		return velLength > collisionVelocityThreshold and -velY > (velLength * validCollisionAngleMultiplier)
+	-- y-velocity check prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
+	return velLength > collisionVelocityThreshold and -velY > (velLength * validCollisionAngleMultiplier)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if not weaponDefIgnored[weaponDefID] and weaponDefID >= 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
-			impulseMultiplier = getImpulseMultiplier(unitDefID, weaponDefID, damage)
-			if not unitInertiaCheckFlags[unitID] and impulseMultiplier ~= 0 then
-				unitInertiaCheckFlags[unitID] = {expirationFrame = gameFrame + velocityWatchFrames, velocityCap = unitDefData[unitDefID].velocityCap}
-			end
-			return damage, impulseMultiplier
+		impulseMultiplier = getImpulseMultiplier(unitDefID, weaponDefID, damage)
+		if not unitInertiaCheckFlags[unitID] and impulseMultiplier ~= 0 then
+			unitInertiaCheckFlags[unitID] = { expirationFrame = gameFrame + velocityWatchFrames, velocityCap = unitDefData[unitDefID].velocityCap }
+		end
+		return damage, impulseMultiplier
 	elseif (weaponDefID == groundCollisionDefID or weaponDefID == objectCollisionDefID) and (isValidCollisionDirection(unitID) or fallingUnits[unitID]) then
 		local healthRatioMultiplier, health = massToHealthRatioMultiplier(unitID, unitDefID)
 		damage = preventOverkillDamage(unitID, damage, health, healthRatioMultiplier)
@@ -184,7 +185,7 @@ function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTe
 	transportedUnits[unitID] = true
 end
 
-function gadget:UnitUnloaded(unitID, unitDefID, unitTeam,  transportID, transportTeam)
+function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	transportedUnits[unitID] = nil
 	fallingUnits[unitID] = true --units falling from transports should take collision damagee from any trajectory, including when bouncing off of other objects.
 end
@@ -213,11 +214,11 @@ function gadget:GameFrame(frame)
 			local velX, velY, velZ, velocityLength = spGetUnitVelocity(unitID)
 			if not data.velocityReduced and velocityLength > data.velocityCap then
 				local verticalVelocityCapThreshold = 0.07 --value derived from empirical testing to prevent fall damage and goofy trajectories from impulse
-				local horizontalVelocity = mathSqrt(velX^2 + velZ^2)
+				local horizontalVelocity = mathSqrt(velX ^ 2 + velZ ^ 2)
 				local newVelY = mathAbs(mathMin(horizontalVelocity * verticalVelocityCapThreshold, velY))
 				local newVelYToOldVelYRatio
 				if velY ~= 0 then
-				newVelYToOldVelYRatio = mathMin(mathAbs(newVelY/velY), 1)
+					newVelYToOldVelYRatio = mathMin(mathAbs(newVelY / velY), 1)
 				else
 					newVelYToOldVelYRatio = 1
 				end
@@ -265,7 +266,7 @@ local function setVelocityControl(unitID, enabled)
 	elseif not unitInertiaCheckFlags[unitID] then
 		unitInertiaCheckFlags[unitID] = {
 			expirationFrame = gameFrame + velocityWatchFrames,
-			velocityCap     = unitDefData[Spring.GetUnitDefID(unitID)].velocityCap,
+			velocityCap = unitDefData[Spring.GetUnitDefID(unitID)].velocityCap,
 		}
 	end
 end

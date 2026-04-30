@@ -20,7 +20,6 @@ local PACKET_HEADER = "$wl$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 if gadgetHandler:IsSyncedCode() then
-
 	local waterlevel = Spring.GetModOptions().map_waterlevel
 
 	function adjustFeatureHeight()
@@ -28,13 +27,13 @@ if gadgetHandler:IsSyncedCode() then
 		local x, y, z
 		for i = 1, #featuretable do
 			x, y, z = Spring.GetFeaturePosition(featuretable[i])
-      		Spring.SetFeaturePosition(featuretable[i], x,  y,  z ,true) -- snaptoground = true
+			Spring.SetFeaturePosition(featuretable[i], x, y, z, true) -- snaptoground = true
 		end
 	end
 
 	function adjustWaterlevel()
 		-- Spring.SetMapRenderingParams({ voidWater = false})
-    	Spring.Echo("Map Waterlevel: adjusting water level with: "..waterlevel)
+		Spring.Echo("Map Waterlevel: adjusting water level with: " .. waterlevel)
 		Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		Spring.AdjustOriginalHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
@@ -48,11 +47,8 @@ if gadgetHandler:IsSyncedCode() then
 				waterlevel = modOptions.map_waterlevel
 
 				-- adjust tidal strength if previosuly not present and applicable
-				if (modOptions.map_tidal == nil or modOptions.map_tidal == "unchanged")
-					and Spring.GetTidal() == 0
-					and select(1, Spring.GetGroundExtremes()) > 0
-					then
-						Spring.SetTidal( 15 )
+				if (modOptions.map_tidal == nil or modOptions.map_tidal == "unchanged") and Spring.GetTidal() == 0 and select(1, Spring.GetGroundExtremes()) > 0 then
+					Spring.SetTidal(15)
 				end
 
 				adjustWaterlevel()
@@ -84,14 +80,12 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		local params = string.split(msg, ':')
+		local params = string.split(msg, ":")
 		waterlevel = tonumber(params[2])
 		adjustWaterlevel()
-		Spring.Echo('Changed waterlevel: ' .. waterlevel)
+		Spring.Echo("Changed waterlevel: " .. waterlevel)
 	end
-
-else  -- UNSYNCED
-
+else -- UNSYNCED
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
 	local function isAuthorized()
@@ -103,15 +97,15 @@ else  -- UNSYNCED
 	local function waterlevel(cmd, line, words, playerID)
 		if words[1] then
 			if (isAuthorized() or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
-				Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. words[1])
+				Spring.SendLuaRulesMsg(PACKET_HEADER .. ":" .. words[1])
 			end
 		end
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction('waterlevel', waterlevel)
+		gadgetHandler:AddChatAction("waterlevel", waterlevel)
 	end
 	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction('waterlevel')
+		gadgetHandler:RemoveChatAction("waterlevel")
 	end
 end

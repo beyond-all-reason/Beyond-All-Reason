@@ -31,7 +31,7 @@ return {
 		turnrate = 430,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies (Model), Phill-Art (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships",
@@ -40,8 +40,8 @@ return {
 			dead = {
 				blocking = false,
 				category = "corpses",
-                collisionvolumeoffsets = "0 0 0",
-                collisionvolumescales = "20 16 41",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "20 16 41",
 				collisionvolumetype = "Box",
 				damage = 300,
 				featuredead = "HEAP",
@@ -140,7 +140,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory="vtol",
+				badtargetcategory = "vtol",
 				def = "mg_guns",
 				onlytargetcategory = "NOTSUB",
 			},

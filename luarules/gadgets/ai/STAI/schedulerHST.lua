@@ -10,14 +10,14 @@ end
 
 function SchedulerHST:Init()
 	self.DebugEnabled = false
- 	self.AIs={}
- 	local teams = Spring.GetTeamList()
- 	for index,id in pairs(teams) do
+	self.AIs = {}
+	local teams = Spring.GetTeamList()
+	for index, id in pairs(teams) do
 		local luaAI = Spring.GetTeamLuaAI(id)
-		if luaAI == 'STAI' then
-			table.insert(self.AIs,id)
+		if luaAI == "STAI" then
+			table.insert(self.AIs, id)
 		end
- 	end
+	end
 	self.moduleTeamIndex = 1
 	self.moduleTeam = 0
 	self.moduleIndex = 1
@@ -31,7 +31,7 @@ end
 function SchedulerHST:Update()
 	local moduleS, Mteam = self:ModulesScheduler()
 	local behaviourS, Bteam = self:BehavioursScheduler()
-	self:EchoDebug(game:Frame(),'team',self.ai.id,'moduleS, Mteam',self.moduleUpdate, self.moduleTeam,'behaviourS, Bteam',self.behaviourUpdate, self.behaviourTeam)
+	self:EchoDebug(game:Frame(), "team", self.ai.id, "moduleS, Mteam", self.moduleUpdate, self.moduleTeam, "behaviourS, Bteam", self.behaviourUpdate, self.behaviourTeam)
 end
 
 function SchedulerHST:ModulesScheduler()
@@ -62,30 +62,30 @@ end
 
 SchedulerHST.MScheduler = {
 
-	'EcoHST',
--- 	'OverviewHST',
-	'LosHST',
-	'TargetHST',
-	'DamageHST',
-	'ScoutHST',
-	'AttackHST',
-	'RaidHST',
-	'BomberHST',
-	'LabsHST',
-	}
+	"EcoHST",
+	-- 	'OverviewHST',
+	"LosHST",
+	"TargetHST",
+	"DamageHST",
+	"ScoutHST",
+	"AttackHST",
+	"RaidHST",
+	"BomberHST",
+	"LabsHST",
+}
 
 SchedulerHST.BScheduler = {
-	'BootBST',
-	'CommanderBST',
-	'BuildersBST',
-	'EngineerBST',
-	'LabsBST',
-	'ScoutBST',
-	'RaidBST',
-	'AttackerBST',
+	"BootBST",
+	"CommanderBST",
+	"BuildersBST",
+	"EngineerBST",
+	"LabsBST",
+	"ScoutBST",
+	"RaidBST",
+	"AttackerBST",
 	--'BomberBST',
-	'ReclaimBST',
-	'CleanerBST',
-	'AntinukeBST',
-	'NukeBST',
-		}
+	"ReclaimBST",
+	"CleanerBST",
+	"AntinukeBST",
+	"NukeBST",
+}
