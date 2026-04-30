@@ -287,9 +287,9 @@ local function CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, 
 		return false
 	end
 	if not spAreTeamsAllied(passengerTeamID, transporterTeamID) then
-		local _,_,_,vw = spGetUnitVelocity(passengerID)
-		if vw > 0.5 then
-			return false -- if it's moving too fast, we consider it as fleeing and don't load it.
+		local isStunned = Spring.GetUnitIsStunned(passengerID) -- the first bool is (beingBuilt OR stunned), but we supposedly already excluded beingBuilt
+		if not isStunned then
+			return false -- if the unit isn't stunned, it can't be transported 'yet' (not removed from queue)
 		end
 	end
 	return true
