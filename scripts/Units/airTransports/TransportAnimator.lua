@@ -263,10 +263,12 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 		local startRotX, startRotY, startRotZ = SpGetUnitRotation(passengerData.id)
 		local goalRotX, goalRotY, goalRotZ
 		local passengerDefID = SpGetUnitDefID(passengerData.id)
-		if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].upright then
+		if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].speed == 0 then
 			goalRotY = math.floor(startRotY/(pi/2) + 0.5) *(pi/2) -- cardinal facing
-		elseif UnitDefs[passengerDefID] and UnitDefs[passengerDefID].upright then
-			goalRotX, goalRotY, goalRotZ = 0, startRotY, 0
+		end
+		
+		if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].upright then
+			goalRotX, goalRotY, goalRotZ = 0, (goalRotY or startRotY), 0
 		else
 			local normalX, normalY, normalZ = SpGetGroundNormal(goalPosX, goalPosZ)
 			goalRotX, goalRotY, goalRotZ = math.atan2(-normalZ, normalY), startRotY, math.atan2(normalX, normalY)
