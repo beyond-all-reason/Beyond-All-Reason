@@ -656,6 +656,7 @@ function gadget:Initialize()
 	spSetCustomCommandDrawData(CMD_LOAD_UNIT, CMD.LOAD_UNITS, {0.6, 0.6, 1, 0.5}, true)
 	gadgetHandler:RegisterAllowCommand(CMD.LOAD_UNITS)
 	gadgetHandler:RegisterAllowCommand(CMD.LOAD_ONTO)
+	gadgetHandler:RegisterAllowCommand(CMD.UNLOAD_UNIT)
 	local allyTeams = spGetAllyTeamList()
 	for _, allyTeam in pairs(allyTeams) do
 		claimedBy[allyTeam] = {}
@@ -862,10 +863,24 @@ end
 function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transporterTeamID, passengerID, passengerDefID, passengerTeamID, goalX, goalY, goalZ)
 	if isUnderwater(passengerID, goalY) then return false end
 	if not isAirTransport[transporterDefID] then return true end	
-	spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- move closer
 	-- distance gate for individual unload commands
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
+	local blocked = Spring.TestBuildOrder(UnitDefNames["unloadpad8x8"].id, goalX, goalY, goalZ, 0)
+	if blocked == 0 then
+		--spEcho("unload position blocked for transporter " .. transporterID .. ", finding closest valid position")
+		goalX, goalY, goalZ = Spring.ClosestBuildPos(transporterTeamID, UnitDefNames["unloadpad8x8"].id, goalX, goalY, goalZ, 512, 0, 0)
+		if not goalX then
+			spEcho("Error: no valid unload position found near target point for transporter " .. transporterID .. ", aborting unload")
+			return false
+		end
+	elseif blocked == 1 then
+		Spring.BuggerOff(goalX, goalY, goalZ, 128, transporterTeamID, true, true, transporterID)
+		--spEcho("need bugger off logic")
+	elseif blocked == 3 then
+		--spEcho("reclaimable feature in the way, should we unload ?")
+	end
 	if not inRange(transporterPosX, transporterPosY, transporterPosZ, goalX, goalY, goalZ) then
+		spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- move closer
 		return false
 	end	
 	-- handle custom transports
@@ -908,6 +923,22 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			return false
 		elseif #cmdParams == 1 then
 			spGiveOrderToUnit(unitID, CMD_LOAD_UNIT, cmdParams, cmdOptions)
+			return false
+		end
+	end
+	if cmdID == CMD.UNLOAD_UNIT then
+		local posX, posY, posZ = cmdParams[1], cmdParams[2], cmdParams[3]
+		local newPosX, newPosY, newPosZ = Spring.ClosestBuildPos(unitTeam, UnitDefNames["unloadpad8x8"].id, posX, posY, posZ, 512, 0, 0)
+		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
+			spEcho("Warning: unload position is too far from a valid point, adjusting to closest valid position")
+			Spring.Echo("Original position: " .. posX .. ", " .. posY .. ", " .. posZ)
+			Spring.Echo("Adjusted position: " .. newPosX .. ", " .. newPosY .. ", " .. newPosZ)
+			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
+			if fromInsert then
+				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD.UNLOAD_UNIT, 0, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4] }, {"alt"})
+				return false
+			end
+			spGiveOrderToUnit(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions)
 			return false
 		end
 	end
