@@ -258,8 +258,9 @@ syncDecals = function()
 		if items then
 			for _, entry in ipairs(items) do
 				local name = entry.name
-				if lowerFilter == "" or name:lower():find(lowerFilter, 1, true) then
-					local displayName = (#name > 22) and (name:sub(1, 20) .. "..") or name
+				local labelName = entry.displayName or name
+				if lowerFilter == "" or labelName:lower():find(lowerFilter, 1, true) then
+					local displayName = (#labelName > 22) and (labelName:sub(1, 20) .. "..") or labelName
 
 					-- Tile container
 					local itemEl = doc:CreateElement("div")

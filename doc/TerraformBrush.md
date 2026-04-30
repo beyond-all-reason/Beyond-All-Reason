@@ -903,6 +903,49 @@ This rule fixed repeated issues with Terraform Brush shape, paint, distribution,
 
 ---
 
+## Future Work — Metal Spot As Decal (Post-1.0)
+
+Groundwork has been laid for a "metal spot as decal" pipeline that lets mappers
+capture an in-engine top-down render of a metal patch (or any small area of
+terrain) and reuse it as a custom ground decal via the standard
+`gamedata/resources.lua` `graphics.decals` registration path.
+
+Pieces already in place on the `realtime-terraformer` branch:
+
+- `luaui/Widgets/cmd_decal_capture.lua` — `/decalcapture <name> [radius]`
+  console command. Runs a fullscreen-quad fragment shader on `DrawScreen` that,
+  per output texel, reconstructs world XZ from the cursor-centered capture
+  rect, samples `$heightmap` for Y, projects through the current view-projection
+  matrix, and reads `$map_gbuffer_difftex`. Off-screen / behind-camera texels
+  go transparent; a radial feather is applied at the edge. Output is a 512×512
+  PNG written to `LuaUI/Cache/decal_captures/<name>.png`.
+- `luaui/Widgets/cmd_decal_placer.lua` — custom decals registered in
+  `gamedata/resources.lua` are picked up automatically by the existing decal
+  list (engine assigns them `maindecal_<i>`), and Point mode now defaults to
+  `decalCount = 1` / `cadence = 1` so single-shot placement works without
+  knob fiddling.
+- `luaui/RmlWidgets/gui_decal_placer/gui_decal_placer.lua` — the picker
+  honors `entry.displayName` for filter/label so user-friendly names show up
+  alongside the engine's `maindecal_<i>` keys.
+
+Known limitations / explicitly **deferred to post-1.0**:
+
+- Capture only includes what is currently on-screen — the user must frame the
+  area before invoking the command.
+- Diffuse channel only. Normal/specular capture not yet wired.
+- Alpha is a flat radial feather; no smart color isolation (e.g. "only metal-
+  spot pixels") yet.
+- No automatic atlas registration. After capture the user must manually:
+  1. Move the PNG into `bitmaps/decals/`.
+  2. Append the filename to `gamedata/resources.lua` `graphics.decals`.
+  3. Restart the game so the engine atlas rebuilds.
+
+The intent post-1.0 is to wire this into the Terraform Brush's decal-aware
+flow so that metal spots placed through the brush can carry a custom
+captured decal instead of relying solely on the shipped atlas tiles.
+
+---
+
 ## AI Disclosure
 
 This feature was developed with AI assistance (GitHub Copilot, Claude). AI was used to help write production code and to draft this documentation. All AI-generated code was reviewed, tested in-game, and verified by a human contributor. This disclosure is provided per the [AI Usage Policy](../AI_POLICY.md).

@@ -246,6 +246,10 @@ local function buildDecalList()
 		if not mainsByKey[key] then skippedNormals = skippedNormals + 1 end
 	end
 
+	-- Custom ground decals are registered into the engine atlas via
+	-- gamedata/resources.lua `graphics.decals` subtable; engine assigns them
+	-- the atlas name `maindecal_<i>` and they show up here automatically.
+
 	table.sort(decalList, function(a, b) return a.name < b.name end)
 	for _, c in ipairs(CATEGORY_ORDER) do
 		if decalCategories[c] then
@@ -480,6 +484,10 @@ local function activate(mode)
 	if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
 	dp.active = true
 	dp.mode = mode
+	if mode == "point" then
+		dp.decalCount = 1
+		dp.cadence = 1
+	end
 	buildDecalList()
 	local labels = { scatter = "SCATTER", point = "POINT", remove = "REMOVE" }
 	Echo("[Decal Placer] Mode: " .. (labels[mode] or mode) .. " | LMB place, RMB remove, /decalplaceroff to stop")
@@ -502,6 +510,10 @@ local function setMode(mode)
 		if not dp.active and WG.WeatherBrush then WG.WeatherBrush.deactivate() end
 		if not dp.active and WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
 		dp.mode = mode
+		if mode == "point" then
+			dp.decalCount = 1
+			dp.cadence = 1
+		end
 		if not dp.active then
 			dp.active = true
 			buildDecalList()
