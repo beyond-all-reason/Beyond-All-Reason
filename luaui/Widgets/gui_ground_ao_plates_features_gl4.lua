@@ -37,6 +37,8 @@ local function basepath(s, pattern)
 end
 
 local function addDirToAtlas(atlas, path)
+	local files = VFS.DirList(path)
+	local imgExts = { png = true, tga = true, dds = true }
 	--spEcho("Adding",#files, "images to atlas from", path)
 	for i = 1, #files do
 		if imgExts[string.sub(files[i], -3, -1)] then

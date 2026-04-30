@@ -421,7 +421,7 @@ local function CobDroneSpawnSequenceFinished(unitID, unitDefID, team, subUnitID)
 		return
 	else
 		local dockingPiece = carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece
-		local _, pieceAngle = spCallCOBScript(unitID, "DroneDocked", 5, pieceAngle, dockingPiece)
+		local _, pieceAngle = spCallCOBScript(unitID, "DroneDocked", 5, nil, dockingPiece)
 		spCallCOBScript(subUnitID, "Docked", 0, carrierMetaList[unitID].cobdockparam, dockingPiece, pieceAngle)
 		return
 	end
@@ -475,7 +475,7 @@ local function spawnUnit(spawnData)
 							energyCost = carrierData.energyCost[dronetypeIndex]
 						else
 							local subUnitDef = UnitDefNames[dronename]
-							if subunitDef then
+							if subUnitDef then
 								metalCost = subUnitDef.metalCost
 								energyCost = subUnitDef.energyCost
 							else
@@ -617,7 +617,7 @@ local function spawnUnit(spawnData)
 								droneSpawnSequence(ownerID, subUnitID)
 								droneMetaData.activeSpawnSequence = true
 							else
-								local _, pieceAngle = spCallCOBScript(ownerID, "DroneDocked", 5, pieceAngle, droneMetaData.dockingPiece)
+								local _, pieceAngle = spCallCOBScript(ownerID, "DroneDocked", 5, nil, droneMetaData.dockingPiece)
 								spCallCOBScript(subUnitID, "Docked", 0, carrierData.cobdockparam, droneMetaData.dockingPiece, pieceAngle)
 							end
 						else
@@ -1578,7 +1578,7 @@ local function dockUnits(dockingqueue, queuestart, queueend)
 								if carrierMetaList[unitID].dockArmor then
 									spSetUnitArmored(subUnitID, true, carrierMetaList[unitID].dockArmor)
 								end
-								local _, pieceAngle = spCallCOBScript(unitID, "DroneDocked", 5, pieceAngle, pieceNumber)
+								local _, pieceAngle = spCallCOBScript(unitID, "DroneDocked", 5, nil, pieceNumber)
 								spCallCOBScript(subUnitID, "Docked", 0, carrierMetaList[unitID].cobdockparam, pieceNumber, pieceAngle)
 
 								if dronetype == "abductor" then

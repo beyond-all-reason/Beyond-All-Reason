@@ -400,7 +400,7 @@ end
 
 function metaElement:RemoveText(textindex)
 	if self.textelements then
-		layer.textChanged = true
+		self.textChanged = true
 		return table.remove(self.textelements, textindex)
 	end
 end
@@ -1296,7 +1296,7 @@ local function AddRecursivelySplittingButton()
 					parent = obj,
 				})
 
-				spEcho("left clicked unit", obj.name, instanceKeys)
+				spEcho("left clicked unit", obj.name)
 			end,
 			right = function(obj)
 				-- destroy self
@@ -1902,6 +1902,8 @@ Draw.TexturedRectRound = function(VBO, instanceID, z, px, py, sx, sy, cs, tl, tr
 	if z == nil then
 		z = 0.50
 	end -- fools depth sort
+	local c1 = color
+	local c2 = color
 	if c2 == nil then
 		c2 = c1
 	end

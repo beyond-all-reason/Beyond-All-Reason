@@ -1115,7 +1115,7 @@ local function isUpdateRequiredNoTable(uniform, u1, u2, u3, u4)
 
 	if u1 and cachedValues[1] ~= u1 then
 		update = true
-		cachedValues[1] = val
+		cachedValues[1] = u1
 	end
 	if u2 and cachedValues[2] ~= u2 then
 		update = true

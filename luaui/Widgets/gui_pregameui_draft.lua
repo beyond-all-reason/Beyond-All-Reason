@@ -25,6 +25,8 @@ local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 
 local fontfile = "fonts/" .. SpringUnsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = spGetViewGeometry()
+local msx = Game.mapSizeX
+local msz = Game.mapSizeZ
 local fontfileScale = (0.5 + (vsx * vsy / 6200000))
 local fontfileSize = 50
 local fontfileOutlineSize = 10

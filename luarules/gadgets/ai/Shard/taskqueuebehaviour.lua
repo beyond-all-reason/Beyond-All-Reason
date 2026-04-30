@@ -130,7 +130,7 @@ function TaskQueueBehaviour:ProgressQueue()
 	self.idx = idx
 	if idx == nil then
 		self:DebugPoint("nothing")
-		self.queue = self:GetQueue(name)
+		self.queue = self:GetQueue()
 		self:OnToNextTask()
 		return
 	end
@@ -218,7 +218,7 @@ function TaskQueueBehaviour:HandleActionTask(task)
 		newpos.z = upos.z + task.position.z
 		self.unit:Internal():MoveAndPatrol(newpos)
 	else
-		self.game:SendToConsole("Error: Unknown action task " .. value .. " given to a " .. self.name)
+		self.game:SendToConsole("Error: Unknown action task " .. action .. " given to a " .. self.name)
 		self:DebugPoint("nothing")
 		self:OnToNextTask()
 	end

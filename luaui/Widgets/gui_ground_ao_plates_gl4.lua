@@ -180,7 +180,7 @@ end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
 	if debugmode then
-		Debug.TraceEcho("remove", unitID, reason)
+		Debug.TraceEcho("remove", unitID)
 	end
 	if groundPlateVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(groundPlateVBO, unitID)

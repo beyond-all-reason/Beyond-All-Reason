@@ -295,7 +295,7 @@ local function buildUnitDefs()
 
 	local function isArmyUnit(unitDefID, unitDef)
 		local isArmyUnit = #unitDef.weapons > 0 and unitDef.speed > 0
-		return isArmyUnit and not isCommander(unitDefId, unitDef)
+		return isArmyUnit and not isCommander(unitDefID, unitDef)
 	end
 
 	local function isDefenseUnit(unitDefID, unitDef)

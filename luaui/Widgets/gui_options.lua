@@ -1221,6 +1221,7 @@ local function checkQuitscreen()
 	if not canPauseGame then
 		return
 	end
+	local _, _, isClientPaused = SpringUnsynced.GetGameState()
 	quitscreen = (WG.topbar and WG.topbar.showingQuit() or false)
 	if prevQuitscreen ~= quitscreen then
 		if quitscreen and isClientPaused and not showToggledOff then
@@ -10426,6 +10427,7 @@ function widget:GetConfigData()
 		currentGroupTab = currentGroupTab,
 		show = show,
 		waterDetected = waterDetected,
+		---@diagnostic disable-next-line: undefined-global
 		customPresets = customPresets,
 		changesRequireRestart = changesRequireRestart,
 		requireRestartDefaults = requireRestartDefaults,

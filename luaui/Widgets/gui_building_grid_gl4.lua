@@ -28,6 +28,7 @@ local config = {
 }
 
 local waterLevel = SpringShared.GetWaterPlaneLevel and SpringShared.GetWaterPlaneLevel() or 0
+local _, isSpec = Spring.GetSpectatingState()
 
 local cmdShowForUnitDefID
 local isPregame = SpringShared.GetGameFrame() == 0 and not isSpec

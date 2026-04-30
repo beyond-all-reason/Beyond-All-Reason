@@ -32,6 +32,7 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local minY, maxY = SpringShared.GetGroundExtremes()
+local NUM_BOXES = 16
 
 local shaderSourceCache = {
 	vssrcpath = "LuaUI/Shaders/norush_timer.vert.glsl",

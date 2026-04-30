@@ -965,7 +965,7 @@ if gadgetHandler:IsSyncedCode() then
 			if bestBurrowID then
 				DestroyUnit(bestBurrowID, true, false)
 			end
-			return CreateUnit(config.queenName, sx, sy, sz, mRandom(0, 3), raptorTeamID), burrowID
+			return CreateUnit(config.queenName, sx, sy, sz, mRandom(0, 3), raptorTeamID), bestBurrowID
 		end
 
 		local x, z, y

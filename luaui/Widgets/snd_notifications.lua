@@ -1030,6 +1030,7 @@ end
 
 function widget:GetConfigData(data)
 	return {
+		---@diagnostic disable-next-line: undefined-global
 		customNotifications = customNotifications,
 		notificationList = notificationList,
 		globalVolume = globalVolume,

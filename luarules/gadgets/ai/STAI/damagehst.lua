@@ -57,7 +57,6 @@ function DamageHST:AddBadPosition(position, mtype, attackerThreat, defenderThrea
 		Z = Z,
 
 		POS = self.ai.maphst:GridToPos(X, Z),
-		groundAirSubmerged = groundAirSubmerged,
 		frame = f,
 		attackerThreat = attackerThreat,
 		defenderThreat = defenderThreat,
