@@ -804,6 +804,8 @@ local initialModel = {
 	lpMode = "place",
 	lpLibraryOpen = false,
 	lpLibraryTab = "builtin",
+	lpSymmetryRadial = false,
+	lpSymmetryMirrorAny = false,
 	-- metal brush instruments (data-if sub-rows)
 	mbGridSnap = false,
 	mbAngleSnap = false,
@@ -846,6 +848,89 @@ local initialModel = {
 	wbSubMode = "scatter",     -- weather brush sub-mode
 	wbDistMode = "random",     -- weather distribution
 	stpShapeMode = "circle",   -- startpos shape selection
+	-- Phase 2 step 4: startpos label interpolation strings
+	stpAllyTeamsStr = "2",
+	stpTeamsPerAllyStr = "1",
+	stpCountStr = "4",
+	stpSizeStr = "2000",
+	stpRotationStr = "0\194\176",
+	stpPlacementModeStr = "ROUND-ROBIN",
+	-- Phase 2 step 4: splat painter label interpolation strings
+	splatStrengthStr = "0.15",
+	splatIntensityStr = "1.0",
+	splatRadiusStr = "100",
+	splatRotationStr = "0",
+	splatCurveStr = "1.0",
+	splatSlopeMaxStr = "45",
+	splatSlopeMinStr = "10",
+	splatAltMinStr = "0",
+	splatAltMaxStr = "200",
+	splatExportFmtStr = "PNG",
+	dcHeatExpStr = "0",
+	-- Phase 2 step 4: metal brush label interpolation strings
+	mbValueStr = "2.0",
+	mbSizeStr = "100",
+	mbRotStr = "0\194\176",
+	mbLengthStr = "1.0",
+	mbCurveStr = "1.0",
+	mbAngleStepStr = "15",
+	mbClusterRadiusStr = "256",
+	mbLassoTotalStr = "0.00",
+	mbAxisAngleStr = "0",
+	mbAxisAStr = "0.00",
+	mbAxisBStr = "0.00",
+	mbAxisBalanceStr = "--",
+	mbCleanLabelStr = "CLEAN",
+	-- Phase 2 step 4: grass brush label interpolation strings
+	gbDensityStr = "80%",
+	gbSizeStr = "100",
+	gbRotStr = "0\194\176",
+	gbCurveStr = "1.0",
+	gbLengthStr = "1.0",
+	gbAngleStepStr = "15",
+	gbSlopeMaxStr = "45",
+	gbSlopeMinStr = "10",
+	gbAltMinStr = "0",
+	gbAltMaxStr = "200",
+	gbColorThreshStr = "35",
+	gbColorPadStr = "0",
+	gbManualSpokeStr = "0",
+	-- Phase 2 step 4: feature placer label interpolation strings
+	fpRadiusStr = "200",
+	fpRotationStr = "0",
+	fpRotRandomStr = "100",
+	fpCountStr = "5",
+	fpCadenceStr = "1",
+	fpSlopeMaxStr = "45",
+	fpSlopeMinStr = "10",
+	fpAltMinStr = "0",
+	fpAltMaxStr = "200",
+	fpSymRadStr = "2",
+	fpSymAngStr = "0",
+	-- Phase 2 step 4: light placer label interpolation strings
+	lpBrightnessStr = "2.0",
+	lpLightRadiusStr = "300",
+	lpElevationStr = "20",
+	lpCountStr = "5",
+	lpBrushRadiusStr = "200",
+	lpPlacedCountStr = "0",
+	lpSymCountStr = "2",
+	lpSymAngleStr = "0",
+	-- Phase 2 step 4: clone tool label interpolation strings
+	clStatusStr = "Select an area to clone",
+	clRotationStr = "0\194\176",
+	clHeightStr = "0",
+	-- Phase 2 step 4: environment dimensions label interpolation strings
+	envMapXStr = "--",
+	envMapZStr = "--",
+	envInitMinStr = "--",
+	envInitMaxStr = "--",
+	envCurrMinStr = "--",
+	envCurrMaxStr = "--",
+	envWaterPlaneStr = "--",
+	-- Phase 2 step 4: tf shared (ring/restore) label interpolation strings
+	tfRingWidthStr = "40%",
+	tfRestoreStrengthStr = "100%",
 
 	-- terraform mode instrument sub-rows (data-if visibility flags)
 	tfGridSnap = false,
@@ -2438,6 +2523,10 @@ local function attachDeclarativeHandlers(ctx)
 		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
 		local lbl = doc and getCachedEl(doc, "ring-width-label")
 		if lbl then lbl.inner_rml = tostring(ringWidthPct) .. "%" end
+		if widgetState.dmHandle then
+			local v = tostring(ringWidthPct) .. "%"
+			if widgetState.dmHandle.tfRingWidthStr ~= v then widgetState.dmHandle.tfRingWidthStr = v end
+		end
 		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
 	end
 	w.tfRingWidthDown = function(self)
@@ -2447,6 +2536,10 @@ local function attachDeclarativeHandlers(ctx)
 		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
 		local lbl = doc and getCachedEl(doc, "ring-width-label")
 		if lbl then lbl.inner_rml = tostring(ringWidthPct) .. "%" end
+		if widgetState.dmHandle then
+			local v = tostring(ringWidthPct) .. "%"
+			if widgetState.dmHandle.tfRingWidthStr ~= v then widgetState.dmHandle.tfRingWidthStr = v end
+		end
 		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
 	end
 
@@ -2726,6 +2819,10 @@ local function attachEventListeners()
 				if restoreStrengthLabel then
 					restoreStrengthLabel.inner_rml = tostring(val) .. "%"
 				end
+				if widgetState.dmHandle then
+					local v = tostring(val) .. "%"
+					if widgetState.dmHandle.tfRestoreStrengthStr ~= v then widgetState.dmHandle.tfRestoreStrengthStr = v end
+				end
 			end
 			event:StopPropagation()
 		end, false)
@@ -2764,6 +2861,10 @@ local function attachEventListeners()
 				ringWidthPct = val
 				local lbl = getCachedEl(doc, "ring-width-label")
 				if lbl then lbl.inner_rml = tostring(val) .. "%" end
+				if widgetState.dmHandle then
+					local vs = tostring(val) .. "%"
+					if widgetState.dmHandle.tfRingWidthStr ~= vs then widgetState.dmHandle.tfRingWidthStr = vs end
+				end
 				WG.TerraformBrush.setRingInnerRatio(1 - val / 100)
 			end
 			event:StopPropagation()

@@ -136,13 +136,17 @@
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_point.png" />
 					<div class="tf-btn-text">Express</div>
 				</div>
-				<div id="btn-sp-shape" class="tf-mode-btn tf-sp-btn-shape" data-class-active="stpSubMode == 'startbox'" onclick="widget:spSetSubMode('startbox'); event:StopPropagation()">
+				<div id="btn-sp-shape" class="tf-mode-btn tf-sp-btn-shape" data-class-active="stpSubMode == 'shape'" onclick="widget:spSetSubMode('shape'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_hexagon.png" />
 					<div class="tf-btn-text">Shape</div>
 				</div>
+				<div id="btn-sp-startbox" class="tf-mode-btn tf-sp-btn-startbox" data-class-active="stpSubMode == 'startbox'" onclick="widget:spSetSubMode('startbox'); event:StopPropagation()">
+					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_square.png" />
+					<div class="tf-btn-text">Startbox</div>
+				</div>
 			</div>
 			<!-- Startbox placement-mode picker (only visible in startbox submode). Same styling as main submode row. -->
-			<div id="sp-startbox-mode-row" class="flex flex-row gap-1 mb-1">
+			<div id="sp-startbox-mode-row" class="flex flex-row gap-1 mb-1" data-if="stpSubMode == 'startbox'">
 				<div id="btn-sp-sbx-box" class="tf-mode-btn tf-sp-btn-sbx-box" data-class-active="stpStartboxMode == 'box'" onclick="widget:spSetStartboxMode('box'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_square.png" />
 					<div class="tf-btn-text">Box</div>
@@ -248,7 +252,7 @@
 			<!-- Ally Teams count -->
 			<div class="flex flex-row items-center mb-1">
 				<div class="text-lg text-light font-bold">Ally Teams</div>
-				<div id="sp-allyteams-label" class="text-lg text-light">2</div>
+				<div id="sp-allyteams-label" class="text-lg text-light">{{stpAllyTeamsStr}}</div>
 				<div id="slider-sp-allyteams-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-sp-allyteams-transport" class="tf-transport-group hidden">
 					<div id="slider-sp-allyteams-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -266,7 +270,7 @@
 			<!-- Teams per Ally (for 2..16 players per allyteam; enables 32x16=512 capped at 256) -->
 			<div class="flex flex-row items-center mb-1">
 				<div class="text-lg text-light font-bold">Teams / Ally</div>
-				<div id="sp-teams-per-ally-label" class="text-lg text-light">1</div>
+				<div id="sp-teams-per-ally-label" class="text-lg text-light">{{stpTeamsPerAllyStr}}</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-sp-teams-per-ally-down" class="tf-sm-btn" onclick="widget:spTeamsPerAllyDown(); event:StopPropagation()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
@@ -278,14 +282,14 @@
 			<!-- Placement Mode Toggle -->
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div class="text-lg text-light font-bold" style="flex:1;">Placement</div>
-				<div id="btn-sp-placement-mode" class="tf-sm-btn" style="padding: 2dp 10dp;" onclick="widget:spTogglePlacement(); event:StopPropagation()">ROUND-ROBIN</div>
+				<div id="btn-sp-placement-mode" class="tf-sm-btn" style="padding: 2dp 10dp;" onclick="widget:spTogglePlacement(); event:StopPropagation()">{{stpPlacementModeStr}}</div>
 			</div>
 
 			<!-- Shape Count (for shape mode) -->
 			<div id="sp-shape-options" data-if="stpSubMode == 'shape'">
 				<div class="flex flex-row items-center mb-1">
 					<div class="text-lg text-light font-bold">Positions</div>
-					<div id="sp-count-label" class="text-lg text-light">4</div>
+					<div id="sp-count-label" class="text-lg text-light">{{stpCountStr}}</div>
 					<div id="slider-sp-count-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-sp-count-transport" class="tf-transport-group hidden">
 						<div id="slider-sp-count-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -303,7 +307,7 @@
 				<!-- Shape Size -->
 				<div class="flex flex-row items-center mb-1">
 					<div class="text-lg text-light font-bold">Size</div>
-					<div id="sp-size-label" class="text-lg text-light">2000</div>
+					<div id="sp-size-label" class="text-lg text-light">{{stpSizeStr}}</div>
 					<div id="sp-slider-size-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="sp-slider-size-transport" class="tf-transport-group hidden">
 						<div id="sp-slider-size-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -321,7 +325,7 @@
 				<!-- Shape Rotation -->
 				<div class="flex flex-row items-center mb-1">
 					<div class="text-lg text-light font-bold">Rotation</div>
-					<div id="sp-rotation-label" class="text-lg text-light">0&#176;</div>
+					<div id="sp-rotation-label" class="text-lg text-light">{{stpRotationStr}}</div>
 					<div id="sp-slider-rotation-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="sp-slider-rotation-transport" class="tf-transport-group hidden">
 						<div id="sp-slider-rotation-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -346,23 +350,19 @@
 
 			<!-- Shape selector -->
 			<div id="sp-shape-row" data-if="stpSubMode == 'shape'">
-				<div class="text-lg text-light font-bold mb-1">SHAPE</div>
+				<div class="tf-collapsible-title mb-1">SHAPE</div>
 				<div class="flex flex-row gap-1 mb-1">
-					<div id="btn-sp-shape-circle" class="tf-mode-btn" data-class-active="stpShapeMode == 'circle'" onclick="widget:spSetShape('circle'); event:StopPropagation()">
-						<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_circle.png" />
-						<div class="tf-btn-text">Circle</div>
+					<div id="btn-sp-shape-circle" class="tf-shape-btn" data-class-active="stpShapeMode == 'circle'" onclick="widget:spSetShape('circle'); event:StopPropagation()">
+						<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_circle.png" />
 					</div>
-					<div id="btn-sp-shape-square" class="tf-mode-btn" data-class-active="stpShapeMode == 'square'" onclick="widget:spSetShape('square'); event:StopPropagation()">
-						<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_square.png" />
-						<div class="tf-btn-text">Square</div>
+					<div id="btn-sp-shape-square" class="tf-shape-btn" data-class-active="stpShapeMode == 'square'" onclick="widget:spSetShape('square'); event:StopPropagation()">
+						<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_square.png" />
 					</div>
-					<div id="btn-sp-shape-hexagon" class="tf-mode-btn" data-class-active="stpShapeMode == 'hexagon'" onclick="widget:spSetShape('hexagon'); event:StopPropagation()">
-						<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_hexagon.png" />
-						<div class="tf-btn-text">Hex</div>
+					<div id="btn-sp-shape-hexagon" class="tf-shape-btn" data-class-active="stpShapeMode == 'hexagon'" onclick="widget:spSetShape('hexagon'); event:StopPropagation()">
+						<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_hexagon.png" />
 					</div>
-					<div id="btn-sp-shape-triangle" class="tf-mode-btn" data-class-active="stpShapeMode == 'triangle'" onclick="widget:spSetShape('triangle'); event:StopPropagation()">
-						<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_triangle.png" />
-						<div class="tf-btn-text">Tri</div>
+					<div id="btn-sp-shape-triangle" class="tf-shape-btn" data-class-active="stpShapeMode == 'triangle'" onclick="widget:spSetShape('triangle'); event:StopPropagation()">
+						<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_triangle.png" />
 					</div>
 				</div>
 				<div class="divider-horizontal-dark"></div>
@@ -500,7 +500,7 @@
 
 			<!-- Status display -->
 			<div class="tf-status-summary mb-1">
-				<span class="tf-ss-val" id="cl-status-label">Select an area to clone</span>
+				<span class="tf-ss-val" id="cl-status-label">{{clStatusStr}}</span>
 			</div>
 
 			<div class="divider-horizontal-dark"></div>
@@ -589,7 +589,7 @@
 
 				<!-- Rotation -->
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold" id="cl-rotation-label">0&#176;</span></div>
+					<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold" id="cl-rotation-label">{{clRotationStr}}</span></div>
 					<div id="kbhint-cl-rotation" class="text-sm text-keybind">Alt+Scroll</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
@@ -605,7 +605,7 @@
 
 				<!-- Height offset -->
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">HEIGHT OFFSET: <span class="text-xl font-bold" id="cl-height-label">0</span></div>
+					<div class="text-lg text-light">HEIGHT OFFSET: <span class="text-xl font-bold" id="cl-height-label">{{clHeightStr}}</span></div>
 					<div id="kbhint-cl-height" class="text-sm text-keybind">Shift+Scroll</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
@@ -746,7 +746,7 @@
 				</div>
 				<div id="mb-cluster-radius-row" class="tf-instrument-sub mb-1" data-if="mbClusterOpen">
 					<div class="flex flex-row justify-between items-center mb-1">
-						<div class="text-lg text-light">GRANULARITY: <span class="text-xl font-bold" id="mb-cluster-radius-label">256</span></div>
+						<div class="text-lg text-light">GRANULARITY: <span class="text-xl font-bold" id="mb-cluster-radius-label">{{mbClusterRadiusStr}}</span></div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
 						<div id="mb-btn-cluster-radius-down" class="tf-sm-btn" onclick="widget:mbClusterRadiusDown(); event:StopPropagation()">
@@ -768,7 +768,7 @@
 						</div>
 					</div>
 					<div class="flex flex-row items-center mb-1">
-						<div class="text-lg text-light">Metal in loop: <span class="text-xl font-bold" id="mb-lasso-total-label">0.00</span></div>
+						<div class="text-lg text-light">Metal in loop: <span class="text-xl font-bold" id="mb-lasso-total-label">{{mbLassoTotalStr}}</span></div>
 					</div>
 				</div>
 				<div id="mb-balance-axis-row" class="tf-instrument-sub mb-1" data-if="mbAxisOpen">
@@ -787,7 +787,7 @@
 						</div>
 					</div>
 					<div class="flex flex-row justify-between items-center mb-1">
-						<div class="text-lg text-light">ANGLE: <span class="text-xl font-bold" id="mb-axis-angle-label">0</span>&#176;</div>
+						<div class="text-lg text-light">ANGLE: <span class="text-xl font-bold" id="mb-axis-angle-label">{{mbAxisAngleStr}}</span>&#176;</div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
 						<div id="mb-btn-axis-angle-down" class="tf-sm-btn" onclick="widget:mbAxisAngleDown(); event:StopPropagation()">
@@ -799,9 +799,9 @@
 						</div>
 					</div>
 					<div class="flex flex-col mb-1">
-						<div class="text-lg text-light">Side A: <span class="text-xl font-bold" id="mb-axis-a-label">0.00</span></div>
-						<div class="text-lg text-light">Side B: <span class="text-xl font-bold" id="mb-axis-b-label">0.00</span></div>
-						<div class="text-lg text-light">Balance: <span class="text-xl font-bold" id="mb-axis-balance-label">--</span></div>
+						<div class="text-lg text-light">Side A: <span class="text-xl font-bold" id="mb-axis-a-label">{{mbAxisAStr}}</span></div>
+						<div class="text-lg text-light">Side B: <span class="text-xl font-bold" id="mb-axis-b-label">{{mbAxisBStr}}</span></div>
+						<div class="text-lg text-light">Balance: <span class="text-xl font-bold" id="mb-axis-balance-label">{{mbAxisBalanceStr}}</span></div>
 					</div>
 				</div>
 			</div>
@@ -847,7 +847,7 @@
 			</div>
 			<div id="mb-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="mbAngleSnap">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="mb-angle-snap-step-label">15</span>&#176;</div>
+					<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="mb-angle-snap-step-label">{{mbAngleStepStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="mb-btn-angle-step-down" class="tf-sm-btn" onclick="widget:mbAngleStepStep(-1); event:StopPropagation()">
@@ -948,7 +948,7 @@
 
 			<div class="flex flex-row justify-between items-center mb-1">
 				<div class="text-lg text-light font-bold">Metal Value</div>
-				<div id="mb-value-label" class="text-lg text-light">2.0</div>
+				<div id="mb-value-label" class="text-lg text-light">{{mbValueStr}}</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-metal-value-down" class="tf-sm-btn" onclick="widget:mbValueDown(); event:StopPropagation()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
@@ -961,7 +961,7 @@
 
 			<!-- Metal Size -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val" id="mb-size-label">100</span></div>
+				<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val" id="mb-size-label">{{mbSizeStr}}</span></div>
 				<div id="slider-mb-size-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-mb-size-transport" class="tf-transport-group hidden">
 					<div id="slider-mb-size-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -983,7 +983,7 @@
 
 			<!-- Metal Rotation -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold tf-slider-val" id="mb-rotation-label">0&#176;</span></div>
+				<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold tf-slider-val" id="mb-rotation-label">{{mbRotStr}}</span></div>
 				<div id="slider-mb-rotation-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-mb-rotation-transport" class="tf-transport-group hidden">
 					<div id="slider-mb-rotation-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1005,7 +1005,7 @@
 
 			<!-- Metal Length -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">LENGTH: <span class="text-xl font-bold tf-slider-val" id="mb-length-label">1.0</span></div>
+				<div class="text-lg text-light">LENGTH: <span class="text-xl font-bold tf-slider-val" id="mb-length-label">{{mbLengthStr}}</span></div>
 				<div id="slider-mb-length-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-mb-length-transport" class="tf-transport-group hidden">
 					<div id="slider-mb-length-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1027,7 +1027,7 @@
 
 			<!-- Metal Fall-off Curve -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">FALL-OFF: <span class="text-xl font-bold tf-slider-val" id="mb-curve-label">1.0</span></div>
+				<div class="text-lg text-light">FALL-OFF: <span class="text-xl font-bold tf-slider-val" id="mb-curve-label">{{mbCurveStr}}</span></div>
 				<div id="slider-mb-curve-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-mb-curve-transport" class="tf-transport-group hidden">
 					<div id="slider-mb-curve-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1077,7 +1077,7 @@
 					<div class="tf-action-btn-text">LOAD</div>
 				</div>
 				<div id="btn-metal-clean" class="tf-action-btn" style="flex: 1;" onclick="widget:mbClean(); event:StopPropagation()">
-					<div id="metal-clean-label" class="tf-action-btn-text">CLEAN</div>
+					<div id="metal-clean-label" class="tf-action-btn-text">{{mbCleanLabelStr}}</div>
 				</div>
 			</div>
 		</div>
@@ -1171,7 +1171,7 @@
 			</div>
 			<div id="gb-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="gbAngleSnap">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="gb-angle-snap-step-label">15</span>&#176;</div>
+					<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="gb-angle-snap-step-label">{{gbAngleStepStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="gb-btn-angle-step-down" onclick="widget:gbAngleStepDown(); event:StopPropagation()" class="tf-sm-btn">
@@ -1184,7 +1184,7 @@
 					<input type="text" id="gb-slider-angle-snap-step-numbox" class="tf-slider-numbox" readonly value="15" />
 				</div>
 				<div class="flex flex-row items-center mb-1">
-					<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold" id="gb-angle-manual-spoke-label">0</span>&#176;</div>
+					<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold" id="gb-angle-manual-spoke-label">{{gbManualSpokeStr}}</span>&#176;</div>
 					<div id="gb-btn-angle-autosnap" onclick="widget:gbAngleAutoSnap(); event:StopPropagation()" class="tf-inline-chip" style="margin-left: 4dp;">Auto-Snap</div>
 				</div>
 				<div id="gb-angle-manual-spoke-row" class="mb-1" data-if="!gbAngleSnapAuto">
@@ -1309,7 +1309,7 @@
 					</div>
 				</div>
 				<div id="gb-smart-slope-max-row" class="flex flex-row items-center mb-1" data-if="gbAvoidCliffs">
-					<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="gb-smart-slope-max-label">45</span>&#176;</div>
+					<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="gb-smart-slope-max-label">{{gbSlopeMaxStr}}</span>&#176;</div>
 					<div id="slider-gb-slope-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-slope-max-transport" class="tf-transport-group hidden">
 						<div id="slider-gb-slope-max-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1329,7 +1329,7 @@
 				</div>
 
 				<div id="gb-smart-slope-min-row" class="flex flex-row items-center mb-1" data-if="gbPreferSlopes">
-					<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="gb-smart-slope-min-label">10</span>&#176;</div>
+					<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="gb-smart-slope-min-label">{{gbSlopeMinStr}}</span>&#176;</div>
 					<div id="slider-gb-slope-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-slope-min-transport" class="tf-transport-group hidden">
 						<div id="slider-gb-slope-min-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1354,7 +1354,7 @@
 				<!-- Altitude Min -->
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<img id="btn-gb-alt-min-enable" onclick="widget:gbSmartSubToggle('altMinEnable'); event:StopPropagation()" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
-					<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold" id="gb-smart-alt-min-label">0</span></div>
+					<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold" id="gb-smart-alt-min-label">{{gbAltMinStr}}</span></div>
 					<div id="btn-gb-alt-min-sample" onclick="widget:gbAltSample('gbAltMin'); event:StopPropagation()" class="tf-sample-btn">SAMPLE</div>
 					<div id="slider-gb-alt-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-alt-min-transport" class="tf-transport-group hidden">
@@ -1377,7 +1377,7 @@
 				<!-- Altitude Max -->
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<img id="btn-gb-alt-max-enable" onclick="widget:gbSmartSubToggle('altMaxEnable'); event:StopPropagation()" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
-					<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold" id="gb-smart-alt-max-label">200</span></div>
+					<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold" id="gb-smart-alt-max-label">{{gbAltMaxStr}}</span></div>
 					<div id="btn-gb-alt-max-sample" onclick="widget:gbAltSample('gbAltMax'); event:StopPropagation()" class="tf-sample-btn">SAMPLE</div>
 					<div id="slider-gb-alt-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-alt-max-transport" class="tf-transport-group hidden">
@@ -1417,14 +1417,14 @@
 					<div id="gb-tex-exclude-swatch" />
 				</div>
 				<div class="flex flex-row items-center mb-1">
-					<div class="text-lg text-light">TOLERANCE: <span class="text-xl font-bold" id="gb-color-thresh-label">35</span></div>
+					<div class="text-lg text-light">TOLERANCE: <span class="text-xl font-bold" id="gb-color-thresh-label">{{gbColorThreshStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<input type="range" id="slider-gb-color-thresh" onchange="widget:gbOnColorThreshChange(element); event:StopPropagation()" class="tf-slider" min="0" max="150" step="1" value="35" />
 					<input type="text" id="slider-gb-color-thresh-numbox" class="tf-slider-numbox" value="35" />
 				</div>
 				<div class="flex flex-row items-center mb-1">
-					<div class="text-lg text-light">EDGE PAD: <span class="text-xl font-bold" id="gb-color-pad-label">0</span></div>
+					<div class="text-lg text-light">EDGE PAD: <span class="text-xl font-bold" id="gb-color-pad-label">{{gbColorPadStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<input type="range" id="slider-gb-color-pad" onchange="widget:gbOnColorPadChange(element); event:StopPropagation()" class="tf-slider" min="0" max="200" step="8" value="0" />
@@ -1446,7 +1446,7 @@
 			<!-- Density -->
 			<div class="flex flex-row justify-between items-center mb-1">
 				<div class="text-lg text-light font-bold">Density</div>
-				<div id="gb-density-label" class="text-lg text-light">80%</div>
+				<div id="gb-density-label" class="text-lg text-light">{{gbDensityStr}}</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-grass-density-down" onclick="widget:gbDensityDown(); event:StopPropagation()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
@@ -1459,7 +1459,7 @@
 
 			<!-- Size -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val" id="gb-size-label">100</span></div>
+				<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val" id="gb-size-label">{{gbSizeStr}}</span></div>
 				<div id="slider-gb-size-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-gb-size-transport" class="tf-transport-group hidden">
 					<div id="slider-gb-size-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1481,7 +1481,7 @@
 
 			<!-- Length Scale -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">LENGTH: <span class="text-xl font-bold tf-slider-val" id="gb-length-label">1.0</span></div>
+				<div class="text-lg text-light">LENGTH: <span class="text-xl font-bold tf-slider-val" id="gb-length-label">{{gbLengthStr}}</span></div>
 				<div id="slider-gb-length-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-gb-length-transport" class="tf-transport-group hidden">
 					<div id="slider-gb-length-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1503,7 +1503,7 @@
 
 			<!-- Rotation -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold tf-slider-val" id="gb-rotation-label">0&#176;</span></div>
+				<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold tf-slider-val" id="gb-rotation-label">{{gbRotStr}}</span></div>
 				<div id="slider-gb-rotation-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-gb-rotation-transport" class="tf-transport-group hidden">
 					<div id="slider-gb-rotation-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1525,7 +1525,7 @@
 
 			<!-- Fall-off Curve -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">FALL-OFF: <span class="text-xl font-bold tf-slider-val" id="gb-curve-label">1.0</span></div>
+				<div class="text-lg text-light">FALL-OFF: <span class="text-xl font-bold tf-slider-val" id="gb-curve-label">{{gbCurveStr}}</span></div>
 				<div id="slider-gb-curve-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-gb-curve-transport" class="tf-transport-group hidden">
 					<div id="slider-gb-curve-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2017,7 +2017,7 @@
 
 		<div id="restore-strength-row" data-if="tfInRestore">
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">RESTORE: <span class="text-xl font-bold tf-slider-val" id="restore-strength-label">100%</span></div>
+				<div class="text-lg text-light">RESTORE: <span class="text-xl font-bold tf-slider-val" id="restore-strength-label">{{tfRestoreStrengthStr}}</span></div>
 				<div id="slider-restore-strength-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-restore-strength-transport" class="tf-transport-group hidden">
 					<div id="slider-restore-strength-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2065,7 +2065,7 @@
 
 		<div id="ring-width-row" data-if="tfRingVisible">
 			<div class="flex flex-row items-center mt-1 mb-1">
-				<div class="text-lg text-light">RING WIDTH: <span class="text-xl font-bold tf-slider-val" id="ring-width-label">40%</span></div>
+				<div class="text-lg text-light">RING WIDTH: <span class="text-xl font-bold tf-slider-val" id="ring-width-label">{{tfRingWidthStr}}</span></div>
 				<div id="slider-ring-width-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-ring-width-transport" class="tf-transport-group hidden">
 					<div id="slider-ring-width-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2327,7 +2327,7 @@
 			<!-- Radial count -->
 			<div id="fp-symmetry-radial-count-row" class="mb-1" data-if="fpSymmetryRadial">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="fp-symmetry-radial-count-label">2</span></div>
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="fp-symmetry-radial-count-label">{{fpSymRadStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="fp-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:fpSymCountDown(); event:StopPropagation()">
@@ -2342,7 +2342,7 @@
 			<!-- Mirror axis angle -->
 			<div id="fp-symmetry-mirror-angle-row" class="mb-1" data-if="fpSymmetryMirrorAny">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="fp-symmetry-mirror-angle-label">0</span>&#176;</div>
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="fp-symmetry-mirror-angle-label">{{fpSymAngStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="fp-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:fpSymAngleDown(); event:StopPropagation()">
@@ -2402,7 +2402,7 @@
 			</div>
 		</div>
 		<div id="fp-smart-slope-max-row" class="flex flex-row items-center mb-1" data-if="fpAvoidCliffs">
-			<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="fp-smart-slope-max-label">45</span>&#176;</div>
+			<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="fp-smart-slope-max-label">{{fpSlopeMaxStr}}</span>&#176;</div>
 			<div id="fp-slider-slope-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-slope-max-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-slope-max-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2422,7 +2422,7 @@
 		</div>
 
 		<div id="fp-smart-slope-min-row" class="flex flex-row items-center mb-1" data-if="fpPreferSlopes">
-			<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="fp-smart-slope-min-label">10</span>&#176;</div>
+			<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="fp-smart-slope-min-label">{{fpSlopeMinStr}}</span>&#176;</div>
 			<div id="fp-slider-slope-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-slope-min-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-slope-min-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2446,7 +2446,7 @@
 		<div id="fp-smart-altitude-content" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<img id="btn-fp-alt-min-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" onclick="widget:fpToggleAltEnable('altMinEnable'); event:StopPropagation()" />
-			<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold" id="fp-smart-alt-min-label">0</span></div>
+			<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold" id="fp-smart-alt-min-label">{{fpAltMinStr}}</span></div>
 			<div id="btn-fp-alt-min-sample" class="tf-sample-btn" onclick="widget:fpAltSample('fpAltMin'); event:StopPropagation()">SAMPLE</div>
 			<div id="fp-slider-alt-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-alt-min-transport" class="tf-transport-group hidden">
@@ -2468,7 +2468,7 @@
 
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<img id="btn-fp-alt-max-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" onclick="widget:fpToggleAltEnable('altMaxEnable'); event:StopPropagation()" />
-			<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold" id="fp-smart-alt-max-label">200</span></div>
+			<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold" id="fp-smart-alt-max-label">{{fpAltMaxStr}}</span></div>
 			<div id="btn-fp-alt-max-sample" class="tf-sample-btn" onclick="widget:fpAltSample('fpAltMax'); event:StopPropagation()">SAMPLE</div>
 			<div id="fp-slider-alt-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-alt-max-transport" class="tf-transport-group hidden">
@@ -2519,7 +2519,7 @@
 
 		<div id="fp-param-size-row">
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val" id="fp-radius-label">200</span></div>
+			<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val" id="fp-radius-label">{{fpRadiusStr}}</span></div>
 			<div id="fp-slider-size-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-size-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-size-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2542,7 +2542,7 @@
 
 		<div id="fp-param-rotation-row">
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold tf-slider-val" id="fp-rotation-label">0</span>&#176;</div>
+			<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold tf-slider-val" id="fp-rotation-label">{{fpRotationStr}}</span>&#176;</div>
 			<div id="fp-slider-rotation-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-rotation-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-rotation-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2564,7 +2564,7 @@
 
 		<div id="fp-param-alignment-row">
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">RANDOMIZE ALIGNMENT: <span class="text-xl font-bold tf-slider-val" id="fp-rot-random-label">100</span>%</div>
+			<div class="text-lg text-light">RANDOMIZE ALIGNMENT: <span class="text-xl font-bold tf-slider-val" id="fp-rot-random-label">{{fpRotRandomStr}}</span>%</div>
 			<div id="fp-slider-rot-random-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-rot-random-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-rot-random-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2586,7 +2586,7 @@
 
 		<div id="fp-param-count-row">
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">COUNT: <span class="text-xl font-bold tf-slider-val" id="fp-count-label">5</span></div>
+			<div class="text-lg text-light">COUNT: <span class="text-xl font-bold tf-slider-val" id="fp-count-label">{{fpCountStr}}</span></div>
 			<div id="fp-slider-count-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-count-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-count-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2608,7 +2608,7 @@
 
 		<div id="fp-param-rate-row">
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">RATE: <span class="text-xl font-bold tf-slider-val" id="fp-cadence-label">1</span></div>
+			<div class="text-lg text-light">RATE: <span class="text-xl font-bold tf-slider-val" id="fp-cadence-label">{{fpCadenceStr}}</span></div>
 			<div id="fp-slider-cadence-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-cadence-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-cadence-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -3149,7 +3149,7 @@
 			</div>
 		</div>
 		<div id="sp-smart-slope-max-row" class="flex flex-row items-center mb-1" data-if="spAvoidCliffs">
-			<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="sp-smart-slope-max-label">45</span>&#176;</div>
+			<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="sp-smart-slope-max-label">{{splatSlopeMaxStr}}</span>&#176;</div>
 			<div id="sp-slider-slope-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="sp-slider-slope-max-transport" class="tf-transport-group hidden">
 				<div id="sp-slider-slope-max-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -3169,7 +3169,7 @@
 		</div>
 
 		<div id="sp-smart-slope-min-row" class="flex flex-row items-center mb-1" data-if="spPreferSlopes">
-			<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="sp-smart-slope-min-label">10</span>&#176;</div>
+			<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="sp-smart-slope-min-label">{{splatSlopeMinStr}}</span>&#176;</div>
 			<div id="sp-slider-slope-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="sp-slider-slope-min-transport" class="tf-transport-group hidden">
 				<div id="sp-slider-slope-min-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -3193,7 +3193,7 @@
 		<div id="sp-smart-altitude-content" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<img id="btn-sp-alt-min-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" onclick="widget:splatToggleSmart('altMinEnable'); event:StopPropagation()" />
-			<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold" id="sp-smart-alt-min-label">0</span></div>
+			<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold" id="sp-smart-alt-min-label">{{splatAltMinStr}}</span></div>
 			<div id="btn-sp-alt-min-sample" class="tf-sample-btn" onclick="widget:splatAltSample('spAltMin'); event:StopPropagation()">SAMPLE</div>
 			<div id="sp-slider-alt-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="sp-slider-alt-min-transport" class="tf-transport-group hidden">
@@ -3215,7 +3215,7 @@
 
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<img id="btn-sp-alt-max-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" onclick="widget:splatToggleSmart('altMaxEnable'); event:StopPropagation()" />
-			<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold" id="sp-smart-alt-max-label">200</span></div>
+			<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold" id="sp-smart-alt-max-label">{{splatAltMaxStr}}</span></div>
 			<div id="btn-sp-alt-max-sample" class="tf-sample-btn" onclick="widget:splatAltSample('spAltMax'); event:StopPropagation()">SAMPLE</div>
 			<div id="sp-slider-alt-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="sp-slider-alt-max-transport" class="tf-transport-group hidden">
@@ -3248,7 +3248,7 @@
 		<div id="section-sp-controls">
 
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">STRENGTH: <span class="text-xl font-bold tf-slider-val" id="sp-strength-label">0.15</span></div>
+			<div class="text-lg text-light">STRENGTH: <span class="text-xl font-bold tf-slider-val" id="sp-strength-label">{{splatStrengthStr}}</span></div>
 			<div id="sp-slider-strength-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="sp-slider-strength-transport" class="tf-transport-group hidden">
 				<div id="sp-slider-strength-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -3271,7 +3271,7 @@
 		<div class="divider-horizontal-dark"></div>
 
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">INTENSITY: <span class="text-xl font-bold tf-slider-val" id="sp-intensity-label">1.0</span></div>
+			<div class="text-lg text-light">INTENSITY: <span class="text-xl font-bold tf-slider-val" id="sp-intensity-label">{{splatIntensityStr}}</span></div>
 			<div id="sp-slider-intensity-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="sp-slider-intensity-transport" class="tf-transport-group hidden">
 				<div id="sp-slider-intensity-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -3294,7 +3294,7 @@
 		<div class="divider-horizontal-dark"></div>
 
 		<div class="flex flex-row justify-between items-center mb-1">
-			<div class="text-lg text-light">SIZE: <span class="text-xl font-bold" id="sp-radius-label">100</span></div>
+			<div class="text-lg text-light">SIZE: <span class="text-xl font-bold" id="sp-radius-label">{{splatRadiusStr}}</span></div>
 			<div id="kbhint-sp-size" class="text-sm text-keybind">Ctrl+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -3311,7 +3311,7 @@
 		<div class="divider-horizontal-dark"></div>
 
 		<div class="flex flex-row justify-between items-center mb-1">
-			<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold" id="sp-rotation-label">0</span>&#176;</div>
+			<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold" id="sp-rotation-label">{{splatRotationStr}}</span>&#176;</div>
 			<div id="kbhint-sp-rotation" class="text-sm text-keybind">Alt+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -3328,7 +3328,7 @@
 		<div class="divider-horizontal-dark"></div>
 
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">FALL-OFF: <span class="text-xl font-bold tf-slider-val" id="sp-curve-label">1.0</span></div>
+			<div class="text-lg text-light">FALL-OFF: <span class="text-xl font-bold tf-slider-val" id="sp-curve-label">{{splatCurveStr}}</span></div>
 			<div id="sp-slider-curve-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="sp-slider-curve-transport" class="tf-transport-group hidden">
 				<div id="sp-slider-curve-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -3375,7 +3375,7 @@
 
 		<div class="flex flex-row gap-1 mb-1">
 			<div id="btn-sp-export-format" class="tf-action-btn" style="flex: 0 0 auto; min-width: 50dp;" onclick="widget:splatCycleExportFormat(); event:StopPropagation()">
-				<div id="sp-export-format-label" class="tf-action-btn-text">PNG</div>
+				<div id="sp-export-format-label" class="tf-action-btn-text">{{splatExportFmtStr}}</div>
 			</div>
 			<div id="btn-sp-save" class="tf-action-btn tf-save-btn" style="flex: 1;" onclick="widget:splatSave(); event:StopPropagation()">
 				<div class="tf-action-btn-text">SAVE SPLATS</div>
@@ -3624,7 +3624,7 @@
 		</div>
 		<div class="divider-horizontal-dark" style="margin-bottom: 0.5em;"></div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-medium">Explosions tracked: <span class="text-sm font-bold text-light" id="dc-heat-explosions">0</span></div>
+			<div class="text-sm text-medium">Explosions tracked: <span class="text-sm font-bold text-light" id="dc-heat-explosions">{{dcHeatExpStr}}</span></div>
 		</div>
 		<div class="flex flex-row gap-1 mb-1">
 			<div id="btn-dc-heatmap-export" class="tf-action-btn tf-save-btn" onclick="widget:dcHeatmapExport(); event:StopPropagation()">
@@ -3849,6 +3849,34 @@
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 				</div>
 			</div>
+			<div id="lp-symmetry-radial-count-row" class="mb-1" data-if="lpSymmetryRadial">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="lp-symmetry-radial-count-label">{{lpSymCountStr}}</span></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="btn-lp-symmetry-count-down" class="tf-sm-btn" onclick="widget:lpSymCountDown(); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="lp-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" onchange="widget:lpOnSymCountChange(element); event:StopPropagation()" />
+					<div id="btn-lp-symmetry-count-up" class="tf-sm-btn" onclick="widget:lpSymCountUp(); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+				</div>
+			</div>
+			<div id="lp-symmetry-mirror-angle-row" class="mb-1" data-if="lpSymmetryMirrorAny">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="lp-symmetry-mirror-angle-label">{{lpSymAngleStr}}</span>&#176;</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="btn-lp-symmetry-angle-down" class="tf-sm-btn" onclick="widget:lpSymAngleDown(); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="lp-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="5" value="0" onchange="widget:lpOnSymAngleChange(element); event:StopPropagation()" />
+					<div id="btn-lp-symmetry-angle-up" class="tf-sm-btn" onclick="widget:lpSymAngleUp(); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+				</div>
+			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-lp-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;">
 					<div class="text-sm" style="text-align: center;">Set Origin</div>
@@ -3871,7 +3899,7 @@
 
 			<!-- Brightness -->
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">BRIGHTNESS: <span class="text-xl font-bold" id="lp-brightness-label">2.0</span></div>
+				<div class="text-lg text-light">BRIGHTNESS: <span class="text-xl font-bold" id="lp-brightness-label">{{lpBrightnessStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-lp-brightness-down" class="tf-sm-btn" onclick="widget:lpBrightnessDown(); event:StopPropagation()">
@@ -3886,7 +3914,7 @@
 
 			<!-- Light Radius -->
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">LIGHT RADIUS: <span class="text-xl font-bold" id="lp-light-radius-label">300</span></div>
+				<div class="text-lg text-light">LIGHT RADIUS: <span class="text-xl font-bold" id="lp-light-radius-label">{{lpLightRadiusStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-lp-light-radius-down" class="tf-sm-btn" onclick="widget:lpLightRadiusDown(); event:StopPropagation()">
@@ -3901,7 +3929,7 @@
 
 			<!-- Elevation -->
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">ELEVATION: <span class="text-xl font-bold" id="lp-elevation-label">20</span></div>
+				<div class="text-lg text-light">ELEVATION: <span class="text-xl font-bold" id="lp-elevation-label">{{lpElevationStr}}</span></div>
 				<div class="text-xs text-keybind">Shift+Scroll</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
@@ -3984,7 +4012,7 @@
 			<div id="lp-scatter-section" data-if="lpMode == 'scatter'">
 				<div class="text-lg text-light font-bold mb-1">SCATTER</div>
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">COUNT: <span class="text-xl font-bold" id="lp-count-label">5</span></div>
+					<div class="text-lg text-light">COUNT: <span class="text-xl font-bold" id="lp-count-label">{{lpCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="btn-lp-count-down" class="tf-sm-btn" onclick="widget:lpCountDown(); event:StopPropagation()">
@@ -3998,7 +4026,7 @@
 				</div>
 
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">BRUSH RADIUS: <span class="text-xl font-bold" id="lp-brush-radius-label">200</span></div>
+					<div class="text-lg text-light">BRUSH RADIUS: <span class="text-xl font-bold" id="lp-brush-radius-label">{{lpBrushRadiusStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="btn-lp-brush-radius-down" class="tf-sm-btn" onclick="widget:lpBrushRadiusDown(); event:StopPropagation()">
@@ -4164,7 +4192,7 @@
 			</div>
 		</div>
 		<div class="flex flex-row justify-between items-center mb-1">
-			<div class="text-sm text-keybind">Placed: <span id="lp-placed-count">0</span></div>
+			<div class="text-sm text-keybind">Placed: <span id="lp-placed-count">{{lpPlacedCountStr}}</span></div>
 		</div>
 		</div><!-- /section-lp-saveload -->
 
@@ -5437,11 +5465,11 @@
 		<div class="tf-collapsible-title mb-1">MAP SIZE</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">width (X)</div>
-			<div class="text-sm text-light" id="lbl-dim-map-x">--</div>
+			<div class="text-sm text-light" id="lbl-dim-map-x">{{envMapXStr}}</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">depth (Z)</div>
-			<div class="text-sm text-light" id="lbl-dim-map-z">--</div>
+			<div class="text-sm text-light" id="lbl-dim-map-z">{{envMapZStr}}</div>
 		</div>
 		<div class="divider-horizontal-dark"></div>
 
@@ -5452,19 +5480,19 @@
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">init min</div>
-			<div class="text-sm text-light" id="lbl-dim-init-min">--</div>
+			<div class="text-sm text-light" id="lbl-dim-init-min">{{envInitMinStr}}</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">init max</div>
-			<div class="text-sm text-light" id="lbl-dim-init-max">--</div>
+			<div class="text-sm text-light" id="lbl-dim-init-max">{{envInitMaxStr}}</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">curr min</div>
-			<div class="text-sm text-light font-bold" id="lbl-dim-curr-min">--</div>
+			<div class="text-sm text-light font-bold" id="lbl-dim-curr-min">{{envCurrMinStr}}</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">curr max</div>
-			<div class="text-sm text-light font-bold" id="lbl-dim-curr-max">--</div>
+			<div class="text-sm text-light font-bold" id="lbl-dim-curr-max">{{envCurrMaxStr}}</div>
 		</div>
 		<div class="divider-horizontal-dark"></div>
 
@@ -5475,7 +5503,7 @@
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">plane level</div>
-			<div class="text-sm text-light" id="lbl-dim-water-plane">--</div>
+			<div class="text-sm text-light" id="lbl-dim-water-plane">{{envWaterPlaneStr}}</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">adjust</div>

@@ -56,6 +56,10 @@ function M.attach(doc, ctx)
 		WG.GrassBrush.setDensity(v / 100)
 		local label = doc:GetElementById("gb-density-label")
 		if label then label.inner_rml = tostring(math.floor(v + 0.5)) .. "%" end
+		if widgetState.dmHandle then
+			local s = tostring(math.floor(v + 0.5)) .. "%"
+			if widgetState.dmHandle.gbDensityStr ~= s then widgetState.dmHandle.gbDensityStr = s end
+		end
 	end
 	w.gbDensityUp = function(self)
 		if not WG.GrassBrush then return end
@@ -428,6 +432,7 @@ function M.attach(doc, ctx)
 		if sl then sl:SetAttribute("value", tostring(idx - 1)) end
 		local lbl = doc:GetElementById("gb-angle-snap-step-label")
 		if lbl then lbl.inner_rml = pstr end
+		if widgetState.dmHandle and widgetState.dmHandle.gbAngleStepStr ~= pstr then widgetState.dmHandle.gbAngleStepStr = pstr end
 		local nb = doc:GetElementById("gb-slider-angle-snap-step-numbox")
 		if nb then nb:SetAttribute("value", pstr) end
 	end
@@ -460,6 +465,10 @@ function M.attach(doc, ctx)
 			local deg  = (idx * step) % 360
 			local lbl  = doc:GetElementById("gb-angle-manual-spoke-label")
 			if lbl then lbl.inner_rml = tostring(deg) end
+			if widgetState.dmHandle then
+				local s = tostring(deg)
+				if widgetState.dmHandle.gbManualSpokeStr ~= s then widgetState.dmHandle.gbManualSpokeStr = s end
+			end
 			local sl = doc:GetElementById("gb-slider-manual-spoke")
 			if sl then sl:SetAttribute("value", tostring(idx)) end
 		end
@@ -622,6 +631,10 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 
 		local gbDensityLabel = doc:GetElementById("gb-density-label")
 		if gbDensityLabel then gbDensityLabel.inner_rml = tostring(math.floor(gbState.density * 100 + 0.5)) .. "%" end
+		if widgetState.dmHandle then
+			local s = tostring(math.floor(gbState.density * 100 + 0.5)) .. "%"
+			if widgetState.dmHandle.gbDensityStr ~= s then widgetState.dmHandle.gbDensityStr = s end
+		end
 
 		do
 			local sv = math.floor(gbState.density * 100 + 0.5)
@@ -632,18 +645,34 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 		do
 			local gbSizeLabel = doc:GetElementById("gb-size-label")
 			if gbSizeLabel then gbSizeLabel.inner_rml = tostring(gbState.radius or 100) end
+			if widgetState.dmHandle then
+				local s = tostring(gbState.radius or 100)
+				if widgetState.dmHandle.gbSizeStr ~= s then widgetState.dmHandle.gbSizeStr = s end
+			end
 			syncAndFlash(doc:GetElementById("slider-gb-size"), "gb-size", tostring(gbState.radius or 100))
 
 			local gbRotLabel = doc:GetElementById("gb-rotation-label")
 			if gbRotLabel then gbRotLabel.inner_rml = tostring(gbState.rotationDeg or 0) .. "&#176;" end
+			if widgetState.dmHandle then
+				local s = tostring(gbState.rotationDeg or 0) .. "\194\176"
+				if widgetState.dmHandle.gbRotStr ~= s then widgetState.dmHandle.gbRotStr = s end
+			end
 			syncAndFlash(doc:GetElementById("slider-gb-rotation"), "gb-rotation", tostring(gbState.rotationDeg or 0))
 
 			local gbCurveLabel = doc:GetElementById("gb-curve-label")
 			if gbCurveLabel then gbCurveLabel.inner_rml = string.format("%.1f", gbState.curve or 1.0) end
+			if widgetState.dmHandle then
+				local s = string.format("%.1f", gbState.curve or 1.0)
+				if widgetState.dmHandle.gbCurveStr ~= s then widgetState.dmHandle.gbCurveStr = s end
+			end
 			syncAndFlash(doc:GetElementById("slider-gb-curve"), "gb-curve", tostring(math.floor((gbState.curve or 1.0) * 10 + 0.5)))
 
 			local gbLenLabel = doc:GetElementById("gb-length-label")
 			if gbLenLabel then gbLenLabel.inner_rml = string.format("%.1f", gbState.lengthScale or 1.0) end
+			if widgetState.dmHandle then
+				local s = string.format("%.1f", gbState.lengthScale or 1.0)
+				if widgetState.dmHandle.gbLengthStr ~= s then widgetState.dmHandle.gbLengthStr = s end
+			end
 			syncAndFlash(doc:GetElementById("slider-gb-length"), "gb-length", tostring(math.floor((gbState.lengthScale or 1.0) * 10 + 0.5)))
 		end
 
@@ -674,21 +703,37 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			-- gb-smart-slope-max-row/slider-row visibility driven by data-if="gbAvoidCliffs"
 			local slopeMaxLabel = doc:GetElementById("gb-smart-slope-max-label")
 			if slopeMaxLabel then slopeMaxLabel.inner_rml = tostring(sf.slopeMax or 45) end
+			if widgetState.dmHandle then
+				local s = tostring(sf.slopeMax or 45)
+				if widgetState.dmHandle.gbSlopeMaxStr ~= s then widgetState.dmHandle.gbSlopeMaxStr = s end
+			end
 			syncAndFlash(doc:GetElementById("slider-gb-slope-max"), "gb-slope-max", tostring(sf.slopeMax or 45))
 
 			-- gb-smart-slope-min-row/slider-row visibility driven by data-if="gbPreferSlopes"
 			local slopeMinLabel = doc:GetElementById("gb-smart-slope-min-label")
 			if slopeMinLabel then slopeMinLabel.inner_rml = tostring(sf.slopeMin or 10) end
+			if widgetState.dmHandle then
+				local s = tostring(sf.slopeMin or 10)
+				if widgetState.dmHandle.gbSlopeMinStr ~= s then widgetState.dmHandle.gbSlopeMinStr = s end
+			end
 			syncAndFlash(doc:GetElementById("slider-gb-slope-min"), "gb-slope-min", tostring(sf.slopeMin or 10))
 
 			-- gb-smart-alt-min-slider-row visibility driven by data-if="gbAltMinEnable"
 			local altMinLabel = doc:GetElementById("gb-smart-alt-min-label")
 			if altMinLabel then altMinLabel.inner_rml = tostring(sf.altMin or 0) end
+			if widgetState.dmHandle then
+				local s = tostring(sf.altMin or 0)
+				if widgetState.dmHandle.gbAltMinStr ~= s then widgetState.dmHandle.gbAltMinStr = s end
+			end
 			syncAndFlash(doc:GetElementById("slider-gb-alt-min"), "gb-alt-min", tostring(sf.altMin or 0))
 
 			-- gb-smart-alt-max-slider-row visibility driven by data-if="gbAltMaxEnable"
 			local altMaxLabel = doc:GetElementById("gb-smart-alt-max-label")
 			if altMaxLabel then altMaxLabel.inner_rml = tostring(sf.altMax or 200) end
+			if widgetState.dmHandle then
+				local s = tostring(sf.altMax or 200)
+				if widgetState.dmHandle.gbAltMaxStr ~= s then widgetState.dmHandle.gbAltMaxStr = s end
+			end
 			syncAndFlash(doc:GetElementById("slider-gb-alt-max"), "gb-alt-max", tostring(sf.altMax or 200))
 
 			-- SAMPLE button active state mirrors TerraformBrush heightSamplingMode
@@ -742,11 +787,19 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			syncAndFlash(doc:GetElementById("slider-gb-color-thresh"), "gb-color-thresh", tostring(threshVal))
 			local threshLabel = doc:GetElementById("gb-color-thresh-label")
 			if threshLabel then threshLabel.inner_rml = tostring(threshVal) end
+			if widgetState.dmHandle then
+				local s = tostring(threshVal)
+				if widgetState.dmHandle.gbColorThreshStr ~= s then widgetState.dmHandle.gbColorThreshStr = s end
+			end
 
 			local padVal = gbState.texFilterPadding or 0
 			syncAndFlash(doc:GetElementById("slider-gb-color-pad"), "gb-color-pad", tostring(math.floor(padVal + 0.5)))
 			local padLabel = doc:GetElementById("gb-color-pad-label")
 			if padLabel then padLabel.inner_rml = tostring(math.floor(padVal + 0.5)) end
+			if widgetState.dmHandle then
+				local s = tostring(math.floor(padVal + 0.5))
+				if widgetState.dmHandle.gbColorPadStr ~= s then widgetState.dmHandle.gbColorPadStr = s end
+			end
 
 			local exOn = gbState.texExcludeEnabled
 			local exToggle = doc:GetElementById("btn-gb-exclude-toggle")
