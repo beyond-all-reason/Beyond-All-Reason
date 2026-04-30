@@ -371,7 +371,7 @@ function widget:CommandsChanged()
 end
 
 function widget:ViewResize(vsx, vsy)
-	font = WG["fonts"].getFont(2, 1.5)
+	font = WG.fonts.getFont(2, 1.5)
 end
 
 function widget:Initialize()

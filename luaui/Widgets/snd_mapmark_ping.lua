@@ -16,11 +16,11 @@ local mapmarkFile = "sounds/ui/mappoint2.wav"
 local volume = 0.6
 
 function widget:Initialize()
-	WG["mapmarkping"] = {}
-	WG["mapmarkping"].getMapmarkVolume = function()
+	WG.mapmarkping = {}
+	WG.mapmarkping.getMapmarkVolume = function()
 		return volume
 	end
-	WG["mapmarkping"].setMapmarkVolume = function(value)
+	WG.mapmarkping.setMapmarkVolume = function(value)
 		volume = value
 	end
 end

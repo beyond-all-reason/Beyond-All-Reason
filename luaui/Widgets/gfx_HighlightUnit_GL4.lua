@@ -389,9 +389,9 @@ function widget:Initialize()
 			HighlightUnitGL4(featureID, "featureID", 0.0, 0.25, 1, 0.2, 0.5, 3.0, 0.0)
 		end
 	end
-	WG["HighlightUnitGL4"] = HighlightUnitGL4
-	WG["StopHighlightUnitGL4"] = StopHighlightUnitGL4
-	WG["RefreshHighlightUnitGL4"] = RefreshHighlightUnitGL4
+	WG.HighlightUnitGL4 = HighlightUnitGL4
+	WG.StopHighlightUnitGL4 = StopHighlightUnitGL4
+	WG.RefreshHighlightUnitGL4 = RefreshHighlightUnitGL4
 end
 
 function widget:Shutdown()
@@ -405,9 +405,9 @@ function widget:Shutdown()
 		highlightunitShader:Finalize()
 	end
 
-	WG["HighlightUnitGL4"] = nil
-	WG["StopHighlightUnitGL4"] = nil
-	WG["RefreshHighlightUnitGL4"] = nil
+	WG.HighlightUnitGL4 = nil
+	WG.StopHighlightUnitGL4 = nil
+	WG.RefreshHighlightUnitGL4 = nil
 end
 
 function widget:TextCommand(command)

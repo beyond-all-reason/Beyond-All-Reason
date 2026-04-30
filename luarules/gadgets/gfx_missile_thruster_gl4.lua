@@ -357,8 +357,8 @@ local THRUSTER_CONFIGS = {
 }
 
 -- Starburst variants share the same configs
-THRUSTER_CONFIGS["missiletrailsmall-starburst"] = THRUSTER_CONFIGS["missiletrailsmall"]
-THRUSTER_CONFIGS["missiletrailmedium-starburst"] = THRUSTER_CONFIGS["missiletrailmedium"]
+THRUSTER_CONFIGS["missiletrailsmall-starburst"] = THRUSTER_CONFIGS.missiletrailsmall
+THRUSTER_CONFIGS["missiletrailmedium-starburst"] = THRUSTER_CONFIGS.missiletrailmedium
 
 -- Build weaponDefID -> config lookup
 local weaponConfigs = {} -- weaponDefID -> thruster config table

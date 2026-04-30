@@ -473,15 +473,15 @@ local function GetShader(drawPass, objectDefID)
 	end
 	if objectDefID >= 0 then
 		if unitDefsUseSkinning[objectDefID] then
-			return shaders[drawPass]["unitskinning"]
+			return shaders[drawPass].unitskinning
 		else
-			return shaders[drawPass]["unit"]
+			return shaders[drawPass].unit
 		end
 	else
 		if featuresDefsWithAlpha[objectDefID] then
-			return shaders[drawPass]["tree"]
+			return shaders[drawPass].tree
 		else
-			return shaders[drawPass]["feature"]
+			return shaders[drawPass].feature
 		end
 	end
 end
@@ -873,22 +873,22 @@ local function GenFastTextureKey(objectDefID, objectDef, normaltexpath, texturet
 end
 
 local wreckAtlases = {
-	["arm"] = { -- these are only here for posterity
+	arm = { -- these are only here for posterity
 		"unittextures/Arm_wreck_color.dds",
 		"unittextures/Arm_wreck_other.dds",
 		"unittextures/Arm_wreck_color_normal.dds",
 	},
-	["cor"] = {
+	cor = {
 		"unittextures/cor_color_wreck.dds",
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
 	},
-	["leg"] = {
+	leg = {
 		"unittextures/leg_wreck_color.dds",
 		"unittextures/leg_wreck_shader.dds",
 		"unittextures/leg_wreck_normal.dds",
 	},
-	["raptor"] = {
+	raptor = {
 		"luaui/images/lavadistortion.png",
 	},
 }
@@ -1076,7 +1076,7 @@ local function initBinsAndTextures()
 					objectDefToUniformBin[unitDefID] = "legscavenger"
 				end
 			elseif unitDef.name:find("raptor", nil, true) or unitDef.name:find("raptor_hive", nil, true) then
-				textureTable[5] = wreckAtlases["raptor"][1]
+				textureTable[5] = wreckAtlases.raptor[1]
 				objectDefToUniformBin[unitDefID] = "raptor"
 				--Spring.Echo("Raptorwreck", textureTable[5])
 			elseif wreckTex1 and wreckTex2 then -- just a true unit:
@@ -2374,8 +2374,8 @@ function gadget:SunChanged() -- Note that map_nightmode.lua gadget has to change
 	end
 	lastSunChanged = df
 	local nightFactor = 1.0
-	if GG["NightFactor"] then
-		nightFactor = (GG["NightFactor"].red + GG["NightFactor"].green + GG["NightFactor"].blue) * 0.33
+	if GG.NightFactor then
+		nightFactor = (GG.NightFactor.red + GG.NightFactor.green + GG.NightFactor.blue) * 0.33
 	end
 	for uniformBinName, defaultBrightnessFactor in pairs(nightFactorBins) do
 		uniformBins[uniformBinName].brightnessFactor = defaultBrightnessFactor * nightFactor

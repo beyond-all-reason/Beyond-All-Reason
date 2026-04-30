@@ -60,32 +60,32 @@ end
 
 local unitOverrides = {
 	-- Armada Walls
-	["armdrag"] = "BPWallOrPopup('arm', 1, 'land')",
-	["armclaw"] = "BPWallOrPopup('arm', 1, 'land')",
-	["armfdrag"] = "BPWallOrPopup('arm', 1, 'sea')",
-	["armfort"] = "BPWallOrPopup('arm', 2, 'land')",
-	["armlwall"] = "BPWallOrPopup('arm', 2, 'land')",
+	armdrag = "BPWallOrPopup('arm', 1, 'land')",
+	armclaw = "BPWallOrPopup('arm', 1, 'land')",
+	armfdrag = "BPWallOrPopup('arm', 1, 'sea')",
+	armfort = "BPWallOrPopup('arm', 2, 'land')",
+	armlwall = "BPWallOrPopup('arm', 2, 'land')",
 
 	-- Cortex Walls
-	["cordrag"] = "BPWallOrPopup('cor', 1, 'land')",
-	["cormaw"] = "BPWallOrPopup('cor', 1, 'land')",
-	["corfdrag"] = "BPWallOrPopup('cor', 1, 'sea')",
-	["corfort"] = "BPWallOrPopup('cor', 2, 'land')",
-	["cormwall"] = "BPWallOrPopup('cor', 2, 'land')",
+	cordrag = "BPWallOrPopup('cor', 1, 'land')",
+	cormaw = "BPWallOrPopup('cor', 1, 'land')",
+	corfdrag = "BPWallOrPopup('cor', 1, 'sea')",
+	corfort = "BPWallOrPopup('cor', 2, 'land')",
+	cormwall = "BPWallOrPopup('cor', 2, 'land')",
 
 	-- Legion Walls
-	["legdrag"] = "BPWallOrPopup('leg', 1, 'land')",
-	["legdtr"] = "BPWallOrPopup('leg', 1, 'land')",
-	["legfdrag"] = "BPWallOrPopup('leg', 1, 'sea')",
-	["legforti"] = "BPWallOrPopup('leg', 2, 'land')",
-	["legrwall"] = "BPWallOrPopup('leg', 2, 'land')",
+	legdrag = "BPWallOrPopup('leg', 1, 'land')",
+	legdtr = "BPWallOrPopup('leg', 1, 'land')",
+	legfdrag = "BPWallOrPopup('leg', 1, 'sea')",
+	legforti = "BPWallOrPopup('leg', 2, 'land')",
+	legrwall = "BPWallOrPopup('leg', 2, 'land')",
 
 	-- Scavenger Walls
-	["corscavdrag"] = "BPWallOrPopup('scav', 1, 'land')",
-	["corscavdtf"] = "BPWallOrPopup('scav', 1, 'land')",
-	["corscavdtl"] = "BPWallOrPopup('scav', 1, 'land')",
-	["corscavdtm"] = "BPWallOrPopup('scav', 1, 'land')",
-	["corscavfort"] = "BPWallOrPopup('scav', 1, 'land')",
+	corscavdrag = "BPWallOrPopup('scav', 1, 'land')",
+	corscavdtf = "BPWallOrPopup('scav', 1, 'land')",
+	corscavdtl = "BPWallOrPopup('scav', 1, 'land')",
+	corscavdtm = "BPWallOrPopup('scav', 1, 'land')",
+	corscavfort = "BPWallOrPopup('scav', 1, 'land')",
 }
 
 local function generateCode(type)

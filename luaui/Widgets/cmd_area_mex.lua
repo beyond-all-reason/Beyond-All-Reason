@@ -36,13 +36,13 @@ local function setAreaMexType(uDefID)
 end
 
 function widget:Initialize()
-	metalSpots = WG["resource_spot_finder"].metalSpotsList
-	metalMap = WG["resource_spot_finder"].isMetalMap
-	mexBuildings = WG["resource_spot_builder"].GetMexBuildings()
-	mexConstructors = WG["resource_spot_builder"].GetMexConstructors()
+	metalSpots = WG.resource_spot_finder.metalSpotsList
+	metalMap = WG.resource_spot_finder.isMetalMap
+	mexBuildings = WG.resource_spot_builder.GetMexBuildings()
+	mexConstructors = WG.resource_spot_builder.GetMexConstructors()
 
-	WG["areamex"] = {}
-	WG["areamex"].setAreaMexType = function(uDefID)
+	WG.areamex = {}
+	WG.areamex.setAreaMexType = function(uDefID)
 		setAreaMexType(uDefID)
 	end
 end
@@ -126,10 +126,10 @@ local function getCmdsForValidSpots(spots, shift)
 	local cmds = {}
 	for i = 1, #spots do
 		local spot = spots[i]
-		local spotHasQueue = shift and WG["resource_spot_builder"].SpotHasExtractorQueued(spot) or false
+		local spotHasQueue = shift and WG.resource_spot_builder.SpotHasExtractorQueued(spot) or false
 		if not spotHasQueue then
 			local pos = { spot.x, spot.y, spot.z }
-			local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, selectedMex, spot)
+			local cmd = WG.resource_spot_builder.PreviewExtractorCommand(pos, selectedMex, spot)
 			if cmd then
 				cmds[#cmds + 1] = cmd
 			end
@@ -178,20 +178,20 @@ function widget:CommandNotify(id, params, options)
 	local spots = getSpotsInArea(cmdX, cmdZ, cmdRadius)
 
 	if not selectedMex then
-		selectedMex = WG["resource_spot_builder"].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
+		selectedMex = WG.resource_spot_builder.GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
 	end
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local cmds = getCmdsForValidSpots(spots, shift)
 	local sortedCmds = calculateCmdOrder(cmds, spots, shift)
 
-	WG["resource_spot_builder"].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
+	WG.resource_spot_builder.ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
 
 	selectedMex = nil
 
 	if not options.shift then
-		if WG["gridmenu"] then
-			WG["gridmenu"].clearCategory()
+		if WG.gridmenu then
+			WG.gridmenu.clearCategory()
 		end
 	end
 	return true
@@ -229,7 +229,7 @@ function widget:CommandsChanged()
 		if selectedUnits and #selectedUnits > 0 then
 			local customCommands = widgetHandler.customCommands
 			for i = 1, #selectedUnits do
-				if WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexConstructors()[selectedUnits[i]] then
+				if WG.resource_spot_builder and WG.resource_spot_builder.GetMexConstructors()[selectedUnits[i]] then
 					customCommands[#customCommands + 1] = {
 						id = CMD_AREA_MEX,
 						type = CMDTYPE.ICON_AREA,

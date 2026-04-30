@@ -177,7 +177,7 @@ function RaidHST:SquadFindPath(squad, target)
 	end
 	self:EchoDebug("search a path for ", squad.squadID, target.X, target.Z)
 	local path
-	if not self.ai.armyhst["airgun"][game:GetUnitByID(squad.leader):Name()] then --TODO workaraund for airgun that do not have mclass
+	if not self.ai.armyhst.airgun[game:GetUnitByID(squad.leader):Name()] then --TODO workaraund for airgun that do not have mclass
 		path = self.ai.maphst:getPath(game:GetUnitByID(squad.leader):Name(), squad.leaderPos, self.ai.maphst:GridToPos(target.X, target.Z), true)
 	end
 

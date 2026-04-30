@@ -49,11 +49,11 @@ local function ExportDefs()
 		end
 
 		-- parse wDefs, a list of weaponDef metatables
-		tbl["wDefs"] = {}
+		tbl.wDefs = {}
 		for i, weaponDef in pairs(unitDef.wDefs) do
-			tbl["wDefs"][weaponDef.id] = {}
+			tbl.wDefs[weaponDef.id] = {}
 			for field_name, value in weaponDef:pairs() do
-				tbl["wDefs"][weaponDef.id][field_name] = value
+				tbl.wDefs[weaponDef.id][field_name] = value
 			end
 		end
 

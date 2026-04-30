@@ -577,7 +577,7 @@ return {
 		},
 	},
 
-	["spawn_ring_1"] = {
+	spawn_ring_1 = {
 		fireglowbright = {
 			air = true,
 			class = [[CSimpleParticleSystem]],

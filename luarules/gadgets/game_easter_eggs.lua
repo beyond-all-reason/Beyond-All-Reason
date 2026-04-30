@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-if not Spring.Utilities.Gametype.GetCurrentHolidays()["easter"] then
+if not Spring.Utilities.Gametype.GetCurrentHolidays().easter then
 	return false
 end
 
@@ -54,7 +54,7 @@ end
 
 function gadget:GameFrame(frame)
 	if frame == 7 then
-		local metalSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList or nil
+		local metalSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
 		if metalSpots then
 			for i = 1, #metalSpots do
 				local spot = metalSpots[i]

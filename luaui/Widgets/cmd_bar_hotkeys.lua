@@ -80,8 +80,8 @@ end
 function widget:Initialize()
 	reloadBindings()
 
-	WG["bar_hotkeys"] = {}
-	WG["bar_hotkeys"].reloadBindings = reloadBindings
+	WG.bar_hotkeys = {}
+	WG.bar_hotkeys.reloadBindings = reloadBindings
 end
 
 function widget:Shutdown()

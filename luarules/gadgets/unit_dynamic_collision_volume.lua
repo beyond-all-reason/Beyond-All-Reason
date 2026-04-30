@@ -136,12 +136,12 @@ if gadgetHandler:IsSyncedCode() then
 			local midAndAimPos = unitDefMidAndAimPos[unitDefID]
 			Spring.SetUnitMidAndAimPos(
 				unitID,
-				midAndAimPos["midx"] or 0,
-				midAndAimPos["midy"] or 0,
-				midAndAimPos["midz"] or 0,
-				(midAndAimPos["aimx"] or 0) * -1, -- because engine is bugged
-				midAndAimPos["aimy"] or 0,
-				midAndAimPos["aimz"] or 0, -- relative?
+				midAndAimPos.midx or 0,
+				midAndAimPos.midy or 0,
+				midAndAimPos.midz or 0,
+				(midAndAimPos.aimx or 0) * -1, -- because engine is bugged
+				midAndAimPos.aimy or 0,
+				midAndAimPos.aimz or 0, -- relative?
 				true
 			)
 		end
@@ -200,7 +200,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- make sure underwater units are really underwater (need midpoint + model radius <0)
 			local h = spGetUnitHeight(unitID)
 			local wd = UnitDefs[unitDefID].minWaterDepth
-			if UnitDefs[unitDefID].modCategories["underwater"] and wd and wd + r > 0 then
+			if UnitDefs[unitDefID].modCategories.underwater and wd and wd + r > 0 then
 				spSetUnitRadiusAndHeight(unitID, wd - 1, h)
 			end
 		elseif unitModeltype[unitDefID] == "s3o" then
@@ -239,12 +239,12 @@ if gadgetHandler:IsSyncedCode() then
 			local midAndAimPos = featureDefMidAndAimPos[featureDefID]
 			Spring.SetFeatureMidAndAimPos(
 				featureID,
-				midAndAimPos["midx"] or 0,
-				midAndAimPos["midy"] or 0,
-				midAndAimPos["midz"] or 0,
-				(midAndAimPos["aimx"] or 0) * -1, -- because engine is bugged
-				midAndAimPos["aimy"] or 0,
-				midAndAimPos["aimz"] or 0 -- relative?
+				midAndAimPos.midx or 0,
+				midAndAimPos.midy or 0,
+				midAndAimPos.midz or 0,
+				(midAndAimPos.aimx or 0) * -1, -- because engine is bugged
+				midAndAimPos.aimy or 0,
+				midAndAimPos.aimz or 0 -- relative?
 			)
 		end
 		if is3doFeature[Spring.GetFeatureDefID(featureID)] then
