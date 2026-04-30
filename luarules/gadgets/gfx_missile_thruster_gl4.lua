@@ -32,7 +32,7 @@ local spGetProjectileTeamID = Spring.GetProjectileTeamID
 local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
 local spIsPosInAirLos = Spring.IsPosInAirLos
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetFrameTimeOffset = Spring.GetFrameTimeOffset
 

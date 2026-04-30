@@ -41,7 +41,7 @@ end
 
 function runWaitUntil(countOnly, reallyCountOnly, wait, expect, clear)
 	-- test waitUntilCallinArgs with and without expectCallin preregister
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 	if expect then
 		Test.expectCallin("UnitCommand", reallyCountOnly)
 	end

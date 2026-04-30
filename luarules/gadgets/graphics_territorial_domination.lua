@@ -57,7 +57,7 @@ local notifyFrames = {}
 local currentFrame = 0
 local lastMoveFrame = 0
 
-local myAllyID = Spring.GetMyAllyTeamID()
+local myAllyID = Spring.GetLocalAllyTeamID()
 local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 local allTeams = Spring.GetTeamList()
 local amSpectating = Spring.GetSpectatingState()
@@ -455,7 +455,7 @@ function gadget:Initialize()
 	end
 
 	amSpectating = Spring.GetSpectatingState()
-	myAllyID = Spring.GetMyAllyTeamID()
+	myAllyID = Spring.GetLocalAllyTeamID()
 	initializeAllyColors()
 
 	cameraHeightUpdateNeeded = true
@@ -500,7 +500,7 @@ end
 
 local function processSpectatorModeChange()
 	local currentSpectating = Spring.GetSpectatingState()
-	local currentAllyID = Spring.GetMyAllyTeamID()
+	local currentAllyID = Spring.GetLocalAllyTeamID()
 
 	if currentSpectating ~= amSpectating or (previousAllyID and currentAllyID ~= previousAllyID) then
 		amSpectating = currentSpectating

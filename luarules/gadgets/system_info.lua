@@ -29,7 +29,7 @@ else
 	local systems = {}
 	local validation = SYNCED.validationSys
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
 	local function isAuthorized()
 		local acID = Spring.Utilities.GetAccountID(myPlayerID)

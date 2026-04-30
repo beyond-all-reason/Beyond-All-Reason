@@ -26,7 +26,7 @@ local spGetSelectedUnits = Spring.GetSelectedUnits
 
 local trackedUnitsToUnitDefID = {}
 local unitRanges = {}
-local myAllyTeam = Spring.GetMyAllyTeamID()
+local myAllyTeam = Spring.GetLocalAllyTeamID()
 
 local POLLING_RATE = 15
 local CMD_STOP = CMD.STOP

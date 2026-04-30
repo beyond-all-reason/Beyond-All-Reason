@@ -569,7 +569,7 @@ else -- UNSYNCED
 	--------------------------------------------------------------------
 
 	local function synctest(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		Spring.Echo("[synctest]", line, playerID, action)

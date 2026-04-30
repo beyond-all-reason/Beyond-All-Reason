@@ -44,7 +44,7 @@ else
 	local PackU16 = VFS.PackU16
 	local UnpackU16 = VFS.UnpackU16
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 
 	local time = 0
 	local timeSeconds = 0

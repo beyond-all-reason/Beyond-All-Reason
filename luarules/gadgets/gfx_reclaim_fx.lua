@@ -147,7 +147,7 @@ if gadgetHandler:IsSyncedCode() then
 else -- UNSYNCED
 	local function reclaimfx(_, fx, fy, fz)
 		local mySpec, fullview = Spring.GetSpectatingState()
-		if fullview or Spring.IsPosInLos(fx, fy, fz, Spring.GetMyAllyTeamID()) then
+		if fullview or Spring.IsPosInLos(fx, fy, fz, Spring.GetLocalAllyTeamID()) then
 			Spring.PlaySoundFile("reclaimate", 1, fx, fy, fz, "sfx")
 		end
 	end

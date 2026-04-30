@@ -47,7 +47,7 @@ end
 
 local spEcho = Spring.Echo
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 local spIsPosInLos = Spring.IsPosInLos
 local spGetAllUnits = Spring.GetAllUnits

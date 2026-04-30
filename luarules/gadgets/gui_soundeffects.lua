@@ -109,8 +109,8 @@ GUIUnitSoundEffects = newGUIUnitSoundEffects
 newGUIUnitSoundEffects = nil
 
 local CurrentGameFrame = Spring.GetGameFrame()
-local myTeamID = Spring.GetMyTeamID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myTeamID = Spring.GetLocalTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local spectator, fullview = Spring.GetSpectatingState()
 
 local spGetUnitIsActive = Spring.GetUnitIsActive
@@ -124,8 +124,8 @@ local spIsUnitSelected = Spring.IsUnitSelected
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetMouseState = Spring.GetMouseState
-local spGetMyPlayerID = Spring.GetMyPlayerID
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetGameFrame = Spring.GetGameFrame
 local spPlaySoundFile = Spring.PlaySoundFile
 
@@ -263,8 +263,8 @@ function gadget:Update()
 	slowTimer = slowTimer + dt
 	if slowTimer > 0.5 then
 		slowTimer = 0
-		myTeamID = Spring.GetMyTeamID()
-		myAllyTeamID = Spring.GetMyAllyTeamID()
+		myTeamID = Spring.GetLocalTeamID()
+		myAllyTeamID = Spring.GetLocalAllyTeamID()
 		spectator, fullview = Spring.GetSpectatingState()
 		enabled = ((Spring.GetConfigInt("snd_unitsound", 1) or 1) ~= 0 and (Spring.GetConfigInt("snd_volmaster", 1) or 100) > 0 and ((Spring.GetConfigInt("snd_volui", 1) or 100) > 0 or (Spring.GetConfigInt("snd_volbattle", 1) or 100) > 0))
 	end

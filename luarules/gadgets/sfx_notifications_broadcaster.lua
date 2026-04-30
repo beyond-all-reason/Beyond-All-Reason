@@ -18,7 +18,7 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	function BroadcastEvent(_, event, player, forceplay)
-		if Script.LuaUI("NotificationEvent") and (forceplay or (tonumber(player) and ((tonumber(player) == Spring.GetMyPlayerID()) or Spring.GetSpectatingState()))) then
+		if Script.LuaUI("NotificationEvent") and (forceplay or (tonumber(player) and ((tonumber(player) == Spring.GetLocalPlayerID()) or Spring.GetSpectatingState()))) then
 			if forceplay then
 				forceplay = " y"
 			else

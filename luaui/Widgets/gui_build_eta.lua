@@ -25,7 +25,7 @@ local spGetFeatureHealth = Spring.GetFeatureHealth
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spec, fullview = spGetSpectatingState()
-local myAllyTeam = Spring.GetMyAllyTeamID()
+local myAllyTeam = Spring.GetLocalAllyTeamID()
 
 local glColor = gl.Color
 local glDepthTest = gl.DepthTest
@@ -216,8 +216,8 @@ function widget:Update(dt)
 end
 
 function widget:PlayerChanged()
-	if myAllyTeam ~= Spring.GetMyAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
-		myAllyTeam = Spring.GetMyAllyTeamID()
+	if myAllyTeam ~= Spring.GetLocalAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
+		myAllyTeam = Spring.GetLocalAllyTeamID()
 		spec, fullview = spGetSpectatingState()
 		init()
 	end
