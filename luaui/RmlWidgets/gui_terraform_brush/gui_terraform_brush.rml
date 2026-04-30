@@ -481,61 +481,59 @@
 		<div id="btn-toggle-cl-controls" class="flex flex-row items-center gap-1 mb-1" style="cursor: pointer;">
 			<img id="img-toggle-cl-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 			<div class="text-base text-keybind" style="margin-right: 2dp;">CONTROLS</div>
+			<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+C / Ctrl+V</div>
 		</div>
 		<div id="section-cl-controls">
 
-
-			<!-- Primary actions — hero buttons: COPY is the main action -->
+			<!-- Primary actions -->
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-cl-copy" class="tf-cl-action tf-cl-action-copy" onclick="widget:clCopy(); event:StopPropagation()">
-					<div class="tf-cl-action-label">COPY</div>
-					<div class="tf-cl-action-key">Ctrl+C</div>
+				<div id="btn-cl-copy" class="tf-mode-btn" style="height: 36dp; justify-content: center; padding-bottom: 0dp;" onclick="widget:clCopy(); event:StopPropagation()">
+					<div class="tf-btn-text">COPY</div>
 				</div>
-				<div id="btn-cl-paste" class="tf-cl-action tf-cl-action-paste" onclick="widget:clPaste(); event:StopPropagation()">
-					<div class="tf-cl-action-label">PASTE</div>
-					<div class="tf-cl-action-key">Ctrl+V</div>
+				<div id="btn-cl-paste" class="tf-mode-btn" style="height: 36dp; justify-content: center; padding-bottom: 0dp;" onclick="widget:clPaste(); event:StopPropagation()">
+					<div class="tf-btn-text">PASTE</div>
 				</div>
-				<div id="btn-cl-clear" class="tf-cl-action tf-cl-action-clear" onclick="widget:clClear(); event:StopPropagation()">
-					<div class="tf-cl-action-label">CLEAR</div>
+				<div id="btn-cl-clear" class="tf-mode-btn" style="height: 36dp; justify-content: center; padding-bottom: 0dp;" onclick="widget:clClear(); event:StopPropagation()">
+					<div class="tf-btn-text">CLEAR</div>
 				</div>
 			</div>
 
-			<!-- Status display — prominent -->
-			<div class="tf-cl-status-bar mb-1">
-				<div class="tf-cl-status-text" id="cl-status-label">Select an area to clone</div>
+			<!-- Status display -->
+			<div class="tf-status-summary mb-1">
+				<span class="tf-ss-val" id="cl-status-label">Select an area to clone</span>
 			</div>
 
 			<div class="divider-horizontal-dark"></div>
 
-			<!-- Layer toggles — compact secondary row -->
+			<!-- Layer toggles -->
 			<div class="flex flex-row items-center gap-1 mb-1">
-				<div class="text-sm text-keybind">Include Layers</div>
+				<div class="text-sm text-keybind">INCLUDE LAYERS</div>
 				<div id="clone-layers-notify-dot" class="tf-notify-dot hidden"></div>
 			</div>
 			<div class="tf-cl-layer-grid mb-1">
-				<div id="btn-cl-terrain" class="tf-cl-chip active" onclick="widget:clToggleLayer('terrain'); event:StopPropagation()">
-					<div class="tf-cl-chip-label">Terrain</div>
+				<div id="btn-cl-terrain" class="tf-overlay-chip active" style="flex: 1 0 30%; text-align: center;" onclick="widget:clToggleLayer('terrain'); event:StopPropagation()">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Terrain</div>
 				</div>
-				<div id="btn-cl-metal" class="tf-cl-chip active" onclick="widget:clToggleLayer('metal'); event:StopPropagation()">
-					<div class="tf-cl-chip-label">Metal</div>
+				<div id="btn-cl-metal" class="tf-overlay-chip active" style="flex: 1 0 30%; text-align: center;" onclick="widget:clToggleLayer('metal'); event:StopPropagation()">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Metal</div>
 				</div>
-				<div id="btn-cl-features" class="tf-cl-chip active" onclick="widget:clToggleLayer('features'); event:StopPropagation()">
-					<div class="tf-cl-chip-label">Features</div>
+				<div id="btn-cl-features" class="tf-overlay-chip active" style="flex: 1 0 30%; text-align: center;" onclick="widget:clToggleLayer('features'); event:StopPropagation()">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Features</div>
 				</div>
-				<div id="btn-cl-splats" class="tf-cl-chip active" onclick="widget:clToggleLayer('splats'); event:StopPropagation()">
-					<div class="tf-cl-chip-label">Splats</div>
+				<div id="btn-cl-splats" class="tf-overlay-chip active" style="flex: 1 0 30%; text-align: center;" onclick="widget:clToggleLayer('splats'); event:StopPropagation()">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Splats</div>
 				</div>
-				<div id="btn-cl-grass" class="tf-cl-chip active" onclick="widget:clToggleLayer('grass'); event:StopPropagation()">
-					<div class="tf-cl-chip-label">Grass</div>
+				<div id="btn-cl-grass" class="tf-overlay-chip active" style="flex: 1 0 30%; text-align: center;" onclick="widget:clToggleLayer('grass'); event:StopPropagation()">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Grass</div>
 				</div>
-				<div id="btn-cl-decals" class="tf-cl-chip" onclick="widget:clToggleLayer('decals'); event:StopPropagation()">
-					<div class="tf-cl-chip-label">Decals</div>
+				<div id="btn-cl-decals" class="tf-overlay-chip" style="flex: 1 0 30%; text-align: center;" onclick="widget:clToggleLayer('decals'); event:StopPropagation()">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Decals</div>
 				</div>
-				<div id="btn-cl-weather" class="tf-cl-chip" onclick="widget:clToggleLayer('weather'); event:StopPropagation()">
-					<div class="tf-cl-chip-label">Weather</div>
+				<div id="btn-cl-weather" class="tf-overlay-chip" style="flex: 1 0 30%; text-align: center;" onclick="widget:clToggleLayer('weather'); event:StopPropagation()">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Weather</div>
 				</div>
-				<div id="btn-cl-lights" class="tf-cl-chip" onclick="widget:clToggleLayer('lights'); event:StopPropagation()">
-					<div class="tf-cl-chip-label">Lights</div>
+				<div id="btn-cl-lights" class="tf-overlay-chip" style="flex: 1 0 30%; text-align: center;" onclick="widget:clToggleLayer('lights'); event:StopPropagation()">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Lights</div>
 				</div>
 			</div>
 
@@ -564,23 +562,30 @@
 
 			<!-- Paste transform controls -->
 			<div id="cl-paste-transforms" data-if="clonePasteTransformsVisible">
-				<div class="text-sm text-keybind mb-1">Paste Transforms</div>
+				<div id="btn-toggle-cl-paste" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+					<img id="img-toggle-cl-paste" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+					<div class="tf-collapsible-title">PASTE TRANSFORMS</div>
+				</div>
+				<div id="section-cl-paste" class="hidden">
 
 				<!-- Terrain quality -->
-				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">TERRAIN QUALITY</div>
+				<div id="btn-toggle-cl-quality" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+					<img id="img-toggle-cl-quality" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+					<div class="tf-collapsible-title">TERRAIN QUALITY</div>
 				</div>
+				<div id="section-cl-quality" class="hidden">
 				<div class="flex flex-row gap-1 mb-1">
-					<div id="btn-cl-quality-full" class="tf-mode-btn" style="flex: 1;" onclick="widget:clSetQuality('full'); event:StopPropagation()">
-						<div class="tf-btn-text">Full</div>
+					<div id="btn-cl-quality-full" class="tf-overlay-chip active" style="flex: 1; text-align: center;" onclick="widget:clSetQuality('full'); event:StopPropagation()">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Full</div>
 					</div>
-					<div id="btn-cl-quality-balanced" class="tf-mode-btn active" style="flex: 1;" onclick="widget:clSetQuality('balanced'); event:StopPropagation()">
-						<div class="tf-btn-text">Balanced</div>
+					<div id="btn-cl-quality-balanced" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:clSetQuality('balanced'); event:StopPropagation()">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Balanced</div>
 					</div>
-					<div id="btn-cl-quality-fast" class="tf-mode-btn" style="flex: 1;" onclick="widget:clSetQuality('fast'); event:StopPropagation()">
-						<div class="tf-btn-text">Fast</div>
+					<div id="btn-cl-quality-fast" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:clSetQuality('fast'); event:StopPropagation()">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Fast</div>
 					</div>
 				</div>
+				</div><!-- /section-cl-quality -->
 
 				<!-- Rotation -->
 				<div class="flex flex-row justify-between items-center mb-1">
@@ -616,13 +621,14 @@
 
 				<!-- Mirror buttons -->
 				<div class="flex flex-row gap-1 mb-1">
-					<div id="btn-cl-mirror-x" class="tf-mode-btn" style="flex: 1;" onclick="widget:clToggleMirrorX(); event:StopPropagation()">
-						<div class="tf-btn-text">Mirror X (Shift+X)</div>
+					<div id="btn-cl-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:clToggleMirrorX(); event:StopPropagation()">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X (Shift+X)</div>
 					</div>
-					<div id="btn-cl-mirror-z" class="tf-mode-btn" style="flex: 1;" onclick="widget:clToggleMirrorZ(); event:StopPropagation()">
-						<div class="tf-btn-text">Mirror Z (Shift+Z)</div>
+					<div id="btn-cl-mirror-z" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:clToggleMirrorZ(); event:StopPropagation()">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Z (Shift+Z)</div>
 					</div>
 				</div>
+				</div><!-- /section-cl-paste -->
 			</div>
 
 		</div><!-- /section-cl-controls -->
