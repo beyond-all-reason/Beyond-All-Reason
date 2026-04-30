@@ -19,7 +19,7 @@ function gadget:GetInfo()
 		date = "March 2026",
 		license = "GNU GPL v2",
 		layer = 0,
-		enabled = false, --(DEPRECATED - replaced by gfx_particle_engine_gl4 + gfx_crash_trails_gl4 + gfx_piece_trails_gl4)
+		enabled = true,
 	}
 end
 
@@ -88,7 +88,7 @@ local smokeTexture = "bitmaps/projectiletextures/smoke-beh-anim.tga"
 
 -- General (MAX_PARTICLES read from configint so the options widget can expose a slider)
 local minFireSmokeParticles  = 10000	-- before MaxParticles is added
-local MAX_PARTICLES          = ((spGetConfigInt("MaxParticles", 10000)-7500)*3) + minFireSmokeParticles	-- NOTE: actual calc is in func updateMaxParticles
+local MAX_PARTICLES          = ((spGetConfigInt("MaxParticles", 10000)-7000)*2) + minFireSmokeParticles	-- NOTE: actual calc is in func updateMaxParticles
 
 local VBO_CAPACITY           = MAX_PARTICLES  -- fixed at init; VBO cannot be resized
 local PARTICLE_SIZE_MIN      = 1
@@ -165,8 +165,8 @@ local crashScale = {
 	COST_REF        = 250,
 	RADIUS_WEIGHT   = 0.4,
 	COST_WEIGHT     = 0.7,
-	MIN             = 0.66,
-	MAX             = 1.15,
+	MIN             = 0.77,
+	MAX             = 1.3,
 	SIZE_EXP        = 0.8,
 	LIFE_EXP        = 0.5,
 	SPAWN_EXP       = 0.6,
@@ -174,13 +174,11 @@ local crashScale = {
 	FIRE_INT_MIN    = 0.66,
 }
 
--- Distance LOD for crashing aircraft
-local CRASH_LOD_DIST_NEAR      = 6000
-local CRASH_LOD_DIST_FAR       = 15000
-local CRASH_LOD_MIN_MULT       = 0.45
-local CRASH_LOD_DIST_RANGE_INV = 1.0 / (CRASH_LOD_DIST_FAR - CRASH_LOD_DIST_NEAR)
-local CRASH_LOD_MULT_RANGE     = 1.0 - CRASH_LOD_MIN_MULT
-local CRASH_LOD_DIST_NEAR_SQ   = CRASH_LOD_DIST_NEAR * CRASH_LOD_DIST_NEAR
+-- Distance LOD for crashing aircraft (stored in crashScale to reduce top-level local count)
+crashScale.LOD_DIST_NEAR_SQ   = 6000 * 6000
+crashScale.LOD_DIST_RANGE_INV = 1.0 / (15000 - 6000)
+crashScale.LOD_MIN_MULT       = 0.45
+crashScale.LOD_MULT_RANGE     = 1.0 - 0.45
 
 -- Point emitter defaults (for generic fire/smoke sources)
 local POINT_SPAWN_INTERVAL     = 2     -- frames between spawns
@@ -223,14 +221,14 @@ local QUALITY_PRESETS = {
 		spawnMult       = 0.65,
 		pieceCountMult  = 0.75,
 		lifetimeMult    = 0.33,
-		maxPct          = 0.66,
+		maxPct          = 0.75,
 	},
 	[3] = {
 		name            = "High",
 		spawnMult       = 1.0,
 		pieceCountMult  = 1.0,
 		lifetimeMult    = 0.4,
-		maxPct          = 0.33,
+		maxPct          = 0.45,
 	},
 }
 
@@ -568,7 +566,7 @@ end
 
 local function updateMaxParticles(gameFrame)
 	if gameFrame % 90 ~= 0 then return end  -- re-read configint every ~3 seconds
-	local newMax = ((spGetConfigInt("MaxParticles", 10000)-7000)*3) + minFireSmokeParticles
+	local newMax = ((spGetConfigInt("MaxParticles", 10000)-7000)*2) + minFireSmokeParticles
 
 	if newMax == MAX_PARTICLES then return end
 	newMax = mathMin(newMax, VBO_CAPACITY)
@@ -772,13 +770,31 @@ local function DrawParticles()
 end
 
 -- Remove expired particles from VBO (runs every frame, pops exact deathFrame queue)
+-- Processes all frames from lastRemovedFrame+1 to current to handle frame skips during fast-forward
+local lastRemovedFrame = 0
 local function removeExpiredParticles(gameFrame)
-	local queue = particleRemoveQueue[gameFrame]
-	if not queue then return end
-	for i = 1, #queue do
-		popElementInstance(particleVBO, queue[i])
+	local startFrame = lastRemovedFrame + 1
+	-- Cap catch-up window to avoid stalling on very large frame jumps
+	if gameFrame - startFrame > 300 then
+		-- Discard any queues that are too old to matter
+		for f = startFrame, gameFrame - 301 do
+			particleRemoveQueue[f] = nil
+		end
+		startFrame = gameFrame - 300
 	end
-	particleRemoveQueue[gameFrame] = nil
+	for f = startFrame, gameFrame do
+		local queue = particleRemoveQueue[f]
+		if queue then
+			for i = 1, #queue do
+				local id = queue[i]
+				if particleVBO.instanceIDtoIndex[id] then
+					popElementInstance(particleVBO, id)
+				end
+			end
+			particleRemoveQueue[f] = nil
+		end
+	end
+	lastRemovedFrame = gameFrame
 end
 
 --------------------------------------------------------------------------------
@@ -887,13 +903,22 @@ local pendingDeathUnitRadii = {}
 local excludedDeathUnits = {}
 local pieceGeneration = 0
 
+-- Buffer stride: each entry is 7 values (frame, px, py, pz, vx, vy, vz)
+local PIECE_BUFFER_MAX = 350   -- 50 entries * 7 stride
+local CRASH_BUFFER_MAX = 1050  -- 150 entries * 7 stride
+
+-- Count of entities with active off-screen buffers (skip DrawWorld flush when 0)
+local offscreenBufferCount = 0
+
 -- Replay buffered off-screen piece frames retroactively.
 -- Only replays the last few buffered positions (piece particles are short-lived,
 -- so older entries would be dead on arrival anyway).
 local function replayPieceBuffer(tracked, gameFrame)
 	local buf = tracked.offscreenBuffer
-	if not buf or #buf == 0 then
+	local bufLen = tracked.bufferLen
+	if not buf or bufLen == 0 then
 		tracked.offscreenBuffer = nil
+		tracked.bufferLen = nil
 		return
 	end
 
@@ -905,20 +930,19 @@ local function replayPieceBuffer(tracked, gameFrame)
 	currentBudgetLimit = cachedBudgetNormal
 
 	-- Only replay recent entries that could still produce alive particles
-	-- Max possible lifetime: PIECE_LIFETIME_MAX * 2.0 (sizeRand factor) * presetLifeMult + 2 (deathFrame buffer)
 	local maxReplayAge = mathCeil(PIECE_LIFETIME_MAX * 2 * presetLifeMult) + 2
-	local startIdx = #buf
-	for i = #buf, 1, -1 do
-		if gameFrame - buf[i][1] > maxReplayAge then break end
-		startIdx = i
+	local startIdx = bufLen - 6
+	while startIdx > 1 do
+		local prevStart = startIdx - 7
+		if gameFrame - buf[prevStart] > maxReplayAge then break end
+		startIdx = prevStart
 	end
 
 	local replayedCount = 0
-	for i = startIdx, #buf do
-		local entry = buf[i]
-		local frame = entry[1]
-		local bpx, bpy, bpz = entry[2], entry[3], entry[4]
-		local bvx, bvy, bvz = entry[5], entry[6], entry[7]
+	for i = startIdx, bufLen, 7 do
+		local frame = buf[i]
+		local bpx, bpy, bpz = buf[i+1], buf[i+2], buf[i+3]
+		local bvx, bvy, bvz = buf[i+4], buf[i+5], buf[i+6]
 
 		local pieceAge = frame - tracked.birthFrame
 		local ageFrac = pieceAge / tracked.lifeFrames
@@ -966,45 +990,52 @@ local function replayPieceBuffer(tracked, gameFrame)
 	end
 
 	tracked.offscreenBuffer = nil
-	-- if debugEcho and replayedCount > 0 then
-	-- 	spEcho(string.format("[FireSmoke] Replayed %d retroactive piece particles (%d buffered frames, started at %d/%d)", replayedCount, #buf, startIdx, #buf))
-	-- end
+	tracked.bufferLen = nil
+	offscreenBufferCount = offscreenBufferCount - 1
 end
 
--- Debug counters
-local debugPieceSpawnCount = 0
-local debugPieceCallCount = 0
-local debugPieceSkipAboveGround = 0
-local debugPieceSkipOffscreen = 0
-local debugPieceSkipExpired = 0
-local debugPieceSkipNoPos = 0
+-- Debug counters (consolidated into table to reduce top-level local count)
+local debugPiece = { spawn = 0, call = 0, skipGround = 0, skipOffscreen = 0, skipExpired = 0, skipNoPos = 0 }
 
 local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	local pieceAge = gameFrame - tracked.birthFrame
-	if pieceAge > tracked.lifeFrames then debugPieceSkipExpired = debugPieceSkipExpired + 1 return end
+	if pieceAge > tracked.lifeFrames then debugPiece.skipExpired = debugPiece.skipExpired + 1 return end
 
 	local px, py, pz = spGetProjectilePosition(proID)
-	if not px then debugPieceSkipNoPos = debugPieceSkipNoPos + 1 return end
+	if not px then debugPiece.skipNoPos = debugPiece.skipNoPos + 1 return end
 
 	local aboveGround = py > PIECE_GROUND_SKIP_HEIGHT
 	if not aboveGround then
 		local groundY = spGetGroundHeight(px, pz) or 0
 		aboveGround = py > groundY + 1
 	end
-	if not aboveGround then debugPieceSkipAboveGround = debugPieceSkipAboveGround + 1 return end
+	if not aboveGround then debugPiece.skipGround = debugPiece.skipGround + 1 return end
 
 	local inView = spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS)
 	if not inView then
-		debugPieceSkipOffscreen = debugPieceSkipOffscreen + 1
+		debugPiece.skipOffscreen = debugPiece.skipOffscreen + 1
+		tracked.offscreenSkip = 2  -- skip next 2 frames without re-querying position
 		-- Buffer position/velocity every 3rd frame for retroactive spawning
 		if not fastForward and gameFrame % 3 == 0 then
 			local pvx, pvy, pvz = spGetProjectileVelocity(proID)
 			local buf = tracked.offscreenBuffer
+			local n = tracked.bufferLen or 0
 			if not buf then
 				buf = {}
 				tracked.offscreenBuffer = buf
+				offscreenBufferCount = offscreenBufferCount + 1
+				n = 0
 			end
-			buf[#buf + 1] = {gameFrame, px, py, pz, pvx or 0, pvy or 0, pvz or 0}
+			if n < PIECE_BUFFER_MAX then
+				buf[n+1] = gameFrame
+				buf[n+2] = px
+				buf[n+3] = py
+				buf[n+4] = pz
+				buf[n+5] = pvx or 0
+				buf[n+6] = pvy or 0
+				buf[n+7] = pvz or 0
+				tracked.bufferLen = n + 7
+			end
 		end
 		return
 	end
@@ -1013,8 +1044,9 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	if tracked.offscreenBuffer then
 		replayPieceBuffer(tracked, gameFrame)
 	end
+	tracked.offscreenSkip = nil
 
-	debugPieceCallCount = debugPieceCallCount + 1
+	debugPiece.call = debugPiece.call + 1
 
 	local dx, dy, dz = px - cachedCamX, py - cachedCamY, pz - cachedCamZ
 	local distSq = dx*dx + dy*dy + dz*dz
@@ -1058,7 +1090,7 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 			local smokeLife = (PIECE_LIFETIME_MIN + (tracked.lifeBias + mathRandom() * 0.3) * PIECE_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase
 			local smokeAlpha = (PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase
 			spawnParticle(spx, spy, spz, svx, svy, svz, particleSize, 0, smokeLife, smokeAlpha)
-			debugPieceSpawnCount = debugPieceSpawnCount + 1
+			debugPiece.spawn = debugPiece.spawn + 1
 		end
 	end
 
@@ -1074,7 +1106,7 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 			(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * fi,
 			(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi)
 		)
-		debugPieceSpawnCount = debugPieceSpawnCount + 1
+		debugPiece.spawn = debugPiece.spawn + 1
 	end
 end
 
@@ -1114,13 +1146,20 @@ local function updatePieceProjectiles(gameFrame)
 		else
 			tracked.gen = gen
 			if not tracked.excluded then
-				spawnPieceTrailParticles(tracked, proID, gameFrame)
+				-- Skip off-screen pieces for a few frames without re-querying position
+				local skip = tracked.offscreenSkip
+				if skip and skip > 0 then
+					tracked.offscreenSkip = skip - 1
+				else
+					spawnPieceTrailParticles(tracked, proID, gameFrame)
+				end
 			end
 		end
 	end
 
 	for proID, tracked in pairs(trackedPieceProjectiles) do
 		if tracked.gen ~= gen then
+			if tracked.offscreenBuffer then offscreenBufferCount = offscreenBufferCount - 1 end
 			trackedPieceProjectiles[proID] = nil
 		end
 	end
@@ -1159,7 +1198,8 @@ end
 -- retroactively render at the correct age/position/size/color immediately.
 local function replayCrashBuffer(tracked, gameFrame)
 	local buf = tracked.offscreenBuffer
-	if not buf or #buf == 0 then return end
+	local bufLen = tracked.bufferLen
+	if not buf or bufLen == 0 then return end
 
 	local preset = cachedPreset
 	local sc = tracked.sizeScale
@@ -1173,11 +1213,10 @@ local function replayCrashBuffer(tracked, gameFrame)
 	currentBudgetLimit = cachedBudgetEssential
 
 	local replayedCount = 0
-	for i = 1, #buf do
-		local entry = buf[i]
-		local frame = entry[1]
-		local bpx, bpy, bpz = entry[2], entry[3], entry[4]
-		local bvx, bvy, bvz = entry[5], entry[6], entry[7]
+	for i = 1, bufLen, 7 do
+		local frame = buf[i]
+		local bpx, bpy, bpz = buf[i+1], buf[i+2], buf[i+3]
+		local bvx, bvy, bvz = buf[i+4], buf[i+5], buf[i+6]
 
 		local crashAge = frame - tracked.birthFrame
 		local ageFrac = crashAge / CRASH_MAX_DURATION
@@ -1222,9 +1261,8 @@ local function replayCrashBuffer(tracked, gameFrame)
 	end
 
 	tracked.offscreenBuffer = nil
-	-- if debugEcho and replayedCount > 0 then
-	-- 	spEcho(string.format("[FireSmoke] Replayed %d retroactive crash particles (%d buffered frames)", replayedCount, #buf))
-	-- end
+	tracked.bufferLen = nil
+	offscreenBufferCount = offscreenBufferCount - 1
 end
 
 local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
@@ -1236,15 +1274,27 @@ local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 
 	local inView = spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL)
 	if not inView then
-		-- Buffer position/velocity for retroactive spawning when coming into view
-		if not fastForward then
+		-- Buffer position/velocity every 3rd frame for retroactive spawning when coming into view
+		if not fastForward and gameFrame % 3 == 0 then
 			local uvx, uvy, uvz = spGetUnitVelocity(unitID)
 			local buf = tracked.offscreenBuffer
+			local n = tracked.bufferLen or 0
 			if not buf then
 				buf = {}
 				tracked.offscreenBuffer = buf
+				offscreenBufferCount = offscreenBufferCount + 1
+				n = 0
 			end
-			buf[#buf + 1] = {gameFrame, px, py, pz, uvx or 0, uvy or 0, uvz or 0}
+			if n < CRASH_BUFFER_MAX then
+				buf[n+1] = gameFrame
+				buf[n+2] = px
+				buf[n+3] = py
+				buf[n+4] = pz
+				buf[n+5] = uvx or 0
+				buf[n+6] = uvy or 0
+				buf[n+7] = uvz or 0
+				tracked.bufferLen = n + 7
+			end
 		end
 		return
 	end
@@ -1257,9 +1307,9 @@ local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 	local dx, dy, dz = px - cachedCamX, py - cachedCamY, pz - cachedCamZ
 	local distSq = dx*dx + dy*dy + dz*dz
 	local lodMult = 1.0
-	if distSq > CRASH_LOD_DIST_NEAR_SQ then
-		local t = (mathSqrt(distSq) - CRASH_LOD_DIST_NEAR) * CRASH_LOD_DIST_RANGE_INV
-		lodMult = t >= 1.0 and CRASH_LOD_MIN_MULT or (1.0 - t * CRASH_LOD_MULT_RANGE)
+	if distSq > crashScale.LOD_DIST_NEAR_SQ then
+		local t = (mathSqrt(distSq) - 6000) * crashScale.LOD_DIST_RANGE_INV
+		lodMult = t >= 1.0 and crashScale.LOD_MIN_MULT or (1.0 - t * crashScale.LOD_MULT_RANGE)
 	end
 
 	local vxs, vys, vzs = 0, 0, 0
@@ -1322,9 +1372,11 @@ local function updateCrashingAircraft(gameFrame)
 
 	for unitID, tracked in pairs(trackedCrashingAircraft) do
 		if not spValidUnitID(unitID) then
+			if tracked.offscreenBuffer then offscreenBufferCount = offscreenBufferCount - 1 end
 			trackedCrashingAircraft[unitID] = nil
 			crashingAircraftCount = crashingAircraftCount - 1
 		elseif gameFrame - tracked.birthFrame > CRASH_MAX_DURATION then
+			if tracked.offscreenBuffer then offscreenBufferCount = offscreenBufferCount - 1 end
 			trackedCrashingAircraft[unitID] = nil
 			crashingAircraftCount = crashingAircraftCount - 1
 		else
@@ -1504,6 +1556,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 
 	-- Stop tracking crashing aircraft on death
 	if trackedCrashingAircraft[unitID] then
+		if trackedCrashingAircraft[unitID].offscreenBuffer then offscreenBufferCount = offscreenBufferCount - 1 end
 		trackedCrashingAircraft[unitID] = nil
 		crashingAircraftCount = crashingAircraftCount - 1
 	end
@@ -1586,24 +1639,24 @@ function gadget:GameFrame(n)
 		updatePieceProjectiles(n)
 
 		-- Debug output every 30 frames
-		if n % 30 == 0 then
-			local trackedCount = 0
-			for _ in pairs(trackedPieceProjectiles) do trackedCount = trackedCount + 1 end
-			spEcho(string.format(
-				"[PieceTrails-OLD] spawned=%d  calls=%d  tracked=%d  skipGround=%d  skipOffscreen=%d  skipExpired=%d  skipNoPos=%d  preset=%s  interval=%d",
-				debugPieceSpawnCount, debugPieceCallCount, trackedCount,
-				debugPieceSkipAboveGround, debugPieceSkipOffscreen, debugPieceSkipExpired, debugPieceSkipNoPos,
-				cachedPreset.name, updateInterval
-			))
-			debugPieceSpawnCount = 0
-			debugPieceCallCount = 0
-			debugPieceSkipAboveGround = 0
-			debugPieceSkipOffscreen = 0
-			debugPieceSkipExpired = 0
-			debugPieceSkipNoPos = 0
-		end
-
 		if debugEcho then
+			if n % 30 == 0 then
+				local trackedCount = 0
+				for _ in pairs(trackedPieceProjectiles) do trackedCount = trackedCount + 1 end
+				spEcho(string.format(
+					"[PieceTrails-OLD] spawned=%d  calls=%d  tracked=%d  skipGround=%d  skipOffscreen=%d  skipExpired=%d  skipNoPos=%d  preset=%s  interval=%d",
+					debugPiece.spawn, debugPiece.call, trackedCount,
+					debugPiece.skipGround, debugPiece.skipOffscreen, debugPiece.skipExpired, debugPiece.skipNoPos,
+					cachedPreset.name, updateInterval
+				))
+				debugPiece.spawn = 0
+				debugPiece.call = 0
+				debugPiece.skipGround = 0
+				debugPiece.skipOffscreen = 0
+				debugPiece.skipExpired = 0
+				debugPiece.skipNoPos = 0
+			end
+
 			t1 = spGetTimer()
 			debugTimings.pieceProjectiles = debugTimings.pieceProjectiles + spDiffTimers(t1, t0, true)
 			t0 = t1
@@ -1678,24 +1731,25 @@ function gadget:GameFrame(n)
 end
 
 function gadget:DrawWorld()
-	-- Flush off-screen crash buffers that are now in view (works while paused too)
-	if crashingAircraftCount > 0 then
-		for unitID, tracked in pairs(trackedCrashingAircraft) do
-			if tracked.offscreenBuffer then
-				local px, py, pz = spGetUnitPosition(unitID)
-				if px and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
-					replayCrashBuffer(tracked, cachedGameFrame)
+	-- Flush off-screen buffers that are now in view (works while paused too)
+	if offscreenBufferCount > 0 then
+		if crashingAircraftCount > 0 then
+			for unitID, tracked in pairs(trackedCrashingAircraft) do
+				if tracked.offscreenBuffer then
+					local px, py, pz = spGetUnitPosition(unitID)
+					if px and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
+						replayCrashBuffer(tracked, cachedGameFrame)
+					end
 				end
 			end
 		end
-	end
 
-	-- Flush off-screen piece buffers that are now in view (works while paused too)
-	for proID, tracked in pairs(trackedPieceProjectiles) do
-		if tracked.offscreenBuffer then
-			local px, py, pz = spGetProjectilePosition(proID)
-			if px and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
-				replayPieceBuffer(tracked, cachedGameFrame)
+		for proID, tracked in pairs(trackedPieceProjectiles) do
+			if tracked.offscreenBuffer then
+				local px, py, pz = spGetProjectilePosition(proID)
+				if px and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
+					replayPieceBuffer(tracked, cachedGameFrame)
+				end
 			end
 		end
 	end

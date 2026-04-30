@@ -678,85 +678,37 @@ local definitions = {
         useairlos          = true,
       },
     },
-    sparks = {
-       air                = true,
-       class              = [[CSimpleParticleSystem]],
-       count              = 1,
-       ground             = true,
-       water              = true,
-       properties = {
-           airdrag            = 0.9,
-           colormap           = [[0.9 0.5 0.4 0.01   0.9 0.4 0.1 0.007  0.4 0.15 0.05 0.007   0 0 0 0.01]],
-           directional        = true,
-           emitrot            = 180,
-           emitrotspread      = 7,
-           emitvector         = [[dir]],
-           gravity            = [[0, 0, 0]],
-           numparticles       = 0,
-           particlelife       = 1,
-           particlelifespread = 0.5,
-           particlesize       = 12,
-           particlesizespread = 12,
-           particlespeed      = 2,
-           particlespeedspread = 4,
-           pos                = [[0, 90 ,0]],
-           sizegrowth         = -2.4,
-           sizemod            = 0.8,
-           texture            = [[gunshotglow]],
-           useairlos          = false,
-       },
-    },
-    -- DISABLED for new engine trails
-    -- trail = {
-    --     air                = true,
-    --     class              = [[CBitmapMuzzleFlame]],
-    --     count              = 1,
-    --     ground             = true,
-    --     underwater         = 1,
-    --     water              = true,
-    --     properties = {
-    --         colormap           = [[0 0 0 0.01  0.035 0.025 0.015 0.13  0.035 0.025 0.015 0.11  0.035 0.025 0.015 0.09  0.035 0.025 0.015 0.08  0.035 0.025 0.015 0.07  0 0 0 0.01]],
-    --         dir                = [[dir]],
-    --         frontoffset        = 0,
-    --         fronttexture       = [[trans]],
-    --         length             = -70,
-    --         sidetexture        = [[smoketrail]],
-    --         size               = 2.2,
-    --         sizegrowth         = -0.05,
-    --         ttl                = 3,
-    --     },
+    -- sparks = {
+    --    air                = true,
+    --    class              = [[CSimpleParticleSystem]],
+    --    count              = 1,
+    --    ground             = true,
+    --    water              = true,
+    --    properties = {
+    --        airdrag            = 0.9,
+    --        colormap           = [[0.9 0.5 0.4 0.01   0.9 0.4 0.1 0.007  0.4 0.15 0.05 0.007   0 0 0 0.01]],
+    --        directional        = true,
+    --        emitrot            = 180,
+    --        emitrotspread      = 7,
+    --        emitvector         = [[dir]],
+    --        gravity            = [[0, 0, 0]],
+    --        numparticles       = 1,
+    --        particlelife       = 2,
+    --        particlelifespread = 0,
+    --        particlesize       = 11,
+    --        particlesizespread = 11,
+    --        particlespeed      = -2,
+    --        particlespeedspread = 1,
+    --        pos                = [[0, 90 ,0]],
+    --        sizegrowth         = -4,
+    --        sizemod            = 1.8,
+    --        texture            = [[gunshotglow]],
+    --        useairlos          = false,
+    --    },
     -- },
-    --smoke = {
-    --  air                = true,
-    --  class              = [[CSimpleParticleSystem]],
-    --  count              = 1,
-    --  ground             = true,
-    --  water              = true,
-    --  properties = {
-    --    airdrag            = 0.55,
-    --    colormap           = [[0 0 0 0.02   0 0 0 0.22   0.07 0.07 0.07 0.2   0.07 0.07 0.07 0.16   0.06 0.06 0.06 0.12    0.035 0.035 0.035 0.066    0 0 0 0.01]],
-    --    directional        = true,
-    --    emitrot            = 90,
-    --    emitrotspread      = 0,
-    --    emitvector         = [[0.0, 1, 0.0]],
-    --    gravity            = [[0.0, -0.01, 0.0]],
-    --    numparticles       = 1,
-    --    particlelife       = 28,
-    --    particlelifespread = 18,
-    --    particlesize       = 2,
-    --    particlesizespread = 2,
-    --    particlespeed      = 0.4,
-    --    particlespeedspread = 0.8,
-    --    pos                = [[0.0, 1, 0.0]],
-    --    sizegrowth         = 0.05,
-    --    sizemod            = 1,
-    --    texture            = [[dirt]],
-    --    useairlos          = true,
-    --  },
-    --},
   },
     ["missiletrailtiny-smoke"] = {        -- used by gadget: fx_missile_smoke
-        engine = {
+        exhaustengine = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
             count              = 1,
@@ -777,25 +729,6 @@ local definitions = {
                 drawOrder          = 1,
             },
         },
-        --trail = {
-        --    air                = true,
-        --    class              = [[CBitmapMuzzleFlame]],
-        --    count              = 1,
-        --    ground             = true,
-        --    underwater         = 1,
-        --    water              = true,
-        --    properties = {
-        --        colormap           = [[0.035 0.025 0.015 0.08   0 0 0 0.01]],
-        --        dir                = [[dir]],
-        --        frontoffset        = 0,
-        --        fronttexture       = [[trans]],
-        --        length             = -40,
-        --        sidetexture        = [[smoketrail]],
-        --        size               = 1.66,
-        --        sizegrowth         = -0.03,
-        --        ttl                = 5,
-        --    },
-        --},
     },
 
     ["missiletrailsmall"] = {
@@ -847,34 +780,6 @@ local definitions = {
             useairlos          = true,
           },
         },
-        sparks = {
-            air                = true,
-            class              = [[CSimpleParticleSystem]],
-            count              = 1,
-            ground             = true,
-            water              = true,
-            properties = {
-                airdrag            = 0.9,
-                colormap           = [[0.9 0.5 0.4 0.01   0.9 0.4 0.1 0.007  0.4 0.15 0.05 0.007   0 0 0 0.01]],
-                directional        = true,
-                emitrot            = 180,
-                emitrotspread      = 7,
-                emitvector         = [[dir]],
-                gravity            = [[0, 0, 0]],
-                numparticles       = 0,
-                particlelife       = 1,
-                particlelifespread = 2,
-                particlesize       = 21,
-                particlesizespread = 25,
-                particlespeed      = 2,
-                particlespeedspread = 4,
-                pos                = [[0, 90 ,0]],
-                sizegrowth         = -2.4,
-                sizemod            = 0.8,
-                texture            = [[gunshotglow]],
-                useairlos          = false,
-            },
-        },
         smoke = {
             air                = true,
             class              = [[CSimpleParticleSystem]],
@@ -890,8 +795,8 @@ local definitions = {
                 emitvector         = [[dir]],
                 gravity            = [[0.0, -0.01, 0.0]],
                 numparticles       = [[1 r0.5]],
-                particlelife       = 4,
-                particlelifespread = 4,
+                particlelife       = 1,
+                particlelifespread = 0,
                 particlesize       = 3,
                 particlesizespread = 2,
                 particlespeed      = 1,
@@ -904,52 +809,6 @@ local definitions = {
                 useairlos          = true,
             },
         },
-        -- smoke2 = {
-        --     air                = true,
-        --     class              = [[CSimpleParticleSystem]],
-        --     count              = 1,
-        --     ground             = true,
-        --     water              = true,
-        --     properties = {
-        --         airdrag            = 0.92,
-        --         colormap           = [[0.12 0.09 0.08 0.4   0.095 0.085 0.07 0.33   0.08 0.072 0.07 0.24   0.05 0.045 0.04 0.15   0.027 0.027 0.027 0.08    0.012 0.012 0.012 0.04   0 0 0 0.01]],
-        --         directional        = true,
-        --         emitrot            = -180,
-        --         emitrotspread      = 6,
-        --         emitvector         = [[dir]],
-        --         gravity            = [[0.0, -0.01, 0.0]],
-        --         numparticles       = 1,
-        --         particlelife       = 10,
-        --         particlelifespread = 15,
-        --         particlesize       = 2.5,
-        --         particlesizespread = 2.5,
-        --         particlespeed      = 1.5,
-        --         particlespeedspread = 2.5,
-        --         pos                = [[-2 r4, -2 r4, -2 r4]],
-        --         sizegrowth         = 0.11,
-        --         sizemod            = 1,
-        --         texture            = [[smoke]],
-        --         useairlos          = true,
-        --     },
-        -- },
-        --trail = {
-        --    air                = true,
-        --    class              = [[CBitmapMuzzleFlame]],
-        --    count              = 0,
-        --    ground             = true,
-        --    underwater         = 1,
-        --    water              = true,
-        --    properties = {
-        --        colormap           = [[0.035 0.025 0.015 0.11   0 0 0 0.01]],
-        --        dir                = [[dir]],
-        --        frontoffset        = 0,
-        --        fronttexture       = [[trans]],
-        --        length             = -90,
-        --        sidetexture        = [[smoketrailbar]],
-        --        size               = 4.0,
-        --        sizegrowth         = 0.1,
-        --        ttl                = 3,
-        --},
     },
     ["missiletrailsmall-smoke"] = {        -- used by gadget: fx_missile_smoke
         engine = {
@@ -1113,7 +972,7 @@ local definitions = {
         -- },
     },
     ["missiletrailsmall-simple-smoke"] = {        -- used by gadget: fx_missile_smoke
-        engine = {
+        exhaustengine = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
             count              = 1,
@@ -1530,7 +1389,7 @@ local definitions = {
       },
   },
   ["missiletrailmedium-smoke"] = {        -- used by gadget: fx_missile_smoke
-      engine = {
+      exhaustengine = {
           air                = true,
           class              = [[CBitmapMuzzleFlame]],
           count              = 1,
@@ -1682,8 +1541,8 @@ local definitions = {
               numparticles       = [[3 r2]],
               particlelife       = 6,
               particlelifespread = 11,
-              particlesize       = 3.4,
-              particlesizespread = 4,
+              particlesize       = 2.5,
+              particlesizespread = 3,
               particlespeed      = 2,
               particlespeedspread = 6,
               rotParams          = [[-360 r720, -120 r240, -180 r360]],
@@ -1711,8 +1570,8 @@ local definitions = {
               numparticles       = 3,
               particlelife       = 4,
               particlelifespread = 5,
-              particlesize       = 6,
-              particlesizespread = 5.5,
+              particlesize       = 4,
+              particlesizespread = 5,
               particlespeed      = 2,
               particlespeedspread = 6,
               rotParams          = [[-360 r720, -120 r240, -180 r360]],
@@ -1723,34 +1582,6 @@ local definitions = {
               useairlos          = true,
           },
       },
-    --smoke = {
-    --  air                = true,
-    --  class              = [[CSimpleParticleSystem]],
-    --  count              = 1,
-    --  ground             = true,
-    --  water              = true,
-    --  properties = {
-    --    airdrag            = 0.915,
-    --    colormap           = [[0.16 0.13 0.1 0.2   0.16 0.13 0.1 0.34   0.11 0.105 0.1 0.28   0.085 0.085 0.085 0.21   0.07 0.07 0.07 0.17    0.04 0.04 0.04 0.1   0 0 0 0.01]],
-    --    directional        = true,
-    --    emitrot            = -180,
-    --    emitrotspread      = 11,
-    --    emitvector         = [[dir]],
-    --    gravity            = [[0.0, -0.03, 0.0]],
-    --    numparticles       = 2,
-    --    particlelife       = 16,
-    --    particlelifespread = 8,
-    --    particlesize       = 5,
-    --    particlesizespread = 5,
-    --    particlespeed      = 3,
-    --    particlespeedspread = 5,
-    --    pos                = [[0.0, 0, 0.0]],
-    --    sizegrowth         = 0.18,
-    --    sizemod            = 1,
-    --    texture            = [[dirt]],
-    --    useairlos          = true,
-    --  },
-    --},
 	dustparticles = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -1760,7 +1591,7 @@ local definitions = {
       water              = true,
       properties = {
         airdrag            = 0.94,
-        colormap           = [[0.5 0.45 0.4 0.01    1 0.75 0.5 0.02    0.66 0.37 0.3 0.18    0.5 0.27 0.22 0.15    0.17 0.1 0.1 0.1    0 0 0 0.01]],
+        colormap           = [[0.5 0.45 0.4 0.01    1 0.75 0.5 0.03    0.77 0.44 0.33 0.18    0.5 0.27 0.22 0.15    0.17 0.1 0.1 0.1    0 0 0 0.01]],
         directional        = true,
         emitrot            = -180,
         emitrotspread      = 28,
@@ -1782,7 +1613,7 @@ local definitions = {
     },
   },
   ["missiletraillarge-smoke"] = {        -- used by gadget: fx_missile_smoke
-      engine = {
+      exhaustengine = {
           air                = true,
           class              = [[CBitmapMuzzleFlame]],
           count              = 1,
@@ -1802,34 +1633,6 @@ local definitions = {
               ttl                = 2,
           },
       },
-      --smoke = {
-      --    air                = true,
-      --    class              = [[CSimpleParticleSystem]],
-      --    count              = 1,
-      --    ground             = true,
-      --    water              = true,
-      --    properties = {
-      --        airdrag            = 0.91,
-      --        colormap           = [[0.075 0.073 0.07 0.01    0 0 0 0.01]],
-      --        directional        = true,
-      --        emitrot            = -180,
-      --        emitrotspread      = 7.5,
-      --        emitvector         = [[dir]],
-      --        gravity            = [[0.0, -0.01, 0.0]],
-      --        numparticles       = 1,
-      --        particlelife       = 11,
-      --        particlelifespread = 4,
-      --        particlesize       = 2.2,
-      --        particlesizespread = 2.2,
-      --        particlespeed      = 1,
-      --        particlespeedspread = 1,
-      --        pos                = [[0.0, 1, 0.0]],
-      --        sizegrowth         = 0.13,
-      --        sizemod            = 1,
-      --        texture            = [[dirt]],
-      --        useairlos          = true,
-      --    },
-      --},
   },
 
   ["missiletrailbomber"] = {
@@ -1890,18 +1693,6 @@ local definitions = {
   },
 
     ["missiletrailaa"] = {
-        --groundflash = {
-        --  circlealpha        = 0,
-        --  circlegrowth       = 0,
-        --  flashalpha         = 0.05,
-        --  flashsize          = 38,
-        --  ttl                = 10,
-        --  color = {
-        --    [1]  = 0.80000001192093,
-        --    [2]  = 0.50000000149012,
-        --    [3]  = 0.15,
-        --  },
-        --},
         engine = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
@@ -1911,7 +1702,7 @@ local definitions = {
             water              = true,
             properties = {
                 --colormap           = [[1 0.5 0.1 0.01   1.0 0.4 0.05 0.01   1.0 0.2 0.02 0.01   0.5 0.1 0 0.01   0 0 0 0.01]],
-                colormap           = [[1 0.5 0.85 0.01   1.0 0.4 0.85 0.01   1.0 0.2 0.8 0.01   0.5 0.1 0.4 0.01   0 0 0 0.01]],
+                colormap           = [[1 0.5 0.85 0.0   1 0.5 0.85 0.01   1.0 0.4 0.85 0.01   1.0 0.2 0.8 0.01   0.5 0.1 0.4 0.01   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[none]],
@@ -1922,46 +1713,6 @@ local definitions = {
                 ttl                = 1,
             },
         },
-        -- engineglow = {
-        --     air                = true,
-        --     class              = [[CBitmapMuzzleFlame]],
-        --     count              = 1,
-        --     ground             = true,
-        --     underwater         = 1,
-        --     water              = true,
-        --     properties = {
-        --         colormap           = [[0.15 0.045 0.135 0.01   0 0 0 0.01]],
-        --         dir                = [[dir]],
-        --         frontoffset        = 0,
-        --         fronttexture       = [[trans]],
-        --         length             = 55,
-        --         sidetexture        = [[glow2]],
-        --         size               = 35,
-        --         sizegrowth         = 0,
-        --         ttl                = 2,
-        --         -- pos                = [[5, 0, 0]],
-        --     },
-        -- },
-        -- Replaced with engine trail
-        -- trail = {
-        --     air                = true,
-        --     class              = [[CBitmapMuzzleFlame]],
-        --     count              = 1,
-        --     ground             = true,
-        --     underwater         = 1,
-        --     water              = true,
-        --     properties = {
-        --         colormap           = [[0.22 0.05 0.2 0.28   0.04 0.033 0.036 0.14   0 0 0 0.01]],
-        --         dir                = [[dir]],
-        --         frontoffset        = 0,
-        --         fronttexture       = [[trans]],
-        --         length             = -48,
-        --         sidetexture        = [[smoketrail]],
-        --         size               = 2.2,
-        --         sizegrowth         = 0,
-        --         ttl                = 3,
-        --     },
-        -- },
     },
     ["missiletrailaa-smoke"] = {        -- used by gadget: fx_missile_smoke
         trail = {
@@ -1986,62 +1737,7 @@ local definitions = {
     },
 
     ["flaktrailaa"] = {
-        --groundflash = {
-        --  circlealpha        = 0,
-        --  circlegrowth       = 0,
-        --  flashalpha         = 0.05,
-        --  flashsize          = 38,
-        --  ttl                = 10,
-        --  color = {
-        --    [1]  = 0.80000001192093,
-        --    [2]  = 0.50000000149012,
-        --    [3]  = 0.15,
-        --  },
-        --},
-
-        -- engine = {
-        --    air                = true,
-        --    class              = [[CBitmapMuzzleFlame]],
-        --   count              = 1,
-        --    ground             = true,
-        --    underwater         = 1,
-        --    water              = true,
-        --    properties = {
-        --        --colormap           = [[1 0.5 0.1 0.01   1.0 0.4 0.05 0.01   1.0 0.2 0.02 0.01   0.5 0.1 0 0.01   0 0 0 0.01]],
-        --        colormap           = [[1 0.5 0.85 0.01   1.0 0.4 0.85 0.01   1.0 0.2 0.8 0.01   0.5 0.1 0.4 0.01   0 0 0 0.01]],
-        --        dir                = [[dir]],
-        --        frontoffset        = 0,
-        --        fronttexture       = [[none]],
-        --        length             = 32,
-        --        sidetexture        = [[muzzlesideflipped]],
-        --        size               = 2.8,
-        --        sizegrowth         = 0,
-        --        ttl                = 1,
-        --    },
-        -- },
-        -- brightflare = {
-        --   air                = true,
-        --   class              = [[CBitmapMuzzleFlame]],
-        --   count              = 1,
-        --   ground             = true,
-        --   underwater         = true,
-        --   water              = true,
-        --   properties = {
-        --     colormap           = [[1.0 0.96 0.80 0.1    0.35 0.28 0.18 0.05    0 0 0 0]],
-        --     dir                = [[0, 1, 0]],
-        --     --gravity            = [[0.0, 0.1, 0.0]],
-        --     frontoffset        = 0,
-        --     fronttexture       = [[exploflare]],
-        --     length             = 40,
-        --     sidetexture        = [[none]],
-        --     size               = 12,
-        --     sizegrowth         = [[0.4 r0.2]],
-        --     ttl                = 2,
-        --     pos                = [[0, 0, 0]],
-        --     drawOrder          = 1,
-        --   },
-        -- },
-        engineglow = {
+        trail = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
             count              = 1,
@@ -2049,7 +1745,7 @@ local definitions = {
             underwater         = 1,
             water              = true,
             properties = {
-                colormap           = [[0.90 0.35 0.80 0.4   0.40 0.11 0.34 0.1   0 0 0 0.01]],
+                colormap           = [[0.90 0.35 0.80 0.0  0.90 0.35 0.80 0.0  0.90 0.35 0.80 0.4   0.8 0.22 0.68 0.2   0.40 0.11 0.34 0.1   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[trans]],
@@ -2058,35 +1754,14 @@ local definitions = {
                 sidetexture        = [[trail3]],
                 size               = 4.2,
                 sizegrowth         = -0.08,
-                ttl                = 3,
+                ttl                = 2,
                 pos                = [[0, -2, 0]],
             },
         },
-        -- trail = {
-        --    air                = false,
-        --    class              = [[CBitmapMuzzleFlame]],
-        --    count              = 1,
-        --    ground             = true,
-        --    underwater         = 1,
-        --    water              = true,
-        --    properties = {
-        --        colormap           = [[0.88 0.20 0.8 0.8   0.16 0.12 0.14 0.6   0 0 0 0.01]],
-        --        dir                = [[dir]],
-        --        frontoffset        = 0,
-        --        fronttexture       = [[trans]],
-        --        length             = -2,
-        --        sidetexture        = [[smoketrail]],
-        --        size               = 1.8,
-        --        sizegrowth         = -0.1,
-        --        ttl                = 3,
-        --    },
-        --},
     },
 
     ["flaktrailaamg"] = {
-
-
-        engineglow = {
+        trail = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
             count              = 1,
@@ -2094,7 +1769,7 @@ local definitions = {
             underwater         = 1,
             water              = true,
             properties = {
-                colormap           = [[0.90 0.35 0.80 0.4   0.40 0.11 0.34 0.1   0 0 0 0.01]],
+                colormap           = [[0.90 0.35 0.80 0.0  0.90 0.35 0.80 0.0  0.90 0.35 0.80 0.4   0.8 0.22 0.68 0.2   0.40 0.11 0.34 0.1   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[trans]],
@@ -2103,14 +1778,13 @@ local definitions = {
                 sidetexture        = [[trail3]],
                 size               = 1.2,
                 sizegrowth         = -0.08,
-                ttl                = 3,
+                ttl                = 2,
                 pos                = [[0, 2, 0]],
             },
         },
     },
 
     ["missiletrailaa-medium"] = {
-
       fire = {
           air                = true,
           class              = [[CSimpleParticleSystem]],
@@ -3434,8 +3108,8 @@ definitions["missiletrailsmall-red"].sparks.properties.particlesize = 31
 -- definitions["missiletrailsmall-red"].trail.properties.length = -33
 definitions["missiletrailsmall-red"].fireglow.properties.colormap = [[0.2 0.075 0.075 0.01   0 0 0 0.01]]
 definitions["missiletrailsmall-red-smoke"] = table.copy(definitions["missiletrailsmall-simple-smoke"])
-definitions["missiletrailsmall-red-smoke"].engine.properties.length = [[-11 r1.5]]
-definitions["missiletrailsmall-red-smoke"].engine.properties.size = 2.5
+definitions["missiletrailsmall-red-smoke"].exhaustengine.properties.length = [[-11 r1.5]]
+definitions["missiletrailsmall-red-smoke"].exhaustengine.properties.size = 2.5
 --definitions["missiletrailsmall-red-smoke"].trail.properties.size = 2.75
 definitions["missiletrailmedium-red"] = table.copy(definitions["missiletrailmedium"])
 definitions["missiletrailmedium-red"].engine.properties.colormap = [[1 0.33 0.17 0.01   1.0 0.25 0.1 0.01   1.0 0.22 0.05 0.01   0 0 0 0.01]]
@@ -3443,18 +3117,13 @@ definitions["missiletrailmedium-red"].engine.properties.colormap = [[1 0.33 0.17
 definitions["missiletrailmedium-red"].fireglow.properties.colormap = [[0.25 0.1 0.01 0.01   0 0 0 0.01]]
 definitions["missiletrailmedium-red"].sparks.properties.colormap = [[0.9 0.44 0.4 0.01   0.9 0.36 0.1 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
 definitions["missiletraillarge-red"] = table.copy(definitions["missiletraillarge"])
-definitions["missiletraillarge-red"].fire.properties.colormap  = [[0.9 0.45 0.16 0.01   0.44 0.22 0.05 0.01    0.14 0.03 0.005 0.01    0.02 0.007 0.003 0.01	 0 0 0 0.01]]
-definitions["missiletraillarge-red"].fireglow.properties.colormap = [[0.25 0.09 0.018 0.01   0 0 0 0.01]]
+definitions["missiletraillarge-red"].fire = nil
+definitions["missiletraillarge-red"].fireglow = nil
+definitions["missiletraillarge-red"].smoke = nil
+definitions["missiletraillarge-red"].smoke2 = nil
 definitions["missiletraillarge-red"].sparks.properties.colormap = [[1 0.85 0.7 0.01   0.9 0.4 0.14 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
 
---definitions["missiletrailsmall-trail"] = table.copy(definitions["missiletrailsmall"])
---definitions["missiletrailsmall-trail"].trail.count = 0
---definitions["missiletrailsmall-trail"].smoke.properties.particlelife = 2
---definitions["missiletrailsmall-trail"].smoke.properties.particleLifeSpread = 4
-
 definitions["missiletrailsmall-starburst"] = table.copy(definitions["missiletrailsmall"])
---definitions["missiletrailsmall-starburst"].engine.properties.colormap = [[1 0.15 0.1 0.01   1.0 0.09 0 0.01   1.0 0.06 0 0.01   0 0 0 0.01]]
---definitions["missiletrailsmall-starburst"].sparks.properties.colormap = [[1 0.2 0.1 0.01   1 0.15 0.05 0.007  0.55 0.05 0 0.007   0 0 0 0.01]]
 
 definitions["missiletrailsmall-starburst-vertical"] = table.copy(definitions["missiletrailsmall-starburst"])
 definitions["missiletrailsmall-starburst-vertical"].engine.properties.length = [[-19 r4.15]]
@@ -3464,17 +3133,10 @@ definitions["missiletrailsmall-starburst-vertical"].smoke.properties.particlespe
 definitions["missiletrailsmall-starburst-vertical"].smoke.properties.particlespeedspread = definitions["missiletrailsmall-starburst-vertical"].smoke.properties.particlespeedspread * 1.25
 
 
-definitions["missiletrailmedium-starburst"] = table.copy(definitions["missiletrailmedium"])
---definitions["missiletrailmedium-starburst"].smoke.properties.emitrotspread = 4
---definitions["missiletrailmedium-starburst"].smoke.properties.particlespeed = definitions["missiletrailmedium-starburst"].smoke.properties.particlespeed * 1.3
---definitions["missiletrailmedium-starburst"].smoke.properties.particlespeedspread = definitions["missiletrailmedium-starburst"].smoke.properties.particlespeedspread * 1.3
---definitions["missiletrailmedium-starburst"].engine.properties.colormap = [[1 0.15 0.1 0.01   1.0 0.09 0 0.01   1.0 0.06 0 0.01   0 0 0 0.01]]
-definitions["missiletrailmedium-starburst"].sparks.properties.colormap = [[1 0.2 0.1 0.01   1 0.15 0.05 0.007  0.55 0.05 0 0.007   0 0 0 0.01]]
+definitions["missiletrailmedium-starburst"] = table.copy(definitions["missiletrailmedium"])definitions["missiletrailmedium-starburst"].sparks.properties.colormap = [[1 0.2 0.1 0.01   1 0.15 0.05 0.007  0.55 0.05 0 0.007   0 0 0 0.01]]
 definitions["missiletrailmedium-starburst"].dustparticles.properties.colormap = [[0.4 0.35 0.3 0.008    1 0.5 0.3 0.02    0.66 0.33 0.2 0.17    0.5 0.22 0.12 0.16    0.33 0.16 0.05 0.15    0 0 0 0.01]]
-definitions["missiletrailmedium-starburst"].fireglow.properties.colormap = [[0.25 0.05 0.021 0.01   0 0 0 0.01]]
-
+definitions["missiletrailmedium-starburst"].fireglow = nil
 definitions["missiletrailmedium-starburst-vertical"] = table.copy(definitions["missiletrailmedium-starburst"])
---definitions["missiletrailmedium-starburst-vertical"].sparks.properties.numparticles = 2
 definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesize = definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesize * 1.15
 definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesize       = definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesize * 1.5
 definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesizespread = definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesizespread * 1.5

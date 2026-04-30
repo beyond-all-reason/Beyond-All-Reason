@@ -110,7 +110,7 @@ return {
 				flighttime = 10,
 				impulsefactor = 0.123,
 				metalpershot = 0,
-				model = "corkbmissl1.s3o",
+				model = "corkbmissl-1.s3o",
 				name = "Light long-range g2g starburst rocket launcher",
 				noselfdamage = true,
 				range = 710,

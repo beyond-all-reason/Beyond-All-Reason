@@ -80,12 +80,21 @@ function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, pa
 	return true
 end
 
+local expiredUnits = {}
+
 function gadget:GameFrame(n)
+	local expiredCount = 0
 	for unitID, data in pairs(debuffedUnits) do
 		if n >= data.expireFrame then
-			debuffedUnits[unitID] = nil
-			SendToUnsynced("unitBuildspeedDebuffEnd", unitID)
+			expiredCount = expiredCount + 1
+			expiredUnits[expiredCount] = unitID
 		end
+	end
+	for i = 1, expiredCount do
+		local unitID = expiredUnits[i]
+		expiredUnits[i] = nil
+		debuffedUnits[unitID] = nil
+		SendToUnsynced("unitBuildspeedDebuffEnd", unitID)
 	end
 end
 

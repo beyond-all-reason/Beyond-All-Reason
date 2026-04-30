@@ -141,7 +141,7 @@ bind          Ctrl+sc_q  select PrevSelection++_ClearSelection_SelectPart_50+
 bind          Ctrl+sc_w  select AllMap+_InPrevSel+_ClearSelection_SelectAll+
 bind          Ctrl+sc_r  select AllMap+_Transport_Idle+_ClearSelection_SelectAll+
 bind          Ctrl+sc_y  select Visible+_Waiting+_ClearSelection_SelectAll+
-bind           Alt+sc_q  select PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+ 
+bind      Ctrl+Alt+sc_q  select PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+ 
 
 // numpad movement
 bind            numpad2  moveback

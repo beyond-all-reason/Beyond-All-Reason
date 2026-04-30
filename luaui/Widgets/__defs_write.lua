@@ -202,7 +202,9 @@ local spEcho = Spring.Echo
 			file:write(header..'\n')
 		end
 		file:write('return {\n')
-		if type(t)=="table" or type(t)=="metatable" then SaveTable(t, file, '') end
+		if (type(t)=="table" and next(t)~=nil) or type(t)=="metatable" then
+			SaveTable(t, file, '')
+		end
 		file:write('}\n')
 		file:close()
 		for k,v in pairs(savedTables) do

@@ -78,6 +78,8 @@ local glGetViewSizes = gl.GetViewSizes
 local glPolygonOffset = gl.PolygonOffset
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
 local cfgResText = true
 local cfgSticktotopbar = true
@@ -1499,6 +1501,7 @@ end
 local r2tScissors = {0, 0, 0, 0}  -- reusable
 local emptyScissors = {}
 function widget:DrawScreen()
+	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	if not myFullview or not inSpecMode then
 		return
 	end

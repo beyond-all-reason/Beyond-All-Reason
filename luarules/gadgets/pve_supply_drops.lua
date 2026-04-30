@@ -122,7 +122,8 @@ elseif lootboxesDensity == "normal" then
 	lootboxDensityMultiplier = 1
 end
 
-local SpawnChance = math.ceil((150/lootboxDensityMultiplier)/(#teams-1))
+local numTeams = math.max(#teams - 1, 1)
+local SpawnChance = math.ceil((150/lootboxDensityMultiplier)/numTeams)
 
 if scavengersAIEnabled then
 	spGaiaTeam = scavengerAITeamID

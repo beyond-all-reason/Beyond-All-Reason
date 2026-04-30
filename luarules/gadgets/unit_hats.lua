@@ -240,7 +240,7 @@ function gadget:GameFrame(gf)
 			if hatMaxHealth then
 				Spring.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
 			else
-				unitsWearingHats[hatUnitID] = nil
+				unitsWearingHats[unitID] = nil
 			end
 		end
 	end
