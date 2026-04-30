@@ -131,9 +131,9 @@ if not gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		if a["sunDir"] and b["sunDir"] then
-			local asun = a["sunDir"]
-			local bsun = b["sunDir"]
+		if a.sunDir and b.sunDir then
+			local asun = a.sunDir
+			local bsun = b.sunDir
 			local alength = 1.0 / diag(asun[1], asun[2], asun[3])
 			local blength = 1.0 / diag(bsun[1], bsun[2], bsun[3])
 
@@ -157,12 +157,12 @@ if not gadgetHandler:IsSyncedCode() then
 			local targetrot = mix(aworldrot, bworldrot, mixfactor)
 			local targetheight = mix(aheight, bheight, mixfactor)
 
-			if target["sunDir"] == nil then
-				target["sunDir"] = { 0, 1, 0 }
+			if target.sunDir == nil then
+				target.sunDir = { 0, 1, 0 }
 			end
-			target["sunDir"][1] = sin(targetrot) * cos(targetheight)
-			target["sunDir"][2] = sin(targetheight)
-			target["sunDir"][3] = cos(targetrot) * cos(targetheight)
+			target.sunDir[1] = sin(targetrot) * cos(targetheight)
+			target.sunDir[2] = sin(targetheight)
+			target.sunDir[3] = cos(targetrot) * cos(targetheight)
 			--Spring.Echo("sunDir", mixfactor, "targetrot",targetrot, "targetheight", targetheight, aworldrot ,  bworldrot)
 		end
 	end

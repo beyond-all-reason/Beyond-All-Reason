@@ -352,7 +352,7 @@ for barname, bt in pairs(barTypeMap) do
 	cache[15] = bt.maxcolor[3]
 	cache[16] = bt.maxcolor[4]
 
-	bt["cache"] = cache
+	bt.cache = cache
 end
 
 --------------------------------------------------------------------------------
@@ -983,19 +983,19 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	WG["healthbars"] = {}
-	WG["healthbars"].getScale = function()
+	WG.healthbars = {}
+	WG.healthbars.getScale = function()
 		return barScale
 	end
-	WG["healthbars"].setScale = function(value)
+	WG.healthbars.setScale = function(value)
 		barScale = value
 		init()
 		initfeaturebars()
 	end
-	WG["healthbars"].getHeight = function()
+	WG.healthbars.getHeight = function()
 		return barHeight
 	end
-	WG["healthbars"].setHeight = function(value)
+	WG.healthbars.setHeight = function(value)
 		barHeight = value
 		shaderSourceCache.shaderConfig.BARHEIGHT = barHeight
 		shaderSourceCache.shaderConfig.BARCORNER = 0.06 + (shaderConfig.BARHEIGHT / 9)
@@ -1003,18 +1003,18 @@ function widget:Initialize()
 		init()
 		initfeaturebars()
 	end
-	WG["healthbars"].getVariableSizes = function()
+	WG.healthbars.getVariableSizes = function()
 		return variableBarSizes
 	end
-	WG["healthbars"].setVariableSizes = function(value)
+	WG.healthbars.setVariableSizes = function(value)
 		variableBarSizes = value
 		init()
 		initfeaturebars()
 	end
-	WG["healthbars"].getDrawWhenGuiHidden = function()
+	WG.healthbars.getDrawWhenGuiHidden = function()
 		return drawWhenGuiHidden
 	end
-	WG["healthbars"].setDrawWhenGuiHidden = function(value)
+	WG.healthbars.setDrawWhenGuiHidden = function(value)
 		drawWhenGuiHidden = value
 	end
 

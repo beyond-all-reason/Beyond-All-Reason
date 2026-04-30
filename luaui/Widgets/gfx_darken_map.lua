@@ -30,7 +30,7 @@ local camX, camY, camZ = spGetCameraPosition()
 local camDirX, camDirY, camDirZ = Spring.GetCameraDirection()
 
 function widget:Shutdown()
-	WG["darkenmap"] = nil
+	WG.darkenmap = nil
 end
 
 local function mapDarkness(_, _, params)
@@ -45,11 +45,11 @@ local function mapDarkness(_, _, params)
 end
 
 function widget:Initialize()
-	WG["darkenmap"] = {}
-	WG["darkenmap"].getMapDarkness = function()
+	WG.darkenmap = {}
+	WG.darkenmap.getMapDarkness = function()
 		return darknessvalue
 	end
-	WG["darkenmap"].setMapDarkness = function(value)
+	WG.darkenmap.setMapDarkness = function(value)
 		darknessvalue = tonumber(value)
 	end
 	widgetHandler:AddAction("mapdarkness", mapDarkness, nil, "t")

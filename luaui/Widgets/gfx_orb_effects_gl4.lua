@@ -175,119 +175,119 @@ local legdeflectorShieldSphere = table.merge(defaults, {
 })
 
 local UnitEffects = {
-	["armjuno"] = {
+	armjuno = {
 		{ class = "ShieldSphere", options = armjunoShieldSphere },
 		{ class = "ShieldJitter", options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
 	},
-	["legjuno"] = {
+	legjuno = {
 		{ class = "ShieldSphere", options = legjunoShieldSphere },
 		{ class = "ShieldJitter", options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
 	},
-	["corjuno"] = {
+	corjuno = {
 		{ class = "ShieldSphere", options = corjunoShieldSphere },
 		{ class = "ShieldJitter", options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
 	},
 
 	--// FUSIONS //--------------------------
-	["corafus"] = {
+	corafus = {
 		{ class = "ShieldSphere", options = corafusShieldSphere },
 		{ class = "ShieldJitter", options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 32.5, precision = 22, repeatEffect = true } },
 	},
-	["corfus"] = {
+	corfus = {
 		{ class = "ShieldSphere", options = corfusShieldSphere },
 		{ class = "ShieldJitter", options = { life = math.huge, pos = { 0, 50, 0 }, size = 23.5, precision = 22, repeatEffect = true } },
 	},
-	["legfus"] = {
+	legfus = {
 		{ class = "ShieldSphere", options = legfusShieldSphere },
 		{ class = "ShieldJitter", options = { life = math.huge, pos = { 0, 19, 0 }, size = 23.5, precision = 22, repeatEffect = true } },
 	},
-	["armafus"] = {
+	armafus = {
 		{ class = "ShieldSphere", options = armafusShieldSphere },
 		{ class = "ShieldJitter", options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
 	},
-	["legafus"] = {
+	legafus = {
 		{ class = "ShieldSphere", options = legafusShieldSphere },
 		{ class = "ShieldJitter", options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 38.5, precision = 22, repeatEffect = true } },
 	},
-	["armafust3"] = {
+	armafust3 = {
 		{ class = "ShieldSphere", options = armafust3ShieldSphere },
 		{ class = "ShieldJitter", options = { layer = -16, life = math.huge, pos = { 0, 120, 0 }, size = 57, precision = 22, repeatEffect = true } },
 	},
-	["corafust3"] = {
+	corafust3 = {
 		{ class = "ShieldSphere", options = corafust3ShieldSphere },
 		{ class = "ShieldJitter", options = { layer = -16, life = math.huge, pos = { 0, 120, 0 }, size = 65, precision = 22, repeatEffect = true } },
 	},
-	["legafust3"] = {
+	legafust3 = {
 		{ class = "ShieldSphere", options = legafust3ShieldSphere },
 		{ class = "ShieldJitter", options = { layer = -16, life = math.huge, pos = { 0, 120, 0 }, size = 77, precision = 22, repeatEffect = true } },
 	},
-	["resourcecheat"] = {
+	resourcecheat = {
 		{ class = "ShieldSphere", options = armafusShieldSphere },
 		{ class = "ShieldJitter", options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
 	},
-	["corgate"] = {
+	corgate = {
 		{ class = "ShieldJitter", options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12, precision = 22, repeatEffect = true, isShiedl } },
 		{ class = "ShieldSphere", options = corgateShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
 	},
-	["corgatet3"] = {
+	corgatet3 = {
 		{ class = "ShieldJitter", options = { delay = 0, life = math.huge, pos = { 0, 75, 0 }, size = 18, precision = 22, repeatEffect = true, isShiedl } },
 		{ class = "ShieldSphere", options = corgatet3ShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
 	},
-	["corfgate"] = {
+	corfgate = {
 		{ class = "ShieldJitter", options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12, precision = 22, repeatEffect = true } },
 		{ class = "ShieldSphere", options = corgateShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
 	},
-	["armgate"] = {
+	armgate = {
 		{ class = "ShieldJitter", options = { delay = 0, life = math.huge, pos = { 0, 20, -5 }, size = 15, precision = 22, repeatEffect = true } },
 		{ class = "ShieldSphere", options = armgateShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
 	},
-	["armgatet3"] = {
+	armgatet3 = {
 		{ class = "ShieldJitter", options = { delay = 0, life = math.huge, pos = { 0, 37, -5 }, size = 21, precision = 22, repeatEffect = true } },
 		{ class = "ShieldSphere", options = armgatet3ShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
 	},
-	["leggatet3"] = {
+	leggatet3 = {
 		{ class = "ShieldJitter", options = { delay = 0, life = math.huge, pos = { 0, 45, 0 }, size = 20, precision = 22, repeatEffect = true } },
 		{ class = "ShieldSphere", options = leggatet3ShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
 	},
-	["armfgate"] = {
+	armfgate = {
 		{ class = "ShieldJitter", options = { delay = 0, life = math.huge, pos = { 0, 25, 0 }, size = 15, precision = 22, repeatEffect = true } },
 		{ class = "ShieldSphere", options = table.merge(armgateShieldSphere, { pos = { 0, 25, 0 } }) },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 	},
-	["legdeflector"] = {
+	legdeflector = {
 		{ class = "ShieldJitter", options = { delay = 0, life = math.huge, pos = { 0, 20, -5 }, size = 15, precision = 22, repeatEffect = true } },
 		{ class = "ShieldSphere", options = legdeflectorShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
 	},
-	["lootboxbronze"] = {
+	lootboxbronze = {
 		{ class = "ShieldSphere", options = table.merge(corfusShieldSphere, { pos = { 0, 34, 0 }, size = 10 }) },
 		{ class = "ShieldJitter", options = { life = math.huge, pos = { 0, 34, 0 }, size = 10.5, precision = 22, repeatEffect = true } },
 	},
-	["lootboxsilver"] = {
+	lootboxsilver = {
 		{ class = "ShieldSphere", options = table.merge(corfusShieldSphere, { pos = { 0, 52, 0 }, size = 15 }) },
 		{ class = "ShieldJitter", options = { life = math.huge, pos = { 0, 52, 0 }, size = 15.5, precision = 22, repeatEffect = true } },
 	},
-	["lootboxgold"] = {
+	lootboxgold = {
 		{ class = "ShieldSphere", options = table.merge(corfusShieldSphere, { pos = { 0, 69, 0 }, size = 20 }) },
 		{ class = "ShieldJitter", options = { life = math.huge, pos = { 0, 69, 0 }, size = 20.5, precision = 22, repeatEffect = true } },
 	},
-	["lootboxplatinum"] = {
+	lootboxplatinum = {
 		{ class = "ShieldSphere", options = table.merge(corfusShieldSphere, { pos = { 0, 87, 0 }, size = 25 }) },
 		{ class = "ShieldJitter", options = { life = math.huge, pos = { 0, 87, 0 }, size = 25.5, precision = 22, repeatEffect = true } },
 	},
 }
 
 local scavEffects = {}
-if UnitDefNames["armcom_scav"] then
+if UnitDefNames.armcom_scav then
 	for k, effect in pairs(UnitEffects) do
 		scavEffects[k .. "_scav"] = effect
 		if scavEffects[k .. "_scav"].options then
@@ -915,8 +915,8 @@ function widget:Initialize()
 		return
 	end
 	initGL4()
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	else
 		spEcho("Unit Tracker API unavailable, exiting Orb GL4")
 		widgetHandler:RemoveWidget()

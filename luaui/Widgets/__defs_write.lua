@@ -100,16 +100,16 @@ if customparamDefsDetected then
 	end
 
 	local keyTypes = {
-		["string"] = true,
-		["number"] = true,
-		["boolean"] = true,
+		string = true,
+		number = true,
+		boolean = true,
 	}
 
 	local valueTypes = {
-		["string"] = true,
-		["number"] = true,
-		["boolean"] = true,
-		["table"] = true,
+		string = true,
+		number = true,
+		boolean = true,
+		table = true,
 	}
 
 	local function CompareKeys(kv1, kv2)

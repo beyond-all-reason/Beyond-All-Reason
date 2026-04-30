@@ -463,7 +463,7 @@ local function InitGL()
 
 	-- ensure stencil is available
 	if shaderConfig.USE_STENCIL == 1 then
-		local stencilApi = WG["unitstencilapi"]
+		local stencilApi = WG.unitstencilapi
 		if stencilApi then
 			getStencilTexture = stencilApi.GetUnitStencilTexture
 			unitStencilTexture = getStencilTexture()
@@ -619,40 +619,40 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
-	WG["ssao"] = {}
-	WG["ssao"].getPreset = function()
+	WG.ssao = {}
+	WG.ssao.getPreset = function()
 		return preset
 	end
-	WG["ssao"].setPreset = function(value)
+	WG.ssao.setPreset = function(value)
 		preset = value
 		InitShaderDefines()
 		ActivatePreset(preset)
 		CleanGL()
 		InitGL()
 	end
-	WG["ssao"].getStrength = function()
+	WG.ssao.getStrength = function()
 		return shaderConfig.SSAO_ALPHA_POW
 	end
-	WG["ssao"].setStrength = function(value)
+	WG.ssao.setStrength = function(value)
 		shaderConfig.SSAO_ALPHA_POW = value
 		CleanGL()
 		InitGL()
 	end
-	WG["ssao"].getRadius = function()
+	WG.ssao.getRadius = function()
 		return shaderConfig.SSAO_RADIUS
 	end
-	WG["ssao"].setRadius = function(value)
+	WG.ssao.setRadius = function(value)
 		shaderConfig.SSAO_RADIUS = value
 		CleanGL()
 		InitGL()
 	end
 
-	if WG["flowui_gl4"] and WG["flowui_gl4"].forwardslider then
+	if WG.flowui_gl4 and WG.flowui_gl4.forwardslider then
 		spEcho(" WG[flowui_gl4] detected")
-		shaderDefinedSlidersLayer, shaderDefinedSlidersWindow = WG["flowui_gl4"].requestWidgetLayer(shaderDefinedSliders) -- this is a window
+		shaderDefinedSlidersLayer, shaderDefinedSlidersWindow = WG.flowui_gl4.requestWidgetLayer(shaderDefinedSliders) -- this is a window
 		shaderDefinedSliders.parent = shaderDefinedSlidersWindow
 
-		WG["flowui_gl4"].forwardslider(shaderDefinedSliders)
+		WG.flowui_gl4.forwardslider(shaderDefinedSliders)
 	end
 
 	InitGL()

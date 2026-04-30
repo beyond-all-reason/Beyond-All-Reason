@@ -203,7 +203,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local function checkGuiShader(force)
-	if WG["guishader"] then
+	if WG.guishader then
 		if force and displayListGuiShader then
 			displayListGuiShader = gl.DeleteList(displayListGuiShader)
 		end
@@ -475,11 +475,11 @@ function widget:ViewResize()
 	width = mathFloor(width * vsx) / vsx
 	height = mathFloor(height * vsy) / vsy
 
-	if WG["buildmenu"] then
-		buildmenuBottomPosition = WG["buildmenu"].getBottomPosition()
+	if WG.buildmenu then
+		buildmenuBottomPosition = WG.buildmenu.getBottomPosition()
 	end
 
-	font = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -491,8 +491,8 @@ function widget:ViewResize()
 
 	widgetSpaceMargin = WG.FlowUI.elementMargin
 
-	if WG["minimap"] then
-		minimapHeight = WG["minimap"].getHeight()
+	if WG.minimap then
+		minimapHeight = WG.minimap.getHeight()
 	end
 	if stickToBottom then
 		posY = height
@@ -501,11 +501,11 @@ function widget:ViewResize()
 		if buildmenuBottomPosition then
 			posX = 0
 			posY = height + height + (widgetSpaceMargin / vsy)
-		elseif WG["buildmenu"] then
-			local posY2, _ = WG["buildmenu"].getSize()
+		elseif WG.buildmenu then
+			local posY2, _ = WG.buildmenu.getSize()
 			posY2 = posY2 + (widgetSpaceMargin / vsy)
 			posY = posY2 + height
-			if WG["minimap"] then
+			if WG.minimap then
 				posY = 1 - (minimapHeight / vsy) - (widgetSpaceMargin / vsy)
 			end
 			posX = 0
@@ -559,30 +559,30 @@ function widget:Initialize()
 	widget:ViewResize()
 	widget:SelectionChanged(spGetSelectedUnits())
 
-	WG["ordermenu"] = {}
-	WG["ordermenu"].getPosition = function()
+	WG.ordermenu = {}
+	WG.ordermenu.getPosition = function()
 		return posX, posY, width, height
 	end
-	WG["ordermenu"].reloadBindings = reloadBindings
-	WG["ordermenu"].setBottomPosition = function(value)
+	WG.ordermenu.reloadBindings = reloadBindings
+	WG.ordermenu.setBottomPosition = function(value)
 		stickToBottom = value
 		doUpdate = true
 		widget:ViewResize()
 	end
-	WG["ordermenu"].getAlwaysShow = function()
+	WG.ordermenu.getAlwaysShow = function()
 		return alwaysShow
 	end
-	WG["ordermenu"].setAlwaysShow = function(value)
+	WG.ordermenu.setAlwaysShow = function(value)
 		alwaysShow = value
 		doUpdate = true
 	end
-	WG["ordermenu"].getBottomPosition = function()
+	WG.ordermenu.getBottomPosition = function()
 		return stickToBottom
 	end
-	WG["ordermenu"].getDisabledCmd = function(cmd)
+	WG.ordermenu.getDisabledCmd = function(cmd)
 		return disabledCommand[cmd]
 	end
-	WG["ordermenu"].setDisabledCmd = function(params)
+	WG.ordermenu.setDisabledCmd = function(params)
 		if params[2] then
 			disabledCommand[params[1]] = true
 		else
@@ -590,24 +590,24 @@ function widget:Initialize()
 		end
 		doUpdate = true
 	end
-	WG["ordermenu"].getColorize = function()
+	WG.ordermenu.getColorize = function()
 		return colorize
 	end
-	WG["ordermenu"].setColorize = function(value)
+	WG.ordermenu.setColorize = function(value)
 		doUpdate = true
 		colorize = value
 		if colorize > 1 then
 			colorize = 1
 		end
 	end
-	WG["ordermenu"].getIsShowing = function()
+	WG.ordermenu.getIsShowing = function()
 		return ordermenuShows
 	end
 end
 
 function widget:Shutdown()
-	if WG["guishader"] and displayListGuiShader then
-		WG["guishader"].DeleteDlist("ordermenu")
+	if WG.guishader and displayListGuiShader then
+		WG.guishader.DeleteDlist("ordermenu")
 		displayListGuiShader = nil
 	end
 	if displayListOrders then
@@ -621,7 +621,7 @@ function widget:Shutdown()
 		gl.DeleteTexture(ordermenuTex)
 		ordermenuTex = nil
 	end
-	WG["ordermenu"] = nil
+	WG.ordermenu = nil
 end
 
 local buildmenuBottomPos = false
@@ -634,15 +634,15 @@ function widget:Update(dt)
 		sec = 0
 		checkGuiShader()
 
-		if WG["buildmenu"] and WG["buildmenu"].getBottomPosition then
+		if WG.buildmenu and WG.buildmenu.getBottomPosition then
 			local prevbuildmenuBottomPos = buildmenuBottomPos
-			buildmenuBottomPos = WG["buildmenu"].getBottomPosition()
+			buildmenuBottomPos = WG.buildmenu.getBottomPosition()
 			if buildmenuBottomPos ~= prevbuildmenuBottomPos then
 				widget:ViewResize()
 			end
 		end
 
-		if WG["minimap"] and minimapHeight ~= WG["minimap"].getHeight() then
+		if WG.minimap and minimapHeight ~= WG.minimap.getHeight() then
 			widget:ViewResize()
 			setupCellGrid(true)
 			doUpdate = true
@@ -664,7 +664,7 @@ function widget:Update(dt)
 		doUpdate = true
 	end
 
-	if (WG["guishader"] and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0)) then
+	if (WG.guishader and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0)) then
 		ordermenuShows = false
 	else
 		ordermenuShows = true
@@ -720,7 +720,7 @@ local function drawCell(cell, zoom)
 			color1 = { 0.66, 0.66, 0.66, math_clamp(uiOpacity, 0.75, 0.95) } -- bottom
 			color2 = { 1, 1, 1, math_clamp(uiOpacity, 0.75, 0.95) } -- top
 		else
-			if WG["guishader"] then
+			if WG.guishader then
 				color1 = isStateCommand[cmd.id] and { 0.5, 0.5, 0.5, math_clamp(uiOpacity / 1.5, 0.35, 0.55) } or { 0.6, 0.6, 0.6, math_clamp(uiOpacity / 1.5, 0.35, 0.55) }
 				color1[4] = math_clamp(uiOpacity - 0.3, 0, 0.35)
 				color2 = { 1, 1, 1, math_clamp(uiOpacity - 0.3, 0, 0.35) }
@@ -910,14 +910,14 @@ function widget:DrawScreen()
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	local x, y = Spring.GetMouseState()
 	local cellHovered
-	if not WG["topbar"] or not WG["topbar"].showingQuit() then
+	if not WG.topbar or not WG.topbar.showingQuit() then
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			Spring.SetMouseCursor("cursornormal")
 			for cell = 1, #cellRects do
 				if commands[cell] then
 					if math_isInRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
 						local cmd = commands[cell]
-						if WG["tooltip"] then
+						if WG.tooltip then
 							local tooltipKey = cmd.action .. "_tooltip"
 							local tooltip = getCachedTranslation("ui.orderMenu." .. tooltipKey)
 
@@ -943,7 +943,7 @@ function widget:DrawScreen()
 								else
 									title = getCachedTranslation("ui.orderMenu." .. cmd.action)
 								end
-								WG["tooltip"].ShowTooltip("ordermenu", tooltip, nil, nil, title)
+								WG.tooltip.ShowTooltip("ordermenu", tooltip, nil, nil, title)
 							end
 						end
 						cellHovered = cell
@@ -984,13 +984,13 @@ function widget:DrawScreen()
 	end
 
 	if #commands == 0 and (not alwaysShow or spGetGameFrame() == 0) then -- dont show pregame because factions interface is shown
-		if displayListGuiShader and WG["guishader"] then
-			WG["guishader"].RemoveDlist("ordermenu")
+		if displayListGuiShader and WG.guishader then
+			WG.guishader.RemoveDlist("ordermenu")
 		end
 		doUpdate = nil
 	else
-		if displayListGuiShader and WG["guishader"] then
-			WG["guishader"].InsertDlist(displayListGuiShader, "ordermenu")
+		if displayListGuiShader and WG.guishader then
+			WG.guishader.InsertDlist(displayListGuiShader, "ordermenu")
 		end
 		if doUpdate and displayListOrders then
 			displayListOrders = gl.DeleteList(displayListOrders)
@@ -1029,7 +1029,7 @@ function widget:DrawScreen()
 
 		if #commands > 0 then
 			-- draw highlight on top of button
-			if not WG["topbar"] or not WG["topbar"].showingQuit() then
+			if not WG.topbar or not WG.topbar.showingQuit() then
 				if commands and cellHovered then
 					local cell = cellHovered
 					if cellRects[cell] and cellRects[cell][4] then

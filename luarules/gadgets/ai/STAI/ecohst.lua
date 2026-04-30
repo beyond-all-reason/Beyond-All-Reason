@@ -23,7 +23,7 @@ function EcoHST:Init()
 			self.samples[i] = {}
 			self.samples[i].Metal = {}
 			self.samples[i].Energy = {}
-			local M = self.samples[i]["Metal"]
+			local M = self.samples[i].Metal
 			M.reserves = McurrentLevel
 			M.capacity = Mstorage
 			M.pull = Mpull
@@ -34,7 +34,7 @@ function EcoHST:Init()
 			M.received = Mreceived
 			M.full = 1
 
-			local E = self.samples[i]["Energy"]
+			local E = self.samples[i].Energy
 			E.reserves = EcurrentLevel
 			E.capacity = Estorage
 			E.pull = Epull

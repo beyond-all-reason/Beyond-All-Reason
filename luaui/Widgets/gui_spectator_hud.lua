@@ -733,8 +733,8 @@ local function calculateWidgetDimensions()
 	widgetDimensions.left = viewScreenWidth - widgetDimensions.width
 
 	widgetDimensions.distanceFromTopBar = mathfloor(defaults.widgetDimensions.distanceFromTopBar * scaleMultiplier)
-	if WG["topbar"] and WG["topbar"].getShowButtons() then
-		local topBarPosition = WG["topbar"].GetPosition()
+	if WG.topbar and WG.topbar.getShowButtons() then
+		local topBarPosition = WG.topbar.GetPosition()
 		widgetDimensions.top = topBarPosition[2] -- widgetDimensions.distanceFromTopBar
 	else
 		widgetDimensions.top = viewScreenHeight
@@ -831,7 +831,7 @@ local function deleteTextures()
 end
 
 local function updateMetricTextTooltips()
-	if WG["tooltip"] then
+	if WG.tooltip then
 		for metricIndex, metric in ipairs(metricsEnabled) do
 			local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
 			local top = bottom + metricDimensions.height
@@ -839,7 +839,7 @@ local function updateMetricTextTooltips()
 			local left = titleDimensions.left
 			local right = titleDimensions.right
 
-			WG["tooltip"].AddTooltip(string.format("spectator_hud_vsmode_%d", metric.id), { left, bottom, right, top }, metric.tooltip, nil, metric.title)
+			WG.tooltip.AddTooltip(string.format("spectator_hud_vsmode_%d", metric.id), { left, bottom, right, top }, metric.tooltip, nil, metric.title)
 		end
 	end
 end
@@ -1642,7 +1642,7 @@ local function showEcostats()
 end
 
 local function init()
-	font = WG["fonts"].getFont()
+	font = WG.fonts.getFont()
 
 	viewScreenWidth, viewScreenHeight = Spring.GetViewGeometry()
 
@@ -1720,28 +1720,28 @@ function widget:Initialize()
 		return
 	end
 
-	WG["spectator_hud"] = {}
+	WG.spectator_hud = {}
 
-	WG["spectator_hud"].getWidgetSize = function()
+	WG.spectator_hud.getWidgetSize = function()
 		return settings.widgetScale
 	end
-	WG["spectator_hud"].setWidgetSize = function(value)
+	WG.spectator_hud.setWidgetSize = function(value)
 		settings.widgetScale = value
 		reInit()
 	end
 
-	WG["spectator_hud"].getConfig = function()
+	WG.spectator_hud.getConfig = function()
 		return settings.widgetConfig
 	end
-	WG["spectator_hud"].setConfig = function(value)
+	WG.spectator_hud.setConfig = function(value)
 		settings.widgetConfig = value
 		reInit()
 	end
 
-	WG["spectator_hud"].getMetricEnabled = function(metric)
+	WG.spectator_hud.getMetricEnabled = function(metric)
 		return settings.metricsEnabled[metric]
 	end
-	WG["spectator_hud"].setMetricEnabled = function(args)
+	WG.spectator_hud.setMetricEnabled = function(args)
 		settings.metricsEnabled[args[1]] = args[2]
 		reInit()
 	end
@@ -1765,15 +1765,15 @@ end
 
 function widget:Shutdown()
 	deInit()
-	WG["spectator_hud"] = {}
+	WG.spectator_hud = {}
 	showEcostats()
 
 	if shader then
 		shader:Finalize()
 	end
 	if guishaderDlist then
-		if WG["guishader"] then
-			WG["guishader"].DeleteDlist("spechud")
+		if WG.guishader then
+			WG.guishader.DeleteDlist("spechud")
 		else
 			gl.DeleteList(guishaderDlist)
 		end
@@ -1896,10 +1896,10 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.05 then
 		sec = 0
-		if WG["topbar"] then
+		if WG.topbar then
 			local prevShowButtons = topbarShowButtons
-			if WG["topbar"].getShowButtons() ~= prevShowButtons then
-				topbarShowButtons = WG["topbar"].getShowButtons()
+			if WG.topbar.getShowButtons() ~= prevShowButtons then
+				topbarShowButtons = WG.topbar.getShowButtons()
 				if haveFullView then
 					init()
 				else
@@ -1932,14 +1932,14 @@ function widget:DrawScreen()
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	if not widgetEnabled or not haveFullView then
-		if WG["guishader"] and guishaderDlist then
-			WG["guishader"].DeleteDlist("spechud")
+		if WG.guishader and guishaderDlist then
+			WG.guishader.DeleteDlist("spechud")
 			guishaderDlist = nil
 		end
 		return
 	end
 
-	if WG["guishader"] and (displayListsChanged or not guishaderDlist) then
+	if WG.guishader and (displayListsChanged or not guishaderDlist) then
 		if guishaderDlist then
 			gl.DeleteList(guishaderDlist)
 			guishaderDlist = nil
@@ -1949,7 +1949,7 @@ function widget:DrawScreen()
 				gl.CallList(metricDisplayList)
 			end
 		end)
-		WG["guishader"].InsertDlist(guishaderDlist, "spechud")
+		WG.guishader.InsertDlist(guishaderDlist, "spechud")
 		displayListsChanged = nil
 	end
 
@@ -1990,10 +1990,10 @@ function widget:SetConfigData(data)
 		settings.oneTimeEcostatsEnableDone = data.oneTimeEcostatsEnableDone
 	end
 
-	if data["metricsEnabled"] then
+	if data.metricsEnabled then
 		for _, metric in pairs(metricKeys) do
-			if data["metricsEnabled"][metric] then
-				settings.metricsEnabled[metric] = data["metricsEnabled"][metric]
+			if data.metricsEnabled[metric] then
+				settings.metricsEnabled[metric] = data.metricsEnabled[metric]
 			end
 		end
 	end

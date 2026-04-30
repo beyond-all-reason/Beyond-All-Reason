@@ -3035,8 +3035,8 @@ for t, effects in pairs(types) do
 	end
 end
 
-definitions["decoycommander"] = table.copy(definitions[root .. "-small"])
-definitions["decoycommander"].confetti = {
+definitions.decoycommander = table.copy(definitions[root .. "-small"])
+definitions.decoycommander.confetti = {
 	class = [[CSimpleParticleSystem]],
 	count = 1,
 	ground = true,
@@ -3063,7 +3063,7 @@ definitions["decoycommander"].confetti = {
 		useairlos = false,
 	},
 }
-definitions["decoycommander"].glitter = {
+definitions.decoycommander.glitter = {
 	class = [[CSimpleParticleSystem]],
 	count = 1,
 	ground = true,
@@ -3090,7 +3090,7 @@ definitions["decoycommander"].glitter = {
 		useairlos = false,
 	},
 }
-definitions["decoycommander"].sparks = {
+definitions.decoycommander.sparks = {
 	air = true,
 	class = [[CSimpleParticleSystem]],
 	count = 1,

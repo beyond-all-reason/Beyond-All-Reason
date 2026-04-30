@@ -1,42 +1,42 @@
 local scanToCode = { qwerty = {}, azerty = {}, qwertz = {} }
 
 for c in string.gmatch("QWERTYUIOPASDFGHJKLZXCVBNM[];',./`-=\\", ".") do
-	scanToCode["qwerty"][c] = c
-	scanToCode["qwertz"][c] = c
-	scanToCode["azerty"][c] = c
+	scanToCode.qwerty[c] = c
+	scanToCode.qwertz[c] = c
+	scanToCode.azerty[c] = c
 end
 
-scanToCode["qwertz"]["Y"] = "Z"
-scanToCode["qwertz"]["Z"] = "Y"
+scanToCode.qwertz.Y = "Z"
+scanToCode.qwertz.Z = "Y"
 -- NEEDS CORRECTION BELOW
-scanToCode["qwertz"][";"] = ";"
-scanToCode["qwertz"]["'"] = "'"
-scanToCode["qwertz"][","] = ","
-scanToCode["qwertz"]["."] = "."
-scanToCode["qwertz"]["/"] = "/"
-scanToCode["qwertz"]["`"] = "`"
-scanToCode["qwertz"]["-"] = "-"
-scanToCode["qwertz"]["="] = "="
-scanToCode["qwertz"]["\\"] = "\\"
+scanToCode.qwertz[";"] = ";"
+scanToCode.qwertz["'"] = "'"
+scanToCode.qwertz[","] = ","
+scanToCode.qwertz["."] = "."
+scanToCode.qwertz["/"] = "/"
+scanToCode.qwertz["`"] = "`"
+scanToCode.qwertz["-"] = "-"
+scanToCode.qwertz["="] = "="
+scanToCode.qwertz["\\"] = "\\"
 -- NEEDS CORRECTION ABOVE
 
-scanToCode["azerty"]["Z"] = "W"
-scanToCode["azerty"]["A"] = "Q"
-scanToCode["azerty"]["Q"] = "A"
-scanToCode["azerty"]["W"] = "Z"
+scanToCode.azerty.Z = "W"
+scanToCode.azerty.A = "Q"
+scanToCode.azerty.Q = "A"
+scanToCode.azerty.W = "Z"
 -- NEEDS CORRECTION BELOW
-scanToCode["azerty"][";"] = ";"
-scanToCode["azerty"]["'"] = "'"
-scanToCode["azerty"][","] = ","
-scanToCode["azerty"]["."] = "."
-scanToCode["azerty"]["/"] = "/"
-scanToCode["azerty"]["`"] = "`"
-scanToCode["azerty"]["-"] = "-"
-scanToCode["azerty"]["="] = "="
-scanToCode["azerty"]["\\"] = "\\"
+scanToCode.azerty[";"] = ";"
+scanToCode.azerty["'"] = "'"
+scanToCode.azerty[","] = ","
+scanToCode.azerty["."] = "."
+scanToCode.azerty["/"] = "/"
+scanToCode.azerty["`"] = "`"
+scanToCode.azerty["-"] = "-"
+scanToCode.azerty["="] = "="
+scanToCode.azerty["\\"] = "\\"
 -- NEEDS CORRECTION ABOVE
 
-scanToCode["colemak"] = {
+scanToCode.colemak = {
 	Q = "Q",
 	W = "W",
 	E = "F",
@@ -112,7 +112,7 @@ scanToCode["colemak-dh"] = {
 	["\\"] = "\\",
 }
 
-scanToCode["canary"] = {
+scanToCode.canary = {
 	Q = "W",
 	W = "L",
 	E = "Y",
@@ -188,7 +188,7 @@ scanToCode["canary-ortho"] = {
 	["\\"] = "\\",
 }
 
-scanToCode["dvorak"] = {
+scanToCode.dvorak = {
 	Q = "'",
 	W = ",",
 	E = ".",
@@ -272,7 +272,7 @@ scanToCode["de-neo"] = {
 	-- NEEDS CORRECTION ABOVE
 }
 
-scanToCode["workman"] = {
+scanToCode.workman = {
 	Q = "Q",
 	W = "D",
 	E = "R",

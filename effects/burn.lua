@@ -100,7 +100,7 @@ return {
 			},
 		},
 	},
-	["missileburn"] = {
+	missileburn = {
 		groundflash = {
 			circlealpha = 0.1,
 			circlegrowth = 3,
@@ -143,7 +143,7 @@ return {
 		},
 	},
 
-	["electricburn"] = {
+	electricburn = {
 		groundflash = {
 			circlealpha = 0.1,
 			circlegrowth = 3,
@@ -212,7 +212,7 @@ return {
 		},
 	},
 
-	["burn"] = {
+	burn = {
 		dirtg = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -312,7 +312,7 @@ return {
 		},
 	},
 
-	["burnold"] = {
+	burnold = {
 		groundflash = {
 			circlealpha = 0.1,
 			circlegrowth = 3,
@@ -381,7 +381,7 @@ return {
 		},
 	},
 
-	["pilotlight"] = {
+	pilotlight = {
 		flame = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -413,7 +413,7 @@ return {
 		},
 	},
 
-	["pilotlightxl"] = {
+	pilotlightxl = {
 		flame = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -445,7 +445,7 @@ return {
 		},
 	},
 
-	["burnblack"] = {
+	burnblack = {
 		flame = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -476,7 +476,7 @@ return {
 			},
 		},
 	},
-	["burnthermite"] = {
+	burnthermite = {
 		flame = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -508,7 +508,7 @@ return {
 		},
 	},
 
-	["burnblackxl"] = {
+	burnblackxl = {
 		flame = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -540,7 +540,7 @@ return {
 		},
 	},
 
-	["burnblackbig"] = {
+	burnblackbig = {
 		flame1 = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -600,7 +600,7 @@ return {
 		},
 	},
 
-	["burnblackbiggest"] = {
+	burnblackbiggest = {
 		particles = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -655,7 +655,7 @@ return {
 		},
 	},
 
-	["burngreen"] = {
+	burngreen = {
 		groundflash = {
 			circlealpha = 0.1,
 			circlegrowth = 3,
@@ -723,7 +723,7 @@ return {
 			},
 		},
 	},
-	["flamestream"] = {
+	flamestream = {
 		flame = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -782,7 +782,7 @@ return {
 			},
 		},
 	},
-	["flamestreamxm"] = {
+	flamestreamxm = {
 		flame = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -841,7 +841,7 @@ return {
 			},
 		},
 	},
-	["thermitesmoke"] = {
+	thermitesmoke = {
 		flame = {
 			air = true, --also a useful function for experimenting with the particle physics
 			class = [[CSimpleParticleSystem]],
@@ -872,7 +872,7 @@ return {
 			},
 		},
 	},
-	["flamestreamthermite"] = {
+	flamestreamthermite = {
 		flame = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -932,7 +932,7 @@ return {
 			},
 		},
 	},
-	["flamestreamxl"] = {
+	flamestreamxl = {
 		flame = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -991,7 +991,7 @@ return {
 			},
 		},
 	},
-	["flamestreamxxl"] = {
+	flamestreamxxl = {
 		flame = {
 
 			air = true,
@@ -1056,7 +1056,7 @@ return {
 		},
 	},
 
-	["burnflame"] = {
+	burnflame = {
 		flame = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -1128,7 +1128,7 @@ return {
 		},
 	},
 
-	["burnflamexm"] = {
+	burnflamexm = {
 		flame = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -1158,7 +1158,7 @@ return {
 			},
 		},
 	},
-	["burnflamethermite"] = {
+	burnflamethermite = {
 		extrafire = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -1218,7 +1218,7 @@ return {
 			},
 		},
 	},
-	["burnflamexl"] = {
+	burnflamexl = {
 		extrafire = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -1295,7 +1295,7 @@ return {
 		},
 	},
 
-	["burnflamel"] = {
+	burnflamel = {
 		extrafire = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -1372,7 +1372,7 @@ return {
 		},
 	},
 
-	["demonflame"] = {
+	demonflame = {
 		extrafire = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -1434,7 +1434,7 @@ return {
 		},
 	},
 
-	["burnfire"] = {
+	burnfire = {
 		extrafire = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -1620,7 +1620,7 @@ return {
 		},
 	},
 
-	["burnfirecom"] = {
+	burnfirecom = {
 		extrafire = {
 			air = true,
 			class = [[CSimpleParticleSystem]],

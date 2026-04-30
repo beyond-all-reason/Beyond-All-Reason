@@ -127,7 +127,7 @@ local xPos = 0
 local yPos = 0
 
 local drawSantahat = false
-if Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
+if Spring.Utilities.Gametype.GetCurrentHolidays().xmas then
 	drawSantahat = true
 end
 
@@ -155,7 +155,7 @@ local function createList(size)
 		glDeleteList(drawlist[1])
 	end
 	drawlist[1] = glCreateList(function()
-		gl.Texture(OPTIONS[currentOption]["body"])
+		gl.Texture(OPTIONS[currentOption].body)
 		gl.Color(1, 1, 1, 1)
 		DrawRect(-(size / 2), -(size / 2), (size / 2), (size / 2))
 		gl.Texture(false)
@@ -166,11 +166,11 @@ local function createList(size)
 	end
 	drawlist[2] = glCreateList(function()
 		gl.Color(1, 1, 1, 1)
-		gl.Texture(OPTIONS[currentOption]["head"])
-		glTranslate(OPTIONS[currentOption]["head_xOffset"] * size, OPTIONS[currentOption]["head_yOffset"] * size, 0)
+		gl.Texture(OPTIONS[currentOption].head)
+		glTranslate(OPTIONS[currentOption].head_xOffset * size, OPTIONS[currentOption].head_yOffset * size, 0)
 		DrawRect(-(size / 2), -(size / 2) + (size / 14), (size / 2), (size / 2) + (size / 14))
-		if drawSantahat and OPTIONS[currentOption]["santahat"] then
-			gl.Texture(OPTIONS[currentOption]["santahat"])
+		if drawSantahat and OPTIONS[currentOption].santahat then
+			gl.Texture(OPTIONS[currentOption].santahat)
 			DrawRect(-(size / 2), -(size / 2) + (size / 14), (size / 2), (size / 2) + (size / 14))
 		end
 		gl.Texture(false)
@@ -180,11 +180,11 @@ local function createList(size)
 	end
 	drawlist[3] = glCreateList(function()
 		gl.Color(1, 1, 1, 1)
-		gl.Texture(OPTIONS[currentOption]["headblink"])
-		glTranslate(OPTIONS[currentOption]["head_xOffset"] * size, OPTIONS[currentOption]["head_yOffset"] * size, 0)
+		gl.Texture(OPTIONS[currentOption].headblink)
+		glTranslate(OPTIONS[currentOption].head_xOffset * size, OPTIONS[currentOption].head_yOffset * size, 0)
 		DrawRect(-(size / 2), -(size / 2) + (size / 14), (size / 2), (size / 2) + (size / 14))
-		if drawSantahat and OPTIONS[currentOption]["santahat"] then
-			gl.Texture(OPTIONS[currentOption]["santahat"])
+		if drawSantahat and OPTIONS[currentOption].santahat then
+			gl.Texture(OPTIONS[currentOption].santahat)
 			DrawRect(-(size / 2), -(size / 2) + (size / 14), (size / 2), (size / 2) + (size / 14))
 		end
 		gl.Texture(false)
@@ -195,22 +195,22 @@ local parentPos = {}
 local positionChange = os.clock()
 function updatePosition(force)
 	local prevPos = parentPos
-	if WG["displayinfo"] ~= nil then
-		parentPos = WG["displayinfo"].GetPosition()
-	elseif WG["unittotals"] ~= nil then
-		parentPos = WG["unittotals"].GetPosition()
-	elseif WG["music"] ~= nil then
-		parentPos = WG["music"].GetPosition()
-	elseif WG["advplayerlist_api"] ~= nil then
-		parentPos = WG["advplayerlist_api"].GetPosition()
+	if WG.displayinfo ~= nil then
+		parentPos = WG.displayinfo.GetPosition()
+	elseif WG.unittotals ~= nil then
+		parentPos = WG.unittotals.GetPosition()
+	elseif WG.music ~= nil then
+		parentPos = WG.music.GetPosition()
+	elseif WG.advplayerlist_api ~= nil then
+		parentPos = WG.advplayerlist_api.GetPosition()
 	else
 		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
 		parentPos = { 0, vsx - (220 * scale), 0, vsx, scale }
 	end
 	if parentPos[5] ~= nil then
-		usedImgSize = OPTIONS[currentOption]["imageSize"] * parentPos[5]
-		xPos = parentPos[2] + (usedImgSize / 2) + (OPTIONS[currentOption]["xOffset"] * parentPos[5])
-		yPos = parentPos[1] + (usedImgSize / 2) + (OPTIONS[currentOption]["yOffset"] * parentPos[5])
+		usedImgSize = OPTIONS[currentOption].imageSize * parentPos[5]
+		xPos = parentPos[2] + (usedImgSize / 2) + (OPTIONS[currentOption].xOffset * parentPos[5])
+		yPos = parentPos[1] + (usedImgSize / 2) + (OPTIONS[currentOption].yOffset * parentPos[5])
 		positionChange = os.clock()
 
 		if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
@@ -253,10 +253,10 @@ function widget:Update(dt)
 	rot = 14 + (6 * mathSin(mathPi * (totalTime / 4)))
 	bob = (1.5 * mathSin(mathPi * (totalTime / 5.5)))
 
-	if sec > OPTIONS[currentOption]["blinkTimeout"] then
+	if sec > OPTIONS[currentOption].blinkTimeout then
 		usedDrawlist = 3
 	end
-	if sec > (OPTIONS[currentOption]["blinkTimeout"] + OPTIONS[currentOption]["blinkDuration"]) then
+	if sec > (OPTIONS[currentOption].blinkTimeout + OPTIONS[currentOption].blinkDuration) then
 		sec = 0
 		usedDrawlist = 2
 	end

@@ -69,8 +69,8 @@ end
 
 function widget:Initialize()
 	makeAtlas()
-	WG["flowui_atlas"] = atlasID
-	WG["flowui_atlassedImages"] = atlassedImages
+	WG.flowui_atlas = atlasID
+	WG.flowui_atlassedImages = atlassedImages
 end
 
 function widget:Shutdown()

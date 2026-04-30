@@ -133,12 +133,12 @@ end
 function widget:Initialize()
 	widget:ViewResize(vsx, vsy)
 
-	if WG["tooltip"] == nil then
-		WG["tooltip"] = {}
-		WG["tooltip"].getFontsize = function()
+	if WG.tooltip == nil then
+		WG.tooltip = {}
+		WG.tooltip.getFontsize = function()
 			return usedFontSize
 		end
-		WG["tooltip"].AddTooltip = function(name, area, value, delay, title)
+		WG.tooltip.AddTooltip = function(name, area, value, delay, title)
 			if ((value ~= nil or title ~= nil) and area[1] ~= nil and area[2] ~= nil and area[3] ~= nil and area[4] ~= nil) or (tooltips[name] ~= nil and (tooltips[name].value ~= nil or tooltips[name].title ~= nil)) then
 				if delay == nil then
 					delay = defaultDelay
@@ -157,7 +157,7 @@ function widget:Initialize()
 				end
 			end
 		end
-		WG["tooltip"].RemoveTooltip = function(name)
+		WG.tooltip.RemoveTooltip = function(name)
 			if tooltips[name] ~= nil then
 				if tooltips[name].dlist then
 					gl.DeleteList(tooltips[name].dlist)
@@ -167,7 +167,7 @@ function widget:Initialize()
 				tooltips[name] = nil
 			end
 		end
-		WG["tooltip"].ShowTooltip = function(name, value, x, y, title)
+		WG.tooltip.ShowTooltip = function(name, value, x, y, title)
 			if value ~= nil or title ~= nil then
 				if not tooltips[name] then
 					tooltips[name] = {}
@@ -201,10 +201,10 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if WG["guishader"] then
+	if WG.guishader then
 		for name, tooltip in pairs(tooltips) do
-			WG["guishader"].RemoveScreenRect("tooltip_" .. name)
-			WG["guishader"].RemoveScreenRect("2tooltip_" .. name)
+			WG.guishader.RemoveScreenRect("tooltip_" .. name)
+			WG.guishader.RemoveScreenRect("2tooltip_" .. name)
 			if tooltip.dlist then
 				gl.DeleteList(tooltip.dlist)
 			end
@@ -224,14 +224,14 @@ function widget:Shutdown()
 	end
 	texturePool = {}
 
-	WG["tooltip"] = nil
+	WG.tooltip = nil
 end
 
 function widget:ViewResize(x, y)
 	vsx, vsy = spGetViewGeometry()
 
-	font, loadedFontSize = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2, 1.6)
+	font, loadedFontSize = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2, 1.6)
 
 	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
 	usedFontSize = cfgFontSize * widgetScale
@@ -242,9 +242,9 @@ function widget:ViewResize(x, y)
 	UiElement = WG.FlowUI.Draw.Element
 
 	for name, tooltip in pairs(tooltips) do
-		if WG["guishader"] then
-			WG["guishader"].RemoveScreenRect("tooltip_" .. name)
-			WG["guishader"].RemoveScreenRect("2tooltip_" .. name)
+		if WG.guishader then
+			WG.guishader.RemoveScreenRect("tooltip_" .. name)
+			WG.guishader.RemoveScreenRect("2tooltip_" .. name)
 		end
 		if tooltip.dlist then
 			gl.DeleteList(tooltip.dlist)
@@ -260,7 +260,7 @@ end
 
 local function drawTooltipBackground(addX, addY, paddingW, paddingH, maxWidth, maxHeight, borderSize)
 	RectRound(addX - paddingW - borderSize, addY - maxHeight - paddingH - borderSize, addX + maxWidth + paddingW + borderSize, addY + paddingH + borderSize, bgpadding * 1.4, 1, 1, 1, 1, { 0, 0, 0, 0.08 })
-	UiElement(addX - paddingW, addY - maxHeight - paddingH, addX + maxWidth + paddingW, addY + paddingH, 1, 1, 1, 1, 1, 1, 1, 1, nil, { 0.85, 0.85, 0.85, (WG["guishader"] and 0.7 or 0.93) }, { 0, 0, 0, (WG["guishader"] and 0.5 or 0.56) }, bgpadding)
+	UiElement(addX - paddingW, addY - maxHeight - paddingH, addX + maxWidth + paddingW, addY + paddingH, 1, 1, 1, 1, 1, 1, 1, 1, nil, { 0.85, 0.85, 0.85, (WG.guishader and 0.7 or 0.93) }, { 0, 0, 0, (WG.guishader and 0.5 or 0.56) }, bgpadding)
 end
 
 local function drawTooltipContent(name, addX, addY, paddingH, lines)
@@ -382,9 +382,9 @@ local function drawTooltip(name, x, y)
 		posY = 0 + maxHeight + paddingH + paddingH
 	end
 
-	if WG["guishader"] then
-		WG["guishader"].InsertScreenRect(posX - paddingW + bgpadding, posY - maxHeight - paddingH, posX + maxWidth + paddingW - bgpadding, posY + paddingH, "tooltip_" .. name)
-		WG["guishader"].InsertScreenRect(posX - paddingW, posY - maxHeight - paddingH + bgpadding, posX + maxWidth + paddingW, posY + paddingH - bgpadding, "2tooltip_" .. name)
+	if WG.guishader then
+		WG.guishader.InsertScreenRect(posX - paddingW + bgpadding, posY - maxHeight - paddingH, posX + maxWidth + paddingW - bgpadding, posY + paddingH, "tooltip_" .. name)
+		WG.guishader.InsertScreenRect(posX - paddingW, posY - maxHeight - paddingH + bgpadding, posX + maxWidth + paddingW, posY + paddingH - bgpadding, "2tooltip_" .. name)
 	end
 
 	if tooltips[name].bgTex then
@@ -396,16 +396,16 @@ local function drawTooltip(name, x, y)
 end
 
 function widget:DrawScreen()
-	if WG["topbar"] and WG["topbar"].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		return
 	end
 	local x, y = spGetMouseState()
 	local now = os.clock()
 
-	if WG["guishader"] then
+	if WG.guishader then
 		for name, _ in pairs(cleanupGuishaderAreas) do
-			WG["guishader"].RemoveScreenRect("tooltip_" .. name)
-			WG["guishader"].RemoveScreenRect("2tooltip_" .. name)
+			WG.guishader.RemoveScreenRect("tooltip_" .. name)
+			WG.guishader.RemoveScreenRect("2tooltip_" .. name)
 			cleanupGuishaderAreas[name] = nil
 		end
 	end
@@ -436,9 +436,9 @@ function widget:DrawScreen()
 		else
 			if tooltip.displayTime ~= nil then
 				tooltip.displayTime = nil
-				if WG["guishader"] then
-					WG["guishader"].RemoveScreenRect("tooltip_" .. name)
-					WG["guishader"].RemoveScreenRect("2tooltip_" .. name)
+				if WG.guishader then
+					WG.guishader.RemoveScreenRect("tooltip_" .. name)
+					WG.guishader.RemoveScreenRect("2tooltip_" .. name)
 				end
 			end
 		end
