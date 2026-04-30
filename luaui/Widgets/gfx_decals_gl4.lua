@@ -328,7 +328,7 @@ local floor = mathFloor
 
 local function hashPos(mapx, mapz) -- packs XZ into 1000*x + z
 	if mapx == nil or mapz == nil then
-		Spring.Debug.TraceFullEcho()
+		Debug.TraceFullEcho()
 	end
 
 	return floor(mapx / areaResolution) * 1000 + floor(mapz / areaResolution)

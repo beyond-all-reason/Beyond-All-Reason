@@ -119,7 +119,7 @@ local function refreshScreenModes()
 			local fullscreen = {
 				display = display,
 				displayName = videoMode.displayName,
-				name = Spring.I18N("ui.resolutionswitcher.fullscreen"),
+				name = I18N("ui.resolutionswitcher.fullscreen"),
 				type = windowType.fullscreen,
 				width = videoMode.w,
 				height = videoMode.h,
@@ -127,7 +127,7 @@ local function refreshScreenModes()
 
 			local borderless = {
 				display = display,
-				name = Spring.I18N("ui.resolutionswitcher.borderless"),
+				name = I18N("ui.resolutionswitcher.borderless"),
 				displayName = videoMode.displayName,
 				type = windowType.borderless,
 				width = videoMode.w,
@@ -142,7 +142,7 @@ local function refreshScreenModes()
 			local windowed = {
 				display = display,
 				displayName = videoMode.displayName,
-				name = Spring.I18N("ui.resolutionswitcher.window") .. " " .. videoMode.w .. " × " .. videoMode.h .. "  (" .. videoMode.hz .. "hz)",
+				name = I18N("ui.resolutionswitcher.window") .. " " .. videoMode.w .. " × " .. videoMode.h .. "  (" .. videoMode.hz .. "hz)",
 				type = windowType.windowed,
 				width = videoMode.w,
 				height = videoMode.h,
@@ -174,7 +174,7 @@ local function refreshScreenModes()
 								tableInsert(screenModes, {
 									display = #displays + 1, -- not actual display number
 									actualDisplay = (x < x2 and display or display2),
-									name = Spring.I18N("ui.resolutionswitcher.displays") .. " " .. display .. " + " .. display2 .. " (" .. w + w2 .. " x " .. mathMin(h, h2) .. ")",
+									name = I18N("ui.resolutionswitcher.displays") .. " " .. display .. " + " .. display2 .. " (" .. w + w2 .. " x " .. mathMin(h, h2) .. ")",
 									displayName = "",
 									type = windowType.multimonitor,
 									x = mathMin(x, x2),
@@ -187,7 +187,7 @@ local function refreshScreenModes()
 									tableInsert(screenModes, {
 										display = #displays + 1, -- not actual display number
 										actualDisplay = (x < x2 and display or display2),
-										name = Spring.I18N("ui.resolutionswitcher.displays") .. " " .. display .. " + " .. display2 .. " (" .. w + w2 .. " x " .. mathMax(h, h2) .. ")",
+										name = I18N("ui.resolutionswitcher.displays") .. " " .. display .. " + " .. display2 .. " (" .. w + w2 .. " x " .. mathMax(h, h2) .. ")",
 										displayName = "",
 										type = windowType.multimonitor,
 										x = mathMin(x, x2),
@@ -206,7 +206,7 @@ local function refreshScreenModes()
 		-- only add the "Multi Display" option when there are valid display combos to choose from
 		for k, v in pairs(addedDisplayCombo) do
 			displays[#displays + 1] = {
-				name = Spring.I18N("ui.resolutionswitcher.multidisplay"),
+				name = I18N("ui.resolutionswitcher.multidisplay"),
 				width = 0,
 				height = 0,
 				hz = 0,

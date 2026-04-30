@@ -62,8 +62,8 @@ local myAllyTeamList = sp.GetTeamList(myAllyTeamID)
 local numTeamsInAllyTeam = #myAllyTeamList
 
 -- Game mode / state
-local numPlayers = Spring.Utilities.GetPlayerCount()
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local numPlayers = Utilities.GetPlayerCount()
+local isSinglePlayer = Utilities.Gametype.IsSinglePlayer()
 local chobbyLoaded = false
 local isSingle = false
 local gameStarted = (sp.GetGameFrame() > 0)
@@ -85,7 +85,7 @@ local isMetalmap = false
 -- Wind + tide
 local avgWindValue, riskWindValue
 local currentWind = 0
-local displayTidalSpeed = not Spring.Lava.isLavaMap
+local displayTidalSpeed = not Lava.isLavaMap
 local tidalSpeed = Spring.GetTidal() -- for now assumed that it is not dynamically changed
 local tidalWaveAnimationHeight = 10
 local windRotation = 0
@@ -342,34 +342,34 @@ local function updateButtons()
 	end
 
 	if not gameIsOver and chobbyLoaded then
-		addButton("quit", Spring.I18N("ui.topbar.button.lobby"))
+		addButton("quit", I18N("ui.topbar.button.lobby"))
 	else
-		addButton("quit", Spring.I18N("ui.topbar.button.quit"))
+		addButton("quit", I18N("ui.topbar.button.quit"))
 	end
 	if not gameIsOver and not spec and gameStarted and not isSinglePlayer then
-		addButton("resign", Spring.I18N("ui.topbar.button.resign"))
+		addButton("resign", I18N("ui.topbar.button.resign"))
 	end
 
 	if WG["options"] then
-		addButton("options", Spring.I18N("ui.topbar.button.settings"))
+		addButton("options", I18N("ui.topbar.button.settings"))
 	end
 	if WG["keybinds"] then
-		addButton("keybinds", Spring.I18N("ui.topbar.button.keys"))
+		addButton("keybinds", I18N("ui.topbar.button.keys"))
 	end
 	if WG["changelog"] then
-		addButton("changelog", Spring.I18N("ui.topbar.button.changes"))
+		addButton("changelog", I18N("ui.topbar.button.changes"))
 	end
 	if WG["teamstats"] then
-		addButton("stats", Spring.I18N("ui.topbar.button.stats"))
+		addButton("stats", I18N("ui.topbar.button.stats"))
 	end
 	if gameIsOver then
-		addButton("graphs", Spring.I18N("ui.topbar.button.graphs"))
+		addButton("graphs", I18N("ui.topbar.button.graphs"))
 	end
 	if WG["scavengerinfo"] then
-		addButton("scavengers", Spring.I18N("ui.topbar.button.scavengers"))
+		addButton("scavengers", I18N("ui.topbar.button.scavengers"))
 	end
 	if isSinglePlayer and cfg.allowSavegame and WG["savegame"] then
-		addButton("save", Spring.I18N("ui.topbar.button.save"))
+		addButton("save", I18N("ui.topbar.button.save"))
 	end
 
 	buttonsArea["buttons"][lastbutton][1] = buttonsArea["buttons"][lastbutton][1] - sidePadding
@@ -438,7 +438,7 @@ local function updateComs(forceText)
 	comcountChanged = nil
 
 	if WG["tooltip"] and refreshUi then
-		WG["tooltip"].AddTooltip("coms", area, Spring.I18N("ui.topbar.commanderCountTooltip"), nil, Spring.I18N("ui.topbar.commanderCount"))
+		WG["tooltip"].AddTooltip("coms", area, I18N("ui.topbar.commanderCountTooltip"), nil, I18N("ui.topbar.commanderCount"))
 	end
 end
 
@@ -488,8 +488,8 @@ local function updateWind()
 	end)
 
 	if WG["tooltip"] and refreshUi then
-		local avgWindValueForTooltip = windFunctions.isNoWind() and Spring.I18N("ui.topbar.wind.nowind1") or avgWindValue
-		WG["tooltip"].AddTooltip("wind", area, Spring.I18N("ui.topbar.windspeedTooltip", { avgWindValue = avgWindValueForTooltip, riskWindValue = riskWindValue, warnColor = textWarnColor }), nil, Spring.I18N("ui.topbar.windspeed"))
+		local avgWindValueForTooltip = windFunctions.isNoWind() and I18N("ui.topbar.wind.nowind1") or avgWindValue
+		WG["tooltip"].AddTooltip("wind", area, I18N("ui.topbar.windspeedTooltip", { avgWindValue = avgWindValueForTooltip, riskWindValue = riskWindValue, warnColor = textWarnColor }), nil, I18N("ui.topbar.windspeed"))
 	end
 end
 
@@ -531,7 +531,7 @@ local function updateTidal()
 	end)
 
 	if WG["tooltip"] and refreshUi then
-		WG["tooltip"].AddTooltip("tidal", area, Spring.I18N("ui.topbar.tidalspeedTooltip"), nil, Spring.I18N("ui.topbar.tidalspeed"))
+		WG["tooltip"].AddTooltip("tidal", area, I18N("ui.topbar.tidalspeedTooltip"), nil, I18N("ui.topbar.tidalspeed"))
 	end
 end
 
@@ -604,7 +604,7 @@ local function updateResbarText(res, force)
 				local text = ""
 
 				if res == "metal" then
-					text = (allyteamOverflowingMetal and "   " .. Spring.I18N("ui.topbar.resources.wastingMetal") .. "   " or "   " .. Spring.I18N("ui.topbar.resources.overflowing") .. "   ")
+					text = (allyteamOverflowingMetal and "   " .. I18N("ui.topbar.resources.wastingMetal") .. "   " or "   " .. I18N("ui.topbar.resources.overflowing") .. "   ")
 					if not supressOverflowNotifs and WG["notifications"] and not isMetalmap and (not WG.sharedMetalFrame or WG.sharedMetalFrame + 60 < gameFrame) then
 						if allyteamOverflowingMetal then
 							if numTeamsInAllyTeam > 1 then
@@ -617,7 +617,7 @@ local function updateResbarText(res, force)
 						end
 					end
 				else
-					text = (allyteamOverflowingEnergy and "   " .. Spring.I18N("ui.topbar.resources.wastingEnergy") .. "   " or "   " .. Spring.I18N("ui.topbar.resources.overflowing") .. "   ")
+					text = (allyteamOverflowingEnergy and "   " .. I18N("ui.topbar.resources.wastingEnergy") .. "   " or "   " .. I18N("ui.topbar.resources.overflowing") .. "   ")
 					if not supressOverflowNotifs and WG["notifications"] and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame + 60 < gameFrame) then
 						if allyteamOverflowingEnergy then
 							if numTeamsInAllyTeam > 1 then
@@ -866,8 +866,8 @@ local function updateResbar(res)
 	end)
 
 	local resourceTranslations = {
-		metal = Spring.I18N("ui.topbar.resources.metal"),
-		energy = Spring.I18N("ui.topbar.resources.energy"),
+		metal = I18N("ui.topbar.resources.metal"),
+		energy = I18N("ui.topbar.resources.energy"),
 	}
 
 	local resourceName = resourceTranslations[res]
@@ -876,18 +876,18 @@ local function updateResbar(res)
 	if WG["tooltip"] and conversionIndicatorArea then
 		-- always update for now
 		if res == "energy" then
-			WG["tooltip"].AddTooltip(res .. "_share_slider", { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], conversionIndicatorArea[1], shareIndicatorArea[res][4] }, Spring.I18N("ui.topbar.resources.shareEnergyTooltip"), nil, Spring.I18N("ui.topbar.resources.shareEnergyTooltipTitle"))
-			WG["tooltip"].AddTooltip(res .. "_share_slider2", { conversionIndicatorArea[3], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N("ui.topbar.resources.shareEnergyTooltip"), nil, Spring.I18N("ui.topbar.resources.shareEnergyTooltipTitle"))
-			WG["tooltip"].AddTooltip(res .. "_metalmaker_slider", conversionIndicatorArea, Spring.I18N("ui.topbar.resources.conversionTooltip"), nil, Spring.I18N("ui.topbar.resources.conversionTooltipTitle"))
+			WG["tooltip"].AddTooltip(res .. "_share_slider", { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], conversionIndicatorArea[1], shareIndicatorArea[res][4] }, I18N("ui.topbar.resources.shareEnergyTooltip"), nil, I18N("ui.topbar.resources.shareEnergyTooltipTitle"))
+			WG["tooltip"].AddTooltip(res .. "_share_slider2", { conversionIndicatorArea[3], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, I18N("ui.topbar.resources.shareEnergyTooltip"), nil, I18N("ui.topbar.resources.shareEnergyTooltipTitle"))
+			WG["tooltip"].AddTooltip(res .. "_metalmaker_slider", conversionIndicatorArea, I18N("ui.topbar.resources.conversionTooltip"), nil, I18N("ui.topbar.resources.conversionTooltipTitle"))
 		else
-			WG["tooltip"].AddTooltip(res .. "_share_slider", { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N("ui.topbar.resources.shareMetalTooltip"), nil, Spring.I18N("ui.topbar.resources.shareMetalTooltipTitle"))
+			WG["tooltip"].AddTooltip(res .. "_share_slider", { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, I18N("ui.topbar.resources.shareMetalTooltip"), nil, I18N("ui.topbar.resources.shareMetalTooltipTitle"))
 		end
 
 		if refreshUi then
-			WG["tooltip"].AddTooltip(res .. "_pull", { resbarDrawinfo[res].textPull[2] - (resbarDrawinfo[res].textPull[4] * 2.5), resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[2] + (resbarDrawinfo[res].textPull[4] * 0.5), resbarDrawinfo[res].textPull[3] + resbarDrawinfo[res].textPull[4] }, Spring.I18N("ui.topbar.resources.pullTooltip", { resource = resourceName }))
-			WG["tooltip"].AddTooltip(res .. "_income", { resbarDrawinfo[res].textIncome[2] - (resbarDrawinfo[res].textIncome[4] * 2.5), resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[2] + (resbarDrawinfo[res].textIncome[4] * 0.5), resbarDrawinfo[res].textIncome[3] + resbarDrawinfo[res].textIncome[4] }, Spring.I18N("ui.topbar.resources.incomeTooltip", { resource = resourceName }))
+			WG["tooltip"].AddTooltip(res .. "_pull", { resbarDrawinfo[res].textPull[2] - (resbarDrawinfo[res].textPull[4] * 2.5), resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[2] + (resbarDrawinfo[res].textPull[4] * 0.5), resbarDrawinfo[res].textPull[3] + resbarDrawinfo[res].textPull[4] }, I18N("ui.topbar.resources.pullTooltip", { resource = resourceName }))
+			WG["tooltip"].AddTooltip(res .. "_income", { resbarDrawinfo[res].textIncome[2] - (resbarDrawinfo[res].textIncome[4] * 2.5), resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[2] + (resbarDrawinfo[res].textIncome[4] * 0.5), resbarDrawinfo[res].textIncome[3] + resbarDrawinfo[res].textIncome[4] }, I18N("ui.topbar.resources.incomeTooltip", { resource = resourceName }))
 			--WG['tooltip'].AddTooltip(res .. '_expense', { resbarDrawinfo[res].textExpense[2] - (4 * widgetScale), resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[2] + (30 * widgetScale), resbarDrawinfo[res].textExpense[3] + resbarDrawinfo[res].textExpense[4] }, Spring.I18N('ui.topbar.resources.expenseTooltip', { resource = resourceName }))
-			WG["tooltip"].AddTooltip(res .. "_storage", { resbarDrawinfo[res].textStorage[2] - (resbarDrawinfo[res].textStorage[4] * 2.75), resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3] + resbarDrawinfo[res].textStorage[4] }, Spring.I18N("ui.topbar.resources.storageTooltip", { resource = resourceName }))
+			WG["tooltip"].AddTooltip(res .. "_storage", { resbarDrawinfo[res].textStorage[2] - (resbarDrawinfo[res].textStorage[4] * 2.75), resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3] + resbarDrawinfo[res].textStorage[4] }, I18N("ui.topbar.resources.storageTooltip", { resource = resourceName }))
 		end
 	end
 end
@@ -1550,19 +1550,19 @@ local function drawQuitScreen()
 			local h = mathFloor(w / 3.5)
 
 			local fontSize = h / 6
-			local text = Spring.I18N("ui.topbar.quit.reallyQuit")
+			local text = I18N("ui.topbar.quit.reallyQuit")
 			teamResign = false
 
 			if not spec then
-				text = Spring.I18N("ui.topbar.quit.reallyQuitResign")
+				text = I18N("ui.topbar.quit.reallyQuitResign")
 				if not gameIsOver and chobbyLoaded then
 					if numPlayers < 3 then
-						text = Spring.I18N("ui.topbar.quit.reallyResign")
+						text = I18N("ui.topbar.quit.reallyResign")
 					else
 						if getPlayerLiveAllyCount() >= 1 then
 							teamResign = true
 						end
-						text = Spring.I18N("ui.topbar.quit.reallyResignSpectate")
+						text = I18N("ui.topbar.quit.reallyResignSpectate")
 					end
 				end
 			end
@@ -1619,7 +1619,7 @@ local function drawQuitScreen()
 					color2 = { 0, 0.5, 0, 0.35 + (0.5 * fadeProgress) }
 				end
 				UiButton(quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, color1, color2, padding * 0.5)
-				font2:Print(Spring.I18N("ui.topbar.quit.stay"), quitscreenStayArea[1] + ((quitscreenStayArea[3] - quitscreenStayArea[1]) / 2), quitscreenStayArea[2] + ((quitscreenStayArea[4] - quitscreenStayArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				font2:Print(I18N("ui.topbar.quit.stay"), quitscreenStayArea[1] + ((quitscreenStayArea[3] - quitscreenStayArea[1]) / 2), quitscreenStayArea[2] + ((quitscreenStayArea[4] - quitscreenStayArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 			end
 
 			-- resign button
@@ -1634,7 +1634,7 @@ local function drawQuitScreen()
 					color2 = { 0.5, 0, 0, 0.35 + (0.5 * fadeProgress) }
 				end
 				UiButton(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, color1, color2, padding * 0.5)
-				font2:Print(Spring.I18N("ui.topbar.quit.resign"), quitscreenResignArea[1] + ((quitscreenResignArea[3] - quitscreenResignArea[1]) / 2), quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				font2:Print(I18N("ui.topbar.quit.resign"), quitscreenResignArea[1] + ((quitscreenResignArea[3] - quitscreenResignArea[1]) / 2), quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 
 				if teamResign then
 					if mathIsInRect(mx, my, quitscreenTeamResignArea[1], quitscreenTeamResignArea[2], quitscreenTeamResignArea[3], quitscreenTeamResignArea[4]) then
@@ -1646,10 +1646,10 @@ local function drawQuitScreen()
 						color2 = { 0.33, 0.33, 0.33, 0.4 + (0.5 * fadeProgress) }
 					end
 					UiButton(quitscreenTeamResignArea[1], quitscreenTeamResignArea[2], quitscreenTeamResignArea[3], quitscreenTeamResignArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, color1, color2, padding * 0.5)
-					font2:Print(Spring.I18N("ui.topbar.quit.teamResign"), quitscreenTeamResignArea[1] + ((quitscreenTeamResignArea[3] - quitscreenTeamResignArea[1]) / 2), quitscreenTeamResignArea[2] + ((quitscreenTeamResignArea[4] - quitscreenTeamResignArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+					font2:Print(I18N("ui.topbar.quit.teamResign"), quitscreenTeamResignArea[1] + ((quitscreenTeamResignArea[3] - quitscreenTeamResignArea[1]) / 2), quitscreenTeamResignArea[2] + ((quitscreenTeamResignArea[4] - quitscreenTeamResignArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
 				if mouseOver and teamResign then
-					font:Print(Spring.I18N("ui.topbar.hint." .. mouseOver), quitscreenTeamResignArea[1] - buttonMargin, quitscreenArea[2] + (2.5 * fontSize / 3), fontSize * 0.9, "cn")
+					font:Print(I18N("ui.topbar.hint." .. mouseOver), quitscreenTeamResignArea[1] - buttonMargin, quitscreenArea[2] + (2.5 * fontSize / 3), fontSize * 0.9, "cn")
 				end
 			end
 
@@ -1663,7 +1663,7 @@ local function drawQuitScreen()
 					color2 = { 0.5, 0, 0, 0.35 + (0.5 * fadeProgress) }
 				end
 				UiButton(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, color1, color2, padding * 0.5)
-				font2:Print(Spring.I18N("ui.topbar.quit.quit"), quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2), quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				font2:Print(I18N("ui.topbar.quit.quit"), quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2), quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 			end
 
 			font2:End()
@@ -1723,8 +1723,8 @@ local function drawUi()
 	else
 		font2:Begin(true)
 		--font2:Print("\255\200\200\200no wind", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
-		font2:Print("\255\200\200\200" .. Spring.I18N("ui.topbar.wind.nowind1"), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize * 1.06, "oc") -- Wind speed text
-		font2:Print("\255\200\200\200" .. Spring.I18N("ui.topbar.wind.nowind2"), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize * 1.06, "oc") -- Wind speed text
+		font2:Print("\255\200\200\200" .. I18N("ui.topbar.wind.nowind1"), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize * 1.06, "oc") -- Wind speed text
+		font2:Print("\255\200\200\200" .. I18N("ui.topbar.wind.nowind2"), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize * 1.06, "oc") -- Wind speed text
 		font2:End()
 	end
 

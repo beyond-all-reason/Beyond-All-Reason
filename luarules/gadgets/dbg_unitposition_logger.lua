@@ -52,7 +52,7 @@ if not gadgetHandler:IsSyncedCode() then
 	local math_ceil = math.ceil
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+	local isSinglePlayer = Utilities.Gametype.IsSinglePlayer()
 
 	local logRate = minLogRate
 	local lastLogFrame = 30 - minLogRate

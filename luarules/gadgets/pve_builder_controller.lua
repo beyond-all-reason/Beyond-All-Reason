@@ -16,16 +16,16 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-if Spring.Utilities.Gametype.IsRaptors() then
+if Utilities.Gametype.IsRaptors() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
-elseif Spring.Utilities.Gametype.IsScavengers() then
+elseif Utilities.Gametype.IsScavengers() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
 else
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Defense Spawner Deactivated!")
 	return false
 end
 
-local scavengerAITeamID = Spring.Utilities.GetScavTeamID()
+local scavengerAITeamID = Utilities.GetScavTeamID()
 
 local builderDefs = {}
 for unitDefID, data in pairs(UnitDefs) do

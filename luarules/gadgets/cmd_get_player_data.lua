@@ -22,7 +22,7 @@ local screenshotWidthHq = 900
 
 --------------------------------------------------------------------------------
 
-local isSingleplayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSingleplayer = Utilities.Gametype.IsSinglePlayer()
 
 if gadgetHandler:IsSyncedCode() then
 	local validation = string.randomString(2)
@@ -73,7 +73,7 @@ else
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
 	local function isAuthorized()
-		local acID = Spring.Utilities.GetAccountID(myPlayerID)
+		local acID = Utilities.GetAccountID(myPlayerID)
 		local perms = SYNCED.permissions.playerdata
 		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
 	end

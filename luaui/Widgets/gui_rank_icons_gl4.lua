@@ -138,7 +138,7 @@ end -- init this caching table to preserve mem allocs
 
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, flash)
 	if debugmode then
-		Spring.Debug.TraceEcho("add", unitID, reason)
+		Debug.TraceEcho("add", unitID, reason)
 	end
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
 		if debugmode then
@@ -187,7 +187,7 @@ end
 
 local function RemovePrimitive(unitID, reason)
 	if debugmode then
-		Spring.Debug.TraceEcho("remove", unitID, reason)
+		Debug.TraceEcho("remove", unitID, reason)
 	end
 	if rankVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(rankVBO, unitID)

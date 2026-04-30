@@ -76,8 +76,8 @@ local function updateUI()
 
 	local fontSize = (area[4] - area[2]) * 0.4
 	local color = "\255\255\255\255"
-	local tooltipTitle = Spring.I18N("ui.topbar.converter_usage.defaultTooltipTitle")
-	local tooltipText = Spring.I18N("ui.topbar.converter_usage.defaultTooltip")
+	local tooltipTitle = I18N("ui.topbar.converter_usage.defaultTooltipTitle")
+	local tooltipText = I18N("ui.topbar.converter_usage.defaultTooltip")
 
 	if dlistCU ~= nil then
 		glDeleteList(dlistCU)
@@ -92,10 +92,10 @@ local function updateUI()
 		--Some coloring and tooltip text
 		if converterUse < 20 then
 			color = "\255\255\000\000" --Red
-			tooltipText = tooltipText .. "\n\n\255\255\100\075" .. Spring.I18N("ui.topbar.converter_usage.tooManyConverters1Tooltip") .. "\n\255\255\100\075" .. Spring.I18N("ui.topbar.converter_usage.tooManyConverters2Tooltip")
+			tooltipText = tooltipText .. "\n\n\255\255\100\075" .. I18N("ui.topbar.converter_usage.tooManyConverters1Tooltip") .. "\n\255\255\100\075" .. I18N("ui.topbar.converter_usage.tooManyConverters2Tooltip")
 		elseif converterUse < 40 then
 			color = "\255\255\100\000" --Orange
-			tooltipText = tooltipText .. "\n\n\255\255\120\050" .. Spring.I18N("ui.topbar.converter_usage.tooManyConverters1Tooltip") .. "\n\255\255\120\050" .. Spring.I18N("ui.topbar.converter_usage.tooManyConverters2Tooltip")
+			tooltipText = tooltipText .. "\n\n\255\255\120\050" .. I18N("ui.topbar.converter_usage.tooManyConverters1Tooltip") .. "\n\255\255\120\050" .. I18N("ui.topbar.converter_usage.tooManyConverters2Tooltip")
 		elseif converterUse < 50 then
 			color = "\255\255\255\000" --Yellow
 		elseif converterUse < 70 then

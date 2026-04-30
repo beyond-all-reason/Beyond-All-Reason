@@ -1,6 +1,6 @@
 local voidWater = false
 local waterLevel = Spring.GetModOptions().map_waterlevel
-local waterIsLava = Spring.Lava.isLavaMap
+local waterIsLava = Lava.isLavaMap
 local minHeight, _, _, _ = Spring.GetGroundExtremes()
 local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua confs
 if success and mapinfo then

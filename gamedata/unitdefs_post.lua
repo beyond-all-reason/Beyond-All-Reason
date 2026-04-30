@@ -214,8 +214,8 @@ end
 
 local function preProcessTweakOptions()
 	local modOptions = {}
-	if Spring.GetModOptionsCopy then
-		modOptions = Spring.GetModOptionsCopy()
+	if GetModOptionsCopy then
+		modOptions = GetModOptionsCopy()
 	end
 
 	--------------------------------------------------------------------------------
@@ -268,7 +268,7 @@ local function preProcessTweakOptions()
 				Spring.Echo("Error parsing and decoding tweakdef", name, modOptions[name], "Error :" .. postsFuncStr)
 			end
 		else
-			local success, tweakunits = pcall(Spring.Utilities.CustomKeyToUsefulTable, modOptions[name])
+			local success, tweakunits = pcall(Utilities.CustomKeyToUsefulTable, modOptions[name])
 			if success then
 				if type(tweakunits) == "table" then
 					Spring.Echo("Loading " .. name .. " modoption")
