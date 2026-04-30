@@ -3906,7 +3906,7 @@ function widget:DrawWorldPreUnit()
 	-- Reset GL state at the start
 	glDepthTest(false)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	glLineWidth(((vsy / 1440) * 3.3) / cameraScale)
+	glLineWidth((1 + ((vsy / 1440) * 2.5)) / cameraScale)
 
 	local tVis0 = debugTiming and osClock() or 0
 
