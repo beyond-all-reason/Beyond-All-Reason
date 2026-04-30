@@ -1697,6 +1697,12 @@ function M.attach(doc, ctx)
 			local lblMapZ = doc:GetElementById("lbl-dim-map-z")
 			if lblMapX then lblMapX.inner_rml = tostring(Game.mapSizeX) end
 			if lblMapZ then lblMapZ.inner_rml = tostring(Game.mapSizeZ) end
+			if widgetState.dmHandle then
+				local vx = tostring(Game.mapSizeX)
+				if widgetState.dmHandle.envMapXStr ~= vx then widgetState.dmHandle.envMapXStr = vx end
+				local vz = tostring(Game.mapSizeZ)
+				if widgetState.dmHandle.envMapZStr ~= vz then widgetState.dmHandle.envMapZStr = vz end
+			end
 
 			-- Height extreme labels
 			local lblInitMin = doc:GetElementById("lbl-dim-init-min")
@@ -1713,6 +1719,19 @@ function M.attach(doc, ctx)
 				if lblCurrMax then lblCurrMax.inner_rml = string.format("%.1f", currMax or 0) end
 				local wl = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
 				if lblWaterPlane then lblWaterPlane.inner_rml = string.format("%.1f", wl) end
+				if widgetState.dmHandle then
+					local dm = widgetState.dmHandle
+					local v = string.format("%.1f", initMin or 0)
+					if dm.envInitMinStr ~= v then dm.envInitMinStr = v end
+					v = string.format("%.1f", initMax or 0)
+					if dm.envInitMaxStr ~= v then dm.envInitMaxStr = v end
+					v = string.format("%.1f", currMin or 0)
+					if dm.envCurrMinStr ~= v then dm.envCurrMinStr = v end
+					v = string.format("%.1f", currMax or 0)
+					if dm.envCurrMaxStr ~= v then dm.envCurrMaxStr = v end
+					v = string.format("%.1f", wl)
+					if dm.envWaterPlaneStr ~= v then dm.envWaterPlaneStr = v end
+				end
 			end
 
 			refreshDimExtremes()

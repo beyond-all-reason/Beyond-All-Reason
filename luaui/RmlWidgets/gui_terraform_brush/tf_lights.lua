@@ -101,6 +101,13 @@ function M.attach(doc, ctx)
 		local sl = doc:GetElementById("slider-" .. sid)
 		if sl then trackSliderDrag(sl, sid) end
 	end
+	for _, entry in ipairs({
+		{ "lp-slider-symmetry-radial-count", "lp-symmetry-radial-count" },
+		{ "lp-slider-symmetry-mirror-angle", "lp-symmetry-mirror-angle" },
+	}) do
+		local sl = doc:GetElementById(entry[1])
+		if sl then trackSliderDrag(sl, entry[2]) end
+	end
 
 	-- Populate per-swatch guide hints (click handlers wired declaratively in RML).
 	for idx, c in ipairs(PALETTE) do
@@ -576,6 +583,43 @@ function M.attach(doc, ctx)
 		if WG.LightPlacer then WG.LightPlacer.clearAll() end
 	end
 
+	-- Symmetry copies / mirror angle (shared TerraformBrush state)
+	local function lpGetTFState() return WG.TerraformBrush and WG.TerraformBrush.getState() or {} end
+	w.lpSymCountDown = function(self)
+		if WG.TerraformBrush then
+			local c = math.max(2, (lpGetTFState().symmetryRadialCount or 2) - 1)
+			WG.TerraformBrush.setSymmetryRadialCount(c)
+		end
+	end
+	w.lpSymCountUp = function(self)
+		if WG.TerraformBrush then
+			local c = math.min(16, (lpGetTFState().symmetryRadialCount or 2) + 1)
+			WG.TerraformBrush.setSymmetryRadialCount(c)
+		end
+	end
+	w.lpOnSymCountChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 2
+		WG.TerraformBrush.setSymmetryRadialCount(v)
+	end
+	w.lpSymAngleDown = function(self)
+		if WG.TerraformBrush then
+			local a = ((lpGetTFState().symmetryMirrorAngle or 0) - 5) % 360
+			WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		end
+	end
+	w.lpSymAngleUp = function(self)
+		if WG.TerraformBrush then
+			local a = ((lpGetTFState().symmetryMirrorAngle or 0) + 5) % 360
+			WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		end
+	end
+	w.lpOnSymAngleChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = element and tonumber(element:GetAttribute("value")) or 0
+		WG.TerraformBrush.setSymmetryMirrorAngle(v)
+	end
+
 	-- Light Library window controls (tabs, close, search, save/delete/refresh).
 	-- Active-class / list-visibility writes remain imperative here because the
 	-- library list itself is populated imperatively (Phase 3 defers data-for).
@@ -683,6 +727,13 @@ function M.sync(doc, ctx, lpState, setSummary)
 		if dm then
 			dm.lpLightType = lpState.lightType or "point"
 			dm.lpMode = lpState.mode or "place"
+			local tbs = WG.TerraformBrush and WG.TerraformBrush.getState and WG.TerraformBrush.getState() or {}
+			dm.lpSymmetryRadial = tbs.symmetryRadial and true or false
+			dm.lpSymmetryMirrorAny = (tbs.symmetryMirrorX or tbs.symmetryMirrorY) and true or false
+			local cs = tostring(tbs.symmetryRadialCount or 2)
+			if dm.lpSymCountStr ~= cs then dm.lpSymCountStr = cs end
+			local as = tostring(math.floor(tbs.symmetryMirrorAngle or 0))
+			if dm.lpSymAngleStr ~= as then dm.lpSymAngleStr = as end
 		end
 		-- Gray out scatter + distribution for cone/beam (they only support single placement)
 		local directedLight = lpState.lightType == "cone" or lpState.lightType == "beam"
@@ -710,6 +761,20 @@ function M.sync(doc, ctx, lpState, setSummary)
 		if countLabel then countLabel.inner_rml = tostring(lpState.lightCount) end
 		local brushRadLabel = doc and doc:GetElementById("lp-brush-radius-label")
 		if brushRadLabel then brushRadLabel.inner_rml = tostring(math.floor(lpState.radius)) end
+		-- Phase 2 step 4: mirror to data-model {{Str}} interpolation
+		if widgetState.dmHandle then
+			local dm = widgetState.dmHandle
+			local v = string.format("%.1f", lpState.brightness)
+			if dm.lpBrightnessStr ~= v then dm.lpBrightnessStr = v end
+			v = tostring(math.floor(lpState.lightRadius))
+			if dm.lpLightRadiusStr ~= v then dm.lpLightRadiusStr = v end
+			v = tostring(math.floor(lpState.elevation))
+			if dm.lpElevationStr ~= v then dm.lpElevationStr = v end
+			v = tostring(lpState.lightCount)
+			if dm.lpCountStr ~= v then dm.lpCountStr = v end
+			v = tostring(math.floor(lpState.radius))
+			if dm.lpBrushRadiusStr ~= v then dm.lpBrushRadiusStr = v end
+		end
 		-- Sync slider+numbox values for state that can mutate outside the UI
 		-- (Ctrl+Scroll = brush radius, Shift+Scroll = elevation, Space+Scroll =
 		-- brightness, Alt+Scroll = yaw, R/G/B+Scroll = color channels, etc.)
@@ -721,9 +786,14 @@ function M.sync(doc, ctx, lpState, setSummary)
 			syncAndFlash(doc:GetElementById("slider-lp-light-radius"),  "lp-light-radius",  tostring(math.floor(lpState.lightRadius)))
 			syncAndFlash(doc:GetElementById("slider-lp-elevation"),     "lp-elevation",     tostring(math.floor(lpState.elevation)))
 			syncAndFlash(doc:GetElementById("slider-lp-count"),         "lp-count",         tostring(lpState.lightCount))
-			syncAndFlash(doc:GetElementById("slider-lp-color-r"),       "lp-color-r",       tostring(lpState.color[1]))
-			syncAndFlash(doc:GetElementById("slider-lp-color-g"),       "lp-color-g",       tostring(lpState.color[2]))
-			syncAndFlash(doc:GetElementById("slider-lp-color-b"),       "lp-color-b",       tostring(lpState.color[3]))
+			syncAndFlash(doc:GetElementById("slider-lp-color-r"),       "lp-color-r",       tostring(math.floor((lpState.color[1] or 0) * 1000 + 0.5)))
+			syncAndFlash(doc:GetElementById("slider-lp-color-g"),       "lp-color-g",       tostring(math.floor((lpState.color[2] or 0) * 1000 + 0.5)))
+			syncAndFlash(doc:GetElementById("slider-lp-color-b"),       "lp-color-b",       tostring(math.floor((lpState.color[3] or 0) * 1000 + 0.5)))
+			do
+				local tbs = WG.TerraformBrush and WG.TerraformBrush.getState and WG.TerraformBrush.getState() or {}
+				syncAndFlash(doc:GetElementById("lp-slider-symmetry-radial-count"), "lp-symmetry-radial-count", tostring(tbs.symmetryRadialCount or 2))
+				syncAndFlash(doc:GetElementById("lp-slider-symmetry-mirror-angle"), "lp-symmetry-mirror-angle", tostring(math.floor(tbs.symmetryMirrorAngle or 0)))
+			end
 			local setNum = function(id, v)
 				local el = doc:GetElementById(id)
 				if el then el:SetAttribute("value", v) end
@@ -767,6 +837,10 @@ function M.sync(doc, ctx, lpState, setSummary)
 		local placedEl = doc and doc:GetElementById("lp-placed-count")
 		if placedEl and WG.LightPlacer then
 			placedEl.inner_rml = tostring(WG.LightPlacer.getPlacedCount())
+		end
+		if widgetState.dmHandle and WG.LightPlacer then
+			local v = tostring(WG.LightPlacer.getPlacedCount())
+			if widgetState.dmHandle.lpPlacedCountStr ~= v then widgetState.dmHandle.lpPlacedCountStr = v end
 		end
 		-- Light history slider sync
 		local sliderLpHist = doc and doc:GetElementById("slider-lp-history")

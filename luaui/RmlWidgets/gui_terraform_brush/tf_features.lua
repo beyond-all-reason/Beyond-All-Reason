@@ -445,6 +445,21 @@ function M.sync(doc, ctx, fpState, setSummary)
 			local fpCadenceLabel = doc:GetElementById("fp-cadence-label")
 			if fpCadenceLabel then fpCadenceLabel.inner_rml = tostring(fpState.cadence) end
 
+			-- Phase 2 step 4: mirror to data-model {{Str}} interpolation
+			if widgetState.dmHandle then
+				local dm = widgetState.dmHandle
+				local v = tostring(fpState.radius)
+				if dm.fpRadiusStr ~= v then dm.fpRadiusStr = v end
+				v = tostring(fpState.rotation)
+				if dm.fpRotationStr ~= v then dm.fpRotationStr = v end
+				v = tostring(fpState.rotRandom)
+				if dm.fpRotRandomStr ~= v then dm.fpRotRandomStr = v end
+				v = tostring(fpState.featureCount)
+				if dm.fpCountStr ~= v then dm.fpCountStr = v end
+				v = tostring(fpState.cadence)
+				if dm.fpCadenceStr ~= v then dm.fpCadenceStr = v end
+			end
+
 			-- Feature sliders
 			syncAndFlash(doc:GetElementById("fp-slider-size"), "fp-size", tostring(fpState.radius))
 			syncAndFlash(doc:GetElementById("fp-slider-rotation"), "fp-rotation", tostring(fpState.rotation))
@@ -489,6 +504,10 @@ function M.sync(doc, ctx, fpState, setSummary)
 				-- Slope-max rows visibility driven by data-if="fpAvoidCliffs"
 				local slopeMaxLabel = doc:GetElementById("fp-smart-slope-max-label")
 				if slopeMaxLabel then slopeMaxLabel.inner_rml = tostring(sf.slopeMax) end
+				if widgetState.dmHandle then
+					local v = tostring(sf.slopeMax)
+					if widgetState.dmHandle.fpSlopeMaxStr ~= v then widgetState.dmHandle.fpSlopeMaxStr = v end
+				end
 				local fpSSlopeMax = doc:GetElementById("fp-slider-slope-max")
 				if fpSSlopeMax and ds ~= "fp-slope-max" then
 					fpSSlopeMax:SetAttribute("value", tostring(sf.slopeMax))
@@ -497,6 +516,10 @@ function M.sync(doc, ctx, fpState, setSummary)
 				-- Slope-min rows visibility driven by data-if="fpPreferSlopes"
 				local slopeMinLabel = doc:GetElementById("fp-smart-slope-min-label")
 				if slopeMinLabel then slopeMinLabel.inner_rml = tostring(sf.slopeMin) end
+				if widgetState.dmHandle then
+					local v = tostring(sf.slopeMin)
+					if widgetState.dmHandle.fpSlopeMinStr ~= v then widgetState.dmHandle.fpSlopeMinStr = v end
+				end
 				local fpSSlopeMin = doc:GetElementById("fp-slider-slope-min")
 				if fpSSlopeMin and ds ~= "fp-slope-min" then
 					fpSSlopeMin:SetAttribute("value", tostring(sf.slopeMin))
@@ -511,6 +534,10 @@ function M.sync(doc, ctx, fpState, setSummary)
 				-- Alt-min slider-row visibility driven by data-if="fpAltMinEnable"
 				local altMinLabel = doc:GetElementById("fp-smart-alt-min-label")
 				if altMinLabel then altMinLabel.inner_rml = tostring(sf.altMin) end
+				if widgetState.dmHandle then
+					local v = tostring(sf.altMin)
+					if widgetState.dmHandle.fpAltMinStr ~= v then widgetState.dmHandle.fpAltMinStr = v end
+				end
 				local fpSAltMin = doc:GetElementById("fp-slider-alt-min")
 				if fpSAltMin and ds ~= "fp-alt-min" then
 					fpSAltMin:SetAttribute("value", tostring(sf.altMin))
@@ -525,6 +552,10 @@ function M.sync(doc, ctx, fpState, setSummary)
 				-- Alt-max slider-row visibility driven by data-if="fpAltMaxEnable"
 				local altMaxLabel = doc:GetElementById("fp-smart-alt-max-label")
 				if altMaxLabel then altMaxLabel.inner_rml = tostring(sf.altMax) end
+				if widgetState.dmHandle then
+					local v = tostring(sf.altMax)
+					if widgetState.dmHandle.fpAltMaxStr ~= v then widgetState.dmHandle.fpAltMaxStr = v end
+				end
 				local fpSAltMax = doc:GetElementById("fp-slider-alt-max")
 				if fpSAltMax and ds ~= "fp-alt-max" then
 					fpSAltMax:SetAttribute("value", tostring(sf.altMax))
@@ -576,11 +607,19 @@ function M.sync(doc, ctx, fpState, setSummary)
 					-- fp-symmetry-radial-count-row visibility driven by data-if="fpSymmetryRadial"
 					local fpSymRadLabel = doc:GetElementById("fp-symmetry-radial-count-label")
 					if fpSymRadLabel then fpSymRadLabel.inner_rml = tostring(tbState.symmetryRadialCount or 2) end
+					if widgetState.dmHandle then
+						local v = tostring(tbState.symmetryRadialCount or 2)
+						if widgetState.dmHandle.fpSymRadStr ~= v then widgetState.dmHandle.fpSymRadStr = v end
+					end
 					local fpSymRadSlider = doc:GetElementById("fp-slider-symmetry-radial-count")
 					if fpSymRadSlider then fpSymRadSlider:SetAttribute("value", tostring(tbState.symmetryRadialCount or 2)) end
 					-- fp-symmetry-mirror-angle-row visibility driven by data-if="fpSymmetryMirrorAny"
 					local fpSymAngLabel = doc:GetElementById("fp-symmetry-mirror-angle-label")
 					if fpSymAngLabel then fpSymAngLabel.inner_rml = tostring(math.floor(tbState.symmetryMirrorAngle or 0)) end
+					if widgetState.dmHandle then
+						local v = tostring(math.floor(tbState.symmetryMirrorAngle or 0))
+						if widgetState.dmHandle.fpSymAngStr ~= v then widgetState.dmHandle.fpSymAngStr = v end
+					end
 					local fpSymAngSlider = doc:GetElementById("fp-slider-symmetry-mirror-angle")
 					if fpSymAngSlider then fpSymAngSlider:SetAttribute("value", tostring(tbState.symmetryMirrorAngle or 0)) end
 				end

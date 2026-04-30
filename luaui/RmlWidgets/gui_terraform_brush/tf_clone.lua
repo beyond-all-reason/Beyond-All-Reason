@@ -183,6 +183,9 @@ function M.sync(doc, ctx, clState, setSummary)
 					statusText = "Click to paste \194\183 RMB to cancel"
 				end
 				statusLabel.inner_rml = statusText
+				if widgetState.dmHandle and widgetState.dmHandle.clStatusStr ~= statusText then
+					widgetState.dmHandle.clStatusStr = statusText
+				end
 			end
 
 			-- Sync rotation/height sliders
@@ -191,6 +194,10 @@ function M.sync(doc, ctx, clState, setSummary)
 				local ds = uiState.draggingSlider
 				local rotLabel = doc:GetElementById("cl-rotation-label")
 				if rotLabel and clState then rotLabel.inner_rml = tostring(math.floor(clState.pasteRotation)) .. "\194\176" end
+				if widgetState.dmHandle and clState then
+					local v = tostring(math.floor(clState.pasteRotation)) .. "\194\176"
+					if widgetState.dmHandle.clRotationStr ~= v then widgetState.dmHandle.clRotationStr = v end
+				end
 				local rotSl = doc:GetElementById("slider-cl-rotation")
 				if rotSl and ds ~= "cl-rotation" and clState then
 					rotSl:SetAttribute("value", tostring(math.floor(clState.pasteRotation)))
@@ -201,6 +208,10 @@ function M.sync(doc, ctx, clState, setSummary)
 				end
 				local heightLabel = doc:GetElementById("cl-height-label")
 				if heightLabel and clState then heightLabel.inner_rml = tostring(math.floor(clState.pasteHeightOffset)) end
+				if widgetState.dmHandle and clState then
+					local v = tostring(math.floor(clState.pasteHeightOffset))
+					if widgetState.dmHandle.clHeightStr ~= v then widgetState.dmHandle.clHeightStr = v end
+				end
 				local heightSl = doc:GetElementById("slider-cl-height")
 				if heightSl and ds ~= "cl-height" and clState then
 					heightSl:SetAttribute("value", tostring(math.floor(clState.pasteHeightOffset)))

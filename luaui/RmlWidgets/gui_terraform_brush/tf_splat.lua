@@ -405,21 +405,20 @@ function M.sync(doc, ctx, spState, setSummary)
 			uiState.updatingFromCode = true
 			local ds = uiState.draggingSlider
 
-			-- Splat labels
-			local spStrengthLabel = doc:GetElementById("sp-strength-label")
-			if spStrengthLabel then spStrengthLabel.inner_rml = string.format("%.2f", spState.strength) end
-
-			local spIntensityLabel = doc:GetElementById("sp-intensity-label")
-			if spIntensityLabel then spIntensityLabel.inner_rml = string.format("%.1f", spState.intensity) end
-
-			local spRadiusLabel = doc:GetElementById("sp-radius-label")
-			if spRadiusLabel then spRadiusLabel.inner_rml = tostring(spState.radius) end
-
-			local spRotationLabel = doc:GetElementById("sp-rotation-label")
-			if spRotationLabel then spRotationLabel.inner_rml = tostring(spState.rotationDeg) end
-
-			local spCurveLabel = doc:GetElementById("sp-curve-label")
-			if spCurveLabel then spCurveLabel.inner_rml = string.format("%.1f", spState.curve) end
+			-- Splat labels (Phase 2 step 4: dm-driven {{interpolation}})
+			local dm = widgetState.dmHandle
+			if dm then
+				local s1 = string.format("%.2f", spState.strength)
+				if dm.splatStrengthStr ~= s1 then dm.splatStrengthStr = s1 end
+				local s2 = string.format("%.1f", spState.intensity)
+				if dm.splatIntensityStr ~= s2 then dm.splatIntensityStr = s2 end
+				local s3 = tostring(spState.radius)
+				if dm.splatRadiusStr ~= s3 then dm.splatRadiusStr = s3 end
+				local s4 = tostring(spState.rotationDeg)
+				if dm.splatRotationStr ~= s4 then dm.splatRotationStr = s4 end
+				local s5 = string.format("%.1f", spState.curve)
+				if dm.splatCurveStr ~= s5 then dm.splatCurveStr = s5 end
+			end
 
 			-- Splat channel button highlights
 			for i = 1, 4 do
@@ -468,16 +467,20 @@ function M.sync(doc, ctx, spState, setSummary)
 					if slopePreferChip then slopePreferChip:SetClass("active", sf.preferSlopes == true) end
 
 					-- Slope-max row visibility driven by data-if="spAvoidCliffs"
-					local slopeMaxLabel = doc:GetElementById("sp-smart-slope-max-label")
-					if slopeMaxLabel then slopeMaxLabel.inner_rml = tostring(sf.slopeMax) end
+					if widgetState.dmHandle then
+						local v = tostring(sf.slopeMax)
+						if widgetState.dmHandle.splatSlopeMaxStr ~= v then widgetState.dmHandle.splatSlopeMaxStr = v end
+					end
 					local spSSlopeMax = doc:GetElementById("sp-slider-slope-max")
 					if spSSlopeMax and ds ~= "sp-slope-max" then
 						spSSlopeMax:SetAttribute("value", tostring(sf.slopeMax))
 					end
 
 					-- Slope-min row visibility driven by data-if="spPreferSlopes"
-					local slopeMinLabel = doc:GetElementById("sp-smart-slope-min-label")
-					if slopeMinLabel then slopeMinLabel.inner_rml = tostring(sf.slopeMin) end
+					if widgetState.dmHandle then
+						local v = tostring(sf.slopeMin)
+						if widgetState.dmHandle.splatSlopeMinStr ~= v then widgetState.dmHandle.splatSlopeMinStr = v end
+					end
 					local spSSlopeMin = doc:GetElementById("sp-slider-slope-min")
 					if spSSlopeMin and ds ~= "sp-slope-min" then
 						spSSlopeMin:SetAttribute("value", tostring(sf.slopeMin))
@@ -490,8 +493,10 @@ function M.sync(doc, ctx, spState, setSummary)
 							or "/luaui/images/terraform_brush/check_off.png")
 					end
 					-- Alt-min slider-row visibility driven by data-if="spAltMinEnable"
-					local altMinLabel = doc:GetElementById("sp-smart-alt-min-label")
-					if altMinLabel then altMinLabel.inner_rml = tostring(sf.altMin) end
+					if widgetState.dmHandle then
+						local v = tostring(sf.altMin)
+						if widgetState.dmHandle.splatAltMinStr ~= v then widgetState.dmHandle.splatAltMinStr = v end
+					end
 					local spSAltMin = doc:GetElementById("sp-slider-alt-min")
 					if spSAltMin and ds ~= "sp-alt-min" then
 						spSAltMin:SetAttribute("value", tostring(sf.altMin))
@@ -504,8 +509,10 @@ function M.sync(doc, ctx, spState, setSummary)
 							or "/luaui/images/terraform_brush/check_off.png")
 					end
 					-- Alt-max slider-row visibility driven by data-if="spAltMaxEnable"
-					local altMaxLabel = doc:GetElementById("sp-smart-alt-max-label")
-					if altMaxLabel then altMaxLabel.inner_rml = tostring(sf.altMax) end
+					if widgetState.dmHandle then
+						local v = tostring(sf.altMax)
+						if widgetState.dmHandle.splatAltMaxStr ~= v then widgetState.dmHandle.splatAltMaxStr = v end
+					end
 					local spSAltMax = doc:GetElementById("sp-slider-alt-max")
 					if spSAltMax and ds ~= "sp-alt-max" then
 						spSAltMax:SetAttribute("value", tostring(sf.altMax))
@@ -521,9 +528,9 @@ function M.sync(doc, ctx, spState, setSummary)
 			end
 
 			-- Export format label
-			local spExportFmtLabel = doc:GetElementById("sp-export-format-label")
-			if spExportFmtLabel and spState.exportFormat then
-				spExportFmtLabel.inner_rml = string.upper(spState.exportFormat)
+			if spState.exportFormat and widgetState.dmHandle then
+				local v = string.upper(spState.exportFormat)
+				if widgetState.dmHandle.splatExportFmtStr ~= v then widgetState.dmHandle.splatExportFmtStr = v end
 			end
 
 			-- Undo/redo history slider sync
@@ -564,6 +571,10 @@ function M.sync(doc, ctx, spState, setSummary)
 				local _, _, _, hm = WG.DecalExporter.getHeatGrid()
 				if dcHeat then dcHeat.inner_rml = string.format("%.0f", hm or 0) end
 				if dcHeatExp then dcHeatExp.inner_rml = tostring(WG.DecalExporter.getTotalExplosions()) end
+				if widgetState.dmHandle then
+					local v = tostring(WG.DecalExporter.getTotalExplosions())
+					if widgetState.dmHandle.dcHeatExpStr ~= v then widgetState.dmHandle.dcHeatExpStr = v end
+				end
 			end end
 
 			uiState.updatingFromCode = false
