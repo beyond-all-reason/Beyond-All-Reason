@@ -16,6 +16,11 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
+if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam == true then
+	Spring.Echo("Custom transports enabled via modoption, skipping UnderwaterPickup gadget")
+	return false
+end
+
 local GetUnitTeam = Spring.GetUnitTeam
 local GetUnitDefID = Spring.GetUnitDefID
 local GetGroundNormal = Spring.GetGroundNormal
