@@ -137,7 +137,7 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid half-refactored state):
 
 1. ✅ **Static buttons → `onclick="widget:methodName()"`** in RML. Delete matching `AddEventListener` sites. **Done for all tf_* sub-modules. 548 onclick/onchange attributes in gui_terraform_brush.rml. Standalone widgets also converted (gui_feature_placer, gui_weather_brush, gui_decal_placer).** **Sweep migration to `data-event-X` + model functions queued as phase-2-finisher.**
-2. 🟡 **Active-state loops → `data-class-active="activeMode == 'raise'"`** bound to `dm.activeMode` / `dm.activeShape` / `dm.activeChannel`. Removes ~70% of `:SetClass` calls. **PROMOTED to required pre-1.0 (PR #7527 review).** **In progress (Apr 2026)** — pilot landed for tf-mode/shape/ramp/smoothSub buttons; remaining: sub-mode buttons in tf_metal/grass/features/weather/noise/decals/lights/startpos.
+2. ⬜ **Active-state loops → `data-class-active="activeMode == 'raise'"`** bound to `dm.activeMode` / `dm.activeShape` / `dm.activeChannel`. Removes ~70% of `:SetClass` calls. **PROMOTED to required pre-1.0 (PR #7527 review).**
 3. 🟡 **Section collapse / show-hide → `data-if="sectionTerrainOpen"`** for banners / notice dots / passthrough play/pause icons; **whole-panel show/hide → `document:Hide()/Show()`**. **PROMOTED to required pre-1.0 (PR #7527 review). `SetClass("hidden", ...)` is wrong, not deferred.** **In progress (Apr 2026)** — see per-file table below.
 
 #### Phase 2 step 3 per-file progress
