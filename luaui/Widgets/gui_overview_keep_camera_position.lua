@@ -21,7 +21,7 @@ local prevCamState
 
 local function storeCamKeys()
 	camKeys = {}
-	local keyTable = Spring.GetActionHotKeys("toggleoverview")
+	local keyTable = SpringUnsynced.GetActionHotKeys("toggleoverview")
 	for _, key in pairs(keyTable) do
 		local btn = keyConfig.sanitizeKey(key):upper()
 		table.insert(camKeys, btn)
@@ -34,7 +34,7 @@ end
 
 -- works only with single key binds
 local function isCamKey(keyNum)
-	local pressedSymbol = Spring.GetKeySymbol(keyNum):upper()
+	local pressedSymbol = SpringUnsynced.GetKeySymbol(keyNum):upper()
 	for _, symbol in pairs(camKeys) do
 		if pressedSymbol == symbol then
 			return true
@@ -44,12 +44,12 @@ local function isCamKey(keyNum)
 end
 
 local function isOverview()
-	return Spring.GetCameraState().name == "ov"
+	return SpringUnsynced.GetCameraState().name == "ov"
 end
 
 function widget:MouseWheel(up, value)
 	if isOverview() and up then
-		Spring.SendCommands({ "toggleoverview" })
+		SpringUnsynced.SendCommands({ "toggleoverview" })
 		return true
 	end
 
@@ -62,9 +62,9 @@ function widget:KeyPress(key, modifier)
 	end
 	if isOverview() then
 		if prevCamState ~= nil then
-			Spring.SetCameraState(prevCamState, 1)
+			SpringUnsynced.SetCameraState(prevCamState, 1)
 		end
 	else
-		prevCamState = Spring.GetCameraState()
+		prevCamState = SpringUnsynced.GetCameraState()
 	end
 end

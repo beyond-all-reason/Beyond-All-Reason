@@ -18,7 +18,7 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	function BroadcastEvent(_, event, player, forceplay)
-		if Script.LuaUI("NotificationEvent") and (forceplay or (tonumber(player) and ((tonumber(player) == Spring.GetMyPlayerID()) or Spring.GetSpectatingState()))) then
+		if Script.LuaUI("NotificationEvent") and (forceplay or (tonumber(player) and ((tonumber(player) == Spring.GetMyPlayerID()) or SpringUnsynced.GetSpectatingState()))) then
 			if forceplay then
 				forceplay = " y"
 			else
@@ -41,14 +41,14 @@ GG["notifications"].queueNotification = function(event, idtype, id, forceplay)
 	if idtype == "playerID" then
 		playerIDs[#playerIDs + 1] = id
 	elseif idtype == "teamID" then
-		local playerList = Spring.GetPlayerList(id)
+		local playerList = SpringShared.GetPlayerList(id)
 		for i = 1, #playerList do
 			playerIDs[#playerIDs + 1] = playerList[i]
 		end
 	elseif idtype == "allyTeamID" then
-		local teamList = Spring.GetTeamList(id)
+		local teamList = SpringShared.GetTeamList(id)
 		for i = 1, #teamList do
-			local playerList = Spring.GetPlayerList(teamList[i])
+			local playerList = SpringShared.GetPlayerList(teamList[i])
 			for j = 1, #playerList do
 				playerIDs[#playerIDs + 1] = playerList[j]
 			end

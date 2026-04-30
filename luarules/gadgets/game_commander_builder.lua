@@ -1,6 +1,6 @@
 local spawnpadSpawnEnabled = false
 local PvEEnabled = Spring.Utilities.Gametype.IsPvE()
-if Spring.GetModOptions().commanderbuildersenabled == "enabled" or (Spring.GetModOptions().commanderbuildersenabled == "pve_only" and PvEEnabled) then
+if SpringShared.GetModOptions().commanderbuildersenabled == "enabled" or (SpringShared.GetModOptions().commanderbuildersenabled == "pve_only" and PvEEnabled) then
 	spawnpadSpawnEnabled = true
 end
 
@@ -38,20 +38,20 @@ local spawnpads = {
 	[UDN.armcom.id] = "armrespawn",
 	[UDN.corcom.id] = "correspawn",
 }
-if Spring.GetModOptions().experimentallegionfaction then
+if SpringShared.GetModOptions().experimentallegionfaction then
 	spawnpads[UDN.legcom.id] = "legnanotcbase"
 end
 
 local spawnFrame = Game.spawnWarpInFrame + Game.gameSpeed * 2 -- add time to deconflict initial build orders
 
 function SpawnAssistTurret(unitID, unitDefID, unitTeam)
-	local posx, posy, posz = Spring.GetUnitPosition(unitID)
+	local posx, posy, posz = SpringShared.GetUnitPosition(unitID)
 	local spawnpadunit = spawnpads[unitDefID]
 	local spawnpadID
 	for k = 1, 10000 do
 		posx = math.ceil((posx + math.random(-k - 64, k + 64)) / 16) * 16
 		posz = math.ceil((posz + math.random(-k - 64, k + 64)) / 16) * 16
-		posy = Spring.GetGroundHeight(posx, posz)
+		posy = SpringShared.GetGroundHeight(posx, posz)
 		local canSpawnTurret = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 96)
 		if canSpawnTurret then
 			canSpawnTurret = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 96)
@@ -60,14 +60,14 @@ function SpawnAssistTurret(unitID, unitDefID, unitTeam)
 			canSpawnTurret = positionCheckLibrary.ResourceCheck(posx, posz, 96)
 		end
 		if canSpawnTurret then
-			spawnpadID = Spring.CreateUnit(spawnpadunit, posx, posy, posz, 0, unitTeam)
+			spawnpadID = SpringSynced.CreateUnit(spawnpadunit, posx, posy, posz, 0, unitTeam)
 			break
 		end
 	end
 	if spawnpadID then
 		GG.ScavengersSpawnEffectUnitID(spawnpadID)
-		Spring.GiveOrderToUnit(spawnpadID, CMD.GUARD, unitID, {})
-		Spring.SetUnitCosts(spawnpadID, { buildTime = 20000, metalCost = 100, energyCost = 1000 })
+		SpringShared.GiveOrderToUnit(spawnpadID, CMD.GUARD, unitID, {})
+		SpringSynced.SetUnitCosts(spawnpadID, { buildTime = 20000, metalCost = 100, energyCost = 1000 })
 		--Spring.SetUnitBlocking(spawnpadID, false)
 	end
 end
@@ -88,8 +88,8 @@ end
 function gadget:GameFrame(n)
 	if n == spawnFrame then
 		for comID, _ in pairs(commandersList) do
-			local comDefID = Spring.GetUnitDefID(comID)
-			local comTeam = Spring.GetUnitTeam(comID)
+			local comDefID = SpringShared.GetUnitDefID(comID)
+			local comTeam = SpringShared.GetUnitTeam(comID)
 			SpawnAssistTurret(comID, comDefID, comTeam)
 		end
 	end

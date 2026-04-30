@@ -16,17 +16,17 @@ function unitBlocking.getBlockedUnitDefs(unitDefIDs)
 		return {}
 	end
 
-	local teamRules = Spring.GetTeamRulesParams(myTeamID) or {}
+	local teamRules = SpringShared.GetTeamRulesParams(myTeamID) or {}
 	local blockedUnits = {}
 
 	if unitDefIDs then
 		for i, unitDefID in ipairs(unitDefIDs) do
 			if type(unitDefID) ~= "number" then
-				Spring.Log("unitBlocking", LOG.ERROR, "getBlockedUnitDefs: unitDefID at index " .. i .. " is not a number (got " .. type(unitDefID) .. ": " .. tostring(unitDefID) .. ")")
+				SpringShared.Log("unitBlocking", LOG.ERROR, "getBlockedUnitDefs: unitDefID at index " .. i .. " is not a number (got " .. type(unitDefID) .. ": " .. tostring(unitDefID) .. ")")
 				return {}
 			end
 			if not UnitDefs[unitDefID] then
-				Spring.Log("unitBlocking", LOG.ERROR, "getBlockedUnitDefs: unitDefID " .. unitDefID .. " does not exist in UnitDefs")
+				SpringShared.Log("unitBlocking", LOG.ERROR, "getBlockedUnitDefs: unitDefID " .. unitDefID .. " does not exist in UnitDefs")
 				return {}
 			end
 		end

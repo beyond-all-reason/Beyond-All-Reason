@@ -141,11 +141,11 @@ if gadgetHandler:IsSyncedCode() then
 	local fadetime = 2 --how long fade in/out effect lasts, in seconds
 
 	--locals
-	local SpGetGameSeconds = Spring.GetGameSeconds
-	local SpGetUnitsInCylinder = Spring.GetUnitsInCylinder
-	local SpDestroyUnit = Spring.DestroyUnit
-	local SpGetUnitDefID = Spring.GetUnitDefID
-	local SpValidUnitID = Spring.ValidUnitID
+	local SpGetGameSeconds = SpringShared.GetGameSeconds
+	local SpGetUnitsInCylinder = SpringShared.GetUnitsInCylinder
+	local SpDestroyUnit = SpringSynced.DestroyUnit
+	local SpGetUnitDefID = SpringShared.GetUnitDefID
+	local SpValidUnitID = SpringShared.ValidUnitID
 	local Mmin = math.min
 
 	-- kill appropriate things from initial juno blast --
@@ -165,9 +165,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 		if junoWeapons[weaponID] and tokillUnits[uDefID] then
 			if uID and SpValidUnitID(uID) then
-				local px, py, pz = Spring.GetUnitPosition(uID)
+				local px, py, pz = SpringShared.GetUnitPosition(uID)
 				if px then
-					Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
+					SpringSynced.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
 				end
 				if aID and SpValidUnitID(aID) then
 					SpDestroyUnit(uID, false, false, aID)
@@ -225,12 +225,12 @@ if gadgetHandler:IsSyncedCode() then
 					local unitID = unitIDsBig[i]
 					local unitDefID = SpGetUnitDefID(unitID)
 					if todenyUnits[unitDefID] then
-						local px, py, pz = Spring.GetUnitPosition(unitID)
+						local px, py, pz = SpringShared.GetUnitPosition(unitID)
 						local dx = expl.x - px
 						local dz = expl.z - pz
 						if (dx * dx + dz * dz) > (q * (radius - width)) * (q * (radius - width)) then
 							-- linear and not O(n^2)
-							Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
+							SpringSynced.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
 							SpDestroyUnit(unitID, true, false)
 						end
 					end

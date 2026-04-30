@@ -13,9 +13,9 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetMouseState = Spring.GetMouseState
+local spGetMouseState = SpringUnsynced.GetMouseState
 
 local doNotify = true
 local doBlink = true
@@ -40,7 +40,7 @@ local gameover = false
 local currentIcon = nil -- Track currently desired icon for periodic reapplication
 
 local faction = "_a"
-if UnitDefs[Spring.GetTeamRulesParam(spGetMyTeamID(), "startUnit")].name == "corcom" then
+if UnitDefs[SpringShared.GetTeamRulesParam(spGetMyTeamID(), "startUnit")].name == "corcom" then
 	faction = "_c"
 end
 
@@ -49,7 +49,7 @@ local prevMouseOffscreen = mouseOffscreen
 
 local function SetIcon(path)
 	currentIcon = path
-	Spring.SetWMIcon(path, true)
+	SpringUnsynced.SetWMIcon(path, true)
 end
 
 function widget:Initialize()
@@ -66,7 +66,7 @@ end
 
 function widget:GameStart()
 	local prevFaction = faction
-	if UnitDefs[Spring.GetTeamRulesParam(spGetMyTeamID(), "startUnit")].name == "corcom" then
+	if UnitDefs[SpringShared.GetTeamRulesParam(spGetMyTeamID(), "startUnit")].name == "corcom" then
 		faction = "_c"
 	else
 		faction = "_a"
@@ -99,7 +99,7 @@ function widget:Update(dt)
 		sec = 0
 		local gameFrame = spGetGameFrame()
 		if gameFrame > 0 then
-			local _, gameSpeed, isPaused = Spring.GetGameSpeed()
+			local _, gameSpeed, isPaused = SpringUnsynced.GetGameSpeed()
 			local newPaused = false
 			if gameFrame == previousGameFrame or gameSpeed == 0 then -- when host (admin) paused its just gamespeed 0
 				newPaused = true
@@ -118,7 +118,7 @@ function widget:Update(dt)
 			end
 		else
 			local prevFaction = faction
-			if UnitDefs[Spring.GetTeamRulesParam(spGetMyTeamID(), "startUnit")].name == "corcom" then
+			if UnitDefs[SpringShared.GetTeamRulesParam(spGetMyTeamID(), "startUnit")].name == "corcom" then
 				faction = "_c"
 			else
 				faction = "_a"
@@ -151,7 +151,7 @@ function widget:Update(dt)
 		else
 			-- Periodically reapply icon to handle OS/WM dropping it
 			if currentIcon then
-				Spring.SetWMIcon(currentIcon, true)
+				SpringUnsynced.SetWMIcon(currentIcon, true)
 			end
 		end
 	end

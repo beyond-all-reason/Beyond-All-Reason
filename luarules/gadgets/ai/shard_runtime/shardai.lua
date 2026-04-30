@@ -10,7 +10,7 @@ local function tracyZoneEndMem()
 end
 
 if tracy then
-	Spring.Echo("Enabled Tracy support for STAI")
+	SpringShared.Echo("Enabled Tracy support for STAI")
 	tracyZoneBeginMem = function(fname)
 		if logRAM then
 			lastGCinfo = gcinfo()

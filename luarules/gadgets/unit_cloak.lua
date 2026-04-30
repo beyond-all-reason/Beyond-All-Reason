@@ -32,19 +32,19 @@ local unitWantCloakCommandDesc = {
 
 local alliedTrueTable = { allied = true }
 
-local spGetUnitIsStunned = Spring.GetUnitIsStunned
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-local spRemoveUnitCmdDesc = Spring.RemoveUnitCmdDesc
-local spSetUnitCloak = Spring.SetUnitCloak
-local spSetUnitRulesParam = Spring.SetUnitRulesParam
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spUseUnitResource = Spring.UseUnitResource
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
+local spGetUnitIsStunned = SpringShared.GetUnitIsStunned
+local spAreTeamsAllied = SpringShared.AreTeamsAllied
+local spInsertUnitCmdDesc = SpringSynced.InsertUnitCmdDesc
+local spRemoveUnitCmdDesc = SpringSynced.RemoveUnitCmdDesc
+local spSetUnitCloak = SpringSynced.SetUnitCloak
+local spSetUnitRulesParam = SpringSynced.SetUnitRulesParam
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spGetUnitRulesParam = SpringShared.GetUnitRulesParam
+local spGetUnitVelocity = SpringShared.GetUnitVelocity
+local spUseUnitResource = SpringSynced.UseUnitResource
+local spFindUnitCmdDesc = SpringShared.FindUnitCmdDesc
+local spEditUnitCmdDesc = SpringSynced.EditUnitCmdDesc
 
 local CMD_CLOAK = CMD.CLOAK
 local DEFAULT_DECLOAK_TIME = 128
@@ -222,7 +222,7 @@ end
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_CLOAK)
 	gadgetHandler:RegisterAllowCommand(CMD_WANT_CLOAK)
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
+	for _, unitID in ipairs(SpringShared.GetAllUnits()) do
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 	end
 end

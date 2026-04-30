@@ -17,9 +17,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local GetProjectilePosition = Spring.GetProjectilePosition
+local GetProjectilePosition = SpringShared.GetProjectilePosition
 
-local waterIsLava = Spring.GetModOptions().map_waterislava
+local waterIsLava = SpringShared.GetModOptions().map_waterislava
 
 local depthChargeWeapons = {}
 for weaponID, weaponDef in pairs(WeaponDefs) do
@@ -64,7 +64,7 @@ function gadget:GameFrame(n)
 		local x, y, z = GetProjectilePosition(proID)
 		if y then
 			if y < 0 then
-				Spring.SpawnCEG(missiles[proID], x, 0, z)
+				SpringSynced.SpawnCEG(missiles[proID], x, 0, z)
 				removeCount = removeCount + 1
 				if not removeList then
 					removeList = {}

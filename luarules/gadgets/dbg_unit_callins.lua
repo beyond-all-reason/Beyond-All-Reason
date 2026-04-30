@@ -39,8 +39,8 @@ local function addEvent(unitID, callin, param1, param2, param3, param4)
 		px = unitID[1]
 		py = unitID[2]
 		pz = unitID[3]
-	elseif Spring.ValidUnitID(unitID) then
-		px, py, pz = Spring.GetUnitPosition(unitID)
+	elseif SpringShared.ValidUnitID(unitID) then
+		px, py, pz = SpringShared.GetUnitPosition(unitID)
 	end
 	if px == nil then
 		return
@@ -59,7 +59,7 @@ local function addEvent(unitID, callin, param1, param2, param3, param4)
 		caption = caption .. " " .. tostring(param4)
 	end
 	local newevent = {
-		life = Spring.GetGameFrame() + taglife,
+		life = SpringShared.GetGameFrame() + taglife,
 		caption = caption,
 		x = px,
 		y = py + startheight,
@@ -71,7 +71,7 @@ end
 
 function gadget:GameFrame()
 	if numevents > 0 then
-		local gf = Spring.GetGameFrame()
+		local gf = SpringShared.GetGameFrame()
 		local removelist = {}
 		for k, v in pairs(eventlist) do
 			if v.life < gf then
@@ -92,7 +92,7 @@ function gadget:DrawWorld()
 	if numevents > 0 then
 		gl.Color(0.3, 1, 0.3, 1)
 		for key, event in pairs(eventlist) do
-			if Spring.IsSphereInView(event.x, event.y, event.z, 128) then
+			if SpringUnsynced.IsSphereInView(event.x, event.y, event.z, 128) then
 				gl.PushMatrix()
 				local w = gl.GetTextWidth(event.caption) * 16.0
 				gl.Translate(event.x - w, event.y, event.z)
@@ -108,7 +108,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitCreated", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, builderID)
+		SpringShared.Echo("g:UnitCreated", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, builderID)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitCreated")
@@ -120,7 +120,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitFinished", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
+		SpringShared.Echo("g:UnitFinished", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitFinished")
@@ -132,7 +132,7 @@ function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitFromFactory", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, factID, factDefID, userOrders)
+		SpringShared.Echo("g:UnitFromFactory", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, factID, factDefID, userOrders)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitFromFactory")
@@ -144,7 +144,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitDestroyed", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
+		SpringShared.Echo("g:UnitDestroyed", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitDestroyed")
@@ -156,7 +156,7 @@ function gadget:UnitReverseBuilt(unitID, unitDefID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitReverseBuilt", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
+		SpringShared.Echo("g:UnitReverseBuilt", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitReverseBuilt")
@@ -168,7 +168,7 @@ function gadget:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitDestroyedByTeam", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, attackerTeamID)
+		SpringShared.Echo("g:UnitDestroyedByTeam", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, attackerTeamID)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitDestroyedByTeam")
@@ -180,7 +180,7 @@ function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitTaken", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, newTeam)
+		SpringShared.Echo("g:UnitTaken", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, newTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitTaken")
@@ -191,7 +191,7 @@ function gadget:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExper
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitExperience", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, experience, oldExperience)
+		SpringShared.Echo("g:UnitExperience", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, experience, oldExperience)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitExperience")
@@ -203,7 +203,7 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOp
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitCommand", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+		SpringShared.Echo("g:UnitCommand", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitCommand")
@@ -215,7 +215,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitCmdDone", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+		SpringShared.Echo("g:UnitCmdDone", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitCmdDone")
@@ -227,7 +227,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitDamaged", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, damage, paralyzer)
+		SpringShared.Echo("g:UnitDamaged", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, damage, paralyzer)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitDamaged")
@@ -239,7 +239,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitGiven", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, oldTeam)
+		SpringShared.Echo("g:UnitGiven", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, oldTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitGiven")
@@ -251,7 +251,7 @@ function gadget:UnitIdle(unitID, unitDefID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitIdle", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
+		SpringShared.Echo("g:UnitIdle", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitIdle")
@@ -263,7 +263,7 @@ function gadget:UnitEnteredRadar(unitID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitEnteredRadar", unitID, unitTeam)
+		SpringShared.Echo("g:UnitEnteredRadar", unitID, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitEnteredRadar")
@@ -275,7 +275,7 @@ function gadget:UnitEnteredLos(unitID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitEnteredLos", unitID, unitTeam)
+		SpringShared.Echo("g:UnitEnteredLos", unitID, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitEnteredLos")
@@ -287,7 +287,7 @@ function gadget:UnitLeftRadar(unitID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitLeftRadar", unitID, unitTeam)
+		SpringShared.Echo("g:UnitLeftRadar", unitID, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitLeftRadar")
@@ -299,7 +299,7 @@ function gadget:UnitLeftLos(unitID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitLeftLos", unitID, unitTeam)
+		SpringShared.Echo("g:UnitLeftLos", unitID, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitLeftLos")
@@ -311,7 +311,7 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitEnteredWater", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
+		SpringShared.Echo("g:UnitEnteredWater", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitEnteredWater")
@@ -323,7 +323,7 @@ function gadget:UnitEnteredAir(unitID, unitDefID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitEnteredAir", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
+		SpringShared.Echo("g:UnitEnteredAir", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitEnteredAir")
@@ -335,7 +335,7 @@ function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitLeftWater", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
+		SpringShared.Echo("g:UnitLeftWater", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitLeftWater")
@@ -347,7 +347,7 @@ function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitLeftAir", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
+		SpringShared.Echo("g:UnitLeftAir", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitLeftAir")
@@ -359,7 +359,7 @@ function gadget:UnitSeismicPing(x, y, z, strength)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitSeismicPing", x, y, z, strength)
+		SpringShared.Echo("g:UnitSeismicPing", x, y, z, strength)
 	end
 	--if showcallins then addEvent(unitID, "UnitGiven") end
 end
@@ -369,7 +369,7 @@ function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTe
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitLoaded", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, transportID, transportTeam)
+		SpringShared.Echo("g:UnitLoaded", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, transportID, transportTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitLoaded")
@@ -381,7 +381,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transport
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitUnloaded", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, transportID, transportTeam)
+		SpringShared.Echo("g:UnitUnloaded", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, transportID, transportTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitUnloaded")
@@ -393,7 +393,7 @@ function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitCloaked", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
+		SpringShared.Echo("g:UnitCloaked", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitCloaked")
@@ -405,7 +405,7 @@ function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitDecloaked", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
+		SpringShared.Echo("g:UnitDecloaked", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "UnitDecloaked")
@@ -423,7 +423,7 @@ function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCoun
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:StockpileChanged", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, weaponNum, oldCount, newCount)
+		SpringShared.Echo("g:StockpileChanged", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, weaponNum, oldCount, newCount)
 	end
 	if showcallins then
 		addEvent(unitID, "StockpileChanged")
@@ -435,7 +435,7 @@ function gadget:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:RenderUnitDestroyed", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
+		SpringShared.Echo("g:RenderUnitDestroyed", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam)
 	end
 	if showcallins then
 		addEvent(unitID, "RenderUnitDestroyed")
@@ -447,7 +447,7 @@ function gadget:UnitUnitCollision(colliderID, collideeID)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitUnitCollision", colliderID, collideeID)
+		SpringShared.Echo("g:UnitUnitCollision", colliderID, collideeID)
 	end
 	if showcallins then
 		addEvent(colliderID, "UnitUnitCollision")
@@ -459,7 +459,7 @@ function gadget:UnitFeatureCollision(colliderID, collideeID)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitFeatureCollision", colliderID, collideeID)
+		SpringShared.Echo("g:UnitFeatureCollision", colliderID, collideeID)
 	end
 	if showcallins then
 		addEvent(colliderID, "UnitFeatureCollision")
@@ -471,7 +471,7 @@ function gadget:UnitFeatureCollision(colliderID, collideeID)
 		return
 	end
 	if printcallins then
-		Spring.Echo("g:UnitFeatureCollision", colliderID, collideeID)
+		SpringShared.Echo("g:UnitFeatureCollision", colliderID, collideeID)
 	end
 	if showcallins then
 		addEvent(colliderID, "UnitFeatureCollision")
@@ -482,12 +482,12 @@ function gadget:FeatureCreated(featureID)
 	if enabledcallins.FeatureCreated == nil then
 		return
 	end
-	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local featureDefID = SpringShared.GetFeatureDefID(featureID)
 	if printcallins then
-		Spring.Echo("g:FeatureCreated", featureID, FeatureDefs[featureDefID].name)
+		SpringShared.Echo("g:FeatureCreated", featureID, FeatureDefs[featureDefID].name)
 	end
 	if showcallins then
-		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
+		local fx, fy, fz = SpringShared.GetFeaturePosition(featureID)
 		local pos = { fx, fy, fz }
 		addEvent(pos, "FeatureCreated")
 	end
@@ -497,12 +497,12 @@ function gadget:FeatureDestroyed(featureID)
 	if enabledcallins.FeatureDestroyed == nil then
 		return
 	end
-	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local featureDefID = SpringShared.GetFeatureDefID(featureID)
 	if printcallins then
-		Spring.Echo("g:FeatureDestroyed", featureID, FeatureDefs[featureDefID].name)
+		SpringShared.Echo("g:FeatureDestroyed", featureID, FeatureDefs[featureDefID].name)
 	end
 	if showcallins then
-		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
+		local fx, fy, fz = SpringShared.GetFeaturePosition(featureID)
 		local pos = { fx, fy, fz }
 		addEvent(pos, "FeatureDestroyed")
 	end
@@ -510,7 +510,7 @@ end
 
 local function togglegadget()
 	enabled = not enabled
-	Spring.Echo("UnitCallinsGadget toggled to:", enabled)
+	SpringShared.Echo("UnitCallinsGadget toggled to:", enabled)
 	if enabled == false then
 		enabledcallins = {}
 	else

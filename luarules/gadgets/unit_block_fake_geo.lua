@@ -19,9 +19,9 @@ end
 local function isNearGeo(x, z)
 	-- modded geos can be bigger than 40 elmo but w/e, this gadget only lives
 	-- until next engine anyway, plus centered placement still works
-	local features = Spring.GetFeaturesInCylinder(x, z, 40 * math.sqrt(2))
+	local features = SpringShared.GetFeaturesInCylinder(x, z, 40 * math.sqrt(2))
 	for i = 1, #features do
-		if FeatureDefs[Spring.GetFeatureDefID(features[i])].geoThermal then
+		if FeatureDefs[SpringShared.GetFeatureDefID(features[i])].geoThermal then
 			return true
 		end
 	end

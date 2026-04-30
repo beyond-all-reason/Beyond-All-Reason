@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 ---------------------------------------
 
@@ -138,7 +138,7 @@ function widget:Initialize()
 		return
 	end
 
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	vsx, vsy, vpx, vpy = SpringUnsynced.GetViewGeometry()
 
 	local commonTexOpts = {
 		target = GL.TEXTURE_2D,

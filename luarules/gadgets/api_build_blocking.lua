@@ -44,7 +44,7 @@ if gadgetHandler:IsSyncedCode() then
 	local teamBlockedUnitDefs = {}
 	-- data structure: unitDefID = {reasonKey = true, reasonKey = true, ...}
 
-	local teamsList = Spring.GetTeamList()
+	local teamsList = SpringShared.GetTeamList()
 
 	local ignoredTeams = {}
 	local scavTeamID, raptorTeamID = Spring.Utilities.GetScavTeamID(), Spring.Utilities.GetRaptorTeamID()
@@ -73,7 +73,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function isAuthorized(playerID)
-		if Spring.IsCheatingEnabled() then
+		if SpringShared.IsCheatingEnabled() then
 			return true
 		else
 			local accountID = Spring.Utilities.GetAccountID(playerID)
@@ -97,8 +97,8 @@ if gadgetHandler:IsSyncedCode() then
 			return teams
 		else
 			local targetTeamID = tonumber(teamParam)
-			if not targetTeamID or not Spring.GetTeamInfo(targetTeamID) then
-				Spring.SendMessageToPlayer(playerID, "Invalid teamID: " .. tostring(teamParam) .. ". Use 'all' or a valid team number.")
+			if not targetTeamID or not SpringShared.GetTeamInfo(targetTeamID) then
+				SpringUnsynced.SendMessageToPlayer(playerID, "Invalid teamID: " .. tostring(teamParam) .. ". Use 'all' or a valid team number.")
 				return nil
 			end
 			return { targetTeamID }
@@ -139,15 +139,15 @@ if gadgetHandler:IsSyncedCode() then
 	local function commandBuildBlock(cmd, line, words, playerID)
 		if not isAuthorized(playerID) then
 			if _G.isSinglePlayer then
-				Spring.SendMessageToPlayer(playerID, "You must enable /cheats in order to use buildblock commands")
+				SpringUnsynced.SendMessageToPlayer(playerID, "You must enable /cheats in order to use buildblock commands")
 			else
-				Spring.SendMessageToPlayer(playerID, "You are not authorized to use buildblock commands")
+				SpringUnsynced.SendMessageToPlayer(playerID, "You are not authorized to use buildblock commands")
 			end
 			return
 		end
 
 		if #words < 3 then
-			Spring.SendMessageToPlayer(playerID, "Usage: /luarules buildblock <teamID|'all'> <reason_key> <unitDefID/unitDefName 1> <unitDefID/unitDefName 2> ... or 'all'")
+			SpringUnsynced.SendMessageToPlayer(playerID, "Usage: /luarules buildblock <teamID|'all'> <reason_key> <unitDefID/unitDefName 1> <unitDefID/unitDefName 2> ... or 'all'")
 			return
 		end
 
@@ -175,27 +175,27 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					blockedCount = blockedCount + 1
 				else
-					Spring.SendMessageToPlayer(playerID, "Invalid unitDefID or unitDefName: " .. tostring(words[i]))
+					SpringUnsynced.SendMessageToPlayer(playerID, "Invalid unitDefID or unitDefName: " .. tostring(words[i]))
 				end
 			end
 		end
 
 		local teamMsg = (teamParam == "all") and "all teams" or ("team " .. teamParam)
-		Spring.SendMessageToPlayer(playerID, "Blocked " .. blockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
+		SpringUnsynced.SendMessageToPlayer(playerID, "Blocked " .. blockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
 	end
 
 	local function commandBuildUnblock(cmd, line, words, playerID)
 		if not isAuthorized(playerID) then
 			if _G.isSinglePlayer then
-				Spring.SendMessageToPlayer(playerID, "You must enable /cheats in order to use buildunblock commands")
+				SpringUnsynced.SendMessageToPlayer(playerID, "You must enable /cheats in order to use buildunblock commands")
 			else
-				Spring.SendMessageToPlayer(playerID, "You are not authorized to use buildunblock commands")
+				SpringUnsynced.SendMessageToPlayer(playerID, "You are not authorized to use buildunblock commands")
 			end
 			return
 		end
 
 		if #words < 3 then
-			Spring.SendMessageToPlayer(playerID, "Usage: /luarules buildunblock <teamID|'all'> <reason_key|'all'> <unitDefID/unitDefName 1> <unitDefID/unitDefName 2> ... or 'all'")
+			SpringUnsynced.SendMessageToPlayer(playerID, "Usage: /luarules buildunblock <teamID|'all'> <reason_key|'all'> <unitDefID/unitDefName 1> <unitDefID/unitDefName 2> ... or 'all'")
 			return
 		end
 
@@ -233,13 +233,13 @@ if gadgetHandler:IsSyncedCode() then
 						unblockedCount = unblockedCount + 1
 					end
 				else
-					Spring.SendMessageToPlayer(playerID, "Invalid unitDefID or unitDefName: " .. tostring(words[i]))
+					SpringUnsynced.SendMessageToPlayer(playerID, "Invalid unitDefID or unitDefName: " .. tostring(words[i]))
 				end
 			end
 		end
 
 		local teamMsg = (teamParam == "all") and "all teams" or ("team " .. teamParam)
-		Spring.SendMessageToPlayer(playerID, "Unblocked " .. unblockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
+		SpringUnsynced.SendMessageToPlayer(playerID, "Unblocked " .. unblockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
 	end
 
 	function gadget:Initialize()
@@ -289,7 +289,7 @@ if gadgetHandler:IsSyncedCode() then
 		local unitReasons = blockedUnitDefs[unitDefID]
 		unitReasons[reasonKey] = true
 		local concatenatedReasons = reasonConcatenator(unitReasons)
-		Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, concatenatedReasons)
+		SpringSynced.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, concatenatedReasons)
 		notifyUnitBlocked(unitDefID, teamID, unitReasons)
 	end
 
@@ -307,9 +307,9 @@ if gadgetHandler:IsSyncedCode() then
 
 		if next(unitReasons) then
 			local concatenatedReasons = reasonConcatenator(unitReasons)
-			Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, concatenatedReasons)
+			SpringSynced.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, concatenatedReasons)
 		else
-			Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, nil)
+			SpringSynced.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, nil)
 		end
 		notifyUnitBlocked(unitDefID, teamID, unitReasons)
 		return true

@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local onlyOwnTeam = true
 
@@ -26,14 +26,14 @@ local iconSequenceFrametime = 0.02 -- duration per frame
 local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
 local idleUnitList = {}
 
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
-local spGetUnitTeam = Spring.GetUnitTeam
-local spec = Spring.GetSpectatingState()
+local spGetUnitCommandCount = SpringShared.GetUnitCommandCount
+local spGetFactoryCommandCount = SpringShared.GetFactoryCommandCount
+local spGetUnitTeam = SpringShared.GetUnitTeam
+local spec = SpringUnsynced.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
-local spValidUnitID = Spring.ValidUnitID
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spValidUnitID = SpringShared.ValidUnitID
+local spGetUnitIsDead = SpringShared.GetUnitIsDead
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
 
 local unitConf = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -187,12 +187,12 @@ end
 function widget:DrawScreenEffects()
 	-- DrawScreenEffects so icons render after deferred lighting/distortion/bloom/tonemap;
 	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 
 	if iconVBO.usedElements > 0 then
-		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
+		local disticon = SpringUnsynced.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		gl.DepthTest(true)
 		gl.DepthMask(false)
 		local clock = os.clock() * (1 * (iconSequenceFrametime * iconSequenceNum)) -- adjust speed relative to anim frame speed of 0.02sec per frame (59 frames in total)

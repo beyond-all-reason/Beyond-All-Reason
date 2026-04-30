@@ -19,12 +19,12 @@ end
 ]]
 --
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetUnitArmored = Spring.GetUnitArmored
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitIsBeingBuilt = SpringShared.GetUnitIsBeingBuilt
+local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
+local spGetUnitArmored = SpringShared.GetUnitArmored
+local spAreTeamsAllied = SpringShared.AreTeamsAllied
+local spGetSelectedUnitsCounts = SpringUnsynced.GetSelectedUnitsCounts
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_MOVE = CMD.MOVE
@@ -83,36 +83,36 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
 		gadgetHandler:RegisterAllowCommand(CMD.BUILD)
-		for _, unitID in pairs(Spring.GetAllUnits()) do
+		for _, unitID in pairs(SpringShared.GetAllUnits()) do
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 		end
 	end
 
 	local function objectifyUnit(unitID)
-		Spring.SetUnitNeutral(unitID, true)
-		Spring.SetUnitStealth(unitID, true)
-		Spring.SetUnitSonarStealth(unitID, true)
-		Spring.SetUnitBlocking(unitID, true, true, true, true, true, true, false) -- set as crushable
+		SpringSynced.SetUnitNeutral(unitID, true)
+		SpringSynced.SetUnitStealth(unitID, true)
+		SpringSynced.SetUnitSonarStealth(unitID, true)
+		SpringSynced.SetUnitBlocking(unitID, true, true, true, true, true, true, false) -- set as crushable
 		--for weaponID, _ in pairs(UnitDefs[spGetUnitDefID(unitID)].weapons) do
 		--	Spring.UnitWeaponHoldFire(unitID, weaponID)
 		--end
 	end
 
 	local function decorationUnit(unitID)
-		Spring.SetUnitNeutral(unitID, true)
-		Spring.SetUnitStealth(unitID, true)
-		Spring.SetUnitSonarStealth(unitID, true)
-		Spring.SetUnitBlocking(unitID, true, true, false, false, true, false, false)
+		SpringSynced.SetUnitNeutral(unitID, true)
+		SpringSynced.SetUnitStealth(unitID, true)
+		SpringSynced.SetUnitSonarStealth(unitID, true)
+		SpringSynced.SetUnitBlocking(unitID, true, true, false, false, true, false, false)
 		for weaponID, _ in pairs(UnitDefs[spGetUnitDefID(unitID)].weapons) do
-			Spring.UnitWeaponHoldFire(unitID, weaponID)
+			SpringSynced.UnitWeaponHoldFire(unitID, weaponID)
 		end
-		Spring.SetUnitNoSelect(unitID, true)
-		Spring.SetUnitNoMinimap(unitID, true)
-		Spring.SetUnitIconDraw(unitID, false)
-		Spring.SetUnitSensorRadius(unitID, "los", 0)
-		Spring.SetUnitSensorRadius(unitID, "airLos", 0)
-		Spring.SetUnitSensorRadius(unitID, "radar", 0)
-		Spring.SetUnitSensorRadius(unitID, "sonar", 0)
+		SpringUnsynced.SetUnitNoSelect(unitID, true)
+		SpringUnsynced.SetUnitNoMinimap(unitID, true)
+		SpringUnsynced.SetUnitIconDraw(unitID, false)
+		SpringSynced.SetUnitSensorRadius(unitID, "los", 0)
+		SpringSynced.SetUnitSensorRadius(unitID, "airLos", 0)
+		SpringSynced.SetUnitSensorRadius(unitID, "radar", 0)
+		SpringSynced.SetUnitSensorRadius(unitID, "sonar", 0)
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
@@ -145,7 +145,7 @@ if gadgetHandler:IsSyncedCode() then
 		if isDecoration[unitDefID] then
 			return 0, 0
 		elseif isObject[unitDefID] and not paralyzer then
-			local _, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+			local _, maxHealth, _, _, buildProgress = SpringShared.GetUnitHealth(unitID)
 			if buildProgress and maxHealth and buildProgress < 1 then
 				return (damage / 100) * maxHealth, nil
 			end
@@ -168,11 +168,11 @@ if gadgetHandler:IsSyncedCode() then
 			elseif cmdID < 0 and numDecorations > 0 then
 				if cmdParams[3] and isBuilder[unitDefID] then
 					local udefid = math.abs(cmdID)
-					local units = Spring.GetUnitsInBox(cmdParams[1] - unitSize[udefid][1], cmdParams[2] - 200, cmdParams[3] - unitSize[udefid][2], cmdParams[1] + unitSize[udefid][1], cmdParams[2] + 50, cmdParams[3] + unitSize[udefid][2])
+					local units = SpringShared.GetUnitsInBox(cmdParams[1] - unitSize[udefid][1], cmdParams[2] - 200, cmdParams[3] - unitSize[udefid][2], cmdParams[1] + unitSize[udefid][1], cmdParams[2] + 50, cmdParams[3] + unitSize[udefid][2])
 					for i = 1, #units do
 						if isDecoration[spGetUnitDefID(units[i])] then
-							if Spring.GetUnitIsDead(units[i]) == false then
-								Spring.DestroyUnit(units[i], false, true)
+							if SpringShared.GetUnitIsDead(units[i]) == false then
+								SpringSynced.DestroyUnit(units[i], false, true)
 							end
 						end
 					end
@@ -183,10 +183,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 else -- UNSYNCED
 	local myAllyTeam = Spring.GetMyAllyTeamID()
-	local spectating = Spring.GetSpectatingState()
+	local spectating = SpringUnsynced.GetSpectatingState()
 	function gadget:PlayerChanged(playerID)
 		myAllyTeam = Spring.GetMyAllyTeamID()
-		spectating = Spring.GetSpectatingState()
+		spectating = SpringUnsynced.GetSpectatingState()
 	end
 
 	-- "predicate" tables are checked in their index order

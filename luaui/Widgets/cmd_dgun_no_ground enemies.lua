@@ -48,25 +48,25 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	-- number of cmdParams should either be
 	-- 1 (unitID) or
 	-- 3 (map coordinates)
-	if #cmdParams ~= 1 or select(4, Spring.GetModKeyState()) then -- dgun is already aimed at ground, or when you hold SHIFT
+	if #cmdParams ~= 1 or select(4, SpringUnsynced.GetModKeyState()) then -- dgun is already aimed at ground, or when you hold SHIFT
 		return false
 	end
 
-	local mouseX, mouseY = Spring.GetMouseState()
-	local desc, cmdParams2 = Spring.TraceScreenRay(mouseX, mouseY, true)
+	local mouseX, mouseY = SpringUnsynced.GetMouseState()
+	local desc, cmdParams2 = SpringUnsynced.TraceScreenRay(mouseX, mouseY, true)
 	if nil == desc then -- off map, can not handle this properly here
 		return false
 	end
 
-	if cmdParams2[1] > 0 and not Spring.IsUnitAllied(cmdParams2[1]) then -- still snap aim at enemy units
-		local unitDefID = Spring.GetUnitDefID(cmdParams[1])
+	if cmdParams2[1] > 0 and not SpringUnsynced.IsUnitAllied(cmdParams2[1]) then -- still snap aim at enemy units
+		local unitDefID = SpringShared.GetUnitDefID(cmdParams[1])
 		-- exclude air and ships, also hovers when on water
-		if isAirUnit[unitDefID] or isShip[unitDefID] or isUnderwater[unitDefID] or (Spring.GetGroundHeight(cmdParams2[1], cmdParams2[3]) < 0 and isHover[unitDefID]) then
+		if isAirUnit[unitDefID] or isShip[unitDefID] or isUnderwater[unitDefID] or (SpringShared.GetGroundHeight(cmdParams2[1], cmdParams2[3]) < 0 and isHover[unitDefID]) then
 			return false
 		end
 	end
 
 	-- replace dgun order
-	Spring.GiveOrder(cmdID, cmdParams2, cmdOptions)
+	SpringUnsynced.GiveOrder(cmdID, cmdParams2, cmdOptions)
 	return true
 end

@@ -19,12 +19,12 @@ function widget:Initialize()
 end
 
 -- Locals
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitCommands = Spring.GetUnitCommands
-local spGetGameFrame = Spring.GetGameFrame
+local spGetSelectedUnits = SpringUnsynced.GetSelectedUnits
+local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
+local spGetUnitCommandCount = SpringShared.GetUnitCommandCount
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spGetUnitCommands = SpringShared.GetUnitCommands
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local CMDREPAIR = CMD.REPAIR
 local CMDRECLAIM = CMD.RECLAIM

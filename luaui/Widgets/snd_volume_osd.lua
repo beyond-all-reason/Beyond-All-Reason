@@ -22,7 +22,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ local GL_ONE = GL.ONE
 local RectRound
 
 local function sndVolumeIncreaseHandler(_, _, _, _, isRepeat)
-	volume = Spring.GetConfigInt("snd_volmaster", 80)
+	volume = SpringUnsynced.GetConfigInt("snd_volmaster", 80)
 	volume = volume + step
 	if volume < 0 then
 		volume = 0
@@ -67,17 +67,17 @@ local function sndVolumeIncreaseHandler(_, _, _, _, isRepeat)
 	if volume > 200 then
 		volume = 200
 	end
-	Spring.SetConfigInt("snd_volmaster", volume)
+	SpringUnsynced.SetConfigInt("snd_volmaster", volume)
 	--spEcho("Volume = " .. volume)
 	if not isRepeat then
-		Spring.PlaySoundFile(TEST_SOUND, 1.0, "ui")
+		SpringUnsynced.PlaySoundFile(TEST_SOUND, 1.0, "ui")
 	end
 	dt = os.clock()
 	return true
 end
 
 local function sndVolumeDecreaseHandler(_, _, _, _, isRepeat)
-	volume = Spring.GetConfigInt("snd_volmaster", 80)
+	volume = SpringUnsynced.GetConfigInt("snd_volmaster", 80)
 	volume = volume - step
 	if volume < 0 then
 		volume = 0
@@ -85,17 +85,17 @@ local function sndVolumeDecreaseHandler(_, _, _, _, isRepeat)
 	if volume > 200 then
 		volume = 200
 	end
-	Spring.SetConfigInt("snd_volmaster", volume)
+	SpringUnsynced.SetConfigInt("snd_volmaster", volume)
 	--spEcho("Volume = " .. volume)
 	if not isRepeat then
-		Spring.PlaySoundFile(TEST_SOUND, 1.0, "ui")
+		SpringUnsynced.PlaySoundFile(TEST_SOUND, 1.0, "ui")
 	end
 	dt = os.clock()
 	return true
 end
 
 function widget:Initialize()
-	volume = Spring.GetConfigInt("snd_volmaster", 60)
+	volume = SpringUnsynced.GetConfigInt("snd_volmaster", 60)
 
 	widgetHandler:AddAction("snd_volume_increase", sndVolumeIncreaseHandler, nil, "pR")
 	widgetHandler:AddAction("snd_volume_decrease", sndVolumeDecreaseHandler, nil, "pR")

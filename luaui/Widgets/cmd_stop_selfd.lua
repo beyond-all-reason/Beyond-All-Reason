@@ -33,7 +33,7 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		return
 	end
 
-	if Spring.GetUnitSelfDTime(unitID) > 0 then
-		Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+	if SpringShared.GetUnitSelfDTime(unitID) > 0 then
+		SpringShared.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 	end
 end

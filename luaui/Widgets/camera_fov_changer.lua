@@ -16,7 +16,7 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 local fovStep = 5
 local FOVminus = 111 -- CTRL+O
@@ -27,7 +27,7 @@ local FOVplus2 = 263 --KP7
 function widget:KeyRelease(key, modifier)
 	--spEcho(key)
 	if (key == FOVplus and modifier.ctrl) or key == FOVplus2 or (key == FOVminus and modifier.ctrl) or key == FOVminus2 then
-		local current_cam_state = Spring.GetCameraState()
+		local current_cam_state = SpringUnsynced.GetCameraState()
 		if key == FOVplus or key == FOVplus2 then
 			current_cam_state.fov = mathFloor(current_cam_state.fov + fovStep)
 			if current_cam_state.fov > 100 then -- glitches beyond 100
@@ -40,6 +40,6 @@ function widget:KeyRelease(key, modifier)
 			end
 		end
 		spEcho("target FOV: " .. current_cam_state.fov)
-		Spring.SetCameraState(current_cam_state, WG["options"] and WG["options"].getCameraSmoothness() or 2)
+		SpringUnsynced.SetCameraState(current_cam_state, WG["options"] and WG["options"].getCameraSmoothness() or 2)
 	end
 end

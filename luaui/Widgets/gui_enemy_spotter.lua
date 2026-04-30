@@ -34,10 +34,10 @@ local glDepthTest = gl.DepthTest
 local glTexture = gl.Texture
 local GL_POINTS = GL.POINTS
 
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitAllyTeam = SpringShared.GetUnitAllyTeam
 
 local myAllyTeamID = Spring.GetMyAllyTeamID()
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = SpringShared.GetGaiaTeamID()
 
 local unitScale = {}
 local unitDecoration = {}
@@ -55,10 +55,10 @@ end
 
 local teamLeader = {}
 local allyTeamLeader = {}
-local teams = Spring.GetTeamList()
+local teams = SpringShared.GetTeamList()
 for i = 1, #teams do
 	local teamID = teams[i]
-	local allyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
+	local allyTeamID = select(6, SpringShared.GetTeamInfo(teamID, false))
 	if not allyTeamLeader[allyTeamID] then
 		allyTeamLeader[allyTeamID] = teamID -- assign which team color to use for whole allyteam
 	end
@@ -100,7 +100,7 @@ end
 
 local drawFrame = 0
 function widget:DrawWorldPreUnit()
-	if Spring.IsGUIHidden() then
+	if SpringUnsynced.IsGUIHidden() then
 		return
 	end
 	drawFrame = drawFrame + 1
@@ -138,7 +138,7 @@ end
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.clearInstanceTable(enemyspotterVBO) -- clear all instances
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		AddUnit(unitID, unitDefID, Spring.GetUnitTeam(unitID), true) -- add them with noUpload = true
+		AddUnit(unitID, unitDefID, SpringShared.GetUnitTeam(unitID), true) -- add them with noUpload = true
 	end
 	InstanceVBOTable.uploadAllElements(enemyspotterVBO) -- upload them all
 end
@@ -167,7 +167,7 @@ local function init()
 	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
 		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
 	else
-		Spring.Echo("Enemy spotter needs unittrackerapi to work!")
+		SpringShared.Echo("Enemy spotter needs unittrackerapi to work!")
 		widgetHandler:RemoveWidget()
 		return false
 	end

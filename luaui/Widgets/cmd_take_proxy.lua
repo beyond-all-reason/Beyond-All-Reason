@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 local function TakeTeam()
-	Spring.SendCommands({ "luarules take2" })
+	SpringUnsynced.SendCommands({ "luarules take2" })
 end
 
 function widget:Initialize()

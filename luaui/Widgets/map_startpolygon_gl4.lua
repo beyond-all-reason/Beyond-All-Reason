@@ -16,7 +16,7 @@ end
 local mathRandom = math.random
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 -- Note: this is now updated to support arbitrary start polygons via GL.SHADER_STORAGE_BUFFER
 
@@ -51,7 +51,7 @@ local StartPolygons = {} -- list of points in clockwise order
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local minY, maxY = Spring.GetGroundExtremes()
+local minY, maxY = SpringShared.GetGroundExtremes()
 
 local shaderSourceCache = {
 	vssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.vert.glsl",
@@ -87,7 +87,7 @@ local startPolygonShader
 local startPolygonBuffer = nil -- GL.SHADER_STORAGE_BUFFER for polygon
 
 local function DrawStartPolygons(inminimap)
-	local _, advMapShading = Spring.HaveAdvShading()
+	local _, advMapShading = SpringUnsynced.HaveAdvShading()
 
 	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
@@ -142,13 +142,13 @@ end
 
 function widget:Initialize()
 	local gaiaAllyTeamID
-	if Spring.GetGaiaTeamID() then
-		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
+	if SpringShared.GetGaiaTeamID() then
+		gaiaAllyTeamID = select(6, SpringShared.GetTeamInfo(SpringShared.GetGaiaTeamID(), false))
 	end
-	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
+	for i, teamID in ipairs(SpringShared.GetAllyTeamList()) do
 		if teamID ~= gaiaAllyTeamID then
 			--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
-			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
+			local xn, zn, xp, zp = SpringShared.GetAllyTeamStartBox(teamID)
 			--spEcho("Allyteam",teamID,"startbox",xn, zn, xp, zp)
 			StartPolygons[teamID] = { { xn, zn }, { xp, zn }, { xp, zp }, { xn, zp } }
 		end
@@ -180,7 +180,7 @@ function widget:Initialize()
 	for teamID, polygon in pairs(StartPolygons) do
 		numPolygons = numPolygons + 1
 		local numPoints = #polygon
-		local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
+		local xn, zn, xp, zp = SpringShared.GetAllyTeamStartBox(teamID)
 		--spEcho("teamID", teamID, "at " ,xn, zn, xp, zp)
 		for vertexID, vertex in ipairs(polygon) do
 			local x, z = vertex[1], vertex[2]

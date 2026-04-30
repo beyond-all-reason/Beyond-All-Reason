@@ -17,7 +17,7 @@ local mathFloor = math.floor
 local mathRandom = math.random
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = SpringShared.Echo
 
 -- Notes and TODO
 -- what parts should be atlassed? the correct answer is all parts should be atlassed
@@ -637,7 +637,7 @@ function widget:Initialize()
 		math.randomseed(1)
 		local grid = 32
 		local gs = 64
-		local vsx, vsy = Spring.GetViewGeometry()
+		local vsx, vsy = SpringUnsynced.GetViewGeometry()
 		for i = 0, grid * grid - 1 do
 			local tex1 = randtablechoice(atlassedImagesUVs)
 			local tex2 = randtablechoice(atlassedImagesUVs)

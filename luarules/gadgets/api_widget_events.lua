@@ -16,10 +16,10 @@ function gadget:GetInfo()
 	}
 end
 
-local spAreTeamsAllied = Spring.AreTeamsAllied
+local spAreTeamsAllied = SpringShared.AreTeamsAllied
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetUnitLosState = Spring.GetUnitLosState
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
+local spGetUnitLosState = SpringShared.GetUnitLosState
 
 local myAllyTeamID, myTeamID, spec, specFullView
 

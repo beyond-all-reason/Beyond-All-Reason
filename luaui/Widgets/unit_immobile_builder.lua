@@ -13,17 +13,17 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = SpringShared.GetGameFrame
 
 local CMD_MOVE_STATE = CMD.MOVE_STATE
 local CMD_FIGHT = CMD.FIGHT
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetTeamUnits = Spring.GetTeamUnits
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGetTeamUnits = SpringShared.GetTeamUnits
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spGetUnitPosition = SpringShared.GetUnitPosition
+local spGiveOrderToUnit = SpringShared.GiveOrderToUnit
+local spGetUnitCommandCount = SpringShared.GetUnitCommandCount
+local spGetUnitCurrentCommand = SpringShared.GetUnitCurrentCommand
 
 local halfMapSizeX = Game.mapSizeX / 2
 local halfMapSizeZ = Game.mapSizeZ / 2
@@ -61,7 +61,7 @@ local function setupUnit(unitID)
 end
 
 local function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if SpringUnsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -77,7 +77,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if SpringUnsynced.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 	for _, unitID in ipairs(spGetTeamUnits(spGetMyTeamID())) do

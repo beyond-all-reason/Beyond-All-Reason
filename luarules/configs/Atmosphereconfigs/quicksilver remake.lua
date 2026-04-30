@@ -2,7 +2,7 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GameFrame(n)
 	if n == 31 then
-		Spring.Echo("Loaded atmosphere CEGs config for map: " .. Game.mapName)
+		SpringShared.Echo("Loaded atmosphere CEGs config for map: " .. Game.mapName)
 	end
 
 	-- SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)

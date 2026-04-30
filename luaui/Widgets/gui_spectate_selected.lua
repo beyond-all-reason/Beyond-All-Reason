@@ -15,9 +15,9 @@ end
 
 -- Localized Spring API for performance
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitTeam = SpringShared.GetUnitTeam
 local spec, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
 
@@ -45,11 +45,11 @@ function widget:Update(dt)
 	if spec then
 		sec = sec + dt
 		if sec > 1.5 and switchToTeam ~= nil then -- added a delay cause doing too quick changes is perf costly, happens when you area drag lots of mixed team units
-			local oldMapDrawMode = Spring.GetMapDrawMode()
-			Spring.SendCommands("specteam " .. switchToTeam)
-			local newMapDrawMode = Spring.GetMapDrawMode()
+			local oldMapDrawMode = SpringUnsynced.GetMapDrawMode()
+			SpringUnsynced.SendCommands("specteam " .. switchToTeam)
+			local newMapDrawMode = SpringUnsynced.GetMapDrawMode()
 			if oldMapDrawMode == "los" and oldMapDrawMode ~= newMapDrawMode then
-				Spring.SendCommands("togglelos")
+				SpringUnsynced.SendCommands("togglelos")
 			end
 
 			myTeamID = switchToTeam

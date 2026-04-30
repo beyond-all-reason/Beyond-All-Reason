@@ -14,11 +14,11 @@ end
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
-local spGetActionHotkeys = Spring.GetActionHotKeys
-local spGetCameraState = Spring.GetCameraState
-local spGetMapDrawMode = Spring.GetMapDrawMode
-local spGetConfigString = Spring.GetConfigString
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetActionHotkeys = SpringUnsynced.GetActionHotKeys
+local spGetCameraState = SpringUnsynced.GetCameraState
+local spGetMapDrawMode = SpringUnsynced.GetMapDrawMode
+local spGetConfigString = SpringUnsynced.GetConfigString
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
 local i18n = Spring.I18N
 
 local glPopMatrix = gl.PopMatrix

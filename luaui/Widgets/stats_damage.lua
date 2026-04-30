@@ -97,7 +97,7 @@ function RecieveStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_co
 end
 
 function widget:GameOver()
-	if not info or Spring.IsReplay() then
+	if not info or SpringUnsynced.IsReplay() then
 		return
 	end
 	if Spring.Utilities.IsDevMode() then

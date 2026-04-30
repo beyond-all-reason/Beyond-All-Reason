@@ -19,9 +19,9 @@ local mathMax = math.max
 local mathMin = math.min
 
 -- Localized Spring API for performance
-local spGetMouseState = Spring.GetMouseState
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetMouseState = SpringUnsynced.GetMouseState
+local spGetViewGeometry = SpringUnsynced.GetViewGeometry
+local spGetSpectatingState = SpringUnsynced.GetSpectatingState
 
 local vsx, vsy = spGetViewGeometry()
 
@@ -87,21 +87,21 @@ local guiData = {
 }
 guiData.mainPanel.relSizes.x.length = (guiData.mainPanel.relSizes.x.max - guiData.mainPanel.relSizes.x.min) * 0.92
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+local ui_opacity = SpringUnsynced.GetConfigFloat("ui_opacity", 0.7)
 
 local glColor = gl.Color
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
-local GetGaiaTeamID = Spring.GetGaiaTeamID
-local GetAllyTeamList = Spring.GetAllyTeamList
-local GetTeamList = Spring.GetTeamList
-local GetTeamStatsHistory = Spring.GetTeamStatsHistory
-local GetTeamInfo = Spring.GetTeamInfo
-local GetPlayerInfo = Spring.GetPlayerInfo
+local GetGaiaTeamID = SpringShared.GetGaiaTeamID
+local GetAllyTeamList = SpringShared.GetAllyTeamList
+local GetTeamList = SpringShared.GetTeamList
+local GetTeamStatsHistory = SpringShared.GetTeamStatsHistory
+local GetTeamInfo = SpringShared.GetTeamInfo
+local GetPlayerInfo = SpringShared.GetPlayerInfo
 local GetMouseState = spGetMouseState
-local GetGameFrame = Spring.GetGameFrame
+local GetGameFrame = SpringShared.GetGameFrame
 local min = mathMin
 local max = mathMax
 local clamp = math.clamp
@@ -117,12 +117,12 @@ local RectRound, UiElement, elementCorner
 
 local font, font2, backgroundGuishader, gameStarted, bgpadding, gameover
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = { Spring.GetConfigInt("anonymousColorR", 255) / 255, Spring.GetConfigInt("anonymousColorG", 0) / 255, Spring.GetConfigInt("anonymousColorB", 0) / 255 }
+local anonymousMode = SpringShared.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = { SpringUnsynced.GetConfigInt("anonymousColorR", 255) / 255, SpringUnsynced.GetConfigInt("anonymousColorG", 0) / 255, SpringUnsynced.GetConfigInt("anonymousColorB", 0) / 255 }
 
 local isSpec = spGetSpectatingState()
 
-local playerScale = math.clamp(25 / #Spring.GetTeamList(), 0.3, 1)
+local playerScale = math.clamp(25 / #SpringShared.GetTeamList(), 0.3, 1)
 
 function aboveRectangle(mousePos, boxData)
 	local included = true
@@ -252,7 +252,7 @@ function widget:Initialize()
 	refreshHeaders()
 	guiData.mainPanel.visible = false
 	widget:ViewResize()
-	local _, _, paused = Spring.GetGameSpeed()
+	local _, _, paused = SpringUnsynced.GetGameSpeed()
 	if paused then
 		widget:GameFrame(GetGameFrame(), true)
 	end
@@ -343,16 +343,16 @@ function widget:GameFrame(n, forceupdate)
 					end
 					history.time = nil
 					local teamColor
-					if not isSpec and anonymousMode ~= "disabled" and teamID ~= Spring.GetLocalTeamID() then
+					if not isSpec and anonymousMode ~= "disabled" and teamID ~= SpringUnsynced.GetLocalTeamID() then
 						teamColor = { anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3] }
 					else
-						teamColor = { Spring.GetTeamColor(teamID) }
+						teamColor = { SpringUnsynced.GetTeamColor(teamID) }
 					end
 					local _, leader, isDead = GetTeamInfo(teamID, false)
 					local playerName, isActive = GetPlayerInfo(leader, false)
 					playerName = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(leader) or playerName
-					if Spring.GetGameRulesParam("ainame_" .. teamID) then
-						playerName = Spring.GetGameRulesParam("ainame_" .. teamID)
+					if SpringShared.GetGameRulesParam("ainame_" .. teamID) then
+						playerName = SpringShared.GetGameRulesParam("ainame_" .. teamID)
 					end
 					if gameStarted ~= nil then
 						if not playerName then
@@ -439,7 +439,7 @@ function widget:GameOver()
 	if replaceEndStats then
 		guiData.mainPanel.visible = true
 		widget:GameFrame(GetGameFrame(), true)
-		Spring.SendCommands("endgraph 0")
+		SpringUnsynced.SendCommands("endgraph 0")
 	end
 end
 
@@ -473,7 +473,7 @@ function mouseEvent(mx, my, button, release)
 				local newSort = header[column]
 				if newSort then
 					if playSounds then
-						Spring.PlaySoundFile(buttonclick, 0.6, "ui")
+						SpringUnsynced.PlaySoundFile(buttonclick, 0.6, "ui")
 					end
 					if sortVar == newSort then
 						sortAscending = not sortAscending
@@ -574,7 +574,7 @@ function widget:DrawScreen()
 	local mx, my = spGetMouseState()
 	local x1, y1, x2, y2 = mathFloor(guiData.mainPanel.absSizes.x.min), mathFloor(guiData.mainPanel.absSizes.y.min), mathFloor(guiData.mainPanel.absSizes.x.max), mathFloor(guiData.mainPanel.absSizes.y.max)
 	if math_isInRect(mx, my, x1, y1, x2, y2) then
-		Spring.SetMouseCursor("cursornormal")
+		SpringUnsynced.SetMouseCursor("cursornormal")
 	end
 end
 

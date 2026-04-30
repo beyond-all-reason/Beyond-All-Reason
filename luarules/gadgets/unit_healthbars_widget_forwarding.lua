@@ -14,8 +14,8 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	local SendToUnsynced = SendToUnsynced
-	local spGetGameFrame = Spring.GetGameFrame
-	local spGetUnitWeaponState = Spring.GetUnitWeaponState
+	local spGetGameFrame = SpringShared.GetGameFrame
+	local spGetUnitWeaponState = SpringShared.GetUnitWeaponState
 
 	local forwardedFeatureIDs = {} -- so we only forward the start event once
 	local forwardedCaptureUnitIDs = {}
@@ -100,23 +100,23 @@ if gadgetHandler:IsSyncedCode() then
 	end
 else
 	local glSetFeatureBufferUniforms = gl.SetFeatureBufferUniforms
-	local GetFeatureResources = Spring.GetFeatureResources
-	local GetFeaturePosition = Spring.GetFeaturePosition
-	local IsPosInLos = Spring.IsPosInLos
+	local GetFeatureResources = SpringShared.GetFeatureResources
+	local GetFeaturePosition = SpringShared.GetFeaturePosition
+	local IsPosInLos = SpringShared.IsPosInLos
 	local rezreclaim = { 0.0, 1.0 } -- this is just a small table cache, so we dont allocate a new table for every update
 	local forwardedFeatureIDsResurrect = {} -- so we only forward the start event once
 	local forwardedFeatureIDsReclaim = {} -- so we only forward the start event once
 	local myTeamID = Spring.GetMyTeamID()
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
-	local _, fullview = Spring.GetSpectatingState()
-	local IsUnitInLos = Spring.IsUnitInLos
-	local GetFeatureHealth = Spring.GetFeatureHealth
+	local _, fullview = SpringUnsynced.GetSpectatingState()
+	local IsUnitInLos = SpringShared.IsUnitInLos
+	local GetFeatureHealth = SpringShared.GetFeatureHealth
 	local headless = false
 
 	function gadget:PlayerChanged(playerID)
 		myTeamID = Spring.GetMyTeamID()
 		myAllyTeamID = Spring.GetMyAllyTeamID()
-		_, fullview = Spring.GetSpectatingState()
+		_, fullview = SpringUnsynced.GetSpectatingState()
 	end
 
 	function featureReclaimFrame(cmd, featureID, step)
@@ -162,7 +162,7 @@ else
 
 	function projetileCreatedReload(cmd, projectileID, ownerID, weaponID)
 		--Spring.Echo("unsynced projetileCreatedReload", projectileID, ownerID, weaponID, fullview, Spring.GetUnitTeam(ownerID))
-		if fullview or Spring.GetUnitTeam(ownerID) == myTeamID then
+		if fullview or SpringShared.GetUnitTeam(ownerID) == myTeamID then
 			if Script.LuaUI("ProjectileCreatedReloadHB") then
 				--Spring.Echo("G:ProjectileCreatedReloadHB", projectileID, ownerID, weaponID)
 				Script.LuaUI.ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
@@ -196,7 +196,7 @@ else
 	end
 
 	function gadget:Initialize()
-		headless = Spring.GetConfigInt("Headless", 0) > 0
+		headless = SpringUnsynced.GetConfigInt("Headless", 0) > 0
 		gadgetHandler:AddSyncAction("featureReclaimFrame", featureReclaimFrame)
 		gadgetHandler:AddSyncAction("unitCaptureFrame", unitCaptureFrame)
 		gadgetHandler:AddSyncAction("projetileCreatedReload", projetileCreatedReload)

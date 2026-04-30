@@ -16,8 +16,8 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spEcho = Spring.Echo
+local spGetUnitDefID = SpringShared.GetUnitDefID
+local spEcho = SpringShared.Echo
 
 ------- GL4 NOTES -----
 -- There is regular radar and advanced radar, assumed to have identical ranges!
@@ -33,7 +33,7 @@ local radarYOffset = 50 -- amount added to vertical height of overlay to more cl
 
 -- Globals
 local mousepos = { 0, 0, 0 }
-local spGetActiveCommand = Spring.GetActiveCommand
+local spGetActiveCommand = SpringUnsynced.GetActiveCommand
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -146,7 +146,7 @@ function widget:DrawWorld()
 		end -- not build command
 	end
 
-	if Spring.IsGUIHidden() or (WG["topbar"] and WG["topbar"].showingQuit()) then
+	if SpringUnsynced.IsGUIHidden() or (WG["topbar"] and WG["topbar"].showingQuit()) then
 		return
 	end
 
@@ -155,10 +155,10 @@ function widget:DrawWorld()
 		return
 	end
 	if selectedRadarUnitID then
-		mousepos = { Spring.GetUnitPosition(selectedRadarUnitID) }
+		mousepos = { SpringShared.GetUnitPosition(selectedRadarUnitID) }
 	else
-		local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState()
-		local _, coords = Spring.TraceScreenRay(mx, my, true)
+		local mx, my, lp, mp, rp, offscreen = SpringUnsynced.GetMouseState()
+		local _, coords = SpringUnsynced.TraceScreenRay(mx, my, true)
 		if coords then
 			mousepos = { coords[1], coords[2], coords[3] }
 		end
