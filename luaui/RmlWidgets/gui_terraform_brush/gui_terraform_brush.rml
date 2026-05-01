@@ -2153,7 +2153,7 @@
 
 		<div id="restore-strength-row" data-if="tfInRestore">
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">RESTORE: <span class="text-xl font-bold tf-slider-val" id="restore-strength-label">100%</span></div>
+				<div class="text-lg text-light">RESTORE: <span class="text-xl font-bold tf-slider-val" id="restore-strength-label">{{tfRestoreStrengthStr}}</span></div>
 				<div id="slider-restore-strength-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-restore-strength-transport" class="tf-transport-group hidden">
 					<div id="slider-restore-strength-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2201,7 +2201,7 @@
 
 		<div id="ring-width-row" data-if="tfRingVisible">
 			<div class="flex flex-row items-center mt-1 mb-1">
-				<div class="text-lg text-light">RING WIDTH: <span class="text-xl font-bold tf-slider-val" id="ring-width-label">40%</span></div>
+				<div class="text-lg text-light">RING WIDTH: <span class="text-xl font-bold tf-slider-val" id="ring-width-label">{{tfRingWidthStr}}</span></div>
 				<div id="slider-ring-width-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-ring-width-transport" class="tf-transport-group hidden">
 					<div id="slider-ring-width-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
