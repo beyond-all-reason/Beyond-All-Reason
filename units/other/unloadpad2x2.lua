@@ -69,7 +69,7 @@ local unloadpad2x2 = {
 				footprintz = 4,
 				height = 40,
 				metal = 2603,
-				object = "Units/armfus_dead.s3o",
+				object = "units/unloadpad2x2.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -108,6 +108,7 @@ local unloadpad2x2 = {
 	unloadpad4x4.footprintx = 4
 	unloadpad4x4.footprintz = 4
 	unloadpad4x4.yardmap = "oooo oooo oooo oooo"
+	unloadpad4x4.objectname = "units/unloadpad4x4.s3o"
 
 	local unloadpad8x8 = deepcopy(unloadpad2x2)
 	unloadpad8x8.footprintx = 8
