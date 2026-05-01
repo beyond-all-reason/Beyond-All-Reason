@@ -13,13 +13,6 @@ function M.attach(doc, ctx)
 	local TraceScreenRay = Spring.TraceScreenRay
 	local Game = Game
 
-		widgetState.stpSubmodesEl = doc:GetElementById("tf-startpos-submodes")
-		widgetState.stpControlsEl = doc:GetElementById("tf-startpos-controls")
-		widgetState.stpShapeOptionsEl = doc:GetElementById("sp-shape-options")
-		widgetState.stpShapeRowEl = doc:GetElementById("sp-shape-row")
-		widgetState.stpExpressHintEl = doc:GetElementById("sp-express-hint")
-		widgetState.stpStartboxHintEl = doc:GetElementById("sp-startbox-hint")
-
 		-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 		-- Slider change events are wired declaratively via onchange= in RML.
 		for _, sid in ipairs({ "sp-allyteams", "sp-count", "sp-size", "sp-rotation" }) do
@@ -201,18 +194,6 @@ function M.sync(doc, ctx, stpState, setSummary)
 			if widgetState.dmHandle then
 				widgetState.dmHandle.stpSubMode = stpState.subMode or ""
 				widgetState.dmHandle.stpStartboxMode = sbxMode
-			end
-			local boxBtn  = doc:GetElementById("btn-sp-sbx-box")
-			local polyBtn = doc:GetElementById("btn-sp-sbx-polygon")
-			local freeBtn = doc:GetElementById("btn-sp-sbx-freedraw")
-			if boxBtn  then
-				boxBtn:SetClass("disabled", not inStartbox)
-			end
-			if polyBtn then
-				polyBtn:SetClass("disabled", not inStartbox)
-			end
-			if freeBtn then
-				freeBtn:SetClass("disabled", not inStartbox)
 			end
 			-- Contextual hint visibility now driven by data-if on the elements.
 		end

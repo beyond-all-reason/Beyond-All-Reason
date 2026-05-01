@@ -147,12 +147,12 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | `tf_splat.lua` | 0 / ~8 | ⬜ channel btn, filter chips, avoidWater/avoidCliffs/preferSlopes, altMinSample/altMaxSample |
 | `tf_decals.lua` | 0 / ~2 | ⬜ mode buttons, tool-active btn |
 | `tf_metal.lua` | 0 / ~12 | ⬜ overlay/cluster/lasso/axis chips, symmetry/mirror btns, snap/angle/measure btns |
-| `tf_startpos.lua` | 0 / ~4 | ⬜ shape mode btns, startbox enable btn |
+| `tf_startpos.lua` | 11 / 11 | ✅ stpSubMode (3 submode btns) + stpShapeMode (4 shape btns) + stpStartboxMode (3 sbx mode btns) + activeTool=='stp' main btn; dead Lua DOM caches + SetClass("disabled") removed (superseded by data-if on row) |
 | `tf_lights.lua` | 0 / ~7 | ⬜ lightType/mode/distribution btns, library tabs, active btn |
 | `tf_guide.lua` | 0 / ~2 | ⬜ guideMode active btn, soundMuted btn |
 | `gui_terraform_brush.lua` (attachTBMirrorControls) | 0 / ~30 | ⬜ mirror/symmetry/snap/measure/colormap/distort/flipped btns (~L2860–3430) |
 
-**Next: tf_splat + tf_metal (highest SetClass density, share dm fields already added in step 3).**
+**Next: tf_splat + tf_metal (highest SetClass density, share dm fields already added in step 3). Consider batching with gl.* audit (Phase 2.5) as orthogonal parallel work.**
 3. 🟡 **Section collapse / show-hide → `data-if="sectionTerrainOpen"`** for banners / notice dots / passthrough play/pause icons; **whole-panel show/hide → `document:Hide()/Show()`**. **PROMOTED to required pre-1.0 (PR #7527 review). `SetClass("hidden", ...)` is wrong, not deferred.** **In progress (Apr 2026)** — see per-file table below.
 
 #### Phase 2 step 3 per-file progress
