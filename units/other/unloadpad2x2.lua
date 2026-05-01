@@ -113,6 +113,7 @@ local unloadpad2x2 = {
 	unloadpad8x8.footprintx = 8
 	unloadpad8x8.footprintz = 8
 	unloadpad8x8.yardmap = "oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo"
+	unloadpad8x8.objectname = "units/unloadpad8x8.s3o"
 
 return {
 	unloadpad2x2 = unloadpad2x2,
