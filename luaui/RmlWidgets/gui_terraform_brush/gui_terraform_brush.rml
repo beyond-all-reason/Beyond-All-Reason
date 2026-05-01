@@ -209,7 +209,7 @@
 		</div>
 		<div id="st-grid-snap-size-row" class="tf-instrument-sub mb-1" data-if="stGridSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold" id="st-grid-snap-size-label">48</span></div>
+				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="st-btn-snap-size-down" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(-16); event:StopPropagation()">
@@ -224,7 +224,7 @@
 		</div>
 		<div id="st-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="stAngleSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="st-angle-snap-step-label">15</span>&#176;</div>
+				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="st-btn-angle-step-down" class="tf-sm-btn" onclick="widget:tbAngleStepStep(-1); event:StopPropagation()">
@@ -269,7 +269,7 @@
 			</div>
 			<div id="st-symmetry-radial-count-row" class="mb-1" data-if="stSymmetryRadial">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="st-symmetry-radial-count-label">2</span></div>
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="st-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('st'); event:StopPropagation()">
@@ -283,7 +283,7 @@
 			</div>
 			<div id="st-symmetry-mirror-angle-row" class="mb-1" data-if="stSymHasAxis">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="st-symmetry-mirror-angle-label">0</span>&#176;</div>
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="st-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('st'); event:StopPropagation()">
@@ -514,7 +514,7 @@
 		</div>
 		<div id="cl-grid-snap-size-row" class="tf-instrument-sub mb-1" data-if="clGridSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold" id="cl-grid-snap-size-label">48</span></div>
+				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="cl-btn-snap-size-down" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(-16); event:StopPropagation()">
@@ -529,7 +529,7 @@
 		</div>
 		<div id="cl-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="clAngleSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="cl-angle-snap-step-label">15</span>&#176;</div>
+				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="cl-btn-angle-step-down" class="tf-sm-btn" onclick="widget:tbAngleStepStep(-1); event:StopPropagation()">
@@ -574,7 +574,7 @@
 			</div>
 			<div id="cl-symmetry-radial-count-row" class="mb-1" data-if="clSymmetryRadial">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="cl-symmetry-radial-count-label">2</span></div>
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="cl-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('cl'); event:StopPropagation()">
@@ -588,7 +588,7 @@
 			</div>
 			<div id="cl-symmetry-mirror-angle-row" class="mb-1" data-if="clSymHasAxis">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="cl-symmetry-mirror-angle-label">0</span>&#176;</div>
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="cl-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('cl'); event:StopPropagation()">
@@ -882,7 +882,7 @@
 				</div>
 				<div id="mb-cluster-radius-row" class="tf-instrument-sub mb-1" data-if="mbClusterOpen">
 					<div class="flex flex-row justify-between items-center mb-1">
-						<div class="text-lg text-light">GRANULARITY: <span class="text-xl font-bold" id="mb-cluster-radius-label">256</span></div>
+						<div class="text-lg text-light">GRANULARITY: <span class="text-xl font-bold">{{mbClusterRadiusStr}}</span></div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
 						<div id="mb-btn-cluster-radius-down" class="tf-sm-btn" onclick="widget:mbClusterRadiusDown(); event:StopPropagation()">
@@ -904,7 +904,7 @@
 						</div>
 					</div>
 					<div class="flex flex-row items-center mb-1">
-						<div class="text-lg text-light">Metal in loop: <span class="text-xl font-bold" id="mb-lasso-total-label">0.00</span></div>
+						<div class="text-lg text-light">Metal in loop: <span class="text-xl font-bold">{{mbLassoTotalStr}}</span></div>
 					</div>
 				</div>
 				<div id="mb-balance-axis-row" class="tf-instrument-sub mb-1" data-if="mbAxisOpen">
@@ -923,7 +923,7 @@
 						</div>
 					</div>
 					<div class="flex flex-row justify-between items-center mb-1">
-						<div class="text-lg text-light">ANGLE: <span class="text-xl font-bold" id="mb-axis-angle-label">0</span>&#176;</div>
+						<div class="text-lg text-light">ANGLE: <span class="text-xl font-bold">{{mbAxisAngleStr}}</span>&#176;</div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
 						<div id="mb-btn-axis-angle-down" class="tf-sm-btn" onclick="widget:mbAxisAngleDown(); event:StopPropagation()">
@@ -935,9 +935,9 @@
 						</div>
 					</div>
 					<div class="flex flex-col mb-1">
-						<div class="text-lg text-light">Side A: <span class="text-xl font-bold" id="mb-axis-a-label">0.00</span></div>
-						<div class="text-lg text-light">Side B: <span class="text-xl font-bold" id="mb-axis-b-label">0.00</span></div>
-						<div class="text-lg text-light">Balance: <span class="text-xl font-bold" id="mb-axis-balance-label">--</span></div>
+						<div class="text-lg text-light">Side A: <span class="text-xl font-bold">{{mbAxisAStr}}</span></div>
+						<div class="text-lg text-light">Side B: <span class="text-xl font-bold">{{mbAxisBStr}}</span></div>
+						<div class="text-lg text-light">Balance: <span class="text-xl font-bold">{{mbAxisBalanceStr}}</span></div>
 					</div>
 				</div>
 			</div>
@@ -968,7 +968,7 @@
 			</div>
 			<div id="mb-grid-snap-size-row" class="tf-instrument-sub mb-1" data-if="mbGridSnap">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold" id="mb-grid-snap-size-label">48</span></div>
+					<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="mb-btn-snap-size-down" class="tf-sm-btn" onclick="widget:mbSnapSizeStep(-16); event:StopPropagation()">
@@ -983,7 +983,7 @@
 			</div>
 			<div id="mb-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="mbAngleSnap">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="mb-angle-snap-step-label">15</span>&#176;</div>
+					<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="mb-btn-angle-step-down" class="tf-sm-btn" onclick="widget:mbAngleStepStep(-1); event:StopPropagation()">
@@ -1043,7 +1043,7 @@
 				</div>
 				<div id="mb-symmetry-radial-count-row" class="mb-1" data-if="mbSymmetryRadial">
 					<div class="flex flex-row justify-between items-center mb-1">
-						<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="mb-symmetry-radial-count-label">2</span></div>
+						<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
 						<div id="mb-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:mbSymCountDown(); event:StopPropagation()">
@@ -1057,7 +1057,7 @@
 				</div>
 				<div id="mb-symmetry-mirror-angle-row" class="mb-1" data-if="mbSymHasAxis">
 					<div class="flex flex-row justify-between items-center mb-1">
-						<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="mb-symmetry-mirror-angle-label">0</span>&#176;</div>
+						<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
 						<div id="mb-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:mbSymAngleDown(); event:StopPropagation()">
@@ -1084,7 +1084,7 @@
 
 			<div class="flex flex-row justify-between items-center mb-1">
 				<div class="text-lg text-light font-bold">Metal Value</div>
-				<div id="mb-value-label" class="text-lg text-light">2.0</div>
+				<div class="text-lg text-light">{{mbValueStr}}</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-metal-value-down" class="tf-sm-btn" onclick="widget:mbValueDown(); event:StopPropagation()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
@@ -1097,7 +1097,7 @@
 
 			<!-- Metal Size -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val" id="mb-size-label">100</span></div>
+				<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val">{{mbSizeStr}}</span></div>
 				<div id="slider-mb-size-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-mb-size-transport" class="tf-transport-group hidden">
 					<div id="slider-mb-size-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1119,7 +1119,7 @@
 
 			<!-- Metal Rotation -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold tf-slider-val" id="mb-rotation-label">0&#176;</span></div>
+				<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold tf-slider-val">{{mbRotStr}}</span></div>
 				<div id="slider-mb-rotation-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-mb-rotation-transport" class="tf-transport-group hidden">
 					<div id="slider-mb-rotation-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1141,7 +1141,7 @@
 
 			<!-- Metal Length -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">LENGTH: <span class="text-xl font-bold tf-slider-val" id="mb-length-label">1.0</span></div>
+				<div class="text-lg text-light">LENGTH: <span class="text-xl font-bold tf-slider-val">{{mbLengthStr}}</span></div>
 				<div id="slider-mb-length-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-mb-length-transport" class="tf-transport-group hidden">
 					<div id="slider-mb-length-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1163,7 +1163,7 @@
 
 			<!-- Metal Fall-off Curve -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">FALL-OFF: <span class="text-xl font-bold tf-slider-val" id="mb-curve-label">1.0</span></div>
+				<div class="text-lg text-light">FALL-OFF: <span class="text-xl font-bold tf-slider-val">{{mbCurveStr}}</span></div>
 				<div id="slider-mb-curve-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-mb-curve-transport" class="tf-transport-group hidden">
 					<div id="slider-mb-curve-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1213,7 +1213,7 @@
 					<div class="tf-action-btn-text">LOAD</div>
 				</div>
 				<div id="btn-metal-clean" class="tf-action-btn" style="flex: 1;" onclick="widget:mbClean(); event:StopPropagation()">
-					<div id="metal-clean-label" class="tf-action-btn-text">CLEAN</div>
+					<div class="tf-action-btn-text">{{mbCleanLabelStr}}</div>
 				</div>
 			</div>
 		</div>
@@ -1292,7 +1292,7 @@
 			</div>
 			<div id="gb-grid-snap-size-row" class="tf-instrument-sub mb-1" data-if="gbGridSnap">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold" id="gb-grid-snap-size-label">48</span></div>
+					<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="gb-btn-snap-size-down" onclick="widget:gbSnapSizeDown(); event:StopPropagation()" class="tf-sm-btn">
@@ -1307,7 +1307,7 @@
 			</div>
 			<div id="gb-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="gbAngleSnap">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="gb-angle-snap-step-label">15</span>&#176;</div>
+					<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="gb-btn-angle-step-down" onclick="widget:gbAngleStepDown(); event:StopPropagation()" class="tf-sm-btn">
@@ -1320,7 +1320,7 @@
 					<input type="text" id="gb-slider-angle-snap-step-numbox" class="tf-slider-numbox" readonly value="15" />
 				</div>
 				<div class="flex flex-row items-center mb-1">
-					<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold" id="gb-angle-manual-spoke-label">0</span>&#176;</div>
+					<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold">{{gbManualSpokeStr}}</span>&#176;</div>
 					<div id="gb-btn-angle-autosnap" onclick="widget:gbAngleAutoSnap(); event:StopPropagation()" class="tf-inline-chip" style="margin-left: 4dp;">Auto-Snap</div>
 				</div>
 				<div id="gb-angle-manual-spoke-row" class="mb-1" data-if="!gbAngleSnapAuto">
@@ -1367,7 +1367,7 @@
 				</div>
 				<div id="gb-symmetry-radial-count-row" class="mb-1" data-if="gbSymmetryRadial">
 					<div class="flex flex-row justify-between items-center mb-1">
-						<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="gb-symmetry-radial-count-label">2</span></div>
+						<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
 						<div id="gb-btn-symmetry-count-down" onclick="widget:gbSymCountDown(); event:StopPropagation()" class="tf-sm-btn">
@@ -1381,7 +1381,7 @@
 				</div>
 				<div id="gb-symmetry-mirror-angle-row" class="mb-1" data-if="gbSymHasAxis">
 					<div class="flex flex-row justify-between items-center mb-1">
-						<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="gb-symmetry-mirror-angle-label">0</span>&#176;</div>
+						<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
 						<div id="gb-btn-symmetry-angle-down" onclick="widget:gbSymAngleDown(); event:StopPropagation()" class="tf-sm-btn">
@@ -1445,7 +1445,7 @@
 					</div>
 				</div>
 				<div id="gb-smart-slope-max-row" class="flex flex-row items-center mb-1" data-if="gbAvoidCliffs">
-					<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="gb-smart-slope-max-label">45</span>&#176;</div>
+					<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val">{{gbSlopeMaxStr}}</span>&#176;</div>
 					<div id="slider-gb-slope-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-slope-max-transport" class="tf-transport-group hidden">
 						<div id="slider-gb-slope-max-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1465,7 +1465,7 @@
 				</div>
 
 				<div id="gb-smart-slope-min-row" class="flex flex-row items-center mb-1" data-if="gbPreferSlopes">
-					<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="gb-smart-slope-min-label">10</span>&#176;</div>
+					<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold">{{gbSlopeMinStr}}</span>&#176;</div>
 					<div id="slider-gb-slope-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-slope-min-transport" class="tf-transport-group hidden">
 						<div id="slider-gb-slope-min-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1490,7 +1490,7 @@
 				<!-- Altitude Min -->
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<img id="btn-gb-alt-min-enable" onclick="widget:gbSmartSubToggle('altMinEnable'); event:StopPropagation()" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
-					<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold" id="gb-smart-alt-min-label">0</span></div>
+					<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold">{{gbAltMinStr}}</span></div>
 					<div id="btn-gb-alt-min-sample" onclick="widget:gbAltSample('gbAltMin'); event:StopPropagation()" class="tf-sample-btn">SAMPLE</div>
 					<div id="slider-gb-alt-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-alt-min-transport" class="tf-transport-group hidden">
@@ -1513,7 +1513,7 @@
 				<!-- Altitude Max -->
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<img id="btn-gb-alt-max-enable" onclick="widget:gbSmartSubToggle('altMaxEnable'); event:StopPropagation()" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
-					<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold" id="gb-smart-alt-max-label">200</span></div>
+					<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold">{{gbAltMaxStr}}</span></div>
 					<div id="btn-gb-alt-max-sample" onclick="widget:gbAltSample('gbAltMax'); event:StopPropagation()" class="tf-sample-btn">SAMPLE</div>
 					<div id="slider-gb-alt-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-alt-max-transport" class="tf-transport-group hidden">
@@ -1553,17 +1553,21 @@
 					<div id="gb-tex-exclude-swatch" />
 				</div>
 				<div class="flex flex-row items-center mb-1">
-					<div class="text-lg text-light">TOLERANCE: <span class="text-xl font-bold" id="gb-color-thresh-label">35</span></div>
+					<div class="text-lg text-light">TOLERANCE: <span class="text-xl font-bold">{{gbColorThreshStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="btn-gb-color-thresh-down" onclick="widget:gbColorThreshStep(-5); event:StopPropagation()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
 					<input type="range" id="slider-gb-color-thresh" onchange="widget:gbOnColorThreshChange(element); event:StopPropagation()" class="tf-slider" min="0" max="150" step="1" value="35" />
+					<div id="btn-gb-color-thresh-up" onclick="widget:gbColorThreshStep(5); event:StopPropagation()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
 					<input type="text" id="slider-gb-color-thresh-numbox" class="tf-slider-numbox" value="35" />
 				</div>
 				<div class="flex flex-row items-center mb-1">
-					<div class="text-lg text-light">EDGE PAD: <span class="text-xl font-bold" id="gb-color-pad-label">0</span></div>
+					<div class="text-lg text-light">EDGE PAD: <span class="text-xl font-bold">{{gbColorPadStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="btn-gb-color-pad-down" onclick="widget:gbColorPadStep(-8); event:StopPropagation()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
 					<input type="range" id="slider-gb-color-pad" onchange="widget:gbOnColorPadChange(element); event:StopPropagation()" class="tf-slider" min="0" max="200" step="8" value="0" />
+					<div id="btn-gb-color-pad-up" onclick="widget:gbColorPadStep(8); event:StopPropagation()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
 					<input type="text" id="slider-gb-color-pad-numbox" class="tf-slider-numbox" value="0" />
 				</div>
 				</div><!-- /gb-smart-color-content -->
@@ -1582,7 +1586,7 @@
 			<!-- Density -->
 			<div class="flex flex-row justify-between items-center mb-1">
 				<div class="text-lg text-light font-bold">Density</div>
-				<div id="gb-density-label" class="text-lg text-light">80%</div>
+				<div class="text-lg text-light">{{gbDensityStr}}</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-grass-density-down" onclick="widget:gbDensityDown(); event:StopPropagation()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
@@ -1595,7 +1599,7 @@
 
 			<!-- Size -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val" id="gb-size-label">100</span></div>
+				<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val">{{gbSizeStr}}</span></div>
 				<div id="slider-gb-size-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-gb-size-transport" class="tf-transport-group hidden">
 					<div id="slider-gb-size-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1617,7 +1621,7 @@
 
 			<!-- Length Scale -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">LENGTH: <span class="text-xl font-bold tf-slider-val" id="gb-length-label">1.0</span></div>
+				<div class="text-lg text-light">LENGTH: <span class="text-xl font-bold tf-slider-val">{{gbLengthStr}}</span></div>
 				<div id="slider-gb-length-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-gb-length-transport" class="tf-transport-group hidden">
 					<div id="slider-gb-length-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1639,7 +1643,7 @@
 
 			<!-- Rotation -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold tf-slider-val" id="gb-rotation-label">0&#176;</span></div>
+				<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold tf-slider-val">{{gbRotStr}}</span></div>
 				<div id="slider-gb-rotation-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-gb-rotation-transport" class="tf-transport-group hidden">
 					<div id="slider-gb-rotation-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1661,7 +1665,7 @@
 
 			<!-- Fall-off Curve -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">FALL-OFF: <span class="text-xl font-bold tf-slider-val" id="gb-curve-label">1.0</span></div>
+				<div class="text-lg text-light">FALL-OFF: <span class="text-xl font-bold tf-slider-val">{{gbCurveStr}}</span></div>
 				<div id="slider-gb-curve-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 				<div id="slider-gb-curve-transport" class="tf-transport-group hidden">
 					<div id="slider-gb-curve-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1930,7 +1934,7 @@
 		</div>
 		<div id="grid-snap-size-row" class="tf-instrument-sub mb-1" data-if="tfGridSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold" id="grid-snap-size-label">48</span></div>
+				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-snap-size-down" class="tf-sm-btn">
@@ -1946,7 +1950,7 @@
 		<div id="angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="tfAngleSnap">
 			<!-- Row 1: step preset selector -->
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="angle-snap-step-label">15</span>&#176;</div>
+				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-angle-step-down" class="tf-sm-btn">
@@ -2031,7 +2035,7 @@
 			<!-- Radial count (visible only when radial active) -->
 			<div id="symmetry-radial-count-row" class="mb-1" data-if="tfSymmetryRadial">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="symmetry-radial-count-label">2</span></div>
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="btn-symmetry-count-down" class="tf-sm-btn">
@@ -2046,7 +2050,7 @@
 			<!-- Mirror axis rotation (visible when radial or X/Y mirror active) -->
 			<div id="symmetry-mirror-angle-row" class="mb-1" data-if="tfSymHasAxis">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="symmetry-mirror-angle-label">0</span>&#176;</div>
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="btn-symmetry-angle-down" class="tf-sm-btn">
@@ -2482,7 +2486,7 @@
 			<!-- Radial count -->
 			<div id="fp-symmetry-radial-count-row" class="mb-1" data-if="fpSymmetryRadial">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="fp-symmetry-radial-count-label">2</span></div>
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="fp-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:fpSymCountDown(); event:StopPropagation()">
@@ -2497,7 +2501,7 @@
 			<!-- Mirror axis angle -->
 			<div id="fp-symmetry-mirror-angle-row" class="mb-1" data-if="fpSymHasAxis">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="fp-symmetry-mirror-angle-label">0</span>&#176;</div>
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="fp-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:fpSymAngleDown(); event:StopPropagation()">
@@ -2878,7 +2882,7 @@
 		</div>
 		<div id="wb-grid-snap-size-row" class="tf-instrument-sub mb-1" data-if="wbGridSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold" id="wb-grid-snap-size-label">48</span></div>
+				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="wb-btn-snap-size-down" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(-16); event:StopPropagation()">
@@ -2893,7 +2897,7 @@
 		</div>
 		<div id="wb-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="wbAngleSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="wb-angle-snap-step-label">15</span>&#176;</div>
+				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="wb-btn-angle-step-down" class="tf-sm-btn" onclick="widget:tbAngleStepStep(-1); event:StopPropagation()">
@@ -2938,7 +2942,7 @@
 			</div>
 			<div id="wb-symmetry-radial-count-row" class="mb-1" data-if="wbSymmetryRadial">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="wb-symmetry-radial-count-label">2</span></div>
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="wb-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('wb'); event:StopPropagation()">
@@ -2952,7 +2956,7 @@
 			</div>
 			<div id="wb-symmetry-mirror-angle-row" class="mb-1" data-if="wbSymHasAxis">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="wb-symmetry-mirror-angle-label">0</span>&#176;</div>
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="wb-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('wb'); event:StopPropagation()">
@@ -3037,6 +3041,7 @@
 				<div id="wb-slider-rotation-play" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_play.png" /></div>
 				<div id="wb-slider-rotation-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 			</div>
+			<div id="kbhint-wb-rotation" class="text-sm text-keybind" style="margin-left: auto;">Alt+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div id="btn-wb-rot-ccw" class="tf-sm-btn">
@@ -3230,7 +3235,7 @@
 		</div>
 		<div id="sp-grid-snap-size-row" class="tf-instrument-sub mb-1" data-if="spGridSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold" id="sp-grid-snap-size-label">48</span></div>
+				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="sp-btn-snap-size-down" class="tf-sm-btn" onclick="widget:splatSnapSizeStep(-8); event:StopPropagation()">
@@ -3245,7 +3250,7 @@
 		</div>
 		<div id="sp-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="spAngleSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="sp-angle-snap-step-label">15</span>&#176;</div>
+				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="sp-btn-angle-step-down" class="tf-sm-btn" onclick="widget:splatAngleStepStep(-1); event:StopPropagation()">
@@ -3305,7 +3310,7 @@
 			</div>
 			<div id="sp-symmetry-radial-count-row" class="mb-1" data-if="spSymmetryRadial">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="sp-symmetry-radial-count-label">2</span></div>
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="sp-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:splatSymCountStep(-1); event:StopPropagation()">
@@ -3319,7 +3324,7 @@
 			</div>
 			<div id="sp-symmetry-mirror-angle-row" class="mb-1" data-if="spSymHasAxis">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="sp-symmetry-mirror-angle-label">0</span>&#176;</div>
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="sp-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:splatSymAngleStep(-5); event:StopPropagation()">
@@ -3665,7 +3670,7 @@
 		</div>
 		<div id="dc-grid-snap-size-row" class="tf-instrument-sub mb-1" data-if="dcGridSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold" id="dc-grid-snap-size-label">48</span></div>
+				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="dc-btn-snap-size-down" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(-16); event:StopPropagation()">
@@ -3680,7 +3685,7 @@
 		</div>
 		<div id="dc-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="dcAngleSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="dc-angle-snap-step-label">15</span>&#176;</div>
+				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="dc-btn-angle-step-down" class="tf-sm-btn" onclick="widget:tbAngleStepStep(-1); event:StopPropagation()">
@@ -3725,7 +3730,7 @@
 			</div>
 			<div id="dc-symmetry-radial-count-row" class="mb-1" data-if="dcSymmetryRadial">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="dc-symmetry-radial-count-label">2</span></div>
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="dc-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('dc'); event:StopPropagation()">
@@ -3739,7 +3744,7 @@
 			</div>
 			<div id="dc-symmetry-mirror-angle-row" class="mb-1" data-if="dcSymHasAxis">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="dc-symmetry-mirror-angle-label">0</span>&#176;</div>
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="dc-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('dc'); event:StopPropagation()">
@@ -4124,7 +4129,7 @@
 		</div>
 		<div id="lp-grid-snap-size-row" class="tf-instrument-sub mb-1" data-if="lpGridSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold" id="lp-grid-snap-size-label">48</span></div>
+				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="lp-btn-snap-size-down" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(-16); event:StopPropagation()">
@@ -4139,7 +4144,7 @@
 		</div>
 		<div id="lp-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="lpAngleSnap">
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold" id="lp-angle-snap-step-label">15</span>&#176;</div>
+				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="lp-btn-angle-step-down" class="tf-sm-btn" onclick="widget:tbAngleStepStep(-1); event:StopPropagation()">
@@ -4184,7 +4189,7 @@
 			</div>
 			<div id="lp-symmetry-radial-count-row" class="mb-1" data-if="lpSymmetryRadial">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="lp-symmetry-radial-count-label">2</span></div>
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="lp-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('lp'); event:StopPropagation()">
@@ -4198,7 +4203,7 @@
 			</div>
 			<div id="lp-symmetry-mirror-angle-row" class="mb-1" data-if="lpSymHasAxis">
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="lp-symmetry-mirror-angle-label">0</span>&#176;</div>
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="lp-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('lp'); event:StopPropagation()">

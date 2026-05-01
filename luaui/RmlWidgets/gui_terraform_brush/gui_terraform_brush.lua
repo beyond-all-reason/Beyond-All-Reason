@@ -851,6 +851,10 @@ local initialModel = {
 	gbSymmetryMirrorAny = false,
 	gbSymHasAxis = false,
 	gbAngleSnapAuto = false,
+	gbGridOverlay = false,
+	gbHeightColormap = false,
+	gbSymMirrorX = false,
+	gbSymMirrorY = false,
 	gbMeasureRulerMode = false,
 	gbMeasureStickyMode = false,
 	gbMeasureShowLength = false,
@@ -998,6 +1002,11 @@ local initialModel = {
 	-- Phase 2 step 4: tf shared (ring/restore) label interpolation strings
 	tfRingWidthStr = "40%",
 	tfRestoreStrengthStr = "100%",
+	-- Phase 2 step 4: tb shared instruments label interpolation strings (all tools share one value)
+	tbGridSnapSizeStr = "48",
+	tbAngleSnapStepStr = "15",
+	tbSymCountStr = "2",
+	tbSymAngleStr = "0",
 
 	-- terraform mode instrument sub-rows (data-if visibility flags)
 	tfGridSnap = false,
@@ -2276,8 +2285,7 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	local TB_ANGLE_PRESETS_SYNC = { 7.5, 15, 30, 45, 60, 90 }
 	local snapSize = tonumber(s.gridSnapSize) or 48
 	local snapSizeStr = tostring(snapSize)
-	local lblSnap = getCachedEl(doc, P.."-grid-snap-size-label")
-	if lblSnap then lblSnap.inner_rml = snapSizeStr end
+	if dm and dm.tbGridSnapSizeStr ~= snapSizeStr then dm.tbGridSnapSizeStr = snapSizeStr end
 	local sliSnap = getCachedEl(doc, P.."-slider-grid-snap-size")
 	if sliSnap and uiState.draggingSlider ~= P.."-grid-snap-size" then
 		sliSnap:SetAttribute("value", snapSizeStr)
@@ -2293,8 +2301,7 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	end
 	local stepStr = (curStep == math.floor(curStep))
 		and tostring(math.floor(curStep)) or tostring(curStep)
-	local lblStep = getCachedEl(doc, P.."-angle-snap-step-label")
-	if lblStep then lblStep.inner_rml = stepStr end
+	if dm and dm.tbAngleSnapStepStr ~= stepStr then dm.tbAngleSnapStepStr = stepStr end
 	local sliStep = getCachedEl(doc, P.."-slider-angle-snap-step")
 	if sliStep and uiState.draggingSlider ~= P.."-angle-snap-step" then
 		sliStep:SetAttribute("value", tostring(curIdx - 1))
@@ -2304,15 +2311,13 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 
 	-- Symmetry radial count + mirror angle sync (shared sliders in st/cl/wb/dc/lp sections)
 	local countStr = tostring(math.floor(s.symmetryRadialCount or 2))
-	local countLbl = getCachedEl(doc, P.."-symmetry-radial-count-label")
-	if countLbl then countLbl.inner_rml = countStr end
+	if dm and dm.tbSymCountStr ~= countStr then dm.tbSymCountStr = countStr end
 	local countSli = getCachedEl(doc, P.."-slider-symmetry-radial-count")
 	if countSli and uiState.draggingSlider ~= P.."-symmetry-radial-count" then
 		countSli:SetAttribute("value", countStr)
 	end
 	local angleStr = tostring(math.floor(s.symmetryMirrorAngle or 0))
-	local angleLbl = getCachedEl(doc, P.."-symmetry-mirror-angle-label")
-	if angleLbl then angleLbl.inner_rml = angleStr end
+	if dm and dm.tbSymAngleStr ~= angleStr then dm.tbSymAngleStr = angleStr end
 	local angleSli = getCachedEl(doc, P.."-slider-symmetry-mirror-angle")
 	if angleSli and uiState.draggingSlider ~= P.."-symmetry-mirror-angle" then
 		angleSli:SetAttribute("value", tostring(s.symmetryMirrorAngle or 0))
@@ -2831,8 +2836,7 @@ local function attachDeclarativeHandlers(ctx)
 		local n = math.max(2, (s and s.symmetryRadialCount or 2) - 1)
 		WG.TerraformBrush.setSymmetryRadialCount(n)
 		local nStr = tostring(n)
-		local lbl = getCachedEl(widgetState.document, P.."-symmetry-radial-count-label")
-		if lbl then lbl.inner_rml = nStr end
+		local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= nStr then dm.tbSymCountStr = nStr end
 		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-radial-count")
 		if sl then sl:SetAttribute("value", nStr) end
 		playSound("tick")
@@ -2843,8 +2847,7 @@ local function attachDeclarativeHandlers(ctx)
 		local n = math.min(16, (s and s.symmetryRadialCount or 2) + 1)
 		WG.TerraformBrush.setSymmetryRadialCount(n)
 		local nStr = tostring(n)
-		local lbl = getCachedEl(widgetState.document, P.."-symmetry-radial-count-label")
-		if lbl then lbl.inner_rml = nStr end
+		local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= nStr then dm.tbSymCountStr = nStr end
 		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-radial-count")
 		if sl then sl:SetAttribute("value", nStr) end
 		playSound("tick")
@@ -2853,8 +2856,7 @@ local function attachDeclarativeHandlers(ctx)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		local v = math.max(2, math.min(16, math.floor(tonumber(element:GetAttribute("value")) or 2)))
 		WG.TerraformBrush.setSymmetryRadialCount(v)
-		local lbl = getCachedEl(widgetState.document, P.."-symmetry-radial-count-label")
-		if lbl then lbl.inner_rml = tostring(v) end
+		local vStr = tostring(v); local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= vStr then dm.tbSymCountStr = vStr end
 	end
 	w.tbSymAngleDown = function(self, P)
 		if not WG.TerraformBrush then return end
@@ -2862,8 +2864,7 @@ local function attachDeclarativeHandlers(ctx)
 		local a = ((s and s.symmetryMirrorAngle or 0) - 5) % 360
 		WG.TerraformBrush.setSymmetryMirrorAngle(a)
 		local aStr = tostring(math.floor(a))
-		local lbl = getCachedEl(widgetState.document, P.."-symmetry-mirror-angle-label")
-		if lbl then lbl.inner_rml = aStr end
+		local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= aStr then dm.tbSymAngleStr = aStr end
 		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-mirror-angle")
 		if sl then sl:SetAttribute("value", tostring(a)) end
 		playSound("tick")
@@ -2874,8 +2875,7 @@ local function attachDeclarativeHandlers(ctx)
 		local a = ((s and s.symmetryMirrorAngle or 0) + 5) % 360
 		WG.TerraformBrush.setSymmetryMirrorAngle(a)
 		local aStr = tostring(math.floor(a))
-		local lbl = getCachedEl(widgetState.document, P.."-symmetry-mirror-angle-label")
-		if lbl then lbl.inner_rml = aStr end
+		local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= aStr then dm.tbSymAngleStr = aStr end
 		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-mirror-angle")
 		if sl then sl:SetAttribute("value", tostring(a)) end
 		playSound("tick")
@@ -2884,8 +2884,7 @@ local function attachDeclarativeHandlers(ctx)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		local v = tonumber(element:GetAttribute("value")) or 0
 		WG.TerraformBrush.setSymmetryMirrorAngle(v)
-		local lbl = getCachedEl(widgetState.document, P.."-symmetry-mirror-angle-label")
-		if lbl then lbl.inner_rml = tostring(math.floor(v)) end
+		local vStr = tostring(math.floor(v)); local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= vStr then dm.tbSymAngleStr = vStr end
 	end
 end
 
@@ -3549,8 +3548,7 @@ local function attachEventListeners()
 				if not uiState.updatingFromCode and WG.TerraformBrush then
 					local val = tonumber(radialCountSlider:GetAttribute("value")) or 2
 					WG.TerraformBrush.setSymmetryRadialCount(val)
-					local lbl = getCachedEl(doc, "symmetry-radial-count-label")
-					if lbl then lbl.inner_rml = tostring(val) end
+					local vs = tostring(val); if widgetState.dmHandle and widgetState.dmHandle.tbSymCountStr ~= vs then widgetState.dmHandle.tbSymCountStr = vs end
 				end
 				event:StopPropagation()
 			end, false)
@@ -3564,8 +3562,7 @@ local function attachEventListeners()
 					local cur = (state and state.symmetryRadialCount) or 2
 					local newVal = math.max(2, cur - 1)
 					WG.TerraformBrush.setSymmetryRadialCount(newVal)
-					local lbl = getCachedEl(doc, "symmetry-radial-count-label")
-					if lbl then lbl.inner_rml = tostring(newVal) end
+					local vs = tostring(newVal); if widgetState.dmHandle and widgetState.dmHandle.tbSymCountStr ~= vs then widgetState.dmHandle.tbSymCountStr = vs end
 					local sl = getCachedEl(doc, "slider-symmetry-radial-count")
 					if sl then sl:SetAttribute("value", tostring(newVal)) end
 				end
@@ -3580,8 +3577,7 @@ local function attachEventListeners()
 					local cur = (state and state.symmetryRadialCount) or 2
 					local newVal = math.min(16, cur + 1)
 					WG.TerraformBrush.setSymmetryRadialCount(newVal)
-					local lbl = getCachedEl(doc, "symmetry-radial-count-label")
-					if lbl then lbl.inner_rml = tostring(newVal) end
+					local vs = tostring(newVal); if widgetState.dmHandle and widgetState.dmHandle.tbSymCountStr ~= vs then widgetState.dmHandle.tbSymCountStr = vs end
 					local sl = getCachedEl(doc, "slider-symmetry-radial-count")
 					if sl then sl:SetAttribute("value", tostring(newVal)) end
 				end
@@ -5489,9 +5485,9 @@ function widget:Update()
 			if sliderSnapSizeSync then
 				sliderSnapSizeSync:SetAttribute("value", tostring(state.gridSnapSize or 48))
 			end
-			local snapSizeLabel = getCachedEl(doc, "grid-snap-size-label")
-			if snapSizeLabel then
-				snapSizeLabel.inner_rml = tostring(state.gridSnapSize or 48)
+			if widgetState.dmHandle then
+				local v = tostring(state.gridSnapSize or 48)
+				if widgetState.dmHandle.tbGridSnapSizeStr ~= v then widgetState.dmHandle.tbGridSnapSizeStr = v end
 			end
 			local snapSizeNb = getCachedEl(doc, "slider-grid-snap-size-numbox")
 			if snapSizeNb then
@@ -5524,9 +5520,8 @@ function widget:Update()
 			if sliderAngleStepSync then
 				sliderAngleStepSync:SetAttribute("value", tostring(curIdx - 1))
 			end
-			local angleStepLbl = getCachedEl(doc, "angle-snap-step-label")
-			if angleStepLbl then
-				angleStepLbl.inner_rml = curStr
+			if widgetState.dmHandle then
+				if widgetState.dmHandle.tbAngleSnapStepStr ~= curStr then widgetState.dmHandle.tbAngleSnapStepStr = curStr end
 			end
 			local angleStepNb = getCachedEl(doc, "slider-angle-snap-step-numbox")
 			if angleStepNb then
@@ -5630,12 +5625,10 @@ function widget:Update()
 					distortBtn:SetClass("active", state.measureDistortMode == true)
 					-- visibility driven by dm.tfMeasureActive
 				end
-				local symCountLabel = getCachedEl(doc, "symmetry-radial-count-label")
-				if symCountLabel then symCountLabel.inner_rml = tostring(state.symmetryRadialCount or 2) end
+				if widgetState.dmHandle then local v = tostring(state.symmetryRadialCount or 2); if widgetState.dmHandle.tbSymCountStr ~= v then widgetState.dmHandle.tbSymCountStr = v end end
 				local symCountSlider = getCachedEl(doc, "slider-symmetry-radial-count")
 				if symCountSlider then symCountSlider:SetAttribute("value", tostring(state.symmetryRadialCount or 2)) end
-				local mirrorAngleLabel = getCachedEl(doc, "symmetry-mirror-angle-label")
-				if mirrorAngleLabel then mirrorAngleLabel.inner_rml = tostring(math.floor(state.symmetryMirrorAngle or 0)) end
+				if widgetState.dmHandle then local v = tostring(math.floor(state.symmetryMirrorAngle or 0)); if widgetState.dmHandle.tbSymAngleStr ~= v then widgetState.dmHandle.tbSymAngleStr = v end end
 				local mirrorAngleSlider = getCachedEl(doc, "slider-symmetry-mirror-angle")
 				if mirrorAngleSlider then mirrorAngleSlider:SetAttribute("value", tostring(state.symmetryMirrorAngle or 0)) end
 				local hasAxial = state.symmetryMirrorX or state.symmetryMirrorY
