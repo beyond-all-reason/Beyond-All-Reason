@@ -2598,8 +2598,7 @@ local function attachDeclarativeHandlers(ctx)
 		local doc = widgetState.document
 		local sl  = doc and getCachedEl(doc, "slider-ring-width")
 		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
-		local lbl = doc and getCachedEl(doc, "ring-width-label")
-		if lbl then lbl.inner_rml = tostring(ringWidthPct) .. "%" end
+		if widgetState.dmHandle then widgetState.dmHandle.tfRingWidthStr = tostring(ringWidthPct) .. "%" end
 		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
 	end
 	w.tfRingWidthDown = function(self)
@@ -2607,8 +2606,7 @@ local function attachDeclarativeHandlers(ctx)
 		local doc = widgetState.document
 		local sl  = doc and getCachedEl(doc, "slider-ring-width")
 		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
-		local lbl = doc and getCachedEl(doc, "ring-width-label")
-		if lbl then lbl.inner_rml = tostring(ringWidthPct) .. "%" end
+		if widgetState.dmHandle then widgetState.dmHandle.tfRingWidthStr = tostring(ringWidthPct) .. "%" end
 		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
 	end
 
@@ -3008,16 +3006,13 @@ local function attachEventListeners()
 	end
 
 	local sliderRestoreStrength = getCachedEl(doc, "slider-restore-strength")
-	local restoreStrengthLabel = getCachedEl(doc, "restore-strength-label")
 	if sliderRestoreStrength then
 		trackSliderDrag(sliderRestoreStrength, "restoreStrength")
 		sliderRestoreStrength:AddEventListener("change", function(event)
 			if not uiState.updatingFromCode and WG.TerraformBrush then
 				local val = tonumber(sliderRestoreStrength:GetAttribute("value")) or 100
 				WG.TerraformBrush.setRestoreStrength(val / 100)
-				if restoreStrengthLabel then
-					restoreStrengthLabel.inner_rml = tostring(val) .. "%"
-				end
+				if widgetState.dmHandle then widgetState.dmHandle.tfRestoreStrengthStr = tostring(val) .. "%" end
 			end
 			event:StopPropagation()
 		end, false)
@@ -3054,8 +3049,7 @@ local function attachEventListeners()
 			if not uiState.updatingFromCode and WG.TerraformBrush then
 				local val = tonumber(sliderRingWidth:GetAttribute("value")) or 40
 				ringWidthPct = val
-				local lbl = getCachedEl(doc, "ring-width-label")
-				if lbl then lbl.inner_rml = tostring(val) .. "%" end
+				if widgetState.dmHandle then widgetState.dmHandle.tfRingWidthStr = tostring(val) .. "%" end
 				WG.TerraformBrush.setRingInnerRatio(1 - val / 100)
 			end
 			event:StopPropagation()
@@ -5438,10 +5432,7 @@ function widget:Update()
 				ringWidthPct = math.floor((1 - state.ringInnerRatio) * 100 + 0.5)
 			end
 			syncAndFlash(getCachedEl(doc, "slider-ring-width"), "ring-width", tostring(ringWidthPct))
-			local ringWidthLabelEl = getCachedEl(doc, "ring-width-label")
-			if ringWidthLabelEl then
-				ringWidthLabelEl.inner_rml = tostring(ringWidthPct) .. "%"
-			end
+			if widgetState.dmHandle then widgetState.dmHandle.tfRingWidthStr = tostring(ringWidthPct) .. "%" end
 
 			if widgetState.dmHandle then widgetState.dmHandle.tfInRestore = (state.mode == "restore") end
 			local restoreStrengthRow = getCachedEl(doc, "restore-strength-row")
@@ -5452,10 +5443,7 @@ function widget:Update()
 			if sliderRestoreStrength and ds ~= "restoreStrength" then
 				sliderRestoreStrength:SetAttribute("value", tostring(math.floor((state.restoreStrength or 1.0) * 100 + 0.5)))
 			end
-			local restoreStrengthLabel = getCachedEl(doc, "restore-strength-label")
-			if restoreStrengthLabel then
-				restoreStrengthLabel.inner_rml = tostring(math.floor((state.restoreStrength or 1.0) * 100 + 0.5)) .. "%"
-			end
+			if widgetState.dmHandle then widgetState.dmHandle.tfRestoreStrengthStr = tostring(math.floor((state.restoreStrength or 1.0) * 100 + 0.5)) .. "%" end
 
 			local sliderCapMax = getCachedEl(doc, "slider-cap-max")
 			if sliderCapMax and ds ~= "capmax" then
