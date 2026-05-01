@@ -33,6 +33,10 @@ local ENEMY_SCAN_RADIUS = 1500
 local dangerCount = 0
 local gaiaTeamID = spGetGaiaTeamID()
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_DGUN)
+end
+
 local function GetAllyTeamID(teamID)
 	local _, _, _, _, _, allyTeamID = spGetTeamInfo(teamID)
 	return allyTeamID
@@ -95,7 +99,7 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, sx, sy, sz, ex, ey, ez)
 				local d = DistPointToSegment(ux, uy, uz, sx, sy, sz, ex, ey, ez)
 				if d < DGUN_WIDTH then
 					dangerCount = dangerCount + 1
-					spEcho("DANGER " .. dangerCount)
+					spEcho("WARNING: an attempt to d-gun allies was recorded. Griefing your team is a violation of the Code of Conduct." .. dangerCount)
 					return true
 				end
 			end
@@ -120,7 +124,6 @@ local function HasKnownEnemyNearby(teamID, ux, uy, uz)
 				local unitDef = unitDefID and UnitDefs[unitDefID]
 				local unitName = unitDef and (unitDef.translatedHumanName or unitDef.name) or "unknown"
 				local dist = (ex and math.sqrt((ex - ux) * (ex - ux) + (ey - uy) * (ey - uy) + (ez - uz) * (ez - uz))) or ENEMY_SCAN_RADIUS
-				spEcho(string.format("Enemy nearby: %s (unitID=%d, teamID=%d, dist=%.0f)", unitName, unitID, unitTeam, dist))
 				return true
 			end
 		end
@@ -129,23 +132,23 @@ local function HasKnownEnemyNearby(teamID, ux, uy, uz)
 	return false
 end
 
-function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID ~= CMD_DGUN then
-		return
+		return true
 	end
 
 	local uDef = UnitDefs[unitDefID]
 	if not (uDef and uDef.customParams and uDef.customParams.iscommander) then
-		return
+		return true
 	end
 
 	local ux, uy, uz = spGetUnitPosition(unitID)
 	if not ux then
-		return
+		return true
 	end
 
 	if HasKnownEnemyNearby(teamID, ux, uy, uz) then
-		return
+		return true
 	end
 
 	local tx, ty, tz
@@ -156,9 +159,9 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
 	end
 
 	if not tx then
-		return
+		return true
 	end
 
 	local sx, sy, sz, ex, ey, ez = BuildDGunSegment(ux, uy, uz, tx, ty, tz)
-	HandleDGunAllyRisk(teamID, unitID, sx, sy, sz, ex, ey, ez)
+	return not HandleDGunAllyRisk(teamID, unitID, sx, sy, sz, ex, ey, ez)
 end
