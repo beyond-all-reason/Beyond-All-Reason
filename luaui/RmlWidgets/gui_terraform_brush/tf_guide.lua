@@ -6,7 +6,6 @@ function M.attach(doc, ctx)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local playSound = ctx.playSound
-	local setActiveClass = ctx.setActiveClass
 	local trackSliderDrag = ctx.trackSliderDrag
 	local clearPassthrough = ctx.clearPassthrough
 	local ROTATION_STEP = ctx.ROTATION_STEP
@@ -35,7 +34,8 @@ function M.attach(doc, ctx)
 		-- onclick="widget:guideToggle()"
 		w.guideToggle = function(self, element)
 			widgetState.guideMode = not widgetState.guideMode
-			if element then element:SetClass("active", widgetState.guideMode) end
+			-- active class driven by data-class-active="guideMode" in RML
+			if widgetState.dmHandle then widgetState.dmHandle.guideMode = widgetState.guideMode end
 			if not widgetState.guideMode then
 				widgetState.currentHint = nil
 				widgetState.lastRenderedHint = nil
@@ -108,7 +108,7 @@ function M.attach(doc, ctx)
 						widgetState.cloneActive = false
 						widgetState.passthroughSaved = saved
 						widgetState.passthroughMode = true
-						ptBtn:SetClass("active", true)
+					-- active class driven by data-class-active="passthroughActive" in RML
 						if widgetState.dmHandle then widgetState.dmHandle.passthroughActive = true end
 						if widgetState.rootElement then
 							widgetState.rootElement:SetClass("passthrough-dimmed", true)
@@ -117,7 +117,7 @@ function M.attach(doc, ctx)
 					else
 						-- Exit passthrough: restore saved tool
 						widgetState.passthroughMode = false
-						ptBtn:SetClass("active", false)
+					-- active class driven by data-class-active="passthroughActive" in RML
 						if widgetState.dmHandle then widgetState.dmHandle.passthroughActive = false end
 						if widgetState.rootElement then
 							widgetState.rootElement:SetClass("passthrough-dimmed", false)
@@ -164,9 +164,7 @@ function M.attach(doc, ctx)
 			local function toggleSettings()
 				widgetState.settingsOpen = not widgetState.settingsOpen
 				if widgetState.dmHandle then widgetState.dmHandle.settingsOpen = widgetState.settingsOpen end
-				if settingsBtn then
-					settingsBtn:SetClass("active", widgetState.settingsOpen)
-				end
+				-- active class driven by data-class-active="settingsOpen" in RML
 				if widgetState.settingsOpen then
 					-- Snapshot current keybinds for editing
 					if WG.TerraformBrush and WG.TerraformBrush.getKeybinds then
@@ -189,7 +187,7 @@ function M.attach(doc, ctx)
 				widgetState.settingsCaptureField = nil
 				widgetState.settingsCaptureEl = nil
 				if widgetState.dmHandle then widgetState.dmHandle.settingsOpen = false end
-				if settingsBtn then settingsBtn:SetClass("active", false) end
+				-- active class driven by data-class-active="settingsOpen" in RML
 			end
 
 			w.guideKbSave = function(self)
@@ -226,7 +224,7 @@ function M.attach(doc, ctx)
 				widgetState.settingsCaptureEl = nil
 				widgetState.settingsPendingBinds = nil
 				if widgetState.dmHandle then widgetState.dmHandle.settingsOpen = false end
-				if settingsBtn then settingsBtn:SetClass("active", false) end
+				-- active class driven by data-class-active="settingsOpen" in RML
 			end
 		end
 
@@ -242,10 +240,7 @@ function M.attach(doc, ctx)
 			local tabGeneral     = doc:GetElementById("settings-tab-general")
 
 			local function switchSettingsTab(tab)
-				if tabKeybindsBtn then tabKeybindsBtn:SetClass("active", tab == "keybinds") end
-				if tabDJBtn       then tabDJBtn:SetClass("active", tab == "dj") end
-				if tabStrokeBtn   then tabStrokeBtn:SetClass("active", tab == "stroke") end
-				if tabGeneralBtn  then tabGeneralBtn:SetClass("active", tab == "general") end
+				-- active class driven by data-class-active="settingsTab == 'X'" in RML
 				if widgetState.dmHandle then widgetState.dmHandle.settingsTab = tab end
 			end
 

@@ -626,19 +626,13 @@ function M.attach(doc, ctx)
 	w.llTabBuiltin = function(self)
 		playSound("click")
 		widgetState.lightLibraryTab = "builtin"
-		local tabB = doc:GetElementById("btn-ll-tab-builtin")
-		local tabU = doc:GetElementById("btn-ll-tab-user")
-		if tabB then tabB:SetClass("active", true) end
-		if tabU then tabU:SetClass("active", false) end
+		-- active class driven by data-class-active="lpLibraryTab == 'builtin'" in RML
 		if widgetState.dmHandle then widgetState.dmHandle.lpLibraryTab = "builtin" end
 	end
 	w.llTabUser = function(self)
 		playSound("click")
 		widgetState.lightLibraryTab = "user"
-		local tabB = doc:GetElementById("btn-ll-tab-builtin")
-		local tabU = doc:GetElementById("btn-ll-tab-user")
-		if tabB then tabB:SetClass("active", false) end
-		if tabU then tabU:SetClass("active", true) end
+		-- active class driven by data-class-active="lpLibraryTab == 'user'" in RML
 		if widgetState.dmHandle then widgetState.dmHandle.lpLibraryTab = "user" end
 		populateUserPresets()
 	end
@@ -704,22 +698,12 @@ function M.sync(doc, ctx, lpState, setSummary)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local WG = ctx.WG
-	local setActiveClass = ctx.setActiveClass
 	local syncAndFlash = ctx.syncAndFlash
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
-		-- ===== Light Placer mode: highlight button, clear others, sync controls =====
-		local lightsBtnU = doc and doc:GetElementById("btn-lights")
-		if lightsBtnU then lightsBtnU:SetClass("active", true) end
+		-- btn-lights active state driven by data-class-active="activeTool == 'lp'" in RML.
 
-		-- Update light type buttons
-		for lt, el in pairs(widgetState.lightTypeButtons) do
-			el:SetClass("active", lt == lpState.lightType)
-		end
-		-- Update placement mode buttons
-		for mode, el in pairs(widgetState.lightModeButtons) do
-			el:SetClass("active", mode == lpState.mode)
-		end
+		-- Light type/mode/dist buttons driven by dm.lpLightType/lpMode/lpDistMode (data-class-active).
 		-- Sync shape button active state to LightPlacer's shape
 		if widgetState.dmHandle then widgetState.dmHandle.activeShape = lpState.shape or "circle" end
 		-- Show/hide direction/theta/beam/scatter sections via dm flags (data-if in RML)
@@ -727,6 +711,8 @@ function M.sync(doc, ctx, lpState, setSummary)
 		if dm then
 			dm.lpLightType = lpState.lightType or "point"
 			dm.lpMode = lpState.mode or "place"
+			local dist = lpState.distribution or "random"
+			if dm.lpDistMode ~= dist then dm.lpDistMode = dist end
 			local tbs = WG.TerraformBrush and WG.TerraformBrush.getState and WG.TerraformBrush.getState() or {}
 			dm.lpSymmetryRadial = tbs.symmetryRadial and true or false
 			dm.lpSymmetryMirrorAny = (tbs.symmetryMirrorX or tbs.symmetryMirrorY) and true or false
@@ -746,10 +732,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 		if distToggleHdr then distToggleHdr:SetClass("lp-unavailable", directedLight) end
 		local distLtSection = doc and doc:GetElementById("section-lt-dist")
 		if distLtSection then distLtSection:SetClass("lp-unavailable", directedLight) end
-		-- Update distribution buttons
-		for dist, el in pairs(widgetState.lightDistButtons) do
-			el:SetClass("active", dist == lpState.distribution)
-		end
+		-- Update distribution buttons (data-class-active="lpDistMode == 'X'" drives active class)
 		-- Update labels
 		local brightnessLabel = doc and doc:GetElementById("lp-brightness-label")
 		if brightnessLabel then brightnessLabel.inner_rml = string.format("%.1f", lpState.brightness) end

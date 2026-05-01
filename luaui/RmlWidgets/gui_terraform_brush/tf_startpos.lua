@@ -183,10 +183,7 @@ function M.sync(doc, ctx, stpState, setSummary)
 	local syncAndFlash = ctx.syncAndFlash
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
-		-- ===== Start Positions mode: highlight button, sync controls =====
-		local stpBtnU = doc and doc:GetElementById("btn-startpos")
-		if stpBtnU then stpBtnU:SetClass("active", true) end
-
+		-- btn-startpos active state driven by data-class-active="activeTool == 'stp'" in RML.
 
 		-- Sub-mode and shape buttons driven by dm fields via data-class-active
 		-- (stpSubMode is set below at widgetState.dmHandle.stpSubMode)
@@ -224,23 +221,15 @@ function M.sync(doc, ctx, stpState, setSummary)
 		-- is driven by data-if="stpSubMode == ..." against widgetState.dmHandle.stpSubMode
 		-- (synced above). No imperative SetClass needed here.
 
-		-- Update labels via dm interpolation (Phase 2 step 4).
-		-- Change-guard each write — re-writing the same string every frame still
-		-- triggers RmlUi reflow and can make sliders feel choppy.
+		-- Update labels via dm interpolation (Phase 2 step 4)
 		local dm = widgetState.dmHandle
 		if dm then
-			local allyStr = tostring(stpState.numAllyTeams)
-			if dm.stpAllyTeamsStr ~= allyStr then dm.stpAllyTeamsStr = allyStr end
-			local countStr = tostring(stpState.shapeCount)
-			if dm.stpCountStr ~= countStr then dm.stpCountStr = countStr end
-			local sizeStr = tostring(math.floor(stpState.shapeRadius))
-			if dm.stpSizeStr ~= sizeStr then dm.stpSizeStr = sizeStr end
-			local rotStr = tostring(math.floor(stpState.shapeRotation)) .. "\194\176"
-			if dm.stpRotationStr ~= rotStr then dm.stpRotationStr = rotStr end
-			local tpaStr = tostring(stpState.numTeamsPerAlly or 1)
-			if dm.stpTeamsPerAllyStr ~= tpaStr then dm.stpTeamsPerAllyStr = tpaStr end
-			local pmStr = (stpState.placementMode or "roundrobin"):upper():gsub("ROUNDROBIN", "ROUND-ROBIN")
-			if dm.stpPlacementModeStr ~= pmStr then dm.stpPlacementModeStr = pmStr end
+			dm.stpAllyTeamsStr = tostring(stpState.numAllyTeams)
+			dm.stpCountStr = tostring(stpState.shapeCount)
+			dm.stpSizeStr = tostring(math.floor(stpState.shapeRadius))
+			dm.stpRotationStr = tostring(math.floor(stpState.shapeRotation)) .. "\194\176"
+			dm.stpTeamsPerAllyStr = tostring(stpState.numTeamsPerAlly or 1)
+			dm.stpPlacementModeStr = (stpState.placementMode or "roundrobin"):upper():gsub("ROUNDROBIN", "ROUND-ROBIN")
 		end
 
 		-- Sync sliders
@@ -250,12 +239,6 @@ function M.sync(doc, ctx, stpState, setSummary)
 		if tpaSlider then tpaSlider:SetAttribute("value", tostring(stpState.numTeamsPerAlly or 1)) end
 		local tpaNumbox = doc and doc:GetElementById("slider-sp-teams-per-ally-numbox")
 		if tpaNumbox then tpaNumbox:SetAttribute("value", tostring(stpState.numTeamsPerAlly or 1)) end
-		local countSlider = doc and doc:GetElementById("slider-sp-count")
-		if countSlider then countSlider:SetAttribute("value", tostring(stpState.shapeCount)) end
-		local sizeSlider = doc and doc:GetElementById("slider-sp-size")
-		if sizeSlider then sizeSlider:SetAttribute("value", tostring(math.floor(stpState.shapeRadius))) end
-		local rotSlider = doc and doc:GetElementById("slider-sp-rotation")
-		if rotSlider then rotSlider:SetAttribute("value", tostring(math.floor(stpState.shapeRotation))) end
 		local countSlider = doc and doc:GetElementById("slider-sp-count")
 		if countSlider then countSlider:SetAttribute("value", tostring(stpState.shapeCount)) end
 		local sizeSlider = doc and doc:GetElementById("slider-sp-size")

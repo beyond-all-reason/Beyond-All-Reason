@@ -39,8 +39,8 @@ function M.attach(doc, ctx)
 	-- Distribution
 	w.dcSetDist = function(self, dist)
 		playSound("shapeSwitch")
-		if WG.DecalPainter then WG.DecalPainter.setDistribution(dist) end
-		if widgetState.dmHandle then widgetState.dmHandle.dcDistMode = dist end
+		if WG.DecalPlacer then WG.DecalPlacer.setDistribution(dist) end
+		if widgetState.dmHandle then widgetState.dmHandle.dcDistribution = dist end
 	end
 
 	-- Heatmap
@@ -200,9 +200,7 @@ function M.sync(doc, ctx, setSummary)
 	local syncAndFlash = ctx.syncAndFlash
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
-		-- ===== Decals mode: highlight decals button =====
-		local decalsBtnA = doc and doc:GetElementById("btn-decals")
-		if decalsBtnA then decalsBtnA:SetClass("active", true) end
+		-- btn-decals active state driven by data-class-active="activeTool == 'dc'" in RML.
 
 		local dpState = WG.DecalPlacer and WG.DecalPlacer.getState()
 		if dpState then
@@ -256,11 +254,14 @@ function M.sync(doc, ctx, setSummary)
 			setNum("dc-slider-sizemin-numbox",  sizeMinV)
 			setNum("dc-slider-sizemax-numbox",  sizeMaxV)
 			setNum("dc-slider-alpha-numbox",    alphaV)
-			-- Mode row active highlight
-			local modes = { scatter = "btn-dc-library-scatter", point = "btn-dc-library-point", remove = "btn-dc-library-remove" }
-			for m, id in pairs(modes) do
-				local b = doc and doc:GetElementById(id)
-				if b then b:SetClass("active", dpState.mode == m) end
+			-- Mode row active highlight (data-class-active="dcLibMode == 'X'" in RML)
+			-- and distribution row (data-class-active="dcDistribution == 'X'")
+			local dm = widgetState.dmHandle
+			if dm then
+				local m = dpState.mode or ""
+				if dm.dcLibMode ~= m then dm.dcLibMode = m end
+				local d = dpState.distribution or "random"
+				if dm.dcDistribution ~= d then dm.dcDistribution = d end
 			end
 			-- Align toggle icon
 			local alignBtn = doc and doc:GetElementById("btn-dc-align-toggle")
