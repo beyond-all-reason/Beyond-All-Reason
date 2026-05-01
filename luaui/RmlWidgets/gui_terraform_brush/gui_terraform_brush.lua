@@ -260,14 +260,6 @@ local widgetState = {
 	lightLibrarySelectedPreset = nil,
 	-- Start Positions tool section elements
 	startposActive = false,
-	stpSubmodesEl = nil,
-	stpControlsEl = nil,
-	stpSubModeButtons = {},
-	stpShapeButtons = {},
-	stpShapeOptionsEl = nil,
-	stpShapeRowEl = nil,
-	stpExpressHintEl = nil,
-	stpStartboxHintEl = nil,
 	envFadeEnabled = true,   -- whether skybox transitions use fade effect
 	skyboxLibraryRootEl = nil, -- floating skybox library window element
 	-- Environment sub-window elements and open state
@@ -6205,14 +6197,6 @@ function widget:Shutdown()
 	widgetState.lightControlsEl = nil
 	widgetState.lightActive = false
 	widgetState.startposActive = false
-	widgetState.stpSubmodesEl = nil
-	widgetState.stpControlsEl = nil
-	widgetState.stpSubModeButtons = {}
-	widgetState.stpShapeButtons = {}
-	widgetState.stpShapeOptionsEl = nil
-	widgetState.stpShapeRowEl = nil
-	widgetState.stpExpressHintEl = nil
-	widgetState.stpStartboxHintEl = nil
 	if WG.StartPosTool then WG.StartPosTool.deactivate() end
 	widgetState.cloneActive = false
 	widgetState.cloneControlsEl = nil
