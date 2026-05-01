@@ -151,6 +151,7 @@ local uiSoundVolumes = {
 local soundCooldowns = {}
 local SOUND_COOLDOWN = 0.04  -- seconds between repeated sounds of the same type
 -- soundMuted lives on widgetState (shared with tf_guide module)
+local widgetState  -- forward declaration so playSound can capture it as upvalue
 
 local function playSound(name)
 	if widgetState and widgetState.soundMuted then return end
@@ -198,7 +199,7 @@ local windowDragState = {
 local windowDragAllWindows = {}
 -- floatingTipEl, currentHint, lastRenderedHint live on widgetState (shared with tf_guide)
 
-local widgetState = {
+widgetState = {  -- forward-declared above playSound so mute check works
 	rmlContext = nil,
 	document = nil,
 	dmHandle = nil,
@@ -875,6 +876,7 @@ local initialModel = {
 	stpShapeMode = "circle",   -- startpos shape selection
 	lpDistMode = "random",     -- light placer distribution
 	guideMode = false,         -- guide/help overlay
+	soundMuted = false,        -- sound muted (data-class-muted on btn-sound)
 	-- TB mirror controls: data-class-active for syncTBMirrorControls prefixes
 	-- lp (light placer) - lpSymmetryRadial already declared above
 	lpGridOverlay = false,    lpHeightColormap = false,
