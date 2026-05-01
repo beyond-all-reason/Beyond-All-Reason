@@ -247,13 +247,12 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 	passengerData.unloading = true
 	CargoHandler.BeginUnloading(cargo)
 	SpUnitDetach(passengerData.id)
-	local radius, height = Spring.GetUnitRadius(passengerData.id), Spring.GetUnitHeight(passengerData.id)
-	Spring.SetUnitRadiusAndHeight(passengerData.id, 5000, height) -- reset radius/height in case we were transporting a building with custom values
 
 	if doAnim ~= false then
 		Spring.SetUnitRulesParam(passengerData.id, "inTransportAnim", 1)
-
 		local slotPosX, slotPosY, slotPosZ = SpGetUnitPiecePosDir(transporterID, passengerData.slotID)
+		local radius, height = Spring.GetUnitRadius(passengerData.id), Spring.GetUnitHeight(passengerData.id)
+		Spring.SetUnitRadiusAndHeight(passengerData.id, slotPosY - Spring.GetGroundHeight(slotPosX, slotPosZ) + 20, height) -- reset radius/height in case we were transporting a building with custom values
 		local transporterPosX, _, transporterPosZ, startTransporterRotX, startTransporterRotY, startTransporterRotZ = getTransporterState(transporterID)
 		goalPosX, goalPosZ = goalPosX + (slotPosX - transporterPosX), goalPosZ + (slotPosZ - transporterPosZ)
 		goalPosY = SpGetGroundHeight(goalPosX, goalPosZ)	
@@ -311,13 +310,13 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 			if isDead(passengerData.id) then aborted = true ; break end
 		end
 		passengerData.cachedPosX = nil ; passengerData.cachedPosY = nil ; passengerData.cachedPosZ = nil -- invalidate cache
+		Spring.SetUnitRadiusAndHeight(passengerData.id, radius, height) -- reset radius/height in case we were transporting a building with custom values
 
 		if not aborted then -- unload anim completed, ensure unit is at final position/rotation
 			SpMoveCtrl.SetPosition(passengerData.id, goalPosX, goalPosY, goalPosZ)
 			SpMoveCtrl.SetRotation(passengerData.id, goalRotX, goalRotY, goalRotZ)
 			SpMoveCtrl.Disable(passengerData.id)
 			Spring.SetUnitPosition(passengerData.id, goalPosX, goalPosY, goalPosZ) -- for transportable buildings, this is recquired after releasing movectrl
-			Spring.SetUnitRadiusAndHeight(passengerData.id, radius, height) -- reset radius/height in case we were transporting a building with custom values
 		end
 	end
 
