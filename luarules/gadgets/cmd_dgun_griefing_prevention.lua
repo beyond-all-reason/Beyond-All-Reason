@@ -18,7 +18,6 @@ end
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitsInBox = Spring.GetUnitsInBox
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetTeamInfo = Spring.GetTeamInfo
@@ -30,11 +29,14 @@ local spEcho = Spring.Echo
 local CMD_DGUN = CMD.DGUN
 local DGUN_RANGE = 280
 local DGUN_WIDTH = 60
+-- 1500 is a bit more than the range of a Vanguard
+-- In my opinion, there is never a reason to even fire a DGun if there are no enemies within VANGUARD distance
+-- We can tweak this smaller as needed
 local ENEMY_SCAN_RADIUS = 1500
-local dangerCount = 0
 local gaiaTeamID = spGetGaiaTeamID()
 
 function gadget:Initialize()
+	-- Hook DGun commands into allow/disallow interface
 	gadgetHandler:RegisterAllowCommand(CMD_DGUN)
 end
 
@@ -43,6 +45,7 @@ local function GetAllyTeamID(teamID)
 	return allyTeamID
 end
 
+-- Convert a DGun target into a line segment representing the beam path
 local function BuildDGunSegment(ux, uy, uz, tx, ty, tz)
 	local dx, dy, dz = tx - ux, ty - uy, tz - uz
 	local dist = math.sqrt(dx * dx + dy * dy + dz * dz)
@@ -58,6 +61,7 @@ local function BuildDGunSegment(ux, uy, uz, tx, ty, tz)
 	return tx - nx * DGUN_RANGE, ty - ny * DGUN_RANGE, tz - nz * DGUN_RANGE, tx, ty, tz
 end
 
+-- Measure the shortest distance from a unit position to the DGun beam segment
 local function DistPointToSegment(px, py, pz, ax, ay, az, bx, by, bz)
 	local vx, vy, vz = bx - ax, by - ay, bz - az
 	local wx, wy, wz = px - ax, py - ay, pz - az
@@ -81,6 +85,7 @@ local function DistPointToSegment(px, py, pz, ax, ay, az, bx, by, bz)
 end
 
 local function HandleDGunAllyRisk(teamID, firingUnitID, sx, sy, sz, ex, ey, ez)
+	-- Build a cheap box around the beam first, then do the precise segment test
 	local minx = math.min(sx, ex) - DGUN_WIDTH
 	local maxx = math.max(sx, ex) + DGUN_WIDTH
 	local miny = math.min(sy, ey) - DGUN_WIDTH
@@ -94,16 +99,16 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, sx, sy, sz, ex, ey, ez)
 	for i = 1, #candidates do
 		local unitID = candidates[i]
 		local unitTeam = spGetUnitTeam(unitID)
+		-- Skip the firing commander itself; only warn on other units in the path
 		if unitID ~= firingUnitID and unitTeam and GetAllyTeamID(unitTeam) == myAllyTeam then
 			local ux, uy, uz = spGetUnitPosition(unitID)
 			if ux then
 				local d = DistPointToSegment(ux, uy, uz, sx, sy, sz, ex, ey, ez)
-					if d < DGUN_WIDTH then
-						dangerCount = dangerCount + 1
-						spPlaySoundFile("sounds/ui/warning2.wav")
-						spEcho("WARNING: we have recorded an attempt to D-Gun your allies. Griefing your team is a violation of the Code of Conduct!" .. dangerCount)
-						return true
-					end
+				if d < DGUN_WIDTH then
+					spPlaySoundFile("sounds/ui/warning2.wav")
+					spEcho("WARNING: we have recorded an attempt to D-Gun your allies. Griefing your team is a violation of the Code of Conduct!")
+					return true
+				end
 			end
 		end
 	end
@@ -112,6 +117,7 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, sx, sy, sz, ex, ey, ez)
 end
 
 local function HasKnownEnemyNearby(teamID, ux, uy, uz)
+	-- If the commander is already near a visible enemy, we leave the order alone
 	local myAllyTeam = GetAllyTeamID(teamID)
 	local candidates = spGetUnitsInSphere(ux, uy, uz, ENEMY_SCAN_RADIUS)
 
@@ -121,11 +127,6 @@ local function HasKnownEnemyNearby(teamID, ux, uy, uz)
 		if unitTeam and unitTeam ~= gaiaTeamID and GetAllyTeamID(unitTeam) ~= myAllyTeam then
 			local losState = spGetUnitLosState(unitID, myAllyTeam, true)
 			if losState and (losState % 4) > 0 then
-				local ex, ey, ez = spGetUnitPosition(unitID)
-				local unitDefID = spGetUnitDefID(unitID)
-				local unitDef = unitDefID and UnitDefs[unitDefID]
-				local unitName = unitDef and (unitDef.translatedHumanName or unitDef.name) or "unknown"
-				local dist = (ex and math.sqrt((ex - ux) * (ex - ux) + (ey - uy) * (ey - uy) + (ez - uz) * (ez - uz))) or ENEMY_SCAN_RADIUS
 				return true
 			end
 		end
@@ -134,6 +135,7 @@ local function HasKnownEnemyNearby(teamID, ux, uy, uz)
 	return false
 end
 
+-- Allow normal DGuns, block only ally-targeted hits. If an enemy is visibly nearby, DGuns are always allowed.
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID ~= CMD_DGUN then
 		return true
