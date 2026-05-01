@@ -727,6 +727,11 @@ local function drawCurrentBrush()
 		end
 	end
 	if not cx then return end
+	do
+		local tb2 = WG.TerraformBrush
+		local st2 = tb2 and tb2.getState and tb2.getState()
+		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then return end
+	end
 	glDepthTest(true)
 	glLineWidth(2)
 	if dp.dragAction == "remove" or dp.mode == "remove" then
@@ -828,6 +833,12 @@ function widget:MousePress(mx, my, button)
 		local tb = WG.TerraformBrush
 		local st = tb and tb.getState and tb.getState() or nil
 		if st and st.measureActive then return false end
+		-- Defer to symmetry origin drag so terraform can grab the drag
+		if st and st.symmetryActive then
+			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
+				return false
+			end
+		end
 	end
 	if button == 1 then
 		local wx, wz = getWorldMousePosition()
