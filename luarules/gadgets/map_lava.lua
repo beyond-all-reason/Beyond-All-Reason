@@ -26,6 +26,7 @@ if gadgetHandler:IsSyncedCode() then
 	local gameframe = 0
 	local tideRhythm = {}
 	local lavaUnits = {}
+	local damageRateTick = 0
 
 	local lavaLevel = lava.level
 	local lavaGrow = lava.grow
@@ -37,8 +38,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- damage is specified in health lost per second, damage is applied every DAMAGE_RATE frames
 	local DAMAGE_RATE = 10 -- frames
+	local FULL_CHECK_INTERVAL = 4 -- do full GetAllUnits scan every Nth DAMAGE_RATE tick
 	local lavaDamage = lava.damage * (DAMAGE_RATE / gameSpeed)
 	local lavaDamageFeatures = lava.damageFeatures
+	local lavaDamageAirUnits = true
 
 	-- ceg effects
 	local lavaEffectBurst = lava.effectBurst
@@ -78,9 +81,13 @@ if gadgetHandler:IsSyncedCode() then
 		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
 	end
 	local geoThermal = {}
+	local featureHasMetal = {}
 	for featureDefID, featureDef in pairs(FeatureDefs) do
 		if featureDef.geoThermal then
 			geoThermal[featureDefID] = true
+		end
+		if featureDef.metal and featureDef.metal > 0 then
+			featureHasMetal[featureDefID] = true
 		end
 	end
 
@@ -143,13 +150,49 @@ if gadgetHandler:IsSyncedCode() then
 		lavaUnits = {}
 	end
 
-	-- slow down and damage unit+features in lava
+	-- Fast path: only damage/slow units already known to be in lava
+	local function lavaKnownUnitsCheck()
+		for unitID, data in pairs(lavaUnits) do
+			local unitDefID = spGetUnitDefID(unitID)
+			if unitDefID then
+				local x, y, z = spGetUnitBasePosition(unitID)
+				if y and y < lavaLevel then
+					if data.slowed then
+						local unitSlow = clamp(1-(((lavaLevel-y) / unitHeight[unitDefID])*lavaSlow), 1-lavaSlow, .9)
+						if unitSlow ~= data.currentSlow then
+							local sucess = updateSlow(unitID, unitDefID, unitSlow)
+							if sucess then
+								data.currentSlow = unitSlow
+							end
+						end
+					end
+					spAddUnitDamage(unitID, lavaDamage, nil, nil)
+					spSpawnCEG(lavaEffectDamage, x, y+5, z)
+				else -- unit exited lava
+					if data.slowed then
+						updateSlow(unitID, unitDefID, 1)
+					end
+					lavaUnits[unitID] = nil
+				end
+			end
+		end
+	end
+
+	-- Full scan: discover new units entering/leaving lava, damage all, check features
 	function lavaObjectsCheck()
 		local gaiaTeamID = Spring.GetGaiaTeamID()
 		local all_units = spGetAllUnits()
 		for _, unitID in ipairs(all_units) do
 			local unitDefID = spGetUnitDefID(unitID)
-			if not canFly[unitDefID] then
+			if canFly[unitDefID] then
+				if lavaDamageAirUnits then
+					local x,y,z = spGetUnitBasePosition(unitID)
+					if y and y < lavaLevel then
+						spAddUnitDamage(unitID, lavaDamage, nil, nil)
+						spSpawnCEG(lavaEffectDamage, x, y+5, z)
+					end
+				end
+			else
 				local x,y,z = spGetUnitBasePosition(unitID)
 				if y and y < lavaLevel then
 					local unitSlow = clamp(1-(((lavaLevel-y) / unitHeight[unitDefID])*lavaSlow) , 1-lavaSlow , .9)
@@ -180,16 +223,15 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		if lavaDamageFeatures then
-			local all_features = Spring.GetAllFeatures()
-			for _, featureID in ipairs(all_features) do
-				local FeatureDefID = spGetFeatureDefID(featureID)
-				if not geoThermal[FeatureDefID] then
-					x,y,z = spGetFeaturePosition(featureID)
-					if (y and y < lavaLevel) then
-						spAddFeatureDamage(featureID, lavaDamage, nil, nil)
-						spSpawnCEG(lavaEffectDamage, x, y+5, z)
-					end
+		local all_features = Spring.GetAllFeatures()
+		for _, featureID in ipairs(all_features) do
+			local FeatureDefID = spGetFeatureDefID(featureID)
+			-- always damage non-metal features (trees, foliage); metal features only if lavaDamageFeatures is set
+			if not geoThermal[FeatureDefID] and (lavaDamageFeatures or not featureHasMetal[FeatureDefID]) then
+				x,y,z = spGetFeaturePosition(featureID)
+				if (y and y < lavaLevel) then
+					spAddFeatureDamage(featureID, lavaDamage, nil, nil)
+					spSpawnCEG(lavaEffectDamage, x, y+5, z)
 				end
 			end
 		end
@@ -220,7 +262,13 @@ if gadgetHandler:IsSyncedCode() then
 
 		if f % DAMAGE_RATE == 0 then
 			if lavaAboveGround then
-				lavaObjectsCheck()
+				damageRateTick = damageRateTick + 1
+				if damageRateTick >= FULL_CHECK_INTERVAL then
+					damageRateTick = 0
+					lavaObjectsCheck() -- full scan: discover new units, check features
+				else
+					lavaKnownUnitsCheck() -- fast path: only already-tracked lava units
+				end
 			elseif next(lavaUnits) then
 				-- Lava retreated below map: bulk-restore any slowed units
 				restoreAllLavaUnits()

@@ -1629,6 +1629,12 @@ local HOMING_FWD_MAX_PER_TARGET = 192   -- safety cap per repaired/captured unit
 -- away from this target), or when the builder itself dies.
 --   reclaimedTargets[targetUnitID] = { [builderID] = true, ... }
 local reclaimedTargets = {}
+-- Cached build progress of reclaim targets (0..1, or nil for fully built).
+-- Updated in the scan loop while the unit is alive so UnitDestroyed can read
+-- it after the unit is already gone (Spring.GetUnitIsBeingBuilt returns nil
+-- for dead units in unsynced context).
+--   reclaimTargetBuildProgress[unitID] = number (0..1)  -- only present while isBeingBuilt
+local reclaimTargetBuildProgress = {}
 
 -- Forward emissions aimed at an UNFINISHED unit are NOT registered in
 -- homingFwdByTarget (HOMING_SKIP_INCOMPLETE early-returns) so they don't curve
@@ -2003,7 +2009,7 @@ end
 -- third-party builders never see the burst.
 --------------------------------------------------------------------------------
 
-local function fireReclaimBurst(targetUnitID, targetUnitDefID, attackerTeam, frame)
+local function fireReclaimBurst(targetUnitID, targetUnitDefID, attackerTeam, buildProgress, frame)
 	local set = reclaimedTargets[targetUnitID]
 	if not set then return end
 	reclaimedTargets[targetUnitID] = nil
@@ -2031,8 +2037,10 @@ local function fireReclaimBurst(targetUnitID, targetUnitDefID, attackerTeam, fra
 	-- Particle count: per-builder share follows a log curve in metal cost, then
 	-- scaled by nb^BUILDER_EXP so more reclaimers always add more particles but
 	-- with diminishing returns (e.g. 4 reclaimers → ~2.6× not 4× at EXP=0.7).
+	-- buildProgress scales metalCost so a half-built unit contributes half as many
+	-- particles as a fully-built one (it's only worth half the metal).
 	local ud = targetUnitDefID and UnitDefs[targetUnitDefID] or nil
-	local metalCost = (ud and ud.metalCost) or 0
+	local metalCost = ((ud and ud.metalCost) or 0) * (buildProgress or 1.0)
 	local perBuilder = RECLAIM_BURST_BASE + mathFloor(RECLAIM_BURST_LOG_K * mathLog(1 + metalCost / RECLAIM_BURST_LOG_NORM) + 0.5)
 	if perBuilder < 1 then perBuilder = 1 end
 	local total = mathFloor(perBuilder * (nb ^ RECLAIM_BURST_BUILDER_EXP) + 0.5)
@@ -2677,6 +2685,14 @@ local function scanBuilders(frame)
 							else
 								reclaimedTargets[nowReclaiming] = { [unitID] = true }
 							end
+							-- Keep build-progress fresh so UnitDestroyed can scale
+							-- the burst even though the unit is already dead then.
+							local isBuilt, bp = spGetUnitIsBeingBuilt(nowReclaiming)
+							if isBuilt and bp then
+								reclaimTargetBuildProgress[nowReclaiming] = bp
+							else
+								reclaimTargetBuildProgress[nowReclaiming] = nil
+							end
 						end
 						if ex then
 							-- Off-screen throttle. Test view-frustum at the target
@@ -2909,6 +2925,7 @@ local function applyParticleMode(newMode, force)
 	for k in pairs(fadeFwdByTarget)     do fadeFwdByTarget[k]     = nil end
 	for k in pairs(targetPosCache)      do targetPosCache[k]      = nil end
 	for k in pairs(targetIncompleteCache) do targetIncompleteCache[k] = nil end
+	for k in pairs(reclaimTargetBuildProgress) do reclaimTargetBuildProgress[k] = nil end
 	for k in pairs(deathBuckets)        do deathBuckets[k]        = nil end
 	liveCount = 0
 
@@ -3262,9 +3279,14 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	-- trigger: attackerID present + no weapon + we tracked reclaimers => fire
 	-- the burst, then distribute particles across every tracked contributor.
 	if attackerID and (not weaponDefID or weaponDefID < 0) and reclaimedTargets[unitID] then
-		fireReclaimBurst(unitID, unitDefID, attackerTeam, spGetGameFrame())
+		-- Read cached build progress (set by the scan loop while the unit was alive).
+		-- spGetUnitIsBeingBuilt returns nil for dead units in unsynced context.
+		local bp = reclaimTargetBuildProgress[unitID] or 1.0
+		reclaimTargetBuildProgress[unitID] = nil
+		fireReclaimBurst(unitID, unitDefID, attackerTeam, bp, spGetGameFrame())
 	else
 		reclaimedTargets[unitID] = nil
+		reclaimTargetBuildProgress[unitID] = nil
 	end
 	fadeOutHomingFwd(unitID, true)
 	fadeOutHomingInverse(unitID)
@@ -3281,6 +3303,7 @@ function gadget:RenderUnitDestroyed(unitID)
 	-- RenderUnitDestroyed has no attacker arg; rely on whatever UnitDestroyed
 	-- already decided. If the burst ran (or skipped), the entry is gone.
 	reclaimedTargets[unitID] = nil
+	reclaimTargetBuildProgress[unitID] = nil
 	fadeOutHomingFwd(unitID, true)
 	fadeOutHomingInverse(unitID)
 	clearPiecePosCache(unitID)

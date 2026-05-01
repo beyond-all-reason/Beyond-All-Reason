@@ -11,7 +11,7 @@ return {
 		cancapture = true,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 1",
-		collisionvolumescales = "11 8 21",
+		collisionvolumescales = "12 12 22",
 		collisionvolumetype = "Box",
 		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 2,
