@@ -2,9 +2,9 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "DGun Ally Danger Echo",
-		desc    = "Echoes DANGER when an ally's DGun path intersects allied units",
-		author  = "Codex",
+		name    = "DGun Griefing Prevention",
+		desc    = "Prevents players from firing DGuns that intersect ally units and gives them both text and audio warning. Note that DGuns are always allowed if the commander is on the frontline.",
+		author  = "TheDujin, with Codex",
 		date    = "2026-05-01",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
@@ -100,7 +100,7 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, sx, sy, sz, ex, ey, ez)
 				local d = DistPointToSegment(ux, uy, uz, sx, sy, sz, ex, ey, ez)
 					if d < DGUN_WIDTH then
 						dangerCount = dangerCount + 1
-						spPlaySoundFile("sounds/ui/warning2.wav", 1, "ui")
+						spPlaySoundFile("sounds/ui/warning2.wav")
 						spEcho("WARNING: we have recorded an attempt to D-Gun your allies. Griefing your team is a violation of the Code of Conduct!" .. dangerCount)
 						return true
 					end
