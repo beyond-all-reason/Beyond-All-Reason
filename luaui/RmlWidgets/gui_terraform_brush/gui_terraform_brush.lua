@@ -779,6 +779,7 @@ local initialModel = {
 	spPreferSlopes = false,
 	spAltMinEnable = false,
 	spAltMaxEnable = false,
+	spAvoidWater = false,
 	-- splat instruments
 	spGridSnap = false,
 	spAngleSnap = false,
@@ -788,6 +789,18 @@ local initialModel = {
 	spSymmetryMirrorAny = false,
 	spAngleSnapAuto = false,
 	spDisplayHintVisible = false,
+	-- splat chip active states (data-class-active)
+	spChannel = 1,
+	spAltMinSample = false,
+	spAltMaxSample = false,
+	spGridOverlay = false,
+	spHeightColormap = false,
+	spSplatOverlay = false,
+	spMeasureShowLength = false,
+	spMeasureRulerMode = false,
+	spMeasureStickyMode = false,
+	spSymMirrorX = false,
+	spSymMirrorY = false,
 	-- features placer smart filters
 	fpAvoidCliffs = false,
 	fpPreferSlopes = false,
@@ -797,6 +810,13 @@ local initialModel = {
 	fpSymmetryActive = false,
 	fpSymmetryRadial = false,
 	fpSymmetryMirrorAny = false,
+	fpGridSnap = false,
+	fpMeasureActive = false,
+	fpMeasureShowLength = false,
+	fpMeasureRulerMode = false,
+	fpMeasureStickyMode = false,
+	fpSymMirrorX = false,
+	fpSymMirrorY = false,
 	-- features placer save/load popup
 	fpSaveLoadOpen = false,
 	-- light placer
@@ -806,7 +826,7 @@ local initialModel = {
 	lpLibraryTab = "builtin",
 	lpSymmetryRadial = false,
 	lpSymmetryMirrorAny = false,
-	-- metal brush instruments (data-if sub-rows)
+	-- metal brush instruments (data-if sub-rows + data-class-active)
 	mbGridSnap = false,
 	mbAngleSnap = false,
 	mbMeasureActive = false,
@@ -814,11 +834,20 @@ local initialModel = {
 	mbSymmetryRadial = false,
 	mbSymmetryMirrorAny = false,
 	mbAngleSnapAuto = false,
-	-- metal map analysis rows
+	mbGridOverlay = false,
+	mbHeightColormap = false,
+	mbSymMirrorX = false,
+	mbSymMirrorY = false,
+	mbMeasureRulerMode = false,
+	mbMeasureStickyMode = false,
+	mbMeasureShowLength = false,
+	-- metal map analysis rows (data-if + data-class-active)
 	mbInspectorOpen = false,
 	mbClusterOpen = false,
 	mbLassoOpen = false,
 	mbAxisOpen = false,
+	mbMapOverlay = false,
+	mbLassoActive = false,
 	-- grass brush instruments (data-if sub-rows)
 	gbGridSnap = false,
 	gbAngleSnap = false,
@@ -827,6 +856,9 @@ local initialModel = {
 	gbSymmetryRadial = false,
 	gbSymmetryMirrorAny = false,
 	gbAngleSnapAuto = false,
+	gbMeasureRulerMode = false,
+	gbMeasureStickyMode = false,
+	gbMeasureShowLength = false,
 	-- grass brush smart filter visibility (data-if sub-rows)
 	gbSlopeActive = false,
 	gbAvoidCliffs = false,
@@ -844,10 +876,44 @@ local initialModel = {
 	gbSubMode = "paint",       -- grass brush sub-mode
 	fpSubMode = "scatter",     -- feature placer sub-mode
 	fpDistMode = "random",     -- feature placer distribution
-	dcDistMode = "random",     -- decal distribution
+	dcLibMode = "",            -- decal library mode (scatter/point/remove)
+	dcDistribution = "random", -- decal distribution (random/regular/clustered)
 	wbSubMode = "scatter",     -- weather brush sub-mode
 	wbDistMode = "random",     -- weather distribution
 	stpShapeMode = "circle",   -- startpos shape selection
+	lpDistMode = "random",     -- light placer distribution
+	guideMode = false,         -- guide/help overlay
+	-- TB mirror controls: data-class-active for syncTBMirrorControls prefixes
+	-- lp (light placer) - lpSymmetryRadial already declared above
+	lpGridOverlay = false,    lpHeightColormap = false,
+	lpGridSnap = false,       lpAngleSnap = false,
+	lpMeasureActive = false,  lpSymmetryActive = false,
+	lpSymMirrorX = false,     lpSymMirrorY = false,
+	lpMeasureShowLength = false, lpMeasureRulerMode = false, lpMeasureStickyMode = false,
+	-- dc (decal placer)
+	dcGridOverlay = false,    dcHeightColormap = false,
+	dcGridSnap = false,       dcAngleSnap = false,
+	dcMeasureActive = false,  dcSymmetryActive = false,
+	dcSymmetryRadial = false, dcSymMirrorX = false, dcSymMirrorY = false,
+	dcMeasureShowLength = false, dcMeasureRulerMode = false, dcMeasureStickyMode = false,
+	-- wb (weather brush)
+	wbGridOverlay = false,    wbHeightColormap = false,
+	wbGridSnap = false,       wbAngleSnap = false,
+	wbMeasureActive = false,  wbSymmetryActive = false,
+	wbSymmetryRadial = false, wbSymMirrorX = false, wbSymMirrorY = false,
+	wbMeasureShowLength = false, wbMeasureRulerMode = false, wbMeasureStickyMode = false,
+	-- st (start position)
+	stGridOverlay = false,    stHeightColormap = false,
+	stGridSnap = false,       stAngleSnap = false,
+	stMeasureActive = false,  stSymmetryActive = false,
+	stSymmetryRadial = false, stSymMirrorX = false, stSymMirrorY = false,
+	stMeasureShowLength = false, stMeasureRulerMode = false, stMeasureStickyMode = false,
+	-- cl (clone tool)
+	clGridOverlay = false,    clHeightColormap = false,
+	clGridSnap = false,       clAngleSnap = false,
+	clMeasureActive = false,  clSymmetryActive = false,
+	clSymmetryRadial = false, clSymMirrorX = false, clSymMirrorY = false,
+	clMeasureShowLength = false, clMeasureRulerMode = false, clMeasureStickyMode = false,
 	-- Phase 2 step 4: startpos label interpolation strings
 	stpAllyTeamsStr = "2",
 	stpTeamsPerAllyStr = "1",
@@ -950,6 +1016,18 @@ local initialModel = {
 	tfPenSizeVisible = false,
 	-- clone paste transforms panel
 	clonePasteTransformsVisible = false,
+	-- clone tool active states (Phase 2 step 2 data-class-active bindings)
+	clMirrorX = false,
+	clMirrorZ = false,
+	clQuality = "full",
+	clLayerTerrain = true,
+	clLayerMetal = true,
+	clLayerFeatures = true,
+	clLayerSplats = true,
+	clLayerGrass = true,
+	clLayerDecals = false,
+	clLayerWeather = false,
+	clLayerLights = false,
 	-- floating library/env sub-windows
 	splatTexVisible = false,
 	skyboxLibraryVisible = false,
@@ -2164,18 +2242,28 @@ ctx.attachTBMirrorControls = function(doc, prefix)
 		end
 	end
 	local TB = function() return WG.TerraformBrush end
+	local dm = widgetState.dmHandle
+	local function setDmAndClass(dmKey, btnId, nv, altId)
+		if dm then dm[dmKey] = nv end
+		local btn = byId(btnId); if btn then btn:SetClass("active", nv) end
+		if altId then local b2 = byId(altId); if b2 then b2:SetClass("active", nv) end end
+	end
 
 	-- DISPLAY: Grid + Height Map mirrors
 	click("btn-"..P.."-grid-overlay", function()
 		local tb = TB(); if not tb then return end
 		local s = tb.getState() or {}
-		tb.setGridOverlay(not s.gridOverlay)
+		local nv = not s.gridOverlay
+		tb.setGridOverlay(nv)
+		setDmAndClass(P.."GridOverlay", "btn-"..P.."-grid-overlay", nv)
 		playSound("tick")
 	end)
 	click("btn-"..P.."-height-colormap", function()
 		local tb = TB(); if not tb then return end
 		local s = tb.getState() or {}
-		tb.setHeightColormap(not s.heightColormap)
+		local nv = not s.heightColormap
+		tb.setHeightColormap(nv)
+		setDmAndClass(P.."HeightColormap", "btn-"..P.."-height-colormap", nv)
 		playSound("tick")
 	end)
 
@@ -2183,44 +2271,58 @@ ctx.attachTBMirrorControls = function(doc, prefix)
 	click("btn-"..P.."-grid-snap", function()
 		local tb = TB(); if not tb then return end
 		local s = tb.getState() or {}
-		tb.setGridSnap(not s.gridSnap)
+		local nv = not s.gridSnap
+		tb.setGridSnap(nv)
+		setDmAndClass(P.."GridSnap", "btn-"..P.."-grid-snap", nv)
 		playSound("tick")
 	end)
 	click("btn-"..P.."-angle-snap", function()
 		local tb = TB(); if not tb then return end
 		local s = tb.getState() or {}
-		tb.setAngleSnap(not s.angleSnap)
+		local nv = not s.angleSnap
+		tb.setAngleSnap(nv)
+		setDmAndClass(P.."AngleSnap", "btn-"..P.."-angle-snap", nv)
 		playSound("tick")
 	end)
 	click("btn-"..P.."-measure", function()
 		local tb = TB(); if not tb then return end
 		local s = tb.getState() or {}
-		tb.setMeasureActive(not s.measureActive)
+		local nv = not s.measureActive
+		tb.setMeasureActive(nv)
+		setDmAndClass(P.."MeasureActive", "btn-"..P.."-measure", nv)
 		playSound("tick")
 	end)
 	click("btn-"..P.."-symmetry", function()
 		local tb = TB(); if not tb then return end
 		local s = tb.getState() or {}
-		tb.setSymmetryActive(not s.symmetryActive)
+		local nv = not s.symmetryActive
+		tb.setSymmetryActive(nv)
+		setDmAndClass(P.."SymmetryActive", "btn-"..P.."-symmetry", nv)
 		playSound("tick")
 	end)
 	-- Symmetry sub-row modes
 	click("btn-"..P.."-symmetry-radial", function()
 		local tb = TB(); if not tb then return end
 		local s = tb.getState() or {}
-		tb.setSymmetryRadial(not s.symmetryRadial)
+		local nv = not s.symmetryRadial
+		tb.setSymmetryRadial(nv)
+		setDmAndClass(P.."SymmetryRadial", "btn-"..P.."-symmetry-radial", nv, P.."-btn-symmetry-radial")
 		playSound("tick")
 	end)
 	click("btn-"..P.."-symmetry-mirror-x", function()
 		local tb = TB(); if not tb then return end
 		local s = tb.getState() or {}
-		tb.setSymmetryMirrorX(not s.symmetryMirrorX)
+		local nv = not s.symmetryMirrorX
+		tb.setSymmetryMirrorX(nv)
+		setDmAndClass(P.."SymMirrorX", "btn-"..P.."-symmetry-mirror-x", nv, P.."-btn-symmetry-mirror-x")
 		playSound("tick")
 	end)
 	click("btn-"..P.."-symmetry-mirror-y", function()
 		local tb = TB(); if not tb then return end
 		local s = tb.getState() or {}
-		tb.setSymmetryMirrorY(not s.symmetryMirrorY)
+		local nv = not s.symmetryMirrorY
+		tb.setSymmetryMirrorY(nv)
+		setDmAndClass(P.."SymMirrorY", "btn-"..P.."-symmetry-mirror-y", nv, P.."-btn-symmetry-mirror-y")
 		playSound("tick")
 	end)
 	click("btn-"..P.."-symmetry-place-origin", function()
@@ -2235,16 +2337,36 @@ ctx.attachTBMirrorControls = function(doc, prefix)
 	end)
 	-- Measure sub-row
 	click("btn-"..P.."-measure-show-length", function()
-		local tb = TB(); if not tb and tb.setMeasureShowLength then return end
-		if tb.setMeasureShowLength then
-			local s = tb.getState() or {}
-			tb.setMeasureShowLength(not s.measureShowLength)
-		end
+		local tb = TB(); if not tb or not tb.setMeasureShowLength then return end
+		local s = tb.getState() or {}
+		local nv = not s.measureShowLength
+		tb.setMeasureShowLength(nv)
+		setDmAndClass(P.."MeasureShowLength", "btn-"..P.."-measure-show-length", nv, P.."-btn-measure-show-length")
 		playSound("tick")
 	end)
 	click("btn-"..P.."-measure-clear", function()
 		local tb = TB(); if not tb then return end
-		if tb.clearMeasurePoints then tb.clearMeasurePoints() end
+		if tb.clearMeasureLines then tb.clearMeasureLines() end
+		playSound("tick")
+	end)
+	click("btn-"..P.."-measure-ruler", function()
+		local tb = TB(); if not tb then return end
+		local s = tb.getState() or {}
+		if tb.setMeasureRulerMode then
+			local nv = not s.measureRulerMode
+			tb.setMeasureRulerMode(nv)
+			setDmAndClass(P.."MeasureRulerMode", "btn-"..P.."-measure-ruler", nv, P.."-btn-measure-ruler")
+		end
+		playSound("tick")
+	end)
+	click("btn-"..P.."-measure-sticky", function()
+		local tb = TB(); if not tb then return end
+		local s = tb.getState() or {}
+		if tb.setMeasureStickyMode then
+			local nv = not s.measureStickyMode
+			tb.setMeasureStickyMode(nv)
+			setDmAndClass(P.."MeasureStickyMode", "btn-"..P.."-measure-sticky", nv, P.."-btn-measure-sticky")
+		end
 		playSound("tick")
 	end)
 end
@@ -2255,26 +2377,51 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	local P = prefix
 	local tb = WG.TerraformBrush
 	local s = tb and tb.getState() or {}
-	local function setCls(id, on)
-		local el = getCachedEl(doc, id)
-		if el then el:SetClass("active", on and true or false) end
+	local dm = widgetState.dmHandle
+	-- Active-class state: write to data model (drives data-class-active in RML).
+	-- Toolbar sub-rows driven by data-if on {P}MeasureActive/{P}SymmetryActive.
+	if dm then
+		local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
+		setDm(P.."GridOverlay",    s.gridOverlay)
+		setDm(P.."HeightColormap", s.heightColormap)
+		setDm(P.."GridSnap",       s.gridSnap)
+		setDm(P.."AngleSnap",      s.angleSnap)
+		setDm(P.."MeasureActive",  s.measureActive)
+		setDm(P.."SymmetryActive", s.symmetryActive)
+		setDm(P.."SymmetryRadial",   s.symmetryRadial)
+		setDm(P.."SymMirrorX",       s.symmetryMirrorX)
+		setDm(P.."SymMirrorY",       s.symmetryMirrorY)
+		setDm(P.."MeasureShowLength", s.measureShowLength)
+		setDm(P.."MeasureRulerMode",  s.measureRulerMode)
+		setDm(P.."MeasureStickyMode", s.measureStickyMode)
 	end
-	local function setHidden(id, on)
+	-- Belt-and-suspenders: also apply active class imperatively so chips
+	-- inside collapsed (display:none) sections still highlight correctly.
+	-- Main chips use "btn-{P}-*" pattern. Some tools (SP) use "{P}-btn-*"
+	-- for sub-chips instead, so we try both — missing IDs silently no-op.
+	local function setChip(id, active)
 		local el = getCachedEl(doc, id)
-		if el then el:SetClass("hidden", not on) end
+		if el then el:SetClass("active", active and true or false) end
 	end
-	setCls("btn-"..P.."-grid-overlay",     s.gridOverlay)
-	setCls("btn-"..P.."-height-colormap",  s.heightColormap)
-	setCls("btn-"..P.."-grid-snap",        s.gridSnap)
-	setCls("btn-"..P.."-angle-snap",       s.angleSnap)
-	setCls("btn-"..P.."-measure",          s.measureActive)
-	setCls("btn-"..P.."-symmetry",         s.symmetryActive)
-	setCls("btn-"..P.."-symmetry-radial",   s.symmetryRadial)
-	setCls("btn-"..P.."-symmetry-mirror-x", s.symmetryMirrorX)
-	setCls("btn-"..P.."-symmetry-mirror-y", s.symmetryMirrorY)
-	setHidden(P.."-measure-toolbar-row",   s.measureActive)
-	setHidden(P.."-symmetry-toolbar-row",  s.symmetryActive)
-
+	setChip("btn-"..P.."-grid-overlay",        s.gridOverlay)
+	setChip("btn-"..P.."-height-colormap",     s.heightColormap)
+	setChip("btn-"..P.."-grid-snap",           s.gridSnap)
+	setChip("btn-"..P.."-angle-snap",          s.angleSnap)
+	setChip("btn-"..P.."-measure",             s.measureActive)
+	setChip("btn-"..P.."-symmetry",            s.symmetryActive)
+	-- Sub-chips: try both naming patterns (inconsistent across tools)
+	setChip("btn-"..P.."-symmetry-radial",     s.symmetryRadial)
+	setChip(P.."-btn-symmetry-radial",         s.symmetryRadial)
+	setChip("btn-"..P.."-symmetry-mirror-x",   s.symmetryMirrorX)
+	setChip(P.."-btn-symmetry-mirror-x",       s.symmetryMirrorX)
+	setChip("btn-"..P.."-symmetry-mirror-y",   s.symmetryMirrorY)
+	setChip(P.."-btn-symmetry-mirror-y",       s.symmetryMirrorY)
+	setChip("btn-"..P.."-measure-show-length", s.measureShowLength)
+	setChip(P.."-btn-measure-show-length",     s.measureShowLength)
+	setChip("btn-"..P.."-measure-ruler",       s.measureRulerMode)
+	setChip(P.."-btn-measure-ruler",           s.measureRulerMode)
+	setChip("btn-"..P.."-measure-sticky",      s.measureStickyMode)
+	setChip(P.."-btn-measure-sticky",          s.measureStickyMode)
 	-- Warn chips on DISPLAY/INSTRUMENTS toggle headers: show when the section
 	-- is collapsed AND at least one mirrored control is engaged. Missing chips
 	-- (tools that never got a warn chip added in RML) silently no-op.
@@ -2282,6 +2429,38 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	local instActive = s.gridSnap or s.angleSnap or s.measureActive or s.symmetryActive
 	ctx.syncWarnChip(doc, "warn-chip-"..P.."-overlays",    "section-"..P.."-overlays",    dispActive)
 	ctx.syncWarnChip(doc, "warn-chip-"..P.."-instruments", "section-"..P.."-instruments", instActive)
+
+	-- Per-prefix grid-snap-size + angle-step expand-row sync (st, cl, wb, dc,
+	-- lp; mb, gb, sp own their own labels via per-tool sync). Missing IDs
+	-- silently no-op so this is safe to run for all prefixes.
+	local TB_ANGLE_PRESETS_SYNC = { 7.5, 15, 30, 45, 60, 90 }
+	local snapSize = tonumber(s.gridSnapSize) or 48
+	local snapSizeStr = tostring(snapSize)
+	local lblSnap = getCachedEl(doc, P.."-grid-snap-size-label")
+	if lblSnap then lblSnap.inner_rml = snapSizeStr end
+	local sliSnap = getCachedEl(doc, P.."-slider-grid-snap-size")
+	if sliSnap and uiState.draggingSlider ~= P.."-grid-snap-size" then
+		sliSnap:SetAttribute("value", snapSizeStr)
+	end
+	local nbSnap = getCachedEl(doc, P.."-slider-grid-snap-size-numbox")
+	if nbSnap then nbSnap:SetAttribute("value", snapSizeStr) end
+
+	local curStep = tonumber(s.angleSnapStep) or 15
+	local curIdx, bestD = 2, math.huge
+	for i, pp in ipairs(TB_ANGLE_PRESETS_SYNC) do
+		local d = math.abs(pp - curStep)
+		if d < bestD then bestD = d; curIdx = i end
+	end
+	local stepStr = (curStep == math.floor(curStep))
+		and tostring(math.floor(curStep)) or tostring(curStep)
+	local lblStep = getCachedEl(doc, P.."-angle-snap-step-label")
+	if lblStep then lblStep.inner_rml = stepStr end
+	local sliStep = getCachedEl(doc, P.."-slider-angle-snap-step")
+	if sliStep and uiState.draggingSlider ~= P.."-angle-snap-step" then
+		sliStep:SetAttribute("value", tostring(curIdx - 1))
+	end
+	local nbStep = getCachedEl(doc, P.."-slider-angle-snap-step-numbox")
+	if nbStep then nbStep:SetAttribute("value", stepStr) end
 end
 
 -- Phase 3 grayout helper: toggle the generic ".disabled" class on an element
@@ -2310,6 +2489,48 @@ end
 local function attachDeclarativeHandlers(ctx)
 	local w = ctx.widget
 	if not w then return end
+
+	-- Shared TB grid-snap-size + angle-snap-step handlers used by per-tool
+	-- expand sub-rows (st, cl, wb, dc, lp) created in RML next to each tool's
+	-- snap/protractor chip row. Underlying state is global across tools, so
+	-- one set of handlers is sufficient — labels/sliders are mirrored back
+	-- per-prefix from syncTBMirrorControls each frame.
+	local TB_ANGLE_PRESETS = { 7.5, 15, 30, 45, 60, 90 }
+	local function tbFindAnglePresetIdx(val)
+		local best, bestD = 2, math.huge
+		for i, p in ipairs(TB_ANGLE_PRESETS) do
+			local d = math.abs(p - (val or 15))
+			if d < bestD then bestD = d; best = i end
+		end
+		return best
+	end
+	w.tbOnSnapSizeChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = element and tonumber(element:GetAttribute("value"))
+		if not v then return end
+		WG.TerraformBrush.setGridSnapSize(v)
+	end
+	w.tbSnapSizeStep = function(self, delta)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		local cur = tonumber(s.gridSnapSize) or 48
+		local v = math.max(16, math.min(128, cur + (delta or 0)))
+		WG.TerraformBrush.setGridSnapSize(v)
+	end
+	w.tbOnAngleStepChange = function(self, element)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local idx = element and tonumber(element:GetAttribute("value"))
+		if not idx then return end
+		local p = TB_ANGLE_PRESETS[idx + 1] or 15
+		WG.TerraformBrush.setAngleSnapStep(p)
+	end
+	w.tbAngleStepStep = function(self, delta)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		local idx = tbFindAnglePresetIdx(s.angleSnapStep)
+		idx = math.max(1, math.min(#TB_ANGLE_PRESETS, idx + (delta or 0)))
+		WG.TerraformBrush.setAngleSnapStep(TB_ANGLE_PRESETS[idx])
+	end
 
 	-- Helper: deactivate every tool cleanly. Called from tool-switch methods.
 	local function deactivateAllTools()
@@ -2523,10 +2744,6 @@ local function attachDeclarativeHandlers(ctx)
 		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
 		local lbl = doc and getCachedEl(doc, "ring-width-label")
 		if lbl then lbl.inner_rml = tostring(ringWidthPct) .. "%" end
-		if widgetState.dmHandle then
-			local v = tostring(ringWidthPct) .. "%"
-			if widgetState.dmHandle.tfRingWidthStr ~= v then widgetState.dmHandle.tfRingWidthStr = v end
-		end
 		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
 	end
 	w.tfRingWidthDown = function(self)
@@ -2536,10 +2753,6 @@ local function attachDeclarativeHandlers(ctx)
 		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
 		local lbl = doc and getCachedEl(doc, "ring-width-label")
 		if lbl then lbl.inner_rml = tostring(ringWidthPct) .. "%" end
-		if widgetState.dmHandle then
-			local v = tostring(ringWidthPct) .. "%"
-			if widgetState.dmHandle.tfRingWidthStr ~= v then widgetState.dmHandle.tfRingWidthStr = v end
-		end
 		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
 	end
 
@@ -2819,10 +3032,6 @@ local function attachEventListeners()
 				if restoreStrengthLabel then
 					restoreStrengthLabel.inner_rml = tostring(val) .. "%"
 				end
-				if widgetState.dmHandle then
-					local v = tostring(val) .. "%"
-					if widgetState.dmHandle.tfRestoreStrengthStr ~= v then widgetState.dmHandle.tfRestoreStrengthStr = v end
-				end
 			end
 			event:StopPropagation()
 		end, false)
@@ -2861,10 +3070,6 @@ local function attachEventListeners()
 				ringWidthPct = val
 				local lbl = getCachedEl(doc, "ring-width-label")
 				if lbl then lbl.inner_rml = tostring(val) .. "%" end
-				if widgetState.dmHandle then
-					local vs = tostring(val) .. "%"
-					if widgetState.dmHandle.tfRingWidthStr ~= vs then widgetState.dmHandle.tfRingWidthStr = vs end
-				end
 				WG.TerraformBrush.setRingInnerRatio(1 - val / 100)
 			end
 			event:StopPropagation()
@@ -4902,7 +5107,13 @@ function widget:Update()
 		elseif stpActive then tool = "stp"
 		elseif clActive then tool = "cl"
 		end
-		if widgetState.dmHandle then widgetState.dmHandle.activeTool = tool end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.activeTool = tool
+			-- Mutual exclusion: terrain row (activeMode) and tools row (activeTool) share the
+			-- .active visual; only one button across both rows should highlight. When a non-tf
+			-- tool is active, clear activeMode so the stale terrain-mode highlight drops.
+			if tool ~= "" then widgetState.dmHandle.activeMode = "" end
+		end
 	end
 	if not spActive then widgetState.splatTexOpen = false end
 	if not envActive then widgetState.skyboxLibraryOpen = false end
@@ -5049,16 +5260,11 @@ function widget:Update()
 		sumEl.inner_rml = table.concat(buf)
 	end
 
-	-- Deactivate all tool buttons; each mode section re-activates its own
+	-- Tool button .active class is driven by data-class-active="activeTool == '<code>'" in RML.
+	-- Do NOT SetClass("active", ...) on btn-metal/features/splat/decals/weather/environment/lights/grass/startpos/clone here:
+	-- a per-frame imperative clear fights data-class-active (which only fires on value change),
+	-- leaving most buttons un-highlighted. dm.activeTool (set above) is the single owner.
 	if doc then
-		do
-			local toolBtnIds = {"btn-metal", "btn-features", "btn-splat", "btn-decals", "btn-weather", "btn-environment", "btn-lights", "btn-grass", "btn-startpos", "btn-clone"}
-			for _, btnId in ipairs(toolBtnIds) do
-				local el = getCachedEl(doc, btnId)
-				if el then el:SetClass("active", false) end
-			end
-		end
-
 		-- Reset ramp-type row and shape row visibility before per-tool branches
 		do
 			local hideShape2 = envActive or clActive or stpActive
