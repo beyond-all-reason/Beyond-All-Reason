@@ -70,13 +70,13 @@ function script.Create()
     -- load preexisting cargo (save/load)
     local existing = SpGetUnitIsTransporting(transporterID)
     table.sort(existing, function(a, b)
-        return TransportAPI.GetTransporteeSize(a) > TransportAPI.GetTransporteeSize(b) -- largest first for correct slot assignment
+        return TransportAPI.GetPassengerSize(a) > TransportAPI.GetPassengerSize(b) -- largest first for correct slot assignment
     end)
-    for _, teeID in ipairs(existing) do
-        local teeData = CargoHandler.FindSlot(teeID, cargo)
-        if teeData then
-            local count = CargoHandler.Register(teeID, teeData, cargo)
-            TransportAnimator.Snap(teeData)
+    for _, passengerID in ipairs(existing) do
+        local passengerData = CargoHandler.FindSlot(passengerID, cargo)
+        if passengerData then
+            local count = CargoHandler.Register(passengerID, passengerData, cargo)
+            TransportAnimator.Snap(passengerData)
             if count == 1 then TransportAnimator.HasCargo(true) end
         end
     end
@@ -85,36 +85,36 @@ function script.Create()
     StartThread(GenericAnimator.IdleHover)
 end
 
-function PerformLoad(transporteeID) -- entry point from gadget transport handler: called on load approval, and by ReorganizeAndLoad
-    local teeData = CargoHandler.FindSlot(transporteeID, cargo, true)
-    if not teeData then return end
-    StartThread(TransportAnimator.Load, teeData)
+function PerformLoad(passengerID) -- entry point from gadget transport handler: called on load approval, and by ReorganizeAndLoad
+    local passengerData = CargoHandler.FindSlot(passengerID, cargo, true)
+    if not passengerData then return end
+    StartThread(TransportAnimator.Load, passengerData)
 end
 
-function PerformLoadInstant(transporteeID) -- instant load not used currently
-    local teeData = CargoHandler.FindSlot(transporteeID, cargo)
-    if not teeData then return end
-    StartThread(TransportAnimator.Load, teeData, false)
+function PerformLoadInstant(passengerID) -- instant load not used currently
+    local passengerData = CargoHandler.FindSlot(passengerID, cargo)
+    if not passengerData then return end
+    StartThread(TransportAnimator.Load, passengerData, false)
 end
 
-function PerformUnload(transporteeID, goalX, goalY, goalZ) -- entry point from gadget transport handler: called once per transportee
-    local teeData = cargo.transportees[transporteeID]
-    if teeData and SpValidUnitID(transporteeID) and not SpGetUnitIsDead(transporteeID) then
-        StartThread(TransportAnimator.Unload, teeData, goalX, goalY, goalZ)
+function PerformUnload(passengerID, goalX, goalY, goalZ) -- entry point from gadget transport handler: called once per passenger
+    local passengerData = cargo.passengers[passengerID]
+    if passengerData and SpValidUnitID(passengerID) and not SpGetUnitIsDead(passengerID) then
+        StartThread(TransportAnimator.Unload, passengerData, goalX, goalY, goalZ)
     else -- unit invalid/dead: reset slot and unregister without animating
-        if teeData and teeData.slotID then
-            Move(teeData.slotID, 1, 0)  Move(teeData.slotID, 2, 0)  Move(teeData.slotID, 3, 0)
-            Turn(teeData.slotID, 1, 0)  Turn(teeData.slotID, 2, 0)  Turn(teeData.slotID, 3, 0)
+        if passengerData and passengerData.slotID then
+            Move(passengerData.slotID, 1, 0)  Move(passengerData.slotID, 2, 0)  Move(passengerData.slotID, 3, 0)
+            Turn(passengerData.slotID, 1, 0)  Turn(passengerData.slotID, 2, 0)  Turn(passengerData.slotID, 3, 0)
         end
-        local count = CargoHandler.Unregister(transporteeID, cargo)
+        local count = CargoHandler.Unregister(passengerID, cargo)
         if count == 0 then TransportAnimator.HasCargo(false) end
     end
 end
 
-function PerformUnloadInstant(transporteeID, goalX, goalY, goalZ) -- used by ReorganizeAndLoad
-    local teeData = cargo.transportees[transporteeID]
-    if not teeData then return end
-    StartThread(TransportAnimator.Unload, teeData, goalX, goalY, goalZ, false)
+function PerformUnloadInstant(passengerID, goalX, goalY, goalZ) -- used by ReorganizeAndLoad
+    local passengerData = cargo.passengers[passengerID]
+    if not passengerData then return end
+    StartThread(TransportAnimator.Unload, passengerData, goalX, goalY, goalZ, false)
 end
 
 -- engine callbacks mapped to pre-authored animations
