@@ -9,7 +9,7 @@ function widget:GetInfo()
 		date      = "Jan 11, 2009",
 		version   = 1.7,
 		license   = "GNU GPL, v2 or later",
-		layer     = 0,
+		layer     = -999990,
 		enabled   = true,
 	}
 end
@@ -417,7 +417,10 @@ function widget:Initialize()
 
 	WG['unitstats'] = {}
 	WG['unitstats'].showUnit = function(unitID)
-		showUnitID = unitID
+    		showUnitID = unitID
+	end
+	WG['unitstats'].isShowing = function()
+		return showStats
 	end
 
 	widgetHandler:AddAction("unit_stats", enableStats, nil, "p")
