@@ -419,6 +419,9 @@ function widget:Initialize()
 	WG['unitstats'].showUnit = function(unitID)
 		showUnitID = unitID
 	end
+	WG['unitstats'].isShowing = function()
+		return showStats
+	end
 
 	widgetHandler:AddAction("unit_stats", enableStats, nil, "p")
 	widgetHandler:AddAction("unit_stats", disableStats, nil, "r")
