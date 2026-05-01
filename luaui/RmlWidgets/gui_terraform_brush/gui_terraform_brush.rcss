@@ -2533,18 +2533,22 @@ body {
 }
 .tf-overlay-chip.active {
 	background-color: #0c2838;
-	border-color: #22d3ee80;
+	border-color: #22d3ee;
+	decorator: vertical-gradient(#113347 #081d2a);
+	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #22d3ee30;
 }
 .tf-overlay-chip.active:hover {
-	background-color: #103848;
-	border-color: #22d3ee;
+	background-color: #113848;
+	border-color: #38e8ff;
+	decorator: vertical-gradient(#164060 #0a2438);
+	box-shadow: 0dp 2dp 5dp 0dp #00000080, inset 0dp 1dp 0dp 0dp #22d3ee50;
 }
 .tf-overlay-chip-label {
 	font-size: 1.0rem;
 	color: #9ca3af;
 }
 .tf-overlay-chip.active .tf-overlay-chip-label {
-	color: #d1d5db;
+	color: #7ee8f8;
 }
 
 /* === Controls section: muted active state (param chips are almost always on) === */

@@ -137,7 +137,22 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid half-refactored state):
 
 1. ✅ **Static buttons → `onclick="widget:methodName()"`** in RML. Delete matching `AddEventListener` sites. **Done for all tf_* sub-modules. 548 onclick/onchange attributes in gui_terraform_brush.rml. Standalone widgets also converted (gui_feature_placer, gui_weather_brush, gui_decal_placer).** **Sweep migration to `data-event-X` + model functions queued as phase-2-finisher.**
-2. ⬜ **Active-state loops → `data-class-active="activeMode == 'raise'"`** bound to `dm.activeMode` / `dm.activeShape` / `dm.activeChannel`. Removes ~70% of `:SetClass` calls. **PROMOTED to required pre-1.0 (PR #7527 review).**
+2. 🟡 **Active-state loops → `data-class-active="activeMode == 'raise'"`** bound to `dm.activeMode` / `dm.activeShape` / `dm.activeChannel`. Removes ~70% of `:SetClass` calls. **PROMOTED to required pre-1.0 (PR #7527 review).** **In progress (Apr 2026) — see per-file table below.**
+
+#### Phase 2 step 2 per-file progress
+
+| File | Sites done / total | Status |
+|---|---|---|
+| `tf_clone.lua` | 7 / 7 | ✅ pilot — mirror X/Z, layer terrain/metal/features/splats/grass/decals/weather/lights, quality full/balanced/fast; 11 dm fields added |
+| `tf_splat.lua` | 0 / ~8 | ⬜ channel btn, filter chips, avoidWater/avoidCliffs/preferSlopes, altMinSample/altMaxSample |
+| `tf_decals.lua` | 0 / ~2 | ⬜ mode buttons, tool-active btn |
+| `tf_metal.lua` | 0 / ~12 | ⬜ overlay/cluster/lasso/axis chips, symmetry/mirror btns, snap/angle/measure btns |
+| `tf_startpos.lua` | 0 / ~4 | ⬜ shape mode btns, startbox enable btn |
+| `tf_lights.lua` | 0 / ~7 | ⬜ lightType/mode/distribution btns, library tabs, active btn |
+| `tf_guide.lua` | 0 / ~2 | ⬜ guideMode active btn, soundMuted btn |
+| `gui_terraform_brush.lua` (attachTBMirrorControls) | 0 / ~30 | ⬜ mirror/symmetry/snap/measure/colormap/distort/flipped btns (~L2860–3430) |
+
+**Next: tf_splat + tf_metal (highest SetClass density, share dm fields already added in step 3).**
 3. 🟡 **Section collapse / show-hide → `data-if="sectionTerrainOpen"`** for banners / notice dots / passthrough play/pause icons; **whole-panel show/hide → `document:Hide()/Show()`**. **PROMOTED to required pre-1.0 (PR #7527 review). `SetClass("hidden", ...)` is wrong, not deferred.** **In progress (Apr 2026)** — see per-file table below.
 
 #### Phase 2 step 3 per-file progress
@@ -187,7 +202,7 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | Item | Effort | Notes |
 |---|---|---|
 | Phase 1 — `attachDraggable` drag consolidation | Small-Medium | 4 near-identical drag loops; context manager home agreed; deferred from Phase 1 to keep diff small |
-| Phase 2 step 2 — `data-class-*` for active state | Large | **PROMOTED pre-1.0** (PR #7527). All `setActiveClass()` sites → `data-class-active="x == 'foo'"`. |
+| Phase 2 step 2 — `data-class-active` for active state | Large | **IN PROGRESS (Apr 2026)** — pilot `tf_clone.lua` done (7 sites, 11 dm fields). Next: tf_splat + tf_metal. |
 | Phase 2 step 3 — `data-if` + `document:Hide/Show` | Medium | ✅ **COMPLETE (Apr 2026)** — 11/11 files done. All `SetClass("hidden",…)` sites in tf-brush package converted to dm flags + `data-if` bindings. |
 | Phase 2 step 4 — `{{interpolation}}` for labels | Medium | **PROMOTED pre-1.0** (PR #7527). ~40 `inner_rml = tostring(v)` sites in tf-brush. **Landed Apr 2026: tf_startpos (6), tf_splat (11), tf_metal (13), tf_grass (14), tf_features (11), tf_lights (6 of 14 — 8 IDs not in RML), tf_clone (3), tf_environment dim panel (7), gui_terraform_brush ring-width + restore-strength (3 sites). tf_weather had zero. Remaining: tf_decals/tf_noise generic helpers (justified imperative — bulk setLbl by id), keybind editor + history list builders (Phase 3 / data-for territory).** |
 | Phase 2 step 6 — model-function migration | Large | Sweep 548 `widget:foo()` → `data-event-click="onFoo()"` with `dm.*` handlers. After steps 2–4. |

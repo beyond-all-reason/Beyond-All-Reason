@@ -159,16 +159,11 @@ function M.sync(doc, ctx, clState, setSummary)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local WG = ctx.WG
-	local setActiveClass = ctx.setActiveClass
 	local syncAndFlash = ctx.syncAndFlash
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
 		-- ===== Clone Tool mode: highlight button, sync controls =====
 		do
-			local clBtnU = doc and doc:GetElementById("btn-clone")
-			if clBtnU then clBtnU:SetClass("active", true) end
-
-
 			-- Update status label
 			local statusLabel = doc and doc:GetElementById("cl-status-label")
 			if statusLabel and clState then
@@ -221,39 +216,33 @@ function M.sync(doc, ctx, clState, setSummary)
 					heightNumbox:SetAttribute("value", tostring(math.floor(clState.pasteHeightOffset)))
 				end
 
-				-- Sync mirror buttons
-				local mirXBtn = doc:GetElementById("btn-cl-mirror-x")
-				if mirXBtn and clState then mirXBtn:SetClass("active", clState.pasteMirrorX) end
-				local mirZBtn = doc:GetElementById("btn-cl-mirror-z")
-				if mirZBtn and clState then mirZBtn:SetClass("active", clState.pasteMirrorZ) end
-
-				-- Sync layer toggle buttons
-				if clState and clState.layers then
-					local layerIds = {
-						terrain  = "btn-cl-terrain",
-						metal    = "btn-cl-metal",
-						features = "btn-cl-features",
-						splats   = "btn-cl-splats",
-						grass    = "btn-cl-grass",
-						decals   = "btn-cl-decals",
-						weather  = "btn-cl-weather",
-						lights   = "btn-cl-lights",
-					}
-					for name, id in pairs(layerIds) do
-						local btn = doc:GetElementById(id)
-						if btn then btn:SetClass("active", clState.layers[name] == true) end
-					end
+				-- Sync mirror buttons (dm)
+				if clState and widgetState.dmHandle then
+					local dm = widgetState.dmHandle
+					local mx = clState.pasteMirrorX and true or false
+					local mz = clState.pasteMirrorZ and true or false
+					if dm.clMirrorX ~= mx then dm.clMirrorX = mx end
+					if dm.clMirrorZ ~= mz then dm.clMirrorZ = mz end
 				end
 
-				-- Sync quality buttons
-				if clState then
+				-- Sync layer toggle buttons (dm)
+				if clState and clState.layers and widgetState.dmHandle then
+					local dm = widgetState.dmHandle
+					local ly = clState.layers
+					if dm.clLayerTerrain  ~= (ly.terrain  == true) then dm.clLayerTerrain  = ly.terrain  == true end
+					if dm.clLayerMetal    ~= (ly.metal    == true) then dm.clLayerMetal    = ly.metal    == true end
+					if dm.clLayerFeatures ~= (ly.features == true) then dm.clLayerFeatures = ly.features == true end
+					if dm.clLayerSplats   ~= (ly.splats   == true) then dm.clLayerSplats   = ly.splats   == true end
+					if dm.clLayerGrass    ~= (ly.grass    == true) then dm.clLayerGrass    = ly.grass    == true end
+					if dm.clLayerDecals   ~= (ly.decals   == true) then dm.clLayerDecals   = ly.decals   == true end
+					if dm.clLayerWeather  ~= (ly.weather  == true) then dm.clLayerWeather  = ly.weather  == true end
+					if dm.clLayerLights   ~= (ly.lights   == true) then dm.clLayerLights   = ly.lights   == true end
+				end
+
+				-- Sync quality button (dm)
+				if clState and widgetState.dmHandle then
 					local tq = clState.terrainQuality or "full"
-					local qFull = doc:GetElementById("btn-cl-quality-full")
-					local qBal  = doc:GetElementById("btn-cl-quality-balanced")
-					local qFast = doc:GetElementById("btn-cl-quality-fast")
-					if qFull then qFull:SetClass("active", tq == "full") end
-					if qBal  then qBal:SetClass("active", tq == "balanced") end
-					if qFast then qFast:SetClass("active", tq == "fast") end
+					if widgetState.dmHandle.clQuality ~= tq then widgetState.dmHandle.clQuality = tq end
 				end
 
 				-- Sync history slider

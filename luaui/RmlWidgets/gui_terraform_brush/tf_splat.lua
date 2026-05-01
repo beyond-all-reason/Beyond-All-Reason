@@ -345,17 +345,26 @@ function M.attach(doc, ctx)
 	-- Symmetry sub chips (local sp-btn-* ids; attachTBMirrorControls only covers btn-sp-* ids)
 	w.splatToggleSymRadial = function(self)
 		if WG.TerraformBrush then
-			WG.TerraformBrush.setSymmetryRadial(not WG.TerraformBrush.getState().symmetryRadial)
+			local nv = not WG.TerraformBrush.getState().symmetryRadial
+			WG.TerraformBrush.setSymmetryRadial(nv)
+			local dm = widgetState.dmHandle; if dm then dm.spSymmetryRadial = nv end
+			local btn = doc:GetElementById("sp-btn-symmetry-radial"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.splatToggleSymMirrorX = function(self)
 		if WG.TerraformBrush then
-			WG.TerraformBrush.setSymmetryMirrorX(not WG.TerraformBrush.getState().symmetryMirrorX)
+			local nv = not WG.TerraformBrush.getState().symmetryMirrorX
+			WG.TerraformBrush.setSymmetryMirrorX(nv)
+			local dm = widgetState.dmHandle; if dm then dm.spSymMirrorX = nv end
+			local btn = doc:GetElementById("sp-btn-symmetry-mirror-x"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.splatToggleSymMirrorY = function(self)
 		if WG.TerraformBrush then
-			WG.TerraformBrush.setSymmetryMirrorY(not WG.TerraformBrush.getState().symmetryMirrorY)
+			local nv = not WG.TerraformBrush.getState().symmetryMirrorY
+			WG.TerraformBrush.setSymmetryMirrorY(nv)
+			local dm = widgetState.dmHandle; if dm then dm.spSymMirrorY = nv end
+			local btn = doc:GetElementById("sp-btn-symmetry-mirror-y"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.splatSymPlaceOrigin = function(self)
@@ -374,7 +383,26 @@ function M.attach(doc, ctx)
 	-- Measure sub chips
 	w.splatMeasureShowLength = function(self)
 		if WG.TerraformBrush and WG.TerraformBrush.setMeasureShowLength then
-			WG.TerraformBrush.setMeasureShowLength(not WG.TerraformBrush.getState().measureShowLength)
+			local nv = not WG.TerraformBrush.getState().measureShowLength
+			WG.TerraformBrush.setMeasureShowLength(nv)
+			local dm = widgetState.dmHandle; if dm then dm.spMeasureShowLength = nv end
+			local btn = doc:GetElementById("sp-btn-measure-show-length"); if btn then btn:SetClass("active", nv) end
+		end
+	end
+	w.splatMeasureRuler = function(self)
+		if WG.TerraformBrush and WG.TerraformBrush.setMeasureRulerMode then
+			local nv = not WG.TerraformBrush.getState().measureRulerMode
+			WG.TerraformBrush.setMeasureRulerMode(nv)
+			local dm = widgetState.dmHandle; if dm then dm.spMeasureRulerMode = nv end
+			local btn = doc:GetElementById("sp-btn-measure-ruler"); if btn then btn:SetClass("active", nv) end
+		end
+	end
+	w.splatMeasureSticky = function(self)
+		if WG.TerraformBrush and WG.TerraformBrush.setMeasureStickyMode then
+			local nv = not WG.TerraformBrush.getState().measureStickyMode
+			WG.TerraformBrush.setMeasureStickyMode(nv)
+			local dm = widgetState.dmHandle; if dm then dm.spMeasureStickyMode = nv end
+			local btn = doc:GetElementById("sp-btn-measure-sticky"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.splatMeasureClear = function(self)
@@ -390,14 +418,11 @@ function M.sync(doc, ctx, spState, setSummary)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local WG = ctx.WG
-	local setActiveClass = ctx.setActiveClass
 	local syncAndFlash = ctx.syncAndFlash
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
 		-- ===== Splat Painter mode: update splat controls =====
-		local splatBtn = doc and doc:GetElementById("btn-splat")
-		if splatBtn then splatBtn:SetClass("active", true) end
-
+		-- btn-splat active state driven by data-class-active="activeTool == 'sp'" in RML.
 
 		if widgetState.dmHandle then widgetState.dmHandle.activeShape = spState.shape or "circle" end
 
@@ -420,10 +445,10 @@ function M.sync(doc, ctx, spState, setSummary)
 				if dm.splatCurveStr ~= s5 then dm.splatCurveStr = s5 end
 			end
 
-			-- Splat channel button highlights
-			for i = 1, 4 do
-				local chBtn = doc:GetElementById("btn-sp-ch" .. i)
-				if chBtn then chBtn:SetClass("active", i == spState.channel) end
+			-- Splat channel button highlights (data-class-active="spChannel == N")
+			if dm then
+				local ch = spState.channel or 1
+				if dm.spChannel ~= ch then dm.spChannel = ch end
 			end
 
 			-- Splat sliders
@@ -455,16 +480,12 @@ function M.sync(doc, ctx, spState, setSummary)
 					-- overwrite it here based on filter flags or the click toggle fights
 					-- this per-frame write and the chip becomes unresponsive.
 
-					-- Filter chips that mirror their filter key (not section-expanded):
-					--   Avoid Water chip is owned by wireFilterToggleChip; we mirror its
-					--   active state here. Slope-mode mutex sub-chips mirror avoidCliffs /
-					--   preferSlopes (owned by wireMutexChipPair).
-					local avoidWaterChip = doc:GetElementById("sp-filter-chip-avoid-water")
-					if avoidWaterChip then avoidWaterChip:SetClass("active", sf.avoidWater == true) end
-					local slopeAvoidChip = doc:GetElementById("sp-slope-mode-avoid")
-					if slopeAvoidChip then slopeAvoidChip:SetClass("active", sf.avoidCliffs == true) end
-					local slopePreferChip = doc:GetElementById("sp-slope-mode-prefer")
-					if slopePreferChip then slopePreferChip:SetClass("active", sf.preferSlopes == true) end
+					-- Filter chips: avoid-water driven by data-class-active="spAvoidWater".
+					-- Slope-mode mutex sub-chips owned by wireMutexChipPair — do not set active here.
+					if dm then
+						local v = sf.avoidWater == true
+						if dm.spAvoidWater ~= v then dm.spAvoidWater = v end
+					end
 
 					-- Slope-max row visibility driven by data-if="spAvoidCliffs"
 					if widgetState.dmHandle then
@@ -518,12 +539,14 @@ function M.sync(doc, ctx, spState, setSummary)
 						spSAltMax:SetAttribute("value", tostring(sf.altMax))
 					end
 
-					-- SAMPLE button active-class mirrors (height sampling mode indicator)
+					-- SAMPLE button active states (data-class-active driven)
 					local hsm = WG.TerraformBrush and (WG.TerraformBrush.getState() or {}).heightSamplingMode
-					local spAltMinSample = doc:GetElementById("btn-sp-alt-min-sample")
-					if spAltMinSample then spAltMinSample:SetClass("active", hsm == "spAltMin") end
-					local spAltMaxSample = doc:GetElementById("btn-sp-alt-max-sample")
-					if spAltMaxSample then spAltMaxSample:SetClass("active", hsm == "spAltMax") end
+					if dm then
+						local minS = hsm == "spAltMin"
+						if dm.spAltMinSample ~= minS then dm.spAltMinSample = minS end
+						local maxS = hsm == "spAltMax"
+						if dm.spAltMaxSample ~= maxS then dm.spAltMaxSample = maxS end
+					end
 				end
 			end
 
@@ -602,11 +625,7 @@ function M.sync(doc, ctx, spState, setSummary)
 			local tb = WG.TerraformBrush
 			if tb and tb.getState then
 				local s = tb.getState()
-				local function setChip(id, active)
-					local el = doc:GetElementById(id)
-					if el then el:SetClass("active", active and true or false) end
-				end
-				-- Visibility flags pushed to data-model (driven by data-if in RML).
+					-- Visibility + active flags pushed to data-model (data-if and data-class-active in RML).
 				local dm = widgetState.dmHandle
 				if dm then
 					dm.spGridSnap = s.gridSnap and true or false
@@ -616,13 +635,15 @@ function M.sync(doc, ctx, spState, setSummary)
 					dm.spSymmetryRadial = s.symmetryRadial and true or false
 					dm.spSymmetryMirrorAny = (s.symmetryMirrorX or s.symmetryMirrorY) and true or false
 					dm.spAngleSnapAuto = s.angleSnapAuto and true or false
-				end
-				setChip("btn-sp-grid-overlay",    s.gridOverlay)
-				setChip("btn-sp-height-colormap", s.heightColormap)
-				-- Splat Map overlay chip (own state from SplatPainter)
-				do
+					dm.spGridOverlay = s.gridOverlay and true or false
+					dm.spHeightColormap = s.heightColormap and true or false
+					-- Splat Map overlay chip (own state from SplatPainter)
 					local sp = WG.SplatPainter
-					setChip("btn-sp-splat-overlay", sp and sp.getState and sp.getState().showSplatOverlay or false)
+					dm.spSplatOverlay = (sp and sp.getState and sp.getState().showSplatOverlay) and true or false
+					-- Instruments sub-chip active states
+					dm.spMeasureShowLength = s.measureShowLength and true or false
+					dm.spSymMirrorX = s.symmetryMirrorX and true or false
+					dm.spSymMirrorY = s.symmetryMirrorY and true or false
 				end
 				-- Hint dot: visible (pulsing) while DISPLAY section is closed
 				do
@@ -649,22 +670,18 @@ function M.sync(doc, ctx, spState, setSummary)
 					local splatChip = doc:GetElementById("btn-sp-splat-overlay")
 					if splatChip then splatChip:SetClass("tf-chip-2pulse", false) end
 				end
-				setChip("btn-sp-grid-snap",       s.gridSnap)
-				setChip("btn-sp-angle-snap",      s.angleSnap)
-				setChip("btn-sp-measure",         s.measureActive)
-				setChip("btn-sp-symmetry",        s.symmetryActive)
+				-- sp instrument chip active states driven by data-class-active in RML
+				-- (dm.spGridSnap/spAngleSnap/spMeasureActive/spSymmetryActive written in dm block above)
 				-- sp-grid-snap-size-row, sp-angle-snap-step-row, sp-measure-toolbar-row,
 				-- sp-symmetry-toolbar-row visibility driven by data-if (dm.sp* flags above).
 				-- Symmetry sub chips + sub rows
-				setChip("sp-btn-symmetry-radial",   s.symmetryRadial)
-				setChip("sp-btn-symmetry-mirror-x", s.symmetryMirrorX)
-				setChip("sp-btn-symmetry-mirror-y", s.symmetryMirrorY)
+				-- (active driven by data-class-active="spSymmetryRadial"/spSymMirrorX/spSymMirrorY)
 				-- sp-symmetry-radial-count-row, sp-symmetry-mirror-angle-row visibility
 				-- driven by data-if (dm.spSymmetryRadial / dm.spSymmetryMirrorAny).
 				-- Measure sub chips
-				setChip("sp-btn-measure-show-length", s.measureShowLength)
+				-- (active driven by data-class-active="spMeasureShowLength")
 				-- Angle auto-snap chip + manual spoke row (data-if="!spAngleSnapAuto")
-				setChip("sp-btn-angle-autosnap", s.angleSnapAuto)
+				-- (active driven by data-class-active="spAngleSnapAuto")
 				-- Labels
 				local function setLabel(id, text)
 					local el = doc:GetElementById(id)

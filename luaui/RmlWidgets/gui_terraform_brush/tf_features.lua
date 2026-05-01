@@ -273,6 +273,30 @@ function M.attach(doc, ctx)
 		local btn = doc:GetElementById("btn-fp-measure")
 		if btn then btn:SetClass("active", newVal) end
 	end
+	w.fpMeasureRuler = function(self)
+		if WG.TerraformBrush and WG.TerraformBrush.setMeasureRulerMode then
+			WG.TerraformBrush.setMeasureRulerMode(not WG.TerraformBrush.getState().measureRulerMode)
+			playSound("tick")
+		end
+	end
+	w.fpMeasureSticky = function(self)
+		if WG.TerraformBrush and WG.TerraformBrush.setMeasureStickyMode then
+			WG.TerraformBrush.setMeasureStickyMode(not WG.TerraformBrush.getState().measureStickyMode)
+			playSound("tick")
+		end
+	end
+	w.fpMeasureShowLength = function(self)
+		if WG.TerraformBrush and WG.TerraformBrush.setMeasureShowLength then
+			WG.TerraformBrush.setMeasureShowLength(not WG.TerraformBrush.getState().measureShowLength)
+			playSound("tick")
+		end
+	end
+	w.fpMeasureClear = function(self)
+		if WG.TerraformBrush and WG.TerraformBrush.clearMeasureLines then
+			WG.TerraformBrush.clearMeasureLines()
+			playSound("tick")
+		end
+	end
 
 	-- Instruments: Symmetry (shared WG.TerraformBrush)
 	w.fpToggleSymmetry = function(self)
@@ -400,10 +424,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
 		-- ===== Feature Placer mode: update feature controls =====
-		local featuresBtn = doc and doc:GetElementById("btn-features")
-		if featuresBtn then
-			featuresBtn:SetClass("active", true)
-		end
+		-- btn-features active state driven by data-class-active="activeTool == 'fp'" in RML.
 		-- Clear terraform mode highlights
 
 
@@ -578,6 +599,9 @@ function M.sync(doc, ctx, fpState, setSummary)
 			if fpGridSnapBtn then
 				fpGridSnapBtn:SetClass("active", fpState.gridSnap == true)
 			end
+			if widgetState.dmHandle then
+				widgetState.dmHandle.fpGridSnap = fpState.gridSnap == true
+			end
 
 			-- Display overlay sync (shared TerraformBrush state)
 			if WG.TerraformBrush then
@@ -596,6 +620,12 @@ function M.sync(doc, ctx, fpState, setSummary)
 						widgetState.dmHandle.fpSymmetryActive = tbState.symmetryActive == true
 						widgetState.dmHandle.fpSymmetryRadial = tbState.symmetryRadial == true
 						widgetState.dmHandle.fpSymmetryMirrorAny = (tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false
+						widgetState.dmHandle.fpMeasureActive    = tbState.measureActive == true
+						widgetState.dmHandle.fpMeasureRulerMode  = tbState.measureRulerMode == true
+						widgetState.dmHandle.fpMeasureStickyMode = tbState.measureStickyMode == true
+						widgetState.dmHandle.fpMeasureShowLength = tbState.measureShowLength == true
+						widgetState.dmHandle.fpSymMirrorX = tbState.symmetryMirrorX == true
+						widgetState.dmHandle.fpSymMirrorY = tbState.symmetryMirrorY == true
 					end
 					-- fp-symmetry-toolbar-row visibility driven by data-if="fpSymmetryActive"
 					local fpSymRadial = doc:GetElementById("fp-btn-symmetry-radial")
@@ -604,6 +634,13 @@ function M.sync(doc, ctx, fpState, setSummary)
 					if fpSymMX then fpSymMX:SetClass("active", tbState.symmetryMirrorX == true) end
 					local fpSymMY = doc:GetElementById("fp-btn-symmetry-mirror-y")
 					if fpSymMY then fpSymMY:SetClass("active", tbState.symmetryMirrorY == true) end
+					-- Measure sub-chip active states
+					local fpMeasRL = doc:GetElementById("fp-btn-measure-ruler")
+					if fpMeasRL then fpMeasRL:SetClass("active", tbState.measureRulerMode == true) end
+					local fpMeasST = doc:GetElementById("fp-btn-measure-sticky")
+					if fpMeasST then fpMeasST:SetClass("active", tbState.measureStickyMode == true) end
+					local fpMeasSL = doc:GetElementById("fp-btn-measure-show-length")
+					if fpMeasSL then fpMeasSL:SetClass("active", tbState.measureShowLength == true) end
 					-- fp-symmetry-radial-count-row visibility driven by data-if="fpSymmetryRadial"
 					local fpSymRadLabel = doc:GetElementById("fp-symmetry-radial-count-label")
 					if fpSymRadLabel then fpSymRadLabel.inner_rml = tostring(tbState.symmetryRadialCount or 2) end

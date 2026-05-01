@@ -572,9 +572,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 	local WG = ctx.WG
 	local dm = widgetState.dmHandle
 
-	local grassBtn = doc and doc:GetElementById("btn-grass")
-	if grassBtn then grassBtn:SetClass("active", true) end
-
+	-- btn-grass active state driven by data-class-active="activeTool == 'gb'" in RML.
 
 	-- Grass sub-mode buttons (driven by dm.gbSubMode via data-class-active)
 	if widgetState.dmHandle then widgetState.dmHandle.gbSubMode = gbState.subMode or "paint" end
@@ -606,12 +604,18 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 					local el = doc:GetElementById(id)
 					if el then el:SetClass("active", on and true or false) end
 				end
-				gbSetCls("btn-gb-grid-overlay",    s.gridOverlay)
-				gbSetCls("btn-gb-height-colormap", s.heightColormap)
-				gbSetCls("btn-gb-grid-snap",       s.gridSnap)
-				gbSetCls("btn-gb-angle-snap",      s.angleSnap)
-				gbSetCls("btn-gb-measure",         s.measureActive)
-				gbSetCls("btn-gb-symmetry",        s.symmetryActive)
+				gbSetCls("btn-gb-grid-overlay",        s.gridOverlay)
+				gbSetCls("btn-gb-height-colormap",     s.heightColormap)
+				gbSetCls("btn-gb-grid-snap",           s.gridSnap)
+				gbSetCls("btn-gb-angle-snap",          s.angleSnap)
+				gbSetCls("btn-gb-measure",             s.measureActive)
+				gbSetCls("btn-gb-symmetry",            s.symmetryActive)
+				gbSetCls("gb-btn-symmetry-radial",     s.symmetryRadial)
+				gbSetCls("gb-btn-symmetry-mirror-x",   s.symmetryMirrorX)
+				gbSetCls("gb-btn-symmetry-mirror-y",   s.symmetryMirrorY)
+				gbSetCls("gb-btn-measure-show-length", s.measureShowLength)
+				gbSetCls("gb-btn-measure-ruler",       s.measureRulerMode)
+				gbSetCls("gb-btn-measure-sticky",      s.measureStickyMode)
 			end
 			if dm then
 				dm.gbGridSnap        = s.gridSnap and true or false
@@ -621,6 +625,9 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 				dm.gbSymmetryRadial  = s.symmetryRadial and true or false
 				dm.gbSymmetryMirrorAny = (s.symmetryMirrorX or s.symmetryMirrorY) and true or false
 				dm.gbAngleSnapAuto   = s.angleSnapAuto and true or false
+				dm.gbMeasureRulerMode  = s.measureRulerMode and true or false
+				dm.gbMeasureStickyMode = s.measureStickyMode and true or false
+				dm.gbMeasureShowLength = s.measureShowLength and true or false
 			end
 		end
 	end
