@@ -3254,13 +3254,14 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 	end
 
 	-- Draw guide line: terrain-following from origin to map edges
-	local function drawGuideLine(angleRad, lineWidth, r, g, b, a)
+	local function drawGuideLine(angleRad, lineWidth, r, g, b, a, halfLine)
 		local dx = cos(angleRad) * (maxLen / SEGS)
 		local dz = sin(angleRad) * (maxLen / SEGS)
 		glLineWidth(lineWidth)
 		glColor(r, g, b, a)
+		local startS = halfLine and 0 or -SEGS
 		glBeginEnd(GL.LINE_STRIP, function()
-			for s = -SEGS, SEGS do
+			for s = startS, SEGS do
 				local sx = ox + dx * s
 				local sz = oz + dz * s
 				if sx >= 0 and sx <= msx and sz >= 0 and sz <= msz then
@@ -3302,7 +3303,7 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 		local count = extraState.symmetryRadialCount
 		local step = (2 * pi) / count
 		for k = 0, count - 1 do
-			drawGuideLine(k * step, 1, 0.2, 0.9, 0.9, 0.25)
+			drawGuideLine(ang + k * step, 1, 0.2, 0.9, 0.9, 0.25, true)
 		end
 	else
 		if extraState.symmetryMirrorX then
@@ -5809,7 +5810,7 @@ function widget:DrawWorld()
 			local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
 			if fpState and fpState.active then
 				local wx, wz = getWorldMousePosition()
-				if wx then
+				if wx and not extraState.symmetryHoveringOrigin then
 					extraState.drawHeightColormap(wx, wz, fpState.radius or 200, fpState.shape or "circle", fpState.rotation or 0, 1.0)
 				end
 			else
@@ -5823,32 +5824,32 @@ function widget:DrawWorld()
 				local clState = WG.CloneTool and WG.CloneTool.getState()
 				if (mbState and mbState.active) or (gbState and gbState.active) then
 					local wx, wz = getWorldMousePosition()
-					if wx then
+					if wx and not extraState.symmetryHoveringOrigin then
 						extraState.drawHeightColormap(wx, wz, activeRadius, activeShape, activeRotation, activeLengthScale)
 					end
 				elseif spState and spState.active then
 					local wx, wz = getWorldMousePosition()
-					if wx then
+					if wx and not extraState.symmetryHoveringOrigin then
 						extraState.drawHeightColormap(wx, wz, spState.radius or 200, spState.shape or "circle", spState.rotationDeg or 0, 1.0)
 					end
 				elseif dcState and dcState.active then
 					local wx, wz = getWorldMousePosition()
-					if wx then
+					if wx and not extraState.symmetryHoveringOrigin then
 						extraState.drawHeightColormap(wx, wz, dcState.radius or 200, "circle", dcState.rotation or 0, 1.0)
 					end
 				elseif wbState and wbState.active then
 					local wx, wz = getWorldMousePosition()
-					if wx then
+					if wx and not extraState.symmetryHoveringOrigin then
 						extraState.drawHeightColormap(wx, wz, wbState.radius or 200, "circle", wbState.rotation or 0, wbState.lengthScale or 1.0)
 					end
 				elseif lpState and lpState.active then
 					local wx, wz = getWorldMousePosition()
-					if wx then
+					if wx and not extraState.symmetryHoveringOrigin then
 						extraState.drawHeightColormap(wx, wz, lpState.radius or 200, "circle", lpState.rotation or 0, 1.0)
 					end
 				elseif stState and stState.active then
 					local wx, wz = getWorldMousePosition()
-					if wx then
+					if wx and not extraState.symmetryHoveringOrigin then
 						-- Only show shape overlay in shape submode; express/startbox have no meaningful brush radius
 						if stState.subMode == "shape" then
 							local sr = math.min(stState.shapeRadius or 500, 800)
@@ -5857,7 +5858,7 @@ function widget:DrawWorld()
 					end
 				elseif clState and clState.active then
 					local wx, wz = getWorldMousePosition()
-					if wx then
+					if wx and not extraState.symmetryHoveringOrigin then
 						extraState.drawHeightColormap(wx, wz, clState.radius or 300, "circle", clState.rotation or 0, 1.0)
 					end
 				end
@@ -5918,7 +5919,7 @@ function widget:DrawWorld()
 						local osx, osy = Spring.WorldToScreenCoords(ox, oy, oz)
 						local smx, smy = Spring.GetMouseState()
 						local sdx, sdy = smx - osx, smy - osy
-						if sdx * sdx + sdy * sdy < 20 * 20 then
+						if sdx * sdx + sdy * sdy < 32 * 32 then
 							extraState.symmetryHoveringOrigin = true
 							Spring.SetMouseCursor("Move")
 						end
@@ -6010,14 +6011,13 @@ function widget:DrawWorld()
 			local osx, osy = Spring.WorldToScreenCoords(ox, oy, oz)
 			local smx, smy = Spring.GetMouseState()
 			local sdx, sdy = smx - osx, smy - osy
-			if sdx * sdx + sdy * sdy < 20 * 20 then
+			if sdx * sdx + sdy * sdy < 32 * 32 then
 				extraState.symmetryHoveringOrigin = true
 				Spring.SetMouseCursor("Move")
 			end
 		end
 	end
 
-	-- Symmetry origin placing mode: show crosshair cursor, skip normal brush
 	if extraState.symmetryPlacingOrigin then
 		Spring.SetMouseCursor("Move")
 	end
