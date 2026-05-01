@@ -45,11 +45,11 @@ function M.attach(doc, ctx)
 			end
 		end
 
-		local soundBtnEl = doc:GetElementById("btn-sound")
 		-- onclick="widget:guideToggleSound()"
-		w.guideToggleSound = function(self, element)
+		w.guideToggleSound = function(self)
 			widgetState.soundMuted = not widgetState.soundMuted
-			if element then element:SetClass("muted", widgetState.soundMuted) end
+			-- active-class driven by data-class-muted="soundMuted" in RML
+			if widgetState.dmHandle then widgetState.dmHandle.soundMuted = widgetState.soundMuted end
 		end
 
 		do

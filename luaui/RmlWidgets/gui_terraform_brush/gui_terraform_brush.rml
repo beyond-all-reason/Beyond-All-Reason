@@ -10,7 +10,7 @@
 	<div id="tf-root" class="tf-root hidden widget-shadow rounded-md bg-darkest p-2-5">
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div id="tf-handle" class="tf-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Terraform Brush</div>
-			<div id="btn-sound" class="tf-header-btn tf-sound-btn" onclick="widget:guideToggleSound(element); event:StopPropagation()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/volume.png" /></div>
+			<div id="btn-sound" class="tf-header-btn tf-sound-btn" data-class-muted="soundMuted" onclick="widget:guideToggleSound(); event:StopPropagation()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/volume.png" /></div>
 			<div id="btn-guide" class="tf-header-btn tf-guide-btn" data-class-active="guideMode" onclick="widget:guideToggle(element); event:StopPropagation()"><span>?</span></div>
 			<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" onclick="widget:guideTogglePassthrough(); event:StopPropagation()">
 				<img id="passthrough-icon-pause" class="tf-header-icon" src="/luaui/images/terraform_brush/passthrough_pause.png" data-if="!passthroughActive" />
