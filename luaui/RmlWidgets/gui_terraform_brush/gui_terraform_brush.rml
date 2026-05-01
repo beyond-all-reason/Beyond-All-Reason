@@ -1381,10 +1381,10 @@
 				<div id="gb-smart-slope-content" data-if="gbSlopeActive">
 				<!-- Mutually exclusive toggle: avoid slopes vs prefer slopes (avoid default on when chip activated) -->
 				<div class="flex flex-row items-center gap-1 mb-1">
-					<div id="gb-slope-mode-avoid" onclick="widget:gbSlopeModeAvoid(); event:StopPropagation()" class="tf-overlay-chip">
+					<div id="gb-slope-mode-avoid" onclick="widget:gbSlopeModeAvoid(); event:StopPropagation()" class="tf-overlay-chip" data-class-active="gbAvoidCliffs">
 						<div class="tf-overlay-chip-label">Avoid Slopes</div>
 					</div>
-					<div id="gb-slope-mode-prefer" onclick="widget:gbSlopeModePrefer(); event:StopPropagation()" class="tf-overlay-chip">
+					<div id="gb-slope-mode-prefer" onclick="widget:gbSlopeModePrefer(); event:StopPropagation()" class="tf-overlay-chip" data-class-active="gbPreferSlopes">
 						<div class="tf-overlay-chip-label">Prefer Slopes</div>
 					</div>
 				</div>
@@ -2493,10 +2493,10 @@
 		<div id="fp-smart-slope-content" class="hidden">
 		<!-- Mutually exclusive toggle: avoid slopes vs prefer slopes (avoid default on when chip activated) -->
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="fp-slope-mode-avoid" class="tf-overlay-chip">
+			<div id="fp-slope-mode-avoid" class="tf-overlay-chip" data-class-active="fpAvoidCliffs">
 				<div class="tf-overlay-chip-label">Avoid Slopes</div>
 			</div>
-			<div id="fp-slope-mode-prefer" class="tf-overlay-chip">
+			<div id="fp-slope-mode-prefer" class="tf-overlay-chip" data-class-active="fpPreferSlopes">
 				<div class="tf-overlay-chip-label">Prefer Slopes</div>
 			</div>
 		</div>
@@ -3286,10 +3286,10 @@
 		<div id="sp-smart-slope-content" class="hidden">
 		<!-- Mutually exclusive toggle: avoid slopes vs prefer slopes (avoid default on when chip activated) -->
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="sp-slope-mode-avoid" class="tf-overlay-chip">
+			<div id="sp-slope-mode-avoid" class="tf-overlay-chip" data-class-active="spAvoidCliffs">
 				<div class="tf-overlay-chip-label">Avoid Slopes</div>
 			</div>
-			<div id="sp-slope-mode-prefer" class="tf-overlay-chip">
+			<div id="sp-slope-mode-prefer" class="tf-overlay-chip" data-class-active="spPreferSlopes">
 				<div class="tf-overlay-chip-label">Prefer Slopes</div>
 			</div>
 		</div>
