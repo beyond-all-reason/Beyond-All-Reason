@@ -348,7 +348,6 @@ function M.attach(doc, ctx)
 			local nv = not WG.TerraformBrush.getState().symmetryRadial
 			WG.TerraformBrush.setSymmetryRadial(nv)
 			local dm = widgetState.dmHandle; if dm then dm.spSymmetryRadial = nv end
-			local btn = doc:GetElementById("sp-btn-symmetry-radial"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.splatToggleSymMirrorX = function(self)
@@ -356,7 +355,6 @@ function M.attach(doc, ctx)
 			local nv = not WG.TerraformBrush.getState().symmetryMirrorX
 			WG.TerraformBrush.setSymmetryMirrorX(nv)
 			local dm = widgetState.dmHandle; if dm then dm.spSymMirrorX = nv end
-			local btn = doc:GetElementById("sp-btn-symmetry-mirror-x"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.splatToggleSymMirrorY = function(self)
@@ -364,7 +362,6 @@ function M.attach(doc, ctx)
 			local nv = not WG.TerraformBrush.getState().symmetryMirrorY
 			WG.TerraformBrush.setSymmetryMirrorY(nv)
 			local dm = widgetState.dmHandle; if dm then dm.spSymMirrorY = nv end
-			local btn = doc:GetElementById("sp-btn-symmetry-mirror-y"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.splatSymPlaceOrigin = function(self)
@@ -386,7 +383,6 @@ function M.attach(doc, ctx)
 			local nv = not WG.TerraformBrush.getState().measureShowLength
 			WG.TerraformBrush.setMeasureShowLength(nv)
 			local dm = widgetState.dmHandle; if dm then dm.spMeasureShowLength = nv end
-			local btn = doc:GetElementById("sp-btn-measure-show-length"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.splatMeasureRuler = function(self)

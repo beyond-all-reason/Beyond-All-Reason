@@ -689,15 +689,15 @@
 			</div>
 			<div id="section-mb-mode">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-mb-paint" class="tf-mode-btn tf-mb-btn-paint" onclick="widget:mbSetSubMode('paint'); event:StopPropagation()">
+				<div id="btn-mb-paint" class="tf-mode-btn tf-mb-btn-paint" data-class-active="mbSubMode == 'paint'" onclick="widget:mbSetSubMode('paint'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/mb_paint.png" />
 					<div class="tf-btn-text">Paint</div>
 				</div>
-				<div id="btn-mb-stamp" class="tf-mode-btn tf-mb-btn-stamp" onclick="widget:mbSetSubMode('stamp'); event:StopPropagation()">
+				<div id="btn-mb-stamp" class="tf-mode-btn tf-mb-btn-stamp" data-class-active="mbSubMode == 'stamp'" onclick="widget:mbSetSubMode('stamp'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_decals.png" />
 					<div class="tf-btn-text">Stamp</div>
 				</div>
-				<div id="btn-mb-remove" class="tf-mode-btn tf-mb-btn-remove" onclick="widget:mbSetSubMode('remove'); event:StopPropagation()">
+				<div id="btn-mb-remove" class="tf-mode-btn tf-mb-btn-remove" data-class-active="mbSubMode == 'remove'" onclick="widget:mbSetSubMode('remove'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_remove.png" />
 					<div class="tf-btn-text">Remove</div>
 				</div>
@@ -720,28 +720,28 @@
 			</div>
 			<div id="section-mb-overlays" class="hidden">
 			<div class="flex flex-row items-center gap-1 mb-1">
-				<div id="btn-mb-grid-overlay" class="tf-overlay-chip" onclick="widget:mbToggleGridOverlay(); event:StopPropagation()">
+				<div id="btn-mb-grid-overlay" class="tf-overlay-chip" data-class-active="mbGridOverlay" onclick="widget:mbToggleGridOverlay(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label">Grid</div>
 				</div>
-				<div id="btn-mb-height-colormap" class="tf-overlay-chip" onclick="widget:mbToggleHeightColormap(); event:StopPropagation()">
+				<div id="btn-mb-height-colormap" class="tf-overlay-chip" data-class-active="mbHeightColormap" onclick="widget:mbToggleHeightColormap(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label">Height Map</div>
 				</div>
-				<div id="btn-mb-mapoverlay" class="tf-overlay-chip" onclick="widget:mbToggleMapOverlay(); event:StopPropagation()">
+				<div id="btn-mb-mapoverlay" class="tf-overlay-chip" data-class-active="mbMapOverlay" onclick="widget:mbToggleMapOverlay(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Metal Map</div>
 				</div>
-				<div id="btn-mb-inspector" class="tf-overlay-chip" onclick="widget:mbToggleInspector(); event:StopPropagation()">
+				<div id="btn-mb-inspector" class="tf-overlay-chip" data-class-active="mbInspectorOpen" onclick="widget:mbToggleInspector(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Inspector</div>
 				</div>
 			</div>
 			<div id="mb-inspector-row" class="tf-instrument-sub hidden mb-1">
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="btn-mb-clusters" class="tf-overlay-chip" style="flex: 1;" onclick="widget:mbToggleClusters(); event:StopPropagation()">
+					<div id="btn-mb-clusters" class="tf-overlay-chip" data-class-active="mbClusterOpen" style="flex: 1;" onclick="widget:mbToggleClusters(); event:StopPropagation()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Clusters</div>
 					</div>
-					<div id="btn-mb-lasso" class="tf-overlay-chip" style="flex: 1;" onclick="widget:mbToggleLasso(); event:StopPropagation()">
+					<div id="btn-mb-lasso" class="tf-overlay-chip" data-class-active="mbLassoActive" style="flex: 1;" onclick="widget:mbToggleLasso(); event:StopPropagation()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Lasso</div>
 					</div>
-					<div id="btn-mb-balance-axis" class="tf-overlay-chip" style="flex: 1;" onclick="widget:mbToggleBalanceAxis(); event:StopPropagation()">
+					<div id="btn-mb-balance-axis" class="tf-overlay-chip" data-class-active="mbAxisOpen" style="flex: 1;" onclick="widget:mbToggleBalanceAxis(); event:StopPropagation()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Balance Axis</div>
 					</div>
 				</div>
@@ -818,16 +818,16 @@
 			</div>
 			<div id="section-mb-instruments" class="hidden">
 			<div class="flex flex-row items-center gap-1 mb-1">
-				<div id="btn-mb-grid-snap" class="tf-overlay-chip" onclick="widget:mbToggleGridSnap(); event:StopPropagation()">
+				<div id="btn-mb-grid-snap" class="tf-overlay-chip" data-class-active="mbGridSnap" onclick="widget:mbToggleGridSnap(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 				</div>
-				<div id="btn-mb-angle-snap" class="tf-overlay-chip" onclick="widget:mbToggleAngleSnap(); event:StopPropagation()">
+				<div id="btn-mb-angle-snap" class="tf-overlay-chip" data-class-active="mbAngleSnap" onclick="widget:mbToggleAngleSnap(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 				</div>
-				<div id="btn-mb-measure" class="tf-overlay-chip" onclick="widget:mbToggleMeasure(); event:StopPropagation()">
+				<div id="btn-mb-measure" class="tf-overlay-chip" data-class-active="mbMeasureActive" onclick="widget:mbToggleMeasure(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 				</div>
-				<div id="btn-mb-symmetry" class="tf-overlay-chip" onclick="widget:mbToggleSymmetry(); event:StopPropagation()">
+				<div id="btn-mb-symmetry" class="tf-overlay-chip" data-class-active="mbSymmetryActive" onclick="widget:mbToggleSymmetry(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 				</div>
 			</div>
@@ -862,7 +862,7 @@
 				</div>
 				<div class="flex flex-row items-center mb-1">
 					<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold" id="mb-angle-manual-spoke-label">0</span>&#176;</div>
-					<div id="mb-btn-angle-autosnap" class="tf-inline-chip" style="margin-left: 4dp;" onclick="widget:mbToggleAutoSnap(); event:StopPropagation()">Auto-Snap</div>
+					<div id="mb-btn-angle-autosnap" class="tf-inline-chip" data-class-active="mbAngleSnapAuto" style="margin-left: 4dp;" onclick="widget:mbToggleAutoSnap(); event:StopPropagation()">Auto-Snap</div>
 				</div>
 				<div id="mb-angle-manual-spoke-row" class="hidden mb-1">
 					<div class="flex flex-row gap-1 items-center mb-1">
@@ -878,13 +878,13 @@
 			</div>
 			<div id="mb-measure-toolbar-row" class="tf-instrument-sub hidden mb-1">
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="mb-btn-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:mbMeasureRuler(); event:StopPropagation()">
+					<div id="mb-btn-measure-ruler" class="tf-overlay-chip" data-class-active="mbMeasureRulerMode" style="flex: 1; text-align: center;" onclick="widget:mbMeasureRuler(); event:StopPropagation()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
 					</div>
-					<div id="mb-btn-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:mbMeasureSticky(); event:StopPropagation()">
+					<div id="mb-btn-measure-sticky" class="tf-overlay-chip" data-class-active="mbMeasureStickyMode" style="flex: 1; text-align: center;" onclick="widget:mbMeasureSticky(); event:StopPropagation()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
 					</div>
-					<div id="mb-btn-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:mbMeasureShowLength(); event:StopPropagation()">
+					<div id="mb-btn-measure-show-length" class="tf-overlay-chip" data-class-active="mbMeasureShowLength" style="flex: 1; text-align: center;" onclick="widget:mbMeasureShowLength(); event:StopPropagation()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 					</div>
 				</div>
@@ -896,13 +896,13 @@
 			</div>
 			<div id="mb-symmetry-toolbar-row" class="tf-instrument-sub hidden mb-1">
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="mb-btn-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:mbToggleSymRadial(); event:StopPropagation()">
+					<div id="mb-btn-symmetry-radial" class="tf-overlay-chip" data-class-active="mbSymmetryRadial" style="flex: 1; text-align: center;" onclick="widget:mbToggleSymRadial(); event:StopPropagation()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 					</div>
-					<div id="mb-btn-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:mbToggleSymMirrorX(); event:StopPropagation()">
+					<div id="mb-btn-symmetry-mirror-x" class="tf-overlay-chip" data-class-active="mbSymMirrorX" style="flex: 1; text-align: center;" onclick="widget:mbToggleSymMirrorX(); event:StopPropagation()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 					</div>
-					<div id="mb-btn-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:mbToggleSymMirrorY(); event:StopPropagation()">
+					<div id="mb-btn-symmetry-mirror-y" class="tf-overlay-chip" data-class-active="mbSymMirrorY" style="flex: 1; text-align: center;" onclick="widget:mbToggleSymMirrorY(); event:StopPropagation()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 					</div>
 				</div>
@@ -2936,21 +2936,21 @@
 		<div id="section-spl-channel">
 		<div class="tf-sp-grid mb-1">
 			<div class="tf-sp-row">
-				<div id="btn-sp-ch1" class="tf-sp-ch-btn active" onclick="widget:splatSetChannel(1); event:StopPropagation()">
+				<div id="btn-sp-ch1" class="tf-sp-ch-btn" data-class-active="spChannel == 1" onclick="widget:splatSetChannel(1); event:StopPropagation()">
 					<div class="tf-sp-badge">1</div>
 					<div id="sp-ch1-preview" class="tf-sp-preview"></div>
 				</div>
-				<div id="btn-sp-ch2" class="tf-sp-ch-btn" onclick="widget:splatSetChannel(2); event:StopPropagation()">
+				<div id="btn-sp-ch2" class="tf-sp-ch-btn" data-class-active="spChannel == 2" onclick="widget:splatSetChannel(2); event:StopPropagation()">
 					<div class="tf-sp-badge">2</div>
 					<div id="sp-ch2-preview" class="tf-sp-preview"></div>
 				</div>
 			</div>
 			<div class="tf-sp-row">
-				<div id="btn-sp-ch3" class="tf-sp-ch-btn" onclick="widget:splatSetChannel(3); event:StopPropagation()">
+				<div id="btn-sp-ch3" class="tf-sp-ch-btn" data-class-active="spChannel == 3" onclick="widget:splatSetChannel(3); event:StopPropagation()">
 					<div class="tf-sp-badge">3</div>
 					<div id="sp-ch3-preview" class="tf-sp-preview"></div>
 				</div>
-				<div id="btn-sp-ch4" class="tf-sp-ch-btn" onclick="widget:splatSetChannel(4); event:StopPropagation()">
+				<div id="btn-sp-ch4" class="tf-sp-ch-btn" data-class-active="spChannel == 4" onclick="widget:splatSetChannel(4); event:StopPropagation()">
 					<div class="tf-sp-badge">4</div>
 					<div id="sp-ch4-preview" class="tf-sp-preview"></div>
 				</div>
@@ -2975,7 +2975,7 @@
 			<div id="btn-sp-height-colormap" class="tf-overlay-chip">
 				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
-			<div id="btn-sp-splat-overlay" class="tf-overlay-chip" onclick="widget:splatToggleSplatOverlay(); event:StopPropagation()">
+			<div id="btn-sp-splat-overlay" class="tf-overlay-chip" data-class-active="spSplatOverlay" onclick="widget:splatToggleSplatOverlay(); event:StopPropagation()">
 				<div class="tf-overlay-chip-label">Splat Map</div>
 			</div>
 		</div>
@@ -3051,7 +3051,7 @@
 		</div>
 		<div id="sp-measure-toolbar-row" class="tf-instrument-sub hidden mb-1">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="sp-btn-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:splatMeasureShowLength(); event:StopPropagation()">
+				<div id="sp-btn-measure-show-length" class="tf-overlay-chip" data-class-active="spMeasureShowLength" style="flex: 1; text-align: center;" onclick="widget:splatMeasureShowLength(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 				</div>
 				<div id="sp-btn-measure-clear" class="tf-sm-btn" style="flex: 1;" onclick="widget:splatMeasureClear(); event:StopPropagation()">
@@ -3061,13 +3061,13 @@
 		</div>
 		<div id="sp-symmetry-toolbar-row" class="tf-instrument-sub hidden mb-1">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="sp-btn-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:splatToggleSymRadial(); event:StopPropagation()">
+				<div id="sp-btn-symmetry-radial" class="tf-overlay-chip" data-class-active="spSymmetryRadial" style="flex: 1; text-align: center;" onclick="widget:splatToggleSymRadial(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 				</div>
-				<div id="sp-btn-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:splatToggleSymMirrorX(); event:StopPropagation()">
+				<div id="sp-btn-symmetry-mirror-x" class="tf-overlay-chip" data-class-active="spSymMirrorX" style="flex: 1; text-align: center;" onclick="widget:splatToggleSymMirrorX(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 				</div>
-				<div id="sp-btn-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" onclick="widget:splatToggleSymMirrorY(); event:StopPropagation()">
+				<div id="sp-btn-symmetry-mirror-y" class="tf-overlay-chip" data-class-active="spSymMirrorY" style="flex: 1; text-align: center;" onclick="widget:splatToggleSymMirrorY(); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 				</div>
 			</div>
@@ -3123,7 +3123,7 @@
 		</div>
 		<div id="section-sp-smart" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="sp-filter-chip-avoid-water" class="tf-overlay-chip">
+			<div id="sp-filter-chip-avoid-water" class="tf-overlay-chip" data-class-active="spAvoidWater">
 				<div class="tf-overlay-chip-label">Avoid Water</div>
 			</div>
 			<div id="sp-filter-chip-slope" class="tf-overlay-chip">
@@ -3138,10 +3138,10 @@
 		<div id="sp-smart-slope-content" class="hidden">
 		<!-- Mutually exclusive toggle: avoid slopes vs prefer slopes (avoid default on when chip activated) -->
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="sp-slope-mode-avoid" class="tf-overlay-chip">
+			<div id="sp-slope-mode-avoid" class="tf-overlay-chip" data-class-active="spAvoidCliffs">
 				<div class="tf-overlay-chip-label">Avoid Slopes</div>
 			</div>
-			<div id="sp-slope-mode-prefer" class="tf-overlay-chip">
+			<div id="sp-slope-mode-prefer" class="tf-overlay-chip" data-class-active="spPreferSlopes">
 				<div class="tf-overlay-chip-label">Prefer Slopes</div>
 			</div>
 		</div>
@@ -3191,7 +3191,7 @@
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<img id="btn-sp-alt-min-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" onclick="widget:splatToggleSmart('altMinEnable'); event:StopPropagation()" />
 			<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold" id="sp-smart-alt-min-label">0</span></div>
-			<div id="btn-sp-alt-min-sample" class="tf-sample-btn" onclick="widget:splatAltSample('spAltMin'); event:StopPropagation()">SAMPLE</div>
+			<div id="btn-sp-alt-min-sample" class="tf-sample-btn" data-class-active="spAltMinSample" onclick="widget:splatAltSample('spAltMin'); event:StopPropagation()">SAMPLE</div>
 			<div id="sp-slider-alt-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="sp-slider-alt-min-transport" class="tf-transport-group hidden">
 				<div id="sp-slider-alt-min-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -3213,7 +3213,7 @@
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<img id="btn-sp-alt-max-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" onclick="widget:splatToggleSmart('altMaxEnable'); event:StopPropagation()" />
 			<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold" id="sp-smart-alt-max-label">200</span></div>
-			<div id="btn-sp-alt-max-sample" class="tf-sample-btn" onclick="widget:splatAltSample('spAltMax'); event:StopPropagation()">SAMPLE</div>
+			<div id="btn-sp-alt-max-sample" class="tf-sample-btn" data-class-active="spAltMaxSample" onclick="widget:splatAltSample('spAltMax'); event:StopPropagation()">SAMPLE</div>
 			<div id="sp-slider-alt-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="sp-slider-alt-max-transport" class="tf-transport-group hidden">
 				<div id="sp-slider-alt-max-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
