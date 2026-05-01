@@ -1238,7 +1238,7 @@ function widget:MouseWheel(up, value)
 		return true
 	end
 
-	-- Alt: rotation (snap to TB protractor step when angleSnap on)
+	-- Alt: rotation (shared TerraformBrush — snap to TB protractor step when angleSnap on)
 	if alt then
 		local step = ROTATION_STEP
 		local tb = WG.TerraformBrush
@@ -1246,7 +1246,11 @@ function widget:MouseWheel(up, value)
 		if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
 			step = tbs.angleSnapStep
 		end
-		setRotation(brushRotation + (up and step or -step))
+		if tb and tb.rotate then
+			tb.rotate(up and step or -step)
+		else
+			setRotation(brushRotation + (up and step or -step))
+		end
 		return true
 	end
 

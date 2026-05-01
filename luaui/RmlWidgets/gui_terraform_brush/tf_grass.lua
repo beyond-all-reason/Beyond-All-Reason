@@ -124,23 +124,17 @@ function M.attach(doc, ctx)
 		end
 	end
 
-	-- Rotation
+	-- Rotation (shared TerraformBrush — grass applyBrush always reads TB rotation)
 	w.gbOnRotChange = function(self, element)
-		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		local val = element and tonumber(element:GetAttribute("value")) or 0
-		WG.GrassBrush.setRotation(val)
+		WG.TerraformBrush.setRotation(val)
 	end
 	w.gbRotCW = function(self)
-		if WG.GrassBrush then
-			local s = WG.GrassBrush.getState()
-			WG.GrassBrush.setRotation((s.rotationDeg or 0) + ROTATION_STEP)
-		end
+		if WG.TerraformBrush then WG.TerraformBrush.rotate(ROTATION_STEP) end
 	end
 	w.gbRotCCW = function(self)
-		if WG.GrassBrush then
-			local s = WG.GrassBrush.getState()
-			WG.GrassBrush.setRotation((s.rotationDeg or 0) - ROTATION_STEP)
-		end
+		if WG.TerraformBrush then WG.TerraformBrush.rotate(-ROTATION_STEP) end
 	end
 
 	-- Curve
@@ -312,10 +306,20 @@ function M.attach(doc, ctx)
 		local v = element and tonumber(element:GetAttribute("value")) or 35
 		WG.GrassBrush.setTexFilterThreshold(v / 100)
 	end
+	w.gbColorThreshStep = function(self, step)
+		if not WG.GrassBrush then return end
+		local cur = math.floor((WG.GrassBrush.getState().texFilterThreshold or 0.35) * 100 + 0.5)
+		WG.GrassBrush.setTexFilterThreshold(math.max(0, math.min(150, cur + step)) / 100)
+	end
 	w.gbOnColorPadChange = function(self, element)
 		if uiState.updatingFromCode or not WG.GrassBrush then return end
 		local v = element and tonumber(element:GetAttribute("value")) or 0
 		WG.GrassBrush.setTexFilterPadding(v)
+	end
+	w.gbColorPadStep = function(self, step)
+		if not WG.GrassBrush then return end
+		local cur = WG.GrassBrush.getState().texFilterPadding or 0
+		WG.GrassBrush.setTexFilterPadding(math.max(0, math.min(200, cur + step)))
 	end
 	w.gbExcludeToggle = function(self)
 		if not WG.GrassBrush then return end
@@ -531,7 +535,7 @@ function M.attach(doc, ctx)
 		if WG.TerraformBrush then
 			local c = math.max(2, (getTFState().symmetryRadialCount or 2) - 1)
 			WG.TerraformBrush.setSymmetryRadialCount(c)
-			local cntLblGb = doc:GetElementById("gb-symmetry-radial-count-label"); if cntLblGb then cntLblGb.inner_rml = tostring(c) end
+			local cStr = tostring(c); local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= cStr then dm.tbSymCountStr = cStr end
 			local cntSlGb = doc:GetElementById("gb-slider-symmetry-radial-count"); if cntSlGb then cntSlGb:SetAttribute("value", tostring(c)) end
 		end
 	end
@@ -539,7 +543,7 @@ function M.attach(doc, ctx)
 		if WG.TerraformBrush then
 			local c = math.min(16, (getTFState().symmetryRadialCount or 2) + 1)
 			WG.TerraformBrush.setSymmetryRadialCount(c)
-			local cntLblGb = doc:GetElementById("gb-symmetry-radial-count-label"); if cntLblGb then cntLblGb.inner_rml = tostring(c) end
+			local cStr = tostring(c); local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= cStr then dm.tbSymCountStr = cStr end
 			local cntSlGb = doc:GetElementById("gb-slider-symmetry-radial-count"); if cntSlGb then cntSlGb:SetAttribute("value", tostring(c)) end
 		end
 	end
@@ -547,7 +551,7 @@ function M.attach(doc, ctx)
 		if WG.TerraformBrush then
 			local a = ((getTFState().symmetryMirrorAngle or 0) - 5) % 360
 			WG.TerraformBrush.setSymmetryMirrorAngle(a)
-			local angLblGb = doc:GetElementById("gb-symmetry-mirror-angle-label"); if angLblGb then angLblGb.inner_rml = tostring(math.floor(a)) end
+			local aStr = tostring(math.floor(a)); local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= aStr then dm.tbSymAngleStr = aStr end
 			local angSlGb = doc:GetElementById("gb-slider-symmetry-mirror-angle"); if angSlGb then angSlGb:SetAttribute("value", tostring(a)) end
 		end
 	end
@@ -555,7 +559,7 @@ function M.attach(doc, ctx)
 		if WG.TerraformBrush then
 			local a = ((getTFState().symmetryMirrorAngle or 0) + 5) % 360
 			WG.TerraformBrush.setSymmetryMirrorAngle(a)
-			local angLblGb = doc:GetElementById("gb-symmetry-mirror-angle-label"); if angLblGb then angLblGb.inner_rml = tostring(math.floor(a)) end
+			local aStr = tostring(math.floor(a)); local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= aStr then dm.tbSymAngleStr = aStr end
 			local angSlGb = doc:GetElementById("gb-slider-symmetry-mirror-angle"); if angSlGb then angSlGb:SetAttribute("value", tostring(a)) end
 		end
 	end
@@ -563,13 +567,13 @@ function M.attach(doc, ctx)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		local v = element and tonumber(element:GetAttribute("value")) or 2
 		WG.TerraformBrush.setSymmetryRadialCount(v)
-		local cntLblGb2 = doc:GetElementById("gb-symmetry-radial-count-label"); if cntLblGb2 then cntLblGb2.inner_rml = tostring(v) end
+		local vStr = tostring(v); local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= vStr then dm.tbSymCountStr = vStr end
 	end
 	w.gbOnSymAngleChange = function(self, element)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		local v = element and tonumber(element:GetAttribute("value")) or 0
 		WG.TerraformBrush.setSymmetryMirrorAngle(v)
-		local angLblGb2 = doc:GetElementById("gb-symmetry-mirror-angle-label"); if angLblGb2 then angLblGb2.inner_rml = tostring(math.floor(v)) end
+		local vStr = tostring(math.floor(v)); local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= vStr then dm.tbSymAngleStr = vStr end
 	end
 end
 
@@ -647,8 +651,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 	if doc then
 		uiState.updatingFromCode = true
 
-		local gbDensityLabel = doc:GetElementById("gb-density-label")
-		if gbDensityLabel then gbDensityLabel.inner_rml = tostring(math.floor(gbState.density * 100 + 0.5)) .. "%" end
 		if widgetState.dmHandle then
 			local s = tostring(math.floor(gbState.density * 100 + 0.5)) .. "%"
 			if widgetState.dmHandle.gbDensityStr ~= s then widgetState.dmHandle.gbDensityStr = s end
@@ -661,32 +663,29 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 
 		-- Sync size, rotation, curve, length from grass brush own state
 		do
-			local gbSizeLabel = doc:GetElementById("gb-size-label")
-			if gbSizeLabel then gbSizeLabel.inner_rml = tostring(gbState.radius or 100) end
 			if widgetState.dmHandle then
 				local s = tostring(gbState.radius or 100)
 				if widgetState.dmHandle.gbSizeStr ~= s then widgetState.dmHandle.gbSizeStr = s end
 			end
 			syncAndFlash(doc:GetElementById("slider-gb-size"), "gb-size", tostring(gbState.radius or 100))
 
-			local gbRotLabel = doc:GetElementById("gb-rotation-label")
-			if gbRotLabel then gbRotLabel.inner_rml = tostring(gbState.rotationDeg or 0) .. "&#176;" end
-			if widgetState.dmHandle then
-				local s = tostring(gbState.rotationDeg or 0) .. "\194\176"
-				if widgetState.dmHandle.gbRotStr ~= s then widgetState.dmHandle.gbRotStr = s end
+			do
+				-- Rotation is shared with TerraformBrush (applyBrush always reads TB rotation)
+				local tfSt = WG.TerraformBrush and WG.TerraformBrush.getState()
+				local rotDeg = tfSt and tfSt.rotationDeg or (gbState.rotationDeg or 0)
+				if widgetState.dmHandle then
+					local s = tostring(rotDeg) .. "\194\176"
+					if widgetState.dmHandle.gbRotStr ~= s then widgetState.dmHandle.gbRotStr = s end
+				end
+				syncAndFlash(doc:GetElementById("slider-gb-rotation"), "gb-rotation", tostring(rotDeg))
 			end
-			syncAndFlash(doc:GetElementById("slider-gb-rotation"), "gb-rotation", tostring(gbState.rotationDeg or 0))
 
-			local gbCurveLabel = doc:GetElementById("gb-curve-label")
-			if gbCurveLabel then gbCurveLabel.inner_rml = string.format("%.1f", gbState.curve or 1.0) end
 			if widgetState.dmHandle then
 				local s = string.format("%.1f", gbState.curve or 1.0)
 				if widgetState.dmHandle.gbCurveStr ~= s then widgetState.dmHandle.gbCurveStr = s end
 			end
 			syncAndFlash(doc:GetElementById("slider-gb-curve"), "gb-curve", tostring(math.floor((gbState.curve or 1.0) * 10 + 0.5)))
 
-			local gbLenLabel = doc:GetElementById("gb-length-label")
-			if gbLenLabel then gbLenLabel.inner_rml = string.format("%.1f", gbState.lengthScale or 1.0) end
 			if widgetState.dmHandle then
 				local s = string.format("%.1f", gbState.lengthScale or 1.0)
 				if widgetState.dmHandle.gbLengthStr ~= s then widgetState.dmHandle.gbLengthStr = s end
@@ -719,8 +718,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			syncSmartCheck("btn-gb-alt-max-enable", "altMaxEnable")
 
 			-- gb-smart-slope-max-row/slider-row visibility driven by data-if="gbAvoidCliffs"
-			local slopeMaxLabel = doc:GetElementById("gb-smart-slope-max-label")
-			if slopeMaxLabel then slopeMaxLabel.inner_rml = tostring(sf.slopeMax or 45) end
 			if widgetState.dmHandle then
 				local s = tostring(sf.slopeMax or 45)
 				if widgetState.dmHandle.gbSlopeMaxStr ~= s then widgetState.dmHandle.gbSlopeMaxStr = s end
@@ -728,8 +725,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			syncAndFlash(doc:GetElementById("slider-gb-slope-max"), "gb-slope-max", tostring(sf.slopeMax or 45))
 
 			-- gb-smart-slope-min-row/slider-row visibility driven by data-if="gbPreferSlopes"
-			local slopeMinLabel = doc:GetElementById("gb-smart-slope-min-label")
-			if slopeMinLabel then slopeMinLabel.inner_rml = tostring(sf.slopeMin or 10) end
 			if widgetState.dmHandle then
 				local s = tostring(sf.slopeMin or 10)
 				if widgetState.dmHandle.gbSlopeMinStr ~= s then widgetState.dmHandle.gbSlopeMinStr = s end
@@ -737,8 +732,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			syncAndFlash(doc:GetElementById("slider-gb-slope-min"), "gb-slope-min", tostring(sf.slopeMin or 10))
 
 			-- gb-smart-alt-min-slider-row visibility driven by data-if="gbAltMinEnable"
-			local altMinLabel = doc:GetElementById("gb-smart-alt-min-label")
-			if altMinLabel then altMinLabel.inner_rml = tostring(sf.altMin or 0) end
 			if widgetState.dmHandle then
 				local s = tostring(sf.altMin or 0)
 				if widgetState.dmHandle.gbAltMinStr ~= s then widgetState.dmHandle.gbAltMinStr = s end
@@ -746,8 +739,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			syncAndFlash(doc:GetElementById("slider-gb-alt-min"), "gb-alt-min", tostring(sf.altMin or 0))
 
 			-- gb-smart-alt-max-slider-row visibility driven by data-if="gbAltMaxEnable"
-			local altMaxLabel = doc:GetElementById("gb-smart-alt-max-label")
-			if altMaxLabel then altMaxLabel.inner_rml = tostring(sf.altMax or 200) end
 			if widgetState.dmHandle then
 				local s = tostring(sf.altMax or 200)
 				if widgetState.dmHandle.gbAltMaxStr ~= s then widgetState.dmHandle.gbAltMaxStr = s end
@@ -803,8 +794,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 
 			local threshVal = math.floor((gbState.texFilterThreshold or 0.35) * 100 + 0.5)
 			syncAndFlash(doc:GetElementById("slider-gb-color-thresh"), "gb-color-thresh", tostring(threshVal))
-			local threshLabel = doc:GetElementById("gb-color-thresh-label")
-			if threshLabel then threshLabel.inner_rml = tostring(threshVal) end
 			if widgetState.dmHandle then
 				local s = tostring(threshVal)
 				if widgetState.dmHandle.gbColorThreshStr ~= s then widgetState.dmHandle.gbColorThreshStr = s end
@@ -812,8 +801,6 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 
 			local padVal = gbState.texFilterPadding or 0
 			syncAndFlash(doc:GetElementById("slider-gb-color-pad"), "gb-color-pad", tostring(math.floor(padVal + 0.5)))
-			local padLabel = doc:GetElementById("gb-color-pad-label")
-			if padLabel then padLabel.inner_rml = tostring(math.floor(padVal + 0.5)) end
 			if widgetState.dmHandle then
 				local s = tostring(math.floor(padVal + 0.5))
 				if widgetState.dmHandle.gbColorPadStr ~= s then widgetState.dmHandle.gbColorPadStr = s end
@@ -849,11 +836,9 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			if numH then numH:SetAttribute("value", tostring(histIdx)) end
 		end
 
-		-- Symmetry count + angle label/slider sync
+		-- Symmetry count + angle slider sync (labels driven by dm.tbSymCountStr/tbSymAngleStr via syncTBMirrorControls)
 		local symStGb = WG.TerraformBrush and WG.TerraformBrush.getState()
 		if symStGb then
-			local cntLblGb = doc:GetElementById("gb-symmetry-radial-count-label"); if cntLblGb then cntLblGb.inner_rml = tostring(symStGb.symmetryRadialCount or 2) end
-			local angLblGb = doc:GetElementById("gb-symmetry-mirror-angle-label"); if angLblGb then angLblGb.inner_rml = tostring(math.floor(symStGb.symmetryMirrorAngle or 0)) end
 			syncAndFlash(doc:GetElementById("gb-slider-symmetry-radial-count"), "gb-symmetry-radial-count", tostring(symStGb.symmetryRadialCount or 2))
 			syncAndFlash(doc:GetElementById("gb-slider-symmetry-mirror-angle"), "gb-symmetry-mirror-angle", tostring(symStGb.symmetryMirrorAngle or 0))
 		end
@@ -912,6 +897,8 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 				"Density ", string.format("%.0f", (gbState.density or 0) * 100) .. "%")
 		end
 	end
+
+	if ctx.syncTBMirrorControls then ctx.syncTBMirrorControls(doc, "gb") end
 end
 
 return M
