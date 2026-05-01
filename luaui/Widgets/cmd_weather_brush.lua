@@ -1088,6 +1088,12 @@ function widget:MousePress(mx, my, button)
 		local tb = WG.TerraformBrush
 		local st = tb and tb.getState and tb.getState() or nil
 		if st and st.measureActive then return false end
+		-- Defer to symmetry origin drag so terraform can grab the drag
+		if st and st.symmetryActive then
+			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
+				return false
+			end
+		end
 	end
 
 	local wx, wy, wz = getWorldMousePosition()
@@ -1215,6 +1221,11 @@ function widget:DrawWorld()
 		end
 	end
 	if not wx then return end
+	do
+		local tb2 = WG.TerraformBrush
+		local st2 = tb2 and tb2.getState and tb2.getState()
+		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then return end
+	end
 
 	local groundY = (GetGroundHeight(wx, wz) or 0) + 4
 

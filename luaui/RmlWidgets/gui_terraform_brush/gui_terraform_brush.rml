@@ -175,10 +175,10 @@
 		</div>
 		<div id="section-st-overlays" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-st-grid-overlay" class="tf-overlay-chip" data-class-active="stGridOverlay">
+			<div id="btn-st-grid-overlay" class="tf-overlay-chip" data-class-active="stGridOverlay" onclick="widget:tbToggleGridOverlay('st'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
-			<div id="btn-st-height-colormap" class="tf-overlay-chip" data-class-active="stHeightColormap">
+			<div id="btn-st-height-colormap" class="tf-overlay-chip" data-class-active="stHeightColormap" onclick="widget:tbToggleHeightColormap('st'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
 		</div>
@@ -194,16 +194,16 @@
 		</div>
 		<div id="section-st-instruments" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-st-grid-snap" class="tf-overlay-chip" data-class-active="stGridSnap">
+			<div id="btn-st-grid-snap" class="tf-overlay-chip" data-class-active="stGridSnap" onclick="widget:tbToggleGridSnap('st'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 			</div>
-			<div id="btn-st-angle-snap" class="tf-overlay-chip" data-class-active="stAngleSnap">
+			<div id="btn-st-angle-snap" class="tf-overlay-chip" data-class-active="stAngleSnap" onclick="widget:tbToggleAngleSnap('st'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 			</div>
-			<div id="btn-st-measure" class="tf-overlay-chip" data-class-active="stMeasureActive">
+			<div id="btn-st-measure" class="tf-overlay-chip" data-class-active="stMeasureActive" onclick="widget:tbToggleMeasure('st'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 			</div>
-			<div id="btn-st-symmetry" class="tf-overlay-chip" data-class-active="stSymmetryActive">
+			<div id="btn-st-symmetry" class="tf-overlay-chip" data-class-active="stSymmetryActive" onclick="widget:tbToggleSymmetry('st'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 			</div>
 		</div>
@@ -239,39 +239,67 @@
 		</div>
 		<div id="st-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="stMeasureActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-st-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stMeasureRulerMode">
+				<div id="btn-st-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stMeasureRulerMode" onclick="widget:tbToggleMeasureRuler('st'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
 				</div>
-				<div id="btn-st-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stMeasureStickyMode">
+				<div id="btn-st-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stMeasureStickyMode" onclick="widget:tbToggleMeasureSticky('st'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
 				</div>
-				<div id="btn-st-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stMeasureShowLength">
+				<div id="btn-st-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stMeasureShowLength" onclick="widget:tbToggleMeasureShowLength('st'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-st-measure-clear" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-st-measure-clear" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbMeasureClear('st'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Clear All</div>
 				</div>
 			</div>
 		</div>
 		<div id="st-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="stSymmetryActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-st-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stSymmetryRadial">
+				<div id="btn-st-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stSymmetryRadial" onclick="widget:tbToggleSymRadial('st'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 				</div>
-				<div id="btn-st-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stSymMirrorX">
+				<div id="btn-st-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stSymMirrorX" onclick="widget:tbToggleSymMirrorX('st'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 				</div>
-				<div id="btn-st-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stSymMirrorY">
+				<div id="btn-st-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stSymMirrorY" onclick="widget:tbToggleSymMirrorY('st'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 				</div>
 			</div>
+			<div id="st-symmetry-radial-count-row" class="mb-1" data-if="stSymmetryRadial">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="st-symmetry-radial-count-label">2</span></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="st-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('st'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="st-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" onchange="widget:tbOnSymCountChange('st', element); event:StopPropagation()" />
+					<div id="st-btn-symmetry-count-up" class="tf-sm-btn" onclick="widget:tbSymCountUp('st'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+				</div>
+			</div>
+			<div id="st-symmetry-mirror-angle-row" class="mb-1" data-if="stSymHasAxis">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="st-symmetry-mirror-angle-label">0</span>&#176;</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="st-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('st'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="st-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:tbOnSymAngleChange('st', element); event:StopPropagation()" />
+					<div id="st-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:tbSymAngleUp('st'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+				</div>
+			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-st-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-st-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymPlaceOrigin('st'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Set Origin</div>
 				</div>
-				<div id="btn-st-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-st-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymCenterOrigin('st'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Center</div>
 				</div>
 			</div>
@@ -452,10 +480,10 @@
 		</div>
 		<div id="section-cl-overlays" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-cl-grid-overlay" class="tf-overlay-chip" data-class-active="clGridOverlay">
+			<div id="btn-cl-grid-overlay" class="tf-overlay-chip" data-class-active="clGridOverlay" onclick="widget:tbToggleGridOverlay('cl'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
-			<div id="btn-cl-height-colormap" class="tf-overlay-chip" data-class-active="clHeightColormap">
+			<div id="btn-cl-height-colormap" class="tf-overlay-chip" data-class-active="clHeightColormap" onclick="widget:tbToggleHeightColormap('cl'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
 		</div>
@@ -471,16 +499,16 @@
 		</div>
 		<div id="section-cl-instruments" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-cl-grid-snap" class="tf-overlay-chip" data-class-active="clGridSnap">
+			<div id="btn-cl-grid-snap" class="tf-overlay-chip" data-class-active="clGridSnap" onclick="widget:tbToggleGridSnap('cl'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 			</div>
-			<div id="btn-cl-angle-snap" class="tf-overlay-chip" data-class-active="clAngleSnap">
+			<div id="btn-cl-angle-snap" class="tf-overlay-chip" data-class-active="clAngleSnap" onclick="widget:tbToggleAngleSnap('cl'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 			</div>
-			<div id="btn-cl-measure" class="tf-overlay-chip" data-class-active="clMeasureActive">
+			<div id="btn-cl-measure" class="tf-overlay-chip" data-class-active="clMeasureActive" onclick="widget:tbToggleMeasure('cl'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 			</div>
-			<div id="btn-cl-symmetry" class="tf-overlay-chip" data-class-active="clSymmetryActive">
+			<div id="btn-cl-symmetry" class="tf-overlay-chip" data-class-active="clSymmetryActive" onclick="widget:tbToggleSymmetry('cl'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 			</div>
 		</div>
@@ -516,39 +544,67 @@
 		</div>
 		<div id="cl-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="clMeasureActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-cl-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clMeasureRulerMode">
+				<div id="btn-cl-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clMeasureRulerMode" onclick="widget:tbToggleMeasureRuler('cl'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
 				</div>
-				<div id="btn-cl-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clMeasureStickyMode">
+				<div id="btn-cl-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clMeasureStickyMode" onclick="widget:tbToggleMeasureSticky('cl'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
 				</div>
-				<div id="btn-cl-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clMeasureShowLength">
+				<div id="btn-cl-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clMeasureShowLength" onclick="widget:tbToggleMeasureShowLength('cl'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-cl-measure-clear" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-cl-measure-clear" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbMeasureClear('cl'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Clear All</div>
 				</div>
 			</div>
 		</div>
 		<div id="cl-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="clSymmetryActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-cl-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clSymmetryRadial">
+				<div id="btn-cl-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clSymmetryRadial" onclick="widget:tbToggleSymRadial('cl'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 				</div>
-				<div id="btn-cl-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clSymMirrorX">
+				<div id="btn-cl-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clSymMirrorX" onclick="widget:tbToggleSymMirrorX('cl'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 				</div>
-				<div id="btn-cl-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clSymMirrorY">
+				<div id="btn-cl-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clSymMirrorY" onclick="widget:tbToggleSymMirrorY('cl'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 				</div>
 			</div>
+			<div id="cl-symmetry-radial-count-row" class="mb-1" data-if="clSymmetryRadial">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="cl-symmetry-radial-count-label">2</span></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="cl-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('cl'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="cl-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" onchange="widget:tbOnSymCountChange('cl', element); event:StopPropagation()" />
+					<div id="cl-btn-symmetry-count-up" class="tf-sm-btn" onclick="widget:tbSymCountUp('cl'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+				</div>
+			</div>
+			<div id="cl-symmetry-mirror-angle-row" class="mb-1" data-if="clSymHasAxis">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="cl-symmetry-mirror-angle-label">0</span>&#176;</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="cl-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('cl'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="cl-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:tbOnSymAngleChange('cl', element); event:StopPropagation()" />
+					<div id="cl-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:tbSymAngleUp('cl'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+				</div>
+			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-cl-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-cl-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymPlaceOrigin('cl'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Set Origin</div>
 				</div>
-				<div id="btn-cl-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-cl-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymCenterOrigin('cl'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Center</div>
 				</div>
 			</div>
@@ -999,7 +1055,7 @@
 						</div>
 					</div>
 				</div>
-				<div id="mb-symmetry-mirror-angle-row" class="mb-1" data-if="mbSymmetryMirrorAny">
+				<div id="mb-symmetry-mirror-angle-row" class="mb-1" data-if="mbSymHasAxis">
 					<div class="flex flex-row justify-between items-center mb-1">
 						<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="mb-symmetry-mirror-angle-label">0</span>&#176;</div>
 					</div>
@@ -1007,7 +1063,7 @@
 						<div id="mb-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:mbSymAngleDown(); event:StopPropagation()">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 						</div>
-						<input type="range" id="mb-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="5" value="0" onchange="widget:mbOnSymAngleChange(element); event:StopPropagation()" />
+						<input type="range" id="mb-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:mbOnSymAngleChange(element); event:StopPropagation()" />
 						<div id="mb-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:mbSymAngleUp(); event:StopPropagation()">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 						</div>
@@ -1323,7 +1379,7 @@
 						</div>
 					</div>
 				</div>
-				<div id="gb-symmetry-mirror-angle-row" class="mb-1" data-if="gbSymmetryMirrorAny">
+				<div id="gb-symmetry-mirror-angle-row" class="mb-1" data-if="gbSymHasAxis">
 					<div class="flex flex-row justify-between items-center mb-1">
 						<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="gb-symmetry-mirror-angle-label">0</span>&#176;</div>
 					</div>
@@ -1331,7 +1387,7 @@
 						<div id="gb-btn-symmetry-angle-down" onclick="widget:gbSymAngleDown(); event:StopPropagation()" class="tf-sm-btn">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 						</div>
-						<input type="range" id="gb-slider-symmetry-mirror-angle" onchange="widget:gbOnSymAngleChange(element); event:StopPropagation()" class="tf-slider" min="0" max="360" step="5" value="0" />
+						<input type="range" id="gb-slider-symmetry-mirror-angle" onchange="widget:gbOnSymAngleChange(element); event:StopPropagation()" class="tf-slider" min="0" max="360" step="1" value="0" />
 						<div id="gb-btn-symmetry-angle-up" onclick="widget:gbSymAngleUp(); event:StopPropagation()" class="tf-sm-btn">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 						</div>
@@ -1987,8 +2043,8 @@
 					</div>
 				</div>
 			</div>
-			<!-- Mirror axis rotation (visible only when X or Y mirror active) -->
-			<div id="symmetry-mirror-angle-row" class="mb-1" data-if="tfSymmetryMirrorAny">
+			<!-- Mirror axis rotation (visible when radial or X/Y mirror active) -->
+			<div id="symmetry-mirror-angle-row" class="mb-1" data-if="tfSymHasAxis">
 				<div class="flex flex-row justify-between items-center mb-1">
 					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="symmetry-mirror-angle-label">0</span>&#176;</div>
 				</div>
@@ -1996,7 +2052,7 @@
 					<div id="btn-symmetry-angle-down" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="5" value="0" />
+					<input type="range" id="slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" />
 					<div id="btn-symmetry-angle-up" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
@@ -2439,7 +2495,7 @@
 				</div>
 			</div>
 			<!-- Mirror axis angle -->
-			<div id="fp-symmetry-mirror-angle-row" class="mb-1" data-if="fpSymmetryMirrorAny">
+			<div id="fp-symmetry-mirror-angle-row" class="mb-1" data-if="fpSymHasAxis">
 				<div class="flex flex-row justify-between items-center mb-1">
 					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="fp-symmetry-mirror-angle-label">0</span>&#176;</div>
 				</div>
@@ -2447,7 +2503,7 @@
 					<div id="fp-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:fpSymAngleDown(); event:StopPropagation()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="fp-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="5" value="0" onchange="widget:fpOnSymAngleChange(element); event:StopPropagation()" />
+					<input type="range" id="fp-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:fpOnSymAngleChange(element); event:StopPropagation()" />
 					<div id="fp-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:fpSymAngleUp(); event:StopPropagation()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
@@ -2788,10 +2844,10 @@
 		</div>
 		<div id="section-wb-overlays" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-wb-grid-overlay" class="tf-overlay-chip" data-class-active="wbGridOverlay">
+			<div id="btn-wb-grid-overlay" class="tf-overlay-chip" data-class-active="wbGridOverlay" onclick="widget:tbToggleGridOverlay('wb'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
-			<div id="btn-wb-height-colormap" class="tf-overlay-chip" data-class-active="wbHeightColormap">
+			<div id="btn-wb-height-colormap" class="tf-overlay-chip" data-class-active="wbHeightColormap" onclick="widget:tbToggleHeightColormap('wb'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
 		</div>
@@ -2807,16 +2863,16 @@
 		</div>
 		<div id="section-wb-instruments" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-wb-grid-snap" class="tf-overlay-chip" data-class-active="wbGridSnap">
+			<div id="btn-wb-grid-snap" class="tf-overlay-chip" data-class-active="wbGridSnap" onclick="widget:tbToggleGridSnap('wb'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 			</div>
-			<div id="btn-wb-angle-snap" class="tf-overlay-chip" data-class-active="wbAngleSnap">
+			<div id="btn-wb-angle-snap" class="tf-overlay-chip" data-class-active="wbAngleSnap" onclick="widget:tbToggleAngleSnap('wb'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 			</div>
-			<div id="btn-wb-measure" class="tf-overlay-chip" data-class-active="wbMeasureActive">
+			<div id="btn-wb-measure" class="tf-overlay-chip" data-class-active="wbMeasureActive" onclick="widget:tbToggleMeasure('wb'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 			</div>
-			<div id="btn-wb-symmetry" class="tf-overlay-chip" data-class-active="wbSymmetryActive">
+			<div id="btn-wb-symmetry" class="tf-overlay-chip" data-class-active="wbSymmetryActive" onclick="widget:tbToggleSymmetry('wb'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 			</div>
 		</div>
@@ -2852,39 +2908,67 @@
 		</div>
 		<div id="wb-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="wbMeasureActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-wb-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbMeasureRulerMode">
+				<div id="btn-wb-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbMeasureRulerMode" onclick="widget:tbToggleMeasureRuler('wb'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
 				</div>
-				<div id="btn-wb-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbMeasureStickyMode">
+				<div id="btn-wb-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbMeasureStickyMode" onclick="widget:tbToggleMeasureSticky('wb'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
 				</div>
-				<div id="btn-wb-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbMeasureShowLength">
+				<div id="btn-wb-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbMeasureShowLength" onclick="widget:tbToggleMeasureShowLength('wb'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-wb-measure-clear" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-wb-measure-clear" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbMeasureClear('wb'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Clear All</div>
 				</div>
 			</div>
 		</div>
 		<div id="wb-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="wbSymmetryActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-wb-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbSymmetryRadial">
+				<div id="btn-wb-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbSymmetryRadial" onclick="widget:tbToggleSymRadial('wb'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 				</div>
-				<div id="btn-wb-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbSymMirrorX">
+				<div id="btn-wb-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbSymMirrorX" onclick="widget:tbToggleSymMirrorX('wb'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 				</div>
-				<div id="btn-wb-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbSymMirrorY">
+				<div id="btn-wb-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbSymMirrorY" onclick="widget:tbToggleSymMirrorY('wb'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 				</div>
 			</div>
+			<div id="wb-symmetry-radial-count-row" class="mb-1" data-if="wbSymmetryRadial">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="wb-symmetry-radial-count-label">2</span></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="wb-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('wb'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="wb-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" onchange="widget:tbOnSymCountChange('wb', element); event:StopPropagation()" />
+					<div id="wb-btn-symmetry-count-up" class="tf-sm-btn" onclick="widget:tbSymCountUp('wb'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+				</div>
+			</div>
+			<div id="wb-symmetry-mirror-angle-row" class="mb-1" data-if="wbSymHasAxis">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="wb-symmetry-mirror-angle-label">0</span>&#176;</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="wb-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('wb'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="wb-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:tbOnSymAngleChange('wb', element); event:StopPropagation()" />
+					<div id="wb-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:tbSymAngleUp('wb'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+				</div>
+			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-wb-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-wb-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymPlaceOrigin('wb'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Set Origin</div>
 				</div>
-				<div id="btn-wb-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-wb-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymCenterOrigin('wb'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Center</div>
 				</div>
 			</div>
@@ -3109,10 +3193,10 @@
 		</div>
 		<div id="section-sp-overlays" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-sp-grid-overlay" class="tf-overlay-chip" data-class-active="spGridOverlay">
+			<div id="btn-sp-grid-overlay" class="tf-overlay-chip" data-class-active="spGridOverlay" onclick="widget:tbToggleGridOverlay('sp'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
-			<div id="btn-sp-height-colormap" class="tf-overlay-chip" data-class-active="spHeightColormap">
+			<div id="btn-sp-height-colormap" class="tf-overlay-chip" data-class-active="spHeightColormap" onclick="widget:tbToggleHeightColormap('sp'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
 			<div id="btn-sp-splat-overlay" class="tf-overlay-chip" data-class-active="spSplatOverlay" onclick="widget:splatToggleSplatOverlay(); event:StopPropagation()">
@@ -3131,16 +3215,16 @@
 		</div>
 		<div id="section-sp-instruments" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-sp-grid-snap" class="tf-overlay-chip" data-class-active="spGridSnap">
+			<div id="btn-sp-grid-snap" class="tf-overlay-chip" data-class-active="spGridSnap" onclick="widget:tbToggleGridSnap('sp'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 			</div>
-			<div id="btn-sp-angle-snap" class="tf-overlay-chip" data-class-active="spAngleSnap">
+			<div id="btn-sp-angle-snap" class="tf-overlay-chip" data-class-active="spAngleSnap" onclick="widget:tbToggleAngleSnap('sp'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 			</div>
-			<div id="btn-sp-measure" class="tf-overlay-chip" data-class-active="spMeasureActive">
+			<div id="btn-sp-measure" class="tf-overlay-chip" data-class-active="spMeasureActive" onclick="widget:tbToggleMeasure('sp'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 			</div>
-			<div id="btn-sp-symmetry" class="tf-overlay-chip" data-class-active="spSymmetryActive">
+			<div id="btn-sp-symmetry" class="tf-overlay-chip" data-class-active="spSymmetryActive" onclick="widget:tbToggleSymmetry('sp'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 			</div>
 		</div>
@@ -3233,7 +3317,7 @@
 					</div>
 				</div>
 			</div>
-			<div id="sp-symmetry-mirror-angle-row" class="mb-1" data-if="spSymmetryMirrorAny">
+			<div id="sp-symmetry-mirror-angle-row" class="mb-1" data-if="spSymHasAxis">
 				<div class="flex flex-row justify-between items-center mb-1">
 					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="sp-symmetry-mirror-angle-label">0</span>&#176;</div>
 				</div>
@@ -3241,7 +3325,7 @@
 					<div id="sp-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:splatSymAngleStep(-5); event:StopPropagation()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="sp-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="5" value="0" onchange="widget:splatOnSymAngleChange(element)" />
+					<input type="range" id="sp-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:splatOnSymAngleChange(element)" />
 					<div id="sp-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:splatSymAngleStep(5); event:StopPropagation()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
@@ -3547,10 +3631,10 @@
 		</div>
 		<div id="section-dc-overlays" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-dc-grid-overlay" class="tf-overlay-chip" data-class-active="dcGridOverlay">
+			<div id="btn-dc-grid-overlay" class="tf-overlay-chip" data-class-active="dcGridOverlay" onclick="widget:tbToggleGridOverlay('dc'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
-			<div id="btn-dc-height-colormap" class="tf-overlay-chip" data-class-active="dcHeightColormap">
+			<div id="btn-dc-height-colormap" class="tf-overlay-chip" data-class-active="dcHeightColormap" onclick="widget:tbToggleHeightColormap('dc'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
 		</div>
@@ -3566,16 +3650,16 @@
 		</div>
 		<div id="section-dc-instruments" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-dc-grid-snap" class="tf-overlay-chip" data-class-active="dcGridSnap">
+			<div id="btn-dc-grid-snap" class="tf-overlay-chip" data-class-active="dcGridSnap" onclick="widget:tbToggleGridSnap('dc'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 			</div>
-			<div id="btn-dc-angle-snap" class="tf-overlay-chip" data-class-active="dcAngleSnap">
+			<div id="btn-dc-angle-snap" class="tf-overlay-chip" data-class-active="dcAngleSnap" onclick="widget:tbToggleAngleSnap('dc'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 			</div>
-			<div id="btn-dc-measure" class="tf-overlay-chip" data-class-active="dcMeasureActive">
+			<div id="btn-dc-measure" class="tf-overlay-chip" data-class-active="dcMeasureActive" onclick="widget:tbToggleMeasure('dc'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 			</div>
-			<div id="btn-dc-symmetry" class="tf-overlay-chip" data-class-active="dcSymmetryActive">
+			<div id="btn-dc-symmetry" class="tf-overlay-chip" data-class-active="dcSymmetryActive" onclick="widget:tbToggleSymmetry('dc'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 			</div>
 		</div>
@@ -3611,39 +3695,67 @@
 		</div>
 		<div id="dc-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="dcMeasureActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-dc-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcMeasureRulerMode">
+				<div id="btn-dc-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcMeasureRulerMode" onclick="widget:tbToggleMeasureRuler('dc'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
 				</div>
-				<div id="btn-dc-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcMeasureStickyMode">
+				<div id="btn-dc-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcMeasureStickyMode" onclick="widget:tbToggleMeasureSticky('dc'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
 				</div>
-				<div id="btn-dc-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcMeasureShowLength">
+				<div id="btn-dc-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcMeasureShowLength" onclick="widget:tbToggleMeasureShowLength('dc'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-dc-measure-clear" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-dc-measure-clear" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbMeasureClear('dc'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Clear All</div>
 				</div>
 			</div>
 		</div>
 		<div id="dc-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="dcSymmetryActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-dc-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcSymmetryRadial">
+				<div id="btn-dc-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcSymmetryRadial" onclick="widget:tbToggleSymRadial('dc'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 				</div>
-				<div id="btn-dc-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcSymMirrorX">
+				<div id="btn-dc-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcSymMirrorX" onclick="widget:tbToggleSymMirrorX('dc'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 				</div>
-				<div id="btn-dc-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcSymMirrorY">
+				<div id="btn-dc-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcSymMirrorY" onclick="widget:tbToggleSymMirrorY('dc'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 				</div>
 			</div>
+			<div id="dc-symmetry-radial-count-row" class="mb-1" data-if="dcSymmetryRadial">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="dc-symmetry-radial-count-label">2</span></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="dc-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('dc'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="dc-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" onchange="widget:tbOnSymCountChange('dc', element); event:StopPropagation()" />
+					<div id="dc-btn-symmetry-count-up" class="tf-sm-btn" onclick="widget:tbSymCountUp('dc'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+				</div>
+			</div>
+			<div id="dc-symmetry-mirror-angle-row" class="mb-1" data-if="dcSymHasAxis">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="dc-symmetry-mirror-angle-label">0</span>&#176;</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="dc-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('dc'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="dc-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:tbOnSymAngleChange('dc', element); event:StopPropagation()" />
+					<div id="dc-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:tbSymAngleUp('dc'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+				</div>
+			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-dc-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-dc-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymPlaceOrigin('dc'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Set Origin</div>
 				</div>
-				<div id="btn-dc-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-dc-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymCenterOrigin('dc'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Center</div>
 				</div>
 			</div>
@@ -3978,10 +4090,10 @@
 		</div>
 		<div id="section-lp-overlays" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-lp-grid-overlay" class="tf-overlay-chip" data-class-active="lpGridOverlay">
+			<div id="btn-lp-grid-overlay" class="tf-overlay-chip" data-class-active="lpGridOverlay" onclick="widget:tbToggleGridOverlay('lp'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
-			<div id="btn-lp-height-colormap" class="tf-overlay-chip" data-class-active="lpHeightColormap">
+			<div id="btn-lp-height-colormap" class="tf-overlay-chip" data-class-active="lpHeightColormap" onclick="widget:tbToggleHeightColormap('lp'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
 		</div>
@@ -3997,16 +4109,16 @@
 		</div>
 		<div id="section-lp-instruments" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-lp-grid-snap" class="tf-overlay-chip" data-class-active="lpGridSnap">
+			<div id="btn-lp-grid-snap" class="tf-overlay-chip" data-class-active="lpGridSnap" onclick="widget:tbToggleGridSnap('lp'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 			</div>
-			<div id="btn-lp-angle-snap" class="tf-overlay-chip" data-class-active="lpAngleSnap">
+			<div id="btn-lp-angle-snap" class="tf-overlay-chip" data-class-active="lpAngleSnap" onclick="widget:tbToggleAngleSnap('lp'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 			</div>
-			<div id="btn-lp-measure" class="tf-overlay-chip" data-class-active="lpMeasureActive">
+			<div id="btn-lp-measure" class="tf-overlay-chip" data-class-active="lpMeasureActive" onclick="widget:tbToggleMeasure('lp'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 			</div>
-			<div id="btn-lp-symmetry" class="tf-overlay-chip" data-class-active="lpSymmetryActive">
+			<div id="btn-lp-symmetry" class="tf-overlay-chip" data-class-active="lpSymmetryActive" onclick="widget:tbToggleSymmetry('lp'); event:StopPropagation()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 			</div>
 		</div>
@@ -4042,39 +4154,67 @@
 		</div>
 		<div id="lp-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="lpMeasureActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpMeasureRulerMode">
+				<div id="btn-lp-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpMeasureRulerMode" onclick="widget:tbToggleMeasureRuler('lp'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
 				</div>
-				<div id="btn-lp-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpMeasureStickyMode">
+				<div id="btn-lp-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpMeasureStickyMode" onclick="widget:tbToggleMeasureSticky('lp'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
 				</div>
-				<div id="btn-lp-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpMeasureShowLength">
+				<div id="btn-lp-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpMeasureShowLength" onclick="widget:tbToggleMeasureShowLength('lp'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-measure-clear" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-lp-measure-clear" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbMeasureClear('lp'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Clear All</div>
 				</div>
 			</div>
 		</div>
 		<div id="lp-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="lpSymmetryActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpSymmetryRadial">
+				<div id="btn-lp-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpSymmetryRadial" onclick="widget:tbToggleSymRadial('lp'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 				</div>
-				<div id="btn-lp-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpSymMirrorX">
+				<div id="btn-lp-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpSymMirrorX" onclick="widget:tbToggleSymMirrorX('lp'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 				</div>
-				<div id="btn-lp-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpSymMirrorY">
+				<div id="btn-lp-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpSymMirrorY" onclick="widget:tbToggleSymMirrorY('lp'); event:StopPropagation()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 				</div>
 			</div>
+			<div id="lp-symmetry-radial-count-row" class="mb-1" data-if="lpSymmetryRadial">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold" id="lp-symmetry-radial-count-label">2</span></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="lp-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('lp'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="lp-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" onchange="widget:tbOnSymCountChange('lp', element); event:StopPropagation()" />
+					<div id="lp-btn-symmetry-count-up" class="tf-sm-btn" onclick="widget:tbSymCountUp('lp'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+				</div>
+			</div>
+			<div id="lp-symmetry-mirror-angle-row" class="mb-1" data-if="lpSymHasAxis">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold" id="lp-symmetry-mirror-angle-label">0</span>&#176;</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div id="lp-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('lp'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+					</div>
+					<input type="range" id="lp-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:tbOnSymAngleChange('lp', element); event:StopPropagation()" />
+					<div id="lp-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:tbSymAngleUp('lp'); event:StopPropagation()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+					</div>
+				</div>
+			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-lp-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymPlaceOrigin('lp'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Set Origin</div>
 				</div>
-				<div id="btn-lp-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;">
+				<div id="btn-lp-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymCenterOrigin('lp'); event:StopPropagation()">
 					<div class="text-sm" style="text-align: center;">Center</div>
 				</div>
 			</div>

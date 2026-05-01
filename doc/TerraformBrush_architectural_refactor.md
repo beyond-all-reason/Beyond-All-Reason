@@ -150,7 +150,7 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | `tf_startpos.lua` | 11 / 11 | ✅ stpSubMode (3 submode btns) + stpShapeMode (4 shape btns) + stpStartboxMode (3 sbx mode btns) + activeTool=='stp' main btn; dead Lua DOM caches + SetClass("disabled") removed (superseded by data-if on row) |
 | `tf_lights.lua` | 7 / 7 | ✅ lightType/mode/dist/libraryTab btns all `data-class-active` in RML (dm fields already set in sync); removed dead `lightTypeButtons`/`lightModeButtons`/`lightDistButtons` caches; converted 3 `SetClass("lp-unavailable")` → `dm.lpDirectedLight` + `data-class-lp-unavailable` in RML |
 | `tf_guide.lua` | 2 / 2 | ✅ guideMode (was already done via dm.guideMode); soundMuted — data-class-muted="soundMuted" added to btn-sound, dm field added to initialModel, handler writes dm |
-| `gui_terraform_brush.lua` (attachTBMirrorControls) | 0 / ~30 | ⬜ mirror/symmetry/snap/measure/colormap/distort/flipped btns (~L2860–3430) |
+| `gui_terraform_brush.lua` (attachTBMirrorControls) | 30 / 30 | ✅ 15 shared `w.tbToggle*/tbMeasureClear/tbSymPlaceOrigin/tbSymCenterOrigin` methods added to `attachDeclarativeHandlers`; onclick added to 81 RML buttons across st/cl/wb/sp/dc/lp prefixes; `attachTBMirrorControls` body gutted (was 15 AELs × 6 prefix calls); belt-and-suspenders `setChip` block removed from `syncTBMirrorControls` |
 
 **Next: tf_splat + tf_metal (highest SetClass density, share dm fields already added in step 3). Consider batching with gl.* audit (Phase 2.5) as orthogonal parallel work.**
 3. 🟡 **Section collapse / show-hide → `data-if="sectionTerrainOpen"`** for banners / notice dots / passthrough play/pause icons; **whole-panel show/hide → `document:Hide()/Show()`**. **PROMOTED to required pre-1.0 (PR #7527 review). `SetClass("hidden", ...)` is wrong, not deferred.** **In progress (Apr 2026)** — see per-file table below.
@@ -202,7 +202,7 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | Item | Effort | Notes |
 |---|---|---|
 | Phase 1 — `attachDraggable` drag consolidation | Small-Medium | 4 near-identical drag loops; context manager home agreed; deferred from Phase 1 to keep diff small |
-| Phase 2 step 2 — `data-class-active` for active state | Large | **IN PROGRESS (May 2026)** — `tf_lights.lua` ✅ (7/7). Next: `gui_terraform_brush.lua` attachTBMirrorControls (~30 sites). |
+| Phase 2 step 2 — `data-class-active` for active state | Large | ✅ **COMPLETE (May 2026)** — all 11 files done including `gui_terraform_brush.lua` attachTBMirrorControls (30/30: 81 RML buttons × 6 prefixes, 15 shared handler methods, AELs eliminated). |
 | Phase 2 step 3 — `data-if` + `document:Hide/Show` | Medium | ✅ **COMPLETE (Apr 2026)** — 11/11 files done. All `SetClass("hidden",…)` sites in tf-brush package converted to dm flags + `data-if` bindings. |
 | Phase 2 step 4 — `{{interpolation}}` for labels | Medium | **PROMOTED pre-1.0** (PR #7527). ~40 `inner_rml = tostring(v)` sites in tf-brush. **Landed Apr 2026: tf_startpos (6), tf_splat (11), tf_metal (13), tf_grass (14), tf_features (11), tf_lights (6 of 14 — 8 IDs not in RML), tf_clone (3), tf_environment dim panel (7), gui_terraform_brush ring-width + restore-strength (3 sites). tf_weather had zero. Remaining: tf_decals/tf_noise generic helpers (justified imperative — bulk setLbl by id), keybind editor + history list builders (Phase 3 / data-for territory).** |
 | Phase 2 step 6 — model-function migration | Large | Sweep 548 `widget:foo()` → `data-event-click="onFoo()"` with `dm.*` handlers. After steps 2–4. |

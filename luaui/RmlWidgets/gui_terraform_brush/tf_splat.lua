@@ -320,12 +320,15 @@ function M.attach(doc, ctx)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		local val = element and tonumber(element:GetAttribute("value")) or 2
 		WG.TerraformBrush.setSymmetryRadialCount(val)
+		local cntLblSp2 = doc:GetElementById("sp-symmetry-radial-count-label"); if cntLblSp2 then cntLblSp2.inner_rml = tostring(val) end
 	end
 	w.splatSymCountStep = function(self, delta)
 		if WG.TerraformBrush then
 			local c = math.max(2, math.min(16,
 				(WG.TerraformBrush.getState().symmetryRadialCount or 2) + delta))
 			WG.TerraformBrush.setSymmetryRadialCount(c)
+			local cntLblSp = doc:GetElementById("sp-symmetry-radial-count-label"); if cntLblSp then cntLblSp.inner_rml = tostring(c) end
+			local cntSlSp2 = doc:GetElementById("sp-slider-symmetry-radial-count"); if cntSlSp2 then cntSlSp2:SetAttribute("value", tostring(c)) end
 		end
 	end
 
@@ -334,11 +337,14 @@ function M.attach(doc, ctx)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		local val = element and tonumber(element:GetAttribute("value")) or 0
 		WG.TerraformBrush.setSymmetryMirrorAngle(val)
+		local angLblSp2 = doc:GetElementById("sp-symmetry-mirror-angle-label"); if angLblSp2 then angLblSp2.inner_rml = tostring(math.floor(val)) end
 	end
 	w.splatSymAngleStep = function(self, delta)
 		if WG.TerraformBrush then
 			local a = ((WG.TerraformBrush.getState().symmetryMirrorAngle or 0) + delta) % 360
 			WG.TerraformBrush.setSymmetryMirrorAngle(a)
+			local angLblSp = doc:GetElementById("sp-symmetry-mirror-angle-label"); if angLblSp then angLblSp.inner_rml = tostring(math.floor(a)) end
+			local angSlSp2 = doc:GetElementById("sp-slider-symmetry-mirror-angle"); if angSlSp2 then angSlSp2:SetAttribute("value", tostring(a)) end
 		end
 	end
 
@@ -630,6 +636,7 @@ function M.sync(doc, ctx, spState, setSummary)
 					dm.spSymmetryActive = s.symmetryActive and true or false
 					dm.spSymmetryRadial = s.symmetryRadial and true or false
 					dm.spSymmetryMirrorAny = (s.symmetryMirrorX or s.symmetryMirrorY) and true or false
+					dm.spSymHasAxis = (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false
 					dm.spAngleSnapAuto = s.angleSnapAuto and true or false
 					dm.spGridOverlay = s.gridOverlay and true or false
 					dm.spHeightColormap = s.heightColormap and true or false
@@ -696,6 +703,8 @@ function M.sync(doc, ctx, spState, setSummary)
 				if nb then nb:SetAttribute("value", tostring(s.gridSnapSize or 48)) end
 				local sz = doc:GetElementById("sp-slider-grid-snap-size")
 				if sz then sz:SetAttribute("value", tostring(s.gridSnapSize or 48)) end
+				local cntSlSp = doc:GetElementById("sp-slider-symmetry-radial-count"); if cntSlSp then cntSlSp:SetAttribute("value", tostring(s.symmetryRadialCount or 2)) end
+				local angSlSp = doc:GetElementById("sp-slider-symmetry-mirror-angle"); if angSlSp then angSlSp:SetAttribute("value", tostring(math.floor(s.symmetryMirrorAngle or 0))) end
 				uiState.updatingFromCode = false
 			end
 		end

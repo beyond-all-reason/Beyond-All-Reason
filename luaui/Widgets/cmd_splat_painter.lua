@@ -985,6 +985,12 @@ function widget:MousePress(mx, my, button)
 		if st and st.measureActive then return false end
 		if st and st.heightSamplingMode then return false end
 		if tb and tb.getHeightSamplingMode and tb.getHeightSamplingMode() then return false end
+		-- Defer to symmetry origin drag so terraform can grab the drag
+		if st and st.symmetryActive then
+			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
+				return false
+			end
+		end
 	end
 
 	-- Geo decal mode: left-click places, right-click undoes
@@ -1524,6 +1530,11 @@ function widget:DrawWorld()
 		end
 	end
 	if not worldX then return end
+	do
+		local tb2 = WG.TerraformBrush
+		local st2 = tb2 and tb2.getState and tb2.getState()
+		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then return end
+	end
 	local groundY = GetGroundHeight(worldX, worldZ)
 
 	glPolygonOffset(1, 1)

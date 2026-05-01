@@ -343,6 +343,8 @@ function M.attach(doc, ctx)
 			local s = WG.TerraformBrush.getState()
 			local c = math.max(2, (s and s.symmetryRadialCount or 2) - 1)
 			WG.TerraformBrush.setSymmetryRadialCount(c)
+			local cntLblFp = doc:GetElementById("fp-symmetry-radial-count-label"); if cntLblFp then cntLblFp.inner_rml = tostring(c) end
+			local cntSlFp = doc:GetElementById("fp-slider-symmetry-radial-count"); if cntSlFp then cntSlFp:SetAttribute("value", tostring(c)) end
 		end
 	end
 	w.fpSymCountUp = function(self)
@@ -350,6 +352,8 @@ function M.attach(doc, ctx)
 			local s = WG.TerraformBrush.getState()
 			local c = math.min(16, (s and s.symmetryRadialCount or 2) + 1)
 			WG.TerraformBrush.setSymmetryRadialCount(c)
+			local cntLblFp = doc:GetElementById("fp-symmetry-radial-count-label"); if cntLblFp then cntLblFp.inner_rml = tostring(c) end
+			local cntSlFp = doc:GetElementById("fp-slider-symmetry-radial-count"); if cntSlFp then cntSlFp:SetAttribute("value", tostring(c)) end
 		end
 	end
 	w.fpSymAngleDown = function(self)
@@ -357,6 +361,8 @@ function M.attach(doc, ctx)
 			local s = WG.TerraformBrush.getState()
 			local a = ((s and s.symmetryMirrorAngle or 0) - 5) % 360
 			WG.TerraformBrush.setSymmetryMirrorAngle(a)
+			local angLblFp = doc:GetElementById("fp-symmetry-mirror-angle-label"); if angLblFp then angLblFp.inner_rml = tostring(math.floor(a)) end
+			local angSlFp = doc:GetElementById("fp-slider-symmetry-mirror-angle"); if angSlFp then angSlFp:SetAttribute("value", tostring(a)) end
 		end
 	end
 	w.fpSymAngleUp = function(self)
@@ -364,17 +370,21 @@ function M.attach(doc, ctx)
 			local s = WG.TerraformBrush.getState()
 			local a = ((s and s.symmetryMirrorAngle or 0) + 5) % 360
 			WG.TerraformBrush.setSymmetryMirrorAngle(a)
+			local angLblFp = doc:GetElementById("fp-symmetry-mirror-angle-label"); if angLblFp then angLblFp.inner_rml = tostring(math.floor(a)) end
+			local angSlFp = doc:GetElementById("fp-slider-symmetry-mirror-angle"); if angSlFp then angSlFp:SetAttribute("value", tostring(a)) end
 		end
 	end
 	w.fpOnSymCountChange = function(self, element)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		local v = element and tonumber(element:GetAttribute("value")) or 2
 		WG.TerraformBrush.setSymmetryRadialCount(v)
+		local cntLblFp2 = doc:GetElementById("fp-symmetry-radial-count-label"); if cntLblFp2 then cntLblFp2.inner_rml = tostring(v) end
 	end
 	w.fpOnSymAngleChange = function(self, element)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		local v = element and tonumber(element:GetAttribute("value")) or 0
 		WG.TerraformBrush.setSymmetryMirrorAngle(v)
+		local angLblFp2 = doc:GetElementById("fp-symmetry-mirror-angle-label"); if angLblFp2 then angLblFp2.inner_rml = tostring(math.floor(v)) end
 	end
 
 	-- Smart slope/altitude sliders (coupled clamp for alt min/max)
@@ -619,8 +629,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 					if widgetState.dmHandle then
 						widgetState.dmHandle.fpSymmetryActive = tbState.symmetryActive == true
 						widgetState.dmHandle.fpSymmetryRadial = tbState.symmetryRadial == true
-						widgetState.dmHandle.fpSymmetryMirrorAny = (tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false
-						widgetState.dmHandle.fpMeasureActive    = tbState.measureActive == true
+						widgetState.dmHandle.fpSymmetryMirrorAny = (tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false					widgetState.dmHandle.fpSymHasAxis = (tbState.symmetryRadial or tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false						widgetState.dmHandle.fpMeasureActive    = tbState.measureActive == true
 						widgetState.dmHandle.fpMeasureRulerMode  = tbState.measureRulerMode == true
 						widgetState.dmHandle.fpMeasureStickyMode = tbState.measureStickyMode == true
 						widgetState.dmHandle.fpMeasureShowLength = tbState.measureShowLength == true

@@ -1309,6 +1309,12 @@ function widget:MousePress(mx, my, button)
 		local tb = WG.TerraformBrush
 		local stb = tb and tb.getState and tb.getState() or nil
 		if stb and stb.measureActive then return false end
+		-- Defer to symmetry origin drag so terraform can grab the drag
+		if stb and stb.symmetryActive then
+			if stb.symmetryPlacingOrigin or stb.symmetryHoveringOrigin or stb.symmetryDraggingOrigin then
+				return false
+			end
+		end
 	end
 
 	local wx, wz = getWorldMousePosition()
@@ -2233,6 +2239,11 @@ function widget:DrawWorld()
 	local phase = drawFrame * 0.04  -- ~2.4 rad/sec @ 60fps
 
 	local wx, wz = getWorldMousePosition()
+	do
+		local tb2 = WG.TerraformBrush
+		local st2 = tb2 and tb2.getState and tb2.getState()
+		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then wx = nil; wz = nil end
+	end
 
 	-- Draw placed start positions (sleek 2026 style)
 	for i, pos in ipairs(positions) do

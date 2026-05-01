@@ -319,6 +319,7 @@ function M.attach(doc, ctx)
 			dm.mbSymMirrorY     = s.symmetryMirrorY and true or false
 			-- mb-symmetry-radial-count-row, mb-symmetry-mirror-angle-row driven by data-if
 			dm.mbSymmetryMirrorAny = (s.symmetryMirrorX or s.symmetryMirrorY) and true or false
+			dm.mbSymHasAxis = (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false
 		end
 	end
 
@@ -328,7 +329,7 @@ function M.attach(doc, ctx)
 		local newVal = not s.symmetryActive
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setSymmetryActive(newVal)
-		if newVal and not (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) then
+		if newVal and not (s.symmetryMirrorX or s.symmetryMirrorY) then
 			WG.TerraformBrush.setSymmetryMirrorX(true)
 			local dm2 = widgetState.dmHandle; if dm2 then dm2.mbSymMirrorX = true end
 		end
@@ -374,35 +375,45 @@ function M.attach(doc, ctx)
 		if WG.TerraformBrush then
 			local c = math.max(2, (getTFState().symmetryRadialCount or 2) - 1)
 			WG.TerraformBrush.setSymmetryRadialCount(c)
+			local cntLbl = doc:GetElementById("mb-symmetry-radial-count-label"); if cntLbl then cntLbl.inner_rml = tostring(c) end
+			local cntSl = doc:GetElementById("mb-slider-symmetry-radial-count"); if cntSl then cntSl:SetAttribute("value", tostring(c)) end
 		end
 	end
 	w.mbSymCountUp = function(self)
 		if WG.TerraformBrush then
 			local c = math.min(16, (getTFState().symmetryRadialCount or 2) + 1)
 			WG.TerraformBrush.setSymmetryRadialCount(c)
+			local cntLbl = doc:GetElementById("mb-symmetry-radial-count-label"); if cntLbl then cntLbl.inner_rml = tostring(c) end
+			local cntSl = doc:GetElementById("mb-slider-symmetry-radial-count"); if cntSl then cntSl:SetAttribute("value", tostring(c)) end
 		end
 	end
 	w.mbOnSymCountChange = function(self, element)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		local v = element and tonumber(element:GetAttribute("value")) or 2
 		WG.TerraformBrush.setSymmetryRadialCount(v)
+		local cntLbl = doc:GetElementById("mb-symmetry-radial-count-label"); if cntLbl then cntLbl.inner_rml = tostring(v) end
 	end
 	w.mbSymAngleDown = function(self)
 		if WG.TerraformBrush then
 			local a = ((getTFState().symmetryMirrorAngle or 0) - 5) % 360
 			WG.TerraformBrush.setSymmetryMirrorAngle(a)
+			local angLbl = doc:GetElementById("mb-symmetry-mirror-angle-label"); if angLbl then angLbl.inner_rml = tostring(math.floor(a)) end
+			local angSl = doc:GetElementById("mb-slider-symmetry-mirror-angle"); if angSl then angSl:SetAttribute("value", tostring(a)) end
 		end
 	end
 	w.mbSymAngleUp = function(self)
 		if WG.TerraformBrush then
 			local a = ((getTFState().symmetryMirrorAngle or 0) + 5) % 360
 			WG.TerraformBrush.setSymmetryMirrorAngle(a)
+			local angLbl = doc:GetElementById("mb-symmetry-mirror-angle-label"); if angLbl then angLbl.inner_rml = tostring(math.floor(a)) end
+			local angSl = doc:GetElementById("mb-slider-symmetry-mirror-angle"); if angSl then angSl:SetAttribute("value", tostring(a)) end
 		end
 	end
 	w.mbOnSymAngleChange = function(self, element)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		local v = element and tonumber(element:GetAttribute("value")) or 0
 		WG.TerraformBrush.setSymmetryMirrorAngle(v)
+		local angLbl = doc:GetElementById("mb-symmetry-mirror-angle-label"); if angLbl then angLbl.inner_rml = tostring(math.floor(v)) end
 	end
 
 	-- ── METAL MAP analysis (full-map overlay, clusters, lasso, balance axis) ──
@@ -537,6 +548,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 			dm.mbSymmetryActive  = s.symmetryActive and true or false
 			dm.mbSymmetryRadial  = s.symmetryRadial and true or false
 			dm.mbSymmetryMirrorAny = (s.symmetryMirrorX or s.symmetryMirrorY) and true or false
+			dm.mbSymHasAxis = (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false
 			dm.mbAngleSnapAuto   = s.angleSnapAuto and true or false
 			dm.mbGridOverlay     = s.gridOverlay and true or false
 			dm.mbHeightColormap  = s.heightColormap and true or false
@@ -600,6 +612,14 @@ function M.sync(doc, ctx, mbState, setSummary)
 				if dm.mbCurveStr ~= v then dm.mbCurveStr = v end
 			end
 			syncAndFlash(doc:GetElementById("slider-mb-curve"), "mb-curve", tostring(math.floor(tfSt2.curve * 10 + 0.5)))
+		end
+		-- Symmetry count + angle label/slider sync
+		local symSt = WG.TerraformBrush and WG.TerraformBrush.getState()
+		if symSt then
+			local cntLbl2 = doc:GetElementById("mb-symmetry-radial-count-label"); if cntLbl2 then cntLbl2.inner_rml = tostring(symSt.symmetryRadialCount or 2) end
+			local angLbl2 = doc:GetElementById("mb-symmetry-mirror-angle-label"); if angLbl2 then angLbl2.inner_rml = tostring(math.floor(symSt.symmetryMirrorAngle or 0)) end
+			syncAndFlash(doc:GetElementById("mb-slider-symmetry-radial-count"), "mb-symmetry-radial-count", tostring(symSt.symmetryRadialCount or 2))
+			syncAndFlash(doc:GetElementById("mb-slider-symmetry-mirror-angle"), "mb-symmetry-mirror-angle", tostring(symSt.symmetryMirrorAngle or 0))
 		end
 
 		uiState.updatingFromCode = false
