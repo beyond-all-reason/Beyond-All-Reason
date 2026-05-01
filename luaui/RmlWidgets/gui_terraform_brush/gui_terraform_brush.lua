@@ -252,9 +252,6 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	-- Light placer section elements
 	lightControlsEl = nil,
 	lightActive = false,
-	lightTypeButtons = {},
-	lightModeButtons = {},
-	lightDistButtons = {},
 	lightLibraryOpen = false,
 	lightLibraryRootEl = nil,
 	lightLibraryTab = "builtin",  -- "builtin" or "user"
@@ -815,6 +812,7 @@ local initialModel = {
 	-- light placer
 	lpLightType = "point",
 	lpMode = "place",
+	lpDirectedLight = false,
 	lpLibraryOpen = false,
 	lpLibraryTab = "builtin",
 	lpSymmetryRadial = false,
@@ -6204,9 +6202,6 @@ function widget:Shutdown()
 	widgetState.cloneControlsEl = nil
 	widgetState.clonePasteTransformsEl = nil
 	if WG.CloneTool then WG.CloneTool.deactivate() end
-	widgetState.lightTypeButtons = {}
-	widgetState.lightModeButtons = {}
-	widgetState.lightDistButtons = {}
 	widgetState.lightLibraryRootEl = nil
 	widgetState.lightLibraryOpen = false
 	widgetState.lightLibrarySelectedPreset = nil

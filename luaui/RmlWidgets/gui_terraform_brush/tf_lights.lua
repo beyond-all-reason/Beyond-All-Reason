@@ -76,20 +76,6 @@ function M.attach(doc, ctx)
 
 	widgetState.lightControlsEl = doc:GetElementById("tf-light-controls")
 
-	-- Cache button elements for setActiveClass sync (events wired declaratively in RML).
-	for _, lt in ipairs({ "point", "cone", "beam" }) do
-		local btn = doc:GetElementById("btn-lt-" .. lt)
-		if btn then widgetState.lightTypeButtons[lt] = btn end
-	end
-	for _, mode in ipairs({ "point", "scatter", "remove" }) do
-		local btn = doc:GetElementById("btn-lp-" .. mode)
-		if btn then widgetState.lightModeButtons[mode] = btn end
-	end
-	for _, dist in ipairs({ "random", "regular", "clustered" }) do
-		local btn = doc:GetElementById("btn-lp-dist-" .. dist)
-		if btn then widgetState.lightDistButtons[dist] = btn end
-	end
-
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 	-- Slider change events are wired declaratively via onchange= in RML.
 	for _, sid in ipairs({
@@ -726,12 +712,8 @@ function M.sync(doc, ctx, lpState, setSummary)
 		if directedLight and lpState.mode == "scatter" then
 			if WG.LightPlacer then WG.LightPlacer.setMode("point") end
 		end
-		local scatterBtn = doc and doc:GetElementById("btn-lp-scatter")
-		if scatterBtn then scatterBtn:SetClass("lp-unavailable", directedLight) end
-		local distToggleHdr = doc and doc:GetElementById("btn-toggle-lt-dist")
-		if distToggleHdr then distToggleHdr:SetClass("lp-unavailable", directedLight) end
-		local distLtSection = doc and doc:GetElementById("section-lt-dist")
-		if distLtSection then distLtSection:SetClass("lp-unavailable", directedLight) end
+		-- data-class-lp-unavailable="lpDirectedLight" drives grayout in RML.
+		if dm and dm.lpDirectedLight ~= directedLight then dm.lpDirectedLight = directedLight end
 		-- Update distribution buttons (data-class-active="lpDistMode == 'X'" drives active class)
 		-- Update labels
 		local brightnessLabel = doc and doc:GetElementById("lp-brightness-label")
@@ -765,7 +747,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 		if syncAndFlash then
 			uiState.updatingFromCode = true
 			syncAndFlash(doc:GetElementById("slider-lp-brush-radius"),  "lp-brush-radius",  tostring(math.floor(lpState.radius)))
-			syncAndFlash(doc:GetElementById("slider-lp-brightness"),    "lp-brightness",    tostring(lpState.brightness))
+			syncAndFlash(doc:GetElementById("slider-lp-brightness"),    "lp-brightness",    tostring(math.floor(lpState.brightness * 100 + 0.5)))
 			syncAndFlash(doc:GetElementById("slider-lp-light-radius"),  "lp-light-radius",  tostring(math.floor(lpState.lightRadius)))
 			syncAndFlash(doc:GetElementById("slider-lp-elevation"),     "lp-elevation",     tostring(math.floor(lpState.elevation)))
 			syncAndFlash(doc:GetElementById("slider-lp-count"),         "lp-count",         tostring(lpState.lightCount))

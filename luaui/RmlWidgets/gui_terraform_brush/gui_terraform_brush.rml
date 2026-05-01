@@ -3935,7 +3935,7 @@
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_point.png" />
 					<div class="tf-btn-text">Single</div>
 				</div>
-				<div id="btn-lp-scatter" class="tf-mode-btn tf-lp-mode-btn" data-class-active="lpMode == 'scatter'" onclick="widget:lpSetMode('scatter'); event:StopPropagation()">
+				<div id="btn-lp-scatter" class="tf-mode-btn tf-lp-mode-btn" data-class-active="lpMode == 'scatter'" data-class-lp-unavailable="lpDirectedLight" onclick="widget:lpSetMode('scatter'); event:StopPropagation()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_scatter.png" />
 					<div class="tf-btn-text">Scatter</div>
 				</div>
@@ -3947,11 +3947,11 @@
 			</div><!-- /section-lt-placement -->
 
 			<!-- DISTRIBUTION nested under PLACEMENT MODE -->
-			<div id="btn-toggle-lt-dist" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
+			<div id="btn-toggle-lt-dist" class="flex flex-row items-center mb-0-5" data-class-lp-unavailable="lpDirectedLight" style="cursor: pointer;">
 				<img id="img-toggle-lt-dist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">DISTRIBUTION</div>
 			</div>
-			<div id="section-lt-dist">
+			<div id="section-lt-dist" data-class-lp-unavailable="lpDirectedLight">
 			<div class="flex flex-row gap-1 mb-1">
 				<div id="btn-lp-dist-random" class="tf-fp-dist-btn" data-class-active="lpDistMode == 'random'" onclick="widget:lpSetDist('random'); event:StopPropagation()">
 					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/fp_scatter.png" />
