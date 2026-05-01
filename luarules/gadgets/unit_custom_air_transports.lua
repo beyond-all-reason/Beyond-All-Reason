@@ -871,10 +871,10 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transp
 	if not isAirTransport[transporterDefID] then return true end	
 	-- distance gate for individual unload commands
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
-	local blocked = Spring.TestBuildOrder(UnitDefNames["unloadpad8x8"].id, goalX, goalY, goalZ, 0)
+	local blocked = Spring.TestBuildOrder(TransportAPI.GetUnloadPadType(transporterID), goalX, goalY, goalZ, 0)
 	if blocked == 0 then
 		--spEcho("unload position blocked for transporter " .. transporterID .. ", finding closest valid position")
-		goalX, goalY, goalZ = Spring.ClosestBuildPos(transporterTeamID, UnitDefNames["unloadpad8x8"].id, goalX, goalY, goalZ, 512, 0, 0)
+		goalX, goalY, goalZ = Spring.ClosestBuildPos(transporterTeamID, TransportAPI.GetUnloadPadType(transporterID), goalX, goalY, goalZ, 512, 0, 0)
 		if not goalX then
 			spEcho("Error: no valid unload position found near target point for transporter " .. transporterID .. ", aborting unload")
 			return false
@@ -934,7 +934,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	end
 	if cmdID == CMD.UNLOAD_UNIT then
 		local posX, posY, posZ = cmdParams[1], cmdParams[2], cmdParams[3]
-		local newPosX, newPosY, newPosZ = Spring.ClosestBuildPos(unitTeam, UnitDefNames["unloadpad8x8"].id, posX, posY, posZ, 512, 0, 0)
+		local newPosX, newPosY, newPosZ = Spring.ClosestBuildPos(unitTeam, TransportAPI.GetUnloadPadType(unitID), posX, posY, posZ, 512, 0, 0)
 		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
 			spEcho("Warning: unload position is too far from a valid point, adjusting to closest valid position")
 			Spring.Echo("Original position: " .. posX .. ", " .. posY .. ", " .. posZ)
@@ -953,7 +953,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			spEcho("Warning: CMD.UNLOAD_UNITS areas deprecated, replacing with single point CMD.UNLOAD_UNIT command")
 		end
 		local posX, posY, posZ = cmdParams[1], cmdParams[2], cmdParams[3]
-		local newPosX, newPosY, newPosZ = Spring.ClosestBuildPos(unitTeam, UnitDefNames["unloadpad8x8"].id, posX, posY, posZ, 512, 0, 0)
+		local newPosX, newPosY, newPosZ = Spring.ClosestBuildPos(unitTeam, TransportAPI.GetUnloadPadType(unitID), posX, posY, posZ, 512, 0, 0)
 		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
 			Spring.Echo("Original position: " .. posX .. ", " .. posY .. ", " .. posZ)
 			Spring.Echo("Adjusted position: " .. newPosX .. ", " .. newPosY .. ", " .. newPosZ)

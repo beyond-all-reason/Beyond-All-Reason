@@ -28,6 +28,7 @@ local cachedUnitSizes = {}
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitRotation = Spring.GetUnitRotation
 local cachedCos, cachedSin = {}, {}
+local unloadPad = {}
 
 local function cachedCosSin(angle)
 	angle = math.floor(angle*100)/100 -- round to 2 decimals to limit cache size; should be enough for smooth animations and avoid visible jumps
@@ -166,4 +167,24 @@ function TransportAPI.GetPassengerSize(unitID) -- minimal perf improvement: cach
 	else                        cachedUnitSizes[udefID] = 256 -- ?
 	end
 	return cachedUnitSizes[udefID]
+end
+
+function TransportAPI.GetUnloadPadType(transporterID)
+	local transporterDefID = Spring.GetUnitDefID(transporterID)
+	if unloadPad[transporterDefID] then
+		return unloadPad[transporterDefID]
+	end
+	local transporterSeats = Spring.GetUnitRulesParam(transporterID, "transporterSeats")
+	if not transporterSeats then
+		Spring.Echo("Error, GetUnloadPadType expects a valid transporter ID as 1st arg, transporterID "..transporterID.." does not point to a valid transporter ID")
+		return nil
+	end
+	if transporterSeats == 1 then
+		unloadPad[transporterDefID] = UnitDefNames["unloadpad2x2"].id
+	elseif transporterSeats == 4 then
+		unloadPad[transporterDefID] = UnitDefNames["unloadpad4x4"].id
+	elseif transporterSeats == 8 then
+		unloadPad[transporterDefID] = UnitDefNames["unloadpad8x8"].id
+	end
+	return unloadPad[transporterDefID]
 end
