@@ -874,6 +874,10 @@ local pulseShader
 -- Idle skip
 local idleSkipCounter = 0
 
+-- Last sim frame in which DrawWorld ran. Used to skip the GameFrame scan when
+-- the renderer is keeping up (avoids redundant work at normal/high FPS).
+local lastDrawWorldSimFrame = -1
+
 -- Cached ally team
 local cachedAllyTeamID = spGetMyAllyTeamID()
 local cachedSpecFullView = false
@@ -1395,6 +1399,47 @@ function gadget:Initialize()
 end
 
 function gadget:GameFrame(n)
+	-- Scan beam projectiles at simulation rate so short-lived beams (beamttl=1) are
+	-- always tracked even at low render FPS, where DrawWorld may not run often enough
+	-- to catch projectiles that fire and expire between two render frames.
+	-- Skip when DrawWorld ran during the previous sim frame or later — the renderer is
+	-- keeping up and already handles tracking, so this scan would be redundant.
+	if lastDrawWorldSimFrame >= n - 1 then
+		-- fall through to cleanup only
+	else
+	local simProjectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
+	if simProjectiles then
+		for i = 1, #simProjectiles do
+			local proID = simProjectiles[i]
+			local wDefID = spGetProjectileDefID(proID)
+			local cfg = wDefID and weaponConfigs[wDefID]
+			if cfg then
+				local px, py, pz = spGetProjectilePosition(proID)
+				if px then
+					local vx, vy, vz = spGetProjectileVelocity(proID)
+					if vx then
+						local ownerID = spGetProjectileOwnerID(proID) or 0
+						local wbKey = ownerID .. "|" .. wDefID
+						local tracked = weaponBeams[wbKey]
+						if not tracked then
+							tracked = { cfg = cfg }
+							weaponBeams[wbKey] = tracked
+							hasGhosts = true
+						end
+						tracked.px   = px;       tracked.py   = py;       tracked.pz   = pz
+						tracked.endX = px + vx;  tracked.endY = py + vy;  tracked.endZ = pz + vz
+						tracked.lastSeenFrame = n
+						local proTeam = spGetProjectileTeamID(proID)
+						tracked.ownerAllyTeam = proTeam and spGetTeamAllyTeamID(proTeam)
+						-- Wake DrawWorld so the idle-skip doesn't suppress ghost rendering
+						idleSkipCounter = 0
+					end
+				end
+			end
+		end
+	end
+	end -- low-FPS scan
+
 	-- Periodic cleanup of stale weapon beam entries (expired ghosts)
 	if n > beamCleanupFrame then
 		beamCleanupFrame = n + 30
@@ -1426,6 +1471,7 @@ function gadget:Shutdown()
 end
 
 function gadget:DrawWorld()
+	lastDrawWorldSimFrame = spGetGameFrame()
 	updateBeams()
 	drawAll()
 end
