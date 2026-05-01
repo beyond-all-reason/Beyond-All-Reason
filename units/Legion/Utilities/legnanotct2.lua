@@ -17,7 +17,7 @@ return {
 		canstop = true,
 		cantbetransported = false,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "46 80 46",
+		collisionvolumescales = "46 64 46",
 		collisionvolumetype = "CylY",
 		explodeas = "nanoboom",
 		footprintx = 4,

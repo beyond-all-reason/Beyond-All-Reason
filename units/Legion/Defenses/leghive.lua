@@ -10,7 +10,7 @@ return {
 		canrepeat = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -7 0",
-		collisionvolumescales = "44 23 44",
+		collisionvolumescales = "44 30 44",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energystorage = 200,
