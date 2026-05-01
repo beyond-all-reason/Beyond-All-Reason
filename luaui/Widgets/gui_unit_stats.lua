@@ -417,7 +417,7 @@ function widget:Initialize()
 
 	WG['unitstats'] = {}
 	WG['unitstats'].showUnit = function(unitID)
-    		showUnitID = unitID
+		showUnitID = unitID
 	end
 	WG['unitstats'].isShowing = function()
 		return showStats
