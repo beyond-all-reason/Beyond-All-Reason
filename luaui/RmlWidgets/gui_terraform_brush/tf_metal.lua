@@ -175,25 +175,20 @@ function M.attach(doc, ctx)
 	end
 
 	-- ── DISPLAY chips (forward to shared WG.TerraformBrush state) ──
-	local function chipToggleTB(id, dmKey, getCur, setter)
-		local newVal = not getCur()
-		playSound(newVal and "toggleOn" or "toggleOff")
-		setter(newVal)
-		local dm = widgetState.dmHandle; if dm and dmKey then dm[dmKey] = newVal end
-		local btn = doc:GetElementById(id); if btn then btn:SetClass("active", newVal) end
-	end
 	w.mbToggleGridOverlay = function(self)
 		if WG.TerraformBrush then
-			chipToggleTB("btn-mb-grid-overlay", "mbGridOverlay",
-				function() return getTFState().gridOverlay end,
-				function(v) WG.TerraformBrush.setGridOverlay(v) end)
+			local newVal = not getTFState().gridOverlay
+			playSound(newVal and "toggleOn" or "toggleOff")
+			WG.TerraformBrush.setGridOverlay(newVal)
+			local dm = widgetState.dmHandle; if dm then dm.mbGridOverlay = newVal end
 		end
 	end
 	w.mbToggleHeightColormap = function(self)
 		if WG.TerraformBrush then
-			chipToggleTB("btn-mb-height-colormap", "mbHeightColormap",
-				function() return getTFState().heightColormap end,
-				function(v) WG.TerraformBrush.setHeightColormap(v) end)
+			local newVal = not getTFState().heightColormap
+			playSound(newVal and "toggleOn" or "toggleOff")
+			WG.TerraformBrush.setHeightColormap(newVal)
+			local dm = widgetState.dmHandle; if dm then dm.mbHeightColormap = newVal end
 		end
 	end
 
@@ -204,7 +199,6 @@ function M.attach(doc, ctx)
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setGridSnap(newVal)
 		local dm = widgetState.dmHandle; if dm then dm.mbGridSnap = newVal end
-		local btn = doc:GetElementById("btn-mb-grid-snap"); if btn then btn:SetClass("active", newVal) end
 	end
 	w.mbOnSnapSizeChange = function(self, element)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
@@ -226,7 +220,6 @@ function M.attach(doc, ctx)
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setAngleSnap(newVal)
 		local dm = widgetState.dmHandle; if dm then dm.mbAngleSnap = newVal end
-		local btn = doc:GetElementById("btn-mb-angle-snap"); if btn then btn:SetClass("active", newVal) end
 	end
 
 	local MB_ANGLE_PRESETS = { 7.5, 15, 30, 45, 60, 90 }
@@ -267,7 +260,6 @@ function M.attach(doc, ctx)
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setAngleSnapAuto(newVal)
 		local dm = widgetState.dmHandle; if dm then dm.mbAngleSnapAuto = newVal end
-		local btn = doc:GetElementById("btn-mb-angle-auto-snap"); if btn then btn:SetClass("active", newVal) end
 	end
 	w.mbOnManualSpokeChange = function(self, element)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
@@ -291,14 +283,12 @@ function M.attach(doc, ctx)
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setMeasureActive(newVal)
 		local dm = widgetState.dmHandle; if dm then dm.mbMeasureActive = newVal end
-		local btn = doc:GetElementById("btn-mb-measure"); if btn then btn:SetClass("active", newVal) end
 	end
 	w.mbMeasureRuler = function(self)
 		if WG.TerraformBrush then
 			local nv = not getTFState().measureRulerMode
 			WG.TerraformBrush.setMeasureRulerMode(nv)
 			local dm = widgetState.dmHandle; if dm then dm.mbMeasureRulerMode = nv end
-			local btn = doc:GetElementById("mb-btn-measure-ruler"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.mbMeasureSticky = function(self)
@@ -306,7 +296,6 @@ function M.attach(doc, ctx)
 			local nv = not getTFState().measureStickyMode
 			WG.TerraformBrush.setMeasureStickyMode(nv)
 			local dm = widgetState.dmHandle; if dm then dm.mbMeasureStickyMode = nv end
-			local btn = doc:GetElementById("mb-btn-measure-sticky"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.mbMeasureShowLength = function(self)
@@ -314,7 +303,6 @@ function M.attach(doc, ctx)
 			local nv = not getTFState().measureShowLength
 			WG.TerraformBrush.setMeasureShowLength(nv)
 			local dm = widgetState.dmHandle; if dm then dm.mbMeasureShowLength = nv end
-			local btn = doc:GetElementById("mb-btn-measure-show-length"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.mbMeasureClear = function(self)
@@ -342,12 +330,9 @@ function M.attach(doc, ctx)
 		WG.TerraformBrush.setSymmetryActive(newVal)
 		if newVal and not (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) then
 			WG.TerraformBrush.setSymmetryMirrorX(true)
-			local mxBtn = doc:GetElementById("mb-btn-symmetry-mirror-x")
-			if mxBtn then mxBtn:SetClass("active", true) end
 			local dm2 = widgetState.dmHandle; if dm2 then dm2.mbSymMirrorX = true end
 		end
 		local dm = widgetState.dmHandle; if dm then dm.mbSymmetryActive = newVal end
-		local btn = doc:GetElementById("btn-mb-symmetry"); if btn then btn:SetClass("active", newVal) end
 	end
 	w.mbToggleSymRadial = function(self)
 		if WG.TerraformBrush then
@@ -355,7 +340,6 @@ function M.attach(doc, ctx)
 			WG.TerraformBrush.setSymmetryRadial(nv)
 			syncSymChipClasses()
 			local dm = widgetState.dmHandle; if dm then dm.mbSymmetryRadial = nv end
-			local btn = doc:GetElementById("mb-btn-symmetry-radial"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.mbToggleSymMirrorX = function(self)
@@ -364,7 +348,6 @@ function M.attach(doc, ctx)
 			WG.TerraformBrush.setSymmetryMirrorX(nv)
 			syncSymChipClasses()
 			local dm = widgetState.dmHandle; if dm then dm.mbSymMirrorX = nv end
-			local btn = doc:GetElementById("mb-btn-symmetry-mirror-x"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.mbToggleSymMirrorY = function(self)
@@ -373,7 +356,6 @@ function M.attach(doc, ctx)
 			WG.TerraformBrush.setSymmetryMirrorY(nv)
 			syncSymChipClasses()
 			local dm = widgetState.dmHandle; if dm then dm.mbSymMirrorY = nv end
-			local btn = doc:GetElementById("mb-btn-symmetry-mirror-y"); if btn then btn:SetClass("active", nv) end
 		end
 	end
 	w.mbSymPlaceOrigin = function(self)
@@ -430,7 +412,6 @@ function M.attach(doc, ctx)
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.MetalBrush.setMapOverlay(newVal)
 		local dm = widgetState.dmHandle; if dm then dm.mbMapOverlay = newVal end
-		local btn = doc:GetElementById("btn-mb-mapoverlay"); if btn then btn:SetClass("active", newVal) end
 	end
 	w.mbToggleClusters = function(self)
 		if not WG.MetalBrush then return end
@@ -438,7 +419,6 @@ function M.attach(doc, ctx)
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.MetalBrush.setClusterCounter(newVal)
 		local dm = widgetState.dmHandle; if dm then dm.mbClusterOpen = newVal end
-		local btn = doc:GetElementById("btn-mb-clusters"); if btn then btn:SetClass("active", newVal) end
 	end
 	w.mbToggleInspector = function(self)
 		local st = mbGetMbState()
@@ -451,7 +431,6 @@ function M.attach(doc, ctx)
 			if st.balanceAxisActive then WG.MetalBrush.setBalanceAxisActive(false) end
 		end
 		local dm = widgetState.dmHandle; if dm then dm.mbInspectorOpen = open end
-		local btn = doc:GetElementById("btn-mb-inspector"); if btn then btn:SetClass("active", open) end
 	end
 	w.mbToggleLasso = function(self)
 		if not WG.MetalBrush then return end
@@ -459,7 +438,6 @@ function M.attach(doc, ctx)
 		playSound(newVal and "toggleOn" or "toggleOff")
 		if newVal then WG.MetalBrush.startLasso() else WG.MetalBrush.clearLasso() end
 		local dm = widgetState.dmHandle; if dm then dm.mbLassoActive = newVal end
-		local btn = doc:GetElementById("btn-mb-lasso"); if btn then btn:SetClass("active", newVal) end
 	end
 	w.mbLassoClose = function(self)
 		if WG.MetalBrush then playSound("apply"); WG.MetalBrush.finishLasso() end
@@ -473,7 +451,6 @@ function M.attach(doc, ctx)
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.MetalBrush.setBalanceAxisActive(newVal)
 		local dm = widgetState.dmHandle; if dm then dm.mbAxisOpen = newVal end
-		local btn = doc:GetElementById("btn-mb-balance-axis"); if btn then btn:SetClass("active", newVal) end
 	end
 	w.mbAxisX = function(self)
 		if WG.MetalBrush then playSound("modeSwitch"); WG.MetalBrush.setBalanceAxisAngle(0) end
@@ -569,22 +546,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 			dm.mbMeasureStickyMode = s.measureStickyMode and true or false
 			dm.mbMeasureShowLength = s.measureShowLength and true or false
 		end
-		-- Belt-and-suspenders: SetClass so chips in hidden sections still highlight.
-		if doc and s then
-			local function sc(id, v) local e = doc:GetElementById(id); if e then e:SetClass("active", v and true or false) end end
-			sc("btn-mb-grid-overlay",        s.gridOverlay)
-			sc("btn-mb-height-colormap",     s.heightColormap)
-			sc("btn-mb-grid-snap",           s.gridSnap)
-			sc("btn-mb-angle-snap",          s.angleSnap)
-			sc("btn-mb-measure",             s.measureActive)
-			sc("btn-mb-symmetry",            s.symmetryActive)
-			sc("mb-btn-symmetry-radial",     s.symmetryRadial)
-			sc("mb-btn-symmetry-mirror-x",   s.symmetryMirrorX)
-			sc("mb-btn-symmetry-mirror-y",   s.symmetryMirrorY)
-			sc("mb-btn-measure-show-length", s.measureShowLength)
-			sc("mb-btn-measure-ruler",       s.measureRulerMode)
-			sc("mb-btn-measure-sticky",      s.measureStickyMode)
-		end
+		-- data-class-active bindings in RML drive active state for all chips above.
 	end
 
 	-- Metal value slider & label sync

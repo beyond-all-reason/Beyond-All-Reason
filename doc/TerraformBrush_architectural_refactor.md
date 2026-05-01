@@ -144,9 +144,9 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | File | Sites done / total | Status |
 |---|---|---|
 | `tf_clone.lua` | 7 / 7 | ✅ pilot — mirror X/Z, layer terrain/metal/features/splats/grass/decals/weather/lights, quality full/balanced/fast; 11 dm fields added |
-| `tf_splat.lua` | 0 / ~8 | ⬜ channel btn, filter chips, avoidWater/avoidCliffs/preferSlopes, altMinSample/altMaxSample |
+| `tf_splat.lua` | 14 / 14 | ✅ channel btns (spChannel==N), splat overlay, sym radial/mirrorX/mirrorY, measure show-length, filter chips (avoid-water/cliffs/slopes), alt-min/max sample; redundant SetClass removed from 4 handlers |
 | `tf_decals.lua` | 2 / 2 | ✅ btn-decals (activeTool=='dc'), dcLibMode (scatter/point/remove), dcDistribution — all data-class-active in RML + initialModel fields verified present. No Lua changes needed. |
-| `tf_metal.lua` | 0 / ~12 | ⬜ overlay/cluster/lasso/axis chips, symmetry/mirror btns, snap/angle/measure btns |
+| `tf_metal.lua` | 21 / 21 | ✅ sub-mode btns (mbSubMode==X), overlay chips (grid/colormap/mapoverlay/inspector), inspector sub-chips (clusters/lasso/axis), instruments chips (gridSnap/angleSnap/measure/symmetry), auto-snap, measure sub-chips (ruler/sticky/showLength), sym sub-chips (radial/mirrorX/mirrorY); sc() belt-and-suspenders loop + all handler SetClass removed |
 | `tf_startpos.lua` | 11 / 11 | ✅ stpSubMode (3 submode btns) + stpShapeMode (4 shape btns) + stpStartboxMode (3 sbx mode btns) + activeTool=='stp' main btn; dead Lua DOM caches + SetClass("disabled") removed (superseded by data-if on row) |
 | `tf_lights.lua` | 0 / ~7 | ⬜ lightType/mode/distribution btns, library tabs, active btn |
 | `tf_guide.lua` | 2 / 2 | ✅ guideMode (was already done via dm.guideMode); soundMuted — data-class-muted="soundMuted" added to btn-sound, dm field added to initialModel, handler writes dm |
