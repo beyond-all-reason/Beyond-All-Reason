@@ -24,6 +24,7 @@ local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetUnitLosState = Spring.GetUnitLosState
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local spPlaySoundFile = Spring.PlaySoundFile
 local spEcho = Spring.Echo
 
 local CMD_DGUN = CMD.DGUN
@@ -97,11 +98,12 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, sx, sy, sz, ex, ey, ez)
 			local ux, uy, uz = spGetUnitPosition(unitID)
 			if ux then
 				local d = DistPointToSegment(ux, uy, uz, sx, sy, sz, ex, ey, ez)
-				if d < DGUN_WIDTH then
-					dangerCount = dangerCount + 1
-					spEcho("WARNING: an attempt to d-gun allies was recorded. Griefing your team is a violation of the Code of Conduct." .. dangerCount)
-					return true
-				end
+					if d < DGUN_WIDTH then
+						dangerCount = dangerCount + 1
+						spPlaySoundFile("sounds/ui/warning2.wav", 1, "ui")
+						spEcho("WARNING: we have recorded an attempt to D-Gun your allies. Griefing your team is a violation of the Code of Conduct!" .. dangerCount)
+						return true
+					end
 			end
 		end
 	end
