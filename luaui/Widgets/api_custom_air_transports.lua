@@ -1,29 +1,25 @@
 
-local gadget = gadget ---@type Gadget
+local widget = widget ---@type Gadget
 
-function gadget:GetInfo()
+function widget:GetInfo()
 	return {
 		name    = "Transport Handler API",
-		desc    = "Sets up global functions and tables used by transport related scripts and gadgetry",
+		desc    = "Sets up global functions and tables used by transport related scripts and widgetry",
 		author  = "DoodVanDaag",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = -1, -- must be < 0: before unit_script and transport handler gadgets
+		layer   = -1, -- must be < 0: before unit_script and transport handler widgets
 		enabled = true,
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then
-	return false
-end
-
 if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam == false then
-	Spring.Echo("Custom transports disabled via modoption, skipping transport API gadget")
+	Spring.Echo("Custom transports disabled via modoption, skipping transport API widget")
 	return false
 end
 
-GG.TransportAPI = {}
-local TransportAPI = GG.TransportAPI
+WG.TransportAPI = {}
+local TransportAPI = WG.TransportAPI
 local cachedUnitSizes = {}
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitRotation = Spring.GetUnitRotation
@@ -140,6 +136,8 @@ function TransportAPI.GetUnloadTargets(transporterID, passengerID)
 	end
 	return { passengerID }
 end
+
+
 
 function TransportAPI.GetPassengerSize(unitID) -- minimal perf improvement: cache per unitDefID
 	local udefID = Spring.GetUnitDefID(unitID)
