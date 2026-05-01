@@ -18,14 +18,20 @@ end
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitsInBox = Spring.GetUnitsInBox
+local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetTeamInfo = Spring.GetTeamInfo
+local spGetUnitLosState = Spring.GetUnitLosState
+local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spEcho = Spring.Echo
 
 local CMD_DGUN = CMD.DGUN
 local DGUN_RANGE = 280
 local DGUN_WIDTH = 60
+local ENEMY_SCAN_RADIUS = 1500
 local dangerCount = 0
+local gaiaTeamID = spGetGaiaTeamID()
 
 local function GetAllyTeamID(teamID)
 	local _, _, _, _, _, allyTeamID = spGetTeamInfo(teamID)
@@ -69,7 +75,7 @@ local function DistPointToSegment(px, py, pz, ax, ay, az, bx, by, bz)
 	return math.sqrt(dx * dx + dy * dy + dz * dz)
 end
 
-local function HandleDGunAllyRisk(teamID, sx, sy, sz, ex, ey, ez)
+local function HandleDGunAllyRisk(teamID, firingUnitID, sx, sy, sz, ex, ey, ez)
 	local minx = math.min(sx, ex) - DGUN_WIDTH
 	local maxx = math.max(sx, ex) + DGUN_WIDTH
 	local miny = math.min(sy, ey) - DGUN_WIDTH
@@ -83,7 +89,7 @@ local function HandleDGunAllyRisk(teamID, sx, sy, sz, ex, ey, ez)
 	for i = 1, #candidates do
 		local unitID = candidates[i]
 		local unitTeam = spGetUnitTeam(unitID)
-		if unitTeam and GetAllyTeamID(unitTeam) == myAllyTeam then
+		if unitID ~= firingUnitID and unitTeam and GetAllyTeamID(unitTeam) == myAllyTeam then
 			local ux, uy, uz = spGetUnitPosition(unitID)
 			if ux then
 				local d = DistPointToSegment(ux, uy, uz, sx, sy, sz, ex, ey, ez)
@@ -92,6 +98,30 @@ local function HandleDGunAllyRisk(teamID, sx, sy, sz, ex, ey, ez)
 					spEcho("DANGER " .. dangerCount)
 					return true
 				end
+			end
+		end
+	end
+
+	return false
+end
+
+local function HasKnownEnemyNearby(teamID, ux, uy, uz)
+	local myAllyTeam = GetAllyTeamID(teamID)
+	local candidates = spGetUnitsInSphere(ux, uy, uz, ENEMY_SCAN_RADIUS)
+
+	for i = 1, #candidates do
+		local unitID = candidates[i]
+		local unitTeam = spGetUnitTeam(unitID)
+		if unitTeam and unitTeam ~= gaiaTeamID and GetAllyTeamID(unitTeam) ~= myAllyTeam then
+			local losState = spGetUnitLosState(unitID, myAllyTeam, true)
+			if losState and (losState % 4) > 0 then
+				local ex, ey, ez = spGetUnitPosition(unitID)
+				local unitDefID = spGetUnitDefID(unitID)
+				local unitDef = unitDefID and UnitDefs[unitDefID]
+				local unitName = unitDef and (unitDef.translatedHumanName or unitDef.name) or "unknown"
+				local dist = (ex and math.sqrt((ex - ux) * (ex - ux) + (ey - uy) * (ey - uy) + (ez - uz) * (ez - uz))) or ENEMY_SCAN_RADIUS
+				spEcho(string.format("Enemy nearby: %s (unitID=%d, teamID=%d, dist=%.0f)", unitName, unitID, unitTeam, dist))
+				return true
 			end
 		end
 	end
@@ -114,6 +144,10 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
 		return
 	end
 
+	if HasKnownEnemyNearby(teamID, ux, uy, uz) then
+		return
+	end
+
 	local tx, ty, tz
 	if #cmdParams == 1 and cmdParams[1] > 0 then
 		tx, ty, tz = spGetUnitPosition(cmdParams[1])
@@ -126,5 +160,5 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
 	end
 
 	local sx, sy, sz, ex, ey, ez = BuildDGunSegment(ux, uy, uz, tx, ty, tz)
-	HandleDGunAllyRisk(teamID, sx, sy, sz, ex, ey, ez)
+	HandleDGunAllyRisk(teamID, unitID, sx, sy, sz, ex, ey, ez)
 end
