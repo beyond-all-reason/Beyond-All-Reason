@@ -460,25 +460,18 @@
 				</div>
 			</div>
 
+			<!-- Save/Load -->
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-sp-save" class="tf-action-btn tf-save-btn" style="flex: 1;" onclick="widget:spSave(); event:StopPropagation()">
+					<div class="tf-action-btn-text">SAVE</div>
+				</div>
+				<div id="btn-sp-load" class="tf-action-btn" style="flex: 1;" onclick="widget:spLoad(); event:StopPropagation()">
+					<div class="tf-action-btn-text">LOAD</div>
+				</div>
+			</div>
+
 		</div><!-- /section-st-controls -->
 		</div><!-- /frame-st-controls -->
-
-		<div class="tf-section-frame tf-collapsed" id="frame-st-save">
-			<div id="btn-toggle-st-save" class="tf-section-title-row" style="cursor: pointer;">
-				<img id="img-toggle-st-save" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
-			</div>
-		<div id="section-st-save" class="hidden">
-		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-sp-save" class="tf-action-btn tf-save-btn" style="flex: 1;" onclick="widget:spSave(); event:StopPropagation()">
-				<div class="tf-action-btn-text">SAVE</div>
-			</div>
-			<div id="btn-sp-load" class="tf-action-btn" style="flex: 1;" onclick="widget:spLoad(); event:StopPropagation()">
-				<div class="tf-action-btn-text">LOAD</div>
-			</div>
-		</div>
-		</div><!-- /section-st-save -->
-		</div><!-- /frame-st-save -->
 		</div>
 
 		<!-- Clone Tool controls (visible only when Clone tool active) -->
@@ -693,6 +686,7 @@
 			<div id="btn-toggle-cl-undo" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-cl-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
 			</div>
 			<div id="section-cl-undo" class="hidden">
 			<div class="flex flex-row gap-1 items-center mb-1">
@@ -1104,12 +1098,6 @@
 			</div><!-- /frame-mb-instruments -->
 
 
-			<div class="tf-section-frame" id="frame-mb-controls">
-				<div id="btn-toggle-mb-controls" class="tf-section-title-row" style="cursor: pointer;">
-					<img id="img-toggle-mb-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-					<div class="tf-collapsible-title">CONTROLS</div>
-				</div>
-			<div id="section-mb-controls">
 			<div class="flex flex-row justify-between items-center mb-1">
 				<div class="text-lg text-light font-bold">Metal Value</div>
 				<div class="text-lg text-light">{{mbValueStr}}</div>
@@ -1209,8 +1197,6 @@
 				</div>
 				<input type="text" id="slider-mb-curve-numbox" class="tf-slider-numbox" value="0" />
 			</div>
-			</div><!-- /section-mb-controls -->
-			</div><!-- /frame-mb-controls -->
 
 
 			<!-- Metal Undo & Redo -->
@@ -1218,6 +1204,7 @@
 				<div id="btn-toggle-mb-undo" class="tf-section-title-row" style="cursor: pointer;">
 					<img id="img-toggle-mb-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 					<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+					<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z</div>
 				</div>
 			<div id="section-mb-undo" class="hidden">
 			<div class="flex flex-row gap-1 items-center mb-1">
@@ -1233,12 +1220,6 @@
 			</div><!-- /section-mb-undo -->
 			</div><!-- /frame-mb-undo -->
 
-			<div class="tf-section-frame tf-collapsed" id="frame-mb-save">
-				<div id="btn-toggle-mb-save" class="tf-section-title-row" style="cursor: pointer;">
-					<img id="img-toggle-mb-save" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-					<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
-				</div>
-			<div id="section-mb-save" class="hidden">
 			<div class="flex flex-row gap-1 mb-1">
 				<div id="btn-metal-save" class="tf-action-btn tf-save-btn" style="flex: 1;" onclick="widget:mbSave(); event:StopPropagation()">
 					<div class="tf-action-btn-text">SAVE</div>
@@ -1250,8 +1231,6 @@
 					<div class="tf-action-btn-text">{{mbCleanLabelStr}}</div>
 				</div>
 			</div>
-			</div><!-- /section-mb-save -->
-			</div><!-- /frame-mb-save -->
 		</div>
 
 		<!-- Grass sub-mode row (visible only when Grass mode active) -->
@@ -1726,6 +1705,19 @@
 			</div>
 
 
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-grass-save" onclick="widget:gbSave(); event:StopPropagation()" class="tf-action-btn tf-save-btn" style="flex: 1;">
+					<div class="tf-action-btn-text">SAVE GRASS MAP</div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-grass-load" onclick="widget:gbLoad(); event:StopPropagation()" class="tf-action-btn tf-load-btn" style="flex: 1;">
+					<div class="tf-action-btn-text">LOAD GRASS MAP</div>
+				</div>
+				<div id="btn-grass-clean" onclick="widget:gbClean(); event:StopPropagation()" class="tf-action-btn tf-dc-reset-btn" style="flex: 1;">
+					<div class="tf-action-btn-text">CLEAN GRASS</div>
+				</div>
+			</div>
 			</div><!-- /section-gb-controls -->
 			</div><!-- /frame-gb-controls -->
 
@@ -1735,6 +1727,7 @@
 				<div id="btn-toggle-gb-undo" class="tf-section-title-row" style="cursor: pointer;">
 					<img id="img-toggle-gb-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 					<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+					<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
 				</div>
 			<div id="section-gb-undo" class="hidden">
 			<div class="flex flex-row gap-1 items-center mb-1">
@@ -1749,28 +1742,6 @@
 			</div>
 			</div><!-- /section-gb-undo -->
 			</div><!-- /frame-gb-undo -->
-
-			<div class="tf-section-frame tf-collapsed" id="frame-gb-save">
-				<div id="btn-toggle-gb-save" class="tf-section-title-row" style="cursor: pointer;">
-					<img id="img-toggle-gb-save" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-					<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
-				</div>
-			<div id="section-gb-save" class="hidden">
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-grass-save" onclick="widget:gbSave(); event:StopPropagation()" class="tf-action-btn tf-save-btn" style="flex: 1;">
-					<div class="tf-action-btn-text">SAVE GRASS MAP</div>
-				</div>
-			</div>
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-grass-load" onclick="widget:gbLoad(); event:StopPropagation()" class="tf-action-btn tf-load-btn" style="flex: 1;">
-					<div class="tf-action-btn-text">LOAD GRASS MAP</div>
-				</div>
-				<div id="btn-grass-clean" onclick="widget:gbClean(); event:StopPropagation()" class="tf-action-btn tf-dc-reset-btn" style="flex: 1;">
-					<div class="tf-action-btn-text">CLEAN GRASS</div>
-				</div>
-			</div>
-			</div><!-- /section-gb-save -->
-			</div><!-- /frame-gb-save -->
 		</div>
 
 		<!-- Feature sub-mode row (visible only when Features mode active) -->
@@ -2396,6 +2367,7 @@
 			<div id="btn-toggle-tf-undo" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-tf-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
 			</div>
 		<div id="section-tf-undo" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -2871,6 +2843,7 @@
 			<div id="btn-toggle-fp-undo" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-fp-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
 			</div>
 		<div id="section-fp-undo" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -3064,6 +3037,7 @@
 			<div id="btn-toggle-wb-controls" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-wb-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">CONTROLS</div>
+				<div id="weather-persist-notify-dot" class="tf-notify-dot hidden"></div>
 			</div>
 		<div id="section-wb-controls">
 
@@ -3258,11 +3232,6 @@
 					<div class="tf-sp-badge">4</div>
 					<div id="sp-ch4-preview" class="tf-sp-preview"></div>
 				</div>
-			</div>
-		</div>
-		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-sp-splattex" class="tf-action-btn" style="flex: 1;">
-				<div class="tf-action-btn-text">SPLAT TEX PARAMS</div>
 			</div>
 		</div>
 		</div><!-- /section-spl-channel -->
@@ -3671,6 +3640,7 @@
 			<div id="btn-toggle-sp-undo" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-sp-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
 			</div>
 		<div id="section-sp-undo" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -3686,12 +3656,7 @@
 		</div><!-- /section-sp-undo -->
 		</div><!-- /frame-sp-undo -->
 
-		<div class="tf-section-frame tf-collapsed" id="frame-sp-save">
-			<div id="btn-toggle-sp-save" class="tf-section-title-row" style="cursor: pointer;">
-				<img id="img-toggle-sp-save" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
-			</div>
-		<div id="section-sp-save" class="hidden">
+
 		<div class="flex flex-row gap-1 mb-1">
 			<div id="btn-sp-export-format" class="tf-action-btn" style="flex: 0 0 auto; min-width: 50dp;" onclick="widget:splatCycleExportFormat(); event:StopPropagation()">
 				<div id="sp-export-format-label" class="tf-action-btn-text">PNG</div>
@@ -3700,8 +3665,12 @@
 				<div class="tf-action-btn-text">SAVE SPLATS</div>
 			</div>
 		</div>
-		</div><!-- /section-sp-save -->
-		</div><!-- /frame-sp-save -->
+
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-sp-splattex" class="tf-action-btn" style="flex: 1;">
+				<div class="tf-action-btn-text">SPLAT TEX PARAMS</div>
+			</div>
+		</div>
 
 		</div><!-- /tf-splat-controls -->
 
@@ -3967,6 +3936,7 @@
 			<div id="btn-toggle-dc-undo" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-dc-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z</div>
 			</div>
 		<div id="section-dc-undo" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -4082,12 +4052,7 @@
 		</div><!-- /section-env-buttons -->
 		</div><!-- /frame-env-buttons -->
 
-		<div class="tf-section-frame tf-collapsed" id="frame-env-save">
-			<div id="btn-toggle-env-save" class="tf-section-title-row" style="cursor: pointer;">
-				<img id="img-toggle-env-save" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
-			</div>
-		<div id="section-env-save" class="hidden">
+
 		<div class="flex flex-row gap-1 mb-1">
 			<div id="btn-env-save" class="tf-env-btn tf-save-btn" style="flex: 1;" onclick="widget:envSave(); event:StopPropagation()">
 				<img class="tf-env-btn-icon" src="/luaui/images/terraform_brush/env_save.png" />
@@ -4097,8 +4062,6 @@
 				<div class="tf-env-btn-text">LOAD SCENE</div>
 			</div>
 		</div>
-		</div><!-- /section-env-save -->
-		</div><!-- /frame-env-save -->
 
 		</div><!-- /tf-environment-controls -->
 
@@ -4581,6 +4544,7 @@
 			<div id="btn-toggle-lp-undo" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-lp-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
 			</div>
 		<div id="section-lp-undo" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">

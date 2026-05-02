@@ -171,10 +171,10 @@
 		<div id="tf-startpos-controls" data-if="activeTool == 'stp'">
 
 		<!-- ST: DISPLAY -->
-		<div class="tf-section-frame tf-collapsed" id="frame-st-overlays">
+		<div class="tf-section-frame" id="frame-st-overlays">
 			<div id="btn-toggle-st-overlays" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-st-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">DISPLAY</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
 				<div id="warn-chip-st-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-st-overlays" class="hidden">
@@ -191,10 +191,10 @@
 
 
 		<!-- ST: INSTRUMENTS -->
-		<div class="tf-section-frame tf-collapsed" id="frame-st-instruments">
+		<div class="tf-section-frame" id="frame-st-instruments">
 			<div id="btn-toggle-st-instruments" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-st-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">INSTRUMENTS</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
 				<div id="warn-chip-st-instruments" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-st-instruments" class="hidden">
@@ -317,7 +317,7 @@
 		<div class="tf-section-frame" id="frame-st-controls">
 			<div id="btn-toggle-st-controls" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-st-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-				<div class="tf-collapsible-title">CONTROLS</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">CONTROLS</div>
 			</div>
 		<div id="section-st-controls">
 
@@ -460,35 +460,28 @@
 				</div>
 			</div>
 
+			<!-- Save/Load -->
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-sp-save" class="tf-action-btn tf-save-btn" style="flex: 1;" onclick="widget:spSave(); event:StopPropagation()">
+					<div class="tf-action-btn-text">SAVE</div>
+				</div>
+				<div id="btn-sp-load" class="tf-action-btn" style="flex: 1;" onclick="widget:spLoad(); event:StopPropagation()">
+					<div class="tf-action-btn-text">LOAD</div>
+				</div>
+			</div>
+
 		</div><!-- /section-st-controls -->
 		</div><!-- /frame-st-controls -->
-
-		<div class="tf-section-frame tf-collapsed" id="frame-st-save">
-			<div id="btn-toggle-st-save" class="tf-section-title-row" style="cursor: pointer;">
-				<img id="img-toggle-st-save" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
-			</div>
-		<div id="section-st-save" class="hidden">
-		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-sp-save" class="tf-action-btn tf-save-btn" style="flex: 1;" onclick="widget:spSave(); event:StopPropagation()">
-				<div class="tf-action-btn-text">SAVE</div>
-			</div>
-			<div id="btn-sp-load" class="tf-action-btn" style="flex: 1;" onclick="widget:spLoad(); event:StopPropagation()">
-				<div class="tf-action-btn-text">LOAD</div>
-			</div>
-		</div>
-		</div><!-- /section-st-save -->
-		</div><!-- /frame-st-save -->
 		</div>
 
 		<!-- Clone Tool controls (visible only when Clone tool active) -->
 		<div id="tf-clone-controls" data-if="activeTool == 'cl'">
 
 		<!-- CL: DISPLAY -->
-		<div class="tf-section-frame tf-collapsed" id="frame-cl-overlays">
+		<div class="tf-section-frame" id="frame-cl-overlays">
 			<div id="btn-toggle-cl-overlays" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-cl-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">DISPLAY</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
 				<div id="warn-chip-cl-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-cl-overlays" class="hidden">
@@ -505,10 +498,10 @@
 
 
 		<!-- CL: INSTRUMENTS -->
-		<div class="tf-section-frame tf-collapsed" id="frame-cl-instruments">
+		<div class="tf-section-frame" id="frame-cl-instruments">
 			<div id="btn-toggle-cl-instruments" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-cl-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">INSTRUMENTS</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
 				<div id="warn-chip-cl-instruments" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-cl-instruments" class="hidden">
@@ -631,7 +624,7 @@
 		<div class="tf-section-frame" id="frame-cl-controls">
 			<div id="btn-toggle-cl-controls" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-cl-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-				<div class="tf-collapsible-title">CONTROLS</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">CONTROLS</div>
 				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+C / Ctrl+V</div>
 			</div>
 		<div id="section-cl-controls">
@@ -689,10 +682,10 @@
 
 
 			<!-- Undo & Redo -->
-			<div class="tf-section-frame tf-collapsed" id="frame-cl-undo">
-			<div id="btn-toggle-cl-undo" class="tf-section-title-row" style="cursor: pointer;">
+			<div id="btn-toggle-cl-undo" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 				<img id="img-toggle-cl-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
 			</div>
 			<div id="section-cl-undo" class="hidden">
 			<div class="flex flex-row gap-1 items-center mb-1">
@@ -706,20 +699,18 @@
 				<input type="text" id="slider-cl-history-numbox" class="tf-slider-numbox" value="0" />
 			</div>
 			</div><!-- /section-cl-undo -->
-			</div><!-- /frame-cl-undo -->
 
 
 			<!-- Paste transform controls -->
 			<div id="cl-paste-transforms" data-if="clonePasteTransformsVisible">
-			<div class="tf-section-frame tf-collapsed" id="frame-cl-paste">
-				<div id="btn-toggle-cl-paste" class="tf-section-title-row" style="cursor: pointer;">
+				<div id="btn-toggle-cl-paste" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 					<img id="img-toggle-cl-paste" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 					<div class="tf-collapsible-title">PASTE TRANSFORMS</div>
 				</div>
 				<div id="section-cl-paste" class="hidden">
 
-				<div class="tf-section-frame tf-collapsed" id="frame-cl-quality">
-				<div id="btn-toggle-cl-quality" class="tf-section-title-row" style="cursor: pointer;">
+				<!-- Terrain quality -->
+				<div id="btn-toggle-cl-quality" class="flex flex-row items-center mb-0-5" style="cursor: pointer;">
 					<img id="img-toggle-cl-quality" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 					<div class="tf-collapsible-title">TERRAIN QUALITY</div>
 				</div>
@@ -736,7 +727,6 @@
 					</div>
 				</div>
 				</div><!-- /section-cl-quality -->
-				</div><!-- /frame-cl-quality -->
 
 				<!-- Rotation -->
 				<div class="flex flex-row justify-between items-center mb-1">
@@ -780,7 +770,6 @@
 					</div>
 				</div>
 				</div><!-- /section-cl-paste -->
-			</div><!-- /frame-cl-paste -->
 			</div>
 
 		</div><!-- /section-cl-controls -->
@@ -867,10 +856,10 @@
 		<div id="tf-metal-controls" data-if="activeTool == 'mb'">
 
 			<!-- Metal Brush: DISPLAY -->
-			<div class="tf-section-frame tf-collapsed" id="frame-mb-overlays">
+			<div class="tf-section-frame" id="frame-mb-overlays">
 				<div id="btn-toggle-mb-overlays" class="tf-section-title-row" style="cursor: pointer;">
 					<img id="img-toggle-mb-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-					<div class="tf-collapsible-title">DISPLAY</div>
+					<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
 					<div id="warn-chip-mb-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 					<div id="mb-mapanalysis-notify-dot" class="tf-notify-dot hidden"></div>
 				</div>
@@ -967,10 +956,10 @@
 
 
 			<!-- Metal Brush: INSTRUMENTS -->
-			<div class="tf-section-frame tf-collapsed" id="frame-mb-instruments">
+			<div class="tf-section-frame" id="frame-mb-instruments">
 				<div id="btn-toggle-mb-instruments" class="tf-section-title-row" style="cursor: pointer;">
 					<img id="img-toggle-mb-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-					<div class="tf-collapsible-title">INSTRUMENTS</div>
+					<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
 					<div id="warn-chip-mb-instruments" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 				</div>
 			<div id="section-mb-instruments" class="hidden">
@@ -1104,12 +1093,6 @@
 			</div><!-- /frame-mb-instruments -->
 
 
-			<div class="tf-section-frame" id="frame-mb-controls">
-				<div id="btn-toggle-mb-controls" class="tf-section-title-row" style="cursor: pointer;">
-					<img id="img-toggle-mb-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-					<div class="tf-collapsible-title">CONTROLS</div>
-				</div>
-			<div id="section-mb-controls">
 			<div class="flex flex-row justify-between items-center mb-1">
 				<div class="text-lg text-light font-bold">Metal Value</div>
 				<div class="text-lg text-light">{{mbValueStr}}</div>
@@ -1209,15 +1192,14 @@
 				</div>
 				<input type="text" id="slider-mb-curve-numbox" class="tf-slider-numbox" value="0" />
 			</div>
-			</div><!-- /section-mb-controls -->
-			</div><!-- /frame-mb-controls -->
 
 
 			<!-- Metal Undo & Redo -->
-			<div class="tf-section-frame tf-collapsed" id="frame-mb-undo">
+			<div class="tf-section-frame" id="frame-mb-undo">
 				<div id="btn-toggle-mb-undo" class="tf-section-title-row" style="cursor: pointer;">
 					<img id="img-toggle-mb-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 					<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+					<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z</div>
 				</div>
 			<div id="section-mb-undo" class="hidden">
 			<div class="flex flex-row gap-1 items-center mb-1">
@@ -1233,12 +1215,6 @@
 			</div><!-- /section-mb-undo -->
 			</div><!-- /frame-mb-undo -->
 
-			<div class="tf-section-frame tf-collapsed" id="frame-mb-save">
-				<div id="btn-toggle-mb-save" class="tf-section-title-row" style="cursor: pointer;">
-					<img id="img-toggle-mb-save" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-					<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
-				</div>
-			<div id="section-mb-save" class="hidden">
 			<div class="flex flex-row gap-1 mb-1">
 				<div id="btn-metal-save" class="tf-action-btn tf-save-btn" style="flex: 1;" onclick="widget:mbSave(); event:StopPropagation()">
 					<div class="tf-action-btn-text">SAVE</div>
@@ -1250,8 +1226,6 @@
 					<div class="tf-action-btn-text">{{mbCleanLabelStr}}</div>
 				</div>
 			</div>
-			</div><!-- /section-mb-save -->
-			</div><!-- /frame-mb-save -->
 		</div>
 
 		<!-- Grass sub-mode row (visible only when Grass mode active) -->
@@ -1284,10 +1258,10 @@
 		<div id="tf-grass-controls" data-if="activeTool == 'gb'">
 
 			<!-- Grass Brush: DISPLAY -->
-			<div class="tf-section-frame tf-collapsed" id="frame-gb-overlays">
+			<div class="tf-section-frame" id="frame-gb-overlays">
 				<div id="btn-toggle-gb-overlays" class="tf-section-title-row" style="cursor: pointer;">
 					<img id="img-toggle-gb-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-					<div class="tf-collapsible-title">DISPLAY</div>
+					<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
 					<div id="warn-chip-gb-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden">
 						<div class="tf-overlay-chip-label">Active</div>
 					</div>
@@ -1306,10 +1280,10 @@
 
 
 			<!-- Grass Brush: INSTRUMENTS -->
-			<div class="tf-section-frame tf-collapsed" id="frame-gb-instruments">
+			<div class="tf-section-frame" id="frame-gb-instruments">
 				<div id="btn-toggle-gb-instruments" class="tf-section-title-row" style="cursor: pointer;">
 					<img id="img-toggle-gb-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-					<div class="tf-collapsible-title">INSTRUMENTS</div>
+					<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
 					<div id="warn-chip-gb-instruments" class="tf-overlay-chip tf-overlay-chip-warn hidden">
 						<div class="tf-overlay-chip-label">Active</div>
 					</div>
@@ -1445,10 +1419,10 @@
 			</div><!-- /frame-gb-instruments -->
 
 			<!-- Grass Brush: FILTERS (collapsible, chip-driven like Feature Placer) -->
-			<div class="tf-section-frame tf-collapsed" id="frame-gb-smart">
+			<div class="tf-section-frame" id="frame-gb-smart">
 				<div id="btn-toggle-gb-smart" class="tf-section-title-row" style="cursor: pointer;">
 					<img id="img-toggle-gb-smart" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-					<div class="tf-collapsible-title">FILTERS</div>
+					<div class="text-base text-keybind">FILTERS</div>
 					<div id="warn-chip-gb-smart" class="tf-overlay-chip tf-overlay-chip-warn hidden">
 						<div class="tf-overlay-chip-label">Active</div>
 					</div>
@@ -1620,7 +1594,7 @@
 			<div class="tf-section-frame" id="frame-gb-controls">
 				<div id="btn-toggle-gb-controls" class="tf-section-title-row" style="cursor: pointer;">
 					<img id="img-toggle-gb-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-					<div class="tf-collapsible-title">CONTROLS</div>
+					<div class="text-base text-keybind">CONTROLS</div>
 				</div>
 			<div id="section-gb-controls">
 
@@ -1726,15 +1700,29 @@
 			</div>
 
 
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-grass-save" onclick="widget:gbSave(); event:StopPropagation()" class="tf-action-btn tf-save-btn" style="flex: 1;">
+					<div class="tf-action-btn-text">SAVE GRASS MAP</div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-grass-load" onclick="widget:gbLoad(); event:StopPropagation()" class="tf-action-btn tf-load-btn" style="flex: 1;">
+					<div class="tf-action-btn-text">LOAD GRASS MAP</div>
+				</div>
+				<div id="btn-grass-clean" onclick="widget:gbClean(); event:StopPropagation()" class="tf-action-btn tf-dc-reset-btn" style="flex: 1;">
+					<div class="tf-action-btn-text">CLEAN GRASS</div>
+				</div>
+			</div>
 			</div><!-- /section-gb-controls -->
 			</div><!-- /frame-gb-controls -->
 
 
 			<!-- Undo & Redo -->
-			<div class="tf-section-frame tf-collapsed" id="frame-gb-undo">
+			<div class="tf-section-frame" id="frame-gb-undo">
 				<div id="btn-toggle-gb-undo" class="tf-section-title-row" style="cursor: pointer;">
 					<img id="img-toggle-gb-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 					<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+					<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
 				</div>
 			<div id="section-gb-undo" class="hidden">
 			<div class="flex flex-row gap-1 items-center mb-1">
@@ -1749,28 +1737,6 @@
 			</div>
 			</div><!-- /section-gb-undo -->
 			</div><!-- /frame-gb-undo -->
-
-			<div class="tf-section-frame tf-collapsed" id="frame-gb-save">
-				<div id="btn-toggle-gb-save" class="tf-section-title-row" style="cursor: pointer;">
-					<img id="img-toggle-gb-save" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-					<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
-				</div>
-			<div id="section-gb-save" class="hidden">
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-grass-save" onclick="widget:gbSave(); event:StopPropagation()" class="tf-action-btn tf-save-btn" style="flex: 1;">
-					<div class="tf-action-btn-text">SAVE GRASS MAP</div>
-				</div>
-			</div>
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-grass-load" onclick="widget:gbLoad(); event:StopPropagation()" class="tf-action-btn tf-load-btn" style="flex: 1;">
-					<div class="tf-action-btn-text">LOAD GRASS MAP</div>
-				</div>
-				<div id="btn-grass-clean" onclick="widget:gbClean(); event:StopPropagation()" class="tf-action-btn tf-dc-reset-btn" style="flex: 1;">
-					<div class="tf-action-btn-text">CLEAN GRASS</div>
-				</div>
-			</div>
-			</div><!-- /section-gb-save -->
-			</div><!-- /frame-gb-save -->
 		</div>
 
 		<!-- Feature sub-mode row (visible only when Features mode active) -->
@@ -1947,10 +1913,10 @@
 		<div id="tf-terraform-controls" data-if="activeTool == ''">
 
 		<!-- Display-options collapse header (was OVERLAYS) -->
-		<div class="tf-section-frame tf-collapsed" id="frame-overlays">
+		<div class="tf-section-frame" id="frame-overlays">
 			<div id="btn-toggle-overlays" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">DISPLAY</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
 				<div id="warn-chip-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden">
 					<div class="tf-overlay-chip-label">Active</div>
 				</div>
@@ -1969,10 +1935,10 @@
 
 
 		<!-- Instruments toggle header + section -->
-		<div class="tf-section-frame tf-collapsed" id="frame-instruments">
+		<div class="tf-section-frame" id="frame-instruments">
 			<div id="btn-toggle-instruments" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">INSTRUMENTS</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
 				<div id="warn-chip-instruments" class="tf-overlay-chip tf-overlay-chip-warn hidden">
 					<div class="tf-overlay-chip-label">Active</div>
 				</div>
@@ -2147,7 +2113,7 @@
 		<div class="tf-section-frame" id="frame-sliders">
 			<div id="btn-toggle-sliders" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-sliders" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-				<div class="tf-collapsible-title">CONTROLS</div>
+				<div class="text-base text-keybind">CONTROLS</div>
 			</div>
 		<div id="section-sliders">
 		<div class="flex flex-row items-center gap-1 mb-1">
@@ -2392,10 +2358,11 @@
 		</div><!-- /frame-heightcap -->
 
 
-		<div class="tf-section-frame tf-collapsed" id="frame-tf-undo">
+		<div class="tf-section-frame" id="frame-tf-undo">
 			<div id="btn-toggle-tf-undo" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-tf-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
 			</div>
 		<div id="section-tf-undo" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -2486,10 +2453,10 @@
 
 
 		<!-- Feature Placer: DISPLAY -->
-		<div class="tf-section-frame tf-collapsed" id="frame-fp-overlays">
+		<div class="tf-section-frame" id="frame-fp-overlays">
 			<div id="btn-toggle-fp-overlays" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-fp-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">DISPLAY</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
 				<div id="warn-chip-fp-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-fp-overlays" class="hidden">
@@ -2506,10 +2473,10 @@
 
 
 		<!-- Feature Placer: INSTRUMENTS -->
-		<div class="tf-section-frame tf-collapsed" id="frame-fp-instruments">
+		<div class="tf-section-frame" id="frame-fp-instruments">
 			<div id="btn-toggle-fp-instruments" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-fp-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">INSTRUMENTS</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
 				<div id="warn-chip-fp-instruments" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-fp-instruments" class="hidden">
@@ -2601,10 +2568,10 @@
 
 
 		<!-- Feature Placer: FILTERS -->
-		<div class="tf-section-frame tf-collapsed" id="frame-fp-smart">
+		<div class="tf-section-frame" id="frame-fp-smart">
 			<div id="btn-toggle-fp-smart" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-fp-smart" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">FILTERS</div>
+				<div class="text-base text-keybind">FILTERS</div>
 				<div id="warn-chip-fp-smart" class="tf-overlay-chip tf-overlay-chip-warn hidden">
 					<div class="tf-overlay-chip-label">Active</div>
 				</div>
@@ -2730,7 +2697,7 @@
 		<div class="tf-section-frame" id="frame-fp-controls">
 			<div id="btn-toggle-fp-controls" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-fp-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-				<div class="tf-collapsible-title">CONTROLS</div>
+				<div class="text-base text-keybind">CONTROLS</div>
 			</div>
 		<div id="section-fp-controls">
 		<div class="flex flex-row items-center gap-1 mb-1">
@@ -2867,10 +2834,11 @@
 		</div><!-- /frame-fp-controls -->
 
 
-		<div class="tf-section-frame tf-collapsed" id="frame-fp-undo">
+		<div class="tf-section-frame" id="frame-fp-undo">
 			<div id="btn-toggle-fp-undo" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-fp-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
 			</div>
 		<div id="section-fp-undo" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -2887,7 +2855,7 @@
 		</div><!-- /frame-fp-undo -->
 
 
-		<div class="tf-section-frame tf-collapsed" id="frame-fp-save">
+		<div class="tf-section-frame" id="frame-fp-save">
 			<div id="btn-toggle-fp-save" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-fp-save" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
@@ -2917,10 +2885,10 @@
 		<div id="tf-weather-controls" data-if="activeTool == 'wb'">
 
 		<!-- WB: DISPLAY -->
-		<div class="tf-section-frame tf-collapsed" id="frame-wb-overlays">
+		<div class="tf-section-frame" id="frame-wb-overlays">
 			<div id="btn-toggle-wb-overlays" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-wb-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">DISPLAY</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
 				<div id="warn-chip-wb-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-wb-overlays" class="hidden">
@@ -2937,10 +2905,10 @@
 
 
 		<!-- WB: INSTRUMENTS -->
-		<div class="tf-section-frame tf-collapsed" id="frame-wb-instruments">
+		<div class="tf-section-frame" id="frame-wb-instruments">
 			<div id="btn-toggle-wb-instruments" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-wb-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">INSTRUMENTS</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
 				<div id="warn-chip-wb-instruments" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-wb-instruments" class="hidden">
@@ -3063,7 +3031,8 @@
 		<div class="tf-section-frame" id="frame-wb-controls">
 			<div id="btn-toggle-wb-controls" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-wb-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-				<div class="tf-collapsible-title">CONTROLS</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">CONTROLS</div>
+				<div id="weather-persist-notify-dot" class="tf-notify-dot hidden"></div>
 			</div>
 		<div id="section-wb-controls">
 
@@ -3260,20 +3229,15 @@
 				</div>
 			</div>
 		</div>
-		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-sp-splattex" class="tf-action-btn" style="flex: 1;">
-				<div class="tf-action-btn-text">SPLAT TEX PARAMS</div>
-			</div>
-		</div>
 		</div><!-- /section-spl-channel -->
 		</div><!-- /frame-spl-channel -->
 
 
 		<!-- Splat Painter: DISPLAY -->
-		<div class="tf-section-frame tf-collapsed" id="frame-sp-overlays">
+		<div class="tf-section-frame" id="frame-sp-overlays">
 			<div id="btn-toggle-sp-overlays" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-sp-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">DISPLAY</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
 				<div id="warn-chip-sp-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 				<div id="sp-display-notify-dot" class="tf-notify-dot" data-if="spDisplayHintVisible"></div>
 			</div>
@@ -3294,10 +3258,10 @@
 
 
 		<!-- Splat Painter: INSTRUMENTS -->
-		<div class="tf-section-frame tf-collapsed" id="frame-sp-instruments">
+		<div class="tf-section-frame" id="frame-sp-instruments">
 			<div id="btn-toggle-sp-instruments" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-sp-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">INSTRUMENTS</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
 				<div id="warn-chip-sp-instruments" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-sp-instruments" class="hidden">
@@ -3432,10 +3396,10 @@
 
 
 		<!-- Splat Painter: FILTERS -->
-		<div class="tf-section-frame tf-collapsed" id="frame-sp-smart">
+		<div class="tf-section-frame" id="frame-sp-smart">
 			<div id="btn-toggle-sp-smart" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-sp-smart" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">FILTERS</div>
+				<div class="text-base text-keybind">FILTERS</div>
 				<div id="warn-chip-sp-smart" class="tf-overlay-chip tf-overlay-chip-warn hidden">
 					<div class="tf-overlay-chip-label">Active</div>
 				</div>
@@ -3561,7 +3525,7 @@
 		<div class="tf-section-frame" id="frame-sp-controls">
 			<div id="btn-toggle-sp-controls" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-sp-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-				<div class="tf-collapsible-title">CONTROLS</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">CONTROLS</div>
 			</div>
 		<div id="section-sp-controls">
 
@@ -3667,10 +3631,11 @@
 
 
 		<!-- Undo & Redo -->
-		<div class="tf-section-frame tf-collapsed" id="frame-sp-undo">
+		<div class="tf-section-frame" id="frame-sp-undo">
 			<div id="btn-toggle-sp-undo" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-sp-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
 			</div>
 		<div id="section-sp-undo" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -3686,12 +3651,7 @@
 		</div><!-- /section-sp-undo -->
 		</div><!-- /frame-sp-undo -->
 
-		<div class="tf-section-frame tf-collapsed" id="frame-sp-save">
-			<div id="btn-toggle-sp-save" class="tf-section-title-row" style="cursor: pointer;">
-				<img id="img-toggle-sp-save" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
-			</div>
-		<div id="section-sp-save" class="hidden">
+
 		<div class="flex flex-row gap-1 mb-1">
 			<div id="btn-sp-export-format" class="tf-action-btn" style="flex: 0 0 auto; min-width: 50dp;" onclick="widget:splatCycleExportFormat(); event:StopPropagation()">
 				<div id="sp-export-format-label" class="tf-action-btn-text">PNG</div>
@@ -3700,8 +3660,12 @@
 				<div class="tf-action-btn-text">SAVE SPLATS</div>
 			</div>
 		</div>
-		</div><!-- /section-sp-save -->
-		</div><!-- /frame-sp-save -->
+
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-sp-splattex" class="tf-action-btn" style="flex: 1;">
+				<div class="tf-action-btn-text">SPLAT TEX PARAMS</div>
+			</div>
+		</div>
 
 		</div><!-- /tf-splat-controls -->
 
@@ -3709,10 +3673,10 @@
 		<div id="tf-decal-controls" data-if="activeTool == 'dc'">
 
 		<!-- DC: DISPLAY -->
-		<div class="tf-section-frame tf-collapsed" id="frame-dc-overlays">
+		<div class="tf-section-frame" id="frame-dc-overlays">
 			<div id="btn-toggle-dc-overlays" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-dc-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">DISPLAY</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
 				<div id="warn-chip-dc-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-dc-overlays" class="hidden">
@@ -3729,10 +3693,10 @@
 
 
 		<!-- DC: INSTRUMENTS -->
-		<div class="tf-section-frame tf-collapsed" id="frame-dc-instruments">
+		<div class="tf-section-frame" id="frame-dc-instruments">
 			<div id="btn-toggle-dc-instruments" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-dc-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">INSTRUMENTS</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
 				<div id="warn-chip-dc-instruments" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-dc-instruments" class="hidden">
@@ -3963,10 +3927,11 @@
 
 
 		<!-- Undo & Redo -->
-		<div class="tf-section-frame tf-collapsed" id="frame-dc-undo">
+		<div class="tf-section-frame" id="frame-dc-undo">
 			<div id="btn-toggle-dc-undo" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-dc-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z</div>
 			</div>
 		<div id="section-dc-undo" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -3984,7 +3949,7 @@
 
 
 		<!-- Save / Load + Combat Heatmap -->
-		<div class="tf-section-frame tf-collapsed" id="frame-dc-saveload">
+		<div class="tf-section-frame" id="frame-dc-saveload">
 			<div id="btn-toggle-dc-saveload" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-dc-saveload" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
@@ -4082,12 +4047,7 @@
 		</div><!-- /section-env-buttons -->
 		</div><!-- /frame-env-buttons -->
 
-		<div class="tf-section-frame tf-collapsed" id="frame-env-save">
-			<div id="btn-toggle-env-save" class="tf-section-title-row" style="cursor: pointer;">
-				<img id="img-toggle-env-save" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
-			</div>
-		<div id="section-env-save" class="hidden">
+
 		<div class="flex flex-row gap-1 mb-1">
 			<div id="btn-env-save" class="tf-env-btn tf-save-btn" style="flex: 1;" onclick="widget:envSave(); event:StopPropagation()">
 				<img class="tf-env-btn-icon" src="/luaui/images/terraform_brush/env_save.png" />
@@ -4097,8 +4057,6 @@
 				<div class="tf-env-btn-text">LOAD SCENE</div>
 			</div>
 		</div>
-		</div><!-- /section-env-save -->
-		</div><!-- /frame-env-save -->
 
 		</div><!-- /tf-environment-controls -->
 
@@ -4180,10 +4138,10 @@
 		</div><!-- /tf-lp-submodes -->
 
 		<!-- LP: DISPLAY -->
-		<div class="tf-section-frame tf-collapsed" id="frame-lp-overlays">
+		<div class="tf-section-frame" id="frame-lp-overlays">
 			<div id="btn-toggle-lp-overlays" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-lp-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">DISPLAY</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">DISPLAY</div>
 				<div id="warn-chip-lp-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-lp-overlays" class="hidden">
@@ -4200,10 +4158,10 @@
 
 
 		<!-- LP: INSTRUMENTS -->
-		<div class="tf-section-frame tf-collapsed" id="frame-lp-instruments">
+		<div class="tf-section-frame" id="frame-lp-instruments">
 			<div id="btn-toggle-lp-instruments" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-lp-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">INSTRUMENTS</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">INSTRUMENTS</div>
 				<div id="warn-chip-lp-instruments" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-lp-instruments" class="hidden">
@@ -4326,7 +4284,7 @@
 		<div class="tf-section-frame" id="frame-lp-controls">
 			<div id="btn-toggle-lp-controls" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-lp-controls" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-				<div class="tf-collapsible-title">CONTROLS</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">CONTROLS</div>
 			</div>
 		<div id="section-lp-controls">
 
@@ -4478,7 +4436,7 @@
 		<div class="tf-section-frame" id="frame-lp-color">
 			<div id="btn-toggle-lp-color" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-lp-color" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-				<div class="tf-collapsible-title">COLOR</div>
+				<div class="text-base text-keybind" style="margin-right: 2dp;">COLOR</div>
 			</div>
 		<div id="section-lp-color">
 			<!-- MS Paint style color palette (18 columns Ă— 3 rows) -->
@@ -4577,10 +4535,11 @@
 
 
 		<!-- LP: UNDO -->
-		<div class="tf-section-frame tf-collapsed" id="frame-lp-undo">
+		<div class="tf-section-frame" id="frame-lp-undo">
 			<div id="btn-toggle-lp-undo" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-lp-undo" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">UNDO &amp; REDO</div>
+				<div class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Z / Ctrl+Shift+Z</div>
 			</div>
 		<div id="section-lp-undo" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -4598,7 +4557,7 @@
 
 
 		<!-- LP: SAVE & LOAD -->
-		<div class="tf-section-frame tf-collapsed" id="frame-lp-saveload">
+		<div class="tf-section-frame" id="frame-lp-saveload">
 			<div id="btn-toggle-lp-saveload" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-lp-saveload" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
