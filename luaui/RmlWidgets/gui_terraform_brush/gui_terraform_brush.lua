@@ -1008,6 +1008,22 @@ local initialModel = {
 	tbAngleSnapStepStr = "15",
 	tbSymCountStr = "2",
 	tbSymAngleStr = "0",
+	-- Phase 2 step 4: splat manual spoke label
+	spManualSpokeStr = "0",
+	-- Phase 2 step 4: noise slider label interpolation strings
+	nsScaleStr = "64",
+	nsOctavesStr = "4",
+	nsPersistenceStr = "0.50",
+	nsLacunarityStr = "2.0",
+	nsSeedStr = "0",
+	-- Phase 2 step 4: DJ / stroke pill labels
+	djModeStr = "OFF",
+	dustEffectsStr = "OFF",
+	seismicEffectsStr = "OFF",
+	penPressureStr = "OFF",
+	wiggleStr = "OFF",
+	disableTipsStr = "OFF",
+	penSensitivityStr = "100",
 
 	-- terraform mode instrument sub-rows (data-if visibility flags)
 	tfGridSnap = false,
@@ -3970,14 +3986,12 @@ local function attachEventListeners()
 			local dustEl = getCachedEl(doc, "btn-dust-effects")
 			if dustEl then
 				dustEl:SetClass("active", false)
-				local pill = getCachedEl(doc, "pill-dust-effects")
-				if pill then pill.inner_rml = "OFF" end
+				if dm then dm.dustEffectsStr = "OFF" end
 			end
 			local seismicEl = getCachedEl(doc, "btn-seismic-effects")
 			if seismicEl then
 				seismicEl:SetClass("active", false)
-				local pill2 = getCachedEl(doc, "pill-seismic-effects")
-				if pill2 then pill2.inner_rml = "OFF" end
+				if dm then dm.seismicEffectsStr = "OFF" end
 			end
 			local cmapImg = getCachedEl(doc, "btn-height-colormap")
 			if cmapImg then
@@ -5650,20 +5664,17 @@ function widget:Update()
 			end
 			if dustEl then
 				dustEl:SetClass("active", state.dustEffects == true)
-				local pill = getCachedEl(doc, "pill-dust-effects")
-				if pill then pill.inner_rml = state.dustEffects and "ON" or "OFF" end
+				if dm then dm.dustEffectsStr = state.dustEffects and "ON" or "OFF" end
 			end
 			local seismicEl = getCachedEl(doc, "btn-seismic-effects")
 			if seismicEl then
 				seismicEl:SetClass("active", state.seismicEffects == true)
-				local pill2 = getCachedEl(doc, "pill-seismic-effects")
-				if pill2 then pill2.inner_rml = state.seismicEffects and "ON" or "OFF" end
+				if dm then dm.seismicEffectsStr = state.seismicEffects and "ON" or "OFF" end
 			end
 			local djActivateEl = getCachedEl(doc, "btn-dj-activate")
 			if djActivateEl then
 				djActivateEl:SetClass("active", state.djMode == true)
-				local pillDj = getCachedEl(doc, "pill-dj-activate")
-				if pillDj then pillDj.inner_rml = state.djMode and "ON" or "OFF" end
+				if dm then dm.djModeStr = state.djMode and "ON" or "OFF" end
 			end
 			local subSettings = getCachedEl(doc, "dj-sub-settings")
 			if subSettings then subSettings:SetClass("dj-disabled", not state.djMode) end
@@ -5732,8 +5743,7 @@ function widget:Update()
 				-- Settings panel sync
 				local penToggle = getCachedEl(doc, "btn-pen-pressure-toggle")
 				if penToggle then penToggle:SetClass("active", penEnabled) end
-				local pillPen = getCachedEl(doc, "pill-pen-pressure")
-				if pillPen then pillPen.inner_rml = penEnabled and "ON" or "OFF" end
+				if dm then dm.penPressureStr = penEnabled and "ON" or "OFF" end
 				local penSub = getCachedEl(doc, "pen-pressure-sub")
 				if penSub then penSub:SetClass("dj-disabled", not penEnabled) end
 				local modIntImg = getCachedEl(doc, "btn-pen-mod-intensity")
@@ -5839,36 +5849,31 @@ function widget:Update()
 			if noiseSliderScale and ds ~= "noise-scale" then
 				noiseSliderScale:SetAttribute("value", tostring(state.noiseScale))
 			end
-			local nsLabel = getCachedEl(doc, "noise-scale-label")
-			if nsLabel then nsLabel.inner_rml = tostring(state.noiseScale) end
+			if dm then dm.nsScaleStr = tostring(state.noiseScale) end
 
 			local noiseSliderOctaves = getCachedEl(doc, "slider-noise-octaves")
 			if noiseSliderOctaves and ds ~= "noise-octaves" then
 				noiseSliderOctaves:SetAttribute("value", tostring(state.noiseOctaves))
 			end
-			local noLabel = getCachedEl(doc, "noise-octaves-label")
-			if noLabel then noLabel.inner_rml = tostring(state.noiseOctaves) end
+			if dm then dm.nsOctavesStr = tostring(state.noiseOctaves) end
 
 			local noiseSliderPersist = getCachedEl(doc, "slider-noise-persistence")
 			if noiseSliderPersist and ds ~= "noise-persistence" then
 				noiseSliderPersist:SetAttribute("value", tostring(math.floor(state.noisePersistence * 100 + 0.5)))
 			end
-			local npLabel = getCachedEl(doc, "noise-persistence-label")
-			if npLabel then npLabel.inner_rml = string.format("%.2f", state.noisePersistence) end
+			if dm then dm.nsPersistenceStr = string.format("%.2f", state.noisePersistence) end
 
 			local noiseSliderLacun = getCachedEl(doc, "slider-noise-lacunarity")
 			if noiseSliderLacun and ds ~= "noise-lacunarity" then
 				noiseSliderLacun:SetAttribute("value", tostring(math.floor(state.noiseLacunarity * 10 + 0.5)))
 			end
-			local nlLabel = getCachedEl(doc, "noise-lacunarity-label")
-			if nlLabel then nlLabel.inner_rml = string.format("%.1f", state.noiseLacunarity) end
+			if dm then dm.nsLacunarityStr = string.format("%.1f", state.noiseLacunarity) end
 
 			local noiseSliderSeed = getCachedEl(doc, "slider-noise-seed")
 			if noiseSliderSeed and ds ~= "noise-seed" then
 				noiseSliderSeed:SetAttribute("value", tostring(state.noiseSeed))
 			end
-			local seedLabel = getCachedEl(doc, "noise-seed-label")
-			if seedLabel then seedLabel.inner_rml = tostring(state.noiseSeed) end
+			if dm then dm.nsSeedStr = tostring(state.noiseSeed) end
 
 			uiState.updatingFromCode = false
 		end

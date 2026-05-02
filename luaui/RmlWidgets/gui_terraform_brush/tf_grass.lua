@@ -54,8 +54,6 @@ function M.attach(doc, ctx)
 		if uiState.updatingFromCode or not WG.GrassBrush then return end
 		local v = element and tonumber(element:GetAttribute("value")) or 80
 		WG.GrassBrush.setDensity(v / 100)
-		local label = doc:GetElementById("gb-density-label")
-		if label then label.inner_rml = tostring(math.floor(v + 0.5)) .. "%" end
 		if widgetState.dmHandle then
 			local s = tostring(math.floor(v + 0.5)) .. "%"
 			if widgetState.dmHandle.gbDensityStr ~= s then widgetState.dmHandle.gbDensityStr = s end
@@ -434,8 +432,6 @@ function M.attach(doc, ctx)
 		if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
 		local sl = doc:GetElementById("gb-slider-angle-snap-step")
 		if sl then sl:SetAttribute("value", tostring(idx - 1)) end
-		local lbl = doc:GetElementById("gb-angle-snap-step-label")
-		if lbl then lbl.inner_rml = pstr end
 		if widgetState.dmHandle and widgetState.dmHandle.gbAngleStepStr ~= pstr then widgetState.dmHandle.gbAngleStepStr = pstr end
 		local nb = doc:GetElementById("gb-slider-angle-snap-step-numbox")
 		if nb then nb:SetAttribute("value", pstr) end
@@ -467,8 +463,6 @@ function M.attach(doc, ctx)
 			WG.TerraformBrush.setAngleSnapManualSpoke(idx)
 			local step = getTFState().angleSnapStep or 15
 			local deg  = (idx * step) % 360
-			local lbl  = doc:GetElementById("gb-angle-manual-spoke-label")
-			if lbl then lbl.inner_rml = tostring(deg) end
 			if widgetState.dmHandle then
 				local s = tostring(deg)
 				if widgetState.dmHandle.gbManualSpokeStr ~= s then widgetState.dmHandle.gbManualSpokeStr = s end

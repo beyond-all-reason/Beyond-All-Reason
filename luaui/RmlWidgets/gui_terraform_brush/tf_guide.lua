@@ -255,10 +255,9 @@ function M.attach(doc, ctx)
 		-- ============ Settings: General tab — Disable tips/tool recommendations ============
 		do
 			local btn = doc:GetElementById("btn-ui-disable-tips")
-			local pill = doc:GetElementById("pill-ui-disable-tips")
 			local function syncPill()
 				local on = widgetState.uiPrefs and widgetState.uiPrefs.disableTips
-				if pill then pill.inner_rml = on and "ON" or "OFF" end
+				if widgetState.dmHandle then widgetState.dmHandle.disableTipsStr = on and "ON" or "OFF" end
 				if btn then btn:SetClass("active", on and true or false) end
 			end
 			syncPill()
@@ -295,8 +294,7 @@ function M.attach(doc, ctx)
 					playSound(newVal and "toggleOn" or "toggleOff")
 					WG.TerraformBrush.setDjMode(newVal)
 					activateBtn:SetClass("active", newVal)
-					local pill = doc:GetElementById("pill-dj-activate")
-					if pill then pill.inner_rml = newVal and "ON" or "OFF" end
+					if widgetState.dmHandle then widgetState.dmHandle.djModeStr = newVal and "ON" or "OFF" end
 					local subSettings = doc:GetElementById("dj-sub-settings")
 					if subSettings then subSettings:SetClass("dj-disabled", not newVal) end
 				end
@@ -315,8 +313,7 @@ function M.attach(doc, ctx)
 					playSound(newVal and "toggleOn" or "toggleOff")
 					WG.TerraformBrush.setDustEffects(newVal)
 					dustBtn:SetClass("active", newVal)
-					local pill = doc:GetElementById("pill-dust-effects")
-					if pill then pill.inner_rml = newVal and "ON" or "OFF" end
+					if widgetState.dmHandle then widgetState.dmHandle.dustEffectsStr = newVal and "ON" or "OFF" end
 				end
 			end
 		end
@@ -333,8 +330,7 @@ function M.attach(doc, ctx)
 					playSound(newVal and "toggleOn" or "toggleOff")
 					WG.TerraformBrush.setSeismicEffects(newVal)
 					seismicBtn:SetClass("active", newVal)
-					local pill = doc:GetElementById("pill-seismic-effects")
-					if pill then pill.inner_rml = newVal and "ON" or "OFF" end
+					if widgetState.dmHandle then widgetState.dmHandle.seismicEffectsStr = newVal and "ON" or "OFF" end
 				end
 			end
 		end
@@ -352,8 +348,7 @@ function M.attach(doc, ctx)
 					playSound(newVal and "toggleOn" or "toggleOff")
 					WG.TerraformBrush.setPenPressure(newVal)
 					penToggleBtn:SetClass("active", newVal)
-					local pill = doc:GetElementById("pill-pen-pressure")
-					if pill then pill.inner_rml = newVal and "ON" or "OFF" end
+					if widgetState.dmHandle then widgetState.dmHandle.penPressureStr = newVal and "ON" or "OFF" end
 					if penSub then penSub:SetClass("dj-disabled", not newVal) end
 				end
 			end
@@ -386,8 +381,7 @@ function M.attach(doc, ctx)
 				if WG.TerraformBrush and element then
 					local val = tonumber(element:GetAttribute("value")) or 100
 					WG.TerraformBrush.setPenPressureSensitivity(val / 100)
-					local lbl = doc:GetElementById("pen-sensitivity-label")
-					if lbl then lbl.inner_rml = tostring(math.floor(val)) end
+					if widgetState.dmHandle then widgetState.dmHandle.penSensitivityStr = tostring(math.floor(val)) end
 				end
 			end
 			local curveIds = {
@@ -429,8 +423,7 @@ function M.attach(doc, ctx)
 					playSound(newVal and "toggleOn" or "toggleOff")
 					WG.TerraformBrush.setWiggle(newVal, state and state.wiggleAmpIdx or 1, state and state.wiggleSpdIdx or 1)
 					wiggleBtn:SetClass("active", newVal)
-					local pill = doc:GetElementById("pill-wiggle-toggle")
-					if pill then pill.inner_rml = newVal and "ON" or "OFF" end
+					if widgetState.dmHandle then widgetState.dmHandle.wiggleStr = newVal and "ON" or "OFF" end
 					if wiggleSub then wiggleSub:SetClass("dj-disabled", not newVal) end
 				end
 			end
