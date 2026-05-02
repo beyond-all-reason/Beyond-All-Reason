@@ -2635,7 +2635,7 @@
 			</div>
 		</div>
 		<div id="fp-smart-slope-max-row" class="flex flex-row items-center mb-1" data-if="fpAvoidCliffs">
-			<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val" id="fp-smart-slope-max-label">45</span>&#176;</div>
+			<div class="text-lg text-light">MAX SLOPE: <span class="text-xl font-bold tf-slider-val">{{fpSlopeMaxStr}}</span>&#176;</div>
 			<div id="fp-slider-slope-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-slope-max-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-slope-max-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2655,7 +2655,7 @@
 		</div>
 
 		<div id="fp-smart-slope-min-row" class="flex flex-row items-center mb-1" data-if="fpPreferSlopes">
-			<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold" id="fp-smart-slope-min-label">10</span>&#176;</div>
+			<div class="text-lg text-light">MIN SLOPE: <span class="text-xl font-bold">{{fpSlopeMinStr}}</span>&#176;</div>
 			<div id="fp-slider-slope-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-slope-min-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-slope-min-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2679,7 +2679,7 @@
 		<div id="fp-smart-altitude-content" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<img id="btn-fp-alt-min-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" onclick="widget:fpToggleAltEnable('altMinEnable'); event:StopPropagation()" />
-			<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold" id="fp-smart-alt-min-label">0</span></div>
+			<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold">{{fpAltMinStr}}</span></div>
 			<div id="btn-fp-alt-min-sample" class="tf-sample-btn" onclick="widget:fpAltSample('fpAltMin'); event:StopPropagation()">SAMPLE</div>
 			<div id="fp-slider-alt-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-alt-min-transport" class="tf-transport-group hidden">
@@ -2701,7 +2701,7 @@
 
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<img id="btn-fp-alt-max-enable" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" onclick="widget:fpToggleAltEnable('altMaxEnable'); event:StopPropagation()" />
-			<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold" id="fp-smart-alt-max-label">200</span></div>
+			<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold">{{fpAltMaxStr}}</span></div>
 			<div id="btn-fp-alt-max-sample" class="tf-sample-btn" onclick="widget:fpAltSample('fpAltMax'); event:StopPropagation()">SAMPLE</div>
 			<div id="fp-slider-alt-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-alt-max-transport" class="tf-transport-group hidden">
@@ -2753,7 +2753,7 @@
 
 		<div id="fp-param-size-row">
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val" id="fp-radius-label">200</span></div>
+			<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val">{{fpRadiusStr}}</span></div>
 			<div id="fp-slider-size-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-size-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-size-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2776,7 +2776,7 @@
 
 		<div id="fp-param-rotation-row">
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold tf-slider-val" id="fp-rotation-label">0</span>&#176;</div>
+			<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold tf-slider-val">{{fpRotationStr}}</span>&#176;</div>
 			<div id="fp-slider-rotation-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-rotation-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-rotation-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2798,7 +2798,7 @@
 
 		<div id="fp-param-alignment-row">
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">RANDOMIZE ALIGNMENT: <span class="text-xl font-bold tf-slider-val" id="fp-rot-random-label">100</span>%</div>
+			<div class="text-lg text-light">RANDOMIZE ALIGNMENT: <span class="text-xl font-bold tf-slider-val">{{fpRotRandomStr}}</span>%</div>
 			<div id="fp-slider-rot-random-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-rot-random-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-rot-random-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2820,7 +2820,7 @@
 
 		<div id="fp-param-count-row">
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">COUNT: <span class="text-xl font-bold tf-slider-val" id="fp-count-label">5</span></div>
+			<div class="text-lg text-light">COUNT: <span class="text-xl font-bold tf-slider-val">{{fpCountStr}}</span></div>
 			<div id="fp-slider-count-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-count-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-count-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2842,7 +2842,7 @@
 
 		<div id="fp-param-rate-row">
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">RATE: <span class="text-xl font-bold tf-slider-val" id="fp-cadence-label">1</span></div>
+			<div class="text-lg text-light">RATE: <span class="text-xl font-bold tf-slider-val">{{fpCadenceStr}}</span></div>
 			<div id="fp-slider-cadence-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="fp-slider-cadence-transport" class="tf-transport-group hidden">
 				<div id="fp-slider-cadence-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -3345,7 +3345,7 @@
 				<input type="text" id="sp-slider-angle-snap-step-numbox" class="tf-slider-numbox" readonly value="15" />
 			</div>
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold" id="sp-angle-manual-spoke-label">0</span>&#176;</div>
+				<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold">{{spManualSpokeStr}}</span>&#176;</div>
 				<div id="sp-btn-angle-autosnap" class="tf-inline-chip" style="margin-left: 4dp;" data-class-active="spAngleSnapAuto" onclick="widget:splatToggleAutoSnap(); event:StopPropagation()">Auto-Snap</div>
 			</div>
 			<div id="sp-angle-manual-spoke-row" class="mb-1" data-if="!spAngleSnapAuto">
@@ -4004,7 +4004,7 @@
 			</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-medium">Explosions tracked: <span class="text-sm font-bold text-light" id="dc-heat-explosions">0</span></div>
+			<div class="text-sm text-medium">Explosions tracked: <span class="text-sm font-bold text-light">{{dcHeatExpStr}}</span></div>
 		</div>
 		<div class="flex flex-row gap-1 mb-1">
 			<div id="btn-dc-heatmap-export" class="tf-action-btn tf-save-btn" onclick="widget:dcHeatmapExport(); event:StopPropagation()">
@@ -4332,7 +4332,7 @@
 
 			<!-- Brightness -->
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">BRIGHTNESS: <span class="text-xl font-bold" id="lp-brightness-label">2.0</span></div>
+				<div class="text-lg text-light">BRIGHTNESS: <span class="text-xl font-bold" id="lp-brightness-label">{{lpBrightnessStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-lp-brightness-down" class="tf-sm-btn" onclick="widget:lpBrightnessDown(); event:StopPropagation()">
@@ -4347,7 +4347,7 @@
 
 			<!-- Light Radius -->
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">LIGHT RADIUS: <span class="text-xl font-bold" id="lp-light-radius-label">300</span></div>
+				<div class="text-lg text-light">LIGHT RADIUS: <span class="text-xl font-bold" id="lp-light-radius-label">{{lpLightRadiusStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-lp-light-radius-down" class="tf-sm-btn" onclick="widget:lpLightRadiusDown(); event:StopPropagation()">
@@ -4362,7 +4362,7 @@
 
 			<!-- Elevation -->
 			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">ELEVATION: <span class="text-xl font-bold" id="lp-elevation-label">20</span></div>
+				<div class="text-lg text-light">ELEVATION: <span class="text-xl font-bold" id="lp-elevation-label">{{lpElevationStr}}</span></div>
 				<div class="text-xs text-keybind">Shift+Scroll</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
@@ -4442,7 +4442,7 @@
 			<div id="lp-scatter-section" data-if="lpMode == 'scatter'">
 				<div class="text-lg text-light font-bold mb-1">SCATTER</div>
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">COUNT: <span class="text-xl font-bold" id="lp-count-label">5</span></div>
+					<div class="text-lg text-light">COUNT: <span class="text-xl font-bold" id="lp-count-label">{{lpCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="btn-lp-count-down" class="tf-sm-btn" onclick="widget:lpCountDown(); event:StopPropagation()">
@@ -4456,7 +4456,7 @@
 				</div>
 
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">BRUSH RADIUS: <span class="text-xl font-bold" id="lp-brush-radius-label">200</span></div>
+					<div class="text-lg text-light">BRUSH RADIUS: <span class="text-xl font-bold" id="lp-brush-radius-label">{{lpBrushRadiusStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div id="btn-lp-brush-radius-down" class="tf-sm-btn" onclick="widget:lpBrushRadiusDown(); event:StopPropagation()">
@@ -4623,7 +4623,7 @@
 			</div>
 		</div>
 		<div class="flex flex-row justify-between items-center mb-1">
-			<div class="text-sm text-keybind">Placed: <span id="lp-placed-count">0</span></div>
+			<div class="text-sm text-keybind">Placed: <span id="lp-placed-count">{{lpPlacedCountStr}}</span></div>
 		</div>
 		</div><!-- /section-lp-saveload -->
 		</div><!-- /frame-lp-saveload -->
@@ -6147,7 +6147,7 @@
 
 
 		<div class="flex flex-row justify-between items-center mb-1">
-			<div class="text-lg text-light">SCALE: <span class="text-xl font-bold" id="noise-scale-label">64</span></div>
+			<div class="text-lg text-light">SCALE: <span class="text-xl font-bold">{{nsScaleStr}}</span></div>
 			<div class="text-sm text-keybind">cell size</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -6162,7 +6162,7 @@
 		</div>
 
 		<div class="flex flex-row justify-between items-center mb-1">
-			<div class="text-lg text-light">OCTAVES: <span class="text-xl font-bold" id="noise-octaves-label">4</span></div>
+			<div class="text-lg text-light">OCTAVES: <span class="text-xl font-bold">{{nsOctavesStr}}</span></div>
 			<div class="text-sm text-keybind">detail layers</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -6177,7 +6177,7 @@
 		</div>
 
 		<div class="flex flex-row justify-between items-center mb-1">
-			<div class="text-lg text-light">PERSISTENCE: <span class="text-xl font-bold" id="noise-persistence-label">0.50</span></div>
+			<div class="text-lg text-light">PERSISTENCE: <span class="text-xl font-bold">{{nsPersistenceStr}}</span></div>
 			<div class="text-sm text-keybind">amplitude decay</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -6192,7 +6192,7 @@
 		</div>
 
 		<div class="flex flex-row justify-between items-center mb-1">
-			<div class="text-lg text-light">LACUNARITY: <span class="text-xl font-bold" id="noise-lacunarity-label">2.0</span></div>
+			<div class="text-lg text-light">LACUNARITY: <span class="text-xl font-bold">{{nsLacunarityStr}}</span></div>
 			<div class="text-sm text-keybind">frequency growth</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -6207,7 +6207,7 @@
 		</div>
 
 		<div class="flex flex-row items-center mb-1">
-			<div class="text-lg text-light">SEED: <span class="text-xl font-bold" id="noise-seed-label">0</span></div>
+			<div class="text-lg text-light">SEED: <span class="text-xl font-bold">{{nsSeedStr}}</span></div>
 			<div id="btn-noise-reseed" class="tf-inline-chip" style="margin-left: 4dp; cursor: pointer;" onclick="widget:noReseed()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/rot_cw.png" style="margin-right: 2dp;" />
 				RANDOM
@@ -6267,7 +6267,7 @@
 					<div class="tf-dj-activate-name">DJ Mode</div>
 					<div class="tf-dj-activate-desc">Enable all DJ Mode effects below</div>
 				</div>
-				<div id="pill-dj-activate" class="tf-dj-toggle-pill">OFF</div>
+				<div id="pill-dj-activate" class="tf-dj-toggle-pill">{{djModeStr}}</div>
 			</div>
 
 			<div id="dj-sub-settings" class="tf-dj-sub-settings">
@@ -6277,7 +6277,7 @@
 					<div class="tf-dj-toggle-name">Dust Visual Effects</div>
 					<div class="tf-dj-toggle-desc">Particle puffs and clouds while sculpting</div>
 				</div>
-				<div id="pill-dust-effects" class="tf-dj-toggle-pill">OFF</div>
+				<div id="pill-dust-effects" class="tf-dj-toggle-pill">{{dustEffectsStr}}</div>
 			</div>
 
 			<div class="text-base text-light font-bold mb-1">SOUND</div>
@@ -6286,7 +6286,7 @@
 					<div class="tf-dj-toggle-name">Seismic Sound Effects</div>
 					<div class="tf-dj-toggle-desc">Ground impact audio while sculpting</div>
 				</div>
-				<div id="pill-seismic-effects" class="tf-dj-toggle-pill">OFF</div>
+				<div id="pill-seismic-effects" class="tf-dj-toggle-pill">{{seismicEffectsStr}}</div>
 			</div>
 			</div><!-- end dj-sub-settings -->
 		</div>
@@ -6299,7 +6299,7 @@
 					<div class="tf-dj-activate-name"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/mb_paint.png" style="margin-right: 4dp;" />Pen Pressure</div>
 					<div class="tf-dj-activate-desc">Tablet pressure modulates brush intensity</div>
 				</div>
-				<div id="pill-pen-pressure" class="tf-dj-toggle-pill">OFF</div>
+				<div id="pill-pen-pressure" class="tf-dj-toggle-pill">{{penPressureStr}}</div>
 			</div>
 			<div id="pen-pressure-sub" class="tf-dj-sub-settings">
 				<div class="flex flex-row items-center gap-2 mb-1">
@@ -6311,7 +6311,7 @@
 					<div class="text-lg text-light">Modulate size</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div class="text-lg text-light" style="min-width: 100dp;">Sensitivity: <span class="text-xl font-bold tf-slider-val" id="pen-sensitivity-label">100</span>%</div>
+					<div class="text-lg text-light" style="min-width: 100dp;">Sensitivity: <span class="text-xl font-bold tf-slider-val">{{penSensitivityStr}}</span>%</div>
 					<input type="range" id="slider-pen-sensitivity" class="tf-slider" min="10" max="300" step="1" value="100" onchange="widget:guidePenSensitivityChange(element); event:StopPropagation()" />
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
@@ -6329,7 +6329,7 @@
 					<div class="tf-dj-activate-name">Brush Wiggle</div>
 					<div class="tf-dj-activate-desc">Sinusoidal brush offset while painting</div>
 				</div>
-				<div id="pill-wiggle-toggle" class="tf-dj-toggle-pill">OFF</div>
+				<div id="pill-wiggle-toggle" class="tf-dj-toggle-pill">{{wiggleStr}}</div>
 			</div>
 			<div id="wiggle-sub" class="tf-dj-sub-settings">
 				<div class="flex flex-row items-center gap-2 mb-1">
@@ -6356,7 +6356,7 @@
 					<div class="tf-dj-activate-name">Disable tips/tool recommendations</div>
 					<div class="tf-dj-activate-desc">Hides the pulsing blue notification dots on collapsed section headers.</div>
 				</div>
-				<div id="pill-ui-disable-tips" class="tf-dj-toggle-pill">OFF</div>
+				<div id="pill-ui-disable-tips" class="tf-dj-toggle-pill">{{disableTipsStr}}</div>
 			</div>
 		</div>
 	</div>

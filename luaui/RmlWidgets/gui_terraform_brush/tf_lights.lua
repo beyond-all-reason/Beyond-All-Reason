@@ -715,18 +715,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 		-- data-class-lp-unavailable="lpDirectedLight" drives grayout in RML.
 		if dm and dm.lpDirectedLight ~= directedLight then dm.lpDirectedLight = directedLight end
 		-- Update distribution buttons (data-class-active="lpDistMode == 'X'" drives active class)
-		-- Update labels
-		local brightnessLabel = doc and doc:GetElementById("lp-brightness-label")
-		if brightnessLabel then brightnessLabel.inner_rml = string.format("%.1f", lpState.brightness) end
-		local lightRadLabel = doc and doc:GetElementById("lp-light-radius-label")
-		if lightRadLabel then lightRadLabel.inner_rml = tostring(math.floor(lpState.lightRadius)) end
-		local elevLabel = doc and doc:GetElementById("lp-elevation-label")
-		if elevLabel then elevLabel.inner_rml = tostring(math.floor(lpState.elevation)) end
-		local countLabel = doc and doc:GetElementById("lp-count-label")
-		if countLabel then countLabel.inner_rml = tostring(lpState.lightCount) end
-		local brushRadLabel = doc and doc:GetElementById("lp-brush-radius-label")
-		if brushRadLabel then brushRadLabel.inner_rml = tostring(math.floor(lpState.radius)) end
-		-- Phase 2 step 4: mirror to data-model {{Str}} interpolation
+		-- Labels driven by {{lpBrightnessStr}}/{{lpLightRadiusStr}}/{{lpElevationStr}}/{{lpCountStr}}/{{lpBrushRadiusStr}} in RML.
 		if widgetState.dmHandle then
 			local dm = widgetState.dmHandle
 			local v = string.format("%.1f", lpState.brightness)
@@ -773,13 +762,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 			setNum("slider-lp-color-b-numbox",      tostring(lpState.color[3]))
 			uiState.updatingFromCode = false
 		end
-		-- Update color labels and preview
-		local rLabel = doc and doc:GetElementById("lp-color-r-label")
-		if rLabel then rLabel.inner_rml = string.format("%.2f", lpState.color[1]) end
-		local gLabel = doc and doc:GetElementById("lp-color-g-label")
-		if gLabel then gLabel.inner_rml = string.format("%.2f", lpState.color[2]) end
-		local bLabel = doc and doc:GetElementById("lp-color-b-label")
-		if bLabel then bLabel.inner_rml = string.format("%.2f", lpState.color[3]) end
+		-- Color preview (live background-color via SetAttribute, no label span in RML)
 		local colorPreview = doc and doc:GetElementById("lp-color-preview")
 		if colorPreview then
 			local cr = math.floor(lpState.color[1] * 255)
@@ -787,22 +770,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 			local cb = math.floor(lpState.color[3] * 255)
 			colorPreview:SetAttribute("style", string.format("background-color: #%02x%02x%02x;", cr, cg, cb))
 		end
-		-- Direction labels
-		local pitchLabel = doc and doc:GetElementById("lp-pitch-label")
-		if pitchLabel then pitchLabel.inner_rml = tostring(math.floor(lpState.pitch)) end
-		local yawLabel = doc and doc:GetElementById("lp-yaw-label")
-		if yawLabel then yawLabel.inner_rml = tostring(math.floor(lpState.yaw)) end
-		local rollLabel = doc and doc:GetElementById("lp-roll-label")
-		if rollLabel then rollLabel.inner_rml = tostring(math.floor(lpState.roll)) end
-		local thetaLabel = doc and doc:GetElementById("lp-theta-label")
-		if thetaLabel then thetaLabel.inner_rml = string.format("%.2f", lpState.theta) end
-		local beamLenLabel = doc and doc:GetElementById("lp-beam-length-label")
-		if beamLenLabel then beamLenLabel.inner_rml = tostring(math.floor(lpState.beamLength)) end
-		-- Placed count
-		local placedEl = doc and doc:GetElementById("lp-placed-count")
-		if placedEl and WG.LightPlacer then
-			placedEl.inner_rml = tostring(WG.LightPlacer.getPlacedCount())
-		end
+		-- Placed count driven by {{lpPlacedCountStr}} in RML.
 		if widgetState.dmHandle and WG.LightPlacer then
 			local v = tostring(WG.LightPlacer.getPlacedCount())
 			if widgetState.dmHandle.lpPlacedCountStr ~= v then widgetState.dmHandle.lpPlacedCountStr = v end

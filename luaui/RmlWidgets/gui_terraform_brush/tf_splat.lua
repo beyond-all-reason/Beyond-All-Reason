@@ -321,14 +321,12 @@ function M.attach(doc, ctx)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		local val = element and tonumber(element:GetAttribute("value")) or 2
 		WG.TerraformBrush.setSymmetryRadialCount(val)
-		local cntLblSp2 = doc:GetElementById("sp-symmetry-radial-count-label"); if cntLblSp2 then cntLblSp2.inner_rml = tostring(val) end
 	end
 	w.splatSymCountStep = function(self, delta)
 		if WG.TerraformBrush then
 			local c = math.max(2, math.min(16,
 				(WG.TerraformBrush.getState().symmetryRadialCount or 2) + delta))
 			WG.TerraformBrush.setSymmetryRadialCount(c)
-			local cntLblSp = doc:GetElementById("sp-symmetry-radial-count-label"); if cntLblSp then cntLblSp.inner_rml = tostring(c) end
 			local cntSlSp2 = doc:GetElementById("sp-slider-symmetry-radial-count"); if cntSlSp2 then cntSlSp2:SetAttribute("value", tostring(c)) end
 		end
 	end
@@ -338,13 +336,11 @@ function M.attach(doc, ctx)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		local val = element and tonumber(element:GetAttribute("value")) or 0
 		WG.TerraformBrush.setSymmetryMirrorAngle(val)
-		local angLblSp2 = doc:GetElementById("sp-symmetry-mirror-angle-label"); if angLblSp2 then angLblSp2.inner_rml = tostring(math.floor(val)) end
 	end
 	w.splatSymAngleStep = function(self, delta)
 		if WG.TerraformBrush then
 			local a = ((WG.TerraformBrush.getState().symmetryMirrorAngle or 0) + delta) % 360
 			WG.TerraformBrush.setSymmetryMirrorAngle(a)
-			local angLblSp = doc:GetElementById("sp-symmetry-mirror-angle-label"); if angLblSp then angLblSp.inner_rml = tostring(math.floor(a)) end
 			local angSlSp2 = doc:GetElementById("sp-slider-symmetry-mirror-angle"); if angSlSp2 then angSlSp2:SetAttribute("value", tostring(a)) end
 		end
 	end
@@ -576,27 +572,8 @@ function M.sync(doc, ctx, spState, setSummary)
 			end
 
 			-- Decal Exporter stats sync (throttled — every ~1 second)
+			-- dc-heat-explosions driven by {{dcHeatExpStr}} in RML.
 			do if WG.DecalExporter and (Spring.GetGameFrame() % 30 == 0) then
-				local dcGl4 = doc:GetElementById("dc-gl4-count")
-				local dcEng = doc:GetElementById("dc-engine-count")
-				local dcHeat = doc:GetElementById("dc-heat-count")
-				local dcHeatExp = doc:GetElementById("dc-heat-explosions")
-				local gl4n = 0
-				local decalsApi = WG['decalsgl4']
-				if decalsApi and decalsApi.GetActiveDecals then
-					local ad = decalsApi.GetActiveDecals()
-					if ad then for _ in pairs(ad) do gl4n = gl4n + 1 end end
-				end
-				local engn = 0
-				if Spring.GetAllGroundDecals then
-					local ids = Spring.GetAllGroundDecals()
-					if ids then engn = #ids end
-				end
-				if dcGl4 then dcGl4.inner_rml = tostring(gl4n) end
-				if dcEng then dcEng.inner_rml = tostring(engn) end
-				local _, _, _, hm = WG.DecalExporter.getHeatGrid()
-				if dcHeat then dcHeat.inner_rml = string.format("%.0f", hm or 0) end
-				if dcHeatExp then dcHeatExp.inner_rml = tostring(WG.DecalExporter.getTotalExplosions()) end
 				if widgetState.dmHandle then
 					local v = tostring(WG.DecalExporter.getTotalExplosions())
 					if widgetState.dmHandle.dcHeatExpStr ~= v then widgetState.dmHandle.dcHeatExpStr = v end
@@ -686,18 +663,14 @@ function M.sync(doc, ctx, spState, setSummary)
 				-- (active driven by data-class-active="spMeasureShowLength")
 				-- Angle auto-snap chip + manual spoke row (data-if="!spAngleSnapAuto")
 				-- (active driven by data-class-active="spAngleSnapAuto")
-				-- Labels
-				local function setLabel(id, text)
-					local el = doc:GetElementById(id)
-					if el then el.inner_rml = tostring(text) end
-				end
-				setLabel("sp-grid-snap-size-label",         s.gridSnapSize or 48)
-				setLabel("sp-symmetry-radial-count-label",  s.symmetryRadialCount or 2)
-				setLabel("sp-symmetry-mirror-angle-label",  s.symmetryMirrorAngle or 0)
+				-- Labels: grid-snap-size/sym-count/sym-angle/angle-step display via shared tb* dm fields
+				-- (tbGridSnapSizeStr/tbSymCountStr/tbSymAngleStr/tbAngleSnapStepStr set by syncTBMirrorControls).
+				-- sp-angle-manual-spoke-label driven by {{spManualSpokeStr}} in RML.
 				local step = s.angleSnapStep or 15
-				setLabel("sp-angle-snap-step-label",
-					(step == math.floor(step)) and tostring(math.floor(step)) or tostring(step))
-				setLabel("sp-angle-manual-spoke-label", ((s.angleSnapManualSpoke or 0) * step) % 360)
+				local spokeStr = tostring(((s.angleSnapManualSpoke or 0) * step) % 360)
+				if widgetState.dmHandle and widgetState.dmHandle.spManualSpokeStr ~= spokeStr then
+					widgetState.dmHandle.spManualSpokeStr = spokeStr
+				end
 				-- Numbox + slider value sync (avoid re-firing change)
 				uiState.updatingFromCode = true
 				local nb = doc:GetElementById("sp-slider-grid-snap-size-numbox")
