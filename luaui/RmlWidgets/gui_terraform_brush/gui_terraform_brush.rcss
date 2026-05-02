@@ -120,6 +120,8 @@ body {
 	width: 13vw;
 	min-width: 220px;
 	z-index: 900;
+	padding-left: 5dp;
+	padding-right: 5dp;
 }
 
 /* === Noise Panel (separate floating window) === */
@@ -284,7 +286,7 @@ body {
 /* === Drag Handle === */
 .tf-drag-handle {
 	cursor: move;
-	padding: 4dp 0;
+	padding: 4dp 0 4dp 4dp;
 }
 
 .tf-status-summary {
@@ -2046,6 +2048,8 @@ body {
 
 .tf-icon-sm {
 	width: 14dp;
+	min-width: 14dp;
+	max-width: 14dp;
 	height: 14dp;
 }
 
@@ -2506,6 +2510,86 @@ body {
    PHASE 4: Section grouping & visual hierarchy
    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
+/* === Section Frame (fieldset/legend style — all collapsible sections) ===
+ * The frame wraps each toggle-row + section-body pair.
+ * margin-top: 10dp creates space above for the title row to float.
+ * The title row (position: absolute, top: -10dp) straddles the top border
+ * so its vertical midpoint aligns with the frame's top border line.
+ * When collapsed (.tf-collapsed), only the top border edge shows (acts as separator). */
+.tf-section-frame {
+	position: relative;
+	margin-top: 14dp;
+	margin-bottom: 10dp;
+	padding: 7dp 4dp 4dp 4dp;
+	border: 1dp #4a4a6899;
+	border-radius: 4dp;
+}
+
+/* Collapsed: only top border edge visible (replaces old divider-horizontal-dark) */
+.tf-section-frame.tf-collapsed {
+	border-left-width: 0;
+	border-right-width: 0;
+	border-bottom-width: 0;
+	border-radius: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+	margin-bottom: 4dp;
+}
+
+/* Title row: floats above the frame's top border, masking it with the panel bg.
+ * The background-color must match bg-darkest (#1d1d1d) used by tf-root and all
+ * floating windows so the border appears "punched through" behind the label. */
+.tf-section-title-row {
+	position: absolute;
+	top: -10dp;
+	left: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+	background-color: #1d1d1d;
+	padding: 0 5dp;
+	cursor: pointer;
+}
+
+/* === Data-if wrapper divs (tool-section containers) ===
+ * These block divs wrap per-tool sections via data-if. They carry the leading
+ * margin (same 14dp as .tf-section-frame) so the first frame child inside
+ * doesn't need to — preventing any first-child margin interaction at wrapper
+ * boundaries that could cause uneven spacing across tool modes. */
+#tf-startpos-submodes, #tf-startpos-controls, #tf-clone-controls,
+#tf-shape-row, #tf-metal-submodes, #tf-metal-controls,
+#tf-grass-submodes, #tf-grass-controls, #tf-feature-submodes,
+#tf-ramp-type-row, #tf-smooth-submodes, #tf-dc-submodes,
+#tf-weather-submodes, #tf-terraform-controls, #tf-feature-controls,
+#tf-weather-controls, #tf-splat-controls, #tf-decal-controls,
+#tf-environment-controls, #tf-light-controls {
+	margin-top: 14dp;
+}
+/* Zero the first frame's margin-top since the wrapper provides the gap. */
+#tf-startpos-submodes > .tf-section-frame:first-child,
+#tf-startpos-controls > .tf-section-frame:first-child,
+#tf-clone-controls > .tf-section-frame:first-child,
+#tf-shape-row > .tf-section-frame:first-child,
+#tf-metal-submodes > .tf-section-frame:first-child,
+#tf-metal-controls > .tf-section-frame:first-child,
+#tf-grass-submodes > .tf-section-frame:first-child,
+#tf-grass-controls > .tf-section-frame:first-child,
+#tf-feature-submodes > .tf-section-frame:first-child,
+#tf-ramp-type-row > .tf-section-frame:first-child,
+#tf-smooth-submodes > .tf-section-frame:first-child,
+#tf-dc-submodes > .tf-section-frame:first-child,
+#tf-weather-submodes > .tf-section-frame:first-child,
+#tf-terraform-controls > .tf-section-frame:first-child,
+#tf-feature-controls > .tf-section-frame:first-child,
+#tf-weather-controls > .tf-section-frame:first-child,
+#tf-splat-controls > .tf-section-frame:first-child,
+#tf-decal-controls > .tf-section-frame:first-child,
+#tf-environment-controls > .tf-section-frame:first-child,
+#tf-light-controls > .tf-section-frame:first-child {
+	margin-top: 0;
+}
+
 /* === Stronger Section Divider (use between major groups) === */
 .tf-section-divider {
 	height: 1dp;
@@ -2934,7 +3018,6 @@ body {
 	font-size: 1.05rem;
 	font-weight: bold;
 	color: #c8d0d8;
-	margin-left: 5dp;
 }
 
 /* Warning chip â€” shown in the toggle header when section is collapsed but items within are active */

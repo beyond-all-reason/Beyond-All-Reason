@@ -29,6 +29,7 @@ function M.attach(doc, ctx)
 		doc:GetElementById("sp-ch3-preview"),
 		doc:GetElementById("sp-ch4-preview"),
 	}
+	widgetState.spChannelSectionEl = doc:GetElementById("section-spl-channel")
 	widgetState.spPreviewTextures = {}
 	widgetState.spPreviewVerified = false
 
