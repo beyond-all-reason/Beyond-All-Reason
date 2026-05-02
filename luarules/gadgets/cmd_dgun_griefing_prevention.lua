@@ -33,7 +33,9 @@ local spEcho = Spring.Echo
 local CMD_DGUN = CMD.DGUN
 local DGUN_RANGE = 280
 
--- Excessively large dgun safety width to acount for some units, such as behemoths, being quite large
+-- Excessively large dgun safety width to acount for some units, such as behemoths, being quite large.
+-- Note that this safety width is only used to find allies that could be POTENTIALLY hit by the DGun.
+-- A more precise check is used to evaluated whether a potential ally target is actually in danger.
 local DGUN_SAFETY_WIDTH = 100
 
 -- Approximate actual width of the dgun projectile
@@ -90,7 +92,7 @@ local function PruneExpiredContacts(currentFrame)
 	end
 end
 
--- Caches a brief unit contact. This can be checked for the sake of allowing/disallowing DGun later
+-- Caches a unit contact briefly. This can be checked for the sake of allowing/disallowing DGun later
 local function AddExpiringUnitContact(x, y, z, contactTeam, currentFrame)
 	contactsCache[#contactsCache + 1] = {
 		x = x,
@@ -140,8 +142,8 @@ local function DistPointToSegment(px, py, pz, ax, ay, az, bx, by, bz)
 	return math.sqrt(dx * dx + dy * dy + dz * dz)
 end
 
--- Build a cheap box around the beam first, then do the precise segment test
 local function HandleDGunAllyRisk(teamID, firingUnitID, playerID, sx, sy, sz, ex, ey, ez)
+	-- Build a cheap box around the beam first, then do the precise segment test
 	local minx = math.min(sx, ex) - DGUN_SAFETY_WIDTH
 	local maxx = math.max(sx, ex) + DGUN_SAFETY_WIDTH
 	local miny = math.min(sy, ey) - DGUN_SAFETY_WIDTH
@@ -195,7 +197,7 @@ local function HasKnownEnemyNearby(teamID, ux, uy, uz)
 		end
 	end
 
-	-- Treat recent seismic pings as temporarily visible enemy presence.
+	-- Treat recent contacts as visible enemy presence.
 	for i = 1, #contactsCache do
 		local ping = contactsCache[i]
 		if ping.contactTeam ~= myAllyTeam then
@@ -249,7 +251,7 @@ function gadget:GameFrame(currentFrame)
 	end
 end
 
--- Allow normal DGuns, block only ally-targeted hits. If an enemy is visibly nearby, DGuns are always allowed.
+-- Allow normal DGuns, block only ally-targeted hits. If an enemy is visible nearby, DGuns are always allowed.
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID ~= CMD_DGUN then
 		return true
