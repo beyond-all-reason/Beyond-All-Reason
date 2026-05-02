@@ -53,6 +53,29 @@ local CONTACT_WINDOW_DURATION = 5 * 30 -- five seconds at 30 gameframes per seco
 local CONTACT_PRUNE_INTERVAL = 60 * 30 -- prune expired contacts every minute
 local nextContactPruneFrame = CONTACT_PRUNE_INTERVAL
 
+-- These units are ignored for ally-DGun checks.
+local IGNORED_UNIT_NAMES = {
+	armdrag = true, -- Wall
+	armclaw = true, -- Dragon's claw
+	armfdrag = true, -- Naval wall
+	armfort = true, -- T2 wall
+	armwin = true, -- Wind
+	armwint2 = true, -- T2 wind
+	armdf = true, -- Decoy fusion
+	cordrag = true, -- Wall
+	cormaw = true, -- Dragon's maw
+	corfdrag = true, -- Naval wall
+	corfort = true, --T2 wall
+	corwin = true, -- Wind
+	corwint2 = true, -- T2 wind
+	legdrag = true, -- Wall
+	legdtr = true, -- Dragon's jaw
+	legfdrag = true, -- Naval wall
+	legforti = true, -- T2 wall
+	legwin = true, -- Wind
+	legwint2 = true, -- T2 wind
+}
+
 -- Hook DGun commands into allow/disallow interface
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_DGUN)
@@ -82,6 +105,15 @@ local function GetApproxUnitRadius(unitDefID)
 	local footprintZ = unitDef.zsize or 0
 	local approxRadius = math.min(footprintX, footprintZ) * 4
 	return approxRadius
+end
+
+-- Check if the unit being targeted by DGun is a whitelisted unit.
+-- Cheap units that are commonly used to block pathfinding (walls, decoy fusions, winds, etc) are whitelisted.
+-- This means players are always allowed to dgun allied walls (etc) in the event they need to urgently escape through
+-- an otherwise blocked path (e.g. there is an incoming gunship snipe and allied walls are blocking the fastest escape route)
+local function IsIgnoredUnit(unitDefID)
+	local unitDef = unitDefID and UnitDefs[unitDefID]
+	return unitDef and IGNORED_UNIT_NAMES[unitDef.name] == true
 end
 
 local function PruneExpiredContacts(currentFrame)
@@ -159,7 +191,7 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, playerID, sx, sy, sz, ex
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitRadius = GetApproxUnitRadius(unitDefID)
 		-- Skip the firing commander itself; only warn on other units in the path
-		if unitID ~= firingUnitID and unitTeam and GetAllyTeamID(unitTeam) == myAllyTeam then
+		if unitID ~= firingUnitID and unitTeam and GetAllyTeamID(unitTeam) == myAllyTeam and not IsIgnoredUnit(unitDefID) then
 			local ux, uy, uz = spGetUnitPosition(unitID)
 			if ux then
 				local d = DistPointToSegment(ux, uy, uz, sx, sy, sz, ex, ey, ez)
