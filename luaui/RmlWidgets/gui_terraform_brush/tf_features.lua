@@ -460,22 +460,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 			uiState.updatingFromCode = true
 			local ds = uiState.draggingSlider
 
-			-- Feature labels
-			local fpRadiusLabel = doc:GetElementById("fp-radius-label")
-			if fpRadiusLabel then fpRadiusLabel.inner_rml = tostring(fpState.radius) end
-
-			local fpRotationLabel = doc:GetElementById("fp-rotation-label")
-			if fpRotationLabel then fpRotationLabel.inner_rml = tostring(fpState.rotation) end
-
-			local fpRotRandomLabel = doc:GetElementById("fp-rot-random-label")
-			if fpRotRandomLabel then fpRotRandomLabel.inner_rml = tostring(fpState.rotRandom) end
-
-			local fpCountLabel = doc:GetElementById("fp-count-label")
-			if fpCountLabel then fpCountLabel.inner_rml = tostring(fpState.featureCount) end
-
-			local fpCadenceLabel = doc:GetElementById("fp-cadence-label")
-			if fpCadenceLabel then fpCadenceLabel.inner_rml = tostring(fpState.cadence) end
-
+			-- Labels driven by {{fpRadiusStr}}/{{fpRotationStr}}/{{fpRotRandomStr}}/{{fpCountStr}}/{{fpCadenceStr}} in RML.
 			-- Phase 2 step 4: mirror to data-model {{Str}} interpolation
 			if widgetState.dmHandle then
 				local dm = widgetState.dmHandle
@@ -533,8 +518,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 				if slopePreferChip then slopePreferChip:SetClass("active", sf.preferSlopes == true) end
 
 				-- Slope-max rows visibility driven by data-if="fpAvoidCliffs"
-				local slopeMaxLabel = doc:GetElementById("fp-smart-slope-max-label")
-				if slopeMaxLabel then slopeMaxLabel.inner_rml = tostring(sf.slopeMax) end
+				-- Label driven by {{fpSlopeMaxStr}} in RML.
 				if widgetState.dmHandle then
 					local v = tostring(sf.slopeMax)
 					if widgetState.dmHandle.fpSlopeMaxStr ~= v then widgetState.dmHandle.fpSlopeMaxStr = v end
@@ -545,8 +529,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 				end
 
 				-- Slope-min rows visibility driven by data-if="fpPreferSlopes"
-				local slopeMinLabel = doc:GetElementById("fp-smart-slope-min-label")
-				if slopeMinLabel then slopeMinLabel.inner_rml = tostring(sf.slopeMin) end
+				-- Label driven by {{fpSlopeMinStr}} in RML.
 				if widgetState.dmHandle then
 					local v = tostring(sf.slopeMin)
 					if widgetState.dmHandle.fpSlopeMinStr ~= v then widgetState.dmHandle.fpSlopeMinStr = v end
@@ -563,8 +546,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 						or "/luaui/images/terraform_brush/check_off.png")
 				end
 				-- Alt-min slider-row visibility driven by data-if="fpAltMinEnable"
-				local altMinLabel = doc:GetElementById("fp-smart-alt-min-label")
-				if altMinLabel then altMinLabel.inner_rml = tostring(sf.altMin) end
+				-- Label driven by {{fpAltMinStr}} in RML.
 				if widgetState.dmHandle then
 					local v = tostring(sf.altMin)
 					if widgetState.dmHandle.fpAltMinStr ~= v then widgetState.dmHandle.fpAltMinStr = v end
@@ -581,8 +563,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 						or "/luaui/images/terraform_brush/check_off.png")
 				end
 				-- Alt-max slider-row visibility driven by data-if="fpAltMaxEnable"
-				local altMaxLabel = doc:GetElementById("fp-smart-alt-max-label")
-				if altMaxLabel then altMaxLabel.inner_rml = tostring(sf.altMax) end
+				-- Label driven by {{fpAltMaxStr}} in RML.
 				if widgetState.dmHandle then
 					local v = tostring(sf.altMax)
 					if widgetState.dmHandle.fpAltMaxStr ~= v then widgetState.dmHandle.fpAltMaxStr = v end
