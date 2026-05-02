@@ -20,6 +20,7 @@ end
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitsInBox = Spring.GetUnitsInBox
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetTeamInfo = Spring.GetTeamInfo
@@ -59,6 +60,8 @@ local IGNORED_UNIT_NAMES = {
 	armclaw = true, -- Dragon's claw
 	armfdrag = true, -- Naval wall
 	armfort = true, -- T2 wall
+	armmakr = true, -- T1 converter
+	armfmkr = true, -- T1 naval converter
 	armwin = true, -- Wind
 	armwint2 = true, -- T2 wind
 	armdf = true, -- Decoy fusion
@@ -66,12 +69,16 @@ local IGNORED_UNIT_NAMES = {
 	cormaw = true, -- Dragon's maw
 	corfdrag = true, -- Naval wall
 	corfort = true, --T2 wall
+	cormakr = true, -- T1 converter
+	corfmkr = true, -- T1 naval converter
 	corwin = true, -- Wind
 	corwint2 = true, -- T2 wind
 	legdrag = true, -- Wall
 	legdtr = true, -- Dragon's jaw
 	legfdrag = true, -- Naval wall
 	legforti = true, -- T2 wall
+	legeconv = true, -- T1 converter
+	legfeconv = true, -- T1 sea converter
 	legwin = true, -- Wind
 	legwint2 = true, -- T2 wind
 }
@@ -111,9 +118,19 @@ end
 -- Cheap units that are commonly used to block pathfinding (walls, decoy fusions, winds, etc) are whitelisted.
 -- This means players are always allowed to dgun allied walls (etc) in the event they need to urgently escape through
 -- an otherwise blocked path (e.g. there is an incoming gunship snipe and allied walls are blocking the fastest escape route)
-local function IsIgnoredUnit(unitDefID)
+local function IsIgnoredUnit(unitID, unitDefID)
 	local unitDef = unitDefID and UnitDefs[unitDefID]
-	return unitDef and IGNORED_UNIT_NAMES[unitDef.name] == true
+	if not unitDef then
+		return false
+	end
+
+	local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
+	if buildProgress and buildProgress < 1 then
+		-- Ignore partially built buildings to prevent players from being intentionally boxed in by blueprints
+		return true
+	end
+
+	return IGNORED_UNIT_NAMES[unitDef.name] == true
 end
 
 local function PruneExpiredContacts(currentFrame)
@@ -191,7 +208,7 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, playerID, sx, sy, sz, ex
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitRadius = GetApproxUnitRadius(unitDefID)
 		-- Skip the firing commander itself; only warn on other units in the path
-		if unitID ~= firingUnitID and unitTeam and GetAllyTeamID(unitTeam) == myAllyTeam and not IsIgnoredUnit(unitDefID) then
+		if unitID ~= firingUnitID and unitTeam and GetAllyTeamID(unitTeam) == myAllyTeam and not IsIgnoredUnit(unitID, unitDefID) then
 			local ux, uy, uz = spGetUnitPosition(unitID)
 			if ux then
 				local d = DistPointToSegment(ux, uy, uz, sx, sy, sz, ex, ey, ez)
