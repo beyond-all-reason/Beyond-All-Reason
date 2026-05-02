@@ -163,7 +163,6 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, playerID, sx, sy, sz, ex
 						"WARNING: %s attempted to D-Gun allies. Please remember that the Code of Conduct prohibits griefing.",
 						GetPlayerName(playerID)
 					))
-					Spring.Log("dgun_grief_attempts", LOG.INFO, string.format("%s attempted to D-Gun allies.", GetPlayerName(playerID)))
 					return true
 				end
 			end
