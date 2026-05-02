@@ -84,13 +84,13 @@ local function PruneExpiredSeismicPings(currentFrame)
 	end
 end
 
-local function AddEnemyPing(x, y, z, allyTeam, currentFrame)
-	-- Caches an enemy contact so that dguns are allowed briefly after contact is lost
+local function AddExpiringUnitContact(x, y, z, contactTeam, currentFrame)
+	-- Caches a brief unit contact. This can be checked for the sake of allowing/disallowing DGun later
 	contactsCache[#contactsCache + 1] = {
 		x = x,
 		y = y,
 		z = z,
-		allyTeam = allyTeam,
+		contactTeam = contactTeam,
 		expiresFrame = currentFrame + CONTACT_WINDOW_DURATION,
 	}
 end
@@ -149,8 +149,6 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, playerID, sx, sy, sz, ex
 		local unitID = candidates[i]
 		local unitTeam = spGetUnitTeam(unitID)
 		local unitDefID = spGetUnitDefID(unitID)
-		local unitDef = unitDefID and UnitDefs[unitDefID]
-		local unitName = unitDef and (unitDef.translatedHumanName or unitDef.name) or "unknown"
 		local unitRadius = GetApproxUnitRadius(unitDefID)
 		-- Skip the firing commander itself; only warn on other units in the path
 		if unitID ~= firingUnitID and unitTeam and GetAllyTeamID(unitTeam) == myAllyTeam then
@@ -194,7 +192,7 @@ local function HasKnownEnemyNearby(teamID, ux, uy, uz)
 	-- Treat recent seismic pings as temporarily visible enemy presence.
 	for i = 1, #contactsCache do
 		local ping = contactsCache[i]
-		if ping.allyTeam ~= myAllyTeam then
+		if ping.contactTeam ~= myAllyTeam then
 			local dx, dy, dz = ping.x - ux, ping.y - uy, ping.z - uz
 			if (dx * dx + dy * dy + dz * dz) <= (ENEMY_SCAN_RADIUS * ENEMY_SCAN_RADIUS) then
 				return true
@@ -221,12 +219,14 @@ function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 		return
 	end
 
-	AddEnemyPing(x, y, z, unitTeam, spGetGameFrame())
+	-- Note: we want to track the team of the unit that left radar.
+	-- 'allyTeam' in this context is actually which team that lost track of a radar contact
+	AddExpiringUnitContact(x, y, z, unitTeam, spGetGameFrame())
 end
 
 function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	-- Cache seismic detections briefly so they count as visible enemy presence.
-	AddEnemyPing(x, y, z, allyTeam, spGetGameFrame())
+	AddExpiringUnitContact(x, y, z, allyTeam, spGetGameFrame())
 end
 
 -- Allow normal DGuns, block only ally-targeted hits. If an enemy is visibly nearby, DGuns are always allowed.
