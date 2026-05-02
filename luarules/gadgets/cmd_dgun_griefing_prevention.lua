@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date    = "2026-05-01",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
-        version = "0.3",
+        version = "1.0",
 		enabled = true,
 	}
 end
@@ -44,6 +44,8 @@ local gaiaTeamID = spGetGaiaTeamID()
 local contactsCache = {}
 -- Tracks enemy contacts briefly so that dguns are allowed for a few seconds even after contact is lost
 local CONTACT_WINDOW_DURATION = 5 * 30 -- five seconds at 30 gameframes per second
+local CONTACT_PRUNE_INTERVAL = 60 * 30 -- prune expired contacts every minute
+local nextContactPruneFrame = CONTACT_PRUNE_INTERVAL
 
 function gadget:Initialize()
 	-- Hook DGun commands into allow/disallow interface
@@ -76,7 +78,7 @@ local function GetApproxUnitRadius(unitDefID)
 	return approxRadius
 end
 
-local function PruneExpiredSeismicPings(currentFrame)
+local function PruneExpiredContacts(currentFrame)
 	for i = #contactsCache, 1, -1 do
 		if contactsCache[i].expiresFrame <= currentFrame then
 			table.remove(contactsCache, i)
@@ -174,7 +176,7 @@ local function HasKnownEnemyNearby(teamID, ux, uy, uz)
 	-- If the commander is already near a visible enemy, we leave the order alone
 	local myAllyTeam = GetAllyTeamID(teamID)
 	local currentFrame = spGetGameFrame()
-	PruneExpiredSeismicPings(currentFrame)
+	PruneExpiredContacts(currentFrame)
 
 	local candidates = spGetUnitsInSphere(ux, uy, uz, ENEMY_SCAN_RADIUS)
 
@@ -227,6 +229,20 @@ end
 function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	-- Cache seismic detections briefly so they count as visible enemy presence.
 	AddExpiringUnitContact(x, y, z, allyTeam, spGetGameFrame())
+end
+
+function gadget:GameFrame(currentFrame)
+	if currentFrame < nextContactPruneFrame then
+		return
+	end
+
+	if #contactsCache > 0 then
+		PruneExpiredContacts(currentFrame)
+	end
+
+	while nextContactPruneFrame <= currentFrame do
+		nextContactPruneFrame = nextContactPruneFrame + CONTACT_PRUNE_INTERVAL
+	end
 end
 
 -- Allow normal DGuns, block only ally-targeted hits. If an enemy is visibly nearby, DGuns are always allowed.
