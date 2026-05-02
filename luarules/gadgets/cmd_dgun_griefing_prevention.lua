@@ -210,13 +210,13 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, playerID, sx, sy, sz, ex
 	return false
 end
 
--- If the commander is already near a visible enemy, we leave the order alone
-local function HasKnownEnemyNearby(teamID, ux, uy, uz)
+-- If DGun target location is near a visible enemy, we leave the order alone
+local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 	local myAllyTeam = GetAllyTeamID(teamID)
 	local currentFrame = spGetGameFrame()
 	PruneExpiredContacts(currentFrame)
 
-	local candidates = spGetUnitsInSphere(ux, uy, uz, ENEMY_SCAN_RADIUS)
+	local candidates = spGetUnitsInSphere(targetX, targetY, targetZ, ENEMY_SCAN_RADIUS)
 
 	for i = 1, #candidates do
 		local unitID = candidates[i]
@@ -233,7 +233,7 @@ local function HasKnownEnemyNearby(teamID, ux, uy, uz)
 	for i = 1, #contactsCache do
 		local ping = contactsCache[i]
 		if ping.contactTeam ~= myAllyTeam then
-			local dx, dy, dz = ping.x - ux, ping.y - uy, ping.z - uz
+			local dx, dy, dz = ping.x - targetX, ping.y - targetY, ping.z - targetZ
 			if (dx * dx + dy * dy + dz * dz) <= (ENEMY_SCAN_RADIUS * ENEMY_SCAN_RADIUS) then
 				return true
 			end
@@ -294,26 +294,26 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		return true
 	end
 
-	local ux, uy, uz = spGetUnitPosition(unitID)
-	if not ux then
+	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+	if not unitX then
 		return true
 	end
-
-	if HasKnownEnemyNearby(teamID, ux, uy, uz) then
-		return true
-	end
-
-	local tx, ty, tz
+	
+	local targetX, targetY, targetZ
 	if #cmdParams == 1 and cmdParams[1] > 0 then
-		tx, ty, tz = spGetUnitPosition(cmdParams[1])
+		targetX, targetY, targetZ = spGetUnitPosition(cmdParams[1])
 	else
-		tx, ty, tz = cmdParams[1], cmdParams[2], cmdParams[3]
+		targetX, targetY, targetZ = cmdParams[1], cmdParams[2], cmdParams[3]
 	end
-
-	if not tx then
+	if HasKnownEnemyNearby(teamID, targetX, targetY, targetZ) then
 		return true
 	end
 
-	local sx, sy, sz, ex, ey, ez = BuildDGunSegment(ux, uy, uz, tx, ty, tz)
+
+	if not targetX then
+		return true
+	end
+
+	local sx, sy, sz, ex, ey, ez = BuildDGunSegment(unitX, unitY, unitZ, targetX, targetY, targetZ)
 	return not HandleDGunAllyRisk(teamID, unitID, playerID, sx, sy, sz, ex, ey, ez)
 end
