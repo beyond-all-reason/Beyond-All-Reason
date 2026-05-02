@@ -346,8 +346,20 @@ function M.attach(doc, ctx)
 			local toggleImg = doc:GetElementById(toggleImgId)
 			local section = doc:GetElementById(sectionId)
 			if not toggleBtn or not toggleImg or not section then return {} end
+			local frameId = sectionId:gsub("section%-", "frame-", 1)
+			local frame = doc:GetElementById(frameId)  -- may be nil if inside data-if block
 			local expanded = defaultExpanded
+			local function setFrameClass(f, collapsed)
+				if not f then
+					f = doc:GetElementById(frameId)
+					frame = f
+				end
+				if f then
+					f:SetClass("tf-collapsed", collapsed)
+				end
+			end
 			section:SetClass("hidden", not expanded)
+			setFrameClass(frame, not expanded)
 			toggleImg:SetAttribute("src", expanded
 				and "/luaui/images/terraform_brush/minus.png"
 				or  "/luaui/images/terraform_brush/plus.png")
@@ -355,6 +367,7 @@ function M.attach(doc, ctx)
 				expanded = not expanded
 				playSound(expanded and "panelOpen" or "click")
 				section:SetClass("hidden", not expanded)
+				setFrameClass(frame, not expanded)
 				toggleImg:SetAttribute("src", expanded
 					and "/luaui/images/terraform_brush/minus.png"
 					or  "/luaui/images/terraform_brush/plus.png")
@@ -366,6 +379,7 @@ function M.attach(doc, ctx)
 						expanded = true
 						playSound("panelOpen")
 						section:SetClass("hidden", false)
+						setFrameClass(frame, false)
 						toggleImg:SetAttribute("src", "/luaui/images/terraform_brush/minus.png")
 					end
 				end,
@@ -379,6 +393,7 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-toggle-sliders",  "img-toggle-sliders",  "section-sliders",  true)
 		widgetState.heightCapSectionCtrl = envSectionToggle("btn-toggle-heightcap", "img-toggle-heightcap", "section-heightcap", false)
 		envSectionToggle("btn-toggle-presets",   "img-toggle-presets",   "section-presets",   false)
+		envSectionToggle("btn-toggle-heightmap", "img-toggle-heightmap", "section-heightmap", true)
 
 		-- Tool sub-panel collapsible sections
 		envSectionToggle("btn-toggle-sp-mode",      "img-toggle-sp-mode",      "section-sp-mode",      true)
@@ -407,9 +422,11 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-toggle-mb-overlays",     "img-toggle-mb-overlays",     "section-mb-overlays",     false)
 		envSectionToggle("btn-toggle-mb-instruments",  "img-toggle-mb-instruments",  "section-mb-instruments",  false)
 		envSectionToggle("btn-toggle-mb-controls",     "img-toggle-mb-controls",     "section-mb-controls",     true)
+		envSectionToggle("btn-toggle-mb-save",         "img-toggle-mb-save",         "section-mb-save",         false)
 		envSectionToggle("btn-toggle-gb-overlays",     "img-toggle-gb-overlays",     "section-gb-overlays",     false)
 		envSectionToggle("btn-toggle-gb-instruments",  "img-toggle-gb-instruments",  "section-gb-instruments",  false)
 		envSectionToggle("btn-toggle-gb-controls",     "img-toggle-gb-controls",     "section-gb-controls",     true)
+		envSectionToggle("btn-toggle-gb-save",         "img-toggle-gb-save",         "section-gb-save",         false)
 		envSectionToggle("btn-toggle-fp-overlays",     "img-toggle-fp-overlays",     "section-fp-overlays",     false)
 		envSectionToggle("btn-toggle-fp-instruments",  "img-toggle-fp-instruments",  "section-fp-instruments",  false)
 		envSectionToggle("btn-toggle-fp-controls",     "img-toggle-fp-controls",     "section-fp-controls",     true)
@@ -434,6 +451,7 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-toggle-sp-instruments",  "img-toggle-sp-instruments",  "section-sp-instruments",  false)
 		envSectionToggle("btn-toggle-sp-controls",     "img-toggle-sp-controls",     "section-sp-controls",     true)
 		envSectionToggle("btn-toggle-sp-smart",        "img-toggle-sp-smart",        "section-sp-smart",        false)
+		envSectionToggle("btn-toggle-sp-save",         "img-toggle-sp-save",         "section-sp-save",         false)
 
 		-- Pill-button tab switching for smart filter sub-panels
 		do
@@ -618,7 +636,9 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-toggle-st-overlays",     "img-toggle-st-overlays",     "section-st-overlays",     false)
 		envSectionToggle("btn-toggle-st-instruments",  "img-toggle-st-instruments",  "section-st-instruments",  false)
 		envSectionToggle("btn-toggle-st-controls",     "img-toggle-st-controls",     "section-st-controls",     true)
+		envSectionToggle("btn-toggle-st-save",         "img-toggle-st-save",         "section-st-save",         false)
 		envSectionToggle("btn-toggle-env-buttons",  "img-toggle-env-buttons",  "section-env-buttons",  true)
+		envSectionToggle("btn-toggle-env-save",     "img-toggle-env-save",     "section-env-save",     false)
 		envSectionToggle("btn-toggle-lt-type",      "img-toggle-lt-type",      "section-lt-type",      true)
 		envSectionToggle("btn-toggle-lt-placement", "img-toggle-lt-placement", "section-lt-placement", true)
 		envSectionToggle("btn-toggle-lt-dist",      "img-toggle-lt-dist",      "section-lt-dist",      true)
@@ -665,6 +685,12 @@ function M.attach(doc, ctx)
 			local warnChip  = doc:GetElementById(warnId)
 			if not toggleBtn or not toggleImg or not section or not warnChip then return end
 			local expanded = defaultExpanded ~= false
+			local frameId  = sectionId:gsub("section%-", "frame-", 1)
+			local frame    = doc:GetElementById(frameId)
+			local function setFrameClass(collapsed)
+				if not frame then frame = doc:GetElementById(frameId) end
+				if frame then frame:SetClass("tf-collapsed", collapsed) end
+			end
 			local function refreshWarn()
 				if expanded then warnChip:SetClass("hidden", true); return end
 				local anyActive = false
@@ -679,6 +705,7 @@ function M.attach(doc, ctx)
 			local function setExpanded(v)
 				expanded = v
 				section:SetClass("hidden", not expanded)
+				setFrameClass(not expanded)
 				toggleImg:SetAttribute("src", expanded
 					and "/luaui/images/terraform_brush/minus.png"
 					or  "/luaui/images/terraform_brush/plus.png")

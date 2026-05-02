@@ -222,8 +222,11 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	-- Splat painter section elements
 	spControlsEl = nil,
 	spPreviewEls = nil,
+	spChannelSectionEl = nil,
 	spPreviewTextures = nil,
 	spPreviewVerified = false,
+	-- Lobby visibility tracking (document:Hide() does not set hidden class)
+	lobbyHidden = false,
 	-- Decal section elements
 	dcControlsEl = nil,
 	dcSubmodesEl = nil,
@@ -492,8 +495,6 @@ widgetState.hintDots = {
 	  sectionToggleId = "btn-toggle-sp-smart", sectionId = "section-sp-smart",
 	  pulseTargets = { "sp-filter-chip-slope", "sp-filter-chip-altitude" },
 	  pulseKey = "splatFiltersPulseFrame", pulseExpiryKey = "splatFiltersPulseExpiry" },
-	{ dotId = "weather-persist-notify-dot",    prefKey = "seenWeatherPersistHint",
-	  markOnClick = { "btn-wb-persistent" } },
 	{ dotId = "lights-type-notify-dot",        prefKey = "seenLightsTypeHint",
 	  markOnClick = { "btn-lt-cone", "btn-lt-beam" } },
 	{ dotId = "clone-layers-notify-dot",       prefKey = "seenCloneLayersHint",
@@ -4560,10 +4561,17 @@ function widget:DrawScreenPost()
 	local rootEl = widgetState.rootElement
 	if rootEl and rootEl:IsClassSet("hidden") then return end
 
+	-- Skip when lobby overlay hides the document (document:Hide() does not set hidden class)
+	if widgetState.lobbyHidden then return end
+
 	-- Skip unless splat tool is active (panel visibility now driven by data-if="activeTool == 'sp'",
 	-- which uses display:none rather than a `hidden` class — so query the data model instead).
 	local dm = widgetState.dmHandle
 	if not (dm and dm.activeTool == "sp") then return end
+
+	-- Skip if the TEXTURE CHANNEL section is collapsed
+	local sec = widgetState.spChannelSectionEl
+	if sec and sec:IsClassSet("hidden") then return end
 
 	-- One-shot: find working per-layer textures (must run in a Draw call-in)
 	if not widgetState.spPreviewVerified then
@@ -5984,8 +5992,10 @@ function widget:RecvLuaMsg(message, playerID)
 	if not document then return end
 	if message:sub(1, 19) == 'LobbyOverlayActive0' then
 		document:Show()
+		widgetState.lobbyHidden = false
 	elseif message:sub(1, 19) == 'LobbyOverlayActive1' then
 		document:Hide()
+		widgetState.lobbyHidden = true
 	end
 end
 
