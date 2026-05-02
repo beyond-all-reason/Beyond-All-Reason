@@ -744,6 +744,26 @@ local function buildRootStyle()
 		currentLeftVw, currentTopVh)
 end
 
+-- Helpers for noise DataModel handlers defined in initialModel below.
+-- All use widgetState/uiState/WG/playSound upvalues (file-level locals).
+local function _noSliderVal(id, default)
+	local doc = widgetState.document
+	if not doc then return default end
+	local sl = doc:GetElementById("slider-" .. id)
+	if not sl then return default end
+	return tonumber(sl:GetAttribute("value")) or default
+end
+local function _noSetSliderVal(id, v)
+	local doc = widgetState.document
+	if not doc then return end
+	local sl = doc:GetElementById("slider-" .. id)
+	if sl then sl:SetAttribute("value", tostring(v)) end
+end
+local function _noDmLabel(field, text)
+	local d = widgetState.dmHandle
+	if d and d[field] ~= text then d[field] = text end
+end
+
 local initialModel = {
 	radius = 100,
 	shapeName = "Circle",
@@ -1066,6 +1086,129 @@ local initialModel = {
 	envMapVisible = false,
 	envWaterVisible = false,
 	envDimensionsVisible = false,
+	-- Phase 2 step 6: tf_noise model-king handlers — defined here (not in M.attach)
+	-- because Recoil forbids adding OR changing function keys after OpenDataModel.
+	-- All closures capture file-level widgetState/uiState/WG/playSound upvalues.
+	onNoClose = function(_event)
+		playSound("click")
+		widgetState.noiseManuallyHidden = true
+		local d = widgetState.dmHandle; if d then d.noiseWindowVisible = false end
+	end,
+	onNoSetType = function(_event, ntype)
+		playSound("modeSwitch")
+		if WG.TerraformBrush then WG.TerraformBrush.setNoiseType(ntype) end
+		local d = widgetState.dmHandle; if d then d.noiseType = ntype end
+	end,
+	onNoScaleChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local val = _noSliderVal("noise-scale", 64)
+		WG.TerraformBrush.setNoiseScale(val)
+		_noDmLabel("nsScaleStr", tostring(val))
+	end,
+	onNoScaleUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local val = math.min(512, _noSliderVal("noise-scale", 64) + 8)
+		WG.TerraformBrush.setNoiseScale(val)
+		_noSetSliderVal("noise-scale", val)
+		_noDmLabel("nsScaleStr", tostring(val))
+	end,
+	onNoScaleDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local val = math.max(8, _noSliderVal("noise-scale", 64) - 8)
+		WG.TerraformBrush.setNoiseScale(val)
+		_noSetSliderVal("noise-scale", val)
+		_noDmLabel("nsScaleStr", tostring(val))
+	end,
+	onNoOctavesChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local val = _noSliderVal("noise-octaves", 4)
+		WG.TerraformBrush.setNoiseOctaves(val)
+		_noDmLabel("nsOctavesStr", tostring(val))
+	end,
+	onNoOctavesUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local val = math.min(8, _noSliderVal("noise-octaves", 4) + 1)
+		WG.TerraformBrush.setNoiseOctaves(val)
+		_noSetSliderVal("noise-octaves", val)
+		_noDmLabel("nsOctavesStr", tostring(val))
+	end,
+	onNoOctavesDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local val = math.max(1, _noSliderVal("noise-octaves", 4) - 1)
+		WG.TerraformBrush.setNoiseOctaves(val)
+		_noSetSliderVal("noise-octaves", val)
+		_noDmLabel("nsOctavesStr", tostring(val))
+	end,
+	onNoPersistChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local val = _noSliderVal("noise-persistence", 50)
+		WG.TerraformBrush.setNoisePersistence(val / 100)
+		_noDmLabel("nsPersistenceStr", string.format("%.2f", val / 100))
+	end,
+	onNoPersistUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local val = math.min(90, _noSliderVal("noise-persistence", 50) + 5)
+		WG.TerraformBrush.setNoisePersistence(val / 100)
+		_noSetSliderVal("noise-persistence", val)
+		_noDmLabel("nsPersistenceStr", string.format("%.2f", val / 100))
+	end,
+	onNoPersistDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local val = math.max(10, _noSliderVal("noise-persistence", 50) - 5)
+		WG.TerraformBrush.setNoisePersistence(val / 100)
+		_noSetSliderVal("noise-persistence", val)
+		_noDmLabel("nsPersistenceStr", string.format("%.2f", val / 100))
+	end,
+	onNoLacunChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local val = _noSliderVal("noise-lacunarity", 20)
+		WG.TerraformBrush.setNoiseLacunarity(val / 10)
+		_noDmLabel("nsLacunarityStr", string.format("%.1f", val / 10))
+	end,
+	onNoLacunUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local val = math.min(40, _noSliderVal("noise-lacunarity", 20) + 1)
+		WG.TerraformBrush.setNoiseLacunarity(val / 10)
+		_noSetSliderVal("noise-lacunarity", val)
+		_noDmLabel("nsLacunarityStr", string.format("%.1f", val / 10))
+	end,
+	onNoLacunDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local val = math.max(10, _noSliderVal("noise-lacunarity", 20) - 1)
+		WG.TerraformBrush.setNoiseLacunarity(val / 10)
+		_noSetSliderVal("noise-lacunarity", val)
+		_noDmLabel("nsLacunarityStr", string.format("%.1f", val / 10))
+	end,
+	onNoSeedChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local val = _noSliderVal("noise-seed", 0)
+		WG.TerraformBrush.setNoiseSeed(val)
+		_noDmLabel("nsSeedStr", tostring(val))
+	end,
+	onNoReseed = function(_event)
+		local newSeed = math.floor(math.random() * 9999)
+		if WG.TerraformBrush then WG.TerraformBrush.setNoiseSeed(newSeed) end
+		_noSetSliderVal("noise-seed", newSeed)
+		_noDmLabel("nsSeedStr", tostring(newSeed))
+	end,
+	onNoSeedUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local st = WG.TerraformBrush.getState()
+		local cur = (st and st.noiseSeed) or 0
+		local newVal = math.min(9999, cur + 1)
+		WG.TerraformBrush.setNoiseSeed(newVal)
+		_noSetSliderVal("noise-seed", newVal)
+		_noDmLabel("nsSeedStr", tostring(newVal))
+	end,
+	onNoSeedDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local st = WG.TerraformBrush.getState()
+		local cur = (st and st.noiseSeed) or 0
+		local newVal = math.max(0, cur - 1)
+		WG.TerraformBrush.setNoiseSeed(newVal)
+		_noSetSliderVal("noise-seed", newVal)
+		_noDmLabel("nsSeedStr", tostring(newVal))
+	end,
 }
 
 local shapeNames = {
