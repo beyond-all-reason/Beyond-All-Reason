@@ -164,9 +164,8 @@ function M.sync(doc, ctx, clState, setSummary)
 	local shapeNames = ctx.shapeNames
 		-- ===== Clone Tool mode: highlight button, sync controls =====
 		do
-			-- Update status label
-			local statusLabel = doc and doc:GetElementById("cl-status-label")
-			if statusLabel and clState then
+			-- Update status label (dm.clStatusStr → {{clStatusStr}} in RML)
+			if clState and widgetState.dmHandle then
 				local statusText = "Select an area to clone"
 				if clState.state == "selecting" then
 					statusText = "Drawing selection..."
@@ -177,8 +176,7 @@ function M.sync(doc, ctx, clState, setSummary)
 				elseif clState.state == "paste_preview" then
 					statusText = "Click to paste \194\183 RMB to cancel"
 				end
-				statusLabel.inner_rml = statusText
-				if widgetState.dmHandle and widgetState.dmHandle.clStatusStr ~= statusText then
+				if widgetState.dmHandle.clStatusStr ~= statusText then
 					widgetState.dmHandle.clStatusStr = statusText
 				end
 			end
@@ -187,8 +185,6 @@ function M.sync(doc, ctx, clState, setSummary)
 			if doc then
 				uiState.updatingFromCode = true
 				local ds = uiState.draggingSlider
-				local rotLabel = doc:GetElementById("cl-rotation-label")
-				if rotLabel and clState then rotLabel.inner_rml = tostring(math.floor(clState.pasteRotation)) .. "\194\176" end
 				if widgetState.dmHandle and clState then
 					local v = tostring(math.floor(clState.pasteRotation)) .. "\194\176"
 					if widgetState.dmHandle.clRotationStr ~= v then widgetState.dmHandle.clRotationStr = v end
@@ -201,8 +197,6 @@ function M.sync(doc, ctx, clState, setSummary)
 				if rotNumbox and ds ~= "cl-rotation" and clState then
 					rotNumbox:SetAttribute("value", tostring(math.floor(clState.pasteRotation)))
 				end
-				local heightLabel = doc:GetElementById("cl-height-label")
-				if heightLabel and clState then heightLabel.inner_rml = tostring(math.floor(clState.pasteHeightOffset)) end
 				if widgetState.dmHandle and clState then
 					local v = tostring(math.floor(clState.pasteHeightOffset))
 					if widgetState.dmHandle.clHeightStr ~= v then widgetState.dmHandle.clHeightStr = v end

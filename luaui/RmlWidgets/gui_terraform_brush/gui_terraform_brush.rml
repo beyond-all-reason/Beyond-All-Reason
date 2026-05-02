@@ -740,7 +740,7 @@
 
 				<!-- Rotation -->
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold" id="cl-rotation-label">0&#176;</span></div>
+					<div class="text-lg text-light">ROTATION: <span class="text-xl font-bold" id="cl-rotation-label">{{clRotationStr}}</span></div>
 					<div id="kbhint-cl-rotation" class="text-sm text-keybind">Alt+Scroll</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
@@ -756,7 +756,7 @@
 
 				<!-- Height offset -->
 				<div class="flex flex-row justify-between items-center mb-1">
-					<div class="text-lg text-light">HEIGHT OFFSET: <span class="text-xl font-bold" id="cl-height-label">0</span></div>
+					<div class="text-lg text-light">HEIGHT OFFSET: <span class="text-xl font-bold" id="cl-height-label">{{clHeightStr}}</span></div>
 					<div id="kbhint-cl-height" class="text-sm text-keybind">Shift+Scroll</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
@@ -6115,7 +6115,7 @@
 	<div id="tf-noise-root" class="tf-noise-root widget-shadow rounded-md bg-darkest p-2-5" data-if="noiseWindowVisible">
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div id="tf-noise-handle" class="tf-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Noise Parameters</div>
-			<div id="btn-noise-close" class="tf-quit-btn" onclick="widget:noClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+			<div id="btn-noise-close" class="tf-quit-btn" data-event-click="onNoClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 
 		<div class="tf-section-frame" id="frame-noise-type">
@@ -6125,19 +6125,19 @@
 			</div>
 		<div id="section-noise-type">
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-noise-perlin" class="tf-mode-btn tf-noise-type-btn" data-class-active="noiseType == 'perlin'" onclick="widget:noSetType('perlin')">
+			<div id="btn-noise-perlin" class="tf-mode-btn tf-noise-type-btn" data-class-active="noiseType == 'perlin'" data-event-click="onNoSetType('perlin')">
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/noise_perlin.png" />
 				<div class="tf-btn-text">Perlin</div>
 			</div>
-			<div id="btn-noise-voronoi" class="tf-mode-btn tf-noise-type-btn" data-class-active="noiseType == 'voronoi'" onclick="widget:noSetType('voronoi')">
+			<div id="btn-noise-voronoi" class="tf-mode-btn tf-noise-type-btn" data-class-active="noiseType == 'voronoi'" data-event-click="onNoSetType('voronoi')">
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/noise_voronoi.png" />
 				<div class="tf-btn-text">Voronoi</div>
 			</div>
-			<div id="btn-noise-fbm" class="tf-mode-btn tf-noise-type-btn" data-class-active="noiseType == 'fbm'" onclick="widget:noSetType('fbm')">
+			<div id="btn-noise-fbm" class="tf-mode-btn tf-noise-type-btn" data-class-active="noiseType == 'fbm'" data-event-click="onNoSetType('fbm')">
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/noise_fbm.png" />
 				<div class="tf-btn-text">FBM</div>
 			</div>
-			<div id="btn-noise-billow" class="tf-mode-btn tf-noise-type-btn" data-class-active="noiseType == 'billow'" onclick="widget:noSetType('billow')">
+			<div id="btn-noise-billow" class="tf-mode-btn tf-noise-type-btn" data-class-active="noiseType == 'billow'" data-event-click="onNoSetType('billow')">
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/noise_billow.png" />
 				<div class="tf-btn-text">Billow</div>
 			</div>
@@ -6151,11 +6151,11 @@
 			<div class="text-sm text-keybind">cell size</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-noise-scale-down" class="tf-sm-btn" onclick="widget:noScaleDown()">
+			<div id="btn-noise-scale-down" class="tf-sm-btn" data-event-click="onNoScaleDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="slider-noise-scale" class="tf-slider" min="8" max="512" step="8" value="64" onchange="widget:noOnScaleChange(element)" />
-			<div id="btn-noise-scale-up" class="tf-sm-btn" onclick="widget:noScaleUp()">
+			<input type="range" id="slider-noise-scale" class="tf-slider" min="8" max="512" step="8" value="64" data-event-change="onNoScaleChange()" />
+			<div id="btn-noise-scale-up" class="tf-sm-btn" data-event-click="onNoScaleUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="slider-noise-scale-numbox" class="tf-slider-numbox" value="0" />
@@ -6166,11 +6166,11 @@
 			<div class="text-sm text-keybind">detail layers</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-noise-octaves-down" class="tf-sm-btn" onclick="widget:noOctavesDown()">
+			<div id="btn-noise-octaves-down" class="tf-sm-btn" data-event-click="onNoOctavesDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="slider-noise-octaves" class="tf-slider" min="1" max="8" step="1" value="4" onchange="widget:noOnOctavesChange(element)" />
-			<div id="btn-noise-octaves-up" class="tf-sm-btn" onclick="widget:noOctavesUp()">
+			<input type="range" id="slider-noise-octaves" class="tf-slider" min="1" max="8" step="1" value="4" data-event-change="onNoOctavesChange()" />
+			<div id="btn-noise-octaves-up" class="tf-sm-btn" data-event-click="onNoOctavesUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="slider-noise-octaves-numbox" class="tf-slider-numbox" value="0" />
@@ -6181,11 +6181,11 @@
 			<div class="text-sm text-keybind">amplitude decay</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-noise-persist-down" class="tf-sm-btn" onclick="widget:noPersistDown()">
+			<div id="btn-noise-persist-down" class="tf-sm-btn" data-event-click="onNoPersistDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="slider-noise-persistence" class="tf-slider" min="10" max="90" step="5" value="50" onchange="widget:noOnPersistChange(element)" />
-			<div id="btn-noise-persist-up" class="tf-sm-btn" onclick="widget:noPersistUp()">
+			<input type="range" id="slider-noise-persistence" class="tf-slider" min="10" max="90" step="5" value="50" data-event-change="onNoPersistChange()" />
+			<div id="btn-noise-persist-up" class="tf-sm-btn" data-event-click="onNoPersistUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="slider-noise-persistence-numbox" class="tf-slider-numbox" value="0" />
@@ -6196,11 +6196,11 @@
 			<div class="text-sm text-keybind">frequency growth</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-noise-lacun-down" class="tf-sm-btn" onclick="widget:noLacunDown()">
+			<div id="btn-noise-lacun-down" class="tf-sm-btn" data-event-click="onNoLacunDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="slider-noise-lacunarity" class="tf-slider" min="10" max="40" step="1" value="20" onchange="widget:noOnLacunChange(element)" />
-			<div id="btn-noise-lacun-up" class="tf-sm-btn" onclick="widget:noLacunUp()">
+			<input type="range" id="slider-noise-lacunarity" class="tf-slider" min="10" max="40" step="1" value="20" data-event-change="onNoLacunChange()" />
+			<div id="btn-noise-lacun-up" class="tf-sm-btn" data-event-click="onNoLacunUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="slider-noise-lacunarity-numbox" class="tf-slider-numbox" value="0" />
@@ -6208,15 +6208,15 @@
 
 		<div class="flex flex-row items-center mb-1">
 			<div class="text-lg text-light">SEED: <span class="text-xl font-bold">{{nsSeedStr}}</span></div>
-			<div id="btn-noise-reseed" class="tf-inline-chip" style="margin-left: 4dp; cursor: pointer;" onclick="widget:noReseed()">
+			<div id="btn-noise-reseed" class="tf-inline-chip" style="margin-left: 4dp; cursor: pointer;" data-event-click="onNoReseed()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/rot_cw.png" style="margin-right: 2dp;" />
 				RANDOM
 			</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-noise-seed-down" class="tf-sm-btn" onclick="widget:noSeedDown()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-			<input type="range" id="slider-noise-seed" class="tf-slider" min="0" max="9999" step="1" value="0" onchange="widget:noOnSeedChange(element)" />
-			<div id="btn-noise-seed-up" class="tf-sm-btn" onclick="widget:noSeedUp()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+			<div id="btn-noise-seed-down" class="tf-sm-btn" data-event-click="onNoSeedDown()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+			<input type="range" id="slider-noise-seed" class="tf-slider" min="0" max="9999" step="1" value="0" data-event-change="onNoSeedChange()" />
+			<div id="btn-noise-seed-up" class="tf-sm-btn" data-event-click="onNoSeedUp()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
 			<input type="text" id="slider-noise-seed-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 	</div>
