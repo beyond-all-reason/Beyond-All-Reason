@@ -32,23 +32,27 @@ local spEcho = Spring.Echo
 
 local CMD_DGUN = CMD.DGUN
 local DGUN_RANGE = 280
+
 -- Excessively large dgun safety width to acount for some units, such as behemoths, being quite large
 local DGUN_SAFETY_WIDTH = 100
+
 -- Approximate actual width of the dgun projectile
 local DGUN_WIDTH = 20
+
 -- 1500 is a bit more than the range of a Vanguard
 -- In my opinion, there is never a reason to even fire a DGun if there are no enemies within VANGUARD distance
 -- We can tweak this smaller as needed
 local ENEMY_SCAN_RADIUS = 1500
 local gaiaTeamID = spGetGaiaTeamID()
-local contactsCache = {}
+
 -- Tracks enemy contacts briefly so that dguns are allowed for a few seconds even after contact is lost
+local contactsCache = {}
 local CONTACT_WINDOW_DURATION = 5 * 30 -- five seconds at 30 gameframes per second
 local CONTACT_PRUNE_INTERVAL = 60 * 30 -- prune expired contacts every minute
 local nextContactPruneFrame = CONTACT_PRUNE_INTERVAL
 
+-- Hook DGun commands into allow/disallow interface
 function gadget:Initialize()
-	-- Hook DGun commands into allow/disallow interface
 	gadgetHandler:RegisterAllowCommand(CMD_DGUN)
 end
 
@@ -86,8 +90,8 @@ local function PruneExpiredContacts(currentFrame)
 	end
 end
 
+-- Caches a brief unit contact. This can be checked for the sake of allowing/disallowing DGun later
 local function AddExpiringUnitContact(x, y, z, contactTeam, currentFrame)
-	-- Caches a brief unit contact. This can be checked for the sake of allowing/disallowing DGun later
 	contactsCache[#contactsCache + 1] = {
 		x = x,
 		y = y,
@@ -136,8 +140,8 @@ local function DistPointToSegment(px, py, pz, ax, ay, az, bx, by, bz)
 	return math.sqrt(dx * dx + dy * dy + dz * dz)
 end
 
+-- Build a cheap box around the beam first, then do the precise segment test
 local function HandleDGunAllyRisk(teamID, firingUnitID, playerID, sx, sy, sz, ex, ey, ez)
-	-- Build a cheap box around the beam first, then do the precise segment test
 	local minx = math.min(sx, ex) - DGUN_SAFETY_WIDTH
 	local maxx = math.max(sx, ex) + DGUN_SAFETY_WIDTH
 	local miny = math.min(sy, ey) - DGUN_SAFETY_WIDTH
@@ -172,8 +176,8 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, playerID, sx, sy, sz, ex
 	return false
 end
 
+-- If the commander is already near a visible enemy, we leave the order alone
 local function HasKnownEnemyNearby(teamID, ux, uy, uz)
-	-- If the commander is already near a visible enemy, we leave the order alone
 	local myAllyTeam = GetAllyTeamID(teamID)
 	local currentFrame = spGetGameFrame()
 	PruneExpiredContacts(currentFrame)
@@ -205,9 +209,9 @@ local function HasKnownEnemyNearby(teamID, ux, uy, uz)
 	return false
 end
 
+-- Cache units that leave radar briefly so they count as visible enemy presence
+-- This allows players to attempt dguns even if radar contact is lost.
 function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
-	-- Cache units that leave radar briefly so they count as visible enemy presence
-	-- This allows players to attempt dguns even if radar contact is lost.
 	if not unitTeam or unitTeam == gaiaTeamID then
 		return
 	end
@@ -226,8 +230,8 @@ function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 	AddExpiringUnitContact(x, y, z, unitTeam, spGetGameFrame())
 end
 
+-- Cache seismic detections briefly so they count as visible enemy presence.
 function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
-	-- Cache seismic detections briefly so they count as visible enemy presence.
 	AddExpiringUnitContact(x, y, z, allyTeam, spGetGameFrame())
 end
 
