@@ -4,16 +4,13 @@ local M = {}
 function M.attach(doc, ctx)
 	if ctx.attachTBMirrorControls then ctx.attachTBMirrorControls(doc, "dc") end
 	local widgetState = ctx.widgetState
-	local uiState = ctx.uiState
-	local WG = ctx.WG
-	local playSound = ctx.playSound
 	local trackSliderDrag = ctx.trackSliderDrag
 
 	widgetState.dcControlsEl  = doc:GetElementById("tf-decal-controls")
 	widgetState.dcSubmodesEl  = doc:GetElementById("tf-dc-submodes")
 
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
-	-- Slider change events are wired declaratively via onchange= in RML.
+	-- Slider change events are wired declaratively via data-event-change= in RML.
 	for _, sid in ipairs({
 		"radius", "rotation", "rotrand", "count", "cadence",
 		"sizemin", "sizemax", "alpha",
@@ -24,172 +21,9 @@ function M.attach(doc, ctx)
 	local sliderDcHistory = doc:GetElementById("slider-dc-history")
 	if sliderDcHistory then trackSliderDrag(sliderDcHistory, "dc-history") end
 
-	-- Register widget methods for inline onclick/onchange handlers in RML.
-	local w = ctx.widget
-	if not w then return end
-
-	local function ensureDecalPlacer()
-		if not WG.DecalPlacer then
-			Spring.Echo("[Decal Library] Enable the 'Decal Placer' widget first")
-			return false
-		end
-		return true
-	end
-
-	-- Distribution
-	w.dcSetDist = function(self, dist)
-		playSound("shapeSwitch")
-		if WG.DecalPlacer then WG.DecalPlacer.setDistribution(dist) end
-		if widgetState.dmHandle then widgetState.dmHandle.dcDistribution = dist end
-	end
-
-	-- Heatmap
-	w.dcHeatmapExport = function(self)
-		playSound("tick")
-		if WG.DecalExporter then
-			WG.DecalExporter.exportHeatmapCSV()
-			WG.DecalExporter.exportHeatmapPGM()
-		else
-			Spring.Echo("[Decal Heatmap] Enable the 'Decal Exporter & Analytics' widget first")
-		end
-	end
-	w.dcHeatmapReset = function(self)
-		playSound("tick")
-		if WG.DecalExporter then
-			WG.DecalExporter.resetHeatmap()
-			Spring.Echo("[Decal Heatmap] Heatmap reset")
-		end
-	end
-
-	-- Library mode buttons
-	w.dcLibScatter = function(self)
-		playSound("tick")
-		if ensureDecalPlacer() then WG.DecalPlacer.setMode("scatter") end
-	end
-	w.dcLibPoint = function(self)
-		playSound("tick")
-		if ensureDecalPlacer() then WG.DecalPlacer.setMode("point") end
-	end
-	w.dcLibRemove = function(self)
-		playSound("tick")
-		if ensureDecalPlacer() then WG.DecalPlacer.setMode("remove") end
-	end
-	w.dcLibStop = function(self)
-		playSound("tick")
-		if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
-	end
-	w.dcLibOpen = function(self)
-		playSound("tick")
-		if ensureDecalPlacer() then
-			local s = WG.DecalPlacer.getState()
-			if not s or not s.active then
-				WG.DecalPlacer.setMode("point")
-			end
-		end
-	end
-
-	-- Slider/numbox onchange helpers (transform optional).
-	local function dcSliderChange(element, setter, transform)
-		if uiState.updatingFromCode or not WG.DecalPlacer then return end
-		local v = element and tonumber(element:GetAttribute("value"))
-		if not v then return end
-		if transform then v = transform(v) end
-		setter(v)
-	end
-
-	w.dcOnRadiusChange   = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setRadius     or function() end) end
-	w.dcOnRotationChange = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setRotation   or function() end) end
-	w.dcOnRotRandChange  = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setRotRandom  or function() end) end
-	w.dcOnCountChange    = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setDecalCount or function() end) end
-	w.dcOnCadenceChange  = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setCadence    or function() end) end
-	w.dcOnSizeMinChange  = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setSizeMin    or function() end) end
-	w.dcOnSizeMaxChange  = function(self, e) dcSliderChange(e, WG.DecalPlacer and WG.DecalPlacer.setSizeMax    or function() end) end
-	w.dcOnAlphaChange    = function(self, e)
-		if not WG.DecalPlacer then return end
-		dcSliderChange(e, WG.DecalPlacer.setAlpha, function(v) return v / 100 end)
-	end
-
-	-- Stepper buttons (re-fetch state on each click; safe if DecalPlacer enabled later).
-	local function dcStep(getter, setter, delta)
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState()
-		if not st then return end
-		setter(getter(st) + delta)
-	end
-
-	w.dcRadiusDown   = function(self) playSound("tick"); dcStep(function(s) return s.radius     end, WG.DecalPlacer and WG.DecalPlacer.setRadius     or function() end, -8) end
-	w.dcRadiusUp     = function(self) playSound("tick"); dcStep(function(s) return s.radius     end, WG.DecalPlacer and WG.DecalPlacer.setRadius     or function() end,  8) end
-	w.dcRotCCW       = function(self) playSound("tick"); dcStep(function(s) return s.rotation   end, WG.DecalPlacer and WG.DecalPlacer.setRotation   or function() end, -5) end
-	w.dcRotCW        = function(self) playSound("tick"); dcStep(function(s) return s.rotation   end, WG.DecalPlacer and WG.DecalPlacer.setRotation   or function() end,  5) end
-	w.dcRotRandDown  = function(self) playSound("tick"); dcStep(function(s) return s.rotRandom  end, WG.DecalPlacer and WG.DecalPlacer.setRotRandom  or function() end, -1) end
-	w.dcRotRandUp    = function(self) playSound("tick"); dcStep(function(s) return s.rotRandom  end, WG.DecalPlacer and WG.DecalPlacer.setRotRandom  or function() end,  1) end
-	w.dcCountDown    = function(self) playSound("tick"); dcStep(function(s) return s.decalCount end, WG.DecalPlacer and WG.DecalPlacer.setDecalCount or function() end, -1) end
-	w.dcCountUp      = function(self) playSound("tick"); dcStep(function(s) return s.decalCount end, WG.DecalPlacer and WG.DecalPlacer.setDecalCount or function() end,  1) end
-	w.dcCadenceDown  = function(self) playSound("tick"); dcStep(function(s) return s.cadence    end, WG.DecalPlacer and WG.DecalPlacer.setCadence    or function() end, -5) end
-	w.dcCadenceUp    = function(self) playSound("tick"); dcStep(function(s) return s.cadence    end, WG.DecalPlacer and WG.DecalPlacer.setCadence    or function() end,  5) end
-	w.dcSizeMinDown  = function(self) playSound("tick"); dcStep(function(s) return s.sizeMin    end, WG.DecalPlacer and WG.DecalPlacer.setSizeMin    or function() end, -4) end
-	w.dcSizeMinUp    = function(self) playSound("tick"); dcStep(function(s) return s.sizeMin    end, WG.DecalPlacer and WG.DecalPlacer.setSizeMin    or function() end,  4) end
-	w.dcSizeMaxDown  = function(self) playSound("tick"); dcStep(function(s) return s.sizeMax    end, WG.DecalPlacer and WG.DecalPlacer.setSizeMax    or function() end, -4) end
-	w.dcSizeMaxUp    = function(self) playSound("tick"); dcStep(function(s) return s.sizeMax    end, WG.DecalPlacer and WG.DecalPlacer.setSizeMax    or function() end,  4) end
-	w.dcAlphaDown    = function(self)
-		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
-		WG.DecalPlacer.setAlpha(math.max(0, ((st.alpha or 0) * 100 - 1) / 100))
-	end
-	w.dcAlphaUp      = function(self)
-		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
-		WG.DecalPlacer.setAlpha(math.min(1, ((st.alpha or 0) * 100 + 1) / 100))
-	end
-
-	-- Align-to-normal toggle
-	w.dcAlignToggle = function(self)
-		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local s = WG.DecalPlacer.getState()
-		if s then WG.DecalPlacer.setAlignToNormal(not s.alignToNormal) end
-	end
-
-	-- Undo / Redo (DC has no redo backend; redo is a no-op stub)
-	w.dcUndo = function(self)
-		if WG.DecalPlacer then playSound("undo"); WG.DecalPlacer.undo() end
-	end
-	w.dcRedo = function(self)
-		-- placeholder; DC redo not implemented
-	end
-	w.dcOnHistoryChange = function(self, element)
-		if uiState.updatingFromCode or not WG.DecalPlacer then return end
-		local val = element and tonumber(element:GetAttribute("value")) or 0
-		local dcSt = WG.DecalPlacer.getState()
-		if not dcSt then return end
-		local cur = dcSt.undoCount or 0
-		local diff = val - cur
-		if diff < 0 then
-			for _ = 1, -diff do WG.DecalPlacer.undo() end
-		end
-	end
-
-	-- Save / Load / Clear
-	w.dcClearAll = function(self)
-		playSound("tick")
-		if WG.DecalPlacer then WG.DecalPlacer.clearAll() end
-	end
-	w.dcSave = function(self)
-		playSound("tick")
-		if WG.DecalPlacer then WG.DecalPlacer.save() end
-	end
-	w.dcLoad = function(self)
-		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local saves = WG.DecalPlacer.listSaves()
-		if not saves or #saves == 0 then
-			Spring.Echo("[Decal Placer] No saved files"); return
-		end
-		WG.DecalPlacer.load(saves[#saves])
-		Spring.Echo("[Decal Placer] Loaded " .. saves[#saves])
-	end
+	-- All data-event-click/change handlers (onDcXxx) are defined in initialModel
+	-- in gui_terraform_brush.lua — Recoil forbids adding or replacing function
+	-- keys in a DataModel after OpenDataModel.
 end
 
 function M.sync(doc, ctx, setSummary)
