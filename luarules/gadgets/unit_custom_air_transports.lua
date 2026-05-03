@@ -68,6 +68,7 @@ local mobilityDist = mapSizeX * mapSizeZ          -- priority offset: mobile < i
 local alliedDist = 2 * mobilityDist          -- priority offset: own team < allied < enemy (never)
 local maxDistSq = 2 * alliedDist               -- guaranteed > any real sq distance on the map
 local LOAD_RADIUS = 128    -- elmos XZ; transporter must be within this range to fire PerformLoad
+local UNLOAD_RADIUS = 32  -- elmos XZ; transporter must be within this range to fire PerformUnload
 local CMD_AREA_LOAD = 39751 -- custom area-load command; needs to be logged in customcmds
 local CMD_LOAD_UNIT = 39752 -- custom load-unit command; needs to be logged in customcmds
 local cachedCylinderUnitsLifespan = 1 -- 1 frame
@@ -136,16 +137,32 @@ local function dist2D(x1, z1, x2, z2)
 	return mathSqrt(dx * dx + dz * dz)
 end
 
----@param transporterID number
+---@param transporterPosX number
+---@param transporterPosY number
+---@param transporterPosZ number
 ---@param goalX number
 ---@param goalY number
 ---@param goalZ number
----@return boolean inRange
+---@return boolean inLoadRange
 
-local function inRange(transporterPosX, transporterPosY, transporterPosZ, goalX, goalY, goalZ)
+local function inLoadRange(transporterPosX, transporterPosY, transporterPosZ, goalX, goalY, goalZ)
 	local dY = transporterPosY - goalY
 	return dist2D(transporterPosX, transporterPosZ, goalX, goalZ) <= LOAD_RADIUS and dY >= 0
 end
+
+---@param transporterPosX number
+---@param transporterPosY number
+---@param transporterPosZ number
+---@param goalX number
+---@param goalY number
+---@param goalZ number
+---@return boolean inUnloadRange
+
+local function inUnloadRange(transporterPosX, transporterPosY, transporterPosZ, goalX, goalY, goalZ)
+	local dY = transporterPosY - goalY
+	return dist2D(transporterPosX, transporterPosZ, goalX, goalZ) <= UNLOAD_RADIUS and dY >= 0
+end
+
 
 ---@param cx number
 ---@param cz number
@@ -290,7 +307,7 @@ end
 --- @param transporterPosZ number
 --- @return boolean
 local function CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterTeamID, transporterPosX, transporterPosY, transporterPosZ) -- things that should delay loading without removing from queue
-	if not inRange(transporterPosX, transporterPosY, transporterPosZ, passengerPosX, passengerPosY, passengerPosZ) then
+	if not inLoadRange(transporterPosX, transporterPosY, transporterPosZ, passengerPosX, passengerPosY, passengerPosZ) then
 		return false
 	end
 	if not spAreTeamsAllied(passengerTeamID, transporterTeamID) then
@@ -894,7 +911,7 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transp
 	elseif blocked == 3 then
 		--spEcho("reclaimable feature in the way, should we unload ?")
 	end
-	if not inRange(transporterPosX, transporterPosY, transporterPosZ, goalX, goalY, goalZ) then
+	if not inUnloadRange(transporterPosX, transporterPosY, transporterPosZ, goalX, goalY, goalZ) then
 		spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- move closer
 		return false
 	end	
