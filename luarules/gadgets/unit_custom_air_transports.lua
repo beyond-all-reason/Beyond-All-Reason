@@ -250,28 +250,6 @@ local function CanBeAutoClaimed(passengerID, transporterAllyTeam) -- things that
 end
 
 ---
---- @param transporterID number
---- @param passengerID number
---- @param transporterDefID number
---- @param passengerSize number
---- @param includeQueue boolean
---- @return boolean
-local function CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, includeQueue) -- size check, either including queue (if within area cmd) or ignoring it
-	if not spValidUnitID(passengerID) then
-		return false
-	end
-	local transporterSeats    = spGetUnitRulesParam(transporterID, "transporterSeats")    or 0
-	local transporterUsedSeats = spGetUnitRulesParam(transporterID, "transporterUsedSeats") or 0
-	local queued    = includeQueue and (queuedSeats[transporterID] or 0) or 0
-	if transporterSeats - transporterUsedSeats - queued < passengerSize then
-		return false
-	end
-	local rulesParamString = "transporterHasSlotOfSize"..passengerSize
-	local foundSlot = spGetUnitRulesParam(transporterID, rulesParamString) == true
-	return foundSlot
-end
-
----
 --- @param passengerID number
 --- @param passengerTeamID number  -- passenger teamID
 --- @param passengerPosX number
@@ -403,7 +381,7 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 	local unitsCount = #units
 	local bestUnit = nil
 	local bestDist = maxDistSq
-	if spGetUnitRulesParam(transporterID, "transporterSeats") <= spGetUnitRulesParam(transporterID, "transporterUsedSeats") + (queuedSeats[transporterID] or 0) then
+	if TransportAPI.IsTransportFull(transporterID, queuedSeats[transporterID]) then
 		-- early exit if no seats
 		return nil
 	end
@@ -436,7 +414,7 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 				break
 			end
 			-- transporter dependant checks (should not write back into cache)
-			if not CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, true) then
+			if not TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, queuedSeats[transporterID]) then
 				break
 			end
 			local dx, dz    = passengerPosX - transporterPosX, passengerPosZ - transporterPosZ
@@ -483,7 +461,7 @@ local function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam
 			removalFlag = true
 		end
 		local passengerSize = TransportAPI.GetPassengerSize(passengerID)
-		if not CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, false) then
+		if not TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, 0) then
 			removalFlag = true
 		end
 		local passengerTeamID = spGetUnitTeam(passengerID)
@@ -561,8 +539,8 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 	local queue = spGetUnitCommands(transporterID,  spGetUnitRulesParam(transporterID, "transporterSeats")) --  spGetUnitRulesParam(transporterID, "transporterSeats") being the max number of units we can queue on a single transport
 	local i = 1
 	local cmd = queue and queue[i]
-	if queuedSeats[transporterID] + spGetUnitRulesParam(transporterID, "transporterUsedSeats") < spGetUnitRulesParam(transporterID, "transporterSeats") then
-		while cmd and cmd.id == CMD_LOAD_UNIT and (queuedSeats[transporterID] + spGetUnitRulesParam(transporterID, "transporterUsedSeats") < spGetUnitRulesParam(transporterID, "transporterSeats")) do
+	if not TransportAPI.IsTransportFull(transporterID, queuedSeats[transporterID]) then
+		while cmd and cmd.id == CMD_LOAD_UNIT and not TransportAPI.IsTransportFull(transporterID, queuedSeats[transporterID]) do
 			local passengerID = cmd.params[1]
 			local passengerDefID = spGetUnitDefID(passengerID)
 			local _, passengerPosY = spGetUnitPosition(passengerID)
@@ -576,7 +554,7 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 			i = i + 1
 			cmd = queue and queue[i]
 		end
-	elseif (spGetUnitRulesParam(transporterID, "transporterUsedSeats") >= spGetUnitRulesParam(transporterID, "transporterSeats")) then -- we still have queued commands despite being full, they can't be performed
+	elseif TransportAPI.IsTransportFull(transporterID, 0) then -- we still have queued commands despite being full, they can't be performed
 		while cmd and cmd.id == CMD_LOAD_UNIT do
 			local passengerID = cmd.params[1]
 			idsToRemove[passengerID] = true -- mark command for removal
@@ -601,7 +579,7 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 			removalFlag = true
 		end
 		local passengerSize = TransportAPI.GetPassengerSize(passengerID)
-		if not CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, false) then
+		if not TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, 0) then
 			removalFlag = true
 		end
 		local passengerTeamID = spGetUnitTeam(passengerID)
@@ -862,7 +840,7 @@ function gadget:AllowUnitTransport(transporterID, transporterDefID, transporterT
 	--I separated both to avoid FindUnitToTransport calling gadget:AllowUnitTransportLoad with an additional arg
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
 	local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
-	return CanBeTransportedStatic(passengerID, passengerDefID, transporterID) and CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) and CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, TransportAPI.GetPassengerSize(passengerID), false)
+	return CanBeTransportedStatic(passengerID, passengerDefID, transporterID) and CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) and TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, TransportAPI.GetPassengerSize(passengerID), 0)
 end
 
 -- unload commands haven't been changed (yet?)
