@@ -837,6 +837,42 @@ local function _fpSnapStep(delta)
 	WG.FeaturePlacer.setGridSnapSize(math.max(16, math.min(128, cur + delta)))
 end
 
+-- Metal angle-snap preset array and helpers (captured by onMb* closures in initialModel).
+local MB_ANGLE_PRESETS = { 7.5, 15, 30, 45, 60, 90 }
+local function _mbFindAnglePresetIdx(val)
+	local best, bestD = 2, math.huge
+	for i, p in ipairs(MB_ANGLE_PRESETS) do
+		local d = math.abs(p - (val or 15))
+		if d < bestD then bestD = d; best = i end
+	end
+	return best
+end
+local function _mbApplyAnglePreset(idx)
+	idx = math.max(1, math.min(#MB_ANGLE_PRESETS, idx))
+	local pval = MB_ANGLE_PRESETS[idx]
+	local pstr = (pval == math.floor(pval)) and tostring(math.floor(pval)) or tostring(pval)
+	if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
+	_elemSetSliderVal("mb-slider-angle-snap-step", idx - 1)
+	_noDmLabel("tbAngleSnapStepStr", pstr)
+	_elemSetSliderVal("mb-slider-angle-snap-step-numbox", pstr)
+end
+local function _mbSnapStep(delta)
+	if not WG.TerraformBrush then return end
+	local cur = tonumber((WG.TerraformBrush.getState() or {}).gridSnapSize) or 48
+	WG.TerraformBrush.setGridSnapSize(math.max(16, math.min(128, cur + delta)))
+end
+local function _mbSyncSymChipClasses()
+	local s = WG.TerraformBrush and WG.TerraformBrush.getState() or {}
+	local d = widgetState.dmHandle
+	if d then
+		d.mbSymmetryRadial    = s.symmetryRadial and true or false
+		d.mbSymMirrorX        = s.symmetryMirrorX and true or false
+		d.mbSymMirrorY        = s.symmetryMirrorY and true or false
+		d.mbSymmetryMirrorAny = (s.symmetryMirrorX or s.symmetryMirrorY) and true or false
+		d.mbSymHasAxis        = (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false
+	end
+end
+
 local initialModel = {
 	radius = 100,
 	shapeName = "Circle",
@@ -2718,6 +2754,379 @@ local initialModel = {
 	end,
 	onFpSnapSizeDown = function(_event) _fpSnapStep(-16) end,
 	onFpSnapSizeUp   = function(_event) _fpSnapStep(16) end,
+	-- Phase 2 step 6: tf_metal model-king handlers — defined here (not in M.attach)
+	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
+	-- Closures capture file-level widgetState/uiState/WG/playSound/RADIUS_STEP/
+	-- ROTATION_STEP/LENGTH_SCALE_STEP/CURVE_STEP/_elemSliderVal/_elemSetSliderVal/
+	-- _noDmLabel/_mbFindAnglePresetIdx/_mbApplyAnglePreset/_mbSnapStep/_mbSyncSymChipClasses.
+	onMbSetSubMode = function(_event, mbMode)
+		playSound("modeSwitch")
+		if WG.MetalBrush then WG.MetalBrush.setSubMode(mbMode) end
+		_noDmLabel("mbSubMode", mbMode)
+	end,
+	onMbOnValueChange = function(_event)
+		if uiState.updatingFromCode or not WG.MetalBrush then return end
+		local v = _elemSliderVal("slider-metal-value", 566)
+		local mv = 0.01 * math.exp(v / 1000 * math.log(50.0 / 0.01))
+		WG.MetalBrush.setMetalValue(mv)
+		_noDmLabel("mbValueStr", string.format("%.1f", mv))
+	end,
+	onMbValueUp = function(_event)
+		if WG.MetalBrush then
+			local s = WG.MetalBrush.getState()
+			WG.MetalBrush.setMetalValue((s and s.metalValue or 2.0) * 1.1)
+		end
+	end,
+	onMbValueDown = function(_event)
+		if WG.MetalBrush then
+			local s = WG.MetalBrush.getState()
+			WG.MetalBrush.setMetalValue((s and s.metalValue or 2.0) / 1.1)
+		end
+	end,
+	onMbOnSizeChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		WG.TerraformBrush.setRadius(_elemSliderVal("slider-mb-size", 100))
+	end,
+	onMbSizeUp = function(_event)
+		if WG.TerraformBrush then
+			local st = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setRadius(st.radius + RADIUS_STEP)
+		end
+	end,
+	onMbSizeDown = function(_event)
+		if WG.TerraformBrush then
+			local st = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setRadius(st.radius - RADIUS_STEP)
+		end
+	end,
+	onMbOnRotChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		WG.TerraformBrush.setRotation(_elemSliderVal("slider-mb-rotation", 0))
+	end,
+	onMbRotCW = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.rotate(ROTATION_STEP) end
+	end,
+	onMbRotCCW = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.rotate(-ROTATION_STEP) end
+	end,
+	onMbOnLengthChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		WG.TerraformBrush.setLengthScale(_elemSliderVal("slider-mb-length", 10) / 10)
+	end,
+	onMbLengthUp = function(_event)
+		if WG.TerraformBrush then
+			local st = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setLengthScale(st.lengthScale + LENGTH_SCALE_STEP)
+		end
+	end,
+	onMbLengthDown = function(_event)
+		if WG.TerraformBrush then
+			local st = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setLengthScale(st.lengthScale - LENGTH_SCALE_STEP)
+		end
+	end,
+	onMbOnCurveChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		WG.TerraformBrush.setCurve(_elemSliderVal("slider-mb-curve", 10) / 10)
+	end,
+	onMbCurveUp = function(_event)
+		if WG.TerraformBrush then
+			local st = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setCurve(st.curve + CURVE_STEP)
+		end
+	end,
+	onMbCurveDown = function(_event)
+		if WG.TerraformBrush then
+			local st = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setCurve(st.curve - CURVE_STEP)
+		end
+	end,
+	onMbToggleGridOverlay = function(_event)
+		if WG.TerraformBrush then
+			local newVal = not (WG.TerraformBrush.getState() or {}).gridOverlay
+			playSound(newVal and "toggleOn" or "toggleOff")
+			WG.TerraformBrush.setGridOverlay(newVal)
+			local d = widgetState.dmHandle; if d then d.mbGridOverlay = newVal end
+		end
+	end,
+	onMbToggleHeightColormap = function(_event)
+		if WG.TerraformBrush then
+			local newVal = not (WG.TerraformBrush.getState() or {}).heightColormap
+			playSound(newVal and "toggleOn" or "toggleOff")
+			WG.TerraformBrush.setHeightColormap(newVal)
+			local d = widgetState.dmHandle; if d then d.mbHeightColormap = newVal end
+		end
+	end,
+	onMbToggleGridSnap = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not (WG.TerraformBrush.getState() or {}).gridSnap
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setGridSnap(newVal)
+		local d = widgetState.dmHandle; if d then d.mbGridSnap = newVal end
+	end,
+	onMbOnSnapSizeChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		WG.TerraformBrush.setGridSnapSize(_elemSliderVal("mb-slider-grid-snap-size", 48))
+	end,
+	onMbSnapSizeStep = function(_event, delta)
+		_mbSnapStep(delta)
+	end,
+	onMbToggleAngleSnap = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not (WG.TerraformBrush.getState() or {}).angleSnap
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setAngleSnap(newVal)
+		local d = widgetState.dmHandle; if d then d.mbAngleSnap = newVal end
+	end,
+	onMbOnAngleStepChange = function(_event)
+		if uiState.updatingFromCode then return end
+		_mbApplyAnglePreset(_elemSliderVal("mb-slider-angle-snap-step", 1) + 1)
+	end,
+	onMbAngleStepStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		_mbApplyAnglePreset(_mbFindAnglePresetIdx((WG.TerraformBrush.getState() or {}).angleSnapStep) + delta)
+	end,
+	onMbToggleAutoSnap = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not (WG.TerraformBrush.getState() or {}).angleSnapAuto
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setAngleSnapAuto(newVal)
+		local d = widgetState.dmHandle; if d then d.mbAngleSnapAuto = newVal end
+	end,
+	onMbOnManualSpokeChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		WG.TerraformBrush.setAngleSnapManualSpoke(_elemSliderVal("mb-slider-manual-spoke", 0))
+	end,
+	onMbManualSpokeStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState()
+		local step = s.angleSnapStep or 15
+		local num = math.max(1, math.floor(360 / step))
+		WG.TerraformBrush.setAngleSnapManualSpoke(((s.angleSnapManualSpoke or 0) + delta + num) % num)
+	end,
+	onMbToggleMeasure = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not (WG.TerraformBrush.getState() or {}).measureActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setMeasureActive(newVal)
+		local d = widgetState.dmHandle; if d then d.mbMeasureActive = newVal end
+	end,
+	onMbMeasureRuler = function(_event)
+		if WG.TerraformBrush then
+			local nv = not (WG.TerraformBrush.getState() or {}).measureRulerMode
+			WG.TerraformBrush.setMeasureRulerMode(nv)
+			local d = widgetState.dmHandle; if d then d.mbMeasureRulerMode = nv end
+		end
+	end,
+	onMbMeasureSticky = function(_event)
+		if WG.TerraformBrush then
+			local nv = not (WG.TerraformBrush.getState() or {}).measureStickyMode
+			WG.TerraformBrush.setMeasureStickyMode(nv)
+			local d = widgetState.dmHandle; if d then d.mbMeasureStickyMode = nv end
+		end
+	end,
+	onMbMeasureShowLength = function(_event)
+		if WG.TerraformBrush then
+			local nv = not (WG.TerraformBrush.getState() or {}).measureShowLength
+			WG.TerraformBrush.setMeasureShowLength(nv)
+			local d = widgetState.dmHandle; if d then d.mbMeasureShowLength = nv end
+		end
+	end,
+	onMbMeasureClear = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.clearMeasureLines() end
+	end,
+	onMbToggleSymmetry = function(_event)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState()
+		local newVal = not s.symmetryActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setSymmetryActive(newVal)
+		if newVal and not (s.symmetryMirrorX or s.symmetryMirrorY) then
+			WG.TerraformBrush.setSymmetryMirrorX(true)
+			local d = widgetState.dmHandle; if d then d.mbSymMirrorX = true end
+		end
+		local d = widgetState.dmHandle; if d then d.mbSymmetryActive = newVal end
+	end,
+	onMbToggleSymRadial = function(_event)
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryRadial(not (WG.TerraformBrush.getState() or {}).symmetryRadial)
+			_mbSyncSymChipClasses()
+		end
+	end,
+	onMbToggleSymMirrorX = function(_event)
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryMirrorX(not (WG.TerraformBrush.getState() or {}).symmetryMirrorX)
+			_mbSyncSymChipClasses()
+		end
+	end,
+	onMbToggleSymMirrorY = function(_event)
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryMirrorY(not (WG.TerraformBrush.getState() or {}).symmetryMirrorY)
+			_mbSyncSymChipClasses()
+		end
+	end,
+	onMbSymPlaceOrigin = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true); playSound("toggleOn") end
+	end,
+	onMbSymCenterOrigin = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryOrigin(nil, nil); playSound("toggleOff") end
+	end,
+	onMbSymCountDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local c = math.max(2, (WG.TerraformBrush.getState().symmetryRadialCount or 2) - 1)
+		WG.TerraformBrush.setSymmetryRadialCount(c)
+		_noDmLabel("tbSymCountStr", tostring(c))
+		_elemSetSliderVal("mb-slider-symmetry-radial-count", c)
+	end,
+	onMbSymCountUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local c = math.min(16, (WG.TerraformBrush.getState().symmetryRadialCount or 2) + 1)
+		WG.TerraformBrush.setSymmetryRadialCount(c)
+		_noDmLabel("tbSymCountStr", tostring(c))
+		_elemSetSliderVal("mb-slider-symmetry-radial-count", c)
+	end,
+	onMbOnSymCountChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = _elemSliderVal("mb-slider-symmetry-radial-count", 2)
+		WG.TerraformBrush.setSymmetryRadialCount(v)
+		_noDmLabel("tbSymCountStr", tostring(v))
+	end,
+	onMbSymAngleDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local a = ((WG.TerraformBrush.getState().symmetryMirrorAngle or 0) - 5) % 360
+		WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		_noDmLabel("tbSymAngleStr", tostring(math.floor(a)))
+		_elemSetSliderVal("mb-slider-symmetry-mirror-angle", a)
+	end,
+	onMbSymAngleUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local a = ((WG.TerraformBrush.getState().symmetryMirrorAngle or 0) + 5) % 360
+		WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		_noDmLabel("tbSymAngleStr", tostring(math.floor(a)))
+		_elemSetSliderVal("mb-slider-symmetry-mirror-angle", a)
+	end,
+	onMbOnSymAngleChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = _elemSliderVal("mb-slider-symmetry-mirror-angle", 0)
+		WG.TerraformBrush.setSymmetryMirrorAngle(v)
+		_noDmLabel("tbSymAngleStr", tostring(math.floor(v)))
+	end,
+	onMbToggleMapOverlay = function(_event)
+		if not WG.MetalBrush then return end
+		local newVal = not (WG.MetalBrush.getState and WG.MetalBrush.getState() or {}).mapOverlay
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.MetalBrush.setMapOverlay(newVal)
+		local d = widgetState.dmHandle; if d then d.mbMapOverlay = newVal end
+	end,
+	onMbToggleClusters = function(_event)
+		if not WG.MetalBrush then return end
+		local newVal = not (WG.MetalBrush.getState and WG.MetalBrush.getState() or {}).clusterCounter
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.MetalBrush.setClusterCounter(newVal)
+		local d = widgetState.dmHandle; if d then d.mbClusterOpen = newVal end
+	end,
+	onMbToggleInspector = function(_event)
+		local st = (WG.MetalBrush and WG.MetalBrush.getState and WG.MetalBrush.getState()) or {}
+		local open = not (widgetState.mbInspectorOpen or false)
+		widgetState.mbInspectorOpen = open
+		playSound(open and "toggleOn" or "toggleOff")
+		if not open and WG.MetalBrush then
+			if st.clusterCounter then WG.MetalBrush.setClusterCounter(false) end
+			if st.lassoActive or st.lassoClosed then WG.MetalBrush.clearLasso() end
+			if st.balanceAxisActive then WG.MetalBrush.setBalanceAxisActive(false) end
+		end
+		local d = widgetState.dmHandle; if d then d.mbInspectorOpen = open end
+	end,
+	onMbToggleLasso = function(_event)
+		if not WG.MetalBrush then return end
+		local newVal = not (WG.MetalBrush.getState and WG.MetalBrush.getState() or {}).lassoActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		if newVal then WG.MetalBrush.startLasso() else WG.MetalBrush.clearLasso() end
+		local d = widgetState.dmHandle; if d then d.mbLassoActive = newVal end
+	end,
+	onMbLassoClose = function(_event)
+		if WG.MetalBrush then playSound("apply"); WG.MetalBrush.finishLasso() end
+	end,
+	onMbLassoClear = function(_event)
+		if WG.MetalBrush then playSound("reset"); WG.MetalBrush.clearLasso() end
+	end,
+	onMbToggleBalanceAxis = function(_event)
+		if not WG.MetalBrush then return end
+		local newVal = not (WG.MetalBrush.getState and WG.MetalBrush.getState() or {}).balanceAxisActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.MetalBrush.setBalanceAxisActive(newVal)
+		local d = widgetState.dmHandle; if d then d.mbAxisOpen = newVal end
+	end,
+	onMbAxisX = function(_event)
+		if WG.MetalBrush then playSound("modeSwitch"); WG.MetalBrush.setBalanceAxisAngle(0) end
+	end,
+	onMbAxisZ = function(_event)
+		if WG.MetalBrush then playSound("modeSwitch"); WG.MetalBrush.setBalanceAxisAngle(90) end
+	end,
+	onMbAxisPlace = function(_event)
+		if WG.MetalBrush then playSound("modeSwitch"); WG.MetalBrush.setBalanceAxisPlacingOrigin(true) end
+	end,
+	onMbAxisCenter = function(_event)
+		if WG.MetalBrush then playSound("reset"); WG.MetalBrush.setBalanceAxisOrigin(nil, nil) end
+	end,
+	onMbOnAxisAngleChange = function(_event)
+		if uiState.updatingFromCode or not WG.MetalBrush then return end
+		WG.MetalBrush.setBalanceAxisAngle(_elemSliderVal("mb-slider-axis-angle", 0))
+	end,
+	onMbAxisAngleDown = function(_event)
+		if WG.MetalBrush then
+			local cur = tonumber((WG.MetalBrush.getState and WG.MetalBrush.getState() or {}).balanceAxisAngleDeg) or 0
+			WG.MetalBrush.setBalanceAxisAngle(cur - 5)
+		end
+	end,
+	onMbAxisAngleUp = function(_event)
+		if WG.MetalBrush then
+			local cur = tonumber((WG.MetalBrush.getState and WG.MetalBrush.getState() or {}).balanceAxisAngleDeg) or 0
+			WG.MetalBrush.setBalanceAxisAngle(cur + 5)
+		end
+	end,
+	onMbOnClusterRadiusChange = function(_event)
+		if uiState.updatingFromCode or not WG.MetalBrush then return end
+		local v = _elemSliderVal("mb-slider-cluster-radius", 256)
+		WG.MetalBrush.setClusterRadius(v)
+		_noDmLabel("mbClusterRadiusStr", tostring(v))
+	end,
+	onMbClusterRadiusDown = function(_event)
+		if WG.MetalBrush then
+			local cur = tonumber((WG.MetalBrush.getState and WG.MetalBrush.getState() or {}).clusterRadius) or 256
+			WG.MetalBrush.setClusterRadius(math.max(64, cur - 32))
+		end
+	end,
+	onMbClusterRadiusUp = function(_event)
+		if WG.MetalBrush then
+			local cur = tonumber((WG.MetalBrush.getState and WG.MetalBrush.getState() or {}).clusterRadius) or 256
+			WG.MetalBrush.setClusterRadius(math.min(1024, cur + 32))
+		end
+	end,
+	onMbSave = function(_event)
+		playSound("save")
+		if WG.MetalBrush then WG.MetalBrush.saveMetalMap() end
+	end,
+	onMbLoad = function(_event)
+		playSound("apply")
+		if WG.MetalBrush then WG.MetalBrush.loadMetalMap() end
+	end,
+	onMbClean = function(_event)
+		local doc2 = widgetState.document
+		local mbCleanBtn = doc2 and doc2:GetElementById("btn-metal-clean")
+		if (widgetState.metalCleanConfirmExpiry or 0) > 0 then
+			widgetState.metalCleanConfirmExpiry = 0
+			if mbCleanBtn then mbCleanBtn:SetClass("confirming", false) end
+			_noDmLabel("mbCleanLabelStr", "CLEAN")
+			playSound("reset")
+			if WG.MetalBrush then WG.MetalBrush.clearMetalMap() end
+		else
+			widgetState.metalCleanConfirmExpiry = (Spring.GetGameSeconds() or 0) + 3
+			if mbCleanBtn then mbCleanBtn:SetClass("confirming", true) end
+			_noDmLabel("mbCleanLabelStr", "ARE YOU SURE?")
+			playSound("toggleOn")
+		end
+	end,
 }
 
 local shapeNames = {
