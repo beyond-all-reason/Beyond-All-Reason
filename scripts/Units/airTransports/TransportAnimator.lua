@@ -275,8 +275,7 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 	if doAnim ~= false then
 		Spring.SetUnitRulesParam(passengerData.id, "inTransportAnim", 1)
 		local slotPosX, slotPosY, slotPosZ = SpGetUnitPiecePosDir(transporterID, passengerData.slotID)
-		-- local radius, height = Spring.GetUnitRadius(passengerData.id), Spring.GetUnitHeight(passengerData.id)
-		-- Spring.SetUnitRadiusAndHeight(passengerData.id, slotPosY - Spring.GetGroundHeight(slotPosX, slotPosZ) + 20, height) -- reset radius/height in case we were transporting a building with custom values
+		SpSetUnitRadiusAndHeight(passengerData.id, slotPosY - SpGetGroundHeight(slotPosX, slotPosZ) + 20, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
 		local transporterPosX, _, transporterPosZ, startTransporterRotX, startTransporterRotY, startTransporterRotZ = getTransporterState(transporterID)
 		goalPosX, goalPosZ = goalPosX + (slotPosX - transporterPosX), goalPosZ + (slotPosZ - transporterPosZ)
 		goalPosY = SpGetGroundHeight(goalPosX, goalPosZ)	
@@ -348,6 +347,7 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 	local count = CargoHandler.Unregister(passengerData.id, cargo)
 	Spring.SetUnitRulesParam(passengerData.id, "inTransportAnim", 0)
 	TransportAnimator.EnablePassenger(passengerData.id)
+	SpSetUnitRadiusAndHeight(passengerData.id, passengerData.radius, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
 	if count == 0 then TransportAnimator.HasCargo(false) end
 	CargoHandler.EndUnloading(cargo)
 end

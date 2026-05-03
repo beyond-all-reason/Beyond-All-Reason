@@ -90,6 +90,7 @@ function GenericAnimator.Killed(severity)
 		if SpValidUnitID(passengerID) and not SpGetUnitIsDead(passengerID) then
 			Spring.SetUnitRulesParam(passengerID, "inTransportAnim", 0) -- release from unloading state for later loading
 			TransportAnimator.EnablePassenger(passengerID) -- re-enable passenger
+			SpSetUnitRadiusAndHeight(passengerID, passengerData.radius, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
 			Spring.SetUnitPhysicalStateBit(passengerID, 128 + 512)  -- PSTATE_BIT_FLYING | PSTATE_BIT_SKIDDING (matches engine Releasepassengers releaseHeld path)
 		end
 

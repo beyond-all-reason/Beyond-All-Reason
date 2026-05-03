@@ -132,7 +132,7 @@ function CargoHandler.FindSlot(passengerID, cargo, allowReorganize)
 			end
 			if ok then
 				slotData.cargo = passengerID
-				return { id = passengerID, height = SpGetUnitHeight(passengerID), slotID = slotID }
+				return { id = passengerID, height = SpGetUnitHeight(passengerID), radius = SpGetUnitRadius(passengerID), slotID = slotID }
 			end
 		end
 	end

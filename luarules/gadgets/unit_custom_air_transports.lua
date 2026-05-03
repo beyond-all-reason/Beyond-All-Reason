@@ -60,6 +60,7 @@ local spMoveCtrlDisable = Spring.MoveCtrl.Disable
 local spMoveCtrlEnable = Spring.MoveCtrl.Enable
 local spGetAllyTeamList = Spring.GetAllyTeamList
 local spSetUnitPosition = Spring.SetUnitPosition
+local spSetUnitRadiusAndHeight = Spring.SetUnitRadiusAndHeight
 
 -- Constants
 local mapSizeX = Game.mapSizeX
@@ -687,6 +688,11 @@ function gadget:Initialize()
 				spMoveCtrlDisable(unitID, false)
 				spSetUnitRulesParam(unitID, "inTransportAnim", 0)
 				EnablePassenger(unitID)
+				-- repair customized radius from model defs
+				local unitDefID = spGetUnitDefID(unitID)
+				local radius = UnitDefs[unitDefID].radius
+				local height = UnitDefs[unitDefID].height
+				spSetUnitRadiusAndHeight(unitID, radius, height)
 				local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
 				spSetUnitPosition(unitID, unitPosX, spGetGroundHeight(unitPosX, unitPosZ), unitPosZ)
 			end
