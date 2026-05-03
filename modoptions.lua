@@ -1643,6 +1643,33 @@ local options = {
     },
 
     {
+        key     = "community_balance_corjamt",
+        name    = "(CBP) Castro",
+        desc    = "Build time: 9950 (from 4000)\nEnergy cost: 8500 (from 4500)\nEnergy upkeep: 40 (from 25)\nHealth: 790 (from 1070)\nMetal cost: 240 (from 100)\nJammer range: 500 (from 360)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_armmav",
+        name    = "(CBP) Gunslinger",
+        desc    = "Metal cost: 520 (from 650)\nEnergy cost: 6500 (from 11000)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_corcan",
+        name    = "(CBP) Sumo",
+        desc    = "Main laser range: 300 (from 275)\nMain laser beam time: 0.24 (from 0.16)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
         key    	= "experimentallegionfaction",
         name   	= "Legion Faction",
         desc   	= "3rd experimental faction",
