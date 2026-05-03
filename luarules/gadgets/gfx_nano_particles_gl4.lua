@@ -171,7 +171,7 @@ end
 local MODE_SETTINGS = {
 	billboard = {
 		drawRadius  = 3.0,        -- engine: drawRadius = 3
-		nanoAlpha   = 20 / 255,
+		nanoAlpha   = 70 / 255,
 		dirJitter   = 0.15,
 		-- Per-particle randomization (± fraction of the base value). 0 disables.
 		sizeVar     = 0.3,
@@ -189,7 +189,7 @@ local MODE_SETTINGS = {
 		glowBreathVar     = 0.5,  -- ± per-particle amplitude variation (0..1 fraction)
 		glowBreathFreqVar = 0.4,  -- ± per-particle frequency variation (0..1 fraction)
 		-- Energy enhancement (all shader-side, zero CPU cost):
-		coreBoost      = 0.75,    -- HDR overdrive on textured core (>1 pushes into bloom)
+		coreBoost      = 1.5,    -- HDR overdrive on textured core (>1 pushes into bloom)
 		hueJitter      = 0.07,   -- ± per-channel RGB modulation per particle (0.05-0.10 sweet spot)
 		sizePulseAmp   = 0.05,   -- ± quad-size oscillation (keep <0.10 to avoid sub-frame jumps)
 		sizePulseFreq  = 4.0,
@@ -211,35 +211,35 @@ local MODE_SETTINGS = {
 	shape = {
 		shape       = "cube",   -- "cube" | "octahedron"
 		drawRadius  = 1.5,        -- shape spans ~2*drawRadius edge-to-edge
-		nanoAlpha   = 50 / 255,   -- match billboard look
+		nanoAlpha   = 70 / 255,   -- match billboard look
 		dirJitter   = 0.10,       -- chunks read better with less spread
 		-- Shapes benefit from visible variation -- they read as discrete chunks.
 		sizeVar     = 0.3,
-		speedVar    = 0.15,
-		alphaVar    = 2.5,
+		speedVar    = 0.25,
+		alphaVar    = 0.9,
 		-- View-dependent face shading: 0 = flat, 1 = full 3D depth (back faces visible-but-dimmed).
 		cubeShowInside = 4.0,
-		cubeNoise       = 6,
-		cubeNoiseSpeed  = 25.0,
-		cubeNoiseScale  = 1.75,
-		whiteHotspot          = 1.5,
-		whiteHotspotThreshold = 0.6,
+		cubeNoise       = 0.5,
+		cubeNoiseSpeed  = 1.0,
+		cubeNoiseScale  = 0.3,
+		whiteHotspot          = 0.55,
+		whiteHotspotThreshold = 0.65,
 		-- GS adds its own per-axis 3D tumble, so base 2D rotation can be slower.
 		rotValBase  = -180, rotValRange = 360,
-		rotVelBase  = -40,  rotVelRange = 80,
-		rotAccBase  = -40,  rotAccRange = 80,
-		glowIntensity = 0.15,
+		rotVelBase  = -20,  rotVelRange = 40,
+		rotAccBase  = -20,  rotAccRange = 40,
+		glowIntensity = 0.21,
 		glowFalloff = 9.5,
 		glowScale = 11.0,
-		glowBreath     = 4.0,
-		glowBreathFreq = 2.0,
+		glowBreath     = 5.0,
+		glowBreathFreq = 0.0,
 		glowBreathVar     = 0.5,  -- ± per-particle amplitude variation (0..1 fraction)
-		glowBreathFreqVar = 0.5,  -- ± per-particle frequency variation (0..1 fraction)
+		glowBreathFreqVar = 0.0,  -- ± per-particle frequency variation (0..1 fraction)
 		-- Energy enhancement (sizePulse not wired through GS; halo+jitter+breath suffice).
-		coreBoost      = 0.3,    -- multiplies face shading; modest so dark faces still read
-		hueJitter      = 0.1,
+		coreBoost      = 0.77,    -- multiplies face shading; modest so dark faces still read
+		hueJitter      = 0.02,
 
-		wobbleAmp      = 2.5,
+		wobbleAmp      = 1.25,
 		wobbleVar      = 0.5,	-- 0...1 fraction of wobbleAmp
 		wobbleFreq     = 0.2,
 		wobbleFreqVar  = 0.5,	-- 0...1 fraction of wobbleFreq
