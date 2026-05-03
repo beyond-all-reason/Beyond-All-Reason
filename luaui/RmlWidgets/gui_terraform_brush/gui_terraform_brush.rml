@@ -1,4 +1,4 @@
-<rml>
+﻿<rml>
 <head>
 	<link type="text/rcss" href="../styles.rcss" />
 	<link type="text/rcss" href="../rml-utility-classes.rcss" />
@@ -846,15 +846,15 @@
 				</div>
 			<div id="section-mb-mode">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-mb-paint" class="tf-mode-btn tf-mb-btn-paint" data-class-active="mbSubMode == 'paint'" onclick="widget:mbSetSubMode('paint'); event:StopPropagation()">
+				<div id="btn-mb-paint" class="tf-mode-btn tf-mb-btn-paint" data-class-active="mbSubMode == 'paint'" data-event-click="onMbSetSubMode('paint')">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/mb_paint.png" />
 					<div class="tf-btn-text">Paint</div>
 				</div>
-				<div id="btn-mb-stamp" class="tf-mode-btn tf-mb-btn-stamp" data-class-active="mbSubMode == 'stamp'" onclick="widget:mbSetSubMode('stamp'); event:StopPropagation()">
+				<div id="btn-mb-stamp" class="tf-mode-btn tf-mb-btn-stamp" data-class-active="mbSubMode == 'stamp'" data-event-click="onMbSetSubMode('stamp')">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_decals.png" />
 					<div class="tf-btn-text">Stamp</div>
 				</div>
-				<div id="btn-mb-remove" class="tf-mode-btn tf-mb-btn-remove" data-class-active="mbSubMode == 'remove'" onclick="widget:mbSetSubMode('remove'); event:StopPropagation()">
+				<div id="btn-mb-remove" class="tf-mode-btn tf-mb-btn-remove" data-class-active="mbSubMode == 'remove'" data-event-click="onMbSetSubMode('remove')">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_remove.png" />
 					<div class="tf-btn-text">Remove</div>
 				</div>
@@ -876,28 +876,28 @@
 				</div>
 			<div id="section-mb-overlays" class="hidden">
 			<div class="flex flex-row items-center gap-1 mb-1">
-				<div id="btn-mb-grid-overlay" class="tf-overlay-chip" data-class-active="mbGridOverlay" onclick="widget:mbToggleGridOverlay(); event:StopPropagation()">
+				<div id="btn-mb-grid-overlay" class="tf-overlay-chip" data-class-active="mbGridOverlay" data-event-click="onMbToggleGridOverlay()">
 					<div class="tf-overlay-chip-label">Grid</div>
 				</div>
-				<div id="btn-mb-height-colormap" class="tf-overlay-chip" data-class-active="mbHeightColormap" onclick="widget:mbToggleHeightColormap(); event:StopPropagation()">
+				<div id="btn-mb-height-colormap" class="tf-overlay-chip" data-class-active="mbHeightColormap" data-event-click="onMbToggleHeightColormap()">
 					<div class="tf-overlay-chip-label">Height Map</div>
 				</div>
-				<div id="btn-mb-mapoverlay" class="tf-overlay-chip" data-class-active="mbMapOverlay" onclick="widget:mbToggleMapOverlay(); event:StopPropagation()">
+				<div id="btn-mb-mapoverlay" class="tf-overlay-chip" data-class-active="mbMapOverlay" data-event-click="onMbToggleMapOverlay()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Metal Map</div>
 				</div>
-				<div id="btn-mb-inspector" class="tf-overlay-chip" data-class-active="mbInspectorOpen" onclick="widget:mbToggleInspector(); event:StopPropagation()">
+				<div id="btn-mb-inspector" class="tf-overlay-chip" data-class-active="mbInspectorOpen" data-event-click="onMbToggleInspector()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Inspector</div>
 				</div>
 			</div>
 			<div id="mb-inspector-row" class="tf-instrument-sub mb-1" data-if="mbInspectorOpen">
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="btn-mb-clusters" class="tf-overlay-chip" style="flex: 1;" data-class-active="mbClusterOpen" onclick="widget:mbToggleClusters(); event:StopPropagation()">
+					<div id="btn-mb-clusters" class="tf-overlay-chip" style="flex: 1;" data-class-active="mbClusterOpen" data-event-click="onMbToggleClusters()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Clusters</div>
 					</div>
-					<div id="btn-mb-lasso" class="tf-overlay-chip" style="flex: 1;" data-class-active="mbLassoActive" onclick="widget:mbToggleLasso(); event:StopPropagation()">
+					<div id="btn-mb-lasso" class="tf-overlay-chip" style="flex: 1;" data-class-active="mbLassoActive" data-event-click="onMbToggleLasso()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Lasso</div>
 					</div>
-					<div id="btn-mb-balance-axis" class="tf-overlay-chip" style="flex: 1;" data-class-active="mbAxisOpen" onclick="widget:mbToggleBalanceAxis(); event:StopPropagation()">
+					<div id="btn-mb-balance-axis" class="tf-overlay-chip" style="flex: 1;" data-class-active="mbAxisOpen" data-event-click="onMbToggleBalanceAxis()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Balance Axis</div>
 					</div>
 				</div>
@@ -906,21 +906,21 @@
 						<div class="text-lg text-light">GRANULARITY: <span class="text-xl font-bold">{{mbClusterRadiusStr}}</span></div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
-						<div id="mb-btn-cluster-radius-down" class="tf-sm-btn" onclick="widget:mbClusterRadiusDown(); event:StopPropagation()">
+						<div id="mb-btn-cluster-radius-down" class="tf-sm-btn" data-event-click="onMbClusterRadiusDown()">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 						</div>
-						<input type="range" id="mb-slider-cluster-radius" class="tf-slider" min="64" max="1024" step="32" value="256" onchange="widget:mbOnClusterRadiusChange(element); event:StopPropagation()" />
-						<div id="mb-btn-cluster-radius-up" class="tf-sm-btn" onclick="widget:mbClusterRadiusUp(); event:StopPropagation()">
+						<input type="range" id="mb-slider-cluster-radius" class="tf-slider" min="64" max="1024" step="32" value="256" data-event-change="onMbOnClusterRadiusChange()" />
+						<div id="mb-btn-cluster-radius-up" class="tf-sm-btn" data-event-click="onMbClusterRadiusUp()">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 						</div>
 					</div>
 				</div>
 				<div id="mb-lasso-row" class="tf-instrument-sub mb-1" data-if="mbLassoOpen">
 					<div class="flex flex-row gap-1 items-center mb-1">
-						<div id="mb-btn-lasso-close" class="tf-overlay-chip" style="flex: 1;" onclick="widget:mbLassoClose(); event:StopPropagation()">
+						<div id="mb-btn-lasso-close" class="tf-overlay-chip" style="flex: 1;" data-event-click="onMbLassoClose()">
 							<div class="tf-overlay-chip-label" style="text-align: center;">Close Loop</div>
 						</div>
-						<div id="mb-btn-lasso-clear" class="tf-overlay-chip" style="flex: 1;" onclick="widget:mbLassoClear(); event:StopPropagation()">
+						<div id="mb-btn-lasso-clear" class="tf-overlay-chip" style="flex: 1;" data-event-click="onMbLassoClear()">
 							<div class="tf-overlay-chip-label" style="text-align: center;">Clear</div>
 						</div>
 					</div>
@@ -930,16 +930,16 @@
 				</div>
 				<div id="mb-balance-axis-row" class="tf-instrument-sub mb-1" data-if="mbAxisOpen">
 					<div class="flex flex-row gap-1 items-center mb-1">
-						<div id="mb-btn-axis-x" class="tf-overlay-chip" style="flex: 1;" onclick="widget:mbAxisX(); event:StopPropagation()">
+						<div id="mb-btn-axis-x" class="tf-overlay-chip" style="flex: 1;" data-event-click="onMbAxisX()">
 							<div class="tf-overlay-chip-label" style="text-align: center;">X Axis</div>
 						</div>
-						<div id="mb-btn-axis-z" class="tf-overlay-chip" style="flex: 1;" onclick="widget:mbAxisZ(); event:StopPropagation()">
+						<div id="mb-btn-axis-z" class="tf-overlay-chip" style="flex: 1;" data-event-click="onMbAxisZ()">
 							<div class="tf-overlay-chip-label" style="text-align: center;">Z Axis</div>
 						</div>
-						<div id="mb-btn-axis-place" class="tf-overlay-chip" style="flex: 1;" onclick="widget:mbAxisPlace(); event:StopPropagation()">
+						<div id="mb-btn-axis-place" class="tf-overlay-chip" style="flex: 1;" data-event-click="onMbAxisPlace()">
 							<div class="tf-overlay-chip-label" style="text-align: center;">Place</div>
 						</div>
-						<div id="mb-btn-axis-center" class="tf-overlay-chip" style="flex: 1;" onclick="widget:mbAxisCenter(); event:StopPropagation()">
+						<div id="mb-btn-axis-center" class="tf-overlay-chip" style="flex: 1;" data-event-click="onMbAxisCenter()">
 							<div class="tf-overlay-chip-label" style="text-align: center;">Center</div>
 						</div>
 					</div>
@@ -947,11 +947,11 @@
 						<div class="text-lg text-light">ANGLE: <span class="text-xl font-bold">{{mbAxisAngleStr}}</span>&#176;</div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
-						<div id="mb-btn-axis-angle-down" class="tf-sm-btn" onclick="widget:mbAxisAngleDown(); event:StopPropagation()">
+						<div id="mb-btn-axis-angle-down" class="tf-sm-btn" data-event-click="onMbAxisAngleDown()">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 						</div>
-						<input type="range" id="mb-slider-axis-angle" class="tf-slider" min="0" max="359" step="1" value="0" onchange="widget:mbOnAxisAngleChange(element); event:StopPropagation()" />
-						<div id="mb-btn-axis-angle-up" class="tf-sm-btn" onclick="widget:mbAxisAngleUp(); event:StopPropagation()">
+						<input type="range" id="mb-slider-axis-angle" class="tf-slider" min="0" max="359" step="1" value="0" data-event-change="onMbOnAxisAngleChange()" />
+						<div id="mb-btn-axis-angle-up" class="tf-sm-btn" data-event-click="onMbAxisAngleUp()">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 						</div>
 					</div>
@@ -975,16 +975,16 @@
 				</div>
 			<div id="section-mb-instruments" class="hidden">
 			<div class="flex flex-row items-center gap-1 mb-1">
-				<div id="btn-mb-grid-snap" class="tf-overlay-chip" data-class-active="mbGridSnap" onclick="widget:mbToggleGridSnap(); event:StopPropagation()">
+				<div id="btn-mb-grid-snap" class="tf-overlay-chip" data-class-active="mbGridSnap" data-event-click="onMbToggleGridSnap()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 				</div>
-				<div id="btn-mb-angle-snap" class="tf-overlay-chip" data-class-active="mbAngleSnap" onclick="widget:mbToggleAngleSnap(); event:StopPropagation()">
+				<div id="btn-mb-angle-snap" class="tf-overlay-chip" data-class-active="mbAngleSnap" data-event-click="onMbToggleAngleSnap()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 				</div>
-				<div id="btn-mb-measure" class="tf-overlay-chip" data-class-active="mbMeasureActive" onclick="widget:mbToggleMeasure(); event:StopPropagation()">
+				<div id="btn-mb-measure" class="tf-overlay-chip" data-class-active="mbMeasureActive" data-event-click="onMbToggleMeasure()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 				</div>
-				<div id="btn-mb-symmetry" class="tf-overlay-chip" data-class-active="mbSymmetryActive" onclick="widget:mbToggleSymmetry(); event:StopPropagation()">
+				<div id="btn-mb-symmetry" class="tf-overlay-chip" data-class-active="mbSymmetryActive" data-event-click="onMbToggleSymmetry()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 				</div>
 			</div>
@@ -993,11 +993,11 @@
 					<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="mb-btn-snap-size-down" class="tf-sm-btn" onclick="widget:mbSnapSizeStep(-16); event:StopPropagation()">
+					<div id="mb-btn-snap-size-down" class="tf-sm-btn" data-event-click="onMbSnapSizeStep(-16)">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="mb-slider-grid-snap-size" class="tf-slider" min="16" max="128" step="16" value="48" onchange="widget:mbOnSnapSizeChange(element); event:StopPropagation()" />
-					<div id="mb-btn-snap-size-up" class="tf-sm-btn" onclick="widget:mbSnapSizeStep(16); event:StopPropagation()">
+					<input type="range" id="mb-slider-grid-snap-size" class="tf-slider" min="16" max="128" step="16" value="48" data-event-change="onMbOnSnapSizeChange()" />
+					<div id="mb-btn-snap-size-up" class="tf-sm-btn" data-event-click="onMbSnapSizeStep(16)">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 					<input type="text" id="mb-slider-grid-snap-size-numbox" class="tf-slider-numbox" readonly value="48" />
@@ -1008,26 +1008,26 @@
 					<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="mb-btn-angle-step-down" class="tf-sm-btn" onclick="widget:mbAngleStepStep(-1); event:StopPropagation()">
+					<div id="mb-btn-angle-step-down" class="tf-sm-btn" data-event-click="onMbAngleStepStep(-1)">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="mb-slider-angle-snap-step" class="tf-slider" min="0" max="5" step="1" value="1" onchange="widget:mbOnAngleStepChange(element); event:StopPropagation()" />
-					<div id="mb-btn-angle-step-up" class="tf-sm-btn" onclick="widget:mbAngleStepStep(1); event:StopPropagation()">
+					<input type="range" id="mb-slider-angle-snap-step" class="tf-slider" min="0" max="5" step="1" value="1" data-event-change="onMbOnAngleStepChange()" />
+					<div id="mb-btn-angle-step-up" class="tf-sm-btn" data-event-click="onMbAngleStepStep(1)">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 					<input type="text" id="mb-slider-angle-snap-step-numbox" class="tf-slider-numbox" readonly value="15" />
 				</div>
 				<div class="flex flex-row items-center mb-1">
 					<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold" id="mb-angle-manual-spoke-label">0</span>&#176;</div>
-					<div id="mb-btn-angle-autosnap" class="tf-inline-chip" style="margin-left: 4dp;" data-class-active="mbAngleSnapAuto" onclick="widget:mbToggleAutoSnap(); event:StopPropagation()">Auto-Snap</div>
+					<div id="mb-btn-angle-autosnap" class="tf-inline-chip" style="margin-left: 4dp;" data-class-active="mbAngleSnapAuto" data-event-click="onMbToggleAutoSnap()">Auto-Snap</div>
 				</div>
 				<div id="mb-angle-manual-spoke-row" class="mb-1" data-if="!mbAngleSnapAuto">
 					<div class="flex flex-row gap-1 items-center mb-1">
-						<div id="mb-btn-manual-spoke-down" class="tf-sm-btn" onclick="widget:mbManualSpokeStep(-1); event:StopPropagation()">
+						<div id="mb-btn-manual-spoke-down" class="tf-sm-btn" data-event-click="onMbManualSpokeStep(-1)">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 						</div>
-						<input type="range" id="mb-slider-manual-spoke" class="tf-slider" min="0" max="23" step="1" value="0" onchange="widget:mbOnManualSpokeChange(element); event:StopPropagation()" />
-						<div id="mb-btn-manual-spoke-up" class="tf-sm-btn" onclick="widget:mbManualSpokeStep(1); event:StopPropagation()">
+						<input type="range" id="mb-slider-manual-spoke" class="tf-slider" min="0" max="23" step="1" value="0" data-event-change="onMbOnManualSpokeChange()" />
+						<div id="mb-btn-manual-spoke-up" class="tf-sm-btn" data-event-click="onMbManualSpokeStep(1)">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 						</div>
 					</div>
@@ -1035,31 +1035,31 @@
 			</div>
 			<div id="mb-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="mbMeasureActive">
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="mb-btn-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="mbMeasureRulerMode" onclick="widget:mbMeasureRuler(); event:StopPropagation()">
+					<div id="mb-btn-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="mbMeasureRulerMode" data-event-click="onMbMeasureRuler()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
 					</div>
-					<div id="mb-btn-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="mbMeasureStickyMode" onclick="widget:mbMeasureSticky(); event:StopPropagation()">
+					<div id="mb-btn-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="mbMeasureStickyMode" data-event-click="onMbMeasureSticky()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
 					</div>
-					<div id="mb-btn-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="mbMeasureShowLength" onclick="widget:mbMeasureShowLength(); event:StopPropagation()">
+					<div id="mb-btn-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="mbMeasureShowLength" data-event-click="onMbMeasureShowLength()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 					</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center">
-					<div id="mb-btn-measure-clear" class="tf-sm-btn" style="flex: 1;" onclick="widget:mbMeasureClear(); event:StopPropagation()">
+					<div id="mb-btn-measure-clear" class="tf-sm-btn" style="flex: 1;" data-event-click="onMbMeasureClear()">
 						<div class="text-sm" style="text-align: center;">Clear All</div>
 					</div>
 				</div>
 			</div>
 			<div id="mb-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="mbSymmetryActive">
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="mb-btn-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="mbSymmetryRadial" onclick="widget:mbToggleSymRadial(); event:StopPropagation()">
+					<div id="mb-btn-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="mbSymmetryRadial" data-event-click="onMbToggleSymRadial()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 					</div>
-					<div id="mb-btn-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="mbSymMirrorX" onclick="widget:mbToggleSymMirrorX(); event:StopPropagation()">
+					<div id="mb-btn-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="mbSymMirrorX" data-event-click="onMbToggleSymMirrorX()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 					</div>
-					<div id="mb-btn-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="mbSymMirrorY" onclick="widget:mbToggleSymMirrorY(); event:StopPropagation()">
+					<div id="mb-btn-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="mbSymMirrorY" data-event-click="onMbToggleSymMirrorY()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 					</div>
 				</div>
@@ -1068,11 +1068,11 @@
 						<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
-						<div id="mb-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:mbSymCountDown(); event:StopPropagation()">
+						<div id="mb-btn-symmetry-count-down" class="tf-sm-btn" data-event-click="onMbSymCountDown()">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 						</div>
-						<input type="range" id="mb-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" onchange="widget:mbOnSymCountChange(element); event:StopPropagation()" />
-						<div id="mb-btn-symmetry-count-up" class="tf-sm-btn" onclick="widget:mbSymCountUp(); event:StopPropagation()">
+						<input type="range" id="mb-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" data-event-change="onMbOnSymCountChange()" />
+						<div id="mb-btn-symmetry-count-up" class="tf-sm-btn" data-event-click="onMbSymCountUp()">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 						</div>
 					</div>
@@ -1082,20 +1082,20 @@
 						<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
-						<div id="mb-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:mbSymAngleDown(); event:StopPropagation()">
+						<div id="mb-btn-symmetry-angle-down" class="tf-sm-btn" data-event-click="onMbSymAngleDown()">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 						</div>
-						<input type="range" id="mb-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:mbOnSymAngleChange(element); event:StopPropagation()" />
-						<div id="mb-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:mbSymAngleUp(); event:StopPropagation()">
+						<input type="range" id="mb-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" data-event-change="onMbOnSymAngleChange()" />
+						<div id="mb-btn-symmetry-angle-up" class="tf-sm-btn" data-event-click="onMbSymAngleUp()">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 						</div>
 					</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="mb-btn-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:mbSymPlaceOrigin(); event:StopPropagation()">
+					<div id="mb-btn-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" data-event-click="onMbSymPlaceOrigin()">
 						<div class="text-sm" style="text-align: center;">Set Origin</div>
 					</div>
-					<div id="mb-btn-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:mbSymCenterOrigin(); event:StopPropagation()">
+					<div id="mb-btn-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" data-event-click="onMbSymCenterOrigin()">
 						<div class="text-sm" style="text-align: center;">Center</div>
 					</div>
 				</div>
@@ -1115,9 +1115,9 @@
 				<div class="text-lg text-light">{{mbValueStr}}</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-metal-value-down" class="tf-sm-btn" onclick="widget:mbValueDown(); event:StopPropagation()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-				<input id="slider-metal-value" type="range" class="tf-slider" min="0" max="1000" value="566" style="flex:1;" onchange="widget:mbOnValueChange(element); event:StopPropagation()" />
-				<div id="btn-metal-value-up" class="tf-sm-btn" onclick="widget:mbValueUp(); event:StopPropagation()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<div id="btn-metal-value-down" class="tf-sm-btn" data-event-click="onMbValueDown()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input id="slider-metal-value" type="range" class="tf-slider" min="0" max="1000" value="566" style="flex:1;" data-event-change="onMbOnValueChange()" />
+				<div id="btn-metal-value-up" class="tf-sm-btn" data-event-click="onMbValueUp()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
 				<input type="text" id="slider-metal-value-numbox" class="tf-slider-numbox" value="0" />
 			</div>
 
@@ -1134,11 +1134,11 @@
 				<div id="kbhint-mb-size" class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Scroll</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-mb-size-down" class="tf-sm-btn" onclick="widget:mbSizeDown(); event:StopPropagation()">
+				<div id="btn-mb-size-down" class="tf-sm-btn" data-event-click="onMbSizeDown()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="slider-mb-size" class="tf-slider" min="8" max="2000" step="1" value="100" onchange="widget:mbOnSizeChange(element); event:StopPropagation()" />
-				<div id="btn-mb-size-up" class="tf-sm-btn" onclick="widget:mbSizeUp(); event:StopPropagation()">
+				<input type="range" id="slider-mb-size" class="tf-slider" min="8" max="2000" step="1" value="100" data-event-change="onMbOnSizeChange()" />
+				<div id="btn-mb-size-up" class="tf-sm-btn" data-event-click="onMbSizeUp()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="slider-mb-size-numbox" class="tf-slider-numbox" value="0" />
@@ -1156,11 +1156,11 @@
 				<div id="kbhint-mb-rotation" class="text-sm text-keybind" style="margin-left: auto;">Alt+Scroll</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-mb-rot-ccw" class="tf-sm-btn" onclick="widget:mbRotCCW(); event:StopPropagation()">
+				<div id="btn-mb-rot-ccw" class="tf-sm-btn" data-event-click="onMbRotCCW()">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_ccw.png" />
 				</div>
-				<input type="range" id="slider-mb-rotation" class="tf-slider" min="0" max="359" step="1" value="0" onchange="widget:mbOnRotChange(element); event:StopPropagation()" />
-				<div id="btn-mb-rot-cw" class="tf-sm-btn" onclick="widget:mbRotCW(); event:StopPropagation()">
+				<input type="range" id="slider-mb-rotation" class="tf-slider" min="0" max="359" step="1" value="0" data-event-change="onMbOnRotChange()" />
+				<div id="btn-mb-rot-cw" class="tf-sm-btn" data-event-click="onMbRotCW()">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_cw.png" />
 				</div>
 				<input type="text" id="slider-mb-rotation-numbox" class="tf-slider-numbox" value="0" />
@@ -1178,11 +1178,11 @@
 				<div id="kbhint-mb-length" class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Alt+Scroll</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-mb-length-down" class="tf-sm-btn" onclick="widget:mbLengthDown(); event:StopPropagation()">
+				<div id="btn-mb-length-down" class="tf-sm-btn" data-event-click="onMbLengthDown()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="slider-mb-length" class="tf-slider" min="2" max="50" step="1" value="10" onchange="widget:mbOnLengthChange(element); event:StopPropagation()" />
-				<div id="btn-mb-length-up" class="tf-sm-btn" onclick="widget:mbLengthUp(); event:StopPropagation()">
+				<input type="range" id="slider-mb-length" class="tf-slider" min="2" max="50" step="1" value="10" data-event-change="onMbOnLengthChange()" />
+				<div id="btn-mb-length-up" class="tf-sm-btn" data-event-click="onMbLengthUp()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="slider-mb-length-numbox" class="tf-slider-numbox" value="0" />
@@ -1200,11 +1200,11 @@
 				<div id="kbhint-mb-curve" class="text-sm text-keybind" style="margin-left: auto;">Shift+Scroll</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-mb-curve-down" class="tf-sm-btn" onclick="widget:mbCurveDown(); event:StopPropagation()">
+				<div id="btn-mb-curve-down" class="tf-sm-btn" data-event-click="onMbCurveDown()">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/curve_flat.png" />
 				</div>
-				<input type="range" id="slider-mb-curve" class="tf-slider" min="1" max="50" step="1" value="10" onchange="widget:mbOnCurveChange(element); event:StopPropagation()" />
-				<div id="btn-mb-curve-up" class="tf-sm-btn" onclick="widget:mbCurveUp(); event:StopPropagation()">
+				<input type="range" id="slider-mb-curve" class="tf-slider" min="1" max="50" step="1" value="10" data-event-change="onMbOnCurveChange()" />
+				<div id="btn-mb-curve-up" class="tf-sm-btn" data-event-click="onMbCurveUp()">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/curve_sharp.png" />
 				</div>
 				<input type="text" id="slider-mb-curve-numbox" class="tf-slider-numbox" value="0" />
@@ -1240,13 +1240,13 @@
 				</div>
 			<div id="section-mb-save" class="hidden">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-metal-save" class="tf-action-btn tf-save-btn" style="flex: 1;" onclick="widget:mbSave(); event:StopPropagation()">
+				<div id="btn-metal-save" class="tf-action-btn tf-save-btn" style="flex: 1;" data-event-click="onMbSave()">
 					<div class="tf-action-btn-text">SAVE</div>
 				</div>
-				<div id="btn-metal-load" class="tf-action-btn tf-load-btn" style="flex: 1;" onclick="widget:mbLoad(); event:StopPropagation()">
+				<div id="btn-metal-load" class="tf-action-btn tf-load-btn" style="flex: 1;" data-event-click="onMbLoad()">
 					<div class="tf-action-btn-text">LOAD</div>
 				</div>
-				<div id="btn-metal-clean" class="tf-action-btn" style="flex: 1;" onclick="widget:mbClean(); event:StopPropagation()">
+				<div id="btn-metal-clean" class="tf-action-btn" style="flex: 1;" data-event-click="onMbClean()">
 					<div class="tf-action-btn-text">{{mbCleanLabelStr}}</div>
 				</div>
 			</div>
