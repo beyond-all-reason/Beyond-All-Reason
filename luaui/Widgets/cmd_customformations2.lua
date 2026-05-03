@@ -1,4 +1,3 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
@@ -61,6 +60,7 @@ local lineFadeRate = 2.0
 -- What commands are eligible for custom formations
 local CMD_SETTARGET = GameCMD.UNIT_SET_TARGET
 local CMD_MANUAL_LAUNCH = GameCMD.MANUAL_LAUNCH
+local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
 
 local formationCmds = {
     [CMD.MOVE] = true,
@@ -68,6 +68,7 @@ local formationCmds = {
     [CMD.ATTACK] = true,
     [CMD.PATROL] = true,
     [CMD.UNLOAD_UNIT] = true,
+	[CMD_TRANSPORT_TO] = true,
     [CMD_SETTARGET] = true,
 	[CMD_MANUAL_LAUNCH] = true,
 }
@@ -86,7 +87,7 @@ local positionCmds = {
     [CMD.MOVE]=true,		[CMD.ATTACK]=true,		 [CMD.RECLAIM]=true,		[CMD.RESTORE]=true,		[CMD.RESURRECT]=true,
     [CMD.PATROL]=true,		[CMD.CAPTURE]=true,		 [CMD.FIGHT]=true, 		    [CMD.MANUALFIRE]=true,
     [CMD.UNLOAD_UNIT]=true,	[CMD.UNLOAD_UNITS]=true, [CMD.LOAD_UNITS]=true,	    [CMD.GUARD]=true,		[CMD.AREA_ATTACK] = true,
-    [CMD_SETTARGET]=true,   [CMD_MANUAL_LAUNCH]=true,
+    [CMD_SETTARGET]=true,   [CMD_MANUAL_LAUNCH]=true, [CMD_TRANSPORT_TO] = true,
 }
 
 -- What commands need more than one unit selected to be issued as a formation command
@@ -156,6 +157,7 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetViewGeometry = Spring.GetViewGeometry
 local spTraceScreenRay = Spring.TraceScreenRay
+local spGetUnitDefID = Spring.GetUnitDefID
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local maxUnits = Game.maxUnits
@@ -172,6 +174,7 @@ local CMD_MOVE = CMD.MOVE
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNLOADUNIT = CMD.UNLOAD_UNIT
 local CMD_UNLOADUNITS = CMD.UNLOAD_UNITS
+local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
 local CMD_OPT_ALT = CMD.OPT_ALT
 local CMD_OPT_CTRL = CMD.OPT_CTRL
 local CMD_OPT_META = CMD.OPT_META
@@ -240,12 +243,13 @@ end
 
 
 local function SetColor(cmdID, alpha)
-    if     cmdID == CMD_MOVE       		then glColor(0.5, 1.0, 0.5, alpha) -- Green
+    if     cmdID == CMD_MOVE              then glColor(0.5, 1.0, 0.5, alpha) -- Green
     elseif cmdID == CMD_ATTACK
-		or cmdID == CMD_MANUAL_LAUNCH 	then glColor(1.0, 0.2, 0.2, alpha) -- Red
-    elseif cmdID == CMD_UNLOADUNIT 		then glColor(1.0, 1.0, 0.0, alpha) -- Yellow
-    elseif cmdID == CMD_SETTARGET 		then glColor(1.0, 0.7, 0.0, alpha) -- Orange
-    else                                glColor(0.5, 0.5, 1.0, alpha) -- Blue
+        or cmdID == CMD_MANUAL_LAUNCH     then glColor(1.0, 0.2, 0.2, alpha) -- Red
+    elseif cmdID == CMD_UNLOADUNIT
+        or cmdID == CMD_TRANSPORT_TO      then glColor(1.0, 0.8, 0.0, alpha) -- Orange
+    elseif cmdID == CMD_SETTARGET         then glColor(1.0, 0.7, 0.0, alpha) -- Orange
+    else                                       glColor(0.5, 0.5, 1.0, alpha) -- Blue
     end
 end
 
@@ -254,6 +258,18 @@ local function CanUnitExecute(uID, cmdID)
     if cmdID == CMD_UNLOADUNIT then
         cmdID = CMD_UNLOADUNITS
     end
+
+    local defID = spGetUnitDefID(uID)
+    local ud = defID and UnitDefs[defID]
+
+    if cmdID == CMD_TRANSPORT_TO and ud then
+        local grounded = not ud.canFly
+        local notCantBeTransported = (ud.cantBeTransported == nil) or (ud.cantBeTransported == false)
+        if grounded and notCantBeTransported then
+            return true
+        end
+    end
+
     return (spFindUnitCmdDesc(uID, cmdID) ~= nil)
 end
 
