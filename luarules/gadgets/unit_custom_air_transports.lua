@@ -205,6 +205,18 @@ local function BuggerOff(x, y, z, padDefID, transporterID) -- prolly needs to fi
 	end
 end
 
+function EnablePassenger(passengerID)
+	local passengerDefID = spGetUnitDefID(passengerID)
+	local defs = UnitDefs[passengerDefID]
+	if defs.buildSpeed > 0 then
+		local buildRange = defs.buildDistance
+		Spring.SetUnitBuildParams(passengerID, "buildRange", buildRange)
+	end
+	if defs.weapons and #defs.weapons > 0 then
+		Spring.SetUnitUseWeapons(passengerID, false, true)
+	end
+end
+
 -------------------------
 -- Core logic functions--
 -------------------------
@@ -674,6 +686,7 @@ function gadget:Initialize()
 				-- this unit was in the middle of an unload anim, we need to "repair" it by releasing MoveCtrl and clip it to ground level (not fall, otherwise fall damages !!)
 				spMoveCtrlDisable(unitID, false)
 				spSetUnitRulesParam(unitID, "inTransportAnim", 0)
+				EnablePassenger(unitID)
 				local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
 				spSetUnitPosition(unitID, unitPosX, spGetGroundHeight(unitPosX, unitPosZ), unitPosZ)
 			end

@@ -121,6 +121,29 @@ function TransportAnimator.Snap(passengerData)
 	Turn(passengerData.slotID, 3, 0)
 end
 
+function TransportAnimator.EnablePassenger(passengerID)
+	local passengerDefID = SpGetUnitDefID(passengerID)
+	local defs = UnitDefs[passengerDefID]
+	if defs.buildSpeed > 0 then
+		local buildRange = defs.buildDistance
+		Spring.SetUnitBuildParams(passengerID, "buildRange", buildRange)
+	end
+	if defs.weapons and #defs.weapons > 0 then
+		Spring.SetUnitUseWeapons(passengerID, false, true)
+	end
+end
+
+function TransportAnimator.DisablePassenger(passengerID)
+	local passengerDefID = SpGetUnitDefID(passengerID)
+	local defs = UnitDefs[passengerDefID]
+	if defs.buildSpeed > 0 then
+		Spring.SetUnitBuildParams(passengerID, "buildRange", 0)
+	end
+	if defs.weapons and #defs.weapons > 0 then
+		Spring.SetUnitUseWeapons(passengerID, false, false)
+	end
+end
+
 -- per-frame loop: damps transporter velocity during active animations and spawns tractor-beam CEGs
 -- we can only use cached pos during unload,
 -- during loading, the WorldSpaceToUnitSpace conversion induces a visible offset 
@@ -244,6 +267,7 @@ end
 -- When doAnim == false, the unit is only detached in-place with no position change.
 function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, doAnim)
 	if passengerData.unloading then return end
+	TransportAnimator.DisablePassenger(passengerData.id)
 	passengerData.unloading = true
 	CargoHandler.BeginUnloading(cargo)
 	SpUnitDetach(passengerData.id)
@@ -251,8 +275,8 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 	if doAnim ~= false then
 		Spring.SetUnitRulesParam(passengerData.id, "inTransportAnim", 1)
 		local slotPosX, slotPosY, slotPosZ = SpGetUnitPiecePosDir(transporterID, passengerData.slotID)
-		local radius, height = Spring.GetUnitRadius(passengerData.id), Spring.GetUnitHeight(passengerData.id)
-		Spring.SetUnitRadiusAndHeight(passengerData.id, slotPosY - Spring.GetGroundHeight(slotPosX, slotPosZ) + 20, height) -- reset radius/height in case we were transporting a building with custom values
+		-- local radius, height = Spring.GetUnitRadius(passengerData.id), Spring.GetUnitHeight(passengerData.id)
+		-- Spring.SetUnitRadiusAndHeight(passengerData.id, slotPosY - Spring.GetGroundHeight(slotPosX, slotPosZ) + 20, height) -- reset radius/height in case we were transporting a building with custom values
 		local transporterPosX, _, transporterPosZ, startTransporterRotX, startTransporterRotY, startTransporterRotZ = getTransporterState(transporterID)
 		goalPosX, goalPosZ = goalPosX + (slotPosX - transporterPosX), goalPosZ + (slotPosZ - transporterPosZ)
 		goalPosY = SpGetGroundHeight(goalPosX, goalPosZ)	
@@ -310,7 +334,7 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 			if isDead(passengerData.id) then aborted = true ; break end
 		end
 		passengerData.cachedPosX = nil ; passengerData.cachedPosY = nil ; passengerData.cachedPosZ = nil -- invalidate cache
-		Spring.SetUnitRadiusAndHeight(passengerData.id, radius, height) -- reset radius/height in case we were transporting a building with custom values
+		-- Spring.SetUnitRadiusAndHeight(passengerData.id, radius, height) -- reset radius/height in case we were transporting a building with custom values
 
 		if not aborted then -- unload anim completed, ensure unit is at final position/rotation
 			SpMoveCtrl.SetPosition(passengerData.id, goalPosX, goalPosY, goalPosZ)
@@ -323,6 +347,7 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 	resetSlot(passengerData.slotID)
 	local count = CargoHandler.Unregister(passengerData.id, cargo)
 	Spring.SetUnitRulesParam(passengerData.id, "inTransportAnim", 0)
+	TransportAnimator.EnablePassenger(passengerData.id)
 	if count == 0 then TransportAnimator.HasCargo(false) end
 	CargoHandler.EndUnloading(cargo)
 end
