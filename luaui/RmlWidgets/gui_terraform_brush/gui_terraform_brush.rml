@@ -1263,15 +1263,15 @@
 				</div>
 			<div id="section-gb-mode">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-gb-paint" data-class-active="gbSubMode == 'paint'" onclick="widget:gbSetSubMode('paint'); event:StopPropagation()" class="tf-mode-btn tf-gb-btn-paint">
+				<div id="btn-gb-paint" data-class-active="gbSubMode == 'paint'" data-event-click="onGbSetSubMode('paint')" class="tf-mode-btn tf-gb-btn-paint">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/mb_paint.png" />
 					<div class="tf-btn-text">Paint</div>
 				</div>
-				<div id="btn-gb-fill" data-class-active="gbSubMode == 'fill'" onclick="widget:gbSetSubMode('fill'); event:StopPropagation()" class="tf-mode-btn tf-gb-btn-fill">
+				<div id="btn-gb-fill" data-class-active="gbSubMode == 'fill'" data-event-click="onGbSetSubMode('fill')" class="tf-mode-btn tf-gb-btn-fill">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_fill.png" />
 					<div class="tf-btn-text">Fill</div>
 				</div>
-				<div id="btn-gb-erase" data-class-active="gbSubMode == 'erase'" onclick="widget:gbSetSubMode('erase'); event:StopPropagation()" class="tf-mode-btn tf-gb-btn-erase">
+				<div id="btn-gb-erase" data-class-active="gbSubMode == 'erase'" data-event-click="onGbSetSubMode('erase')" class="tf-mode-btn tf-gb-btn-erase">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_remove.png" />
 					<div class="tf-btn-text">Remove</div>
 				</div>
@@ -1294,10 +1294,10 @@
 				</div>
 			<div id="section-gb-overlays" class="hidden">
 			<div class="flex flex-row items-center gap-1 mb-1">
-				<div id="btn-gb-grid-overlay" onclick="widget:gbToggleGridOverlay(); event:StopPropagation()" class="tf-overlay-chip">
+				<div id="btn-gb-grid-overlay" data-class-active="gbGridOverlay" data-event-click="onGbToggleGridOverlay()" class="tf-overlay-chip">
 					<div class="tf-overlay-chip-label">Grid</div>
 				</div>
-				<div id="btn-gb-height-colormap" onclick="widget:gbToggleHeightMap(); event:StopPropagation()" class="tf-overlay-chip">
+				<div id="btn-gb-height-colormap" data-class-active="gbHeightColormap" data-event-click="onGbToggleHeightMap()" class="tf-overlay-chip">
 					<div class="tf-overlay-chip-label">Height Map</div>
 				</div>
 			</div>
@@ -1316,16 +1316,16 @@
 				</div>
 			<div id="section-gb-instruments" class="hidden">
 			<div class="flex flex-row items-center gap-1 mb-1">
-				<div id="btn-gb-grid-snap" onclick="widget:gbToggleGridSnap(); event:StopPropagation()" class="tf-overlay-chip">
+				<div id="btn-gb-grid-snap" data-class-active="gbGridSnap" data-event-click="onGbToggleGridSnap()" class="tf-overlay-chip">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 				</div>
-				<div id="btn-gb-angle-snap" onclick="widget:gbToggleAngleSnap(); event:StopPropagation()" class="tf-overlay-chip">
+				<div id="btn-gb-angle-snap" data-class-active="gbAngleSnap" data-event-click="onGbToggleAngleSnap()" class="tf-overlay-chip">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 				</div>
-				<div id="btn-gb-measure" onclick="widget:gbToggleMeasure(); event:StopPropagation()" class="tf-overlay-chip">
+				<div id="btn-gb-measure" data-class-active="gbMeasureActive" data-event-click="onGbToggleMeasure()" class="tf-overlay-chip">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 				</div>
-				<div id="btn-gb-symmetry" onclick="widget:gbToggleSymmetry(); event:StopPropagation()" class="tf-overlay-chip">
+				<div id="btn-gb-symmetry" data-class-active="gbSymmetryActive" data-event-click="onGbToggleSymmetry()" class="tf-overlay-chip">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 				</div>
 			</div>
@@ -1334,11 +1334,11 @@
 					<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="gb-btn-snap-size-down" onclick="widget:gbSnapSizeDown(); event:StopPropagation()" class="tf-sm-btn">
+					<div id="gb-btn-snap-size-down" data-event-click="onGbSnapSizeDown()" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="gb-slider-grid-snap-size" onchange="widget:gbOnSnapSizeChange(element); event:StopPropagation()" class="tf-slider" min="16" max="128" step="16" value="48" />
-					<div id="gb-btn-snap-size-up" onclick="widget:gbSnapSizeUp(); event:StopPropagation()" class="tf-sm-btn">
+					<input type="range" id="gb-slider-grid-snap-size" data-event-change="onGbSnapSizeChange()" class="tf-slider" min="16" max="128" step="16" value="48" />
+					<div id="gb-btn-snap-size-up" data-event-click="onGbSnapSizeUp()" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 					<input type="text" id="gb-slider-grid-snap-size-numbox" class="tf-slider-numbox" readonly value="48" />
@@ -1349,26 +1349,26 @@
 					<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="gb-btn-angle-step-down" onclick="widget:gbAngleStepDown(); event:StopPropagation()" class="tf-sm-btn">
+					<div id="gb-btn-angle-step-down" data-event-click="onGbAngleStepDown()" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="gb-slider-angle-snap-step" onchange="widget:gbOnAngleStepChange(element); event:StopPropagation()" class="tf-slider" min="0" max="5" step="1" value="1" />
-					<div id="gb-btn-angle-step-up" onclick="widget:gbAngleStepUp(); event:StopPropagation()" class="tf-sm-btn">
+					<input type="range" id="gb-slider-angle-snap-step" data-event-change="onGbAngleStepChange()" class="tf-slider" min="0" max="5" step="1" value="1" />
+					<div id="gb-btn-angle-step-up" data-event-click="onGbAngleStepUp()" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 					<input type="text" id="gb-slider-angle-snap-step-numbox" class="tf-slider-numbox" readonly value="15" />
 				</div>
 				<div class="flex flex-row items-center mb-1">
 					<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold">{{gbManualSpokeStr}}</span>&#176;</div>
-					<div id="gb-btn-angle-autosnap" onclick="widget:gbAngleAutoSnap(); event:StopPropagation()" class="tf-inline-chip" style="margin-left: 4dp;">Auto-Snap</div>
+					<div id="gb-btn-angle-autosnap" data-event-click="onGbAngleAutoSnap()" class="tf-inline-chip" style="margin-left: 4dp;">Auto-Snap</div>
 				</div>
 				<div id="gb-angle-manual-spoke-row" class="mb-1" data-if="!gbAngleSnapAuto">
 					<div class="flex flex-row gap-1 items-center mb-1">
-						<div id="gb-btn-manual-spoke-down" onclick="widget:gbManualSpokeDown(); event:StopPropagation()" class="tf-sm-btn">
+						<div id="gb-btn-manual-spoke-down" data-event-click="onGbManualSpokeDown()" class="tf-sm-btn">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 						</div>
-						<input type="range" id="gb-slider-manual-spoke" onchange="widget:gbOnManualSpokeChange(element); event:StopPropagation()" class="tf-slider" min="0" max="23" step="1" value="0" />
-						<div id="gb-btn-manual-spoke-up" onclick="widget:gbManualSpokeUp(); event:StopPropagation()" class="tf-sm-btn">
+						<input type="range" id="gb-slider-manual-spoke" data-event-change="onGbManualSpokeChange()" class="tf-slider" min="0" max="23" step="1" value="0" />
+						<div id="gb-btn-manual-spoke-up" data-event-click="onGbManualSpokeUp()" class="tf-sm-btn">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 						</div>
 					</div>
@@ -1376,31 +1376,31 @@
 			</div>
 			<div id="gb-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="gbMeasureActive">
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="gb-btn-measure-ruler" onclick="widget:gbMeasureRuler(); event:StopPropagation()" data-class-active="gbMeasureRulerMode" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div id="gb-btn-measure-ruler" data-event-click="onGbMeasureRuler()" data-class-active="gbMeasureRulerMode" class="tf-overlay-chip" style="flex: 1; text-align: center;">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
 					</div>
-					<div id="gb-btn-measure-sticky" onclick="widget:gbMeasureSticky(); event:StopPropagation()" data-class-active="gbMeasureStickyMode" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div id="gb-btn-measure-sticky" data-event-click="onGbMeasureSticky()" data-class-active="gbMeasureStickyMode" class="tf-overlay-chip" style="flex: 1; text-align: center;">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
 					</div>
-					<div id="gb-btn-measure-show-length" onclick="widget:gbMeasureShowLength(); event:StopPropagation()" data-class-active="gbMeasureShowLength" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div id="gb-btn-measure-show-length" data-event-click="onGbMeasureShowLength()" data-class-active="gbMeasureShowLength" class="tf-overlay-chip" style="flex: 1; text-align: center;">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 					</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center">
-					<div id="gb-btn-measure-clear" onclick="widget:gbMeasureClear(); event:StopPropagation()" class="tf-sm-btn" style="flex: 1;">
+					<div id="gb-btn-measure-clear" data-event-click="onGbMeasureClear()" class="tf-sm-btn" style="flex: 1;">
 						<div class="text-sm" style="text-align: center;">Clear All</div>
 					</div>
 				</div>
 			</div>
 			<div id="gb-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="gbSymmetryActive">
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="gb-btn-symmetry-radial" onclick="widget:gbSymRadial(); event:StopPropagation()" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div id="gb-btn-symmetry-radial" data-class-active="gbSymmetryRadial" data-event-click="onGbSymRadial()" class="tf-overlay-chip" style="flex: 1; text-align: center;">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 					</div>
-					<div id="gb-btn-symmetry-mirror-x" onclick="widget:gbSymMirrorX(); event:StopPropagation()" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div id="gb-btn-symmetry-mirror-x" data-class-active="gbSymMirrorX" data-event-click="onGbSymMirrorX()" class="tf-overlay-chip" style="flex: 1; text-align: center;">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 					</div>
-					<div id="gb-btn-symmetry-mirror-y" onclick="widget:gbSymMirrorY(); event:StopPropagation()" class="tf-overlay-chip" style="flex: 1; text-align: center;">
+					<div id="gb-btn-symmetry-mirror-y" data-class-active="gbSymMirrorY" data-event-click="onGbSymMirrorY()" class="tf-overlay-chip" style="flex: 1; text-align: center;">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 					</div>
 				</div>
@@ -1409,11 +1409,11 @@
 						<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
-						<div id="gb-btn-symmetry-count-down" onclick="widget:gbSymCountDown(); event:StopPropagation()" class="tf-sm-btn">
+						<div id="gb-btn-symmetry-count-down" data-event-click="onGbSymCountDown()" class="tf-sm-btn">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 						</div>
-						<input type="range" id="gb-slider-symmetry-radial-count" onchange="widget:gbOnSymCountChange(element); event:StopPropagation()" class="tf-slider" min="2" max="16" step="1" value="2" />
-						<div id="gb-btn-symmetry-count-up" onclick="widget:gbSymCountUp(); event:StopPropagation()" class="tf-sm-btn">
+						<input type="range" id="gb-slider-symmetry-radial-count" data-event-change="onGbSymCountChange()" class="tf-slider" min="2" max="16" step="1" value="2" />
+						<div id="gb-btn-symmetry-count-up" data-event-click="onGbSymCountUp()" class="tf-sm-btn">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 						</div>
 					</div>
@@ -1423,20 +1423,20 @@
 						<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 					</div>
 					<div class="flex flex-row gap-1 items-center mb-1">
-						<div id="gb-btn-symmetry-angle-down" onclick="widget:gbSymAngleDown(); event:StopPropagation()" class="tf-sm-btn">
+						<div id="gb-btn-symmetry-angle-down" data-event-click="onGbSymAngleDown()" class="tf-sm-btn">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 						</div>
-						<input type="range" id="gb-slider-symmetry-mirror-angle" onchange="widget:gbOnSymAngleChange(element); event:StopPropagation()" class="tf-slider" min="0" max="360" step="1" value="0" />
-						<div id="gb-btn-symmetry-angle-up" onclick="widget:gbSymAngleUp(); event:StopPropagation()" class="tf-sm-btn">
+						<input type="range" id="gb-slider-symmetry-mirror-angle" data-event-change="onGbSymAngleChange()" class="tf-slider" min="0" max="360" step="1" value="0" />
+						<div id="gb-btn-symmetry-angle-up" data-event-click="onGbSymAngleUp()" class="tf-sm-btn">
 							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 						</div>
 					</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="gb-btn-symmetry-place-origin" onclick="widget:gbSymPlaceOrigin(); event:StopPropagation()" class="tf-sm-btn" style="flex: 1;">
+					<div id="gb-btn-symmetry-place-origin" data-event-click="onGbSymPlaceOrigin()" class="tf-sm-btn" style="flex: 1;">
 						<div class="text-sm" style="text-align: center;">Set Origin</div>
 					</div>
-					<div id="gb-btn-symmetry-center-origin" onclick="widget:gbSymCenterOrigin(); event:StopPropagation()" class="tf-sm-btn" style="flex: 1;">
+					<div id="gb-btn-symmetry-center-origin" data-event-click="onGbSymCenterOrigin()" class="tf-sm-btn" style="flex: 1;">
 						<div class="text-sm" style="text-align: center;">Center</div>
 					</div>
 				</div>
@@ -1452,7 +1452,7 @@
 					<div id="warn-chip-gb-smart" class="tf-overlay-chip tf-overlay-chip-warn hidden">
 						<div class="tf-overlay-chip-label">Active</div>
 					</div>
-					<img id="btn-gb-smart-toggle" onclick="widget:gbSmartToggle(); event:StopPropagation()" class="tf-icon-sm hidden" src="/luaui/images/terraform_brush/check_off.png" />
+					<img id="btn-gb-smart-toggle" data-event-click="onGbSmartToggle()" class="tf-icon-sm hidden" src="/luaui/images/terraform_brush/check_off.png" />
 					<div id="grass-color-filter-notify-dot" class="tf-notify-dot hidden"></div>
 				</div>
 			<div id="section-gb-smart" class="hidden">
@@ -1462,13 +1462,13 @@
 					<div id="btn-gb-pill-avoid-water" class="tf-overlay-chip">
 						<div class="tf-overlay-chip-label">Avoid Water</div>
 					</div>
-					<div id="btn-gb-pill-slope" onclick="widget:gbPillSlope(); event:StopPropagation()" class="tf-overlay-chip">
+					<div id="btn-gb-pill-slope" data-event-click="onGbPillSlope()" class="tf-overlay-chip">
 						<div class="tf-overlay-chip-label">Slope</div>
 					</div>
-					<div id="btn-gb-pill-altitude" onclick="widget:gbPillAlt(); event:StopPropagation()" class="tf-overlay-chip">
+					<div id="btn-gb-pill-altitude" data-event-click="onGbPillAlt()" class="tf-overlay-chip">
 						<div class="tf-overlay-chip-label">Altitude</div>
 					</div>
-					<div id="btn-gb-pill-color" onclick="widget:gbColorToggle(); event:StopPropagation()" class="tf-overlay-chip">
+					<div id="btn-gb-pill-color" data-event-click="onGbColorToggle()" class="tf-overlay-chip">
 						<div class="tf-overlay-chip-label">Color</div>
 					</div>
 				</div>
@@ -1477,10 +1477,10 @@
 				<div id="gb-smart-slope-content" data-if="gbSlopeActive">
 				<!-- Mutually exclusive toggle: avoid slopes vs prefer slopes (avoid default on when chip activated) -->
 				<div class="flex flex-row items-center gap-1 mb-1">
-					<div id="gb-slope-mode-avoid" onclick="widget:gbSlopeModeAvoid(); event:StopPropagation()" class="tf-overlay-chip" data-class-active="gbAvoidCliffs">
+					<div id="gb-slope-mode-avoid" data-event-click="onGbSlopeModeAvoid()" class="tf-overlay-chip" data-class-active="gbAvoidCliffs">
 						<div class="tf-overlay-chip-label">Avoid Slopes</div>
 					</div>
-					<div id="gb-slope-mode-prefer" onclick="widget:gbSlopeModePrefer(); event:StopPropagation()" class="tf-overlay-chip" data-class-active="gbPreferSlopes">
+					<div id="gb-slope-mode-prefer" data-event-click="onGbSlopeModePrefer()" class="tf-overlay-chip" data-class-active="gbPreferSlopes">
 						<div class="tf-overlay-chip-label">Prefer Slopes</div>
 					</div>
 				</div>
@@ -1494,11 +1494,11 @@
 					</div>
 				</div>
 				<div id="gb-smart-slope-max-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="gbAvoidCliffs">
-					<div id="btn-gb-slope-max-down" onclick="widget:gbSmartStep('slopeMax', -5); event:StopPropagation()" class="tf-sm-btn">
+					<div id="btn-gb-slope-max-down" data-event-click="onGbSmartStep('slopeMax', -5)" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="slider-gb-slope-max" onchange="widget:gbOnSlopeMaxChange(element); event:StopPropagation()" class="tf-slider" min="5" max="89" step="1" value="45" />
-					<div id="btn-gb-slope-max-up" onclick="widget:gbSmartStep('slopeMax', 5); event:StopPropagation()" class="tf-sm-btn">
+					<input type="range" id="slider-gb-slope-max" data-event-change="onGbSlopeMaxChange()" class="tf-slider" min="5" max="89" step="1" value="45" />
+					<div id="btn-gb-slope-max-up" data-event-click="onGbSmartStep('slopeMax', 5)" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 					<input type="text" id="slider-gb-slope-max-numbox" class="tf-slider-numbox" value="0" />
@@ -1514,11 +1514,11 @@
 					</div>
 				</div>
 				<div id="gb-smart-slope-min-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="gbPreferSlopes">
-					<div id="btn-gb-slope-min-down" onclick="widget:gbSmartStep('slopeMin', -5); event:StopPropagation()" class="tf-sm-btn">
+					<div id="btn-gb-slope-min-down" data-event-click="onGbSmartStep('slopeMin', -5)" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="slider-gb-slope-min" onchange="widget:gbOnSlopeMinChange(element); event:StopPropagation()" class="tf-slider" min="1" max="89" step="1" value="10" />
-					<div id="btn-gb-slope-min-up" onclick="widget:gbSmartStep('slopeMin', 5); event:StopPropagation()" class="tf-sm-btn">
+					<input type="range" id="slider-gb-slope-min" data-event-change="onGbSlopeMinChange()" class="tf-slider" min="1" max="89" step="1" value="10" />
+					<div id="btn-gb-slope-min-up" data-event-click="onGbSmartStep('slopeMin', 5)" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 					<input type="text" id="slider-gb-slope-min-numbox" class="tf-slider-numbox" value="0" />
@@ -1529,9 +1529,9 @@
 				<div id="gb-smart-altitude-content" data-if="gbAltActive">
 				<!-- Altitude Min -->
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-gb-alt-min-enable" onclick="widget:gbSmartSubToggle('altMinEnable'); event:StopPropagation()" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
+					<img id="btn-gb-alt-min-enable" data-event-click="onGbSmartSubToggle('altMinEnable')" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
 					<div class="text-lg text-light">Min Altitude: <span class="text-xl font-bold">{{gbAltMinStr}}</span></div>
-					<div id="btn-gb-alt-min-sample" onclick="widget:gbAltSample('gbAltMin'); event:StopPropagation()" class="tf-sample-btn">SAMPLE</div>
+					<div id="btn-gb-alt-min-sample" data-event-click="onGbAltSample('gbAltMin')" class="tf-sample-btn">SAMPLE</div>
 					<div id="slider-gb-alt-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-alt-min-transport" class="tf-transport-group hidden">
 						<div id="slider-gb-alt-min-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1540,11 +1540,11 @@
 					</div>
 				</div>
 				<div id="gb-smart-alt-min-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="gbAltMinEnable">
-					<div id="btn-gb-alt-min-down" onclick="widget:gbSmartStep('altMin', -10); event:StopPropagation()" class="tf-sm-btn">
+					<div id="btn-gb-alt-min-down" data-event-click="onGbSmartStep('altMin', -10)" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="slider-gb-alt-min" onchange="widget:gbOnAltMinChange(element); event:StopPropagation()" class="tf-slider" min="-500" max="500" step="1" value="0" />
-					<div id="btn-gb-alt-min-up" onclick="widget:gbSmartStep('altMin', 10); event:StopPropagation()" class="tf-sm-btn">
+					<input type="range" id="slider-gb-alt-min" data-event-change="onGbAltMinChange()" class="tf-slider" min="-500" max="500" step="1" value="0" />
+					<div id="btn-gb-alt-min-up" data-event-click="onGbSmartStep('altMin', 10)" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 					<input type="text" id="slider-gb-alt-min-numbox" class="tf-slider-numbox" value="0" />
@@ -1552,9 +1552,9 @@
 
 				<!-- Altitude Max -->
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-gb-alt-max-enable" onclick="widget:gbSmartSubToggle('altMaxEnable'); event:StopPropagation()" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
+					<img id="btn-gb-alt-max-enable" data-event-click="onGbSmartSubToggle('altMaxEnable')" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
 					<div class="text-lg text-light">Max Altitude: <span class="text-xl font-bold">{{gbAltMaxStr}}</span></div>
-					<div id="btn-gb-alt-max-sample" onclick="widget:gbAltSample('gbAltMax'); event:StopPropagation()" class="tf-sample-btn">SAMPLE</div>
+					<div id="btn-gb-alt-max-sample" data-event-click="onGbAltSample('gbAltMax')" class="tf-sample-btn">SAMPLE</div>
 					<div id="slider-gb-alt-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 					<div id="slider-gb-alt-max-transport" class="tf-transport-group hidden">
 						<div id="slider-gb-alt-max-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -1563,11 +1563,11 @@
 					</div>
 				</div>
 				<div id="gb-smart-alt-max-slider-row" class="flex flex-row gap-1 items-center mb-1" data-if="gbAltMaxEnable">
-					<div id="btn-gb-alt-max-down" onclick="widget:gbSmartStep('altMax', -10); event:StopPropagation()" class="tf-sm-btn">
+					<div id="btn-gb-alt-max-down" data-event-click="onGbSmartStep('altMax', -10)" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="slider-gb-alt-max" onchange="widget:gbOnAltMaxChange(element); event:StopPropagation()" class="tf-slider" min="-500" max="500" step="1" value="200" />
-					<div id="btn-gb-alt-max-up" onclick="widget:gbSmartStep('altMax', 10); event:StopPropagation()" class="tf-sm-btn">
+					<input type="range" id="slider-gb-alt-max" data-event-change="onGbAltMaxChange()" class="tf-slider" min="-500" max="500" step="1" value="200" />
+					<div id="btn-gb-alt-max-up" data-event-click="onGbSmartStep('altMax', 10)" class="tf-sm-btn">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 					<input type="text" id="slider-gb-alt-max-numbox" class="tf-slider-numbox" value="0" />
@@ -1578,16 +1578,16 @@
 				<div id="gb-smart-color-content" data-if="gbColorOpen">
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div class="tf-filter-heading">COLOR FILTER</div>
-					<div id="btn-gb-pipette" onclick="widget:gbPipette(); event:StopPropagation()" class="tf-gb-pipette-btn" style="margin-left: auto;"><img src="/luaui/images/terraform_brush/gb_pipette.png" style="width: 14dp; height: 14dp; image-color: #cccccc;" /></div>
+					<div id="btn-gb-pipette" data-event-click="onGbPipette()" class="tf-gb-pipette-btn" style="margin-left: auto;"><img src="/luaui/images/terraform_brush/gb_pipette.png" style="width: 14dp; height: 14dp; image-color: #cccccc;" /></div>
 				</div>
 				<div class="mb-1">
 					<div id="gb-tex-color-swatch" ></div>
 				</div>
 				<!-- Exclude color row -->
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-gb-exclude-toggle" onclick="widget:gbExcludeToggle(); event:StopPropagation()" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
+					<img id="btn-gb-exclude-toggle" data-event-click="onGbExcludeToggle()" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" />
 					<div class="tf-filter-heading" style="color: #e07070;">EXCLUDE</div>
-					<div id="btn-gb-exclude-pipette" onclick="widget:gbExcludePipette(); event:StopPropagation()" class="tf-gb-pipette-btn" style="margin-left: auto;"><img src="/luaui/images/terraform_brush/gb_pipette.png" style="width: 14dp; height: 14dp; image-color: #e07070;" /></div>
+					<div id="btn-gb-exclude-pipette" data-event-click="onGbExcludePipette()" class="tf-gb-pipette-btn" style="margin-left: auto;"><img src="/luaui/images/terraform_brush/gb_pipette.png" style="width: 14dp; height: 14dp; image-color: #e07070;" /></div>
 				</div>
 				<div class="mb-1">
 					<div id="gb-tex-exclude-swatch" ></div>
@@ -1596,18 +1596,18 @@
 					<div class="text-lg text-light">TOLERANCE: <span class="text-xl font-bold">{{gbColorThreshStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="btn-gb-color-thresh-down" onclick="widget:gbColorThreshStep(-5); event:StopPropagation()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-					<input type="range" id="slider-gb-color-thresh" onchange="widget:gbOnColorThreshChange(element); event:StopPropagation()" class="tf-slider" min="0" max="150" step="1" value="35" />
-					<div id="btn-gb-color-thresh-up" onclick="widget:gbColorThreshStep(5); event:StopPropagation()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+					<div id="btn-gb-color-thresh-down" data-event-click="onGbColorThreshStep(-5)" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+					<input type="range" id="slider-gb-color-thresh" data-event-change="onGbColorThreshChange()" class="tf-slider" min="0" max="150" step="1" value="35" />
+					<div id="btn-gb-color-thresh-up" data-event-click="onGbColorThreshStep(5)" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
 					<input type="text" id="slider-gb-color-thresh-numbox" class="tf-slider-numbox" value="35" />
 				</div>
 				<div class="flex flex-row items-center mb-1">
 					<div class="text-lg text-light">EDGE PAD: <span class="text-xl font-bold">{{gbColorPadStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="btn-gb-color-pad-down" onclick="widget:gbColorPadStep(-8); event:StopPropagation()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-					<input type="range" id="slider-gb-color-pad" onchange="widget:gbOnColorPadChange(element); event:StopPropagation()" class="tf-slider" min="0" max="200" step="8" value="0" />
-					<div id="btn-gb-color-pad-up" onclick="widget:gbColorPadStep(8); event:StopPropagation()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+					<div id="btn-gb-color-pad-down" data-event-click="onGbColorPadStep(-8)" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+					<input type="range" id="slider-gb-color-pad" data-event-change="onGbColorPadChange()" class="tf-slider" min="0" max="200" step="8" value="0" />
+					<div id="btn-gb-color-pad-up" data-event-click="onGbColorPadStep(8)" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
 					<input type="text" id="slider-gb-color-pad-numbox" class="tf-slider-numbox" value="0" />
 				</div>
 				</div><!-- /gb-smart-color-content -->
@@ -1630,9 +1630,9 @@
 				<div class="text-lg text-light">{{gbDensityStr}}</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-grass-density-down" onclick="widget:gbDensityDown(); event:StopPropagation()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-				<input id="slider-grass-density" onchange="widget:gbOnDensityChange(element); event:StopPropagation()" type="range" class="tf-slider" min="0" max="100" value="80" style="flex:1;" />
-				<div id="btn-grass-density-up" onclick="widget:gbDensityUp(); event:StopPropagation()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<div id="btn-grass-density-down" data-event-click="onGbDensityDown()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input id="slider-grass-density" data-event-change="onGbDensityChange()" type="range" class="tf-slider" min="0" max="100" value="80" style="flex:1;" />
+				<div id="btn-grass-density-up" data-event-click="onGbDensityUp()" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
 				<input type="text" id="slider-grass-density-numbox" class="tf-slider-numbox" value="80" />
 			</div>
 
@@ -1649,11 +1649,11 @@
 				<div id="kbhint-gb-size" class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Scroll</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-gb-size-down" onclick="widget:gbSizeDown(); event:StopPropagation()" class="tf-sm-btn">
+				<div id="btn-gb-size-down" data-event-click="onGbSizeDown()" class="tf-sm-btn">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="slider-gb-size" onchange="widget:gbOnSizeChange(element); event:StopPropagation()" class="tf-slider" min="8" max="2000" step="1" value="100" />
-				<div id="btn-gb-size-up" onclick="widget:gbSizeUp(); event:StopPropagation()" class="tf-sm-btn">
+				<input type="range" id="slider-gb-size" data-event-change="onGbSizeChange()" class="tf-slider" min="8" max="2000" step="1" value="100" />
+				<div id="btn-gb-size-up" data-event-click="onGbSizeUp()" class="tf-sm-btn">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="slider-gb-size-numbox" class="tf-slider-numbox" value="0" />
@@ -1671,11 +1671,11 @@
 				<div id="kbhint-gb-length" class="text-sm text-keybind" style="margin-left: auto;">Alt+Ctrl+Scroll</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-gb-length-down" onclick="widget:gbLengthDown(); event:StopPropagation()" class="tf-sm-btn">
+				<div id="btn-gb-length-down" data-event-click="onGbLengthDown()" class="tf-sm-btn">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="slider-gb-length" onchange="widget:gbOnLengthChange(element); event:StopPropagation()" class="tf-slider" min="2" max="50" step="1" value="10" />
-				<div id="btn-gb-length-up" onclick="widget:gbLengthUp(); event:StopPropagation()" class="tf-sm-btn">
+				<input type="range" id="slider-gb-length" data-event-change="onGbLengthChange()" class="tf-slider" min="2" max="50" step="1" value="10" />
+				<div id="btn-gb-length-up" data-event-click="onGbLengthUp()" class="tf-sm-btn">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="slider-gb-length-numbox" class="tf-slider-numbox" value="0" />
@@ -1693,11 +1693,11 @@
 				<div id="kbhint-gb-rotation" class="text-sm text-keybind" style="margin-left: auto;">Alt+Scroll</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-gb-rot-ccw" onclick="widget:gbRotCCW(); event:StopPropagation()" class="tf-sm-btn">
+				<div id="btn-gb-rot-ccw" data-event-click="onGbRotCCW()" class="tf-sm-btn">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_ccw.png" />
 				</div>
-				<input type="range" id="slider-gb-rotation" onchange="widget:gbOnRotChange(element); event:StopPropagation()" class="tf-slider" min="0" max="359" step="1" value="0" />
-				<div id="btn-gb-rot-cw" onclick="widget:gbRotCW(); event:StopPropagation()" class="tf-sm-btn">
+				<input type="range" id="slider-gb-rotation" data-event-change="onGbRotChange()" class="tf-slider" min="0" max="359" step="1" value="0" />
+				<div id="btn-gb-rot-cw" data-event-click="onGbRotCW()" class="tf-sm-btn">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_cw.png" />
 				</div>
 				<input type="text" id="slider-gb-rotation-numbox" class="tf-slider-numbox" value="0" />
@@ -1715,11 +1715,11 @@
 				<div id="kbhint-gb-curve" class="text-sm text-keybind" style="margin-left: auto;">Shift+Scroll</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-gb-curve-down" onclick="widget:gbCurveDown(); event:StopPropagation()" class="tf-sm-btn">
+				<div id="btn-gb-curve-down" data-event-click="onGbCurveDown()" class="tf-sm-btn">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/curve_flat.png" />
 				</div>
-				<input type="range" id="slider-gb-curve" onchange="widget:gbOnCurveChange(element); event:StopPropagation()" class="tf-slider" min="1" max="50" step="1" value="10" />
-				<div id="btn-gb-curve-up" onclick="widget:gbCurveUp(); event:StopPropagation()" class="tf-sm-btn">
+				<input type="range" id="slider-gb-curve" data-event-change="onGbCurveChange()" class="tf-slider" min="1" max="50" step="1" value="10" />
+				<div id="btn-gb-curve-up" data-event-click="onGbCurveUp()" class="tf-sm-btn">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/curve_sharp.png" />
 				</div>
 				<input type="text" id="slider-gb-curve-numbox" class="tf-slider-numbox" value="0" />
@@ -1738,11 +1738,11 @@
 				</div>
 			<div id="section-gb-undo" class="hidden">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-gb-undo" onclick="widget:gbUndo(); event:StopPropagation()" class="tf-history-btn">
+				<div id="btn-gb-undo" data-event-click="onGbUndo()" class="tf-history-btn">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
 				</div>
-				<input type="range" id="slider-gb-history" onchange="widget:gbOnHistoryChange(element); event:StopPropagation()" class="tf-slider tf-slider-history" min="0" max="0" step="1" value="0" />
-				<div id="btn-gb-redo" onclick="widget:gbRedo(); event:StopPropagation()" class="tf-history-btn">
+				<input type="range" id="slider-gb-history" data-event-change="onGbHistoryChange()" class="tf-slider tf-slider-history" min="0" max="0" step="1" value="0" />
+				<div id="btn-gb-redo" data-event-click="onGbRedo()" class="tf-history-btn">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
 				</div>
 				<input type="text" id="slider-gb-history-numbox" class="tf-slider-numbox" value="0" />
@@ -1757,15 +1757,15 @@
 				</div>
 			<div id="section-gb-save" class="hidden">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-grass-save" onclick="widget:gbSave(); event:StopPropagation()" class="tf-action-btn tf-save-btn" style="flex: 1;">
+				<div id="btn-grass-save" data-event-click="onGbSave()" class="tf-action-btn tf-save-btn" style="flex: 1;">
 					<div class="tf-action-btn-text">SAVE GRASS MAP</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-grass-load" onclick="widget:gbLoad(); event:StopPropagation()" class="tf-action-btn tf-load-btn" style="flex: 1;">
+				<div id="btn-grass-load" data-event-click="onGbLoad()" class="tf-action-btn tf-load-btn" style="flex: 1;">
 					<div class="tf-action-btn-text">LOAD GRASS MAP</div>
 				</div>
-				<div id="btn-grass-clean" onclick="widget:gbClean(); event:StopPropagation()" class="tf-action-btn tf-dc-reset-btn" style="flex: 1;">
+				<div id="btn-grass-clean" data-event-click="onGbClean()" class="tf-action-btn tf-dc-reset-btn" style="flex: 1;">
 					<div class="tf-action-btn-text">CLEAN GRASS</div>
 				</div>
 			</div>
