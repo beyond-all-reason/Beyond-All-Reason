@@ -748,7 +748,7 @@ end
 -- by onCl* (and any future) model-king handlers inside initialModel.
 local clearPassthrough
 
--- Helpers for noise/clone DataModel handlers defined in initialModel below.
+-- Helpers for noise/clone/splat DataModel handlers defined in initialModel below.
 -- All use widgetState/uiState/WG/playSound upvalues (file-level locals).
 local function _noSliderVal(id, default)
 	local doc = widgetState.document
@@ -780,6 +780,22 @@ local function _elemSetSliderVal(fullId, v)
 	if not doc then return end
 	local sl = doc:GetElementById(fullId)
 	if sl then sl:SetAttribute("value", tostring(v)) end
+end
+
+-- Splat angle-snap preset array and helpers (captured by onSpl* closures in initialModel).
+local SP_ANGLE_PRESETS = { 7.5, 15, 30, 45, 60, 90 }
+local function _splFindAnglePresetIdx(val)
+	local best, bestD = 2, math.huge
+	for i, p in ipairs(SP_ANGLE_PRESETS) do
+		local d = math.abs(p - (val or 15))
+		if d < bestD then bestD = d; best = i end
+	end
+	return best
+end
+local function _splApplyAnglePreset(idx)
+	idx = math.max(1, math.min(#SP_ANGLE_PRESETS, idx))
+	local pval = SP_ANGLE_PRESETS[idx]
+	if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
 end
 
 local initialModel = {
@@ -1628,6 +1644,285 @@ local initialModel = {
 		if WG.StartPosTool then
 			WG.StartPosTool.loadStartPositions()
 			WG.StartPosTool.loadStartboxes()
+		end
+	end,
+	-- Phase 2 step 6: tf_splat model-king handlers — defined here (not in M.attach)
+	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
+	-- Closures capture file-level widgetState/uiState/WG/playSound/ROTATION_STEP/
+	-- CURVE_STEP/RADIUS_STEP/_splFindAnglePresetIdx/_splApplyAnglePreset upvalues.
+	onSplSetChannel = function(_event, ch)
+		playSound("modeSwitch")
+		if WG.SplatPainter then WG.SplatPainter.setChannel(ch) end
+	end,
+	onSplStrengthChange = function(_event)
+		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		local val = _elemSliderVal("sp-slider-strength", 15)
+		WG.SplatPainter.setStrength(val / 100)
+	end,
+	onSplStrengthUp = function(_event)
+		if not WG.SplatPainter then return end
+		local st = WG.SplatPainter.getState()
+		WG.SplatPainter.setStrength(st.strength + 0.05)
+	end,
+	onSplStrengthDown = function(_event)
+		if not WG.SplatPainter then return end
+		local st = WG.SplatPainter.getState()
+		WG.SplatPainter.setStrength(st.strength - 0.05)
+	end,
+	onSplIntensityChange = function(_event)
+		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		local val = _elemSliderVal("sp-slider-intensity", 10)
+		WG.SplatPainter.setIntensity(val / 10)
+	end,
+	onSplIntensityUp = function(_event)
+		if not WG.SplatPainter then return end
+		local st = WG.SplatPainter.getState()
+		WG.SplatPainter.setIntensity(st.intensity + 0.1)
+	end,
+	onSplIntensityDown = function(_event)
+		if not WG.SplatPainter then return end
+		local st = WG.SplatPainter.getState()
+		WG.SplatPainter.setIntensity(st.intensity - 0.1)
+	end,
+	onSplSizeChange = function(_event)
+		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		local val = _elemSliderVal("sp-slider-size", 100)
+		WG.SplatPainter.setRadius(val)
+	end,
+	onSplSizeUp = function(_event)
+		if not WG.SplatPainter then return end
+		local st = WG.SplatPainter.getState()
+		WG.SplatPainter.setRadius(st.radius + RADIUS_STEP)
+	end,
+	onSplSizeDown = function(_event)
+		if not WG.SplatPainter then return end
+		local st = WG.SplatPainter.getState()
+		WG.SplatPainter.setRadius(st.radius - RADIUS_STEP)
+	end,
+	onSplRotChange = function(_event)
+		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		local val = _elemSliderVal("sp-slider-rotation", 0)
+		WG.SplatPainter.setRotation(val)
+	end,
+	onSplRotCW = function(_event)
+		if WG.SplatPainter then WG.SplatPainter.rotate(ROTATION_STEP) end
+	end,
+	onSplRotCCW = function(_event)
+		if WG.SplatPainter then WG.SplatPainter.rotate(-ROTATION_STEP) end
+	end,
+	onSplCurveChange = function(_event)
+		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		local val = _elemSliderVal("sp-slider-curve", 10)
+		WG.SplatPainter.setCurve(val / 10)
+	end,
+	onSplCurveUp = function(_event)
+		if not WG.SplatPainter then return end
+		local st = WG.SplatPainter.getState()
+		WG.SplatPainter.setCurve(st.curve + CURVE_STEP)
+	end,
+	onSplCurveDown = function(_event)
+		if not WG.SplatPainter then return end
+		local st = WG.SplatPainter.getState()
+		WG.SplatPainter.setCurve(st.curve - CURVE_STEP)
+	end,
+	onSplToggleSmart = function(_event, filterKey)
+		if not WG.SplatPainter then return end
+		local sf = WG.SplatPainter.getState().smartFilters
+		local newVal = not sf[filterKey]
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.SplatPainter.setSmartFilter(filterKey, newVal)
+		local sf2 = WG.SplatPainter.getState().smartFilters
+		local anyOn = sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes
+				or sf2.altMinEnable or sf2.altMaxEnable
+		WG.SplatPainter.setSmartEnabled(anyOn and true or false)
+	end,
+	onSplSlopeMaxChange = function(_event)
+		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		local val = _elemSliderVal("sp-slider-slope-max", 45)
+		WG.SplatPainter.setSmartFilter("slopeMax", val)
+	end,
+	onSplSlopeMinChange = function(_event)
+		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		local val = _elemSliderVal("sp-slider-slope-min", 10)
+		WG.SplatPainter.setSmartFilter("slopeMin", val)
+	end,
+	onSplAltMinChange = function(_event)
+		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		local val = _elemSliderVal("sp-slider-alt-min", 0)
+		local sf = WG.SplatPainter.getState().smartFilters
+		if sf.altMaxEnable and val > sf.altMax then
+			WG.SplatPainter.setSmartFilter("altMax", val)
+		end
+		WG.SplatPainter.setSmartFilter("altMin", val)
+	end,
+	onSplAltMaxChange = function(_event)
+		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		local val = _elemSliderVal("sp-slider-alt-max", 200)
+		local sf = WG.SplatPainter.getState().smartFilters
+		if sf.altMinEnable and val < sf.altMin then
+			WG.SplatPainter.setSmartFilter("altMin", val)
+		end
+		WG.SplatPainter.setSmartFilter("altMax", val)
+	end,
+	onSplSmartStep = function(_event, filterKey, step)
+		if not WG.SplatPainter then return end
+		local sf = WG.SplatPainter.getState().smartFilters
+		WG.SplatPainter.setSmartFilter(filterKey, (sf[filterKey] or 0) + step)
+	end,
+	onSplAltSample = function(_event, target)
+		if not WG.TerraformBrush then return end
+		local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
+		WG.TerraformBrush.setHeightSamplingMode(cur == target and nil or target)
+	end,
+	onSplCycleExportFormat = function(_event)
+		playSound("click")
+		if WG.SplatPainter then WG.SplatPainter.cycleExportFormat() end
+	end,
+	onSplSave = function(_event)
+		playSound("save")
+		if WG.SplatPainter then WG.SplatPainter.saveSplats() end
+	end,
+	onSplUndo = function(_event)
+		playSound("click")
+		if WG.SplatPainter then WG.SplatPainter.undo() end
+	end,
+	onSplRedo = function(_event)
+		playSound("click")
+		if WG.SplatPainter then WG.SplatPainter.redo() end
+	end,
+	onSplHistoryChange = function(_event)
+		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		local spSt = WG.SplatPainter.getState()
+		if not spSt then return end
+		local newVal = _elemSliderVal("slider-sp-history", 0)
+		local curPos = spSt.undoCount or 0
+		local diff = newVal - curPos
+		if diff < 0 then
+			for _ = 1, -diff do WG.SplatPainter.undo() end
+		elseif diff > 0 then
+			for _ = 1, diff do WG.SplatPainter.redo() end
+		end
+	end,
+	onSplToggleSplatOverlay = function(_event)
+		if not WG.SplatPainter then return end
+		local newVal = not WG.SplatPainter.getState().showSplatOverlay
+		WG.SplatPainter.setSplatOverlay(newVal)
+		playSound(newVal and "toggleOn" or "toggleOff")
+	end,
+	onSplSnapSizeChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local val = _elemSliderVal("sp-slider-grid-snap-size", 48)
+		WG.TerraformBrush.setGridSnapSize(val)
+	end,
+	onSplSnapSizeStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		local cur = tonumber(WG.TerraformBrush.getState().gridSnapSize) or 48
+		local v = math.max(16, math.min(128, cur + delta))
+		WG.TerraformBrush.setGridSnapSize(v)
+	end,
+	onSplAngleStepChange = function(_event)
+		if uiState.updatingFromCode then return end
+		local idx = _elemSliderVal("sp-slider-angle-snap-step", 1) + 1
+		_splApplyAnglePreset(idx)
+	end,
+	onSplAngleStepStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		local cur = WG.TerraformBrush.getState().angleSnapStep
+		_splApplyAnglePreset(_splFindAnglePresetIdx(cur) + delta)
+	end,
+	onSplToggleAutoSnap = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not WG.TerraformBrush.getState().angleSnapAuto
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setAngleSnapAuto(newVal)
+	end,
+	onSplManualSpokeChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local idx = _elemSliderVal("sp-slider-manual-spoke", 0)
+		WG.TerraformBrush.setAngleSnapManualSpoke(idx)
+	end,
+	onSplManualSpokeStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState()
+		local step = s.angleSnapStep or 15
+		local num  = math.max(1, math.floor(360 / step))
+		local cur = s.angleSnapManualSpoke or 0
+		WG.TerraformBrush.setAngleSnapManualSpoke((cur + delta + num) % num)
+	end,
+	onSplSymCountChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local val = _elemSliderVal("sp-slider-symmetry-radial-count", 2)
+		WG.TerraformBrush.setSymmetryRadialCount(val)
+	end,
+	onSplSymCountStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		local c = math.max(2, math.min(16,
+			(WG.TerraformBrush.getState().symmetryRadialCount or 2) + delta))
+		WG.TerraformBrush.setSymmetryRadialCount(c)
+		_elemSetSliderVal("sp-slider-symmetry-radial-count", c)
+	end,
+	onSplSymAngleChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local val = _elemSliderVal("sp-slider-symmetry-mirror-angle", 0)
+		WG.TerraformBrush.setSymmetryMirrorAngle(val)
+	end,
+	onSplSymAngleStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		local a = ((WG.TerraformBrush.getState().symmetryMirrorAngle or 0) + delta) % 360
+		WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		_elemSetSliderVal("sp-slider-symmetry-mirror-angle", a)
+	end,
+	onSplToggleSymRadial = function(_event)
+		if not WG.TerraformBrush then return end
+		local nv = not WG.TerraformBrush.getState().symmetryRadial
+		WG.TerraformBrush.setSymmetryRadial(nv)
+		local dm = widgetState.dmHandle; if dm then dm.spSymmetryRadial = nv end
+	end,
+	onSplToggleSymMirrorX = function(_event)
+		if not WG.TerraformBrush then return end
+		local nv = not WG.TerraformBrush.getState().symmetryMirrorX
+		WG.TerraformBrush.setSymmetryMirrorX(nv)
+		local dm = widgetState.dmHandle; if dm then dm.spSymMirrorX = nv end
+	end,
+	onSplToggleSymMirrorY = function(_event)
+		if not WG.TerraformBrush then return end
+		local nv = not WG.TerraformBrush.getState().symmetryMirrorY
+		WG.TerraformBrush.setSymmetryMirrorY(nv)
+		local dm = widgetState.dmHandle; if dm then dm.spSymMirrorY = nv end
+	end,
+	onSplSymPlaceOrigin = function(_event)
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryPlacingOrigin(true)
+			playSound("toggleOn")
+		end
+	end,
+	onSplSymCenterOrigin = function(_event)
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryOrigin(nil, nil)
+			playSound("toggleOff")
+		end
+	end,
+	onSplMeasureShowLength = function(_event)
+		if not WG.TerraformBrush or not WG.TerraformBrush.setMeasureShowLength then return end
+		local nv = not WG.TerraformBrush.getState().measureShowLength
+		WG.TerraformBrush.setMeasureShowLength(nv)
+		local dm = widgetState.dmHandle; if dm then dm.spMeasureShowLength = nv end
+	end,
+	onSplMeasureRuler = function(_event)
+		if not WG.TerraformBrush or not WG.TerraformBrush.setMeasureRulerMode then return end
+		local nv = not WG.TerraformBrush.getState().measureRulerMode
+		WG.TerraformBrush.setMeasureRulerMode(nv)
+		local dm = widgetState.dmHandle; if dm then dm.spMeasureRulerMode = nv end
+	end,
+	onSplMeasureSticky = function(_event)
+		if not WG.TerraformBrush or not WG.TerraformBrush.setMeasureStickyMode then return end
+		local nv = not WG.TerraformBrush.getState().measureStickyMode
+		WG.TerraformBrush.setMeasureStickyMode(nv)
+		local dm = widgetState.dmHandle; if dm then dm.spMeasureStickyMode = nv end
+	end,
+	onSplMeasureClear = function(_event)
+		if WG.TerraformBrush and WG.TerraformBrush.clearMeasureLines then
+			WG.TerraformBrush.clearMeasureLines()
 		end
 	end,
 }
