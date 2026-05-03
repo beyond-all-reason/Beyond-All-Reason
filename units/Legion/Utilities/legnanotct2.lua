@@ -47,6 +47,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBuildings/LandUtil",
+			techlevel = 2,
 		},
 		sounds = {
 			build = "nanlath1",
