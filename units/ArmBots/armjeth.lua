@@ -24,7 +24,7 @@ return {
 		script = "Units/ARMJETH.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 377,
+		sightdistance = 380,
 		speed = 56.25,
 		turninplace = true,
 		turninplaceanglelimit = 90,
