@@ -914,9 +914,6 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		local posX, posY, posZ = cmdParams[1], cmdParams[2], cmdParams[3]
 		local newPosX, newPosY, newPosZ = Spring.ClosestBuildPos(unitTeam, TransportAPI.GetUnloadPadType(unitID), posX, posY, posZ, 512, 0, 0)
 		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
-			spEcho("Warning: unload position is too far from a valid point, adjusting to closest valid position")
-			Spring.Echo("Original position: " .. posX .. ", " .. posY .. ", " .. posZ)
-			Spring.Echo("Adjusted position: " .. newPosX .. ", " .. newPosY .. ", " .. newPosZ)
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
 			if fromInsert then
 				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD.UNLOAD_UNIT, 0, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4] }, {"alt"})
@@ -933,8 +930,6 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		local posX, posY, posZ = cmdParams[1], cmdParams[2], cmdParams[3]
 		local newPosX, newPosY, newPosZ = Spring.ClosestBuildPos(unitTeam, TransportAPI.GetUnloadPadType(unitID), posX, posY, posZ, 512, 0, 0)
 		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
-			Spring.Echo("Original position: " .. posX .. ", " .. posY .. ", " .. posZ)
-			Spring.Echo("Adjusted position: " .. newPosX .. ", " .. newPosY .. ", " .. newPosZ)
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
 			cmdParams[4] = nil
 			cmdParams[5] = nil
