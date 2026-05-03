@@ -166,9 +166,34 @@ local function getCachedUnitsInCylinder(cx, cz, radius, allyTeam)
 	return units
 end
 
+local function BuggerOff(x, y, z, padDefID, transporterID) -- prolly needs to filter out units that should not be buggered off
+	local padSize = UnitDefs[padDefID].xsize * 8 -- it's by definition a square
+	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
+	local units = Spring.GetUnitsInBox(x - padSize/2, y-50, z - padSize/2, x + padSize/2, y+5, z + padSize/2)
+	for i = 1, #units do
+		local unitID = units[i]
+		local allyTeam = spGetUnitAllyTeam(unitID)
+		if allyTeam == transporterAllyTeam then
+			if unitID ~= transporterID then
+				local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+				local dirX, dirY, dirZ = x - unitX, y - unitY, z - unitZ
+				local length = math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+				if length > 0 then
+					dirX, dirY, dirZ = dirX / length, dirY / length, dirZ / length
+				end
+				spSetUnitMoveGoal(unitID, x-dirX*padSize, y, z-dirZ*padSize)
+			end
+		else
+		end
+	end
+end
+
 -------------------------
 -- Core logic functions--
 -------------------------
+
+--- @param transporterID number
+--- @return nil
 
 local function RemoveAreaLoadCoroutine(transporterID)
 	local index = transporterCoroutines[transporterID] and transporterCoroutines[transporterID].index
@@ -178,6 +203,9 @@ local function RemoveAreaLoadCoroutine(transporterID)
 	areaLoadCoroutines[index] = nil -- no need to clean up, killed from within
 	transporterCoroutines[transporterID] = nil
 end
+
+--- @param transporterID number
+--- @return nil
 
 local function RemoveSuccessiveCoroutine(transporterID)
 	local index = transporterCoroutines[transporterID] and transporterCoroutines[transporterID].index
@@ -857,8 +885,11 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transp
 			spEcho("Error: no valid unload position found near target point for transporter " .. transporterID .. ", aborting unload")
 			return false
 		end
-	elseif blocked == 1 then
-		Spring.BuggerOff(goalX, goalY, goalZ, 128, transporterTeamID, true, true, transporterID)
+	end
+	-- retest because we might still have mobile units in the way
+	blocked = Spring.TestBuildOrder(TransportAPI.GetUnloadPadType(transporterID), goalX, goalY, goalZ, 0)
+	if blocked == 1 then
+		BuggerOff(goalX, goalY, goalZ,TransportAPI.GetUnloadPadType(transporterID), transporterID)
 		--spEcho("need bugger off logic")
 	elseif blocked == 3 then
 		--spEcho("reclaimable feature in the way, should we unload ?")
