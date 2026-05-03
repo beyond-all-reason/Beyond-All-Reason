@@ -1049,8 +1049,11 @@ local function drawBalanceAxisWorld()
 	else
 		glColor(1.0, 0.85, 0.2, 0.95)
 	end
+	local oyOrigin = GetGroundHeight(ox, oz) + 6
 	glBeginEnd(GL_LINES, function()
 		glVertex(x1, GetGroundHeight(x1, z1) + 6, z1)
+		glVertex(ox, oyOrigin, oz)
+		glVertex(ox, oyOrigin, oz)
 		glVertex(x2, GetGroundHeight(x2, z2) + 6, z2)
 	end)
 
