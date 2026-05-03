@@ -1,4 +1,4 @@
-﻿<rml>
+<rml>
 <head>
 	<link type="text/rcss" href="../styles.rcss" />
 	<link type="text/rcss" href="../rml-utility-classes.rcss" />
@@ -4137,15 +4137,15 @@
 				</div>
 			<div id="section-lt-type">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-lt-point" class="tf-mode-btn tf-lt-btn" data-class-active="lpLightType == 'point'" onclick="widget:lpSetType('point'); event:StopPropagation()">
+				<div id="btn-lt-point" class="tf-mode-btn tf-lt-btn" data-class-active="lpLightType == 'point'" data-event-click="onLpSetType('point')">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/lt_point.png" />
 					<div class="tf-btn-text">Point</div>
 				</div>
-				<div id="btn-lt-cone" class="tf-mode-btn tf-lt-btn" data-class-active="lpLightType == 'cone'" onclick="widget:lpSetType('cone'); event:StopPropagation()">
+				<div id="btn-lt-cone" class="tf-mode-btn tf-lt-btn" data-class-active="lpLightType == 'cone'" data-event-click="onLpSetType('cone')">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/lt_cone.png" />
 					<div class="tf-btn-text">Cone</div>
 				</div>
-				<div id="btn-lt-beam" class="tf-mode-btn tf-lt-btn" data-class-active="lpLightType == 'beam'" onclick="widget:lpSetType('beam'); event:StopPropagation()">
+				<div id="btn-lt-beam" class="tf-mode-btn tf-lt-btn" data-class-active="lpLightType == 'beam'" data-event-click="onLpSetType('beam')">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/lt_beam.png" />
 					<div class="tf-btn-text">Beam</div>
 				</div>
@@ -4160,15 +4160,15 @@
 				</div>
 			<div id="section-lt-placement">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-lp-point" class="tf-mode-btn tf-lp-mode-btn" data-class-active="lpMode == 'point'" onclick="widget:lpSetMode('point'); event:StopPropagation()">
+				<div id="btn-lp-point" class="tf-mode-btn tf-lp-mode-btn" data-class-active="lpMode == 'point'" data-event-click="onLpSetMode('point')">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_point.png" />
 					<div class="tf-btn-text">Single</div>
 				</div>
-				<div id="btn-lp-scatter" class="tf-mode-btn tf-lp-mode-btn" data-class-active="lpMode == 'scatter'" data-class-lp-unavailable="lpDirectedLight" onclick="widget:lpSetMode('scatter'); event:StopPropagation()">
+				<div id="btn-lp-scatter" class="tf-mode-btn tf-lp-mode-btn" data-class-active="lpMode == 'scatter'" data-class-lp-unavailable="lpDirectedLight" data-event-click="onLpSetMode('scatter')">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_scatter.png" />
 					<div class="tf-btn-text">Scatter</div>
 				</div>
-				<div id="btn-lp-remove" class="tf-mode-btn tf-lp-mode-btn" data-class-active="lpMode == 'remove'" onclick="widget:lpSetMode('remove'); event:StopPropagation()">
+				<div id="btn-lp-remove" class="tf-mode-btn tf-lp-mode-btn" data-class-active="lpMode == 'remove'" data-event-click="onLpSetMode('remove')">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/fp_remove.png" />
 					<div class="tf-btn-text">Remove</div>
 				</div>
@@ -4184,15 +4184,15 @@
 				</div>
 			<div id="section-lt-dist" data-class-lp-unavailable="lpDirectedLight">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-lp-dist-random" class="tf-fp-dist-btn" data-class-active="lpDistMode == 'random'" onclick="widget:lpSetDist('random'); event:StopPropagation()">
+				<div id="btn-lp-dist-random" class="tf-fp-dist-btn" data-class-active="lpDistMode == 'random'" data-event-click="onLpSetDist('random')">
 					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/fp_scatter.png" />
 					<div class="tf-btn-text">Random</div>
 				</div>
-				<div id="btn-lp-dist-regular" class="tf-fp-dist-btn" data-class-active="lpDistMode == 'regular'" onclick="widget:lpSetDist('regular'); event:StopPropagation()">
+				<div id="btn-lp-dist-regular" class="tf-fp-dist-btn" data-class-active="lpDistMode == 'regular'" data-event-click="onLpSetDist('regular')">
 					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_regular.png" />
 					<div class="tf-btn-text">Regular</div>
 				</div>
-				<div id="btn-lp-dist-clustered" class="tf-fp-dist-btn" data-class-active="lpDistMode == 'clustered'" onclick="widget:lpSetDist('clustered'); event:StopPropagation()">
+				<div id="btn-lp-dist-clustered" class="tf-fp-dist-btn" data-class-active="lpDistMode == 'clustered'" data-event-click="onLpSetDist('clustered')">
 					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_clustered.png" />
 					<div class="tf-btn-text">Clustered</div>
 				</div>
@@ -4357,11 +4357,11 @@
 				<div class="text-lg text-light">BRIGHTNESS: <span class="text-xl font-bold" id="lp-brightness-label">{{lpBrightnessStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-brightness-down" class="tf-sm-btn" onclick="widget:lpBrightnessDown(); event:StopPropagation()">
+				<div id="btn-lp-brightness-down" class="tf-sm-btn" data-event-click="onLpBrightnessDown()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="slider-lp-brightness" class="tf-slider" min="1" max="1000" step="1" value="200" onchange="widget:lpOnBrightnessChange(element); event:StopPropagation()" />
-				<div id="btn-lp-brightness-up" class="tf-sm-btn" onclick="widget:lpBrightnessUp(); event:StopPropagation()">
+				<input type="range" id="slider-lp-brightness" class="tf-slider" min="1" max="1000" step="1" value="200" data-event-change="onLpBrightnessChange()" />
+				<div id="btn-lp-brightness-up" class="tf-sm-btn" data-event-click="onLpBrightnessUp()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="slider-lp-brightness-numbox" class="tf-slider-numbox" value="0" />
@@ -4372,11 +4372,11 @@
 				<div class="text-lg text-light">LIGHT RADIUS: <span class="text-xl font-bold" id="lp-light-radius-label">{{lpLightRadiusStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-light-radius-down" class="tf-sm-btn" onclick="widget:lpLightRadiusDown(); event:StopPropagation()">
+				<div id="btn-lp-light-radius-down" class="tf-sm-btn" data-event-click="onLpLightRadiusDown()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="slider-lp-light-radius" class="tf-slider" min="10" max="5000" step="10" value="300" onchange="widget:lpOnLightRadiusChange(element); event:StopPropagation()" />
-				<div id="btn-lp-light-radius-up" class="tf-sm-btn" onclick="widget:lpLightRadiusUp(); event:StopPropagation()">
+				<input type="range" id="slider-lp-light-radius" class="tf-slider" min="10" max="5000" step="10" value="300" data-event-change="onLpLightRadiusChange()" />
+				<div id="btn-lp-light-radius-up" class="tf-sm-btn" data-event-click="onLpLightRadiusUp()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="slider-lp-light-radius-numbox" class="tf-slider-numbox" value="0" />
@@ -4388,11 +4388,11 @@
 				<div class="text-xs text-keybind">Shift+Scroll</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-elevation-down" class="tf-sm-btn" onclick="widget:lpElevDown(); event:StopPropagation()">
+				<div id="btn-lp-elevation-down" class="tf-sm-btn" data-event-click="onLpElevDown()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="slider-lp-elevation" class="tf-slider" min="0" max="2000" step="5" value="20" onchange="widget:lpOnElevChange(element); event:StopPropagation()" />
-				<div id="btn-lp-elevation-up" class="tf-sm-btn" onclick="widget:lpElevUp(); event:StopPropagation()">
+				<input type="range" id="slider-lp-elevation" class="tf-slider" min="0" max="2000" step="5" value="20" data-event-change="onLpElevChange()" />
+				<div id="btn-lp-elevation-up" class="tf-sm-btn" data-event-click="onLpElevUp()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="slider-lp-elevation-numbox" class="tf-slider-numbox" value="0" />
@@ -4434,11 +4434,11 @@
 			<div id="lp-theta-section" data-if="lpLightType == 'cone'">
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div class="text-sm text-keybind" style="width: 60dp;">Spread</div>
-					<div id="btn-lp-theta-down" class="tf-sm-btn" onclick="widget:lpThetaDown(); event:StopPropagation()">
+					<div id="btn-lp-theta-down" class="tf-sm-btn" data-event-click="onLpThetaDown()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="slider-lp-theta" class="tf-slider" min="50" max="1500" step="1" value="500" onchange="widget:lpOnThetaChange(element); event:StopPropagation()" />
-					<div id="btn-lp-theta-up" class="tf-sm-btn" onclick="widget:lpThetaUp(); event:StopPropagation()">
+					<input type="range" id="slider-lp-theta" class="tf-slider" min="50" max="1500" step="1" value="500" data-event-change="onLpThetaChange()" />
+					<div id="btn-lp-theta-up" class="tf-sm-btn" data-event-click="onLpThetaUp()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 					<input type="text" id="slider-lp-theta-numbox" class="tf-slider-numbox" value="0" />
@@ -4449,11 +4449,11 @@
 			<div id="lp-beam-section" data-if="lpLightType == 'beam'">
 				<div class="flex flex-row gap-1 items-center mb-1">
 					<div class="text-sm text-keybind" style="width: 60dp;">Length</div>
-					<div id="btn-lp-beam-length-down" class="tf-sm-btn" onclick="widget:lpBeamLenDown(); event:StopPropagation()">
+					<div id="btn-lp-beam-length-down" class="tf-sm-btn" data-event-click="onLpBeamLenDown()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="slider-lp-beam-length" class="tf-slider" min="10" max="5000" step="10" value="300" onchange="widget:lpOnBeamLenChange(element); event:StopPropagation()" />
-					<div id="btn-lp-beam-length-up" class="tf-sm-btn" onclick="widget:lpBeamLenUp(); event:StopPropagation()">
+					<input type="range" id="slider-lp-beam-length" class="tf-slider" min="10" max="5000" step="10" value="300" data-event-change="onLpBeamLenChange()" />
+					<div id="btn-lp-beam-length-up" class="tf-sm-btn" data-event-click="onLpBeamLenUp()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 					<input type="text" id="slider-lp-beam-length-numbox" class="tf-slider-numbox" value="0" />
@@ -4467,11 +4467,11 @@
 					<div class="text-lg text-light">COUNT: <span class="text-xl font-bold" id="lp-count-label">{{lpCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="btn-lp-count-down" class="tf-sm-btn" onclick="widget:lpCountDown(); event:StopPropagation()">
+					<div id="btn-lp-count-down" class="tf-sm-btn" data-event-click="onLpCountDown()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="slider-lp-count" class="tf-slider" min="1" max="500" step="1" value="5" onchange="widget:lpOnCountChange(element); event:StopPropagation()" />
-					<div id="btn-lp-count-up" class="tf-sm-btn" onclick="widget:lpCountUp(); event:StopPropagation()">
+					<input type="range" id="slider-lp-count" class="tf-slider" min="1" max="500" step="1" value="5" data-event-change="onLpCountChange()" />
+					<div id="btn-lp-count-up" class="tf-sm-btn" data-event-click="onLpCountUp()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 					<input type="text" id="slider-lp-count-numbox" class="tf-slider-numbox" value="0" />
@@ -4481,11 +4481,11 @@
 					<div class="text-lg text-light">BRUSH RADIUS: <span class="text-xl font-bold" id="lp-brush-radius-label">{{lpBrushRadiusStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="btn-lp-brush-radius-down" class="tf-sm-btn" onclick="widget:lpBrushRadiusDown(); event:StopPropagation()">
+					<div id="btn-lp-brush-radius-down" class="tf-sm-btn" data-event-click="onLpBrushRadiusDown()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="slider-lp-brush-radius" class="tf-slider" min="8" max="2000" step="8" value="200" onchange="widget:lpOnBrushRadiusChange(element); event:StopPropagation()" />
-					<div id="btn-lp-brush-radius-up" class="tf-sm-btn" onclick="widget:lpBrushRadiusUp(); event:StopPropagation()">
+					<input type="range" id="slider-lp-brush-radius" class="tf-slider" min="8" max="2000" step="8" value="200" data-event-change="onLpBrushRadiusChange()" />
+					<div id="btn-lp-brush-radius-up" class="tf-sm-btn" data-event-click="onLpBrushRadiusUp()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 					<input type="text" id="slider-lp-brush-radius-numbox" class="tf-slider-numbox" value="0" />
@@ -4506,90 +4506,90 @@
 			<!-- MS Paint style color palette (18 columns Ă— 3 rows) -->
 			<div id="lp-color-palette" class="lp-color-palette mb-1">
 				<!-- Row 1: core + warm spectrum -->
-				<div id="lp-swatch-1" class="lp-palette-swatch" onclick="widget:lpSwatch(1); event:StopPropagation()" style="background-color: #ffffff;"></div>
-				<div id="lp-swatch-2" class="lp-palette-swatch" onclick="widget:lpSwatch(2); event:StopPropagation()" style="background-color: #E0E0E0;"></div>
-				<div id="lp-swatch-3" class="lp-palette-swatch" onclick="widget:lpSwatch(3); event:StopPropagation()" style="background-color: #888888;"></div>
-				<div id="lp-swatch-4" class="lp-palette-swatch" onclick="widget:lpSwatch(4); event:StopPropagation()" style="background-color: #555555;"></div>
-				<div id="lp-swatch-5" class="lp-palette-swatch" onclick="widget:lpSwatch(5); event:StopPropagation()" style="background-color: #333333;"></div>
-				<div id="lp-swatch-6" class="lp-palette-swatch" onclick="widget:lpSwatch(6); event:StopPropagation()" style="background-color: #1D1D1D;"></div>
-				<div id="lp-swatch-7" class="lp-palette-swatch" onclick="widget:lpSwatch(7); event:StopPropagation()" style="background-color: #080606;"></div>
-				<div id="lp-swatch-8" class="lp-palette-swatch" onclick="widget:lpSwatch(8); event:StopPropagation()" style="background-color: #FF0000;"></div>
-				<div id="lp-swatch-9" class="lp-palette-swatch" onclick="widget:lpSwatch(9); event:StopPropagation()" style="background-color: #ff4400;"></div>
-				<div id="lp-swatch-10" class="lp-palette-swatch" onclick="widget:lpSwatch(10); event:StopPropagation()" style="background-color: #ff8800;"></div>
-				<div id="lp-swatch-11" class="lp-palette-swatch" onclick="widget:lpSwatch(11); event:StopPropagation()" style="background-color: #ffcc00;"></div>
-				<div id="lp-swatch-12" class="lp-palette-swatch" onclick="widget:lpSwatch(12); event:StopPropagation()" style="background-color: #FFEE54;"></div>
-				<div id="lp-swatch-13" class="lp-palette-swatch" onclick="widget:lpSwatch(13); event:StopPropagation()" style="background-color: #88ff00;"></div>
-				<div id="lp-swatch-14" class="lp-palette-swatch" onclick="widget:lpSwatch(14); event:StopPropagation()" style="background-color: #00ff00;"></div>
-				<div id="lp-swatch-15" class="lp-palette-swatch" onclick="widget:lpSwatch(15); event:StopPropagation()" style="background-color: #00ffcc;"></div>
-				<div id="lp-swatch-16" class="lp-palette-swatch" onclick="widget:lpSwatch(16); event:StopPropagation()" style="background-color: #00ccff;"></div>
-				<div id="lp-swatch-17" class="lp-palette-swatch" onclick="widget:lpSwatch(17); event:StopPropagation()" style="background-color: #0088ff;"></div>
-				<div id="lp-swatch-18" class="lp-palette-swatch" onclick="widget:lpSwatch(18); event:StopPropagation()" style="background-color: #0000ff;"></div>
+				<div id="lp-swatch-1" class="lp-palette-swatch" data-event-click="onLpSwatch(1)" style="background-color: #ffffff;"></div>
+				<div id="lp-swatch-2" class="lp-palette-swatch" data-event-click="onLpSwatch(2)" style="background-color: #E0E0E0;"></div>
+				<div id="lp-swatch-3" class="lp-palette-swatch" data-event-click="onLpSwatch(3)" style="background-color: #888888;"></div>
+				<div id="lp-swatch-4" class="lp-palette-swatch" data-event-click="onLpSwatch(4)" style="background-color: #555555;"></div>
+				<div id="lp-swatch-5" class="lp-palette-swatch" data-event-click="onLpSwatch(5)" style="background-color: #333333;"></div>
+				<div id="lp-swatch-6" class="lp-palette-swatch" data-event-click="onLpSwatch(6)" style="background-color: #1D1D1D;"></div>
+				<div id="lp-swatch-7" class="lp-palette-swatch" data-event-click="onLpSwatch(7)" style="background-color: #080606;"></div>
+				<div id="lp-swatch-8" class="lp-palette-swatch" data-event-click="onLpSwatch(8)" style="background-color: #FF0000;"></div>
+				<div id="lp-swatch-9" class="lp-palette-swatch" data-event-click="onLpSwatch(9)" style="background-color: #ff4400;"></div>
+				<div id="lp-swatch-10" class="lp-palette-swatch" data-event-click="onLpSwatch(10)" style="background-color: #ff8800;"></div>
+				<div id="lp-swatch-11" class="lp-palette-swatch" data-event-click="onLpSwatch(11)" style="background-color: #ffcc00;"></div>
+				<div id="lp-swatch-12" class="lp-palette-swatch" data-event-click="onLpSwatch(12)" style="background-color: #FFEE54;"></div>
+				<div id="lp-swatch-13" class="lp-palette-swatch" data-event-click="onLpSwatch(13)" style="background-color: #88ff00;"></div>
+				<div id="lp-swatch-14" class="lp-palette-swatch" data-event-click="onLpSwatch(14)" style="background-color: #00ff00;"></div>
+				<div id="lp-swatch-15" class="lp-palette-swatch" data-event-click="onLpSwatch(15)" style="background-color: #00ffcc;"></div>
+				<div id="lp-swatch-16" class="lp-palette-swatch" data-event-click="onLpSwatch(16)" style="background-color: #00ccff;"></div>
+				<div id="lp-swatch-17" class="lp-palette-swatch" data-event-click="onLpSwatch(17)" style="background-color: #0088ff;"></div>
+				<div id="lp-swatch-18" class="lp-palette-swatch" data-event-click="onLpSwatch(18)" style="background-color: #0000ff;"></div>
 				<!-- Row 2: cool spectrum + warm tones -->
-				<div id="lp-swatch-19" class="lp-palette-swatch" onclick="widget:lpSwatch(19); event:StopPropagation()" style="background-color: #FFFFCC;"></div>
-				<div id="lp-swatch-20" class="lp-palette-swatch" onclick="widget:lpSwatch(20); event:StopPropagation()" style="background-color: #ffe0b0;"></div>
-				<div id="lp-swatch-21" class="lp-palette-swatch" onclick="widget:lpSwatch(21); event:StopPropagation()" style="background-color: #ffc87c;"></div>
-				<div id="lp-swatch-22" class="lp-palette-swatch" onclick="widget:lpSwatch(22); event:StopPropagation()" style="background-color: #ffaa44;"></div>
-				<div id="lp-swatch-23" class="lp-palette-swatch" onclick="widget:lpSwatch(23); event:StopPropagation()" style="background-color: #cc6600;"></div>
-				<div id="lp-swatch-24" class="lp-palette-swatch" onclick="widget:lpSwatch(24); event:StopPropagation()" style="background-color: #884400;"></div>
-				<div id="lp-swatch-25" class="lp-palette-swatch" onclick="widget:lpSwatch(25); event:StopPropagation()" style="background-color: #442200;"></div>
-				<div id="lp-swatch-26" class="lp-palette-swatch" onclick="widget:lpSwatch(26); event:StopPropagation()" style="background-color: #ff0088;"></div>
-				<div id="lp-swatch-27" class="lp-palette-swatch" onclick="widget:lpSwatch(27); event:StopPropagation()" style="background-color: #ff00ff;"></div>
-				<div id="lp-swatch-28" class="lp-palette-swatch" onclick="widget:lpSwatch(28); event:StopPropagation()" style="background-color: #8800ff;"></div>
-				<div id="lp-swatch-29" class="lp-palette-swatch" onclick="widget:lpSwatch(29); event:StopPropagation()" style="background-color: #A41DE2;"></div>
-				<div id="lp-swatch-30" class="lp-palette-swatch" onclick="widget:lpSwatch(30); event:StopPropagation()" style="background-color: #6644cc;"></div>
-				<div id="lp-swatch-31" class="lp-palette-swatch" onclick="widget:lpSwatch(31); event:StopPropagation()" style="background-color: #00ffff;"></div>
-				<div id="lp-swatch-32" class="lp-palette-swatch" onclick="widget:lpSwatch(32); event:StopPropagation()" style="background-color: #aaffcc;"></div>
-				<div id="lp-swatch-33" class="lp-palette-swatch" onclick="widget:lpSwatch(33); event:StopPropagation()" style="background-color: #ccddff;"></div>
-				<div id="lp-swatch-34" class="lp-palette-swatch" onclick="widget:lpSwatch(34); event:StopPropagation()" style="background-color: #ffccdd;"></div>
-				<div id="lp-swatch-35" class="lp-palette-swatch" onclick="widget:lpSwatch(35); event:StopPropagation()" style="background-color: #ddccff;"></div>
-				<div id="lp-swatch-36" class="lp-palette-swatch" onclick="widget:lpSwatch(36); event:StopPropagation()" style="background-color: #ccffdd;"></div>
+				<div id="lp-swatch-19" class="lp-palette-swatch" data-event-click="onLpSwatch(19)" style="background-color: #FFFFCC;"></div>
+				<div id="lp-swatch-20" class="lp-palette-swatch" data-event-click="onLpSwatch(20)" style="background-color: #ffe0b0;"></div>
+				<div id="lp-swatch-21" class="lp-palette-swatch" data-event-click="onLpSwatch(21)" style="background-color: #ffc87c;"></div>
+				<div id="lp-swatch-22" class="lp-palette-swatch" data-event-click="onLpSwatch(22)" style="background-color: #ffaa44;"></div>
+				<div id="lp-swatch-23" class="lp-palette-swatch" data-event-click="onLpSwatch(23)" style="background-color: #cc6600;"></div>
+				<div id="lp-swatch-24" class="lp-palette-swatch" data-event-click="onLpSwatch(24)" style="background-color: #884400;"></div>
+				<div id="lp-swatch-25" class="lp-palette-swatch" data-event-click="onLpSwatch(25)" style="background-color: #442200;"></div>
+				<div id="lp-swatch-26" class="lp-palette-swatch" data-event-click="onLpSwatch(26)" style="background-color: #ff0088;"></div>
+				<div id="lp-swatch-27" class="lp-palette-swatch" data-event-click="onLpSwatch(27)" style="background-color: #ff00ff;"></div>
+				<div id="lp-swatch-28" class="lp-palette-swatch" data-event-click="onLpSwatch(28)" style="background-color: #8800ff;"></div>
+				<div id="lp-swatch-29" class="lp-palette-swatch" data-event-click="onLpSwatch(29)" style="background-color: #A41DE2;"></div>
+				<div id="lp-swatch-30" class="lp-palette-swatch" data-event-click="onLpSwatch(30)" style="background-color: #6644cc;"></div>
+				<div id="lp-swatch-31" class="lp-palette-swatch" data-event-click="onLpSwatch(31)" style="background-color: #00ffff;"></div>
+				<div id="lp-swatch-32" class="lp-palette-swatch" data-event-click="onLpSwatch(32)" style="background-color: #aaffcc;"></div>
+				<div id="lp-swatch-33" class="lp-palette-swatch" data-event-click="onLpSwatch(33)" style="background-color: #ccddff;"></div>
+				<div id="lp-swatch-34" class="lp-palette-swatch" data-event-click="onLpSwatch(34)" style="background-color: #ffccdd;"></div>
+				<div id="lp-swatch-35" class="lp-palette-swatch" data-event-click="onLpSwatch(35)" style="background-color: #ddccff;"></div>
+				<div id="lp-swatch-36" class="lp-palette-swatch" data-event-click="onLpSwatch(36)" style="background-color: #ccffdd;"></div>
 				<!-- Row 3: BAR theme + lighting-specific -->
-				<div id="lp-swatch-37" class="lp-palette-swatch" onclick="widget:lpSwatch(37); event:StopPropagation()" style="background-color: #2BA5EA;"></div>
-				<div id="lp-swatch-38" class="lp-palette-swatch" onclick="widget:lpSwatch(38); event:StopPropagation()" style="background-color: #FDC04C;"></div>
-				<div id="lp-swatch-39" class="lp-palette-swatch" onclick="widget:lpSwatch(39); event:StopPropagation()" style="background-color: #46EA2B;"></div>
-				<div id="lp-swatch-40" class="lp-palette-swatch" onclick="widget:lpSwatch(40); event:StopPropagation()" style="background-color: #6B5A00;"></div>
-				<div id="lp-swatch-41" class="lp-palette-swatch" onclick="widget:lpSwatch(41); event:StopPropagation()" style="background-color: #282828;"></div>
-				<div id="lp-swatch-42" class="lp-palette-swatch" onclick="widget:lpSwatch(42); event:StopPropagation()" style="background-color: #ffeedd;"></div>
-				<div id="lp-swatch-43" class="lp-palette-swatch" onclick="widget:lpSwatch(43); event:StopPropagation()" style="background-color: #ffd4a0;"></div>
-				<div id="lp-swatch-44" class="lp-palette-swatch" onclick="widget:lpSwatch(44); event:StopPropagation()" style="background-color: #ffbb77;"></div>
-				<div id="lp-swatch-45" class="lp-palette-swatch" onclick="widget:lpSwatch(45); event:StopPropagation()" style="background-color: #ff9944;"></div>
-				<div id="lp-swatch-46" class="lp-palette-swatch" onclick="widget:lpSwatch(46); event:StopPropagation()" style="background-color: #ff7722;"></div>
-				<div id="lp-swatch-47" class="lp-palette-swatch" onclick="widget:lpSwatch(47); event:StopPropagation()" style="background-color: #dd5500;"></div>
-				<div id="lp-swatch-48" class="lp-palette-swatch" onclick="widget:lpSwatch(48); event:StopPropagation()" style="background-color: #eeeeff;"></div>
-				<div id="lp-swatch-49" class="lp-palette-swatch" onclick="widget:lpSwatch(49); event:StopPropagation()" style="background-color: #ccccff;"></div>
-				<div id="lp-swatch-50" class="lp-palette-swatch" onclick="widget:lpSwatch(50); event:StopPropagation()" style="background-color: #aabbff;"></div>
-				<div id="lp-swatch-51" class="lp-palette-swatch" onclick="widget:lpSwatch(51); event:StopPropagation()" style="background-color: #8899dd;"></div>
-				<div id="lp-swatch-52" class="lp-palette-swatch" onclick="widget:lpSwatch(52); event:StopPropagation()" style="background-color: #6677bb;"></div>
-				<div id="lp-swatch-53" class="lp-palette-swatch" onclick="widget:lpSwatch(53); event:StopPropagation()" style="background-color: #445599;"></div>
-				<div id="lp-swatch-54" class="lp-palette-swatch" onclick="widget:lpSwatch(54); event:StopPropagation()" style="background-color: #223377;"></div>
+				<div id="lp-swatch-37" class="lp-palette-swatch" data-event-click="onLpSwatch(37)" style="background-color: #2BA5EA;"></div>
+				<div id="lp-swatch-38" class="lp-palette-swatch" data-event-click="onLpSwatch(38)" style="background-color: #FDC04C;"></div>
+				<div id="lp-swatch-39" class="lp-palette-swatch" data-event-click="onLpSwatch(39)" style="background-color: #46EA2B;"></div>
+				<div id="lp-swatch-40" class="lp-palette-swatch" data-event-click="onLpSwatch(40)" style="background-color: #6B5A00;"></div>
+				<div id="lp-swatch-41" class="lp-palette-swatch" data-event-click="onLpSwatch(41)" style="background-color: #282828;"></div>
+				<div id="lp-swatch-42" class="lp-palette-swatch" data-event-click="onLpSwatch(42)" style="background-color: #ffeedd;"></div>
+				<div id="lp-swatch-43" class="lp-palette-swatch" data-event-click="onLpSwatch(43)" style="background-color: #ffd4a0;"></div>
+				<div id="lp-swatch-44" class="lp-palette-swatch" data-event-click="onLpSwatch(44)" style="background-color: #ffbb77;"></div>
+				<div id="lp-swatch-45" class="lp-palette-swatch" data-event-click="onLpSwatch(45)" style="background-color: #ff9944;"></div>
+				<div id="lp-swatch-46" class="lp-palette-swatch" data-event-click="onLpSwatch(46)" style="background-color: #ff7722;"></div>
+				<div id="lp-swatch-47" class="lp-palette-swatch" data-event-click="onLpSwatch(47)" style="background-color: #dd5500;"></div>
+				<div id="lp-swatch-48" class="lp-palette-swatch" data-event-click="onLpSwatch(48)" style="background-color: #eeeeff;"></div>
+				<div id="lp-swatch-49" class="lp-palette-swatch" data-event-click="onLpSwatch(49)" style="background-color: #ccccff;"></div>
+				<div id="lp-swatch-50" class="lp-palette-swatch" data-event-click="onLpSwatch(50)" style="background-color: #aabbff;"></div>
+				<div id="lp-swatch-51" class="lp-palette-swatch" data-event-click="onLpSwatch(51)" style="background-color: #8899dd;"></div>
+				<div id="lp-swatch-52" class="lp-palette-swatch" data-event-click="onLpSwatch(52)" style="background-color: #6677bb;"></div>
+				<div id="lp-swatch-53" class="lp-palette-swatch" data-event-click="onLpSwatch(53)" style="background-color: #445599;"></div>
+				<div id="lp-swatch-54" class="lp-palette-swatch" data-event-click="onLpSwatch(54)" style="background-color: #223377;"></div>
 			</div>
 			<div id="lp-color-preview" class="lp-color-preview mb-1"></div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-color-r-down" class="tf-sm-btn" onclick="widget:lpColorRDown(); event:StopPropagation()">
+				<div id="btn-lp-color-r-down" class="tf-sm-btn" data-event-click="onLpColorRDown()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="slider-lp-color-r" class="tf-slider lp-slider-compact lp-slider-channel-r" min="0" max="1000" step="1" value="1000" onchange="widget:lpOnColorRChange(element); event:StopPropagation()" />
-				<div id="btn-lp-color-r-up" class="tf-sm-btn" onclick="widget:lpColorRUp(); event:StopPropagation()">
+				<input type="range" id="slider-lp-color-r" class="tf-slider lp-slider-compact lp-slider-channel-r" min="0" max="1000" step="1" value="1000" data-event-change="onLpColorRChange()" />
+				<div id="btn-lp-color-r-up" class="tf-sm-btn" data-event-click="onLpColorRUp()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="slider-lp-color-r-numbox" class="tf-slider-numbox" value="0" />
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-color-g-down" class="tf-sm-btn" onclick="widget:lpColorGDown(); event:StopPropagation()">
+				<div id="btn-lp-color-g-down" class="tf-sm-btn" data-event-click="onLpColorGDown()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="slider-lp-color-g" class="tf-slider lp-slider-compact lp-slider-channel-g" min="0" max="1000" step="1" value="900" onchange="widget:lpOnColorGChange(element); event:StopPropagation()" />
-				<div id="btn-lp-color-g-up" class="tf-sm-btn" onclick="widget:lpColorGUp(); event:StopPropagation()">
+				<input type="range" id="slider-lp-color-g" class="tf-slider lp-slider-compact lp-slider-channel-g" min="0" max="1000" step="1" value="900" data-event-change="onLpColorGChange()" />
+				<div id="btn-lp-color-g-up" class="tf-sm-btn" data-event-click="onLpColorGUp()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="slider-lp-color-g-numbox" class="tf-slider-numbox" value="0" />
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-color-b-down" class="tf-sm-btn" onclick="widget:lpColorBDown(); event:StopPropagation()">
+				<div id="btn-lp-color-b-down" class="tf-sm-btn" data-event-click="onLpColorBDown()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="slider-lp-color-b" class="tf-slider lp-slider-compact lp-slider-channel-b" min="0" max="1000" step="1" value="700" onchange="widget:lpOnColorBChange(element); event:StopPropagation()" />
-				<div id="btn-lp-color-b-up" class="tf-sm-btn" onclick="widget:lpColorBUp(); event:StopPropagation()">
+				<input type="range" id="slider-lp-color-b" class="tf-slider lp-slider-compact lp-slider-channel-b" min="0" max="1000" step="1" value="700" data-event-change="onLpColorBChange()" />
+				<div id="btn-lp-color-b-up" class="tf-sm-btn" data-event-click="onLpColorBUp()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="slider-lp-color-b-numbox" class="tf-slider-numbox" value="0" />
@@ -4606,11 +4606,11 @@
 			</div>
 		<div id="section-lp-undo" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-lp-undo" class="tf-history-btn" onclick="widget:lpUndo(); event:StopPropagation()">
+			<div id="btn-lp-undo" class="tf-history-btn" data-event-click="onLpUndo()">
 				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
 			</div>
-			<input type="range" id="slider-lp-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" onchange="widget:lpOnHistoryChange(element); event:StopPropagation()" />
-			<div id="btn-lp-redo" class="tf-history-btn" onclick="widget:lpRedo(); event:StopPropagation()">
+			<input type="range" id="slider-lp-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" data-event-change="onLpHistoryChange()" />
+			<div id="btn-lp-redo" class="tf-history-btn" data-event-click="onLpRedo()">
 				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
 			</div>
 			<input type="text" id="slider-lp-history-numbox" class="tf-slider-numbox" value="0" />
@@ -4627,20 +4627,20 @@
 			</div>
 		<div id="section-lp-saveload" class="hidden">
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-lp-library" class="tf-lp-action-btn" style="flex: 1;" onclick="widget:lpLibrary(); event:StopPropagation()">
+			<div id="btn-lp-library" class="tf-lp-action-btn" style="flex: 1;" data-event-click="onLpLibrary()">
 				<div class="tf-action-btn-text">LIGHT LIBRARY</div>
 			</div>
 		</div>
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-lp-save" class="tf-lp-action-btn tf-save-btn" style="flex: 1;" onclick="widget:lpSave(); event:StopPropagation()">
+			<div id="btn-lp-save" class="tf-lp-action-btn tf-save-btn" style="flex: 1;" data-event-click="onLpSave()">
 				<div class="tf-action-btn-text">SAVE</div>
 			</div>
-			<div id="btn-lp-load" class="tf-lp-action-btn tf-load-btn" style="flex: 1;" onclick="widget:lpLoad(); event:StopPropagation()">
+			<div id="btn-lp-load" class="tf-lp-action-btn tf-load-btn" style="flex: 1;" data-event-click="onLpLoad()">
 				<div class="tf-action-btn-text">LOAD</div>
 			</div>
 		</div>
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-lp-clear-all" class="tf-lp-action-btn" style="flex: 1;" onclick="widget:lpClearAll(); event:StopPropagation()">
+			<div id="btn-lp-clear-all" class="tf-lp-action-btn" style="flex: 1;" data-event-click="onLpClearAll()">
 				<div class="tf-action-btn-text">CLEAR ALL</div>
 			</div>
 		</div>
@@ -6083,23 +6083,23 @@
 	<div id="tf-light-library-root" class="tf-light-library-root widget-shadow rounded-md bg-darkest p-2-5" data-if="lpLibraryOpen">
 		<div class="flex flex-row justify-between items-center mb-1">
 			<div id="tf-light-library-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Light Library</div>
-			<div id="btn-light-library-close" class="tf-quit-btn" onclick="widget:llClose(); event:StopPropagation()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+			<div id="btn-light-library-close" class="tf-quit-btn" data-event-click="onLlClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 
 		<!-- Tab bar -->
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-ll-tab-builtin" class="tf-lp-compact-btn tf-ll-tab-btn" style="flex:1;" data-class-active="lpLibraryTab == 'builtin'" onclick="widget:llTabBuiltin(); event:StopPropagation()">
+			<div id="btn-ll-tab-builtin" class="tf-lp-compact-btn tf-ll-tab-btn" style="flex:1;" data-class-active="lpLibraryTab == 'builtin'" data-event-click="onLlTabBuiltin()">
 				<div class="tf-btn-text">Builtin</div>
 			</div>
-			<div id="btn-ll-tab-user" class="tf-lp-compact-btn tf-ll-tab-btn" style="flex:1;" data-class-active="lpLibraryTab == 'user'" onclick="widget:llTabUser(); event:StopPropagation()">
+			<div id="btn-ll-tab-user" class="tf-lp-compact-btn tf-ll-tab-btn" style="flex:1;" data-class-active="lpLibraryTab == 'user'" data-event-click="onLlTabUser()">
 				<div class="tf-btn-text">User Presets</div>
 			</div>
 		</div>
 
 		<!-- Search bar -->
 		<div class="ll-search-wrapper mb-1">
-			<input type="text" id="ll-search-input" class="ll-search-input" placeholder="Search presets..." onchange="widget:llOnSearch(); event:StopPropagation()" />
-			<div id="btn-ll-search-clear" class="ll-search-clear-btn" onclick="widget:llSearchClear(); event:StopPropagation()"><img class="ll-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+			<input type="text" id="ll-search-input" class="ll-search-input" placeholder="Search presets..." data-event-change="onLlSearch()" />
+			<div id="btn-ll-search-clear" class="ll-search-clear-btn" data-event-click="onLlSearchClear()"><img class="ll-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 
 		<!-- Builtin presets list -->
@@ -6117,17 +6117,17 @@
 		<div class="text-xs text-keybind mb-1 mt-1">Save placed lights as user preset:</div>
 		<div class="flex flex-row gap-1 items-center">
 			<input id="input-ll-preset-name" type="text" class="ll-preset-input" value="" maxlength="48" />
-			<div id="btn-ll-save-preset" class="tf-lp-action-btn tf-save-btn" style="width: 50dp;" onclick="widget:llSavePreset(); event:StopPropagation()">
+			<div id="btn-ll-save-preset" class="tf-lp-action-btn tf-save-btn" style="width: 50dp;" data-event-click="onLlSavePreset()">
 				<div class="tf-action-btn-text">SAVE</div>
 			</div>
 		</div>
 
 		<!-- Delete / Refresh -->
 		<div class="flex flex-row gap-1 mt-1">
-			<div id="btn-ll-delete-preset" class="tf-lp-action-btn" style="flex: 1;" onclick="widget:llDeletePreset(); event:StopPropagation()">
+			<div id="btn-ll-delete-preset" class="tf-lp-action-btn" style="flex: 1;" data-event-click="onLlDeletePreset()">
 				<div class="tf-action-btn-text">DELETE</div>
 			</div>
-			<div id="btn-ll-refresh" class="tf-lp-action-btn" style="flex: 1;" onclick="widget:llRefresh(); event:StopPropagation()">
+			<div id="btn-ll-refresh" class="tf-lp-action-btn" style="flex: 1;" data-event-click="onLlRefresh()">
 				<div class="tf-action-btn-text">REFRESH</div>
 			</div>
 		</div>
