@@ -143,8 +143,8 @@ dynamicPieceCollisionVolume['leganavybattleship'] = {
 }
 dynamicPieceCollisionVolume['legacluster'] = {
 	on = {
-		['0'] = { 47, 48, 47, 0, 0, 0, 1, 1 },
-		offsets = { 0, 48, 0 },
+		['0'] = { 47, 56, 47, 0, 0, 0, 1, 1 },
+		offsets = { 0, 18, 0 },
 	},
 	off = {
 		['0'] = { 47, 20, 47, 0, 0, 0, 1, 1 },

@@ -14,7 +14,7 @@ return {
 		health = 2500,
 		leavetracks = true,
 		maxacc = 0.02,
-		maxdec = 0.04537,
+		maxdec = 0.1,
 		maxslope = 20,
 		maxwaterdepth = 20,
 		metalcost = 1000,

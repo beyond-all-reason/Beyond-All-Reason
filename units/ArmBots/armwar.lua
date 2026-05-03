@@ -23,7 +23,7 @@ return {
 		script = "Units/ARMWAR.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 350,
+		sightdistance = 380,
 		speed = 45,
 		turninplace = true,
 		turninplaceanglelimit = 90,
