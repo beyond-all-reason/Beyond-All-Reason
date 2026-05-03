@@ -7,9 +7,9 @@ return {
 		metalcost = 7700,
 		buildpic = "LEGSILO.DDS",
 		buildtime = 181000,
-		collisionvolumeoffsets = "0 18 -2",
-		collisionvolumescales = "90 38 84",
-		collisionvolumetype = "Box",
+		collisionvolumeoffsets = "0 18 0",
+		collisionvolumescales = "84 38 84",
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "nukeBuilding",
 		footprintx = 7,
@@ -167,6 +167,9 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 100,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},

@@ -10,8 +10,9 @@ return {
 		buildtime = 79000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0.0 0.0 0.0",
-		collisionvolumescales = "102 151 97",
+		collisionvolumescales = "68 160 68",
 		collisionvolumetype = "CylY",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		energystorage = 1000,
@@ -133,14 +134,13 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				customparams = {
+					sweepfire = 4,
+				},
 				damage = {
 					default = 155,
 					vtol = 15,
 				},
-				
-				customparams = {
-					sweepfire=4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}			
 			},
 		},
 		weapons = {

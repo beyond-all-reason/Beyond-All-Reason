@@ -8,7 +8,7 @@ return {
 		buildtime = 3600,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 0",
-		collisionvolumescales = "37 15 44",
+		collisionvolumescales = "37 17 44",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		explodeas = "pyro",
@@ -147,6 +147,7 @@ return {
 					area_onhit_damage = 60,--30,
 					area_onhit_range = 60,
 					area_onhit_time = 7,
+					water_splash = 0,
 				},
 				damage = {
 					default = 60,

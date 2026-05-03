@@ -70,7 +70,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "CorSeaplanes",
+			subfolder = "CorSeaplanes", -- help me
 			techlevel = 2,
 			unitgroup = "buildert2",
 		},

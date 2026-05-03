@@ -2000,7 +2000,7 @@ local options = {
     {
         key     = "debugcommands",
         name    = "Debug Commands",
-        desc    = "A pipe separated list of commands to execute at [gameframe]:luarules fightertest|100:forcequit...", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+        desc    = "A pipe separated list of commands to execute at [gameframe]:luarules benchmark|100:forcequit...", -- example: debugcommands=150:cheat 1|200:luarules benchmark|600:quitforce;
         section = "dev",
         type    = "string",
         def     = "",
@@ -2008,7 +2008,7 @@ local options = {
     {
         key     = "animationcleanup",
         name    = "Animation Cleanup",
-        desc    = "Use animations from the BOSCleanup branch", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+        desc    = "Use animations from the BOSCleanup branch", -- example: debugcommands=150:cheat 1|200:luarules benchmark|600:quitforce;
         section = "dev",
         type    = "bool",
         def     =  false,

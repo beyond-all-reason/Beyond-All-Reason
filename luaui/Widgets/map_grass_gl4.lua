@@ -104,7 +104,7 @@ local grassConfig = {
 	GRASSBRIGHTNESS = 1.0; -- this is for future dark mode
 	COMPACTVBO = 1, -- if set to 1, then the grass patch vbo will be compacted to 8 vertices per patch, otherwise it will be 17 vertices per patch
 	UNITBENDENABLED = 1, -- 1 to enable grass bending away from units, 0 to disable
-	UNITBENDSTRENGTH = 7, -- how strongly grass bends away from nearby units
+	UNITBENDSTRENGTH = 5.5, -- how strongly grass bends away from nearby units
 	UNITBENDFALLOFF = 0.8, -- falloff exponent for bending effect (higher = sharper falloff)
 	UNITBENDSHRINK = 0.55, -- how much grass shrinks near unit center (0 = no shrink, 1 = fully gone)
   },

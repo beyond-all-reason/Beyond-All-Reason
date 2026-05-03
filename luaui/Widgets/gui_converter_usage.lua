@@ -32,6 +32,8 @@ local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glGetViewSizes = gl.GetViewSizes
 local glDeleteList = gl.DeleteList
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
 local floor = math.floor
 
@@ -123,6 +125,7 @@ local function updateUI()
 end
 
 function widget:DrawScreen()
+	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     if dlistCU and dlistGuishader then
         glCallList(dlistCU)
     end
