@@ -93,21 +93,33 @@ function widget:Update()
 
 	_, activeCmdID = spGetActiveCommand()
 
-	if not activeCmdID then
-		clear()
-		return
-	end
+	if not (buttonOneState) then
+		if not activeCmdID then
+			clear()
+			return
+		end
 
-	if activeCmdID == CMD.UNLOAD_UNITS then
-		selectedUnload = true
-	end
+		if activeCmdID == CMD.UNLOAD_UNITS then
+			selectedUnload = true
+		end
 
-	if not (selectedUnload) then
-		clear()
-		return
+		if not selectedUnload then
+			clear()
+			return
+		end
 	end
 	-- Attempt to get position of command
 	local mx, my, mb, mmb, mrb = spGetMouseState()
+	local mouseMoved = MouseMoved(mx, my) == true
+	if buttonOneState and mouseMoved then
+		buttonOneState = false
+		clear()
+		return
+	elseif buttonOneState and (not mb) then
+		MouseRelease(mx, my, 1)
+		return
+	end
+
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local _, pos = spTraceScreenRay(mx, my, true)
 	if not pos or not pos[1] then
@@ -184,13 +196,28 @@ function widget:CommandNotify(cmdID, params, options)
 end
 
 function widget:MousePress(x, y, button)
+	if button == 1 and selectedUnload then
+		LastCursorPosX, LastCursorPosY = x, y
+		buttonOneState = true
+	end
+
+end
+
+function MouseMoved(x, y)
+	if x ~= LastCursorPosX or y ~= LastCursorPosY then
+		return true
+	end
+	return false
+end
+
+function MouseRelease(x, y, button)
 	if button == 1 and buildCmd and buildCmd[1] then
-		widgetHandled = true
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		shift = Spring.GetInvertQueueKey() and (not shift) or shift
 		Spring.GiveOrderToUnitArray(Spring.GetSelectedUnits(), buildCmd[1][1], {buildCmd[1][2], buildCmd[1][3], buildCmd[1][4]}, shift and {"shift"} or {})
 	end
-	widgetHandled = false
+	LastCursorPosX, LastCursorPosY = nil, nil
+	buttonOneState = false
 	clear()
 end
 
