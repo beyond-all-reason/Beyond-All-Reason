@@ -747,6 +747,10 @@ end
 -- Forward declaration: clearPassthrough is defined after initialModel but captured as upvalue
 -- by onCl* (and any future) model-king handlers inside initialModel.
 local clearPassthrough
+-- Forward declarations: populateKeybindList and updateAllKeybindBadges are defined after
+-- initialModel but captured as upvalues by onGuide* model-king handlers inside initialModel.
+local populateKeybindList
+local updateAllKeybindBadges
 
 -- Helpers for noise/clone/splat DataModel handlers defined in initialModel below.
 -- All use widgetState/uiState/WG/playSound upvalues (file-level locals).
@@ -1156,6 +1160,25 @@ local initialModel = {
 	wiggleStr = "OFF",
 	disableTipsStr = "OFF",
 	penSensitivityStr = "100",
+	-- Phase 2 step 6: guide toggle active states (data-class-active bindings)
+	djModeActive = false,
+	dustActive = false,
+	seismicActive = false,
+	penPressureActive = false,
+	wiggleActive = false,
+	disableTipsActive = false,
+	-- Phase 2 step 6: sub-panel dj-disabled states (true = grayed out)
+	djSubDisabled = true,
+	penSubDisabled = true,
+	wiggleSubDisabled = true,
+	-- Phase 2 step 6: pen pressure curve chip active state (1=linear 2=quad 3=cubic 4=scurve 5=log)
+	penCurveN = 2,
+	-- Phase 2 step 6: wiggle amp/spd chip active states (1-4)
+	wiggleAmpIdx = 1,
+	wiggleSpdIdx = 1,
+	-- Phase 2 step 6: pen mod check icon src (data-attr-src)
+	penModIntSrc = "/luaui/images/terraform_brush/check_on.png",
+	penModSizeSrc = "/luaui/images/terraform_brush/check_off.png",
 
 	-- terraform mode instrument sub-rows (data-if visibility flags)
 	tfGridSnap = false,
@@ -3127,6 +3150,479 @@ local initialModel = {
 			playSound("toggleOn")
 		end
 	end,
+	-- Phase 2 step 6: tf_decals model-king handlers — defined here (not in M.attach)
+	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
+	-- Closures capture file-level widgetState/uiState/WG/playSound/_elemSliderVal/_noSliderVal upvalues.
+	onDcSetDist = function(_event, dist)
+		playSound("shapeSwitch")
+		if WG.DecalPlacer then WG.DecalPlacer.setDistribution(dist) end
+		local d = widgetState.dmHandle; if d then d.dcDistribution = dist end
+	end,
+	onDcHeatmapExport = function(_event)
+		playSound("tick")
+		if WG.DecalExporter then
+			WG.DecalExporter.exportHeatmapCSV()
+			WG.DecalExporter.exportHeatmapPGM()
+		else
+			Spring.Echo("[Decal Heatmap] Enable the 'Decal Exporter & Analytics' widget first")
+		end
+	end,
+	onDcHeatmapReset = function(_event)
+		playSound("tick")
+		if WG.DecalExporter then
+			WG.DecalExporter.resetHeatmap()
+			Spring.Echo("[Decal Heatmap] Heatmap reset")
+		end
+	end,
+	onDcLibScatter = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then Spring.Echo("[Decal Library] Enable the 'Decal Placer' widget first"); return end
+		WG.DecalPlacer.setMode("scatter")
+	end,
+	onDcLibPoint = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then Spring.Echo("[Decal Library] Enable the 'Decal Placer' widget first"); return end
+		WG.DecalPlacer.setMode("point")
+	end,
+	onDcLibRemove = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then Spring.Echo("[Decal Library] Enable the 'Decal Placer' widget first"); return end
+		WG.DecalPlacer.setMode("remove")
+	end,
+	onDcRadiusChange = function(_event)
+		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		WG.DecalPlacer.setRadius(_elemSliderVal("dc-slider-radius", 200))
+	end,
+	onDcRadiusDown = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setRadius(st.radius - 8)
+	end,
+	onDcRadiusUp = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setRadius(st.radius + 8)
+	end,
+	onDcRotationChange = function(_event)
+		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		WG.DecalPlacer.setRotation(_elemSliderVal("dc-slider-rotation", 0))
+	end,
+	onDcRotCCW = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setRotation(st.rotation - 5)
+	end,
+	onDcRotCW = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setRotation(st.rotation + 5)
+	end,
+	onDcRotRandChange = function(_event)
+		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		WG.DecalPlacer.setRotRandom(_elemSliderVal("dc-slider-rotrand", 100))
+	end,
+	onDcRotRandDown = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setRotRandom(st.rotRandom - 1)
+	end,
+	onDcRotRandUp = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setRotRandom(st.rotRandom + 1)
+	end,
+	onDcCountChange = function(_event)
+		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		WG.DecalPlacer.setDecalCount(_elemSliderVal("dc-slider-count", 8))
+	end,
+	onDcCountDown = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setDecalCount(st.decalCount - 1)
+	end,
+	onDcCountUp = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setDecalCount(st.decalCount + 1)
+	end,
+	onDcCadenceChange = function(_event)
+		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		WG.DecalPlacer.setCadence(_elemSliderVal("dc-slider-cadence", 50))
+	end,
+	onDcCadenceDown = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setCadence(st.cadence - 5)
+	end,
+	onDcCadenceUp = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setCadence(st.cadence + 5)
+	end,
+	onDcSizeMinChange = function(_event)
+		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		WG.DecalPlacer.setSizeMin(_elemSliderVal("dc-slider-sizemin", 32))
+	end,
+	onDcSizeMinDown = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setSizeMin(st.sizeMin - 4)
+	end,
+	onDcSizeMinUp = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setSizeMin(st.sizeMin + 4)
+	end,
+	onDcSizeMaxChange = function(_event)
+		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		WG.DecalPlacer.setSizeMax(_elemSliderVal("dc-slider-sizemax", 96))
+	end,
+	onDcSizeMaxDown = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setSizeMax(st.sizeMax - 4)
+	end,
+	onDcSizeMaxUp = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setSizeMax(st.sizeMax + 4)
+	end,
+	onDcAlphaChange = function(_event)
+		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		WG.DecalPlacer.setAlpha(_elemSliderVal("dc-slider-alpha", 85) / 100)
+	end,
+	onDcAlphaDown = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setAlpha(math.max(0, ((st.alpha or 0) * 100 - 1) / 100))
+	end,
+	onDcAlphaUp = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local st = WG.DecalPlacer.getState(); if not st then return end
+		WG.DecalPlacer.setAlpha(math.min(1, ((st.alpha or 0) * 100 + 1) / 100))
+	end,
+	onDcAlignToggle = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local s = WG.DecalPlacer.getState()
+		if s then WG.DecalPlacer.setAlignToNormal(not s.alignToNormal) end
+	end,
+	onDcUndo = function(_event)
+		if WG.DecalPlacer then playSound("undo"); WG.DecalPlacer.undo() end
+	end,
+	onDcRedo = function(_event)
+		-- placeholder; DC redo not implemented
+	end,
+	onDcHistoryChange = function(_event)
+		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		local val = _noSliderVal("dc-history", 0)
+		local dcSt = WG.DecalPlacer.getState()
+		if not dcSt then return end
+		local cur = dcSt.undoCount or 0
+		local diff = val - cur
+		if diff < 0 then
+			for _ = 1, -diff do WG.DecalPlacer.undo() end
+		end
+	end,
+	onDcClearAll = function(_event)
+		playSound("tick")
+		if WG.DecalPlacer then WG.DecalPlacer.clearAll() end
+	end,
+	onDcSave = function(_event)
+		playSound("tick")
+		if WG.DecalPlacer then WG.DecalPlacer.save() end
+	end,
+	onDcLoad = function(_event)
+		playSound("tick")
+		if not WG.DecalPlacer then return end
+		local saves = WG.DecalPlacer.listSaves()
+		if not saves or #saves == 0 then
+			Spring.Echo("[Decal Placer] No saved files"); return
+		end
+		WG.DecalPlacer.load(saves[#saves])
+		Spring.Echo("[Decal Placer] Loaded " .. saves[#saves])
+	end,
+	-- Phase 2 step 6: tf_guide model-king handlers — defined here (not in M.attach)
+	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
+	-- Closures capture widgetState/uiState/WG/playSound/_elemSliderVal/
+	-- populateKeybindList/updateAllKeybindBadges upvalues.
+	onGuideToggleSound = function(_event)
+		widgetState.soundMuted = not widgetState.soundMuted
+		local d = widgetState.dmHandle; if d then d.soundMuted = widgetState.soundMuted end
+	end,
+	onGuideToggle = function(_event)
+		widgetState.guideMode = not widgetState.guideMode
+		local d = widgetState.dmHandle; if d then d.guideMode = widgetState.guideMode end
+		if not widgetState.guideMode then
+			widgetState.currentHint = nil
+			widgetState.lastRenderedHint = nil
+			if widgetState.floatingTipEl then widgetState.floatingTipEl.inner_rml = "" end
+			widgetState.g3Toast.text   = nil
+			widgetState.g3Toast.expiry = 0
+		end
+	end,
+	onGuideTogglePassthrough = function(_event)
+		if not widgetState.passthroughMode then
+			local saved = nil
+			local tfSt = WG.TerraformBrush and WG.TerraformBrush.getState()
+			local fpSt = WG.FeaturePlacer and WG.FeaturePlacer.getState()
+			local wbSt = WG.WeatherBrush and WG.WeatherBrush.getState()
+			local spSt = WG.SplatPainter and WG.SplatPainter.getState()
+			local mbSt = WG.MetalBrush and WG.MetalBrush.getState()
+			local gbSt = WG.GrassBrush and WG.GrassBrush.getState()
+			local lpSt = WG.LightPlacer and WG.LightPlacer.getState()
+			local stSt = WG.StartPosTool and WG.StartPosTool.getState()
+			local clSt = WG.CloneTool and WG.CloneTool.getState()
+			if tfSt and tfSt.active then
+				saved = { tool = "terraform", mode = tfSt.mode }
+			elseif fpSt and fpSt.active then
+				saved = { tool = "features", mode = fpSt.mode }
+			elseif wbSt and wbSt.active then
+				saved = { tool = "weather", mode = wbSt.mode }
+			elseif spSt and spSt.active then
+				saved = { tool = "splat" }
+			elseif mbSt and mbSt.active then
+				saved = { tool = "metal", mode = mbSt.subMode }
+			elseif gbSt and gbSt.active then
+				saved = { tool = "grass", mode = gbSt.subMode }
+			elseif widgetState.envActive then
+				saved = { tool = "environment" }
+			elseif widgetState.lightActive and lpSt and lpSt.active then
+				saved = { tool = "lights" }
+			elseif widgetState.startposActive and stSt and stSt.active then
+				saved = { tool = "startpos", mode = stSt.mode }
+			elseif widgetState.cloneActive and clSt and clSt.active then
+				saved = { tool = "clone" }
+			end
+			if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
+			if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
+			if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
+			if WG.SplatPainter then WG.SplatPainter.deactivate() end
+			if WG.MetalBrush then WG.MetalBrush.deactivate() end
+			if WG.GrassBrush then WG.GrassBrush.deactivate() end
+			if WG.LightPlacer then WG.LightPlacer.deactivate() end
+			if WG.StartPosTool then WG.StartPosTool.deactivate() end
+			if WG.CloneTool then WG.CloneTool.deactivate() end
+			widgetState.envActive = false
+			widgetState.lightActive = false
+			widgetState.startposActive = false
+			widgetState.cloneActive = false
+			widgetState.passthroughSaved = saved
+			widgetState.passthroughMode = true
+			local d = widgetState.dmHandle; if d then d.passthroughActive = true end
+			if widgetState.rootElement then widgetState.rootElement:SetClass("passthrough-dimmed", true) end
+			playSound("modeSwitch")
+		else
+			widgetState.passthroughMode = false
+			local d = widgetState.dmHandle; if d then d.passthroughActive = false end
+			if widgetState.rootElement then widgetState.rootElement:SetClass("passthrough-dimmed", false) end
+			local s = widgetState.passthroughSaved
+			widgetState.passthroughSaved = nil
+			if s then
+				if s.tool == "terraform" and WG.TerraformBrush then
+					WG.TerraformBrush.setMode(s.mode or "raise")
+				elseif s.tool == "features" and WG.FeaturePlacer then
+					WG.FeaturePlacer.setMode(s.mode or "scatter")
+				elseif s.tool == "weather" and WG.WeatherBrush then
+					WG.WeatherBrush.setMode(s.mode or "place")
+				elseif s.tool == "splat" and WG.SplatPainter then
+					WG.SplatPainter.setMode("paint")
+				elseif s.tool == "metal" and WG.MetalBrush then
+					WG.MetalBrush.setMode(s.mode or "add")
+				elseif s.tool == "grass" and WG.GrassBrush then
+					WG.GrassBrush.setMode(s.mode or "add")
+				elseif s.tool == "environment" then
+					widgetState.envActive = true
+				elseif s.tool == "lights" and WG.LightPlacer then
+					widgetState.lightActive = true
+					WG.LightPlacer.setMode("scatter")
+				elseif s.tool == "startpos" and WG.StartPosTool then
+					widgetState.startposActive = true
+					WG.StartPosTool.setMode(s.mode or "express")
+				elseif s.tool == "clone" and WG.CloneTool then
+					widgetState.cloneActive = true
+					WG.CloneTool.activate()
+				end
+			end
+			playSound("modeSwitch")
+		end
+	end,
+	onGuideToggleSettings = function(_event)
+		widgetState.settingsOpen = not widgetState.settingsOpen
+		local d = widgetState.dmHandle; if d then d.settingsOpen = widgetState.settingsOpen end
+		if widgetState.settingsOpen then
+			if WG.TerraformBrush and WG.TerraformBrush.getKeybinds then
+				widgetState.settingsPendingBinds = WG.TerraformBrush.getKeybinds()
+			end
+			widgetState.settingsCapturing = nil
+			widgetState.settingsCaptureField = nil
+			widgetState.settingsCaptureEl = nil
+			populateKeybindList(widgetState.document)
+		end
+	end,
+	onGuideCloseSettings = function(_event)
+		widgetState.settingsOpen = false
+		widgetState.settingsCapturing = nil
+		widgetState.settingsCaptureField = nil
+		widgetState.settingsCaptureEl = nil
+		local d = widgetState.dmHandle; if d then d.settingsOpen = false end
+	end,
+	onGuideTab = function(_event, name)
+		local d = widgetState.dmHandle; if d then d.settingsTab = name end
+	end,
+	onGuideKbSave = function(_event)
+		if WG.TerraformBrush and widgetState.settingsPendingBinds then
+			WG.TerraformBrush.applyKeybinds(widgetState.settingsPendingBinds)
+			WG.TerraformBrush.saveKeybinds()
+			updateAllKeybindBadges()
+			Spring.Echo("[Terraform Brush] Keybinds saved.")
+		end
+	end,
+	onGuideKbApply = function(_event)
+		if WG.TerraformBrush and widgetState.settingsPendingBinds then
+			WG.TerraformBrush.applyKeybinds(widgetState.settingsPendingBinds)
+			updateAllKeybindBadges()
+			Spring.Echo("[Terraform Brush] Keybinds applied.")
+		end
+	end,
+	onGuideKbDefaults = function(_event)
+		if WG.TerraformBrush and WG.TerraformBrush.getDefaultKeybinds then
+			widgetState.settingsPendingBinds = WG.TerraformBrush.getDefaultKeybinds()
+			widgetState.settingsCapturing = nil
+			widgetState.settingsCaptureField = nil
+			widgetState.settingsCaptureEl = nil
+			populateKeybindList(widgetState.document)
+		end
+	end,
+	onGuideKbCancel = function(_event)
+		widgetState.settingsOpen = false
+		widgetState.settingsCapturing = nil
+		widgetState.settingsCaptureField = nil
+		widgetState.settingsCaptureEl = nil
+		widgetState.settingsPendingBinds = nil
+		local d = widgetState.dmHandle; if d then d.settingsOpen = false end
+	end,
+	onGuideToggleDjActivate = function(_event)
+		if not WG.TerraformBrush then return end
+		local state = WG.TerraformBrush.getState()
+		local newVal = not (state and state.djMode)
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setDjMode(newVal)
+		local d = widgetState.dmHandle
+		if d then d.djModeActive = newVal; d.djModeStr = newVal and "ON" or "OFF"; d.djSubDisabled = not newVal end
+	end,
+	onGuideToggleDust = function(_event)
+		if not WG.TerraformBrush then return end
+		local state = WG.TerraformBrush.getState()
+		local newVal = not (state and state.dustEffects)
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setDustEffects(newVal)
+		local d = widgetState.dmHandle
+		if d then d.dustActive = newVal; d.dustEffectsStr = newVal and "ON" or "OFF" end
+	end,
+	onGuideToggleSeismic = function(_event)
+		if not WG.TerraformBrush then return end
+		local state = WG.TerraformBrush.getState()
+		local newVal = not (state and state.seismicEffects)
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setSeismicEffects(newVal)
+		local d = widgetState.dmHandle
+		if d then d.seismicActive = newVal; d.seismicEffectsStr = newVal and "ON" or "OFF" end
+	end,
+	onGuideTogglePenPressure = function(_event)
+		if not WG.TerraformBrush then return end
+		local state = WG.TerraformBrush.getState()
+		local newVal = not (state and state.penPressureEnabled)
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setPenPressure(newVal)
+		local d = widgetState.dmHandle
+		if d then d.penPressureActive = newVal; d.penPressureStr = newVal and "ON" or "OFF"; d.penSubDisabled = not newVal end
+	end,
+	onGuideTogglePenModInt = function(_event)
+		if not WG.TerraformBrush then return end
+		local state = WG.TerraformBrush.getState()
+		local newVal = not (state and state.penPressureModulateIntensity)
+		WG.TerraformBrush.setPenPressureModulateIntensity(newVal)
+		local d = widgetState.dmHandle
+		if d then d.penModIntSrc = newVal and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
+	end,
+	onGuideTogglePenModSize = function(_event)
+		if not WG.TerraformBrush then return end
+		local state = WG.TerraformBrush.getState()
+		local newVal = not (state and state.penPressureModulateSize)
+		WG.TerraformBrush.setPenPressureModulateSize(newVal)
+		local d = widgetState.dmHandle
+		if d then d.penModSizeSrc = newVal and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
+	end,
+	onGuidePenSensitivityChange = function(_event)
+		if uiState.updatingFromCode then return end
+		if WG.TerraformBrush then
+			local val = _elemSliderVal("slider-pen-sensitivity", 100)
+			WG.TerraformBrush.setPenPressureSensitivity(val / 100)
+			local d = widgetState.dmHandle; if d then d.penSensitivityStr = tostring(math.floor(val)) end
+		end
+	end,
+	onGuideSetCurve = function(_event, n)
+		if not WG.TerraformBrush then return end
+		WG.TerraformBrush.setPenPressureCurve(n)
+		local d = widgetState.dmHandle; if d then d.penCurveN = n end
+	end,
+	onGuideToggleWiggle = function(_event)
+		if not WG.TerraformBrush then return end
+		local state = WG.TerraformBrush.getState()
+		local newVal = not (state and state.wiggleEnabled)
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setWiggle(newVal, state and state.wiggleAmpIdx or 1, state and state.wiggleSpdIdx or 1)
+		local d = widgetState.dmHandle
+		if d then d.wiggleActive = newVal; d.wiggleStr = newVal and "ON" or "OFF"; d.wiggleSubDisabled = not newVal end
+	end,
+	onGuideWiggleAmp = function(_event, i)
+		if not WG.TerraformBrush then return end
+		local state = WG.TerraformBrush.getState()
+		WG.TerraformBrush.setWiggle(state and state.wiggleEnabled, i, state and state.wiggleSpdIdx or 1)
+		local d = widgetState.dmHandle; if d then d.wiggleAmpIdx = i end
+	end,
+	onGuideWiggleSpd = function(_event, i)
+		if not WG.TerraformBrush then return end
+		local state = WG.TerraformBrush.getState()
+		WG.TerraformBrush.setWiggle(state and state.wiggleEnabled, state and state.wiggleAmpIdx or 1, i)
+		local d = widgetState.dmHandle; if d then d.wiggleSpdIdx = i end
+	end,
+	onGuideToggleDisableTips = function(_event)
+		widgetState.uiPrefs = widgetState.uiPrefs or {}
+		local newVal = not widgetState.uiPrefs.disableTips
+		widgetState.uiPrefs.disableTips = newVal
+		playSound(newVal and "toggleOn" or "toggleOff")
+		local d = widgetState.dmHandle
+		if d then d.disableTipsStr = newVal and "ON" or "OFF"; d.disableTipsActive = newVal end
+		if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+		if newVal then
+			widgetState.instrumentsHintActive = false
+			local doc2 = widgetState.document
+			if doc2 then
+				local measureImg = doc2:GetElementById("btn-measure")
+				if measureImg then measureImg:SetClass("tf-chip-2pulse", false) end
+				local splatChip = doc2:GetElementById("btn-sp-splat-overlay")
+				if splatChip then splatChip:SetClass("tf-chip-2pulse", false) end
+			end
+		end
+	end,
 }
 
 local shapeNames = {
@@ -3719,7 +4215,7 @@ local function keyCodeToLabel(keyCode)
 end
 
 -- Update all keybind badge text from current widget keybinds
-local function updateAllKeybindBadges()
+updateAllKeybindBadges = function()
 	if not WG.TerraformBrush or not WG.TerraformBrush.getKeybinds then return end
 	local binds = WG.TerraformBrush.getKeybinds()
 	for btnId, action in pairs(BADGE_ACTION_MAP) do
@@ -3797,7 +4293,7 @@ local function initBadgeElements(doc)
 end
 
 -- Populate keybind list in settings window
-local function populateKeybindList(doc)
+populateKeybindList = function(doc)
 	local listEl = getCachedEl(doc, "keybind-list")
 	if not listEl then return end
 	local binds = widgetState.settingsPendingBinds
