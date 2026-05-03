@@ -88,6 +88,7 @@ function GenericAnimator.Killed(severity)
 	for passengerID, passengerData in pairs(cargo.passengers) do
 		SpMoveCtrl.Disable(passengerID)
 		if SpValidUnitID(passengerID) and not SpGetUnitIsDead(passengerID) then
+			Spring.SetUnitRulesParam(passengerID, "inTransportAnim", 0) -- release from unloading state for later loading
 			Spring.SetUnitPhysicalStateBit(passengerID, 128 + 512)  -- PSTATE_BIT_FLYING | PSTATE_BIT_SKIDDING (matches engine Releasepassengers releaseHeld path)
 		end
 
