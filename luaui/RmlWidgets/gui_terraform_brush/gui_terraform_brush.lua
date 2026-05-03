@@ -831,6 +831,12 @@ local function _gbSnapStep(delta)
 	WG.TerraformBrush.setGridSnapSize(math.max(16, math.min(128, cur + delta)))
 end
 
+local function _fpSnapStep(delta)
+	if not WG.FeaturePlacer then return end
+	local cur = tonumber((WG.FeaturePlacer.getState() or {}).gridSnapSize) or 48
+	WG.FeaturePlacer.setGridSnapSize(math.max(16, math.min(128, cur + delta)))
+end
+
 local initialModel = {
 	radius = 100,
 	shapeName = "Circle",
@@ -891,6 +897,9 @@ local initialModel = {
 	fpSymmetryMirrorAny = false,
 	fpSymHasAxis = false,
 	fpGridSnap = false,
+	fpGridSnapSizeStr = "48",
+	fpGridOverlay = false,
+	fpHeightColormap = false,
 	fpMeasureActive = false,
 	fpMeasureShowLength = false,
 	fpMeasureRulerMode = false,
@@ -2398,6 +2407,317 @@ local initialModel = {
 		WG.TerraformBrush.setSymmetryMirrorAngle(a)
 		local dm = widgetState.dmHandle; if dm then local s = tostring(math.floor(a)); if dm.tbSymAngleStr ~= s then dm.tbSymAngleStr = s end end
 	end,
+
+	-- Phase 2 step 6: tf_features model-king handlers
+	onFpSetMode = function(_event, fmode)
+		playSound("modeSwitch")
+		if WG.FeaturePlacer then WG.FeaturePlacer.setMode(fmode) end
+		local dm = widgetState.dmHandle; if dm then dm.fpSubMode = fmode end
+	end,
+	onFpSetDist = function(_event, dist)
+		playSound("shapeSwitch")
+		if WG.FeaturePlacer then WG.FeaturePlacer.setDistribution(dist) end
+		local dm = widgetState.dmHandle; if dm then dm.fpDistMode = dist end
+	end,
+
+	-- Size
+	onFpSizeChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		WG.FeaturePlacer.setRadius(_elemSliderVal("fp-slider-size", 200))
+	end,
+	onFpSizeUp = function(_event)
+		if not WG.FeaturePlacer then return end
+		WG.FeaturePlacer.setRadius((WG.FeaturePlacer.getState() or {}).radius + RADIUS_STEP * 4)
+	end,
+	onFpSizeDown = function(_event)
+		if not WG.FeaturePlacer then return end
+		WG.FeaturePlacer.setRadius((WG.FeaturePlacer.getState() or {}).radius - RADIUS_STEP * 4)
+	end,
+
+	-- Rotation
+	onFpRotChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		WG.FeaturePlacer.setRotation(_elemSliderVal("fp-slider-rotation", 0))
+	end,
+	onFpRotCW = function(_event)
+		if WG.FeaturePlacer then WG.FeaturePlacer.rotate(ROTATION_STEP) end
+	end,
+	onFpRotCCW = function(_event)
+		if WG.FeaturePlacer then WG.FeaturePlacer.rotate(-ROTATION_STEP) end
+	end,
+
+	-- Rotation randomness
+	onFpRotRandomChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		WG.FeaturePlacer.setRotRandom(_elemSliderVal("fp-slider-rot-random", 100))
+	end,
+	onFpRotRandomUp = function(_event)
+		if not WG.FeaturePlacer then return end
+		local st = WG.FeaturePlacer.getState()
+		WG.FeaturePlacer.setRotRandom(math.min(100, (st.rotRandom or 0) + 5))
+	end,
+	onFpRotRandomDown = function(_event)
+		if not WG.FeaturePlacer then return end
+		local st = WG.FeaturePlacer.getState()
+		WG.FeaturePlacer.setRotRandom(math.max(0, (st.rotRandom or 100) - 5))
+	end,
+
+	-- Count
+	onFpCountChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		WG.FeaturePlacer.setFeatureCount(_elemSliderVal("fp-slider-count", 10))
+	end,
+	onFpCountUp = function(_event)
+		if not WG.FeaturePlacer then return end
+		WG.FeaturePlacer.setFeatureCount((WG.FeaturePlacer.getState().featureCount or 5) + 1)
+	end,
+	onFpCountDown = function(_event)
+		if not WG.FeaturePlacer then return end
+		WG.FeaturePlacer.setFeatureCount((WG.FeaturePlacer.getState().featureCount or 5) - 1)
+	end,
+
+	-- Cadence
+	onFpCadenceChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		WG.FeaturePlacer.setCadence(sliderToCadence(_elemSliderVal("fp-slider-cadence", 0)))
+	end,
+	onFpCadenceUp = function(_event)
+		if not WG.FeaturePlacer then return end
+		local st = WG.FeaturePlacer.getState()
+		local step = math.max(1, math.floor(st.cadence * 0.2))
+		WG.FeaturePlacer.setCadence(st.cadence + step)
+	end,
+	onFpCadenceDown = function(_event)
+		if not WG.FeaturePlacer then return end
+		local st = WG.FeaturePlacer.getState()
+		local step = math.max(1, math.floor(st.cadence * 0.2))
+		WG.FeaturePlacer.setCadence(st.cadence - step)
+	end,
+
+	-- Undo / Redo / History
+	onFpUndo = function(_event)
+		playSound("undo"); if WG.FeaturePlacer then WG.FeaturePlacer.undo() end
+	end,
+	onFpRedo = function(_event)
+		playSound("undo"); if WG.FeaturePlacer then WG.FeaturePlacer.redo() end
+	end,
+	onFpHistoryChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		local val = _elemSliderVal("slider-fp-history", 0)
+		local fpSt = WG.FeaturePlacer.getState()
+		if not fpSt then return end
+		local diff = math.floor(val) - (fpSt.undoCount or 0)
+		if diff > 0 then for i = 1, diff do WG.FeaturePlacer.redo() end
+		elseif diff < 0 then for i = 1, -diff do WG.FeaturePlacer.undo() end end
+	end,
+
+	-- Save / Clear / Load (fpLoad uses imperative DOM build for save list — justified)
+	onFpSave = function(_event)
+		playSound("save"); if WG.FeaturePlacer then WG.FeaturePlacer.save() end
+	end,
+	onFpClearAll = function(_event)
+		playSound("reset"); if WG.FeaturePlacer then WG.FeaturePlacer.clearAll() end
+	end,
+	onFpLoad = function(_event)
+		playSound("dropdown")
+		local dm = widgetState.dmHandle
+		local doc = widgetState.document
+		local listEl = doc and doc:GetElementById("fp-save-load-list")
+		if not listEl then return end
+		local willOpen = not (dm and dm.fpSaveLoadOpen)
+		if dm then dm.fpSaveLoadOpen = willOpen end
+		if willOpen and WG.FeaturePlacer then
+			listEl.inner_rml = ""
+			local files = WG.FeaturePlacer.listSaves()
+			if #files == 0 then
+				listEl.inner_rml = '<div style="padding: 4dp 6dp; font-size: 0.9rem; color: #6b7280;">No saved feature maps</div>'
+			else
+				for _, filepath in ipairs(files) do
+					local fname = filepath:match("[^/\\]+$") or filepath
+					local item = doc:CreateElement("div")
+					item:SetAttribute("style", "padding: 3dp 6dp; font-size: 0.9rem; color: #9ca3af; cursor: pointer; border-radius: 3dp;")
+					item.inner_rml = fname
+					item:AddEventListener("click", function(ev)
+						if WG.FeaturePlacer then WG.FeaturePlacer.load(filepath) end
+						if widgetState.dmHandle then widgetState.dmHandle.fpSaveLoadOpen = false end
+						ev:StopPropagation()
+					end, false)
+					item:AddEventListener("mouseover", function()
+						item:SetAttribute("style", "padding: 3dp 6dp; font-size: 0.9rem; color: #d1d5db; cursor: pointer; border-radius: 3dp; background-color: #2a2a3a;")
+					end, false)
+					item:AddEventListener("mouseout", function()
+						item:SetAttribute("style", "padding: 3dp 6dp; font-size: 0.9rem; color: #9ca3af; cursor: pointer; border-radius: 3dp;")
+					end, false)
+					listEl:AppendChild(item)
+				end
+			end
+		end
+	end,
+
+	-- Alt enable toggle
+	onFpToggleAltEnable = function(_event, filterKey)
+		if not WG.FeaturePlacer then return end
+		local sf = WG.FeaturePlacer.getState().smartFilters
+		playSound(sf[filterKey] and "toggleOff" or "toggleOn")
+		WG.FeaturePlacer.setSmartFilter(filterKey, not sf[filterKey])
+		local sf2 = WG.FeaturePlacer.getState().smartFilters
+		local anyOn = sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable
+		WG.FeaturePlacer.setSmartEnabled(anyOn and true or false)
+	end,
+
+	-- Alt sample toggle
+	onFpAltSample = function(_event, target)
+		if WG.TerraformBrush then
+			local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
+			WG.TerraformBrush.setHeightSamplingMode(cur == target and nil or target)
+		end
+	end,
+
+	-- Grid overlay / snap
+	onFpToggleGridOverlay = function(_event)
+		if not WG.FeaturePlacer then return end
+		local newVal = not (WG.FeaturePlacer.getState() or {}).gridOverlay
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.FeaturePlacer.setGridOverlay(newVal)
+	end,
+	onFpToggleGridSnap = function(_event)
+		if not WG.FeaturePlacer then return end
+		WG.FeaturePlacer.setGridSnap(not (WG.FeaturePlacer.getState() or {}).gridSnap)
+	end,
+
+	-- Height map / measure / symmetry (shared TerraformBrush)
+	onFpToggleHeightMap = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not (WG.TerraformBrush.getState() or {}).heightColormap
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setHeightColormap(newVal)
+	end,
+	onFpToggleMeasure = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not (WG.TerraformBrush.getState() or {}).measureActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setMeasureActive(newVal)
+	end,
+	onFpMeasureRuler = function(_event)
+		if WG.TerraformBrush and WG.TerraformBrush.setMeasureRulerMode then
+			WG.TerraformBrush.setMeasureRulerMode(not (WG.TerraformBrush.getState() or {}).measureRulerMode); playSound("tick")
+		end
+	end,
+	onFpMeasureSticky = function(_event)
+		if WG.TerraformBrush and WG.TerraformBrush.setMeasureStickyMode then
+			WG.TerraformBrush.setMeasureStickyMode(not (WG.TerraformBrush.getState() or {}).measureStickyMode); playSound("tick")
+		end
+	end,
+	onFpMeasureShowLength = function(_event)
+		if WG.TerraformBrush and WG.TerraformBrush.setMeasureShowLength then
+			WG.TerraformBrush.setMeasureShowLength(not (WG.TerraformBrush.getState() or {}).measureShowLength); playSound("tick")
+		end
+	end,
+	onFpMeasureClear = function(_event)
+		if WG.TerraformBrush and WG.TerraformBrush.clearMeasureLines then
+			WG.TerraformBrush.clearMeasureLines(); playSound("tick")
+		end
+	end,
+	onFpToggleSymmetry = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not (WG.TerraformBrush.getState() or {}).symmetryActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setSymmetryActive(newVal)
+	end,
+	onFpSymRadial = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryRadial(not (WG.TerraformBrush.getState() or {}).symmetryRadial) end
+	end,
+	onFpSymMirrorX = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorX(not (WG.TerraformBrush.getState() or {}).symmetryMirrorX) end
+	end,
+	onFpSymMirrorY = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorY(not (WG.TerraformBrush.getState() or {}).symmetryMirrorY) end
+	end,
+	onFpSymPlaceOrigin = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true) end
+	end,
+	onFpSymCenterOrigin = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryOrigin(nil, nil); playSound("toggleOff") end
+	end,
+
+	-- Symmetry radial count
+	onFpSymCountChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = math.floor(_elemSliderVal("fp-slider-symmetry-radial-count", 2))
+		WG.TerraformBrush.setSymmetryRadialCount(v)
+		local dm = widgetState.dmHandle; if dm then local s = tostring(v); if dm.tbSymCountStr ~= s then dm.tbSymCountStr = s end end
+	end,
+	onFpSymCountDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local c = math.max(2, (WG.TerraformBrush.getState() or {}).symmetryRadialCount or 2) - 1
+		WG.TerraformBrush.setSymmetryRadialCount(c)
+		local dm = widgetState.dmHandle; if dm then local s = tostring(c); if dm.tbSymCountStr ~= s then dm.tbSymCountStr = s end end
+	end,
+	onFpSymCountUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local c = math.min(16, (WG.TerraformBrush.getState() or {}).symmetryRadialCount or 2) + 1
+		WG.TerraformBrush.setSymmetryRadialCount(c)
+		local dm = widgetState.dmHandle; if dm then local s = tostring(c); if dm.tbSymCountStr ~= s then dm.tbSymCountStr = s end end
+	end,
+
+	-- Symmetry mirror angle
+	onFpSymAngleChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = _elemSliderVal("fp-slider-symmetry-mirror-angle", 0)
+		WG.TerraformBrush.setSymmetryMirrorAngle(v)
+		local dm = widgetState.dmHandle; if dm then local s = tostring(math.floor(v)); if dm.tbSymAngleStr ~= s then dm.tbSymAngleStr = s end end
+	end,
+	onFpSymAngleDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local a = ((WG.TerraformBrush.getState() or {}).symmetryMirrorAngle or 0) - 5
+		a = a % 360
+		WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		local dm = widgetState.dmHandle; if dm then local s = tostring(math.floor(a)); if dm.tbSymAngleStr ~= s then dm.tbSymAngleStr = s end end
+	end,
+	onFpSymAngleUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local a = ((WG.TerraformBrush.getState() or {}).symmetryMirrorAngle or 0) + 5
+		a = a % 360
+		WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		local dm = widgetState.dmHandle; if dm then local s = tostring(math.floor(a)); if dm.tbSymAngleStr ~= s then dm.tbSymAngleStr = s end end
+	end,
+
+	-- Smart slope/altitude sliders
+	onFpSlopeMaxChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		WG.FeaturePlacer.setSmartFilter("slopeMax", _elemSliderVal("fp-slider-slope-max", 45))
+	end,
+	onFpSlopeMinChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		WG.FeaturePlacer.setSmartFilter("slopeMin", _elemSliderVal("fp-slider-slope-min", 10))
+	end,
+	onFpAltMinChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		local val = _elemSliderVal("fp-slider-alt-min", 0)
+		local sf = WG.FeaturePlacer.getState().smartFilters
+		if sf.altMaxEnable and val > sf.altMax then WG.FeaturePlacer.setSmartFilter("altMax", val) end
+		WG.FeaturePlacer.setSmartFilter("altMin", val)
+	end,
+	onFpAltMaxChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		local val = _elemSliderVal("fp-slider-alt-max", 200)
+		local sf = WG.FeaturePlacer.getState().smartFilters
+		if sf.altMinEnable and val < sf.altMin then WG.FeaturePlacer.setSmartFilter("altMin", val) end
+		WG.FeaturePlacer.setSmartFilter("altMax", val)
+	end,
+	onFpSmartStep = function(_event, filterKey, step)
+		if not WG.FeaturePlacer then return end
+		local sf = WG.FeaturePlacer.getState().smartFilters
+		WG.FeaturePlacer.setSmartFilter(filterKey, (sf[filterKey] or 0) + step)
+	end,
+
+	-- Grid snap size
+	onFpSnapSizeChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		WG.FeaturePlacer.setGridSnapSize(_elemSliderVal("fp-slider-grid-snap-size", 48))
+	end,
+	onFpSnapSizeDown = function(_event) _fpSnapStep(-16) end,
+	onFpSnapSizeUp   = function(_event) _fpSnapStep(16) end,
 }
 
 local shapeNames = {

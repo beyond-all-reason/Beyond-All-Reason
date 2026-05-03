@@ -34,9 +34,14 @@ local glPushMatrix  = gl.PushMatrix
 local glPopMatrix   = gl.PopMatrix
 local glTranslate   = gl.Translate
 local glDepthTest   = gl.DepthTest
+local glCreateList  = gl.CreateList
+local glDeleteList  = gl.DeleteList
+local glCallList    = gl.CallList
+local glPolygonOffset = gl.PolygonOffset
 local GL_TRIANGLES  = GL.TRIANGLES
 local GL_LINES      = GL.LINES
 local GL_LINE_LOOP  = GL.LINE_LOOP
+local GL_LINE_STRIP = GL.LINE_STRIP
 
 ----------------------------------------------------------------
 -- Constants
@@ -61,6 +66,7 @@ local ROTATION_STEP   = 3
 local KEYSYMS_SPACE   = 0x20
 local UPDATE_INTERVAL = 1 / 30
 local GRID_SNAP_SIZE  = 48  -- matches build grid widget spacing (3 * 16 elmos)
+local gridSnapSize    = 48  -- mutable; user-adjustable via setGridSnapSize
 
 local floor = math.floor
 local max   = math.max
@@ -110,6 +116,9 @@ local updateTimer = 0
 local gridOverlay = false
 local gridSnap = false
 local gridShowing = false
+local gridDL = nil
+local gridDLSize = nil
+local gridDirty = false
 
 ----------------------------------------------------------------
 -- Feature definition cache for asset library
@@ -253,16 +262,87 @@ local function hideBuildGrid()
 end
 
 local function snapToGrid(x, z)
-	return floor(x / GRID_SNAP_SIZE + 0.5) * GRID_SNAP_SIZE,
-	       floor(z / GRID_SNAP_SIZE + 0.5) * GRID_SNAP_SIZE
+	return floor(x / gridSnapSize + 0.5) * gridSnapSize,
+	       floor(z / gridSnapSize + 0.5) * gridSnapSize
+end
+
+-- Full-map grid display list: terrain-following lines at gridSnapSize intervals.
+-- Mirrors the implementation in cmd_terraform_brush.lua (extraState.buildFullMapGrid)
+-- so that the FP DISPLAY "Grid" chip shows the same map-wide grid as TB's Display Grid,
+-- not just the cursor-following Building Grid GL4 quad.
+local function buildFullMapGrid()
+	if gridDL then
+		glDeleteList(gridDL)
+		gridDL = nil
+	end
+	local gs  = gridSnapSize
+	local msx = Game.mapSizeX
+	local msz = Game.mapSizeZ
+	local BUMP = 3
+	gridDL = glCreateList(function()
+		glLineWidth(1)
+		glColor(1, 1, 0.6, 0.20)
+		glPolygonOffset(-2, -2)
+		local z = 0
+		while z <= msz do
+			glBeginEnd(GL_LINE_STRIP, function()
+				local x = 0
+				while x <= msx do
+					glVertex(x, GetGroundHeight(x, z) + BUMP, z)
+					x = x + gs
+				end
+				if msx % gs ~= 0 then
+					glVertex(msx, GetGroundHeight(msx, z) + BUMP, z)
+				end
+			end)
+			z = z + gs
+		end
+		local x = 0
+		while x <= msx do
+			glBeginEnd(GL_LINE_STRIP, function()
+				local zz = 0
+				while zz <= msz do
+					glVertex(x, GetGroundHeight(x, zz) + BUMP, zz)
+					zz = zz + gs
+				end
+				if msz % gs ~= 0 then
+					glVertex(x, GetGroundHeight(x, msz) + BUMP, msz)
+				end
+			end)
+			x = x + gs
+		end
+		glPolygonOffset(0, 0)
+		glColor(1, 1, 1, 1)
+		glLineWidth(1)
+	end)
+	gridDLSize = gs
+	gridDirty = false
+end
+
+local function ensureBuildGridLoaded()
+	if WG['buildinggrid'] then return end
+	-- Building Grid GL4 is disabled by default. Use SendCommands so the call
+	-- works from any context (including RmlUi data-event-click handlers, where
+	-- the dynamically-attached widgetHandler:EnableWidget can be nil).
+	Spring.SendCommands("luaui enablewidget Building Grid GL4")
 end
 
 local function setGridOverlay(value)
 	gridOverlay = value and true or false
+	if gridOverlay then
+		ensureBuildGridLoaded()
+		gridDirty = true
+	end
 end
 
 local function setGridSnap(value)
 	gridSnap = value and true or false
+	if gridSnap then ensureBuildGridLoaded() end
+end
+
+local function setGridSnapSize(value)
+	gridSnapSize = max(16, min(128, floor(tonumber(value) or gridSnapSize)))
+	gridDirty = true
 end
 
 ----------------------------------------------------------------
@@ -631,6 +711,7 @@ local function getState()
 		redoCount    = fp.redoCount,
 		gridOverlay  = gridOverlay,
 		gridSnap     = gridSnap,
+		gridSnapSize = gridSnapSize,
 	}
 end
 
@@ -1081,6 +1162,15 @@ end
 -- DrawWorld — brush outline
 ----------------------------------------------------------------
 function widget:DrawWorld()
+	-- Full-map grid overlay: visible across the whole map regardless of brush active state
+	-- (mirrors cmd_terraform_brush.lua DISPLAY Grid behavior).
+	if gridOverlay then
+		if (not gridDL) or gridDLSize ~= gridSnapSize or gridDirty then
+			buildFullMapGrid()
+		end
+		if gridDL then glCallList(gridDL) end
+	end
+
 	if not fp.active or not fp.mode then
 		hideBuildGrid()
 		return
@@ -1242,6 +1332,7 @@ function widget:Initialize()
 		clearAll            = featureClearAll,
 		setGridOverlay      = setGridOverlay,
 		setGridSnap         = setGridSnap,
+		setGridSnapSize     = setGridSnapSize,
 		deactivate          = deactivate,
 	}
 
@@ -1253,6 +1344,10 @@ end
 
 function widget:Shutdown()
 	hideBuildGrid()
+	if gridDL then
+		glDeleteList(gridDL)
+		gridDL = nil
+	end
 	WG.FeaturePlacer = nil
 	widgetHandler:DeregisterGlobal("feature_placer_history")
 	widgetHandler:DeregisterGlobal("feature_save_begin")
