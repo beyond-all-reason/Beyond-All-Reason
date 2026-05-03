@@ -4,154 +4,19 @@ local M = {}
 function M.attach(doc, ctx)
 	if ctx.attachTBMirrorControls then ctx.attachTBMirrorControls(doc, "cl") end
 	local widgetState = ctx.widgetState
-	local uiState = ctx.uiState
-	local WG = ctx.WG
-	local playSound = ctx.playSound
 	local trackSliderDrag = ctx.trackSliderDrag
-	local clearPassthrough = ctx.clearPassthrough
-	local ROTATION_STEP = ctx.ROTATION_STEP
 
 	widgetState.cloneActive = false
-	widgetState.cloneControlsEl = doc:GetElementById("tf-clone-controls")
-	widgetState.clonePasteTransformsEl = doc:GetElementById("cl-paste-transforms")
 
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
-	-- Slider change events are wired declaratively via onchange= in RML.
+	-- Slider change events are wired declaratively via data-event-change= in RML.
 	for _, sid in ipairs({ "cl-rotation", "cl-height", "cl-history" }) do
 		local sl = doc:GetElementById("slider-" .. sid)
 		if sl then trackSliderDrag(sl, sid) end
 	end
-
-	-- Register widget methods for inline onclick/onchange handlers in RML.
-	local w = ctx.widget
-	if not w then return end
-
-	w.clOnClone = function(self)
-		playSound("toolSwitch")
-		clearPassthrough()
-		if widgetState.cloneActive then
-			-- Toggle OFF
-			widgetState.cloneActive = false
-			if WG.CloneTool then WG.CloneTool.deactivate() end
-			if WG.TerraformBrush then
-				local st = WG.TerraformBrush.getState()
-				WG.TerraformBrush.setMode(st and st.mode or "raise")
-			end
-		else
-			-- Toggle ON: deactivate all other tools
-			if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-			if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
-			if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
-			if WG.SplatPainter then WG.SplatPainter.deactivate() end
-			if WG.MetalBrush then WG.MetalBrush.deactivate() end
-			if WG.GrassBrush then WG.GrassBrush.deactivate() end
-			widgetState.envActive = false
-			widgetState.lightActive = false
-			if WG.LightPlacer then WG.LightPlacer.deactivate() end
-			widgetState.startposActive = false
-			if WG.StartPosTool then WG.StartPosTool.deactivate() end
-			widgetState.decalsActive = false
-			if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
-			widgetState.cloneActive = true
-			if WG.CloneTool then WG.CloneTool.activate() end
-		end
-	end
-
-	w.clToggleLayer = function(self, name)
-		if not WG.CloneTool then return end
-		local st = WG.CloneTool.getState()
-		local cur = st and st.layers and st.layers[name] or false
-		WG.CloneTool.setLayer(name, not cur)
-		-- Active-class sync happens in M.sync() via clState.layers; no need to toggle here.
-	end
-
-	w.clCopy = function(self)
-		if WG.CloneTool then WG.CloneTool.doCopy() end
-	end
-	w.clPaste = function(self)
-		if WG.CloneTool then WG.CloneTool.startPaste() end
-	end
-	w.clClear = function(self)
-		if WG.CloneTool then WG.CloneTool.cancelOperation() end
-	end
-
-	w.clOnRotChange = function(self, element)
-		if uiState.updatingFromCode then return end
-		local val = element and tonumber(element:GetAttribute("value")) or 0
-		if WG.CloneTool then WG.CloneTool.setRotation(val) end
-	end
-	w.clRotCW = function(self)
-		if WG.CloneTool then
-			local st = WG.CloneTool.getState()
-			WG.CloneTool.setRotation(((st and st.pasteRotation or 0) + ROTATION_STEP) % 360)
-		end
-	end
-	w.clRotCCW = function(self)
-		if WG.CloneTool then
-			local st = WG.CloneTool.getState()
-			WG.CloneTool.setRotation(((st and st.pasteRotation or 0) - ROTATION_STEP) % 360)
-		end
-	end
-
-	w.clOnHeightChange = function(self, element)
-		if uiState.updatingFromCode then return end
-		local val = element and tonumber(element:GetAttribute("value")) or 0
-		if WG.CloneTool then WG.CloneTool.setHeightOffset(val) end
-	end
-	w.clHeightUp = function(self)
-		if WG.CloneTool then
-			local st = WG.CloneTool.getState()
-			local cur = (st and st.pasteHeightOffset or 0)
-			WG.CloneTool.setHeightOffset(math.min(500, cur + 10))
-		end
-	end
-	w.clHeightDown = function(self)
-		if WG.CloneTool then
-			local st = WG.CloneTool.getState()
-			local cur = (st and st.pasteHeightOffset or 0)
-			WG.CloneTool.setHeightOffset(math.max(-500, cur - 10))
-		end
-	end
-
-	w.clToggleMirrorX = function(self)
-		if not WG.CloneTool then return end
-		local st = WG.CloneTool.getState()
-		WG.CloneTool.setMirrorX(not (st and st.pasteMirrorX))
-		-- Active-class sync happens in M.sync() via clState.pasteMirrorX.
-	end
-	w.clToggleMirrorZ = function(self)
-		if not WG.CloneTool then return end
-		local st = WG.CloneTool.getState()
-		WG.CloneTool.setMirrorZ(not (st and st.pasteMirrorZ))
-		-- Active-class sync happens in M.sync() via clState.pasteMirrorZ.
-	end
-
-	w.clSetQuality = function(self, qName)
-		if WG.CloneTool then WG.CloneTool.setTerrainQuality(qName) end
-		-- Active-class sync happens in M.sync() via clState.terrainQuality; no need to toggle here.
-	end
-
-	w.clUndo = function(self)
-		if WG.CloneTool and WG.CloneTool.undo then WG.CloneTool.undo() end
-	end
-	w.clRedo = function(self)
-		if WG.CloneTool and WG.CloneTool.redo then WG.CloneTool.redo() end
-	end
-
-	w.clOnHistoryChange = function(self, element)
-		if uiState.updatingFromCode then return end
-		if not WG.CloneTool then return end
-		local val = element and tonumber(element:GetAttribute("value")) or 0
-		local clSt = WG.CloneTool.getState()
-		if not clSt then return end
-		local currentUndoCount = clSt.undoCount or 0
-		local diff = val - currentUndoCount
-		if diff > 0 then
-			for i = 1, diff do WG.CloneTool.redo() end
-		elseif diff < 0 then
-			for i = 1, -diff do WG.CloneTool.undo() end
-		end
-	end
+	-- All data-event-click/change handlers (onClXxx) are defined in initialModel
+	-- in gui_terraform_brush.lua — Recoil forbids adding or replacing function
+	-- keys in a DataModel after OpenDataModel.
 end
 
 function M.sync(doc, ctx, clState, setSummary)

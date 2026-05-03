@@ -744,7 +744,11 @@ local function buildRootStyle()
 		currentLeftVw, currentTopVh)
 end
 
--- Helpers for noise DataModel handlers defined in initialModel below.
+-- Forward declaration: clearPassthrough is defined after initialModel but captured as upvalue
+-- by onCl* (and any future) model-king handlers inside initialModel.
+local clearPassthrough
+
+-- Helpers for noise/clone DataModel handlers defined in initialModel below.
 -- All use widgetState/uiState/WG/playSound upvalues (file-level locals).
 local function _noSliderVal(id, default)
 	local doc = widgetState.document
@@ -762,6 +766,20 @@ end
 local function _noDmLabel(field, text)
 	local d = widgetState.dmHandle
 	if d and d[field] ~= text then d[field] = text end
+end
+-- Helper for sliders with non-standard ID format (e.g. "wb-slider-size" not "slider-wb-size").
+local function _elemSliderVal(fullId, default)
+	local doc = widgetState.document
+	if not doc then return default end
+	local sl = doc:GetElementById(fullId)
+	if not sl then return default end
+	return tonumber(sl:GetAttribute("value")) or default
+end
+local function _elemSetSliderVal(fullId, v)
+	local doc = widgetState.document
+	if not doc then return end
+	local sl = doc:GetElementById(fullId)
+	if sl then sl:SetAttribute("value", tostring(v)) end
 end
 
 local initialModel = {
@@ -1209,6 +1227,409 @@ local initialModel = {
 		_noSetSliderVal("noise-seed", newVal)
 		_noDmLabel("nsSeedStr", tostring(newVal))
 	end,
+	-- Phase 2 step 6: tf_clone model-king handlers — defined here (not in M.attach)
+	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
+	-- Closures capture file-level widgetState/uiState/WG/playSound/ROTATION_STEP/clearPassthrough.
+	onClOnClone = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if widgetState.cloneActive then
+			widgetState.cloneActive = false
+			if WG.CloneTool then WG.CloneTool.deactivate() end
+			if WG.TerraformBrush then
+				local st = WG.TerraformBrush.getState()
+				WG.TerraformBrush.setMode(st and st.mode or "raise")
+			end
+		else
+			if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
+			if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
+			if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
+			if WG.SplatPainter then WG.SplatPainter.deactivate() end
+			if WG.MetalBrush then WG.MetalBrush.deactivate() end
+			if WG.GrassBrush then WG.GrassBrush.deactivate() end
+			widgetState.envActive = false
+			widgetState.lightActive = false
+			if WG.LightPlacer then WG.LightPlacer.deactivate() end
+			widgetState.startposActive = false
+			if WG.StartPosTool then WG.StartPosTool.deactivate() end
+			widgetState.decalsActive = false
+			if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
+			widgetState.cloneActive = true
+			if WG.CloneTool then WG.CloneTool.activate() end
+		end
+	end,
+	onClToggleLayer = function(_event, name)
+		if not WG.CloneTool then return end
+		local st = WG.CloneTool.getState()
+		local cur = st and st.layers and st.layers[name] or false
+		WG.CloneTool.setLayer(name, not cur)
+	end,
+	onClCopy = function(_event)
+		if WG.CloneTool then WG.CloneTool.doCopy() end
+	end,
+	onClPaste = function(_event)
+		if WG.CloneTool then WG.CloneTool.startPaste() end
+	end,
+	onClClear = function(_event)
+		if WG.CloneTool then WG.CloneTool.cancelOperation() end
+	end,
+	onClRotChange = function(_event)
+		if uiState.updatingFromCode or not WG.CloneTool then return end
+		local val = _noSliderVal("cl-rotation", 0)
+		WG.CloneTool.setRotation(val)
+	end,
+	onClRotCW = function(_event)
+		if WG.CloneTool then
+			local st = WG.CloneTool.getState()
+			WG.CloneTool.setRotation(((st and st.pasteRotation or 0) + ROTATION_STEP) % 360)
+		end
+	end,
+	onClRotCCW = function(_event)
+		if WG.CloneTool then
+			local st = WG.CloneTool.getState()
+			WG.CloneTool.setRotation(((st and st.pasteRotation or 0) - ROTATION_STEP) % 360)
+		end
+	end,
+	onClHeightChange = function(_event)
+		if uiState.updatingFromCode or not WG.CloneTool then return end
+		local val = _noSliderVal("cl-height", 0)
+		WG.CloneTool.setHeightOffset(val)
+	end,
+	onClHeightUp = function(_event)
+		if WG.CloneTool then
+			local st = WG.CloneTool.getState()
+			local cur = (st and st.pasteHeightOffset or 0)
+			WG.CloneTool.setHeightOffset(math.min(500, cur + 10))
+		end
+	end,
+	onClHeightDown = function(_event)
+		if WG.CloneTool then
+			local st = WG.CloneTool.getState()
+			local cur = (st and st.pasteHeightOffset or 0)
+			WG.CloneTool.setHeightOffset(math.max(-500, cur - 10))
+		end
+	end,
+	onClToggleMirrorX = function(_event)
+		if not WG.CloneTool then return end
+		local st = WG.CloneTool.getState()
+		WG.CloneTool.setMirrorX(not (st and st.pasteMirrorX))
+	end,
+	onClToggleMirrorZ = function(_event)
+		if not WG.CloneTool then return end
+		local st = WG.CloneTool.getState()
+		WG.CloneTool.setMirrorZ(not (st and st.pasteMirrorZ))
+	end,
+	onClSetQuality = function(_event, qName)
+		if WG.CloneTool then WG.CloneTool.setTerrainQuality(qName) end
+	end,
+	onClUndo = function(_event)
+		if WG.CloneTool and WG.CloneTool.undo then WG.CloneTool.undo() end
+	end,
+	onClRedo = function(_event)
+		if WG.CloneTool and WG.CloneTool.redo then WG.CloneTool.redo() end
+	end,
+	onClHistoryChange = function(_event)
+		if uiState.updatingFromCode or not WG.CloneTool then return end
+		local val = _noSliderVal("cl-history", 0)
+		local clSt = WG.CloneTool.getState()
+		if not clSt then return end
+		local currentUndoCount = clSt.undoCount or 0
+		local diff = val - currentUndoCount
+		if diff > 0 then
+			for i = 1, diff do WG.CloneTool.redo() end
+		elseif diff < 0 then
+			for i = 1, -diff do WG.CloneTool.undo() end
+		end
+	end,
+	-- Phase 2 step 6: tf_weather model-king handlers — defined here (not in M.attach)
+	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
+	-- Closures capture widgetState/uiState/WG/playSound/ROTATION_STEP/LENGTH_SCALE_STEP/
+	-- RADIUS_STEP/sliderToCadence/sliderToFrequency/sliderToPersist/PERSIST_PERMANENT_VAL/
+	-- _elemSliderVal/_elemSetSliderVal upvalues.
+	onWbSetMode = function(_event, wmode)
+		playSound("modeSwitch")
+		if WG.WeatherBrush then WG.WeatherBrush.setMode(wmode) end
+		local d = widgetState.dmHandle; if d then d.wbSubMode = wmode end
+	end,
+	onWbSetDist = function(_event, dist)
+		playSound("shapeSwitch")
+		if WG.WeatherBrush then WG.WeatherBrush.setDistribution(dist) end
+		local d = widgetState.dmHandle; if d then d.wbDistMode = dist end
+	end,
+	onWbSizeChange = function(_event)
+		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		local val = _elemSliderVal("wb-slider-size", 200)
+		WG.WeatherBrush.setRadius(val)
+	end,
+	onWbSizeUp = function(_event)
+		if WG.WeatherBrush then
+			local st = WG.WeatherBrush.getState()
+			WG.WeatherBrush.setRadius(st.radius + RADIUS_STEP * 4)
+		end
+	end,
+	onWbSizeDown = function(_event)
+		if WG.WeatherBrush then
+			local st = WG.WeatherBrush.getState()
+			WG.WeatherBrush.setRadius(st.radius - RADIUS_STEP * 4)
+		end
+	end,
+	onWbLengthChange = function(_event)
+		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		local val = _elemSliderVal("wb-slider-length", 10)
+		WG.WeatherBrush.setLengthScale(val / 10)
+	end,
+	onWbLengthUp = function(_event)
+		if WG.WeatherBrush then
+			local st = WG.WeatherBrush.getState()
+			WG.WeatherBrush.setLengthScale(st.lengthScale + LENGTH_SCALE_STEP)
+		end
+	end,
+	onWbLengthDown = function(_event)
+		if WG.WeatherBrush then
+			local st = WG.WeatherBrush.getState()
+			WG.WeatherBrush.setLengthScale(st.lengthScale - LENGTH_SCALE_STEP)
+		end
+	end,
+	onWbRotChange = function(_event)
+		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		local val = _elemSliderVal("wb-slider-rotation", 0)
+		WG.WeatherBrush.setRotation(val)
+	end,
+	onWbRotCW = function(_event)
+		if WG.WeatherBrush then WG.WeatherBrush.rotate(ROTATION_STEP) end
+	end,
+	onWbRotCCW = function(_event)
+		if WG.WeatherBrush then WG.WeatherBrush.rotate(-ROTATION_STEP) end
+	end,
+	onWbCountChange = function(_event)
+		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		local val = _elemSliderVal("wb-slider-count", 3)
+		WG.WeatherBrush.setSpawnCount(val)
+	end,
+	onWbCountUp = function(_event)
+		if WG.WeatherBrush then
+			local st = WG.WeatherBrush.getState()
+			WG.WeatherBrush.setSpawnCount(st.spawnCount + 1)
+		end
+	end,
+	onWbCountDown = function(_event)
+		if WG.WeatherBrush then
+			local st = WG.WeatherBrush.getState()
+			WG.WeatherBrush.setSpawnCount(st.spawnCount - 1)
+		end
+	end,
+	onWbCadenceChange = function(_event)
+		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		local sliderVal = _elemSliderVal("wb-slider-cadence", 0)
+		WG.WeatherBrush.setCadence(sliderToCadence(sliderVal))
+	end,
+	onWbCadenceUp = function(_event)
+		if WG.WeatherBrush then
+			local st = WG.WeatherBrush.getState()
+			local step = math.max(1, math.floor(st.cadence * 0.2))
+			WG.WeatherBrush.setCadence(st.cadence + step)
+		end
+	end,
+	onWbCadenceDown = function(_event)
+		if WG.WeatherBrush then
+			local st = WG.WeatherBrush.getState()
+			local step = math.max(1, math.floor(st.cadence * 0.2))
+			WG.WeatherBrush.setCadence(st.cadence - step)
+		end
+	end,
+	onWbFrequencyChange = function(_event)
+		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		local sliderVal = _elemSliderVal("wb-slider-frequency", 383)
+		WG.WeatherBrush.setFrequency(sliderToFrequency(sliderVal))
+	end,
+	onWbFrequencyUp = function(_event)
+		if WG.WeatherBrush then
+			local st = WG.WeatherBrush.getState()
+			local step = math.max(0.1, st.frequency * 0.2)
+			WG.WeatherBrush.setFrequency(st.frequency + step)
+		end
+	end,
+	onWbFrequencyDown = function(_event)
+		if WG.WeatherBrush then
+			local st = WG.WeatherBrush.getState()
+			local step = math.max(0.1, st.frequency * 0.2)
+			WG.WeatherBrush.setFrequency(st.frequency - step)
+		end
+	end,
+	onWbPersistChange = function(_event)
+		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		local sliderVal = _elemSliderVal("wb-slider-persist", 0)
+		WG.WeatherBrush.setPersistenceSeconds(sliderToPersist(sliderVal))
+	end,
+	onWbPersistUp = function(_event)
+		if WG.WeatherBrush then
+			local wbs = WG.WeatherBrush.getState()
+			local curSlider = persistToSlider(wbs.persistenceSeconds)
+			WG.WeatherBrush.setPersistenceSeconds(sliderToPersist(math.min(PERSIST_SLIDER_MAX, curSlider + 10)))
+		end
+	end,
+	onWbPersistDown = function(_event)
+		if WG.WeatherBrush then
+			local wbs = WG.WeatherBrush.getState()
+			local curSlider = persistToSlider(wbs.persistenceSeconds)
+			WG.WeatherBrush.setPersistenceSeconds(sliderToPersist(math.max(0, curSlider - 10)))
+		end
+	end,
+	onWbTogglePersistent = function(_event)
+		if WG.WeatherBrush then
+			local wbs = WG.WeatherBrush.getState()
+			local isPerm = wbs and wbs.persistenceSeconds >= PERSIST_PERMANENT_VAL
+			WG.WeatherBrush.setPersistenceSeconds(isPerm and 0 or PERSIST_PERMANENT_VAL)
+		end
+	end,
+	onWbClearAll = function(_event)
+		playSound("reset")
+		if WG.WeatherBrush then WG.WeatherBrush.clearAllPersistent() end
+	end,
+	-- Phase 2 step 6: tf_startpos model-king handlers — defined here (not in M.attach)
+	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
+	-- Closures capture widgetState/uiState/WG/playSound/ROTATION_STEP/_noSliderVal upvalues.
+	-- Spring.GetMouseState/TraceScreenRay/Game accessed as globals (no upvalue cost).
+	onSpSetSubMode = function(_event, sm)
+		playSound("modeSwitch")
+		if WG.StartPosTool then WG.StartPosTool.setSubMode(sm) end
+	end,
+	onSpSetShape = function(_event, sh)
+		playSound("modeSwitch")
+		if WG.StartPosTool then WG.StartPosTool.setShape(sh) end
+	end,
+	onSpAllyTeamsChange = function(_event)
+		if uiState.updatingFromCode then return end
+		local val = _noSliderVal("sp-allyteams", 2)
+		if WG.StartPosTool then WG.StartPosTool.setNumAllyTeams(val) end
+	end,
+	onSpTeamsDown = function(_event)
+		if WG.StartPosTool then
+			local s = WG.StartPosTool.getState()
+			WG.StartPosTool.setNumAllyTeams(s.numAllyTeams - 1)
+		end
+	end,
+	onSpTeamsUp = function(_event)
+		if WG.StartPosTool then
+			local s = WG.StartPosTool.getState()
+			WG.StartPosTool.setNumAllyTeams(s.numAllyTeams + 1)
+		end
+	end,
+	onSpTeamsPerAllyChange = function(_event)
+		if uiState.updatingFromCode then return end
+		local val = _noSliderVal("sp-teams-per-ally", 1)
+		if WG.StartPosTool and WG.StartPosTool.setNumTeamsPerAlly then
+			WG.StartPosTool.setNumTeamsPerAlly(val)
+		end
+	end,
+	onSpTeamsPerAllyDown = function(_event)
+		if WG.StartPosTool and WG.StartPosTool.setNumTeamsPerAlly then
+			local s = WG.StartPosTool.getState()
+			WG.StartPosTool.setNumTeamsPerAlly((s.numTeamsPerAlly or 1) - 1)
+		end
+	end,
+	onSpTeamsPerAllyUp = function(_event)
+		if WG.StartPosTool and WG.StartPosTool.setNumTeamsPerAlly then
+			local s = WG.StartPosTool.getState()
+			WG.StartPosTool.setNumTeamsPerAlly((s.numTeamsPerAlly or 1) + 1)
+		end
+	end,
+	onSpTogglePlacement = function(_event)
+		playSound("modeSwitch")
+		if WG.StartPosTool and WG.StartPosTool.togglePlacementMode then
+			WG.StartPosTool.togglePlacementMode()
+		end
+	end,
+	onSpSetStartboxMode = function(_event, mode)
+		playSound("modeSwitch")
+		if WG.StartPosTool and WG.StartPosTool.setStartboxMode then
+			WG.StartPosTool.setStartboxMode(mode)
+		end
+	end,
+	onSpCountChange = function(_event)
+		if uiState.updatingFromCode then return end
+		local val = _noSliderVal("sp-count", 4)
+		if WG.StartPosTool then WG.StartPosTool.setShapeCount(val) end
+	end,
+	onSpCountDown = function(_event)
+		if WG.StartPosTool then
+			local s = WG.StartPosTool.getState()
+			WG.StartPosTool.setShapeCount(s.shapeCount - 1)
+		end
+	end,
+	onSpCountUp = function(_event)
+		if WG.StartPosTool then
+			local s = WG.StartPosTool.getState()
+			WG.StartPosTool.setShapeCount(s.shapeCount + 1)
+		end
+	end,
+	onSpSizeChange = function(_event)
+		if uiState.updatingFromCode then return end
+		local val = _noSliderVal("sp-size", 2000)
+		if WG.StartPosTool then WG.StartPosTool.setRadius(val) end
+	end,
+	onSpSizeDown = function(_event)
+		if WG.StartPosTool then
+			local s = WG.StartPosTool.getState()
+			WG.StartPosTool.setRadius(s.shapeRadius - 32)
+		end
+	end,
+	onSpSizeUp = function(_event)
+		if WG.StartPosTool then
+			local s = WG.StartPosTool.getState()
+			WG.StartPosTool.setRadius(s.shapeRadius + 32)
+		end
+	end,
+	onSpRotChange = function(_event)
+		if uiState.updatingFromCode then return end
+		local val = _noSliderVal("sp-rotation", 0)
+		if WG.StartPosTool then WG.StartPosTool.setRotation(val) end
+	end,
+	onSpRotCW = function(_event)
+		if WG.StartPosTool then
+			local s = WG.StartPosTool.getState()
+			WG.StartPosTool.setRotation(((s and s.shapeRotation or 0) + ROTATION_STEP) % 360)
+		end
+	end,
+	onSpRotCCW = function(_event)
+		if WG.StartPosTool then
+			local s = WG.StartPosTool.getState()
+			WG.StartPosTool.setRotation(((s and s.shapeRotation or 0) - ROTATION_STEP) % 360)
+		end
+	end,
+	onSpRandom = function(_event)
+		playSound("apply")
+		if WG.StartPosTool then
+			local mx, my = Spring.GetMouseState()
+			local _, pos = Spring.TraceScreenRay(mx, my, true)
+			if pos then
+				WG.StartPosTool.placeRandomPositions(pos[1], pos[3])
+			else
+				WG.StartPosTool.placeRandomPositions(Game.mapSizeX / 2, Game.mapSizeZ / 2)
+			end
+		end
+	end,
+	onSpClear = function(_event)
+		playSound("apply")
+		if WG.StartPosTool then
+			WG.StartPosTool.clearAllPositions()
+			WG.StartPosTool.clearAllStartboxes()
+		end
+	end,
+	onSpSave = function(_event)
+		playSound("apply")
+		if WG.StartPosTool then
+			WG.StartPosTool.saveStartPositions()
+			WG.StartPosTool.saveStartboxes()
+		end
+	end,
+	onSpLoad = function(_event)
+		playSound("apply")
+		if WG.StartPosTool then
+			WG.StartPosTool.loadStartPositions()
+			WG.StartPosTool.loadStartboxes()
+		end
+	end,
 }
 
 local shapeNames = {
@@ -1230,7 +1651,7 @@ end
 
 local CLAY_UNAVAILABLE_MODES = { noise = true, restore = true }
 
-local function clearPassthrough()
+clearPassthrough = function()
 	if widgetState.passthroughMode then
 		widgetState.passthroughMode = false
 		widgetState.passthroughSaved = nil
@@ -5287,8 +5708,8 @@ function widget:Update()
 				widgetState.lightLibraryOpen = false
 				dm.lpLibraryOpen = false
 			end
-			-- shape row: hidden for env/clone/startpos
-			local hideShape = envActive or clActive or stpActive
+			-- shape row: hidden for env/clone/startpos/weather (weather has no shape picker)
+			local hideShape = envActive or clActive or stpActive or wbActive
 				or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
 			dm.tfShapeRowVisible = not hideShape
 			-- smooth submodes: visible only in smooth/level terraform mode
@@ -5408,7 +5829,7 @@ function widget:Update()
 	if doc then
 		-- Reset ramp-type row and shape row visibility before per-tool branches
 		do
-			local hideShape2 = envActive or clActive or stpActive
+			local hideShape2 = envActive or clActive or stpActive or wbActive
 				or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
 			if widgetState.dmHandle then
 				widgetState.dmHandle.tfRampMode = false
@@ -5474,35 +5895,95 @@ function widget:Update()
 		end
 		if ctx.syncTBMirrorControls then ctx.syncTBMirrorControls(doc, "wb") end
 
+		-- Sync weather brush slider/label values from state.
+		-- Wrapped in a local function so its locals don't count against the
+		-- widget:Update pcall function's 200-local-variable limit.
+		if doc then
+			local function wbSync(wbs, ctxx, uiS, getCE, docc)
+				uiS.updatingFromCode = true
+				local drag = uiS.draggingSlider
+				local function ss(sid, val)
+					if drag == sid then return end
+					local el = getCE(docc, sid)
+					if el then el:SetAttribute("value", tostring(val)) end
+				end
+				local function sl(id, text)
+					local el = getCE(docc, id)
+					if el then el.inner_rml = text end
+				end
+				-- Size (slider value = radius)
+				local sv = math.floor(wbs.radius)
+				ss("wb-slider-size", sv)
+				sl("wb-radius-label", tostring(sv))
+				-- Length (slider value = lengthScale*10)
+				local lv = math.floor(wbs.lengthScale * 10 + 0.5)
+				ss("wb-slider-length", lv)
+				sl("wb-length-label", string.format("%.1f", wbs.lengthScale))
+				-- Rotation (slider value = rotation degrees)
+				local rv = math.floor(wbs.rotation)
+				ss("wb-slider-rotation", rv)
+				sl("wb-rotation-label", tostring(rv))
+				-- Spawn count
+				ss("wb-slider-count", wbs.spawnCount)
+				sl("wb-count-label", tostring(wbs.spawnCount))
+				-- Cadence (logarithmic)
+				ss("wb-slider-cadence", ctxx.cadenceToSlider(wbs.cadence))
+				sl("wb-cadence-label", tostring(wbs.cadence))
+				-- Frequency (logarithmic)
+				local f = wbs.frequency
+				ss("wb-slider-frequency", ctxx.frequencyToSlider(f))
+				sl("wb-frequency-label",
+					f >= 10 and string.format("%.0fs", f)
+					or f >= 1 and string.format("%.1fs", f)
+					or string.format("%.2fs", f))
+				-- Persistence
+				ss("wb-slider-persist", ctxx.persistToSlider(wbs.persistenceSeconds))
+				local pv = wbs.persistenceSeconds
+				sl("wb-persist-label",
+					pv >= ctxx.PERSIST_PERMANENT_VAL and "Perm"
+					or pv <= 0 and "Off"
+					or (pv < 60 and string.format("%.0fs", pv)
+					   or pv < 3600 and string.format("%.0fm", pv / 60)
+					   or string.format("%.0fh", pv / 3600)))
+				-- Active effects count
+				sl("wb-persistent-count", tostring(wbs.persistentCount or 0))
+				-- Permanent checkbox visual
+				local pBtn = getCE(docc, "btn-wb-persistent")
+				if pBtn then
+					pBtn:SetAttribute("src", pv >= ctxx.PERSIST_PERMANENT_VAL
+						and "/luaui/images/terraform_brush/check_on.png"
+						or  "/luaui/images/terraform_brush/check_off.png")
+				end
+				uiS.updatingFromCode = false
+			end
+			wbSync(wbState, ctx, uiState, getCachedEl, doc)
+		end
+
 		-- P3.2 Weather grayouts (per Phase 3 relevance matrix)
 		if doc then
 			local mode = wbState.mode or "scatter"
-			local shape = wbState.shape or "circle"
 			local remove = (mode == "remove")
 			local scatter = (mode == "scatter")
-			local circular = (shape == "circle")
-			-- Rotation: non-circular shapes, non-remove
+			-- Rotation/length: always enabled (no shape picker, shape is always circle)
 			ctx.setDisabledIds(doc, {
-				"slider-wb-rotation", "slider-wb-rotation-numbox",
+				"wb-slider-rotation", "wb-slider-rotation-numbox",
 				"btn-wb-rot-ccw", "btn-wb-rot-cw",
-			}, circular or remove)
-			-- Length: non-circular shapes, non-remove
-			ctx.setDisabledIds(doc, {
-				"slider-wb-length", "slider-wb-length-numbox",
+				"wb-slider-length", "wb-slider-length-numbox",
 				"btn-wb-length-down", "btn-wb-length-up",
-			}, circular or remove)
+			}, false)
 			-- Count/cadence/distribution: scatter-only
 			ctx.setDisabledIds(doc, {
-				"slider-wb-count", "slider-wb-count-numbox",
+				"wb-slider-count", "wb-slider-count-numbox",
 				"btn-wb-count-down", "btn-wb-count-up",
-				"slider-wb-cadence", "slider-wb-cadence-numbox",
+				"wb-slider-cadence", "wb-slider-cadence-numbox",
 				"btn-wb-cadence-down", "btn-wb-cadence-up",
 				"btn-wb-dist-random", "btn-wb-dist-regular", "btn-wb-dist-clustered",
 			}, not scatter)
 			-- Frequency/persist: irrelevant in remove
 			ctx.setDisabledIds(doc, {
-				"slider-wb-frequency", "slider-wb-frequency-numbox",
-				"slider-wb-persist", "slider-wb-persist-numbox",
+				"wb-slider-frequency", "wb-slider-frequency-numbox",
+				"wb-slider-persist", "wb-slider-persist-numbox",
+				"btn-wb-persist-down", "btn-wb-persist-up",
 			}, remove)
 		end
 
