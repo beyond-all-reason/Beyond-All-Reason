@@ -3623,6 +3623,298 @@ local initialModel = {
 			end
 		end
 	end,
+	-- Phase 2 step 6: tf_lights model-king handlers — defined here (not in M.attach)
+	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
+	-- Closures capture file-level widgetState/uiState/WG/playSound/_elemSliderVal upvalues.
+	-- widgetState.lpPalette + widgetState.lpPopulateBuiltinPresets/lpPopulateUserPresets
+	-- are stored by tf_lights M.attach (cross-file bridge via widgetState).
+	onLpSetType = function(_event, lt)
+		playSound("modeSwitch")
+		if WG.LightPlacer then WG.LightPlacer.setLightType(lt) end
+	end,
+	onLpSetMode = function(_event, mode)
+		playSound("modeSwitch")
+		if WG.LightPlacer then WG.LightPlacer.setMode(mode) end
+	end,
+	onLpSetDist = function(_event, dist)
+		playSound("shapeSwitch")
+		if WG.LightPlacer then WG.LightPlacer.setDistribution(dist) end
+	end,
+	onLpColorRChange = function(_event)
+		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		local val = _elemSliderVal("slider-lp-color-r", 1000)
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setColor(val / 1000, s.color[2], s.color[3])
+	end,
+	onLpColorGChange = function(_event)
+		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		local val = _elemSliderVal("slider-lp-color-g", 900)
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setColor(s.color[1], val / 1000, s.color[3])
+	end,
+	onLpColorBChange = function(_event)
+		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		local val = _elemSliderVal("slider-lp-color-b", 700)
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setColor(s.color[1], s.color[2], val / 1000)
+	end,
+	onLpColorRDown = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setColor(math.max(0, math.min(1, s.color[1] - 0.05)), s.color[2], s.color[3])
+	end,
+	onLpColorRUp = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setColor(math.max(0, math.min(1, s.color[1] + 0.05)), s.color[2], s.color[3])
+	end,
+	onLpColorGDown = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setColor(s.color[1], math.max(0, math.min(1, s.color[2] - 0.05)), s.color[3])
+	end,
+	onLpColorGUp = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setColor(s.color[1], math.max(0, math.min(1, s.color[2] + 0.05)), s.color[3])
+	end,
+	onLpColorBDown = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setColor(s.color[1], s.color[2], math.max(0, math.min(1, s.color[3] - 0.05)))
+	end,
+	onLpColorBUp = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setColor(s.color[1], s.color[2], math.max(0, math.min(1, s.color[3] + 0.05)))
+	end,
+	onLpSwatch = function(_event, idx)
+		local c = widgetState.lpPalette and widgetState.lpPalette[idx]
+		if c and WG.LightPlacer then WG.LightPlacer.setColor(c[1], c[2], c[3]) end
+	end,
+	onLpBrightnessChange = function(_event)
+		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		local val = _elemSliderVal("slider-lp-brightness", 200)
+		WG.LightPlacer.setBrightness(val / 100)
+	end,
+	onLpBrightnessDown = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setBrightness(s.brightness - 0.1)
+	end,
+	onLpBrightnessUp = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setBrightness(s.brightness + 0.1)
+	end,
+	onLpLightRadiusChange = function(_event)
+		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		local val = _elemSliderVal("slider-lp-light-radius", 300)
+		WG.LightPlacer.setLightRadius(val)
+	end,
+	onLpLightRadiusDown = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setLightRadius(s.lightRadius - 50)
+	end,
+	onLpLightRadiusUp = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setLightRadius(s.lightRadius + 50)
+	end,
+	onLpElevChange = function(_event)
+		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		local val = _elemSliderVal("slider-lp-elevation", 20)
+		WG.LightPlacer.setElevation(val)
+	end,
+	onLpElevDown = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setElevation(s.elevation - 5)
+	end,
+	onLpElevUp = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setElevation(s.elevation + 5)
+	end,
+	onLpThetaChange = function(_event)
+		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		local val = _elemSliderVal("slider-lp-theta", 500)
+		WG.LightPlacer.setTheta(val / 1000)
+	end,
+	onLpThetaDown = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setTheta((s.theta or 0.5) - 0.05)
+	end,
+	onLpThetaUp = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setTheta((s.theta or 0.5) + 0.05)
+	end,
+	onLpBeamLenChange = function(_event)
+		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		local val = _elemSliderVal("slider-lp-beam-length", 300)
+		WG.LightPlacer.setBeamLength(val)
+	end,
+	onLpBeamLenDown = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setBeamLength((s.beamLength or 300) - 50)
+	end,
+	onLpBeamLenUp = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setBeamLength((s.beamLength or 300) + 50)
+	end,
+	onLpCountChange = function(_event)
+		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		local val = _elemSliderVal("slider-lp-count", 5)
+		WG.LightPlacer.setLightCount(val)
+	end,
+	onLpCountDown = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setLightCount(s.lightCount - 1)
+	end,
+	onLpCountUp = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setLightCount(s.lightCount + 1)
+	end,
+	onLpBrushRadiusChange = function(_event)
+		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		local val = _elemSliderVal("slider-lp-brush-radius", 200)
+		WG.LightPlacer.setRadius(val)
+	end,
+	onLpBrushRadiusDown = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setRadius(s.radius - 8)
+	end,
+	onLpBrushRadiusUp = function(_event)
+		if not WG.LightPlacer then return end
+		local s = WG.LightPlacer.getState()
+		WG.LightPlacer.setRadius(s.radius + 8)
+	end,
+	onLpLibrary = function(_event)
+		playSound("panelOpen")
+		local open = not widgetState.lightLibraryOpen
+		widgetState.lightLibraryOpen = open
+		local d = widgetState.dmHandle; if d then d.lpLibraryOpen = open end
+		if open then
+			if widgetState.lpPopulateBuiltinPresets then widgetState.lpPopulateBuiltinPresets() end
+			if widgetState.lightLibraryTab == "user" and widgetState.lpPopulateUserPresets then
+				widgetState.lpPopulateUserPresets()
+			end
+		elseif WG.LightPlacer and WG.LightPlacer.clearPendingPreset then
+			WG.LightPlacer.clearPendingPreset()
+		end
+	end,
+	onLpUndo = function(_event)
+		playSound("undo")
+		if WG.LightPlacer then WG.LightPlacer.undo() end
+	end,
+	onLpRedo = function(_event)
+		playSound("undo")
+		if WG.LightPlacer then WG.LightPlacer.redo() end
+	end,
+	onLpHistoryChange = function(_event)
+		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		local val = _elemSliderVal("slider-lp-history", 100)
+		local lpSt = WG.LightPlacer.getState()
+		if not lpSt then return end
+		local currentUndoCount = lpSt.undoCount or 0
+		local diff = val - currentUndoCount
+		if diff > 0 then
+			for i = 1, diff do WG.LightPlacer.redo() end
+		elseif diff < 0 then
+			for i = 1, -diff do WG.LightPlacer.undo() end
+		end
+	end,
+	onLpSave = function(_event)
+		playSound("save")
+		if WG.LightPlacer then WG.LightPlacer.save() end
+	end,
+	onLpLoad = function(_event)
+		playSound("dropdown")
+		if WG.LightPlacer then WG.LightPlacer.load() end
+	end,
+	onLpClearAll = function(_event)
+		playSound("reset")
+		if WG.LightPlacer then WG.LightPlacer.clearAll() end
+	end,
+	onLlTabBuiltin = function(_event)
+		playSound("click")
+		widgetState.lightLibraryTab = "builtin"
+		local d = widgetState.dmHandle; if d then d.lpLibraryTab = "builtin" end
+	end,
+	onLlTabUser = function(_event)
+		playSound("click")
+		widgetState.lightLibraryTab = "user"
+		local d = widgetState.dmHandle; if d then d.lpLibraryTab = "user" end
+		if widgetState.lpPopulateUserPresets then widgetState.lpPopulateUserPresets() end
+	end,
+	onLlClose = function(_event)
+		playSound("click")
+		widgetState.lightLibraryOpen = false
+		local d = widgetState.dmHandle; if d then d.lpLibraryOpen = false end
+		if WG.LightPlacer and WG.LightPlacer.clearPendingPreset then
+			WG.LightPlacer.clearPendingPreset()
+		end
+	end,
+	onLlSearch = function(_event)
+		local doc2 = widgetState.document
+		local searchInput = doc2 and doc2:GetElementById("ll-search-input")
+		local filter = (searchInput and searchInput:GetAttribute("value") or ""):lower()
+		if widgetState.lightLibraryTab ~= "user" then
+			if widgetState.lpPopulateBuiltinPresets then widgetState.lpPopulateBuiltinPresets(filter) end
+		else
+			if widgetState.lpPopulateUserPresets then widgetState.lpPopulateUserPresets(filter) end
+		end
+	end,
+	onLlSearchClear = function(_event)
+		local doc2 = widgetState.document
+		local searchInput = doc2 and doc2:GetElementById("ll-search-input")
+		if searchInput then searchInput:SetAttribute("value", "") end
+		if widgetState.lightLibraryTab ~= "user" then
+			if widgetState.lpPopulateBuiltinPresets then widgetState.lpPopulateBuiltinPresets("") end
+		else
+			if widgetState.lpPopulateUserPresets then widgetState.lpPopulateUserPresets("") end
+		end
+	end,
+	onLlSavePreset = function(_event)
+		playSound("save")
+		local doc2 = widgetState.document
+		local llNameInput = doc2 and doc2:GetElementById("input-ll-preset-name")
+		if WG.LightPlacer and llNameInput then
+			local name = llNameInput:GetAttribute("value") or ""
+			if name ~= "" then
+				WG.LightPlacer.saveUserPreset(name)
+				if widgetState.lpPopulateUserPresets then widgetState.lpPopulateUserPresets() end
+			end
+		end
+	end,
+	onLlDeletePreset = function(_event)
+		playSound("reset")
+		local sel = widgetState.lightLibrarySelectedPreset
+		if sel and sel.name and WG.LightPlacer then
+			local presets = WG.LightPlacer.listUserPresets()
+			for _, p in ipairs(presets) do
+				if p.name == sel.name then
+					os.remove(p.path)
+					widgetState.lightLibrarySelectedPreset = nil
+					if widgetState.lpPopulateUserPresets then widgetState.lpPopulateUserPresets() end
+					break
+				end
+			end
+		end
+	end,
+	onLlRefresh = function(_event)
+		playSound("click")
+		if widgetState.lpPopulateBuiltinPresets then widgetState.lpPopulateBuiltinPresets() end
+		if widgetState.lpPopulateUserPresets then widgetState.lpPopulateUserPresets() end
+	end,
 }
 
 local shapeNames = {
