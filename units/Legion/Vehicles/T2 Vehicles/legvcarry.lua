@@ -47,6 +47,7 @@ return {
 			parentsinheritxp = "DRONE",
 			restrictions_inclusion = "_noair_",
 			subfolder = "Legion/Vehicles/T2 Vehicles",
+			techlevel = 2,
 			unitgroup = 'weapon',
 			weapon1turretx = 45,
 			weapon1turrety = 80,
