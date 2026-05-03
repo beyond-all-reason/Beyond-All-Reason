@@ -534,7 +534,6 @@ function M.attach(doc, ctx)
 
 			local function getFP() return WG.FeaturePlacer end
 			local function getSP() return WG.SplatPainter end
-			local function getGB() return WG.GrassBrush end
 
 			-- Feature Placer chips
 			wireFilterToggleChip("fp-filter-chip-avoid-water",  "avoidWater",  getFP)
@@ -577,37 +576,7 @@ function M.attach(doc, ctx)
 					end
 				end
 			end
-			-- Independent toggle pills for grass brush (matches FP pattern).
-			-- Slope/Altitude chips enable/disable their sub-filters on toggle; Color chip = texFilterEnabled.
-			do
-				local function wireGbFilterChip(btnId, contentId, filterKeys, defaultKey)
-					local btn = doc:GetElementById(btnId)
-					local content = doc:GetElementById(contentId)
-					if not btn or not content then return end
-					btn:AddEventListener("click", function()
-						local isActive = btn:IsClassSet("active")
-						local newActive = not isActive
-						btn:SetClass("active", newActive)
-						content:SetClass("hidden", not newActive)
-						if not newActive and WG.GrassBrush then
-							-- Deactivating the chip disables all sub-filters in this category
-							for _, k in ipairs(filterKeys) do
-								WG.GrassBrush.setSmartFilter(k, false)
-							end
-						end
-					end)
-				end
-				wireGbFilterChip("btn-gb-pill-slope",    "gb-smart-slope-content",
-					{ "avoidCliffs", "preferSlopes" }, "avoidCliffs")
-				wireGbFilterChip("btn-gb-pill-altitude", "gb-smart-altitude-content",
-					{ "altMinEnable", "altMaxEnable" }, "altMinEnable")
-				-- Pure toggle chips (no content panel): directly flip single filter keys
-				wireFilterToggleChip("btn-gb-pill-avoid-water",  "avoidWater",  getGB)
-				-- Slope double-toggle sub-chips (inside gb-smart-slope-content): mutually exclusive
-				wireMutexChipPair("gb-slope-mode-avoid",  "avoidCliffs",
-				                  "gb-slope-mode-prefer", "preferSlopes", getGB)
-			end
-			-- btn-gb-pill-color click handled by inline onclick="widget:gbColorToggle()" in RML
+			-- gb pill/slope/altitude/avoid-water/color chips all use data-event-click in RML → onGbXxx handlers in initialModel
 		end
 		envSectionToggle("btn-toggle-wb-undo",         "img-toggle-wb-undo",         "section-wb-undo",         false)
 		envSectionToggle("btn-toggle-wb-overlays",     "img-toggle-wb-overlays",     "section-wb-overlays",     false)

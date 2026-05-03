@@ -798,6 +798,39 @@ local function _splApplyAnglePreset(idx)
 	if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
 end
 
+-- Grass angle-snap preset array and helpers (captured by onGb* closures in initialModel).
+local GB_ANGLE_PRESETS = { 7.5, 15, 30, 45, 60, 90 }
+local function _gbFindAnglePresetIdx(val)
+	local best, bestD = 2, math.huge
+	for i, p in ipairs(GB_ANGLE_PRESETS) do
+		local d = math.abs(p - (val or 15))
+		if d < bestD then bestD = d; best = i end
+	end
+	return best
+end
+local function _gbApplyAnglePreset(idx)
+	idx = math.max(1, math.min(#GB_ANGLE_PRESETS, idx))
+	local pval = GB_ANGLE_PRESETS[idx]
+	local pstr = (pval == math.floor(pval)) and tostring(math.floor(pval)) or tostring(pval)
+	if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
+	_elemSetSliderVal("gb-slider-angle-snap-step", idx - 1)
+	_noDmLabel("tbAngleSnapStepStr", pstr)
+	_elemSetSliderVal("gb-slider-angle-snap-step-numbox", pstr)
+end
+local function _gbApplyManualSpoke(idx)
+	if not WG.TerraformBrush then return end
+	WG.TerraformBrush.setAngleSnapManualSpoke(idx)
+	local step = (WG.TerraformBrush.getState() or {}).angleSnapStep or 15
+	local deg  = (idx * step) % 360
+	_noDmLabel("gbManualSpokeStr", tostring(deg))
+	_elemSetSliderVal("gb-slider-manual-spoke", idx)
+end
+local function _gbSnapStep(delta)
+	if not WG.TerraformBrush then return end
+	local cur = tonumber((WG.TerraformBrush.getState() or {}).gridSnapSize) or 48
+	WG.TerraformBrush.setGridSnapSize(math.max(16, math.min(128, cur + delta)))
+end
+
 local initialModel = {
 	radius = 100,
 	shapeName = "Circle",
@@ -1924,6 +1957,446 @@ local initialModel = {
 		if WG.TerraformBrush and WG.TerraformBrush.clearMeasureLines then
 			WG.TerraformBrush.clearMeasureLines()
 		end
+	end,
+
+	-- Phase 2 step 6: tf_grass model-king handlers
+	onGbSetSubMode = function(_event, gbMode)
+		playSound("modeSwitch")
+		if WG.GrassBrush then WG.GrassBrush.setSubMode(gbMode) end
+		local dm = widgetState.dmHandle
+		if dm then dm.gbSubMode = gbMode end
+	end,
+
+	-- Density
+	onGbDensityChange = function(_event)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		local v = _elemSliderVal("slider-grass-density", 80)
+		WG.GrassBrush.setDensity(v / 100)
+	end,
+	onGbDensityUp = function(_event)
+		if not WG.GrassBrush then return end
+		local s = WG.GrassBrush.getState()
+		WG.GrassBrush.setDensity(math.min(1.0, (s and s.density or 0.8) + 0.05))
+	end,
+	onGbDensityDown = function(_event)
+		if not WG.GrassBrush then return end
+		local s = WG.GrassBrush.getState()
+		WG.GrassBrush.setDensity(math.max(0.0, (s and s.density or 0.8) - 0.05))
+	end,
+
+	-- Save / Load / Clean
+	onGbSave = function(_event)
+		local grassApi = WG['grassgl4']
+		if grassApi and grassApi.saveGrassTGA then
+			playSound("save")
+			grassApi.saveGrassTGA()
+		end
+	end,
+	onGbLoad = function(_event)
+		local grassApi = WG['grassgl4']
+		if grassApi and grassApi.loadGrass then grassApi.loadGrass() end
+	end,
+	onGbClean = function(_event)
+		playSound("undo")
+		local grassApi = WG['grassgl4']
+		if grassApi and grassApi.clearGrass then grassApi.clearGrass() end
+	end,
+
+	-- Undo / Redo / History
+	onGbUndo = function(_event)
+		if WG.GrassBrush then playSound("undo"); WG.GrassBrush.undo() end
+	end,
+	onGbRedo = function(_event)
+		if WG.GrassBrush then playSound("redo"); WG.GrassBrush.redo() end
+	end,
+	onGbHistoryChange = function(_event)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		WG.GrassBrush.undoToIndex(_noSliderVal("gb-history", 0))
+	end,
+
+	-- Size
+	onGbSizeChange = function(_event)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		WG.GrassBrush.setRadius(_noSliderVal("gb-size", 100))
+	end,
+	onGbSizeUp = function(_event)
+		if not WG.GrassBrush then return end
+		local s = WG.GrassBrush.getState()
+		WG.GrassBrush.setRadius((s.radius or 100) + RADIUS_STEP)
+	end,
+	onGbSizeDown = function(_event)
+		if not WG.GrassBrush then return end
+		local s = WG.GrassBrush.getState()
+		WG.GrassBrush.setRadius((s.radius or 100) - RADIUS_STEP)
+	end,
+
+	-- Rotation (shared TerraformBrush — grass applyBrush always reads TB rotation)
+	onGbRotChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		WG.TerraformBrush.setRotation(_noSliderVal("gb-rotation", 0))
+	end,
+	onGbRotCW = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.rotate(ROTATION_STEP) end
+	end,
+	onGbRotCCW = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.rotate(-ROTATION_STEP) end
+	end,
+
+	-- Curve / Fall-off
+	onGbCurveChange = function(_event)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		WG.GrassBrush.setCurve(_noSliderVal("gb-curve", 10) / 10)
+	end,
+	onGbCurveUp = function(_event)
+		if not WG.GrassBrush then return end
+		local s = WG.GrassBrush.getState()
+		WG.GrassBrush.setCurve((s.curve or 1.0) + CURVE_STEP)
+	end,
+	onGbCurveDown = function(_event)
+		if not WG.GrassBrush then return end
+		local s = WG.GrassBrush.getState()
+		WG.GrassBrush.setCurve((s.curve or 1.0) - CURVE_STEP)
+	end,
+
+	-- Length
+	onGbLengthChange = function(_event)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		WG.GrassBrush.setLengthScale(_noSliderVal("gb-length", 10) / 10)
+	end,
+	onGbLengthUp = function(_event)
+		if not WG.GrassBrush then return end
+		local s = WG.GrassBrush.getState()
+		WG.GrassBrush.setLengthScale((s.lengthScale or 1.0) + 0.1)
+	end,
+	onGbLengthDown = function(_event)
+		if not WG.GrassBrush then return end
+		local s = WG.GrassBrush.getState()
+		WG.GrassBrush.setLengthScale((s.lengthScale or 1.0) - 0.1)
+	end,
+
+	-- Smart filter master toggle
+	onGbSmartToggle = function(_event)
+		if not WG.GrassBrush then return end
+		local st = WG.GrassBrush.getState()
+		playSound(st.smartEnabled and "toggleOff" or "toggleOn")
+		WG.GrassBrush.setSmartEnabled(not st.smartEnabled)
+	end,
+
+	-- Smart filter sub-toggle (altMinEnable / altMaxEnable)
+	onGbSmartSubToggle = function(_event, filterKey)
+		if not WG.GrassBrush then return end
+		local sf = WG.GrassBrush.getState().smartFilters or {}
+		playSound(sf[filterKey] and "toggleOff" or "toggleOn")
+		WG.GrassBrush.setSmartFilter(filterKey, not sf[filterKey])
+	end,
+
+	-- Slope pill: toggle avoidCliffs (default) when activating
+	onGbPillSlope = function(_event)
+		if not WG.GrassBrush then return end
+		local sf = WG.GrassBrush.getState().smartFilters or {}
+		if sf.avoidCliffs or sf.preferSlopes then
+			playSound("toggleOff")
+			WG.GrassBrush.setSmartFilter("avoidCliffs", false)
+			WG.GrassBrush.setSmartFilter("preferSlopes", false)
+		else
+			playSound("toggleOn")
+			WG.GrassBrush.setSmartFilter("avoidCliffs", true)
+		end
+		local sf2 = WG.GrassBrush.getState().smartFilters or {}
+		WG.GrassBrush.setSmartEnabled((sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true or false)
+	end,
+
+	-- Altitude pill: toggle altMinEnable (default) when activating
+	onGbPillAlt = function(_event)
+		if not WG.GrassBrush then return end
+		local sf = WG.GrassBrush.getState().smartFilters or {}
+		if sf.altMinEnable or sf.altMaxEnable then
+			playSound("toggleOff")
+			WG.GrassBrush.setSmartFilter("altMinEnable", false)
+			WG.GrassBrush.setSmartFilter("altMaxEnable", false)
+		else
+			playSound("toggleOn")
+			WG.GrassBrush.setSmartFilter("altMinEnable", true)
+		end
+		local sf2 = WG.GrassBrush.getState().smartFilters or {}
+		WG.GrassBrush.setSmartEnabled((sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true or false)
+	end,
+
+	-- Slope mode sub-chips: mutually exclusive
+	onGbSlopeModeAvoid = function(_event)
+		if not WG.GrassBrush then return end
+		local sf = WG.GrassBrush.getState().smartFilters or {}
+		local newVal = not sf.avoidCliffs
+		playSound(newVal and "toggleOn" or "toggleOff")
+		if newVal then WG.GrassBrush.setSmartFilter("preferSlopes", false) end
+		WG.GrassBrush.setSmartFilter("avoidCliffs", newVal)
+		local sf2 = WG.GrassBrush.getState().smartFilters or {}
+		WG.GrassBrush.setSmartEnabled((sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true or false)
+	end,
+	onGbSlopeModePrefer = function(_event)
+		if not WG.GrassBrush then return end
+		local sf = WG.GrassBrush.getState().smartFilters or {}
+		local newVal = not sf.preferSlopes
+		playSound(newVal and "toggleOn" or "toggleOff")
+		if newVal then WG.GrassBrush.setSmartFilter("avoidCliffs", false) end
+		WG.GrassBrush.setSmartFilter("preferSlopes", newVal)
+		local sf2 = WG.GrassBrush.getState().smartFilters or {}
+		WG.GrassBrush.setSmartEnabled((sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true or false)
+	end,
+
+	-- Altitude sample toggles (shared TerraformBrush)
+	onGbAltSample = function(_event, target)
+		if WG.TerraformBrush then
+			local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
+			WG.TerraformBrush.setHeightSamplingMode(cur == target and nil or target)
+		end
+	end,
+
+	-- Slope/altitude slider changes
+	onGbSlopeMaxChange = function(_event)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		WG.GrassBrush.setSmartFilter("slopeMax", _noSliderVal("gb-slope-max", 45))
+	end,
+	onGbSlopeMinChange = function(_event)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		WG.GrassBrush.setSmartFilter("slopeMin", _noSliderVal("gb-slope-min", 10))
+	end,
+	onGbAltMinChange = function(_event)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		WG.GrassBrush.setSmartFilter("altMin", _noSliderVal("gb-alt-min", 0))
+	end,
+	onGbAltMaxChange = function(_event)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		WG.GrassBrush.setSmartFilter("altMax", _noSliderVal("gb-alt-max", 200))
+	end,
+	onGbSmartStep = function(_event, filterKey, step)
+		if not WG.GrassBrush then return end
+		local sf = WG.GrassBrush.getState().smartFilters or {}
+		WG.GrassBrush.setSmartFilter(filterKey, (sf[filterKey] or 0) + step)
+	end,
+
+	-- Color filter
+	onGbColorToggle = function(_event)
+		if not WG.GrassBrush then return end
+		local st = WG.GrassBrush.getState()
+		playSound(st.texFilterEnabled and "toggleOff" or "toggleOn")
+		WG.GrassBrush.setTexFilterEnabled(not st.texFilterEnabled)
+	end,
+	onGbPipette = function(_event)
+		if not WG.GrassBrush then return end
+		local st = WG.GrassBrush.getState()
+		if st.pipetteMode then
+			WG.GrassBrush.setPipetteMode(false)
+		else
+			playSound("click")
+			WG.GrassBrush.setPipetteMode(true)
+		end
+	end,
+	onGbColorThreshChange = function(_event)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		WG.GrassBrush.setTexFilterThreshold(_noSliderVal("gb-color-thresh", 35) / 100)
+	end,
+	onGbColorThreshStep = function(_event, step)
+		if not WG.GrassBrush then return end
+		local cur = math.floor((WG.GrassBrush.getState().texFilterThreshold or 0.35) * 100 + 0.5)
+		WG.GrassBrush.setTexFilterThreshold(math.max(0, math.min(150, cur + step)) / 100)
+	end,
+	onGbColorPadChange = function(_event)
+		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		WG.GrassBrush.setTexFilterPadding(_noSliderVal("gb-color-pad", 0))
+	end,
+	onGbColorPadStep = function(_event, step)
+		if not WG.GrassBrush then return end
+		local cur = WG.GrassBrush.getState().texFilterPadding or 0
+		WG.GrassBrush.setTexFilterPadding(math.max(0, math.min(200, cur + step)))
+	end,
+	onGbExcludeToggle = function(_event)
+		if not WG.GrassBrush then return end
+		local st = WG.GrassBrush.getState()
+		playSound(st.texExcludeEnabled and "toggleOff" or "toggleOn")
+		WG.GrassBrush.setTexExcludeEnabled(not st.texExcludeEnabled)
+	end,
+	onGbExcludePipette = function(_event)
+		if not WG.GrassBrush then return end
+		local st = WG.GrassBrush.getState()
+		if st.pipetteExcludeMode then
+			WG.GrassBrush.setPipetteExcludeMode(false)
+		else
+			playSound("click")
+			WG.GrassBrush.setPipetteExcludeMode(true)
+		end
+	end,
+
+	-- Display toggles (shared TerraformBrush state)
+	onGbToggleGridOverlay = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not (WG.TerraformBrush.getState() or {}).gridOverlay
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setGridOverlay(newVal)
+	end,
+	onGbToggleHeightMap = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not (WG.TerraformBrush.getState() or {}).heightColormap
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setHeightColormap(newVal)
+	end,
+
+	-- Grid / angle / measure / symmetry toggles (shared TerraformBrush state)
+	onGbToggleGridSnap = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not (WG.TerraformBrush.getState() or {}).gridSnap
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setGridSnap(newVal)
+	end,
+	onGbToggleAngleSnap = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not (WG.TerraformBrush.getState() or {}).angleSnap
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setAngleSnap(newVal)
+	end,
+	onGbToggleMeasure = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not (WG.TerraformBrush.getState() or {}).measureActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setMeasureActive(newVal)
+	end,
+	onGbToggleSymmetry = function(_event)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		local newVal = not s.symmetryActive
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setSymmetryActive(newVal)
+		if newVal and not (s.symmetryMirrorX or s.symmetryMirrorY) then
+			WG.TerraformBrush.setSymmetryMirrorX(true)
+		end
+	end,
+
+	-- Grid snap size
+	onGbSnapSizeChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		WG.TerraformBrush.setGridSnapSize(_elemSliderVal("gb-slider-grid-snap-size", 48))
+	end,
+	onGbSnapSizeDown = function(_event) _gbSnapStep(-16) end,
+	onGbSnapSizeUp   = function(_event) _gbSnapStep(16) end,
+
+	-- Angle snap step presets
+	onGbAngleStepChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local idx = math.floor(_elemSliderVal("gb-slider-angle-snap-step", 1) or 1) + 1
+		_gbApplyAnglePreset(idx)
+	end,
+	onGbAngleStepDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local cur = (WG.TerraformBrush.getState() or {}).angleSnapStep or 15
+		_gbApplyAnglePreset(_gbFindAnglePresetIdx(cur) - 1)
+	end,
+	onGbAngleStepUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local cur = (WG.TerraformBrush.getState() or {}).angleSnapStep or 15
+		_gbApplyAnglePreset(_gbFindAnglePresetIdx(cur) + 1)
+	end,
+	onGbAngleAutoSnap = function(_event)
+		if not WG.TerraformBrush then return end
+		local newVal = not (WG.TerraformBrush.getState() or {}).angleSnapAuto
+		playSound(newVal and "toggleOn" or "toggleOff")
+		WG.TerraformBrush.setAngleSnapAuto(newVal)
+	end,
+
+	-- Manual spoke
+	onGbManualSpokeChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		_gbApplyManualSpoke(math.floor(_elemSliderVal("gb-slider-manual-spoke", 0) or 0))
+	end,
+	onGbManualSpokeDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		local step = s.angleSnapStep or 15
+		local num  = math.max(1, math.floor(360 / step))
+		_gbApplyManualSpoke(((s.angleSnapManualSpoke or 0) - 1 + num) % num)
+	end,
+	onGbManualSpokeUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		local step = s.angleSnapStep or 15
+		local num  = math.max(1, math.floor(360 / step))
+		_gbApplyManualSpoke(((s.angleSnapManualSpoke or 0) + 1) % num)
+	end,
+
+	-- Measure sub-row
+	onGbMeasureRuler = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setMeasureRulerMode(not (WG.TerraformBrush.getState() or {}).measureRulerMode) end
+	end,
+	onGbMeasureSticky = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setMeasureStickyMode(not (WG.TerraformBrush.getState() or {}).measureStickyMode) end
+	end,
+	onGbMeasureShowLength = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setMeasureShowLength(not (WG.TerraformBrush.getState() or {}).measureShowLength) end
+	end,
+	onGbMeasureClear = function(_event)
+		if WG.TerraformBrush and WG.TerraformBrush.clearMeasureLines then
+			WG.TerraformBrush.clearMeasureLines()
+		end
+	end,
+
+	-- Symmetry axis buttons
+	onGbSymRadial = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryRadial(not (WG.TerraformBrush.getState() or {}).symmetryRadial) end
+	end,
+	onGbSymMirrorX = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorX(not (WG.TerraformBrush.getState() or {}).symmetryMirrorX) end
+	end,
+	onGbSymMirrorY = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorY(not (WG.TerraformBrush.getState() or {}).symmetryMirrorY) end
+	end,
+
+	-- Symmetry origin
+	onGbSymPlaceOrigin = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true); playSound("toggleOn") end
+	end,
+	onGbSymCenterOrigin = function(_event)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryOrigin(nil, nil); playSound("toggleOff") end
+	end,
+
+	-- Symmetry radial count
+	onGbSymCountChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = math.floor(_elemSliderVal("gb-slider-symmetry-radial-count", 2) or 2)
+		WG.TerraformBrush.setSymmetryRadialCount(v)
+		local dm = widgetState.dmHandle; if dm then local s = tostring(v); if dm.tbSymCountStr ~= s then dm.tbSymCountStr = s end end
+	end,
+	onGbSymCountDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local c = math.max(2, (WG.TerraformBrush.getState() or {}).symmetryRadialCount or 2) - 1
+		WG.TerraformBrush.setSymmetryRadialCount(c)
+		local dm = widgetState.dmHandle; if dm then local s = tostring(c); if dm.tbSymCountStr ~= s then dm.tbSymCountStr = s end end
+	end,
+	onGbSymCountUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local c = math.min(16, (WG.TerraformBrush.getState() or {}).symmetryRadialCount or 2) + 1
+		WG.TerraformBrush.setSymmetryRadialCount(c)
+		local dm = widgetState.dmHandle; if dm then local s = tostring(c); if dm.tbSymCountStr ~= s then dm.tbSymCountStr = s end end
+	end,
+
+	-- Symmetry mirror angle
+	onGbSymAngleChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = _elemSliderVal("gb-slider-symmetry-mirror-angle", 0)
+		WG.TerraformBrush.setSymmetryMirrorAngle(v)
+		local dm = widgetState.dmHandle; if dm then local s = tostring(math.floor(v)); if dm.tbSymAngleStr ~= s then dm.tbSymAngleStr = s end end
+	end,
+	onGbSymAngleDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local a = ((WG.TerraformBrush.getState() or {}).symmetryMirrorAngle or 0) - 5
+		a = a % 360
+		WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		local dm = widgetState.dmHandle; if dm then local s = tostring(math.floor(a)); if dm.tbSymAngleStr ~= s then dm.tbSymAngleStr = s end end
+	end,
+	onGbSymAngleUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local a = ((WG.TerraformBrush.getState() or {}).symmetryMirrorAngle or 0) + 5
+		a = a % 360
+		WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		local dm = widgetState.dmHandle; if dm then local s = tostring(math.floor(a)); if dm.tbSymAngleStr ~= s then dm.tbSymAngleStr = s end end
 	end,
 }
 
