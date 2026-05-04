@@ -6450,6 +6450,40 @@ end
 local function attachDeclarativeHandlers(_ctx)
 	-- All tf*/tb*/env* handlers are now model-king closures in initialModel.
 	-- RML uses data-event-click/change/mousedown = "onXxx()" directly on the dm.
+
+	-- Register mousedown/mouseup drag-tracking for snap-size and angle-snap-step
+	-- sliders.  These use data-event-change (not AddEventListener) so
+	-- trackSliderDrag must be wired separately; without it draggingSlider is
+	-- never set and the per-frame sync overwrites the slider position every frame,
+	-- making the thumb fight the mouse and appear to lag during drag.
+	local doc = widgetState.document
+	if not doc then return end
+	local SNAP_SLIDERS = {
+		{"slider-grid-snap-size",     "tf-grid-snap-size"},
+		{"st-slider-grid-snap-size",  "st-grid-snap-size"},
+		{"cl-slider-grid-snap-size",  "cl-grid-snap-size"},
+		{"wb-slider-grid-snap-size",  "wb-grid-snap-size"},
+		{"dc-slider-grid-snap-size",  "dc-grid-snap-size"},
+		{"lp-slider-grid-snap-size",  "lp-grid-snap-size"},
+		{"sp-slider-grid-snap-size",  "sp-grid-snap-size"},
+		{"fp-slider-grid-snap-size",  "fp-grid-snap-size"},
+		{"gb-slider-grid-snap-size",  "gb-grid-snap-size"},
+		{"mb-slider-grid-snap-size",  "mb-grid-snap-size"},
+		{"slider-angle-snap-step",    "tf-angle-snap-step"},
+		{"st-slider-angle-snap-step", "st-angle-snap-step"},
+		{"cl-slider-angle-snap-step", "cl-angle-snap-step"},
+		{"wb-slider-angle-snap-step", "wb-angle-snap-step"},
+		{"dc-slider-angle-snap-step", "dc-angle-snap-step"},
+		{"lp-slider-angle-snap-step", "lp-angle-snap-step"},
+		{"sp-slider-angle-snap-step", "sp-angle-snap-step"},
+		{"fp-slider-angle-snap-step", "fp-angle-snap-step"},
+		{"gb-slider-angle-snap-step", "gb-angle-snap-step"},
+		{"mb-slider-angle-snap-step", "mb-angle-snap-step"},
+	}
+	for i = 1, #SNAP_SLIDERS do
+		local el = getCachedEl(doc, SNAP_SLIDERS[i][1])
+		if el then trackSliderDrag(el, SNAP_SLIDERS[i][2]) end
+	end
 end
 
 local function attachEventListeners()
@@ -8616,7 +8650,7 @@ function widget:Update()
 			end
 			if widgetState.dmHandle then widgetState.dmHandle.tfGridSnap = state.gridSnap and true or false end
 			local sliderSnapSizeSync = getCachedEl(doc, "slider-grid-snap-size")
-			if sliderSnapSizeSync then
+			if sliderSnapSizeSync and uiState.draggingSlider ~= "tf-grid-snap-size" then
 				sliderSnapSizeSync:SetAttribute("value", tostring(state.gridSnapSize or 48))
 			end
 			if widgetState.dmHandle then
@@ -8647,7 +8681,7 @@ function widget:Update()
 			local curIdx  = findAnglePresetIdxSync(curStep)
 			local curStr  = (curStep == math.floor(curStep)) and tostring(math.floor(curStep)) or tostring(curStep)
 			local sliderAngleStepSync = getCachedEl(doc, "slider-angle-snap-step")
-			if sliderAngleStepSync then
+			if sliderAngleStepSync and uiState.draggingSlider ~= "tf-angle-snap-step" then
 				sliderAngleStepSync:SetAttribute("value", tostring(curIdx - 1))
 			end
 			if widgetState.dmHandle then
