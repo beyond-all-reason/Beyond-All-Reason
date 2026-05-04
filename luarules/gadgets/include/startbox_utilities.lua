@@ -1,3 +1,5 @@
+local SplineLib = VFS.Include("common/lib_spline.lua")
+
 -- Maps camelCase method names used by ZK-style mapside configs to the
 -- PascalCase names in BAR's Spring.Utilities.Gametype, plus ZK-specific
 -- names (e.g. isChickens) to their BAR equivalents.
@@ -185,6 +187,23 @@ local function ParseBoxes ()
 
 		if not startboxStringLoadedBoxes then
 			configSource = "fallback"
+		end
+	end
+
+	-- Run every polygon through the spline tessellator. Anchors without a
+	-- per-anchor strength are treated as sharp corners (strength 0), so plain
+	-- polygons emerge with vertex-identical output. The original anchor table
+	-- is preserved on `polygon.anchors` for future editor/handle work; this
+	-- non-numeric field doesn't affect ipairs/# iteration over the vertices.
+	for _, entry in pairs(startBoxConfig) do
+		local boxes = entry.boxes
+		if boxes then
+			for i = 1, #boxes do
+				local poly = boxes[i]
+				local tessellated = SplineLib.TessellateRing(poly)
+				tessellated.anchors = poly
+				boxes[i] = tessellated
+			end
 		end
 	end
 
