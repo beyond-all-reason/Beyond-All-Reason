@@ -54,16 +54,7 @@ local manuallyHidden   = false
 local lastActive       = false
 local userDragged      = false  -- once user drags, stop auto-positioning
 
--- Window drag state (module-level for widget:MouseMove/MouseRelease)
-local FP_SNAP_THRESHOLD = 30
-local fpDragState = {
-	active = false,
-	rootEl = nil,
-	offsetX = 0, offsetY = 0,
-	ew = 0, eh = 0,
-	vsx = 0, vsy = 0,
-	lastX = -1, lastY = -1,
-}
+
 
 ----------------------------------------------------------------
 -- Thumbnail generation state (in-memory GL textures)
@@ -742,36 +733,11 @@ local function attachEventListeners()
 	rebuildFeatureList("")
 
 	-- Drag handle
-	local handleEl = doc:GetElementById("fp-handle")
-	if handleEl and widgetState.rootElement then
-		local rootEl = widgetState.rootElement
-		local ds = fpDragState
-
-		handleEl:AddEventListener("mousedown", function(event)
-			local p = event.parameters
-			if not p or (p.button and p.button ~= 0) then return end
-			local mx, my = Spring.GetMouseState()
-			local vsx, vsy = GetViewGeometry()
-			ds.active = true
-			userDragged = true
-			ds.rootEl = rootEl
-			ds.offsetX = mx - rootEl.offset_left
-			ds.offsetY = (vsx > 0 and vsy > 0) and ((vsy - my) - rootEl.offset_top) or 0
-			ds.ew = rootEl.offset_width
-			ds.eh = rootEl.offset_height
-			ds.vsx = vsx
-			ds.vsy = vsy
-			ds.lastX = -1
-			ds.lastY = -1
-			event:StopPropagation()
-		end, false)
-
-		doc:AddEventListener("mouseup", function(event)
-			if ds.active then
-				ds.active = false
-				ds.rootEl = nil
-			end
-		end, false)
+	if WG.RmlContextManager and WG.RmlContextManager.attachDraggable then
+		widgetState.dragHandle = WG.RmlContextManager.attachDraggable(
+			doc, "fp-handle", widgetState.rootElement,
+			{ onDragStart = function() userDragged = true end }
+		)
 	end
 end
 
@@ -808,62 +774,7 @@ function widget:Initialize()
 end
 
 function widget:Update()
-	-- Poll-based window drag (position only — mouseup ends drag via doc listener)
-	local ds = fpDragState
-	if ds.active and ds.rootEl then
-		local mx, my, _, _, _, offscreen = Spring.GetMouseState()
-		if not offscreen then
-		local vsx, vsy = ds.vsx, ds.vsy
-		local ew, eh = ds.ew, ds.eh
-		local T = FP_SNAP_THRESHOLD
-		local rmlY = vsy - my
-		local newX = mx - ds.offsetX
-		local newY = rmlY - ds.offsetY
-
-		if newX < 0 then newX = 0
-		elseif newX + ew > vsx then newX = vsx - ew end
-		if newY < 0 then newY = 0
-		elseif newY + eh > vsy then newY = vsy - eh end
-
-		if newX < T then newX = 0
-		elseif vsx - newX - ew < T then newX = vsx - ew end
-		if newY < T then newY = 0
-		elseif vsy - newY - eh < T then newY = vsy - eh end
-
-		-- Snap to terraform main panel
-		local mainPanel = WG.RmlContextManager and WG.RmlContextManager.getElementRect
-			and WG.RmlContextManager.getElementRect("terraform_brush", "tf-root")
-		if mainPanel then
-			local ox, oy = mainPanel.left, mainPanel.top
-			local oR = ox + (mainPanel.width or 0)
-			local oB = oy + (mainPanel.height or 0)
-			local newR, newB = newX + ew, newY + eh
-			if newY < oB and newB > oy then
-				local d = newX - oR
-				if d > -T and d < T then newX = oR
-				else d = newR - ox
-					if d > -T and d < T then newX = ox - ew end
-				end
-			end
-			if newX < oR and newR > ox then
-				local d = newY - oB
-				if d > -T and d < T then newY = oB
-				else d = newB - oy
-					if d > -T and d < T then newY = oy - eh end
-				end
-			end
-		end
-
-		local ix = math.floor(newX)
-		local iy = math.floor(newY)
-		if ix ~= ds.lastX or iy ~= ds.lastY then
-			ds.lastX = ix
-			ds.lastY = iy
-			ds.rootEl.style.left = ix .. "px"
-			ds.rootEl.style.top  = iy .. "px"
-		end
-		end -- not offscreen
-	end
+	if widgetState.dragHandle then widgetState.dragHandle.tick() end
 
 	local function setHidden(v)
 		if widgetState.dmHandle and widgetState.dmHandle.hidden ~= v then
