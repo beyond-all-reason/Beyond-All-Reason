@@ -749,7 +749,7 @@ else	-- UNSYNCED
 			teamColorsTable = table.copy(trueTeamColorsTable)
 			ffaColors = table.copy(trueFfaColors)
 			survivalColors = table.copy(trueSurvivalColors)
-			Spring.SetConfigInt("UpdateTeamColors", 1)
+			updateTeamColors()  -- apply true colors directly; avoids setupAllTeamColors(true) re-computing with live game state
 		end
 	end
 end
