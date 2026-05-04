@@ -1067,28 +1067,29 @@ local projectileDefDistortions  = {
 					sizeclass = GetClosestSizeClass(heatRadius * 0.25)
 					projectileDefDistortions[weaponID] = GetDistortionClass("HeatRayHeat", sizeclass, overrideTable)
 				else
-					-- Auto-scale distortion based on beam power and size
-					local beamThickness = weaponDef.thickness or 2
-					local beamSize = weaponDef.size or 1
-					-- DPS from reloadtime captures rapid-fire beams (armbeamer) correctly
-					local dps = damage / math.max(weaponReloadTime or 1, 0.05)
-					-- Power factor: 0..1 range, light rapid-fire ~0.18, heavy beams ~1.0
-					local powerFactor = math.min(1.0, dps / 1500)
+					-- -- Auto-scale distortion based on beam power and size
+					-- local beamThickness = weaponDef.thickness or 2
+					-- local beamSize = weaponDef.size or 1
+					-- -- DPS from reloadtime captures rapid-fire beams (armbeamer) correctly
+					-- local dps = damage / math.max(weaponReloadTime or 1, 0.05)
+					-- -- Power factor: 0..1 range, light rapid-fire ~0.18, heavy beams ~1.0
+					-- local powerFactor = math.min(1.0, dps / 1500)
 
-					-- Distortion radius: floor of 20 so even light beams produce visible shimmer
-					local beamDistRadius = math.max(4, beamThickness * 1.1 + beamSize * 1.1)
-					if weaponDef.paralyzer then
-						beamDistRadius = beamDistRadius * 0.6
-					end
-					sizeclass = GetClosestSizeClass(beamDistRadius)
+					-- -- Distortion radius: floor of 20 so even light beams produce visible shimmer
+					-- local beamDistRadius = math.max(5, beamThickness * 1.1 + beamSize * 1.1)
+					-- if weaponDef.paralyzer then
+					-- 	beamDistRadius = beamDistRadius * 0.6
+					-- end
+					-- sizeclass = GetClosestSizeClass(beamDistRadius)
 
-					-- Scale noise and effect strength by power
-					local beamOverrides = {
-						noiseStrength = 0.35 + 0.3 * powerFactor,
-						effectStrength = 1.2 + 0.75 * powerFactor,
-						noiseScaleSpace = 2.3 - 4.0 * powerFactor,  -- tighter noise for heavier beams
-					}
-					projectileDefDistortions[weaponID] = GetDistortionClass("LaserBeamHeat", sizeclass, beamOverrides)
+					-- -- Scale noise and effect strength by power
+					-- local beamOverrides = {
+					-- 	noiseStrength = 0.4 + 0.3 * powerFactor,
+					-- 	effectStrength = 1.2 + 0.75 * powerFactor,
+					-- 	noiseScaleSpace = 2.3 - 4.0 * powerFactor,  -- tighter noise for heavier beams
+					-- }
+
+					-- projectileDefDistortions[weaponID] = GetDistortionClass("LaserBeamHeat", sizeclass, beamOverrides)
 				end
 
 			elseif weaponDef.type == 'LaserCannon' then
