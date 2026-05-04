@@ -1,4 +1,4 @@
-<rml>
+﻿<rml>
 <head>
 	<link type="text/rcss" href="../styles.rcss" />
 	<link type="text/rcss" href="../rml-utility-classes.rcss" />
@@ -28,32 +28,32 @@
 		<div id="section-terrain">
 		<div id="tf-mapdamage-notice" class="tf-notice-banner hidden">Map deformation is disabled on this map. Enable it via the <span class="tf-notice-highlight">Disable Map Deformation</span> mod option before starting to use terrain editing tools.</div>
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-raise" class="tf-mode-btn tf-btn-raise" data-class-active="activeMode == 'raise'" onclick="widget:tfSetMode('raise'); event:StopPropagation()">
+			<div id="btn-raise" class="tf-mode-btn tf-btn-raise" data-class-active="activeMode == 'raise'" data-event-click="onTfSetMode('raise')">
 				<div class="tf-keybind-badge">LMB</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_raise.png" />
 				<div class="tf-btn-text">RAISE</div>
 			</div>
-			<div id="btn-lower" class="tf-mode-btn tf-btn-lower" data-class-active="activeMode == 'lower'" onclick="widget:tfSetMode('lower'); event:StopPropagation()">
+			<div id="btn-lower" class="tf-mode-btn tf-btn-lower" data-class-active="activeMode == 'lower'" data-event-click="onTfSetMode('lower')">
 				<div class="tf-keybind-badge">RMB</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_lower.png" />
 				<div class="tf-btn-text">LOWER</div>
 			</div>
-			<div id="btn-level" class="tf-mode-btn tf-btn-level" data-class-active="activeMode == 'smooth'" onclick="widget:tfSetMode('smooth'); event:StopPropagation()">
+			<div id="btn-level" class="tf-mode-btn tf-btn-level" data-class-active="activeMode == 'smooth'" data-event-click="onTfSetMode('smooth')">
 				<div class="tf-keybind-badge">L</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_level.png" />
 				<div class="tf-btn-text">MODIFY</div>
 			</div>
-			<div id="btn-ramp" class="tf-mode-btn tf-btn-ramp" data-class-active="activeMode == 'ramp'" onclick="widget:tfSetMode('ramp'); event:StopPropagation()">
+			<div id="btn-ramp" class="tf-mode-btn tf-btn-ramp" data-class-active="activeMode == 'ramp'" data-event-click="onTfSetMode('ramp')">
 				<div class="tf-keybind-badge">R</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_ramp.png" />
 				<div class="tf-btn-text">RAMP</div>
 			</div>
-			<div id="btn-restore" class="tf-mode-btn tf-btn-restore" data-class-active="activeMode == 'restore'" onclick="widget:tfSetMode('restore'); event:StopPropagation()">
+			<div id="btn-restore" class="tf-mode-btn tf-btn-restore" data-class-active="activeMode == 'restore'" data-event-click="onTfSetMode('restore')">
 				<div class="tf-keybind-badge">E</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_restore.png" />
 				<div class="tf-btn-text">RESTORE</div>
 			</div>
-			<div id="btn-noise" class="tf-mode-btn tf-btn-noise" data-class-active="activeMode == 'noise'" onclick="widget:tfSetMode('noise'); event:StopPropagation()">
+			<div id="btn-noise" class="tf-mode-btn tf-btn-noise" data-class-active="activeMode == 'noise'" data-event-click="onTfSetMode('noise')">
 				<div class="tf-keybind-badge">N</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_noise.png" />
 				<div class="tf-btn-text">NOISE</div>
@@ -68,49 +68,49 @@
 			</div>
 		<div id="section-tools">
 		<div id="tf-tools-rows" class="flex flex-row gap-1 mb-1">
-			<div id="btn-metal" class="tf-mode-btn tf-btn-metal" data-class-active="activeTool == 'mb'" onclick="widget:tfSwitchMetal(); event:StopPropagation()">
+			<div id="btn-metal" class="tf-mode-btn tf-btn-metal" data-class-active="activeTool == 'mb'" data-event-click="onTfSwitchMetal()">
 				<div class="tf-keybind-badge">M</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_metal.png" />
 				<div class="tf-btn-text">METAL</div>
 			</div>
-			<div id="btn-features" class="tf-mode-btn tf-btn-features" data-class-active="activeTool == 'fp'" onclick="widget:tfSwitchFeatures(); event:StopPropagation()">
+			<div id="btn-features" class="tf-mode-btn tf-btn-features" data-class-active="activeTool == 'fp'" data-event-click="onTfSwitchFeatures()">
 				<div class="tf-keybind-badge">F</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_features.png" />
 				<div class="tf-btn-text">FEATURES</div>
 			</div>
-			<div id="btn-grass" class="tf-mode-btn tf-btn-grass" data-class-active="activeTool == 'gb'" onclick="widget:tfSwitchGrass(); event:StopPropagation()">
+			<div id="btn-grass" class="tf-mode-btn tf-btn-grass" data-class-active="activeTool == 'gb'" data-event-click="onTfSwitchGrass()">
 				<div class="tf-keybind-badge">K</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_grass.png" />
 				<div class="tf-btn-text">GRASS</div>
 			</div>
-			<div id="btn-splat" class="tf-mode-btn tf-btn-splat" data-class-active="activeTool == 'sp'" onclick="widget:tfSwitchSplat(); event:StopPropagation()">
+			<div id="btn-splat" class="tf-mode-btn tf-btn-splat" data-class-active="activeTool == 'sp'" data-event-click="onTfSwitchSplat()">
 				<div class="tf-keybind-badge">P</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_splat.png" />
 				<div class="tf-btn-text">SPLAT</div>
 			</div>
-			<div id="btn-decals" class="tf-mode-btn tf-btn-decals" data-class-active="activeTool == 'dc'" onclick="widget:tfSwitchDecals(); event:StopPropagation()">
+			<div id="btn-decals" class="tf-mode-btn tf-btn-decals" data-class-active="activeTool == 'dc'" data-event-click="onTfSwitchDecals()">
 				<div class="tf-keybind-badge">G</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_decals.png" />
 				<div class="tf-btn-text">DECALS</div>
 			</div>
 		</div>
 		<div id="tf-tools-rows2" class="flex flex-row gap-1 mb-1">
-			<div id="btn-weather" class="tf-mode-btn tf-btn-weather" data-class-active="activeTool == 'wb'" onclick="widget:tfSwitchWeather(); event:StopPropagation()">
+			<div id="btn-weather" class="tf-mode-btn tf-btn-weather" data-class-active="activeTool == 'wb'" data-event-click="onTfSwitchWeather()">
 				<div class="tf-keybind-badge">W</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_weather.png" />
 				<div class="tf-btn-text">WEATHER</div>
 			</div>
-			<div id="btn-lights" class="tf-mode-btn tf-btn-lights" data-class-active="activeTool == 'lp'" onclick="widget:tfSwitchLights(); event:StopPropagation()">
+			<div id="btn-lights" class="tf-mode-btn tf-btn-lights" data-class-active="activeTool == 'lp'" data-event-click="onTfSwitchLights()">
 				<div class="tf-keybind-badge">L</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_lights.png" />
 				<div class="tf-btn-text">LIGHTS</div>
 			</div>
-			<div id="btn-startpos" class="tf-mode-btn tf-btn-startpos" data-class-active="activeTool == 'stp'" onclick="widget:tfSwitchStartpos(); event:StopPropagation()">
+			<div id="btn-startpos" class="tf-mode-btn tf-btn-startpos" data-class-active="activeTool == 'stp'" data-event-click="onTfSwitchStartpos()">
 				<div class="tf-keybind-badge">S</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_startpos.png" />
 				<div class="tf-btn-text">STARTS</div>
 			</div>
-			<div id="btn-environment" class="tf-mode-btn tf-btn-environment" data-class-active="activeTool == 'env'" onclick="widget:tfSwitchEnv(); event:StopPropagation()">
+			<div id="btn-environment" class="tf-mode-btn tf-btn-environment" data-class-active="activeTool == 'env'" data-event-click="onTfSwitchEnv()">
 				<div class="tf-keybind-badge">V</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_environment.png" />
 				<div class="tf-btn-text">SCENE</div>
@@ -179,10 +179,10 @@
 			</div>
 		<div id="section-st-overlays" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-st-grid-overlay" class="tf-overlay-chip" data-class-active="stGridOverlay" onclick="widget:tbToggleGridOverlay('st'); event:StopPropagation()">
+			<div id="btn-st-grid-overlay" class="tf-overlay-chip" data-class-active="stGridOverlay" data-event-click="onTbToggleGridOverlay('st')">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
-			<div id="btn-st-height-colormap" class="tf-overlay-chip" data-class-active="stHeightColormap" onclick="widget:tbToggleHeightColormap('st'); event:StopPropagation()">
+			<div id="btn-st-height-colormap" class="tf-overlay-chip" data-class-active="stHeightColormap" data-event-click="onTbToggleHeightColormap('st')">
 				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
 		</div>
@@ -199,16 +199,16 @@
 			</div>
 		<div id="section-st-instruments" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-st-grid-snap" class="tf-overlay-chip" data-class-active="stGridSnap" onclick="widget:tbToggleGridSnap('st'); event:StopPropagation()">
+			<div id="btn-st-grid-snap" class="tf-overlay-chip" data-class-active="stGridSnap" data-event-click="onTbToggleGridSnap('st')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 			</div>
-			<div id="btn-st-angle-snap" class="tf-overlay-chip" data-class-active="stAngleSnap" onclick="widget:tbToggleAngleSnap('st'); event:StopPropagation()">
+			<div id="btn-st-angle-snap" class="tf-overlay-chip" data-class-active="stAngleSnap" data-event-click="onTbToggleAngleSnap('st')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 			</div>
-			<div id="btn-st-measure" class="tf-overlay-chip" data-class-active="stMeasureActive" onclick="widget:tbToggleMeasure('st'); event:StopPropagation()">
+			<div id="btn-st-measure" class="tf-overlay-chip" data-class-active="stMeasureActive" data-event-click="onTbToggleMeasure('st')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 			</div>
-			<div id="btn-st-symmetry" class="tf-overlay-chip" data-class-active="stSymmetryActive" onclick="widget:tbToggleSymmetry('st'); event:StopPropagation()">
+			<div id="btn-st-symmetry" class="tf-overlay-chip" data-class-active="stSymmetryActive" data-event-click="onTbToggleSymmetry('st')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 			</div>
 		</div>
@@ -217,11 +217,11 @@
 				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="st-btn-snap-size-down" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(-16); event:StopPropagation()">
+				<div id="st-btn-snap-size-down" class="tf-sm-btn" data-event-click="onTbSnapSizeStep(-16)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="st-slider-grid-snap-size" class="tf-slider" min="16" max="128" step="16" value="48" onchange="widget:tbOnSnapSizeChange(element); event:StopPropagation()" />
-				<div id="st-btn-snap-size-up" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(16); event:StopPropagation()">
+				<input type="range" id="st-slider-grid-snap-size" class="tf-slider" min="16" max="128" step="16" value="48" data-event-change="onTbSnapSizeChange('st')" />
+				<div id="st-btn-snap-size-up" class="tf-sm-btn" data-event-click="onTbSnapSizeStep(16)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="st-slider-grid-snap-size-numbox" class="tf-slider-numbox" readonly value="48" />
@@ -232,11 +232,11 @@
 				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="st-btn-angle-step-down" class="tf-sm-btn" onclick="widget:tbAngleStepStep(-1); event:StopPropagation()">
+				<div id="st-btn-angle-step-down" class="tf-sm-btn" data-event-click="onTbAngleStepStep(-1)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="st-slider-angle-snap-step" class="tf-slider" min="0" max="5" step="1" value="1" onchange="widget:tbOnAngleStepChange(element); event:StopPropagation()" />
-				<div id="st-btn-angle-step-up" class="tf-sm-btn" onclick="widget:tbAngleStepStep(1); event:StopPropagation()">
+				<input type="range" id="st-slider-angle-snap-step" class="tf-slider" min="0" max="5" step="1" value="1" data-event-change="onTbAngleStepChange('st')" />
+				<div id="st-btn-angle-step-up" class="tf-sm-btn" data-event-click="onTbAngleStepStep(1)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="st-slider-angle-snap-step-numbox" class="tf-slider-numbox" readonly value="15" />
@@ -244,31 +244,31 @@
 		</div>
 		<div id="st-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="stMeasureActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-st-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stMeasureRulerMode" onclick="widget:tbToggleMeasureRuler('st'); event:StopPropagation()">
+				<div id="btn-st-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stMeasureRulerMode" data-event-click="onTbToggleMeasureRuler('st')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
 				</div>
-				<div id="btn-st-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stMeasureStickyMode" onclick="widget:tbToggleMeasureSticky('st'); event:StopPropagation()">
+				<div id="btn-st-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stMeasureStickyMode" data-event-click="onTbToggleMeasureSticky('st')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
 				</div>
-				<div id="btn-st-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stMeasureShowLength" onclick="widget:tbToggleMeasureShowLength('st'); event:StopPropagation()">
+				<div id="btn-st-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stMeasureShowLength" data-event-click="onTbToggleMeasureShowLength('st')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-st-measure-clear" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbMeasureClear('st'); event:StopPropagation()">
+				<div id="btn-st-measure-clear" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbMeasureClear('st')">
 					<div class="text-sm" style="text-align: center;">Clear All</div>
 				</div>
 			</div>
 		</div>
 		<div id="st-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="stSymmetryActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-st-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stSymmetryRadial" onclick="widget:tbToggleSymRadial('st'); event:StopPropagation()">
+				<div id="btn-st-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stSymmetryRadial" data-event-click="onTbToggleSymRadial('st')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 				</div>
-				<div id="btn-st-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stSymMirrorX" onclick="widget:tbToggleSymMirrorX('st'); event:StopPropagation()">
+				<div id="btn-st-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stSymMirrorX" data-event-click="onTbToggleSymMirrorX('st')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 				</div>
-				<div id="btn-st-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stSymMirrorY" onclick="widget:tbToggleSymMirrorY('st'); event:StopPropagation()">
+				<div id="btn-st-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="stSymMirrorY" data-event-click="onTbToggleSymMirrorY('st')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 				</div>
 			</div>
@@ -277,11 +277,11 @@
 					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="st-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('st'); event:StopPropagation()">
+					<div id="st-btn-symmetry-count-down" class="tf-sm-btn" data-event-click="onTbSymCountDown('st')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="st-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" onchange="widget:tbOnSymCountChange('st', element); event:StopPropagation()" />
-					<div id="st-btn-symmetry-count-up" class="tf-sm-btn" onclick="widget:tbSymCountUp('st'); event:StopPropagation()">
+					<input type="range" id="st-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" data-event-change="onTbSymCountChange('st')" />
+					<div id="st-btn-symmetry-count-up" class="tf-sm-btn" data-event-click="onTbSymCountUp('st')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 				</div>
@@ -291,20 +291,20 @@
 					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="st-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('st'); event:StopPropagation()">
+					<div id="st-btn-symmetry-angle-down" class="tf-sm-btn" data-event-click="onTbSymAngleDown('st')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="st-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:tbOnSymAngleChange('st', element); event:StopPropagation()" />
-					<div id="st-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:tbSymAngleUp('st'); event:StopPropagation()">
+					<input type="range" id="st-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" data-event-change="onTbSymAngleChange('st')" />
+					<div id="st-btn-symmetry-angle-up" class="tf-sm-btn" data-event-click="onTbSymAngleUp('st')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-st-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymPlaceOrigin('st'); event:StopPropagation()">
+				<div id="btn-st-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbSymPlaceOrigin('st')">
 					<div class="text-sm" style="text-align: center;">Set Origin</div>
 				</div>
-				<div id="btn-st-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymCenterOrigin('st'); event:StopPropagation()">
+				<div id="btn-st-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbSymCenterOrigin('st')">
 					<div class="text-sm" style="text-align: center;">Center</div>
 				</div>
 			</div>
@@ -493,10 +493,10 @@
 			</div>
 		<div id="section-cl-overlays" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-cl-grid-overlay" class="tf-overlay-chip" data-class-active="clGridOverlay" onclick="widget:tbToggleGridOverlay('cl'); event:StopPropagation()">
+			<div id="btn-cl-grid-overlay" class="tf-overlay-chip" data-class-active="clGridOverlay" data-event-click="onTbToggleGridOverlay('cl')">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
-			<div id="btn-cl-height-colormap" class="tf-overlay-chip" data-class-active="clHeightColormap" onclick="widget:tbToggleHeightColormap('cl'); event:StopPropagation()">
+			<div id="btn-cl-height-colormap" class="tf-overlay-chip" data-class-active="clHeightColormap" data-event-click="onTbToggleHeightColormap('cl')">
 				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
 		</div>
@@ -513,16 +513,16 @@
 			</div>
 		<div id="section-cl-instruments" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-cl-grid-snap" class="tf-overlay-chip" data-class-active="clGridSnap" onclick="widget:tbToggleGridSnap('cl'); event:StopPropagation()">
+			<div id="btn-cl-grid-snap" class="tf-overlay-chip" data-class-active="clGridSnap" data-event-click="onTbToggleGridSnap('cl')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 			</div>
-			<div id="btn-cl-angle-snap" class="tf-overlay-chip" data-class-active="clAngleSnap" onclick="widget:tbToggleAngleSnap('cl'); event:StopPropagation()">
+			<div id="btn-cl-angle-snap" class="tf-overlay-chip" data-class-active="clAngleSnap" data-event-click="onTbToggleAngleSnap('cl')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 			</div>
-			<div id="btn-cl-measure" class="tf-overlay-chip" data-class-active="clMeasureActive" onclick="widget:tbToggleMeasure('cl'); event:StopPropagation()">
+			<div id="btn-cl-measure" class="tf-overlay-chip" data-class-active="clMeasureActive" data-event-click="onTbToggleMeasure('cl')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 			</div>
-			<div id="btn-cl-symmetry" class="tf-overlay-chip" data-class-active="clSymmetryActive" onclick="widget:tbToggleSymmetry('cl'); event:StopPropagation()">
+			<div id="btn-cl-symmetry" class="tf-overlay-chip" data-class-active="clSymmetryActive" data-event-click="onTbToggleSymmetry('cl')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 			</div>
 		</div>
@@ -531,11 +531,11 @@
 				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="cl-btn-snap-size-down" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(-16); event:StopPropagation()">
+				<div id="cl-btn-snap-size-down" class="tf-sm-btn" data-event-click="onTbSnapSizeStep(-16)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="cl-slider-grid-snap-size" class="tf-slider" min="16" max="128" step="16" value="48" onchange="widget:tbOnSnapSizeChange(element); event:StopPropagation()" />
-				<div id="cl-btn-snap-size-up" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(16); event:StopPropagation()">
+				<input type="range" id="cl-slider-grid-snap-size" class="tf-slider" min="16" max="128" step="16" value="48" data-event-change="onTbSnapSizeChange('cl')" />
+				<div id="cl-btn-snap-size-up" class="tf-sm-btn" data-event-click="onTbSnapSizeStep(16)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="cl-slider-grid-snap-size-numbox" class="tf-slider-numbox" readonly value="48" />
@@ -546,11 +546,11 @@
 				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="cl-btn-angle-step-down" class="tf-sm-btn" onclick="widget:tbAngleStepStep(-1); event:StopPropagation()">
+				<div id="cl-btn-angle-step-down" class="tf-sm-btn" data-event-click="onTbAngleStepStep(-1)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="cl-slider-angle-snap-step" class="tf-slider" min="0" max="5" step="1" value="1" onchange="widget:tbOnAngleStepChange(element); event:StopPropagation()" />
-				<div id="cl-btn-angle-step-up" class="tf-sm-btn" onclick="widget:tbAngleStepStep(1); event:StopPropagation()">
+				<input type="range" id="cl-slider-angle-snap-step" class="tf-slider" min="0" max="5" step="1" value="1" data-event-change="onTbAngleStepChange('cl')" />
+				<div id="cl-btn-angle-step-up" class="tf-sm-btn" data-event-click="onTbAngleStepStep(1)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="cl-slider-angle-snap-step-numbox" class="tf-slider-numbox" readonly value="15" />
@@ -558,31 +558,31 @@
 		</div>
 		<div id="cl-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="clMeasureActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-cl-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clMeasureRulerMode" onclick="widget:tbToggleMeasureRuler('cl'); event:StopPropagation()">
+				<div id="btn-cl-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clMeasureRulerMode" data-event-click="onTbToggleMeasureRuler('cl')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
 				</div>
-				<div id="btn-cl-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clMeasureStickyMode" onclick="widget:tbToggleMeasureSticky('cl'); event:StopPropagation()">
+				<div id="btn-cl-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clMeasureStickyMode" data-event-click="onTbToggleMeasureSticky('cl')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
 				</div>
-				<div id="btn-cl-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clMeasureShowLength" onclick="widget:tbToggleMeasureShowLength('cl'); event:StopPropagation()">
+				<div id="btn-cl-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clMeasureShowLength" data-event-click="onTbToggleMeasureShowLength('cl')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-cl-measure-clear" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbMeasureClear('cl'); event:StopPropagation()">
+				<div id="btn-cl-measure-clear" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbMeasureClear('cl')">
 					<div class="text-sm" style="text-align: center;">Clear All</div>
 				</div>
 			</div>
 		</div>
 		<div id="cl-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="clSymmetryActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-cl-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clSymmetryRadial" onclick="widget:tbToggleSymRadial('cl'); event:StopPropagation()">
+				<div id="btn-cl-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clSymmetryRadial" data-event-click="onTbToggleSymRadial('cl')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 				</div>
-				<div id="btn-cl-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clSymMirrorX" onclick="widget:tbToggleSymMirrorX('cl'); event:StopPropagation()">
+				<div id="btn-cl-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clSymMirrorX" data-event-click="onTbToggleSymMirrorX('cl')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 				</div>
-				<div id="btn-cl-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clSymMirrorY" onclick="widget:tbToggleSymMirrorY('cl'); event:StopPropagation()">
+				<div id="btn-cl-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="clSymMirrorY" data-event-click="onTbToggleSymMirrorY('cl')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 				</div>
 			</div>
@@ -591,11 +591,11 @@
 					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="cl-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('cl'); event:StopPropagation()">
+					<div id="cl-btn-symmetry-count-down" class="tf-sm-btn" data-event-click="onTbSymCountDown('cl')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="cl-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" onchange="widget:tbOnSymCountChange('cl', element); event:StopPropagation()" />
-					<div id="cl-btn-symmetry-count-up" class="tf-sm-btn" onclick="widget:tbSymCountUp('cl'); event:StopPropagation()">
+					<input type="range" id="cl-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" data-event-change="onTbSymCountChange('cl')" />
+					<div id="cl-btn-symmetry-count-up" class="tf-sm-btn" data-event-click="onTbSymCountUp('cl')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 				</div>
@@ -605,20 +605,20 @@
 					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="cl-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('cl'); event:StopPropagation()">
+					<div id="cl-btn-symmetry-angle-down" class="tf-sm-btn" data-event-click="onTbSymAngleDown('cl')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="cl-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:tbOnSymAngleChange('cl', element); event:StopPropagation()" />
-					<div id="cl-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:tbSymAngleUp('cl'); event:StopPropagation()">
+					<input type="range" id="cl-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" data-event-change="onTbSymAngleChange('cl')" />
+					<div id="cl-btn-symmetry-angle-up" class="tf-sm-btn" data-event-click="onTbSymAngleUp('cl')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-cl-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymPlaceOrigin('cl'); event:StopPropagation()">
+				<div id="btn-cl-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbSymPlaceOrigin('cl')">
 					<div class="text-sm" style="text-align: center;">Set Origin</div>
 				</div>
-				<div id="btn-cl-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymCenterOrigin('cl'); event:StopPropagation()">
+				<div id="btn-cl-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbSymCenterOrigin('cl')">
 					<div class="text-sm" style="text-align: center;">Center</div>
 				</div>
 			</div>
@@ -795,30 +795,30 @@
 			</div>
 		<div id="section-shape">
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-circle" class="tf-shape-btn" data-class-active="activeShape == 'circle'" onclick="widget:tfSetShape('circle'); event:StopPropagation()">
+			<div id="btn-circle" class="tf-shape-btn" data-class-active="activeShape == 'circle'" data-event-click="onTfSetShape('circle')">
 				<div class="tf-keybind-badge">C</div>
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_circle.png" />
 			</div>
-			<div id="btn-square" class="tf-shape-btn" data-class-active="activeShape == 'square'" onclick="widget:tfSetShape('square'); event:StopPropagation()">
+			<div id="btn-square" class="tf-shape-btn" data-class-active="activeShape == 'square'" data-event-click="onTfSetShape('square')">
 				<div class="tf-keybind-badge">S</div>
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_square.png" />
 			</div>
-			<div id="btn-hexagon" class="tf-shape-btn" data-class-active="activeShape == 'hexagon'" onclick="widget:tfSetShape('hexagon'); event:StopPropagation()">
+			<div id="btn-hexagon" class="tf-shape-btn" data-class-active="activeShape == 'hexagon'" data-event-click="onTfSetShape('hexagon')">
 				<div class="tf-keybind-badge">H</div>
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_hexagon.png" />
 			</div>
-			<div id="btn-octagon" class="tf-shape-btn" data-class-active="activeShape == 'octagon'" onclick="widget:tfSetShape('octagon'); event:StopPropagation()">
+			<div id="btn-octagon" class="tf-shape-btn" data-class-active="activeShape == 'octagon'" data-event-click="onTfSetShape('octagon')">
 				<div class="tf-keybind-badge">O</div>
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_octagon.png" />
 			</div>
-			<div id="btn-triangle" class="tf-shape-btn" data-class-active="activeShape == 'triangle'" onclick="widget:tfSetShape('triangle'); event:StopPropagation()">
+			<div id="btn-triangle" class="tf-shape-btn" data-class-active="activeShape == 'triangle'" data-event-click="onTfSetShape('triangle')">
 				<div class="tf-keybind-badge">T</div>
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_triangle.png" />
 			</div>
-			<div id="btn-ring" class="tf-shape-btn" data-class-active="activeShape == 'ring'" onclick="widget:tfSetShape('ring'); event:StopPropagation()">
+			<div id="btn-ring" class="tf-shape-btn" data-class-active="activeShape == 'ring'" data-event-click="onTfSetShape('ring')">
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_ring.png" />
 			</div>
-			<div id="btn-fill" class="tf-shape-btn" data-class-active="activeShape == 'fill'" onclick="widget:tfSetShape('fill'); event:StopPropagation()">
+			<div id="btn-fill" class="tf-shape-btn" data-class-active="activeShape == 'fill'" data-event-click="onTfSetShape('fill')">
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_fill.png" />
 			</div>
 			<div class="tf-clay-spacer"></div>
@@ -1221,11 +1221,11 @@
 				</div>
 			<div id="section-mb-undo" class="hidden">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-mb-undo" class="tf-history-btn" onclick="widget:tfMbUndo(); event:StopPropagation()">
+				<div id="btn-mb-undo" class="tf-history-btn" data-event-click="onTfMbUndo()">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
 				</div>
 				<input type="range" id="slider-mb-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
-				<div id="btn-mb-redo" class="tf-history-btn" onclick="widget:tfMbRedo(); event:StopPropagation()">
+				<div id="btn-mb-redo" class="tf-history-btn" data-event-click="onTfMbRedo()">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
 				</div>
 				<input type="text" id="slider-mb-history-numbox" class="tf-slider-numbox" value="0" />
@@ -1808,11 +1808,11 @@
 				</div>
 			<div id="section-ramp-type">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-ramp-straight" class="tf-mode-btn tf-ramp-btn-straight" data-class-active="activeShape == 'square'" onclick="widget:tfRampStraight(); event:StopPropagation()">
+				<div id="btn-ramp-straight" class="tf-mode-btn tf-ramp-btn-straight" data-class-active="activeShape == 'square'" data-event-click="onTfRampStraight()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_ramp_straight.png" />
 					<div class="tf-btn-text">Straight</div>
 				</div>
-				<div id="btn-ramp-spline" class="tf-mode-btn tf-ramp-btn-spline" data-class-active="activeShape == 'circle'" onclick="widget:tfRampSpline(); event:StopPropagation()">
+				<div id="btn-ramp-spline" class="tf-mode-btn tf-ramp-btn-spline" data-class-active="activeShape == 'circle'" data-event-click="onTfRampSpline()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_ramp_spline.png" />
 					<div class="tf-btn-text">Spline</div>
 				</div>
@@ -1830,11 +1830,11 @@
 				</div>
 			<div id="section-smooth-mode">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-smooth-sub-smooth" class="tf-mode-btn tf-sm-btn-smooth" data-class-active="activeSmoothMode == 'smooth'" onclick="widget:tfSmoothSubMode('smooth'); event:StopPropagation()">
+				<div id="btn-smooth-sub-smooth" class="tf-mode-btn tf-sm-btn-smooth" data-class-active="activeSmoothMode == 'smooth'" data-event-click="onTfSmoothSubMode('smooth')">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/sm_smooth.png" />
 					<div class="tf-btn-text">Smooth</div>
 				</div>
-				<div id="btn-smooth-sub-level" class="tf-mode-btn tf-sm-btn-level" data-class-active="activeSmoothMode == 'level'" onclick="widget:tfSmoothSubMode('level'); event:StopPropagation()">
+				<div id="btn-smooth-sub-level" class="tf-mode-btn tf-sm-btn-level" data-class-active="activeSmoothMode == 'level'" data-event-click="onTfSmoothSubMode('level')">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/sm_level.png" />
 					<div class="tf-btn-text">Level</div>
 				</div>
@@ -2180,11 +2180,11 @@
 			<div id="kbhint-rotation" class="text-sm text-keybind" style="margin-left: auto;">Alt+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-rot-ccw" class="tf-sm-btn" onclick="widget:tfRotCCW(); event:StopPropagation()">
+			<div id="btn-rot-ccw" class="tf-sm-btn" data-event-click="onTfRotCCW()">
 				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_ccw.png" />
 			</div>
 			<input type="range" id="slider-rotation" class="tf-slider" min="0" max="359" step="1" value="0" />
-			<div id="btn-rot-cw" class="tf-sm-btn" onclick="widget:tfRotCW(); event:StopPropagation()">
+			<div id="btn-rot-cw" class="tf-sm-btn" data-event-click="onTfRotCW()">
 				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_cw.png" />
 			</div>
 			<input type="text" id="slider-rotation-numbox" class="tf-slider-numbox" value="0" />
@@ -2206,11 +2206,11 @@
 			<div id="kbhint-intensity" class="text-sm text-keybind" style="margin-left: auto;">Space+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-intensity-down" class="tf-sm-btn" onclick="widget:tfIntensityDown(); event:StopPropagation()">
+			<div id="btn-intensity-down" class="tf-sm-btn" data-event-click="onTfIntensityDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
 			<input type="range" id="slider-intensity" class="tf-slider" min="0" max="1000" step="1" value="333" />
-			<div id="btn-intensity-up" class="tf-sm-btn" onclick="widget:tfIntensityUp(); event:StopPropagation()">
+			<div id="btn-intensity-up" class="tf-sm-btn" data-event-click="onTfIntensityUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="slider-intensity-numbox" class="tf-slider-numbox" value="0" />
@@ -2229,11 +2229,11 @@
 				<div class="text-sm text-keybind" style="margin-left: auto;">partial blend</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-restore-strength-down" class="tf-sm-btn" onclick="widget:tfRestoreStrDown(); event:StopPropagation()">
+				<div id="btn-restore-strength-down" class="tf-sm-btn" data-event-click="onTfRestoreStrDown()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
 				<input type="range" id="slider-restore-strength" class="tf-slider" min="0" max="100" step="1" value="100" />
-				<div id="btn-restore-strength-up" class="tf-sm-btn" onclick="widget:tfRestoreStrUp(); event:StopPropagation()">
+				<div id="btn-restore-strength-up" class="tf-sm-btn" data-event-click="onTfRestoreStrUp()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="slider-restore-strength-numbox" class="tf-slider-numbox" value="0" />
@@ -2254,11 +2254,11 @@
 			<div id="kbhint-size" class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-size-down" class="tf-sm-btn" onclick="widget:tfSizeDown(); event:StopPropagation()">
+			<div id="btn-size-down" class="tf-sm-btn" data-event-click="onTfSizeDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
 			<input type="range" id="slider-size" class="tf-slider" min="8" max="2000" step="1" value="100" />
-			<div id="btn-size-up" class="tf-sm-btn" onclick="widget:tfSizeUp(); event:StopPropagation()">
+			<div id="btn-size-up" class="tf-sm-btn" data-event-click="onTfSizeUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="slider-size-numbox" class="tf-slider-numbox" value="0" />
@@ -2276,11 +2276,11 @@
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-ring-width-down" class="tf-sm-btn" onclick="widget:tfRingWidthDown(); event:StopPropagation()">
+				<div id="btn-ring-width-down" class="tf-sm-btn" data-event-click="onTfRingWidthDown()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
 				<input type="range" id="slider-ring-width" class="tf-slider" min="5" max="95" step="5" value="40" />
-				<div id="btn-ring-width-up" class="tf-sm-btn" onclick="widget:tfRingWidthUp(); event:StopPropagation()">
+				<div id="btn-ring-width-up" class="tf-sm-btn" data-event-click="onTfRingWidthUp()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="slider-ring-width-numbox" class="tf-slider-numbox" value="0" />
@@ -2299,11 +2299,11 @@
 			<div id="kbhint-length" class="text-sm text-keybind" style="margin-left: auto;">Ctrl+Alt+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-length-down" class="tf-sm-btn" onclick="widget:tfLengthDown(); event:StopPropagation()">
+			<div id="btn-length-down" class="tf-sm-btn" data-event-click="onTfLengthDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
 			<input type="range" id="slider-length" class="tf-slider" min="2" max="50" step="1" value="10" />
-			<div id="btn-length-up" class="tf-sm-btn" onclick="widget:tfLengthUp(); event:StopPropagation()">
+			<div id="btn-length-up" class="tf-sm-btn" data-event-click="onTfLengthUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="slider-length-numbox" class="tf-slider-numbox" value="0" />
@@ -2323,11 +2323,11 @@
 			<div id="kbhint-curve" class="text-sm text-keybind" style="margin-left: auto;">Shift+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-curve-down" class="tf-sm-btn" onclick="widget:tfCurveDown(); event:StopPropagation()">
+			<div id="btn-curve-down" class="tf-sm-btn" data-event-click="onTfCurveDown()">
 				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/curve_flat.png" />
 			</div>
 			<input type="range" id="slider-curve" class="tf-slider" min="1" max="50" step="1" value="10" />
-			<div id="btn-curve-up" class="tf-sm-btn" onclick="widget:tfCurveUp(); event:StopPropagation()">
+			<div id="btn-curve-up" class="tf-sm-btn" data-event-click="onTfCurveUp()">
 				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/curve_sharp.png" />
 			</div>
 			<input type="text" id="slider-curve-numbox" class="tf-slider-numbox" value="0" />
@@ -2359,11 +2359,11 @@
 			</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-cap-max-down" class="tf-sm-btn" onclick="widget:tfCapMaxDown(); event:StopPropagation()">
+			<div id="btn-cap-max-down" class="tf-sm-btn" data-event-click="onTfCapMaxDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
 			<input type="range" id="slider-cap-max" class="tf-slider tf-slider-cap-max" min="-500" max="500" step="1" value="0" />
-			<div id="btn-cap-max-up" class="tf-sm-btn" onclick="widget:tfCapMaxUp(); event:StopPropagation()">
+			<div id="btn-cap-max-up" class="tf-sm-btn" data-event-click="onTfCapMaxUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="slider-cap-max-numbox" class="tf-slider-numbox" value="0" />
@@ -2379,11 +2379,11 @@
 			</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-cap-min-down" class="tf-sm-btn" onclick="widget:tfCapMinDown(); event:StopPropagation()">
+			<div id="btn-cap-min-down" class="tf-sm-btn" data-event-click="onTfCapMinDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
 			<input type="range" id="slider-cap-min" class="tf-slider tf-slider-cap-min" min="-500" max="500" step="1" value="0" />
-			<div id="btn-cap-min-up" class="tf-sm-btn" onclick="widget:tfCapMinUp(); event:StopPropagation()">
+			<div id="btn-cap-min-up" class="tf-sm-btn" data-event-click="onTfCapMinUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="slider-cap-min-numbox" class="tf-slider-numbox" value="0" />
@@ -2399,11 +2399,11 @@
 			</div>
 		<div id="section-tf-undo" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-undo" class="tf-history-btn" onclick="widget:tfUndo(); event:StopPropagation()">
+			<div id="btn-undo" class="tf-history-btn" data-event-click="onTfUndo()">
 				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
 			</div>
 			<input type="range" id="slider-history" class="tf-slider tf-slider-history" min="0" max="100" step="1" value="100" />
-			<div id="btn-redo" class="tf-history-btn" onclick="widget:tfRedo(); event:StopPropagation()">
+			<div id="btn-redo" class="tf-history-btn" data-event-click="onTfRedo()">
 				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
 			</div>
 			<input type="text" id="slider-history-numbox" class="tf-slider-numbox" value="0" />
@@ -2941,10 +2941,10 @@
 			</div>
 		<div id="section-wb-overlays" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-wb-grid-overlay" class="tf-overlay-chip" data-class-active="wbGridOverlay" onclick="widget:tbToggleGridOverlay('wb'); event:StopPropagation()">
+			<div id="btn-wb-grid-overlay" class="tf-overlay-chip" data-class-active="wbGridOverlay" data-event-click="onTbToggleGridOverlay('wb')">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
-			<div id="btn-wb-height-colormap" class="tf-overlay-chip" data-class-active="wbHeightColormap" onclick="widget:tbToggleHeightColormap('wb'); event:StopPropagation()">
+			<div id="btn-wb-height-colormap" class="tf-overlay-chip" data-class-active="wbHeightColormap" data-event-click="onTbToggleHeightColormap('wb')">
 				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
 		</div>
@@ -2961,16 +2961,16 @@
 			</div>
 		<div id="section-wb-instruments" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-wb-grid-snap" class="tf-overlay-chip" data-class-active="wbGridSnap" onclick="widget:tbToggleGridSnap('wb'); event:StopPropagation()">
+			<div id="btn-wb-grid-snap" class="tf-overlay-chip" data-class-active="wbGridSnap" data-event-click="onTbToggleGridSnap('wb')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 			</div>
-			<div id="btn-wb-angle-snap" class="tf-overlay-chip" data-class-active="wbAngleSnap" onclick="widget:tbToggleAngleSnap('wb'); event:StopPropagation()">
+			<div id="btn-wb-angle-snap" class="tf-overlay-chip" data-class-active="wbAngleSnap" data-event-click="onTbToggleAngleSnap('wb')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 			</div>
-			<div id="btn-wb-measure" class="tf-overlay-chip" data-class-active="wbMeasureActive" onclick="widget:tbToggleMeasure('wb'); event:StopPropagation()">
+			<div id="btn-wb-measure" class="tf-overlay-chip" data-class-active="wbMeasureActive" data-event-click="onTbToggleMeasure('wb')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 			</div>
-			<div id="btn-wb-symmetry" class="tf-overlay-chip" data-class-active="wbSymmetryActive" onclick="widget:tbToggleSymmetry('wb'); event:StopPropagation()">
+			<div id="btn-wb-symmetry" class="tf-overlay-chip" data-class-active="wbSymmetryActive" data-event-click="onTbToggleSymmetry('wb')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 			</div>
 		</div>
@@ -2979,11 +2979,11 @@
 				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="wb-btn-snap-size-down" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(-16); event:StopPropagation()">
+				<div id="wb-btn-snap-size-down" class="tf-sm-btn" data-event-click="onTbSnapSizeStep(-16)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="wb-slider-grid-snap-size" class="tf-slider" min="16" max="128" step="16" value="48" onchange="widget:tbOnSnapSizeChange(element); event:StopPropagation()" />
-				<div id="wb-btn-snap-size-up" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(16); event:StopPropagation()">
+				<input type="range" id="wb-slider-grid-snap-size" class="tf-slider" min="16" max="128" step="16" value="48" data-event-change="onTbSnapSizeChange('wb')" />
+				<div id="wb-btn-snap-size-up" class="tf-sm-btn" data-event-click="onTbSnapSizeStep(16)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="wb-slider-grid-snap-size-numbox" class="tf-slider-numbox" readonly value="48" />
@@ -2994,11 +2994,11 @@
 				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="wb-btn-angle-step-down" class="tf-sm-btn" onclick="widget:tbAngleStepStep(-1); event:StopPropagation()">
+				<div id="wb-btn-angle-step-down" class="tf-sm-btn" data-event-click="onTbAngleStepStep(-1)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="wb-slider-angle-snap-step" class="tf-slider" min="0" max="5" step="1" value="1" onchange="widget:tbOnAngleStepChange(element); event:StopPropagation()" />
-				<div id="wb-btn-angle-step-up" class="tf-sm-btn" onclick="widget:tbAngleStepStep(1); event:StopPropagation()">
+				<input type="range" id="wb-slider-angle-snap-step" class="tf-slider" min="0" max="5" step="1" value="1" data-event-change="onTbAngleStepChange('wb')" />
+				<div id="wb-btn-angle-step-up" class="tf-sm-btn" data-event-click="onTbAngleStepStep(1)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="wb-slider-angle-snap-step-numbox" class="tf-slider-numbox" readonly value="15" />
@@ -3006,31 +3006,31 @@
 		</div>
 		<div id="wb-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="wbMeasureActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-wb-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbMeasureRulerMode" onclick="widget:tbToggleMeasureRuler('wb'); event:StopPropagation()">
+				<div id="btn-wb-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbMeasureRulerMode" data-event-click="onTbToggleMeasureRuler('wb')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
 				</div>
-				<div id="btn-wb-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbMeasureStickyMode" onclick="widget:tbToggleMeasureSticky('wb'); event:StopPropagation()">
+				<div id="btn-wb-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbMeasureStickyMode" data-event-click="onTbToggleMeasureSticky('wb')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
 				</div>
-				<div id="btn-wb-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbMeasureShowLength" onclick="widget:tbToggleMeasureShowLength('wb'); event:StopPropagation()">
+				<div id="btn-wb-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbMeasureShowLength" data-event-click="onTbToggleMeasureShowLength('wb')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-wb-measure-clear" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbMeasureClear('wb'); event:StopPropagation()">
+				<div id="btn-wb-measure-clear" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbMeasureClear('wb')">
 					<div class="text-sm" style="text-align: center;">Clear All</div>
 				</div>
 			</div>
 		</div>
 		<div id="wb-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="wbSymmetryActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-wb-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbSymmetryRadial" onclick="widget:tbToggleSymRadial('wb'); event:StopPropagation()">
+				<div id="btn-wb-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbSymmetryRadial" data-event-click="onTbToggleSymRadial('wb')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 				</div>
-				<div id="btn-wb-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbSymMirrorX" onclick="widget:tbToggleSymMirrorX('wb'); event:StopPropagation()">
+				<div id="btn-wb-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbSymMirrorX" data-event-click="onTbToggleSymMirrorX('wb')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 				</div>
-				<div id="btn-wb-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbSymMirrorY" onclick="widget:tbToggleSymMirrorY('wb'); event:StopPropagation()">
+				<div id="btn-wb-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="wbSymMirrorY" data-event-click="onTbToggleSymMirrorY('wb')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 				</div>
 			</div>
@@ -3039,11 +3039,11 @@
 					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="wb-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('wb'); event:StopPropagation()">
+					<div id="wb-btn-symmetry-count-down" class="tf-sm-btn" data-event-click="onTbSymCountDown('wb')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="wb-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" onchange="widget:tbOnSymCountChange('wb', element); event:StopPropagation()" />
-					<div id="wb-btn-symmetry-count-up" class="tf-sm-btn" onclick="widget:tbSymCountUp('wb'); event:StopPropagation()">
+					<input type="range" id="wb-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" data-event-change="onTbSymCountChange('wb')" />
+					<div id="wb-btn-symmetry-count-up" class="tf-sm-btn" data-event-click="onTbSymCountUp('wb')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 				</div>
@@ -3053,20 +3053,20 @@
 					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="wb-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('wb'); event:StopPropagation()">
+					<div id="wb-btn-symmetry-angle-down" class="tf-sm-btn" data-event-click="onTbSymAngleDown('wb')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="wb-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:tbOnSymAngleChange('wb', element); event:StopPropagation()" />
-					<div id="wb-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:tbSymAngleUp('wb'); event:StopPropagation()">
+					<input type="range" id="wb-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" data-event-change="onTbSymAngleChange('wb')" />
+					<div id="wb-btn-symmetry-angle-up" class="tf-sm-btn" data-event-click="onTbSymAngleUp('wb')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-wb-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymPlaceOrigin('wb'); event:StopPropagation()">
+				<div id="btn-wb-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbSymPlaceOrigin('wb')">
 					<div class="text-sm" style="text-align: center;">Set Origin</div>
 				</div>
-				<div id="btn-wb-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymCenterOrigin('wb'); event:StopPropagation()">
+				<div id="btn-wb-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbSymCenterOrigin('wb')">
 					<div class="text-sm" style="text-align: center;">Center</div>
 				</div>
 			</div>
@@ -3301,10 +3301,10 @@
 			</div>
 		<div id="section-sp-overlays" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-sp-grid-overlay" class="tf-overlay-chip" data-class-active="spGridOverlay" onclick="widget:tbToggleGridOverlay('sp'); event:StopPropagation()">
+			<div id="btn-sp-grid-overlay" class="tf-overlay-chip" data-class-active="spGridOverlay" data-event-click="onTbToggleGridOverlay('sp')">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
-			<div id="btn-sp-height-colormap" class="tf-overlay-chip" data-class-active="spHeightColormap" onclick="widget:tbToggleHeightColormap('sp'); event:StopPropagation()">
+			<div id="btn-sp-height-colormap" class="tf-overlay-chip" data-class-active="spHeightColormap" data-event-click="onTbToggleHeightColormap('sp')">
 				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
 			<div id="btn-sp-splat-overlay" class="tf-overlay-chip" data-class-active="spSplatOverlay" data-event-click="onSplToggleSplatOverlay()">
@@ -3324,16 +3324,16 @@
 			</div>
 		<div id="section-sp-instruments" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-sp-grid-snap" class="tf-overlay-chip" data-class-active="spGridSnap" onclick="widget:tbToggleGridSnap('sp'); event:StopPropagation()">
+			<div id="btn-sp-grid-snap" class="tf-overlay-chip" data-class-active="spGridSnap" data-event-click="onTbToggleGridSnap('sp')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 			</div>
-			<div id="btn-sp-angle-snap" class="tf-overlay-chip" data-class-active="spAngleSnap" onclick="widget:tbToggleAngleSnap('sp'); event:StopPropagation()">
+			<div id="btn-sp-angle-snap" class="tf-overlay-chip" data-class-active="spAngleSnap" data-event-click="onTbToggleAngleSnap('sp')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 			</div>
-			<div id="btn-sp-measure" class="tf-overlay-chip" data-class-active="spMeasureActive" onclick="widget:tbToggleMeasure('sp'); event:StopPropagation()">
+			<div id="btn-sp-measure" class="tf-overlay-chip" data-class-active="spMeasureActive" data-event-click="onTbToggleMeasure('sp')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 			</div>
-			<div id="btn-sp-symmetry" class="tf-overlay-chip" data-class-active="spSymmetryActive" onclick="widget:tbToggleSymmetry('sp'); event:StopPropagation()">
+			<div id="btn-sp-symmetry" class="tf-overlay-chip" data-class-active="spSymmetryActive" data-event-click="onTbToggleSymmetry('sp')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 			</div>
 		</div>
@@ -3739,10 +3739,10 @@
 			</div>
 		<div id="section-dc-overlays" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-dc-grid-overlay" class="tf-overlay-chip" data-class-active="dcGridOverlay" onclick="widget:tbToggleGridOverlay('dc'); event:StopPropagation()">
+			<div id="btn-dc-grid-overlay" class="tf-overlay-chip" data-class-active="dcGridOverlay" data-event-click="onTbToggleGridOverlay('dc')">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
-			<div id="btn-dc-height-colormap" class="tf-overlay-chip" data-class-active="dcHeightColormap" onclick="widget:tbToggleHeightColormap('dc'); event:StopPropagation()">
+			<div id="btn-dc-height-colormap" class="tf-overlay-chip" data-class-active="dcHeightColormap" data-event-click="onTbToggleHeightColormap('dc')">
 				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
 		</div>
@@ -3759,16 +3759,16 @@
 			</div>
 		<div id="section-dc-instruments" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-dc-grid-snap" class="tf-overlay-chip" data-class-active="dcGridSnap" onclick="widget:tbToggleGridSnap('dc'); event:StopPropagation()">
+			<div id="btn-dc-grid-snap" class="tf-overlay-chip" data-class-active="dcGridSnap" data-event-click="onTbToggleGridSnap('dc')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 			</div>
-			<div id="btn-dc-angle-snap" class="tf-overlay-chip" data-class-active="dcAngleSnap" onclick="widget:tbToggleAngleSnap('dc'); event:StopPropagation()">
+			<div id="btn-dc-angle-snap" class="tf-overlay-chip" data-class-active="dcAngleSnap" data-event-click="onTbToggleAngleSnap('dc')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 			</div>
-			<div id="btn-dc-measure" class="tf-overlay-chip" data-class-active="dcMeasureActive" onclick="widget:tbToggleMeasure('dc'); event:StopPropagation()">
+			<div id="btn-dc-measure" class="tf-overlay-chip" data-class-active="dcMeasureActive" data-event-click="onTbToggleMeasure('dc')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 			</div>
-			<div id="btn-dc-symmetry" class="tf-overlay-chip" data-class-active="dcSymmetryActive" onclick="widget:tbToggleSymmetry('dc'); event:StopPropagation()">
+			<div id="btn-dc-symmetry" class="tf-overlay-chip" data-class-active="dcSymmetryActive" data-event-click="onTbToggleSymmetry('dc')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 			</div>
 		</div>
@@ -3777,11 +3777,11 @@
 				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="dc-btn-snap-size-down" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(-16); event:StopPropagation()">
+				<div id="dc-btn-snap-size-down" class="tf-sm-btn" data-event-click="onTbSnapSizeStep(-16)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="dc-slider-grid-snap-size" class="tf-slider" min="16" max="128" step="16" value="48" onchange="widget:tbOnSnapSizeChange(element); event:StopPropagation()" />
-				<div id="dc-btn-snap-size-up" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(16); event:StopPropagation()">
+				<input type="range" id="dc-slider-grid-snap-size" class="tf-slider" min="16" max="128" step="16" value="48" data-event-change="onTbSnapSizeChange('dc')" />
+				<div id="dc-btn-snap-size-up" class="tf-sm-btn" data-event-click="onTbSnapSizeStep(16)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="dc-slider-grid-snap-size-numbox" class="tf-slider-numbox" readonly value="48" />
@@ -3792,11 +3792,11 @@
 				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="dc-btn-angle-step-down" class="tf-sm-btn" onclick="widget:tbAngleStepStep(-1); event:StopPropagation()">
+				<div id="dc-btn-angle-step-down" class="tf-sm-btn" data-event-click="onTbAngleStepStep(-1)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="dc-slider-angle-snap-step" class="tf-slider" min="0" max="5" step="1" value="1" onchange="widget:tbOnAngleStepChange(element); event:StopPropagation()" />
-				<div id="dc-btn-angle-step-up" class="tf-sm-btn" onclick="widget:tbAngleStepStep(1); event:StopPropagation()">
+				<input type="range" id="dc-slider-angle-snap-step" class="tf-slider" min="0" max="5" step="1" value="1" data-event-change="onTbAngleStepChange('dc')" />
+				<div id="dc-btn-angle-step-up" class="tf-sm-btn" data-event-click="onTbAngleStepStep(1)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="dc-slider-angle-snap-step-numbox" class="tf-slider-numbox" readonly value="15" />
@@ -3804,31 +3804,31 @@
 		</div>
 		<div id="dc-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="dcMeasureActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-dc-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcMeasureRulerMode" onclick="widget:tbToggleMeasureRuler('dc'); event:StopPropagation()">
+				<div id="btn-dc-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcMeasureRulerMode" data-event-click="onTbToggleMeasureRuler('dc')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
 				</div>
-				<div id="btn-dc-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcMeasureStickyMode" onclick="widget:tbToggleMeasureSticky('dc'); event:StopPropagation()">
+				<div id="btn-dc-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcMeasureStickyMode" data-event-click="onTbToggleMeasureSticky('dc')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
 				</div>
-				<div id="btn-dc-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcMeasureShowLength" onclick="widget:tbToggleMeasureShowLength('dc'); event:StopPropagation()">
+				<div id="btn-dc-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcMeasureShowLength" data-event-click="onTbToggleMeasureShowLength('dc')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-dc-measure-clear" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbMeasureClear('dc'); event:StopPropagation()">
+				<div id="btn-dc-measure-clear" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbMeasureClear('dc')">
 					<div class="text-sm" style="text-align: center;">Clear All</div>
 				</div>
 			</div>
 		</div>
 		<div id="dc-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="dcSymmetryActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-dc-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcSymmetryRadial" onclick="widget:tbToggleSymRadial('dc'); event:StopPropagation()">
+				<div id="btn-dc-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcSymmetryRadial" data-event-click="onTbToggleSymRadial('dc')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 				</div>
-				<div id="btn-dc-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcSymMirrorX" onclick="widget:tbToggleSymMirrorX('dc'); event:StopPropagation()">
+				<div id="btn-dc-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcSymMirrorX" data-event-click="onTbToggleSymMirrorX('dc')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 				</div>
-				<div id="btn-dc-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcSymMirrorY" onclick="widget:tbToggleSymMirrorY('dc'); event:StopPropagation()">
+				<div id="btn-dc-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="dcSymMirrorY" data-event-click="onTbToggleSymMirrorY('dc')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 				</div>
 			</div>
@@ -3837,11 +3837,11 @@
 					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="dc-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('dc'); event:StopPropagation()">
+					<div id="dc-btn-symmetry-count-down" class="tf-sm-btn" data-event-click="onTbSymCountDown('dc')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="dc-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" onchange="widget:tbOnSymCountChange('dc', element); event:StopPropagation()" />
-					<div id="dc-btn-symmetry-count-up" class="tf-sm-btn" onclick="widget:tbSymCountUp('dc'); event:StopPropagation()">
+					<input type="range" id="dc-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" data-event-change="onTbSymCountChange('dc')" />
+					<div id="dc-btn-symmetry-count-up" class="tf-sm-btn" data-event-click="onTbSymCountUp('dc')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 				</div>
@@ -3851,20 +3851,20 @@
 					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="dc-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('dc'); event:StopPropagation()">
+					<div id="dc-btn-symmetry-angle-down" class="tf-sm-btn" data-event-click="onTbSymAngleDown('dc')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="dc-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:tbOnSymAngleChange('dc', element); event:StopPropagation()" />
-					<div id="dc-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:tbSymAngleUp('dc'); event:StopPropagation()">
+					<input type="range" id="dc-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" data-event-change="onTbSymAngleChange('dc')" />
+					<div id="dc-btn-symmetry-angle-up" class="tf-sm-btn" data-event-click="onTbSymAngleUp('dc')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-dc-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymPlaceOrigin('dc'); event:StopPropagation()">
+				<div id="btn-dc-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbSymPlaceOrigin('dc')">
 					<div class="text-sm" style="text-align: center;">Set Origin</div>
 				</div>
-				<div id="btn-dc-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymCenterOrigin('dc'); event:StopPropagation()">
+				<div id="btn-dc-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbSymCenterOrigin('dc')">
 					<div class="text-sm" style="text-align: center;">Center</div>
 				</div>
 			</div>
@@ -4053,7 +4053,7 @@
 		<div id="section-env-buttons">
 
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-env-skybox-library" class="tf-env-btn" style="flex: 1; position: relative;" onmousedown="widget:envSkyboxLibToggle(element); event:StopPropagation()">
+			<div id="btn-env-skybox-library" class="tf-env-btn" style="flex: 1; position: relative;" data-event-mousedown="onEnvSkyboxLibToggle()">
 				<img class="tf-env-btn-icon" src="/luaui/images/terraform_brush/env_skybox.png" />
 				<div class="tf-env-btn-text">SKYBOX LIBRARY</div>
 				<div id="scene-skybox-notify-dot" class="tf-notify-dot hidden" style="position: absolute; top: 3dp; right: 3dp;"></div>
@@ -4111,11 +4111,11 @@
 			</div>
 		<div id="section-env-save" class="hidden">
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-env-save" class="tf-env-btn tf-save-btn" style="flex: 1;" onclick="widget:envSave(); event:StopPropagation()">
+			<div id="btn-env-save" class="tf-env-btn tf-save-btn" style="flex: 1;" data-event-click="onEnvSave()">
 				<img class="tf-env-btn-icon" src="/luaui/images/terraform_brush/env_save.png" />
 				<div class="tf-env-btn-text">SAVE SCENE</div>
 			</div>
-			<div id="btn-env-load" class="tf-env-btn" style="flex: 1;" onclick="widget:envLoad(); event:StopPropagation()">
+			<div id="btn-env-load" class="tf-env-btn" style="flex: 1;" data-event-click="onEnvLoad()">
 				<div class="tf-env-btn-text">LOAD SCENE</div>
 			</div>
 		</div>
@@ -4210,10 +4210,10 @@
 			</div>
 		<div id="section-lp-overlays" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-lp-grid-overlay" class="tf-overlay-chip" data-class-active="lpGridOverlay" onclick="widget:tbToggleGridOverlay('lp'); event:StopPropagation()">
+			<div id="btn-lp-grid-overlay" class="tf-overlay-chip" data-class-active="lpGridOverlay" data-event-click="onTbToggleGridOverlay('lp')">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
-			<div id="btn-lp-height-colormap" class="tf-overlay-chip" data-class-active="lpHeightColormap" onclick="widget:tbToggleHeightColormap('lp'); event:StopPropagation()">
+			<div id="btn-lp-height-colormap" class="tf-overlay-chip" data-class-active="lpHeightColormap" data-event-click="onTbToggleHeightColormap('lp')">
 				<div class="tf-overlay-chip-label">Height Map</div>
 			</div>
 		</div>
@@ -4230,16 +4230,16 @@
 			</div>
 		<div id="section-lp-instruments" class="hidden">
 		<div class="flex flex-row items-center gap-1 mb-1">
-			<div id="btn-lp-grid-snap" class="tf-overlay-chip" data-class-active="lpGridSnap" onclick="widget:tbToggleGridSnap('lp'); event:StopPropagation()">
+			<div id="btn-lp-grid-snap" class="tf-overlay-chip" data-class-active="lpGridSnap" data-event-click="onTbToggleGridSnap('lp')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
 			</div>
-			<div id="btn-lp-angle-snap" class="tf-overlay-chip" data-class-active="lpAngleSnap" onclick="widget:tbToggleAngleSnap('lp'); event:StopPropagation()">
+			<div id="btn-lp-angle-snap" class="tf-overlay-chip" data-class-active="lpAngleSnap" data-event-click="onTbToggleAngleSnap('lp')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
 			</div>
-			<div id="btn-lp-measure" class="tf-overlay-chip" data-class-active="lpMeasureActive" onclick="widget:tbToggleMeasure('lp'); event:StopPropagation()">
+			<div id="btn-lp-measure" class="tf-overlay-chip" data-class-active="lpMeasureActive" data-event-click="onTbToggleMeasure('lp')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
 			</div>
-			<div id="btn-lp-symmetry" class="tf-overlay-chip" data-class-active="lpSymmetryActive" onclick="widget:tbToggleSymmetry('lp'); event:StopPropagation()">
+			<div id="btn-lp-symmetry" class="tf-overlay-chip" data-class-active="lpSymmetryActive" data-event-click="onTbToggleSymmetry('lp')">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
 			</div>
 		</div>
@@ -4248,11 +4248,11 @@
 				<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="lp-btn-snap-size-down" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(-16); event:StopPropagation()">
+				<div id="lp-btn-snap-size-down" class="tf-sm-btn" data-event-click="onTbSnapSizeStep(-16)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="lp-slider-grid-snap-size" class="tf-slider" min="16" max="128" step="16" value="48" onchange="widget:tbOnSnapSizeChange(element); event:StopPropagation()" />
-				<div id="lp-btn-snap-size-up" class="tf-sm-btn" onclick="widget:tbSnapSizeStep(16); event:StopPropagation()">
+				<input type="range" id="lp-slider-grid-snap-size" class="tf-slider" min="16" max="128" step="16" value="48" data-event-change="onTbSnapSizeChange('lp')" />
+				<div id="lp-btn-snap-size-up" class="tf-sm-btn" data-event-click="onTbSnapSizeStep(16)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="lp-slider-grid-snap-size-numbox" class="tf-slider-numbox" readonly value="48" />
@@ -4263,11 +4263,11 @@
 				<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="lp-btn-angle-step-down" class="tf-sm-btn" onclick="widget:tbAngleStepStep(-1); event:StopPropagation()">
+				<div id="lp-btn-angle-step-down" class="tf-sm-btn" data-event-click="onTbAngleStepStep(-1)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 				</div>
-				<input type="range" id="lp-slider-angle-snap-step" class="tf-slider" min="0" max="5" step="1" value="1" onchange="widget:tbOnAngleStepChange(element); event:StopPropagation()" />
-				<div id="lp-btn-angle-step-up" class="tf-sm-btn" onclick="widget:tbAngleStepStep(1); event:StopPropagation()">
+				<input type="range" id="lp-slider-angle-snap-step" class="tf-slider" min="0" max="5" step="1" value="1" data-event-change="onTbAngleStepChange('lp')" />
+				<div id="lp-btn-angle-step-up" class="tf-sm-btn" data-event-click="onTbAngleStepStep(1)">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 				</div>
 				<input type="text" id="lp-slider-angle-snap-step-numbox" class="tf-slider-numbox" readonly value="15" />
@@ -4275,31 +4275,31 @@
 		</div>
 		<div id="lp-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="lpMeasureActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpMeasureRulerMode" onclick="widget:tbToggleMeasureRuler('lp'); event:StopPropagation()">
+				<div id="btn-lp-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpMeasureRulerMode" data-event-click="onTbToggleMeasureRuler('lp')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
 				</div>
-				<div id="btn-lp-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpMeasureStickyMode" onclick="widget:tbToggleMeasureSticky('lp'); event:StopPropagation()">
+				<div id="btn-lp-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpMeasureStickyMode" data-event-click="onTbToggleMeasureSticky('lp')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
 				</div>
-				<div id="btn-lp-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpMeasureShowLength" onclick="widget:tbToggleMeasureShowLength('lp'); event:StopPropagation()">
+				<div id="btn-lp-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpMeasureShowLength" data-event-click="onTbToggleMeasureShowLength('lp')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-measure-clear" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbMeasureClear('lp'); event:StopPropagation()">
+				<div id="btn-lp-measure-clear" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbMeasureClear('lp')">
 					<div class="text-sm" style="text-align: center;">Clear All</div>
 				</div>
 			</div>
 		</div>
 		<div id="lp-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="lpSymmetryActive">
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpSymmetryRadial" onclick="widget:tbToggleSymRadial('lp'); event:StopPropagation()">
+				<div id="btn-lp-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpSymmetryRadial" data-event-click="onTbToggleSymRadial('lp')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
 				</div>
-				<div id="btn-lp-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpSymMirrorX" onclick="widget:tbToggleSymMirrorX('lp'); event:StopPropagation()">
+				<div id="btn-lp-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpSymMirrorX" data-event-click="onTbToggleSymMirrorX('lp')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
 				</div>
-				<div id="btn-lp-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpSymMirrorY" onclick="widget:tbToggleSymMirrorY('lp'); event:StopPropagation()">
+				<div id="btn-lp-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="lpSymMirrorY" data-event-click="onTbToggleSymMirrorY('lp')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
 				</div>
 			</div>
@@ -4308,11 +4308,11 @@
 					<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="lp-btn-symmetry-count-down" class="tf-sm-btn" onclick="widget:tbSymCountDown('lp'); event:StopPropagation()">
+					<div id="lp-btn-symmetry-count-down" class="tf-sm-btn" data-event-click="onTbSymCountDown('lp')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="lp-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" onchange="widget:tbOnSymCountChange('lp', element); event:StopPropagation()" />
-					<div id="lp-btn-symmetry-count-up" class="tf-sm-btn" onclick="widget:tbSymCountUp('lp'); event:StopPropagation()">
+					<input type="range" id="lp-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" data-event-change="onTbSymCountChange('lp')" />
+					<div id="lp-btn-symmetry-count-up" class="tf-sm-btn" data-event-click="onTbSymCountUp('lp')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 				</div>
@@ -4322,20 +4322,20 @@
 					<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
 				</div>
 				<div class="flex flex-row gap-1 items-center mb-1">
-					<div id="lp-btn-symmetry-angle-down" class="tf-sm-btn" onclick="widget:tbSymAngleDown('lp'); event:StopPropagation()">
+					<div id="lp-btn-symmetry-angle-down" class="tf-sm-btn" data-event-click="onTbSymAngleDown('lp')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 					</div>
-					<input type="range" id="lp-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" onchange="widget:tbOnSymAngleChange('lp', element); event:StopPropagation()" />
-					<div id="lp-btn-symmetry-angle-up" class="tf-sm-btn" onclick="widget:tbSymAngleUp('lp'); event:StopPropagation()">
+					<input type="range" id="lp-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" data-event-change="onTbSymAngleChange('lp')" />
+					<div id="lp-btn-symmetry-angle-up" class="tf-sm-btn" data-event-click="onTbSymAngleUp('lp')">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 					</div>
 				</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-lp-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymPlaceOrigin('lp'); event:StopPropagation()">
+				<div id="btn-lp-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbSymPlaceOrigin('lp')">
 					<div class="text-sm" style="text-align: center;">Set Origin</div>
 				</div>
-				<div id="btn-lp-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" onclick="widget:tbSymCenterOrigin('lp'); event:StopPropagation()">
+				<div id="btn-lp-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" data-event-click="onTbSymCenterOrigin('lp')">
 					<div class="text-sm" style="text-align: center;">Center</div>
 				</div>
 			</div>
@@ -4660,9 +4660,9 @@
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div class="flex flex-row items-center">
 				<div id="tf-skybox-library-handle" class="tf-drag-handle text-2xl font-bold text-light text-outline-darker">Skybox Library</div>
-				<div id="btn-env-reset-skybox" class="tf-env-reset-btn" onclick="widget:envResetSkybox(); event:StopPropagation()">RESET</div>
+				<div id="btn-env-reset-skybox" class="tf-env-reset-btn" data-event-click="onEnvResetSkybox()">RESET</div>
 			</div>
-			<div id="btn-skybox-library-close" class="tf-quit-btn" onclick="widget:envSkyboxLibClose(); event:StopPropagation()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+			<div id="btn-skybox-library-close" class="tf-quit-btn" data-event-click="onEnvSkyboxLibClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 
 		<div class="text-sm text-keybind mb-1">Click a thumbnail to change the skybox at runtime.</div>
@@ -4673,7 +4673,7 @@
 
 
 		<div class="flex flex-row gap-1 items-center mb-1">
-			<img id="btn-env-fade-toggle" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" onmousedown="widget:envToggleFade(element); event:StopPropagation()" />
+			<img id="btn-env-fade-toggle" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" data-event-mousedown="onEnvToggleFade()" />
 			<div class="text-sm text-light">Fade transition</div>
 		</div>
 
@@ -4681,7 +4681,7 @@
 			<div id="btn-env-toggle-skyrot" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-skyrot" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">SKYBOX ROTATION</div>
-				<div id="btn-env-reset-skyaxis" class="tf-env-reset-btn" onclick="widget:envResetSkyAxis(); event:StopPropagation()">RESET</div>
+				<div id="btn-env-reset-skyaxis" class="tf-env-reset-btn" data-event-click="onEnvResetSkyAxis()">RESET</div>
 			</div>
 		<div id="env-section-skyrot" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -4747,10 +4747,10 @@
 			<div class="text-sm text-light">Sync sun to skybox</div>
 		</div>
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-env-skydyn-play" class="tf-action-btn" style="flex: 1;" onmousedown="widget:envSkyDynPlay(); event:StopPropagation()">
+			<div id="btn-env-skydyn-play" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onEnvSkyDynPlay()">
 				<div class="tf-action-btn-text">PLAY</div>
 			</div>
-			<div id="btn-env-skydyn-pause" class="tf-action-btn" style="flex: 1;" onmousedown="widget:envSkyDynPause(); event:StopPropagation()">
+			<div id="btn-env-skydyn-pause" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onEnvSkyDynPause()">
 				<div class="tf-action-btn-text">PAUSE</div>
 			</div>
 		</div>
@@ -4768,7 +4768,7 @@
 			<div id="btn-env-toggle-sundir" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-sundir" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">SUN DIRECTION</div>
-				<div id="btn-env-reset-sun" class="tf-env-reset-btn" onclick="widget:envResetSun(); event:StopPropagation()">RESET</div>
+				<div id="btn-env-reset-sun" class="tf-env-reset-btn" data-event-click="onEnvResetSun()">RESET</div>
 			</div>
 		<div id="env-section-sundir">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -4835,7 +4835,7 @@
 			<div id="btn-env-toggle-suncol" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-suncol" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">SUN COLOR</div>
-				<div id="btn-env-reset-suncol" class="tf-env-reset-btn" onclick="widget:envResetSunCol(); event:StopPropagation()">RESET</div>
+				<div id="btn-env-reset-suncol" class="tf-env-reset-btn" data-event-click="onEnvResetSunCol()">RESET</div>
 			</div>
 		<div id="env-section-suncol" class="hidden">
 		<div id="env-suncol-palette" class="lp-color-palette mb-1">
@@ -4894,7 +4894,7 @@
 			<div id="btn-env-toggle-fogdist" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-fogdist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">FOG DISTANCE</div>
-				<div id="btn-env-reset-fog" class="tf-env-reset-btn" onclick="widget:envResetFog(); event:StopPropagation()">RESET</div>
+				<div id="btn-env-reset-fog" class="tf-env-reset-btn" data-event-click="onEnvResetFog()">RESET</div>
 			</div>
 		<div id="env-section-fogdist">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -4917,7 +4917,7 @@
 			<div id="btn-env-toggle-fogcol" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-fogcol" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">FOG COLOR</div>
-				<div id="btn-env-reset-fogcolor" class="tf-env-reset-btn" onclick="widget:envResetFogColor(); event:StopPropagation()">RESET</div>
+				<div id="btn-env-reset-fogcolor" class="tf-env-reset-btn" data-event-click="onEnvResetFogColor()">RESET</div>
 			</div>
 		<div id="env-section-fogcol">
 		<div id="env-fog-palette" class="lp-color-palette mb-1">
@@ -4975,7 +4975,7 @@
 			<div id="btn-env-toggle-skycol" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-skycol" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">SKY COLOR</div>
-				<div id="btn-env-reset-skycol" class="tf-env-reset-btn" onclick="widget:envResetSkyCol(); event:StopPropagation()">RESET</div>
+				<div id="btn-env-reset-skycol" class="tf-env-reset-btn" data-event-click="onEnvResetSkyCol()">RESET</div>
 			</div>
 		<div id="env-section-skycol" class="hidden">
 		<div id="env-skycol-palette" class="lp-color-palette mb-1">
@@ -5026,7 +5026,7 @@
 			<div id="btn-env-toggle-cloudcol" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-cloudcol" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">CLOUD COLOR</div>
-				<div id="btn-env-reset-cloudcol" class="tf-env-reset-btn" onclick="widget:envResetCloudCol(); event:StopPropagation()">RESET</div>
+				<div id="btn-env-reset-cloudcol" class="tf-env-reset-btn" data-event-click="onEnvResetCloudCol()">RESET</div>
 			</div>
 		<div id="env-section-cloudcol" class="hidden">
 		<div id="env-cloudcol-palette" class="lp-color-palette mb-1">
@@ -5077,7 +5077,7 @@
 			<div id="btn-env-toggle-snow" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-snow" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">SNOW</div>
-				<div id="btn-env-reset-snow" class="tf-env-reset-btn" onclick="widget:envResetSnow(); event:StopPropagation()">RESET</div>
+				<div id="btn-env-reset-snow" class="tf-env-reset-btn" data-event-click="onEnvResetSnow()">RESET</div>
 			</div>
 		<div id="env-section-snow" class="hidden">
 		<div class="flex flex-row gap-1 items-center mb-1">
@@ -5174,7 +5174,7 @@
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div class="flex flex-row items-center">
 				<div id="tf-env-ground-lighting-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker">Ground Lighting</div>
-				<div id="btn-env-reset-ground-lighting" class="tf-env-reset-btn" onclick="widget:envResetGroundLighting(); event:StopPropagation()">RESET</div>
+				<div id="btn-env-reset-ground-lighting" class="tf-env-reset-btn" data-event-click="onEnvResetGroundLighting()">RESET</div>
 			</div>
 			<div id="btn-env-ground-lighting-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
@@ -5272,7 +5272,7 @@
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div class="flex flex-row items-center">
 				<div id="tf-env-unit-lighting-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker">Unit Lighting</div>
-				<div id="btn-env-reset-unit-lighting" class="tf-env-reset-btn" onclick="widget:envResetUnitLighting(); event:StopPropagation()">RESET</div>
+				<div id="btn-env-reset-unit-lighting" class="tf-env-reset-btn" data-event-click="onEnvResetUnitLighting()">RESET</div>
 			</div>
 			<div id="btn-env-unit-lighting-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
@@ -5476,7 +5476,7 @@
 			<div id="btn-env-toggle-wcolors" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-wcolors" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">WATER COLORS</div>
-				<div id="btn-env-reset-watercolors" class="tf-env-reset-btn" onclick="widget:envResetWaterColors(); event:StopPropagation()">RESET</div>
+				<div id="btn-env-reset-watercolors" class="tf-env-reset-btn" data-event-click="onEnvResetWaterColors()">RESET</div>
 			</div>
 		<div id="env-section-wcolors" class="hidden">
 		<!-- absorb -->
@@ -5955,7 +5955,7 @@
 		<!-- HEIGHT EXTREMES -->
 		<div class="flex flex-row items-center mb-1">
 			<div class="tf-collapsible-title" style="flex: 1;">HEIGHT EXTREMES</div>
-			<div id="btn-dim-refresh-extremes" class="tf-env-reset-btn" onclick="widget:envDimRefresh(); event:StopPropagation()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/redo.png" /></div>
+			<div id="btn-dim-refresh-extremes" class="tf-env-reset-btn" data-event-click="onEnvDimRefresh()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/redo.png" /></div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">init min</div>
@@ -5977,7 +5977,7 @@
 		<!-- WATER LEVEL -->
 		<div class="flex flex-row items-center mb-1">
 			<div class="tf-collapsible-title" style="flex: 1;">WATER LEVEL</div>
-			<div id="btn-dim-reset-waterlevel" class="tf-env-reset-btn" onclick="widget:envResetWaterLevel(); event:StopPropagation()">RESET</div>
+			<div id="btn-dim-reset-waterlevel" class="tf-env-reset-btn" data-event-click="onEnvResetWaterLevel()">RESET</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">plane level</div>
@@ -5986,7 +5986,7 @@
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">adjust</div>
 			<input type="text" id="input-dim-waterlevel" class="tf-dim-input" value="0" />
-			<div id="btn-dim-waterlevel-apply" class="tf-action-btn tf-save-btn" onclick="widget:envApplyWaterLevel(); event:StopPropagation()">
+			<div id="btn-dim-waterlevel-apply" class="tf-action-btn tf-save-btn" data-event-click="onEnvApplyWaterLevel()">
 				<div class="tf-action-btn-text">SET</div>
 			</div>
 		</div>
@@ -5995,19 +5995,19 @@
 		<!-- HEIGHT BOUNDS -->
 		<div class="flex flex-row items-center mb-1">
 			<div class="tf-collapsible-title" style="flex: 1;">HEIGHT BOUNDS</div>
-			<div id="btn-dim-reset-bounds" class="tf-env-reset-btn" onclick="widget:envResetBounds(); event:StopPropagation()">RESET</div>
+			<div id="btn-dim-reset-bounds" class="tf-env-reset-btn" data-event-click="onEnvResetBounds()">RESET</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">min height</div>
 			<input type="text" id="input-dim-minheight" class="tf-dim-input" value="" />
-			<div id="btn-dim-minheight-apply" class="tf-action-btn" onclick="widget:envApplyMinHeight(); event:StopPropagation()">
+			<div id="btn-dim-minheight-apply" class="tf-action-btn" data-event-click="onEnvApplyMinHeight()">
 				<div class="tf-action-btn-text">SET</div>
 			</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">max height</div>
 			<input type="text" id="input-dim-maxheight" class="tf-dim-input" value="" />
-			<div id="btn-dim-maxheight-apply" class="tf-action-btn" onclick="widget:envApplyMaxHeight(); event:StopPropagation()">
+			<div id="btn-dim-maxheight-apply" class="tf-action-btn" data-event-click="onEnvApplyMaxHeight()">
 				<div class="tf-action-btn-text">SET</div>
 			</div>
 		</div>

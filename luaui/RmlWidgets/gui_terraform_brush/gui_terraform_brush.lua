@@ -898,6 +898,46 @@ local function _envUpdatePreview(previewId, r, g, b)
 	el:SetAttribute("style", string.format("background-color: rgb(%d, %d, %d);", ri, gi, bi))
 end
 
+-- Forward declarations for variables defined after initialModel but captured as
+-- upvalues by onTf*/onTb* model-king handlers inside initialModel.
+local shapeNames, CLAY_UNAVAILABLE_MODES
+local ringWidthPct, applyCap, capMaxValue, capMinValue
+
+-- TB-shared helpers used by onTb* handlers in initialModel.
+local TB_ANGLE_PRESETS = { 7.5, 15, 30, 45, 60, 90 }
+local function _tbFindAnglePresetIdx(val)
+	local best, bestD = 2, math.huge
+	for i, p in ipairs(TB_ANGLE_PRESETS) do
+		local d = math.abs(p - (val or 15))
+		if d < bestD then bestD = d; best = i end
+	end
+	return best
+end
+local function _tbMirrorToggle(P, stateKey, setter, dmKey)
+	if not WG.TerraformBrush then return end
+	local nv = not (WG.TerraformBrush.getState() or {})[stateKey]
+	setter(nv)
+	local dm = widgetState.dmHandle; if dm then dm[P..dmKey] = nv end
+	playSound("tick")
+end
+local function _deactivateAllTools()
+	if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
+	if WG.FeaturePlacer  then WG.FeaturePlacer.deactivate()  end
+	if WG.WeatherBrush   then WG.WeatherBrush.deactivate()   end
+	if WG.SplatPainter   then WG.SplatPainter.deactivate()   end
+	if WG.MetalBrush     then WG.MetalBrush.deactivate()     end
+	if WG.GrassBrush     then WG.GrassBrush.deactivate()     end
+	widgetState.envActive      = false
+	widgetState.lightActive    = false
+	if WG.LightPlacer    then WG.LightPlacer.deactivate()    end
+	widgetState.startposActive = false
+	if WG.StartPosTool   then WG.StartPosTool.deactivate()   end
+	widgetState.cloneActive    = false
+	if WG.CloneTool      then WG.CloneTool.deactivate()      end
+	widgetState.decalsActive   = false
+	if WG.DecalPlacer    then WG.DecalPlacer.deactivate()    end
+end
+
 local initialModel = {
 	radius = 100,
 	shapeName = "Circle",
@@ -4414,9 +4454,489 @@ local initialModel = {
 		playSound("save")
 		Spring.Echo("[Environ] Loaded environment config: " .. newest)
 	end,
+
+	-- ── Terraform mode buttons ────────────────────────────────────────────────
+	-- data-event-click="onTfSetMode('raise')"
+	onTfSetMode = function(_event, mode)
+		if widgetState.noTerraform then return end
+		playSound("modeSwitch")
+		clearPassthrough()
+		if WG.MetalBrush    then WG.MetalBrush.deactivate()    end
+		if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
+		if WG.WeatherBrush  then WG.WeatherBrush.deactivate()  end
+		if WG.SplatPainter  then WG.SplatPainter.deactivate()  end
+		if WG.GrassBrush    then WG.GrassBrush.deactivate()    end
+		widgetState.envActive      = false
+		widgetState.lightActive    = false
+		if WG.LightPlacer   then WG.LightPlacer.deactivate()   end
+		widgetState.startposActive = false
+		if WG.StartPosTool  then WG.StartPosTool.deactivate()  end
+		widgetState.cloneActive    = false
+		if WG.CloneTool     then WG.CloneTool.deactivate()     end
+		if WG.TerraformBrush then WG.TerraformBrush.setMode(mode) end
+		if widgetState.dmHandle then widgetState.dmHandle.activeMode = mode end
+		local inRestore = mode == "restore"
+		local doc = widgetState.document
+		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
+		if clayBtn then
+			clayBtn:SetClass("unavailable", CLAY_UNAVAILABLE_MODES[mode] == true)
+		end
+		if widgetState.dmHandle then widgetState.dmHandle.tfInRestore = inRestore end
+	end,
+
+	-- data-event-click="onTfSmoothSubMode('smooth')"
+	onTfSmoothSubMode = function(_event, mode)
+		playSound("modeSwitch")
+		if WG.TerraformBrush then WG.TerraformBrush.setMode(mode) end
+		if widgetState.dmHandle then widgetState.dmHandle.activeSmoothMode = mode end
+	end,
+
+	-- data-event-click="onTfSetShape('circle')"
+	onTfSetShape = function(_event, shape)
+		playSound("shapeSwitch")
+		local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
+		local spState = WG.SplatPainter  and WG.SplatPainter.getState()
+		local lpState = WG.LightPlacer   and WG.LightPlacer.getState()
+		local lpActive = widgetState.lightActive and lpState and lpState.active
+		if lpActive then
+			if shape ~= "circle" and shape ~= "square" then return end
+			WG.LightPlacer.setShape(shape)
+		elseif fpState and fpState.active then
+			if shape == "ring" or shape == "fill" then return end
+			WG.FeaturePlacer.setShape(shape)
+		elseif spState and spState.active then
+			if shape == "ring" or shape == "fill" then return end
+			WG.SplatPainter.setShape(shape)
+		elseif WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			if state and state.mode == "ramp" and shape ~= "circle" and shape ~= "square" then return end
+			if state and (state.mode == "level" or state.mode == "smooth") and shape == "ring" then return end
+			WG.TerraformBrush.setShape(shape)
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.activeShape = shape
+			widgetState.dmHandle.tfRingVisible = (shape == "ring")
+			widgetState.dmHandle.shapeName = shapeNames[shape]
+		end
+	end,
+
+	-- data-event-click="onTfRampStraight()"
+	onTfRampStraight = function(_event)
+		playSound("tick")
+		if WG.TerraformBrush then WG.TerraformBrush.setShape("square") end
+		if widgetState.dmHandle then widgetState.dmHandle.activeShape = "square" end
+	end,
+
+	-- data-event-click="onTfRampSpline()"
+	onTfRampSpline = function(_event)
+		playSound("tick")
+		if WG.TerraformBrush then WG.TerraformBrush.setShape("circle") end
+		if widgetState.dmHandle then widgetState.dmHandle.activeShape = "circle" end
+	end,
+
+	-- data-event-click="onTfUndo()" / onTfRedo()
+	onTfUndo = function(_event)
+		playSound("undo")
+		if WG.TerraformBrush then WG.TerraformBrush.undo() end
+	end,
+	onTfRedo = function(_event)
+		playSound("undo")
+		if WG.TerraformBrush then WG.TerraformBrush.redo() end
+	end,
+	onTfMbUndo = function(_event)
+		playSound("undo")
+		if WG.MetalBrush and WG.MetalBrush.undo then WG.MetalBrush.undo() end
+	end,
+	onTfMbRedo = function(_event)
+		playSound("undo")
+		if WG.MetalBrush and WG.MetalBrush.redo then WG.MetalBrush.redo() end
+	end,
+
+	-- data-event-click="onTfRotCW()" / onTfRotCCW()
+	onTfRotCW = function(_event)
+		playSound("tick")
+		if WG.TerraformBrush then WG.TerraformBrush.rotate(ROTATION_STEP) end
+	end,
+	onTfRotCCW = function(_event)
+		playSound("tick")
+		if WG.TerraformBrush then WG.TerraformBrush.rotate(-ROTATION_STEP) end
+	end,
+
+	-- data-event-click="onTfCurveUp()" / onTfCurveDown()
+	onTfCurveUp = function(_event)
+		playSound("tick")
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setCurve(state.curve + CURVE_STEP)
+		end
+	end,
+	onTfCurveDown = function(_event)
+		playSound("tick")
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setCurve(state.curve - CURVE_STEP)
+		end
+	end,
+
+	-- data-event-click="onTfIntensityUp()" / onTfIntensityDown()
+	onTfIntensityUp = function(_event)
+		playSound("tick")
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			local newI = state.intensity * 1.15
+			if newI < state.intensity + 0.1 then newI = state.intensity + 0.1 end
+			WG.TerraformBrush.setIntensity(newI)
+		end
+	end,
+	onTfIntensityDown = function(_event)
+		playSound("tick")
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			local newI = state.intensity / 1.15
+			if newI > state.intensity - 0.1 then newI = state.intensity - 0.1 end
+			WG.TerraformBrush.setIntensity(newI)
+		end
+	end,
+
+	-- data-event-click="onTfRestoreStrUp()" / onTfRestoreStrDown()
+	onTfRestoreStrUp = function(_event)
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setRestoreStrength(math.min(1.0, (state.restoreStrength or 1.0) + 0.05))
+		end
+	end,
+	onTfRestoreStrDown = function(_event)
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setRestoreStrength(math.max(0.0, (state.restoreStrength or 1.0) - 0.05))
+		end
+	end,
+
+	-- data-event-click="onTfLengthUp()" / onTfLengthDown()
+	onTfLengthUp = function(_event)
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setLengthScale(state.lengthScale + LENGTH_SCALE_STEP)
+		end
+	end,
+	onTfLengthDown = function(_event)
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setLengthScale(state.lengthScale - LENGTH_SCALE_STEP)
+		end
+	end,
+
+	-- data-event-click="onTfSizeUp()" / onTfSizeDown()
+	onTfSizeUp = function(_event)
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setRadius(state.radius + RADIUS_STEP)
+		end
+	end,
+	onTfSizeDown = function(_event)
+		if WG.TerraformBrush then
+			local state = WG.TerraformBrush.getState()
+			WG.TerraformBrush.setRadius(state.radius - RADIUS_STEP)
+		end
+	end,
+
+	-- data-event-click="onTfRingWidthUp()" / onTfRingWidthDown()
+	onTfRingWidthUp = function(_event)
+		ringWidthPct = math.min(95, ringWidthPct + 5)
+		local doc = widgetState.document
+		local sl  = doc and getCachedEl(doc, "slider-ring-width")
+		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
+		if widgetState.dmHandle then widgetState.dmHandle.tfRingWidthStr = tostring(ringWidthPct) .. "%" end
+		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
+	end,
+	onTfRingWidthDown = function(_event)
+		ringWidthPct = math.max(5, ringWidthPct - 5)
+		local doc = widgetState.document
+		local sl  = doc and getCachedEl(doc, "slider-ring-width")
+		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
+		if widgetState.dmHandle then widgetState.dmHandle.tfRingWidthStr = tostring(ringWidthPct) .. "%" end
+		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
+	end,
+
+	-- data-event-click="onTfCapMaxUp()" etc.
+	onTfCapMaxUp = function(_event)
+		capMaxValue = math.min(500, capMaxValue + HEIGHT_CAP_STEP)
+		if capMinValue > capMaxValue then capMinValue = capMaxValue; applyCap("min", capMinValue) end
+		applyCap("max", capMaxValue)
+	end,
+	onTfCapMaxDown = function(_event)
+		capMaxValue = math.max(-500, capMaxValue - HEIGHT_CAP_STEP)
+		if capMinValue > capMaxValue then capMinValue = capMaxValue; applyCap("min", capMinValue) end
+		applyCap("max", capMaxValue)
+	end,
+	onTfCapMinUp = function(_event)
+		capMinValue = math.min(500, capMinValue + HEIGHT_CAP_STEP)
+		if capMaxValue < capMinValue then capMaxValue = capMinValue; applyCap("max", capMaxValue) end
+		applyCap("min", capMinValue)
+	end,
+	onTfCapMinDown = function(_event)
+		capMinValue = math.max(-500, capMinValue - HEIGHT_CAP_STEP)
+		if capMaxValue < capMinValue then capMaxValue = capMinValue; applyCap("max", capMaxValue) end
+		applyCap("min", capMinValue)
+	end,
+
+	-- ── Tool-switch buttons ───────────────────────────────────────────────────
+	onTfSwitchFeatures = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.FeaturePlacer then return end
+		_deactivateAllTools()
+		WG.FeaturePlacer.setMode("scatter")
+	end,
+	onTfSwitchWeather = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.WeatherBrush then return end
+		_deactivateAllTools()
+		WG.WeatherBrush.activate("scatter")
+	end,
+	onTfSwitchSplat = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.SplatPainter then return end
+		_deactivateAllTools()
+		WG.SplatPainter.activate()
+		local doc = widgetState.document
+		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
+		if clayBtn then clayBtn:SetClass("unavailable", true) end
+	end,
+	onTfSwitchMetal = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.MetalBrush then return end
+		_deactivateAllTools()
+		WG.MetalBrush.activate("stamp")
+		local doc = widgetState.document
+		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
+		if clayBtn then clayBtn:SetClass("unavailable", true) end
+	end,
+	onTfSwitchGrass = function(_event)
+		local gApi = WG['grassgl4']
+		if not (gApi and gApi.hasGrass and gApi.hasGrass()) then return end
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.GrassBrush then return end
+		_deactivateAllTools()
+		WG.GrassBrush.activate("paint")
+		local doc = widgetState.document
+		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
+		if clayBtn then clayBtn:SetClass("unavailable", true) end
+	end,
+	onTfSwitchDecals = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		_deactivateAllTools()
+		widgetState.decalsActive = true
+		if WG.DecalPlacer then
+			local s = WG.DecalPlacer.getState()
+			if not s or not s.active then WG.DecalPlacer.setMode("point") end
+		end
+		local doc = widgetState.document
+		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
+		if clayBtn then clayBtn:SetClass("unavailable", true) end
+	end,
+	onTfSwitchEnv = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		local ok2, err2 = pcall(function()
+			if widgetState.envActive then
+				widgetState.envActive = false
+				if WG.TerraformBrush then
+					local st = WG.TerraformBrush.getState()
+					WG.TerraformBrush.setMode(st and st.mode or "raise")
+				end
+			else
+				_deactivateAllTools()
+				widgetState.envActive = true
+			end
+		end)
+		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchEnv: " .. tostring(err2)) end
+	end,
+	onTfSwitchLights = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		local ok2, err2 = pcall(function()
+			if widgetState.lightActive then
+				widgetState.lightActive = false
+				if WG.LightPlacer then WG.LightPlacer.deactivate() end
+				if WG.TerraformBrush then
+					local st = WG.TerraformBrush.getState()
+					WG.TerraformBrush.setMode(st and st.mode or "raise")
+				end
+			else
+				_deactivateAllTools()
+				widgetState.lightActive = true
+				if WG.LightPlacer then WG.LightPlacer.setMode("point") end
+			end
+		end)
+		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchLights: " .. tostring(err2)) end
+	end,
+	onTfSwitchStartpos = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		local ok2, err2 = pcall(function()
+			if widgetState.startposActive then
+				widgetState.startposActive = false
+				if WG.StartPosTool then WG.StartPosTool.deactivate() end
+				widgetState.cloneActive = false
+				if WG.CloneTool then WG.CloneTool.deactivate() end
+				if WG.TerraformBrush then
+					local st = WG.TerraformBrush.getState()
+					WG.TerraformBrush.setMode(st and st.mode or "raise")
+				end
+			else
+				_deactivateAllTools()
+				widgetState.startposActive = true
+				if WG.StartPosTool then WG.StartPosTool.activate("express") end
+			end
+		end)
+		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchStartpos: " .. tostring(err2)) end
+	end,
+
+	-- ── TB shared instrument controls ─────────────────────────────────────────
+	-- Prefix P is 'st','cl','wb','sp','dc','lp' — one handler set covers all tools.
+	onTbSnapSizeChange = function(_event, P)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		WG.TerraformBrush.setGridSnapSize(_elemSliderVal(P.."-slider-grid-snap-size", 48))
+	end,
+	onTbSnapSizeStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		local cur = tonumber(s.gridSnapSize) or 48
+		local v = math.max(16, math.min(128, cur + (delta or 0)))
+		WG.TerraformBrush.setGridSnapSize(v)
+	end,
+	onTbAngleStepChange = function(_event, P)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local idx = math.floor(_elemSliderVal(P.."-slider-angle-snap-step", 1) or 1) + 1
+		WG.TerraformBrush.setAngleSnapStep(TB_ANGLE_PRESETS[idx] or 15)
+	end,
+	onTbAngleStepStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		local idx = _tbFindAnglePresetIdx(s.angleSnapStep)
+		idx = math.max(1, math.min(#TB_ANGLE_PRESETS, idx + (delta or 0)))
+		WG.TerraformBrush.setAngleSnapStep(TB_ANGLE_PRESETS[idx])
+	end,
+	onTbToggleGridOverlay = function(_event, P)
+		_tbMirrorToggle(P, "gridOverlay", function(v) WG.TerraformBrush.setGridOverlay(v) end, "GridOverlay")
+	end,
+	onTbToggleHeightColormap = function(_event, P)
+		_tbMirrorToggle(P, "heightColormap", function(v) WG.TerraformBrush.setHeightColormap(v) end, "HeightColormap")
+	end,
+	onTbToggleGridSnap = function(_event, P)
+		_tbMirrorToggle(P, "gridSnap", function(v) WG.TerraformBrush.setGridSnap(v) end, "GridSnap")
+	end,
+	onTbToggleAngleSnap = function(_event, P)
+		_tbMirrorToggle(P, "angleSnap", function(v) WG.TerraformBrush.setAngleSnap(v) end, "AngleSnap")
+	end,
+	onTbToggleMeasure = function(_event, P)
+		_tbMirrorToggle(P, "measureActive", function(v) WG.TerraformBrush.setMeasureActive(v) end, "MeasureActive")
+	end,
+	onTbToggleSymmetry = function(_event, P)
+		_tbMirrorToggle(P, "symmetryActive", function(v) WG.TerraformBrush.setSymmetryActive(v) end, "SymmetryActive")
+	end,
+	onTbToggleSymRadial = function(_event, P)
+		_tbMirrorToggle(P, "symmetryRadial", function(v) WG.TerraformBrush.setSymmetryRadial(v) end, "SymmetryRadial")
+	end,
+	onTbToggleSymMirrorX = function(_event, P)
+		_tbMirrorToggle(P, "symmetryMirrorX", function(v) WG.TerraformBrush.setSymmetryMirrorX(v) end, "SymMirrorX")
+	end,
+	onTbToggleSymMirrorY = function(_event, P)
+		_tbMirrorToggle(P, "symmetryMirrorY", function(v) WG.TerraformBrush.setSymmetryMirrorY(v) end, "SymMirrorY")
+	end,
+	onTbToggleMeasureShowLength = function(_event, P)
+		if not (WG.TerraformBrush and WG.TerraformBrush.setMeasureShowLength) then return end
+		_tbMirrorToggle(P, "measureShowLength", function(v) WG.TerraformBrush.setMeasureShowLength(v) end, "MeasureShowLength")
+	end,
+	onTbToggleMeasureRuler = function(_event, P)
+		if not (WG.TerraformBrush and WG.TerraformBrush.setMeasureRulerMode) then return end
+		_tbMirrorToggle(P, "measureRulerMode", function(v) WG.TerraformBrush.setMeasureRulerMode(v) end, "MeasureRulerMode")
+	end,
+	onTbToggleMeasureSticky = function(_event, P)
+		if not (WG.TerraformBrush and WG.TerraformBrush.setMeasureStickyMode) then return end
+		_tbMirrorToggle(P, "measureStickyMode", function(v) WG.TerraformBrush.setMeasureStickyMode(v) end, "MeasureStickyMode")
+	end,
+	onTbMeasureClear = function(_event, P)
+		if WG.TerraformBrush and WG.TerraformBrush.clearMeasureLines then
+			WG.TerraformBrush.clearMeasureLines()
+		end
+		playSound("tick")
+	end,
+	onTbSymPlaceOrigin = function(_event, P)
+		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true) end
+		playSound("tick")
+	end,
+	onTbSymCenterOrigin = function(_event, P)
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryOrigin(Game.mapSizeX * 0.5, Game.mapSizeZ * 0.5)
+		end
+		playSound("tick")
+	end,
+	onTbSymCountDown = function(_event, P)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState()
+		local n = math.max(2, (s and s.symmetryRadialCount or 2) - 1)
+		WG.TerraformBrush.setSymmetryRadialCount(n)
+		local nStr = tostring(n)
+		local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= nStr then dm.tbSymCountStr = nStr end
+		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-radial-count")
+		if sl then sl:SetAttribute("value", nStr) end
+		playSound("tick")
+	end,
+	onTbSymCountUp = function(_event, P)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState()
+		local n = math.min(16, (s and s.symmetryRadialCount or 2) + 1)
+		WG.TerraformBrush.setSymmetryRadialCount(n)
+		local nStr = tostring(n)
+		local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= nStr then dm.tbSymCountStr = nStr end
+		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-radial-count")
+		if sl then sl:SetAttribute("value", nStr) end
+		playSound("tick")
+	end,
+	onTbSymCountChange = function(_event, P)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = math.max(2, math.min(16, math.floor(_elemSliderVal(P.."-slider-symmetry-radial-count", 2) or 2)))
+		WG.TerraformBrush.setSymmetryRadialCount(v)
+		local vStr = tostring(v); local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= vStr then dm.tbSymCountStr = vStr end
+	end,
+	onTbSymAngleDown = function(_event, P)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState()
+		local a = ((s and s.symmetryMirrorAngle or 0) - 5) % 360
+		WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		local aStr = tostring(math.floor(a))
+		local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= aStr then dm.tbSymAngleStr = aStr end
+		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-mirror-angle")
+		if sl then sl:SetAttribute("value", tostring(a)) end
+		playSound("tick")
+	end,
+	onTbSymAngleUp = function(_event, P)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState()
+		local a = ((s and s.symmetryMirrorAngle or 0) + 5) % 360
+		WG.TerraformBrush.setSymmetryMirrorAngle(a)
+		local aStr = tostring(math.floor(a))
+		local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= aStr then dm.tbSymAngleStr = aStr end
+		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-mirror-angle")
+		if sl then sl:SetAttribute("value", tostring(a)) end
+		playSound("tick")
+	end,
+	onTbSymAngleChange = function(_event, P)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = tonumber(_elemSliderVal(P.."-slider-symmetry-mirror-angle", 0)) or 0
+		WG.TerraformBrush.setSymmetryMirrorAngle(v)
+		local vStr = tostring(math.floor(v)); local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= vStr then dm.tbSymAngleStr = vStr end
+	end,
 }
 
-local shapeNames = {
+shapeNames = {
 	circle = "Circle",
 	square = "Square",
 	hexagon = "Hexagon",
@@ -4433,7 +4953,7 @@ local function setActiveClass(buttons, activeKey)
 	end
 end
 
-local CLAY_UNAVAILABLE_MODES = { noise = true, restore = true }
+CLAY_UNAVAILABLE_MODES = { noise = true, restore = true }
 
 clearPassthrough = function()
 	if widgetState.passthroughMode then
@@ -4513,12 +5033,12 @@ local function onIntensityDown(event)
 	event:StopPropagation()
 end
 
-local capMinValue = 0
-local capMaxValue = 0
+capMinValue = 0
+capMaxValue = 0
 local capAbsolute = true
-local ringWidthPct = 40  -- percent of radius; inner ratio = 1 - ringWidthPct/100
+ringWidthPct = 40  -- percent of radius; inner ratio = 1 - ringWidthPct/100
 
-local function applyCap(which, value)
+applyCap = function(which, value)
 	if not WG.TerraformBrush then return end
 	if which == "max" then
 		WG.TerraformBrush.setHeightCapMax(value ~= 0 and value or nil)
@@ -5712,577 +6232,9 @@ end
 -- Register widget methods callable from inline RML onclick="widget:XXX()" handlers.
 -- Kept separate from attachEventListeners() to avoid consuming its local budget.
 -- All upvalues are chunk-level locals; no widget-local sharing needed here.
-local function attachDeclarativeHandlers(ctx)
-	local w = ctx.widget
-	if not w then return end
-
-	-- Shared TB grid-snap-size + angle-snap-step handlers used by per-tool
-	-- expand sub-rows (st, cl, wb, dc, lp) created in RML next to each tool's
-	-- snap/protractor chip row. Underlying state is global across tools, so
-	-- one set of handlers is sufficient — labels/sliders are mirrored back
-	-- per-prefix from syncTBMirrorControls each frame.
-	local TB_ANGLE_PRESETS = { 7.5, 15, 30, 45, 60, 90 }
-	local function tbFindAnglePresetIdx(val)
-		local best, bestD = 2, math.huge
-		for i, p in ipairs(TB_ANGLE_PRESETS) do
-			local d = math.abs(p - (val or 15))
-			if d < bestD then bestD = d; best = i end
-		end
-		return best
-	end
-	w.tbOnSnapSizeChange = function(self, element)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
-		local v = element and tonumber(element:GetAttribute("value"))
-		if not v then return end
-		WG.TerraformBrush.setGridSnapSize(v)
-	end
-	w.tbSnapSizeStep = function(self, delta)
-		if not WG.TerraformBrush then return end
-		local s = WG.TerraformBrush.getState() or {}
-		local cur = tonumber(s.gridSnapSize) or 48
-		local v = math.max(16, math.min(128, cur + (delta or 0)))
-		WG.TerraformBrush.setGridSnapSize(v)
-	end
-	w.tbOnAngleStepChange = function(self, element)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
-		local idx = element and tonumber(element:GetAttribute("value"))
-		if not idx then return end
-		local p = TB_ANGLE_PRESETS[idx + 1] or 15
-		WG.TerraformBrush.setAngleSnapStep(p)
-	end
-	w.tbAngleStepStep = function(self, delta)
-		if not WG.TerraformBrush then return end
-		local s = WG.TerraformBrush.getState() or {}
-		local idx = tbFindAnglePresetIdx(s.angleSnapStep)
-		idx = math.max(1, math.min(#TB_ANGLE_PRESETS, idx + (delta or 0)))
-		WG.TerraformBrush.setAngleSnapStep(TB_ANGLE_PRESETS[idx])
-	end
-
-	-- Helper: deactivate every tool cleanly. Called from tool-switch methods.
-	local function deactivateAllTools()
-		if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-		if WG.FeaturePlacer  then WG.FeaturePlacer.deactivate()  end
-		if WG.WeatherBrush   then WG.WeatherBrush.deactivate()   end
-		if WG.SplatPainter   then WG.SplatPainter.deactivate()   end
-		if WG.MetalBrush     then WG.MetalBrush.deactivate()     end
-		if WG.GrassBrush     then WG.GrassBrush.deactivate()     end
-		widgetState.envActive      = false
-		widgetState.lightActive    = false
-		if WG.LightPlacer    then WG.LightPlacer.deactivate()    end
-		widgetState.startposActive = false
-		if WG.StartPosTool   then WG.StartPosTool.deactivate()   end
-		widgetState.cloneActive    = false
-		if WG.CloneTool      then WG.CloneTool.deactivate()      end
-		widgetState.decalsActive   = false
-		if WG.DecalPlacer    then WG.DecalPlacer.deactivate()    end
-	end
-
-	-- ── Terraform mode buttons ─────────────────────────────────────────────
-	-- onclick="widget:tfSetMode('raise'); event:StopPropagation()"
-	w.tfSetMode = function(self, mode)
-		if widgetState.noTerraform then return end
-		playSound("modeSwitch")
-		clearPassthrough()
-		if WG.MetalBrush   then WG.MetalBrush.deactivate()   end
-		if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
-		if WG.WeatherBrush  then WG.WeatherBrush.deactivate()  end
-		if WG.SplatPainter  then WG.SplatPainter.deactivate()  end
-		if WG.GrassBrush    then WG.GrassBrush.deactivate()    end
-		widgetState.envActive      = false
-		widgetState.lightActive    = false
-		if WG.LightPlacer   then WG.LightPlacer.deactivate()   end
-		widgetState.startposActive = false
-		if WG.StartPosTool  then WG.StartPosTool.deactivate()  end
-		widgetState.cloneActive    = false
-		if WG.CloneTool     then WG.CloneTool.deactivate()     end
-		if WG.TerraformBrush then WG.TerraformBrush.setMode(mode) end
-		if widgetState.dmHandle then widgetState.dmHandle.activeMode = mode end
-		local inRestore = mode == "restore"
-		local doc = widgetState.document
-		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
-		if clayBtn then
-			clayBtn:SetClass("unavailable", CLAY_UNAVAILABLE_MODES[mode] == true)
-		end
-		if widgetState.dmHandle then widgetState.dmHandle.tfInRestore = inRestore end
-	end
-
-	-- ── Smooth/Level sub-mode buttons ─────────────────────────────────────
-	-- onclick="widget:tfSmoothSubMode('smooth'); event:StopPropagation()"
-	w.tfSmoothSubMode = function(self, mode)
-		playSound("modeSwitch")
-		if WG.TerraformBrush then WG.TerraformBrush.setMode(mode) end
-		if widgetState.dmHandle then widgetState.dmHandle.activeSmoothMode = mode end
-	end
-
-	-- ── Shape buttons ──────────────────────────────────────────────────────
-	-- onclick="widget:tfSetShape('circle'); event:StopPropagation()"
-	w.tfSetShape = function(self, shape)
-		playSound("shapeSwitch")
-		local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
-		local spState = WG.SplatPainter  and WG.SplatPainter.getState()
-		local lpState = WG.LightPlacer   and WG.LightPlacer.getState()
-		local lpActive = widgetState.lightActive and lpState and lpState.active
-		if lpActive then
-			if shape ~= "circle" and shape ~= "square" then return end
-			WG.LightPlacer.setShape(shape)
-		elseif fpState and fpState.active then
-			if shape == "ring" or shape == "fill" then return end
-			WG.FeaturePlacer.setShape(shape)
-		elseif spState and spState.active then
-			if shape == "ring" or shape == "fill" then return end
-			WG.SplatPainter.setShape(shape)
-		elseif WG.TerraformBrush then
-			local state = WG.TerraformBrush.getState()
-			if state and state.mode == "ramp" and shape ~= "circle" and shape ~= "square" then return end
-			if state and (state.mode == "level" or state.mode == "smooth") and shape == "ring" then return end
-			WG.TerraformBrush.setShape(shape)
-		end
-		if widgetState.dmHandle then
-			widgetState.dmHandle.activeShape = shape
-			widgetState.dmHandle.tfRingVisible = (shape == "ring")
-			widgetState.dmHandle.shapeName = shapeNames[shape]
-		end
-	end
-
-	-- ── Ramp type buttons ─────────────────────────────────────────────────
-	w.tfRampStraight = function(self)
-		playSound("tick")
-		if WG.TerraformBrush then WG.TerraformBrush.setShape("square") end
-		if widgetState.dmHandle then widgetState.dmHandle.activeShape = "square" end
-	end
-	w.tfRampSpline = function(self)
-		playSound("tick")
-		if WG.TerraformBrush then WG.TerraformBrush.setShape("circle") end
-		if widgetState.dmHandle then widgetState.dmHandle.activeShape = "circle" end
-	end
-
-	-- ── Undo / Redo ───────────────────────────────────────────────────────
-	w.tfUndo = function(self)
-		playSound("undo")
-		if WG.TerraformBrush then WG.TerraformBrush.undo() end
-	end
-	w.tfRedo = function(self)
-		playSound("undo")
-		if WG.TerraformBrush then WG.TerraformBrush.redo() end
-	end
-	w.tfMbUndo = function(self)
-		playSound("undo")
-		if WG.MetalBrush and WG.MetalBrush.undo then WG.MetalBrush.undo() end
-	end
-	w.tfMbRedo = function(self)
-		playSound("undo")
-		if WG.MetalBrush and WG.MetalBrush.redo then WG.MetalBrush.redo() end
-	end
-
-	-- ── Rotation ± ────────────────────────────────────────────────────────
-	w.tfRotCW = function(self)
-		playSound("tick")
-		if WG.TerraformBrush then WG.TerraformBrush.rotate(ROTATION_STEP) end
-	end
-	w.tfRotCCW = function(self)
-		playSound("tick")
-		if WG.TerraformBrush then WG.TerraformBrush.rotate(-ROTATION_STEP) end
-	end
-
-	-- ── Curve (fall-off) ± ────────────────────────────────────────────────
-	w.tfCurveUp = function(self)
-		playSound("tick")
-		if WG.TerraformBrush then
-			local state = WG.TerraformBrush.getState()
-			WG.TerraformBrush.setCurve(state.curve + CURVE_STEP)
-		end
-	end
-	w.tfCurveDown = function(self)
-		playSound("tick")
-		if WG.TerraformBrush then
-			local state = WG.TerraformBrush.getState()
-			WG.TerraformBrush.setCurve(state.curve - CURVE_STEP)
-		end
-	end
-
-	-- ── Intensity ± ───────────────────────────────────────────────────────
-	w.tfIntensityUp = function(self)
-		playSound("tick")
-		if WG.TerraformBrush then
-			local state = WG.TerraformBrush.getState()
-			local newI = state.intensity * 1.15
-			if newI < state.intensity + 0.1 then newI = state.intensity + 0.1 end
-			WG.TerraformBrush.setIntensity(newI)
-		end
-	end
-	w.tfIntensityDown = function(self)
-		playSound("tick")
-		if WG.TerraformBrush then
-			local state = WG.TerraformBrush.getState()
-			local newI = state.intensity / 1.15
-			if newI > state.intensity - 0.1 then newI = state.intensity - 0.1 end
-			WG.TerraformBrush.setIntensity(newI)
-		end
-	end
-
-	-- ── Restore Strength ± ────────────────────────────────────────────────
-	w.tfRestoreStrUp = function(self)
-		if WG.TerraformBrush then
-			local state = WG.TerraformBrush.getState()
-			WG.TerraformBrush.setRestoreStrength(math.min(1.0, (state.restoreStrength or 1.0) + 0.05))
-		end
-	end
-	w.tfRestoreStrDown = function(self)
-		if WG.TerraformBrush then
-			local state = WG.TerraformBrush.getState()
-			WG.TerraformBrush.setRestoreStrength(math.max(0.0, (state.restoreStrength or 1.0) - 0.05))
-		end
-	end
-
-	-- ── Length ± ──────────────────────────────────────────────────────────
-	w.tfLengthUp = function(self)
-		if WG.TerraformBrush then
-			local state = WG.TerraformBrush.getState()
-			WG.TerraformBrush.setLengthScale(state.lengthScale + LENGTH_SCALE_STEP)
-		end
-	end
-	w.tfLengthDown = function(self)
-		if WG.TerraformBrush then
-			local state = WG.TerraformBrush.getState()
-			WG.TerraformBrush.setLengthScale(state.lengthScale - LENGTH_SCALE_STEP)
-		end
-	end
-
-	-- ── Size ± ────────────────────────────────────────────────────────────
-	w.tfSizeUp = function(self)
-		if WG.TerraformBrush then
-			local state = WG.TerraformBrush.getState()
-			WG.TerraformBrush.setRadius(state.radius + RADIUS_STEP)
-		end
-	end
-	w.tfSizeDown = function(self)
-		if WG.TerraformBrush then
-			local state = WG.TerraformBrush.getState()
-			WG.TerraformBrush.setRadius(state.radius - RADIUS_STEP)
-		end
-	end
-
-	-- ── Ring Width ± ──────────────────────────────────────────────────────
-	w.tfRingWidthUp = function(self)
-		ringWidthPct = math.min(95, ringWidthPct + 5)
-		local doc = widgetState.document
-		local sl  = doc and getCachedEl(doc, "slider-ring-width")
-		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
-		if widgetState.dmHandle then widgetState.dmHandle.tfRingWidthStr = tostring(ringWidthPct) .. "%" end
-		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
-	end
-	w.tfRingWidthDown = function(self)
-		ringWidthPct = math.max(5, ringWidthPct - 5)
-		local doc = widgetState.document
-		local sl  = doc and getCachedEl(doc, "slider-ring-width")
-		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
-		if widgetState.dmHandle then widgetState.dmHandle.tfRingWidthStr = tostring(ringWidthPct) .. "%" end
-		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
-	end
-
-	-- ── Height Cap ± ──────────────────────────────────────────────────────
-	w.tfCapMaxUp = function(self)
-		capMaxValue = math.min(500, capMaxValue + HEIGHT_CAP_STEP)
-		if capMinValue > capMaxValue then capMinValue = capMaxValue; applyCap("min", capMinValue) end
-		applyCap("max", capMaxValue)
-	end
-	w.tfCapMaxDown = function(self)
-		capMaxValue = math.max(-500, capMaxValue - HEIGHT_CAP_STEP)
-		if capMinValue > capMaxValue then capMinValue = capMaxValue; applyCap("min", capMinValue) end
-		applyCap("max", capMaxValue)
-	end
-	w.tfCapMinUp = function(self)
-		capMinValue = math.min(500, capMinValue + HEIGHT_CAP_STEP)
-		if capMaxValue < capMinValue then capMaxValue = capMinValue; applyCap("max", capMaxValue) end
-		applyCap("min", capMinValue)
-	end
-	w.tfCapMinDown = function(self)
-		capMinValue = math.max(-500, capMinValue - HEIGHT_CAP_STEP)
-		if capMaxValue < capMinValue then capMaxValue = capMinValue; applyCap("max", capMaxValue) end
-		applyCap("min", capMinValue)
-	end
-
-	-- ── Tool-switch buttons ───────────────────────────────────────────────
-	w.tfSwitchFeatures = function(self)
-		playSound("toolSwitch")
-		clearPassthrough()
-		if not WG.FeaturePlacer then return end
-		deactivateAllTools()
-		WG.FeaturePlacer.setMode("scatter")
-	end
-
-	w.tfSwitchWeather = function(self)
-		playSound("toolSwitch")
-		clearPassthrough()
-		if not WG.WeatherBrush then return end
-		deactivateAllTools()
-		WG.WeatherBrush.activate("scatter")
-	end
-
-	w.tfSwitchSplat = function(self)
-		playSound("toolSwitch")
-		clearPassthrough()
-		if not WG.SplatPainter then return end
-		deactivateAllTools()
-		WG.SplatPainter.activate()
-		local doc = widgetState.document
-		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
-		if clayBtn then clayBtn:SetClass("unavailable", true) end
-	end
-
-	w.tfSwitchMetal = function(self)
-		playSound("toolSwitch")
-		clearPassthrough()
-		if not WG.MetalBrush then return end
-		deactivateAllTools()
-		WG.MetalBrush.activate("stamp")
-		local doc = widgetState.document
-		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
-		if clayBtn then clayBtn:SetClass("unavailable", true) end
-	end
-
-	w.tfSwitchGrass = function(self)
-		local gApi = WG['grassgl4']
-		if not (gApi and gApi.hasGrass and gApi.hasGrass()) then return end
-		playSound("toolSwitch")
-		clearPassthrough()
-		if not WG.GrassBrush then return end
-		deactivateAllTools()
-		WG.GrassBrush.activate("paint")
-		local doc = widgetState.document
-		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
-		if clayBtn then clayBtn:SetClass("unavailable", true) end
-	end
-
-	w.tfSwitchDecals = function(self)
-		playSound("toolSwitch")
-		clearPassthrough()
-		deactivateAllTools()
-		widgetState.decalsActive = true
-		if WG.DecalPlacer then
-			local s = WG.DecalPlacer.getState()
-			if not s or not s.active then WG.DecalPlacer.setMode("point") end
-		end
-		local doc = widgetState.document
-		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
-		if clayBtn then clayBtn:SetClass("unavailable", true) end
-	end
-
-	w.tfSwitchEnv = function(self)
-		playSound("toolSwitch")
-		clearPassthrough()
-		local ok2, err2 = pcall(function()
-			if widgetState.envActive then
-				widgetState.envActive = false
-				if WG.TerraformBrush then
-					local st = WG.TerraformBrush.getState()
-					WG.TerraformBrush.setMode(st and st.mode or "raise")
-				end
-			else
-				deactivateAllTools()
-				widgetState.envActive = true
-			end
-		end)
-		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in tfSwitchEnv: " .. tostring(err2)) end
-	end
-
-	w.tfSwitchLights = function(self)
-		playSound("toolSwitch")
-		clearPassthrough()
-		local ok2, err2 = pcall(function()
-			if widgetState.lightActive then
-				widgetState.lightActive = false
-				if WG.LightPlacer then WG.LightPlacer.deactivate() end
-				if WG.TerraformBrush then
-					local st = WG.TerraformBrush.getState()
-					WG.TerraformBrush.setMode(st and st.mode or "raise")
-				end
-			else
-				deactivateAllTools()
-				widgetState.lightActive = true
-				if WG.LightPlacer then WG.LightPlacer.setMode("point") end
-			end
-		end)
-		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in tfSwitchLights: " .. tostring(err2)) end
-	end
-
-	w.tfSwitchStartpos = function(self)
-		playSound("toolSwitch")
-		clearPassthrough()
-		local ok2, err2 = pcall(function()
-			if widgetState.startposActive then
-				widgetState.startposActive = false
-				if WG.StartPosTool then WG.StartPosTool.deactivate() end
-				widgetState.cloneActive = false
-				if WG.CloneTool then WG.CloneTool.deactivate() end
-				if WG.TerraformBrush then
-					local st = WG.TerraformBrush.getState()
-					WG.TerraformBrush.setMode(st and st.mode or "raise")
-				end
-			else
-				deactivateAllTools()
-				widgetState.startposActive = true
-				if WG.StartPosTool then WG.StartPosTool.activate("express") end
-			end
-		end)
-		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in tfSwitchStartpos: " .. tostring(err2)) end
-	end
-
-	-- ── TB Mirror-control toggles (shared across all per-tool panels) ─────
-	-- Each method accepts a prefix string (e.g. 'st', 'cl', 'wb', 'sp', 'dc',
-	-- 'lp') so a single shared handler set covers all six tool sections.
-	-- dm writes give immediate visual feedback via data-class-active; the
-	-- per-frame syncTBMirrorControls confirms state each frame too.
-	local function tbMirrorToggle(P, stateKey, setter, dmKey)
-		if not WG.TerraformBrush then return end
-		local nv = not (WG.TerraformBrush.getState() or {})[stateKey]
-		setter(nv)
-		local dm = widgetState.dmHandle; if dm then dm[dmKey and (P..dmKey) or (P..stateKey)] = nv end
-		playSound("tick")
-	end
-	w.tbToggleGridOverlay = function(self, P)
-		tbMirrorToggle(P, "gridOverlay", function(v) WG.TerraformBrush.setGridOverlay(v) end, "GridOverlay")
-	end
-	w.tbToggleHeightColormap = function(self, P)
-		tbMirrorToggle(P, "heightColormap", function(v) WG.TerraformBrush.setHeightColormap(v) end, "HeightColormap")
-	end
-	w.tbToggleGridSnap = function(self, P)
-		tbMirrorToggle(P, "gridSnap", function(v) WG.TerraformBrush.setGridSnap(v) end, "GridSnap")
-	end
-	w.tbToggleAngleSnap = function(self, P)
-		tbMirrorToggle(P, "angleSnap", function(v) WG.TerraformBrush.setAngleSnap(v) end, "AngleSnap")
-	end
-	w.tbToggleMeasure = function(self, P)
-		tbMirrorToggle(P, "measureActive", function(v) WG.TerraformBrush.setMeasureActive(v) end, "MeasureActive")
-	end
-	w.tbToggleSymmetry = function(self, P)
-		tbMirrorToggle(P, "symmetryActive", function(v) WG.TerraformBrush.setSymmetryActive(v) end, "SymmetryActive")
-	end
-	w.tbToggleSymRadial = function(self, P)
-		tbMirrorToggle(P, "symmetryRadial", function(v) WG.TerraformBrush.setSymmetryRadial(v) end, "SymmetryRadial")
-	end
-	w.tbToggleSymMirrorX = function(self, P)
-		tbMirrorToggle(P, "symmetryMirrorX", function(v) WG.TerraformBrush.setSymmetryMirrorX(v) end, "SymMirrorX")
-	end
-	w.tbToggleSymMirrorY = function(self, P)
-		tbMirrorToggle(P, "symmetryMirrorY", function(v) WG.TerraformBrush.setSymmetryMirrorY(v) end, "SymMirrorY")
-	end
-	w.tbToggleMeasureShowLength = function(self, P)
-		if not (WG.TerraformBrush and WG.TerraformBrush.setMeasureShowLength) then return end
-		tbMirrorToggle(P, "measureShowLength", function(v) WG.TerraformBrush.setMeasureShowLength(v) end, "MeasureShowLength")
-	end
-	w.tbToggleMeasureRuler = function(self, P)
-		if not (WG.TerraformBrush and WG.TerraformBrush.setMeasureRulerMode) then return end
-		tbMirrorToggle(P, "measureRulerMode", function(v) WG.TerraformBrush.setMeasureRulerMode(v) end, "MeasureRulerMode")
-	end
-	w.tbToggleMeasureSticky = function(self, P)
-		if not (WG.TerraformBrush and WG.TerraformBrush.setMeasureStickyMode) then return end
-		tbMirrorToggle(P, "measureStickyMode", function(v) WG.TerraformBrush.setMeasureStickyMode(v) end, "MeasureStickyMode")
-	end
-	w.tbMeasureClear = function(self, P)
-		if WG.TerraformBrush and WG.TerraformBrush.clearMeasureLines then
-			WG.TerraformBrush.clearMeasureLines()
-		end
-		playSound("tick")
-	end
-	w.tbSymPlaceOrigin = function(self, P)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true) end
-		playSound("tick")
-	end
-	w.tbSymCenterOrigin = function(self, P)
-		if WG.TerraformBrush then
-			WG.TerraformBrush.setSymmetryOrigin(Game.mapSizeX * 0.5, Game.mapSizeZ * 0.5)
-		end
-		playSound("tick")
-	end
-	w.tbSymCountDown = function(self, P)
-		if not WG.TerraformBrush then return end
-		local s = WG.TerraformBrush.getState()
-		local n = math.max(2, (s and s.symmetryRadialCount or 2) - 1)
-		WG.TerraformBrush.setSymmetryRadialCount(n)
-		local nStr = tostring(n)
-		local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= nStr then dm.tbSymCountStr = nStr end
-		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-radial-count")
-		if sl then sl:SetAttribute("value", nStr) end
-		playSound("tick")
-	end
-	w.tbSymCountUp = function(self, P)
-		if not WG.TerraformBrush then return end
-		local s = WG.TerraformBrush.getState()
-		local n = math.min(16, (s and s.symmetryRadialCount or 2) + 1)
-		WG.TerraformBrush.setSymmetryRadialCount(n)
-		local nStr = tostring(n)
-		local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= nStr then dm.tbSymCountStr = nStr end
-		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-radial-count")
-		if sl then sl:SetAttribute("value", nStr) end
-		playSound("tick")
-	end
-	w.tbOnSymCountChange = function(self, P, element)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
-		local v = math.max(2, math.min(16, math.floor(tonumber(element:GetAttribute("value")) or 2)))
-		WG.TerraformBrush.setSymmetryRadialCount(v)
-		local vStr = tostring(v); local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= vStr then dm.tbSymCountStr = vStr end
-	end
-	w.tbSymAngleDown = function(self, P)
-		if not WG.TerraformBrush then return end
-		local s = WG.TerraformBrush.getState()
-		local a = ((s and s.symmetryMirrorAngle or 0) - 5) % 360
-		WG.TerraformBrush.setSymmetryMirrorAngle(a)
-		local aStr = tostring(math.floor(a))
-		local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= aStr then dm.tbSymAngleStr = aStr end
-		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-mirror-angle")
-		if sl then sl:SetAttribute("value", tostring(a)) end
-		playSound("tick")
-	end
-	w.tbSymAngleUp = function(self, P)
-		if not WG.TerraformBrush then return end
-		local s = WG.TerraformBrush.getState()
-		local a = ((s and s.symmetryMirrorAngle or 0) + 5) % 360
-		WG.TerraformBrush.setSymmetryMirrorAngle(a)
-		local aStr = tostring(math.floor(a))
-		local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= aStr then dm.tbSymAngleStr = aStr end
-		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-mirror-angle")
-		if sl then sl:SetAttribute("value", tostring(a)) end
-		playSound("tick")
-	end
-	w.tbOnSymAngleChange = function(self, P, element)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
-		local v = tonumber(element:GetAttribute("value")) or 0
-		WG.TerraformBrush.setSymmetryMirrorAngle(v)
-		local vStr = tostring(math.floor(v)); local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= vStr then dm.tbSymAngleStr = vStr end
-	end
-
-	-- ── Environment handler bridges ────────────────────────────────────────────
-	-- RML inline handlers say `widget:onEnvXxx()` but Recoil RmlUi strips the
-	-- `on` prefix and dispatches as `widget:envXxx()`. So bridge keys must NOT
-	-- have `on` prefix. Implementations live in initialModel (closures closed
-	-- over file-level upvalues) — those keep the `on` prefix per data-model
-	-- convention.
-	w.envResetSkybox          = initialModel.onEnvResetSkybox
-	w.envToggleFade           = initialModel.onEnvToggleFade
-	w.envSkyboxLibToggle      = initialModel.onEnvSkyboxLibToggle
-	w.envSkyboxLibClose       = initialModel.onEnvSkyboxLibClose
-	w.envResetSkyAxis         = initialModel.onEnvResetSkyAxis
-	w.envSkyDynPlay           = initialModel.onEnvSkyDynPlay
-	w.envSkyDynPause          = initialModel.onEnvSkyDynPause
-	w.envResetSun             = initialModel.onEnvResetSun
-	w.envResetSunCol          = initialModel.onEnvResetSunCol
-	w.envResetFog             = initialModel.onEnvResetFog
-	w.envResetFogColor        = initialModel.onEnvResetFogColor
-	w.envResetSkyCol          = initialModel.onEnvResetSkyCol
-	w.envResetCloudCol        = initialModel.onEnvResetCloudCol
-	w.envResetSnow            = initialModel.onEnvResetSnow
-	w.envResetGroundLighting  = initialModel.onEnvResetGroundLighting
-	w.envResetUnitLighting    = initialModel.onEnvResetUnitLighting
-	w.envResetWaterColors     = initialModel.onEnvResetWaterColors
-	w.envDimRefresh           = initialModel.onEnvDimRefresh
-	w.envApplyWaterLevel      = initialModel.onEnvApplyWaterLevel
-	w.envApplyMinHeight       = initialModel.onEnvApplyMinHeight
-	w.envApplyMaxHeight       = initialModel.onEnvApplyMaxHeight
-	w.envResetWaterLevel      = initialModel.onEnvResetWaterLevel
-	w.envResetBounds          = initialModel.onEnvResetBounds
-	w.envSave                 = initialModel.onEnvSave
-	w.envLoad                 = initialModel.onEnvLoad
+local function attachDeclarativeHandlers(_ctx)
+	-- All tf*/tb*/env* handlers are now model-king closures in initialModel.
+	-- RML uses data-event-click/change/mousedown = "onXxx()" directly on the dm.
 end
 
 local function attachEventListeners()
