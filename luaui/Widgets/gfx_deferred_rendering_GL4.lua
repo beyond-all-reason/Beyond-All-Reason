@@ -56,6 +56,7 @@ local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitHeight = Spring.GetUnitHeight
 local spGetUnitLosState = Spring.GetUnitLosState
+local spGetUnitVelocity = Spring.GetUnitVelocity
 local spDiffTimers = Spring.DiffTimers
 local spGetTimer = Spring.GetTimer
 local spGetTimerMicros = Spring.GetTimerMicros
@@ -335,6 +336,21 @@ local unitLightVBOMap -- a table of the above 3, keyed by light type,  {point = 
 local unitAttachedLights = {} -- this is a table mapping unitID's to all their attached instanceIDs and vbos
 	--{unitID = { instanceID = targetVBO, ... }}
 local visibleUnits = {} -- this is a proxy for the widget callins, used to ensure we dont add unitscriptlights to units that are not visible
+
+-- Velocity-modulated lights: brakeLight=true brightens on deceleration, accelLight=true on acceleration.
+-- velocityLightUnits[unitID] = { brakeFactor, accelFactor, prevSpeed, lights = { {instanceID, targetVBO, baseAlpha, peakAlpha, isAccel}, ... } }
+local velocityLightUnits = {}
+local velocityLightsEnabled = true -- toggle via /luaui togglevelocitylights
+local BRAKE_BOOST = 10.0        -- alpha multiplier at peak deceleration
+local BRAKE_MIN_PEAK_ALPHA = 4  -- minimum alpha at peak braking, regardless of base alpha
+local BRAKE_DECEL_REF = 0.4     -- elmos/frame of deceleration that maps to factor=1
+local BRAKE_ATTACK = 0.5        -- factor ramp-up per frame
+local BRAKE_RELEASE = 0.25      -- factor decay per frame
+local ACCEL_BOOST = 10.0        -- alpha multiplier at peak acceleration
+local ACCEL_MIN_PEAK_ALPHA = 4  -- minimum alpha at peak accel
+local ACCEL_REF = 0.4           -- elmos/frame of acceleration that maps to factor=1
+local ACCEL_ATTACK = 0.5        -- factor ramp-up per frame
+local ACCEL_RELEASE = 0.25      -- factor decay per frame
 
 -- these will be separate, as they need per-frame updates!
 local projectilePointLightVBO = {}  -- for plasma balls
@@ -922,7 +938,29 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 				local targetVBO = unitLightVBOMap[lightParams.lightType]
 
 				if (not spec) and lightParams.alliedOnly == true and spIsUnitAllied(unitID) == false then return end
-				AddLight(tostring(unitID) ..  lightname, unitID, lightParams.pieceIndex, targetVBO, lightParams.lightParamTable, noUpload)
+				local instanceID = tostring(unitID) ..  lightname
+				AddLight(instanceID, unitID, lightParams.pieceIndex, targetVBO, lightParams.lightParamTable, noUpload)
+
+				if lightParams.brakeLight or lightParams.accelLight then
+					local entry = velocityLightUnits[unitID]
+					if entry == nil then
+						entry = { brakeFactor = 0, accelFactor = 0, prevSpeed = 0, lights = {} }
+						velocityLightUnits[unitID] = entry
+					end
+					local baseAlpha = lightParams.lightParamTable[12] -- alpha slot
+					local isAccel = lightParams.accelLight == true
+					local boost = isAccel and ACCEL_BOOST or BRAKE_BOOST
+					local minPeak = isAccel and ACCEL_MIN_PEAK_ALPHA or BRAKE_MIN_PEAK_ALPHA
+					local peakAlpha = baseAlpha * boost
+					if peakAlpha < minPeak then peakAlpha = minPeak end
+					entry.lights[#entry.lights + 1] = {
+						instanceID = instanceID,
+						targetVBO = targetVBO,
+						baseAlpha = baseAlpha,
+						peakAlpha = peakAlpha,
+						isAccel = isAccel,
+					}
+				end
 			end
 		end
 	end
@@ -951,6 +989,7 @@ local function RemoveUnitAttachedLights(unitID, instanceID)
 			end
 			--spEcho("Removed lights from unitID", unitID, numremoved, successes)
 			unitAttachedLights[unitID] = nil
+			velocityLightUnits[unitID] = nil
 		end
 	else
 		--spEcho("RemoveUnitAttachedLights: No lights attached to", unitID)
@@ -1157,6 +1196,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.clearInstanceTable(unitBeamLightVBO) -- clear all instances
 	InstanceVBOTable.clearInstanceTable(unitConeLightVBO) -- clear all instances
 	visibleUnits = {}
+	velocityLightUnits = {}
 
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		visibleUnits[unitID] = unitDefID
@@ -1235,6 +1275,62 @@ function widget:GameFrame(n)
 			end
 		end
 		lightRemoveQueue[n] = nil
+	end
+
+	local velocityDirtyVBOs = nil
+	if velocityLightsEnabled then
+	for unitID, entry in pairs(velocityLightUnits) do
+		local vx, _, vz = spGetUnitVelocity(unitID)
+		if vx then
+			local speed = mathSqrt(vx * vx + vz * vz)
+			local delta = speed - entry.prevSpeed
+			entry.prevSpeed = speed
+
+			local brakeTarget = 0
+			if delta < 0 then
+				brakeTarget = -delta / BRAKE_DECEL_REF
+				if brakeTarget > 1 then brakeTarget = 1 end
+			end
+			local brakeFactor = entry.brakeFactor
+			if brakeTarget > brakeFactor then
+				brakeFactor = brakeFactor + (brakeTarget - brakeFactor) * BRAKE_ATTACK
+			else
+				brakeFactor = brakeFactor + (brakeTarget - brakeFactor) * BRAKE_RELEASE
+			end
+			entry.brakeFactor = brakeFactor
+
+			local accelTarget = 0
+			if delta > 0 then
+				accelTarget = delta / ACCEL_REF
+				if accelTarget > 1 then accelTarget = 1 end
+			end
+			local accelFactor = entry.accelFactor
+			if accelTarget > accelFactor then
+				accelFactor = accelFactor + (accelTarget - accelFactor) * ACCEL_ATTACK
+			else
+				accelFactor = accelFactor + (accelTarget - accelFactor) * ACCEL_RELEASE
+			end
+			entry.accelFactor = accelFactor
+
+			for i = 1, #entry.lights do
+				local light = entry.lights[i]
+				local targetVBO = light.targetVBO
+				local instanceIndex = targetVBO.instanceIDtoIndex[light.instanceID]
+				if instanceIndex then
+					local factor = light.isAccel and accelFactor or brakeFactor
+					local base = (instanceIndex - 1) * targetVBO.instanceStep
+					targetVBO.instanceData[base + 12] = light.baseAlpha + (light.peakAlpha - light.baseAlpha) * factor
+					if velocityDirtyVBOs == nil then velocityDirtyVBOs = {} end
+					velocityDirtyVBOs[targetVBO] = true
+				end
+			end
+		end
+	end
+	end -- velocityLightsEnabled
+	if velocityDirtyVBOs then
+		for vbo in pairs(velocityDirtyVBOs) do
+			uploadAllElements(vbo)
+		end
 	end
 end
 
@@ -1421,6 +1517,7 @@ local function updateProjectileLights(newgameframe)
 			else
 				-- add projectile
 				local weapon, piece = spGetProjectileType(projectileID)
+				local weaponDefID = nil
 				if piece then
 					local gib = gibLight.lightParamTable
 					gib[1] = px
@@ -1428,7 +1525,7 @@ local function updateProjectileLights(newgameframe)
 					gib[3] = pz
 					AddLight(projectileID, nil, nil, projectilePointLightVBO, gib, noUpload)
 				else
-					local weaponDefID = spGetProjectileDefID ( projectileID )
+					weaponDefID = spGetProjectileDefID ( projectileID )
 					if projectileDefLights[weaponDefID] and ( projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0 ) then
 						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
 						lightType = projectileDefLights[weaponDefID].lightType
@@ -1464,7 +1561,7 @@ local function updateProjectileLights(newgameframe)
 					end
 				end
 				numadded = numadded + 1
-				if debugproj then spEcho("Adding projlight", projectileID, Spring.GetProjectileName(projectileID)) end
+				if debugproj then spEcho("Adding projlight", projectileID, weaponDefID) end
 				--trackedProjectiles[]
 				trackedProjectileTypes[projectileID] = lightType
 			end
@@ -1844,6 +1941,32 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
 
 	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
+
+	widgetHandler:AddAction("togglevelocitylights", function()
+		velocityLightsEnabled = not velocityLightsEnabled
+		spEcho("Velocity-modulated lights " .. (velocityLightsEnabled and "ENABLED" or "DISABLED"))
+		if not velocityLightsEnabled then
+			-- reset all currently-boosted alpha back to base so nothing stays "stuck on"
+			local resetDirty = nil
+			for _, entry in pairs(velocityLightUnits) do
+				entry.brakeFactor = 0
+				entry.accelFactor = 0
+				for i = 1, #entry.lights do
+					local light = entry.lights[i]
+					local targetVBO = light.targetVBO
+					local instanceIndex = targetVBO.instanceIDtoIndex[light.instanceID]
+					if instanceIndex then
+						targetVBO.instanceData[(instanceIndex - 1) * targetVBO.instanceStep + 12] = light.baseAlpha
+						if resetDirty == nil then resetDirty = {} end
+						resetDirty[targetVBO] = true
+					end
+				end
+			end
+			if resetDirty then
+				for vbo in pairs(resetDirty) do uploadAllElements(vbo) end
+			end
+		end
+	end, nil, { 't' })
 end
 
 if autoupdate then
