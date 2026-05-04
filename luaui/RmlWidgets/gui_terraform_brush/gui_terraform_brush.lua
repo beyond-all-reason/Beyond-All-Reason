@@ -5276,6 +5276,40 @@ local function trackSliderDrag(element, id)
 		local lt = widgetState.sliderLastClickTime
 		local now = Spring.GetTimer()
 
+		-- Click-to-jump: clicking on the track (not the thumb) jumps to mouse position
+		-- and then follows the mouse until mouseup (synthetic drag).
+		-- Skip when locked (single click on a locked slider = unlock, not jump).
+		local targetEl = event.target_element
+		if not ls[id] and targetEl and targetEl.tag_name ~= "sliderbar" then
+			local minVal = tonumber(element:GetAttribute("min")) or 0
+			local maxVal = tonumber(element:GetAttribute("max")) or 1
+			local elWidth = element.client_width
+			if elWidth > 0 then
+				local function applyMX(mx)
+					local frac = math.max(0, math.min(1, (mx - element.absolute_left) / elWidth))
+					local v = minVal + frac * (maxVal - minVal)
+					local step = tonumber(element:GetAttribute("step"))
+					if step and step > 0 then
+						v = math.floor((v - minVal) / step + 0.5) * step + minVal
+					end
+					element:SetAttribute("value", tostring(math.max(minVal, math.min(maxVal, v))))
+				end
+				applyMX(event.parameters.mouse_x)
+				-- Attach synthetic drag: follow mouse until mouseup.
+				-- RemoveEventListener not available so use a flag to deaden stale closures.
+				local doc = widgetState.document
+				local moveActive = true
+				doc:AddEventListener("mousemove", function(ev)
+					if not moveActive then return end
+					applyMX(ev.parameters.mouse_x)
+				end, false)
+				doc:AddEventListener("mouseup", function()
+					moveActive = false
+					uiState.draggingSlider = nil
+				end, false)
+			end
+		end
+
 		-- If already locked, single click unlocks
 		if ls[id] then
 			ls[id] = nil
