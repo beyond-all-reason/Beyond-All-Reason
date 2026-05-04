@@ -8,12 +8,8 @@
 --when UnitUnloaded is called due to transport death, Spring.GetUnitIsDead (transportID) is still false
 --when trans is self d'ed, on the frame it dies it has both Spring.GetUnitHealth(ID)>0 and Spring.UnitSelfDTime(ID)=0
 --when trans is crashing it isn't dead
---SO: we wait one frame after UnitUnload and then check if the trans is dead/alive/crashing
 
---DestroyUnit(ID, true, true) will trigger self d explosion, won't leave a wreck but won't cause an explosion either
---DestroyUnit(ID, true, false) won't leave a wreck but won't cause the self d explosion either
---AddUnitDamage (ID, math.huge) makes a normal death explo but leaves wreck. Calling this for the transportee on the same frame as the trans dies results in a crash.
-
+if not gadgetHandler:IsSyncedCode() then return end
 
 local gadget = gadget ---@type Gadget
 
@@ -29,73 +25,49 @@ function gadget:GetInfo()
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then return end
-
 local isParatrooper = {}
+
 for udid, ud in pairs(UnitDefs) do
-	if ud.customParams.paratrooper then
-		isParatrooper[udid] = true
-	end
-  	if ud.customParams.subfolder and ud.customParams.subfolder == "other/hats" then
+	if ud.customParams.paratrooper or ud.customParams.subfolder == "other/hats" then
 		isParatrooper[udid] = true
 	end
 end
 
-local toKill = {} -- [frame][unitID]
-local fromtrans = {}
+local maybeDead = {}
 
-local currentFrame = 0
+local function isDeadOrCrashing(unitID)
+	return Spring.GetUnitIsDead(unitID) ~= false
+		or Spring.GetUnitMoveTypeData(unitID).aircraftState == "crashing"
+end
 
---when a unit is unloaded, mark it either as a commando or for possible destruction on next frame
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
-
-	--Spring.Echo ("unloaded " .. unitID .. " (" .. unitDefID .. "), from transport " .. transportID)
-
-	if not isParatrooper[unitDefID] then
+	if Spring.GetUnitRulesParam(unitID, "unit_effigy") then
 		--don't destroy units with effigies. Spring.SetUnitPosition cannot move a unit mid-fall.
-		if Spring.GetUnitRulesParam(unitID, "unit_effigy") then
-			return
-		end
-		currentFrame = Spring.GetGameFrame()
-		if not toKill[currentFrame+1] then
-			toKill[currentFrame+1] = {}
-		end
-		toKill[currentFrame+1][unitID] = true
-		if not fromtrans[currentFrame+1] then
-			fromtrans[currentFrame+1] = {}
-		end
-		fromtrans[currentFrame+1][unitID] = transportID
-		--Spring.Echo("added killing request for " .. unitID .. " on frame " .. currentFrame+1 .. " from transport " .. transportID )
-	else
+		return
+	end
+
+	if isParatrooper[unitDefID] then
 		--commandos are given a move order to the location of the ground below where the transport died; remove it
 		Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+		return
 	end
+
+	-- Transports unload their units when they die, but it is annoying to detect when the unit is dead/destroyed.
+	-- We mark transportees as maybe-dead and check whether they are or not later after the end-of-frame cleanup.
+	maybeDead[unitID] = transportID
 end
 
-function gadget:GameFrame (currentFrame)
-	if toKill[currentFrame] then --kill units as requested from above
-		for uID,_ in pairs (toKill[currentFrame]) do
-			local tID = fromtrans[currentFrame][uID]
-			--Spring.Echo ("delayed killing check called for unit " .. uID .. " and trans " .. tID .. ". ")
-			--check that trans is dead/crashing and unit is still alive
-			if not Spring.GetUnitIsDead(uID) and (Spring.GetUnitIsDead(tID) or (Spring.GetUnitMoveTypeData(tID).aircraftState=="crashing"))	then
-				--Spring.Echo("killing unit " .. uID)=
-				local deathExplosion = UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion
-				if deathExplosion and WeaponDefNames[deathExplosion].id and WeaponDefs[WeaponDefNames[deathExplosion].id] then
-					local tabledamages = WeaponDefs[WeaponDefNames[deathExplosion].id]
-					Spring.SetUnitWeaponDamages(uID, "selfDestruct", tabledamages)
-					tabledamages = WeaponDefs[WeaponDefNames[deathExplosion].id].damages
-					Spring.SetUnitWeaponDamages(uID, "selfDestruct", tabledamages)
-				end
-				Spring.DestroyUnit(uID, true, false)
-			end
+function gadget:GameFramePost(gameFrame)
+	if not next(maybeDead) then
+		return
+	end
+
+	for unitID, transportID in pairs(maybeDead) do
+		if isDeadOrCrashing(transportID) and not isDeadOrCrashing(unitID) then
+			Spring.UnitDetach(unitID) -- secret sauce
+			Spring.AddUnitDamage(unitID, 1e6, nil, nil, Game.envDamageTypes.TransportKilled) -- TODO: attackerID
 		end
-		toKill[currentFrame] = nil
-		fromtrans[currentFrame] = nil
 	end
+
+	maybeDead = {}
 end
-
-
-
-
-
