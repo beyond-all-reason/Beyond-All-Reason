@@ -120,15 +120,15 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 - `clampPanelPosition()` now prefers `rootElement.offset_width`, falls back to `panelWidthDp` constant on first frame.
 - Tried `162dp` first — on 4K dp_ratio made it 324px (too thin vs original `15vw` = 576px). Reverted to `vw` base.
 
-### Phase 1 — Kill the `WG.*` positional mirror (MOSTLY DONE; drag consolidation deferred)
+### Phase 1 — Kill the `WG.*` positional mirror (DONE)
 
-**Status:** Mirror killed ✅, context manager enriched ✅, standalone widgets migrated ✅. Drag loop consolidation deliberately deferred as follow-up.
+**Status:** Mirror killed ✅, context manager enriched ✅, standalone widgets migrated ✅, drag loop consolidation ✅.
 
 1. ✅ `WG.TerraformBrushPanel` had NO writer in the codebase — all 6 reads in weather/feature/decal were dead code. Confirmed gone.
 2. ✅ Added to `rml_context_manager.lua`: `registerDocument` / `unregisterDocument` / `getDocument` / `getElementRect(docName, elementId)` → `{left, top, width, height}` via live `offset_*` reads.
 3. ✅ All 4 widgets register on LoadDocument, unregister on Shutdown (`terraform_brush`, `weather_brush`, `feature_placer`, `decal_placer`). Registration is defensive for load-order robustness.
 4. ✅ 6 `WG.TerraformBrushPanel` reads in 3 follower widgets replaced with `WG.RmlContextManager.getElementRect("terraform_brush", "tf-root")`. Snap-to-terraform now actually works (was dead before).
-5. ⬜ **DEFERRED**: consolidate the 4 near-identical drag loops (weather ~L230, decal ~L660, feature ~L800, terraform ~L4000) into a shared `attachDraggable()` helper in `rml_context_manager.lua`. Kept out of Phase 1 to keep the diff reviewable.
+5. ✅ Drag loop consolidation: `WG.RmlContextManager.attachDraggable(doc, handleId, rootEl, opts)` added to `rml_context_manager.lua`. Returns `{ tick = function() end }`. 3 follower widgets (gui_weather_brush, gui_feature_placer, gui_decal_placer) converted — old `dragState` tables + `SNAP_THRESHOLD` locals removed, `widget:Update()` drag blocks replaced with `handle.tick()`. `gui_terraform_brush` left as-is (multi-window snap-to-siblings complexity).
 
 ### Phase 2 — Declarative events + state (reviewer's #1 red line — THE pattern fix)
 
@@ -201,7 +201,7 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 
 | Item | Effort | Notes |
 |---|---|---|
-| Phase 1 — `attachDraggable` drag consolidation | Small-Medium | 4 near-identical drag loops; context manager home agreed; deferred from Phase 1 to keep diff small |
+| Phase 1 — `attachDraggable` drag consolidation | Small-Medium | ✅ **COMPLETE** — `attachDraggable(doc, handleId, rootEl, opts)` + `tick()` in `rml_context_manager.lua`; gui_weather_brush, gui_feature_placer, gui_decal_placer converted; old dragState tables + SNAP_THRESHOLD locals removed; gui_terraform_brush unchanged (multi-window). |
 | Phase 2 step 2 — `data-class-active` for active state | Large | ✅ **COMPLETE (May 2026)** — all 11 files done including `gui_terraform_brush.lua` attachTBMirrorControls (30/30: 81 RML buttons × 6 prefixes, 15 shared handler methods, AELs eliminated). |
 | Phase 2 step 3 — `data-if` + `document:Hide/Show` | Medium | ✅ **COMPLETE (Apr 2026)** — 11/11 files done. All `SetClass("hidden",…)` sites in tf-brush package converted to dm flags + `data-if` bindings. |
 | Phase 2 step 4 — `{{interpolation}}` for labels | Medium | **PROMOTED pre-1.0** (PR #7527). ~40 `inner_rml = tostring(v)` sites in tf-brush. **Landed Apr 2026: tf_startpos (6), tf_splat (11), tf_metal (13), tf_grass (14), tf_features (11), tf_lights (6 of 14 — 8 IDs not in RML), tf_clone (3 dm fields added), tf_environment dim panel (7). Landed May 2026: gui_terraform_brush ring-width + restore-strength (6 sites). tf_clone inner_rml removed + {{clRotationStr}}/{{clHeightStr}} wired in RML (was half-done: dm writes existed but inner_rml still ran). syncTBMirrorControls labels (tbGridSnapSizeStr/tbAngleSnapStepStr/tbSymCountStr/tbSymAngleStr) CONFIRMED DONE via {{...}} in RML + dm writes in Lua. tf_weather had zero. Remaining: tf_decals/tf_noise generic helpers (justified imperative — bulk setLbl by id), keybind editor + history list builders (Phase 3 / data-for territory).** |
