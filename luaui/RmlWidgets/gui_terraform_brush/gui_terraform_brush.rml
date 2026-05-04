@@ -5945,11 +5945,11 @@
 		<div class="tf-collapsible-title mb-1">MAP SIZE</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">width (X)</div>
-			<div class="text-sm text-light" id="lbl-dim-map-x">--</div>
+			<div class="text-sm text-light" id="lbl-dim-map-x">{{envMapXStr}}</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">depth (Z)</div>
-			<div class="text-sm text-light" id="lbl-dim-map-z">--</div>
+			<div class="text-sm text-light" id="lbl-dim-map-z">{{envMapZStr}}</div>
 		</div>
 
 		<!-- HEIGHT EXTREMES -->
@@ -5959,19 +5959,19 @@
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">init min</div>
-			<div class="text-sm text-light" id="lbl-dim-init-min">--</div>
+			<div class="text-sm text-light" id="lbl-dim-init-min">{{envInitMinStr}}</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">init max</div>
-			<div class="text-sm text-light" id="lbl-dim-init-max">--</div>
+			<div class="text-sm text-light" id="lbl-dim-init-max">{{envInitMaxStr}}</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">curr min</div>
-			<div class="text-sm text-light font-bold" id="lbl-dim-curr-min">--</div>
+			<div class="text-sm text-light font-bold" id="lbl-dim-curr-min">{{envCurrMinStr}}</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">curr max</div>
-			<div class="text-sm text-light font-bold" id="lbl-dim-curr-max">--</div>
+			<div class="text-sm text-light font-bold" id="lbl-dim-curr-max">{{envCurrMaxStr}}</div>
 		</div>
 
 		<!-- WATER LEVEL -->
@@ -5981,7 +5981,7 @@
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">plane level</div>
-			<div class="text-sm text-light" id="lbl-dim-water-plane">--</div>
+			<div class="text-sm text-light" id="lbl-dim-water-plane">{{envWaterPlaneStr}}</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 70dp;">adjust</div>

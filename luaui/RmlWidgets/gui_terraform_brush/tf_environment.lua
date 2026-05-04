@@ -1498,11 +1498,7 @@ function M.attach(doc, ctx)
 
 		-- ---- Dimensions panel controls ----
 		do
-			-- Populate map size labels
-			local lblMapX = doc:GetElementById("lbl-dim-map-x")
-			local lblMapZ = doc:GetElementById("lbl-dim-map-z")
-			if lblMapX then lblMapX.inner_rml = tostring(Game.mapSizeX) end
-			if lblMapZ then lblMapZ.inner_rml = tostring(Game.mapSizeZ) end
+			-- Populate map size labels (driven by {{envMapXStr}}/{{envMapZStr}} in RML)
 			if widgetState.dmHandle then
 				local vx = tostring(Game.mapSizeX)
 				if widgetState.dmHandle.envMapXStr ~= vx then widgetState.dmHandle.envMapXStr = vx end
@@ -1510,21 +1506,10 @@ function M.attach(doc, ctx)
 				if widgetState.dmHandle.envMapZStr ~= vz then widgetState.dmHandle.envMapZStr = vz end
 			end
 
-			-- Height extreme labels
-			local lblInitMin = doc:GetElementById("lbl-dim-init-min")
-			local lblInitMax = doc:GetElementById("lbl-dim-init-max")
-			local lblCurrMin = doc:GetElementById("lbl-dim-curr-min")
-			local lblCurrMax = doc:GetElementById("lbl-dim-curr-max")
-			local lblWaterPlane = doc:GetElementById("lbl-dim-water-plane")
-
+			-- Height extreme labels (driven by {{envInitMinStr}}/etc. in RML)
 			local function refreshDimExtremes()
 				local initMin, initMax, currMin, currMax = Spring.GetGroundExtremes()
-				if lblInitMin then lblInitMin.inner_rml = string.format("%.1f", initMin or 0) end
-				if lblInitMax then lblInitMax.inner_rml = string.format("%.1f", initMax or 0) end
-				if lblCurrMin then lblCurrMin.inner_rml = string.format("%.1f", currMin or 0) end
-				if lblCurrMax then lblCurrMax.inner_rml = string.format("%.1f", currMax or 0) end
 				local wl = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
-				if lblWaterPlane then lblWaterPlane.inner_rml = string.format("%.1f", wl) end
 				if widgetState.dmHandle then
 					local dm = widgetState.dmHandle
 					local v = string.format("%.1f", initMin or 0)
