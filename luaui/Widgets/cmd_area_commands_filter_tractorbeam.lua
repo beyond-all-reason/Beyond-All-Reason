@@ -8,7 +8,7 @@ local widget = widget ---@type RulesUnsyncedCallins
 -- - If Meta and Shift are pressed, splits orders between selected units. Orders are placed at the end of the queue
 function widget:GetInfo()
 	return {
-		name = "Area Command Filter",
+		name = "Area Command Filter, tractor beam rdy",
 		desc = "Hold Alt or Ctrl with an area command (Reclaim, Load, Attack, etc.) centered on a unit or feature to filter targets.",
 		author = "SuperKitowiec. Based on Specific Unit Reclaimer and Loader by Google Frog",
 		date = "October 16, 2025",
@@ -19,12 +19,19 @@ function widget:GetInfo()
 end
 
 
-if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam == true then
-	Spring.Echo("Custom transports enabled via modoption, disabling " .. widget:GetInfo().name)
+-- Localized functions for performance
+local TransportAPI = WG.TransportAPI
+
+if not TransportAPI then
+	Spring.Echo("Transport API not found, disabling " .. widget:GetInfo().name)
 	return false
 end
 
--- Localized functions for performance
+if not Spring.GetModOptions or Spring.GetModOptions().beta_tractorbeam == false then
+	Spring.Echo("Custom transports disabled via modoption, disabling " .. widget:GetInfo().name)
+	return false
+end
+
 local tableInsert = table.insert
 local tableSort = table.sort
 local mathFloor = math.floor
@@ -111,182 +118,69 @@ for defId, def in pairs(UnitDefs) do
 	cantBeTransported[defId] = def.cantBeTransported
 end
 
+local function createEmptyValidTransportsTable()
+	local tab = {}
+	for i = 0, 5 do
+		tab[2^(i)] = {}
+	end
+	return tab
+end
+--> tab[slotSize1] = { transportID1, transportID2,... }
+--> tab[slotSize2] = { transportID2, transportID5,... }
+-- this table holds possible transport IDs per slot size)
+
+local queuedSizePerTransport = {} -- transportID -> queuedSize, used to keep track of how many passengers are already assigned to each transport when distributing targets
+
 --- @return table<number,table<number>> Map of transportId -> array of passengerIds
-local function distributeTargetsToTransports(transports, targets)
-	---@type table<number,TransportData>
-	local transportTypeDataMap = {}
-	local validTransportsForUnitTypeMap = {}
-	local passengerPriorities = {}
-	local passengerPositions = {}
+local function distributeTargetsToTransports(transports, targets, shifted)
+	local validTransports = createEmptyValidTransportsTable()
 
-	-- 1. Find transports with capacity
+	-- 1: exclude already full transports
+	-- 2: sort transports into seat sizes categories
 	for _, transportUnitId in ipairs(transports) do
-		local transportDefId = spGetUnitDefID(transportUnitId)
-		if transportDefId then
-			local transportDef = transportDefs[transportDefId]
-			if transportDef then
-				local transportedUnits = spGetUnitIsTransporting(transportUnitId)
-				local maxCapacity = transportDef.maxCapacity
-				local remainingCapacity = maxCapacity - (transportedUnits and #transportedUnits or 0)
-
-				if remainingCapacity > 0 then
-					if not transportTypeDataMap[transportDefId] then
-						---@class TransportData
-						---@field transportsInfo table<number,TransportInfo>
-						transportTypeDataMap[transportDefId] = {
-							transportsInfo = {},
-							transportIdsList = {},
-							allValidPassengers = {},
-							passengersByPriority = {},
-							maxPriority = -1,
-							transportHealth = transportDef.health
-						}
-					end
-					local position = toPositionTable(spGetUnitPosition(transportUnitId))
-					---@class TransportInfo
-					local transportInfo = { capacity = remainingCapacity, position = position }
-					transportTypeDataMap[transportDefId].transportsInfo[transportUnitId] = transportInfo
-					tableInsert(transportTypeDataMap[transportDefId].transportIdsList, transportUnitId)
+		if not TransportAPI.IsTransportFull(transportUnitId) then
+			for i = 0, 5 do
+				validTransports[2^(i)] = validTransports[2^(i)] or {}
+				local slotSize = 2^(i)
+				local rulesParamString = "transporterHasSlotOfSize" .. slotSize
+				if Spring.GetUnitRulesParam(transportUnitId, rulesParamString) then
+					tableInsert(validTransports[slotSize], transportUnitId)
 				end
 			end
 		end
 	end
-
-	-- 2. Match passengers to transport types
-	for transDefId, transportTypeData in pairs(transportTypeDataMap) do
-		local transportDef = transportDefs[transDefId]
-		local transportMassLimit = transportDef.massLimit
-		local transportSizeLimit = transportDef.sizeLimit
-
-		for _, targetId in ipairs(targets) do
-			local passengerDefId = spGetUnitDefID(targetId)
-			local isValid = false
-			local position = toPositionTable(spGetUnitPosition(targetId))
-			passengerPositions[targetId] = position
-			validTransportsForUnitTypeMap[passengerDefId] = validTransportsForUnitTypeMap[passengerDefId] or {}
-
-			if validTransportsForUnitTypeMap[passengerDefId][transDefId] then
-				isValid = true
-			elseif not cantBeTransported[passengerDefId] then
-				local passengerFootprintX = unitXSize[passengerDefId] / springFootprintScale
-				if unitMass[passengerDefId] <= transportMassLimit and passengerFootprintX <= transportSizeLimit then
-					isValid = true
-					validTransportsForUnitTypeMap[passengerDefId][transDefId] = true
-				end
-			end
-			if isValid then
-				passengerPriorities[targetId] = (passengerPriorities[targetId] or 0) + 1
-				tableInsert(transportTypeData.allValidPassengers, targetId)
-			end
-		end
-		if #transportTypeData.allValidPassengers == 0 then
-			transportTypeDataMap[transDefId] = nil
-		end
+	-- 3. Match passengers to transport types
+	local passengersData = {}
+	for _, targetId in ipairs(targets) do
+		local passengerSize = TransportAPI.GetPassengerSize(targetId)
+		local data = {
+			id = targetId,
+			size = passengerSize,
+			matchingTransports = validTransports[passengerSize] or {},
+		}
+		tableInsert(passengersData, data)
 	end
-
-	local orderedTransportDefs = {}
-
-	for transDefId, transportTypeData in pairs(transportTypeDataMap) do
-		local maxPriority = -1
-
-		-- 3. Sort passengers (hardest to transport first)
-		tableSort(transportTypeData.allValidPassengers, function(a, b)
-			return passengerPriorities[a] < passengerPriorities[b]
-		end)
-
-		-- 4. Group passengers by priority
-		for _, passengerId in ipairs(transportTypeData.allValidPassengers) do
-			local priority = passengerPriorities[passengerId]
-			if priority > maxPriority then
-				maxPriority = priority
-			end
-			if not transportTypeData.passengersByPriority[priority] then
-				transportTypeData.passengersByPriority[priority] = {}
-			end
-			tableInsert(transportTypeData.passengersByPriority[priority], passengerId)
-		end
-		transportTypeData.maxPriority = maxPriority
-
-		tableInsert(orderedTransportDefs, transDefId)
-	end
-
-	-- 5. Sort transport types
-	tableSort(orderedTransportDefs, function(a, b)
-		local passengerA = transportTypeDataMap[a].allValidPassengers[1]
-		local passengerB = transportTypeDataMap[b].allValidPassengers[1]
-
-		-- Transports with lowest capabilities are chosen first.
-		if passengerPriorities[passengerA] ~= passengerPriorities[passengerB] then
-			return passengerPriorities[passengerA] > passengerPriorities[passengerB]
-		end
-
-		-- In case of tie, we want the sturdier transport first as it will be the first to pick up bigger units
-		return transportTypeDataMap[a].transportHealth > transportTypeDataMap[b].transportHealth
+	tableSort(passengersData, function(a, b)
+		return a.size > b.size
 	end)
 
-	-- 6. Distribute passengers.
-	local alreadyAssignedPassengers = {}
+	-- 4. Distribute passengers between transports, starting with the biggest ones
 	local passengerAssignments = {}
-
-	--- We want to fill 'smallest' transports first to avoid situation where "bigger" transports get filled
-	--- with small units and "small" transports remain empty. After picking transport we search for passengers.
-	--- Passengers are grouped by priority - the smaller the number, the harder they are to transport.
-	--- We start with the hardest passengers and pick the one which is the closest to the transport. We look at lower
-	--- priority passengers only when there are noone left in the higher bracket.
-	for _, transDefId in ipairs(orderedTransportDefs) do
-		local transportTypeData = transportTypeDataMap[transDefId]
-		local passengersByPriority = transportTypeData.passengersByPriority
-		local transportIds = transportTypeData.transportIdsList
-		local transportsInfo = transportTypeData.transportsInfo
-
-		for _, transportId in ipairs(transportIds) do
-			local transportInfo = transportsInfo[transportId]
-			local transportPos = transportInfo.position
-
-			while transportInfo.capacity > 0 do
-
-				local bestPassengerId
-				local passengerFound = false
-
-				for priority = 1, transportTypeData.maxPriority do
-					local passengers = passengersByPriority[priority]
-					if passengers then
-
-						local closestPassengerId
-						local closestDistSq
-
-						for _, passengerId in ipairs(passengers) do
-							if not alreadyAssignedPassengers[passengerId] then
-								local passengerPos = passengerPositions[passengerId]
-								local distSq = distanceSq(transportPos, passengerPos)
-
-								if closestDistSq == nil or distSq < closestDistSq then
-									closestDistSq = distSq
-									closestPassengerId = passengerId
-								end
-							end
-						end
-
-						if closestPassengerId then
-							bestPassengerId = closestPassengerId
-
-							if not passengerAssignments[transportId] then
-								passengerAssignments[transportId] = {}
-							end
-							tableInsert(passengerAssignments[transportId], bestPassengerId)
-
-							alreadyAssignedPassengers[bestPassengerId] = true
-							transportInfo.capacity = transportInfo.capacity - 1
-							passengerFound = true
-							break
-						end
-					end
-				end
-
-				if not passengerFound then
-					break
-				end
-
+	queuedSizePerTransport = shifted and queuedSizePerTransport or {} -- if shift is held we want to keep the same queued size 
+	for i = 1, #passengersData do
+		local passengerData = passengersData[i]
+		local passengerID = passengerData.id
+		local assigned = false
+		for index, transportID in ipairs(passengerData.matchingTransports) do
+			local queuedSize = queuedSizePerTransport[transportID] or 0
+			if TransportAPI.IsTransportFull(transportID, queuedSize) then
+				table.remove(passengerData.matchingTransports, index)
+			elseif TransportAPI.CanPassengerFitInTransporter(transportID, passengerID, nil, passengerData.size, queuedSize) then
+				passengerAssignments[transportID] = passengerAssignments[transportID] or {}
+				tableInsert(passengerAssignments[transportID], passengerID)
+				queuedSizePerTransport[transportID] = queuedSize + passengerData.size
+				assigned = true
+				break
 			end
 		end
 	end
@@ -392,7 +286,7 @@ local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
 	if #transports == 0 then
 		return
 	end
-	local passengerAssignments = distributeTargetsToTransports(transports, filteredTargets)
+	local passengerAssignments = distributeTargetsToTransports(transports, filteredTargets, options.shift)
 	-- distributeTargetsToTransports already sorted the targets so no sortTargetsByDistance call here
 	for transportId, targetIds in pairs(passengerAssignments) do
 		giveOrders(cmdId, { transportId }, targetIds, options)

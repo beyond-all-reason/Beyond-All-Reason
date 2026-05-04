@@ -1674,6 +1674,15 @@ local options = {
     },
 
     {
+        key    	= "beta_tractorbeam",
+        name   	= "Tractor beams",
+        desc   	= "Experimental tractor beam transportation method",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    {
         key 	= "easytax",
         name 	= "Easy Tax v2",
         desc 	= "Anti co-op sharing tax mod. Overwrites other tax settings. Don't combine with other sharing restriction mods, everything you need is included with easy tax.",

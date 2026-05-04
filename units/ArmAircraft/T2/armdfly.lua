@@ -38,6 +38,7 @@ return {
 		unloadspread = 0,
 		customparams = {
 			crashable = 0,
+			loadtime = 60,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,

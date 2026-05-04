@@ -33,6 +33,7 @@ return {
 		turnrate = 550,
 		verticalspeed = 3.75,
 		customparams = {
+			loadtime = 30,
 			crashable = 0,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

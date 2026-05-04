@@ -34,6 +34,7 @@ return {
 		verticalspeed = 3.75,
 		customparams = {
 			crashable = 0,
+			loadtime = 60,
 			model_author = "Protar",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,

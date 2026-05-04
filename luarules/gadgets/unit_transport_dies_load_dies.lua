@@ -14,7 +14,6 @@
 --DestroyUnit(ID, true, false) won't leave a wreck but won't cause the self d explosion either
 --AddUnitDamage (ID, math.huge) makes a normal death explo but leaves wreck. Calling this for the transportee on the same frame as the trans dies results in a crash.
 
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -30,6 +29,11 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then return end
+
+if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam == true then
+	Spring.Echo("Custom transports enabled via modoption, skipping transport_dies_load_dies gadget")
+	return false
+end
 
 local isParatrooper = {}
 for udid, ud in pairs(UnitDefs) do

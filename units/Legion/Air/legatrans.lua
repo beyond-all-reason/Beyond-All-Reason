@@ -33,6 +33,7 @@ return {
 		turnrate = 550,
 		verticalspeed = 3.75,
 		customparams = {
+			loadtime = 60,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0,

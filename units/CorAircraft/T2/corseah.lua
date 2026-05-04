@@ -37,6 +37,7 @@ return {
 		upright = true,
 		customparams = {
 			crashable = 0,
+			loadtime = 90,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,

@@ -14,6 +14,11 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return end
 
+if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam == true then
+	Spring.Echo("Custom transports enabled via modoption, skipping Prevent Unload Hax gadget")
+	return false
+end
+
 local frameMargin = 10
 
 local isCommando = {}
@@ -35,7 +40,7 @@ local unloadedUnits = {}
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	if unitID == nil or unitDefID == nil or transportID == nil then return end
-    --FIXME: is this exception for commando this really necessary?
+    -- FIXME: is this exception for commando this really necessary?
 	if isCommando[unitDefID] then
 		local x,y,z = SpGetUnitVelocity(transportID)
 		if x > 10 then x = 10 elseif x <- 10 then x = -10 end -- 10 is well above 'normal' air-trans velocity
