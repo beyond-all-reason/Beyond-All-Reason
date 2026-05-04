@@ -180,8 +180,6 @@ if dm then
 			dm.mbMapOverlay    = mbState.mapOverlay and true or false
 			dm.mbLassoActive   = mbState.lassoActive and true or false
 		end
-		local lbl = doc:GetElementById("mb-cluster-radius-label")
-		if lbl then lbl.inner_rml = tostring(mbState.clusterRadius or 256) end
 		-- Labels driven by {{mbClusterRadiusStr}}/{{mbAxisAngleStr}}/{{mbAxisAStr}}/{{mbAxisBStr}}/{{mbAxisBalanceStr}}/{{mbLassoTotalStr}} in RML.
 		if dm then
 			local v = tostring(mbState.clusterRadius or 256)
