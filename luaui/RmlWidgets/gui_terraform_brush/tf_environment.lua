@@ -288,7 +288,7 @@ function M.attach(doc, ctx)
 		local function envWindowToggle(openBtnId, closeBtnId, rootEl, stateKey, dmKey)
 			local openBtn = doc:GetElementById(openBtnId)
 			if openBtn then
-				openBtn:AddEventListener("click", function(event)
+				openBtn:AddEventListener("mousedown", function(event)
 					widgetState[stateKey] = not widgetState[stateKey]
 					playSound(widgetState[stateKey] and "panelOpen" or "click")
 					if rootEl then rootEl:SetClass("hidden", not widgetState[stateKey]) end
@@ -299,7 +299,7 @@ function M.attach(doc, ctx)
 			end
 			local closeBtn = doc:GetElementById(closeBtnId)
 			if closeBtn then
-				closeBtn:AddEventListener("click", function(event)
+				closeBtn:AddEventListener("mousedown", function(event)
 					playSound("click")
 					widgetState[stateKey] = false
 					if rootEl then rootEl:SetClass("hidden", true) end

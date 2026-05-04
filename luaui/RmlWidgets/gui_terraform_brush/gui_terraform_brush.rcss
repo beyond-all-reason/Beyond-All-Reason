@@ -1389,7 +1389,7 @@ body {
 /* === Range Slider === */
 .tf-slider {
 	flex: 1;
-	height: 18dp;
+	height: 26dp;
 	tab-index: none;
 }
 
@@ -1397,7 +1397,7 @@ body {
 	background-color: #13131c;
 	border-radius: 3dp;
 	height: 4dp;
-	margin-top: 8dp;
+	margin-top: 11dp;
 	box-shadow: inset 0dp 1dp 3dp 0dp #00000080;
 }
 
@@ -1408,7 +1408,7 @@ body {
 	decorator: vertical-gradient(#dde0ec #7d8190);
 	border-radius: 4dp;
 	border: 1dp #ffffff40;
-	margin-top: 1dp;
+	margin-top: 5dp;
 	transition: background-color 0.1s;
 	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
 }

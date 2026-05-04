@@ -5435,33 +5435,23 @@ extraState.tickSubToolUnmouse = function(toolKey, realX, realZ, radius, lengthSc
 	st.lastTime = now
 
 	if overPanel then
-		local curSpan = (radius or 200) * math.max(1.0, lengthScale or 1.0)
-		local spanChanged = abs(curSpan - st.lastSpan) > 12
-		if not st.active or spanChanged then
-			if st.active and spanChanged then
-				local tc = st.animT * st.animT * (3 - 2 * st.animT)
-				st.fromX = st.fromX + (st.toX - st.fromX) * tc
-				st.fromZ = st.fromZ + (st.toZ - st.fromZ) * tc
-				st.animT = 0
-			else
-				-- Use caller's real pos, else cached last real, else a ray under cursor
-				local fx, fz = realX, realZ
-				if not fx then fx, fz = st.lastRealX, st.lastRealZ end
-				if not fx then
-					local _, pos = TraceScreenRay(mx, my, true)
-					if pos then fx, fz = pos[1], pos[3] end
-				end
-				if not fx then
-					-- No usable starting position — skip this frame, try again next tick
-					return realX, realZ
-				end
-				st.fromX = fx
-				st.fromZ = fz
-				-- Reset to start of enter-animation (may have been at 1 from idle off-panel)
-				st.animT = 0
+		if not st.active then
+			-- Use caller's real pos, else cached last real, else a ray under cursor
+			local fx, fz = realX, realZ
+			if not fx then fx, fz = st.lastRealX, st.lastRealZ end
+			if not fx then
+				local _, pos = TraceScreenRay(mx, my, true)
+				if pos then fx, fz = pos[1], pos[3] end
 			end
-			st.active   = true
-			st.lastSpan = curSpan
+			if not fx then
+				-- No usable starting position — skip this frame, try again next tick
+				return realX, realZ
+			end
+			st.fromX = fx
+			st.fromZ = fz
+			-- Reset to start of enter-animation (may have been at 1 from idle off-panel)
+			st.animT = 0
+			st.active = true
 			local tx, tz = extraState.computeParkedTarget(bounds, radius, lengthScale)
 			st.toX = tx or st.fromX
 			st.toZ = tz or st.fromZ
@@ -5531,23 +5521,10 @@ extraState.applyUnmouse = function(worldX, worldZ)
 	           and math.min(0.1, Spring.DiffTimers(now, extraState.unmouseLastTime)) or 0
 	extraState.unmouseLastTime = now
 	if overPanel then
-		local curSpan = activeRadius * math.max(1.0, activeLengthScale)
-		local spanChanged = abs(curSpan - extraState.unmouseLastSpan) > 12
-		if not extraState.unmouseActive or spanChanged then
-			-- First entry or brush resized: compute new target, animate from current pos
-			if extraState.unmouseActive and spanChanged then
-				-- Already parked: slide from current interpolated position
-				local tc = extraState.unmouseAnimT
-				tc = tc * tc * (3 - 2 * tc)
-				extraState.unmouseFromX = extraState.unmouseFromX + (extraState.unmouseToX - extraState.unmouseFromX) * tc
-				extraState.unmouseFromZ = extraState.unmouseFromZ + (extraState.unmouseToZ - extraState.unmouseFromZ) * tc
-				extraState.unmouseAnimT = 0
-			else
-				extraState.unmouseFromX = worldX
-				extraState.unmouseFromZ = worldZ
-			end
-			extraState.unmouseActive   = true
-			extraState.unmouseLastSpan = curSpan
+		if not extraState.unmouseActive then
+			extraState.unmouseFromX = worldX
+			extraState.unmouseFromZ = worldZ
+			extraState.unmouseActive = true
 			local tx, tz = extraState.computeUnmouseTarget(bounds)
 			extraState.unmouseToX = tx or extraState.unmouseFromX
 			extraState.unmouseToZ = tz or extraState.unmouseFromZ

@@ -4111,7 +4111,7 @@
 			</div>
 		<div id="section-env-save" class="hidden">
 		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-env-save" class="tf-env-btn tf-save-btn" style="flex: 1;" data-event-click="onEnvSave()">
+			<div id="btn-env-save" class="tf-env-btn tf-save-btn" style="flex: 1;" data-event-mousedown="onEnvSave()">
 				<img class="tf-env-btn-icon" src="/luaui/images/terraform_brush/env_save.png" />
 				<div class="tf-env-btn-text">SAVE SCENE</div>
 			</div>
