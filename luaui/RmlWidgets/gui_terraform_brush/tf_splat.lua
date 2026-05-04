@@ -16,7 +16,6 @@ function M.attach(doc, ctx)
 		doc:GetElementById("btn-sp-ch4"),
 	}
 
-	-- Splat detail texture previews: discover per-layer texture names
 	widgetState.spPreviewEls = {
 		doc:GetElementById("sp-ch1-preview"),
 		doc:GetElementById("sp-ch2-preview"),

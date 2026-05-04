@@ -165,8 +165,8 @@ local function playSound(name)
 end
 
 -- UI prefs persistence ("Terraform Brush/ui_prefs.lua")
-local UI_PREFS_DIR  = "Terraform Brush/"
-local UI_PREFS_FILE = UI_PREFS_DIR .. "ui_prefs.lua"
+local UI_PREFS_DIR        = "Terraform Brush/"
+local UI_PREFS_FILE       = UI_PREFS_DIR .. "ui_prefs.lua"
 local loadUiPrefs   -- defined after widgetState is declared
 local saveUiPrefs   -- defined after widgetState is declared
 
@@ -222,9 +222,11 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	-- Splat painter section elements
 	spControlsEl = nil,
 	spPreviewEls = nil,
-	spChannelSectionEl = nil,
 	spPreviewTextures = nil,
 	spPreviewVerified = false,
+	spMinimapSampleTex = nil,
+	spTerrainColor = nil,
+	spTerrainColorTime = nil,
 	-- Lobby visibility tracking (document:Hide() does not set hidden class)
 	lobbyHidden = false,
 	-- Decal section elements
@@ -1258,6 +1260,25 @@ local initialModel = {
 	-- terraform pen pressure pill visibility
 	tfPenIntVisible = false,
 	tfPenSizeVisible = false,
+	-- terraform core instrument active-state flags (data-class-active)
+	tfGridOverlay = false,
+	tfHeightColormap = false,
+	tfCurveOverlay = false,
+	tfVelocityIntensity = false,
+	tfSymMirrorX = false,
+	tfSymMirrorY = false,
+	tfSymFlipped = false,
+	tfClayMode = false,
+	tfMeasureRuler = false,
+	tfMeasureSticky = false,
+	tfMeasureShowLength = false,
+	tfMeasureRampAttach = true,
+	tfMeasureDistort = false,
+	tfCapSampleMax = false,
+	tfCapSampleMin = false,
+	tfPenIntActive = false,
+	tfPenSizeActive = false,
+	tfCapAbsoluteSrc = "/luaui/images/terraform_brush/check_on.png",
 	-- clone paste transforms panel
 	clonePasteTransformsVisible = false,
 	-- clone tool active states (Phase 2 step 2 data-class-active bindings)
@@ -1282,7 +1303,7 @@ local initialModel = {
 	envMapVisible = false,
 	envWaterVisible = false,
 	envDimensionsVisible = false,
-	-- Phase 2 step 6: tf_noise model-king handlers — defined here (not in M.attach)
+	-- Phase 2 step 6: tf_noise model-king handlers â€” defined here (not in M.attach)
 	-- because Recoil forbids adding OR changing function keys after OpenDataModel.
 	-- All closures capture file-level widgetState/uiState/WG/playSound upvalues.
 	onNoClose = function(_event)
@@ -1405,7 +1426,7 @@ local initialModel = {
 		_noSetSliderVal("noise-seed", newVal)
 		_noDmLabel("nsSeedStr", tostring(newVal))
 	end,
-	-- Phase 2 step 6: tf_clone model-king handlers — defined here (not in M.attach)
+	-- Phase 2 step 6: tf_clone model-king handlers â€” defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture file-level widgetState/uiState/WG/playSound/ROTATION_STEP/clearPassthrough.
 	onClOnClone = function(_event)
@@ -1519,7 +1540,7 @@ local initialModel = {
 			for i = 1, -diff do WG.CloneTool.undo() end
 		end
 	end,
-	-- Phase 2 step 6: tf_weather model-king handlers — defined here (not in M.attach)
+	-- Phase 2 step 6: tf_weather model-king handlers â€” defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture widgetState/uiState/WG/playSound/ROTATION_STEP/LENGTH_SCALE_STEP/
 	-- RADIUS_STEP/sliderToCadence/sliderToFrequency/sliderToPersist/PERSIST_PERMANENT_VAL/
@@ -1664,7 +1685,7 @@ local initialModel = {
 		playSound("reset")
 		if WG.WeatherBrush then WG.WeatherBrush.clearAllPersistent() end
 	end,
-	-- Phase 2 step 6: tf_startpos model-king handlers — defined here (not in M.attach)
+	-- Phase 2 step 6: tf_startpos model-king handlers â€” defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture widgetState/uiState/WG/playSound/ROTATION_STEP/_noSliderVal upvalues.
 	-- Spring.GetMouseState/TraceScreenRay/Game accessed as globals (no upvalue cost).
@@ -1808,7 +1829,7 @@ local initialModel = {
 			WG.StartPosTool.loadStartboxes()
 		end
 	end,
-	-- Phase 2 step 6: tf_splat model-king handlers — defined here (not in M.attach)
+	-- Phase 2 step 6: tf_splat model-king handlers â€” defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture file-level widgetState/uiState/WG/playSound/ROTATION_STEP/
 	-- CURVE_STEP/RADIUS_STEP/_splFindAnglePresetIdx/_splApplyAnglePreset upvalues.
@@ -2159,7 +2180,7 @@ local initialModel = {
 		WG.GrassBrush.setRadius((s.radius or 100) - RADIUS_STEP)
 	end,
 
-	-- Rotation (shared TerraformBrush — grass applyBrush always reads TB rotation)
+	-- Rotation (shared TerraformBrush â€” grass applyBrush always reads TB rotation)
 	onGbRotChange = function(_event)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		WG.TerraformBrush.setRotation(_noSliderVal("gb-rotation", 0))
@@ -2631,7 +2652,7 @@ local initialModel = {
 		elseif diff < 0 then for i = 1, -diff do WG.FeaturePlacer.undo() end end
 	end,
 
-	-- Save / Clear / Load (fpLoad uses imperative DOM build for save list — justified)
+	-- Save / Clear / Load (fpLoad uses imperative DOM build for save list â€” justified)
 	onFpSave = function(_event)
 		playSound("save"); if WG.FeaturePlacer then WG.FeaturePlacer.save() end
 	end,
@@ -2838,7 +2859,7 @@ local initialModel = {
 	end,
 	onFpSnapSizeDown = function(_event) _fpSnapStep(-16) end,
 	onFpSnapSizeUp   = function(_event) _fpSnapStep(16) end,
-	-- Phase 2 step 6: tf_metal model-king handlers — defined here (not in M.attach)
+	-- Phase 2 step 6: tf_metal model-king handlers â€” defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture file-level widgetState/uiState/WG/playSound/RADIUS_STEP/
 	-- ROTATION_STEP/LENGTH_SCALE_STEP/CURVE_STEP/_elemSliderVal/_elemSetSliderVal/
@@ -3211,7 +3232,7 @@ local initialModel = {
 			playSound("toggleOn")
 		end
 	end,
-	-- Phase 2 step 6: tf_decals model-king handlers — defined here (not in M.attach)
+	-- Phase 2 step 6: tf_decals model-king handlers â€” defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture file-level widgetState/uiState/WG/playSound/_elemSliderVal/_noSliderVal upvalues.
 	onDcSetDist = function(_event, dist)
@@ -3419,7 +3440,7 @@ local initialModel = {
 		WG.DecalPlacer.load(saves[#saves])
 		Spring.Echo("[Decal Placer] Loaded " .. saves[#saves])
 	end,
-	-- Phase 2 step 6: tf_guide model-king handlers — defined here (not in M.attach)
+	-- Phase 2 step 6: tf_guide model-king handlers â€” defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture widgetState/uiState/WG/playSound/_elemSliderVal/
 	-- populateKeybindList/updateAllKeybindBadges upvalues.
@@ -3684,7 +3705,7 @@ local initialModel = {
 			end
 		end
 	end,
-	-- Phase 2 step 6: tf_lights model-king handlers — defined here (not in M.attach)
+	-- Phase 2 step 6: tf_lights model-king handlers â€” defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture file-level widgetState/uiState/WG/playSound/_elemSliderVal upvalues.
 	-- widgetState.lpPalette + widgetState.lpPopulateBuiltinPresets/lpPopulateUserPresets
@@ -4455,7 +4476,7 @@ local initialModel = {
 		Spring.Echo("[Environ] Loaded environment config: " .. newest)
 	end,
 
-	-- ── Terraform mode buttons ────────────────────────────────────────────────
+	-- â”€â”€ Terraform mode buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	-- data-event-click="onTfSetMode('raise')"
 	onTfSetMode = function(_event, mode)
 		if widgetState.noTerraform then return end
@@ -4680,7 +4701,7 @@ local initialModel = {
 		applyCap("min", capMinValue)
 	end,
 
-	-- ── Tool-switch buttons ───────────────────────────────────────────────────
+	-- â”€â”€ Tool-switch buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	onTfSwitchFeatures = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
@@ -4798,8 +4819,194 @@ local initialModel = {
 		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchStartpos: " .. tostring(err2)) end
 	end,
 
-	-- ── TB shared instrument controls ─────────────────────────────────────────
-	-- Prefix P is 'st','cl','wb','sp','dc','lp' — one handler set covers all tools.
+	-- â”€â”€ TB shared instrument controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	-- Prefix P is 'st','cl','wb','sp','dc','lp' â€” one handler set covers all tools.
+	-- Core terraform instrument handlers
+	onTfGridOverlay = function(_event)
+		_tbMirrorToggle("tf", "gridOverlay", function(v) WG.TerraformBrush.setGridOverlay(v) end, "GridOverlay")
+	end,
+	onTfGridSnap = function(_event)
+		_tbMirrorToggle("tf", "gridSnap", function(v) WG.TerraformBrush.setGridSnap(v) end, "GridSnap")
+	end,
+	onTfSnapSizeChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		WG.TerraformBrush.setGridSnapSize(_elemSliderVal("slider-grid-snap-size", 48))
+	end,
+	onTfSnapSizeStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		WG.TerraformBrush.setGridSnapSize(math.max(16, math.min(128, (tonumber(s.gridSnapSize) or 48) + (delta or 0))))
+	end,
+	onTfAngleSnap = function(_event)
+		_tbMirrorToggle("tf", "angleSnap", function(v) WG.TerraformBrush.setAngleSnap(v) end, "AngleSnap")
+	end,
+	onTfAngleStepChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local idx = math.floor(_elemSliderVal("slider-angle-snap-step", 1) or 1) + 1
+		WG.TerraformBrush.setAngleSnapStep(TB_ANGLE_PRESETS[idx] or 15)
+	end,
+	onTfAngleStepStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		local idx = _tbFindAnglePresetIdx(s.angleSnapStep)
+		idx = math.max(1, math.min(#TB_ANGLE_PRESETS, idx + (delta or 0)))
+		WG.TerraformBrush.setAngleSnapStep(TB_ANGLE_PRESETS[idx])
+	end,
+	onTfAutoSnap = function(_event)
+		_tbMirrorToggle("tf", "angleSnapAuto", function(v) WG.TerraformBrush.setAngleSnapAuto(v) end, "AngleSnapAuto")
+	end,
+	onTfManualSpokeChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		WG.TerraformBrush.setAngleSnapManualSpoke(math.floor(_elemSliderVal("slider-manual-spoke", 0) or 0))
+	end,
+	onTfManualSpokeStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		local step = s.angleSnapStep or 15
+		local numSpokes = math.max(1, math.floor(360 / step))
+		WG.TerraformBrush.setAngleSnapManualSpoke(((s.angleSnapManualSpoke or 0) + (delta or 0) + numSpokes) % numSpokes)
+	end,
+	onTfMeasure = function(_event)
+		_tbMirrorToggle("tf", "measureActive", function(v) WG.TerraformBrush.setMeasureActive(v) end, "MeasureActive")
+	end,
+	onTfMeasureClear = function(_event)
+		if not WG.TerraformBrush then return end
+		WG.TerraformBrush.clearMeasureLines(); playSound("toggleOff")
+	end,
+	onTfMeasureRuler = function(_event)
+		_tbMirrorToggle("tf", "measureRulerMode", function(v) WG.TerraformBrush.setMeasureRulerMode(v) end, "MeasureRuler")
+	end,
+	onTfMeasureSticky = function(_event)
+		_tbMirrorToggle("tf", "measureStickyMode", function(v) WG.TerraformBrush.setMeasureStickyMode(v) end, "MeasureSticky")
+	end,
+	onTfMeasureShowLength = function(_event)
+		_tbMirrorToggle("tf", "measureShowLength", function(v) WG.TerraformBrush.setMeasureShowLength(v) end, "MeasureShowLength")
+	end,
+	onTfMeasureRampAttach = function(_event)
+		_tbMirrorToggle("tf", "rampAutoAttach", function(v) WG.TerraformBrush.setRampAutoAttach(v) end, "MeasureRampAttach")
+	end,
+	onTfMeasureClearRamps = function(_event)
+		if not WG.TerraformBrush then return end
+		WG.TerraformBrush.clearRampChains(); playSound("toggleOff")
+	end,
+	onTfMeasureDistort = function(_event)
+		_tbMirrorToggle("tf", "measureDistortMode", function(v) WG.TerraformBrush.setMeasureDistortMode(v) end, "MeasureDistort")
+	end,
+	onTfSymmetry = function(_event)
+		_tbMirrorToggle("tf", "symmetryActive", function(v) WG.TerraformBrush.setSymmetryActive(v) end, "SymmetryActive")
+	end,
+	onTfSymRadial = function(_event)
+		_tbMirrorToggle("tf", "symmetryRadial", function(v) WG.TerraformBrush.setSymmetryRadial(v) end, "SymmetryRadial")
+	end,
+	onTfSymMirrorX = function(_event)
+		_tbMirrorToggle("tf", "symmetryMirrorX", function(v) WG.TerraformBrush.setSymmetryMirrorX(v) end, "SymMirrorX")
+	end,
+	onTfSymMirrorY = function(_event)
+		_tbMirrorToggle("tf", "symmetryMirrorY", function(v) WG.TerraformBrush.setSymmetryMirrorY(v) end, "SymMirrorY")
+	end,
+	onTfSymFlipped = function(_event)
+		_tbMirrorToggle("tf", "symmetryFlipped", function(v) WG.TerraformBrush.setSymmetryFlipped(v) end, "SymFlipped")
+	end,
+	onTfSymClear = function(_event)
+		if not WG.TerraformBrush then return end
+		WG.TerraformBrush.clearSymmetry(); playSound("toggleOff")
+	end,
+	onTfSymCountChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = math.floor(_elemSliderVal("slider-symmetry-radial-count", 2) or 2)
+		WG.TerraformBrush.setSymmetryRadialCount(v)
+		local vs = tostring(v); local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= vs then dm.tbSymCountStr = vs end
+	end,
+	onTfSymCountStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		local newVal = math.max(2, math.min(16, (s.symmetryRadialCount or 2) + (delta or 0)))
+		WG.TerraformBrush.setSymmetryRadialCount(newVal)
+		local vs = tostring(newVal); local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= vs then dm.tbSymCountStr = vs end
+	end,
+	onTfSymAngleChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local v = _elemSliderVal("slider-symmetry-mirror-angle", 0)
+		WG.TerraformBrush.setSymmetryMirrorAngle(v)
+		local vs = tostring(math.floor(v)); local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= vs then dm.tbSymAngleStr = vs end
+	end,
+	onTfSymAngleStep = function(_event, delta)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		local newVal = ((s.symmetryMirrorAngle or 0) + (delta or 0)) % 360
+		WG.TerraformBrush.setSymmetryMirrorAngle(newVal)
+		local vs = tostring(math.floor(newVal)); local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= vs then dm.tbSymAngleStr = vs end
+	end,
+	onTfSymPlaceOrigin = function(_event)
+		if not WG.TerraformBrush then return end
+		WG.TerraformBrush.setSymmetryPlacingOrigin(true); playSound("toggleOn")
+	end,
+	onTfSymCenterOrigin = function(_event)
+		if not WG.TerraformBrush then return end
+		WG.TerraformBrush.setSymmetryOrigin(nil, nil); playSound("toggleOff")
+	end,
+	onTfHeightColormap = function(_event)
+		_tbMirrorToggle("tf", "heightColormap", function(v) WG.TerraformBrush.setHeightColormap(v) end, "HeightColormap")
+	end,
+	onTfCurveOverlay = function(_event)
+		if not WG.TerraformBrush then return end
+		local nv = not (WG.TerraformBrush.getState() or {}).curveOverlay
+		WG.TerraformBrush.setCurveOverlay(nv)
+		local dm = widgetState.dmHandle; if dm then dm.tfCurveOverlay = nv end
+		playSound(nv and "toggleOn" or "toggleOff")
+	end,
+	onTfVelocityIntensity = function(_event)
+		if not WG.TerraformBrush then return end
+		local nv = not (WG.TerraformBrush.getState() or {}).velocityIntensity
+		WG.TerraformBrush.setVelocityIntensity(nv)
+		local dm = widgetState.dmHandle; if dm then dm.tfVelocityIntensity = nv end
+		playSound(nv and "toggleOn" or "toggleOff")
+	end,
+	onTfPenIntensity = function(_event)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		local nv = not s.penPressureModulateIntensity
+		if WG.TerraformBrush.setPenPressureModulateIntensity then WG.TerraformBrush.setPenPressureModulateIntensity(nv) end
+		playSound(nv and "toggleOn" or "toggleOff")
+	end,
+	onTfPenSize = function(_event)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		local nv = not s.penPressureModulateSize
+		if WG.TerraformBrush.setPenPressureModulateSize then WG.TerraformBrush.setPenPressureModulateSize(nv) end
+		playSound(nv and "toggleOn" or "toggleOff")
+	end,
+	onTfClayMode = function(_event)
+		local spActive = WG.SplatPainter and WG.SplatPainter.getState() and WG.SplatPainter.getState().active
+		if spActive or not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState() or {}
+		if CLAY_UNAVAILABLE_MODES[s.mode] then return end
+		local nv = not s.clayMode
+		WG.TerraformBrush.setClayMode(nv)
+		local dm = widgetState.dmHandle; if dm then dm.tfClayMode = nv end
+		playSound(nv and "toggleOn" or "toggleOff")
+	end,
+	onTfCapSampleMax = function(_event)
+		if not WG.TerraformBrush then return end
+		local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
+		WG.TerraformBrush.setHeightSamplingMode(cur == "max" and nil or "max")
+	end,
+	onTfCapSampleMin = function(_event)
+		if not WG.TerraformBrush then return end
+		local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
+		WG.TerraformBrush.setHeightSamplingMode(cur == "min" and nil or "min")
+	end,
+	onTfCapAbsolute = function(_event)
+		capAbsolute = not capAbsolute
+		if WG.TerraformBrush then WG.TerraformBrush.setHeightCapAbsolute(capAbsolute) end
+		local dm = widgetState.dmHandle
+		if dm then dm.tfCapAbsoluteSrc = capAbsolute and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
+		playSound(capAbsolute and "toggleOn" or "toggleOff")
+	end,
+	onTfExport = function(_event)
+		Spring.SendCommands("terraformexport")
+	end,
+
 	onTbSnapSizeChange = function(_event, P)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		WG.TerraformBrush.setGridSnapSize(_elemSliderVal(P.."-slider-grid-snap-size", 48))
@@ -5118,7 +5325,7 @@ local guideHints = {
 	["btn-lower"]       = "Lower terrain downward under your cursor. Hold RMB and drag to carve valleys and trenches.",
 	["btn-level"]       = "MODIFY: average heights within the brush and blend toward that mean with a smooth falloff. Use the LEVEL submode to pin the target to your first-click height instead.",
 	["btn-ramp"]        = "Click and drag to build a smooth slope between two elevation points. Use Length to control taper width.",
-	["btn-restore"]     = "Erase your edits and restore the original map height — useful to undo a specific area without affecting the rest.",
+	["btn-restore"]     = "Erase your edits and restore the original map height â€” useful to undo a specific area without affecting the rest.",
 	["btn-noise"]       = "Apply procedural noise to the terrain. Opens the Noise Parameters window to choose the noise type and detail.",
 	["btn-passthrough"]  = "Pause all terraform tools and release keyboard/mouse controls back to the game. Click again or any mode button to resume.",
 	["btn-features"]    = "Place decorative props like trees, rocks and crystals using the Feature Placer sub-tool.",
@@ -5141,33 +5348,33 @@ local guideHints = {
 	["btn-ramp-straight"] = "Straight ramp: drag from start to end point to create a linear slope. Simple and precise.",
 	["btn-ramp-spline"]   = "Spline ramp: drag freely along a curved path to create a winding slope that follows your mouse movement.",
 	["btn-hexagon"]     = "Hex-shaped brush, ideal for large flat tiles, honeycomb terrain layouts and hex-grid maps.",
-	["btn-octagon"]     = "Eight-sided brush — a compact middle ground between circle and square for mid-sized edits.",
+	["btn-octagon"]     = "Eight-sided brush â€” a compact middle ground between circle and square for mid-sized edits.",
 	["btn-triangle"]    = "Three-sided brush for sharp wedge-shaped terrain edits, cliff faces and triangular plateaus.",
 	["btn-ring"]        = "Hollow ring brush that only affects the outer edge of the area. Perfect for craters and moats.",
 	["btn-fill"]        = "Fill brush: click inside any enclosed terrain shape to flood-fill it. Flat fill when walls are uniform height; smooth biharmonic surface when walls vary.",
 	["btn-clay-mode"]   = "Clay Brush restricts edits to only push terrain in one direction, preventing accidental raise while lowering and vice versa.",
 	-- Overlay / visual toggles
 	["btn-grid-overlay"]      = "Draws a measurement grid across the terrain to help align structures and judge distances. Always visible, not just inside the brush.",
-	["btn-dust-effects"]      = "Toggle dust particle effects when terraforming. Purely cosmetic — only applies when DJ Mode is active.",
+	["btn-dust-effects"]      = "Toggle dust particle effects when terraforming. Purely cosmetic â€” only applies when DJ Mode is active.",
 	["btn-seismic-effects"]   = "Toggle ground impact sounds while sculpting terrain. Only applies when DJ Mode is active.",
-	["btn-dj-activate"]       = "Master switch for DJ Mode — when ON, all enabled DJ Mode effects (dust, seismic) are applied during sculpting.",
-	["btn-height-colormap"]   = "Overlay a topographic height colormap on the brush footprint — colour-coded from blue (low) through green/yellow to red/white (high) with contour lines at 10% intervals.",
+	["btn-dj-activate"]       = "Master switch for DJ Mode â€” when ON, all enabled DJ Mode effects (dust, seismic) are applied during sculpting.",
+	["btn-height-colormap"]   = "Overlay a topographic height colormap on the brush footprint â€” colour-coded from blue (low) through green/yellow to red/white (high) with contour lines at 10% intervals.",
 	["btn-curve-overlay"]     = "Draws the edge fall-off curve as an arc inside the brush circle so you can preview the blend gradient while painting.",
 	["btn-velocity-intensity"] = "Scales brush intensity by mouse drag speed \xe2\x80\x94 move faster for stronger effect, slower for finer control.",
 	["btn-pen-pressure"]       = "Modulates brush intensity (and optionally size) using tablet pen pressure. Requires pen_pressure_server.py running.",
-	["btn-pen-intensity"]      = "Pen pressure is modulating intensity — click to toggle. Configure in Settings → Stroke.",
-	["btn-pen-size"]           = "Pen pressure is modulating size — click to toggle. Configure in Settings → Stroke.",
+	["btn-pen-intensity"]      = "Pen pressure is modulating intensity â€” click to toggle. Configure in Settings â†’ Stroke.",
+	["btn-pen-size"]           = "Pen pressure is modulating size â€” click to toggle. Configure in Settings â†’ Stroke.",
 	-- Undo / History
 	["btn-undo"]        = "Undo the last brush stroke. Keyboard shortcut: Ctrl+Z.",
 	["btn-redo"]        = "Redo a stroke that was undone. Keyboard shortcut: Ctrl+Shift+Z.",
-	["slider-history"]  = "Scrub through your edit history. Drag left to undo multiple steps, right to redo — like a time-slider for your terrain.",
+	["slider-history"]  = "Scrub through your edit history. Drag left to undo multiple steps, right to redo â€” like a time-slider for your terrain.",
 	-- Rotation
 	["btn-rot-ccw"]     = "Rotate the brush counter-clockwise by a small step. Affects non-circular shapes and ramp direction.",
 	["btn-rot-cw"]      = "Rotate the brush clockwise by a small step. Affects non-circular shapes and ramp direction.",
-	["slider-rotation"] = "Set the brush rotation angle from 0–359°. Affects all non-circular shapes. Shortcut: Alt+Scroll.",
+	["slider-rotation"] = "Set the brush rotation angle from 0â€“359Â°. Affects all non-circular shapes. Shortcut: Alt+Scroll.",
 	-- Intensity
-	["btn-intensity-down"] = "Decrease the sculpt speed — gentler edits that change height more slowly per second.",
-	["btn-intensity-up"]   = "Increase the sculpt speed — more aggressive edits that cut or raise terrain faster.",
+	["btn-intensity-down"] = "Decrease the sculpt speed â€” gentler edits that change height more slowly per second.",
+	["btn-intensity-up"]   = "Increase the sculpt speed â€” more aggressive edits that cut or raise terrain faster.",
 	["slider-intensity"]   = "Controls how fast terrain is sculpted. Low values are subtle and precise; high values are very aggressive. Space+Scroll.",
 
 	-- Restore strength
@@ -5187,8 +5394,8 @@ local guideHints = {
 	["btn-length-up"]   = "Lengthen the brush along its rotation axis, stretching it into an oval or ramp shape.",
 	["slider-length"]   = "Stretches the brush into an oval or elongated ramp along its rotation direction. Ctrl+Alt+Scroll.",
 	-- Fall-off Curve
-	["btn-curve-down"]  = "Flatten the edge fall-off — gives a wider plateau and a gradual slope to the edge.",
-	["btn-curve-up"]    = "Sharpen the edge fall-off — terrain drops off more steeply right at the brush boundary.",
+	["btn-curve-down"]  = "Flatten the edge fall-off â€” gives a wider plateau and a gradual slope to the edge.",
+	["btn-curve-up"]    = "Sharpen the edge fall-off â€” terrain drops off more steeply right at the brush boundary.",
 	["slider-curve"]    = "Controls edge fall-off sharpness. Low = gentle gradient, high = cliff-like drop at the brush edge. Shift+Scroll.",
 	-- Height Cap
 	["btn-cap-absolute"] = "When on, cap values are world-space elevations. When off, they are offsets relative to where you start the stroke.",
@@ -5205,7 +5412,7 @@ local guideHints = {
 	["btn-gb-alt-min-sample"] = "Sample ground height: click this, then click the map to set Min Altitude to the sampled elevation. Enables Min filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
 	["btn-gb-alt-max-sample"] = "Sample ground height: click this, then click the map to set Max Altitude to the sampled elevation. Enables Max filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
 	-- Restore defaults
-	["btn-defaults"]    = "Reset all brush settings — size, intensity, fall-off curve, rotation, height caps and toggle states — back to their factory defaults.",
+	["btn-defaults"]    = "Reset all brush settings â€” size, intensity, fall-off curve, rotation, height caps and toggle states â€” back to their factory defaults.",
 	-- Presets
 	["preset-name-input"] = "Type a name here to save the current brush settings as a reusable preset, or to filter the preset list.",
 	["btn-preset-save"]   = "Save the current brush settings under the typed name. Built-in presets show in italic and cannot be overwritten.",
@@ -5214,41 +5421,41 @@ local guideHints = {
 	["btn-export"]      = "Export the current heightmap as a 16-bit PNG image to disk for backup or external editing in other tools.",
 	["btn-import"]      = "Load the previously saved heightmap PNG for this map (Terraform Brush/Heightmaps/heightmap_export_<map>.png) and apply it to the terrain.",
 	-- Feature Placer sub-modes
-	["btn-fp-scatter"]  = "Scatter features randomly across the brush area with each drag — ideal for natural-looking forests and rock fields.",
+	["btn-fp-scatter"]  = "Scatter features randomly across the brush area with each drag â€” ideal for natural-looking forests and rock fields.",
 	["btn-fp-point"]    = "Place features exactly at the cursor position. Click once to plant a single feature precisely.",
-	["btn-fp-remove"]   = "Erase existing features under the brush cursor — removes props placed earlier without affecting terrain.",
+	["btn-fp-remove"]   = "Erase existing features under the brush cursor â€” removes props placed earlier without affecting terrain.",
 	-- Feature distribution
 	["btn-fp-dist-random"]    = "Spread features at randomly chosen positions within the brush area for an organic, varied look.",
 	["btn-fp-dist-regular"]   = "Space features in a uniform grid pattern inside the brush for orderly, evenly distributed arrangements.",
 	["btn-fp-dist-clustered"] = "Group features in tight natural clusters, mimicking how plants or rocks tend to gather together.",
 	-- Feature smart filter
-	["btn-fp-smart-toggle"] = "Enable Smart Filter — makes placement terrain-aware by skipping water, cliffs or altitude zones you configure below.",
+	["btn-fp-smart-toggle"] = "Enable Smart Filter â€” makes placement terrain-aware by skipping water, cliffs or altitude zones you configure below.",
 	["btn-fp-grid-overlay"] = "Draws a measurement grid across the terrain to help align features and judge distances. Always visible, not just inside the brush.",
 	["btn-fp-grid-snap"]    = "Snap feature placement positions to the build grid (48 elmo intervals) for precise, aligned placement.",
 	["fp-filter-chip-avoid-water"]  = "Skip placement on underwater terrain so features only land on dry ground above sea level.",
-	["fp-filter-chip-slope"]        = "Enable slope filtering — defaults to Avoid Slopes (reject terrain steeper than Max Slope). Use sub-toggles inside to switch to Prefer Slopes (only hillsides steeper than Min Slope).",
-	["fp-filter-chip-altitude"]     = "Enable and configure a min/max altitude band — features will only be placed within this elevation range.",
+	["fp-filter-chip-slope"]        = "Enable slope filtering â€” defaults to Avoid Slopes (reject terrain steeper than Max Slope). Use sub-toggles inside to switch to Prefer Slopes (only hillsides steeper than Min Slope).",
+	["fp-filter-chip-altitude"]     = "Enable and configure a min/max altitude band â€” features will only be placed within this elevation range.",
 	["fp-slope-mode-avoid"]         = "Reject terrain steeper than Max Slope (avoid slopes). Mutually exclusive with Prefer Slopes.",
 	["fp-slope-mode-prefer"]        = "Only place on hillsides steeper than Min Slope.",
-	["btn-fp-alt-min-enable"] = "Enable a minimum altitude filter — no features will be placed below this elevation threshold.",
-	["btn-fp-alt-max-enable"] = "Enable a maximum altitude filter — no features will be placed above this elevation threshold.",
+	["btn-fp-alt-min-enable"] = "Enable a minimum altitude filter â€” no features will be placed below this elevation threshold.",
+	["btn-fp-alt-max-enable"] = "Enable a maximum altitude filter â€” no features will be placed above this elevation threshold.",
 	-- Feature sliders
 	["fp-slider-size"]       = "Radius of the feature placement area. Ctrl+Scroll to resize while painting.",
 	["fp-slider-rotation"]   = "Base rotation angle for all placed features. Individual randomization is added on top of this value.",
-	["fp-slider-rot-random"] = "Randomizes each feature's orientation by ±this percentage. 100% = fully random; 0% = all face the same direction.",
-	["fp-slider-count"]      = "Number of features placed per brush stroke — higher counts fill the area more densely.",
-	["fp-slider-cadence"]    = "How fast features are placed while dragging — lower values produce more features per distance traveled.",
+	["fp-slider-rot-random"] = "Randomizes each feature's orientation by Â±this percentage. 100% = fully random; 0% = all face the same direction.",
+	["fp-slider-count"]      = "Number of features placed per brush stroke â€” higher counts fill the area more densely.",
+	["fp-slider-cadence"]    = "How fast features are placed while dragging â€” lower values produce more features per distance traveled.",
 	-- Feature undo/save/load
 	["btn-fp-undo"]    = "Undo the last batch of placed or removed features, restoring the previous state.",
 	["btn-fp-redo"]    = "Redo features that were just undone.",
 	["slider-fp-history"] = "Scrub through feature placement history. Drag left to undo multiple steps, right to redo.",
 	["btn-fp-save"]    = "Save the current feature layout to a file on disk so you can restore it later.",
 	["btn-fp-load"]    = "Load a previously saved feature layout from disk, restoring all features from that session.",
-	["btn-fp-clearall"] = "Remove all features placed in this session from the map — cannot be undone.",
+	["btn-fp-clearall"] = "Remove all features placed in this session from the map â€” cannot be undone.",
 	-- Weather sub-modes
 	["btn-wb-scatter"]  = "Scatter weather effects randomly across the brush area each time you paint.",
 	["btn-wb-point"]    = "Place a weather effect exactly at the clicked cursor position.",
-	["btn-wb-remove"]   = "Erase persistent weather effects under the brush — removes effects that were painted earlier.",
+	["btn-wb-remove"]   = "Erase persistent weather effects under the brush â€” removes effects that were painted earlier.",
 	-- Weather distribution
 	["btn-wb-dist-random"]  = "Spawn weather particles at randomly chosen positions within the brush area.",
 	["btn-wb-dist-regular"] = "Spawn weather particles in a uniform grid pattern for organized, evenly spaced effects.",
@@ -5263,20 +5470,20 @@ local guideHints = {
 	["btn-lp-dist-clustered"] = "Group lights in tight clusters for concentrated illumination.",
 	-- Weather sliders
 	["wb-slider-size"]      = "Area radius of the weather effect zone. Ctrl+Scroll to resize while painting.",
-	["wb-slider-length"]    = "Elongates the weather pattern along its axis — makes rain streaks or gusts cover a longer area.",
-	["wb-slider-rotation"]  = "Direction the weather moves — adjust this to set wind angle for rain, snow or dust.",
-	["wb-slider-count"]     = "Number of particles spawned per emission tick — higher values create denser effects.",
-	["wb-slider-cadence"]   = "How quickly particles are emitted while dragging to paint — controls density per stroke.",
+	["wb-slider-length"]    = "Elongates the weather pattern along its axis â€” makes rain streaks or gusts cover a longer area.",
+	["wb-slider-rotation"]  = "Direction the weather moves â€” adjust this to set wind angle for rain, snow or dust.",
+	["wb-slider-count"]     = "Number of particles spawned per emission tick â€” higher values create denser effects.",
+	["wb-slider-cadence"]   = "How quickly particles are emitted while dragging to paint â€” controls density per stroke.",
 	["wb-slider-frequency"] = "How often persistent effects repeat their spawn cycle. Lower interval = more frequent bursts.",
 	["wb-slider-persist"]   = "How long particles from a painted effect linger before fading. Increase for long-lasting rain or snow.",
-	["btn-wb-persistent"]   = "Enable permanent mode — painted weather effects never fade away until you manually clear them.",
+	["btn-wb-persistent"]   = "Enable permanent mode â€” painted weather effects never fade away until you manually clear them.",
 	["btn-wb-clearall"]     = "Remove all persistent weather effects currently active on the map.",
 	-- Noise Parameters (in noise window)
-	["btn-noise-perlin"]  = "Classic gradient noise — smooth, flowing and organic. The most natural-looking all-purpose noise type.",
+	["btn-noise-perlin"]  = "Classic gradient noise â€” smooth, flowing and organic. The most natural-looking all-purpose noise type.",
 	["btn-noise-voronoi"] = "Cell-based noise producing cracked earth, tile-like or rocky terrain patterns with distinct cell edges.",
 	["btn-noise-fbm"]     = "Fractal Brownian Motion stacks multiple noise layers for highly detailed, multi-scale natural terrain.",
 	["btn-noise-billow"]  = "Absolute-value noise creating billowy cloud-like domes and rolling hills with soft rounded peaks.",
-	["slider-noise-scale"]       = "Size of each noise cell in world units — larger values give broader, smoother terrain shapes.",
+	["slider-noise-scale"]       = "Size of each noise cell in world units â€” larger values give broader, smoother terrain shapes.",
 	["slider-noise-octaves"]     = "Number of detail layers stacked on top of each other. More octaves add progressively finer micro-detail.",
 	["slider-noise-persistence"] = "How much each successive octave's amplitude shrinks. Higher values keep fine details bold and prominent.",
 	["slider-noise-lacunarity"]  = "How much each octave's frequency multiplies per layer. Higher values pack in much more detail per octave.",
@@ -5306,10 +5513,10 @@ local guideHints = {
 	["btn-grass-density-up"]    = "Increase grass density by 5%.",
 	["btn-grass-save"]          = "Export the current grass map to a TGA image file for use in map distribution.",
 	["slider-gb-size"]          = "Brush radius for grass painting. Ctrl+Scroll.",
-	["slider-gb-rotation"]      = "Rotation angle for non-circular grass brush shapes (0-359°). Alt+Scroll.",
+	["slider-gb-rotation"]      = "Rotation angle for non-circular grass brush shapes (0-359Â°). Alt+Scroll.",
 	["slider-gb-curve"]         = "Edge fall-off sharpness for grass painting. Low = gentle gradient, high = hard edge. Shift+Scroll.",
 	["slider-mb-size"]          = "Brush radius for metal painting and stamping. Ctrl+Scroll.",
-	["slider-mb-rotation"]      = "Rotation angle for non-circular metal brush shapes (0–359°). Alt+Scroll.",
+	["slider-mb-rotation"]      = "Rotation angle for non-circular metal brush shapes (0â€“359Â°). Alt+Scroll.",
 	["slider-mb-length"]        = "Stretches the metal brush into an elongated shape along its rotation axis. Ctrl+Alt+Scroll.",
 	["slider-mb-curve"]         = "Edge fall-off sharpness for metal painting. Low = gentle gradient, high = hard edge. Shift+Scroll.",
 	-- Start Positions
@@ -5322,43 +5529,43 @@ local guideHints = {
 	["sp-slider-strength"]      = "Controls paint opacity per stroke. Low values let you blend textures subtly; high values replace quickly.",
 	["sp-slider-intensity"]     = "Multiplier on effective paint strength. Combines with Strength for aggressive or subtle painting. Space+Scroll.",
 	["sp-slider-size"]          = "Sets the brush radius in world units. Ctrl+Scroll to resize while painting.",
-	["sp-slider-rotation"]      = "Set the brush rotation angle from 0–359°. Affects non-circular shapes. Alt+Scroll.",
+	["sp-slider-rotation"]      = "Set the brush rotation angle from 0â€“359Â°. Affects non-circular shapes. Alt+Scroll.",
 	["sp-slider-curve"]         = "Controls edge fall-off sharpness. Low = gentle gradient, high = hard-edged painting at the brush boundary.",
-	["btn-sp-smart-toggle"]     = "Enable Smart Filter — makes painting terrain-aware by skipping water, cliffs or altitude zones you configure.",
+	["btn-sp-smart-toggle"]     = "Enable Smart Filter â€” makes painting terrain-aware by skipping water, cliffs or altitude zones you configure.",
 	["btn-sp-avoid-water"]      = "Skip painting on underwater terrain so splats only affect dry ground above sea level.",
 	["btn-sp-avoid-cliffs"]     = "Prevent painting on slopes steeper than the Max Slope angle.",
-	["btn-sp-prefer-slopes"]    = "Only paint on slopes steeper than the Min Slope angle — useful for cliff-face texturing.",
-	["btn-sp-alt-min-enable"]   = "Enable a minimum altitude filter — no painting below this elevation threshold.",
-	["btn-sp-alt-max-enable"]   = "Enable a maximum altitude filter — no painting above this elevation threshold.",
+	["btn-sp-prefer-slopes"]    = "Only paint on slopes steeper than the Min Slope angle â€” useful for cliff-face texturing.",
+	["btn-sp-alt-min-enable"]   = "Enable a minimum altitude filter â€” no painting below this elevation threshold.",
+	["btn-sp-alt-max-enable"]   = "Enable a maximum altitude filter â€” no painting above this elevation threshold.",
 	["btn-sp-export-format"]    = "Click to cycle the export image format between PNG, DDS and TGA.",
 	["btn-sp-save"]             = "Save the current splatmap distribution texture to disk for backup or external editing.",
 	["btn-decals"]              = "Open the Decals panel: decal library (scars, explosions, tracks, builds) and combat heatmap tools.",
 	["btn-dc-heatmap-export"]   = "Save the combat heatmap (accumulated explosion density) as CSV grid + PGM grayscale image.",
-	["btn-dc-heatmap-reset"]    = "Reset the heatmap — clears all accumulated explosion tracking data.",
+	["btn-dc-heatmap-reset"]    = "Reset the heatmap â€” clears all accumulated explosion tracking data.",
 	-- Light Placer controls
-	["btn-lt-point"]            = "Omnidirectional point light — radiates equally in all directions. Good for general ambient fill and glowing effects.",
-	["btn-lt-cone"]             = "Directional cone/spotlight — casts a focused beam in one direction. Use pitch/yaw to aim and theta to control spread.",
+	["btn-lt-point"]            = "Omnidirectional point light â€” radiates equally in all directions. Good for general ambient fill and glowing effects.",
+	["btn-lt-cone"]             = "Directional cone/spotlight â€” casts a focused beam in one direction. Use pitch/yaw to aim and theta to control spread.",
 	["btn-lt-beam"]             = "Linear beam light with a start and end point. Useful for laser-like effects and long glowing lines.",
 	["btn-lp-point"]            = "Place a single light at the exact cursor position. Click to place one at a time for precise control.",
 	["btn-lp-scatter"]          = "Scatter multiple lights in the brush area with each click. Adjust count and brush radius below.",
-	["btn-lp-remove"]           = "Erase placed lights under the brush cursor — removes lights within the brush radius.",
+	["btn-lp-remove"]           = "Erase placed lights under the brush cursor â€” removes lights within the brush radius.",
 	["btn-lp-dist-random"]      = "Distribute scattered lights at random positions within the brush for an organic look.",
 	["btn-lp-dist-regular"]     = "Space scattered lights in a uniform grid pattern for orderly, evenly distributed placement.",
 	["btn-lp-dist-clustered"]   = "Group scattered lights in tight clusters, mimicking how light sources tend to gather naturally.",
-	["slider-lp-color-r"]       = "Red channel intensity for the light color (0–1). Combine R, G, B to mix any color.",
-	["slider-lp-color-g"]       = "Green channel intensity for the light color (0–1). Combine R, G, B to mix any color.",
-	["slider-lp-color-b"]       = "Blue channel intensity for the light color (0–1). Combine R, G, B to mix any color.",
-	["slider-lp-brightness"]    = "Overall brightness multiplier. Higher values produce more intense light. Use with care — values above 5 can bloom significantly.",
+	["slider-lp-color-r"]       = "Red channel intensity for the light color (0â€“1). Combine R, G, B to mix any color.",
+	["slider-lp-color-g"]       = "Green channel intensity for the light color (0â€“1). Combine R, G, B to mix any color.",
+	["slider-lp-color-b"]       = "Blue channel intensity for the light color (0â€“1). Combine R, G, B to mix any color.",
+	["slider-lp-brightness"]    = "Overall brightness multiplier. Higher values produce more intense light. Use with care â€” values above 5 can bloom significantly.",
 	["slider-lp-light-radius"]  = "How far the light reaches from its center in world units (elmos). Larger radius = softer, wider light.",
 	["slider-lp-elevation"]     = "Height offset above the ground where lights are placed (in elmos). 0 = on the ground, higher = floating above terrain. Shift+Scroll.",
 	["slider-lp-pitch"]         = "Vertical aiming angle for cone/beam lights. -90 = straight down, 0 = horizontal, 90 = straight up.",
-	["slider-lp-yaw"]           = "Horizontal rotation angle for cone/beam lights (0–360°). Controls which compass direction the light faces.",
-	["slider-lp-roll"]          = "Roll rotation of cone/beam lights (0–360°). Mostly useful for asymmetric beam patterns.",
+	["slider-lp-yaw"]           = "Horizontal rotation angle for cone/beam lights (0â€“360Â°). Controls which compass direction the light faces.",
+	["slider-lp-roll"]          = "Roll rotation of cone/beam lights (0â€“360Â°). Mostly useful for asymmetric beam patterns.",
 	["slider-lp-theta"]         = "Cone half-angle spread in radians. Smaller = tighter spotlight, larger = wider floodlight.",
 	["slider-lp-beam-length"]   = "Length of the beam from start to end point in world units.",
 	["slider-lp-count"]         = "Number of lights placed per scatter operation.",
 	["slider-lp-brush-radius"]  = "Radius of the scatter brush area in world units. Lights are distributed within this zone.",
-	["btn-lp-smart-toggle"]     = "Enable Smart Filter for light placement — skips water, cliffs or altitude zones.",
+	["btn-lp-smart-toggle"]     = "Enable Smart Filter for light placement â€” skips water, cliffs or altitude zones.",
 	["btn-lp-sf-water"]         = "Skip light placement on underwater terrain.",
 	["btn-lp-sf-cliffs"]        = "Prevent lights from being placed on steep cliff faces.",
 	["btn-lp-library"]          = "Open the Light Library to browse built-in presets and your saved light arrangements.",
@@ -5367,11 +5574,11 @@ local guideHints = {
 	["slider-lp-history"]       = "Scrub through light placement history. Drag left to undo multiple steps, right to redo.",
 	["btn-lp-save"]             = "Save all currently placed lights to a timestamped file on disk.",
 	["btn-lp-load"]             = "Load a previously saved light layout from disk.",
-	["btn-lp-clear-all"]        = "Remove all placed lights from the map — cannot be undone.",
+	["btn-lp-clear-all"]        = "Remove all placed lights from the map â€” cannot be undone.",
 	["btn-lp-material-toggle"]  = "Show or hide the material properties section (model factor, specular, scattering, lens flare).",
 }
 
--- G3: Shortcut discovery tip groups — shown near cursor after 3 interactions (guide mode only)
+-- G3: Shortcut discovery tip groups â€” shown near cursor after 3 interactions (guide mode only)
 local g3TipGroups = {
 	intensity = "Tip: Hold Space\xe2\x80\x94then scroll the mouse wheel to adjust intensity while sculpting. Faster than reaching for the slider!",
 	size      = "Tip: Hold Ctrl and scroll to resize the brush in real time \xe2\x80\x94 no need to touch the slider.",
@@ -5451,10 +5658,10 @@ local function updateFloatingTip()
 	widgetState.floatingTipEl:SetClass("hidden", false)
 end
 
--- ═══════════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 -- KEYBIND BADGE SYSTEM (G5) + SETTINGS WINDOW SUPPORT
 -- Maps button element IDs to keybind action names for dynamic badge text
--- ═══════════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 local BADGE_ACTION_MAP = {
 	-- Terrain mode buttons
 	["btn-level"]    = "mode_level",
@@ -5482,7 +5689,7 @@ local BADGE_ACTION_MAP = {
 	["btn-clone"]       = "tool_clone",
 }
 
--- Maps tool keybind action → button element ID for Click() dispatch
+-- Maps tool keybind action â†’ button element ID for Click() dispatch
 local TOOL_BTN_MAP = {
 	tool_grass       = "btn-grass",
 	tool_metal       = "btn-metal",
@@ -6435,62 +6642,8 @@ local function attachEventListeners()
 		end, false)
 	end
 
-	-- SAMPLE buttons: toggle height-sampling mode for each cap endpoint
-	capBtn = getCachedEl(doc, "btn-sample-max")
-	if capBtn then
-		capBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
-				WG.TerraformBrush.setHeightSamplingMode(cur == "max" and nil or "max")
-			end
-			event:StopPropagation()
-		end, false)
-	end
 
-	capBtn = getCachedEl(doc, "btn-sample-min")
-	if capBtn then
-		capBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
-				WG.TerraformBrush.setHeightSamplingMode(cur == "min" and nil or "min")
-			end
-			event:StopPropagation()
-		end, false)
-	end
 
-	local capAbsoluteBtn = getCachedEl(doc, "btn-cap-absolute")
-	if capAbsoluteBtn then
-		capAbsoluteBtn:AddEventListener("click", function(event)
-			playSound(capAbsolute and "toggleOff" or "toggleOn")
-			capAbsolute = not capAbsolute
-			if capAbsolute then
-				capAbsoluteBtn:SetAttribute("src", "/luaui/images/terraform_brush/check_on.png")
-			else
-				capAbsoluteBtn:SetAttribute("src", "/luaui/images/terraform_brush/check_off.png")
-			end
-			if WG.TerraformBrush then
-				WG.TerraformBrush.setHeightCapAbsolute(capAbsolute)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local clayBtn = getCachedEl(doc, "btn-clay-mode")
-	if clayBtn then
-		clayBtn:AddEventListener("click", function(event)
-			local spActive = WG.SplatPainter and WG.SplatPainter.getState() and WG.SplatPainter.getState().active
-			if not spActive and WG.TerraformBrush then
-				local state = WG.TerraformBrush.getState()
-				if not CLAY_UNAVAILABLE_MODES[state and state.mode] then
-					local newVal = not (state and state.clayMode)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setClayMode(newVal)
-					clayBtn:SetClass("active", newVal)
-				end
-			end
-			event:StopPropagation()
-		end, false)
-	end
 
 	do
 		local frBtn = getCachedEl(doc, "btn-full-restore")
@@ -6519,616 +6672,21 @@ local function attachEventListeners()
 		end
 	end
 
-	local gridBtn = getCachedEl(doc, "btn-grid-overlay")
-	if gridBtn then
-		gridBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				local state = WG.TerraformBrush.getState()
-				local newVal = not (state and state.gridOverlay)
-				playSound(newVal and "toggleOn" or "toggleOff")
-				WG.TerraformBrush.setGridOverlay(newVal)
-				gridBtn:SetClass("active", newVal)
-			end
-			event:StopPropagation()
-		end, false)
-	end
 
-	do
-		local snapBtn = getCachedEl(doc, "btn-grid-snap")
-		if snapBtn then
-			snapBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.gridSnap)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setGridSnap(newVal)
-					snapBtn:SetClass("active", newVal)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local sliderSnapSize = getCachedEl(doc, "slider-grid-snap-size")
-		if sliderSnapSize then
-			sliderSnapSize:AddEventListener("change", function(event)
-				if not uiState.updatingFromCode and WG.TerraformBrush then
-					local val = tonumber(sliderSnapSize:GetAttribute("value")) or 48
-					WG.TerraformBrush.setGridSnapSize(val)
-					local lbl = getCachedEl(doc, "grid-snap-size-label")
-					if lbl then lbl.inner_rml = tostring(val) end
-					local nb = getCachedEl(doc, "slider-grid-snap-size-numbox")
-					if nb then nb:SetAttribute("value", tostring(val)) end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local snapSizeDownBtn = getCachedEl(doc, "btn-snap-size-down")
-		if snapSizeDownBtn then
-			snapSizeDownBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local cur = state and state.gridSnapSize or 48
-					local newVal = math.max(16, cur - 16)
-					WG.TerraformBrush.setGridSnapSize(newVal)
-					if sliderSnapSize then sliderSnapSize:SetAttribute("value", tostring(newVal)) end
-					local lbl = getCachedEl(doc, "grid-snap-size-label")
-					if lbl then lbl.inner_rml = tostring(newVal) end
-					local nb = getCachedEl(doc, "slider-grid-snap-size-numbox")
-					if nb then nb:SetAttribute("value", tostring(newVal)) end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local snapSizeUpBtn = getCachedEl(doc, "btn-snap-size-up")
-		if snapSizeUpBtn then
-			snapSizeUpBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local cur = state and state.gridSnapSize or 48
-					local newVal = math.min(128, cur + 16)
-					WG.TerraformBrush.setGridSnapSize(newVal)
-					if sliderSnapSize then sliderSnapSize:SetAttribute("value", tostring(newVal)) end
-					local lbl = getCachedEl(doc, "grid-snap-size-label")
-					if lbl then lbl.inner_rml = tostring(newVal) end
-					local nb = getCachedEl(doc, "slider-grid-snap-size-numbox")
-					if nb then nb:SetAttribute("value", tostring(newVal)) end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-	end
 
-	-- ── Protractor: angle-snap toggle + step slider ─────────────────────────────
+	-- Symmetry: keep slider drag tracking for radial-count and mirror-angle
 	do
-		local angleSnapBtn = getCachedEl(doc, "btn-angle-snap")
-		if angleSnapBtn then
-			angleSnapBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.angleSnap)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setAngleSnap(newVal)
-					angleSnapBtn:SetClass("active", newVal)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		-- Presets: index 0=7.5°, 1=15°, 2=30°, 3=60°, 4=90°
-		local ANGLE_PRESETS = {7.5, 15, 30, 45, 60, 90}
-		local function findAnglePresetIdx(val)
-			local best, bestD = 1, math.huge
-			for i, p in ipairs(ANGLE_PRESETS) do
-				local d = math.abs(p - (val or 15))
-				if d < bestD then bestD = d; best = i end
-			end
-			return best
-		end
-		local function applyAnglePreset(idx)
-			idx = math.max(1, math.min(#ANGLE_PRESETS, idx))
-			local pval = ANGLE_PRESETS[idx]
-			local pstr = (pval == math.floor(pval)) and tostring(math.floor(pval)) or tostring(pval)
-			if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
-			local sl = getCachedEl(doc, "slider-angle-snap-step")
-			if sl then sl:SetAttribute("value", tostring(idx - 1)) end
-			local lbl = getCachedEl(doc, "angle-snap-step-label")
-			if lbl then lbl.inner_rml = pstr end
-			local nb = getCachedEl(doc, "slider-angle-snap-step-numbox")
-			if nb then nb:SetAttribute("value", pstr) end
-		end
-		local sliderAngleStep = getCachedEl(doc, "slider-angle-snap-step")
-		if sliderAngleStep then
-			sliderAngleStep:AddEventListener("change", function(event)
-				if not uiState.updatingFromCode and WG.TerraformBrush then
-					local idx = (tonumber(sliderAngleStep:GetAttribute("value")) or 1) + 1
-					applyAnglePreset(idx)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local angleStepDownBtn = getCachedEl(doc, "btn-angle-step-down")
-		if angleStepDownBtn then
-			angleStepDownBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local idx = findAnglePresetIdx(state and state.angleSnapStep)
-					applyAnglePreset(idx - 1)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local angleStepUpBtn = getCachedEl(doc, "btn-angle-step-up")
-		if angleStepUpBtn then
-			angleStepUpBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local idx = findAnglePresetIdx(state and state.angleSnapStep)
-					applyAnglePreset(idx + 1)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		-- Autosnap toggle
-		local autoSnapBtn = getCachedEl(doc, "btn-angle-autosnap")
-		if autoSnapBtn then
-			autoSnapBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.angleSnapAuto)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setAngleSnapAuto(newVal)
-					autoSnapBtn:SetClass("active", newVal)
-					local manualRow = getCachedEl(doc, "angle-manual-spoke-row")
-					if manualRow then manualRow:SetClass("hidden", newVal) end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		-- Manual spoke slider
-		local manualSpokeSlider = getCachedEl(doc, "slider-manual-spoke")
-		local function applyManualSpoke(idx)
-			if WG.TerraformBrush then
-				WG.TerraformBrush.setAngleSnapManualSpoke(idx)
-				local state = WG.TerraformBrush.getState()
-				local step  = state and state.angleSnapStep or 15
-				local deg   = idx * step
-				local lbl   = getCachedEl(doc, "angle-manual-spoke-label")
-				if lbl then lbl.inner_rml = tostring(deg % 360) end
-				if manualSpokeSlider then manualSpokeSlider:SetAttribute("value", tostring(idx)) end
-			end
-		end
-		if manualSpokeSlider then
-			manualSpokeSlider:AddEventListener("change", function(event)
-				if not uiState.updatingFromCode then
-					local idx = tonumber(manualSpokeSlider:GetAttribute("value")) or 0
-					applyManualSpoke(idx)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local manualSpokeDown = getCachedEl(doc, "btn-manual-spoke-down")
-		if manualSpokeDown then
-			manualSpokeDown:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local step  = state and state.angleSnapStep or 15
-					local numSpokes = math.max(1, math.floor(360 / step))
-					local cur = state and state.angleSnapManualSpoke or 0
-					applyManualSpoke((cur - 1 + numSpokes) % numSpokes)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local manualSpokeUp = getCachedEl(doc, "btn-manual-spoke-up")
-		if manualSpokeUp then
-			manualSpokeUp:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local step  = state and state.angleSnapStep or 15
-					local numSpokes = math.max(1, math.floor(360 / step))
-					local cur = state and state.angleSnapManualSpoke or 0
-					applyManualSpoke((cur + 1) % numSpokes)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
-	-- ── Measure tool: toggle + clear ────────────────────────────────────────────
-	do
-		local measureBtn = getCachedEl(doc, "btn-measure")
-		if measureBtn then
-			measureBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.measureActive)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setMeasureActive(newVal)
-					measureBtn:SetClass("active", newVal)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local measureClearBtn = getCachedEl(doc, "btn-measure-clear")
-		if measureClearBtn then
-			measureClearBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					WG.TerraformBrush.clearMeasureLines()
-					playSound("toggleOff")
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local rulerModeBtn = getCachedEl(doc, "btn-measure-ruler")
-		if rulerModeBtn then
-			rulerModeBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.measureRulerMode)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setMeasureRulerMode(newVal)
-					rulerModeBtn:SetClass("active", newVal)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local stickyModeBtn = getCachedEl(doc, "btn-measure-sticky")
-		if stickyModeBtn then
-			stickyModeBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.measureStickyMode)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setMeasureStickyMode(newVal)
-					stickyModeBtn:SetClass("active", newVal)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local showLengthBtn = getCachedEl(doc, "btn-measure-show-length")
-		if showLengthBtn then
-			showLengthBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.measureShowLength)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setMeasureShowLength(newVal)
-					showLengthBtn:SetClass("active", newVal)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		-- G4: Auto-Ramp toggle — enable/disable automatic ramp chain attachment
-		local rampAttachBtn = getCachedEl(doc, "btn-measure-ramp-attach")
-		if rampAttachBtn then
-			rampAttachBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.rampAutoAttach)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setRampAutoAttach(newVal)
-					rampAttachBtn:SetClass("active", newVal)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		-- G4: Clear Ramps — removes only ramp-linked chains, keeps hand-drawn ones
-		local clearRampsBtn = getCachedEl(doc, "btn-measure-clear-ramps")
-		if clearRampsBtn then
-			clearRampsBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					WG.TerraformBrush.clearRampChains()
-					playSound("toggleOff")
-				end
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
-	-- ── Symmetry tool ───────────────────────────────────────────────────────────
-	do
-		local symmetryBtn = getCachedEl(doc, "btn-symmetry")
-		if symmetryBtn then
-			symmetryBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.symmetryActive)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setSymmetryActive(newVal)
-					symmetryBtn:SetClass("active", newVal)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local mirrorXBtn = getCachedEl(doc, "btn-symmetry-mirror-x")
-		if mirrorXBtn then
-			mirrorXBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.symmetryMirrorX)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setSymmetryMirrorX(newVal)
-					mirrorXBtn:SetClass("active", newVal)
-					-- Radial is mutually exclusive
-					local radialBtn = getCachedEl(doc, "btn-symmetry-radial")
-					if radialBtn then radialBtn:SetClass("active", false) end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local mirrorYBtn = getCachedEl(doc, "btn-symmetry-mirror-y")
-		if mirrorYBtn then
-			mirrorYBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.symmetryMirrorY)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setSymmetryMirrorY(newVal)
-					mirrorYBtn:SetClass("active", newVal)
-					local radialBtn = getCachedEl(doc, "btn-symmetry-radial")
-					if radialBtn then radialBtn:SetClass("active", false) end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local radialBtn = getCachedEl(doc, "btn-symmetry-radial")
-		if radialBtn then
-			radialBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.symmetryRadial)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setSymmetryRadial(newVal)
-					radialBtn:SetClass("active", newVal)
-					-- Clear mirror buttons when radial on
-					if newVal then
-						local mxBtn = getCachedEl(doc, "btn-symmetry-mirror-x")
-						if mxBtn then mxBtn:SetClass("active", false) end
-						local myBtn = getCachedEl(doc, "btn-symmetry-mirror-y")
-						if myBtn then myBtn:SetClass("active", false) end
-					end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		-- Radial count slider
 		local radialCountSlider = getCachedEl(doc, "slider-symmetry-radial-count")
-		if radialCountSlider then
-			radialCountSlider:AddEventListener("change", function(event)
-				if not uiState.updatingFromCode and WG.TerraformBrush then
-					local val = tonumber(radialCountSlider:GetAttribute("value")) or 2
-					WG.TerraformBrush.setSymmetryRadialCount(val)
-					local vs = tostring(val); if widgetState.dmHandle and widgetState.dmHandle.tbSymCountStr ~= vs then widgetState.dmHandle.tbSymCountStr = vs end
-				end
-				event:StopPropagation()
-			end, false)
-			trackSliderDrag(radialCountSlider, "symmetry-radial-count")
-		end
-		local countDownBtn = getCachedEl(doc, "btn-symmetry-count-down")
-		if countDownBtn then
-			countDownBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local cur = (state and state.symmetryRadialCount) or 2
-					local newVal = math.max(2, cur - 1)
-					WG.TerraformBrush.setSymmetryRadialCount(newVal)
-					local vs = tostring(newVal); if widgetState.dmHandle and widgetState.dmHandle.tbSymCountStr ~= vs then widgetState.dmHandle.tbSymCountStr = vs end
-					local sl = getCachedEl(doc, "slider-symmetry-radial-count")
-					if sl then sl:SetAttribute("value", tostring(newVal)) end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local countUpBtn = getCachedEl(doc, "btn-symmetry-count-up")
-		if countUpBtn then
-			countUpBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local cur = (state and state.symmetryRadialCount) or 2
-					local newVal = math.min(16, cur + 1)
-					WG.TerraformBrush.setSymmetryRadialCount(newVal)
-					local vs = tostring(newVal); if widgetState.dmHandle and widgetState.dmHandle.tbSymCountStr ~= vs then widgetState.dmHandle.tbSymCountStr = vs end
-					local sl = getCachedEl(doc, "slider-symmetry-radial-count")
-					if sl then sl:SetAttribute("value", tostring(newVal)) end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		-- Place origin button
-		local placeOriginBtn = getCachedEl(doc, "btn-symmetry-place-origin")
-		if placeOriginBtn then
-			placeOriginBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					WG.TerraformBrush.setSymmetryPlacingOrigin(true)
-					playSound("toggleOn")
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		-- Center origin button
-		local centerOriginBtn = getCachedEl(doc, "btn-symmetry-center-origin")
-		if centerOriginBtn then
-			centerOriginBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					WG.TerraformBrush.setSymmetryOrigin(nil, nil)
-					playSound("toggleOff")
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		-- Mirror axis angle slider
+		if radialCountSlider then trackSliderDrag(radialCountSlider, "symmetry-radial-count") end
 		local mirrorAngleSlider = getCachedEl(doc, "slider-symmetry-mirror-angle")
-		if mirrorAngleSlider then
-			mirrorAngleSlider:AddEventListener("change", function(event)
-				if not uiState.updatingFromCode and WG.TerraformBrush then
-					local val = tonumber(mirrorAngleSlider:GetAttribute("value")) or 0
-					WG.TerraformBrush.setSymmetryMirrorAngle(val)
-					local lbl = getCachedEl(doc, "symmetry-mirror-angle-label")
-					if lbl then lbl.inner_rml = tostring(math.floor(val)) end
-				end
-				event:StopPropagation()
-			end, false)
-			trackSliderDrag(mirrorAngleSlider, "symmetry-mirror-angle")
-		end
-		local angleDownBtn = getCachedEl(doc, "btn-symmetry-angle-down")
-		if angleDownBtn then
-			angleDownBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local cur = (state and state.symmetryMirrorAngle) or 0
-					local newVal = (cur - 5) % 360
-					WG.TerraformBrush.setSymmetryMirrorAngle(newVal)
-					local lbl = getCachedEl(doc, "symmetry-mirror-angle-label")
-					if lbl then lbl.inner_rml = tostring(math.floor(newVal)) end
-					local sl = getCachedEl(doc, "slider-symmetry-mirror-angle")
-					if sl then sl:SetAttribute("value", tostring(newVal)) end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local angleUpBtn = getCachedEl(doc, "btn-symmetry-angle-up")
-		if angleUpBtn then
-			angleUpBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local cur = (state and state.symmetryMirrorAngle) or 0
-					local newVal = (cur + 5) % 360
-					WG.TerraformBrush.setSymmetryMirrorAngle(newVal)
-					local lbl = getCachedEl(doc, "symmetry-mirror-angle-label")
-					if lbl then lbl.inner_rml = tostring(math.floor(newVal)) end
-					local sl = getCachedEl(doc, "slider-symmetry-mirror-angle")
-					if sl then sl:SetAttribute("value", tostring(newVal)) end
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		-- Flipped mode toggle
-		local flippedBtn = getCachedEl(doc, "btn-symmetry-flipped")
-		if flippedBtn then
-			flippedBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.symmetryFlipped)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setSymmetryFlipped(newVal)
-					flippedBtn:SetClass("active", newVal)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		-- Distort mode toggle (visible when measure tool active)
-		local distortModeBtn = getCachedEl(doc, "btn-measure-distort")
-		if distortModeBtn then
-			distortModeBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.measureDistortMode)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setMeasureDistortMode(newVal)
-					distortModeBtn:SetClass("active", newVal)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		-- Clear all symmetry settings
-		local clearBtn = getCachedEl(doc, "btn-symmetry-clear")
-		if clearBtn then
-			clearBtn:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					WG.TerraformBrush.clearSymmetry()
-					playSound("toggleOff")
-				end
-				event:StopPropagation()
-			end, false)
-		end
+		if mirrorAngleSlider then trackSliderDrag(mirrorAngleSlider, "symmetry-mirror-angle") end
 	end
-
-	local colormapBtn = getCachedEl(doc, "btn-height-colormap")
-	if colormapBtn then
-		colormapBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				local state = WG.TerraformBrush.getState()
-				local newVal = not (state and state.heightColormap)
-				playSound(newVal and "toggleOn" or "toggleOff")
-				WG.TerraformBrush.setHeightColormap(newVal)
-				colormapBtn:SetClass("active", newVal)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local curveOverlayBtn = getCachedEl(doc, "btn-curve-overlay")
-	if curveOverlayBtn then
-		curveOverlayBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				local state = WG.TerraformBrush.getState()
-				local newVal = not (state and state.curveOverlay)
-				playSound(newVal and "toggleOn" or "toggleOff")
-				WG.TerraformBrush.setCurveOverlay(newVal)
-				curveOverlayBtn:SetClass("active", newVal)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	local velocityIntensityBtn = getCachedEl(doc, "btn-velocity-intensity")
-	if velocityIntensityBtn then
-		velocityIntensityBtn:AddEventListener("click", function(event)
-			if WG.TerraformBrush then
-				local state = WG.TerraformBrush.getState()
-				local newVal = not (state and state.velocityIntensity)
-				playSound(newVal and "toggleOn" or "toggleOff")
-				WG.TerraformBrush.setVelocityIntensity(newVal)
-				velocityIntensityBtn:SetClass("active", newVal)
-			end
-			event:StopPropagation()
-		end, false)
-	end
-
-	-- Pen Pressure inline chip toggles (intensity + size rows)
-	do
-		local penIntChip = getCachedEl(doc, "btn-pen-intensity")
-		if penIntChip then
-			penIntChip:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.penPressureModulateIntensity)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setPenPressureModulateIntensity(newVal)
-					penIntChip:SetClass("active", newVal)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-		local penSizeChip = getCachedEl(doc, "btn-pen-size")
-		if penSizeChip then
-			penSizeChip:AddEventListener("click", function(event)
-				if WG.TerraformBrush then
-					local state = WG.TerraformBrush.getState()
-					local newVal = not (state and state.penPressureModulateSize)
-					playSound(newVal and "toggleOn" or "toggleOff")
-					WG.TerraformBrush.setPenPressureModulateSize(newVal)
-					penSizeChip:SetClass("active", newVal)
-				end
-				event:StopPropagation()
-			end, false)
-		end
-	end
-
-
-
-	local exportBtn = getCachedEl(doc, "btn-export")
-	if exportBtn then
-		exportBtn:AddEventListener("click", function(event)
-			Spring.SendCommands("terraformexport")
-			event:StopPropagation()
-		end, false)
-	end
-
 	local importBtn = getCachedEl(doc, "btn-import")
 	local importDropdown = getCachedEl(doc, "import-dropdown")
 	-- Guard: AddEventListener must only be called once per document instance.
 	-- attachEventListeners can be called multiple times (widget re-enable); a second
 	-- registration means two click handlers fire per click, both see isOpen=false
-	-- (deferred DOM hasn't committed yet), both call rebuildImportList → doubled rows.
+	-- (deferred DOM hasn't committed yet), both call rebuildImportList â†’ doubled rows.
 	if importBtn and not importBtn:GetAttribute("data-import-wired") then
 		importBtn:SetAttribute("data-import-wired", "1")
 		local function closeImportDropdown()
@@ -7147,7 +6705,7 @@ local function attachEventListeners()
 			local function esc(s) return (s:gsub("&","&amp;"):gsub("<","&lt;"):gsub(">","&gt;")) end
 			local parts = {}
 			local isCollapsed = importDropdown:IsClassSet("collapsed")
-			local chevron = isCollapsed and "&#9656;" or "&#9662;" -- ▸ / ▾
+			local chevron = isCollapsed and "&#9656;" or "&#9662;" -- â–¸ / â–ľ
 			local headerLabel = count > 0
 				and ("Saved heightmaps  (" .. count .. ")")
 				or  "Saved heightmaps"
@@ -7302,18 +6860,9 @@ local function attachEventListeners()
 			capMinValue = 0
 			capMaxValue = 0
 			capAbsolute = true
-			local absImg = getCachedEl(doc, "btn-cap-absolute")
-			if absImg then
-				absImg:SetAttribute("src", "/luaui/images/terraform_brush/check_on.png")
-			end
-			local clayImg = getCachedEl(doc, "btn-clay-mode")
-			if clayImg then
-				clayImg:SetClass("active", false)
-			end
-			local gridImg = getCachedEl(doc, "btn-grid-overlay")
-			if gridImg then
-				gridImg:SetClass("active", false)
-			end
+			if dm then dm.tfCapAbsoluteSrc = "/luaui/images/terraform_brush/check_on.png" end
+			if dm then dm.tfClayMode = false end
+			if dm then dm.tfGridOverlay = false end
 			local dustEl = getCachedEl(doc, "btn-dust-effects")
 			if dustEl then
 				dustEl:SetClass("active", false)
@@ -7324,18 +6873,9 @@ local function attachEventListeners()
 				seismicEl:SetClass("active", false)
 				if dm then dm.seismicEffectsStr = "OFF" end
 			end
-			local cmapImg = getCachedEl(doc, "btn-height-colormap")
-			if cmapImg then
-				cmapImg:SetClass("active", false)
-			end
-			local curveOvImg = getCachedEl(doc, "btn-curve-overlay")
-			if curveOvImg then
-				curveOvImg:SetClass("active", false)
-			end
-			local velIntImg = getCachedEl(doc, "btn-velocity-intensity")
-			if velIntImg then
-				velIntImg:SetClass("active", false)
-			end
+			if dm then dm.tfHeightColormap = false end
+			if dm then dm.tfCurveOverlay = false end
+			if dm then dm.tfVelocityIntensity = false end
 			event:StopPropagation()
 		end, false)
 	end
@@ -7380,12 +6920,12 @@ local function attachEventListeners()
 		if #s > 0 then s = s:sub(1,1):upper() .. s:sub(2) end
 		local r = math.floor(tonumber(pdata.radius) or 0)
 		local itxt = string.format("%.1f", tonumber(pdata.intensity) or 0)
-		local summary = m .. " · " .. s .. " · R:" .. r .. " · I:" .. itxt
+		local summary = m .. " Â· " .. s .. " Â· R:" .. r .. " Â· I:" .. itxt
 		-- Append save date for user presets that have the savedAt field
 		if not isBuiltin and pdata.savedAt and pdata.savedAt > 0 then
 			local ok, dateStr = pcall(os.date, "%b %d", pdata.savedAt)
 			if ok and dateStr and dateStr ~= "" then
-				summary = summary .. " · " .. dateStr
+				summary = summary .. " Â· " .. dateStr
 			end
 		end
 		return summary
@@ -7841,19 +7381,16 @@ function widget:DrawScreen()
 		end
 	end
 
-	-- Sample terrain diffuse color under cursor via $map_gbuffer_difftex (screen-space, matches viewport)
+	-- Sample terrain diffuse color under cursor via $map_gbuffer_difftex for splat preview tinting.
 	do
 		local mx, my = GetMouseState()
 		if mx and my then
-			-- Verify cursor is over terrain (TraceScreenRay returns nil for sky/water/off-map)
 			local _, coords = TraceScreenRay(mx, my, true)
 			if coords then
 				local vsx, vsy = Spring.GetViewGeometry()
-				-- Screen UV: mouse position directly maps to gbuffer UV (no world-space transform needed)
 				local u = mx / vsx
 				local v = my / vsy
 				if u >= 0 and u <= 1 and v >= 0 and v <= 1 then
-					-- Lazy-init 1x1 FBO
 					if not widgetState.spMinimapSampleTex then
 						widgetState.spMinimapSampleTex = gl.CreateTexture(1, 1, {
 							min_filter = GL.NEAREST, mag_filter = GL.NEAREST,
@@ -7862,13 +7399,13 @@ function widget:DrawScreen()
 					end
 					local fboTex = widgetState.spMinimapSampleTex
 					if fboTex then
-						-- Pass 1: render gbuffer pixel into FBO
+						-- Pass 1: render gbuffer pixel into 1x1 FBO
 						gl.RenderToTexture(fboTex, function()
 							gl.Texture("$map_gbuffer_difftex")
 							gl.TexRect(-1, -1, 1, 1, u, v, u, v)
 							gl.Texture(false)
 						end)
-						-- Pass 2: read back (separate call — render+read in same callback is unreliable)
+						-- Pass 2: read back (separate call -- render+read in same callback is unreliable)
 						local sr, sg, sb
 						gl.RenderToTexture(fboTex, function()
 							sr, sg, sb = gl.ReadPixels(0, 0, 1, 1)
@@ -7881,10 +7418,11 @@ function widget:DrawScreen()
 								local last = widgetState.spTerrainColorTime or now
 								local dt = Spring.DiffTimers(now, last)
 								widgetState.spTerrainColorTime = now
-								local k = 1 - math.exp(-3.5 * dt) -- ~0.4s to reach halfway
+								local k = 1 - math.exp(-3.5 * dt)
 								prev[1] = prev[1] + (sr - prev[1]) * k
 								prev[2] = prev[2] + (sg - prev[2]) * k
 								prev[3] = prev[3] + (sb - prev[3]) * k
+
 							else
 								widgetState.spTerrainColor = { sr, sg, sb }
 								widgetState.spTerrainColorTime = Spring.GetTimer()
@@ -7895,270 +7433,450 @@ function widget:DrawScreen()
 			end
 		end
 	end
+
 end
 
 function widget:DrawScreenPost()
-	-- Render splat detail texture previews over the RML placeholder divs
-	local els = widgetState.spPreviewEls
-	if not els then return end
 
-	-- Skip if root panel is hidden (tool deactivated or manually toggled off)
-	local rootEl = widgetState.rootElement
-	if rootEl and rootEl:IsClassSet("hidden") then return end
-
-	-- Skip when lobby overlay hides the document (document:Hide() does not set hidden class)
+	-- Render splat detail texture previews into the channel div elements.
+	-- Only render when splat tool is active; avoids gl.* overlay leaking over other tools/panels.
+	local dm = widgetState.dmHandle
+	if not dm or dm.activeTool ~= "sp" then return end
 	if widgetState.lobbyHidden then return end
 
-	-- Skip unless splat tool is active (panel visibility now driven by data-if="activeTool == 'sp'",
-	-- which uses display:none rather than a `hidden` class — so query the data model instead).
-	local dm = widgetState.dmHandle
-	if not (dm and dm.activeTool == "sp") then return end
+	local els = widgetState.spPreviewEls
 
-	-- Skip if the TEXTURE CHANNEL section is collapsed
-	local sec = widgetState.spChannelSectionEl
-	if sec and sec:IsClassSet("hidden") then return end
+	if not els then return end
 
-	-- One-shot: find working per-layer textures (must run in a Draw call-in)
+
+
 	if not widgetState.spPreviewVerified then
+
 		widgetState.spPreviewRetries = (widgetState.spPreviewRetries or 0) + 1
+
 		local found = {}
+
 		local isDNTS = true
+
 		local logRetry = (widgetState.spPreviewRetries == 1 or widgetState.spPreviewRetries == 30 or widgetState.spPreviewRetries == 120)
-		-- Helper: try multiple path variants for a texture name
+
 		local function tryTex(path)
+
 			if not path or type(path) ~= "string" or path == "" then return nil end
+
 			for _, candidate in ipairs({path, "maps/" .. path, ":l:" .. path, ":l:maps/" .. path}) do
+
 				local info = gl.TextureInfo(candidate)
+
 				if info then
+
 					if logRetry then Spring.Echo("[TFBrush] tryTex OK: " .. candidate .. " id=" .. tostring(info.id or "nil") .. " xsize=" .. tostring(info.xsize or "nil")) end
+
 					return candidate
+
 				end
+
 			end
+
 			return nil
+
 		end
+
 		-- Strategy 1: $ssmf_splat_normals:N engine bindings (DNTS packed, most reliable)
+
 		for i = 0, 3 do
+
 			local name = "$ssmf_splat_normals:" .. i
+
 			local info = gl.TextureInfo(name)
+
 			if logRetry then
+
 				if info then
+
 					Spring.Echo("[TFBrush] Strategy1 " .. name .. " id=" .. tostring(info.id or "nil") .. " xsize=" .. tostring(info.xsize or "nil"))
+
 				else
+
 					Spring.Echo("[TFBrush] Strategy1 " .. name .. " -> nil")
+
 				end
+
 			end
+
 			if info and info.xsize and info.xsize > 0 then
+
 				found[i + 1] = name
+
 			end
+
 		end
+
 		-- Strategy 2: mapinfo.lua resources (prefer DNTS normals over diffuse)
+
 		if not next(found) then
+
 			if logRetry then Spring.Echo("[TFBrush] Strategy1 found nothing, trying mapinfo.lua") end
+
 			local mOk, mapinfo = pcall(VFS.Include, "mapinfo.lua")
+
 			if logRetry then Spring.Echo("[TFBrush] mapinfo.lua load: ok=" .. tostring(mOk) .. " type=" .. type(mapinfo)) end
+
 			if mOk and mapinfo then
+
 				local res = mapinfo.resources or {}
+
 				if logRetry then
+
 					for k, v in pairs(res) do
+
 						if type(k) == "string" and k:lower():find("splat") then
+
 							Spring.Echo("[TFBrush] mapinfo.resources." .. k .. " = " .. tostring(v))
+
 						end
+
 					end
+
 				end
-				-- 2a: Try DNTS normal maps first (splatDetailNormalTex — shader expects this format)
+
 				for i = 1, 4 do
+
 					for _, key in ipairs({"splatDetailNormalTex" .. i, "splatDetailNormalTex" .. (i - 1), "splatdetailnormaltex" .. i, "splatdetailnormaltex" .. (i - 1)}) do
+
 						local result = tryTex(res[key])
+
 						if result then found[i] = result; break end
+
 					end
+
 				end
-				-- 2b: Fall back to diffuse detail textures (different shader path needed)
+
 				if not next(found) then
+
 					isDNTS = false
-					-- Try splatDetailTex table
+
 					local sdt = res.splatDetailTex or res.splatdetailtex
+
 					if type(sdt) == "table" then
+
 						if logRetry then Spring.Echo("[TFBrush] splatDetailTex is table, #=" .. #sdt) end
+
 						for i = 1, 4 do
+
 							found[i] = tryTex(sdt[i]) or tryTex(sdt[i - 1])
+
 						end
+
 					end
-					-- Try numbered splatDetailTex keys (0-based and 1-based)
+
 					if not next(found) then
+
 						for i = 1, 4 do
+
 							for _, key in ipairs({"splatDetailTex" .. (i - 1), "splatDetailTex" .. i, "splatdetailtex" .. (i - 1), "splatdetailtex" .. i}) do
+
 								local result = tryTex(res[key])
+
 								if result then found[i] = result; break end
+
 							end
+
 						end
+
 					end
+
 				end
+
 			end
+
 		end
+
 		if logRetry then
+
 			Spring.Echo("[TFBrush] Discovery result (retry " .. widgetState.spPreviewRetries .. "): isDNTS=" .. tostring(isDNTS))
+
 			for i = 1, 4 do
+
 				Spring.Echo("[TFBrush]   channel " .. i .. " = " .. tostring(found[i] or "NONE"))
+
 			end
+
 		end
+
 		widgetState.spPreviewTextures = found
+
 		widgetState.spPreviewIsDNTS = isDNTS
-		-- Only mark verified once textures found, or after enough retries
+
 		if next(found) or widgetState.spPreviewRetries >= 120 then
+
 			widgetState.spPreviewVerified = true
+
 			Spring.Echo("[TFBrush] Texture discovery DONE at retry " .. widgetState.spPreviewRetries .. " found=" .. tostring(next(found) ~= nil))
+
 		end
+
 	end
 
+
+
 	local textures = widgetState.spPreviewTextures
+
 	if not textures or not next(textures) then return end
 
+
+
 	-- Lazy-init terrain preview shader (handles DNTS normal maps and diffuse fallback)
+
 	if not widgetState.spPreviewShader and gl.CreateShader then
+
 		widgetState.spPreviewShader = gl.CreateShader({
+
 			vertex = [[
+
 				#version 130
+
 				void main() {
+
 					gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+
 					gl_TexCoord[0] = gl_MultiTexCoord0;
+
 				}
+
 			]],
+
 			fragment = [[
+
 				#version 130
+
 				uniform sampler2D tex0;
+
 				uniform int channel;
+
 				uniform int isDNTS;
+
 				uniform vec3 terrainColor;
+
 				void main() {
+
 					vec2 uv = gl_TexCoord[0].st;
+
 					vec4 c = texture2D(tex0, uv);
 
 					vec3 lit;
+
 					if (isDNTS != 0) {
-						// DNTS packed format: R=detail, G=normalX, B=normalY, A=specular
+
 						vec3 n;
+
 						n.x = c.g * 2.0 - 1.0;
+
 						n.y = c.b * 2.0 - 1.0;
+
 						n.z = sqrt(max(1.0 - n.x*n.x - n.y*n.y, 0.0));
+
 						n = normalize(n);
 
 						vec3 keyDir  = normalize(vec3(0.35, 0.8, 0.5));
+
 						vec3 fillDir = normalize(vec3(-0.6, 0.3, 0.4));
+
 						vec3 viewDir = vec3(0.0, 0.0, 1.0);
+
 						float key  = max(dot(n, keyDir), 0.0);
+
 						float fill = max(dot(n, fillDir), 0.0) * 0.3;
+
 						vec3 halfVec = normalize(keyDir + viewDir);
+
 						float spec = pow(max(dot(n, halfVec), 0.0), 24.0) * c.a;
+
 						float lighting = 0.28 + 0.52 * key + fill;
 
 						vec3 tc = terrainColor;
+
 						float detail = c.r;
+
 						vec3 tintA = tc * 0.55;
+
 						vec3 tintB = tc * 1.05 + vec3(0.03);
+
 						vec3 baseColor = mix(tintA, tintB, detail);
+
 						lit = baseColor * lighting + vec3(0.9, 0.85, 0.75) * spec * 0.35;
+
 					} else {
-						// Diffuse detail texture: show actual RGB with gentle lighting
+
 						vec3 keyDir  = normalize(vec3(0.35, 0.8, 0.5));
+
 						vec3 faceN   = vec3(0.0, 0.0, 1.0);
+
 						float lighting = 0.45 + 0.55 * max(dot(faceN, keyDir), 0.0);
+
 						lit = c.rgb * lighting;
+
 					}
 
-					// Edge fade — smooth rounded falloff
 					vec2 vc = (uv - 0.5) * 2.0;
+
 					float edgeDist = max(abs(vc.x), abs(vc.y));
+
 					float fade = smoothstep(1.0, 0.65, edgeDist);
+
 					lit *= mix(0.55, 1.0, fade);
 
-					// Slight contrast boost
 					lit = pow(lit, vec3(0.92));
 
 					gl_FragColor = vec4(lit, 1.0);
+
 				}
+
 			]],
+
 			uniformInt = { tex0 = 0, channel = 0, isDNTS = 1 },
+
 			uniformFloat = { terrainColor = { 0.4, 0.4, 0.4 } },
+
 		})
+
 		if not widgetState.spPreviewShader or widgetState.spPreviewShader == 0 then
+
 			local shLog = gl.GetShaderLog and gl.GetShaderLog() or "no log"
+
 			Spring.Echo("[TFBrush] Shader creation FAILED: " .. shLog)
+
 			widgetState.spPreviewShader = nil
+
 		else
+
 			Spring.Echo("[TFBrush] Shader created OK: " .. tostring(widgetState.spPreviewShader))
+
 			widgetState.spPreviewShaderChannelLoc = gl.GetUniformLocation(widgetState.spPreviewShader, "channel")
+
 			widgetState.spPreviewShaderTerrainLoc = gl.GetUniformLocation(widgetState.spPreviewShader, "terrainColor")
-			widgetState.spPreviewShaderIsDNTSLoc = gl.GetUniformLocation(widgetState.spPreviewShader, "isDNTS")
+
+			widgetState.spPreviewShaderIsDNTSLoc  = gl.GetUniformLocation(widgetState.spPreviewShader, "isDNTS")
+
 		end
+
 	end
 
+
+
 	local vsx, vsy = Spring.GetViewGeometry()
+
 	local shader = widgetState.spPreviewShader
 
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+
 	gl.Color(1, 1, 1, 1)
+
 	if shader then
+
 		gl.UseShader(shader)
-		-- Pass sampled terrain color to shader
+
 		local tc = widgetState.spTerrainColor
+
 		if tc and widgetState.spPreviewShaderTerrainLoc then
+
 			gl.Uniform(widgetState.spPreviewShaderTerrainLoc, tc[1], tc[2], tc[3])
+
 		end
-		-- Tell shader whether textures are DNTS or plain diffuse
+
 		if widgetState.spPreviewShaderIsDNTSLoc then
+
 			gl.UniformInt(widgetState.spPreviewShaderIsDNTSLoc, widgetState.spPreviewIsDNTS and 1 or 0)
+
 		end
+
 	end
 
 	local logDraw = not widgetState.spPreviewDrawLogged
+
 	for i = 1, 4 do
+
 		local div = els[i]
+
 		local tex = textures[i]
+
 		if div and tex then
+
 			local x = div.absolute_left
+
 			local y = div.absolute_top
+
 			local w = div.offset_width
+
 			local h = div.offset_height
 
 			if logDraw then
+
 				Spring.Echo("[TFBrush] Draw ch" .. i .. " pos=(" .. x .. "," .. y .. ") size=(" .. w .. "," .. h .. ") tex=" .. tex)
+
 			end
 
 			if w > 0 and h > 0 then
+
 				local glY1 = vsy - y - h
+
 				local glY2 = vsy - y
 
 				if shader and widgetState.spPreviewShaderChannelLoc then
+
 					gl.UniformInt(widgetState.spPreviewShaderChannelLoc, i - 1)
+
 				end
+
 				local bound = gl.Texture(0, tex)
+
 				if logDraw then
+
 					Spring.Echo("[TFBrush] gl.Texture(0, " .. tex .. ") = " .. tostring(bound))
+
 				end
+
 				if bound then
-					-- Center crop to 1:1 aspect (cover-fit)
+
 					local aspect = w / h
+
 					local u0, u1, v0, v1
+
 					if aspect > 1 then
+
 						local inset = (1 - 1 / aspect) * 0.5
+
 						u0, u1, v0, v1 = 0, 1, inset, 1 - inset
+
 					else
+
 						local inset = (1 - aspect) * 0.5
+
 						u0, u1, v0, v1 = inset, 1 - inset, 0, 1
+
 					end
+
 					gl.TexRect(x, glY1, x + w, glY2, u0, v0, u1, v1)
+
 					gl.Texture(0, false)
+
 				end
+
 			end
+
 		end
+
 	end
+
 	widgetState.spPreviewDrawLogged = true
 
 	if shader then gl.UseShader(0) end
-	gl.Blending(true)
-	gl.Color(1, 1, 1, 1)
-end
 
+	gl.Blending(true)
+
+	gl.Color(1, 1, 1, 1)
+
+end
 -- Shared: draw black overlay on sky pixels (depth == 1.0) for skybox fade
 local function drawSkyFadeOverlay()
 	if not skyFade.active then return end
@@ -8221,7 +7939,7 @@ function widget:Update()
 		WG.FeaturePlacer.setMode("scatter")
 	end
 
-	-- Poll-based window drag (position only — mouseup ends drag via doc listener)
+	-- Poll-based window drag (position only â€” mouseup ends drag via doc listener)
 	local ds = windowDragState
 	if ds.active and ds.rootEl then
 		local mx, my = GetMouseState()
@@ -8422,7 +8140,7 @@ function widget:Update()
 
 	-- Toggle section visibility
 	if panelVisible then
-	-- Drive panel-mode swap via data-if="activeTool == 'X'" — single dm field instead of 13 imperative SetClass writes.
+	-- Drive panel-mode swap via data-if="activeTool == 'X'" â€” single dm field instead of 13 imperative SetClass writes.
 	do
 		local tool = ""
 		if widgetState.decalsActive then tool = "dc"
@@ -8863,6 +8581,7 @@ function widget:Update()
 			if sliderCapMin and ds ~= "capmin" then
 				sliderCapMin:SetAttribute("value", tostring(capMinValue))
 			end
+			if dm then dm.tfCapAbsoluteSrc = capAbsolute and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
 
 			local sliderHistory = getCachedEl(doc, "slider-history")
 			if sliderHistory and ds ~= "history" then
@@ -8875,19 +8594,12 @@ function widget:Update()
 
 			local clayImg = getCachedEl(doc, "btn-clay-mode")
 			if clayImg then
-				clayImg:SetClass("active", state.clayMode == true)
 				clayImg:SetClass("unavailable", CLAY_UNAVAILABLE_MODES[state.mode] == true)
 			end
+			if dm then dm.tfClayMode = state.clayMode == true end
 
-			local gridImg = getCachedEl(doc, "btn-grid-overlay")
-			if gridImg then
-				gridImg:SetClass("active", state.gridOverlay == true)
-			end
+			if dm then dm.tfGridOverlay = state.gridOverlay == true end
 
-			local snapImg = getCachedEl(doc, "btn-grid-snap")
-			if snapImg then
-				snapImg:SetClass("active", state.gridSnap == true)
-			end
 
 			local snapSizeRow = getCachedEl(doc, "grid-snap-size-row")
 			if snapSizeRow then
@@ -8908,10 +8620,6 @@ function widget:Update()
 			end
 
 			-- Protractor state sync
-			local angleSnapImg = getCachedEl(doc, "btn-angle-snap")
-			if angleSnapImg then
-				angleSnapImg:SetClass("active", state.angleSnap == true)
-			end
 			local angleStepRow = getCachedEl(doc, "angle-snap-step-row")
 			if angleStepRow then
 				-- visibility driven by dm.tfAngleSnap
@@ -8944,8 +8652,6 @@ function widget:Update()
 			-- Autosnap toggle + manual spoke sync
 			do
 				local isAuto = state.angleSnapAuto ~= false
-				local asBtn = getCachedEl(doc, "btn-angle-autosnap")
-				if asBtn then asBtn:SetClass("active", isAuto) end
 				if widgetState.dmHandle then widgetState.dmHandle.tfAngleSnapAuto = isAuto end
 				if not isAuto then
 					local step2 = state.angleSnapStep or 15
@@ -8966,9 +8672,6 @@ function widget:Update()
 
 			-- Measure tool state sync
 			local measureImg = getCachedEl(doc, "btn-measure")
-			if measureImg then
-				measureImg:SetClass("active", state.measureActive == true)
-			end
 			-- Ramp-manipulator discoverability: dot + chip pulse once a ramp is drawn
 			do
 				local tipsDisabled = widgetState.uiPrefs and widgetState.uiPrefs.disableTips
@@ -9006,37 +8709,20 @@ function widget:Update()
 				-- visibility driven by dm.tfMeasureActive
 			end
 			if widgetState.dmHandle then widgetState.dmHandle.tfMeasureActive = state.measureActive and true or false end
-			do
-				local rulerBtn = getCachedEl(doc, "btn-measure-ruler")
-				if rulerBtn then
-					rulerBtn:SetClass("active", state.measureRulerMode == true)
-				end
-				local stickyBtn = getCachedEl(doc, "btn-measure-sticky")
-				if stickyBtn then
-					stickyBtn:SetClass("active", state.measureStickyMode == true)
-				end
-				local showLenBtn = getCachedEl(doc, "btn-measure-show-length")
-				if showLenBtn then
-					showLenBtn:SetClass("active", state.measureShowLength == true)
-				end
+			if dm then
+				dm.tfMeasureRuler = state.measureRulerMode == true
+				dm.tfMeasureSticky = state.measureStickyMode == true
+				dm.tfMeasureShowLength = state.measureShowLength == true
+				dm.tfMeasureRampAttach = state.rampAutoAttach ~= false
 			end
 
 			-- Symmetry tool state sync
 			do
-				local symBtn = getCachedEl(doc, "btn-symmetry")
-				if symBtn then symBtn:SetClass("active", state.symmetryActive == true) end
-				local symRadialBtn = getCachedEl(doc, "btn-symmetry-radial")
-				if symRadialBtn then symRadialBtn:SetClass("active", state.symmetryRadial == true) end
-				local symMirrorXBtn = getCachedEl(doc, "btn-symmetry-mirror-x")
-				if symMirrorXBtn then symMirrorXBtn:SetClass("active", state.symmetryMirrorX == true) end
-				local symMirrorYBtn = getCachedEl(doc, "btn-symmetry-mirror-y")
-				if symMirrorYBtn then symMirrorYBtn:SetClass("active", state.symmetryMirrorY == true) end
-				local symFlippedBtn = getCachedEl(doc, "btn-symmetry-flipped")
-				if symFlippedBtn then symFlippedBtn:SetClass("active", state.symmetryFlipped == true) end
-				local distortBtn = getCachedEl(doc, "btn-measure-distort")
-				if distortBtn then
-					distortBtn:SetClass("active", state.measureDistortMode == true)
-					-- visibility driven by dm.tfMeasureActive
+				if dm then
+					dm.tfSymMirrorX = state.symmetryMirrorX == true
+					dm.tfSymMirrorY = state.symmetryMirrorY == true
+					dm.tfSymFlipped = state.symmetryFlipped == true
+					dm.tfMeasureDistort = state.measureDistortMode == true
 				end
 				if widgetState.dmHandle then local v = tostring(state.symmetryRadialCount or 2); if widgetState.dmHandle.tbSymCountStr ~= v then widgetState.dmHandle.tbSymCountStr = v end end
 				local symCountSlider = getCachedEl(doc, "slider-symmetry-radial-count")
@@ -9069,27 +8755,16 @@ function widget:Update()
 			end
 			local subSettings = getCachedEl(doc, "dj-sub-settings")
 			if subSettings then subSettings:SetClass("dj-disabled", not state.djMode) end
-			local cmapImg = getCachedEl(doc, "btn-height-colormap")
-			if cmapImg then
-				cmapImg:SetClass("active", state.heightColormap == true)
+			if dm then dm.tfHeightColormap = state.heightColormap == true end
+
+			if dm then
+				dm.tfCapSampleMax = state.heightSamplingMode == "max"
+				dm.tfCapSampleMin = state.heightSamplingMode == "min"
 			end
 
-			do
-				local sampleMax = getCachedEl(doc, "btn-sample-max")
-				if sampleMax then sampleMax:SetClass("active", state.heightSamplingMode == "max") end
-				local sampleMin = getCachedEl(doc, "btn-sample-min")
-				if sampleMin then sampleMin:SetClass("active", state.heightSamplingMode == "min") end
-			end
+			if dm then dm.tfCurveOverlay = state.curveOverlay == true end
 
-			local curveOvImg = getCachedEl(doc, "btn-curve-overlay")
-			if curveOvImg then
-				curveOvImg:SetClass("active", state.curveOverlay == true)
-			end
-
-			local velIntImg = getCachedEl(doc, "btn-velocity-intensity")
-			if velIntImg then
-				velIntImg:SetClass("active", state.velocityIntensity == true)
-			end
+			if dm then dm.tfVelocityIntensity = state.velocityIntensity == true end
 
 
 
@@ -9100,11 +8775,7 @@ function widget:Update()
 
 				-- Intensity pen pill: show only when pen enabled AND modulate intensity is on
 				local showInt = penEnabled and (state.penPressureModulateIntensity == true)
-				local penIntChip = getCachedEl(doc, "btn-pen-intensity")
-				if penIntChip then
-					-- visibility driven by dm.tfPenIntVisible
-					penIntChip:SetClass("active", showInt)
-				end
+				if dm then dm.tfPenIntActive = showInt end
 				local penIntLabel = getCachedEl(doc, "pen-intensity-label")
 				if penIntLabel then
 					-- visibility driven by dm.tfPenIntVisible
@@ -9113,11 +8784,7 @@ function widget:Update()
 
 				-- Size pen pill: show only when pen enabled AND modulate size is on
 				local showSize = penEnabled and (state.penPressureModulateSize == true)
-				local penSizeChip = getCachedEl(doc, "btn-pen-size")
-				if penSizeChip then
-					-- visibility driven by dm.tfPenSizeVisible
-					penSizeChip:SetClass("active", showSize)
-				end
+				if dm then dm.tfPenSizeActive = showSize end
 				local penSizeLabel = getCachedEl(doc, "pen-size-label")
 				if penSizeLabel then
 					-- visibility driven by dm.tfPenSizeVisible
@@ -9547,13 +9214,14 @@ function widget:Shutdown()
 	widgetState.spPreviewEls = nil
 	widgetState.spPreviewTextures = nil
 	widgetState.spPreviewVerified = false
-	if widgetState.spPreviewShader then
-		gl.DeleteShader(widgetState.spPreviewShader)
-		widgetState.spPreviewShader = nil
-	end
+	widgetState.spTerrainColor = nil
 	if widgetState.spMinimapSampleTex then
 		gl.DeleteTexture(widgetState.spMinimapSampleTex)
 		widgetState.spMinimapSampleTex = nil
+	end
+	if widgetState.spPreviewShader then
+		gl.DeleteShader(widgetState.spPreviewShader)
+		widgetState.spPreviewShader = nil
 	end
 	widgetState.dcControlsEl = nil
 	widgetState.dcSubmodesEl = nil
