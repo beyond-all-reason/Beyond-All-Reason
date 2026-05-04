@@ -827,9 +827,9 @@
 				<div class="tf-clay-label">CLAY</div>
 				<div class="tf-clay-label">BRUSH</div>
 			</div>
-			<div id="btn-full-restore" class="tf-shape-btn tf-full-restore-btn" data-if="tfInRestore">
-				<div id="full-restore-label-1" class="tf-full-restore-label">FULL</div>
-				<div id="full-restore-label-2" class="tf-full-restore-label">RESTORE</div>
+			<div id="btn-full-restore" class="tf-shape-btn tf-full-restore-btn" data-if="tfInRestore" data-class-confirming="tfRestoreConfirming">
+				<div class="tf-full-restore-label">{{tfRestoreLabel1Str}}</div>
+				<div class="tf-full-restore-label">{{tfRestoreLabel2Str}}</div>
 			</div>
 		</div>
 		</div>
@@ -1246,7 +1246,7 @@
 				<div id="btn-metal-load" class="tf-action-btn tf-load-btn" style="flex: 1;" data-event-click="onMbLoad()">
 					<div class="tf-action-btn-text">LOAD</div>
 				</div>
-				<div id="btn-metal-clean" class="tf-action-btn" style="flex: 1;" data-event-click="onMbClean()">
+				<div id="btn-metal-clean" class="tf-action-btn" style="flex: 1;" data-event-click="onMbClean()" data-class-confirming="mbCleanConfirming">
 					<div class="tf-action-btn-text">{{mbCleanLabelStr}}</div>
 				</div>
 			</div>
@@ -2025,7 +2025,7 @@
 			</div>
 			<!-- Row 2: LOCKED AXIS title with Auto-Snap pill -->
 			<div class="flex flex-row items-center mb-1">
-				<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold" id="angle-manual-spoke-label">0</span>&#176;</div>
+				<div class="text-lg text-light">LOCKED AXIS: <span class="text-xl font-bold">{{tfManualSpokeStr}}</span>&#176;</div>
 				<div id="btn-angle-autosnap" class="tf-inline-chip" style="margin-left: 4dp;" data-class-active="tfAngleSnapAuto" data-event-click="onTfAutoSnap()">Auto-Snap</div>
 				<div id="kbhint-protractor" class="text-sm text-keybind" style="margin-left: auto;">Alt+Scroll</div>
 			</div>
@@ -2196,7 +2196,7 @@
 			<div class="text-lg text-light">INTENSITY: <span class="text-xl font-bold tf-slider-val">{{intensity}}</span><span id="stamp-badge" class="tf-stamp-badge hidden">STAMP</span></div>
 			<div id="btn-velocity-intensity" class="tf-inline-chip" style="margin-left: 4dp;" data-class-active="tfVelocityIntensity" data-event-click="onTfVelocityIntensity()">~Velocity</div>
 			<div id="btn-pen-intensity" class="tf-inline-chip" data-if="tfPenIntVisible" style="margin-left: 4dp;" data-class-active="tfPenIntActive" data-event-click="onTfPenIntensity()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/mb_paint.png" style="margin-right: 2dp;" />Pen</div>
-			<div id="pen-intensity-label" class="text-sm text-keybind" data-if="tfPenIntVisible" style="margin-left: 2dp;">0%</div>
+			<div class="text-sm text-keybind" data-if="tfPenIntVisible" style="margin-left: 2dp;">{{tfPenIntStr}}</div>
 			<div id="slider-intensity-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="slider-intensity-transport" class="tf-transport-group hidden">
 				<div id="slider-intensity-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2244,7 +2244,7 @@
 		<div class="flex flex-row items-center mb-1">
 			<div class="text-lg text-light">SIZE: <span class="text-xl font-bold tf-slider-val">{{radius}}</span></div>
 			<div id="btn-pen-size" class="tf-inline-chip" data-if="tfPenSizeVisible" style="margin-left: 4dp;" data-class-active="tfPenSizeActive" data-event-click="onTfPenSize()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/mb_paint.png" style="margin-right: 2dp;" />Pen</div>
-			<div id="pen-size-label" class="text-sm text-keybind" data-if="tfPenSizeVisible" style="margin-left: 2dp;">0%</div>
+			<div class="text-sm text-keybind" data-if="tfPenSizeVisible" style="margin-left: 2dp;">{{tfPenSizeStr}}</div>
 			<div id="slider-size-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="slider-size-transport" class="tf-transport-group hidden">
 				<div id="slider-size-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
@@ -2450,7 +2450,7 @@
 			<div id="import-progress-track" style="height: 6dp; background-color: #333333; border-radius: 3dp; overflow: hidden;">
 				<div id="import-progress-fill" style="height: 6dp; width: 0%; background-color: #4a9eff; border-radius: 3dp;"></div>
 			</div>
-			<div id="import-progress-label" class="text-sm text-medium" style="margin-top: 1dp;">0%</div>
+			<div class="text-sm text-medium" style="margin-top: 1dp;">{{tfImportPctStr}}</div>
 		</div>
 		</div><!-- /section-heightmap -->
 		</div><!-- /frame-heightmap -->

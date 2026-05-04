@@ -1209,6 +1209,15 @@ local initialModel = {
 	tbSymAngleStr = "0",
 	-- Phase 2 step 4: splat manual spoke label
 	spManualSpokeStr = "0",
+	-- Phase 2 step 4: tf main panel readout labels
+	tfManualSpokeStr = "0",
+	tfPenIntStr = "0%",
+	tfPenSizeStr = "0%",
+	tfImportPctStr = "0%",
+	tfRestoreLabel1Str = "FULL",
+	tfRestoreLabel2Str = "RESTORE",
+	tfRestoreConfirming = false,
+	mbCleanConfirming = false,
 	-- Phase 2 step 4: noise slider label interpolation strings
 	nsScaleStr = "64",
 	nsOctavesStr = "4",
@@ -3217,17 +3226,16 @@ local initialModel = {
 		if WG.MetalBrush then WG.MetalBrush.loadMetalMap() end
 	end,
 	onMbClean = function(_event)
-		local doc2 = widgetState.document
-		local mbCleanBtn = doc2 and doc2:GetElementById("btn-metal-clean")
+		local d = widgetState.dmHandle
 		if (widgetState.metalCleanConfirmExpiry or 0) > 0 then
 			widgetState.metalCleanConfirmExpiry = 0
-			if mbCleanBtn then mbCleanBtn:SetClass("confirming", false) end
+			if d then d.mbCleanConfirming = false end
 			_noDmLabel("mbCleanLabelStr", "CLEAN")
 			playSound("reset")
 			if WG.MetalBrush then WG.MetalBrush.clearMetalMap() end
 		else
 			widgetState.metalCleanConfirmExpiry = (Spring.GetGameSeconds() or 0) + 3
-			if mbCleanBtn then mbCleanBtn:SetClass("confirming", true) end
+			if d then d.mbCleanConfirming = true end
 			_noDmLabel("mbCleanLabelStr", "ARE YOU SURE?")
 			playSound("toggleOn")
 		end
@@ -6649,12 +6657,13 @@ local function attachEventListeners()
 		local frBtn = getCachedEl(doc, "btn-full-restore")
 		if frBtn then
 			frBtn:AddEventListener("click", function(event)
+				local d = widgetState.dmHandle
 				if widgetState.fullRestoreConfirmExpiry > 0 then
 					-- Second click: confirmed
 					widgetState.fullRestoreConfirmExpiry = 0
-					frBtn:SetClass("confirming", false)
-					if widgetState.fullRestoreLabel1 then widgetState.fullRestoreLabel1.inner_rml = "FULL" end
-					if widgetState.fullRestoreLabel2 then widgetState.fullRestoreLabel2.inner_rml = "RESTORE" end
+					if d then d.tfRestoreConfirming = false end
+					_noDmLabel("tfRestoreLabel1Str", "FULL")
+					_noDmLabel("tfRestoreLabel2Str", "RESTORE")
 					playSound("reset")
 					if WG.TerraformBrush then
 						WG.TerraformBrush.fullRestore()
@@ -6662,9 +6671,9 @@ local function attachEventListeners()
 				else
 					-- First click: ask for confirmation
 					widgetState.fullRestoreConfirmExpiry = (Spring.GetGameSeconds() or 0) + 3
-					frBtn:SetClass("confirming", true)
-					if widgetState.fullRestoreLabel1 then widgetState.fullRestoreLabel1.inner_rml = "ARE YOU" end
-					if widgetState.fullRestoreLabel2 then widgetState.fullRestoreLabel2.inner_rml = "SURE?" end
+					if d then d.tfRestoreConfirming = true end
+					_noDmLabel("tfRestoreLabel1Str", "ARE YOU")
+					_noDmLabel("tfRestoreLabel2Str", "SURE?")
 					playSound("toggleOn")
 				end
 				event:StopPropagation()
@@ -8658,8 +8667,7 @@ function widget:Update()
 					local numSpokes2 = math.max(1, math.floor(360 / step2))
 					local spokeIdx = state.angleSnapManualSpoke or 0
 					local spokeAngle = (spokeIdx * step2) % 360
-					local msLbl = getCachedEl(doc, "angle-manual-spoke-label")
-					if msLbl then msLbl.inner_rml = tostring(spokeAngle) end
+					_noDmLabel("tfManualSpokeStr", tostring(spokeAngle))
 					local msSlider = getCachedEl(doc, "slider-manual-spoke")
 					if msSlider then
 						uiState.updatingFromCode = true
@@ -8776,20 +8784,12 @@ function widget:Update()
 				-- Intensity pen pill: show only when pen enabled AND modulate intensity is on
 				local showInt = penEnabled and (state.penPressureModulateIntensity == true)
 				if dm then dm.tfPenIntActive = showInt end
-				local penIntLabel = getCachedEl(doc, "pen-intensity-label")
-				if penIntLabel then
-					-- visibility driven by dm.tfPenIntVisible
-					if showInt then penIntLabel.inner_rml = pctStr end
-				end
+				_noDmLabel("tfPenIntStr", pctStr)
 
 				-- Size pen pill: show only when pen enabled AND modulate size is on
 				local showSize = penEnabled and (state.penPressureModulateSize == true)
 				if dm then dm.tfPenSizeActive = showSize end
-				local penSizeLabel = getCachedEl(doc, "pen-size-label")
-				if penSizeLabel then
-					-- visibility driven by dm.tfPenSizeVisible
-					if showSize then penSizeLabel.inner_rml = pctStr end
-				end
+				_noDmLabel("tfPenSizeStr", pctStr)
 				if widgetState.dmHandle then
 					widgetState.dmHandle.tfPenIntVisible = showInt and true or false
 					widgetState.dmHandle.tfPenSizeVisible = showSize and true or false
@@ -8977,8 +8977,7 @@ function widget:Update()
 				local pct = math.floor(state.importProgress / state.importTotal * 100)
 				local fill = getCachedEl(doc, "import-progress-fill")
 				if fill then fill:SetAttribute("style", "height: 6dp; width: " .. pct .. "%; background-color: #4a9eff; border-radius: 3dp;") end
-				local label = getCachedEl(doc, "import-progress-label")
-				if label then label.inner_rml = pct .. "%" end
+				_noDmLabel("tfImportPctStr", pct .. "%")
 			else
 				importRow:SetClass("hidden", true)
 			end
@@ -9003,10 +9002,10 @@ function widget:Update()
 		local now = Spring.GetGameSeconds() or 0
 		if now >= widgetState.fullRestoreConfirmExpiry then
 			widgetState.fullRestoreConfirmExpiry = 0
-			local frBtn = widgetState.fullRestoreEl
-			if frBtn then frBtn:SetClass("confirming", false) end
-			if widgetState.fullRestoreLabel1 then widgetState.fullRestoreLabel1.inner_rml = "FULL" end
-			if widgetState.fullRestoreLabel2 then widgetState.fullRestoreLabel2.inner_rml = "RESTORE" end
+			local d = widgetState.dmHandle
+			if d then d.tfRestoreConfirming = false end
+			_noDmLabel("tfRestoreLabel1Str", "FULL")
+			_noDmLabel("tfRestoreLabel2Str", "RESTORE")
 		end
 	end
 	-- Metal clean confirm timeout: auto-reset after 3 s if not confirmed
@@ -9014,10 +9013,9 @@ function widget:Update()
 		local now = Spring.GetGameSeconds() or 0
 		if now >= widgetState.metalCleanConfirmExpiry then
 			widgetState.metalCleanConfirmExpiry = 0
-			local cleanBtn = widgetState.metalCleanEl
-			if cleanBtn then cleanBtn:SetClass("confirming", false) end
-			local cleanLabel = widgetState.metalCleanLabel
-			if cleanLabel then cleanLabel.inner_rml = "CLEAN" end
+			local d = widgetState.dmHandle
+			if d then d.mbCleanConfirming = false end
+			_noDmLabel("mbCleanLabelStr", "CLEAN")
 		end
 	end
 	-- Slider keybind-scroll flash countdown
