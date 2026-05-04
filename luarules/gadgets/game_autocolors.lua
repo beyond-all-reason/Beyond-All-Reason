@@ -671,10 +671,10 @@ else	-- UNSYNCED
 	local myPlayerID = Spring.GetLocalPlayerID()
 	local mySpecState = Spring.GetSpectatingState()
 
-	if anonymousMode == "local" then
+	if anonymousMode == "local" and not mySpecState then
 		shuffleAllColors()
 	end
-	if anonymousMode == "local" or Spring.GetConfigInt("SimpleTeamColors", 0) == 1 then
+	if (anonymousMode == "local" and not mySpecState) or Spring.GetConfigInt("SimpleTeamColors", 0) == 1 then
 		setupAllTeamColors(true)
 	end
 
