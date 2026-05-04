@@ -314,7 +314,7 @@ function M.sync(doc, ctx, spState, setSummary)
 				local nb = doc:GetElementById("sp-slider-grid-snap-size-numbox")
 				if nb then nb:SetAttribute("value", tostring(s.gridSnapSize or 48)) end
 				local sz = doc:GetElementById("sp-slider-grid-snap-size")
-				if sz then sz:SetAttribute("value", tostring(s.gridSnapSize or 48)) end
+				if sz and uiState.draggingSlider ~= "sp-grid-snap-size" then sz:SetAttribute("value", tostring(s.gridSnapSize or 48)) end
 				local cntSlSp = doc:GetElementById("sp-slider-symmetry-radial-count"); if cntSlSp then cntSlSp:SetAttribute("value", tostring(s.symmetryRadialCount or 2)) end
 				local angSlSp = doc:GetElementById("sp-slider-symmetry-mirror-angle"); if angSlSp then angSlSp:SetAttribute("value", tostring(math.floor(s.symmetryMirrorAngle or 0))) end
 				uiState.updatingFromCode = false
