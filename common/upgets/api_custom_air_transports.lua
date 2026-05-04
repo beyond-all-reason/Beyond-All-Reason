@@ -1,10 +1,11 @@
 local upget = gadget or widget ---@type Addon
 local globalScope = gadget and GG or WG
+local desc = gadget and "Helpers for the Transport Handler gadget and tractor beam unit scripts" or "Helpers for transportation-related widgets"
 
 function upget:GetInfo()
 	return {
 		name    = "Transport Handler API",
-		desc    = "Sets up global functions and tables used by transport related scripts and upgetry",
+		desc    = desc,
 		author  = "DoodVanDaag",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
