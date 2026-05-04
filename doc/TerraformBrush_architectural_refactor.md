@@ -171,9 +171,11 @@ Per widget (parallelisable; sub-steps 1-5 must land together per widget to avoid
 | `tf_environment.lua` | 18 / 18 | ✅ (`envWindowToggle` dmKey param + skybox toggle/close dm writes) |
 | `gui_terraform_brush.lua` | 74 / 74 | ✅ (29 dm flags added; all floating windows, instrument sub-rows, pen pills, shape/ramp/clay/restore rows → data-if; tf_environment sub-windows all data-if driven) |
 
-4. ⬜ **Labels → `{{radius}}` interpolation**; replaces `.inner_rml = tostring(v)` sites (~40 in terraform_brush alone). **PROMOTED to required pre-1.0 (PR #7527 review).** **Pilot landed (Apr 2026): tf_startpos.lua — 6 sites converted via `dm.stp{AllyTeams,TeamsPerAlly,Count,Size,Rotation,PlacementMode}Str` fields + `{{...}}` interpolation in RML.**
+4. ✅ **Labels → `{{radius}}` interpolation**; replaces `.inner_rml = tostring(v)` sites. **DONE (May 2026).** All tf_* sub-modules + gui_terraform_brush.lua main panel converted. Remaining `inner_rml` in tf_environment.lua (envSetSlider helper labels, splatscale channels) and tf_decals.lua (dcStep label) are **justified imperative** — would require dm fields per-channel or per-event format, not worth the complexity. `listEl.inner_rml`, keybind grid, preset list, chevron toggles, status summary HTML in main file are also legitimately imperative dynamic HTML, not label readouts.
+
+**tf main panel labels landed (May 2026):** 8 new dm fields: `tfManualSpokeStr`, `tfPenIntStr`, `tfPenSizeStr`, `tfImportPctStr`, `tfRestoreLabel1Str`, `tfRestoreLabel2Str`, `tfRestoreConfirming`, `mbCleanConfirming`. Confirmed: `data-class-confirming` added to `btn-full-restore` + `btn-metal-clean`. Dead `widgetState.fullRestoreLabel1/2` and `metalCleanEl/metalCleanLabel` refs (always nil) removed from timeout resets.
 5. ✅ **Sliders**: keep `updatingFromCode` feedback guard + log-curve handlers; `onchange="widget:onXxxChange(element)"` added to all sliders in converted panels.
-6. ⬜ **Model-function migration of existing `widget:` sites**. 548 `onclick="widget:foo()"` in `gui_terraform_brush.rml` swap to `data-event-click="onFoo()"` with handlers registered on `dm.*`. Single-sweep PR after 2–4 land.
+6. 🟡 **Model-function migration of existing `widget:` sites**. 548 `onclick="widget:foo()"` in `gui_terraform_brush.rml` swap to `data-event-click="onFoo()"` with handlers registered on `dm.*`. Single-sweep PR after 2–4 land. **NEXT RECOMMENDED STEP (May 2026) — steps 2–4 now complete, no blockers.**
 
 ### Phase 3 — `data-for` dynamic lists
 
