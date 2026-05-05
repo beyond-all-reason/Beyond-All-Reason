@@ -90,6 +90,8 @@ local unitOffset = 0 -- reusable offset for units table cleanup in findUnitToTra
 local areaLoadCoroutinesCount = 0
 local successiveLoadCoroutinesCount = 0
 local transporterCoroutines = {} -- transporterID → { type = "area" or "successive", index = number }
+--local consecutiveFramesOverEnemyPassenger = {} -- transporterID → { passengerID → number frames }
+--local minConsecutiveFramesToLoadEnemy = 60 -- how many consecutive frames within load range of an enemy unit do we need to allow loading it; set to math.huge to disable this feature
 
 for udefID, def in ipairs(UnitDefs) do
 	if def.canFly and def.isTransport then
@@ -320,12 +322,27 @@ end
 --- @param transporterPosZ number
 --- @return boolean
 local function CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterTeamID, transporterPosX, transporterPosY, transporterPosZ) -- things that should delay loading without removing from queue
+
 	if not inLoadRange(transporterPosX, transporterPosY, transporterPosZ, passengerPosX, passengerPosY, passengerPosZ) then
+		-- consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil -- reset counter if we move out of range
 		return false
 	end
 	if not spAreTeamsAllied(passengerTeamID, transporterTeamID) then
 		local isStunned = Spring.GetUnitIsStunned(passengerID) -- the first bool is (beingBuilt OR stunned), but we supposedly already excluded beingBuilt
 		if not isStunned then
+			-- OPTIONAL: allow non stunned after x frames spent within load range of a barely moving unit.
+			
+			--[[local velX, velY, velZ, vw = spGetUnitVelocity(passengerID)
+			if vw < 0.5 then
+				consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = (consecutiveFramesOverEnemyPassenger[transporterID][passengerID] or 0) + 1
+				Spring.Echo("Passenger " .. passengerID .. " has been within load range of transporter " .. transporterID .. " for " .. consecutiveFramesOverEnemyPassenger[transporterID][passengerID] .. " consecutive frames")
+				if consecutiveFramesOverEnemyPassenger[transporterID][passengerID] > minConsecutiveFramesToLoadEnemy then
+					consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil
+					return true
+				end
+			else
+				consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil -- reset counter if we move out of range or the unit starts moving again
+			end]]
 			return false -- if the unit isn't stunned, it can't be transported 'yet' (not removed from queue)
 		end
 	end
@@ -723,6 +740,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		customTransportUnload[unitDefID] = GetScriptFunc(unitID, 'PerformUnload')
 	end
 	if isAirTransport[unitDefID] then
+		--consecutiveFramesOverEnemyPassenger[unitID] = {}
 		transporterClaims[unitID] = {}
 		queuedSeats[unitID] = 0
 	end
@@ -763,6 +781,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		local gx, gy, gz = spGetUnitPosition(transporterID)
 		customTransportUnload[transporterDefID](transporterID, 'PerformUnload', unitID, gx, gy, gz)
 	end
+	--consecutiveFramesOverEnemyPassenger[unitID] = nil
 end
 
 function gadget:GameFrame(frame)
