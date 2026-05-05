@@ -1,5 +1,9 @@
 local gadget = gadget ---@type Gadget
 
+-- FIXME:
+-- - logging/notification only version
+-- - explore ideas on how to deal with jammed high ground units (but there's allied stuff blocking you)
+
 function gadget:GetInfo()
 	return {
 		name    = "DGun Griefing Prevention",
@@ -8,7 +12,7 @@ function gadget:GetInfo()
 		date    = "2026-05-01",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
-        version = "1.0",
+        version = "1.1",
 		enabled = true,
 	}
 end
@@ -20,7 +24,6 @@ end
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitsInBox = Spring.GetUnitsInBox
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetTeamInfo = Spring.GetTeamInfo
@@ -41,6 +44,7 @@ local DGUN_SAFETY_WIDTH = 100
 
 -- Approximate actual width of the dgun projectile
 local DGUN_WIDTH = 20
+local MIN_THREATENED_ALLY_METAL = 500
 
 -- 1500 is a bit more than the range of a Vanguard
 -- In my opinion, there is never a reason to even fire a DGun if there are no enemies within VANGUARD distance
@@ -53,35 +57,6 @@ local contactsCache = {}
 local CONTACT_WINDOW_DURATION = 5 * 30 -- five seconds at 30 gameframes per second
 local CONTACT_PRUNE_INTERVAL = 60 * 30 -- prune expired contacts every minute
 local nextContactPruneFrame = CONTACT_PRUNE_INTERVAL
-
--- These units are ignored for ally-DGun checks.
-local IGNORED_UNIT_NAMES = {
-	armdrag = true, -- Wall
-	armclaw = true, -- Dragon's claw
-	armfdrag = true, -- Naval wall
-	armfort = true, -- T2 wall
-	armmakr = true, -- T1 converter
-	armfmkr = true, -- T1 naval converter
-	armwin = true, -- Wind
-	armwint2 = true, -- T2 wind
-	armdf = true, -- Decoy fusion
-	cordrag = true, -- Wall
-	cormaw = true, -- Dragon's maw
-	corfdrag = true, -- Naval wall
-	corfort = true, --T2 wall
-	cormakr = true, -- T1 converter
-	corfmkr = true, -- T1 naval converter
-	corwin = true, -- Wind
-	corwint2 = true, -- T2 wind
-	legdrag = true, -- Wall
-	legdtr = true, -- Dragon's jaw
-	legfdrag = true, -- Naval wall
-	legforti = true, -- T2 wall
-	legeconv = true, -- T1 converter
-	legfeconv = true, -- T1 sea converter
-	legwin = true, -- Wind
-	legwint2 = true, -- T2 wind
-}
 
 -- Hook DGun commands into allow/disallow interface
 function gadget:Initialize()
@@ -112,25 +87,6 @@ local function GetApproxUnitRadius(unitDefID)
 	local footprintZ = unitDef.zsize or 0
 	local approxRadius = math.min(footprintX, footprintZ) * 4
 	return approxRadius
-end
-
--- Check if the unit being targeted by DGun is a whitelisted unit.
--- Cheap units that are commonly used to block pathfinding (walls, decoy fusions, winds, etc) are whitelisted.
--- This means players are always allowed to dgun allied walls (etc) in the event they need to urgently escape through
--- an otherwise blocked path (e.g. there is an incoming gunship snipe and allied walls are blocking the fastest escape route)
-local function IsIgnoredUnit(unitID, unitDefID)
-	local unitDef = unitDefID and UnitDefs[unitDefID]
-	if not unitDef then
-		return false
-	end
-
-	local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
-	if buildProgress and buildProgress < 1 then
-		-- Ignore partially built buildings to prevent players from being intentionally boxed in by blueprints
-		return true
-	end
-
-	return IGNORED_UNIT_NAMES[unitDef.name] == true
 end
 
 local function PruneExpiredContacts(currentFrame)
@@ -202,26 +158,32 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, playerID, sx, sy, sz, ex
 
 	local candidates = spGetUnitsInBox(minx, miny, minz, maxx, maxy, maxz)
 	local myAllyTeam = GetAllyTeamID(teamID)
+	local threatenedAllyMetal = 0
 	for i = 1, #candidates do
 		local unitID = candidates[i]
 		local unitTeam = spGetUnitTeam(unitID)
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitRadius = GetApproxUnitRadius(unitDefID)
-		-- Skip the firing commander itself; only warn on other units in the path
-		if unitID ~= firingUnitID and unitTeam and GetAllyTeamID(unitTeam) == myAllyTeam and not IsIgnoredUnit(unitID, unitDefID) then
+		-- Self-owned units are exempt (only consider allied owned units).
+		if unitTeam ~= teamID and GetAllyTeamID(unitTeam) == myAllyTeam then
 			local ux, uy, uz = spGetUnitPosition(unitID)
 			if ux then
 				local d = DistPointToSegment(ux, uy, uz, sx, sy, sz, ex, ey, ez)
 				if d < unitRadius + DGUN_WIDTH / 2 then
-					spPlaySoundFile("sounds/ui/warning2.wav")
-					spEcho(string.format(
-						"WARNING: %s attempted to D-Gun allies. Please remember that the Code of Conduct prohibits griefing.",
-						GetPlayerName(playerID)
-					))
-					return true
+					local unitDef = unitDefID and UnitDefs[unitDefID]
+					threatenedAllyMetal = threatenedAllyMetal + (unitDef and unitDef.metalCost or 0)
 				end
 			end
 		end
+	end
+
+	if threatenedAllyMetal >= MIN_THREATENED_ALLY_METAL then
+		spPlaySoundFile("sounds/ui/warning2.wav")
+		spEcho(string.format(
+			"WARNING: %s attempted to D-Gun allies. Please remember that the Code of Conduct prohibits griefing.",
+			GetPlayerName(playerID)
+		))
+		return true
 	end
 
 	return false
