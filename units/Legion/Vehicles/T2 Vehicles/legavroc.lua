@@ -1,7 +1,7 @@
 return {
 	legavroc = {
 		maxacc = 0.02489,
-		maxdec = 0.04978,
+		maxdec = 0.1,
 		energycost = 6500,
 		metalcost = 920,
 		buildpic = "LEGAVROC.DDS",
@@ -26,7 +26,7 @@ return {
 		script = "Units/LEGAVROC_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 247,
+		sightdistance = 330,
 		stealth = true,
 		trackoffset = 0,
 		trackstrength = 8,

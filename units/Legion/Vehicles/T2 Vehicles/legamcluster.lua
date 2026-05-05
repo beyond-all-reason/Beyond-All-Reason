@@ -1,7 +1,7 @@
 return {
 	legamcluster = {
 		maxacc = 0.018,
-		maxdec = 0.036,
+		maxdec = 0.1,
 		energycost = 5500,
 		metalcost = 460,
 		buildpic = "LEGAMCLUSTER.DDS",
@@ -26,7 +26,7 @@ return {
 		script = "Units/LEGAMCLUSTER_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 300,
+		sightdistance = 330,
 		trackoffset = 0,
 		trackstrength = 6,
 		tracktype = "corwidetracks",
