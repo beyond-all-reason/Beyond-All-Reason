@@ -60,7 +60,14 @@ local NOISE_HEADER = "$terraform_noise$"
 local NOISE_HEADER_LENGTH = #NOISE_HEADER
 local HEIGHT_STEP = 8
 local MAX_UNDO = 10000
-local MAX_SNAPSHOT_VERTICES = 32000000  -- total vertex budget across all undo+redo entries (~768 MB)
+-- Total vertex budget across all undo+redo entries. Each vertex = 3 array
+-- slots (x,z,h) ≈ 24 B in Lua. 8 M vertices ≈ 192 MB, well under the 1.5 GB
+-- synced LuaRules VM cap. The previous 32 M cap permitted ~768 MB of pure
+-- height data plus heap fragmentation overhead, blowing the VM ceiling on
+-- sustained large-radius drags. One-entry-per-tick MUST be preserved (see
+-- bar_stripy_terrain_bug.md): any cross-tick merging produces striped
+-- leftover terrain on undo, so eviction is the only knob.
+local MAX_SNAPSHOT_VERTICES = 8000000
 
 local undoStack = {}
 local redoStack = {}
@@ -162,16 +169,141 @@ local function applyHeightChangesFlat(flatData, vertexCount)
 	end
 end
 
+-- ─── BBOX-GRID SNAPSHOT FORMAT ───────────────────────────────────────────────
+-- Snapshots store touched cells as a 2D grid keyed by world bbox rather than
+-- a flat triplet array. Mask values:
+--   nil : cell not in this snapshot
+--   1   : cell touched, original height stored in hgrid[i]
+--   2   : cell touched, original height equals Spring.GetGroundOrigHeight
+--         (hgrid[i] not stored — saves a float on virgin terrain edits)
+-- Index: i = iz*w + ix + 1 with ix=(x-minX)/ss, iz=(z-minZ)/ss.
+-- ss = Game.squareSize captured at conversion time and stored in snap.ss
+-- so undo years later still maps cells back to the same world coords.
+local GetGroundOrigHeight = Spring.GetGroundOrigHeight
+local GetGroundHeight     = Spring.GetGroundHeight
+local SetHeightMap        = Spring.SetHeightMap
+local SetHeightMapFunc    = Spring.SetHeightMapFunc
+
+-- Convert a flat {x,z,h, x,z,h, ...} buffer to a bbox-grid snapshot.
+-- Two passes: bbox scan, then grid fill with orig-delta optimisation.
+local function flatToBboxSnapshot(flatBuf, vertexCount)
+	local ss = Game.squareSize
+	local minX, minZ = math.huge, math.huge
+	local maxX, maxZ = -math.huge, -math.huge
+	for i = 0, vertexCount - 1 do
+		local base = i * 3
+		local x = flatBuf[base + 1]
+		local z = flatBuf[base + 2]
+		if x < minX then minX = x end
+		if x > maxX then maxX = x end
+		if z < minZ then minZ = z end
+		if z > maxZ then maxZ = z end
+	end
+	local w = floor((maxX - minX) / ss) + 1
+	local h = floor((maxZ - minZ) / ss) + 1
+	local mask, hgrid = {}, {}
+	for i = 0, vertexCount - 1 do
+		local base = i * 3
+		local x = flatBuf[base + 1]
+		local z = flatBuf[base + 2]
+		local origH = flatBuf[base + 3]
+		local ix = floor((x - minX) / ss)
+		local iz = floor((z - minZ) / ss)
+		local idx = iz * w + ix + 1
+		if origH == GetGroundOrigHeight(x, z) then
+			mask[idx] = 2
+		else
+			mask[idx] = 1
+			hgrid[idx] = origH
+		end
+	end
+	return {
+		format = "bbox",
+		minX = minX, minZ = minZ, w = w, h = h, ss = ss,
+		mask = mask, hgrid = hgrid,
+		vertexCount = vertexCount,
+	}
+end
+
+-- Apply (restore) heights from a bbox snapshot. NaN guard preserved.
+local function applySnapshotHeights(snap)
+	local minX, minZ = snap.minX, snap.minZ
+	local w, h = snap.w, snap.h
+	local ss = snap.ss or Game.squareSize
+	local mask, hgrid = snap.mask, snap.hgrid
+	SetHeightMapFunc(function()
+		for iz = 0, h - 1 do
+			local rowBase = iz * w
+			local z = minZ + iz * ss
+			for ix = 0, w - 1 do
+				local idx = rowBase + ix + 1
+				local m = mask[idx]
+				if m then
+					local x = minX + ix * ss
+					local val
+					if m == 2 then
+						val = GetGroundOrigHeight(x, z)
+					else
+						val = hgrid[idx]
+					end
+					if val == val then  -- NaN check
+						SetHeightMap(x, z, val)
+					else
+						nanHeightSkipped = true
+					end
+				end
+			end
+		end
+	end)
+	if nanHeightSkipped then
+		Spring.Echo("[Terraform Brush] Warning: NaN height skipped in undo/redo")
+		nanHeightSkipped = false
+	end
+end
+
+-- Capture a parallel snapshot containing CURRENT heights at every touched
+-- cell of `srcSnap`. Used by undo/redo handlers to record reverse state.
+local function captureCurrentForSnapshot(srcSnap)
+	local minX, minZ = srcSnap.minX, srcSnap.minZ
+	local w, h = srcSnap.w, srcSnap.h
+	local ss = srcSnap.ss or Game.squareSize
+	local srcMask = srcSnap.mask
+	local mask, hgrid = {}, {}
+	for iz = 0, h - 1 do
+		local rowBase = iz * w
+		local z = minZ + iz * ss
+		for ix = 0, w - 1 do
+			local idx = rowBase + ix + 1
+			if srcMask[idx] then
+				local x = minX + ix * ss
+				local cur = GetGroundHeight(x, z)
+				if cur == GetGroundOrigHeight(x, z) then
+					mask[idx] = 2
+				else
+					mask[idx] = 1
+					hgrid[idx] = cur
+				end
+			end
+		end
+	end
+	return {
+		format = "bbox",
+		minX = minX, minZ = minZ, w = w, h = h, ss = ss,
+		mask = mask, hgrid = hgrid,
+		vertexCount = srcSnap.vertexCount,
+	}
+end
+
 local function evictOldSnapshots()
 	while totalVertexCount > MAX_SNAPSHOT_VERTICES and #undoStack > 0 do
 		local old = undoStack[1]
-		totalVertexCount = totalVertexCount - (old.vertexCount or #old / 3)
+		totalVertexCount = totalVertexCount - (old.vertexCount or 0)
 		table.remove(undoStack, 1)
 	end
 	-- If still over budget, trim redo stack too
 	while totalVertexCount > MAX_SNAPSHOT_VERTICES and #redoStack > 0 do
 		local old = redoStack[1]
-		totalVertexCount = totalVertexCount - (old.vertexCount or #old / 3)
+		totalVertexCount = totalVertexCount - (old.vertexCount or 0)
 		table.remove(redoStack, 1)
 	end
 end
@@ -192,68 +324,20 @@ local function finalizeMerge()
 	mergeSnapshotLen = 0
 end
 
--- pushSnapshot accepts sub-table format {{x,z,h},...} (cold path: ramp/spline)
--- and converts to flat {x,z,h,x,z,h,...} before storing on the undo stack.
-local function pushSnapshot(snapshot)
-	if #snapshot == 0 then return end
-	local vertexCount = #snapshot
-
-	-- Skip undo if this single operation exceeds the entire vertex budget
-	if vertexCount > MAX_SNAPSHOT_VERTICES then return end
-
-	-- Flatten sub-tables to flat array: ONE allocation instead of N sub-tables
-	local flat = {}
-	for i = 1, vertexCount do
-		local base = (i - 1) * 3
-		flat[base + 1] = snapshot[i][1]
-		flat[base + 2] = snapshot[i][2]
-		flat[base + 3] = snapshot[i][3]
-	end
-
-	-- Finalize any previous entry so each push is its own undo step (no merge).
-	finalizeMerge()
-
-	for i = 1, #redoStack do
-		totalVertexCount = totalVertexCount - (redoStack[i].vertexCount or #redoStack[i] / 3)
-	end
-	redoStack = {}
-
-	flat.vertexCount = vertexCount
-	flat.strokeId = currentStrokeId
-	undoStack[#undoStack + 1] = flat
-	totalVertexCount = totalVertexCount + vertexCount
-	if #undoStack > MAX_UNDO then
-		local old = undoStack[1]
-		totalVertexCount = totalVertexCount - (old.vertexCount or #old / 3)
-		table.remove(undoStack, 1)
-	end
-
-	evictOldSnapshots()
-	SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack)
-end
-
--- Hot-path variant: reads from a flat buffer (x,z,h,x,z,h,...) and stores the
--- undo snapshot as a flat array too — ONE table allocation for the entire entry,
--- eliminating ~44K sub-table allocations per frame for large brushes.
+-- Hot-path: convert a flat {x,z,h,...} buffer to a bbox-grid snapshot and push.
+-- ONE ENTRY PER TICK is mandatory (see bar_stripy_terrain_bug.md). All snapshot
+-- callers route through this; pushSnapshot below flattens sub-tables first.
 local function pushSnapshotFromFlat(flatBuf, vertexCount)
 	if vertexCount == 0 then return end
-	-- Skip undo if this single operation exceeds the entire vertex budget
 	if vertexCount > MAX_SNAPSHOT_VERTICES then return end
-	-- Finalize any previous entry so each push is its own undo step (no merge).
 	finalizeMerge()
 
 	for i = 1, #redoStack do
-		totalVertexCount = totalVertexCount - (redoStack[i].vertexCount or #redoStack[i] / 3)
+		totalVertexCount = totalVertexCount - (redoStack[i].vertexCount or 0)
 	end
 	redoStack = {}
 
-	-- Copy flat triplets directly — ONE table allocation instead of N sub-tables
-	local snapshot = {}
-	for i = 1, vertexCount * 3 do
-		snapshot[i] = flatBuf[i]
-	end
-
-	snapshot.vertexCount = vertexCount
+	local snapshot = flatToBboxSnapshot(flatBuf, vertexCount)
 	snapshot.strokeId = currentStrokeId
 	undoStack[#undoStack + 1] = snapshot
 	totalVertexCount = totalVertexCount + vertexCount
@@ -262,12 +346,29 @@ local function pushSnapshotFromFlat(flatBuf, vertexCount)
 	end
 	if #undoStack > MAX_UNDO then
 		local old = undoStack[1]
-		totalVertexCount = totalVertexCount - (old.vertexCount or #old / 3)
+		totalVertexCount = totalVertexCount - (old.vertexCount or 0)
 		table.remove(undoStack, 1)
 	end
 
 	evictOldSnapshots()
 	SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack)
+end
+
+-- Sub-table format {{x,z,h},...} cold path: flatten via scratchSnapFlat then
+-- route through pushSnapshotFromFlat. Currently unused but kept for API stability.
+local function pushSnapshot(snapshot)
+	local vertexCount = #snapshot
+	if vertexCount == 0 then return end
+	if vertexCount > MAX_SNAPSHOT_VERTICES then return end
+	local buf = scratchSnapFlat
+	for i = 1, vertexCount do
+		local base = (i - 1) * 3
+		local v = snapshot[i]
+		buf[base + 1] = v[1]
+		buf[base + 2] = v[2]
+		buf[base + 3] = v[3]
+	end
+	pushSnapshotFromFlat(buf, vertexCount)
 end
 
 local DUST_CEGS = { "dust_cloud", "dust_cloud_dirt_light", "dust_cloud_fast", "dust_cloud_dirt", "dirtpoof" }
@@ -453,18 +554,97 @@ local function computeFalloff(dx, dz, radius, shape, angleDeg, curve, lengthScal
 	return rawFalloff ^ curve
 end
 
+-- ─── FALLOFF STAMP CACHE ─────────────────────────────────────────────────────
+-- computeFalloff is the inner-loop hot spot for applyTerraform: at radius=2000
+-- with squareSize=8 it gets called ~395 k times per tick, each doing a sin/cos
+-- rotation and a power. We cache the per-cell falloff field keyed by quantised
+-- params so successive ticks of the same brush reuse it.
+--
+-- Quantisation (chosen to stay within sub-quantisation visual error):
+--   radius      → integer
+--   angleDeg    → nearest 2°
+--   curve       → 0.05 step
+--   lengthScale → 0.05 step
+--   ringRatio   → 0.02 step (only matters for "ring" shape)
+--
+-- LRU eviction: keep at most FALLOFF_STAMP_LIMIT stamps. A radius-2000 stamp
+-- is ~400 k floats ≈ 16 MB; 4 such = 64 MB max worst-case.
+local FALLOFF_STAMP_LIMIT = 4
+local FALLOFF_EPSILON     = 1 / 255   -- below this, treat as zero (sub-quantisation)
+local falloffStampCache   = {}
+local falloffStampOrder   = {}  -- LRU queue of keys (oldest first)
+
+local function quantiseStampParams(radius, angleDeg, curve, lengthScale, ringRatio)
+	local rQ  = floor(radius)
+	-- Wrap angle to [0,360) before quantising so 359° and -1° share a stamp.
+	local aN  = angleDeg % 360
+	local aQ  = floor(aN / 2 + 0.5) * 2
+	if aQ >= 360 then aQ = aQ - 360 end
+	local cQ  = floor(curve / 0.05 + 0.5) * 0.05
+	local lQ  = floor(lengthScale / 0.05 + 0.5) * 0.05
+	local rrQ = floor(ringRatio / 0.02 + 0.5) * 0.02
+	return rQ, aQ, cQ, lQ, rrQ
+end
+
+local function buildFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ringRatio, ss)
+	-- computeFalloff captures module-level ringInnerRatio. Save & override so
+	-- the stamp matches the quantised ringRatio key, then restore.
+	local prevRing = ringInnerRatio
+	ringInnerRatio = ringRatio
+	local extent = radius * max(1, lengthScale) * 1.42
+	local halfCells = floor(extent / ss)
+	local size = halfCells * 2 + 1
+	local data = {}
+	for iz = 0, size - 1 do
+		local dz = (iz - halfCells) * ss
+		local rowBase = iz * size
+		for ix = 0, size - 1 do
+			local dx = (ix - halfCells) * ss
+			local f = computeFalloff(dx, dz, radius, shape, angleDeg, curve, lengthScale)
+			if f and f >= FALLOFF_EPSILON then
+				data[rowBase + ix + 1] = f
+			end
+			-- else leave nil (skip cell at apply time)
+		end
+	end
+	ringInnerRatio = prevRing
+	return { w = size, h = size, cx = halfCells, cz = halfCells, data = data }
+end
+
+local function getFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ringRatio, ss)
+	local rQ, aQ, cQ, lQ, rrQ = quantiseStampParams(radius, angleDeg, curve, lengthScale, ringRatio)
+	local key = string.format("%s|%d|%d|%.2f|%.2f|%.2f|%d", shape, rQ, aQ, cQ, lQ, rrQ, ss)
+	local stamp = falloffStampCache[key]
+	if stamp then
+		-- Bump LRU recency
+		local n = #falloffStampOrder
+		for i = 1, n do
+			if falloffStampOrder[i] == key then
+				if i ~= n then
+					table.remove(falloffStampOrder, i)
+					falloffStampOrder[n] = key
+				end
+				break
+			end
+		end
+		return stamp
+	end
+	stamp = buildFalloffStamp(rQ, shape, aQ, cQ, lQ, rrQ, ss)
+	falloffStampCache[key] = stamp
+	falloffStampOrder[#falloffStampOrder + 1] = key
+	while #falloffStampOrder > FALLOFF_STAMP_LIMIT do
+		local oldKey = falloffStampOrder[1]
+		table.remove(falloffStampOrder, 1)
+		falloffStampCache[oldKey] = nil
+	end
+	return stamp
+end
+
 local function applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale, clayMode, opacity, flattenHeight, instant)
 	local squareSize = Game.squareSize
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
 	lengthScale = lengthScale or 1.0
-
-	local extent = radius * max(1, lengthScale) * 1.42
-
-	local minX = max(0, floor((centerX - extent) / squareSize) * squareSize)
-	local maxX = min(mapSizeX, floor((centerX + extent) / squareSize) * squareSize)
-	local minZ = max(0, floor((centerZ - extent) / squareSize) * squareSize)
-	local maxZ = min(mapSizeZ, floor((centerZ + extent) / squareSize) * squareSize)
 
 	-- Clay mode: compute a target plane at center height + full brush displacement
 	local clayPlane
@@ -475,87 +655,107 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 
 	opacity = opacity or 0.3
 
+	-- Falloff stamp: precomputed per-cell falloff field keyed by quantised
+	-- (radius, shape, angle, curve, length, ringRatio). Skips per-cell sin/cos
+	-- and pow when reused across ticks of the same brush.
+	local stamp = getFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ringInnerRatio, squareSize)
+	local sw    = stamp.w
+	local sh    = stamp.h
+	local sCx   = stamp.cx
+	local sCz   = stamp.cz
+	local sdata = stamp.data
+	-- Snap brush center to nearest grid cell (sub-quantisation visual change up
+	-- to squareSize/2 ≈ 4 world units; required so the cached stamp aligns).
+	local centerCellX = floor(centerX / squareSize + 0.5)
+	local centerCellZ = floor(centerZ / squareSize + 0.5)
+
 	-- Reuse scratch tables to reduce per-frame allocation
 	local heightData = scratchHeightData
 	local snapFlat = scratchSnapFlat
 	local hIdx = 0
 	local sCount = 0
 
-	for z = minZ, maxZ, squareSize do
-		for x = minX, maxX, squareSize do
-			local dx = x - centerX
-			local dz = z - centerZ
-			local falloff = computeFalloff(dx, dz, radius, shape, angleDeg, curve, lengthScale)
+	for iz = 0, sh - 1 do
+		local sBase = iz * sw
+		local zCell = centerCellZ + (iz - sCz)
+		local z = zCell * squareSize
+		if z >= 0 and z <= mapSizeZ then
+			for ix = 0, sw - 1 do
+				local falloff = sdata[sBase + ix + 1]
+				if falloff then
+					local xCell = centerCellX + (ix - sCx)
+					local x = xCell * squareSize
+					if x >= 0 and x <= mapSizeX then
+						local current = Spring.GetGroundHeight(x, z)
+						-- Write to flat scratch buffer (no sub-table allocation)
+						local base = sCount * 3
+						snapFlat[base + 1] = x
+						snapFlat[base + 2] = z
+						snapFlat[base + 3] = current
+						sCount = sCount + 1
 
-			if falloff then
-				local current = Spring.GetGroundHeight(x, z)
-				-- Write to flat scratch buffer (no sub-table allocation)
-				local base = sCount * 3
-				snapFlat[base + 1] = x
-				snapFlat[base + 2] = z
-				snapFlat[base + 3] = current
-				sCount = sCount + 1
+						local newHeight
 
-				local newHeight
-
-				if instant then
-					-- Stamp mode: directly lerp toward the target cap height in one step
-					if direction > 0 and heightMax then
-						newHeight = current + (heightMax - current) * falloff
-					elseif direction < 0 and heightMin then
-						newHeight = current + (heightMin - current) * falloff
-					elseif direction == 0 then
-						local targetHeight = flattenHeight or Spring.GetGroundHeight(centerX, centerZ)
-						newHeight = current + (targetHeight - current) * falloff
-						if heightMin then newHeight = max(heightMin, newHeight) end
-						if heightMax then newHeight = min(heightMax, newHeight) end
-					else
-						-- Fallback for direction==2 (random) or missing cap
-						local delta = direction * HEIGHT_STEP * falloff * intensity * opacity
-						newHeight = current + delta
-						if heightMin then newHeight = max(heightMin, newHeight) end
-						if heightMax then newHeight = min(heightMax, newHeight) end
-					end
-				elseif direction == 2 then
-					local delta = (math.random() * 2 - 1) * HEIGHT_STEP * falloff * intensity * opacity
-					newHeight = current + delta
-				elseif direction == 0 then
-					local targetHeight = flattenHeight or Spring.GetGroundHeight(centerX, centerZ)
-					local diff = targetHeight - current
-					local blend = min(1.0, falloff * opacity * intensity)
-					newHeight = current + diff * blend
-				else
-					if clayMode then
-						if direction > 0 and current < clayPlane then
-							local gap = clayPlane - current
-							newHeight = current + gap * falloff * opacity * intensity
-							newHeight = min(newHeight, clayPlane)
-						elseif direction < 0 and current > clayPlane then
-							local gap = current - clayPlane
-							newHeight = current - gap * falloff * opacity * intensity
-							newHeight = max(newHeight, clayPlane)
+						if instant then
+							-- Stamp mode: directly lerp toward the target cap height in one step
+							if direction > 0 and heightMax then
+								newHeight = current + (heightMax - current) * falloff
+							elseif direction < 0 and heightMin then
+								newHeight = current + (heightMin - current) * falloff
+							elseif direction == 0 then
+								local targetHeight = flattenHeight or Spring.GetGroundHeight(centerX, centerZ)
+								newHeight = current + (targetHeight - current) * falloff
+								if heightMin then newHeight = max(heightMin, newHeight) end
+								if heightMax then newHeight = min(heightMax, newHeight) end
+							else
+								-- Fallback for direction==2 (random) or missing cap
+								local delta = direction * HEIGHT_STEP * falloff * intensity * opacity
+								newHeight = current + delta
+								if heightMin then newHeight = max(heightMin, newHeight) end
+								if heightMax then newHeight = min(heightMax, newHeight) end
+							end
+						elseif direction == 2 then
+							local delta = (math.random() * 2 - 1) * HEIGHT_STEP * falloff * intensity * opacity
+							newHeight = current + delta
+						elseif direction == 0 then
+							local targetHeight = flattenHeight or Spring.GetGroundHeight(centerX, centerZ)
+							local diff = targetHeight - current
+							local blend = min(1.0, falloff * opacity * intensity)
+							newHeight = current + diff * blend
 						else
-							newHeight = current
+							if clayMode then
+								if direction > 0 and current < clayPlane then
+									local gap = clayPlane - current
+									newHeight = current + gap * falloff * opacity * intensity
+									newHeight = min(newHeight, clayPlane)
+								elseif direction < 0 and current > clayPlane then
+									local gap = current - clayPlane
+									newHeight = current - gap * falloff * opacity * intensity
+									newHeight = max(newHeight, clayPlane)
+								else
+									newHeight = current
+								end
+							else
+								local delta = direction * HEIGHT_STEP * falloff * intensity * opacity
+								newHeight = current + delta
+							end
 						end
-					else
-						local delta = direction * HEIGHT_STEP * falloff * intensity * opacity
-						newHeight = current + delta
+
+						if not instant then
+							if heightMin then
+								newHeight = max(heightMin, newHeight)
+							end
+							if heightMax then
+								newHeight = min(heightMax, newHeight)
+							end
+						end
+
+						hIdx = hIdx + 1
+						local he = heightData[hIdx]
+						if he then he[1] = x; he[2] = z; he[3] = newHeight
+						else heightData[hIdx] = {x, z, newHeight} end
 					end
 				end
-
-				if not instant then
-					if heightMin then
-						newHeight = max(heightMin, newHeight)
-					end
-					if heightMax then
-						newHeight = min(heightMax, newHeight)
-					end
-				end
-
-				hIdx = hIdx + 1
-				local he = heightData[hIdx]
-				if he then he[1] = x; he[2] = z; he[3] = newHeight
-				else heightData[hIdx] = {x, z, newHeight} end
 			end
 		end
 	end
@@ -1391,70 +1591,27 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 		local snapshot = undoStack[#undoStack]
 		undoStack[#undoStack] = nil
-		local vertexCount = snapshot.vertexCount or #snapshot / 3
+		local vertexCount = snapshot.vertexCount or 0
 		totalVertexCount = totalVertexCount - vertexCount
 
-		-- Capture current heights for redo and compute bounding box
-		local redoSnapshot = {}
-		local bx0, bz0, bx1, bz1
-		local diagMaxDelta = 0
-		local diagDeltaCount = 0
-		for i = 0, vertexCount - 1 do
-			local base = i * 3
-			local x = snapshot[base + 1]
-			local z = snapshot[base + 2]
-			local curH = Spring.GetGroundHeight(x, z)
-			local snapH = snapshot[base + 3]
-			redoSnapshot[base + 1] = x
-			redoSnapshot[base + 2] = z
-			redoSnapshot[base + 3] = curH
-			local delta = math.abs(curH - snapH)
-			if delta > 0.01 then diagDeltaCount = diagDeltaCount + 1 end
-			if delta > diagMaxDelta then diagMaxDelta = delta end
-			if not bx0 then bx0, bz0, bx1, bz1 = x, z, x, z end
-			if x < bx0 then bx0 = x elseif x > bx1 then bx1 = x end
-			if z < bz0 then bz0 = z elseif z > bz1 then bz1 = z end
-		end
-		redoSnapshot.vertexCount = vertexCount
+		-- Capture current heights into a parallel bbox snapshot for redo
+		local redoSnapshot = captureCurrentForSnapshot(snapshot)
+		redoSnapshot.strokeId = snapshot.strokeId
 
 		if DIAG then
-			Spring.Echo(string.format("[TFBrush DIAG] UNDO: verts=%d changed=%d maxDelta=%.2f remaining=%d",
-				vertexCount, diagDeltaCount, diagMaxDelta, #undoStack - 1))
+			Spring.Echo(string.format("[TFBrush DIAG] UNDO: verts=%d remaining=%d",
+				vertexCount, #undoStack))
 		end
 
 		-- Restore the before-heights via SetHeightMapFunc (batched, single RecalcArea)
-		applyHeightChangesFlat(snapshot, vertexCount)
-
-		-- Post-undo verification: check that ground actually matches snapshot
-		if DIAG then
-			local postMismatch = 0
-			local postMaxErr = 0
-			for i = 0, vertexCount - 1 do
-				local base = i * 3
-				local x = snapshot[base + 1]
-				local z = snapshot[base + 2]
-				local expected = snapshot[base + 3]
-				local actual = Spring.GetGroundHeight(x, z)
-				local err = math.abs(actual - expected)
-				if err > 0.5 then
-					postMismatch = postMismatch + 1
-					if err > postMaxErr then postMaxErr = err end
-				end
-			end
-			if postMismatch > 0 then
-				Spring.Echo(string.format("[TFBrush DIAG] UNDO VERIFY FAIL: %d verts mismatch, maxErr=%.2f",
-					postMismatch, postMaxErr))
-			else
-				Spring.Echo("[TFBrush DIAG] UNDO VERIFY OK: all heights restored")
-			end
-		end
+		applySnapshotHeights(snapshot)
 
 		if vertexCount > 0 then
 			redoStack[#redoStack + 1] = redoSnapshot
 			totalVertexCount = totalVertexCount + vertexCount
 			if #redoStack > MAX_UNDO then
 				local old = redoStack[1]
-				totalVertexCount = totalVertexCount - (old.vertexCount or #old / 3)
+				totalVertexCount = totalVertexCount - (old.vertexCount or 0)
 				table.remove(redoStack, 1)
 			end
 		end
@@ -1473,22 +1630,13 @@ function gadget:RecvLuaMsg(msg, playerID)
 		finalizeMerge()
 
 		-- If a previous stroke undo is still in progress, flush it immediately
-		if #pendingUndoEntries > 0 then
+		if pendingUndoEntries and #pendingUndoEntries > 0 then
 			for i = 1, #pendingUndoEntries do
 				local entry = pendingUndoEntries[i]
-				local vertexCount = entry.vertexCount or #entry / 3
-				local redoSnapshot = {}
-				for vi = 0, vertexCount - 1 do
-					local base = vi * 3
-					local x = entry[base + 1]
-					local z = entry[base + 2]
-					redoSnapshot[base + 1] = x
-					redoSnapshot[base + 2] = z
-					redoSnapshot[base + 3] = Spring.GetGroundHeight(x, z)
-				end
-				redoSnapshot.vertexCount = vertexCount
+				local vertexCount = entry.vertexCount or 0
+				local redoSnapshot = captureCurrentForSnapshot(entry)
 				redoSnapshot.strokeId = pendingUndoStrokeId
-				applyHeightChangesFlat(entry, vertexCount)
+				applySnapshotHeights(entry)
 				redoStack[#redoStack + 1] = redoSnapshot
 				totalVertexCount = totalVertexCount + vertexCount
 			end
@@ -1505,7 +1653,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 			local top = undoStack[#undoStack]
 			if top.strokeId ~= targetStrokeId then break end
 			undoStack[#undoStack] = nil
-			local vertexCount = top.vertexCount or #top / 3
+			local vertexCount = top.vertexCount or 0
 			totalVertexCount = totalVertexCount - vertexCount
 			collected[#collected + 1] = top
 		end
@@ -1537,34 +1685,22 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 		local snapshot = redoStack[#redoStack]
 		redoStack[#redoStack] = nil
-		local vertexCount = snapshot.vertexCount or #snapshot / 3
+		local vertexCount = snapshot.vertexCount or 0
 		totalVertexCount = totalVertexCount - vertexCount
 
-		-- Capture current heights for undo and compute bounding box
-		local undoSnapshot = {}
-		local bx0, bz0, bx1, bz1
-		for i = 0, vertexCount - 1 do
-			local base = i * 3
-			local x = snapshot[base + 1]
-			local z = snapshot[base + 2]
-			undoSnapshot[base + 1] = x
-			undoSnapshot[base + 2] = z
-			undoSnapshot[base + 3] = Spring.GetGroundHeight(x, z)
-			if not bx0 then bx0, bz0, bx1, bz1 = x, z, x, z end
-			if x < bx0 then bx0 = x elseif x > bx1 then bx1 = x end
-			if z < bz0 then bz0 = z elseif z > bz1 then bz1 = z end
-		end
-		undoSnapshot.vertexCount = vertexCount
+		-- Capture current heights into a parallel bbox snapshot for undo
+		local undoSnapshot = captureCurrentForSnapshot(snapshot)
+		undoSnapshot.strokeId = snapshot.strokeId
 
 		-- Re-apply the terraform heights via SetHeightMapFunc (batched, single RecalcArea)
-		applyHeightChangesFlat(snapshot, vertexCount)
+		applySnapshotHeights(snapshot)
 
 		if vertexCount > 0 then
 			undoStack[#undoStack + 1] = undoSnapshot
 			totalVertexCount = totalVertexCount + vertexCount
 			if #undoStack > MAX_UNDO then
 				local old = undoStack[1]
-				totalVertexCount = totalVertexCount - (old.vertexCount or #old / 3)
+				totalVertexCount = totalVertexCount - (old.vertexCount or 0)
 				table.remove(undoStack, 1)
 			end
 		end
@@ -1675,29 +1811,34 @@ function gadget:RecvLuaMsg(msg, playerID)
 		local squareSize = Game.squareSize
 		local mapSizeX = Game.mapSizeX
 		local mapSizeZ = Game.mapSizeZ
-		-- Snapshot current heights for undo, then restore originals
-		local snapshot = {}
+		-- Snapshot current heights into the scratch flat buffer for undo, then
+		-- convert to bbox-grid format. Full-map snapshots are the ideal case for
+		-- the orig-delta encoding: every cell that already matches its map
+		-- original gets mask=2 with no hgrid entry stored.
+		local snapFlat = scratchSnapFlat
 		local vCount = 0
 		for iz = 0, mapSizeZ, squareSize do
 			for ix = 0, mapSizeX, squareSize do
 				local base = vCount * 3
-				snapshot[base + 1] = ix
-				snapshot[base + 2] = iz
-				snapshot[base + 3] = Spring.GetGroundHeight(ix, iz)
+				snapFlat[base + 1] = ix
+				snapFlat[base + 2] = iz
+				snapFlat[base + 3] = Spring.GetGroundHeight(ix, iz)
 				vCount = vCount + 1
 			end
 		end
-		snapshot.vertexCount = vCount
-		-- Clear redo, push snapshot to undo
+		-- Clear redo, build bbox snapshot and push to undo (bypassing the per-call
+		-- vertex-cap check in pushSnapshotFromFlat — full-restore is intentional).
 		for i = 1, #redoStack do
-			totalVertexCount = totalVertexCount - (redoStack[i].vertexCount or #redoStack[i] / 3)
+			totalVertexCount = totalVertexCount - (redoStack[i].vertexCount or 0)
 		end
 		redoStack = {}
+		local snapshot = flatToBboxSnapshot(snapFlat, vCount)
+		snapshot.strokeId = currentStrokeId
 		undoStack[#undoStack + 1] = snapshot
 		totalVertexCount = totalVertexCount + vCount
 		if #undoStack > MAX_UNDO then
 			local old = undoStack[1]
-			totalVertexCount = totalVertexCount - (old.vertexCount or #old / 3)
+			totalVertexCount = totalVertexCount - (old.vertexCount or 0)
 			table.remove(undoStack, 1)
 		end
 		evictOldSnapshots()

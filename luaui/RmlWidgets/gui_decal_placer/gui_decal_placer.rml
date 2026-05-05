@@ -14,42 +14,47 @@
 			<div class="fp-quit-btn" onclick="widget:OnQuit()"><img class="fp-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 
-		<div class="flex flex-row justify-between items-center mb-1">
-			<div class="text-lg text-light">DECALS</div>
-			<div class="text-sm text-keybind">
-				<span>{{selectedCount}}</span> selected
+		<div class="fp-section-frame">
+			<div class="fp-section-title-row">
+				<div class="text-lg text-light">DECALS</div>
+			</div>
+			<div class="flex flex-row justify-between items-center mb-1">
+				<div class="text-sm text-keybind">Shift+Click to select multiple</div>
+				<div class="text-sm text-keybind"><span>{{selectedCount}}</span> selected</div>
+			</div>
+			<div class="fp-cat-row">
+				<div class="fp-cat-btn" data-class-active="activeCategory == 'all'"          data-event-click="onCategorySelect('all')"><span class="fp-cat-label">All</span></div>
+				<div class="fp-cat-btn" data-class-active="activeCategory == 'scars'"        data-event-click="onCategorySelect('scars')"><span class="fp-cat-label">Scars</span></div>
+				<div class="fp-cat-btn" data-class-active="activeCategory == 'explosions'"   data-event-click="onCategorySelect('explosions')"><span class="fp-cat-label">Explos.</span></div>
+				<div class="fp-cat-btn" data-class-active="activeCategory == 'tracks'"       data-event-click="onCategorySelect('tracks')"><span class="fp-cat-label">Tracks</span></div>
+				<div class="fp-cat-btn" data-class-active="activeCategory == 'builds'"       data-event-click="onCategorySelect('builds')"><span class="fp-cat-label">Builds</span></div>
+				<div class="fp-cat-btn" data-class-active="activeCategory == 'footprints'"   data-event-click="onCategorySelect('footprints')"><span class="fp-cat-label">Foot</span></div>
+				<div class="fp-cat-btn" data-class-active="activeCategory == 'scorch'"       data-event-click="onCategorySelect('scorch')"><span class="fp-cat-label">Scorch</span></div>
+				<div class="fp-cat-btn" data-class-active="activeCategory == 'groundplates'" data-event-click="onCategorySelect('groundplates')"><span class="fp-cat-label">Plates</span></div>
+				<div class="fp-cat-btn" data-class-active="activeCategory == 'other'"        data-event-click="onCategorySelect('other')"><span class="fp-cat-label">Other</span></div>
 			</div>
 		</div>
-		<div class="text-sm text-keybind mb-1" style="text-align: right;">Shift+Click to select multiple</div>
-
-		<div class="fp-cat-row">
-			<div class="fp-cat-btn" data-class-active="activeCategory == 'all'"          data-event-click="onCategorySelect('all')"><span class="fp-cat-label">All</span></div>
-			<div class="fp-cat-btn" data-class-active="activeCategory == 'scars'"        data-event-click="onCategorySelect('scars')"><span class="fp-cat-label">Scars</span></div>
-			<div class="fp-cat-btn" data-class-active="activeCategory == 'explosions'"   data-event-click="onCategorySelect('explosions')"><span class="fp-cat-label">Explos.</span></div>
-			<div class="fp-cat-btn" data-class-active="activeCategory == 'tracks'"       data-event-click="onCategorySelect('tracks')"><span class="fp-cat-label">Tracks</span></div>
-			<div class="fp-cat-btn" data-class-active="activeCategory == 'builds'"       data-event-click="onCategorySelect('builds')"><span class="fp-cat-label">Builds</span></div>
-			<div class="fp-cat-btn" data-class-active="activeCategory == 'footprints'"   data-event-click="onCategorySelect('footprints')"><span class="fp-cat-label">Foot</span></div>
-			<div class="fp-cat-btn" data-class-active="activeCategory == 'scorch'"       data-event-click="onCategorySelect('scorch')"><span class="fp-cat-label">Scorch</span></div>
-			<div class="fp-cat-btn" data-class-active="activeCategory == 'groundplates'" data-event-click="onCategorySelect('groundplates')"><span class="fp-cat-label">Plates</span></div>
-			<div class="fp-cat-btn" data-class-active="activeCategory == 'other'"        data-event-click="onCategorySelect('other')"><span class="fp-cat-label">Other</span></div>
-		</div>
-
-		<div class="fp-search-wrapper mb-1">
-			<input type="text" id="dp-search" class="fp-search-input" placeholder="Search decals..."
-				data-value="search"
-				data-event-focus="onSearchFocus()"
-				data-event-blur="onSearchBlur()"
-				data-event-change="onSearchChange()" />
-			<div class="fp-search-clear-btn" data-event-click="onSearchClear()">
-				<img class="fp-search-clear-icon" src="/luaui/images/terraform_brush/close.png" />
+		<div class="fp-section-frame">
+			<div class="fp-section-title-row">
+				<div class="text-lg text-light">BROWSE</div>
 			</div>
+			<div class="flex flex-row gap-1 mb-1">
+				<div class="fp-search-wrapper" style="flex: 1;">
+					<input type="text" id="dp-search" class="fp-search-input" placeholder="Search decals..."
+						data-value="search"
+						data-event-focus="onSearchFocus()"
+						data-event-blur="onSearchBlur()"
+						data-event-change="onSearchChange()" />
+					<div class="fp-search-clear-btn" data-event-click="onSearchClear()">
+						<img class="fp-search-clear-icon" src="/luaui/images/terraform_brush/close.png" />
+					</div>
+				</div>
+				<div class="fp-clr-btn" onclick="widget:OnClearSelection()">
+					<div class="fp-btn-text">CLR</div>
+				</div>
+			</div>
+			<div id="dp-tile-list" class="fp-feature-list gap-2"></div>
 		</div>
-
-		<div class="fp-clr-btn mb-1" onclick="widget:OnClearSelection()">
-			<div class="fp-btn-text">CLR</div>
-		</div>
-
-		<div id="dp-tile-list" class="fp-feature-list gap-2"></div>
 	</div>
 </body>
 </rml>

@@ -100,8 +100,10 @@ body {
 }
 
 .fp-cat-btn {
-	padding: 4dp 8dp;
-	font-size: 1.1rem;
+	flex: 1;
+	min-width: 62dp;
+	padding: 7dp 6dp;
+	font-size: 1.15rem;
 	color: #9ca3af;
 	background-color: #2a2a32;
 	border: 1dp #3a3a4a80;
@@ -111,7 +113,8 @@ body {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	gap: 3dp;
+	justify-content: center;
+	gap: 4dp;
 }
 
 .fp-cat-btn:hover {
@@ -127,8 +130,8 @@ body {
 
 /* === Category Icon Image === */
 .fp-cat-icon {
-	width: 14dp;
-	height: 14dp;
+	width: 18dp;
+	height: 18dp;
 }
 
 /* === Category Label === */
@@ -194,7 +197,7 @@ body {
 
 .fp-thumb-rocks { background-color: #78716c; }
 .fp-thumb-trees { background-color: #4ade80; }
-.fp-thumb-bushes { background-color: #86efac; }
+.fp-thumb-foliage { background-color: #86efac; }
 .fp-thumb-crystals { background-color: #a78bfa; }
 .fp-thumb-christmas { background-color: #fbbf24; }
 .fp-thumb-raptor { background-color: #f87171; }
@@ -270,6 +273,28 @@ body {
 .fp-search-clear-icon {
 	width: 10dp;
 	height: 10dp;
+}
+
+/* === Section Frames === */
+.fp-section-frame {
+	position: relative;
+	margin-top: 14dp;
+	margin-bottom: 6dp;
+	padding: 7dp 4dp 4dp 4dp;
+	border: 1dp #4a4a6899;
+	border-radius: 4dp;
+}
+
+.fp-section-title-row {
+	position: absolute;
+	top: -10dp;
+	left: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+	background-color: #1d1d1d;
+	padding: 0 5dp;
 }
 
 /* === CLR Button (full width, matching searchbar) === */

@@ -624,6 +624,11 @@ body {
 	background-color: #3a1a1a;
 }
 
+.tf-btn-lower .tf-icon-md {
+	width: 38dp;
+	height: 38dp;
+}
+
 .tf-btn-level.active {
 	border-color: #06b6d4;
 	background-color: #1a2a3a;
@@ -1193,8 +1198,8 @@ body {
 
 /* === Header Buttons (shared base) === */
 .tf-header-btn {
-	width: 26dp;
-	height: 26dp;
+	width: 22dp;
+	height: 22dp;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1202,7 +1207,7 @@ body {
 	border-radius: 5dp;
 	border: 1dp #40404a60;
 	background-color: #2a2a34;
-	margin-right: 4dp;
+	margin-right: 3dp;
 	flex-shrink: 0;
 	transition: background-color 0.15s;
 	decorator: vertical-gradient(#3a3a46 #1e1e28);
@@ -1217,8 +1222,8 @@ body {
 }
 
 .tf-header-icon {
-	width: 16dp;
-	height: 16dp;
+	width: 14dp;
+	height: 14dp;
 }
 
 /* === Sound Toggle Button === */
@@ -2590,6 +2595,14 @@ body {
 	margin-top: 0;
 }
 
+/* frame-shape sits inside the tf-shape-row wrapper and precedes tf-terraform-controls.
+ * When expanded, the default margin-bottom of 10dp creates a 24dp visual gap to the
+ * DISPLAY section (10 + 14dp wrapper mt), while collapsed→collapsed gaps are only 18dp.
+ * Lock it to 4dp so the SHAPE→DISPLAY gap is consistent with all other section gaps. */
+#frame-shape {
+	margin-bottom: 4dp;
+}
+
 /* === Stronger Section Divider (use between major groups) === */
 .tf-section-divider {
 	height: 1dp;
@@ -2645,6 +2658,17 @@ body {
 	border-color: #4a6a8080;
 }
 #section-sliders .tf-overlay-chip.active .tf-overlay-chip-label {
+	color: #b8c0cc;
+}
+#section-fp-controls .tf-overlay-chip.active {
+	background-color: #20263a;
+	border-color: #3a5a7060;
+}
+#section-fp-controls .tf-overlay-chip.active:hover {
+	background-color: #28304a;
+	border-color: #4a6a8080;
+}
+#section-fp-controls .tf-overlay-chip.active .tf-overlay-chip-label {
 	color: #b8c0cc;
 }
 

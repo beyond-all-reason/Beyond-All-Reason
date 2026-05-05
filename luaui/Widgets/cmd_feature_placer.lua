@@ -128,14 +128,14 @@ local featureDefListBuilt = false
 local featureCategories = {} -- { categoryName = { {name=..., id=...}, ... } }
 
 local CATEGORY_ORDER = {
-	"rocks", "trees", "bushes", "crystals", "christmas",
+	"rocks", "trees", "foliage", "crystals", "christmas",
 	"raptor", "armada_wrecks", "cortex_wrecks", "legion_wrecks", "other",
 }
 
 local CATEGORY_LABELS = {
 	rocks = "Rocks",
 	trees = "Trees",
-	bushes = "Bushes & Plants",
+	foliage = "Foliage",
 	crystals = "Crystals",
 	christmas = "Christmas",
 	raptor = "Raptor",
@@ -178,11 +178,11 @@ local function classifyFeature(name, def)
 		return "trees"
 	end
 
-	-- Bushes and small plants
+	-- Foliage and small plants
 	if name:find("^ad0_bush") or name:find("^artbush") or name:find("^peyote")
 	   or name:find("^pedro") or name:find("^fern") or name:find("^cycas")
 	   or name:find("^mushroom") then
-		return "bushes"
+		return "foliage"
 	end
 
 	-- Faction wrecks (features created from unit deaths)

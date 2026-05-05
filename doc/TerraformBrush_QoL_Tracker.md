@@ -518,6 +518,20 @@
 |---|--------|-------|------|--------|--------|------|
 | I6 | ⬜ | **Undo split on large drags** — `MAX_MERGE_VERTICES = 40000` silently splits single drags. Surface feedback or raise limit. | gadget | Small | Medium | 🧠 |
 
+| # | Status | Issue | File | Effort | Impact | Auto |
+|---|--------|-------|------|--------|--------|------|
+| I7 | ✅ | **RmlUI icon blowout — white flat artifact from semi-transparent PNG** — RmlUI (Recoil) does NOT correctly composite pixels with 0 < A < 255. Anti-aliased/feathered alpha renders as solid white blob. Fix: binary-alpha threshold — A > 64 → RGBA(255,255,255,255), else → RGBA(0,0,0,0). Applied to `lower.png`, `rock.png`, `xmas.png`, `crystal.png`. Grey remapping (220/255) does NOT fix this. | `luaui/images/terraform_brush/mode_lower.png`, `fp_rock.png`, `fp_xmas.png`, `fp_crystal.png` | Trivial | Medium | 🤖 |
+
+> **Root cause:** RmlUI composites semi-transparent pixels as fully opaque white. Source PNGs with
+> smooth anti-aliased edges (A between 1–254) all bleed white. Only binary alpha (0 or 255) works.
+> **Fix pattern (PowerShell):**
+> ```
+> if ($px.A -gt 64) { RGBA(255,255,255,255) } else { RGBA(0,0,0,0) }
+> ```
+> **Rule for future icons:** Export with binary alpha only. No anti-aliasing, no feathered edges.
+> If source art has smooth alpha, run threshold post-process before committing.
+> Post-process scripts: `tools/fix_rock_xmas.ps1`, `tools/import_crystal.ps1`.
+
 > **Context:** `MAX_MERGE_VERTICES = 40000` at gadget L65. Used in `pushSnapshot()` (L234+) — when
 > a merge exceeds this count, a new undo entry is started. The user experiences this as "undo only
 > goes back partway through my drag." Options: (a) raise the limit (costs more memory per undo slot),

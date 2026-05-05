@@ -11,7 +11,7 @@
 .dp-root .dp-tile-host {
 	width: 84dp;
 	height: 84dp;
-	margin: 4dp;
+	margin: 2dp;
 }
 
 .dp-root .dp-tile-host > .fp-feature-item {
