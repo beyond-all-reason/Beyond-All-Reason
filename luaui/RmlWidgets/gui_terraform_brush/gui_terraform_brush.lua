@@ -8894,6 +8894,8 @@ function widget:Update()
 				local tShape, tMode = state.shape, state.mode
 				local rotationIrrelevant = (tShape == "circle") or (tShape == "fill")
 				ctx.setDisabled(doc, "param-rotation-row", rotationIrrelevant)
+				-- Length irrelevant for circle/fill shapes (no directional footprint to stretch)
+				ctx.setDisabled(doc, "param-length-row", (tShape == "circle") or (tShape == "fill"))
 				-- Intensity meaningful for raise/lower/smooth/noise/ramp/restore; irrelevant only for level
 				ctx.setDisabled(doc, "param-intensity-row", tMode == "level")
 				-- Height cap (min/max) irrelevant for ramp and restore modes

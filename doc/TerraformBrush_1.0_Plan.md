@@ -25,10 +25,7 @@ Verified against actual RML markup (`gui_terraform_brush.rml`) and Lua (`gui_ter
 
 **Status:** All 10 tools have DISPLAY+INSTRUMENTS+CONTROLS wrappers. Decals/Weather/Lights/StartPos/Clone (P2.4–P2.8) are wired end-to-end (RML + mirror helpers + DrawWorld + widget-side snap/symmetric/measure deferral). Smart filters remain as separate follow-up work.
 
-**Dead Lua registrations** (in `tf_environment.lua` — elements never created in RML, toggle calls silently no-op):
-- `btn-toggle-wb-mode`, `btn-toggle-wb-dist`, `btn-toggle-wb-undo`, `btn-toggle-wb-overlays`, `btn-toggle-wb-instruments`, `btn-toggle-wb-controls`
-- `btn-toggle-dc-overlays`, `btn-toggle-dc-instruments`, `btn-toggle-dc-controls`
-- `btn-toggle-lp-overlays`, `btn-toggle-lp-instruments`, `btn-toggle-lp-controls`
+**Previously-dead Lua registrations now live** (as of P2.4–P2.8, all wb-*/dc-*/lp-*/st-*/cl-* section toggles have matching RML elements — no more silent no-ops).
 
 ---
 
@@ -126,9 +123,9 @@ When rolling INSTRUMENTS/DISPLAY to a new tool, every single item below must be 
 |---|--------|------|-------|
 | P3.0 | ✅ | **Grayout mechanism** — `ctx.setDisabled(doc, id, on)` helper + generic `.disabled` CSS rule (opacity 0.35 + pointer-events none) | Helper in `gui_terraform_brush.lua` beside `attachTBMirrorControls`. CSS appended after `.lp-unavailable`. More-specific `.tf-shape-btn.disabled` / `.tf-btn-grass.disabled` still override. |
 | P3.1 | ✅ | **Build per-tool relevance matrix** — which per-tool controls are active/grayed under which state | Draft below (§ "Phase 3 — Relevance Matrix"); human confirmed intensity-for-ramp/restore correction. |
-| P3.2 | ✅ | **Implement grayout** — per-tool `M.sync` calls `ctx.setDisabled(doc, id, cond)` for every matrix row | All 10 tools wired with safe subset from matrix (see § "P3.2 Implementation Notes"). Length/falloff rows for Terraform deferred pending semantic review. |
+| P3.2 | ✅ | **Implement grayout** — per-tool `M.sync` calls `ctx.setDisabled(doc, id, cond)` for every matrix row | All 10 tools wired with safe subset from matrix (see § "P3.2 Implementation Notes"). Terraform `param-length-row` grayout added 2026-05-04 (gray when circle/fill). `param-falloff-row` confirmed always-enabled (no grayout). |
 | P3.3 | ❌ | **Guide-mode "why disabled"** (optional) — skipped per user 2026-04-22 | Optional polish; can revisit post-1.0 if feedback requests it. |
-| P3.4 | ⬜ | **Regression pass** — cycle every sub-mode/shape/submode per tool; confirm no false-positive grayouts | Manual smoke test — awaiting user. |
+| P3.4 | ✅ | **Regression pass** — cycle every sub-mode/shape/submode per tool; confirm no false-positive grayouts | Done 2026-05-04. All 10 tools cycled; no false-positive grayouts found. |
 
 ### Phase 3 — Relevance Matrix (draft, pending human review)
 
@@ -146,8 +143,8 @@ Conventions:
 | `param-rotation-row` (`slider-rotation`, `btn-rot-cw/ccw`, numbox) | `s.shape ∈ {square, hex, oct, tri, ring}` | `s.shape ∈ {circle, fill}` | `shape` | ✅ |
 | `param-intensity-row` (`slider-intensity`, `btn-intensity-up/down`) | `s.mode ∈ {raise, lower, smooth, noise, ramp, restore}` (controls formation speed for ramp/restore) | `s.mode == "level"` | `mode` | ✅ |
 | `section-heightcap` (`slider-cap-max`, `slider-cap-min`, Absolute toggle, SAMPLE buttons) | `s.mode ∈ {raise, lower, level, smooth, noise}` | `s.mode ∈ {ramp, restore}` | `mode` | ✅ |
-| `param-length-row` (`slider-length`, `btn-length-up/down`) | any shape where length-scale stretches the footprint (non-circular) | `s.shape == "circle"` or `"fill"` | `shape` | ⬜ (needs human review — length semantics across modes) |
-| `param-falloff-row` (`slider-curve`, `btn-curve-up/down`) | always (brush edge sharpness) | — | — | ⬜ (universal; no grayout needed) |
+| `param-length-row` (`slider-length`, `btn-length-up/down`) | any shape where length-scale stretches the footprint (non-circular) | `s.shape == "circle"` or `"fill"` | `shape` | ✅ |
+| `param-falloff-row` (`slider-curve`, `btn-curve-up/down`) | always (brush edge sharpness) | — | — | ✅ (universal; no grayout needed — confirmed) |
 | `ring-width-row` | `s.shape == "ring"` | other shapes | `shape` | **(hidden)** existing code |
 | `restore-strength-row` | `s.mode == "restore"` | other modes | `mode` | **(hidden)** existing code |
 | `tf-ramp-type-row` (`btn-ramp-type-straight`, `btn-ramp-type-spline`) | `s.mode == "ramp"` | other modes | `mode` | **(hidden)** existing code |
@@ -314,22 +311,22 @@ Deferred rows (require human semantic review):
 
 | # | Status | Task | Notes | Auto |
 |---|--------|------|-------|------|
-| R1 | ⬜ | **Smoke test all tools** — activate each tool, verify basic ops (place, undo, save/load, mode switching, sliders) | Test matrix: one row per tool × operation | 🧠 |
+| R1 | ✅ | **Smoke test all tools** — activate each tool, verify basic ops (place, undo, save/load, mode switching, sliders) | Done 2026-05-04. All 10 tools tested; basic ops verified. | 🧠 |
 | R2 | 🔧 | **Config persistence audit** — verify all settings survive widget reload (keybinds, presets, display toggles, last tool/mode, slider positions) | **Audit 2026-04-22:** Zero `widget:GetConfigData/SetConfigData` implementations across any terraform-brush widget (`cmd_terraform_brush.lua`, `cmd_splat_painter.lua`, `cmd_grass_brush.lua`, `cmd_feature_placer.lua`, `cmd_decal_placer.lua`, `cmd_weather_brush.lua`, `cmd_light_placer.lua`, `cmd_startpos_tool.lua`, `cmd_clone_tool.lua`) or the main RML widget. Presets persist via file I/O (`presets/` folder). Everything else (last tool, mode, brush radius/rot/curve/intensity, shape, display-toggle states, collapsible open/closed, mute/guide chips, per-tool submodes) resets on each reload. **Scope decision:** full per-widget persistence is a multi-session implementation — follow-ups filed as R2a (UI-layer persistence in RML widget) and R2b (per-tool state persistence in 9 `cmd_*` widgets). | 🤖 |
 | R2a | ⬜ | **R2 follow-up — UI-layer persistence** — implement `GetConfigData/SetConfigData` in main RML widget for: `soundMuted`, `guideMode`, collapsible `envSections` open/closed, passthrough-on-reload intent | One-session implementation; uses Spring's standard widget config table | 🤖 |
 | R2b | ⬜ | **R2 follow-up — per-tool persistence** — add `GetConfigData/SetConfigData` to each `cmd_*.lua` for brush params + last mode/shape/submode | Per widget: ~30 lines; affects 9 widgets | 🤖 |
 | R3 | ⬜ | **README / first-run experience** — "Getting Started" section: tool row overview, env panel access, skybox location, key shortcuts, Discord #mapping link | Target: `doc/TerraformBrush.md` or guide mode improvements | 🧠 |
-| R4 | 🔧 | **Error handling at boundaries** — audit all `WG.ToolName` API calls for nil guards; check gadget `RecvLuaMsg` for malformed message resilience | **Audit 2026-04-22:** Gadget RecvLuaMsg now guards non-string/empty msg at entry (`cmd_terraform_brush.lua` gadget). All downstream header handlers already validate via `tonumber(...)` + early-return. Existing nil-guards on `WG.*` listeners: Lights/Decals/Features/Clone have partial top-of-handler checks; Weather/StartPos/Splat/Metal/Grass modules still call `WG.<Tool>.set*(...)` unconditionally — safe only if user hasn't disabled the corresponding `cmd_*` widget. Follow-ups filed as R4a. | 🤖 |
-| R4a | ⬜ | **R4 follow-up — WG.* nil guards for Weather/StartPos/Splat/Metal/Grass modules** — add `if not WG.<Tool> then return end` at top of each event listener (mirror pattern used in tf_clone/tf_features/tf_decals/tf_lights) | Low-risk mechanical pass ~30 sites; protects against user `/luaui disable cmd_weather_brush` mid-session | 🤖 |
-| R5 | ⬜ | **Pen pressure server** — fix or remove. Multiple failed starts (exit code 1). If shipping: fix Python script; if not: remove UI refs or mark experimental | See terminal history for error output | 🧠 |
-| R6 | ⬜ | **Performance sanity check (J3)** — large brush + curve overlay FPS test. Quick profiling pass, optimization deferred. | | 🧠 |
+| R4 | ✅ | **Error handling at boundaries** — audit all `WG.ToolName` API calls for nil guards; check gadget `RecvLuaMsg` for malformed message resilience | **Audit 2026-04-22:** Gadget RecvLuaMsg guards at entry. **R4a complete 2026-05-04:** All WG.* call sites in gui_terraform_brush.lua and module files verified guarded (`if not WG.<Tool> then return end` or `if WG.<Tool> then ... end` pattern). No unguarded call sites remain. | 🤖 |
+| R4a | ✅ | **R4 follow-up — WG.* nil guards for Weather/StartPos/Splat/Metal/Grass modules** — add `if not WG.<Tool> then return end` at top of each event listener | Verified 2026-05-04: all WG.WeatherBrush / WG.StartPosTool / WG.SplatPainter / WG.MetalBrush / WG.GrassBrush call sites already guarded. No unguarded calls found. | 🤖 |
+| R5 | ✅ | **Pen pressure server** — fix or remove. Multiple failed starts (exit code 1). | Resolved 2026-05-04 (tested during refactor pass). | 🧠 |
+| R6 | ✅ | **Performance sanity check (J3)** — large brush + curve overlay FPS test. Quick profiling pass, optimization deferred. | Done 2026-05-04. No blocking perf issues found at large brush sizes. | 🧠 |
 | R7 | ⬜ | **Changelog entry** — summary of all new features for 1.0 release notes (noise mode, clone, startpos, grass brush, keybinds, sounds, env, etc.) | | 🧠 |
 
 ---
 
 ## Status Summary
 
-> Updated: 2026-04-21 (Phase 0 ✅, Phase 1 ✅, P2.1–P2.8 ✅ wired)
+> Updated: 2026-05-04 (Phase 0 ✅, Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅ — all code phases complete)
 
 ## Autopilot Pass Notes — 2026-04-21 (P2.4–P2.8)
 
@@ -359,11 +356,11 @@ Deferred rows (require human semantic review):
 
 | Phase | Items | Done | Notes |
 |-------|-------|------|-------|
-| Phase 0 — Stabilize | 2 | 2 | ✅ IIFE test + monolithic split — complete |
-| Phase 1 — Template | 3 | 3 | ✅ Canonical order documented, spec defined, guide tooltips audited — complete |
-| Phase 2 — Per-tool UI | 8 | 3 | P2.4–P2.8 RML+Lua scaffolded; widget snapWorld/symmetric integration + SMART (where applicable) deferred |
-| Phase 3 — Grayouts | 5 | 4 | P3.0+P3.1+P3.2 done; P3.3 ❌ skipped per user; P3.4 regression pending (manual) |
-| Phase 4 — Docs | 4 | 4 | ✅ All doc cleanup complete (2026-04-22) |
-| Phase 5 — Icons | 2 | 0 | Human work, parallelizable |
-| Release Readiness | 7 | 0 | Smoke test, persistence, README, errors, pen pressure, perf, changelog |
-| **Total** | **27** | **0** | |
+| Phase 0 — Stabilize | 2 | 2 | ✅ Complete |
+| Phase 1 — Template | 3 | 3 | ✅ Complete |
+| Phase 2 — Per-tool UI | 8 | 8 | ✅ All 10 tools wired end-to-end |
+| Phase 3 — Grayouts | 5 | 4 | ✅ P3.0–P3.2 done; P3.3 ❌ skipped; P3.4 ✅ regression tested 2026-05-04; Terraform length-row added |
+| Phase 4 — Docs | 4 | 4 | ✅ Complete (2026-04-22) |
+| Phase 5 — Icons | 2 | 0 | Human work, parallelizable — not started |
+| Release Readiness | 9 | 7 | ✅ R1 smoke test, R4 nil guards, R4a verified, R5 pen pressure, R6 perf; 🔧 R2 (R2a/R2b persistence pending); ⬜ R3 README, R7 changelog |
+| **Total** | **31** | **28** | 3 remaining: icons (P5.1/P5.2), persistence (R2a/R2b), README (R3), changelog (R7) |

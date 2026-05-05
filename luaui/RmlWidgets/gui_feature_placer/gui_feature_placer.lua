@@ -713,7 +713,7 @@ local function attachEventListeners()
 	if not doc then return end
 
 	-- Category buttons
-	local catKeys = { "all", "rocks", "trees", "bushes", "crystals", "christmas", "raptor", "armada_wrecks", "cortex_wrecks", "legion_wrecks", "other" }
+	local catKeys = { "all", "rocks", "trees", "foliage", "crystals", "christmas", "raptor", "armada_wrecks", "cortex_wrecks", "legion_wrecks", "other" }
 	for _, key in ipairs(catKeys) do
 		local btn = doc:GetElementById("btn-cat-" .. key)
 		if btn then

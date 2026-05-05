@@ -9,7 +9,7 @@
 <body data-model="terraform_brush_model">
 	<div id="tf-root" class="tf-root hidden widget-shadow rounded-md bg-darkest p-2-5">
 		<div class="flex flex-row justify-between items-center mb-2">
-			<div id="tf-handle" class="tf-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Terraform Brush</div>
+			<div id="tf-handle" class="tf-drag-handle font-bold text-light text-outline-darker" style="flex: 1; font-size: 16dp;">TERRAFORM BRUSH</div>
 			<div id="btn-sound" class="tf-header-btn tf-sound-btn" data-class-muted="soundMuted" data-event-mousedown="onGuideToggleSound()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/volume.png" /></div>
 			<div id="btn-guide" class="tf-header-btn tf-guide-btn" data-class-active="guideMode" data-event-mousedown="onGuideToggle()"><span>?</span></div>
 			<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -5435,21 +5435,29 @@
 			<div id="tf-env-water-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Water</div>
 			<div id="btn-env-water-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
-		<div class="text-sm text-light font-bold mb-1">WATER TYPE</div>
-		<div class="flex flex-row gap-1 mb-2" style="flex-wrap: wrap;">
-			<div id="btn-wtype-default" class="tf-wtype-btn tf-wtype-active"><div class="tf-wtype-btn-text">Default</div></div>
-			<div id="btn-wtype-ocean" class="tf-wtype-btn"><div class="tf-wtype-btn-text">Ocean</div></div>
-			<div id="btn-wtype-lava" class="tf-wtype-btn"><div class="tf-wtype-btn-text">Lava</div></div>
-			<div id="btn-wtype-acid" class="tf-wtype-btn"><div class="tf-wtype-btn-text">Acid</div></div>
-			<div id="btn-wtype-swamp" class="tf-wtype-btn"><div class="tf-wtype-btn-text">Swamp</div></div>
-			<div id="btn-wtype-ice" class="tf-wtype-btn"><div class="tf-wtype-btn-text">Ice</div></div>
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title">WATER TYPE</div>
+			</div>
+			<div class="flex flex-row gap-1" style="flex-wrap: wrap;">
+				<div id="btn-wtype-default" class="tf-wtype-btn tf-wtype-active"><div class="tf-wtype-btn-text">Default</div></div>
+				<div id="btn-wtype-ocean" class="tf-wtype-btn"><div class="tf-wtype-btn-text">Ocean</div></div>
+				<div id="btn-wtype-lava" class="tf-wtype-btn"><div class="tf-wtype-btn-text">Lava</div></div>
+				<div id="btn-wtype-acid" class="tf-wtype-btn"><div class="tf-wtype-btn-text">Acid</div></div>
+				<div id="btn-wtype-swamp" class="tf-wtype-btn"><div class="tf-wtype-btn-text">Swamp</div></div>
+				<div id="btn-wtype-ice" class="tf-wtype-btn"><div class="tf-wtype-btn-text">Ice</div></div>
+			</div>
 		</div>
-		<div class="text-sm text-light font-bold mb-1">FLUID LEVEL</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-env-wl-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-			<input type="range" id="slider-env-wl" class="tf-slider" min="-500" max="500" step="0.5" value="0" />
-			<div id="btn-env-wl-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-			<input type="text" id="slider-env-wl-numbox" class="tf-slider-numbox" value="0.0" />
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title">FLUID LEVEL</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center">
+				<div id="btn-env-wl-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input type="range" id="slider-env-wl" class="tf-slider" min="-500" max="500" step="0.5" value="0" />
+				<div id="btn-env-wl-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<input type="text" id="slider-env-wl-numbox" class="tf-slider-numbox" value="0.0" />
+			</div>
 		</div>
 		<div id="env-water-std-sections">
 		<div class="tf-section-frame" id="env-frame-wtoggle">
@@ -5942,73 +5950,83 @@
 		</div>
 
 		<!-- MAP SIZE (read-only) -->
-		<div class="tf-collapsible-title mb-1">MAP SIZE</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 70dp;">width (X)</div>
-			<div class="text-sm text-light" id="lbl-dim-map-x">{{envMapXStr}}</div>
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 70dp;">depth (Z)</div>
-			<div class="text-sm text-light" id="lbl-dim-map-z">{{envMapZStr}}</div>
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title">MAP SIZE</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 70dp;">width (X)</div>
+				<div class="text-sm text-light" id="lbl-dim-map-x">{{envMapXStr}}</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center">
+				<div class="text-sm text-keybind" style="width: 70dp;">depth (Z)</div>
+				<div class="text-sm text-light" id="lbl-dim-map-z">{{envMapZStr}}</div>
+			</div>
 		</div>
 
 		<!-- HEIGHT EXTREMES -->
-		<div class="flex flex-row items-center mb-1">
-			<div class="tf-collapsible-title" style="flex: 1;">HEIGHT EXTREMES</div>
-			<div id="btn-dim-refresh-extremes" class="tf-env-reset-btn" data-event-click="onEnvDimRefresh()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/redo.png" /></div>
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 70dp;">init min</div>
-			<div class="text-sm text-light" id="lbl-dim-init-min">{{envInitMinStr}}</div>
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 70dp;">init max</div>
-			<div class="text-sm text-light" id="lbl-dim-init-max">{{envInitMaxStr}}</div>
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 70dp;">curr min</div>
-			<div class="text-sm text-light font-bold" id="lbl-dim-curr-min">{{envCurrMinStr}}</div>
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 70dp;">curr max</div>
-			<div class="text-sm text-light font-bold" id="lbl-dim-curr-max">{{envCurrMaxStr}}</div>
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title" style="flex: 1;">HEIGHT EXTREMES</div>
+				<div id="btn-dim-refresh-extremes" class="tf-env-reset-btn" data-event-click="onEnvDimRefresh()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/redo.png" /></div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 70dp;">init min</div>
+				<div class="text-sm text-light" id="lbl-dim-init-min">{{envInitMinStr}}</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 70dp;">init max</div>
+				<div class="text-sm text-light" id="lbl-dim-init-max">{{envInitMaxStr}}</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 70dp;">curr min</div>
+				<div class="text-sm text-light font-bold" id="lbl-dim-curr-min">{{envCurrMinStr}}</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center">
+				<div class="text-sm text-keybind" style="width: 70dp;">curr max</div>
+				<div class="text-sm text-light font-bold" id="lbl-dim-curr-max">{{envCurrMaxStr}}</div>
+			</div>
 		</div>
 
 		<!-- WATER LEVEL -->
-		<div class="flex flex-row items-center mb-1">
-			<div class="tf-collapsible-title" style="flex: 1;">WATER LEVEL</div>
-			<div id="btn-dim-reset-waterlevel" class="tf-env-reset-btn" data-event-click="onEnvResetWaterLevel()">RESET</div>
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 70dp;">plane level</div>
-			<div class="text-sm text-light" id="lbl-dim-water-plane">{{envWaterPlaneStr}}</div>
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 70dp;">adjust</div>
-			<input type="text" id="input-dim-waterlevel" class="tf-dim-input" value="0" />
-			<div id="btn-dim-waterlevel-apply" class="tf-action-btn tf-save-btn" data-event-click="onEnvApplyWaterLevel()">
-				<div class="tf-action-btn-text">SET</div>
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title" style="flex: 1;">WATER LEVEL</div>
+				<div id="btn-dim-reset-waterlevel" class="tf-env-reset-btn" data-event-click="onEnvResetWaterLevel()">RESET</div>
 			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 70dp;">plane level</div>
+				<div class="text-sm text-light" id="lbl-dim-water-plane">{{envWaterPlaneStr}}</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 70dp;">adjust</div>
+				<input type="text" id="input-dim-waterlevel" class="tf-dim-input" value="0" />
+				<div id="btn-dim-waterlevel-apply" class="tf-action-btn tf-save-btn" data-event-click="onEnvApplyWaterLevel()">
+					<div class="tf-action-btn-text">SET</div>
+				</div>
+			</div>
+			<div class="text-xs text-keybind">+ = lower terrain. &#x2212; = raise terrain.</div>
 		</div>
-		<div class="text-xs text-keybind mb-1">+ = lower terrain. &#x2212; = raise terrain.</div>
 
 		<!-- HEIGHT BOUNDS -->
-		<div class="flex flex-row items-center mb-1">
-			<div class="tf-collapsible-title" style="flex: 1;">HEIGHT BOUNDS</div>
-			<div id="btn-dim-reset-bounds" class="tf-env-reset-btn" data-event-click="onEnvResetBounds()">RESET</div>
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 70dp;">min height</div>
-			<input type="text" id="input-dim-minheight" class="tf-dim-input" value="" />
-			<div id="btn-dim-minheight-apply" class="tf-action-btn" data-event-mousedown="onEnvApplyMinHeight()">
-				<div class="tf-action-btn-text">SET</div>
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title" style="flex: 1;">HEIGHT BOUNDS</div>
+				<div id="btn-dim-reset-bounds" class="tf-env-reset-btn" data-event-click="onEnvResetBounds()">RESET</div>
 			</div>
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 70dp;">max height</div>
-			<input type="text" id="input-dim-maxheight" class="tf-dim-input" value="" />
-			<div id="btn-dim-maxheight-apply" class="tf-action-btn" data-event-mousedown="onEnvApplyMaxHeight()">
-				<div class="tf-action-btn-text">SET</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 70dp;">min height</div>
+				<input type="text" id="input-dim-minheight" class="tf-dim-input" value="" />
+				<div id="btn-dim-minheight-apply" class="tf-action-btn" data-event-mousedown="onEnvApplyMinHeight()">
+					<div class="tf-action-btn-text">SET</div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center">
+				<div class="text-sm text-keybind" style="width: 70dp;">max height</div>
+				<input type="text" id="input-dim-maxheight" class="tf-dim-input" value="" />
+				<div id="btn-dim-maxheight-apply" class="tf-action-btn" data-event-mousedown="onEnvApplyMaxHeight()">
+					<div class="tf-action-btn-text">SET</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -6019,63 +6037,71 @@
 			<div id="tf-splattex-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Splat Tex Params</div>
 			<div id="btn-splattex-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
-		<div class="text-sm text-light font-bold mb-1">SPLAT TEX MULTIPLIERS</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 20dp;">0</div>
-			<div id="btn-env-splatmult-0-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-			<input type="range" id="slider-env-splatmult-0" class="tf-slider" min="0" max="1500" step="1" value="0" />
-			<div id="btn-env-splatmult-0-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-			<input type="text" id="slider-env-splatmult-0-numbox" class="tf-slider-numbox" value="0" />
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title">SPLAT TEX MULTIPLIERS</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 20dp;">0</div>
+				<div id="btn-env-splatmult-0-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input type="range" id="slider-env-splatmult-0" class="tf-slider" min="0" max="1500" step="1" value="0" />
+				<div id="btn-env-splatmult-0-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<input type="text" id="slider-env-splatmult-0-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 20dp;">1</div>
+				<div id="btn-env-splatmult-1-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input type="range" id="slider-env-splatmult-1" class="tf-slider" min="0" max="1500" step="1" value="0" />
+				<div id="btn-env-splatmult-1-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<input type="text" id="slider-env-splatmult-1-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 20dp;">2</div>
+				<div id="btn-env-splatmult-2-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input type="range" id="slider-env-splatmult-2" class="tf-slider" min="0" max="1500" step="1" value="0" />
+				<div id="btn-env-splatmult-2-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<input type="text" id="slider-env-splatmult-2-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+			<div class="flex flex-row gap-1 items-center">
+				<div class="text-sm text-keybind" style="width: 20dp;">3</div>
+				<div id="btn-env-splatmult-3-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input type="range" id="slider-env-splatmult-3" class="tf-slider" min="0" max="1500" step="1" value="0" />
+				<div id="btn-env-splatmult-3-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<input type="text" id="slider-env-splatmult-3-numbox" class="tf-slider-numbox" value="0" />
+			</div>
 		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 20dp;">1</div>
-			<div id="btn-env-splatmult-1-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-			<input type="range" id="slider-env-splatmult-1" class="tf-slider" min="0" max="1500" step="1" value="0" />
-			<div id="btn-env-splatmult-1-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-			<input type="text" id="slider-env-splatmult-1-numbox" class="tf-slider-numbox" value="0" />
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 20dp;">2</div>
-			<div id="btn-env-splatmult-2-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-			<input type="range" id="slider-env-splatmult-2" class="tf-slider" min="0" max="1500" step="1" value="0" />
-			<div id="btn-env-splatmult-2-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-			<input type="text" id="slider-env-splatmult-2-numbox" class="tf-slider-numbox" value="0" />
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 20dp;">3</div>
-			<div id="btn-env-splatmult-3-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-			<input type="range" id="slider-env-splatmult-3" class="tf-slider" min="0" max="1500" step="1" value="0" />
-			<div id="btn-env-splatmult-3-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-			<input type="text" id="slider-env-splatmult-3-numbox" class="tf-slider-numbox" value="0" />
-		</div>
-		<div class="text-sm text-light font-bold mb-1">SPLAT TEX SCALES</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 20dp;">0</div>
-			<div id="btn-env-splatscale-0-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-			<input type="range" id="slider-env-splatscale-0" class="tf-slider" min="0" max="200" step="1" value="0" />
-			<div id="btn-env-splatscale-0-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-			<input type="text" id="slider-env-splatscale-0-numbox" class="tf-slider-numbox" value="0" />
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 20dp;">1</div>
-			<div id="btn-env-splatscale-1-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-			<input type="range" id="slider-env-splatscale-1" class="tf-slider" min="0" max="200" step="1" value="0" />
-			<div id="btn-env-splatscale-1-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-			<input type="text" id="slider-env-splatscale-1-numbox" class="tf-slider-numbox" value="0" />
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 20dp;">2</div>
-			<div id="btn-env-splatscale-2-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-			<input type="range" id="slider-env-splatscale-2" class="tf-slider" min="0" max="200" step="1" value="0" />
-			<div id="btn-env-splatscale-2-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-			<input type="text" id="slider-env-splatscale-2-numbox" class="tf-slider-numbox" value="0" />
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-keybind" style="width: 20dp;">3</div>
-			<div id="btn-env-splatscale-3-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-			<input type="range" id="slider-env-splatscale-3" class="tf-slider" min="0" max="200" step="1" value="0" />
-			<div id="btn-env-splatscale-3-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-			<input type="text" id="slider-env-splatscale-3-numbox" class="tf-slider-numbox" value="0" />
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title">SPLAT TEX SCALES</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 20dp;">0</div>
+				<div id="btn-env-splatscale-0-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input type="range" id="slider-env-splatscale-0" class="tf-slider" min="0" max="200" step="1" value="0" />
+				<div id="btn-env-splatscale-0-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<input type="text" id="slider-env-splatscale-0-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 20dp;">1</div>
+				<div id="btn-env-splatscale-1-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input type="range" id="slider-env-splatscale-1" class="tf-slider" min="0" max="200" step="1" value="0" />
+				<div id="btn-env-splatscale-1-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<input type="text" id="slider-env-splatscale-1-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 20dp;">2</div>
+				<div id="btn-env-splatscale-2-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input type="range" id="slider-env-splatscale-2" class="tf-slider" min="0" max="200" step="1" value="0" />
+				<div id="btn-env-splatscale-2-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<input type="text" id="slider-env-splatscale-2-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+			<div class="flex flex-row gap-1 items-center">
+				<div class="text-sm text-keybind" style="width: 20dp;">3</div>
+				<div id="btn-env-splatscale-3-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input type="range" id="slider-env-splatscale-3" class="tf-slider" min="0" max="200" step="1" value="0" />
+				<div id="btn-env-splatscale-3-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<input type="text" id="slider-env-splatscale-3-numbox" class="tf-slider-numbox" value="0" />
+			</div>
 		</div>
 	</div>
 
