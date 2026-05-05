@@ -7,12 +7,12 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name    = "DGun Griefing Prevention",
-		desc    = "Prevents players from firing DGuns that intersect ally units and gives them both text and audio warning. Note that DGuns are always allowed if the commander is on the frontline.",
+		desc    = "Logs DGun commands that intersect allied units and echoes a warning when the threatened metal value is high enough.",
 		author  = "TheDujin, with Codex. DGun ally detection code by kroIya/Color",
 		date    = "2026-05-01",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
-        version = "1.1",
+        version = "1.2",
 		enabled = true,
 	}
 end
@@ -31,7 +31,6 @@ local spGetUnitLosState = Spring.GetUnitLosState
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetGameFrame = Spring.GetGameFrame
-local spPlaySoundFile = Spring.PlaySoundFile
 local spEcho = Spring.Echo
 
 local CMD_DGUN = CMD.DGUN
@@ -44,7 +43,7 @@ local DGUN_SAFETY_WIDTH = 100
 
 -- Approximate actual width of the dgun projectile
 local DGUN_WIDTH = 20
-local MIN_THREATENED_ALLY_METAL = 500
+local MIN_THREATENED_ALLY_METAL = 400
 
 -- 1500 is a bit more than the range of a Vanguard
 -- In my opinion, there is never a reason to even fire a DGun if there are no enemies within VANGUARD distance
@@ -58,9 +57,7 @@ local CONTACT_WINDOW_DURATION = 5 * 30 -- five seconds at 30 gameframes per seco
 local CONTACT_PRUNE_INTERVAL = 60 * 30 -- prune expired contacts every minute
 local nextContactPruneFrame = CONTACT_PRUNE_INTERVAL
 
--- Hook DGun commands into allow/disallow interface
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD_DGUN)
 end
 
 local function GetAllyTeamID(teamID)
@@ -171,22 +168,22 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, playerID, sx, sy, sz, ex
 				local d = DistPointToSegment(ux, uy, uz, sx, sy, sz, ex, ey, ez)
 				if d < unitRadius + DGUN_WIDTH / 2 then
 					local unitDef = unitDefID and UnitDefs[unitDefID]
-					threatenedAllyMetal = threatenedAllyMetal + (unitDef and unitDef.metalCost or 0)
+					local threatenedMetal = unitDef and unitDef.metalCost or 0
+					threatenedAllyMetal = threatenedAllyMetal + threatenedMetal
 				end
 			end
 		end
 	end
 
 	if threatenedAllyMetal >= MIN_THREATENED_ALLY_METAL then
-		spPlaySoundFile("sounds/ui/warning2.wav")
-		spEcho(string.format(
-			"WARNING: %s attempted to D-Gun allies. Please remember that the Code of Conduct prohibits griefing.",
-			GetPlayerName(playerID)
-		))
 		return true
 	end
 
-	return false
+	if threatenedAllyMetal == 0 then
+		return false
+	end
+	
+	return false, string.format("Only %d metal threatened (not enough)", threatenedAllyMetal)
 end
 
 -- If DGun target location is near a visible enemy, we leave the order alone
@@ -203,7 +200,7 @@ local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 		if unitTeam and unitTeam ~= gaiaTeamID and GetAllyTeamID(unitTeam) ~= myAllyTeam then
 			local losState = spGetUnitLosState(unitID, myAllyTeam, true)
 			if losState and (losState % 4) > 0 then
-				return true
+				return true, "Enemies on radar/LOS within range"
 			end
 		end
 	end
@@ -214,7 +211,7 @@ local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 		if ping.contactTeam ~= myAllyTeam then
 			local dx, dy, dz = ping.x - targetX, ping.y - targetY, ping.z - targetZ
 			if (dx * dx + dy * dy + dz * dz) <= (ENEMY_SCAN_RADIUS * ENEMY_SCAN_RADIUS) then
-				return true
+				return true, "Enemies recently on radar/seismic within range"
 			end
 		end
 	end
@@ -262,37 +259,73 @@ function gadget:GameFrame(currentFrame)
 	end
 end
 
--- Allow normal DGuns, block only ally-targeted hits. If an enemy is visible nearby, DGuns are always allowed.
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+-- Observe DGun commands and echo only. We do not block the command anymore.
+function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID ~= CMD_DGUN then
-		return true
+		return
 	end
 
 	local uDef = UnitDefs[unitDefID]
 	if not (uDef and uDef.customParams and uDef.customParams.iscommander) then
-		return true
+		return
 	end
 
 	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 	if not unitX then
-		return true
+		return
 	end
-	
+
 	local targetX, targetY, targetZ
 	if #cmdParams == 1 and cmdParams[1] > 0 then
 		targetX, targetY, targetZ = spGetUnitPosition(cmdParams[1])
 	else
 		targetX, targetY, targetZ = cmdParams[1], cmdParams[2], cmdParams[3]
 	end
-	if HasKnownEnemyNearby(teamID, targetX, targetY, targetZ) then
-		return true
-	end
-
-
 	if not targetX then
-		return true
+		return
 	end
 
 	local sx, sy, sz, ex, ey, ez = BuildDGunSegment(unitX, unitY, unitZ, targetX, targetY, targetZ)
-	return not HandleDGunAllyRisk(teamID, unitID, playerID, sx, sy, sz, ex, ey, ez)
+
+	local risksAllies, explanation = HandleDGunAllyRisk(teamID, unitID, playerID, sx, sy, sz, ex, ey, ez)
+
+	if not risksAllies then
+		if explanation then
+			spEcho(string.format(
+				"DGun analytics negative: player=%s frame=%d pos=(%.1f, %.1f, %.1f) reason=%s",
+				GetPlayerName(playerID),
+				spGetGameFrame(),
+				targetX, targetY, targetZ,
+				explanation
+			))
+		end
+		-- Else send no event as no allies were threatened at all
+		return
+	end
+
+	local enemiesNearby, explanation = HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
+
+	if enemiesNearby then
+		spEcho(string.format(
+			"DGun analytics negative: player=%s frame=%d pos=(%.1f, %.1f, %.1f) reason=%s",
+			GetPlayerName(playerID),
+			spGetGameFrame(),
+			targetX, targetY, targetZ,
+			explanation
+		))
+		return
+	end
+
+	spEcho(string.format(
+		"WARNING: %s attempted to D-Gun allies. Please remember that the Code of Conduct prohibits griefing.",
+		GetPlayerName(playerID)
+	))
+	spEcho(string.format(
+		"DGun analytics positive: player=%s frame=%d pos=(%.1f, %.1f, %.1f)",
+		GetPlayerName(playerID),
+		spGetGameFrame(),
+		targetX, targetY, targetZ
+	))
+
+
 end
