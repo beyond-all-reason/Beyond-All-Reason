@@ -228,7 +228,7 @@ end
 local function RemoveAreaLoadCoroutine(transporterID)
 	local index = transporterCoroutines[transporterID] and transporterCoroutines[transporterID].index
 	if not index then 
-		return SpEcho("Error in RemoveAreaLoadCoroutine: no coroutine found for transporterID " .. transporterID)
+		return spEcho("Error in RemoveAreaLoadCoroutine: no coroutine found for transporterID " .. transporterID)
 	end 
 	areaLoadCoroutines[index] = nil -- no need to clean up, killed from within
 	transporterCoroutines[transporterID] = nil
@@ -240,7 +240,7 @@ end
 local function RemoveSuccessiveCoroutine(transporterID)
 	local index = transporterCoroutines[transporterID] and transporterCoroutines[transporterID].index
 	if not index then 
-		return SpEcho("Error in RemoveSuccessiveCoroutine: no coroutine found for transporterID " .. transporterID)
+		return spEcho("Error in RemoveSuccessiveCoroutine: no coroutine found for transporterID " .. transporterID)
 	end 
 	successiveLoadCoroutines[index] = nil -- no need to clean up, killed from within	
 	transporterCoroutines[transporterID] = nil
@@ -453,26 +453,27 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 		repeat
 			-- global checks (write back into cache)
 			if not CanBeAutoClaimed(passengerID, transporterAllyTeam) then -- at worse, will be reconsidered in 8 frames
-				unitOffset = unitOffset + 1
-				units[i] = units[i + unitOffset]
+				units[i - unitOffset] = units[i + 1] -- overwrite previous invalid with next
+				unitOffset = unitOffset + 1 -- increment offset
 				break 
 			end
 			local passengerDefID = spGetUnitDefID(passengerID)
 			local passengerTeamID = spGetUnitTeam(passengerID)
 			local passengerSize = TransportAPI.GetPassengerSize(passengerID)
 			if not CanBeTransportedStatic(passengerID, passengerDefID, transporterID) then
-				unitOffset = unitOffset + 1
-				units[i] = units[i + unitOffset]
+				units[i - unitOffset] = units[i + 1] -- overwrite previous invalid with next
+				unitOffset = unitOffset + 1 -- increment offset
 				break 
 			end
 			local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
 			if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) then
-				unitOffset = unitOffset + 1
-				units[i] = units[i + unitOffset]
-				break
+				units[i - unitOffset] = units[i + 1] -- overwrite previous invalid with next
+				unitOffset = unitOffset + 1 -- increment offset
+				break 
 			end
 			-- transporter dependant checks (should not write back into cache)
 			if not TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, queuedSeats[transporterID]) then
+				units[i] = units[i + unitOffset] -- apply offset
 				break
 			end
 			local dx, dz    = passengerPosX - transporterPosX, passengerPosZ - transporterPosZ
@@ -483,7 +484,11 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 			local mDist = UnitDefs[passengerDefID].speed>0 and 0 or mobilityDist
 			local aDist = (passengerTeamID ~= transporterTeamID) and alliedDist or 0
 			local unitDist  =  rawDistSq + aDist + mDist
-			if unitDist >= bestDist then break end
+			if unitDist >= bestDist then
+				units[i] = units[i + unitOffset] -- apply offset
+				break 
+			end
+			units[i] = units[i + unitOffset] -- apply offset
 			bestDist = unitDist
 			bestUnit = passengerID
 		until true
@@ -764,10 +769,8 @@ function gadget:GameFrame(frame)
 	offset = 0
 	for i = 1, areaLoadCoroutinesCount do
 		local co =  areaLoadCoroutines[i] and areaLoadCoroutines[i].co or nil
-		if co then
+		if co then -- first handle the valid coroutines
 			local transporterID = areaLoadCoroutines[i].transporterID
-			-- option 1: update the index on "frame 3" without nil checking transporterID, right before the coroutine runs, before it can get removed, so the table is updated if it gets its removal code
-			transporterCoroutines[transporterID].index = i - offset
 			local status = coroutine.status(co)
 			if status == "suspended" then
 				local ok, err = coroutine.resume(co)
@@ -778,19 +781,24 @@ function gadget:GameFrame(frame)
 			else
 				RemoveAreaLoadCoroutine(transporterID)
 			end
-		else
-			offset = offset + 1
+		end
+		-- then prepare for the next frame
+		-- if the current coroutine became nil, it will be treated instantly
+		-- the other ones will be treated on the next frame
+		while areaLoadCoroutines[i + offset] == nil and (i + offset) <= areaLoadCoroutinesCount do
+		    offset = offset + 1
 		end
 		areaLoadCoroutines[i] = areaLoadCoroutines[i + offset]
-		-- options 2: update the index here, so on "frame 2", recquiring a nilcheck on transporterID beforehand
+		if i+offset <= areaLoadCoroutinesCount then  -- we should be in valid range. i don't nil check, because I actually want an error to show if this was nil despite being in the supposedly valid range for debug purposes.
+			transporterCoroutines[areaLoadCoroutines[i + offset].transporterID].index = i
+		end
 	end
 	areaLoadCoroutinesCount = areaLoadCoroutinesCount - offset
-	offset = 0 -- reuseable offset for successive loads
+	offset = 0 -- reuseable offset
 	for i = 1, successiveLoadCoroutinesCount do
 		local co = successiveLoadCoroutines[i] and successiveLoadCoroutines[i].co or nil
 		if co then
 			local transporterID = successiveLoadCoroutines[i].transporterID
-			transporterCoroutines[transporterID].index = i - offset -- keep the index updated before a possible removal
 			local status = coroutine.status(co)
 			if status == "suspended" then
 				local ok, err = coroutine.resume(co)
@@ -801,11 +809,14 @@ function gadget:GameFrame(frame)
 			else
 				RemoveSuccessiveCoroutine(transporterID)
 			end
-		else
-			offset = offset + 1
+		end
+		while successiveLoadCoroutines[i + offset] == nil and (i + offset) <= successiveLoadCoroutinesCount do
+		    offset = offset + 1
 		end
 		successiveLoadCoroutines[i] = successiveLoadCoroutines[i + offset]
-		-- do not nil the i+offset, it's either already nil, or is a valid coroutine that has to be processed first before its value is shifted to i+1+offset, until i+1+offset reaches nil
+		if i+offset <= successiveLoadCoroutinesCount then -- we should be in valid range. i don't nil check, because I actually want the error to show if this was nil despite being in the supposedly valid range, for debug purposes.
+			transporterCoroutines[successiveLoadCoroutines[i + offset].transporterID].index = i
+		end
 	end
 	successiveLoadCoroutinesCount = successiveLoadCoroutinesCount - offset
 end
