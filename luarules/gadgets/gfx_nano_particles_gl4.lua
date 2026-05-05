@@ -2615,15 +2615,15 @@ local function scanBuilders(frame)
 				end
 				if bp and bp > 0 then
 					if DEBUG then _dbgBuilders = _dbgBuilders + 1 end
-					-- Lazy nano-piece refresh: factories cheated in via /give (or
-					-- otherwise instantiated) often have an incomplete nanopiece
-					-- list at UnitCreated time because the COB script hasn't fully
-					-- registered them yet. Re-fetch on first activity, and once more
-					-- after a short delay for scripts that set pieces only inside
-					-- QueryNanoPiece. Non-factory builders get the right list at
-					-- UnitCreated, so skip the check for them.
+					-- Lazy nano-piece refresh: the COB/LUS script may not have
+					-- registered all nano pieces by the time getBuilderInfo is first
+					-- called (lazy, on first active scan). Re-fetch on first activity
+					-- (stage 0→1) and once more ~3s later (stage 1→2) to catch
+					-- scripts that register pieces inside QueryNanoPiece. Applies to
+					-- ALL builders, not just factories -- constructors with multiple
+					-- arms can also return a partial list on the first scan.
 					local refreshStage = info.piecesRefreshStage or 0
-					if refreshStage < 2 and info.isFactory then
+					if refreshStage < 2 then
 						local refreshAt = info.piecesRefreshAt
 						if refreshStage == 0 or (refreshAt and frame >= refreshAt) then
 							local fresh = spGetUnitNanoPieces(unitID)

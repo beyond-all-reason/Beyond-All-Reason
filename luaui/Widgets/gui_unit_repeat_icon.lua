@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name      = "Unit Repeat Icons", -- GL4
 		desc      = "Shows a repeat icon above units that have the repeat order enabled",
-		author    = "Copilot",
+		author    = "Floris",
 		date      = "2026",
 		license   = "GNU GPL, v2 or later",
 		layer     = -38,
@@ -46,6 +46,7 @@ end
 
 -- All visible units: [unitID] = unitDefID
 local visibleUnits    = {}
+local crashingUnits   = {} -- unitIDs currently crashing; skip icon for these
 local chobbyInterface = false
 
 --------------------------------------------------------------------------------
@@ -107,17 +108,19 @@ local function updateRepeatStates()
 	local dirty = false
 
 	for unitID, unitDefID in pairs(visibleUnits) do
-		local states = spGetUnitStates(unitID)
-		if states then
-			if states["repeat"] then
-				if not repeatVBO.instanceIDtoIndex[unitID] then
-					pushToVBO(unitID, unitDefID, gf)
-					dirty = true
-				end
-			else
-				if repeatVBO.instanceIDtoIndex[unitID] then
-					popElementInstance(repeatVBO, unitID, true)
-					dirty = true
+		if not crashingUnits[unitID] then
+			local states = spGetUnitStates(unitID)
+			if states then
+				if states["repeat"] then
+					if not repeatVBO.instanceIDtoIndex[unitID] then
+						pushToVBO(unitID, unitDefID, gf)
+						dirty = true
+					end
+				else
+					if repeatVBO.instanceIDtoIndex[unitID] then
+						popElementInstance(repeatVBO, unitID, true)
+						dirty = true
+					end
 				end
 			end
 		end
@@ -158,6 +161,14 @@ end
 
 function widget:VisibleUnitRemoved(unitID)
 	visibleUnits[unitID] = nil
+	crashingUnits[unitID] = nil
+	if repeatVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(repeatVBO, unitID)
+	end
+end
+
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
+	crashingUnits[unitID] = true
 	if repeatVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(repeatVBO, unitID)
 	end
