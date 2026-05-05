@@ -1059,6 +1059,7 @@ local function updateProjectileDistortions(newgameframe)
 			else
 				-- add projectile
 				local weapon, piece = spGetProjectileType(projectileID)
+				local weaponDefID = nil
 				if piece then
 					local explosionflags = spGetPieceProjectileParams(projectileID)
 					local gib = gibDistortion.distortionParamTable
@@ -1067,7 +1068,7 @@ local function updateProjectileDistortions(newgameframe)
 					gib[3] = pz
 					AddDistortion(projectileID, nil, nil, projectilePointDistortionVBO, gib, noUpload)
 				else
-					local weaponDefID = spGetProjectileDefID ( projectileID )
+					weaponDefID = spGetProjectileDefID ( projectileID )
 					local projectileDefDistortion = projectileDefDistortions[weaponDefID]
 					if projectileDefDistortion and ( projectileID % (projectileDefDistortion.fraction or 1) == 0 ) then
 						local distortionParamTable = projectileDefDistortion.distortionParamTable
@@ -1097,7 +1098,7 @@ local function updateProjectileDistortions(newgameframe)
 					end
 				end
 				numadded = numadded + 1
-				if debugproj then spEcho("Adding projdistortion", projectileID, spGetProjectileName(projectileID)) end
+				if debugproj then spEcho("Adding projdistortion", projectileID, weaponDefID) end
 				--trackedProjectiles[]
 				trackedProjectileTypes[projectileID] = distortionType
 			end
