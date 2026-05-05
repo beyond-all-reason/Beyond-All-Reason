@@ -52,7 +52,8 @@ for udid, unitDef in pairs(UnitDefs) do
 end
 
 -- All visible units: [unitID] = unitDefID
-local visibleUnits   = {}
+local visibleUnits    = {}
+local crashingUnits   = {} -- unitIDs currently crashing; skip icon for these
 local chobbyInterface = false
 
 --------------------------------------------------------------------------------
@@ -123,45 +124,46 @@ local function updateFireStates()
 	local retDirty  = false
 
 	for unitID, unitDefID in pairs(visibleUnits) do
-		local states = spGetUnitStates(unitID)
-		if states then
-			local fs = states.firestate
-			if fs == HOLD_FIRE then
-				-- Add to hold fire VBO if not already present
-				if not holdFireVBO.instanceIDtoIndex[unitID] then
-					pushToVBO(holdFireVBO, unitID, unitDefID, gf)
-					holdDirty = true
-				end
-				-- Remove from return fire VBO if present
-				if returnFireVBO.instanceIDtoIndex[unitID] then
-					popElementInstance(returnFireVBO, unitID, true)
-					retDirty = true
-				end
-			elseif fs == RETURN_FIRE then
-				-- Add to return fire VBO if not already present
-				if not returnFireVBO.instanceIDtoIndex[unitID] then
-					pushToVBO(returnFireVBO, unitID, unitDefID, gf)
-					retDirty = true
-				end
-				-- Remove from hold fire VBO if present
-				if holdFireVBO.instanceIDtoIndex[unitID] then
-					popElementInstance(holdFireVBO, unitID, true)
-					holdDirty = true
-				end
-			else
-				-- Fire at will (or other): remove from both VBOs
-				if holdFireVBO.instanceIDtoIndex[unitID] then
-					popElementInstance(holdFireVBO, unitID, true)
-					holdDirty = true
-				end
-				if returnFireVBO.instanceIDtoIndex[unitID] then
-					popElementInstance(returnFireVBO, unitID, true)
-					retDirty = true
+		if not crashingUnits[unitID] then
+			local states = spGetUnitStates(unitID)
+			if states then
+				local fs = states.firestate
+				if fs == HOLD_FIRE then
+					-- Add to hold fire VBO if not already present
+					if not holdFireVBO.instanceIDtoIndex[unitID] then
+						pushToVBO(holdFireVBO, unitID, unitDefID, gf)
+						holdDirty = true
+					end
+					-- Remove from return fire VBO if present
+					if returnFireVBO.instanceIDtoIndex[unitID] then
+						popElementInstance(returnFireVBO, unitID, true)
+						retDirty = true
+					end
+				elseif fs == RETURN_FIRE then
+					-- Add to return fire VBO if not already present
+					if not returnFireVBO.instanceIDtoIndex[unitID] then
+						pushToVBO(returnFireVBO, unitID, unitDefID, gf)
+						retDirty = true
+					end
+					-- Remove from hold fire VBO if present
+					if holdFireVBO.instanceIDtoIndex[unitID] then
+						popElementInstance(holdFireVBO, unitID, true)
+						holdDirty = true
+					end
+				else
+					-- Fire at will (or other): remove from both VBOs
+					if holdFireVBO.instanceIDtoIndex[unitID] then
+						popElementInstance(holdFireVBO, unitID, true)
+						holdDirty = true
+					end
+					if returnFireVBO.instanceIDtoIndex[unitID] then
+						popElementInstance(returnFireVBO, unitID, true)
+						retDirty = true
+					end
 				end
 			end
 		end
 	end
-
 	if holdDirty or holdFireVBO.dirty then
 		uploadAllElements(holdFireVBO)
 	end
@@ -201,6 +203,17 @@ end
 
 function widget:VisibleUnitRemoved(unitID)
 	visibleUnits[unitID] = nil
+	crashingUnits[unitID] = nil
+	if holdFireVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(holdFireVBO, unitID)
+	end
+	if returnFireVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(returnFireVBO, unitID)
+	end
+end
+
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
+	crashingUnits[unitID] = true
 	if holdFireVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(holdFireVBO, unitID)
 	end
