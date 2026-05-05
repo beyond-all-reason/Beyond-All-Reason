@@ -568,13 +568,13 @@ local function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeamI
 	-- if perfs are a concern, or if you want units to be split among area-loading transports, use one per frame
 	-- i personnally prefer in batch as it allows the commands to be instantly performed in some edge cases
 
-	if passengerID then
-		claimPassenger(transporterID, passengerID, TransportAPI.GetPassengerSize(passengerID), false)
-	end
-	--[[while passengerID do
+	--if passengerID then
+	--	claimPassenger(transporterID, passengerID, TransportAPI.GetPassengerSize(passengerID), false)
+	--end
+	while passengerID do
 		claimPassenger(transporterID, passengerID, TransportAPI.GetPassengerSize(passengerID), false)
 		passengerID = findUnitToTransport(transporterID, transporterDefID, transporterTeamID, cx, cz, radius)
-	end]]--
+	end
 
 	if queuedSeats[transporterID] == 0 then -- queuedSeats val ~= #transporterClaims but both are 0 when no queue.
 		areaLoadCoroutines[transporterID] = nil
