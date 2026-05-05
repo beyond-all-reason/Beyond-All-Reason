@@ -309,6 +309,18 @@ local function CanBeAutoClaimed(passengerID, transporterAllyTeam) -- things that
 	return not claimedBy[transporterAllyTeam][passengerID]
 end
 
+--[[
+local function SpawnWeakBeam(transporterID, passengerID, size)
+	-- spawn a weak beam or other visual indicator that the unit is within load range but can't be loaded yet; purely cosmetic to give feedback to the player; can be used for debugging the consecutiveFramesOverEnemyPassenger feature
+	local spawnPosX, spawnPosY, spawnPosZ = spGetUnitPosition(passengerID)
+	spawnPosY = spawnPosY + Spring.GetUnitHeight(passengerID)
+	local dirPosX, dirPosY, dirPosZ = spGetUnitPosition(transporterID)
+	local ratio = 0.7 * size
+	local dirX, dirY, dirZ = dirPosX - spawnPosX, dirPosY - spawnPosY, dirPosZ - spawnPosZ
+	Spring.SpawnCEG("tractorbeam_weak", spawnPosX, spawnPosY, spawnPosZ, dirX * ratio, dirY * ratio, dirZ * ratio, 1, 0)
+end
+]]
+
 ---
 --- @param passengerID number
 --- @param passengerTeamID number  -- passenger teamID
@@ -331,18 +343,21 @@ local function CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, 
 		local isStunned = Spring.GetUnitIsStunned(passengerID) -- the first bool is (beingBuilt OR stunned), but we supposedly already excluded beingBuilt
 		if not isStunned then
 			-- OPTIONAL: allow non stunned after x frames spent within load range of a barely moving unit.
-			
-			--[[local velX, velY, velZ, vw = spGetUnitVelocity(passengerID)
+			--[[
+			local velX, velY, velZ, vw = spGetUnitVelocity(passengerID)
 			if vw < 0.5 then
 				consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = (consecutiveFramesOverEnemyPassenger[transporterID][passengerID] or 0) + 1
 				Spring.Echo("Passenger " .. passengerID .. " has been within load range of transporter " .. transporterID .. " for " .. consecutiveFramesOverEnemyPassenger[transporterID][passengerID] .. " consecutive frames")
+				
+				SpawnWeakBeam(transporterID, passengerID, consecutiveFramesOverEnemyPassenger[transporterID][passengerID] / 60)
 				if consecutiveFramesOverEnemyPassenger[transporterID][passengerID] > minConsecutiveFramesToLoadEnemy then
 					consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil
 					return true
 				end
 			else
 				consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil -- reset counter if we move out of range or the unit starts moving again
-			end]]
+			end
+			]]
 			return false -- if the unit isn't stunned, it can't be transported 'yet' (not removed from queue)
 		end
 	end
