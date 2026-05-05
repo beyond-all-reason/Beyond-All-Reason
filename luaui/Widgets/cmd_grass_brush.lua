@@ -670,8 +670,6 @@ local function applyPaintBrush(worldX, worldZ, direction)
 	-- Minimum density that produces visible grass in the GL4 renderer
 	local minVisible = (config.grassMinSize or 1) / max(1, config.grassMaxSize or 20)
 
-	local filterActive = smartEnabled or texFilterEnabled
-
 	for x = xMin, xMax, patchRes do
 		for z = zMin, zMax, patchRes do
 			local dx, dz = x - worldX, z - worldZ
@@ -695,10 +693,6 @@ local function applyPaintBrush(worldX, worldZ, direction)
 					end
 					strokeSamplePatch(x, z)
 					grassApi.setDensityAt(x, z, newDensity)
-				elseif filterActive and direction > 0 then
-					-- Filter rejected this position: clear existing grass
-					strokeSamplePatch(x, z)
-					grassApi.setDensityAt(x, z, 0)
 				end
 			end
 		end
@@ -719,7 +713,6 @@ local function applyFillBrush(worldX, worldZ, direction)
 	local zMax = min(config.mapSizeZ, worldZ + brushRadius * brushLengthScale)
 
 	local fillDensity = (direction > 0) and targetDensity or 0
-	local filterActive = smartEnabled or texFilterEnabled
 
 	for x = xMin, xMax, patchRes do
 		for z = zMin, zMax, patchRes do
@@ -729,10 +722,6 @@ local function applyFillBrush(worldX, worldZ, direction)
 				if shouldApplyAt(x, z, patchRes, grassApi, config) then
 					strokeSamplePatch(x, z)
 					grassApi.setDensityAt(x, z, fillDensity)
-				elseif filterActive and direction > 0 then
-					-- Filter rejected this position: clear existing grass
-					strokeSamplePatch(x, z)
-					grassApi.setDensityAt(x, z, 0)
 				end
 			end
 		end
