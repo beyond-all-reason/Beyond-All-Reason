@@ -68,7 +68,7 @@ void main()
 		return;
 	}
 
-	vec3 worldXYZ = vec3(worldpos_radius.x, groundHeight + 3.0, worldpos_radius.z);
+	vec3 worldXYZ = vec3(worldpos_radius.x, groundHeight + 5.0, worldpos_radius.z);
 	vertexWorldPos = vertexWorldPos * (12.0 + ROTDIR) * 2.0 * worldpos_radius.w + worldXYZ;
 
 	//dump to FS:
