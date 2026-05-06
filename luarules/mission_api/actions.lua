@@ -11,7 +11,6 @@ local isFeatureNameUntracked = tracking.IsFeatureNameUntracked
 local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
 local trackedFeatureIDs = GG['MissionAPI'].trackedFeatureIDs
 local triggers = GG['MissionAPI'].Triggers
-local broadcast = VFS.Include('luarules/mission_api/broadcast.lua')
 
 
 ----------------------------------------------------------------
@@ -28,7 +27,7 @@ end
 
 local function changeStage(stage)
 	GG['MissionAPI'].CurrentStageID = stage
-	broadcast.StageChanged(stage)
+	Spring.Echo("Stage set to: " .. stage)
 end
 
 local function updateObjective(objectiveID, completed, text, unitName, featureName)
@@ -55,9 +54,12 @@ local function updateObjective(objectiveID, completed, text, unitName, featureNa
 		end
 	end
 
-	broadcast.ObjectiveUpdated(objectiveID, objective.text, objective.progress, objective.amount, objective.completed)
+	Spring.Echo("Object updated: " .. objectiveID
+		.. " | " .. (objective.text or '')
+		.. " | progress: " .. tostring(objective.progress)
+		.. " | amount: " .. tostring(objective.amount)
+		.. " | completed: " .. tostring(objective.completed))
 end
-
 local function issueOrders(unitName, orders)
 	if isUnitNameUntracked(unitName) then return end
 

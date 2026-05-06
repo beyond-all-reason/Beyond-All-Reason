@@ -44,7 +44,7 @@ local function isTriggerValid(trigger)
 		if not triggers[prerequisiteTriggerID].triggered then return false end
 	end
 
-	if not table.contains(trigger.settings.stages, GG['MissionAPI'].CurrentStageID) then return false end
+	if next(trigger.settings.stages) and not table.contains(trigger.settings.stages, GG['MissionAPI'].CurrentStageID) then return false end
 
 	if trigger.triggered and not trigger.settings.repeating then return false end
 	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then return false end

@@ -16,9 +16,7 @@ end
 
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 
-local scriptPath
 local stagesController, objectivesController, triggersController, actionsController
-local broadcast
 
 local function loadMission(scriptPath)
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
@@ -84,8 +82,6 @@ function gadget:Initialize()
 	GG['MissionAPI'].soundFiles          = {}
 	GG['MissionAPI'].soundQueue          = {}
 
-	broadcast = VFS.Include('luarules/mission_api/broadcast.lua')
-
 	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
 	stagesController = VFS.Include('luarules/mission_api/stages_loader.lua')
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
@@ -100,7 +96,7 @@ function gadget:GamePreload()
 	loadoutModule.SpawnFeatureLoadout(GG['MissionAPI'].FeatureLoadout)
 
 	if next(GG['MissionAPI'].Stages) then
-		broadcast.StageChanged(GG['MissionAPI'].CurrentStageID)
+		Spring.Echo("Stage set to: " .. GG['MissionAPI'].CurrentStageID)
 	end
 end
 
