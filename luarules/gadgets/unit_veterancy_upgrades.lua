@@ -72,6 +72,7 @@ local armorTypeMin = 0
 local armorTypeMax = #Game.armorTypes
 local armorTypeTargets = { default = true, vtol = true, sub = true, mine = true }
 local autoHealInterval = math_round(Game.gameSpeed * 0.5) -- match engine interval
+local autoHealFraction = Game.gameSpeed / autoHealInterval
 
 local powerScale = Spring.GetModOptions().veterancy_power_scale
 local healthScale = Spring.GetModOptions().veterancy_health_scale
@@ -486,7 +487,7 @@ function gadget:GameFramePost(frame)
 			if spGetUnitIsDead(unitID) == false then
 				local health, healthMax = spGetUnitHealth(unitID)
 				if health < healthMax then
-					spSetUnitHealth(unitID, math_min(health + autoHeal, healthMax))
+					spSetUnitHealth(unitID, math_min(health + autoHeal * autoHealFraction, healthMax))
 				end
 			else
 				unitAutoHeal[unitID] = nil
