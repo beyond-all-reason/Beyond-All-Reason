@@ -101,6 +101,7 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 				uDef.health = 790
 				uDef.metalcost = 240
 				uDef.radardistancejam = 500
+				uDef.sightdistance = 195
 			end
 		end
 
