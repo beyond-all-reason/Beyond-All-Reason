@@ -1618,7 +1618,7 @@ local options = {
     {
         key     = "community_balance_corjamt",
         name    = "(CBP) Castro",
-        desc    = "(New)\nBuild time, energy, upkeep, health, metal, and jam range match Sneaky Pete (armjamt)\nBuild time: 9950 (from 4000)\nEnergy cost: 8500 (from 4500)\nEnergy upkeep: 40 (from 25)\nHealth: 790 (from 1070)\nMetal cost: 240 (from 100)\nJammer range: 500 (from 360)",
+        desc    = "(New)\nMatches the stats of Sneaky Pete.",
         type    = "bool",
         def     = false,
         section = "options_experimental",
@@ -1645,7 +1645,7 @@ local options = {
     {
         key     = "community_balance_corjamt",
         name    = "(CBP) Castro",
-        desc    = "Build time: 9950 (from 4000)\nEnergy cost: 8500 (from 4500)\nEnergy upkeep: 40 (from 25)\nHealth: 790 (from 1070)\nMetal cost: 240 (from 100)\nJammer range: 500 (from 360)",
+        desc    = "Matches the stats of Sneaky Pete.",
         type    = "bool",
         def     = false,
         section = "options_experimental",
