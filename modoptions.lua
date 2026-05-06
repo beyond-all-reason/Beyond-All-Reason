@@ -266,6 +266,14 @@ local options = {
         max    	= 120,
         step   	= 1,
     },
+    {
+		key		= "norushmiddlefree",
+		name	= "No Rush Middle Free",
+		desc	= "Allows units to leave starboxes but disallows commands issued in enemy startboxes.",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+	},
 
 	{
 		key		= "sub_header",

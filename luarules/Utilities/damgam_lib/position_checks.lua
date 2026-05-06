@@ -22,7 +22,8 @@ local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 
 -- Team Startboxes
 local AllyTeamStartboxes = {}
-for _,testAllyTeamID in ipairs(Spring.GetAllyTeamList()) do
+local AllyTeams = Spring.GetAllyTeamList();
+for _,testAllyTeamID in ipairs(AllyTeams) do
     local allyTeamHasStartbox = true
     local xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(testAllyTeamID)
     if xMin == 0 and zMin == 0 and xMax == mapSizeX and zMax == mapSizeZ then
@@ -204,7 +205,7 @@ local function VisibilityCheck(posx, posy, posz, posradius, allyTeamID, checkLoS
 end
 
 local function VisibilityCheckEnemy(posx, posy, posz, posradius, allyTeamID, checkLoS, checkAirLos, checkRadar) -- Return True when position is not in sensor ranges of all enemies of specified allyTeam.
-    for _,testAllyTeamID in ipairs(Spring.GetAllyTeamList()) do
+    for _,testAllyTeamID in ipairs(AllyTeams) do
 		local posCheck = true
         if testAllyTeamID ~= allyTeamID and testAllyTeamID ~= GaiaAllyTeamID then
             posCheck = VisibilityCheck(posx, posy, posz, posradius, testAllyTeamID, checkLoS, checkAirLos, checkRadar)
@@ -234,6 +235,17 @@ local function StartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStart
     else
         return returnTrueWhenNoStartbox
     end
+end
+
+local function NotInEnemyStartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStartbox) -- Return True when position is  within any enemy startbox.
+    for _,testAllyTeamID in pairs(AllyTeams) do
+        if (testAllyTeamID ~= GaiaAllyTeamID) and (testAllyTeamID ~= allyTeamID) then
+            if StartboxCheck(posx, posy, posz, testAllyTeamID, returnTrueWhenNoStartbox) then
+                return false;
+            end
+        end
+    end
+    return true;
 end
 
 local function MapEdgeCheck(posx, posy, posz, posradius) -- if true then position is far enough from map border
@@ -386,6 +398,7 @@ return {
     VisibilityCheck = VisibilityCheck,
     VisibilityCheckEnemy = VisibilityCheckEnemy,
     StartboxCheck = StartboxCheck,
+    NotInEnemyStartboxCheck = NotInEnemyStartboxCheck,
     MapEdgeCheck = MapEdgeCheck,
     SurfaceCheck = SurfaceCheck,
     LavaCheck = LavaCheck,
