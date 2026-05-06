@@ -540,7 +540,7 @@ local function validateObjectives(objectives)
 end
 
 local function validateStages(stages, initialStage)
-	if next(stages) and not stages[initialStage] then
+	if not stages[initialStage] then
 		logError("Initial stage does not exist in stages: " .. initialStage)
 	end
 
@@ -820,7 +820,6 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 		[actionTypes.UnnameUnits] = true,
 		[actionTypes.TransferUnits] = true,
 		[actionTypes.DespawnUnits] = true,
-		[actionTypes.TransferUnits] = true,
 		[actionTypes.UpdateObjective] = true,
 	}
 

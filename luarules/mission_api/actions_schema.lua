@@ -110,12 +110,12 @@ local parameters = {
 		[4] = {
 			name = 'unitName',
 			required = false,
-			type = Types.String
+			type = Types.UnitName
 		},
 		[5] = {
 			name = 'featureName',
 			required = false,
-			type = Types.String
+			type = Types.FeatureName
 		},
 		requiresOneOf = { 'completed', 'text', 'unitName', 'featureName' }
 	},

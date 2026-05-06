@@ -30,7 +30,7 @@ local function processRawTriggers(rawTriggers, rawActions)
 		settings.maxRepeats = settings.maxRepeats or nil
 		settings.difficulties = settings.difficulties or nil
 		settings.coop = settings.coop or false
-		settings.active = settings.active or true
+		settings.stages = settings.stages or {}
 
 		rawTrigger.settings = settings
 		rawTrigger.triggered = false
