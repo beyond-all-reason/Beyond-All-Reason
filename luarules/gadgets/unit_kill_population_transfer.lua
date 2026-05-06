@@ -24,13 +24,12 @@ local spTransferTeamMaxUnits = Spring.TransferTeamMaxUnits
 -- One-off spring calls
 local modOptions = Spring.GetModOptions()
 local GaiaTeamID = Spring.GetGaiaTeamID()
-local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
 
 -- Local long running variables
 local killedTeamToCountTable = {} -- either the teamID of the killed player in gaia-mode, or killedTeam..attackerTeam to count in transfer mode
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-    if modOptions.population_transfer == "disabled" or modOptions.population_transfer == nil then
+    if modOptions.populationtransfer == "disabled" or modOptions.populationtransfer == nil or modOptions.populationtransferratio == 0 then
         return
     end
 
@@ -40,36 +39,37 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
     end
 
     local transferIncrement = nil
-    if modOptions.population_transfer == "reduce" then
-        killedTeamToCountTable[unitTeam] = (killedTeamToCountTable[unitTeam] == nil and modOptions.population_transfer_ratio) or killedTeamToCountTable[unitTeam] + modOptions.population_transfer_ratio;
-        if killedTeamToCountTable[unitTeam] / modOptions.population_transfer_ratio > 1 then
+    if modOptions.populationtransfer == "reduce" then
+        
+        killedTeamToCountTable[unitTeam] = (killedTeamToCountTable[unitTeam] == nil and modOptions.populationtransferratio) or killedTeamToCountTable[unitTeam] + modOptions.populationtransferratio;
+        if math.abs(killedTeamToCountTable[unitTeam]) >= 1 then
             transferIncrement = 1
             killedTeamToCountTable[unitTeam] = 0
         end
-    elseif modOptions.population_transfer == "transfer" then
-        killedTeamToCountTable[unitTeam..attackerTeam] = (killedTeamToCountTable[unitTeam..attackerTeam] == nil and 1) or killedTeamToCountTable[unitTeam..attackerTeam] + 1;
-        if killedTeamToCountTable[unitTeam..attackerTeam] / modOptions.population_transfer_ratio > 1 then
+    elseif modOptions.populationtransfer == "transfer" then
+        killedTeamToCountTable[unitTeam..attackerTeam] = (killedTeamToCountTable[unitTeam..attackerTeam] == nil and modOptions.populationtransferratio) or killedTeamToCountTable[unitTeam..attackerTeam] + modOptions.populationtransferratio;
+        if math.abs(killedTeamToCountTable[unitTeam..attackerTeam]) >= 1 then
             transferIncrement = 1
             killedTeamToCountTable[unitTeam..attackerTeam] = 0
         end
     end
 
-    if (transferIncrement < 1) then
+    if (transferIncrement == nil or math.abs(transferIncrement) < 1) then
         return
     end
 
-    if modOptions.population_transfer_ratio > 0 then
-        if modOptions.population_transfer == "reduce" then
+    if modOptions.populationtransferratio > 0 then
+        if modOptions.populationtransfer == "reduce" then
             spTransferTeamMaxUnits(unitTeam, GaiaTeamID, 1);
-        elseif modOptions.population_transfer == "transfer" then
+        elseif modOptions.populationtransfer == "transfer" then
             spTransferTeamMaxUnits(unitTeam, attackerTeam, 1);
         end
     else
-        -- is this legit? Can I reduce from Gaia?
-        if modOptions.population_transfer == "reduce" then
-            -- spTransferTeamMaxUnits(unitTeam, GaiaTeamID, -1);
-        elseif modOptions.population_transfer == "transfer" then
-            spTransferTeamMaxUnits(unitTeam, attackerTeam, -1);
+        -- is this legit? Can I reduce/take from Gaia? not allowing this for now.
+        if modOptions.populationtransfer == "reduce" then
+            -- spTransferTeamMaxUnits(GaiaTeamID, unitTeam, 1);
+        elseif modOptions.populationtransfer == "transfer" then
+            spTransferTeamMaxUnits(attackerTeam, unitTeam, 1);
         end
     end
 end

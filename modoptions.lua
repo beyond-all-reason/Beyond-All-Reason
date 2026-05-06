@@ -1515,28 +1515,28 @@ local options = {
     },
 
     {
-        key 	= "population_transfer",
+        key 	= "populationtransfer",
         name 	= "Max Population Transfer On Kills",
         type 	= "list",
         def 	= "disabled",
         section = "options_extra",
         hidden  = false,
         items 	= {
-            { key = "disabled", name = "Disabled", desc = "Disabled"},
-            { key = "transfer", name = "Transfer", desc = "Transfer population to the killing player from the killed units player." },
-            { key = "reduce", name = "Reduce", desc = "Lower the population cap of the player whose unit was killed. Should not be used with Negative transfer ratio."},
+            { key = "disabled", name = "Disabled", desc = "Disabled", lock = {"populationtransferratio"} },
+            { key = "transfer", name = "Transfer", desc = "Transfer population to the killing player from the killed units player.", unlock = {"populationtransferratio"}  },
+            { key = "reduce", name = "Reduce", desc = "Lower the population cap of the player whose unit was killed. Should not be used with Negative transfer ratio.", unlock = {"populationtransferratio"} },
         }
     },
 
     {
-        key    	= "population_transfer_ratioronescount",
+        key    	= "populationtransferratio",
         name   	= "Population count transfer ratio",
         desc   	= "How many kills are required to transfer 1 population",
         type   	= "number",
         section	= "options_extra",
         def    	= 1,
-        min    	= 0,
-        max    	= -1,
+        min    	= -1,
+        max    	= 1,
         step   	= .05,
     },
 
