@@ -80,6 +80,25 @@ local function IsPaused()
     return paused
 end
 
+local function IsOnlyHumanPlayer()
+    local playerList = Spring.GetPlayerList()
+    local humanCount = 0
+
+    for i = 1, #playerList do
+        local playerID = playerList[i]
+        local _, active, spectator = Spring.GetPlayerInfo(playerID)
+
+        -- Count active, non-spectating human players.
+        -- AI teams are not returned by GetPlayerList(), so this should only
+        -- count real connected players.
+        if active and not spectator then
+            humanCount = humanCount + 1
+        end
+    end
+
+    return humanCount <= 1
+end
+
 local function SafetyCooldownActive()
     return GetFrame() < safetyCooldownUntilFrame
 end
@@ -204,6 +223,22 @@ function widget:Update()
     local paused = IsPaused()
 
     --------------------------------------------------------------------------
+    -- Hard single-human fail-open gate.
+    --
+    -- If there is only one active human player, this widget should not send
+    -- pause commands, chat, sounds, or continue an existing countdown.
+    --------------------------------------------------------------------------
+
+    if IsOnlyHumanPlayer() then
+        if countdownActive then
+            CancelCountdown()
+        end
+
+        lastPausedState = paused
+        return
+    end
+
+    --------------------------------------------------------------------------
     -- Detect a real paused -> unpaused transition.
     --
     -- The countdown only starts if this local client recently issued /pause.
@@ -215,10 +250,14 @@ function widget:Update()
         if allowNextRealUnpause then
             allowNextRealUnpause = false
         elseif LocalPlayerRecentlyRequestedUnpause() then
-            SendPauseCommand("pause 1")
-            StartCountdown()
-
-            paused = true
+            -- Only start the countdown if we actually re-paused.
+            -- If throttling/safety blocks the pause command, fail quiet.
+            if SendPauseCommand("pause 1") then
+                StartCountdown()
+                paused = true
+            else
+                TriggerSafetyCooldown("could not re-pause safely")
+            end
         end
     end
 
@@ -275,6 +314,11 @@ function widget:TextCommand(command)
     end
 
     if SafetyCooldownActive() then
+        return
+    end
+
+    -- In solo games, this widget should be completely passive.
+    if IsOnlyHumanPlayer() then
         return
     end
 
