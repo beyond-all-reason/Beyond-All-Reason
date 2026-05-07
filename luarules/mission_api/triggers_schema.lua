@@ -76,7 +76,7 @@ local parameters = {
 	[triggerTypes.UnitExists] = {
 		[1] = {
 			name = 'unitDefName',
-			required = true,
+			required = false,
 			type = Types.UnitDefName,
 		},
 		[2] = {
@@ -84,11 +84,7 @@ local parameters = {
 			required = false,
 			type = Types.TeamID,
 		},
-		[3] = {
-			name = 'quantity',
-			required = false,
-			type = Types.Number,
-		},
+		requiresOneOf = { 'unitDefName', 'teamID' }
 	},
 	[triggerTypes.UnitNotExists] = {
 		[1] = {
@@ -300,7 +296,7 @@ local parameters = {
 	[triggerTypes.ConstructionStarted] = {
 		[1] = {
 			name = 'unitDefName',
-			required = true,
+			required = false,
 			type = Types.UnitDefName
 		},
 		[2] = {
@@ -308,6 +304,7 @@ local parameters = {
 			required = false,
 			type = Types.TeamID
 		},
+		requiresOneOf = { 'unitDefName', 'teamID' }
 	 },
 	[triggerTypes.ConstructionFinished] = {
 		[1] = {

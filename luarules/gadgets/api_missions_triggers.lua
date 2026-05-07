@@ -101,33 +101,13 @@ local function checkTimeElapsed(trigger, gameframe)
 	end
 end
 
-local function checkUnitExists(trigger, unitDefID, teamID)
-	if trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+local function checkUnitExists(trigger, unitDefID, unitTeam)
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-
-	local requiredTeamID = trigger.parameters.teamID
-	local requiredQuantity = trigger.parameters.quantity
-	if requiredTeamID then
-		if requiredTeamID ~= teamID then
-			return
-		elseif Spring.GetTeamUnitDefCount(requiredTeamID, unitDefID) < (requiredQuantity or 1) then
-			return
-		end
+	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+		return
 	end
-
-	if requiredQuantity then
-		local count = 0
-		for _, allyTeamID in pairs(Spring.GetAllyTeamList()) do
-			for _, teamIDForAllyTeam in pairs(Spring.GetTeamList(allyTeamID)) do
-				count = count + Spring.GetTeamUnitDefCount(teamIDForAllyTeam, unitDefID)
-			end
-		end
-		if count < requiredQuantity then
-			return
-		end
-	end
-
 	activateTrigger(trigger)
 end
 
@@ -255,13 +235,13 @@ local function checkUnitEnteredOrLeftLos(trigger, unitID, unitTeam, losAllyTeamI
 	if trigger.parameters.unitName and not doesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return
 	end
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+		return
+	end
 	if trigger.parameters.owningTeamID and unitTeam ~= trigger.parameters.owningTeamID then
 		return
 	end
 	if trigger.parameters.spottingAllyTeamID and losAllyTeamID ~= trigger.parameters.spottingAllyTeamID then
-		return
-	end
-	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
 	activateTrigger(trigger)
@@ -271,10 +251,10 @@ local function checkConstructionStarted(trigger, unitID, unitDefID, unitTeam)
 	if not Spring.GetUnitIsBeingBuilt(unitID) then
 		return
 	end
-	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
 		return
 	end
 	activateTrigger(trigger)
@@ -284,10 +264,10 @@ local function checkConstructionFinished(trigger, unitID, unitDefID, unitTeam)
 	if trigger.parameters.unitName and not doesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return
 	end
-	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
 		return
 	end
 	activateTrigger(trigger)
