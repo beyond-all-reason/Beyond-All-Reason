@@ -32,7 +32,6 @@ local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameRulesParam = Spring.GetGameRulesParam
-local spEcho = Spring.Echo
 
 local CMD_DGUN = CMD.DGUN
 local DGUN_RANGE = 280
@@ -44,6 +43,8 @@ local DGUN_SAFETY_WIDTH = 100
 
 -- Approximate actual width of the dgun projectile
 local DGUN_WIDTH = 20
+
+-- Dguns that threaten less than this amount of metal (in allied units) are ignored as inconsequential
 local MIN_THREATENED_ALLY_METAL = 400
 
 -- 1500 is a bit more than the range of a Vanguard
@@ -57,6 +58,7 @@ local contactsCache = {}
 local CONTACT_WINDOW_DURATION = 5 * 30 -- five seconds at 30 gameframes per second
 local CONTACT_PRUNE_INTERVAL = 60 * 30 -- prune expired contacts every minute
 local nextContactPruneFrame = CONTACT_PRUNE_INTERVAL
+local USE_WG_ANALYTICS = false
 
 function gadget:Initialize()
 end
@@ -74,7 +76,7 @@ end
 local function GetApproxUnitRadius(unitDefID)
 	local unitDef = unitDefID and UnitDefs[unitDefID]
 	if not unitDef then
-		return 0 -- If unknown unit, then we pretend it is tiny. This is to minimize false positives
+		return 0 -- If unknown unit, then we pretend it is tiny. This is to avoid false positives
 	end
 
 	if unitDef.radius and unitDef.radius > 0 then
@@ -107,52 +109,55 @@ local function AddExpiringUnitContact(x, y, z, contactTeam, currentFrame)
 end
 
 -- Convert a DGun target into a line segment representing the beam path
-local function BuildDGunSegment(ux, uy, uz, tx, ty, tz)
-	local dx, dy, dz = tx - ux, ty - uy, tz - uz
-	local dist = math.sqrt(dx * dx + dy * dy + dz * dz)
+local function BuildDGunSegment(unitX, unitY, unitZ, targetX, targetY, targetZ)
+	local deltaX, deltaY, deltaZ = targetX - unitX, targetY - unitY, targetZ - unitZ
+	local dist = math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
 	if dist == 0 then
 		dist = 1
 	end
 
-	local nx, ny, nz = dx / dist, dy / dist, dz / dist
+	local dirX, dirY, dirZ = deltaX / dist, deltaY / dist, deltaZ / dist
 	if dist <= DGUN_RANGE then
-		return ux, uy, uz, ux + nx * DGUN_RANGE, uy + ny * DGUN_RANGE, uz + nz * DGUN_RANGE
+		return unitX, unitY, unitZ, unitX + dirX * DGUN_RANGE, unitY + dirY * DGUN_RANGE, unitZ + dirZ * DGUN_RANGE
 	end
 
-	return tx - nx * DGUN_RANGE, ty - ny * DGUN_RANGE, tz - nz * DGUN_RANGE, tx, ty, tz
+	return targetX - dirX * DGUN_RANGE, targetY - dirY * DGUN_RANGE, targetZ - dirZ * DGUN_RANGE, targetX, targetY, targetZ
 end
 
 -- Measure the shortest distance from a unit position to the DGun beam segment
-local function DistPointToSegment(px, py, pz, ax, ay, az, bx, by, bz)
-	local vx, vy, vz = bx - ax, by - ay, bz - az
-	local wx, wy, wz = px - ax, py - ay, pz - az
+local function DistPointToSegment(pointX, pointY, pointZ, segmentStartX, segmentStartY, segmentStartZ, segmentEndX, segmentEndY, segmentEndZ)
+	local segmentX, segmentY, segmentZ = segmentEndX - segmentStartX, segmentEndY - segmentStartY, segmentEndZ - segmentStartZ
+	local offsetX, offsetY, offsetZ = pointX - segmentStartX, pointY - segmentStartY, pointZ - segmentStartZ
 
-	local c1 = vx * wx + vy * wy + vz * wz
-	if c1 <= 0 then
-		local dx, dy, dz = px - ax, py - ay, pz - az
-		return math.sqrt(dx * dx + dy * dy + dz * dz)
+	local projectionNumerator = segmentX * offsetX + segmentY * offsetY + segmentZ * offsetZ
+	if projectionNumerator <= 0 then
+		local deltaX, deltaY, deltaZ = pointX - segmentStartX, pointY - segmentStartY, pointZ - segmentStartZ
+		return math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
 	end
 
-	local c2 = vx * vx + vy * vy + vz * vz
-	if c2 <= c1 then
-		local dx, dy, dz = px - bx, py - by, pz - bz
-		return math.sqrt(dx * dx + dy * dy + dz * dz)
+	local segmentLengthSquared = segmentX * segmentX + segmentY * segmentY + segmentZ * segmentZ
+	if segmentLengthSquared <= projectionNumerator then
+		local deltaX, deltaY, deltaZ = pointX - segmentEndX, pointY - segmentEndY, pointZ - segmentEndZ
+		return math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
 	end
 
-	local b = c1 / c2
-	local bx2, by2, bz2 = ax + b * vx, ay + b * vy, az + b * vz
-	local dx, dy, dz = px - bx2, py - by2, pz - bz2
-	return math.sqrt(dx * dx + dy * dy + dz * dz)
+	local t = projectionNumerator / segmentLengthSquared
+	local closestX, closestY, closestZ = segmentStartX + t * segmentX, segmentStartY + t * segmentY, segmentStartZ + t * segmentZ
+	local deltaX, deltaY, deltaZ = pointX - closestX, pointY - closestY, pointZ - closestZ
+	return math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
 end
 
-local function HandleDGunAllyRisk(teamID, firingUnitID, playerID, sx, sy, sz, ex, ey, ez)
+-- Returns True if DGUN threatens too much allied stuff (see: MIN_THREATENED_ALLY_METAL)
+-- Returns False if DGUN threatens nothing
+-- Returns False and an explanation if DGUN threatens stuff, but not enough to be concerned about
+local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
 	-- Build a cheap box around the beam first, then do the precise segment test
-	local minx = math.min(sx, ex) - DGUN_SAFETY_WIDTH
-	local maxx = math.max(sx, ex) + DGUN_SAFETY_WIDTH
-	local miny = math.min(sy, ey) - DGUN_SAFETY_WIDTH
-	local maxy = math.max(sy, ey) + DGUN_SAFETY_WIDTH
-	local minz = math.min(sz, ez) - DGUN_SAFETY_WIDTH
-	local maxz = math.max(sz, ez) + DGUN_SAFETY_WIDTH
+	local minx = math.min(startX, endX) - DGUN_SAFETY_WIDTH
+	local maxx = math.max(startX, endX) + DGUN_SAFETY_WIDTH
+	local miny = math.min(startY, endY) - DGUN_SAFETY_WIDTH
+	local maxy = math.max(startY, endY) + DGUN_SAFETY_WIDTH
+	local minz = math.min(startZ, endZ) - DGUN_SAFETY_WIDTH
+	local maxz = math.max(startZ, endZ) + DGUN_SAFETY_WIDTH
 
 	local candidates = spGetUnitsInBox(minx, miny, minz, maxx, maxy, maxz)
 	local myAllyTeam = GetAllyTeamID(teamID)
@@ -164,9 +169,9 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, playerID, sx, sy, sz, ex
 		local unitRadius = GetApproxUnitRadius(unitDefID)
 		-- Self-owned units are exempt (only consider allied owned units).
 		if unitTeam ~= teamID and GetAllyTeamID(unitTeam) == myAllyTeam then
-			local ux, uy, uz = spGetUnitPosition(unitID)
-			if ux then
-				local d = DistPointToSegment(ux, uy, uz, sx, sy, sz, ex, ey, ez)
+			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+			if unitX then
+				local d = DistPointToSegment(unitX, unitY, unitZ, startX, startY, startZ, endX, endY, endZ)
 				if d < unitRadius + DGUN_WIDTH / 2 then
 					local unitDef = unitDefID and UnitDefs[unitDefID]
 					local threatenedMetal = unitDef and unitDef.metalCost or 0
@@ -184,7 +189,7 @@ local function HandleDGunAllyRisk(teamID, firingUnitID, playerID, sx, sy, sz, ex
 		return false
 	end
 	
-	return false, string.format("Only %d metal threatened (not enough)", threatenedAllyMetal)
+	return false, string.format("Only %d metal threatened (inconsequential)", threatenedAllyMetal)
 end
 
 -- If DGun target location is near a visible enemy, we leave the order alone
@@ -210,8 +215,8 @@ local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 	for i = 1, #contactsCache do
 		local ping = contactsCache[i]
 		if ping.contactTeam ~= myAllyTeam then
-			local dx, dy, dz = ping.x - targetX, ping.y - targetY, ping.z - targetZ
-			if (dx * dx + dy * dy + dz * dz) <= (ENEMY_SCAN_RADIUS * ENEMY_SCAN_RADIUS) then
+			local deltaX, deltaY, deltaZ = ping.x - targetX, ping.y - targetY, ping.z - targetZ
+			if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) <= (ENEMY_SCAN_RADIUS * ENEMY_SCAN_RADIUS) then
 				return true, "Enemies recently on radar/seismic within range"
 			end
 		end
@@ -231,19 +236,21 @@ function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 		return
 	end
 
-	local x, y, z = spGetUnitPosition(unitID)
-	if not x then
+	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+	Spring.Echo(unitX, unitY, unitZ) -- FIXME
+	if not unitX then
 		return
 	end
 
 	-- Note: we want to track the team of the unit that left radar.
 	-- 'allyTeam' in this context is actually which team that lost track of a radar contact
-	AddExpiringUnitContact(x, y, z, unitTeam, spGetGameFrame())
+	AddExpiringUnitContact(unitX, unitY, unitZ, unitTeam, spGetGameFrame())
 end
 
 -- Cache seismic detections briefly so they count as visible enemy presence.
-function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
-	AddExpiringUnitContact(x, y, z, allyTeam, spGetGameFrame())
+function gadget:UnitSeismicPing(positionX, positionY, positionZ, strength, allyTeam, unitID, unitDefID)
+	Spring.Echo(positionX, positionY, positionZ) -- FIXME
+	AddExpiringUnitContact(positionX, positionY, positionZ, allyTeam, spGetGameFrame())
 end
 
 function gadget:GameFrame(currentFrame)
@@ -261,9 +268,12 @@ function gadget:GameFrame(currentFrame)
 end
 
 local function SendAnalyticsEvent(eventType, eventData)
-	if WG and WG.Analytics and WG.Analytics.SendEvent then
+	if USE_WG_ANALYTICS and WG and WG.Analytics and WG.Analytics.SendEvent then
 		WG.Analytics.SendEvent(eventType, eventData)
+		return
 	end
+
+	Spring.Echo(string.format("[DGunAnalytics] %s %s", eventType, table.toString(eventData)))
 end
 
 local function GetGameID()
@@ -296,9 +306,9 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		return
 	end
 
-	local sx, sy, sz, ex, ey, ez = BuildDGunSegment(unitX, unitY, unitZ, targetX, targetY, targetZ)
+	local startX, startY, startZ, endX, endY, endZ = BuildDGunSegment(unitX, unitY, unitZ, targetX, targetY, targetZ)
 
-	local risksAllies, explanation = HandleDGunAllyRisk(teamID, unitID, playerID, sx, sy, sz, ex, ey, ez)
+	local risksAllies, explanation = HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
 
 	if not risksAllies then
 		if explanation then
