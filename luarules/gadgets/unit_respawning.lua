@@ -6,8 +6,8 @@ function gadget:GetInfo()
 	return {
 		name = "Unit Respawning",
 		desc = "Prevents death and instead respawns elsewhere",
-		author = "Xehrath",
-		date = "2023-05-12",
+		author = "Xehrath, Chemdude8",
+		date = "2023-05-12, 2026",
 		license = "None",
 		layer = 49,
 		enabled = true
@@ -91,7 +91,9 @@ if gadgetHandler:IsSyncedCode() then
 			GG.ComSpawnDefoliate(ex, ey, ez)
 
 			-- Mark effigy as used for respawning to prevent "lost" notifications
-			meta.effigyID = nil
+			if meta.destructive_respawn then
+				meta.effigyID = nil
+			end
 
 			if meta.respawn_pad == "false" then
 				Spring.SetUnitPosition(effigyID, x, z, true)
@@ -113,9 +115,17 @@ if gadgetHandler:IsSyncedCode() then
 				spSetUnitRulesParam(unitID, "unit_effigy", nil, PRIVATE)
 			end
 
+			local respawnHealth = 1
+			if meta.respawn_healthy then
+				respawnHealth = maxHealth
+			end
+			
+			if meta.respawn_immediately == true then
+				stunDuration = 0
+			end
 			-- Only apply stun if the unit survived the effigy destruction
 			if respawnMetaList[unitID] then
-				spSetUnitHealth(unitID, {health = 1, capture = 0, paralyze = stunDuration,})
+				spSetUnitHealth(unitID, {health = respawnHealth, capture = 0, paralyze = stunDuration})
 				spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 			end
 		end
@@ -162,11 +172,13 @@ if gadgetHandler:IsSyncedCode() then
 				effigy_offset = tonumber(udcp.effigy_offset) or 0,
 				minimum_respawn_stun = tonumber(udcp.minimum_respawn_stun) or 0,
 				distance_stun_multiplier = tonumber(udcp.distance_stun_multiplier) or 0,
-				destructive_respawn = udcp.destructive_respawn or true,
+				destructive_respawn = ((udcp.destructive_respawn == true) or (udcp.destructive_respawn == nil)),
 				respawn_pad = udcp.respawn_pad or "false",
 				unitTeam = unitTeam,
 				respawnTimer = spGetGameSeconds(),
 				effigyID = nil,
+				respawn_healthy = udcp.respawn_healthy or false,
+                respawn_immediately = udcp.respawn_immediately or false,
 			}
 
 			if respawnMetaList[unitID].effigy ~= "none" then
