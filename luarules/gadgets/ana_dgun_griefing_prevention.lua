@@ -17,7 +17,7 @@ function gadget:GetInfo()
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then
+if gadgetHandler:IsSyncedCode() then
 	return false
 end
 
@@ -31,6 +31,7 @@ local spGetUnitLosState = Spring.GetUnitLosState
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetGameFrame = Spring.GetGameFrame
+local spGetGameRulesParam = Spring.GetGameRulesParam
 local spEcho = Spring.Echo
 
 local CMD_DGUN = CMD.DGUN
@@ -259,6 +260,16 @@ function gadget:GameFrame(currentFrame)
 	end
 end
 
+local function SendAnalyticsEvent(eventType, eventData)
+	if WG and WG.Analytics and WG.Analytics.SendEvent then
+		WG.Analytics.SendEvent(eventType, eventData)
+	end
+end
+
+local function GetGameID()
+	return Game.gameID or spGetGameRulesParam("GameID")
+end
+
 -- Observe DGun commands and echo only. We do not block the command anymore.
 function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID ~= CMD_DGUN then
@@ -291,13 +302,13 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 
 	if not risksAllies then
 		if explanation then
-			spEcho(string.format(
-				"DGun analytics negative: player=%s frame=%d pos=(%.1f, %.1f, %.1f) reason=%s",
-				GetPlayerName(playerID),
-				spGetGameFrame(),
-				targetX, targetY, targetZ,
-				explanation
-			))
+			SendAnalyticsEvent("dgun_grief_negative", {
+				position = { targetX, targetY, targetZ },
+				time = spGetGameFrame(),
+				gameID = GetGameID(),
+				player = GetPlayerName(playerID),
+				reason = explanation,
+			})
 		end
 		-- Else send no event as no allies were threatened at all
 		return
@@ -306,26 +317,22 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 	local enemiesNearby, explanation = HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 
 	if enemiesNearby then
-		spEcho(string.format(
-			"DGun analytics negative: player=%s frame=%d pos=(%.1f, %.1f, %.1f) reason=%s",
-			GetPlayerName(playerID),
-			spGetGameFrame(),
-			targetX, targetY, targetZ,
-			explanation
-		))
+		SendAnalyticsEvent("dgun_grief_negative", {
+			position = { targetX, targetY, targetZ },
+			time = spGetGameFrame(),
+			gameID = GetGameID(),
+			player = GetPlayerName(playerID),
+			reason = explanation,
+		})
 		return
 	end
 
-	spEcho(string.format(
-		"WARNING: %s attempted to D-Gun allies. Please remember that the Code of Conduct prohibits griefing.",
-		GetPlayerName(playerID)
-	))
-	spEcho(string.format(
-		"DGun analytics positive: player=%s frame=%d pos=(%.1f, %.1f, %.1f)",
-		GetPlayerName(playerID),
-		spGetGameFrame(),
-		targetX, targetY, targetZ
-	))
+	SendAnalyticsEvent("dgun_grief_positive", {
+		position = { targetX, targetY, targetZ },
+		time = spGetGameFrame(),
+		gameID = GetGameID(),
+		player = GetPlayerName(playerID),
+	})
 
 
 end
