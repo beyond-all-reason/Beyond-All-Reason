@@ -230,10 +230,6 @@ end
 -- Engine callins --------------------------------------------------------------
 
 function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, priority)
-	if not priority then
-		return true
-	end
-
 	local searchRadius = searchWeaponRadius[weaponDefID]
 	if not searchRadius then
 		return true, priority
