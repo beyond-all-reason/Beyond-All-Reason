@@ -68,6 +68,8 @@ local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
 local spGetUnitWorkerTask        = Spring.GetUnitWorkerTask
 local spGetUnitHealth            = Spring.GetUnitHealth
 local spGetUnitMoveTypeData      = Spring.GetUnitMoveTypeData
+local spIsUnitVisible            = Spring.IsUnitVisible
+local spGetUnitLosState          = Spring.GetUnitLosState
 local spIsSphereInView           = Spring.IsSphereInView
 local spGetCameraPosition        = Spring.GetCameraPosition
 local spGetUnitCollisionVolumeData = Spring.GetUnitCollisionVolumeData
@@ -318,6 +320,11 @@ local FEEDBACK_EMIT_MIN_GAP = 60   -- ~2s at 30 sim Hz
 --     of every frame. Particle speed is small vs typical unit movement over
 --     1-2 frames so this is visually identical.
 local LOS_CACHE_FRAMES           = 7
+-- When an enemy builder is detected by radar/sonar but not visually visible
+-- (e.g. a submarine), show only this fraction of its particles. Gives a
+-- subtle hint that something is happening there without revealing full detail.
+-- Set to 0 to suppress entirely when only detected, 1.0 to show in full.
+local ENEMY_RADAR_EMIT_SCALE     = 0.20
 local HOMING_RUN_EVERY           = 4
 -- Repair-completion poll cadence (sim frames). At 2Hz, HP/buildProgress polls
 -- are visually indistinguishable from per-pass and cut Spring->C calls by ~80%
@@ -1830,6 +1837,34 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 	-- gate entirely (full view, ally builder, or LOS filter disabled).
 	local needLosCheck = LOS_FILTER and (not cachedSpecFullView) and (info.allyTeam ~= cachedAllyTeamID)
 
+	-- Three-tier enemy-builder visibility filter, evaluated once per emitNano
+	-- call and cached for LOS_CACHE_FRAMES frames:
+	--   tier 2 (IsUnitVisible true): fully seen -- full emission rate.
+	--   tier 1 (INRADAR bit set, not visually seen): radar/sonar contact only
+	--     (e.g. detected submarine) -- ENEMY_RADAR_EMIT_SCALE fraction of
+	--     particles as a faint hint; per-particle IsPosInLos cull is skipped
+	--     because the nanopiece/target position may be underwater.
+	--   tier 0 (not detected at all): no particles.
+	local builderVisTier = 2  -- default: fully visible (only matters when needLosCheck)
+	if needLosCheck then
+		local visFrame = info.visCheckFrame
+		if visFrame and (frame - visFrame) < LOS_CACHE_FRAMES then
+			builderVisTier = info.builderVisTier
+		else
+			if spIsUnitVisible(builderID, cachedAllyTeamID) then
+				builderVisTier = 2
+			else
+				local losBits = spGetUnitLosState(builderID, cachedAllyTeamID, true) or 0
+				-- INRADAR bitmask bit = 2 (bit 1). losBits % 4 >= 2 isolates bit 1
+				-- regardless of higher bits (PREVLOS = 4, CONTRADAR = 8).
+				builderVisTier = (losBits % 4 >= 2) and 1 or 0
+			end
+			info.visCheckFrame  = frame
+			info.builderVisTier = builderVisTier
+		end
+		if builderVisTier == 0 then return end
+	end
+
 	-- Stagger denominator: divide the symmetric spread window
 	-- [-spreadFrames, +spreadFrames] across `count` slots so particles are
 	-- evenly spaced in time (with sub-slot RNG jitter to avoid visible banding
@@ -1843,6 +1878,9 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 	for i = 1, count do
 		repeat
 			if fadeBandKeep and mathRandom() > fadeBandKeep then break end
+			-- Radar/sonar-only builder: stochastically drop most particles so
+			-- only a faint ghost-spray hints at the undetected unit's activity.
+			if builderVisTier == 1 and mathRandom() > ENEMY_RADAR_EMIT_SCALE then break end
 
 			-- jitter rejection sampling (~1.91 random calls on average)
 			local jx, jy, jz
@@ -1900,8 +1938,10 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 
 			-- LOS filter: enemy emissions hidden when not in our LOS / not full
 			-- view. Throttled per builder -- LOS at the builder location changes
-			-- slowly relative to emit rate.
-			if needLosCheck then
+			-- slowly relative to emit rate. Skipped for tier-1 (radar/sonar
+			-- contact) builders: their nanopiece / target may be underwater and
+			-- IsPosInLos would drop all remaining particles incorrectly.
+			if needLosCheck and builderVisTier == 2 then
 				local losFrame = info.losFrame
 				local visible
 				if losFrame and (frame - losFrame) < LOS_CACHE_FRAMES then
@@ -2615,15 +2655,15 @@ local function scanBuilders(frame)
 				end
 				if bp and bp > 0 then
 					if DEBUG then _dbgBuilders = _dbgBuilders + 1 end
-					-- Lazy nano-piece refresh: factories cheated in via /give (or
-					-- otherwise instantiated) often have an incomplete nanopiece
-					-- list at UnitCreated time because the COB script hasn't fully
-					-- registered them yet. Re-fetch on first activity, and once more
-					-- after a short delay for scripts that set pieces only inside
-					-- QueryNanoPiece. Non-factory builders get the right list at
-					-- UnitCreated, so skip the check for them.
+					-- Lazy nano-piece refresh: the COB/LUS script may not have
+					-- registered all nano pieces by the time getBuilderInfo is first
+					-- called (lazy, on first active scan). Re-fetch on first activity
+					-- (stage 0→1) and once more ~3s later (stage 1→2) to catch
+					-- scripts that register pieces inside QueryNanoPiece. Applies to
+					-- ALL builders, not just factories -- constructors with multiple
+					-- arms can also return a partial list on the first scan.
 					local refreshStage = info.piecesRefreshStage or 0
-					if refreshStage < 2 and info.isFactory then
+					if refreshStage < 2 then
 						local refreshAt = info.piecesRefreshAt
 						if refreshStage == 0 or (refreshAt and frame >= refreshAt) then
 							local fresh = spGetUnitNanoPieces(unitID)

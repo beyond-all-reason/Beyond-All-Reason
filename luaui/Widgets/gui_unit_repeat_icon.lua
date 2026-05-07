@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name      = "Unit Repeat Icons", -- GL4
 		desc      = "Shows a repeat icon above units that have the repeat order enabled",
-		author    = "Copilot",
+		author    = "Floris",
 		date      = "2026",
 		license   = "GNU GPL, v2 or later",
 		layer     = -38,
@@ -46,7 +46,12 @@ end
 
 -- All visible units: [unitID] = unitDefID
 local visibleUnits    = {}
+local crashingUnits   = {} -- unitIDs currently crashing; skip icon for these
 local chobbyInterface = false
+local unitRepeat      = {} -- [unitID] = cached repeat bool; avoids GetUnitStates every frame
+
+-- Pre-allocated and reused for every pushElementInstance call to avoid per-push table allocation
+local instanceData = {0, 0, 0, 0,  0,  4,  0, 0, 0.85, 0,  0, 1, 0, 1,  0, 0, 0, 0}
 
 --------------------------------------------------------------------------------
 -- GL4 Initialization
@@ -85,48 +90,14 @@ local function pushToVBO(unitID, unitDefID, gf)
 	if repeatVBO.instanceIDtoIndex[unitID] then return end
 	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then return end
 	local conf = unitConf[unitDefID]
-	pushElementInstance(
-		repeatVBO,
-		{conf[1], conf[1], 0, conf[2],   -- iconSize x2, corner=0, height
-		 0,                               -- teamID (unused)
-		 4,                               -- quad (4 vertices)
-		 gf, 0, 0.85, 0,                  -- gameFrame, unused, alpha, unused
-		 0, 1, 0, 1,                      -- UV atlas: default full texture
-		 0, 0, 0, 0},                     -- padding
-		unitID,   -- VBO key
-		false,    -- do not update existing
-		true,     -- noupload: batch
-		unitID)   -- unit ID for position lookup
+	instanceData[1] = conf[1]  -- width
+	instanceData[2] = conf[1]  -- height
+	instanceData[4] = conf[2]  -- unit height offset
+	instanceData[7] = gf       -- gameframe for animation
+	pushElementInstance(repeatVBO, instanceData, unitID, false, true, unitID)
 end
 
---------------------------------------------------------------------------------
--- Scan visible units and sync the VBO to current repeat states
---------------------------------------------------------------------------------
-local function updateRepeatStates()
-	local gf    = spGetGameFrame()
-	local dirty = false
 
-	for unitID, unitDefID in pairs(visibleUnits) do
-		local states = spGetUnitStates(unitID)
-		if states then
-			if states["repeat"] then
-				if not repeatVBO.instanceIDtoIndex[unitID] then
-					pushToVBO(unitID, unitDefID, gf)
-					dirty = true
-				end
-			else
-				if repeatVBO.instanceIDtoIndex[unitID] then
-					popElementInstance(repeatVBO, unitID, true)
-					dirty = true
-				end
-			end
-		end
-	end
-
-	if dirty or repeatVBO.dirty then
-		uploadAllElements(repeatVBO)
-	end
-end
 
 --------------------------------------------------------------------------------
 -- Widget callbacks
@@ -146,27 +117,66 @@ end
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.clearInstanceTable(repeatVBO)
 	visibleUnits = {}
+	unitRepeat = {}
+	local gf = spGetGameFrame()
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		visibleUnits[unitID] = unitDefID
+		if not crashingUnits[unitID] then
+			local states = spGetUnitStates(unitID)
+			if states then
+				local rep = states["repeat"]
+				unitRepeat[unitID] = rep
+				if rep then pushToVBO(unitID, unitDefID, gf) end
+			end
+		end
 	end
-	updateRepeatStates()
+	if repeatVBO.dirty then uploadAllElements(repeatVBO) end
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	visibleUnits[unitID] = unitDefID
+	if crashingUnits[unitID] then return end
+	local states = spGetUnitStates(unitID)
+	if not states then return end
+	local rep = states["repeat"]
+	unitRepeat[unitID] = rep
+	if rep then
+		pushToVBO(unitID, unitDefID, spGetGameFrame())
+		if repeatVBO.dirty then uploadAllElements(repeatVBO) end
+	end
 end
 
 function widget:VisibleUnitRemoved(unitID)
 	visibleUnits[unitID] = nil
+	unitRepeat[unitID] = nil
+	crashingUnits[unitID] = nil
 	if repeatVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(repeatVBO, unitID)
 	end
 end
 
-function widget:GameFrame(n)
-	if n % 30 == 0 then
-		updateRepeatStates()
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
+	crashingUnits[unitID] = true
+	unitRepeat[unitID] = nil
+	if repeatVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(repeatVBO, unitID)
 	end
+end
+
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts)
+	if cmdID ~= CMD.REPEAT then return end
+	if not visibleUnits[unitID] or crashingUnits[unitID] then return end
+	local rep = (cmdParams[1] == 1)
+	if unitRepeat[unitID] == rep then return end
+	unitRepeat[unitID] = rep
+	if rep then
+		pushToVBO(unitID, unitDefID, spGetGameFrame())
+	else
+		if repeatVBO.instanceIDtoIndex[unitID] then
+			popElementInstance(repeatVBO, unitID, true)
+		end
+	end
+	if repeatVBO.dirty then uploadAllElements(repeatVBO) end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
