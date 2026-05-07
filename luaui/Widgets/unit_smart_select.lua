@@ -95,8 +95,8 @@ for udid, udef in pairs(UnitDefs) do
 	end
 
 	local isMobile = not udef.isImmobile or (includeNanosAsMobile and (udef.isStaticBuilder and not udef.isFactory))
-	local builder = ((udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0)  or  (udef.buildOptions and udef.buildOptions[1]))  and  not (udef.canResurrect and udef.resurrectSpeed > 0)
-	local resurrector = (udef.canResurrect and udef.resurrectSpeed > 0)
+	local builder = (udef.buildOptions and udef.buildOptions[1])  or  ((udef.canRepair and udef.repairSpeed > 0)  or  (udef.canReclaim and udef.reclaimSpeed > 0))  and  not  (udef.canResurrect and udef.resurrectSpeed > 0)
+	local resurrector = (udef.canResurrect and udef.resurrectSpeed > 0)  and  not  (udef.buildOptions and udef.buildOptions[1])
 	local building = (isMobile == false)
 	local isUtil = udef.customParams.unitgroup == "util"
 	local antinuke = isMobile and udef.customParams.unitgroup == "antinuke"
