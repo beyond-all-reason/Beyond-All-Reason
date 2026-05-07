@@ -202,32 +202,26 @@ end
 
 -- Local functions -------------------------------------------------------------
 
-local function getCollateralInSphere(unitID, unitTeam, radius, targetID)
+local function getCollateralInSphere(unitID, unitTeam, allyTeam, radius, targetID)
 	local friendPower, enemyPower = 0.0, 0.0
 
 	local readTeam = readAs
 	readTeam.read = unitTeam
 	local _, _, _, tx, ty, tz = CallAsTeam(readTeam, spGetUnitPosition, targetID, true)
 
-	local friends = CallAsTeam(readTeam, spGetUnitsInSphere, tx, ty, tz, radius, -3)
-	if not friends[1] then
+	local units = spGetUnitsInSphere(tx, ty, tz, radius)
+	if not units[1] then
 		return 0.0, unitPower[spGetUnitDefID(targetID)]
 	end
 
-	for _, friendID in pairs(friends) do
-		if friendID ~= unitID then
-			friendPower = friendPower + unitPower[spGetUnitDefID(friendID)]
+	for _, foundID in next, units do
+		if foundID == unitID then
+			--
+		elseif spGetUnitAllyTeam(foundID) == allyTeam then
+			friendPower = friendPower + unitPower[spGetUnitDefID(foundID)]
+		else
+			enemyPower = enemyPower + unitPower[spGetUnitDefID(foundID)]
 		end
-	end
-
-	-- TODO: Two spatial searches has worse perf than checking allegiance in a loop.
-	local enemies = CallAsTeam(readTeam, spGetUnitsInSphere, tx, ty, tz, radius, -4)
-	if not enemies[1] then
-		return friendPower, unitPower[spGetUnitDefID(targetID)]
-	end
-
-	for _, enemyID in pairs(enemies) do
-		enemyPower = enemyPower + unitPower[spGetUnitDefID(enemyID)]
 	end
 
 	return friendPower, enemyPower
@@ -259,7 +253,7 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		return true, priority * PRIORITY_COLLATERAL
 	end
 
-	local friendPower, enemyPower = getCollateralInSphere(unitID, spGetUnitTeam(unitID), searchRadius, targetID)
+	local friendPower, enemyPower = getCollateralInSphere(unitID, spGetUnitTeam(unitID), allyTeam, searchRadius, targetID)
 
 	if enemyPower >= friendPower * friendPowerRatio then
 		if enemyPower >= friendPower and (not preferRadius or preferRadius < searchRadius) then
@@ -285,15 +279,16 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 	return true, priority
 end
 
-local index = 0 -- TODO: use an actual polling rate instead of whatever this is.
-local reset = table.reduce(allyTeams, function(a, v, k) return k < a and k or a end, 1) - 1
+local index = 0
+local reset = Game.gameSpeed
 
 function gadget:GameFramePost(frame)
-	if avoidUnit[index] then
-		avoidUnit[index] = {}
-		preferUnit[index] = {}
-	else
-		index = reset
+	if index == reset then
+		for i in pairs(avoidUnit) do
+			avoidUnit[i] = {}
+			preferUnit[i] = {}
+		end
+		index = 0
 	end
 	index = index + 1
 end
