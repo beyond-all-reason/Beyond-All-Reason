@@ -1,8 +1,11 @@
 local gadget = gadget ---@type Gadget
+--[[
+TODO: how to deal with jammed high ground units?
+- One idea: track ghosts by tracking when ghost-leaving units enter LOS
+  - To remove ghost: either add new callin from Engine notifying when ghost is removed (too much complexity?)...
+  - Or track when the ghost's position comes in LOS again and whether that unit is still there (has to be checked every frame, seems costly)
 
--- FIXME:
--- - logging/notification only version
--- - explore ideas on how to deal with jammed high ground units (but there's allied stuff blocking you)
+]]
 
 function gadget:GetInfo()
 	return {
@@ -12,7 +15,7 @@ function gadget:GetInfo()
 		date    = "2026-05-01",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
-        version = "1.2",
+        version = "1.3",
 		enabled = true,
 	}
 end
@@ -29,6 +32,7 @@ local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetUnitLosState = Spring.GetUnitLosState
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameRulesParam = Spring.GetGameRulesParam
@@ -48,17 +52,20 @@ local DGUN_WIDTH = 20
 local MIN_THREATENED_ALLY_METAL = 400
 
 -- 1500 is a bit more than the range of a Vanguard
--- In my opinion, there is never a reason to even fire a DGun if there are no enemies within VANGUARD distance
+-- In my opinion, there is never a reason to even fire a DGun if there is no frontline action within VANGUARD distance
 -- We can tweak this smaller as needed
-local ENEMY_SCAN_RADIUS = 1500
+local FRONTLINE_SCAN_RADIUS = 1500
 local gaiaTeamID = spGetGaiaTeamID()
 
 -- Tracks enemy contacts briefly so that dguns are allowed for a few seconds even after contact is lost
 local contactsCache = {}
 local CONTACT_WINDOW_DURATION = 5 * 30 -- five seconds at 30 gameframes per second
-local CONTACT_PRUNE_INTERVAL = 60 * 30 -- prune expired contacts every minute
-local nextContactPruneFrame = CONTACT_PRUNE_INTERVAL
-local USE_WG_ANALYTICS = false
+-- Allies being damaged nearby recently implies we are near combat, so dguns are allowed
+local ALLY_DAMAGE_WINDOW = 30 * 30 -- 30 seconds at 30 gameframes per second
+local CACHE_PRUNE_INTERVAL = 60 * 30 -- prune expired cache contents every minute
+local nextContactPruneFrame = CACHE_PRUNE_INTERVAL
+local USE_WG_ANALYTICS = true -- if false, Spring.Echo intead. Useful for debugging and that's about it
+local recentlyDamagedAlliedUnits = {}
 
 function gadget:Initialize()
 end
@@ -66,6 +73,29 @@ end
 local function GetAllyTeamID(teamID)
 	local _, _, _, _, _, allyTeamID = spGetTeamInfo(teamID)
 	return allyTeamID
+end
+
+function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+	if not unitTeam or unitTeam == gaiaTeamID then
+		return
+	end
+
+	local myAllyTeam = spGetMyAllyTeamID()
+	if not myAllyTeam or GetAllyTeamID(unitTeam) ~= myAllyTeam then
+		return
+	end
+
+	if attackerTeam and attackerTeam ~= gaiaTeamID and GetAllyTeamID(attackerTeam) ~= myAllyTeam then
+		local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+		if unitX then
+			recentlyDamagedAlliedUnits[unitID] = {
+				x = unitX,
+				y = unitY,
+				z = unitZ,
+				expiresFrame = spGetGameFrame() + ALLY_DAMAGE_WINDOW,
+			}
+		end
+	end
 end
 
 local function GetPlayerName(playerID)
@@ -89,21 +119,26 @@ local function GetApproxUnitRadius(unitDefID)
 	return approxRadius
 end
 
-local function PruneExpiredContacts(currentFrame)
+local function PruneExpiredCaches(currentFrame)
 	for i = #contactsCache, 1, -1 do
 		if contactsCache[i].expiresFrame <= currentFrame then
 			table.remove(contactsCache, i)
 		end
 	end
+
+	for unitID, cache in pairs(recentlyDamagedAlliedUnits) do
+		if cache.expiresFrame <= currentFrame then
+			recentlyDamagedAlliedUnits[unitID] = nil
+		end
+	end
 end
 
 -- Caches a unit contact briefly. This can be checked for the sake of allowing/disallowing DGun later
-local function AddExpiringUnitContact(x, y, z, contactTeam, currentFrame)
+local function AddExpiringUnitContact(x, y, z, currentFrame)
 	contactsCache[#contactsCache + 1] = {
 		x = x,
 		y = y,
 		z = z,
-		contactTeam = contactTeam,
 		expiresFrame = currentFrame + CONTACT_WINDOW_DURATION,
 	}
 end
@@ -196,9 +231,9 @@ end
 local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 	local myAllyTeam = GetAllyTeamID(teamID)
 	local currentFrame = spGetGameFrame()
-	PruneExpiredContacts(currentFrame)
+	PruneExpiredCaches(currentFrame)
 
-	local candidates = spGetUnitsInSphere(targetX, targetY, targetZ, ENEMY_SCAN_RADIUS)
+	local candidates = spGetUnitsInSphere(targetX, targetY, targetZ, FRONTLINE_SCAN_RADIUS)
 
 	for i = 1, #candidates do
 		local unitID = candidates[i]
@@ -211,14 +246,20 @@ local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 		end
 	end
 
-	-- Treat recent contacts as visible enemy presence.
+	-- Treat recent contacts as enemy presence.
 	for i = 1, #contactsCache do
 		local ping = contactsCache[i]
-		if ping.contactTeam ~= myAllyTeam then
-			local deltaX, deltaY, deltaZ = ping.x - targetX, ping.y - targetY, ping.z - targetZ
-			if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) <= (ENEMY_SCAN_RADIUS * ENEMY_SCAN_RADIUS) then
-				return true, "Enemies recently on radar/seismic within range"
-			end
+		local deltaX, deltaY, deltaZ = ping.x - targetX, ping.y - targetY, ping.z - targetZ
+		if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) <= (FRONTLINE_SCAN_RADIUS * FRONTLINE_SCAN_RADIUS) then
+			return true, "Enemies recently on radar/seismic within range"
+		end
+	end
+
+	-- Allied units damaged nearby implies we are on the frontline
+	for _, cache in pairs(recentlyDamagedAlliedUnits) do
+		local deltaX, deltaY, deltaZ = cache.x - targetX, cache.y - targetY, cache.z - targetZ
+		if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) <= (FRONTLINE_SCAN_RADIUS * FRONTLINE_SCAN_RADIUS) then
+			return true, "Allies recently damaged nearby"
 		end
 	end
 
@@ -237,20 +278,18 @@ function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 	end
 
 	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-	Spring.Echo(unitX, unitY, unitZ) -- FIXME
 	if not unitX then
 		return
 	end
 
 	-- Note: we want to track the team of the unit that left radar.
 	-- 'allyTeam' in this context is actually which team that lost track of a radar contact
-	AddExpiringUnitContact(unitX, unitY, unitZ, unitTeam, spGetGameFrame())
+		AddExpiringUnitContact(unitX, unitY, unitZ, spGetGameFrame())
 end
 
 -- Cache seismic detections briefly so they count as visible enemy presence.
 function gadget:UnitSeismicPing(positionX, positionY, positionZ, strength, allyTeam, unitID, unitDefID)
-	Spring.Echo(positionX, positionY, positionZ) -- FIXME
-	AddExpiringUnitContact(positionX, positionY, positionZ, allyTeam, spGetGameFrame())
+	AddExpiringUnitContact(positionX, positionY, positionZ, spGetGameFrame())
 end
 
 function gadget:GameFrame(currentFrame)
@@ -259,11 +298,11 @@ function gadget:GameFrame(currentFrame)
 	end
 
 	if #contactsCache > 0 then
-		PruneExpiredContacts(currentFrame)
+		PruneExpiredCaches(currentFrame)
 	end
 
 	while nextContactPruneFrame <= currentFrame do
-		nextContactPruneFrame = nextContactPruneFrame + CONTACT_PRUNE_INTERVAL
+		nextContactPruneFrame = nextContactPruneFrame + CACHE_PRUNE_INTERVAL
 	end
 end
 
