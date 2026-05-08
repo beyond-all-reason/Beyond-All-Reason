@@ -23,6 +23,7 @@ local PRIORITY_ANTI_SPAM = 20.0
 
 local friendPowerRatio = 1.5
 local spamPowerMax = 50
+local unknownPower = 50
 
 local searchRadiusMin = 64.0
 local searchDamageMin = 100.0
@@ -55,8 +56,8 @@ end
 
 local readAs = { read = -1 }
 
-local unitPower = {}
-local unitRadius = {}
+local unitPower = { [-1] = unknownPower }
+local unitRadius = { [-1] = 0.0 }
 local unitDefRadiusAverage = 0.0 -- TODO: median or something
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
@@ -220,15 +221,11 @@ end
 
 -- Local functions -------------------------------------------------------------
 
-local function getCollateralInSphere(unitID, unitTeam, allyTeam, radius, targetID)
+local function getUnitCollateral(unitID, allyTeam, radius, targetID)
 	local friendPower, enemyPower = 0.0, 0.0
 
-	local readTeam = readAs
-	readTeam.read = unitTeam
-	local _, _, _, tx, ty, tz = CallAsTeam(readTeam, spGetUnitPosition, targetID, true)
-
-	local targetDefID = spGetUnitDefID(targetID)
-	local units = spGetUnitsInSphere(tx, ty, tz, radius + unitRadius[targetDefID])
+	local _, _, _, tx, ty, tz = spGetUnitPosition(targetID, true)
+	local units = spGetUnitsInSphere(tx, ty, tz, radius + unitRadius[spGetUnitDefID(targetID) or -1])
 
 	for _, foundID in next, units do
 		if foundID == unitID then
@@ -236,7 +233,7 @@ local function getCollateralInSphere(unitID, unitTeam, allyTeam, radius, targetI
 		elseif spGetUnitAllyTeam(foundID) == allyTeam then
 			friendPower = friendPower + unitPower[spGetUnitDefID(foundID)]
 		else
-			enemyPower = enemyPower + unitPower[spGetUnitDefID(foundID)]
+			enemyPower = enemyPower + unitPower[spGetUnitDefID(foundID) or -1]
 		end
 	end
 
@@ -265,7 +262,9 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		return true, priority * PRIORITY_COLLATERAL
 	end
 
-	local friendPower, enemyPower = getCollateralInSphere(unitID, spGetUnitTeam(unitID), allyTeam, searchRadius, targetID)
+	readAs.read = spGetUnitTeam(unitID)
+
+	local friendPower, enemyPower = CallAsTeam(readAs, getUnitCollateral, unitID, allyTeam, searchRadius, targetID)
 
 	if enemyPower >= friendPower * friendPowerRatio then
 		if not preferRadius or preferRadius < searchRadius then
