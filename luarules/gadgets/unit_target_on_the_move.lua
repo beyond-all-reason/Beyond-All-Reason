@@ -528,7 +528,9 @@ if gadgetHandler:IsSyncedCode() then
 								elseif target[2] < 0 and spGetUnitWeaponTestTarget(unitID, weaponID, target[1], 1, target[3]) then
 									target[2] = 1 -- clip to waterlevel +1
 									validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target[1], target[2], target[3])
-									break
+									if validTarget then
+										break
+									end
 								end
 							end
 						end
