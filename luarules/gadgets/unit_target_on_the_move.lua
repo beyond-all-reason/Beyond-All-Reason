@@ -349,6 +349,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			sendTargetsToUnsynced(unitID)
 			SendToUnsynced("targetList", unitID, #unitTargets[unitID].targets + 1) -- ask to clear the last element since we made the table smaller
+			local currentIndex = index == unitTargets[unitID].currentIndex
+			if index == currentIndex then
+				unitTargets[unitID].currentIndex = 1
+			elseif index < currentIndex then
+				unitTargets[unitID].currentIndex = currentIndex - 1
+			end
 		end
 	end
 
