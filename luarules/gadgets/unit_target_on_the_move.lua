@@ -438,7 +438,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				-- Checks if the command is a valid area command {x,y,z,r} with radius more than 0:
 				if #cmdParams > 3 and not (#cmdParams == 4 and cmdParams[4] == 0) then
-					local targets = {}
+					local targets
 					if #cmdParams == 6 then
 						--rectangle
 						local top, bot, left, right
