@@ -184,7 +184,7 @@ if gadgetHandler:IsSyncedCode() then
 		local unitData = unitTargets[unitID]
 		if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, targetData.target) then
 			local currentCmdID = spGetUnitCurrentCommand(unitID)
-			if currentCmdID and currentCmdID == CMD.ATTACK then
+			if currentCmdID == CMD.ATTACK then
 				return false
 			else
 				Spring.SetUnitTarget(unitID, nil)
@@ -323,7 +323,7 @@ if gadgetHandler:IsSyncedCode() then
 			sendTargetsToUnsynced(unitID)
 			if setTarget(unitID, data.targets[1]) then
 				if data.currentIndex ~= 1 then
-					unitTargets[unitID].currentIndex = 1
+					data.currentIndex = 1
 					SendToUnsynced("targetIndex", unitID, 1)
 				end
 			end
