@@ -299,7 +299,7 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneBeginN(string.format("addUnitTargets:%s %d %d",tostring(reason), unitID, unitDefID))
 		if spValidUnitID(unitID) then
 			--needSend[#needSend] = unitID
-			local data = unitTargets[unitID]
+			local data = unitTargets[unitID] or pausedTargets[unitID]
 			if not data then
 				data = {
 					targets = {},
@@ -327,6 +327,10 @@ if gadgetHandler:IsSyncedCode() then
 				return
 			end
 			unitTargets[unitID] = data
+			pausedTargets[unitID] = nil
+			if waitForCommandDone[unitID] then
+				checkForManualFire[unitID] = true
+			end
 			sendTargetsToUnsynced(unitID)
 			if setTarget(unitID, data.targets[1]) then
 				if data.currentIndex ~= 1 then
@@ -339,31 +343,37 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function removeUnit(unitID, keeptrack)
-		spSetUnitTarget(unitID, nil)
-		spSetUnitRulesParam(unitID, "targetID", -1)
-		spSetUnitRulesParam(unitID, "targetCoordX", -1)
-		spSetUnitRulesParam(unitID, "targetCoordY", -1)
-		spSetUnitRulesParam(unitID, "targetCoordZ", -1)
-		if unitTargets[unitID] and not keeptrack then
+		if unitTargets[unitID] then
+			spSetUnitTarget(unitID, nil)
+			spSetUnitRulesParam(unitID, "targetID", -1)
+			spSetUnitRulesParam(unitID, "targetCoordX", -1)
+			spSetUnitRulesParam(unitID, "targetCoordY", -1)
+			spSetUnitRulesParam(unitID, "targetCoordZ", -1)
+			if unitTargets[unitID] and not keeptrack then
+				SendToUnsynced("targetList", unitID, 0)
+			end
+			unitTargets[unitID] = nil
+		elseif pausedTargets[unitID] then
 			SendToUnsynced("targetList", unitID, 0)
+			pausedTargets[unitID] = nil
 		end
-		unitTargets[unitID] = nil
 		waitForCommandDone[unitID] = nil
 	end
 
 	local function removeTarget(unitID, index)
-		tremove(unitTargets[unitID].targets, index)
-		if #unitTargets[unitID].targets == 0 then
+		local unitData = unitTargets[unitID] or pausedTargets[unitID]
+		tremove(unitData.targets, index)
+		if #unitData.targets == 0 then
 			removeUnit(unitID)
 		else
 			-- refresh the sent list:
-			for i, targetData in ipairs(unitTargets[unitID].targets) do
+			for i, targetData in ipairs(unitData.targets) do
 				if i >= index then
 					targetData.sent = nil
 				end
 			end
 			sendTargetsToUnsynced(unitID)
-			SendToUnsynced("targetList", unitID, #unitTargets[unitID].targets + 1) -- ask to clear the last element since we made the table smaller
+			SendToUnsynced("targetList", unitID, #unitData.targets + 1) -- ask to clear the last element since we made the table smaller
 		end
 	end
 
@@ -626,13 +636,14 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function pauseTargetting(unitID)
 		if unitTargets[unitID] and not pausedTargets[unitID] then
-			pausedTargets[unitID] = unitTargets[unitID]
+			local data = unitTargets[unitID]
 			removeUnit(unitID, true)
+			pausedTargets[unitID] = data
 		end
 	end
+
 	local function unpauseTargetting(unitID)
 		addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true, "unpauseTargetting")
-		pausedTargets[unitID] = nil
 	end
 
 	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
@@ -645,12 +656,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- Stop command may have been enqueued and so bypassed AllowCommand.
 			local targetData = hasTargetData.targets[hasTargetData.currentIndex]
 			if not targetData or not targetData.ignoreStop then
-				if pausedTargets[unitID] then
-					SendToUnsynced("targetList", unitID, 0)
-					pausedTargets[unitID] = nil
-				else
-					removeUnit(unitID)
-				end
+				removeUnit(unitID)
 				return
 			end
 		end
@@ -708,14 +714,10 @@ if gadgetHandler:IsSyncedCode() then
 		if cmdID == CMD_STOP then
 			local targetData = hasTargetData.targets[hasTargetData.currentIndex]
 			if not targetData or not targetData.ignoreStop then
-				if pausedTargets[unitID] then
-					SendToUnsynced("targetList", unitID, 0)
-					pausedTargets[unitID] = nil
-				else
-					removeUnit(unitID)
-				end
+				removeUnit(unitID)
+			else
+				waitForCommandDone[unitID] = nil
 			end
-			waitForCommandDone[unitID] = nil
 		elseif cmdID == CMD_DGUN then
 			pauseTargetting(unitID)
 			waitForCommandDone[unitID] = true
