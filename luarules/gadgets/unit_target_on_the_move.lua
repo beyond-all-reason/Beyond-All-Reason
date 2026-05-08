@@ -78,7 +78,7 @@ if gadgetHandler:IsSyncedCode() then
 	local pairsNext = next
 	local tonumber = tonumber
 
-	local isEnqueuedFirst = Game.CustomCommands.IsEnqueuedFirst
+	local isEnqueuedFirst = Game.Commands.IsEnqueuedFirst
 
 	local CMD_STOP = CMD.STOP
 	local CMD_DGUN = CMD.DGUN
@@ -110,7 +110,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	local unitTargets = {} -- data holds all unitID data
 	local pausedTargets = {}
-	--local needSend = {}
+
+	local waitForCommandDone = {}
+	local checkForManualFire = {}
+
 	--------------------------------------------------------------------------------
 	-- Commands
 
@@ -345,6 +348,7 @@ if gadgetHandler:IsSyncedCode() then
 			SendToUnsynced("targetList", unitID, 0)
 		end
 		unitTargets[unitID] = nil
+		waitForCommandDone[unitID] = nil
 	end
 
 	local function removeTarget(unitID, index)
@@ -431,6 +435,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 		--tracy.ZoneBeginN(string.format("processCommand %d %d %d %d %s %s", unitID, unitDefID, teamID, cmdID, tostring(cmdParams), tostring(cmdOptions)))
 		--tracy.Message(string.format("processCommand params=%s oprt=%s", Json.encode(cmdParams), Json.encode(cmdOptions)))
+		local unitData = unitTargets[unitID] or pausedTargets[unitID]
 		if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
 			if validUnits[unitDefID] then
 				if cmdParams and #cmdParams > 3 and not (cmdOptions and cmdOptions.internal) then
@@ -484,7 +489,7 @@ if gadgetHandler:IsSyncedCode() then
 								optionKeys[optionKeysCount] = optionName
 							end
 						end
-						if not append and unitTargets[unitID] then
+						if not append and unitData then
 							-- Need to clear orders if not in shift, since just sending the first one
 							-- as not-shift would sometimes fail if that unit is in the end not valid.
 							orders[1] = {CMD_UNIT_CANCEL_TARGET, {}, {}}
@@ -583,7 +588,7 @@ if gadgetHandler:IsSyncedCode() then
 			--tracy.ZoneEnd()
 			return true
 		elseif cmdID == CMD_UNIT_CANCEL_TARGET then
-			if unitTargets[unitID] then
+			if unitData then
 				if #cmdParams == 0 then
 					removeUnit(unitID)
 				elseif #cmdParams == 1 and cmdOptions.alt then
@@ -591,7 +596,7 @@ if gadgetHandler:IsSyncedCode() then
 					removeTarget(unitID, cmdParams[1])
 				elseif #cmdParams == 1 and not cmdOptions.alt then
 					--target is unitID
-					for index, val in ipairs(unitTargets[unitID].targets) do
+					for index, val in ipairs(unitData.targets) do
 						if tonumber(val) then
 							--element is a unitID
 							if val == cmdParams[1] then
@@ -602,7 +607,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				elseif #cmdParams == 3 then
 					--target is a location
-					for index, val in ipairs(unitTargets[unitID].targets) do
+					for index, val in ipairs(unitData.targets) do
 						if not tonumber(val) and val then
 							--element is not a unitID
 							if distance(val, cmdParams) < deleteMaxDistance then
@@ -619,7 +624,6 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneEnd()
 	end
 
-	local waitingForInsertRemoval = {}
 	local function pauseTargetting(unitID)
 		if unitTargets[unitID] and not pausedTargets[unitID] then
 			pausedTargets[unitID] = unitTargets[unitID]
@@ -638,6 +642,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if cmdID == CMD_STOP then
+			-- Stop command may have been enqueued and so bypassed AllowCommand.
 			local targetData = hasTargetData.targets[hasTargetData.currentIndex]
 			if not targetData or not targetData.ignoreStop then
 				if pausedTargets[unitID] then
@@ -646,24 +651,26 @@ if gadgetHandler:IsSyncedCode() then
 				else
 					removeUnit(unitID)
 				end
+				return
+			end
+		end
+
+		if not waitForCommandDone[unitID] then
+			return
+		end
+
+		-- We do not know if we are coming from ExecuteInsert or FinishCommand.
+		-- So we do not know whether the below command is starting or finished.
+		local inCommandID = spGetUnitCurrentCommand(unitID)
+		local inManualFire = inCommandID == CMD_DGUN or cmdID == CMD_DGUN -- So, we guess.
+
+		if inManualFire then
+			if not pausedTargets[unitID] then
+				checkForManualFire[unitID] = true
 			end
 		else
-			local cmdCount = spGetUnitCommandCount(unitID)
-			local activeCommandIsDgun = false
-
-			if cmdCount ~= 0 then
-				local currentCmdID = spGetUnitCurrentCommand(unitID)
-				activeCommandIsDgun = (currentCmdID == CMD_DGUN)
-			end
-
-			if pausedTargets[unitID] and not activeCommandIsDgun then
-				if waitingForInsertRemoval[unitID] then
-					waitingForInsertRemoval[unitID] = nil
-				else
-					unpauseTargetting(unitID)
-				end
-			elseif not pausedTargets[unitID] and activeCommandIsDgun then
-				pauseTargetting(unitID)
+			if pausedTargets[unitID] then
+				checkForManualFire[unitID] = true
 			end
 		end
 	end
@@ -692,6 +699,9 @@ if gadgetHandler:IsSyncedCode() then
 		-- Other commands (CMD_STOP, CMD_DGUN) might not execute immediately.
 		if not isEnqueuedFirst(unitID, cmdTag, cmdOptions, fromInsert) then
 			--tracy.ZoneEnd()
+			if cmdID == CMD_DGUN then
+				waitForCommandDone[unitID] = true
+			end
 			return true
 		end
 
@@ -705,11 +715,11 @@ if gadgetHandler:IsSyncedCode() then
 					removeUnit(unitID)
 				end
 			end
+			waitForCommandDone[unitID] = nil
 		elseif cmdID == CMD_DGUN then
 			pauseTargetting(unitID)
-			if fromInsert then
-				waitingForInsertRemoval[unitID] = true
-			end
+			waitForCommandDone[unitID] = true
+			checkForManualFire[unitID] = true
 		end
 
 		--tracy.ZoneEnd()
@@ -775,6 +785,23 @@ if gadgetHandler:IsSyncedCode() then
 						removeTarget(unitID, index)
 					end
 				end
+			end
+		end
+
+		for unitID in pairs(checkForManualFire) do
+			if unitTargets[unitID] then
+				if spGetUnitCurrentCommand(unitID) == CMD_DGUN then
+					pauseTargetting(unitID)
+				end
+				checkForManualFire[unitID] = nil
+			elseif pausedTargets[unitID] then
+				if spGetUnitCurrentCommand(unitID) ~= CMD_DGUN then
+					unpauseTargetting(unitID)
+				end
+				-- continue checking for manual fire
+			else
+				checkForManualFire[unitID] = nil
+				waitForCommandDone[unitID] = nil
 			end
 		end
 	end
