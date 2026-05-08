@@ -639,7 +639,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if cmdID == CMD_STOP then
 			local targetData = hasTargetData.targets[hasTargetData.currentIndex]
-			if targetData and not targetData.ignoreStop then
+			if not targetData or not targetData.ignoreStop then
 				if pausedTargets[unitID] then
 					SendToUnsynced("targetList", unitID, 0)
 					pausedTargets[unitID] = nil
@@ -697,7 +697,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if cmdID == CMD_STOP then
 			local targetData = hasTargetData.targets[hasTargetData.currentIndex]
-			if targetData and not targetData.ignoreStop then
+			if not targetData or not targetData.ignoreStop then
 				if pausedTargets[unitID] then
 					SendToUnsynced("targetList", unitID, 0)
 					pausedTargets[unitID] = nil
