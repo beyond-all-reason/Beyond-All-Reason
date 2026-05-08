@@ -633,7 +633,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if cmdID == CMD_STOP then
-			if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then
+			local targetData = hasTargetData and hasTargetData.targets[hasTargetData.currentIndex]
+			if targetData and not targetData.ignoreStop then
 				removeUnit(unitID)
 			elseif pausedTargets[unitID] then
 				SendToUnsynced("targetList", unitID, 0)
@@ -673,7 +674,9 @@ if gadgetHandler:IsSyncedCode() then
 				--tracy.ZoneEnd()
 				return false --command was used & fully processed, so block command
 			elseif cmdID == CMD_STOP then
-				if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then
+				local hasTargetData = unitTargets[unitID] or pausedTargets[unitID]
+				local targetData = hasTargetData and hasTargetData.targets[hasTargetData.currentIndex]
+				if targetData and not targetData.ignoreStop then
 					removeUnit(unitID)
 				elseif pausedTargets[unitID] then
 					SendToUnsynced("targetList", unitID, 0)
