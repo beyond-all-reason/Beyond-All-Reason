@@ -18,19 +18,17 @@ function gadget:GetInfo()
 end
 
 local PRIORITY_CLEAN_SHOT = 0.875
-local PRIORITY_COLLATERAL = 5
+local PRIORITY_COLLATERAL = 5.0
+local PRIORITY_ANTI_SPAM = 20.0
 
-local collateralPenaltyMax = 20.0
 local friendPowerRatio = 1.5
-local powerFodderMax = 50
-local effectTarget = 0.20
+local spamPowerMax = 50
 
 local searchRadiusMin = 64.0
 local searchDamageMin = 100.0
+local effectTarget = 0.20
 
 -- Lua env globals -------------------------------------------------------------
-
-local math_clamp = math.clamp
 
 local CallAsTeam = CallAsTeam
 
@@ -57,7 +55,8 @@ end
 
 local readAs = { read = -1 }
 
-local unitPower = {} -- TODO: respect LOS access level
+local unitPower = {}
+local unitRadius = {}
 local unitDefRadiusAverage = 0.0 -- TODO: median or something
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
@@ -65,8 +64,13 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	unitDefRadiusAverage = unitDefRadiusAverage + unitDef.radius
 end
 
-unitDefRadiusAverage = unitDefRadiusAverage / (#UnitDefs > 0 and #UnitDefs or 1)
-unitDefRadiusAverage = unitDefRadiusAverage + 10 -- just feels about right to do
+if #UnitDefs > 0 then
+	unitDefRadiusAverage = unitDefRadiusAverage / #UnitDefs
+end
+
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	unitRadius[unitDefID] = math.max(unitDef.radius - unitDefRadiusAverage * 0.5, 0)
+end
 
 local function getWeaponDamage(weaponDef)
 	local damage = weaponDef.damages[0] -- TODO: other armor type targets
@@ -164,6 +168,20 @@ local function getExplosionRadiusEffective(weaponDef, subordinates)
 		-- Spatial search is via midpoint. Just add padding:
 		radius = aoe + scatter + miss + unitDefRadiusAverage
 		damage = getWeaponDamage(weaponDef)
+
+		if weaponDef.customParams.cluster_def then
+			local clusterDef = WeaponDefNames[weaponDef.customParams.cluster_def]
+			if clusterDef then
+				radius = radius + math.max(clusterDef.range - aoe, 0) + clusterDef.damageAreaOfEffect * 0.5
+				damage = damage + clusterDef.damages[0] * tonumber(weaponDef.customParams.cluster_number)
+			end
+		elseif weaponDef.customParams.spark_range then
+			-- Allies are unaffected.
+		elseif weaponDef.customParams.speceffect == "split" then
+			radius = radius + 32 -- sure
+		elseif weaponDef.customParams.area_onhit_range then
+			radius = radius + math.max(tonumber(weaponDef.customParams.area_onhit_range) - aoe, 0)
+		end
 	end
 
 	if subordinates then
@@ -209,10 +227,8 @@ local function getCollateralInSphere(unitID, unitTeam, allyTeam, radius, targetI
 	readTeam.read = unitTeam
 	local _, _, _, tx, ty, tz = CallAsTeam(readTeam, spGetUnitPosition, targetID, true)
 
-	local units = spGetUnitsInSphere(tx, ty, tz, radius)
-	if not units[1] then
-		return 0.0, unitPower[spGetUnitDefID(targetID)]
-	end
+	local targetDefID = spGetUnitDefID(targetID)
+	local units = spGetUnitsInSphere(tx, ty, tz, radius + unitRadius[targetDefID])
 
 	for _, foundID in next, units do
 		if foundID == unitID then
@@ -252,23 +268,22 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 	local friendPower, enemyPower = getCollateralInSphere(unitID, spGetUnitTeam(unitID), allyTeam, searchRadius, targetID)
 
 	if enemyPower >= friendPower * friendPowerRatio then
-		if enemyPower >= friendPower and (not preferRadius or preferRadius < searchRadius) then
+		if not preferRadius or preferRadius < searchRadius then
 			preferUnit[allyTeam][targetID] = searchRadius
 		end
 
-		if friendPower <= powerFodderMax then
+		if friendPower <= spamPowerMax then
 			priority = priority * PRIORITY_CLEAN_SHOT
 		end
 	else
-		if enemyPower <= friendPower and (not avoidRadius or avoidRadius > searchRadius) then
+		if not avoidRadius or avoidRadius > searchRadius then
 			avoidUnit[allyTeam][targetID] = searchRadius
 		end
 
-		if enemyPower <= powerFodderMax then
-			priority = priority * collateralPenaltyMax
+		if enemyPower <= spamPowerMax then
+			priority = priority * PRIORITY_ANTI_SPAM
 		else
-			local avoid = math_clamp((friendPower / enemyPower) * friendPowerRatio, 1, collateralPenaltyMax)
-			priority = priority * avoid
+			priority = priority * PRIORITY_COLLATERAL
 		end
 	end
 
