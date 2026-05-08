@@ -416,7 +416,7 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	-- Command Tracking
 
-	local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, fromLua)
+	local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 		--tracy.ZoneBeginN(string.format("processCommand %d %d %d %d %s %s", unitID, unitDefID, teamID, cmdID, tostring(cmdParams), tostring(cmdOptions)))
 		--tracy.Message(string.format("processCommand params=%s oprt=%s", Json.encode(cmdParams), Json.encode(cmdOptions)))
 		if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
@@ -472,7 +472,7 @@ if gadgetHandler:IsSyncedCode() then
 								optionKeys[optionKeysCount] = optionName
 							end
 						end
-						if not cmdOptions["shift"] and unitTargets[unitID] then
+						if not append and unitTargets[unitID] then
 							-- Need to clear orders if not in shift, since just sending the first one
 							-- as not-shift would sometimes fail if that unit is in the end not valid.
 							orders[1] = {CMD_UNIT_CANCEL_TARGET, {}, {}}
@@ -494,6 +494,7 @@ if gadgetHandler:IsSyncedCode() then
 						spGiveOrderArrayToUnit(unitID, orders)
 						-- oh wait we DO know, we just need to wait here for the return.
 						-- if we are coming from lua, then we are already
+						-- NOTE: Almost all commands appear to be coming "from Lua"; above is not correct
 					end
 				else
 					if #cmdParams == 3 or #cmdParams == 4 then
