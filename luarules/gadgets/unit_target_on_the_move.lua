@@ -696,7 +696,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if cmdID == CMD_STOP then
-			local targetData = hasTargetData and hasTargetData.targets[hasTargetData.currentIndex]
+			local targetData = hasTargetData.targets[hasTargetData.currentIndex]
 			if targetData and not targetData.ignoreStop then
 				if pausedTargets[unitID] then
 					SendToUnsynced("targetList", unitID, 0)
