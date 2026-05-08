@@ -722,6 +722,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n % 5 == 4 then
 			for unitID, unitData in pairsNext, unitTargets do
 				local targetIndex
+				local targetOffset = 0
 				local targets = unitData.targets
 				-- Check each target and find first valid one
 				for index = 1, #targets do
@@ -729,8 +730,9 @@ if gadgetHandler:IsSyncedCode() then
 					if not checkTarget(unitID, targetData.target) then
 						-- Mark for removal, but don't remove during iteration
 						targetData.invalid = true
+						targetOffset = targetOffset + 1
 					elseif not targetData.invalid and setTarget(unitID, targetData) then
-						targetIndex = index
+						targetIndex = index - targetOffset
 						break
 					end
 				end
