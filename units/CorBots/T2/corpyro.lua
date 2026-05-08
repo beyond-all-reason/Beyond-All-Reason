@@ -24,7 +24,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "pyroselfd",
 		selfdestructcountdown = 1,
-		sightdistance = 318,
+		sightdistance = 380,
 		speed = 82.5,
 		strafetoattack = true,
 		turninplace = true,

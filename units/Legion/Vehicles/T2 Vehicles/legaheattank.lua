@@ -1,7 +1,7 @@
 return {
 	legaheattank = {
 		maxacc = 0.02,
-		maxdec = 0.04,
+		maxdec = 0.1,
 		energycost = 19000,
 		metalcost = 1250,
 		buildpic = "LEGAHEATTANK.DDS",
@@ -10,6 +10,7 @@ return {
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "46 25 46",
 		collisionvolumetype = "CylY",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,

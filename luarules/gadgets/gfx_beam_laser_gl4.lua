@@ -33,6 +33,7 @@ local spIsPosInAirLos             = Spring.IsPosInAirLos
 local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 local spGetGameFrame              = Spring.GetGameFrame
+local spGetFrameTimeOffset        = Spring.GetFrameTimeOffset
 local spGetProjectileOwnerID      = Spring.GetProjectileOwnerID
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spIsAABBInView              = Spring.IsAABBInView
@@ -65,9 +66,9 @@ local IDLE_SKIP_FRAMES = 3     -- draw-frames to skip polling when no beams acti
 
 -- Per-weapon ghost frames: scaled by beam thickness so small lasers fade fast
 local GHOST_FRAMES_MIN      = 3     -- ghost frames for thinnest beams
-local GHOST_FRAMES_MAX      = 7     -- ghost frames for thickest beams
+local GHOST_FRAMES_MAX      = 8     -- ghost frames for thickest beams
 local GHOST_THICKNESS_MIN   = 1.5   -- thickness at or below which gets min ghost frames
-local GHOST_THICKNESS_MAX   = 4.0   -- thickness at or above which gets max ghost frames
+local GHOST_THICKNESS_MAX   = 5.0   -- thickness at or above which gets max ghost frames
 local FLARE_GHOST_FRAC      = 0.4   -- fraction of weapon ghostFrames where flare stays visible (0..1)
 
 -- Textures
@@ -83,8 +84,15 @@ local LOS_BONUS_RANGE  = 100   -- when not USE_AIR_LOS then extra elmos of beam 
 -- Resolve LOS check function once (avoids per-call branch in hot loop)
 local spLosCheck = USE_AIR_LOS and spIsPosInAirLos or spIsPosInLos
 
+-- Retarget transition removed: an earlier version smoothly swept the beam
+-- endpoint over a few frames when the engine moved a beam to a new target.
+-- That looked good for sustained beams tracking a moving unit, but on real
+-- multi-weapon turrets with fastautoretargeting (corhllt etc.) it produced
+-- a visible beam sweep across the screen between two unrelated targets on
+-- every target switch, which was more disruptive than the original snap.
+
 -- Beam body
-local BEAM_WIDTH_MULT         = 0.66   -- multiplier on weapon thickness for beam quad width
+local BEAM_WIDTH_MULT         = 0.3   -- multiplier on weapon thickness for beam quad width
 local BEAM_SUSTAIN_LIFEFRAC   = 0.33   -- lifeFrac value for live beams (must be between FADE_IN_END and FADE_OUT_START)
 local BEAM_RANGE_FALLOFF_BASE = 0.1   -- minimum intensity falloff along beam length
 local BEAM_RANGE_FALLOFF_MULT = 0.5  -- additional falloff scaled by beam-length / weapon-range
@@ -93,22 +101,46 @@ local BEAM_RANGE_FALLOFF_MULT = 0.5  -- additional falloff scaled by beam-length
 local CORE_COLOR_ADD = 0.5  -- added to weapon RGB to create brighter core color (clamped to 1)
 
 -- Flare billboard
-local FLARE_SIZE_MULT       = 0.66   -- multiplier on (laserflaresize * thickness)
+local FLARE_SIZE_MULT       = 0.7   -- multiplier on (laserflaresize * thickness)
 local FLARE_COLOR_MULT      = 1.0   -- multiplier on core color for flare RGB
 local FLARE_LIFE_DIM        = 0.7   -- how much flare dims over beam lifetime (0 = none, 1 = fully dark at end)
+
+-- Beam glow halo
+local GLOW_WIDTH_MULT       = 8.0   -- glow quad width as multiple of beam width
+local GLOW_BRIGHTNESS       = 0.17  -- glow intensity (additive)
+local GLOW_FALLOFF_POWER    = 1.8  -- falloff curve exponent (<1 = fast initial drop + long tail, 1 = linear, >1 = slow start + sharp cutoff)
+local GLOW_THICKNESS_DIM    = 2.0   -- beams thinner than this get minimum glow
+local GLOW_THICKNESS_FULL   = 4.0   -- beams thicker than this get full glow
+local GLOW_DIM_FACTOR       = 0.2  -- glow brightness multiplier for thinnest beams (0..1)
+
+-- Traveling pulse
+local PULSE_WIDTH_MULT      = 2.0   -- pulse quad width as multiple of beam width
+local PULSE_BRIGHTNESS      = 3.3   -- pulse intensity (additive, on top of beam)
+local PULSE_SPEED           = 950.0 -- pulse travel speed in world units (elmos) per second
+local PULSE_SPACING         = 200.0  -- distance between pulse centers in world units (elmos)
+local PULSE_SIGMA           = 35.0  -- gaussian half-width of each pulse in world units (elmos)
+local PULSE_CORE_FRAC       = 0.3   -- fraction of pulse width that is bright core (0..1)
+
+-- Paralyzer beam pulse overrides (faster, brighter, tighter)
+local PULSE_PARA_BRIGHTNESS = 8.0    -- pulse intensity for paralyzer beams
+local PULSE_PARA_SPEED      = 250.0 -- pulse travel speed for paralyzer beams (elmos/sec)
+local PULSE_PARA_SPACING    = 15.0  -- distance between pulses for paralyzer beams (elmos)
+local PULSE_PARA_SIGMA      = 1.1   -- gaussian half-width of each pulse for paralyzer beams (elmos)
+local PULSE_PARA_WIDTH_MULT = 2.5   -- pulse quad width as multiple of beam width for paralyzer beams
 
 -- Shader config (injected as #defines into beam vertex+fragment shaders)
 local shaderConfig = {
 	FADE_IN_END        = 0.1,    -- lifeFrac where width/alpha fade-in completes
 	FADE_OUT_START     = 0.85,   -- lifeFrac where width/alpha fade-out begins
-	RANGE_TAPER        = 0.25,   -- width reduction at beam end (0 = none, 1 = full taper to zero)
+	RANGE_TAPER        = 0.3,   -- width reduction at beam end (0 = none, 1 = full taper to zero)
 	SHIMMER_AMPLITUDE  = 0.13,   -- width oscillation strength (0 = off)
 	SHIMMER_SPEED      = 40.0,   -- width oscillation speed (timeInfo.z multiplier)
 	CORE_EDGE_START    = 0.02,   -- |x| distance where core-to-edge color blend starts (0 = only center pixel)
-	CORE_EDGE_END      = 0.25,    -- |x| distance where blend is fully edge color
-	CORE_BRIGHTNESS    = 1.0,    -- extra brightness multiplier for core (squared falloff)
+	CORE_EDGE_END      = 0.44,    -- |x| distance where blend is fully edge color
+	CORE_BRIGHTNESS    = 1.1,    -- extra brightness multiplier for core (squared falloff)
 	BRIGHTNESS_MULT    = 1.5,    -- overall beam brightness multiplier
-	MIN_PIXEL_WIDTH    = 0.0012, -- minimum beam width as fraction of camera distance (prevents sub-pixel aliasing at distance)
+	MIN_PIXEL_WIDTH    = 0.0018, -- minimum beam width as fraction of camera distance (prevents sub-pixel aliasing at distance)
+	TIP_FADE_START     = 0.93,   -- beam length fraction (0..1) where tip fade-out begins
 }
 
 --------------------------------------------------------------------------------
@@ -120,6 +152,8 @@ local LIVE_FLARE_PULSE_INIT = 1.0 - BEAM_SUSTAIN_LIFEFRAC * FLARE_LIFE_DIM  -- p
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
 	if weaponDef.type == "BeamLaser" then
+		local cp = weaponDef.customParams or {}
+		if not cp.bogus then
 		local vis = weaponDef.visuals or {}
 		local r = vis.colorR or 1
 		local g = vis.colorG or 1
@@ -131,7 +165,6 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 		local coreB = mathMin(1, b + CORE_COLOR_ADD)
 
 		-- Read original visual properties from customparams (alldefs_post stores them before zeroing)
-		local cp = weaponDef.customParams or {}
 		local thickness     = tonumber(cp.beam_thickness_orig) or weaponDef.thickness or 2
 		local corethickness = tonumber(cp.beam_corethickness_orig) or weaponDef.corethickness or 0.3
 		local laserflaresize = tonumber(cp.beam_laserflaresize_orig) or weaponDef.laserflaresize or 7
@@ -164,6 +197,7 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 			-- Pre-computed for hot loop
 			beamWidth = thickness * BEAM_WIDTH_MULT,
 			invRangeSq = 1.0 / mathMax(range * range, 1),
+			aabbPad = thickness * BEAM_WIDTH_MULT * GLOW_WIDTH_MULT, -- padding for AABB view check (covers glow quad)
 			flareColorR = coreR * FLARE_COLOR_MULT,
 			flareColorG = coreG * FLARE_COLOR_MULT,
 			flareColorB = coreB * FLARE_COLOR_MULT,
@@ -172,6 +206,7 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 			liveFlareG = coreG * FLARE_COLOR_MULT * LIVE_FLARE_PULSE_INIT,
 			liveFlareB = coreB * FLARE_COLOR_MULT * LIVE_FLARE_PULSE_INIT,
 		}
+		end
 	end
 end
 
@@ -196,6 +231,9 @@ local beamCleanupFrame = 0
 local hasGhosts = false    -- true when weaponBeams has any entries (skip ghost loop when empty)
 local liveKeys = {}        -- reused each frame, nil-cleared instead of reallocated
 local liveKeysList = {}    -- tracks keys to clear
+local liveBeamSlot = {}    -- wbKey -> offset slot in beamData (dedupe multiple projectiles per emitter)
+local removeList = {}      -- reused across cleanup cycles
+local removeCount = 0
 
 --------------------------------------------------------------------------------
 -- Shader sources: Beam (direction-aligned quad)
@@ -266,6 +304,7 @@ void main()
 	float fadeIn  = smoothstep(0.0, FADE_IN_END, lifeFrac);
 	float fadeOut = 1.0 - smoothstep(FADE_OUT_START, 1.0, lifeFrac);
 	float lifePulse = fadeIn * fadeOut;
+	if (lifePulse < 0.001) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
 
 	// Width also narrows slightly toward the end of the beam (range falloff)
 	float rangeTaper = 1.0 - RANGE_TAPER * yNorm;
@@ -280,10 +319,9 @@ void main()
 	// at distance, which causes aliasing/jaggedness. If the beam would be
 	// thinner than MIN_PIXEL_WIDTH pixels, expand it and dim alpha to compensate.
 	vec3 vertPos = mix(startPos, endPos, yNorm);
-	float camDist = length(camPos - vertPos);
-	// Approximate world-units-per-pixel using perspective projection:
-	// proj[1][1] = 2*near/height_at_near, so pixelSize ≈ 2*camDist / (proj[1][1] * viewportHeightPixels)
-	// We fold viewport height into MIN_PIXEL_WIDTH as a tunable constant.
+	// Use beam midpoint for camDist so min-pixel-width is uniform along the
+	// entire beam (per-vertex camDist causes start to appear narrower than middle)
+	float camDist = length(camPos - mix(startPos, endPos, 0.5));
 	float minWidth = camDist * MIN_PIXEL_WIDTH;
 	float coverage = clamp(width / max(minWidth, 0.001), 0.0, 1.0);
 	width = max(width, minWidth);
@@ -334,8 +372,13 @@ void main(void)
 	vec4 texSample = texture(beamTex, texCoords);
 
 	// Per-pixel core factor from widthPos (-1..1), center = core
+	// Use fwidth() to ensure the core-to-edge transition always spans at least 1 pixel,
+	// preventing jagged/aliased core lines on low-resolution screens or thin beams.
 	float edgeDist = abs(widthPos);
-	float coreFactor = 1.0 - smoothstep(CORE_EDGE_START, CORE_EDGE_END, edgeDist);
+	float fw = fwidth(edgeDist);
+	float aaStart = CORE_EDGE_START - fw * 0.5;
+	float aaEnd   = max(CORE_EDGE_END, CORE_EDGE_START + fw);
+	float coreFactor = 1.0 - smoothstep(aaStart, aaEnd, edgeDist);
 
 	// Blend core and edge colors per-pixel
 	vec3 beamCol = mix(vEdgeColor.rgb, vCoreColor.rgb, coreFactor);
@@ -348,8 +391,16 @@ void main(void)
 	// Core gets extra brightness for a hot inner line
 	color *= (1.0 + coreFactor * CORE_BRIGHTNESS);
 
+	// Fade beam tip over final few % of length for a soft end instead of hard cutoff
+	float tipFade = 1.0 - smoothstep(TIP_FADE_START, 1.0, texCoords.x);
+	color *= tipFade;
+
+	// Soft discard: fade out near-black fragments instead of hard discard
+	// to avoid aliased edges on the outer boundary of the beam
 	float lum = dot(color, vec3(0.299, 0.587, 0.114));
-	if (lum < 0.001) discard;
+	if (lum < 0.0005) discard;
+	float edgeSoft = smoothstep(0.0005, 0.003, lum);
+	color *= edgeSoft;
 
 	fragColor = vec4(color, 0.0);
 }
@@ -456,14 +507,376 @@ void main(void)
 ]]
 
 --------------------------------------------------------------------------------
+-- Shader sources: Glow (wide direction-aligned quad for soft halo around beam)
+-- Reuses the same VBO as beam/flare. Width is GLOW_WIDTH_MULT * beamWidth.
+-- Smooth radial falloff + soft ends at both start and tip.
+--------------------------------------------------------------------------------
+local glowShaderConfig = {
+	FADE_IN_END        = shaderConfig.FADE_IN_END,
+	FADE_OUT_START     = shaderConfig.FADE_OUT_START,
+	SHIMMER_AMPLITUDE  = shaderConfig.SHIMMER_AMPLITUDE * 0.5,
+	SHIMMER_SPEED      = shaderConfig.SHIMMER_SPEED,
+	GLOW_WIDTH_MULT    = GLOW_WIDTH_MULT,
+	GLOW_BRIGHTNESS    = GLOW_BRIGHTNESS,
+	GLOW_FALLOFF_POWER = GLOW_FALLOFF_POWER,
+	GLOW_WIDTH_DIM     = GLOW_THICKNESS_DIM * BEAM_WIDTH_MULT,
+	GLOW_WIDTH_FULL    = GLOW_THICKNESS_FULL * BEAM_WIDTH_MULT,
+	GLOW_DIM_FACTOR    = GLOW_DIM_FACTOR,
+	MIN_PIXEL_WIDTH    = shaderConfig.MIN_PIXEL_WIDTH,
+}
+
+local glowVsSrc = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+#line 80000
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+layout (location = 0) in vec4 position_xy_uv;
+
+layout (location = 1) in vec4 startPosAndWidth;
+layout (location = 2) in vec4 endPosAndLife;
+layout (location = 3) in vec4 coreColor;
+layout (location = 4) in vec4 edgeColor;
+
+out DataVS {
+	vec2 localPos;    // x = across width (-1..1), y = along length (extends past 0..1)
+	vec3 glowColor;
+	float alpha;
+	float glowHalfWidth; // in normalized beam-length units, for capsule distance calc
+};
+
+void main()
+{
+	vec3 startPos = startPosAndWidth.xyz;
+	float beamWidth = startPosAndWidth.w;
+	vec3 endPos = endPosAndLife.xyz;
+	float lifeFrac = endPosAndLife.w;
+
+	vec3 beamDir = endPos - startPos;
+	float beamLength = length(beamDir);
+	if (beamLength < 0.01) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+		return;
+	}
+	vec3 forward = beamDir / beamLength;
+
+	vec3 camPos = cameraViewInv[3].xyz;
+	vec3 toCamera = normalize(camPos - mix(startPos, endPos, 0.5));
+	vec3 right = cross(forward, toCamera);
+	float rightLen = length(right);
+	if (rightLen < 0.3) {
+		vec3 fallback = normalize(cross(forward, vec3(0.0, 1.0, 0.0)));
+		if (length(fallback) < 0.001) {
+			fallback = normalize(cross(forward, vec3(1.0, 0.0, 0.0)));
+		}
+		float blend = clamp(rightLen / 0.3, 0.0, 1.0);
+		right = normalize(mix(fallback, right / max(rightLen, 0.001), blend));
+	} else {
+		right = right / rightLen;
+	}
+
+	float fadeIn  = smoothstep(0.0, FADE_IN_END, lifeFrac);
+	float fadeOut = 1.0 - smoothstep(FADE_OUT_START, 1.0, lifeFrac);
+	float lifePulse = fadeIn * fadeOut;
+	if (lifePulse < 0.001) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
+
+	float phase = startPos.x * 0.7 + startPos.z * 1.1 + lifeFrac * 13.0;
+	float yNorm = position_xy_uv.y * 0.5 + 0.5;
+	float shimmer = 1.0 + SHIMMER_AMPLITUDE * sin(timeInfo.z * SHIMMER_SPEED + phase + yNorm * 6.28);
+
+	float glowWorldWidth = beamWidth * GLOW_WIDTH_MULT * lifePulse * shimmer;
+
+	// No min-pixel-width clamping for glow: it is a soft additive halo that degrades
+	// gracefully at distance. Inflating it at zoom-out made it disproportionately
+	// large relative to the beam; removing inflation keeps proportions consistent.
+
+	// Extend quad past beam endpoints by glowWorldWidth along forward direction
+	// This creates the capsule-like rounded ends
+	float extension = glowWorldWidth / max(beamLength, 0.01);
+	float yExtended = mix(-extension, 1.0 + extension, yNorm);
+
+	vec3 vertPos = startPos + forward * (yExtended * beamLength)
+		+ right * position_xy_uv.x * glowWorldWidth;
+
+	gl_Position = cameraViewProj * vec4(vertPos, 1.0);
+
+	// Pass local coordinates: x = -1..1 across width, y = extended along length
+	localPos = vec2(position_xy_uv.x, yExtended);
+
+	// Ratio of glow width to beam length (for capsule distance in FS)
+	glowHalfWidth = glowWorldWidth / max(beamLength, 0.01);
+
+	glowColor = edgeColor.rgb;
+
+	// Scale glow brightness by beam thickness: thin beams get dimmer glow
+	float glowScale = mix(float(GLOW_DIM_FACTOR), 1.0, smoothstep(float(GLOW_WIDTH_DIM), float(GLOW_WIDTH_FULL), beamWidth));
+
+	float rangeFalloff = edgeColor.a;
+	float yBeamClamped = clamp(yExtended, 0.0, 1.0);
+	float alphaFalloff = 1.0 - rangeFalloff * yBeamClamped;
+	alpha = coreColor.a * lifePulse * alphaFalloff * glowScale;
+}
+]]
+
+local glowFsSrc = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+#line 90000
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+in DataVS {
+	vec2 localPos;
+	vec3 glowColor;
+	float alpha;
+	float glowHalfWidth;
+};
+
+out vec4 fragColor;
+
+void main(void)
+{
+	// Capsule-shaped distance: find closest point on beam axis (0..1 segment),
+	// then compute normalized distance from that point
+	float yOnBeam = clamp(localPos.y, 0.0, 1.0);
+	float dy = localPos.y - yOnBeam;  // overshoot past beam ends
+	float dx = localPos.x;            // -1..1 across width
+
+	// Normalize both axes to glow radius units
+	// dx is already -1..1 (= full glow width), dy needs scaling relative to width
+	float dyNorm = dy / max(glowHalfWidth, 0.001);
+
+	// 2D distance from beam axis (capsule shape)
+	float distSq = dx * dx + dyNorm * dyNorm;
+	if (distSq >= 1.0) discard;
+	float dist = sqrt(distSq);
+
+	// Radial falloff with configurable power curve
+	float falloff = pow(1.0 - dist, GLOW_FALLOFF_POWER);
+
+	vec3 color = glowColor * (falloff * alpha * GLOW_BRIGHTNESS);
+
+	float lum = dot(color, vec3(0.299, 0.587, 0.114));
+	if (lum < 0.0003) discard;
+
+	fragColor = vec4(color, 0.0);
+}
+]]
+
+--------------------------------------------------------------------------------
+-- Shader sources: Pulse (traveling energy blobs along beam)
+-- Reuses the same VBO. Renders bright spots that travel from origin to target.
+--------------------------------------------------------------------------------
+local pulseShaderConfig = {
+	FADE_IN_END             = shaderConfig.FADE_IN_END,
+	FADE_OUT_START          = shaderConfig.FADE_OUT_START,
+	PULSE_WIDTH_MULT        = PULSE_WIDTH_MULT,
+	PULSE_BRIGHTNESS        = PULSE_BRIGHTNESS,
+	PULSE_SPEED             = PULSE_SPEED,
+	PULSE_SPACING           = PULSE_SPACING,
+	PULSE_SIGMA             = PULSE_SIGMA,
+	PULSE_CORE_FRAC         = PULSE_CORE_FRAC,
+	PULSE_PARA_BRIGHTNESS   = PULSE_PARA_BRIGHTNESS,
+	PULSE_PARA_SPEED        = PULSE_PARA_SPEED,
+	PULSE_PARA_SPACING      = PULSE_PARA_SPACING,
+	PULSE_PARA_SIGMA        = PULSE_PARA_SIGMA,
+	PULSE_PARA_WIDTH_MULT   = PULSE_PARA_WIDTH_MULT,
+	MIN_PIXEL_WIDTH         = shaderConfig.MIN_PIXEL_WIDTH,
+}
+
+local pulseVsSrc = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+#line 50000
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+layout (location = 0) in vec4 position_xy_uv;
+
+layout (location = 1) in vec4 startPosAndWidth;
+layout (location = 2) in vec4 endPosAndLife;
+layout (location = 3) in vec4 coreColor;
+layout (location = 4) in vec4 edgeColor;
+layout (location = 5) in vec4 flareData;           // y = isParalyzer flag (0 or 1)
+
+out DataVS {
+	float yWorld;        // world-space position along beam (elmos)
+	float widthPos;      // -1..1 across beam width
+	vec3 pulseColor;     // bright core color
+	float alpha;
+	float phase;         // per-beam phase offset for pulse animation
+	float beamLen;       // total beam length in world units
+	float isParalyzer;   // 1.0 for paralyzer beams, 0.0 otherwise
+	float coverage;      // beam width / min-pixel width (0..1), used to scale pulse length
+};
+
+void main()
+{
+	vec3 startPos = startPosAndWidth.xyz;
+	float beamWidth = startPosAndWidth.w;
+	vec3 endPos = endPosAndLife.xyz;
+	float lifeFrac = endPosAndLife.w;
+
+	vec3 beamDir = endPos - startPos;
+	float beamLength = length(beamDir);
+	if (beamLength < 0.01) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+		return;
+	}
+	vec3 forward = beamDir / beamLength;
+
+	vec3 camPos = cameraViewInv[3].xyz;
+	vec3 toCamera = normalize(camPos - mix(startPos, endPos, 0.5));
+	vec3 right = cross(forward, toCamera);
+	float rightLen = length(right);
+	if (rightLen < 0.3) {
+		vec3 fallback = normalize(cross(forward, vec3(0.0, 1.0, 0.0)));
+		if (length(fallback) < 0.001) {
+			fallback = normalize(cross(forward, vec3(1.0, 0.0, 0.0)));
+		}
+		float blend = clamp(rightLen / 0.3, 0.0, 1.0);
+		right = normalize(mix(fallback, right / max(rightLen, 0.001), blend));
+	} else {
+		right = right / rightLen;
+	}
+
+	float yNorm = position_xy_uv.y * 0.5 + 0.5;
+
+	float fadeIn  = smoothstep(0.0, FADE_IN_END, lifeFrac);
+	float fadeOut = 1.0 - smoothstep(FADE_OUT_START, 1.0, lifeFrac);
+	float lifePulse = fadeIn * fadeOut;
+	if (lifePulse < 0.001) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
+
+	float paraFlag = flareData.y;  // 1.0 for paralyzer beams, 0.0 otherwise
+
+	float pulseWidth = beamWidth * PULSE_WIDTH_MULT * lifePulse;
+
+	vec3 vertPos = mix(startPos, endPos, yNorm);
+	// Use beam midpoint for camDist so min-pixel-width is uniform along beam
+	float camDist = length(camPos - mix(startPos, endPos, 0.5));
+	// Track the beam body's effective width so pulse stays proportional at all distances
+	float baseWidth = beamWidth * lifePulse;
+	float minWidth = camDist * MIN_PIXEL_WIDTH;
+	float coverageVal = clamp(baseWidth / max(minWidth, 0.001), 0.0, 1.0);
+	// Per-beam width multiplier: paralyzer uses PULSE_PARA_WIDTH_MULT
+	float widthMult = mix(float(PULSE_WIDTH_MULT), float(PULSE_PARA_WIDTH_MULT), paraFlag);
+	// Lerp width multiplier toward 0.3 at distance so pulse shrinks below beam width
+	// when both are at sub-pixel sizes (avoids pulse dominating a thin beam)
+	float effectiveMult = 0.3 + (widthMult - 0.3) * coverageVal;
+	pulseWidth = max(baseWidth, minWidth) * effectiveMult;
+
+	vec3 vertexWorld = vertPos + right * position_xy_uv.x * pulseWidth;
+
+	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
+
+	widthPos = position_xy_uv.x;
+	yWorld = yNorm * beamLength;
+	beamLen = beamLength;
+
+	// Use edge (weapon) color for pulse to avoid color shift from CORE_COLOR_ADD
+	pulseColor = edgeColor.rgb;
+
+	// Per-beam unique phase derived from start position
+	phase = startPos.x * 0.31 + startPos.y * 0.17 + startPos.z * 0.43;
+
+	isParalyzer = paraFlag;
+
+	coverage = coverageVal;
+
+	float rangeFalloff = edgeColor.a;
+	float alphaFalloff = 1.0 - rangeFalloff * yNorm;
+	// coverage dims pulse at distance so it doesn't dominate a sub-pixel beam
+	alpha = coreColor.a * lifePulse * lifePulse * alphaFalloff * coverageVal;
+}
+]]
+
+local pulseFsSrc = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+#line 60000
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+in DataVS {
+	float yWorld;
+	float widthPos;
+	vec3 pulseColor;
+	float alpha;
+	float phase;
+	float beamLen;
+	float isParalyzer;
+	float coverage;
+};
+
+out vec4 fragColor;
+
+void main(void)
+{
+	// Select pulse parameters: paralyzer beams get faster, brighter, tighter pulses
+	// float() casts needed because Lua tostring() strips ".0" from whole numbers,
+	// making #defines integer literals which break mix() overload resolution.
+	float pulseSpeed   = mix(float(PULSE_SPEED),      float(PULSE_PARA_SPEED),      isParalyzer);
+	float pulseSpacing = mix(float(PULSE_SPACING),     float(PULSE_PARA_SPACING),    isParalyzer);
+	float pulseSigma   = mix(float(PULSE_SIGMA),       float(PULSE_PARA_SIGMA),      isParalyzer);
+	float pulseBright  = mix(float(PULSE_BRIGHTNESS),  float(PULSE_PARA_BRIGHTNESS), isParalyzer);
+
+	// Radial falloff across beam width
+	float edgeDist = abs(widthPos);
+	float radial = 1.0 - smoothstep(PULSE_CORE_FRAC, 1.0, edgeDist);
+	if (radial < 0.001) discard;
+
+	// World-space distance to nearest pulse center (repeating pattern)
+	float scrolledY = yWorld - timeInfo.z * pulseSpeed - phase * 100.0;
+	float halfSpacing = pulseSpacing * 0.5;
+
+	// Per-pulse random offset: hash the pulse index for organic irregularity
+	float pulseIndex = floor(scrolledY / pulseSpacing + 0.5);
+	float jitter = fract(sin(pulseIndex * 127.1 + phase * 311.7) * 43758.5453) - 0.5;
+	float jitteredY = scrolledY + jitter * pulseSpacing * 0.3;
+
+	float distToPulse = abs(mod(jitteredY + halfSpacing, pulseSpacing) - halfSpacing);
+
+	// Gaussian falloff in world units
+	float invSigmaSq = 1.0 / (2.0 * pulseSigma * pulseSigma);
+	float pulseVal = exp(-distToPulse * distToPulse * invSigmaSq);
+
+	// Fade at beam tip so pulses disappear smoothly (no fade at start — flare covers origin)
+	float fadeDist = pulseSigma * 2.0;
+	float edgeFade = 1.0 - smoothstep(beamLen - fadeDist, beamLen, yWorld);
+
+	vec3 color = pulseColor * (pulseVal * radial * edgeFade * alpha * pulseBright);
+
+	float lum = dot(color, vec3(0.299, 0.587, 0.114));
+	if (lum < 0.0005) discard;
+
+	fragColor = vec4(color, 0.0);
+}
+]]
+
+--------------------------------------------------------------------------------
 -- GL4 state
 --------------------------------------------------------------------------------
 local beamVBO
 local beamShader
 local flareShader
+local glowShader
+local pulseShader
 
 -- Idle skip
 local idleSkipCounter = 0
+
+-- Last sim frame in which DrawWorld ran. Used to skip the GameFrame scan when
+-- the renderer is keeping up (avoids redundant work at normal/high FPS).
+local lastDrawWorldSimFrame = -1
 
 -- Cached ally team
 local cachedAllyTeamID = spGetMyAllyTeamID()
@@ -473,7 +886,25 @@ local function goodbye(reason)
 	gadgetHandler:RemoveGadget()
 end
 
+-- Ensure all numeric values in a shader config table will produce GLSL float
+-- literals. Lua's tostring() strips ".0" from whole numbers (e.g. 3.0 → "3"),
+-- which becomes a GLSL integer literal and breaks functions like mix/smoothstep.
+-- Adding a tiny epsilon forces Lua to keep the decimal point.
+local function ensureFloatDefines(config)
+	for k, v in pairs(config) do
+		if type(v) == "number" and v == math.floor(v) then
+			config[k] = v + 0.00001
+		end
+	end
+	return config
+end
+
 local function initGL4()
+	-- Sanitize all shader config tables to prevent integer #define values
+	ensureFloatDefines(shaderConfig)
+	ensureFloatDefines(glowShaderConfig)
+	ensureFloatDefines(pulseShaderConfig)
+
 	-- Beam shader
 	local beamShaderCache = {
 		vsSrc = beamVsSrc,
@@ -503,6 +934,36 @@ local function initGL4()
 	flareShader = LuaShader.CheckShaderUpdates(flareShaderCache)
 	if not flareShader then
 		goodbye("Failed to compile flare shader")
+		return false
+	end
+
+	-- Glow shader (wide soft halo around beam)
+	local glowShaderCache = {
+		vsSrc = glowVsSrc,
+		fsSrc = glowFsSrc,
+		shaderName = "BeamLaserGlowGL4",
+		uniformFloat = {},
+		shaderConfig = glowShaderConfig,
+		forceupdate = true,
+	}
+	glowShader = LuaShader.CheckShaderUpdates(glowShaderCache)
+	if not glowShader then
+		goodbye("Failed to compile glow shader")
+		return false
+	end
+
+	-- Pulse shader (traveling energy blobs along beam)
+	local pulseShaderCache = {
+		vsSrc = pulseVsSrc,
+		fsSrc = pulseFsSrc,
+		shaderName = "BeamLaserPulseGL4",
+		uniformFloat = {},
+		shaderConfig = pulseShaderConfig,
+		forceupdate = true,
+	}
+	pulseShader = LuaShader.CheckShaderUpdates(pulseShaderCache)
+	if not pulseShader then
+		goodbye("Failed to compile pulse shader")
 		return false
 	end
 
@@ -570,11 +1031,21 @@ local function drawAll()
 	glCulling(false)
 	glBlending(GL_ONE, GL_ONE)
 
-	-- Beam pass
+	-- Glow pass (wide soft halo, drawn first so it's behind the beam)
+	glowShader:Activate()
+	beamVBO:Draw()
+	glowShader:Deactivate()
+
+	-- Beam pass (texture stays bound through flare pass since both use slot 0)
 	glTexture(0, beamTexture)
 	beamShader:Activate()
 	beamVBO:Draw()
 	beamShader:Deactivate()
+
+	-- Pulse pass (traveling energy blobs, drawn on top of beam)
+	pulseShader:Activate()
+	beamVBO:Draw()
+	pulseShader:Deactivate()
 
 	-- Flare pass (same VBO, flare shader reads flareData; zero-size flares culled in VS)
 	glTexture(0, flareTexture)
@@ -632,10 +1103,12 @@ local function updateBeams()
 	beamVBO.usedElements = 0
 
 	local gameFrame = spGetGameFrame()
+	local dto = spGetFrameTimeOffset()
 
 	-- Clear liveKeys from previous frame (nil-clear, no table alloc)
 	for i = 1, #liveKeysList do
 		liveKeys[liveKeysList[i]] = nil
+		liveBeamSlot[liveKeysList[i]] = nil
 	end
 	local liveKeysCount = 0
 
@@ -645,6 +1118,7 @@ local function updateBeams()
 	local projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
 	local beamData = beamVBO.instanceData
 	local beamCount = 0
+	local offset = 0
 	local myAllyTeam = cachedAllyTeamID
 	local needLosCheck = not cachedSpecFullView
 
@@ -710,17 +1184,31 @@ local function updateBeams()
 								end
 							end
 
-							-- Check if any part of the beam is in the camera view
-							local pad = cfg.beamWidth
+							-- Check if any part of the beam is in the camera view (padded for glow quad)
+							local pad = cfg.aabbPad
 							if spIsAABBInView(
 								mathMin(px, endX) - pad, mathMin(py, endY) - pad, mathMin(pz, endZ) - pad,
 								mathMax(px, endX) + pad, mathMax(py, endY) + pad, mathMax(pz, endZ) + pad
 							) then
 								local ownerID = spGetProjectileOwnerID(proID) or 0
-								local wbKey = ownerID * 65536 + wDefID
-								liveKeys[wbKey] = true
-								liveKeysCount = liveKeysCount + 1
-								liveKeysList[liveKeysCount] = wbKey
+								-- Key = "ownerID|wDefID". Muzzle position deliberately
+								-- excluded: turrets rotate between shots, so including the
+								-- muzzle would give every shot a fresh key, and the previous
+								-- shot's tracked entry would linger as a ghost beam while the
+								-- new one renders -- looking like a stuttering rapid-fire
+								-- trail instead of a single moving beam.
+								-- Different beam weapons on the same unit (e.g. corhllt's
+								-- hllt_top + hllt_bottom) have distinct wDefIDs, so owner+wDef
+								-- already disambiguates them. Multiple hardpoints sharing the
+								-- SAME wDefID on one unit (rare for beam lasers) would alias,
+								-- but the result -- one of the two beams winning per frame --
+								-- is less visually disruptive than the ghost-stacking trail.
+								local wbKey = ownerID .. "|" .. wDefID
+								if not liveKeys[wbKey] then
+									liveKeys[wbKey] = true
+									liveKeysCount = liveKeysCount + 1
+									liveKeysList[liveKeysCount] = wbKey
+								end
 
 								local tracked = weaponBeams[wbKey]
 								if not tracked then
@@ -728,6 +1216,7 @@ local function updateBeams()
 									weaponBeams[wbKey] = tracked
 									hasGhosts = true
 								end
+
 								tracked.px = origPx;   tracked.py = origPy;   tracked.pz = origPz
 								tracked.endX = origEndX; tracked.endY = origEndY; tracked.endZ = origEndZ
 								tracked.lastSeenFrame = gameFrame
@@ -738,8 +1227,19 @@ local function updateBeams()
 								local rangeFracSq = beamLenSq * cfg.invRangeSq
 								local intensityFalloff = BEAM_RANGE_FALLOFF_BASE + BEAM_RANGE_FALLOFF_MULT * mathMin(rangeFracSq, 1.0)
 
-								beamCount = beamCount + 1
-								local offset = (beamCount - 1) * 20
+								-- Dedupe: if this emitter already wrote a beam this frame
+								-- (target-switch creates overlapping projectiles), reuse its
+								-- slot so the newest projectile overwrites the previous one
+								-- instead of rendering as a parallel beam.
+								local slotOffset = liveBeamSlot[wbKey]
+								local savedOffset
+								if slotOffset then
+									savedOffset = offset
+									offset = slotOffset
+								else
+									beamCount = beamCount + 1
+									liveBeamSlot[wbKey] = offset
+								end
 								beamData[offset + 1]  = px
 								beamData[offset + 2]  = py
 								beamData[offset + 3]  = pz
@@ -764,9 +1264,14 @@ local function updateBeams()
 									beamData[offset + 20] = 0
 								else
 									beamData[offset + 17] = cfg.liveFlareSize
-									beamData[offset + 18] = cfg.liveFlareR
+									beamData[offset + 18] = cfg.isParalyzer and 1.0 or 0.0  -- flareData.y: paralyzer flag for pulse shader
 									beamData[offset + 19] = cfg.liveFlareG
 									beamData[offset + 20] = cfg.liveFlareB
+								end
+								if savedOffset then
+									offset = savedOffset
+								else
+									offset = offset + 20
 								end
 							end -- spIsAABBInView
 					end -- visible
@@ -825,8 +1330,8 @@ local function updateBeams()
 					end
 
 					if ghostVisible then
-					-- Check if any part of the ghost beam is in the camera view
-					local pad = cfg.beamWidth
+					-- Check if any part of the ghost beam is in the camera view (padded for glow quad)
+					local pad = cfg.aabbPad
 					if spIsAABBInView(
 						mathMin(gpx, gex) - pad, mathMin(gpy, gey) - pad, mathMin(gpz, gez) - pad,
 						mathMax(gpx, gex) + pad, mathMax(gpy, gey) + pad, mathMax(gpz, gez) + pad
@@ -842,7 +1347,6 @@ local function updateBeams()
 						local flarePulse = (flareVisible and not ghostClipStart) and (1.0 - lifeFrac * FLARE_LIFE_DIM) or 0
 
 						beamCount = beamCount + 1
-						local offset = (beamCount - 1) * 20
 						beamData[offset + 1]  = gpx
 						beamData[offset + 2]  = gpy
 						beamData[offset + 3]  = gpz
@@ -860,9 +1364,10 @@ local function updateBeams()
 						beamData[offset + 15] = cfg.colorB
 						beamData[offset + 16] = intensityFalloff
 						beamData[offset + 17] = cfg.flareSize * flarePulse * FLARE_SIZE_MULT
-						beamData[offset + 18] = cfg.flareColorR * flarePulse
+						beamData[offset + 18] = cfg.isParalyzer and 1.0 or 0.0  -- flareData.y: paralyzer flag for pulse shader
 						beamData[offset + 19] = cfg.flareColorG * flarePulse
 						beamData[offset + 20] = cfg.flareColorB * flarePulse
+						offset = offset + 20
 					end
 					end -- ghostVisible
 				end
@@ -894,25 +1399,62 @@ function gadget:Initialize()
 end
 
 function gadget:GameFrame(n)
+	-- Scan beam projectiles at simulation rate so short-lived beams (beamttl=1) are
+	-- always tracked even at low render FPS, where DrawWorld may not run often enough
+	-- to catch projectiles that fire and expire between two render frames.
+	-- Skip when DrawWorld ran during the previous sim frame or later — the renderer is
+	-- keeping up and already handles tracking, so this scan would be redundant.
+	if lastDrawWorldSimFrame >= n - 1 then
+		-- fall through to cleanup only
+	else
+	local simProjectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
+	if simProjectiles then
+		for i = 1, #simProjectiles do
+			local proID = simProjectiles[i]
+			local wDefID = spGetProjectileDefID(proID)
+			local cfg = wDefID and weaponConfigs[wDefID]
+			if cfg then
+				local px, py, pz = spGetProjectilePosition(proID)
+				if px then
+					local vx, vy, vz = spGetProjectileVelocity(proID)
+					if vx then
+						local ownerID = spGetProjectileOwnerID(proID) or 0
+						local wbKey = ownerID .. "|" .. wDefID
+						local tracked = weaponBeams[wbKey]
+						if not tracked then
+							tracked = { cfg = cfg }
+							weaponBeams[wbKey] = tracked
+							hasGhosts = true
+						end
+						tracked.px   = px;       tracked.py   = py;       tracked.pz   = pz
+						tracked.endX = px + vx;  tracked.endY = py + vy;  tracked.endZ = pz + vz
+						tracked.lastSeenFrame = n
+						local proTeam = spGetProjectileTeamID(proID)
+						tracked.ownerAllyTeam = proTeam and spGetTeamAllyTeamID(proTeam)
+						-- Wake DrawWorld so the idle-skip doesn't suppress ghost rendering
+						idleSkipCounter = 0
+					end
+				end
+			end
+		end
+	end
+	end -- low-FPS scan
+
 	-- Periodic cleanup of stale weapon beam entries (expired ghosts)
 	if n > beamCleanupFrame then
 		beamCleanupFrame = n + 30
-		local removeList
-		local removeCount = 0
+		removeCount = 0
 		local anyRemain = false
 		for wbKey, tracked in pairs(weaponBeams) do
 			if n - (tracked.lastSeenFrame or 0) > GHOST_FRAMES_MAX + 2 then
 				removeCount = removeCount + 1
-				if not removeList then removeList = {} end
 				removeList[removeCount] = wbKey
 			else
 				anyRemain = true
 			end
 		end
-		if removeList then
-			for i = 1, removeCount do
-				weaponBeams[removeList[i]] = nil
-			end
+		for i = 1, removeCount do
+			weaponBeams[removeList[i]] = nil
 		end
 		hasGhosts = anyRemain
 	end
@@ -929,6 +1471,7 @@ function gadget:Shutdown()
 end
 
 function gadget:DrawWorld()
+	lastDrawWorldSimFrame = spGetGameFrame()
 	updateBeams()
 	drawAll()
 end
