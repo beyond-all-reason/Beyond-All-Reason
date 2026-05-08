@@ -86,7 +86,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if #weapons > 0 then
 			-- filter this down to only the params that actually get used, weapons is an array full of stuff!
-			unitWeapons[unitDefID] = weapons
+			unitWeapons[unitDefID] = {}
 			for i=1, #weapons do
 				unitWeapons[unitDefID][i] = true
 			end
@@ -102,6 +102,7 @@ if gadgetHandler:IsSyncedCode() then
 	local unitTargets = {} -- data holds all unitID data
 	local pausedTargets = {}
 	--local needSend = {}
+
 	--------------------------------------------------------------------------------
 	-- Commands
 
