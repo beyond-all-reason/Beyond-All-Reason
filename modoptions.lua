@@ -269,7 +269,8 @@ local options = {
     {
 		key		= "norushmiddlefree",
 		name	= "No Rush Middle Free",
-		desc	= "Allows units to leave starboxes but disallows commands issued in enemy startboxes.",
+		desc	= "Allows units to leave startboxes but disallows commands issued in enemy startboxes.\n"..
+            "Does not prevent commands onto the other side of startboxes so recommend East/West or North/South startboxes.",
 		type	= "bool",
 		section	= "options_main",
 		def		= false,
