@@ -67,6 +67,8 @@ if gadgetHandler:IsSyncedCode() then
 		--	-- Has a default value, as indicated, if not chosen:
 		-- respawn_health_threshold = 0,				--The health value when the unit will initiate the respawn sequence.
 		-- destructive_respawn = true,					--If this is set to true, the effigy unit will be destroyed when the unit respawns.
+		-- respawn_health = 1,                          -- If this is set to a number set the respawned units health to that number when respawning.
+        -- respawn_stun_duration = calculated by distance/maxHealth, -- Override the stun duration to a static value
 
 
 		-- },
@@ -116,12 +118,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			local respawnHealth = 1
-			if meta.respawn_healthy then
-				respawnHealth = maxHealth
+			if meta.respawn_health then
+				respawnHealth = meta.respawn_health
 			end
 			
-			if meta.respawn_immediately == true then
-				stunDuration = 0
+			if meta.respawn_stun_duration then
+				stunDuration = meta.respawn_stun_duration
 			end
 			-- Only apply stun if the unit survived the effigy destruction
 			if respawnMetaList[unitID] then
@@ -177,8 +179,8 @@ if gadgetHandler:IsSyncedCode() then
 				unitTeam = unitTeam,
 				respawnTimer = spGetGameSeconds(),
 				effigyID = nil,
-				respawn_healthy = udcp.respawn_healthy or false,
-                respawn_immediately = udcp.respawn_immediately or false,
+				respawn_health = tonumber(udcp.respawn_health),
+                respawn_stun_duration = tonumber(udcp.respawn_stun_duration),
 			}
 
 			if respawnMetaList[unitID].effigy ~= "none" then
