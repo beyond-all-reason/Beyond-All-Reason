@@ -66,7 +66,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		--	-- Has a default value, as indicated, if not chosen:
 		-- respawn_health_threshold = 0,				--The health value when the unit will initiate the respawn sequence.
-		-- destructive_respawn = true,					--If this is set to true, the effigy unit will be destroyed when the unit respawns.
+		-- destructive_respawn = true, 1,				-- If this is set to true, the effigy unit will be destroyed when the unit respawns, can also be set to a number to provide that n-1 respawns or n instances of that unit with 0 for infinite
 		-- respawn_health = 1,                          -- If this is set to a number set the respawned units health to that number when respawning.
         -- respawn_stun_duration = calculated by distance/maxHealth, -- Override the stun duration to a static value
 
@@ -93,7 +93,7 @@ if gadgetHandler:IsSyncedCode() then
 			GG.ComSpawnDefoliate(ex, ey, ez)
 
 			-- Mark effigy as used for respawning to prevent "lost" notifications
-			if meta.destructive_respawn then
+			if meta.destructive_respawn == 1 then
 				meta.effigyID = nil
 			end
 
@@ -108,7 +108,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- could kill the commander and nil out respawnMetaList[unitID]
 			local stunDuration = maxHealth + ((maxHealth/30)*meta.minimum_respawn_stun) + (((maxHealth/30)*diag((x-ex), (z-ez))*meta.distance_stun_multiplier)/250)--250 is an arbitrary number that seems to produce desired results.
 
-			if meta.destructive_respawn then
+			if meta.destructive_respawn == 1 then
 			    if friendlyFire then
 			        destroyEffigy(effigyID, false, true)
 			    else
@@ -116,6 +116,8 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				spSetUnitRulesParam(unitID, "unit_effigy", nil, PRIVATE)
 			end
+			-- decrement respawn count, when starting at 0 this just counts negatively forever
+			meta.destructive_respawn = meta.destructive_respawn - 1
 
 			local respawnHealth = 1
 			if meta.respawn_health then
@@ -174,7 +176,7 @@ if gadgetHandler:IsSyncedCode() then
 				effigy_offset = tonumber(udcp.effigy_offset) or 0,
 				minimum_respawn_stun = tonumber(udcp.minimum_respawn_stun) or 0,
 				distance_stun_multiplier = tonumber(udcp.distance_stun_multiplier) or 0,
-				destructive_respawn = ((udcp.destructive_respawn == true) or (udcp.destructive_respawn == nil)),
+				destructive_respawn = tonumber(udcp.destructive_respawn) or 1,
 				respawn_pad = udcp.respawn_pad or "false",
 				unitTeam = unitTeam,
 				respawnTimer = spGetGameSeconds(),
