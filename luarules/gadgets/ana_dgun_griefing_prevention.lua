@@ -4,6 +4,7 @@ TODO: how to deal with jammed high ground units?
 - One idea: track ghosts by tracking when ghost-leaving units enter LOS
   - To remove ghost: either add new callin from Engine notifying when ghost is removed (too much complexity?)...
   - Or track when the ghost's position comes in LOS again and whether that unit is still there (has to be checked every frame, seems costly)
+    - note: see updateGhostSites in unit_ghostsite_gl4. This suggests it IS performant
 
 ]]
 
@@ -64,7 +65,6 @@ local CONTACT_WINDOW_DURATION = 5 * 30 -- five seconds at 30 gameframes per seco
 local ALLY_DAMAGE_WINDOW = 30 * 30 -- 30 seconds at 30 gameframes per second
 local CACHE_PRUNE_INTERVAL = 60 * 30 -- prune expired cache contents every minute
 local nextContactPruneFrame = CACHE_PRUNE_INTERVAL
-local USE_WG_ANALYTICS = true -- if false, Spring.Echo intead. Useful for debugging and that's about it
 local recentlyDamagedAlliedUnits = {}
 
 function gadget:Initialize()
@@ -306,13 +306,10 @@ function gadget:GameFrame(currentFrame)
 	end
 end
 
-local function SendAnalyticsEvent(eventType, eventData)
-	if USE_WG_ANALYTICS and WG and WG.Analytics and WG.Analytics.SendEvent then
-		WG.Analytics.SendEvent(eventType, eventData)
-		return
+local function ForwardAnalyticsEvent(eventType, eventData)
+	if Script.LuaUI and Script.LuaUI.DGunGriefingPrevention then
+		Script.LuaUI.DGunGriefingPrevention(eventType, eventData)
 	end
-
-	Spring.Echo(string.format("[DGunAnalytics] %s %s", eventType, table.toString(eventData)))
 end
 
 local function GetGameID()
@@ -351,7 +348,7 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 
 	if not risksAllies then
 		if explanation then
-			SendAnalyticsEvent("dgun_grief_negative", {
+			ForwardAnalyticsEvent("dgun_grief_negative", {
 				position = { targetX, targetY, targetZ },
 				time = spGetGameFrame(),
 				gameID = GetGameID(),
@@ -366,7 +363,7 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 	local enemiesNearby, explanation = HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 
 	if enemiesNearby then
-		SendAnalyticsEvent("dgun_grief_negative", {
+		ForwardAnalyticsEvent("dgun_grief_negative", {
 			position = { targetX, targetY, targetZ },
 			time = spGetGameFrame(),
 			gameID = GetGameID(),
@@ -376,7 +373,7 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		return
 	end
 
-	SendAnalyticsEvent("dgun_grief_positive", {
+	ForwardAnalyticsEvent("dgun_grief_positive", {
 		position = { targetX, targetY, targetZ },
 		time = spGetGameFrame(),
 		gameID = GetGameID(),
