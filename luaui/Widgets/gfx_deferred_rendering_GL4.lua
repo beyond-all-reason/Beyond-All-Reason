@@ -1812,6 +1812,10 @@ function widget:Initialize()
 	WG['lightsgl4'].RemoveLight  = RemoveLight
 	WG['lightsgl4'].GetLightVBO  = GetLightVBO
 
+	WG['lightsgl4'].GetUnitDefLights = function() return unitDefLights end
+	WG['lightsgl4'].GetLightVBOMap = function() return unitLightVBOMap end
+	WG['lightsgl4'].GetLightParamKeyOrder = function() return lightParamKeyOrder end
+
 	WG['lightsgl4'].IntensityMultiplier = function(value)
 		intensityMultiplier = value
 	end

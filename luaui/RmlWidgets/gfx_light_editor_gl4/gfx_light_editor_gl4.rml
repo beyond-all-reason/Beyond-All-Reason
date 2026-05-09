@@ -1,0 +1,246 @@
+﻿<rml>
+<head>
+	<link type="text/rcss" href="gfx_light_editor_gl4.rcss"/>
+	<title>Light Editor GL4</title>
+</head>
+<body data-model="light_editor_model" id="le-body">
+
+	<div id="le-tooltip" class="le-tooltip" style="display: none; position: absolute; background-color: #000000ee; color: #ffd060; border: 1dp #aaa; padding: 6dp 10dp; font-size: 13dp; width: 320dp; z-index: 200;"></div>
+
+	<div id="le-panel" class="le-panel">
+
+		<div id="le-titlebar" class="le-titlebar">
+			<span class="le-title">Light Editor GL4</span>
+		</div>
+
+		<div id="le-body-content" class="le-body-content">
+
+		<div id="le-status" class="le-status" style="display: none;">
+			<span id="le-status-text"></span>
+		</div>
+
+		<div class="le-actions" data-event-mouseout="onAction('tip', '')">
+			<div class="le-actbtn" data-event-click="onAction('copy')"
+				data-event-mouseover="onAction('tip', 'copy')">Copy Light</div>
+			<div class="le-actbtn" data-event-click="onAction('copyUnit')"
+				data-event-mouseover="onAction('tip', 'copyUnit')">Copy Unit</div>
+			<div class="le-actbtn" data-event-click="onAction('reloadConfig')"
+				data-event-mouseover="onAction('tip', 'reload')">Reload</div>
+			<div class="le-actbtn" data-event-click="onAction('undo')"
+				data-event-mouseover="onAction('tip', 'undo')">Undo</div>
+			<div class="le-actbtn le-actbtn-danger" data-event-click="onAction('reset')"
+				data-event-mouseover="onAction('tip', 'reset')">Reset</div>
+		</div>
+
+		<div class="le-row">
+			<span class="le-label">Unit:</span>
+			<span id="le-unitinfo" class="le-value">(no unit selected)</span>
+		</div>
+
+		<div class="le-row">
+			<span class="le-label">Existing:</span>
+			<div class="le-pseudo-select" id="le-existing-display"
+				data-event-click="onAction('toggleExistingDropdown')"
+				style="flex:1; background-color: #2a2a2a; color: #fff; border: 1dp #888; padding: 0dp 10dp; height: 24dp; line-height: 24dp; cursor: pointer; font-size: 12dp;">-- new light --</div>
+		</div>
+		<div id="le-existing-list" class="le-dropdown-list" style="display: none; max-height: 220dp; overflow-y: auto; background-color: #161616; margin-left: 76dp; margin-bottom: 6dp; padding: 3dp;"></div>
+
+		<div class="le-row">
+			<span class="le-label">Name:</span>
+			<input type="text" id="le-name-input" class="le-text-input" data-value="lightName" data-event-change="onNameChange()"/>
+		</div>
+
+		<div class="le-row">
+			<span class="le-label">Type:</span>
+			<div class="le-typebtns">
+				<div id="le-type-point" class="le-typebtn active" data-event-click="onAction('settype', 'point')">point</div>
+				<div id="le-type-cone" class="le-typebtn" data-event-click="onAction('settype', 'cone')">cone</div>
+				<div id="le-type-beam" class="le-typebtn" data-event-click="onAction('settype', 'beam')">beam</div>
+			</div>
+		</div>
+
+		<div class="le-row">
+			<span class="le-label">Piece:</span>
+			<div class="le-pseudo-select" id="le-piece-display"
+				data-event-click="onAction('togglePieceDropdown')"
+				style="flex:1; background-color: #2a2a2a; color: #fff; border: 1dp #888; padding: 0dp 10dp; height: 24dp; line-height: 24dp; cursor: pointer; font-size: 12dp;">(world)</div>
+		</div>
+		<div id="le-piece-list" class="le-dropdown-list" style="display: none; max-height: 220dp; overflow-y: auto; background-color: #161616; margin-left: 76dp; margin-bottom: 6dp; padding: 3dp;"></div>
+
+		<div class="le-section">Position (piece-local)</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">posx</span>
+			<input type="range" class="le-slider" min="-1000" max="1000" step="1" data-value="sl_posx" data-event-change="onSlider('posx')" data-event-input="onSlider('posx')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_posx" data-event-change="onSlider('posx')" data-event-focus="onNumboxFocus('posx')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">posy</span>
+			<input type="range" class="le-slider" min="-1000" max="1000" step="1" data-value="sl_posy" data-event-change="onSlider('posy')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_posy" data-event-change="onSlider('posy')" data-event-focus="onNumboxFocus('posy')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">posz</span>
+			<input type="range" class="le-slider" min="-1000" max="1000" step="1" data-value="sl_posz" data-event-change="onSlider('posz')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_posz" data-event-change="onSlider('posz')" data-event-focus="onNumboxFocus('posz')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">radius</span>
+			<input type="range" class="le-slider" min="0" max="5000" step="5" data-value="sl_radius" data-event-change="onSlider('radius')" data-event-input="onSlider('radius')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_radius" data-event-change="onSlider('radius')" data-event-focus="onNumboxFocus('radius')" data-event-blur="onNumboxBlur()"/>
+		</div>
+
+		<div class="le-section">Color (RGBA)</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">r</span>
+			<input type="range" class="le-slider le-channel-r" min="-200" max="300" step="1" data-value="sl_r" data-event-change="onSlider('r')" data-event-input="onSlider('r')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_r" data-event-change="onSlider('r')" data-event-focus="onNumboxFocus('r')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">g</span>
+			<input type="range" class="le-slider le-channel-g" min="-200" max="300" step="1" data-value="sl_g" data-event-change="onSlider('g')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_g" data-event-change="onSlider('g')" data-event-focus="onNumboxFocus('g')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">b</span>
+			<input type="range" class="le-slider le-channel-b" min="-200" max="300" step="1" data-value="sl_b" data-event-change="onSlider('b')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_b" data-event-change="onSlider('b')" data-event-focus="onNumboxFocus('b')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">a</span>
+			<input type="range" class="le-slider" min="0" max="300" step="1" data-value="sl_a" data-event-change="onSlider('a')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_a" data-event-change="onSlider('a')" data-event-focus="onNumboxFocus('a')" data-event-blur="onNumboxBlur()"/>
+		</div>
+
+		<div id="le-color-swatch" class="le-swatch"></div>
+
+		<div class="le-section">Color2 (fade)</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">color2r</span>
+			<input type="range" class="le-slider" min="-200" max="300" step="1" data-value="sl_color2r" data-event-change="onSlider('color2r')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_color2r" data-event-change="onSlider('color2r')" data-event-focus="onNumboxFocus('color2r')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">color2g</span>
+			<input type="range" class="le-slider" min="-200" max="300" step="1" data-value="sl_color2g" data-event-change="onSlider('color2g')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_color2g" data-event-change="onSlider('color2g')" data-event-focus="onNumboxFocus('color2g')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">color2b</span>
+			<input type="range" class="le-slider" min="-200" max="300" step="1" data-value="sl_color2b" data-event-change="onSlider('color2b')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_color2b" data-event-change="onSlider('color2b')" data-event-focus="onNumboxFocus('color2b')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">colortime</span>
+			<input type="range" class="le-slider" min="-300" max="600" step="1" data-value="sl_colortime" data-event-change="onSlider('colortime')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_colortime" data-event-change="onSlider('colortime')" data-event-focus="onNumboxFocus('colortime')" data-event-blur="onNumboxBlur()"/>
+		</div>
+
+		<div id="le-section-point">
+			<div class="le-section">Light Animation (distance negative for loop/orbit)</div>
+			<div class="le-slider-row">
+				<span class="le-slider-label">speedx</span>
+				<input type="range" class="le-slider" min="-100" max="100" step="1" data-value="sl_pdirx" data-event-change="onSlider('pdirx')"/>
+				<input type="text" class="le-slider-numbox" data-value="sl_pdirx" data-event-change="onSlider('pdirx')" data-event-focus="onNumboxFocus('pdirx')" data-event-blur="onNumboxBlur()"/>
+			</div>
+			<div class="le-slider-row">
+				<span class="le-slider-label">speedy</span>
+				<input type="range" class="le-slider" min="-100" max="100" step="1" data-value="sl_pdiry" data-event-change="onSlider('pdiry')"/>
+				<input type="text" class="le-slider-numbox" data-value="sl_pdiry" data-event-change="onSlider('pdiry')" data-event-focus="onNumboxFocus('pdiry')" data-event-blur="onNumboxBlur()"/>
+			</div>
+			<div class="le-slider-row">
+				<span class="le-slider-label">speedz</span>
+				<input type="range" class="le-slider" min="-100" max="100" step="1" data-value="sl_pdirz" data-event-change="onSlider('pdirz')"/>
+				<input type="text" class="le-slider-numbox" data-value="sl_pdirz" data-event-change="onSlider('pdirz')" data-event-focus="onNumboxFocus('pdirz')" data-event-blur="onNumboxBlur()"/>
+			</div>
+			<div class="le-slider-row">
+				<span class="le-slider-label">distance</span>
+				<input type="range" class="le-slider" min="-10000" max="10000" step="1" data-value="sl_ptheta" data-event-change="onSlider('ptheta')"/>
+				<input type="text" class="le-slider-numbox" data-value="sl_ptheta" data-event-change="onSlider('ptheta')" data-event-focus="onNumboxFocus('ptheta')" data-event-blur="onNumboxBlur()"/>
+			</div>
+		</div>
+
+		<div id="le-section-cone" style="display: none;">
+			<div class="le-section">Cone direction</div>
+			<div class="le-slider-row">
+				<span class="le-slider-label">dirx</span>
+				<input type="range" class="le-slider" min="-100" max="100" step="1" data-value="sl_dirx" data-event-change="onSlider('dirx')"/>
+				<input type="text" class="le-slider-numbox" data-value="sl_dirx" data-event-change="onSlider('dirx')" data-event-focus="onNumboxFocus('dirx')" data-event-blur="onNumboxBlur()"/>
+			</div>
+			<div class="le-slider-row">
+				<span class="le-slider-label">diry</span>
+				<input type="range" class="le-slider" min="-100" max="100" step="1" data-value="sl_diry" data-event-change="onSlider('diry')"/>
+				<input type="text" class="le-slider-numbox" data-value="sl_diry" data-event-change="onSlider('diry')" data-event-focus="onNumboxFocus('diry')" data-event-blur="onNumboxBlur()"/>
+			</div>
+			<div class="le-slider-row">
+				<span class="le-slider-label">dirz</span>
+				<input type="range" class="le-slider" min="-100" max="100" step="1" data-value="sl_dirz" data-event-change="onSlider('dirz')"/>
+				<input type="text" class="le-slider-numbox" data-value="sl_dirz" data-event-change="onSlider('dirz')" data-event-focus="onNumboxFocus('dirz')" data-event-blur="onNumboxBlur()"/>
+			</div>
+			<div class="le-slider-row">
+				<span class="le-slider-label">theta</span>
+				<input type="range" class="le-slider" min="0" max="150" step="1" data-value="sl_theta" data-event-change="onSlider('theta')"/>
+				<input type="text" class="le-slider-numbox" data-value="sl_theta" data-event-change="onSlider('theta')" data-event-focus="onNumboxFocus('theta')" data-event-blur="onNumboxBlur()"/>
+			</div>
+		</div>
+
+		<div id="le-section-beam" style="display: none;">
+			<div class="le-section">Beam endpoint</div>
+			<div class="le-slider-row">
+				<span class="le-slider-label">pos2x</span>
+				<input type="range" class="le-slider" min="-2000" max="2000" step="5" data-value="sl_pos2x" data-event-change="onSlider('pos2x')"/>
+				<input type="text" class="le-slider-numbox" data-value="sl_pos2x" data-event-change="onSlider('pos2x')" data-event-focus="onNumboxFocus('pos2x')" data-event-blur="onNumboxBlur()"/>
+			</div>
+			<div class="le-slider-row">
+				<span class="le-slider-label">pos2y</span>
+				<input type="range" class="le-slider" min="-2000" max="2000" step="5" data-value="sl_pos2y" data-event-change="onSlider('pos2y')"/>
+				<input type="text" class="le-slider-numbox" data-value="sl_pos2y" data-event-change="onSlider('pos2y')" data-event-focus="onNumboxFocus('pos2y')" data-event-blur="onNumboxBlur()"/>
+			</div>
+			<div class="le-slider-row">
+				<span class="le-slider-label">pos2z</span>
+				<input type="range" class="le-slider" min="-2000" max="2000" step="5" data-value="sl_pos2z" data-event-change="onSlider('pos2z')"/>
+				<input type="text" class="le-slider-numbox" data-value="sl_pos2z" data-event-change="onSlider('pos2z')" data-event-focus="onNumboxFocus('pos2z')" data-event-blur="onNumboxBlur()"/>
+			</div>
+		</div>
+
+		<div class="le-section">Other</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">modelfactor</span>
+			<input type="range" class="le-slider" min="-200" max="300" step="1" data-value="sl_modelfactor" data-event-change="onSlider('modelfactor')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_modelfactor" data-event-change="onSlider('modelfactor')" data-event-focus="onNumboxFocus('modelfactor')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">specular</span>
+			<input type="range" class="le-slider" min="-200" max="300" step="1" data-value="sl_specular" data-event-change="onSlider('specular')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_specular" data-event-change="onSlider('specular')" data-event-focus="onNumboxFocus('specular')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">scattering</span>
+			<input type="range" class="le-slider" min="-200" max="2000" step="1" data-value="sl_scattering" data-event-change="onSlider('scattering')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_scattering" data-event-change="onSlider('scattering')" data-event-focus="onNumboxFocus('scattering')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">lensflare</span>
+			<input type="range" class="le-slider" min="0" max="2000" step="1" data-value="sl_lensflare" data-event-change="onSlider('lensflare')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_lensflare" data-event-change="onSlider('lensflare')" data-event-focus="onNumboxFocus('lensflare')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">lifetime</span>
+			<input type="range" class="le-slider" min="0" max="600" step="1" data-value="sl_lifetime" data-event-change="onSlider('lifetime')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_lifetime" data-event-change="onSlider('lifetime')" data-event-focus="onNumboxFocus('lifetime')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">sustain</span>
+			<input type="range" class="le-slider" min="0" max="6000" step="1" data-value="sl_sustain" data-event-change="onSlider('sustain')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_sustain" data-event-change="onSlider('sustain')" data-event-focus="onNumboxFocus('sustain')" data-event-blur="onNumboxBlur()"/>
+		</div>
+		<div class="le-slider-row">
+			<span class="le-slider-label">selfshadowing</span>
+			<input type="range" class="le-slider" min="0" max="8" step="1" data-value="sl_selfshadowing" data-event-change="onSlider('selfshadowing')"/>
+			<input type="text" class="le-slider-numbox" data-value="sl_selfshadowing" data-event-change="onSlider('selfshadowing')" data-event-focus="onNumboxFocus('selfshadowing')" data-event-blur="onNumboxBlur()"/>
+		</div>
+
+		</div>
+	</div>
+
+</body>
+</rml>

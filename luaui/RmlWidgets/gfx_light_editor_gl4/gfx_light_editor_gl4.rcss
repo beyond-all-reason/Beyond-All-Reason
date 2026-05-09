@@ -1,0 +1,377 @@
+/* === Defaults RMLUI doesn't ship with - copied from BAR PR #7219 styles.rcss === */
+div { display: block; }
+p   { display: block; }
+input { border: 1dp rgba(0, 0, 0, 100); }
+input:focus { border: 1dp rgba(0, 0, 0, 150); }
+scrollbarvertical, scrollbarhorizontal { width: 6dp; }
+scrollbarvertical slidertrack { background-color: rgb(100, 100, 100); }
+scrollbarvertical sliderbar, scrollbarhorizontal sliderbar {
+	background-color: rgb(200, 200, 200);
+	border-radius: 2dp;
+}
+
+body {
+	font-family: Poppins;
+	font-size: 13dp;
+	color: #e0e0e0;
+	pointer-events: none;
+}
+
+/* === Toggle button === */
+.le-toggle {
+	position: absolute;
+	top: 4dp;
+	left: 4dp;
+	width: 90dp;
+	height: 28dp;
+	background-color: #1a1a1ad0;
+	border: 1dp #444;
+	padding: 4dp 10dp;
+	cursor: pointer;
+	z-index: 100;
+	text-align: center;
+	pointer-events: auto;
+}
+.le-toggle:hover { background-color: #2a2a2ad0; }
+.le-toggle-text {
+	font-weight: bold;
+	color: #ffd060;
+	font-size: 14dp;
+}
+
+/* === Resize handle (bottom-right of panel) === */
+.le-resize {
+	position: absolute;
+	right: 0dp;
+	bottom: 0dp;
+	width: 14dp;
+	height: 14dp;
+	background-color: #555;
+	cursor: nwse-resize;
+	border: 1dp #888;
+}
+.le-resize:hover { background-color: #ffd060; }
+
+/* === Custom dropdown (replaces unreliable <select>) === */
+.le-pseudo-select {
+	flex: 1;
+	background-color: #2a2a2a;
+	color: #ffffff;
+	border: 1dp #888;
+	padding: 4dp 10dp;
+	height: 24dp;
+	cursor: pointer;
+	font-size: 12dp;
+}
+.le-pseudo-select:hover {
+	background-color: #4a3820;
+	border: 1dp #ffd060;
+	color: #ffd060;
+}
+
+.le-dropdown-list {
+	display: block;
+	max-height: 220dp;
+	overflow-y: auto;
+	background-color: #161616;
+	border: 2dp #ffd060;
+	margin-left: 76dp;
+	margin-bottom: 6dp;
+	padding: 3dp;
+	z-index: 150;
+}
+.le-dropdown-item {
+	display: block;
+	padding: 5dp 10dp;
+	margin-bottom: 2dp;
+	color: #ddd;
+	font-size: 12dp;
+	cursor: pointer;
+	border: 1dp #444;
+	background-color: #2a2a2a;
+}
+.le-dropdown-item:hover {
+	background-color: #604020;
+	color: #ffd060;
+	border: 1dp #ffd060;
+}
+
+/* === Tooltip === */
+.le-tooltip {
+	position: absolute;
+	background-color: #000000ee;
+	color: #ffd060;
+	border: 1dp #aaa;
+	padding: 6dp 10dp;
+	font-size: 13dp;
+	width: 360dp;
+	height: 22dp;
+	z-index: 200;
+}
+
+/* === Panel === */
+.le-panel {
+	position: absolute;
+	top: 0dp;
+	left: 0dp;
+	width: 360dp;
+	height: 100vh;
+	overflow-y: auto;
+	background-color: #1a1a1aef;
+	border: 1dp #555;
+	padding: 8dp;
+	z-index: 99;
+	display: flex;
+	flex-direction: column;
+	pointer-events: auto;
+}
+
+.le-titlebar {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	padding-bottom: 5dp;
+	border-bottom: 1dp #444;
+	margin-bottom: 6dp;
+}
+
+.le-body-content {
+	display: block;
+}
+.le-body-content.le-hidden {
+	display: none;
+}
+.le-title {
+	font-weight: bold;
+	font-size: 15dp;
+	color: #ffd060;
+}
+.le-close {
+	cursor: pointer;
+	padding: 0dp 8dp;
+	color: #ff6060;
+	font-size: 15dp;
+}
+.le-close:hover { color: #ffffff; background-color: #ff3030; }
+
+.le-status {
+	background-color: #303018;
+	color: #ffe080;
+	padding: 4dp 6dp;
+	margin-bottom: 4dp;
+	border: 1dp #888844;
+}
+
+/* === Generic rows (flex) === */
+.le-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+	margin-bottom: 5dp;
+	height: 26dp;
+}
+.le-label {
+	width: 80dp;
+	color: #aaa;
+	flex-shrink: 0;
+}
+.le-value {
+	color: #fff;
+	flex: 1;
+}
+
+.le-text-input {
+	flex: 1;
+	background-color: #0a0a0a;
+	color: #fff;
+	border: 1dp #555;
+	padding: 2dp 6dp;
+	font-size: 13dp;
+	height: 22dp;
+}
+.le-text-input:focus {
+	border: 1dp #ffd060;
+	background-color: #1a1a18;
+}
+
+.le-section {
+	display: block;
+	margin-top: 8dp;
+	margin-bottom: 4dp;
+	padding: 3dp 6dp;
+	background-color: #2a2a2a;
+	color: #ffd060;
+	font-weight: bold;
+	font-size: 12dp;
+}
+
+/* === Slider rows (flex) === */
+.le-slider-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+	height: 28dp;
+	margin-bottom: 3dp;
+}
+
+/* Multi-select mode: hide all slider rows and section headers; show only
+   the unit info, type buttons, and a "N lights selected" banner. */
+.le-multi .le-slider-row,
+.le-multi .le-section,
+.le-multi #le-color-swatch,
+.le-multi #le-section-point,
+.le-multi #le-section-cone,
+.le-multi #le-section-beam {
+	display: none;
+}
+.le-multi #le-actions-row { display: none; }
+.le-slider-label {
+	width: 90dp;
+	color: #bbb;
+	font-size: 12dp;
+	flex-shrink: 0;
+}
+
+/* === Range Slider (from PR #7219 tf-slider) === */
+.le-slider {
+	flex: 1;
+	height: 26dp;
+	tab-index: none;
+}
+.le-slider slidertrack {
+	background-color: #13131c;
+	border-radius: 3dp;
+	height: 4dp;
+	margin-top: 11dp;
+	box-shadow: inset 0dp 1dp 3dp 0dp #00000080;
+}
+.le-slider sliderbar {
+	width: 12dp;
+	height: 18dp;
+	background-color: #b0b4c0;
+	decorator: vertical-gradient(#dde0ec #7d8190);
+	border-radius: 4dp;
+	border: 1dp #ffffff40;
+	margin-top: 4dp;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
+}
+.le-slider sliderbar:hover {
+	background-color: #ffd060;
+	decorator: vertical-gradient(#ffe890 #c89030);
+}
+.le-slider sliderarrowdec, .le-slider sliderarrowinc {
+	display: none;
+}
+
+.le-channel-r sliderbar { background-color: #d04848; decorator: vertical-gradient(#ff7878 #983030); }
+.le-channel-g sliderbar { background-color: #48d048; decorator: vertical-gradient(#78ff78 #309830); }
+.le-channel-b sliderbar { background-color: #4848d0; decorator: vertical-gradient(#7878ff #303098); }
+
+.le-slider-numbox {
+	flex: 0 0 60dp;
+	width: 60dp;
+	height: 22dp;
+	padding: 2dp 4dp;
+	background-color: #0a0a0a;
+	color: #fff;
+	border: 1dp #555;
+	font-size: 12dp;
+	text-align: right;
+}
+.le-slider-numbox:focus {
+	border: 1dp #ffd060;
+	background-color: #1a1a18;
+}
+
+/* === Select === */
+select {
+	flex: 1;
+	font-size: 12dp;
+	color: #ffffff;
+	background-color: #0a0a0a;
+	border: 1dp #555;
+	height: 24dp;
+}
+select selectvalue {
+	background-color: #0a0a0a;
+	color: #ffffff;
+	padding: 2dp 6dp;
+}
+select selectarrow {
+	width: 16dp;
+	background-color: #2a2a2a;
+}
+select selectbox {
+	background-color: #1a1a1a;
+	border: 1dp #ffd060;
+	padding: 2dp;
+	color: #ffffff;
+}
+select selectbox option {
+	background-color: #1a1a1a;
+	color: #ffffff;
+	padding: 3dp 6dp;
+}
+select selectbox option:hover {
+	background-color: #604020;
+	color: #ffd060;
+}
+
+/* === Type buttons === */
+.le-typebtns {
+	display: flex;
+	flex-direction: row;
+	gap: 4dp;
+	flex: 1;
+}
+.le-typebtn {
+	padding: 3dp 12dp;
+	background-color: #2a2a2a;
+	border: 1dp #555;
+	cursor: pointer;
+	color: #aaa;
+	font-size: 12dp;
+}
+.le-typebtn:hover { background-color: #3a3a3a; }
+.le-typebtn.active {
+	background-color: #604020;
+	color: #ffd060;
+	border: 1dp #ffd060;
+}
+
+/* === Color swatch === */
+.le-swatch {
+	display: block;
+	height: 28dp;
+	margin: 5dp 0dp;
+	border: 1dp #555;
+	background-color: #ffffff;
+}
+
+/* === Action buttons === */
+.le-actions {
+	display: flex;
+	flex-direction: row;
+	gap: 6dp;
+	margin-top: 10dp;
+	padding-top: 8dp;
+	border-top: 1dp #444;
+}
+.le-actbtn {
+	padding: 5dp 12dp;
+	background-color: #285030;
+	border: 1dp #60a070;
+	cursor: pointer;
+	color: #fff;
+	font-weight: bold;
+	font-size: 13dp;
+}
+.le-actbtn:hover { background-color: #3a7050; }
+.le-actbtn-danger {
+	background-color: #503028;
+	border: 1dp #a06060;
+}
+.le-actbtn-danger:hover { background-color: #703a30; }
