@@ -5417,6 +5417,8 @@ function init()
 
 		{ id = "startboxeditor", group = "dev", category = types.dev, widget = "Startbox Editor", name = Spring.I18N('ui.settings.option.startboxeditor'), type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = Spring.I18N('ui.settings.option.startboxeditor_descr') },
 
+		{ id = "stats_jsonl_sink", group = "dev", category = types.dev, widget = "Stats API - JSONL file sink", name = "Write stats JSONL file", type = "bool", value = GetWidgetToggleValue("Stats API - JSONL file sink"), description = "Writes a zlib-compressed stats sidecar next to the replay at game over" },
+
 		{ id = "language_dev", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.language'), type = "select", options = devLanguageNames, value = devLanguageCodes[Spring.I18N.getLocale()],
 			onchange = function(i, value)
 				local devLanguage = devLanguageCodes[value]
