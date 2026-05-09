@@ -47,7 +47,8 @@
 
 		<div class="le-row">
 			<span class="le-label">Name:</span>
-			<input type="text" id="le-name-input" class="le-text-input" data-value="lightName" data-event-change="onNameChange()"/>
+			<input type="text" id="le-name-input" class="le-text-input" data-value="lightName" data-event-change="onNameChange()" data-event-focus="onNumboxFocus('__name__')" data-event-blur="onNumboxBlur()"/>
+			<div class="le-actbtn" data-event-click="onAction('addLight')" style="margin-left: 6dp;">+ Add</div>
 		</div>
 
 		<div class="le-row">

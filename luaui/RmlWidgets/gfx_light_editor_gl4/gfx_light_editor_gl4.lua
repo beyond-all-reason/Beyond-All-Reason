@@ -1138,6 +1138,64 @@ function widget:Initialize()
 					startW = state.panelWidth or 460,
 					startH = state.panelHeight or 800,
 				}
+			elseif action == "addLight" then
+				-- Pull the very latest text from the name field; the change
+				-- event may not have committed yet if the user clicked Add
+				-- without blurring the input first.
+				if state.document then
+					local nameEl = state.document:GetElementById("le-name-input")
+					if nameEl then
+						local v = nameEl:GetAttribute("value")
+						if type(v) == "string" and v ~= "" then state.lightName = v end
+					end
+				end
+				if not state.currentUnitID or not state.currentUnitDefID or not state.currentUnitName then
+					setStatus("Select a unit first")
+					return
+				end
+				if not state.lightName or state.lightName == "" then
+					setStatus("Give the light a name first")
+					return
+				end
+				local api = WG['lightsgl4']
+				local udLights = api and api.GetUnitDefLights and api.GetUnitDefLights()
+				if not udLights then setStatus("Lights API unavailable"); return end
+				udLights[state.currentUnitDefID] = udLights[state.currentUnitDefID] or {}
+				if udLights[state.currentUnitDefID][state.lightName] then
+					setStatus("'"..state.lightName.."' already exists; pick a unique name")
+					return
+				end
+				-- Build a fresh runtime light table from the current editor state.
+				local pieceIndex = 0
+				if state.pieceMap and state.pieceName ~= "" and state.pieceMap[state.pieceName] then
+					pieceIndex = state.pieceMap[state.pieceName]
+				end
+				local params = buildLightParamTable()
+				local newLt = {
+					lightType  = state.lightType,
+					pieceName  = (state.pieceName ~= "" and state.pieceName) or nil,
+					pieceIndex = pieceIndex,
+					lightParamTable = {},
+					initComplete = true,
+				}
+				for i = 1, #params do newLt.lightParamTable[i] = params[i] end
+				udLights[state.currentUnitDefID][state.lightName] = newLt
+				-- Spawn under the canonical instance ID so the deferred renderer
+				-- treats it like any other unit-attached light.
+				local vbo = getVBOForType(state.lightType)
+				if vbo and api.AddLight then
+					api.AddLight(tostring(state.currentUnitID) .. state.lightName,
+						state.currentUnitID, pieceIndex, vbo, newLt.lightParamTable)
+				end
+				-- Drop the temporary "lighteditor_preview" so we don't have a duplicate.
+				clearPreview()
+				-- Switch the editor into editing-this-new-light mode so subsequent
+				-- slider tweaks apply to the permanent entry, not a new preview.
+				state.editingExisting = state.lightName
+				rebuildExistingDropdown()
+				local existDisp = state.document and state.document:GetElementById("le-existing-display")
+				if existDisp then existDisp.inner_rml = state.lightName end
+				setStatus("Added '"..state.lightName.."'")
 			elseif action == "toggleExistingDropdown" then
 				local listEl = state.document and state.document:GetElementById("le-existing-list")
 				if listEl then
@@ -1218,8 +1276,16 @@ function widget:Initialize()
 			applyPreview()
 		end,
 
-		onNameChange = function(_ev)
-			local v = state.dmHandle and state.dmHandle.lightName
+		onNameChange = function(ev)
+			-- Read the new value directly from the DOM element to avoid the
+			-- DOM->model commit timing issue we hit on sliders too.
+			local v
+			if ev and ev.current_element then
+				v = ev.current_element:GetAttribute("value")
+			end
+			if (not v or v == "") and state.dmHandle then
+				v = state.dmHandle.lightName
+			end
 			if type(v) == "string" and v ~= "" then
 				state.lightName = v
 			end
@@ -1257,7 +1323,7 @@ function widget:Initialize()
 	if panel and panel.SetProperty then
 		panel:SetProperty("left", "0px")
 		panel:SetProperty("top", "0px")
-		panel:SetProperty("width", "300px")
+		panel:SetProperty("width", "440px")
 		panel:SetProperty("height", "100vh")
 	end
 
