@@ -1318,13 +1318,12 @@ function widget:Initialize()
 	state.document = document
 	document:Show()
 
-	-- Force panel sizing in case the RCSS isn't applied as expected.
+	-- Width forced; height comes from the RCSS class (95vh + max-height).
 	local panel = document:GetElementById("le-panel")
 	if panel and panel.SetProperty then
-		panel:SetProperty("left", "0px")
-		panel:SetProperty("top", "0px")
-		panel:SetProperty("width", "440px")
-		panel:SetProperty("height", "100vh")
+		panel:SetProperty("left", "0dp")
+		panel:SetProperty("top", "0dp")
+		panel:SetProperty("width", "400dp")
 	end
 
 	attachAllListeners()

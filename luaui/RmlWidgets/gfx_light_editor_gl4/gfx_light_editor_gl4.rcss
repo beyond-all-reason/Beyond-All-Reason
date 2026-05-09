@@ -114,16 +114,22 @@ body {
 	position: absolute;
 	top: 0dp;
 	left: 0dp;
-	width: 360dp;
-	height: 100vh;
+	width: 400dp;
+	height: 95vh;
+	max-height: 95vh;
 	overflow-y: auto;
 	background-color: #1a1a1aef;
 	border: 1dp #555;
-	padding: 8dp;
+	padding: 8dp 8dp 30dp 8dp;
 	z-index: 99;
-	display: flex;
-	flex-direction: column;
+	display: block;
 	pointer-events: auto;
+}
+.le-panel scrollbarvertical { width: 8dp; }
+.le-panel scrollbarvertical slidertrack { background-color: #222; }
+.le-panel scrollbarvertical sliderbar {
+	background-color: #ffd060;
+	border-radius: 3dp;
 }
 
 .le-titlebar {
@@ -361,13 +367,14 @@ select selectbox option:hover {
 	border-top: 1dp #444;
 }
 .le-actbtn {
-	padding: 5dp 12dp;
+	padding: 5dp 10dp;
 	background-color: #285030;
 	border: 1dp #60a070;
 	cursor: pointer;
 	color: #fff;
 	font-weight: bold;
-	font-size: 13dp;
+	font-size: 12dp;
+	white-space: nowrap;
 }
 .le-actbtn:hover { background-color: #3a7050; }
 .le-actbtn-danger {
