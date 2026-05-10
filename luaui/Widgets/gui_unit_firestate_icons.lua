@@ -45,9 +45,11 @@ local popElementInstance  = InstanceVBOTable.popElementInstance
 --------------------------------------------------------------------------------
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
-	local xsize, zsize = unitDef.xsize, unitDef.zsize
-	local scale = 2.5 * (xsize*xsize + zsize*zsize)^0.5
-	unitConf[udid] = {11 + (scale / 2.2), unitDef.height}
+    if unitDef.weapons and #unitDef.weapons > 0 then
+        local xsize, zsize = unitDef.xsize, unitDef.zsize
+        local scale = 2.5 * (xsize*xsize + zsize*zsize)^0.5
+        unitConf[udid] = {11 + (scale / 2.2), unitDef.height}
+    end
 end
 
 -- All visible units: [unitID] = unitDefID
@@ -104,6 +106,7 @@ local function pushToVBO(vbo, unitID, unitDefID, gf)
 	if vbo.instanceIDtoIndex[unitID] then return end
 	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then return end
 	local conf = unitConf[unitDefID]
+	if not conf then return end
 	instanceData[1] = conf[1]  -- width
 	instanceData[2] = conf[1]  -- height
 	instanceData[4] = conf[2]  -- unit height offset
