@@ -116,8 +116,10 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				spSetUnitRulesParam(unitID, "unit_effigy", nil, PRIVATE)
 			end
-			-- decrement respawn count, when starting at 0 this just counts negatively forever
-			meta.destructive_respawn = meta.destructive_respawn - 1
+
+			if meta.destructive_respawn > 0 then
+				meta.destructive_respawn = meta.destructive_respawn - 1
+			end
 
 			local respawnHealth = 1
 			if meta.respawn_health then
