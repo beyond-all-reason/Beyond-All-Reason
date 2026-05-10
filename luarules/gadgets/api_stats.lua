@@ -241,7 +241,6 @@ local function appendEventAt(name, labels, frame)
 	local s = getOrCreateSeries("event", name, lbl, labelKey, false)
 	appendSample(s, frame)
 end
-------------------------------------
 
 ------------------------------------
 --- public unsynced API
@@ -282,7 +281,6 @@ GG.Stats = {
 	SetGauge        = setGauge,
 	EmitEvent       = emitEvent,
 }
-------------------------------------
 
 ------------------------------------
 -- synced -> unsynced
@@ -324,7 +322,6 @@ local function handleSyncedFlush(_, payloadStr)
 
 	maybeFlushReportingPeriod(frame)
 end
-------------------------------------
 
 ------------------------------------
 -- snapshot metric data periodically
@@ -343,7 +340,6 @@ maybeFlushReportingPeriod = function(frame)
 	flushReportingPeriod(frame)
 	lastReportFrame = frame
 end
-------------------------------------
 
 ------------------------------------
 -- send final data to widgets
@@ -375,7 +371,6 @@ local function flushBufferToLuaUI(endFrame)
 	Spring.Echo(("[Stats] Stats file shipped: %d series, %d B plain → %d B zlib"):format(
 		#seriesOrder, #plain, #compressed))
 end
-------------------------------------
 
 function gadget:Initialize()
 	gadgetHandler:AddSyncAction(SYNC_ACTION, handleSyncedFlush)
