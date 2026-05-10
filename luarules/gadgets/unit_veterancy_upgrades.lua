@@ -68,9 +68,13 @@ local function callUnitScript(unitID, luaEnv, methodName, ...)
 end
 
 local gameSpeedInverse = 1 / Game.gameSpeed
+
+-- Limit primary damage to default/general and anti-xyz types, e.g. anti-air/vtol.
+-- We lack "anti-ship", "anti-hover" etc as gameplay mechanics or balance concepts.
+local armorTypeTargets = { default = true, vtol = true, subs = true, mines = true }
 local armorTypeMin = 0
 local armorTypeMax = #Game.armorTypes
-local armorTypeTargets = { default = true, vtol = true, sub = true, mine = true }
+
 local autoHealInterval = math_round(Game.gameSpeed * 0.5) -- match engine interval
 local autoHealFraction = Game.gameSpeed / autoHealInterval
 
