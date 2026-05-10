@@ -22,7 +22,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		metalcost = 230,
-		noautofire = true,
+		firestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMPNIX.s3o",
 		script = "Units/ARMPNIX.cob",

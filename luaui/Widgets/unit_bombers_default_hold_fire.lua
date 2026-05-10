@@ -1,18 +1,19 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-    return {
-        name    = "BombersDefaultHoldFire",
-        desc    = "Sets produced bombers to Hold Fire after leaving an airlab and hides the Move mode for bombers.",
-        author  = "Pexo",
-        date    = "2026-02-27",
-        license = "GNU GPL, v2 or later",
-        layer   = 0,
-        enabled = true,
-    }
+	return {
+		name    = "BombersDefaultHoldFire",
+		desc    = "Sets produced bombers to Hold Fire after leaving an airlab.",
+		author  = "Pexo",
+		date    = "2026-02-27",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true,
+	}
 end
 
-local CMD_BOMBER_TARGETING = GameCMD.BOMBER_TARGETING
+local CMD_FIRE_STATE = CMD.FIRE_STATE
+local CMD_MANUALFIRE = CMD.MANUALFIRE
 local gameStarted = false
 local isBomber = {}
 
@@ -22,58 +23,59 @@ local spGiveOrder = Spring.GiveOrderToUnit
 local myTeamID = spGetMyTeamID()
 
 local function UnitDefIsBomber(ud)
-    if not ud or not ud.weapons then
-        return false
-    end
-    
-    if ud.name and (string.find(ud.name, 'armstil')) then -- excluding Stiletto. It's an EMP bomber so friendly fire is not that much of a concern
-        return false
-    end
+	if not ud or not ud.weapons then
+		return false
+	end
 
-    for i = 1, #ud.weapons do
-        local wname = ud.weapons[i].weaponDef
-        local weaponDef = WeaponDefs[wname]
-        if weaponDef then
-            if weaponDef.type == "AircraftBomb" then
-                return true
-            end
-        end
-    end
+	if ud.name and (string.find(ud.name, 'armstil')) then -- excluding Stiletto. It's an EMP bomber so friendly fire is not that much of a concern
+		return false
+	end
 
-    return false
+	for i = 1, #ud.weapons do
+		local wname = ud.weapons[i].weaponDef
+		local weaponDef = WeaponDefs[wname]
+		if weaponDef then
+			if weaponDef.type == "AircraftBomb" then
+				return true
+			end
+		end
+	end
+
+	return false
 end
 
 for udid, ud in pairs(UnitDefs) do
-    if UnitDefIsBomber(ud) then
-        isBomber[udid] = true
-    end
+	if UnitDefIsBomber(ud) then
+		isBomber[udid] = true
+	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
-    if unitTeam ~= myTeamID then
-        return
-    end
-    if isBomber[unitDefID] then
-       spGiveOrder(unitID, CMD_BOMBER_TARGETING, { 0 }, 0)
-    end
+	if unitTeam ~= myTeamID then
+		return
+	end
+	if isBomber[unitDefID] then
+		spGiveOrder(unitID, CMD_FIRE_STATE, { 0 }, 0)
+		spGiveOrder(unitID, CMD_MOVE_STATE, { 0 }, 0)
+	end
 end
 
 local function maybeRemoveSelf()
-    if Spring.IsReplay() or (Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted)) then
-        widgetHandler:RemoveWidget()
-    end
+	if Spring.IsReplay() or (Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted)) then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 function widget:PlayerChanged(playerID)
-    myTeamID = spGetMyTeamID()
-    maybeRemoveSelf()
+	myTeamID = spGetMyTeamID()
+	maybeRemoveSelf()
 end
 
 function widget:Initialize()
-    maybeRemoveSelf()
+	maybeRemoveSelf()
 end
 
 function widget:GameStart()
-    gameStarted = true
-    widget:PlayerChanged()
+	gameStarted = true
+	widget:PlayerChanged()
 end
