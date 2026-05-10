@@ -1558,20 +1558,20 @@ local options = {
 
     {
         key     = "community_balance_patch",
-        name    = "Community Balance Patch Feb '26",
+        name    = "Community Balance Patch April '26",
         desc    = "Enable community balance patch changes\n(overwrites changes in official seasonal balance test)",
         type    = "list",
         def     = "disabled",
         section = "options_experimental",
         items   = {
             { key = "disabled", name = "Disabled", desc = "No community balance changes",
-            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armfast","community_balance_armcroc","community_balance_corkorg","community_balance_corspy"} },
+            lock = {"community_balance_commando","community_balance_corkorg","community_balance_corspy","community_balance_corjamt","community_balance_armmav","community_balance_corcan"} },
 
-            { key = "enabled",  name = "Enabled",  desc = "Enable all community balance changes\nCommando\nTermite\nSprinter\nTurtle\nJuggernaut\nSpectre",
-            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armfast","community_balance_armcroc","community_balance_corkorg","community_balance_corspy"} },
+            { key = "enabled",  name = "Enabled",  desc = "Enable all community balance changes\nCommando\nJuggernaut\nSpectre\nCastro\nGunslinger\nSumo",
+            lock = {"community_balance_commando","community_balance_corkorg","community_balance_corspy","community_balance_corjamt","community_balance_armmav","community_balance_corcan"} },
 
             { key = "custom",   name = "Custom",   desc = "Customize individual community balance changes",
-            unlock = {"community_balance_commando", "community_balance_cortermite", "community_balance_armfast", "community_balance_armcroc", "community_balance_corkorg", "community_balance_corspy"} },
+            unlock = {"community_balance_commando", "community_balance_corkorg", "community_balance_corspy", "community_balance_corjamt", "community_balance_armmav", "community_balance_corcan"} },
         }
     },
 
@@ -1581,7 +1581,7 @@ local options = {
         desc    = "Community Balance Patch changelog",
         section = "options_experimental",
         type    = "link",
-        link    = "https://discord.com/channels/549281623154229250/1462625474344783872/1462625474344783872",
+        link    = "https://github.com/beyond-all-reason/Beyond-All-Reason/pull/7571",
         width   = 235,
         column  = 2.025,
         linkheight = 325,
@@ -1598,36 +1598,9 @@ local options = {
     },
 
     {
-        key     = "community_balance_cortermite",
-        name    = "(CBP) Termite",
-        desc    = "(From January)\nAdded stealth",
-        type    = "bool",
-        def     = false,
-        section = "options_experimental",
-    },
-
-    {
-        key     = "community_balance_armfast",
-        name    = "(CBP) Sprinter",
-        desc    = "(From January)\nEnergy cost: 3500 (from 4140)\nAcceleration: 0.37 (from 0.414)\nSpeed: 115 (from 111.3)\nTurn-in-place angle: 115° (from 90°)\nTurn-in-place speed: 2.75 (from 2.4486)\nTurn rate: 1320 (from 1644.5)\nSight distance: 380 (from 351)\nWeapon: 18 AoE (from 16), 230 range (from 220), 15/5 damage (from 12/4)",
-        type    = "bool",
-        def     = false,
-        section = "options_experimental",
-    },
-
-    {
-        key     = "community_balance_armcroc",
-        name    = "(CBP) Turtle",
-        desc    = "(New)\nHealth: 5250 (from 5000)\nMain gun AoE: 80 (from 64), impulse factor: 0.50 (from 0.123)",
-        type    = "bool",
-        def     = false,
-        section = "options_experimental",
-    },
-
-    {
         key     = "community_balance_corkorg",
         name    = "(CBP) Juggernaut",
-        desc    = "(New)\nAir LOS: 1600 (from 1260)\nMetal cost: 26000 (from 29000)",
+        desc    = "(From February)\nAir LOS: 1600 (from 1260)\nMetal cost: 26000 (from 29000)",
         type    = "bool",
         def     = false,
         section = "options_experimental",
@@ -1636,7 +1609,61 @@ local options = {
     {
         key     = "community_balance_corspy",
         name    = "(CBP) Spectre",
-        desc    = "(New)\nEnergy cost: 8800 (from 12500)\nMetal cost: 135 (from 165)",
+        desc    = "(From February)\nEnergy cost: 8800 (from 12500)\nMetal cost: 135 (from 165)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_corjamt",
+        name    = "(CBP) Castro",
+        desc    = "(New)\nMatches the stats of Sneaky Pete.",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_armmav",
+        name    = "(CBP) Gunslinger",
+        desc    = "(New)\nMetal cost: 520 (from 650)\nEnergy cost: 6500 (from 11000)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_corcan",
+        name    = "(CBP) Sumo",
+        desc    = "(New)\nMain laser range: 300 (from 275)\nMain laser beam time: 0.24 (from 0.16)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_corjamt",
+        name    = "(CBP) Castro",
+        desc    = "Matches the stats of Sneaky Pete.",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_armmav",
+        name    = "(CBP) Gunslinger",
+        desc    = "Metal cost: 520 (from 650)\nEnergy cost: 6500 (from 11000)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_corcan",
+        name    = "(CBP) Sumo",
+        desc    = "Main laser range: 300 (from 275)\nMain laser beam time: 0.24 (from 0.16)",
         type    = "bool",
         def     = false,
         section = "options_experimental",

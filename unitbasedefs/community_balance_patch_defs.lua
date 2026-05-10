@@ -79,46 +79,6 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 			end
 		end
 
-		if all or (custom and modOptions.community_balance_cortermite) then
-			if name == "cortermite" then
-				uDef.stealth = true
-			end
-		end
-
-		if all or (custom and modOptions.community_balance_armfast) then
-			if name == "armfast" then
-				uDef.energycost = 3500
-				uDef.maxacc = 0.37
-				uDef.speed = 115
-				uDef.turninplaceanglelimit = 115
-				uDef.turninplacespeedlimit = 2.75
-				uDef.turnrate = 1320
-				uDef.sightdistance = 380
-				if uDef.weapondefs then
-					for weaponName, weaponDef in pairs(uDef.weapondefs) do
-						if weaponName == "arm_fast" then
-							weaponDef.areaofeffect = 18
-							weaponDef.range = 230
-							weaponDef.damage = {
-								default = 15,
-								vtol = 5
-							}
-						end
-					end
-				end
-			end
-		end
-
-		if all or (custom and modOptions.community_balance_armcroc) then
-			if name == "armcroc" then
-				uDef.health = 5250
-				if uDef.weapondefs and uDef.weapondefs.arm_triton then
-					uDef.weapondefs.arm_triton.areaofeffect = 80
-					uDef.weapondefs.arm_triton.impulsefactor = 0.5
-				end
-			end
-		end
-
 		if all or (custom and modOptions.community_balance_corkorg) then
 			if name == "corkorg" then
 				uDef.airsightdistance = 1600
@@ -130,6 +90,34 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 			if name == "corspy" then
 				uDef.energycost = 8800
 				uDef.metalcost = 135
+			end
+		end
+
+		if all or (custom and modOptions.community_balance_corjamt) then
+			if name == "corjamt" then
+				uDef.buildtime = 9950
+				uDef.energycost = 8500
+				uDef.energyupkeep = 40
+				uDef.health = 790
+				uDef.metalcost = 240
+				uDef.radardistancejam = 500
+				uDef.sightdistance = 195
+			end
+		end
+
+		if all or (custom and modOptions.community_balance_armmav) then
+			if name == "armmav" then
+				uDef.metalcost = 520
+				uDef.energycost = 6500
+			end
+		end
+
+		if all or (custom and modOptions.community_balance_corcan) then
+			if name == "corcan" then
+				if uDef.weapondefs and uDef.weapondefs.cor_canlaser then
+					uDef.weapondefs.cor_canlaser.range = 300
+					uDef.weapondefs.cor_canlaser.beamtime = 0.24
+				end
 			end
 		end
 	end

@@ -36,12 +36,26 @@ local popElementInstance  = InstanceVBOTable.popElementInstance
 
 --------------------------------------------------------------------------------
 -- Per-UnitDef config: [unitDefID] = {iconSize, iconHeight}
+-- Only populated for units that can receive repeatable orders:
+-- mobile units, factories, and buildings with stockpile weapons
 --------------------------------------------------------------------------------
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
-	local xsize, zsize = unitDef.xsize, unitDef.zsize
-	local scale = 1 * (xsize*xsize + zsize*zsize)^0.5
-	unitConf[udid] = {10 + (scale / 2.2), unitDef.height}
+	local hasStockpile = false
+	if unitDef.weapons then
+		for _, w in ipairs(unitDef.weapons) do
+			local wd = w.weaponDef and WeaponDefs[w.weaponDef]
+			if wd and wd.stockpile and not (wd.interceptor and wd.interceptor > 0) then
+				hasStockpile = true
+				break
+			end
+		end
+	end
+	if unitDef.canMove or unitDef.isFactory or hasStockpile then
+		local xsize, zsize = unitDef.xsize, unitDef.zsize
+		local scale = 1 * (xsize*xsize + zsize*zsize)^0.5
+		unitConf[udid] = {10 + (scale / 2.2), unitDef.height}
+	end
 end
 
 -- All visible units: [unitID] = unitDefID
@@ -90,6 +104,7 @@ local function pushToVBO(unitID, unitDefID, gf)
 	if repeatVBO.instanceIDtoIndex[unitID] then return end
 	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then return end
 	local conf = unitConf[unitDefID]
+	if not conf then return end -- unit can't receive repeatable orders, skip
 	instanceData[1] = conf[1]  -- width
 	instanceData[2] = conf[1]  -- height
 	instanceData[4] = conf[2]  -- unit height offset
