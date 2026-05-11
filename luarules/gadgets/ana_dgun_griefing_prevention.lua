@@ -31,6 +31,8 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitsInBox = Spring.GetUnitsInBox
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetTeamInfo = Spring.GetTeamInfo
+local spGetPositionLosState = Spring.GetPositionLosState
+local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitLosState = Spring.GetUnitLosState
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
@@ -61,6 +63,8 @@ local gaiaTeamID = spGetGaiaTeamID()
 -- Tracks enemy contacts briefly so that dguns are allowed for a few seconds even after contact is lost
 local contactsCache = {}
 local CONTACT_WINDOW_DURATION = 5 * 30 -- five seconds at 30 gameframes per second
+-- Tracks enemy buildings that leave ghosts so they can keep contributing to enemy presence
+local enemyBuildingsCache = {}
 -- Allies being damaged nearby recently implies we are near combat, so dguns are allowed
 local ALLY_DAMAGE_WINDOW = 30 * 30 -- 30 seconds at 30 gameframes per second
 local CACHE_PRUNE_INTERVAL = 60 * 30 -- prune expired cache contents every minute
@@ -129,6 +133,84 @@ local function PruneExpiredCaches(currentFrame)
 	for unitID, cache in pairs(recentlyDamagedAlliedUnits) do
 		if cache.expiresFrame <= currentFrame then
 			recentlyDamagedAlliedUnits[unitID] = nil
+		end
+	end
+end
+
+local function RemoveEnemyBuildingFromCache(unitID)
+	Spring.Echo("remove building")
+	enemyBuildingsCache[unitID] = nil
+end
+
+local function AddEnemyBuildingToCache(unitID)
+	Spring.Echo("new code")
+	local unitTeam = spGetUnitTeam(unitID)
+	if unitTeam == gaiaTeamID then
+		return
+	end
+
+	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+	if not unitX then
+		return
+	end
+
+	enemyBuildingsCache[unitID] = {
+		x = unitX,
+		y = unitY,
+		z = unitZ,
+	}
+end
+
+local function UpdateEnemyBuildingCache()
+	for unitID, site in pairs(enemyBuildingsCache) do
+		local _, inLos = spGetPositionLosState(site.x, site.y, site.z)
+		if inLos then
+			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+			if not unitX then
+				enemyBuildingsCache[unitID] = nil
+			else
+				local deltaX = unitX - site.x
+				local deltaY = unitY - site.y
+				local deltaZ = unitZ - site.z
+				if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) > 1 then
+					enemyBuildingsCache[unitID] = nil
+				end
+			end
+		end
+	end
+end
+
+function gadget:UnitEnteredLos(unitID, unitTeam)
+	if Spring.GetUnitLeavesGhost(unitID) then
+		AddEnemyBuildingToCache(unitID)
+	end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	local site = enemyBuildingsCache[unitID]
+	if not site then
+		return
+	end
+
+	local _, inLos = spGetPositionLosState(site.x, site.y, site.z)
+	Spring.Echo(spGetPositionLosState(site.x, site.y, site.z))
+	if inLos then
+		Spring.Echo("in LOS???")
+		RemoveEnemyBuildingFromCache(unitID)
+	end
+end
+
+function gadget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
+	if not spAreTeamsAllied(oldTeamID, newTeamID) then
+		RemoveEnemyBuildingFromCache(unitID)
+	end
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
+	if not spAreTeamsAllied(oldTeamID, newTeamID) then
+		local myAllyTeam = spGetMyAllyTeamID()
+		if myAllyTeam and GetAllyTeamID(newTeamID) ~= myAllyTeam and Spring.GetUnitLeavesGhost(unitID) then
+			AddEnemyBuildingToCache(unitID)
 		end
 	end
 end
@@ -263,6 +345,13 @@ local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 		end
 	end
 
+	for _, site in pairs(enemyBuildingsCache) do
+		local deltaX, deltaY, deltaZ = site.x - targetX, site.y - targetY, site.z - targetZ
+		if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) <= (FRONTLINE_SCAN_RADIUS * FRONTLINE_SCAN_RADIUS) then
+			return true, "Enemy buildings nearby"
+		end
+	end
+
 	return false
 end
 
@@ -293,6 +382,7 @@ function gadget:UnitSeismicPing(positionX, positionY, positionZ, strength, allyT
 end
 
 function gadget:GameFrame(currentFrame)
+	UpdateEnemyBuildingCache()
 	if currentFrame < nextContactPruneFrame then
 		return
 	end
