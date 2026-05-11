@@ -44,6 +44,8 @@ local function isTriggerValid(trigger)
 		if not triggers[prerequisiteTriggerID].triggered then return false end
 	end
 
+	if next(trigger.settings.stages) and not table.contains(trigger.settings.stages, GG['MissionAPI'].CurrentStageID) then return false end
+
 	if trigger.triggered and not trigger.settings.repeating then return false end
 	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then return false end
 	if trigger.settings.difficulties ~= nil and not trigger.settings.difficulties[GG['MissionAPI'].Difficulty] then return false end
@@ -99,33 +101,13 @@ local function checkTimeElapsed(trigger, gameframe)
 	end
 end
 
-local function checkUnitExists(trigger, unitDefID, teamID)
-	if trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+local function checkUnitExists(trigger, unitDefID, unitTeam)
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-
-	local requiredTeamID = trigger.parameters.teamID
-	local requiredQuantity = trigger.parameters.quantity
-	if requiredTeamID then
-		if requiredTeamID ~= teamID then
-			return
-		elseif Spring.GetTeamUnitDefCount(requiredTeamID, unitDefID) < (requiredQuantity or 1) then
-			return
-		end
+	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+		return
 	end
-
-	if requiredQuantity then
-		local count = 0
-		for _, allyTeamID in pairs(Spring.GetAllyTeamList()) do
-			for _, teamIDForAllyTeam in pairs(Spring.GetTeamList(allyTeamID)) do
-				count = count + Spring.GetTeamUnitDefCount(teamIDForAllyTeam, unitDefID)
-			end
-		end
-		if count < requiredQuantity then
-			return
-		end
-	end
-
 	activateTrigger(trigger)
 end
 
@@ -253,13 +235,13 @@ local function checkUnitEnteredOrLeftLos(trigger, unitID, unitTeam, losAllyTeamI
 	if trigger.parameters.unitName and not doesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return
 	end
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+		return
+	end
 	if trigger.parameters.owningTeamID and unitTeam ~= trigger.parameters.owningTeamID then
 		return
 	end
 	if trigger.parameters.spottingAllyTeamID and losAllyTeamID ~= trigger.parameters.spottingAllyTeamID then
-		return
-	end
-	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
 	activateTrigger(trigger)
@@ -269,10 +251,10 @@ local function checkConstructionStarted(trigger, unitID, unitDefID, unitTeam)
 	if not Spring.GetUnitIsBeingBuilt(unitID) then
 		return
 	end
-	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
 		return
 	end
 	activateTrigger(trigger)
@@ -282,10 +264,10 @@ local function checkConstructionFinished(trigger, unitID, unitDefID, unitTeam)
 	if trigger.parameters.unitName and not doesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return
 	end
-	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
 		return
 	end
 	activateTrigger(trigger)
@@ -359,11 +341,20 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 		statisticsTriggerCounts[triggerID] = (statisticsTriggerCounts[triggerID] or 0) + direction
 
 		-- Repeat at quantity, 2*quantity, 3*quantity, ... (only when incrementing)
-		local nextThreshold = (trigger.repeatCount + 1) * trigger.parameters.quantity
+		-- quantity = 0 is a special case: fire once when the count reaches 0.
+		local quantity = trigger.parameters.quantity
+		local nextThreshold = quantity > 0 and (trigger.repeatCount + 1) * quantity or 0
 		if direction > 0 and statisticsTriggerCounts[triggerID] >= nextThreshold then
+			activateTrigger(trigger)
+		elseif quantity == 0 and statisticsTriggerCounts[triggerID] == 0 then
 			activateTrigger(trigger)
 		end
 	end)
+
+	-- Objective callbacks:
+	for _, callback in ipairs(GG['MissionAPI'].ObjectiveTriggers[triggerType] or {}) do
+		callback(teamID, unitDefName, unitNames, direction)
+	end
 end
 local function incrementUnitStatistics(triggerType, teamID, unitDefName, unitNames)
 	updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, 1)
@@ -510,6 +501,12 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
+
+	local nameOfUnitBeingSpawned = GG['MissionAPI'].nameOfUnitBeingSpawned
+	if nameOfUnitBeingSpawned then
+		unitNames = table.copy(unitNames)
+		unitNames[nameOfUnitBeingSpawned] = true
+	end
 	incrementUnitStatistics(types.UnitsOwned, unitTeam, unitDefName, unitNames)
 end
 

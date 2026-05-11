@@ -52,6 +52,7 @@ local settings = {
 	difficulties = Types.Table,
 	coop = Types.Boolean,
 	active = Types.Boolean,
+	stages = Types.Table,
 }
 
 --============================================================--
@@ -75,7 +76,7 @@ local parameters = {
 	[triggerTypes.UnitExists] = {
 		[1] = {
 			name = 'unitDefName',
-			required = true,
+			required = false,
 			type = Types.UnitDefName,
 		},
 		[2] = {
@@ -83,11 +84,7 @@ local parameters = {
 			required = false,
 			type = Types.TeamID,
 		},
-		[3] = {
-			name = 'quantity',
-			required = false,
-			type = Types.Number,
-		},
+		requiresOneOf = { 'unitDefName', 'teamID' }
 	},
 	[triggerTypes.UnitNotExists] = {
 		[1] = {
@@ -299,7 +296,7 @@ local parameters = {
 	[triggerTypes.ConstructionStarted] = {
 		[1] = {
 			name = 'unitDefName',
-			required = true,
+			required = false,
 			type = Types.UnitDefName
 		},
 		[2] = {
@@ -307,6 +304,7 @@ local parameters = {
 			required = false,
 			type = Types.TeamID
 		},
+		requiresOneOf = { 'unitDefName', 'teamID' }
 	 },
 	[triggerTypes.ConstructionFinished] = {
 		[1] = {
@@ -460,7 +458,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitName',
@@ -482,7 +480,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitDefName',
@@ -499,7 +497,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitName',
@@ -521,7 +519,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitName',
@@ -543,7 +541,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitName',

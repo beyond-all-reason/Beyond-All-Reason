@@ -5,6 +5,10 @@ local actionTypes = {
 	EnableTrigger      = 100,
 	DisableTrigger     = 101,
 
+	-- Stages & Objectives
+	ChangeStage        = 150,
+	UpdateObjective    = 151,
+
 	-- Orders
 	IssueOrders        = 200,
 	AllowCommands      = 201,
@@ -75,6 +79,38 @@ local parameters = {
 			name = 'triggerID',
 			required = true,
 			type = Types.TriggerID
+		},
+	},
+
+	-- Stages & Objectives
+	[actionTypes.ChangeStage] = {
+		[1] = {
+			name = 'stageID',
+			required = true,
+			type = Types.StageID
+		},
+	},
+
+	[actionTypes.UpdateObjective] = {
+		[1] = {
+			name = 'objectiveID',
+			required = true,
+			type = Types.ObjectiveID
+		},
+		[2] = {
+			name = 'completed',
+			required = false,
+			type = Types.Boolean
+		},
+		[3] = {
+			name = 'text',
+			required = false,
+			type = Types.String
+		},
+		[4] = {
+			name = 'nextStage',
+			required = false,
+			type = Types.StageID
 		},
 	},
 
