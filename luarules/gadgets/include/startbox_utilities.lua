@@ -1,90 +1,7 @@
 local SplineLib = VFS.Include("common/lib_spline.lua")
 
--- Maps camelCase method names used by ZK-style mapside configs to the
--- PascalCase names in BAR's Spring.Utilities.Gametype, plus ZK-specific
--- names (e.g. isChickens) to their BAR equivalents.
-local camelToPascal = {
-	isFFA = 'IsFFA',
-	isTeams = 'IsTeams',
-	is1v1 = 'Is1v1',
-	isBigTeams = 'IsBigTeams',
-	isSmallTeams = 'IsSmallTeams',
-	isRaptors = 'IsRaptors',
-	isScavengers = 'IsScavengers',
-	isPvE = 'IsPvE',
-	isCoop = 'IsCoop',
-	isSinglePlayer = 'IsSinglePlayer',
-	isSandbox = 'IsSandbox',
-	isChickens = 'IsRaptors',
-}
-
--- Bare-global shim for configs that use `gametype.isFFA()` without going
--- through Spring.Utilities.Gametype.
-local gametypeShim = setmetatable({}, {
-	__index = function(_, k)
-		if Spring.Utilities and Spring.Utilities.Gametype then
-			local mapped = camelToPascal[k]
-			if mapped then
-				local fn = Spring.Utilities.Gametype[mapped]
-				if fn then return fn end
-			end
-		end
-		return function() return false end
-	end
-})
-
--- Metatable applied temporarily to Spring.Utilities.Gametype during
--- WrappedInclude so that configs doing
---   `local gametype = Spring.Utilities.Gametype; gametype.isFFA()`
--- find the correct PascalCase method (or a safe stub for unknown names).
-local gametypeCompatMT = {
-	__index = function(t, k)
-		local mapped = camelToPascal[k]
-		if mapped then
-			local fn = rawget(t, mapped)
-			if fn then return fn end
-		end
-		return function() return false end
-	end
-}
-
-local function NormalizeConfigKeys(config)
-	if not config or config[0] ~= nil then
-		return config
-	end
-	if config[1] == nil then
-		return config
-	end
-	local normalized = {}
-	for k, v in pairs(config) do
-		if type(k) == 'number' then
-			normalized[k - 1] = v
-		else
-			normalized[k] = v
-		end
-	end
-	return normalized
-end
-
 local function WrappedInclude(x)
-	local env = getfenv()
-	local prevGTC = env.GetTeamCount -- typically nil but also works otherwise
-	local prevGT = env.gametype
-	local prevGametypeMT
-	env.GetTeamCount = Spring.Utilities.GetAllyTeamCount -- for legacy mapside boxes
-	if not env.gametype then
-		env.gametype = gametypeShim
-	end
-	if Spring.Utilities and Spring.Utilities.Gametype then
-		prevGametypeMT = getmetatable(Spring.Utilities.Gametype)
-		setmetatable(Spring.Utilities.Gametype, gametypeCompatMT)
-	end
-	local ok, ret = pcall(VFS.Include, x, env)
-	env.GetTeamCount = prevGTC
-	env.gametype = prevGT
-	if Spring.Utilities and Spring.Utilities.Gametype then
-		setmetatable(Spring.Utilities.Gametype, prevGametypeMT)
-	end
+	local ok, ret = pcall(VFS.Include, x, getfenv())
 	if not ok then
 		error(ret, 2)
 	end
@@ -126,7 +43,7 @@ local function ParseBoxes ()
 	local configSource -- "mapside", "autohost_polygon", "autohost_rect", "fallback"
 
 	if VFS.FileExists (mapsideBoxes) then
-		startBoxConfig = NormalizeConfigKeys(WrappedInclude(mapsideBoxes))
+		startBoxConfig = WrappedInclude(mapsideBoxes)
 		configSource = "mapside"
 	else
 		startBoxConfig = { }
