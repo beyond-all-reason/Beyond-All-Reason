@@ -16,7 +16,7 @@ function gadget:GetInfo()
 		date    = "2026-05-01",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
-        version = "1.3",
+        version = "1.4",
 		enabled = true,
 	}
 end
@@ -154,6 +154,8 @@ local function AddEnemyBuildingToCache(unitID)
 		return
 	end
 
+	Spring.Echo("building location:", unitX, unitY, unitZ)
+
 	enemyBuildingsCache[unitID] = {
 		x = unitX,
 		y = unitY,
@@ -195,7 +197,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	local _, inLos = spGetPositionLosState(site.x, site.y, site.z)
 	Spring.Echo(spGetPositionLosState(site.x, site.y, site.z))
 	if inLos then
-		Spring.Echo("in LOS???")
+		Spring.Echo("in LOS somehow???")
 		RemoveEnemyBuildingFromCache(unitID)
 	end
 end

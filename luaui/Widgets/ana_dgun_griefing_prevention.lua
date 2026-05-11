@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local USE_WG_ANALYTICS = true -- set false to echo events locally while debugging
+local USE_WG_ANALYTICS = false -- set false to echo events locally while debugging
 
 local function DGunGriefingPrevention(eventType, eventData)
 	if USE_WG_ANALYTICS and WG and WG.Analytics and WG.Analytics.SendEvent then
