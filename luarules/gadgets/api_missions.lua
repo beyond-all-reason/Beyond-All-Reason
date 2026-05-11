@@ -16,19 +16,17 @@ end
 
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 
-local stagesController, objectivesController, triggersController, actionsController
+local objectivesController, triggersController, actionsController
 
 local function loadMission(scriptPath)
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
-	local initialStage = mission.InitialStage or "initialStage"
+	local initialStage = mission.InitialStage
 	local rawObjectives = mission.Objectives or {}
-	local rawStages = mission.Stages or {}
 	local rawTriggers = mission.Triggers or {}
 	local rawActions = mission.Actions or {}
 
 	GG['MissionAPI'].CurrentStageID = initialStage
-	GG['MissionAPI'].Objectives = objectivesController.ProcessRawObjectives(rawObjectives)
-	GG['MissionAPI'].Stages = stagesController.ProcessRawStages(rawStages, initialStage)
+	GG['MissionAPI'].Objectives = objectivesController.ProcessRawObjectives(rawObjectives, rawTriggers, rawActions, initialStage)
 	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
 	GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
 	GG['MissionAPI'].UnitLoadout = mission.UnitLoadout
@@ -81,9 +79,9 @@ function gadget:Initialize()
 	GG['MissionAPI'].trackedFeatureNames = {}
 	GG['MissionAPI'].soundFiles          = {}
 	GG['MissionAPI'].soundQueue          = {}
+	GG['MissionAPI'].ObjectiveTriggers   = {}
 
 	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
-	stagesController = VFS.Include('luarules/mission_api/stages_loader.lua')
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 
@@ -95,7 +93,7 @@ function gadget:GamePreload()
 	loadoutModule.SpawnUnitLoadout(GG['MissionAPI'].UnitLoadout)
 	loadoutModule.SpawnFeatureLoadout(GG['MissionAPI'].FeatureLoadout)
 
-	if next(GG['MissionAPI'].Stages) then
+	if GG['MissionAPI'].CurrentStageID then
 		Spring.Echo("Stage set to: " .. GG['MissionAPI'].CurrentStageID)
 	end
 end

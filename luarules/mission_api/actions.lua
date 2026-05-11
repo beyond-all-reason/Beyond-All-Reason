@@ -3,6 +3,7 @@ local types = actionsSchema.Types
 local loadout = VFS.Include('luarules/mission_api/loadout.lua')
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 local tracking = VFS.Include('luarules/mission_api/tracking.lua')
+local objectiveUtils = VFS.Include('luarules/mission_api/objectives.lua')
 local trackUnit = tracking.TrackUnit
 local isUnitNameUntracked = tracking.IsUnitNameUntracked
 local untrackUnitName = tracking.UntrackUnitName
@@ -25,12 +26,7 @@ local function disableTrigger(triggerID)
 	triggers[triggerID].settings.active = false
 end
 
-local function changeStage(stage)
-	GG['MissionAPI'].CurrentStageID = stage
-	Spring.Echo("Stage set to: " .. stage)
-end
-
-local function updateObjective(objectiveID, completed, text, unitName, featureName)
+local function updateObjective(objectiveID, completed, text, nextStage)
 	local objective = GG['MissionAPI'].Objectives[objectiveID]
 
 	if objective.completed then return end
@@ -38,27 +34,17 @@ local function updateObjective(objectiveID, completed, text, unitName, featureNa
 	if text then
 		objective.text = text
 	end
-	if unitName then
-		objective.progress = #(trackedUnitIDs[unitName] or {})
-	elseif featureName then
-		-- TODO
-	end
 
 	if completed ~= nil then
 		objective.completed = completed
-	elseif objective.amount ~= nil then
-		if objective.amount == 0 then
-			objective.completed = objective.progress == 0
-		else
-			objective.completed = objective.progress >= objective.amount
-		end
+	elseif text == nil then
+		objective.progress = (objective.progress or 0) + 1
+		objective.completed = objective.amount == nil or objective.progress >= objective.amount
 	end
 
-	Spring.Echo("Object updated: " .. objectiveID
-		.. " | " .. (objective.text or '')
-		.. " | progress: " .. tostring(objective.progress)
-		.. " | amount: " .. tostring(objective.amount)
-		.. " | completed: " .. tostring(objective.completed))
+	objectiveUtils.TryAdvanceStage(objective, nextStage)
+
+	objectiveUtils.EchoObjectiveUpdate(objectiveID, objective)
 end
 local function issueOrders(unitName, orders)
 	if isUnitNameUntracked(unitName) then return end
@@ -256,7 +242,7 @@ return {
 	[types.DisableTrigger]  = disableTrigger,
 
 	-- Stages & Objectives
-	[types.ChangeStage]     = changeStage,
+	[types.ChangeStage]     = objectiveUtils.ChangeStage,
 	[types.UpdateObjective] = updateObjective,
 
 	-- Orders

@@ -6,17 +6,68 @@ local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
 local objectives = {
+
 	objectiveWithEmptyText = {
 		text = "",
+		stages = { 'validStage' },
+	},
+
+	objectiveWithInvalidSchemaTypes = {
+		text = "Schema type check.",
+		stages = { 'validStage' },
+		amount = 'notANumber',   -- error: amount must be a number
+		coop = 'notABoolean',    -- error: coop must be a boolean
+	},
+
+	objectiveWithTriggerHavingSettings = {
+		text = "Trigger must not have settings.",
+		stages = { 'validStage' },
+		trigger = {
+			settings = { repeating = true },  -- error: trigger must not have a settings field
+			type = triggerTypes.TimeElapsed,
+			parameters = { gameFrame = 100000000 },
+		},
+	},
+
+	objectiveWithInvalidTriggerType = {
+		text = "Trigger with invalid type.",
+		stages = { 'validStage' },
+		trigger = {
+			type = 'invalidType',  -- error: invalid trigger type
+		},
+	},
+
+	objectiveWithMissingTriggerType = {
+		text = "Trigger with missing type.",
+		stages = { 'validStage' },
+		trigger = {
+			parameters = { gameFrame = 100000000 },  -- error: missing trigger type
+		},
+	},
+
+	objectiveWithInvalidNextStage = {
+		text = "nextStage pointing to non-existent stage.",
+		stages = { 'validStage' },
+		nextStage = 'nonExistentStage',  -- error: nonExistentStage is not defined by any objective
+	},
+
+	objectiveWithInvalidStagesEntry = {
+		text = "Stages array with a non-string entry.",
+		stages = { 'validStage', 123 },  -- error: stages entries must be strings
+	},
+
+	objectiveWithTriggerHavingActions = {
+		text = "Trigger must not have actions.",
+		stages = { 'validStage' },
+		trigger = {
+			type = triggerTypes.TimeElapsed,
+			parameters = { gameFrame = 100000000 },
+			actions = { 'someAction' },  -- error: objective trigger must not have actions
+		},
 	},
 }
 
 local initialStage = 'invalidStage'
-local stages = {
-	stageWithNoTitleAndInvalidObjectiveID = {
-		objectives = { 'invalidObjectiveID' },
-	},
-}
 
 local triggers = {
 
@@ -459,7 +510,6 @@ local featureLoadout = {
 return {
 	Objectives = objectives,
 	InitialStage = initialStage,
-	Stages = stages,
 	Triggers = triggers,
 	Actions = actions,
 	UnitLoadout    = unitLoadout,

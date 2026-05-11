@@ -336,13 +336,30 @@ end
 
 --- String Validators:
 
+local derivedStagesCache = nil
+
+local function deriveStages(objectivesOverride)
+	if not objectivesOverride and derivedStagesCache then
+		return derivedStagesCache
+	end
+	local stages = {}
+	for _, objective in pairs(objectivesOverride or GG['MissionAPI'].Objectives or {}) do
+		for _, stageID in pairs(objective.stages) do
+			stages[stageID] = true
+		end
+	end
+	derivedStagesCache = stages
+	return stages
+end
+
+
 validators[Types.StageID] = function(stageID)
 	local luaTypeResult = validators[Types.String](stageID)
 	if luaTypeResult then
 		return luaTypeResult
 	end
 
-	if not GG['MissionAPI'].Stages[stageID] then
+	if not deriveStages()[stageID] then
 		return { { message = "Invalid stageID: " .. stageID } }
 	end
 end
@@ -435,6 +452,17 @@ end
 
 --- Number Validators:
 
+validators[Types.Quantity] = function(quantity)
+	local luaTypeResult = validators[Types.Number](quantity)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if quantity < 0 then
+		return { { message = "Quantity must be >= 0, got " .. quantity } }
+	end
+end
+
 validators[Types.TeamID] = function(teamID)
 		local luaTypeResult = validators[Types.Number](teamID)
 		if luaTypeResult then
@@ -466,6 +494,22 @@ local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 local triggersSchemaSettings = triggersSchema.Settings
 local triggersSchemaParameters = triggersSchema.Parameters
 local actionsSchemaParameters = VFS.Include('luarules/mission_api/actions_schema.lua').Parameters
+local objectivesSchemaSettings = VFS.Include('luarules/mission_api/objectives_schema.lua').Settings
+
+local function getTypesWithParameterType(schemaParameters, parameterType)
+	local typesWithParameter = {}
+
+	for actionOrTriggerType, parameters in pairs(schemaParameters) do
+		for _, parameter in ipairs(parameters) do
+			if parameter.type == parameterType then
+				typesWithParameter[actionOrTriggerType] = true
+				break
+			end
+		end
+	end
+
+	return typesWithParameter
+end
 
 local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerParameters, actionOrTrigger, actionOrTriggerID)
 	if not actionOrTriggerType then
@@ -519,8 +563,9 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 
 	-- Validate stages exist:
 	if trigger.settings.stages then
+		local stages = deriveStages()
 		for _, stage in pairs(trigger.settings.stages) do
-			if not GG['MissionAPI'].Stages[stage] then
+			if not stages[stage] then
 				logError("Trigger refers to non-existent stage. Trigger: " .. triggerID .. ", Stage: " .. stage)
 			end
 		end
@@ -528,7 +573,13 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 end
 
 local function validateObjectives(objectives)
+	-- GG['MissionAPI'].Objectives is not set yet at this point.
+	deriveStages(objectives)
+
+	local triggerTypesWithQuantity = getTypesWithParameterType(triggersSchemaParameters, Types.Quantity)
+
 	for objectiveID, objective in pairs(objectives) do
+		-- Validate text:
 		if not objective.text then
 			logError("Objective missing text: " .. objectiveID)
 		elseif objective.text == '' then
@@ -536,26 +587,52 @@ local function validateObjectives(objectives)
 		elseif string.find(objective.text, '|') then
 			logError("Objective text cannot contain the | character: " .. objectiveID)
 		end
+		-- Type-check all schema fields:
+		for fieldName, fieldType in pairs(objectivesSchemaSettings) do
+			if objective[fieldName] ~= nil then
+				local luaTypeResult = validateLuaType(objective[fieldName], string.lower(fieldType))
+				if luaTypeResult then
+					logError(luaTypeResult .. ". Objective: " .. objectiveID .. ", Field: " .. fieldName)
+				end
+			end
+		end
+		-- Validate inline trigger:
+		if objective.trigger ~= nil then
+			if objective.trigger.settings ~= nil then
+				logError("Objective trigger must not have a 'settings' field. Objective: " .. objectiveID)
+			end
+			if objective.trigger.actions ~= nil then
+				logError("Objective trigger must not have an 'actions' field. Objective: " .. objectiveID)
+			end
+
+			-- For statistics triggers, quantity is always forced to 1 by the loader.
+			-- Inject it here so the required-parameter check passes even if the user omitted it,
+			-- and warn if the user explicitly specified it (since it will be ignored).
+			local triggerParams = objective.trigger.parameters or {}
+			if triggerTypesWithQuantity[objective.trigger.type] then
+				if triggerParams.quantity ~= nil then
+					logWarn("Objective trigger 'quantity' is not supported and will be ignored. Objective: " .. objectiveID)
+				end
+				triggerParams = table.copy(triggerParams or {})
+				triggerParams.quantity = 1
+			end
+			validate(triggersSchemaParameters, objective.trigger.type, triggerParams, 'Objective trigger', objectiveID)
+		end
 	end
 end
 
-local function validateStages(stages, initialStage)
-	if not stages[initialStage] then
-		logError("Initial stage does not exist in stages: " .. initialStage)
-	end
-
-	for stageID, stage in pairs(stages) do
-		if not stage.title then
-			logError("Stage missing title: " .. stageID)
-		elseif stage.title == '' then
-			logError("Stage has empty title: " .. stageID)
-		elseif string.find(stage.title, '|') then
-			logError("Stage title cannot contain the | character: " .. stageID)
+local function validateInitialStage(initialStage)
+	local stages = deriveStages()
+	local hasStages = next(stages)
+	if hasStages then
+		if not initialStage then
+			logError("Stages are defined, but initialStage is not provided.")
+		elseif not stages[initialStage] then
+			logError("Initial stage does not exist in stages: " .. initialStage)
 		end
-		for _, objectiveID in pairs(stage.objectives or {}) do
-			if not GG['MissionAPI'].Objectives[objectiveID] then
-				logError("Stage refers to non-existent objective. Stage: " .. stageID .. ", Objective: " .. objectiveID)
-			end
+	else
+		if initialStage then
+			logWarn("initialStage '" .. initialStage .. "' is set, but no stages are defined.")
 		end
 	end
 end
@@ -603,27 +680,17 @@ local function validateActions(actions)
 	end
 end
 
-local function getAllObjectiveIDsReferencedByStages()
-	local allObjectiveIDsReferencedByStages = {}
-	for _, stage in pairs(GG['MissionAPI'].Stages) do
-		for _, objectiveID in pairs(stage.objectives or {}) do
-			allObjectiveIDsReferencedByStages[objectiveID] = true
+local function validateObjectiveStageReferences(objectives)
+	local stages = deriveStages()
+	for objectiveID, objective in pairs(objectives) do
+		for i, stageID in ipairs(objective.stages) do
+			if type(stageID) ~= 'string' then
+				logError("Objective 'stages' entry #" .. i .. " must be a string, got " .. type(stageID) .. ". Objective: " .. objectiveID)
+			end
 		end
-	end
-	return allObjectiveIDsReferencedByStages
-end
-
-local function validateObjectiveReferences(objectives)
-	local allObjectiveIDsReferencedByStages = getAllObjectiveIDsReferencedByStages()
-
-	local unreferencedObjectiveIDs = {}
-	for objectiveID, _ in pairs(objectives) do
-		if not allObjectiveIDsReferencedByStages[objectiveID] then
-			unreferencedObjectiveIDs[#unreferencedObjectiveIDs + 1] = objectiveID
+		if objective.nextStage and not stages[objective.nextStage] then
+			logError("Objective references non-existent nextStage. Objective: " .. objectiveID .. ", Stage: " .. objective.nextStage)
 		end
-	end
-	if not table.isEmpty(unreferencedObjectiveIDs) then
-		logError("Objectives not referenced by any stage: " .. table.concat(unreferencedObjectiveIDs, ", "))
 	end
 end
 
@@ -794,22 +861,8 @@ local function validateLoadouts(unitLoadout, featureLoadout)
 	end
 end
 
-local function getTypesWithParameterType(schemaParameters, parameterType)
-	local typesWithParameter = {}
 
-	for actionOrTriggerType, parameters in pairs(schemaParameters) do
-		for _, parameter in ipairs(parameters) do
-			if parameter.type == parameterType then
-				typesWithParameter[actionOrTriggerType] = true
-				break
-			end
-		end
-	end
-
-	return typesWithParameter
-end
-
-local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions, unitLoadout)
+local function validateUnitNameReferences(actionTypes, triggers, actions, unitLoadout)
 	local triggerTypesReferencingUnitNames = getTypesWithParameterType(triggersSchemaParameters, Types.UnitName)
 	local actionTypesNamingUnits = {
 		[actionTypes.SpawnUnits] = true,
@@ -1004,8 +1057,9 @@ local function validateReferences()
 	local actions = GG['MissionAPI'].Actions
 	local unitLoadout = GG['MissionAPI'].UnitLoadout
 	local featureLoadout = GG['MissionAPI'].FeatureLoadout
-	validateObjectiveReferences(objectives)
-	validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions, unitLoadout)
+
+	validateObjectiveStageReferences(objectives)
+	validateUnitNameReferences(actionTypes, triggers, actions, unitLoadout)
 	validateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions, featureLoadout)
 	validateMarkerNameReferences(actionTypes, actions)
 	validateLoadouts(unitLoadout, featureLoadout)
@@ -1013,8 +1067,9 @@ end
 
 return {
 	ValidateObjectives = validateObjectives,
-	ValidateStages = validateStages,
+	ValidateInitialStage = validateInitialStage,
 	ValidateTriggers = validateTriggers,
 	ValidateActions = validateActions,
 	ValidateReferences = validateReferences,
+	GetTypesWithParameterType = getTypesWithParameterType,
 }

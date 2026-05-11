@@ -1,8 +1,9 @@
 require("spec_helper")
 
-local validation    = VFS.Include('luarules/mission_api/validation.lua')
-local triggerSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
-local actionSchema  = VFS.Include('luarules/mission_api/actions_schema.lua')
+local validation     = VFS.Include('luarules/mission_api/validation.lua')
+local triggerSchema  = VFS.Include('luarules/mission_api/triggers_schema.lua')
+local actionSchema   = VFS.Include('luarules/mission_api/actions_schema.lua')
+local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 
 local triggerTypes  = triggerSchema.Types
 local actionTypes   = actionSchema.Types
@@ -40,6 +41,8 @@ describe("mission_api.validation", function()
 		GG['MissionAPI']         = {
 			TriggerTypes = triggerTypes,
 			ActionTypes  = actionTypes,
+			Objectives   = {},
+			Stages       = {},
 			Triggers     = {},
 			Actions      = {},
 		}
@@ -147,6 +150,180 @@ describe("mission_api.validation", function()
 			assert.is_true(hasError("Action missing type. Action: noType"))
 			assert.is_true(hasError("Action missing required parameter. Action: missingParam, Parameter: triggerID"))
 			assert.is_true(hasError("Actions not referenced by any trigger: unused"))
+		end)
+	end)
+
+	-- ── ValidateObjectives ────────────────────────────────────────────────────
+
+	describe("ValidateObjectives", function()
+		it("passes for a well-formed objective without a trigger", function()
+			validation.ValidateObjectives({
+				basic = { text = "Do the thing.", stages = { 'stageA' } },
+			})
+			assert.are.same({}, logged)
+		end)
+
+		it("passes for an objective with a valid inline trigger", function()
+			validation.ValidateObjectives({
+				withTrigger = {
+					text    = "Do the thing.",
+					stages  = { 'stageA' },
+					trigger = {
+						type       = triggerTypes.TimeElapsed,
+						parameters = { gameFrame = 90 },
+					},
+				},
+			})
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an error for missing text", function()
+			validation.ValidateObjectives({ noText = { stages = {} } })
+			assert.is_true(hasError("Objective missing text: noText"))
+		end)
+
+		it("logs an error for empty text", function()
+			validation.ValidateObjectives({ emptyText = { text = "", stages = {} } })
+			assert.is_true(hasError("Objective has empty text: emptyText"))
+		end)
+
+		it("logs an error for text containing the pipe character", function()
+			validation.ValidateObjectives({ pipeText = { text = "bad|text", stages = {} } })
+			assert.is_true(hasError("Objective text cannot contain the | character: pipeText"))
+		end)
+
+		it("logs errors for incorrect schema field types", function()
+			validation.ValidateObjectives({
+				badTypes = {
+					text   = "ok",
+					amount = 'notANumber',
+					coop   = 'notABoolean',
+				},
+			})
+			assert.is_true(hasError("Unexpected parameter type, expected number, got string. Objective: badTypes, Field: amount"))
+			assert.is_true(hasError("Unexpected parameter type, expected boolean, got string. Objective: badTypes, Field: coop"))
+		end)
+
+		it("logs an error when the inline trigger has a 'settings' field", function()
+			validation.ValidateObjectives({
+				withSettings = {
+					text    = "ok",
+					trigger = {
+						settings   = { repeating = true },
+						type       = triggerTypes.TimeElapsed,
+						parameters = { gameFrame = 1 },
+					},
+				},
+			})
+			assert.is_true(hasError("Objective trigger must not have a 'settings' field. Objective: withSettings"))
+		end)
+
+		it("logs an error when the inline trigger has an 'actions' field", function()
+			validation.ValidateObjectives({
+				withActions = {
+					text    = "ok",
+					trigger = {
+						type       = triggerTypes.TimeElapsed,
+						parameters = { gameFrame = 1 },
+						actions    = { 'someAction' },
+					},
+				},
+			})
+			assert.is_true(hasError("Objective trigger must not have an 'actions' field. Objective: withActions"))
+		end)
+
+		it("logs an error for an inline trigger with a missing type", function()
+			validation.ValidateObjectives({
+				noTypeTrigger = {
+					text    = "ok",
+					trigger = { parameters = { gameFrame = 1 } },
+				},
+			})
+			assert.is_true(hasError("Objective trigger missing type. Objective trigger: noTypeTrigger"))
+		end)
+
+		it("logs an error for an inline trigger with an invalid type", function()
+			validation.ValidateObjectives({
+				badTypeTrigger = {
+					text    = "ok",
+					trigger = { type = 'notAType' },
+				},
+			})
+			assert.is_true(hasError("Objective trigger has invalid type. Objective trigger: badTypeTrigger"))
+		end)
+
+		it("logs an error for a missing required inline trigger parameter", function()
+			validation.ValidateObjectives({
+				missingParam = {
+					text    = "ok",
+					trigger = {
+						type       = triggerTypes.TimeElapsed,
+						parameters = {},
+					},
+				},
+			})
+			assert.is_true(hasError("Objective trigger missing required parameter. Objective trigger: missingParam, Parameter: gameFrame"))
+		end)
+	end)
+
+	-- ── ValidateInitialStage ──────────────────────────────────────────────────
+
+	describe("ValidateInitialStage", function()
+		-- ValidateInitialStage reads the stage cache seeded by ValidateObjectives,
+		-- so each test calls ValidateObjectives first to populate it.
+
+		it("passes when objectives define stages and initialStage matches", function()
+			validation.ValidateObjectives({ obj = { text = "ok", stages = { 'stageA' } } })
+			validation.ValidateInitialStage('stageA')
+			assert.are.same({}, logged)
+		end)
+
+		it("passes when no objectives define stages and no initialStage is set", function()
+			validation.ValidateObjectives({})
+			validation.ValidateInitialStage(nil)
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an error when stages are defined but initialStage is not provided", function()
+			validation.ValidateObjectives({ obj = { text = "ok", stages = { 'stageA' } } })
+			validation.ValidateInitialStage(nil)
+			assert.is_true(hasError("Stages are defined, but initialStage is not provided."))
+		end)
+
+		it("logs an error when initialStage does not exist in any objective's stages", function()
+			validation.ValidateObjectives({ obj = { text = "ok", stages = { 'stageA' } } })
+			validation.ValidateInitialStage('stageB')
+			assert.is_true(hasError("Initial stage does not exist in stages: stageB"))
+		end)
+
+		it("logs a warning when no stages are defined but initialStage is set", function()
+			validation.ValidateObjectives({})
+			validation.ValidateInitialStage('stageA')
+			assert.is_true(hasError("initialStage 'stageA' is set, but no stages are defined."))
+		end)
+	end)
+
+	-- ── GetTypesWithParameterType ─────────────────────────────────────────────
+
+	describe("GetTypesWithParameterType", function()
+		it("returns all trigger types that have a Quantity parameter", function()
+			local result = validation.GetTypesWithParameterType(triggerSchema.Parameters, parameterTypes.Types.Quantity)
+			assert.is_true(result[triggerTypes.UnitsOwned])
+			assert.is_true(result[triggerTypes.TotalUnitsBuilt])
+			assert.is_true(result[triggerTypes.TotalUnitsLost])
+			assert.is_true(result[triggerTypes.TotalUnitsKilled])
+			assert.is_true(result[triggerTypes.TotalUnitsCaptured])
+		end)
+
+		it("does not include trigger types that lack a Quantity parameter", function()
+			local result = validation.GetTypesWithParameterType(triggerSchema.Parameters, parameterTypes.Types.Quantity)
+			assert.is_nil(result[triggerTypes.TimeElapsed])
+			assert.is_nil(result[triggerTypes.UnitKilled])
+		end)
+
+		it("returns an empty table when no types have the given parameter type", function()
+			local result = validation.GetTypesWithParameterType(triggerSchema.Parameters, 'NonExistentType')
+			assert.are.same({}, result)
 		end)
 	end)
 
@@ -585,5 +762,23 @@ describe("mission_api.validation", function()
 			assert.is_true(hasError("Marker name 'unusedFlag' is not referenced by any action. Referenced in: addUnused"))
 			assert.is_true(hasError("Marker name 'unknownFlag' is not created in any action. Referenced in: eraseUnknown"))
 			end)
+
+		it("logs an error for an objective 'stages' entry that is not a string", function()
+			GG['MissionAPI'].Objectives = {
+				badEntry = { stages = { 'validStage', 123 } },
+			}
+			GG['MissionAPI'].Stages = { validStage = true }
+			validation.ValidateReferences()
+			assert.is_true(hasError("Objective 'stages' entry #2 must be a string, got number. Objective: badEntry"))
+		end)
+
+		it("logs an error when nextStage references a non-existent stage", function()
+			GG['MissionAPI'].Objectives = {
+				badNext = { stages = { 'validStage' }, nextStage = 'nonExistentStage' },
+			}
+			GG['MissionAPI'].Stages = { validStage = true }
+			validation.ValidateReferences()
+			assert.is_true(hasError("Objective references non-existent nextStage. Objective: badNext, Stage: nonExistentStage"))
+		end)
 	end)
 end)

@@ -108,16 +108,10 @@ local parameters = {
 			type = Types.String
 		},
 		[4] = {
-			name = 'unitName',
+			name = 'nextStage',
 			required = false,
-			type = Types.UnitName
+			type = Types.StageID
 		},
-		[5] = {
-			name = 'featureName',
-			required = false,
-			type = Types.FeatureName
-		},
-		requiresOneOf = { 'completed', 'text', 'unitName', 'featureName' }
 	},
 
 	-- Orders

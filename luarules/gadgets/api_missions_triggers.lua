@@ -341,11 +341,20 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 		statisticsTriggerCounts[triggerID] = (statisticsTriggerCounts[triggerID] or 0) + direction
 
 		-- Repeat at quantity, 2*quantity, 3*quantity, ... (only when incrementing)
-		local nextThreshold = (trigger.repeatCount + 1) * trigger.parameters.quantity
+		-- quantity = 0 is a special case: fire once when the count reaches 0.
+		local quantity = trigger.parameters.quantity
+		local nextThreshold = quantity > 0 and (trigger.repeatCount + 1) * quantity or 0
 		if direction > 0 and statisticsTriggerCounts[triggerID] >= nextThreshold then
+			activateTrigger(trigger)
+		elseif quantity == 0 and statisticsTriggerCounts[triggerID] == 0 then
 			activateTrigger(trigger)
 		end
 	end)
+
+	-- Objective callbacks:
+	for _, callback in ipairs(GG['MissionAPI'].ObjectiveTriggers[triggerType] or {}) do
+		callback(teamID, unitDefName, unitNames, direction)
+	end
 end
 local function incrementUnitStatistics(triggerType, teamID, unitDefName, unitNames)
 	updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, 1)
@@ -492,6 +501,12 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
+
+	local nameOfUnitBeingSpawned = GG['MissionAPI'].nameOfUnitBeingSpawned
+	if nameOfUnitBeingSpawned then
+		unitNames = table.copy(unitNames)
+		unitNames[nameOfUnitBeingSpawned] = true
+	end
 	incrementUnitStatistics(types.UnitsOwned, unitTeam, unitDefName, unitNames)
 end
 

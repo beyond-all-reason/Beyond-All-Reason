@@ -458,7 +458,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitName',
@@ -480,7 +480,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitDefName',
@@ -497,7 +497,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitName',
@@ -519,7 +519,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitName',
@@ -541,7 +541,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitName',

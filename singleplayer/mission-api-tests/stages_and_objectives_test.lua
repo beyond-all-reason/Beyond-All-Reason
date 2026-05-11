@@ -1,160 +1,74 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
+local initialStage = 'firstStage'
 local objectives = {
-	wait = {
+
+	wait3secs = {
 		text = "Wait a bit.",
+		stages = { 'firstStage' },
+		trigger = {
+			type = triggerTypes.TimeElapsed,
+			parameters = {
+				gameFrame = 90,
+			},
+		},
+		nextStage = 'secondStage',
 	},
+
 	buildBots = {
 		text = "Build some grunts.",
 		amount = 3,
+		stages = { 'secondStage', 'thirdStage' },
+		trigger = {
+			type = triggerTypes.ConstructionFinished,
+			parameters = {
+				unitDefName = 'corak',
+				teamID = 0,
+			},
+		},
 	},
+
 	destroyBots = {
 		text = "Destroy the grunts.",
 		amount = 0,
-	},
-}
-
-local initialStage = 'firstStage'
-local stages = {
-
-	firstStage = {
-		title = "The First Stage",
-		objectives = { 'wait' },
-	},
-
-	secondStage = {
-		title = "The Second Stage",
-		objectives = { 'buildBots' },
-	},
-
-	thirdStage = {
-		title = "The Third Stage",
-		objectives = { 'buildBots', 'destroyBots' },
+		stages = { 'thirdStage' },
+		trigger = {
+			type = triggerTypes.UnitsOwned,
+			parameters = {
+				unitName = 'bots',
+				teamID = 0,
+			},
+		},
 	},
 }
 
 local triggers = {
 
-	messageFirstStage = {
-		type = triggerTypes.TimeElapsed,
-		settings = {
-			repeating = true,
-			stages = { 'firstStage' },
-		},
-		parameters = {
-			gameFrame = 1,
-			interval = 60,
-		},
-		actions = { 'messageFirstStage' },
-	},
-
-	messageSecondStage = {
-		type = triggerTypes.TimeElapsed,
-		settings = {
-			repeating = true,
-			maxRepeats = 0,
-			stages = { 'secondStage' },
-		},
-		parameters = {
-			gameFrame = 1,
-			interval = 60,
-		},
-		actions = { 'messageSecondStage' },
-	},
-
-	waitDone = {
-		type = triggerTypes.TimeElapsed,
-		settings = {
-			repeating = false,
-		},
-		parameters = {
-			gameFrame = 90,
-		},
-		actions = { 'waitDone' },
-	},
-
-	changeStage2 = {
-		type = triggerTypes.TimeElapsed,
-		settings = {
-			repeating = false,
-		},
-		parameters = {
-			gameFrame = 150,
-		},
-		actions = { 'changeToSecondStage' },
-	},
-
 	spawnBots = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
 			repeating = true,
-			maxRepeats = 2,
-			stages = { 'secondStage' },
+			stages = { 'secondStage', 'thirdStage' },
+			maxRepeats = 5,
 		},
 		parameters = {
-			gameFrame = 1,
-			interval = 30,
+			gameFrame = 5,
+			interval = 60,
 		},
-		actions = { 'spawnBot', 'updateBuildBotsObjective' },
+		actions = { 'spawnBot' },
 	},
 
 	changeStage3 = {
 		type = triggerTypes.TimeElapsed,
-		settings = {
-			repeating = false,
-		},
 		parameters = {
-			gameFrame = 240,
+			gameFrame = 210,
 		},
 		actions = { 'changeToThirdStage', 'spawnBotDestroyer' },
-	},
-
-	destroyBots = {
-		type = triggerTypes.TimeElapsed, -- since UnitDestroyed is not implemented yet
-		settings = {
-			repeating = true,
-			stages = { 'thirdStage' },
-		},
-		parameters = {
-			gameFrame = 1,
-			interval = 15,
-		},
-		actions = { 'updateDestroyBotsObjective' },
 	},
 }
 
 local actions = {
-
-	messageFirstStage = {
-		type = actionTypes.SendMessage,
-		parameters = {
-			message = "This is the FIRST stage",
-		},
-	},
-
-	messageSecondStage = {
-		type = actionTypes.SendMessage,
-		parameters = {
-			message = "This is the SECOND stage",
-		},
-	},
-
-	waitDone = {
-		type = actionTypes.UpdateObjective,
-		parameters = {
-			objectiveID = 'wait',
-			completed = true,
-			text = "Wait a bit - TEXT UPDATED!",
-		},
-	},
-
-	changeToSecondStage = {
-		type = actionTypes.ChangeStage,
-		parameters = {
-			stageID = 'secondStage',
-		},
-	},
 
 	spawnBot = {
 		type = actionTypes.SpawnUnits,
@@ -162,14 +76,6 @@ local actions = {
 			unitLoadout = {
 				{ unitDefName = 'corak', x = 1800, z = 1800, team = 0, unitName = 'bots' },
 			},
-		},
-	},
-
-	updateBuildBotsObjective = {
-		type = actionTypes.UpdateObjective,
-		parameters = {
-			objectiveID = 'buildBots',
-			unitName = 'bots',
 		},
 	},
 
@@ -184,23 +90,14 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 1800, z = 2200, team = 1 },
+				{ unitDefName = 'armllt', x = 1800, z = 2200, team = 1, quantity = 2 },
 			},
-		},
-	},
-
-	updateDestroyBotsObjective = {
-		type = actionTypes.UpdateObjective,
-		parameters = {
-			objectiveID = 'destroyBots',
-			unitName = 'bots',
 		},
 	},
 }
 
 return {
 	InitialStage = initialStage,
-	Stages = stages,
 	Objectives = objectives,
 	Triggers = triggers,
 	Actions = actions,

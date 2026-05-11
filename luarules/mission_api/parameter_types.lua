@@ -30,6 +30,7 @@ local types = {
 
 	-- Number Validators:
 	Number = 'Number',
+	Quantity = 'Quantity',
 	TeamID = 'TeamID',
 	AllyTeamID = 'AllyTeamID',
 
