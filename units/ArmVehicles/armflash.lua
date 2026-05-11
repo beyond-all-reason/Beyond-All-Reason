@@ -1,7 +1,7 @@
 return {
 	armflash = {
 		buildpic = "ARMFLASH.DDS",
-		buildtime = 1960,
+		buildtime = 2000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "25 25 31",
@@ -134,7 +134,7 @@ return {
 				weaponvelocity = 600,
 				damage = {
 					default = 9,
-					vtol = 3,
+					vtol = 2,
 				},
 			},
 		},

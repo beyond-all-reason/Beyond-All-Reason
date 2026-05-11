@@ -1,7 +1,7 @@
 return {
 	corlevlr = {
 		buildpic = "CORLEVLR.DDS",
-		buildtime = 3000,
+		buildtime = 3100,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "29 20 32",
@@ -11,7 +11,7 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 1490,
+		health = 1500,
 		leavetracks = true,
 		maxacc = 0.01654,
 		maxdec = 0.1,
@@ -25,7 +25,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 330,
-		speed = 40.5,
+		speed = 40,
 		trackoffset = 7,
 		trackstrength = 6,
 		tracktype = "corwidetracks",
@@ -114,7 +114,9 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				flighttime = 0.5,
 				gravityaffected = "true",
+				heightmod = 0
 				impulsefactor = 1.8,
 				name = "RiotCannon",
 				nogap = false,

@@ -11,7 +11,7 @@ return {
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 820,
+		health = 850,
 		leavetracks = true,
 		maxacc = 0.04631,
 		maxdec = 0.1,
