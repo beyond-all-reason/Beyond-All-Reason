@@ -23,17 +23,22 @@ jobs:
 
     - name: Install build deps + Lua 5.1
       run: |
+        # Fedora 43's `lua` package is 5.4; the 5.1 interpreter ships
+        # under the compat-lua* names (matches BAR-Devtools' dev image).
         dnf install -y --setopt=install_weak_deps=False \
-          git curl tar gcc gcc-c++ make \
-          lua-5.1 lua-5.1-devel \
+          git gcc gcc-c++ make \
+          compat-lua compat-lua-devel \
           gpgme
 
     - name: Install Lux via cargo-binstall
       run: |
+        # GHA containers map $HOME to /github/home (not /root), so the
+        # cargo-binstall self-install lands at $HOME/.cargo/bin -- can't
+        # hardcode /root/.cargo/bin like the local Containerfile does.
         curl -L --proto '=https' --tlsv1.2 -sSf \
           https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh \
           | bash
-        /root/.cargo/bin/cargo-binstall --no-confirm \
+        "$HOME/.cargo/bin/cargo-binstall" --no-confirm \
           --version 0.29.0 \
           --install-path /usr/local/bin \
           lux-cli
