@@ -31,5 +31,17 @@ jobs:
         restore-keys: |
           lux-5.1-${{ runner.os }}-
 
-    - name: Run busted
-      run: lx --lua-version 5.1 test
+    - name: Diagnose env
+      run: |
+        echo "--- lua / lx ---"
+        which lua lua5.1 lua-5.1 2>&1 || true
+        lua -v 2>&1 || true
+        lua5.1 -v 2>&1 || true
+        lx --version
+        echo "--- lockfile dkjson ---"
+        grep -A 5 '"name": "dkjson"' lux.lock | head -20
+        echo "--- toml ---"
+        cat lux.toml
+
+    - name: Run busted (verbose)
+      run: lx --verbose --lua-version 5.1 test
