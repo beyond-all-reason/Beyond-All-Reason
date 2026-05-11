@@ -423,10 +423,11 @@ local areaWeaponDefID = GG.EnvAreaWeapons -- the repeating parts of damaging are
 local currentArea = GG.InTimedDamageArea -- has only a current entry, where [1] := area|nil
 
 local function isAreaBlocked(unitID)
-	local area = currentArea[1]
-	if area and area.suppressed then
-		for _, shieldUnitID in pairs(area.suppressed) do
-			if shieldCoverage[shieldUnitID] and shieldCoverage[shieldUnitID][unitID] then
+	local shieldCoversArea = currentArea[1].suppressed -- unlikely
+	if shieldCoversArea then
+		local shieldCoversUnit = shieldedUnits[unitID] -- guaranteed
+		for i = 1, #shieldCoversArea do
+			if shieldCoversUnit[shieldCoversArea[i]] then
 				return true
 			end
 		end
