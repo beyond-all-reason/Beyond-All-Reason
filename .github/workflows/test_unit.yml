@@ -9,39 +9,43 @@ on:
 jobs:
   busted:
     runs-on: ubuntu-latest
+    # Run inside Fedora to match contributors' bar-dev distrobox env
+    # (BAR-Devtools/docker/dev.Containerfile pins fedora:43 + lx via
+    # cargo-binstall). Earlier ubuntu-latest + .deb-installed lx 0.29
+    # tripped a path-resolution issue around the bundled lux-luaXX
+    # interpreter shims that didn't reproduce in the cargo-binstall
+    # tarball install we use locally.
+    container:
+      image: fedora:43
 
     steps:
     - uses: actions/checkout@v5
 
-    - name: Install Lua 5.1
+    - name: Install build deps + Lua 5.1
       run: |
-        sudo apt-get update
-        sudo apt-get install -y lua5.1 liblua5.1-0-dev
+        dnf install -y --setopt=install_weak_deps=False \
+          git curl tar gcc gcc-c++ make \
+          lua-5.1 lua-5.1-devel \
+          gpgme
 
-    - name: Install Lux
-      uses: lumen-oss/gh-actions-lux@v1
-      with:
-        version: 0.29.0
+    - name: Install Lux via cargo-binstall
+      run: |
+        curl -L --proto '=https' --tlsv1.2 -sSf \
+          https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh \
+          | bash
+        /root/.cargo/bin/cargo-binstall --no-confirm \
+          --version 0.29.0 \
+          --install-path /usr/local/bin \
+          lux-cli
+        ln -sf /usr/bin/lua-5.1 /usr/local/bin/lua
 
     - name: Cache Lux dependencies
       uses: actions/cache@v4
       with:
         path: .lux
-        key: lux-5.1-${{ runner.os }}-${{ hashFiles('lux.lock') }}
+        key: lux-5.1-fedora43-${{ hashFiles('lux.lock') }}
         restore-keys: |
-          lux-5.1-${{ runner.os }}-
+          lux-5.1-fedora43-
 
-    - name: Diagnose env
-      run: |
-        echo "--- lua / lx ---"
-        which lua lua5.1 lua-5.1 2>&1 || true
-        lua -v 2>&1 || true
-        lua5.1 -v 2>&1 || true
-        lx --version
-        echo "--- lockfile dkjson ---"
-        grep -A 5 '"name": "dkjson"' lux.lock | head -20
-        echo "--- toml ---"
-        cat lux.toml
-
-    - name: Run busted (verbose)
-      run: lx --verbose --lua-version 5.1 test
+    - name: Run busted
+      run: lx --lua-version 5.1 test
