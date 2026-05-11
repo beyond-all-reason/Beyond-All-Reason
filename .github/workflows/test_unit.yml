@@ -21,7 +21,7 @@ jobs:
     - name: Install Lux
       uses: lumen-oss/gh-actions-lux@v1
       with:
-        version: 0.26.1
+        version: 0.29.0
 
     - name: Cache Lux dependencies
       uses: actions/cache@v4
