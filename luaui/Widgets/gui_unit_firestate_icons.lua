@@ -42,10 +42,13 @@ local popElementInstance  = InstanceVBOTable.popElementInstance
 
 --------------------------------------------------------------------------------
 -- Per-UnitDef config: [unitDefID] = {iconSize, iconHeight}
+-- Only populated for units that have at least one weapon
 --------------------------------------------------------------------------------
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
-    if unitDef.weapons and #unitDef.weapons > 0 then
+    local hasWeapons = unitDef.weapons and #unitDef.weapons > 0
+    local isFactory  = unitDef.isFactory
+    if hasWeapons or isFactory then
         local xsize, zsize = unitDef.xsize, unitDef.zsize
         local scale = 2.5 * (xsize*xsize + zsize*zsize)^0.5
         unitConf[udid] = {11 + (scale / 2.2), unitDef.height}
@@ -57,6 +60,11 @@ local visibleUnits    = {}
 local crashingUnits   = {} -- unitIDs currently crashing; skip icon for these
 local chobbyInterface = false
 local unitFireState   = {} -- [unitID] = cached fire state; avoids GetUnitStates every frame
+local unitToTeam        = {} -- [unitID] = teamID; needed to filter dead-allyteam units
+local deadAllyTeams     = {} -- [allyTeamID] = true when entire allyteam has been wiped out
+local teamToAllyTeam    = {} -- [teamID] = allyTeamID; built at Initialize
+local deadTeamCount     = {} -- [allyTeamID] = number of dead teams in that allyteam
+local allyTeamTeamCount = {} -- [allyTeamID] = total number of teams in that allyteam
 
 -- Pre-allocated and reused for every pushElementInstance call to avoid per-push table allocation
 local instanceData = {0, 0, 0, 0,  0,  4,  0, 0, 0.85, 0,  0, 1, 0, 1,  0, 0, 0, 0}
@@ -106,7 +114,7 @@ local function pushToVBO(vbo, unitID, unitDefID, gf)
 	if vbo.instanceIDtoIndex[unitID] then return end
 	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then return end
 	local conf = unitConf[unitDefID]
-	if not conf then return end
+	if not conf then return end -- unit has no weapons, skip
 	instanceData[1] = conf[1]  -- width
 	instanceData[2] = conf[1]  -- height
 	instanceData[4] = conf[2]  -- unit height offset
@@ -148,6 +156,16 @@ function widget:Initialize()
 	end
 	if not initGL4() then return end
 
+	-- Build team → allyteam mapping
+	for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+		local teams = Spring.GetTeamList(allyTeamID)
+		allyTeamTeamCount[allyTeamID] = #teams
+		deadTeamCount[allyTeamID] = 0
+		for _, teamID in ipairs(teams) do
+			teamToAllyTeam[teamID] = allyTeamID
+		end
+	end
+
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
@@ -158,10 +176,13 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.clearInstanceTable(returnFireVBO)
 	visibleUnits = {}
 	unitFireState = {}
+	unitToTeam = {}
 	local gf = spGetGameFrame()
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		visibleUnits[unitID] = unitDefID
-		if not crashingUnits[unitID] then
+		local teamID = Spring.GetUnitTeam(unitID)
+		unitToTeam[unitID] = teamID
+		if not crashingUnits[unitID] and not deadAllyTeams[teamToAllyTeam[teamID]] then
 			local states = spGetUnitStates(unitID)
 			if states then
 				local fs = states.firestate
@@ -176,7 +197,8 @@ end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	visibleUnits[unitID] = unitDefID
-	if crashingUnits[unitID] then return end
+	unitToTeam[unitID] = unitTeam
+	if crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[unitTeam]] then return end
 	local states = spGetUnitStates(unitID)
 	if not states then return end
 	local fs = states.firestate
@@ -189,6 +211,7 @@ end
 function widget:VisibleUnitRemoved(unitID)
 	visibleUnits[unitID] = nil
 	unitFireState[unitID] = nil
+	unitToTeam[unitID] = nil
 	crashingUnits[unitID] = nil
 	if holdFireVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(holdFireVBO, unitID)
@@ -211,13 +234,35 @@ end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts)
 	if cmdID ~= CMD.FIRE_STATE then return end
-	if not visibleUnits[unitID] or crashingUnits[unitID] then return end
+	if not visibleUnits[unitID] or crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[teamID]] then return end
 	local fs = cmdParams[1]
 	if unitFireState[unitID] == fs then return end
 	unitFireState[unitID] = fs
 	applyFireState(unitID, unitDefID, fs, spGetGameFrame())
 	if holdFireVBO.dirty then uploadAllElements(holdFireVBO) end
 	if returnFireVBO.dirty then uploadAllElements(returnFireVBO) end
+end
+
+function widget:TeamDied(teamID)
+	local allyTeamID = teamToAllyTeam[teamID]
+	if not allyTeamID then return end
+	deadTeamCount[allyTeamID] = (deadTeamCount[allyTeamID] or 0) + 1
+	if deadTeamCount[allyTeamID] < (allyTeamTeamCount[allyTeamID] or 1) then
+		return -- still has surviving teams in this allyteam
+	end
+	-- All teams in allyteam are dead — remove all their icons (a wipeout sets hold fire for all units, but this will just be visual clutter at this point)
+	deadAllyTeams[allyTeamID] = true
+	for unitID, tid in pairs(unitToTeam) do
+		if teamToAllyTeam[tid] == allyTeamID then
+			unitFireState[unitID] = nil
+			if holdFireVBO.instanceIDtoIndex[unitID] then
+				popElementInstance(holdFireVBO, unitID)
+			end
+			if returnFireVBO.instanceIDtoIndex[unitID] then
+				popElementInstance(returnFireVBO, unitID)
+			end
+		end
+	end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
