@@ -69,9 +69,6 @@ end
 
 local gameSpeedInverse = 1 / Game.gameSpeed
 
--- Limit primary damage to default/general and anti-xyz types, e.g. anti-air/vtol.
--- We lack "anti-ship", "anti-hover" etc as gameplay mechanics or balance concepts.
-local armorTypeTargets = { default = true, vtol = true, subs = true, mines = true }
 local armorTypeMin = 0
 local armorTypeMax = #Game.armorTypes
 
@@ -340,11 +337,11 @@ veterancyEffects.damages = {
 			local damages = nil
 			if not weaponDef.customParams.nodamagexpscale and weaponDef.customParams.bogus ~= "1" then
 				damages = table.new(armorTypeMax, 1 - armorTypeMin)
-				damages[armorTargetIndex] = 0
-				local armorDamage = weaponDef.damages[0]
+				damages[armorTargetIndex] = armorTypeMin
+				local armorDamage = weaponDef.damages[armorTypeMin]
 				for i = armorTypeMin, armorTypeMax do
 					damages[i] = weaponDef.damages[i]
-					if damages[i] > armorDamage and armorTypeTargets[Game.armorTypes[i]] then
+					if damages[i] > armorDamage then
 						damages[armorTargetIndex], armorDamage = i, damages[i]
 					end
 				end
@@ -368,7 +365,7 @@ veterancyEffects.damages = {
 	end,
 
 	effect = function(unitID, upgrade, experience)
-		local damageMult = (1 + upgrade[2] * experience)
+		local damageMult = 1 + upgrade[2] * experience
 		for index = 3, #upgrade do
 			if upgrade[index] then
 				local damages = upgrade[index]
