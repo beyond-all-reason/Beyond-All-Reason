@@ -458,6 +458,176 @@ veterancyEffects.range = {
 	end,
 }
 
+-- When a weapon's reload time equals its burst duration, faster reloads provide no benefit.
+-- This XP upgrade continues to scale the burst rate with faster reloads (up to 1/30th sec).
+-- NOTE: Weapon sounds usually trigger only once per burst and play the sound of many shots.
+veterancyEffects.reload_then_burst = {
+	add = function(unitDef, upgrades)
+		-- Shares its scaling customparam with `reload`:
+		local scale = tonumber(unitDef.customParams.veterancy_reload_scale or reloadScale)
+		if (scale or 0) <= 0 then
+			return false
+		end
+
+		local upgrade = { veterancyEffects.reload.effect, scale } ---@type VeterancyUpgrade
+		local offset = #upgrade
+
+		local hasUpgradeWeapon = false
+		for index, weapon in ipairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			if not weaponDef.customParams.noreloadxpscale then
+				hasUpgradeWeapon = true
+				upgrade[index + offset] = {
+					reload = weaponDef.reload,
+					burst  = weaponDef.salvoSize * weaponDef.salvoDelay,
+					salvo  = weaponDef.salvoSize,
+				}
+			else
+				upgrade[index + offset] = false
+			end
+		end
+
+		if hasUpgradeWeapon then
+			upgrades[#upgrades + 1] = upgrade
+			return true
+		else
+			return false
+		end
+	end,
+
+	effect = function(unitID, upgrade, experience)
+		local unitLuaEnv = spGetScriptEnv(unitID)
+		local reloadDiv = 1 + upgrade[2] * experience
+		for index = 3, #upgrade do
+			if upgrade[index] then
+				local burst = upgrade[index].burst
+				local reload = upgrade[index].reload
+				local weapon = index - 2
+				local weaponReloadDiv = reloadDiv
+				local reloadWanted = math_max(reload / weaponReloadDiv, gameSpeedInverse)
+				if reloadWanted < burst then
+					-- When reload and burst are the same, treat each as fully scaling with XP.
+					if reload > burst then
+						-- Else, we rescale the burst and the reload-below-burst by half, each.
+						reloadWanted = reloadWanted + (burst - reloadWanted) * 0.5
+						weaponReloadDiv = reload / reloadWanted
+					end
+					local burstWanted = math_max(burst / weaponReloadDiv, gameSpeedInverse)
+					local salvoDelay = burstWanted / upgrade[index].salvo
+					spSetUnitWeaponState(unitID, weapon, "burstRate", salvoDelay)
+				end
+				spSetUnitWeaponState(unitID, weapon, "reloadTime", reloadWanted)
+				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weapon], reloadWanted * 1000)
+			end
+		end
+	end,
+}
+
+-- When a weapon's reload time equals its burst duration, faster reloads provide no benefit.
+-- This XP upgrade continues to scale the weapon's DPS output by directly increasing damage.
+veterancyEffects.reload_then_damage = {
+	add = function(unitDef, upgrades)
+		-- Shares its scaling customparams with `reload`/`damage`, but does not check `damageScale`:
+		local unitReloadScale = tonumber(unitDef.customParams.veterancy_reload_scale or reloadScale)
+		local unitDamageScale = tonumber(unitDef.customParams.veterancy_damage_scale or unitReloadScale)
+		if (unitReloadScale or 0) <= 0 and (unitDamageScale or 0) <= 0 then
+			return false
+		end
+
+		local upgrade = { veterancyEffects.reload.effect, unitReloadScale, unitDamageScale } ---@type VeterancyUpgrade
+		local offset = #upgrade
+
+		local hasUpgradeWeapon = false
+		for index, weapon in ipairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+
+			local reloads
+			if not weaponDef.customParams.noreloadxpscale then
+				reloads = {
+					reload = weaponDef.reload,
+					burst  = weaponDef.salvoSize * weaponDef.salvoDelay,
+				}
+			end
+
+			local damages
+			if not weaponDef.customParams.nodamagexpscale and weaponDef.customParams.bogus ~= "1" then
+				damages = table.new(armorTypeMax, 1 - armorTypeMin)
+				damages[armorTargetIndex] = armorTypeMin
+				local armorDamage = weaponDef.damages[armorTypeMin]
+				for i = armorTypeMin, armorTypeMax do
+					damages[i] = weaponDef.damages[i]
+					if damages[i] > armorDamage then
+						damages[armorTargetIndex], armorDamage = i, damages[i]
+					end
+				end
+				if armorDamage <= 0 then
+					damages = nil
+				end
+			end
+
+			if reloads and damages then
+				hasUpgradeWeapon = true
+				upgrade[index + offset] = table.merge(reloads, damages)
+			else
+				upgrade[index + offset] = false
+			end
+		end
+
+		if hasUpgradeWeapon then
+			upgrades[#upgrades + 1] = upgrade
+			return true
+		else
+			return false
+		end
+	end,
+
+	effect = function(unitID, upgrade, experience)
+		local unitLuaEnv = spGetScriptEnv(unitID)
+		local reloadDiv = 1 + upgrade[2] * experience
+		local damageMult = 1 + upgrade[3] * experience
+		for index = 4, #upgrade do
+			if upgrade[index] then
+				local burst = upgrade[index].burst
+				local reload = upgrade[index].reload
+				local weapon = index - 2
+
+				local weaponDamageMult = 1
+
+				if reload > burst then
+					local reloadWanted = math_max(reload / reloadDiv, gameSpeedInverse)
+					if reloadWanted < burst then
+						reloadWanted = burst
+						local weaponReloadXP = (reload / burst - 1) / upgrade[2]
+						local weaponDamageXP = experience - weaponReloadXP
+						weaponDamageMult = 1 + upgrade[3] * weaponDamageXP
+					end
+					spSetUnitWeaponState(unitID, weapon, "reloadTime", reloadWanted)
+					callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weapon], reloadWanted * 1000)
+				else
+					weaponDamageMult = damageMult
+				end
+
+				if weaponDamageMult <= 1 then
+					return
+				end
+
+				local damages = upgrade[index]
+				local armorTarget = damages[armorTargetIndex]
+				local armorDamage = spGetUnitWeaponDamages(unitID, weapon, armorTarget)
+				if armorDamage == math_round(damages[armorTarget] * damageMult) then
+					return
+				end
+				local d = damagesTemp
+				for i = armorTypeMin, armorTypeMax do
+					d[i] = math_round(damages[i] * damageMult)
+				end
+				spSetUnitWeaponDamages(unitID, weapon, d)
+				spSetUnitRulesParam(unitID, "veterancy_damages_multiplier", damageMult)
+			end
+		end
+	end,
+}
+
 -- Engine callins --------------------------------------------------------------
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
