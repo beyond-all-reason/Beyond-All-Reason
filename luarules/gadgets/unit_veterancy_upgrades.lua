@@ -390,6 +390,7 @@ veterancyEffects.damages = {
 	end,
 }
 
+-- TODO: Compensation for TTL, projectile speed, etc., depending on the weaponDef.
 veterancyEffects.range = {
 	add = function(unitDef, upgrades)
 		-- Dynamic ranges per-weapon are scaled at the unit-level for consistency.
