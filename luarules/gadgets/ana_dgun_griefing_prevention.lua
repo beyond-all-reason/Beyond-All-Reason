@@ -39,6 +39,8 @@ local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameRulesParam = Spring.GetGameRulesParam
+local spTraceScreenRay = Spring.TraceScreenRay
+local spEcho = Spring.Echo
 
 local CMD_DGUN = CMD.DGUN
 local DGUN_RANGE = 280
@@ -100,6 +102,31 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 			}
 		end
 	end
+end
+
+-- FIXME exists solely to debug why every spot on the map is "inLOS"
+function gadget:MousePress(mx, my, button)
+	if button ~= 1 then
+		return false
+	end
+
+	local onMiniMap = Spring.IsAboveMiniMap(mx, my)
+	local _, pos = spTraceScreenRay(mx, my, true, onMiniMap)
+	if not pos then
+		return false
+	end
+
+	local x, y, z = pos[1], pos[2], pos[3]
+	local losOrRadar, inLos, inRadar = spGetPositionLosState(x, y, z)
+	spEcho(string.format(
+		"[ClickLOS] x=%.1f y=%.1f z=%.1f losOrRadar=%s inLos=%s inRadar=%s",
+		x, y, z, tostring(losOrRadar), tostring(inLos), tostring(inRadar)
+	))
+
+	return false
+end
+
+function gadget:MouseRelease(mx, my, button)
 end
 
 local function GetPlayerName(playerID)
