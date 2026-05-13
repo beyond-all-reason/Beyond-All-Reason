@@ -519,7 +519,7 @@ veterancyEffects.reload_then_burst = {
 					-- When reload and burst are the same, treat each as fully scaling with XP.
 					local salvoDelay
 					if reload <= burstDuration then
-						salvoDelay = reloadWanted
+						salvoDelay = toFrameTime(reloadWanted / salvo)
 					else
 						-- Else, we rescale the burst and the reload-below-burst by half, each.
 						local difference = (burstDuration - reloadWanted) * 0.5
