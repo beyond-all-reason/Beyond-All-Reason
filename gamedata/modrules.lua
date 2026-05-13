@@ -10,6 +10,12 @@ XPValues = {
 	reloadScale = 1.25,
 }
 
+if Spring.GetModOptions().veterancy_upgrades then
+	XPValues.powerScale  = 0
+	XPValues.healthScale = 0
+	XPValues.reloadScale = 0
+end
+
 local modrules = {
 
 	construction = {

@@ -1938,6 +1938,68 @@ local options = {
         def 	= false,
     },
 
+	{
+        key		= "veterancy_upgrades",
+        name   	= "Unit Veterancy",
+        desc   	= "Whether veterancy (game-side) or experience (engine-side) unit bonuses are used.",
+        hidden 	= true,
+        section = "options_experimental",
+        type   	= "bool",
+        def 	= true,
+    },
+
+	{
+        key		= "veterancy_power_scale",
+        name   	= "Veterancy: XP to Power",
+        desc   	= "Ineffective. We cannot script the in-engine unit power stat.",
+        hidden 	= true,
+        section	= "options_experimental",
+        type   	= "number",
+        def    	= 2.5,
+        min    	= 0.0,
+        max    	= 5.0,
+        step   	= 0.001,
+    },
+
+	{
+        key		= "veterancy_health_scale",
+        name   	= "Veterancy: XP to Health",
+        desc   	= "Ignored in the modrules (value gets zeroed) and used instead for game-side scaling.",
+        hidden 	= true,
+        section	= "options_experimental",
+        type   	= "number",
+        def    	= 2.5,
+        min    	= 0.0,
+        max    	= 5.0,
+        step   	= 0.001,
+    },
+
+	{
+        key		= "veterancy_reload_scale",
+        name   	= "Veterancy: XP to Reload",
+        desc   	= "Ignored in the modrules (value gets zeroed) and used instead for game-side scaling.",
+        hidden 	= true,
+        section	= "options_experimental",
+        type   	= "number",
+        def    	= 1.25,
+        min    	= 0.0,
+        max    	= 2,
+        step   	= 0.001,
+    },
+
+	{
+        key		= "veterancy_damage_scale",
+        name   	= "Veterancy: XP to Damage",
+        desc   	= "Game-side scaling for unit veterancies that grant +damage%.",
+        hidden 	= true,
+        section	= "options_experimental",
+        type   	= "number",
+        def    	= (2 / 3),
+        min    	= 0.0,
+        max    	= 2,
+        step   	= 0.001,
+    },
+
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Unused Options

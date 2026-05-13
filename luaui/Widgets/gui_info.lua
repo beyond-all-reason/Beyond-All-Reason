@@ -125,11 +125,13 @@ for ii = 1, #Game.armorTypes do
 	armorIndex[Game.armorTypes[ii]] = ii
 end
 
+local math_round = math.round
+
 local function round(value, numDecimalPlaces)
 	if value then
-		return string.format("%0." .. numDecimalPlaces .. "f", math.round(value, numDecimalPlaces))
+		return ("%." .. numDecimalPlaces .. "f"):format(value)
 	else
-		return 0
+		return "0"
 	end
 end
 
@@ -217,7 +219,7 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].speed = round(unitDef.speed, 0)
 			else
 				local speed = unitDef.speed
-				local speedInWater = math.round(speed * math.clamp(tonumber(unitDef.customParams.speedfactorinwater), 0, 1e4))
+				local speedInWater = math_round(speed * math.clamp(tonumber(unitDef.customParams.speedfactorinwater), 0, 1e4))
 				unitDefInfo[unitDefID].speedMin = math.min(speed, speedInWater)
 				unitDefInfo[unitDefID].speedMax = math.max(speed, speedInWater)
 			end
@@ -1605,21 +1607,11 @@ local function drawUnitInfo()
 		end
 
 		-- unit specific info
-		if unitDefInfo[displayUnitDefID].mindps then
-			mindps = unitDefInfo[displayUnitDefID].mindps
-		end
-		if unitDefInfo[displayUnitDefID].maxdps then
-			maxdps = unitDefInfo[displayUnitDefID].maxdps
-		end
-		if unitDefInfo[displayUnitDefID].minemp then
-			minemp = unitDefInfo[displayUnitDefID].minemp
-		end
-		if unitDefInfo[displayUnitDefID].maxemp then
-			maxemp = unitDefInfo[displayUnitDefID].maxemp
-		end
-		if unitDefInfo[displayUnitDefID].range then
-			range = unitDefInfo[displayUnitDefID].range
-		end
+		mindps = unitDefInfo[displayUnitDefID].mindps
+		maxdps = unitDefInfo[displayUnitDefID].maxdps
+		minemp = unitDefInfo[displayUnitDefID].minemp
+		maxemp = unitDefInfo[displayUnitDefID].maxemp
+		range = unitDefInfo[displayUnitDefID].range
 
 		-- get unit specific data
 		if displayMode == 'unit' then
@@ -1632,7 +1624,6 @@ local function drawUnitInfo()
 			if not exp then
 				exp = spGetUnitExperience(displayUnitID)
 			end
-
 		else
 			-- get unitdef specific data
 			if unitDefInfo[displayUnitDefID].maxWeaponRange then
@@ -1641,44 +1632,53 @@ local function drawUnitInfo()
 		end
 
 		if unitDefInfo[displayUnitDefID].weapons then
-			local reloadTimeSpeedup = 1.0
+			local damageIncrease = 0.0
+			local reloadDecrease = 0.0
+			local dpsModifier = 1.0 -- FIXME: Some units have both +damage% and -reload%.
 			local currentReloadTime = unitDefInfo[displayUnitDefID].reloadTime
 			if exp and exp > 0.009 then
 				addTextInfo(Spring.I18N('ui.info.xp'), round(exp, 2))
-				addTextInfo(Spring.I18N('ui.info.maxhealth'), '+' .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. '%')
+				local healthPercent = math_round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100)
+				if healthPercent ~= 0 then
+					addTextInfo(Spring.I18N('ui.info.maxhealth'), '+' .. healthPercent .. '%')
+				end
 				currentReloadTime = spGetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, 'reloadTimeXP')
+				damageIncrease = (spGetUnitRulesParam(displayUnitID, "veterancy_damages_multiplier") or 1.0) - 1.0
 				if unitDefInfo[displayUnitDefID].reloadTime then
-					reloadTimeSpeedup = currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
-					local reloadTimeSpeedupPercentage = tonumber(round((1 - reloadTimeSpeedup) * 100, 0))
-					if reloadTimeSpeedupPercentage > 0 then
-						addTextInfo(Spring.I18N('ui.info.reload'), '-' .. reloadTimeSpeedupPercentage .. '%')
-					end
+					reloadDecrease = 1 - currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
+				end
+				local damageIncreasePercent = math_round(damageIncrease * 100)
+				local reloadTimeDecreasePercent = math_round(reloadDecrease * 100, 0)
+				if damageIncreasePercent > 0 and damageIncreasePercent >= reloadTimeDecreasePercent then
+					dpsModifier = 1 + damageIncrease
+					addTextInfo(Spring.I18N('ui.info.damages'), '+' .. damageIncreasePercent .. '%')
+				elseif reloadTimeDecreasePercent > 0 then
+					dpsModifier = 1 / (1 - reloadDecrease)
+					addTextInfo(Spring.I18N('ui.info.reload'), '-' .. reloadTimeDecreasePercent .. '%')
 				end
 			end
 
 			-- basic dps display
 			if mindps and mindps > 0 and mindps == maxdps then
-
-				local dps = round(mindps/ reloadTimeSpeedup, 0)
+				local dps = round(mindps * dpsModifier, 0)
 				addTextInfo(Spring.I18N('ui.info.dps'), dps)
 
-			-- dps range
+			-- basic dps range
 			elseif mindps ~= maxdps then
-				local min = round(mindps/ reloadTimeSpeedup, 0)
-				local max = round(maxdps/ reloadTimeSpeedup, 0)
+				local min = round(mindps * dpsModifier, 0)
+				local max = round(maxdps * dpsModifier, 0)
 				addTextInfo("DPS", min.."-"..max)
 			end
 
 			-- emp dps display
 			if minemp and minemp > 0 and minemp == maxemp then
-
-				local emp = round(minemp/ reloadTimeSpeedup, 0)
+				local emp = round(minemp * dpsModifier, 0)
 				addTextInfo("DPS(EMP)", emp)
 
-			-- more emp dps
+			-- emp dps range
 			elseif minemp ~= maxemp then
-				local min = round(minemp/ reloadTimeSpeedup, 0)
-				local max = round(maxemp/ reloadTimeSpeedup, 0)
+				local min = round(minemp * dpsModifier, 0)
+				local max = round(maxemp * dpsModifier, 0)
 				addTextInfo("DPS(EMP)", min.."-"..max)
 			end
 
@@ -1690,7 +1690,6 @@ local function drawUnitInfo()
 			if currentReloadTime and currentReloadTime > 0 then
 				addTextInfo(Spring.I18N('ui.info.reloadtime'), round(currentReloadTime, 2))
 			end
-
 			if unitDefInfo[displayUnitDefID].energyPerShot then
 				addTextInfo(Spring.I18N('ui.info.energyshot'), unitDefInfo[displayUnitDefID].energyPerShot)
 			end
@@ -1698,6 +1697,7 @@ local function drawUnitInfo()
 				addTextInfo(Spring.I18N('ui.info.metalshot'), unitDefInfo[displayUnitDefID].metalPerShot)
 			end
 		end
+
 		-- shield display
 		if unitDefInfo[displayUnitDefID].shieldCapacity then
 			addTextInfo(Spring.I18N('ui.info.shieldcapacity'), unitDefInfo[displayUnitDefID].shieldCapacity)
