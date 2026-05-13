@@ -15,8 +15,13 @@ jobs:
     # tripped a path-resolution issue around the bundled lux-luaXX
     # interpreter shims that didn't reproduce in the cargo-binstall
     # tarball install we use locally.
+    # Single source of truth for the Fedora version: the cache key below
+    # references it too, so bumping the image auto-invalidates the cache
+    # (compiled .so artifacts in .lux/ link against the container's glibc).
+    env:
+      FEDORA_VERSION: '43'
     container:
-      image: fedora:43
+      image: fedora:${{ env.FEDORA_VERSION }}
 
     steps:
     - uses: actions/checkout@v5
@@ -48,9 +53,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .lux
-        key: lux-5.1-fedora43-${{ hashFiles('lux.lock') }}
+        key: lux-5.1-fedora${{ env.FEDORA_VERSION }}-${{ hashFiles('lux.lock') }}
         restore-keys: |
-          lux-5.1-fedora43-
+          lux-5.1-fedora${{ env.FEDORA_VERSION }}-
 
     - name: Run busted
       run: lx --lua-version 5.1 test
