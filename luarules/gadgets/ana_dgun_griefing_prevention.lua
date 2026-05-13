@@ -28,7 +28,7 @@ validated through analytics, however; that's what this gadget gathers.
 function gadget:GetInfo()
 	return {
 		name    = "DGun Griefing Detection",
-		desc    = "Logs DGun commands that intersect allied units and echoes a warning when the threatened metal value is high enough.",
+		desc    = "Logs DGun commands to analytics based on whether they classify as griefing or not.",
 		author  = "TheDujin, with Codex. DGun ally detection code by kroIya/Color",
 		date    = "2026-05-01",
 		license = "GNU GPL, v2 or later",
