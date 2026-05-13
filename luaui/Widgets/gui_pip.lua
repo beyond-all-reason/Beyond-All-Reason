@@ -11965,9 +11965,9 @@ local function RenderFrameButtons()
 		end
 		
 		if not skipButton then
-			-- Show pip_track button if has selection or is tracking units
+			-- Show pip_track button if has selection or is tracking units (not in minimap mode)
 			if btn.command == 'pip_track' then
-				if hasSelection or isTracking then
+				if not isMinimapMode and (hasSelection or isTracking) then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			-- Show pip_trackplayer button if lockcamera is available or already tracking (hidden during TV)
@@ -15326,7 +15326,7 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 		
 		if not skipButton then
 			if btn.command == 'pip_track' then
-				if hasSelection or interactionState.areTracking then
+				if not isMinimapMode and (hasSelection or interactionState.areTracking) then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			elseif btn.command == 'pip_trackplayer' then
@@ -19046,9 +19046,9 @@ function widget:MousePress(mx, my, mButton)
 					end
 					
 					if not skipButton then
-						-- Show pip_track button if has selection or is tracking units
+						-- Show pip_track button if has selection or is tracking units (not in minimap mode)
 						if btn.command == 'pip_track' then
-							if hasSelection or isTracking then
+							if not isMinimapMode and (hasSelection or isTracking) then
 								visibleButtons[#visibleButtons + 1] = btn
 							end
 						-- Show pip_trackplayer button if lockcamera is available or already tracking (hidden during TV)
