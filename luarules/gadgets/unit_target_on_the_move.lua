@@ -18,6 +18,8 @@ local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 
+local BOMBARD_TARGET_FIND_ATTEMPTS = 10
+
 local deleteMaxDistance = 30
 
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
@@ -102,6 +104,87 @@ if gadgetHandler:IsSyncedCode() then
 	local unitTargets = {} -- data holds all unitID data
 	local pausedTargets = {}
 	--local needSend = {}
+
+	local unitBombardCircles = {} -- unitID -> {teamID, weapons, circles = {{cx, cz, r}, ...}}
+	local unitBombardLastPicked = {} -- unitID -> game frame of last target pick
+	local TargetCanBeReached -- forward declaration; defined below in Target Handling
+
+	local mathRandom = math.random
+	local mathSqrt = math.sqrt
+	local mathCos = math.cos
+	local mathSin = math.sin
+	local mathPi = math.pi
+
+	local function pickRandomPointInCircle(cx, cz, r)
+		local angle = mathRandom() * 2 * mathPi
+		local dist = mathSqrt(mathRandom()) * r
+		local x = cx + dist * mathCos(angle)
+		local z = cz + dist * mathSin(angle)
+		local y = spGetGroundHeight(x, z)
+		if y < 1 then y = 1 end
+		return x, y, z
+	end
+
+	local function sendBombardCirclesToUnsynced(unitID)
+		local data = unitBombardCircles[unitID]
+		if not data then
+			SendToUnsynced("bombardCircles", unitID, 0)
+			return
+		end
+		for i, circle in ipairs(data.circles) do
+			SendToUnsynced("bombardCircle", unitID, i, circle.cx, circle.cz, circle.r)
+		end
+		SendToUnsynced("bombardCircles", unitID, #data.circles)
+	end
+
+	local function addBombardCircles(unitID, unitDefID, newCircles, append)
+		local data = unitBombardCircles[unitID]
+		if not data then
+			data = {
+				teamID = spGetUnitTeam(unitID),
+				weapons = unitWeapons[unitDefID],
+				circles = {},
+			}
+		end
+		if not append then
+			data.circles = {}
+		end
+		for _, circle in ipairs(newCircles) do
+			data.circles[#data.circles + 1] = circle
+		end
+		unitBombardCircles[unitID] = data
+		sendBombardCirclesToUnsynced(unitID)
+	end
+
+	local function pickAndSetBombardTarget(unitID)
+		local data = unitBombardCircles[unitID]
+		if not data then return end
+		if unitTargets[unitID] and unitTargets[unitID].currentIndex then return end
+		if spGetUnitCurrentCommand(unitID) == CMD_DGUN then return end
+		local circles = data.circles
+		if #circles == 0 then return end
+		local circle = circles[mathRandom(#circles)]
+		for attempt = 1, BOMBARD_TARGET_FIND_ATTEMPTS do
+			local x, y, z = pickRandomPointInCircle(circle.cx, circle.cz, circle.r)
+			if TargetCanBeReached(unitID, data.teamID, data.weapons, {x, y, z}) then
+				spSetUnitTarget(unitID, x, y, z, false, true)
+				spSetUnitRulesParam(unitID, "targetID", -1)
+				spSetUnitRulesParam(unitID, "targetCoordX", x)
+				spSetUnitRulesParam(unitID, "targetCoordY", y)
+				spSetUnitRulesParam(unitID, "targetCoordZ", z)
+				unitBombardLastPicked[unitID] = Spring.GetGameFrame()
+				break
+			end
+		end
+	end
+
+	local function removeBombardCircles(unitID)
+		if unitBombardCircles[unitID] then
+			unitBombardCircles[unitID] = nil
+			unitBombardLastPicked[unitID] = nil
+			SendToUnsynced("bombardCircles", unitID, 0)
+		end
+	end
 	--------------------------------------------------------------------------------
 	-- Commands
 
@@ -150,7 +233,7 @@ if gadgetHandler:IsSyncedCode() then
 		return ownTeam and enemyTeam and spAreTeamsAllied(ownTeam, enemyTeam)
 	end
 
-	local function TargetCanBeReached(unitID, teamID, weaponList, target)
+	TargetCanBeReached = function(unitID, teamID, weaponList, target)
 		if not weaponList then
 			return
 		end
@@ -319,6 +402,11 @@ if gadgetHandler:IsSyncedCode() then
 					SendToUnsynced("targetIndex", unitID, 1)
 				end
 			end
+
+			-- clear the bombardment circles if we got a new target, since those are only for when we have no target
+			if unitBombardCircles[unitID] then
+				removeBombardCircles(unitID)
+			end
 		end
 		--tracy.ZoneEnd()
 	end
@@ -429,6 +517,11 @@ if gadgetHandler:IsSyncedCode() then
 				local userTarget = not cmdOptions.internal
 				local ignoreStop = cmdOptions.ctrl
 
+				-- Clear bombardment circles when issuing a new non-appending set-target
+				if not append then
+					removeBombardCircles(unitID)
+				end
+
 				-- Checks if the command is a valid area command {x,y,z,r} with radius more than 0:
 				if #cmdParams > 3 and not (#cmdParams == 4 and cmdParams[4] == 0) then
 					local targets = {}
@@ -455,6 +548,12 @@ if gadgetHandler:IsSyncedCode() then
 					elseif #cmdParams == 4 then
 						--circle
 						targets = CallAsTeam(teamID, spGetUnitsInCylinder, cmdParams[1], cmdParams[3], cmdParams[4], -4)
+					end
+					-- Bombardment mode: if this is a circle and (ctrl held or no valid targets)
+					if #cmdParams == 4 and (cmdOptions.ctrl or not targets or #targets == 0) then
+						addBombardCircles(unitID, unitDefID, {{cx = cmdParams[1], cz = cmdParams[3], r = cmdParams[4]}}, append)
+						--tracy.ZoneEnd()
+						return true
 					end
 					if targets then
 						local orders = {}
@@ -600,6 +699,11 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
+
+			if unitBombardCircles[unitID] then
+				removeBombardCircles(unitID)
+			end
+
 			--tracy.ZoneEnd()
 			return true
 		end
@@ -621,7 +725,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
 		-- Early exit: only process target-related commands or if unit has targets/paused targets
 		local isTargetCommand = cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE or cmdID == CMD_UNIT_CANCEL_TARGET
-		local hasTargetData = unitTargets[unitID] or pausedTargets[unitID]
+		local hasTargetData = unitTargets[unitID] or pausedTargets[unitID] or unitBombardCircles[unitID]
 
 		if not isTargetCommand and not hasTargetData then
 			return
@@ -639,6 +743,7 @@ if gadgetHandler:IsSyncedCode() then
 				SendToUnsynced("targetList", unitID, 0)
 				pausedTargets[unitID] = nil
 			end
+			removeBombardCircles(unitID)
 		else
 			-- Optimize: only check for dgun if we have paused targets or unit targets
 			if hasTargetData then
@@ -738,6 +843,15 @@ if gadgetHandler:IsSyncedCode() then
 					SendToUnsynced("targetIndex", unitID, targetIndex)
 				end
 			end
+
+			-- Bombardment circle fallback: pick a new point if it has been ~1 second (30 frames)
+			-- since the last pick (covers cases where the unit can't reach the current target).
+			for unitID, _ in pairsNext, unitBombardCircles do
+				local lastPicked = unitBombardLastPicked[unitID]
+				if not lastPicked or (n - lastPicked) >= 30 then
+					pickAndSetBombardTarget(unitID)
+				end
+			end
 		end
 
 		if n % USEEN_UPDATE_FREQUENCY == 0 then
@@ -769,6 +883,7 @@ else	-- UNSYNCED
 	local glPopAttrib = gl.PopAttrib
 	local GL_LINE_STRIP = GL.LINE_STRIP
 	local GL_LINES = GL.LINES
+	local GL_LINE_LOOP = GL.LINE_LOOP
 
 	local spGetUnitPosition = Spring.GetUnitPosition
 	local spValidUnitID = Spring.ValidUnitID
@@ -796,6 +911,10 @@ else	-- UNSYNCED
 	local drawAllTargets = {}
 	local drawTarget = {}
 	local targetList = {}
+	local bombardCircleList = {} -- unitID -> {circles = {{cx, cz, r}, ...}}
+
+	local spGetGroundHeight = Spring.GetGroundHeight
+	local CIRCLE_SEGMENTS = 32
 
 	function gadget:Initialize()
 		gadgetHandler:AddChatAction("targetdrawteam", handleTargetDrawEvent, "toggles drawing targets for units, params: teamID doDraw")
@@ -804,6 +923,8 @@ else	-- UNSYNCED
 		gadgetHandler:AddSyncAction("targetListBatched", handleTargetListBatchedEvent)
 		gadgetHandler:AddSyncAction("targetIndex", handleTargetIndexEvent)
 		gadgetHandler:AddSyncAction("failCommand", handleFailCommand)
+		gadgetHandler:AddSyncAction("bombardCircle", handleBombardCircleEvent)
+		gadgetHandler:AddSyncAction("bombardCircles", handleBombardCirclesEvent)
 
 		-- register cursor
 		spAssignMouseCursor("settarget", "cursorsettarget", false)
@@ -827,6 +948,8 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveSyncAction("targetListBatched")
 		gadgetHandler:RemoveSyncAction("targetIndex")
 		gadgetHandler:RemoveSyncAction("failCommand")
+		gadgetHandler:RemoveSyncAction("bombardCircle")
+		gadgetHandler:RemoveSyncAction("bombardCircles")
 	end
 
 	function GG.getUnitTargetList(unitID)
@@ -893,6 +1016,21 @@ else	-- UNSYNCED
 		targetList[unitID].targetIndex = index
 	end
 
+	function handleBombardCircleEvent(_, unitID, index, cx, cz, r)
+		bombardCircleList[unitID] = bombardCircleList[unitID] or {circles = {}}
+		bombardCircleList[unitID].circles[index] = {cx = cx, cz = cz, r = r}
+	end
+
+	function handleBombardCirclesEvent(_, unitID, count)
+		if count == 0 then
+			bombardCircleList[unitID] = nil
+		elseif bombardCircleList[unitID] then
+			for i = count + 1, #bombardCircleList[unitID].circles do
+				bombardCircleList[unitID].circles[i] = nil
+			end
+		end
+	end
+
 	function handleUnitTargetDrawEvent(_, _, params)
 		drawTarget[tonumber(params[1])] = true
 		return true
@@ -956,6 +1094,16 @@ else	-- UNSYNCED
 		end
 	end
 
+	local function drawGroundCircle(cx, cz, r)
+		for i = 0, CIRCLE_SEGMENTS do
+			local angle = (i / CIRCLE_SEGMENTS) * 2 * math.pi
+			local x = cx + r * math.cos(angle)
+			local z = cz + r * math.sin(angle)
+			local y = spGetGroundHeight(x, z) + 5
+			glVertex(x, y, z)
+		end
+	end
+
 	local function drawDecorations()
 		local init = false
 		for unitID, unitData in pairsNext, targetList do
@@ -973,6 +1121,24 @@ else	-- UNSYNCED
 					if unitData.targetIndex then
 						glColor(commandColour)
 						glBeginEnd(GL_LINES, drawCurrentTarget, unitID, unitData, myTeam, myAllyTeam)
+					end
+				end
+			end
+		end
+		-- Draw bombardment circles
+		for unitID, data in pairsNext, bombardCircleList do
+			if drawTarget[unitID] or drawAllTargets[spGetUnitTeam(unitID)] or spIsUnitSelected(unitID) then
+				if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
+					if not init then
+						init = true
+						glPushAttrib(GL.LINE_BITS)
+						glLineStipple("any")
+						glDepthTest(false)
+						glLineWidth(lineWidth)
+					end
+					glColor(queueColour)
+					for _, circle in ipairs(data.circles) do
+						glBeginEnd(GL_LINE_LOOP, drawGroundCircle, circle.cx, circle.cz, circle.r)
 					end
 				end
 			end
