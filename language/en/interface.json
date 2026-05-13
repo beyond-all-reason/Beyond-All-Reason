@@ -1645,7 +1645,7 @@
 				"unitenergyicons_descr": "Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven't enough energy available.",
 				"unitidlebuildericons": "Unit idle builder icons",
 				"unitidlebuildericons_descr": "Shows a sleep icon above builder units that are idle.",
-				"unitfirestateicons": "Unit firestate icons",
+				"unitfirestateicons": "Unit firing state icons",
 				"unitfirestateicons_descr": "Shows an icon above units that are either set on Hold Fire or Return Fire.",
 				"resurrectionhalos": "Resurrected unit halos",
 				"resurrectionhalos_descr": "Adds halos above resurrected units.",
