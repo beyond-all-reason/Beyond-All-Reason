@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     # Run inside Fedora to match contributors' bar-dev distrobox env
     # (BAR-Devtools/docker/dev.Containerfile pins fedora:43 + lx via
-    # cargo-binstall). Earlier ubuntu-latest + .deb-installed lx 0.29
+    # cargo-binstall). Earlier ubuntu-latest + .deb-installed lx
     # tripped a path-resolution issue around the bundled lux-luaXX
     # interpreter shims that didn't reproduce in the cargo-binstall
     # tarball install we use locally.
@@ -39,7 +39,7 @@ jobs:
           https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh \
           | bash
         "$HOME/.cargo/bin/cargo-binstall" --no-confirm \
-          --version 0.29.0 \
+          --version 0.28.3 \
           --install-path /usr/local/bin \
           lux-cli
         ln -sf /usr/bin/lua-5.1 /usr/local/bin/lua
