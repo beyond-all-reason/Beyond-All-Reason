@@ -9,15 +9,6 @@ on:
 jobs:
   busted:
     runs-on: ubuntu-latest
-    # Run inside Fedora to match contributors' bar-dev distrobox env
-    # (BAR-Devtools/docker/dev.Containerfile pins fedora:43 + lx via
-    # cargo-binstall). Earlier ubuntu-latest + .deb-installed lx
-    # tripped a path-resolution issue around the bundled lux-luaXX
-    # interpreter shims that didn't reproduce in the cargo-binstall
-    # tarball install we use locally.
-    # Single source of truth for the Fedora version: the cache key below
-    # references it too, so bumping the image auto-invalidates the cache
-    # (compiled .so artifacts in .lux/ link against the container's glibc).
     env:
       FEDORA_VERSION: '43'
     container:
