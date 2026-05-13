@@ -502,19 +502,23 @@ veterancyEffects.reload_then_burst = {
 		for index = 3, #upgrade do
 			if upgrade[index] then
 				local burst = upgrade[index].burst
+				local salvo = upgrade[index].salvo
 				local reload = upgrade[index].reload
 				local weapon = index - 2
-				local weaponReloadDiv = reloadDiv
-				local reloadWanted = math_max(reload / weaponReloadDiv, gameSpeedInverse)
-				if reloadWanted < burst then
+
+				local burstDuration = burst * salvo
+				local reloadWanted = math_max(reload / reloadDiv, gameSpeedInverse)
+				if reloadWanted < burstDuration then
 					-- When reload and burst are the same, treat each as fully scaling with XP.
-					if reload > burst then
+					local salvoDelay
+					if reload <= burstDuration then
+						salvoDelay = reloadWanted
+					else
 						-- Else, we rescale the burst and the reload-below-burst by half, each.
-						reloadWanted = reloadWanted + (burst - reloadWanted) * 0.5
-						weaponReloadDiv = reload / reloadWanted
+						local difference = (burstDuration - reloadWanted) * 0.5
+						reloadWanted = math_max(reloadWanted - difference, gameSpeedInverse)
+						salvoDelay = math_max((burstDuration - difference) / salvo, gameSpeedInverse)
 					end
-					local burstWanted = math_max(burst / weaponReloadDiv, gameSpeedInverse)
-					local salvoDelay = burstWanted / upgrade[index].salvo
 					spSetUnitWeaponState(unitID, weapon, "burstRate", salvoDelay)
 				end
 				spSetUnitWeaponState(unitID, weapon, "reloadTime", reloadWanted)
