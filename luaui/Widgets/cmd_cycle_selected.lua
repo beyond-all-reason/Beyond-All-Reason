@@ -36,7 +36,11 @@ local function selectionChanged(currentSel)
 end
 
 local function resetCycle(currentSel)
-	cycleUnits = currentSel
+	-- Copy before sorting so we don't mutate the caller's table
+	cycleUnits = {}
+	for i = 1, #currentSel do
+		cycleUnits[i] = currentSel[i]
+	end
 	table.sort(cycleUnits)
 	unitIndex = 0
 end
@@ -45,7 +49,9 @@ local function focusUnit(unitID)
 	local x, y, z = Spring.GetUnitPosition(unitID)
 	if x then
 		Spring.SetCameraTarget(x, y, z)
+		return true
 	end
+	return false
 end
 
 local function handleCycleSelected(_, _, _, data)
@@ -70,11 +76,9 @@ local function handleCycleSelected(_, _, _, data)
 		-- Advance cursor, wrapping around in either direction
 		unitIndex = ((unitIndex - 1 + direction) % unitCount) + 1
 		if focusUnit(cycleUnits[unitIndex]) then
-			return true -- Halt the action chain
+			break
 		end
 	end
-
-	focusUnit(cycleUnits[unitIndex])
 
 	-- Halt the action chain
 	return true
