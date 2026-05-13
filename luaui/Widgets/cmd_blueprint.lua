@@ -1224,6 +1224,11 @@ end
 local loadedBlueprints = false
 
 function widget:Initialize()
+	if Spring.GetModOptions().scenariooptions then
+		widgetHandler:RemoveWidget(self)
+		return
+	end
+
 	if not WG["api_blueprint"] then
 		widgetHandler:RemoveWidget(self)
 		return
