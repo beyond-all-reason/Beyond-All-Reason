@@ -604,7 +604,6 @@ veterancyEffects.reload_then_damage = {
 				local weapon = index - 2
 
 				local weaponDamageMult = 1
-
 				if reload > burst then
 					local reloadWanted = toFrameTime(reload / reloadDiv)
 					if reloadWanted < burst then
@@ -619,7 +618,6 @@ veterancyEffects.reload_then_damage = {
 				else
 					weaponDamageMult = damageMult
 				end
-
 				if weaponDamageMult <= 1 then
 					return
 				end
