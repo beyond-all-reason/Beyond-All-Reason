@@ -31,6 +31,7 @@ local tableSort = table.sort
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetViewGeometry = Spring.GetViewGeometry
 
 -- types
 -- =====
@@ -440,7 +441,7 @@ local function createBlueprint(unitIDs, ordered)
 				local unitDefID = spGetUnitDefID(unitID)
 				local unitDef = UnitDefs[unitDefID]
 				local unitName = unitDef and unitDef.name or "unknown"
-				
+
 				return {
 					blueprintUnitID = nextBlueprintUnitID(),
 					unitDefID = unitDefID,
@@ -713,27 +714,27 @@ function widget:Update(dt)
 	end
 end
 
-local drawCursorText = glListCache(function(index)
-	local text
-	if index then
-		text = "\255\220\220\240Blueprint #" .. tostring(index)
-	else
-		text = "\255\240\220\220No Blueprints"
-	end
+local vsx, vsy = spGetViewGeometry()
+local cursorTextScale = 0.4 + (vsy / 2200)	-- also redefined in viewresize
 
-	gl.Text(text, 15, -12, 40, "ao")
+local cachedHotkeyText = nil
+
+local function buildHotkeyText()
+	if cachedHotkeyText then
+		return cachedHotkeyText
+	end
 
 	local hotkeys = {
 		{
-			name = "Next",
+			name = Spring.I18N('ui.blueprint.hotkey_next', {default = 'Next'}),
 			key = keyConfig.sanitizeKey(actionHotkeys["blueprint_next"], currentLayout),
 		},
 		{
-			name = "Previous",
+			name = Spring.I18N('ui.blueprint.hotkey_prev', {default = 'Previous'}),
 			key = keyConfig.sanitizeKey(actionHotkeys["blueprint_prev"], currentLayout),
 		},
 		{
-			name = "Delete",
+			name = Spring.I18N('ui.blueprint.hotkey_delete', {default = 'Delete'}),
 			key = keyConfig.sanitizeKey(actionHotkeys["blueprint_delete"], currentLayout),
 		},
 	}
@@ -742,7 +743,7 @@ local drawCursorText = glListCache(function(index)
 	for _, hk in ipairs(hotkeys) do
 		local name, key = hk.name, hk.key
 		if not key or string.len(key) == 0 then
-			key = "<none>"
+			key = Spring.I18N('ui.blueprint.hotkey_none', {default = '<none>'})
 		end
 		hotkeyText = hotkeyText .. string.format(
 			"\255\255\215\100%s\255\240\240\240 - %s\n",
@@ -751,12 +752,46 @@ local drawCursorText = glListCache(function(index)
 		)
 	end
 
-	gl.Text(hotkeyText, 30, -55, 18, "ao")
-end)
+	cachedHotkeyText = hotkeyText
+	return cachedHotkeyText
+end
+
+local function drawCursorTextImpl(index)
+	local text
+	if index then
+		text = "\255\220\220\240" .. Spring.I18N('ui.blueprint.cursor_active', {index = tostring(index), default = 'Blueprint #' .. tostring(index)})
+	else
+		text = "\255\240\220\220" .. Spring.I18N('ui.blueprint.cursor_none', {default = 'No Blueprints'})
+	end
+
+	local scale = cursorTextScale
+	gl.Text(text, 15 * scale, -12 * scale, 38 * scale, "ao")
+	gl.Text(buildHotkeyText(), 30 * scale, -55 * scale, 22 * scale, "ao")
+end
+
+local drawCursorText = setmetatable({}, {
+	__call = function(_, ...) drawCursorTextImpl(...) end,
+	__index = {
+		invalidate = function()
+			cachedHotkeyText = nil
+		end,
+	},
+})
 
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
+	drawCursorText.invalidate()
+end
+
+function widget:ViewResize(viewSizeX, viewSizeY)
+	vsx = viewSizeX
+	vsy = viewSizeY
+	cursorTextScale = 0.4 + (vsy / 2200)
+	drawCursorText.invalidate()
+end
+
+function widget:LanguageChanged()
 	drawCursorText.invalidate()
 end
 
