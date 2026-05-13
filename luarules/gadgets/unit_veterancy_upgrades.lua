@@ -477,7 +477,7 @@ veterancyEffects.reload_then_burst = {
 			return false
 		end
 
-		local upgrade = { veterancyEffects.reload.effect, scale } ---@type VeterancyUpgrade
+		local upgrade = { veterancyEffects.reload_then_burst.effect, scale } ---@type VeterancyUpgrade
 		local offset = #upgrade
 
 		local hasUpgradeWeapon = false
@@ -546,7 +546,7 @@ veterancyEffects.reload_then_damage = {
 			return false
 		end
 
-		local upgrade = { veterancyEffects.reload.effect, unitReloadScale, unitDamageScale } ---@type VeterancyUpgrade
+		local upgrade = { veterancyEffects.reload_then_damage.effect, unitReloadScale, unitDamageScale } ---@type VeterancyUpgrade
 		local offset = #upgrade
 
 		local hasUpgradeWeapon = false
