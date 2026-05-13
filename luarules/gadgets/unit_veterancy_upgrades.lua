@@ -177,14 +177,14 @@ veterancyEffects.health = {
 	end,
 
 	effect = function(unitID, upgrade, experience)
-		local healthNew = math_floor(upgrade[3] * (1 + upgrade[2] * experience))
+		local healthMaxXP = math_floor(upgrade[3] * (1 + upgrade[2] * experience))
 		local health, healthMax = spGetUnitHealth(unitID)
-		if healthNew == math_floor(healthMax) then
+		if healthMaxXP == math_floor(healthMax) then
 			return
 		end
 
-		spSetUnitMaxHealth(unitID, healthNew)
-		spSetUnitHealth(unitID, health * healthNew / healthMax)
+		spSetUnitMaxHealth(unitID, healthMaxXP)
+		spSetUnitHealth(unitID, health * healthMaxXP / healthMax)
 	end,
 }
 
