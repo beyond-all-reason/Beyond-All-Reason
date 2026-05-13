@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "DGun Griefing Prevention Bridge",
+		name    = "DGun Griefing Detection Bridge",
 		desc    = "Receives DGun griefing events from LuaRules and forwards them to analytics.",
 		author  = "TheDujin, Codex",
 		date    = "2026-05-09",
@@ -14,7 +14,7 @@ end
 
 local USE_WG_ANALYTICS = false -- set false to echo events locally while debugging
 
-local function DGunGriefingPrevention(eventType, eventData)
+local function DGunGriefingDetection(eventType, eventData)
 	if USE_WG_ANALYTICS and WG and WG.Analytics and WG.Analytics.SendEvent then
 		WG.Analytics.SendEvent(eventType, eventData)
 		return
@@ -24,9 +24,9 @@ local function DGunGriefingPrevention(eventType, eventData)
 end
 
 function widget:Initialize()
-	widgetHandler:RegisterGlobal("DGunGriefingPrevention", DGunGriefingPrevention)
+	widgetHandler:RegisterGlobal("DGunGriefingDetection", DGunGriefingDetection)
 end
 
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal("DGunGriefingPrevention")
+	widgetHandler:DeregisterGlobal("DGunGriefingDetection")
 end

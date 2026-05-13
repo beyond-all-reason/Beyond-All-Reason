@@ -10,7 +10,7 @@ TODO: how to deal with jammed high ground units?
 
 function gadget:GetInfo()
 	return {
-		name    = "DGun Griefing Prevention",
+		name    = "DGun Griefing Detection",
 		desc    = "Logs DGun commands that intersect allied units and echoes a warning when the threatened metal value is high enough.",
 		author  = "TheDujin, with Codex. DGun ally detection code by kroIya/Color",
 		date    = "2026-05-01",
@@ -35,12 +35,10 @@ local spGetPositionLosState = Spring.GetPositionLosState
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitLosState = Spring.GetUnitLosState
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
-local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameRulesParam = Spring.GetGameRulesParam
-local spTraceScreenRay = Spring.TraceScreenRay
 local spEcho = Spring.Echo
 
 local CMD_DGUN = CMD.DGUN
@@ -82,32 +80,6 @@ local function GetAllyTeamID(teamID)
 	return allyTeamID
 end
 
-function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if not unitTeam or unitTeam == gaiaTeamID then
-		return
-	end
-
-	local myAllyTeam = spGetMyAllyTeamID()
-	if not myAllyTeam or GetAllyTeamID(unitTeam) ~= myAllyTeam then
-		return
-	end
-
-	if attackerTeam and attackerTeam ~= gaiaTeamID and GetAllyTeamID(attackerTeam) ~= myAllyTeam then
-		local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-		if unitX then
-			recentlyDamagedAlliedUnits[unitID] = {
-				x = unitX,
-				y = unitY,
-				z = unitZ,
-				expiresFrame = spGetGameFrame() + ALLY_DAMAGE_WINDOW,
-			}
-		end
-	end
-end
-
-function gadget:MouseRelease(mx, my, button)
-end
-
 local function GetPlayerName(playerID)
 	local name = playerID and select(1, spGetPlayerInfo(playerID, false))
 	return name or "unknown player"
@@ -123,6 +95,7 @@ local function GetUnitDisplayName(unitDefID)
 		or ("unit #" .. tostring(unitDefID))
 end
 
+-- Used to determine whether DGun intersects a given unit
 local function GetApproxUnitRadius(unitDefID)
 	local unitDef = unitDefID and UnitDefs[unitDefID]
 	if not unitDef then
@@ -139,8 +112,11 @@ local function GetApproxUnitRadius(unitDefID)
 	return approxRadius
 end
 
+-- Removes old frontline contacts that are stale.
+-- Nearby frontline contacts enable dguns to be fired indiscriminately
 local function PruneExpiredCaches(currentFrame)
 	for i = #contactsCache, 1, -1 do
+		spEcho(contactsCache[i])
 		if contactsCache[i].expiresFrame <= currentFrame then
 			table.remove(contactsCache, i)
 		end
@@ -153,10 +129,14 @@ local function PruneExpiredCaches(currentFrame)
 	end
 end
 
+-- Removes enemy building from our building cache.
+-- Nearby enemy buidlings enable dguns to be fired indiscriminately
 local function RemoveEnemyBuildingFromCache(unitID)
 	enemyBuildingsCache[unitID] = nil
 end
 
+-- Adds an enemy building to our building cache.
+-- Nearby enemy buidlings enable dguns to be fired indiscriminately
 local function AddEnemyBuildingToCache(unitID)
 	local unitTeam = spGetUnitTeam(unitID)
 	if unitTeam == gaiaTeamID then
@@ -175,17 +155,22 @@ local function AddEnemyBuildingToCache(unitID)
 	}
 end
 
+-- Updates the enemy building cache based on LOS info on the current frame.
+-- Nearby enemy buidlings enable dguns to be fired indiscriminately
 local function UpdateEnemyBuildingCache()
 	for unitID, site in pairs(enemyBuildingsCache) do
-		local _, inLos = spGetPositionLosState(site.x, site.y, site.z, spGetMyTeamID())
+		local _, inLos = spGetPositionLosState(site.x, site.y, site.z, spGetMyAllyTeamID())
 		if inLos then
 			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 			if not unitX then
+				-- building has been destroyed, and we just discovered this
 				RemoveEnemyBuildingFromCache(unitID)
 			else
 				local deltaX = unitX - site.x
 				local deltaY = unitY - site.y
 				local deltaZ = unitZ - site.z
+
+				-- building has been moved elsewhere, and we just discovered this
 				if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) > 1 then
 					RemoveEnemyBuildingFromCache(unitID)
 				end
@@ -194,41 +179,8 @@ local function UpdateEnemyBuildingCache()
 	end
 end
 
-function gadget:UnitEnteredLos(unitID, unitTeam)
-	if Spring.GetUnitLeavesGhost(unitID) then
-		AddEnemyBuildingToCache(unitID)
-	end
-end
-
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	local site = enemyBuildingsCache[unitID]
-	if not site then
-		return
-	end
-
-	local _, inLos = spGetPositionLosState(site.x, site.y, site.z, spGetMyTeamID())
-	if inLos then
-		RemoveEnemyBuildingFromCache(unitID)
-	end
-end
-
-function gadget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
-	if not spAreTeamsAllied(oldTeamID, newTeamID) then
-		RemoveEnemyBuildingFromCache(unitID)
-	end
-end
-
-function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
-	if not spAreTeamsAllied(oldTeamID, newTeamID) then
-		local myAllyTeam = spGetMyAllyTeamID()
-		if myAllyTeam and GetAllyTeamID(newTeamID) ~= myAllyTeam and Spring.GetUnitLeavesGhost(unitID) then
-			AddEnemyBuildingToCache(unitID)
-		end
-	end
-end
-
 -- Caches a unit contact briefly. This can be checked for the sake of allowing/disallowing DGun later
-local function AddExpiringUnitContact(x, y, z, currentFrame)
+local function AddExpiringEnemyContact(x, y, z, currentFrame)
 	contactsCache[#contactsCache + 1] = {
 		x = x,
 		y = y,
@@ -276,7 +228,7 @@ local function DistPointToSegment(pointX, pointY, pointZ, segmentStartX, segment
 	return math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
 end
 
--- Returns True and most expensive threatened ally if DGUN threatens too much allied stuff (see: MIN_THREATENED_ALLY_METAL)
+-- Returns True and explanation of most expensive threatened ally if DGUN threatens too much allied stuff (see: MIN_THREATENED_ALLY_METAL)
 -- Returns False and nill if DGUN threatens nothing
 -- Returns False and an explanation if DGUN threatens stuff, but not enough to be concerned about
 local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
@@ -324,9 +276,8 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 		return false
 	end
 	
-	return false, string.format("Only %d metal threatened (inconsequential)", threatenedAllyMetal)
+	return false, string.format("Only %d allied metal threatened (inconsequential)", threatenedAllyMetal)
 end
-
 -- If DGun target location is near a visible enemy, we leave the order alone
 local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 	local myAllyTeam = GetAllyTeamID(teamID)
@@ -363,6 +314,7 @@ local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 		end
 	end
 
+	-- Nearby enemy buildings implies we are on the frontline
 	for _, site in pairs(enemyBuildingsCache) do
 		local deltaX, deltaY, deltaZ = site.x - targetX, site.y - targetY, site.z - targetZ
 		if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) <= (FRONTLINE_SCAN_RADIUS * FRONTLINE_SCAN_RADIUS) then
@@ -373,15 +325,85 @@ local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 	return false
 end
 
--- Cache units that leave radar briefly so they count as visible enemy presence
--- This allows players to attempt dguns even if radar contact is lost.
-function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
-	if not unitTeam or unitTeam == gaiaTeamID then
+local function ForwardAnalyticsEvent(eventType, eventData)
+	if Script.LuaUI and Script.LuaUI.DGunGriefingDetection then
+		Script.LuaUI.DGunGriefingDetection(eventType, eventData)
+	end
+end
+
+local function GetGameID()
+	return Game.gameID or spGetGameRulesParam("GameID")
+end
+
+function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+	if unitTeam == gaiaTeamID then
 		return
 	end
 
-	if allyTeam and GetAllyTeamID(unitTeam) == allyTeam then
+	local myAllyTeam = spGetMyAllyTeamID()
+	-- spEcho("check a")
+	if GetAllyTeamID(unitTeam) ~= myAllyTeam then
+		return -- not one of our allies that was damaged
+	end
+
+	if attackerTeam ~= gaiaTeamID and GetAllyTeamID(attackerTeam) ~= myAllyTeam then
+		local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+		if unitX then
+			recentlyDamagedAlliedUnits[unitID] = {
+				x = unitX,
+				y = unitY,
+				z = unitZ,
+				expiresFrame = spGetGameFrame() + ALLY_DAMAGE_WINDOW,
+			}
+		end
+	end
+end
+
+function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam)
+	if allyTeam ~= spGetMyAllyTeamID() then
+		return -- not an event for us
+	end
+	if Spring.GetUnitLeavesGhost(unitID) then
+		AddEnemyBuildingToCache(unitID)
+	end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	local site = enemyBuildingsCache[unitID]
+	if not site then
 		return
+	end
+
+	local _, inLos = spGetPositionLosState(site.x, site.y, site.z, spGetMyAllyTeamID())
+	if inLos then
+		RemoveEnemyBuildingFromCache(unitID)
+	end
+end
+
+function gadget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
+	if not spAreTeamsAllied(oldTeamID, newTeamID) then
+		RemoveEnemyBuildingFromCache(unitID) -- unit changed team ownership
+	end
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
+	if not spAreTeamsAllied(oldTeamID, newTeamID) then
+		local myAllyTeam = spGetMyAllyTeamID()
+		if GetAllyTeamID(newTeamID) ~= myAllyTeam and Spring.GetUnitLeavesGhost(unitID) then
+			AddEnemyBuildingToCache(unitID) -- building now owned by enemy
+		end
+	end
+end
+
+-- Cache units that leave radar briefly so they count as visible enemy presence
+-- This allows players to attempt dguns even if radar contact is lost.
+function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+	if unitTeam == gaiaTeamID then
+		return
+	end
+
+	if allyTeam ~= spGetMyAllyTeamID() then
+		return -- not an event for us
 	end
 
 	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
@@ -389,14 +411,15 @@ function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 		return
 	end
 
-	-- Note: we want to track the team of the unit that left radar.
-	-- 'allyTeam' in this context is actually which team that lost track of a radar contact
-		AddExpiringUnitContact(unitX, unitY, unitZ, spGetGameFrame())
+	AddExpiringEnemyContact(unitX, unitY, unitZ, spGetGameFrame())
 end
 
 -- Cache seismic detections briefly so they count as visible enemy presence.
 function gadget:UnitSeismicPing(positionX, positionY, positionZ, strength, allyTeam, unitID, unitDefID)
-	AddExpiringUnitContact(positionX, positionY, positionZ, spGetGameFrame())
+	if allyTeam ~= spGetMyAllyTeamID() then
+		return -- not an event for us
+	end
+	AddExpiringEnemyContact(positionX, positionY, positionZ, spGetGameFrame())
 end
 
 function gadget:GameFrame(currentFrame)
@@ -414,24 +437,17 @@ function gadget:GameFrame(currentFrame)
 	end
 end
 
-local function ForwardAnalyticsEvent(eventType, eventData)
-	if Script.LuaUI and Script.LuaUI.DGunGriefingPrevention then
-		Script.LuaUI.DGunGriefingPrevention(eventType, eventData)
-	end
-end
-
-local function GetGameID()
-	return Game.gameID or spGetGameRulesParam("GameID")
-end
-
 -- Observe DGun commands and echo only. We do not block the command anymore.
-function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if teamID ~= Spring.GetMyTeamID() then
+		return -- not one of our commands
+	end
 	if cmdID ~= CMD_DGUN then
 		return
 	end
 
 	local uDef = UnitDefs[unitDefID]
-	if not (uDef and uDef.customParams and uDef.customParams.iscommander) then
+	if not (uDef.customParams and uDef.customParams.iscommander) then
 		return
 	end
 
@@ -469,7 +485,7 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 				time = spGetGameFrame(),
 				gameID = GetGameID(),
 				player = GetPlayerName(playerID),
-				reason = "Normal DGun: no allies threatened",
+				reason = "No allies threatened",
 			})
 
 		end
@@ -496,6 +512,4 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		player = GetPlayerName(playerID),
 		reason = allyThreatInfo,
 	})
-
-
 end
