@@ -602,6 +602,7 @@ veterancyEffects.reload_then_damage = {
 					local reloadWanted = math_max(reload / reloadDiv, gameSpeedInverse)
 					if reloadWanted < burst then
 						reloadWanted = burst
+						-- Get the XP with equal reload time and burst duration.
 						local weaponReloadXP = (reload / burst - 1) / upgrade[2]
 						local weaponDamageXP = experience - weaponReloadXP
 						weaponDamageMult = 1 + upgrade[3] * weaponDamageXP
