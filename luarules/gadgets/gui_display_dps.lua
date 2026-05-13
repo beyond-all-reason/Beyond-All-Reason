@@ -87,9 +87,24 @@ local drawTextListsEmp = {}
 local myTeamID = Spring.GetMyTeamID()
 local _, fullview = Spring.GetSpectatingState()
 local chobbyInterface
+local ignoreDamageTypes = {}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+-- Do not display death-reason damage types which typically use overkill damage.
+ignoreDamageTypes[Game.envDamageTypes.Kamikaze] = true
+ignoreDamageTypes[Game.envDamageTypes.SelfD] = true
+ignoreDamageTypes[Game.envDamageTypes.ConstructionDecay] = true
+ignoreDamageTypes[Game.envDamageTypes.Reclaimed] = true
+ignoreDamageTypes[Game.envDamageTypes.TurnedIntoFeature] = true
+ignoreDamageTypes[Game.envDamageTypes.TransportKilled] = true
+ignoreDamageTypes[Game.envDamageTypes.FactoryKilled] = true
+ignoreDamageTypes[Game.envDamageTypes.FactoryCancel] = true
+ignoreDamageTypes[Game.envDamageTypes.SetNegativeHealth] = true
+ignoreDamageTypes[Game.envDamageTypes.SetNegativeHealth] = true
+ignoreDamageTypes[Game.envDamageTypes.KilledByCheat] = true
+ignoreDamageTypes[Game.envDamageTypes.KilledByLua] = true
 
 function gadget:ViewResize(n_vsx, n_vsy)
 	vsx, vsy = Spring.GetViewGeometry()
@@ -189,12 +204,12 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	end
 end
 
-function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if not enabled then
 		return
 	end
 
-	if damage < 1.5 then
+	if damage < 1.5 or ignoreDamageTypes[weaponDefID] then
 		return
 	end
 

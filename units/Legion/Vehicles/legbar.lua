@@ -1,14 +1,14 @@
 return {
 	legbar = {
 		maxacc = 0.01654,
-		maxdec = 0.054,
+		maxdec = 0.1,
 		energycost = 3200,
 		metalcost = 250,--320,
 		buildpic = "LEGBAR.DDS",
 		buildtime = 3600,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 0",
-		collisionvolumescales = "37 15 44",
+		collisionvolumescales = "37 17 44",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		explodeas = "pyro",

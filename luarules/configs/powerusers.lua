@@ -6,7 +6,7 @@ local everything = {
 	-- granular devhelper sub-permissions (checked when devhelpers is false):
 	-- devhelpers_units = true,	-- givecat, xpunits, destroyunits, removeunits, reclaimunits, transferunits, wreckunits, spawnceg, spawnunitexplosion, removeunitdef
 	-- devhelpers_teams = true,	-- playertoteam, killteam
-	-- devhelpers_terrain = true,	-- fightertest, globallos, clearwrecks, reducewrecks
+	-- devhelpers_terrain = true,	-- benchmark, globallos, clearwrecks, reducewrecks
 	-- devhelpers_test = true,	-- desync
 	playerdata = true,
 	waterlevel = true,
