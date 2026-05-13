@@ -1695,6 +1695,19 @@ end
 function widget:GameFrame()
 	-- build progress updates every sym frame
 	updateBuildProgress()
+	-- update factory-under-construction state (stored in backgroundRect.opts to avoid extra module locals)
+	local prevUnderConstruction = backgroundRect.opts.builderUnderConstruction
+	if not activeBuilderID or not builderIsFactory then
+		backgroundRect.opts.builderUnderConstruction = false
+		backgroundRect.opts.builderProgress = 0
+	else
+		local isBeingBuilt, progress = spGetUnitIsBeingBuilt(activeBuilderID)
+		backgroundRect.opts.builderUnderConstruction = isBeingBuilt or false
+		backgroundRect.opts.builderProgress = progress or 0
+	end
+	if prevUnderConstruction ~= backgroundRect.opts.builderUnderConstruction then
+		redraw = true
+	end
 end
 
 -- Sometimes we issue commands the game state hasn't changed yet, to actually
@@ -1925,6 +1938,7 @@ local function drawCell(rect)
 
 	local uid = rect.opts.uDefID
 	local disabled = rect.opts.disabled
+	local underConstructionDim = backgroundRect.opts.builderUnderConstruction and not rect.opts.hovered and not disabled
 	local queuenr = rect.opts.queuenr
 	local quotaNumber
 	if WG.Quotas and WG.Quotas.getQuotas()[activeBuilderID] and WG.Quotas.getQuotas()[activeBuilderID][uid] then
@@ -1956,8 +1970,13 @@ local function drawCell(rect)
 	end
 
 	-- unit icon
+	local texprefix = ''
 	if disabled then
 		gl.Color(0.4, 0.4, 0.4, 1)
+		texprefix = 't0.3,0.3,0.3'
+	elseif underConstructionDim then
+		gl.Color(0.66, 0.66, 0.66, 1)
+		texprefix = 't0.6,0.6,0.6'
 	else
 		gl.Color(1, 1, 1, 1)
 	end
@@ -1979,8 +1998,8 @@ local function drawCell(rect)
 		nil,
 		disabled and 0 or nil,
 		"#" .. uid,
-		groupIcon and (groupIcon and ":l" .. (disabled and "t0.3,0.3,0.3" or "") .. ":" .. groupIcon or nil) or nil,
-		unitGroup and (unitGroup and ":l" .. (disabled and "t0.3,0.3,0.3:" or ":") .. unitGroup or nil) or nil,
+		groupIcon and (groupIcon and ":l" .. texprefix .. ":" .. groupIcon or nil) or nil,
+		unitGroup and (unitGroup and ":l" .. texprefix .. ":" .. unitGroup or nil) or nil,
 		{ rect.opts.metalCost, rect.opts.energyCost },
 		tonumber(queuenr)
 	)
@@ -2405,6 +2424,20 @@ local function drawBuilder(rect)
 		)
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
+
+	-- construction progress overlay on the active builder icon
+	if rect.opts.current and backgroundRect.opts.builderUnderConstruction then
+		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		RectRoundProgress(
+			rect.x,
+			rect.y,
+			rect.xEnd,
+			rect.yEnd,
+			math_min(math_max(1, math_floor((rect.xEnd - rect.x) * 0.024)), math_floor((vsy * 0.0015) + 0.5)),
+			1 - (backgroundRect.opts.builderProgress or 0),
+			{ 0.05, 0.05, 0.05, 0.72 }
+		)
+	end
 end
 
 local function drawBuilders()
@@ -2463,8 +2496,19 @@ local function drawBuildMenu()
 		drawBuilders()
 	end
 
-	-- lab build mode button
-	if builderIsFactory and useLabBuildMode then
+	-- under-construction warning replaces/precedes other factory controls
+	if builderIsFactory and backgroundRect.opts.builderUnderConstruction then
+		local warningText = "\255\255\200\50" .. Spring.I18N("ui.buildMenu.underConstruction", { default = "Under Construction" })
+		local fontSize = pageFontSize * 1.1
+		local containerHeight = categoriesRect:getHeight()
+		local fontHeight = font2:GetTextHeight(warningText) * fontSize
+		local fontWidth = font2:GetTextWidth(warningText) * fontSize
+		local center = (categoriesRect:getWidth() / 2) + categoriesRect.x
+		local left = center - (fontWidth / 2)
+		local fontHeightOffset = fontHeight * 0.3
+		font2:Print(warningText, left, (categoriesRect.y + (containerHeight / 2)) - fontHeightOffset, fontSize, "o")
+	elseif builderIsFactory and useLabBuildMode then
+		-- lab build mode button
 		drawBuildModeButtons()
 	end
 

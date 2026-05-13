@@ -145,6 +145,7 @@ local height = 0
 local selectedBuilders = {}
 local selectedBuilderCount = 0
 local selectedFactoryCount = 0
+local prevAnyFactoryUnfinished = false
 local cellRects = {}
 local cmds = {}
 local cmdsCount = 0
@@ -705,12 +706,17 @@ function drawBuildmenuBg()
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0, nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
-local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
+local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruction)
 	local uDefID = -cmds[cellRectID].id
 
 	-- unit icon
+	local texprefix = ''
 	if disabled then
 		glColor(0.4, 0.4, 0.4, 1)
+		texprefix = 't0.3,0.3,0.3'
+	elseif underConstruction then
+		glColor(0.66, 0.66, 0.66, 1)
+		texprefix = 't0.6,0.6,0.6'
 	else
 		glColor(1, 1, 1, 1)
 	end
@@ -723,8 +729,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		usedZoom,
 		nil, disabled and 0 or nil,
 		'#' .. uDefID,
-		showRadarIcon and (((units.unitIconType[uDefID] and iconTypes[units.unitIconType[uDefID]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypes[units.unitIconType[uDefID]] or nil)) or nil,
-		showGroupIcon and (groups[units.unitGroup[uDefID]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[units.unitGroup[uDefID]] or nil) or nil,
+		showRadarIcon and (((units.unitIconType[uDefID] and iconTypes[units.unitIconType[uDefID]]) and ':l' .. texprefix ..':' .. iconTypes[units.unitIconType[uDefID]] or nil)) or nil,
+		showGroupIcon and (groups[units.unitGroup[uDefID]] and ':l' .. texprefix ..':' ..groups[units.unitGroup[uDefID]] or nil) or nil,
 		{units.unitMetalCost[uDefID], units.unitEnergyCost[uDefID]},
 		tonumber(cmds[cellRectID].params[1])
 	)
@@ -872,6 +878,21 @@ function drawBuildmenu()
 	if maxCellRectID > cmdsCount then
 		maxCellRectID = cmdsCount
 	end
+	-- build set of unit defs that can be built by at least one finished factory
+	local finishedBuildable = {}
+	if selectedFactoryCount > 0 then
+		for _, unitID in ipairs(spGetSelectedUnits()) do
+			local defID = spGetUnitDefID(unitID)
+			if units.isFactory and units.isFactory[defID] and not spGetUnitIsBeingBuilt(unitID) then
+				local opts = unitBuildOptions[defID]
+				if opts then
+					for _, optDefID in ipairs(opts) do
+						finishedBuildable[optDefID] = true
+					end
+				end
+			end
+		end
+	end
 	font2:Begin(true)
 	local iconCount = 0
 	for row = 1, rows do
@@ -904,7 +925,8 @@ function drawBuildmenu()
 			local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[-cmds[cellRectID].id])
+			local uDefIDCell = -cmds[cellRectID].id
+			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[uDefIDCell], selectedFactoryCount > 0 and not finishedBuildable[uDefIDCell])
 		end
 	end
 
@@ -1236,6 +1258,23 @@ function widget:GameStart()
 	preGamestartPlayer = false
 
 	unbindBuildUnits()
+end
+
+function widget:GameFrame(n)
+	if n % 15 ~= 0 or selectedFactoryCount == 0 then return end
+	local finishedCount = 0
+	for _, unitID in ipairs(spGetSelectedUnits()) do
+		local defID = spGetUnitDefID(unitID)
+		if units.isFactory and units.isFactory[defID] then
+			if not spGetUnitIsBeingBuilt(unitID) then
+				finishedCount = finishedCount + 1
+			end
+		end
+	end
+	if finishedCount ~= prevAnyFactoryUnfinished then
+		prevAnyFactoryUnfinished = finishedCount
+		refreshBuildmenu = true
+	end
 end
 
 local function setPreGamestartDefID(uDefID)

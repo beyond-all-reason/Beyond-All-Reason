@@ -131,6 +131,10 @@ local cachedWaitState = nil
 local hasWaitCommand = false
 local cachedFirstUnit = nil  -- first selected unit, avoids spGetSelectedUnits() table alloc
 
+-- Cancel target button visibility tracking
+local cancelTargetPollSec = 0
+local cancelTargetLastState = false
+
 -- Command fingerprint to skip redundant R2T redraws
 local prevCmdCount = 0
 local prevCmdIDs = {}
@@ -149,6 +153,8 @@ local lastColorize = -1
 -- Pre-built printable text cache: textColor .. text (cleared on redraw)
 local printTextCache = {}
 
+local CANCEL_TARGET_CMD_ID = 34924 -- UNIT_CANCEL_TARGET
+
 local hiddenCommands = {
 	[CMD.LOAD_ONTO] = true,
 	[CMD.SELFD] = true,
@@ -158,7 +164,7 @@ local hiddenCommands = {
 	[CMD.TIMEWAIT] = true,
 	[CMD.AUTOREPAIRLEVEL] = true, -- retreat/idle mode (air repair pads removed)
 	[39812] = true, -- raw move
-	[34922] = true, -- set unit target
+	[34922] = true, -- set unit target (no ground)
 }
 
 local hiddenCommandTypes = {
@@ -342,13 +348,17 @@ local function refreshCommands()
 		otherCommandsTemp[i] = nil
 	end
 
+	-- cancelTargetLastState is kept current by SelectionChanged and by the poll in Update
+	local cancelTargetRelevant = cancelTargetLastState
+
 	local activeCmdDescs = spGetActiveCmdDescs()
 	for _, command in ipairs(activeCmdDescs) do
 		if type(command) == "table" and not disabledCommand[command.name] then
 			if command.type == CMDTYPE_ICON_MODE then
 				isStateCommand[command.id] = true
 			end
-			if not hiddenCommands[command.id] and not hiddenCommandTypes[command.type] and command.action ~= nil and not command.disabled then
+			if not hiddenCommands[command.id] and not hiddenCommandTypes[command.type] and command.action ~= nil and not command.disabled
+					and not (command.id == CANCEL_TARGET_CMD_ID and not cancelTargetRelevant) then
 				if command.type == CMDTYPE_ICON_BUILDING or (string.find(command.action, 'buildunit_', 1, true) == 1) then
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
@@ -657,6 +667,33 @@ function widget:Update(dt)
 	activeCommand = select(4, spGetActiveCommand())
 	if activeCommand ~= previousActiveCommand then
 		doUpdate = true
+	end
+
+	-- Poll for priority target changes on selected units to show/hide 'canceltarget'
+	cancelTargetPollSec = cancelTargetPollSec + dt
+	if cancelTargetPollSec > 0.1 then
+		cancelTargetPollSec = 0
+		if #commands > 0 or alwaysShow then
+			local hasTarget = false
+			local selected = Spring.GetSelectedUnits()
+			for i = 1, #selected do
+				local uid = selected[i]
+				local targetID = Spring.GetUnitRulesParam(uid, "targetID")
+				if targetID and targetID > 0 then
+					hasTarget = true
+					break
+				end
+				local targetX = Spring.GetUnitRulesParam(uid, "targetCoordX")
+				if targetX and targetX >= 0 then
+					hasTarget = true
+					break
+				end
+			end
+			if hasTarget ~= cancelTargetLastState then
+				cancelTargetLastState = hasTarget
+				doUpdate = true
+			end
+		end
 	end
 
 	if (WG['guishader'] and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0)) then
@@ -1178,6 +1215,22 @@ function widget:SelectionChanged(sel)
 
 	-- Cache first selected unit to avoid spGetSelectedUnits() table allocation later
 	cachedFirstUnit = sel[1] or nil
+
+	-- Update cancel target state using the selection already provided here
+	cancelTargetLastState = false
+	for i = 1, #sel do
+		local uid = sel[i]
+		local targetID = Spring.GetUnitRulesParam(uid, "targetID")
+		if targetID and targetID > 0 then
+			cancelTargetLastState = true
+			break
+		end
+		local targetX = Spring.GetUnitRulesParam(uid, "targetCoordX")
+		if targetX and targetX >= 0 then
+			cancelTargetLastState = true
+			break
+		end
+	end
 
 	-- Adaptive throttling: increase delay based on selection size
 	local selCount = #sel
