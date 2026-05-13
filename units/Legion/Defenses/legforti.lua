@@ -44,6 +44,7 @@ return {
 			removestop = true,
 			removewait = true,
 			subfolder = "legion/Defenses",
+			techlevel = 2,
 		},
 		featuredefs = {
 			rockteethx = {
