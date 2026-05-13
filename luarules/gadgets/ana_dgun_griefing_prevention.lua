@@ -1,11 +1,28 @@
 local gadget = gadget ---@type Gadget
 --[[
-TODO: how to deal with jammed high ground units?
-- One idea: track ghosts by tracking when ghost-leaving units enter LOS
-  - To remove ghost: either add new callin from Engine notifying when ghost is removed (too much complexity?)...
-  - Or track when the ghost's position comes in LOS again and whether that unit is still there (has to be checked every frame, seems costly)
-    - note: see updateGhostSites in unit_ghostsite_gl4. This suggests it IS performant
+This gadget classifies dguns fired by the player to three possible outcomes:
+* DGUN nominal: the Dgun is a normal dgun that doesn't threaten any allies. This should be most legitimately fired combat dguns (but also includes dguns that only threaten self-owned units)
+* DGUN grief negative: the Dgun threatens allied units, but for one reason or another (see below), it is not actually considered griefing
+* DGUN grief positive: the Dgun threatens allied units and is considered griefing
 
+Reasons a Dgun would threaten allies, but be classified as not griefing:
+* Not enough allied metal value threatened (ignored as inconsequential)
+* Commander is on the frontline (all dguns are considered combat dguns that can potentially hit allies for the greater good). Frontline indicators:
+  * Enemies nearby on vision, radar, or seismic
+  * Enemies recently detected nearby on vision, radar, or seismic (in case allied radar is briefly destroyed, or LOS is briefly lost, etc)
+  * Allies damaged nearby recently (implies enemy activity nearby even if it might be jammed)
+  * Enemy buildings detected nearby (including building ghosts)
+
+Reasons for these exceptions: some Dguns that hit allies are nonetheless for the greater good. e.g.,
+* Dgunning enemy razor but accidentally hitting allied popup nearby;
+* Denying reclaim by dgunning allied buildings while the position is actively collapsing to enemy activity;
+* Dgunning through allied walls or other pathblocking units to escape enemy comm snipe attempt;
+* Dgun attempts at jammed units on high ground (but accidentally clipping allied units)
+
+We don't want to flag legitimate ally-hitting dgun usages as griefing, so these are all marked as grief-negatives.
+
+The goal of this gadget is to eventually ENTIRELY PREVENT the issuance of grief-positive DGun commands. This approach must be first
+validated through analytics, however; that's what this gadget gathers.
 ]]
 
 function gadget:GetInfo()
@@ -16,7 +33,7 @@ function gadget:GetInfo()
 		date    = "2026-05-01",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
-        version = "1.4",
+        version = "1.5",
 		enabled = true,
 	}
 end
@@ -39,7 +56,7 @@ local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameRulesParam = Spring.GetGameRulesParam
-local spEcho = Spring.Echo
+local spGetUnitHealth = Spring.GetUnitHealth
 
 local CMD_DGUN = CMD.DGUN
 local DGUN_RANGE = 280
@@ -116,7 +133,6 @@ end
 -- Nearby frontline contacts enable dguns to be fired indiscriminately
 local function PruneExpiredCaches(currentFrame)
 	for i = #contactsCache, 1, -1 do
-		spEcho(contactsCache[i])
 		if contactsCache[i].expiresFrame <= currentFrame then
 			table.remove(contactsCache, i)
 		end
@@ -251,13 +267,18 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitRadius = GetApproxUnitRadius(unitDefID)
 		-- Self-owned units are exempt (only consider allied owned units).
-		if unitTeam ~= teamID and GetAllyTeamID(unitTeam) == myAllyTeam then
+		if unitTeam and unitTeam ~= teamID and GetAllyTeamID(unitTeam) == myAllyTeam then
 			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 			if unitX then
 				local d = DistPointToSegment(unitX, unitY, unitZ, startX, startY, startZ, endX, endY, endZ)
 				if d < unitRadius + DGUN_WIDTH / 2 then
 					local unitDef = unitDefID and UnitDefs[unitDefID]
-					local threatenedMetal = unitDef and unitDef.metalCost or 0
+					local threatenedMetal = 0
+					if unitDef then
+						-- Partially built units only contribute proportional metal value to threat
+						local buildProgress = select(5, spGetUnitHealth(unitID)) or 1
+						threatenedMetal = unitDef.metalCost * math.min(buildProgress, 1)
+					end
 					threatenedAllyMetal = threatenedAllyMetal + threatenedMetal
 					if threatenedMetal > mostExpensiveThreatenedMetal then
 						mostExpensiveThreatenedMetal = threatenedMetal
@@ -269,7 +290,7 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 	end
 
 	if threatenedAllyMetal >= MIN_THREATENED_ALLY_METAL then
-		return true, string.format("DGun threatens allies, including %s", mostExpensiveThreatenedUnitName or "unknown_unit")
+		return true, string.format("DGun threatens %d metal of allies, including %s", threatenedAllyMetal, mostExpensiveThreatenedUnitName or "unknown_unit")
 	end
 
 	if threatenedAllyMetal == 0 then
@@ -278,6 +299,7 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 	
 	return false, string.format("Only %d allied metal threatened (inconsequential)", threatenedAllyMetal)
 end
+
 -- If DGun target location is near a visible enemy, we leave the order alone
 local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 	local myAllyTeam = GetAllyTeamID(teamID)
@@ -341,12 +363,11 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 	end
 
 	local myAllyTeam = spGetMyAllyTeamID()
-	-- spEcho("check a")
 	if GetAllyTeamID(unitTeam) ~= myAllyTeam then
 		return -- not one of our allies that was damaged
 	end
 
-	if attackerTeam ~= gaiaTeamID and GetAllyTeamID(attackerTeam) ~= myAllyTeam then
+	if attackerTeam and attackerTeam ~= gaiaTeamID and GetAllyTeamID(attackerTeam) ~= myAllyTeam then
 		local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 		if unitX then
 			recentlyDamagedAlliedUnits[unitID] = {
@@ -437,7 +458,7 @@ function gadget:GameFrame(currentFrame)
 	end
 end
 
--- Observe DGun commands and echo only. We do not block the command anymore.
+-- Observe DGun commands and write analytics
 function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if teamID ~= Spring.GetMyTeamID() then
 		return -- not one of our commands
