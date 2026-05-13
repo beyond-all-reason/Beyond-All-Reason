@@ -67,7 +67,8 @@ local function callUnitScript(unitID, luaEnv, methodName, ...)
 	end
 end
 
-local gameSpeedInverse = 1 / Game.gameSpeed
+local gameSpeed = Game.gameSpeed
+local gameSpeedInverse = 1 / gameSpeed
 
 local armorTypeMin = 0
 local armorTypeMax = #Game.armorTypes
@@ -141,6 +142,12 @@ local call = setmetatable({}, {
 		return tbl
 	end
 })
+
+-- The engine will cast to int, which truncates. We prefer rounding, on net, and
+-- we want to enforce a one-frame floor for reloading, stockpiling, bursts, etc.
+local function toFrameTime(seconds)
+	return math_max(math_round(seconds * gameSpeed), 1) * gameSpeedInverse + 1e-7
+end
 
 -- Unit veterancies ------------------------------------------------------------
 
@@ -217,7 +224,7 @@ veterancyEffects.reload = {
 		for index = 3, #upgrade do
 			if upgrade[index] then
 				-- This method combines reloadTime with reloadSpeed as an aggregate stat:
-				local reloadTime = math_max(upgrade[index] / reloadDiv, gameSpeedInverse)
+				local reloadTime = toFrameTime(upgrade[index] / reloadDiv)
 				local weapon = index - 2
 				spSetUnitWeaponState(unitID, weapon, "reloadTime", reloadTime)
 				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weapon], reloadTime * 1000)
@@ -269,7 +276,7 @@ veterancyEffects.scripted_reload = {
 			local weapon = index - 2
 			if upgrade[index] then
 				-- This method combines reloadTime with reloadSpeed as an aggregate stat:
-				local reloadTime = math_max(upgrade[index] / reloadDiv, gameSpeedInverse)
+				local reloadTime = toFrameTime(upgrade[index] / reloadDiv)
 				spSetUnitWeaponState(unitID, weapon, "reloadTime", reloadTime)
 				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weapon], reloadTime * 1000)
 				reloadMax = math_max(reloadMax, gameSpeedInverse, reloadTime)
@@ -507,7 +514,7 @@ veterancyEffects.reload_then_burst = {
 				local weapon = index - 2
 
 				local burstDuration = burst * salvo
-				local reloadWanted = math_max(reload / reloadDiv, gameSpeedInverse)
+				local reloadWanted = toFrameTime(reload / reloadDiv)
 				if reloadWanted < burstDuration then
 					-- When reload and burst are the same, treat each as fully scaling with XP.
 					local salvoDelay
@@ -516,8 +523,8 @@ veterancyEffects.reload_then_burst = {
 					else
 						-- Else, we rescale the burst and the reload-below-burst by half, each.
 						local difference = (burstDuration - reloadWanted) * 0.5
-						reloadWanted = math_max(reloadWanted - difference, gameSpeedInverse)
-						salvoDelay = math_max((burstDuration - difference) / salvo, gameSpeedInverse)
+						reloadWanted = toFrameTime(reloadWanted - difference)
+						salvoDelay = toFrameTime((burstDuration - difference) / salvo)
 					end
 					spSetUnitWeaponState(unitID, weapon, "burstRate", salvoDelay)
 				end
@@ -599,7 +606,7 @@ veterancyEffects.reload_then_damage = {
 				local weaponDamageMult = 1
 
 				if reload > burst then
-					local reloadWanted = math_max(reload / reloadDiv, gameSpeedInverse)
+					local reloadWanted = toFrameTime(reload / reloadDiv)
 					if reloadWanted < burst then
 						reloadWanted = burst
 						-- Get the XP with equal reload time and burst duration.
