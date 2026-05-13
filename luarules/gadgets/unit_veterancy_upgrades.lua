@@ -619,15 +619,15 @@ veterancyEffects.reload_then_damage = {
 				local damages = upgrade[index]
 				local armorTarget = damages[armorTargetIndex]
 				local armorDamage = spGetUnitWeaponDamages(unitID, weapon, armorTarget)
-				if armorDamage == math_round(damages[armorTarget] * damageMult) then
+				if armorDamage == math_round(damages[armorTarget] * weaponDamageMult) then
 					return
 				end
 				local d = damagesTemp
 				for i = armorTypeMin, armorTypeMax do
-					d[i] = math_round(damages[i] * damageMult)
+					d[i] = math_round(damages[i] * weaponDamageMult)
 				end
 				spSetUnitWeaponDamages(unitID, weapon, d)
-				spSetUnitRulesParam(unitID, "veterancy_damages_multiplier", damageMult)
+				spSetUnitRulesParam(unitID, "veterancy_damages_multiplier", weaponDamageMult)
 			end
 		end
 	end,
