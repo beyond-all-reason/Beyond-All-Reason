@@ -480,6 +480,14 @@
 				"pause": "Pause"
 			}
 		},
+		"blueprint": {
+			"cursor_active": "Blueprint #%{index}",
+			"cursor_none": "No Blueprints",
+			"hotkey_next": "Next",
+			"hotkey_prev": "Previous",
+			"hotkey_delete": "Delete",
+			"hotkey_none": "<none>"
+		},
 		"ignore": {
 			"unknown": "unknown accountID",
 			"ignored": "You are now ignoring %{name} (%{accountID})",
