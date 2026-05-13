@@ -35,6 +35,7 @@ local spGetPositionLosState = Spring.GetPositionLosState
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitLosState = Spring.GetUnitLosState
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetGameFrame = Spring.GetGameFrame
@@ -104,34 +105,22 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 	end
 end
 
--- FIXME exists solely to debug why every spot on the map is "inLOS"
-function gadget:MousePress(mx, my, button)
-	if button ~= 1 then
-		return false
-	end
-
-	local onMiniMap = Spring.IsAboveMiniMap(mx, my)
-	local _, pos = spTraceScreenRay(mx, my, true, onMiniMap)
-	if not pos then
-		return false
-	end
-
-	local x, y, z = pos[1], pos[2], pos[3]
-	local losOrRadar, inLos, inRadar = spGetPositionLosState(x, y, z)
-	spEcho(string.format(
-		"[ClickLOS] x=%.1f y=%.1f z=%.1f losOrRadar=%s inLos=%s inRadar=%s",
-		x, y, z, tostring(losOrRadar), tostring(inLos), tostring(inRadar)
-	))
-
-	return false
-end
-
 function gadget:MouseRelease(mx, my, button)
 end
 
 local function GetPlayerName(playerID)
 	local name = playerID and select(1, spGetPlayerInfo(playerID, false))
 	return name or "unknown player"
+end
+
+local function GetUnitDisplayName(unitDefID)
+	local unitDef = unitDefID and UnitDefs[unitDefID]
+	if not unitDef then
+		return "unknown_unit"
+	end
+
+	return unitDef.name
+		or ("unit #" .. tostring(unitDefID))
 end
 
 local function GetApproxUnitRadius(unitDefID)
@@ -165,12 +154,10 @@ local function PruneExpiredCaches(currentFrame)
 end
 
 local function RemoveEnemyBuildingFromCache(unitID)
-	Spring.Echo("remove building")
 	enemyBuildingsCache[unitID] = nil
 end
 
 local function AddEnemyBuildingToCache(unitID)
-	Spring.Echo("new code")
 	local unitTeam = spGetUnitTeam(unitID)
 	if unitTeam == gaiaTeamID then
 		return
@@ -181,8 +168,6 @@ local function AddEnemyBuildingToCache(unitID)
 		return
 	end
 
-	Spring.Echo("building location:", unitX, unitY, unitZ)
-
 	enemyBuildingsCache[unitID] = {
 		x = unitX,
 		y = unitY,
@@ -192,17 +177,17 @@ end
 
 local function UpdateEnemyBuildingCache()
 	for unitID, site in pairs(enemyBuildingsCache) do
-		local _, inLos = spGetPositionLosState(site.x, site.y, site.z)
+		local _, inLos = spGetPositionLosState(site.x, site.y, site.z, spGetMyTeamID())
 		if inLos then
 			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 			if not unitX then
-				enemyBuildingsCache[unitID] = nil
+				RemoveEnemyBuildingFromCache(unitID)
 			else
 				local deltaX = unitX - site.x
 				local deltaY = unitY - site.y
 				local deltaZ = unitZ - site.z
 				if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) > 1 then
-					enemyBuildingsCache[unitID] = nil
+					RemoveEnemyBuildingFromCache(unitID)
 				end
 			end
 		end
@@ -221,10 +206,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		return
 	end
 
-	local _, inLos = spGetPositionLosState(site.x, site.y, site.z)
-	Spring.Echo(spGetPositionLosState(site.x, site.y, site.z))
+	local _, inLos = spGetPositionLosState(site.x, site.y, site.z, spGetMyTeamID())
 	if inLos then
-		Spring.Echo("in LOS somehow???")
 		RemoveEnemyBuildingFromCache(unitID)
 	end
 end
@@ -293,8 +276,8 @@ local function DistPointToSegment(pointX, pointY, pointZ, segmentStartX, segment
 	return math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
 end
 
--- Returns True if DGUN threatens too much allied stuff (see: MIN_THREATENED_ALLY_METAL)
--- Returns False if DGUN threatens nothing
+-- Returns True and most expensive threatened ally if DGUN threatens too much allied stuff (see: MIN_THREATENED_ALLY_METAL)
+-- Returns False and nill if DGUN threatens nothing
 -- Returns False and an explanation if DGUN threatens stuff, but not enough to be concerned about
 local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
 	-- Build a cheap box around the beam first, then do the precise segment test
@@ -308,6 +291,8 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 	local candidates = spGetUnitsInBox(minx, miny, minz, maxx, maxy, maxz)
 	local myAllyTeam = GetAllyTeamID(teamID)
 	local threatenedAllyMetal = 0
+	local mostExpensiveThreatenedMetal = 0
+	local mostExpensiveThreatenedUnitName = nil
 	for i = 1, #candidates do
 		local unitID = candidates[i]
 		local unitTeam = spGetUnitTeam(unitID)
@@ -322,13 +307,17 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 					local unitDef = unitDefID and UnitDefs[unitDefID]
 					local threatenedMetal = unitDef and unitDef.metalCost or 0
 					threatenedAllyMetal = threatenedAllyMetal + threatenedMetal
+					if threatenedMetal > mostExpensiveThreatenedMetal then
+						mostExpensiveThreatenedMetal = threatenedMetal
+						mostExpensiveThreatenedUnitName = GetUnitDisplayName(unitDefID)
+					end
 				end
 			end
 		end
 	end
 
 	if threatenedAllyMetal >= MIN_THREATENED_ALLY_METAL then
-		return true
+		return true, string.format("DGun threatens allies, including %s", mostExpensiveThreatenedUnitName or "unknown_unit")
 	end
 
 	if threatenedAllyMetal == 0 then
@@ -463,19 +452,27 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 
 	local startX, startY, startZ, endX, endY, endZ = BuildDGunSegment(unitX, unitY, unitZ, targetX, targetY, targetZ)
 
-	local risksAllies, explanation = HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
+	local risksAllies, allyThreatInfo = HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
 
 	if not risksAllies then
-		if explanation then
+		if allyThreatInfo then
 			ForwardAnalyticsEvent("dgun_grief_negative", {
 				position = { targetX, targetY, targetZ },
 				time = spGetGameFrame(),
 				gameID = GetGameID(),
 				player = GetPlayerName(playerID),
-				reason = explanation,
+				reason = allyThreatInfo,
 			})
+		else
+			ForwardAnalyticsEvent("dgun_nominal", {
+				position = { targetX, targetY, targetZ },
+				time = spGetGameFrame(),
+				gameID = GetGameID(),
+				player = GetPlayerName(playerID),
+				reason = "Normal DGun: no allies threatened",
+			})
+
 		end
-		-- Else send no event as no allies were threatened at all
 		return
 	end
 
@@ -497,6 +494,7 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		time = spGetGameFrame(),
 		gameID = GetGameID(),
 		player = GetPlayerName(playerID),
+		reason = allyThreatInfo,
 	})
 
 
