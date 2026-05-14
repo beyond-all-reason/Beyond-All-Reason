@@ -70,6 +70,7 @@ local numTeamsInAllyTeam = #myAllyTeamList
 -- Game mode / state
 local numPlayers = Spring.Utilities.GetPlayerCount()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isScenario = Spring.GetModOptions().scenariooptions ~= nil
 local chobbyLoaded = false
 local isSingle = false
 local gameStarted = (sp.GetGameFrame() > 0)
@@ -358,8 +359,8 @@ local function updateButtons()
 
 	if WG['options'] then addButton('options', Spring.I18N('ui.topbar.button.settings')) end
 	if WG['keybinds'] then addButton('keybinds', Spring.I18N('ui.topbar.button.keys')) end
-	if WG['changelog'] then addButton('changelog', Spring.I18N('ui.topbar.button.changes')) end
-	if WG['teamstats'] then addButton('stats', Spring.I18N('ui.topbar.button.stats')) end
+	if WG['changelog'] and not isScenario then addButton('changelog', Spring.I18N('ui.topbar.button.changes')) end
+	if WG['teamstats'] and not isScenario then addButton('stats', Spring.I18N('ui.topbar.button.stats')) end
 	if gameIsOver then addButton('graphs', Spring.I18N('ui.topbar.button.graphs')) end
 	if WG['scavengerinfo'] then addButton('scavengers', Spring.I18N('ui.topbar.button.scavengers')) end
 	if isSinglePlayer and cfg.allowSavegame and WG['savegame'] then addButton('save', Spring.I18N('ui.topbar.button.save')) end
@@ -425,7 +426,7 @@ local function updateComs(forceText)
 			local brCornerX = area[3] - (cfg.useSkew and areaH * skewTan or 0)
 			font2:Print('\255\255\000\000' .. enemyComCount, brCornerX - (1.2 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, 'or')
 			fontSize = areaH / 1.9
-			font2:Print("\255\000\255\000" .. allyComs, cx, area[2] + (areaH / 2.05) - (fontSize / 5), fontSize, 'oc')
+			font2:Print("\255\000\255\000" .. allyComs, cx, area[2] + (areaH / 1.77) - (fontSize / 5), fontSize, 'oc')
 			font2:End()
 		end
 	end)
@@ -658,14 +659,17 @@ local function updateResbarText(res, force)
 							end
 						end
 
-						RectRound(resbarArea[res][3] - textWidth, resbarArea[res][4] - 15.5 * widgetScale, resbarArea[res][3], resbarArea[res][4], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)
-						RectRound(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4], 2.8 * widgetScale, 0, 0, 1, 1, color3, color4)
-						RectRoundOutline(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4]+10, 2.8 * widgetScale, bgpadding2*1.33, 0, 0, 1, 1, {1, 1, 1, 0.15}, {1, 1, 1, 0})
+						local bannerH = 15.5 * widgetScale
+						local bannerRightX = resbarArea[res][3] - (res == 'energy' and cfg.useSkew and bannerH * skewTan * 0.5 or 0)
+
+						RectRound(bannerRightX - textWidth, resbarArea[res][4] - bannerH, bannerRightX, resbarArea[res][4], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)
+						RectRound(bannerRightX - textWidth + bgpadding2, resbarArea[res][4] - bannerH + bgpadding2, bannerRightX - bgpadding2, resbarArea[res][4], 2.8 * widgetScale, 0, 0, 1, 1, color3, color4)
+						RectRoundOutline(bannerRightX - textWidth + bgpadding2, resbarArea[res][4] - bannerH + bgpadding2, bannerRightX - bgpadding2, resbarArea[res][4]+10, 2.8 * widgetScale, bgpadding2*1.33, 0, 0, 1, 1, {1, 1, 1, 0.15}, {1, 1, 1, 0})
 
 						font2:Begin(true)
 						font2:SetTextColor(1, 0.88, 0.88, 1)
 						font2:SetOutlineColor(0.2, 0, 0, 0.6)
-						font2:Print(text, resbarArea[res][3], resbarArea[res][4] - 9.3 * widgetScale, fontSize, 'or')
+						font2:Print(text, bannerRightX, resbarArea[res][4] - 9.3 * widgetScale, fontSize, 'or')
 						font2:End()
 					end)
 				end
@@ -1748,15 +1752,15 @@ local function renderWindText()
     font2:Begin(true)
     font2:SetOutlineColor(0,0,0,1)
     -- current wind (large, centered)
-    font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2.1) - skewCenterOffset, windArea[2] + (windH / 1.8) - (fontSize / 5), fontSize, 'oc')
+    font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2.1) - skewCenterOffset, windArea[2] + (windH / 1.85) - (fontSize / 5), fontSize, 'oc')
     -- min wind: top area, x corrected for slope at text height
-    local smallFS = windH / 3.2
+    local smallFS = windH / 3.4
     local minBaseline = windArea[4] - smallFS + (1 * widgetScale)
     local minWindX = windArea[3] - (cfg.useSkew and skewTan * (windArea[4] - minBaseline) or 0) - (4.5 * widgetScale)
-    font2:Print("\255\210\210\210" .. minWind, minWindX, minBaseline, smallFS, 'or')
+    font2:Print("\255\166\166\166" .. minWind, minWindX, minBaseline, smallFS, 'or')
     -- max wind: bottom-right corner
     local brWindX = windArea[3] - (cfg.useSkew and windH * skewTan or 0)
-    font2:Print("\255\210\210\210" .. maxWind, brWindX - (1.2 * widgetScale), windArea[2] + (4.5 * widgetScale), smallFS, 'or')
+    font2:Print("\255\166\166\166" .. maxWind, brWindX - (1.2 * widgetScale), windArea[2] + (4.5 * widgetScale), smallFS, 'or')
     font2:End()
 end
 
