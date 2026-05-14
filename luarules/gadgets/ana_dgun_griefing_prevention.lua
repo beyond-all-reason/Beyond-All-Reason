@@ -88,7 +88,9 @@ local enemyBuildingsCache = {}
 -- Allies being damaged nearby recently implies we are near combat, so dguns are allowed
 local ALLY_DAMAGE_WINDOW = 30 * 30 -- 30 seconds at 30 gameframes per second
 local CACHE_PRUNE_INTERVAL = 60 * 30 -- prune expired cache contents every minute
+local ENEMY_BUILDING_UPDATE_INTERVAL = 10
 local nextContactPruneFrame = CACHE_PRUNE_INTERVAL
+local nextEnemyBuildingUpdateFrame = 0
 local recentlyDamagedAlliedUnits = {}
 local myTeamID = spGetMyTeamID()
 local myAllyTeamID = spGetMyAllyTeamID()
@@ -210,7 +212,16 @@ end
 
 -- Updates the enemy building cache based on LOS info on the current frame.
 -- Nearby enemy buidlings enable dguns to be fired indiscriminately
-local function UpdateEnemyBuildingCache()
+local function UpdateEnemyBuildingCache(currentFrame)
+	if currentFrame < nextEnemyBuildingUpdateFrame then
+		return
+	end
+	nextEnemyBuildingUpdateFrame = currentFrame + ENEMY_BUILDING_UPDATE_INTERVAL
+
+	if not next(enemyBuildingsCache) then
+		return
+	end
+
 	for unitID, site in pairs(enemyBuildingsCache) do
 		local _, inLos = spGetPositionLosState(site.x, site.y, site.z, myAllyTeamID)
 		if inLos then
@@ -408,12 +419,20 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 	if attackerTeam and attackerTeam ~= gaiaTeamID and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
 		local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 		if unitX then
-			recentlyDamagedAlliedUnits[unitID] = {
-				x = unitX,
-				y = unitY,
-				z = unitZ,
-				expiresFrame = spGetGameFrame() + ALLY_DAMAGE_WINDOW,
-			}
+			local cache = recentlyDamagedAlliedUnits[unitID]
+			if cache then
+				cache.x = unitX
+				cache.y = unitY
+				cache.z = unitZ
+				cache.expiresFrame = spGetGameFrame() + ALLY_DAMAGE_WINDOW
+			else
+				recentlyDamagedAlliedUnits[unitID] = {
+					x = unitX,
+					y = unitY,
+					z = unitZ,
+					expiresFrame = spGetGameFrame() + ALLY_DAMAGE_WINDOW,
+				}
+			end
 		end
 	end
 end
@@ -481,7 +500,7 @@ function gadget:UnitSeismicPing(positionX, positionY, positionZ, strength, allyT
 end
 
 function gadget:GameFrame(currentFrame)
-	UpdateEnemyBuildingCache()
+	UpdateEnemyBuildingCache(currentFrame)
 	if currentFrame < nextContactPruneFrame then
 		return
 	end
