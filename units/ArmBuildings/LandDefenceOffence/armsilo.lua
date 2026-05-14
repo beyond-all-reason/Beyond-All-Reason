@@ -36,6 +36,7 @@ return {
 			techlevel = 2,
 			unitgroup = "nuke",
 			usebuildinggrounddecal = true,
+			canareaattack = 1,
 		},
 		featuredefs = {
 			dead = {

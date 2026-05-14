@@ -45,6 +45,7 @@ return {
 			subfolder = "CorShips/T2",
 			techlevel = 2,
 			unitgroup = "nuke",
+			canareaattack = 1,
 		},
 		featuredefs = {
 			dead = {
