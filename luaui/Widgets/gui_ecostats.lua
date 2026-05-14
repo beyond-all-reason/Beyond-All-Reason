@@ -358,7 +358,7 @@ local function updateButtons()
 			topbarArea[2] = topbarArea[4]
 		end
 		widgetPosX = topbarArea[3] - widgetWidth
-		widgetPosY = topbarArea[2] - widgetHeight
+		widgetPosY = (topbarArea[6] or topbarArea[2]) - widgetHeight
 	end
 
 	if widgetPosX + widgetWidth / 2 > vsx / 2 then
