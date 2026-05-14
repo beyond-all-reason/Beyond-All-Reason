@@ -54,11 +54,23 @@ local converterUse
 local formatOptions = { showSign = true }
 
 local function updateUI()
+	local localSkewTan = 0
+	local useSkew = false
 	if WG['topbar'] then
 		local freeArea = WG['topbar'].GetFreeArea()
 		widgetScale = freeArea[5]
+		local topbarH = freeArea[4] - freeArea[2]
+		local smallVPad = 0
+		if WG['topbar'].GetSkewConfig then
+			local skewCfg = WG['topbar'].GetSkewConfig()
+			useSkew = skewCfg.useSkew
+			localSkewTan = skewCfg.skewTan
+			if useSkew then
+				smallVPad = floor(topbarH * (1 - skewCfg.smallElementHeightFraction))
+			end
+		end
 		area[1] = freeArea[1]
-		area[2] = freeArea[2]
+		area[2] = freeArea[2] + smallVPad
 		area[3] = freeArea[1] + floor(90 * widgetScale)
 		if area[3] > freeArea[3] then
 			area[3] = freeArea[3]
@@ -84,7 +96,9 @@ local function updateUI()
         glDeleteList(dlistCU)
     end
 	dlistCU = glCreateList(function()
-		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
+		local H = area[4] - area[2]
+		local skew = useSkew and {blx = -(H * localSkewTan), brx = -(H * localSkewTan)} or nil
+		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, nil, skew)
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistGuishader, 'converter_usage')

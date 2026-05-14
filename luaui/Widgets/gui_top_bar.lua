@@ -1051,6 +1051,9 @@ function init()
 		WG['topbar'].GetFreeArea = function()
 			return { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[3] - width - widgetSpaceMargin, topbarArea[4], widgetScale}
 		end
+		WG['topbar'].GetSkewConfig = function()
+			return { useSkew = cfg.useSkew, skewTan = skewTan, smallElementHeightFraction = cfg.smallElementHeightFraction }
+		end
 	end
 
 	updateResbarText('metal', true)
