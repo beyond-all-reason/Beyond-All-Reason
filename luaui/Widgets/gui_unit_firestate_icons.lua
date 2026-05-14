@@ -46,11 +46,13 @@ local popElementInstance  = InstanceVBOTable.popElementInstance
 --------------------------------------------------------------------------------
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
-	if unitDef.weapons and #unitDef.weapons > 0 then
-		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = 2.5 * (xsize*xsize + zsize*zsize)^0.5
-		unitConf[udid] = {11 + (scale / 2.2), unitDef.height}
-	end
+    local hasWeapons = unitDef.weapons and #unitDef.weapons > 0
+    local isFactory  = unitDef.isFactory
+    if hasWeapons or isFactory then
+        local xsize, zsize = unitDef.xsize, unitDef.zsize
+        local scale = 2.5 * (xsize*xsize + zsize*zsize)^0.5
+        unitConf[udid] = {11 + (scale / 2.2), unitDef.height}
+    end
 end
 
 -- All visible units: [unitID] = unitDefID

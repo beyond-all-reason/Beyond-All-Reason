@@ -5066,6 +5066,13 @@ function init()
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuilders', { 'includeBuilders' }, value)
 		  end,
 		},
+		{ id = "smartselect_includeresurrectors", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeresurrectors'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeresurrectors_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeResurrectors', { 'includeResurrectors' }, value)
+		  end,
+		},
 		{ id = "smartselect_includeantinuke", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeantinuke'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeantinuke_descr'),
 		  onload = function(i)
 		  end,

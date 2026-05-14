@@ -150,21 +150,29 @@ if gadgetHandler:IsSyncedCode() then
 		return ownTeam and enemyTeam and spAreTeamsAllied(ownTeam, enemyTeam)
 	end
 
+	local function TargetCanBeReachedReal(unitID, weaponList, target)
+		local isUnitTarget = type(target) == "number"
+		for weaponNum in pairsNext, weaponList do
+			--GetUnitWeaponTryTarget tests both target type validity and target to be reachable for the moment
+			if isUnitTarget and spGetUnitWeaponTryTarget(unitID, weaponNum, target) then
+				return weaponNum
+			elseif
+				not isUnitTarget
+				and spGetUnitWeaponTestTarget(unitID, weaponNum, target[1], target[2], target[3])
+				and spGetUnitWeaponTestRange(unitID, weaponNum, target[1], target[2], target[3])
+				and spGetUnitWeaponHaveFreeLineOfFire(unitID, weaponNum, nil, nil, nil, target[1], target[2], target[3])
+			then
+				return weaponNum
+			end
+		end
+	end
+
 	local function TargetCanBeReached(unitID, teamID, weaponList, target)
 		if not weaponList then
 			return
 		end
-		local isUnitTarget = type(target) == "number"
-		for weaponID in pairsNext, weaponList do
-			--GetUnitWeaponTryTarget tests both target type validity and target to be reachable for the moment
-			if isUnitTarget and CallAsTeam(teamID, spGetUnitWeaponTryTarget, unitID, weaponID, target) then
-				return weaponID
-			elseif not isUnitTarget and CallAsTeam(teamID, spGetUnitWeaponTestTarget, unitID, weaponID, target[1], target[2], target[3]) and CallAsTeam(teamID, spGetUnitWeaponTestRange, unitID, weaponID, target[1], target[2], target[3]) then
-				if CallAsTeam(teamID, spGetUnitWeaponHaveFreeLineOfFire, unitID, weaponID, nil, nil, nil, target[1], target[2], target[3]) then
-					return weaponID
-				end
-			end
-		end
+
+		return CallAsTeam(teamID, TargetCanBeReachedReal, unitID, weaponList, target)
 	end
 
 	local function checkTarget(unitID, target)
@@ -176,7 +184,7 @@ if gadgetHandler:IsSyncedCode() then
 		local unitData = unitTargets[unitID]
 		if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, targetData.target) then
 			local currentCmdID = spGetUnitCurrentCommand(unitID)
-			if currentCmdID and currentCmdID == CMD.ATTACK then
+			if currentCmdID == CMD.ATTACK then
 				return false
 			else
 				Spring.SetUnitTarget(unitID, nil)
@@ -315,7 +323,7 @@ if gadgetHandler:IsSyncedCode() then
 			sendTargetsToUnsynced(unitID)
 			if setTarget(unitID, data.targets[1]) then
 				if data.currentIndex ~= 1 then
-					unitTargets[unitID].currentIndex = 1
+					data.currentIndex = 1
 					SendToUnsynced("targetIndex", unitID, 1)
 				end
 			end

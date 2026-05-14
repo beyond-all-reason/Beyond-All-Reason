@@ -49,7 +49,13 @@ local cfg = {
 	escapeKeyPressesQuit = false,
 	allowSavegame = true, -- Spring.Utilities.ShowDevUI()
 	spawnWarpInFrame = Game.spawnWarpInFrame,
+	useSkew = true,                -- toggle trapezoidal/parallelogram skew on all UI elements
+	skewAngleDeg = 20,           -- angle of skew slope in degrees
+	smallElementHeightFraction = 0.85, -- wind/tidal/coms/buttons height as fraction of topbar
 }
+
+-- Precomputed skew tangent (updated whenever cfg is read at init)
+local skewTan = math.tan(math.rad(cfg.skewAngleDeg))
 
 -- System
 local guishaderEnabled = false
@@ -64,6 +70,7 @@ local numTeamsInAllyTeam = #myAllyTeamList
 -- Game mode / state
 local numPlayers = Spring.Utilities.GetPlayerCount()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isScenario = Spring.GetModOptions().scenariooptions ~= nil
 local chobbyLoaded = false
 local isSingle = false
 local gameStarted = (sp.GetGameFrame() > 0)
@@ -352,8 +359,8 @@ local function updateButtons()
 
 	if WG['options'] then addButton('options', Spring.I18N('ui.topbar.button.settings')) end
 	if WG['keybinds'] then addButton('keybinds', Spring.I18N('ui.topbar.button.keys')) end
-	if WG['changelog'] then addButton('changelog', Spring.I18N('ui.topbar.button.changes')) end
-	if WG['teamstats'] then addButton('stats', Spring.I18N('ui.topbar.button.stats')) end
+	if WG['changelog'] and not isScenario then addButton('changelog', Spring.I18N('ui.topbar.button.changes')) end
+	if WG['teamstats'] and not isScenario then addButton('stats', Spring.I18N('ui.topbar.button.stats')) end
 	if gameIsOver then addButton('graphs', Spring.I18N('ui.topbar.button.graphs')) end
 	if WG['scavengerinfo'] then addButton('scavengers', Spring.I18N('ui.topbar.button.scavengers')) end
 	if isSinglePlayer and cfg.allowSavegame and WG['savegame'] then addButton('save', Spring.I18N('ui.topbar.button.save')) end
@@ -399,21 +406,27 @@ local function updateComs(forceText)
 	comsDlistUpdate = true
 	dlist.coms = glCreateList(function()
 		-- Commander icon
-		local sizeHalf = (height / 2.44) * widgetScale
+		local areaH = area[4] - area[2]
+		local sizeHalf = areaH / 2.44
 		local yOffset = ((area[3] - area[1]) * 0.025)
+		-- Parallelogram visual center is shifted left; correct content to the right.
+		local skewCenterOffset = cfg.useSkew and areaH * skewTan * 0.5 or 0
+		local cx = area[1] + ((area[3] - area[1]) / 2) - skewCenterOffset
 		if VFS.FileExists(texPath) then
 			glTexture(textures.com)
-			glTexRect(area[1] + ((area[3] - area[1]) / 2) - sizeHalf, area[2] + ((area[4] - area[2]) / 2) - sizeHalf +yOffset, area[1] + ((area[3] - area[1]) / 2) + sizeHalf, area[2] + ((area[4] - area[2]) / 2) + sizeHalf+yOffset)
+			glTexRect(cx - sizeHalf, area[2] + (areaH / 2) - sizeHalf +yOffset, cx + sizeHalf, area[2] + (areaH / 2) + sizeHalf+yOffset)
 			glTexture(false)
 		end
 		-- Text
 		if gameFrame > 0 or forceText then
 			font2:Begin(true)
-			local fontsize = (height / 2.85) * widgetScale
+			local fontsize = areaH / 2.5
 			font2:SetOutlineColor(0,0,0,1)
-			font2:Print('\255\255\000\000' .. enemyComCount, area[3] - (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, 'or')
-			fontSize = (height / 2.15) * widgetScale
-			font2:Print("\255\000\255\000" .. allyComs, area[1] + ((area[3] - area[1]) / 2), area[2] + ((area[4] - area[2]) / 2.05) - (fontSize / 5), fontSize, 'oc')
+			-- Enemy count: anchor to actual bottom-right corner of parallelogram with small padding
+			local brCornerX = area[3] - (cfg.useSkew and areaH * skewTan or 0)
+			font2:Print('\255\255\000\000' .. enemyComCount, brCornerX - (1.2 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, 'or')
+			fontSize = areaH / 1.9
+			font2:Print("\255\000\255\000" .. allyComs, cx, area[2] + (areaH / 1.77) - (fontSize / 5), fontSize, 'oc')
 			font2:End()
 		end
 	end)
@@ -443,13 +456,14 @@ end
 local function updateWind()
 	local area = windArea
 
-	local bladesSize = height*0.53 * widgetScale
+	local bladesSize = (area[4] - area[2]) * 0.57
 
 	if dlist.wind1 then glDeleteList(dlist.wind1) end
 	dlist.wind1 = glCreateList(function()
 		-- blades icon
+		local skewCenterOffset = cfg.useSkew and (area[4] - area[2]) * skewTan * 0.5 or 0
 		glPushMatrix()
-		glTranslate(area[1] + ((area[3] - area[1]) / 2), area[2] + (bgpadding/2) + ((area[4] - area[2]) / 2), 0)
+		glTranslate(area[1] + ((area[3] - area[1]) / 2) - skewCenterOffset, area[2] + (bgpadding/2) + ((area[4] - area[2]) / 2), 0)
 		glColor(1, 1, 1, 0.2)
 		glTexture(textures.blades)
 		-- gl.Rotate is done after displaying this dl, and before dl2
@@ -492,8 +506,8 @@ local function updateTidal()
 	local area = tidalarea
 
 	if dlist.tidal2 then glDeleteList(dlist.tidal2) end
-	local wavesSize = height*0.53 * widgetScale
-	tidalWaveAnimationHeight = height*0.1 * widgetScale
+	local wavesSize = (area[4] - area[2]) * 0.59
+	tidalWaveAnimationHeight = (area[4] - area[2]) * 0.1
 
 	dlist.tidal2 = glCreateList(function()
 		glColor(1, 1, 1, 0.2)
@@ -543,8 +557,15 @@ local function updateResbarText(res, force)
 			glDeleteList(dlist.resbar[res][4])
 		end
 		dlist.resbar[res][4] = glCreateList(function()
-			RectRound(resbarArea[res][1] + bgpadding, resbarArea[res][2] + bgpadding, resbarArea[res][3] - bgpadding, resbarArea[res][4], bgpadding * 1.25, 0,0,1,1)
-			RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5 * widgetScale, 0,0,1,1)
+			if res == 'metal' then
+				local skew = cfg.useSkew and {blx = (resbarArea[res][4] - resbarArea[res][2]) * skewTan} or nil
+				WG.FlowUI.Draw.RectRoundQuad(resbarArea[res][1] + bgpadding, resbarArea[res][2] + bgpadding, resbarArea[res][3] - bgpadding, resbarArea[res][4], bgpadding * 1.25, 0,0,1,1, nil, nil, skew)
+				WG.FlowUI.Draw.RectRoundQuad(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5 * widgetScale, 0,0,1,1, nil, nil, skew)
+			else
+				local skew = cfg.useSkew and {brx = -((resbarArea[res][4] - resbarArea[res][2]) * skewTan)} or nil
+				WG.FlowUI.Draw.RectRoundQuad(resbarArea[res][1] + bgpadding, resbarArea[res][2] + bgpadding, resbarArea[res][3] - bgpadding, resbarArea[res][4], bgpadding * 1.25, 0,0,1,1, nil, nil, skew)
+				WG.FlowUI.Draw.RectRoundQuad(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5 * widgetScale, 0,0,1,1, nil, nil, skew)
+			end
 		end)
 	end
 
@@ -638,14 +659,17 @@ local function updateResbarText(res, force)
 							end
 						end
 
-						RectRound(resbarArea[res][3] - textWidth, resbarArea[res][4] - 15.5 * widgetScale, resbarArea[res][3], resbarArea[res][4], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)
-						RectRound(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4], 2.8 * widgetScale, 0, 0, 1, 1, color3, color4)
-						RectRoundOutline(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4]+10, 2.8 * widgetScale, bgpadding2*1.33, 0, 0, 1, 1, {1, 1, 1, 0.15}, {1, 1, 1, 0})
+						local bannerH = 15.5 * widgetScale
+						local bannerRightX = resbarArea[res][3] - (res == 'energy' and cfg.useSkew and bannerH * skewTan * 0.5 or 0)
+
+						RectRound(bannerRightX - textWidth, resbarArea[res][4] - bannerH, bannerRightX, resbarArea[res][4], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)
+						RectRound(bannerRightX - textWidth + bgpadding2, resbarArea[res][4] - bannerH + bgpadding2, bannerRightX - bgpadding2, resbarArea[res][4], 2.8 * widgetScale, 0, 0, 1, 1, color3, color4)
+						RectRoundOutline(bannerRightX - textWidth + bgpadding2, resbarArea[res][4] - bannerH + bgpadding2, bannerRightX - bgpadding2, resbarArea[res][4]+10, 2.8 * widgetScale, bgpadding2*1.33, 0, 0, 1, 1, {1, 1, 1, 0.15}, {1, 1, 1, 0})
 
 						font2:Begin(true)
 						font2:SetTextColor(1, 0.88, 0.88, 1)
 						font2:SetOutlineColor(0.2, 0, 0, 0.6)
-						font2:Print(text, resbarArea[res][3], resbarArea[res][4] - 9.3 * widgetScale, fontSize, 'or')
+						font2:Print(text, bannerRightX, resbarArea[res][4] - 9.3 * widgetScale, fontSize, 'or')
 						font2:End()
 					end)
 				end
@@ -689,8 +713,11 @@ local function updateResbar(res)
 
 	local barHeight = mathFloor((height * widgetScale / 7) + 0.5)
 	local barHeightPadding = mathFloor(((height / 4.4) * widgetScale) + 0.5)
-	local barLeftPadding = mathFloor(53 * widgetScale)
-	local barRightPadding = mathFloor(14.5 * widgetScale)
+	-- Extra inset on the slanted side so content stays within the trapezoidal shape.
+	-- At mid-bar-height the slanted edge has shifted inward by ~H/2 * tan(22.5 deg).
+	local skewSideInset = cfg.useSkew and mathFloor((area[4] - area[2]) * skewTan * 0.5) or 0
+	local barLeftPadding = mathFloor(53 * widgetScale) + (res == 'metal' and skewSideInset or 0)
+	local barRightPadding = mathFloor(14.5 * widgetScale) + (res == 'energy' and skewSideInset or 0)
 	local barArea = { area[1] + mathFloor((height * widgetScale) + barLeftPadding), area[2] + barHeightPadding, area[3] - barRightPadding, area[2] + barHeight + barHeightPadding }
 	local sliderHeightAdd = mathFloor(barHeight / 1.55)
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
@@ -765,7 +792,8 @@ local function updateResbar(res)
 			glTexture(":lr" .. texSize .. "," .. texSize .. ":LuaUI/Images/energy.png")
 		end
 
-		glTexRect(area[1] + bgpaddingHalf + iconPadding, area[2] + bgpaddingHalf + iconPadding, area[1] + bgpaddingHalf + iconPadding + iconSize, area[4] + bgpaddingHalf - iconPadding)
+		local iconSkewShift = res == 'metal' and skewSideInset or 0
+		glTexRect(area[1] + bgpaddingHalf + iconPadding + iconSkewShift, area[2] + bgpaddingHalf + iconPadding, area[1] + bgpaddingHalf + iconPadding + iconSkewShift + iconSize, area[4] + bgpaddingHalf - iconPadding)
 		glTexture(false)
 
 		-- Bar background
@@ -987,7 +1015,10 @@ function init()
 
 	-- wind
 	width = mathFloor((height * 1.18) * widgetScale)
-	windArea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
+	-- Small elements (wind, tidal, coms, buttons) — height fraction from cfg, top-aligned, when skew is on.
+	skewTan = math.tan(math.rad(cfg.skewAngleDeg))  -- refresh in case cfg changed
+	local smallVPad = cfg.useSkew and mathFloor((topbarArea[4] - topbarArea[2]) * (1 - cfg.smallElementHeightFraction)) or 0
+	windArea = { topbarArea[1] + filledWidth, topbarArea[2] + smallVPad, topbarArea[1] + filledWidth + width, topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateWind()
 
@@ -997,7 +1028,7 @@ function init()
 			displayTidalSpeed = false
 		else
 			width = mathFloor((height * 1.18) * widgetScale)
-			tidalarea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
+			tidalarea = { topbarArea[1] + filledWidth, topbarArea[2] + smallVPad, topbarArea[1] + filledWidth + width, topbarArea[4] }
 			filledWidth = filledWidth + width + widgetSpaceMargin
 			updateTidal()
        	end
@@ -1005,23 +1036,27 @@ function init()
 
 	-- coms
 	if displayComCounter then
-		comsArea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
+		comsArea = { topbarArea[1] + filledWidth, topbarArea[2] + smallVPad, topbarArea[1] + filledWidth + width, topbarArea[4] }
 		filledWidth = filledWidth + width + widgetSpaceMargin
 		updateComs()
 	end
 
 	-- buttons
 	width = mathFloor(totalWidth / 4)
-	buttonsArea = { topbarArea[3] - width, topbarArea[2], topbarArea[3], topbarArea[4] }
+	buttonsArea = { topbarArea[3] - width, topbarArea[2] + smallVPad, topbarArea[3], topbarArea[4] }
 	updateButtons()
 
 	if WG['topbar'] then
 		WG['topbar'].GetPosition = function()
-			return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale}
+			local leftSkewOffset = cfg.useSkew and mathFloor((topbarArea[4] - topbarArea[2]) * skewTan) or 0
+			return { topbarArea[1] + leftSkewOffset + widgetSpaceMargin, topbarArea[2], topbarArea[3], topbarArea[4], widgetScale, buttonsArea[2]}
 		end
 
 		WG['topbar'].GetFreeArea = function()
 			return { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[3] - width - widgetSpaceMargin, topbarArea[4], widgetScale}
+		end
+		WG['topbar'].GetSkewConfig = function()
+			return { useSkew = cfg.useSkew, skewTan = skewTan, smallElementHeightFraction = cfg.smallElementHeightFraction }
 		end
 	end
 
@@ -1632,20 +1667,28 @@ end
 local function drawUiBackground()
 	if showResourceBars then
 		if resbarArea.energy[1] then
-			UiElement(resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+			local energySkew = cfg.useSkew and {brx = -((resbarArea.energy[4] - resbarArea.energy[2]) * skewTan)} or nil
+			UiElement(resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, nil, energySkew)
 		end
 		if resbarArea.metal[1] then
-			UiElement(resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+			local metalSkew = cfg.useSkew and {blx = (resbarArea.metal[4] - resbarArea.metal[2]) * skewTan} or nil
+			UiElement(resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, nil, metalSkew)
 		end
 	end
 	if comsArea[1] then
-		UiElement(comsArea[1], comsArea[2], comsArea[3], comsArea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+		local H = comsArea[4] - comsArea[2]
+		local smallSkew = cfg.useSkew and {blx = -(H * skewTan), brx = -(H * skewTan)} or nil
+		UiElement(comsArea[1], comsArea[2], comsArea[3], comsArea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, nil, smallSkew)
 	end
 	if windArea[1] then
-		UiElement(windArea[1], windArea[2], windArea[3], windArea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+		local H = windArea[4] - windArea[2]
+		local smallSkew = cfg.useSkew and {blx = -(H * skewTan), brx = -(H * skewTan)} or nil
+		UiElement(windArea[1], windArea[2], windArea[3], windArea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, nil, smallSkew)
 	end
 	if displayTidalSpeed and tidalarea[1] then
-		UiElement(tidalarea[1], tidalarea[2], tidalarea[3], tidalarea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+		local H = tidalarea[4] - tidalarea[2]
+		local smallSkew = cfg.useSkew and {blx = -(H * skewTan), brx = -(H * skewTan)} or nil
+		UiElement(tidalarea[1], tidalarea[2], tidalarea[3], tidalarea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, nil, smallSkew)
 	end
 	if showButtons and buttonsArea[1] then
 		UiElement(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 0, 0, 0, 1, nil, nil, nil, nil, nil, nil, nil, nil)
@@ -1661,28 +1704,24 @@ local function drawUi()
 		glCallList(dlist.resbar.metal[1])
 	end
 
-	-- min and max wind
-	local fontsize = (height / 3.7) * widgetScale
-	if not windFunctions.isNoWind() then
+	-- min and max wind (rendered per-frame via renderWindText; nowind fallback below)
+	local windH = windArea[4] - windArea[2]
+	local fontsize = windH / 3.2
+	local windSkewCX = windArea[1] + ((windArea[3] - windArea[1]) / 2) - (cfg.useSkew and windH * skewTan * 0.5 or 0)
+	if windFunctions.isNoWind() then
 		font2:Begin(true)
-		font2:Print("\255\210\210\210" .. minWind, windArea[3] - (2.8 * widgetScale), windArea[4] - (4.5 * widgetScale) - (fontsize / 2), fontsize, 'or')
-		font2:Print("\255\210\210\210" .. maxWind, windArea[3] - (2.8 * widgetScale), windArea[2] + (4.5 * widgetScale), fontsize, 'or')
-		-- uncomment below to display average wind speed on UI
-		-- font2:Print("\255\210\210\210" .. avgWindValue, area[1] + (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, '')
-		font2:End()
-	else
-		font2:Begin(true)
-		--font2:Print("\255\200\200\200no wind", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
-		font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
-		font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
+		--font2:Print("\255\200\200\200no wind", windSkewCX, windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
+		font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1'), windSkewCX, windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
+		font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2'), windSkewCX, windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
 		font2:End()
 	end
 
 	-- tidal speed
 	if displayTidalSpeed then
-		local fontSize = (height / 2.66) * widgetScale
+		local fontSize = (tidalarea[4] - tidalarea[2]) / 2.3
+		local skewCenterOffset = cfg.useSkew and (tidalarea[4] - tidalarea[2]) * skewTan * 0.5 or 0
 		font2:Begin(true)
-		font2:Print("\255\255\255\255" .. tidalSpeed, tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), tidalarea[2] + ((tidalarea[4] - tidalarea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Tidal speed text
+		font2:Print("\255\255\255\255" .. tidalSpeed, tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2) - skewCenterOffset, tidalarea[2] + ((tidalarea[4] - tidalarea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Tidal speed text
 		font2:End()
 	end
 end
@@ -1707,10 +1746,21 @@ local function renderWindText()
     glScale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
     glTranslate(-topbarArea[1], -topbarArea[2], 0)
 
-    local fontSize = (height / 2.66) * widgetScale
+    local windH = windArea[4] - windArea[2]
+    local fontSize = windH / 2.3
+    local skewCenterOffset = cfg.useSkew and windH * skewTan * 0.5 or 0
     font2:Begin(true)
     font2:SetOutlineColor(0,0,0,1)
-    font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
+    -- current wind (large, centered)
+    font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2.1) - skewCenterOffset, windArea[2] + (windH / 1.85) - (fontSize / 5), fontSize, 'oc')
+    -- min wind: top area, x corrected for slope at text height
+    local smallFS = windH / 3.4
+    local minBaseline = windArea[4] - smallFS + (1 * widgetScale)
+    local minWindX = windArea[3] - (cfg.useSkew and skewTan * (windArea[4] - minBaseline) or 0) - (4.5 * widgetScale)
+    font2:Print("\255\166\166\166" .. minWind, minWindX, minBaseline, smallFS, 'or')
+    -- max wind: bottom-right corner
+    local brWindX = windArea[3] - (cfg.useSkew and windH * skewTan or 0)
+    font2:Print("\255\166\166\166" .. maxWind, brWindX - (1.2 * widgetScale), windArea[2] + (4.5 * widgetScale), smallFS, 'or')
     font2:End()
 end
 
@@ -1786,8 +1836,9 @@ function widget:DrawScreen()
 	end
 
 	if displayTidalSpeed and dlist.tidal2 then
+		local tidalSkewCX = tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2) - (cfg.useSkew and (tidalarea[4] - tidalarea[2]) * skewTan * 0.5 or 0)
 		glPushMatrix()
-		glTranslate(tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), mathSin(now/PI) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
+		glTranslate(tidalSkewCX, mathSin(now/PI) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
 		glCallList(dlist.tidal2)
 	end
 
@@ -1803,7 +1854,7 @@ function widget:DrawScreen()
 			r2tHelper.RenderToTexture(uiTex,
 				renderWindText,
 				true,
-				{windArea[1]-topbarArea[1], (topbarArea[4]-topbarArea[2])*0.33, windArea[3]-windArea[1], (topbarArea[4]-topbarArea[2])*0.4}
+				{windArea[1]-topbarArea[1], windArea[2]-topbarArea[2], windArea[3]-windArea[1], windArea[4]-windArea[2]}
 			)
 		end
 	end
