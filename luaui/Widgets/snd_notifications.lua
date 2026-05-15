@@ -1024,14 +1024,45 @@ function widget:GameOver(winningAllyTeams)
 	--widgetHandler:RemoveWidget()
 end
 
+local GameUnpausedDelayed = nil
+local GAME_UNPAUSE_DELAY_FRAMES = 6   -- start here; try 8-10 if needed
+
 function widget:GamePaused(playerID, isGamePaused)
-	if not gameover then
-		if isGamePaused then
-			queueNotification('GamePaused',true)
-		else
-			queueNotification('GameUnpaused', true)
-		end
+	if gameover then
+		return
 	end
+
+	if isGamePaused then
+		-- Any real pause should immediately cancel a pending unpause voice
+		GameUnpausedDelayed = nil
+		queueNotification('GamePaused', true)
+		return
+	end
+
+	-- Do NOT instantly play GameUnpaused here.
+	-- Just remember that an unpause was requested, then verify it a few frames later.
+	GameUnpausedDelayed = Spring.GetGameFrame()
+end
+
+function widget:GameFrame(gf)
+	if not GameUnpausedDelayed then
+		return
+	end
+
+	if gf <= GameUnpausedDelayed + GAME_UNPAUSE_DELAY_FRAMES then
+		return
+	end
+
+	-- Only allow the resume voice if the game is actually unpaused now
+	-- and courtesy pause is no longer active.
+	local _, _, isPaused = Spring.GetGameSpeed()
+	local courtesyActive = Spring.GetGameRulesParam("courtesy_pause_active") == 1
+
+	if not isPaused and not courtesyActive then
+		queueNotification('GameUnpaused', true)
+	end
+
+	GameUnpausedDelayed = nil
 end
 
 function widget:GetConfigData(data)
