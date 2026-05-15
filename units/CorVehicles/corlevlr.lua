@@ -114,9 +114,10 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-medium",
-				flighttime = 0.5,
+				flighttime = 0.534,
 				gravityaffected = "true",
-				heightmod = 0
+				heightboostfactor = 0,
+				heightmod = 1,
 				impulsefactor = 1.8,
 				name = "RiotCannon",
 				nogap = false,
@@ -133,7 +134,7 @@ return {
 				stages = 12,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 550,
+				weaponvelocity = 540,
 				damage = {
 					default = 190,
 					subs = 70,
