@@ -8644,11 +8644,22 @@ local function DrawFormationDotsOverlay()
 		glFunc.TexRect(sx - dotSize, sy - dotSize, sx + dotSize, sy + dotSize)
 	end
 
+	-- Prevent displaying formation dots outside of the minimap
+	gl.Scissor(render.dim.l, render.dim.b, render.dim.r - render.dim.l, render.dim.t - render.dim.b)
+
+	-- Handle minimap rotation when displaying formation dots
+	if render.minimapRotation ~= 0 then
+		local centerX = render.dim.l + (render.dim.r - render.dim.l) / 2
+		local centerY = render.dim.b + (render.dim.t - render.dim.b) / 2
+		glFunc.PushMatrix()
+		glFunc.Translate(centerX, centerY, 0)
+		glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
+		glFunc.Translate(-centerX, -centerY, 0)
+	end
+
 	-- Draw first dot
 	local sx, sy = WorldToPipCoords(formationNodes[1][1], formationNodes[1][3])
-	if sx >= render.dim.l and sx <= render.dim.r and sy >= render.dim.b and sy <= render.dim.t then
-		DrawScreenDot(sx, sy)
-	end
+	DrawScreenDot(sx, sy)
 
 	-- Draw dots along the line
 	if #formationNodes > 2 then
@@ -8668,9 +8679,7 @@ local function DrawFormationDotsOverlay()
 				local wz = node1[3] + (node2[3] - node1[3]) * factor
 
 				sx, sy = WorldToPipCoords(wx, wz)
-				if sx >= render.dim.l and sx <= render.dim.r and sy >= render.dim.b and sy <= render.dim.t then
-					DrawScreenDot(sx, sy)
-				end
+				DrawScreenDot(sx, sy)
 
 				lengthUnitNext = lengthUnitNext + lengthPerUnit
 			end
@@ -8680,10 +8689,13 @@ local function DrawFormationDotsOverlay()
 
 	-- Draw last dot
 	sx, sy = WorldToPipCoords(formationNodes[#formationNodes][1], formationNodes[#formationNodes][3])
-	if sx >= render.dim.l and sx <= render.dim.r and sy >= render.dim.b and sy <= render.dim.t then
-		DrawScreenDot(sx, sy)
+	DrawScreenDot(sx, sy)
+
+	if render.minimapRotation ~= 0 then
+		glFunc.PopMatrix()
 	end
 
+	gl.Scissor(false)
 	glFunc.Texture(false)
 end
 
