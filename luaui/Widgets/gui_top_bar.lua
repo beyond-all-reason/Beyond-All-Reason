@@ -87,6 +87,7 @@ local allyteamOverflowingEnergy = false
 local overflowingMetal = false
 local overflowingEnergy = false
 local showOverflowTooltip = {}
+local showingWarning = { metal = false, energy = false }
 local supressOverflowNotifs = false
 local isMetalmap = false
 
@@ -536,6 +537,7 @@ local function drawResbarPullIncome(res)
 end
 
 local function drawResbarStorage(res)
+	if showingWarning[res] then return end
 	font2:Begin(true)
 	font2:SetOutlineColor(0,0,0,1)
 	if res == 'metal' then
@@ -628,6 +630,7 @@ local function updateResbarText(res, force)
 
 					if dlist.resbar[res][7] then glDeleteList(dlist.resbar[res][7]) end
 
+					if not showingWarning[res] then showingWarning[res] = true; updateRes[res][3] = true end
 					dlist.resbar[res][7] = glCreateList(function()
 						local fontSize = (orgHeight * (1 + (ui_scale - 1) / 1.33) / 4) * widgetScale
 						local textWidth = font2:GetTextWidth(text) * fontSize
@@ -680,6 +683,7 @@ local function updateResbarText(res, force)
 				if dlist.resbar[res][7] then glDeleteList(dlist.resbar[res][7]) end
 				cache.lastWarning[res] = nil
 			end
+			if showingWarning[res] then showingWarning[res] = false; updateRes[res][3] = true end
 
 			showOverflowTooltip[res] = nil
 		end
