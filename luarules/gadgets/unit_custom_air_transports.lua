@@ -508,7 +508,6 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 				break 
 			end
 			local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
-			if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) then
 			if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) then
 				units[i - unitOffset] = units[i + 1] -- overwrite previous invalid with next
 				unitOffset = unitOffset + 1 -- increment offset
