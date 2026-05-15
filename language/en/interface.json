@@ -17,6 +17,7 @@
 				"changes": "Changes",
 				"keys": "Keys",
 				"scavengers": "Scavengers",
+				"mission": "Mission",
 				"stats": "Statistics",
 				"graphs": "Graphs",
 				"save": "Save"
@@ -323,6 +324,15 @@
 		},
 		"changelog": {
 			"title": "Changelog"
+		},
+		"missioninfo": {
+			"title": "Mission Info",
+			"difficulty": "Difficulty",
+			"objectives": "Objectives",
+			"victory": "Victory condition",
+			"defeat": "Defeat condition",
+			"summary": "Summary",
+			"briefing": "Briefing"
 		},
 		"keybinds": {
 			"title": "Keybinds",

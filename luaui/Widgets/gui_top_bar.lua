@@ -365,6 +365,7 @@ local function updateButtons()
 	if WG['teamstats'] and not isScenario then addButton('stats', Spring.I18N('ui.topbar.button.stats')) end
 	if gameIsOver then addButton('graphs', Spring.I18N('ui.topbar.button.graphs')) end
 	if WG['scavengerinfo'] then addButton('scavengers', Spring.I18N('ui.topbar.button.scavengers')) end
+	if isScenario and WG['missioninfo'] then addButton('mission', Spring.I18N('ui.topbar.button.mission')) end
 	if isSinglePlayer and cfg.allowSavegame and WG['savegame'] then addButton('save', Spring.I18N('ui.topbar.button.save')) end
 
 	buttonsArea['buttons'][lastbutton][1] = buttonsArea['buttons'][lastbutton][1] - sidePadding
@@ -1975,6 +1976,7 @@ local function hideWindows()
 	local closedWindow = false
 	closedWindow = closeWindow('options') or closedWindow
 	closedWindow = closeWindow('scavengerinfo') or closedWindow
+	closedWindow = closeWindow('missioninfo') or closedWindow
 	closedWindow = closeWindow('keybinds') or closedWindow
 	closedWindow = closeWindow('changelog') or closedWindow
 	closedWindow = closeWindow('gameinfo') or closedWindow
@@ -2041,6 +2043,8 @@ local function applyButtonAction(button)
 		end
 	elseif button == 'scavengers' then
 		toggleWindow('scavengerinfo')
+	elseif button == 'mission' then
+		toggleWindow('missioninfo')
 	elseif button == 'keybinds' then
 		toggleWindow('keybinds')
 	elseif button == 'changelog' then
