@@ -1,3 +1,19 @@
+# May
+• [T1 bot constructors] +70 health
+• [Pawn] Weapon 3 -> 2 dmg vs Air
+• [Blitz] Weapon 3 -> 2 dmg vs Air, 750 -> 730 health
+• [Rover] 950 -> 1000 buildtime
+• [Stout] 75.9 -> 75 speed, 2900 -> 3100 buildtime, 1780 -> 1800 health
+• [Brute] 72.9 -> 72 speed, 3310 -> 3500 buildtime, 1970 -> 2000 health
+• [Pounder] 40.5 -> 40 speed, 3000 -> 3100 buildtime, 1490 -> 1500 health. Weapon projectile no longer overshoots its range, and doesn't gain extra range from elevation
+• [Hound] 1280 -> 1200 health, 3.167 -> 3.3s reloadtime
+• [Tiger] 70.5 -> 69 speed, 665 -> 690 metalcost
+• [Razorback] -5% dps
+• [Shiva] 48.3 -> 48 speed, 1550 -> 1600 metalcost
+• [Stormbringer] 105 -> 110 damage, +5% m/e/bt
+• [Skyhook] 200 -> 185 speed, 6400 -> 9000 energycost
+• [Abductor] 225 -> 210 speed, 6600 -> 10000 energycost
+
 # April
 • [Brakerate] 
 	- Set to 90 elmos/s^2 for vehicles, if lower previously. 
