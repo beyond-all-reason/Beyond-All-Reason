@@ -70,7 +70,8 @@ local numTeamsInAllyTeam = #myAllyTeamList
 -- Game mode / state
 local numPlayers = Spring.Utilities.GetPlayerCount()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
-local isScenario = Spring.GetModOptions().scenariooptions ~= nil
+local _modOpts = Spring.GetModOptions()
+local isScenario = _modOpts ~= nil and _modOpts.scenariooptions ~= nil
 local chobbyLoaded = false
 local isSingle = false
 local gameStarted = (sp.GetGameFrame() > 0)
@@ -1751,8 +1752,10 @@ local function renderWindText()
     local skewCenterOffset = cfg.useSkew and windH * skewTan * 0.5 or 0
     font2:Begin(true)
     font2:SetOutlineColor(0,0,0,1)
-    -- current wind (large, centered)
-    font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2.1) - skewCenterOffset, windArea[2] + (windH / 1.85) - (fontSize / 5), fontSize, 'oc')
+    -- current wind (large, centered) - only once game has started
+    if gameFrame > 0 then
+        font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2.1) - skewCenterOffset, windArea[2] + (windH / 1.85) - (fontSize / 5), fontSize, 'oc')
+    end
     -- min wind: top area, x corrected for slope at text height
     local smallFS = windH / 3.4
     local minBaseline = windArea[4] - smallFS + (1 * widgetScale)
@@ -1847,7 +1850,7 @@ function widget:DrawScreen()
 	end
 
 	-- current wind
-	if gameFrame > 0 and not windFunctions.isNoWind() then
+	if not windFunctions.isNoWind() then
 		if currentWind ~= prevWind or refreshUi then
 			prevWind = currentWind
 
@@ -1892,8 +1895,10 @@ function widget:DrawScreen()
 		-- changelog changes highlight
 		if WG['changelog'] and WG['changelog'].haschanges() then
 			local button = 'changelog'
-			local paddingsize = 1
-			RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1,1,1, 0.1*blinkProgress })
+			if buttonsArea['buttons'][button] then
+				local paddingsize = 1
+				RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1,1,1, 0.1*blinkProgress })
+			end
 		end
 
 		-- hovered?
