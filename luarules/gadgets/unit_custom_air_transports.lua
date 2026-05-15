@@ -275,7 +275,7 @@ end
 --- @param transporterID number
 --- @param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
 --- @return boolean
-local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam)  -- things that might have changed since CanBeTransportedStatic and should cancel queue (lightweight check for dynamic conditions))
+local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID)  -- things that might have changed since CanBeTransportedStatic and should cancel queue (lightweight check for dynamic conditions))
 	if not spValidUnitID(passengerID) then
 		return false
 	end
@@ -285,16 +285,26 @@ local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPos
 	if spGetUnitIsBeingBuilt(passengerID) then -- moved to dynamic, to support other reclaimMode modrules that allows a unit to turn back to a nanoFrame
 		return false	
 	end
-	local losState = spGetUnitLosState(passengerID, transporterAllyTeam, false)
-	if not losState or not (losState.los or losState.radar) then
-		return false	
-	end
 	if isUnderwater(passengerID, passengerPosY) then
 		return false
 	end
 	if spGetUnitRulesParam(passengerID, "inTransportAnim") == 1 then
 		return false	
 	end
+	local allied = spAreTeamsAllied(passengerTeamID, transporterTeamID)
+	if allied then
+		return true
+	end
+	local cantLoadAsEnemy = UnitDefs[passengerDefID].customParams.isCommander or UnitDefs[passengerDefID].transportByEnemy
+	if cantLoadAsEnemy then
+		return false	
+	end
+	local losState = spGetUnitLosState(passengerID, transporterAllyTeam, false)
+	if not losState or not (losState.los or losState.radar) then
+		return false	
+	end
+
+
 	return true
 end
 
@@ -499,6 +509,7 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 			end
 			local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
 			if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) then
+			if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) then
 				units[i - unitOffset] = units[i + 1] -- overwrite previous invalid with next
 				unitOffset = unitOffset + 1 -- increment offset
 				break 
@@ -542,24 +553,23 @@ end
 --- @return nil
 local function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeamID, transporterPosX, transporterPosY, transporterPosZ, cx, cy, cz, radius)
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
-	local transporterTeamID = spGetUnitTeam(transporterID)
 	for i = #transporterClaims[transporterID], 1, -1 do
 		local passengerID = transporterClaims[transporterID][i]
 		local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
 		local passengerDefID = spGetUnitDefID(passengerID)
+		local passengerTeamID = spGetUnitTeam(passengerID)
 		local removalFlag = false
 		local moveToTransporterFlag = false
 		if claimedBy[transporterAllyTeam][passengerID] ~= transporterID then -- keep it during test runs so we can debug if this ever happens
 			spEcho("Error: claim inconsistency for passenger " .. passengerID .. " in transporter " .. transporterID .. "'s claims list")
 		end
-		if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) then
+		if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) then
 			removalFlag = true
 		end
 		local passengerSize = TransportAPI.GetPassengerSize(passengerID)
 		if not TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, 0) then
 			removalFlag = true
 		end
-		local passengerTeamID = spGetUnitTeam(passengerID)
 		if removalFlag then
 			releasePassenger(passengerID, transporterAllyTeam) -- release claim so it can be targeted by future loads
 		elseif CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterAllyTeam, transporterPosX, transporterPosY, transporterPosZ) then
@@ -637,11 +647,12 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 	if not TransportAPI.IsTransportFull(transporterID, queuedSeats[transporterID]) then
 		while cmd and cmd.id == CMD_LOAD_UNIT and not TransportAPI.IsTransportFull(transporterID, queuedSeats[transporterID]) do
 			local passengerID = cmd.params[1]
+			local passengerTeamID = spGetUnitTeam(passengerID)
 			local passengerDefID = spGetUnitDefID(passengerID)
 			local _, passengerPosY = spGetUnitPosition(passengerID)
 			if not CanBeTransportedStatic(passengerID, passengerDefID, transporterID) then
 				idsToRemove[passengerID] = true -- can't be transported, mark for removal
-			elseif not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) then
+			elseif not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) then
 				idsToRemove[passengerID] = true -- can't be transported right now, mark for removal
 			elseif transporterID ~= claimedBy[transporterAllyTeam][passengerID] then
 				claimPassenger(transporterID, passengerID, TransportAPI.GetPassengerSize(passengerID), true) -- force claim for ourselves if not already claimed
@@ -660,7 +671,6 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 
 	-- 2: proceed to loading all units in queue
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
-	local transporterTeamID = spGetUnitTeam(transporterID)
 	for i = #transporterClaims[transporterID], 1, -1 do
 		local passengerID = transporterClaims[transporterID][i]
 		local passengerDefID = spGetUnitDefID(passengerID)
@@ -670,14 +680,14 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 		if claimedBy[transporterAllyTeam][passengerID] ~= transporterID then -- keep it during test runs so we can debug if this ever happens
 			spEcho("Error: claim inconsistency for passenger " .. passengerID .. " in transporter " .. transporterID .. "'s claims list")
 		end
-		if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) then
+		local passengerTeamID = spGetUnitTeam(passengerID)
+		if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) then
 			removalFlag = true
 		end
 		local passengerSize = TransportAPI.GetPassengerSize(passengerID)
 		if not TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, 0) then
 			removalFlag = true
 		end
-		local passengerTeamID = spGetUnitTeam(passengerID)
 		if removalFlag then
 			idsToRemove[passengerID] = true
 		elseif CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterAllyTeam, transporterPosX, transporterPosY, transporterPosZ) then
@@ -949,7 +959,7 @@ function gadget:AllowUnitTransport(transporterID, transporterDefID, transporterT
 	--I separated both to avoid FindUnitToTransport calling gadget:AllowUnitTransportLoad with an additional arg
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
 	local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
-	return CanBeTransportedStatic(passengerID, passengerDefID, transporterID) and CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam) and TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, TransportAPI.GetPassengerSize(passengerID), 0)
+	return CanBeTransportedStatic(passengerID, passengerDefID, transporterID) and CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) and TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, TransportAPI.GetPassengerSize(passengerID), 0)
 end
 
 -- unload commands haven't been changed (yet?)
