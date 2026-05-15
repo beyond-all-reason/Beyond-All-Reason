@@ -115,6 +115,40 @@ local function FlattenWeaponDef(weaponDef)
 	return tbl
 end
 
+local function FlattenUnitDef(unitDef)
+	local tbl = {}
+	-- embed higher-level "computed" fields like translatedHumanName, translatedTooltip, etc.
+	for field_name, value in pairs(unitDef) do
+		if type(value) ~= "table" and type(value) ~= "function" then
+			tbl[field_name] = value
+		end
+	end
+	-- flatten the UnitDef metatable data into plain table
+	for k, v in unitDef:pairs() do
+		tbl[k] = v
+	end
+
+	-- wDefs is a parallel array of weapondef names indexed by mount slot
+	-- (matches unit.weapons[i]); full weapondef data lives in weaponDefs/<name>.json
+	tbl["wDefs"] = {}
+	for i, weaponDef in pairs(unitDef.wDefs) do
+		tbl["wDefs"][i] = weaponDef.name
+	end
+
+	-- annotate each weapons[] mount entry with its weapondef name so consumers
+	-- can dereference into weaponDefs/ without needing the parallel wDefs array
+	if type(tbl.weapons) == "table" then
+		for _, weapon in pairs(tbl.weapons) do
+			if type(weapon) == "table" then
+				local wd = type(weapon.weaponDef) == "number" and WeaponDefs[weapon.weaponDef] or nil
+				if wd then weapon.weaponDefName = wd.name end
+			end
+		end
+	end
+
+	return tbl
+end
+
 local function ExportWeaponDefs(soundIndex)
 	local subdir = export_folder_path .. "/weaponDefs"
 	Spring.CreateDir(subdir)
@@ -126,57 +160,28 @@ local function ExportWeaponDefs(soundIndex)
 	end
 end
 
+local function ExportUnitDefs(soundIndex, iconTypeIndex)
+	local subdir = export_folder_path .. "/unitDefs"
+	Spring.CreateDir(subdir)
+	for _, unitDef in pairs(UnitDefs) do
+		spEcho(string.format("Exporting unitdef: %s", unitDef.name))
+		local flattened = FlattenUnitDef(unitDef)
+		AnnotateUnitDefAssets(flattened, soundIndex, iconTypeIndex)
+		TableToFile(flattened, string.format("%s/%s.json", subdir, unitDef.name))
+	end
+end
+
 local function ExportDefs()
 	if not VFS.FileExists(export_folder_path) then
 		Spring.CreateDir(export_folder_path)
 	end
-	local unit_subdir = export_folder_path .. "/unitDefs"
-	Spring.CreateDir(unit_subdir)
 
 	spEcho("Building asset indices")
 	local soundIndex = BuildSoundIndex()
 	local iconTypeIndex = BuildIconTypeIndex()
 
 	ExportWeaponDefs(soundIndex)
-
-	for id, unitDef in pairs(UnitDefs) do
-		spEcho(string.format("Exporting unitdef: %s", unitDef.name))
-		local tbl = {}
-
-		-- embed higher-level "computed" fields like translatedHumanName, translatedTooltip, etc.
-		for field_name, value in pairs(unitDef) do
-			if type(value) ~= "table" and type(value) ~= "function" then
-				tbl[field_name] = value
-			end
-		end
-
-		-- flatten the UnitDef metatable data into plain table
-		for k, v in unitDef:pairs() do
-			tbl[k] = v
-		end
-
-		-- wDefs is a parallel array of weapondef names indexed by mount slot
-		-- (matches unit.weapons[i]); full weapondef data lives in weaponDefs.json
-		tbl["wDefs"] = {}
-		for i, weaponDef in pairs(unitDef.wDefs) do
-			tbl["wDefs"][i] = weaponDef.name
-		end
-
-		-- annotate each weapons[] mount entry with its weapondef name so consumers
-		-- can dereference into weaponDefs.json without needing the parallel wDefs array
-		if type(tbl.weapons) == "table" then
-			for _, weapon in pairs(tbl.weapons) do
-				if type(weapon) == "table" then
-					local wd = type(weapon.weaponDef) == "number" and WeaponDefs[weapon.weaponDef] or nil
-					if wd then weapon.weaponDefName = wd.name end
-				end
-			end
-		end
-
-		AnnotateUnitDefAssets(tbl, soundIndex, iconTypeIndex)
-
-		TableToFile(tbl, string.format("%s/%s.json", unit_subdir, unitDef.name))
-	end
+	ExportUnitDefs(soundIndex, iconTypeIndex)
 end
 
 function widget:TextCommand(command)
