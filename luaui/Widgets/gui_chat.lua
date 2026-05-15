@@ -902,7 +902,8 @@ end
 -- Helper function to format system message with player name
 local function formatSystemMessage(i18nKey, playername, gameFrame, lineColor, extraParams)
 	local params = extraParams or {}
-	params.name = getPlayerColorString(playername, gameFrame) .. playername
+	local displayName = (playernames[playername] and playernames[playername][7]) or playername
+	params.name = getPlayerColorString(playername, gameFrame) .. displayName
 	params.textColor = lineColor
 	return Spring.I18N(i18nKey, params)
 end
