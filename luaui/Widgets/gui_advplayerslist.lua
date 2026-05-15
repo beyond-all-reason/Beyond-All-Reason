@@ -2802,7 +2802,7 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
         local playerName = Spring.GetPlayerInfo(teamPlayerID, false)
         playerName = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamPlayerID) or playerName
         if playerName then --and aliveAllyTeams[player[playerID].allyteam] then
-            name = player[playerID].name
+            name = playerName
         end
     end
 
@@ -2876,13 +2876,15 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     end
     font2:End()
 
-    if ignored or desynced then
+    if ignored or desynced or (isAbsent and pDraw and pDraw.dead) then
         local x = m_name.posX + widgetPosX + 2 + xPadding
         local y = posY + (7*playerScale)
         local w = (font2:GetTextWidth(nameText) * fontsize) + 2
         local h = (2*playerScale)
 		if desynced then
 			gl_Color(1, 0.2, 0.2, 0.9)
+		elseif isAbsent and pDraw and pDraw.dead then
+			gl_Color(0.45, 0.45, 0.45, 0.9)
 		else
 			gl_Color(1, 1, 1, 0.9)
 		end

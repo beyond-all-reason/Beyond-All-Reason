@@ -516,6 +516,7 @@ WG.FlowUI.Draw.TexturedRectRound = function(px, py, sx, sy,  cs,  tl, tr, br, bl
 		-- Pre-calculate invariant values (avoids redundant per-vertex calculations)
 		local width = sx - px
 		local height = sy - py
+		if width <= 0 or height <= 0 then return end
 		local invWidth = 1 / width
 		local invHeight = 1 / height
 
