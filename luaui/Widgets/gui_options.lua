@@ -5195,6 +5195,7 @@ function init()
 		},
 
 		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = Spring.I18N('ui.settings.option.onlyfighterspatrol'), type = "bool", value = GetWidgetToggleValue("Autoquit"), description = Spring.I18N('ui.settings.option.onlyfighterspatrol_descr') },
+		{ id = "bombers_default_hold_fire", group = "game", category = types.basic, widget = "BombersDefaultHoldFire", name = Spring.I18N('ui.settings.option.bombers_default_hold_fire'), type = "bool", value = GetWidgetToggleValue("BombersDefaultHoldFire"), description = Spring.I18N('ui.settings.option.bombers_default_hold_fire_descr') },
 		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = Spring.I18N('ui.settings.option.fightersfly'), type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = Spring.I18N('ui.settings.option.fightersfly_descr') },
 
 		{ id = "settargetdefault", group = "game", category = types.basic, widget = "Set target default", name = Spring.I18N('ui.settings.option.settargetdefault'), type = "bool", value = GetWidgetToggleValue("Set target default"), description = Spring.I18N('ui.settings.option.settargetdefault_descr') },
