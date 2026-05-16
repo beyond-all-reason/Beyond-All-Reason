@@ -76,6 +76,8 @@ local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetFeatureRadius      = Spring.GetFeatureRadius
 local spGetGroundHeight       = Spring.GetGroundHeight
 local spGetGroundNormal       = Spring.GetGroundNormal
+local spGetProjectileAllyTeam = Spring.GetProjectileAllyTeamID
+local spGetUnitAllyTeam       = Spring.GetUnitAllyTeam
 local spGetUnitDefID          = Spring.GetUnitDefID
 local spGetUnitPosition       = Spring.GetUnitPosition
 local spGetUnitRadius         = Spring.GetUnitRadius
@@ -125,10 +127,15 @@ local featureData = {}
 local unitDamageReset = {}
 local featDamageReset = {}
 
+local inExplosion = {}
+
 local regexArea, regexRepeat = '%-area%-', '%-repeat'
 local regexDigits = "%d+"
 local regexCegRadius = regexArea..regexDigits..regexRepeat
 local regexCegToRadius = regexArea.."("..regexDigits..")"..regexRepeat
+
+local areaDamageType = "LuaAreaDamage_"
+local areaDamageTypes = {}
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -154,11 +161,27 @@ local function getExplosionParams(def, prefix)
 	local dpsWanted  = def.customParams[prefix .. "damage"    ]
 	local duration   = def.customParams[prefix .. "time"      ]
 	local range      = def.customParams[prefix .. "range"     ]
+	local penetrates = def.customParams[prefix .. "shieldpen" ]
 
     resistance = stringLower(resistance or "none")
     range = tonumber(range)
 	dpsWanted = tonumber(dpsWanted)
 	duration = tonumber(duration)
+
+	local damageType = areaDamageType .. resistance
+	local weaponDefID = areaDamageTypes[damageType]
+
+	if not weaponDefID then
+		local envDamageTypeMin = table.reduce(
+			Game.envDamageTypes,
+			function(acc, index) return index < acc and index or acc end,
+			-1 -- The "real" weaponDefIDs start at 0
+		)
+		weaponDefID = envDamageTypeMin - 1
+		areaDamageTypes[damageType] = weaponDefID
+		areaDamageTypes[weaponDefID] = damageType
+		Game.envDamageTypes[damageType] = weaponDefID
+	end
 
 	-- With ticks between explosions, we're unable to perfectly match all weapondefs.
 	-- So we fix the last explosion to make up for any excessive/lost time or damage.
@@ -194,9 +217,11 @@ local function getExplosionParams(def, prefix)
 	return {
 		ceg        = ceg,
 		damageCeg  = damageCeg,
-		resistance = resistance,
-		damage     = damagePerTick,
 		range      = range,
+		resistance = resistance,
+		penetrates = penetrates,
+		weapon     = weaponDefID,
+		damage     = damagePerTick,
 		frames     = framesFull,
 		lastFrames = framesPartial,
 		lastDamage = damagePartial,
@@ -260,6 +285,13 @@ local function addToExplosions(explosions, area)
 	tableInsert(explosions, index, area)
 end
 
+local getShieldUnitsInSphere, isInShield -- from shield behaviors
+
+local function getAllyTeam(attackerID, projectileID)
+	return (attackerID and spGetUnitAllyTeam(attackerID))
+		or (projectileID and spGetProjectileAllyTeam(projectileID))
+end
+
 local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
     local explosion = timedDamageWeapons[weaponDefID]
     local elevation = max(spGetGroundHeight(px, pz), waterPlaneLevel)
@@ -286,8 +318,28 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             minY = minY * (1 - dy * 0.5) -- avoid damage to submerged targets
         end
 
+		local blockingShields
+		if not explosion.penetrates then
+			local units, count = getShieldUnitsInSphere(px, elevation, pz, areaRange, true)
+			if units and count > 0 then
+				blockingShields = {}
+				local allyTeam = getAllyTeam(attackerID, projectileID)
+				for i = 1, count do
+					-- Don't check against the area position, but the explosion, even though it's a bit odd:
+					-- TODO: Check that the shield and weapon intercept types match.
+					-- TODO: The shield_aoe_penetration param is weird for ignoring intercept types tbh.
+					if allyTeam ~= spGetUnitAllyTeam(units[i]) and not isInShield(px, py + 2, pz, units[i]) then
+						blockingShields[#blockingShields + 1] = units[i]
+					end
+				end
+				if not blockingShields[1] then
+					blockingShields = nil
+				end
+			end
+		end
+
         local area = {
-            weapon      = weaponDefID,
+            weapon      = explosion.weapon,
             owner       = attackerID,
             x           = px,
             y           = elevation,
@@ -305,6 +357,8 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             endFrame    = explosion.frames + frameNumber,
 			lastFrames  = explosion.lastFrames,
 			lastDamage  = explosion.lastDamage,
+			projectile  = projectileID,
+			suppressed  = blockingShields,
         }
 
 		addToExplosions(frameExplosions, area)
@@ -419,8 +473,10 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 						spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
 					end
 					data.damageTaken = damageTaken + damage
+					inExplosion[1] = area
 					-- GetFlankingBonus evaluates the zero-vector to 50% flanking bonus, so conditionally remove:
 					spAddUnitDamage(unitID, damage, nil, area.owner ~= unitID and area.owner or nil, area.weapon)
+					inExplosion[1] = nil
 				end
             end
         end
@@ -460,7 +516,9 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                         spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
                     end
 					data.damageTaken = damageTaken + damageDealt
+					inExplosion[1] = area
 					spAddFeatureDamage(featureID, damageDealt, nil, area.owner, area.weapon)
+					inExplosion[1] = nil
                 end
             end
         end
@@ -485,7 +543,16 @@ end
 -- Gadget callins --------------------------------------------------------------
 
 function gadget:Initialize()
-    timedDamageWeapons = {}
+	getShieldUnitsInSphere = GG.Shields.GetShieldUnitsInSphere
+	isInShield = GG.Shields.IsInShield
+
+	areaDamageTypes = GG.EnvAreaWeapons or {}
+	GG.EnvAreaWeapons = areaDamageTypes
+
+	inExplosion = GG.InTimedDamageArea or { nil }
+	GG.InTimedDamageArea = inExplosion
+
+	timedDamageWeapons = {}
     for weaponDefID = 0, #WeaponDefs do
         local weaponDef = WeaponDefs[weaponDefID]
         if weaponDef.customParams and weaponDef.customParams[prefixes.weapon.."ceg"] then
@@ -533,15 +600,15 @@ function gadget:Initialize()
 	end
 
     unitDamageImmunity = {}
-    local areaDamageTypes = {}
+    local areaResistances = {} -- TODO: replace resistance strings with the IDs from envDamageTypes
     for weaponDefID, params in pairs(timedDamageWeapons) do
         if params.resistance == nil then
             params.resistance = "none"
         elseif params.resistance ~= "none" then
-            areaDamageTypes[params.resistance] = true
+            areaResistances[params.resistance] = true
         end
     end
-    local immunities = { all = areaDamageTypes, none = {} }
+    local immunities = { all = areaResistances, none = {} }
     for unitDefID, unitDef in ipairs(UnitDefs) do
         local unitImmunity
         if unitDef.isSubmarine or unitDef.canFly or unitDef.armorType == Game.armorTypes.indestructible then
@@ -554,7 +621,7 @@ function gadget:Initialize()
                 unitImmunity = immunities[resistance]
             else
                 unitImmunity = {}
-                for damageType in pairs(areaDamageTypes) do
+                for damageType in pairs(areaResistances) do
                     if string.find(resistance, damageType, nil, false) then
                         unitImmunity[damageType] = true
                     end

@@ -59,7 +59,6 @@ local sqrt  = math.sqrt
 local cos   = math.cos
 local sin   = math.sin
 local atan2 = math.atan2
-local distsq = math.distance3dSquared
 
 local spGetGroundHeight       = Spring.GetGroundHeight
 local spGetGroundNormal       = Spring.GetGroundNormal
@@ -78,7 +77,7 @@ local spDeleteProjectile      = Spring.DeleteProjectile
 local gameSpeed  = Game.gameSpeed
 local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * -1
 
-local addShieldDamage, damageToShields, getShieldPosition, getShieldUnitsInSphere -- see unit_shield_behaviour
+local addShieldDamage, damageToShields, getShieldPosition, getShieldUnitsInSphere, isInShield -- see unit_shield_behaviour
 
 --------------------------------------------------------------------------------
 -- Initialize ------------------------------------------------------------------
@@ -398,11 +397,6 @@ local function isInAlliance(teamID, unitID)
 	return teamID and unitTeam and (teamID == unitTeam or spAreTeamsAllied(teamID, unitTeam))
 end
 
-local function isInShield(x, y, z, shieldUnitID)
-	local sx, sy, sz, sr = getShieldPosition(shieldUnitID)
-	return sx and distsq(x, y, z, sx, sy, sz) < sr * sr
-end
-
 local function getNearShields(x, y, z, scatterDistance, teamID)
 	local shields, count = getShieldUnitsInSphere(x, y, z, scatterDistance)
 
@@ -553,6 +547,7 @@ function gadget:Initialize()
 	damageToShields = GG.Shields.DamageToShields
 	getShieldPosition = GG.Shields.GetUnitShieldPosition
 	getShieldUnitsInSphere = GG.Shields.GetShieldUnitsInSphere
+	isInShield = GG.Shields.IsInShield
 
 	-- Metatable for lookup on projectiles, rather than on our weaponDefIDs.
 	-- This is likely cheaper than keeping a projectiles cache table around.
