@@ -463,7 +463,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
     for _, orderedUnit in ipairs(selectedUnits) do
         if isTransport(orderedUnit) then
-            if cmdID == CMD.GUARD and isFactory(cmdParams[1]) then
+            if cmdID == GameCMD.AREA_GUARD and isFactory(cmdParams[1]) then
                 if cmdOpts.shift then
                     pendingGuardTransports[orderedUnit] = cmdParams[1]
                 else
