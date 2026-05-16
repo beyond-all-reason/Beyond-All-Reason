@@ -3728,6 +3728,20 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "zoomtocursor", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.zoomtocursor'), type = "bool", value = tonumber(Spring.GetConfigInt("CamSpringZoomInToMousePos", 0)) == 1, description = "",
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("CamSpringZoomInToMousePos", value and 1 or 0)
+		  end,
+		},
+		{ id = "zoomfromcursor", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.zoomfromcursor'), type = "bool", value = tonumber(Spring.GetConfigInt("CamSpringZoomOutFromMousePos", 0)) == 1, description = "",
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("CamSpringZoomOutFromMousePos", value and 1 or 0)
+		  end,
+		},
 		{ id = "invertmouse", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.invertmouse'), type = "bool", value = tonumber(Spring.GetConfigInt("InvertMouse", 0)) == 1, description = "",
 		  onload = function(i)
 		  end,
@@ -6976,6 +6990,8 @@ function init()
 
 	if Spring.GetConfigInt("CamMode", 2) ~= 2 then
 		options[getOptionByID('springcamheightmode')] = nil
+		options[getOptionByID('zoomtocursor')] = nil
+		options[getOptionByID('zoomfromcursor')] = nil
 	end
 
 	if Spring.GetConfigString("KeybindingFile") ~= "uikeys.txt" then
