@@ -248,6 +248,7 @@ local updateFastRateMult = 1	-- goes up when more players	auto adjusts in Update
 
 local aliveAllyTeams = {}
 local populatedAllyTeams = {}
+local gameOverWinnerAllyTeams = {}  -- allyteam IDs that won; their players keep their display after disconnect
 local allyTeamMaxStorage = {}
 
 local tipTextTime = 0
@@ -1051,6 +1052,11 @@ function widget:GameOver(winningAllyTeams)
     if isPvE and not isSinglePlayer then
         rankTeamPlayers()
     end
+    -- Track winning allyteams so disconnected winners keep their display
+    gameOverWinnerAllyTeams = {}
+    for _, allyTeamID in ipairs(winningAllyTeams) do
+        gameOverWinnerAllyTeams[allyTeamID] = true
+    end
     doPlayerUpdate()  -- refresh so winners who leave aren't shown as dead
 end
 
@@ -1731,6 +1737,22 @@ function SortPlayers(teamID, allyTeamID, vOffset)
             drawList[#drawList + 1] = specOffset + teamID -- new AI team (instead of players)
             player[specOffset + teamID].posY = vOffset
             noPlayer = false
+        end
+    end
+
+    -- after game over, keep showing winner players at full height even if they disconnected
+    if noPlayer and gameOverWinnerAllyTeams[allyTeamID] then
+        for pID = 0, specOffset - 1 do
+            local p = player[pID]
+            if p and p.team == teamID and p.spec ~= true and p.name and p.name ~= absentName then
+                if enemyListShow or p.allyteam == myAllyTeamID then
+                    vOffset = vOffset + (playerOffset*playerScale)
+                    drawListOffset[#drawListOffset + 1] = vOffset
+                    drawList[#drawList + 1] = pID
+                    p.posY = vOffset
+                    noPlayer = false
+                end
+            end
         end
     end
 
