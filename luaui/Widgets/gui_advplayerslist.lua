@@ -885,6 +885,15 @@ function widget:TeamDied(teamID)
     end
     player[teamID + specOffset] = CreatePlayerFromTeam(teamID)
     doPlayerUpdate()
+    -- Explicitly mark real player entries on the dead team as dead.
+    -- Engine API (GetTeamInfo isDead) may not yet reflect the new state during this callin,
+    -- so we force the flag after doPlayerUpdate() has rebuilt all entries.
+    for pID = 0, specOffset-1 do
+        local p = player[pID]
+        if p and p.team == teamID and not p.spec then
+            p.dead = true
+        end
+    end
 end
 
 -- rank players inside each team based on production and damage dealt
@@ -1299,7 +1308,7 @@ function CreatePlayer(playerID)
 	local pname = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID) or tname
 	local isAliasName = tname ~= pname
 	tname = pname
-    local _, _, _, _, tside, tallyteam, tincomeMultiplier = sp.GetTeamInfo(tteam, false)
+    local _, _, teamIsDead, _, tside, tallyteam, tincomeMultiplier = sp.GetTeamInfo(tteam, false)
     local tred, tgreen, tblue = sp.GetTeamColor(tteam)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
 		tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
@@ -1351,7 +1360,7 @@ function CreatePlayer(playerID)
         ping = tping,
         cpu = tcpu,
         country = tcountry,
-        dead = false,
+        dead = teamIsDead or false,
         spec = tspec,
         ai = false,
         energy = energy,
@@ -2926,7 +2935,7 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     else
         font2:SetTextColor(sp.GetTeamColor(team))
     end
-    if isAbsent then
+    if isAbsent or (pDraw and pDraw.dead) then
         font2:SetOutlineColor(0, 0, 0, 0.4)
         font2:SetTextColor(0.45,0.45,0.45,1)
     end
@@ -2955,14 +2964,14 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     end
     font2:End()
 
-    if ignored or desynced or (isAbsent and pDraw and pDraw.dead) then
+    if ignored or desynced or (pDraw and pDraw.dead) then
         local x = m_name.posX + widgetPosX + 2 + xPadding
         local y = isAbsent and (posY + (8*playerScale)) or (posY + (7*playerScale))
         local w = (font2:GetTextWidth(nameText) * fontsize) + 2
         local h = isAbsent and (1.5*playerScale) or (2*playerScale)
 		if desynced then
 			gl_Color(1, 0.2, 0.2, 0.9)
-		elseif isAbsent and pDraw and pDraw.dead then
+		elseif pDraw and pDraw.dead then
 			gl_Color(0.45, 0.45, 0.45, 0.9)
 		else
 			gl_Color(1, 1, 1, 0.9)
