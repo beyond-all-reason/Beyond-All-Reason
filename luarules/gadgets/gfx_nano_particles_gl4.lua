@@ -134,21 +134,16 @@ end
 local NANO_TEXTURE    = "bitmaps/projectiletextures/nanopart.tga"
 local LOS_FILTER      = true   -- drop emissions outside our LOS
 
--- Debug: when true, the billboard FS skips the texture and LOS sample and
--- outputs a flat colored quad per particle. Useful to confirm particles are
--- being submitted to the GPU when the normal output looks empty. Cube mode
--- ignores this flag.
-local DEBUG_FLAT_FS = false
-
--- Render mode: "billboard" (camera-facing textured quads, engine spray look)
--- or "shape" (3D polyhedra via geometry shader; specific shape in MODE_SETTINGS).
--- Driven by the "NanoParticleMode" springsetting (gfx options UI):
+-- Render mode: "shape" (3D polyhedra via geometry shader; specific shape in
+-- MODE_SETTINGS). Driven by the "NanoParticleMode" springsetting (gfx options UI):
 --   0 = engine nano spray (gadget stays loaded but inert)
---   1 = gadget billboards
---   2 = gadget 3D shapes
+--   1 = gadget 3D shapes
 -- Polled live in GameFrame so changes take effect without a /luarules reload.
-local NANO_PARTICLE_MODE = Spring.GetConfigInt("NanoParticleMode", 2)
-local RENDER_MODE = (NANO_PARTICLE_MODE == 1) and "billboard" or "shape"
+if Spring.GetConfigInt("NanoParticleMode", 1) == 2 then
+	Spring.SetConfigInt("NanoParticleMode", 1)
+end
+local NANO_PARTICLE_MODE = Spring.GetConfigInt("NanoParticleMode", 1)
+local RENDER_MODE = "shape"
 
 
 -- Color brightness equalization, in [0..1]:
@@ -169,51 +164,12 @@ local function takeScaledEmitCount(info, accumKey, emits, scale)
 end
 
 -- Per-mode visual settings. Edit the active mode's table to tweak its look in
--- isolation. Billboard matches the engine spray; shape is tuned independently.
+-- isolation.
 local MODE_SETTINGS = {
-	billboard = {
-		drawRadius  = 3.0,        -- engine: drawRadius = 3
-		nanoAlpha   = 20 / 255,
-		dirJitter   = 0.15,
-		-- Per-particle randomization (± fraction of the base value). 0 disables.
-		sizeVar     = 0.3,
-		speedVar    = 0.15,
-		alphaVar    = 1.5,
-		-- Engine static rotation params (BAR default: -180,-50,-50,360,100,100).
-		rotValBase  = -180, rotValRange = 360,
-		rotVelBase  = -55,  rotVelRange = 110,
-		rotAccBase  = -55,  rotAccRange = 110,
-		glowIntensity = 0.02,
-		glowFalloff = 3,
-		glowScale = 5.0,
-		glowBreath     = 0.3,    -- halo intensity oscillation (per-particle phase)
-		glowBreathFreq = 2.0,    -- cycles/sec
-		glowBreathVar     = 0.5,  -- ± per-particle amplitude variation (0..1 fraction)
-		glowBreathFreqVar = 0.4,  -- ± per-particle frequency variation (0..1 fraction)
-		-- Energy enhancement (all shader-side, zero CPU cost):
-		coreBoost      = 0.75,    -- HDR overdrive on textured core (>1 pushes into bloom)
-		hueJitter      = 0.07,   -- ± per-channel RGB modulation per particle (0.05-0.10 sweet spot)
-		sizePulseAmp   = 0.05,   -- ± quad-size oscillation (keep <0.10 to avoid sub-frame jumps)
-		sizePulseFreq  = 4.0,
-		-- Vortex/swirl displacement perpendicular to velocity. Bell-shaped over
-		-- lifetime so spawn/landing points are unchanged -- the spray bows out.
-		wobbleAmp      = 3.0,    -- elmos peak displacement (mid-flight); 0 disables
-		wobbleVar      = 0.3,    -- ± per-particle amplitude variation
-		wobbleFreq     = 0.7,    -- cycles per sim-second around velocity axis
-		wobbleFreqVar  = 0.5,    -- ± per-particle frequency variation
-		wobbleRampFrames = 6.0,  -- frames to ramp up from 0 to full wobble amplitude (0 = instant)
-		-- Same uniforms as shape mode but sampled in quad-UV space + v_seed.
-		-- Keep cubeNoise modest -- nanoTex already has its own falloff structure.
-		cubeNoise            = 2.0,
-		cubeNoiseSpeed       = 25.0,
-		cubeNoiseScale       = 35.0,
-		whiteHotspot          = 1.7,
-		whiteHotspotThreshold = 0.7,
-	},
 	shape = {
 		shape       = "cube",   -- "cube" | "octahedron"
 		drawRadius  = 1.5,        -- shape spans ~2*drawRadius edge-to-edge
-		nanoAlpha   = 50 / 255,   -- match billboard look
+		nanoAlpha   = 50 / 255,
 		dirJitter   = 0.10,       -- chunks read better with less spread
 		-- Shapes benefit from visible variation -- they read as discrete chunks.
 		sizeVar     = 0.3,
@@ -336,7 +292,7 @@ local HEALTH_CHECK_EVERY         = 15
 -- (the saturation gate would drop most emissions anyway). Per-builder emit
 -- count is multiplied by the chosen value so total emission rate is preserved.
 local MIN_SCAN_RUN_EVERY         = 1
-local MAX_SCAN_RUN_EVERY         = 2
+local MAX_SCAN_RUN_EVERY         = 3
 -- Cache lifetime for spGetUnitCurrentBuildPower. Only trusted while bp > 0
 -- (continuous-build steady state where stale samples are harmless). Idle
 -- visits always re-fetch so 0 -> non-zero edges fire on the next visit. The
@@ -373,7 +329,7 @@ local DISTANT_EMIT_DROP     = 1.0 - DISTANT_EMIT_KEEP
 -- emit count is multiplied by stride so total rate is preserved. Grows with
 -- pool saturation (the gate would drop most emissions at high fill anyway).
 local MIN_SCAN_STRIDE = 1
-local MAX_SCAN_STRIDE = 3
+local MAX_SCAN_STRIDE = 2
 
 -- Engine constants (rts/Sim/Projectiles/ProjectileHandler.cpp)
 local NANO_SPEED      = 4.0	-- engine default: 3.0
@@ -423,13 +379,12 @@ local GAME_SPEED     = Game.gameSpeed or 30
 local U = {}
 
 -- Populate every mode-derived value from MODE_SETTINGS[name]. Called once at
--- file load and again whenever NanoParticleMode changes between billboard (1)
--- and shape (2) so the user can switch modes from the options menu without a
--- gadget reload. Callers are responsible for tearing down / rebuilding the GL
--- objects (cleanupGL4 + initGL4) since the shader pair depends on RENDER_MODE.
+-- file load. Kept as a function so future mode additions can re-invoke it
+-- (callers are responsible for tearing down / rebuilding GL objects via
+-- cleanupGL4 + initGL4 since the shader pair depends on RENDER_MODE).
 local function applyRenderMode(name)
 	RENDER_MODE          = name
-	local MODE           = MODE_SETTINGS[name] or MODE_SETTINGS.billboard
+	local MODE           = MODE_SETTINGS[name] or MODE_SETTINGS.shape
 	U.DRAW_RADIUS        = MODE.drawRadius
 	U.DIR_JITTER         = MODE.dirJitter
 	U.NANO_ALPHA         = MODE.nanoAlpha
@@ -475,7 +430,6 @@ applyRenderMode(RENDER_MODE)
 
 local nanoVBO
 local nanoShader
-local isShapeMode = false        -- set in initGL4 once shader path is decided
 local lastLosUniform = -1       -- cache to skip redundant SetUniform calls
 
 -- Active particle bookkeeping. The InstanceVBOTable instanceID is our handle.
@@ -559,364 +513,6 @@ local function refreshInfoIsLos()
 	local m = Spring.GetMapDrawMode()
 	cachedInfoIsLos = (m == nil or m == "" or m == "los")
 end
-
---------------------------------------------------------------------------------
--- Shaders
---------------------------------------------------------------------------------
-
-local vsSrc = [[
-#version 430 core
-
-// Per-vertex (rect VBO: xy in [-1,1], uv in [0,1])
-layout(location = 0) in vec4 vertexPosUV;
-
-// Per-instance
-layout(location = 1) in vec4 spawnPosAndSize;   // xyz=spawnPos, w=packed(sizeMult,fadeFrames)
-layout(location = 2) in vec4 velAndSpawnFrame;  // xyz=velocity, w=spawnFrame
-layout(location = 3) in vec4 instColor;         // rgba team color
-layout(location = 4) in vec4 rotData;           // x=rotVal0, y=rotVel0, z=wobbleStartFrame, w=deathFrame
-
-//__ENGINEUNIFORMBUFFERDEFS__
-
-uniform float drawRadius;
-uniform float glowScale;      // quad expansion factor (1.0 = no glow)
-uniform float glowIntensity;  // peak outer-falloff brightness (0.0 = no glow)
-uniform float sizePulseAmp;   // \u00b1 fractional size oscillation (0 = no pulse)
-uniform float sizePulseFreq;  // size pulse frequency (cycles/sim-second)
-uniform float wobbleAmp;      // peak vortex displacement perpendicular to vel (elmos)
-uniform float wobbleFreq;     // vortex rotation rate around vel (cycles/sim-second)
-uniform float wobbleVar;      // ± fractional per-particle amplitude variation (0..1)
-uniform float wobbleFreqVar;  // ± fractional per-particle frequency variation (0..1)
-uniform float wobbleRampFrames; // frames to linearly gate bell at spawn (0 = instant full wobble)
-
-out vec2 v_uv;
-out vec4 v_color;
-out vec3 v_worldPos;
-out float v_seed;        // stable per-particle seed for FS jitter (radians)
-
-void main() {
-	float currentFrame = timeInfo.x + timeInfo.w; // sub-frame interpolated
-	float spawnFrame   = velAndSpawnFrame.w;
-	float deathFrame   = rotData.w;
-
-	// Cull dead particles by collapsing to a degenerate point off-screen
-	if (currentFrame >= deathFrame) {
-		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
-		v_uv = vec2(0.0);
-		v_color = vec4(0.0);
-		v_seed = 0.0;
-		return;
-	}
-
-	float t = currentFrame - spawnFrame;
-	if (t < 0.0) t = 0.0;
-
-	// World-space center: pos = spawn + vel * elapsed
-	vec3 worldPos = spawnPosAndSize.xyz + velAndSpawnFrame.xyz * t;
-
-	// Vortex / swirl displacement perpendicular to the velocity axis.
-	// Use absolute time-based ramp for consistent wobble ramp speed regardless of
-	// distance/lifetime. Both forward and inverse use the same fixed ramp-up and
-	// ramp-down envelopes (12 frames each) so wobble intensity grows at the same
-	// visual speed whether particles travel far (long lifetime) or near (short).
-	// - Ramp up: wobble starts at 0, reaches full amplitude in ~12 frames
-	// - Ramp down: wobble fades to 0 in final ~12 frames before death
-	// Per-particle phase / freq scale / direction sign so adjacent particles
-	// aren't in lockstep -- shared wobbleFreq alone would just rotate them all
-	// at the same rate in the same plane.
-	if (wobbleAmp > 0.0001) {
-		// Lifetime-normalized sine bell: always peaks at 1.0 at midpoint regardless
-		// of travel distance. Short-range and long-range particles wobble equally.
-		// An optional linear ramp gate (wobbleRampFrames) slows the attack without
-		// affecting the natural sine fade-out.
-		float wobbleT    = max(currentFrame - rotData.z, 0.0);
-		float totalLife  = max(deathFrame - rotData.z, 1.0);
-		float bell       = sin(3.14159265 * wobbleT / totalLife);
-		if (wobbleRampFrames > 0.5)
-			bell *= min(1.0, wobbleT / wobbleRampFrames);
-		// Compute wobble axis from spawn-time rotData, not homing-modified velocity.
-		// rotData.x and .y are spawn-time random (never rewritten by homing). Using
-		// these to generate a stable perpendicular basis ensures wobble doesn't flip
-		// or jitter when the particle is re-aimed during forward homing. For moving
-		// targets, velocity changes every 3 frames (HOMING_RUN_EVERY), which would
-		// cause the computed wobble axis to rotate/flip abruptly -- jittery/extreme.
-		// Deriving the basis from spawn-time values keeps it stable across updates.
-		vec3 vdir = velAndSpawnFrame.xyz;  // Use for secondary ref vector only
-		vec3 ref, axA, axB;
-		// Use rotData.x as seed for a stable reference direction
-		float refAngle = rotData.x * 0.01745329;  // ~1 degree per unit
-		// Generate two pseudo-random perpendicular vectors from the seed
-		float s1 = sin(refAngle), c1 = cos(refAngle);
-		float s2 = sin(refAngle * 2.19), c2 = cos(refAngle * 2.19);
-		// Choose reference based on vdir.y to avoid degenerate cross products
-		if (abs(vdir.y) < 0.95) {
-			ref = normalize(vec3(s1, c1, s2));
-		} else {
-			ref = normalize(vec3(c1, s2, c2));
-		}
-		// Generate wobble basis from spawm-time seed and ref, independent of velocity
-		float h1 = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
-		float h2 = fract(sin(rotData.x * 23.1451 + rotData.y * 34.567) * 65432.0987);
-		axA = normalize(vec3(
-			sin(h1 * 6.28318),
-			sin(h2 * 6.28318),
-			cos(h1 * 3.14159 + h2 * 3.14159)
-		));
-		axB = cross(axA, ref);
-		if (dot(axB, axB) > 0.001) {
-			axB = normalize(axB);
-		} else {
-			// Degenerate case: fallback perpendicular
-			axB = cross(axA, (abs(axA.x) < 0.9) ? vec3(1, 0, 0) : vec3(0, 1, 0));
-			axB = normalize(axB);
-		}
-		// rotData.x and .y are spawn-time random (untouched by homing). Use
-		// hashed fract for stable per-particle freq scale (0.55..1.45) and
-		// direction sign (±1) so half spiral CW and half CCW at varying rates.
-		float phaseOff = radians(rotData.x);
-		float hash     = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
-		float freqScale = max(0.0, 1.0 + wobbleFreqVar * (2.0 * hash - 1.0));
-		float dirSign  = (fract(hash * 7.31) < 0.5) ? -1.0 : 1.0;
-		float hash2    = fract(hash * 113.7 + 0.317);
-		float ampScale = max(0.0, 1.0 + wobbleVar * (2.0 * hash2 - 1.0));
-		float ph = currentFrame * wobbleFreq * freqScale * dirSign * (6.2831853 / 30.0) + phaseOff;
-		worldPos += (axA * cos(ph) + axB * sin(ph)) * (wobbleAmp * ampScale * bell);
-	}
-
-	// Decode packed w: floor sizeMult times 256 in low 1024, fadeFrames times 1024 above.
-	// Sign of w is the inverse flag (handled above for the bell envelope) -- abs here.
-	float packedW    = abs(spawnPosAndSize.w);
-	float fadeFrames = floor(packedW / 1024.0);
-	float sizeMult   = (packedW - fadeFrames * 1024.0) / 256.0;
-
-	// End-of-life alpha fade: ramps from 1 to 0 over the last fadeFrames frames.
-	// fadeFrames == 0 disables the fade.
-	float fade = 1.0;
-	if (fadeFrames > 0.5) {
-		fade = clamp((deathFrame - currentFrame) / fadeFrames, 0.0, 1.0);
-	}
-
-	// Keep billboard rotation simple and stable. rotData.z now stores the wobble
-	// timeline, so rotData.y is treated as a constant angular velocity.
-	float rotVel = rotData.y;
-	float rotVal = rotData.x + rotVel * t;
-	float rotRad = radians(rotVal);
-	float c = cos(rotRad);
-	float s = sin(rotRad);
-
-	// Per-particle stable seed (radians). rotData.x is the per-spawn random
-	// in degrees; converting to radians gives a uniform [-pi, pi] hash that
-	// homing won't perturb (rotData is never rewritten in-place).
-	float seed = radians(rotData.x);
-
-	// Subtle size pulsation. Using absolute currentFrame (not t) keeps the
-	// pulse phase stable across homing rewrites.
-	float pulseScale = 1.0;
-	if (sizePulseAmp > 0.0001) {
-		float ph = currentFrame * sizePulseFreq * (6.2831853 / 30.0) + seed;
-		pulseScale = 1.0 + sizePulseAmp * sin(ph);
-	}
-
-	float size = drawRadius * sizeMult * glowScale * pulseScale * (0.5 + 0.5 * fade);
-	vec3 right = cameraViewInv[0].xyz;
-	vec3 up    = cameraViewInv[1].xyz;
-
-	// Rotate quad corner around camera-forward
-	vec2 corner = vertexPosUV.xy; // in [-1,1]
-	vec2 rotCorner = vec2(c * corner.x - s * corner.y, s * corner.x + c * corner.y);
-
-	vec3 offset = (right * rotCorner.x + up * rotCorner.y) * size;
-
-	gl_Position = cameraViewProj * vec4(worldPos + offset, 1.0);
-
-	v_uv       = vertexPosUV.zw;
-	v_color    = instColor * fade;  // premultiplied-alpha fade (blend = ONE, 1-SRC_ALPHA)
-	v_worldPos = worldPos;
-	v_seed     = seed;
-}
-]]
-
-local fsSrcDebug = [[
-#version 430 core
-
-//__ENGINEUNIFORMBUFFERDEFS__
-
-uniform sampler2D nanoTex;
-uniform sampler2D infoTex;
-uniform float losAlwaysVisible;
-
-in vec2 v_uv;
-in vec4 v_color;
-in vec3 v_worldPos;
-out vec4 fragColor;
-
-void main() {
-	// Solid magenta with the team-color alpha so we can immediately see whether
-	// any particles are being submitted at all. Premultiplied for the ONE,
-	// 1-SRC_ALPHA blend in DrawWorld.
-	float a = 0.5;
-	fragColor = vec4(1.0 * a, 0.0, 1.0 * a, a);
-}
-]]
-
-local fsSrc = [[
-#version 430 core
-
-//__ENGINEUNIFORMBUFFERDEFS__
-
-uniform sampler2D nanoTex;
-uniform sampler2D infoTex;        // engine $info texture (LOS in .rgb)
-uniform float losAlwaysVisible;   // 1.0 for spectator full-view, else 0.0
-uniform float glowScale;          // quad expansion factor; core lives in inner 1/glowScale
-uniform float glowIntensity;      // peak alpha of the outer radial falloff (0.0 = off)
-uniform float glowFalloff;        // falloff exponent: 1.0 linear, 2.0 quadratic (bloomy),
-                                  // 4.0+ sharp initial drop then long faint tail
-uniform float coreBoost;          // brightness multiplier for the textured core (>=1.0)
-uniform float hueJitter;          // \u00b1 per-channel modulation amplitude (0 = off)
-uniform float glowBreath;         // halo intensity oscillation amplitude (0..1)
-uniform float glowBreathFreq;     // halo oscillation frequency (cycles/sim-second)
-uniform float glowBreathVar;      // ± per-particle amplitude variation (0..1 fraction of glowBreath)
-uniform float glowBreathFreqVar;  // ± per-particle frequency variation (0..1 fraction of glowBreathFreq)
-uniform float cubeNoise;             // brightness noise on the textured core (0 = off)
-uniform float cubeNoiseSpeed;        // noise time-scroll rate
-uniform float cubeNoiseScale;        // noise spatial frequency (UV space)
-uniform float whiteHotspot;          // peak strength of noise->white mix on the core (0 = off)
-uniform float whiteHotspotThreshold; // noise value where hotspot ramp starts (0..1)
-
-in vec2  v_uv;
-in vec4  v_color;
-in vec3  v_worldPos;
-in float v_seed;
-out vec4 fragColor;
-
-// Cheap 2D value noise -- billboard analog of the cube FS's valueNoise3. Same
-// Hoskins hash + quintic fade; one fewer dimension because billboards have no
-// useful object-local Z. The per-particle v_seed offsets the sample so adjacent
-// sprites don't sparkle in lockstep.
-float hash12(vec2 p) {
-	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
-	p3 += dot(p3, p3.yzx + 31.32);
-	return fract((p3.x + p3.y) * p3.z);
-}
-float valueNoise2(vec2 p) {
-	vec2 i = floor(p);
-	vec2 f = fract(p);
-	f = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
-	float n00 = hash12(i + vec2(0.0, 0.0));
-	float n10 = hash12(i + vec2(1.0, 0.0));
-	float n01 = hash12(i + vec2(0.0, 1.0));
-	float n11 = hash12(i + vec2(1.0, 1.0));
-	vec2 nx = mix(vec2(n00, n01), vec2(n10, n11), f.x);
-	return mix(nx.x, nx.y, f.y);
-}
-
-void main() {
-	// Early LOS discard: test before the nanoTex fetch so fogged fragments skip
-	// the texture bandwidth entirely.
-	float losMul = 1.0;
-	if (losAlwaysVisible < 0.5) {
-		vec2 losUV = clamp(v_worldPos.xz, vec2(0.0), mapSize.xy) / mapSize.zw;
-		float los = dot(vec3(0.3333), texture(infoTex, losUV).rgb);
-		losMul = smoothstep(0.30, 0.50, los);
-		if (losMul < 0.02) discard;
-	}
-
-	// Radial distance from the quad center in [0..1] at the outer edge.
-	vec2  centered = v_uv * 2.0 - 1.0;
-	float rd       = length(centered);
-	if (rd > 1.0) discard;
-
-	// Per-particle hue jitter: cheap pseudo-hue rotation by phase-shifted sin
-	// per channel. Centered on 1.0 so the average tint matches team color.
-	vec3 tint = vec3(1.0);
-	if (hueJitter > 0.0001) {
-		tint = vec3(1.0) + hueJitter * vec3(
-			sin(v_seed),
-			sin(v_seed + 2.094),    // +120 degrees
-			sin(v_seed + 4.188));   // +240 degrees
-	}
-
-	// Core occupies the inner 1/glowScale of the expanded quad. Sample the
-	// nanoTex with uv remapped so the blob covers that inner disc exactly at
-	// its original size (glowScale == 1.0 reproduces the pre-glow look).
-	float coreEdge = 1.0 / max(glowScale, 1.0);
-	float mask     = 0.0;
-	float noiseVal = 0.5;  // neutral default when cubeNoise + whiteHotspot are off
-	if (rd < coreEdge) {
-		vec2 coreUV = centered / coreEdge * 0.5 + 0.5;
-		vec4 tex    = texture(nanoTex, coreUV);
-		mask        = max(dot(tex.rgb, vec3(0.3333)), tex.a) * coreBoost;
-
-		// Per-particle animated value noise on the core, sampled in quad-UV
-		// space (the cube path samples in object-local 3D coords, but billboards
-		// have no useful local Z so we use UV + a per-particle seed offset).
-		if (cubeNoise > 0.001 || whiteHotspot > 0.001) {
-			float tt = (timeInfo.x + timeInfo.w) * cubeNoiseSpeed * (1.0 / 30.0);
-			vec2 samp = centered * cubeNoiseScale + vec2(v_seed * 7.13, v_seed * 3.57)
-			          + vec2(tt, tt * 0.7);
-			noiseVal = valueNoise2(samp);
-			if (cubeNoise > 0.001) {
-				mask *= 1.0 + cubeNoise * (noiseVal * 2.0 - 1.0);
-			}
-		}
-	}
-
-	// Outer radial falloff: smooth ring from coreEdge out to 1.0. The glowFalloff
-	// exponent controls the curve shape: 1.0 = linear (even fade), 2.0 = quadratic
-	// (classic bloomy halo), higher values (4-8) = sharp initial drop with a long
-	// faint tail, reading more as a sharp corona than a soft blob.
-	float glow = 0.0;
-	if (glowIntensity > 0.0 && glowScale > 1.001) {
-		float t = clamp((1.0 - rd) / (1.0 - coreEdge), 0.0, 1.0);
-		float gI = glowIntensity;
-		// Animated halo "breath": small intensity oscillation, per-particle
-		// phase-offset so adjacent halos don't pulse in lockstep. Per-particle
-		// amplitude and frequency variation use two INDEPENDENT sin-hashes of
-		// v_seed (different prime multipliers and offsets) so even when seeds
-		// cluster in [-pi, pi] the two hashes decorrelate cleanly. Single-hash
-		// chains produced visibly correlated amp/freq pairs in testing.
-		if (glowBreath > 0.0001) {
-			float hAmp  = fract(sin(v_seed * 91.7253 + 17.31) * 43758.5453);
-			float hFreq = fract(sin(v_seed * 33.1117 + 43.93) * 27183.4500);
-			float ampScale  = max(0.0, 1.0 + glowBreathVar     * (2.0 * hAmp  - 1.0));
-			float freqScale = max(0.0, 1.0 + glowBreathFreqVar * (2.0 * hFreq - 1.0));
-			float ph = (timeInfo.x + timeInfo.w) * glowBreathFreq * freqScale * (6.2831853 / 30.0) + v_seed;
-			gI *= 1.0 + glowBreath * ampScale * sin(ph);
-		}
-		glow = pow(t, max(glowFalloff, 0.01)) * gI;
-	}
-
-	float combined = (mask + glow);
-	// Glow tint is the channel-normalized team color (max channel = 1) so each
-	// hue stays fully saturated. Brightness equalization is then done by
-	// scaling the glow CONTRIBUTION (not the tint) by GLOW_LUMA_TARGET / hueLuma
-	// -- dark hues (blue luma ~0.07) emit proportionally more energy in their
-	// own channel, hitting the same perceived brightness as bright hues without
-	// any whitewash. Cap the boost to keep HDR additive blending in check.
-	vec3  glowTint = v_color.rgb / max(max(v_color.r, max(v_color.g, v_color.b)), 0.001);
-	float gLuma    = dot(glowTint, vec3(0.2126, 0.7152, 0.0722));
-	const float GLOW_LUMA_TARGET = 0.55;
-	const float GLOW_BOOST_MAX   = 5.0;
-	float glowBoost = min(GLOW_LUMA_TARGET / max(gLuma, 0.001), GLOW_BOOST_MAX);
-	vec3  rgb = (v_color.rgb * mask + glowTint * (glow * glowBoost)) * tint;
-	float a   = v_color.a   * combined;
-
-	// White hotspot overlay on the textured core. Premultiplied-alpha trick:
-	// rgb here is (team_color * tint * combined) and v_color.a is small (~0.04),
-	// so a mix() toward vec3(a) does almost nothing. Instead ADD a white energy
-	// spark in premultiplied space, gated by mask (confines to core, no halo
-	// whitening), v_color.a (consistent with rest of pipeline) and the
-	// noise->smoothstep so only high-noise peaks brighten.
-	if (whiteHotspot > 0.0001 && mask > 0.0) {
-		float hotspot = smoothstep(whiteHotspotThreshold, 1.0, noiseVal) * whiteHotspot;
-		float spark   = mask * v_color.a * hotspot;
-		rgb += vec3(spark);
-		a   += spark;
-	}
-
-	fragColor = vec4(rgb, a) * losMul;
-}
-]]
 
 --------------------------------------------------------------------------------
 -- Cube render mode shaders
@@ -1414,18 +1010,16 @@ local function goodbye(reason)
 end
 
 local function initGL4()
-	local shapeMode = (RENDER_MODE == "shape")
-	if shapeMode and not LuaShader.isGeometryShaderSupported then
-		spEcho("Nano Particles GL4: geometry shader not supported, falling back to billboard mode.")
-		shapeMode = false
+	if not LuaShader.isGeometryShaderSupported then
+		goodbye("geometry shader not supported")
+		return false
 	end
-	isShapeMode = shapeMode
 	local shaderCache = {
-		vsSrc = shapeMode and vsSrcCube or vsSrc,
-		fsSrc = shapeMode and fsSrcCube or (DEBUG_FLAT_FS and fsSrcDebug or fsSrc),
-		gsSrc = shapeMode and gsSrcCube or nil,
-		shaderName = shapeMode and "NanoParticlesGL4_Shape" or "NanoParticlesGL4",
-		uniformInt = shapeMode and { infoTex = 1, u_shape = U.SHAPE_ID } or { nanoTex = 0, infoTex = 1 },
+		vsSrc = vsSrcCube,
+		fsSrc = fsSrcCube,
+		gsSrc = gsSrcCube,
+		shaderName = "NanoParticlesGL4_Shape",
+		uniformInt = { infoTex = 1, u_shape = U.SHAPE_ID },
 		uniformFloat = { losAlwaysVisible = 0, drawRadius = U.DRAW_RADIUS, cubeShowInside = U.CUBE_SHOW_INSIDE,
 		                 cubeNoise = U.CUBE_NOISE, cubeNoiseSpeed = U.CUBE_NOISE_SPEED, cubeNoiseScale = U.CUBE_NOISE_SCALE,
 		                 glowScale = U.GLOW_SCALE, glowIntensity = U.GLOW_INTENSITY, glowFalloff = U.GLOW_FALLOFF,
@@ -1450,17 +1044,12 @@ local function initGL4()
 		0, 0, 1, 1,
 		"nanoQuadVBO"
 	)
-	local indexVBO
-	if shapeMode then
-		-- Shape GS only needs ONE triangle per instance; using the rect's 2-tri
-		-- index buffer would invoke the GS twice per particle. A 3-index VBO
-		-- (the rect's first triangle: bl,tl,tr) cuts GS work in half.
-		indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-		indexVBO:Define(3)
-		indexVBO:Upload({0, 1, 2})
-	else
-		indexVBO = InstanceVBOTable.makeRectIndexVBO("nanoQuadIndexVBO")
-	end
+	-- Shape GS only needs ONE triangle per instance; using the rect's 2-tri
+	-- index buffer would invoke the GS twice per particle. A 3-index VBO
+	-- (the rect's first triangle: bl,tl,tr) cuts GS work in half.
+	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	indexVBO:Define(3)
+	indexVBO:Upload({0, 1, 2})
 
 	local layout = {
 		{ id = 1, name = "spawnPosAndSize",  size = 4 },
@@ -2791,13 +2380,10 @@ local function scanBuilders(frame)
 							-- frames since this builder's last visit so the count is
 							-- proportional regardless of stride/runEvery throttling
 							-- and per-builder visit-skip RNG.
-							local lastVisit = info.lastVisitFrame
-							local elapsed = lastVisit and (frame - lastVisit) or (stride * runEvery)
-							-- Cap elapsed so a long-idle builder doesn't dump a backlog burst.
-							if elapsed > stride * runEvery * 4 then
-								elapsed = stride * runEvery * 4
-							end
 							info.lastVisitFrame = frame
+							-- Always emit only this frame's share. No catch-up burst
+							-- when a builder was skipped due to pool saturation.
+							local elapsed = 1
 							local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * elapsed * (NanoParticleRate or 1.0)
 							-- Deterministic accumulator: carries the fractional
 							-- remainder across visits. Eliminates the Bernoulli jitter
@@ -2832,9 +2418,7 @@ local function scanBuilders(frame)
 							-- breaks the on-axis pile-up of a multi-particle batch.
 							-- Count compensation still uses full `elapsed`, so total
 							-- emission rate is preserved.
-							local spreadWindow = stride * runEvery
-							if spreadWindow > MAX_SPREAD_AHEAD_FRAMES then spreadWindow = MAX_SPREAD_AHEAD_FRAMES end
-							if spreadWindow > elapsed then spreadWindow = elapsed end
+							local spreadWindow = math.min(MAX_SPREAD_AHEAD_FRAMES, elapsed)
 							local resurrectEmits = isResurrect and takeScaledEmitCount(info, "resurrectEmitAccum", emits, NanoParticleResurrectExtraRate) or emits
 							if resurrectEmits > 0 then
 								local n = info.nPieces
@@ -2948,10 +2532,10 @@ end
 -- Callins
 --------------------------------------------------------------------------------
 
--- Switch to a new NanoParticleMode (0 engine / 1 billboards / 2 shapes).
--- Tears down GL resources when leaving 1/2, rebuilds them with the right
--- shader pair when entering 1/2, and keeps the engine's MaxNanoParticles
--- budget in sync so we never double-spray.
+-- Switch to a new NanoParticleMode (0 engine / 1 shapes).
+-- Tears down GL resources when leaving 1, rebuilds them when entering 1,
+-- and keeps the engine's MaxNanoParticles budget in sync so we never
+-- double-spray.
 local function applyParticleMode(newMode, force)
 	if (not force) and newMode == NANO_PARTICLE_MODE and nanoVBO ~= nil then return end
 	if (not force) and newMode == NANO_PARTICLE_MODE and newMode == 0 then return end
@@ -2977,9 +2561,9 @@ local function applyParticleMode(newMode, force)
 		return
 	end
 
-	-- Modes 1/2: silence the engine spray, swap to the matching shader pair.
+	-- Mode 1: silence the engine spray, swap to the shape shader pair.
 	Spring.SetConfigInt("MaxNanoParticles", 0)
-	applyRenderMode((newMode == 1) and "billboard" or "shape")
+	applyRenderMode("shape")
 	if not initGL4() then
 		spEcho("Nano Particles GL4: GL init failed; falling back to engine spray.")
 		NANO_PARTICLE_MODE = 0
@@ -2990,7 +2574,7 @@ end
 function gadget:Initialize()
 	-- The gadget always stays loaded so it can observe live NanoParticleMode
 	-- changes from the gfx options menu. Mode 0 = engine spray: we just leave
-	-- nanoVBO unset and skip emission/draw; switching to 1/2 lazy-inits GL.
+	-- nanoVBO unset and skip emission/draw; switching to 1 lazy-inits GL.
 	applyParticleMode(NANO_PARTICLE_MODE, true)
 	refreshSpec()
 	-- Seed tracked builder set with units that already exist (handles
@@ -3023,7 +2607,7 @@ function gadget:GameFrame(n)
 	-- Cheap (one GetConfigInt) and 1s latency on a settings-menu toggle is
 	-- imperceptible.
 	if n % 30 == 0 then
-		local mode = Spring.GetConfigInt("NanoParticleMode", 2)
+		local mode = Spring.GetConfigInt("NanoParticleMode", 1)
 		if mode ~= NANO_PARTICLE_MODE then
 			applyParticleMode(mode, false)
 		elseif NANO_PARTICLE_MODE ~= 0 then
@@ -3378,9 +2962,6 @@ function gadget:DrawWorld()
 	glBlending(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
 
 	-- Shape shader has no nanoTex sampler -- skip the bind entirely.
-	if not isShapeMode then
-		glTexture(0, NANO_TEXTURE)
-	end
 	glTexture(1, "$info")
 	nanoShader:Activate()
 	-- losAlwaysVisible: bypass the LOS/infoTex sample either with full view
@@ -3419,9 +3000,6 @@ function gadget:DrawWorld()
 	gl.StencilTest(false)
 
 	nanoShader:Deactivate()
-	if not isShapeMode then
-		glTexture(0, false)
-	end
 	glTexture(1, false)
 
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)

@@ -365,6 +365,7 @@ local function updateButtons()
 	if WG['teamstats'] and not isScenario then addButton('stats', Spring.I18N('ui.topbar.button.stats')) end
 	if gameIsOver then addButton('graphs', Spring.I18N('ui.topbar.button.graphs')) end
 	if WG['scavengerinfo'] then addButton('scavengers', Spring.I18N('ui.topbar.button.scavengers')) end
+	if isScenario and WG['missioninfo'] then addButton('mission', Spring.I18N('ui.topbar.button.mission')) end
 	if isSinglePlayer and cfg.allowSavegame and WG['savegame'] then addButton('save', Spring.I18N('ui.topbar.button.save')) end
 
 	buttonsArea['buttons'][lastbutton][1] = buttonsArea['buttons'][lastbutton][1] - sidePadding
@@ -392,17 +393,7 @@ end
 local function updateComs(forceText)
 	local area = comsArea
 
-	-- Check if commander texture is loaded before creating display list
 	local texPath = string.lower(string.gsub(textures.com, ":.:", ""))
-	if VFS.FileExists(texPath) then
-		local texInfo = gl.TextureInfo(textures.com)
-		-- If texture isn't loaded yet, mark that coms need updating and retry next frame
-		if not texInfo or not texInfo.xsize or texInfo.xsize <= 0 then
-			comcountChanged = true
-			return
-		end
-	end
-
 
 	if dlist.coms then glDeleteList(dlist.coms) end
 	comsDlistUpdate = true
@@ -664,7 +655,7 @@ local function updateResbarText(res, force)
 						end
 
 						local bannerH = 15.5 * widgetScale
-						local bannerRightX = resbarArea[res][3] - (res == 'energy' and cfg.useSkew and bannerH * skewTan * 0.5 or 0)
+						local bannerRightX = resbarArea[res][3] - bgpadding - (res == 'energy' and cfg.useSkew and bannerH * skewTan * 0.5 or 0)
 
 						RectRound(bannerRightX - textWidth, resbarArea[res][4] - bannerH, bannerRightX, resbarArea[res][4], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)
 						RectRound(bannerRightX - textWidth + bgpadding2, resbarArea[res][4] - bannerH + bgpadding2, bannerRightX - bgpadding2, resbarArea[res][4], 2.8 * widgetScale, 0, 0, 1, 1, color3, color4)
@@ -1362,7 +1353,7 @@ local function renderResbarText()
 		drawResbarPullIncome(res)
 	end
 	if updateRes[res][3] then
-		updateRes[res][3] = false
+		if not showingWarning[res] then updateRes[res][3] = false end
 		drawResbarStorage(res)
 	end
 
@@ -1373,7 +1364,7 @@ local function renderResbarText()
 		drawResbarPullIncome(res)
 	end
 	if updateRes[res][3] then
-		updateRes[res][3] = false
+		if not showingWarning[res] then updateRes[res][3] = false end
 		drawResbarStorage(res)
 	end
 end
@@ -1975,6 +1966,7 @@ local function hideWindows()
 	local closedWindow = false
 	closedWindow = closeWindow('options') or closedWindow
 	closedWindow = closeWindow('scavengerinfo') or closedWindow
+	closedWindow = closeWindow('missioninfo') or closedWindow
 	closedWindow = closeWindow('keybinds') or closedWindow
 	closedWindow = closeWindow('changelog') or closedWindow
 	closedWindow = closeWindow('gameinfo') or closedWindow
@@ -2041,6 +2033,8 @@ local function applyButtonAction(button)
 		end
 	elseif button == 'scavengers' then
 		toggleWindow('scavengerinfo')
+	elseif button == 'mission' then
+		toggleWindow('missioninfo')
 	elseif button == 'keybinds' then
 		toggleWindow('keybinds')
 	elseif button == 'changelog' then
