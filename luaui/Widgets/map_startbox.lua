@@ -802,12 +802,36 @@ local function InitStartPolygons()
 	if Spring.GetGaiaTeamID() then
 		gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID() , false))
 	end
-	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
-		if teamID ~= gaiaAllyTeamID then
-			--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
-			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-			--spEcho("Allyteam",teamID,"startbox",xn, zn, xp, zp)
-			StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
+
+	-- try loading polygon configs from startbox_utilities
+	local configLoaded = false
+	local ok, ParseBoxes = pcall(VFS.Include, "luarules/gadgets/include/startbox_utilities.lua")
+	if ok and ParseBoxes then
+		local pok, startBoxConfig, configSource = pcall(ParseBoxes)
+		if pok and startBoxConfig then
+			-- Build set of active allyTeams so we only render polygons for teams in this game
+			local activeAllyTeams = {}
+			for _, atID in ipairs(Spring.GetAllyTeamList()) do
+				activeAllyTeams[atID] = true
+			end
+			for allyTeamID, entry in pairs(startBoxConfig) do
+				if allyTeamID ~= gaiaAllyTeamID and activeAllyTeams[allyTeamID] and entry.boxes then
+					for _, polygon in ipairs(entry.boxes) do
+						StartPolygons[#StartPolygons + 1] = {team = allyTeamID, poly = polygon}
+					end
+					configLoaded = true
+				end
+			end
+		end
+	end
+
+	-- fall back to engine AABB if no polygon configs were loaded
+	if not configLoaded then
+		for i, teamID in ipairs(Spring.GetAllyTeamList()) do
+			if teamID ~= gaiaAllyTeamID then
+				local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
+				StartPolygons[#StartPolygons + 1] = {team = teamID, poly = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}}
+			end
 		end
 	end
 
@@ -825,17 +849,35 @@ local function InitStartPolygons()
 				local y1 = mathRandom(0, Game.mapSizeZ / 5)
 				polygon[#polygon+1] = {x0+x1, y0+y1}
 			end
-			StartPolygons[#StartPolygons+1] = polygon
+			StartPolygons[#StartPolygons+1] = {team = i, poly = polygon}
 		end
 	end
 
-	--Case we start with only one team(no enemies)
-	--The shader doesn't like that so we have to let it think there are more then one
-	if(#StartPolygons == 0) then
-		StartPolygons[#StartPolygons+1] = StartPolygons[#StartPolygons]
+	local numStartPolygons = #StartPolygons
+
+	-- The shader requires at least 2 entries to avoid edge cases
+	if numStartPolygons < 2 and numStartPolygons > 0 then
+		StartPolygons[#StartPolygons + 1] = StartPolygons[1]
+		numStartPolygons = numStartPolygons + 1
 	end
 
-	shaderSourceCache.shaderConfig.NUM_BOXES = #StartPolygons
+	-- Sort so same-team polygons are not adjacent in the buffer.
+	-- The shader merges consecutive same-teamID vertex blocks into one polygon,
+	-- so we interleave by sorting on (index within team, teamID).
+	local teamIndex = {}
+	for i = 1, numStartPolygons do
+		local t = StartPolygons[i].team
+		teamIndex[t] = (teamIndex[t] or 0) + 1
+		StartPolygons[i].sortKey = teamIndex[t]
+	end
+	table.sort(StartPolygons, function(a, b)
+		if a.sortKey ~= b.sortKey then
+			return a.sortKey < b.sortKey
+		end
+		return a.team < b.team
+	end)
+
+	shaderSourceCache.shaderConfig.NUM_BOXES = numStartPolygons
 
 	local minY, maxY = Spring.GetGroundExtremes()
 	local waterlevel = (Spring.GetModOption and Spring.GetModOptions().map_waterlevel) or 0
@@ -849,12 +891,12 @@ local function InitStartPolygons()
 	local numvertices = 0
 	local bufferdata = {}
 	local numPolygons = 0
-	for teamID, polygon in pairs(StartPolygons) do
+	for _, entry in ipairs(StartPolygons) do
 		numPolygons = numPolygons + 1
+		local polygon = entry.poly
+		local teamID = entry.team
 		local numPoints = #polygon
-		local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-		--spEcho("teamID", teamID, "at " ,xn, zn, xp, zp)
-		for vertexID, vertex in ipairs(polygon) do
+		for _, vertex in ipairs(polygon) do
 			local x, z = vertex[1], vertex[2]
 			bufferdata[#bufferdata+1] = teamID
 			bufferdata[#bufferdata+1] = numPoints
