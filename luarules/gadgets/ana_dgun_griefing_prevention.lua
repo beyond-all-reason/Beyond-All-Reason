@@ -6,12 +6,12 @@ This gadget classifies dguns fired by the player to three possible outcomes:
 * DGUN grief positive: the Dgun threatens allied units and is considered griefing
 
 Reasons a Dgun would threaten allies, but be classified as not griefing:
-* Not enough allied metal value threatened (ignored as inconsequential)
 * Commander is on the frontline (all dguns are considered combat dguns that can potentially hit allies for the greater good). Frontline indicators:
   * Enemies nearby on vision, radar, or seismic
   * Enemies recently detected nearby on vision, radar, or seismic (in case allied radar is briefly destroyed, or LOS is briefly lost, etc)
   * Allies damaged nearby recently (implies enemy activity nearby even if it might be jammed)
   * Enemy buildings detected nearby (including building ghosts)
+* Not enough allied metal value threatened (ignored as inconsequential)
 
 Reasons for these exceptions: some Dguns that hit allies are nonetheless for the greater good. e.g.,
 * Dgunning enemy razor but accidentally hitting allied popup nearby;
@@ -71,7 +71,7 @@ local DGUN_SAFETY_WIDTH = 100
 local DGUN_WIDTH = 20
 
 -- Dguns that threaten less than this amount of metal (in allied units) are ignored as inconsequential
-local MIN_THREATENED_ALLY_METAL = 400
+local MIN_THREATENED_ALLY_METAL = 300
 
 -- 1500 is a bit more than the range of a Vanguard
 -- In my opinion, there is never a reason to even fire a DGun if there is no frontline action within VANGUARD distance
@@ -80,22 +80,29 @@ local FRONTLINE_SCAN_RADIUS = 1500
 local gaiaTeamID = spGetGaiaTeamID()
 
 -- Tracks enemy contacts briefly so that dguns are allowed for a few seconds even after contact is lost
+-- Note that this table uses a queue/head structure to reduce cache modification cost to amortized O(1) (at the expense of reduced intuitiveness of code, which I think is fine?)
 local contactsCache = {}
 local contactsHead = 1
 local CONTACT_WINDOW_DURATION = 5 * 30 -- five seconds at 30 gameframes per second
+
 -- Tracks enemy buildings that leave ghosts so they can keep contributing to enemy presence
 local enemyBuildingsCache = {}
--- Allies being damaged nearby recently implies we are near combat, so dguns are allowed
-local ALLY_DAMAGE_WINDOW = 30 * 30 -- 30 seconds at 30 gameframes per second
-local CACHE_PRUNE_INTERVAL = 60 * 30 -- prune expired cache contents every minute
-local ENEMY_BUILDING_UPDATE_INTERVAL = 10
-local nextContactPruneFrame = CACHE_PRUNE_INTERVAL
+local ENEMY_BUILDING_UPDATE_INTERVAL = 10 -- check building ghost LOS on this interval (frame count)
 local nextEnemyBuildingUpdateFrame = 0
+
+-- Allies being damaged nearby recently implies we are near combat, so dguns are allowed
 local recentlyDamagedAlliedUnits = {}
+local ALLY_DAMAGE_WINDOW = 20 * 30 -- 20 seconds at 30 gameframes per second
+
+local CACHE_PRUNE_INTERVAL = 60 * 30 -- prune expired cache contents every minute
+local nextContactPruneFrame = CACHE_PRUNE_INTERVAL
+
+-- cache these for faster lookups
 local myTeamID = spGetMyTeamID()
 local myAllyTeamID = spGetMyAllyTeamID()
 local allyTeamIDCache = {}
 
+-- Called if player becomes spec (or god forbid, player changes teams or ally-teams somehow? Shouldn't be possible in real game?)
 local function RefreshPlayerState()
 	myTeamID = spGetMyTeamID()
 	myAllyTeamID = spGetMyAllyTeamID()
@@ -113,9 +120,7 @@ local function GetAllyTeamID(teamID)
 	end
 
 	local _, _, _, _, _, allyTeamID = spGetTeamInfo(teamID)
-	if allyTeamID ~= nil then
-		allyTeamIDCache[teamID] = allyTeamID
-	end
+	allyTeamIDCache[teamID] = allyTeamID
 	return allyTeamID
 end
 
@@ -153,7 +158,7 @@ end
 
 -- Removes old frontline contacts that are stale.
 -- Nearby frontline contacts enable dguns to be fired indiscriminately
-local function PruneExpiredCaches(currentFrame)
+local function PruneExpiredContacts(currentFrame)
 	while contactsHead <= #contactsCache do
 		local contact = contactsCache[contactsHead]
 		if contact.expiresFrame > currentFrame then
@@ -199,7 +204,15 @@ local function AddEnemyBuildingToCache(unitID)
 	end
 
 	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-	if not unitX then
+	if not unitX then -- shouldn't happen, just in case...
+		return
+	end
+
+	local cache = enemyBuildingsCache[unitID]
+	if cache then
+		cache.x = unitX
+		cache.y = unitY
+		cache.z = unitZ
 		return
 	end
 
@@ -210,7 +223,7 @@ local function AddEnemyBuildingToCache(unitID)
 	}
 end
 
--- Updates the enemy building cache based on LOS info on the current frame.
+-- Updates the enemy building cache every couple frames based on current LOS info.
 -- Nearby enemy buidlings enable dguns to be fired indiscriminately
 local function UpdateEnemyBuildingCache(currentFrame)
 	if currentFrame < nextEnemyBuildingUpdateFrame then
@@ -243,7 +256,8 @@ local function UpdateEnemyBuildingCache(currentFrame)
 	end
 end
 
--- Caches a unit contact briefly. This can be checked for the sake of allowing/disallowing DGun later
+-- Caches an enemy unit contact briefly.
+-- Nearby frontline contacts enable dguns to be fired indiscriminately
 local function AddExpiringEnemyContact(x, y, z, currentFrame)
 	contactsCache[#contactsCache + 1] = {
 		x = x,
@@ -293,7 +307,7 @@ local function DistPointToSegment(pointX, pointY, pointZ, segmentStartX, segment
 end
 
 -- Returns True and explanation of most expensive threatened ally if DGUN threatens too much allied stuff (see: MIN_THREATENED_ALLY_METAL)
--- Returns False and nill if DGUN threatens nothing
+-- Returns False and nil if DGUN threatens nothing
 -- Returns False and an explanation if DGUN threatens stuff, but not enough to be concerned about
 local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
 	-- Build a cheap box around the beam first, then do the precise segment test
@@ -315,21 +329,23 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 		local unitRadius = GetApproxUnitRadius(unitDefID)
 		-- Self-owned units are exempt (only consider allied owned units).
 		if unitTeam and unitTeam ~= teamID and GetAllyTeamID(unitTeam) == myAllyTeamID then
-			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-			if unitX then
-				local d = DistPointToSegment(unitX, unitY, unitZ, startX, startY, startZ, endX, endY, endZ)
-				if d < unitRadius + DGUN_WIDTH / 2 then
-					local unitDef = unitDefID and UnitDefs[unitDefID]
-					local threatenedMetal = 0
-					if unitDef then
-						-- Partially built units only contribute proportional metal value to threat
-						local buildProgress = select(5, spGetUnitHealth(unitID)) or 1
-						threatenedMetal = unitDef.metalCost * math.min(buildProgress, 1)
-					end
-					threatenedAllyMetal = threatenedAllyMetal + threatenedMetal
-					if threatenedMetal > mostExpensiveThreatenedMetal then
-						mostExpensiveThreatenedMetal = threatenedMetal
-						mostExpensiveThreatenedUnitName = GetUnitDisplayName(unitDefID)
+			local unitDef = unitDefID and UnitDefs[unitDefID]
+			if not (unitDef and unitDef.customParams and unitDef.customParams.iscommander) then
+				local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+				if unitX then
+					local d = DistPointToSegment(unitX, unitY, unitZ, startX, startY, startZ, endX, endY, endZ)
+					if d < unitRadius + DGUN_WIDTH / 2 then
+						local threatenedMetal = 0
+						if unitDef then
+							-- Partially built units only contribute proportional metal value to threat
+							local buildProgress = select(5, spGetUnitHealth(unitID)) or 1
+							threatenedMetal = unitDef.metalCost * math.min(buildProgress, 1)
+						end
+						threatenedAllyMetal = threatenedAllyMetal + threatenedMetal
+						if threatenedMetal > mostExpensiveThreatenedMetal then
+							mostExpensiveThreatenedMetal = threatenedMetal
+							mostExpensiveThreatenedUnitName = GetUnitDisplayName(unitDefID)
+						end
 					end
 				end
 			end
@@ -347,10 +363,10 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 	return false, string.format("Only %d allied metal threatened (inconsequential)", threatenedAllyMetal)
 end
 
--- If DGun target location is near a visible enemy, we leave the order alone
+-- If DGun target location is near a visible enemy, it can be fired indiscriminately (it won't be classified as griefing)
 local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 	local currentFrame = spGetGameFrame()
-	PruneExpiredCaches(currentFrame)
+	PruneExpiredContacts(currentFrame)
 
 	local candidates = spGetUnitsInSphere(targetX, targetY, targetZ, FRONTLINE_SCAN_RADIUS)
 
@@ -438,6 +454,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam)
+	-- If it's an enemy building, add to cache. Otherwise don't worry about it
 	if allyTeam ~= myAllyTeamID then
 		return -- not an event for us
 	end
@@ -447,6 +464,7 @@ function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	-- If it's a building, remove from cache. Otherwise don't worry about it
 	local site = enemyBuildingsCache[unitID]
 	if not site then
 		return
@@ -506,7 +524,7 @@ function gadget:GameFrame(currentFrame)
 	end
 
 	if contactsHead <= #contactsCache then
-		PruneExpiredCaches(currentFrame)
+		PruneExpiredContacts(currentFrame)
 	end
 
 	while nextContactPruneFrame <= currentFrame do
@@ -529,7 +547,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 
 	local uDef = UnitDefs[unitDefID]
 	if not (uDef.customParams and uDef.customParams.iscommander) then
-		return
+		return -- decoy dguns are not relevant
 	end
 
 	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
@@ -544,37 +562,28 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		targetX, targetY, targetZ = cmdParams[1], cmdParams[2], cmdParams[3]
 	end
 	if not targetX then
-		return
+		return -- shouldn't happen, just in case...
 	end
 
 	local startX, startY, startZ, endX, endY, endZ = BuildDGunSegment(unitX, unitY, unitZ, targetX, targetY, targetZ)
 
+	local enemiesNearby, explanation = HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
+
 	local risksAllies, allyThreatInfo = HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
 
-	if not risksAllies then
-		if allyThreatInfo then
-			ForwardAnalyticsEvent("dgun_grief_negative", {
-				position = { targetX, targetY, targetZ },
-				time = spGetGameFrame(),
-				gameID = GetGameID(),
-				player = GetPlayerName(playerID),
-				reason = allyThreatInfo,
-			})
-		else
-			ForwardAnalyticsEvent("dgun_nominal", {
-				position = { targetX, targetY, targetZ },
-				time = spGetGameFrame(),
-				gameID = GetGameID(),
-				player = GetPlayerName(playerID),
-				reason = "No allies threatened",
-			})
-
-		end
+	-- If no allies threatened, then it's a nominal dgun
+	if not risksAllies and not allyThreatInfo then
+		ForwardAnalyticsEvent("dgun_nominal", {
+			position = { targetX, targetY, targetZ },
+			time = spGetGameFrame(),
+			gameID = GetGameID(),
+			player = GetPlayerName(playerID),
+			reason = "No allies threatened",
+		})
 		return
 	end
 
-	local enemiesNearby, explanation = HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
-
+	-- If frontline indicators are present, then all DGuns are ok
 	if enemiesNearby then
 		ForwardAnalyticsEvent("dgun_grief_negative", {
 			position = { targetX, targetY, targetZ },
@@ -586,6 +595,18 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		return
 	end
 
+	-- If no frontline indicators are present and we don't threaten enough allied metal, it's ok
+	if not risksAllies and allyThreatInfo then
+		ForwardAnalyticsEvent("dgun_grief_negative", {
+			position = { targetX, targetY, targetZ },
+			time = spGetGameFrame(),
+			gameID = GetGameID(),
+			player = GetPlayerName(playerID),
+			reason = allyThreatInfo,
+		})
+	end
+
+	-- Otherwise it's classified as griefing
 	ForwardAnalyticsEvent("dgun_grief_positive", {
 		position = { targetX, targetY, targetZ },
 		time = spGetGameFrame(),
