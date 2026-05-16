@@ -48,7 +48,8 @@ local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
     local hasWeapons = unitDef.weapons and #unitDef.weapons > 0
     local isFactory  = unitDef.isFactory
-    if hasWeapons or isFactory then
+	local isDrone    = unitDef.customParams and unitDef.customParams.drone
+    if (hasWeapons or isFactory) and not isDrone then
         local xsize, zsize = unitDef.xsize, unitDef.zsize
         local scale = 2.5 * (xsize*xsize + zsize*zsize)^0.5
         unitConf[udid] = {11 + (scale / 2.2), unitDef.height}
