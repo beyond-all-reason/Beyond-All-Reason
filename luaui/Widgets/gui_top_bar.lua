@@ -1207,9 +1207,6 @@ function widget:Update(dt)
 		hoveringTopbar = false
 		if mx > topbarArea[1] and my > topbarArea[2] then -- checking if the curser is high enough, too
 			hoveringTopbar = hoveringElement(mx, my)
-			if hoveringTopbar then
-				sp.SetMouseCursor('cursornormal')
-			end
 		end
 
 		local _, _, isPaused = sp.GetGameSpeed()
@@ -1777,6 +1774,10 @@ end
 
 function widget:DrawScreen()
 	now = osClock()
+
+	if hoveringTopbar then
+		sp.SetMouseCursor('cursornormal')
+	end
 
 	if showButtons ~= cache.prevShowButtons then
 		cache.prevShowButtons = showButtons

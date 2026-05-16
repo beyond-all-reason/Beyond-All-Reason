@@ -262,6 +262,7 @@ out DataVS {
 	vec4 vEdgeColor;
 	float alpha;
 	float widthPos;  // -1..1 across beam width (for per-pixel core calc)
+	float coverage;  // true beam width / inflated geometry width (0..1, =1 close, <1 far)
 };
 
 void main()
@@ -323,7 +324,7 @@ void main()
 	// entire beam (per-vertex camDist causes start to appear narrower than middle)
 	float camDist = length(camPos - mix(startPos, endPos, 0.5));
 	float minWidth = camDist * MIN_PIXEL_WIDTH;
-	float coverage = clamp(width / max(minWidth, 0.001), 0.0, 1.0);
+	float coverageVal = clamp(width / max(minWidth, 0.001), 0.0, 1.0);
 	width = max(width, minWidth);
 
 	vec3 vertexWorld = vertPos
@@ -338,11 +339,19 @@ void main()
 	vCoreColor = coreColor;
 	vEdgeColor = edgeColor;
 	widthPos = position_xy_uv.x;  // -1..1
+	coverage = coverageVal;
 
-	// Alpha: fade with lifetime and slight range falloff
+	// Alpha: fade with lifetime and slight range falloff.
+	// When the beam is widened to MIN_PIXEL_WIDTH (coverage < 1), we dim alpha to
+	// conserve total emitted energy. Linear dim by `coverage` is energy-correct
+	// but visually crushes the core at distance, while no dim at all over-bright
+	// the inflated quad and produces line-ish jaggies. A sqrt curve is a good
+	// middle ground: noticeably brighter than linear at small coverage, still
+	// fades out gracefully, and lets fwidth-AA on the full inflated quad keep
+	// edges smooth.
 	float rangeFalloff = edgeColor.a;
 	float alphaFalloff = 1.0 - rangeFalloff * yNorm;
-	alpha = coreColor.a * lifePulse * alphaFalloff * coverage;
+	alpha = coreColor.a * lifePulse * alphaFalloff * sqrt(coverageVal);
 }
 ]]
 
@@ -363,6 +372,7 @@ in DataVS {
 	vec4 vEdgeColor;
 	float alpha;
 	float widthPos;
+	float coverage;
 };
 
 out vec4 fragColor;
