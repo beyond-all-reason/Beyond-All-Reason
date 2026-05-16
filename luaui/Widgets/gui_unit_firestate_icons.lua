@@ -12,6 +12,8 @@ function widget:GetInfo()
 	}
 end
 
+local showFireStateIcons = true
+
 --------------------------------------------------------------------------------
 -- Localized Spring API
 --------------------------------------------------------------------------------
@@ -105,6 +107,11 @@ local function initGL4()
 	end
 
 	return true
+end
+
+WG['unitfirestate'] = {}
+WG['unitfirestate'].setEnabled = function(value)
+    showFireStateIcons = value
 end
 
 --------------------------------------------------------------------------------
@@ -276,6 +283,7 @@ function widget:DrawScreenEffects()
 	-- the shader still uses engine cameraViewProj UBO and depth-tests terrain occlusion.
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
+	if not showFireStateIcons then return end
 
 	if holdFireVBO.usedElements == 0 and returnFireVBO.usedElements == 0 then
 		return
