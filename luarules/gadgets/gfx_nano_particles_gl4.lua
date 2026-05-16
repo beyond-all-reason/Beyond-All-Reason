@@ -292,7 +292,7 @@ local HEALTH_CHECK_EVERY         = 15
 -- (the saturation gate would drop most emissions anyway). Per-builder emit
 -- count is multiplied by the chosen value so total emission rate is preserved.
 local MIN_SCAN_RUN_EVERY         = 1
-local MAX_SCAN_RUN_EVERY         = 2
+local MAX_SCAN_RUN_EVERY         = 3
 -- Cache lifetime for spGetUnitCurrentBuildPower. Only trusted while bp > 0
 -- (continuous-build steady state where stale samples are harmless). Idle
 -- visits always re-fetch so 0 -> non-zero edges fire on the next visit. The
@@ -329,7 +329,7 @@ local DISTANT_EMIT_DROP     = 1.0 - DISTANT_EMIT_KEEP
 -- emit count is multiplied by stride so total rate is preserved. Grows with
 -- pool saturation (the gate would drop most emissions at high fill anyway).
 local MIN_SCAN_STRIDE = 1
-local MAX_SCAN_STRIDE = 3
+local MAX_SCAN_STRIDE = 2
 
 -- Engine constants (rts/Sim/Projectiles/ProjectileHandler.cpp)
 local NANO_SPEED      = 4.0	-- engine default: 3.0
@@ -2380,13 +2380,10 @@ local function scanBuilders(frame)
 							-- frames since this builder's last visit so the count is
 							-- proportional regardless of stride/runEvery throttling
 							-- and per-builder visit-skip RNG.
-							local lastVisit = info.lastVisitFrame
-							local elapsed = lastVisit and (frame - lastVisit) or (stride * runEvery)
-							-- Cap elapsed so a long-idle builder doesn't dump a backlog burst.
-							if elapsed > stride * runEvery * 4 then
-								elapsed = stride * runEvery * 4
-							end
 							info.lastVisitFrame = frame
+							-- Always emit only this frame's share. No catch-up burst
+							-- when a builder was skipped due to pool saturation.
+							local elapsed = 1
 							local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * elapsed * (NanoParticleRate or 1.0)
 							-- Deterministic accumulator: carries the fractional
 							-- remainder across visits. Eliminates the Bernoulli jitter
@@ -2421,9 +2418,7 @@ local function scanBuilders(frame)
 							-- breaks the on-axis pile-up of a multi-particle batch.
 							-- Count compensation still uses full `elapsed`, so total
 							-- emission rate is preserved.
-							local spreadWindow = stride * runEvery
-							if spreadWindow > MAX_SPREAD_AHEAD_FRAMES then spreadWindow = MAX_SPREAD_AHEAD_FRAMES end
-							if spreadWindow > elapsed then spreadWindow = elapsed end
+							local spreadWindow = math.min(MAX_SPREAD_AHEAD_FRAMES, elapsed)
 							local resurrectEmits = isResurrect and takeScaledEmitCount(info, "resurrectEmitAccum", emits, NanoParticleResurrectExtraRate) or emits
 							if resurrectEmits > 0 then
 								local n = info.nPieces

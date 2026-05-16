@@ -393,17 +393,7 @@ end
 local function updateComs(forceText)
 	local area = comsArea
 
-	-- Check if commander texture is loaded before creating display list
 	local texPath = string.lower(string.gsub(textures.com, ":.:", ""))
-	if VFS.FileExists(texPath) then
-		local texInfo = gl.TextureInfo(textures.com)
-		-- If texture isn't loaded yet, mark that coms need updating and retry next frame
-		if not texInfo or not texInfo.xsize or texInfo.xsize <= 0 then
-			comcountChanged = true
-			return
-		end
-	end
-
 
 	if dlist.coms then glDeleteList(dlist.coms) end
 	comsDlistUpdate = true
