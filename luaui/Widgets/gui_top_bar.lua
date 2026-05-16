@@ -655,7 +655,7 @@ local function updateResbarText(res, force)
 						end
 
 						local bannerH = 15.5 * widgetScale
-						local bannerRightX = resbarArea[res][3] - (res == 'energy' and cfg.useSkew and bannerH * skewTan * 0.5 or 0)
+						local bannerRightX = resbarArea[res][3] - bgpadding - (res == 'energy' and cfg.useSkew and bannerH * skewTan * 0.5 or 0)
 
 						RectRound(bannerRightX - textWidth, resbarArea[res][4] - bannerH, bannerRightX, resbarArea[res][4], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)
 						RectRound(bannerRightX - textWidth + bgpadding2, resbarArea[res][4] - bannerH + bgpadding2, bannerRightX - bgpadding2, resbarArea[res][4], 2.8 * widgetScale, 0, 0, 1, 1, color3, color4)
@@ -1353,7 +1353,7 @@ local function renderResbarText()
 		drawResbarPullIncome(res)
 	end
 	if updateRes[res][3] then
-		updateRes[res][3] = false
+		if not showingWarning[res] then updateRes[res][3] = false end
 		drawResbarStorage(res)
 	end
 
@@ -1364,7 +1364,7 @@ local function renderResbarText()
 		drawResbarPullIncome(res)
 	end
 	if updateRes[res][3] then
-		updateRes[res][3] = false
+		if not showingWarning[res] then updateRes[res][3] = false end
 		drawResbarStorage(res)
 	end
 end
