@@ -42,7 +42,7 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local unitSet = {}
-local chunk, err = loadfile("LuaUI/config/StatesPrefs.lua")
+local chunk, err = loadfile("LuaUI/Config/StatesPrefs.lua")
 if chunk then
 	local tmp = {}
 	setfenv(chunk, tmp)
@@ -120,7 +120,7 @@ function onClearRelease()
 end
 
 function saveStatePrefs()
-	table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
+	table.save(unitSet, "LuaUI/Config/StatesPrefs.lua", "--States prefs")
 end
 
 function doClearUnit()
@@ -191,6 +191,8 @@ function widget:GameOver()
 end
 
 function widget:Shutdown()
+	spEcho("Recorded States Prefs")
+	saveStatePrefs()
 	widgetHandler:RemoveAction("stateprefs_record")
 	widgetHandler:RemoveAction("stateprefs_clear")
 	widgetHandler:RemoveAction("stateprefs_clearunit")
