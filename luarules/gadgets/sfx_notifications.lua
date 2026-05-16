@@ -197,6 +197,10 @@ else
 	local commanderLastDamaged = {}
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+		-- suppress under-attack notifications for trivial damage (Juno's 1 dmg pulse)
+		if damage < 5 then
+			return
+		end
 		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
 			GG["notifications"].queueNotification('LrpcTargetUnits', "playerID", tostring(myPlayerID))
 		end
