@@ -1,0 +1,208 @@
+/* ===========================================
+    WIDGET POSITIONING - Include on every widget
+    - ID must match the widget name,
+    - Must be unique and set on the <body/> tag of the widget's RML file.
+    - Set default position absolutely - this will be relative to the window/screen.
+    - width and height should be set to hard-coded values, avoid using percentages.
+=========================================== */
+#rml_starter-widget {
+    /* positional properties */
+    position: absolute;
+    top: 5vh;
+    right: 5dp;
+    /* dimensional properties */
+    width: 600dp;
+    height: 80vh;
+    /* Inner content layout properties - specific to widget */
+    display: flex;
+}
+
+#rml_starter-widget.collapsed {
+    width: 144dp;
+    height: 24dp;
+    top: 100dp;
+    transition: transform 0.1s elastic-in-out;
+}
+
+#rml_starter-widget.collapsed:hover .chevron {
+    opacity: 1;
+    filter: none;
+}
+
+/* Small floating debug controls */
+.debug-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3dp;
+    z-index: 50;
+}
+
+.debug-btn:hover {
+    filter: brightness(1.2);
+}
+
+.debug-btn:hover>span {
+    transform: translateY(-1dp);
+}
+
+.code-green {
+    color: #2cfd79;
+}
+
+/* ==========================================
+    WIDGET CONTAINER - Contain main widget in a wrapper, NOT the body
+=========================================== */
+
+#widget-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    border-radius: 2dp;
+    position: relative;
+}
+
+#main-content {
+    border-radius: 2dp;
+    z-index: 3;
+    flex: 1;
+    position: relative;
+}
+
+#tabs-navigation {
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    position: relative;
+    backdrop-filter: blur(0.5dp);
+}
+
+.tab-panel {
+    clip: always;
+    overflow: hidden scroll;
+    display: block;
+    padding: 10dp;
+    padding-left: 15dp;
+}
+
+.tab-button {
+    border-radius: 2dp;
+    padding: 8dp;
+    margin-bottom: 1dp;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    text-align: center;
+    min-height: 32dp;
+    display: flex;
+    font-weight: bold;
+    align-items: center;
+    justify-content: center;
+    border: 1dp transparent;
+}
+
+/* order matters, :hover should exist before an :active state */
+.tab-button:hover {
+    transform: translateY(-2dp);
+    filter: brightness(1.1);
+}
+
+.tab-button:active {
+    border-color: rgba(255, 255, 255, 255);
+}
+
+.tab-button.active {
+    transform: skew(-5deg, 0deg) translateX(5dp) translateY(-2dp);
+    box-shadow: rgba(0, 0, 0, 100) 3dp 3dp 3dp;
+}
+
+/* ===========================================
+    CONTENT SECTIONS
+=========================================== */
+.content-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8dp;
+    margin-bottom: 15dp;
+    margin-right: 10dp;
+    padding: 10dp;
+}
+
+.code-highlight {
+    padding-left: 3dp;
+    padding-right: 3dp;
+    border-radius: 2dp;
+}
+
+button:active {
+    transform: translate(1dp, 1dp)
+}
+
+.toggle-expand-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 15dp;
+    height: 15dp;
+    cursor: pointer;
+    z-index: 100;
+}
+
+.toggle-expand-container:hover {
+    filter: brightness(1.2);
+}
+
+.toggle-expand-container:hover>.chevron {
+    opacity: 1;
+    filter: none;
+}
+
+.toggle-expand-container:active {
+    transform: translate(1dp, 1dp);
+}
+
+.chevron {
+    width: 4dp;
+    height: 4dp;
+    /* warning yellow #fad400 */
+    border-left: 4dp #fad400;
+    border-top: 4dp #fad400;
+    border-top-left-radius: 3dp;
+    transition: transform 0.1s, right 0.3s,opacity 0.1s;
+    opacity: 0.1;
+    transform: rotate(315deg);
+    filter: grayscale(1);
+}
+
+.chevron.expanded {
+    transform: rotate(135deg);
+}
+
+.collapsed-title {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    font-weight: bold;
+    font-size: 14dp;
+}
+
+/* Target directly where possible - the following selector is better then '.collapsed-title:hover .chevron {}' */
+.collapsed-title:hover>.toggle-expand-container>.chevron {
+    opacity: 1;
+    filter: none;
+}
+
+.collapsed-title:hover {
+    filter: brightness(1.1);
+}
+
+input.input-highlighter {
+    transition: border 0.1s elastic-in-out;
+    /* vv dark alpha vv */
+    border: 1dp #4a4a4a80;
+}
+
+input.input-highlighter:focus {
+    /* warning yellow with some alpha */
+    border: 1dp #fad40080;
+}
