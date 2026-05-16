@@ -4,6 +4,8 @@
 local bit_and = math.bit_and
 
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 
 local CMD_INSERT = CMD.INSERT
 
@@ -84,10 +86,33 @@ local function reissueOrder(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromIn
 	end
 end
 
+---Test a command for its anticipated position in the unit's command queue.
+---@param unitID integer
+---@param tagOrIndex integer
+---@param options CommandOptions
+---@param insertOptions CommandOptions?
+local function isEnqueuedFirst(unitID, tagOrIndex, options, insertOptions)
+	if insertOptions then
+		if insertOptions.alt then
+			if tagOrIndex == 0 then
+				return true
+			end
+		else
+			local command, options, tag = spGetUnitCurrentCommand(unitID)
+			if not tag or tag == tagOrIndex then
+				return true
+			end
+		end
+	elseif not options.shift or spGetUnitCommandCount(unitID) == 0 then
+		return true
+	end
+end
+
 -- Export module ---------------------------------------------------------------
 
 return {
 	UnpackInsertParams    = unpackInsertParams,
 	GiveInsertOrderToUnit = giveInsertOrderToUnit,
 	ReissueOrder          = reissueOrder,
+	IsEnqueuedFirst       = isEnqueuedFirst,
 }
