@@ -2,7 +2,6 @@ local widget = widget ---@type Widget
 
 local BpDefs = VFS.Include("luaui/Include/blueprint_substitution/definitions.lua")
 
-
 local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
 
 local ENABLE_REPORTS = Spring.Utilities.IsDevMode()
@@ -10,9 +9,6 @@ local ENABLE_REPORTS = Spring.Utilities.IsDevMode()
 local reportFunctions = nil
 
 local activeBlueprint = nil
-
--- makes the intent of our usage of Spring.Echo clear
-local FeedbackForUser = Spring.Echo
 
 local activeBuildPositions = {}
 local activeBuilderBuildOptions = {}
@@ -24,10 +20,9 @@ function widget:GetInfo()
 		desc = "Utilities for interacting with and drawing blueprints",
 		license = "GNU GPL, v2 or later",
 		layer = -1,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathAbs = math.abs
@@ -127,24 +122,17 @@ end
 ---@param facing number
 ---@return Blueprint
 local function rotateBlueprint(bp, facing)
-	return table.merge(
-		bp,
-		{
-			units = table.map(bp.units, function(bpu)
-				return {
-					blueprintUnitID = bpu.blueprintUnitID,
-					unitDefID = bpu.unitDefID,
-					position = rotatePointXZ(
-						bpu.position,
-						{ 0, 0, 0 },
-						-facing * (mathPi / 2)
-					),
-					facing = (bpu.facing + facing) % 4
-				}
-			end),
-			facing = 0
-		}
-	)
+	return table.merge(bp, {
+		units = table.map(bp.units, function(bpu)
+			return {
+				blueprintUnitID = bpu.blueprintUnitID,
+				unitDefID = bpu.unitDefID,
+				position = rotatePointXZ(bpu.position, { 0, 0, 0 }, -facing * (mathPi / 2)),
+				facing = (bpu.facing + facing) % 4,
+			}
+		end),
+		facing = 0,
+	})
 end
 
 -- GL4
@@ -154,8 +142,7 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local popElementInstance  = InstanceVBOTable.popElementInstance
-
+local popElementInstance = InstanceVBOTable.popElementInstance
 
 ---@language Glsl
 local vsSrc = [[
@@ -217,9 +204,9 @@ local outlineVertexVBOLayout = {
 
 local outlineInstanceVBO = nil
 local outlineInstanceVBOLayout = {
-	{ id = 1, name = 'position', size = 3 },
-	{ id = 2, name = 'dimensions', size = 2 },
-	{ id = 3, name = 'color', size = 4 },
+	{ id = 1, name = "position", size = 3 },
+	{ id = 2, name = "dimensions", size = 2 },
+	{ id = 3, name = "color", size = 4 },
 }
 
 local function makeOutlineVBO()
@@ -244,10 +231,7 @@ local function makeOutlineVBO()
 
 	local numVertices = #vboData / 2
 
-	vbo:Define(
-		numVertices,
-		outlineVertexVBOLayout
-	)
+	vbo:Define(numVertices, outlineVertexVBOLayout)
 	vbo:Upload(vboData)
 
 	return vbo, numVertices
@@ -268,16 +252,13 @@ local function initGL4()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	outlineShader = LuaShader(
-		{
-			vertex = vsSrc,
-			fragment = fsSrc,
-			uniformInt = {
-				heightmapTex = 0
-			},
+	outlineShader = LuaShader({
+		vertex = vsSrc,
+		fragment = fsSrc,
+		uniformInt = {
+			heightmapTex = 0,
 		},
-		widget:GetInfo().name
-	)
+	}, widget:GetInfo().name)
 	local shaderCompiled = outlineShader:Initialize()
 	return shaderCompiled
 end
@@ -286,23 +267,18 @@ end
 -- ====
 
 local SQUARE_SIZE = 8
-local BUILD_SQUARE_SIZE = SQUARE_SIZE * 2;
+local BUILD_SQUARE_SIZE = SQUARE_SIZE * 2
 
 local UNIT_ALPHA = 0.6
 
-local BUILD_MODES = enum(
-	"SINGLE",
-	"LINE",
-	"SNAPLINE",
-	"GRID",
-	"BOX",
-	"AROUND"
-)
+local BUILD_MODES = enum("SINGLE", "LINE", "SNAPLINE", "GRID", "BOX", "AROUND")
 
 local function getBuildingDimensions(unitDefID, facing)
-	if not unitDefID then return 0, 0 end
+	if not unitDefID then
+		return 0, 0
+	end
 	local unitDef = UnitDefs[unitDefID]
-	if (facing % 2 == 1) then
+	if facing % 2 == 1 then
 		return SQUARE_SIZE * unitDef.zsize, SQUARE_SIZE * unitDef.xsize
 	else
 		return SQUARE_SIZE * unitDef.xsize, SQUARE_SIZE * unitDef.zsize
@@ -314,25 +290,23 @@ local function getUnitsBounds(units)
 		return nil, nil, nil, nil
 	end
 
-	local r = table.reduce(
-		units,
-		function(acc, unit)
-			if not unit.unitDefID then return acc end
-			local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
-			local bxMin = unit.position[1] - bw / 2
-			local bxMax = unit.position[1] + bw / 2
-			local bzMin = unit.position[3] - bh / 2
-			local bzMax = unit.position[3] + bh / 2
-
-			acc.xMin = acc.xMin and mathMin(acc.xMin, bxMin) or bxMin
-			acc.xMax = acc.xMax and mathMax(acc.xMax, bxMax) or bxMax
-			acc.zMin = acc.zMin and mathMin(acc.zMin, bzMin) or bzMin
-			acc.zMax = acc.zMax and mathMax(acc.zMax, bzMax) or bzMax
-
+	local r = table.reduce(units, function(acc, unit)
+		if not unit.unitDefID then
 			return acc
-		end,
-		{}
-	)
+		end
+		local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
+		local bxMin = unit.position[1] - bw / 2
+		local bxMax = unit.position[1] + bw / 2
+		local bzMin = unit.position[3] - bh / 2
+		local bzMax = unit.position[3] + bh / 2
+
+		acc.xMin = acc.xMin and mathMin(acc.xMin, bxMin) or bxMin
+		acc.xMax = acc.xMax and mathMax(acc.xMax, bxMax) or bxMax
+		acc.zMin = acc.zMin and mathMin(acc.zMin, bzMin) or bzMin
+		acc.zMax = acc.zMax and mathMax(acc.zMax, bzMax) or bzMax
+
+		return acc
+	end, {})
 
 	return r.xMin, r.xMax, r.zMin, r.zMax
 end
@@ -364,18 +338,18 @@ local function snapBlueprint(blueprint, pos, facing)
 
 	-- snap build-positions to 16-elmo grid
 	if mathFloor(xSize / 16) % 2 > 0 then
-		result[1] = mathFloor((pos[1]) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE;
+		result[1] = mathFloor(pos[1] / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
 	else
-		result[1] = mathFloor((pos[1] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE;
+		result[1] = mathFloor((pos[1] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
 	end
 
 	if mathFloor(zSize / 16) % 2 > 0 then
-		result[3] = mathFloor((pos[3]) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE;
+		result[3] = mathFloor(pos[3] / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
 	else
-		result[3] = mathFloor((pos[3] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE;
+		result[3] = mathFloor((pos[3] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
 	end
 
-	return result;
+	return result
 end
 
 ---See FillRowOfBuildPos
@@ -560,11 +534,376 @@ local BUILD_MODES_HANDLERS = {
 	AROUND = getBuildPositionsAround,
 }
 
+---@class BuilderInfo
+---@field unitID number
+---@field unitDefID number
+---@field side string
+---@field buildSpeed number
+
+---@param builderID number
+---@return BuilderInfo
+local function getBuilderInfo(builderID)
+	local unitDefID = Spring.GetUnitDefID(builderID)
+	if not unitDefID then
+		return nil
+	end
+
+	local unitDef = UnitDefs[unitDefID]
+	if not unitDef then
+		return nil
+	end
+
+	local side = SubLogic.getSideFromUnitName(unitDef.name)
+
+	return {
+		unitID = builderID,
+		unitDefID = unitDefID,
+		side = side,
+		buildSpeed = unitDef.buildSpeed,
+	}
+end
+
+---@param builders number[]
+---@return table<number, BuilderInfo[]> -- Groups builders by their unitDefID
+local function groupBuilders(builders)
+	local builderGroups = {}
+	for _, builderID in ipairs(builders) do
+		local builderInfo = getBuilderInfo(builderID)
+		if builderInfo then
+			local uDefId = builderInfo.unitDefID
+			builderGroups[uDefId] = builderGroups[uDefId] or {}
+			table.insert(builderGroups[uDefId], builderInfo)
+		end
+	end
+	return builderGroups
+end
+
+---@param blueprint Blueprint
+---@param buildPositions table
+---@return table
+local function createBuildings(blueprint, buildPositions)
+	local allBuildings = {}
+	for _, pos in ipairs(buildPositions) do
+		local facing = pos[4] or 0
+		local rotatedBlueprint = rotateBlueprint(blueprint, blueprint.facing + facing)
+
+		for _, bpu in ipairs(rotatedBlueprint.units) do
+			local x = pos[1] + bpu.position[1]
+			local z = pos[3] + bpu.position[3]
+			local y = Spring.GetGroundHeight(x, z)
+			local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
+
+			table.insert(allBuildings, {
+				blueprintUnitID = bpu.blueprintUnitID,
+				unitDefID = bpu.unitDefID,
+				position = { sx, sy, sz },
+				facing = bpu.facing,
+				originalName = bpu.originalName,
+			})
+		end
+	end
+	return allBuildings
+end
+
+---@param builderGroup table
+---@param building table
+---@param side string
+---@param allowSubstitution boolean
+---@return boolean
+local function canBuild(builderGroup, building, side, allowSubstitution)
+	allowSubstitution = allowSubstitution ~= false -- Defaults to true
+
+	local builderUnitDefID = builderGroup[1].unitDefID
+	local builderUnitDef = UnitDefs[builderUnitDefID]
+
+	local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, side)
+	if not substitutedUnitDefID then
+		return false
+	end
+
+	if not allowSubstitution and substitutedUnitDefID ~= building.unitDefID then
+		return false
+	end
+
+	for _, buildOption in ipairs(builderUnitDef.buildOptions) do
+		if buildOption == substitutedUnitDefID then
+			return true
+		end
+	end
+
+	return false
+end
+
+---@param builders table A list of builder info objects.
+---@param buildings table A list of building objects.
+---@param cmdOpts table Command options.
+local function splitBuildOrders(builders, buildings, cmdOpts)
+	local buildCount = #buildings
+	local builderCount = #builders
+
+	if buildCount == 0 or builderCount == 0 then
+		return
+	end
+
+	-- 1. Group builders by their faction (side)
+	local buildersBySide = {}
+	for _, builderInfo in ipairs(builders) do
+		local side = builderInfo.side
+		if side then
+			buildersBySide[side] = buildersBySide[side] or {}
+			table.insert(buildersBySide[side], builderInfo)
+		end
+	end
+
+	-- 2. For each building, determine which factions can build it and distribute
+	local ordersBySide = {}
+	for side in pairs(buildersBySide) do
+		ordersBySide[side] = {}
+	end
+
+	local buildingDistribution = {} -- building_originalName -> { sides = {arm=true, cor=true}, nextSideIndex=1 }
+
+	for _, building in ipairs(buildings) do
+		local originalName = building.originalName
+		if not buildingDistribution[originalName] then
+			local capableSides = {}
+			for side, sideBuilders in pairs(buildersBySide) do
+				-- Check if any builder of this faction can build this type of building
+				if canBuild(sideBuilders, building, side, true) then
+					table.insert(capableSides, side)
+				end
+			end
+			buildingDistribution[originalName] = { sides = capableSides, nextSideIndex = 1 }
+		end
+
+		local distInfo = buildingDistribution[originalName]
+		if #distInfo.sides > 0 then
+			local targetSide = distInfo.sides[distInfo.nextSideIndex]
+			table.insert(ordersBySide[targetSide], building)
+
+			-- Cycle to the next side for the next building of this type
+			distInfo.nextSideIndex = distInfo.nextSideIndex + 1
+			if distInfo.nextSideIndex > #distInfo.sides then
+				distInfo.nextSideIndex = 1
+			end
+		end
+	end
+
+	-- 3. For each faction, distribute their assigned buildings among their builders
+	for side, sideBuilders in pairs(buildersBySide) do
+		local sideBuildings = ordersBySide[side]
+		local sideBuilderCount = #sideBuilders
+		local sideBuildingCount = #sideBuildings
+
+		if sideBuildingCount > 0 and sideBuilderCount > 0 then
+			local builderIndex = 1
+			for i = 1, sideBuildingCount do
+				local building = sideBuildings[i]
+				local builderInfo = sideBuilders[builderIndex]
+
+				local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, side)
+				if substitutedUnitDefID then
+					Spring.GiveOrderToUnit(builderInfo.unitID, -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, cmdOpts)
+				end
+
+				builderIndex = builderIndex + 1
+				if builderIndex > sideBuilderCount then
+					builderIndex = 1
+				end
+			end
+		end
+	end
+end
+
+--- Gives build orders for a blueprint to a set of builders.
+---@param blueprint Blueprint The blueprint to build.
+---@param buildPositions table The locations to build the blueprint at.
+---@param builders number[] A list of builder unit IDs.
+---@param isBuildSplit boolean If true, split the work among builders. If false, builders of the same faction work together.
+---@param cmdOpts table Command options.
+local function placeBlueprint(blueprint, buildPositions, builders, isBuildSplit, cmdOpts)
+	local builderGroups = groupBuilders(builders)
+	local allBuildings = createBuildings(blueprint, buildPositions)
+
+	local newOpts = table.copy(cmdOpts)
+	newOpts.shift = true
+
+	if isBuildSplit then
+		local allBuilders = {}
+		for _, builderID in ipairs(builders) do
+			local builderInfo = getBuilderInfo(builderID)
+			if builderInfo then
+				table.insert(allBuilders, builderInfo)
+			end
+		end
+
+		if #allBuilders == 0 then
+			return
+		end
+
+		splitBuildOrders(allBuilders, allBuildings, newOpts)
+	else
+		-- Regular mode: Proportional, sequential assignment
+		local allBuilderGroups = {}
+		for unitDefID, builderGroup in pairs(builderGroups) do
+			if #builderGroup > 0 and builderGroup[1].buildSpeed > 0 then
+				local groupPower = #builderGroup * builderGroup[1].buildSpeed
+				table.insert(allBuilderGroups, {
+					group = builderGroup,
+					power = groupPower,
+					side = builderGroup[1].side,
+					key = unitDefID,
+				})
+			end
+		end
+		table.sort(allBuilderGroups, function(a, b)
+			return a.power > b.power
+		end)
+
+		-- 1. Calculate cost-based workload quotas
+		local totalBuildPower = 0
+		for _, groupData in ipairs(allBuilderGroups) do
+			totalBuildPower = totalBuildPower + groupData.power
+		end
+
+		if totalBuildPower > 0 then
+			local allBuildingsWithCost = {}
+			local totalBuildCost = 0
+			for _, building in ipairs(allBuildings) do
+				local unitDef = UnitDefs[building.unitDefID]
+				local cost = (unitDef and unitDef.cost) or 0
+				table.insert(allBuildingsWithCost, { building = building, cost = cost })
+				totalBuildCost = totalBuildCost + cost
+			end
+
+			-- 2. Partition the blueprint into cost-based linear chunks
+			local chunks = {}
+			local buildingIndex = 1
+			for i, groupData in ipairs(allBuilderGroups) do
+				local proportion = groupData.power / totalBuildPower
+				local targetCostForGroup = totalBuildCost * proportion
+
+				local buildingsForGroup = {}
+				local accumulatedCost = 0
+
+				if i == #allBuilderGroups then
+					-- Last group takes all remaining buildings
+					for j = buildingIndex, #allBuildingsWithCost do
+						table.insert(buildingsForGroup, allBuildingsWithCost[j].building)
+					end
+				else
+					while buildingIndex <= #allBuildingsWithCost do
+						local currentBuilding = allBuildingsWithCost[buildingIndex]
+						local costAfterAdding = accumulatedCost + currentBuilding.cost
+
+						-- Stop if adding the next building makes the chunk's cost further from the target
+						if accumulatedCost > 0 and math.abs(costAfterAdding - targetCostForGroup) > math.abs(accumulatedCost - targetCostForGroup) then
+							break
+						end
+
+						table.insert(buildingsForGroup, currentBuilding.building)
+						accumulatedCost = costAfterAdding
+						buildingIndex = buildingIndex + 1
+					end
+				end
+
+				table.insert(chunks, { groupData = groupData, buildings = buildingsForGroup })
+			end
+
+			-- 3. Resolve chunks and create final orders
+			local finalOrders = {}
+			local leftovers = {}
+			for _, groupData in ipairs(allBuilderGroups) do
+				finalOrders[groupData.key] = {}
+			end
+
+			for _, chunk in ipairs(chunks) do
+				local groupData = chunk.groupData
+				local builderGroup = groupData.group
+				local groupSide = groupData.side
+				local groupKey = groupData.key
+
+				for _, building in ipairs(chunk.buildings) do
+					if canBuild(builderGroup, building, groupSide, true) then
+						local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, groupSide)
+						if substitutedUnitDefID then
+							table.insert(finalOrders[groupKey], { -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, newOpts })
+						end
+					else
+						table.insert(leftovers, building)
+					end
+				end
+			end
+
+			-- 4. Handle leftovers
+			local leftoverTracker = {} -- category -> index
+			for _, building in ipairs(leftovers) do
+				-- Find all capable groups for this leftover
+				local capableGroups = {}
+				for _, groupData in ipairs(allBuilderGroups) do
+					if canBuild(groupData.group, building, groupData.side, true) then
+						table.insert(capableGroups, groupData)
+					end
+				end
+
+				if #capableGroups > 0 then
+					-- Round-robin assignment
+					local targetGroupData
+					if #capableGroups == 1 then
+						targetGroupData = capableGroups[1]
+					else
+						table.sort(capableGroups, function(a, b)
+							return a.key > b.key
+						end) -- deterministic sort
+						local category = BpDefs.unitCategories[UnitDefs[building.unitDefID].name:lower()] or "uncategorized"
+						local currentIndex = (leftoverTracker[category] or 0) + 1
+						if currentIndex > #capableGroups then
+							currentIndex = 1
+						end
+						targetGroupData = capableGroups[currentIndex]
+						leftoverTracker[category] = currentIndex
+					end
+
+					if targetGroupData then
+						local groupKey = targetGroupData.key
+						local groupSide = targetGroupData.side
+						local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, groupSide)
+						if substitutedUnitDefID then
+							table.insert(finalOrders[groupKey], { -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, newOpts })
+						end
+					end
+				end
+			end
+
+			-- 5. Issue commands
+			for groupKey, orders in pairs(finalOrders) do
+				if #orders > 0 then
+					local groupData
+					for _, gd in ipairs(allBuilderGroups) do
+						if gd.key == groupKey then
+							groupData = gd
+							break
+						end
+					end
+					if groupData then
+						local groupBuilderIDs = table.map(groupData.group, function(b)
+							return b.unitID
+						end)
+						Spring.GiveOrderArrayToUnitArray(groupBuilderIDs, orders, false)
+					end
+				end
+			end
+		end
+	end
+end
+
 -- instanceIDs[buildPositionKey] = { outline = { instanceID1, ...}, unit = { instanceID1, ...}, }
 local instanceIDs = {}
 
 local function clearInstances()
-	if isHeadless then return end
+	if isHeadless then
+		return
+	end
 	if outlineInstanceVBO then
 		InstanceVBOTable.clearInstanceTable(outlineInstanceVBO)
 	end
@@ -604,11 +943,7 @@ local function createInstancesForPosition(blueprint, teamID, copyPosition, posit
 
 			local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
 
-			local blocking = SpringTestBuildOrder(
-				unit.unitDefID,
-				sx, sy, sz,
-				unit.facing
-			)
+			local blocking = SpringTestBuildOrder(unit.unitDefID, sx, sy, sz, unit.facing)
 
 			local color
 			if blocking == 0 then
@@ -620,31 +955,18 @@ local function createInstancesForPosition(blueprint, teamID, copyPosition, posit
 			end
 
 			-- outline
-			local outlineInstanceID = pushElementInstance(
-				outlineInstanceVBO,
-				{
-					sx, sy, sz,
-					bw, bh,
-					unpack(color),
-				},
-				nil,
-				true,
-				true
-			)
+			local outlineInstanceID = pushElementInstance(outlineInstanceVBO, {
+				sx,
+				sy,
+				sz,
+				bw,
+				bh,
+				unpack(color),
+			}, nil, true, true)
 			tableInsert(instanceIDs[positionKey].outline, outlineInstanceID)
 
 			-- building
-			tableInsert(instanceIDs[positionKey].unit, WG.DrawUnitShapeGL4(
-				unit.unitDefID,
-				sx, sy, sz,
-				unit.facing * (mathPi / 2),
-				UNIT_ALPHA,
-				teamID,
-				nil,
-				nil,
-				nil,
-				widget:GetInfo().name
-			))
+			tableInsert(instanceIDs[positionKey].unit, WG.DrawUnitShapeGL4(unit.unitDefID, sx, sy, sz, unit.facing * (mathPi / 2), UNIT_ALPHA, teamID, nil, nil, nil, widget:GetInfo().name))
 		end
 	end
 end
@@ -654,7 +976,9 @@ end
 ---@param buildPositions StartPoints
 ---@param teamID number
 local function updateInstances(blueprint, buildPositions, teamID)
-	if isHeadless then return end
+	if isHeadless then
+		return
+	end
 
 	if not blueprint or not buildPositions then
 		clearInstances()
@@ -700,13 +1024,7 @@ local function drawOutlines()
 	gl.DepthMask(false) -- so that we dont write the depth of the drawn pixels
 	gl.Texture(0, "$heightmap")
 	outlineShader:Activate()
-	outlineInstanceVBO.VAO:DrawArrays(
-		GL.LINE_STRIP,
-		outlineInstanceVBO.numVertices,
-		0,
-		outlineInstanceVBO.usedElements,
-		0
-	)
+	outlineInstanceVBO.VAO:DrawArrays(GL.LINE_STRIP, outlineInstanceVBO.numVertices, 0, outlineInstanceVBO.usedElements, 0)
 	outlineShader:Deactivate()
 	gl.Texture(0, false)
 	gl.DepthTest(false)
@@ -781,20 +1099,20 @@ local function calculateBuildPositions(blueprint, mode, ...)
 end
 
 local function setActiveBuilders(unitIDs)
-	activeBuilderBuildOptions = table.reduce(
-		unitIDs,
-		function(acc, cur)
-			local unitDefID = SpringGetUnitDefID(cur)
-			if unitDefID == nil then return acc end
-			local unitDef = UnitDefs[unitDefID]
-			if unitDef == nil then return acc end
-			for _, buildOption in ipairs(unitDef.buildOptions) do
-				acc[buildOption] = true
-			end
+	activeBuilderBuildOptions = table.reduce(unitIDs, function(acc, cur)
+		local unitDefID = SpringGetUnitDefID(cur)
+		if unitDefID == nil then
 			return acc
-		end,
-		{}
-	)
+		end
+		local unitDef = UnitDefs[unitDefID]
+		if unitDef == nil then
+			return acc
+		end
+		for _, buildOption in ipairs(unitDef.buildOptions) do
+			acc[buildOption] = true
+		end
+		return acc
+	end, {})
 
 	currentAPITargetSide = nil
 	if unitIDs and #unitIDs > 0 then
@@ -828,11 +1146,11 @@ local function createBlueprintFromSerialized(serializedBlueprint)
 	for _, serializedUnit in ipairs(serializedBlueprint.units) do
 		local unitDefID = UnitDefNames[serializedUnit.unitName] and UnitDefNames[serializedUnit.unitName].id
 		tableInsert(result.units, {
-			blueprintUnitID = WG['cmd_blueprint'].nextBlueprintUnitID(),
+			blueprintUnitID = WG["cmd_blueprint"].nextBlueprintUnitID(),
 			position = serializedUnit.position,
 			facing = serializedUnit.facing,
 			unitDefID = unitDefID,
-			originalName = serializedUnit.unitName
+			originalName = serializedUnit.unitName,
 		})
 	end
 
@@ -858,7 +1176,7 @@ function widget:Initialize()
 		local reportPath = "luaui/Include/blueprint_substitution/reports.lua"
 		if VFS.FileExists(reportPath) then
 			local includedReports = VFS.Include(reportPath)
-			if includedReports and type(includedReports.SetDependencies) == 'function' then
+			if includedReports and type(includedReports.SetDependencies) == "function" then
 				includedReports.SetDependencies(SubLogic)
 				reportFunctions = includedReports
 				Spring.Log("BlueprintAPI", LOG.INFO, "Report functions loaded and dependencies set using local SubLogic.")
@@ -873,7 +1191,9 @@ function widget:Initialize()
 	end
 
 	WG["api_blueprint"] = {
-		getActiveBlueprint = function() return activeBlueprint end,
+		getActiveBlueprint = function()
+			return activeBlueprint
+		end,
 		setActiveBlueprint = setActiveBlueprint,
 		setActiveBuilders = setActiveBuilders,
 		setBlueprintPositions = setBlueprintPositions,
@@ -884,6 +1204,9 @@ function widget:Initialize()
 		getBlueprintDimensions = getBlueprintDimensions,
 		getUnitsBounds = getUnitsBounds,
 		snapBlueprint = snapBlueprint,
+		placeBlueprint = placeBlueprint,
+		splitBuildOrders = splitBuildOrders,
+		getBuilderInfo = getBuilderInfo,
 		BUILD_MODES = BUILD_MODES,
 		SQUARE_SIZE = SQUARE_SIZE,
 		BUILD_SQUARE_SIZE = BUILD_SQUARE_SIZE,
@@ -902,7 +1225,9 @@ function widget:Shutdown()
 	WG["api_blueprint"] = nil
 	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API shutdown.")
 
-	if isHeadless then return end
+	if isHeadless then
+		return
+	end
 
 	clearInstances()
 
@@ -919,6 +1244,3 @@ function widget:Shutdown()
 	end
 	reportFunctions = nil
 end
-
-
-

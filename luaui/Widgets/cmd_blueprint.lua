@@ -1046,8 +1046,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_BLUEPRINT_CREATE then
 		handleBlueprintCreateAction()
 	elseif cmdID == CMD_BLUEPRINT_PLACE then
-		-- Get the blueprint data *as processed and displayed by the API* but keep the original variable name
-		local selectedBlueprint = WG["api_blueprint"].getActiveBlueprint()
+		local selectedBlueprint = getSelectedBlueprint()
 
 		if not selectedBlueprint then
 			FeedbackForUser("[Blueprint] No active blueprint ready for placement.")
@@ -1132,14 +1131,26 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			}
 		end)
 
-		Spring.GiveOrderArrayToUnitArray(builders, orders, false)
+		if #builders == 0 then
+			FeedbackForUser("[Blueprint] No builders selected.")
+			return false
+		end
 
-		local alt, ctrl, meta, shift = unpack(state.modKeys)
-		if not shift then
+		local activeModifier = WG['build_split'] and WG['build_split'].isActive()
+		local isBuildSplit = cmdOpts.shift and activeModifier
+
+		WG["api_blueprint"].placeBlueprint(
+			selectedBlueprint,
+			state.buildPositions,
+			builders,
+			isBuildSplit,
+			cmdOpts
+		)
+
+		if not cmdOpts.shift then
 			setBlueprintPlacementActive(false)
 		end
 
-		-- successfully consumed the event
 		return true
 	end
 end
