@@ -179,17 +179,17 @@
 		<div class="le-section">Color2 (fade)</div>
 		<div class="le-slider-row" data-event-mouseover="onAction('tip', 'color2r')" data-event-mouseout="onAction('tip', '')">
 			<span class="le-slider-label">color2r</span>
-			<input type="range" class="le-slider" min="-120000" max="300" step="1" data-value="sl_color2r" data-event-change="onSlider('color2r')"/>
+			<input type="range" class="le-slider" min="-2000" max="300" step="1" data-value="sl_color2r" data-event-change="onSlider('color2r')"/>
 			<input type="text" class="le-slider-numbox" data-value="num_color2r" data-event-change="onSlider('color2r')" data-event-focus="onNumboxFocus('color2r')" data-event-blur="onNumboxBlur()"/>
 		</div>
 		<div class="le-slider-row" data-event-mouseover="onAction('tip', 'color2g')" data-event-mouseout="onAction('tip', '')">
 			<span class="le-slider-label">color2g</span>
-			<input type="range" class="le-slider" min="-120000" max="300" step="1" data-value="sl_color2g" data-event-change="onSlider('color2g')"/>
+			<input type="range" class="le-slider" min="-2000" max="300" step="1" data-value="sl_color2g" data-event-change="onSlider('color2g')"/>
 			<input type="text" class="le-slider-numbox" data-value="num_color2g" data-event-change="onSlider('color2g')" data-event-focus="onNumboxFocus('color2g')" data-event-blur="onNumboxBlur()"/>
 		</div>
 		<div class="le-slider-row" data-event-mouseover="onAction('tip', 'color2b')" data-event-mouseout="onAction('tip', '')">
 			<span class="le-slider-label">color2b</span>
-			<input type="range" class="le-slider" min="-120000" max="300" step="1" data-value="sl_color2b" data-event-change="onSlider('color2b')"/>
+			<input type="range" class="le-slider" min="-2000" max="300" step="1" data-value="sl_color2b" data-event-change="onSlider('color2b')"/>
 			<input type="text" class="le-slider-numbox" data-value="num_color2b" data-event-change="onSlider('color2b')" data-event-focus="onNumboxFocus('color2b')" data-event-blur="onNumboxBlur()"/>
 		</div>
 		<div class="le-slider-row" data-event-mouseover="onAction('tip', 'colortime')" data-event-mouseout="onAction('tip', '')">
