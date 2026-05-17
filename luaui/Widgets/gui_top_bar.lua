@@ -616,12 +616,12 @@ local function updateResbarText(res, force)
 
 				end
 
+				if not showingWarning[res] then showingWarning[res] = true; updateRes[res][3] = true end
 				if cache.lastWarning[res] ~= text or force then
 					cache.lastWarning[res] = text
 
 					if dlist.resbar[res][7] then glDeleteList(dlist.resbar[res][7]) end
 
-					if not showingWarning[res] then showingWarning[res] = true; updateRes[res][3] = true end
 					dlist.resbar[res][7] = glCreateList(function()
 						local fontSize = (orgHeight * (1 + (ui_scale - 1) / 1.33) / 4) * widgetScale
 						local textWidth = font2:GetTextWidth(text) * fontSize
@@ -670,10 +670,14 @@ local function updateResbarText(res, force)
 				end
 			end
 		else
-			if force then
-				if dlist.resbar[res][7] then glDeleteList(dlist.resbar[res][7]) end
-				cache.lastWarning[res] = nil
-			end
+			-- Always clean up the banner dlist and lastWarning so the next overflow
+			-- always recreates the banner in sync with showingWarning being set.
+			-- Without this, the old banner dlist persists, drawResBars shows it
+			-- immediately when overflow restarts while showingWarning stays false
+			-- for another 1.1s, leaving storage text visible under the banner.
+			if dlist.resbar[res][7] then glDeleteList(dlist.resbar[res][7]) end
+			dlist.resbar[res][7] = nil
+			cache.lastWarning[res] = nil
 			if showingWarning[res] then showingWarning[res] = false; updateRes[res][3] = true end
 
 			showOverflowTooltip[res] = nil
@@ -1338,6 +1342,7 @@ function widget:Update(dt)
 end
 
 -- --- OPTIMIZATION: Pre-defined function for RenderToTexture to avoid creating a closure.
+local function clearFn() end  -- no-op used for pre-clearing regions in uiTex
 local function renderResbarText()
 	glTranslate(-1, -1, 0)
 	glScale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
@@ -1839,6 +1844,26 @@ function widget:DrawScreen()
 		glPushMatrix()
 		glTranslate(tidalSkewCX, mathSin(now/PI) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
 		glCallList(dlist.tidal2)
+	end
+
+	-- Pre-clear storage text from uiTex before rendering it to screen.
+	-- drawResBars() updates uiTex AFTER BlendTexRect each frame, so without this
+	-- the stale storage text is visible for up to ~50ms when the warning first activates.
+	if uiTex and (showingWarning.metal or showingWarning.energy) then
+		local storageScissors = {}
+		for _, res in ipairs({'metal', 'energy'}) do
+			if showingWarning[res] and resbarDrawinfo[res] and resbarDrawinfo[res].textStorage then
+				storageScissors[#storageScissors+1] = {
+					(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
+					(topbarArea[4]-topbarArea[2])*0.48,
+					resbarDrawinfo[res].textStorage[4]*4.1,
+					topbarArea[4]-topbarArea[2]
+				}
+			end
+		end
+		if storageScissors[1] then
+			r2tHelper.RenderToTexture(uiTex, clearFn, true, storageScissors)
+		end
 	end
 
 	if uiTex then

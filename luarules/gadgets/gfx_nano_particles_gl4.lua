@@ -98,6 +98,7 @@ local uploadElementRange     = InstanceVBOTable.uploadElementRange
 local mathRandom = math.random
 local mathSqrt   = math.sqrt
 local mathFloor  = math.floor
+local mathCeil   = math.ceil
 local mathLog    = math.log
 local spGetTimer   = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
@@ -173,7 +174,7 @@ local MODE_SETTINGS = {
 		dirJitter   = 0.10,       -- chunks read better with less spread
 		-- Shapes benefit from visible variation -- they read as discrete chunks.
 		sizeVar     = 0.3,
-		speedVar    = 0.15,
+		speedVar    = 0.14,
 		alphaVar    = 2.5,
 		-- View-dependent face shading: 0 = flat, 1 = full 3D depth (back faces visible-but-dimmed).
 		cubeShowInside = 4.0,
@@ -1488,7 +1489,7 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				speed = NANO_SPEED * (1.0 + speedVar * (mathRandom() * 2 - 1))
 				if speed < 0.1 then speed = 0.1 end
 			end
-			local lifetime = mathFloor(len / speed)
+			local lifetime = mathCeil(len / speed)
 			if lifetime < 1 then break end
 			local vx, vy, vz = fdx * speed, fdy * speed, fdz * speed
 
