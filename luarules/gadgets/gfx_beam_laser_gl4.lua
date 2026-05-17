@@ -51,6 +51,7 @@ local GL_SRC_ALPHA            = GL.SRC_ALPHA
 local mathMin    = math.min
 local mathMax    = math.max
 local mathSqrt   = math.sqrt
+local mathFloor  = math.floor
 
 local LuaShader = gl.LuaShader
 local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
@@ -70,6 +71,16 @@ local GHOST_FRAMES_MAX      = 8     -- ghost frames for thickest beams
 local GHOST_THICKNESS_MIN   = 1.5   -- thickness at or below which gets min ghost frames
 local GHOST_THICKNESS_MAX   = 5.0   -- thickness at or above which gets max ghost frames
 local FLARE_GHOST_FRAC      = 0.4   -- fraction of weapon ghostFrames where flare stays visible (0..1)
+
+-- Hardpoint bucketing: muzzle position is quantized into a coarse grid and the
+-- bucket index is part of the tracking key. This lets multiple hardpoints on
+-- the same unit that share a weaponDefID (e.g. dual-barrel beam turrets) each
+-- get their own tracked beam slot, while still merging consecutive shots from
+-- one rotating turret (whose muzzle moves only a few elmos between shots)
+-- onto the same key -- avoiding the "stuttering rapid-fire trail" that a
+-- per-shot key would produce.
+local HARDPOINT_BUCKET_SIZE = 12    -- elmos per bucket on each axis
+local INV_HARDPOINT_BUCKET  = 1 / HARDPOINT_BUCKET_SIZE
 
 -- Textures
 local beamTexture  = "bitmaps/projectiletextures/largebeam.tga"
@@ -1201,19 +1212,18 @@ local function updateBeams()
 								mathMax(px, endX) + pad, mathMax(py, endY) + pad, mathMax(pz, endZ) + pad
 							) then
 								local ownerID = spGetProjectileOwnerID(proID) or 0
-								-- Key = "ownerID|wDefID". Muzzle position deliberately
-								-- excluded: turrets rotate between shots, so including the
-								-- muzzle would give every shot a fresh key, and the previous
-								-- shot's tracked entry would linger as a ghost beam while the
-								-- new one renders -- looking like a stuttering rapid-fire
-								-- trail instead of a single moving beam.
-								-- Different beam weapons on the same unit (e.g. corhllt's
-								-- hllt_top + hllt_bottom) have distinct wDefIDs, so owner+wDef
-								-- already disambiguates them. Multiple hardpoints sharing the
-								-- SAME wDefID on one unit (rare for beam lasers) would alias,
-								-- but the result -- one of the two beams winning per frame --
-								-- is less visually disruptive than the ghost-stacking trail.
-								local wbKey = ownerID .. "|" .. wDefID
+								-- Key = "ownerID|wDefID|bx,by,bz" where bx/by/bz quantize the
+								-- muzzle position into HARDPOINT_BUCKET_SIZE-elmo cells. Multiple
+								-- hardpoints on one unit that share a weaponDefID (e.g. dual-barrel
+								-- beam turrets) land in different buckets and each get their own
+								-- tracked beam, fixing the bug where only one barrel rendered.
+								-- Rotation drift on a single hardpoint between shots is well below
+								-- one bucket, so consecutive shots still merge onto the same key
+								-- and don't produce a "stuttering rapid-fire trail" of ghost beams.
+								local bx = mathFloor(origPx * INV_HARDPOINT_BUCKET)
+								local by = mathFloor(origPy * INV_HARDPOINT_BUCKET)
+								local bz = mathFloor(origPz * INV_HARDPOINT_BUCKET)
+								local wbKey = ownerID .. "|" .. wDefID .. "|" .. bx .. "," .. by .. "," .. bz
 								if not liveKeys[wbKey] then
 									liveKeys[wbKey] = true
 									liveKeysCount = liveKeysCount + 1
@@ -1429,7 +1439,12 @@ function gadget:GameFrame(n)
 					local vx, vy, vz = spGetProjectileVelocity(proID)
 					if vx then
 						local ownerID = spGetProjectileOwnerID(proID) or 0
-						local wbKey = ownerID .. "|" .. wDefID
+						-- Bucketed muzzle position in key disambiguates multiple hardpoints
+						-- sharing one wDefID on the same unit. See DrawWorld for rationale.
+						local bx = mathFloor(px * INV_HARDPOINT_BUCKET)
+						local by = mathFloor(py * INV_HARDPOINT_BUCKET)
+						local bz = mathFloor(pz * INV_HARDPOINT_BUCKET)
+						local wbKey = ownerID .. "|" .. wDefID .. "|" .. bx .. "," .. by .. "," .. bz
 						local tracked = weaponBeams[wbKey]
 						if not tracked then
 							tracked = { cfg = cfg }
