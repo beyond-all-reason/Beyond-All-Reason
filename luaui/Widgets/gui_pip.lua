@@ -20204,6 +20204,15 @@ function widget:MouseRelease(mx, my, mButton)
 				finalPos = {wx, wy, wz}
 			end
 			formationHandled = WG.customformations.EndFormation(finalPos)
+
+			if formationHandled then
+				local _, _, _, shift = Spring.GetModKeyState()
+				if not shift then
+					Spring.SetActiveCommand(0)
+				else
+					interactionState.commandIssuedWithShift = true
+				end
+			end
 		end
 
 		-- Clear the force shift flag
