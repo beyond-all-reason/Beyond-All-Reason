@@ -895,6 +895,11 @@ function widget:TeamDied(teamID)
             p.dead = true
         end
     end
+    -- Also mark the ghost slot dead immediately so DrawName shows the strikethrough
+    -- without waiting for the next full update cycle.
+    if player[teamID + specOffset] then
+        player[teamID + specOffset].dead = true
+    end
 end
 
 -- rank players inside each team based on production and damage dealt
@@ -1697,6 +1702,9 @@ function SortPlayers(teamID, allyTeamID, vOffset)
     -- Adds players to the draw list (self first)
     local playersList = sp.GetPlayerList(teamID, true)
     local noPlayer = true
+    -- When spectating a dead ally team, own section is hidden; don't also filter out
+    -- the alive teams being shown as fallback enemies -- show them regardless of enemyListShow
+    local canShow = enemyListShow or (mySpecStatus and not aliveAllyTeams[myAllyTeamID])
 
     -- add own player (if not spec)
     if myTeamID == teamID then
@@ -1716,7 +1724,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
         if playerID ~= myPlayerID then
             if player[playerID].name ~= nil then
                 if player[playerID].spec ~= true then
-                    if enemyListShow or player[playerID].allyteam == myAllyTeamID then
+                    if canShow or player[playerID].allyteam == myAllyTeamID then
                         vOffset = vOffset + (playerOffset*playerScale)
                         drawListOffset[#drawListOffset + 1] = vOffset
                         drawList[#drawList + 1] = playerID -- new player (with ID)
@@ -1730,7 +1738,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
 
     -- add AI teams
     if select(4, sp.GetTeamInfo(teamID, false)) then
-        if enemyListShow or player[specOffset + teamID].allyteam == myAllyTeamID then
+        if canShow or player[specOffset + teamID].allyteam == myAllyTeamID then
             -- is AI
             vOffset = vOffset + (playerOffset*playerScale)
             drawListOffset[#drawListOffset + 1] = vOffset
@@ -1745,7 +1753,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
         for pID = 0, specOffset - 1 do
             local p = player[pID]
             if p and p.team == teamID and p.spec ~= true and p.name and p.name ~= absentName then
-                if enemyListShow or p.allyteam == myAllyTeamID then
+                if canShow or p.allyteam == myAllyTeamID then
                     vOffset = vOffset + (playerOffset*playerScale)
                     drawListOffset[#drawListOffset + 1] = vOffset
                     drawList[#drawList + 1] = pID
@@ -1758,7 +1766,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
 
     -- add no player token if no player found in this team at this point
     if noPlayer then
-        if enemyListShow or player[specOffset + teamID].allyteam == myAllyTeamID then
+        if canShow or player[specOffset + teamID].allyteam == myAllyTeamID then
             vOffset = vOffset + ((playerOffset - deadPlayerHeightReduction)*playerScale)
             drawListOffset[#drawListOffset + 1] = vOffset
             drawList[#drawList + 1] = specOffset + teamID  -- no players team
