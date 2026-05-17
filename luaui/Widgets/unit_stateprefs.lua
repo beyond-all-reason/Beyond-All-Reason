@@ -185,13 +185,10 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function widget:GameOver()
-	spEcho("Recorded States Prefs")
-	saveStatePrefs()
 	widgetHandler:RemoveWidget()
 end
 
 function widget:Shutdown()
-	spEcho("Recorded States Prefs")
 	saveStatePrefs()
 	widgetHandler:RemoveAction("stateprefs_record")
 	widgetHandler:RemoveAction("stateprefs_clear")
