@@ -14154,20 +14154,20 @@ local unitLights = {
 		},
 	},
 	['armlab'] = {
-		['bp-top_copy_copy'] = {
+		['bp-left-flash'] = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = 35.2000, posy = 4.7000, posz = 16.6000, radius = 2.6000,
+			lightConfig = { posx = -35.4000, posy = 4.7000, posz = 16.6000, radius = 2.6000,
 						dirx = 0, diry = 0, dirz = 0.5000, theta = -15,
 						color2r = -11, color2g = -11, color2b = -11, colortime = 120,
 						r = 1.1000, g = 0.8000, b = 0.2000, a = 0.6000,
 						modelfactor = 0.4500, specular = 0.2000, scattering = 0.7000, lensflare = 0,
 						lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
-		['bp-top_copy_copy_copy'] = {
+		['bp-right-flash'] = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = -35.4000, posy = 4.7000, posz = 16.6000, radius = 2.6000,
+			lightConfig = { posx = 35.2000, posy = 4.7000, posz = 16.6000, radius = 2.6000,
 						dirx = 0, diry = 0, dirz = 0.5000, theta = -15,
 						color2r = -11, color2g = -11, color2b = -11, colortime = 120,
 						r = 1.1000, g = 0.8000, b = 0.2000, a = 0.6000,
