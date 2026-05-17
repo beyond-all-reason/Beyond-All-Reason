@@ -707,32 +707,24 @@ if gadgetHandler:IsSyncedCode() then
 			return false -- consume command
 		end
 
-		local hasTargetData = unitTargets[unitID] or pausedTargets[unitID]
-		if not hasTargetData then
-			--tracy.ZoneEnd()
-			return true
-		end
-
-		if not isEnqueuedFirst(unitID, cmdID, cmdTag, cmdOptions, fromInsert) then
-			if cmdID == CMD_DGUN then
+		if unitTargets[unitID] or pausedTargets[unitID] then
+			if not isEnqueuedFirst(unitID, cmdID, cmdTag, cmdOptions, fromInsert) then
+				if cmdID == CMD_DGUN then
+					waitForCommandDone[unitID] = true
+					checkForManualFire[unitID] = true
+				end
+			elseif cmdID == CMD_DGUN then
+				pauseTargetting(unitID)
 				waitForCommandDone[unitID] = true
 				checkForManualFire[unitID] = true
+			elseif cmdID == CMD_STOP then
+				removeWithStop(unitID)
+				waitForCommandDone[unitID] = nil
 			end
-			--tracy.ZoneEnd()
-			return true
-		end
-
-		if cmdID == CMD_STOP then
-			removeWithStop(unitID)
-			waitForCommandDone[unitID] = nil
-		elseif cmdID == CMD_DGUN then
-			pauseTargetting(unitID)
-			waitForCommandDone[unitID] = true
-			checkForManualFire[unitID] = true
 		end
 
 		--tracy.ZoneEnd()
-		return true  -- command was not used OR was used but not fully processed, so don't block command
+		return true
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
