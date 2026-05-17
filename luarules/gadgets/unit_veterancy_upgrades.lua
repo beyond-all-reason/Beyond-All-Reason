@@ -149,6 +149,22 @@ local function toFrameTime(seconds)
 	return math_max(math_round(seconds * gameSpeed), 1) * gameSpeedInverse
 end
 
+local function getBurstStats(weaponDef)
+	local stats = {}
+	if weaponDef.type == "BeamLaser" and not weaponDef.beamburst then
+		stats.salvo = 1
+		stats.delay = weaponDef.beamtime
+		stats.salvoTime = weaponDef.beamtime
+	else
+		stats.salvo = weaponDef.salvoSize
+		stats.delay = weaponDef.salvoDelay
+		stats.salvoTime = stats.salvo * stats.delay
+	end
+	stats.delay = toFrameTime(stats.delay)
+	stats.salvoTime = toFrameTime(stats.salvoTime)
+	return stats
+end
+
 -- Unit veterancies ------------------------------------------------------------
 
 -- Some effects are duplicated in-engine so are conditional on our modrules:
@@ -341,6 +357,25 @@ veterancyEffects.acc_weight = {
 
 -- The rest of the veterancy effects have no equivalent function in the engine:
 
+local armorTargetIndex = armorTypeMin - 1
+local damagesTemp = table.new(armorTypeMax, 1 - armorTypeMin)
+local function scaleDamages(unitID, weaponNum, damages, damageMult)
+	-- Avoid updates that do not change damage to the primary armor target:
+	local armorTarget = damages[armorTargetIndex]
+	local armorDamage = spGetUnitWeaponDamages(unitID, weaponNum, armorTarget)
+	if armorDamage == math_round(damages[armorTarget] * damageMult) then
+		return
+	end
+
+	-- Avoid nArmorTypes engine calls that repeat parsing of simple inputs:
+	local d = damagesTemp
+	for i = armorTypeMin, armorTypeMax do
+		d[i] = math_round(damages[i] * damageMult)
+	end
+	spSetUnitWeaponDamages(unitID, weaponNum, d)
+	spSetUnitRulesParam(unitID, "veterancy_damages_multiplier", damageMult)
+end
+
 veterancyEffects.autoheal = {
 	add = function(unitDef, upgrades)
 		-- With continuous XP, we have to use a scale value rather than a constant
@@ -371,9 +406,6 @@ veterancyEffects.autoheal = {
 		spSetUnitRulesParam(unitID, "veterancy_autoheal", autoHealExtra)
 	end,
 }
-
-local armorTargetIndex = armorTypeMin - 1
-local damagesTemp = table.new(armorTypeMax, 1 - armorTypeMin)
 
 veterancyEffects.damages = {
 	add = function(unitDef, upgrades)
@@ -423,23 +455,7 @@ veterancyEffects.damages = {
 		local damageMult = 1 + upgrade[2] * experience
 		for index = 3, #upgrade do
 			if upgrade[index] then
-				local damages = upgrade[index]
-				local weapon = index - 2
-
-				-- Avoid updates that do not change damage to the primary armor target:
-				local armorTarget = damages[armorTargetIndex]
-				local armorDamage = spGetUnitWeaponDamages(unitID, weapon, armorTarget)
-				if armorDamage == math_round(damages[armorTarget] * damageMult) then
-					return
-				end
-
-				-- Avoid nArmorTypes engine calls that repeat parsing of simple inputs:
-				local d = damagesTemp
-				for i = armorTypeMin, armorTypeMax do
-					d[i] = math_round(damages[i] * damageMult)
-				end
-				spSetUnitWeaponDamages(unitID, weapon, d)
-				spSetUnitRulesParam(unitID, "veterancy_damages_multiplier", damageMult)
+				scaleDamages(unitID, index - 2, upgrade[index], damageMult)
 			end
 		end
 	end,
@@ -509,6 +525,181 @@ veterancyEffects.range = {
 		for index = 4, #upgrade do
 			if upgrade[index] then
 				spSetUnitWeaponState(unitID, index - 3, "range", math_floor(upgrade[index] * rangeMult))
+			end
+		end
+	end,
+}
+
+-- When a weapon's reload time equals its burst duration, faster reloads provide no benefit.
+-- This XP upgrade continues to scale the burst rate with faster reloads (up to 1/30th sec).
+-- NOTE: Weapon sounds usually trigger only once per burst and play the sound of many shots.
+veterancyEffects.reload_then_burst = {
+	add = function(unitDef, upgrades)
+		-- Shares its scaling customparam with `reload`:
+		local scale = tonumber(unitDef.customParams.veterancy_reload_scale or reloadScale)
+		if (scale or 0) <= 0 then
+			return false
+		end
+
+		local upgrade = { veterancyEffects.reload_then_burst.effect, scale } ---@type VeterancyUpgrade
+		local offset = #upgrade
+
+		local hasUpgradeWeapon = false
+		for index, weapon in ipairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			if not weaponDef.customParams.noreloadxpscale then
+				hasUpgradeWeapon = true
+				local weaponUpgrade = { reloadTime = weaponDef.reload }
+				local stats = getBurstStats(weaponDef)
+				-- BeamLaser weapons cannot scale in burst duration; not really, anyway.
+				-- They have an internal `salvoDamageMult` so would need damage scaling.
+				if stats and stats.salvo > 1 and stats.salvoTime > gameSpeedInverse then
+					weaponUpgrade.salvo = stats.salvo
+					weaponUpgrade.salvoTime = stats.salvoTime
+				end
+				upgrade[index + offset] = weaponUpgrade
+			else
+				upgrade[index + offset] = false
+			end
+		end
+
+		if hasUpgradeWeapon then
+			upgrades[#upgrades + 1] = upgrade
+			return true
+		else
+			return false
+		end
+	end,
+
+	effect = function(unitID, upgrade, experience)
+		local unitLuaEnv = spGetScriptEnv(unitID)
+		local reloadDiv = 1 + upgrade[2] * experience
+		for index = 3, #upgrade do
+			if upgrade[index] then
+				local reloadTime = upgrade[index].reloadTime
+				local salvoDuration = upgrade[index].salvoTime
+				local weapon = index - 2
+
+				local reloadWanted = toFrameTime(reloadTime / reloadDiv)
+
+				if salvoDuration and reloadWanted < salvoDuration then
+					local salvoSize = upgrade[index].salvo
+					local salvoDelay
+					if reloadTime <= salvoDuration then
+						-- When reload and burst are the same, each scales with full unit XP.
+						salvoDelay = toFrameTime(reloadWanted / salvoSize)
+					else
+						-- Else, the burst and the reload-below-burst split the full unit XP.
+						local difference = (salvoDuration - reloadWanted) * 0.5
+						reloadWanted = toFrameTime(reloadWanted - difference)
+						salvoDelay = toFrameTime((salvoDuration - difference) / salvoSize)
+					end
+					spSetUnitWeaponState(unitID, weapon, "burstRate", salvoDelay)
+				end
+
+				spSetUnitWeaponState(unitID, weapon, "reloadTime", reloadWanted)
+				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weapon], reloadWanted * 1000)
+			end
+		end
+	end,
+}
+
+-- When a weapon's reload time equals its burst duration, faster reloads provide no benefit.
+-- This XP upgrade continues to scale the weapon's DPS output by directly increasing damage.
+-- NOTE: Preferable to reload_then_burst usually but we have no scaling damage vfx just yet.
+veterancyEffects.reload_then_damage = {
+	add = function(unitDef, upgrades)
+		-- Shares its scaling customparams with `reload`/`damage`, but does not check `damageScale`:
+		local unitReloadScale = tonumber(unitDef.customParams.veterancy_reload_scale or reloadScale)
+		local unitDamageScale = tonumber(unitDef.customParams.veterancy_damage_scale or unitReloadScale)
+		if (unitReloadScale or 0) <= 0 and (unitDamageScale or 0) <= 0 then
+			return false
+		end
+
+		local upgrade = { veterancyEffects.reload_then_damage.effect, unitReloadScale, unitDamageScale } ---@type VeterancyUpgrade
+		local offset = #upgrade
+
+		local hasUpgradeWeapon = false
+		for index, weapon in ipairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+
+			local reloads
+			if not weaponDef.customParams.noreloadxpscale then
+				reloads = { reloadTime = weaponDef.reload }
+				local stats = getBurstStats(weaponDef)
+				if stats and stats.salvo > 1 and stats.salvoTime > gameSpeedInverse then
+					reloads.salvoTime = stats.salvoTime
+				end
+			end
+
+			local damages
+			if not weaponDef.customParams.nodamagexpscale and weaponDef.customParams.bogus ~= "1" then
+				damages = table.new(armorTypeMax, 1 - armorTypeMin)
+				damages[armorTargetIndex] = armorTypeMin
+				local armorDamage = weaponDef.damages[armorTypeMin]
+				for i = armorTypeMin, armorTypeMax do
+					damages[i] = weaponDef.damages[i]
+					if damages[i] > armorDamage then
+						damages[armorTargetIndex], armorDamage = i, damages[i]
+					end
+				end
+				if armorDamage <= 0 then
+					damages = nil
+				end
+			end
+
+			if reloads and damages then
+				hasUpgradeWeapon = true
+				upgrade[index + offset] = table.merge(reloads, damages)
+			else
+				upgrade[index + offset] = false
+			end
+		end
+
+		if hasUpgradeWeapon then
+			upgrades[#upgrades + 1] = upgrade
+			return true
+		else
+			return false
+		end
+	end,
+
+	effect = function(unitID, upgrade, experience)
+		local unitLuaEnv = spGetScriptEnv(unitID)
+		local reloadDiv = 1 + upgrade[2] * experience
+		local damageMult = 1 + upgrade[3] * experience
+		for index = 4, #upgrade do
+			if upgrade[index] then
+				local reloadTime = upgrade[index].reloadTime
+				local salvoTime = upgrade[index].salvoTime
+				local weapon = index - 3
+
+				local reloadWanted = toFrameTime(reloadTime / reloadDiv)
+				local weaponDamageMult = 1
+
+				if salvoTime then
+					if reloadTime > salvoTime then
+						if reloadWanted < salvoTime then
+							reloadWanted = salvoTime
+							-- Get the XP with equal reload time and burst duration.
+							local weaponReloadXP = (reloadTime / salvoTime - 1) / upgrade[2]
+							local weaponDamageXP = experience - weaponReloadXP
+							weaponDamageMult = 1 + upgrade[3] * weaponDamageXP
+						end
+					else
+						weaponDamageMult = damageMult
+					end
+				end
+
+				spSetUnitWeaponState(unitID, weapon, "reloadTime", reloadWanted)
+				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weapon], reloadWanted * 1000)
+
+				if weaponDamageMult > 1 then
+					scaleDamages(unitID, weapon, upgrade[index], weaponDamageMult)
+				end
+
+				Spring.Echo("mult", weaponDamageMult, "reload", reloadWanted, reloadTime, Spring.GetUnitWeaponState(unitID, weapon, "reloadTimeXP"))
+				Spring.Echo(string.rep("?", math.random(2, 12)))
 			end
 		end
 	end,
