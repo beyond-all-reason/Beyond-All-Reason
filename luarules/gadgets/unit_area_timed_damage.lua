@@ -459,7 +459,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
 			local data = unitData[unitID]
-            if data and not data.resistances[area.resistance] and data.immuneUntil < gameFrame then
+            if data and not data.resistances[area.weapon] and data.immuneUntil < gameFrame then
                 local hitX, hitY, hitZ = getAreaHitPosition(area, getUnitHitData(unitID))
 
 				if hitX then
@@ -600,12 +600,10 @@ function gadget:Initialize()
 	end
 
     unitDamageImmunity = {}
-    local areaResistances = {} -- TODO: replace resistance strings with the IDs from envDamageTypes
+    local areaResistances = {}
     for weaponDefID, params in pairs(timedDamageWeapons) do
-        if params.resistance == nil then
-            params.resistance = "none"
-        elseif params.resistance ~= "none" then
-            areaResistances[params.resistance] = true
+        if params.resistance ~= "none" then
+            areaResistances[areaDamageTypes[areaDamageType .. params.resistance]] = true
         end
     end
     local immunities = { all = areaResistances, none = {} }
@@ -621,9 +619,9 @@ function gadget:Initialize()
                 unitImmunity = immunities[resistance]
             else
                 unitImmunity = {}
-                for damageType in pairs(areaResistances) do
-                    if string.find(resistance, damageType, nil, false) then
-                        unitImmunity[damageType] = true
+                for weaponDefID in pairs(areaResistances) do
+                    if string.find(resistance, areaDamageTypes[weaponDefID], nil, false) then
+                        unitImmunity[weaponDefID] = true
                     end
                 end
                 if not next(unitImmunity) then
