@@ -90,6 +90,9 @@ local commands = {}
 local rows = 0
 local cols = 0
 local disableInput = false
+
+-- Highlight API state: items[cmdID] = { color={r,g,b}, startTime=os.clock() }
+local highlight = { items = {}, count = 0, defaultColor = { 1.0, 1.0, 1.0 } }
 local math_isInRect = math.isInRect
 local clickCountDown = 2
 
@@ -616,6 +619,43 @@ function widget:Initialize()
 	WG['ordermenu'].getIsShowing = function()
 		return ordermenuShows
 	end
+
+	---Highlight a command in the order menu with an animated pulsing outline +
+	---inner glow. Subsequent calls update the existing highlight (without
+	---restarting the pulse phase).
+	---@param cmdID number The command ID (e.g. CMD.MOVE, CMD.ATTACK) to highlight.
+	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
+	WG['ordermenu'].setHighlight = function(cmdID, color)
+		if not cmdID then return end
+		local items = highlight.items
+		if not items[cmdID] then
+			highlight.count = highlight.count + 1
+		end
+		items[cmdID] = {
+			color = color,
+			startTime = (items[cmdID] and items[cmdID].startTime) or os_clock(),
+		}
+	end
+
+	WG['ordermenu'].removeHighlight = function(cmdID)
+		local items = highlight.items
+		if cmdID and items[cmdID] then
+			items[cmdID] = nil
+			highlight.count = math_max(0, highlight.count - 1)
+		end
+	end
+
+	WG['ordermenu'].clearHighlights = function()
+		local items = highlight.items
+		for k in pairs(items) do
+			items[k] = nil
+		end
+		highlight.count = 0
+	end
+
+	WG['ordermenu'].hasHighlight = function(cmdID)
+		return cmdID ~= nil and highlight.items[cmdID] ~= nil
+	end
 end
 
 function widget:Shutdown()
@@ -725,6 +765,64 @@ local function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
+
+local function drawHighlights()
+	if highlight.count == 0 or not next(highlight.items) then return end
+	if #commands == 0 then return end
+	local now = os_clock()
+	local pulse = 0.5 + 0.5 * math.sin(now * 4.5)
+	local outlineAlpha = 0.45 + 0.5 * pulse
+	local glowAlpha = 0.10 + 0.20 * pulse
+	for cell = 1, #commands do
+		local cmd = commands[cell]
+		local rect = cellRects[cell]
+		local hl = cmd and highlight.items[cmd.id]
+		if hl and rect and rect[4] then
+			local color = hl.color or highlight.defaultColor
+			local r, g, b = color[1], color[2], color[3]
+			local t = now - (hl.startTime or now)
+			local localPulse = 0.5 + 0.5 * math.sin(t * 4.5)
+			local locOutlineAlpha = 0.45 + 0.5 * localPulse
+			local locGlowAlpha = 0.10 + 0.20 * localPulse
+
+			local leftMargin = cellMarginPx
+			local rightMargin = cellMarginPx2
+			local topMargin = cellMarginPx
+			local bottomMargin = cellMarginPx2
+			if cell % cols == 1 then leftMargin = cellMarginPx2 end
+			if cell % cols == 0 then rightMargin = cellMarginPx2 end
+			if cols / cell >= 1 then
+				topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
+			end
+
+			local x1 = rect[1] + leftMargin
+			local y1 = rect[2] + bottomMargin
+			local x2 = rect[3] - rightMargin
+			local y2 = rect[4] - topMargin
+
+			local cs = math_max(2, math_floor((x2 - x1) * 0.04))
+			local thickness = math_max(2, math_floor((x2 - x1) * 0.05))
+
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+
+			-- Feathered inner outline ring
+			WG.FlowUI.Draw.RectRoundOutline(
+				x1, y1, x2, y2, cs, thickness, 1, 1, 1, 1,
+				{ r, g, b, locOutlineAlpha }, { r, g, b, locOutlineAlpha * 0.85 }
+			)
+
+			-- Soft inner glow fading inward
+			local glowWidth = thickness * 3
+			WG.FlowUI.Draw.RectRoundOutline(
+				x1 + thickness, y1 + thickness, x2 - thickness, y2 - thickness,
+				math_max(0, cs - thickness), glowWidth, 1, 1, 1, 1,
+				{ r, g, b, locGlowAlpha }, { r, g, b, 0 }
+			)
+
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		end
+	end
+end
 
 local function drawCell(cell, zoom)
 	if not zoom then
@@ -1066,6 +1164,9 @@ function widget:DrawScreen()
 		end
 
 		if #commands >0 then
+			-- draw attention highlights (animated, on top of cached content)
+			drawHighlights()
+
 			-- draw highlight on top of button
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if commands and cellHovered then
