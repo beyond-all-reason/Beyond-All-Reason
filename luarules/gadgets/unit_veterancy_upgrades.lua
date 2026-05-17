@@ -291,6 +291,54 @@ veterancyEffects.scripted_reload = {
 	end,
 }
 
+-- This is not "accuracy" but "ownerExpAccWeight", which is a catch-all for scaling multiple stats.
+-- NOTE: This is included for something like "completeness" but is barely functional as-advertised.
+veterancyEffects.acc_weight = {
+	add = function(unitDef, upgrades)
+		-- Dynamic accuracies per-weapon are scaled at the unit-level for consistency.
+		local scale = tonumber(unitDef.customParams.veterancy_accweight_scale or 0)
+		if (scale or 0) <= 0 then
+			return false
+		end
+
+		local upgrade = { veterancyEffects.acc_weight.effect, scale } ---@type VeterancyUpgrade
+		local offset = #upgrade
+
+		local hasUpgradeWeapon = false
+		for index, weapon in ipairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			if not weaponDef.customParams.noaccweightxpscale and not weaponDef.customParams.bogus then
+				-- FIXME: We cannot modify: predictSpeedMod, targetMoveError, movingAccuracy, wobble.
+				hasUpgradeWeapon = true
+				upgrade[index + offset] = {
+					accuracy   = weaponDef.accuracy,
+					sprayAngle = weaponDef.sprayAngle,
+				}
+			else
+				upgrade[index + offset] = false
+			end
+		end
+
+		if hasUpgradeWeapon then
+			upgrades[#upgrades + 1] = upgrade
+			return true
+		else
+			return false
+		end
+	end,
+
+	effect = function(unitID, upgrade, experience)
+		local accuracyWeightDiv = 1 + upgrade[2] * experience
+		for index = 3, #upgrade do
+			if upgrade[index] then
+				local weapon = index - 2
+				spSetUnitWeaponState(unitID, weapon, "accuracy", upgrade[index].accuracy / accuracyWeightDiv)
+				spSetUnitWeaponState(unitID, weapon, "sprayAngle", upgrade[index].sprayAngle / accuracyWeightDiv)
+			end
+		end
+	end,
+}
+
 -- The rest of the veterancy effects have no equivalent function in the engine:
 
 veterancyEffects.autoheal = {
