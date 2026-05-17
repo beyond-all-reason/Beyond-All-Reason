@@ -40,6 +40,11 @@ function gadget:Initialize()
 
 	success, mapinfo = pcall(VFS.Include,"mapinfo.lua")
 	if success and mapinfo then
-		sundir = mapinfo.lighting.sundir
+		if mapinfo.lighting and mapinfo.lighting.sundir then
+			sundir = mapinfo.lighting.sundir
+		else
+			Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Missing sun facing for " .. Game.mapName)
+			gadgetHandler:RemoveGadget()
+		end
 	end
 end
