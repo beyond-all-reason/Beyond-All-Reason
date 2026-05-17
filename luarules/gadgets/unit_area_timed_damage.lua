@@ -318,6 +318,8 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             minY = minY * (1 - dy * 0.5) -- avoid damage to submerged targets
         end
 
+		-- Shields and area damages express slightly different types of containment of units,
+		-- and the explosion volume and resulting area volume have some discrepancy, as well.
 		local blockingShields
 		if not explosion.penetrates then
 			local units, count = getShieldUnitsInSphere(px, elevation, pz, areaRange, true)
@@ -325,10 +327,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
 				blockingShields = {}
 				local allyTeam = getAllyTeam(attackerID, projectileID)
 				for i = 1, count do
-					-- Don't check against the area position, but the explosion, even though it's a bit odd:
-					-- TODO: Check that the shield and weapon intercept types match.
-					-- TODO: The shield_aoe_penetration param is weird for ignoring intercept types tbh.
-					if allyTeam ~= spGetUnitAllyTeam(units[i]) and not isInShield(px, py + 2, pz, units[i]) then
+					if allyTeam ~= spGetUnitAllyTeam(units[i]) and not isInShield(px, py + 1, pz, units[i]) then
 						blockingShields[#blockingShields + 1] = units[i]
 					end
 				end
