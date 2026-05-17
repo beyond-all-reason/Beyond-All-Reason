@@ -78,6 +78,11 @@ local showBuildProgress = true
 local progressColor = { 0.08, 0.08, 0.08, 0.6 }
 local drawnBuildTargets = {}
 
+-- Highlight API state: { [unitDefID] = { color={r,g,b}, startTime=os_clock() } }
+local highlights = {}
+local highlightCount = 0
+local defaultHighlightColor = { 1.0, 1.0, 1.0 }
+
 local zoomMult = 1.5
 local defaultCellZoom = 0.025 * zoomMult
 local rightclickCellZoom = 0.033 * zoomMult
@@ -715,8 +720,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruc
 		glColor(0.4, 0.4, 0.4, 1)
 		texprefix = 't0.3,0.3,0.3'
 	elseif underConstruction then
-		glColor(0.66, 0.66, 0.66, 1)
-		texprefix = 't0.6,0.6,0.6'
+		glColor(0.77, 0.77, 0.77, 1)
+		texprefix = 't0.63,0.63,0.63'
 	else
 		glColor(1, 1, 1, 1)
 	end
@@ -854,6 +859,54 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruc
 			quotaFontSize,
 			"ro"
 		)
+	end
+end
+
+local function drawHighlights()
+	if highlightCount == 0 or not next(highlights) then return end
+	local now = os_clock()
+	for uDefID, hl in pairs(highlights) do
+		local cellRectID = unitDefToCellMap[uDefID]
+		local rect = cellRectID and cellRects[cellRectID]
+		if rect then
+			local color = hl.color or defaultHighlightColor
+			local r, g, b = color[1], color[2], color[3]
+			local t = now - (hl.startTime or now)
+			-- Pulse, period ~1.4s
+			local pulse = 0.5 + 0.5 * math.sin(t * 4.5)
+
+			local x1 = rect[1] + cellPadding + iconPadding
+			local y1 = rect[2] + cellPadding + iconPadding
+			local x2 = rect[3] - cellPadding - iconPadding
+			local y2 = rect[4] - cellPadding - iconPadding
+
+			-- Brighten unit icon (additive overlay using its own texture)
+			local brighten = 0.10 + 0.22 * pulse
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			glColor(r * brighten, g * brighten, b * brighten, 1)
+			glTexture('#' .. uDefID)
+			UiUnit(x1, y1, x2, y2, cornerSize, 1, 1, 1, 1, defaultCellZoom)
+			glTexture(false)
+
+			-- Feathered inner outline ring with pulsing alpha (proper chamfered corners)
+			local thickness = math_max(2, math_floor((x2 - x1) * 0.04))
+			local outlineAlpha = 0.45 + 0.5 * pulse
+			local cs = cornerSize
+			local outerCol = { r, g, b, outlineAlpha }
+			local innerCol = { r, g, b, outlineAlpha * 0.85 }
+			WG.FlowUI.Draw.RectRoundOutline(x1, y1, x2, y2, cs, thickness, 1, 1, 1, 1, outerCol, innerCol)
+
+			-- Soft inner glow fading inward from the outline
+			local glowAlpha = 0.10 + 0.20 * pulse
+			local glowWidth = thickness * 3
+			WG.FlowUI.Draw.RectRoundOutline(
+				x1 + thickness, y1 + thickness, x2 - thickness, y2 - thickness,
+				math_max(0, cs - thickness), glowWidth, 1, 1, 1, 1,
+				{ r, g, b, glowAlpha }, { r, g, b, 0 }
+			)
+
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		end
 	end
 end
 
@@ -1172,6 +1225,9 @@ function widget:DrawScreen()
 				end
 			end
 		end
+
+		-- draw attention highlights (animated)
+		drawHighlights()
 
 		-- draw builders buildoption progress
 		if showBuildProgress then
@@ -1675,6 +1731,46 @@ function widget:Initialize()
 			end
 		end
 		clear()
+	end
+
+	---Highlight a build option to draw the player's attention to it with a pulsing
+	---inner outline and a soft inner glow. Non-destructive: does not affect input or
+	---block hover/selection visuals. Subsequent calls update the existing highlight.
+	---@param unitDefID number The unit definition ID to highlight.
+	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
+	WG['buildmenu'].setHighlight = function(unitDefID, color)
+		if not unitDefID then return end
+		if not highlights[unitDefID] then
+			highlightCount = highlightCount + 1
+		end
+		highlights[unitDefID] = {
+			color = color,
+			startTime = (highlights[unitDefID] and highlights[unitDefID].startTime) or os_clock(),
+		}
+	end
+
+	---Remove a highlight previously set via setHighlight.
+	---@param unitDefID number
+	WG['buildmenu'].removeHighlight = function(unitDefID)
+		if unitDefID and highlights[unitDefID] then
+			highlights[unitDefID] = nil
+			highlightCount = math_max(0, highlightCount - 1)
+		end
+	end
+
+	---Clear all active highlights.
+	WG['buildmenu'].clearHighlights = function()
+		for k in pairs(highlights) do
+			highlights[k] = nil
+		end
+		highlightCount = 0
+	end
+
+	---Returns true if there is an active highlight for the given unitDefID.
+	---@param unitDefID number
+	---@return boolean
+	WG['buildmenu'].hasHighlight = function(unitDefID)
+		return unitDefID ~= nil and highlights[unitDefID] ~= nil
 	end
 end
 
