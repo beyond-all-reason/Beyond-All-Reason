@@ -35,7 +35,7 @@ scanToCode["azerty"] = {
 	["="] = "=",
 	["'"] = "ù",
 	["`"] = "²",
-	["\\"] = "\\",	-- NEEDS CORRECTION
+	["\\"] = "*",
 }
 
 scanToCode["colemak"] = {
