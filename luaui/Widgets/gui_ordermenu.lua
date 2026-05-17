@@ -426,6 +426,8 @@ local function refreshCommands()
 
 	hasWaitCommand = (waitCommand ~= nil)
 
+	computeWaitState()
+
 	-- Fingerprint: detect if commands visually changed to skip redundant R2T redraws
 	commandsVisuallyChanged = false
 	local cmdCount = #commands
@@ -444,6 +446,11 @@ local function refreshCommands()
 					commandsVisuallyChanged = true
 					break
 				end
+			elseif cmd.id == CMD.WAIT then
+				if cachedWaitState ~= prevCmdStates[i] then
+					commandsVisuallyChanged = true
+					break
+				end
 			end
 		end
 	end
@@ -454,6 +461,8 @@ local function refreshCommands()
 			prevCmdIDs[i] = commands[i].id
 			if isStateCommand[commands[i].id] then
 				prevCmdStates[i] = commands[i].params and commands[i].params[1]
+			elseif commands[i].id == CMD.WAIT then
+				prevCmdStates[i] = cachedWaitState
 			else
 				prevCmdStates[i] = nil
 			end
@@ -470,7 +479,6 @@ local function refreshCommands()
 	end
 
 	setupCellGrid(false)
-	computeWaitState()
 end
 
 function widget:ViewResize()
