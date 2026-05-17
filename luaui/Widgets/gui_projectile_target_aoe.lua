@@ -41,6 +41,7 @@ local spIsGUIHidden = Spring.IsGUIHidden
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetMyTeamID = Spring.GetMyTeamID
 local spIsSphereInView = Spring.IsSphereInView
+local spGetCameraPosition = Spring.GetCameraPosition
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -87,6 +88,10 @@ local Config = {
 	rotationSpeedMin = 30,        -- Degrees per second at end
 	pulseMinOpacity = 0.2,
 	pulseMaxOpacity = 0.4,
+
+	-- Camera distance fade for smaller (non-nuke) starburst indicators
+	smallAoeFadeStartDist = 3200, -- Distance at which indicators start fading
+	smallAoeFadeEndDist = 6400,   -- Distance at which indicators are fully invisible
 
 	-- Ring animation
 	ringCount = 4,                -- Number of concentric rings
@@ -559,10 +564,20 @@ end
 -- Drawing
 --------------------------------------------------------------------------------
 -- Draws non-nuke starburst indicators (nukes are batched separately in DrawWorld)
-local function DrawImpactIndicator(data, currentTime)
+local function DrawImpactIndicator(data, currentTime, camX, camY, camZ)
 	local tx, ty, tz = data.targetX, data.targetY, data.targetZ  -- targetY already ground-adjusted
 	local weaponInfo = data.weaponInfo
 	local aoe = weaponInfo.aoe
+
+	-- Camera distance fade
+	local dx, dy, dz = tx - camX, ty - camY, tz - camZ
+	local camDist = sqrt(dx * dx + dy * dy + dz * dz)
+	local camFade = 1.0
+	if camDist >= Config.smallAoeFadeEndDist then
+		return
+	elseif camDist > Config.smallAoeFadeStartDist then
+		camFade = 1.0 - (camDist - Config.smallAoeFadeStartDist) / (Config.smallAoeFadeEndDist - Config.smallAoeFadeStartDist)
+	end
 
 	local elapsed = currentTime - data.startTime
 	local progress = elapsed / max(data.initialFlightTime, 0.1)
@@ -590,6 +605,7 @@ local function DrawImpactIndicator(data, currentTime)
 	if progress < 0.5 then
 		opacity = opacity * (progress * 2)
 	end
+	opacity = opacity * camFade
 
 	local avgSpeed = Config.rotationSpeedMax - (Config.rotationSpeedMax - Config.rotationSpeedMin) * progress * 0.5
 	local rotation = (elapsed * avgSpeed) % 360
@@ -609,7 +625,7 @@ local function DrawImpactIndicator(data, currentTime)
 
 	-- Center target marker (rotating)
 	local markerSize = aoe * 0.4
-	local markerOpacity = 0.6 + 0.3 * blinkPhase
+	local markerOpacity = (0.6 + 0.3 * blinkPhase) * camFade
 	SetColor(color, markerOpacity)
 	DrawTargetMarker(tx, ty + 3, tz, markerSize, -rotation * 0.5)
 end
@@ -661,6 +677,7 @@ function widget:DrawWorld()
 	glLineWidth(Config.baseLineWidth * screenLineWidthScale)
 
 	local currentTime = osClock()
+	local camX, camY, camZ = spGetCameraPosition()
 	nukeBatchSize = 0
 
 	for _, data in pairs(trackedProjectiles) do
@@ -700,7 +717,7 @@ function widget:DrawWorld()
 				nd.waveBase = currentTime * Config.nukeWaveSpeed
 				nd.aoe = aoe
 			else
-				DrawImpactIndicator(data, currentTime)
+				DrawImpactIndicator(data, currentTime, camX, camY, camZ)
 			end
 		end
 	end
