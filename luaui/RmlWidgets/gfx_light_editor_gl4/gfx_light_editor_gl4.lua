@@ -80,6 +80,17 @@ local sliderScale = {
 	lifetime = 1, sustain = 100, selfshadowing = 1,
 }
 
+-- Keys we deliberately DO NOT touch when applying a preset. A preset is about
+-- the light's "look" (color/fade/scattering/etc), not where it's mounted —
+-- the user keeps full control of position/radius/direction via the sliders.
+local PRESET_EXCLUDED_KEYS = {
+	posx = true, posy = true, posz = true,
+	pos2x = true, pos2y = true, pos2z = true,
+	radius = true,
+	dirx = true, diry = true, dirz = true, theta = true,
+	pdirx = true, pdiry = true, pdirz = true, ptheta = true,
+}
+
 local defaultLight = {
 	posx = 0, posy = 5, posz = 0, radius = 30,
 	r = 1, g = 1, b = 1, a = 1,
@@ -109,6 +120,15 @@ local state = {
 	pieceName = "",
 	editingExisting = nil,
 	highlightPiece = nil,
+	-- Preset tracking: when set, the current light came from this preset.
+	-- A snapshot of the preset's lightConfig taken at apply-time lets us
+	-- detect "modified" (any current value differs from the snapshot).
+	appliedPreset = nil,
+	appliedPresetSnapshot = nil,
+	-- Color-config clipboard: snapshot of non-positional state.values + lightType
+	-- captured by the "Copy Color" action; pasted into one or many lights by
+	-- "Paste Color". Survives the session (not GetConfigData).
+	colorClipboard = nil,
 	undoStack = {},  -- list of snapshots; most recent at the end
 	-- Multi-select: set of light names {name=true, ...}. When more than one
 	-- light is selected, the editor goes into "multi mode" where the per-light
@@ -388,6 +408,65 @@ local function snippetForLight(name, lt)
 	local indent = "\t\t"
 	local cfgIndent = "\t\t\t\t\t\t"
 	local lines = {}
+
+	-- Preset-based emission: if this light was created from a preset, write
+	-- it as `preset('name', { pieceName=..., lightConfig={...} })` with only
+	-- the position/direction/radius (always) plus any keys that differ from
+	-- the preset's defaults.
+	if lt._presetSource then
+		local api = WG['lightsgl4']
+		local presets = api and api.GetLightPresets and api.GetLightPresets() or {}
+		local p = presets[lt._presetSource]
+		local presetLc = (p and p.lightConfig) or {}
+		lines[#lines+1] = string.format("%s%s = preset('%s', {",
+			indent, escapeKey(name), lt._presetSource)
+		if lt.pieceName and lt.pieceName ~= "" then
+			lines[#lines+1] = string.format("%s\tpieceName = '%s',", indent, lt.pieceName)
+		end
+		-- Always include the position/direction/radius (presets don't carry these).
+		local overrides = {}
+		overrides.posx = lc.posx; overrides.posy = lc.posy; overrides.posz = lc.posz
+		overrides.radius = lc.radius
+		if (lt.lightType or "point") == "cone" then
+			overrides.dirx = lc.dirx; overrides.diry = lc.diry
+			overrides.dirz = lc.dirz; overrides.theta = lc.theta
+		elseif lt.lightType == "beam" then
+			overrides.pos2x = lc.pos2x; overrides.pos2y = lc.pos2y; overrides.pos2z = lc.pos2z
+		end
+		-- Plus any preset-key that diverges from preset default.
+		for k, presetV in pairs(presetLc) do
+			if not PRESET_EXCLUDED_KEYS[k] then
+				local cur = lc[k]
+				local changed
+				if type(presetV) == "number" and type(cur) == "number" then
+					changed = math.abs(cur - presetV) > 1e-4
+				else
+					changed = cur ~= presetV
+				end
+				if changed then overrides[k] = cur end
+			end
+		end
+		local order = {"posx","posy","posz","radius",
+			"dirx","diry","dirz","theta",
+			"pos2x","pos2y","pos2z",
+			"r","g","b","a",
+			"color2r","color2g","color2b","colortime",
+			"modelfactor","specular","scattering","lensflare",
+			"lifetime","sustain","selfshadowing"}
+		local parts = {}
+		for _, k in ipairs(order) do
+			if overrides[k] ~= nil then
+				parts[#parts+1] = string.format("%s = %s", k, fmt(overrides[k]))
+			end
+		end
+		if #parts > 0 then
+			lines[#lines+1] = string.format("%s\tlightConfig = { %s },",
+				indent, table.concat(parts, ", "))
+		end
+		lines[#lines+1] = string.format("%s}),", indent)
+		return table.concat(lines, "\n")
+	end
+
 	lines[#lines+1] = string.format("%s%s = {", indent, escapeKey(name))
 	lines[#lines+1] = string.format("%s\tlightType = '%s',", indent, lt.lightType or "point")
 	if lt.pieceName and lt.pieceName ~= "" then
@@ -441,11 +520,17 @@ local function buildUnitSnippet()
 		if type(lt) == "table" then names[#names+1] = n end
 	end
 	table.sort(names)
+	spEcho("[LightEditor] buildUnitSnippet: "..state.currentUnitName.." has "..#names.." lights")
 
 	local out = {}
 	out[#out+1] = string.format("\t['%s'] = {", state.currentUnitName)
 	for _, name in ipairs(names) do
-		out[#out+1] = snippetForLight(name, lights[name])
+		local snip = snippetForLight(name, lights[name])
+		if not snip then
+			spEcho("[LightEditor] snippetForLight returned nil for '"..name.."'")
+		else
+			out[#out+1] = snip
+		end
 	end
 	out[#out+1] = "\t},"
 	return table.concat(out, "\n")
@@ -686,6 +771,21 @@ local function clearPreview()
 	end
 end
 
+-- Variant of clearPreview that ONLY removes the temporary "new light" preview,
+-- never the existing-edit instance. Used when switching units, so a light we
+-- were editing on the previous unit stays in the scene (it's a real entry,
+-- not a tijdelijk preview).
+local function clearNewLightPreview()
+	local api = WG['lightsgl4']
+	if not api or not api.RemoveLight then return end
+	for _, t in ipairs({"point","cone","beam"}) do
+		local vbo = getVBOForType(t)
+		if vbo and vbo.instanceIDtoIndex and vbo.instanceIDtoIndex[PREVIEW_INSTANCE_ID_NEW] then
+			api.RemoveLight(t, PREVIEW_INSTANCE_ID_NEW, state.currentUnitID)
+		end
+	end
+end
+
 local function updateSwatch()
 	if not state.document then return end
 	local sw = state.document:GetElementById("le-color-swatch")
@@ -702,6 +802,16 @@ local function applyPreview()
 	if not api or not api.AddLight then return end
 	local vbo = getVBOForType(state.lightType)
 	if not vbo then return end
+	-- Don't spawn the white "new light" preview until the user has taken some
+	-- explicit action on the current unit (picked an existing light, applied
+	-- a preset, or moved a slider). This avoids stale leftover state.values
+	-- showing up as a ghost light on every newly clicked unit.
+	spEcho(string.format("[LightEditor] applyPreview: editingExisting=%s previewSuspended=%s currentUnitID=%s",
+		tostring(state.editingExisting), tostring(state.previewSuspended), tostring(state.currentUnitID)))
+	if state.previewSuspended and not state.editingExisting then
+		clearNewLightPreview()
+		return
+	end
 	clearPreview()
 
 	local pieceIndex = 0
@@ -724,6 +834,9 @@ local function applyPreview()
 				lt.pieceIndex = pieceIndex
 				if state.pieceName ~= "" then lt.pieceName = state.pieceName end
 				lt.lightType = state.lightType
+				-- Sync the preset binding so reloads/unit-switches keep the
+				-- "(from preset_x)" / "(modified)" indicator alive.
+				lt._presetSource = state.appliedPreset
 			end
 		end
 		-- Track this edit in the overrides table so a Save persists it.
@@ -838,6 +951,102 @@ local function rebuildPieceDropdown()
 	setListOptions(listEl, options, "selectPiece")
 end
 
+local function rebuildPresetDropdown()
+	if not state.document then return end
+	local listEl = state.document:GetElementById("le-preset-list")
+	if not listEl then return end
+	local api = WG['lightsgl4']
+	local presets = api and api.GetLightPresets and api.GetLightPresets() or {}
+	local names = { "(none)" }
+	for name, _ in pairs(presets) do names[#names + 1] = name end
+	table.sort(names, function(a, b)
+		if a == "(none)" then return true end
+		if b == "(none)" then return false end
+		return a < b
+	end)
+	local options = {}
+	for _, n in ipairs(names) do
+		options[#options + 1] = {value = (n == "(none)" and "" or n), label = n}
+	end
+	setListOptions(listEl, options, "selectPreset")
+end
+
+-- True when the currently-applied preset's snapshot differs from any current
+-- value. Returns false if no preset is applied. Compares only the keys that
+-- existed in the preset's lightConfig (other slider edits don't count as
+-- "modified" relative to the preset).
+local function isPresetModified()
+	if not state.appliedPreset or not state.appliedPresetSnapshot then return false end
+	local snap = state.appliedPresetSnapshot
+	for k, v in pairs(snap) do
+		local cur = state.values[k]
+		if type(v) == "number" and type(cur) == "number" then
+			if math.abs(cur - v) > 1e-4 then return true end
+		elseif cur ~= v then
+			return true
+		end
+	end
+	return false
+end
+
+-- Refresh the preset display label: "(none)", "headlight_tank", or
+-- "headlight_tank (modified)" depending on state.
+-- Tint the "+ Add" button: bright green when adding is meaningful (new-light
+-- mode), greyed out for existing lights (where edits auto-save). The click
+-- handler itself no-ops in greyed state.
+local function refreshAddButton()
+	if not state.document then return end
+	local btn = state.document:GetElementById("le-addbtn")
+	if not btn then return end
+	-- Class toggle is the only reliable runtime restyle path in BAR's RmlUi
+	-- (SetProperty is missing on elements; SetAttribute("style",...) silently
+	-- no-ops once an element already has an inline style attribute set).
+	btn:SetClass("le-actbtn-disabled", state.editingExisting ~= nil)
+end
+
+local function refreshPresetDisplay()
+	if not state.document then return end
+	-- Piggyback on the same UI-refresh callsites to keep the Add button
+	-- in sync with editingExisting state.
+	refreshAddButton()
+	local disp = state.document:GetElementById("le-preset-display")
+	if not disp then return end
+	if state.appliedPreset then
+		if isPresetModified() then
+			disp.inner_rml = state.appliedPreset.." (modified)"
+		else
+			disp.inner_rml = state.appliedPreset
+		end
+	else
+		disp.inner_rml = "(none)"
+	end
+end
+
+-- Apply a named preset to the current editor state. Copies the preset's
+-- lightType and most lightConfig keys into state.values; skips position /
+-- direction / radius keys (PRESET_EXCLUDED_KEYS) so the user's current
+-- placement isn't overwritten when trying out different looks.
+-- Snapshots applied values for "modified" detection.
+local function applyPresetByName(name)
+	local api = WG['lightsgl4']
+	local presets = api and api.GetLightPresets and api.GetLightPresets() or {}
+	local p = presets[name]
+	if not p then return false end
+	if p.lightType then state.lightType = p.lightType end
+	local snap = {}
+	if p.lightConfig then
+		for k, v in pairs(p.lightConfig) do
+			if not PRESET_EXCLUDED_KEYS[k] then
+				state.values[k] = v
+				snap[k] = v
+			end
+		end
+	end
+	state.appliedPreset = name
+	state.appliedPresetSnapshot = snap
+	return true
+end
+
 local function fmtVal(n)
 	if type(n) ~= "number" then return tostring(n) end
 	if n == math.floor(n) and math.abs(n) < 1e9 then
@@ -852,6 +1061,7 @@ local function setSliderValue(field, value)
 	local scale = sliderScale[field] or 1
 	local raw = math.floor(value * scale + 0.5)
 	state.dmHandle["sl_"..field] = raw
+	state.dmHandle["num_"..field] = fmtVal(value)
 end
 
 local function applyAllValuesToUI()
@@ -877,9 +1087,33 @@ local function setLightType(t)
 	applyPreview()
 end
 
+-- Forward declaration: setSelectedUnit calls loadExistingLight (defined below).
+local loadExistingLight
+
+-- Remembers the last edited light per unitDefID so that returning to a
+-- previously-edited unit type re-opens that light instead of the alphabetical
+-- first. Keyed by unitDefID (not unit instance), so all corsoks share the
+-- same memory.
+state.lastEditedByUnitDef = state.lastEditedByUnitDef or {}
+
 local function setSelectedUnit(unitID)
 	if state.currentUnitID == unitID then return end
-	clearPreview()
+	-- Only kill the temporary "new light" preview; an existing-edit instance
+	-- belongs to the previous unit and must stay in the scene.
+	clearNewLightPreview()
+	-- Drop edit-state so we don't try to update the previous unit's light
+	-- when sliders move after switching.
+	state.editingExisting = nil
+	state.appliedPreset = nil
+	state.appliedPresetSnapshot = nil
+	-- Multi-select set was per the previous unit; clear it so old gold rings
+	-- don't linger on the new unit's markers.
+	state.selectedLights = {}
+	-- Suspend the white "new light" preview until the user actively picks an
+	-- existing light, applies a preset, or moves a slider on this new unit.
+	-- Otherwise stale state.values from the previous edit would render as
+	-- a confusing ghost light on every newly clicked unit.
+	state.previewSuspended = true
 	state.currentUnitID = unitID
 	state.currentUnitDefID = unitID and spGetUnitDefID(unitID) or nil
 	state.currentUnitName = nil
@@ -894,10 +1128,53 @@ local function setSelectedUnit(unitID)
 	end
 	rebuildPieceDropdown()
 	rebuildExistingDropdown()
-	applyPreview()
+
+	-- Auto-pick a light on the newly-selected unit so the editor doesn't show
+	-- stale name/sliders from the previous unit. Priority:
+	--   1. The light we were editing the last time this unitDef was active
+	--      (per-type memory, makes hopping between unit types friction-free).
+	--   2. Alphabetically first existing light on this unit.
+	--   3. Fallback to "-- new light --" if this unit has no lights at all.
+	local api = WG['lightsgl4']
+	local udLights = api and api.GetUnitDefLights and api.GetUnitDefLights()
+	local lights = udLights and state.currentUnitDefID and udLights[state.currentUnitDefID]
+	local pickName
+	if lights then
+		local remembered = state.lastEditedByUnitDef[state.currentUnitDefID]
+		if remembered and type(lights[remembered]) == "table" then
+			pickName = remembered
+		else
+			local names = {}
+			for n, lt in pairs(lights) do
+				if type(lt) == "table" then names[#names + 1] = n end
+			end
+			table.sort(names)
+			pickName = names[1]
+		end
+	end
+	if pickName then
+		loadExistingLight(pickName)
+	else
+		-- No lights on this unit; reset editor to a clean "new light" state.
+		for k, v in pairs(defaultLight) do state.values[k] = v end
+		state.lightName = "newlight"
+		state.pieceName = ""
+		state.appliedPreset = nil
+		state.appliedPresetSnapshot = nil
+		setLightType("point")
+		applyAllValuesToUI()
+		if state.document then
+			local existDisp = state.document:GetElementById("le-existing-display")
+			if existDisp then existDisp.inner_rml = "-- new light --" end
+			local pieceDisp = state.document:GetElementById("le-piece-display")
+			if pieceDisp then pieceDisp.inner_rml = "(world)" end
+		end
+		refreshPresetDisplay()
+		applyPreview()
+	end
 end
 
-local function loadExistingLight(name)
+function loadExistingLight(name)
 	local api = WG['lightsgl4']
 	local udLights = api and api.GetUnitDefLights and api.GetUnitDefLights()
 	if not udLights or not state.currentUnitDefID then return false end
@@ -945,6 +1222,28 @@ local function loadExistingLight(name)
 	-- to replace the existing light in-place rather than duplicate it.
 	state.editingExisting = name
 	state.lightType = lt.lightType or "point"
+
+	-- Preset tracking: if this light was created via the config's preset()
+	-- helper, the runtime lightTable has a _presetSource string. We re-snapshot
+	-- the preset's lightConfig at load time so "modified" detection works.
+	state.appliedPreset = lt._presetSource
+	if state.appliedPreset then
+		local api = WG['lightsgl4']
+		local presets = api and api.GetLightPresets and api.GetLightPresets() or {}
+		local p = presets[state.appliedPreset]
+		if p and p.lightConfig then
+			local snap = {}
+			for k, v in pairs(p.lightConfig) do
+				if not PRESET_EXCLUDED_KEYS[k] then snap[k] = v end
+			end
+			state.appliedPresetSnapshot = snap
+		else
+			state.appliedPresetSnapshot = nil
+		end
+	else
+		state.appliedPresetSnapshot = nil
+	end
+
 	applyAllValuesToUI()
 	if state.document then
 		local pieceDisp = state.document:GetElementById("le-piece-display")
@@ -953,7 +1252,54 @@ local function loadExistingLight(name)
 		if existDisp then existDisp.inner_rml = name end
 	end
 	setLightType(state.lightType)
+	refreshPresetDisplay()
+	-- Remember this pick so a later switch back to this unitDef restores it.
+	if state.currentUnitDefID then
+		state.lastEditedByUnitDef[state.currentUnitDefID] = name
+	end
 	setStatus("Loaded: "..name)
+	return true
+end
+
+-- Rename an existing light entry on the current unit. Moves it within the
+-- runtime unitDefLights table, re-spawns the VBO instance under the new
+-- instance ID, and updates editor state. Returns true on success.
+local function renameExistingLight(oldName, newName)
+	if oldName == newName then return true end
+	if not newName or newName == "" then return false end
+	if not state.currentUnitID or not state.currentUnitDefID then return false end
+	local api = WG['lightsgl4']
+	local udLights = api and api.GetUnitDefLights and api.GetUnitDefLights()
+	local lights = udLights and udLights[state.currentUnitDefID]
+	if not lights or type(lights[oldName]) ~= "table" then return false end
+	if lights[newName] ~= nil then
+		setStatus("Cannot rename: '"..newName.."' already exists")
+		return false
+	end
+	-- Move the entry
+	local lt = lights[oldName]
+	lights[newName] = lt
+	lights[oldName] = nil
+	-- Move the VBO instance: remove old ID, spawn under new ID with same params
+	local vbo = getVBOForType(lt.lightType or "point")
+	if vbo and api.RemoveLight then
+		api.RemoveLight(lt.lightType or "point", tostring(state.currentUnitID)..oldName, state.currentUnitID)
+	end
+	if vbo and api.AddLight and lt.lightParamTable then
+		api.AddLight(tostring(state.currentUnitID)..newName, state.currentUnitID,
+			lt.pieceIndex or 0, vbo, lt.lightParamTable)
+	end
+	-- Update editor state
+	state.editingExisting = newName
+	if state.lastEditedByUnitDef[state.currentUnitDefID] == oldName then
+		state.lastEditedByUnitDef[state.currentUnitDefID] = newName
+	end
+	rebuildExistingDropdown()
+	if state.document then
+		local existDisp = state.document:GetElementById("le-existing-display")
+		if existDisp then existDisp.inner_rml = newName end
+	end
+	setStatus("Renamed '"..oldName.."' to '"..newName.."'")
 	return true
 end
 
@@ -983,11 +1329,76 @@ function fmt(n)
 	return string.format("%.4g", n)
 end
 
+-- Returns a list of lightConfig keys whose current state.values differ from
+-- the preset's snapshot, plus their current values. Returns nil if no preset
+-- is applied. Used by generateSnippet() to emit "preset() + overrides".
+local function presetOverrideDiff()
+	if not state.appliedPreset or not state.appliedPresetSnapshot then return nil end
+	local snap = state.appliedPresetSnapshot
+	local diff = {}
+	for k, snapVal in pairs(snap) do
+		local cur = state.values[k]
+		local changed
+		if type(snapVal) == "number" and type(cur) == "number" then
+			changed = math.abs(cur - snapVal) > 1e-4
+		else
+			changed = cur ~= snapVal
+		end
+		if changed then diff[k] = cur end
+	end
+	return diff
+end
+
 local function generateSnippet()
 	local v = state.values
 	local lines = {}
 	local indent = "\t\t"
 	local cfgIndent = "\t\t\t\t\t\t"
+
+	-- Preset-based snippet: emit `preset('name', { ... overrides ... })`.
+	-- Only when a preset is applied; otherwise we fall through to the
+	-- full lightConfig form below.
+	if state.appliedPreset then
+		local diff = presetOverrideDiff() or {}
+		local hasPiece = state.pieceName ~= ""
+		lines[#lines+1] = string.format("%s%s = preset('%s', {",
+			indent, escapeKey(state.lightName), state.appliedPreset)
+		if hasPiece then
+			lines[#lines+1] = string.format("%s\tpieceName = '%s',", indent, state.pieceName)
+		end
+		-- Position / direction / radius / beam endpoint are NEVER part of a
+		-- preset (PRESET_EXCLUDED_KEYS), so they must always be written as
+		-- overrides. We pick the relevant ones per light type below.
+		local lc = {}
+		lc.posx = v.posx; lc.posy = v.posy; lc.posz = v.posz
+		lc.radius = v.radius
+		if state.lightType == "cone" then
+			lc.dirx = v.dirx; lc.diry = v.diry; lc.dirz = v.dirz; lc.theta = v.theta
+		elseif state.lightType == "beam" then
+			lc.pos2x = v.pos2x; lc.pos2y = v.pos2y; lc.pos2z = v.pos2z
+		end
+		-- Merge in preset overrides (everything diff'd from preset defaults).
+		for k, val in pairs(diff) do lc[k] = val end
+		local order = {"posx","posy","posz","radius",
+			"dirx","diry","dirz","theta",
+			"pos2x","pos2y","pos2z",
+			"r","g","b","a",
+			"color2r","color2g","color2b","colortime",
+			"modelfactor","specular","scattering","lensflare",
+			"lifetime","sustain","selfshadowing"}
+		local parts = {}
+		for _, k in ipairs(order) do
+			if lc[k] ~= nil then
+				parts[#parts+1] = string.format("%s = %s", k, fmt(lc[k]))
+			end
+		end
+		if #parts > 0 then
+			lines[#lines+1] = string.format("%s\tlightConfig = { %s },",
+				indent, table.concat(parts, ", "))
+		end
+		lines[#lines+1] = string.format("%s}),", indent)
+		return table.concat(lines, "\n")
+	end
 
 	lines[#lines+1] = string.format("%s%s = {", indent, escapeKey(state.lightName))
 	lines[#lines+1] = string.format("%s\tlightType = '%s',", indent, state.lightType)
@@ -1065,6 +1476,16 @@ function widget:Initialize()
 		sl_pos2x = 0, sl_pos2y = 0, sl_pos2z = 500,
 		sl_modelfactor = 50, sl_specular = 50, sl_scattering = 50, sl_lensflare = 0,
 		sl_lifetime = 0, sl_sustain = 0, sl_selfshadowing = 0,
+		-- Numbox display strings (display values, written by setSliderValue
+		-- and read back from the DOM in onSlider when the user types).
+		num_posx = "0", num_posy = "5", num_posz = "0", num_radius = "30",
+		num_r = "1", num_g = "1", num_b = "1", num_a = "1",
+		num_color2r = "1", num_color2g = "1", num_color2b = "1", num_colortime = "0",
+		num_dirx = "0", num_diry = "-0.1", num_dirz = "1", num_theta = "0.5",
+		num_pdirx = "0", num_pdiry = "0", num_pdirz = "0", num_ptheta = "0",
+		num_pos2x = "0", num_pos2y = "0", num_pos2z = "50",
+		num_modelfactor = "0.5", num_specular = "0.5", num_scattering = "0.5", num_lensflare = "0",
+		num_lifetime = "0", num_sustain = "0", num_selfshadowing = "0",
 
 		-- declarative event handlers (data-event-click="onAction('...')")
 		onAction = function(_ev, action, arg)
@@ -1088,15 +1509,116 @@ function widget:Initialize()
 				if spSetClipboard then spSetClipboard(snippet) end
 				spEcho("[LightEditor] Snippet copied:\n"..snippet)
 				setStatus("Copied to clipboard")
+			elseif action == "copyColor" then
+				-- Snapshot all "look" values (color/fade/animation/other) from
+				-- the current editor state. Position/direction/radius are
+				-- excluded so the clipboard is portable to other mount points.
+				local clip = { lightType = state.lightType }
+				for k, v in pairs(state.values) do
+					if not PRESET_EXCLUDED_KEYS[k] then clip[k] = v end
+				end
+				state.colorClipboard = clip
+				setStatus("Color config copied ("..(state.lightName or "current")..")")
+			elseif action == "pasteColor" then
+				local clip = state.colorClipboard
+				if not clip then
+					setStatus("Nothing to paste -- use Copy Color first")
+					return
+				end
+				pushUndo()
+				-- Multi-select branch: patch every selected light's runtime
+				-- lightParamTable in place, then re-spawn it in the VBO.
+				if countSelectedLights() > 1 then
+					local api = WG['lightsgl4']
+					local udLights = api and api.GetUnitDefLights and api.GetUnitDefLights()
+					local unitLights = udLights and state.currentUnitDefID and udLights[state.currentUnitDefID]
+					local keyOrder = api and api.GetLightParamKeyOrder and api.GetLightParamKeyOrder() or {}
+					if not unitLights then
+						setStatus("No lights table for this unit")
+						return
+					end
+					local count = 0
+					for lightName, _ in pairs(state.selectedLights) do
+						local lt = unitLights[lightName]
+						if type(lt) == "table" and lt.lightParamTable then
+							if clip.lightType then lt.lightType = clip.lightType end
+							for k, v in pairs(clip) do
+								if k ~= "lightType" and not PRESET_EXCLUDED_KEYS[k] then
+									local slot = keyOrder[k]
+									if slot then lt.lightParamTable[slot] = v end
+								end
+							end
+							local vbo = getVBOForType(lt.lightType or "point")
+							if vbo and api.AddLight and state.currentUnitID then
+								api.AddLight(tostring(state.currentUnitID)..lightName,
+									state.currentUnitID, lt.pieceIndex or 0, vbo, lt.lightParamTable)
+							end
+							count = count + 1
+						end
+					end
+					setStatus("Pasted color config to "..count.." lights")
+				else
+					-- Single-edit path: patch state.values + UI; preview/save
+					-- flows handle the rest.
+					if clip.lightType then state.lightType = clip.lightType end
+					for k, v in pairs(clip) do
+						if k ~= "lightType" and not PRESET_EXCLUDED_KEYS[k] then
+							state.values[k] = v
+						end
+					end
+					applyAllValuesToUI()
+					setLightType(state.lightType)
+					applyPreview()
+					setStatus("Pasted color config")
+				end
 			elseif action == "reset" then
 				pushUndo()
 				for k, v in pairs(defaultLight) do state.values[k] = v end
 				state.lightName = "newlight"
 				state.pieceName = ""
 				state.editingExisting = nil
+				state.appliedPreset = nil
+				state.appliedPresetSnapshot = nil
 				applyAllValuesToUI()
 				setLightType("point")
+				refreshPresetDisplay()
 				setStatus("Reset")
+			elseif action == "deleteLight" then
+				-- Remove the currently-edited light from the runtime table and
+				-- the VBO, then reset the editor to "-- new light --" state.
+				if not state.editingExisting or not state.currentUnitDefID then
+					setStatus("No existing light to delete")
+					return
+				end
+				local victim = state.editingExisting
+				local api = WG['lightsgl4']
+				local udLights = api and api.GetUnitDefLights and api.GetUnitDefLights()
+				local lights = udLights and udLights[state.currentUnitDefID]
+				if lights and lights[victim] then
+					local lt = lights[victim]
+					-- Kill the VBO instance.
+					if api.RemoveLight and state.currentUnitID then
+						pcall(api.RemoveLight, lt.lightType or "point",
+							tostring(state.currentUnitID)..victim, state.currentUnitID)
+					end
+					lights[victim] = nil
+				end
+				-- Forget per-unit memory of this name.
+				if state.lastEditedByUnitDef[state.currentUnitDefID] == victim then
+					state.lastEditedByUnitDef[state.currentUnitDefID] = nil
+				end
+				-- Reset editor state.
+				state.editingExisting = nil
+				state.appliedPreset = nil
+				state.appliedPresetSnapshot = nil
+				state.selectedLights = {}
+				rebuildExistingDropdown()
+				if state.document then
+					local existDisp = state.document:GetElementById("le-existing-display")
+					if existDisp then existDisp.inner_rml = "-- new light --" end
+				end
+				refreshPresetDisplay()
+				setStatus("Deleted '"..victim.."'")
 			elseif action == "reloadConfig" then
 				-- Clear our preview so it doesn't leak across the reload.
 				clearPreview()
@@ -1139,6 +1661,12 @@ function widget:Initialize()
 					startH = state.panelHeight or 800,
 				}
 			elseif action == "addLight" then
+				-- No-op when an existing light is loaded — its edits already
+				-- auto-save and Add would just create a duplicate.
+				if state.editingExisting then
+					setStatus("Existing light edits save automatically (use rename or '-- new light --' to add)")
+					return
+				end
 				-- Pull the very latest text from the name field; the change
 				-- event may not have committed yet if the user clicked Add
 				-- without blurring the input first.
@@ -1177,6 +1705,9 @@ function widget:Initialize()
 					pieceIndex = pieceIndex,
 					lightParamTable = {},
 					initComplete = true,
+					-- Remember the preset binding so a reload (or unit-switch
+					-- and back) keeps showing "(from preset_x, modified)".
+					_presetSource = state.appliedPreset,
 				}
 				for i = 1, #params do newLt.lightParamTable[i] = params[i] end
 				udLights[state.currentUnitDefID][state.lightName] = newLt
@@ -1215,7 +1746,19 @@ function widget:Initialize()
 				if disp then disp.inner_rml = (arg == "__new__") and "-- new light --" or arg end
 				if arg == "__new__" or arg == "" then
 					state.editingExisting = nil
+					state.appliedPreset = nil
+					state.appliedPresetSnapshot = nil
+					-- Reset the staged name + DOM input so the user doesn't see
+					-- the previous light's name lingering in "new light" mode.
+					state.lightName = "new-light-name"
+					if state.document then
+						local nameEl = state.document:GetElementById("le-name-input")
+						if nameEl then nameEl:SetAttribute("value", state.lightName) end
+						if state.dmHandle then state.dmHandle.lightName = state.lightName end
+					end
 					clearPreview()
+					refreshAddButton()        -- enable the green Add button immediately
+					refreshPresetDisplay()
 				else
 					loadExistingLight(arg)
 				end
@@ -1226,6 +1769,95 @@ function widget:Initialize()
 				if disp then disp.inner_rml = (arg == "") and "(world)" or arg end
 				state.pieceName = arg
 				applyPreview()
+			elseif action == "togglePresetDropdown" then
+				rebuildPresetDropdown()
+				local listEl = state.document and state.document:GetElementById("le-preset-list")
+				if listEl then
+					local hidden = (listEl:GetAttribute("style") or ""):find("none")
+					listEl:SetAttribute("style", DROPDOWN_LIST_STYLE..(hidden and "display: block;" or "display: none;"))
+				end
+			elseif action == "selectPreset" then
+				local listEl = state.document and state.document:GetElementById("le-preset-list")
+				if listEl then listEl:SetAttribute("style", DROPDOWN_LIST_STYLE.."display: none;") end
+
+				-- Multi-mode: apply (or clear) the preset on every selected
+				-- light in the runtime table, without touching the editor's
+				-- own state.values (those belong to a separate "edit slot").
+				if countSelectedLights() > 1 then
+					pushUndo()
+					local api = WG['lightsgl4']
+					local udLights = api and api.GetUnitDefLights and api.GetUnitDefLights()
+					local unitLights = udLights and state.currentUnitDefID and udLights[state.currentUnitDefID]
+					if not unitLights then
+						setStatus("No lights table for this unit")
+						return
+					end
+					local presets = api and api.GetLightPresets and api.GetLightPresets() or {}
+					local preset = (arg ~= "" and presets[arg]) or nil
+					if arg ~= "" and not preset then
+						setStatus("Unknown preset '"..arg.."'")
+						return
+					end
+					local keyOrder = api.GetLightParamKeyOrder and api.GetLightParamKeyOrder() or nil
+					if preset and not keyOrder then
+						setStatus("GetLightParamKeyOrder not available; reload deferred rendering")
+						return
+					end
+					local count = 0
+					for lightName, _ in pairs(state.selectedLights) do
+						local lt = unitLights[lightName]
+						if type(lt) == "table" and lt.lightParamTable then
+							if preset then
+								-- Apply preset: lightType + non-positional lightConfig keys
+								if preset.lightType then lt.lightType = preset.lightType end
+								if preset.lightConfig then
+									for k, v in pairs(preset.lightConfig) do
+										if not PRESET_EXCLUDED_KEYS[k] then
+											local slot = keyOrder[k]
+											if slot then lt.lightParamTable[slot] = v end
+										end
+									end
+								end
+								lt._presetSource = arg
+							else
+								-- Empty arg = clear preset binding only.
+								lt._presetSource = nil
+							end
+							-- Re-spawn the light in the VBO so the change shows up.
+							local vbo = getVBOForType(lt.lightType or "point")
+							if vbo and api.AddLight and state.currentUnitID then
+								api.AddLight(tostring(state.currentUnitID)..lightName,
+									state.currentUnitID, lt.pieceIndex or 0, vbo, lt.lightParamTable)
+							end
+							count = count + 1
+						end
+					end
+					if preset then
+						setStatus("Applied preset '"..arg.."' to "..count.." lights")
+					else
+						setStatus("Cleared preset binding on "..count.." lights")
+					end
+					refreshPresetDisplay()
+					return
+				end
+
+				-- Single-edit path.
+				if arg == "" then
+					-- Clear preset binding without touching slider values.
+					state.appliedPreset = nil
+					state.appliedPresetSnapshot = nil
+				else
+					if applyPresetByName(arg) then
+						state.previewSuspended = false  -- explicit action; show preview
+						applyAllValuesToUI()
+						setLightType(state.lightType)
+						applyPreview()
+						setStatus("Applied preset '"..arg.."'")
+					else
+						setStatus("Unknown preset '"..arg.."'")
+					end
+				end
+				refreshPresetDisplay()
 			elseif action == "tip" then
 				-- Delayed tooltip: queue the candidate; the actual tooltip
 				-- only appears after ~1s of continuous hover (handled in
@@ -1268,12 +1900,32 @@ function widget:Initialize()
 			-- Read from the DOM element directly — BAR's RmlUi binding does not
 			-- always commit DOM->model before the change/input handler fires.
 			if not (ev and ev.current_element) then return end
-			local raw = tonumber(ev.current_element:GetAttribute("value"))
-			if not raw then return end
-			beginEditSession()
+			local el = ev.current_element
+			local rawStr = el:GetAttribute("value")
+			local num = tonumber(rawStr)
+			if not num then return end
 			local scale = sliderScale[field] or 1
-			state.values[field] = raw / scale
+			-- The range slider returns a raw scaled int; the numbox returns
+			-- the user's typed display value. Disambiguate by element class.
+			local cls = el:GetAttribute("class") or ""
+			local value
+			if cls:find("le%-slider%-numbox", 1) then
+				value = num  -- numbox = display
+			else
+				value = num / scale  -- range slider = raw / scale
+			end
+			beginEditSession()
+			state.values[field] = value
+			-- Sync the OTHER DOM-bound variable so slider and numbox always
+			-- agree, no matter which one fired the event.
+			if state.dmHandle then
+				state.dmHandle["sl_"..field] = math.floor(value * scale + 0.5)
+				state.dmHandle["num_"..field] = fmtVal(value)
+			end
+			-- A slider tweak is an explicit user action; resume the preview.
+			state.previewSuspended = false
 			applyPreview()
+			refreshPresetDisplay()
 		end,
 
 		onNameChange = function(ev)
@@ -1286,9 +1938,21 @@ function widget:Initialize()
 			if (not v or v == "") and state.dmHandle then
 				v = state.dmHandle.lightName
 			end
-			if type(v) == "string" and v ~= "" then
-				state.lightName = v
+			if type(v) ~= "string" or v == "" then return end
+			-- If we're editing an existing light and the name changed, rename
+			-- the entry in place. Otherwise just update the staged name for
+			-- the next "+ Add".
+			if state.editingExisting and state.editingExisting ~= v then
+				if not renameExistingLight(state.editingExisting, v) then
+					-- Rename refused (name conflict); revert the input field
+					-- to the current editingExisting name to avoid confusion.
+					if ev and ev.current_element then
+						ev.current_element:SetAttribute("value", state.editingExisting)
+					end
+					return
+				end
 			end
+			state.lightName = v
 		end,
 
 		onNumboxFocus = function(_ev, field)
@@ -1356,9 +2020,14 @@ local function drawPieceMarker(unitID, pieceName, r, g, b)
 	if not unitID or not pieceName or not state.pieceMap then return end
 	local idx = state.pieceMap[pieceName]
 	if not idx then return end
-	local px, py, pz = spGetUnitPiecePosition(unitID, idx)
+	-- Use PosDir (world space) instead of PiecePosition (piece-local space)
+	-- so the marker doesn't land at the map origin for root pieces whose
+	-- local position is (0,0,0).
+	local px, py, pz = spGetUnitPiecePosDir(unitID, idx)
 	if not px then return end
-	local rad = pieceRadius(unitID, idx)
+	-- Cap the marker size so root pieces with huge bounding boxes don't draw
+	-- gigantic axis lines stretching across the map.
+	local rad = math.max(2, math.min(10, pieceRadius(unitID, idx)))
 
 	gl.PushAttrib(GL.LINE_BIT)
 	gl.LineWidth(2)
@@ -2396,12 +3065,9 @@ end
 
 function widget:DrawWorld()
 	if not state.currentUnitID then return end
-	if state.pieceName and state.pieceName ~= "" then
-		drawPieceMarker(state.currentUnitID, state.pieceName, 1.0, 0.85, 0.2)
-	end
-	if state.highlightPiece and state.highlightPiece ~= state.pieceName then
-		drawPieceMarker(state.currentUnitID, state.highlightPiece, 0.3, 1.0, 0.4)
-	end
+	-- (piece-highlight markers removed - the gizmo+light marker already shows
+	-- where the light sits, and the piece axis-cross added visual clutter
+	-- without serving a current workflow.)
 	-- Light overview markers (small white circles on every light of this unit)
 	drawLightOverviewMarkers()
 	-- Multi-select gizmo (centroid of all selected lights, only if shared piece)
@@ -2420,11 +3086,59 @@ function widget:DrawWorld()
 end
 
 local TOOLTIP_TEXTS = {
+	-- Action buttons
 	copy     = "Copy current selected light data",
 	copyUnit = "Copy all lights of current selected unit",
 	reload   = "Refresh and reload (new) saved lights from GL4 config file",
 	undo     = "Undo last edit (Ctrl+Z)",
 	reset    = "Reset to latest GL4 config file",
+	delete   = "Delete the currently selected light from this unit",
+	copyColor  = "Copy color/fade/animation/other settings from this light (position, direction and radius excluded)",
+	pasteColor = "Paste copied color settings onto the current light. With multiple lights selected, applies to all of them.",
+	-- Type buttons
+	type_point = "Point light: omni-directional, radiates from a single position",
+	type_cone  = "Cone light: spotlight with a direction and cone angle (theta)",
+	type_beam  = "Beam light: line segment from pos to pos2 (e.g. searchlight, laser)",
+	-- Dropdowns
+	preset   = "Apply a preset 'look' (color, fade, glow, etc.). Position, direction and radius are NOT touched.",
+	piece    = "Attach the light to a unit piece so it follows model animation. '(world)' = no piece, world-space.",
+	-- Position / radius
+	posx     = "Position X (piece-local if a piece is set, else world). Negative = left in model space.",
+	posy     = "Position Y (height above piece/ground). Most unit lights sit a few elmos above ground.",
+	posz     = "Position Z (forward/back in model space). Negative = back.",
+	radius   = "Light reach in elmos. Bigger = lights more terrain but costs more GPU.",
+	-- Cone direction
+	dirx     = "Cone direction X (where the spotlight points, model-space)",
+	diry     = "Cone direction Y (vertical aim; -1 = straight down)",
+	dirz     = "Cone direction Z (forward/back component of aim)",
+	theta    = "Cone half-angle in degrees. Small = tight spotlight, large = wide flood.",
+	-- Beam endpoint
+	pos2x    = "Beam endpoint X (piece-local). The beam runs from pos to pos2.",
+	pos2y    = "Beam endpoint Y. Use this for vertical searchlights.",
+	pos2z    = "Beam endpoint Z. For a forward-pointing beam set pos2z far from posz.",
+	-- Color RGBA
+	r        = "Red channel (0-2.5). Above 1.0 = HDR overbright; the bloom pass picks it up.",
+	g        = "Green channel (0-2.5). HDR-capable like R.",
+	b        = "Blue channel (0-2.5). HDR-capable like R.",
+	a        = "Alpha / brightness multiplier (0-3). Velocity-modulated by brakeLight/accelLight if tagged.",
+	-- Color2 fade
+	color2r  = "Fade-target red. The light blends from (r,g,b) to (color2r,g,b) over 'colortime' frames.",
+	color2g  = "Fade-target green. Often used for fire/glow that warms or cools while pulsing.",
+	color2b  = "Fade-target blue. Set to <0 to disable the channel.",
+	colortime = "Fade speed in frames. Higher = slower transition. 0 = no fade. Negative = sync to unit texture pulse (-1 fully off at trough, -2 stays slightly on, -5 stays nearly fully on).",
+	-- Point-light animation
+	pdirx    = "Animation speed X (elmos/frame). Moves the light along its X axis over time.",
+	pdiry    = "Animation speed Y (elmos/frame). Useful for floating/bobbing lights.",
+	pdirz    = "Animation speed Z (elmos/frame). Forward drift speed.",
+	ptheta   = "Animation distance/period. Negative = loop/orbit (light cycles back); positive = decay distance.",
+	-- Other
+	modelfactor   = "How much the light contributes to lit model surfaces (0-2). Higher = brighter on units.",
+	specular      = "Specular highlight strength (0-2). Higher = sharper shiny reflections on metal.",
+	scattering    = "Volumetric scattering through fog/dust (0-15). Higher = visible god-rays/glow shaft.",
+	lensflare     = "Lens flare intensity (0-15). 0 = no flare. Use sparingly; cumulative on screen.",
+	lifetime      = "Light lifespan in frames (0 = infinite). Event lights (muzzle flash) use small values.",
+	sustain       = "Frames the light stays at full brightness before fading. Only meaningful if lifetime > 0.",
+	selfshadowing = "Self-shadowing mode 0-8. Controls how the light shadows the emitting unit.",
 }
 
 local function updateTooltipElement()
@@ -2441,19 +3155,28 @@ local function updateTooltipElement()
 		end
 		return
 	end
-	el.inner_rml = text
+	-- Wrap text in a <p> block element with explicit wrap properties;
+	-- text placed directly inside the tooltip <div> does not wrap reliably
+	-- in BAR's RmlUi and overflows the box.
+	el.inner_rml = string.format(
+		'<p style="display: block; width: 340dp; white-space: normal; word-break: break-word;">%s</p>',
+		text)
 	local mx, my = Spring.GetMouseState()
 	local _, vsy = Spring.GetViewGeometry()
 	local cssY = (vsy or 0) - my
 	-- SetProperty per-property is more reliable than SetAttribute("style", ...)
 	-- in BAR's RmlUi binding; the latter sometimes drops earlier values.
+	-- Place the tooltip BELOW the cursor so it doesn't overlap the slider/
+	-- numbox row being hovered. Below avoids the hoogte-raden problem we'd
+	-- otherwise hit with dynamic tooltip height.
+	local tipOffsetY = 24
 	if el.SetProperty then
 		el:SetProperty("display", "block")
 		el:SetProperty("left", (mx + 14).."px")
-		el:SetProperty("top", (cssY - 32).."px")
+		el:SetProperty("top", (cssY + tipOffsetY).."px")
 	else
 		el:SetAttribute("style",
-			string.format("display: block; left: %dpx; top: %dpx;", mx + 14, cssY - 32))
+			string.format("display: block; left: %dpx; top: %dpx;", mx + 14, cssY + tipOffsetY))
 	end
 end
 
@@ -2475,9 +3198,9 @@ local function bumpField(field, direction)
 	local cur = state.values[field] or 0
 	local newV = cur + direction * step
 	state.values[field] = newV
-	-- Push to slider (DOM) and numbox via dmHandle two-way binding.
 	if state.dmHandle then
 		state.dmHandle["sl_"..field] = math.floor(newV * scale + 0.5)
+		state.dmHandle["num_"..field] = fmtVal(newV)
 	end
 	applyPreview()
 end
@@ -2867,6 +3590,8 @@ local function duplicateLight(unitID, unitDefID, name)
 		pieceIndex = src.pieceIndex,
 		lightParamTable = newParams,
 		initComplete = true,
+		-- Carry over preset binding so the duplicate retains the "(from preset_x)" tag.
+		_presetSource = src._presetSource,
 	}
 	lights[copyName] = newLt
 	-- Spawn the copy in the VBO with its own instance ID so it renders.
@@ -3020,6 +3745,7 @@ function widget:GetConfigData()
 		panelTop = state.panelTop,
 		panelWidth = state.panelWidth,
 		panelHeight = state.panelHeight,
+		lastEditedByUnitDef = state.lastEditedByUnitDef,
 	}
 end
 
@@ -3029,4 +3755,7 @@ function widget:SetConfigData(data)
 	if data and data.panelTop   then state.panelTop   = data.panelTop   end
 	if data and data.panelWidth then state.panelWidth = data.panelWidth end
 	if data and data.panelHeight then state.panelHeight = data.panelHeight end
+	if data and type(data.lastEditedByUnitDef) == "table" then
+		state.lastEditedByUnitDef = data.lastEditedByUnitDef
+	end
 end

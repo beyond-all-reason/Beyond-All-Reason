@@ -258,6 +258,7 @@ local enableProjectileLightFlares = false  -- set to true to show lens flare tex
 local unitDefLights
 local featureDefLights
 local unitEventLights -- Table of lights per unitDefID
+local lightPresets    -- Table of named preset light templates (for the in-game editor)
 local muzzleFlashLights  -- one light per weaponDefID
 local projectileDefLights  -- one light per weaponDefID
 local explosionLights  -- one light per weaponDefID
@@ -1035,6 +1036,7 @@ local function LoadLightConfig()
 		unitDefLights = result.unitDefLights
 		unitEventLights = result.unitEventLights
 		featureDefLights = result.featureDefLights
+		lightPresets = result.lightPresets
 		--projectileDefLights = result.projectileDefLights
 
 	else
@@ -1815,6 +1817,8 @@ function widget:Initialize()
 	WG['lightsgl4'].GetUnitDefLights = function() return unitDefLights end
 	WG['lightsgl4'].GetLightVBOMap = function() return unitLightVBOMap end
 	WG['lightsgl4'].GetLightParamKeyOrder = function() return lightParamKeyOrder end
+	WG['lightsgl4'].GetLightPresets = function() return lightPresets end
+	WG['lightsgl4'].GetUnitEventLights = function() return unitEventLights end
 
 	WG['lightsgl4'].IntensityMultiplier = function(value)
 		intensityMultiplier = value

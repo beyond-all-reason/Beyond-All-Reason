@@ -105,7 +105,8 @@ body {
 	padding: 6dp 10dp;
 	font-size: 13dp;
 	width: 360dp;
-	height: 22dp;
+	max-width: 360dp;
+	word-break: break-word;
 	z-index: 200;
 }
 
@@ -382,3 +383,18 @@ select selectbox option:hover {
 	border: 1dp #a06060;
 }
 .le-actbtn-danger:hover { background-color: #703a30; }
+
+/* Greyed-out variant -- toggled on .le-actbtn when the action is a no-op
+   (e.g. "+ Add" while editing an existing light). Overrides the green
+   defaults and disables the hover tint. */
+.le-actbtn-disabled,
+.le-actbtn-disabled:hover {
+	background-color: #333;
+	border: 1dp #555;
+	color: #777;
+	cursor: default;
+}
+
+/* Add-button-specific margin lives here so the rml stays free of inline
+   styles that would override the .le-actbtn-disabled class. */
+#le-addbtn { margin-left: 6dp; }
