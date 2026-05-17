@@ -232,6 +232,12 @@ local hasGhosts = false    -- true when weaponBeams has any entries (skip ghost 
 local liveKeys = {}        -- reused each frame, nil-cleared instead of reallocated
 local liveKeysList = {}    -- tracks keys to clear
 local liveBeamSlot = {}    -- wbKey -> offset slot in beamData (dedupe multiple projectiles per emitter)
+local emitterIndex = {}    -- ownerID|wDefID -> next slot index (reset each frame).
+                           -- Lets units with multiple hardpoints firing the same
+                           -- weaponDefID simultaneously (e.g. legeheatraymech's twin
+                           -- heatray1 arms) each get their own tracked beam slot
+                           -- instead of colliding on a single owner+wDef key.
+local emitterIndexList = {} -- tracks emitter base keys to clear
 local removeList = {}      -- reused across cleanup cycles
 local removeCount = 0
 
@@ -1120,6 +1126,11 @@ local function updateBeams()
 		liveKeys[liveKeysList[i]] = nil
 		liveBeamSlot[liveKeysList[i]] = nil
 	end
+	for i = 1, #emitterIndexList do
+		emitterIndex[emitterIndexList[i]] = nil
+		emitterIndexList[i] = nil
+	end
+	local emitterIndexCount = 0
 	local liveKeysCount = 0
 
 	-- Scan ALL weapon projectiles map-wide (not just camera-visible ones).
@@ -1201,19 +1212,24 @@ local function updateBeams()
 								mathMax(px, endX) + pad, mathMax(py, endY) + pad, mathMax(pz, endZ) + pad
 							) then
 								local ownerID = spGetProjectileOwnerID(proID) or 0
-								-- Key = "ownerID|wDefID". Muzzle position deliberately
-								-- excluded: turrets rotate between shots, so including the
-								-- muzzle would give every shot a fresh key, and the previous
-								-- shot's tracked entry would linger as a ghost beam while the
-								-- new one renders -- looking like a stuttering rapid-fire
-								-- trail instead of a single moving beam.
+								-- Key = "ownerID|wDefID|idx". The base "ownerID|wDefID" merges
+								-- consecutive shots from a single rotating emitter (no ghost
+								-- trail stutter), while `idx` distinguishes multiple hardpoints
+								-- on one unit that share the SAME weaponDefID and fire in the
+								-- same frame (e.g. legeheatraymech's twin heatray1 arms). idx
+								-- is assigned per-frame in iteration order: the first live
+								-- projectile for each base key gets 0, the second gets 1, etc.
 								-- Different beam weapons on the same unit (e.g. corhllt's
-								-- hllt_top + hllt_bottom) have distinct wDefIDs, so owner+wDef
-								-- already disambiguates them. Multiple hardpoints sharing the
-								-- SAME wDefID on one unit (rare for beam lasers) would alias,
-								-- but the result -- one of the two beams winning per frame --
-								-- is less visually disruptive than the ghost-stacking trail.
-								local wbKey = ownerID .. "|" .. wDefID
+								-- hllt_top + hllt_bottom) already have distinct wDefIDs.
+								local baseKey = ownerID .. "|" .. wDefID
+								local idx = emitterIndex[baseKey]
+								if not idx then
+									idx = 0
+									emitterIndexCount = emitterIndexCount + 1
+									emitterIndexList[emitterIndexCount] = baseKey
+								end
+								emitterIndex[baseKey] = idx + 1
+								local wbKey = baseKey .. "|" .. idx
 								if not liveKeys[wbKey] then
 									liveKeys[wbKey] = true
 									liveKeysCount = liveKeysCount + 1
@@ -1419,6 +1435,8 @@ function gadget:GameFrame(n)
 	else
 	local simProjectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
 	if simProjectiles then
+		-- Local per-frame emitter index for this fallback scan only
+		local simEmitterIndex = {}
 		for i = 1, #simProjectiles do
 			local proID = simProjectiles[i]
 			local wDefID = spGetProjectileDefID(proID)
@@ -1429,7 +1447,12 @@ function gadget:GameFrame(n)
 					local vx, vy, vz = spGetProjectileVelocity(proID)
 					if vx then
 						local ownerID = spGetProjectileOwnerID(proID) or 0
-						local wbKey = ownerID .. "|" .. wDefID
+						-- Match DrawWorld's keying: in-frame emitter index disambiguates
+						-- multiple hardpoints sharing the same weaponDefID on one unit.
+						local baseKey = ownerID .. "|" .. wDefID
+						local idx = simEmitterIndex[baseKey] or 0
+						simEmitterIndex[baseKey] = idx + 1
+						local wbKey = baseKey .. "|" .. idx
 						local tracked = weaponBeams[wbKey]
 						if not tracked then
 							tracked = { cfg = cfg }
