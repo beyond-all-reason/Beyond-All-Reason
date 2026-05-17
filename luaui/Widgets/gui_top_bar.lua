@@ -1459,7 +1459,7 @@ local function drawResBars()
 		if updateRes[res][1] then
 			scissors[#scissors+1] = {
 				(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(cache.lastResbarValueWidth[res]*0.75),
-				0,
+				(topbarArea[4]-topbarArea[2])*0.48,
 				resbarDrawinfo[res].textCurrent[4]+cache.lastResbarValueWidth[res],
 				topbarArea[4]-topbarArea[2]
 			}
@@ -1475,7 +1475,7 @@ local function drawResBars()
 		if updateRes[res][3] then
 			scissors[#scissors+1] = {
 				(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
-				0,
+				(topbarArea[4]-topbarArea[2])*0.48,
 				resbarDrawinfo[res].textStorage[4]*4.1,
 				topbarArea[4]-topbarArea[2]
 			}
@@ -1484,7 +1484,7 @@ local function drawResBars()
 		if updateRes[res][1] then
 			scissors[#scissors+1] = {
 				(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(cache.lastResbarValueWidth[res]*0.75),
-				0,
+				(topbarArea[4]-topbarArea[2])*0.48,
 				resbarDrawinfo[res].textCurrent[4]+cache.lastResbarValueWidth[res],
 				topbarArea[4]-topbarArea[2]
 			}
@@ -1500,7 +1500,7 @@ local function drawResBars()
 		if updateRes[res][3] then
 			scissors[#scissors+1] = {
 				(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
-				0,
+				(topbarArea[4]-topbarArea[2])*0.48,
 				resbarDrawinfo[res].textStorage[4]*4.1,
 				topbarArea[4]-topbarArea[2]
 			}
@@ -1855,7 +1855,7 @@ function widget:DrawScreen()
 			if showingWarning[res] and resbarDrawinfo[res] and resbarDrawinfo[res].textStorage then
 				storageScissors[#storageScissors+1] = {
 					(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
-					0,
+					(topbarArea[4]-topbarArea[2])*0.48,
 					resbarDrawinfo[res].textStorage[4]*4.1,
 					topbarArea[4]-topbarArea[2]
 				}
