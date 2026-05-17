@@ -697,9 +697,6 @@ veterancyEffects.reload_then_damage = {
 				if weaponDamageMult > 1 then
 					scaleDamages(unitID, weapon, upgrade[index], weaponDamageMult)
 				end
-
-				Spring.Echo("mult", weaponDamageMult, "reload", reloadWanted, reloadTime, Spring.GetUnitWeaponState(unitID, weapon, "reloadTimeXP"))
-				Spring.Echo(string.rep("?", math.random(2, 12)))
 			end
 		end
 	end,
