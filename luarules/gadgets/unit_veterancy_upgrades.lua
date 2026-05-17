@@ -67,7 +67,8 @@ local function callUnitScript(unitID, luaEnv, methodName, ...)
 	end
 end
 
-local gameSpeedInverse = 1 / Game.gameSpeed
+local gameSpeed = Game.gameSpeed
+local gameSpeedInverse = 1 / gameSpeed
 
 local armorTypeMin = 0
 local armorTypeMax = #Game.armorTypes
@@ -142,6 +143,12 @@ local call = setmetatable({}, {
 	end
 })
 
+-- The engine will cast to int, which truncates. We prefer rounding, on net, and
+-- we want to enforce a one-frame floor for reloading, stockpiling, bursts, etc.
+local function toFrameTime(seconds)
+	return math_max(math_round(seconds * gameSpeed), 1) * gameSpeedInverse
+end
+
 -- Unit veterancies ------------------------------------------------------------
 
 -- Some effects are duplicated in-engine so are conditional on our modrules:
@@ -170,14 +177,14 @@ veterancyEffects.health = {
 	end,
 
 	effect = function(unitID, upgrade, experience)
-		local healthNew = math_floor(upgrade[3] * (1 + upgrade[2] * experience))
+		local healthMaxXP = math_floor(upgrade[3] * (1 + upgrade[2] * experience))
 		local health, healthMax = spGetUnitHealth(unitID)
-		if healthNew == math_floor(healthMax) then
+		if healthMaxXP == math_floor(healthMax) then
 			return
 		end
 
-		spSetUnitMaxHealth(unitID, healthNew)
-		spSetUnitHealth(unitID, health * healthNew / healthMax)
+		spSetUnitMaxHealth(unitID, healthMaxXP)
+		spSetUnitHealth(unitID, health * healthMaxXP / healthMax)
 	end,
 }
 
@@ -217,7 +224,7 @@ veterancyEffects.reload = {
 		for index = 3, #upgrade do
 			if upgrade[index] then
 				-- This method combines reloadTime with reloadSpeed as an aggregate stat:
-				local reloadTime = math_max(upgrade[index] / reloadDiv, gameSpeedInverse)
+				local reloadTime = toFrameTime(upgrade[index] / reloadDiv)
 				local weapon = index - 2
 				spSetUnitWeaponState(unitID, weapon, "reloadTime", reloadTime)
 				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weapon], reloadTime * 1000)
@@ -269,7 +276,7 @@ veterancyEffects.scripted_reload = {
 			local weapon = index - 2
 			if upgrade[index] then
 				-- This method combines reloadTime with reloadSpeed as an aggregate stat:
-				local reloadTime = math_max(upgrade[index] / reloadDiv, gameSpeedInverse)
+				local reloadTime = toFrameTime(upgrade[index] / reloadDiv)
 				spSetUnitWeaponState(unitID, weapon, "reloadTime", reloadTime)
 				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weapon], reloadTime * 1000)
 				reloadMax = math_max(reloadMax, gameSpeedInverse, reloadTime)
@@ -390,6 +397,7 @@ veterancyEffects.damages = {
 	end,
 }
 
+-- TODO: Compensation for TTL, projectile speed, etc., depending on the weaponDef.
 veterancyEffects.range = {
 	add = function(unitDef, upgrades)
 		-- Dynamic ranges per-weapon are scaled at the unit-level for consistency.
