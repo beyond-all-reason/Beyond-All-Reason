@@ -152,15 +152,15 @@ end
 local function getBurstStats(weaponDef)
 	local stats = {}
 	if weaponDef.type == "BeamLaser" and not weaponDef.beamburst then
-		stats.salvo = 1
-		stats.delay = weaponDef.beamtime
+		stats.salvoSize = 1
+		stats.salvoDelay = weaponDef.beamtime
 		stats.salvoTime = weaponDef.beamtime
 	else
-		stats.salvo = weaponDef.salvoSize
-		stats.delay = weaponDef.salvoDelay
-		stats.salvoTime = stats.salvo * stats.delay
+		stats.salvoSize = weaponDef.salvoSize
+		stats.salvoDelay = weaponDef.salvoDelay
+		stats.salvoTime = stats.salvoSize * stats.salvoDelay
 	end
-	stats.delay = toFrameTime(stats.delay)
+	stats.salvoDelay = toFrameTime(stats.salvoDelay)
 	stats.salvoTime = toFrameTime(stats.salvoTime)
 	return stats
 end
@@ -359,6 +359,22 @@ veterancyEffects.acc_weight = {
 
 local armorTargetIndex = armorTypeMin - 1
 local damagesTemp = table.new(armorTypeMax, 1 - armorTypeMin)
+
+local function getDamages(weaponDef)
+	local damages = table.new(armorTypeMax, 1 - armorTypeMin)
+	damages[armorTargetIndex] = armorTypeMin
+	local armorDamage = weaponDef.damages[armorTypeMin]
+	for i = armorTypeMin, armorTypeMax do
+		damages[i] = weaponDef.damages[i]
+		if damages[i] > armorDamage then
+			damages[armorTargetIndex], armorDamage = i, damages[i]
+		end
+	end
+	if armorDamage > 0 then
+		return damages
+	end
+end
+
 local function scaleDamages(unitID, weaponNum, damages, damageMult)
 	-- Avoid updates that do not change damage to the primary armor target:
 	local armorTarget = damages[armorTargetIndex]
@@ -374,6 +390,18 @@ local function scaleDamages(unitID, weaponNum, damages, damageMult)
 	end
 	spSetUnitWeaponDamages(unitID, weaponNum, d)
 	spSetUnitRulesParam(unitID, "veterancy_damages_multiplier", damageMult)
+end
+
+local function getReloadStats(weaponDef)
+	local weaponUpgrade = { reloadTime = weaponDef.reload }
+	local stats = getBurstStats(weaponDef)
+	-- BeamLaser weapons cannot scale in burst duration; not really, anyway.
+	-- They have an internal `salvoDamageMult` so would need damage scaling.
+	if stats and stats.salvoSize > 1 and stats.salvoTime > gameSpeedInverse then
+		weaponUpgrade.salvoSize = stats.salvoSize
+		weaponUpgrade.salvoTime = stats.salvoTime
+	end
+	return weaponUpgrade
 end
 
 veterancyEffects.autoheal = {
@@ -423,18 +451,7 @@ veterancyEffects.damages = {
 			local weaponDef = WeaponDefs[weapon.weaponDef]
 			local damages = nil
 			if not weaponDef.customParams.nodamagexpscale and weaponDef.customParams.bogus ~= "1" then
-				damages = table.new(armorTypeMax, 1 - armorTypeMin)
-				damages[armorTargetIndex] = armorTypeMin
-				local armorDamage = weaponDef.damages[armorTypeMin]
-				for i = armorTypeMin, armorTypeMax do
-					damages[i] = weaponDef.damages[i]
-					if damages[i] > armorDamage then
-						damages[armorTargetIndex], armorDamage = i, damages[i]
-					end
-				end
-				if armorDamage <= 0 then
-					damages = nil
-				end
+				damages = getDamages(weaponDef)
 			end
 			if damages then
 				hasUpgradeWeapon = true
@@ -549,15 +566,7 @@ veterancyEffects.reload_then_burst = {
 			local weaponDef = WeaponDefs[weapon.weaponDef]
 			if not weaponDef.customParams.noreloadxpscale then
 				hasUpgradeWeapon = true
-				local weaponUpgrade = { reloadTime = weaponDef.reload }
-				local stats = getBurstStats(weaponDef)
-				-- BeamLaser weapons cannot scale in burst duration; not really, anyway.
-				-- They have an internal `salvoDamageMult` so would need damage scaling.
-				if stats and stats.salvo > 1 and stats.salvoTime > gameSpeedInverse then
-					weaponUpgrade.salvo = stats.salvo
-					weaponUpgrade.salvoTime = stats.salvoTime
-				end
-				upgrade[index + offset] = weaponUpgrade
+				upgrade[index + offset] = getReloadStats(weaponDef)
 			else
 				upgrade[index + offset] = false
 			end
@@ -583,7 +592,7 @@ veterancyEffects.reload_then_burst = {
 				local reloadWanted = toFrameTime(reloadTime / reloadDiv)
 
 				if salvoDuration and reloadWanted < salvoDuration then
-					local salvoSize = upgrade[index].salvo
+					local salvoSize = upgrade[index].salvoSize
 					local salvoDelay
 					if reloadTime <= salvoDuration then
 						-- When reload and burst are the same, each scales with full unit XP.
@@ -625,27 +634,12 @@ veterancyEffects.reload_then_damage = {
 
 			local reloads
 			if not weaponDef.customParams.noreloadxpscale then
-				reloads = { reloadTime = weaponDef.reload }
-				local stats = getBurstStats(weaponDef)
-				if stats and stats.salvo > 1 and stats.salvoTime > gameSpeedInverse then
-					reloads.salvoTime = stats.salvoTime
-				end
+				reloads = getReloadStats(weaponDef)
 			end
 
 			local damages
 			if not weaponDef.customParams.nodamagexpscale and weaponDef.customParams.bogus ~= "1" then
-				damages = table.new(armorTypeMax, 1 - armorTypeMin)
-				damages[armorTargetIndex] = armorTypeMin
-				local armorDamage = weaponDef.damages[armorTypeMin]
-				for i = armorTypeMin, armorTypeMax do
-					damages[i] = weaponDef.damages[i]
-					if damages[i] > armorDamage then
-						damages[armorTargetIndex], armorDamage = i, damages[i]
-					end
-				end
-				if armorDamage <= 0 then
-					damages = nil
-				end
+				damages = getDamages(weaponDef)
 			end
 
 			if reloads and damages then
