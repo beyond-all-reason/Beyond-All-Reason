@@ -90,10 +90,13 @@ if gadgetHandler:IsSyncedCode() then
 	-- so the attacker always has AA priority — no need to check hasPriorityAir or call
 	-- spGetUnitDefID on the attacker.
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
+		if not defPriority then
+			return true
+		end
 		local mult = airPriorityMultiplier[spGetUnitDefID(targetID)]
 		if mult then
-			return true, (defPriority or 1.0) * mult
+			defPriority = defPriority * mult
 		end
-		return true, defPriority or 1.0
+		return true, defPriority
 	end
 end
