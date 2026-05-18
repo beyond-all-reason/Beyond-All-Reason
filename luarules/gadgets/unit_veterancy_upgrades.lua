@@ -24,6 +24,9 @@ end
 -- These upgrades apply every time that XP is gained, provided the amount gained is >= 0.01.
 -- Since some XP gains are below this threshold, upgrades should never consider an XP-delta.
 
+-- customparams[prefix .. name] = number|"default", where "default" refers to some XP scale.
+local customParamPrefix = "veterancy_" -- e.g. `veterancy_health = "default"`
+
 local defaultVeterancyUpgrades = {
 	"health",
 	"reload",
@@ -89,7 +92,7 @@ local onUnitCreated = {}
 local function addVeterancyUpgrades(unitDef, veterancyList)
 	local upgrades = {}
 	local onCreate = {}
-	for _, name in ipairs(table.getUniqueArray(veterancyList)) do
+	for _, name in ipairs(veterancyList) do
 		if veterancyEffects[name] then
 			local upgrade = veterancyEffects[name]
 			local result = upgrade.add(unitDef, upgrades)
@@ -143,6 +146,11 @@ local call = setmetatable({}, {
 	end
 })
 
+local function getScale(unitDef, key, fallback)
+	return tonumber(unitDef.customParams[customParamPrefix .. key] or fallback)
+		or fallback or 0
+end
+
 -- The engine will cast to int, which truncates. We prefer rounding, on net, and
 -- we want to enforce a one-frame floor for reloading, stockpiling, bursts, etc.
 local function toFrameTime(seconds)
@@ -165,6 +173,53 @@ local function getBurstStats(weaponDef)
 	return stats
 end
 
+local armorTargetIndex = armorTypeMin - 1
+local damagesTemp = table.new(armorTypeMax, 1 - armorTypeMin)
+
+local function getDamages(weaponDef)
+	local damages = table.new(armorTypeMax, 1 - armorTypeMin)
+	damages[armorTargetIndex] = armorTypeMin
+	local armorDamage = weaponDef.damages[armorTypeMin]
+	for i = armorTypeMin, armorTypeMax do
+		damages[i] = weaponDef.damages[i]
+		if damages[i] > armorDamage then
+			damages[armorTargetIndex], armorDamage = i, damages[i]
+		end
+	end
+	if armorDamage > 0 then
+		return damages
+	end
+end
+
+local function scaleDamages(unitID, weaponNum, damages, damageMult)
+	-- Avoid updates that do not change damage to the primary armor target:
+	local armorTarget = damages[armorTargetIndex]
+	local armorDamage = spGetUnitWeaponDamages(unitID, weaponNum, armorTarget)
+	if armorDamage == math_round(damages[armorTarget] * damageMult) then
+		return
+	end
+
+	-- Avoid nArmorTypes engine calls that repeat parsing of simple inputs:
+	local d = damagesTemp
+	for i = armorTypeMin, armorTypeMax do
+		d[i] = math_round(damages[i] * damageMult)
+	end
+	spSetUnitWeaponDamages(unitID, weaponNum, d)
+	spSetUnitRulesParam(unitID, "veterancy_damages_multiplier", damageMult)
+end
+
+local function getReloadStats(weaponDef)
+	local weaponUpgrade = { reloadTime = weaponDef.reload }
+	local stats = getBurstStats(weaponDef)
+	-- BeamLaser weapons cannot scale in burst duration; not really, anyway.
+	-- They have an internal `salvoDamageMult` so would need damage scaling.
+	if stats and stats.salvoSize > 1 and stats.salvoTime > gameSpeedInverse then
+		weaponUpgrade.salvoSize = stats.salvoSize
+		weaponUpgrade.salvoTime = stats.salvoTime
+	end
+	return weaponUpgrade
+end
+
 -- Unit veterancies ------------------------------------------------------------
 
 -- Some effects are duplicated in-engine so are conditional on our modrules:
@@ -176,8 +231,8 @@ veterancyEffects.power = {
 
 veterancyEffects.health = {
 	add = function(unitDef, upgrades)
-		local scale = tonumber(unitDef.customParams.veterancy_health_scale or healthScale)
-		if (scale or 0) <= 0 then
+		local scale = getScale(unitDef, "health", healthScale)
+		if scale <= 0 then
 			return false
 		end
 
@@ -207,8 +262,8 @@ veterancyEffects.health = {
 veterancyEffects.reload = {
 	add = function(unitDef, upgrades)
 		-- Dynamic reloads per-weapon are scaled at the unit-level for consistency.
-		local scale = tonumber(unitDef.customParams.veterancy_reload_scale or reloadScale)
-		if (scale or 0) <= 0 then
+		local scale = getScale(unitDef, "reload", reloadScale)
+		if scale <= 0 then
 			return false
 		end
 
@@ -256,8 +311,8 @@ veterancyEffects.reload = {
 veterancyEffects.scripted_reload = {
 	add = function(unitDef, upgrades)
 		-- Shares its scaling customparam with `reload`:
-		local scale = tonumber(unitDef.customParams.veterancy_reload_scale or reloadScale)
-		if (scale or 0) <= 0 then
+		local scale = getScale(unitDef, "scripted_reload", reloadScale)
+		if scale <= 0 then
 			return false
 		end
 
@@ -312,8 +367,8 @@ veterancyEffects.scripted_reload = {
 veterancyEffects.acc_weight = {
 	add = function(unitDef, upgrades)
 		-- Dynamic accuracies per-weapon are scaled at the unit-level for consistency.
-		local scale = tonumber(unitDef.customParams.veterancy_accweight_scale or 0)
-		if (scale or 0) <= 0 then
+		local scale = getScale(unitDef, "acc_weight", 0)
+		if scale <= 0 then
 			return false
 		end
 
@@ -357,58 +412,11 @@ veterancyEffects.acc_weight = {
 
 -- The rest of the veterancy effects have no equivalent function in the engine:
 
-local armorTargetIndex = armorTypeMin - 1
-local damagesTemp = table.new(armorTypeMax, 1 - armorTypeMin)
-
-local function getDamages(weaponDef)
-	local damages = table.new(armorTypeMax, 1 - armorTypeMin)
-	damages[armorTargetIndex] = armorTypeMin
-	local armorDamage = weaponDef.damages[armorTypeMin]
-	for i = armorTypeMin, armorTypeMax do
-		damages[i] = weaponDef.damages[i]
-		if damages[i] > armorDamage then
-			damages[armorTargetIndex], armorDamage = i, damages[i]
-		end
-	end
-	if armorDamage > 0 then
-		return damages
-	end
-end
-
-local function scaleDamages(unitID, weaponNum, damages, damageMult)
-	-- Avoid updates that do not change damage to the primary armor target:
-	local armorTarget = damages[armorTargetIndex]
-	local armorDamage = spGetUnitWeaponDamages(unitID, weaponNum, armorTarget)
-	if armorDamage == math_round(damages[armorTarget] * damageMult) then
-		return
-	end
-
-	-- Avoid nArmorTypes engine calls that repeat parsing of simple inputs:
-	local d = damagesTemp
-	for i = armorTypeMin, armorTypeMax do
-		d[i] = math_round(damages[i] * damageMult)
-	end
-	spSetUnitWeaponDamages(unitID, weaponNum, d)
-	spSetUnitRulesParam(unitID, "veterancy_damages_multiplier", damageMult)
-end
-
-local function getReloadStats(weaponDef)
-	local weaponUpgrade = { reloadTime = weaponDef.reload }
-	local stats = getBurstStats(weaponDef)
-	-- BeamLaser weapons cannot scale in burst duration; not really, anyway.
-	-- They have an internal `salvoDamageMult` so would need damage scaling.
-	if stats and stats.salvoSize > 1 and stats.salvoTime > gameSpeedInverse then
-		weaponUpgrade.salvoSize = stats.salvoSize
-		weaponUpgrade.salvoTime = stats.salvoTime
-	end
-	return weaponUpgrade
-end
-
 veterancyEffects.autoheal = {
 	add = function(unitDef, upgrades)
 		-- With continuous XP, we have to use a scale value rather than a constant
-		local scale = tonumber(unitDef.customParams.veterancy_autoheal_scale or 0)
-		if (scale or 0) <= 0 then
+		local scale = getScale(unitDef, "autoheal", 0)
+		if scale <= 0 then
 			return false
 		end
 
@@ -438,8 +446,8 @@ veterancyEffects.autoheal = {
 veterancyEffects.damages = {
 	add = function(unitDef, upgrades)
 		-- Dynamic damages per-weapon are scaled at the unit-level for consistency.
-		local scale = tonumber(unitDef.customParams.veterancy_damage_scale or damageScale)
-		if (scale or 0) <= 0 then
+		local scale = getScale(unitDef, "damage", damageScale)
+		if scale <= 0 then
 			return false
 		end
 
@@ -482,8 +490,8 @@ veterancyEffects.damages = {
 veterancyEffects.range = {
 	add = function(unitDef, upgrades)
 		-- Dynamic ranges per-weapon are scaled at the unit-level for consistency.
-		local scale = tonumber(unitDef.customParams.veterancy_range_scale or 0)
-		if (scale or 0) <= 0 then
+		local scale = getScale(unitDef, "range", 0)
+		if scale <= 0 then
 			return false
 		end
 
@@ -553,8 +561,8 @@ veterancyEffects.range = {
 veterancyEffects.reload_then_burst = {
 	add = function(unitDef, upgrades)
 		-- Shares its scaling customparam with `reload`:
-		local scale = tonumber(unitDef.customParams.veterancy_reload_scale or reloadScale)
-		if (scale or 0) <= 0 then
+		local scale = getScale(unitDef, "reload_then_burst", reloadScale)
+		if scale <= 0 then
 			return false
 		end
 
@@ -619,9 +627,9 @@ veterancyEffects.reload_then_burst = {
 veterancyEffects.reload_then_damage = {
 	add = function(unitDef, upgrades)
 		-- Shares its scaling customparams with `reload`/`damage`, but does not check `damageScale`:
-		local unitReloadScale = tonumber(unitDef.customParams.veterancy_reload_scale or reloadScale)
-		local unitDamageScale = tonumber(unitDef.customParams.veterancy_damage_scale or unitReloadScale)
-		if (unitReloadScale or 0) <= 0 and (unitDamageScale or 0) <= 0 then
+		local unitReloadScale = getScale(unitDef, "reload", reloadScale)
+		local unitDamageScale = getScale(unitDef, "damage", unitReloadScale)
+		if unitReloadScale <= 0 and unitDamageScale <= 0 then
 			return false
 		end
 
@@ -741,11 +749,17 @@ function gadget:Initialize()
 	-- TODO: Move this into the game setup? Or something? Why in a gadget?
 	Spring.SetExperienceGrade(0.01)
 
+	local keys = table.map(veterancyEffects, function(v, k) return true, (k:gsub(customParamPrefix, "")) end)
+
 	for unitDefID, unitDef in ipairs(UnitDefs) do
-		local veterancies
-		if type(unitDef.customParams.veterancy_upgrades) == "string" then
-			veterancies = unitDef.customParams.veterancy_upgrades:split(", ")
-		else
+		local unitParams = unitDef.customParams
+		local veterancies = {}
+		for key in pairs(keys) do
+			if unitParams[key] then
+				veterancies[#veterancies + 1] = key
+			end
+		end
+		if not veterancies[1] then
 			veterancies = defaultVeterancyUpgrades
 		end
 		unitVeterancyUpgrades[unitDefID] = addVeterancyUpgrades(unitDef, veterancies)
