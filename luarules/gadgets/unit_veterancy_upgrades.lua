@@ -114,13 +114,11 @@ local function addVeterancyUpgrades(unitDef, veterancyList)
 end
 
 local function applyVeterancyEffects(unitID, experience, upgrades)
-	-- Canonical BAR experience limit curve. Gaze upon it.
-	local experienceCurved = (3 * experience) / (1 + 3 * experience)
-
+	local limExperience = experience / (experience + 1) -- (0.0, 1.0)
 	for index = 1, #upgrades do
 		local upgrade = upgrades[index]
 		local effect = upgrade[1]
-		effect(unitID, upgrade, experienceCurved)
+		effect(unitID, upgrade, limExperience)
 	end
 end
 
@@ -528,7 +526,8 @@ veterancyEffects.range = {
 	end,
 
 	effect = function(unitID, upgrade, experience)
-		local rangeMult = (1 + upgrade[2] * experience)
+		local experienceCurved = (3 * experience) / (2 * experience + 1) -- limExperience = (3 * xp) / (3 * xp + 1).
+		local rangeMult = (1 + upgrade[2] * experienceCurved)
 
 		if upgrade[3] then
 			spSetUnitMaxRange(unitID, math_floor(upgrade[3] * rangeMult))
