@@ -26,6 +26,7 @@ end
 
 -- customparams[prefix .. name] = number|"default", where "default" refers to some XP scale.
 local customParamPrefix = "veterancy_" -- e.g. `veterancy_health = "default"`
+local weaponParamIgnore = "no_veterancy_" -- e.g. `no_veterancy_reload = true`.
 
 local defaultVeterancyUpgrades = {
 	"health",
@@ -151,6 +152,10 @@ local function getScale(unitDef, key, fallback)
 		or fallback or 0
 end
 
+local function ignoreWeapon(weaponDef, key)
+	return weaponDef.customParams[weaponParamIgnore .. key]
+end
+
 -- The engine will cast to int, which truncates. We prefer rounding, on net, and
 -- we want to enforce a one-frame floor for reloading, stockpiling, bursts, etc.
 local function toFrameTime(seconds)
@@ -273,7 +278,7 @@ veterancyEffects.reload = {
 		local hasUpgradeWeapon = false
 		for index, weapon in ipairs(unitDef.weapons) do
 			local weaponDef = WeaponDefs[weapon.weaponDef]
-			if not weaponDef.customParams.noreloadxpscale then
+			if not ignoreWeapon(weaponDef, "reload") then
 				hasUpgradeWeapon = true
 				upgrade[index + offset] = weaponDef.reload
 			else
@@ -322,7 +327,7 @@ veterancyEffects.scripted_reload = {
 		local hasUpgradeWeapon = false
 		for index, weapon in ipairs(unitDef.weapons) do
 			local weaponDef = WeaponDefs[weapon.weaponDef]
-			if not weaponDef.customParams.noscriptreloadxpscale then -- OK to be a bogus weapon
+			if not ignoreWeapon(weaponDef, "scripted_reload") then
 				hasUpgradeWeapon = true
 				upgrade[index + offset] = weaponDef.reload
 			else
@@ -378,7 +383,7 @@ veterancyEffects.acc_weight = {
 		local hasUpgradeWeapon = false
 		for index, weapon in ipairs(unitDef.weapons) do
 			local weaponDef = WeaponDefs[weapon.weaponDef]
-			if not weaponDef.customParams.noaccweightxpscale and not weaponDef.customParams.bogus then
+			if not ignoreWeapon(weaponDef, "acc_weight") then
 				-- FIXME: We cannot modify: predictSpeedMod, targetMoveError, movingAccuracy, wobble.
 				hasUpgradeWeapon = true
 				upgrade[index + offset] = {
@@ -456,7 +461,7 @@ veterancyEffects.damages = {
 		for index, weapon in ipairs(unitDef.weapons) do
 			local weaponDef = WeaponDefs[weapon.weaponDef]
 			local damages = nil
-			if not weaponDef.customParams.nodamagexpscale and weaponDef.customParams.bogus ~= "1" then
+			if not ignoreWeapon(weaponDef, "damages") and weaponDef.customParams.bogus ~= "1" then
 				damages = getDamages(weaponDef)
 			end
 			if damages then
@@ -499,7 +504,7 @@ veterancyEffects.range = {
 		local hasUpgradeWeapon = false
 		for index, weapon in ipairs(unitDef.weapons) do
 			local weaponDef = WeaponDefs[weapon.weaponDef]
-			if not weaponDef.customParams.norangexpscale then -- OK to be a bogus weapon
+			if not ignoreWeapon(weaponDef, "range") then
 				hasUpgradeWeapon = true
 				upgrade[3] = math_max(weaponDef.range, upgrade[3])
 				upgrade[index + offset] = weaponDef.range
@@ -552,7 +557,7 @@ veterancyEffects.reload_then_burst = {
 		local hasUpgradeWeapon = false
 		for index, weapon in ipairs(unitDef.weapons) do
 			local weaponDef = WeaponDefs[weapon.weaponDef]
-			if not weaponDef.customParams.noreloadxpscale then
+			if not ignoreWeapon(weaponDef, "reload") and not ignoreWeapon(weaponDef, "burst") then
 				hasUpgradeWeapon = true
 				upgrade[index + offset] = getReloadStats(weaponDef)
 			else
@@ -621,12 +626,12 @@ veterancyEffects.reload_then_damage = {
 			local weaponDef = WeaponDefs[weapon.weaponDef]
 
 			local reloads
-			if not weaponDef.customParams.noreloadxpscale then
+			if not ignoreWeapon(weaponDef, "reload") then
 				reloads = getReloadStats(weaponDef)
 			end
 
 			local damages
-			if not weaponDef.customParams.nodamagexpscale and weaponDef.customParams.bogus ~= "1" then
+			if not ignoreWeapon(weaponDef, "damages") then -- allow bogus weapons so paired fake/real weapons scale together
 				damages = getDamages(weaponDef)
 			end
 
