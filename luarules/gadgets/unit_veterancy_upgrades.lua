@@ -7,7 +7,7 @@ end
 function gadget:GetInfo()
 	return {
 		name    = "Unit Veterancy Upgrades",
-		desc    = "Applies special unit and weapon bonuses when units earn XP",
+		desc    = "Applies unit and weapon bonuses as units gain XP",
 		author  = "efrec",
 		version = "1.0",
 		date    = "2026-03",
@@ -17,12 +17,13 @@ function gadget:GetInfo()
 	}
 end
 
--- TODO: We should use shared code for changes to unit attributes (but not unit_attributes).
--- That file is just kind of a mess imo. I'm not sure about its "true" vs abandoned intents.
-
--- TODO: The GDD requires veterancy effects to be level-up effects that occur one at a time.
--- These upgrades apply every time that XP is gained, provided the amount gained is >= 0.01.
--- Since some XP gains are below this threshold, upgrades should never consider an XP-delta.
+-- Unit experience rework
+-- 
+-- The engine's base XP system produces granular bonuses when units deal damage to enemies.
+-- 
+-- The "veterancies" system instead uses fixed ranks with fixed upgrades at rank increase.
+-- Different unit types (to be determined) will have different default ranks and upgrades.
+-- Custom ranks and upgrades will be configurable via unitdefs so also supports tweakdefs.
 
 -- customparams[prefix .. name] = number|"default", where "default" refers to some XP scale.
 local customParamPrefix = "veterancy_" -- e.g. `veterancy_health = "default"`
@@ -384,7 +385,7 @@ veterancyEffects.acc_weight = {
 		for index, weapon in ipairs(unitDef.weapons) do
 			local weaponDef = WeaponDefs[weapon.weaponDef]
 			if not ignoreWeapon(weaponDef, "acc_weight") then
-				-- FIXME: We cannot modify: predictSpeedMod, targetMoveError, movingAccuracy, wobble.
+				-- FIXME: We cannot modify: predictSpeedMod, leadLimit, targetMoveError, movingAccuracy, wobble.
 				hasUpgradeWeapon = true
 				upgrade[index + offset] = {
 					accuracy   = weaponDef.accuracy,
