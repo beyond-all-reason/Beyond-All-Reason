@@ -17,10 +17,10 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local stringFind = string.find
 
-	local PRIORITY_BOMBERS = 1
-	local PRIORITY_VTOLS = 10
-	local PRIORITY_FIGHTERS = 20
-	local PRIORITY_SCOUTS = 1000
+	local PRIORITY_BOMBERS = 0.1
+	local PRIORITY_VTOLS = 1
+	local PRIORITY_FIGHTERS = 2
+	local PRIORITY_SCOUTS = 100
 
 	local isAirCategory = {
 		vtol = true,
