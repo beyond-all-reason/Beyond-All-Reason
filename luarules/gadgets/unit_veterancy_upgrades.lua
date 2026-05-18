@@ -446,6 +446,7 @@ veterancyEffects.autoheal = {
 	end,
 }
 
+-- TODO: We do not scale weapon-less weapondefs' damages, e.g. missile ship clusters, impact clusters.
 veterancyEffects.damages = {
 	add = function(unitDef, upgrades)
 		-- Dynamic damages per-weapon are scaled at the unit-level for consistency.
