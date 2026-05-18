@@ -414,17 +414,16 @@ veterancyEffects.acc_weight = {
 
 veterancyEffects.autoheal = {
 	add = function(unitDef, upgrades)
-		-- With continuous XP, we have to use a scale value rather than a constant
-		local scale = getScale(unitDef, "autoheal", 0)
-		if scale <= 0 then
+		-- Autoheal can start at zero, and we'd rather not scale against health.
+		local valueMaxXP = getScale(unitDef, "autoheal", 0)
+		if valueMaxXP <= 0 then
 			return false
 		end
 
 		---@type VeterancyUpgrade
 		local upgrade = {
 			veterancyEffects.autoheal.effect,
-			scale,
-			unitDef.health, -- Not scaled against autoheal, which might begin at zero.
+			valueMaxXP,
 		}
 
 		if upgrade[2] > 0 and upgrade[3] > 0 then
@@ -436,10 +435,9 @@ veterancyEffects.autoheal = {
 	end,
 
 	effect = function(unitID, upgrade, experience)
-		local healScale = 1 + upgrade[2] * experience
-		local autoHealExtra = upgrade[3] * healScale
-		unitAutoHeal[unitID] = autoHealExtra
-		spSetUnitRulesParam(unitID, "veterancy_autoheal", autoHealExtra)
+		local autoHeal = upgrade[2] * experience
+		unitAutoHeal[unitID] = autoHeal
+		spSetUnitRulesParam(unitID, "veterancy_autoheal", autoHeal)
 	end,
 }
 
