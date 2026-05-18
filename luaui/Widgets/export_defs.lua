@@ -18,15 +18,6 @@ local spEcho = Spring.Echo
 
 local export_folder_path = "json_export"
 
--- Deep-copy values pulled from unitDef:pairs() / weaponDef:pairs() so the widget
--- owns its data and never mutates engine-shared tables, even additively.
-local function deepCopy(value)
-	if type(value) ~= "table" then return value end
-	local copy = {}
-	for k, v in pairs(value) do copy[k] = deepCopy(v) end
-	return copy
-end
-
 local function TableToFile(tbl, filename)
 	local file, err = io.open(filename, "w")
 	if not file then
@@ -118,8 +109,10 @@ local function FlattenWeaponDef(weaponDef)
 			tbl[field_name] = value
 		end
 	end
+	-- Each access via weaponDef:pairs() builds fresh Lua tables (engine LuaWeaponDefs
+	-- getters call lua_createtable per access), so later mutating these is safe.
 	for k, v in weaponDef:pairs() do
-		tbl[k] = deepCopy(v)
+		tbl[k] = v
 	end
 	return tbl
 end
@@ -132,9 +125,10 @@ local function FlattenUnitDef(unitDef)
 			tbl[field_name] = value
 		end
 	end
-	-- flatten the UnitDef metatable data into plain table
+	-- Each access via unitDef:pairs() builds fresh Lua tables (engine LuaUnitDefs
+	-- getters call lua_createtable per access), so later mutating these is safe.
 	for k, v in unitDef:pairs() do
-		tbl[k] = deepCopy(v)
+		tbl[k] = v
 	end
 
 	-- wDefs is a parallel array of weapondef names indexed by mount slot
