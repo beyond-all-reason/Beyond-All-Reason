@@ -493,44 +493,26 @@ veterancyEffects.range = {
 			return false
 		end
 
-		local customMaxRange = tonumber(unitDef.customParams.maxrange or 0) or 0
-
-		---@type VeterancyUpgrade
-		local upgrade = {
-			veterancyEffects.range.effect,
-			scale,
-			customMaxRange,
-		}
+		local upgrade = { veterancyEffects.range.effect, scale, 0 } ---@type VeterancyUpgrade
 		local offset = #upgrade
 
-		if upgrade[2] <= 0 then
-			return false
-		end
-
 		local hasUpgradeWeapon = false
-		local weaponMaxRange = 0
-
 		for index, weapon in ipairs(unitDef.weapons) do
 			local weaponDef = WeaponDefs[weapon.weaponDef]
-			weaponMaxRange = math_max(weaponDef.range, weaponMaxRange)
 			if not weaponDef.customParams.norangexpscale then -- OK to be a bogus weapon
 				hasUpgradeWeapon = true
-				upgrade[index + offset] = weaponDef.range
 				upgrade[3] = math_max(weaponDef.range, upgrade[3])
+				upgrade[index + offset] = weaponDef.range
 			else
 				upgrade[index + offset] = false
 			end
 		end
 
 		if hasUpgradeWeapon then
-			if customMaxRange ~= 0 then
-				weaponMaxRange = math_min(customMaxRange, weaponMaxRange)
-			end
-
-			if upgrade[3] < weaponMaxRange or unitDef.customParams.nomaxrangexpscale then
+			local customMaxRange = tonumber(unitDef.customParams.maxrange or 0) or 0
+			if (customMaxRange ~= 0 and customMaxRange < upgrade[3]) or unitDef.customParams.nomaxrangexpscale then
 				upgrade[3] = false
 			end
-
 			upgrades[#upgrades + 1] = upgrade
 			return true
 		else
