@@ -240,6 +240,7 @@ config = {
 	minimapModeMaxWidth = 0.26,   -- Max width as fraction of screen width
 	minimapModeScreenMargin = 0,  -- No margin in minimap mode (edge-to-edge)
 	minimapModeShowButtons = false,  -- Hide buttons in minimap mode
+	minimapModeShowMinimizeButton = false,  -- Show the minimize/maximize button on the pip-as-minimap (default off)
 	minimapModeStartMinimized = false,  -- Don't start minimized in minimap mode
 	minimapModeHideMoveResize = true,  -- Hide move and resize buttons in minimap mode
 	autoMaximizeOnGameStart = false,  -- Automatically maximize PIP when the game starts (players only, not spectators)
@@ -493,7 +494,7 @@ local miscState = {
 	gameOverZoomingOut = false,  -- True while GameOver zoom-out animation is in progress
 	isGameOver = false,  -- True after GameOver callin fires (disables takeable blink etc.)
 	-- Activity focus: briefly pan camera to map markers then restore
-	activityFocusEnabled = isMinimapMode,  -- Toggle state for the button (default on for minimap mode)
+	activityFocusEnabled = false,  -- Toggle state for the button (default off)
 	activityFocusSavedWcx = nil,   -- Saved camera X before focus
 	activityFocusSavedWcz = nil,   -- Saved camera Z before focus
 	activityFocusSavedZoom = nil,  -- Saved zoom before focus
@@ -1546,6 +1547,7 @@ local cache = {
 	canFly = {},
 	isBuilding = {},
 	isPseudoBuilding = {},  -- speed==0 units that aren't isBuilding (nano turrets, transportable turrets)
+	isCritter = {},         -- gaia wildlife units (name starts with "critter")
 	isCommander = {},
 	isDecoyCommander = {},  -- Commanders with customParams.decoyfor (show 'Decoy' instead of player name)
 	isScavCommander = {},   -- Scavenger commanders (show scav-specific name for decoys)
@@ -7208,6 +7210,9 @@ function widget:Initialize()
 		elseif uDef.speed == 0 and not uDef.canFly then
 			cache.isPseudoBuilding[uDefID] = true
 		end
+		if string.sub(uDef.name, 1, 7) == "critter" then
+			cache.isCritter[uDefID] = true
+		end
 		if uDef.customParams and (uDef.customParams.iscommander or uDef.customParams.isdecoycommander or uDef.customParams.isscavcommander or uDef.customParams.isscavdecoycommander) then
 			cache.isCommander[uDefID] = true
 			if uDef.customParams.decoyfor then
@@ -7488,13 +7493,29 @@ InitGL4Primitives()
 
 -- Ghost building sharing: merge data from any already-running sibling PIP
 -- This ensures all PIP instances share the same ghost history even on partial reload
+-- Validate each imported ghost against the engine to avoid carrying over stale
+-- entries whose unitID has been reused (see periodic cleanup for details).
 for n = 0, 4 do
 	if n ~= pipNumber and WG['pip' .. n] and WG['pip' .. n].GetGhostBuildings then
 		local siblingGhosts = WG['pip' .. n].GetGhostBuildings()
 		if siblingGhosts then
 			for gID, ghost in pairs(siblingGhosts) do
 				if not ghostBuildings[gID] then
-					ghostBuildings[gID] = { defID = ghost.defID, x = ghost.x, z = ghost.z, teamID = ghost.teamID }
+					local curDefID = Spring.GetUnitDefID(gID)
+					local accept = true
+					if curDefID then
+						if curDefID ~= ghost.defID then
+							accept = false
+						else
+							local curTeam = Spring.GetUnitTeam(gID)
+							if curTeam and ghost.teamID and curTeam ~= ghost.teamID then
+								accept = false
+							end
+						end
+					end
+					if accept then
+						ghostBuildings[gID] = { defID = ghost.defID, x = ghost.x, z = ghost.z, teamID = ghost.teamID }
+					end
 				end
 			end
 			break  -- All PIPs share the same LOS perspective, one source is sufficient
@@ -10016,7 +10037,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			uTeam = spFunc.GetUnitTeam(uID)
 			unitTeamCacheTbl[uID] = uTeam
 		end
-		if uTeam ~= localGaiaTeamID then
+		if not (uTeam == localGaiaTeamID and cache.isCritter[uDefID]) then
 		local layer = unitDefLayerTbl[uDefID] or defaultLayer
 		local x, _, z = spFunc.GetUnitBasePosition(uID)
 		local xPos = x or 0
@@ -10048,7 +10069,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				slowMobileIDs[smCount] = uID
 			end
 		end -- isImmobile
-		end -- uTeam ~= gaia
+		end -- not critter
 		end -- not fastPathHandled
 		end -- not cachedBldgX
 		end -- not crashing
@@ -16110,7 +16131,7 @@ function widget:DrawScreen()
 
 		-- Minimize button hover (show in minimap mode on hover for MinimapMinimize)
 		hover = false
-		if true then  -- Always allow minimize button (minimap mode uses MinimapMinimize, PIP mode uses inMinMode)
+		if not isMinimapMode or config.minimapModeShowMinimizeButton then  -- In minimap mode, only show if configured
 			if config.showButtonsOnHoverOnly and interactionState.isMouseOverPip then
 				-- Draw minimize button base when showing on hover
 				glFunc.Color(config.panelBorderColorDark)
@@ -16496,8 +16517,16 @@ function widget:Update(dt)
 		end
 	end
 
-	-- Periodic ghost building cleanup: remove ghosts whose position is now in LOS
-	-- The draw-path check only catches ghosts within the PIP viewport; this catches all of them
+	-- Periodic ghost building cleanup. Two failure modes are handled here:
+	--   a) Building destroyed in LOS: UnitDestroyed already cleared it. If it slipped
+	--      through, the LOS-on-position + nil-defID branch below catches it.
+	--   b) Spring engine recycles unitIDs after units die. When the unit cap is hit
+	--      there is heavy churn and a ghost's unitID can be reassigned to a new
+	--      (often allied) unit. In that case GetUnitDefID(gID) returns a NON-nil
+	--      defID that differs from ghost.defID — without this check the phantom
+	--      enemy icon would persist forever even with full LOS on the position.
+	--      This matches the reported bug ("unit cap reached, enemy dots all over
+	--      my base, no enemies in victory screen").
 	local cleanupAllyTeam
 	if not cameraState.mySpecState then
 		cleanupAllyTeam = Spring.GetMyAllyTeamID()
@@ -16509,13 +16538,64 @@ function widget:Update(dt)
 		if cache.ghostCleanupTimer >= 1.0 then  -- check every 1 second
 			cache.ghostCleanupTimer = 0
 			for gID, ghost in pairs(ghostBuildings) do
-				local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
-				if spFunc.IsPosInLos(ghost.x, gy, ghost.z, cleanupAllyTeam) then
-					-- Position is in LOS but unitID is not visible (not alive) — building was destroyed
-					if not spFunc.GetUnitDefID(gID) then
-						ghostBuildings[gID] = nil
+				local curDefID = spFunc.GetUnitDefID(gID)
+				local stale = false
+				if curDefID then
+					-- ID is in use. Detect engine ID-reuse:
+					--   * different defID -> definitely a different unit
+					--   * same defID but different team -> definitely a different unit
+					--   * same defID & team but position drifted far from ghost -> mobile unit
+					--     reusing the ID (buildings never move on their own)
+					if curDefID ~= ghost.defID then
+						stale = true
+					else
+						local curTeam = Spring.GetUnitTeam(gID)
+						if curTeam and ghost.teamID and curTeam ~= ghost.teamID then
+							stale = true
+						else
+							local ux, _, uz = spFunc.GetUnitBasePosition(gID)
+							if ux and uz then
+								local dx = ux - ghost.x
+								local dz = uz - ghost.z
+								-- 80 elmos ≈ a few build squares; buildings don't drift, so
+								-- any significant offset means the ID belongs to a new unit.
+								if dx*dx + dz*dz > 80*80 then
+									stale = true
+								end
+							end
+						end
+					end
+				else
+					-- Engine has no record of this unitID anymore. If we have LOS on
+					-- the ghost's position we can confirm the building is gone.
+					local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
+					if spFunc.IsPosInLos(ghost.x, gy, ghost.z, cleanupAllyTeam) then
+						stale = true
 					end
 				end
+				if stale then
+					ghostBuildings[gID] = nil
+				end
+			end
+		end
+	end
+
+	-- Hard cap on ghostBuildings size. Without an upper bound, repeated luaui
+	-- reloads, sibling-PIP imports, or pathological scout patterns can let the
+	-- table grow without limit across a long match. If we ever exceed the cap,
+	-- drop entries (any entries — table iteration order is fine here) until
+	-- back under the limit. This is a defensive backstop; the per-second
+	-- cleanup above is the primary mechanism.
+	do
+		local maxGhosts = 4000
+		local n = 0
+		for _ in pairs(ghostBuildings) do n = n + 1 end
+		if n > maxGhosts then
+			local toDrop = n - maxGhosts
+			for gID in pairs(ghostBuildings) do
+				if toDrop <= 0 then break end
+				ghostBuildings[gID] = nil
+				toDrop = toDrop - 1
 			end
 		end
 	end
@@ -18915,7 +18995,7 @@ function widget:MousePress(mx, my, mButton)
 
 			-- Minimizing? (or ALT+drag/middle drag to move window)
 			-- In minimap mode, clicking the minimize button triggers MinimapMinimize (with animation)
-			if isMinimapMode and mx >= render.dim.r - render.usedButtonSize and my >= render.dim.t - render.usedButtonSize then
+			if isMinimapMode and config.minimapModeShowMinimizeButton and mx >= render.dim.r - render.usedButtonSize and my >= render.dim.t - render.usedButtonSize then
 				Spring.SetConfigInt("MinimapMinimize", 1)
 				Spring.SendCommands("minimap minimize 1")
 				-- Animate shrink to the maximize button position (top-left corner)
