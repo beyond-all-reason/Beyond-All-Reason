@@ -13,6 +13,7 @@
 • [Stormbringer] 105 -> 110 damage, +5% m/e/bt
 • [Skyhook] 200 -> 185 speed, 6400 -> 9000 energycost
 • [Abductor] 225 -> 210 speed, 6600 -> 10000 energycost
+• [Battleships] Reduced damage vs subs
 
 # April
 • [Brakerate] 
