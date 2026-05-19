@@ -61,7 +61,7 @@ local exceptionList = { --add exempt units here
 for _,name in pairs(exceptionList) do
 	local ud = UnitDefNames[name]
 	if ud then
-		canCloakHoldFire[ud.id] = false
+		canCloakHoldFire[ud.id] = nil
 	end
 end
 
