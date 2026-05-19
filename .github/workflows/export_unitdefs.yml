@@ -87,15 +87,16 @@ jobs:
 
       - name: Validate export
         run: |
-          FILE_COUNT=$(find "$EXPORT_DIR/json_export" -name '*.json' | wc -l)
-          echo "Exported $FILE_COUNT unit definitions"
-          if [ "$FILE_COUNT" -lt 1 ]; then
-            echo "::error::No JSON files were exported"
+          UNIT_COUNT=$(find "$EXPORT_DIR/json_export/unitDefs" -name '*.json' 2>/dev/null | wc -l)
+          WEAPON_COUNT=$(find "$EXPORT_DIR/json_export/weaponDefs" -name '*.json' 2>/dev/null | wc -l)
+          echo "Exported $UNIT_COUNT unit definitions and $WEAPON_COUNT weapon definitions"
+          if [ "$UNIT_COUNT" -lt 1 ] || [ "$WEAPON_COUNT" -lt 1 ]; then
+            echo "::error::Export incomplete (unitDefs=$UNIT_COUNT weaponDefs=$WEAPON_COUNT)"
             exit 1
           fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: unitdefs-export-${{ github.sha }}
+          name: defs-export-${{ github.sha }}
           path: ${{ env.EXPORT_DIR }}/json_export/
