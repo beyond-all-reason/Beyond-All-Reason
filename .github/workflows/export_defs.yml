@@ -1,4 +1,4 @@
-name: Export UnitDefs JSON
+name: Export Defs JSON
 
 on:
   push:
@@ -13,7 +13,7 @@ env:
 
 jobs:
   export:
-    name: Export UnitDefs
+    name: Export Defs
     runs-on: ubuntu-latest
     if: github.repository == 'beyond-all-reason/Beyond-All-Reason'
     steps:
@@ -52,7 +52,7 @@ jobs:
           path: |
             ${{ env.EXPORT_DIR }}/engine
             ${{ env.EXPORT_DIR }}/maps
-          key: unitdef-export-${{ steps.engine.outputs.version }}-quicksilver-1.24
+          key: defs-export-${{ steps.engine.outputs.version }}-quicksilver-1.24
 
       - name: Download engine
         if: steps.cache.outputs.cache-hit != 'true'
