@@ -676,6 +676,9 @@ function widget:OnQuit()
 	if widgetState.dmHandle then
 		widgetState.dmHandle.hidden = true
 	end
+	if WG.FeaturePlacer then
+		WG.FeaturePlacer.clearSelectedFeatures()
+	end
 end
 
 function widget:OnSearchFocus()

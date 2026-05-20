@@ -339,7 +339,10 @@ function widget:OnQuit()
 	-- still highlighting DECALS as active. Deactivating cascades through
 	-- WG.DecalPlacer.getState().active → syncVisibilityFromTool hides the
 	-- document on the next Update tick.
-	if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
+	if WG.DecalPlacer then
+		WG.DecalPlacer.clearSelectedDecals()
+		WG.DecalPlacer.deactivate()
+	end
 end
 
 function widget:OnClearSelection()
