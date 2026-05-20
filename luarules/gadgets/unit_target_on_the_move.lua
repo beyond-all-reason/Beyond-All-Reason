@@ -94,7 +94,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if #weapons > 0 then
 			-- filter this down to only the params that actually get used, weapons is an array full of stuff!
-			unitWeapons[unitDefID] = weapons
+			unitWeapons[unitDefID] = {}
 			for i=1, #weapons do
 				unitWeapons[unitDefID][i] = true
 			end
@@ -109,7 +109,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local unitTargets = {} -- data holds all unitID data
 	local pausedTargets = {}
-
 	local waitForCommandDone = {}
 	local checkForManualFire = {}
 
@@ -164,21 +163,29 @@ if gadgetHandler:IsSyncedCode() then
 		return ownTeam and enemyTeam and spAreTeamsAllied(ownTeam, enemyTeam)
 	end
 
+	local function TargetCanBeReachedReal(unitID, weaponList, target)
+		local isUnitTarget = type(target) == "number"
+		for weaponNum in pairsNext, weaponList do
+			--GetUnitWeaponTryTarget tests both target type validity and target to be reachable for the moment
+			if isUnitTarget and spGetUnitWeaponTryTarget(unitID, weaponNum, target) then
+				return weaponNum
+			elseif
+				not isUnitTarget
+				and spGetUnitWeaponTestTarget(unitID, weaponNum, target[1], target[2], target[3])
+				and spGetUnitWeaponTestRange(unitID, weaponNum, target[1], target[2], target[3])
+				and spGetUnitWeaponHaveFreeLineOfFire(unitID, weaponNum, nil, nil, nil, target[1], target[2], target[3])
+			then
+				return weaponNum
+			end
+		end
+	end
+
 	local function TargetCanBeReached(unitID, teamID, weaponList, target)
 		if not weaponList then
 			return
 		end
-		local isUnitTarget = type(target) == "number"
-		for weaponID in pairsNext, weaponList do
-			--GetUnitWeaponTryTarget tests both target type validity and target to be reachable for the moment
-			if isUnitTarget and CallAsTeam(teamID, spGetUnitWeaponTryTarget, unitID, weaponID, target) then
-				return weaponID
-			elseif not isUnitTarget and CallAsTeam(teamID, spGetUnitWeaponTestTarget, unitID, weaponID, target[1], target[2], target[3]) and CallAsTeam(teamID, spGetUnitWeaponTestRange, unitID, weaponID, target[1], target[2], target[3]) then
-				if CallAsTeam(teamID, spGetUnitWeaponHaveFreeLineOfFire, unitID, weaponID, nil, nil, nil, target[1], target[2], target[3]) then
-					return weaponID
-				end
-			end
-		end
+
+		return CallAsTeam(teamID, TargetCanBeReachedReal, unitID, weaponList, target)
 	end
 
 	local function checkTarget(unitID, target)
@@ -190,7 +197,7 @@ if gadgetHandler:IsSyncedCode() then
 		local unitData = unitTargets[unitID]
 		if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, targetData.target) then
 			local currentCmdID = spGetUnitCurrentCommand(unitID)
-			if currentCmdID and currentCmdID == CMD.ATTACK then
+			if currentCmdID == CMD.ATTACK then
 				return false
 			else
 				Spring.SetUnitTarget(unitID, nil)
@@ -333,7 +340,7 @@ if gadgetHandler:IsSyncedCode() then
 			sendTargetsToUnsynced(unitID)
 			if setTarget(unitID, data.targets[1]) then
 				if data.currentIndex ~= 1 then
-					unitTargets[unitID].currentIndex = 1
+					data.currentIndex = 1
 					SendToUnsynced("targetIndex", unitID, 1)
 				end
 			end
@@ -400,6 +407,12 @@ if gadgetHandler:IsSyncedCode() then
 			removeUnit(unitID)
 		elseif m < n then
 			refreshSendList(unitID, unitData, m)
+			local currentIndex = unitTargets[unitID].currentIndex
+			if index == currentIndex then
+				unitTargets[unitID].currentIndex = 1
+			elseif index < currentIndex then
+				unitTargets[unitID].currentIndex = currentIndex - 1
+			end
 		end
 	end
 
@@ -484,7 +497,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				-- Checks if the command is a valid area command {x,y,z,r} with radius more than 0:
 				if #cmdParams > 3 and not (#cmdParams == 4 and cmdParams[4] == 0) then
-					local targets = {}
+					local targets
 					if #cmdParams == 6 then
 						--rectangle
 						local top, bot, left, right
@@ -570,7 +583,9 @@ if gadgetHandler:IsSyncedCode() then
 								elseif target[2] < 0 and spGetUnitWeaponTestTarget(unitID, weaponID, target[1], 1, target[3]) then
 									target[2] = 1 -- clip to waterlevel +1
 									validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target[1], target[2], target[3])
-									break
+									if validTarget then
+										break
+									end
 								end
 							end
 						end
@@ -750,6 +765,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n % 5 == 4 then
 			for unitID, unitData in pairsNext, unitTargets do
 				local targetIndex
+				local targetOffset = 0
 				local targets = unitData.targets
 				-- Check each target and find first valid one
 				for index = 1, #targets do
@@ -757,8 +773,9 @@ if gadgetHandler:IsSyncedCode() then
 					if not checkTarget(unitID, targetData.target) then
 						-- Mark for removal, but don't remove during iteration
 						targetData.invalid = true
+						targetOffset = targetOffset + 1
 					elseif not targetData.invalid and setTarget(unitID, targetData) then
-						targetIndex = index
+						targetIndex = index - targetOffset
 						break
 					end
 				end

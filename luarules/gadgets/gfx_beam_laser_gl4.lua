@@ -51,6 +51,7 @@ local GL_SRC_ALPHA            = GL.SRC_ALPHA
 local mathMin    = math.min
 local mathMax    = math.max
 local mathSqrt   = math.sqrt
+local mathFloor  = math.floor
 
 local LuaShader = gl.LuaShader
 local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
@@ -70,6 +71,16 @@ local GHOST_FRAMES_MAX      = 8     -- ghost frames for thickest beams
 local GHOST_THICKNESS_MIN   = 1.5   -- thickness at or below which gets min ghost frames
 local GHOST_THICKNESS_MAX   = 5.0   -- thickness at or above which gets max ghost frames
 local FLARE_GHOST_FRAC      = 0.4   -- fraction of weapon ghostFrames where flare stays visible (0..1)
+
+-- Hardpoint bucketing: muzzle position is quantized into a coarse grid and the
+-- bucket index is part of the tracking key. This lets multiple hardpoints on
+-- the same unit that share a weaponDefID (e.g. dual-barrel beam turrets) each
+-- get their own tracked beam slot, while still merging consecutive shots from
+-- one rotating turret (whose muzzle moves only a few elmos between shots)
+-- onto the same key -- avoiding the "stuttering rapid-fire trail" that a
+-- per-shot key would produce.
+local HARDPOINT_BUCKET_SIZE = 12    -- elmos per bucket on each axis
+local INV_HARDPOINT_BUCKET  = 1 / HARDPOINT_BUCKET_SIZE
 
 -- Textures
 local beamTexture  = "bitmaps/projectiletextures/largebeam.tga"
@@ -262,6 +273,7 @@ out DataVS {
 	vec4 vEdgeColor;
 	float alpha;
 	float widthPos;  // -1..1 across beam width (for per-pixel core calc)
+	float coverage;  // true beam width / inflated geometry width (0..1, =1 close, <1 far)
 };
 
 void main()
@@ -323,7 +335,7 @@ void main()
 	// entire beam (per-vertex camDist causes start to appear narrower than middle)
 	float camDist = length(camPos - mix(startPos, endPos, 0.5));
 	float minWidth = camDist * MIN_PIXEL_WIDTH;
-	float coverage = clamp(width / max(minWidth, 0.001), 0.0, 1.0);
+	float coverageVal = clamp(width / max(minWidth, 0.001), 0.0, 1.0);
 	width = max(width, minWidth);
 
 	vec3 vertexWorld = vertPos
@@ -338,11 +350,19 @@ void main()
 	vCoreColor = coreColor;
 	vEdgeColor = edgeColor;
 	widthPos = position_xy_uv.x;  // -1..1
+	coverage = coverageVal;
 
-	// Alpha: fade with lifetime and slight range falloff
+	// Alpha: fade with lifetime and slight range falloff.
+	// When the beam is widened to MIN_PIXEL_WIDTH (coverage < 1), we dim alpha to
+	// conserve total emitted energy. Linear dim by `coverage` is energy-correct
+	// but visually crushes the core at distance, while no dim at all over-bright
+	// the inflated quad and produces line-ish jaggies. A sqrt curve is a good
+	// middle ground: noticeably brighter than linear at small coverage, still
+	// fades out gracefully, and lets fwidth-AA on the full inflated quad keep
+	// edges smooth.
 	float rangeFalloff = edgeColor.a;
 	float alphaFalloff = 1.0 - rangeFalloff * yNorm;
-	alpha = coreColor.a * lifePulse * alphaFalloff * coverage;
+	alpha = coreColor.a * lifePulse * alphaFalloff * sqrt(coverageVal);
 }
 ]]
 
@@ -363,6 +383,7 @@ in DataVS {
 	vec4 vEdgeColor;
 	float alpha;
 	float widthPos;
+	float coverage;
 };
 
 out vec4 fragColor;
@@ -1191,19 +1212,18 @@ local function updateBeams()
 								mathMax(px, endX) + pad, mathMax(py, endY) + pad, mathMax(pz, endZ) + pad
 							) then
 								local ownerID = spGetProjectileOwnerID(proID) or 0
-								-- Key = "ownerID|wDefID". Muzzle position deliberately
-								-- excluded: turrets rotate between shots, so including the
-								-- muzzle would give every shot a fresh key, and the previous
-								-- shot's tracked entry would linger as a ghost beam while the
-								-- new one renders -- looking like a stuttering rapid-fire
-								-- trail instead of a single moving beam.
-								-- Different beam weapons on the same unit (e.g. corhllt's
-								-- hllt_top + hllt_bottom) have distinct wDefIDs, so owner+wDef
-								-- already disambiguates them. Multiple hardpoints sharing the
-								-- SAME wDefID on one unit (rare for beam lasers) would alias,
-								-- but the result -- one of the two beams winning per frame --
-								-- is less visually disruptive than the ghost-stacking trail.
-								local wbKey = ownerID .. "|" .. wDefID
+								-- Key = "ownerID|wDefID|bx,by,bz" where bx/by/bz quantize the
+								-- muzzle position into HARDPOINT_BUCKET_SIZE-elmo cells. Multiple
+								-- hardpoints on one unit that share a weaponDefID (e.g. dual-barrel
+								-- beam turrets) land in different buckets and each get their own
+								-- tracked beam, fixing the bug where only one barrel rendered.
+								-- Rotation drift on a single hardpoint between shots is well below
+								-- one bucket, so consecutive shots still merge onto the same key
+								-- and don't produce a "stuttering rapid-fire trail" of ghost beams.
+								local bx = mathFloor(origPx * INV_HARDPOINT_BUCKET)
+								local by = mathFloor(origPy * INV_HARDPOINT_BUCKET)
+								local bz = mathFloor(origPz * INV_HARDPOINT_BUCKET)
+								local wbKey = ownerID .. "|" .. wDefID .. "|" .. bx .. "," .. by .. "," .. bz
 								if not liveKeys[wbKey] then
 									liveKeys[wbKey] = true
 									liveKeysCount = liveKeysCount + 1
@@ -1419,7 +1439,12 @@ function gadget:GameFrame(n)
 					local vx, vy, vz = spGetProjectileVelocity(proID)
 					if vx then
 						local ownerID = spGetProjectileOwnerID(proID) or 0
-						local wbKey = ownerID .. "|" .. wDefID
+						-- Bucketed muzzle position in key disambiguates multiple hardpoints
+						-- sharing one wDefID on the same unit. See DrawWorld for rationale.
+						local bx = mathFloor(px * INV_HARDPOINT_BUCKET)
+						local by = mathFloor(py * INV_HARDPOINT_BUCKET)
+						local bz = mathFloor(pz * INV_HARDPOINT_BUCKET)
+						local wbKey = ownerID .. "|" .. wDefID .. "|" .. bx .. "," .. by .. "," .. bz
 						local tracked = weaponBeams[wbKey]
 						if not tracked then
 							tracked = { cfg = cfg }

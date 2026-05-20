@@ -326,6 +326,15 @@ function widget:ViewResize()
 		gl.DeleteList(keybinds)
 	end
 	keybinds = gl.CreateList(drawWindow)
+
+	if backgroundGuishader ~= nil then
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('keybindinfo')
+		else
+			glDeleteList(backgroundGuishader)
+		end
+		backgroundGuishader = nil
+	end
 end
 
 
@@ -351,10 +360,7 @@ function widget:DrawScreen()
 	if show or showOnceMore then
 		gl.Texture(false)	-- some other widget left it on
 		glCallList(keybinds)
-		if WG['guishader'] then
-			if backgroundGuishader ~= nil then
-				glDeleteList(backgroundGuishader)
-			end
+		if WG['guishader'] and backgroundGuishader == nil then
 			backgroundGuishader = glCreateList(function()
 				-- background
 				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
@@ -372,8 +378,13 @@ function widget:DrawScreen()
 			Spring.SetMouseCursor('cursornormal')
 		end
 	else
-		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('keybindinfo')
+		if backgroundGuishader ~= nil then
+			if WG['guishader'] then
+				WG['guishader'].DeleteDlist('keybindinfo')
+			else
+				glDeleteList(backgroundGuishader)
+			end
+			backgroundGuishader = nil
 		end
 	end
 end
@@ -402,6 +413,14 @@ local function mouseEvent(x, y, button, release)
 					end
 					lasstab = tab
 					keybinds = gl.CreateList(drawWindow, tab)
+					if backgroundGuishader ~= nil then
+						if WG['guishader'] then
+							WG['guishader'].DeleteDlist('keybindinfo')
+						else
+							glDeleteList(backgroundGuishader)
+						end
+						backgroundGuishader = nil
+					end
 					return true
 				end
 			end
@@ -447,11 +466,13 @@ function widget:Shutdown()
 		glDeleteList(keybinds)
 		keybinds = nil
 	end
-	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('keybindinfo')
-	end
 	if backgroundGuishader ~= nil then
-		glDeleteList(backgroundGuishader)
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('keybindinfo')
+		else
+			glDeleteList(backgroundGuishader)
+		end
+		backgroundGuishader = nil
 	end
 end
 

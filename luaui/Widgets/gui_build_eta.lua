@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "trepan (modified by jK)",
 		date = "2007",
 		license = "GNU GPL, v2 or later",
-		layer = -9,
+		layer = -90,
 		enabled = true
 	}
 end
@@ -18,6 +18,9 @@ local spGetUnitViewPosition = Spring.GetUnitViewPosition
 local spGetGameSeconds = Spring.GetGameSeconds
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetCameraPosition = Spring.GetCameraPosition
+local spWorldToScreenCoords = Spring.WorldToScreenCoords
+local spGetViewGeometry = Spring.GetViewGeometry
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetFeatureResources = Spring.GetFeatureResources
@@ -28,17 +31,25 @@ local spec, fullview = spGetSpectatingState()
 local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local glColor = gl.Color
-local glDepthTest = gl.DepthTest
-local glDrawFuncAtUnit = gl.DrawFuncAtUnit
-local glBillboard = gl.Billboard
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
 local glTranslate = gl.Translate
-local glPushPopMatrix = gl.PushPopMatrix
+local glScale = gl.Scale
 
 local font
+local vsx, vsy = spGetViewGeometry()
 
 local unitETATable = {}
 local featureETATable = {}
-local etaMaxDist = 750000 -- max dist at which to draw ETA
+-- Distance thresholds in world units (elmos). Camera height is roughly the main dial.
+-- At ETA_DIST_FULL the text is fully visible at max font size.
+-- Between ETA_DIST_FULL and ETA_DIST_FADE the text fades out linearly.
+-- Beyond ETA_DIST_FADE the text is invisible.
+local ETA_DIST_FULL = 500   -- fully opaque + largest font below this distance
+local ETA_DIST_FADE = 1000   -- completely transparent / hidden beyond this distance
+local ETA_FONT_CLOSE = 44   -- font size (px) when closer than ETA_DIST_FULL
+local ETA_FONT_FAR   = 11   -- font size (px) when at ETA_DIST_FADE
+local ETA_SCREEN_OFFSET_Y = -35 -- pixels below the projected world position (negative = down on screen)
 local blinkTime = 20
 local minETASecs = 5 -- Don't show ETA if it is less than 5 seconds
 
@@ -57,6 +68,7 @@ end
 
 
 function widget:ViewResize()
+	vsx, vsy = spGetViewGeometry()
 	font = WG['fonts'].getFont(nil, 1.2, 0.2, 20)
 end
 
@@ -69,12 +81,14 @@ local function makeUnitETA(unitID, unitDefID)
 		return nil
 	end
 
+	local alreadyStarted = buildProgress > 0.001
 	return {
-		firstSet = true,
+		firstSet = not alreadyStarted,
 		lastTime = spGetGameSeconds(),
 		lastProg = buildProgress,
 		rate = nil,
 		timeLeft = nil,
+		display = alreadyStarted or nil, -- show immediately for existing units (will show ??? until rate is known)
 		yoffset = unitHeight[unitDefID] + 14
 	}
 end
@@ -176,7 +190,7 @@ local function updateEta(eta, newProgress, gameSeconds, abs)
 				if abs then newTime = math.abs(newTime) end
 				eta.timeLeft = newTime
 			end
-			
+
 			if eta.display == nil and eta.timeLeft < minETASecs then
 				eta.display = false
 			elseif eta.timeLeft >= minETASecs then
@@ -204,7 +218,7 @@ function widget:Update(dt)
 			updateEta(eta, buildProgress, gs)
 		end
 	end
-	
+
 	for featureID, eta in pairs(featureETATable) do
 		local progress
 		progress = select(5, spGetFeatureResources(featureID))
@@ -213,7 +227,7 @@ function widget:Update(dt)
 		end
 		updateEta(eta, progress, gs, true)
 	end
-	
+
 end
 
 function widget:PlayerChanged()
@@ -246,7 +260,7 @@ function widget:FeatureDestroyed(featureID, allyTeamID)
 	featureETATable[featureID] = nil
 end
 
-local function drawEtaText(timeLeft, yoffset)
+local function drawEtaText(timeLeft, alpha, fontSize)
 	local etaText
 	local etaPrefix = i18n_buildTime
 	if timeLeft == nil then
@@ -260,43 +274,70 @@ local function drawEtaText(timeLeft, yoffset)
 		etaText = etaPrefix .. string.format((not canceled and "\255\1\255\1" or "") .. "%02d:%02d", minutes, seconds)
 	end
 
-	glTranslate(0, yoffset, 10)
-	glBillboard()
-	glTranslate(0, 5, 0)
+	glColor(1, 1, 1, alpha)
 	font:Begin()
-	font:Print(etaText, 0, -10, 6, "co")
+	font:Print(etaText, 0, 0, fontSize, "co")
 	font:End()
+	glColor(1, 1, 1, 1)
 end
 
 
 
-function widget:DrawWorld()
-	if Spring.IsGUIHidden() == false then
-		local cx, cy, cz = Spring.GetCameraPosition()
-		glDepthTest(false)
-		
-		for unitID, eta in pairs(unitETATable) do
-			if eta.display then
-				local ux, uy, uz = spGetUnitViewPosition(unitID)
-				if ux ~= nil then
-					local dx, dy, dz = ux - cx, uy - cy, uz - cz
-					local dist = dx * dx + dy * dy + dz * dz
-					if dist < etaMaxDist then
-						glDrawFuncAtUnit(unitID, false, drawEtaText, eta.timeLeft, eta.yoffset)
+function widget:DrawScreenEffects()
+	if Spring.IsGUIHidden() then return end
+
+	local cx, cy, cz = spGetCameraPosition()
+
+	for unitID, eta in pairs(unitETATable) do
+		if eta.display then
+			local ux, uy, uz = spGetUnitViewPosition(unitID)
+			if ux ~= nil then
+				local dx, dy, dz = ux - cx, uy - cy, uz - cz
+				local dist = math.sqrt(dx*dx + dy*dy + dz*dz)
+				if dist < ETA_DIST_FADE then
+					local alpha, fontSize
+					if dist <= ETA_DIST_FULL then
+						alpha = 1.0
+						fontSize = ETA_FONT_CLOSE
+					else
+						local t = (dist - ETA_DIST_FULL) / (ETA_DIST_FADE - ETA_DIST_FULL)
+						alpha = 1.0 - t
+						fontSize = ETA_FONT_CLOSE + t * (ETA_FONT_FAR - ETA_FONT_CLOSE)
+					end
+					local sx, sy = spWorldToScreenCoords(ux, uy + eta.yoffset, uz)
+					if sx and sy and sx > -200 and sx < vsx + 200 and sy > -50 and sy < vsy + 50 then
+						glPushMatrix()
+						glTranslate(sx, sy + ETA_SCREEN_OFFSET_Y, 0)
+						drawEtaText(eta.timeLeft, alpha, fontSize)
+						glPopMatrix()
 					end
 				end
 			end
 		end
-		
-		for featureID, eta in pairs(featureETATable) do
-			if eta.display then
-				local fx, fy, fz = spGetFeaturePosition(featureID)
-				if fx ~= nil then
-					local dx, dy, dz = fx - cx, fy - cy, fz - cz
-					local dist = dx * dx + dy * dy + dz * dz
-					if dist < etaMaxDist then
-						glTranslate(fx, fy, fz)
-						glPushPopMatrix(drawEtaText, eta.timeLeft, eta.yoffset)
+	end
+
+	for featureID, eta in pairs(featureETATable) do
+		if eta.display then
+			local fx, fy, fz = spGetFeaturePosition(featureID)
+			if fx ~= nil then
+				local dx, dy, dz = fx - cx, fy - cy, fz - cz
+				local dist = math.sqrt(dx*dx + dy*dy + dz*dz)
+				if dist < ETA_DIST_FADE then
+					local alpha, fontSize
+					if dist <= ETA_DIST_FULL then
+						alpha = 1.0
+						fontSize = ETA_FONT_CLOSE
+					else
+						local t = (dist - ETA_DIST_FULL) / (ETA_DIST_FADE - ETA_DIST_FULL)
+						alpha = 1.0 - t
+						fontSize = ETA_FONT_CLOSE + t * (ETA_FONT_FAR - ETA_FONT_CLOSE)
+					end
+					local sx, sy = spWorldToScreenCoords(fx, fy + eta.yoffset, fz)
+					if sx and sy and sx > -200 and sx < vsx + 200 and sy > -50 and sy < vsy + 50 then
+						glPushMatrix()
+						glTranslate(sx, sy + ETA_SCREEN_OFFSET_Y, 0)
+						drawEtaText(eta.timeLeft, alpha, fontSize)
+						glPopMatrix()
 					end
 				end
 			end

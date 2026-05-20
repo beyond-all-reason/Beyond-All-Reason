@@ -53,6 +53,9 @@ local clearSound = 'LuaUI/Sounds/switchoff.wav'
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 local isRecordPressed = false
 local isClearPressed = false
+local spawnInitialFrame = Game.spawnInitialFrame
+local spawnWarpInFrame = Game.spawnWarpInFrame
+local spectatingState = select(1, Spring.GetSpectatingState())
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -182,6 +185,31 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			--spEcho("".. name .. ", " .. tostring(cmdID) .. ", " .. tostring(cmdParam) .. " success: ".. tostring(success))
 		end
 	end
+end
+
+local function ApplyUnitStates()
+	local teamID = (not spectatingState) and Spring.GetMyTeamID()
+	local units = (teamID and Spring.GetTeamUnits(teamID)) or Spring.GetAllUnits()
+	if units then
+		for i = 1, #units do
+			widget:UnitFinished(units[i], Spring.GetUnitDefID(units[i]), teamID or Spring.GetUnitTeam(units[i]))
+		end
+	end
+end
+
+function widget:GameFrame(n)
+	if Spring.GetGameState then
+		local finishedLoading, loadedFromSave, locallyPaused, lagging = Spring.GetGameState()
+		if loadedFromSave then
+			widgetHandler:RemoveCallIn("GameFrame", self)
+			return
+		end
+	end
+	if n <= spawnInitialFrame then
+		return
+	end
+	ApplyUnitStates()
+	widgetHandler:RemoveCallIn("GameFrame", self)
 end
 
 function widget:GameOver()

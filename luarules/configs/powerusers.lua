@@ -18,7 +18,7 @@ local moderator = {
 	undo = true,
 	cmd = false,
 	devhelpers = false,
-	playerdata = false,
+	playerdata = true,
 	waterlevel = false,
 	sysinfo = true,
 	volcano = true,
@@ -71,6 +71,7 @@ return {
 	[36669] = everything,	-- Steel
 
 	-- moderator
+	[3] = moderator,		-- Teifion
 	[3133] = moderator,		-- Lexon
 	[258984] = moderator,	-- ScavengersOffenseAI
 	[22297] = moderator,	-- Shadhunter
@@ -81,6 +82,9 @@ return {
 	[168817] = moderator,	-- SongbirdOfChirping
 	[57158] = moderator,	-- Endorphins
 	[88808] = moderator,	-- Shadowisperke
+	[591000] = moderator,	-- krolya
+	[197109] = moderator,	-- Gabba_Gandalf
+	[4102] = moderator,		-- KayZee
 
 	-- event manager
 	[132545] = eventmanager,	-- Praedyth (KOTH organizer)

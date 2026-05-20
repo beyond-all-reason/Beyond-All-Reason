@@ -31,6 +31,13 @@ local CMD_WANT_CLOAK    = GameCMD.WANT_CLOAK
 --------------------------------------------------------------------------------
 local myTeam = spGetMyTeamID()
 
+local canCloakHoldFire = {}
+for udid, ud in pairs(UnitDefs) do
+	if ud.canCloak then
+		canCloakHoldFire[udid] = true
+	end
+end
+
 local exceptionList = { --add exempt units here
 	"armmine1",
 	"armmine2",
@@ -51,11 +58,10 @@ local exceptionList = { --add exempt units here
 	"armsnipe",
 }
 
-local exceptionArray = {}
 for _,name in pairs(exceptionList) do
 	local ud = UnitDefNames[name]
 	if ud then
-		exceptionArray[ud.id] = true
+		canCloakHoldFire[ud.id] = nil
 	end
 end
 
@@ -65,7 +71,7 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 	if teamID ~= myTeam then return end
 
 	if cmdID == CMD_WANT_CLOAK and cmdParams[1] ~= nil then -- is cloak command
-		if exceptionArray[unitDefID] or string.find(UnitDefs[unitDefID].name, "_scav") then return end -- don't do anything for these units
+		if not canCloakHoldFire[unitDefID] or string.find(UnitDefs[unitDefID].name, "_scav") then return end -- don't do anything for these units
 
 		if cmdParams[1] == 1 then -- store current fire state and cloak
 			decloakFireState[unitID] = select(1, GetUnitStates(unitID, false)) --store last state
