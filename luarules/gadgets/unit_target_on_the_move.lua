@@ -86,7 +86,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if #weapons > 0 then
 			-- filter this down to only the params that actually get used, weapons is an array full of stuff!
-			unitWeapons[unitDefID] = weapons
+			unitWeapons[unitDefID] = {}
 			for i=1, #weapons do
 				unitWeapons[unitDefID][i] = true
 			end
@@ -102,6 +102,7 @@ if gadgetHandler:IsSyncedCode() then
 	local unitTargets = {} -- data holds all unitID data
 	local pausedTargets = {}
 	--local needSend = {}
+
 	--------------------------------------------------------------------------------
 	-- Commands
 
@@ -356,6 +357,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			sendTargetsToUnsynced(unitID)
 			SendToUnsynced("targetList", unitID, #unitTargets[unitID].targets + 1) -- ask to clear the last element since we made the table smaller
+			local currentIndex = unitTargets[unitID].currentIndex
+			if index == currentIndex then
+				unitTargets[unitID].currentIndex = 1
+			elseif index < currentIndex then
+				unitTargets[unitID].currentIndex = currentIndex - 1
+			end
 		end
 	end
 
@@ -439,7 +446,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				-- Checks if the command is a valid area command {x,y,z,r} with radius more than 0:
 				if #cmdParams > 3 and not (#cmdParams == 4 and cmdParams[4] == 0) then
-					local targets = {}
+					local targets
 					if #cmdParams == 6 then
 						--rectangle
 						local top, bot, left, right
@@ -529,7 +536,9 @@ if gadgetHandler:IsSyncedCode() then
 								elseif target[2] < 0 and spGetUnitWeaponTestTarget(unitID, weaponID, target[1], 1, target[3]) then
 									target[2] = 1 -- clip to waterlevel +1
 									validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target[1], target[2], target[3])
-									break
+									if validTarget then
+										break
+									end
 								end
 							end
 						end
@@ -721,6 +730,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n % 5 == 4 then
 			for unitID, unitData in pairsNext, unitTargets do
 				local targetIndex
+				local targetOffset = 0
 				local targets = unitData.targets
 				-- Check each target and find first valid one
 				for index = 1, #targets do
@@ -728,8 +738,9 @@ if gadgetHandler:IsSyncedCode() then
 					if not checkTarget(unitID, targetData.target) then
 						-- Mark for removal, but don't remove during iteration
 						targetData.invalid = true
+						targetOffset = targetOffset + 1
 					elseif not targetData.invalid and setTarget(unitID, targetData) then
-						targetIndex = index
+						targetIndex = index - targetOffset
 						break
 					end
 				end
