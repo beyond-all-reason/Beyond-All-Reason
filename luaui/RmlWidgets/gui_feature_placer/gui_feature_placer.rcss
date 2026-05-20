@@ -18,7 +18,7 @@ body {
 	position: absolute;
 	left: 60vw;
 	top: 10vh;
-	width: 15vw;
+	width: 13vw;
 	min-width: 300px;
 	z-index: 900;
 }
