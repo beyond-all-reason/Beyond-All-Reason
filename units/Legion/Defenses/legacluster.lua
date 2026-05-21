@@ -38,6 +38,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Defenses",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

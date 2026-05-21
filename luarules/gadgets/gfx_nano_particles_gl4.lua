@@ -2953,12 +2953,32 @@ function gadget:DrawWorld()
 	-- kill our pass. Force every state bit our shader relies on.
 	-- (Inlined gl.* calls instead of upvalue locals -- file is at the 200
 	-- local-variable limit.)
+	--
+	-- Symptom we are guarding against: while a player is positioning a
+	-- building, nano particles can briefly vanish on Twitch streams. Root
+	-- causes seen / suspected:
+	--   * ColorMask left with one or more channels disabled by a prior pass
+	--     (post-processing, screenshot helpers, minimap stencils).
+	--   * Scissor left enabled with a tiny rect (UI clipping leak).
+	--   * PolygonOffset left enabled, shifting our particle depth so the
+	--     placement-ghost depth values reject every fragment.
+	--   * AlphaTest left enabled with a func that rejects our 20/255 alpha.
+	--   * StencilTest already enabled with a stale func that rejects
+	--     everywhere before we re-program it.
+	-- All cheap to enforce per-frame; cost is dwarfed by the VBO draw.
 	glDepthTest(GL.LEQUAL)
 	glDepthMask(false)
 	glCulling(false)
 	gl.AlphaTest(false)
 	gl.Color(1, 1, 1, 1)
+	gl.ColorMask(true, true, true, true)
+	gl.Scissor(false)
+	gl.PolygonOffset(false)
 	gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
+	-- Disable stencil first so the func/mask/op programming below cannot be
+	-- short-circuited by a leftover test that rejects every fragment before
+	-- we re-enable with the right state.
+	gl.StencilTest(false)
 	-- Engine premultiplied-alpha pass: BlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA).
 	glBlending(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
 

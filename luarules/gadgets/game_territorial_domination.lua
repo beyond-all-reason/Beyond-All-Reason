@@ -278,7 +278,10 @@ local function setAllyTeamRanks()
 	end
 	for allyID, scoreData in pairs(allyData) do
 		local securedScore = scoreData.score
-		local projectedPoints = projectedAllyTeamPoints[allyID] or 0
+		local projectedPoints = 0
+		if currentRound <= MAX_ROUNDS then
+			projectedPoints = projectedAllyTeamPoints[allyID] or 0
+		end
 		local rankingScore = securedScore + projectedPoints
 		local territoryCount = 0
 		for gridID, data in pairs(captureGrid) do
@@ -579,11 +582,11 @@ local function updateProjectedPoints()
 			end
 		end
 
-		projectedAllyTeamPoints[allyID] = projectedScore
-
-		if not gameOver and (currentRound <= MAX_ROUNDS) then
+		if currentRound <= MAX_ROUNDS then
+			projectedAllyTeamPoints[allyID] = projectedScore
 			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", projectedScore)
 		else
+			projectedAllyTeamPoints[allyID] = 0
 			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", 0)
 		end
 		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_territoryCount", territoryCount)
