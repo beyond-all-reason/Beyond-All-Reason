@@ -8,8 +8,8 @@
 -- team-colored tint, end-of-life alpha fade.
 --
 -- Pure unsynced gadget: UnitDefs are available unsynced and UnitDestroyed
--- fires on the unsynced side too (already LOS-gated for enemies, which is
--- exactly what we want -- no LOS leak via this effect).
+-- fires on the unsynced side too. An explicit IsPosInLos check in
+-- UnitDestroyed ensures no particles appear for units the player can't see.
 --
 -- All tunables live in CONFIG at the top of the file.
 --------------------------------------------------------------------------------
@@ -54,8 +54,8 @@ local CONFIG = {
 
 	-- Final particleCount = clamp(score * particleCountMul, minPC, maxPC)
 	particleCountMul = 1.0,
-	minParticleCount = 6,
-	maxParticleCount = 300,
+	minParticleCount = 5,
+	maxParticleCount = 250,
 
 	-- Global cap so a wave of dying fusions can't blow the pool.
 	maxLiveParticles  = 6000,
@@ -65,7 +65,7 @@ local CONFIG = {
 	-- 0 = spawn immediately (no delay). Increase to let the initial CEG fireball
 	-- start dispersing before energy particles appear (trades visual "lateness"
 	-- for less CEG obstruction at spawn).
-	spawnDelayFrames  = 2,
+	spawnDelayFrames  = 1,
 
 	------------------------------------------------------------------
 	-- Velocity / spawn geometry
@@ -74,14 +74,16 @@ local CONFIG = {
 	-- [minSpeed, maxSpeed] with `rand ^ speedPower` -- speedPower > 1 means
 	-- most particles are slow with a long high-speed tail ("shrapnel" feel),
 	-- < 1 means most fly fast.
-	minSpeed     = 0.4,
-	maxSpeed     = 2.5,
-	speedPower   = 1.7,
+	minSpeed     = 0.3,
+	maxSpeed     = 3,
+	speedPower   = 1.8,
 	-- Direction bias. 1.0 = strictly +Y, 0.0 = uniform full sphere,
 	-- intermediate values blend (cosTheta = (2r-1)*(1-bias) + bias).
 	upwardBias = 0.15,
 	-- Spawn jitter around the unit center, as a fraction of unit radius.
-	spawnJitterFrac = 0.5,
+	-- Keep small so particles start near the center and expand visibly;
+	-- too large and they appear pre-spread with no expansion phase.
+	spawnJitterFrac = 0.25,
 	-- Compress vertical spawn jitter so particles don't spawn far below the
 	-- ground plane (1.0 = full sphere, 0.4 = flat oval).
 	spawnJitterYFrac = 0.6,
@@ -93,31 +95,31 @@ local CONFIG = {
 	-- more speed. Set useDeathExplosion=false to ignore the weapon entirely.
 	------------------------------------------------------------------
 	useDeathExplosion = true,
-	aoeJitterMul      = 0.4,    -- spawn jitter += aoe * mul (elmos)
+	aoeJitterMul      = 0.25,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
 	aoeSpeedMul       = 0.0045,  -- maxSpeed += aoe * mul
 	damageSpeedMul    = 0.0035,  -- maxSpeed += damage * mul
 	damageCountMul    = 0.025,  -- extra particles per damage point
 	damageCountMax    = 3,     -- hard cap on the damage/aoe particle bonus
-	maxSpeedBonus     = 2.2,   -- hard cap on the aoe+damage speed bonus (elmos/frame)
+	maxSpeedBonus     = 3.5,   -- hard cap on the aoe+damage speed bonus (elmos/frame)
 
 	------------------------------------------------------------------
 	-- Physics (applied in vertex shader, global)
 	--   pos(t) = spawn + vel*t*(1 - 0.5*drag*t) + 0.5*gravity*t^2
 	-- t is in sim frames since spawn; vel/gravity in elmos/frame[^2].
 	------------------------------------------------------------------
-	drag     = 0.013,
-	gravityY = -0.025,
+	drag     = 0.01,
+	gravityY = -0.003,
 
 	------------------------------------------------------------------
 	-- Lifetime / fade
 	------------------------------------------------------------------
 	minLifetimeFrames = 15,
-	maxLifetimeFrames = 40,
+	maxLifetimeFrames = 50,
 	-- Lifetime scales with burst size: at count == maxParticleCount the
 	-- min/max lifetime are multiplied by this value. At minimum count, scale
 	-- is 1.0 (no extension). Set to 1.0 to disable.
 	lifetimeBigMul    = 2.5,
-	fadeFrames        = 10,
+	fadeFrames        = 12,
 	-- Frames over which a freshly-spawned particle ramps from invisible to full
 	-- alpha. Hides the "pop into existence" at the unit center while the
 	-- explosion debris is still bright.
@@ -179,6 +181,7 @@ local spGetUnitPosition    = Spring.GetUnitPosition
 local spGetUnitRadius      = Spring.GetUnitRadius
 local spGetMyAllyTeamID    = Spring.GetMyAllyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
+local spIsPosInLos         = Spring.IsPosInLos
 local spIsSphereInView     = Spring.IsSphereInView
 local spGetTeamColor       = Spring.GetTeamColor
 
@@ -233,6 +236,10 @@ local teamColorCache = {}
 
 -- defID -> { count, jitterRadius, overrideRef or nil }
 local qualifyingDefs = {}
+
+-- unitID set: populated by UnitFinished so UnitDestroyed can skip
+-- incomplete (under-construction) units. Cleared on UnitDestroyed.
+local finishedUnits = {}
 
 -- Cached view state (refreshed each GameFrame).
 local cachedAllyTeamID   = spGetMyAllyTeamID()
@@ -955,7 +962,7 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 	-- times longer life so fusion-sized explosions linger.
 	local lifeScale  = 1.0 + (CONFIG.lifetimeBigMul - 1.0)
 		* mathMin(count / CONFIG.maxParticleCount, 1.0)
-	lifeMin = lifeMin * lifeScale
+	--lifeMin = lifeMin * lifeScale
 	lifeMax = lifeMax * lifeScale
 	local bias       = paramOr(overrideRef, "upwardBias")
 	local alpha      = paramOr(overrideRef, "alpha")
@@ -1033,11 +1040,25 @@ function gadget:Shutdown()
 	cleanupGL4()
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitFinished(unitID, unitDefID)
+	if qualifyingDefs[unitDefID] then
+		finishedUnits[unitID] = true
+	end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, _attackerDefID, _attackerTeam, weaponDefID)
+	-- Skip units that were still under construction when they died.
+	local wasFinished = finishedUnits[unitID]
+	finishedUnits[unitID] = nil
+	if not wasFinished then return end
+	-- Skip reclaims: engine passes the reclaimer as attackerID with no weapon.
+	if attackerID and (not weaponDefID or weaponDefID < 0) then return end
 	local meta = qualifyingDefs[unitDefID]
 	if not meta then return end
 	local px, py, pz = spGetUnitPosition(unitID)
 	if not px then return end
+	-- LOS gate: skip if the local player can't see the unit's position.
+	if not cachedSpecFullView and not spIsPosInLos(px, py, pz, cachedAllyTeamID) then return end
 	-- Lift slightly above the model base so particles emerge from the volume.
 	local r = spGetUnitRadius(unitID) or 32
 	py = py + r * 0.35
