@@ -5,7 +5,7 @@ local objectiveUtils = VFS.Include('luarules/mission_api/objectives.lua')
 
 --[[
 	objectiveID = {
-		text = "Complete this objective.",
+		textKey = "complete_objective",
 		amount = 3,
 		stages = { 'firstStage' },
 		trigger = {

@@ -27,7 +27,7 @@ end
 -- placeholder until UI widget exists
 local function echoObjectiveUpdate(objectiveID, objective)
 	Spring.Echo("Objective updated: " .. objectiveID
-		.. " | " .. (objective.text or '')
+		.. " | " .. (objective.textKey or '')
 		.. " | progress: " .. tostring(objective.progress)
 		.. " | amount: " .. tostring(objective.amount)
 		.. " | completed: " .. tostring(objective.completed))

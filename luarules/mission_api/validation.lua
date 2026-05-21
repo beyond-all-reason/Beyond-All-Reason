@@ -1,5 +1,5 @@
 ---
---- Validators for Mission API stages, objectives, actions, and triggers loaded from missions.
+--- Validators for Mission API objects loaded from missions.
 ---
 
 VFS.Include('common/wav.lua')
@@ -584,18 +584,20 @@ local function validateObjectives(objectives)
 			logError("Objective missing text: " .. objectiveID)
 		elseif objective.text == '' then
 			logError("Objective has empty text: " .. objectiveID)
-		elseif string.find(objective.text, '|') then
-			logError("Objective text cannot contain the | character: " .. objectiveID)
 		end
 		-- Type-check all schema fields:
 		for fieldName, fieldType in pairs(objectivesSchemaSettings) do
 			if objective[fieldName] ~= nil then
-				local luaTypeResult = validateLuaType(objective[fieldName], string.lower(fieldType))
-				if luaTypeResult then
-					logError(luaTypeResult .. ". Objective: " .. objectiveID .. ", Field: " .. fieldName)
+				local validator = validators[fieldType]
+				local results = validator(objective[fieldName]) or {}
+				if #results > 0 then
+					for _, result in ipairs(results) do
+						logError(result.message .. ". Objective: " .. objectiveID .. ", Field: " .. fieldName)
+					end
 				end
 			end
 		end
+
 		-- Validate inline trigger:
 		if objective.trigger ~= nil then
 			if objective.trigger.settings ~= nil then

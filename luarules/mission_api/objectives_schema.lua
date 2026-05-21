@@ -1,11 +1,11 @@
 local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
 
 local parameters = {
-	text = Types.String,
+	textKey = Types.String,
 	trigger = Types.Table,
-	amount = Types.Number,
+	amount = Types.Quantity,
 	stages = Types.Table,
-	nextStage = Types.String,
+	nextStage = Types.StageID,
 	coop = Types.Boolean,
 }
 

@@ -5,7 +5,7 @@ local initialStage = 'firstStage'
 local objectives = {
 
 	wait3secs = {
-		text = "Wait a bit.",
+		textKey = "wait_3_seconds",
 		stages = { 'firstStage' },
 		trigger = {
 			type = triggerTypes.TimeElapsed,
@@ -17,7 +17,7 @@ local objectives = {
 	},
 
 	buildBots = {
-		text = "Build some grunts.",
+		textKey = "build_3_bots",
 		amount = 3,
 		stages = { 'secondStage', 'thirdStage' },
 		trigger = {
@@ -30,7 +30,7 @@ local objectives = {
 	},
 
 	destroyBots = {
-		text = "Destroy the grunts.",
+		textKey = "destroy_all_bots",
 		amount = 0,
 		stages = { 'thirdStage' },
 		trigger = {
