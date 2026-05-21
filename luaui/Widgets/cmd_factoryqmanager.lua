@@ -161,7 +161,7 @@ function calcScreenCoords()
 
 	boxWidth = mathFloor(iboxWidth * factor + 0.5)
 	boxHeight = mathFloor(iboxHeight * factor + 0.5)
-	repIcoSize = mathFloor(boxHeight * 0.35)
+	repIcoSize = mathFloor(boxHeight * 0.3)
 	boxHeightTitle = mathFloor(iboxHeightTitle * factor + 0.5)
 	boxIconBorder = mathFloor(iboxIconBorder * factor + 0.5)
 
@@ -619,7 +619,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 						nil, nil,
 						'#'..k
 					)
-					gl.Color(0.8,0.8,0.8 ,1)
+					gl.Color(1,1,1 ,0.8)
 					UiUnit(
 						x2 - repIcoSize, y2 - repIcoSize, x2, y2,
 						nil,
