@@ -43,16 +43,20 @@ local CONFIG = {
 	-- Weights map UnitDef resource fields to a single "energy score". The
 	-- score is also the baseline particle count for that def (before the
 	-- master multiplier). Tune these to taste.
-	weightEnergyMake     = 0.025,   -- particles per energy/sec produced
-	weightEnergyStorage  = 0.0025,  -- particles per energy stored
-	weightWindGenerator  = 0.025,   -- particles per max-wind output
-	weightTidalGenerator = 0.025,   -- particles per tidal output
-	weightEnergyConv     = 0.025,   -- particles per customParams.energyconv_capacity
+	weightEnergyMake     = 0.16,   -- particles per energy/sec produced
+	weightEnergyStorage  = 0.006,  -- particles per energy stored
+	weightWindGenerator  = 0.05,   -- particles per max-wind output
+	weightTidalGenerator = 0.05,   -- particles per tidal output
+	weightEnergyConv     = 0.05,   -- particles per customParams.energyconv_capacity
 
 	-- Defs whose total score is below this threshold get no burst.
 	minEnergyScore = 15,
 
-	-- Final particleCount = clamp(score * particleCountMul, minPC, maxPC)
+	-- Final particleCount = clamp(score ^ particleCountPower * particleCountMul, minPC, maxPC)
+	-- particleCountPower < 1 gives diminishing returns: doubling a unit's energy
+	-- output no longer doubles its particle burst. 0.7 is a mild curve (2× energy
+	-- → ~1.6× particles); 0.5 (sqrt) is aggressive (2× energy → 1.41× particles).
+	particleCountPower = 0.77,
 	particleCountMul = 1.0,
 	minParticleCount = 5,
 	maxParticleCount = 200,
@@ -74,19 +78,19 @@ local CONFIG = {
 	-- [minSpeed, maxSpeed] with `rand ^ speedPower` -- speedPower > 1 means
 	-- most particles are slow with a long high-speed tail ("shrapnel" feel),
 	-- < 1 means most fly fast.
-	minSpeed     = 0.25,
-	maxSpeed     = 2.5,
-	speedPower   = 1.8,
+	minSpeed     = 0.2,
+	maxSpeed     = 2,
+	speedPower   = 1.7,
 	-- Direction bias. 1.0 = strictly +Y, 0.0 = uniform full sphere,
 	-- intermediate values blend (cosTheta = (2r-1)*(1-bias) + bias).
 	upwardBias = 0.15,
 	-- Spawn jitter around the unit center, as a fraction of unit radius.
 	-- Keep small so particles start near the center and expand visibly;
 	-- too large and they appear pre-spread with no expansion phase.
-	spawnJitterFrac = 0.25,
+	spawnJitterFrac = 0.3,
 	-- Compress vertical spawn jitter so particles don't spawn far below the
 	-- ground plane (1.0 = full sphere, 0.4 = flat oval).
-	spawnJitterYFrac = 0.6,
+	spawnJitterYFrac = 0.66,
 
 	------------------------------------------------------------------
 	-- Death-explosion weapon influence
@@ -95,7 +99,7 @@ local CONFIG = {
 	-- more speed. Set useDeathExplosion=false to ignore the weapon entirely.
 	------------------------------------------------------------------
 	useDeathExplosion = true,
-	aoeJitterMul      = 0.3,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
+	aoeJitterMul      = 0.33,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
 	aoeSpeedMul       = 0.004,  -- maxSpeed += aoe * mul
 	damageSpeedMul    = 0.0035,  -- maxSpeed += damage * mul
 	damageCountMul    = 0.022,  -- extra particles per damage point
@@ -113,13 +117,14 @@ local CONFIG = {
 	------------------------------------------------------------------
 	-- Lifetime / fade
 	------------------------------------------------------------------
-	minLifetimeFrames = 15,
-	maxLifetimeFrames = 85,
+	minLifetimeFrames = 20,
+	maxLifetimeFrames = 100,
 	-- Lifetime scales with burst size: at count == maxParticleCount the
 	-- min/max lifetime are multiplied by this value. At minimum count, scale
 	-- is 1.0 (no extension). Set to 1.0 to disable.
-	lifetimeBigMul    = 2,
-	fadeFrames        = 12,
+	lifetimeBigMul    = 1.8,
+	fadeFramesMin     = 10,
+	fadeFramesMax     = 40,
 	-- Frames over which a freshly-spawned particle ramps from invisible to full
 	-- alpha. Hides the "pop into existence" at the unit center while the
 	-- explosion debris is still bright.
@@ -146,12 +151,13 @@ local CONFIG = {
 	-- Per-unit overrides. Keyed by UnitDef name. Any subset of:
 	--   particleCount        -- absolute override (also lets a def qualify
 	--                           even if its energy score is 0)
-	--   particleCountMul     -- multiplier applied to the computed score
+	--   particleCountMul     -- multiplier applied after the power curve
+	--   particleCountPower   -- per-def diminishing-returns exponent override
 	--   minSpeed, maxSpeed
 	--   upwardBias
 	--   sizeMin, sizeMax
 	--   alpha
-	--   fadeFrames
+	--   fadeFramesMin, fadeFramesMax
 	--   minLifetimeFrames, maxLifetimeFrames
 	--   spawnJitterFrac
 	-- Example:
@@ -264,7 +270,7 @@ layout(location = 0) in vec4 vertexPosUV;
 layout(location = 1) in vec4 spawnPosAndSize;   // xyz=spawnPos, w=packed(sizeMult,fadeFrames)
 layout(location = 2) in vec4 velAndSpawnFrame;  // xyz=velocity (elmos/frame), w=spawnFrame
 layout(location = 3) in vec4 instColor;         // rgb + alpha
-layout(location = 4) in vec4 rotData;           // x=rotVal0, y=rotVel0, z=wobbleStartFrame, w=deathFrame
+layout(location = 4) in vec4 rotData;           // x=rotVal0, y=rotVel0, z=rotAcc (deg/frame²), w=deathFrame
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
@@ -283,6 +289,7 @@ out float v_rotVal;
 out float v_dead;
 out vec3 v_phaseSeed;
 out float v_sizeMult;
+out float v_breathScale;  // glow-breath amplitude envelope: 1.0 for first half of life, ramps to 0 at death
 
 void main() {
 	float currentFrame = timeInfo.x + timeInfo.w;
@@ -297,6 +304,7 @@ void main() {
 		v_rotVal = 0.0;
 		v_phaseSeed = vec3(0.0);
 		v_sizeMult = 0.0;
+		v_breathScale = 0.0;
 		return;
 	}
 	v_dead = 0.0;
@@ -311,9 +319,10 @@ void main() {
 	              + 0.5 * gravity * t * t;
 
 	// Optional wobble (matches nano gadget's swirl).
+	// rotData.z is now rotAcc (deg/frame²); use spawnFrame for wobble timing.
 	if (wobbleAmp > 0.0001) {
-		float wobbleT   = max(currentFrame - rotData.z, 0.0);
-		float totalLife = max(deathFrame - rotData.z, 1.0);
+		float wobbleT   = max(currentFrame - spawnFrame, 0.0);
+		float totalLife = max(deathFrame - spawnFrame, 1.0);
 		float bell      = sin(3.14159265 * wobbleT / totalLife);
 		if (wobbleRampFrames > 0.5)
 			bell *= min(1.0, wobbleT / wobbleRampFrames);
@@ -364,14 +373,24 @@ void main() {
 		: 1.0;
 	float fade    = fadeOut * fadeIn;
 
+	// Quadratic rotation integration: val0 + vel*t + 0.5*acc*t²
 	float rotVel = rotData.y;
-	float rotVal = rotData.x + rotVel * t;
+	float rotAcc = rotData.z;
+	float rotVal = rotData.x + rotVel * t + 0.5 * rotAcc * t * t;
 
 	v_worldPos = worldPos;
 	v_color    = instColor * fade;
 	v_rotVal   = rotVal;
 	v_sizeMult = sizeMult;
 	v_phaseSeed = vec3(rotData.x, rotData.y, rotData.x + rotData.y);
+
+	// Glow-breath envelope: full amplitude until half-life, then ramps to 0
+	// by death. smoothstep is reversed because we want 1 -> 0 as life goes
+	// 0.5 -> 1.0 (so big lingering particles stop pulsing as they fade out).
+	float totalLifeBR = max(deathFrame - spawnFrame, 1.0);
+	float lifeFrac    = clamp(t / totalLifeBR, 0.0, 1.0);
+	v_breathScale = 1.0 - smoothstep(0.5, 1.0, lifeFrac);
+
 	gl_Position = vec4(worldPos, 1.0);  // GS reads this
 }
 ]]
@@ -395,6 +414,7 @@ in float v_rotVal[];
 in float v_dead[];
 in vec3  v_phaseSeed[];
 in float v_sizeMult[];
+in float v_breathScale[];
 
 out vec4 g_color;
 out vec3 g_normal;
@@ -404,6 +424,7 @@ out vec3 g_noiseSeed;
 out vec2 g_glowUV;
 out float g_isGlow;
 out float g_seed;
+out float g_breathScale;
 
 float hash11(float x) { return fract(sin(x) * 43758.5453); }
 
@@ -418,7 +439,7 @@ mat3 rotXYZ(vec3 a) {
 }
 
 void emitFace(vec3 c0, vec3 c1, vec3 c2, vec3 c3, vec3 n, vec3 center, vec4 col, vec3 noiseSeed, float seed) {
-	g_color = col; g_normal = n; g_noiseSeed = noiseSeed; g_isGlow = 0.0; g_glowUV = vec2(0.0); g_seed = seed;
+	g_color = col; g_normal = n; g_noiseSeed = noiseSeed; g_isGlow = 0.0; g_glowUV = vec2(0.0); g_seed = seed; g_breathScale = 0.0;
 	g_localPos = c0; g_worldPos = center + c0; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
 	g_localPos = c1; g_worldPos = center + c1; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
 	g_localPos = c2; g_worldPos = center + c2; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
@@ -427,7 +448,7 @@ void emitFace(vec3 c0, vec3 c1, vec3 c2, vec3 c3, vec3 n, vec3 center, vec4 col,
 }
 
 void emitTri(vec3 c0, vec3 c1, vec3 c2, vec3 n, vec3 center, vec4 col, vec3 noiseSeed, float seed) {
-	g_color = col; g_normal = n; g_noiseSeed = noiseSeed; g_isGlow = 0.0; g_glowUV = vec2(0.0); g_seed = seed;
+	g_color = col; g_normal = n; g_noiseSeed = noiseSeed; g_isGlow = 0.0; g_glowUV = vec2(0.0); g_seed = seed; g_breathScale = 0.0;
 	g_localPos = c0; g_worldPos = center + c0; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
 	g_localPos = c1; g_worldPos = center + c1; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
 	g_localPos = c2; g_worldPos = center + c2; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
@@ -438,7 +459,7 @@ void emitGlow(vec3 center, vec4 col, float halfSize, float seed) {
 	vec3 right = cameraViewInv[0].xyz * halfSize;
 	vec3 up    = cameraViewInv[1].xyz * halfSize;
 	g_color = col; g_normal = vec3(0.0, 1.0, 0.0); g_noiseSeed = vec3(0.0);
-	g_localPos = vec3(0.0); g_isGlow = 1.0; g_seed = seed;
+	g_localPos = vec3(0.0); g_isGlow = 1.0; g_seed = seed; g_breathScale = v_breathScale[0];
 	g_glowUV = vec2(-1.0, -1.0); g_worldPos = center - right - up; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
 	g_glowUV = vec2( 1.0, -1.0); g_worldPos = center + right - up; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
 	g_glowUV = vec2(-1.0,  1.0); g_worldPos = center - right + up; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
@@ -529,6 +550,7 @@ in vec3 g_noiseSeed;
 in vec2 g_glowUV;
 in float g_isGlow;
 in float g_seed;
+in float g_breathScale;
 out vec4 fragColor;
 
 float hash13(vec3 p) {
@@ -579,7 +601,10 @@ void main() {
 			// per-particle phases can happen to land in the negative band at
 			// spawn, producing a burst that "lights up late" once phases
 			// drift positive. Large bursts average out and didn't show it.
-			gI *= max(1.0 + glowBreath * ampScale * sin(ph), 0.35);
+			// g_breathScale ramps the breath amplitude from 1.0 to 0.0 across
+			// the second half of the particle's lifetime so lingering particles
+			// settle into a steady halo instead of pulsing all the way to death.
+			gI *= max(1.0 + glowBreath * g_breathScale * ampScale * sin(ph), 0.35);
 		}
 		float glow = pow(clamp(tg, 0.0, 1.0), max(glowFalloff, 0.01)) * gI;
 		vec3  glowTint = g_color.rgb / max(max(g_color.r, max(g_color.g, g_color.b)), 0.001);
@@ -679,6 +704,8 @@ local ALPHA_VAR   = 2.5
 local NANO_ALPHA  = 50 / 255
 local ROT_VAL_BASE  = -180  local ROT_VAL_RANGE = 360
 local ROT_VEL_BASE  = -40   local ROT_VEL_RANGE = 80
+-- rotAcc in deg/sec² converted to deg/frame² (GAME_SPEED = 30)
+local ROT_ACC_BASE  = -40 / (30*30)   local ROT_ACC_RANGE = 80 / (30*30)
 
 local function initGL4()
 	if not LuaShader.isGeometryShaderSupported then
@@ -827,8 +854,9 @@ local function classifyDefs()
 					count = ov.particleCount
 				else
 					local mul = (ov and ov.particleCountMul) or CONFIG.particleCountMul
+					local pow = (ov and ov.particleCountPower) or CONFIG.particleCountPower
 					local dmgBonus = mathMin(deathDmg * CONFIG.damageCountMul, CONFIG.damageCountMax)
-					count = mathFloor(score * mul + dmgBonus + 0.5)
+					count = mathFloor((score ^ pow) * mul + dmgBonus + 0.5)
 				end
 				if count < CONFIG.minParticleCount then count = CONFIG.minParticleCount end
 				if count > CONFIG.maxParticleCount then count = CONFIG.maxParticleCount end
@@ -898,12 +926,13 @@ local function spawnParticle(px, py, pz, vx, vy, vz, sizeMult, r, g, b, alpha, f
 	local packed = mathFloor(sizeMult * 256 + 0.5) + (fadeFrames or 0) * 1024
 	local rotVal = ROT_VAL_BASE + ROT_VAL_RANGE * (mathRandom() * 2 - 1)
 	local rotVel = ROT_VEL_BASE + ROT_VEL_RANGE * (mathRandom() * 2 - 1)
+	local rotAcc = ROT_ACC_BASE + ROT_ACC_RANGE * (mathRandom() * 2 - 1)
 
 	local s = instanceScratch
 	s[1]  = px;    s[2]  = py;    s[3]  = pz;     s[4]  = packed
 	s[5]  = vx;    s[6]  = vy;    s[7]  = vz;     s[8]  = frame
 	s[9]  = r;     s[10] = g;     s[11] = b;      s[12] = alpha
-	s[13] = rotVal; s[14] = rotVel; s[15] = frame; s[16] = death
+	s[13] = rotVal; s[14] = rotVel; s[15] = rotAcc; s[16] = death
 
 	-- noUpload=true: we batch the GPU upload at end of GameFrame.
 	-- pushElementInstance returns the instanceID (not the slot index!), so we
@@ -969,8 +998,9 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 	--lifeMin = lifeMin * lifeScale
 	lifeMax = lifeMax * lifeScale
 	local bias       = paramOr(overrideRef, "upwardBias")
-	local alpha      = paramOr(overrideRef, "alpha")
-	local fadeFrames = paramOr(overrideRef, "fadeFrames")
+	local alpha        = paramOr(overrideRef, "alpha")
+	local fadeFramesMin  = paramOr(overrideRef, "fadeFramesMin")
+	local fadeFramesMax  = paramOr(overrideRef, "fadeFramesMax")
 	local fadeInFrames = paramOr(overrideRef, "fadeInFrames")
 	local jyFrac     = paramOr(overrideRef, "spawnJitterYFrac")
 
@@ -999,7 +1029,16 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 		local sizeMult = szMin + (szMax - szMin) * mathRandom()
 		local lifetime = lifeMin + mathFloor((lifeMax - lifeMin) * mathRandom() + 0.5)
 
-		spawnParticle(sx, sy, sz, vx, vy, vz, sizeMult, r, g, b, alpha, frame, lifetime, fadeFrames, fadeInFrames)
+		-- Fade window scales linearly with the particle's own lifetime so
+		-- short-lived particles don't get a disproportionately long tail.
+		local lifeFrac   = (lifeMax > lifeMin) and (lifetime - lifeMin) / (lifeMax - lifeMin) or 0.0
+		local fadeFrames = mathFloor(fadeFramesMin + (fadeFramesMax - fadeFramesMin) * lifeFrac + 0.5)
+
+		-- Per-particle alpha jitter (matches nano gadget look). Centred on the
+		-- configured `alpha`; ALPHA_VAR is a fractional swing (2.5 -> ±250%).
+		local pa = (ALPHA_VAR > 0) and (alpha * (1.0 + ALPHA_VAR * (mathRandom() * 2 - 1))) or alpha
+
+		spawnParticle(sx, sy, sz, vx, vy, vz, sizeMult, r, g, b, pa, frame, lifetime, fadeFrames, fadeInFrames)
 	end
 
 	if CONFIG.debug then
