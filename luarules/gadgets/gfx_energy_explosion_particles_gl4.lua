@@ -43,11 +43,11 @@ local CONFIG = {
 	-- Weights map UnitDef resource fields to a single "energy score". The
 	-- score is also the baseline particle count for that def (before the
 	-- master multiplier). Tune these to taste.
-	weightEnergyMake     = 0.05,   -- particles per energy/sec produced
-	weightEnergyStorage  = 0.011,  -- particles per energy stored
-	weightWindGenerator  = 0.05,   -- particles per max-wind output
-	weightTidalGenerator = 0.05,   -- particles per tidal output
-	weightEnergyConv     = 0.05,   -- particles per customParams.energyconv_capacity
+	weightEnergyMake     = 0.025,   -- particles per energy/sec produced
+	weightEnergyStorage  = 0.0025,  -- particles per energy stored
+	weightWindGenerator  = 0.025,   -- particles per max-wind output
+	weightTidalGenerator = 0.025,   -- particles per tidal output
+	weightEnergyConv     = 0.025,   -- particles per customParams.energyconv_capacity
 
 	-- Defs whose total score is below this threshold get no burst.
 	minEnergyScore = 15,
@@ -55,10 +55,10 @@ local CONFIG = {
 	-- Final particleCount = clamp(score * particleCountMul, minPC, maxPC)
 	particleCountMul = 1.0,
 	minParticleCount = 5,
-	maxParticleCount = 250,
+	maxParticleCount = 200,
 
 	-- Global cap so a wave of dying fusions can't blow the pool.
-	maxLiveParticles  = 6000,
+	maxLiveParticles  = 5000,
 	-- Hard cap on bursts processed per render frame (extras are dropped).
 	maxBurstsPerFrame = 16,
 	-- Frames to wait after UnitDestroyed before spawning energy particles.
@@ -74,8 +74,8 @@ local CONFIG = {
 	-- [minSpeed, maxSpeed] with `rand ^ speedPower` -- speedPower > 1 means
 	-- most particles are slow with a long high-speed tail ("shrapnel" feel),
 	-- < 1 means most fly fast.
-	minSpeed     = 0.3,
-	maxSpeed     = 3,
+	minSpeed     = 0.25,
+	maxSpeed     = 2.5,
 	speedPower   = 1.8,
 	-- Direction bias. 1.0 = strictly +Y, 0.0 = uniform full sphere,
 	-- intermediate values blend (cosTheta = (2r-1)*(1-bias) + bias).
@@ -95,12 +95,12 @@ local CONFIG = {
 	-- more speed. Set useDeathExplosion=false to ignore the weapon entirely.
 	------------------------------------------------------------------
 	useDeathExplosion = true,
-	aoeJitterMul      = 0.25,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
-	aoeSpeedMul       = 0.0045,  -- maxSpeed += aoe * mul
+	aoeJitterMul      = 0.3,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
+	aoeSpeedMul       = 0.004,  -- maxSpeed += aoe * mul
 	damageSpeedMul    = 0.0035,  -- maxSpeed += damage * mul
-	damageCountMul    = 0.025,  -- extra particles per damage point
-	damageCountMax    = 3,     -- hard cap on the damage/aoe particle bonus
-	maxSpeedBonus     = 3.5,   -- hard cap on the aoe+damage speed bonus (elmos/frame)
+	damageCountMul    = 0.022,  -- extra particles per damage point
+	damageCountMax    = 2.5,     -- hard cap on the damage/aoe particle bonus
+	maxSpeedBonus     = 3.3,   -- hard cap on the aoe+damage speed bonus (elmos/frame)
 
 	------------------------------------------------------------------
 	-- Physics (applied in vertex shader, global)
@@ -114,11 +114,11 @@ local CONFIG = {
 	-- Lifetime / fade
 	------------------------------------------------------------------
 	minLifetimeFrames = 15,
-	maxLifetimeFrames = 50,
+	maxLifetimeFrames = 85,
 	-- Lifetime scales with burst size: at count == maxParticleCount the
 	-- min/max lifetime are multiplied by this value. At minimum count, scale
 	-- is 1.0 (no extension). Set to 1.0 to disable.
-	lifetimeBigMul    = 2.5,
+	lifetimeBigMul    = 2,
 	fadeFrames        = 12,
 	-- Frames over which a freshly-spawned particle ramps from invisible to full
 	-- alpha. Hides the "pop into existence" at the unit center while the
@@ -186,7 +186,6 @@ local spIsSphereInView     = Spring.IsSphereInView
 local spGetTeamColor       = Spring.GetTeamColor
 
 local glBlending  = gl.Blending
-local glTexture   = gl.Texture
 local glDepthTest = gl.DepthTest
 local glDepthMask = gl.DepthMask
 local glCulling   = gl.Culling
@@ -907,8 +906,13 @@ local function spawnParticle(px, py, pz, vx, vy, vz, sizeMult, r, g, b, alpha, f
 	s[13] = rotVal; s[14] = rotVel; s[15] = frame; s[16] = death
 
 	-- noUpload=true: we batch the GPU upload at end of GameFrame.
-	local slot = pushElementInstance(particleVBO, s, id, false, true, nil)
-	if slot then
+	-- pushElementInstance returns the instanceID (not the slot index!), so we
+	-- read the actual 1-based slot from usedElements right after the push.
+	-- Pop-swaps in earlier frames mean instanceID != slot index for any burst
+	-- after the first, and uploadElementRange wants 0-based slot offsets, so
+	-- we must convert via (usedElements - 1) here.
+	local ok = pushElementInstance(particleVBO, s, id, false, true, nil)
+	if ok then
 		local bucket = deathBuckets[death]
 		if bucket then
 			bucket[#bucket + 1] = id
@@ -916,7 +920,7 @@ local function spawnParticle(px, py, pz, vx, vy, vz, sizeMult, r, g, b, alpha, f
 			deathBuckets[death] = { id }
 		end
 		liveCount = liveCount + 1
-		markDirty(slot)
+		markDirty(particleVBO.usedElements - 1)
 	end
 end
 
@@ -1034,6 +1038,17 @@ function gadget:Initialize()
 	if not CONFIG.enabled then spEcho("EEP: disabled in CONFIG, removing"); gadgetHandler:RemoveGadget(); return end
 	if not initGL4() then spEcho("EEP: initGL4 failed, bailing"); return end
 	classifyDefs()
+	-- Populate finishedUnits for any qualifying units already on the map
+	-- (handles mid-game widget reloads and gadget restarts).
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		if qualifyingDefs[unitDefID] then
+			local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+			if buildProgress and buildProgress >= 1.0 then
+				finishedUnits[unitID] = true
+			end
+		end
+	end
 end
 
 function gadget:Shutdown()
