@@ -60,6 +60,7 @@ local string_lines = string.lines
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local tooltips = {}
+local occluders = {}   -- owner -> list of {x1,y1,x2,y2} panel rects on top
 local cleanupGuishaderAreas = {}
 local font, font2
 local RectRound, UiElement, bgpadding
@@ -166,6 +167,19 @@ function widget:Initialize()
 				clearTooltipTextures(name)
 				cleanupGuishaderAreas[name] = true
 				tooltips[name] = nil
+			end
+		end
+		-- Occluder API: a widget drawing a panel ON TOP of other UI can
+		-- register its screen rect(s) here so this widget suppresses any
+		-- area-based tooltip whose hover point is covered by that panel.
+		-- Used by IceUI panels so tooltips from FlowUI widgets beneath them
+		-- do not bleed through. `name` identifies the occluder owner;
+		-- `rects` is a list of {x1,y1,x2,y2}, or nil to clear that owner.
+		WG['tooltip'].SetOccluder = function(name, rects)
+			if rects and #rects > 0 then
+				occluders[name] = rects
+			else
+				occluders[name] = nil
 			end
 		end
 		WG['tooltip'].ShowTooltip = function(name, value, x, y, title)
@@ -438,8 +452,29 @@ function widget:DrawScreen()
 			cleanupGuishaderAreas[name] = nil
 		end
 	end
+	-- is the mouse currently over a panel registered as an occluder?
+	-- area-based tooltips beneath such a panel must not show through.
+	local mouseOccluded = false
+	for _, rects in pairs(occluders) do
+		for i = 1, #rects do
+			local r = rects[i]
+			if math_isInRect(x, y, r[1], r[2], r[3], r[4]) then
+				mouseOccluded = true
+				break
+			end
+		end
+		if mouseOccluded then break end
+	end
+
 	for name, tooltip in pairs(tooltips) do
-		if (tooltip.area == nil and not tooltip.disabled) or (tooltip.area and tooltip.area[4] ~= nil and math_isInRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4])) then
+		-- suppress tooltips when the mouse is over an occluder panel (e.g. an
+		-- IceUI menu drawn on top). This covers BOTH area-based tooltips and
+		-- ShowTooltip-style ones (no area) -- a widget underneath the panel
+		-- must not show a tooltip for a button the user cannot actually see.
+		-- Occluders named "iceui_*" never suppress their own owner's tooltips,
+		-- but IceUI panels currently use no tooltips, so a blanket block is ok.
+		local occludedHere = mouseOccluded
+		if not occludedHere and ((tooltip.area == nil and not tooltip.disabled) or (tooltip.area and tooltip.area[4] ~= nil and math_isInRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4]))) then
 			if tooltip.area == nil then
 				if tooltip.pos ~= nil then
 					drawTooltip(name, tooltip.pos[1], tooltip.pos[2])
@@ -469,6 +504,12 @@ function widget:DrawScreen()
 					WG['guishader'].RemoveScreenRect('tooltip_' .. name)
 					WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
 				end
+			end
+			-- when occluded, also clear the guishader rect of an area-less
+			-- (ShowTooltip) tooltip that was drawn on a previous frame
+			if occludedHere and tooltip.area == nil and WG['guishader'] then
+				WG['guishader'].RemoveScreenRect('tooltip_' .. name)
+				WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
 			end
 		end
 	end
