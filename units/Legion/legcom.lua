@@ -95,6 +95,7 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			combatradius = 600,
+			firestateoncloak = 0,
 			maxrange = 300,
 			iscommander = true,
 			model_author = "Tharsis",
