@@ -8,6 +8,8 @@
 • [Pounder] 40.5 -> 40 speed, 3000 -> 3100 buildtime, 1490 -> 1500 health. Weapon projectile no longer overshoots its range, and doesn't gain extra range from elevation
 • [Hound] 1280 -> 1200 health, 3.167 -> 3.3s reloadtime
 • [Tiger] 70.5 -> 69 speed, 665 -> 690 metalcost
+• [Archangel] 1.5s -> 1.3s reloadtime for longrange missile
+• [Manticore] 1.6s -> 1.4s reloadtime for longrange missile
 • [Razorback] -5% dps
 • [Shiva] 48.3 -> 48 speed, 1550 -> 1600 metalcost
 • [Stormbringer] 105 -> 110 damage, +5% m/e/bt
