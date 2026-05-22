@@ -20,7 +20,7 @@ return {
 		maxdec = 0,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		metalcost = 3650,
+		metalcost = 3550,
 		mincloakdistance = 100,
 		objectname = "Units/ARMCKFUS.s3o",
 		script = "Units/ARMCKFUS.cob",
