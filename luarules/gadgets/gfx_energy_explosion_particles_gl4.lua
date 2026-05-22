@@ -191,14 +191,24 @@ local spIsPosInLos         = Spring.IsPosInLos
 local spIsSphereInView     = Spring.IsSphereInView
 local spGetTeamColor       = Spring.GetTeamColor
 
-local glBlending  = gl.Blending
-local glDepthTest = gl.DepthTest
-local glDepthMask = gl.DepthMask
-local glCulling   = gl.Culling
+local glBlending      = gl.Blending
+local glDepthTest     = gl.DepthTest
+local glDepthMask     = gl.DepthMask
+local glCulling       = gl.Culling
+local glAlphaTest     = gl.AlphaTest
+local glColor         = gl.Color
+local glColorMask     = gl.ColorMask
+local glScissor       = gl.Scissor
+local glPolygonOffset = gl.PolygonOffset
+local glPolygonMode   = gl.PolygonMode
+local glStencilTest   = gl.StencilTest
 
 local GL_ONE                 = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_SRC_ALPHA           = GL.SRC_ALPHA
+local GL_FRONT_AND_BACK      = GL.FRONT_AND_BACK
+local GL_FILL                = GL.FILL
+local GL_LEQUAL              = GL.LEQUAL
 
 local LuaShader           = gl.LuaShader
 local InstanceVBOTable    = gl.InstanceVBOTable
@@ -250,12 +260,8 @@ local finishedUnits = {}
 local cachedAllyTeamID   = spGetMyAllyTeamID()
 local cachedSpecFullView = false
 
--- Dirty range for batched per-frame upload.
+-- Dirty range for batched per-frame upload (updated inline in processBurst).
 local dirtyMin, dirtyMax = mathHuge, -1
-local function markDirty(slot)
-	if slot < dirtyMin then dirtyMin = slot end
-	if slot > dirtyMax then dirtyMax = slot end
-end
 
 --------------------------------------------------------------------------------
 -- Shaders
@@ -913,59 +919,6 @@ end
 -- Spawn helpers
 --------------------------------------------------------------------------------
 
-local function spawnParticle(px, py, pz, vx, vy, vz, sizeMult, r, g, b, alpha, frame, lifetime, fadeFrames, fadeInFrames)
-	if not particleVBO then return end
-	if liveCount >= MAX_PARTICLES_VBO then return end
-
-	local death = frame + lifetime
-	local id = nextID
-	nextID = nextID + 1
-
-	-- Pack sizeMult + fadeFrames into a single float (cube shader convention).
-	-- Layout: packed = floor(sizeMult*256 + 0.5) + fadeFrames * 1024
-	local packed = mathFloor(sizeMult * 256 + 0.5) + (fadeFrames or 0) * 1024
-	local rotVal = ROT_VAL_BASE + ROT_VAL_RANGE * (mathRandom() * 2 - 1)
-	local rotVel = ROT_VEL_BASE + ROT_VEL_RANGE * (mathRandom() * 2 - 1)
-	local rotAcc = ROT_ACC_BASE + ROT_ACC_RANGE * (mathRandom() * 2 - 1)
-
-	local s = instanceScratch
-	s[1]  = px;    s[2]  = py;    s[3]  = pz;     s[4]  = packed
-	s[5]  = vx;    s[6]  = vy;    s[7]  = vz;     s[8]  = frame
-	s[9]  = r;     s[10] = g;     s[11] = b;      s[12] = alpha
-	s[13] = rotVal; s[14] = rotVel; s[15] = rotAcc; s[16] = death
-
-	-- noUpload=true: we batch the GPU upload at end of GameFrame.
-	-- pushElementInstance returns the instanceID (not the slot index!), so we
-	-- read the actual 1-based slot from usedElements right after the push.
-	-- Pop-swaps in earlier frames mean instanceID != slot index for any burst
-	-- after the first, and uploadElementRange wants 0-based slot offsets, so
-	-- we must convert via (usedElements - 1) here.
-	local ok = pushElementInstance(particleVBO, s, id, false, true, nil)
-	if ok then
-		local bucket = deathBuckets[death]
-		if bucket then
-			bucket[#bucket + 1] = id
-		else
-			deathBuckets[death] = { id }
-		end
-		liveCount = liveCount + 1
-		markDirty(particleVBO.usedElements - 1)
-	end
-end
-
--- Sample a unit vector with biased direction. bias in [0..1]:
---   bias = 0   -> uniform full sphere
---   bias = 1   -> straight up (+Y)
---   intermediate values smoothly blend along cos(theta).
-local function sampleExplosionDir(bias)
-	if bias < 0 then bias = 0 elseif bias > 1 then bias = 1 end
-	local cosT = (2.0 * mathRandom() - 1.0) * (1.0 - bias) + bias
-	if cosT < -1 then cosT = -1 elseif cosT > 1 then cosT = 1 end
-	local sinT = mathSqrt(mathMax(0.0, 1.0 - cosT * cosT))
-	local phi  = mathRandom() * 2.0 * mathPi
-	return sinT * mathCos(phi), cosT, sinT * mathSin(phi)
-end
-
 -- Resolve effective per-burst parameters. ov may be nil.
 local function paramOr(ov, key)
 	if ov and ov[key] ~= nil then return ov[key] end
@@ -983,30 +936,51 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 
 	local r, g, b = fetchTeamColor(teamID)
 
-	local minS       = paramOr(overrideRef, "minSpeed")
-	local maxS       = paramOr(overrideRef, "maxSpeed") + speedBonus
-	local speedPow   = paramOr(overrideRef, "speedPower")
-	local szMin      = paramOr(overrideRef, "sizeMin")
-	local szMax      = paramOr(overrideRef, "sizeMax")
-	local lifeMin    = paramOr(overrideRef, "minLifetimeFrames")
-	local lifeMax    = paramOr(overrideRef, "maxLifetimeFrames")
+	local minS          = paramOr(overrideRef, "minSpeed")
+	local maxS          = paramOr(overrideRef, "maxSpeed") + speedBonus
+	local speedPow      = paramOr(overrideRef, "speedPower")
+	local szMin         = paramOr(overrideRef, "sizeMin")
+	local szMax         = paramOr(overrideRef, "sizeMax")
+	local lifeMin       = paramOr(overrideRef, "minLifetimeFrames")
+	local lifeMax       = paramOr(overrideRef, "maxLifetimeFrames")
 	-- Scale lifetime range with burst size: small bursts use the configured
 	-- range; large bursts (approaching maxParticleCount) get up to lifetimeBigMul
 	-- times longer life so fusion-sized explosions linger.
 	local lifeScale  = 1.0 + (CONFIG.lifetimeBigMul - 1.0)
 		* mathMin(count / CONFIG.maxParticleCount, 1.0)
-	--lifeMin = lifeMin * lifeScale
 	lifeMax = lifeMax * lifeScale
-	local bias       = paramOr(overrideRef, "upwardBias")
-	local alpha        = paramOr(overrideRef, "alpha")
-	local fadeFramesMin  = paramOr(overrideRef, "fadeFramesMin")
-	local fadeFramesMax  = paramOr(overrideRef, "fadeFramesMax")
-	local fadeInFrames = paramOr(overrideRef, "fadeInFrames")
-	local jyFrac     = paramOr(overrideRef, "spawnJitterYFrac")
+	local bias          = paramOr(overrideRef, "upwardBias")
+	local alpha         = paramOr(overrideRef, "alpha")
+	local fadeFramesMin = paramOr(overrideRef, "fadeFramesMin")
+	local fadeFramesMax = paramOr(overrideRef, "fadeFramesMax")
+	local fadeInFrames  = paramOr(overrideRef, "fadeInFrames")
+	local jyFrac        = paramOr(overrideRef, "spawnJitterYFrac")
 
-	local budget = MAX_PARTICLES_VBO - liveCount
+	-- Cache the VBO reference; bail early if it disappeared.
+	local _pVBO = particleVBO
+	if not _pVBO then return end
+	local _liveCount = liveCount
+	local budget = MAX_PARTICLES_VBO - _liveCount
 	if budget <= 0 then return end
 	if count > budget then count = budget end
+
+	-- Hoist frequently-mutated upvalues into locals so the tight per-particle
+	-- loop avoids repeated upvalue indirection (each upvalue access requires an
+	-- extra pointer dereference vs a plain local stack slot).
+	local _nextID   = nextID
+	local _dirtyMin = dirtyMin
+	local _dirtyMax = dirtyMax
+	local _scratch  = instanceScratch
+	local _buckets  = deathBuckets
+
+	-- Pre-compute per-burst invariants so they aren't recomputed each iteration.
+	local speedRange = maxS - minS
+	local szRange    = szMax - szMin
+	local lifeRange  = lifeMax - lifeMin
+	local fadeRange  = fadeFramesMax - fadeFramesMin
+	local biasTerm   = 1.0 - bias   -- weight for the (2r-1) term in cosTheta
+	local twoPi      = 2.0 * mathPi
+	local hasAlphaVar = ALPHA_VAR > 0
 
 	for _ = 1, count do
 		-- Rejection-sampled offset inside unit sphere; Y compressed by jyFrac.
@@ -1020,26 +994,73 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 		local sy = py + jy * jitterRadius * jyFrac
 		local sz = pz + jz * jitterRadius
 
-		local dx, dy, dz = sampleExplosionDir(bias)
+		-- Inlined sampleExplosionDir: uniform sphere biased toward +Y.
+		-- bias=0 -> full sphere, bias=1 -> straight up.
+		local cosT = (2.0 * mathRandom() - 1.0) * biasTerm + bias
+		if cosT < -1 then cosT = -1 elseif cosT > 1 then cosT = 1 end
+		local sinT = mathSqrt(mathMax(0.0, 1.0 - cosT * cosT))
+		local phi  = mathRandom() * twoPi
+		local dx   = sinT * mathCos(phi)
+		local dz   = sinT * mathSin(phi)
+
 		-- Power-law speed sample: rand^speedPow biases distribution toward minS
 		-- when speedPow > 1 (long high-speed tail = "shrapnel").
-		local speed = minS + (maxS - minS) * (mathRandom() ^ speedPow)
-		local vx, vy, vz = dx * speed, dy * speed, dz * speed
+		local speed = minS + speedRange * (mathRandom() ^ speedPow)
+		local vx, vy, vz = dx * speed, cosT * speed, dz * speed
 
-		local sizeMult = szMin + (szMax - szMin) * mathRandom()
-		local lifetime = lifeMin + mathFloor((lifeMax - lifeMin) * mathRandom() + 0.5)
+		local sizeMult = szMin + szRange * mathRandom()
+		local lifetime = lifeMin + mathFloor(lifeRange * mathRandom() + 0.5)
 
 		-- Fade window scales linearly with the particle's own lifetime so
 		-- short-lived particles don't get a disproportionately long tail.
-		local lifeFrac   = (lifeMax > lifeMin) and (lifetime - lifeMin) / (lifeMax - lifeMin) or 0.0
-		local fadeFrames = mathFloor(fadeFramesMin + (fadeFramesMax - fadeFramesMin) * lifeFrac + 0.5)
+		local lifeFrac   = (lifeRange > 0) and (lifetime - lifeMin) / lifeRange or 0.0
+		local fadeFrames = mathFloor(fadeFramesMin + fadeRange * lifeFrac + 0.5)
 
 		-- Per-particle alpha jitter (matches nano gadget look). Centred on the
 		-- configured `alpha`; ALPHA_VAR is a fractional swing (2.5 -> ±250%).
-		local pa = (ALPHA_VAR > 0) and (alpha * (1.0 + ALPHA_VAR * (mathRandom() * 2 - 1))) or alpha
+		local pa = hasAlphaVar and (alpha * (1.0 + ALPHA_VAR * (mathRandom() * 2 - 1))) or alpha
 
-		spawnParticle(sx, sy, sz, vx, vy, vz, sizeMult, r, g, b, pa, frame, lifetime, fadeFrames, fadeInFrames)
+		-- Inlined spawnParticle: pack size+fade, randomise rotation, push VBO slot.
+		local death  = frame + lifetime
+		local packed = mathFloor(sizeMult * 256 + 0.5) + (fadeFrames or 0) * 1024
+		local rotVal = ROT_VAL_BASE + ROT_VAL_RANGE * (mathRandom() * 2 - 1)
+		local rotVel = ROT_VEL_BASE + ROT_VEL_RANGE * (mathRandom() * 2 - 1)
+		local rotAcc = ROT_ACC_BASE + ROT_ACC_RANGE * (mathRandom() * 2 - 1)
+
+		local id = _nextID
+		_nextID = _nextID + 1
+
+		_scratch[1]  = sx;    _scratch[2]  = sy;    _scratch[3]  = sz;    _scratch[4]  = packed
+		_scratch[5]  = vx;    _scratch[6]  = vy;    _scratch[7]  = vz;    _scratch[8]  = frame
+		_scratch[9]  = r;     _scratch[10] = g;     _scratch[11] = b;     _scratch[12] = pa
+		_scratch[13] = rotVal; _scratch[14] = rotVel; _scratch[15] = rotAcc; _scratch[16] = death
+
+		-- noUpload=true: we batch the GPU upload at end of GameFrame.
+		-- pushElementInstance returns the instanceID (not the slot index!), so we
+		-- read the actual 1-based slot from usedElements right after the push.
+		-- Pop-swaps in earlier frames mean instanceID != slot index for any burst
+		-- after the first, and uploadElementRange wants 0-based slot offsets, so
+		-- we must convert via (usedElements - 1) here.
+		local ok = pushElementInstance(_pVBO, _scratch, id, false, true, nil)
+		if ok then
+			local bucket = _buckets[death]
+			if bucket then
+				bucket[#bucket + 1] = id
+			else
+				_buckets[death] = { id }
+			end
+			_liveCount = _liveCount + 1
+			local slot = _pVBO.usedElements - 1
+			if slot < _dirtyMin then _dirtyMin = slot end
+			if slot > _dirtyMax then _dirtyMax = slot end
+		end
 	end
+
+	-- Write back the upvalues that changed inside the loop.
+	liveCount = _liveCount
+	nextID    = _nextID
+	dirtyMin  = _dirtyMin
+	dirtyMax  = _dirtyMax
 
 	if CONFIG.debug then
 		spEcho(("EEP: burst @ (%d, %d, %d) team=%d count=%d aoe=%d dmg=%d")
@@ -1055,15 +1076,17 @@ local function cullDead(frame)
 	local bucket = deathBuckets[frame]
 	if not bucket then return end
 	local nb = #bucket
-	if not particleVBO then
+	local _pVBO = particleVBO
+	if not _pVBO then
 		liveCount = liveCount - nb
 		deathBuckets[frame] = nil
 		return
 	end
 	-- popElementInstance swaps the tail in. Each swap touches the destination
 	-- slot; rely on its internal per-element upload so cull doesn't need batching.
+	local pop = popElementInstance
 	for i = 1, nb do
-		popElementInstance(particleVBO, bucket[i], false)
+		pop(_pVBO, bucket[i], false)
 	end
 	liveCount = liveCount - nb
 	deathBuckets[frame] = nil
@@ -1156,24 +1179,25 @@ function gadget:GameFrame(n)
 end
 
 function gadget:DrawWorld()
-	if not particleVBO or particleVBO.usedElements == 0 then return end
+	local _pVBO = particleVBO
+	if not _pVBO or _pVBO.usedElements == 0 then return end
 
 	-- Defensive GL state (same rationale as nano gadget).
-	glDepthTest(GL.LEQUAL)
+	glDepthTest(GL_LEQUAL)
 	glDepthMask(false)
 	glCulling(false)
-	gl.AlphaTest(false)
-	gl.Color(1, 1, 1, 1)
-	gl.ColorMask(true, true, true, true)
-	gl.Scissor(false)
-	gl.PolygonOffset(false)
-	gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
-	gl.StencilTest(false)
+	glAlphaTest(false)
+	glColor(1, 1, 1, 1)
+	glColorMask(true, true, true, true)
+	glScissor(false)
+	glPolygonOffset(false)
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+	glStencilTest(false)
 	-- Premultiplied-alpha additive blend, same as nano spray.
 	glBlending(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
 
 	particleShader:Activate()
-	particleVBO:Draw()
+	_pVBO:Draw()
 	particleShader:Deactivate()
 
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
