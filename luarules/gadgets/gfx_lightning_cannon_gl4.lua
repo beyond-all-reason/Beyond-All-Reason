@@ -73,16 +73,16 @@ local SEGMENTS_MAX      = 10    -- maximum segments per bolt (long high-range bo
 local SEGMENTS_PER_ELMO = 0.04  -- segments added per elmo of bolt length
 
 -- Branch / fork generation (CPU side, deterministic per-bolt seed)
-local BRANCH_COUNT_MIN     = 0     -- min forks for low-damage weapons
-local BRANCH_COUNT_MAX     = 2     -- max forks for high-damage weapons
+local BRANCH_COUNT_MIN     = 1     -- min forks for low-damage weapons
+local BRANCH_COUNT_MAX     = 3     -- max forks for high-damage weapons
 local BRANCH_DAMAGE_REF    = 200   -- damage at which BRANCH_COUNT_MAX is reached
-local BRANCH_LENGTH_FRAC   = 0.22  -- branch length as fraction of main-bolt length
-local BRANCH_LENGTH_VAR    = 0.45  -- random variation around BRANCH_LENGTH_FRAC (0..1)
-local BRANCH_ANCHOR_MIN    = 0.25  -- earliest spawn point on main bolt (0..1)
+local BRANCH_LENGTH_FRAC   = 0.15  -- branch length as fraction of main-bolt length
+local BRANCH_LENGTH_VAR    = 0.40  -- random variation around BRANCH_LENGTH_FRAC (0..1)
+local BRANCH_ANCHOR_MIN    = 0.20  -- earliest spawn point on main bolt (0..1)
 local BRANCH_ANCHOR_MAX    = 0.95  -- latest spawn point on main bolt (0..1)
 local BRANCH_ANGLE_SPREAD  = 0.85  -- max angular deviation from main direction (radians ~= 49deg)
 local BRANCH_WIDTH_FRAC    = 0.55  -- branch width as fraction of main width
-local BRANCH_JITTER_FRAC   = 0.85  -- branch jitter as fraction of main jitter
+local BRANCH_JITTER_FRAC   = 0.65  -- branch jitter as fraction of main jitter
 local BRANCH_GLOW_FRAC     = 0.55  -- branch glow brightness fraction
 local BRANCH_SEGMENTS_FRAC = 0.55  -- branch segment count as fraction of main count
 
@@ -93,8 +93,8 @@ local WIDTH_DAMAGE_REF       = 250   -- damage at which WIDTH_MAX is reached
 local WIDTH_THICKNESS_MULT   = 0.45  -- multiplier on weapon's `thickness` to add on top
 
 -- Jitter (perpendicular offset amplitude in elmos)
-local JITTER_MIN             = 3     -- baseline jitter amplitude in elmos
-local JITTER_MAX             = 8    -- maximum jitter for highest-damage weapons
+local JITTER_MIN             = 2     -- baseline jitter amplitude in elmos
+local JITTER_MAX             = 6    -- maximum jitter for highest-damage weapons
 local JITTER_DAMAGE_REF      = 250   -- damage at which JITTER_MAX is reached
 local JITTER_RANGE_BONUS     = 0.012 -- extra jitter per elmo of bolt length
 local JITTER_RANGE_BONUS_MAX = 12    -- cap on the range-derived bonus
@@ -108,7 +108,7 @@ local GLOW_FALLOFF_POWER     = 5.0   -- gaussian falloff sharpness (higher = tig
 -- Core brightness / color mixing
 local CORE_COLOR_ADD         = 0.4   -- added to weapon RGB to create the bright core color (clamped)
 local CORE_BRIGHTNESS        = 2.3  -- extra brightness multiplier for hot core pixels
-local BRIGHTNESS_MULT        = 1.5   -- overall bolt brightness multiplier
+local BRIGHTNESS_MULT        = 2.5   -- overall bolt brightness multiplier
 local CORE_EDGE_START        = 0.03  -- |x| where core->edge color mix begins
 local CORE_EDGE_END          = 0.3  -- |x| where mix is fully edge color
 local MIN_PIXEL_WIDTH        = 0.0018 -- minimum bolt screen width (anti-aliasing at distance)
@@ -1008,7 +1008,7 @@ local function emitBolt(beamData, offset, beamCount, cfg, t, lifeFrac)
 	local nBranches = cfg.branchCount
 	if nBranches > 0 and boltLenSq > 1 then
 		local branches = t.branches
-		if not branches then
+		if not branches or #branches ~= nBranches then
 			local boltLen = mathSqrt(boltLenSq)
 			local fwx, fwy, fwz = vx / boltLen, vy / boltLen, vz / boltLen
 			-- Build an arbitrary stable perpendicular basis
@@ -1131,6 +1131,12 @@ local function getOrTrack(proID, cfg, px, py, pz, ex, ey, ez, frame, ownerAllyTe
 		rec.ex, rec.ey, rec.ez = ex, ey, ez
 		rec.lastSeenFrame = frame
 		rec.ownerAllyTeam = ownerAllyTeam
+		-- proIDs are recycled by the engine; if the new projectile has a different
+		-- weapon cfg, invalidate the cached branch geometry so it gets rebuilt.
+		if rec.cfg ~= cfg then
+			rec.cfg = cfg
+			rec.branches = nil
+		end
 	end
 	return rec
 end
