@@ -242,6 +242,11 @@ local deathBuckets = {}
 local particleVBO
 local particleShader
 
+-- When NanoParticleMode == 0 the engine renders its own nano spray and the
+-- GL4 nano gadget is inactive; energy explosion particles would look out of
+-- place, so we go dormant too. Polled every 30 frames.
+local nanoParticleMode = Spring.GetConfigInt("NanoParticleMode", 1)
+
 -- Pending bursts queue (drained from GameFrame, capped per frame).
 local burstQueue = {}
 local burstHead, burstTail = 1, 0
@@ -1124,6 +1129,7 @@ function gadget:UnitFinished(unitID, unitDefID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, _attackerDefID, _attackerTeam, weaponDefID)
+	if nanoParticleMode == 0 then return end
 	-- Skip units that were still under construction when they died.
 	local wasFinished = finishedUnits[unitID]
 	finishedUnits[unitID] = nil
@@ -1146,13 +1152,17 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, _attacker
 end
 
 function gadget:GameFrame(n)
-	-- Refresh view caches at low cadence.
+	-- Refresh view caches and NanoParticleMode at low cadence.
 	if n % 30 == 0 then
+		nanoParticleMode = Spring.GetConfigInt("NanoParticleMode", 1)
 		cachedAllyTeamID = spGetMyAllyTeamID()
 		local _, full = spGetSpectatingState()
 		cachedSpecFullView = full and true or false
 		teamColorCache = {}
 	end
+
+	-- Engine-spray mode: GL4 nano particles are off, so skip our burst too.
+	if nanoParticleMode == 0 then return end
 
 	-- Drain burst queue, capped per frame.
 	local processed = 0
@@ -1179,6 +1189,7 @@ function gadget:GameFrame(n)
 end
 
 function gadget:DrawWorld()
+	if nanoParticleMode == 0 then return end
 	local _pVBO = particleVBO
 	if not _pVBO or _pVBO.usedElements == 0 then return end
 
