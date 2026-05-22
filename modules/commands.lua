@@ -101,7 +101,7 @@ local function isQueueingCommand(cmdID)
 		local cmdDescription = spGetActiveCmdDesc(cmdIndex)
 		if cmdDescription then
 			return cmdDescription.queueing -- TODO: It should be sufficient to check this.
-				and cmdDescription.type == CMDTYPE_ICON_MODE -- But it is not so do this.
+				or cmdDescription.type ~= CMDTYPE_ICON_MODE -- But it is not so do this.
 		end
 	end
 	return false
