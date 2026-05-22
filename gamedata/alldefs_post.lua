@@ -1100,6 +1100,22 @@ local function weaponDef_Post(name, wDef)
 			wDef.texture4 = "beam_gl4_invis"
 		end
 
+		if wDef.weapontype == "LightningCannon" then
+			-- Store original visual properties before zeroing (GL4 gadget reads WeaponDefs at runtime)
+			if not wDef.customparams then wDef.customparams = {} end
+			wDef.customparams.lightning_thickness_orig     = wDef.thickness or 1.5
+			wDef.customparams.lightning_corethickness_orig = wDef.corethickness or 0.5
+			wDef.customparams.lightning_laserflaresize_orig = wDef.laserflaresize or 0
+			-- Hide engine lightning rendering (GL4 gadget replaces it).
+			-- thickness must stay tiny but non-zero so projectiles stay in GetProjectilesInRectangle.
+			wDef.thickness = 0.001
+			wDef.corethickness = 0
+			wDef.laserflaresize = 0
+			wDef.texture1 = "lightning_gl4_invis"   -- nonexistent texture -> engine Draw() early-outs
+			wDef.texture3 = "lightning_gl4_invis"
+			wDef.texture4 = "lightning_gl4_invis"
+		end
+
 		-- scavengers
 		if string.find(name, '_scav', 1, true) then
 			wDef = scavWeaponDefPost(name, wDef)
