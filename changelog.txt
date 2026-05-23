@@ -16,7 +16,7 @@
 • [Skyhook] 200 -> 185 speed, 6400 -> 9000 energycost
 • [Abductor] 225 -> 210 speed, 6600 -> 10000 energycost
 • [Battleships] Reduced damage vs subs
-• [Cloaked Fusion] 3650 -> 3550 metalcost
+• [Cloaked Fusion] 3650 -> 3550 metalcost, 75e/s -> 50e/s cloakcost
 
 # April
 • [Brakerate] 
