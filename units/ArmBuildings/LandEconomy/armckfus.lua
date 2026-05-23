@@ -4,7 +4,7 @@ return {
 		buildpic = "ARMCKFUS.DDS",
 		buildtime = 65000,
 		canrepeat = false,
-		cloakcost = 75,
+		cloakcost = 50,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "97 42 51",
 		collisionvolumetype = "Box",
