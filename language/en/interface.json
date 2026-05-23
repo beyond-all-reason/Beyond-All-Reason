@@ -1812,6 +1812,8 @@
 				"autocheat_descr": "does: /cheat, /globallos, /godmode",
 				"restart": "Restart",
 				"restart_descr": "Restarts the game",
+				"restart_with_state": "Restart (keep units & orders)",
+				"restart_with_state_descr": "Saves every current unit (with its health, states and command queue), restarts the game, then restores them. Best used in singleplayer.",
 				"echocamerastate": "Echo cameraState",
 				"echocamerastate_descr": "Echoes contents of Spring.GetCameraState()",
 				"storedefaultsettings": "Store default settings",
