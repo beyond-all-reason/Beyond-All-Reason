@@ -3033,9 +3033,9 @@ function init()
 			  Spring.SetConfigInt("MaxParticles", value)
 			  -- Keep the engine nano-spray budget in sync when the gadget is
 			  -- handing particles back to the engine (NanoParticleMode 0).
-			  if Spring.GetConfigInt("NanoParticleMode", 2) == 0 then
+			  if Spring.GetConfigInt("NanoParticleMode", 1) == 0 then
 				  Spring.SetConfigInt("MaxNanoParticles", math.floor(value * 0.34))
-				if Spring.GetConfigInt("NanoParticleMode", 2) == 0 then
+				if Spring.GetConfigInt("NanoParticleMode", 1) == 0 then
 					Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
 				else
 					Spring.SetConfigInt("MaxNanoParticles", 0)
@@ -3049,10 +3049,9 @@ function init()
 		  type = "select",
 		  options = {
 			  Spring.I18N('ui.settings.option.nanoparticletype_simple'),
-			  Spring.I18N('ui.settings.option.nanoparticletype_smart'),
 			  Spring.I18N('ui.settings.option.nanoparticletype_shapes'),
 		  },
-		  value = (tonumber(Spring.GetConfigInt("NanoParticleMode", 2)) or 2) + 1,
+		  value = (tonumber(Spring.GetConfigInt("NanoParticleMode", 1)) or 1) + 1,
 		  description = Spring.I18N('ui.settings.option.nanoparticletype_descr'),
 		  onload = function(i)
 		  end,
@@ -4261,7 +4260,7 @@ function init()
 		--  end,
 		--},
 		{ id = "autoeraser", group = "ui", category = types.basic, widget = "Auto mapmark eraser", name = Spring.I18N('ui.settings.option.autoeraser'), type = "bool", value = GetWidgetToggleValue("Auto mapmark eraser"), description = Spring.I18N('ui.settings.option.autoeraser_descr') },
-		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 10, max = 200, step = 1, value = 60, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
+		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 5, max = 600, step = 5, value = 60, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
 		  onload = function(i)
 			  loadWidgetData("Auto mapmark eraser", "autoeraser_erasetime", { 'eraseTime' })
 		  end,
@@ -5064,6 +5063,13 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuilders', { 'includeBuilders' }, value)
+		  end,
+		},
+		{ id = "smartselect_includeresurrectors", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeresurrectors'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeresurrectors_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeResurrectors', { 'includeResurrectors' }, value)
 		  end,
 		},
 		{ id = "smartselect_includeantinuke", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeantinuke'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeantinuke_descr'),

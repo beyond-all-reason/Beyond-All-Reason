@@ -90,7 +90,7 @@ local THRUSTER_CONFIGS = {
 	-- Standard small missiles (orange flame trailing behind)
 	missiletrailsmall = {
 		length = -20,
-		size = 1.8, sizeGrowth = 0.2,
+		size = 1.8, sizeGrowth = 0.15,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
 		glowSize = 28, glowR = 0.09, glowG = 0.06, glowB = 0.012,
@@ -98,7 +98,7 @@ local THRUSTER_CONFIGS = {
 	},
 	["missiletrailsmall-simple"] = {
 		length = -20,
-		size = 1.8, sizeGrowth = 0.2,
+		size = 1.8, sizeGrowth = 0.15,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
 		glowSize = 28, glowR = 0.09, glowG = 0.06, glowB = 0.012,
@@ -124,7 +124,7 @@ local THRUSTER_CONFIGS = {
 	-- Medium missiles
 	missiletrailmedium = {
 		length = -24,
-		size = 3.3, sizeGrowth = 0.2,
+		size = 3.3, sizeGrowth = 0.15,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
 		glowSize = 50, glowR = 0.12, glowG = 0.08, glowB = 0.02,
@@ -132,7 +132,7 @@ local THRUSTER_CONFIGS = {
 	},
 	["missiletrailmedium-red"] = {
 		length = -24,
-		size = 3.3, sizeGrowth = 0.2,
+		size = 3.3, sizeGrowth = 0.15,
 		colorR = 1.0, colorG = 0.33, colorB = 0.17,
 		colorEndR = 1.0, colorEndG = 0.22, colorEndB = 0.05,
 		glowSize = 50, glowR = 0.13, glowG = 0.06, glowB = 0.01,
@@ -140,7 +140,7 @@ local THRUSTER_CONFIGS = {
 	},
 	["missiletraillarge-red"] = {
 		length = -28,
-		size = 3.7, sizeGrowth = 0.2,
+		size = 3.7, sizeGrowth = 0.15,
 		colorR = 1.0, colorG = 0.33, colorB = 0.11,
 		colorEndR = 1.0, colorEndG = 0.12, colorEndB = 0.05,
 		glowSize = 50, glowR = 0.13, glowG = 0.06, glowB = 0.01,
@@ -148,7 +148,7 @@ local THRUSTER_CONFIGS = {
 	},
 	missiletrailviper = {
 		length = -32,
-		size = 2.8, sizeGrowth = 0.5,
+		size = 2.8, sizeGrowth = 0.33,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
 		glowSize = 50, glowR = 0.12, glowG = 0.07, glowB = 0.02,
@@ -251,7 +251,7 @@ end
 
 -- Precompute config defaults and per-frame constants to avoid per-missile overhead
 for _, cfg in pairs(weaponConfigs) do
-	cfg.sizeGrowth     = cfg.sizeGrowth or 0.2
+	cfg.sizeGrowth     = cfg.sizeGrowth or 0.15
 	cfg.glowSize       = cfg.glowSize or 0
 	cfg.glowR          = cfg.glowR or 0.1
 	cfg.glowG          = cfg.glowG or 0.06

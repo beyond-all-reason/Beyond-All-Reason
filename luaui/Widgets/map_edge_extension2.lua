@@ -371,13 +371,18 @@ void main() {
 	#endif
 	
 	// Note that normals are Z up in textures, but Y up in the world
-	vec3 mapNormal = vec3(0);
+	vec3 mapNormal = vec3(0.0, 1.0, 0.0);
 	#ifdef DEFERRED_MODE
 		mapNormal.xz = texture(mapNormalTex,clampeduv).ra;
-		mapNormal.y = sqrt(1.0 - dot(mapNormal.xz, mapNormal.xz));
-		mapNormal = normalize(mapNormal);
+		// clamp before sqrt to prevent NaN when xz values are out of [-1,1] range
+		mapNormal.y = sqrt(max(0.0, 1.0 - dot(mapNormal.xz, mapNormal.xz)));
+		float normalLen = length(mapNormal);
+		mapNormal = (normalLen > 0.001) ? mapNormal / normalLen : vec3(0.0, 1.0, 0.0);
 	#else
-		mapNormal = normalize(texture(mapNormalTex,clamp(uv, MINIMAP_HALF_TEXEL / 4.0, 1.0 - (MINIMAP_HALF_TEXEL/4.0))).rbg * 2.0 - 1.0);
+		vec3 rawNormal = texture(mapNormalTex,clamp(uv, MINIMAP_HALF_TEXEL / 4.0, 1.0 - (MINIMAP_HALF_TEXEL/4.0))).rbg * 2.0 - 1.0;
+		float normalLen = length(rawNormal);
+		// guard against zero-length normal (normalize(vec3(0)) = NaN on most GPUs)
+		mapNormal = (normalLen > 0.001) ? rawNormal / normalLen : vec3(0.0, 1.0, 0.0);
 	#endif
 
 	// Flip normals if the mirror is flipped
@@ -387,6 +392,8 @@ void main() {
 	// Apply some lighting based on the normal vector
 	finalColor.rgb = finalColor.rgb * (dot(mapNormal, sunDir.xyz) * 0.5 + 1.0);
 
+	// clamp to prevent NaN/overflow from lighting producing white pixels
+	finalColor.rgb = clamp(finalColor.rgb, 0.0, 1.0);
 	finalColor.rgb = mix(fogColor.rgb, finalColor.rgb, alphaFog.y);
 	finalColor.a = alphaFog.x; 
 	//finalColor.rg = uv;
