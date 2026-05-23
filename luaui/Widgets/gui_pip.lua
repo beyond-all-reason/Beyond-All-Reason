@@ -18595,6 +18595,8 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 end
 
 function widget:IsAbove(mx, my)
+	-- Don't claim mouse when GUI is hidden
+	if Spring.IsGUIHidden() then return false end
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return false end
 
@@ -18634,6 +18636,7 @@ function widget:IsAbove(mx, my)
 end
 
 function widget:MouseWheel(up, value)
+	if Spring.IsGUIHidden() then return end
 	if isMinimapMode and miscState.minimapMinimized then return end
 	if not uiState.inMinMode then
 		local mx, my = spFunc.GetMouseState()
@@ -18733,6 +18736,8 @@ function widget:MouseWheel(up, value)
 end
 
 function widget:MousePress(mx, my, mButton)
+	-- Don't process input when GUI is hidden
+	if Spring.IsGUIHidden() then return end
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
 
@@ -19437,6 +19442,7 @@ function widget:MousePress(mx, my, mButton)
 end
 
 function widget:MouseMove(mx, my, dx, dy, mButton)
+	if Spring.IsGUIHidden() then return end
 	-- Get modifier key states
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
@@ -19923,6 +19929,7 @@ function widget:KeyRelease(key)
 end
 
 function widget:MouseRelease(mx, my, mButton)
+	if Spring.IsGUIHidden() then return end
 	-- Handle world camera drag release (leftButtonPansCamera mode)
 	if mButton == 1 and interactionState.worldCameraDragging then
 		interactionState.worldCameraDragging = false
