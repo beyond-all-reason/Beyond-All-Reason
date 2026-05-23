@@ -46,11 +46,12 @@ local spGetProjectileVelocity  = Spring.GetProjectileVelocity
 local spGetProjectileDefID     = Spring.GetProjectileDefID
 local spGetProjectileTeamID    = Spring.GetProjectileTeamID
 local spGetProjectileOwnerID   = Spring.GetProjectileOwnerID
+local spGetUnitDefID           = Spring.GetUnitDefID
 local spGetUnitPosition        = Spring.GetUnitPosition
 local spGetTeamAllyTeamID      = Spring.GetTeamAllyTeamID
 local spGetMyAllyTeamID        = Spring.GetMyAllyTeamID
 local spGetSpectatingState     = Spring.GetSpectatingState
-local spIsPosInAirLos          = Spring.IsPosInAirLos
+local spIsPosInLos          = Spring.IsPosInLos
 local spIsSphereInView         = Spring.IsSphereInView
 local spGetCameraPosition      = Spring.GetCameraPosition
 local spGetFPS                 = Spring.GetFPS
@@ -84,7 +85,7 @@ local popElementInstance  = gl.InstanceVBOTable.popElementInstance
 local CONFIG = {
 	-- Global
 	enabled              = true,
-	maxParticles         = 12000,      -- VBO capacity (also hard cap). Fewer particles than before but each is larger/denser for a more 'real flamethrower' look (and cheaper).
+	maxParticles         = 8000,      -- VBO capacity (also hard cap). Fewer particles than before but each is larger/denser for a more 'real flamethrower' look (and cheaper).
 	losCullingEnabled    = true,       -- skip streams whose head is not in LOS
 
 	-- Tiered particle budget. As the pool fills up, lower-priority decorations
@@ -94,9 +95,16 @@ local CONFIG = {
 	--   >= budgetSoftFrac   : drop smoke + head-smoke + tail-chaos (tier 1)
 	--   >= budgetMediumFrac : also thin jets and cores to every other frame per projectile (tier 2)
 	--   >= budgetHardFrac   : essentials only -- 1 core per projectile per frame, no jet, no smoke (tier 3)
-	budgetSoftFrac       = 0.6,
-	budgetMediumFrac     = 0.75,
-	budgetHardFrac       = 0.9,
+	budgetSoftFrac       = 0.5,
+	budgetMediumFrac     = 0.7,
+	budgetHardFrac       = 0.85,
+	-- Overflow headroom above maxParticles reserved EXCLUSIVELY for tier-3
+	-- essential core flame. When the pool is past budgetHardFrac, every tracked
+	-- projectile still wants its 1 core/frame so the stream doesn't visibly
+	-- stutter -- those essential spawns are allowed to cross maxParticles up
+	-- to maxParticles * (1 + essentialOverflowFrac). All other particle types
+	-- (jet/tail/smoke) and all non-tier-3 cores still respect maxParticles.
+	essentialOverflowFrac = 0.25,
 
 	-- Per-projectile-frame emission. Tuned for a dense, opaque-looking stream
 	-- with fewer but larger particles -- the 'painterly chunks' approach
@@ -193,6 +201,18 @@ local CONFIG = {
 	jetWobble            = 0.33,       -- jet wobble amplitude (kept very small for clean look)
 	jetStretchMult       = 1.4,        -- jet billboards are stretched along the projectile velocity by this factor (length = baseSize * jetStretchMult, width = baseSize). Lets a single particle cover the screen-space distance the projectile would otherwise need 8 round particles for -- the jet reads as a streak rather than a chain of dots, and the per-frame particle budget for jets effectively pays for ~8x its visible coverage.
 
+	-- Scavenger tint: applied when the projectile owner unit has
+	-- customParams.isscavenger. scavJetColor REPLACES the blue jet RGB, and
+	-- scavTintStops REPLACES the fire-gradient LUT for scav projectiles --
+	-- same shape as tintStops above (white-hot pinch at nozzle, then ramping
+	-- through the warm body of the stream) but tinted pink/magenta/purple.
+	scavJetColor         = { 0.88, 0.65, 1.00 }, -- magenta-purple jet
+	scavTintStops = {
+		{ 0.00, 1.00, 1.00, 1.00 },    -- pure white hot pinch at the nozzle
+		{ 0.12, 0.88, 0.85, 0.95 },    -- pale pink
+		{ 0.32, 0.88, 0.8, 0.93 },    -- saturated pink
+	},
+
 	-- Alpha
 	coreAlphaBase        = 0.95,       -- very opaque -- reads as dense fire
 	smokeAlphaBase       = 0.30,       -- light, translucent smoke (don't blot out the scene)
@@ -202,7 +222,7 @@ local CONFIG = {
 	lodDistFar           = 9000,
 	lodMinMult           = 0.30,
 	lodDistCull          = 14000,      -- hard cull: beyond this camera distance the projectile is skipped entirely (no emit, no LOS check, no per-particle work). At this distance the stream is far below 1px so there's nothing to see.
-	losCacheInterval     = 12,         -- frames between fresh spIsPosInAirLos lookups per tracked projectile (the cached visibility flag is reused in between). 12 frames = ~0.4s at 30fps; flames are short-lived enough that one stale frame is invisible.
+	losCacheInterval     = 12,         -- frames between fresh spIsPosInLos lookups per tracked projectile (the cached visibility flag is reused in between). 12 frames = ~0.4s at 30fps; flames are short-lived enough that one stale frame is invisible.
 	staleGcInterval      = 30,         -- frames between sweeps that drop tracked/ignored entries whose engine projectile has died off-screen. Was every frame -- this is pure bookkeeping with no visual effect.
 
 	-- Frustum culling padding (elmos)
@@ -570,7 +590,7 @@ local cachedGameFrame = 0
 local cachedCamX, cachedCamY, cachedCamZ = 0, 0, 0
 local windX, windZ = 0, 0
 local cachedAllyTeamID = -1
-local cachedSpec, cachedFullView = false, false
+local cachedFullView = false
 
 local LOD_DIST_NEAR_SQ  = CONFIG.lodDistNear * CONFIG.lodDistNear
 local LOD_DIST_FAR_SQ   = CONFIG.lodDistFar * CONFIG.lodDistFar
@@ -580,6 +600,14 @@ local LOD_MULT_RANGE    = 1 - CONFIG.lodMinMult
 local CULL_RADIUS       = CONFIG.cullingPad + 80
 local LOS_CACHE_INTERVAL = CONFIG.losCacheInterval
 local STALE_GC_INTERVAL  = CONFIG.staleGcInterval
+-- Short reuse window for *visible* LOS verdicts. Trades a tiny fog-leak window
+-- (visible particles linger this many extra frames after sudden LOS loss) for
+-- a ~3x reduction in spIsPosInLos calls on every visible-enemy flame stream.
+local LOS_VISIBLE_CACHE_INTERVAL    = 3
+-- Reuse window for the friendly ally fast-path verdict. Friendly shooters
+-- don't teleport, so a 15-frame (~0.5s) cache is invisible in practice and
+-- skips a Spring.GetUnitPosition call per friendly flame projectile per frame.
+local ALLY_FASTPATH_CACHE_INTERVAL  = 15
 
 --------------------------------------------------------------------------------
 -- Hot-path constants bundled into a SINGLE local table.
@@ -594,6 +622,11 @@ local STALE_GC_INTERVAL  = CONFIG.staleGcInterval
 --------------------------------------------------------------------------------
 local K = {
 	MAX_PARTICLES        = CONFIG.maxParticles,
+	-- Absolute wall: only tier-3 essential cores may push past MAX_PARTICLES,
+	-- and even they stop at this value. Sized so a few hundred tracked
+	-- projectiles can each get their 1 core/frame for a few frames before
+	-- expirations claw the pool back below the soft cap.
+	HARD_MAX_PARTICLES   = mathFloor(CONFIG.maxParticles * (1 + (CONFIG.essentialOverflowFrac or 0))),
 	LOS_CULL_ENABLED     = CONFIG.losCullingEnabled,
 	LOD_MIN_MULT         = CONFIG.lodMinMult,
 
@@ -652,6 +685,10 @@ local K = {
 	JET_R                = CONFIG.jetColor[1] * CONFIG.jetBrightness,
 	JET_G                = CONFIG.jetColor[2] * CONFIG.jetBrightness,
 	JET_B                = CONFIG.jetColor[3] * CONFIG.jetBrightness,
+
+	SCAV_JET_R           = CONFIG.scavJetColor[1] * CONFIG.jetBrightness,
+	SCAV_JET_G           = CONFIG.scavJetColor[2] * CONFIG.jetBrightness,
+	SCAV_JET_B           = CONFIG.scavJetColor[3] * CONFIG.jetBrightness,
 }
 
 --------------------------------------------------------------------------------
@@ -738,8 +775,8 @@ end
 -- without 3 extra multiplies per call.
 --------------------------------------------------------------------------------
 local tintR, tintG, tintB = {}, {}, {}
-do
-	local stops = CONFIG.tintStops
+local scavTintR, scavTintG, scavTintB = {}, {}, {}
+local function bakeTintLut(stops, outR, outG, outB)
 	local bri = CONFIG.tintBrightness
 	for i = 0, TINT_LUT_SIZE - 1 do
 		local t = i / (TINT_LUT_SIZE - 1)
@@ -752,11 +789,13 @@ do
 		end
 		local span = b[1] - a[1]
 		local k = span > 0 and (t - a[1]) / span or 0
-		tintR[i + 1] = (a[2] + (b[2] - a[2]) * k) * bri
-		tintG[i + 1] = (a[3] + (b[3] - a[3]) * k) * bri
-		tintB[i + 1] = (a[4] + (b[4] - a[4]) * k) * bri
+		outR[i + 1] = (a[2] + (b[2] - a[2]) * k) * bri
+		outG[i + 1] = (a[3] + (b[3] - a[3]) * k) * bri
+		outB[i + 1] = (a[4] + (b[4] - a[4]) * k) * bri
 	end
 end
+bakeTintLut(CONFIG.tintStops,     tintR,     tintG,     tintB)
+bakeTintLut(CONFIG.scavTintStops, scavTintR, scavTintG, scavTintB)
 -- silence unused
 local _ = buildTintLut
 
@@ -773,13 +812,35 @@ local function sampleTint(t)
 	       b1 + (tintB[i2] - b1) * k
 end
 
+local function sampleScavTint(t)
+	if t < 0 then t = 0 elseif t > 1 then t = 1 end
+	local f = t * (TINT_LUT_SIZE - 1)
+	local i = mathFloor(f)
+	local k = f - i
+	local i1, i2 = i + 1, i + 2
+	if i2 > TINT_LUT_SIZE then i2 = TINT_LUT_SIZE end
+	local r1, g1, b1 = scavTintR[i1], scavTintG[i1], scavTintB[i1]
+	return r1 + (scavTintR[i2] - r1) * k,
+	       g1 + (scavTintG[i2] - g1) * k,
+	       b1 + (scavTintB[i2] - b1) * k
+end
+
 --------------------------------------------------------------------------------
 -- Particle spawn
 --------------------------------------------------------------------------------
 local particleData = { 0,0,0,0, 0,0,0,0, 0,0,0,0, 1,1,1,1 }
 
-local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b, alpha)
-	if particleVBO.usedElements >= K.MAX_PARTICLES then return end
+-- Set by emitStream before spawning so spawnParticle can attribute each new
+-- particle to its owning projectile (for bulk-kill on LOS loss). Reset to nil
+-- by emitStream on early-returns / end so unrelated future spawns can't leak
+-- into a stale tracked entry.
+local emitInfoRef = nil
+
+local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b, alpha, essential)
+	-- Soft cap for normal spawns; essential=true (tier-3 core flame only)
+	-- may push up to the hard cap so streams keep emitting under pool pressure.
+	local cap = essential and K.HARD_MAX_PARTICLES or K.MAX_PARTICLES
+	if particleVBO.usedElements >= cap then return nil end
 	local deathFrame = cachedGameFrame + mathCeil(life) + 2
 
 	particleData[1] = px
@@ -814,6 +875,27 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b,
 		particleRemoveQueue[deathFrame] = q
 	end
 	q[#q + 1] = id
+
+	-- Attribute this particle to the currently-emitting projectile, so we can
+	-- pop it early if/when that projectile loses LOS. Skipped when
+	-- info.noKillNeeded is set (spectator full-view or ally fast-path -- those
+	-- paths can never call killProjectileParticles, so the list would just be
+	-- dead weight: a hash lookup + table push per particle for nothing).
+	if emitInfoRef and not emitInfoRef.noKillNeeded then
+		local plist = emitInfoRef.particles
+		if not plist then plist = {}; emitInfoRef.particles = plist end
+		local n = #plist
+		-- Cap list growth: old entries point to particles that are likely
+		-- already gone (natural expiry), and even if some are still alive
+		-- they're near end-of-life. Dropping the oldest 50% is harmless.
+		if n >= 1024 then
+			for i = 1, 512 do plist[i] = plist[i + 512] end
+			for i = 513, 1024 do plist[i] = nil end
+			n = 512
+		end
+		plist[n + 1] = id
+	end
+	return id
 end
 
 local function removeExpiredParticles(gameFrame)
@@ -845,26 +927,139 @@ local tracked = {}      -- [proID] = { wcfg, birthFrame, gen }
 local ignored = {}      -- [proID] = lastSeenGen  (negative cache: non-flame projectiles)
 local trackGen = 0
 
--- LOS visibility test with per-projectile caching. The raw spIsPosInAirLos
--- call is one of the more expensive per-projectile-per-frame operations; we
--- only refresh it every LOS_CACHE_INTERVAL frames and reuse the cached flag
--- in between (stored on the tracked info object).
-local function visibleToLocalPlayer(info, px, py, pz, ownerAllyTeam, gameFrame)
-	if cachedFullView then return true end
-	if ownerAllyTeam == cachedAllyTeamID then return true end
-	if not K.LOS_CULL_ENABLED then return true end
-	if info.losCheckFrame and (gameFrame - info.losCheckFrame) < LOS_CACHE_INTERVAL then
-		return info.losVisible
+-- LOS visibility test with per-projectile caching. Asymmetric on purpose:
+--   * "hidden" result is cached for LOS_CACHE_INTERVAL frames -- this is the
+--     common case (many enemy projectiles in distant fog) and the one where
+--     repeated spIsPosInLos calls actually hurt.
+--   * "visible" result is NEVER cached: we re-check every frame so that a
+--     projectile losing LOS (the unit hiding behind terrain, scout dying,
+--     etc.) stops emitting on the very next frame instead of leaking up to
+--     LOS_CACHE_INTERVAL frames of visible particles into fog of war.
+-- This is still much cheaper than the previous always-call version because
+-- the only projectiles that pay the per-frame cost are the ones the local
+-- player can currently see anyway.
+-- Forcibly remove every particle this projectile has spawned that's still
+-- alive in the VBO. Called the instant the projectile loses LOS, so the
+-- trail/puff disappears with it instead of lingering in fog for the rest of
+-- the particles' natural lifetimes (up to ~2s of orange flame in fog --
+-- exactly the symptom we kept seeing).
+local function killProjectileParticles(info)
+	local list = info.particles
+	if not list then return end
+	local idToIndex = particleVBO.instanceIDtoIndex
+	for i = 1, #list do
+		local id = list[i]
+		if idToIndex[id] then popElementInstance(particleVBO, id) end
+		list[i] = nil
 	end
-	local vis = spIsPosInAirLos(px, py, pz, cachedAllyTeamID)
-	info.losCheckFrame = gameFrame
-	info.losVisible    = vis
-	return vis
+end
+
+local function visibleToLocalPlayer(proID, info, px, py, pz, dirX, dirY, dirZ, speed, ownerAllyTeam, gameFrame)
+	if cachedFullView then
+		info.noKillNeeded = true
+		return true, true
+	end
+	-- IMPORTANT: in UNSYNCED, Spring.GetProjectileTeamID and GetProjectileOwnerID
+	-- return *spoofed* values for hidden enemy projectiles (engine reports
+	-- local player's team and aliases ownerID to some real friendly unit).
+	-- A naive ownerAllyTeam == myAllyTeam shortcut therefore waves enemy
+	-- flame straight through.
+	--
+	-- Discriminator: a real friendly projectile is always within flame-weapon
+	-- range of its actual shooter. An engine-spoofed enemy projectile has its
+	-- ownerID aliased to some random friendly unit elsewhere on the map -- so
+	-- comparing projectile position to the claimed owner's position reliably
+	-- tells genuine from spoofed.
+	local ownerID = info.ownerID
+	if ownerID and ownerAllyTeam == cachedAllyTeamID then
+		-- Cache the ally fast-path verdict for ALLY_CACHE_INTERVAL frames.
+		-- Friendly projectiles overwhelmingly keep passing this check (their
+		-- shooter doesn't teleport), so re-running GetUnitPosition every frame
+		-- for every friendly flame is pure waste in big games.
+		if info.allyFastPathFrame and (gameFrame - info.allyFastPathFrame) < ALLY_FASTPATH_CACHE_INTERVAL then
+			info.noKillNeeded = true
+			return true, true
+		end
+		local ox, oy, oz = spGetUnitPosition(ownerID)
+		if ox then
+			local dx, dy, dz = px - ox, py - oy, pz - oz
+			-- Flame weapons cap around 300 elmo range; 500 gives generous
+			-- headroom for projectile-in-flight + LOS slack.
+			if dx * dx + dy * dy + dz * dz < 250000 then
+				info.allyFastPathFrame = gameFrame
+				info.noKillNeeded = true
+				return true, true
+			end
+		end
+	end
+	if not K.LOS_CULL_ENABLED then return true, true end
+	-- Reuse a recent *hidden* result only.
+	if info.losHiddenFrame and (gameFrame - info.losHiddenFrame) < LOS_CACHE_INTERVAL then
+		return false, false
+	end
+	-- Reuse a recent *visible* result for a SHORT window. Trades up to
+	-- LOS_VISIBLE_CACHE_INTERVAL frames of fog leak on sudden LOS loss for a
+	-- 3x reduction in spIsPosInLos calls on every visible-enemy flame stream.
+	if info.losVisibleFrame and (gameFrame - info.losVisibleFrame) < LOS_VISIBLE_CACHE_INTERVAL then
+		return true, info.losSmokeCached or false
+	end
+	-- Layered position-only visibility test. The engine spoofs team and
+	-- ownerID for hidden enemy projectiles, so unit-based gates are
+	-- unreliable; projectile position is honest.
+	--   1) Head position in LOS -- kills hidden-enemy fire.
+	--   2) Near-forward sample (head + dir * max(jet/core life) * speed) --
+	--      stops sighted enemies from painting fire downrange into fog.
+	--   3) (smoke only) Far-forward sample at ~half max smoke travel.
+	--      Smoke lives 70-140f and drifts ~1k+ elmos; needs its own gate.
+	local vis, smokeVis = false, false
+	if spIsPosInLos(px, py, pz, cachedAllyTeamID) then
+		local nearAhead = mathMax(64, K.CORE_LIFE_MAX * speed)
+		if spIsPosInLos(px + dirX * nearAhead, py + dirY * nearAhead, pz + dirZ * nearAhead, cachedAllyTeamID) then
+			vis = true
+			if speed > 0.5 then
+				local farAhead = (K.SMOKE_LIFE_MIN + K.SMOKE_LIFE_SPAN) * speed * 0.5
+				if spIsPosInLos(px + dirX * farAhead, py + dirY * farAhead, pz + dirZ * farAhead, cachedAllyTeamID) then
+					smokeVis = true
+				end
+			else
+				smokeVis = true
+			end
+		end
+	end
+	if vis then
+		info.losHiddenFrame   = nil
+		info.losVisibleFrame  = gameFrame
+		info.losSmokeCached   = smokeVis
+	else
+		-- Transition visible -> hidden: nuke any particles already in flight,
+		-- otherwise they'd render in fog until they expire naturally.
+		if not info.losHiddenFrame then killProjectileParticles(info) end
+		info.losHiddenFrame = gameFrame
+	end
+	return vis, smokeVis
 end
 
 local function emitStream(proID, info, gameFrame, throttleMult)
-	-- Early-exit: if particle pool is full, no point doing any per-projectile work
-	if particleVBO.usedElements >= K.MAX_PARTICLES then return end
+	emitInfoRef = nil
+	-- Early-exit: only bail when the HARD cap (incl. essential overflow) is
+	-- exhausted. Between MAX_PARTICLES and HARD_MAX_PARTICLES, tier-3 essential
+	-- cores can still spawn -- spawnParticle gates the soft-cap reject per-call.
+	if particleVBO.usedElements >= K.HARD_MAX_PARTICLES then return end
+
+	-- Per-projectile color scalars. For scavenger-owned flamers we swap the
+	-- jet color outright (blue -> magenta-purple) and route the core/tail
+	-- spawn color sampling through the parallel pink-purple LUT instead of
+	-- the yellow/orange one. Selecting the sampler function once here keeps
+	-- the hot per-particle path branch-free.
+	local jetR, jetG, jetB
+	local tintSampler
+	if info.isScav then
+		jetR, jetG, jetB = K.SCAV_JET_R, K.SCAV_JET_G, K.SCAV_JET_B
+		tintSampler = sampleScavTint
+	else
+		jetR, jetG, jetB = K.JET_R, K.JET_G, K.JET_B
+		tintSampler = sampleTint
+	end
 
 	local px, py, pz = spGetProjectilePosition(proID)
 	if not px then return end
@@ -890,8 +1085,21 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 	-- View frustum cull
 	if not spIsSphereInView(px, py, pz, CULL_RADIUS) then return end
 
+	-- Velocity fetched here (instead of post-LOS) because the LOS gate needs
+	-- the projectile's forward direction to do a downrange-trajectory sample
+	-- ("is the spot where my particles will drift to in LOS?").
+	local vx, vy, vz = spGetProjectileVelocity(proID)
+	vx = vx or 0; vy = vy or 0; vz = vz or 0
+	local speed = mathSqrt(vx * vx + vy * vy + vz * vz)
+	local invSpeed = speed > 0.001 and (1 / speed) or 0
+	local dirX, dirY, dirZ = vx * invSpeed, vy * invSpeed, vz * invSpeed
+
 	-- LOS / spectator cull (cached per projectile, refreshed every LOS_CACHE_INTERVAL frames)
-	if not visibleToLocalPlayer(info, px, py, pz, info.ownerAllyTeam, gameFrame) then return end
+	local losVis, losSmokeVis = visibleToLocalPlayer(proID, info, px, py, pz, dirX, dirY, dirZ, speed, info.ownerAllyTeam, gameFrame)
+	if not losVis then return end
+
+	-- Past all culls -- attribute any particles spawned below to this projectile.
+	emitInfoRef = info
 
 	local cfg = info.cfg
 	local age = gameFrame - info.birthFrame
@@ -925,11 +1133,7 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 		lodMult = 1 - k * LOD_MULT_RANGE
 	end
 
-	local vx, vy, vz = spGetProjectileVelocity(proID)
-	vx = vx or 0; vy = vy or 0; vz = vz or 0
-	local speed = mathSqrt(vx * vx + vy * vy + vz * vz)
-	local invSpeed = speed > 0.001 and (1 / speed) or 0
-	local dirX, dirY, dirZ = vx * invSpeed, vy * invSpeed, vz * invSpeed
+	-- (velocity / dir already computed above for the LOS forward-lookahead.)
 
 	-- Forward emit offset (so particles emerge slightly ahead of projectile)
 	local emitOff = K.EMIT_OFFSET_FWD
@@ -1001,7 +1205,7 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 	local pvz = vz * velFwdMult
 
 	-- Color tint at this position along the stream's life
-	local tR, tG, tB = sampleTint(lifeT)
+	local tR, tG, tB = tintSampler(lifeT)
 
 	---- Nozzle jet stream (smooth procedural blue, no texture sample) ----
 	-- Only emit while we're in the early portion of the projectile's life
@@ -1053,7 +1257,7 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 				epx + ox, epy + oy, epz + oz,
 				vx * K.JET_VEL_MULT, vy * K.JET_VEL_MULT, vz * K.JET_VEL_MULT,
 				size, 3, life,
-				K.JET_R, K.JET_G, K.JET_B,
+				jetR, jetG, jetB,
 				jetAlpha
 			)
 		end
@@ -1069,7 +1273,7 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 		-- the stream isn't a uniform colour at a given distance.
 		local microT = lifeT + (mathRandom() - 0.5) * tintMicro
 		if microT < 0 then microT = 0 elseif microT > 1 then microT = 1 end
-		local pR, pG, pB = sampleTint(microT)
+		local pR, pG, pB = tintSampler(microT)
 		-- Additional per-channel multiplicative jitter so two particles at the
 		-- same microT still differ slightly in warmth/brightness.
 		local jr = 1 + (mathRandom() - 0.5) * tintJit
@@ -1113,7 +1317,10 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 			rvx, rvy, rvz,
 			size, 0, life,
 			pR, pG, pB,
-			K.CORE_ALPHA_BASE * (0.85 + 0.15 * mathRandom())
+			K.CORE_ALPHA_BASE * (0.85 + 0.15 * mathRandom()),
+			-- Tier-3 cores are the ONE thing allowed to cross the soft cap into
+			-- the essential-overflow region; everything else respects MAX_PARTICLES.
+			budgetTier >= 3
 		)
 	end
 
@@ -1124,7 +1331,7 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 	if budgetTier < 1 and not farMode and mathRandom() < K.TAIL_EMIT_CHANCE * burstMult * muzzleTaper then
 		local microT = mathMin(1, lifeT + 0.15 + (mathRandom() - 0.5) * tintMicro)
 		if microT < 0 then microT = 0 end
-		local pR, pG, pB = sampleTint(microT)
+		local pR, pG, pB = tintSampler(microT)
 		pR = pR * (1 + (mathRandom() - 0.5) * tintJit)
 		pG = pG * (1 + (mathRandom() - 0.5) * tintJit)
 		pB = pB * (1 + (mathRandom() - 0.5) * tintJit)
@@ -1156,7 +1363,7 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 	-- ambient decoration, not the projectile trail itself, and smoke particles
 	-- are the largest/longest-lived so dropping them frees the most pool slots.
 	local smokeFade = mathMin(1.0, mathMax(0.0, (lifeT - 0.3) / 0.25))
-	if budgetTier < 1 and smokeFade > 0 and mathRandom() < K.SMOKE_CHANCE * burstMult * intensity * smokeFade then
+	if losSmokeVis and budgetTier < 1 and smokeFade > 0 and mathRandom() < K.SMOKE_CHANCE * burstMult * intensity * smokeFade then
 		local r1 = (mathRandom() * 2 - 1) * 1.8 * sizeScale
 		local r2 = (mathRandom() * 2 - 1) * 1.8 * sizeScale
 		local ox = cx * r1 + tx * r2
@@ -1181,7 +1388,7 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 
 	---- Head smoke (light haze just behind the projectile, only mid-flight onward) ----
 	-- Head smoke fades in from lifeT=0.2 (0%) to lifeT=0.45 (100%)
-	if budgetTier < 1 and not farMode then
+	if losSmokeVis and budgetTier < 1 and not farMode then
 	local headSmokeFade = mathMin(1.0, mathMax(0.0, (lifeT - 0.2) / 0.25))
 	if headSmokeFade > 0 and mathRandom() < K.SMOKE_CHANCE_HEAD * burstMult * intensity * headSmokeFade then
 		local r1 = (mathRandom() * 2 - 1) * 1.0 * sizeScale
@@ -1227,6 +1434,15 @@ local function updateProjectiles(gameFrame, throttleMult)
 	for i = 1, #projectiles do
 		local proID = projectiles[i]
 		local info = tracked[proID]
+		-- Detect proID recycling: Spring reuses dead projectile IDs, and between
+		-- STALE_GC_INTERVAL passes a new (different-weapon) projectile can hijack
+		-- a tracked ID and inherit the old info's cfg/ownerID/isScav -- the "flame
+		-- with another unit's properties" symptom. Cheap defense: compare current
+		-- engine wDefID against the one stamped at info creation.
+		if info and spGetProjectileDefID(proID) ~= info.wDefID then
+			tracked[proID] = nil
+			info = nil
+		end
 		if info then
 			info.gen = gen
 			emitStream(proID, info, gameFrame, throttleMult)
@@ -1251,8 +1467,10 @@ local function updateProjectiles(gameFrame, throttleMult)
 				-- shader drag integration would drift those jets downstream --
 				-- the visible "particles way too far outside max range" bug.
 				local midFlight = false
+				local ownerID = nil
+				local isScav = false
 				if ex then
-					local ownerID = spGetProjectileOwnerID(proID)
+					ownerID = spGetProjectileOwnerID(proID)
 					if ownerID then
 						local ox, oy, oz = spGetUnitPosition(ownerID)
 						if ox then
@@ -1262,13 +1480,26 @@ local function updateProjectiles(gameFrame, throttleMult)
 								midFlight = true
 							end
 						end
+						-- Scavenger ownership: matches BAR's standard convention
+						-- (unitDef.customParams.isscavenger, used by scav_spawner_defense,
+						-- pve_areahealers, gfx_raptor_scum_gl4, etc.).
+						local ownerDefID = spGetUnitDefID(ownerID)
+						if ownerDefID then
+							local ud = UnitDefs[ownerDefID]
+							if ud and ud.customParams and ud.customParams.isscavenger then
+								isScav = true
+							end
+						end
 					end
 				end
 
 				info = {
 					cfg                = cfg,
+					wDefID             = wDefID,
 					birthFrame         = gameFrame,
 					ownerAllyTeam      = ownerAllyTeam,
+					ownerID            = ownerID,
+					isScav             = isScav,
 					gen                = gen,
 					emitX              = ex or 0,
 					emitY              = ey or 0,
@@ -1361,7 +1592,7 @@ function gadget:Initialize()
 	if not initGL4() then return end
 
 	cachedAllyTeamID = spGetMyAllyTeamID()
-	cachedSpec, cachedFullView = spGetSpectatingState()
+	_, cachedFullView = spGetSpectatingState()
 
 	if missingAlldefsPost > 0 then
 		Spring.Echo(string.format(
@@ -1386,7 +1617,7 @@ end
 
 function gadget:PlayerChanged(playerID)
 	cachedAllyTeamID = spGetMyAllyTeamID()
-	cachedSpec, cachedFullView = spGetSpectatingState()
+	_, cachedFullView = spGetSpectatingState()
 end
 
 local fpsUpdateInterval = 1
