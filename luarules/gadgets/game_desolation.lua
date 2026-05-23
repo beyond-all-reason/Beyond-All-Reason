@@ -3,86 +3,63 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Desolation",
-		desc = "Cheat command to wipe team 0 down to a power quota",
+		desc = "Cheat command to wipe a team down to a power quota",
 		author = "SethDGamre",
 		date = "2026-05-21",
 		layer = 0,
-		enabled = false,
+		enabled = true,
 	}
 end
 
-local DESOLATION_TEAM = 0
+if not gadgetHandler:IsSyncedCode() then return false end
+
 local DESOLATION_QUOTA_RATIO = 0.2
+local REDEEMABLE_CHANCE = 0.5
+local TURRET_GAIA_CHANCE = 0.75
 local TURRET_RADIUS = 200
 local TURRET_RADIUS_SQR = TURRET_RADIUS * TURRET_RADIUS
-local FAVORED_PICK_CHANCE = 0.25
-local CORPSE_CHANCE = 0.33
 local HEAP_OVERKILL_MULTIPLIER = 3
-local STAGGER_MAX_SECONDS = 10
-local EXTREME_DAMAGE = 999999
+local DESOLATION_SECONDS = 5
+local DESOLATION_STAGGER_FRAMES = DESOLATION_SECONDS * Game.gameSpeed
+local EXTREME_DAMAGE = 999999999999
+local POWERFUL_TURRET_BIAS = 3
+local TURRET_HOTSPOT_COUNT = 5
 
-local DEATH_CORPSE = 1
-local DEATH_HEAP = 2
-local DEATH_EXPLODE = 3
-local DEATH_NEUTRAL = 4
+local DESOLATE_GAIA = 0
+local DESOLATE_CORPSE = 1
+local DESOLATE_HEAP = 2
+local DESOLATE_ERASE = 3
+
+local CAN_MOVE_PENALTY_MULTIPLIER = 4
+
+
+local TO_HEAP_DAMAGE_RATIO = 0.5
+
+local clusteredStructures = {}
+local unclusteredStructures = {}
+local mobileUnits = {}
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetTeamUnits = Spring.GetTeamUnits
 local spAddUnitDamage = Spring.AddUnitDamage
+local spTransferUnit = Spring.TransferUnit
 local spValidUnitID = Spring.ValidUnitID
+local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local mathRandom = math.random
 local mathMax = math.max
 local mathFloor = math.floor
+local mathDistance2dSquared = math.distance2dSquared
 
-local isCommander = {}
-local deathQueue = {}
-local deathsThisFrame = {}
-local turretDefs = {}
+local gaiaTeam = Spring.GetGaiaTeamID()
+
+local defData = {}
 local commanderDefs = {}
+local actionFrames = {}
 
-local function isCommanderUnit(unitDefID)
-	return isCommander[unitDefID]
-end
-
-local function getUnitPower(unitDefID)
-	local unitDef = UnitDefs[unitDefID]
-	return unitDef and unitDef.power or 0
-end
-
-local function getMaxCommanderPower()
-	local maxPower = 0
-	for unitDefID in pairs(isCommander) do
-		maxPower = mathMax(maxPower, getUnitPower(unitDefID))
-	end
-	return maxPower
-end
-
-local function getCommanderPowerOnTeam(teamID)
-	local teamUnits = spGetTeamUnits(teamID)
-	for unitIndex = 1, #teamUnits do
-		local unitDefID = spGetUnitDefID(teamUnits[unitIndex])
-		if isCommanderUnit(unitDefID) then
-			return getUnitPower(unitDefID)
-		end
-	end
-	return 0
-end
-
-local function getTeamPowerExcludingCommanders(teamID)
-	local totalPower = 0
-	local teamUnits = spGetTeamUnits(teamID)
-	for unitIndex = 1, #teamUnits do
-		local unitDefID = spGetUnitDefID(teamUnits[unitIndex])
-		if unitDefID and not isCommanderUnit(unitDefID) then
-			totalPower = totalPower + getUnitPower(unitDefID)
-		end
-	end
-	return totalPower
-end
-
-local function isTurret(unitDef)
+--populate def types
+local function isTurretDef(unitDef)
 	if unitDef.canMove then
 		return false
 	end
@@ -92,264 +69,232 @@ local function isTurret(unitDef)
 	if unitDef.buildOptions and #unitDef.buildOptions > 0 then
 		return false
 	end
-	Spring.Echo(unitDef.name, "is turret")
 	return true
 end
 
---collect defs
 for unitDefID, unitDef in ipairs(UnitDefs) do
-	if isTurret(unitDef) then
-		turretDefs[unitDefID] = true
+	local data = {}
+	
+	data.power = unitDef.power
+	if isTurretDef(unitDef) then
+		data.isTurret = true
 	end
-	if isCommanderUnit(unitDefID) then
-		commanderDefs[unitDefID] = true
+	if unitDef.customParams and unitDef.customParams.iscommander then
+		data.isCommander = true
 	end
+	if unitDef.canMove then
+		data.canMove = true
+	end
+	defData[unitDefID] = data
 end
 
-local function shuffleTable(unitList)
-	for index = #unitList, 2, -1 do
-		local swapIndex = mathRandom(index)
-		unitList[index], unitList[swapIndex] = unitList[swapIndex], unitList[index]
-	end
-end
+local function chooseFate(unitID)
+	local fate = DESOLATE_HEAP
 
-local function popRandomUnit(favoredUnits, unfavoredUnits)
-	local favoredCount = #favoredUnits
-	local unfavoredCount = #unfavoredUnits
-	if favoredCount == 0 and unfavoredCount == 0 then
-		return nil
-	end
-	if favoredCount > 0 and (unfavoredCount == 0 or mathRandom() < FAVORED_PICK_CHANCE) then
-		return favoredUnits[favoredCount], favoredUnits, favoredCount - 1
-	end
-	return unfavoredUnits[unfavoredCount], unfavoredUnits, unfavoredCount - 1
-end
-
-local function getStaggerFrames()
-	return mathFloor(Game.gameSpeed * STAGGER_MAX_SECONDS)
-end
-
-local function queueUnitDeath(unitID, deathType, unitDefID)
-	if deathQueue[unitID] then
-		return
-	end
-	local staggerFrames = getStaggerFrames()
-	deathQueue[unitID] = {
-		frame = Spring.GetGameFrame() + mathRandom(0, staggerFrames),
-		deathType = deathType,
-		unitDefID = unitDefID,
-	}
-end
-
-local function killUnitAsCorpse(unitID)
-	local health = spGetUnitHealth(unitID)
-	if health and health > 0 then
-		spAddUnitDamage(unitID, health, 0, nil, -1)
-	end
-end
-
-local function killUnitAsHeap(unitID)
-	local health, maxHealth = spGetUnitHealth(unitID)
-	if maxHealth and maxHealth > 0 then
-		spAddUnitDamage(unitID, maxHealth * HEAP_OVERKILL_MULTIPLIER, 0, nil, -1)
-	elseif health and health > 0 then
-		spAddUnitDamage(unitID, health, 0, nil, -1)
-	end
-end
-
-local function killUnitNoWreck(unitID)
-	spAddUnitDamage(unitID, EXTREME_DAMAGE, 0, nil, -1)
-end
-
-local function neutralizeUnit(unitID, unitDefID)
-	Spring.SetUnitNeutral(unitID, true)
-	local weaponIndex = 0
-	for weaponNum in pairs(UnitDefs[unitDefID].weapons) do
-		Spring.UnitWeaponHoldFire(unitID, weaponNum)
-		weaponIndex = weaponIndex + 1
-	end
-	if weaponIndex > 0 then
-		Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
-		Spring.SetUnitTarget(unitID, nil)
-		if GameCMD and GameCMD.UNIT_CANCEL_TARGET then
-			Spring.GiveOrderToUnit(unitID, GameCMD.UNIT_CANCEL_TARGET, {}, {})
+	if math.random() <= REDEEMABLE_CHANCE then
+		if defData[spGetUnitDefID(unitID)].isTurret then
+			if math.random() <= TURRET_GAIA_CHANCE then
+				fate = DESOLATE_GAIA
+			else
+				fate = DESOLATE_CORPSE
+			end
+		else
+			fate = DESOLATE_CORPSE
 		end
 	end
+	return fate
 end
 
-local function executeQueuedDeath(unitID, deathType, unitDefID)
+local function desolateUnit(unitID, fate)
 	if not spValidUnitID(unitID) then
 		return
 	end
-	if deathType == DEATH_CORPSE then
-		killUnitAsCorpse(unitID)
-	elseif deathType == DEATH_HEAP then
-		killUnitAsHeap(unitID)
-	elseif deathType == DEATH_EXPLODE then
-		killUnitNoWreck(unitID)
-	elseif deathType == DEATH_NEUTRAL and unitDefID then
-		neutralizeUnit(unitID, unitDefID)
-	end
-end
-
-local function processDeathQueue(gameFrame)
-	local deathCount = 0
-	for unitID, queuedDeath in pairs(deathQueue) do
-		if gameFrame >= queuedDeath.frame then
-			deathCount = deathCount + 1
-			deathsThisFrame[deathCount] = unitID
-		end
-	end
-	for deathIndex = 1, deathCount do
-		local unitID = deathsThisFrame[deathIndex]
-		deathsThisFrame[deathIndex] = nil
-		local queuedDeath = deathQueue[unitID]
-		deathQueue[unitID] = nil
-		if queuedDeath then
-			executeQueuedDeath(unitID, queuedDeath.deathType, queuedDeath.unitDefID)
-		end
-	end
-end
-
-local function queueFinishRemainingUnit(unitID, unitDefID)
-	if isCommanderUnit(unitDefID) then
+	local health, maxHealth = spGetUnitHealth(unitID)
+	if fate == DESOLATE_GAIA then
+		spTransferUnit(unitID, gaiaTeam, false)
+		spAddUnitDamage(unitID, maxHealth * 2, 5, nil, -1)
 		return
 	end
-	local unitDef = UnitDefs[unitDefID]
-	if mathRandom() < CORPSE_CHANCE then
-		queueUnitDeath(unitID, DEATH_CORPSE, unitDefID)
-	elseif isTurret(unitDef) then
-		queueUnitDeath(unitID, DEATH_NEUTRAL, unitDefID)
-	else
-		queueUnitDeath(unitID, DEATH_HEAP, unitDefID)
+	if fate == DESOLATE_ERASE then
+		spAddUnitDamage(unitID, EXTREME_DAMAGE, 0, nil, -1)
+		return
+	end
+	if not health or health <= 0 then
+		return
+	end
+	if fate == DESOLATE_CORPSE then
+		spAddUnitDamage(unitID, health, 0, nil, -1)
+	elseif fate == DESOLATE_HEAP then
+		local heapDamage = health
+		if maxHealth and maxHealth > 0 then
+			heapDamage = mathMax(maxHealth * TO_HEAP_DAMAGE_RATIO, health)
+		end
+		spAddUnitDamage(unitID, heapDamage, 0, nil, -1)
 	end
 end
 
-local function executeDesolation()
-	if not GG.PowerLib or not GG.PowerLib.AveragePlayerTeamPower then
-		Spring.Echo("Desolation: PowerLib unavailable")
+local function dndStyleDisadvantageBias(rangeCount, degree)
+	local selection
+	for rollIndex = 1, degree do
+		local randomWholeNumber = math.random(1, rangeCount)
+		if not selection or randomWholeNumber < selection then
+			selection = randomWholeNumber
+		end
+	end
+	return selection
+end
+
+local function generateRandomCubicFrames()
+	local uniformSample = mathRandom()
+	local easedFraction = 1 - (1 - uniformSample) ^ (1 / 3)
+	return mathFloor(easedFraction * DESOLATION_STAGGER_FRAMES + 0.5)
+end
+
+local function queueDesolationAction(unitID, fate, baseFrame)
+	local frame = baseFrame + generateRandomCubicFrames()
+	local frameActions = actionFrames[frame]
+	if not frameActions then
+		frameActions = {}
+		actionFrames[frame] = frameActions
+	end
+	frameActions[#frameActions + 1] = { unitID = unitID, fate = fate }
+end
+
+local function processActionFrames(gameFrame)
+	local frameActions = actionFrames[gameFrame]
+	if not frameActions then
 		return
 	end
-
-	local averagePower = GG.PowerLib.AveragePlayerTeamPower() or 0
-	local commanderPower = getCommanderPowerOnTeam(DESOLATION_TEAM)
-	if commanderPower == 0 then
-		commanderPower = getMaxCommanderPower()
+	actionFrames[gameFrame] = nil
+	for actionIndex = 1, #frameActions do
+		local action = frameActions[actionIndex]
+		desolateUnit(action.unitID, action.fate)
 	end
-	local desolationQuota = averagePower * DESOLATION_QUOTA_RATIO
-	local remainingPower = getTeamPowerExcludingCommanders(DESOLATION_TEAM)
-	local queuedDeaths = 0
+end
 
-	local teamUnits = spGetTeamUnits(DESOLATION_TEAM)
+local function sortUnitsByPower(unitTable)
+	local sortedUnits = {}
+	for unitIndex = 1, #unitTable do
+		sortedUnits[unitIndex] = unitTable[unitIndex]
+	end
+	table.sort(sortedUnits, function(unitA, unitB)
+		local powerA = defData[spGetUnitDefID(unitA)].power or 0
+		local powerB = defData[spGetUnitDefID(unitB)].power or 0
+		return powerA > powerB
+	end)
+	return sortedUnits
+end
+
+local function sortUnitsByDesirabilityAndDistance(unitsTable, positionTable)
+	local sortedUnits = {}
+	local closestDistanceByUnit = {}
+
+	for unitIndex = 1, #unitsTable do
+		local unitID = unitsTable[unitIndex]
+		sortedUnits[unitIndex] = unitID
+		local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+		local closestDistance = math.huge
+		if unitX then
+			for positionIndex = 1, #positionTable do
+				local position = positionTable[positionIndex]
+				local distance = mathDistance2dSquared(position.x, position.z, unitX, unitZ)
+				closestDistance = math.min(distance, closestDistance)
+			end
+		end
+
+		local canMove = defData[spGetUnitDefID(unitID)].canMove
+		closestDistanceByUnit[unitID] = canMove and closestDistance * CAN_MOVE_PENALTY_MULTIPLIER or closestDistance
+	end
+
+	table.sort(sortedUnits, function(unitA, unitB)
+		return closestDistanceByUnit[unitA] > closestDistanceByUnit[unitB] --longer distances first
+	end)
+
+	return sortedUnits
+end
+
+local function desolateTeam(teamID)
+	local teamUnits = spGetTeamUnits(teamID)
 	local turrets = {}
-	local remainingUnits = {}
+	local hotspots = {}
 
+	--got turrets?
 	for unitIndex = 1, #teamUnits do
 		local unitID = teamUnits[unitIndex]
 		local unitDefID = spGetUnitDefID(unitID)
-		if not isCommanderUnit(unitDefID) then
-			local unitDef = UnitDefs[unitDefID]
-			local unitX, _, unitZ = spGetUnitPosition(unitID)
-			remainingUnits[#remainingUnits + 1] = {
-				unitID = unitID,
-				unitDefID = unitDefID,
-				unitDef = unitDef,
-				x = unitX,
-				z = unitZ,
-			}
-			if isTurret(unitDef) and unitX and unitZ then
-				turrets[#turrets + 1] = { x = unitX, z = unitZ }
-			end
+		local unitDefEntry = defData[unitDefID]
+		if unitDefEntry and unitDefEntry.isTurret then
+			turrets[#turrets + 1] = unitID
 		end
 	end
+	turrets = sortUnitsByPower(turrets)
 
-	local favoredUnits = {}
-	local unfavoredUnits = {}
-
-	for unitIndex = 1, #remainingUnits do
-		local unitData = remainingUnits[unitIndex]
-		local nearTurret = false
-		for turretIndex = 1, #turrets do
-			local turretData = turrets[turretIndex]
-			local deltaX = unitData.x - turretData.x
-			local deltaZ = unitData.z - turretData.z
-			if deltaX * deltaX + deltaZ * deltaZ <= TURRET_RADIUS_SQR then
-				nearTurret = true
-				break
-			end
-		end
-		if nearTurret then
-			favoredUnits[#favoredUnits + 1] = unitData.unitID
-		else
-			unfavoredUnits[#unfavoredUnits + 1] = unitData.unitID
-		end
+	--pick some turrets to preserve and positions
+	for hotspotIndex = 1, math.min(TURRET_HOTSPOT_COUNT, #turrets) do
+		local randomSelection = dndStyleDisadvantageBias(#turrets, POWERFUL_TURRET_BIAS)
+		local unitID = turrets[randomSelection]
+		local x, y, z = spGetUnitPosition(unitID)
+		table.insert(hotspots, { x = x, z = z })
+		desolateUnit(unitID, DESOLATE_GAIA) --set to neutral immediately to ensure they exist later
+		table.remove(turrets, randomSelection) --remove so no duplicates
 	end
 
-	shuffleTable(favoredUnits)
-	shuffleTable(unfavoredUnits)
+	--sort by desirability
+	teamUnits = spGetTeamUnits(teamID) --refresh to exclude turrets
+	teamUnits = sortUnitsByDesirabilityAndDistance(teamUnits, hotspots)
 
-	while remainingPower > desolationQuota do
-		local pickedUnitID, pickTable, newCount = popRandomUnit(favoredUnits, unfavoredUnits)
-		if not pickedUnitID then
+	local erasurePowerTargetThreshold = GG.PowerLib.HighestPlayerPeakPower().power * DESOLATION_QUOTA_RATIO
+	local currentPower = GG.PowerLib.TeamPower(teamID)
+
+	--erase units until we get below the threshold
+	for eraseIndex = 1, #teamUnits do
+		if currentPower <= erasurePowerTargetThreshold or #teamUnits == 0 then
 			break
 		end
-		pickTable[newCount + 1] = nil
-		local pickedUnitDefID = spGetUnitDefID(pickedUnitID)
-		if pickedUnitDefID then
-			local unitPower = getUnitPower(pickedUnitDefID)
-			remainingPower = remainingPower - unitPower
-			queueUnitDeath(pickedUnitID, DEATH_EXPLODE)
-			queuedDeaths = queuedDeaths + 1
-		end
+		local randomSelection = dndStyleDisadvantageBias(#teamUnits, 2)
+		local unitID = teamUnits[randomSelection]
+		local unitDefID = spGetUnitDefID(unitID)
+		local unitPower = defData[unitDefID].power or 0
+		desolateUnit(unitID, DESOLATE_ERASE)
+		currentPower = currentPower - unitPower
+		table.remove(teamUnits, randomSelection)
 	end
 
-	local finishQueued = 0
-	for unitIndex = 1, #remainingUnits do
-		local unitData = remainingUnits[unitIndex]
-		if not deathQueue[unitData.unitID] then
-			queueFinishRemainingUnit(unitData.unitID, unitData.unitDefID)
-			finishQueued = finishQueued + 1
-		end
-	end
+	--choose to gaia, corpse, or heap remainders
 
-	Spring.Echo(string.format(
-		"Desolation: team %d keep %.0f non-cmd power (20%% of avg %.0f) + commander %.0f, after cull %.0f, culled %d finished %d over %ds",
-		DESOLATION_TEAM,
-		desolationQuota,
-		averagePower,
-		commanderPower,
-		remainingPower,
-		queuedDeaths,
-		finishQueued,
-		STAGGER_MAX_SECONDS
-	))
+	local currentFrame = Spring.GetGameFrame()
+	for unitIndex = 1, #teamUnits do
+		local unitID = teamUnits[unitIndex]
+		local fate = chooseFate(unitID)
+		queueDesolationAction(unitID, fate, currentFrame)
+	end
 end
 
-local function desolationCommand(cmd, line, words, playerID)
+local function desolateCommand(cmd, line, words, playerID)
 	if not Spring.IsCheatingEnabled() then
 		return
 	end
-	executeDesolation()
+	local teamID = tonumber(words[1])
+	if not teamID then
+		Spring.Echo("Desolate: usage /luarules desolate <teamID>")
+		return
+	end
+	if not Spring.GetTeamInfo(teamID) then
+		Spring.Echo("Desolate: invalid team ID " .. tostring(teamID))
+		return
+	end
+	desolateTeam(teamID)
 end
 
-if gadgetHandler:IsSyncedCode() then
 
-	for unitDefID, unitDef in ipairs(UnitDefs) do
-		if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
-			isCommander[unitDefID] = true
-		end
-	end
+function gadget:GameFrame(gameFrame)
+	processActionFrames(gameFrame)
+end
 
-	function gadget:GameFrame(gameFrame)
-		processDeathQueue(gameFrame)
-	end
+function gadget:Initialize()
+	gadgetHandler:AddChatAction("desolate", desolateCommand, "Wipes a team to 20% of highest player peak power. Usage: /luarules desolate <teamID>. Requires /cheat")
+end
 
-	function gadget:Initialize()
-		gadgetHandler:AddChatAction("desolation", desolationCommand, "Wipes team 0 to 20% of average player power + commander. Requires /cheat")
-	end
-
-	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction("desolation")
-	end
-
+function gadget:Shutdown()
+	gadgetHandler:RemoveChatAction("desolate")
 end
