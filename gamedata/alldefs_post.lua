@@ -1073,7 +1073,7 @@ local function weaponDef_Post(name, wDef)
 				wDef.rgbcolor           = "0 0 0"
 				wDef.rgbcolor2          = "0 0 0"
 				wDef.cegtag             = ""
-				wDef.explosiongenerator = "custom:blank"
+				--wDef.explosiongenerator = "custom:blank"
 			end
 		end
 
