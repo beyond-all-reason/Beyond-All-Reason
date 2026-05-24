@@ -533,7 +533,7 @@ AimWeapon1(heading, pitch)
 
 Shot1()
 {
-	emit-sfx 1024 + 1 from flare;
+	//emit-sfx 1024 + 1 from flare;
 	return (TRUE);
 }
 

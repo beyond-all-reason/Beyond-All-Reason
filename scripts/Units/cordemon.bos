@@ -991,31 +991,31 @@ SweepFire()
 	{
 		emit-sfx 2048 from lfflare1;
 		emit-sfx 2048 from rfflare1;
-		emit-sfx 1024 + 0 from lfflare2;
-		emit-sfx 1024 + 0 from rfflare1;
+		//emit-sfx 1024 + 0 from lfflare2;
+		//emit-sfx 1024 + 0 from rfflare1;
 	}
 	if( gun_1 == 2 )
 	{
 		emit-sfx 2048 from rfflare1;
 		emit-sfx 2048 from lfflare2;
-		emit-sfx 1024 + 0 from lfflare2;
-		emit-sfx 1024 + 0 from rfflare1;
+		//emit-sfx 1024 + 0 from lfflare2;
+		//emit-sfx 1024 + 0 from rfflare1;
 	}
 	if( gun_1 == 3 )
 	{
 		gun_1 = 0;
 		emit-sfx 2048 from lfflare2;
 		emit-sfx 2048 from rfflare2;
-		emit-sfx 1024 + 0 from lfflare2;
-		emit-sfx 1024 + 0 from rfflare1;
+		//emit-sfx 1024 + 0 from lfflare2;
+		//emit-sfx 1024 + 0 from rfflare1;
 	}
 	if( gun_1 == 4 )
 	{
 		gun_1 = 1;
 		emit-sfx 2048 from rfflare2;
 		emit-sfx 2048 from lfflare1;
-		emit-sfx 1024 + 0 from lfflare2;
-		emit-sfx 1024 + 0 from rfflare1;
+		//emit-sfx 1024 + 0 from lfflare2;
+		//emit-sfx 1024 + 0 from rfflare1;
 	}
 	gun_1 = gun_1 + 2;
 	return (0);
@@ -1090,8 +1090,8 @@ Shot1()
 	signal SIGNAL_SHOOT1;
 	
 	set-signal-mask SIGNAL_SHOOT1;
-	emit-sfx 1024 + 0 from lfflare2;
-	emit-sfx 1024 + 0 from rfflare1;
+	//emit-sfx 1024 + 0 from lfflare2;
+	//emit-sfx 1024 + 0 from rfflare1;
 	//start-script SmokeItUp();
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptDistortion(3, shotcount);

@@ -125,13 +125,13 @@ local CONFIG = {
 	sizeScaleMax         = 2.5,
 	coreSizeBase         = 7.0,        -- base elmos for core flame chunks (large, dense, painterly)
 	smokeSizeBase        = 9.0,        -- big dark smoke puffs
-	jetSizeBase          = 1.5,        -- base elmos for nozzle jet stream particles (small, tight)
+	jetSizeBase          = 1.4,        -- base elmos for nozzle jet stream particles (small, tight)
 	sizeRandRange        = 0.6,        -- +/- random size variance
 
 	-- Per-type growth & physics
 	coreGrowthMult       = 4.0,       -- core flame grows with age (chunky expansion as fuel combusts)
 	smokeGrowthMult      = 3.0,        -- smoke expands a lot (turns into a plume)
-	jetGrowthMult        = 0.2,        -- jet barely grows -- stays a clean stream
+	jetGrowthMult        = 0.25,        -- jet barely grows -- stays a clean stream
 	flameBuoyancy        = 8.0,        -- elmos of rise at end-of-life for core flame. Applied in shader as FLAME_BUOY*t*t (t = age/life), so visible rise is uniform across weapons regardless of per-weapon lifeMult (cormaw vs short-range flamers). Was previously units/frame^2 which scaled with life^2 -- long-life weapons would billow up to 16x more.
 	smokeBuoyancy        = 0.01,      -- strong upward acceleration for smoke (makes it billow above the stream)
 	smokeUpwardVelMin    = 0.20,
@@ -147,11 +147,11 @@ local CONFIG = {
 	smokeLifeMin         = 70,
 	smokeLifeMax         = 140,
 	jetLifeMin           = 6,          -- jet particles are short-lived (clean streak)
-	jetLifeMax           = 14,
+	jetLifeMax           = 13,
 	expectedLifeFallback = 30,         -- frames to use when range/velocity unknown
 	lifeScaleRef         = 30,         -- reference flight-time (frames). lifeMult = clamp(expectedLife / lifeScaleRef, lifeMultMin, lifeMultMax)
 	lifeMultMin          = 0.7,
-	lifeMultMax          = 4.0,
+	lifeMultMax          = 3.0,
 	coreLifeApplyMult    = true,       -- scale core flame lifetime by per-weapon lifeMult
 
 	-- Velocity inheritance / spread
@@ -162,7 +162,7 @@ local CONFIG = {
 	velocityForwardRand  = 0.12,       -- random +/- variation on forward velocity inheritance (0 = uniform)
 	jetVelocityMult      = 1.00,       -- jet particles inherit full projectile velocity (smooth stream along path)
 	velocityRandTangent  = 0.35,       -- random tangential push (elmos/frame) -- slightly tighter than before
-	spreadFromSprayMult  = 0.001,      -- sprayangle * this = additional tangential offset (tighter -> reads as a concentrated stream)
+	spreadFromSprayMult  = 0.0005,      -- sprayangle * this = additional tangential offset (tighter -> reads as a concentrated stream)
 	jetSpreadMult        = 0.12,       -- jet particles have minimal lateral spread
 
 	-- Wind influence
@@ -180,13 +180,13 @@ local CONFIG = {
 	-- muzzle. The blue is handled separately by the nozzle jet.
 	-- Stops are: (t, r, g, b)
 	tintStops = {
-		{ 0.00, 1.00, 1.00, 0.90 },    -- near-white hot pinch at the nozzle
+		{ 0.00, 1.00, 0.95, 0.7 },    -- near-white hot pinch at the nozzle
 		{ 0.12, 1.00, 0.95, 0.55 },    -- bright pale yellow
-		{ 0.32, 1.00, 0.8, 0.33 },    -- saturated yellow-orange (main body)
+		{ 0.32, 1.00, 0.79, 0.37 },    -- saturated yellow-orange (main body)
 		--{ 0.58, 1.00, 0.55, 0.12 },    -- orange
 		--{ 1.00, 0.55, 0.10, 0.04 },    -- dying ember
 	},
-	tintBrightness       = 1.7,        -- global multiplier on tint rgb (brighter for a hot, glowing look)
+	tintBrightness       = 1.75,        -- global multiplier on tint rgb (brighter for a hot, glowing look)
 	tintMicroJitter      = 0.3,       -- per-particle jitter on lifeT used to sample the tint LUT (wider = more color variation between neighbouring particles)
 	tintRGBJitter        = 0.12,       -- per-particle multiplicative RGB jitter (channel +/- this, makes individual chunks read warmer/cooler/brighter/darker)
 	smokeTint            = { 0.18, 0.17, 0.15 }, -- medium gray-brown smoke (not pitch black -- still reads as smoke without darkening the scene)
@@ -196,10 +196,10 @@ local CONFIG = {
 	-- Rendered as a soft additive radial disc -- no fire/smoke sprite -- to
 	-- give a clean, jet-like look that contrasts with the chaotic flame.
 	jetColor             = { 0.55, 0.80, 1.00 }, -- base blue color of the jet stream
-	jetBrightness        = 1.66,        -- additive intensity of the jet (drives bloom feel)
+	jetBrightness        = 1.33,        -- additive intensity of the jet (drives bloom feel)
 	jetAlphaBase         = 0.75,
 	jetWobble            = 0.33,       -- jet wobble amplitude (kept very small for clean look)
-	jetStretchMult       = 1.4,        -- jet billboards are stretched along the projectile velocity by this factor (length = baseSize * jetStretchMult, width = baseSize). Lets a single particle cover the screen-space distance the projectile would otherwise need 8 round particles for -- the jet reads as a streak rather than a chain of dots, and the per-frame particle budget for jets effectively pays for ~8x its visible coverage.
+	jetStretchMult       = 1.5,        -- jet billboards are stretched along the projectile velocity by this factor (length = baseSize * jetStretchMult, width = baseSize). Lets a single particle cover the screen-space distance the projectile would otherwise need 8 round particles for -- the jet reads as a streak rather than a chain of dots, and the per-frame particle budget for jets effectively pays for ~8x its visible coverage.
 
 	-- Scavenger tint: applied when the projectile owner unit has
 	-- customParams.isscavenger. scavJetColor REPLACES the blue jet RGB, and
