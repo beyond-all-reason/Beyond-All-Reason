@@ -57,12 +57,12 @@ local CONFIG = {
 	-- output no longer doubles its particle burst. 0.7 is a mild curve (2× energy
 	-- → ~1.6× particles); 0.5 (sqrt) is aggressive (2× energy → 1.41× particles).
 	particleCountPower = 0.77,
-	particleCountMul = 1.0,
+	particleCountMul = 1.3,
 	minParticleCount = 5,
-	maxParticleCount = 200,
+	maxParticleCount = 250,
 
 	-- Global cap so a wave of dying fusions can't blow the pool.
-	maxLiveParticles  = 5000,
+	maxLiveParticles  = 6000,
 	-- Hard cap on bursts processed per render frame (extras are dropped).
 	maxBurstsPerFrame = 16,
 	-- Frames to wait after UnitDestroyed before spawning energy particles.
@@ -80,14 +80,14 @@ local CONFIG = {
 	-- < 1 means most fly fast.
 	minSpeed     = 0.2,
 	maxSpeed     = 2,
-	speedPower   = 1.7,
+	speedPower   = 1.5,
 	-- Direction bias. 1.0 = strictly +Y, 0.0 = uniform full sphere,
 	-- intermediate values blend (cosTheta = (2r-1)*(1-bias) + bias).
 	upwardBias = 0.15,
 	-- Spawn jitter around the unit center, as a fraction of unit radius.
 	-- Keep small so particles start near the center and expand visibly;
 	-- too large and they appear pre-spread with no expansion phase.
-	spawnJitterFrac = 0.3,
+	spawnJitterFrac = 0.4,
 	-- Compress vertical spawn jitter so particles don't spawn far below the
 	-- ground plane (1.0 = full sphere, 0.4 = flat oval).
 	spawnJitterYFrac = 0.66,
@@ -99,8 +99,8 @@ local CONFIG = {
 	-- more speed. Set useDeathExplosion=false to ignore the weapon entirely.
 	------------------------------------------------------------------
 	useDeathExplosion = true,
-	aoeJitterMul      = 0.33,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
-	aoeSpeedMul       = 0.004,  -- maxSpeed += aoe * mul
+	aoeJitterMul      = 0.1,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
+	aoeSpeedMul       = 0.0035,  -- maxSpeed += aoe * mul
 	damageSpeedMul    = 0.0035,  -- maxSpeed += damage * mul
 	damageCountMul    = 0.022,  -- extra particles per damage point
 	damageCountMax    = 2.5,     -- hard cap on the damage/aoe particle bonus
@@ -111,20 +111,20 @@ local CONFIG = {
 	--   pos(t) = spawn + vel*t*(1 - 0.5*drag*t) + 0.5*gravity*t^2
 	-- t is in sim frames since spawn; vel/gravity in elmos/frame[^2].
 	------------------------------------------------------------------
-	drag     = 0.01,
+	drag     = 0.007,
 	gravityY = -0.003,
 
 	------------------------------------------------------------------
 	-- Lifetime / fade
 	------------------------------------------------------------------
-	minLifetimeFrames = 20,
-	maxLifetimeFrames = 100,
+	minLifetimeFrames = 25,
+	maxLifetimeFrames = 125,
 	-- Lifetime scales with burst size: at count == maxParticleCount the
 	-- min/max lifetime are multiplied by this value. At minimum count, scale
 	-- is 1.0 (no extension). Set to 1.0 to disable.
 	lifetimeBigMul    = 1.8,
-	fadeFramesMin     = 10,
-	fadeFramesMax     = 40,
+	fadeFramesMin     = 11,
+	fadeFramesMax     = 44,
 	-- Frames over which a freshly-spawned particle ramps from invisible to full
 	-- alpha. Hides the "pop into existence" at the unit center while the
 	-- explosion debris is still bright.
