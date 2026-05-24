@@ -95,7 +95,8 @@ function widget:Initialize()
 		unitSet[i] = v
 	end
 	if Spring.IsReplay() then
-		widget:GameOver()
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	widgetHandler:AddAction("stateprefs_record", onRecordPress, nil, "p")
