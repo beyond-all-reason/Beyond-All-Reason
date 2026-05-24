@@ -242,6 +242,9 @@ local spectatorHUDConfigOptions = {
 }
 
 local startScript = VFS.LoadFile("_script.txt")
+local rwsBuffer      = nil  -- reassembly buffer for restart-with-state chunks (save path)
+local rwsRestoreData = nil  -- serialised state to send to gadget after restart (restore path)
+local RWS_MSG_CHUNK  = 4000
 if not startScript then
 	local modoptions = ''
 	for key, value in pairs(Spring.GetModOptionsCopy()) do
@@ -1177,6 +1180,37 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
+	-- restart-with-state: receive serialised unit state from the gadget and write it to disk
+	if msg == "rws:begin" then
+		rwsBuffer = {}
+		return true
+	end
+	local rwsChunk = msg:match("^rws:chunk:(.*)")
+	if rwsChunk then
+		if rwsBuffer then rwsBuffer[#rwsBuffer + 1] = rwsChunk end
+		return true
+	end
+	if msg == "rws:commit" then
+		if not rwsBuffer then return true end
+		local data = table.concat(rwsBuffer)
+		rwsBuffer = nil
+		Spring.CreateDir("LuaUI/Config")
+		local f, err = io.open("LuaUI/Config/restart_state.lua", "w")
+		if not f then
+			Spring.Echo("[Restart With State] Could not write state file: " .. tostring(err))
+			return true
+		end
+		f:write(data)
+		f:close()
+		Spring.Echo("[Restart With State] State saved (" .. tostring(#data) .. " bytes). Restarting...")
+		Spring.Restart("", startScript)
+		return true
+	end
+	if msg == "rws:clear" then
+		local f = io.open("LuaUI/Config/restart_state.lua", "w")
+		if f then f:close() end
+		return true
+	end
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 		updateGrabinput()
@@ -3033,9 +3067,9 @@ function init()
 			  Spring.SetConfigInt("MaxParticles", value)
 			  -- Keep the engine nano-spray budget in sync when the gadget is
 			  -- handing particles back to the engine (NanoParticleMode 0).
-			  if Spring.GetConfigInt("NanoParticleMode", 2) == 0 then
+			  if Spring.GetConfigInt("NanoParticleMode", 1) == 0 then
 				  Spring.SetConfigInt("MaxNanoParticles", math.floor(value * 0.34))
-				if Spring.GetConfigInt("NanoParticleMode", 2) == 0 then
+				if Spring.GetConfigInt("NanoParticleMode", 1) == 0 then
 					Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
 				else
 					Spring.SetConfigInt("MaxNanoParticles", 0)
@@ -3049,10 +3083,9 @@ function init()
 		  type = "select",
 		  options = {
 			  Spring.I18N('ui.settings.option.nanoparticletype_simple'),
-			  Spring.I18N('ui.settings.option.nanoparticletype_smart'),
 			  Spring.I18N('ui.settings.option.nanoparticletype_shapes'),
 		  },
-		  value = (tonumber(Spring.GetConfigInt("NanoParticleMode", 2)) or 2) + 1,
+		  value = (tonumber(Spring.GetConfigInt("NanoParticleMode", 1)) or 1) + 1,
 		  description = Spring.I18N('ui.settings.option.nanoparticletype_descr'),
 		  onload = function(i)
 		  end,
@@ -4261,7 +4294,7 @@ function init()
 		--  end,
 		--},
 		{ id = "autoeraser", group = "ui", category = types.basic, widget = "Auto mapmark eraser", name = Spring.I18N('ui.settings.option.autoeraser'), type = "bool", value = GetWidgetToggleValue("Auto mapmark eraser"), description = Spring.I18N('ui.settings.option.autoeraser_descr') },
-		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 10, max = 200, step = 1, value = 60, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
+		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 5, max = 600, step = 5, value = 60, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
 		  onload = function(i)
 			  loadWidgetData("Auto mapmark eraser", "autoeraser_erasetime", { 'eraseTime' })
 		  end,
@@ -5066,6 +5099,13 @@ function init()
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuilders', { 'includeBuilders' }, value)
 		  end,
 		},
+		{ id = "smartselect_includeresurrectors", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeresurrectors'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeresurrectors_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeResurrectors', { 'includeResurrectors' }, value)
+		  end,
+		},
 		{ id = "smartselect_includeantinuke", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeantinuke'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeantinuke_descr'),
 		  onload = function(i)
 		  end,
@@ -5369,6 +5409,12 @@ function init()
 		  onchange = function(i, value)
 			  options[getOptionByID('restart')].value = false
 			  Spring.Restart("", startScript)
+		  end,
+		},
+		{ id = "restart_with_state", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.restart_with_state'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.restart_with_state_descr'),
+		  onchange = function(i, value)
+			  options[getOptionByID('restart_with_state')].value = false
+			  Spring.SendLuaRulesMsg("restart_with_state")
 		  end,
 		},
 
@@ -7198,6 +7244,21 @@ end
 
 
 function widget:Initialize()
+	-- Restart-with-state restore: if a saved state file exists from a previous
+	-- restart-with-state trigger, read it now (io is available in LuaUI) and
+	-- schedule it to be forwarded to the gadget on the first game frame.
+	local RWS_FILE = "LuaUI/Config/restart_state.lua"
+	local f = io.open(RWS_FILE, "r")
+	if f then
+		local content = f:read("*all")
+		f:close()
+		if content and content ~= "" then
+			rwsRestoreData = content
+		end
+		-- Clear the file immediately so we don't restore again on the next restart
+		local fc = io.open(RWS_FILE, "w")
+		if fc then fc:close() end
+	end
 
 	-- disable ambient player widget
 	if widgetHandler:IsWidgetKnown("Ambient Player") then
@@ -7426,6 +7487,20 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "devmode", devmodeCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "profile", profileCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "grapher", grapherCmd, nil, 't')
+end
+
+function widget:GameFrame(n)
+	-- Send the saved restore state to the gadget on the very first frame.
+	-- We wait until frame 1 so that all gadgets are fully initialised.
+	if rwsRestoreData and n == 1 then
+		local data = rwsRestoreData
+		rwsRestoreData = nil
+		Spring.SendLuaRulesMsg("rws_restore_begin")
+		for i = 1, #data, RWS_MSG_CHUNK do
+			Spring.SendLuaRulesMsg("rws_restore_chunk:" .. data:sub(i, i + RWS_MSG_CHUNK - 1))
+		end
+		Spring.SendLuaRulesMsg("rws_restore_commit")
+	end
 end
 
 function widget:Shutdown()

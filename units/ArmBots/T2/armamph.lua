@@ -23,7 +23,7 @@ return {
 		script = "Units/ARMAMPH.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 377,
+		sightdistance = 380,
 		speed = 90,
 		turninplace = true,
 		turninplaceanglelimit = 90,

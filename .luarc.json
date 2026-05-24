@@ -1,36 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
-  "completion.requireSeparator": "/",
-  "diagnostics": {
-    "type": {
-      "definition": [
-        ".lux/",
-        "types/",
-        "recoil-lua-library/library/"
-      ]
-    }
-  },
-  "runtime.path": [
-    "?",
-    "?.lua"
-  ],
-  "runtime.special": {
-    "VFS.Include": "require",
-    "include": "require",
-    "shard_include": "require"
-  },
-  "runtime.version": "Lua 5.1",
-  "semantic": {
-    "enable": true
-  },
   "workspace": {
-    "ignoreDir": [
-      ".vscode",
-      "luaui/Tests",
-      "luaui/TestsExamples"
-    ],
     "library": [
       "recoil-lua-library",
+      "recoil-lua-library/library",
       "luarules",
       "luaui",
       "spec",

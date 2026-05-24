@@ -69,6 +69,12 @@ bind            Any+alt  movereset      // fast camera reset on mousewheel
 bind            Any+alt  moverotate     // rotate on x,y with mmb hold + move (Spring Camera)
 bind           Any+ctrl  movetilt       // rotate on x with mousewheel
 
+bind          ctrl+sc_o  fov_dec 5      // decrease field of view 5 degrees
+bind          ctrl+sc_p  fov_inc 5      // increase field of view 5 degrees
+bind         sc_numpad1  fov_dec 5      // decrease field of view 5 degrees
+bind         sc_numpad7  fov_inc 5      // increase field of view 5 degrees
+// bind                  fov 40         // set field of view to 40 degrees
+
 // picture in picture camera controls
 // bind                  pip0_activity      // Focus advanced minimap onto recently placed map markers
 // bind                  pip0_trackplayer   // Focus advanced minimap (while spectating)

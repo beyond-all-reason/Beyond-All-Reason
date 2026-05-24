@@ -1,6 +1,10 @@
 {
 	"ui": {
 		"forceResignMessage": "You have been force-resigned: Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
+		"factoryqmanager": {
+			"saved": "Saved",
+			"loaded": "Loaded"
+		},
 		"rejoin": {
 			"catchingUp": "Catching up to "
 		},
@@ -17,6 +21,7 @@
 				"changes": "Changes",
 				"keys": "Keys",
 				"scavengers": "Scavengers",
+				"mission": "Mission",
 				"stats": "Statistics",
 				"graphs": "Graphs",
 				"save": "Save"
@@ -36,7 +41,7 @@
 			"commanderCount": "Commander Counter",
 			"commanderCountTooltip": "Displays the number of ally and enemy commanders",
 			"tidalspeed": "Tidal Speed",
-			"tidalspeedTooltip": "Tidal speed on this map (always constant)",
+			"tidalspeedTooltip": "Tidal (water) speed on this map  (always constant)",
 			"windspeed": "Wind Speed",
 			"windspeedTooltip": "(small numbers are minimum and maximum)\nAverage wind speed on this map is %{avgWindValue}\nCurrent wind risk is %{riskWindValue} (percentage of time wind speed will be below 6)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
 			"wind": {
@@ -324,6 +329,15 @@
 		"changelog": {
 			"title": "Changelog"
 		},
+		"missioninfo": {
+			"title": "Mission Info",
+			"difficulty": "Difficulty",
+			"objectives": "Objectives",
+			"victory": "Victory condition",
+			"defeat": "Defeat condition",
+			"summary": "Summary",
+			"briefing": "Briefing"
+		},
 		"keybinds": {
 			"title": "Keybinds",
 			"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",
@@ -479,6 +493,14 @@
 				"pauseKey": "/pause",
 				"pause": "Pause"
 			}
+		},
+		"blueprint": {
+			"cursor_active": "Blueprint #%{index}",
+			"cursor_none": "No Blueprints",
+			"hotkey_next": "Next",
+			"hotkey_prev": "Previous",
+			"hotkey_delete": "Delete",
+			"hotkey_none": "<none>"
 		},
 		"ignore": {
 			"unknown": "unknown accountID",
@@ -1722,6 +1744,8 @@
 				"smartselect_includebuildings_descr": "When rectangle-drag-selecting an area, include building units too?\n\nDisabled: non-mobile units will be excluded (hold Shift to override)\nNote: Construction Turrets will always be selected",
 				"smartselect_includebuilders": "include builders (if above is off)",
 				"smartselect_includebuilders_descr": "When rectangle-drag-selecting an area, exclude builder units (hold Shift to override)",
+				"smartselect_includeresurrectors": "include resurrectors (if above is off)",
+				"smartselect_includeresurrectors_descr": "When rectangle-drag-selecting an area, exclude resurrection units (hold Shift to override)",
 				"smartselect_includeantinuke": "include antinuke units (if above is off)",
 				"smartselect_includeantinuke_descr": "When rectangle-drag-selecting an area, exclude antinuke units (hold Shift to override)",
 				"smartselect_includeradar": "include radar units (if above is off)",
@@ -1788,6 +1812,8 @@
 				"autocheat_descr": "does: /cheat, /globallos, /godmode",
 				"restart": "Restart",
 				"restart_descr": "Restarts the game",
+				"restart_with_state": "Restart (keep units & orders)",
+				"restart_with_state_descr": "Saves every current unit (with its health, states and command queue), restarts the game, then restores them. Best used in singleplayer.",
 				"echocamerastate": "Echo cameraState",
 				"echocamerastate_descr": "Echoes contents of Spring.GetCameraState()",
 				"storedefaultsettings": "Store default settings",

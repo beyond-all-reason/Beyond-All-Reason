@@ -186,7 +186,7 @@ local spIsPosInLos = Spring.IsPosInLos
 	-- feature bars dont actually need a reinit, now do they?
 -- TODO: make numbers, glyphs optional? -- done, but untested
 
---/luarules fightertest corak armpw 100 10 2000
+--/luarules benchmark corak armpw 100 10 2000
 
 local drawWhenGuiHidden = false
 
