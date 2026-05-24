@@ -120,7 +120,7 @@ else
 			lastDefaultCommandKey = key
 		end
 
-		return defaultCmd
+		return nil
 	end
 	
 	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
