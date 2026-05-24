@@ -11,7 +11,7 @@ function gadget:GetInfo()
 		date = "May 2026",
 		license = "GNU GPL, v2 or later",
 		layer = -1,
-		enabled = false
+		enabled = true
 	}
 end
 
@@ -113,12 +113,14 @@ else
 	end
 
 	local lastDefaultCommandKey = nil
-	function gadget:DefaultCommand(type, unitID)
+	function gadget:DefaultCommand(type, unitID, defaultCmd)
 		local key = (type or "nil") .. ":" .. (unitID or "nil")
 		if unitID ~= nil and key ~= lastDefaultCommandKey then
-			Spring.Echo("DefaultCommand", "type", type, "uID", unitID)
+			Spring.Echo("DefaultCommand", "type", type, "uID", unitID, "defaultCmd", command(defaultCmd))
 			lastDefaultCommandKey = key
 		end
+
+		return defaultCmd
 	end
 	
 	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
