@@ -1645,7 +1645,7 @@ local lastFpsCheckFrame = 0
 -- Disable by setting CONFIG.diagnostics=false (or remove this block once the
 -- root cause is identified and patched).
 -- ----------------------------------------------------------------------------
-local DIAG_ENABLED  = true
+local DIAG_ENABLED  = false
 local DIAG_INTERVAL = 900   -- 30s at 30Hz
 
 local function dumpDiagnostics(n)
