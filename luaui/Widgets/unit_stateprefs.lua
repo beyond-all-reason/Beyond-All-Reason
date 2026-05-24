@@ -182,8 +182,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			if cmdID == 115 then
 				return
 			end -- we're skipping "repeat" command here for now
-			local success = Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
-			--spEcho("".. name .. ", " .. tostring(cmdID) .. ", " .. tostring(cmdParam) .. " success: ".. tostring(success))
+			Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
 		end
 	end
 end
