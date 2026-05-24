@@ -1242,16 +1242,21 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 	-- Only emit while we're in the early portion of the projectile's life
 	-- so the blue jet hugs the nozzle / leading half of the stream and the
 	-- fire/smoke takes over further along.
-	-- Suppress jet emission for projectiles we acquired mid-flight (created
-	-- off-screen and first seen by us already in transit). For those, our
-	-- birthFrame is artificially "now", so lifeT starts at 0 -- without this
-	-- guard we would spawn fresh muzzle jets at the projectile's current
-	-- (far-from-origin) position; the jets inherit full projectile velocity
-	-- and the vertex-shader drag integration then drifts them downstream,
-	-- producing the "particles way too far outside max range" artifact when
-	-- the camera pans to a flamethrower whose stream already exists. Core/
-	-- smoke still emit so the visible tail isn't completely empty.
-	if lifeT < K.JET_MAX_LIFE_FRAC and not info.midFlightAcquired and budgetTier < 3 then
+	--
+	-- Historical note: we used to suppress jets entirely for midFlight-
+	-- acquired projectiles, because birthFrame was set to "now" so lifeT
+	-- started at 0 for the rest of the projectile's life, which spawned
+	-- fresh muzzle jets at the projectile's current (far-from-origin)
+	-- position; the jets inherit projectile velocity and the vertex-shader
+	-- drag then drifted them downstream, producing the "particles way too
+	-- far outside max range" artifact. We now backdate birthFrame from
+	-- distance-to-owner / speed at acquisition time, so lifeT is correct
+	-- from the first frame and this `lifeT < JET_MAX_LIFE_FRAC` gate
+	-- alone is sufficient -- old midFlight projectiles will already be
+	-- past their jet phase and get gated out here naturally, while young
+	-- ones get to emit jets normally so the user sees a jet even when the
+	-- camera framed the target end at the moment the weapon fired.
+	if lifeT < K.JET_MAX_LIFE_FRAC and budgetTier < 3 then
 		local jetCount = mathMax(1, mathFloor(K.JET_SPAWN_PF * burstMult + 0.5))
 		-- Tier 2 : halve jet emission via per-projectile parity. floor=1 means
 		-- the floor-1 mathMax above would otherwise still emit every frame; the
@@ -1261,8 +1266,17 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 		end
 		if jetCount > 0 then
 		local jetSpread = K.JET_SPREAD_MULT
-		-- Jet alpha is strongest right at the nozzle and fades along the stream
-		local jetAlpha  = K.JET_ALPHA_BASE * (1 - lifeT / K.JET_MAX_LIFE_FRAC)
+		-- Jet alpha fades along the stream, but with a floor so jets emitted
+		-- in the later portion of the projectile's life (the only ones you
+		-- ever see when the camera is framing the target end of the stream)
+		-- are still clearly visible. Without the floor, jetAlpha goes linearly
+		-- from JET_ALPHA_BASE at lifeT=0 to 0 at JET_MAX_LIFE_FRAC, so framing
+		-- the target makes jets look washed out compared to framing the muzzle.
+		-- A 0.55 floor keeps target-end jets readable without making the
+		-- muzzle-end look any different (the freshest jets still get full alpha).
+		local fadeT = lifeT / K.JET_MAX_LIFE_FRAC
+		if fadeT > 1 then fadeT = 1 end
+		local jetAlpha  = K.JET_ALPHA_BASE * (1 - 0.45 * fadeT)
 		local invJetCount = 1 / jetCount
 
 		for i = 1, jetCount do
@@ -1497,18 +1511,50 @@ local function updateProjectiles(gameFrame, throttleMult)
 				-- at the projectile's current far-from-origin position, and the
 				-- shader drag integration would drift those jets downstream --
 				-- the visible "particles way too far outside max range" bug.
+				--
+				-- We also override emitX/Y/Z with the owner unit's position in
+				-- the midFlight case. Otherwise emitX = projectile current pos
+				-- (already near the target), distFromEmitSq stays ~0, distT2
+				-- never ramps, and muzzleTaper stays at MUZZLE_TAPER_MIN -- so
+				-- when you zoom in on the target end of a flame stream the
+				-- cores look small and yellow instead of large and orange.
+				-- Owner position is a much better proxy for the real muzzle
+				-- than the projectile's late-acquisition position.
 				local midFlight = false
 				local ownerID = nil
 				local isScav = false
+				local birthFrame = gameFrame
 				if ex then
 					ownerID = spGetProjectileOwnerID(proID)
 					if ownerID then
 						local ox, oy, oz = spGetUnitPosition(ownerID)
 						if ox then
 							local dx, dy, dz = ex - ox, ey - oy, ez - oz
+							local distFromOwnerSq = dx*dx + dy*dy + dz*dz
 							-- 80^2 = 6400; ~1 muzzle length of slack.
-							if (dx*dx + dy*dy + dz*dz) > 6400 then
+							if distFromOwnerSq > 6400 then
 								midFlight = true
+								-- Use the owner unit position as the emit
+								-- origin (see comment above).
+								ex, ey, ez = ox, oy, oz
+								-- Estimate the true birth frame from how far
+								-- the projectile has already travelled. Without
+								-- this, lifeT starts at 0 for the rest of the
+								-- projectile's flight, so tintSampler(lifeT)
+								-- returns the yellow nozzle color forever and
+								-- the cores never warm up to orange. Using
+								-- distance/speed gives a good first-order
+								-- estimate (assumes the owner hasn't moved much
+								-- since firing -- true for flame turrets which
+								-- are buildings or slow units).
+								local vx, vy, vz = spGetProjectileVelocity(proID)
+								if vx then
+									local speed = mathSqrt(vx*vx + vy*vy + vz*vz)
+									if speed > 0.001 then
+										local travelled = mathSqrt(distFromOwnerSq)
+										birthFrame = gameFrame - mathFloor(travelled / speed + 0.5)
+									end
+								end
 							end
 						end
 						-- Scavenger ownership: matches BAR's standard convention
@@ -1527,7 +1573,7 @@ local function updateProjectiles(gameFrame, throttleMult)
 				info = {
 					cfg                = cfg,
 					wDefID             = wDefID,
-					birthFrame         = gameFrame,
+					birthFrame         = birthFrame,
 					ownerAllyTeam      = ownerAllyTeam,
 					ownerID            = ownerID,
 					isScav             = isScav,
