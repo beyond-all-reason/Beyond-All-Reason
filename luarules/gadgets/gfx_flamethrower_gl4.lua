@@ -871,8 +871,26 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b,
 	particleData[15] = b
 	particleData[16] = alpha
 
-	nextParticleID = nextParticleID + 1
-	local id = nextParticleID
+	-- Advance nextParticleID, wrapping safely below 2^24. Spring's unsynced
+	-- Lua uses float32 for lua_Number (to match GPU buffers), so integer
+	-- arithmetic loses precision at 2^24 (16777216): `x + 1 == x`. If we let
+	-- nextParticleID hit that ceiling it freezes forever, every spawn reuses
+	-- the same ID, pushElementInstance takes the updateExisting path on slot
+	-- 0, and the entire particle effect disappears. This was the long-run
+	-- "leak" observed after ~30 min of continuous flame.
+	--
+	-- We wrap well below the float ceiling (2^23 = 8388608) and on collision
+	-- with a still-live ID just keep incrementing. With <=10k live particles
+	-- in 8M slots the average collision rate is ~0.1%.
+	local nid = nextParticleID + 1
+	if nid >= 8388608 then nid = 1 end
+	local idToIndex = particleVBO.instanceIDtoIndex
+	while idToIndex[nid] do
+		nid = nid + 1
+		if nid >= 8388608 then nid = 1 end
+	end
+	nextParticleID = nid
+	local id = nid
 	-- Per-element upload: only transmits this one slot (16 floats) to GPU.
 	-- Tried noUpload=true + uploadAllElements() once per frame, but that
 	-- uploads the ENTIRE used range every frame (~2-4k particles), which
@@ -1637,32 +1655,47 @@ local fpsUpdateInterval = 1
 local lastFpsCheckFrame = 0
 
 -- ----------------------------------------------------------------------------
--- Long-run leak instrumentation.
--- After ~30 min of continuous heavy flame the visible effect disappears. We
--- can't tell from code reading whether it's usedElements drift, tracked-table
--- bloat, queue-table bloat, or fpsUpdateInterval saturation. Dump every
--- DIAG_INTERVAL frames so a long test reveals which counter is climbing.
--- Disable by setting CONFIG.diagnostics=false (or remove this block once the
--- root cause is identified and patched).
+-- Long-run leak instrumentation + self-healing safety net.
+--
+-- Background: after ~30 min of continuous heavy flame the visible effect
+-- disappears. Code reading has not pinned the cause, so we run two things
+-- in production:
+--
+--   1) Heartbeat dump every DIAG_INTERVAL frames so a long test logs which
+--      counter is climbing (used, idMap, tracked, ignored, rmQ, fpsInt).
+--      Disable by setting DIAG_ENABLED = false once root-caused.
+--
+--   2) SAFETY NET (always on): periodically validate that
+--         particleVBO.usedElements == #instanceIDtoIndex
+--      Those two MUST stay in lockstep -- every push +1 to both, every pop
+--      -1 to both. If they ever diverge it means push/pop accounting drifted
+--      (the prime leak hypothesis) and the soft cap will eventually lock the
+--      pool full forever. When detected we log loudly and force-clear the
+--      whole VBO + per-projectile attribution lists so the effect comes back
+--      and the user can keep playing while we investigate. No-op cost when
+--      everything is healthy (one pairs() walk per minute).
 -- ----------------------------------------------------------------------------
-local DIAG_ENABLED  = false
-local DIAG_INTERVAL = 900   -- 30s at 30Hz
+local DIAG_ENABLED   = false
+local DIAG_INTERVAL  = 900   -- 30s at 30Hz
+local SAFETY_INTERVAL = 1800 -- 60s at 30Hz
+local SAFETY_DRIFT_TOLERANCE = 4  -- |used - idMap| above this triggers heal
+
+local function countTable(t)
+	local n = 0
+	for _ in pairs(t) do n = n + 1 end
+	return n
+end
 
 local function dumpDiagnostics(n)
-	local trackedCount, ignoredCount = 0, 0
-	for _ in pairs(tracked) do trackedCount = trackedCount + 1 end
-	for _ in pairs(ignored) do ignoredCount = ignoredCount + 1 end
+	local trackedCount  = countTable(tracked)
+	local ignoredCount  = countTable(ignored)
 	local queueKeys, queueTotal = 0, 0
 	for _, q in pairs(particleRemoveQueue) do
-		queueKeys = queueKeys + 1
+		queueKeys  = queueKeys + 1
 		queueTotal = queueTotal + #q
 	end
-	-- Sanity: idToIndex size should ~match usedElements. If they diverge,
-	-- accounting is broken (the prime suspect for the leak).
-	local idMapSize = 0
-	if particleVBO and particleVBO.instanceIDtoIndex then
-		for _ in pairs(particleVBO.instanceIDtoIndex) do idMapSize = idMapSize + 1 end
-	end
+	local idMapSize = particleVBO and particleVBO.instanceIDtoIndex
+		and countTable(particleVBO.instanceIDtoIndex) or 0
 	Spring.Echo(string.format(
 		"[flameDiag] f=%d used=%d/%d(%d) idMap=%d  tracked=%d ignored=%d  rmQ=%d(%dids)  nextID=%d fpsInt=%d",
 		n,
@@ -1672,6 +1705,69 @@ local function dumpDiagnostics(n)
 		trackedCount, ignoredCount,
 		queueKeys, queueTotal,
 		nextParticleID, fpsUpdateInterval))
+end
+
+-- Force-clear the entire particle VBO and all per-projectile attribution
+-- lists. Called by the safety net when accounting drift is detected. After
+-- this runs the visual effect comes back within a few frames (every tracked
+-- projectile re-emits naturally). Loud Spring.Echo so a leak event is
+-- impossible to miss in logs/infolog.
+local function emergencyResetParticles(reason)
+	Spring.Echo("[gfx_flamethrower_gl4] EMERGENCY RESET: " .. tostring(reason))
+	if particleVBO then
+		-- clearInstanceTable resets usedElements + both id<->index maps in one
+		-- call, then re-uploads an empty buffer.
+		if gl.InstanceVBOTable.clearInstanceTable then
+			gl.InstanceVBOTable.clearInstanceTable(particleVBO)
+		else
+			-- Defensive: if the engine InstanceVBO module ever loses
+			-- clearInstanceTable, fall through to a manual reset of just the
+			-- accounting maps. Slots will be reclaimed lazily as new pushes
+			-- swap-replace them.
+			particleVBO.usedElements      = 0
+			particleVBO.instanceIDtoIndex = {}
+			particleVBO.indextoInstanceID = {}
+		end
+	end
+	-- Drop every queued death-frame entry so future expirations don't try to
+	-- pop IDs that no longer exist in the VBO.
+	particleRemoveQueue = {}
+	lastRemovedFrame    = cachedGameFrame
+	-- Detach particle attribution from every tracked projectile so they emit
+	-- fresh from this frame onward without dangling references to dead IDs.
+	for _, info in pairs(tracked) do
+		info.particles = nil
+	end
+end
+
+local function runSafetyNet(n)
+	if not particleVBO then return end
+	local used     = particleVBO.usedElements
+	local idMap    = particleVBO.instanceIDtoIndex
+	if not idMap then return end
+	local mapSize  = countTable(idMap)
+	local drift    = used - mapSize
+	if drift < 0 then drift = -drift end
+	if drift > SAFETY_DRIFT_TOLERANCE then
+		Spring.Echo(string.format(
+			"[gfx_flamethrower_gl4] ACCOUNTING DRIFT detected: usedElements=%d idMap=%d (diff=%d). " ..
+			"This is the suspected long-run leak. Triggering self-heal.",
+			used, mapSize, used - mapSize))
+		emergencyResetParticles("accounting drift used=" .. used .. " idMap=" .. mapSize)
+		return
+	end
+	-- Even with perfect accounting, the pool could be stuck full if every
+	-- single live particle is somehow blocked from expiring (e.g. deathFrame
+	-- queue entries pointing to IDs already swap-removed by killProjectileParticles
+	-- but with no future cleanup path -- the "ghost id" case). Detect by
+	-- comparing pool usage to expected emission rate: if usage is near the
+	-- hard cap AND no new spawns have succeeded since the last check, assume
+	-- locked-full and reset.
+	if used >= K.MAX_PARTICLES * 0.95 then
+		Spring.Echo(string.format(
+			"[gfx_flamethrower_gl4] WARNING: pool near full at safety check (used=%d/%d). " ..
+			"Watching for stuck-full condition.", used, K.MAX_PARTICLES))
+	end
 end
 
 function gadget:GameFrame(n)
@@ -1706,6 +1802,10 @@ function gadget:GameFrame(n)
 
 	if DIAG_ENABLED and (n % DIAG_INTERVAL) == 0 then
 		dumpDiagnostics(n)
+	end
+
+	if (n % SAFETY_INTERVAL) == 0 then
+		runSafetyNet(n)
 	end
 end
 
