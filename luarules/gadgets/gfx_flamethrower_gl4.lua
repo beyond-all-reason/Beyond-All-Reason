@@ -121,15 +121,23 @@ local CONFIG = {
 
 	-- Sizes (larger -> fewer particles needed to look dense)
 	sizeAoeRef           = 48,         -- areaofeffect that maps to sizeScale = 1.0
-	sizeScaleMin         = 0.6,
-	sizeScaleMax         = 2.5,
+	sizeScaleMin         = 0.7,
+	sizeScaleMax         = 2.7,
+	-- Core flame size taper from muzzle (0 dist) to max range (1 dist).
+	-- muzzleTaperMin: relative size right at the emit point (0=invisible, 1=full size).
+	-- muzzleTaperMax: relative size at max weapon range (normally 1.0 for full size).
+	-- Curve is quadratic (distT^2) so growth is gentle near the nozzle and
+	-- accelerates downrange, giving a thin-jet-to-fat-fire profile.
+	muzzleTaperMin       = 0.25,       -- size fraction at muzzle (0 = nothing at nozzle, 1 = full size at nozzle)
+	muzzleTaperMax       = 1.0,        -- size fraction at max weapon range
+
 	coreSizeBase         = 7.0,        -- base elmos for core flame chunks (large, dense, painterly)
-	smokeSizeBase        = 9.0,        -- big dark smoke puffs
-	jetSizeBase          = 1.4,        -- base elmos for nozzle jet stream particles (small, tight)
+	smokeSizeBase        = 10.0,        -- big dark smoke puffs
+	jetSizeBase          = 1.3,        -- base elmos for nozzle jet stream particles (small, tight)
 	sizeRandRange        = 0.6,        -- +/- random size variance
 
 	-- Per-type growth & physics
-	coreGrowthMult       = 4.0,       -- core flame grows with age (chunky expansion as fuel combusts)
+	coreGrowthMult       = 3.5,       -- core flame grows with age (chunky expansion as fuel combusts)
 	smokeGrowthMult      = 3.0,        -- smoke expands a lot (turns into a plume)
 	jetGrowthMult        = 0.25,        -- jet barely grows -- stays a clean stream
 	flameBuoyancy        = 8.0,        -- elmos of rise at end-of-life for core flame. Applied in shader as FLAME_BUOY*t*t (t = age/life), so visible rise is uniform across weapons regardless of per-weapon lifeMult (cormaw vs short-range flamers). Was previously units/frame^2 which scaled with life^2 -- long-life weapons would billow up to 16x more.
@@ -142,10 +150,10 @@ local CONFIG = {
 	-- the projectile's flight time -- the oldest still-living particle sits
 	-- back at the muzzle while the newest is at the projectile, filling the
 	-- full path from nozzle to target. Jet particles stay short on purpose.
-	coreLifeMin          = 8,         -- multiplied by per-weapon lifeMult
-	coreLifeMax          = 16,
-	smokeLifeMin         = 70,
-	smokeLifeMax         = 140,
+	coreLifeMin          = 6,         -- multiplied by per-weapon lifeMult
+	coreLifeMax          = 12,
+	smokeLifeMin         = 50,
+	smokeLifeMax         = 100,
 	jetLifeMin           = 6,          -- jet particles are short-lived (clean streak)
 	jetLifeMax           = 13,
 	expectedLifeFallback = 30,         -- frames to use when range/velocity unknown
@@ -181,8 +189,8 @@ local CONFIG = {
 	-- Stops are: (t, r, g, b)
 	tintStops = {
 		{ 0.00, 1.00, 0.95, 0.7 },    -- near-white hot pinch at the nozzle
-		{ 0.12, 1.00, 0.95, 0.55 },    -- bright pale yellow
-		{ 0.32, 1.00, 0.79, 0.37 },    -- saturated yellow-orange (main body)
+		{ 0.12, 1.00, 0.93, 0.55 },    -- bright pale yellow
+		{ 0.32, 1.00, 0.77, 0.33 },    -- saturated yellow-orange (main body)
 		--{ 0.58, 1.00, 0.55, 0.12 },    -- orange
 		--{ 1.00, 0.55, 0.10, 0.04 },    -- dying ember
 	},
@@ -206,11 +214,11 @@ local CONFIG = {
 	-- scavTintStops REPLACES the fire-gradient LUT for scav projectiles --
 	-- same shape as tintStops above (white-hot pinch at nozzle, then ramping
 	-- through the warm body of the stream) but tinted pink/magenta/purple.
-	scavJetColor         = { 0.88, 0.65, 1.00 }, -- magenta-purple jet
+	scavJetColor         = { 0.3, 0.0, 0.8 }, -- magenta-purple jet
 	scavTintStops = {
-		{ 0.00, 1.00, 1.00, 1.00 },    -- pure white hot pinch at the nozzle
-		{ 0.12, 0.88, 0.85, 0.95 },    -- pale pink
-		{ 0.32, 0.88, 0.8, 0.93 },    -- saturated pink
+		{ 0.00, 0.93, 0.85, 1.00 },    -- pure white hot pinch at the nozzle
+		{ 0.12, 0.9, 0.78, 0.95 },    -- pale pink
+		{ 0.32, 0.8, 0.64, 0.92 },    -- saturated pink
 	},
 
 	-- Alpha
@@ -644,6 +652,9 @@ local K = {
 	TAIL_EMIT_CHANCE     = CONFIG.tailEmitChance,
 	BURST_MULT           = CONFIG.burstMultiplier,
 	EMIT_OFFSET_FWD      = CONFIG.emitOffsetForward,
+
+	MUZZLE_TAPER_MIN     = CONFIG.muzzleTaperMin,
+	MUZZLE_TAPER_RANGE   = (CONFIG.muzzleTaperMax or 1.0) - (CONFIG.muzzleTaperMin or 0.25),
 
 	CORE_SIZE_BASE       = CONFIG.coreSizeBase,
 	SMOKE_SIZE_BASE      = CONFIG.smokeSizeBase,
@@ -1181,11 +1192,13 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 	local farMode = lodMult < 0.55
 
 	-- Core particle size taper, driven by *world-space distance from the
-	-- turret muzzle*. Ramps from 0.30 (at the emit point) to 1.0 (at max
+	-- turret muzzle*. Ramps from 0.15 (at the emit point) to 1.0 (at max
 	-- weapon range) with a quadratic curve so growth is gentle near the
 	-- muzzle and accelerates downrange. distT2 is already distT^2, which
 	-- means we get the quadratic curve for free with no extra mult.
-	local muzzleTaper = 0.30 + 0.70 * distT2
+	-- Floor lowered from 0.30 -> 0.15 to make the stream visibly thinner at
+	-- the nozzle and reserve the big painterly chunks for downrange.
+	local muzzleTaper = K.MUZZLE_TAPER_MIN + K.MUZZLE_TAPER_RANGE * distT2
 
 	-- Particle count keeps a floor of 1 so the stream is never empty, but
 	-- size taper (above) handles visual smallness near the muzzle.
@@ -1623,6 +1636,44 @@ end
 local fpsUpdateInterval = 1
 local lastFpsCheckFrame = 0
 
+-- ----------------------------------------------------------------------------
+-- Long-run leak instrumentation.
+-- After ~30 min of continuous heavy flame the visible effect disappears. We
+-- can't tell from code reading whether it's usedElements drift, tracked-table
+-- bloat, queue-table bloat, or fpsUpdateInterval saturation. Dump every
+-- DIAG_INTERVAL frames so a long test reveals which counter is climbing.
+-- Disable by setting CONFIG.diagnostics=false (or remove this block once the
+-- root cause is identified and patched).
+-- ----------------------------------------------------------------------------
+local DIAG_ENABLED  = true
+local DIAG_INTERVAL = 900   -- 30s at 30Hz
+
+local function dumpDiagnostics(n)
+	local trackedCount, ignoredCount = 0, 0
+	for _ in pairs(tracked) do trackedCount = trackedCount + 1 end
+	for _ in pairs(ignored) do ignoredCount = ignoredCount + 1 end
+	local queueKeys, queueTotal = 0, 0
+	for _, q in pairs(particleRemoveQueue) do
+		queueKeys = queueKeys + 1
+		queueTotal = queueTotal + #q
+	end
+	-- Sanity: idToIndex size should ~match usedElements. If they diverge,
+	-- accounting is broken (the prime suspect for the leak).
+	local idMapSize = 0
+	if particleVBO and particleVBO.instanceIDtoIndex then
+		for _ in pairs(particleVBO.instanceIDtoIndex) do idMapSize = idMapSize + 1 end
+	end
+	Spring.Echo(string.format(
+		"[flameDiag] f=%d used=%d/%d(%d) idMap=%d  tracked=%d ignored=%d  rmQ=%d(%dids)  nextID=%d fpsInt=%d",
+		n,
+		particleVBO and particleVBO.usedElements or -1,
+		K.MAX_PARTICLES, K.HARD_MAX_PARTICLES,
+		idMapSize,
+		trackedCount, ignoredCount,
+		queueKeys, queueTotal,
+		nextParticleID, fpsUpdateInterval))
+end
+
 function gadget:GameFrame(n)
 	if not particleVBO then return end
 
@@ -1651,6 +1702,10 @@ function gadget:GameFrame(n)
 
 	if n % fpsUpdateInterval == 0 then
 		updateProjectiles(n, fpsUpdateInterval)
+	end
+
+	if DIAG_ENABLED and (n % DIAG_INTERVAL) == 0 then
+		dumpDiagnostics(n)
 	end
 end
 
