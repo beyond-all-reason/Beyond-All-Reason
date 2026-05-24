@@ -88,11 +88,11 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	-- Synced
-	function gadget:CommandFallback(unitID, unitDefID, unitTeam, cmdID, cmdOptions, cmdTag)
+	function gadget:CommandFallback(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 		if unitTeam ~= 0 then
 			return false
 		end
-		Spring.Echo("CommandFallback", unitID, unitDefID, unitTeam, command(cmdID), count(cmdOptions), cmdTag)
+		Spring.Echo("CommandFallback", unitID, unitDefID, unitTeam, command(cmdID), count(cmdParams), count(cmdOptions), cmdTag)
 		return false
 	end
 	
@@ -119,12 +119,6 @@ else
 			Spring.Echo("DefaultCommand", type, unitID)
 			lastDefaultCommandKey = key
 		end
-	end
-	
-
-	function gadget:CommandFallback(cmdID, cmdParams, cmdOptions, cmdTag, playerID)
-		Spring.Echo("CommandFallback", command(cmdID), count(cmdParams), count(cmdOptions), cmdTag, playerID)
-		return false
 	end
 	
 	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
