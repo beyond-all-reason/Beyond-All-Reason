@@ -2124,15 +2124,22 @@ local function scanBuilders(frame)
 		effectiveMax = MAX_PARTICLES * (1.0 - GAMESPEED_MAX_CUT * speedThrottle)
 	end
 	local saturation = liveCount / effectiveMax
-	if saturation >= 1.0 then return end
+	-- NOTE: don't early-return on saturation or scan-skip here -- the
+	-- per-frame homing pass at the bottom must still run, otherwise long-lived
+	-- particles aimed at far/moving targets (which are the ones that saturate
+	-- the pool in the first place) fly on their stale spawn-time trajectory
+	-- and never curve toward the target. Instead, skip just the per-builder
+	-- emission loop below.
+	local skipEmit = saturation >= 1.0
 
 	-- Dynamic scan-frame skip: empty pool -> every frame, saturated -> every
 	-- MAX_SCAN_RUN_EVERY frames. emitProb scales by runEvery so total emission
 	-- rate is preserved.
 	local runEvery = MIN_SCAN_RUN_EVERY + math.floor(saturation * (MAX_SCAN_RUN_EVERY - MIN_SCAN_RUN_EVERY) + 0.5)
 	if runEvery < 1 then runEvery = 1 end
-	if (frame % runEvery) ~= 0 then return end
+	if (frame % runEvery) ~= 0 then skipEmit = true end
 
+  if not skipEmit then
 	-- Camera position for the per-emit distance throttle. One call per scan;
 	-- DISTANT_EMIT_* squared bands live at module scope.
 	local camX, camY, camZ = spGetCameraPosition()
@@ -2480,6 +2487,7 @@ local function scanBuilders(frame)
 			end
 		end
 	end
+  end -- if not skipEmit
 
 	-- Flush all spawns AND in-place homing rewrites in a single upload. Spawns
 	-- are at the tail [preUsed..postUsed); homing rewrites can touch arbitrary
