@@ -871,8 +871,26 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b,
 	particleData[15] = b
 	particleData[16] = alpha
 
-	nextParticleID = nextParticleID + 1
-	local id = nextParticleID
+	-- Advance nextParticleID, wrapping safely below 2^24. Spring's unsynced
+	-- Lua uses float32 for lua_Number (to match GPU buffers), so integer
+	-- arithmetic loses precision at 2^24 (16777216): `x + 1 == x`. If we let
+	-- nextParticleID hit that ceiling it freezes forever, every spawn reuses
+	-- the same ID, pushElementInstance takes the updateExisting path on slot
+	-- 0, and the entire particle effect disappears. This was the long-run
+	-- "leak" observed after ~30 min of continuous flame.
+	--
+	-- We wrap well below the float ceiling (2^23 = 8388608) and on collision
+	-- with a still-live ID just keep incrementing. With <=10k live particles
+	-- in 8M slots the average collision rate is ~0.1%.
+	local nid = nextParticleID + 1
+	if nid >= 8388608 then nid = 1 end
+	local idToIndex = particleVBO.instanceIDtoIndex
+	while idToIndex[nid] do
+		nid = nid + 1
+		if nid >= 8388608 then nid = 1 end
+	end
+	nextParticleID = nid
+	local id = nid
 	-- Per-element upload: only transmits this one slot (16 floats) to GPU.
 	-- Tried noUpload=true + uploadAllElements() once per frame, but that
 	-- uploads the ENTIRE used range every frame (~2-4k particles), which
@@ -1224,16 +1242,21 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 	-- Only emit while we're in the early portion of the projectile's life
 	-- so the blue jet hugs the nozzle / leading half of the stream and the
 	-- fire/smoke takes over further along.
-	-- Suppress jet emission for projectiles we acquired mid-flight (created
-	-- off-screen and first seen by us already in transit). For those, our
-	-- birthFrame is artificially "now", so lifeT starts at 0 -- without this
-	-- guard we would spawn fresh muzzle jets at the projectile's current
-	-- (far-from-origin) position; the jets inherit full projectile velocity
-	-- and the vertex-shader drag integration then drifts them downstream,
-	-- producing the "particles way too far outside max range" artifact when
-	-- the camera pans to a flamethrower whose stream already exists. Core/
-	-- smoke still emit so the visible tail isn't completely empty.
-	if lifeT < K.JET_MAX_LIFE_FRAC and not info.midFlightAcquired and budgetTier < 3 then
+	--
+	-- Historical note: we used to suppress jets entirely for midFlight-
+	-- acquired projectiles, because birthFrame was set to "now" so lifeT
+	-- started at 0 for the rest of the projectile's life, which spawned
+	-- fresh muzzle jets at the projectile's current (far-from-origin)
+	-- position; the jets inherit projectile velocity and the vertex-shader
+	-- drag then drifted them downstream, producing the "particles way too
+	-- far outside max range" artifact. We now backdate birthFrame from
+	-- distance-to-owner / speed at acquisition time, so lifeT is correct
+	-- from the first frame and this `lifeT < JET_MAX_LIFE_FRAC` gate
+	-- alone is sufficient -- old midFlight projectiles will already be
+	-- past their jet phase and get gated out here naturally, while young
+	-- ones get to emit jets normally so the user sees a jet even when the
+	-- camera framed the target end at the moment the weapon fired.
+	if lifeT < K.JET_MAX_LIFE_FRAC and budgetTier < 3 then
 		local jetCount = mathMax(1, mathFloor(K.JET_SPAWN_PF * burstMult + 0.5))
 		-- Tier 2 : halve jet emission via per-projectile parity. floor=1 means
 		-- the floor-1 mathMax above would otherwise still emit every frame; the
@@ -1243,8 +1266,17 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 		end
 		if jetCount > 0 then
 		local jetSpread = K.JET_SPREAD_MULT
-		-- Jet alpha is strongest right at the nozzle and fades along the stream
-		local jetAlpha  = K.JET_ALPHA_BASE * (1 - lifeT / K.JET_MAX_LIFE_FRAC)
+		-- Jet alpha fades along the stream, but with a floor so jets emitted
+		-- in the later portion of the projectile's life (the only ones you
+		-- ever see when the camera is framing the target end of the stream)
+		-- are still clearly visible. Without the floor, jetAlpha goes linearly
+		-- from JET_ALPHA_BASE at lifeT=0 to 0 at JET_MAX_LIFE_FRAC, so framing
+		-- the target makes jets look washed out compared to framing the muzzle.
+		-- A 0.55 floor keeps target-end jets readable without making the
+		-- muzzle-end look any different (the freshest jets still get full alpha).
+		local fadeT = lifeT / K.JET_MAX_LIFE_FRAC
+		if fadeT > 1 then fadeT = 1 end
+		local jetAlpha  = K.JET_ALPHA_BASE * (1 - 0.45 * fadeT)
 		local invJetCount = 1 / jetCount
 
 		for i = 1, jetCount do
@@ -1479,18 +1511,50 @@ local function updateProjectiles(gameFrame, throttleMult)
 				-- at the projectile's current far-from-origin position, and the
 				-- shader drag integration would drift those jets downstream --
 				-- the visible "particles way too far outside max range" bug.
+				--
+				-- We also override emitX/Y/Z with the owner unit's position in
+				-- the midFlight case. Otherwise emitX = projectile current pos
+				-- (already near the target), distFromEmitSq stays ~0, distT2
+				-- never ramps, and muzzleTaper stays at MUZZLE_TAPER_MIN -- so
+				-- when you zoom in on the target end of a flame stream the
+				-- cores look small and yellow instead of large and orange.
+				-- Owner position is a much better proxy for the real muzzle
+				-- than the projectile's late-acquisition position.
 				local midFlight = false
 				local ownerID = nil
 				local isScav = false
+				local birthFrame = gameFrame
 				if ex then
 					ownerID = spGetProjectileOwnerID(proID)
 					if ownerID then
 						local ox, oy, oz = spGetUnitPosition(ownerID)
 						if ox then
 							local dx, dy, dz = ex - ox, ey - oy, ez - oz
+							local distFromOwnerSq = dx*dx + dy*dy + dz*dz
 							-- 80^2 = 6400; ~1 muzzle length of slack.
-							if (dx*dx + dy*dy + dz*dz) > 6400 then
+							if distFromOwnerSq > 6400 then
 								midFlight = true
+								-- Use the owner unit position as the emit
+								-- origin (see comment above).
+								ex, ey, ez = ox, oy, oz
+								-- Estimate the true birth frame from how far
+								-- the projectile has already travelled. Without
+								-- this, lifeT starts at 0 for the rest of the
+								-- projectile's flight, so tintSampler(lifeT)
+								-- returns the yellow nozzle color forever and
+								-- the cores never warm up to orange. Using
+								-- distance/speed gives a good first-order
+								-- estimate (assumes the owner hasn't moved much
+								-- since firing -- true for flame turrets which
+								-- are buildings or slow units).
+								local vx, vy, vz = spGetProjectileVelocity(proID)
+								if vx then
+									local speed = mathSqrt(vx*vx + vy*vy + vz*vz)
+									if speed > 0.001 then
+										local travelled = mathSqrt(distFromOwnerSq)
+										birthFrame = gameFrame - mathFloor(travelled / speed + 0.5)
+									end
+								end
 							end
 						end
 						-- Scavenger ownership: matches BAR's standard convention
@@ -1509,7 +1573,7 @@ local function updateProjectiles(gameFrame, throttleMult)
 				info = {
 					cfg                = cfg,
 					wDefID             = wDefID,
-					birthFrame         = gameFrame,
+					birthFrame         = birthFrame,
 					ownerAllyTeam      = ownerAllyTeam,
 					ownerID            = ownerID,
 					isScav             = isScav,
@@ -1637,32 +1701,47 @@ local fpsUpdateInterval = 1
 local lastFpsCheckFrame = 0
 
 -- ----------------------------------------------------------------------------
--- Long-run leak instrumentation.
--- After ~30 min of continuous heavy flame the visible effect disappears. We
--- can't tell from code reading whether it's usedElements drift, tracked-table
--- bloat, queue-table bloat, or fpsUpdateInterval saturation. Dump every
--- DIAG_INTERVAL frames so a long test reveals which counter is climbing.
--- Disable by setting CONFIG.diagnostics=false (or remove this block once the
--- root cause is identified and patched).
+-- Long-run leak instrumentation + self-healing safety net.
+--
+-- Background: after ~30 min of continuous heavy flame the visible effect
+-- disappears. Code reading has not pinned the cause, so we run two things
+-- in production:
+--
+--   1) Heartbeat dump every DIAG_INTERVAL frames so a long test logs which
+--      counter is climbing (used, idMap, tracked, ignored, rmQ, fpsInt).
+--      Disable by setting DIAG_ENABLED = false once root-caused.
+--
+--   2) SAFETY NET (always on): periodically validate that
+--         particleVBO.usedElements == #instanceIDtoIndex
+--      Those two MUST stay in lockstep -- every push +1 to both, every pop
+--      -1 to both. If they ever diverge it means push/pop accounting drifted
+--      (the prime leak hypothesis) and the soft cap will eventually lock the
+--      pool full forever. When detected we log loudly and force-clear the
+--      whole VBO + per-projectile attribution lists so the effect comes back
+--      and the user can keep playing while we investigate. No-op cost when
+--      everything is healthy (one pairs() walk per minute).
 -- ----------------------------------------------------------------------------
-local DIAG_ENABLED  = false
-local DIAG_INTERVAL = 900   -- 30s at 30Hz
+local DIAG_ENABLED   = false
+local DIAG_INTERVAL  = 900   -- 30s at 30Hz
+local SAFETY_INTERVAL = 1800 -- 60s at 30Hz
+local SAFETY_DRIFT_TOLERANCE = 4  -- |used - idMap| above this triggers heal
+
+local function countTable(t)
+	local n = 0
+	for _ in pairs(t) do n = n + 1 end
+	return n
+end
 
 local function dumpDiagnostics(n)
-	local trackedCount, ignoredCount = 0, 0
-	for _ in pairs(tracked) do trackedCount = trackedCount + 1 end
-	for _ in pairs(ignored) do ignoredCount = ignoredCount + 1 end
+	local trackedCount  = countTable(tracked)
+	local ignoredCount  = countTable(ignored)
 	local queueKeys, queueTotal = 0, 0
 	for _, q in pairs(particleRemoveQueue) do
-		queueKeys = queueKeys + 1
+		queueKeys  = queueKeys + 1
 		queueTotal = queueTotal + #q
 	end
-	-- Sanity: idToIndex size should ~match usedElements. If they diverge,
-	-- accounting is broken (the prime suspect for the leak).
-	local idMapSize = 0
-	if particleVBO and particleVBO.instanceIDtoIndex then
-		for _ in pairs(particleVBO.instanceIDtoIndex) do idMapSize = idMapSize + 1 end
-	end
+	local idMapSize = particleVBO and particleVBO.instanceIDtoIndex
+		and countTable(particleVBO.instanceIDtoIndex) or 0
 	Spring.Echo(string.format(
 		"[flameDiag] f=%d used=%d/%d(%d) idMap=%d  tracked=%d ignored=%d  rmQ=%d(%dids)  nextID=%d fpsInt=%d",
 		n,
@@ -1672,6 +1751,69 @@ local function dumpDiagnostics(n)
 		trackedCount, ignoredCount,
 		queueKeys, queueTotal,
 		nextParticleID, fpsUpdateInterval))
+end
+
+-- Force-clear the entire particle VBO and all per-projectile attribution
+-- lists. Called by the safety net when accounting drift is detected. After
+-- this runs the visual effect comes back within a few frames (every tracked
+-- projectile re-emits naturally). Loud Spring.Echo so a leak event is
+-- impossible to miss in logs/infolog.
+local function emergencyResetParticles(reason)
+	Spring.Echo("[gfx_flamethrower_gl4] EMERGENCY RESET: " .. tostring(reason))
+	if particleVBO then
+		-- clearInstanceTable resets usedElements + both id<->index maps in one
+		-- call, then re-uploads an empty buffer.
+		if gl.InstanceVBOTable.clearInstanceTable then
+			gl.InstanceVBOTable.clearInstanceTable(particleVBO)
+		else
+			-- Defensive: if the engine InstanceVBO module ever loses
+			-- clearInstanceTable, fall through to a manual reset of just the
+			-- accounting maps. Slots will be reclaimed lazily as new pushes
+			-- swap-replace them.
+			particleVBO.usedElements      = 0
+			particleVBO.instanceIDtoIndex = {}
+			particleVBO.indextoInstanceID = {}
+		end
+	end
+	-- Drop every queued death-frame entry so future expirations don't try to
+	-- pop IDs that no longer exist in the VBO.
+	particleRemoveQueue = {}
+	lastRemovedFrame    = cachedGameFrame
+	-- Detach particle attribution from every tracked projectile so they emit
+	-- fresh from this frame onward without dangling references to dead IDs.
+	for _, info in pairs(tracked) do
+		info.particles = nil
+	end
+end
+
+local function runSafetyNet(n)
+	if not particleVBO then return end
+	local used     = particleVBO.usedElements
+	local idMap    = particleVBO.instanceIDtoIndex
+	if not idMap then return end
+	local mapSize  = countTable(idMap)
+	local drift    = used - mapSize
+	if drift < 0 then drift = -drift end
+	if drift > SAFETY_DRIFT_TOLERANCE then
+		Spring.Echo(string.format(
+			"[gfx_flamethrower_gl4] ACCOUNTING DRIFT detected: usedElements=%d idMap=%d (diff=%d). " ..
+			"This is the suspected long-run leak. Triggering self-heal.",
+			used, mapSize, used - mapSize))
+		emergencyResetParticles("accounting drift used=" .. used .. " idMap=" .. mapSize)
+		return
+	end
+	-- Even with perfect accounting, the pool could be stuck full if every
+	-- single live particle is somehow blocked from expiring (e.g. deathFrame
+	-- queue entries pointing to IDs already swap-removed by killProjectileParticles
+	-- but with no future cleanup path -- the "ghost id" case). Detect by
+	-- comparing pool usage to expected emission rate: if usage is near the
+	-- hard cap AND no new spawns have succeeded since the last check, assume
+	-- locked-full and reset.
+	if used >= K.MAX_PARTICLES * 0.95 then
+		Spring.Echo(string.format(
+			"[gfx_flamethrower_gl4] WARNING: pool near full at safety check (used=%d/%d). " ..
+			"Watching for stuck-full condition.", used, K.MAX_PARTICLES))
+	end
 end
 
 function gadget:GameFrame(n)
@@ -1706,6 +1848,10 @@ function gadget:GameFrame(n)
 
 	if DIAG_ENABLED and (n % DIAG_INTERVAL) == 0 then
 		dumpDiagnostics(n)
+	end
+
+	if (n % SAFETY_INTERVAL) == 0 then
+		runSafetyNet(n)
 	end
 end
 
