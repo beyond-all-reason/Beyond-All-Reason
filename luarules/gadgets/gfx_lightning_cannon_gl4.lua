@@ -33,8 +33,13 @@ local spIsPosInAirLos             = Spring.IsPosInAirLos
 local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 local spGetGameFrame              = Spring.GetGameFrame
+local spGetGameSpeed              = Spring.GetGameSpeed
 local spGetProjectileOwnerID      = Spring.GetProjectileOwnerID
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
+
+-- Subscription handle for the shared projectile dispatcher (set in Initialize).
+-- When nil, we fall back to calling Spring.GetProjectilesInRectangle directly.
+local dispatchHandle = nil
 local spIsAABBInView              = Spring.IsAABBInView
 
 local glBlending  = gl.Blending
@@ -269,8 +274,51 @@ local liveSet       = {}      -- proID -> true (reused; cleared each frame)
 local liveList      = {}
 local removeList    = {}
 local hasTracked    = false
+
+-- Object pools: lightning bolts are short-lived (a few sim frames each), so the
+-- per-bolt tracked record and its branch geometry array would otherwise be
+-- allocated and discarded continuously, producing significant GC pressure
+-- under sustained lightning fire. Recycle them through free lists.
+local recPool        = {}
+local recPoolN       = 0
+local branchListPool = {}
+local branchListPoolN = 0
+local branchPool     = {}
+local branchPoolN    = 0
+
+local function releaseBranchList(list)
+	if not list then return end
+	for i = 1, #list do
+		local b = list[i]
+		if b then
+			branchPoolN = branchPoolN + 1
+			branchPool[branchPoolN] = b
+			list[i] = nil
+		end
+	end
+	branchListPoolN = branchListPoolN + 1
+	branchListPool[branchListPoolN] = list
+end
+
+local function releaseRec(rec)
+	if rec.branches then
+		releaseBranchList(rec.branches)
+		rec.branches = nil
+	end
+	rec.cfg = nil
+	recPoolN = recPoolN + 1
+	recPool[recPoolN] = rec
+end
 local idleSkipCounter = 0
 local lastBuildFrame  = -1   -- last sim frame for which the VBO was rebuilt
+
+-- Paused-state camera tracking: while paused, only rebuild when camera moves
+-- (bolt state is frozen, so unchanged camera == unchanged output).
+local lastUpdateWasPaused = false
+local pausedCamX, pausedCamY, pausedCamZ = 0, 0, 0
+local pausedCamDX, pausedCamDY, pausedCamDZ = 0, 0, 0
+local pausedLastRebuildTimer = nil
+local PAUSED_MOVE_MIN_INTERVAL = 0.05
 
 -- Cached spectating / ally
 local cachedAllyTeamID  = spGetMyAllyTeamID()
@@ -1009,6 +1057,16 @@ local function emitBolt(beamData, offset, beamCount, cfg, t, lifeFrac)
 	if nBranches > 0 and boltLenSq > 1 then
 		local branches = t.branches
 		if not branches or #branches ~= nBranches then
+			if branches then
+				releaseBranchList(branches)
+			end
+			if branchListPoolN > 0 then
+				branches = branchListPool[branchListPoolN]
+				branchListPool[branchListPoolN] = nil
+				branchListPoolN = branchListPoolN - 1
+			else
+				branches = {}
+			end
 			local boltLen = mathSqrt(boltLenSq)
 			local fwx, fwy, fwz = vx / boltLen, vy / boltLen, vz / boltLen
 			-- Build an arbitrary stable perpendicular basis
@@ -1051,12 +1109,24 @@ local function emitBolt(beamData, offset, beamCount, cfg, t, lifeFrac)
 				local dirZ = fwz * c + pMz * sn
 
 				local lenFrac = lengthFrac * (1.0 - BRANCH_LENGTH_VAR + r4 * 2.0 * BRANCH_LENGTH_VAR)
-				branches[b] = {
-					anchorT = anchorT,
-					dirX = dirX, dirY = dirY, dirZ = dirZ,
-					lenFrac = lenFrac,
-					branchSeed = seed * 0.71 + b * 13.7,
-				}
+				local br
+				if branchPoolN > 0 then
+					br = branchPool[branchPoolN]
+					branchPool[branchPoolN] = nil
+					branchPoolN = branchPoolN - 1
+					br.anchorT = anchorT
+					br.dirX = dirX; br.dirY = dirY; br.dirZ = dirZ
+					br.lenFrac = lenFrac
+					br.branchSeed = seed * 0.71 + b * 13.7
+				else
+					br = {
+						anchorT = anchorT,
+						dirX = dirX, dirY = dirY, dirZ = dirZ,
+						lenFrac = lenFrac,
+						branchSeed = seed * 0.71 + b * 13.7,
+					}
+				end
+				branches[b] = br
 			end
 			t.branches = branches
 		end
@@ -1115,15 +1185,29 @@ end
 local function getOrTrack(proID, cfg, px, py, pz, ex, ey, ez, frame, ownerAllyTeam)
 	local rec = tracked[proID]
 	if not rec then
-		rec = {
-			cfg = cfg,
-			px = px, py = py, pz = pz,
-			ex = ex, ey = ey, ez = ez,
-			seed = mathRandom() * 1000.0 + (proID % 997),
-			firstSeen = frame,
-			lastSeenFrame = frame,
-			ownerAllyTeam = ownerAllyTeam,
-		}
+		if recPoolN > 0 then
+			rec = recPool[recPoolN]
+			recPool[recPoolN] = nil
+			recPoolN = recPoolN - 1
+			rec.cfg = cfg
+			rec.px, rec.py, rec.pz = px, py, pz
+			rec.ex, rec.ey, rec.ez = ex, ey, ez
+			rec.seed = mathRandom() * 1000.0 + (proID % 997)
+			rec.firstSeen = frame
+			rec.lastSeenFrame = frame
+			rec.ownerAllyTeam = ownerAllyTeam
+			-- rec.branches already nil (cleared on release)
+		else
+			rec = {
+				cfg = cfg,
+				px = px, py = py, pz = pz,
+				ex = ex, ey = ey, ez = ez,
+				seed = mathRandom() * 1000.0 + (proID % 997),
+				firstSeen = frame,
+				lastSeenFrame = frame,
+				ownerAllyTeam = ownerAllyTeam,
+			}
+		end
 		tracked[proID] = rec
 		hasTracked = true
 	else
@@ -1135,14 +1219,46 @@ local function getOrTrack(proID, cfg, px, py, pz, ex, ey, ez, frame, ownerAllyTe
 		-- weapon cfg, invalidate the cached branch geometry so it gets rebuilt.
 		if rec.cfg ~= cfg then
 			rec.cfg = cfg
-			rec.branches = nil
+			if rec.branches then
+				releaseBranchList(rec.branches)
+				rec.branches = nil
+			end
 		end
 	end
 	return rec
 end
 
 local function updateBolts()
-	if idleSkipCounter > 0 then
+	-- Idle skip throttles when no bolts/ghosts are active. Disabled while paused
+	-- so camera pans always re-cull the existing tracked set against the view.
+	local _, _, isPaused = spGetGameSpeed()
+	local usePausedCache = isPaused and lastUpdateWasPaused
+	lastUpdateWasPaused = isPaused
+
+	-- While paused, bolt state is frozen. Skip the entire rebuild when the
+	-- camera hasn't moved since the last paused rebuild; the existing VBO is
+	-- replayed by drawAll(). At uncapped paused FPS this saves a lot of work.
+	if usePausedCache then
+		local cx, cy, cz = Spring.GetCameraPosition()
+		local dx, dy, dz = Spring.GetCameraDirection()
+		if cx == pausedCamX and cy == pausedCamY and cz == pausedCamZ
+			and dx == pausedCamDX and dy == pausedCamDY and dz == pausedCamDZ then
+			return
+		end
+		local now = Spring.GetTimer()
+		if pausedLastRebuildTimer and Spring.DiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
+			return
+		end
+		pausedLastRebuildTimer = now
+		pausedCamX, pausedCamY, pausedCamZ = cx, cy, cz
+		pausedCamDX, pausedCamDY, pausedCamDZ = dx, dy, dz
+	elseif isPaused then
+		pausedCamX, pausedCamY, pausedCamZ = Spring.GetCameraPosition()
+		pausedCamDX, pausedCamDY, pausedCamDZ = Spring.GetCameraDirection()
+		pausedLastRebuildTimer = nil
+	end
+
+	if not isPaused and idleSkipCounter > 0 then
 		idleSkipCounter = idleSkipCounter - 1
 		return
 	end
@@ -1155,9 +1271,18 @@ local function updateBolts()
 	local liveCount = 0
 
 	-- Scan map-wide for projectiles ONCE (at sim rate via DrawWorld gate).
-	-- This is the only allocation per sim frame.
-	local projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
-	local nProjectiles = projectiles and #projectiles or 0
+	-- Prefer the shared dispatcher: it caches the map-wide weapon scan once
+	-- per tick (shared with beam laser) and pre-filters by weaponDefID so we
+	-- skip flamethrower/etc. projectiles for free.
+	local projectiles, matchDefIDs, nProjectiles
+	local PS = GG.ProjectileScan
+	local dispatcherFiltered = (PS ~= nil and dispatchHandle ~= nil)
+	if dispatcherFiltered then
+		projectiles, matchDefIDs, nProjectiles = PS.GetMatchesWithDefIDs(dispatchHandle)
+	else
+		projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
+		nProjectiles = projectiles and #projectiles or 0
+	end
 
 	local beamData = boltVBO.instanceData
 	local beamCount = 0
@@ -1169,8 +1294,14 @@ local function updateBolts()
 	-- For each projectile: filter on weaponConfigs, then per-bolt LOS + AABB.
 	for i = 1, nProjectiles do
 		local proID = projectiles[i]
-		local wDefID = spGetProjectileDefID(proID)
-		local cfg = wDefID and weaponConfigs[wDefID]
+		local wDefID, cfg
+		if dispatcherFiltered then
+			wDefID = matchDefIDs[i]
+			cfg = weaponConfigs[wDefID]
+		else
+			wDefID = spGetProjectileDefID(proID)
+			cfg = wDefID and weaponConfigs[wDefID]
+		end
 		if cfg then
 			local px, py, pz = spGetProjectilePosition(proID)
 			if px then
@@ -1315,6 +1446,15 @@ local cleanupFrame = 0
 
 function gadget:Initialize()
 	if not initGL4() then return end
+
+	-- Subscribe to the shared projectile dispatcher (map-wide weapon scan,
+	-- shared with the beam laser gadget).
+	local PS = GG.ProjectileScan
+	if PS then
+		local defIDSet = {}
+		for wDefID in pairs(weaponConfigs) do defIDSet[wDefID] = true end
+		dispatchHandle = PS.Subscribe("lightning_cannon", defIDSet, PS.SCAN_MAP_WEAPONS)
+	end
 end
 
 function gadget:Shutdown()
@@ -1336,8 +1476,11 @@ function gadget:GameFrame(n)
 			end
 		end
 		for i = 1, removeCount do
-			tracked[removeList[i]] = nil
+			local proID = removeList[i]
+			local rec = tracked[proID]
+			tracked[proID] = nil
 			removeList[i] = nil
+			if rec then releaseRec(rec) end
 		end
 		hasTracked = anyRemain
 	end
@@ -1355,7 +1498,13 @@ function gadget:DrawWorld()
 	-- which is the engine sim rate. Skip the projectile scan + VBO rebuild when the
 	-- sim frame hasn't advanced and just redraw the existing VBO. Huge saving at
 	-- render rates above sim rate (typical 60-144 fps vs 30 Hz sim).
-	if simFrame ~= lastBuildFrame then
+	--
+	-- Exception: while paused, simFrame is frozen but the camera can still move.
+	-- The bolt set in the VBO was filtered by spIsAABBInView at the time of the
+	-- last build, so off-screen bolts at pause time stay invisible even after
+	-- panning. Always rebuild while paused to re-cull against the current view.
+	local _, _, isPaused = spGetGameSpeed()
+	if isPaused or simFrame ~= lastBuildFrame then
 		lastBuildFrame = simFrame
 		updateBolts()
 	end

@@ -51,11 +51,12 @@ local spGetUnitPosition        = Spring.GetUnitPosition
 local spGetTeamAllyTeamID      = Spring.GetTeamAllyTeamID
 local spGetMyAllyTeamID        = Spring.GetMyAllyTeamID
 local spGetSpectatingState     = Spring.GetSpectatingState
-local spIsPosInLos          = Spring.IsPosInLos
+local spIsPosInLos             = Spring.IsPosInLos
 local spIsSphereInView         = Spring.IsSphereInView
 local spGetCameraPosition      = Spring.GetCameraPosition
 local spGetFPS                 = Spring.GetFPS
 local spGetWind                = Spring.GetWind
+local spGetGameSpeed           = Spring.GetGameSpeed
 
 local glBlending  = gl.Blending
 local glTexture   = gl.Texture
@@ -190,7 +191,7 @@ local CONFIG = {
 	tintStops = {
 		{ 0.00, 1.00, 0.95, 0.7 },    -- near-white hot pinch at the nozzle
 		{ 0.12, 1.00, 0.93, 0.55 },    -- bright pale yellow
-		{ 0.32, 1.00, 0.77, 0.33 },    -- saturated yellow-orange (main body)
+		{ 0.32, 1.00, 0.75, 0.3 },    -- saturated yellow-orange (main body)
 		--{ 0.58, 1.00, 0.55, 0.12 },    -- orange
 		--{ 1.00, 0.55, 0.10, 0.04 },    -- dying ember
 	},
@@ -229,7 +230,7 @@ local CONFIG = {
 	lodDistNear          = 3000,
 	lodDistFar           = 9000,
 	lodMinMult           = 0.30,
-	lodDistCull          = 14000,      -- hard cull: beyond this camera distance the projectile is skipped entirely (no emit, no LOS check, no per-particle work). At this distance the stream is far below 1px so there's nothing to see.
+	lodDistCull          = 24000,      -- hard cull: beyond this camera distance the projectile is skipped entirely (no emit, no LOS check, no per-particle work). At this distance the stream is far below 1px so there's nothing to see.
 	losCacheInterval     = 12,         -- frames between fresh spIsPosInLos lookups per tracked projectile (the cached visibility flag is reused in between). 12 frames = ~0.4s at 30fps; flames are short-lived enough that one stale frame is invisible.
 	staleGcInterval      = 30,         -- frames between sweeps that drop tracked/ignored entries whose engine projectile has died off-screen. Was every frame -- this is pure bookkeeping with no visual effect.
 
@@ -594,6 +595,77 @@ local nextParticleID = 0
 local particleRemoveQueue = {}    -- [deathFrame] = { id, id, ... }
 local lastRemovedFrame    = 0
 
+-- Free list of recyclable particleRemoveQueue arrays. Under heavy load each
+-- distinct deathFrame previously allocated a fresh table that became garbage
+-- when drained -- roughly one fresh table per frame * (unique death-frames
+-- per spawn batch). Pooling them eliminates that churn and the resulting GC
+-- spikes. Each pooled table stores its current logical length in slot `n`
+-- (so spawnParticle can append in O(1) without `#q`) and clears its array
+-- region back to nil on release so we don't keep stale ids reachable.
+local removeQueuePool   = {}
+local removeQueuePoolN  = 0
+local REMOVE_QUEUE_POOL_MAX = 256  -- bounded so we don't hoard tables forever
+
+-- Pool of per-projectile `info` hash tables. Under heavy fire (84+ streams)
+-- projectile churn allocates ~150-200 fresh info tables/sec, each becoming
+-- garbage on projectile death -- a major remaining GC source after the
+-- removeQueue pool. Pre-allocated and bounded so we never grow without limit.
+local infoPool      = {}
+local infoPoolN     = 0
+local INFO_POOL_MAX = 512
+
+-- Pool of per-projectile `info.particles` attribution arrays. Same churn
+-- pattern: one allocated per tracked projectile, becomes garbage on death.
+local particlesPool      = {}
+local particlesPoolN     = 0
+local PARTICLES_POOL_MAX = 512
+
+-- Reset every field that may be set on an info table during its lifetime.
+-- KEEP IN SYNC with the creation block in updateProjectiles and any new
+-- `info.x = ...` assignments; a leftover field would silently leak state
+-- across pooled projectiles.
+local function releaseInfo(info)
+	local p = info.particles
+	if p then
+		for k = 1, #p do p[k] = nil end
+		if particlesPoolN < PARTICLES_POOL_MAX then
+			particlesPoolN = particlesPoolN + 1
+			particlesPool[particlesPoolN] = p
+		end
+	end
+	info.cfg                = nil
+	info.wDefID             = nil
+	info.birthFrame         = nil
+	info.ownerAllyTeam      = nil
+	info.ownerID            = nil
+	info.isScav             = nil
+	info.gen                = nil
+	info.emitX              = nil
+	info.emitY              = nil
+	info.emitZ              = nil
+	info.midFlightAcquired  = nil
+	info.noKillNeeded       = nil
+	info.allyFastPathFrame  = nil
+	info.losHiddenFrame     = nil
+	info.losVisibleFrame    = nil
+	info.losSmokeCached     = nil
+	info.particles          = nil
+	if infoPoolN < INFO_POOL_MAX then
+		infoPoolN = infoPoolN + 1
+		infoPool[infoPoolN] = info
+	end
+end
+
+local function acquireInfo()
+	if infoPoolN > 0 then
+		local i = infoPool[infoPoolN]
+		infoPool[infoPoolN] = nil
+		infoPoolN = infoPoolN - 1
+		return i
+	end
+	return {}
+end
+
 local cachedGameFrame = 0
 local cachedCamX, cachedCamY, cachedCamZ = 0, 0, 0
 local windX, windZ = 0, 0
@@ -841,6 +913,7 @@ end
 --------------------------------------------------------------------------------
 local particleData = { 0,0,0,0, 0,0,0,0, 0,0,0,0, 1,1,1,1 }
 
+
 -- Set by emitStream before spawning so spawnParticle can attribute each new
 -- particle to its owning projectile (for bulk-kill on LOS loss). Reset to nil
 -- by emitStream on early-returns / end so unrelated future spawns can't leak
@@ -848,10 +921,16 @@ local particleData = { 0,0,0,0, 0,0,0,0, 0,0,0,0, 1,1,1,1 }
 local emitInfoRef = nil
 
 local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b, alpha, essential)
-	-- Soft cap for normal spawns; essential=true (tier-3 core flame only)
-	-- may push up to the hard cap so streams keep emitting under pool pressure.
-	local cap = essential and K.HARD_MAX_PARTICLES or K.MAX_PARTICLES
-	if particleVBO.usedElements >= cap then return nil end
+	-- Core flame particles (ptype 0) are NEVER capped: with many flamethrowers
+	-- active the soft/hard caps would starve late-iterated streams of any
+	-- particles at all (the "some flamethrowers invisible" symptom). The VBO
+	-- auto-resizes on overflow (instancevbotable doubles maxElements when full),
+	-- so pushing past CONFIG.maxParticles is safe -- the cap here is a budget
+	-- throttle, not a hardware limit. Non-core decorations (jet/tail/smoke) still
+	-- respect the soft cap to keep total cost bounded.
+	if ptype ~= 0 and not essential and particleVBO.usedElements >= K.MAX_PARTICLES then
+		return nil
+	end
 	local deathFrame = cachedGameFrame + mathCeil(life) + 2
 
 	particleData[1] = px
@@ -896,14 +975,30 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b,
 	-- uploads the ENTIRE used range every frame (~2-4k particles), which
 	-- transmits far more bytes per frame than the per-element path even
 	-- though it uses fewer GL calls. Net regression in profiling.
+	-- Also tried noUpload=true + uploadElementRange over a tracked
+	-- [dirtyMin, dirtyMax] span: looked promising on paper but regressed
+	-- ~33% in practice because particles die FIFO (low indices) while new
+	-- spawns push at the tail, so the dirty span covers essentially the
+	-- full used range every frame -- same trap as uploadAllElements, plus
+	-- extra Lua bookkeeping. Per-element upload wins.
 	pushElementInstance(particleVBO, particleData, id, true)
 
 	local q = particleRemoveQueue[deathFrame]
 	if not q then
-		q = {}
+		-- Recycle a pooled table if available; otherwise allocate (rare once
+		-- steady state is reached).
+		if removeQueuePoolN > 0 then
+			q = removeQueuePool[removeQueuePoolN]
+			removeQueuePool[removeQueuePoolN] = nil
+			removeQueuePoolN = removeQueuePoolN - 1
+		else
+			q = { n = 0 }
+		end
 		particleRemoveQueue[deathFrame] = q
 	end
-	q[#q + 1] = id
+	local qn = q.n + 1
+	q[qn] = id
+	q.n   = qn
 
 	-- Attribute this particle to the currently-emitting projectile, so we can
 	-- pop it early if/when that projectile loses LOS. Skipped when
@@ -912,7 +1007,16 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b,
 	-- dead weight: a hash lookup + table push per particle for nothing).
 	if emitInfoRef and not emitInfoRef.noKillNeeded then
 		local plist = emitInfoRef.particles
-		if not plist then plist = {}; emitInfoRef.particles = plist end
+		if not plist then
+			if particlesPoolN > 0 then
+				plist = particlesPool[particlesPoolN]
+				particlesPool[particlesPoolN] = nil
+				particlesPoolN = particlesPoolN - 1
+			else
+				plist = {}
+			end
+			emitInfoRef.particles = plist
+		end
 		local n = #plist
 		-- Cap list growth: old entries point to particles that are likely
 		-- already gone (natural expiry), and even if some are still alive
@@ -937,13 +1041,22 @@ local function removeExpiredParticles(gameFrame)
 		local q = particleRemoveQueue[f]
 		if q then
 			local idToIndex = particleVBO.instanceIDtoIndex
-			for i = 1, #q do
+			local qn = q.n
+			for i = 1, qn do
 				local id = q[i]
 				if idToIndex[id] then
 					popElementInstance(particleVBO, id)
 				end
+				q[i] = nil  -- drop reference so id values can be GC'd
 			end
+			q.n = 0
 			particleRemoveQueue[f] = nil
+			-- Return the now-empty table to the pool for re-use instead of
+			-- letting it become garbage. Bounded to keep memory predictable.
+			if removeQueuePoolN < REMOVE_QUEUE_POOL_MAX then
+				removeQueuePoolN = removeQueuePoolN + 1
+				removeQueuePool[removeQueuePoolN] = q
+			end
 		end
 	end
 	lastRemovedFrame = gameFrame
@@ -955,6 +1068,13 @@ end
 local tracked = {}      -- [proID] = { wcfg, birthFrame, gen }
 local ignored = {}      -- [proID] = lastSeenGen  (negative cache: non-flame projectiles)
 local trackGen = 0
+
+-- Subscription handle for the shared projectile dispatcher (set in Initialize).
+-- When non-nil, GetMatchesWithDefIDs returns the pre-filtered flame projectile
+-- list together with their wDefIDs, shared with every other gfx_*_gl4 gadget,
+-- eliminating the duplicate Spring.GetVisibleProjectiles + per-projectile
+-- Spring.GetProjectileDefID calls each gadget used to make independently.
+local dispatchHandle = nil
 
 -- LOS visibility test with per-projectile caching. Asymmetric on purpose:
 --   * "hidden" result is cached for LOS_CACHE_INTERVAL frames -- this is the
@@ -1068,12 +1188,32 @@ local function visibleToLocalPlayer(proID, info, px, py, pz, dirX, dirY, dirZ, s
 	return vis, smokeVis
 end
 
+-- Paused-snapshot emit gating: set by gadget:Update during a paused emit
+-- pass, read by emitStream to skip streams already emitted this pause.
+-- pauseBurstEmitted is reset at the start of each paused emit burst so the
+-- multi-pass densification loop can call emitStream multiple times for the
+-- same projectile within one burst; pauseEmittedFor is updated from it at
+-- the end of the burst so future bursts (camera-move re-emits) still skip
+-- streams we've already snapshotted.
+local pauseEmittedFor = {}
+local pauseBurstEmitted = {}
+local pausedEmitMode = false
+
 local function emitStream(proID, info, gameFrame, throttleMult)
 	emitInfoRef = nil
-	-- Early-exit: only bail when the HARD cap (incl. essential overflow) is
-	-- exhausted. Between MAX_PARTICLES and HARD_MAX_PARTICLES, tier-3 essential
-	-- cores can still spawn -- spawnParticle gates the soft-cap reject per-call.
-	if particleVBO.usedElements >= K.HARD_MAX_PARTICLES then return end
+	-- Pause re-emit gate: during a paused snapshot burst, skip streams that
+	-- were already snapshotted by a *previous* burst (or that were visible
+	-- at pause time, seeded in pauseEmittedFor by gadget:Update).
+	-- pauseBurstEmitted records per-burst emissions so the multi-pass
+	-- densification within one burst is allowed.
+	if pausedEmitMode then
+		if pauseEmittedFor[proID] then return end
+		pauseBurstEmitted[proID] = true
+	end
+	-- No early-exit on pool fullness: cores (ptype 0) are uncapped in
+	-- spawnParticle so the stream always emits something even under heavy
+	-- many-flamethrower load. spawnParticle's per-call gate still rejects
+	-- non-core decorations past MAX_PARTICLES, so total cost stays bounded.
 
 	-- Per-projectile color scalars. For scavenger-owned flamers we swap the
 	-- jet color outright (blue -> magenta-purple) and route the core/tail
@@ -1110,6 +1250,9 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 	elseif used >= K.BUDGET_MEDIUM then budgetTier = 2
 	elseif used >= K.BUDGET_SOFT then   budgetTier = 1
 	end
+	-- Paused snapshot ignores tier-based thinning: a one-shot static fill
+	-- isn't subject to per-frame budget pressure, and we want cores everywhere.
+	if pausedEmitMode then budgetTier = 0 end
 
 	-- View frustum cull
 	if not spIsSphereInView(px, py, pz, CULL_RADIUS) then return end
@@ -1142,6 +1285,33 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 	local dye = py - info.emitY
 	local dze = pz - info.emitZ
 	local distFromEmitSq = dxe * dxe + dye * dye + dze * dze
+
+	-- Position-based proID recycle detector. Spring reuses dead projectile IDs;
+	-- under heavy flamethrower fire a recycled ID for a fresh same-weapon shot
+	-- slips past the wDefID + age recycle checks in updateProjectiles when the
+	-- old projectile died within ~1.5x expectedLife of the new one being fired.
+	-- The new projectile then inherits the previous shot's stale info.emitX/Y/Z
+	-- and birthFrame, so on its very first emit distFromEmitSq is enormous
+	-- (muzzleTaper clamps to MAX -> full-size cores) and lifeT is already
+	-- saturated (tintSampler returns orange/red) -- the visible "large orange
+	-- chunks at the muzzle from frame one" artifact. A real projectile cannot
+	-- physically travel more than ~range elmos from its emit point, so if we
+	-- see distFromEmitSq exceed (range * 1.5)^2 it MUST be a recycle. Reset
+	-- birthFrame and emitX/Y/Z to the current projectile state and skip this
+	-- frame's emit -- next frame will spawn a correct fresh muzzle stream.
+	-- Use 1.5x range (not 1.0x) as a tolerance band for AoE / drift / midFlight
+	-- owner-position emit overrides, none of which should legitimately push
+	-- distFromEmit beyond 1.5x weapon range.
+	if (distFromEmitSq * cfg.invRangeSq) > 2.25 then
+		info.birthFrame        = gameFrame
+		info.emitX             = px
+		info.emitY             = py
+		info.emitZ             = pz
+		info.midFlightAcquired = false
+		emitInfoRef = nil
+		return
+	end
+
 	-- distT^2 = clamp01( distSq / rangeSq ). cfg.invRangeSq is precomputed.
 	local distT2 = distFromEmitSq * cfg.invRangeSq
 	if distT2 > 1 then distT2 = 1 end
@@ -1155,11 +1325,20 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 		-- At minimum LOD, only emit on every other frame (per-projectile parity
 		-- via proID) so we halve the per-projectile cost when zoomed all the way
 		-- out. Density stays roughly the same because particles live longer than
-		-- 2 frames at any LOD.
-		if (gameFrame + proID) % 2 == 0 then return end
+		-- 2 frames at any LOD. Skip the parity gate during paused mode: gameFrame
+		-- is constant across all densification passes, so half of far-zoom streams
+		-- would receive zero particles otherwise.
+		if not pausedEmitMode and (gameFrame + proID) % 2 == 0 then return end
 	elseif distSq > LOD_DIST_NEAR_SQ then
 		local k = (distSq - LOD_DIST_NEAR_SQ) * LOD_DIST_RANGE_INV_SQ
 		lodMult = 1 - k * LOD_MULT_RANGE
+	end
+
+	-- During paused emit, force full LOD density: skipping particles for
+	-- distant streams (the normal LOD behaviour) makes far-zoom paused
+	-- snapshots look anemic. CPU cost is irrelevant during pause.
+	if pausedEmitMode then
+		lodMult = 1
 	end
 
 	-- (velocity / dir already computed above for the LOS forward-lookahead.)
@@ -1296,6 +1475,13 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 			oz = oz - dirZ * backStep
 
 			local size = (K.JET_SIZE_BASE + (mathRandom() - 0.5) * K.SIZE_RAND_RANGE * 0.5) * sizeScale
+			-- Zoom-out compensation: JET_SIZE_BASE is only ~1.3 elmos so the
+			-- jet shrinks to sub-pixel when the camera is far. Modest boost
+			-- (up to ~1.5x at full LOD distance, lodMult=0.30) to keep the
+			-- jet visually present when zoomed out without it ballooning
+			-- into a dominant blob -- changing the near-zoom appearance
+			-- not at all (boost == 1 when lodMult == 1).
+			size = size * (1 + 0.7 * (1 - lodMult))
 			local life = K.JET_LIFE_MIN + mathRandom() * K.JET_LIFE_SPAN
 
 			spawnParticle(
@@ -1469,14 +1655,43 @@ end
 --------------------------------------------------------------------------------
 -- Per-frame projectile scan
 --------------------------------------------------------------------------------
-local function updateProjectiles(gameFrame, throttleMult)
-	local projectiles = spGetVisibleProjectiles()
-	if not projectiles then return end
+local function updateProjectiles(gameFrame, throttleMult, iterFrac)
+	-- Prefer the shared projectile dispatcher: it does the per-frame
+	-- Spring.GetVisibleProjectiles call AND the per-projectile
+	-- Spring.GetProjectileDefID lookup once, shared across all gfx_*_gl4
+	-- gadgets, and hands us a pre-filtered flame projectile list along with
+	-- the matching wDefIDs. When the dispatcher isn't loaded we fall back to
+	-- the original per-gadget engine call + per-projectile defID query.
+	local projectiles, matchDefIDs, nProjectiles
+	local PS = GG.ProjectileScan
+	local dispatcherFiltered = (PS ~= nil and dispatchHandle ~= nil)
+	if dispatcherFiltered then
+		projectiles, matchDefIDs, nProjectiles = PS.GetMatchesWithDefIDs(dispatchHandle)
+	else
+		projectiles = spGetVisibleProjectiles()
+		nProjectiles = projectiles and #projectiles or 0
+	end
+	if not projectiles or nProjectiles == 0 then return end
 
 	trackGen = trackGen + 1
 	local gen = trackGen
 
-	for i = 1, #projectiles do
+	-- Rotated iteration: the paused-snapshot multi-pass loop passes a
+	-- fractional iterFrac in [0,1) so each pass starts at a different
+	-- position in the visible-projectile list. Without rotation every pass
+	-- iterates [1..N] in the same order, so streams iterated first get
+	-- their jets/smoke admitted (VBO still under MAX_PARTICLES) while
+	-- later streams have only cores admitted (cap reached) -- producing
+	-- the "some streams have jets and dense cores, others have gappy
+	-- cores and no jets" distribution bug when many flamethrowers come
+	-- into view at once after a paused camera pan.
+	local startBase = 0
+	if iterFrac and iterFrac > 0 then
+		startBase = mathFloor(iterFrac * nProjectiles) % nProjectiles
+	end
+
+	for j = 1, nProjectiles do
+		local i = ((startBase + j - 1) % nProjectiles) + 1
 		local proID = projectiles[i]
 		local info = tracked[proID]
 		-- Detect proID recycling: Spring reuses dead projectile IDs, and between
@@ -1484,9 +1699,34 @@ local function updateProjectiles(gameFrame, throttleMult)
 		-- a tracked ID and inherit the old info's cfg/ownerID/isScav -- the "flame
 		-- with another unit's properties" symptom. Cheap defense: compare current
 		-- engine wDefID against the one stamped at info creation.
-		if info and spGetProjectileDefID(proID) ~= info.wDefID then
+		--
+		-- When the dispatcher filtered for us, matchDefIDs[i] is the freshly-
+		-- queried defID for this proID -- reuse it instead of calling the engine
+		-- a second time.
+		local curDefID
+		if dispatcherFiltered then
+			curDefID = matchDefIDs[i]
+		end
+		if info and (curDefID or spGetProjectileDefID(proID)) ~= info.wDefID then
+			releaseInfo(info)
 			tracked[proID] = nil
 			info = nil
+		end
+		-- Same-wDefID recycle: under heavy flamethrower fire, a dead flame proID
+		-- is reassigned to a fresh flame projectile of the SAME weapon (so the
+		-- wDefID check above passes). The old info.birthFrame is now stale --
+		-- lifeT computes to ~1 immediately and the new projectile spawns large
+		-- orange cores at the muzzle from the very first frame. Detect via age
+		-- vs expected life: if we think this proID has been alive longer than
+		-- ~1.5x the weapon's projectile flight time, it MUST be a recycle.
+		-- Refresh birthFrame so lifeT restarts at 0.
+		if info and (gameFrame - info.birthFrame) > info.cfg.expectedLife * 1.5 then
+			info.birthFrame        = gameFrame
+			info.midFlightAcquired = false
+			local ex, ey, ez = spGetProjectilePosition(proID)
+			if ex then
+				info.emitX, info.emitY, info.emitZ = ex, ey, ez
+			end
 		end
 		if info then
 			info.gen = gen
@@ -1496,7 +1736,7 @@ local function updateProjectiles(gameFrame, throttleMult)
 			-- generation marker so it doesn't get GC'd until it actually expires.
 			ignored[proID] = gen
 		else
-			local wDefID = spGetProjectileDefID(proID)
+			local wDefID = curDefID or spGetProjectileDefID(proID)
 			local cfg = wDefID and weaponConfigs[wDefID] or nil
 			if cfg then
 				local teamID = spGetProjectileTeamID(proID)
@@ -1531,8 +1771,24 @@ local function updateProjectiles(gameFrame, throttleMult)
 						if ox then
 							local dx, dy, dz = ex - ox, ey - oy, ez - oz
 							local distFromOwnerSq = dx*dx + dy*dy + dz*dz
-							-- 80^2 = 6400; ~1 muzzle length of slack.
-							if distFromOwnerSq > 6400 then
+							-- Adaptive midFlight threshold: must clear both
+							-- (a) a generous absolute floor that exceeds even
+							-- the longest unit barrel offset (~120 elmos for
+							-- big turrets like cormaw/hammer) and (b) a
+							-- fraction of weapon range so long-range weapons
+							-- (which live on big units) don't false-trigger
+							-- on every fresh muzzle shot. Old fixed 80-elmo
+							-- threshold caused false-positives on long-barrel
+							-- flamer turrets: every newly-fired projectile got
+							-- birthFrame backdated, so cores spawned at the
+							-- muzzle sampled the orange/saturated zone of the
+							-- tint LUT immediately at full muzzleTaper size
+							-- ("large orange chunks at the nozzle from frame
+							-- one" symptom).
+							local mfThresh = cfg.range * 0.30
+							if mfThresh < 120 then mfThresh = 120 end
+							local mfThreshSq = mfThresh * mfThresh
+							if distFromOwnerSq > mfThreshSq then
 								midFlight = true
 								-- Use the owner unit position as the emit
 								-- origin (see comment above).
@@ -1570,19 +1826,18 @@ local function updateProjectiles(gameFrame, throttleMult)
 					end
 				end
 
-				info = {
-					cfg                = cfg,
-					wDefID             = wDefID,
-					birthFrame         = birthFrame,
-					ownerAllyTeam      = ownerAllyTeam,
-					ownerID            = ownerID,
-					isScav             = isScav,
-					gen                = gen,
-					emitX              = ex or 0,
-					emitY              = ey or 0,
-					emitZ              = ez or 0,
-					midFlightAcquired  = midFlight,
-				}
+				info = acquireInfo()
+				info.cfg                = cfg
+				info.wDefID             = wDefID
+				info.birthFrame         = birthFrame
+				info.ownerAllyTeam      = ownerAllyTeam
+				info.ownerID            = ownerID
+				info.isScav             = isScav
+				info.gen                = gen
+				info.emitX              = ex or 0
+				info.emitY              = ey or 0
+				info.emitZ              = ez or 0
+				info.midFlightAcquired  = midFlight
 				tracked[proID] = info
 				emitStream(proID, info, gameFrame, throttleMult)
 			else
@@ -1615,6 +1870,7 @@ local function updateProjectiles(gameFrame, throttleMult)
 			if tInfo.gen ~= gen then
 				local px = spGetProjectilePosition(proID)
 				if not px then
+					releaseInfo(tInfo)
 					tracked[proID] = nil
 				end
 			end
@@ -1671,6 +1927,19 @@ function gadget:Initialize()
 	cachedAllyTeamID = spGetMyAllyTeamID()
 	_, cachedFullView = spGetSpectatingState()
 
+	-- Subscribe to the shared projectile dispatcher so every gfx_*_gl4 gadget
+	-- shares ONE per-frame Spring.GetVisibleProjectiles call and ONE
+	-- Spring.GetProjectileDefID per projectile, dispatched through pre-built
+	-- weaponDefID sets. With many flamethrowers firing simultaneously the
+	-- per-projectile defID lookups dominate; consolidating them across all
+	-- consumers is the main reason for the dispatcher.
+	local PS = GG.ProjectileScan
+	if PS then
+		local defIDSet = {}
+		for wDefID in pairs(weaponConfigs) do defIDSet[wDefID] = true end
+		dispatchHandle = PS.Subscribe("flamethrower", defIDSet, PS.SCAN_VISIBLE)
+	end
+
 	if missingAlldefsPost > 0 then
 		Spring.Echo(string.format(
 			"[gfx_flamethrower_gl4] WARNING: %d flame weapon(s) still have engine flame visuals + cegtag active. " ..
@@ -1697,6 +1966,17 @@ function gadget:PlayerChanged(playerID)
 	_, cachedFullView = spGetSpectatingState()
 end
 
+-- NOTE: gadget:ProjectileDestroyed is intentionally NOT defined here.
+-- That callin only fires for weaponDefIDs registered via
+-- Script.SetWatchProjectile, which is a SYNCED-only function -- this is
+-- an unsynced gadget, so we cannot register and the callin would never
+-- fire anyway. Instead, proID recycling is detected inline in
+-- updateProjectiles via (a) a wDefID mismatch check, (b) an age-vs-
+-- expectedLife check, and (c) a position-based teleport check (a recycled
+-- proID's new position is typically dozens to hundreds of elmos away from
+-- the previous shot's last-known position, far more than one frame of
+-- velocity can account for).
+
 local fpsUpdateInterval = 1
 local lastFpsCheckFrame = 0
 
@@ -1722,7 +2002,7 @@ local lastFpsCheckFrame = 0
 --      everything is healthy (one pairs() walk per minute).
 -- ----------------------------------------------------------------------------
 local DIAG_ENABLED   = false
-local DIAG_INTERVAL  = 900   -- 30s at 30Hz
+local DIAG_INTERVAL  = 300   -- 30s at 30Hz
 local SAFETY_INTERVAL = 1800 -- 60s at 30Hz
 local SAFETY_DRIFT_TOLERANCE = 4  -- |used - idMap| above this triggers heal
 
@@ -1781,8 +2061,18 @@ local function emergencyResetParticles(reason)
 	lastRemovedFrame    = cachedGameFrame
 	-- Detach particle attribution from every tracked projectile so they emit
 	-- fresh from this frame onward without dangling references to dead IDs.
+	-- Recycle the per-projectile lists into the pool instead of dropping
+	-- them to GC.
 	for _, info in pairs(tracked) do
-		info.particles = nil
+		local p = info.particles
+		if p then
+			for k = 1, #p do p[k] = nil end
+			if particlesPoolN < PARTICLES_POOL_MAX then
+				particlesPoolN = particlesPoolN + 1
+				particlesPool[particlesPoolN] = p
+			end
+			info.particles = nil
+		end
 	end
 end
 
@@ -1801,18 +2091,6 @@ local function runSafetyNet(n)
 			used, mapSize, used - mapSize))
 		emergencyResetParticles("accounting drift used=" .. used .. " idMap=" .. mapSize)
 		return
-	end
-	-- Even with perfect accounting, the pool could be stuck full if every
-	-- single live particle is somehow blocked from expiring (e.g. deathFrame
-	-- queue entries pointing to IDs already swap-removed by killProjectileParticles
-	-- but with no future cleanup path -- the "ghost id" case). Detect by
-	-- comparing pool usage to expected emission rate: if usage is near the
-	-- hard cap AND no new spawns have succeeded since the last check, assume
-	-- locked-full and reset.
-	if used >= K.MAX_PARTICLES * 0.95 then
-		Spring.Echo(string.format(
-			"[gfx_flamethrower_gl4] WARNING: pool near full at safety check (used=%d/%d). " ..
-			"Watching for stuck-full condition.", used, K.MAX_PARTICLES))
 	end
 end
 
@@ -1853,6 +2131,184 @@ function gadget:GameFrame(n)
 	if (n % SAFETY_INTERVAL) == 0 then
 		runSafetyNet(n)
 	end
+end
+
+-- When the game is paused, gadget:GameFrame stops firing, so updateProjectiles
+-- never runs and no new particles are spawned. If the user wasn't already
+-- looking at an actively-firing flamethrower when they paused, panning the
+-- camera to one shows nothing -- the stream is invisible.
+--
+-- Fix: run a single emission pass via gadget:Update (which keeps firing while
+-- paused) when (a) we're paused, (b) the camera has moved enough since the
+-- last paused-emit to plausibly have framed new projectiles, and (c) at least
+-- a short cooldown has passed. The shader's time uniform is frozen during
+-- pause so particles spawned here will sit frozen in mid-flight, which is
+-- exactly what we want for a static "you can see what's burning" preview.
+--
+-- Particles spawned during pause will simply expire en masse on unpause when
+-- the engine gameframe jumps forward past their deathFrame; not pretty but
+-- acceptable, and bounded by the existing MAX_PARTICLES pool cap.
+local PAUSE_EMIT_CAM_MOVE_SQ = 400   -- 20^2 elmos camera move re-triggers emit for newly-visible streams
+local pauseEmitDone = false      -- have we already produced one snapshot for the current pause?
+local lastPauseCamX, lastPauseCamY, lastPauseCamZ = 0, 0, 0
+function gadget:Update()
+	if not particleVBO then return end
+
+	local _, _, paused = spGetGameSpeed()
+	if not paused then
+		-- Reset so the first paused Update after unpause/re-pause emits again.
+		pauseEmitDone = false
+		lastPauseCamX, lastPauseCamY, lastPauseCamZ = 0, 0, 0
+		for k in pairs(pauseEmittedFor) do pauseEmittedFor[k] = nil end
+		return
+	end
+
+	local cx, cy, cz = spGetCameraPosition()
+	local dx, dy, dz = cx - lastPauseCamX, cy - lastPauseCamY, cz - lastPauseCamZ
+	local camMovedSq = dx * dx + dy * dy + dz * dz
+
+	-- Emit on first paused Update, and again whenever the camera has moved
+	-- enough that previously off-screen streams may now be visible. The
+	-- pauseEmittedFor table prevents already-emitted streams from receiving
+	-- additional particles on camera-move re-emits.
+	if pauseEmitDone and camMovedSq < PAUSE_EMIT_CAM_MOVE_SQ then return end
+	local firstPausedEmit = not pauseEmitDone
+	pauseEmitDone = true
+	lastPauseCamX, lastPauseCamY, lastPauseCamZ = cx, cy, cz
+
+	-- NOTE: we deliberately do NOT pre-gate currently-visible projectiles
+	-- here. Earlier versions did, on the assumption that anything visible
+	-- at pause time already has a fully-stocked live trail. Under heavy
+	-- load (many flamethrowers firing at once) the live pool cap starves
+	-- most streams of particles, so those visible streams actually have
+	-- empty or near-empty trails -- pre-gating them leaves the paused
+	-- view showing zero particles on most flamethrowers. Let the burst
+	-- loop emit for everyone; the pauseBurstEmitted -> pauseEmittedFor
+	-- promotion after the loop still prevents double-emission on later
+	-- camera-move re-emits.
+	--
+	-- Also: wipe leftover live particles before the first paused snapshot.
+	-- The last live frame leaves the VBO ~80%+ full, which would starve the
+	-- snapshot of headroom (the budget split below would collapse to ~1
+	-- particle per stream). Since we re-emit every visible stream, the
+	-- leftovers are redundant. Camera-move re-emits in subsequent paused
+	-- Updates do NOT clear, so the accumulated snapshot is preserved.
+	if firstPausedEmit and gl.InstanceVBOTable.clearInstanceTable then
+		gl.InstanceVBOTable.clearInstanceTable(particleVBO)
+	end
+
+	-- Multi-pass densification: a single emitStream call only produces ~1
+	-- live-frame worth of particles at the projectile head, which looks
+	-- extremely sparse next to the live appearance (which accumulates 30+
+	-- frames of overlapping emissions). We can't fill the historical trail
+	-- without trail synthesis (walking projectile pos back along velocity,
+	-- previously reverted), but we can densify the head and spread jets a
+	-- bit further by running several passes with backdated cachedGameFrame
+	-- and an emit-count multiplier (throttleMult). Each pass varies lifeT,
+	-- producing color/intensity variation, and the jet sub-frame backStep
+	-- distributes the extra jet particles along ~1 frame of trail each pass.
+	--
+	-- Adaptive density: when many flamethrowers are active at once, full
+	-- 6-pass x 3-density would blow past the VBO cap, leaving entire streams
+	-- with zero particles. Estimate how many streams need snapshotting and
+	-- shrink passes/density so every stream gets at least its first pass.
+	cachedCamX, cachedCamY, cachedCamZ = cx, cy, cz
+	local realGameFrame = cachedGameFrame
+	local MAX_PASSES   = 6
+	local MAX_DENSITY  = 3
+	local PAUSE_EMIT_STRIDE = 4   -- frames between backdated passes
+
+	-- Estimate streams to snapshot: visible-now minus already-gated. Each
+	-- stream produces roughly density cores per pass; budget against the
+	-- VBO ceiling minus what's already in flight.
+	local pendingCount = 0
+	-- Reuse the shared dispatcher's cached scan if available so the paused
+	-- snapshot path doesn't re-call Spring.GetVisibleProjectiles.
+	local visibleNow, visibleNowCount
+	local PS = GG.ProjectileScan
+	if PS and dispatchHandle then
+		visibleNow, visibleNowCount = PS.GetMatches(dispatchHandle)
+	else
+		visibleNow = spGetVisibleProjectiles()
+		visibleNowCount = visibleNow and #visibleNow or 0
+	end
+	if visibleNow then
+		for i = 1, visibleNowCount do
+			if not pauseEmittedFor[visibleNow[i]] then
+				pendingCount = pendingCount + 1
+			end
+		end
+	end
+	local pauseEmitPasses  = MAX_PASSES
+	local pauseEmitDensity = MAX_DENSITY
+	-- Minimum passes regardless of headroom pressure: each pass uses a
+	-- backdated cachedGameFrame, so the shader renders those particles at
+	-- different ages -> a white->orange->red colour gradient along the
+	-- stream. With only 1 pass the entire stream is one uniform young
+	-- (whitish) tint, which is the visible "sparse + all-white" failure
+	-- mode when many flamethrowers come into view at once (pendingCount
+	-- explodes -> headroom/pendingCount collapses to 1 -> passes=1).
+	-- Cores are essential (spawnParticle bypasses the soft cap up to
+	-- HARD_MAX_PARTICLES), so overflowing a bit here is fine; the shader's
+	-- age-based expiration reclaims slots between camera-move re-emits.
+	local MIN_PASSES = 3
+	if pendingCount > 0 then
+		local headroom = K.HARD_MAX_PARTICLES - particleVBO.usedElements
+		if headroom < 0 then headroom = 0 end
+		-- Reserve ~1 core per stream per pass; pick the largest pass*density
+		-- product that fits. Always allow >=1 pass with density 1 so every
+		-- stream gets at least one core (cores ignore the soft cap during
+		-- paused mode in spawnParticle).
+		local maxParticlesPerStream = mathMax(1, mathFloor(headroom / pendingCount))
+		-- particles per stream = passes * density (cores), so cap product.
+		local product = maxParticlesPerStream
+		if product > MAX_PASSES * MAX_DENSITY then product = MAX_PASSES * MAX_DENSITY end
+		-- Prefer more passes (variety/lifeT spread) over density when small.
+		if product >= MAX_PASSES * MAX_DENSITY then
+			pauseEmitPasses, pauseEmitDensity = MAX_PASSES, MAX_DENSITY
+		elseif product >= MAX_PASSES then
+			pauseEmitPasses  = MAX_PASSES
+			pauseEmitDensity = mathMax(1, mathFloor(product / MAX_PASSES))
+		else
+			pauseEmitPasses  = mathMax(1, product)
+			pauseEmitDensity = 1
+		end
+		-- Enforce MIN_PASSES so every stream gets shader-age variety even
+		-- under tight headroom. This costs MIN_PASSES cores per pending
+		-- projectile, which can push the VBO past MAX_PARTICLES into the
+		-- essential-overflow zone -- intended.
+		if pauseEmitPasses < MIN_PASSES then
+			pauseEmitPasses  = MIN_PASSES
+			pauseEmitDensity = 1
+		end
+	end
+
+	for k in pairs(pauseBurstEmitted) do pauseBurstEmitted[k] = nil end
+	pausedEmitMode = true
+	-- Rotate the per-pass iteration starting position so every stream gets
+	-- a pass where it's iterated early (before the VBO fills past
+	-- MAX_PARTICLES and non-core decorations start being rejected). Without
+	-- rotation, the same lucky streams get jets + dense cores on every pass
+	-- while the rest get gappy cores and no jets -- the exact symptom seen
+	-- with ~80 flamethrowers coming into view from an off-screen paused
+	-- state. iterFrac is a fraction in [0,1) that updateProjectiles
+	-- multiplies by the real nProjectiles to compute the start index.
+	local passDivisor = pauseEmitPasses > 0 and pauseEmitPasses or 1
+	for pass = 1, pauseEmitPasses do
+		-- Backdate so older passes spawn particles with older birthFrame ->
+		-- larger lifeT -> warmer/redder colour and longer drift via the
+		-- shader's velocity integration.
+		cachedGameFrame = realGameFrame - 2 - (pauseEmitPasses - pass) * PAUSE_EMIT_STRIDE
+		updateProjectiles(realGameFrame, pauseEmitDensity, (pass - 1) / passDivisor)
+	end
+	pausedEmitMode = false
+	-- Promote burst hits into the permanent gate so future camera-move
+	-- re-emits skip these streams.
+	for k in pairs(pauseBurstEmitted) do
+		pauseEmittedFor[k] = true
+		pauseBurstEmitted[k] = nil
+	end
+	cachedGameFrame = realGameFrame
 end
 
 function gadget:DrawWorld()
