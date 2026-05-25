@@ -43,6 +43,7 @@ local spEcho                   = Spring.Echo
 local spGetVisibleProjectiles  = Spring.GetVisibleProjectiles
 local spGetProjectilePosition  = Spring.GetProjectilePosition
 local spGetProjectileVelocity  = Spring.GetProjectileVelocity
+local spGetGroundHeight        = Spring.GetGroundHeight
 local spGetProjectileDefID     = Spring.GetProjectileDefID
 local spGetProjectileTeamID    = Spring.GetProjectileTeamID
 local spGetProjectileOwnerID   = Spring.GetProjectileOwnerID
@@ -51,11 +52,14 @@ local spGetUnitPosition        = Spring.GetUnitPosition
 local spGetTeamAllyTeamID      = Spring.GetTeamAllyTeamID
 local spGetMyAllyTeamID        = Spring.GetMyAllyTeamID
 local spGetSpectatingState     = Spring.GetSpectatingState
-local spIsPosInLos          = Spring.IsPosInLos
+local spIsPosInLos             = Spring.IsPosInLos
 local spIsSphereInView         = Spring.IsSphereInView
 local spGetCameraPosition      = Spring.GetCameraPosition
 local spGetFPS                 = Spring.GetFPS
 local spGetWind                = Spring.GetWind
+local spGetGameSpeed           = Spring.GetGameSpeed
+local spGetTimer               = Spring.GetTimer
+local spDiffTimers             = Spring.DiffTimers
 
 local glBlending  = gl.Blending
 local glTexture   = gl.Texture
@@ -190,7 +194,7 @@ local CONFIG = {
 	tintStops = {
 		{ 0.00, 1.00, 0.95, 0.7 },    -- near-white hot pinch at the nozzle
 		{ 0.12, 1.00, 0.93, 0.55 },    -- bright pale yellow
-		{ 0.32, 1.00, 0.77, 0.33 },    -- saturated yellow-orange (main body)
+		{ 0.32, 1.00, 0.75, 0.3 },    -- saturated yellow-orange (main body)
 		--{ 0.58, 1.00, 0.55, 0.12 },    -- orange
 		--{ 1.00, 0.55, 0.10, 0.04 },    -- dying ember
 	},
@@ -1068,8 +1072,28 @@ local function visibleToLocalPlayer(proID, info, px, py, pz, dirX, dirY, dirZ, s
 	return vis, smokeVis
 end
 
+-- Paused-snapshot emit gating: set by gadget:Update during a paused emit
+-- pass, read by emitStream to skip streams already emitted this pause.
+-- pauseBurstEmitted is reset at the start of each paused emit burst so the
+-- multi-pass densification loop can call emitStream multiple times for the
+-- same projectile within one burst; pauseEmittedFor is updated from it at
+-- the end of the burst so future bursts (camera-move re-emits) still skip
+-- streams we've already snapshotted.
+local pauseEmittedFor = {}
+local pauseBurstEmitted = {}
+local pausedEmitMode = false
+
 local function emitStream(proID, info, gameFrame, throttleMult)
 	emitInfoRef = nil
+	-- Pause re-emit gate: during a paused snapshot burst, skip streams that
+	-- were already snapshotted by a *previous* burst (or that were visible
+	-- at pause time, seeded in pauseEmittedFor by gadget:Update).
+	-- pauseBurstEmitted records per-burst emissions so the multi-pass
+	-- densification within one burst is allowed.
+	if pausedEmitMode then
+		if pauseEmittedFor[proID] then return end
+		pauseBurstEmitted[proID] = true
+	end
 	-- Early-exit: only bail when the HARD cap (incl. essential overflow) is
 	-- exhausted. Between MAX_PARTICLES and HARD_MAX_PARTICLES, tier-3 essential
 	-- cores can still spawn -- spawnParticle gates the soft-cap reject per-call.
@@ -1155,11 +1179,20 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 		-- At minimum LOD, only emit on every other frame (per-projectile parity
 		-- via proID) so we halve the per-projectile cost when zoomed all the way
 		-- out. Density stays roughly the same because particles live longer than
-		-- 2 frames at any LOD.
-		if (gameFrame + proID) % 2 == 0 then return end
+		-- 2 frames at any LOD. Skip the parity gate during paused mode: gameFrame
+		-- is constant across all densification passes, so half of far-zoom streams
+		-- would receive zero particles otherwise.
+		if not pausedEmitMode and (gameFrame + proID) % 2 == 0 then return end
 	elseif distSq > LOD_DIST_NEAR_SQ then
 		local k = (distSq - LOD_DIST_NEAR_SQ) * LOD_DIST_RANGE_INV_SQ
 		lodMult = 1 - k * LOD_MULT_RANGE
+	end
+
+	-- During paused emit, force full LOD density: skipping particles for
+	-- distant streams (the normal LOD behaviour) makes far-zoom paused
+	-- snapshots look anemic. CPU cost is irrelevant during pause.
+	if pausedEmitMode then
+		lodMult = 1
 	end
 
 	-- (velocity / dir already computed above for the LOS forward-lookahead.)
@@ -1296,6 +1329,12 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 			oz = oz - dirZ * backStep
 
 			local size = (K.JET_SIZE_BASE + (mathRandom() - 0.5) * K.SIZE_RAND_RANGE * 0.5) * sizeScale
+			-- Zoom-out compensation: JET_SIZE_BASE is only ~1.3 elmos so the
+			-- jet shrinks to sub-pixel when the camera is far. A small boost
+			-- (max ~1.35x at full LOD distance) keeps it readable without
+			-- turning into a dominant white beam -- changing the near-zoom
+			-- appearance not at all (boost == 1 when lodMult == 1).
+			size = size * (1 + 0.5 * (1 - lodMult))
 			local life = K.JET_LIFE_MIN + mathRandom() * K.JET_LIFE_SPAN
 
 			spawnParticle(
@@ -1722,7 +1761,7 @@ local lastFpsCheckFrame = 0
 --      everything is healthy (one pairs() walk per minute).
 -- ----------------------------------------------------------------------------
 local DIAG_ENABLED   = false
-local DIAG_INTERVAL  = 900   -- 30s at 30Hz
+local DIAG_INTERVAL  = 300   -- 30s at 30Hz
 local SAFETY_INTERVAL = 1800 -- 60s at 30Hz
 local SAFETY_DRIFT_TOLERANCE = 4  -- |used - idMap| above this triggers heal
 
@@ -1853,6 +1892,101 @@ function gadget:GameFrame(n)
 	if (n % SAFETY_INTERVAL) == 0 then
 		runSafetyNet(n)
 	end
+end
+
+-- When the game is paused, gadget:GameFrame stops firing, so updateProjectiles
+-- never runs and no new particles are spawned. If the user wasn't already
+-- looking at an actively-firing flamethrower when they paused, panning the
+-- camera to one shows nothing -- the stream is invisible.
+--
+-- Fix: run a single emission pass via gadget:Update (which keeps firing while
+-- paused) when (a) we're paused, (b) the camera has moved enough since the
+-- last paused-emit to plausibly have framed new projectiles, and (c) at least
+-- a short cooldown has passed. The shader's time uniform is frozen during
+-- pause so particles spawned here will sit frozen in mid-flight, which is
+-- exactly what we want for a static "you can see what's burning" preview.
+--
+-- Particles spawned during pause will simply expire en masse on unpause when
+-- the engine gameframe jumps forward past their deathFrame; not pretty but
+-- acceptable, and bounded by the existing MAX_PARTICLES pool cap.
+local PAUSE_EMIT_CAM_MOVE_SQ = 400   -- 20^2 elmos camera move re-triggers emit for newly-visible streams
+local pauseEmitDone = false      -- have we already produced one snapshot for the current pause?
+local lastPauseCamX, lastPauseCamY, lastPauseCamZ = 0, 0, 0
+function gadget:Update()
+	if not particleVBO then return end
+
+	local _, _, paused = spGetGameSpeed()
+	if not paused then
+		-- Reset so the first paused Update after unpause/re-pause emits again.
+		pauseEmitDone = false
+		lastPauseCamX, lastPauseCamY, lastPauseCamZ = 0, 0, 0
+		for k in pairs(pauseEmittedFor) do pauseEmittedFor[k] = nil end
+		return
+	end
+
+	local cx, cy, cz = spGetCameraPosition()
+	local dx, dy, dz = cx - lastPauseCamX, cy - lastPauseCamY, cz - lastPauseCamZ
+	local camMovedSq = dx * dx + dy * dy + dz * dz
+
+	-- Emit on first paused Update, and again whenever the camera has moved
+	-- enough that previously off-screen streams may now be visible. The
+	-- pauseEmittedFor table prevents already-emitted streams from receiving
+	-- additional particles on camera-move re-emits.
+	if pauseEmitDone and camMovedSq < PAUSE_EMIT_CAM_MOVE_SQ then return end
+	local firstPausedEmit = not pauseEmitDone
+	pauseEmitDone = true
+	lastPauseCamX, lastPauseCamY, lastPauseCamZ = cx, cy, cz
+
+	-- On the first paused emit, mark every projectile currently visible
+	-- (= what spGetVisibleProjectiles returns RIGHT NOW at pause moment)
+	-- as already-emitted, so the paused snapshot only fires for streams
+	-- that were offscreen at pause time. This is the ground truth -- no
+	-- dependence on liveEmitFrame staleness or FPS throttling races, and
+	-- it catches projectiles that spawned between the last live
+	-- updateProjectiles call and the pause (which weren't yet in `tracked`).
+	-- Non-flame proIDs marked here are harmless: emitStream is only
+	-- entered for classified flame projectiles.
+	if firstPausedEmit then
+		local visible = spGetVisibleProjectiles()
+		if visible then
+			for i = 1, #visible do
+				pauseEmittedFor[visible[i]] = true
+			end
+		end
+	end
+
+	-- Multi-pass densification: a single emitStream call only produces ~1
+	-- live-frame worth of particles at the projectile head, which looks
+	-- extremely sparse next to the live appearance (which accumulates 30+
+	-- frames of overlapping emissions). We can't fill the historical trail
+	-- without trail synthesis (walking projectile pos back along velocity,
+	-- previously reverted), but we can densify the head and spread jets a
+	-- bit further by running several passes with backdated cachedGameFrame
+	-- and an emit-count multiplier (throttleMult). Each pass varies lifeT,
+	-- producing color/intensity variation, and the jet sub-frame backStep
+	-- distributes the extra jet particles along ~1 frame of trail each pass.
+	cachedCamX, cachedCamY, cachedCamZ = cx, cy, cz
+	local realGameFrame = cachedGameFrame
+	local PAUSE_EMIT_PASSES = 6
+	local PAUSE_EMIT_STRIDE = 4   -- frames between backdated passes
+	local PAUSE_EMIT_DENSITY = 3  -- per-pass throttleMult; jets/cores per pass scale with this
+	for k in pairs(pauseBurstEmitted) do pauseBurstEmitted[k] = nil end
+	pausedEmitMode = true
+	for pass = 1, PAUSE_EMIT_PASSES do
+		-- Backdate so older passes spawn particles with older birthFrame ->
+		-- larger lifeT -> warmer/redder colour and longer drift via the
+		-- shader's velocity integration.
+		cachedGameFrame = realGameFrame - 2 - (PAUSE_EMIT_PASSES - pass) * PAUSE_EMIT_STRIDE
+		updateProjectiles(realGameFrame, PAUSE_EMIT_DENSITY)
+	end
+	pausedEmitMode = false
+	-- Promote burst hits into the permanent gate so future camera-move
+	-- re-emits skip these streams.
+	for k in pairs(pauseBurstEmitted) do
+		pauseEmittedFor[k] = true
+		pauseBurstEmitted[k] = nil
+	end
+	cachedGameFrame = realGameFrame
 end
 
 function gadget:DrawWorld()
