@@ -110,9 +110,20 @@ local function assertThrowsMessage(fn, testMsg, errorMsg, depthOffset)
 	end
 end
 
+local function assertEqual(actual, expected, errorMsg, depthOffset)
+	depthOffset = (depthOffset or 0) + 2
+	if actual ~= expected then
+		local msg = (errorMsg or "assertEqual failed")
+			.. ": expected " .. tostring(expected)
+			.. ", actual " .. tostring(actual)
+		error(msg, depthOffset)
+	end
+end
+
 return {
 	assertTablesEqual = assertTablesEqual,
 	assertSuccessBefore = assertSuccessBefore,
 	assertThrows = assertThrows,
 	assertThrowsMessage = assertThrowsMessage,
+	assertEqual = assertEqual,
 }
