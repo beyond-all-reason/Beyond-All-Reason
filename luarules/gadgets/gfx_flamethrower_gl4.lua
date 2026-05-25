@@ -606,6 +606,66 @@ local removeQueuePool   = {}
 local removeQueuePoolN  = 0
 local REMOVE_QUEUE_POOL_MAX = 256  -- bounded so we don't hoard tables forever
 
+-- Pool of per-projectile `info` hash tables. Under heavy fire (84+ streams)
+-- projectile churn allocates ~150-200 fresh info tables/sec, each becoming
+-- garbage on projectile death -- a major remaining GC source after the
+-- removeQueue pool. Pre-allocated and bounded so we never grow without limit.
+local infoPool      = {}
+local infoPoolN     = 0
+local INFO_POOL_MAX = 512
+
+-- Pool of per-projectile `info.particles` attribution arrays. Same churn
+-- pattern: one allocated per tracked projectile, becomes garbage on death.
+local particlesPool      = {}
+local particlesPoolN     = 0
+local PARTICLES_POOL_MAX = 512
+
+-- Reset every field that may be set on an info table during its lifetime.
+-- KEEP IN SYNC with the creation block in updateProjectiles and any new
+-- `info.x = ...` assignments; a leftover field would silently leak state
+-- across pooled projectiles.
+local function releaseInfo(info)
+	local p = info.particles
+	if p then
+		for k = 1, #p do p[k] = nil end
+		if particlesPoolN < PARTICLES_POOL_MAX then
+			particlesPoolN = particlesPoolN + 1
+			particlesPool[particlesPoolN] = p
+		end
+	end
+	info.cfg                = nil
+	info.wDefID             = nil
+	info.birthFrame         = nil
+	info.ownerAllyTeam      = nil
+	info.ownerID            = nil
+	info.isScav             = nil
+	info.gen                = nil
+	info.emitX              = nil
+	info.emitY              = nil
+	info.emitZ              = nil
+	info.midFlightAcquired  = nil
+	info.noKillNeeded       = nil
+	info.allyFastPathFrame  = nil
+	info.losHiddenFrame     = nil
+	info.losVisibleFrame    = nil
+	info.losSmokeCached     = nil
+	info.particles          = nil
+	if infoPoolN < INFO_POOL_MAX then
+		infoPoolN = infoPoolN + 1
+		infoPool[infoPoolN] = info
+	end
+end
+
+local function acquireInfo()
+	if infoPoolN > 0 then
+		local i = infoPool[infoPoolN]
+		infoPool[infoPoolN] = nil
+		infoPoolN = infoPoolN - 1
+		return i
+	end
+	return {}
+end
+
 local cachedGameFrame = 0
 local cachedCamX, cachedCamY, cachedCamZ = 0, 0, 0
 local windX, windZ = 0, 0
@@ -947,7 +1007,16 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b,
 	-- dead weight: a hash lookup + table push per particle for nothing).
 	if emitInfoRef and not emitInfoRef.noKillNeeded then
 		local plist = emitInfoRef.particles
-		if not plist then plist = {}; emitInfoRef.particles = plist end
+		if not plist then
+			if particlesPoolN > 0 then
+				plist = particlesPool[particlesPoolN]
+				particlesPool[particlesPoolN] = nil
+				particlesPoolN = particlesPoolN - 1
+			else
+				plist = {}
+			end
+			emitInfoRef.particles = plist
+		end
 		local n = #plist
 		-- Cap list growth: old entries point to particles that are likely
 		-- already gone (natural expiry), and even if some are still alive
@@ -1595,6 +1664,7 @@ local function updateProjectiles(gameFrame, throttleMult)
 		-- with another unit's properties" symptom. Cheap defense: compare current
 		-- engine wDefID against the one stamped at info creation.
 		if info and spGetProjectileDefID(proID) ~= info.wDefID then
+			releaseInfo(info)
 			tracked[proID] = nil
 			info = nil
 		end
@@ -1712,19 +1782,18 @@ local function updateProjectiles(gameFrame, throttleMult)
 					end
 				end
 
-				info = {
-					cfg                = cfg,
-					wDefID             = wDefID,
-					birthFrame         = birthFrame,
-					ownerAllyTeam      = ownerAllyTeam,
-					ownerID            = ownerID,
-					isScav             = isScav,
-					gen                = gen,
-					emitX              = ex or 0,
-					emitY              = ey or 0,
-					emitZ              = ez or 0,
-					midFlightAcquired  = midFlight,
-				}
+				info = acquireInfo()
+				info.cfg                = cfg
+				info.wDefID             = wDefID
+				info.birthFrame         = birthFrame
+				info.ownerAllyTeam      = ownerAllyTeam
+				info.ownerID            = ownerID
+				info.isScav             = isScav
+				info.gen                = gen
+				info.emitX              = ex or 0
+				info.emitY              = ey or 0
+				info.emitZ              = ez or 0
+				info.midFlightAcquired  = midFlight
 				tracked[proID] = info
 				emitStream(proID, info, gameFrame, throttleMult)
 			else
@@ -1757,6 +1826,7 @@ local function updateProjectiles(gameFrame, throttleMult)
 			if tInfo.gen ~= gen then
 				local px = spGetProjectilePosition(proID)
 				if not px then
+					releaseInfo(tInfo)
 					tracked[proID] = nil
 				end
 			end
@@ -1934,8 +2004,18 @@ local function emergencyResetParticles(reason)
 	lastRemovedFrame    = cachedGameFrame
 	-- Detach particle attribution from every tracked projectile so they emit
 	-- fresh from this frame onward without dangling references to dead IDs.
+	-- Recycle the per-projectile lists into the pool instead of dropping
+	-- them to GC.
 	for _, info in pairs(tracked) do
-		info.particles = nil
+		local p = info.particles
+		if p then
+			for k = 1, #p do p[k] = nil end
+			if particlesPoolN < PARTICLES_POOL_MAX then
+				particlesPoolN = particlesPoolN + 1
+				particlesPool[particlesPoolN] = p
+			end
+			info.particles = nil
+		end
 	end
 end
 
