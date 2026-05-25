@@ -34,6 +34,7 @@ local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 local spGetGameFrame              = Spring.GetGameFrame
 local spGetFrameTimeOffset        = Spring.GetFrameTimeOffset
+local spGetGameSpeed              = Spring.GetGameSpeed
 local spGetProjectileOwnerID      = Spring.GetProjectileOwnerID
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spIsAABBInView              = Spring.IsAABBInView
@@ -899,6 +900,16 @@ local idleSkipCounter = 0
 -- the renderer is keeping up (avoids redundant work at normal/high FPS).
 local lastDrawWorldSimFrame = -1
 
+-- When paused, projectile state doesn't change between frames, but the camera
+-- can still pan/zoom -- so we must re-run view culling. To avoid the large
+-- per-frame spGetProjectilesInRectangle allocation (which returns every weapon
+-- projectile, including flamethrowers etc.), we cache just the beam-laser
+-- projectile IDs on the first paused frame and iterate that small cache on
+-- subsequent paused frames.
+local lastUpdateWasPaused = false
+local pausedBeamCache = {}        -- list of proIDs (beam-laser only)
+local pausedBeamCacheCount = 0
+
 -- Cached ally team
 local cachedAllyTeamID = spGetMyAllyTeamID()
 local cachedSpecFullView = false
@@ -1115,8 +1126,21 @@ local function findLosBoundary(sx, sz, ex, ez, allyTeam, startInLos)
 end
 
 local function updateBeams()
-	-- Idle skip: throttle when no beams or ghosts active
-	if idleSkipCounter > 0 then
+	-- Pause handling: the camera can still move while paused, so we must keep
+	-- doing view culling -- but projectile state is frozen, so we don't need
+	-- to re-poll every weapon projectile on the map each frame. On the first
+	-- paused frame we build a small cache of just the beam-laser projectile
+	-- IDs; subsequent paused frames iterate that cache instead of calling
+	-- spGetProjectilesInRectangle (which allocates a fresh table containing
+	-- every weapon projectile, e.g. flamethrowers, even with no beam lasers).
+	local _, _, isPaused = spGetGameSpeed()
+	local usePausedCache = isPaused and lastUpdateWasPaused
+	lastUpdateWasPaused = isPaused
+
+	-- Idle skip: throttle when no beams or ghosts active. Disabled while paused
+	-- so camera pans always re-cull. (When using the paused cache the cost is
+	-- minimal: a per-beam AABB-in-view check, no projectile-list allocation.)
+	if not isPaused and idleSkipCounter > 0 then
 		idleSkipCounter = idleSkipCounter - 1
 		return
 	end
@@ -1136,7 +1160,18 @@ local function updateBeams()
 	-- Scan ALL weapon projectiles map-wide (not just camera-visible ones).
 	-- GetVisibleProjectiles culls by projectile origin, which misses beams
 	-- whose start is off-screen but whose middle or end is on-screen.
-	local projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
+	local projectiles, projectileCount
+	if usePausedCache then
+		projectiles = pausedBeamCache
+		projectileCount = pausedBeamCacheCount
+	else
+		projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
+		projectileCount = projectiles and #projectiles or 0
+		if isPaused then
+			-- Reset cache; it will be filled below as we discover beam projectiles.
+			pausedBeamCacheCount = 0
+		end
+	end
 	local beamData = beamVBO.instanceData
 	local beamCount = 0
 	local offset = 0
@@ -1144,11 +1179,17 @@ local function updateBeams()
 	local needLosCheck = not cachedSpecFullView
 
 	if projectiles then
-		for i = 1, #projectiles do
+		for i = 1, projectileCount do
 			local proID = projectiles[i]
 			local wDefID = spGetProjectileDefID(proID)
 			local cfg = wDefID and weaponConfigs[wDefID]
 			if cfg then
+				-- On the first paused frame, record beam projectiles so subsequent
+				-- paused frames can iterate this small cache instead of re-polling.
+				if isPaused and not usePausedCache then
+					pausedBeamCacheCount = pausedBeamCacheCount + 1
+					pausedBeamCache[pausedBeamCacheCount] = proID
+				end
 				local px, py, pz = spGetProjectilePosition(proID)
 				if px then
 					local vx, vy, vz = spGetProjectileVelocity(proID)
