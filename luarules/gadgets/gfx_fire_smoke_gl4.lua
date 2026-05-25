@@ -733,7 +733,7 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 
 	local queue = particleRemoveQueue[deathFrame]
 	if not queue then
-		queue = acquireQueue()
+		queue = pools.acquireQueue()
 		particleRemoveQueue[deathFrame] = queue
 	end
 	queue[#queue + 1] = particleID
@@ -881,7 +881,7 @@ local function removeExpiredParticles(gameFrame)
 				end
 			end
 			particleRemoveQueue[f] = nil
-			releaseQueue(queue)
+			pools.releaseQueue(queue)
 		end
 	end
 	lastRemovedFrame = gameFrame
@@ -1225,7 +1225,7 @@ local function updatePieceProjectiles(gameFrame)
 		if not tracked then
 			local ownerID = spGetProjectileOwnerID(proID)
 			if ownerID and excludedDeathUnits[ownerID] then
-				local t = acquireTracker()
+				local t = pools.acquireTracker()
 				t.gen      = gen
 				t.excluded = true
 				trackedPieceProjectiles[proID] = t
@@ -1236,7 +1236,7 @@ local function updatePieceProjectiles(gameFrame)
 					local sizeScale = mathMax(PIECE_SIZE_SCALE_MIN, mathMin(PIECE_SIZE_SCALE_MAX, pieceRadius / PIECE_SIZE_SCALE_REF))
 					local fi = mathRandom() < PIECE_FIRE_CHANCE and (0.3 + mathRandom() * 0.7) or 0
 					local lifeScale = fi > 0 and (1.0 + 0.3 * fi) or 0.7
-					local t = acquireTracker()
+					local t = pools.acquireTracker()
 					t.sizeScale     = sizeScale
 					t.birthFrame    = gameFrame
 					t.lifeFrames    = mathFloor((PIECE_LIFE_BASE + pieceRadius * PIECE_LIFE_PER_RADIUS) * lifeScale)
@@ -1267,7 +1267,7 @@ local function updatePieceProjectiles(gameFrame)
 				offscreenBufferCount = offscreenBufferCount - 1
 			end
 			trackedPieceProjectiles[proID] = nil
-			releaseTracker(tracked)
+			pools.releaseTracker(tracked)
 		end
 	end
 end
