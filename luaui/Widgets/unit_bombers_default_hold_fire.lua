@@ -27,10 +27,6 @@ local function UnitDefIsBomber(ud)
 		return false
 	end
 
-	if ud.name and (string.find(ud.name, 'armstil')) then -- excluding Stiletto. It's an EMP bomber so friendly fire is not that much of a concern
-		return false
-	end
-
 	for i = 1, #ud.weapons do
 		local wname = ud.weapons[i].weaponDef
 		local weaponDef = WeaponDefs[wname]
