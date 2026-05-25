@@ -1780,8 +1780,6 @@
 				"factoryholdpos_descr": "Sets factories and units they produce, to hold position automatically (not aircraft)",
 				"factoryrepeat": "auto-repeat",
 				"factoryrepeat_descr": "Sets new factories on Repeat mode",
-				"transportai": "Transport AI",
-				"transportai_descr": "Transport units automatically pick up new units going to factory waypoint.",
 				"settargetdefault": "Set-target as default",
 				"settargetdefault_descr": "Replace default attack command to a set-target command\n(when rightclicked on enemy unit)",
 				"dgunnogroundenemies": "Dont snap DGun to ground units",
