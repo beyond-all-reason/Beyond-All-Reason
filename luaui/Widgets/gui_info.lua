@@ -1903,7 +1903,7 @@ local function drawEngineTooltip()
 				font:SetTextColor(1, 1, 1, 1)
 				font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 				text = ''
-				local metal, _, energy, _ = Spring.GetFeatureResources(hoverData)
+				local metal, _, energy, _, _, reclaimTime = Spring.GetFeatureResources(hoverData)
 				if energy > 0 then
 					height = height + heightStep
 					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..string.formatSI(energy)
@@ -1912,6 +1912,11 @@ local function drawEngineTooltip()
 				if metal > 0 then
 					height = height + heightStep
 					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..string.formatSI(metal)
+					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				end
+				if reclaimTime > 0 then
+					height = height + heightStep
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.reclaimtime') .. ": " .. tooltipValueColor .. string.formatSI(reclaimTime)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				font:End()

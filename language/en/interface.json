@@ -1021,6 +1021,7 @@
 			"footprint": "size",
 			"speed": "speed",
 			"reversespeed": "reverse speed",
+			"reclaimtime": "Reclaim time",
 			"buildpower": "buildpower",
 			"buildoptions": "buildoptions",
 			"unparalyzable": "unparalyzable",
