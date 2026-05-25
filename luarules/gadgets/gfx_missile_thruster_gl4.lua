@@ -33,6 +33,9 @@ local spIsPosInAirLos             = Spring.IsPosInAirLos
 local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 local spGetFrameTimeOffset        = Spring.GetFrameTimeOffset
+local spGetGameSpeed              = Spring.GetGameSpeed
+local spGetCameraPosition         = Spring.GetCameraPosition
+local spGetCameraDirection        = Spring.GetCameraDirection
 
 local glBlending  = gl.Blending
 local glTexture   = gl.Texture
@@ -674,6 +677,10 @@ local glowShader
 
 -- Per-projectile persistent state (direction + position cache for pause fallback)
 local projectileCache = {}  -- proID -> {dx, dy, dz, px, py, pz}
+
+-- Subscription handle for the shared projectile dispatcher (set in Initialize).
+-- When nil, we fall back to calling Spring.GetVisibleProjectiles directly.
+local dispatchHandle = nil
 local cacheCleanupFrame = 0
 
 -- Cross-section billboard (camera-facing, visible when looking along missile velocity)
@@ -683,6 +690,12 @@ local CROSS_SECTION_SIZE_MULT  = 1.5   -- cross-section billboard size relative 
 -- Idle skip: when no missiles found, throttle GetVisibleProjectiles polling
 local idleSkipCounter = 0
 local IDLE_SKIP_FRAMES = 5  -- only poll every Nth draw frame when idle
+
+-- Paused-state camera tracking: while paused, only rebuild when camera moves
+local pausedCamX, pausedCamY, pausedCamZ = 0, 0, 0
+local pausedCamRX, pausedCamRY, pausedCamRZ = 0, 0, 0
+local pausedLastRebuildTimer = nil
+local PAUSED_MOVE_MIN_INTERVAL = 0.05
 
 -- Cached ally team (updated via PlayerChanged / spectator change)
 local cachedAllyTeamID = spGetMyAllyTeamID()
@@ -853,6 +866,28 @@ end
 --------------------------------------------------------------------------------
 
 local function updateMissiles()
+	-- When paused, projectiles aren't moving and FPS is uncapped, so re-running
+	-- the full visible-projectile scan + VBO upload every draw frame is pure waste.
+	-- Only rebuild when the camera changes (so panning back to offscreen missiles
+	-- still works); otherwise reuse the previously uploaded VBO contents.
+	local _, _, isPaused = spGetGameSpeed()
+	if isPaused then
+		local cx, cy, cz = spGetCameraPosition()
+		local dx, dy, dz = spGetCameraDirection()
+		if cx == pausedCamX and cy == pausedCamY and cz == pausedCamZ
+			and dx == pausedCamRX and dy == pausedCamRY and dz == pausedCamRZ then
+			return
+		end
+		-- Camera moved while paused: cap rebuild rate by wall clock (FPS-indep).
+		local now = Spring.GetTimer()
+		if pausedLastRebuildTimer and Spring.DiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
+			return
+		end
+		pausedLastRebuildTimer = now
+		pausedCamX, pausedCamY, pausedCamZ = cx, cy, cz
+		pausedCamRX, pausedCamRY, pausedCamRZ = dx, dy, dz
+	end
+
 	-- When idle (no missiles last check), throttle polling to every Nth draw frame
 	if idleSkipCounter > 0 then
 		idleSkipCounter = idleSkipCounter - 1
@@ -863,8 +898,22 @@ local function updateMissiles()
 
 	local ftoAdj = spGetFrameTimeOffset() - 1.0
 
-	local projectiles = spGetVisibleProjectiles(-1, true, true, false)
-	if not projectiles or #projectiles == 0 then
+	-- Pull the pre-filtered missile projectile list from the shared dispatcher.
+	-- When the dispatcher is loaded it has already called GetProjectileDefID
+	-- once per projectile (shared with every other gfx_*_gl4 consumer) and
+	-- handed us a parallel defID array, so we skip the per-projectile defID
+	-- query that this loop used to do. Fallback to direct engine call when
+	-- the dispatcher isn't loaded.
+	local projectiles, matchDefIDs, nProj
+	local PS = GG.ProjectileScan
+	local dispatcherFiltered = (PS ~= nil and dispatchHandle ~= nil)
+	if dispatcherFiltered then
+		projectiles, matchDefIDs, nProj = PS.GetMatchesWithDefIDs(dispatchHandle)
+	else
+		projectiles = spGetVisibleProjectiles(-1, true, true, false)
+		nProj = projectiles and #projectiles or 0
+	end
+	if not projectiles or nProj == 0 then
 		idleSkipCounter = IDLE_SKIP_FRAMES
 		return
 	end
@@ -875,9 +924,14 @@ local function updateMissiles()
 	local myAllyTeam = cachedAllyTeamID
 	local needLosCheck = not cachedSpecFullView
 
-	for i = 1, #projectiles do
+	for i = 1, nProj do
 		local proID = projectiles[i]
-		local cfg = weaponConfigs[spGetProjectileDefID(proID)]
+		local cfg
+		if dispatcherFiltered then
+			cfg = weaponConfigs[matchDefIDs[i]]
+		else
+			cfg = weaponConfigs[spGetProjectileDefID(proID)]
+		end
 		if cfg then
 			-- Skip thruster if missile has run out of propulsion (TTL expired)
 			local ttl = spGetProjectileTimeToLive(proID)
@@ -981,6 +1035,17 @@ function gadget:Initialize()
 	if not initGL4() then return end
 	local n = 0
 	for _ in pairs(weaponConfigs) do n = n + 1 end
+
+	-- Subscribe to the shared projectile dispatcher so we share the per-frame
+	-- GetVisibleProjectiles + GetProjectileDefID scan with the other gfx_*_gl4
+	-- gadgets instead of each calling them independently.
+	local PS = GG.ProjectileScan
+	if PS then
+		local defIDSet = {}
+		for wDefID in pairs(weaponConfigs) do defIDSet[wDefID] = true end
+		dispatchHandle = PS.Subscribe("missile_thruster", defIDSet, PS.SCAN_VISIBLE)
+	end
+
 	spEcho("Missile Thruster GL4: initialized with " .. n .. " weapon configs")
 end
 

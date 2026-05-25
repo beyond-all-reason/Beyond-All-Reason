@@ -1069,6 +1069,13 @@ local tracked = {}      -- [proID] = { wcfg, birthFrame, gen }
 local ignored = {}      -- [proID] = lastSeenGen  (negative cache: non-flame projectiles)
 local trackGen = 0
 
+-- Subscription handle for the shared projectile dispatcher (set in Initialize).
+-- When non-nil, GetMatchesWithDefIDs returns the pre-filtered flame projectile
+-- list together with their wDefIDs, shared with every other gfx_*_gl4 gadget,
+-- eliminating the duplicate Spring.GetVisibleProjectiles + per-projectile
+-- Spring.GetProjectileDefID calls each gadget used to make independently.
+local dispatchHandle = nil
+
 -- LOS visibility test with per-projectile caching. Asymmetric on purpose:
 --   * "hidden" result is cached for LOS_CACHE_INTERVAL frames -- this is the
 --     common case (many enemy projectiles in distant fog) and the one where
@@ -1469,12 +1476,12 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 
 			local size = (K.JET_SIZE_BASE + (mathRandom() - 0.5) * K.SIZE_RAND_RANGE * 0.5) * sizeScale
 			-- Zoom-out compensation: JET_SIZE_BASE is only ~1.3 elmos so the
-			-- jet shrinks to sub-pixel when the camera is far. Boost up to
-			-- ~2.05x at full LOD distance (lodMult=0.30) so the jet stays
-			-- visually present when zoomed out without becoming a dominant
-			-- beam -- changing the near-zoom appearance not at all
-			-- (boost == 1 when lodMult == 1).
-			size = size * (1 + 1.5 * (1 - lodMult))
+			-- jet shrinks to sub-pixel when the camera is far. Modest boost
+			-- (up to ~1.5x at full LOD distance, lodMult=0.30) to keep the
+			-- jet visually present when zoomed out without it ballooning
+			-- into a dominant blob -- changing the near-zoom appearance
+			-- not at all (boost == 1 when lodMult == 1).
+			size = size * (1 + 0.7 * (1 - lodMult))
 			local life = K.JET_LIFE_MIN + mathRandom() * K.JET_LIFE_SPAN
 
 			spawnParticle(
@@ -1648,14 +1655,43 @@ end
 --------------------------------------------------------------------------------
 -- Per-frame projectile scan
 --------------------------------------------------------------------------------
-local function updateProjectiles(gameFrame, throttleMult)
-	local projectiles = spGetVisibleProjectiles()
-	if not projectiles then return end
+local function updateProjectiles(gameFrame, throttleMult, iterFrac)
+	-- Prefer the shared projectile dispatcher: it does the per-frame
+	-- Spring.GetVisibleProjectiles call AND the per-projectile
+	-- Spring.GetProjectileDefID lookup once, shared across all gfx_*_gl4
+	-- gadgets, and hands us a pre-filtered flame projectile list along with
+	-- the matching wDefIDs. When the dispatcher isn't loaded we fall back to
+	-- the original per-gadget engine call + per-projectile defID query.
+	local projectiles, matchDefIDs, nProjectiles
+	local PS = GG.ProjectileScan
+	local dispatcherFiltered = (PS ~= nil and dispatchHandle ~= nil)
+	if dispatcherFiltered then
+		projectiles, matchDefIDs, nProjectiles = PS.GetMatchesWithDefIDs(dispatchHandle)
+	else
+		projectiles = spGetVisibleProjectiles()
+		nProjectiles = projectiles and #projectiles or 0
+	end
+	if not projectiles or nProjectiles == 0 then return end
 
 	trackGen = trackGen + 1
 	local gen = trackGen
 
-	for i = 1, #projectiles do
+	-- Rotated iteration: the paused-snapshot multi-pass loop passes a
+	-- fractional iterFrac in [0,1) so each pass starts at a different
+	-- position in the visible-projectile list. Without rotation every pass
+	-- iterates [1..N] in the same order, so streams iterated first get
+	-- their jets/smoke admitted (VBO still under MAX_PARTICLES) while
+	-- later streams have only cores admitted (cap reached) -- producing
+	-- the "some streams have jets and dense cores, others have gappy
+	-- cores and no jets" distribution bug when many flamethrowers come
+	-- into view at once after a paused camera pan.
+	local startBase = 0
+	if iterFrac and iterFrac > 0 then
+		startBase = mathFloor(iterFrac * nProjectiles) % nProjectiles
+	end
+
+	for j = 1, nProjectiles do
+		local i = ((startBase + j - 1) % nProjectiles) + 1
 		local proID = projectiles[i]
 		local info = tracked[proID]
 		-- Detect proID recycling: Spring reuses dead projectile IDs, and between
@@ -1663,7 +1699,15 @@ local function updateProjectiles(gameFrame, throttleMult)
 		-- a tracked ID and inherit the old info's cfg/ownerID/isScav -- the "flame
 		-- with another unit's properties" symptom. Cheap defense: compare current
 		-- engine wDefID against the one stamped at info creation.
-		if info and spGetProjectileDefID(proID) ~= info.wDefID then
+		--
+		-- When the dispatcher filtered for us, matchDefIDs[i] is the freshly-
+		-- queried defID for this proID -- reuse it instead of calling the engine
+		-- a second time.
+		local curDefID
+		if dispatcherFiltered then
+			curDefID = matchDefIDs[i]
+		end
+		if info and (curDefID or spGetProjectileDefID(proID)) ~= info.wDefID then
 			releaseInfo(info)
 			tracked[proID] = nil
 			info = nil
@@ -1692,7 +1736,7 @@ local function updateProjectiles(gameFrame, throttleMult)
 			-- generation marker so it doesn't get GC'd until it actually expires.
 			ignored[proID] = gen
 		else
-			local wDefID = spGetProjectileDefID(proID)
+			local wDefID = curDefID or spGetProjectileDefID(proID)
 			local cfg = wDefID and weaponConfigs[wDefID] or nil
 			if cfg then
 				local teamID = spGetProjectileTeamID(proID)
@@ -1882,6 +1926,19 @@ function gadget:Initialize()
 
 	cachedAllyTeamID = spGetMyAllyTeamID()
 	_, cachedFullView = spGetSpectatingState()
+
+	-- Subscribe to the shared projectile dispatcher so every gfx_*_gl4 gadget
+	-- shares ONE per-frame Spring.GetVisibleProjectiles call and ONE
+	-- Spring.GetProjectileDefID per projectile, dispatched through pre-built
+	-- weaponDefID sets. With many flamethrowers firing simultaneously the
+	-- per-projectile defID lookups dominate; consolidating them across all
+	-- consumers is the main reason for the dispatcher.
+	local PS = GG.ProjectileScan
+	if PS then
+		local defIDSet = {}
+		for wDefID in pairs(weaponConfigs) do defIDSet[wDefID] = true end
+		dispatchHandle = PS.Subscribe("flamethrower", defIDSet, PS.SCAN_VISIBLE)
+	end
 
 	if missingAlldefsPost > 0 then
 		Spring.Echo(string.format(
@@ -2165,9 +2222,18 @@ function gadget:Update()
 	-- stream produces roughly density cores per pass; budget against the
 	-- VBO ceiling minus what's already in flight.
 	local pendingCount = 0
-	local visibleNow = spGetVisibleProjectiles()
+	-- Reuse the shared dispatcher's cached scan if available so the paused
+	-- snapshot path doesn't re-call Spring.GetVisibleProjectiles.
+	local visibleNow, visibleNowCount
+	local PS = GG.ProjectileScan
+	if PS and dispatchHandle then
+		visibleNow, visibleNowCount = PS.GetMatches(dispatchHandle)
+	else
+		visibleNow = spGetVisibleProjectiles()
+		visibleNowCount = visibleNow and #visibleNow or 0
+	end
 	if visibleNow then
-		for i = 1, #visibleNow do
+		for i = 1, visibleNowCount do
 			if not pauseEmittedFor[visibleNow[i]] then
 				pendingCount = pendingCount + 1
 			end
@@ -2175,6 +2241,17 @@ function gadget:Update()
 	end
 	local pauseEmitPasses  = MAX_PASSES
 	local pauseEmitDensity = MAX_DENSITY
+	-- Minimum passes regardless of headroom pressure: each pass uses a
+	-- backdated cachedGameFrame, so the shader renders those particles at
+	-- different ages -> a white->orange->red colour gradient along the
+	-- stream. With only 1 pass the entire stream is one uniform young
+	-- (whitish) tint, which is the visible "sparse + all-white" failure
+	-- mode when many flamethrowers come into view at once (pendingCount
+	-- explodes -> headroom/pendingCount collapses to 1 -> passes=1).
+	-- Cores are essential (spawnParticle bypasses the soft cap up to
+	-- HARD_MAX_PARTICLES), so overflowing a bit here is fine; the shader's
+	-- age-based expiration reclaims slots between camera-move re-emits.
+	local MIN_PASSES = 3
 	if pendingCount > 0 then
 		local headroom = K.HARD_MAX_PARTICLES - particleVBO.usedElements
 		if headroom < 0 then headroom = 0 end
@@ -2196,16 +2273,33 @@ function gadget:Update()
 			pauseEmitPasses  = mathMax(1, product)
 			pauseEmitDensity = 1
 		end
+		-- Enforce MIN_PASSES so every stream gets shader-age variety even
+		-- under tight headroom. This costs MIN_PASSES cores per pending
+		-- projectile, which can push the VBO past MAX_PARTICLES into the
+		-- essential-overflow zone -- intended.
+		if pauseEmitPasses < MIN_PASSES then
+			pauseEmitPasses  = MIN_PASSES
+			pauseEmitDensity = 1
+		end
 	end
 
 	for k in pairs(pauseBurstEmitted) do pauseBurstEmitted[k] = nil end
 	pausedEmitMode = true
+	-- Rotate the per-pass iteration starting position so every stream gets
+	-- a pass where it's iterated early (before the VBO fills past
+	-- MAX_PARTICLES and non-core decorations start being rejected). Without
+	-- rotation, the same lucky streams get jets + dense cores on every pass
+	-- while the rest get gappy cores and no jets -- the exact symptom seen
+	-- with ~80 flamethrowers coming into view from an off-screen paused
+	-- state. iterFrac is a fraction in [0,1) that updateProjectiles
+	-- multiplies by the real nProjectiles to compute the start index.
+	local passDivisor = pauseEmitPasses > 0 and pauseEmitPasses or 1
 	for pass = 1, pauseEmitPasses do
 		-- Backdate so older passes spawn particles with older birthFrame ->
 		-- larger lifeT -> warmer/redder colour and longer drift via the
 		-- shader's velocity integration.
 		cachedGameFrame = realGameFrame - 2 - (pauseEmitPasses - pass) * PAUSE_EMIT_STRIDE
-		updateProjectiles(realGameFrame, pauseEmitDensity)
+		updateProjectiles(realGameFrame, pauseEmitDensity, (pass - 1) / passDivisor)
 	end
 	pausedEmitMode = false
 	-- Promote burst hits into the permanent gate so future camera-move
