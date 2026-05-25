@@ -11,7 +11,7 @@ function gadget:GetInfo()
 		date = "May 2026",
 		license = "GNU GPL, v2 or later",
 		layer = -1,
-		enabled = true
+		enabled = false
 	}
 end
 
