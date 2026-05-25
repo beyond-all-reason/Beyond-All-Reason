@@ -230,7 +230,7 @@ local CONFIG = {
 	lodDistNear          = 3000,
 	lodDistFar           = 9000,
 	lodMinMult           = 0.30,
-	lodDistCull          = 14000,      -- hard cull: beyond this camera distance the projectile is skipped entirely (no emit, no LOS check, no per-particle work). At this distance the stream is far below 1px so there's nothing to see.
+	lodDistCull          = 24000,      -- hard cull: beyond this camera distance the projectile is skipped entirely (no emit, no LOS check, no per-particle work). At this distance the stream is far below 1px so there's nothing to see.
 	losCacheInterval     = 12,         -- frames between fresh spIsPosInLos lookups per tracked projectile (the cached visibility flag is reused in between). 12 frames = ~0.4s at 30fps; flames are short-lived enough that one stale frame is invisible.
 	staleGcInterval      = 30,         -- frames between sweeps that drop tracked/ignored entries whose engine projectile has died off-screen. Was every frame -- this is pure bookkeeping with no visual effect.
 
@@ -595,6 +595,17 @@ local nextParticleID = 0
 local particleRemoveQueue = {}    -- [deathFrame] = { id, id, ... }
 local lastRemovedFrame    = 0
 
+-- Free list of recyclable particleRemoveQueue arrays. Under heavy load each
+-- distinct deathFrame previously allocated a fresh table that became garbage
+-- when drained -- roughly one fresh table per frame * (unique death-frames
+-- per spawn batch). Pooling them eliminates that churn and the resulting GC
+-- spikes. Each pooled table stores its current logical length in slot `n`
+-- (so spawnParticle can append in O(1) without `#q`) and clears its array
+-- region back to nil on release so we don't keep stale ids reachable.
+local removeQueuePool   = {}
+local removeQueuePoolN  = 0
+local REMOVE_QUEUE_POOL_MAX = 256  -- bounded so we don't hoard tables forever
+
 local cachedGameFrame = 0
 local cachedCamX, cachedCamY, cachedCamZ = 0, 0, 0
 local windX, windZ = 0, 0
@@ -904,14 +915,30 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b,
 	-- uploads the ENTIRE used range every frame (~2-4k particles), which
 	-- transmits far more bytes per frame than the per-element path even
 	-- though it uses fewer GL calls. Net regression in profiling.
+	-- Also tried noUpload=true + uploadElementRange over a tracked
+	-- [dirtyMin, dirtyMax] span: looked promising on paper but regressed
+	-- ~33% in practice because particles die FIFO (low indices) while new
+	-- spawns push at the tail, so the dirty span covers essentially the
+	-- full used range every frame -- same trap as uploadAllElements, plus
+	-- extra Lua bookkeeping. Per-element upload wins.
 	pushElementInstance(particleVBO, particleData, id, true)
 
 	local q = particleRemoveQueue[deathFrame]
 	if not q then
-		q = {}
+		-- Recycle a pooled table if available; otherwise allocate (rare once
+		-- steady state is reached).
+		if removeQueuePoolN > 0 then
+			q = removeQueuePool[removeQueuePoolN]
+			removeQueuePool[removeQueuePoolN] = nil
+			removeQueuePoolN = removeQueuePoolN - 1
+		else
+			q = { n = 0 }
+		end
 		particleRemoveQueue[deathFrame] = q
 	end
-	q[#q + 1] = id
+	local qn = q.n + 1
+	q[qn] = id
+	q.n   = qn
 
 	-- Attribute this particle to the currently-emitting projectile, so we can
 	-- pop it early if/when that projectile loses LOS. Skipped when
@@ -945,13 +972,22 @@ local function removeExpiredParticles(gameFrame)
 		local q = particleRemoveQueue[f]
 		if q then
 			local idToIndex = particleVBO.instanceIDtoIndex
-			for i = 1, #q do
+			local qn = q.n
+			for i = 1, qn do
 				local id = q[i]
 				if idToIndex[id] then
 					popElementInstance(particleVBO, id)
 				end
+				q[i] = nil  -- drop reference so id values can be GC'd
 			end
+			q.n = 0
 			particleRemoveQueue[f] = nil
+			-- Return the now-empty table to the pool for re-use instead of
+			-- letting it become garbage. Bounded to keep memory predictable.
+			if removeQueuePoolN < REMOVE_QUEUE_POOL_MAX then
+				removeQueuePoolN = removeQueuePoolN + 1
+				removeQueuePool[removeQueuePoolN] = q
+			end
 		end
 	end
 	lastRemovedFrame = gameFrame
@@ -1364,11 +1400,12 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 
 			local size = (K.JET_SIZE_BASE + (mathRandom() - 0.5) * K.SIZE_RAND_RANGE * 0.5) * sizeScale
 			-- Zoom-out compensation: JET_SIZE_BASE is only ~1.3 elmos so the
-			-- jet shrinks to sub-pixel when the camera is far. A small boost
-			-- (max ~1.35x at full LOD distance) keeps it readable without
-			-- turning into a dominant white beam -- changing the near-zoom
-			-- appearance not at all (boost == 1 when lodMult == 1).
-			size = size * (1 + 0.5 * (1 - lodMult))
+			-- jet shrinks to sub-pixel when the camera is far. Boost up to
+			-- ~2.05x at full LOD distance (lodMult=0.30) so the jet stays
+			-- visually present when zoomed out without becoming a dominant
+			-- beam -- changing the near-zoom appearance not at all
+			-- (boost == 1 when lodMult == 1).
+			size = size * (1 + 1.5 * (1 - lodMult))
 			local life = K.JET_LIFE_MIN + mathRandom() * K.JET_LIFE_SPAN
 
 			spawnParticle(
@@ -1917,18 +1954,6 @@ local function runSafetyNet(n)
 			used, mapSize, used - mapSize))
 		emergencyResetParticles("accounting drift used=" .. used .. " idMap=" .. mapSize)
 		return
-	end
-	-- Even with perfect accounting, the pool could be stuck full if every
-	-- single live particle is somehow blocked from expiring (e.g. deathFrame
-	-- queue entries pointing to IDs already swap-removed by killProjectileParticles
-	-- but with no future cleanup path -- the "ghost id" case). Detect by
-	-- comparing pool usage to expected emission rate: if usage is near the
-	-- hard cap AND no new spawns have succeeded since the last check, assume
-	-- locked-full and reset.
-	if used >= K.MAX_PARTICLES * 0.95 then
-		Spring.Echo(string.format(
-			"[gfx_flamethrower_gl4] WARNING: pool near full at safety check (used=%d/%d). " ..
-			"Watching for stuck-full condition.", used, K.MAX_PARTICLES))
 	end
 end
 
