@@ -1079,7 +1079,7 @@ local function replayPieceBuffer(tracked, gameFrame)
 		end
 	end
 
-	releaseBuffer(buf)
+	pools.releaseBuffer(buf)
 	tracked.offscreenBuffer = nil
 	tracked.bufferLen = nil
 	offscreenBufferCount = offscreenBufferCount - 1
@@ -1112,7 +1112,7 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 			local buf = tracked.offscreenBuffer
 			local n = tracked.bufferLen or 0
 			if not buf then
-				buf = acquireBuffer()
+				buf = pools.acquireBuffer()
 				tracked.offscreenBuffer = buf
 				offscreenBufferCount = offscreenBufferCount + 1
 				n = 0
@@ -1263,7 +1263,7 @@ local function updatePieceProjectiles(gameFrame)
 	for proID, tracked in pairs(trackedPieceProjectiles) do
 		if tracked.gen ~= gen then
 			if tracked.offscreenBuffer then
-				releaseBuffer(tracked.offscreenBuffer)
+				pools.releaseBuffer(tracked.offscreenBuffer)
 				offscreenBufferCount = offscreenBufferCount - 1
 			end
 			trackedPieceProjectiles[proID] = nil
