@@ -172,20 +172,34 @@ local function runScan(scanID)
 	if not projectiles or nSubs == 0 then return end
 
 	-- Single pass: one GetProjectileDefID per projectile, dispatched to every
-	-- interested subscriber.
+	-- interested subscriber. Piece projectiles have no weapon-def ID, so for
+	-- SCAN_MAP_PIECES we skip the defID lookup entirely and dispatch every
+	-- projectile (piece subscribers don't filter by defID).
 	local n = state.projectileCount
-	for i = 1, n do
-		local proID  = projectiles[i]
-		local wDefID = spGetProjectileDefID(proID)
-		if wDefID then
+	if scanID == SCAN_MAP_PIECES then
+		for i = 1, n do
+			local proID = projectiles[i]
 			for s = 1, nSubs do
 				local sub = subs[s]
-				local set = sub.defIDSet
-				if not set or set[wDefID] then
-					local c = sub.matchCount + 1
-					sub.matchCount   = c
-					sub.matches[c]   = proID
-					sub.matchDefIDs[c] = wDefID
+				local c = sub.matchCount + 1
+				sub.matchCount   = c
+				sub.matches[c]   = proID
+			end
+		end
+	else
+		for i = 1, n do
+			local proID  = projectiles[i]
+			local wDefID = spGetProjectileDefID(proID)
+			if wDefID then
+				for s = 1, nSubs do
+					local sub = subs[s]
+					local set = sub.defIDSet
+					if not set or set[wDefID] then
+						local c = sub.matchCount + 1
+						sub.matchCount   = c
+						sub.matches[c]   = proID
+						sub.matchDefIDs[c] = wDefID
+					end
 				end
 			end
 		end
