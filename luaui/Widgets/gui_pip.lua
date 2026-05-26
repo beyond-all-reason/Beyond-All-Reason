@@ -15493,6 +15493,7 @@ function widget:DrawScreen()
 	-- or engine commands resetting the minimize/slave state between frames.
 	if isMinimapMode and not miscState.engineMinimapActive then
 		Spring.SendCommands("minimap minimize 1")
+		gl.SlaveMiniMap(true)
 	end
 
 	-- In minimap mode, honour MinimapMinimize to hide the PIP minimap
@@ -16736,6 +16737,7 @@ function widget:Update(dt)
 		end
 		-- Also ensure the engine minimap stays minimized
 		Spring.SendCommands("minimap minimize 1")
+		gl.SlaveMiniMap(true)
 		-- Re-register WG['minimap'] API: the standard Minimap widget's Initialize
 		-- may have overwritten our registration (it has a higher layer number so
 		-- it initializes after us during luaui reload)
