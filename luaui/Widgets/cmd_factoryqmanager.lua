@@ -340,7 +340,7 @@ function saveQueue(unitId, unitDef, groupNo)
 	end
 
 	for i = #unitQ, 1, -1 do
-		if unitQ[i].id == CMD.WAIT or unitQ[i].options.internal and not unitQ[i].options.alt then -- We don't want to save these commands
+		if unitQ[i].id >= 0 or unitQ[i].options.internal and not unitQ[i].options.alt then -- We don't want to save these commands
 			table.remove(unitQ, i)
 		end
 	end
