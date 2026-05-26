@@ -486,6 +486,7 @@ local miscState = {
 	minimapWidgetDisabled = false,  -- Whether we've disabled the old minimap widget (for minimap mode)
 	minimapCameraRestored = false,  -- Whether minimap camera state was restored from config (for luaui reload)
 	minimapRestoreAtMinZoom = false,  -- Whether the restored minimap camera was at minimum zoom (snap to recalculated min)
+	minimapInitialRotationSyncPending = false,  -- One-shot rotation/layout resync after startup or reload
 	minimapMinimized = false,  -- Whether the minimap is hidden via MinimapMinimize config (minimap mode only)
 	minimapMinimizeAnimating = false,  -- Whether a minimap minimize animation is in progress
 	engineMinimapActive = false,  -- Whether engine minimap fallback is currently rendering (tracks transitions)
@@ -7616,6 +7617,7 @@ if isMinimapMode then
 	uiState.inMinMode = false
 	-- Honour MinimapMinimize: start hidden if user had the minimap minimized
 	miscState.minimapMinimized = (miscState.oldMinimapMinimized == 1)
+	miscState.minimapInitialRotationSyncPending = true
 	-- Only reset camera if not restored from config (luaui reload)
 	if not miscState.minimapCameraRestored then
 		cameraState.wcx = mapInfo.mapSizeX / 2
@@ -16481,6 +16483,18 @@ function widget:Update(dt)
 			pipR2T.unitsNeedsUpdate = true
 			pipR2T.frameNeedsUpdate = true
 		end
+	end
+
+	if isMinimapMode and miscState.minimapInitialRotationSyncPending and gameHasStarted then
+		miscState.minimapInitialRotationSyncPending = false
+		local currentRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+		render.minimapRotation = currentRotation
+		render.lastMinimapRotation = currentRotation
+		widget:ViewResize()
+		pipR2T.contentNeedsUpdate = true
+		pipR2T.unitsNeedsUpdate = true
+		pipR2T.frameNeedsUpdate = true
+		pipR2T.forceRefreshFrames = 5
 	end
 
 	-- Skip ALL heavy processing when minimized and not animating.
