@@ -225,10 +225,8 @@ for udid, ud in pairs(UnitDefs) do
 	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
 	end
-	if ud.customParams.veterancy_upgrades and table.contains(ud.customParams.veterancy_upgrades:split(", "), "range") then
-		if tonumber(ud.customParams.veterancy_range_scale or 0) or 0 > 0 then
-			unitDefRangeScale[udid] = tonumber(ud.customParams.veterancy_range_scale)
-		end
+	if tonumber(ud.customParams.veterancy_range or 0) or 0 > 0 then
+		unitDefRangeScale[udid] = tonumber(ud.customParams.veterancy_range_scale)
 	end
 end
 

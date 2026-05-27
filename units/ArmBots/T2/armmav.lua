@@ -37,8 +37,9 @@ return {
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			veterancy_upgrades = "health, reload, range",
-			veterancy_range_scale = 0.6,
+			veterancy_health = "default",
+			veterancy_range = 0.6,
+			veterancy_reload = "default",
 		},
 		featuredefs = {
 			dead = {
