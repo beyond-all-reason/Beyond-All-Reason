@@ -252,3 +252,29 @@ function TransportAPI.IsTransportFull(transporterID, queuedSize)
 	local queuedSize = queuedSize or 0
 	return transporterUsedSeats + queuedSize >= transporterSeats
 end
+
+function TransportAPI.GetPassengerWeight(passengerID, cargo)
+	local weight = TransportAPI.GetPassengerSize(passengerID)
+	weight = weight * (UnitDefs[Spring.GetUnitDefID(passengerID)].customParams.oversized and (1 + cargo.transporterSpeedModStrength) or 1)  -- size of "100 * nSeats" unless oversized
+	return weight
+end
+
+function TransportAPI.IsPassengerCommander(passengerID)
+	local isCommander = UnitDefs[Spring.GetUnitDefID(passengerID)].customParams.iscommander
+	return isCommander
+end
+
+function TransportAPI.CalculateTransporterSpeed(cargo)
+	local transporterSpeedModMode = cargo.transporterSpeedModMode or 0
+	Spring.Echo(transporterSpeedModMode)
+	if transporterSpeedModMode == 1 then
+		return 1 - (cargo.loadedCommandersCount > 0 and cargo.transporterSpeedModStrength or 0)
+	elseif transporterSpeedModMode == 2 then
+		return 1 - (cargo.transporterUsedSeats / cargo.transporterSeats) * cargo.transporterSpeedModStrength
+	elseif transporterSpeedModMode == 3 then
+		local maxWeight = cargo.transporterSeats -- max
+		Spring.Echo(cargo.passengersTotalWeight)
+		return 1 - math.max(0, (cargo.passengersTotalWeight / maxWeight) - 1)
+	end
+	return 1
+end
