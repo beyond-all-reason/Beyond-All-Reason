@@ -489,33 +489,29 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 	if unitsCount == 0 then
 		return nil
 	end
-	unitOffset = 0
-	for i = 1, unitsCount do
-		local passengerID = units[i]
+	local w = 1
+	for r = 1, unitsCount do
+		local passengerID = units[r]
 		repeat
 			-- global checks (write back into cache)
 			if not CanBeAutoClaimed(passengerID, transporterAllyTeam) then -- at worse, will be reconsidered in 8 frames
-				units[i - unitOffset] = units[i + 1] -- overwrite previous invalid with next
-				unitOffset = unitOffset + 1 -- increment offset
-				break 
+				break
 			end
 			local passengerDefID = spGetUnitDefID(passengerID)
 			local passengerTeamID = spGetUnitTeam(passengerID)
 			local passengerSize = TransportAPI.GetPassengerSize(passengerID)
 			if not CanBeTransportedStatic(passengerID, passengerDefID, transporterID) then
-				units[i - unitOffset] = units[i + 1] -- overwrite previous invalid with next
-				unitOffset = unitOffset + 1 -- increment offset
-				break 
+				break
 			end
 			local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
 			if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) then
-				units[i - unitOffset] = units[i + 1] -- overwrite previous invalid with next
-				unitOffset = unitOffset + 1 -- increment offset
-				break 
+				break
 			end
+			-- passed all global checks: write back into cache
+			units[w] = passengerID
+			w = w + 1
 			-- transporter dependant checks (should not write back into cache)
 			if not TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, queuedSeats[transporterID]) then
-				units[i] = units[i + unitOffset] -- apply offset
 				break
 			end
 			local dx, dz    = passengerPosX - transporterPosX, passengerPosZ - transporterPosZ
@@ -527,14 +523,13 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 			local aDist = (passengerTeamID ~= transporterTeamID) and alliedDist or 0
 			local unitDist  =  rawDistSq + aDist + mDist
 			if unitDist >= bestDist then
-				units[i] = units[i + unitOffset] -- apply offset
-				break 
+				break
 			end
-			units[i] = units[i + unitOffset] -- apply offset
 			bestDist = unitDist
 			bestUnit = passengerID
 		until true
 	end
+	for j = w, unitsCount do units[j] = nil end
 	return bestUnit
 end
 
