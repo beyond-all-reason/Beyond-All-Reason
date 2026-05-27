@@ -1618,11 +1618,11 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
 					CommandersPopulation = CommandersPopulation + 1
-					Spring.Echo("Scav Commander Population Now: ", CommandersPopulation)
+					--Spring.Echo("Scav Commander Population Now: ", CommandersPopulation)
 				end
 				if squadSpawnOptions.decoyCommanders[UnitDefs[unitDefID].name] then
 					DecoyCommandersPopulation = DecoyCommandersPopulation + 1
-					Spring.Echo("Scav Decoy Commander Population Now: ", DecoyCommandersPopulation)
+					--Spring.Echo("Scav Decoy Commander Population Now: ", DecoyCommandersPopulation)
 				end
 				return
 			end
@@ -2288,11 +2288,11 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
 					CommandersPopulation = CommandersPopulation + 1
-					Spring.Echo("Scav Commander Population Now: ", CommandersPopulation)
+					--Spring.Echo("Scav Commander Population Now: ", CommandersPopulation)
 				end
 				if squadSpawnOptions.decoyCommanders[UnitDefs[unitDefID].name] then
 					DecoyCommandersPopulation = DecoyCommandersPopulation + 1
-					Spring.Echo("Scav Decoy Commander Population Now: ", DecoyCommandersPopulation)
+					--Spring.Echo("Scav Decoy Commander Population Now: ", DecoyCommandersPopulation)
 				end
 				return
 			end
@@ -2309,11 +2309,11 @@ if gadgetHandler:IsSyncedCode() then
 			if UnitDefs[unitDefID].customParams.isscavenger then
 				if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
 					CommandersPopulation = CommandersPopulation - 1
-					Spring.Echo("Scav Commander Population Now: ", CommandersPopulation)
+					--Spring.Echo("Scav Commander Population Now: ", CommandersPopulation)
 				end
 				if squadSpawnOptions.decoyCommanders[UnitDefs[unitDefID].name] then
 					DecoyCommandersPopulation = DecoyCommandersPopulation - 1
-					Spring.Echo("Scav Decoy Commander Population Now: ", DecoyCommandersPopulation)
+					--Spring.Echo("Scav Decoy Commander Population Now: ", DecoyCommandersPopulation)
 				end
 			end
 		end
