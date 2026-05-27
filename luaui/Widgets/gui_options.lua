@@ -7021,6 +7021,10 @@ function init()
 		options[getOptionByID('gridmenu')] = nil
 	end
 
+	if not isSinglePlayer then
+		options[getOptionByID('restart_with_state')] = nil
+	end
+
 	-- add user widgets
 
 
