@@ -86,7 +86,6 @@ local successiveLoadCoroutines = {} -- transporterID → coroutine
 local cylinderCache = {} -- [key] = { frame = N, units = {...} }
 local isAirTransport = {} -- transporterDefID → bool;
 local offset = 0 -- reusable offset for coroutines cleanup in GameFrame
-local unitOffset = 0 -- reusable offset for units table cleanup in findUnitToTransport; separate from couroutine's as this can run during a coroutine tick
 local areaLoadCoroutinesCount = 0
 local successiveLoadCoroutinesCount = 0
 local transporterCoroutines = {} -- transporterID → { type = "area" or "successive", index = number }
