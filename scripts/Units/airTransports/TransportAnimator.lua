@@ -287,6 +287,7 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 		local passengerDefID = SpGetUnitDefID(passengerData.id)
 		if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].speed == 0 then
 			goalRotY = math.floor(startRotY/(pi/2) + 0.5) *(pi/2) -- cardinal facing
+			goalPosX, goalPosY, goalPosZ = Spring.Pos2BuildPos(passengerDefID, goalPosX, goalPosY, goalPosZ) -- always align buildings on build grid
 		end
 		
 		if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].upright then
