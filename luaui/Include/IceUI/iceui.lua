@@ -191,15 +191,17 @@ function Panel:label(text, rect, opts)
 	}
 end
 
--- Draw a small hotkey badge in the top-right corner of `rect`. The badge box
--- is sized to the text; `badgeStyleRef` names the style (default "hotkeyBadge").
--- No-op for an empty hotkey. Called from :button; the box is queued after the
--- button (so it sits on top within the panel) and the text via :label.
---
--- Horizontal text padding: badgePadL / badgePadR set the left / right inset
--- independently; badgePad is the fallback for either when not set.
-function Panel:_hotkeyBadge(rect, hotkey, badgeStyleRef)
-	if not hotkey or hotkey == "" then return end
+-- Reusable scratch rect for badge geometry -- :box and :label copy what they
+-- need, so one shared table avoids a per-badge allocation.
+local badgeScratch = { 0, 0, 0, 0 }
+
+-- Draw a small text badge sized to its text in one CORNER of `rect`.
+-- `corner` is "tr" (default), "tl", "br" or "bl". `badgeStyleRef` names the
+-- style (a hotkeyBadge-like style: badgeSize / badgeInset / badgePad[L/R] /
+-- fontSize / font / text). No-op for empty text. The box is queued, then the
+-- text -- callers should call this AFTER queuing the element it sits on.
+function Panel:_cornerBadge(rect, text, badgeStyleRef, corner)
+	if not text or text == "" then return end
 	local st = self:style(badgeStyleRef or "hotkeyBadge")
 
 	local getFont = WG['fonts'] and WG['fonts'].getFont
@@ -212,21 +214,31 @@ function Panel:_hotkeyBadge(rect, hotkey, badgeStyleRef)
 	local padL  = st.badgePadL or st.badgePad or 3
 	local padR  = st.badgePadR or st.badgePad or 3
 
-	local label   = hotkey:upper()
-	local textW   = font:GetTextWidth(label) * size
-	local w       = textW + padL + padR
+	local label = (st.keepCase and text) or text:upper()
+	local textW = font:GetTextWidth(label) * size
+	local w     = textW + padL + padR
 
-	-- badge box at the button's top-right corner
-	local right = rect[3] - inset
-	local top   = rect[4] - inset
-	local badge = { right - w, top - h, right, top }
+	corner = corner or "tr"
+	local isLeft = (corner == "tl" or corner == "bl")
+	local isTop  = (corner == "tr" or corner == "tl")
+	local x1 = isLeft and (rect[1] + inset) or (rect[3] - inset - w)
+	local y2 = isTop  and (rect[4] - inset) or (rect[2] + inset + h)
+	local b = badgeScratch
+	b[1], b[2], b[3], b[4] = x1, y2 - h, x1 + w, y2
 
-	self:box(st, badge)
+	self:box(st, b)
 	-- the text rect is the badge minus the L/R padding; :label centers within
 	-- it, which places the glyphs with the asymmetric left/right margins.
 	-- noFit: the rect is sized exactly to the text, don't shrink it.
-	self:label(label, { badge[1] + padL, badge[2], badge[3] - padR, badge[4] },
-		{ color = st.text, size = size, font = st.font, noFit = true })
+	self:label(label, { b[1] + padL, b[2], b[3] - padR, b[4] },
+		{ color = st.text, size = size, font = st.font, noFit = true,
+		  keepCase = st.keepCase })
+end
+
+-- Draw a small hotkey badge in the top-right corner of `rect`. Thin wrapper
+-- over :_cornerBadge for the common hotkey case (top-right, "hotkeyBadge").
+function Panel:_hotkeyBadge(rect, hotkey, badgeStyleRef)
+	self:_cornerBadge(rect, hotkey, badgeStyleRef or "hotkeyBadge", "tr")
 end
 
 -- Composite button: draws a styled box, applies hover/pressed states from the

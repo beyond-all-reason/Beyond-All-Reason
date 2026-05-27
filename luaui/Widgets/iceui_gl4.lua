@@ -53,6 +53,8 @@ local drawCallbacks   -- ordered list of { id, fn, text, overlay }
 local iconAtlas       -- atlas texture id, or nil if no icons were found
 local iconUVs         -- map: lowercase filename -> {u0,v0,u1,v1}
 local needsRebuild = true   -- true -> rebuild + re-upload the base VBO
+                            -- (the cached-texture FBOs have their OWN per-widget
+                            --  `texturesDirty` flag -- see drawCachedTexture)
 
 -- Buildpic LOD-bias shader (see WG.IceUI.drawTexture `sharp`). A mipmapped
 -- engine texture drawn plain is only crisp at power-of-two sizes; a negative
@@ -278,6 +280,7 @@ function widget:Initialize()
 				e.textureRect   = cb.textureRect
 				e.overlayBuild  = cb.overlayBuild
 				e.overlayText   = cb.overlayText
+				e.texturesDirty = true   -- re-render the FBO after a re-register
 				return
 			end
 		end
@@ -290,8 +293,13 @@ function widget:Initialize()
 			textureRect   = cb.textureRect,
 			overlayBuild  = cb.overlayBuild,
 			overlayText   = cb.overlayText,
-			-- cached-texture state (managed by the host, see DrawScreen)
-			fboTex = nil, fboW = 0, fboH = 0,
+			-- cached-texture state (managed by the host, see DrawScreen).
+			-- texturesDirty: re-render the FBO on the next frame. Starts true so
+			-- a freshly registered widget fills its texture once. Set by
+			-- setDirty (full) but NOT by setDirtyTextOnly -- that lets a widget
+			-- rebuild its base VBO (e.g. for live numbers) WITHOUT paying the
+			-- R2T re-render, which otherwise disturbs GL state and flickers text.
+			fboTex = nil, fboW = 0, fboH = 0, texturesDirty = true,
 		}
 	end
 
@@ -411,6 +419,23 @@ function widget:Initialize()
 	-- change, a state toggle, a resize, ...). NOTE: hover does NOT need this --
 	-- hover is a shader uniform, see setHover.
 	WG.IceUI.setDirty = function()
+		needsRebuild = true
+		-- a full dirty also re-renders every cached-texture FBO -- the layout or
+		-- textured content may have changed (selection, resize, ...).
+		if drawCallbacks then
+			for i = 1, #drawCallbacks do
+				drawCallbacks[i].texturesDirty = true
+			end
+		end
+	end
+
+	-- Like setDirty, but rebuilds ONLY the base VBO (+ text) -- the cached
+	-- buildpic FBOs are NOT re-rendered. Use this when a widget's TEXT changed
+	-- but its textures did not: e.g. the info panel's live HP / income numbers,
+	-- which tick several times a second. Re-rendering the FBO that often is
+	-- both wasteful and a source of text flicker (the R2T pass disturbs GL
+	-- state), so a text-only change must avoid it.
+	WG.IceUI.setDirtyTextOnly = function()
 		needsRebuild = true
 	end
 
@@ -584,14 +609,22 @@ end
 -- Cached-texture phase: render a consumer's `texturesCached` callback once into
 -- an offscreen FBO texture, then blit that single texture every frame. This is
 -- how FlowUI keeps its build menu cheap -- ~30 buildpics become one TexRect.
---   `e`       : the drawCallbacks entry
---   `rebuild` : true to re-render the texture (the content changed)
--- The FBO is (re)created when the consumer's rect size changes. gl.R2tHelper
--- maps the screen rect onto the texture, so the callback keeps using screen
--- coords. Does nothing if the consumer has no rect (hidden).
-local function drawCachedTexture(e, rebuild)
-	if not gl.R2tHelper or not e.texturesCached or not e.textureRect then
-		-- no R2T support: fall back to drawing the callback live every frame
+--   `e` : the drawCallbacks entry
+-- The FBO is re-rendered when `e.texturesDirty` is set (the widget's textured
+-- content or layout changed) OR when the FBO was just (re)created. It is NOT
+-- re-rendered on every base-VBO rebuild -- a text-only rebuild (live numbers)
+-- must not pay the R2T pass. The FBO is also (re)created when the consumer's
+-- rect size changes. gl.R2tHelper maps the screen rect onto the texture, so the
+-- callback keeps using screen coords. Does nothing if the consumer is hidden.
+-- PERF/DEBUG PROBE: true forces the cached-texture content to be drawn LIVE
+-- every frame (no R2T / FBO). Used to confirm whether the periodic text flicker
+-- is caused by the R2T re-render disturbing GL state. Leave false for normal use.
+local DEBUG_NO_R2T = false
+
+local function drawCachedTexture(e)
+	if DEBUG_NO_R2T or not gl.R2tHelper
+			or not e.texturesCached or not e.textureRect then
+		-- no R2T (or probe on): draw the callback live every frame
 		if e.texturesCached then e.texturesCached() end
 		return
 	end
@@ -607,6 +640,7 @@ local function drawCachedTexture(e, rebuild)
 	-- crisp result when the menu is small relative to the screen (FlowUI does
 	-- the same -- its buildmenuTex is created at 2x).
 	local texW, texH = w * 2, h * 2
+	local rebuild = e.texturesDirty
 	if not e.fboTex or e.fboW ~= texW or e.fboH ~= texH then
 		if e.fboTex then gl.DeleteTexture(e.fboTex) end
 		e.fboTex = gl.CreateTexture(texW, texH, {
@@ -618,6 +652,7 @@ local function drawCachedTexture(e, rebuild)
 
 	if rebuild and e.fboTex then
 		gl.R2tHelper.RenderInRect(e.fboTex, x1, y1, x2, y2, e.texturesCached, true)
+		e.texturesDirty = false
 	end
 
 	-- blit the cached texture onto the menu's screen rect
@@ -656,9 +691,9 @@ function widget:DrawScreen()
 	-- Rebuild the base VBO only when something changed (needsRebuild). When
 	-- nothing changed we skip the callbacks + the upload and just re-issue the
 	-- draw call with last frame's geometry -- the big per-frame saving.
-	-- `didRebuild` is remembered for the cached-texture phase below: the cached
-	-- buildpic texture must re-render on the same frames the base VBO does.
-	local didRebuild = needsRebuild
+	-- The cached-texture FBOs re-render independently, gated by each widget's
+	-- own `texturesDirty` flag (see drawCachedTexture) -- a text-only rebuild
+	-- does not re-render them.
 	if needsRebuild then
 		baseRenderer:clear()
 		for i = 1, #drawCallbacks do
@@ -679,14 +714,14 @@ function widget:DrawScreen()
 	local tTex = PERF and Spring.GetTimer() or nil
 
 	-- engine-texture phase. Two kinds, both between the base rects and the text:
-	--   texturesCached -- buildpics/icons rendered once into an FBO on rebuild,
-	--                     then blitted (1 draw call). The big per-frame saving.
+	--   texturesCached -- buildpics/icons rendered into an FBO when the widget's
+	--                     texturesDirty flag is set, then blitted (1 draw call).
 	--   textures       -- live content (the build clock) drawn every frame, on
 	--                     top of the cached texture.
 	for i = 1, #drawCallbacks do
 		local e = drawCallbacks[i]
 		if e.texturesCached then
-			drawCachedTexture(e, didRebuild)
+			drawCachedTexture(e)
 		end
 		if e.textures then
 			e.textures()

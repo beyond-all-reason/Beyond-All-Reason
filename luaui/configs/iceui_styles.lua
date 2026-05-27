@@ -199,7 +199,7 @@ return {
 			topTabH   = 26,   -- top tab row height
 			actionBarH = 26,  -- bottom action-bar row height (toggles + clear)
 			margin     = 4,    -- screen edge -> main container
-			groupIcon  = 20,   -- group icon size, top-left on a build cell
+			groupIcon  = 28,   -- group icon size, top-left on a build cell
 			stratIcon  = 18,   -- strategic (radar) icon size, bottom-left on a cell
 			stratInset = 1.5,    -- gap from the cell's left/bottom edge to the strat icon
 			corner	= 3,    -- all buttons: corner radius
@@ -359,6 +359,14 @@ return {
 			barH       = 14,    -- health bar height
 			margin     = 5,     -- gap to the order menu it docks beside
 			                    -- (= the orders<->build vertical gap, subGap=5)
+
+			-- multi-selection grid (>1 unit selected): one buildpic cell per
+			-- unit TYPE, each with an "xN" count badge, above a totals line.
+			gridGap     = 2,    -- gap between grid cells
+			gridCell    = 46,   -- grid cell side length (square)
+			gridStrat   = 14,   -- strat icon size on a grid cell
+			countBadgeH = 16,   -- "xN" count-badge box height
+			totalsH     = 20,   -- height of the totals text row under the grid
 		},
 
 		mainContainer = mainContainer,
@@ -374,6 +382,33 @@ return {
 				{ 0.20, 0.22, 0.27, 1.0 },
 				{ 0.12, 0.13, 0.16, 1.0 },
 			},
+		},
+
+		-- multi-selection grid cell -- one buildpic per selected unit type
+		gridCell = {
+			extends  = "base",
+			corner   = 3,
+			gradient = {
+				{ 0.24, 0.27, 0.32, 1.0 },
+				{ 0.15, 0.17, 0.21, 1.0 },
+			},
+			gloss = 0.08,
+		},
+
+		-- count badge -- "N" of that unit type, top-left corner of a grid cell
+		countBadge = {
+			corner     = 2,
+			border     = 0,
+			background = { 0.05, 0.06, 0.08, 0.85 },
+			text       = { 0.95, 0.96, 1.00 },
+			fontSize   = 12,
+			font       = 2,
+			badgeSize  = 16,
+			badgePad   = 0,
+			badgePadL  = 4,
+			badgePadR  = 4,
+			badgeInset = 0,
+			keepCase   = true,
 		},
 
 		-- health bar: a dark track with a coloured fill on top
@@ -401,6 +436,7 @@ return {
 			valueSize   = 14,
 			metalColor  = { 0.82, 0.84, 0.87 },   -- metal cost
 			energyColor = { 1.00, 0.90, 0.25 },   -- energy cost
+			countColor  = { 0.62, 0.65, 0.70 },   -- "N units selected" header
 		},
 	},
 }

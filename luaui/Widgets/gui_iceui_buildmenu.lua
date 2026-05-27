@@ -410,9 +410,10 @@ end
 
 local hoveredCmd      -- the build command under the cursor (for the tooltip)
 
--- metal / energy cost icons (drawn in the tooltip cost row)
-local METAL_ICON  = "luaui/images/metal.png"
-local ENERGY_ICON = "luaui/images/energy.png"
+-- metal / energy cost icons (drawn in the tooltip cost row) -- the dedicated
+-- cost icons, used everywhere a unit's metal/energy COST is shown.
+local METAL_ICON  = "luaui/images/iceui/metal-cost.png"
+local ENERGY_ICON = "luaui/images/iceui/energy-cost.png"
 local METAL_COLOR  = { 0.82, 0.84, 0.87 }   -- light grey
 local ENERGY_COLOR = { 1.00, 0.90, 0.25 }   -- yellow
 
