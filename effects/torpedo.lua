@@ -1,101 +1,86 @@
 local definitions = {
 
+    ["torpedo-entry-flare"] = {
+        fireglow = {
+            air                = false,
+            class              = [[CSimpleParticleSystem]],
+            count              = 1,
+            ground             = false,
+            water              = true,
+            underwater         = true,
 
-["torpedo-entry-flare"] = {
-	fireglow = {
-		air                = false,
-		class              = [[CSimpleParticleSystem]],
-		count              = 1,
-		ground             = false,
-		water              = true,
-		underwater         = true,
+            properties = {
+                airdrag            = 1,
+                colormap           = [[0.44 0.48 1 0.2   0 0 0 0.01]],
+                directional        = false,
+                emitrot            = 0,
+                emitrotspread      = 0,
+                emitvector         = [[0, 1, 0]],
+                gravity            = [[0.0, 0.0, 0.0]],
+                numparticles       = 1,
+                particlelife       = 4,
+                particlelifespread = 0,
+                particlesize       = 35,
+                particlesizespread = 10,
+                particlespeed      = 0,
+                particlespeedspread = 0,
+                pos                = [[0.0, 0, 0.0]],
+                sizegrowth         = -5,
+                sizemod            = 1,
+                texture            = [[glow]],
+                useairlos          = true,
+            },
+        },
+    },
 
-		properties = {
-			airdrag            = 1,
-			colormap           = [[0.44 0.48 1 0.2   0 0 0 0.01]],
-			directional        = false,
-			emitrot            = 0,
-			emitrotspread      = 0,
-			emitvector         = [[0, 1, 0]],
-			gravity            = [[0.0, 0.0, 0.0]],
-			numparticles       = 1,
-			particlelife       = 4,
-			particlelifespread = 0,
-			particlesize       = 35,
-			particlesizespread = 10,
-			particlespeed      = 0,
-			particlespeedspread = 0,
-			pos                = [[0.0, 0, 0.0]],
-			sizegrowth         = -5,
-			sizemod            = 1,
-			texture            = [[glow]],
-			useairlos          = true,
-		},
-	},
-},
+    ["torpedo-cavitation-trail"] = {
+        flame = {
+            air                = false,
+            class              = [[CBitmapMuzzleFlame]],
+            count              = 1,
+            ground             = false,
+            underwater         = true,
+            water              = true,
 
-["torpedo-bottrail"] = {
-	flame = {
-		air                = false,
-		class              = [[CBitmapMuzzleFlame]],
-		count              = 1,
-		ground             = false,
-		underwater         = true,
-		water              = true,
-
-		properties = {
-			colormap           = [[0.55 0.72 1.00 0.040   0.38 0.58 0.95 0.030   0.18 0.32 0.65 0.016   0.04 0.08 0.18 0.006   0 0 0 0.01]],
-			dir                = [[dir]],
-
-			frontoffset        = 0.03,
-			fronttexture       = [[blastwave]],
-
-			length             = -2.8,
-			sidetexture        = [[shot]],
-
-			size               = 2.35,
-			sizegrowth         = -0.18,
-			ttl                = 8,
-
-			useairlos          = true,
-		},
-	},
-},
+            properties = {
+                colormap           = [[0.55 0.72 1.00 0.040   0.38 0.58 0.95 0.030   0.18 0.32 0.65 0.016   0.04 0.08 0.18 0.006   0 0 0 0.01]],
+                dir                = [[dir]],
+                frontoffset        = 0.03,
+                fronttexture       = [[blastwave]],
+                length             = -2.8,
+                sidetexture        = [[shot]],
+                size               = 2.35,
+                sizegrowth         = -0.18,
+                ttl                = 8,
+                useairlos          = true,
+            },
+        },
+    },
     
-    ["torpedo-trail"] = {
+        ["torpedo-trail"] = {
+        trail = {
+            air                = false,
+            class              = [[CBitmapMuzzleFlame]],
+            count              = 1,
+            ground             = false,
+            underwater         = true,
+            water              = true,
 
-	trail = {
-		air                = false,
-		class              = [[CBitmapMuzzleFlame]],
-		count              = 1,
-		ground             = false,
-		underwater         = true,
-		water              = true,
+            properties = {
+                colormap           = [[0.67 0.48 1 0.01   0.27 0.58 0.89 0.03   0.15 0.19 0.35 0.01   0 0 0 0.01]],
+                dir                = [[dir]],
+                frontoffset        = [[0.3 r0.15]],
+                fronttexture       = [[bubbletexture]],
+                sidetexture        = [[longshot]],
+                length             = [[.55 r0.25]],
+                size               = [[2.6 r1.8]],
+                sizegrowth         = 0.28,
+                ttl                = [[12 r4]],
+                useairlos          = true,
+            },
+        },
+    },
 
-		properties = {
-			colormap           = [[0.67 0.48 1 0.01   0.27 0.58 0.89 0.03   0.15 0.19 0.35 0.01   0 0 0 0.01]],
-
-			dir                = [[dir]],
-
-			frontoffset        = [[0.3 r0.15]],
-
-			fronttexture       = [[bubbletexture]],
-
-			sidetexture        = [[longshot]],
-
-			
-			length             = [[.55 r0.25]],
-
-			size               = [[2.6 r1.8]],
-
-			sizegrowth         = 0.28,
-
-			ttl                = [[12 r4]],
-
-			useairlos          = true,
-		},
-	},
-},
     ["torpedotrail-tiny"] = {
         trail = {
             air                = false,
@@ -119,7 +104,6 @@ local definitions = {
         },
     },
 
-
     ["torpedotrail-small"] = {
         trail = {
             air                = false,
@@ -142,7 +126,6 @@ local definitions = {
             },
         },
     },
-
 
     ["torpedotrail-large"] = {
         trail = {
@@ -244,8 +227,6 @@ local definitions = {
             },
         },
     },
-
-
 
     -- ["torpedo-launch"] = {
 
