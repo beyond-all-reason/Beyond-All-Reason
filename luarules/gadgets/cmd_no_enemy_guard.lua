@@ -24,15 +24,17 @@ function gadget:Initialize()
    gadgetHandler:RegisterAllowCommand(CMD_GUARD) 
 end
 
-function gadget:AllowCommand(unitID, unitDefID, issuerTeamID, cmdID, cmdParams, cmdOptions)
-    if cmdID == CMD_GUARD then
-        local targetUnitID = cmdParams[1]
-        local targetAllyTeamID = spGetUnitAllyTeam(targetUnitID)
-        if spAreTeamsAllied(issuerTeamID, targetAllyTeamID) then
-            return true
-        else
-            return false
-        end
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
+    local targetUnitID = cmdParams[1]
+    if not targetUnitID then
+        return true -- No target unit, allow the command
     end
-    return true
+
+    local targetAllyTeamID = spGetUnitAllyTeam(targetUnitID)
+
+    if targetAllyTeamID == nil then
+        return true -- Target unit doesn't exist, allow the command
+    end
+
+    return spAreTeamsAllied(unitTeam, targetAllyTeamID)
 end
