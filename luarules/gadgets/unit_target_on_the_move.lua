@@ -12,6 +12,8 @@ function gadget:GetInfo()
 	}
 end
 
+local deleteMaxDistance = 30
+local targetListLengthMax = 100
 
 local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
@@ -24,8 +26,6 @@ local isSetTargetCommand = {
 	[CMD_UNIT_CANCEL_TARGET]        = true,
 	[CMD_UNIT_SET_TARGET_RECTANGLE] = true,
 }
-
-local deleteMaxDistance = 30
 
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 
@@ -353,15 +353,23 @@ if gadgetHandler:IsSyncedCode() then
 			for i, targetData in ipairs(data.targets) do
 				currentTargets[targetData.target] = true
 			end
-			for _, targetData in ipairs(targets) do
-				if not currentTargets[targetData.target] then	-- check if this target isnt already in targetData
-					if checkTarget(unitID, targetData.target) then
-						targetData.sent = false
-						data.targets[#data.targets + 1] = targetData
+			local remaining = targetListLengthMax - #data.targets
+			if remaining > 0 then
+				for i = 1, #targets do
+					local targetData = targets[i]
+					if not currentTargets[targetData.target] then
+						if checkTarget(unitID, targetData.target) then
+							remaining = remaining - 1
+							targetData.sent = false
+							data.targets[#data.targets + 1] = targetData
+						end
+						if remaining == 0 then
+							break
+						end
 					end
 				end
 			end
-			if #data.targets == 0 then
+			if not data.targets[1] then
 				return
 			end
 			unitTargets[unitID] = data
