@@ -561,7 +561,8 @@ end
 
 -- Water penetration (torpedo)
 -- Torpedoes are tracking with very high turn rates which causes problems depending on initial conditions.
--- This eliminates vertical velocity so torpedo bombers work in shallows and sets a lower initial speed.
+-- This smooths water-entry motion while preserving stronger correction when close to targets.
+-- Also spawns a one-shot entry CEG only when crossing from air into water.
 
 -- Uses no weapon customParams.
 
@@ -569,28 +570,103 @@ local function torpedoWaterPen(projectileID)
 	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
 	local targetType, targetID = spGetProjectileTarget(projectileID)
 
-	-- Underwater projectiles have low visibility. Remaining on surface is preferable.
-	-- Only dive below the water's surface if the target is likely an underwater unit.
-	local diveSpeed = 0
+	-- Default behavior:
+	-- smooth visual travel while keeping torpedoes slightly submerged.
+	local diveSpeed = -0.08
+	local smooth = 0.45
+
+	local closeToTarget = false
 
 	if targetType == targetedUnit and targetID then
+		local targetX, targetY, targetZ = spGetUnitPosition(targetID)
+		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
+
+		if targetX then
+			local dx = targetX - positionX
+			local dy = targetY - positionY
+			local dz = targetZ - positionZ
+
+			local distSq = dx * dx + dy * dy + dz * dz
+
+			-- Close range threshold.
+			-- Lower = prettier motion longer.
+			-- Higher = stronger final tracking sooner.
+			closeToTarget = distSq < (180 * 180)
+		end
+
 		local _, unitDepth = spGetUnitPosition(targetID)
-		-- BAR trivia: Ships are at depth = -1, and subs at depth < -10.
+
+		-- Ships sit near water level; subs sit deeper.
 		if unitDepth and unitDepth < -10 then
-			-- Apply brake without halting, otherwise it will overshoot close targets.
-			diveSpeed = velocityY / 6
+			-- Preserve some downward motion for sub targets.
+			diveSpeed = velocityY / 4
+
+			-- Slow horizontal movement slightly so torps do not overshoot.
 			velocityX, velocityZ = velocityX / 1.3, velocityZ / 1.3
+
+			-- Far away = prettier travel.
+			-- Close = prioritize hit reliability.
+			if closeToTarget then
+				smooth = 1.0
+			else
+				smooth = 0.45
+			end
+		else
+			-- Surface targets:
+			-- keep near surface while remaining slightly submerged.
+			diveSpeed = -0.08
+
+			if closeToTarget then
+				smooth = 0.85
+			else
+				smooth = 0.60
+			end
 		end
 	end
 
-	spSetProjectileVelocity(projectileID, velocityX, diveSpeed, velocityZ)
+	-- Terrain correction
+	local positionX, _, positionZ = spGetProjectilePosition(projectileID)
+	local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ, true)
+
+	local terrainCorrectedY = velocityY - normalY * (
+		velocityX * normalX +
+		velocityY * normalY +
+		velocityZ * normalZ
+	)
+
+	-- Do not allow terrain correction to force a harder dive
+	-- than intended behavior.
+	if terrainCorrectedY < diveSpeed then
+		terrainCorrectedY = diveSpeed
+	end
+
+	-- Apply smoothing.
+	-- 0.0 = no correction, 1.0 = instant correction.
+	velocityY = velocityY + (terrainCorrectedY - velocityY) * smooth
+
+	spSetProjectileVelocity(projectileID, velocityX, velocityY, velocityZ)
 end
 
 specialEffectFunction.torpwaterpen = function(projectileID)
-	if isProjectileInWater(projectileID) then
-		torpedoWaterPen(projectileID)
-		return true
+	local inWater = isProjectileInWater(projectileID)
+	local wasInWater = projectilesData[projectileID]
+
+	-- Spawn entry flare only on air -> water transition.
+	-- This does not control torpedo movement; it only handles the visual entry pop.
+	if inWater and not wasInWater then
+		local x, y, z = spGetProjectilePosition(projectileID)
+		spSpawnCEG("torpedo-entry-flare", x, y, z)
 	end
+
+	projectilesData[projectileID] = inWater
+
+	-- Preserve torpedo water behavior every frame while underwater.
+	if inWater then
+		torpedoWaterPen(projectileID)
+		return false
+	end
+
+	return false
 end
 
 -- Water penetration with retargeting (torpedo)
@@ -616,7 +692,6 @@ do
 		end
 	end
 end
-
 --------------------------------------------------------------------------------
 -- Engine call-ins -------------------------------------------------------------
 
@@ -672,6 +747,7 @@ end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
+	projectilesData[projectileID] = nil
 end
 
 function gadget:GameFrame(frame)

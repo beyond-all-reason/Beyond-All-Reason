@@ -1421,6 +1421,8 @@ local function updateProjectileLights(newgameframe)
 			else
 				-- add projectile
 				local weapon, piece = spGetProjectileType(projectileID)
+				local skipProjectileTracking = false
+
 				if piece then
 					local gib = gibLight.lightParamTable
 					gib[1] = px
@@ -1428,18 +1430,24 @@ local function updateProjectileLights(newgameframe)
 					gib[3] = pz
 					AddLight(projectileID, nil, nil, projectilePointLightVBO, gib, noUpload)
 				else
-					local weaponDefID = spGetProjectileDefID ( projectileID )
-					if projectileDefLights[weaponDefID] and ( projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0 ) then
+					local weaponDefID = spGetProjectileDefID(projectileID)
+
+					-- Torpedo GL4 light delay:
+					-- TorpedoLauncher projectile lights should not appear while the projectile is still above water.
+					-- Do not track skipped torpedoes yet, so this block can try again after the projectile enters water.
+					local weaponDef = weaponDefID and WeaponDefs[weaponDefID]
+					if weaponDef and weaponDef.type == "TorpedoLauncher" and (not py or py > 2) then
+						skipProjectileTracking = true
+					elseif projectileDefLights[weaponDefID] and (projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0) then
 						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
 						lightType = projectileDefLights[weaponDefID].lightType
-
 
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz
 						if debugproj then spEcho(lightType, projectileDefLights[weaponDefID].lightClassName) end
 
-						local dx,dy,dz = spGetProjectileVelocity(projectileID)
+						local dx, dy, dz = spGetProjectileVelocity(projectileID)
 
 						if lightType == 'beam' then
 							lightParamTable[5] = px + dx
@@ -1451,9 +1459,9 @@ local function updateProjectileLights(newgameframe)
 							lightParamTable[6] = dy
 							lightParamTable[7] = dz
 						end
-						if debugproj then spEcho(lightType, px,py,pz, dx, dy,dz) end
+						if debugproj then spEcho(lightType, px, py, pz, dx, dy, dz) end
 
-						AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable,noUpload)
+						AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable, noUpload)
 						--AddLight(projectileID, nil, nil, projectilePointLightVBO, lightParamTable)
 					else
 						--spEcho("No projectile light defined for", projectileID, weaponDefID, px, pz)
@@ -1463,12 +1471,15 @@ local function updateProjectileLights(newgameframe)
 						--AddPointLight(projectileID, nil, nil, projectilePointLightVBO, testprojlighttable)
 					end
 				end
-				numadded = numadded + 1
-				if debugproj then spEcho("Adding projlight", projectileID, Spring.GetProjectileName(projectileID)) end
-				--trackedProjectiles[]
-				trackedProjectileTypes[projectileID] = lightType
+
+				if not skipProjectileTracking then
+					numadded = numadded + 1
+					if debugproj then spEcho("Adding projlight", projectileID, Spring.GetProjectileName(projectileID)) end
+					--trackedProjectiles[]
+					trackedProjectileTypes[projectileID] = lightType
+					trackedProjectiles[projectileID] = gameFrame
+				end
 			end
-			trackedProjectiles[projectileID] = gameFrame
 		end
 	end
 	-- remove theones that werent updated

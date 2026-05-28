@@ -95,6 +95,10 @@ local function processWeapons(unitDefName, unitDef)
 
 		-- weaponDef is not processed by weapondefs_post, may not have some subtables:
 		table.ensureTable(weaponDef, "customparams")
+			-- Global torpedo trail override
+			if weaponDef.weapontype == "TorpedoLauncher" then
+				weaponDef.cegtag = "torpedo-bottrail"
+			end
 
 		if weaponDef.customparams.cluster_def then
 			weaponDef.customparams.cluster_def = unitDefName .. "_" .. weaponDef.customparams.cluster_def
