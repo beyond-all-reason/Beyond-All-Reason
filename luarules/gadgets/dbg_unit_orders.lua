@@ -2,7 +2,7 @@ local gadget = gadget ---@type Gadget
 
 
 --- TO USE: CHANGE THIS TO TRUE
-local ENABLED = true -- set to true to enable the gadget, it will print a lot of info about unit orders
+local ENABLED = false -- set to true to enable the gadget, it will print a lot of info about unit orders
 -------------------------------
 
 local VERBOSE = false -- this print the whole table, instead of the count of indexes in the table
