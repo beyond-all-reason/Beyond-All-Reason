@@ -83,28 +83,56 @@ if gadgetHandler:IsSyncedCode() then
 	local CMD_DGUN = CMD.DGUN
 
 	local validUnits = {}
-	local unitWeapons = {}
+	local unitWeapons = {} ---@type table<integer, SetTargetWeaponType[]>
 	local unitAlwaysSeen = {}
-	for unitDefID = 1, #UnitDefs do
-		local unitDef = UnitDefs[unitDefID]
-		if (unitDef.canAttack and unitDef.maxWeaponRange and unitDef.maxWeaponRange > 0) then
-			validUnits[unitDefID] = true
-		end
-		local weapons = unitDef.weapons
 
-		if #weapons > 0 then
-			-- filter this down to only the params that actually get used, weapons is an array full of stuff!
-			unitWeapons[unitDefID] = {}
-			for i=1, #weapons do
-				unitWeapons[unitDefID][i] = true
+	do
+		---@alias SetTargetWeaponType (0|1|false) `false` := non-targeting weapon, `0` := waterWeapon, `1` := everything else
+
+		-- Fastpass for units that don't have an attack command for other reasons.
+		local allowNonAttackerUnit = { legpede = true }
+
+		local function hasTargeting(weapon)
+			if weapon.slavedTo == 0 then
+				local weaponDef = WeaponDefs[weapon.weaponDef]
+				return weaponDef.type ~= "Shield" and not weaponDef.manualFire and weaponDef.range > 10
+			else
+				return false
 			end
 		end
-		unitAlwaysSeen[unitDefID] = unitDef.isBuilding or unitDef.speed == 0
-	end
 
-	-- fastpass for units that don't have an attack command for other reasons
-	if UnitDefNames.legpede then
-		validUnits[UnitDefNames.legpede.id] = true
+		local function canSetTarget(unitDef)
+			if (unitDef.canAttack or allowNonAttackerUnit[unitDef.name]) and unitDef.maxWeaponRange > 0 then
+				for _, weapon in pairs(unitDef.weapons) do
+					if hasTargeting(weapon) then
+						return true
+					end
+				end
+			end
+			return false
+		end
+
+		-- FIXME: We don't know which weaponDefs have submissile. We can check `nuke`, for now.
+		---@return SetTargetWeaponType
+		local function getWeaponType(weapon)
+			if hasTargeting(weapon) then
+				local weaponDef = WeaponDefs[weapon.weaponDef]
+				return weaponDef.waterWeapon and not weaponDef.customParams.nuke and 0 or 1
+			else
+				return false
+			end
+		end
+
+		for unitDefID = 1, #UnitDefs do
+			local unitDef = UnitDefs[unitDefID]
+			if canSetTarget(unitDef) then
+				validUnits[unitDefID] = true
+				unitWeapons[unitDefID] = table.map(unitDef.weapons, function(weapon, index)
+					return getWeaponType(weapon), index
+				end)
+			end
+			unitAlwaysSeen[unitDefID] = unitDef.isBuilding or unitDef.speed == 0
+		end
 	end
 
 	local unitTargets = {} -- data holds all unitID data
@@ -163,17 +191,21 @@ if gadgetHandler:IsSyncedCode() then
 		return ownTeam and enemyTeam and spAreTeamsAllied(ownTeam, enemyTeam)
 	end
 
-	local function TargetCanBeReachedReal(unitID, weaponList, target)
-		local isUnitTarget = type(target) == "number"
-		for weaponNum in pairsNext, weaponList do
-			--GetUnitWeaponTryTarget tests both target type validity and target to be reachable for the moment
-			if isUnitTarget and spGetUnitWeaponTryTarget(unitID, weaponNum, target) then
+	local function testTargetUnit(unitID, weaponList, target)
+		for weaponNum = 1, #weaponList do
+			if weaponList[weaponNum] and spGetUnitWeaponTryTarget(unitID, weaponNum, target) then
 				return weaponNum
-			elseif
-				not isUnitTarget
-				and spGetUnitWeaponTestTarget(unitID, weaponNum, target[1], target[2], target[3])
-				and spGetUnitWeaponTestRange(unitID, weaponNum, target[1], target[2], target[3])
-				and spGetUnitWeaponHaveFreeLineOfFire(unitID, weaponNum, nil, nil, nil, target[1], target[2], target[3])
+			end
+		end
+	end
+
+	local function testTargetPos(unitID, weaponList, x, y, z)
+		for weaponNum = 1, #weaponList do
+			if
+				weaponList[weaponNum]
+				and spGetUnitWeaponTestTarget(unitID, weaponNum, x, y, z)
+				and spGetUnitWeaponTestRange(unitID, weaponNum, x, y, z)
+				and spGetUnitWeaponHaveFreeLineOfFire(unitID, weaponNum, nil, nil, nil, x, y, z)
 			then
 				return weaponNum
 			end
@@ -185,7 +217,11 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		return CallAsTeam(teamID, TargetCanBeReachedReal, unitID, weaponList, target)
+		if type(target) == "number" then
+			return CallAsTeam(teamID, testTargetUnit, unitID, weaponList, target)
+		else
+			return CallAsTeam(teamID, testTargetPos, unitID, weaponList, target[1], target[2], target[3])
+		end
 	end
 
 	local function checkTarget(unitID, target)
@@ -571,17 +607,14 @@ if gadgetHandler:IsSyncedCode() then
 							target[2] = spGetGroundHeight(target[1], target[3])
 						end -- clip to ground level
 						--only accept valid targets
-						if weaponList then
-							for weaponID = 1, #weaponList do
-								validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target[1], target[2], target[3])
-								if validTarget then
+						for weaponNum = 1, #weaponList do
+							local weaponType = weaponList[weaponNum]
+							if weaponType then
+								if spGetUnitWeaponTestTarget(unitID, weaponNum, target[1], target[2], target[3])
+									or (weaponType ~= 0 and target[2] < 0 and spGetUnitWeaponTestTarget(unitID, weaponNum, target[1], 1, target[3]))
+								then
+									validTarget = true
 									break
-								elseif target[2] < 0 and spGetUnitWeaponTestTarget(unitID, weaponID, target[1], 1, target[3]) then
-									target[2] = 1 -- clip to waterlevel +1
-									validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target[1], target[2], target[3])
-									if validTarget then
-										break
-									end
 								end
 							end
 						end
@@ -605,8 +638,8 @@ if gadgetHandler:IsSyncedCode() then
 							if weaponList then
 								for weaponID = 1, #weaponList do
 									--unit test target only tests the validity of the target type, not range or other variable things
-									validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target)
-									if validTarget then
+									if spGetUnitWeaponTestTarget(unitID, weaponID, target) then
+										validTarget = true
 										break
 									end
 								end
