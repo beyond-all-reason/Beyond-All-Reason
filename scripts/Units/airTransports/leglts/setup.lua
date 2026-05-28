@@ -1,17 +1,21 @@
 return {
     cargo = {
-        primarySlot = "link2x2",
-        transporterSeats      = 1,
-
+        primarySlot = "link3x3",
+        transporterSeats      = 2,
         slots = {
-            { name = "link2x2", size = 1, requires = {} },
+            { name = "link3x3",   size = 2, requires = {"rlink2x2", "llink2x2"} },
+            { name = "rlink2x2",   size = 1, requires = { "link3x3" } },
+            { name = "llink2x2",   size = 1, requires = { "link3x3" } },
         },
     },
     loadMethod = {
         cegScaleFactor = 0.7,
         cegName        = "tractorbeam",
         beams = {
-            link2x2 = { "beam" },
+            link3x3   = { "rbeam" , "lbeam"},
+            rlink2x2   = { "rbeam"},
+            llink2x2   = { "lbeam"},
+
         },
     },
     anim = {

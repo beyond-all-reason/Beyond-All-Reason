@@ -182,11 +182,11 @@ function TransportAPI.GetUnloadPadType(transporterID)
 		Spring.Echo("Error, GetUnloadPadType expects a valid transporter ID as 1st arg, transporterID "..transporterID.." does not point to a valid transporter ID")
 		return nil
 	end
-	if transporterSeats == 1 then
+	if transporterSeats < 4 then
 		unloadPad[transporterDefID] = UnitDefNames["unloadpad2x2"].id
-	elseif transporterSeats == 4 then
+	elseif transporterSeats < 8 then
 		unloadPad[transporterDefID] = UnitDefNames["unloadpad4x4"].id
-	elseif transporterSeats == 8 then
+	elseif transporterSeats < 16 then
 		unloadPad[transporterDefID] = UnitDefNames["unloadpad8x8"].id
 	end
 	return unloadPad[transporterDefID]
@@ -211,11 +211,11 @@ function TransportAPI.GetBiggestUnloadPadType(units)
 		Spring.Echo("Error, GetUnloadPadType expects a valid transporter ID as 1st arg, transporterID "..transporterID.." does not point to a valid transporter ID")
 		return nil
 	end
-	if transporterSeats == 1 then
+	if transporterSeats < 4 then
 		unloadPad[transporterDefID] = UnitDefNames["unloadpad2x2"].id
-	elseif transporterSeats == 4 then
+	elseif transporterSeats < 8 then
 		unloadPad[transporterDefID] = UnitDefNames["unloadpad4x4"].id
-	elseif transporterSeats == 8 then
+	elseif transporterSeats < 16 then
 		unloadPad[transporterDefID] = UnitDefNames["unloadpad8x8"].id
 	end
 	return unloadPad[transporterDefID]
