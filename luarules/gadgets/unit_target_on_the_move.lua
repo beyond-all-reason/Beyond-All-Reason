@@ -847,6 +847,16 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 
+	-- How many units' target lists are fully drawn before any are skipped.
+	-- We then skip units in small batches/chunks that slowly grow in size.
+	local unitsFullDrawCount = 100 -- So we then skip n+1 and draw n+2 etc.
+
+	-- Large selections of units tend to target a small number of enemies with high repetition.
+	-- So though the backoff eventually skips 15 of 16 units, we don't notice anything is culled.
+	-- ~1/8th of 32,000 max units => 4k target lists, which is enough to explode a potato PC.
+	-- 4k * 100 list length maximum is enough to assume target saturation with 32,000 unit cap.
+
+	local math_min = math.min
 
 	local glVertex = gl.Vertex
 	local glPushAttrib = gl.PushAttrib
@@ -900,7 +910,6 @@ else	-- UNSYNCED
 		spSetCustomCommandDrawData(CMD_UNIT_SET_TARGET, "settarget", queueColour, true)
 		spSetCustomCommandDrawData(CMD_UNIT_SET_TARGET_NO_GROUND, "settargetrectangle", queueColour, true)
 		spSetCustomCommandDrawData(CMD_UNIT_SET_TARGET_RECTANGLE, "settargetnoground", queueColour, true)
-
 	end
 
 	function gadget:PlayerChanged(playerID)
@@ -1044,9 +1053,11 @@ else	-- UNSYNCED
 
 	local function drawDecorations()
 		local init = false
+		local skipChunkSize, skipChunkLeft = 8, unitsFullDrawCount
+		local skipSize, skipLeft = 0, 0
 		for unitID, unitData in pairsNext, targetList do
-			if drawTarget[unitID] or drawAllTargets[spGetUnitTeam(unitID)] or spIsUnitSelected(unitID) then
-				if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
+			if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
+				if skipLeft == 0 and (drawTarget[unitID] or drawAllTargets[spGetUnitTeam(unitID)] or spIsUnitSelected(unitID)) then
 					if not init then
 						init = true
 						glPushAttrib(GL.LINE_BITS)
@@ -1060,6 +1071,16 @@ else	-- UNSYNCED
 						glColor(commandColour)
 						glBeginEnd(GL_LINES, drawCurrentTarget, unitID, unitData, myTeam, myAllyTeam)
 					end
+
+					-- Use a gradual backoff to skip drawing commands at high unit counts.
+					skipChunkLeft = skipChunkLeft - 1
+					if skipChunkLeft == 0 then
+						skipChunkLeft = skipChunkSize
+						skipSize = math_min(16, 2 * (skipSize > 0 and skipSize or 1))
+					end
+					skipLeft = skipSize
+				else
+					skipLeft = skipLeft - 1
 				end
 			end
 		end
