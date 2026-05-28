@@ -30,6 +30,12 @@ for cmdName, cmdID in pairs(GameCMD) do
 	CMDnames[cmdID] = "GameCMD." .. cmdName
 end
 
+-- by the heavens, why do we have duplicate command IDs.. let's put the preferred labels for them
+CMDnames[CMD.ATTACK] = "CMD.ATTACK"
+CMDnames[CMD.INSERT] = "CMD.INSERT"
+CMDnames[CMD.REMOVE] = "CMD.REMOVE"
+CMDnames[CMD.DGUN] = "CMD.DGUN"
+
 local function count(tbl)
 	if VERBOSE then
 		return tbl
