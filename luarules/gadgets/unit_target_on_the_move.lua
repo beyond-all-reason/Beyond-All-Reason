@@ -390,29 +390,25 @@ if gadgetHandler:IsSyncedCode() then
 	local function removeWithStop(unitID)
 		local unitData = unitTargets[unitID] or pausedTargets[unitID]
 		local targetList = unitData.targets
-		local index = unitData.currentIndex
+		local currentIndex = unitData.currentIndex
+		local minIndex
 		local n = #targetList
-		local m = n
 		for i = n, 1, -1 do
 			if not targetList[i].ignoreStop then
-				targetList[i] = targetList[m]
-				targetList[m] = nil
-				m = m - 1
-				if i == index then
-					unitData.currentIndex = 1
+				tremove(targetList, i)
+				minIndex = i
+				if i == currentIndex then
+					currentIndex = 1
+				elseif i < currentIndex then
+					currentIndex = currentIndex - 1
 				end
 			end
 		end
-		if m == 0 then
+		if not targetList[1] then
 			removeUnit(unitID)
-		elseif m < n then
-			refreshSendList(unitID, unitData, m)
-			local currentIndex = unitTargets[unitID].currentIndex
-			if index == currentIndex then
-				unitTargets[unitID].currentIndex = 1
-			elseif index < currentIndex then
-				unitTargets[unitID].currentIndex = currentIndex - 1
-			end
+		elseif minIndex then
+			unitTargets[unitID].currentIndex = currentIndex
+			refreshSendList(unitID, unitData, minIndex)
 		end
 	end
 
