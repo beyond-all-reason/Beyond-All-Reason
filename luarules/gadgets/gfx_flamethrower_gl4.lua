@@ -190,8 +190,8 @@ local CONFIG = {
 	-- Stops are: (t, r, g, b)
 	tintStops = {
 		{ 0.00, 1.00, 0.95, 0.7 },    -- near-white hot pinch at the nozzle
-		{ 0.12, 1.00, 0.93, 0.55 },    -- bright pale yellow
-		{ 0.32, 1.00, 0.75, 0.3 },    -- saturated yellow-orange (main body)
+		{ 0.12, 1.00, 0.93, 0.58 },    -- bright pale yellow
+		{ 0.32, 1.00, 0.8, 0.45 },    -- saturated yellow-orange (main body)
 		--{ 0.58, 1.00, 0.55, 0.12 },    -- orange
 		--{ 1.00, 0.55, 0.10, 0.04 },    -- dying ember
 	},
