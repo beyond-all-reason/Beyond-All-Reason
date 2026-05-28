@@ -368,13 +368,13 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	local function refreshSendList(unitID, unitData, minIndex)
-		for i, targetData in ipairs(unitData.targets) do
-			if i >= minIndex then
-				targetData.sent = nil
-			end
+		local targetList = unitData.targets
+		local n = #targetList
+		for i = (minIndex or 1), n do
+			targetList[i].sent = nil
 		end
 		sendTargetsToUnsynced(unitID)
-		SendToUnsynced("targetList", unitID, #unitData.targets + 1) -- ask to clear the last element when the table is smaller
+		SendToUnsynced("targetList", unitID, n + 1) -- clear the last element in case the list shrank
 	end
 
 	local function removeTarget(unitID, index)
