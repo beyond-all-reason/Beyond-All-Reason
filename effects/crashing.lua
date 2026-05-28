@@ -47,7 +47,7 @@ local definitions = {
                 emitrotspread      = 45,
                 emitvector         = [[0, 1, 0]],
                 gravity            = [[0.0, -0.03, 0.0]],
-                numparticles       = [[0.96 r0.12]], 
+                numparticles       = [[0.96 r0.12]],
                 particlelife       = 26,
                 particlelifespread = 2.2,
                 particlesize       = 15.9,
@@ -196,7 +196,7 @@ definitions['crashing-large'].flame.properties.particlesizespread = definitions[
 
 definitions['crashing-large2'] = table.copy(definitions["crashing-small2"])
 definitions['crashing-large2'].smoke2.properties.particlelife = definitions['crashing-large2'].smoke2.properties.particlelife * 1.66
-definitions['crashing-large2'].smoke2.properties.particlelifespread = definitions['crashing-large2'].smoke2.properties.particlelifespread * 1.1 
+definitions['crashing-large2'].smoke2.properties.particlelifespread = definitions['crashing-large2'].smoke2.properties.particlelifespread * 1.1
 definitions['crashing-large2'].smoke2.properties.particlesize = definitions['crashing-large2'].smoke2.properties.particlesize * sizeMult  * 0.5
 definitions['crashing-large2'].smoke2.properties.particlesizespread = definitions['crashing-large2'].smoke2.properties.particlesizespread * sizeMult
 definitions['crashing-large2'].smoke2.properties.numparticles = [[0.84 r0.30]]

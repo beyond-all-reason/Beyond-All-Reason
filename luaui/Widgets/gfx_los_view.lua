@@ -55,6 +55,7 @@ function widget:GameFrame(frame)	-- somehow widget:GameStart() didnt work
 end
 
 function widget:Shutdown()
+    lastMapDrawMode = Spring.GetMapDrawMode()
     TurnOffLOS()
 end
 
@@ -71,7 +72,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:GetConfigData() --save config
-	return {lastMapDrawMode=Spring.GetMapDrawMode()}
+	return {lastMapDrawMode=lastMapDrawMode}
 end
 
 function widget:SetConfigData(data) --load config

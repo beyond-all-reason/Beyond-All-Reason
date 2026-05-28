@@ -15,8 +15,6 @@ return {
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 7,
 		footprintz = 7,
-		idleautoheal = 2,
-		idletime = 2500,
 		mass = 9500,
 		health = 6300,
 		minwaterdepth = 24,
@@ -58,10 +56,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
 				[2] = "custom:barrelshot-small-impulse",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

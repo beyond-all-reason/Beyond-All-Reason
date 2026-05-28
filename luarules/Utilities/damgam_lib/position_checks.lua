@@ -47,52 +47,66 @@ end
 
 local function FlatAreaCheck(posx, posy, posz, posradius, heightTollerance, checkWater) -- Returns true if position is flat enough.
 	-- nil fixes
-    local posradius = posradius or 1000
-    local heightTollerance = heightTollerance or 30
+    posradius = posradius or 1000
+    heightTollerance = heightTollerance or 30
     local deathwater = Game.waterDamage
     local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
 
+    -- Pre-compute coordinate offsets
+    local xPlus = posx + posradius
+    local xMinus = posx - posradius
+    local zPlus = posz + posradius
+    local zMinus = posz - posradius
+
     -- Check height of test points in all 8 directions.
-	local testpos1 = Spring.GetGroundHeight((posx + posradius), (posz + posradius) )
-	local testpos2 = Spring.GetGroundHeight((posx + posradius), (posz - posradius) )
-	local testpos3 = Spring.GetGroundHeight((posx - posradius), (posz + posradius) )
-	local testpos4 = Spring.GetGroundHeight((posx - posradius), (posz - posradius) )
-	local testpos5 = Spring.GetGroundHeight((posx + posradius), posz )
-	local testpos6 = Spring.GetGroundHeight(posx, (posz + posradius) )
-	local testpos7 = Spring.GetGroundHeight((posx - posradius), posz )
-	local testpos8 = Spring.GetGroundHeight(posx, (posz - posradius) )
+	local testpos1 = Spring.GetGroundHeight(xPlus, zPlus)
+	local testpos2 = Spring.GetGroundHeight(xPlus, zMinus)
+	local testpos3 = Spring.GetGroundHeight(xMinus, zPlus)
+	local testpos4 = Spring.GetGroundHeight(xMinus, zMinus)
+	local testpos5 = Spring.GetGroundHeight(xPlus, posz)
+	local testpos6 = Spring.GetGroundHeight(posx, zPlus)
+	local testpos7 = Spring.GetGroundHeight(xMinus, posz)
+	local testpos8 = Spring.GetGroundHeight(posx, zMinus)
 
     -- Compare with original height
-    if (not checkWater) and (not deathwater or deathwater == 0) and posy <= 0 then return true end -- Is water, Not Deathwater, No water bottom check. 
+    if (not checkWater) and (not deathwater or deathwater == 0) and posy <= 0 then return true end -- Is water, Not Deathwater, No water bottom check.
 	if deathwater > 0 and posy <= 0 then return false end -- Is water, Deathwater
     if lavaLevel and posy <= lavaLevel then return false end -- Is lava
-	if testpos1 < posy - heightTollerance or testpos1 > posy + heightTollerance then return false end
-    if testpos2 < posy - heightTollerance or testpos2 > posy + heightTollerance then return false end
-	if testpos3 < posy - heightTollerance or testpos3 > posy + heightTollerance then return false end
-    if testpos4 < posy - heightTollerance or testpos4 > posy + heightTollerance then return false end
-    if testpos5 < posy - heightTollerance or testpos5 > posy + heightTollerance then return false end
-    if testpos6 < posy - heightTollerance or testpos6 > posy + heightTollerance then return false end
-    if testpos7 < posy - heightTollerance or testpos7 > posy + heightTollerance then return false end
-    if testpos8 < posy - heightTollerance or testpos8 > posy + heightTollerance then return false end
-    
+    local minY = posy - heightTollerance
+    local maxY = posy + heightTollerance
+	if testpos1 < minY or testpos1 > maxY then return false end
+    if testpos2 < minY or testpos2 > maxY then return false end
+	if testpos3 < minY or testpos3 > maxY then return false end
+    if testpos4 < minY or testpos4 > maxY then return false end
+    if testpos5 < minY or testpos5 > maxY then return false end
+    if testpos6 < minY or testpos6 > maxY then return false end
+    if testpos7 < minY or testpos7 > maxY then return false end
+    if testpos8 < minY or testpos8 > maxY then return false end
+
     return true -- Nothing failed, so position is safe
 
 end
 
 local function LandOrSeaCheck(posx, posy, posz, posradius) -- returns string, "land", "sea", "mixed", "death"
-    local posradius = posradius or 1000
+    posradius = posradius or 1000
     local deathwater = Game.waterDamage
     local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
 
-        -- Check height of test points in all 8 directions.
-	local testpos1 = Spring.GetGroundHeight((posx + posradius), (posz + posradius) )
-	local testpos2 = Spring.GetGroundHeight((posx + posradius), (posz - posradius) )
-	local testpos3 = Spring.GetGroundHeight((posx - posradius), (posz + posradius) )
-	local testpos4 = Spring.GetGroundHeight((posx - posradius), (posz - posradius) )
-	local testpos5 = Spring.GetGroundHeight((posx + posradius), posz )
-	local testpos6 = Spring.GetGroundHeight(posx, (posz + posradius) )
-	local testpos7 = Spring.GetGroundHeight((posx - posradius), posz )
-	local testpos8 = Spring.GetGroundHeight(posx, (posz - posradius) )
+    -- Pre-compute coordinate offsets
+    local xPlus = posx + posradius
+    local xMinus = posx - posradius
+    local zPlus = posz + posradius
+    local zMinus = posz - posradius
+
+    -- Check height of test points in all 8 directions.
+	local testpos1 = Spring.GetGroundHeight(xPlus, zPlus)
+	local testpos2 = Spring.GetGroundHeight(xPlus, zMinus)
+	local testpos3 = Spring.GetGroundHeight(xMinus, zPlus)
+	local testpos4 = Spring.GetGroundHeight(xMinus, zMinus)
+	local testpos5 = Spring.GetGroundHeight(xPlus, posz)
+	local testpos6 = Spring.GetGroundHeight(posx, zPlus)
+	local testpos7 = Spring.GetGroundHeight(xMinus, posz)
+	local testpos8 = Spring.GetGroundHeight(posx, zMinus)
 
     local minimumheight = math.min(testpos1, testpos2, testpos3, testpos4, testpos5, testpos6, testpos7, testpos8)
     local maximumheight = math.max(testpos1, testpos2, testpos3, testpos4, testpos5, testpos6, testpos7, testpos8)
@@ -100,7 +114,7 @@ local function LandOrSeaCheck(posx, posy, posz, posradius) -- returns string, "l
     if (deathwater > 0 and minimumheight <= 0) or (lavaLevel and (minimumheight <= lavaLevel)) then
         return "death"
     end
-    
+
     if minimumheight <= 0 and maximumheight <= 0 then
         return "sea"
     end
@@ -148,35 +162,41 @@ end
 
 local function VisibilityCheck(posx, posy, posz, posradius, allyTeamID, checkLoS, checkAirLos, checkRadar) -- Return True when position is not in sensor ranges of specified allyTeam.
 
-	local posradius = posradius or 1000
+	posradius = posradius or 1000
 	if noFogOfWar then
 		return OccupancyCheck(posx, posy, posz, posradius*4)
 	end
-        
+
+    -- Pre-compute coordinate offsets
+    local xPlus = posx + posradius
+    local xMinus = posx - posradius
+    local zPlus = posz + posradius
+    local zMinus = posz - posradius
+
     if checkLoS and (
         Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
-        Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
-        Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
-        Spring.IsPosInLos(posx - posradius, posy, posz + posradius, allyTeamID) == true or
-        Spring.IsPosInLos(posx - posradius, posy, posz - posradius, allyTeamID) == true) then
+        Spring.IsPosInLos(xPlus, posy, zPlus, allyTeamID) == true or
+        Spring.IsPosInLos(xPlus, posy, zMinus, allyTeamID) == true or
+        Spring.IsPosInLos(xMinus, posy, zPlus, allyTeamID) == true or
+        Spring.IsPosInLos(xMinus, posy, zMinus, allyTeamID) == true) then
         return false
     end
-    
+
     if checkRadar and (
         Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true or
-        Spring.IsPosInRadar(posx + posradius, posy, posz + posradius, allyTeamID) == true or
-        Spring.IsPosInRadar(posx + posradius, posy, posz - posradius, allyTeamID) == true or
-        Spring.IsPosInRadar(posx - posradius, posy, posz + posradius, allyTeamID) == true or
-        Spring.IsPosInRadar(posx - posradius, posy, posz - posradius, allyTeamID) == true) then
+        Spring.IsPosInRadar(xPlus, posy, zPlus, allyTeamID) == true or
+        Spring.IsPosInRadar(xPlus, posy, zMinus, allyTeamID) == true or
+        Spring.IsPosInRadar(xMinus, posy, zPlus, allyTeamID) == true or
+        Spring.IsPosInRadar(xMinus, posy, zMinus, allyTeamID) == true) then
         return false
     end
 
     if checkAirLos and (
         Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) == true or
-        Spring.IsPosInAirLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
-        Spring.IsPosInAirLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
-        Spring.IsPosInAirLos(posx - posradius, posy, posz + posradius, allyTeamID) == true or
-        Spring.IsPosInAirLos(posx - posradius, posy, posz - posradius, allyTeamID) == true) then
+        Spring.IsPosInAirLos(xPlus, posy, zPlus, allyTeamID) == true or
+        Spring.IsPosInAirLos(xPlus, posy, zMinus, allyTeamID) == true or
+        Spring.IsPosInAirLos(xMinus, posy, zPlus, allyTeamID) == true or
+        Spring.IsPosInAirLos(xMinus, posy, zMinus, allyTeamID) == true) then
         return false
     end
 
@@ -200,7 +220,7 @@ local function StartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStart
     --local posradius = posradius or 1000
     if not returnTrueWhenNoStartbox then returnTrueWhenNoStartbox = false end
 
-    if allyTeamID == GaiaAllyTeamID then 
+    if allyTeamID == GaiaAllyTeamID then
         return not returnTrueWhenNoStartbox
     end
     local startbox = AllyTeamStartboxes[allyTeamID+1]
@@ -218,7 +238,11 @@ end
 
 local function MapEdgeCheck(posx, posy, posz, posradius) -- if true then position is far enough from map border
 	local posradius = posradius or 1000
-	if posx + posradius >= mapSizeX or posx - posradius <= 0 or posz - posradius <= 0 or posz + posradius >= mapSizeZ then
+    local xPlus = posx + posradius
+    local xMinus = posx - posradius
+    local zPlus = posz + posradius
+    local zMinus = posz - posradius
+    if xPlus >= mapSizeX or xMinus <= 0 or zMinus <= 0 or zPlus >= mapSizeZ then
 		return false
 	else
 		return true
@@ -226,16 +250,22 @@ local function MapEdgeCheck(posx, posy, posz, posradius) -- if true then positio
 end
 
 local function SurfaceCheck(posx, posy, posz, posradius, sea) -- if true then position is safe for either Land or Sea units.
-    local posradius = posradius or 1000
-	local testpos0 = Spring.GetGroundHeight((posx), (posz))
-	local testpos1 = Spring.GetGroundHeight((posx + posradius), (posz + posradius) )
-	local testpos2 = Spring.GetGroundHeight((posx + posradius), (posz - posradius) )
-	local testpos3 = Spring.GetGroundHeight((posx - posradius), (posz + posradius) )
-	local testpos4 = Spring.GetGroundHeight((posx - posradius), (posz - posradius) )
-	local testpos5 = Spring.GetGroundHeight((posx + posradius), posz )
-	local testpos6 = Spring.GetGroundHeight(posx, (posz + posradius) )
-	local testpos7 = Spring.GetGroundHeight((posx - posradius), posz )
-	local testpos8 = Spring.GetGroundHeight(posx, (posz - posradius) )
+    posradius = posradius or 1000
+    -- Pre-compute coordinate offsets
+    local xPlus = posx + posradius
+    local xMinus = posx - posradius
+    local zPlus = posz + posradius
+    local zMinus = posz - posradius
+
+	local testpos0 = Spring.GetGroundHeight(posx, posz)
+	local testpos1 = Spring.GetGroundHeight(xPlus, zPlus)
+	local testpos2 = Spring.GetGroundHeight(xPlus, zMinus)
+	local testpos3 = Spring.GetGroundHeight(xMinus, zPlus)
+	local testpos4 = Spring.GetGroundHeight(xMinus, zMinus)
+	local testpos5 = Spring.GetGroundHeight(xPlus, posz)
+	local testpos6 = Spring.GetGroundHeight(posx, zPlus)
+	local testpos7 = Spring.GetGroundHeight(xMinus, posz)
+	local testpos8 = Spring.GetGroundHeight(posx, zMinus)
 	local deathwater = Game.waterDamage
     local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
 
@@ -275,17 +305,20 @@ local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true t
             if Spring.GetModOptions().scavspawnarea == true then
                 if not AllyTeamStartboxes[scavengerAllyTeamID+1].allyTeamHasStartbox then return true end -- Scavs do not have a startbox so we allow them to spawn anywhere
                 if StartboxCheck(posx, posy, posz, scavengerAllyTeamID) == true then return true end -- Area is within startbox, so it's for sure in the spawn box.
-                
+
                 -- Spawn Box grows with Scavengers tech, getting that into from GameRulesParameter set by Scav gadget
-                local SpawnBoxMinX = math.floor(AllyTeamStartboxes[scavengerAllyTeamID+1].xMin-(((mapSizeX)*0.01)*scavTechPercentage))
-                local SpawnBoxMaxX = math.ceil(AllyTeamStartboxes[scavengerAllyTeamID+1].xMax+(((mapSizeX)*0.01)*scavTechPercentage))
-                local SpawnBoxMinZ = math.floor(AllyTeamStartboxes[scavengerAllyTeamID+1].zMin-(((mapSizeZ)*0.01)*scavTechPercentage))
-                local SpawnBoxMaxZ = math.ceil(AllyTeamStartboxes[scavengerAllyTeamID+1].zMax+(((mapSizeZ)*0.01)*scavTechPercentage))      
-                
+                local startbox = AllyTeamStartboxes[scavengerAllyTeamID+1]
+                local xExpand = mapSizeX * 0.01 * scavTechPercentage
+                local zExpand = mapSizeZ * 0.01 * scavTechPercentage
+                local SpawnBoxMinX = math.floor(startbox.xMin - xExpand)
+                local SpawnBoxMaxX = math.ceil(startbox.xMax + xExpand)
+                local SpawnBoxMinZ = math.floor(startbox.zMin - zExpand)
+                local SpawnBoxMaxZ = math.ceil(startbox.zMax + zExpand)
+
                 if posx < SpawnBoxMinX then return false end
                 if posx > SpawnBoxMaxX then return false end
                 if posz < SpawnBoxMinZ then return false end
-                if posz > SpawnBoxMaxZ then return false end       
+                if posz > SpawnBoxMaxZ then return false end
 
                 return true
             else
@@ -331,7 +364,7 @@ local function MapIsLandOrSea()
                 if z > mapSizeZ then
                     break
                 end
-                
+
                 y = Spring.GetGroundHeight(x,z)
                 if y > 0 then
                     landNodes = landNodes + 1

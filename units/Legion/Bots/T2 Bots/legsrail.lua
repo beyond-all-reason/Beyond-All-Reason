@@ -2,10 +2,10 @@ return {
 	legsrail = {
 		maxacc = 0.08,
 		maxdec = 0.345,
-		energycost = 16000,
-		metalcost = 800,
+		energycost = 15000,
+		metalcost = 750,
 		buildpic = "LEGSRAIL.DDS",
-		buildtime = 20800,
+		buildtime = 19500,
 		canmove = true,
 		collisionvolumeoffsets = "0 10 0",
 		collisionvolumescales = "45 40 45",
@@ -14,8 +14,6 @@ return {
 		explodeas = "largeexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 2200,
 		maxslope = 17,
 		speed = 42.0,
@@ -75,11 +73,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -138,12 +131,12 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
+				customparams = {
+					overpenetrate = true,
+				},
 				damage = {
 					commanders = 375,
 					default = 750,
-				},
-				customparams = {
-					overpenetrate = true,
 				},
 			},
 		},

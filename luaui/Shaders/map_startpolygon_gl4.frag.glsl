@@ -201,8 +201,9 @@ void main(void)
 		}else if (rotationMiniMap == 2){
 			mapWorldPos.x = 1.0 - mapWorldPos.x;
 		}else if (rotationMiniMap == 3){
-			mapWorldPos.z = 1.0 - mapWorldPos.x;
-			mapWorldPos.x = 1.0 - mapWorldPos.x;
+			float tmpX = mapWorldPos.x;
+			mapWorldPos.x = 1.0 - mapWorldPos.z;
+			mapWorldPos.z = 1.0 - tmpX;
 		}
 		
 		// For PIP: remap the [0,1] world-normalized coords to visible area

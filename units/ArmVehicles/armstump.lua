@@ -12,11 +12,9 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1780,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.0438,
-		maxdec = 0.08759,
+		maxdec = 0.1,
 		maxslope = 10,
 		maxwaterdepth = 12,
 		metalcost = 225,
@@ -26,7 +24,7 @@ return {
 		script = "Units/ARMSTUMP.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 325,
+		sightdistance = 330,
 		speed = 75.9,
 		trackoffset = 3,
 		trackstrength = 6,
@@ -83,10 +81,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

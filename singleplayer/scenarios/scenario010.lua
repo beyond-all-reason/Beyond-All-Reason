@@ -15,7 +15,7 @@ Tips:
  - If this scenario seems difficult, try it at a lower difficulty override
  - The enemy will expand rapidly, and the map is particularly resource rich
  - The enemy might send early aircraft raids, so your forward base has been equipped with anti-air turrets
- - The enemy base is very heavily defended with both Tier 2 ground defences and and anti-air.
+ - The enemy base is very heavily defended with both Tier 2 ground defences and anti-air.
 
 Scoring:
  - Time taken to complete the scenario

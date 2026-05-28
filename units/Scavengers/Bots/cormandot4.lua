@@ -26,8 +26,6 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 30,
-		idletime = 900,
 		health = 9600,
 		maxslope = 20,
 		speed = 60.0,
@@ -69,11 +67,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
 				[2] = "custom:radarpulse_t1",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

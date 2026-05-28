@@ -14,8 +14,6 @@ return {
 		explodeas = "fusionExplosion",
 		footprintx = 12,
 		footprintz = 12,
-		idleautoheal = 5,
-		idletime = 100,
 		health = 11100,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -37,12 +35,6 @@ return {
 			removewait = true,
 			subfolder = "other",
 			techlevel = 2,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

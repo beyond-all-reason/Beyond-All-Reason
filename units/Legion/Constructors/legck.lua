@@ -18,8 +18,6 @@ return {
 		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 630,
 		maxslope = 20,
 		speed = 39,
@@ -105,12 +103,6 @@ return {
 				object = "Units/cor2X2F.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3-builder",
-				[2] = "deathceg2-builder",
 			},
 		},
 		sounds = {

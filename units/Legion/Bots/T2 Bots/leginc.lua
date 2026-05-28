@@ -14,8 +14,6 @@ return {
 		explodeas = "penetrator",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 5001,
 		health = 9000,
 		maxslope = 15,
@@ -71,13 +69,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -111,7 +102,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 17,
+				energypershot = 10,
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 90,
 				firetolerance = 100,
@@ -134,14 +125,13 @@ return {
 				thickness = 4.5,
 				turret = true,
 				weapontype = "BeamLaser",
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					commanders = 16,
 					default = 33,
 					vtol = 11,
-				},
-				customparams = {
-					exclude_preaim = true,
-					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				},
 			},
 		},

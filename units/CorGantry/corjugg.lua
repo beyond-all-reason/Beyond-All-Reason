@@ -13,8 +13,6 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		health = 335000,
-		idleautoheal = 40,
-		idletime = 1800,
 		mass = 20000,
 		maxacc = 0.0552,
 		maxdec = 0.43125,
@@ -76,11 +74,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -233,6 +226,7 @@ return {
 				soundhitwetvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					nodecal = true,
 					noexplosionlight = 1,
 				},

@@ -414,7 +414,7 @@ local function refreshAndCheckAvailableMexSpots(commanderID)
 			local groundY = spGetGroundHeight(spot.x, spot.z)
 			local buildX, buildY, buildZ = spPos2BuildPos(mexDefID, spot.x, groundY, spot.z)
 			if buildX and spTestBuildOrder(mexDefID, buildX, buildY, buildZ, DEFAULT_FACING) == UNOCCUPIED then
-				spot.y = buildY
+				spot.x, spot.y, spot.z = buildX, buildY, buildZ
 				table.insert(validSpots, spot)
 			end
 		end

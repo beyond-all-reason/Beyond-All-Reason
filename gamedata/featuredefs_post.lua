@@ -8,12 +8,31 @@
 --  Copyright (C) 2008.
 --  Licensed under the terms of the GNU GPL, v2 or later.
 --
+
+local system = VFS.Include("gamedata/system.lua")
+
+local mapFeatureProxies = VFS.Include('gamedata/map_feature_i18n_proxies.lua')
+
+local function normalizeFeatureDef(featureDef)
+	system.lowerkeys(featureDef)
+	table.ensureTable(featureDef, "customparams")
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  Process existing featureDefs
+--
+
+for featureDefName, featureDef in pairs(FeatureDefs) do
+	normalizeFeatureDef(featureDef)
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
 --  Per-unitDef featureDefs
 --
-local mapFeatureProxies = VFS.Include('gamedata/map_feature_i18n_proxies.lua')
 
 local function processUnitDef(unitDefName, unitDef)
 	local features = unitDef.featuredefs
@@ -25,7 +44,7 @@ local function processUnitDef(unitDefName, unitDef)
 	for featureDefName, featureDef in pairs(features) do
 		local fullName = unitDefName .. '_' .. featureDefName
 		FeatureDefs[fullName] = featureDef
-		featureDef.customparams = featureDef.customparams or {}
+		normalizeFeatureDef(featureDef)
 		featureDef.customparams.fromunit = unitDefName
 		featureDef.customparams.category = featureDef.category
 	end

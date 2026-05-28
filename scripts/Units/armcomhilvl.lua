@@ -828,21 +828,16 @@ function StopWalking()
 	turn(torso,3, 0.000000, 18.561539)
 end
 
-local boredTime = 0
-function AmIBored()
-	if bMoving == false and isAiming == false and isBuilding == false and isDancing == false then
-		boredTime = boredTime + 1
-	end
-	if boredTime > (600 * (1000/131)) and not isDancing then
+function GameOverAnim()
+	if not isDancing then
 		isDancing = true
 		StartThread(Dance1)
-		boredTime = 0
 	end
 end
 
-
-function GameOverAnim()
-	if not isDancing then
+function TriggerDance()
+	-- Only start dance when commander is idle (not moving, aiming, or building)
+	if not isDancing and not bMoving and not isAiming and not isBuilding then
 		isDancing = true
 		StartThread(Dance1)
 	end
@@ -867,8 +862,10 @@ function UnitSpeed()
 			animSpeed = 8
 		end
 		Sleep (131)
-		StartThread(AmIBored)
-
+		if isDancing and (bMoving or isAiming or isBuilding) then
+			StartThread(StopDance1)
+			isDancing = false
+		end
 	end
 end
 
@@ -968,6 +965,7 @@ function script.AimFromWeapon(weapon)
 end
 
 function script.AimWeapon(weapon, heading, pitch)
+  if isDancing then StartThread(StopDance1) end
   --Spring.Echo("Armcom aiming:",weapons[weapon])
   local reloadingFrameTach =  Spring.GetUnitWeaponState(unitID, 4, 'reloadFrame')
     if weapons[weapon] == "laser" then
@@ -1091,6 +1089,7 @@ function script.QueryWeapon(weapon)
 end
 
 function script.StartBuilding(heading, pitch)
+	if isDancing then StartThread(StopDance1) end
 	Show(nano)
 	Signal(SIG_AIM)
 	isBuilding = true

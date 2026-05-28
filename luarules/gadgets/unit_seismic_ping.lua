@@ -1,7 +1,7 @@
 function gadget:GetInfo()
     return {
         name      = "Seismic Ping",
-        desc      = "Draw seismic pings effect and pass UnitSeismicPing to widgethandler",
+        desc      = "Draw seismic pings effect",
         author    = "Floris",
         date      = "2026",
         license   = "GNU GPL, v2 or later",
@@ -338,9 +338,6 @@ function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 			strength = strength,
 			startTime = gameTime,
 		})
-
-		-- inform widgethandler
-		Script.LuaUI.UnitSeismicPing(x, y, z, strength, allyTeam)
 	end
 end
 
@@ -349,7 +346,9 @@ function gadget:Update(dt)
 end
 
 function gadget:DrawWorld()
-	if #pings == 0 then return end
+	if #pings == 0 or Spring.IsGUIHidden() then
+		return
+	end
 
 	glDepthTest(false)
 

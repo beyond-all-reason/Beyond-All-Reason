@@ -16,8 +16,6 @@ return {
 		footprintx = 8,
 		footprintz = 8,
 		health = 25000,
-		idleautoheal = 25,
-		idletime = 1800,
 		mass = 9999999,
 		maxacc = 0.01104,
 		maxdec = 0.01104,
@@ -82,11 +80,6 @@ return {
 				[4] = "custom:waterwake-huge",
 				[5] = "custom:bowsplash-huge",
 				[6] = "custom:enginespurt-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -176,6 +169,9 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 200,
 				},

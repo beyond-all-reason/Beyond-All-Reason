@@ -9,8 +9,8 @@ return {
 		canrepeat = false,
 		category = "NOWEAPON",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "69 40 66",
-		collisionvolumetype = "CylY",
+		collisionvolumescales = "62 62 62",
+		collisionvolumetype = "Sphere",
 		corpse = "DEAD",
 		energycost = 55000,
 		energystorage = 1000,
@@ -19,8 +19,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 3550,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -79,13 +77,6 @@ return {
 				object = "Units/cor2X2E.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

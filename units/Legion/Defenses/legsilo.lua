@@ -7,15 +7,13 @@ return {
 		metalcost = 7700,
 		buildpic = "LEGSILO.DDS",
 		buildtime = 181000,
-		collisionvolumeoffsets = "0 18 -2",
-		collisionvolumescales = "90 38 84",
-		collisionvolumetype = "Box",
+		collisionvolumeoffsets = "0 18 0",
+		collisionvolumescales = "84 38 84",
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "nukeBuilding",
 		footprintx = 7,
 		footprintz = 7,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 6200,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -68,13 +66,6 @@ return {
 				object = "Units/cor3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -176,6 +167,9 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 100,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},

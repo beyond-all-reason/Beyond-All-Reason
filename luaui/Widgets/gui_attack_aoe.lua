@@ -641,6 +641,7 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 			info.type = "dropped"
 			info.scatter = scatter
 			info.v = unitDef.speed
+			info.range = weaponDef.range + (unitDef.isHoveringAirUnit and 0 or unitDef.speed) -- TODO: there are many WTFs
 			info.salvoSize = weaponDef.salvoSize
 			info.salvoDelay = weaponDef.salvoDelay
 		end
@@ -1608,10 +1609,6 @@ end
 ---@param data IndicatorDrawData
 local function DrawDropped(data)
 	local weaponInfo = data.weaponInfo
-	if not weaponInfo.salvoSize or weaponInfo.salvoSize <= 1 then
-		DrawAoe(data)
-		return
-	end
 
 	local ux, uz = data.source.x, data.source.z
 	local tx, tz = data.target.x, data.target.z

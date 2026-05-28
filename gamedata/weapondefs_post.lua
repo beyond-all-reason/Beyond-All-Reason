@@ -8,18 +8,32 @@
 --------------------------------------------------------------------------------
 
 -- see alldefs.lua for documentation
--- load the games _Post functions for defs, and find out if saving to custom params is wanted
-VFS.Include("gamedata/alldefs_post.lua")
--- load functionality for saving to custom params
-VFS.Include("gamedata/post_save_to_customparams.lua")
+local system = VFS.Include("gamedata/system.lua")
+local alldefs = VFS.Include("gamedata/alldefs_post.lua")
+local savedefs = VFS.Include("gamedata/post_save_to_customparams.lua")
+
+local weaponDefPost = alldefs.WeaponDef_Post
+local modOptionsPost = alldefs.ModOptions_Post
+local saveDefToCustomParams = savedefs.SaveDefToCustomParams
+local markDefOmittedInCustomParams = savedefs.MarkDefOmittedInCustomParams
 
 --------------------------------------------------------------------------------
 
+local function normalizeWeaponDef(weaponDef)
+	system.lowerkeys(weaponDef)
+	table.ensureTable(weaponDef, "customparams")
+	-- TODO: there are individual shield keys, also, not just a shield subtable
+	if weaponDef.weapontype == "Shield" then
+		table.ensureTable(weaponDef, "shield")
+		weaponDef.damage = nil
+	else
+		table.ensureTable(weaponDef, "damage")
+		weaponDef.shield = nil
+	end
+end
+
 local function ExtractWeaponDefs(unitDefName, unitDef)
 	local unitWeaponDefs = unitDef.weapondefs
-	if not unitWeaponDefs then
-		return
-	end
 
 	local prefix = unitDefName .. "_"
 
@@ -27,9 +41,10 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 	for weaponDefName, weaponDef in pairs(unitWeaponDefs) do
 		local fullName = prefix .. weaponDefName
 		WeaponDefs[fullName] = weaponDef
+		normalizeWeaponDef(weaponDef)
 
 		if SaveDefsToCustomParams then
-			MarkDefOmittedInCustomParams("WeaponDefs", fullName, weaponDef)
+			markDefOmittedInCustomParams("WeaponDefs", fullName, weaponDef)
 		end
 	end
 
@@ -66,6 +81,11 @@ end
 
 --------------------------------------------------------------------------------
 
+-- preprocess existing weapondefs entries
+for name, weaponDef in pairs(WeaponDefs) do
+	normalizeWeaponDef(weaponDef)
+end
+
 -- extract weapondefs from the unitdefs
 local UnitDefs = DEFS.unitDefs
 for name, unitDef in pairs(UnitDefs) do
@@ -74,13 +94,12 @@ end
 
 -- postprocess weapondefs
 for name, weaponDef in pairs(WeaponDefs) do
-	WeaponDef_Post(name, weaponDef)
+	weaponDefPost(name, weaponDef)
 
 	if SaveDefsToCustomParams then
-		SaveDefToCustomParams("WeaponDefs", name, weaponDef)
+		saveDefToCustomParams("WeaponDefs", name, weaponDef)
 	end
 end
 
-
 -- apply mod options that need _post
-ModOptions_Post(UnitDefs, WeaponDefs)
+modOptionsPost(UnitDefs, WeaponDefs)

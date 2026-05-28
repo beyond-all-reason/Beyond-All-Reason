@@ -23,8 +23,6 @@ return {
 		footprintx = 8,
 		footprintz = 8,
 		hightrajectory = 1,
-		idleautoheal = 15,
-		idletime = 300,
 		levelground = false,
 		mass = 1400,
 		health = 30000,

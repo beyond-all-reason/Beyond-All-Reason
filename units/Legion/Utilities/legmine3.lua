@@ -18,8 +18,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		health = 11,
-		idleautoheal = 10,
-		idletime = 300,
 		initcloaked = true,
 		levelground = false,
 		maxacc = 0,
@@ -27,7 +25,7 @@ return {
 		maxslope = 40,
 		maxwaterdepth = 0,
 		metalcost = 50,
-		mincloakdistance = 8,
+		mincloakdistance = 30,
 		nochasecategory = "VTOL",
 		objectname = "Units/legmine3.s3o",
 		script = "mines_lus.lua",
@@ -46,13 +44,6 @@ return {
 			removewait = true,
 			subfolder = "Legion/Utilities",
 			unitgroup = "explo",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

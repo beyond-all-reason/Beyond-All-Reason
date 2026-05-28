@@ -7,7 +7,7 @@ local function convertToPurple(value)
     return value
 end
 
-function scav_Wdef_Post(name, wDef)
+local function scavWeaponDefPost(name, wDef)
     if not wDef.customparams then wDef.customparams = {} end
     if wDef.commandfire and (not wDef.customparams.scavforcecommandfire) then wDef.commandfire = false end
     --wDef.metalpershot = 0
@@ -57,7 +57,9 @@ function scav_Wdef_Post(name, wDef)
         end
         if wDef.customparams.carried_unit and (not string.find(wDef.customparams.carried_unit, "_scav")) then
             wDef.customparams.carried_unit = wDef.customparams.carried_unit .. "_scav"
-            wDef.customparams.spawnrate = 1
+            if not wDef.customparams.spawnrate then
+                wDef.customparams.spawnrate = 10
+            end
         end
         if wDef.customparams.spawns_name and (not string.find(wDef.customparams.spawns_name, "_scav")) then
             local spawnNames = string.split(wDef.customparams.spawns_name)
@@ -69,3 +71,7 @@ function scav_Wdef_Post(name, wDef)
     end
     return wDef
 end
+
+return {
+	scavWeaponDefPost = scavWeaponDefPost,
+}

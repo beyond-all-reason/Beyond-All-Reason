@@ -882,10 +882,17 @@ void main(void)
 	diffuse = clamp(dot(-lightDirection, normals.xyz), 0.0, 1.0);
 	
 	
-	vec3 reflection = reflect(lightDirection, normals.xyz);
-	specular = dot(reflection, viewDirection);
-	specular = v_modelfactor_specular_scattering_lensflare.y * pow(max(0.0, specular), 8.0 * ( 1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x) ) * (1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x);
-	attenuation = pow(attenuation, 1.0);
+	// Blinn-Phong specular: half-vector instead of reflect(). Produces rounder
+	// highlights that elongate naturally at grazing angles (more wet-metal/PBR look)
+	// instead of Phong's teardrop-then-pop. Exponent is ~4x Phong to match the
+	// equivalent highlight tightness.
+	vec3 halfVector = normalize(-lightDirection + viewDirection);
+	specular = max(0.0, dot(halfVector, normals.xyz));
+	specular = v_modelfactor_specular_scattering_lensflare.y * pow(specular, 32.0 * ( 1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x) ) * (1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x);
+	// Smoothstep-shaped falloff: preserves endpoints (0 at radius, 1 at center)
+	// and the [0,1] mean stays 0.5 (same energy as the linear curve), but rounds
+	// off the harsh ring at the light boundary that linear `1 - d/r` produces.
+	attenuation = attenuation * attenuation * (3.0 - 2.0 * attenuation);
 
 	//Give each light a unique blue noise sampling offset 
 	vec2 blueNoiseUV = (gl_FragCoord.xy + float(v_noiseoffset.a)*7.0)/64.0;

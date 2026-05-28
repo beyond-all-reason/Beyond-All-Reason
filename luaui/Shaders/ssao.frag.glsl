@@ -37,6 +37,14 @@ vec3 hash32(vec2 p) {
 	return fract((p3.xxy+p3.yzz)*p3.zyx);
 }
 
+// Interleaved Gradient Noise (Jorge Jimenez, "Next Generation Post Processing in CoD:AW", 2014).
+// Same cost as a hash, but produces a structured screen-space pattern that the bilateral
+// blur can dissolve into a smooth result far more effectively than uncorrelated white noise.
+// This lets us use significantly fewer SSAO samples for the same perceived quality.
+float IGN(vec2 p) {
+	return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715))));
+}
+
 uniform float testuniform = 0.5;
 
 in DataVS {
@@ -122,7 +130,10 @@ void main() {
 
 	if ( dot(viewNormal, viewNormal) > 0.1 && fragDistFactor > 0.0 && (validFragment > 0.5) ) {
 		// Calculate the rotation matrix for the kernel.
-		vec3 randomVector = normalize( NORM2SNORM(hash32(gl_FragCoord.xy)) );
+		// IGN gives a structured 2D rotation phase per pixel (much better blur convergence than white-noise hash).
+		// We construct an in-plane random direction and combine with a stable z lift to avoid degeneracy.
+		float ignPhase = IGN(gl_FragCoord.xy) * 6.28318530718;
+		vec3 randomVector = normalize(vec3(cos(ignPhase), sin(ignPhase), 0.5));
 
 		// Using Gram-Schmidt process to get an orthogonal vector to the normal vector.
 		// The resulting tangent is on the same plane as the random and normal vector.
@@ -220,6 +231,15 @@ void main() {
 		float fullylit = clamp(1.0 - occlusion, 0.0, 1.0);
 
 		fullylit = pow(fullylit, SSAO_OCCLUSION_POWER);
+
+		// Jimenez multi-bounce AO approximation (Activision GDC 2016, "Practical Realtime Strategies for
+		// Accurate Indirect Occlusion"). Pre-baked for an average albedo of 0.95 since this widget outputs
+		// scalar AO that gets multiplied into deferred lighting downstream. The curve mostly affects the
+		// dark end: it lifts already-dark crevices back up to account for indirect light bouncing back into
+		// them, so AO no longer over-darkens regions that physical light would partially fill in.
+		// Coefficients: a = 2.0404*albedo - 0.3324; b = -4.7951*albedo + 0.6417; c = 2.7552*albedo + 0.6903.
+		fullylit = max(fullylit, ((fullylit * 1.6060 - 3.9136) * fullylit + 3.3077) * fullylit);
+		fullylit = clamp(fullylit, 0.0, 1.0);
 
 		#if DEBUG_SSAO == 1
 			fragColor = vec4(vec3( fullylit ), 1.0 );

@@ -12,11 +12,9 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1970,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.04056,
-		maxdec = 0.08113,
+		maxdec = 0.1,
 		maxslope = 10,
 		maxwaterdepth = 12,
 		metalcost = 235,
@@ -26,7 +24,7 @@ return {
 		script = "Units/CORRAID.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 325,
+		sightdistance = 330,
 		speed = 72.9,
 		trackoffset = 6,
 		trackstrength = 5,
@@ -82,11 +80,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -64,11 +64,14 @@ local spGetPositionLosState 	= Spring.GetPositionLosState
 local spGetCameraPosition		= Spring.GetCameraPosition
 local spGetUnitStockpile		= Spring.GetUnitStockpile
 local spGetAllUnits    			= Spring.GetAllUnits
+local spGetTeamUnitsByDefs	= Spring.GetTeamUnitsByDefs
+local spGetTeamList			= Spring.GetTeamList
 local GetUnitIsStunned     		= Spring.GetUnitIsStunned
 
 local antiInLos					= {}
 local antiOutLos				= {}
 local antiNukeDefs              = {}
+local antiNukeDefIDList         = {}  -- array of DefIDs for GetTeamUnitsByDefs
 
 local diag = math.diag
 
@@ -90,6 +93,7 @@ function identifyAntiNukeUnits()
             local weaponDef = WeaponDefs[weapons[i].weaponDef]
             if weaponDef and weaponDef.interceptor and weaponDef.interceptor == 1 then
                 antiNukeDefs[unitDefID] = weaponDef.coverageRange
+                antiNukeDefIDList[#antiNukeDefIDList + 1] = unitDefID
                 break
             end
         end
@@ -254,10 +258,15 @@ function checkAllUnits()
 	antiInLos				= {}
 	antiOutLos				= {}
 
-	local allUnits = spGetAllUnits()
-    for i=1,#allUnits do
-        processVisibleUnit(allUnits[i])
-    end
+	if #antiNukeDefIDList == 0 then return end
+	for _, allyTeamID in ipairs(spGetTeamList()) do
+		local units = spGetTeamUnitsByDefs(allyTeamID, antiNukeDefIDList)
+		if units then
+			for i = 1, #units do
+				processVisibleUnit(units[i])
+			end
+		end
+	end
 end
 
 --------------------------------------------------------------------------------

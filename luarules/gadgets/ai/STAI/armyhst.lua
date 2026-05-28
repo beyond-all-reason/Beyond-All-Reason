@@ -904,7 +904,10 @@ local function getDPS(unitDefID)
 	for i=1, #weapons do
 		local weaponDefID = weapons[i]["weaponDef"]
 		local weaponDef = WeaponDefs[weaponDefID]
-		dps = dps + weaponDef['damages'][0] / weaponDef['reload']
+		local weaponGroup = tonumber(weaponDef.customParams.weapons_group)
+		if weaponGroup == 0 or weaponGroup == 1 then
+			dps = dps + weaponDef['damages'][0] / weaponDef['reload']
+		end
 	end
 	return dps
 end

@@ -22,8 +22,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		hoverattack = true,
-		idleautoheal = 25,
-		idletime = 1800,
 		sightemitheight = 52,
 		mass = 1000000,
 		health = 67000,
@@ -83,11 +81,6 @@ return {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:barrelshot-large",
 				[3] = "custom:barrelshot-medium-aa",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

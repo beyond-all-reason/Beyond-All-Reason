@@ -21,8 +21,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2200,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavesghost = true,
 		mass = 5100,
 		maxacc = 0,
@@ -52,13 +50,6 @@ return {
 			subfolder = "CorBuildings/SeaUtil",
 			unitgroup = "builder",
 			usebuildinggrounddecal = true,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

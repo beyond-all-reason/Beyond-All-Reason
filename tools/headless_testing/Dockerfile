@@ -6,6 +6,8 @@ ENV BAR_ROOT=/bar
 ENV BAR_CONFIG_JSON=./config.json
 ENV BAR_CONFIG_ENV=./config.env
 
+ARG CUSTOM_ENGINE_URL=""
+
 RUN apt-get update && \
     apt-get install -y curl jq p7zip-full && \
     rm -rf /var/lib/apt/lists/*
@@ -18,7 +20,9 @@ COPY --chmod=755 ./parse-config.sh .
 RUN ./parse-config.sh
 
 COPY --chmod=755 ./download-engine.sh .
-RUN export $(cat $BAR_CONFIG_ENV | xargs) && ./download-engine.sh
+RUN export $(cat $BAR_CONFIG_ENV | xargs) && \
+    if [ -n "$CUSTOM_ENGINE_URL" ]; then export ENGINE_URL="$CUSTOM_ENGINE_URL"; fi && \
+    ./download-engine.sh
 
 COPY --chmod=755 ./download-maps.sh .
 RUN export $(cat $BAR_CONFIG_ENV | xargs) && ./download-maps.sh

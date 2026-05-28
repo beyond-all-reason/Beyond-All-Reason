@@ -45,6 +45,7 @@ function OverlapLines.getOverlapLines(originX, originZ, neighbors, range)
         originX = originX,
         originZ = originZ,
     }
+    local lineCount = 0
     for i = 1, #neighbors do
         local neighbor = neighbors[i]
         local point1, point2 = getCircleIntersections(originX, originZ, neighbor.x, neighbor.z, range)
@@ -58,7 +59,8 @@ function OverlapLines.getOverlapLines(originX, originZ, neighbors, range)
             
             local originSideValue = lineCoeffA * originX + lineCoeffB * originZ + lineCoeffC
             
-            table.insert(lines, {
+            lineCount = lineCount + 1
+            lines[lineCount] = {
                 p1 = point1, 
                 p2 = point2, 
                 neighbor = neighbor,
@@ -66,7 +68,7 @@ function OverlapLines.getOverlapLines(originX, originZ, neighbors, range)
                 B = lineCoeffB,
                 C = lineCoeffC,
                 originVal = originSideValue
-            })
+            }
         end
     end
     return lines
@@ -135,7 +137,19 @@ local function getSide(p, lineP1, lineP2)
     return (lineP2.x - lineP1.x) * (p.z - lineP1.z) - (lineP2.z - lineP1.z) * (p.x - lineP1.x)
 end
 
+local function getSideXZ(px, pz, lineP1, lineP2)
+    return (lineP2.x - lineP1.x) * (pz - lineP1.z) - (lineP2.z - lineP1.z) * (px - lineP1.x)
+end
+
 local CIRCLE_SEGMENT_COUNT = 128
+
+local circCos = {}
+local circSin = {}
+for i = 0, CIRCLE_SEGMENT_COUNT do
+    local angle = i * (2 * math.pi / CIRCLE_SEGMENT_COUNT)
+    circCos[i] = math.cos(angle)
+    circSin[i] = math.sin(angle)
+end
 
 ---Get segments for drawing the overlap lines and circle boundary
 ---@param lines table[] The cached overlap lines
@@ -145,40 +159,50 @@ local CIRCLE_SEGMENT_COUNT = 128
 ---@return table[] segments List of segments to draw, each segment is {p1={x,z}, p2={x,z}}
 function OverlapLines.getDrawingSegments(lines, originX, originZ, radius)
     local segments = {}
+    local segCount = 0
     
-    local originPos = {x = originX, z = originZ}
     local lineValidSides = {}
+    local lineCount = lines and #lines or 0
     
-    if lines and #lines > 0 then
-        for i, line in ipairs(lines) do
-            lineValidSides[i] = getSide(originPos, line.p1, line.p2)
+    if lineCount > 0 then
+        for i = 1, lineCount do
+            local line = lines[i]
+            lineValidSides[i] = getSideXZ(originX, originZ, line.p1, line.p2)
         end
 
-        for i, line in ipairs(lines) do
-            local intersections = {}
-            table.insert(intersections, {x = line.p1.x, z = line.p1.z, t = 0})
-            table.insert(intersections, {x = line.p2.x, z = line.p2.z, t = 1})
+        local sortFunc = function(a, b) return a.t < b.t end
+
+        for i = 1, lineCount do
+            local line = lines[i]
+            local intersections = {
+                {x = line.p1.x, z = line.p1.z, t = 0},
+                {x = line.p2.x, z = line.p2.z, t = 1},
+            }
+            local intCount = 2
             
-            for j, otherLine in ipairs(lines) do
+            for j = 1, lineCount do
                 if i ~= j then
-                    local intersection = findLineIntersection(line.p1, line.p2, otherLine.p1, otherLine.p2)
+                    local intersection = findLineIntersection(line.p1, line.p2, lines[j].p1, lines[j].p2)
                     if intersection then
-                        table.insert(intersections, intersection)
+                        intCount = intCount + 1
+                        intersections[intCount] = intersection
                     end
                 end
             end
             
-            table.sort(intersections, function(a, b) return a.t < b.t end)
+            table.sort(intersections, sortFunc)
             
-            for k = 1, #intersections - 1 do
+            for k = 1, intCount - 1 do
                 local pA = intersections[k]
                 local pB = intersections[k + 1]
-                local mid = {x = (pA.x + pB.x) / 2, z = (pA.z + pB.z) / 2}
+                local midX = (pA.x + pB.x) * 0.5
+                local midZ = (pA.z + pB.z) * 0.5
                 
                 local valid = true
-                for j, otherLine in ipairs(lines) do
+                for j = 1, lineCount do
                     if i ~= j then
-                        local side = getSide(mid, otherLine.p1, otherLine.p2)
+                        local otherLine = lines[j]
+                        local side = getSideXZ(midX, midZ, otherLine.p1, otherLine.p2)
                         if lineValidSides[j] * side < -0.01 then
                             valid = false
                             break
@@ -187,39 +211,28 @@ function OverlapLines.getDrawingSegments(lines, originX, originZ, radius)
                 end
                 
                 if valid then
-                    table.insert(segments, {p1 = pA, p2 = pB})
+                    segCount = segCount + 1
+                    segments[segCount] = {p1 = pA, p2 = pB}
                 end
             end
         end
     end
     
     if radius and radius > 0 then
-        local angleStep = (2 * math.pi) / CIRCLE_SEGMENT_COUNT
-        local circleSegmentsAdded = 0
-        
         for i = 0, CIRCLE_SEGMENT_COUNT - 1 do
-            local angle1 = i * angleStep
-            local angle2 = (i + 1) * angleStep
+            local p1x = originX + radius * circCos[i]
+            local p1z = originZ + radius * circSin[i]
+            local p2x = originX + radius * circCos[i + 1]
+            local p2z = originZ + radius * circSin[i + 1]
             
-            local p1 = {
-                x = originX + radius * math.cos(angle1),
-                z = originZ + radius * math.sin(angle1)
-            }
-            local p2 = {
-                x = originX + radius * math.cos(angle2),
-                z = originZ + radius * math.sin(angle2)
-            }
-            
-            local midAngle = (angle1 + angle2) / 2
-            local mid = {
-                x = originX + radius * math.cos(midAngle),
-                z = originZ + radius * math.sin(midAngle)
-            }
+            local midX = (p1x + p2x) * 0.5
+            local midZ = (p1z + p2z) * 0.5
             
             local valid = true
-            if lines and #lines > 0 then
-                for j, line in ipairs(lines) do
-                    local side = getSide(mid, line.p1, line.p2)
+            if lineCount > 0 then
+                for j = 1, lineCount do
+                    local line = lines[j]
+                    local side = getSideXZ(midX, midZ, line.p1, line.p2)
                     if lineValidSides[j] * side < -0.01 then
                         valid = false
                         break
@@ -228,8 +241,11 @@ function OverlapLines.getDrawingSegments(lines, originX, originZ, radius)
             end
             
             if valid then
-                table.insert(segments, {p1 = p1, p2 = p2})
-                circleSegmentsAdded = circleSegmentsAdded + 1
+                segCount = segCount + 1
+                segments[segCount] = {
+                    p1 = {x = p1x, z = p1z},
+                    p2 = {x = p2x, z = p2z},
+                }
             end
         end
     end

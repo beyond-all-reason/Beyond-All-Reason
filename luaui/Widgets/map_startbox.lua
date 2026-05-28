@@ -388,8 +388,28 @@ function widget:LanguageChanged()
 	createInfotextList()
 end
 
+-- Minimap icon display list cache
+local minimapIconList = nil
+local minimapIconListSx = 0
+local minimapIconListSz = 0
+local pipIconList = nil
+local pipIconListSx = 0
+local pipIconListSz = 0
+
+local function invalidateMinimapIcons()
+	if minimapIconList then
+		gl.DeleteList(minimapIconList)
+		minimapIconList = nil
+	end
+	if pipIconList then
+		gl.DeleteList(pipIconList)
+		pipIconList = nil
+	end
+end
+
 local function CoopStartPoint(playerID, x, y, z)
 	coopStartPoints[playerID] = {x, y, z}
+	invalidateMinimapIcons()
 	notifySpawnPositionsChanged()
 end
 
@@ -603,7 +623,8 @@ local function getStartUnitTexture(teamID)
 	return 'unitpics/other/dice.dds'
 end
 
-local function DrawStartUnitIcons(sx, sz, inPip)
+local totalTeams = #Spring.GetTeamList()-1
+local function buildIconList(sx, sz)
 	-- Ensure teams data is populated (DrawInMiniMap may be called before DrawWorld)
 	if not teamsToRenderCount or teamsToRenderCount == 0 then
 		clearPosCache()
@@ -612,26 +633,36 @@ local function DrawStartUnitIcons(sx, sz, inPip)
 
 	local rotation = getCurrentMiniMapRotationOption() or ROTATION.DEG_0
 
-	-- Icon size in pixels (same for both engine minimap and PIP)
-	-- PIP sets up GL transforms so pixel coords work the same way
 	local iconSize = math.max(sx, sz) * 0.06
+	if totalTeams > 24 then
+		local t = math.min((totalTeams - 24) / (140 - 24), 1)
+		iconSize = iconSize * (1 - 0.4 * t)
+	end
 
-	-- Precompute scale factors
 	local sxOverMapX = sx / mapSizeX
 	local szOverMapZ = sz / mapSizeZ
 	local sxOverMapZ = sx / mapSizeZ
 	local szOverMapX = sz / mapSizeX
 
+	local halfSize = iconSize * 0.535
+	local chamfer = math.max(1.5, math.min(3, math.max(sx, sz) * 0.008))
+	local borderSize = 1
+	local borderChamfer = chamfer + borderSize * 0.7
+	local iconHalf = iconSize * 0.45
+	local texZoom = 0.035
+	local iconChamfer = chamfer * 0.7
+	local iconSize2 = iconHalf * 2
+	local texChamfer = (iconChamfer / iconSize2) * (1 - 2 * texZoom)
+
+	-- Pre-compute all icon data and sort by texture to minimize state changes
+	local entries = {}
+	local entryCount = 0
 	for i = 1, (teamsToRenderCount or 0) do
 		local entry = teamsToRender[i]
 		local teamID = entry.teamID
 		local worldX, worldZ = entry.x, entry.z
-
-		-- Get the texture for this team's start unit
 		local texPath = getStartUnitTexture(teamID)
 		if texPath then
-			-- Apply minimap rotation and convert to pixel coords
-			-- Match the coordinate system used by other widgets (e.g., unit_share_tracker)
 			local drawX, drawY
 			if rotation == ROTATION.DEG_0 then
 				drawX = worldX * sxOverMapX
@@ -649,23 +680,27 @@ local function DrawStartUnitIcons(sx, sz, inPip)
 				drawX = worldX * sxOverMapX
 				drawY = sz - worldZ * szOverMapZ
 			end
-
-			-- Draw team-colored background with chamfered corners
+			drawX = math.floor(drawX + 0.5)
+			drawY = math.floor(drawY + 0.5)
 			local r, g, b = GetTeamColor(teamID)
-			glTexture(false)
-			local halfSize = iconSize * 0.5
-			-- Chamfer size: 1.5-3 pixels depending on resolution (scale with minimap size)
-			local chamfer = math.max(1.5, math.min(3, math.max(sx, sz) * 0.008))
+			entryCount = entryCount + 1
+			entries[entryCount] = { drawX = drawX, drawY = drawY, r = r, g = g, b = b, texPath = texPath }
+		end
+	end
 
-			-- Draw octagon (rectangle with chamfered corners)
-			local x1, y1 = drawX - halfSize, drawY - halfSize
-			local x2, y2 = drawX + halfSize, drawY + halfSize
+	-- Sort by texture path to batch texture state changes
+	table.sort(entries, function(a, b) return a.texPath < b.texPath end)
 
-			-- Draw dark border octagon (slightly larger)
-			local borderSize = 1
+	return gl.CreateList(function()
+		-- Draw all borders + team-color backgrounds first (no texture needed)
+		glTexture(false)
+		for i = 1, entryCount do
+			local e = entries[i]
+			local x1, y1 = e.drawX - halfSize, e.drawY - halfSize
+			local x2, y2 = e.drawX + halfSize, e.drawY + halfSize
 			local bx1, by1 = x1 - borderSize, y1 - borderSize
 			local bx2, by2 = x2 + borderSize, y2 + borderSize
-			local borderChamfer = chamfer + borderSize * 0.7
+
 			glColor(0, 0, 0, 0.25)
 			glBeginEnd(GL_POLYGON, function()
 				glVertex(bx1 + borderChamfer, by1)
@@ -678,71 +713,87 @@ local function DrawStartUnitIcons(sx, sz, inPip)
 				glVertex(bx1, by1 + borderChamfer)
 			end)
 
-			-- Draw team-colored octagon
-			glColor(r, g, b, 0.7)
+			glColor(e.r, e.g, e.b, 0.7)
 			glBeginEnd(GL_POLYGON, function()
-				-- Bottom edge (left to right)
 				glVertex(x1 + chamfer, y1)
 				glVertex(x2 - chamfer, y1)
-				-- Bottom-right corner
 				glVertex(x2, y1 + chamfer)
-				-- Right edge
 				glVertex(x2, y2 - chamfer)
-				-- Top-right corner
 				glVertex(x2 - chamfer, y2)
-				-- Top edge (right to left)
 				glVertex(x1 + chamfer, y2)
-				-- Top-left corner
 				glVertex(x1, y2 - chamfer)
-				-- Left edge
 				glVertex(x1, y1 + chamfer)
-				-- Bottom-left corner closes the loop
 			end)
+		end
 
-			-- Draw the unit icon with chamfered corners and slight zoom
-			glColor(1, 1, 1, 1)
-			glTexture(texPath)
-			local iconHalf = iconSize * 0.45
-			local ix1, iy1 = drawX - iconHalf, drawY - iconHalf
-			local ix2, iy2 = drawX + iconHalf, drawY + iconHalf
-			local texZoom = 0.035  -- 7% zoom means 3.5% border on each side
-			local iconChamfer = chamfer * 0.7  -- Slightly smaller chamfer for inner icon
-
-			-- Calculate chamfer in texture space
-			local iconSize2 = iconHalf * 2
-			local texChamfer = (iconChamfer / iconSize2) * (1 - 2 * texZoom)
-
-			-- Draw octagon with textured chamfered corners (flip Y by swapping texcoord Y)
+		-- Draw all textured icons (sorted by texture to minimize state changes)
+		glColor(1, 1, 1, 1)
+		local prevTex = nil
+		for i = 1, entryCount do
+			local e = entries[i]
+			if e.texPath ~= prevTex then
+				glTexture(e.texPath)
+				prevTex = e.texPath
+			end
+			local ix1, iy1 = e.drawX - iconHalf, e.drawY - iconHalf
+			local ix2, iy2 = e.drawX + iconHalf, e.drawY + iconHalf
 			glBeginEnd(GL_POLYGON, function()
-				-- Bottom edge (left to right) - tex Y flipped: bottom = 1-texZoom
 				glTexCoord(texZoom + texChamfer, 1 - texZoom)
 				glVertex(ix1 + iconChamfer, iy1)
 				glTexCoord(1 - texZoom - texChamfer, 1 - texZoom)
 				glVertex(ix2 - iconChamfer, iy1)
-				-- Bottom-right corner
 				glTexCoord(1 - texZoom, 1 - texZoom - texChamfer)
 				glVertex(ix2, iy1 + iconChamfer)
-				-- Right edge
 				glTexCoord(1 - texZoom, texZoom + texChamfer)
 				glVertex(ix2, iy2 - iconChamfer)
-				-- Top-right corner - tex Y flipped: top = texZoom
 				glTexCoord(1 - texZoom - texChamfer, texZoom)
 				glVertex(ix2 - iconChamfer, iy2)
-				-- Top edge (right to left)
 				glTexCoord(texZoom + texChamfer, texZoom)
 				glVertex(ix1 + iconChamfer, iy2)
-				-- Top-left corner
 				glTexCoord(texZoom, texZoom + texChamfer)
 				glVertex(ix1, iy2 - iconChamfer)
-				-- Left edge
 				glTexCoord(texZoom, 1 - texZoom - texChamfer)
 				glVertex(ix1, iy1 + iconChamfer)
 			end)
 		end
+		glTexture(false)
+	end)
+end
+
+local function DrawStartUnitIcons(sx, sz, inPip)
+	-- Skip caching during drag (position follows mouse every frame)
+	if draggingTeamID then
+		invalidateMinimapIcons()
+		local tempList = buildIconList(sx, sz)
+		if tempList then
+			glCallList(tempList)
+			gl.DeleteList(tempList)
+		end
+		return
 	end
 
-	glTexture(false)
-	glColor(1, 1, 1, 1)
+	-- Use cached display list if valid
+	if inPip then
+		if pipIconList and pipIconListSx == sx and pipIconListSz == sz then
+			glCallList(pipIconList)
+			return
+		end
+		if pipIconList then gl.DeleteList(pipIconList) end
+		pipIconList = buildIconList(sx, sz)
+		pipIconListSx = sx
+		pipIconListSz = sz
+		glCallList(pipIconList)
+	else
+		if minimapIconList and minimapIconListSx == sx and minimapIconListSz == sz then
+			glCallList(minimapIconList)
+			return
+		end
+		if minimapIconList then gl.DeleteList(minimapIconList) end
+		minimapIconList = buildIconList(sx, sz)
+		minimapIconListSx = sx
+		minimapIconListSz = sz
+		glCallList(minimapIconList)
+	end
 end
 
 
@@ -928,6 +979,7 @@ end
 local function removeLists()
 	gl.DeleteList(infotextList)
 	removeTeamLists()
+	invalidateMinimapIcons()
 end
 
 function widget:Shutdown()
@@ -1070,6 +1122,7 @@ function widget:ViewResize(x, y)
 		startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
 	end
 	removeTeamLists()
+	invalidateMinimapIcons()
 	usedFontSize = fontSize * widgetScale
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
@@ -1118,6 +1171,7 @@ function widget:Update(delta)
 		sec = 0
 		if assignTeamColors() then
 			removeLists()
+			invalidateMinimapIcons()
 		end
 	end
 
@@ -1269,6 +1323,7 @@ function widget:Update(delta)
 				end
 
 				if hasChanges then
+					invalidateMinimapIcons()
 					notifySpawnPositionsChanged()
 				end
 			end
@@ -1307,6 +1362,7 @@ function widget:RecvLuaMsg(msg)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationChanged', aiLocationI18NTable))
 			end
 
+			invalidateMinimapIcons()
 			notifySpawnPositionsChanged()
 		end
 	end

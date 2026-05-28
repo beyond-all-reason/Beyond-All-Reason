@@ -13,8 +13,6 @@ return {
 		footprintz = 2,
 		health = 1330,
 		hidedamage = true,
-		idleautoheal = 10,
-		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
 		maxacc = 0,
@@ -86,10 +84,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-lightning",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3-lightning",
-				[2] = "deathceg4-lightning",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -126,6 +120,7 @@ return {
 				cratermult = 0,
 				duration = 1,
 				edgeeffectiveness = 0.15,
+				energypershot = 10,				
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impactonly = 1,
@@ -154,7 +149,6 @@ return {
 				damage = {
 					commanders = 27,
 					default = 18,
-					vtol = 2.5,
 				},
 			},
 		},

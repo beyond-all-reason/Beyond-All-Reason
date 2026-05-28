@@ -14,8 +14,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		idleautoheal = 10,
-		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
 		health = 1610,
@@ -86,10 +84,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium-impulse",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4-fire",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -142,15 +136,15 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					default = 240,
 					commanders = 375,
 					subs = 90,
 					vtol = 35,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

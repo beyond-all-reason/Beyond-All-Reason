@@ -18,7 +18,7 @@ local scenariodata = {
 	
 	The internal command to run a benchmark of various units against each other needs cheating enabled, and is the following:
 
-	/luarules fightertest [unitname1] [unitname2] [maxunits] [spawnstep] [spawnradius] 
+	/luarules benchmark [unitname1] [unitname2] [maxunits] [spawnstep] [spawnradius] 
 	For this benchmark, it is
 
 	/luarules armcv armck 11000 1 12000
@@ -46,7 +46,7 @@ local scenariodata = {
         --myoption = "dostuff",
         scenarioid = "benchmark_pathfinding", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
-		benchmarkcommand = "luarules fightertest armcv armck 11000 1 12000", -- make sure the matches the debugcommands identically named modoption's info
+		benchmarkcommand = "luarules benchmark armcv armck 11000 1 12000", -- make sure the matches the debugcommands identically named modoption's info
 		benchmarkframes = 2000,
 		-- quiteforce sucks, does not end the game. 
 		--unitloadout = {},	
@@ -92,7 +92,7 @@ local scenariodata = {
 	{
         scenariooptions = __SCENARIOOPTIONS__;
 		maxunits = 11000;
-		debugcommands = 1:cheat|15:luarules fightertest __PLAYERHANDICAP__|25:deselect|2015:screenshot|2016:luarules fightertest;
+		debugcommands = 1:cheat|15:luarules benchmark __PLAYERHANDICAP__|25:deselect|2015:screenshot|2016:luarules benchmark;
 	}
 	
 	[allyTeam1]

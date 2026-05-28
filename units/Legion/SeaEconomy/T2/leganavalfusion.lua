@@ -5,6 +5,9 @@ return {
 		buildpic = "leganavalfusion.DDS",
 		buildtime = 105000,
 		canrepeat = false,
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "101 59 69",
+		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 34000,
 		energymake = 1220,
@@ -14,8 +17,6 @@ return {
 		footprintz = 5,
 		health = 5900,
 		hidedamage = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 16,
@@ -39,6 +40,7 @@ return {
 			subfolder = "Legion/SeaEconomy/T2",
 			techlevel = 2,
 			unitgroup = "energy",
+			restrictions_inclusion = "_nofusion_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -73,11 +75,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[0] = "custom:subbubbles",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

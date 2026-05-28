@@ -1,6 +1,10 @@
 {
 	"ui": {
 		"forceResignMessage": "You have been force-resigned: Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
+		"factoryqmanager": {
+			"saved": "Saved",
+			"loaded": "Loaded"
+		},
 		"rejoin": {
 			"catchingUp": "Catching up to "
 		},
@@ -17,6 +21,7 @@
 				"changes": "Changes",
 				"keys": "Keys",
 				"scavengers": "Scavengers",
+				"mission": "Mission",
 				"stats": "Statistics",
 				"graphs": "Graphs",
 				"save": "Save"
@@ -36,7 +41,7 @@
 			"commanderCount": "Commander Counter",
 			"commanderCountTooltip": "Displays the number of ally and enemy commanders",
 			"tidalspeed": "Tidal Speed",
-			"tidalspeedTooltip": "Tidal speed on this map (always constant)",
+			"tidalspeedTooltip": "Tidal (water) speed on this map  (always constant)",
 			"windspeed": "Wind Speed",
 			"windspeedTooltip": "(small numbers are minimum and maximum)\nAverage wind speed on this map is %{avgWindValue}\nCurrent wind risk is %{riskWindValue} (percentage of time wind speed will be below 6)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
 			"wind": {
@@ -150,18 +155,26 @@
 			"tooltip": "Toggle Picture-in-Picture",
 			"switch": "Switch view with main view",
 			"copy": "Copy main camera to PIP",
-			"track": "Track selected units",
+			"track": "Track selected units (focus camera on them)",
 			"untrack": "Track selected units",
 			"view": "Limit to team view",
 			"unview": "View full map again",
 			"camera": "View selected player's camera",
 			"uncamera": "Cancel camera tracking",
 			"move": "Move window",
+			"activity": "Briefly focus camera onto recently placed map markers",
+			"unactivity": "Disable map marker camera focus",
+			"tv": "Enable TV mode\nAuto-camera follows the action",
+			"untv": "Disable TV mode",
 			"resize": "Resize window",
 			"minimize": "Minimize\nALT+CLICK-DRAG to Move",
 			"maximize": "Maximize\nALT+CLICK-DRAG to Move",
 			"worldminimize": "ALT+CLICK to Minimize PiP\nALT+CLICK-DRAG to Move PiP\nALT+SCROLL to zoom",
-			"worldmaximize": "ALT+CLICK Maximize PiP\nALT+CLICK-DRAG to Move PiP\nALT+SCROLL to zoom"
+			"worldmaximize": "ALT+CLICK Maximize PiP\nALT+CLICK-DRAG to Move PiP\nALT+SCROLL to zoom",
+			"help": "Zoom with ALT+scroll (configurable in Settings)\nMiddle-click to move the game camera\nMiddle-click (or ALT+leftmouse) drag to pan the camera",
+			"help_leftclick": "\nLeft-click moves the game camera when fully zoomed out\nZoom in to select units and give commands (or disable 'left click moves camera' in Settings)",
+			"minimap_minimize": "Minimize minimap",
+			"minimap_maximize": "Maximize minimap"
 		},
 		"teamEconomy": {
 			"tooltipTitle": "Team Income",
@@ -256,6 +269,8 @@
 			"Maneuver": "Maneuver",
 			"Roam": "Roam",
 			"movestate_tooltip": "Set how far out of its way a unit should move to attack enemies",
+			"bomber_targeting": "Targeting",
+			"bomber_targeting_tooltip": "Hold Fire: Only attack with an explicit order. Fire at will: Idle bombers will seek targets within range.",
 			"Repeat on": "Repeat On",
 			"Repeat off": "Repeat Off",
 			"repeat_tooltip": "Repeat unit command queue",
@@ -315,6 +330,15 @@
 		},
 		"changelog": {
 			"title": "Changelog"
+		},
+		"missioninfo": {
+			"title": "Mission Info",
+			"difficulty": "Difficulty",
+			"objectives": "Objectives",
+			"victory": "Victory condition",
+			"defeat": "Defeat condition",
+			"summary": "Summary",
+			"briefing": "Briefing"
 		},
 		"keybinds": {
 			"title": "Keybinds",
@@ -452,7 +476,8 @@
 				"removeAutoGroup": "Remove unit type from autogroup",
 				"groupKey": "(num)",
 				"group": "Select all units assigned to group (num)",
-				"sameType": "Select all units of same type as selected"
+				"sameType": "Select all units of same type as selected",
+				"damaged": "Select damaged units"
 			},
 			"drawing": {
 				"title": "Drawing",
@@ -470,6 +495,14 @@
 				"pauseKey": "/pause",
 				"pause": "Pause"
 			}
+		},
+		"blueprint": {
+			"cursor_active": "Blueprint #%{index}",
+			"cursor_none": "No Blueprints",
+			"hotkey_next": "Next",
+			"hotkey_prev": "Previous",
+			"hotkey_delete": "Delete",
+			"hotkey_none": "<none>"
 		},
 		"ignore": {
 			"unknown": "unknown accountID",
@@ -931,6 +964,7 @@
 			"aim": "aim",
 			"firerate": "firerate",
 			"range": "range",
+			"coverage": "coverage",
 			"aoe": "aoe",
 			"edge": "edge",
 			"s": "s",
@@ -943,6 +977,7 @@
 			"infinite": "infinite",
 			"burst": "Burst",
 			"modifiers": "Modifiers",
+			"intercepts": "Intercepts",
 			"each": "each",
 			"dps": "DPS",
 			"persecond": "per second",
@@ -1187,6 +1222,11 @@
 				"featuredrawdist_descr": "Features (trees, stones, wreckage) stop being displayed at this distance",
 				"particles": "Particle limit",
 				"particles_descr": "Particle limit used for explosions, smoke, fire, missile trails and build particles\n\nBeware: too low value can result in missing effects.",
+				"nanoparticletype": "Particle type",
+				"nanoparticletype_descr": "Select the type of particles used for building and repairing units.",
+				"nanoparticletype_simple": "simple",
+				"nanoparticletype_smart": "smart",
+				"nanoparticletype_shapes": "shapes",
 				"lighteffects": "Lights",
 				"lighteffects_descr": "Adds lights to projectiles, lasers and explosions.",
 				"lighteffects_life": "lifetime",
@@ -1359,8 +1399,6 @@
 				"guishader": "blur",
 				"guishader_descr": "Blurs the world under every user interface element",
 				"guishaderintensity": "   intensity",
-				"rendertotexture": "performance mode",
-				"rendertotexture_descr": "Draw various UI elements to texture instead of drawing lists of multiple OpenGL commands repeatedly\n\nNOTE: Quality may be reduced when enabled (especially on lower resolution screens)",
 				"font": "Font",
 				"font_descr": "Regular read friendly font used for text",
 				"font2": "Font 2",
@@ -1411,6 +1449,21 @@
 				"minimaprotation_none": "None",
 				"minimaprotation_autoflip": "Auto Flip 180 Degree",
 				"minimaprotation_autorotate": "Auto Rotate 90 Degree",
+				"minimaprotation_autolandscape": "Auto-landscape",
+				"minimappip": "advanced (pip style)",
+				"minimappip_descr": "Have a picture-in-picture style camera minimap implementation",
+				"pip_altkeyzoom": "require ALT to zoom",
+				"pip_altkeyzoom_descr": "When enabled, scrolling over the minimap only zooms if ALT or middle mouse button is held. Otherwise scroll passes through to the game camera.",
+				"pip_commandfx": "command FX lines",
+				"pip_commandfx_descr": "Show brief fading lines when orders are given in the PIP minimap",
+				"pip_minimap_engine_fallback": "engine fallback",
+				"pip_minimap_engine_fallback_descr": "Use the engine minimap when fully zoomed out for better performance. The PIP takes over when you zoom in.",
+				"pip_engine_fallback_threshold": "engine fallback unit threshold",
+				"pip_engine_fallback_threshold_descr": "Unit count threshold before the engine minimap fallback activates. Lower values switch to the engine minimap sooner for better performance.",
+				"pip": "picture-in-picture",
+				"pip_descr": "Displays a floating camera minimap style window",
+				"pip2": "picture-in-picture 2",
+				"pip2_descr": "Displays a floating camera minimap style window",
 				"gridmenu": "Use Gridmenu",
 				"gridmenu_descr": "Alternative build menu, designed for comprehensive hotkey use",
 				"gridmenu_alwaysreturn": "Grid always returns to categories",
@@ -1489,10 +1542,6 @@
 				"systemprivacy_descr": "disallow other players to view your system specifications (in player list tooltip)\napplies to next game",
 				"mascot": "mascot",
 				"mascot_descr": "Shows a mascot on top of the playerlist",
-				"pip": "picture-in-picture",
-				"pip_descr": "Displays a floating camera minimap style window",
-				"pip2": "picture-in-picture 2",
-				"pip2_descr": "Displays a floating camera minimap style window",
 				"unittotals": "unit totals",
 				"unittotals_descr": "Show your unit totals on top of the playerlist",
 				"musicplayer": "music player",
@@ -1698,6 +1747,8 @@
 				"smartselect_includebuildings_descr": "When rectangle-drag-selecting an area, include building units too?\n\nDisabled: non-mobile units will be excluded (hold Shift to override)\nNote: Construction Turrets will always be selected",
 				"smartselect_includebuilders": "include builders (if above is off)",
 				"smartselect_includebuilders_descr": "When rectangle-drag-selecting an area, exclude builder units (hold Shift to override)",
+				"smartselect_includeresurrectors": "include resurrectors (if above is off)",
+				"smartselect_includeresurrectors_descr": "When rectangle-drag-selecting an area, exclude resurrection units (hold Shift to override)",
 				"smartselect_includeantinuke": "include antinuke units (if above is off)",
 				"smartselect_includeantinuke_descr": "When rectangle-drag-selecting an area, exclude antinuke units (hold Shift to override)",
 				"smartselect_includeradar": "include radar units (if above is off)",
@@ -1706,6 +1757,8 @@
 				"smartselect_includejammer_descr": "When rectangle-drag-selecting an area, exclude jammer units (hold Shift to override)",
 				"onlyfighterspatrol": "Only fighters patrol",
 				"onlyfighterspatrol_descr": "Only fighters obey a factory's patrol route after leaving airlab.",
+				"bombers_default_hold_fire": "Set bombers on hold fire",
+				"bombers_default_hold_fire_descr": "Produced bombers start on Hold Fire after leaving airlab.",
 				"fightersfly": "Set fighters on Fly mode",
 				"fightersfly_descr": "Setting fighters on Fly mode when created",
 				"prioconturrets": "Priority construction turrets",
@@ -1732,8 +1785,6 @@
 				"factoryholdpos_descr": "Sets factories and units they produce, to hold position automatically (not aircraft)",
 				"factoryrepeat": "auto-repeat",
 				"factoryrepeat_descr": "Sets new factories on Repeat mode",
-				"transportai": "Transport AI",
-				"transportai_descr": "Transport units automatically pick up new units going to factory waypoint.",
 				"settargetdefault": "Set-target as default",
 				"settargetdefault_descr": "Replace default attack command to a set-target command\n(when rightclicked on enemy unit)",
 				"dgunnogroundenemies": "Dont snap DGun to ground units",
@@ -1764,6 +1815,8 @@
 				"autocheat_descr": "does: /cheat, /globallos, /godmode",
 				"restart": "Restart",
 				"restart_descr": "Restarts the game",
+				"restart_with_state": "Restart (keep units & orders)",
+				"restart_with_state_descr": "Saves every current unit (with its health, states and command queue), restarts the game, then restores them. Best used in singleplayer.",
 				"echocamerastate": "Echo cameraState",
 				"echocamerastate_descr": "Echoes contents of Spring.GetCameraState()",
 				"storedefaultsettings": "Store default settings",

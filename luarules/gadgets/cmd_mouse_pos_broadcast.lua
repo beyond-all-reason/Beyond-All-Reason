@@ -32,33 +32,29 @@ local UnpackU16			= VFS.UnpackU16
 
 
 if gadgetHandler:IsSyncedCode() then
-	local charset = {}  do -- [0-9a-zA-Z]
-		for c = 48, 57  do table.insert(charset, string.char(c)) end
-		for c = 65, 90  do table.insert(charset, string.char(c)) end
-		for c = 97, 122 do table.insert(charset, string.char(c)) end
-	end
-	local function randomString(length)
-		if not length or length <= 0 then return '' end
-		return randomString(length - 1) .. charset[math.random(1, #charset)]
-	end
-
-	local validation = randomString(2)
+	local validation = string.randomString(2)
 	_G.validationMouse = validation
 
+	local SendToUnsynced = SendToUnsynced
+	local strSub = string.sub
+	local expectedPrefix = "£" .. validation
+	local EXPECTED_PREFIX_LEN = #expectedPrefix
+
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,2)=="£" and msg:sub(3,4)==validation then
-			local xz = msg:sub(6)
-			local l = xz:len()*0.25
-			if l == numMousePos then
-				for i=0,numMousePos-1 do
-					local x = UnpackU16(xz:sub(i*4+1,i*4+2))
-					local z = UnpackU16(xz:sub(i*4+3,i*4+4))
-					local click = msg:sub(4,4) == "1"
-					SendToUnsynced("mouseBroadcast",playerID,x,z,click)
-				end
-			end
-			return true
+		if strSub(msg, 1, EXPECTED_PREFIX_LEN) ~= expectedPrefix then
+			return
 		end
+		local xz = strSub(msg, EXPECTED_PREFIX_LEN + 2)
+		if #xz ~= numMousePos * 4 then
+			return
+		end
+		local click = strSub(msg, EXPECTED_PREFIX_LEN + 1, EXPECTED_PREFIX_LEN + 1) == "1"
+		local x1 = UnpackU16(strSub(xz, 1, 2))
+		local z1 = UnpackU16(strSub(xz, 3, 4))
+		local x2 = UnpackU16(strSub(xz, 5, 6))
+		local z2 = UnpackU16(strSub(xz, 7, 8))
+		SendToUnsynced("mouseBroadcast", playerID, x1, z1, x2, z2, click)
+		return true
 	end
 
 
@@ -83,9 +79,11 @@ else
 	local abs				= math.abs
 
 	local validation = SYNCED.validationMouse
+	local msgPrefix = "£" .. validation
 
 	local myPlayerID = Spring.GetMyPlayerID()
 	local spec, _ = GetSpectatingState()
+	local myAllyTeamID = select(5, GetPlayerInfo(myPlayerID, false))
 
 	local saveEach = (spec and sendPacketEveryWhenSpec or sendPacketEvery) / numMousePos
 	local updateTick = saveEach
@@ -95,6 +93,23 @@ else
 
 	local lastx,lastz = 0,0
 	local n = 0
+
+	local tableConcat = table.concat
+	local sendParts = {msgPrefix, false, false, false, false, false}
+
+	local function sendPositionPacket(clickChar)
+		sendParts[2] = clickChar
+		local pn = 2
+		for i = numMousePos, 1, -1 do
+			local xStr = poshistory[i * 2]
+			local zStr = poshistory[i * 2 + 1]
+			if xStr and zStr then
+				pn = pn + 1; sendParts[pn] = xStr
+				pn = pn + 1; sendParts[pn] = zStr
+			end
+		end
+		SendLuaRulesMsg(tableConcat(sendParts, "", 1, pn))
+	end
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("mouseBroadcast", handleMousePosEvent)
@@ -107,6 +122,7 @@ else
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
 			spec, _ = Spring.GetSpectatingState()
+			myAllyTeamID = select(5, GetPlayerInfo(myPlayerID, false))
 			if spec then
 				saveEach = sendPacketEveryWhenSpec/numMousePos
 				updateTick = saveEach
@@ -114,16 +130,15 @@ else
 		end
 	end
 
-	function handleMousePosEvent(_,playerID,x,z,click)
-		--here we receive mouse pos from other players and dispatch to luaui
+	function handleMousePosEvent(_,playerID,x1,z1,x2,z2,click)
 		if not spec then
 			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
-			if targetSpec or allyTeamID ~= select(5,GetPlayerInfo(myPlayerID,false)) then
+			if targetSpec or allyTeamID ~= myAllyTeamID then
 				return
 			end
 		end
 		if Script.LuaUI("MouseCursorEvent") then
-			Script.LuaUI.MouseCursorEvent(playerID,x,z,click)
+			Script.LuaUI.MouseCursorEvent(playerID,x1,z1,x2,z2,click)
 		end
 	end
 
@@ -134,7 +149,7 @@ else
 			local mx,my = GetMouseState()
 			local _,pos = TraceScreenRay(mx,my,true)
 
-			if pos and (n == 1 or pos[1] ~= lastx or pos[2] ~= lastz) then	-- only record change in position unless packet is already being instigated previous update tick
+			if pos and (n == 1 or pos[1] ~= lastx or pos[3] ~= lastz) then	-- only record change in position unless packet is already being instigated previous update tick
 				poshistory[n*2]	 = PackU16(floor(pos[1]))
 				poshistory[n*2+1] = PackU16(floor(pos[3]))
 				--if n == numMousePos then
@@ -149,16 +164,7 @@ else
 			n = 0
 			updateTimer = 0
 			updateTick = saveEach
-
-			local posStr = "0"
-			for i=numMousePos,1,-1 do
-				local xStr = poshistory[i*2]
-				local zStr = poshistory[i*2+1]
-				if xStr and zStr then
-					posStr = posStr .. xStr .. zStr
-				end
-			end
-			SendLuaRulesMsg("£" .. validation .. posStr)
+			sendPositionPacket("0")
 		end
 	end
 
@@ -182,15 +188,7 @@ else
 			updateTick = saveEach
 			updateTimer = 0
 			n = 0
-			local posStr = "0"
-			for i=numMousePos,1,-1 do
-				local xStr = poshistory[i*2]
-				local zStr = poshistory[i*2+1]
-				if xStr and zStr then
-					posStr = posStr .. xStr .. zStr
-				end
-			end
-			SendLuaRulesMsg("£" .. validation .. posStr)
+			sendPositionPacket("0")
 		end
 	end
 

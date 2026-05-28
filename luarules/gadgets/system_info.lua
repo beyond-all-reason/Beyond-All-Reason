@@ -15,17 +15,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local charset = {}  do -- [0-9a-zA-Z]
-		for c = 48, 57  do table.insert(charset, string.char(c)) end
-		for c = 65, 90  do table.insert(charset, string.char(c)) end
-		for c = 97, 122 do table.insert(charset, string.char(c)) end
-	end
-	local function randomString(length)
-		if not length or length <= 0 then return '' end
-		return randomString(length - 1) .. charset[math.random(1, #charset)]
-	end
-
-	local validation = randomString(2)
+	local validation = string.randomString(2)
 	_G.validationSys = validation
 
 	function gadget:RecvLuaMsg(msg, playerID)
@@ -44,12 +34,15 @@ else
 	local validation = SYNCED.validationSys
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName,_,_,_,_,_,_,_,_,_,accountInfo = Spring.GetPlayerInfo(myPlayerID)
-	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-	local authorized = SYNCED.permissions.sysinfo[accountID]
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
+	local function isAuthorized()
+		local acID = Spring.Utilities.GetAccountID(myPlayerID)
+		local perms = SYNCED.permissions.sysinfo
+		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
+	end
 
 	local function handleSystemEvent(_,playerID,system)
-		if authorized then
+		if isAuthorized() then
 			if Script.LuaUI("SystemEvent") then
 				if systems[playerID] == nil and system ~= nil then
 					systems[playerID] = system
@@ -239,6 +232,9 @@ else
 
 		if s_os ~= nil then
 			system = system..'\nOS:  '..s_os
+		end
+		if Platform and Platform.architecture then
+			system = system..'\nArchitecture:  '..Platform.architecture
 		end
 
 		if chobbyLoaded then

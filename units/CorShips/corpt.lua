@@ -2,7 +2,6 @@ return {
 	corpt = {
 		activatewhenbuilt = true,
 		airsightdistance = 800,
-		autoheal = 1.5,
 		buildpic = "CORPT.DDS",
 		buildtime = 2500,
 		canmove = true,
@@ -16,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 890,
-		idleautoheal = 5,
-		idletime = 900,
 		maxacc = 0.05,
 		maxdec = 0.06473,
 		metalcost = 210,
@@ -80,10 +77,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:waterwake-tiny",
 				[2] = "custom:radarpulse_t1",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -150,6 +143,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 680,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 1,
 					vtol = 120,

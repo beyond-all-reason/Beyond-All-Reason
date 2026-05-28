@@ -34,6 +34,8 @@ local spEcho = Spring.Echo
 
 local spTestBuildOrder = Spring.TestBuildOrder
 
+local spawnWarpInFrame = Game.spawnWarpInFrame
+
 local buildQueue = {}
 local selBuildQueueDefID
 local facingMap = { south = 0, east = 1, north = 2, west = 3 }
@@ -1410,7 +1412,7 @@ function widget:GameFrame(n)
 	end
 
 	-- handle the pregame build queue
-	if not (n <= 90 and n > 1) then
+	if n <= 1 or n > spawnWarpInFrame then
 		return
 	end
 

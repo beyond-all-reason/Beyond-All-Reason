@@ -115,7 +115,8 @@ function RaidHST:SquadCheck(squad)
 	local x,y,z = 0,0,0
 	local mass = 0
 	local memberCount = 0
-	for i,member in pairs(squad.members) do
+	for i = #squad.members, 1, -1 do
+		local member = squad.members[i]
 		if not member.unit or not member.unit:Internal():GetPosition()	then
 			table.remove(squad.members,i)
 			self:RemoveRecruit(member)
@@ -353,12 +354,14 @@ function RaidHST:SquadsTargetDefense(squad)
 	self:EchoDebug('defensive target')
 	local targetDist = math.huge
 	local targetCell
+	local loshst = self.ai.loshst
+	local tool = self.ai.tool
+	local maphst = self.ai.maphst
+	local center = loshst.CENTER
 	for index,blob in pairs(self.ai.targethst.MOBILE_BLOBS)do
-		if self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z] then
-			if self.ai.maphst:UnitCanGoHere(game:GetUnitByID(squad.leader), blob.position) then
-				
-				
-				local dist = self.ai.tool:distance(blob.position,self.ai.loshst.CENTER)
+		if loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z] then
+			if maphst:UnitCanGoHere(game:GetUnitByID(squad.leader), blob.position) then
+				local dist = tool:distance(blob.position,center)
 				if dist < targetDist then
 					targetDist = dist
 					targetCell = {X = blob.targetCell.X,Z = blob.targetCell.Z}
@@ -373,11 +376,16 @@ function RaidHST:SquadsTargetAttack(squad)
 	self:EchoDebug('set target attack for', squad.squadID)
 	local bestTarget = nil
 	local worstDist = -1
-	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
+	local targethst = self.ai.targethst
+	local loshst = self.ai.loshst
+	local tool = self.ai.tool
+	local maphst = self.ai.maphst
+	local enemyCenter = targethst.enemyCenter
+	for ref, blob in pairs(targethst.IMMOBILE_BLOBS) do
 		if not self:SquadsTargetHandled(blob) then
-			if self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z] then
-				if self.ai.maphst:UnitCanGoHere(game:GetUnitByID(squad.leader), blob.position) then
-					local dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
+			if loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z] then
+				if maphst:UnitCanGoHere(game:GetUnitByID(squad.leader), blob.position) then
+					local dist = tool:distance(blob.position,enemyCenter)
 					if dist > worstDist then
 						worstDist = dist
 						bestTarget = {X = blob.targetCell.X,Z = blob.targetCell.Z}

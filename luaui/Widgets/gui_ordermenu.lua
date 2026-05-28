@@ -23,8 +23,6 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
 
@@ -92,6 +90,9 @@ local commands = {}
 local rows = 0
 local cols = 0
 local disableInput = false
+
+-- Highlight API state: items[cmdID] = { color={r,g,b}, startTime=os.clock() }
+local highlight = { items = {}, count = 0, defaultColor = { 1.0, 1.0, 1.0 } }
 local math_isInRect = math.isInRect
 local clickCountDown = 2
 
@@ -125,6 +126,38 @@ local hotkeyCache = {}
 local stateCommandsTemp = {}
 local otherCommandsTemp = {}
 
+-- Persistent cache for command display text (survives across refreshCommands calls)
+local commandTextCache = {}
+
+-- Cached WAIT command state (computed once per refresh, not per drawCell call)
+local cachedWaitState = nil
+local hasWaitCommand = false
+local cachedFirstUnit = nil  -- first selected unit, avoids spGetSelectedUnits() table alloc
+
+-- Cancel target button visibility tracking
+local cancelTargetPollSec = 0
+local cancelTargetLastState = false
+
+-- Command fingerprint to skip redundant R2T redraws
+local prevCmdCount = 0
+local prevCmdIDs = {}
+local prevCmdStates = {}
+local prevActiveCmd = nil
+local commandsVisuallyChanged = true
+
+-- Font metrics cache (cleared on ViewResize when font changes)
+local fontWidthCache = {}   -- text -> GetTextWidth result (with padding)
+local fontHeightCache = {}  -- text -> GetTextHeight result
+
+-- Colorized text color cache (cleared when colorize changes)
+local colorStrCache = {}
+local lastColorize = -1
+
+-- Pre-built printable text cache: textColor .. text (cleared on redraw)
+local printTextCache = {}
+
+local CANCEL_TARGET_CMD_ID = 34924 -- UNIT_CANCEL_TARGET
+
 local hiddenCommands = {
 	[CMD.LOAD_ONTO] = true,
 	[CMD.SELFD] = true,
@@ -134,7 +167,7 @@ local hiddenCommands = {
 	[CMD.TIMEWAIT] = true,
 	[CMD.AUTOREPAIRLEVEL] = true, -- retreat/idle mode (air repair pads removed)
 	[39812] = true, -- raw move
-	[34922] = true, -- set unit target
+	[34922] = true, -- set unit target (no ground)
 }
 
 local hiddenCommandTypes = {
@@ -177,10 +210,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isFactory then
 		isFactory[unitDefID] = true
 	end
-end
-
-local function convertColor(r, g, b)
-	return string.char(255, (r * 255), (g * 255), (b * 255))
 end
 
 local function checkGuiShader(force)
@@ -283,6 +312,30 @@ local function setupCellGrid(force)
 	end
 end
 
+local function computeWaitState()
+	if not hasWaitCommand then
+		cachedWaitState = nil
+		return
+	end
+	-- Use cached first unit instead of calling spGetSelectedUnits() which allocates a large table
+	local ref = cachedFirstUnit
+	if ref and Spring.ValidUnitID(ref) and Spring.FindUnitCmdDesc(ref, CMD.WAIT) then
+		local commandQueue
+		if isFactory[Spring.GetUnitDefID(ref)] then
+			commandQueue = Spring.GetFactoryCommands(ref, 1)
+		else
+			commandQueue = Spring.GetUnitCommands(ref, 1)
+		end
+		if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
+			cachedWaitState = 2
+		else
+			cachedWaitState = 1
+		end
+	else
+		cachedWaitState = nil
+	end
+end
+
 local function refreshCommands()
 	local waitCommand
 	-- Clear and reuse temp tables instead of creating new ones
@@ -298,14 +351,18 @@ local function refreshCommands()
 		otherCommandsTemp[i] = nil
 	end
 
+	-- cancelTargetLastState is kept current by SelectionChanged and by the poll in Update
+	local cancelTargetRelevant = cancelTargetLastState
+
 	local activeCmdDescs = spGetActiveCmdDescs()
 	for _, command in ipairs(activeCmdDescs) do
 		if type(command) == "table" and not disabledCommand[command.name] then
 			if command.type == CMDTYPE_ICON_MODE then
 				isStateCommand[command.id] = true
 			end
-			if not hiddenCommands[command.id] and not hiddenCommandTypes[command.type] and command.action ~= nil and not command.disabled then
-				if command.type == CMDTYPE_ICON_BUILDING or (string.sub(command.action, 1, 10) == 'buildunit_') then
+			if not hiddenCommands[command.id] and not hiddenCommandTypes[command.type] and command.action ~= nil and not command.disabled
+					and not (command.id == CANCEL_TARGET_CMD_ID and not cancelTargetRelevant) then
+				if command.type == CMDTYPE_ICON_BUILDING or (string.find(command.action, 'buildunit_', 1, true) == 1) then
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
 					stateCommandsCount = stateCommandsCount + 1
@@ -338,35 +395,89 @@ local function refreshCommands()
 		commands[i + stateCommandsCount + waitCommandCount] = otherCommandsTemp[i]
 	end
 
-	-- OPTIMIZATION: Cache the display text for each command
+	-- OPTIMIZATION: Cache the display text using persistent commandTextCache
 	for _, cmd in ipairs(commands) do
-		-- Skip if already cached
-		if not cmd.cachedText then
-			local text
-			-- First element of params represents selected state index, but Spring engine implementation returns a value 2 less than the actual index
-			local stateOffset = 2
-
-			if isStateCommand[cmd.id] then
-				local currentStateIndex = cmd.params[1]
-				if currentStateIndex then
-					local commandState = cmd.params[currentStateIndex + stateOffset]
-					if commandState then
-						text = getCachedTranslation('ui.orderMenu.' .. commandState)
-					else
-						text = '?'
+		if isStateCommand[cmd.id] then
+			local currentStateIndex = cmd.params[1]
+			if currentStateIndex then
+				-- First element of params represents selected state index, but Spring engine implementation returns a value 2 less than the actual index
+				local commandState = cmd.params[currentStateIndex + 2]
+				if commandState then
+					if not commandTextCache[commandState] then
+						commandTextCache[commandState] = getCachedTranslation('ui.orderMenu.' .. commandState)
 					end
+					cmd.cachedText = commandTextCache[commandState]
 				else
-					text = '?'
+					cmd.cachedText = '?'
 				end
 			else
-				if cmd.action == 'stockpile' then
-					-- Stockpile command name gets mutated to reflect the current status, so can just pass it in
-					text = getCachedTranslation('ui.orderMenu.' .. cmd.action, { stockpileStatus = cmd.name })
-				else
-					text = getCachedTranslation('ui.orderMenu.' .. cmd.action)
+				cmd.cachedText = '?'
+			end
+		else
+			if cmd.action == 'stockpile' then
+				-- Stockpile command name gets mutated to reflect the current status, so can't cache persistently
+				cmd.cachedText = getCachedTranslation('ui.orderMenu.' .. cmd.action, { stockpileStatus = cmd.name })
+			else
+				local actionKey = cmd.action
+				if not commandTextCache[actionKey] then
+					commandTextCache[actionKey] = getCachedTranslation('ui.orderMenu.' .. actionKey)
+				end
+				cmd.cachedText = commandTextCache[actionKey]
+			end
+		end
+	end
+
+	hasWaitCommand = (waitCommand ~= nil)
+
+	computeWaitState()
+
+	-- Fingerprint: detect if commands visually changed to skip redundant R2T redraws
+	commandsVisuallyChanged = false
+	local cmdCount = #commands
+	if cmdCount ~= prevCmdCount or activeCommand ~= prevActiveCmd then
+		commandsVisuallyChanged = true
+	else
+		for i = 1, cmdCount do
+			local cmd = commands[i]
+			if cmd.id ~= prevCmdIDs[i] then
+				commandsVisuallyChanged = true
+				break
+			end
+			if isStateCommand[cmd.id] then
+				local s = cmd.params and cmd.params[1]
+				if s ~= prevCmdStates[i] then
+					commandsVisuallyChanged = true
+					break
+				end
+			elseif cmd.id == CMD.WAIT then
+				if cachedWaitState ~= prevCmdStates[i] then
+					commandsVisuallyChanged = true
+					break
 				end
 			end
-			cmd.cachedText = text -- Store the translated text
+		end
+	end
+	if commandsVisuallyChanged then
+		prevCmdCount = cmdCount
+		prevActiveCmd = activeCommand
+		for i = 1, cmdCount do
+			prevCmdIDs[i] = commands[i].id
+			if isStateCommand[commands[i].id] then
+				prevCmdStates[i] = commands[i].params and commands[i].params[1]
+			elseif commands[i].id == CMD.WAIT then
+				prevCmdStates[i] = cachedWaitState
+			else
+				prevCmdStates[i] = nil
+			end
+		end
+		-- Clear excess fingerprint entries
+		for i = cmdCount + 1, #prevCmdIDs do
+			prevCmdIDs[i] = nil
+			prevCmdStates[i] = nil
+		end
+		-- Invalidate print text cache since display changed
+		for k in pairs(printTextCache) do
+			printTextCache[k] = nil
 		end
 	end
 
@@ -439,12 +550,19 @@ function widget:ViewResize()
 	setupCellGrid(true)
 	doUpdate = true
 
+	-- Clear font metric caches since font changed
+	for k in pairs(fontWidthCache) do fontWidthCache[k] = nil end
+	for k in pairs(fontHeightCache) do fontHeightCache[k] = nil end
+	for k in pairs(printTextCache) do printTextCache[k] = nil end
+
 	if ordermenuTex then
 		gl.DeleteTexture(ordermenuBgTex)
 		ordermenuBgTex = nil
 		gl.DeleteTexture(ordermenuTex)
 		ordermenuTex = nil
 	end
+	-- Reset fingerprint so the next refresh always re-renders into the new texture
+	prevCmdCount = -1
 end
 
 local function reloadBindings()
@@ -500,6 +618,43 @@ function widget:Initialize()
 	end
 	WG['ordermenu'].getIsShowing = function()
 		return ordermenuShows
+	end
+
+	---Highlight a command in the order menu with an animated pulsing outline +
+	---inner glow. Subsequent calls update the existing highlight (without
+	---restarting the pulse phase).
+	---@param cmdID number The command ID (e.g. CMD.MOVE, CMD.ATTACK) to highlight.
+	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
+	WG['ordermenu'].setHighlight = function(cmdID, color)
+		if not cmdID then return end
+		local items = highlight.items
+		if not items[cmdID] then
+			highlight.count = highlight.count + 1
+		end
+		items[cmdID] = {
+			color = color,
+			startTime = (items[cmdID] and items[cmdID].startTime) or os_clock(),
+		}
+	end
+
+	WG['ordermenu'].removeHighlight = function(cmdID)
+		local items = highlight.items
+		if cmdID and items[cmdID] then
+			items[cmdID] = nil
+			highlight.count = math_max(0, highlight.count - 1)
+		end
+	end
+
+	WG['ordermenu'].clearHighlights = function()
+		local items = highlight.items
+		for k in pairs(items) do
+			items[k] = nil
+		end
+		highlight.count = 0
+	end
+
+	WG['ordermenu'].hasHighlight = function(cmdID)
+		return cmdID ~= nil and highlight.items[cmdID] ~= nil
 	end
 end
 
@@ -562,6 +717,33 @@ function widget:Update(dt)
 		doUpdate = true
 	end
 
+	-- Poll for priority target changes on selected units to show/hide 'canceltarget'
+	cancelTargetPollSec = cancelTargetPollSec + dt
+	if cancelTargetPollSec > 0.1 then
+		cancelTargetPollSec = 0
+		if #commands > 0 or alwaysShow then
+			local hasTarget = false
+			local selected = Spring.GetSelectedUnits()
+			for i = 1, #selected do
+				local uid = selected[i]
+				local targetID = Spring.GetUnitRulesParam(uid, "targetID")
+				if targetID and targetID > 0 then
+					hasTarget = true
+					break
+				end
+				local targetX = Spring.GetUnitRulesParam(uid, "targetCoordX")
+				if targetX and targetX >= 0 then
+					hasTarget = true
+					break
+				end
+			end
+			if hasTarget ~= cancelTargetLastState then
+				cancelTargetLastState = hasTarget
+				doUpdate = true
+			end
+		end
+	end
+
 	if (WG['guishader'] and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0)) then
 		ordermenuShows = false
 	else
@@ -583,6 +765,64 @@ local function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
+
+local function drawHighlights()
+	if highlight.count == 0 or not next(highlight.items) then return end
+	if #commands == 0 then return end
+	local now = os_clock()
+	local pulse = 0.5 + 0.5 * math.sin(now * 4.5)
+	local outlineAlpha = 0.45 + 0.5 * pulse
+	local glowAlpha = 0.10 + 0.20 * pulse
+	for cell = 1, #commands do
+		local cmd = commands[cell]
+		local rect = cellRects[cell]
+		local hl = cmd and highlight.items[cmd.id]
+		if hl and rect and rect[4] then
+			local color = hl.color or highlight.defaultColor
+			local r, g, b = color[1], color[2], color[3]
+			local t = now - (hl.startTime or now)
+			local localPulse = 0.5 + 0.5 * math.sin(t * 4.5)
+			local locOutlineAlpha = 0.45 + 0.5 * localPulse
+			local locGlowAlpha = 0.10 + 0.20 * localPulse
+
+			local leftMargin = cellMarginPx
+			local rightMargin = cellMarginPx2
+			local topMargin = cellMarginPx
+			local bottomMargin = cellMarginPx2
+			if cell % cols == 1 then leftMargin = cellMarginPx2 end
+			if cell % cols == 0 then rightMargin = cellMarginPx2 end
+			if cols / cell >= 1 then
+				topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
+			end
+
+			local x1 = rect[1] + leftMargin
+			local y1 = rect[2] + bottomMargin
+			local x2 = rect[3] - rightMargin
+			local y2 = rect[4] - topMargin
+
+			local cs = math_max(2, math_floor((x2 - x1) * 0.04))
+			local thickness = math_max(2, math_floor((x2 - x1) * 0.05))
+
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+
+			-- Feathered inner outline ring
+			WG.FlowUI.Draw.RectRoundOutline(
+				x1, y1, x2, y2, cs, thickness, 1, 1, 1, 1,
+				{ r, g, b, locOutlineAlpha }, { r, g, b, locOutlineAlpha * 0.85 }
+			)
+
+			-- Soft inner glow fading inward
+			local glowWidth = thickness * 3
+			WG.FlowUI.Draw.RectRoundOutline(
+				x1 + thickness, y1 + thickness, x2 - thickness, y2 - thickness,
+				math_max(0, cs - thickness), glowWidth, 1, 1, 1, 1,
+				{ r, g, b, locGlowAlpha }, { r, g, b, 0 }
+			)
+
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		end
+	end
+end
 
 local function drawCell(cell, zoom)
 	if not zoom then
@@ -668,26 +908,54 @@ local function drawCell(cell, zoom)
 			-- OPTIMIZATION: Use the cached text instead of recalculating it
 			local text = cmd.cachedText or '?'
 
-			local fontSize = cellInnerWidth / font:GetTextWidth('  ' .. text .. ' ') * math_min(1, (cellInnerHeight / (rows * 6)))
+			-- Cache font metrics per text string to avoid string concat + measurement each draw
+			local textWidth = fontWidthCache[text]
+			if not textWidth then
+				textWidth = font:GetTextWidth('  ' .. text .. ' ')
+				fontWidthCache[text] = textWidth
+			end
+			local textHeight = fontHeightCache[text]
+			if not textHeight then
+				textHeight = font:GetTextHeight(text)
+				fontHeightCache[text] = textHeight
+			end
+
+			local fontSize = cellInnerWidth / textWidth * math_min(1, (cellInnerHeight / (rows * 6)))
 			if fontSize > cellInnerWidth / 7 then
 				fontSize = cellInnerWidth / 7
 			end
 			fontSize = fontSize * zoom
-			local fontHeight = font:GetTextHeight(text) * fontSize
-			local fontHeightOffset = fontHeight * 0.34
-			if isStateCommand[cmd.id] then
-				fontHeightOffset = fontHeight * 0.22
-			end
-			local textColor = "\255\233\233\233"
-			if colorize > 0 and commandInfo[cmd.action] and commandInfo[cmd.action].red then
-				local part = (1 / colorize)
-				local grey = (0.93 * (part - 1))
-				textColor = convertColor((grey + commandInfo[cmd.action].red) / part, (grey + commandInfo[cmd.action].green) / part, (grey + commandInfo[cmd.action].blue) / part)
-			end
+			local fontHeightOffset = textHeight * fontSize * (isStateCommand[cmd.id] and 0.22 or 0.34)
+
+			-- Determine text color, using cache for colorized strings
+			local textColor
 			if isActiveCmd then
 				textColor = "\255\020\020\020"
+			elseif colorize > 0 and commandInfo[cmd.action] and commandInfo[cmd.action].red then
+				if lastColorize ~= colorize then
+					for k in pairs(colorStrCache) do colorStrCache[k] = nil end
+					for k in pairs(printTextCache) do printTextCache[k] = nil end
+					lastColorize = colorize
+				end
+				if not colorStrCache[cmd.action] then
+					local info = commandInfo[cmd.action]
+					local part = (1 / colorize)
+					local grey = (0.93 * (part - 1))
+					colorStrCache[cmd.action] = Spring.Utilities.ConvertColor((grey + info.red) / part, (grey + info.green) / part, (grey + info.blue) / part)
+				end
+				textColor = colorStrCache[cmd.action]
+			else
+				textColor = "\255\233\233\233"
 			end
-			font:Print(textColor .. text, cellRects[cell][1] + ((cellRects[cell][3] - cellRects[cell][1]) / 2), (cellRects[cell][2] - ((cellRects[cell][2] - cellRects[cell][4]) / 2) - fontHeightOffset), fontSize, "con")
+
+			-- Cache the full printable string (textColor .. text) to avoid concat per draw
+			local printKey = isActiveCmd and ('A_' .. text) or (cmd.action .. '_' .. text)
+			local printStr = printTextCache[printKey]
+			if not printStr then
+				printStr = textColor .. text
+				printTextCache[printKey] = printStr
+			end
+			font:Print(printStr, cellRects[cell][1] + ((cellRects[cell][3] - cellRects[cell][1]) / 2), (cellRects[cell][2] - ((cellRects[cell][2] - cellRects[cell][4]) / 2) - fontHeightOffset), fontSize, "con")
 		end
 
 		-- state lights
@@ -698,27 +966,7 @@ local function drawCell(cell, zoom)
 				curstate = cmd.params[1] + 1
 			else
 				statecount = 2
-				local referenceUnit
-				for _, unitID in ipairs(spGetSelectedUnits()) do
-					local canWait = Spring.FindUnitCmdDesc(unitID, CMD.WAIT)
-					if canWait then
-						referenceUnit = unitID
-						break
-					end
-				end
-				if referenceUnit then
-					local commandQueue
-					if isFactory[Spring.GetUnitDefID(referenceUnit)] then
-						commandQueue = Spring.GetFactoryCommands(referenceUnit, 1)
-					else
-						commandQueue = Spring.GetUnitCommands(referenceUnit, 1)
-					end
-					if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
-						curstate = 2
-					else
-						curstate = 1
-					end
-				end
+				curstate = cachedWaitState
 			end
 			local desiredState = nil
 			if clickedCellDesiredState and cell == clickedCell then
@@ -786,7 +1034,7 @@ end
 local function drawOrders()
 	if #commands > 0 then
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		font:Begin(useRenderToTexture)
+		font:Begin(true)
 		for cell = 1, #commands do
 			drawCell(cell, cellZoom)
 		end
@@ -795,6 +1043,7 @@ local function drawOrders()
 end
 
 function widget:DrawScreen()
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	local x, y = Spring.GetMouseState()
 	local cellHovered
 	if not WG['topbar'] or not WG['topbar'].showingQuit() then
@@ -856,9 +1105,12 @@ function widget:DrawScreen()
 				doUpdateClock = nil
 				doUpdate = true
 			end
-			doUpdateClock = nil
 			lastCommandRefreshTime = now
 			refreshCommands()
+			-- Skip R2T rebuild if commands haven't visually changed
+			if not commandsVisuallyChanged then
+				doUpdate = nil
+			end
 		else
 			-- Defer the update slightly
 			if not doUpdateClock then
@@ -871,6 +1123,7 @@ function widget:DrawScreen()
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('ordermenu')
 		end
+		doUpdate = nil
 	else
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].InsertDlist(displayListGuiShader, 'ordermenu')
@@ -879,70 +1132,41 @@ function widget:DrawScreen()
 			displayListOrders = gl.DeleteList(displayListOrders)
 		end
 
-		if not displayListOrders and not useRenderToTexture then
-			displayListOrders = gl.CreateList(function()
-				if not useRenderToTexture then
-					drawOrdersBackground()
-					drawOrders()
-				end
-			end)
-		end
-
-		if useRenderToTexture then
-			if not ordermenuBgTex then
-				ordermenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
-					target = GL.TEXTURE_2D,
-					format = GL.ALPHA,
-					fbo = true,
-				})
-				if ordermenuBgTex then
-					gl.R2tHelper.RenderToTexture(ordermenuBgTex,
-						function()
-							gl.Translate(-1, -1, 0)
-							gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-							gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-							drawOrdersBackground()
-						end,
-						useRenderToTexture
-					)
-				end
+		if not ordermenuBgTex then
+			ordermenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+				target = GL.TEXTURE_2D,
+				format = GL.ALPHA,
+				fbo = true,
+			})
+			if ordermenuBgTex then
+				gl.R2tHelper.RenderInRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawOrdersBackground, true)
 			end
 		end
-		if useRenderToTexture then
-			if not ordermenuTex then
-				ordermenuTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {	--*(vsy<1400 and 2 or 1)
-					target = GL.TEXTURE_2D,
-					format = GL.ALPHA,
-					fbo = true,
-				})
-			end
+		if not ordermenuTex then
+			ordermenuTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {	--*(vsy<1400 and 2 or 1)
+				target = GL.TEXTURE_2D,
+				format = GL.ALPHA,
+				fbo = true,
+			})
 		end
 		if ordermenuTex and doUpdate then
-			gl.R2tHelper.RenderToTexture(ordermenuTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawOrders()
-				end,
-				useRenderToTexture
-			)
+			gl.R2tHelper.RenderInRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawOrders, true)
+			doUpdate = nil
 		end
 
-		if useRenderToTexture then
-			if ordermenuBgTex then
-				-- background element
-				gl.R2tHelper.BlendTexRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-			end
-			if ordermenuTex then
-				-- content
-				gl.R2tHelper.BlendTexRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-			end
-		else
-			gl.CallList(displayListOrders)
+		if ordermenuBgTex then
+			-- background element
+			gl.R2tHelper.BlendTexRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
+		end
+		if ordermenuTex then
+			-- content
+			gl.R2tHelper.BlendTexRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 		end
 
 		if #commands >0 then
+			-- draw attention highlights (animated, on top of cached content)
+			drawHighlights()
+
 			-- draw highlight on top of button
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if commands and cellHovered then
@@ -1026,7 +1250,6 @@ function widget:DrawScreen()
 			end
 		end
 	end
-	doUpdate = nil
 end
 
 function widget:MousePress(x, y, button)
@@ -1089,20 +1312,46 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdPara
 end
 
 function widget:CommandsChanged() -- required to read changes from EditUnitCmdDesc
-	doUpdateClock = os_clock() + 0.01
+	-- Respect selection-based throttle instead of always using 10ms
+	if not doUpdateClock then
+		doUpdateClock = os_clock() + commandRefreshDelay
+	end
 end
 
 function widget:SelectionChanged(sel)
 	clickCountDown = 2
 	clickedCellDesiredState = nil
 
+	-- Cache first selected unit to avoid spGetSelectedUnits() table allocation later
+	cachedFirstUnit = sel[1] or nil
+
+	-- Update cancel target state using the selection already provided here
+	cancelTargetLastState = false
+	for i = 1, #sel do
+		local uid = sel[i]
+		local targetID = Spring.GetUnitRulesParam(uid, "targetID")
+		if targetID and targetID > 0 then
+			cancelTargetLastState = true
+			break
+		end
+		local targetX = Spring.GetUnitRulesParam(uid, "targetCoordX")
+		if targetX and targetX >= 0 then
+			cancelTargetLastState = true
+			break
+		end
+	end
+
 	-- Adaptive throttling: increase delay based on selection size
 	local selCount = #sel
 	local throttleDelay = 0.01
-	if selCount >= 300 then
-		throttleDelay = 0.03
+	if selCount >= 800 then
+		throttleDelay = 0.08
+	elseif selCount >= 500 then
+		throttleDelay = 0.05
+	elseif selCount >= 300 then
+		throttleDelay = 0.035
 	elseif selCount >= 160 then
-		throttleDelay = 0.02
+		throttleDelay = 0.025
 	elseif selCount >= 80 then
 		throttleDelay = 0.015
 	end
@@ -1115,6 +1364,8 @@ function widget:SelectionChanged(sel)
 end
 
 function widget:LanguageChanged()
+	commandTextCache = {}
+	translationCache = {}
 	widget:ViewResize()
 end
 

@@ -109,7 +109,6 @@ local function scavUnitDef_Post(name, uDef)
 				if uDef.buildtime then uDef.buildtime = uDef.buildtime * 1.1 end
 			end
 			uDef.autoheal = math.ceil(math.sqrt(uDef.health * 0.1))
-			uDef.idleautoheal = math.ceil(math.sqrt(uDef.health * 0.1))
 		end
 	end
 

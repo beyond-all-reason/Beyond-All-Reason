@@ -156,7 +156,8 @@ end
 
 function PlacementHandler:IterateJob( job )
 	-- setup this run
-	if job.step > #job.spiral then
+	local spiralLen = #job.spiral
+	if job.step > spiralLen then
 		-- we reached the end of the search pattern, we failed to
 		-- find a location, tell the requested and end the job
 		job.onFail( job )
@@ -183,7 +184,7 @@ function PlacementHandler:IterateJob( job )
 	end
 
 	job.step = job.step + 1
-	if job.step > #job.spiral then
+	if job.step > spiralLen then
 		-- we reached the end of the search pattern, we failed to
 		-- find a location, tell the requested and end the job
 		job.onFail( job )
@@ -211,11 +212,14 @@ function PlacementHandler:CanBuildAt( unittype, pos )
 	-- that position
 
 	local fixed_spacing = 80
+	local px, py, pz = pos.x, pos.y, pos.z
+	local testpos = { x=px, y=py, z=pz }
+	local aimap = self.ai.map
 
 	-- North
-	local testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.z = testpos.z - fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
+	testpos.x = px
+	testpos.z = pz - fixed_spacing
+	buildable = aimap:CanBuildHere( unittype, testpos )
 	if false == buildable then
 		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
 		return false
@@ -223,10 +227,9 @@ function PlacementHandler:CanBuildAt( unittype, pos )
 	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
 
 	-- North East
-	local testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.z = testpos.z - fixed_spacing
-	testpos.x = testpos.x + fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
+	testpos.x = px + fixed_spacing
+	testpos.z = pz - fixed_spacing
+	buildable = aimap:CanBuildHere( unittype, testpos )
 	if false == buildable then
 		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
 		return false
@@ -234,10 +237,9 @@ function PlacementHandler:CanBuildAt( unittype, pos )
 	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
 
 	-- North West
-	local testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.z = testpos.z - fixed_spacing
-	testpos.x = testpos.x - fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
+	testpos.x = px - fixed_spacing
+	testpos.z = pz - fixed_spacing
+	buildable = aimap:CanBuildHere( unittype, testpos )
 	if false == buildable then
 		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
 		return false
@@ -245,9 +247,9 @@ function PlacementHandler:CanBuildAt( unittype, pos )
 	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
 
 	-- South
-	testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.z = testpos.z + fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
+	testpos.x = px
+	testpos.z = pz + fixed_spacing
+	buildable = aimap:CanBuildHere( unittype, testpos )
 	if not buildable then
 		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
 		return false
@@ -255,10 +257,9 @@ function PlacementHandler:CanBuildAt( unittype, pos )
 	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
 
 	-- South East
-	testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.z = testpos.z + fixed_spacing
-	testpos.x = testpos.x + fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
+	testpos.x = px + fixed_spacing
+	testpos.z = pz + fixed_spacing
+	buildable = aimap:CanBuildHere( unittype, testpos )
 	if not buildable then
 		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
 		return false
@@ -266,10 +267,9 @@ function PlacementHandler:CanBuildAt( unittype, pos )
 	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
 
 	-- South West
-	testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.z = testpos.z + fixed_spacing
-	testpos.x = testpos.x - fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
+	testpos.x = px - fixed_spacing
+	testpos.z = pz + fixed_spacing
+	buildable = aimap:CanBuildHere( unittype, testpos )
 	if not buildable then
 		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
 		return false
@@ -277,9 +277,9 @@ function PlacementHandler:CanBuildAt( unittype, pos )
 	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
 
 	-- East
-	testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.x = testpos.x + fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
+	testpos.x = px + fixed_spacing
+	testpos.z = pz
+	buildable = aimap:CanBuildHere( unittype, testpos )
 	if not buildable then
 		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
 		return false
@@ -287,9 +287,9 @@ function PlacementHandler:CanBuildAt( unittype, pos )
 	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
 
 	-- West
-	testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.x = testpos.x - fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
+	testpos.x = px - fixed_spacing
+	testpos.z = pz
+	buildable = aimap:CanBuildHere( unittype, testpos )
 	if not buildable then
 		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
 		return false

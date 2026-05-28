@@ -1,0 +1,82 @@
+{
+	"$schema": "https://raw.githubusercontent.com/EmmyLuaLs/emmylua-analyzer-rust/main/crates/emmylua_code_analysis/resources/schema.json",
+	"completion": {
+		"autoRequireSeparator": "/"
+	},
+	"diagnostics": {
+		"disable": ["duplicate-set-field"],
+		"globals": [
+			"Turn",
+			"Move",
+			"Spin",
+			"StopSpin",
+			"WaitForTurn",
+			"WaitForMove",
+			"Hide",
+			"Show",
+			"Explode",
+			"EmitSfx",
+			"StartThread",
+			"SetSignalMask",
+			"Signal",
+			"Sleep",
+			"GetUnitValue",
+			"SetUnitValue",
+			"piece",
+			"script",
+			"UnitScript",
+			"x_axis",
+			"y_axis",
+			"z_axis",
+			"SIG_WALK",
+			"UNITSCRIPT_DIR",
+
+			"widgetHandler",
+			"gadgetHandler",
+			"fontHandler",
+			"LUAUI_DIRNAME",
+			"socket",
+			"pairsByKeys",
+			"SendToUnsynced",
+			"CallAsTeam",
+			"handler",
+			"lowerkeys",
+			"addon",
+			"gcinfo",
+			"loadlib",
+
+			"_G",
+			"self",
+			"widget",
+			"gadget",
+			"GG",
+			"ghInfo",
+			"include",
+
+			"GameCMD",
+			"Scenario",
+			"game_engine",
+			"SG",
+			"CMD_AREA_MEX",
+			"CMD_WANT_CLOAK",
+			"CMD_WANTED_SPEED",
+			"GadgetCrashingAircraft",
+			"ExplosionDefs",
+			"GL_TEXTURE_2D"
+		]
+	},
+	"runtime": {
+		"version": "Lua5.1",
+		"requirePattern": ["?", "?.lua"],
+		"requireLikeFunction": ["VFS.Include", "include", "shard_include"]
+	},
+	"workspace": {
+		"ignoreDir": [
+			".vscode",
+			".lux"
+		],
+		"ignoreGlobs": [
+			"**/.lux/**"
+		]
+	}
+}

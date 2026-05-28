@@ -16,8 +16,6 @@ return {
 		explodeas = "",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 0,
-		idletime = 0,
 		levelground = false,
 		mass = 165.75,
 		health = 2,
@@ -45,10 +43,6 @@ return {
 		featuredefs = {},
 		sfxtypes = {
 			explosiongenerators = {},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		weapondefs = {
 			weapon = {

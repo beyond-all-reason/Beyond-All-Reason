@@ -15,9 +15,7 @@ return {
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 90,
-		idleautoheal = 5,
-		idletime = 1800,
+		health = 180,
 		mass = 5100,
 		maxacc = 0,
 		maxdec = 0,
@@ -82,10 +80,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

@@ -115,13 +115,13 @@ end
 --
 
 for name, def in pairs(unitDefs) do
-	local model = def.objectName or def.objectname
+	local model = def.objectname
 	if model == nil then
 		unitDefs[name] = nil
 		Spring.Log(section, LOG.ERROR, 'removed ' .. name .. ' unitDef, missing objectname param')
 	else
 		local objfile = 'objects3d/' .. model
-		if not VFS.FileExists(objfile) and not VFS.FileExists(objfile .. '.s3o') then
+		if not VFS.FileExists(objfile) then
 			unitDefs[name] = nil
 			Spring.Log(section, LOG.ERROR, 'removed ' .. name .. ' unitDef, missing model file  (' .. model .. ')')
 		end
@@ -130,19 +130,17 @@ end
 
 for name, def in pairs(unitDefs) do
 	local badOptions = {}
-	local buildOptions = def.buildOptions or def.buildoptions
-	if buildOptions then
-		for i, option in ipairs(buildOptions) do
-			if unitDefs[option] == nil then
-				table.insert(badOptions, i)
-			end
+	local buildOptions = def.buildoptions
+	for i, option in ipairs(buildOptions) do
+		if unitDefs[option] == nil then
+			table.insert(badOptions, i)
 		end
-		if #badOptions > 0 then
-			local removed = 0
-			for _, badIndex in ipairs(badOptions) do
-				table.remove(buildOptions, badIndex - removed)
-				removed = removed + 1
-			end
+	end
+	if #badOptions > 0 then
+		local removed = 0
+		for _, badIndex in ipairs(badOptions) do
+			table.remove(buildOptions, badIndex - removed)
+			removed = removed + 1
 		end
 	end
 end

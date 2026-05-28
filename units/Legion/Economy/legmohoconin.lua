@@ -18,8 +18,6 @@ return {						--costs should be same as legmohocon and legmohoconct
 		extractsmetal = 0.004,
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 3900,
 		maxslope = 30,
 		maxwaterdepth = 20,
@@ -44,13 +42,6 @@ return {						--costs should be same as legmohocon and legmohoconct
 			scav_swap_override_captured = "delete", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
 			subfolder = "CorBuildings/LandEconomy",
 			techlevel = 2,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			activate = "mohorun2",

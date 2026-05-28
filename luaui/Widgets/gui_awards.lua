@@ -188,7 +188,7 @@ local function createBackground()
 	end
 
 	Background = gl.CreateList(function()
-		UiElement(widgetX, widgetY, widgetX + widgetWidthScaled, widgetY + widgetHeightScaled, 1,1,1,1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+		UiElement(widgetX, widgetY, widgetX + widgetWidthScaled, widgetY + widgetHeightScaled, 1,1,1,1, 1,1,1,1, WG.FlowUI.clampedOpacity)
 
 		gl.Color(1, 1, 1, 1)
 

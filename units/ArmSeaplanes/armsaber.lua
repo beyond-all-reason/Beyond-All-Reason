@@ -14,8 +14,6 @@ return {
 		footprintz = 3,
 		health = 1010,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.24,
 		maxdec = 0.46,
 		maxslope = 10,
@@ -35,20 +33,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmSeaplanes",
 			unitgroup = "weapon",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

@@ -158,10 +158,6 @@ function isAbove(mousePos,guiData)
 	end
 end
 
-function colorToChar(colorarray)
-	return char(255,clamp(floor(colorarray[1]*255), 1, 255) ,clamp(floor(colorarray[2]*255), 1, 255) ,clamp(floor(colorarray[3]*255), 1, 255))
-end
-
 local teamData={}
 local maxColumnTextSize = 0
 local columnSize = 0
@@ -391,7 +387,7 @@ function widget:GameFrame(n,forceupdate)
 
 					playerName = playerName or ''
 
-					history.frame = colorToChar(teamColor) .. playerName..'    '
+					history.frame = Spring.Utilities.ConvertColor(teamColor[1], teamColor[2], teamColor[3]) .. playerName..'    '
 
 					allyVec[teamInsertCount] = history
 					totalNumLines = totalNumLines + 1
@@ -544,7 +540,7 @@ local function DrawBackground()
 
 	gl.Color(0,0,0,WG['guishader'] and 0.8 or 0.85)
 	local x1,y1,x2,y2 = mathFloor(guiData.mainPanel.absSizes.x.min), mathFloor(guiData.mainPanel.absSizes.y.min), mathFloor(guiData.mainPanel.absSizes.x.max), mathFloor(guiData.mainPanel.absSizes.y.max)
-	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, WG.FlowUI.clampedOpacity)
 	if WG['guishader'] then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)

@@ -104,7 +104,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
-		local event = "StealthyUnitsDetected"
+		local event = "UnitDetected/StealthyUnitsDetected"
 		local players = Spring.GetPlayerList()
 		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
 		local _, _, spec, _, playerAllyTeam
@@ -197,6 +197,10 @@ else
 	local commanderLastDamaged = {}
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+		-- suppress under-attack notifications for trivial damage (Juno's 1 dmg pulse)
+		if damage < 5 then
+			return
+		end
 		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
 			GG["notifications"].queueNotification('LrpcTargetUnits', "playerID", tostring(myPlayerID))
 		end

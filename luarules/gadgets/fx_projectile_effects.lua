@@ -76,7 +76,7 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 end
 
 -----------------------------------------------------------------------------------------
-local starbursts = {} 
+local starbursts = {}
 local starburstWeapons = {} -- {wDID = {startHeight, cegName, nofueltime, maxtime,  }}
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
@@ -138,22 +138,23 @@ end
 local allWatchedWeaponDefIDs = {}
 local allWatchedProjectileIDs = {}
 
+local waterIsLava = Spring.GetModOptions().map_waterislava
 
 function gadget:Initialize()
 	local minheight, maxheight = Spring.GetGroundExtremes()
-	if minheight > 100 then 
+	if minheight > 100 then
 		mapHasWater = false
 	end
-	if mapHasWater then 
+	if mapHasWater then
 		for weaponID, weaponDef in pairs(WeaponDefs) do
 			if weaponDef.type == 'TorpedoLauncher' then
 				if weaponDef.visuals.modelName == 'objects3d/torpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/cordepthcharge.s3o'
 				or weaponDef.visuals.modelName == 'objects3d/torpedo.3do' or weaponDef.visuals.modelName == 'objects3d/depthcharge.3do' then
-					depthChargeWeapons[weaponID] = 'splash-torpedo'
+					depthChargeWeapons[weaponID] = waterIsLava and 'lavasplash-torpedo' or 'splash-torpedo'
 				elseif weaponDef.visuals.modelName == 'objects3d/coradvtorpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
-					depthChargeWeapons[weaponID] = 'splash-tiny'
+					depthChargeWeapons[weaponID] = waterIsLava and 'lavasplash-tiny' or 'splash-tiny'
 				else
-					depthChargeWeapons[weaponID] = 'splash-torpedo'
+					depthChargeWeapons[weaponID] = waterIsLava and 'lavasplash-torpedo' or 'splash-torpedo'
 				end
 			end
 		end
@@ -162,19 +163,19 @@ function gadget:Initialize()
 			allWatchedWeaponDefIDs[wDID] = "depthCharge"
 		end
 	end
-	
-		
+
+
 	for wDID,_ in pairs(missileWeapons) do
         Script.SetWatchProjectile(wDID, true)
 		allWatchedWeaponDefIDs[wDID] = "missile"
 		--Spring.Echo("Watching for missile",WeaponDefs[wDID].name, wDID)
     end
-	
+
 	for wDID, _ in pairs(starburstWeapons) do
 		Script.SetWatchProjectile(wDID, true)
 		allWatchedWeaponDefIDs[wDID] = "starburst"
-	end   
-	
+	end
+
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean 3.7 us
@@ -182,15 +183,15 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean
 	local watchedWeaponType = allWatchedWeaponDefIDs[weaponDefID]
 	if watchedWeaponType == nil then return end
 	allWatchedProjectileIDs[proID] = watchedWeaponType
-	if mapHasWater and watchedWeaponType == "depthCharge" then 
+	if mapHasWater and watchedWeaponType == "depthCharge" then
         local _,y,_ = GetProjectilePosition(proID)
         if y > 0 then
             depthCharges[proID] = depthChargeWeapons[weaponDefID]
         end
-	elseif watchedWeaponType == "missile" then 
+	elseif watchedWeaponType == "missile" then
 			missileIDtoProjType[proID] = missileWeapons[weaponDefID]
 			missileIDtoLifeEnd[proID] = gameFrame-4 + GetProjectileTimeToLive(proID)
-	elseif watchedWeaponType == "starburst" then 
+	elseif watchedWeaponType == "starburst" then
 		local x, y, z = GetProjectilePosition(proID)
 		local groundHeight = mathMax(GetGroundHeight(x, z), 0)
 		local gf = GetGameFrame()
@@ -209,19 +210,19 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean
 			groundHeight + wData[9],
 			groundHeight + wData[10],
 		}
-	end    
+	end
 end
 
 function gadget:ProjectileDestroyed(proID) --pre-opt mean 14 us
 	local watchedWeaponType = allWatchedProjectileIDs[proID]
-	if watchedWeaponType then 
+	if watchedWeaponType then
 		allWatchedProjectileIDs[proID] = nil
-		if mapHasWater and watchedWeaponType == "depthCharge" then 
+		if mapHasWater and watchedWeaponType == "depthCharge" then
 			depthCharges[proID] = nil
 		elseif watchedWeaponType == "missile" then
 			missileIDtoProjType[proID] = nil
 			missileIDtoLifeEnd[proID] = nil
-		elseif watchedWeaponType == "starburst" then 
+		elseif watchedWeaponType == "starburst" then
 			starbursts[proID] = nil
 		end
 	end
@@ -230,22 +231,33 @@ end
 
 function gadget:GameFrame(gf)
 	gameFrame = gf
-	if mapHasWater then 
+	if mapHasWater then
+		local removeDepth
+		local removeDepthCount = 0
 		for proID, CEG in pairs(depthCharges) do
 			local x,y,z = GetProjectilePosition(proID)
 			if y then
 				if y < 0 then
 					SpawnCEG(CEG,x,0,z)
-					depthCharges[proID] = nil
-					allWatchedProjectileIDs[proID] = nil
+					if not removeDepth then removeDepth = {} end
+					removeDepthCount = removeDepthCount + 1
+					removeDepth[removeDepthCount] = proID
 				end
 			else
-				depthCharges[proID] = nil
-				allWatchedProjectileIDs[proID] = nil
+				if not removeDepth then removeDepth = {} end
+				removeDepthCount = removeDepthCount + 1
+				removeDepth[removeDepthCount] = proID
 			end
 		end
+		for i = 1, removeDepthCount do
+			local proID = removeDepth[i]
+			depthCharges[proID] = nil
+			allWatchedProjectileIDs[proID] = nil
+		end
 	end
-	
+
+	local removeMissile
+	local removeMissileCount = 0
 	for proID, missile in pairs(missileIDtoProjType) do
         if gf > missileIDtoLifeEnd[proID] then
             local x,y,z = GetProjectilePosition(proID)
@@ -253,13 +265,21 @@ function gadget:GameFrame(gf)
                 local dirX,dirY,dirZ = GetProjectileDirection(proID)
                 SpawnCEG(missile,x,y,z,dirX,dirY,dirZ)
             else
-				missileIDtoProjType[proID] = nil
-				missileIDtoLifeEnd[proID] = nil
-				allWatchedProjectileIDs[proID] = nil
+				if not removeMissile then removeMissile = {} end
+				removeMissileCount = removeMissileCount + 1
+				removeMissile[removeMissileCount] = proID
             end
         end
-    end	
-	
+    end
+	for i = 1, removeMissileCount do
+		local proID = removeMissile[i]
+		missileIDtoProjType[proID] = nil
+		missileIDtoLifeEnd[proID] = nil
+		allWatchedProjectileIDs[proID] = nil
+	end
+
+	local removeStarburst
+	local removeStarburstCount = 0
 	for proID, missile in pairs(starbursts) do
 		if gf <= missile[4] then
 			local x, y, z = GetProjectilePosition(proID)
@@ -278,13 +298,20 @@ function gadget:GameFrame(gf)
 					end
 				end
 			else
-				starbursts[proID] = nil
-				allWatchedProjectileIDs[proID] = nil
+				if not removeStarburst then removeStarburst = {} end
+				removeStarburstCount = removeStarburstCount + 1
+				removeStarburst[removeStarburstCount] = proID
 			end
 		else
-			starbursts[proID] = nil
-			allWatchedProjectileIDs[proID] = nil
+			if not removeStarburst then removeStarburst = {} end
+			removeStarburstCount = removeStarburstCount + 1
+			removeStarburst[removeStarburstCount] = proID
 		end
+	end
+	for i = 1, removeStarburstCount do
+		local proID = removeStarburst[i]
+		starbursts[proID] = nil
+		allWatchedProjectileIDs[proID] = nil
 	end
 end
 

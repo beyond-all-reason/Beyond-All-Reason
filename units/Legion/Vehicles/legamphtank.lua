@@ -2,7 +2,7 @@ return {
 	legamphtank = {
 		maxacc = 0.03572,
 		activatewhenbuilt = true,
-		maxdec = 0.07144,
+		maxdec = 0.1,
 		energycost = 2000,
 		metalcost = 200,
 		buildpic = "LEGAMPHTANK.DDS",
@@ -16,8 +16,6 @@ return {
 		explodeas = "smallExplosionGeneric-phib",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 1340,
 		maxslope = 15,
@@ -85,10 +83,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

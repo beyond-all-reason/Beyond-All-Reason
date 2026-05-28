@@ -77,8 +77,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
-		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+		local accountID = Spring.Utilities.GetAccountID(playerID)
 		local authorized = _G.permissions.waterlevel[accountID]
 
 		if not (authorized or Spring.IsCheatingEnabled()) then
@@ -94,13 +93,16 @@ if gadgetHandler:IsSyncedCode() then
 else  -- UNSYNCED
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local accountInfo = select(11, Spring.GetPlayerInfo(myPlayerID))
-	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-	local authorized = SYNCED.permissions.waterlevel[accountID]
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
+	local function isAuthorized()
+		local acID = Spring.Utilities.GetAccountID(myPlayerID)
+		local perms = SYNCED.permissions.waterlevel
+		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
+	end
 
 	local function waterlevel(cmd, line, words, playerID)
 		if words[1] then
-			if (authorized or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
+			if (isAuthorized() or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
 				Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. words[1])
 			end
 		end

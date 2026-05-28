@@ -4,7 +4,6 @@ return {
 		maxacc = 0.03,
 		activatewhenbuilt = true,
 		airsightdistance = 1200,
-		autoheal = 1.5,
 		maxdec = 0.03,
 		energycost = 15000,
 		metalcost = 2500,
@@ -19,8 +18,6 @@ return {
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 5,
-		idletime = 900,
 		health = 6700,
 		speed = 72.0,
 		minwaterdepth = 6,
@@ -75,12 +72,6 @@ return {
 				object = "Units/arm3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

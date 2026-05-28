@@ -4,14 +4,15 @@ return {
 		activatewhenbuilt = true,
 		maxdec = 0.01722,
 		buildangle = 16384,
-		energycost = 12500,
-		metalcost = 1250,
+		energycost = 17000,
+		metalcost = 1700,
 		buildpic = "CORDRONECARRY.DDS",
-		buildtime = 20000,
+		buildtime = 24000,
 		canfly = true,
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
+		canrestore = false,
 		collide = true,
 		collisionvolumeoffsets = "-1 5 2",
 		collisionvolumescales = "48 48 136",
@@ -25,8 +26,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		hoverattack = true,
-		idleautoheal = 15,
-		idletime = 600,
 		sightemitheight = 56,
 		mass = 10000,
 		health = 3500,
@@ -88,11 +87,6 @@ return {
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-huge",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -148,13 +142,14 @@ return {
 				customparams = {
 					carried_unit = "cordrone",     --Name of the unit spawned by this carrier unit.
 					-- carried_unit2... 			Currently not implemented, but planned.
-					engagementrange = 1200,
+					engagementrange = 1300,
 					--spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 6, 				--Spawnrate roughly in seconds.
 					maxunits = 10,				--Will spawn units until this amount has been reached.
+					startingdronecount = 5,
 					energycost = 1000,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 40,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1300,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 9,
 					attackformationspread = 200,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
 					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
@@ -170,6 +165,8 @@ return {
 					stockpilemetal = 40,
 					stockpileenergy = 1000,
 					dronesusestockpile = true,
+					dronedocktime = 2,
+					droneairtime = 30,
 				}
 			},
 		},

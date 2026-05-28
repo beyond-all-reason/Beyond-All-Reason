@@ -20,8 +20,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 560,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavesghost = true,
 		mass = 700,
 		maxacc = 0,
@@ -49,13 +47,6 @@ return {
 			subfolder = "CorBuildings/LandUtil",
 			unitgroup = "builder",
 			usebuildinggrounddecal = true,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
-			},
 		},
 		sounds = {
 			build = "nanlath2",

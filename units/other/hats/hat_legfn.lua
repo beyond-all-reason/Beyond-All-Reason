@@ -20,7 +20,7 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hidedamage = true,
-		idleautoheal = 100000, --so it doesnt die
+		autoheal = 100000, --so it doesnt die
 		mass = 0,
 		health = 5600000,
 		maxslope = 64,

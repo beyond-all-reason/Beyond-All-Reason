@@ -14,8 +14,6 @@ return {
 		footprintx = 12,
 		footprintz = 12,
 		health = 6000,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 2900,
@@ -65,13 +63,6 @@ return {
 				metal = 2232,
 				object = "Units/armasy_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

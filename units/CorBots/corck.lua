@@ -16,8 +16,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 750,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.5244,
 		maxdec = 3.2775,
 		maxslope = 20,
@@ -28,7 +26,7 @@ return {
 		script = "Units/CORCK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
-		sightdistance = 299,
+		sightdistance = 380,
 		speed = 34.5,
 		terraformspeed = 450,
 		turninplace = true,
@@ -104,12 +102,6 @@ return {
 				object = "Units/cor2X2F.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3-builder",
-				[2] = "deathceg2-builder",
 			},
 		},
 		sounds = {

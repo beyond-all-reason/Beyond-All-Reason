@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 13300,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 3800,
 		maxacc = 0.2369,
 		maxdec = 0.9039,
@@ -74,13 +72,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -112,7 +103,7 @@ return {
 				beamtime = 0.07,
 				burst = 6,
 				burstrate = 0.06667,
-				corethickness = 0.35,
+				corethickness = 0.45,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,

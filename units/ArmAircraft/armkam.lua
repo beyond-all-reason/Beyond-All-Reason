@@ -13,8 +13,6 @@ return {
 		footprintz = 2,
 		health = 560,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.15,
 		maxdec = 0.375,
 		maxslope = 10,
@@ -36,20 +34,8 @@ return {
 			unitgroup = "weapon",
 		},
 		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
 			},
 		},
 		sounds = {
@@ -95,7 +81,7 @@ return {
 				range = 350,
 				reloadtime = 0.7,
 				rgbcolor = "1 0.95 0.4",
-				size = 2,
+				size = 1.5,
 				soundhitwet = "splshbig",
 				soundstart = "flashemg",
 				soundtrigger = true,

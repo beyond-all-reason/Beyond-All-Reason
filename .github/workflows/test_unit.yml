@@ -1,0 +1,35 @@
+name: Run Unit Tests
+
+on:
+  push:
+    branches: ['*']
+  pull_request:
+    branches: ['*']
+
+jobs:
+  busted:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Install Lua 5.1
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y lua5.1 liblua5.1-0-dev
+
+    - name: Install Lux
+      uses: lumen-oss/gh-actions-lux@v1
+      with:
+        version: 0.26.1
+
+    - name: Cache Lux dependencies
+      uses: actions/cache@v4
+      with:
+        path: .lux
+        key: lux-5.1-${{ runner.os }}-${{ hashFiles('lux.lock') }}
+        restore-keys: |
+          lux-5.1-${{ runner.os }}-
+
+    - name: Run busted
+      run: lx --lua-version 5.1 test

@@ -2411,9 +2411,9 @@ local unitGrids = {
 			{ },                                                     --
 		},
 		{
-			{ "corfink", "coreyes", "cordrag", "corjamt", },         -- scout plane, camera, dragon's teeth, jammer
+			{ "cormine2", "coreyes", "cordrag", "corjamt", },         -- commando mine, camera, dragon's teeth, jammer
 			{ "corvalk", },                                          -- transport
-			{ "cormine4" },                                          -- commando mine
+			{ "corfink" },                                          -- scout plane
 		},
 		{
 			{ },        --
@@ -2520,6 +2520,8 @@ local unitGrids = {
 		}
 	},
 }
+
+local priorityUnits = {"armshltx","armshltxuw","corgant","corgantuw","leggant","leggantuw","armalab", "armavp", "armasy", "armaap", "coralab", "coravp", "corasy", "coraap", "legalab", "legavp", "legadvshipyard", "legaap"}
 
 unitGrids["dummycom"] = unitGrids["armcom"]
 
@@ -3327,4 +3329,5 @@ end
 return {
 	LabGrids = labGrids,
 	UnitGrids = unitGrids,
+	PriorityUnits = priorityUnits
 }

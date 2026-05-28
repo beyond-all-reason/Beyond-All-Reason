@@ -16,8 +16,6 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		health = 2400,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.03,
 		maxdec = 0.05,
 		maxslope = 10,
@@ -91,11 +89,6 @@ return {
 				[0] = "custom:subbubbles",
 				[1] = "custom:subwake",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -142,7 +135,9 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 100,
 				customparams = {
+					bogus = 1,
 					scavforcecommandfire = true,
+					weapons_group = 2,
 				},
 				damage = {
 					default = 0,
@@ -200,6 +195,7 @@ return {
 					scavforcecommandfire = true,
 					stockpilelimit = 10,
 					nuclear = 1,
+					weapons_group = 2,
 				},
 				damage = {
 					commanders = 2500,
@@ -237,6 +233,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 290,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 340,
 					default = 800,

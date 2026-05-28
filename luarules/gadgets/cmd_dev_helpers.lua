@@ -26,16 +26,29 @@ if gadgetHandler:IsSyncedCode() then
 	startPlayers = {}
 end
 
-function isAuthorized(playerID)
+function isAuthorized(playerID, subPermission)
 	if Spring.IsCheatingEnabled() then
 		return true
-	else
-		local playername,_,_,_,_,_,_,_,_,_,accountInfo = Spring.GetPlayerInfo(playerID)
-		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-		if (_G and _G.permissions.devhelpers[accountID]) or (SYNCED and SYNCED.permissions.devhelpers[accountID]) then
-			if startPlayers == nil or startPlayers[playername] == nil then
-				return true
-			end
+	end
+	local playername = Spring.GetPlayerInfo(playerID)
+	local accountID = Spring.Utilities.GetAccountID(playerID)
+	local hasPermission = false
+	-- check catch-all devhelpers permission (by accountID and by name for late joiners)
+	if (_G and _G.permissions.devhelpers and (_G.permissions.devhelpers[accountID] or (playername and _G.permissions.devhelpers[playername]))) or
+	   (SYNCED and SYNCED.permissions.devhelpers and (SYNCED.permissions.devhelpers[accountID] or (playername and SYNCED.permissions.devhelpers[playername]))) then
+		hasPermission = true
+	end
+	-- check specific sub-permission
+	if not hasPermission and subPermission then
+		local permKey = "devhelpers_" .. subPermission
+		if (_G and _G.permissions[permKey] and (_G.permissions[permKey][accountID] or (playername and _G.permissions[permKey][playername]))) or
+		   (SYNCED and SYNCED.permissions[permKey] and (SYNCED.permissions[permKey][accountID] or (playername and SYNCED.permissions[permKey][playername]))) then
+			hasPermission = true
+		end
+	end
+	if hasPermission then
+		if startPlayers == nil or startPlayers[playername] == nil then
+			return true
 		end
 	end
 	return false
@@ -76,108 +89,6 @@ if gadgetHandler:IsSyncedCode() then
 		-- reduce all units health to 1/2 of its current value
 		for _, unitID in pairs(Spring.GetAllUnits()) do
 			Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) / 2)
-		end
-	end
-
-	local maxunits = 200
-	local feedstep = 20
-	local mapcx = Game.mapSizeX/2
-	local mapcz = Game.mapSizeZ/2
-	local mapcy = Spring.GetGroundHeight(mapcx,mapcz)
-	local fightertestenabled = false
-	local placementradius = 2000
-	local keepfeatures = 150
-	local fighterteststartgameframe = 0
-	local fightertesttotalunitsspawned = 0
-
-	local team1unitDefName = "armbull"
-	local team2unitDefName = "armbull"
-
-
-	local seededrand = {}
-	local randindex = 1
-	local function initrandom(seed)
-		math.randomseed(seed)
-		for i=1, 5000 do
-			seededrand[i] = math.random()
-		end
-		randindex = 1
-	end
-
-	local function getrandom()
-		if #seededrand < 1 then initrandom(7654321) end
-		randindex = randindex + 1
-		if randindex > #seededrand then randindex = 1 end
-		return seededrand[randindex]
-	end
-
-	local function SpawnUnitDefsForTeam(teamID, unitDefName)
-		local unitcount = Spring.GetTeamUnits(teamID)
-		if (#unitcount < maxunits) then
-			local cmd = string.format(
-				"give %d %s %d @%d,%d,%d",
-				feedstep,
-				unitDefName,
-				teamID,
-				mapcx + placementradius*(getrandom() - 0.5),
-				mapcy,
-				mapcz + placementradius*(getrandom()- 0.5)
-			)
-			Spring.SendCommands({cmd})
-			fightertesttotalunitsspawned = fightertesttotalunitsspawned + feedstep
-		end
-	end
-
-	local function SpawnUnitDefsForTeamSynced(teamID, unitDefName)
-		--Spring.GetTeamUnitDefCount ( number teamID, number unitDefID )
-		--return: nil | number count
-		local unitDefID = UnitDefNames[unitDefName].id
-
-
-		local unitcount = Spring.GetTeamUnitDefCount(teamID, unitDefID)
-
-		if (unitcount < maxunits) then
-			local cx = mapcx + placementradius*(getrandom() - 0.5)
-			local cz = mapcz + placementradius*(getrandom()- 0.5)
-
-			local sqrtfeed = math.ceil(math.sqrt(feedstep))
-			local footprint = math.max(UnitDefs[unitDefID].xsize, UnitDefs[unitDefID].zsize)
-			local newUnitIDs = {}
-			local numspawned = 0
-			for x=1,sqrtfeed do
-				for z = 1, sqrtfeed do
-					if numspawned < feedstep then
-						local px = cx + 12 * footprint * x
-						local pz = cz + 12 * footprint * z
-						local py = Spring.GetGroundHeight(px,pz)
-						local unitID = Spring.CreateUnit(unitDefID, px, py, pz, "n", teamID)
-						if unitID then
-							numspawned = numspawned + 1
-							newUnitIDs[#newUnitIDs + 1] = unitID
-						end
-					end
-				end
-			end
-
-			--Spring.GiveOrderToUnitArray ( table unitArray = { [1] = number unitID, etc... }, number cmdID, table params = {number, etc...}, table options = {"alt", "ctrl", "shift", "right"} )
-			--return: nil | bool true
-			--CMD.MOVE, { p.x, p.y, p.z }, 0 )
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.REPEAT, { 1 }, 0)
-
-			local ncx = mapcx + placementradius*(getrandom() - 0.5)
-			local ncz = mapcz + placementradius*(getrandom() - 0.5)
-			local gh = Spring.GetGroundHeight(ncx,ncz)
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {ncx,gh,ncz}, {"shift"})
-
-			ncx = mapcx + placementradius*(getrandom() - 0.5)
-			ncz = mapcz + placementradius*(getrandom() - 0.5)
-			gh = Spring.GetGroundHeight(ncx,ncz)
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {ncx,gh,ncz}, {"shift"})
-
-			gh = Spring.GetGroundHeight(cx,cz)
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {cx,gh,cz}, {"shift"})
-
-			fightertesttotalunitsspawned = fightertesttotalunitsspawned + numspawned
 		end
 	end
 
@@ -532,18 +443,33 @@ if gadgetHandler:IsSyncedCode() then
 			table.insert(words, word)
 		end
 
-		if not isAuthorized(playerID) then
+		-- determine required sub-permission for the command
+		local cmd = words[1]
+		local subPermission
+		if cmd == "desync" then
+			subPermission = "test"
+		elseif cmd == "givecat" or cmd == "xpunits" or cmd == "destroyunits" or cmd == "removeunits" or
+			cmd == "removenearbyunits" or cmd == "reclaimunits" or cmd == "transferunits" or
+			cmd == "wreckunits" or cmd == "spawnceg" or cmd == "spawnunitexplosion" or cmd == "removeunitdef" then
+			subPermission = "units"
+		elseif cmd == "playertoteam" or cmd == "killteam" then
+			subPermission = "teams"
+		elseif cmd == "globallos" or cmd == "clearwrecks" or cmd == "reducewrecks" then
+			subPermission = "terrain"
+		end
+
+		if not isAuthorized(playerID, subPermission) then
 			return
 		end
 
-		if words[1] == 'desync' then
+		if cmd == 'desync' then
 			Spring.Echo("Synced: Attempting to trigger a /desync")
 			Spring.SendCommands("desync")
 		end
 
-		if words[1] == "givecat" then
+		if cmd == "givecat" then
 			GiveCat(words)
-		elseif words[1] == "xpunits" then
+		elseif cmd == "xpunits" then
 			local parts = string.split(msg, ':')
 			local words = {}
 			msg = parts[1]..':'..parts[2]
@@ -551,15 +477,15 @@ if gadgetHandler:IsSyncedCode() then
 				table.insert(words, word)
 			end
 			ExecuteSelUnits(words, playerID, 'xp', parts[3])
-		elseif words[1] == "destroyunits" then
+		elseif cmd == "destroyunits" then
 			ExecuteSelUnits(words, playerID)
-		elseif words[1] == "removeunits" then
+		elseif cmd == "removeunits" then
 			ExecuteSelUnits(words, playerID, 'remove')
-		elseif words[1] == "removenearbyunits" then
+		elseif cmd == "removenearbyunits" then
 			ExecuteSelUnits(words, playerID, 'removenearbyunits')
-		elseif words[1] == "reclaimunits" then
+		elseif cmd == "reclaimunits" then
 			ExecuteSelUnits(words, playerID)
-		elseif words[1] == "transferunits" then
+		elseif cmd == "transferunits" then
 			local parts = string.split(msg, ':')
 			local words = {}
 			msg = parts[1]..':'..parts[2]
@@ -567,23 +493,23 @@ if gadgetHandler:IsSyncedCode() then
 				table.insert(words, word)
 			end
 			ExecuteSelUnits(words, playerID, 'transfer', parts[3])
-		elseif words[1] == "wreckunits" then
+		elseif cmd == "wreckunits" then
 			ExecuteSelUnits(words, playerID, 'wreck')
-		elseif words[1] == "spawnceg" then
+		elseif cmd == "spawnceg" then
 			spawnceg(words)
-		elseif words[1] == "spawnunitexplosion" then
+		elseif cmd == "spawnunitexplosion" then
 			spawnunitexplosion(words, playerID)
-		elseif words[1] == "removeunitdef" then
+		elseif cmd == "removeunitdef" then
 			ExecuteRemoveUnitDefName(words[2])
-		elseif words[1] == "clearwrecks" then
+		elseif cmd == "clearwrecks" then
 			ClearWrecks()
-		elseif words[1] == "fightertest" then
-			fightertest(words)
-		elseif words[1] == "globallos" then
+		elseif cmd == "reducewrecks" then
+			ReduceWrecksAndHeaps()
+		elseif cmd == "globallos" then
 			globallos(words)
-		elseif words[1] == "playertoteam" then
+		elseif cmd == "playertoteam" then
 			playertoteam(words)
-		elseif words[1] == "killteam" then
+		elseif cmd == "killteam" then
 			killteam(words)
 		end
 	end
@@ -592,8 +518,6 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveChatAction('loadmissiles')
 		gadgetHandler:RemoveChatAction('halfhealth')
 	end
-	local featuredefstoremove = {}
-
 	function globallos(words)
 		local allyteams = Spring.GetAllyTeamList()
         for i = 1,#allyteams do
@@ -611,91 +535,6 @@ if gadgetHandler:IsSyncedCode() then
 	function killteam(words)
 		Spring.KillTeam(tonumber(words[2]))
 	end
-	function fightertest(words)
-		fightertestenabled = not fightertestenabled
-		if not fightertestenabled then
-			Spring.Echo(string.format("Fightertest ended, %d units spawned over %d gameframes, Units/frame = %f",
-					fightertesttotalunitsspawned,
-					Spring.GetGameFrame() - fighterteststartgameframe,
-					fightertesttotalunitsspawned * (1.0 / (Spring.GetGameFrame() - fighterteststartgameframe))
-					))
-			ExecuteRemoveUnitDefName(team1unitDefName)
-			ExecuteRemoveUnitDefName(team2unitDefName)
-			return
-		end
-		fighterteststartgameframe = Spring.GetGameFrame()
-		fightertesttotalunitsspawned = 0
-		initrandom(7654321)
-		if words[2] and UnitDefNames[words[2]] then	team1unitDefName = words[2]
-		else Spring.Echo(words[2], "is not a valid unitDefName, using", team1unitDefName, "instead") end
-
-		if words[3] and UnitDefNames[words[3]] then	team2unitDefName = words[3]
-		else Spring.Echo(words[3], "is not a valid unitDefName, using", team2unitDefName, "instead") end
-
-
-		if words[4] then
-			local maxunitsint = tonumber(words[4])
-			if maxunitsint == nil then
-				Spring.Echo(words[4], "must be the number of max units to keep spawning, using", maxunits, "instead")
-			else
-				maxunits = math.floor(maxunitsint)
-			end
-		end
-		if words[5] then
-			local feedstepint = tonumber(words[5])
-			if feedstepint == nil then
-				Spring.Echo(words[5], "must be the number units to spawn each step, using", maxunits, "instead")
-			else
-				feedstep = math.floor(feedstepint)
-			end
-		end
-		if words[6] then
-			local placementradiusint = tonumber(words[6])
-			if placementradiusint == nil then
-				Spring.Echo(words[6], "must be the radius in which to spawn units, using ", placementradius, "instead")
-			else
-				placementradius = math.floor(placementradiusint)
-			end
-		end
-		if words[7] then
-			local keepfeaturesint = tonumber(words[7])
-			if keepfeaturesint == nil then
-				Spring.Echo(words[7], "must be the number of frames wrecks will live ", placementradius, "instead")
-			else
-				keepfeatures = math.floor(keepfeaturesint)
-			end
-		end
-
-		Spring.Echo(string.format("Starting fightertest %s vs %s with %i maxunits and %i units per step in a %d radius, features live %d frames",
-				team1unitDefName,
-				team2unitDefName,
-				maxunits,
-				feedstep,
-				placementradius,
-				keepfeatures))
-		featuredefstoremove = {}
-		for _, udn in ipairs({team1unitDefName,team2unitDefName}) do
-			for _, wreckheap in ipairs({'_dead','_heap'}) do
-				if FeatureDefNames[udn .. wreckheap] and FeatureDefNames[udn .. wreckheap].id then
-					featuredefstoremove[FeatureDefNames[udn .. wreckheap].id] = true
-					Spring.Echo(udn .. wreckheap)
-				end
-			end
-		end
-	end
-
-
-	local featurestoremove = {}
-	function gadget:FeatureCreated(featureID, allyTeam)
-		if fightertestenabled then
-			local featureDefID = Spring.GetFeatureDefID(featureID)
-			if featureDefID and featuredefstoremove[featureDefID] then
-				featurestoremove[featureID] = Spring.GetGameFrame() + keepfeatures
-			end
-		end
-	end
-
-
 	local function adjustFeatureHeight()
 		local featuretable = Spring.GetAllFeatures()
 		local x, y, z
@@ -708,23 +547,6 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(n)
 		if n == 1 and isTerrainMod(Spring.GetModOptions().debugcommands) then
 			adjustFeatureHeight()
-		end
-		if fightertestenabled then
-			if (n % 3 == 0)  then
-				SpawnUnitDefsForTeamSynced(0, team1unitDefName)
-				SpawnUnitDefsForTeamSynced(1, team2unitDefName)
-			end
-
-			if (n % 3 == 1)  then
-				for featureID, deathtime in pairs(featurestoremove) do
-					if deathtime < n then
-						if Spring.ValidFeatureID(featureID) then
-							Spring.DestroyFeature(featureID)
-						end
-						featurestoremove[featureID] = nil
-					end
-				end
-			end
 		end
 		if debugcommands then
 			if debugcommands[n] then
@@ -798,7 +620,7 @@ if gadgetHandler:IsSyncedCode() then
 				local heading = Spring.GetUnitHeading(unitID)
 				local unitTeam = Spring.GetUnitTeam(unitID)
 				Spring.DestroyUnit(unitID, false, true)
-				if UnitDefs[unitDefID].corpse and FeatureDefNames[UnitDefs[unitDefID].corpse] then
+				if UnitDefs[unitDefID] and UnitDefs[unitDefID].corpse and FeatureDefNames[UnitDefs[unitDefID].corpse] then
 					Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].corpse].id, x, y, z, heading, unitTeam)
 				end
 			end
@@ -881,13 +703,31 @@ if gadgetHandler:IsSyncedCode() then
 		local allfeatures = Spring.GetAllFeatures()
 		local removedwrecks = 0
 		for i, featureID in pairs(allfeatures) do
-			local featureDefName = FeatureDefs[Spring.GetFeatureDefID(featureID)].name
-			if string.find(featureDefName, "_dead", nil, true) or string.find(featureDefName, "_heap", nil, true) then
+			local featureDef = FeatureDefs[Spring.GetFeatureDefID(featureID)]
+			local category = featureDef.customParams.category
+			if category == "corpses" or category == "heaps" then
 				Spring.DestroyFeature(featureID)
 				removedwrecks = removedwrecks + 1
 			end
 		end
 		Spring.Echo(string.format("Removed %i wrecks and heaps", removedwrecks))
+	end
+
+	function ReduceWrecksAndHeaps()
+		local allfeatures = Spring.GetAllFeatures()
+		local removedwrecks, removedheaps = 0, 0
+		for i, featureID in pairs(allfeatures) do
+			local featureDef = FeatureDefs[Spring.GetFeatureDefID(featureID)]
+			local category = featureDef.customParams.category
+			if category == "corpses" then
+				Spring.AddFeatureDamage(featureID, (Spring.GetFeatureHealth(featureID)))
+				removedwrecks = removedwrecks + 1
+			elseif category == "heaps" then
+				Spring.AddFeatureDamage(featureID, (Spring.GetFeatureHealth(featureID)))
+				removedheaps = removedheaps + 1
+			end
+		end
+		Spring.Echo(string.format("Removed %i wrecks and %i heaps", removedwrecks, removedheaps))
 	end
 
 
@@ -896,12 +736,9 @@ else	-- UNSYNCED
 
 
 
-	local vsx,vsy = Spring.GetViewGeometry()
-	local uiScale = vsy / 1080
-
 	function gadget:Initialize()
 		-- doing it via GotChatMsg ensures it will only listen to the caller
-		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor]
+		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor] or /luarules givecat unitname [teamid]
 		gadgetHandler:AddChatAction('destroyunits', destroyUnits, "")  -- self-destrucs the selected units /luarules destroyunits
 		gadgetHandler:AddChatAction('wreckunits', wreckUnits, "")  -- turns the selected units into wrecks /luarules wreckunits
 		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
@@ -916,10 +753,11 @@ else	-- UNSYNCED
 
 		gadgetHandler:AddChatAction('dumpunits', dumpUnits, "") -- /luarules dumpunits dumps all units on may into infolog.txt
 		gadgetHandler:AddChatAction('dumpfeatures', dumpFeatures, "") -- /luarules dumpfeatures dumps all features into infolog.txt
+		gadgetHandler:AddChatAction('dumploadout', dumpLoadout, "") -- /luarules dumploadout dumps all units and features in loadout.lua format
 		gadgetHandler:AddChatAction('removeunitdef', removeUnitDef, "") -- /luarules removeunitdef armflash removes all units, their wrecks and heaps too
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
+		gadgetHandler:AddChatAction('reducewrecks', reduceWrecks, "") -- /luarules reducewrecks applies damage to reduce wrecks to heaps and to destroy heaps
 
-		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
 		gadgetHandler:AddChatAction('globallos', globallos, "") -- /luarules globallos [1|0] [allyteam] -- sets global los for all teams, 1 = on, 0 = off  (allyteam is optional)
 		gadgetHandler:AddChatAction('playertoteam', playertoteam, "") -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
 		gadgetHandler:AddChatAction('killteam', killteam, "") -- /luarules killteam [teamID] -- kills the team
@@ -941,7 +779,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('dumpfeatures')
 		gadgetHandler:RemoveChatAction('removeunitdefs')
 		gadgetHandler:RemoveChatAction('clearwrecks')
-		gadgetHandler:RemoveChatAction('fightertest')
+		gadgetHandler:RemoveChatAction('reducewrecks')
 		gadgetHandler:RemoveChatAction('globallos')
 		gadgetHandler:RemoveChatAction('playertoteam')
 		gadgetHandler:RemoveChatAction('killteam')
@@ -971,7 +809,10 @@ else	-- UNSYNCED
 	end
 
 	function removeUnitDef(_, line, words, playerID)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
 			return
 		end
 		-- Spring.Echo(line)
@@ -984,14 +825,30 @@ else	-- UNSYNCED
 	end
 
 	function clearWrecks(_, line, words, playerID)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "terrain") then
 			return
 		end
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':clearwrecks')
 	end
 
+	function reduceWrecks(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "terrain") then
+			return
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':reducewrecks')
+	end
+
 	function processUnits(_, line, words, playerID, action)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
 			return
 		end
 		local msg = ''
@@ -1023,8 +880,11 @@ else	-- UNSYNCED
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. action .. msg)
 	end
 
-	function dumpFeatures(_)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+	function dumpFeatures(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
 			return
 		end
 		local features=Spring.GetAllFeatures()
@@ -1039,8 +899,11 @@ else	-- UNSYNCED
 		end
 	end
 
-	function dumpUnits(_)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+	function dumpUnits(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
 			return
 		end
 		Spring.Echo("Dumping all units")
@@ -1053,6 +916,45 @@ else	-- UNSYNCED
 			local isneutral = tostring(Spring.GetUnitNeutral(unitID))
 			Spring.Echo(string.format("{name = \'%s\', x = %d, y = %d, z = %d, rot = %d , team = %d, neutral = %s},\n",unitname,x,y,z,r,tid, isneutral)) --{ name = 'ad0_aleppo_2', x = 2900, z = 52, rot = "-1" },
 		end
+	end
+
+	--- Dumps all units and features in the loadout.lua format used by UnitLoadout / FeatureLoadout in missions.
+	--- Usage: /luarules dumploadout
+	function dumpLoadout(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
+			return
+		end
+
+		local headingToFacing = Spring.Utilities.HeadingToFacing
+
+		Spring.Echo("local unitLoadout = {")
+		for _, unitID in pairs(Spring.GetAllUnits()) do
+			local unitDefName = UnitDefs[Spring.GetUnitDefID(unitID)].name or "nil"
+			local x, y, z = Spring.GetUnitPosition(unitID)
+			local facing = headingToFacing(Spring.GetUnitHeading(unitID))
+			local team = Spring.GetUnitTeam(unitID)
+			local isBeingBuilt = Spring.GetUnitIsBeingBuilt(unitID)
+			local isNeutral = Spring.GetUnitNeutral(unitID)
+			local extras = ""
+			if isBeingBuilt then extras = extras .. ", construction = true" end
+			if isNeutral then extras = extras .. ", neutral = true" end
+			Spring.Echo(string.format("\t{ unitDefName = '%s', x = %d, z = %d, facing = '%s', team = %d%s },",
+				unitDefName, math.floor(x), math.floor(z), facing, team, extras))
+		end
+		Spring.Echo("}")
+
+		Spring.Echo("local featureLoadout = {")
+		for _, featureID in pairs(Spring.GetAllFeatures()) do
+			local featureDefName = (FeatureDefs[Spring.GetFeatureDefID(featureID)].name or "nil")
+			local x, y, z = Spring.GetFeaturePosition(featureID)
+			local facing = headingToFacing(Spring.GetFeatureHeading(featureID))
+			Spring.Echo(string.format("\t{ featureDefName = '%s', x = %d, z = %d, facing = '%s' },",
+				featureDefName, math.floor(x), math.floor(z), facing))
+		end
+		Spring.Echo("}")
 	end
 
 	local function centerCamera()
@@ -1077,7 +979,6 @@ else	-- UNSYNCED
 		end
 	end
 
-	------------------------------UNSYNCED-----------------------------
 	local fightertestactive = false
 	local fighterteststats
 
@@ -1190,9 +1091,11 @@ else	-- UNSYNCED
 	end
 
 	function fightertest(_, line, words, playerID, action)
-
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
 		Spring.Echo("Fightertest",line, words, playerID, action)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if not isAuthorized(playerID, "terrain") then
 			return
 		end
 		if fightertestactive then
@@ -1305,7 +1208,10 @@ else	-- UNSYNCED
 	end
 
 	function globallos(_, line, words, playerID, action)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "terrain") then
 			return
 		end
 		if words[2] then
@@ -1317,7 +1223,10 @@ else	-- UNSYNCED
 	end
 
 	function playertoteam(_, line, words, playerID, action)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "teams") then
 			return
 		end
 		if not words[1] then
@@ -1336,13 +1245,16 @@ else	-- UNSYNCED
 			words[2] = words[1]
 			words[1] = Spring.GetMyPlayerID()
 		end
-		if tonumber(words[2]) < #Spring.GetTeamList()-1 then
+		if tonumber(words[2]) < (#Spring.GetTeamList())-1 then
 			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':playertoteam:' .. words[1] .. ':' .. words[2])
 		end
 	end
 
 	function killteam(_, line, words, playerID, action)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "teams") then
 			return
 		end
 		if not words[1] then
@@ -1351,8 +1263,11 @@ else	-- UNSYNCED
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':killteam:' .. words[1])
 	end
 
-	function desync()
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+	function desync(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "test") then
 			return
 		end
 		Spring.Echo("Unsynced: Attempting to trigger a /desync")
@@ -1363,7 +1278,10 @@ else	-- UNSYNCED
 		--spawnceg usage:
 		--/luarules spawnceg newnuke --spawns at cursor
 		--/luarules spawnceg newnuke [int] -- spawns at cursor at height
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
 			return
 		end
 		local height = 32
@@ -1386,7 +1304,10 @@ else	-- UNSYNCED
 	function spawnunitexplosion(_, line, words, playerID)
 		--spawnunitexplosion usage:
 		--/luarules spawnunitexplosion armbull --spawns at cursor
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
 			return
 		end
 		local mx, my = Spring.GetMouseState()
@@ -1400,7 +1321,50 @@ else	-- UNSYNCED
 	end
 
 	function GiveCat(_, line, words, playerID)
-		if not isAuthorized(Spring.GetMyPlayerID()) then
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
+			return
+		end
+
+		-- "tree" mode: /luarules givecat unitname [teamid]
+		-- If first word is a known unitdef name, give it + all recursive buildoptions
+		if words[1] and UnitDefNames[words[1]] then
+			local unitName = words[1]
+			local rootDef = UnitDefNames[unitName]
+			local collected = {}
+			local result = {}
+			local function collectBuildOptions(uDefID, depth)
+				if depth > 15 or collected[uDefID] then
+					return
+				end
+				collected[uDefID] = true
+				result[#result + 1] = uDefID
+				local ud = UnitDefs[uDefID]
+				if ud and ud.buildOptions then
+					for _, boDefID in ipairs(ud.buildOptions) do
+						collectBuildOptions(boDefID, depth + 1)
+					end
+				end
+			end
+			collectBuildOptions(rootDef.id, 0)
+			Spring.Echo("givecat: giving " .. #result .. " unique units from '" .. unitName .. "'")
+			if #result == 0 then return end
+			local _, _, _, teamID = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			if words[2] and tonumber(words[2]) then
+				teamID = tonumber(words[2])
+			end
+			local mx, my = Spring.GetMouseState()
+			local t, pos = Spring.TraceScreenRay(mx, my, true)
+			if type(pos) == 'table' then
+				local x, z = math.floor(pos[1]), math.floor(pos[3])
+				local msg = "givecat " .. x .. " " .. z .. " " .. teamID
+				for _, uDID in ipairs(result) do
+					msg = msg .. " " .. uDID
+				end
+				Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
+			end
 			return
 		end
 

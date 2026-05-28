@@ -34,7 +34,7 @@ end
 local difficultyParameters = {
 
 	[difficulties.veryeasy] = {
-		gracePeriod             = 180,
+		gracePeriod             = 360 * Spring.GetModOptions().scav_graceperiodmult,
 		bossTime                = 65 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 240 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 240 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -54,7 +54,7 @@ local difficultyParameters = {
 	},
 
 	[difficulties.easy] = {
-		gracePeriod             = 120,
+		gracePeriod             = 240 * Spring.GetModOptions().scav_graceperiodmult,
 		bossTime                = 60 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 200 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 210 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -73,7 +73,7 @@ local difficultyParameters = {
 		bossResistanceMult      = 1.5 * economyScale,
 	},
 	[difficulties.normal] = {
-		gracePeriod             = 90,
+		gracePeriod             = 180 * Spring.GetModOptions().scav_graceperiodmult,
 		bossTime                = 55 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 180 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 180 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -92,7 +92,7 @@ local difficultyParameters = {
 		bossResistanceMult      = 2 * economyScale,
 	},
 	[difficulties.hard] = {
-		gracePeriod             = 80,
+		gracePeriod             = 160 * Spring.GetModOptions().scav_graceperiodmult,
 		bossTime                = 50 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 160 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 150 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -111,7 +111,7 @@ local difficultyParameters = {
 		bossResistanceMult      = 2.5 * economyScale,
 	},
 	[difficulties.veryhard] = {
-		gracePeriod             = 70,
+		gracePeriod             = 140 * Spring.GetModOptions().scav_graceperiodmult,
 		bossTime                = 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 140 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 120 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -130,7 +130,7 @@ local difficultyParameters = {
 		bossResistanceMult      = 3 * economyScale,
 	},
 	[difficulties.epic] = {
-		gracePeriod             = 60,
+		gracePeriod             = 120 * Spring.GetModOptions().scav_graceperiodmult,
 		bossTime                = 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 120 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 90 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -178,12 +178,12 @@ local difficultyParameters = {
 
 local tierConfiguration = { -- Double maxSquadSize for special squads
 	[1] = {minAnger = 0,  maxAnger = 20, 	maxSquadSize = 1},
-	[2] = {minAnger = 10, maxAnger = 65, 	maxSquadSize = 10},
-	[3] = {minAnger = 20, maxAnger = 100, 	maxSquadSize = 10},
-	[4] = {minAnger = 35, maxAnger = 200, 	maxSquadSize = 10},
-	[5] = {minAnger = 45, maxAnger = 350, 	maxSquadSize = 8},
-	[6] = {minAnger = 60, maxAnger = 500, 	maxSquadSize = 5},
-	[7] = {minAnger = 70, maxAnger = 1000, 	maxSquadSize = 3},
+	[2] = {minAnger = 5,  maxAnger = 65, 	maxSquadSize = 10},
+	[3] = {minAnger = 15, maxAnger = 100, 	maxSquadSize = 10},
+	[4] = {minAnger = 30, maxAnger = 200, 	maxSquadSize = 10},
+	[5] = {minAnger = 40, maxAnger = 350, 	maxSquadSize = 8},
+	[6] = {minAnger = 55, maxAnger = 500, 	maxSquadSize = 5},
+	[7] = {minAnger = 65, maxAnger = 1000, 	maxSquadSize = 3},
 }
 
 --local teamAngerEasementFB = 16
@@ -1029,14 +1029,14 @@ local AirUnitsList = {
 			["armpnix_scav"] = 3,
 			["armstil_scav"] = 3,
 			["armblade_scav"] = 3,
-			["armliche_scav"] = 2,
+			["armliche_scav"] = 1,
 			["armdfly_scav"] = 2,
 			--Cortex
 			["corvamp_scav"] = 3,
 			["corape_scav"] = 3,
 			["corhurc_scav"] = 3,
-			["corcrw_scav"] = 2,
-			["corcrwh_scav"] = 2,
+			["corcrw_scav"] = 1,
+			["corcrwh_scav"] = 1,
 			--Legion
 			["legstronghold_scav"] = 2,
 			["legvenator_scav"] = 3,
@@ -1045,7 +1045,7 @@ local AirUnitsList = {
 			["legnap_scav"] = 3,
 			["legmineb_scav"] = 3,
 			["legphoenix_scav"] = 3,
-			["legfort_scav"] = 2,
+			["legfort_scav"] = 1,
 			["legmost3_scav"] = 1,
 		},
 		[6] = {
@@ -1058,7 +1058,7 @@ local AirUnitsList = {
 		},
 		[7] = {
 			--Armada
-			["armliche_scav"] = 4,
+			["armliche_scav"] = 10,
 			["armthundt4_scav"] = 2,
 			["armfepocht4_scav"] = 1,
 			--Cortex
@@ -1642,54 +1642,54 @@ local squadSpawnOptionsTable = {
 	healerLand = {}, -- Healers/Medics
 	healerSea = {}, -- Healers/Medics
 	commanders = {
-		["armcom_scav"]        = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
-		["armcomlvl2_scav"]    = { minAnger = 15, maxAnger = 50, maxAlive = 1 },
-		["armcomlvl3_scav"]    = { minAnger = 20, maxAnger = 60, maxAlive = 1 },
-		["armcomlvl4_scav"]    = { minAnger = 30, maxAnger = 70, maxAlive = 1 },
-		["armcomlvl5_scav"]    = { minAnger = 40, maxAnger = 80, maxAlive = 1 },
-		["armcomlvl6_scav"]    = { minAnger = 50, maxAnger = 90, maxAlive = 1 },
-		["armcomlvl7_scav"]    = { minAnger = 60, maxAnger = 100, maxAlive = 1 },
-		["armcomlvl8_scav"]    = { minAnger = 70, maxAnger = 110, maxAlive = 1 },
-		["armcomlvl9_scav"]    = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
+		["armcom_scav"]        = { minAnger = 2, maxAnger = 25, maxAlive = 1 },
+		["armcomlvl2_scav"]    = { minAnger = 15, maxAnger = 30, maxAlive = 1 },
+		["armcomlvl3_scav"]    = { minAnger = 20, maxAnger = 40, maxAlive = 1 },
+		["armcomlvl4_scav"]    = { minAnger = 30, maxAnger = 50, maxAlive = 1 },
+		["armcomlvl5_scav"]    = { minAnger = 40, maxAnger = 60, maxAlive = 1 },
+		["armcomlvl6_scav"]    = { minAnger = 50, maxAnger = 70, maxAlive = 1 },
+		["armcomlvl7_scav"]    = { minAnger = 60, maxAnger = 80, maxAlive = 1 },
+		["armcomlvl8_scav"]    = { minAnger = 70, maxAnger = 1000, maxAlive = 1 },
+		["armcomlvl9_scav"]    = { minAnger = 80, maxAnger = 1000, maxAlive = 1 },
 		["armcomlvl10_scav"]   = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
-		["corcom_scav"]        = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
-		["corcomlvl2_scav"]    = { minAnger = 15, maxAnger = 50, maxAlive = 1 },
-		["corcomlvl3_scav"]    = { minAnger = 20, maxAnger = 60, maxAlive = 1 },
-		["corcomlvl4_scav"]    = { minAnger = 30, maxAnger = 70, maxAlive = 1 },
-		["corcomlvl5_scav"]    = { minAnger = 40, maxAnger = 80, maxAlive = 1 },
-		["corcomlvl6_scav"]    = { minAnger = 50, maxAnger = 90, maxAlive = 1 },
-		["corcomlvl7_scav"]    = { minAnger = 60, maxAnger = 100, maxAlive = 1 },
-		["corcomlvl8_scav"]    = { minAnger = 70, maxAnger = 110, maxAlive = 1 },
-		["corcomlvl9_scav"]    = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
+		["corcom_scav"]        = { minAnger = 2, maxAnger = 25, maxAlive = 1 },
+		["corcomlvl2_scav"]    = { minAnger = 15, maxAnger = 30, maxAlive = 1 },
+		["corcomlvl3_scav"]    = { minAnger = 20, maxAnger = 40, maxAlive = 1 },
+		["corcomlvl4_scav"]    = { minAnger = 30, maxAnger = 50, maxAlive = 1 },
+		["corcomlvl5_scav"]    = { minAnger = 40, maxAnger = 60, maxAlive = 1 },
+		["corcomlvl6_scav"]    = { minAnger = 50, maxAnger = 70, maxAlive = 1 },
+		["corcomlvl7_scav"]    = { minAnger = 60, maxAnger = 80, maxAlive = 1 },
+		["corcomlvl8_scav"]    = { minAnger = 70, maxAnger = 1000, maxAlive = 1 },
+		["corcomlvl9_scav"]    = { minAnger = 80, maxAnger = 1000, maxAlive = 1 },
 		["corcomlvl10_scav"]   = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
-		["legcom_scav"]        = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
-		["legcomlvl2_scav"]    = { minAnger = 15, maxAnger = 50, maxAlive = 1 },
-		["legcomlvl3_scav"]    = { minAnger = 20, maxAnger = 60, maxAlive = 1 },
-		["legcomlvl4_scav"]    = { minAnger = 30, maxAnger = 70, maxAlive = 1 },
-		["legcomlvl5_scav"]    = { minAnger = 40, maxAnger = 80, maxAlive = 1 },
-		["legcomlvl6_scav"]    = { minAnger = 50, maxAnger = 90, maxAlive = 1 },
-		["legcomlvl7_scav"]    = { minAnger = 60, maxAnger = 100, maxAlive = 1 },
-		["legcomlvl8_scav"]    = { minAnger = 70, maxAnger = 110, maxAlive = 1 },
-		["legcomlvl9_scav"]    = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
+		["legcom_scav"]        = { minAnger = 2, maxAnger = 25, maxAlive = 1 },
+		["legcomlvl2_scav"]    = { minAnger = 15, maxAnger = 30, maxAlive = 1 },
+		["legcomlvl3_scav"]    = { minAnger = 20, maxAnger = 40, maxAlive = 1 },
+		["legcomlvl4_scav"]    = { minAnger = 30, maxAnger = 50, maxAlive = 1 },
+		["legcomlvl5_scav"]    = { minAnger = 40, maxAnger = 60, maxAlive = 1 },
+		["legcomlvl6_scav"]    = { minAnger = 50, maxAnger = 70, maxAlive = 1 },
+		["legcomlvl7_scav"]    = { minAnger = 60, maxAnger = 80, maxAlive = 1 },
+		["legcomlvl8_scav"]    = { minAnger = 70, maxAnger = 1000, maxAlive = 1 },
+		["legcomlvl9_scav"]    = { minAnger = 80, maxAnger = 1000, maxAlive = 1 },
 		["legcomlvl10_scav"]   = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
 
 
 	},
 
 	decoyCommanders = {
-		["armdecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
-		["armdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 1 },
-		["armdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 1 },
+		["armdecom_scav"]      = { minAnger = 0, maxAnger = 1000, maxAlive = 1 },
+		["armdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 1000, maxAlive = 1 },
+		["armdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 1000, maxAlive = 1 },
 		["armdecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 1 },
 
-		["cordecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
-		["cordecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 1},
-		["cordecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 1 },
+		["cordecom_scav"]      = { minAnger = 0, maxAnger = 1000, maxAlive = 1 },
+		["cordecomlvl3_scav"]  = { minAnger = 20, maxAnger = 1000, maxAlive = 1},
+		["cordecomlvl6_scav"]  = { minAnger = 50, maxAnger = 1000, maxAlive = 1 },
 		["cordecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 1 },
 
-		["legdecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
-		["legdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 1 },
-		["legdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 1 },
+		["legdecom_scav"]      = { minAnger = 0, maxAnger = 1000, maxAlive = 1 },
+		["legdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 1000, maxAlive = 1 },
+		["legdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 1000, maxAlive = 1 },
 		["legdecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 1 },
 
 		["cormandot4_scav"] = { minAnger = 60, maxAnger = 1000, maxAlive = 4 },

@@ -14,7 +14,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.98,
-        colormap           = [[0.91 0.9 0.9 0.3  0.95 1 0.9 1  0.93 0.9 0.85 0.6   0.16 0.12 0.09 0.36   0 0 0 0.08   0 0 0 0.05   0 0 0 0.03   0 0 0 0.01]],
+        colormap           = [[1.0 0.95 0.55 0.3   1.0 1.0 0.9 1   1.0 0.78 0.25 0.6   0.45 0.25 0.1 0.36   0 0 0 0.08   0 0 0 0.05   0 0 0 0.03   0 0 0 0.01]],
         directional        = false,
         emitrot            = 65,
         emitrotspread      = 65,
@@ -453,7 +453,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.98,
-        colormap           = [[0.7 0.4 0.1 0.3   1 1 1 1   0.95 0.8 0.66 1   0.45 0.25 0.1 0.6   0.023 0.022 0.022 0.3   0.023 0.022 0.022 0.05   0 0 0 0.03   0 0 0 0.01]],
+        colormap           = [[1.0 0.78 0.25 0.3   1.0 1.0 0.9 1   1.0 0.95 0.55 1   1.0 0.78 0.25 0.6   0.45 0.25 0.1 0.3   0.023 0.022 0.022 0.05   0 0 0 0.03   0 0 0 0.01]],
         directional        = true,
         emitrot            = 70,
         emitrotspread      = 40,
@@ -484,7 +484,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.98,
-        colormap           = [[0.7 0.4 0.1 0.3   1 1 1 1   0.95 0.8 0.66 1   0.45 0.25 0.1 0.6   0.023 0.022 0.022 0.3   0.023 0.022 0.022 0.05   0 0 0 0.03   0 0 0 0.01]],
+        colormap           = [[1.0 0.78 0.25 0.3   1.0 1.0 0.9 1   1.0 0.95 0.55 1   1.0 0.78 0.25 0.6   0.45 0.25 0.1 0.3   0.023 0.022 0.022 0.05   0 0 0 0.03   0 0 0 0.01]],
         directional        = true,
         emitrot            = 70,
         emitrotspread      = 40,
@@ -517,7 +517,7 @@ return {
       properties = {
         airdrag            = 0.98,
         --colormap           = [[0.9 0.8 0.7 0.3   1 0.9 0.8 1   0.95 0.8 0.66 1   0.45 0.25 0.1 0.6   0.023 0.022 0.022 0.3   0.023 0.022 0.022 0.05   0 0 0 0.03   0 0 0 0.01]],
-        colormap           = [[0.85 0.85 0.7 0.9   1.0 0.97 0.7 1  0.8 0.7 0.55 0.88   0.22 0.13 0.1 0.66   0.023 0.022 0.022 0.25   0 0 0 0.01]],
+        colormap           = [[1.0 0.95 0.55 0.9   1.0 1.0 0.9 1   1.0 0.78 0.25 0.88   0.45 0.25 0.1 0.66   0.023 0.022 0.022 0.25   0 0 0 0.01]],
         directional        = true,
         emitrot            = 70,
         emitrotspread      = 40,
@@ -548,7 +548,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.98,
-        colormap           = [[0.7 0.4 0.1 0.3   1 1 1 1   0.95 0.8 0.66 1   0.45 0.25 0.1 0.6   0.023 0.022 0.022 0.3   0.023 0.022 0.022 0.05   0 0 0 0.03   0 0 0 0.01]],
+        colormap           = [[1.0 0.78 0.25 0.3   1.0 1.0 0.9 1   1.0 0.95 0.55 1   1.0 0.78 0.25 0.6   0.45 0.25 0.1 0.3   0.023 0.022 0.022 0.05   0 0 0 0.03   0 0 0 0.01]],
         directional        = true,
         emitrot            = 70,
         emitrotspread      = 40,
@@ -608,7 +608,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.98,
-        colormap           = [[0.7 0.3 1.0 0.8  0.2 0.1 0.80 0.2   0.10 0.03 0.20 0.11   0.01 0 0.02 0.08   0.01 0 0.020 0.05   0.01 0 0.02 0.01]],
+        colormap           = [[1.0 0.78 0.25 0.8   1.0 0.95 0.55 0.4   0.7 0.4 0.1 0.2   0.16 0.12 0.09 0.11   0.023 0.022 0.022 0.05   0 0 0 0.01]],
         directional        = true,
         emitrot            = 65,
         emitrotspread      = 65,
@@ -634,7 +634,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.98,
-        colormap           = [[0.01 0 0.02 0.01   0.7 0.3 1.0 0.8  0.2 0.1 0.80 0.2   0.10 0.03 0.20 0.11   0.01 0 0.02 0.08   0.01 0 0.020 0.05   0.01 0 0.02 0.01]],
+        colormap           = [[0 0 0 0.01   1.0 0.78 0.25 0.8   1.0 0.95 0.55 0.4   0.7 0.4 0.1 0.2   0.16 0.12 0.09 0.11   0.023 0.022 0.022 0.05   0 0 0 0.01]],
         directional        = true,
         emitrot            = 65,
         emitrotspread      = 65,
@@ -932,7 +932,7 @@ return {
       },
     },
 
- 
+
   },
   ["flamestreamxl"] = {
     flame = {
@@ -1065,6 +1065,7 @@ return {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
+	  water              = true,
       properties = {
         airdrag            = 0.99,
         colormap           = [[ 0.91 0.90 0.95 0.98  0.92 0.88 0.80 0.95   0.75 0.45 0.1 0.3    0.01 0 0 0.01]],
@@ -1100,6 +1101,7 @@ return {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
+	  water              = true,
       properties = {
         airdrag            = 0.99,
         colormap           = [[0.92 0.92 0.91 0.98  0.92 0.90 0.78 0.95   0.75 0.43 0.09 0.3    0.01 0 0 0.01]],
@@ -1214,7 +1216,7 @@ return {
         texture            = [[BARFlame02]],
         pos                = [[-2 r4, 32 r12, -2 r4]],
         sizegrowth         = [[1.9 d+10 r3.0]],
-        sizemod            = 0.82,   
+        sizemod            = 0.82,
         drawOrder          = 1,
       },
     },
@@ -1298,7 +1300,84 @@ return {
       },
     },
   },
-  
+
+    ["burnflamel"] = {
+    extrafire = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      properties = {
+        airdrag            = 0.15,
+        colormap           = [[0 0 0 0.01   0.01 0 0 0.05   0.22 0.12 0.33 0.3   0.3 0.3 0.28 0.6   0.28 0.28 0.25 0.5  0.27 0.26 0.22 0.35   0.25 0.20 0.15 0.12    0.01 0 0 0.01]],
+        directional        = false,
+        emitrot            = 90,
+        emitrotspread      = 1,
+        emitvector         = [[dir]],
+        gravity            = [[0, 0.06, 0]],
+        numparticles       = [[0.2 r0.81]],
+        particlelife       = 7,
+        particlelifespread = 12,
+        particlesize       = 7,
+        particlesizespread = 11,
+        particlespeed      = 0,
+        particlespeedspread = 0,
+        rotParams          = [[-90 r180, -50 r100, -180 r360]],
+        pos                = [[-3 r6, 20, -3 r6]],
+        sizegrowth         = 2,
+        sizemod            = 0.99,
+        texture            = [[fire]],
+        drawOrder          = -1,
+        castShadow         = true,
+      },
+    },
+    flame = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      properties = {
+        airdrag            = 0.97,
+        colormap           = [[0.8 0.78 0.6 0.9   1.0 0.97 0.7 1  0.8 0.7 0.55 0.88   0.22 0.13 0.1 0.7   0.023 0.022 0.022 0.3   0 0 0 0.01]],
+        --colormap           = [[0.8 0.78 0.6 0.9   1.0 0.97 0.7 1  0.8 0.7 0.55 0.88   0.22 0.13 0.1 0.66   0.023 0.022 0.022 0.25   0 0 0 0.01]],
+        directional        = false,
+        emitrot            = 70,
+        emitrotspread      = 40,
+        emitvector         = [[0.3, 0.7, 0.3]],
+        gravity            = [[-0.04 r0.08, 0.06 r0.08, -0.04 r0.08]],
+        numparticles       = [[0.45 r0.75]],
+        particlelife       = 25,
+        particlelifespread = 8,
+        particlesize       = 22,
+        particlesizespread = 30,
+        particlespeed      = 0.3,
+        particlespeedspread = 0.6,
+        rotParams          = [[-24 r48, -60 r120, -180 r360]],
+        animParams         = [[16,6,50 r60]],
+        pos                = [[-2 r4, 32 r12, -2 r4]],
+        sizegrowth         = [[2.5 d+9 r4.0]],
+        sizemod            = 0.92,
+        texture            = [[BARFlame02]],
+        drawOrder          = 1,
+      },
+    },
+  },
+  ["burnflamel-gen"] = {
+    burnrandom = {
+      class              = [[CExpGenSpawner]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      underwater         = true,
+      properties = {
+          delay              = [[r12]],
+          explosiongenerator = [[custom:burnflamel]],
+          pos                = [[-10 r20, 0 r20, -10 r20]],
+      },
+    },
+  },
+
    ["demonflame"] = {
     extrafire = {
       air                = true,

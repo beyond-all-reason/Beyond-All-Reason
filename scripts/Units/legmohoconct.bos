@@ -4,7 +4,7 @@
 
 piece  base, aim, nano1, nano2, rotor, attach;
 
-static-var  Stunned, spray, BuildHeading;
+static-var  extractionRate, Stunned, spray, BuildHeading;
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -14,7 +14,6 @@ static-var  Stunned, spray, BuildHeading;
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -34,7 +33,7 @@ Create()
     hide nano1;
 	hide nano2;
 	BuildHeading = 0;
-	spin rotor around y-axis speed <180> accelerate <0.5>;
+	extractionRate = 0;
 	return (0);
 }
 
@@ -44,6 +43,25 @@ SetStunned(State)
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
 	}
+}
+
+SetSpeed(windOrMetal)
+{
+	extractionRate = windOrMetal;
+	if (extractionRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
+}
+
+Activate()
+{
+	if (Stunned) {
+		return (0);
+	}
+	spin rotor around y-axis speed extractionRate accelerate 90;
+}
+
+Deactivate()
+{
+	stop-spin rotor around y-axis decelerate 200;
 }
 
 StartBuilding(heading)

@@ -138,6 +138,7 @@ end
 
 
 function widget:DrawScreen()
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	if not isActive then
 		if WG['guishader'] and prevIsActive ~= isActive then
 			WG['guishader'].RemoveDlist('replaybuttons')

@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "May 2021",
 		license   = "GNU GPL, v2 or later",
-		layer     = -980000,
+		layer     = -95000,
 		enabled   = true,
 		handler   = true,
 	}
@@ -25,8 +25,6 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
-
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local LineTypes = {
 	Console = -1,
@@ -435,9 +433,10 @@ local autocompleteCommands = {
 	'luarules buildicon',
 	'luarules cmd',
 	'luarules clearwrecks',
+	'luarules reducewrecks',
 	'luarules destroyunits',
 	'luarules disablecusgl4',
-	'luarules fightertest',
+	'luarules benchmark',
 	'luarules give',
 	'luarules givecat',
 	'luarules halfhealth',
@@ -494,6 +493,8 @@ local autocompleteCommands = {
 	'defrange enemy air',
 	'defrange enemy nuke',
 	'defrange enemy ground',
+	'set_camera_anchor',
+	'focus_camera_anchor',
 }
 
 local playernames = {}
@@ -795,6 +796,35 @@ local function cancelChatInput()
 	updateDrawUi = true
 end
 
+local function ensureInputHistoryDraft()
+	if #inputHistory == 0 or inputHistory[#inputHistory] ~= '' then
+		inputHistory[#inputHistory + 1] = ''
+	end
+	inputHistoryCurrent = #inputHistory
+end
+
+local function commitInputHistory(text)
+	if not text or text == '' then
+		ensureInputHistoryDraft()
+		return
+	end
+
+	if #inputHistory > 0 and inputHistory[#inputHistory] == '' then
+		table.remove(inputHistory, #inputHistory)
+	end
+
+	for i = #inputHistory, 1, -1 do
+		if inputHistory[i] == text then
+			table.remove(inputHistory, i)
+			break
+		end
+	end
+
+	inputHistory[#inputHistory + 1] = text
+	inputHistory[#inputHistory + 1] = ''
+	inputHistoryCurrent = #inputHistory
+end
+
 local function commonUnitName(unitIDs)
 	local commonUnitDefID = nil
 	for _, unitID in pairs(unitIDs) do
@@ -872,7 +902,8 @@ end
 -- Helper function to format system message with player name
 local function formatSystemMessage(i18nKey, playername, gameFrame, lineColor, extraParams)
 	local params = extraParams or {}
-	params.name = getPlayerColorString(playername, gameFrame) .. playername
+	local displayName = (playernames[playername] and playernames[playername][7]) or playername
+	params.name = getPlayerColorString(playername, gameFrame) .. displayName
 	params.textColor = lineColor
 	return Spring.I18N(i18nKey, params)
 end
@@ -1113,7 +1144,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		end
 
 		if not bypassThisMessage and line ~= '' then
-			if ignoredAccounts[name] then
+			if name ~= '' and ignoredAccounts[name] then
 				skipThisMessage = true
 			end
 			if not orgLineID then
@@ -1196,14 +1227,14 @@ drawGameTime = function(gameFrame)
 	if minutes >= 100 then
 		offset = (usedFontSize*0.2*widgetScale)
 	end
-	font3:Begin(useRenderToTexture)
+	font3:Begin(true)
 	font3:SetOutlineColor(0,0,0,1)
 	font3:Print('\255\200\200\200'..minutes..':'..seconds, maxTimeWidth+offset, usedFontSize*0.3, usedFontSize*0.82, "ro")
 	font3:End()
 end
 
 drawConsoleLine = function(i)
-	font:Begin(useRenderToTexture)
+	font:Begin(true)
 	font:SetOutlineColor(0,0,0,1)
 	font:Print(consoleLines[i].text, 0, usedFontSize*0.3, usedConsoleFontSize, "o")
 	font:End()
@@ -1227,10 +1258,10 @@ end
 
 drawChatLine = function(i)
 	local fontHeightOffset = usedFontSize*0.3
-	font:Begin(useRenderToTexture)
+	font:Begin(true)
 	if chatLines[i].gameFrame then
 		if chatLines[i].lineType == LineTypes.Mapmark then
-			font2:Begin(useRenderToTexture)
+			font2:Begin(true)
 			if chatLines[i].textOutline then
 				font2:SetOutlineColor(1,1,1,1)
 			else
@@ -1241,7 +1272,7 @@ drawChatLine = function(i)
 			font2:SetOutlineColor(0,0,0,1)
 			font2:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
 		elseif chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
-			font3:Begin(useRenderToTexture)
+			font3:Begin(true)
 			if chatLines[i].textOutline then
 				font3:SetOutlineColor(1,1,1,1)
 			else
@@ -1250,7 +1281,7 @@ drawChatLine = function(i)
 			font3:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.2, usedFontSize*0.9, "or")
 			font3:End()
 		else
-			font2:Begin(useRenderToTexture)
+			font2:Begin(true)
 			if chatLines[i].textOutline then
 				font2:SetOutlineColor(1,1,1,1)
 			else
@@ -1263,7 +1294,7 @@ drawChatLine = function(i)
 		end
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
-		font3:Begin(useRenderToTexture)
+		font3:Begin(true)
 		font3:SetOutlineColor(0,0,0,1)
 		font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o")
 		font3:End()
@@ -1333,29 +1364,6 @@ function widget:Update(dt)
 				end
 			end
 		end
-		if changeDetected and not useRenderToTexture then
-			for i, _ in ipairs(chatLines) do
-				if changedPlayers[chatLines[i].playerName] then
-					chatLines[i].reprocess = true
-					if chatLines[i].lineDisplayList then
-						glDeleteList(chatLines[i].lineDisplayList)
-						chatLines[i].lineDisplayList = nil
-					end
-				end
-				updateDrawUi = true
-			end
-			-- reprocessing not implemented yet for consoleLines, maybe not really that needed anyway
-			--for i, _ in ipairs(consoleLines) do
-			--	if changedPlayers[consoleLines[i].playerName] then
-			--		consoleLines[i].reprocess = true
-			--		if chatLines[i].lineDisplayList then
-			--			glDeleteList(consoleLines[i].lineDisplayList)
-			--			consoleLines[i].lineDisplayList = nil
-			--		end
-			--	end
-			--end
-		end
-
 		if WG.ignoredAccounts then
 			-- unhide chats from players that used to be ignored
 			for accountID_or_name, _ in pairs(ignoredAccounts) do
@@ -1524,7 +1532,7 @@ drawChatInput = function()
 			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
 
 			-- button text
-			usedFont:Begin(useRenderToTexture)
+			usedFont:Begin(true)
 			usedFont:SetOutlineColor(0.22, 0.22, 0.22, 1)
 			if isCmd then
 				r, g, b = 0.65, 0.65, 0.65
@@ -1665,7 +1673,7 @@ drawUi = function()
 			glColor(0,0,0,backgroundOpacity)
 			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
 			if hovering then --and Spring.GetGameFrame() < 30*60*7 then
-				font:Begin(useRenderToTexture)
+				font:Begin(true)
 				font:SetTextColor(0.1,0.1,0.1,0.66)
 				font:Print(I18N.shortcut, activationArea[3]-elementPadding-elementPadding, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize, "r")
 				font:End()
@@ -1680,12 +1688,7 @@ drawUi = function()
 			local i = #consoleLines
 			while i > 0 do
 				if clock() - consoleLines[i].startTime < lineTTL then
-					if useRenderToTexture then
-						drawConsoleLine(i)
-					else
-						processConsoleLineGL(i)
-						glCallList(consoleLines[i].lineDisplayList)
-					end
+					drawConsoleLine(i)
 				else
 					break
 				end
@@ -1710,7 +1713,7 @@ drawUi = function()
 	-- draw chat lines or chat/console history ui panel
 	if historyMode or chatLines[currentChatLine] then
 		if #chatLines == 0 and historyMode == 'chat' then
-			font:Begin(useRenderToTexture)
+			font:Begin(true)
 			font:SetTextColor(0.35,0.35,0.35,0.66)
 			font:Print(I18N.nohistory, activationArea[1]+(activationArea[3]-activationArea[1])/2, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize*1.1, "c")
 			font:End()
@@ -1733,9 +1736,7 @@ drawUi = function()
 			if (historyMode and historyMode == 'console') or (chatLines[i] and not chatLines[i].ignore) then
 				if historyMode or clock() - chatLines[i].startTime < lineTTL then
 					if historyMode == 'console' then
-						if not useRenderToTexture then
-							processConsoleLineGL(i)
-						end
+						-- R2T mode: no processConsoleLineGL needed
 					else
 						if chatLines[i].reprocess then
 							chatLines[i].reprocess = nil
@@ -1752,25 +1753,18 @@ drawUi = function()
 								processAddConsoleLine(orgLines[orgLineID][1], orgLines[orgLineID][2], orgLineID, firstWordrappedChatLine)
 							end
 						end
-						if not useRenderToTexture then
-							processChatLineGL(i)
-						end
 					end
 					if historyMode then
 						if historyMode == 'console' then
 							if consoleLines[i] then
-								if useRenderToTexture and consoleLines[i].gameFrame then
+								if consoleLines[i].gameFrame then
 									drawGameTime(consoleLines[i].gameFrame)
-								elseif consoleLines[i].timeDisplayList then
-									glCallList(consoleLines[i].timeDisplayList)
 								end
 							end
 						else
 							if historyMode and chatLines[i] then
-								if useRenderToTexture and chatLines[i].gameFrame then
+								if chatLines[i].gameFrame then
 									drawGameTime(chatLines[i].gameFrame)
-								elseif chatLines[i].timeDisplayList then
-									glCallList(chatLines[i].timeDisplayList)
 								end
 							end
 						end
@@ -1780,19 +1774,11 @@ drawUi = function()
 					end
 					if historyMode == 'console' then
 						if consoleLines[i] then
-							if useRenderToTexture then
-								drawConsoleLine(i)
-							elseif consoleLines[i].lineDisplayList then
-								glCallList(consoleLines[i].lineDisplayList)
-							end
+							drawConsoleLine(i)
 						end
 					else
 						if chatLines[i] then
-							if useRenderToTexture then
-								drawChatLine(i)
-							elseif chatLines[i].lineDisplayList then
-								glCallList(chatLines[i].lineDisplayList)
-							end
+							drawChatLine(i)
 						end
 					end
 					if historyMode then
@@ -1828,12 +1814,7 @@ drawUi = function()
 			if historyMode and currentChatLine < lastUnignoredChatLineID and clock() - chatLines[lastUnignoredChatLineID].startTime < lineTTL then
 				glPushMatrix()
 				glTranslate(vsx * posX, vsy * ((historyMode and scrollingPosY or posY)-0.02)-backgroundPadding, 0)
-				if useRenderToTexture then
-					drawChatLine(lastUnignoredChatLineID)
-				else
-					processChatLineGL(lastUnignoredChatLineID)
-					glCallList(chatLines[lastUnignoredChatLineID].lineDisplayList)
-				end
+				drawChatLine(lastUnignoredChatLineID)
 				glPopMatrix()
 			end
 		end
@@ -1992,53 +1973,50 @@ function widget:DrawScreen()
 	--prevShowTextInput = showTextInput
 	--prevDisplayedChatLines = displayedChatLines
 
-	if useRenderToTexture then
-		if refreshUi then
-			refreshUi = false
-			updateDrawUi = true
-			if uiTex then
-				gl.DeleteTexture(uiTex)
-				uiTex = nil
-			end
-			rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(scrollingPosY-posY)), consoleActivationArea[3], consoleActivationArea[4]}
-			local texWidth = mathFloor(rttArea[3]-rttArea[1])
-			local texHeight = mathFloor(rttArea[4]-rttArea[2])
-			if texWidth > 0 and texHeight > 0 then
-				uiTex = gl.CreateTexture(texWidth, texHeight, {
-					target = GL.TEXTURE_2D,
-					format = GL.ALPHA,
-					fbo = true,
-				})
-			end
-		end
+	if refreshUi then
+		refreshUi = false
+		updateDrawUi = true
 		if uiTex then
-			if lastDrawUiUpdate+2 < clock() then	-- this is to make sure stuff times out/clears respecting lineTTL
-				updateDrawUi = true
-			end
-			if updateDrawUi ~= nil then
-				lastDrawUiUpdate = clock()
-				gl.R2tHelper.RenderToTexture(uiTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / ((rttArea[3]-rttArea[1])), 2 / ((rttArea[4]-rttArea[2])),	0)
-						gl.Translate(-rttArea[1], -rttArea[2], 0)
-						drawUi()
-					end,
-					useRenderToTexture
-				)
-
-				-- drawUi() needs to run twice to fix some alignment issues so lets scedule one more update as workaround for now
-				if updateDrawUi == false then
-					updateDrawUi = nil
-				elseif updateDrawUi then
-					updateDrawUi = false	-- update once more after this
-				end
-			end
-
-			gl.R2tHelper.BlendTexRect(uiTex, rttArea[1], rttArea[2], rttArea[3], rttArea[4], useRenderToTexture)
+			gl.DeleteTexture(uiTex)
+			uiTex = nil
 		end
-	else
-		drawUi()
+		-- Always use maxLinesScrollFull for texture sizing so the texture is large enough
+		-- regardless of whether maxLinesScroll is currently reduced (e.g. chat input mode = 9 lines)
+		local rttScrollPosY = scrollingPosY
+		if topbarArea then
+			rttScrollPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScrollFull)) / vsy
+		end
+		-- Extra space below for the "show new chat" notification in history mode
+		-- (drawn at scrollingPosY - 0.02 - backgroundPadding, plus the line itself)
+		local notifExtra = floor(0.02 * vsy) + backgroundPadding + lineHeight
+		rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(rttScrollPosY-posY)) - notifExtra, consoleActivationArea[3], consoleActivationArea[4]}
+		local texWidth = mathFloor(rttArea[3]-rttArea[1])
+		local texHeight = mathFloor(rttArea[4]-rttArea[2])
+		if texWidth > 0 and texHeight > 0 then
+			uiTex = gl.CreateTexture(texWidth, texHeight, {
+				target = GL.TEXTURE_2D,
+				format = GL.ALPHA,
+				fbo = true,
+			})
+		end
+	end
+	if uiTex then
+		if lastDrawUiUpdate+2 < clock() then	-- this is to make sure stuff times out/clears respecting lineTTL
+			updateDrawUi = true
+		end
+		if updateDrawUi ~= nil then
+			lastDrawUiUpdate = clock()
+			gl.R2tHelper.RenderInRect(uiTex, rttArea[1], rttArea[2], rttArea[3], rttArea[4], drawUi, true)
+
+			-- drawUi() needs to run twice to fix some alignment issues so lets scedule one more update as workaround for now
+			if updateDrawUi == false then
+				updateDrawUi = nil
+			elseif updateDrawUi then
+				updateDrawUi = false	-- update once more after this
+			end
+		end
+
+		gl.R2tHelper.BlendTexRect(uiTex, rttArea[1], rttArea[2], rttArea[3], rttArea[4], true)
 	end
 end
 
@@ -2203,6 +2181,7 @@ function widget:KeyPress(key)
 			else
 				-- send chat/cmd
 				if inputText ~= '' then
+					local executedInput = inputText
 					if ssub(inputText, 1, 1) == '/' then
 						Spring.SendCommands(ssub(inputText, 2))
 					else
@@ -2215,13 +2194,9 @@ function widget:KeyPress(key)
 						end
 						lastMessage = inputText
 					end
-					-- Remove any duplicate of this message from earlier in history (move to front)
-					for i = #inputHistory - 1, 1, -1 do
-						if inputHistory[i] == inputText then
-							table.remove(inputHistory, i)
-							break  -- Only remove one duplicate (the most recent one)
-						end
-					end
+					commitInputHistory(executedInput)
+				else
+					ensureInputHistoryDraft()
 				end
 				cancelChatInput()
 			end
@@ -2233,12 +2208,7 @@ function widget:KeyPress(key)
 				maxLinesScroll = maxLinesScrollChatInput
 			end
 			widgetHandler.textOwner = self	-- non handler = true: widgetHandler:OwnText()
-			if not inputHistory[inputHistoryCurrent] or inputHistory[inputHistoryCurrent] ~= '' then
-				if inputHistoryCurrent == 1 or inputHistory[inputHistoryCurrent] ~= inputHistory[inputHistoryCurrent-1] then
-					inputHistoryCurrent = inputHistoryCurrent + 1
-				end
-				inputHistory[inputHistoryCurrent] = ''
-			end
+			ensureInputHistoryDraft()
 			if ctrl then
 				inputMode = ''
 			elseif alt then
@@ -2451,7 +2421,6 @@ function widget:KeyPress(key)
 			end
 			if inputHistory[inputHistoryCurrent] then
 				inputText = inputHistory[inputHistoryCurrent]
-				inputHistory[#inputHistory] = inputText
 			end
 			inputTextPosition = utf8.len(inputText)
 			cursorBlinkTimer = 0
@@ -2594,12 +2563,8 @@ function widget:ViewResize()
 	usedConsoleFontSize = usedFontSize*consoleFontSizeMult
 
 	font = WG['fonts'].getFont()
-    font2 = WG['fonts'].getFont(2)
+	font2 = WG['fonts'].getFont(2, 1.2, 0.13, 20)
 	font3 = WG['fonts'].getFont(3)
-
-	--local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
-	--font = WG['fonts'].getFont(1, 1, 0.22 * outlineMult, 2+(outlineMult*0.25))
-    --font2 = WG['fonts'].getFont(2, 1, 0.22 * outlineMult, 2+(outlineMult*0.25))
 
 	-- get longest player name and calc its width
 	if not font or not longestPlayername then

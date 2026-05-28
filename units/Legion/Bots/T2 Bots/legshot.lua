@@ -15,8 +15,6 @@ return {
 		explodeas = "largeexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 3350,
 		maxslope = 17,
 		speed = 50.0,
@@ -78,12 +76,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small-impulse",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg3",
-				[4] = "deathceg4-fire",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -143,9 +135,6 @@ return {
 					subs = 90,
 					vtol = 35,
 				},
-				customparams = {
-					--exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

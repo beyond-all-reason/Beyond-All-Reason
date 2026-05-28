@@ -77,58 +77,19 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 					end
 				end
 			end
+		end
 
-			-- Allow building cormando in amphib complex
-			if name == "coramsub" then
-				local numBuildoptions = #uDef.buildoptions
-				uDef.buildoptions[numBuildoptions + 1] = "cormando"
+		if all or (custom and modOptions.community_balance_corkorg) then
+			if name == "corkorg" then
+				uDef.airsightdistance = 1600
+				uDef.metalcost = 26000
 			end
 		end
 
-		if all or (custom and modOptions.community_balance_cortermite) then
-			if name == "cortermite" then
-				uDef.stealth = true
-			end
-		end
-
-		if all or (custom and modOptions.community_balance_armwar) then
-			if name == "armwar" then
-				-- Reduce weapon range by 5 (330 - 5 = 325)
-				if uDef.weapondefs then
-					for weaponName, weaponDef in pairs(uDef.weapondefs) do
-						if weaponDef.range then
-							weaponDef.range = 325
-						end
-					end
-				end
-				-- Reduce LoS by 20 (350 - 20 = 330)
-				if uDef.sightdistance then
-					uDef.sightdistance = 330
-				end
-			end
-		end
-
-		if all or (custom and modOptions.community_balance_armfast) then
-			if name == "armfast" then
-				uDef.energycost = 3500
-				uDef.maxacc = 0.37
-				uDef.speed = 115
-				uDef.turninplaceanglelimit = 115
-				uDef.turninplacespeedlimit = 2.75
-				uDef.turnrate = 1320
-				uDef.sightdistance = 380
-				if uDef.weapondefs then
-					for weaponName, weaponDef in pairs(uDef.weapondefs) do
-						if weaponName == "arm_fast" then
-							weaponDef.areaofeffect = 18
-							weaponDef.range = 230
-							weaponDef.damage = {
-								default = 15,
-								vtol = 5
-							}
-						end
-					end
-				end
+		if all or (custom and modOptions.community_balance_corspy) then
+			if name == "corspy" then
+				uDef.energycost = 8800
+				uDef.metalcost = 135
 			end
 		end
 
@@ -140,6 +101,23 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 				uDef.health = 790
 				uDef.metalcost = 240
 				uDef.radardistancejam = 500
+				uDef.sightdistance = 195
+			end
+		end
+
+		if all or (custom and modOptions.community_balance_armmav) then
+			if name == "armmav" then
+				uDef.metalcost = 520
+				uDef.energycost = 6500
+			end
+		end
+
+		if all or (custom and modOptions.community_balance_corcan) then
+			if name == "corcan" then
+				if uDef.weapondefs and uDef.weapondefs.cor_canlaser then
+					uDef.weapondefs.cor_canlaser.range = 300
+					uDef.weapondefs.cor_canlaser.beamtime = 0.24
+				end
 			end
 		end
 	end

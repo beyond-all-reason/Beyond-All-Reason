@@ -23,8 +23,6 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 -------------------------------------------------------------------------------
 --- CACHED VALUES
 -------------------------------------------------------------------------------
@@ -32,7 +30,6 @@ local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
@@ -40,19 +37,13 @@ local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
-local math_clamp = math.clamp
-local math_bit_and = math.bit_and
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
-local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 
-local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
-local CMD_INSERT = CMD.INSERT
 local CMD_OPT_CTRL = CMD.OPT_CTRL
 local CMD_OPT_SHIFT = CMD.OPT_SHIFT
-local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 -------------------------------------------------------------------------------
 --- STATIC VALUES
@@ -234,6 +225,9 @@ local clickCellZoom = 0.125 * zoomMult
 local hoverCellColor = { 0.63, 0.63, 0.63, 0 }
 local selectedCellColor = { 1, 0.85, 0.2, 0.25 }
 local clickCellColor = { 0.3, 0.8, 0.25, 0.2 }
+
+-- Highlight API state: items[unitDefID] = { color={r,g,b}, startTime=os.clock() }
+local highlight = { items = {}, count = 0, defaultColor = { 1.0, 1.0, 1.0 } }
 
 local sec = 0
 local bgpadding, iconMargin, activeAreaMargin
@@ -529,7 +523,7 @@ local function updateHoverState()
 end
 
 local function getCodedOptState(cmdOptsCoded, cmdOpt)
-	return math_bit_and(cmdOptsCoded, cmdOpt) == cmdOpt
+	return math.bit_and(cmdOptsCoded, cmdOpt) == cmdOpt
 end
 
 -- Retrieve from buildunit_ cmdOpts on factories the number of de/enqueued units
@@ -539,7 +533,7 @@ local function cmdOptsToFactoryQueueChange(cmdOpts)
 	if type(cmdOpts) == "number" then
 		optTable.ctrl = getCodedOptState(cmdOpts, CMD_OPT_CTRL)
 		optTable.shift = getCodedOptState(cmdOpts, CMD_OPT_SHIFT)
-		optTable.right = getCodedOptState(cmdOpts, CMD_OPT_RIGHT)
+		optTable.right = getCodedOptState(cmdOpts, CMD.OPT_RIGHT)
 	else
 		optTable = cmdOpts
 	end
@@ -616,7 +610,7 @@ local function updateBuildProgress()
 		return
 	end
 
-	local unitBuildID = spGetUnitIsBuilding(activeBuilderID)
+	local unitBuildID = Spring.GetUnitIsBuilding(activeBuilderID)
 	local unitBuildDefID = unitBuildID and spGetUnitDefID(unitBuildID)
 
 	currentlyBuildingRectID = uDefCellIds[unitBuildDefID]
@@ -1477,6 +1471,52 @@ function widget:Initialize()
 		refreshCommands()
 	end
 
+	---Highlight a build option to draw the player's attention to it with a pulsing
+	---inner outline and a soft inner glow. Non-destructive: does not affect input or
+	---block hover/selection visuals. Subsequent calls update the existing highlight.
+	---@param unitDefID number The unit definition ID to highlight.
+	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
+	local function setHighlight(unitDefID, color)
+		if not unitDefID then return end
+		local items = highlight.items
+		if not items[unitDefID] then
+			highlight.count = highlight.count + 1
+		end
+		items[unitDefID] = {
+			color = color,
+			startTime = (items[unitDefID] and items[unitDefID].startTime) or os.clock(),
+		}
+	end
+
+	local function removeHighlight(unitDefID)
+		local items = highlight.items
+		if unitDefID and items[unitDefID] then
+			items[unitDefID] = nil
+			highlight.count = math_max(0, highlight.count - 1)
+		end
+	end
+
+	local function clearHighlights()
+		local items = highlight.items
+		for k in pairs(items) do
+			items[k] = nil
+		end
+		highlight.count = 0
+	end
+
+	local function hasHighlight(unitDefID)
+		return unitDefID ~= nil and highlight.items[unitDefID] ~= nil
+	end
+
+	WG["buildmenu"].setHighlight = setHighlight
+	WG["buildmenu"].removeHighlight = removeHighlight
+	WG["buildmenu"].clearHighlights = clearHighlights
+	WG["buildmenu"].hasHighlight = hasHighlight
+	WG["gridmenu"].setHighlight = setHighlight
+	WG["gridmenu"].removeHighlight = removeHighlight
+	WG["gridmenu"].clearHighlights = clearHighlights
+	WG["gridmenu"].hasHighlight = hasHighlight
+
 	local blockedUnits = {}
 
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
@@ -1697,6 +1737,19 @@ end
 function widget:GameFrame()
 	-- build progress updates every sym frame
 	updateBuildProgress()
+	-- update factory-under-construction state (stored in backgroundRect.opts to avoid extra module locals)
+	local prevUnderConstruction = backgroundRect.opts.builderUnderConstruction
+	if not activeBuilderID or not builderIsFactory then
+		backgroundRect.opts.builderUnderConstruction = false
+		backgroundRect.opts.builderProgress = 0
+	else
+		local isBeingBuilt, progress = spGetUnitIsBeingBuilt(activeBuilderID)
+		backgroundRect.opts.builderUnderConstruction = isBeingBuilt or false
+		backgroundRect.opts.builderProgress = progress or 0
+	end
+	if prevUnderConstruction ~= backgroundRect.opts.builderUnderConstruction then
+		redraw = true
+	end
 end
 
 -- Sometimes we issue commands the game state hasn't changed yet, to actually
@@ -1844,8 +1897,8 @@ local function drawButton(rect)
 
 	local color = highlight and 0.2 or 0
 
-	local color1 = { color, color, color, math_clamp(ui_opacity * 1.25, 0.55, 0.95) } -- bottom
-	local color2 = { color, color, color, math_clamp(ui_opacity * 1.25, 0.55, 0.95) } -- top
+	local color1 = { color, color, color, math.clamp(ui_opacity * 1.25, 0.55, 0.95) } -- bottom
+	local color2 = { color, color, color, math.clamp(ui_opacity * 1.25, 0.55, 0.95) } -- top
 
 	if highlight then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
@@ -1916,6 +1969,53 @@ local function drawButton(rect)
 	end
 end
 
+local function drawHighlights()
+	if highlight.count == 0 or not next(highlight.items) then return end
+	local now = os.clock()
+	for uDefID, hl in pairs(highlight.items) do
+		local cellId = uDefCellIds[uDefID]
+		local rect = cellId and cellRects[cellId]
+		if rect and rect.opts and rect.opts.uDefID == uDefID then
+			local color = hl.color or highlight.defaultColor
+			local r, g, b = color[1], color[2], color[3]
+			local t = now - (hl.startTime or now)
+			local pulse = 0.5 + 0.5 * math.sin(t * 4.5)
+
+			local x1 = rect.x + cellPadding + iconPadding
+			local y1 = rect.y + cellPadding + iconPadding
+			local x2 = rect.xEnd - cellPadding - iconPadding
+			local y2 = rect.yEnd - cellPadding - iconPadding
+
+			-- Brighten the unit icon with an additive overlay
+			local brighten = 0.10 + 0.22 * pulse
+			gl.Blending(GL_SRC_ALPHA, GL_ONE)
+			gl.Color(r * brighten, g * brighten, b * brighten, 1)
+			gl.Texture('#' .. uDefID)
+			UiUnit(x1, y1, x2, y2, cornerSize, 1, 1, 1, 1, defaultCellZoom)
+			gl.Texture(false)
+
+			-- Feathered inner outline ring (proper chamfered corners)
+			local thickness = math_max(2, math_floor((x2 - x1) * 0.04))
+			local outlineAlpha = 0.45 + 0.5 * pulse
+			local cs = cornerSize
+			local outerCol = { r, g, b, outlineAlpha }
+			local innerCol = { r, g, b, outlineAlpha * 0.85 }
+			WG.FlowUI.Draw.RectRoundOutline(x1, y1, x2, y2, cs, thickness, 1, 1, 1, 1, outerCol, innerCol)
+
+			-- Soft inner glow fading inward
+			local glowAlpha = 0.10 + 0.20 * pulse
+			local glowWidth = thickness * 3
+			WG.FlowUI.Draw.RectRoundOutline(
+				x1 + thickness, y1 + thickness, x2 - thickness, y2 - thickness,
+				math_max(0, cs - thickness), glowWidth, 1, 1, 1, 1,
+				{ r, g, b, glowAlpha }, { r, g, b, 0 }
+			)
+
+			gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		end
+	end
+end
+
 local function drawCell(rect)
 	-- empty cell
 	if not rect.opts.uDefID then
@@ -1927,6 +2027,7 @@ local function drawCell(rect)
 
 	local uid = rect.opts.uDefID
 	local disabled = rect.opts.disabled
+	local underConstructionDim = backgroundRect.opts.builderUnderConstruction and not rect.opts.hovered and not disabled
 	local queuenr = rect.opts.queuenr
 	local quotaNumber
 	if WG.Quotas and WG.Quotas.getQuotas()[activeBuilderID] and WG.Quotas.getQuotas()[activeBuilderID][uid] then
@@ -1958,8 +2059,13 @@ local function drawCell(rect)
 	end
 
 	-- unit icon
+	local texprefix = ''
 	if disabled then
 		gl.Color(0.4, 0.4, 0.4, 1)
+		texprefix = 't0.3,0.3,0.3'
+	elseif underConstructionDim then
+		gl.Color(0.77, 0.77, 0.77, 1)
+		texprefix = 't0.63,0.63,0.63'
 	else
 		gl.Color(1, 1, 1, 1)
 	end
@@ -1981,15 +2087,15 @@ local function drawCell(rect)
 		nil,
 		disabled and 0 or nil,
 		"#" .. uid,
-		groupIcon and (groupIcon and ":l" .. (disabled and "t0.3,0.3,0.3" or "") .. ":" .. groupIcon or nil) or nil,
-		unitGroup and (unitGroup and ":l" .. (disabled and "t0.3,0.3,0.3:" or ":") .. unitGroup or nil) or nil,
+		groupIcon and (groupIcon and ":l" .. texprefix .. ":" .. groupIcon or nil) or nil,
+		unitGroup and (unitGroup and ":l" .. texprefix .. ":" .. unitGroup or nil) or nil,
 		{ rect.opts.metalCost, rect.opts.energyCost },
 		tonumber(queuenr)
 	)
 
 	-- colorize/highlight unit icon
 	if cellColor then
-		gl.Blending(GL.DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
+		gl.Blending(GL.DST_ALPHA, GL.ONE_MINUS_SRC_COLOR)
 		gl.Color(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
 		gl.Texture("#" .. uid)
 		UiUnit(
@@ -2407,6 +2513,20 @@ local function drawBuilder(rect)
 		)
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
+
+	-- construction progress overlay on the active builder icon
+	if rect.opts.current and backgroundRect.opts.builderUnderConstruction then
+		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		RectRoundProgress(
+			rect.x,
+			rect.y,
+			rect.xEnd,
+			rect.yEnd,
+			math_min(math_max(1, math_floor((rect.xEnd - rect.x) * 0.024)), math_floor((vsy * 0.0015) + 0.5)),
+			1 - (backgroundRect.opts.builderProgress or 0),
+			{ 0.05, 0.05, 0.05, 0.72 }
+		)
+	end
 end
 
 local function drawBuilders()
@@ -2440,7 +2560,7 @@ local function drawGrid()
 end
 
 local function drawBuildMenu()
-	font2:Begin(useRenderToTexture)
+	font2:Begin(true)
 	font2:SetTextColor(1,1,1,1)
 	font2:SetOutlineColor(0,0,0,1)
 
@@ -2465,8 +2585,19 @@ local function drawBuildMenu()
 		drawBuilders()
 	end
 
-	-- lab build mode button
-	if builderIsFactory and useLabBuildMode then
+	-- under-construction warning replaces/precedes other factory controls
+	if builderIsFactory and backgroundRect.opts.builderUnderConstruction then
+		local warningText = "\255\255\200\50" .. Spring.I18N("ui.buildMenu.underConstruction", { default = "Under Construction" })
+		local fontSize = pageFontSize * 1.1
+		local containerHeight = categoriesRect:getHeight()
+		local fontHeight = font2:GetTextHeight(warningText) * fontSize
+		local fontWidth = font2:GetTextWidth(warningText) * fontSize
+		local center = (categoriesRect:getWidth() / 2) + categoriesRect.x
+		local left = center - (fontWidth / 2)
+		local fontHeightOffset = fontHeight * 0.3
+		font2:Print(warningText, left, (categoriesRect.y + (containerHeight / 2)) - fontHeightOffset, fontSize, "o")
+	elseif builderIsFactory and useLabBuildMode then
+		-- lab build mode button
 		drawBuildModeButtons()
 	end
 
@@ -2701,6 +2832,7 @@ end
 -------------------------------------------------------------------------------
 
 function widget:DrawScreen()
+	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	if not (activeBuilder or alwaysShow) then
 		if WG["guishader"] and dlistGuishader then
 			if dlistGuishader then
@@ -2723,67 +2855,54 @@ function widget:DrawScreen()
 		local buildersRectYend = math_ceil((buildersRect.yEnd + bgpadding + (iconMargin * 2)))
 		if redraw then
 			redraw = nil
-			if useRenderToTexture then
-				if not buildmenuBgTex then
-					buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(buildersRectYend-backgroundRect.y), {
-						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
-						fbo = true,
-					})
-				end
-				if buildmenuBgTex then
-					gl.R2tHelper.RenderToTexture(buildmenuBgTex,
-						function()
-							gl.Translate(-1, -1, 0)
-							gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
-							gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
-							drawBuildMenuBg()
-						end,
-						useRenderToTexture
-					)
-				end
-				if not buildmenuTex then
-					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(buildersRectYend-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
-						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
-						fbo = true,
-					})
-				end
-				if buildmenuTex then
-					gl.R2tHelper.RenderToTexture(buildmenuTex,
-						function()
-							gl.Translate(-1, -1, 0)
-							gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
-							gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
-							drawBuildMenu()
-						end,
-						useRenderToTexture
-					)
-				end
-			else
-				gl.DeleteList(dlistBuildmenu)
-				dlistBuildmenu = gl.CreateList(function()
-					drawBuildMenuBg()
-					drawBuildMenu()
-				end)
+			if not buildmenuBgTex then
+				buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(buildersRectYend-backgroundRect.y), {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
 			end
-		end
-		if useRenderToTexture then
 			if buildmenuBgTex then
-				-- background element
-				gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, useRenderToTexture)
+				gl.R2tHelper.RenderToTexture(buildmenuBgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
+						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+						drawBuildMenuBg()
+					end,
+					true
+				)
 			end
-		end
-		if useRenderToTexture then
+			if not buildmenuTex then
+				buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(buildersRectYend-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+			end
 			if buildmenuTex then
-				-- content
-				gl.R2tHelper.BlendTexRect(buildmenuTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, useRenderToTexture)
-			end
-		else
-			if dlistBuildmenu then
-				gl.CallList(dlistBuildmenu)
+				gl.R2tHelper.RenderToTexture(buildmenuTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
+						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+						drawBuildMenu()
+					end,
+					true
+				)
 			end
 		end
+		if buildmenuBgTex then
+			-- background element
+			gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, true)
+		end
+		if buildmenuTex then
+			-- content
+			gl.R2tHelper.BlendTexRect(buildmenuTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, true)
+		end
+
+		-- draw attention highlights (animated, on top of cached content)
+		drawHighlights()
 
 		if redrawProgress then
 			dlistProgress = gl.DeleteList(dlistProgress)
@@ -2819,14 +2938,14 @@ end
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	-- if theres no factory as active builder, cmd is not build return or cmd
 	-- is not to build a unit: nothing to do
-	if cmdID == CMD_STOP_PRODUCTION then
+	if cmdID == GameCMD.STOP_PRODUCTION then
 		if WG.Quotas then
 			local quotas = WG.Quotas.getQuotas()
 			quotas[unitID] = nil
 			redraw = true
 		end
 	end
-	if cmdID == CMD_INSERT then
+	if cmdID == CMD.INSERT then
 		if cmdParams[2] then
 			cmdID = cmdParams[2]
 			cmdOpts = cmdParams[3]

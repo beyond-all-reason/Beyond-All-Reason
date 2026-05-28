@@ -17,8 +17,6 @@ return {
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 16,
 		footprintz = 12,
-		idleautoheal = 5,
-		idletime = 1800,
 		sightemitheight = 40,
 		health = 11100,
 		maxslope = 15,
@@ -46,6 +44,7 @@ return {
 			buildinggrounddecalsizex = 19,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'buildert3',
+			restrictions_inclusion = "_noair_",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBuildings/LandFactories",
@@ -78,13 +77,6 @@ return {
 				object = "Units/cor6X6B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

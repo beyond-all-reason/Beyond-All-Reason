@@ -13,7 +13,8 @@ function IterableMap.New()
 end
 
 function IterableMap.GetUnusedKey(self)
-	while IterableMap.InMap(self, self.unusedKey) do
+	local indexByKey = self.indexByKey
+	while indexByKey[self.unusedKey] do
 		self.unusedKey = self.unusedKey + 1
 	end
 	return self.unusedKey
@@ -102,7 +103,8 @@ function IterableMap.Next(self)
 	if self.nextCounter > self.indexMax then
 		self.nextCounter = 1
 	end
-	return self.keyByIndex[self.nextCounter], self.dataByKey[self.keyByIndex[self.nextCounter]]
+	local key = self.keyByIndex[self.nextCounter]
+	return key, self.dataByKey[key]
 end
 
 -- To use Iterator, write "for unitID, data in interableMap.Iterator() do"
@@ -113,7 +115,8 @@ function IterableMap.Iterator(self)
 	return function ()
 		i = i + 1
 		if i <= self.indexMax then
-			return self.keyByIndex[i], self.dataByKey[self.keyByIndex[i]]
+			local key = self.keyByIndex[i]
+			return key, self.dataByKey[key]
 		end
 	end
 end
@@ -180,8 +183,9 @@ function IterableMap.GetBarbarianData(self)
 end
 
 function IterableMap.GetDataByIndex(self, index)
-	if self.keyByIndex[index] then
-		return self.dataByKey[self.keyByIndex[index]]
+	local key = self.keyByIndex[index]
+	if key then
+		return self.dataByKey[key]
 	end
 	return false
 end

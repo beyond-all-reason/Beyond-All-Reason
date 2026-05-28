@@ -12,11 +12,9 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1490,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.01654,
-		maxdec = 0.03308,
+		maxdec = 0.1,
 		maxslope = 17,
 		maxwaterdepth = 12,
 		metalcost = 220,
@@ -26,7 +24,7 @@ return {
 		script = "Units/CORLEVLR.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 286,
+		sightdistance = 330,
 		speed = 40.5,
 		trackoffset = 7,
 		trackstrength = 6,
@@ -82,11 +80,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium-impulse",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

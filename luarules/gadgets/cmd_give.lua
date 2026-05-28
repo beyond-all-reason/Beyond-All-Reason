@@ -93,8 +93,8 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		local playername, _, spec, _, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
-		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+		local playername, _, spec = Spring.GetPlayerInfo(playerID)
+		local accountID = Spring.Utilities.GetAccountID(playerID)
 		local authorized = false
 		if _G.permissions.give[accountID] then
 			authorized = true
@@ -118,12 +118,15 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local accountInfo = select(11, Spring.GetPlayerInfo(myPlayerID))
-	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-	local authorized = SYNCED.permissions.give[accountID]
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
+	local function isAuthorized()
+		local acID = Spring.Utilities.GetAccountID(myPlayerID)
+		local perms = SYNCED.permissions.give
+		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
+	end
 
 	local function RequestGive(cmd, line, words, playerID)
-		if authorized and playerID == myPlayerID then
+		if isAuthorized() and playerID == myPlayerID then
 			local mx,my = Spring.GetMouseState()
 			local targettype,pos = Spring.TraceScreenRay(mx,my)
 			if targettype == 'unit' then

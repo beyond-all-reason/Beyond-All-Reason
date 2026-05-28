@@ -22,8 +22,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		hoverattack = true,
-		idleautoheal = 25,
-		idletime = 1800,
 		sightemitheight = 64,
 		mass = 1000000,
 		health = 67000,
@@ -67,11 +65,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

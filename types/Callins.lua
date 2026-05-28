@@ -1,0 +1,22 @@
+---@meta
+
+-- Callin type overrides to accept BAR's routing extra args pattern.
+-- BAR passes internal routing strings (e.g. "UnitFinished", "UnitGiven") as extra
+-- args through callins. Lua silently ignores them, but LuaLS warns about arity.
+-- Adding `...: any` makes these pass type checking.
+
+---@class Callins
+---@field UnitCreated fun(self, unitID: integer, unitDefID: integer, unitTeam: integer, builderID: integer?, ...: any)?
+---@field UnitDestroyed fun(self, unitID: integer, unitDefID: integer, unitTeam: integer, attackerID: integer?, attackerDefID: integer?, attackerTeam: integer?, weaponDefID: integer?, ...: any)?
+---@field UnitGiven fun(self, unitID: integer, unitDefID: integer, newTeam: integer, oldTeam: integer, ...: any)?
+---@field UnitTaken fun(self, unitID: integer, unitDefID: integer, newTeam: integer, oldTeam: integer, ...: any)?
+---@field GameFrame fun(self, frame: integer, ...: any)?
+---@field PlayerChanged fun(self, playerID: integer, ...: any)?
+---@field ViewResize fun(self, viewSizeX: integer, viewSizeY: integer, ...: any)?
+---@field MouseMove fun(self, x: number, y: number, dx: number, dy: number, button: number, ...: any): boolean?
+---@field MousePress fun(self, x: number, y: number, button: number, ...: any): boolean?
+---@field MouseRelease fun(self, x: number, y: number, button: number, ...: any): boolean|integer
+---@field TextInput fun(self, utf8: string, ...: any): boolean?
+---@field UnitFinished fun(self, unitID: integer, unitDefID: integer, unitTeam: integer, ...: any)?
+---@field FeatureCreated fun(self, featureID: integer, allyTeamID: integer, ...: any)?
+---@field FeatureDestroyed fun(self, featureID: integer, allyTeamID: integer|boolean?, ...: any)?

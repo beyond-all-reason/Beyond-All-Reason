@@ -4,13 +4,14 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.01722,
 		buildangle = 16384,
-		buildcostenergy = 9000,
-		buildcostmetal = 1000,
+		buildcostenergy = 10500,
+		buildcostmetal = 1050,
 		buildpic = "armtrident.dds",
 		buildtime = 18000,
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
+		canrestore = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "42 42 84",
 		collisionvolumetype = "CylZ",
@@ -19,8 +20,6 @@ return {
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 15,
-		idletime = 600,
 		losemitheight = 56,
 		mass = 10000,
 		maxdamage = 3400,
@@ -90,11 +89,6 @@ return {
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-huge",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -155,13 +149,14 @@ return {
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 5, 				--Spawnrate roughly in seconds.
 					maxunits = 4,				--Will spawn units until this amount has been reached.
+					startingdronecount = 2,
 					buildcostenergy = 750,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					buildcostmetal = 30,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1400,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 3,
 					attackformationspread = 120,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
 					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
-					carrierdeaththroe = "death",
+					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 36,
 					docktohealthreshold = 50,
@@ -173,6 +168,9 @@ return {
 					stockpilemetal = 30,
 					stockpileenergy = 750,
 					dronesusestockpile = true,
+					dronedocktime = 2,
+					droneairtime = 60,
+					droneammo = 3,
 				}
 			},
 			

@@ -1,5 +1,6 @@
+local glRendererLower = Platform.glRenderer and string.lower(Platform.glRenderer) or ""
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
-if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+if Platform ~= nil and Platform.gpuVendor == 'Intel' and not string.find(glRendererLower, "arc") then
 	return false
 end
 if gpuMem and gpuMem > 0 and gpuMem < 1800 then
@@ -34,6 +35,7 @@ local mathPi = math.pi
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
 local spGetViewGeometry = Spring.GetViewGeometry
+local spGetDrawFrame = Spring.GetDrawFrame
 
 -- pre unitStencilTexture it takes 800 ms per frame
 -- todo: fake more ground ao in blur pass?
@@ -46,7 +48,20 @@ local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 local GL_RGB16F = 0x881B
 local GL_RGBA8 = 0x8058
 
+local GL_TRIANGLES = GL.TRIANGLES
+local GL_COLOR_BUFFER_BIT = GL.COLOR_BUFFER_BIT
+local GL_ZERO = GL.ZERO
+local GL_ONE = GL.ONE
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_DST_COLOR = GL.DST_COLOR
+
 local glTexture = gl.Texture
+local glDepthTest = gl.DepthTest
+local glDepthMask = gl.DepthMask
+local glBlending = gl.Blending
+local glClear = gl.Clear
+local glRawBindFBO = gl.RawBindFBO
 
 -----------------------------------------------------------------
 -- Configuration Constants
@@ -57,6 +72,7 @@ local shaderConfig = {
 	MERGE_MISC = 0, -- for future material indices based SSAO evaluation, completely dissabled now
 }
 
+
 local definesSlidersParamsList = {
 	{name = 'SSAO_FIBONACCI', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use uniformly distributed rays intead of randomly distributed ones'},
 	{name = 'SSAO_KERNEL_MINZ', default = 0.04, min = 0, max = 0.2, digits = 2, tooltip = 'How close vectors can be to tangent plane'},
@@ -64,8 +80,9 @@ local definesSlidersParamsList = {
 	{name = 'SSAO_KERNEL_SIZE', default = 32, min = 1, max = 64, digits = 0, tooltip = 'how many samples are used for SSAO spatial sampling'},
 	--{name = 'MINISHADOWS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Wether to draw a downsampled shadow sampler'},
 	{name = 'SSAO_RADIUS', default = 8, min = 4, max = 16, digits = 1, tooltip = 'world space maximum sampling radius'},
+	{name = 'SSAO_RADIUS_FAR_SCALE', default = 3, min = 1, max = 8, digits = 1, tooltip = 'How much to grow SSAO radius at far distance to keep AO visible when zoomed out (1 = disabled)'},
 	{name = 'SSAO_MIN', default = 0.7, min = 0, max = 4, digits = 2, tooltip = 'minimum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Absolute value in world space coords.'},
-	{name = 'SSAO_OCCLUSION_POWER', default = 3, min = 0, max = 16, digits = 1, tooltip = 'how much effect each SSAO sample has'},
+	{name = 'SSAO_OCCLUSION_POWER', default = 4, min = 0, max = 16, digits = 1, tooltip = 'how much effect each SSAO sample has'},
 	{name = 'SSAO_FADE_DIST_1', default = 1200, min = 200, max = 3000, digits = 1, tooltip = 'near distance for max SSAO'},
 	{name = 'SSAO_FADE_DIST_0', default = 2400, min = 1000, max = 4000, digits = 1, tooltip = 'far distance for min SSAO'},
 	{name = 'DEBUG_SSAO', default = 0, min = 0, max = 1, digits = 0, tooltip = 'DEBUG_SSAO show the raw samples'},
@@ -84,13 +101,12 @@ local definesSlidersParamsList = {
 
 
 	{name = 'USE_STENCIL', default = 1, min = 0, max = 1, digits = 0, tooltip = 'USE_STENCIL set to zero if you dont wanna'},
-	{name = 'OFFSET', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Set to 2 for half-rez buffers'},
 	{name = 'DOWNSAMPLE', default = 1, min = 1, max = 2, digits = 0, tooltip = 'Set to 2 for half-rez buffers'},
 	{name = 'ENABLE', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Disable the whole SSAO'},
 	{name = 'SLOWFUSE', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Only fuse every 30 frames. DO NOT TOUCH!'},
 	{name = 'NOFUSE', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Dont use the gbuf fuse texture'},
 
-	{name = 'SSAO_ALPHA_POW', default = 8, min = 1, max = 20, digits = 0, tooltip = 'Legacy setting'},
+	{name = 'SSAO_ALPHA_POW', default = 10, min = 1, max = 20, digits = 0, tooltip = 'Legacy setting'},
 }
 local function InitShaderDefines()
 	for i, shaderDefine in ipairs(definesSlidersParamsList) do
@@ -128,6 +144,7 @@ local shaderDefinedSlidersLayer, shaderDefinedSlidersWindow
 
 local cusMult = 1.4
 local strengthMult = 1
+local strengthMultCached = 0 -- pre-computed shaderConfig.SSAO_ALPHA_POW / 7.0, updated in InitGL
 
 local initialTonemapA = Spring.GetConfigFloat("tonemapA", 4.75)
 local initialTonemapD = Spring.GetConfigFloat("tonemapD", 0.85)
@@ -136,53 +153,61 @@ local initialTonemapE = Spring.GetConfigFloat("tonemapE", 1.0)
 local preset = 3
 local presets = {
 	{ -- LOW QUALITY
-		BLUR_CLAMP = 0.16,
+		BLUR_CLAMP = 0.17,
 		BLUR_HALF_KERNEL_SIZE = 3,
-		BLUR_POWER = 1.6,
+		BLUR_POWER = 1.5,
 		BLUR_SIGMA = 2,
 		BRIGHTEN = 30,
-		DOWNSAMPLE = 2,
+		DOWNSAMPLE = 3,
 		MINCOSANGLE = 0.69,
 		MINSELFWEIGHT = 0.3,
 		NOFUSE = 1, -- at low quality, some vram can be saved
-		OFFSET = 1,
 		OUTLIERCORRECTIONFACTOR = 0.66,
-		SSAO_FADE_DIST_0 = 2000,
-		SSAO_FADE_DIST_1 = 1000,
-		SSAO_KERNEL_SIZE = 24,
-		SSAO_MIN = 0.69,
+		SSAO_FADE_DIST_0 = 6000, -- BAR camera zooms far past this; pushed out so AO survives strategic zoom
+		SSAO_FADE_DIST_1 = 3000,
+		SSAO_KERNEL_SIZE = 12, -- IGN noise + bilateral blur dissolves a 12-tap kernel cleanly at half-res
+		SSAO_MIN = 0.60,
 		SSAO_RADIUS = 9,
+		SSAO_RADIUS_FAR_SCALE = 2.5, -- modest scale-up; cheap preset doesnt need maximum reach
 		USE_STENCIL = 0, -- There is a non-zero cpu cost of drawing the stencil, and at low resolutions, it doesnt help really
 	},
 	{ -- MEDIUM QUALITY
-		BLUR_CLAMP = 0.269,
+		BLUR_CLAMP = 0.16,
 		BLUR_HALF_KERNEL_SIZE = 4,
 		BLUR_POWER = 1.6,
-		BLUR_SIGMA = 3,
-		BRIGHTEN = 33,
-		DOWNSAMPLE = 1,
+		BLUR_SIGMA = 2.5,
+		BRIGHTEN = 30,
+		DOWNSAMPLE = 2, -- half-res SSAO; bilateral upsample preserves edges via full-res depth ref
+		MINSELFWEIGHT = 0.2,
+		NOFUSE = 1, -- setting this to zero causes issues noticeable on heaps (especially when DOWNSAMPLE > 1)
 		MINCOSANGLE = 0.70,
 		OUTLIERCORRECTIONFACTOR = 0.16,
-		SSAO_FADE_DIST_0 = 2200,
-		SSAO_FADE_DIST_1 = 1100,
-		SSAO_KERNEL_SIZE = 32,
-		SSAO_MIN = 0.74,
+		SSAO_FADE_DIST_0 = 7000,
+		SSAO_FADE_DIST_1 = 3500,
+		SSAO_KERNEL_SIZE = 19, -- bumped slightly vs LOW (12) to compensate for half-res; still ~3.5x cheaper than full-res 32
+		SSAO_MIN = 0.62,
 		SSAO_RADIUS = 8,
+		SSAO_RADIUS_FAR_SCALE = 3.6,
+		USE_STENCIL = 1
 	},
 	{ -- HIGH QUALITY
 		BLUR_CLAMP = 0.145,
-		BLUR_HALF_KERNEL_SIZE = 4,
+		BLUR_HALF_KERNEL_SIZE = 5, -- slightly wider blur to take full advantage of the structured noise
 		BLUR_POWER = 1.6,
-		BLUR_SIGMA = 2.9,
+		BLUR_SIGMA = 3.2,
 		BRIGHTEN = 30,
 		DOWNSAMPLE = 1,
+		MINSELFWEIGHT = 0.2,
+		NOFUSE = 1, -- setting this to zero causes issues noticeable on heaps (especially when DOWNSAMPLE > 1)
 		MINCOSANGLE = 0.75,
 		OUTLIERCORRECTIONFACTOR = 0.10,
-		SSAO_FADE_DIST_0 = 3200,
-		SSAO_FADE_DIST_1 = 2000,
-		SSAO_KERNEL_SIZE = 64,
-		SSAO_MIN = 0.71,
+		SSAO_FADE_DIST_0 = 9000,
+		SSAO_FADE_DIST_1 = 4500,
+		SSAO_KERNEL_SIZE = 28, -- was 64 (~2.3x perf win); visually indistinguishable with IGN
+		SSAO_MIN = 0.61,
 		SSAO_RADIUS = 7,
+		SSAO_RADIUS_FAR_SCALE = 4.5, -- HIGH gets the most reach so contact shadows stay readable at full zoom
+		USE_STENCIL = 1
 	},
 }
 
@@ -227,10 +252,13 @@ local gbuffFuseShaderCache
 local gaussianBlurShaderCache
 
 local texrectShader = nil
+local ssaoCompositeShader = nil  -- final composite (depth-rejects grass/decals via gl_FragDepth + LEQUAL)
+local ssaoCompositeShaderCache
 local texrectFullVAO = nil
 local texrectPaddedVAO = nil
 
 local unitStencilTexture
+local getStencilTexture
 
 local unitStencil = nil
 -----------------------------------------------------------------
@@ -442,7 +470,11 @@ local function InitGL()
 
 	-- ensure stencil is available
 	if shaderConfig.USE_STENCIL == 1 then
-		unitStencilTexture = WG['unitstencilapi'].GetUnitStencilTexture()
+		local stencilApi = WG['unitstencilapi']
+		if stencilApi then
+			getStencilTexture = stencilApi.GetUnitStencilTexture
+			unitStencilTexture = getStencilTexture()
+		end
 		shaderConfig.USE_STENCIL = unitStencilTexture and 1 or 0
 	end
 
@@ -518,9 +550,12 @@ local function InitGL()
 
 	local gaussWeights, gaussOffsets = GetGaussLinearWeightsOffsets(shaderConfig.BLUR_SIGMA, shaderConfig.BLUR_HALF_KERNEL_SIZE, 1.0)
 
+	strengthMultCached = shaderConfig.SSAO_ALPHA_POW / 7.0
+
 	gaussianBlurShader:ActivateWith( function()
 		gaussianBlurShader:SetUniformFloatArrayAlways("weights", gaussWeights)
 		gaussianBlurShader:SetUniformFloatArrayAlways("offsets", gaussOffsets)
+		gaussianBlurShader:SetUniformFloatAlways("strengthMult", strengthMultCached)
 	end)
 
 	texrectShader = LuaShader.CheckShaderUpdates({
@@ -537,11 +572,31 @@ local function InitGL()
 		shaderName = widgetName..": texrect",
 	})
 
+	-- SSAO final composite shader. Always used. Combines:
+	--   * (optional) joint-bilateral upsample for half-res SSAO
+	--   * gl_FragDepth output from min(model, map) gbuffer depth, so an
+	--     LEQUAL depth test rejects pixels where grass/decals/etc were
+	--     drawn over the original surface after the gbuffer was captured.
+	ssaoCompositeShaderCache = {
+		vssrcpath = shadersDir.."texrect_screen.vert.glsl",
+		fssrcpath = shadersDir.."ssaoComposite.frag.glsl",
+		uniformInt = {
+			tex = 0,
+			modelDepthTex = 1,
+			mapDepthTex = 4,
+			viewPosTex = 5,
+		},
+		uniformFloat = {},
+		silent = true,
+		shaderConfig = shaderConfig,
+		shaderName = widgetName..": SSAO composite",
+	}
+	ssaoCompositeShader = LuaShader.CheckShaderUpdates(ssaoCompositeShaderCache)
+
 	texrectFullVAO = InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0,0,1,1)
 
 	-- These are now offset by the half pixel that is needed here due to ceil(vsx/rez)
 	texrectPaddedVAO = InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0.0, 0.0, 1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
-
 
 end
 
@@ -560,6 +615,10 @@ local function CleanGL()
 	gbuffFuseShader:Finalize()
 	gaussianBlurShader:Finalize()
 	texrectShader:Finalize()
+	if ssaoCompositeShader then
+		ssaoCompositeShader:Finalize()
+		ssaoCompositeShader = nil
+	end
 end
 
 
@@ -643,107 +702,140 @@ function widget:Shutdown()
 end
 
 local function DoDrawSSAO()
-	gl.DepthTest(false)
-	gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
-	gl.Blending(false)
+	glDepthTest(false)
+	glBlending(false)
 
-	if shaderConfig.USE_STENCIL == 1 and unitStencilTexture then
-		unitStencilTexture = WG['unitstencilapi'].GetUnitStencilTexture() -- needs this to notify that we want it next frame too
+	local useStencil = shaderConfig.USE_STENCIL == 1 and unitStencilTexture
+	if useStencil then
+		unitStencilTexture = getStencilTexture()
 		glTexture(7, unitStencilTexture)
 	end
 
-
+	local noFuse = shaderConfig.NOFUSE
 	local prevFBO
 
-	if ((shaderConfig.SLOWFUSE == 0) or Spring.GetDrawFrame()%30==0) and (shaderConfig.NOFUSE ~= 1) then
-	prevFBO = gl.RawBindFBO(gbuffFuseFBO)
-		gbuffFuseShader:Activate() -- ~0.25ms
-
-			gbuffFuseShader:SetUniformMatrix("invProjMatrix", "projectioninverse")
-			glTexture(1, "$model_gbuffer_zvaltex")
-			glTexture(4, "$map_gbuffer_zvaltex")
-
-			texrectFullVAO:DrawArrays(GL.TRIANGLES)
-
-			glTexture(1, false)
-			glTexture(4, false)
-
-		gbuffFuseShader:Deactivate()
-	--end)
-	gl.RawBindFBO(nil, nil, prevFBO)
-	end
-
-	prevFBO = gl.RawBindFBO(ssaoFBO)
-		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-		ssaoShader:Activate()
-			if shaderConfig.NOFUSE > 0 then
+	-- Gbuffer fuse pass: combine model + map depths
+	if ((shaderConfig.SLOWFUSE == 0) or spGetDrawFrame() % 30 == 0) and (noFuse ~= 1) then
+		prevFBO = glRawBindFBO(gbuffFuseFBO)
+			gbuffFuseShader:Activate()
+				gbuffFuseShader:SetUniformMatrix("invProjMatrix", "projectioninverse")
 				glTexture(1, "$model_gbuffer_zvaltex")
 				glTexture(4, "$map_gbuffer_zvaltex")
-			else
-				glTexture(5, gbuffFuseViewPosTex)
-			end
-			glTexture(0, "$model_gbuffer_normtex")
+				texrectFullVAO:DrawArrays(GL_TRIANGLES)
+				glTexture(1, false)
+				glTexture(4, false)
+			gbuffFuseShader:Deactivate()
+		glRawBindFBO(ssaoFBO) -- chain directly to SSAO FBO (avoids restore+rebind)
+	else
+		prevFBO = glRawBindFBO(ssaoFBO)
+	end
 
-			texrectFullVAO:DrawArrays(GL.TRIANGLES)
+	-- SSAO sampling pass (now in ssaoFBO)
+	glClear(GL_COLOR_BUFFER_BIT, 0, 0, 0, 0)
+	ssaoShader:Activate()
+		if noFuse > 0 then
+			glTexture(1, "$model_gbuffer_zvaltex")
+			glTexture(4, "$map_gbuffer_zvaltex")
+		else
+			glTexture(5, gbuffFuseViewPosTex)
+		end
+		glTexture(0, "$model_gbuffer_normtex")
+		texrectFullVAO:DrawArrays(GL_TRIANGLES)
+	ssaoShader:Deactivate()
 
-			for i = 0, 6 do glTexture(i,false) end
-		ssaoShader:Deactivate()
-	gl.RawBindFBO(nil, nil, prevFBO)
+	-- Only unbind texture slots that were actually bound
+	if noFuse > 0 then
+		glTexture(1, false)
+		glTexture(4, false)
+	else
+		glTexture(5, false)
+	end
 
-	glTexture(0, ssaoTex)
+	if shaderConfig.DEBUG_SSAO == 0 then
+		-- Blur passes: chain FBOs (ssaoFBO -> ssaoBlurFBO -> ssaoFBO -> screen)
+		glTexture(0, ssaoTex) -- swap slot 0 from normtex to SSAO result
+		gaussianBlurShader:Activate()
+			gaussianBlurShader:SetUniform("dir", 1.0, 0.0) --horizontal blur
+			glRawBindFBO(ssaoBlurFBO) -- chain from ssaoFBO (reads ssaoTex, safe: ssaoFBO not bound)
+			texrectFullVAO:DrawArrays(GL_TRIANGLES)
 
-	if shaderConfig.DEBUG_SSAO == 0 then -- dont debug ssao
-			gaussianBlurShader:Activate()
+			glTexture(0, ssaoBlurTex)
+			gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
+			glRawBindFBO(ssaoFBO) -- chain from ssaoBlurFBO (reads ssaoBlurTex, safe: ssaoBlurFBO not bound)
+			texrectFullVAO:DrawArrays(GL_TRIANGLES)
 
-				gaussianBlurShader:SetUniform("dir", 1.0, 0.0) --horizontal blur
-				prevFBO = gl.RawBindFBO(ssaoBlurFBO)
-				texrectFullVAO:DrawArrays(GL.TRIANGLES)
-				gl.RawBindFBO(nil, nil, prevFBO)
-				glTexture(0, ssaoBlurTex)
+			glTexture(0, ssaoTex)
+		gaussianBlurShader:Deactivate()
 
-				gaussianBlurShader:SetUniform("strengthMult", shaderConfig.SSAO_ALPHA_POW/ 7.0) --vertical blur
-				gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
-				prevFBO = gl.RawBindFBO(ssaoFBO)
-				texrectFullVAO:DrawArrays(GL.TRIANGLES)
-				gl.RawBindFBO(nil, nil, prevFBO)
-				glTexture(0, ssaoTex)
-
-			gaussianBlurShader:Deactivate()
 		if shaderConfig.DEBUG_BLUR == 1 then
-			gl.Blending(false) -- now blurred tex contains normals
+			glBlending(false)
 		else
 			if shaderConfig.BRIGHTEN == 0 then
-				gl.Blending(GL.ZERO, GL.SRC_ALPHA) -- now blurred tex contains normals
+				glBlending(GL_ZERO, GL_SRC_ALPHA)
 			else
-			-- at this point, Alpha contains occlusoin, and rgb contains brighten factor
-				gl.Blending(GL.DST_COLOR, GL.SRC_ALPHA) -- now blurred tex contains normals
+				glBlending(GL_DST_COLOR, GL_SRC_ALPHA)
 			end
 		end
 	else
+		glTexture(0, ssaoTex)
 		if shaderConfig.DEBUG_BLUR == 1 then
-			gl.Blending(false) -- now blurred tex contains normals
-		else
+			glBlending(false)
 		end
 	end
-	-- Already bound
-	texrectShader:Activate()
-	texrectPaddedVAO:DrawArrays(GL.TRIANGLES)
-	texrectShader:Deactivate()
 
+	-- Restore screen FBO once (single restore for entire chain)
+	glRawBindFBO(nil, nil, prevFBO)
+
+	-- Bind gbuffer depth textures + (optional) view-pos for the composite.
+	-- The composite shader writes gl_FragDepth = min(model, map) gbuffer depth
+	-- so the LEQUAL test below rejects pixels where grass/decals/particles
+	-- have been drawn on top of the original surface.
+	glTexture(1, "$model_gbuffer_zvaltex")
+	glTexture(4, "$map_gbuffer_zvaltex")
+	if noFuse == 0 then
+		glTexture(5, gbuffFuseViewPosTex)
+	end
+
+	-- Enable depth test (LEQUAL by default) but keep depth writes off so we
+	-- don't pollute the FB depth buffer for downstream particle/UI passes.
+	glDepthTest(true)
+	glDepthTest(GL.LEQUAL)
+	glDepthMask(false)
+
+	ssaoCompositeShader:Activate()
+	texrectPaddedVAO:DrawArrays(GL_TRIANGLES)
+	ssaoCompositeShader:Deactivate()
+
+	-- Restore default depth function but keep depth writes OFF: the upcoming
+	-- DrawWorldParticles pass renders translucent geometry that must not
+	-- write to the depth buffer, otherwise later (further) particle layers
+	-- get LEQUAL-rejected and you get triangulated/sliced particle billboards.
+	glDepthTest(GL.LESS)
+
+	glTexture(1, false)
+	glTexture(4, false)
+	if noFuse == 0 then
+		glTexture(5, false)
+	end
 
 	glTexture(0, false)
-	glTexture(1, false)
-	glTexture(2, false)
-	glTexture(3, false)
-	glTexture(4, false)
-	glTexture(5, false)
-	glTexture(6, false)
-	glTexture(7, false)
+	if useStencil then
+		glTexture(7, false)
+	end
 
-	-- Extremely important, this is the state that we have to leave when exiting DrawWorldPreParticles!
-	gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
-	gl.DepthMask(false) --"BK OpenGL state resets", already commented out
-	gl.DepthTest(true) --"BK OpenGL state resets", already commented out
+	-- Required exit state for DrawWorldPreParticles
+	glBlending(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+	glDepthTest(true)
+
+	-- Our texrect_screen.vert.glsl writes gl_ClipDistance[0..2] = 1.0 to work
+	-- around an engine quirk at DrawWorldPreParticles (recoil#2791). The side
+	-- effect is that GL_CLIP_DISTANCE0..2 remain enabled when we return, and
+	-- subsequent CEG particle vertex shaders (which do not write gl_ClipDistance)
+	-- get undefined values -> visually sliced/clipped particles. Disable here.
+	-- gl.ClipDistance is 0-indexed (maps to GL_CLIP_DISTANCE0 + clipId).
+	gl.ClipDistance(0, false)
+	gl.ClipDistance(1, false)
+	gl.ClipDistance(2, false)
 end
 
 function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)

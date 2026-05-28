@@ -189,6 +189,9 @@ function widget:DrawWorldPreUnit()
 			gl.Translate(cmdValue.x, cmdValue.y, cmdValue.z)
 
 			local camDistance = diag(camX-cmdValue.x, camY-cmdValue.y, camZ-cmdValue.z)
+			if camDistance ~= camDistance or camDistance >= math.huge then
+				camDistance = 10000
+			end
 
 			-- set scale   (based on camera distance)
 			local scale = 1

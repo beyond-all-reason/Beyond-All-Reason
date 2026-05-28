@@ -21,8 +21,6 @@ return {
 		footprintx = 8,
 		footprintz = 8,
 		hoverattack = true,
-		idleautoheal = 15,
-		idletime = 1200,
 		health = 167000,
 		maxslope = 10,
 		speed = 30.0,
@@ -47,20 +45,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
-		},
+			},		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

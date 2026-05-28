@@ -313,8 +313,6 @@ function gadget:PlayerChanged(playerID)
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	myTeamID = Spring.GetMyTeamID()
 	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
-		teamColors = {}
-		glassUnits = {}
 		UpdateAllGlassUnits()
 	end
 end
@@ -432,14 +430,15 @@ local function UpdateGlassUnit(unitID)
 	end
 
 	if glassUnitDefs[unitDefID] then --unitdef with glass pieces
-		table.insert(glassUnits, unitID)
+		glassUnits[#glassUnits + 1] = unitID
 		teamColors[unitID] = { spGetTeamColor(spGetUnitTeam(unitID)) }
 	end
 end
 
 function UpdateAllGlassUnits()
-	teamColors = {}
-	glassUnits = {}
+	-- Wipe tables in-place to avoid per-call table allocation
+	for i = 1, #glassUnits do glassUnits[i] = nil end
+	for k in pairs(teamColors) do teamColors[k] = nil end
 	local units
 	if fullview then
 		units = Spring.GetAllUnits()

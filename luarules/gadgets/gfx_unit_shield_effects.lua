@@ -25,8 +25,9 @@ local SHIELDONRULESPARAMINDEX = 531313 -- not a string due to perfmaxxing
 -- Vector math functions (used for hit impact calculations)
 -----------------------------------------------------------------
 
+local sqrt = math.sqrt
 local function Norm(x, y, z)
-	return math.sqrt(x*x + y*y + z*z)
+	return sqrt(x*x + y*y + z*z)
 end
 
 local function DotProduct(x1, y1, z1, x2, y2, z2)
@@ -44,12 +45,12 @@ local function GetSLerpedPoint(x1, y1, z1, x2, y2, z2, w1, w2)
 
 	local A = math.acos(dotP)
 	local sinA = math.sin(A)
-	
+
 	-- Safeguard against division by zero
 	if sinA == 0 or (w1 + w2) == 0 then
 		return x1, y1, z1
 	end
-	
+
 	local w = 1.0 - (w1 / (w1 + w2))
 
 	local x = (math.sin((1.0 - w) * A) * x1 + math.sin(w * A) * x2) / sinA
@@ -153,6 +154,7 @@ local spGetUnitShieldState  = Spring.GetUnitShieldState
 local spGetUnitIsStunned    = Spring.GetUnitIsStunned
 local spGetGameFrame        = Spring.GetGameFrame
 local spGetFrameTimeOffset  = Spring.GetFrameTimeOffset
+local spGetCameraPosition   = Spring.GetCameraPosition
 
 local IterableMap = VFS.Include("LuaRules/Gadgets/Include/IterableMap.lua")
 
@@ -163,6 +165,20 @@ local IterableMap = VFS.Include("LuaRules/Gadgets/Include/IterableMap.lua")
 local MAX_POINTS = 24
 local LOS_UPDATE_PERIOD = 10
 local HIT_UPDATE_PERIOD = 2
+
+-- Fade-in/out when shield turns on or depletes (in 1/SHIELD_FADE_FRAMES per draw frame)
+local SHIELD_FADE_FRAMES = 120
+local SHIELD_FADE_STEP = 1.0 / SHIELD_FADE_FRAMES
+local SHIELD_FADE_EPSILON = 0.001
+
+-- Overlap dimming: when shields stack, each additional overlapping shield
+-- multiplies opacity by OVERLAP_FALLOFF. Shields that sit *behind* another
+-- (relative to the camera) dim a bit more so the front shield stays readable.
+-- Tune higher (closer to 1.0) for less aggressive dimming.
+local OVERLAP_FALLOFF = 0.93         -- per overlapping neighbour, front shield
+local OVERLAP_FALLOFF_BEHIND = 0.9  -- per neighbour that is in front of this one
+local OVERLAP_MIN_SCALE = 0.6       -- absolute floor so shields never fully vanish
+local OVERLAP_LERP_RATE = 0.18       -- per-frame smoothing toward target scalar
 
 -----------------------------------------------------------------
 -- Shield rendering state
@@ -177,7 +193,7 @@ local shieldUnits = IterableMap.New()
 -- Rendering state
 local shieldShader
 local geometryLists = {}
-local renderBuckets
+local renderBuckets = {}
 local canOutline
 local haveTerrainOutline
 local haveUnitsOutline
@@ -192,25 +208,52 @@ for i = 1, MAX_POINTS + 1 do
 end
 
 -- Cached uniform locations (set after shader initialization)
-local uTranslationScale, uRotMargin, uEffects, uColor1, uColor2, uImpactCount
+local uTranslationScale, uRotMargin, uEffects, uColor1, uColor2, uImpactCount, uShieldFade, uOverlapScale
 
-local function GetVisibleSearch(x, z, search)
-	if not x then
-		return false
-	end
-	for i = 1, #search do
-		if Spring.IsPosInAirLos(x + search[i][1], 0, z + search[i][2], myAllyTeamID) then
-			return true
-		end
-	end
-	return false
-end
+-- Scratch buffer reused every frame for the overlap pass to avoid allocations.
+local overlapScratch = {}
+local overlapScratchN = 0
 
-local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
-	unitVisible = unitVisible or (myAllyTeamID == unitData.allyTeamID)
+local function UpdateVisibility(unitID, unitData, fullview, forceUpdate)
+	-- A shield should render if the player can actually perceive any part of it:
+	-- spectator fullview, own allyteam, direct LoS / AirLoS on the unit itself,
+	-- or LoS / AirLoS on a point on the shield surface (so partial visibility
+	-- of a large shield reveals the whole sphere).
+	local unitVisible = fullview
+		or (myAllyTeamID == unitData.allyTeamID)
+		or Spring.IsUnitInLos(unitID, myAllyTeamID)
+		or Spring.IsUnitInAirLos(unitID, myAllyTeamID)
+
 	if not unitVisible then
-		local ux,_,uz = Spring.GetUnitPosition(unitID)
-		unitVisible = GetVisibleSearch(ux, uz, unitData.search)
+		local ux, uy, uz = Spring.GetUnitPosition(unitID)
+		if ux then
+			local r = unitData.radius or 0
+			-- Sample 8 cardinal/diagonal points on the shield's horizontal
+			-- equator plus top/bottom. Cheap and good enough to catch
+			-- partial coverage without doing per-vertex visibility.
+			local samples = unitData.search
+			if samples then
+				local cy = uy + (unitData.shieldPos and unitData.shieldPos[2] or 0)
+				for i = 1, #samples do
+					local sx = ux + samples[i][1]
+					local sz = uz + samples[i][2]
+					if Spring.IsPosInLos(sx, cy, sz, myAllyTeamID)
+						or Spring.IsPosInAirLos(sx, cy, sz, myAllyTeamID) then
+						unitVisible = true
+						break
+					end
+				end
+			end
+			if not unitVisible and r > 0 then
+				-- Also check top and bottom of the shield sphere
+				if Spring.IsPosInLos(ux, uy + r, uz, myAllyTeamID)
+					or Spring.IsPosInAirLos(ux, uy + r, uz, myAllyTeamID)
+					or Spring.IsPosInLos(ux, uy - r, uz, myAllyTeamID)
+					or Spring.IsPosInAirLos(ux, uy - r, uz, myAllyTeamID) then
+					unitVisible = true
+				end
+			end
+		end
 	end
 
 	local unitIsActive = Spring.GetUnitIsActive(unitID)
@@ -219,10 +262,11 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 		unitData.isActive = unitIsActive
 	end
 
+	-- The shield-on rules param is gated by inlos, so for enemies it is only
+	-- readable when we have direct LoS. Use it to suppress rendering when we
+	-- can see the unit but its shield is currently disabled.
 	local shieldEnabled = Spring.GetUnitRulesParam(unitID, SHIELDONRULESPARAMINDEX)
-	if shieldEnabled == 1 then
-		unitVisible = true
-	elseif shieldEnabled == 0 then
+	if unitVisible and shieldEnabled == 0 then
 		unitVisible = false
 	end
 
@@ -253,6 +297,8 @@ local function AddUnit(unitID, unitDefID)
 	shieldInfo.shieldCapacity = def.shieldCapacity
 	shieldInfo.visibleToMyAllyTeam = false
 	shieldInfo.stunned = false
+	shieldInfo.fadeAlpha = 0.0
+	shieldInfo.overlapScale = 1.0
 
 	local unitData = {
 		unitDefID  = unitDefID,
@@ -306,6 +352,9 @@ end
 local AOE_SAME_SPOT = AOE_MAX / 3 -- ~0.13, angle threshold in radians.
 local AOE_SAME_SPOT_COS = math.cos(AOE_SAME_SPOT) -- about 0.99
 
+-- Pre-hoisted sort comparator to avoid closure allocation every 2 frames
+local hitDataSortFunc = function(a, b) return (((a and b) and a.dmg > b.dmg) or false) end
+
 --x, y, z here are normalized vectors
 local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 	local hitData = unitData.hitData
@@ -337,14 +386,14 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 
 	if not found then
 		local aoe = CalcAoE(dmg, unitData.capacity)
-		table.insert(hitData, {
+		hitData[#hitData + 1] = {
 			hitFrame = hitFrame,
 			dmg = dmg,
 			aoe = aoe,
 			x = x,
 			y = y,
 			z = z,
-		})
+		}
 	end
 	hitUpdateNeeded = true
 	unitData.needsUpdate = true
@@ -382,7 +431,7 @@ local function ProcessHitTable(unitData, gameFrame)
 	end
 	if unitData.needsUpdate then
 		hitUpdateNeeded = true
-		table.sort(hitData, function(a, b) return (((a and b) and a.dmg > b.dmg) or false) end)
+		table.sort(hitData, hitDataSortFunc)
 	end
 	return unitData.needsUpdate
 end
@@ -635,6 +684,8 @@ local function InitializeShader()
 		color2 = {1,1,1,1},
 		translationScale = {1,1,1,1},
 		rotMargin = {1,1,1,1},
+		shieldFade = 1.0,
+		overlapScale = 1.0,
 		["impactInfo.count"] = 1,
 	}
 	for i = 1, MAX_POINTS + 1 do
@@ -674,6 +725,8 @@ local function InitializeShader()
 	uColor1 = uniformLocations['color1']
 	uColor2 = uniformLocations['color2']
 	uImpactCount = uniformLocations["impactInfo.count"]
+	uShieldFade = uniformLocations["shieldFade"]
+	uOverlapScale = uniformLocations["overlapScale"]
 
 	-- Cache impact info uniform locations
 	for i = 1, MAX_POINTS do
@@ -714,8 +767,11 @@ function gadget:DrawWorld()
 		return
 	end
 
-	-- BeginDraw
-	renderBuckets = {}
+	-- Clear renderBuckets in-place to avoid per-frame table allocation
+	for k, bucket in pairs(renderBuckets) do
+		for i = 1, #bucket do bucket[i] = nil end
+		renderBuckets[k] = nil
+	end
 	haveTerrainOutline = false
 	haveUnitsOutline = false
 	canOutline = gl.LuaShader.isDeferredShadingEnabled and gl.LuaShader.GetAdvShadingActive()
@@ -738,7 +794,19 @@ function gadget:DrawWorld()
 				info.stunned = spGetUnitIsStunned(unitID)
 			end
 
-			if not info.stunned and info.visibleToMyAllyTeam then
+			-- Fade target: 1 if shield should be shown, 0 otherwise. Lerp every frame.
+			local fadeTarget = ((not info.stunned) and info.visibleToMyAllyTeam) and 1.0 or 0.0
+			local fa = info.fadeAlpha or 0.0
+			if fa < fadeTarget then
+				fa = fa + SHIELD_FADE_STEP
+				if fa > fadeTarget then fa = fadeTarget end
+			elseif fa > fadeTarget then
+				fa = fa - SHIELD_FADE_STEP
+				if fa < fadeTarget then fa = fadeTarget end
+			end
+			info.fadeAlpha = fa
+
+			if fa > SHIELD_FADE_EPSILON then
 				local radius = info.radius
 				local posx, posy, posz = spGetUnitPosition(unitID)
 
@@ -756,12 +824,63 @@ function gadget:DrawWorld()
 						bucket[#bucket + 1] = unitID
 						bucket[#bucket + 1] = unitData
 
+						-- Record this shield in the overlap-pass scratch list
+						-- (5 floats per shield: idx, x, y, z, radius)
+						overlapScratch[overlapScratchN + 1] = info
+						overlapScratch[overlapScratchN + 2] = posx
+						overlapScratch[overlapScratchN + 3] = posy
+						overlapScratch[overlapScratchN + 4] = posz
+						overlapScratch[overlapScratchN + 5] = radius
+						overlapScratchN = overlapScratchN + 5
+
 						haveTerrainOutline = haveTerrainOutline or (info.terrainOutline and canOutline)
 						haveUnitsOutline = haveUnitsOutline or (info.unitsOutline and canOutline)
 					end
 				end
 			end
 		end
+	end
+
+	-- Reset bucket-collection counters for next frame is done at top.
+
+	-- Overlap pass: for each visible shield count overlapping neighbours,
+	-- distinguishing those in front (camera-side) from those behind. Build a
+	-- per-shield target opacity scalar, then smoothly lerp the stored value
+	-- toward it so dimming doesn't pop as units enter/leave clusters.
+	do
+		local n = overlapScratchN
+		local cx, cy, cz = spGetCameraPosition()
+		cx = cx or 0; cy = cy or 0; cz = cz or 0
+		for i = 1, n, 5 do
+			local infoA = overlapScratch[i]
+			local ax, ay, az, ar = overlapScratch[i+1], overlapScratch[i+2], overlapScratch[i+3], overlapScratch[i+4]
+			local dxA, dyA, dzA = ax - cx, ay - cy, az - cz
+			local camDistA = dxA*dxA + dyA*dyA + dzA*dzA
+			local target = 1.0
+			for j = 1, n, 5 do
+				if j ~= i then
+					local bx, by, bz, br = overlapScratch[j+1], overlapScratch[j+2], overlapScratch[j+3], overlapScratch[j+4]
+					local ddx, ddy, ddz = ax - bx, ay - by, az - bz
+					local d2 = ddx*ddx + ddy*ddy + ddz*ddz
+					local sumR = ar + br
+					if d2 < sumR * sumR then
+						local dxB, dyB, dzB = bx - cx, by - cy, bz - cz
+						local camDistB = dxB*dxB + dyB*dyB + dzB*dzB
+						if camDistA > camDistB then
+							-- A is behind B: dim more aggressively
+							target = target * OVERLAP_FALLOFF_BEHIND
+						else
+							target = target * OVERLAP_FALLOFF
+						end
+					end
+				end
+			end
+			if target < OVERLAP_MIN_SCALE then target = OVERLAP_MIN_SCALE end
+			local cur = infoA.overlapScale or 1.0
+			infoA.overlapScale = cur + (target - cur) * OVERLAP_LERP_RATE
+			overlapScratch[i] = nil  -- release table ref
+		end
+		overlapScratchN = 0
 	end
 
 	-- EndDraw (render all buckets)
@@ -807,8 +926,12 @@ function gadget:DrawWorld()
 
 				local pitch, yaw, roll = spGetUnitRotation(unitID)
 
+				local fadeAlpha = info.fadeAlpha or 1.0
+
 				glUniform(uTranslationScale, posx, posy, posz, info.radius)
 				glUniform(uRotMargin, pitch, yaw, roll, info.margin)
+				if uShieldFade then glUniform(uShieldFade, fadeAlpha) end
+				if uOverlapScale then glUniform(uOverlapScale, info.overlapScale or 1.0) end
 
 				if not info.optionX then
 					local optionX = 0
@@ -831,10 +954,10 @@ function gadget:DrawWorld()
 					local frac = charge / info.shieldCapacity
 
 					if frac > 1 then frac = 1 elseif frac < 0 then frac = 0 end
-					
+
 					-- Additional NaN safety check
 					if frac ~= frac then frac = 0 end -- NaN check (NaN != NaN)
-					
+
 					local fracinv = 1.0 - frac
 
 					local colormap1 = info.colormap1[1]
@@ -847,7 +970,7 @@ function gadget:DrawWorld()
 						local col1b = frac * colormap1[3] + fracinv * colormap2[3]
 						local col1a = frac * colormap1[4] + fracinv * colormap2[4]
 
-						glUniform(uColor1, col1r, col1g, col1b, col1a)
+						glUniform(uColor1, col1r, col1g, col1b, col1a * fadeAlpha)
 					end
 
 					colormap1 = info.colormap2[1]
@@ -860,7 +983,7 @@ function gadget:DrawWorld()
 						local col1b = frac * colormap1[3] + fracinv * colormap2[3]
 						local col1a = frac * colormap1[4] + fracinv * colormap2[4]
 
-						glUniform(uColor2, col1r, col1g, col1b, col1a)
+						glUniform(uColor2, col1r, col1g, col1b, col1a * fadeAlpha)
 					end
 				end
 

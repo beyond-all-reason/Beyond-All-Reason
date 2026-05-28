@@ -20,7 +20,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local attackList = {}
 	local closeList = {}
-	local range = {}
 
 	local math_random = math.random
 	local math_pi = math.pi
@@ -34,6 +33,7 @@ if gadgetHandler:IsSyncedCode() then
 			canAreaAttack[unitDefID] = WeaponDefs[unitDef.weapons[1].weaponDef].range
 		end
 	end
+	local range = canAreaAttack -- range per unitDefID, same data
 
 	local aadesc = {
 		name = "Area Attack",
@@ -71,6 +71,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:CommandFallback(u,ud,team,cmd,param,opt)
 		if cmd == CMD_AREA_ATTACK_GROUND then
 			local x,_,z = Spring.GetUnitPosition(u)
+			if not x then
+				return true, true
+			end
 			local dist = math_sqrt((x-param[1])*(x-param[1]) + (z-param[3])*(z-param[3]))
 			if dist <= range[ud] - param[4] then
 				attackList[#attackList+1] = {unit = u, x=param[1], y=param[2], z=param[3], radius=param[4]}
@@ -84,7 +87,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(u, ud, team)
 		if canAreaAttack[ud] then
-			range[ud] = canAreaAttack[ud]	-- put the range inside canAreaAttack[ud]
 			Spring.InsertUnitCmdDesc(u,aadesc)
 		end
 	end

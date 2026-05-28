@@ -71,11 +71,10 @@ local function processNextCmd(unitID, unitDefID, cmdID)
 	if curMoveCtrl then
 		spMoveCtrlDisable(unitID)
 	end
-	local success = pcall(function()
-		spMoveCtrlSetAirMoveTypeData(unitID, "turnRadius", (not cmdID or cmdID == CMD_ATTACK) and attackTurnRadius or bomberTurnRadius[unitDefID])
-	end)
+	local radius = (not cmdID or cmdID == CMD_ATTACK) and attackTurnRadius or bomberTurnRadius[unitDefID]
+	local success = pcall(spMoveCtrlSetAirMoveTypeData, unitID, "turnRadius", radius)
 	if not success then
-		Spring.Echo("Error: unit_airunitsturnradius incompatible movetype for unitdef "..UnitDefs[unitDefID].name)
+		Bombers[unitID] = nil
 	end
 	if curMoveCtrl then
 		spMoveCtrlEnable(unitID)

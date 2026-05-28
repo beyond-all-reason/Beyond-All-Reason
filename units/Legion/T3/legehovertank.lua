@@ -20,8 +20,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 4900,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.022,--0.01788,
 		maxdec = 0.022,--0.01788,
 		maxslope = 16,
@@ -83,11 +81,6 @@ return {
 				[2] = "custom:waterwake-small-hover",
 				[3] = "custom:bowsplash-small-hover",
 				[4] = "custom:hover-wake-large",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -184,6 +177,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 140,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 225,
 				},
