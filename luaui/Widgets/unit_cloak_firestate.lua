@@ -26,6 +26,7 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local GiveOrderToUnit   = Spring.GiveOrderToUnit
 local GetUnitStates     = Spring.GetUnitStates
 local CMD_WANT_CLOAK    = GameCMD.WANT_CLOAK
+local FIRESTATE_HOLDFIRE = CMD.FIRESTATE_HOLDFIRE
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -34,7 +35,7 @@ local myTeam = spGetMyTeamID()
 local cloakFireState = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.canCloak and unitDef.customParams.firestateoncloak and not string.find(unitDef.name, "_scav") then
-		cloakFireState[unitDefID] = tonumber(unitDef.customParams.firestateoncloak)
+		cloakFireState[unitDefID] = tonumber(unitDef.customParams.firestateoncloak) or FIRESTATE_HOLDFIRE
 	end
 end
 
@@ -48,12 +49,12 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 
 		if cmdParams[1] == 1 then -- store current fire state and cloak
 			decloakFireState[unitID] = select(1, GetUnitStates(unitID, false)) --store last state
-			local cloaktargetstate = cloakFireState[unitDefID] or 0
+			local cloaktargetstate = cloakFireState[unitDefID]
 			if decloakFireState[unitID] ~= cloaktargetstate then
 				GiveOrderToUnit(unitID, CMD.FIRE_STATE, { cloaktargetstate }, 0)
 			end
 		else -- decloak and restore previous fire state
-			local decloaktargetState = decloakFireState[unitID] or 0 -- default to hold fire if no cached state is found
+			local decloaktargetState = decloakFireState[unitID] or FIRESTATE_HOLDFIRE
 			if select(1, GetUnitStates(unitID, false)) ~= decloaktargetState then
 				GiveOrderToUnit(unitID, CMD.FIRE_STATE, { decloaktargetState }, 0) --revert to last state
 			end

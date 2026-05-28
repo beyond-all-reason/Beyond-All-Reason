@@ -39,7 +39,6 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecaltype = "decals/armamex_aoplane.dds",
 			cvbuildable = true,
-			firestateoncloak = 0,
 			metal_extractor = 1,
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
