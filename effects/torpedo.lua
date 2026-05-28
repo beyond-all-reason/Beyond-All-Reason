@@ -1,6 +1,4 @@
 local definitions = {
-<<<<<<< Updated upstream
-=======
 
 
 ["torpedo-entry-flare"] = {
@@ -94,7 +92,6 @@ local definitions = {
 		},
 	},
 },
->>>>>>> Stashed changes
     ["torpedotrail-tiny"] = {
         trail = {
             air                = false,
