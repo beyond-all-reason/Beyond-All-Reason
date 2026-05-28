@@ -71,6 +71,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetPlayerInfo = Spring.GetPlayerInfo
 
 	local tremove = table.remove
+	local ensureTable = table.ensureTable
 
 	local diag = math.diag
 	local pairsNext = next
@@ -520,7 +521,10 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	-- Command Tracking
 
-	local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+	local teamQueryCaches = {}
+	local ENEMY_UNITS = -4 -- From UnitAllegiance enum. Includes Gaia and ceasefired targets.
+
+	local function processCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
 		--tracy.ZoneBeginN(string.format("processCommand %d %d %d %d %s %s", unitID, unitDefID, teamID, cmdID, tostring(cmdParams), tostring(cmdOptions)))
 		--tracy.Message(string.format("processCommand params=%s oprt=%s", Json.encode(cmdParams), Json.encode(cmdOptions)))
 		local unitData = unitTargets[unitID] or pausedTargets[unitID]
@@ -539,15 +543,13 @@ if gadgetHandler:IsSyncedCode() then
 			local userTarget = not cmdOptions.internal
 			local ignoreStop = cmdOptions.ctrl
 
-			-- Checks if the command is a valid area command {x,y,z,r} with radius more than 0:
 			if nParams > 3 then
 				if not cmdOptions.internal then
-					SendToUnsynced("settarget_line_sound", teamID, -1, unitID, cmdID)
+					SendToUnsynced("settarget_line_sound", unitTeam, -1, unitID, cmdID)
 				end
 
 				local targets
 				if nParams == 6 then
-					--rectangle
 					local top, bot, left, right
 					if cmdParams[1] < cmdParams[4] then
 						left = cmdParams[1]
@@ -556,7 +558,6 @@ if gadgetHandler:IsSyncedCode() then
 						left = cmdParams[4]
 						right = cmdParams[1]
 					end
-
 					if cmdParams[3] < cmdParams[6] then
 						top = cmdParams[3]
 						bot = cmdParams[6]
@@ -564,11 +565,21 @@ if gadgetHandler:IsSyncedCode() then
 						bot = cmdParams[6]
 						top = cmdParams[3]
 					end
-
-					targets = CallAsTeam(teamID, spGetUnitsInRectangle, left, top, right, bot, -4)
+					local teamCache = ensureTable(teamQueryCaches, spGetUnitAllyTeam(unitID))
+					local hash = left + top + right + bot
+					targets = teamCache[hash]
+					if not targets then
+						targets = CallAsTeam(unitTeam, spGetUnitsInRectangle, left, top, right, bot, ENEMY_UNITS)
+						teamCache[hash] = targets
+					end
 				elseif nParams == 4 then
-					--circle
-					targets = CallAsTeam(teamID, spGetUnitsInCylinder, cmdParams[1], cmdParams[3], cmdParams[4], -4)
+					local teamCache = ensureTable(teamQueryCaches, spGetUnitAllyTeam(unitID))
+					local hash = -(cmdParams[1] + cmdParams[2] + cmdParams[3] + cmdParams[4])
+					targets = teamCache[hash]
+					if not targets then
+						targets = CallAsTeam(unitTeam, spGetUnitsInCylinder, cmdParams[1], cmdParams[3], cmdParams[4], ENEMY_UNITS)
+						teamCache[hash] = targets
+					end
 				end
 				if targets and targets[1] then
 					addTargetList = {}
@@ -585,7 +596,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			elseif nParams == 3 then
 				if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
-					SendToUnsynced("failCommand", teamID)
+					SendToUnsynced("failCommand", unitTeam)
 					--tracy.ZoneEnd()
 					return false
 				end
@@ -620,7 +631,7 @@ if gadgetHandler:IsSyncedCode() then
 			elseif nParams == 1 then
 				--single target
 				local target = cmdParams[1]
-				if spValidUnitID(target) and not spAreTeamsAllied(teamID, spGetUnitTeam(target)) then
+				if spValidUnitID(target) and not spAreTeamsAllied(unitTeam, spGetUnitTeam(target)) then
 					local validTarget = false
 					--only accept valid targets
 					if weaponList then
@@ -840,6 +851,8 @@ if gadgetHandler:IsSyncedCode() then
 				waitForCommandDone[unitID] = nil
 			end
 		end
+
+		teamQueryCaches = {}
 	end
 
 
