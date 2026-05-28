@@ -21,6 +21,15 @@ end
 local commanderUnitIDs = {} -- list of commander unitIDs
 local commanders = {}       -- sequential array of commander metadata
 
+function gadget:Initialize()
+	if not io then
+		Spring.Echo("[ReplayMetadata]",  "IO library is not (yet) available, won't log commander metadata")
+		-- remove the gadget since it won't be able to save anything
+		gadgetHandler:RemoveGadget(self)
+		return
+	end
+end
+
 local function bufferCommanderMetadata()
 	if #commanderUnitIDs > 0 then
 		local frame = Spring.GetGameFrame()

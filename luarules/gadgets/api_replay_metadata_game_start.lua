@@ -8,7 +8,8 @@ function gadget:GetInfo()
         date    = "February 2026",
         license = "GNU GPL, v2 or later",
         layer   = 0,
-        enabled = true
+        enabled = true,
+        handler = true, -- we need to be able to remove the gadget if IO is not available
     }
 end
 
@@ -25,7 +26,9 @@ function gadget:Initialize()
     data.gameVersion = Game.gameVersion
 
     if not os then
-        Spring.Log("ReplayMetadata", LOG.ERROR, "os library is not (yet) available, cannot log game start time")
+        Spring.Echo("[ReplayMetadata]",  "os library is not (yet) available, won't log game start time")
+        -- remove the gadget since it won't be able to save anything
+        gadgetHandler:RemoveGadget(self)
         return
     end
 

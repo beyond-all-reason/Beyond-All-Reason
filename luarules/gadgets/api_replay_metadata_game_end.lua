@@ -21,6 +21,12 @@ end
 local data = {}
 
 function gadget:Initialize()
+    if not os then
+        Spring.Echo("[ReplayMetadata]",  "os library is not (yet) available, won't log game end time")
+        -- remove the gadget since it won't be able to save anything
+        gadgetHandler:RemoveGadget(self)
+        return
+    end
 end
 
 function gadget:GameOver(winningTeams)
