@@ -379,6 +379,12 @@ local trackedProjectiles = {} -- used for finding out which projectiles can be c
 local trackedProjectileTypes = {} -- we have to track the types [point, light, cone] of projectile lights for efficient updates
 local lastGameFrame = -2
 
+local isTorpedoLauncher = {}
+	for weaponDefID = 1, #WeaponDefs do
+		local weaponDef = WeaponDefs[weaponDefID]
+		isTorpedoLauncher[weaponDefID] = weaponDef.type == "TorpedoLauncher"
+	end
+
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
@@ -1448,20 +1454,24 @@ local function updateProjectileLights(newgameframe)
 				else
 					local weaponDefID = spGetProjectileDefID(projectileID)
 
-					-- Torpedo GL4 light delay:
+				-- Torpedo GL4 light delay:
+				-- Projectile lights are only considered after confirming this weaponDefID has one.
+				local projectileLight = projectileDefLights[weaponDefID]
+
+				if projectileLight then
 					-- TorpedoLauncher projectile lights should not appear while the projectile is still above water.
 					-- Do not track skipped torpedoes yet, so this block can try again after the projectile enters water.
-					local weaponDef = weaponDefID and WeaponDefs[weaponDefID]
-					if weaponDef and weaponDef.type == "TorpedoLauncher" and (not py or py > 2) then
+					if isTorpedoLauncher[weaponDefID] and (not py or py > 2) then
 						skipProjectileTracking = true
-					elseif projectileDefLights[weaponDefID] and (projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0) then
-						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
-						lightType = projectileDefLights[weaponDefID].lightType
+					elseif projectileID % (projectileLight.fraction or 1) == 0 then
+						local lightParamTable = projectileLight.lightParamTable
+						lightType = projectileLight.lightType
 
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz
-						if debugproj then spEcho(lightType, projectileDefLights[weaponDefID].lightClassName) end
+
+						if debugproj then spEcho(lightType, projectileLight.lightClassName) end
 
 						local dx, dy, dz = spGetProjectileVelocity(projectileID)
 
@@ -1470,7 +1480,7 @@ local function updateProjectileLights(newgameframe)
 							lightParamTable[6] = py + dy
 							lightParamTable[7] = pz + dz
 						else
-							-- for points and cones, velocity gives the pointing dir, and for cones it gives the pos super well.
+							-- For points and cones, velocity gives the pointing direction.
 							lightParamTable[5] = dx
 							lightParamTable[6] = dy
 							lightParamTable[7] = dz

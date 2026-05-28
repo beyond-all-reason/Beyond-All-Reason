@@ -561,8 +561,7 @@ end
 
 -- Water penetration (torpedo)
 -- Torpedoes are tracking with very high turn rates which causes problems depending on initial conditions.
--- This smooths water-entry motion while preserving stronger correction when close to targets.
--- Also spawns a one-shot entry CEG only when crossing from air into water.
+-- This smooths water-entry motion with stronger correction allowed for close targets.
 
 -- Uses no weapon customParams.
 
@@ -570,8 +569,8 @@ local function torpedoWaterPen(projectileID)
 	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
 	local targetType, targetID = spGetProjectileTarget(projectileID)
 
-	-- Default behavior:
-	-- smooth visual travel while keeping torpedoes slightly submerged.
+	-- Slight downward bias to keep torpedoes visually submerged
+	-- This prevents terrain correction from forcing unstable surface skimming.
 	local diveSpeed = -0.08
 	local smooth = 0.45
 
@@ -588,9 +587,9 @@ local function torpedoWaterPen(projectileID)
 
 			local distSq = dx * dx + dy * dy + dz * dz
 
-			-- Close range threshold.
-			-- Lower = prettier motion longer.
-			-- Higher = stronger final tracking sooner.
+			-- Approximate terminal-guidance distance.
+			-- Beyond this range, prioritize smoother travel visuals.
+			-- Within this range, prioritize tracking correction and interception reliability.
 			closeToTarget = distSq < (180 * 180)
 		end
 
@@ -651,7 +650,8 @@ specialEffectFunction.torpwaterpen = function(projectileID)
 	if isProjectileInWater(projectileID) then
 		torpedoWaterPen(projectileID)
 	end
-
+	-- Keep returning false so torpedoes remain tracked and water-penetration
+	-- correction continues every frame while the projectile exists.
 	return false
 end
 
@@ -733,8 +733,7 @@ end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
-	projectilesData[projectileID] = nil
-end
+	end
 
 function gadget:GameFrame(frame)
 	gameFrame = frame

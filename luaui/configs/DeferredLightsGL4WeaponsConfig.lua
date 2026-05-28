@@ -107,7 +107,6 @@ local BaseClasses = {
 		},
 	},
 
-
 	MissileProjectile = {
 		lightType = 'point', -- or cone or beam
 		lightConfig = {
@@ -126,7 +125,7 @@ local BaseClasses = {
 			r = 1, g = 1, b = 2, a = 0.7,
 			color2r = 0.2, color2g = 0.2, color2b = 0.5, colortime = 8, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.3, specular = 0.1, scattering = 0.5, lensflare = 8,
-			lifetime = 0, sustain = 0, selfshadowing = 3, 
+			lifetime = 0, sustain = 0,  selfshadowing = 3, 
 		},
 	},
 
@@ -137,9 +136,10 @@ local BaseClasses = {
 			r = 5, g = 0, b = 0, a = 1,
 			dirx = 1, diry = 0, dirz = 1, theta = 0.02,  -- cone lights only, specify direction and half-angle in radians
 			modelfactor = 10, specular = 0.5, scattering = 1, lensflare = 1,
-			lifetime = 0, sustain = 1, 	selfshadowing = 0, 
+			lifetime = 0, sustain = 1,  selfshadowing = 0, 
 		},
 	},
+
 	TorpedoProjectile = {
 		lightType = 'cone', -- or cone or beam
 		lightConfig = {
@@ -148,10 +148,9 @@ local BaseClasses = {
 			color2r = 1.92, color2g = 0.05, color2b = 0.0, colortime = 30,
 			dirx = 1, diry = 0, dirz = 1, theta = 0.28,  -- cone lights only, specify direction and half-angle in radians
 			modelfactor = 1, specular = 0, scattering = 1, lensflare = 1,
-			lifetime = 0, sustain = 1, 	selfshadowing = 4, 
+			lifetime = 0, sustain = 1, selfshadowing = 4,
 		},
 	},
- 
 
 	FlameProjectileOld = {
 		lightType = 'point', -- or cone or beam
@@ -213,6 +212,7 @@ local BaseClasses = {
 			lifetime = 12, sustain = 3, selfshadowing = 4, 
 		},
 	},
+
 	ExplosionXL = { -- spawned on explosions
 		lightType = 'point', -- or cone or beam
 		yOffset = 0, -- Y offsets are only ever used for explosions!
@@ -263,7 +263,6 @@ local BaseClasses = {
 		},
 	},
 }
-
 
 local SizeRadius = {
 	Pico = 			26,
@@ -471,7 +470,7 @@ local function AssignLightsToAllWeapons()
 				t.life = 4
 				t.colortime = 10 + (weaponDef.beamtime * 50)
 				t.sustain = 1.5 + (weaponDef.beamtime * 10)
-				
+
 			end
 
 			radius = (6.3 * (weaponDef.size * weaponDef.size)) + (4 * radius * orgMult)
@@ -481,9 +480,9 @@ local function AssignLightsToAllWeapons()
 			if weaponDef.paralyzer then
 				radius = radius * 0.5
 			end
-			
+
 			sizeclass = GetClosestSizeClass(radius)
-			
+
 			if damage < 100 then
 				--life = 5
 				projectileDefLights[weaponID] = GetLightClass("LaserProjectile", nil, sizeclass, t)
@@ -525,10 +524,10 @@ local function AssignLightsToAllWeapons()
 			end
 			sizeclass = GetClosestSizeClass(radius)
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
-			
+
 		elseif weaponDef.type == 'StarburstLauncher' then
 			t.a = orgMult * 0.44
-			
+
 			if weaponDef.interceptor == 1 then
 				--t.a = orgMult * 1.33
 				t.r, t.g, t.b = 0.5, 0.75, 1.0
@@ -538,13 +537,12 @@ local function AssignLightsToAllWeapons()
 				t.a = orgMult * 1.2
 				sizeclass = GetClosestSizeClass(radius * 0.4)
 				projectileDefLights[weaponID] = GetLightClass("MissileProjectileEMP", "Warm", sizeclass, t)
-			else	
+			else
 			sizeclass = GetClosestSizeClass(radius)
 			radius = ((orgMult * 75) + (radius * 4)) * 0.4
 			life = 8 + (5*(radius/2000)+(orgMult * 5))
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
 			end
-		
 
 		elseif weaponDef.type == 'Cannon' then
 			t.a = orgMult*0.17
@@ -564,9 +562,9 @@ local function AssignLightsToAllWeapons()
 			--Spring.Echo(WeaponDefNames[weaponID], weaponDef.type, weaponDef.name)
 
 		elseif weaponDef.type == 'TorpedoLauncher' then
-			-- do not assign here; torpedo light is activated after water entry
+			-- Torpedo projectile lights are assigned here, but activation is delayed until water entry.
 			projectileDefLights[weaponID] = GetLightClass("TorpedoProjectile", nil, nil, {})
-		
+
 		elseif weaponDef.type == 'Shield' then
 			sizeclass = "Large"
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Cold", sizeclass, t)
@@ -601,14 +599,14 @@ local function AssignLightsToAllWeapons()
 						radius = radius * 3
 						t.a = orgMult*1.2
 			end
-		
+
 			local adjusted_radius = radius * 0.65
-		
+
 			if damage < 150 then -- increase muzzleflash for low-damage units to remain visible
 				adjusted_radius = adjusted_radius * 2.9  -- Increase for low-damage weapons
 				t.colortime = 2.0
 			end
-		
+
 			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", GetClosestSizeClass(adjusted_radius), t)
 			muzzleFlashLights[weaponID].yOffset = muzzleFlashLights[weaponID].lightConfig.radius / 5
 		end 
@@ -959,8 +957,6 @@ projectileDefLightsNames["armguardnuke_plasma_high"] =
 GetLightClass("MissileProjectile", "Warm", "Medium", {a = 0.4,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 																				
-
-
 --armsilo engine
 projectileDefLightsNames["armsilo_nuclear_missile"] =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
@@ -1249,7 +1245,6 @@ GetLightClass("FlameProjectile", nil, "Smallish", {
 						lifetime = 70, sustain = 30,
 												})
 											
-
 projectileDefLightsNames["corcrwh_dragonmawh"] =
 GetLightClass("FlameProjectileDragon", nil, "Smallest", {
 						r = 0.7, g = 0.7, b = 0.65, a = 0.19, 
