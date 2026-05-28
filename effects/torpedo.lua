@@ -1,4 +1,100 @@
 local definitions = {
+<<<<<<< Updated upstream
+=======
+
+
+["torpedo-entry-flare"] = {
+	fireglow = {
+		air                = false,
+		class              = [[CSimpleParticleSystem]],
+		count              = 1,
+		ground             = false,
+		water              = true,
+		underwater         = true,
+
+		properties = {
+			airdrag            = 1,
+			colormap           = [[0.44 0.48 1 0.2   0 0 0 0.01]],
+			directional        = false,
+			emitrot            = 0,
+			emitrotspread      = 0,
+			emitvector         = [[0, 1, 0]],
+			gravity            = [[0.0, 0.0, 0.0]],
+			numparticles       = 1,
+			particlelife       = 4,
+			particlelifespread = 0,
+			particlesize       = 35,
+			particlesizespread = 10,
+			particlespeed      = 0,
+			particlespeedspread = 0,
+			pos                = [[0.0, 0, 0.0]],
+			sizegrowth         = -5,
+			sizemod            = 1,
+			texture            = [[glow]],
+			useairlos          = true,
+		},
+	},
+},
+
+["torpedo-bottrail"] = {
+	flame = {
+		air                = false,
+		class              = [[CBitmapMuzzleFlame]],
+		count              = 1,
+		ground             = false,
+		underwater         = true,
+		water              = true,
+
+		properties = {
+			colormap           = [[0.08 0.16 0.50 0.012 0.12 0.24 0.62 0.018 0.18 0.32 0.72 0.012 0.10 0.18 0.40 0.006 0 0 0 0.01]],
+			dir                = [[dir]],
+			frontoffset        = 0.1,
+			fronttexture       = [[blastwave]],
+			length             = -2.4,
+			sidetexture        = [[shot]],
+			size               = 4.0,
+			sizegrowth         = -0.25,
+			ttl                = 6,
+			useairlos          = true,
+		},
+	},
+},
+    
+    ["torpedo-trail"] = {
+
+	trail = {
+		air                = false,
+		class              = [[CBitmapMuzzleFlame]],
+		count              = 1,
+		ground             = false,
+		underwater         = true,
+		water              = true,
+
+		properties = {
+			colormap           = [[0.67 0.48 1 0.01   0.27 0.58 0.89 0.03   0.15 0.19 0.35 0.01   0 0 0 0.01]],
+
+			dir                = [[dir]],
+
+			frontoffset        = [[0.3 r0.15]],
+
+			fronttexture       = [[bubbletexture]],
+
+			sidetexture        = [[longshot]],
+
+			
+			length             = [[.55 r0.25]],
+
+			size               = [[2.6 r1.8]],
+
+			sizegrowth         = 0.28,
+
+			ttl                = [[12 r4]],
+
+			useairlos          = true,
+		},
+	},
+},
+>>>>>>> Stashed changes
     ["torpedotrail-tiny"] = {
         trail = {
             air                = false,

@@ -140,9 +140,28 @@ local BaseClasses = {
 			lifetime = 0, sustain = 1, 	selfshadowing = 0,
 		},
 	},
+<<<<<<< Updated upstream
 
 	TorpedoProjectile = {
 		lightType = 'cone', -- or cone or beam
+=======
+	TorpedoProjectile = {
+		lightType = 'cone', -- or cone or beam
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 70,
+			r = 0, g = 0, b = 0, a = 1,
+			color2r = 1.92, color2g = 0.05, color2b = 0.0, colortime = 30,
+			dirx = 1, diry = 0, dirz = 1, theta = 0.28,  -- cone lights only, specify direction and half-angle in radians
+			modelfactor = 1, specular = 0, scattering = 1, lensflare = 1,
+			lifetime = 0, sustain = 1, 	selfshadowing = 4, 
+		},
+	},
+ 
+
+	FlameProjectileOld = {
+		lightType = 'point', -- or cone or beam
+		fraction = 2, -- only spawn every nth light
+>>>>>>> Stashed changes
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 100,
 			r = 0, g = 0, b = 0, a = 1,
@@ -528,10 +547,16 @@ local function AssignLightsToAllWeapons()
 			--Spring.Echo(WeaponDefNames[weaponID], weaponDef.type, weaponDef.name)
 
 		elseif weaponDef.type == 'TorpedoLauncher' then
+<<<<<<< Updated upstream
 			sizeclass = "Small"
 			t.r, t.g, t.b = 0.1, 0.2, 0.5
 			projectileDefLights[weaponID] = GetLightClass("TorpedoProjectile", "Cold", sizeclass, t)
 
+=======
+			-- do not assign here; torpedo light is activated after water entry
+			projectileDefLights[weaponID] = GetLightClass("TorpedoProjectile", nil, nil, {})
+		
+>>>>>>> Stashed changes
 		elseif weaponDef.type == 'Shield' then
 			sizeclass = "Large"
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Cold", sizeclass, t)
