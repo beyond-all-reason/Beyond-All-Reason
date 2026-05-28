@@ -352,6 +352,11 @@ function widget:CommandsChanged()
 		return
 	end
 
+	local teams = Spring.GetTeamList(myAllyTeamID)
+	if not teams or #teams <= 1 then
+		return -- no allied teams to share to
+	end
+
 	local selectedUnits = GetSelectedUnits()
 	if #selectedUnits > 0 then
 		local customCommands = widgetHandler.customCommands

@@ -1061,6 +1061,48 @@ local function weaponDef_Post(name, wDef)
 			end
 		end
 
+		if wDef.weapontype == "Flame" then
+			-- Store original visual properties so the GL4 flamethrower gadget can read them at runtime.
+			if not wDef.customparams then wDef.customparams = {} end
+			local cp = wDef.customparams
+			cp.flame_orig_intensity    = tostring(wDef.intensity or 0.5)
+			cp.flame_orig_sizegrowth   = tostring(wDef.sizegrowth or 0.5)
+			cp.flame_orig_rgbcolor     = tostring(wDef.rgbcolor or "1 0.9 0.8")
+			cp.flame_orig_rgbcolor2    = tostring(wDef.rgbcolor2 or wDef.rgbcolor or "1 0.9 0.8")
+			cp.flame_orig_velocity     = tostring(wDef.weaponvelocity or 250)
+			cp.flame_orig_range        = tostring(wDef.range or 200)
+			cp.flame_orig_sprayangle   = tostring(wDef.sprayangle or 0)
+			cp.flame_orig_areaofeffect = tostring(wDef.areaofeffect or 48)
+			cp.flame_orig_flamegfxtime = tostring(wDef.flamegfxtime or 1)
+			cp.flame_orig_cegtag       = tostring(wDef.cegtag or "")
+			cp.flame_orig_expgen       = tostring(wDef.explosiongenerator or "")
+			local dmg = wDef.damage and (wDef.damage.default or 0) or 0
+			cp.flame_orig_damage       = tostring(dmg)
+			-- Hide engine flame projectile rendering (GL4 gadget replaces it).
+			-- IMPORTANT: do NOT touch flamegfxtime/duration -- that is a range
+			-- multiplier, not just a visual lifetime, so lowering it kills the
+			-- projectile at the muzzle. Intensity 0 + black rgbcolor makes the
+			-- engine billboard fully transparent while keeping the projectile
+			-- alive for collisions, area damage, range, and visibility queries.
+			-- Also clear cegtag so the projectile no longer spawns the engine
+			-- CEG flame stream (which doesn't stop at impact) -- the gadget
+			-- handles the full visual.
+			-- ALSO clear explosiongenerator: BAR flame weapons use "custom:burnblack"
+			-- (or burnblackxl) which fires a smoke+fire puff at every projectile
+			-- impact. Since flame projectiles impact the ground constantly along
+			-- their path, those impact CEGs create a visible smoke trail and tiny
+			-- fire dots that compete with the GL4 gadget. Replace with custom:blank
+			-- (a no-op CEG that already exists in effects/blank.lua).
+			if cp.flame_keep_engine_gfx ~= "1" then
+				wDef.intensity          = 0.0
+				wDef.sizegrowth         = 0.0
+				wDef.rgbcolor           = "0 0 0"
+				wDef.rgbcolor2          = "0 0 0"
+				wDef.cegtag             = ""
+				--wDef.explosiongenerator = "custom:blank"
+			end
+		end
+
 		if isXmas and wDef.weapontype == "StarburstLauncher" and wDef.model and VFS.FileExists('objects3d\\candycane_' .. wDef.model) then
 			wDef.model = 'candycane_' .. wDef.model
 		end
@@ -1124,6 +1166,22 @@ local function weaponDef_Post(name, wDef)
 			wDef.texture1 = "beam_gl4_invis"   -- nonexistent texture -> engine Draw() early-outs
 			wDef.texture3 = "beam_gl4_invis"
 			wDef.texture4 = "beam_gl4_invis"
+		end
+
+		if wDef.weapontype == "LightningCannon" then
+			-- Store original visual properties before zeroing (GL4 gadget reads WeaponDefs at runtime)
+			if not wDef.customparams then wDef.customparams = {} end
+			wDef.customparams.lightning_thickness_orig     = wDef.thickness or 1.5
+			wDef.customparams.lightning_corethickness_orig = wDef.corethickness or 0.5
+			wDef.customparams.lightning_laserflaresize_orig = wDef.laserflaresize or 0
+			-- Hide engine lightning rendering (GL4 gadget replaces it).
+			-- thickness must stay tiny but non-zero so projectiles stay in GetProjectilesInRectangle.
+			wDef.thickness = 0.001
+			wDef.corethickness = 0
+			wDef.laserflaresize = 0
+			wDef.texture1 = "lightning_gl4_invis"   -- nonexistent texture -> engine Draw() early-outs
+			wDef.texture3 = "lightning_gl4_invis"
+			wDef.texture4 = "lightning_gl4_invis"
 		end
 
 		-- scavengers

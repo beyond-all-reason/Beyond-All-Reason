@@ -1541,7 +1541,10 @@ function widgetHandler:DrawGenesis()
 	tracy.ZoneBeginN("W:DrawGenesis")
 	local list = self.DrawGenesisList
 	for i = #list, 1, -1 do
-		list[i]:DrawGenesis()
+		local w = list[i]
+		tracy.ZoneBeginN("W:DrawGenesis:"..w.whInfo.name)
+		w:DrawGenesis()
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return

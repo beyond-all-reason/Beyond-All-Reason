@@ -33,6 +33,10 @@ local spEcho                  = Spring.Echo
 local spGetTimer              = Spring.GetTimer
 local spDiffTimers            = Spring.DiffTimers
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
+
+-- Subscription handle for the shared projectile dispatcher (set in Initialize).
+-- When nil, we fall back to calling Spring.GetProjectilesInRectangle directly.
+local dispatchHandle = nil
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spIsSphereInView        = Spring.IsSphereInView
@@ -477,6 +481,91 @@ local nextParticleID = 0
 -- Particle removal queue: [deathFrame] = {particleID, ...}
 local particleRemoveQueue = {}
 
+--------------------------------------------------------------------------------
+-- Object pools (cuts allocation rate when many pieces are spawning per frame)
+--
+-- High-allocation-rate code paths in this gadget:
+--   * trackedPieceProjectiles[proID] = { ... }    -- per new piece projectile
+--   * particleRemoveQueue[deathFrame] = {}        -- per unique death frame
+--   * tracked.offscreenBuffer = {}                -- per piece going off-screen
+--
+-- With many unit deaths (e.g. 80+ flamethrowers shredding everything), the
+-- piece-tracker allocations dominate the gadget's reported kB/s. Pools recycle
+-- these tables instead of churning the GC.
+--------------------------------------------------------------------------------
+-- Consolidated into one table to stay under Lua 5.1's 200-local-per-chunk cap.
+local pools = {
+	tracker = {}, trackerN = 0,
+	queue   = {}, queueN   = 0,
+	buffer  = {}, bufferN  = 0,
+}
+
+function pools.acquireTracker()
+	local n = pools.trackerN
+	if n > 0 then
+		local t = pools.tracker[n]
+		pools.tracker[n] = nil
+		pools.trackerN   = n - 1
+		return t
+	end
+	return {}
+end
+
+function pools.releaseTracker(t)
+	-- Clear every field we ever set; leftover entries would survive into the
+	-- next user via `if tracked.x` checks and corrupt state.
+	t.gen             = nil
+	t.excluded        = nil
+	t.sizeScale       = nil
+	t.birthFrame      = nil
+	t.lifeFrames      = nil
+	t.fireIntensity   = nil
+	t.lifeBias        = nil
+	t.offscreenSkip   = nil
+	t.offscreenBuffer = nil
+	t.bufferLen       = nil
+	local n = pools.trackerN + 1
+	pools.trackerN   = n
+	pools.tracker[n] = t
+end
+
+function pools.acquireQueue()
+	local n = pools.queueN
+	if n > 0 then
+		local q = pools.queue[n]
+		pools.queue[n] = nil
+		pools.queueN   = n - 1
+		return q
+	end
+	return {}
+end
+
+function pools.releaseQueue(q)
+	-- Truncate without holding references to the popped particleIDs.
+	for i = 1, #q do q[i] = nil end
+	local n = pools.queueN + 1
+	pools.queueN   = n
+	pools.queue[n] = q
+end
+
+function pools.acquireBuffer()
+	local n = pools.bufferN
+	if n > 0 then
+		local b = pools.buffer[n]
+		pools.buffer[n] = nil
+		pools.bufferN   = n - 1
+		return b
+	end
+	return {}
+end
+
+function pools.releaseBuffer(b)
+	for i = 1, #b do b[i] = nil end
+	local n = pools.bufferN + 1
+	pools.bufferN   = n
+	pools.buffer[n] = b
+end
+
 -- Cache of unit death effect sizes
 local unitDeathSizeCache = {}  -- [unitDefID] = radius
 
@@ -644,7 +733,7 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 
 	local queue = particleRemoveQueue[deathFrame]
 	if not queue then
-		queue = {}
+		queue = pools.acquireQueue()
 		particleRemoveQueue[deathFrame] = queue
 	end
 	queue[#queue + 1] = particleID
@@ -792,6 +881,7 @@ local function removeExpiredParticles(gameFrame)
 				end
 			end
 			particleRemoveQueue[f] = nil
+			pools.releaseQueue(queue)
 		end
 	end
 	lastRemovedFrame = gameFrame
@@ -989,6 +1079,7 @@ local function replayPieceBuffer(tracked, gameFrame)
 		end
 	end
 
+	pools.releaseBuffer(buf)
 	tracked.offscreenBuffer = nil
 	tracked.bufferLen = nil
 	offscreenBufferCount = offscreenBufferCount - 1
@@ -1021,7 +1112,7 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 			local buf = tracked.offscreenBuffer
 			local n = tracked.bufferLen or 0
 			if not buf then
-				buf = {}
+				buf = pools.acquireBuffer()
 				tracked.offscreenBuffer = buf
 				offscreenBufferCount = offscreenBufferCount + 1
 				n = 0
@@ -1111,21 +1202,33 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 end
 
 local function updatePieceProjectiles(gameFrame)
-	local projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, true, false)
+	-- Prefer the shared dispatcher (map-wide piece scan, cached once per tick).
+	-- We subscribed without a defIDSet so GetMatches returns every piece
+	-- projectile, matching the original engine call's behaviour.
+	local projectiles, numProjectiles
+	local PS = GG.ProjectileScan
+	if PS and dispatchHandle then
+		projectiles, numProjectiles = PS.GetMatches(dispatchHandle)
+	else
+		projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, true, false)
+		numProjectiles = projectiles and #projectiles or 0
+	end
 	if not projectiles then return end
 
 	local _, ownerRadius = next(pendingDeathUnitRadii)
 
 	pieceGeneration = pieceGeneration + 1
 	local gen = pieceGeneration
-	local numProjectiles = #projectiles
 	for i = 1, numProjectiles do
 		local proID = projectiles[i]
 		local tracked = trackedPieceProjectiles[proID]
 		if not tracked then
 			local ownerID = spGetProjectileOwnerID(proID)
 			if ownerID and excludedDeathUnits[ownerID] then
-				trackedPieceProjectiles[proID] = { gen = gen, excluded = true }
+				local t = pools.acquireTracker()
+				t.gen      = gen
+				t.excluded = true
+				trackedPieceProjectiles[proID] = t
 			else
 				local px, py, pz = spGetProjectilePosition(proID)
 				if px then
@@ -1133,14 +1236,14 @@ local function updatePieceProjectiles(gameFrame)
 					local sizeScale = mathMax(PIECE_SIZE_SCALE_MIN, mathMin(PIECE_SIZE_SCALE_MAX, pieceRadius / PIECE_SIZE_SCALE_REF))
 					local fi = mathRandom() < PIECE_FIRE_CHANCE and (0.3 + mathRandom() * 0.7) or 0
 					local lifeScale = fi > 0 and (1.0 + 0.3 * fi) or 0.7
-					trackedPieceProjectiles[proID] = {
-						sizeScale = sizeScale,
-						birthFrame = gameFrame,
-						lifeFrames = mathFloor((PIECE_LIFE_BASE + pieceRadius * PIECE_LIFE_PER_RADIUS) * lifeScale),
-						gen = gen,
-						fireIntensity = fi,
-						lifeBias = mathRandom() * 0.7,
-					}
+					local t = pools.acquireTracker()
+					t.sizeScale     = sizeScale
+					t.birthFrame    = gameFrame
+					t.lifeFrames    = mathFloor((PIECE_LIFE_BASE + pieceRadius * PIECE_LIFE_PER_RADIUS) * lifeScale)
+					t.gen           = gen
+					t.fireIntensity = fi
+					t.lifeBias      = mathRandom() * 0.7
+					trackedPieceProjectiles[proID] = t
 				end
 			end
 		else
@@ -1159,8 +1262,12 @@ local function updatePieceProjectiles(gameFrame)
 
 	for proID, tracked in pairs(trackedPieceProjectiles) do
 		if tracked.gen ~= gen then
-			if tracked.offscreenBuffer then offscreenBufferCount = offscreenBufferCount - 1 end
+			if tracked.offscreenBuffer then
+				pools.releaseBuffer(tracked.offscreenBuffer)
+				offscreenBufferCount = offscreenBufferCount - 1
+			end
 			trackedPieceProjectiles[proID] = nil
+			pools.releaseTracker(tracked)
 		end
 	end
 end
@@ -1519,6 +1626,14 @@ function gadget:Initialize()
 
 	if not initGL4() then
 		return
+	end
+
+	-- Subscribe to the shared projectile dispatcher (map-wide piece scan,
+	-- no defID filter -- we track every piece projectile, same as the
+	-- original engine call).
+	local PS = GG.ProjectileScan
+	if PS then
+		dispatchHandle = PS.Subscribe("fire_smoke_pieces", nil, PS.SCAN_MAP_PIECES)
 	end
 
 	-- Expose public API for other gadgets

@@ -1,7 +1,7 @@
 return {
 	legvcarry	= {
 		maxacc = 0.02,
-		maxdec = 0.04,
+		maxdec = 0.1,
 		energycost = 9000,
 		metalcost = 450,
 		buildpic = "LEGVCARRY.DDS",

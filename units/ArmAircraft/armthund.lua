@@ -21,7 +21,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		metalcost = 145,
-		noautofire = true,
+		firestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMTHUND.s3o",
 		script = "Units/ARMTHUND.cob",

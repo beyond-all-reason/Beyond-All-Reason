@@ -1,7 +1,7 @@
 return {
 	legbar = {
 		maxacc = 0.01654,
-		maxdec = 0.054,
+		maxdec = 0.1,
 		energycost = 3200,
 		metalcost = 250,--320,
 		buildpic = "LEGBAR.DDS",

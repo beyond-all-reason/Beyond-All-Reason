@@ -1,7 +1,7 @@
 return {
 	legfloat = {
 		maxacc = 0.034,
-		maxdec = 0.068,
+		maxdec = 0.1,
 		buildcostenergy = 12000,
 		buildcostmetal = 650,
 		buildpic = "LEGFLOAT.DDS",

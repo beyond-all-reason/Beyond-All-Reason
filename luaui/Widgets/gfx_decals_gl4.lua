@@ -897,7 +897,7 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.17
 			waterDepthRatio = 5
 			if string.find(weaponDef.name, 'death_acid') then
-				radius = (radius * 5.5)-- * (mathRandom() * 0.25 + 0.75)
+				radius = (radius * 5)-- * (mathRandom() * 0.25 + 0.75)
 				heatstart = 550
 				heatdecay = 0.1
 				glowadd = 2.5
