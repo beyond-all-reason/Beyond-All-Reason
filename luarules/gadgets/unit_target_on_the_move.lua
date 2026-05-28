@@ -256,9 +256,9 @@ if gadgetHandler:IsSyncedCode() then
 				targetData.sent = true
 				local target = targetData.target
 				if type(target) == "number" then
-					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, target)
+					SendToUnsynced("targetList", unitID, index, targetData.userTarget, target)
 				else
-					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, target[1], target[2], target[3])
+					SendToUnsynced("targetList", unitID, index, targetData.userTarget, target[1], target[2], target[3])
 				end
 			end
 		end
@@ -272,32 +272,27 @@ if gadgetHandler:IsSyncedCode() then
 			sendTargetsToUnsynced(unitID)
 		elseif targetCount > 1 then
 			local data = {}
-			local count = 0
-			local stride = 8
+			local length = 0
 			for index, targetData in ipairs(unitTargets[unitID].targets) do
 				if not targetData.sent then
 					targetData.sent = true
 					local target = targetData.target
-					data[count + 1] = unitID
-					data[count + 2] = index
-					data[count + 3] = targetData.alwaysSeen
-					data[count + 4] = targetData.ignoreStop
-					data[count + 5] = targetData.userTarget
+					data[length + 1] = index
+					data[length + 2] = targetData.userTarget
 					if type(target) == "number" then
-						data[count + 6] = target
-						data[count + 7] = -1
-						data[count + 8] = -1
+						data[length + 3] = target
+						data[length + 4] = -1
+						data[length + 5] = -1
 					else
-						data[count + 6] = target[1]
-						data[count + 7] = target[2]
-						data[count + 8] = target[3]
+						data[length + 3] = target[1]
+						data[length + 4] = target[2]
+						data[length + 5] = target[3]
 					end
-					targetData.sent = true
 				end
-				count = count + stride
-				if count > 4000 then break end
+				length = length + 5
+				if length > 4000 then break end
 			end
-			SendToUnsynced("targetListBatched", count, stride, data)
+			SendToUnsynced("targetListBatched", unitID, length, data)
 		end
 		--tracy.ZoneEnd()
 	end
@@ -918,7 +913,7 @@ else	-- UNSYNCED
 		end
 	end
 
-	function handleTargetListEvent(_, unitID, index, alwaysSeen, ignoreStop, userTarget, targetA, targetB, targetC)
+	function handleTargetListEvent(_, unitID, index, userTarget, targetA, targetB, targetC)
 		--tracy.ZoneBeginN(string.format("handleTargetListEvent %d %d ", unitID, index))
 		if index == 0 then
 			targetList[unitID] = nil
@@ -937,25 +932,23 @@ else	-- UNSYNCED
 		end
 		targetList[unitID].targets = targetList[unitID].targets or {}
 		targetList[unitID].targets[index] = {
-			alwaysSeen = alwaysSeen,
-			ignoreStop = ignoreStop,
 			userTarget = userTarget,
 			target = (not tonumber(targetB) and targetA) or { targetA, targetB, targetC },
 		}
 		--tracy.ZoneEnd()
 	end
 
-	function handleTargetListBatchedEvent(_, count, stride, data)
-		for i =1, count, stride do
-			local targetB = data[i+6]
-			local targetC = data[i+7]
+	function handleTargetListBatchedEvent(_, unitID, length, data)
+		for i = 1, length, 5 do
+			local targetB = data[i+4]
+			local targetC = data[i+5]
 			if targetB < 0 then
 				targetB = nil
 			end
 			if targetC < 0 then
 				targetC = nil
 			end
-			handleTargetListEvent(_, data[i], data[i+1], data[i+2], data[i+3], data[i+4], data[i+5], targetB, targetC)
+			handleTargetListEvent(_, unitID, data[i], data[i+1], data[i+2], data[i+3], targetB, targetC)
 		end
 	end
 
@@ -999,8 +992,7 @@ else	-- UNSYNCED
 		end
 	end
 
-	local function drawTargetCommand(targetData, myTeam, myAllyTeam)
-
+	local function drawTargetCommand(targetData)
 		if targetData and targetData.userTarget then
 			local target = targetData.target
 			local isUnitTarget = type(target) == "number"
@@ -1019,14 +1011,14 @@ else	-- UNSYNCED
 	local function drawCurrentTarget(unitID, unitData, myTeam, myAllyTeam)
 		local _, _, _, x1, y1, z1 = spGetUnitPosition(unitID, true)
 		glVertex(x1, y1, z1)
-		drawTargetCommand(unitData.targets[unitData.targetIndex], myTeam, myAllyTeam)
+		drawTargetCommand(unitData.targets[unitData.targetIndex])
 	end
 
 	local function drawTargetQueue(unitID, unitData, myTeam, myAllyTeam)
 		local _, _, _, x1, y1, z1 = spGetUnitPosition(unitID, true)
 		glVertex(x1, y1, z1)
 		for _, targetData in ipairs(unitData.targets) do
-			drawTargetCommand(targetData, myTeam, myAllyTeam)
+			drawTargetCommand(targetData)
 		end
 	end
 
