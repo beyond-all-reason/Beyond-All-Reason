@@ -1,5 +1,10 @@
 local gadget = gadget ---@type Gadget
 
+
+--- TO USE: CHANGE THIS TO TRUE
+local ENABLED = true -- set to true to enable the gadget, it will print a lot of info about unit orders
+-------------------------------
+
 local VERBOSE = false -- this print the whole table, instead of the count of indexes in the table
 local PING = false -- this will add a ping on the map when a UnitCmdDone is called, showing the command that was done and the tag of the command
 
@@ -11,8 +16,18 @@ function gadget:GetInfo()
 		date = "May 2026",
 		license = "GNU GPL, v2 or later",
 		layer = -1,
-		enabled = false
+		enabled = ENABLED,
 	}
+end
+
+local CMDnames = {}
+for cmdName, cmdID in pairs(CMD) do
+	CMDnames[cmdID] = "CMD." .. cmdName
+end
+
+-- also add the GameCMD names, specific for BAR
+for cmdName, cmdID in pairs(GameCMD) do
+	CMDnames[cmdID] = "GameCMD." .. cmdName
 end
 
 local function count(tbl)
@@ -28,59 +43,21 @@ local function count(tbl)
 end
 
 local function command(cmdID)
-	if cmdID == CMD.STOP then
-		return "CMD.STOP"
-	elseif cmdID == CMD.INSERT then
-		return "CMD.INSERT"
-	elseif cmdID == CMD.REMOVE then
-		return "CMD.REMOVE"
-	elseif cmdID == CMD.WAIT then
-		return "CMD.WAIT"
-	elseif cmdID == CMD.TIMEWAIT then
-		return "CMD.TIMEWAIT"
-	elseif cmdID == CMD.DEATHWAIT then
-		return "CMD.DEATHWAIT"
-	elseif cmdID == CMD.SQUADWAIT then
-		return "CMD.SQUADWAIT"
-	elseif cmdID == CMD.GATHERWAIT then
-		return "CMD.GATHERWAIT"
-	elseif cmdID == CMD.MOVE then
-		return "CMD.MOVE"
-	elseif cmdID == CMD.PATROL then
-		return "CMD.PATROL"
-	elseif cmdID == CMD.FIGHT then
-		return "CMD.FIGHT"
-	elseif cmdID == CMD.ATTACK then
-		return "CMD.ATTACK"
-	elseif cmdID == CMD.RECLAIM then
-		return "CMD.RECLAIM"
-	elseif cmdID == CMD.REPAIR then
-		return "CMD.REPAIR"
-	elseif cmdID == CMD.RESURRECT then
-		return "CMD.RESURRECT"
-	elseif cmdID == CMD.GUARD then
-		return "CMD.GUARD"
-	elseif cmdID == CMD.LOAD_UNITS then
-		return "CMD.LOAD_UNITS"
-	elseif cmdID == CMD.UNLOAD_UNITS then
-		return "CMD.UNLOAD_UNITS"
-	elseif cmdID == CMD.ONOFF then
-		return "CMD.ONOFF"
-	elseif cmdID == CMD.CLOAK then
-		return "CMD.CLOAK"
-	elseif cmdID == CMD.REPEAT then
-		return "CMD.REPEAT"
-	elseif cmdID == CMD.RESTORE then
-		return "CMD.RESTORE"
-	elseif cmdID == CMD.FIRE_STATE then
-		return "CMD.FIRE_STATE"
-	elseif cmdID == CMD.MOVE_STATE then
-		return "CMD.MOVE_STATE"
-	elseif cmdID == CMD.BUILD then
-		return "CMD.BUILD"
-	else
-		return tostring(cmdID)
+	local ret
+	
+	-- Typically negative IDs are build/construct commands
+	if cmdID < 0 then
+		return "BUILD"
 	end
+
+	-- Try to get the command name from the global CMD table
+	ret = CMDnames[cmdID]
+	if ret then
+		return ret
+	end
+
+	-- If not found, return UKNOWN with the cmdID
+	return "UNKNOWN(" .. cmdID .. ")"
 end
 
 -- Spring.SetCustomCommandDrawData 
