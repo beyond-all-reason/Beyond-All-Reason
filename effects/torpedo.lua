@@ -44,15 +44,19 @@ local definitions = {
 		water              = true,
 
 		properties = {
-			colormap           = [[0.08 0.16 0.50 0.012 0.12 0.24 0.62 0.018 0.18 0.32 0.72 0.012 0.10 0.18 0.40 0.006 0 0 0 0.01]],
+			colormap           = [[0.55 0.72 1.00 0.040   0.38 0.58 0.95 0.030   0.18 0.32 0.65 0.016   0.04 0.08 0.18 0.006   0 0 0 0.01]],
 			dir                = [[dir]],
-			frontoffset        = 0.1,
+
+			frontoffset        = 0.03,
 			fronttexture       = [[blastwave]],
-			length             = -2.4,
+
+			length             = -2.8,
 			sidetexture        = [[shot]],
-			size               = 4.0,
-			sizegrowth         = -0.25,
-			ttl                = 6,
+
+			size               = 2.35,
+			sizegrowth         = -0.18,
+			ttl                = 8,
+
 			useairlos          = true,
 		},
 	},
