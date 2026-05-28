@@ -253,13 +253,13 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneBeginN(string.format("sendTargetsToUnsynced %d", unitID))
 		for index, targetData in ipairs(unitTargets[unitID].targets) do
 			if not targetData.sent then
+				targetData.sent = true
 				local target = targetData.target
 				if type(target) == "number" then
 					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, target)
 				else
 					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, target[1], target[2], target[3])
 				end
-				targetData.sent = true
 			end
 		end
 		--tracy.ZoneEnd()
@@ -276,6 +276,7 @@ if gadgetHandler:IsSyncedCode() then
 			local stride = 8
 			for index, targetData in ipairs(unitTargets[unitID].targets) do
 				if not targetData.sent then
+					targetData.sent = true
 					local target = targetData.target
 					data[count + 1] = unitID
 					data[count + 2] = index
@@ -324,7 +325,7 @@ if gadgetHandler:IsSyncedCode() then
 			for _, targetData in ipairs(targets) do
 				if not currentTargets[targetData.target] then	-- check if this target isnt already in targetData
 					if checkTarget(unitID, targetData.target) then
-						targetData.sent = nil
+						targetData.sent = false
 						data.targets[#data.targets + 1] = targetData
 					end
 				end
@@ -596,6 +597,7 @@ if gadgetHandler:IsSyncedCode() then
 									ignoreStop = ignoreStop,
 									userTarget = userTarget,
 									target = target,
+									sent = false,
 								}
 							}, append, "cmdparams 3 or 4 and validTarget")
 						end
@@ -621,6 +623,7 @@ if gadgetHandler:IsSyncedCode() then
 										ignoreStop = ignoreStop,
 										userTarget = userTarget,
 										target = target,
+										sent = false,
 									}
 								}, append, "cmdparams 1 and validTarget")
 							end
