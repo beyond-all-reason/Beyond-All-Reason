@@ -525,161 +525,162 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneBeginN(string.format("processCommand %d %d %d %d %s %s", unitID, unitDefID, teamID, cmdID, tostring(cmdParams), tostring(cmdOptions)))
 		--tracy.Message(string.format("processCommand params=%s oprt=%s", Json.encode(cmdParams), Json.encode(cmdOptions)))
 		local unitData = unitTargets[unitID] or pausedTargets[unitID]
+		local nParams = #cmdParams
+
 		if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
-			if validUnits[unitDefID] then
-				if cmdParams and #cmdParams > 3 and not (cmdOptions and cmdOptions.internal) then
+			if nParams == 4 and cmdParams[4] < 1 then
+				cmdParams[4] = nil
+				nParams = 3
+			end
+
+			local weaponList = unitWeapons[unitDefID]
+			local append = cmdOptions.shift or false
+			local userTarget = not cmdOptions.internal
+			local ignoreStop = cmdOptions.ctrl
+
+			-- Checks if the command is a valid area command {x,y,z,r} with radius more than 0:
+			if nParams > 3 then
+				if not cmdOptions.internal then
 					SendToUnsynced("settarget_line_sound", teamID, -1, unitID, cmdID)
 				end
-				local weaponList = unitWeapons[unitDefID]
-				local append = cmdOptions.shift or false
-				local userTarget = not cmdOptions.internal
-				local ignoreStop = cmdOptions.ctrl
 
-				-- Checks if the command is a valid area command {x,y,z,r} with radius more than 0:
-				if #cmdParams > 3 and not (#cmdParams == 4 and cmdParams[4] == 0) then
-					local targets
-					if #cmdParams == 6 then
-						--rectangle
-						local top, bot, left, right
-						if cmdParams[1] < cmdParams[4] then
-							left = cmdParams[1]
-							right = cmdParams[4]
-						else
-							left = cmdParams[4]
-							right = cmdParams[1]
-						end
-
-						if cmdParams[3] < cmdParams[6] then
-							top = cmdParams[3]
-							bot = cmdParams[6]
-						else
-							bot = cmdParams[6]
-							top = cmdParams[3]
-						end
-
-						targets = CallAsTeam(teamID, spGetUnitsInRectangle, left, top, right, bot, -4)
-					elseif #cmdParams == 4 then
-						--circle
-						targets = CallAsTeam(teamID, spGetUnitsInCylinder, cmdParams[1], cmdParams[3], cmdParams[4], -4)
+				local targets
+				if nParams == 6 then
+					--rectangle
+					local top, bot, left, right
+					if cmdParams[1] < cmdParams[4] then
+						left = cmdParams[1]
+						right = cmdParams[4]
+					else
+						left = cmdParams[4]
+						right = cmdParams[1]
 					end
-					if targets then
-						local orders = {}
-						local optionKeys = {}
-						local optionKeysCount = 0
-						--re-insert back the command options
-						for optionName, optionValue in pairsNext, cmdOptions do
-							if optionName == 'shift' then
-								-- Always add shift to enforce chained commands, but clear orders at
-								-- the beginning of our order chain when not an append (shift).
-								optionKeysCount = optionKeysCount + 1
-								optionKeys[optionKeysCount] = optionName
-							elseif optionValue then
-								optionKeysCount = optionKeysCount + 1
-								optionKeys[optionKeysCount] = optionName
-							end
-						end
-						if not append and unitData then
-							-- Need to clear orders if not in shift, since just sending the first one
-							-- as not-shift would sometimes fail if that unit is in the end not valid.
-							orders[1] = {CMD_UNIT_CANCEL_TARGET, {}, {}}
-						end
-						local base = #orders
-						for i = 1, #targets do
-							local target = targets[i]
-							orders[i+base] = {
-								CMD_UNIT_SET_TARGET,
-								target,
-								optionKeys
-							}
 
-						end
-						-- This will re-call Gadget:AllowCommand for each order
-						-- Which... immediately reenters this function. Okay.
-						spGiveOrderArrayToUnit(unitID, orders)
+					if cmdParams[3] < cmdParams[6] then
+						top = cmdParams[3]
+						bot = cmdParams[6]
+					else
+						bot = cmdParams[6]
+						top = cmdParams[3]
 					end
-				else
-					if #cmdParams == 3 or #cmdParams == 4 then
-						-- if radius is 0, it's a single click
-						if cmdParams[4] == 0 then
-							if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
-								SendToUnsynced("failCommand", teamID)
-								--tracy.ZoneEnd()
-								return false
-							end
-							cmdParams[4] = nil
+
+					targets = CallAsTeam(teamID, spGetUnitsInRectangle, left, top, right, bot, -4)
+				elseif nParams == 4 then
+					--circle
+					targets = CallAsTeam(teamID, spGetUnitsInCylinder, cmdParams[1], cmdParams[3], cmdParams[4], -4)
+				end
+				if targets then
+					local orders = {}
+					local optionKeys = {}
+					local optionKeysCount = 0
+					--re-insert back the command options
+					for optionName, optionValue in pairsNext, cmdOptions do
+						if optionName == 'shift' then
+							-- Always add shift to enforce chained commands, but clear orders at
+							-- the beginning of our order chain when not an append (shift).
+							optionKeysCount = optionKeysCount + 1
+							optionKeys[optionKeysCount] = optionName
+						elseif optionValue then
+							optionKeysCount = optionKeysCount + 1
+							optionKeys[optionKeysCount] = optionName
 						end
-						local target = cmdParams
-						--coordinate
-						local validTarget = false
-						if target[2] > spGetGroundHeight(target[1], target[3]) then
-							target[2] = spGetGroundHeight(target[1], target[3])
-						end -- clip to ground level
-						--only accept valid targets
-						for weaponNum = 1, #weaponList do
-							local weaponType = weaponList[weaponNum]
-							if weaponType then
-								if spGetUnitWeaponTestTarget(unitID, weaponNum, target[1], target[2], target[3])
-									or (weaponType ~= 0 and target[2] < 0 and spGetUnitWeaponTestTarget(unitID, weaponNum, target[1], 1, target[3]))
-								then
-									validTarget = true
-									break
-								end
-							end
+					end
+					if not append and unitData then
+						-- Need to clear orders if not in shift, since just sending the first one
+						-- as not-shift would sometimes fail if that unit is in the end not valid.
+						orders[1] = {CMD_UNIT_CANCEL_TARGET, {}, {}}
+					end
+					local base = #orders
+					for i = 1, #targets do
+						local target = targets[i]
+						orders[i+base] = {
+							CMD_UNIT_SET_TARGET,
+							target,
+							optionKeys
+						}
+
+					end
+					-- This will re-call Gadget:AllowCommand for each order
+					-- Which... immediately reenters this function. Okay.
+					spGiveOrderArrayToUnit(unitID, orders)
+				end
+			elseif nParams == 3 then
+				if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
+					SendToUnsynced("failCommand", teamID)
+					--tracy.ZoneEnd()
+					return false
+				end
+
+				local target = cmdParams
+				--coordinate
+				local validTarget = false
+				if target[2] > spGetGroundHeight(target[1], target[3]) then
+					target[2] = spGetGroundHeight(target[1], target[3])
+				end -- clip to ground level
+				--only accept valid targets
+				for weaponNum = 1, #weaponList do
+					local weaponType = weaponList[weaponNum]
+					if weaponType then
+						if spGetUnitWeaponTestTarget(unitID, weaponNum, target[1], target[2], target[3])
+							or (weaponType ~= 0 and target[2] < 0 and spGetUnitWeaponTestTarget(unitID, weaponNum, target[1], 1, target[3]))
+						then
+							validTarget = true
+							break
 						end
-						if validTarget then
-							addUnitTargets(unitID, unitDefID, {
-								{
-									alwaysSeen = true,
-									ignoreStop = ignoreStop,
-									userTarget = userTarget,
-									target = target,
-									sent = false,
-								}
-							}, append, "cmdparams 3 or 4 and validTarget")
-						end
-					elseif #cmdParams == 1 then
-						--single target
-						local target = cmdParams[1]
-						if spValidUnitID(target) and not spAreTeamsAllied(teamID, spGetUnitTeam(target)) then
-							local validTarget = false
-							--only accept valid targets
-							if weaponList then
-								for weaponID = 1, #weaponList do
-									--unit test target only tests the validity of the target type, not range or other variable things
-									if spGetUnitWeaponTestTarget(unitID, weaponID, target) then
-										validTarget = true
-										break
-									end
-								end
-							end
-							if validTarget then
-								addUnitTargets(unitID, unitDefID, {
-									{
-										alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
-										ignoreStop = ignoreStop,
-										userTarget = userTarget,
-										target = target,
-										sent = false,
-									}
-								}, append, "cmdparams 1 and validTarget")
-							end
-						end
-					elseif #cmdParams == 0 then
-						--no param, unset target
-						removeUnit(unitID)
 					end
 				end
+				if validTarget then
+					addUnitTargets(unitID, unitDefID, {
+						{
+							alwaysSeen = true,
+							ignoreStop = ignoreStop,
+							userTarget = userTarget,
+							target = target,
+							sent = false,
+						}
+					}, append, "cmdparams 3 or 4 and validTarget")
+				end
+			elseif nParams == 1 then
+				--single target
+				local target = cmdParams[1]
+				if spValidUnitID(target) and not spAreTeamsAllied(teamID, spGetUnitTeam(target)) then
+					local validTarget = false
+					--only accept valid targets
+					if weaponList then
+						for weaponID = 1, #weaponList do
+							--unit test target only tests the validity of the target type, not range or other variable things
+							if spGetUnitWeaponTestTarget(unitID, weaponID, target) then
+								validTarget = true
+								break
+							end
+						end
+					end
+					if validTarget then
+						addUnitTargets(unitID, unitDefID, {
+							{
+								alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
+								ignoreStop = ignoreStop,
+								userTarget = userTarget,
+								target = target,
+								sent = false,
+							}
+						}, append, "cmdparams 1 and validTarget")
+					end
+				end
+			elseif nParams == 0 then
+				--no param, unset target
+				removeUnit(unitID)
 			end
 			--tracy.ZoneEnd()
 			return true
 		elseif cmdID == CMD_UNIT_CANCEL_TARGET then
 			if unitData then
-				if #cmdParams == 0 then
+				if nParams == 0 then
 					removeUnit(unitID)
-				elseif #cmdParams == 1 and cmdOptions.alt then
+				elseif nParams == 1 and cmdOptions.alt then
 					--it's a position in the queue
 					removeTarget(unitID, cmdParams[1])
-				elseif #cmdParams == 1 and not cmdOptions.alt then
+				elseif nParams == 1 and not cmdOptions.alt then
 					--target is unitID
 					for index, val in ipairs(unitData.targets) do
 						if tonumber(val) then
@@ -690,7 +691,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 					end
-				elseif #cmdParams == 3 then
+				elseif nParams == 3 then
 					--target is a location
 					for index, val in ipairs(unitData.targets) do
 						if not tonumber(val) and val then
