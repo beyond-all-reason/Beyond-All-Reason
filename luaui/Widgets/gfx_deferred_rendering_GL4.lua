@@ -1384,7 +1384,7 @@ end
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
 	local weapon, piece = Spring.GetProjectileType(projectileID)
-	local weaponDefID = weapon and Spring.GetProjectileDefID ( projectileID )
+	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
 	Spring.Debug.TraceFullEcho()
 end
 
@@ -1408,9 +1408,25 @@ local function updateProjectileLights(newgameframe)
 			local lightType = 'point' -- default
 			if trackedProjectiles[projectileID] then
 				if newgameframe then
-					--update proj pos
+					-- update projectile light position, unless this is a torpedo that has breached above water
 					lightType = trackedProjectileTypes[projectileID]
-					if lightType ~= 'beam' then
+
+					-- Torpedo GL4 light cleanup:
+					-- Torpedo lights are only meant to exist underwater. If a tracked torpedo
+					-- jumps or breaches above the waterline, remove its light and stop tracking it.
+					-- The existing add-light path can add the light again if it re-enters water.
+					local weaponDefID = spGetProjectileDefID(projectileID)
+					local weaponDef = weaponDefID and WeaponDefs[weaponDefID]
+
+					if weaponDef and weaponDef.type == "TorpedoLauncher" and py and py > 2 then
+						if lightType and projectileLightVBOMap[lightType]
+							and projectileLightVBOMap[lightType].instanceIDtoIndex[projectileID]
+						then
+							popElementInstance(projectileLightVBOMap[lightType], projectileID, noUpload)
+						end
+						trackedProjectiles[projectileID] = nil
+						trackedProjectileTypes[projectileID] = nil
+					elseif lightType ~= 'beam' then
 						local dx,dy,dz = spGetProjectileVelocity(projectileID)
 						local instanceIndex = updateLightPosition(projectileLightVBOMap[lightType],
 							projectileID, px,py,pz, nil, dx,dy,dz)

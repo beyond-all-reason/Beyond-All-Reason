@@ -648,22 +648,8 @@ local function torpedoWaterPen(projectileID)
 end
 
 specialEffectFunction.torpwaterpen = function(projectileID)
-	local inWater = isProjectileInWater(projectileID)
-	local wasInWater = projectilesData[projectileID]
-
-	-- Spawn entry flare only on air -> water transition.
-	-- This does not control torpedo movement; it only handles the visual entry pop.
-	if inWater and not wasInWater then
-		local x, y, z = spGetProjectilePosition(projectileID)
-		spSpawnCEG("torpedo-entry-flare", x, y, z)
-	end
-
-	projectilesData[projectileID] = inWater
-
-	-- Preserve torpedo water behavior every frame while underwater.
-	if inWater then
+	if isProjectileInWater(projectileID) then
 		torpedoWaterPen(projectileID)
-		return false
 	end
 
 	return false

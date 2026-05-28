@@ -239,6 +239,7 @@ function gadget:GameFrame(gf)
 			if y then
 				if y < 0 then
 					SpawnCEG(CEG,x,0,z)
+					SpawnCEG("torpedo-entry-flare", x, 0, z)
 					if not removeDepth then removeDepth = {} end
 					removeDepthCount = removeDepthCount + 1
 					removeDepth[removeDepthCount] = proID
