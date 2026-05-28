@@ -62,7 +62,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-	local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
 	local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
 	local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
@@ -333,7 +332,7 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneEnd()
 	end
 
-	local function addUnitTargets(unitID, unitDefID, targets, append, reason)
+	local function addUnitTargets(unitID, unitDefID, targets, append)
 		--tracy.ZoneBeginN(string.format("addUnitTargets:%s %d %d",tostring(reason), unitID, unitDefID))
 		if spValidUnitID(unitID) then
 			--needSend[#needSend] = unitID
@@ -528,6 +527,8 @@ if gadgetHandler:IsSyncedCode() then
 		local nParams = #cmdParams
 
 		if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
+			local addTargetList
+
 			if nParams == 4 and cmdParams[4] < 1 then
 				cmdParams[4] = nil
 				nParams = 3
@@ -569,40 +570,18 @@ if gadgetHandler:IsSyncedCode() then
 					--circle
 					targets = CallAsTeam(teamID, spGetUnitsInCylinder, cmdParams[1], cmdParams[3], cmdParams[4], -4)
 				end
-				if targets then
-					local orders = {}
-					local optionKeys = {}
-					local optionKeysCount = 0
-					--re-insert back the command options
-					for optionName, optionValue in pairsNext, cmdOptions do
-						if optionName == 'shift' then
-							-- Always add shift to enforce chained commands, but clear orders at
-							-- the beginning of our order chain when not an append (shift).
-							optionKeysCount = optionKeysCount + 1
-							optionKeys[optionKeysCount] = optionName
-						elseif optionValue then
-							optionKeysCount = optionKeysCount + 1
-							optionKeys[optionKeysCount] = optionName
-						end
-					end
-					if not append and unitData then
-						-- Need to clear orders if not in shift, since just sending the first one
-						-- as not-shift would sometimes fail if that unit is in the end not valid.
-						orders[1] = {CMD_UNIT_CANCEL_TARGET, {}, {}}
-					end
-					local base = #orders
+				if targets and targets[1] then
+					addTargetList = {}
 					for i = 1, #targets do
 						local target = targets[i]
-						orders[i+base] = {
-							CMD_UNIT_SET_TARGET,
-							target,
-							optionKeys
+						addTargetList[i] = {
+							alwaysSeen = true,
+							ignoreStop = ignoreStop,
+							userTarget = userTarget,
+							target = target,
+							sent = false,
 						}
-
 					end
-					-- This will re-call Gadget:AllowCommand for each order
-					-- Which... immediately reenters this function. Okay.
-					spGiveOrderArrayToUnit(unitID, orders)
 				end
 			elseif nParams == 3 then
 				if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
@@ -630,15 +609,13 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				if validTarget then
-					addUnitTargets(unitID, unitDefID, {
-						{
-							alwaysSeen = true,
-							ignoreStop = ignoreStop,
-							userTarget = userTarget,
-							target = target,
-							sent = false,
-						}
-					}, append, "cmdparams 3 or 4 and validTarget")
+					addTargetList = {{
+						alwaysSeen = true,
+						ignoreStop = ignoreStop,
+						userTarget = userTarget,
+						target = target,
+						sent = false,
+					}}
 				end
 			elseif nParams == 1 then
 				--single target
@@ -656,19 +633,20 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					if validTarget then
-						addUnitTargets(unitID, unitDefID, {
-							{
-								alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
-								ignoreStop = ignoreStop,
-								userTarget = userTarget,
-								target = target,
-								sent = false,
-							}
-						}, append, "cmdparams 1 and validTarget")
+						addTargetList = {{
+							alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
+							ignoreStop = ignoreStop,
+							userTarget = userTarget,
+							target = target,
+							sent = false,
+						}}
 					end
 				end
-			elseif nParams == 0 then
-				--no param, unset target
+			end
+
+			if addTargetList then
+				addUnitTargets(unitID, unitDefID, addTargetList, append)
+			elseif unitData and not append then
 				removeUnit(unitID)
 			end
 			--tracy.ZoneEnd()
