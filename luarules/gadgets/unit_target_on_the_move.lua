@@ -73,6 +73,7 @@ if gadgetHandler:IsSyncedCode() then
 	local tremove = table.remove
 	local ensureTable = table.ensureTable
 
+	local max = math.max
 	local diag = math.diag
 	local pairsNext = next
 	local tonumber = tonumber
@@ -524,6 +525,32 @@ if gadgetHandler:IsSyncedCode() then
 	local teamQueryCaches = {}
 	local ENEMY_UNITS = -4 -- From UnitAllegiance enum. Includes Gaia and ceasefired targets.
 
+	local function allowTargetUnit(unitID, weaponList, targetID)
+		for weaponNum = 1, #weaponList do
+			-- This only tests the validity of the target type, not range or other variable things.
+			if spGetUnitWeaponTestTarget(unitID, weaponNum, targetID) then
+				return true
+			end
+		end
+		return false
+	end
+
+	local function allowTargetPos(unitID, weaponList, xyz)
+		local x, y, z = xyz[1], xyz[2], xyz[3]
+		for weaponNum = 1, #weaponList do
+			local weaponType = weaponList[weaponNum]
+			-- Quirk: Targets are not adjusted engine-side for water level, unlike Attack commands and weapon aiming.
+			if weaponType and spGetUnitWeaponTestTarget(unitID, weaponNum, x, weaponType == 0 and y or max(y, 1), z) then
+				-- We may or may not adjust this targetY depending on weapon order, which can tend to seem arbitrary.
+				if weaponType ~= 0 then
+					xyz[2] = max(y, 1)
+				end
+				return true
+			end
+		end
+		return false
+	end
+
 	local function processCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
 		--tracy.ZoneBeginN(string.format("processCommand %d %d %d %d %s %s", unitID, unitDefID, teamID, cmdID, tostring(cmdParams), tostring(cmdOptions)))
 		--tracy.Message(string.format("processCommand params=%s oprt=%s", Json.encode(cmdParams), Json.encode(cmdOptions)))
@@ -582,16 +609,22 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				if targets and targets[1] then
-					addTargetList = {}
+					local targetList, count = {}, 0
 					for i = 1, #targets do
 						local target = targets[i]
-						addTargetList[i] = {
-							alwaysSeen = true,
-							ignoreStop = ignoreStop,
-							userTarget = userTarget,
-							target = target,
-							sent = false,
-						}
+						if allowTargetUnit(unitID, weaponList, target) then
+							count = count + 1
+							targetList[count] = {
+								alwaysSeen = true,
+								ignoreStop = ignoreStop,
+								userTarget = userTarget,
+								target = target,
+								sent = false,
+							}
+						end
+					end
+					if count > 0 then
+						addTargetList = targetList
 					end
 				end
 			elseif nParams == 3 then
@@ -602,24 +635,10 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				local target = cmdParams
-				--coordinate
-				local validTarget = false
 				if target[2] > spGetGroundHeight(target[1], target[3]) then
 					target[2] = spGetGroundHeight(target[1], target[3])
-				end -- clip to ground level
-				--only accept valid targets
-				for weaponNum = 1, #weaponList do
-					local weaponType = weaponList[weaponNum]
-					if weaponType then
-						if spGetUnitWeaponTestTarget(unitID, weaponNum, target[1], target[2], target[3])
-							or (weaponType ~= 0 and target[2] < 0 and spGetUnitWeaponTestTarget(unitID, weaponNum, target[1], 1, target[3]))
-						then
-							validTarget = true
-							break
-						end
-					end
 				end
-				if validTarget then
+				if allowTargetPos(unitID, weaponList, target) then
 					addTargetList = {{
 						alwaysSeen = true,
 						ignoreStop = ignoreStop,
@@ -629,21 +648,9 @@ if gadgetHandler:IsSyncedCode() then
 					}}
 				end
 			elseif nParams == 1 then
-				--single target
 				local target = cmdParams[1]
 				if spValidUnitID(target) and not spAreTeamsAllied(unitTeam, spGetUnitTeam(target)) then
-					local validTarget = false
-					--only accept valid targets
-					if weaponList then
-						for weaponID = 1, #weaponList do
-							--unit test target only tests the validity of the target type, not range or other variable things
-							if spGetUnitWeaponTestTarget(unitID, weaponID, target) then
-								validTarget = true
-								break
-							end
-						end
-					end
-					if validTarget then
+					if allowTargetUnit(unitID, weaponList, target) then
 						addTargetList = {{
 							alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
 							ignoreStop = ignoreStop,
