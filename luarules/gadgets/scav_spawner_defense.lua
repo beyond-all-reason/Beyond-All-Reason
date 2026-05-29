@@ -858,7 +858,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			if mRandom() <= 0.5 then
 				for name, data in pairs(squadSpawnOptions.commanders) do
-					if mRandom() <= config.spawnChance and mRandom(1, SetCount(squadSpawnOptions.commanders)) == 1 and (not waveParameters.commanders.waveCommanders[name]) and data.minAnger <= waveParameters.waveTechAnger and data.maxAnger >= waveParameters.waveTechAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and CommandersPopulation+waveParameters.commanders.waveCommanderCount < SetCount(humanTeams)*(waveParameters.waveTechAnger*0.005) then
+					if mRandom() <= config.spawnChance and mRandom(1, SetCount(squadSpawnOptions.commanders)) == 1 and (not waveParameters.commanders.waveCommanders[name]) and data.minAnger <= waveParameters.waveTechAnger and data.maxAnger >= waveParameters.waveTechAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and CommandersPopulation+waveParameters.commanders.waveCommanderCount < SetCount(humanTeams)*0.5*(techAnger*0.01) then
 						waveParameters.commanders.waveCommanders[name] = true
 						waveParameters.commanders.waveCommanderCount = waveParameters.commanders.waveCommanderCount + 1
 						table.insert(spawnQueue, { burrow = burrowID, unitName = name, team = scavTeamID, squadID = 1 })
@@ -867,7 +867,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			else
 				for name, data in pairs(squadSpawnOptions.decoyCommanders) do
-					if mRandom() <= config.spawnChance and mRandom(1, SetCount(squadSpawnOptions.decoyCommanders)) == 1 and (not waveParameters.commanders.waveDecoyCommanders[name]) and data.minAnger <= waveParameters.waveTechAnger and data.maxAnger >= waveParameters.waveTechAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and DecoyCommandersPopulation+waveParameters.commanders.waveDecoyCommanderCount < SetCount(humanTeams)*(waveParameters.waveTechAnger*0.005) then
+					if mRandom() <= config.spawnChance and mRandom(1, SetCount(squadSpawnOptions.decoyCommanders)) == 1 and (not waveParameters.commanders.waveDecoyCommanders[name]) and data.minAnger <= waveParameters.waveTechAnger and data.maxAnger >= waveParameters.waveTechAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and DecoyCommandersPopulation+waveParameters.commanders.waveDecoyCommanderCount < SetCount(humanTeams)*0.5*(techAnger*0.01) then
 						waveParameters.commanders.waveDecoyCommanders[name] = true
 						waveParameters.commanders.waveDecoyCommanderCount = waveParameters.commanders.waveDecoyCommanderCount + 1
 						table.insert(spawnQueue, { burrow = burrowID, unitName = name, team = scavTeamID, squadID = 1 })
@@ -1429,7 +1429,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					if mRandom() <= 0.5 then
 						for name, data in pairs(squadSpawnOptions.commanders) do
-							if mRandom() <= config.spawnChance and mRandom(1, SetCount(squadSpawnOptions.commanders)) == 1 and (not waveParameters.commanders.waveCommanders[name]) and data.minAnger <= waveParameters.waveTechAnger and data.maxAnger >= waveParameters.waveTechAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and CommandersPopulation+waveParameters.commanders.waveCommanderCount < SetCount(humanTeams)*(waveParameters.waveTechAnger*0.005) then
+							if mRandom() <= config.spawnChance and mRandom(1, SetCount(squadSpawnOptions.commanders)) == 1 and (not waveParameters.commanders.waveCommanders[name]) and data.minAnger <= waveParameters.waveTechAnger and data.maxAnger >= waveParameters.waveTechAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and CommandersPopulation+waveParameters.commanders.waveCommanderCount < SetCount(humanTeams)*(techAnger*0.01) then
 								waveParameters.commanders.waveCommanders[name] = true
 								waveParameters.commanders.waveCommanderCount = waveParameters.commanders.waveCommanderCount + 1
 								table.insert(spawnQueue, { burrow = burrowID, unitName = name, team = scavTeamID, squadID = 1 })
@@ -1439,7 +1439,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					else
 						for name, data in pairs(squadSpawnOptions.decoyCommanders) do
-							if mRandom() <= config.spawnChance and mRandom(1, SetCount(squadSpawnOptions.decoyCommanders)) == 1 and (not waveParameters.commanders.waveDecoyCommanders[name]) and data.minAnger <= waveParameters.waveTechAnger and data.maxAnger >= waveParameters.waveTechAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and DecoyCommandersPopulation+waveParameters.commanders.waveDecoyCommanderCount < SetCount(humanTeams)*(waveParameters.waveTechAnger*0.005) then
+							if mRandom() <= config.spawnChance and mRandom(1, SetCount(squadSpawnOptions.decoyCommanders)) == 1 and (not waveParameters.commanders.waveDecoyCommanders[name]) and data.minAnger <= waveParameters.waveTechAnger and data.maxAnger >= waveParameters.waveTechAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and DecoyCommandersPopulation+waveParameters.commanders.waveDecoyCommanderCount < SetCount(humanTeams)*(techAnger*0.01) then
 								waveParameters.commanders.waveDecoyCommanders[name] = true
 								waveParameters.commanders.waveDecoyCommanderCount = waveParameters.commanders.waveDecoyCommanderCount + 1
 								table.insert(spawnQueue, { burrow = burrowID, unitName = name, team = scavTeamID, squadID = 1 })
@@ -1618,9 +1618,11 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
 					CommandersPopulation = CommandersPopulation + 1
+					--Spring.Echo("Scav Commander Population Now: ", CommandersPopulation)
 				end
 				if squadSpawnOptions.decoyCommanders[UnitDefs[unitDefID].name] then
 					DecoyCommandersPopulation = DecoyCommandersPopulation + 1
+					--Spring.Echo("Scav Decoy Commander Population Now: ", DecoyCommandersPopulation)
 				end
 				return
 			end
@@ -2286,9 +2288,11 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
 					CommandersPopulation = CommandersPopulation + 1
+					--Spring.Echo("Scav Commander Population Now: ", CommandersPopulation)
 				end
 				if squadSpawnOptions.decoyCommanders[UnitDefs[unitDefID].name] then
 					DecoyCommandersPopulation = DecoyCommandersPopulation + 1
+					--Spring.Echo("Scav Decoy Commander Population Now: ", DecoyCommandersPopulation)
 				end
 				return
 			end
@@ -2302,12 +2306,14 @@ if gadgetHandler:IsSyncedCode() then
 					spawnCreepStructuresWave()
 				end
 			end
-			if UnitDefs[unitDefID].isscavenger then
+			if UnitDefs[unitDefID].customParams.isscavenger then
 				if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
 					CommandersPopulation = CommandersPopulation - 1
+					--Spring.Echo("Scav Commander Population Now: ", CommandersPopulation)
 				end
 				if squadSpawnOptions.decoyCommanders[UnitDefs[unitDefID].name] then
 					DecoyCommandersPopulation = DecoyCommandersPopulation - 1
+					--Spring.Echo("Scav Decoy Commander Population Now: ", DecoyCommandersPopulation)
 				end
 			end
 		end

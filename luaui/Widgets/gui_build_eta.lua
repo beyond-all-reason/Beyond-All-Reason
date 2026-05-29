@@ -191,9 +191,9 @@ local function updateEta(eta, newProgress, gameSeconds, abs)
 				eta.timeLeft = newTime
 			end
 
-			if eta.display == nil and eta.timeLeft < minETASecs then
+			if eta.display == nil and eta.timeLeft and eta.timeLeft < minETASecs then
 				eta.display = false
-			elseif eta.timeLeft >= minETASecs then
+			elseif eta.timeLeft and eta.timeLeft >= minETASecs then
 				eta.display = true
 			end
 		end

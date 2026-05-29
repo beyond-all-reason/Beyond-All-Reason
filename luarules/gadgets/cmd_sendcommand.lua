@@ -47,7 +47,7 @@ if gadgetHandler:IsSyncedCode() then
 		if _G.permissions.cmd[accountID] then
 			authorized = true
 		end
-		if authorized == nil then
+		if not authorized then
 			Spring.SendMessageToPlayer(playerID, "You are not authorized to send commands for a player")
 			return
 		elseif not spec then
