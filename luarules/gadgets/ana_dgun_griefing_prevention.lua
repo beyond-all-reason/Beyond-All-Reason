@@ -10,7 +10,7 @@ Reasons a Dgun would threaten allies, but be classified as not griefing:
   * Enemies nearby on vision, radar, or seismic
   * Enemies recently detected nearby on vision, radar, or seismic (in case allied radar is briefly destroyed, or LOS is briefly lost, etc)
   * Allies damaged nearby recently (implies enemy activity nearby even if it might be jammed)
-  * Enemy buildings detected nearby (including building ghosts)
+  * Enemy unit ghosts detected nearby (generally: enemy buildings. But there are other types of ghosts)
 * Not enough allied metal value threatened (ignored as inconsequential)
 
 Reasons for these exceptions: some Dguns that hit allies are nonetheless for the greater good. e.g.,
@@ -33,7 +33,6 @@ function gadget:GetInfo()
 		date    = "2026-05-01",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
-        version = "1.5",
 		enabled = true,
 	}
 end
@@ -80,21 +79,21 @@ local FRONTLINE_SCAN_RADIUS = 1500
 local gaiaTeamID = spGetGaiaTeamID()
 
 -- Tracks enemy contacts briefly so that dguns are allowed for a few seconds even after contact is lost
--- Note that this table uses a queue/head structure to reduce cache modification cost to amortized O(1) (at the expense of reduced intuitiveness of code, which I think is fine?)
+-- Note that this table uses a queue/head structure to reduce cache modification cost to amortized O(1)
 local contactsCache = {}
 local contactsHead = 1
-local CONTACT_WINDOW_DURATION = 5 * 30 -- five seconds at 30 gameframes per second
+local CONTACT_WINDOW_DURATION = 5 * Game.gameSpeed -- five seconds
 
--- Tracks enemy buildings that leave ghosts so they can keep contributing to enemy presence
-local enemyBuildingsCache = {}
-local ENEMY_BUILDING_UPDATE_INTERVAL = 10 -- check building ghost LOS on this interval (frame count)
-local nextEnemyBuildingUpdateFrame = 0
+-- Tracks enemy ghosts (generally: building ghosts) so they can keep contributing to enemy presence
+local enemyGhostsCache = {}
+local ENEMY_GHOST_UPDATE_INTERVAL = 10 -- check ghost LOS on this interval (frame count)
+local nextEnemyGhostUpdateFrame = 0
 
 -- Allies being damaged nearby recently implies we are near combat, so dguns are allowed
 local recentlyDamagedAlliedUnits = {}
-local ALLY_DAMAGE_WINDOW = 20 * 30 -- 20 seconds at 30 gameframes per second
+local ALLY_DAMAGE_WINDOW = 20 * Game.gameSpeed -- 20 seconds
 
-local CACHE_PRUNE_INTERVAL = 60 * 30 -- prune expired cache contents every minute
+local CACHE_PRUNE_INTERVAL = 60 * Game.gameSpeed -- prune expired cache contents every minute
 local nextContactPruneFrame = CACHE_PRUNE_INTERVAL
 
 -- cache these for faster lookups
@@ -109,7 +108,7 @@ local function RefreshPlayerState()
 
 	contactsCache = {}
 	contactsHead = 1
-	enemyBuildingsCache = {}
+	enemyGhostsCache = {}
 	allyTeamIDCache = {}
 end
 
@@ -125,8 +124,7 @@ local function GetAllyTeamID(teamID)
 end
 
 local function GetPlayerName(playerID)
-	local name = playerID and select(1, spGetPlayerInfo(playerID, false))
-	return name or "unknown player"
+	return playerID and spGetPlayerInfo(playerID, false) or "unknown player"
 end
 
 local function GetUnitDisplayName(unitDefID)
@@ -189,15 +187,15 @@ local function PruneExpiredContacts(currentFrame)
 	end
 end
 
--- Removes enemy building from our building cache.
--- Nearby enemy buidlings enable dguns to be fired indiscriminately
-local function RemoveEnemyBuildingFromCache(unitID)
-	enemyBuildingsCache[unitID] = nil
+-- Removes enemy ghost from our ghost cache.
+-- Nearby enemy ghosts enable dguns to be fired indiscriminately
+local function RemoveEnemyGhostFromCache(unitID)
+	enemyGhostsCache[unitID] = nil
 end
 
--- Adds an enemy building to our building cache.
--- Nearby enemy buidlings enable dguns to be fired indiscriminately
-local function AddEnemyBuildingToCache(unitID)
+-- Adds an enemy ghost to our ghost cache.
+-- Nearby enemy ghosts enable dguns to be fired indiscriminately
+local function AddEnemyGhostToCache(unitID)
 	local unitTeam = spGetUnitTeam(unitID)
 	if unitTeam == gaiaTeamID then
 		return
@@ -208,7 +206,7 @@ local function AddEnemyBuildingToCache(unitID)
 		return
 	end
 
-	local cache = enemyBuildingsCache[unitID]
+	local cache = enemyGhostsCache[unitID]
 	if cache then
 		cache.x = unitX
 		cache.y = unitY
@@ -216,40 +214,40 @@ local function AddEnemyBuildingToCache(unitID)
 		return
 	end
 
-	enemyBuildingsCache[unitID] = {
+	enemyGhostsCache[unitID] = {
 		x = unitX,
 		y = unitY,
 		z = unitZ,
 	}
 end
 
--- Updates the enemy building cache every couple frames based on current LOS info.
--- Nearby enemy buidlings enable dguns to be fired indiscriminately
-local function UpdateEnemyBuildingCache(currentFrame)
-	if currentFrame < nextEnemyBuildingUpdateFrame then
+-- Updates the enemy ghost cache every couple frames based on current LOS info.
+-- Nearby enemy ghosts enable dguns to be fired indiscriminately
+local function UpdateEnemyGhostCache(currentFrame)
+	if currentFrame < nextEnemyGhostUpdateFrame then
 		return
 	end
-	nextEnemyBuildingUpdateFrame = currentFrame + ENEMY_BUILDING_UPDATE_INTERVAL
+	nextEnemyGhostUpdateFrame = currentFrame + ENEMY_GHOST_UPDATE_INTERVAL
 
-	if not next(enemyBuildingsCache) then
+	if not next(enemyGhostsCache) then
 		return
 	end
 
-	for unitID, site in pairs(enemyBuildingsCache) do
+	for unitID, site in pairs(enemyGhostsCache) do
 		local _, inLos = spGetPositionLosState(site.x, site.y, site.z, myAllyTeamID)
 		if inLos then
 			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 			if not unitX then
-				-- building has been destroyed, and we just discovered this
-				RemoveEnemyBuildingFromCache(unitID)
+				-- the unit represented by this ghost has been destroyed, and we just discovered this
+				RemoveEnemyGhostFromCache(unitID)
 			else
 				local deltaX = unitX - site.x
 				local deltaY = unitY - site.y
 				local deltaZ = unitZ - site.z
 
-				-- building has been moved elsewhere, and we just discovered this
+				-- the unit represented by this ghost has been moved elsewhere, and we just discovered this
 				if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) > 1 then
-					RemoveEnemyBuildingFromCache(unitID)
+					RemoveEnemyGhostFromCache(unitID)
 				end
 			end
 		end
@@ -318,7 +316,7 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 	local minz = math.min(startZ, endZ) - DGUN_SAFETY_WIDTH
 	local maxz = math.max(startZ, endZ) + DGUN_SAFETY_WIDTH
 
-	local candidates = spGetUnitsInBox(minx, miny, minz, maxx, maxy, maxz)
+	local candidates = spGetUnitsInBox(minx, miny, minz, maxx, maxy, maxz, -3) -- UnitAllegiance::AllyUnit
 	local threatenedAllyMetal = 0
 	local mostExpensiveThreatenedMetal = 0
 	local mostExpensiveThreatenedUnitName = nil
@@ -398,11 +396,11 @@ local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 		end
 	end
 
-	-- Nearby enemy buildings implies we are on the frontline
-	for _, site in pairs(enemyBuildingsCache) do
+	-- Nearby enemy ghosts implies we are on the frontline
+	for _, site in pairs(enemyGhostsCache) do
 		local deltaX, deltaY, deltaZ = site.x - targetX, site.y - targetY, site.z - targetZ
 		if (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) <= (FRONTLINE_SCAN_RADIUS * FRONTLINE_SCAN_RADIUS) then
-			return true, "Enemy buildings nearby"
+			return true, "Enemy ghosts nearby (usually: building ghosts)"
 		end
 	end
 
@@ -424,10 +422,6 @@ function gadget:Initialize()
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if unitTeam == gaiaTeamID then
-		return
-	end
-
 	if GetAllyTeamID(unitTeam) ~= myAllyTeamID then
 		return -- not one of our allies that was damaged
 	end
@@ -454,38 +448,38 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam)
-	-- If it's an enemy building, add to cache. Otherwise don't worry about it
+	-- If it's an enemy ghost, add to cache. Otherwise don't worry about it
 	if allyTeam ~= myAllyTeamID then
 		return -- not an event for us
 	end
 	if Spring.GetUnitLeavesGhost(unitID) then
-		AddEnemyBuildingToCache(unitID)
+		AddEnemyGhostToCache(unitID)
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	-- If it's a building, remove from cache. Otherwise don't worry about it
-	local site = enemyBuildingsCache[unitID]
+	-- If it's a ghost, remove from cache. Otherwise don't worry about it
+	local site = enemyGhostsCache[unitID]
 	if not site then
 		return
 	end
 
 	local _, inLos = spGetPositionLosState(site.x, site.y, site.z, myAllyTeamID)
 	if inLos then
-		RemoveEnemyBuildingFromCache(unitID)
+		RemoveEnemyGhostFromCache(unitID)
 	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	if not spAreTeamsAllied(oldTeamID, newTeamID) then
-		RemoveEnemyBuildingFromCache(unitID) -- unit changed team ownership
+		RemoveEnemyGhostFromCache(unitID) -- unit changed team ownership
 	end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	if not spAreTeamsAllied(oldTeamID, newTeamID) then
 		if GetAllyTeamID(newTeamID) ~= myAllyTeamID and Spring.GetUnitLeavesGhost(unitID) then
-			AddEnemyBuildingToCache(unitID) -- building now owned by enemy
+			AddEnemyGhostToCache(unitID) -- ghost now owned by enemy
 		end
 	end
 end
@@ -493,12 +487,12 @@ end
 -- Cache units that leave radar briefly so they count as visible enemy presence
 -- This allows players to attempt dguns even if radar contact is lost.
 function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
-	if unitTeam == gaiaTeamID then
-		return
-	end
-
 	if allyTeam ~= myAllyTeamID then
 		return -- not an event for us
+	end
+
+	if unitTeam == gaiaTeamID then
+		return
 	end
 
 	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
@@ -518,12 +512,12 @@ function gadget:UnitSeismicPing(positionX, positionY, positionZ, strength, allyT
 end
 
 function gadget:GameFrame(currentFrame)
-	UpdateEnemyBuildingCache(currentFrame)
+	UpdateEnemyGhostCache(currentFrame)
 	if currentFrame < nextContactPruneFrame then
 		return
 	end
 
-	if contactsHead <= #contactsCache then
+	if contactsCache[contactsHead + 1] then -- slightly more performant way of checking "is head <= length of cache"
 		PruneExpiredContacts(currentFrame)
 	end
 
