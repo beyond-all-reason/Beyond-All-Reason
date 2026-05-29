@@ -43,11 +43,13 @@ local table_remove = table.remove
 
 
 
+local shardAITeams = {}
 for i = 1, #teamList do
 	local luaAI = spGetTeamLuaAI(teamList[i])
 	if luaAI ~= "" then
 		if type(luaAI) == "string" and (VFS.FileExists("luarules/gadgets/ai/" .. luaAI .. "/boot.lua")) then
 			shardEnabled = true
+			shardAITeams[teamList[i]] = true
 		end
 	end
 end
@@ -154,7 +156,40 @@ if gadgetHandler:IsSyncedCode() then
 		return StrToTbl
 	end
 
-	function gadget:RecvLuaMsg(msg)
+	-- A Shard AI may only be issued orders for units on its own team, and only by the
+	-- player that controls that AI team. The synced Spring.GiveOrderToUnit ignores team
+	-- ownership, so without this check any client could wrap a message in the STGO
+	-- envelope and drive ANY unit on the map (enemies, allies, other players, other AIs -
+	-- including the enemy AI in a PvE game).
+	local function isAuthorizedShardUnit(unitID, playerID)
+		if not spValidUnitID(unitID) then
+			return false
+		end
+		local unitTeam = spGetUnitTeam(unitID)
+		if not shardAITeams[unitTeam] then
+			return false
+		end
+		local _, leader = spGetTeamInfo(unitTeam, false)
+		return leader == playerID
+	end
+
+	-- order.id is a single unit (methods 1-1/2-1) or an array of units (methods 1-2/2-2).
+	local function orderTargetsAuthorized(id, playerID)
+		if type(id) == 'table' then
+			if #id == 0 then
+				return false
+			end
+			for i = 1, #id do
+				if not isAuthorizedShardUnit(id[i], playerID) then
+					return false
+				end
+			end
+			return true
+		end
+		return isAuthorizedShardUnit(id, playerID)
+	end
+
+	function gadget:RecvLuaMsg(msg, playerID)
 
 		if string_sub(msg,1,17) == 'StGiveOrderToSync' then
 			spEcho('warn:  Shard  receive a old give order protocol',msg)
@@ -175,7 +210,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if order.method == '1-1' then
-				if not spValidUnitID(order.id) then return end
+				if not orderTargetsAuthorized(order.id, playerID) then return end
 				--('Receiveluarulesmsg GiveOrder to:',UnitDefs[spGetUnitDefID ( order.id )].name,order.cmd)
 				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
 				--spEcho(order.id,order.cmd,order.parameters,order.options,cmd)
@@ -192,7 +227,7 @@ if gadgetHandler:IsSyncedCode() then
 					spEcho('GiveOrderToUnit Error:',cmd)
 				end
 			elseif order.method == '2-1' then
-				if not spValidUnitID(order.id) then return end
+				if not orderTargetsAuthorized(order.id, playerID) then return end
 				local arrayOfCmd = gadget:RezTable()
 				for i in pairs(order.cmd) do
 					local row = gadget:RezTable()
@@ -210,12 +245,14 @@ if gadgetHandler:IsSyncedCode() then
 				gadget:KillTable(order)
 			elseif order.method == '1-2' then
 				--spEcho(type(order.id),type(order.cmd),type(order.parameters[1]),type(order.options))
+				if not orderTargetsAuthorized(order.id, playerID) then return end
 				local cmd = spGiveOrderTounitArray(order.id,order.cmd,order.parameters,order.options)
 				cmdCounter.iz = cmdCounter.iz + 1
 				if not cmd then
 					spEcho('GiveOrderToUnitArray Error:',cmd)
 				end
 			elseif order.method == '2-2' then
+				if not orderTargetsAuthorized(order.id, playerID) then return end
 				local arrayOfCmd = gadget:RezTable()
 				for i in pairs(order.cmd) do
 					local row = gadget:RezTable()
