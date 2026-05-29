@@ -750,7 +750,9 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneBeginN(string.format("AllowCommand %s %s", tostring(fromSynced), tostring(fromLua)))
 		--tracy.Message(string.format("Allowcommand params %s %s", table.toString(cmdOptions), table.toString(cmdParams)))
 		if isSetTargetCommand[cmdID] then
-			processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+			if validUnits[unitDefID] then
+				processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+			end
 			--tracy.ZoneEnd()
 			return false -- consume command
 		end
