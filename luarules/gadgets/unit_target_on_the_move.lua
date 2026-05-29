@@ -112,11 +112,11 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 
-		-- FIXME: We don't know which weaponDefs have submissile. We can check `nuke`, for now.
+		-- FIXME: We don't know which weaponDefs have submissile. We can check `nuclear`, for now.
 		local function getWeaponType(weapon)
 			if hasTargeting(weapon) then
 				local weaponDef = WeaponDefs[weapon.weaponDef]
-				return weaponDef.waterWeapon and not weaponDef.customParams.nuke and WATERWEAPON or 1
+				return weaponDef.waterWeapon and not weaponDef.customParams.nuclear and WATERWEAPON or 1
 			else
 				return false
 			end
