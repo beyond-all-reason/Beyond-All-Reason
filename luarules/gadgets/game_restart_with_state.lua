@@ -1,5 +1,9 @@
 local gadget = gadget ---@type Gadget
 
+if not Spring.Utilities.Gametype.IsSinglePlayer() then
+	return
+end
+
 function gadget:GetInfo()
 	return {
 		name      = "Restart With State",
