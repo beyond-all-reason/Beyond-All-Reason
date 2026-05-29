@@ -84,12 +84,11 @@ if gadgetHandler:IsSyncedCode() then
 	local CMD_DGUN = CMD.DGUN
 
 	local validUnits = {}
-	local unitWeapons = {} ---@type table<integer, SetTargetWeaponType[]>
+	local unitWeapons = {}
 	local unitAlwaysSeen = {}
 
+	local WATERWEAPON = 0
 	do
-		---@alias SetTargetWeaponType (0|1|false) `false` := non-targeting weapon, `0` := waterWeapon, `1` := everything else
-
 		-- Fastpass for units that don't have an attack command for other reasons.
 		local allowNonAttackerUnit = { legpede = true }
 
@@ -118,7 +117,7 @@ if gadgetHandler:IsSyncedCode() then
 		local function getWeaponType(weapon)
 			if hasTargeting(weapon) then
 				local weaponDef = WeaponDefs[weapon.weaponDef]
-				return weaponDef.waterWeapon and not weaponDef.customParams.nuke and 0 or 1
+				return weaponDef.waterWeapon and not weaponDef.customParams.nuke and WATERWEAPON or 1
 			else
 				return false
 			end
@@ -540,9 +539,9 @@ if gadgetHandler:IsSyncedCode() then
 		for weaponNum = 1, #weaponList do
 			local weaponType = weaponList[weaponNum]
 			-- Quirk: Targets are not adjusted engine-side for water level, unlike Attack commands and weapon aiming.
-			if weaponType and spGetUnitWeaponTestTarget(unitID, weaponNum, x, weaponType == 0 and y or max(y, 1), z) then
+			if weaponType and spGetUnitWeaponTestTarget(unitID, weaponNum, x, weaponType == WATERWEAPON and y or max(y, 1), z) then
 				-- We may or may not adjust this targetY depending on weapon order, which can tend to seem arbitrary.
-				if weaponType ~= 0 then
+				if weaponType ~= WATERWEAPON then
 					xyz[2] = max(y, 1)
 				end
 				return true
