@@ -316,8 +316,8 @@ if gadgetHandler:IsSyncedCode() then
 					data[length + 2] = targetData.userTarget
 					if type(target) == "number" then
 						data[length + 3] = target
-						data[length + 4] = -1
-						data[length + 5] = -1
+						data[length + 4] = false
+						data[length + 5] = false
 					else
 						data[length + 3] = target[1]
 						data[length + 4] = target[2]
@@ -376,7 +376,7 @@ if gadgetHandler:IsSyncedCode() then
 			if waitForCommandDone[unitID] then
 				checkForManualFire[unitID] = true
 			end
-			sendTargetsToUnsynced(unitID)
+			sendTargetsToUnsyncedBatched(unitID)
 			if setTarget(unitID, data.targets[1]) then
 				if data.currentIndex ~= 1 then
 					data.currentIndex = 1
@@ -875,6 +875,7 @@ else	-- UNSYNCED
 	-- 4k * 100 list length maximum is enough to assume target saturation with 32,000 unit cap.
 
 	local math_min = math.min
+	local ensureTable = table.ensureTable
 
 	local glVertex = gl.Vertex
 	local glPushAttrib = gl.PushAttrib
@@ -960,45 +961,54 @@ else	-- UNSYNCED
 		end
 	end
 
-	function handleTargetListEvent(_, unitID, index, userTarget, targetA, targetB, targetC)
-		--tracy.ZoneBeginN(string.format("handleTargetListEvent %d %d ", unitID, index))
+	local function getEventTargetList(unitID, index, remove)
 		if index == 0 then
 			targetList[unitID] = nil
+			return
+		end
+
+		local unitData = ensureTable(targetList, unitID)
+		local targets = ensureTable(unitData, "targets")
+
+		if remove then
+			if index == 1 then
+				targets = {}
+				unitData.targets = targets
+			else
+				for i = index, #targets do
+					targets[i] = nil
+				end
+			end
+		end
+
+		return targets
+	end
+
+	function handleTargetListEvent(_, unitID, index, userTarget, targetA, targetB, targetC)
+		--tracy.ZoneBeginN(string.format("handleTargetListEvent %d %d ", unitID, index))
+		local targets = getEventTargetList(unitID, index, targetA == nil)
+
+		if not targets then
 			--tracy.ZoneEnd()
 			return
 		end
-		targetList[unitID] = targetList[unitID] or {}
-		if index == 1 then
-			targetList[unitID].targets = {}
-		end
-		if targetA == nil then
-			if targetList[unitID].targets then
-				table.remove(targetList[unitID].targets, index)
-			end
-			return
-		end
-		targetList[unitID].targets = targetList[unitID].targets or {}
-		targetList[unitID].targets[index] = {
+
+		targets[index] = {
 			userTarget = userTarget,
-			target = (not tonumber(targetB) and targetA) or { targetA, targetB, targetC },
+			target     = (not targetB and targetA) or { targetA, targetB, targetC },
 		}
 		--tracy.ZoneEnd()
 	end
 
 	function handleTargetListBatchedEvent(_, unitID, length, data)
+		local targets = getEventTargetList(unitID, data[1], false)
 		for i = 1, length, 5 do
-			local targetB = data[i+4]
-			local targetC = data[i+5]
-			if targetB < 0 then
-				targetB = nil
-			end
-			if targetC < 0 then
-				targetC = nil
-			end
-			handleTargetListEvent(_, unitID, data[i], data[i+1], data[i+2], data[i+3], targetB, targetC)
+			targets[data[i]] = {
+				userTarget = data[i+1],
+				target     = (not data[i+3] and data[i+2]) or { data[i+2], data[i+3], data[i+4] },
+			}
 		end
 	end
-
 
 	function handleTargetIndexEvent(_, unitID, index)
 		if not targetList[unitID] then
