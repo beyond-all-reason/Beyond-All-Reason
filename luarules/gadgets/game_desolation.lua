@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Desolation",
-		desc = "Cheat command to wipe a team down to a power quota",
+		desc = "Kills units when a allyteam is eliminated",
 		author = "SethDGamre",
 		date = "2026-05-21",
 		layer = 0,
@@ -16,13 +16,14 @@ if not gadgetHandler:IsSyncedCode() then return false end
 local DESOLATION_QUOTA_RATIO = 0.2
 local REDEEMABLE_CHANCE = 0.5
 local TURRET_GAIA_CHANCE = 0.75
-local DESOLATION_SECONDS = 10
-local DESOLATION_STAGGER_FRAMES = DESOLATION_SECONDS * Game.gameSpeed
+local SHOCKWAVE_DURATION = 60
+local WAIT_DURATION = 30
+local IMPLOSION_DURATION = 300
+local LIGHTNING_CHANCE = 0.01
+local SHOCKWAVE_CEG = "tenebrium_implosion"
+local TENEBRIUM_LIGHTNING_CEGS = { "tenebrium_implosion_arc", "tenebrium_implosion_teal_arc" }
 local POWERFUL_TURRET_BIAS = 3
 local TURRET_HOTSPOT_COUNT = 5
-local MAP_SIZE_X = Game.mapSizeX
-local MAP_SIZE_Z = Game.mapSizeZ
-local HALF_MAP_DISTANCE_SQUARED = (math.min(MAP_SIZE_X, MAP_SIZE_Z) ^ 2)
 local DESOLATE_GAIA = 0
 local DESOLATE_CORPSE = 1
 local DESOLATE_HEAP = 2
@@ -43,9 +44,12 @@ local spAddUnitDamage = Spring.AddUnitDamage
 local spTransferUnit = Spring.TransferUnit
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
+local spSpawnCEG = Spring.SpawnCEG
+local spGetGroundHeight = Spring.GetGroundHeight
 local mathRandom = math.random
 local mathMax = math.max
 local mathFloor = math.floor
+local mathSqrt = math.sqrt
 local mathDistance2dSquared = math.distance2dSquared
 local cascadeOrigins = {x = 0, z = 0}
 
@@ -55,6 +59,8 @@ local defData = {}
 local commanderDefs = {}
 local actionFrames = {}
 local desolatedTeams = {}
+local distanceSqCache = {}
+local activeSequences = {}
 
 --populate def types
 local function isTurretDef(unitDef)
@@ -155,49 +161,139 @@ local function dndStyleDisadvantageBias(rangeCount, degree)
 	return selection
 end
 
--- Ease-out explosion timing: returns frame index (integer) for myPosition relative to origin
--- Use HALF_MAP_DISTANCE_SQUARED already defined in your file
-local function getEaseOutFrames(positionX, positionZ)
-    local dx = positionX - cascadeOrigins.x
-    local dz = positionZ - cascadeOrigins.z
-    local dist2 = dx * dx + dz * dz
-
-    -- Guard: if max squared distance is zero or negative, fallback to instant or max
-    if HALF_MAP_DISTANCE_SQUARED <= 0 then
-        if dist2 <= 0 then
-            return 0
-        else
-            return math.floor(DESOLATION_STAGGER_FRAMES + 0.5)
-        end
-    end
-
-    if dist2 <= 0 then
-        return 0
-    end
-
-    if dist2 >= HALF_MAP_DISTANCE_SQUARED then
-        return math.floor(DESOLATION_STAGGER_FRAMES + 0.5)
-    end
-
-    -- Use squared fraction to avoid sqrt
-    local t = dist2 / HALF_MAP_DISTANCE_SQUARED
-    -- Cubic ease-out applied to the squared fraction
-    local eased = 1 - math.pow(1 - t, 3)
-    local frames = math.floor(eased * DESOLATION_STAGGER_FRAMES + 0.5)
-	Spring.Echo(frames)
-    return frames
+local function outQuint(t)
+	return 1 - (1 - t) ^ 5
 end
 
+local function getShockwaveRadiusSq(elapsedFrames, farthestDistanceSq)
+	if SHOCKWAVE_DURATION <= 0 or farthestDistanceSq <= 0 then
+		return farthestDistanceSq
+	end
+	local progress = math.min(1, elapsedFrames / SHOCKWAVE_DURATION)
+	return progress * progress * farthestDistanceSq
+end
 
-local function queueDesolationAction(unitID, fate, baseFrame)
-	local positionX, _, positionZ = spGetUnitPosition(unitID)
-	local frame = baseFrame + getEaseOutFrames(positionX, positionZ)
+local function getImplosionFrameOffset(distanceSq, nearestDistanceSq, farthestDistanceSq)
+	local nearestDistance = mathSqrt(nearestDistanceSq)
+	local farthestDistance = mathSqrt(farthestDistanceSq)
+	local distanceSpread = farthestDistance - nearestDistance
+	if distanceSpread <= 0 then
+		return 0
+	end
+	local distance = mathSqrt(distanceSq)
+	local normalizedDistance = (distance - nearestDistance) / distanceSpread
+	return mathFloor(outQuint(1 - normalizedDistance) * IMPLOSION_DURATION + 0.5)
+end
+
+local function spawnTenebriumLightning(unitID)
+	if not spValidUnitID(unitID) then
+		return
+	end
+	local positionX, positionY, positionZ = spGetUnitPosition(unitID)
+	if not positionX then
+		return
+	end
+	local cegName = TENEBRIUM_LIGHTNING_CEGS[mathRandom(1, #TENEBRIUM_LIGHTNING_CEGS)]
+	spSpawnCEG(cegName, positionX, positionY, positionZ)
+end
+
+local function processSequenceLightning(sequence, elapsedFrames)
+	local maxRadiusSq
+	if elapsedFrames < SHOCKWAVE_DURATION then
+		maxRadiusSq = getShockwaveRadiusSq(elapsedFrames, sequence.farthestDistanceSq)
+	else
+		maxRadiusSq = sequence.farthestDistanceSq
+	end
+
+	local sequenceUnits = sequence.units
+	for unitIndex = 1, #sequenceUnits do
+		local unitEntry = sequenceUnits[unitIndex]
+		local unitID = unitEntry.unitID
+		if spValidUnitID(unitID) and unitEntry.distanceSq <= maxRadiusSq then
+			if not unitEntry.waveTagged then
+				unitEntry.waveTagged = true
+				spawnTenebriumLightning(unitID)
+				unitEntry.lightningTagged = true
+			elseif mathRandom() < LIGHTNING_CHANCE then
+				spawnTenebriumLightning(unitID)
+				unitEntry.lightningTagged = true
+			end
+		end
+	end
+end
+
+local function processActiveSequences(gameFrame)
+	for sequenceIndex = #activeSequences, 1, -1 do
+		local sequence = activeSequences[sequenceIndex]
+		local elapsedFrames = gameFrame - sequence.startFrame
+		if elapsedFrames >= SHOCKWAVE_DURATION + WAIT_DURATION then
+			table.remove(activeSequences, sequenceIndex)
+		else
+			processSequenceLightning(sequence, elapsedFrames)
+		end
+	end
+end
+
+local function queueDesolationAction(unitID, fate, frame)
 	local frameActions = actionFrames[frame]
 	if not frameActions then
 		frameActions = {}
 		actionFrames[frame] = frameActions
 	end
 	frameActions[#frameActions + 1] = { unitID = unitID, fate = fate }
+end
+
+local function scheduleShockwave(startFrame, originX, originZ, farthestDistanceSq, livingUnits)
+	local sequence = {
+		startFrame = startFrame,
+		farthestDistanceSq = farthestDistanceSq,
+		implosionStartFrame = startFrame + SHOCKWAVE_DURATION + WAIT_DURATION,
+		units = livingUnits,
+	}
+	activeSequences[#activeSequences + 1] = sequence
+	local groundY = spGetGroundHeight(originX, originZ)
+	spSpawnCEG(SHOCKWAVE_CEG, originX, groundY, originZ)
+	return sequence
+end
+
+local function scheduleWait(sequence)
+	sequence.waitEndFrame = sequence.startFrame + SHOCKWAVE_DURATION + WAIT_DURATION
+	return sequence.waitEndFrame
+end
+
+local function scheduleImplosion(sequence, unitActions)
+	local implosionStartFrame = sequence.implosionStartFrame
+	local nearestDistanceSq = math.huge
+	local farthestDistanceSq = 0
+	for actionIndex = 1, #unitActions do
+		local distanceSq = distanceSqCache[unitActions[actionIndex].unitID] or 0
+		nearestDistanceSq = math.min(nearestDistanceSq, distanceSq)
+		farthestDistanceSq = math.max(farthestDistanceSq, distanceSq)
+	end
+
+	local distanceSpread = mathSqrt(farthestDistanceSq) - mathSqrt(nearestDistanceSq)
+	if distanceSpread <= 0 and #unitActions > 1 then
+		table.sort(unitActions, function(actionA, actionB)
+			local distanceSqA = distanceSqCache[actionA.unitID] or 0
+			local distanceSqB = distanceSqCache[actionB.unitID] or 0
+			return distanceSqA > distanceSqB
+		end)
+		local actionCount = #unitActions
+		for actionIndex = 1, actionCount do
+			local rankT = (actionCount - actionIndex) / (actionCount - 1)
+			local frameOffset = mathFloor(outQuint(1 - rankT) * IMPLOSION_DURATION + 0.5)
+			local unitAction = unitActions[actionIndex]
+			queueDesolationAction(unitAction.unitID, unitAction.fate, implosionStartFrame + frameOffset)
+		end
+		return
+	end
+
+	for actionIndex = 1, #unitActions do
+		local unitAction = unitActions[actionIndex]
+		local distanceSq = distanceSqCache[unitAction.unitID] or 0
+		local frameOffset = getImplosionFrameOffset(distanceSq, nearestDistanceSq, farthestDistanceSq)
+		queueDesolationAction(unitAction.unitID, unitAction.fate, implosionStartFrame + frameOffset)
+	end
 end
 
 local function sortUnitsByPower(unitTable)
@@ -249,8 +345,10 @@ local function desolateTeam(teamID)
 	local hotspots = {}
 	local currentFrame = Spring.GetGameFrame()
 	local currentPower = 0
+	local farthestDistanceSq = 0
 
-	--got turrets?
+	--got turrets??
+	--Collect Distances
 	for unitIndex = 1, #teamUnits do
 		local unitID = teamUnits[unitIndex]
 		local unitDefID = spGetUnitDefID(unitID)
@@ -259,6 +357,11 @@ local function desolateTeam(teamID)
 			turrets[#turrets + 1] = unitID
 		end
 		currentPower = currentPower + unitDefEntry.power
+
+		local x, y, z = spGetUnitPosition(unitID)
+		local distanceSq = mathDistance2dSquared(x, z, cascadeOrigins.x, cascadeOrigins.z)
+		distanceSqCache[unitID] = distanceSq
+		farthestDistanceSq = math.max(farthestDistanceSq, distanceSq)
 	end
 	turrets = sortUnitsByPower(turrets)
 
@@ -277,8 +380,9 @@ local function desolateTeam(teamID)
 	teamUnits = sortUnitsByDesirabilityAndDistance(teamUnits, hotspots)
 
 	local erasurePowerTargetThreshold = currentPower * DESOLATION_QUOTA_RATIO
+	local unitActions = {}
+	local livingUnits = {}
 
-	--erase units until we get below the threshold
 	for eraseIndex = 1, #teamUnits do
 		if currentPower <= erasurePowerTargetThreshold or #teamUnits == 0 then
 			break
@@ -287,19 +391,32 @@ local function desolateTeam(teamID)
 		local unitID = teamUnits[randomSelection]
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitPower = defData[unitDefID].power or 0
-		queueDesolationAction(unitID, DESOLATE_ERASE, currentFrame)
+		unitActions[#unitActions + 1] = { unitID = unitID, fate = DESOLATE_ERASE }
+		livingUnits[#livingUnits + 1] = {
+			unitID = unitID,
+			distanceSq = distanceSqCache[unitID] or 0,
+			waveTagged = false,
+			lightningTagged = false,
+		}
 		currentPower = currentPower - unitPower
 		table.remove(teamUnits, randomSelection)
 	end
 
-	--choose to gaia, corpse, or heap remainders
-
-
 	for unitIndex = 1, #teamUnits do
 		local unitID = teamUnits[unitIndex]
 		local fate = chooseFate(unitID)
-		queueDesolationAction(unitID, fate, currentFrame)
+		unitActions[#unitActions + 1] = { unitID = unitID, fate = fate }
+		livingUnits[#livingUnits + 1] = {
+			unitID = unitID,
+			distanceSq = distanceSqCache[unitID] or 0,
+			waveTagged = false,
+			lightningTagged = false,
+		}
 	end
+
+	local sequence = scheduleShockwave(currentFrame, cascadeOrigins.x, cascadeOrigins.z, farthestDistanceSq, livingUnits)
+	scheduleWait(sequence)
+	scheduleImplosion(sequence, unitActions)
 end
 
 local function desolateCommand(cmd, line, words, playerID)
@@ -325,6 +442,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(gameFrame)
+	processActiveSequences(gameFrame)
 	local frameActions = actionFrames[gameFrame]
 	if not frameActions then
 		return
