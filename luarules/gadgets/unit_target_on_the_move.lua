@@ -528,7 +528,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function allowTargetUnit(unitID, weaponList, targetID)
 		for weaponNum = 1, #weaponList do
 			-- This only tests the validity of the target type, not range or other variable things.
-			if spGetUnitWeaponTestTarget(unitID, weaponNum, targetID) then
+			if weaponList[weaponNum] and spGetUnitWeaponTestTarget(unitID, weaponNum, targetID) then
 				return true
 			end
 		end
