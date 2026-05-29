@@ -27,9 +27,9 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGetModKeyState = Spring.GetModKeyState
 local lastGameSeconds = Spring.GetGameSeconds()
 local CMD_REPEAT = CMD.REPEAT
+local CMD_INSERT = CMD.INSERT
 local CMD_REMOVE = CMD.REMOVE
 local CMD_WAIT = CMD.WAIT
 local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
@@ -428,7 +428,7 @@ function loadQueue(unitId, unitDef, groupNo)
 				if cmd.id and cmd.options.alt then
 					insertPos = insertPos + 1 
 					opts = CMD_OPT_ALT + CMD_OPT_INTERNAL
-					spGiveOrderToUnit(unitId, CMD.INSERT, {insertPos - 1, cmd.id, opts, unpack(cmd.params)}, CMD_OPT_ALT + CMD_OPT_CTRL  )
+					spGiveOrderToUnit(unitId, CMD_INSERT, {insertPos - 1, cmd.id, opts, unpack(cmd.params)}, CMD_OPT_ALT + CMD_OPT_CTRL  )
 				else 
 					spGiveOrderToUnit(unitId, cmd.id, cmd.params, opts)
 				end
