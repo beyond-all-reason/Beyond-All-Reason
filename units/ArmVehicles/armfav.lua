@@ -1,7 +1,7 @@
 return {
 	armfav = {
 		buildpic = "ARMFAV.DDS",
-		buildtime = 950,
+		buildtime = 1000,
 		canmove = true,
 		category = "GROUNDSCOUT",
 		collisionvolumeoffsets = "0 0 0",
