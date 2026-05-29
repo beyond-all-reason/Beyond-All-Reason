@@ -100,7 +100,7 @@ if gadgetHandler:IsSyncedCode() then
 			authorized = true
 			givenSomethingAtFrame = Spring.GetGameFrame()
 		end
-		if authorized == nil then
+		if not authorized then
 			Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
 			return
 		elseif not spec then

@@ -1,7 +1,7 @@
 return {
 	corraid = {
 		buildpic = "CORRAID.DDS",
-		buildtime = 3310,
+		buildtime = 3500,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "32 16 32",
@@ -11,7 +11,7 @@ return {
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 1970,
+		health = 2000,
 		leavetracks = true,
 		maxacc = 0.04056,
 		maxdec = 0.1,
@@ -25,7 +25,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 330,
-		speed = 72.9,
+		speed = 72,
 		trackoffset = 6,
 		trackstrength = 5,
 		tracktype = "corwidetracks",
