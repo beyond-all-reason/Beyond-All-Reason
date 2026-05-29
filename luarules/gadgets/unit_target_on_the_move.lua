@@ -799,8 +799,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if n % 5 == 4 then
 			for unitID, unitData in pairsNext, unitTargets do
-				local targetIndex
-				local targetOffset = 0
+				local targetIndex, targetOffset = 1, 0
 				local targets = unitData.targets
 				-- Check each target and find first valid one
 				for index = 1, #targets do
