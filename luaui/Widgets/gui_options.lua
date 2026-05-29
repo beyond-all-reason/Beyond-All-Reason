@@ -2932,12 +2932,21 @@ function init()
 		  end,
 		},
 
-		{ id = "losopacity", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.losopacity'), type = "slider", min = 0.01, max = 1, step = 0.01, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 1, description = '',
+		{ id = "losopacity", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.losopacity'), type = "slider", min = 0.01, max = 1, step = 0.01, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 0.66, description = '',
 		  onload = function(i)
 			  loadWidgetData("LOS colors", "losopacity", { 'opacity' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('LOS colors', 'los', 'setOpacity', { 'opacity' }, value)
+		  end,
+		},
+
+		{ id = "fogdiaglines", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.fogdiaglines'), type = "slider", min = 0, max = 1, step = 0.01, value = (WG.fogdiaglines ~= nil and WG.fogdiaglines.getStrength ~= nil and WG.fogdiaglines.getStrength()) or 0.30, description = '',
+		  onload = function(i)
+			  loadWidgetData("Fog Diagonal Lines GL4", "fogdiaglines", { 'strength' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Fog Diagonal Lines GL4', 'fogdiaglines', 'setStrength', { 'strength' }, value)
 		  end,
 		},
 
@@ -3894,6 +3903,9 @@ function init()
 		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = Spring.GetConfigFloat("MinimapMaxHeight", 0.32), description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("MinimapMaxHeight", value)
+			  if WG['minimap'] and WG['minimap'].setMaxHeight then
+				  WG['minimap'].setMaxHeight(value)
+			  end
 		  end,
 		},
 		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapleftclick'), type = "bool", value = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1, description = Spring.I18N('ui.settings.option.minimapleftclick_descr'),
