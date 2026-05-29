@@ -228,7 +228,7 @@ function migratePresets(presets)
 
 	for key, defID in pairs(presets) do
 		if type(key) == "number" then
-			toDelete[#toDelete+1] = key
+			toDelete[#toDelete + 1] = key
 		end
 	end
 
@@ -426,9 +426,9 @@ function loadQueue(unitId, unitDef, groupNo)
 				local cmd = queue[i]
 				cmd.id = nameToOrder(cmd.name)
 				if cmd.id and cmd.options.alt then
-					insertPos = insertPos + 1 
+					insertPos = insertPos + 1
 					opts = CMD_OPT_ALT + CMD_OPT_INTERNAL
-					spGiveOrderToUnit(unitId, CMD_INSERT, {insertPos - 1, cmd.id, opts, unpack(cmd.params)}, CMD_OPT_ALT + CMD_OPT_CTRL  )
+					spGiveOrderToUnit(unitId, CMD_INSERT, { insertPos - 1, cmd.id, opts, unpack(cmd.params) }, CMD_OPT_ALT + CMD_OPT_CTRL )
 				else 
 					spGiveOrderToUnit(unitId, cmd.id, cmd.params, opts)
 				end
