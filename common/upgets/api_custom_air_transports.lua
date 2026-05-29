@@ -182,12 +182,11 @@ function TransportAPI.GetUnloadPadType(transporterID)
 		Spring.Echo("Error, GetUnloadPadType expects a valid transporter ID as 1st arg, transporterID "..transporterID.." does not point to a valid transporter ID")
 		return nil
 	end
-	if transporterSeats < 4 then
-		unloadPad[transporterDefID] = UnitDefNames["unloadpad2x2"].id
-	elseif transporterSeats < 8 then
-		unloadPad[transporterDefID] = UnitDefNames["unloadpad4x4"].id
-	elseif transporterSeats < 16 then
-		unloadPad[transporterDefID] = UnitDefNames["unloadpad8x8"].id
+	local padString = "unloadsize"..tostring(transporterSeats)
+	if UnitDefNames[padString] then
+		unloadPad[transporterDefID] = UnitDefNames[padString].id
+	else
+		unloadPad[transporterDefID] = UnitDefNames["unloadsize8"].id -- fall back
 	end
 	return unloadPad[transporterDefID]
 end
@@ -208,15 +207,14 @@ function TransportAPI.GetBiggestUnloadPadType(units)
 		return unloadPad[transporterDefID]
 	end
 	if not transporterSeats then
-		Spring.Echo("Error, GetUnloadPadType expects a valid transporter ID as 1st arg, transporterID "..transporterID.." does not point to a valid transporter ID")
+		Spring.Echo("Error, GetUnloadPadType expects a valid tab[i] = transporterID table, transporterID "..units.." does not point to a valid table")
 		return nil
 	end
-	if transporterSeats < 4 then
-		unloadPad[transporterDefID] = UnitDefNames["unloadpad2x2"].id
-	elseif transporterSeats < 8 then
-		unloadPad[transporterDefID] = UnitDefNames["unloadpad4x4"].id
-	elseif transporterSeats < 16 then
-		unloadPad[transporterDefID] = UnitDefNames["unloadpad8x8"].id
+	local padString = "unloadsize"..tostring(transporterSeats)
+	if UnitDefNames[padString] then
+		unloadPad[transporterDefID] = UnitDefNames[padString].id
+	else
+		unloadPad[transporterDefID] = UnitDefNames["unloadsize8"].id -- fallback
 	end
 	return unloadPad[transporterDefID]
 end

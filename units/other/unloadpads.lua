@@ -13,7 +13,7 @@ local function deepcopy(orig)
 	return copy
 end
 
-local unloadpad2x2 = {
+local unloadsize1 = {
 		buildangle = 4096,
 		buildpic = "ARMFUS.DDS",
 		buildtime = 54000,
@@ -35,7 +35,7 @@ local unloadpad2x2 = {
 		maxslope = 25,
 		maxwaterdepth = 12,
 		metalcost = 3350,
-		objectname = "units/unloadpad2x2.s3o",
+		objectname = "units/transportpads/unloadsize2.s3o",
 		script = "Units/ARMFUS.cob",
 		seismicsignature = 0,
 		selfdestructas = "fusionExplosionSelfd",
@@ -69,7 +69,7 @@ local unloadpad2x2 = {
 				footprintz = 4,
 				height = 40,
 				metal = 2603,
-				object = "units/unloadpad2x2.s3o",
+				object = "units/transportpads/unloadsize2.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -104,21 +104,32 @@ local unloadpad2x2 = {
 		},
 	}
 
-	local unloadpad4x4 = deepcopy(unloadpad2x2)
-	unloadpad4x4.footprintx = 4
-	unloadpad4x4.footprintz = 4
-	unloadpad4x4.yardmap = "oooo oooo oooo oooo"
-	unloadpad4x4.objectname = "units/unloadpad4x4.s3o"
-
-	local unloadpad8x8 = deepcopy(unloadpad2x2)
-	unloadpad8x8.footprintx = 8
-	unloadpad8x8.footprintz = 8
-	unloadpad8x8.yardmap = "oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo"
-	unloadpad8x8.objectname = "units/unloadpad8x8.s3o"
+	local unloadsize2 = deepcopy(unloadsize1)
+	unloadsize2.footprintx = 3
+	unloadsize2.footprintz = 3
+	unloadsize2.yardmap = "ooo ooo ooo"
+	unloadsize2.objectname = "units/transportpads/unloadsize2.s3o"
+	local unloadsize4 = deepcopy(unloadsize1)
+	unloadsize4.footprintx = 4
+	unloadsize4.footprintz = 4
+	unloadsize4.yardmap = "oooo oooo oooo oooo"
+	unloadsize4.objectname = "units/transportpads/unloadsize4.s3o"
+	local unloadsize6 = deepcopy(unloadsize1)
+	unloadsize6.footprintx = 6
+	unloadsize6.footprintz = 6
+	unloadsize6.yardmap = "oooooo oooooo oooooo oooooo oooooo oooooo"
+	unloadsize6.objectname = "units/transportpads/unloadsize6.s3o"
+	local unloadsize8 = deepcopy(unloadsize1)
+	unloadsize8.footprintx = 8
+	unloadsize8.footprintz = 8
+	unloadsize8.yardmap = "oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo"
+	unloadsize8.objectname = "units/transportpads/unloadsize8.s3o"
 
 return {
-	unloadpad2x2 = unloadpad2x2,
-	unloadpad4x4 = unloadpad4x4,
-	unloadpad8x8 = unloadpad8x8,
+	unloadsize1 = unloadsize1,
+	unloadsize2 = unloadsize2,
+	unloadsize4 = unloadsize4,
+	unloadsize6 = unloadsize6,
+	unloadsize8 = unloadsize8,
 }
 
