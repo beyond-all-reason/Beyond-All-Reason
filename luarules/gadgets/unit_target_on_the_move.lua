@@ -343,6 +343,7 @@ if gadgetHandler:IsSyncedCode() then
 					teamID = spGetUnitTeam(unitID),
 					allyTeam = spGetUnitAllyTeam(unitID),
 					weapons = unitWeapons[unitDefID],
+					currentIndex = 1,
 				}
 			end
 			if not append then
