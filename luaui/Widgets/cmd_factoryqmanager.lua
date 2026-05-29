@@ -1,5 +1,5 @@
 include("keysym.h.lua")
-local versionNumber = 1.6
+local versionNumber = 1.7
 
 local widget = widget ---@type Widget
 
@@ -27,8 +27,17 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+local spGetModKeyState = Spring.GetModKeyState
+local lastGameSeconds = Spring.GetGameSeconds()
+local CMD_REPEAT = CMD.REPEAT
+local CMD_REMOVE = CMD.REMOVE
+local CMD_WAIT = CMD.WAIT
+local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
+local CMD_OPT_CTRL = CMD.OPT_CTRL
+local CMD_OPT_ALT = CMD.OPT_ALT
 
 --Changelog
+--1.7: fixed: save unit presets by unit name not unitDefId
 --1.6: added: support of quotas and 'alt' queued priority units in preset
 --1.5: added repeat icon and bindable keybind actions to activate
 --1.4: fixed text alignment, changed layer cause other widgets are eating events otherwise (e.g. smartselect)
@@ -53,7 +62,7 @@ local ifontSizeTitle = 16
 local ifontSizeGroup = 16
 local ifontSizeUnitCount = 12
 local ifontSizeModifed = 28
-local iunitIconSpacing = 5
+local iunitIconSpacing = 1
 local ifontModifiedYOff = 16
 local igroupLabelMargin = 30
 local ititleTextXOff = 10
@@ -137,17 +146,14 @@ local SortQueueToUnits
 local CalcDrawCoords
 local UiUnit, UiElement
 
-local spEcho = Spring.Echo
-local spGetModKeyState = Spring.GetModKeyState
-local lastGameSeconds = Spring.GetGameSeconds()
-
 local font, gameStarted, selUnits
 
 local udefTab = {}
 local isFactory = {}
+local unitName = {}
 --local unitId = {}
 for udid, ud in pairs(UnitDefs) do
-	--unitId[udid] = ud.id
+	unitName[udid] = ud.name
 	if ud.isFactory then
 		isFactory[udid] = true
 		udefTab[udid] = ud
@@ -214,6 +220,21 @@ end
 
 function widget:PlayerChanged(playerID)
 	maybeRemoveSelf()
+end
+
+function migratePresets(presets)
+	if not presets then return end
+	local toDelete = {}
+
+	for key, defID in pairs(presets) do
+		if type(key) == "number" then
+			toDelete[#toDelete+1] = key
+		end
+	end
+
+	for _, oldKey in ipairs(toDelete) do
+		presets[oldKey] = nil
+	end
 end
 
 -- Included FactoryClear Lua widget
@@ -318,12 +339,24 @@ function getSingleFactory()
 	end
 end
 
+function orderToName(orderId)
+	if orderId >= 0 then
+		return nil
+	else
+		return unitName[-1*orderId] or nil
+	end
+end
+
+function nameToOrder(name)
+	return UnitDefNames[name] and -1 * UnitDefNames[name].id or nil
+end
+
 function saveQueue(unitId, unitDef, groupNo)
 	if savedQueues[curModId] == nil then
 		savedQueues[curModId] = {}
 	end
-	if savedQueues[curModId][unitDef.id] == nil then
-		savedQueues[curModId][unitDef.id] = {}
+	if savedQueues[curModId][unitDef.name] == nil then
+		savedQueues[curModId][unitDef.name] = {}
 	end
 
 	local unitQ = Spring.GetFactoryCommands(unitId, -1)
@@ -334,7 +367,14 @@ function saveQueue(unitId, unitDef, groupNo)
 		local quotas = WG.Quotas.getQuotas()
 		local quota = quotas[unitId]
 		if quota then
-			unitQuota = table.copy(quota)
+			for quotaDefID, quotaCount in pairs(quota) do
+				if quotaCount ~= 0 then
+					name = unitName[quotaDefID]
+					if name then
+						unitQuota[name] = quotaCount
+					end
+				end
+			end
 		end
 		unitQuotaIdx = WG.Quotas.isOnQuotaMode(unitId)
 	end
@@ -342,16 +382,19 @@ function saveQueue(unitId, unitDef, groupNo)
 	for i = #unitQ, 1, -1 do
 		if unitQ[i].id >= 0 or unitQ[i].options.internal and not unitQ[i].options.alt then -- We don't want to save these commands
 			table.remove(unitQ, i)
+		else
+			unitQ[i].name = orderToName(unitQ[i].id)
+			unitQ[i].id = nil
 		end
 	end
 	if #unitQ <= 0 and next(unitQuota) == nil then
 		--queue is empty -> signal to delete preset
-		savedQueues[curModId][unitDef.id][groupNo] = nil
+		savedQueues[curModId][unitDef.name][groupNo] = nil
 	else
-		savedQueues[curModId][unitDef.id][groupNo] = unitQ
-		savedQueues[curModId][unitDef.id][groupNo][facQuota] = unitQuota
-		savedQueues[curModId][unitDef.id][groupNo][facRepeatIdx] = select(4, Spring.GetUnitStates(unitId, false, true))    -- 4=repeat
-		savedQueues[curModId][unitDef.id][groupNo][facQuotaIdx] = unitQuotaIdx
+		savedQueues[curModId][unitDef.name][groupNo] = unitQ
+		savedQueues[curModId][unitDef.name][groupNo][facQuota] = unitQuota
+		savedQueues[curModId][unitDef.name][groupNo][facRepeatIdx] = select(4, Spring.GetUnitStates(unitId, false, true))    -- 4=repeat
+		savedQueues[curModId][unitDef.name][groupNo][facQuotaIdx] = unitQuotaIdx
 	end
 
 	modifiedGroup = groupNo
@@ -364,20 +407,52 @@ function saveQueue(unitId, unitDef, groupNo)
 end
 
 function loadQueue(unitId, unitDef, groupNo)
-	if savedQueues[curModId][unitDef.id] == nil then
+	if savedQueues[curModId][unitDef.name] == nil then
 		--there are no queus for this factory type
 		return
 	end
 
-	local queue = savedQueues[curModId][unitDef.id][groupNo]
+	local queue = savedQueues[curModId][unitDef.name][groupNo]
 	if queue ~= nil then
 		modifiedGroup = groupNo
 		modifiedGroupTime = Spring.GetGameSeconds()
 		modifiedSaved = false
+		ClearFactoryQueues()
+
+		if #queue > 0 then
+			local insertPos = 0
+			for i = 1, #queue do
+				local opts = 0
+				local cmd = queue[i]
+				cmd.id = nameToOrder(cmd.name)
+				if cmd.id and cmd.options.alt then
+					insertPos = insertPos + 1 
+					opts = CMD_OPT_ALT + CMD_OPT_INTERNAL
+					spGiveOrderToUnit(unitId, CMD.INSERT, {insertPos - 1, cmd.id, opts, unpack(cmd.params)}, CMD_OPT_ALT + CMD_OPT_CTRL  )
+				else 
+					spGiveOrderToUnit(unitId, cmd.id, cmd.params, opts)
+				end
+			end
+		end
+		spGiveOrderToUnit(unitId, CMD_REMOVE, CMD_WAIT, CMD_OPT_ALT + CMD_OPT_CTRL )
+
+		--set factory to repeat on/off
+		local repVal = 1
+		if queue[facRepeatIdx] == false then
+			repVal = 0
+		end
+		spGiveOrderToUnit(unitId, CMD_REPEAT, { repVal }, 0)
 
 		if WG.Quotas and queue[facQuota] then
 			local quotas = WG.Quotas.getQuotas()
-			quotas[unitId] = queue[facQuota]
+			local quotaTable = {}
+			for quotaNames, quotaCount in pairs(queue[facQuota]) do
+				local udid = UnitDefNames[quotaNames] and UnitDefNames[quotaNames].id or nil
+				if udid then
+					quotaTable[udid] = quotaCount
+				end
+			end
+			quotas[unitId] = quotaTable
 
 			--set factory to quota mode on/off
 			local quotaVal = 1
@@ -386,26 +461,6 @@ function loadQueue(unitId, unitDef, groupNo)
 			end
 			spGiveOrderToUnit(unitId, GameCMD.QUOTA_BUILD_TOGGLE, { quotaVal }, 0)
 		end
-
-		--set factory to repeat on/off
-		local repVal = 1
-		if queue[facRepeatIdx] == false then
-			repVal = 0
-		end
-		spGiveOrderToUnit(unitId, CMD.REPEAT, { repVal }, 0)
-		if #queue > 0 then
-			ClearFactoryQueues()
-			for i = 1, #queue do
-				local cmd = queue[i]
-				local opts = {}
-				if cmd.options.alt then
-					opts = { "alt" }
-				end
-				if cmd.id then
-					spGiveOrderToUnit(unitId, cmd.id, cmd.params, opts)
-				end
-			end
-		end 	
 
 	end
 end
@@ -487,24 +542,38 @@ function SortQueueToUnits(queue)
 	for i = 1, #queue do
 		local entity = queue[i]
 		if type(entity) == "table" then
-			if entity.id < 0 then
-				local idx = -1 * entity.id
-				local queuedunit = units[idx]
-				if not queuedunit then
-                	queuedunit = { alt = 0, normal = 0 }
-                	units[idx] = queuedunit
+			if entity.name then
+				local idx = UnitDefNames[entity.name] and UnitDefNames[entity.name].id or nil
+				if idx then 
+					local queuedunit = units[idx]
+					if not queuedunit then
+						queuedunit = { alt = 0, normal = 0 }
+						units[idx] = queuedunit
+					end
+					local isAlt = entity.options and entity.options.alt
+					if isAlt then
+						queuedunit.alt = queuedunit.alt + 1
+					else
+						queuedunit.normal = queuedunit.normal + 1
+					end
 				end
-				local isAlt = entity.options and entity.options.alt
-				if isAlt then
-                	queuedunit.alt = queuedunit.alt + 1
-            	else
-                	queuedunit.normal = queuedunit.normal + 1
-            	end
-            end
-
+			end
 		end
 	end
 	return units
+end
+
+function quotaByID(quota)
+	local quotaIDs = {}
+	for unitQuotaName, unitQuotaCount in pairs(quota) do
+		if unitQuotaCount ~= 0 then
+			local defID = UnitDefNames[unitQuotaName] and UnitDefNames[unitQuotaName].id or nil
+			if defID then 
+				quotaIDs[defID] = unitQuotaCount
+			end
+		end
+	end
+	return quotaIDs
 end
 
 function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
@@ -513,7 +582,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 
 	--if units == nil then
 	local units = SortQueueToUnits(queue)
-	local quota = queue[facQuota] or {} -- already in a sorted table
+	local quota = quotaByID(queue[facQuota]) -- already in a sorted table
 	--end
 	--Draw "loaded" border
 	if modifiedGroup == groupNo and modifiedGroupTime > Spring.GetGameSeconds() - loadedBorderDisplayTime then
@@ -555,7 +624,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 			local normalCount = unitCounts.normal
 			local unitCount = altCount + normalCount
 			if unitCount == 0 then break end
-			if x + boxHeight + boxIconBorder + xOff + boxHeight + unitIconSpacing > x + boxWidth then
+			if x + boxHeight + boxIconBorder + xOff + unitCountXOff + unitIconSpacing > x + boxWidth then
 				font:SetTextColor(1, 1, 1, alpha)
 				font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
 				break
@@ -578,7 +647,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 		for k, unitCounts in pairs(units) do
 			local altCount = unitCounts.alt
 			if altCount ~= 0 then 
-				if x + boxHeight + boxIconBorder + xOff + boxHeight + unitIconSpacing > x + boxWidth then
+				if x + boxHeight + boxIconBorder + xOff + unitCountXOff + unitIconSpacing > x + boxWidth then
 					font:SetTextColor(1, 1, 1, alpha)
 					font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
 					break
@@ -601,7 +670,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 		for k, unitCounts in pairs(units) do
 			local normalCount = unitCounts.normal
 			if normalCount ~= 0 then 
-				if x + boxHeight + boxIconBorder + xOff + boxHeight + unitIconSpacing > x + boxWidth then
+				if x + boxHeight + boxIconBorder + xOff + unitCountXOff + unitIconSpacing > x + boxWidth then
 					font:SetTextColor(1, 1, 1, alpha)
 					font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
 					break
@@ -636,8 +705,8 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 		end
 	end
 
-	for k, unitQuotaCount in pairs(quota) do
-		if k ~= 0 then
+	for unitQuotaID, unitQuotaCount in pairs(quota) do
+		if unitQuotaCount ~= 0 then
 			if x + boxHeight + boxIconBorder + xOff + boxHeight + unitIconSpacing > x + boxWidth then
 				font:SetTextColor(1, 1, 1, alpha)
 				font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
@@ -650,7 +719,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 					1,1,1,1,
 					0.08,
 					nil, nil,
-					'#'..k
+					'#'..unitQuotaID
 				)
 				font:SetTextColor(1, 0.51, 0.745, alpha)
 				font:Print(unitQuotaCount, x + (boxHeight*0.5) - boxIconBorder + xOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cndo")
@@ -680,8 +749,8 @@ function DrawBoxes()
 	end
 
 	local itemCount = 0
-	if savedQueues[curModId] ~= nil and savedQueues[curModId][unitDef.id] ~= nil then
-		itemCount = #savedQueues[curModId][unitDef.id]
+	if savedQueues[curModId] ~= nil and savedQueues[curModId][unitDef.name] ~= nil then
+		itemCount = #savedQueues[curModId][unitDef.name]
 	end
 	local heightAll = boxHeightTitle + itemCount * (boxHeight + boxOuterMargin)
 
@@ -696,7 +765,7 @@ function DrawBoxes()
 
 	DrawBoxTitle(x, y, alpha, unitDef, selUnit)
 
-	if savedQueues[curModId] == nil or savedQueues[curModId][unitDef.id] == nil then
+	if savedQueues[curModId] == nil or savedQueues[curModId][unitDef.name] == nil then
 		return
 	end
 
@@ -707,7 +776,7 @@ function DrawBoxes()
 	local k = 1
 	local first = true
 	while (k < 10) do
-		local q = savedQueues[curModId][unitDef.id][k]
+		local q = savedQueues[curModId][unitDef.name][k]
 		if q ~= nil then
 			local height = boxHeight
 			if first == true then
@@ -745,6 +814,7 @@ function widget:Initialize()
 	widget:ViewResize()
 
 	curModId = string.upper(Game.gameShortName or "")
+	migratePresets(savedQueues[curModId]) -- remove old presets that were saved by version < 1.7 which used numeric unitDefID instead of names
 
 	widgetHandler:AddAction("factory_preset", factoryPresetKeyHandler, nil, "p")
 	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, {true}, "p")

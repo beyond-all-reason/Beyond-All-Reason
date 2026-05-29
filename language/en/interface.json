@@ -1776,6 +1776,8 @@
 				"factory": "Factory",
 				"factoryguard": "guard (builders)",
 				"factoryguard_descr": "Sets factory guard to on by default, builders will automatically guard the factory that produced them",
+				"factorypreset": "Factory Presets",
+				"factorypreset_descr": "Save and load factory build queues\nSelect a single factory and press space to open the preset menu",
 				"factoryholdpos": "hold position",
 				"factoryholdpos_descr": "Sets factories and units they produce, to hold position automatically (not aircraft)",
 				"factoryrepeat": "auto-repeat",
