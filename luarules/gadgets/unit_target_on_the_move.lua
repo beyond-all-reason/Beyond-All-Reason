@@ -323,11 +323,13 @@ if gadgetHandler:IsSyncedCode() then
 						data[length + 4] = target[2]
 						data[length + 5] = target[3]
 					end
+					length = length + 5
+					if length > 4000 then break end
 				end
-				length = length + 5
-				if length > 4000 then break end
 			end
-			SendToUnsynced("targetListBatched", unitID, length, data)
+			if length > 0 then
+				SendToUnsynced("targetListBatched", unitID, length, data)
+			end
 		end
 		--tracy.ZoneEnd()
 	end
