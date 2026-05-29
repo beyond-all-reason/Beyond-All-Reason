@@ -113,7 +113,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		-- FIXME: We don't know which weaponDefs have submissile. We can check `nuke`, for now.
-		---@return SetTargetWeaponType
 		local function getWeaponType(weapon)
 			if hasTargeting(weapon) then
 				local weaponDef = WeaponDefs[weapon.weaponDef]
