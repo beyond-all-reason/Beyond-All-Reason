@@ -42,6 +42,9 @@ local spGetCameraPosition = Spring.GetCameraPosition
 local spIsSphereInView    = Spring.IsSphereInView
 local spGetWind           = Spring.GetWind
 local spGetFPS            = Spring.GetFPS
+-- Unsynced-only: forces a feature's draw matrix to refresh each frame so that
+-- synced SetFeatureDirection spins (e.g. falling trees) are actually rendered.
+local spSetFeatureAlwaysUpdateMatrix = Spring.SetFeatureAlwaysUpdateMatrix
 
 local glBlending  = gl.Blending
 local glTexture   = gl.Texture
@@ -124,10 +127,33 @@ local CONFIG = {
 	wreckFireFrames  = 50,   -- short fire on wreckage
 	wreckSmokeFrames = 320,  -- long smoke on wreckage
 
+	-- Bonus multipliers for flamethrower units (stacks on top of other multipliers)
+	ftScaleMult = 2.0,       -- extra fire duration when a flamethrower unit dies
+	ftDurationMult = 1.2,    -- extra fire duration when a flamethrower unit dies
+
+	-- Bonus multipliers for self-destructed units (stacks on top of other multipliers)
+	sdScaleMult    = 1.4,    -- extra visual scale when a unit self-destructs
+	sdDurationMult = 1.2,    -- extra fire duration when a unit self-destructs
+
 	-- Default emitter emission rates (particles per sim frame, fractional ok)
 	fireRate  = 1.1,
 	smokeRate = 0.35,
 	emberRate = 0.5,
+
+	-- Tree fire: a column of flame that grows up a burning tree and topples
+	-- with it into a line of fire on the ground (driven by gfx_tree_feller).
+	treeFire = {
+		growFrames      = 55,    -- fallback climb time if synced sends none
+		startHeightFrac = 0.18,  -- fire height at ignite (fraction of tree height)
+		canopyFrac      = 0.60,  -- default height fraction of canopy (where fuel is)
+		trunkRadiusFrac = 0.18,  -- trunk radius vs canopy radius
+		fireRate        = 2.2,
+		smokeRate       = 0.40,
+		emberRate       = 0.5,
+		fireSizeMult    = 1.7,  -- individual flames are small; volume comes from many particles
+		smokeSizeMult   = 1.7,
+		smokeTail       = 150,   -- smoke lingers this long after the fire stops
+	},
 
 	-- Culling
 	cullPad = 60,
@@ -545,6 +571,7 @@ local SMOKE_B = CONFIG.smokeTint[3]
 local emitters       = {}    -- dense array
 local emitterCount   = 0
 local unitFireEmitter = {}   -- [unitID] = emitter   (for hit-refresh dedupe)
+local treeFireEmitters = {}  -- [featureID] = emitter (burning trees)
 
 local function rateCount(rate)
 	if rate <= 0 then return 0 end
@@ -553,7 +580,129 @@ local function rateCount(rate)
 	return n
 end
 
+local SMOKE_TR = CONFIG.smokeTint[1]
+local SMOKE_TG = CONFIG.smokeTint[2]
+local SMOKE_TB = CONFIG.smokeTint[3]
+
+-- Tree fire emission: distributes fire along the tree's vertical axis, which
+-- tilts from upright toward the fall direction as the tree topples, so the
+-- flames climb the standing tree and then lie down as a line of fire on the
+-- ground. Particle density is biased toward the canopy (the most 'fuel').
+local function emitTreeFire(e, n)
+	local elapsed = n - e.startFrame
+	local fallT = elapsed / e.fallFrames
+	if fallT < 0 then fallT = 0 elseif fallT > 1 then fallT = 1 end
+	local growT = elapsed / e.growFrames
+	if growT < 0 then growT = 0 elseif growT > 1 then growT = 1 end
+
+	local sHF = CONFIG.treeFire.startHeightFrac
+	local curH = e.height * (sHF + (1.0 - sHF) * growT)
+	if curH < 1 then curH = 1 end
+
+	-- Axis interpolates from straight up (fallT 0) to horizontal fall dir (fallT 1).
+	local ang    = fallT * (mathPi * 0.5)
+	local axisUp = mathCos(ang)
+	local axisH  = mathSin(ang)
+	local dirx, dirz = e.dirx, e.dirz
+
+	local cf      = e.canopyFrac
+	local trunkR  = e.trunkR
+	local canopyR = e.canopyR
+	local scale     = e.scale
+	local lifeScale = e.lifeScale or scale
+	local inten     = e.intensity
+
+	-- FIRE -- biased toward the canopy, with a radius profile that bulges there.
+	if n <= e.fireEnd then
+		local cnt = rateCount(e.fireRate * inten)
+		for _ = 1, cnt do
+			local hf
+			if mathRandom() < 0.65 then
+				hf = cf + (mathRandom() - mathRandom()) * 0.45
+			else
+				hf = mathRandom()
+			end
+			if hf < 0 then hf = 0 elseif hf > 1 then hf = 1 end
+			local rad
+			if hf < cf then
+				rad = trunkR + (canopyR - trunkR) * (hf / cf)
+			else
+				rad = canopyR + (canopyR * 0.25 - canopyR) * ((hf - cf) / (1.0 - cf))
+			end
+			local along = hf * curH
+			local cx = e.x + dirx * along * axisH
+			local cy = e.y + along * axisUp
+			local cz = e.z + dirz * along * axisH
+			local a2 = mathRandom() * TWO_PI
+			local rr = mathSqrt(mathRandom()) * rad
+			local size = (CONFIG.fireSizeBase + (mathRandom() - 0.5) * CONFIG.fireSizeRand) * scale * CONFIG.treeFire.fireSizeMult
+			local life = (CONFIG.fireLifeMin + mathRandom() * CONFIG.fireLifeSpan) * lifeScale
+			local vy = (0.4 + mathRandom() * 0.8) * scale
+			local r, g, b = fireColor()
+			spawnParticle(cx + mathCos(a2) * rr, cy + mathRandom() * rad * 0.3, cz + mathSin(a2) * rr,
+				(mathRandom() - 0.5) * 0.4, vy, (mathRandom() - 0.5) * 0.4,
+				size, 0, life, r, g, b, CONFIG.fireAlpha * (0.82 + 0.18 * mathRandom()))
+		end
+	end
+
+	-- EMBERS
+	if n <= e.emberEnd then
+		local cnt = rateCount(e.emberRate * inten)
+		for _ = 1, cnt do
+			local hf = cf + (mathRandom() - mathRandom()) * 0.5
+			if hf < 0 then hf = 0 elseif hf > 1 then hf = 1 end
+			local rad = trunkR + (canopyR - trunkR) * mathMin(1.0, hf / cf)
+			local along = hf * curH
+			local cx = e.x + dirx * along * axisH
+			local cy = e.y + along * axisUp
+			local cz = e.z + dirz * along * axisH
+			local a2 = mathRandom() * TWO_PI
+			local rr = mathSqrt(mathRandom()) * rad * 0.8
+			local size = (CONFIG.emberSizeBase + (mathRandom() - 0.5) * CONFIG.emberSizeRand) * scale
+			local life = (CONFIG.emberLifeMin + mathRandom() * CONFIG.emberLifeSpan) * lifeScale
+			local vy = CONFIG.emberVyMin + mathRandom() * CONFIG.emberVySpan
+			local r, g, b = emberColor()
+			spawnParticle(cx + mathCos(a2) * rr, cy, cz + mathSin(a2) * rr,
+				(mathRandom() - 0.5) * 0.5, vy, (mathRandom() - 0.5) * 0.5,
+				size, 2, life, r, g, b, CONFIG.emberAlpha)
+		end
+	end
+
+	-- SMOKE -- rises mainly from the canopy; decays after the fire stops.
+	if n <= e.smokeEnd then
+		local smokeDecayMult = 1.0
+		if e.smokeDecayStart and n > e.smokeDecayStart then
+			local span = e.smokeEnd - e.smokeDecayStart
+			if span > 0 then
+				smokeDecayMult = 1.0 - (n - e.smokeDecayStart) / span * 0.80
+				if smokeDecayMult < 0.20 then smokeDecayMult = 0.20 end
+			end
+		end
+		local cnt = rateCount(e.smokeRate * inten * smokeDecayMult)
+		for _ = 1, cnt do
+			local hf = cf + mathRandom() * (1.0 - cf) * 0.8 + 0.1
+			if hf > 1 then hf = 1 end
+			local rad = canopyR
+			local along = hf * curH
+			local cx = e.x + dirx * along * axisH
+			local cy = e.y + along * axisUp
+			local cz = e.z + dirz * along * axisH
+			local a2 = mathRandom() * TWO_PI
+			local rr = mathSqrt(mathRandom()) * rad
+			local size = (CONFIG.smokeSizeBase + mathRandom() * CONFIG.smokeSizeRand) * scale * (CONFIG.treeFire.smokeSizeMult or 1.0)
+			local life = (CONFIG.smokeLifeMin + mathRandom() * CONFIG.smokeLifeSpan) * lifeScale
+			local svy = CONFIG.smokeUpVelMin + mathRandom() * CONFIG.smokeUpVelSpan
+			local sv  = 0.25 + mathRandom() * 1.10
+			spawnParticle(cx + mathCos(a2) * rr, cy + rad * 0.4, cz + mathSin(a2) * rr,
+				(mathRandom() - 0.5) * 0.15, svy, (mathRandom() - 0.5) * 0.15,
+				size, 1, life, SMOKE_TR * sv, SMOKE_TG * sv, SMOKE_TB * sv,
+				CONFIG.smokeAlpha * smokeDecayMult)
+		end
+	end
+end
+
 local function emitFromEmitter(e, n)
+	if e.treeFire then return emitTreeFire(e, n) end
 	local x, y, z = e.x, e.y, e.z
 	local radius    = e.radius
 	local scale     = e.scale
@@ -657,6 +806,9 @@ local function removeEmitterAt(i)
 	local e = emitters[i]
 	if e.mappedUnit and unitFireEmitter[e.mappedUnit] == e then
 		unitFireEmitter[e.mappedUnit] = nil
+	end
+	if e.featureID and treeFireEmitters[e.featureID] == e then
+		treeFireEmitters[e.featureID] = nil
 	end
 	emitters[i] = emitters[emitterCount]
 	emitters[emitterCount] = nil
@@ -843,6 +995,85 @@ local function spawnWreckageFire(x, y, z, scale, opts)
 	})
 end
 
+-- Start (or refresh) a growing tree fire keyed by featureID. Driven by the
+-- synced gfx_tree_feller gadget via RecvFromSynced. The column climbs the tree
+-- and tilts into a ground line as the tree falls. Geometry (height/radius/
+-- canopyFrac) is derived from the tree's model mesh on the synced side.
+local function spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames)
+	if not x or not featureID then return end
+	-- Force the engine to refresh this feature's UNSYNCED (draw) matrix every
+	-- frame. Spring.SetFeatureDirection on the synced side only updates the synced
+	-- transform; without this the falling tree's mesh stays visually upright even
+	-- though the simulation rotates it. This call is unsynced-only, which is why
+	-- the synced tree-feller routes it here.
+	if spSetFeatureAlwaysUpdateMatrix then
+		spSetFeatureAlwaysUpdateMatrix(featureID, true)
+	end
+	if not height or height < 4 then height = 20 end
+	if not radius or radius < 2 then radius = mathMax(6, height * 0.2) end
+	local now = cachedGameFrame
+	local existing = treeFireEmitters[featureID]
+	if existing then
+		-- Re-ignite / keep burning: extend timers, keep geometry & fall progress.
+		existing.fireEnd  = now + 1000000
+		existing.emberEnd = now + 1000000
+		existing.smokeEnd = now + 1000000
+		existing.smokeDecayStart = nil
+		return existing
+	end
+	dirx = dirx or 1; dirz = dirz or 0
+	local dl = mathSqrt(dirx * dirx + dirz * dirz)
+	if dl > 0.0001 then dirx, dirz = dirx / dl, dirz / dl else dirx, dirz = 1, 0 end
+	local tf = CONFIG.treeFire
+	if not canopyFrac or canopyFrac <= 0 then canopyFrac = tf.canopyFrac end
+	-- Scale for tree fire is radius-independent: use a small fixed scale so that
+	-- individual particles stay tight; the spread along the column gives volume.
+	local scale = 0.55
+	if scale < 0.35 then scale = 0.35 elseif scale > 0.90 then scale = 0.90 end
+	local frames = (fallFrames and fallFrames > 1) and fallFrames or tf.growFrames
+	local e = {
+		treeFire   = true,
+		featureID  = featureID,
+		x = x, y = y, z = z,
+		yOffset    = 0,
+		height     = height,
+		canopyR    = radius,
+		trunkR     = mathMax(2, radius * tf.trunkRadiusFrac),
+		canopyFrac = canopyFrac,
+		dirx = dirx, dirz = dirz,
+		startFrame = now,
+		fallFrames = frames,
+		growFrames = frames,
+		scale      = scale,
+		lifeScale  = scale,
+		intensity  = 1.0,
+		radius     = height,   -- cull sphere radius around the base
+		fireRate   = tf.fireRate,
+		smokeRate  = tf.smokeRate,
+		emberRate  = tf.emberRate,
+		fireEnd    = now + 1000000,
+		emberEnd   = now + 1000000,
+		smokeEnd   = now + 1000000,
+	}
+	treeFireEmitters[featureID] = e
+	return addEmitter(e)
+end
+
+-- Stop a tree fire: kill flames/embers immediately, let smoke fade out.
+local function stopTreeFire(featureID)
+	if spSetFeatureAlwaysUpdateMatrix then
+		spSetFeatureAlwaysUpdateMatrix(featureID, false)
+	end
+	local e = treeFireEmitters[featureID]
+	if not e then return end
+	local now = cachedGameFrame
+	e.fireEnd  = now
+	e.emberEnd = now
+	e.smokeDecayStart = now
+	e.smokeEnd = now + CONFIG.treeFire.smokeTail
+	treeFireEmitters[featureID] = nil  -- detach so a later re-ignite makes a fresh one
+end
+
 --------------------------------------------------------------------------------
 -- Draw
 --------------------------------------------------------------------------------
@@ -922,7 +1153,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 end
 
 -- A unit that leaves a wreckage spawns short fire + long smoke at its position.
-function gadget:UnitDestroyed(unitID, unitDefID)
+function gadget:UnitDestroyed(unitID, unitDefID, attackerID)
 	local e = unitFireEmitter[unitID]
 	if e then
 		-- stop the follow emitter; wreckage emitter takes over
@@ -935,8 +1166,21 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 	if leavesWreck[unitDefID] then
 		local x, y, z = spGetUnitPosition(unitID)
 		if x and y >= -4 then  -- no wreck fire underwater
-			local p = unitFireParams[unitDefID]
-			local opts = flamethrowerUnit[unitDefID] and { scaleMult = 2.2, durationMult = 1.6 } or nil
+			local p    = unitFireParams[unitDefID]
+			local sm   = 1.0
+			local dm   = 1.0
+			-- Flamethrower units burn hotter when they die.
+			if flamethrowerUnit[unitDefID] then
+				sm = sm * CONFIG.ftScaleMult
+				dm = dm * CONFIG.ftDurationMult
+			end
+			-- Self-destructed units get an additional bonus on top.
+			local selfDestruct = (attackerID == nil or attackerID == unitID)
+			if selfDestruct then
+				sm = sm * CONFIG.sdScaleMult
+				dm = dm * CONFIG.sdDurationMult
+			end
+			local opts = (sm ~= 1.0 or dm ~= 1.0) and { scaleMult = sm, durationMult = dm } or nil
 			spawnWreckageFire(x, y, z, p and p.scale or 1.0, opts)
 		end
 	end
@@ -945,11 +1189,17 @@ end
 -- Bridge so SYNCED gadgets can request fire effects via SendToUnsynced:
 --   SendToUnsynced("fire_spawn", x, y, z, scale, duration)
 --   SendToUnsynced("fire_wreck", x, y, z, scale)
-function gadget:RecvFromSynced(name, a, b, c, d, e)
+--   SendToUnsynced("treefire_start", featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames)
+--   SendToUnsynced("treefire_stop", featureID)
+function gadget:RecvFromSynced(name, a, b, c, d, e, f, g, h, i, j)
 	if name == "fire_spawn" then
 		spawnFire(a, b, c, { scale = d, duration = e })
 	elseif name == "fire_wreck" then
 		spawnWreckageFire(a, b, c, d)
+	elseif name == "treefire_start" then
+		spawnTreeFire(a, b, c, d, e, f, g, h, i, j)
+	elseif name == "treefire_stop" then
+		stopTreeFire(a)
 	end
 end
 
