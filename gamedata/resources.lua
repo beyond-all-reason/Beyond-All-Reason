@@ -98,6 +98,12 @@ local resources = {
 			blooddropwhite          = 'PD/blooddropwhite.tga',
 			bloodblastwhite         = 'PD/bloodblastwhite.tga',
 			lightningbeam			= 'PD/lightning.tga',
+			tenebrium_core			= 'projectiletextures/tenebrium_core.tga',
+			tenebrium_arcs			= 'projectiletextures/tenebrium_arcs.tga',
+			tenebrium_swirl			= 'projectiletextures/tenebrium_swirl.tga',
+			tenebrium_glow			= 'projectiletextures/tenebrium_glow.tga',
+			tenebrium_wisp			= 'projectiletextures/tenebrium_wisp.tga',
+			tenebrium_specular		= 'projectiletextures/tenebrium_specular.tga',
 		 },
 	  }
    }
