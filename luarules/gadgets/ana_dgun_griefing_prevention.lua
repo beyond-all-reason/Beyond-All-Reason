@@ -322,34 +322,32 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 	local minz = math.min(startZ, endZ) - DGUN_SAFETY_WIDTH
 	local maxz = math.max(startZ, endZ) + DGUN_SAFETY_WIDTH
 
+	-- Filter for only allied units (not including self-owned units)
 	local candidates = spGetUnitsInBox(minx, miny, minz, maxx, maxy, maxz, -3) -- UnitAllegiance::AllyUnit
 	local threatenedAllyPower = 0
 	local mostPowerfulThreatenedPower = 0
 	local mostPowerfulThreatenedUnitName = nil
 	for i = 1, #candidates do
 		local unitID = candidates[i]
-		local unitTeam = spGetUnitTeam(unitID)
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitRadius = GetApproxUnitRadius(unitDefID)
-		-- Self-owned units are exempt (only consider allied owned units).
-		if unitTeam and unitTeam ~= teamID and GetAllyTeamID(unitTeam) == myAllyTeamID then
-			local unitDef = unitDefID and UnitDefs[unitDefID]
-			if not (unitDef and unitDef.customParams and unitDef.customParams.iscommander) then
-				local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-				if unitX then
-					local d = DistPointToSegment(unitX, unitY, unitZ, startX, startY, startZ, endX, endY, endZ)
-					if d < unitRadius + DGUN_WIDTH / 2 then
-						local threatenedPower = 0
-						if unitDef then
-							-- Partially built units only contribute proportional power to threat
-							local buildProgress = select(5, spGetUnitHealth(unitID)) or 1
-							threatenedPower = (unitDef.power or 0) * math.min(buildProgress, 1)
-						end
-						threatenedAllyPower = threatenedAllyPower + threatenedPower
-						if threatenedPower > mostPowerfulThreatenedPower then
-							mostPowerfulThreatenedPower = threatenedPower
-							mostPowerfulThreatenedUnitName = GetUnitDisplayName(unitDefID)
-						end
+		local unitDef = unitDefID and UnitDefs[unitDefID]
+		-- Exclude allied comms (you can't DGun grief an allied comm)
+		if not (unitDef and unitDef.customParams and unitDef.customParams.iscommander) then
+			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+			if unitX then
+				local d = DistPointToSegment(unitX, unitY, unitZ, startX, startY, startZ, endX, endY, endZ)
+				if d < unitRadius + DGUN_WIDTH / 2 then
+					local threatenedPower = 0
+					if unitDef then
+						-- Partially built units only contribute proportional power to threat
+						local buildProgress = select(5, spGetUnitHealth(unitID)) or 1
+						threatenedPower = (unitDef.power or 0) * math.min(buildProgress, 1)
+					end
+					threatenedAllyPower = threatenedAllyPower + threatenedPower
+					if threatenedPower > mostPowerfulThreatenedPower then
+						mostPowerfulThreatenedPower = threatenedPower
+						mostPowerfulThreatenedUnitName = GetUnitDisplayName(unitDefID)
 					end
 				end
 			end
