@@ -102,6 +102,7 @@ local resources = {
 			tenebrium_arcs			= 'projectiletextures/tenebrium_arcs.tga',
 			tenebrium_swirl			= 'projectiletextures/tenebrium_swirl.tga',
 			tenebrium_glow			= 'projectiletextures/tenebrium_glow.tga',
+			tenebrium_smoke			= 'projectiletextures/tenebrium_smoke.tga',
 			tenebrium_wisp			= 'projectiletextures/tenebrium_wisp.tga',
 			tenebrium_specular		= 'projectiletextures/tenebrium_specular.tga',
 		 },

@@ -26,7 +26,6 @@ local ORANGE_ARC_SPAWN_FRACTION = 0.005
 local ORANGE_ARC_MIN_SPAWNS = 1
 local SHOCKWAVE_ARC_CHANCE = 0.1
 local SHOCKWAVE_CEG = "tenebrium_implosion"
-local IMPLOSION_CEG = "tenebrium_implosion_collapse"
 local IMPLOSION_SEQUENCE_END_OFFSET = SHOCKWAVE_DURATION + WAIT_DURATION + IMPLOSION_DURATION + MAX_POWER_KILL_FRAMES + MAX_RANDOM_KILL_FRAMES
 local IMPLOSION_QUINT_EASE_BIAS = 4
 local CMD_FIRE_STATE = CMD.FIRE_STATE
@@ -436,7 +435,6 @@ local function scheduleShockwave(startFrame, originX, originZ, farthestDistanceS
 	}
 	activeSequences[#activeSequences + 1] = sequence
 	spSpawnCEG(SHOCKWAVE_CEG, originX, groundY, originZ)
-	queueCegSpawn(IMPLOSION_CEG, originX, groundY, originZ, startFrame + IMPLOSION_SEQUENCE_END_OFFSET)
 	return sequence
 end
 
