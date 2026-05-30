@@ -871,7 +871,6 @@ else	-- UNSYNCED
 	-- 4k * 100 list length maximum is enough to assume target saturation with 32,000 unit cap.
 
 	local math_min = math.min
-	local ensureTable = table.ensureTable
 
 	local glVertex = gl.Vertex
 	local glPushAttrib = gl.PushAttrib
@@ -904,6 +903,7 @@ else	-- UNSYNCED
 	local mySpec, fullview = spGetSpectatingState()
 
 	local lineWidth = 1.4
+	local lineWidthActiveTarget = 3.4
 	local queueColour = { 1, 0.75, 0, 0.3 }
 	local commandColour = { 1, 0.5, 0, 0.3 }
 
@@ -963,8 +963,15 @@ else	-- UNSYNCED
 			return
 		end
 
-		local unitData = ensureTable(targetList, unitID)
-		local targets = ensureTable(unitData, "targets")
+		local unitData = targetList[unitID]
+		if not unitData then
+			unitData = {
+				targets = {},
+				targetIndex = 0,
+			}
+			targetList[unitID] = unitData
+		end
+		local targets = unitData.targets
 
 		if remove then
 			if index == 1 then
@@ -1061,18 +1068,30 @@ else	-- UNSYNCED
 		end
 	end
 
-	local function drawCurrentTarget(unitID, unitData, myTeam, myAllyTeam)
+	local function drawCurrentTarget(unitID, unitData)
 		local _, _, _, x1, y1, z1 = spGetUnitPosition(unitID, true)
 		glVertex(x1, y1, z1)
 		drawTargetCommand(unitData.targets[unitData.targetIndex])
 	end
 
-	local function drawTargetQueue(unitID, unitData, myTeam, myAllyTeam)
+	local function drawTargetQueue(unitID, unitData)
 		local _, _, _, x1, y1, z1 = spGetUnitPosition(unitID, true)
-		glVertex(x1, y1, z1)
+		if unitData.targetIndex == 0 then
+			glVertex(x1, y1, z1)
+		elseif not unitData.targets[2] then
+			return
+		end
 		for _, targetData in ipairs(unitData.targets) do
 			drawTargetCommand(targetData)
 		end
+	end
+
+	local function initDrawing()
+		glPushAttrib(GL.LINE_BITS)
+		glLineStipple("any") -- use spring's default line stipple pattern, moving
+		glDepthTest(false)
+		glLineWidth(lineWidth)
+		return true
 	end
 
 	local function drawDecorations()
@@ -1083,18 +1102,18 @@ else	-- UNSYNCED
 			if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
 				if skipLeft == 0 and (drawTarget[unitID] or drawAllTargets[spGetUnitTeam(unitID)] or spIsUnitSelected(unitID)) then
 					if not init then
-						init = true
-						glPushAttrib(GL.LINE_BITS)
-						glLineStipple("any") -- use spring's default line stipple pattern, moving
-						glDepthTest(false)
+						init = initDrawing()
+					end
+
+					if unitData.targetIndex ~= 0 then
+						glColor(commandColour)
+						glLineWidth(lineWidthActiveTarget)
+						glBeginEnd(GL_LINES, drawCurrentTarget, unitID, unitData)
 						glLineWidth(lineWidth)
 					end
+
 					glColor(queueColour)
-					glBeginEnd(GL_LINE_STRIP, drawTargetQueue, unitID, unitData, myTeam, myAllyTeam)
-					if (unitData.targetIndex or 0) ~= 0 then
-						glColor(commandColour)
-						glBeginEnd(GL_LINES, drawCurrentTarget, unitID, unitData, myTeam, myAllyTeam)
-					end
+					glBeginEnd(GL_LINE_STRIP, drawTargetQueue, unitID, unitData)
 
 					-- Use a gradual backoff to skip drawing commands at high unit counts.
 					skipChunkLeft = skipChunkLeft - 1
