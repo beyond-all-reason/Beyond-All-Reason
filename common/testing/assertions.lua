@@ -118,11 +118,11 @@ local function formatValueForAssert(value)
 end
 
 local function assertEqual(actual, expected, errorMsg)
-	local depthOffset = 2
 	if actual ~= expected then
 		local msg = (errorMsg or "assertEqual failed")
 			.. ": expected " .. formatValueForAssert(expected)
 			.. ", actual " .. formatValueForAssert(actual)
+		local depthOffset = 2
 		error(msg, depthOffset)
 	end
 end
