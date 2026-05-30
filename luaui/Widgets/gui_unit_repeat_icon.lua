@@ -29,6 +29,9 @@ local repeatVBO       = nil
 local repeatShader    = nil
 
 local luaShaderDir        = "LuaUI/Include/"
+-- Select the no-GS DrawPrimitiveAtUnit backend on platforms whose GL backend
+-- does not expose a geometry-shader stage.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
 local InstanceVBOTable    = gl.InstanceVBOTable
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
@@ -71,7 +74,10 @@ local instanceData = {0, 0, 0, 0,  0,  4,  0, 0, 0.85, 0,  0, 1, 0, 1,  0, 0, 0,
 -- GL4 Initialization
 --------------------------------------------------------------------------------
 local function initGL4()
-	local DrawPrimitiveAtUnit     = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
+	local primitivesInclude = UseNoGS
+		and luaShaderDir .. "DrawPrimitiveAtUnitNoGS.lua"
+		or  luaShaderDir .. "DrawPrimitiveAtUnit.lua"
+	local DrawPrimitiveAtUnit     = VFS.Include(primitivesInclude)
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig            = DrawPrimitiveAtUnit.shaderConfig
 
@@ -213,7 +219,11 @@ function widget:DrawScreenEffects()
 	repeatShader:Activate()
 	repeatShader:SetUniform("iconDistance", disticon)
 	repeatShader:SetUniform("addRadius", 0)
-	repeatVBO.VAO:DrawArrays(GL.POINTS, repeatVBO.usedElements)
+	if UseNoGS then
+		repeatVBO.VAO:DrawArrays(GL.TRIANGLES, repeatVBO.numVerts, 0, repeatVBO.usedElements)
+	else
+		repeatVBO.VAO:DrawArrays(GL.POINTS, repeatVBO.usedElements)
+	end
 	repeatShader:Deactivate()
 	gl.Texture(false)
 	gl.DepthTest(false)
