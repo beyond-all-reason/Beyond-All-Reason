@@ -88,6 +88,9 @@ local groundPlateVBO = nil
 local groundPlateShader = nil
 
 local luaShaderDir = "LuaUI/Include/"
+-- Select the no-GS DrawPrimitiveAtUnit backend on platforms whose GL backend
+-- does not expose a geometry-shader stage.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
@@ -155,7 +158,11 @@ function widget:DrawWorldPreUnit()
 		groundPlateShader:Activate()
 		groundPlateShader:SetUniform("iconDistance",disticon) 
 		groundPlateShader:SetUniform("addRadius",0) 
-		groundPlateVBO.VAO:DrawArrays(GL.POINTS,groundPlateVBO.usedElements)
+		if UseNoGS then
+			groundPlateVBO.VAO:DrawArrays(GL.TRIANGLES, groundPlateVBO.numVerts, 0, groundPlateVBO.usedElements)
+		else
+			groundPlateVBO.VAO:DrawArrays(GL.POINTS,groundPlateVBO.usedElements)
+		end
 		groundPlateShader:Deactivate()
 		glTexture(0, false)
 		glCulling(false)
@@ -233,7 +240,10 @@ function widget:Initialize()
 			end
 		end
 	end
-	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local primitivesInclude = UseNoGS
+		and luaShaderDir.."DrawPrimitiveAtUnitNoGS.lua"
+		or  luaShaderDir.."DrawPrimitiveAtUnit.lua"
+	local DrawPrimitiveAtUnit = VFS.Include(primitivesInclude)
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 0
