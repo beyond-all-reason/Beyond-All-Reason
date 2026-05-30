@@ -22,24 +22,35 @@ local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 
 -- Team Startboxes
 local AllyTeamStartboxes = {}
-local AllyTeams = Spring.GetAllyTeamList();
-for _,testAllyTeamID in ipairs(AllyTeams) do
-    local allyTeamHasStartbox = true
-    local xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(testAllyTeamID)
-    if xMin == 0 and zMin == 0 and xMax == mapSizeX and zMax == mapSizeZ then
-        allyTeamHasStartbox = false
+local AllyTeams = Spring.GetAllyTeamList()
+local startPositionsInitialized = false
+
+local function initializeStartPositionTable()
+    if (startPositionsInitialized) then
+        return
     end
-    AllyTeamStartboxes[testAllyTeamID+1] = { -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
-        allyTeamHasStartbox = allyTeamHasStartbox,
-        xMin = xMin,
-        zMin = zMin,
-        xMax = xMax,
-        zMax = zMax,
-    }
+    for _, testAllyTeamID in ipairs(AllyTeams) do
+        local allyTeamHasStartbox = true
+        local xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(testAllyTeamID)
+        if xMin == 0 and zMin == 0 and xMax == mapSizeX and zMax == mapSizeZ then
+            allyTeamHasStartbox = false
+        end
+        AllyTeamStartboxes[testAllyTeamID + 1] = { -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
+            allyTeamHasStartbox = allyTeamHasStartbox,
+            xMin = xMin,
+            zMin = zMin,
+            xMax = xMax,
+            zMax = zMax,
+        }
+        Spring.Echo('AllyTeamId: ' .. tostring(testAllyTeamID) .. ' startx: ' .. tostring(xMin))
+    end
 end
 
-
-
+-- game_ffa_start_setup can shuffle startboxes after this code runs
+if not Spring.Utilities.Gametype.IsFFA() then
+    initializeStartPositionTable()
+    startPositionsInitialized = true
+end
 
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -218,6 +229,10 @@ local function VisibilityCheckEnemy(posx, posy, posz, posradius, allyTeamID, che
 end
 
 local function StartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStartbox) -- Return True when position is within startbox.
+    if (not startPositionsInitialized) then
+        initializeStartPositionTable()
+        startPositionsInitialized = true
+    end
     --local posradius = posradius or 1000
     if not returnTrueWhenNoStartbox then returnTrueWhenNoStartbox = false end
 

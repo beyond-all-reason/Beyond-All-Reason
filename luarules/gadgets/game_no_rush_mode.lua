@@ -17,6 +17,8 @@ local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position
 local norushtimer = Spring.GetModOptions().norushtimer * 1800 -- modoption is stating minutes, and we need frames. 60 seconds * 30 frames = 1800
 local baselocked = not Spring.GetModOptions().norushmiddlefree
 
+local spGetGameFrame = Spring.GetGameFrame
+
 local CommandsToCatchMap = {                                -- CMDTYPES: ICON_MAP, ICON_AREA, ICON_UNIT_OR_MAP, ICON_UNIT_OR_AREA, ICON_UNIT_FEATURE_OR_AREA, ICON_BUILDING
 	[CMD.MOVE] = true,
 	[CMD.PATROL] = true,
@@ -64,7 +66,7 @@ local function RushStartboxCheck(posx, posy, posz, allyTeamID)
 	if baselocked then
 		return positionCheckLibrary.StartboxCheck(posx, posy, posz, allyTeamID)
 	end
-	return positionCheckLibrary.NotInEnemyStartboxCheck(posx, posy, posz, allyTeamID);
+	return positionCheckLibrary.NotInEnemyStartboxCheck(posx, posy, posz, allyTeamID, false);
 end
 
 for _, teamID in ipairs(Spring.GetTeamList()) do
@@ -92,7 +94,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 		local allowed = true
-		local frame = Spring.GetGameFrame()
+		local frame = spGetGameFrame()
 
 		if frame < norushtimer and (not TeamIDsToExclude[unitTeam]) then
 			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam, false)
