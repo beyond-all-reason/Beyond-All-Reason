@@ -17,20 +17,22 @@ local DESOLATION_QUOTA_RATIO = 0.2
 local REDEEMABLE_CHANCE = 0.5
 local TURRET_GAIA_CHANCE = 0.75
 local SHOCKWAVE_DURATION = 45
-local WAIT_DURATION = 1
+local WAIT_DURATION = 30
 local IMPLOSION_DURATION = 300
-local KILL_VARIANCE_FRAMES = 30
+local MAX_POWER_KILL_FRAMES = 40
+local MAX_RANDOM_KILL_FRAMES = 20
 local LIGHTNING_ORANGE_DELAY_FRAMES = 15
-local LIGHTNING_ORANGE_FRACTION = 0.01
+local LIGHTNING_ORANGE_FRACTION = 0.005
 local LIGHTNING_ORANGE_MIN_SPAWNS = 1
+local SHOCKWAVE_LIGHTENING_CHANCE = 0.1
 local SHOCKWAVE_CEG = "tenebrium_implosion"
 local IMPLOSION_CEG = "tenebrium_implosion_collapse"
-local IMPLOSION_SEQUENCE_END_OFFSET = SHOCKWAVE_DURATION + WAIT_DURATION + IMPLOSION_DURATION
+local IMPLOSION_SEQUENCE_END_OFFSET = SHOCKWAVE_DURATION + WAIT_DURATION + IMPLOSION_DURATION + MAX_POWER_KILL_FRAMES + MAX_RANDOM_KILL_FRAMES
+local IMPLOSION_QUINT_EASE_BIAS = 4
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local FIRE_STATE_RETURN_FIRE = 1
 local FIRE_STATE_FIRE_AT_WILL = 2
 local DESOLATION_ORANGE_LIGHTNING_CEG_PREFIX = "tenebrium_desolation_orange_arc_"
-local DESOLATION_TEAL_LIGHTNING_CEG = "tenebrium_desolation_teal_arc"
 local POWERFUL_TURRET_BIAS = 3
 local TURRET_HOTSPOT_COUNT = 5
 local DESOLATE_GAIA = 0
@@ -210,8 +212,10 @@ local function dndStyleDisadvantageBias(rangeCount, degree)
 end
 
 local function outQuint(t)
-	return 1 - (1 - t) ^ 5
+	return 1 - (1 - t) ^ IMPLOSION_QUINT_EASE_BIAS
 end
+
+local implosionEase = outQuint
 
 local function getShockwaveRadiusSq(elapsedFrames, farthestDistanceSq)
 	if SHOCKWAVE_DURATION <= 0 or farthestDistanceSq <= 0 then
@@ -221,11 +225,30 @@ local function getShockwaveRadiusSq(elapsedFrames, farthestDistanceSq)
 	return progress * progress * farthestDistanceSq
 end
 
-local function applyKillVariance(frameOffset)
-	if KILL_VARIANCE_FRAMES <= 0 then
+local function getPowerBiasedVarianceMax(unitPower, minPower, maxPower)
+	if MAX_POWER_KILL_FRAMES <= 0 then
+		return 0
+	end
+	if maxPower <= minPower then
+		return MAX_POWER_KILL_FRAMES
+	end
+	local powerT = (unitPower - minPower) / (maxPower - minPower)
+	return mathFloor(powerT * MAX_POWER_KILL_FRAMES + 0.5)
+end
+
+local function applyKillVariance(frameOffset, unitPower, minPower, maxPower)
+	local randomFrames = 0
+	local powerVarianceMax = getPowerBiasedVarianceMax(unitPower, minPower, maxPower)
+	if powerVarianceMax > 0 then
+		randomFrames = randomFrames + mathRandom(0, powerVarianceMax)
+	end
+	if MAX_RANDOM_KILL_FRAMES > 0 then
+		randomFrames = randomFrames + mathRandom(0, MAX_RANDOM_KILL_FRAMES)
+	end
+	if randomFrames <= 0 then
 		return frameOffset
 	end
-	return mathMax(0, frameOffset + mathRandom(0, KILL_VARIANCE_FRAMES))
+	return mathMax(0, frameOffset + randomFrames)
 end
 
 local function getTowardOriginDirection(positionX, positionY, positionZ, originX, originY, originZ)
@@ -239,7 +262,7 @@ local function getTowardOriginDirection(positionX, positionY, positionZ, originX
 	return dirX / magnitude, dirY / magnitude, dirZ / magnitude
 end
 
-local function spawnTenebriumLightning(unitID, originX, originY, originZ, isWaveEdge)
+local function spawnTenebriumLightning(unitID, originX, originY, originZ)
 	if not spValidUnitID(unitID) then
 		return
 	end
@@ -247,15 +270,10 @@ local function spawnTenebriumLightning(unitID, originX, originY, originZ, isWave
 	if not positionX then
 		return
 	end
-	local cegName
-	if isWaveEdge then
-		cegName = DESOLATION_TEAL_LIGHTNING_CEG
-	else
-		local unitDefID = spGetUnitDefID(unitID)
-		local unitDefEntry = defData[unitDefID]
-		local sizeName = unitDefEntry and unitDefEntry.orangeLightningSize or "small"
-		cegName = DESOLATION_ORANGE_LIGHTNING_CEG_PREFIX .. sizeName
-	end
+	local unitDefID = spGetUnitDefID(unitID)
+	local unitDefEntry = defData[unitDefID]
+	local sizeName = unitDefEntry and unitDefEntry.orangeLightningSize or "small"
+	local cegName = DESOLATION_ORANGE_LIGHTNING_CEG_PREFIX .. sizeName
 	local dirX, dirY, dirZ = getTowardOriginDirection(positionX, positionY, positionZ, originX, originY, originZ)
 	spSpawnCEG(cegName, positionX, positionY, positionZ, dirX, dirY, dirZ)
 end
@@ -311,7 +329,7 @@ local function processOrangeLightningBatch(sequence, gameFrame)
 	for spawnIndex = 1, spawnCount do
 		local randomIndex = mathRandom(1, remainingEligibleCount)
 		eligibleUnits[randomIndex], eligibleUnits[remainingEligibleCount] = eligibleUnits[remainingEligibleCount], eligibleUnits[randomIndex]
-		spawnTenebriumLightning(eligibleUnits[remainingEligibleCount], originX, originY, originZ, false)
+		spawnTenebriumLightning(eligibleUnits[remainingEligibleCount], originX, originY, originZ)
 		remainingEligibleCount = remainingEligibleCount - 1
 	end
 end
@@ -334,7 +352,9 @@ local function processSequenceLightning(sequence, elapsedFrames, gameFrame)
 		end
 		local unitID = unitEntry.unitID
 		if spValidUnitID(unitID) then
-			spawnTenebriumLightning(unitID, sequence.originX, sequence.originY, sequence.originZ, true)
+			if SHOCKWAVE_LIGHTENING_CHANCE > 0 and mathRandom() <= SHOCKWAVE_LIGHTENING_CHANCE then
+				spawnTenebriumLightning(unitID, sequence.originX, sequence.originY, sequence.originZ)
+			end
 			local readyFrame = gameFrame + LIGHTNING_ORANGE_DELAY_FRAMES
 			local readyFrameUnits = sequence.orangeReadyFrames[readyFrame]
 			if not readyFrameUnits then
@@ -436,10 +456,14 @@ local function scheduleImplosion(sequence, unitActions)
 			return distanceSqA > distanceSqB
 		end)
 	end
+	local minPower = sequence.minPower or math.huge
+	local maxPower = sequence.maxPower or -math.huge
 	for actionIndex = 1, actionCount do
 		local rankT = actionCount == 1 and 1 or (actionCount - actionIndex) / (actionCount - 1)
-		local frameOffset = applyKillVariance(mathFloor(outQuint(1 - rankT) * IMPLOSION_DURATION + 0.5))
 		local unitAction = unitActions[actionIndex]
+		local unitDefID = spGetUnitDefID(unitAction.unitID)
+		local unitPower = defData[unitDefID].power or 0
+		local frameOffset = applyKillVariance(mathFloor(implosionEase(1 - rankT) * IMPLOSION_DURATION + 0.5), unitPower, minPower, maxPower)
 		queueDesolationAction(unitAction.unitID, unitAction.fate, implosionStartFrame + frameOffset)
 	end
 end
@@ -532,6 +556,20 @@ local function desolateTeam(teamID)
 	local erasurePowerTargetThreshold = currentPower * DESOLATION_QUOTA_RATIO
 	local unitActions = {}
 	local livingUnits = {}
+	local minPower = math.huge
+	local maxPower = -math.huge
+
+	local function rememberUnitPower(unitID)
+		local unitDefID = spGetUnitDefID(unitID)
+		local unitPower = defData[unitDefID].power or 0
+		if unitPower < minPower then
+			minPower = unitPower
+		end
+		if unitPower > maxPower then
+			maxPower = unitPower
+		end
+		return unitPower
+	end
 
 	for eraseIndex = 1, #teamUnits do
 		if currentPower <= erasurePowerTargetThreshold or #teamUnits == 0 then
@@ -539,8 +577,7 @@ local function desolateTeam(teamID)
 		end
 		local randomSelection = dndStyleDisadvantageBias(#teamUnits, 2)
 		local unitID = teamUnits[randomSelection]
-		local unitDefID = spGetUnitDefID(unitID)
-		local unitPower = defData[unitDefID].power or 0
+		local unitPower = rememberUnitPower(unitID)
 		unitActions[#unitActions + 1] = { unitID = unitID, fate = DESOLATE_ERASE }
 		livingUnits[#livingUnits + 1] = {
 			unitID = unitID,
@@ -552,6 +589,7 @@ local function desolateTeam(teamID)
 
 	for unitIndex = 1, #teamUnits do
 		local unitID = teamUnits[unitIndex]
+		rememberUnitPower(unitID)
 		local fate = chooseFate(unitID)
 		unitActions[#unitActions + 1] = { unitID = unitID, fate = fate }
 		livingUnits[#livingUnits + 1] = {
@@ -561,6 +599,8 @@ local function desolateTeam(teamID)
 	end
 
 	local sequence = scheduleShockwave(currentFrame, cascadeOrigins.x, cascadeOrigins.z, farthestDistanceSq, livingUnits)
+	sequence.minPower = minPower
+	sequence.maxPower = maxPower
 	beginImplosionFireStateLock(currentFrame)
 	scheduleWait(sequence)
 	scheduleImplosion(sequence, unitActions)
