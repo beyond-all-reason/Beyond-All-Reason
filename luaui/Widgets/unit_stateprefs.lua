@@ -317,7 +317,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 end
 
-function widget:UnitFinished(unitID, unitDefID, unitTeam)
+function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	local cmdOpts = GetCmdOpts(false, false, false, true, false)
 
 	local name = unitName[unitDefID]
@@ -343,7 +343,7 @@ local function ApplyUnitStates()
 	local units = (teamID and Spring.GetTeamUnits(teamID)) or Spring.GetAllUnits()
 	if units then
 		for i = 1, #units do
-			widget:UnitFinished(units[i], Spring.GetUnitDefID(units[i]), teamID or Spring.GetUnitTeam(units[i]))
+			widget:UnitCreated(units[i], Spring.GetUnitDefID(units[i]), teamID or Spring.GetUnitTeam(units[i]))
 		end
 	end
 end
