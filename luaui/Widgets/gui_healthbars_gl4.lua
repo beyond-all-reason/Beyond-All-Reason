@@ -407,6 +407,18 @@ local variableBarSizes = true -- Option 'healthbarsvariable'
 local healthBarVBO = nil
 local healthBarShader = nil
 
+-- Select the no-GS expansion path on platforms whose GL backend does not
+-- expose a geometry-shader stage (currently macOS/Metal). Other platforms
+-- continue to use the original GS pipeline (HealthbarsGL4.geom.glsl)
+-- unchanged. The no-GS path folds the GS bar/glyph expansion into a fixed
+-- 90-verts-per-instance VS (HealthbarsGL4NoGS.vert.glsl) drawn via
+-- gl_VertexID as a GL.TRIANGLES list.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
+
+-- Fixed verts/instance emitted by HealthbarsGL4NoGS.vert.glsl
+-- (3 octagons * 18 + 6 glyph slots * 6 = 90). Must match the shader layout.
+local healthbarVertsPerInstance = 90
+
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
@@ -455,14 +467,18 @@ if debugmode then
 	shaderConfig.DEBUGSHOW = 1 -- comment this to always show all bars
 end
 
-local vsSrcPath = "LuaUI/Shaders/HealthbarsGL4.vert.glsl"
-local gsSrcPath = "LuaUI/Shaders/HealthbarsGL4.geom.glsl"
+-- The no-GS path uses a combined instanced VS (HealthbarsGL4NoGS.vert.glsl)
+-- and omits the geometry stage. The GS path uses the original VS + GS pair.
+local vsSrcPath = UseNoGS
+	and "LuaUI/Shaders/HealthbarsGL4NoGS.vert.glsl"
+	or  "LuaUI/Shaders/HealthbarsGL4.vert.glsl"
+local gsSrcPath = (not UseNoGS) and "LuaUI/Shaders/HealthbarsGL4.geom.glsl" or nil
 local fsSrcPath = "LuaUI/Shaders/HealthbarsGL4.frag.glsl"
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,
 		fssrcpath = fsSrcPath,
-		gssrcpath = gsSrcPath,
+		gssrcpath = gsSrcPath, -- nil on macOS/Metal: no geometry-shader stage
 		shaderName = "Health Bars Shader GL4",
 		uniformInt = {
 			healthbartexture = 0;
@@ -549,7 +565,13 @@ local function initializeInstanceVBOTable(myName, usesFeatures)
 	if newVBOTable == nil then goodbye("Failed to create " .. myName) end
 
 	local newVAO = gl.GetVAO()
-	newVAO:AttachVertexBuffer(newVBOTable.instanceVBO)
+	if UseNoGS then
+		-- NoGS: per-unit data advances per instance (divisor 1); the VS uses
+		-- gl_VertexID to fan out a 90-vert triangle list per instance.
+		newVAO:AttachInstanceBuffer(newVBOTable.instanceVBO)
+	else
+		newVAO:AttachVertexBuffer(newVBOTable.instanceVBO)
+	end
 	newVBOTable.VAO = newVAO
 	if usesFeatures then newVBOTable.featureIDs = true end
 	return newVBOTable
@@ -1269,21 +1291,37 @@ function widget:DrawScreenEffects()
 		healthBarShader:SetUniform("cameraDistanceMultGlyph", glphydistmult)
 		healthBarShader:SetUniform("skipGlyphsNumbers",skipGlyphsNumbers)  --0.0 is everything,  1.0 means only numbers, 2.0 means only bars,
 		if healthBarVBO.usedElements > 0 then
-			healthBarVBO.VAO:DrawArrays(GL.POINTS,healthBarVBO.usedElements)
+			if UseNoGS then
+				healthBarVBO.VAO:DrawArrays(GL.TRIANGLES, healthbarVertsPerInstance, 0, healthBarVBO.usedElements)
+			else
+				healthBarVBO.VAO:DrawArrays(GL.POINTS,healthBarVBO.usedElements)
+			end
 		end
 		-- below its the feature bars being drawn:
 			healthBarShader:SetUniform("cameraDistanceMultGlyph", glyphdistmultfeatures)
 			if featureHealthVBO.usedElements > 0 then
 				if not debugmode then healthBarShader:SetUniform("cameraDistanceMult",featureHealthDistMult)  end
-				featureHealthVBO.VAO:DrawArrays(GL.POINTS,featureHealthVBO.usedElements)
+				if UseNoGS then
+					featureHealthVBO.VAO:DrawArrays(GL.TRIANGLES, healthbarVertsPerInstance, 0, featureHealthVBO.usedElements)
+				else
+					featureHealthVBO.VAO:DrawArrays(GL.POINTS,featureHealthVBO.usedElements)
+				end
 			end
 			if featureResurrectVBO.usedElements > 0 then
 				if not debugmode then healthBarShader:SetUniform("cameraDistanceMult",featureResurrectDistMult)  end
-				featureResurrectVBO.VAO:DrawArrays(GL.POINTS,featureResurrectVBO.usedElements)
+				if UseNoGS then
+					featureResurrectVBO.VAO:DrawArrays(GL.TRIANGLES, healthbarVertsPerInstance, 0, featureResurrectVBO.usedElements)
+				else
+					featureResurrectVBO.VAO:DrawArrays(GL.POINTS,featureResurrectVBO.usedElements)
+				end
 			end
 			if featureReclaimVBO.usedElements > 0 then
 				if not debugmode then healthBarShader:SetUniform("cameraDistanceMult",featureReclaimDistMult)  end
-				featureReclaimVBO.VAO:DrawArrays(GL.POINTS,featureReclaimVBO.usedElements)
+				if UseNoGS then
+					featureReclaimVBO.VAO:DrawArrays(GL.TRIANGLES, healthbarVertsPerInstance, 0, featureReclaimVBO.usedElements)
+				else
+					featureReclaimVBO.VAO:DrawArrays(GL.POINTS,featureReclaimVBO.usedElements)
+				end
 			end
 
 		healthBarShader:Deactivate()
