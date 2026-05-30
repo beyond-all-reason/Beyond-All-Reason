@@ -11,7 +11,7 @@ Reasons a Dgun would threaten allies, but be classified as not griefing:
   * Enemies recently detected nearby on vision, radar, or seismic (in case allied radar is briefly destroyed, or LOS is briefly lost, etc)
   * Allies damaged nearby recently (implies enemy activity nearby even if it might be jammed)
   * Enemy unit ghosts detected nearby (generally: enemy buildings. But there are other types of ghosts)
-* Not enough allied metal value threatened (ignored as inconsequential)
+* Not enough allied power threatened (ignored as inconsequential)
 
 Reasons for these exceptions: some Dguns that hit allies are nonetheless for the greater good. e.g.,
 * Dgunning enemy razor but accidentally hitting allied popup nearby;
@@ -69,8 +69,14 @@ local DGUN_SAFETY_WIDTH = 100
 -- Approximate actual width of the dgun projectile
 local DGUN_WIDTH = 20
 
--- Dguns that threaten less than this amount of metal (in allied units) are ignored as inconsequential
-local MIN_THREATENED_ALLY_METAL = 300
+local function GetConstructionTurretPower()
+	local unitDef = UnitDefNames.armnanotc or UnitDefNames.cornanotc or UnitDefNames.legnanotc
+	return (unitDef and unitDef.power) or 0
+end
+
+-- Dguns that threaten less than this amount of allied power are ignored as inconsequential.
+-- Cutoff is arbitrary chosen as 150% the power value of a construction turret
+local MIN_THREATENED_ALLY_POWER = GetConstructionTurretPower() * 1.5
 
 -- 1500 is a bit more than the range of a Vanguard
 -- In my opinion, there is never a reason to even fire a DGun if there is no frontline action within VANGUARD distance
@@ -304,7 +310,7 @@ local function DistPointToSegment(pointX, pointY, pointZ, segmentStartX, segment
 	return math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
 end
 
--- Returns True and explanation of most expensive threatened ally if DGUN threatens too much allied stuff (see: MIN_THREATENED_ALLY_METAL)
+-- Returns True and explanation of most powerful threatened ally if DGUN threatens too much allied stuff (see: MIN_THREATENED_ALLY_POWER)
 -- Returns False and nil if DGUN threatens nothing
 -- Returns False and an explanation if DGUN threatens stuff, but not enough to be concerned about
 local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
@@ -317,9 +323,9 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 	local maxz = math.max(startZ, endZ) + DGUN_SAFETY_WIDTH
 
 	local candidates = spGetUnitsInBox(minx, miny, minz, maxx, maxy, maxz, -3) -- UnitAllegiance::AllyUnit
-	local threatenedAllyMetal = 0
-	local mostExpensiveThreatenedMetal = 0
-	local mostExpensiveThreatenedUnitName = nil
+	local threatenedAllyPower = 0
+	local mostPowerfulThreatenedPower = 0
+	local mostPowerfulThreatenedUnitName = nil
 	for i = 1, #candidates do
 		local unitID = candidates[i]
 		local unitTeam = spGetUnitTeam(unitID)
@@ -333,16 +339,16 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 				if unitX then
 					local d = DistPointToSegment(unitX, unitY, unitZ, startX, startY, startZ, endX, endY, endZ)
 					if d < unitRadius + DGUN_WIDTH / 2 then
-						local threatenedMetal = 0
+						local threatenedPower = 0
 						if unitDef then
-							-- Partially built units only contribute proportional metal value to threat
+							-- Partially built units only contribute proportional power to threat
 							local buildProgress = select(5, spGetUnitHealth(unitID)) or 1
-							threatenedMetal = unitDef.metalCost * math.min(buildProgress, 1)
+							threatenedPower = (unitDef.power or 0) * math.min(buildProgress, 1)
 						end
-						threatenedAllyMetal = threatenedAllyMetal + threatenedMetal
-						if threatenedMetal > mostExpensiveThreatenedMetal then
-							mostExpensiveThreatenedMetal = threatenedMetal
-							mostExpensiveThreatenedUnitName = GetUnitDisplayName(unitDefID)
+						threatenedAllyPower = threatenedAllyPower + threatenedPower
+						if threatenedPower > mostPowerfulThreatenedPower then
+							mostPowerfulThreatenedPower = threatenedPower
+							mostPowerfulThreatenedUnitName = GetUnitDisplayName(unitDefID)
 						end
 					end
 				end
@@ -350,15 +356,15 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 		end
 	end
 
-	if threatenedAllyMetal >= MIN_THREATENED_ALLY_METAL then
-		return true, string.format("DGun threatens %d metal of allies, including %s", threatenedAllyMetal, mostExpensiveThreatenedUnitName or "unknown_unit")
+	if threatenedAllyPower >= MIN_THREATENED_ALLY_POWER then
+		return true, string.format("DGun threatens %d allied power, including %s", threatenedAllyPower, mostPowerfulThreatenedUnitName or "unknown_unit")
 	end
 
-	if threatenedAllyMetal == 0 then
+	if threatenedAllyPower == 0 then
 		return false
 	end
 	
-	return false, string.format("Only %d allied metal threatened (inconsequential)", threatenedAllyMetal)
+	return false, string.format("Only %d allied power threatened (inconsequential)", threatenedAllyPower)
 end
 
 -- If DGun target location is near a visible enemy, it can be fired indiscriminately (it won't be classified as griefing)
