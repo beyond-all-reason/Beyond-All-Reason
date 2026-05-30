@@ -11,7 +11,7 @@ return {
 		collisionvolumescales = "46 24 54",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		explodeas = "largexplosiongeneric",
+		explodeas = "largeExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		leavetracks = true,

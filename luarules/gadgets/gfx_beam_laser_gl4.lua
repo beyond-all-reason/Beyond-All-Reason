@@ -34,6 +34,7 @@ local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 local spGetGameFrame              = Spring.GetGameFrame
 local spGetFrameTimeOffset        = Spring.GetFrameTimeOffset
+local spGetGameSpeed              = Spring.GetGameSpeed
 local spGetProjectileOwnerID      = Spring.GetProjectileOwnerID
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spIsAABBInView              = Spring.IsAABBInView
@@ -51,6 +52,7 @@ local GL_SRC_ALPHA            = GL.SRC_ALPHA
 local mathMin    = math.min
 local mathMax    = math.max
 local mathSqrt   = math.sqrt
+local mathFloor  = math.floor
 
 local LuaShader = gl.LuaShader
 local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
@@ -70,6 +72,16 @@ local GHOST_FRAMES_MAX      = 8     -- ghost frames for thickest beams
 local GHOST_THICKNESS_MIN   = 1.5   -- thickness at or below which gets min ghost frames
 local GHOST_THICKNESS_MAX   = 5.0   -- thickness at or above which gets max ghost frames
 local FLARE_GHOST_FRAC      = 0.4   -- fraction of weapon ghostFrames where flare stays visible (0..1)
+
+-- Hardpoint bucketing: muzzle position is quantized into a coarse grid and the
+-- bucket index is part of the tracking key. This lets multiple hardpoints on
+-- the same unit that share a weaponDefID (e.g. dual-barrel beam turrets) each
+-- get their own tracked beam slot, while still merging consecutive shots from
+-- one rotating turret (whose muzzle moves only a few elmos between shots)
+-- onto the same key -- avoiding the "stuttering rapid-fire trail" that a
+-- per-shot key would produce.
+local HARDPOINT_BUCKET_SIZE = 12    -- elmos per bucket on each axis
+local INV_HARDPOINT_BUCKET  = 1 / HARDPOINT_BUCKET_SIZE
 
 -- Textures
 local beamTexture  = "bitmaps/projectiletextures/largebeam.tga"
@@ -226,14 +238,48 @@ end
 -- has ONE ghost beam per weapon, at its most recent position.
 -- Key = unitID * 65536 + weaponDefID  (fast integer key, no string alloc)
 --------------------------------------------------------------------------------
-local weaponBeams = {}   -- key -> { cfg, px, py, pz, endX, endY, endZ, lastSeenFrame }
+-- weaponBeams is keyed two levels deep to avoid per-frame string-concat allocations:
+--   weaponBeams[ownerID][innerKey] = rec
+-- innerKey packs (wDefID, bx, by, bz) into a single number (see BEAM_INNER_KEY_*).
+-- Each rec carries .liveStamp and .liveSlot so we don't need parallel liveKeys /
+-- liveBeamSlot / liveKeysList dicts (each of which cost a string concat per beam
+-- per frame). "Live this call" test is simply rec.liveStamp == callStamp; the
+-- dedupe slot is rec.liveSlot, only meaningful when liveStamp matches.
+local weaponBeams = {}   -- [ownerID] = { [innerKey] = rec }
 local beamCleanupFrame = 0
 local hasGhosts = false    -- true when weaponBeams has any entries (skip ghost loop when empty)
-local liveKeys = {}        -- reused each frame, nil-cleared instead of reallocated
-local liveKeysList = {}    -- tracks keys to clear
-local liveBeamSlot = {}    -- wbKey -> offset slot in beamData (dedupe multiple projectiles per emitter)
-local removeList = {}      -- reused across cleanup cycles
+local removeOwnerList = {} -- reused across cleanup cycles
+local removeKeyList = {}   -- parallel to removeOwnerList
 local removeCount = 0
+
+-- Object pools: avoid allocating fresh tracked records / ownerBeams sub-tables
+-- every time a hardpoint resumes firing after a pause (or a unit fires for the
+-- first time). Reused entries are reset on acquire; on release we strip cfg
+-- (the only field that might pin a stale reference).
+local trackedPool      = {}
+local trackedPoolN     = 0
+local ownerBeamsPool   = {}
+local ownerBeamsPoolN  = 0
+
+local function releaseTrackedBeam(rec)
+	rec.cfg = nil
+	trackedPoolN = trackedPoolN + 1
+	trackedPool[trackedPoolN] = rec
+end
+
+local function releaseOwnerBeams(t)
+	ownerBeamsPoolN = ownerBeamsPoolN + 1
+	ownerBeamsPool[ownerBeamsPoolN] = t
+end
+-- Bucket-key packing constants. Per-axis range is 4096 (12 bits) with +2048 offset
+-- to handle negative bucket indices. wDefID occupies the high "digit".
+-- Max value = 65535 * 4096^3 + 4095 * 4096^2 + 4095 * 4096 + 4095 ≈ 4.5e15,
+-- well under Lua's 2^53 ≈ 9e15 safe-integer ceiling for doubles.
+local BEAM_KEY_AXIS_OFFSET = 2048
+local BEAM_KEY_BZ_MUL = 1
+local BEAM_KEY_BY_MUL = 4096
+local BEAM_KEY_BX_MUL = 4096 * 4096
+local BEAM_KEY_WDEFID_MUL = 4096 * 4096 * 4096
 
 --------------------------------------------------------------------------------
 -- Shader sources: Beam (direction-aligned quad)
@@ -262,6 +308,7 @@ out DataVS {
 	vec4 vEdgeColor;
 	float alpha;
 	float widthPos;  // -1..1 across beam width (for per-pixel core calc)
+	float coverage;  // true beam width / inflated geometry width (0..1, =1 close, <1 far)
 };
 
 void main()
@@ -323,7 +370,7 @@ void main()
 	// entire beam (per-vertex camDist causes start to appear narrower than middle)
 	float camDist = length(camPos - mix(startPos, endPos, 0.5));
 	float minWidth = camDist * MIN_PIXEL_WIDTH;
-	float coverage = clamp(width / max(minWidth, 0.001), 0.0, 1.0);
+	float coverageVal = clamp(width / max(minWidth, 0.001), 0.0, 1.0);
 	width = max(width, minWidth);
 
 	vec3 vertexWorld = vertPos
@@ -338,11 +385,19 @@ void main()
 	vCoreColor = coreColor;
 	vEdgeColor = edgeColor;
 	widthPos = position_xy_uv.x;  // -1..1
+	coverage = coverageVal;
 
-	// Alpha: fade with lifetime and slight range falloff
+	// Alpha: fade with lifetime and slight range falloff.
+	// When the beam is widened to MIN_PIXEL_WIDTH (coverage < 1), we dim alpha to
+	// conserve total emitted energy. Linear dim by `coverage` is energy-correct
+	// but visually crushes the core at distance, while no dim at all over-bright
+	// the inflated quad and produces line-ish jaggies. A sqrt curve is a good
+	// middle ground: noticeably brighter than linear at small coverage, still
+	// fades out gracefully, and lets fwidth-AA on the full inflated quad keep
+	// edges smooth.
 	float rangeFalloff = edgeColor.a;
 	float alphaFalloff = 1.0 - rangeFalloff * yNorm;
-	alpha = coreColor.a * lifePulse * alphaFalloff * coverage;
+	alpha = coreColor.a * lifePulse * alphaFalloff * sqrt(coverageVal);
 }
 ]]
 
@@ -363,6 +418,7 @@ in DataVS {
 	vec4 vEdgeColor;
 	float alpha;
 	float widthPos;
+	float coverage;
 };
 
 out vec4 fragColor;
@@ -874,9 +930,70 @@ local pulseShader
 -- Idle skip
 local idleSkipCounter = 0
 
+-- Monotonically incrementing stamp, bumped once per updateBeams() call. Used
+-- as tracked.liveStamp so the same-emitter dedupe path triggers only for
+-- multiple projectiles seen WITHIN ONE updateBeams pass, not across separate
+-- DrawWorld calls within the same sim frame (DrawWorld runs at the display
+-- rate, gameFrame only ticks at 30Hz, so using gameFrame here would dedupe
+-- every render after the first within a sim frame and zero out beamCount).
+local updateBeamsStamp = 0
+
 -- Last sim frame in which DrawWorld ran. Used to skip the GameFrame scan when
 -- the renderer is keeping up (avoids redundant work at normal/high FPS).
 local lastDrawWorldSimFrame = -1
+
+-- When paused, projectile state doesn't change between frames, but the camera
+-- can still pan/zoom -- so we must re-run view culling. To avoid the large
+-- per-frame spGetProjectilesInRectangle allocation (which returns every weapon
+-- projectile, including flamethrowers etc.), we cache just the beam-laser
+-- projectile IDs on the first paused frame and iterate that small cache on
+-- subsequent paused frames.
+local lastUpdateWasPaused = false
+local pausedBeamCache = {}        -- list of proIDs (beam-laser only)
+local pausedBeamCacheCount = 0
+
+-- Paused-state camera tracking: while paused, only rebuild when camera moves
+-- (projectile state is frozen, so unchanged camera == unchanged output).
+-- These are kept inside pausedShouldSkipRebuild() so updateBeams() doesn't
+-- carry them as upvalues (it is already at Lua's 60-upvalue limit).
+local pausedCamX, pausedCamY, pausedCamZ = 0, 0, 0
+local pausedCamDX, pausedCamDY, pausedCamDZ = 0, 0, 0
+local pausedLastRebuildTimer = nil
+
+-- Returns true if the per-frame rebuild in updateBeams() can be skipped while
+-- paused (camera unchanged, or wall-clock throttle still active). Maintains
+-- the camera cache + timer internally so the calling function avoids the
+-- associated upvalues.
+local function pausedShouldSkipRebuild(usePausedCache, isPaused)
+	if usePausedCache then
+		local cx, cy, cz = Spring.GetCameraPosition()
+		local dx, dy, dz = Spring.GetCameraDirection()
+		if cx == pausedCamX and cy == pausedCamY and cz == pausedCamZ
+			and dx == pausedCamDX and dy == pausedCamDY and dz == pausedCamDZ then
+			return true
+		end
+		-- Camera moved while paused: cap rebuild rate to ~20Hz wall-clock
+		-- (FPS-independent, stays cheap at uncapped paused FPS during pans).
+		local now = Spring.GetTimer()
+		if pausedLastRebuildTimer and Spring.DiffTimers(now, pausedLastRebuildTimer) < 0.05 then
+			return true
+		end
+		pausedLastRebuildTimer = now
+		pausedCamX, pausedCamY, pausedCamZ = cx, cy, cz
+		pausedCamDX, pausedCamDY, pausedCamDZ = dx, dy, dz
+	elseif isPaused then
+		-- First paused frame: prime camera cache so we can early-out next frame.
+		pausedCamX, pausedCamY, pausedCamZ = Spring.GetCameraPosition()
+		pausedCamDX, pausedCamDY, pausedCamDZ = Spring.GetCameraDirection()
+		pausedLastRebuildTimer = nil
+	end
+	return false
+end
+
+-- Subscription handle for the shared projectile dispatcher (set in Initialize).
+-- When non-nil, GetMatches already returns the pre-filtered + per-frame-cached
+-- list of beam-laser proIDs, which also makes the pausedBeamCache redundant.
+local dispatchHandle = nil
 
 -- Cached ally team
 local cachedAllyTeamID = spGetMyAllyTeamID()
@@ -1094,28 +1211,67 @@ local function findLosBoundary(sx, sz, ex, ez, allyTeam, startInLos)
 end
 
 local function updateBeams()
-	-- Idle skip: throttle when no beams or ghosts active
-	if idleSkipCounter > 0 then
+	-- Pause handling: the camera can still move while paused, so we must keep
+	-- doing view culling -- but projectile state is frozen, so we don't need
+	-- to re-poll every weapon projectile on the map each frame. On the first
+	-- paused frame we build a small cache of just the beam-laser projectile
+	-- IDs; subsequent paused frames iterate that cache instead of calling
+	-- spGetProjectilesInRectangle (which allocates a fresh table containing
+	-- every weapon projectile, e.g. flamethrowers, even with no beam lasers).
+	local _, _, isPaused = spGetGameSpeed()
+	local usePausedCache = isPaused and lastUpdateWasPaused
+	lastUpdateWasPaused = isPaused
+
+	-- While paused, projectile state is frozen, so the only thing that can
+	-- change the rendered output is the camera moving. The helper below short-
+	-- circuits the entire per-beam scan + AABB cull + VBO upload when camera is
+	-- unchanged (or throttle-gated during a pan); the existing VBO contents are
+	-- replayed by drawAll(). Kept as a separate function so this function stays
+	-- under Lua's 60-upvalue limit.
+	if pausedShouldSkipRebuild(usePausedCache, isPaused) then return end
+
+	-- Idle skip: throttle when no beams or ghosts active. Disabled while paused
+	-- so camera pans always re-cull. (When using the paused cache the cost is
+	-- minimal: a per-beam AABB-in-view check, no projectile-list allocation.)
+	if not isPaused and idleSkipCounter > 0 then
 		idleSkipCounter = idleSkipCounter - 1
 		return
 	end
 
 	beamVBO.usedElements = 0
 
+	updateBeamsStamp = updateBeamsStamp + 1
+	local callStamp = updateBeamsStamp
+
 	local gameFrame = spGetGameFrame()
 	local dto = spGetFrameTimeOffset()
 
-	-- Clear liveKeys from previous frame (nil-clear, no table alloc)
-	for i = 1, #liveKeysList do
-		liveKeys[liveKeysList[i]] = nil
-		liveBeamSlot[liveKeysList[i]] = nil
-	end
-	local liveKeysCount = 0
+	-- No per-frame clear needed: rec.liveStamp is stamped to callStamp on every
+	-- live sighting and compared back here, so stale .liveSlot values from prior
+	-- calls are naturally ignored by the "rec.liveStamp == callStamp" guard.
 
 	-- Scan ALL weapon projectiles map-wide (not just camera-visible ones).
 	-- GetVisibleProjectiles culls by projectile origin, which misses beams
 	-- whose start is off-screen but whose middle or end is on-screen.
-	local projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
+	-- Prefer the shared dispatcher: it caches the map-wide scan once per tick
+	-- (sim frame, or per render frame while paused) and pre-filters by
+	-- weaponDefID so we don't iterate flamethrower/etc. projectiles here.
+	local projectiles, matchDefIDs, projectileCount
+	local PS = GG.ProjectileScan
+	local dispatcherFiltered = (PS ~= nil and dispatchHandle ~= nil)
+	if dispatcherFiltered then
+		projectiles, matchDefIDs, projectileCount = PS.GetMatchesWithDefIDs(dispatchHandle)
+	elseif usePausedCache then
+		projectiles = pausedBeamCache
+		projectileCount = pausedBeamCacheCount
+	else
+		projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
+		projectileCount = projectiles and #projectiles or 0
+		if isPaused then
+			-- Reset cache; it will be filled below as we discover beam projectiles.
+			pausedBeamCacheCount = 0
+		end
+	end
 	local beamData = beamVBO.instanceData
 	local beamCount = 0
 	local offset = 0
@@ -1123,11 +1279,25 @@ local function updateBeams()
 	local needLosCheck = not cachedSpecFullView
 
 	if projectiles then
-		for i = 1, #projectiles do
+		for i = 1, projectileCount do
 			local proID = projectiles[i]
-			local wDefID = spGetProjectileDefID(proID)
-			local cfg = wDefID and weaponConfigs[wDefID]
+			local wDefID, cfg
+			if dispatcherFiltered then
+				wDefID = matchDefIDs[i]
+				cfg = weaponConfigs[wDefID]
+			else
+				wDefID = spGetProjectileDefID(proID)
+				cfg = wDefID and weaponConfigs[wDefID]
+			end
 			if cfg then
+				-- On the first paused frame, record beam projectiles so subsequent
+				-- paused frames can iterate this small cache instead of re-polling.
+				-- (Only meaningful in the fallback path; the dispatcher already
+				-- caches its scan per render frame while paused.)
+				if (not dispatcherFiltered) and isPaused and not usePausedCache then
+					pausedBeamCacheCount = pausedBeamCacheCount + 1
+					pausedBeamCache[pausedBeamCacheCount] = proID
+				end
 				local px, py, pz = spGetProjectilePosition(proID)
 				if px then
 					local vx, vy, vz = spGetProjectileVelocity(proID)
@@ -1191,29 +1361,46 @@ local function updateBeams()
 								mathMax(px, endX) + pad, mathMax(py, endY) + pad, mathMax(pz, endZ) + pad
 							) then
 								local ownerID = spGetProjectileOwnerID(proID) or 0
-								-- Key = "ownerID|wDefID". Muzzle position deliberately
-								-- excluded: turrets rotate between shots, so including the
-								-- muzzle would give every shot a fresh key, and the previous
-								-- shot's tracked entry would linger as a ghost beam while the
-								-- new one renders -- looking like a stuttering rapid-fire
-								-- trail instead of a single moving beam.
-								-- Different beam weapons on the same unit (e.g. corhllt's
-								-- hllt_top + hllt_bottom) have distinct wDefIDs, so owner+wDef
-								-- already disambiguates them. Multiple hardpoints sharing the
-								-- SAME wDefID on one unit (rare for beam lasers) would alias,
-								-- but the result -- one of the two beams winning per frame --
-								-- is less visually disruptive than the ghost-stacking trail.
-								local wbKey = ownerID .. "|" .. wDefID
-								if not liveKeys[wbKey] then
-									liveKeys[wbKey] = true
-									liveKeysCount = liveKeysCount + 1
-									liveKeysList[liveKeysCount] = wbKey
+								-- Key = ownerID -> packed(wDefID, bx, by, bz) where bx/by/bz quantize
+								-- the muzzle position into HARDPOINT_BUCKET_SIZE-elmo cells. Multiple
+								-- hardpoints on one unit that share a weaponDefID (e.g. dual-barrel
+								-- beam turrets) land in different buckets and each get their own
+								-- tracked beam, fixing the bug where only one barrel rendered.
+								-- Rotation drift on a single hardpoint between shots is well below
+								-- one bucket, so consecutive shots still merge onto the same key
+								-- and don't produce a "stuttering rapid-fire trail" of ghost beams.
+								-- Numeric packing avoids the 5x string-concat allocations the old
+								-- "ownerID|wDefID|bx,by,bz" key cost per beam per frame.
+								local bx = mathFloor(origPx * INV_HARDPOINT_BUCKET)
+								local by = mathFloor(origPy * INV_HARDPOINT_BUCKET)
+								local bz = mathFloor(origPz * INV_HARDPOINT_BUCKET)
+								local innerKey = wDefID * BEAM_KEY_WDEFID_MUL
+									+ (bx + BEAM_KEY_AXIS_OFFSET) * BEAM_KEY_BX_MUL
+									+ (by + BEAM_KEY_AXIS_OFFSET) * BEAM_KEY_BY_MUL
+									+ (bz + BEAM_KEY_AXIS_OFFSET)
+								local ownerBeams = weaponBeams[ownerID]
+								if not ownerBeams then
+									if ownerBeamsPoolN > 0 then
+										ownerBeams = ownerBeamsPool[ownerBeamsPoolN]
+										ownerBeamsPool[ownerBeamsPoolN] = nil
+										ownerBeamsPoolN = ownerBeamsPoolN - 1
+									else
+										ownerBeams = {}
+									end
+									weaponBeams[ownerID] = ownerBeams
 								end
-
-								local tracked = weaponBeams[wbKey]
+								local tracked = ownerBeams[innerKey]
 								if not tracked then
-									tracked = { cfg = cfg }
-									weaponBeams[wbKey] = tracked
+									if trackedPoolN > 0 then
+										tracked = trackedPool[trackedPoolN]
+										trackedPool[trackedPoolN] = nil
+										trackedPoolN = trackedPoolN - 1
+										tracked.cfg = cfg
+										tracked.liveStamp = 0
+									else
+										tracked = { cfg = cfg }
+									end
+									ownerBeams[innerKey] = tracked
 									hasGhosts = true
 								end
 
@@ -1231,14 +1418,14 @@ local function updateBeams()
 								-- (target-switch creates overlapping projectiles), reuse its
 								-- slot so the newest projectile overwrites the previous one
 								-- instead of rendering as a parallel beam.
-								local slotOffset = liveBeamSlot[wbKey]
 								local savedOffset
-								if slotOffset then
+								if tracked.liveStamp == callStamp then
 									savedOffset = offset
-									offset = slotOffset
+									offset = tracked.liveSlot
 								else
+									tracked.liveStamp = callStamp
+									tracked.liveSlot = offset
 									beamCount = beamCount + 1
-									liveBeamSlot[wbKey] = offset
 								end
 								beamData[offset + 1]  = px
 								beamData[offset + 2]  = py
@@ -1281,13 +1468,11 @@ local function updateBeams()
 		end
 	end
 
-	-- Trim liveKeysList
-	for i = liveKeysCount + 1, #liveKeysList do liveKeysList[i] = nil end
-
 	-- Ghost beams: skip entire loop when no tracked beams exist
 	if hasGhosts then
-		for wbKey, tracked in pairs(weaponBeams) do
-			if not liveKeys[wbKey] and tracked.px then
+		for _, ownerBeams in pairs(weaponBeams) do
+			for _, tracked in pairs(ownerBeams) do
+			if tracked.liveStamp ~= callStamp and tracked.px then
 				local cfg = tracked.cfg
 				local ghostAge = gameFrame - tracked.lastSeenFrame
 				if ghostAge >= 1 and ghostAge <= cfg.ghostFrames then
@@ -1372,6 +1557,7 @@ local function updateBeams()
 					end -- ghostVisible
 				end
 			end
+			end -- inner for over ownerBeams
 		end
 	end
 
@@ -1396,6 +1582,17 @@ function gadget:Initialize()
 	if not initGL4() then return end
 	local n = 0
 	for _ in pairs(weaponConfigs) do n = n + 1 end
+
+	-- Subscribe to the shared projectile dispatcher (map-wide weapon scan).
+	-- When loaded, GetMatches returns the pre-filtered beam projectile list
+	-- once per tick, shared with the lightning cannon (same scan ID) and the
+	-- other gfx_*_gl4 gadgets, eliminating duplicate engine calls.
+	local PS = GG.ProjectileScan
+	if PS then
+		local defIDSet = {}
+		for wDefID in pairs(weaponConfigs) do defIDSet[wDefID] = true end
+		dispatchHandle = PS.Subscribe("beam_laser", defIDSet, PS.SCAN_MAP_WEAPONS)
+	end
 end
 
 function gadget:GameFrame(n)
@@ -1407,23 +1604,64 @@ function gadget:GameFrame(n)
 	if lastDrawWorldSimFrame >= n - 1 then
 		-- fall through to cleanup only
 	else
-	local simProjectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
+	local simProjectiles, simMatchDefIDs, simCount
+	local PS = GG.ProjectileScan
+	local dispatcherFiltered = (PS ~= nil and dispatchHandle ~= nil)
+	if dispatcherFiltered then
+		simProjectiles, simMatchDefIDs, simCount = PS.GetMatchesWithDefIDs(dispatchHandle)
+	else
+		simProjectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
+		simCount = simProjectiles and #simProjectiles or 0
+	end
 	if simProjectiles then
-		for i = 1, #simProjectiles do
+		for i = 1, simCount do
 			local proID = simProjectiles[i]
-			local wDefID = spGetProjectileDefID(proID)
-			local cfg = wDefID and weaponConfigs[wDefID]
+			local wDefID, cfg
+			if dispatcherFiltered then
+				wDefID = simMatchDefIDs[i]
+				cfg = weaponConfigs[wDefID]
+			else
+				wDefID = spGetProjectileDefID(proID)
+				cfg = wDefID and weaponConfigs[wDefID]
+			end
 			if cfg then
 				local px, py, pz = spGetProjectilePosition(proID)
 				if px then
 					local vx, vy, vz = spGetProjectileVelocity(proID)
 					if vx then
 						local ownerID = spGetProjectileOwnerID(proID) or 0
-						local wbKey = ownerID .. "|" .. wDefID
-						local tracked = weaponBeams[wbKey]
+						-- Bucketed muzzle position in key disambiguates multiple hardpoints
+						-- sharing one wDefID on the same unit. See DrawWorld for rationale.
+						local bx = mathFloor(px * INV_HARDPOINT_BUCKET)
+						local by = mathFloor(py * INV_HARDPOINT_BUCKET)
+						local bz = mathFloor(pz * INV_HARDPOINT_BUCKET)
+						local innerKey = wDefID * BEAM_KEY_WDEFID_MUL
+							+ (bx + BEAM_KEY_AXIS_OFFSET) * BEAM_KEY_BX_MUL
+							+ (by + BEAM_KEY_AXIS_OFFSET) * BEAM_KEY_BY_MUL
+							+ (bz + BEAM_KEY_AXIS_OFFSET)
+						local ownerBeams = weaponBeams[ownerID]
+						if not ownerBeams then
+							if ownerBeamsPoolN > 0 then
+								ownerBeams = ownerBeamsPool[ownerBeamsPoolN]
+								ownerBeamsPool[ownerBeamsPoolN] = nil
+								ownerBeamsPoolN = ownerBeamsPoolN - 1
+							else
+								ownerBeams = {}
+							end
+							weaponBeams[ownerID] = ownerBeams
+						end
+						local tracked = ownerBeams[innerKey]
 						if not tracked then
-							tracked = { cfg = cfg }
-							weaponBeams[wbKey] = tracked
+							if trackedPoolN > 0 then
+								tracked = trackedPool[trackedPoolN]
+								trackedPool[trackedPoolN] = nil
+								trackedPoolN = trackedPoolN - 1
+								tracked.cfg = cfg
+								tracked.liveStamp = 0
+							else
+								tracked = { cfg = cfg }
+							end
+							ownerBeams[innerKey] = tracked
 							hasGhosts = true
 						end
 						tracked.px   = px;       tracked.py   = py;       tracked.pz   = pz
@@ -1440,21 +1678,50 @@ function gadget:GameFrame(n)
 	end
 	end -- low-FPS scan
 
-	-- Periodic cleanup of stale weapon beam entries (expired ghosts)
+	-- Periodic cleanup of stale weapon beam entries (expired ghosts).
+	-- Two-level walk; also drops empty ownerBeams sub-tables so they don't
+	-- accumulate for units that have stopped firing entirely.
 	if n > beamCleanupFrame then
 		beamCleanupFrame = n + 30
 		removeCount = 0
 		local anyRemain = false
-		for wbKey, tracked in pairs(weaponBeams) do
-			if n - (tracked.lastSeenFrame or 0) > GHOST_FRAMES_MAX + 2 then
+		local staleThreshold = GHOST_FRAMES_MAX + 2
+		for ownerID, ownerBeams in pairs(weaponBeams) do
+			local ownerEmpty = true
+			for innerKey, tracked in pairs(ownerBeams) do
+				if n - (tracked.lastSeenFrame or 0) > staleThreshold then
+					removeCount = removeCount + 1
+					removeOwnerList[removeCount] = ownerID
+					removeKeyList[removeCount] = innerKey
+				else
+					ownerEmpty = false
+					anyRemain = true
+				end
+			end
+			if ownerEmpty then
+				-- Defer the actual nil-out to the removal pass below so we don't
+				-- mutate weaponBeams during iteration. Marking the owner with a
+				-- sentinel key signals "remove this whole sub-table".
 				removeCount = removeCount + 1
-				removeList[removeCount] = wbKey
-			else
-				anyRemain = true
+				removeOwnerList[removeCount] = ownerID
+				removeKeyList[removeCount] = false
 			end
 		end
 		for i = 1, removeCount do
-			weaponBeams[removeList[i]] = nil
+			local ownerID = removeOwnerList[i]
+			local innerKey = removeKeyList[i]
+			if innerKey == false then
+				local ownerBeams = weaponBeams[ownerID]
+				weaponBeams[ownerID] = nil
+				if ownerBeams then releaseOwnerBeams(ownerBeams) end
+			else
+				local ownerBeams = weaponBeams[ownerID]
+				if ownerBeams then
+					local rec = ownerBeams[innerKey]
+					ownerBeams[innerKey] = nil
+					if rec then releaseTrackedBeam(rec) end
+				end
+			end
 		end
 		hasGhosts = anyRemain
 	end

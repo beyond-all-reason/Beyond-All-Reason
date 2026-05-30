@@ -61,6 +61,15 @@ end
 local maxunits = tonumber(Spring.GetModOptions().maxunits) or 2000
 local engineLimit = 32000
 local gaiaLimit = 500
+if (Spring.GetModOptions().ruins == "enabled" or (Spring.GetModOptions().ruins == "scav_only" and Spring.Utilities.Gametype.IsScavengers())) then
+	if Spring.GetModOptions().ruins_density == "normal" then
+		gaiaLimit = 750
+	elseif Spring.GetModOptions().ruins_density == "dense" then
+		gaiaLimit = 1150
+	elseif Spring.GetModOptions().ruins_density == "verydense" then
+		gaiaLimit = 2000
+	end
+end
 local scavengerRaptorLimit = 3500  -- Minimum maxunits for Scavenger/Raptor teams
 local equalizationFactor = 0.25  -- How much to equalize (0 = no equalization, 1 = full equalization). 0.25 means go 25% of the way toward equal allyteam totals
 
