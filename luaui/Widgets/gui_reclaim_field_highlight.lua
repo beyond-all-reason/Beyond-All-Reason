@@ -3557,7 +3557,7 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	screenx, screeny = widgetHandler:GetViewSizes()
 	vsx, vsy = Spring.GetViewGeometry()
-	local f = WG['fonts'] and WG['fonts'].getFont(1, 1.5)
+	local f = WG['fonts'] and WG['fonts'].getFont(2, 1.5)
 	animCfg.font = f
 	animCfg.getTextWidth = (f and f.GetTextWidth) and function(text) return f:GetTextWidth(text) end or gl.GetTextWidth
 end
