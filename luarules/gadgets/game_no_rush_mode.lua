@@ -15,7 +15,7 @@ end
 -- Get Startbox Area of every player
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 local norushtimer = Spring.GetModOptions().norushtimer * 1800 -- modoption is stating minutes, and we need frames. 60 seconds * 30 frames = 1800
-local baselocked = not Spring.GetModOptions().norushmiddlefree
+local confinedToBase = not Spring.GetModOptions().norushmiddlefree
 
 local spGetGameFrame = Spring.GetGameFrame
 
@@ -63,10 +63,10 @@ local LuaAIsToExclude = {
 local TeamIDsToExclude = {} -- dynamically filled below
 
 local function RushStartboxCheck(posx, posy, posz, allyTeamID)
-	if baselocked then
+	if confinedToBase then
 		return positionCheckLibrary.StartboxCheck(posx, posy, posz, allyTeamID)
 	end
-	return positionCheckLibrary.NotInEnemyStartboxCheck(posx, posy, posz, allyTeamID, false);
+	return positionCheckLibrary.NotInEnemyStartboxCheck(posx, posy, posz, allyTeamID);
 end
 
 for _, teamID in ipairs(Spring.GetTeamList()) do
