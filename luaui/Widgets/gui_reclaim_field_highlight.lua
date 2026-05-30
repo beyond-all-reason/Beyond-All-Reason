@@ -3694,9 +3694,11 @@ function widget:DrawWorld()
 					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
 					if effAlpha > 0.01 then
 						widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * effAlpha)
+						local fs = cluster.font
+						local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
 						glPushMatrix()
 						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
-						widgetFont:Print(cluster.text, 0, 0, cluster.font, "cov")
+						widgetFont:Print(cluster.text, textOX, 0, fs, "cov")
 						glPopMatrix()
 					end
 				end
@@ -3705,9 +3707,11 @@ function widget:DrawWorld()
 				local alpha = entry.alpha or 0
 				if alpha > 0.01 and entry.text then
 					widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * alpha)
+					local fs = entry.font or fontSizeMin
+					local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
 					glPushMatrix()
 					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
-					widgetFont:Print(entry.text, 0, 0, entry.font or fontSizeMin, "cov")
+					widgetFont:Print(entry.text, textOX, 0, fs, "cov")
 					glPopMatrix()
 				end
 			end
@@ -3721,9 +3725,11 @@ function widget:DrawWorld()
 					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
 					if effAlpha > 0.01 then
 						widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * effAlpha)
+						local fs = cluster.font * energyTextSizeMultiplier
+						local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
 						glPushMatrix()
 						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
-						widgetFont:Print(cluster.text, 0, 0, cluster.font * energyTextSizeMultiplier, "cov")
+						widgetFont:Print(cluster.text, textOX, 0, fs, "cov")
 						glPopMatrix()
 					end
 				end
@@ -3732,9 +3738,11 @@ function widget:DrawWorld()
 				local alpha = entry.alpha or 0
 				if alpha > 0.01 and entry.text then
 					widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * alpha)
+					local fs = (entry.font or fontSizeMin) * energyTextSizeMultiplier
+					local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
 					glPushMatrix()
 					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
-					widgetFont:Print(entry.text, 0, 0, (entry.font or fontSizeMin) * energyTextSizeMultiplier, "cov")
+					widgetFont:Print(entry.text, textOX, 0, fs, "cov")
 					glPopMatrix()
 				end
 			end
@@ -3814,7 +3822,7 @@ function widget:DrawWorld()
 						local fs = cluster.font
 						local is = fs * iconSizeRatio
 						local tw = getTextWidth(cluster.text) * fs
-						local ix1 = -(tw * 0.5 + fs * iconGapRatio + is)
+						local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 						glPushMatrix()
 						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
 						glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * effAlpha)
@@ -3829,7 +3837,7 @@ function widget:DrawWorld()
 					local fs = entry.font or fontSizeMin
 					local is = fs * iconSizeRatio
 					local tw = getTextWidth(entry.text) * fs
-					local ix1 = -(tw * 0.5 + fs * iconGapRatio + is)
+					local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 					glPushMatrix()
 					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
 					glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * alpha)
@@ -3849,7 +3857,7 @@ function widget:DrawWorld()
 						local fs = cluster.font * energyTextSizeMultiplier
 						local is = fs * iconSizeRatio
 						local tw = getTextWidth(cluster.text) * fs
-						local ix1 = -(tw * 0.5 + fs * iconGapRatio + is)
+						local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 						glPushMatrix()
 						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
 						glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * effAlpha)
@@ -3864,7 +3872,7 @@ function widget:DrawWorld()
 					local fs = (entry.font or fontSizeMin) * energyTextSizeMultiplier
 					local is = fs * iconSizeRatio
 					local tw = getTextWidth(entry.text) * fs
-					local ix1 = -(tw * 0.5 + fs * iconGapRatio + is)
+					local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 					glPushMatrix()
 					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
 					glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * alpha)
