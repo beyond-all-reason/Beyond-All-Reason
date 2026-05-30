@@ -41,7 +41,7 @@ local numberColor = {0.9, 0.9, 0.9, 1}
 local energyNumberColor = {1.0, 0.9, 0.1, 1}
 
 -- Resource icons (shown in front of each metal/energy value label)
-local showResourceIcons = true -- Set to false to hide the icons
+local showResourceIcons = false -- Enabled at runtime only in scenario games
 local iconSizeRatio = 1.0    -- Icon size relative to text font size
 local iconGapRatio  = 0.0     -- Gap between icon and text relative to font size
 local fontSizeMin = 25
@@ -3253,6 +3253,7 @@ end
 
 function widget:Initialize()
 	gameStarted = Spring.GetGameFrame() > 0
+	showResourceIcons = Spring.GetModOptions().scenariooptions ~= nil
 	screenx, screeny = widgetHandler:GetViewSizes()
 	local f = WG['fonts'] and WG['fonts'].getFont(2, 1.5)
 	animCfg.font = f
