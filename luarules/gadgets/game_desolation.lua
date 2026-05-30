@@ -19,12 +19,12 @@ local TURRET_GAIA_CHANCE = 0.75
 local SHOCKWAVE_DURATION = 45
 local WAIT_DURATION = 30
 local IMPLOSION_DURATION = 300
-local MAX_POWER_KILL_FRAMES = 40
+local MAX_POWER_KILL_FRAMES = 70
 local MAX_RANDOM_KILL_FRAMES = 20
-local LIGHTNING_ORANGE_DELAY_FRAMES = 15
-local LIGHTNING_ORANGE_FRACTION = 0.005
-local LIGHTNING_ORANGE_MIN_SPAWNS = 1
-local SHOCKWAVE_LIGHTENING_CHANCE = 0.1
+local ORANGE_ARC_DELAY_FRAMES = 15
+local ORANGE_ARC_SPAWN_FRACTION = 0.005
+local ORANGE_ARC_MIN_SPAWNS = 1
+local SHOCKWAVE_ARC_CHANCE = 0.1
 local SHOCKWAVE_CEG = "tenebrium_implosion"
 local IMPLOSION_CEG = "tenebrium_implosion_collapse"
 local IMPLOSION_SEQUENCE_END_OFFSET = SHOCKWAVE_DURATION + WAIT_DURATION + IMPLOSION_DURATION + MAX_POWER_KILL_FRAMES + MAX_RANDOM_KILL_FRAMES
@@ -32,7 +32,10 @@ local IMPLOSION_QUINT_EASE_BIAS = 4
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local FIRE_STATE_RETURN_FIRE = 1
 local FIRE_STATE_FIRE_AT_WILL = 2
-local DESOLATION_ORANGE_LIGHTNING_CEG_PREFIX = "tenebrium_desolation_orange_arc_"
+local DESOLATION_ORANGE_ARC_CEG_PREFIX = "tenebrium_desolation_orange_arc_"
+local ARC_SIZE_NAMES = { "tiny", "small", "medium", "large", "huge" }
+local ARC_SIZE_STEP_INITIAL = 0.5
+local ARC_SIZE_STEP_GROWTH = 1.5
 local POWERFUL_TURRET_BIAS = 3
 local TURRET_HOTSPOT_COUNT = 5
 local DESOLATE_GAIA = 0
@@ -77,19 +80,18 @@ local distanceSqCache = {}
 local activeSequences = {}
 local fireStateLockEndFrame = 0
 
-local function getOrangeLightningSizeName(unitDef)
+local function getOrangeArcSizeName(unitDef)
 	local size = mathCeil((unitDef.xsize / 2 + unitDef.zsize / 2) / 2)
-	if size > 4.5 then
-		return "huge"
-	elseif size > 3.5 then
-		return "large"
-	elseif size > 2.5 then
-		return "medium"
-	elseif size > 1.5 then
-		return "small"
-	else
-		return "tiny"
+	local threshold = ARC_SIZE_STEP_INITIAL
+	local step = ARC_SIZE_STEP_INITIAL
+	for sizeIndex = 1, #ARC_SIZE_NAMES - 1 do
+		if size <= threshold then
+			return ARC_SIZE_NAMES[sizeIndex]
+		end
+		step = step * ARC_SIZE_STEP_GROWTH
+		threshold = threshold + step
 	end
+	return ARC_SIZE_NAMES[#ARC_SIZE_NAMES]
 end
 
 --populate def types
@@ -130,7 +132,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.canMove then
 		data.canMove = true
 	end
-	data.orangeLightningSize = getOrangeLightningSizeName(unitDef)
+	data.orangeArcSize = getOrangeArcSizeName(unitDef)
 	defData[unitDefID] = data
 end
 
@@ -262,7 +264,7 @@ local function getTowardOriginDirection(positionX, positionY, positionZ, originX
 	return dirX / magnitude, dirY / magnitude, dirZ / magnitude
 end
 
-local function spawnTenebriumLightning(unitID, originX, originY, originZ)
+local function spawnOrangeArc(unitID, originX, originY, originZ)
 	if not spValidUnitID(unitID) then
 		return
 	end
@@ -272,8 +274,8 @@ local function spawnTenebriumLightning(unitID, originX, originY, originZ)
 	end
 	local unitDefID = spGetUnitDefID(unitID)
 	local unitDefEntry = defData[unitDefID]
-	local sizeName = unitDefEntry and unitDefEntry.orangeLightningSize or "small"
-	local cegName = DESOLATION_ORANGE_LIGHTNING_CEG_PREFIX .. sizeName
+	local sizeName = unitDefEntry and unitDefEntry.orangeArcSize or "small"
+	local cegName = DESOLATION_ORANGE_ARC_CEG_PREFIX .. sizeName
 	local dirX, dirY, dirZ = getTowardOriginDirection(positionX, positionY, positionZ, originX, originY, originZ)
 	spSpawnCEG(cegName, positionX, positionY, positionZ, dirX, dirY, dirZ)
 end
@@ -291,16 +293,16 @@ local function removeEntrySwap(tableToMutate, removeIndex)
 	tableToMutate[lastIndex] = nil
 end
 
-local function processOrangeLightningBatch(sequence, gameFrame)
-	if LIGHTNING_ORANGE_FRACTION <= 0 then
+local function processOrangeArcBatch(sequence, gameFrame)
+	if ORANGE_ARC_SPAWN_FRACTION <= 0 then
 		return
 	end
 
-	local readyFrameUnits = sequence.orangeReadyFrames[gameFrame]
+	local readyFrameUnits = sequence.arcReadyFrames[gameFrame]
 	if readyFrameUnits then
-		sequence.orangeReadyFrames[gameFrame] = nil
-		local eligibleUnits = sequence.orangeEligibleUnits
-		local eligibleCount = sequence.orangeEligibleCount
+		sequence.arcReadyFrames[gameFrame] = nil
+		local eligibleUnits = sequence.arcEligibleUnits
+		local eligibleCount = sequence.arcEligibleCount
 		for unitIndex = 1, #readyFrameUnits do
 			local unitID = readyFrameUnits[unitIndex]
 			if spValidUnitID(unitID) then
@@ -308,16 +310,16 @@ local function processOrangeLightningBatch(sequence, gameFrame)
 				eligibleUnits[eligibleCount] = unitID
 			end
 		end
-		sequence.orangeEligibleCount = eligibleCount
+		sequence.arcEligibleCount = eligibleCount
 	end
 
-	local eligibleUnits = sequence.orangeEligibleUnits
-	local eligibleCount = sequence.orangeEligibleCount
+	local eligibleUnits = sequence.arcEligibleUnits
+	local eligibleCount = sequence.arcEligibleCount
 	if eligibleCount <= 0 then
 		return
 	end
 
-	local spawnCount = mathMax(LIGHTNING_ORANGE_MIN_SPAWNS, mathFloor(eligibleCount * LIGHTNING_ORANGE_FRACTION))
+	local spawnCount = mathMax(ORANGE_ARC_MIN_SPAWNS, mathFloor(eligibleCount * ORANGE_ARC_SPAWN_FRACTION))
 	if spawnCount > eligibleCount then
 		spawnCount = eligibleCount
 	end
@@ -329,12 +331,12 @@ local function processOrangeLightningBatch(sequence, gameFrame)
 	for spawnIndex = 1, spawnCount do
 		local randomIndex = mathRandom(1, remainingEligibleCount)
 		eligibleUnits[randomIndex], eligibleUnits[remainingEligibleCount] = eligibleUnits[remainingEligibleCount], eligibleUnits[randomIndex]
-		spawnTenebriumLightning(eligibleUnits[remainingEligibleCount], originX, originY, originZ)
+		spawnOrangeArc(eligibleUnits[remainingEligibleCount], originX, originY, originZ)
 		remainingEligibleCount = remainingEligibleCount - 1
 	end
 end
 
-local function processSequenceLightning(sequence, elapsedFrames, gameFrame)
+local function processSequenceArcs(sequence, elapsedFrames, gameFrame)
 	local maxRadiusSq
 	if elapsedFrames < SHOCKWAVE_DURATION then
 		maxRadiusSq = getShockwaveRadiusSq(elapsedFrames, sequence.farthestDistanceSq)
@@ -352,14 +354,14 @@ local function processSequenceLightning(sequence, elapsedFrames, gameFrame)
 		end
 		local unitID = unitEntry.unitID
 		if spValidUnitID(unitID) then
-			if SHOCKWAVE_LIGHTENING_CHANCE > 0 and mathRandom() <= SHOCKWAVE_LIGHTENING_CHANCE then
-				spawnTenebriumLightning(unitID, sequence.originX, sequence.originY, sequence.originZ)
+			if SHOCKWAVE_ARC_CHANCE > 0 and mathRandom() <= SHOCKWAVE_ARC_CHANCE then
+				spawnOrangeArc(unitID, sequence.originX, sequence.originY, sequence.originZ)
 			end
-			local readyFrame = gameFrame + LIGHTNING_ORANGE_DELAY_FRAMES
-			local readyFrameUnits = sequence.orangeReadyFrames[readyFrame]
+			local readyFrame = gameFrame + ORANGE_ARC_DELAY_FRAMES
+			local readyFrameUnits = sequence.arcReadyFrames[readyFrame]
 			if not readyFrameUnits then
 				readyFrameUnits = {}
-				sequence.orangeReadyFrames[readyFrame] = readyFrameUnits
+				sequence.arcReadyFrames[readyFrame] = readyFrameUnits
 			end
 			readyFrameUnits[#readyFrameUnits + 1] = unitID
 		end
@@ -367,7 +369,7 @@ local function processSequenceLightning(sequence, elapsedFrames, gameFrame)
 	end
 	sequence.nextWaveUnitIndex = nextWaveUnitIndex
 
-	processOrangeLightningBatch(sequence, gameFrame)
+	processOrangeArcBatch(sequence, gameFrame)
 end
 
 local function sequenceHasLivingUnits(sequence)
@@ -384,7 +386,7 @@ local function processActiveSequences(gameFrame)
 	for sequenceIndex = #activeSequences, 1, -1 do
 		local sequence = activeSequences[sequenceIndex]
 		local elapsedFrames = gameFrame - sequence.startFrame
-		processSequenceLightning(sequence, elapsedFrames, gameFrame)
+		processSequenceArcs(sequence, elapsedFrames, gameFrame)
 		if not sequenceHasLivingUnits(sequence) then
 			table.remove(activeSequences, sequenceIndex)
 		end
@@ -428,9 +430,9 @@ local function scheduleShockwave(startFrame, originX, originZ, farthestDistanceS
 		units = livingUnits,
 		unitsByDistance = unitsByDistance,
 		nextWaveUnitIndex = 1,
-		orangeReadyFrames = {},
-		orangeEligibleUnits = {},
-		orangeEligibleCount = 0,
+		arcReadyFrames = {},
+		arcEligibleUnits = {},
+		arcEligibleCount = 0,
 	}
 	activeSequences[#activeSequences + 1] = sequence
 	spSpawnCEG(SHOCKWAVE_CEG, originX, groundY, originZ)
