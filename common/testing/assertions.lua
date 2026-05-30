@@ -110,12 +110,19 @@ local function assertThrowsMessage(fn, testMsg, errorMsg, depthOffset)
 	end
 end
 
+local function formatValueForAssert(value)
+	if type(value) == "string" then
+		return '"' .. tostring(value) .. '"'
+	end
+	return tostring(value)
+end
+
 local function assertEqual(actual, expected, errorMsg)
 	local depthOffset = 2
 	if actual ~= expected then
 		local msg = (errorMsg or "assertEqual failed")
-			.. ": expected " .. tostring(expected)
-			.. ", actual " .. tostring(actual)
+			.. ": expected " .. formatValueForAssert(expected)
+			.. ", actual " .. formatValueForAssert(actual)
 		error(msg, depthOffset)
 	end
 end
