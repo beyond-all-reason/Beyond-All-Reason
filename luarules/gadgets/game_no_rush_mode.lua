@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name    = "No Rush Mode",
-		desc    = "Stops players from getting out-of-their/commands-within-an-enemy startbox for a set amount of time.",
+		desc    = "Stops players from executing commands out-of-their or within-an-enemy startbox for a set amount of time.",
 		author  = "Damgam, Chemdude8",
 		date    = "2022, 2026",
 		license = "GNU GPL, v2 or later",
@@ -15,7 +15,7 @@ end
 -- Get Startbox Area of every player
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 local norushtimer = Spring.GetModOptions().norushtimer * 1800 -- modoption is stating minutes, and we need frames. 60 seconds * 30 frames = 1800
-local baselocked = ~Spring.GetModOptions().norushmiddlefree
+local baselocked = not Spring.GetModOptions().norushmiddlefree
 
 local CommandsToCatchMap = {                                -- CMDTYPES: ICON_MAP, ICON_AREA, ICON_UNIT_OR_MAP, ICON_UNIT_OR_AREA, ICON_UNIT_FEATURE_OR_AREA, ICON_BUILDING
 	[CMD.MOVE] = true,
@@ -61,7 +61,9 @@ local LuaAIsToExclude = {
 local TeamIDsToExclude = {} -- dynamically filled below
 
 local function RushStartboxCheck(posx, posy, posz, allyTeamID)
-	if baselocked then return RushStartboxCheck(posx, posy, posz, allyTeamID); end
+	if baselocked then
+		return positionCheckLibrary.StartboxCheck(posx, posy, posz, allyTeamID)
+	end
 	return positionCheckLibrary.NotInEnemyStartboxCheck(posx, posy, posz, allyTeamID);
 end
 
