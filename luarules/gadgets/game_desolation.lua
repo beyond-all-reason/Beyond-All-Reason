@@ -17,9 +17,9 @@ local DESOLATION_QUOTA_RATIO = 0.2
 local REDEEMABLE_CHANCE = 0.5
 local TURRET_GAIA_CHANCE = 0.75
 local SHOCKWAVE_DURATION = 45
-local WAIT_DURATION = 30
+local WAIT_DURATION = 1
 local IMPLOSION_DURATION = 300
-local KILL_VARIANCE_FRAMES = 20
+local KILL_VARIANCE_FRAMES = 30
 local LIGHTNING_ORANGE_DELAY_FRAMES = 15
 local LIGHTNING_ORANGE_FRACTION = 0.01
 local LIGHTNING_ORANGE_MIN_SPAWNS = 1
@@ -219,18 +219,6 @@ local function getShockwaveRadiusSq(elapsedFrames, farthestDistanceSq)
 	end
 	local progress = mathMin(1, elapsedFrames / SHOCKWAVE_DURATION)
 	return progress * progress * farthestDistanceSq
-end
-
-local function getImplosionFrameOffset(distanceSq, nearestDistanceSq, farthestDistanceSq)
-	local nearestDistance = mathSqrt(nearestDistanceSq)
-	local farthestDistance = mathSqrt(farthestDistanceSq)
-	local distanceSpread = farthestDistance - nearestDistance
-	if distanceSpread <= 0 then
-		return 0
-	end
-	local distance = mathSqrt(distanceSq)
-	local normalizedDistance = (distance - nearestDistance) / distanceSpread
-	return mathFloor(outQuint(1 - normalizedDistance) * IMPLOSION_DURATION + 0.5)
 end
 
 local function applyKillVariance(frameOffset)
@@ -437,35 +425,21 @@ end
 
 local function scheduleImplosion(sequence, unitActions)
 	local implosionStartFrame = sequence.implosionStartFrame
-	local nearestDistanceSq = math.huge
-	local farthestDistanceSq = 0
-	for actionIndex = 1, #unitActions do
-		local distanceSq = distanceSqCache[unitActions[actionIndex].unitID] or 0
-		nearestDistanceSq = mathMin(nearestDistanceSq, distanceSq)
-		farthestDistanceSq = mathMax(farthestDistanceSq, distanceSq)
+	local actionCount = #unitActions
+	if actionCount == 0 then
+		return
 	end
-
-	local distanceSpread = mathSqrt(farthestDistanceSq) - mathSqrt(nearestDistanceSq)
-	if distanceSpread <= 0 and #unitActions > 1 then
+	if actionCount > 1 then
 		table.sort(unitActions, function(actionA, actionB)
 			local distanceSqA = distanceSqCache[actionA.unitID] or 0
 			local distanceSqB = distanceSqCache[actionB.unitID] or 0
 			return distanceSqA > distanceSqB
 		end)
-		local actionCount = #unitActions
-		for actionIndex = 1, actionCount do
-			local rankT = (actionCount - actionIndex) / (actionCount - 1)
-			local frameOffset = applyKillVariance(mathFloor(outQuint(1 - rankT) * IMPLOSION_DURATION + 0.5))
-			local unitAction = unitActions[actionIndex]
-			queueDesolationAction(unitAction.unitID, unitAction.fate, implosionStartFrame + frameOffset)
-		end
-		return
 	end
-
-	for actionIndex = 1, #unitActions do
+	for actionIndex = 1, actionCount do
+		local rankT = actionCount == 1 and 1 or (actionCount - actionIndex) / (actionCount - 1)
+		local frameOffset = applyKillVariance(mathFloor(outQuint(1 - rankT) * IMPLOSION_DURATION + 0.5))
 		local unitAction = unitActions[actionIndex]
-		local distanceSq = distanceSqCache[unitAction.unitID] or 0
-		local frameOffset = applyKillVariance(getImplosionFrameOffset(distanceSq, nearestDistanceSq, farthestDistanceSq))
 		queueDesolationAction(unitAction.unitID, unitAction.fate, implosionStartFrame + frameOffset)
 	end
 end
