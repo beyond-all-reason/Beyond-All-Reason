@@ -345,7 +345,7 @@ if gadgetHandler:IsSyncedCode() then
 					teamID = spGetUnitTeam(unitID),
 					allyTeam = spGetUnitAllyTeam(unitID),
 					weapons = unitWeapons[unitDefID],
-					currentIndex = 1,
+					currentIndex = 0,
 				}
 			end
 			if not append then
@@ -799,7 +799,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if n % 5 == 4 then
 			for unitID, unitData in pairsNext, unitTargets do
-				local targetIndex, targetOffset = 1, 0
+				local targetIndex, targetOffset = 0, 0
 				local targets = unitData.targets
 				-- Check each target and find first valid one
 				for index = 1, #targets do
@@ -1095,7 +1095,7 @@ else	-- UNSYNCED
 					end
 					glColor(queueColour)
 					glBeginEnd(GL_LINE_STRIP, drawTargetQueue, unitID, unitData, myTeam, myAllyTeam)
-					if unitData.targetIndex then
+					if (unitData.targetIndex or 0) ~= 0 then
 						glColor(commandColour)
 						glBeginEnd(GL_LINES, drawCurrentTarget, unitID, unitData, myTeam, myAllyTeam)
 					end
