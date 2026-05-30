@@ -247,9 +247,7 @@ if gadgetHandler:IsSyncedCode() then
 				return false
 			end
 		else
-			targetX = target[1]
-			targetY = target[2]
-			targetZ = target[3]
+			targetX, targetY, targetZ = target[1], target[2], target[3]
 			if not spSetUnitTarget(unitID, targetX, targetY, targetZ, false, targetData.userTarget) then
 				return false
 			end
