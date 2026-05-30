@@ -15,6 +15,9 @@ end
 local resurrectionHalosVBO = nil
 local resurrectionHalosShader = nil
 local luaShaderDir = "LuaUI/Include/"
+-- Select the no-GS DrawPrimitiveAtUnit backend on platforms whose GL backend
+-- does not expose a geometry-shader stage.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
 
 local InstanceVBOTable = gl.InstanceVBOTable
 
@@ -41,7 +44,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local function initGL4()
-	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local primitivesInclude = UseNoGS
+		and luaShaderDir.."DrawPrimitiveAtUnitNoGS.lua"
+		or  luaShaderDir.."DrawPrimitiveAtUnit.lua"
+	local DrawPrimitiveAtUnit = VFS.Include(primitivesInclude)
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.TRANSPARENCY = 0.5
@@ -118,7 +124,11 @@ function widget:DrawWorld()
 		resurrectionHalosShader:SetUniform("addRadius", 0)
 		gl.DepthTest(true)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
-		resurrectionHalosVBO.VAO:DrawArrays(GL.POINTS, resurrectionHalosVBO.usedElements)
+		if UseNoGS then
+			resurrectionHalosVBO.VAO:DrawArrays(GL.TRIANGLES, resurrectionHalosVBO.numVerts, 0, resurrectionHalosVBO.usedElements)
+		else
+			resurrectionHalosVBO.VAO:DrawArrays(GL.POINTS, resurrectionHalosVBO.usedElements)
+		end
 		resurrectionHalosShader:Deactivate()
 		gl.Texture(0, false)
 	end
