@@ -112,6 +112,16 @@ local animCfg = {
 	-- animation. Smaller changes (e.g. a single small wreck added/removed from
 	-- a large field) are ignored so the field only pulses on meaningful changes.
 	pulseMinRelativeChange = 0.12,
+	-- Per-frame budget for alpha-driven display-list rebuilds. When panning the
+	-- camera quickly, many clusters cross the distance-fade band at once and all
+	-- want to rebuild their baked-alpha gradient geometry the same frame. This
+	-- caps how many such rebuilds happen per frame; over-budget clusters reuse
+	-- their slightly-stale list and catch up over the next frame(s) (invisible
+	-- during motion). Geometry that doesn't exist yet is always built so a
+	-- cluster never fails to draw. Per-frame state lives in the *Budget fields.
+	maxRebuildsPerFrame = 12,
+	rebuildBudgetFrame = -1,
+	rebuildBudgetRemaining = 0,
 	-- High-quality font object (loaded in Initialize/ViewResize via WG['fonts'])
 	font = nil,
 }
@@ -2765,10 +2775,11 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 	if alphaMult < 0 then alphaMult = 0 end
 	if alphaMult > 1 then alphaMult = 1 end
 
-	-- Compute new state hash; include quantized alpha so fade rebuilds the list
-	local newHash = ComputeClusterStateHash(cluster, hull)
+	-- Compute geometry hash (alpha-independent) plus a full hash with quantized
+	-- alpha, so the gradient rebuilds on fade while the edge list can be reused.
+	local geomHash = ComputeClusterStateHash(cluster, hull)
 	-- Quantize alpha to ~16 buckets so we don't rebuild every tiny change
-	newHash = newHash + floor(alphaMult * 16 + 0.5) * 0.0001
+	local newHash = geomHash + floor(alphaMult * 16 + 0.5) * 0.0001
 	local oldHash = stateHashes[cid]
 
 	-- Only recreate if state actually changed
@@ -2782,14 +2793,12 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 		clusterData = {}
 		displayLists[cid] = clusterData
 	else
-		-- Remove existing geometry lists but preserve text
+		-- Remove the existing gradient list (alpha is baked in, so it always
+		-- rebuilds). The edge list is shape-only and is rebuilt below only when
+		-- the geometry actually changed.
 		if clusterData.gradient then
 			glDeleteList(clusterData.gradient)
 			clusterData.gradient = nil
-		end
-		if clusterData.edge then
-			glDeleteList(clusterData.edge)
-			clusterData.edge = nil
 		end
 	end
 
@@ -2822,15 +2831,20 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 		gradientAlpha = capturedGradientAlpha,
 	}
 
-	-- Create gradient fill display list
+	-- Create gradient fill display list (alpha baked in)
 	clusterData.gradient = glCreateList(function()
 		glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, hull, cluster.center, listColors)
 	end)
 
-	-- Create edge display list
-	clusterData.edge = glCreateList(function()
-		glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
-	end)
+	-- Create the edge display list only when the geometry actually changed; its
+	-- opacity is applied via glColor at draw time, so alpha-only fades reuse it.
+	if not clusterData.edge or clusterData.geomHash ~= geomHash then
+		if clusterData.edge then glDeleteList(clusterData.edge) end
+		clusterData.edge = glCreateList(function()
+			glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
+		end)
+		clusterData.geomHash = geomHash
+	end
 
 	-- Track the alpha used for the current gradient list so we can decide later
 	-- whether to rebuild on subsequent fade ticks.
@@ -2863,7 +2877,6 @@ local function CreateFadingClusterDisplayList(uid, isEnergy)
 		entry.displayLists = dl
 	end
 	if dl.gradient then glDeleteList(dl.gradient); dl.gradient = nil end
-	if dl.edge then glDeleteList(dl.edge); dl.edge = nil end
 
 	local listColors
 	if isEnergy then
@@ -2883,9 +2896,13 @@ local function CreateFadingClusterDisplayList(uid, isEnergy)
 	dl.gradient = glCreateList(function()
 		glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, hull, center, listColors)
 	end)
-	dl.edge = glCreateList(function()
-		glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
-	end)
+	-- Edge geometry is fixed for the life of the fade; build it once and reuse
+	-- it across every alpha tick (opacity comes from glColor at draw time).
+	if not dl.edge then
+		dl.edge = glCreateList(function()
+			glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
+		end)
+	end
 	entry.lastBakedAlpha = alphaMult
 end
 
@@ -3237,7 +3254,9 @@ end
 function widget:Initialize()
 	gameStarted = Spring.GetGameFrame() > 0
 	screenx, screeny = widgetHandler:GetViewSizes()
-	animCfg.font = WG['fonts'] and WG['fonts'].getFont(2, 1.5)
+	local f = WG['fonts'] and WG['fonts'].getFont(2, 1.5)
+	animCfg.font = f
+	animCfg.getTextWidth = (f and f.GetTextWidth) and function(text) return f:GetTextWidth(text) end or gl.GetTextWidth
 
 	-- Initialize camera scale early to avoid thick lines on first draw
 	local cx, cy, cz = spGetCameraPosition()
@@ -3537,7 +3556,9 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	screenx, screeny = widgetHandler:GetViewSizes()
 	vsx, vsy = Spring.GetViewGeometry()
-	animCfg.font = WG['fonts'] and WG['fonts'].getFont(1, 1.5)
+	local f = WG['fonts'] and WG['fonts'].getFont(1, 1.5)
+	animCfg.font = f
+	animCfg.getTextWidth = (f and f.GetTextWidth) and function(text) return f:GetTextWidth(text) end or gl.GetTextWidth
 end
 
 --------------------------------------------------------------------------------
@@ -3567,15 +3588,29 @@ local function DrawLiveCluster(cid, isEnergy, drawGradient)
 	end
 	if drawGradient then
 		local needRebuild = false
+		local mustRebuild = false
 		if not clusterData or not clusterData.gradient then
 			needRebuild = true
+			mustRebuild = true -- nothing to draw yet, must build geometry now
 		elseif not clusterData.bakedAlpha or abs(effAlpha - clusterData.bakedAlpha) > animCfg.rebuildThreshold then
 			needRebuild = true
 		end
 		if needRebuild then
-			if isEnergy then energyClusterStateHashes[cid] = nil else clusterStateHashes[cid] = nil end
-			CreateClusterDisplayList(cid, isEnergy, effAlpha)
-			clusterData = isEnergy and energyClusterDisplayLists[cid] or clusterDisplayLists[cid]
+			-- Refresh the per-frame rebuild budget on the first request this frame.
+			if animCfg.rebuildBudgetFrame ~= drawCounter then
+				animCfg.rebuildBudgetFrame = drawCounter
+				animCfg.rebuildBudgetRemaining = animCfg.maxRebuildsPerFrame
+			end
+			-- Optional (alpha-only) rebuilds are budget-gated; over budget we
+			-- reuse the existing list this frame and catch up later.
+			if mustRebuild or animCfg.rebuildBudgetRemaining > 0 then
+				if not mustRebuild then
+					animCfg.rebuildBudgetRemaining = animCfg.rebuildBudgetRemaining - 1
+				end
+				if isEnergy then energyClusterStateHashes[cid] = nil else clusterStateHashes[cid] = nil end
+				CreateClusterDisplayList(cid, isEnergy, effAlpha)
+				clusterData = isEnergy and energyClusterDisplayLists[cid] or clusterDisplayLists[cid]
+			end
 		end
 		if clusterData and clusterData.gradient then
 			if animScale ~= 1 then
@@ -3626,10 +3661,21 @@ local function DrawFadingCluster(uid, entry, drawGradient)
 
 	if drawGradient then
 		local dl = entry.displayLists
-		if not dl or not dl.gradient
-			or not entry.lastBakedAlpha or abs(alpha - entry.lastBakedAlpha) > animCfg.rebuildThreshold then
-			CreateFadingClusterDisplayList(uid, entry.isEnergy)
-			dl = entry.displayLists
+		local mustRebuild = not dl or not dl.gradient
+		local wantRebuild = mustRebuild
+			or not entry.lastBakedAlpha or abs(alpha - entry.lastBakedAlpha) > animCfg.rebuildThreshold
+		if wantRebuild then
+			if animCfg.rebuildBudgetFrame ~= drawCounter then
+				animCfg.rebuildBudgetFrame = drawCounter
+				animCfg.rebuildBudgetRemaining = animCfg.maxRebuildsPerFrame
+			end
+			if mustRebuild or animCfg.rebuildBudgetRemaining > 0 then
+				if not mustRebuild then
+					animCfg.rebuildBudgetRemaining = animCfg.rebuildBudgetRemaining - 1
+				end
+				CreateFadingClusterDisplayList(uid, entry.isEnergy)
+				dl = entry.displayLists
+			end
 		end
 		if dl and dl.gradient then
 			glCallList(dl.gradient)
@@ -3687,12 +3733,12 @@ function widget:DrawWorld()
 	if widgetFont then
 		if showMetal then
 			local nc = numberColor
-			widgetFont:SetOutlineColor(0, 0, 0, 0.7)
 			for clusterID = 1, #featureClusters do
 				local cluster = featureClusters[clusterID]
 				if cluster and cluster.textX then
 					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
 					if effAlpha > 0.01 then
+						widgetFont:SetOutlineColor(0, 0, 0, 0.7 * effAlpha)
 						widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * effAlpha)
 						local fs = cluster.font
 						local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
@@ -3706,6 +3752,7 @@ function widget:DrawWorld()
 			for uid, entry in pairs(animState.fading) do
 				local alpha = entry.alpha or 0
 				if alpha > 0.01 and entry.text then
+					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * alpha)
 					widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * alpha)
 					local fs = entry.font or fontSizeMin
 					local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
@@ -3718,12 +3765,12 @@ function widget:DrawWorld()
 		end
 		if showEnergy then
 			local enc = energyNumberColor
-			widgetFont:SetOutlineColor(0, 0, 0, 0.7)
 			for clusterID = 1, #energyFeatureClusters do
 				local cluster = energyFeatureClusters[clusterID]
 				if cluster and cluster.textX then
 					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
 					if effAlpha > 0.01 then
+						widgetFont:SetOutlineColor(0, 0, 0, 0.7 * effAlpha)
 						widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * effAlpha)
 						local fs = cluster.font * energyTextSizeMultiplier
 						local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
@@ -3737,6 +3784,7 @@ function widget:DrawWorld()
 			for uid, entry in pairs(animState.fadingEnergy) do
 				local alpha = entry.alpha or 0
 				if alpha > 0.01 and entry.text then
+					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * alpha)
 					widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * alpha)
 					local fs = (entry.font or fontSizeMin) * energyTextSizeMultiplier
 					local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
@@ -3810,8 +3858,7 @@ function widget:DrawWorld()
 	if showResourceIcons then
 		local glTexRect = gl.TexRect
 		local glTexture = gl.Texture
-		local getTextWidth = widgetFont and widgetFont.GetTextWidth and
-			function(text) return widgetFont:GetTextWidth(text) end or gl.GetTextWidth
+		local getTextWidth = animCfg.getTextWidth or gl.GetTextWidth
 		if showMetal then
 			glTexture(":l:LuaUI/Images/metal.png")
 			for clusterID = 1, #featureClusters do
