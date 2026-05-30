@@ -110,6 +110,7 @@ if gadgetHandler:IsSyncedCode() then
 	local SetFeatureDirection = Spring.SetFeatureDirection
 	local SetFeatureBlocking = Spring.SetFeatureBlocking
 	local SetFeaturePosition = Spring.SetFeaturePosition
+	local SetFeatureHealth = Spring.SetFeatureHealth
 	local CreateFeature = Spring.CreateFeature
 	local DestroyFeature = Spring.DestroyFeature
 	local GetGameFrame = Spring.GetGameFrame
@@ -122,6 +123,17 @@ if gadgetHandler:IsSyncedCode() then
 	-- falltime) still visibly fall over in a consistent ~1.3s instead of creeping
 	-- over many seconds.
 	local fallVisualFrames = 40.0
+	-- Hard cap on the FALLING→FALLEN transition. Fire-killed trees have dmg=2 and
+	-- can get strength=150+, making thisfeaturefalltime=8250 frames (275s). Without
+	-- this cap the tree never reaches FALLEN state so destroyFrame is never checked.
+	local maxFallFrames = 80
+	-- Hard cap on total lifetime from death frame to removal. Prevents any tree
+	-- (fire or non-fire) from persisting on the ground for an unreasonably long time.
+	local maxLifetimeFrames = 320
+	-- How long (frames) a burning tree takes to char from intact to (near) full
+	-- charcoal black. Drives the per-feature health fraction that the CUS GL4 tree
+	-- shader reads to darken the bark and add ember glow.
+	local charFrames = 120.0
 
 	local treeMass = {}
 	local treeScaleY = {}
@@ -384,7 +396,7 @@ if gadgetHandler:IsSyncedCode() then
 					dissapearSpeed = 0.15 + Spring.GetFeatureHeight(featureID) / math_random(3700, 4700)
 				end
 				--local destroyFrame = GetGameFrame() + (falltime * (treeMass[featureDefID] / dmg)) + 150 + (dissapearSpeed*4000)
-				local destroyFrame = GetGameFrame() + falltime + 150 + (dissapearSpeed * 4000)
+					local destroyFrame = math_min(GetGameFrame() + falltime + 150 + (dissapearSpeed * 4000), GetGameFrame() + maxLifetimeFrames)
 				--Spring.Echo("Destroyed feature at", Spring.GetGameFrame(), "destroyframe = " ,destroyFrame, "Seconds:", (destroyFrame - Spring.GetGameFrame())/30)
 				--Spring.Echo("falltime = ",falltime, "treeMass=", treeMass[featureDefID], " dmg =", dmg, "dissapearSpeed", dissapearSpeed)
 
@@ -561,7 +573,22 @@ if gadgetHandler:IsSyncedCode() then
 						"canopy=" .. string.format("%.2f", canopyFrac or -1),
 						"fireDir=(" .. string.format("%.1f,%.1f", fdx, fdz) .. ")")
 				end
-				local thisfeaturefalltime = falltime * featureinfo.strength
+				-- While a tree burns, drive its health fraction down so the CUS GL4 tree
+				-- shader chars the bark to charcoal (with ember glow). The shader reads
+				-- health/maxHealth per-feature; non-burning felled trees keep full health
+				-- and are unaffected. alwaysUpdateMat (set by the fire gadget) refreshes
+				-- the shader's per-feature uniform each frame. Health is kept >0 and
+				-- checkDestruction is false so this never destroys the feature itself.
+				if featureinfo.fire then
+					if not featureinfo.maxhealth then
+						local _, mh = GetFeatureHealth(featureID)
+						featureinfo.maxhealth = (mh and mh > 0) and mh or 1
+					end
+					local charT = (gf - featureinfo.frame) / charFrames
+					if charT < 0 then charT = 0 elseif charT > 1 then charT = 1 end
+					SetFeatureHealth(featureID, featureinfo.maxhealth * (1 - 0.97 * charT), false)
+				end
+				local thisfeaturefalltime = math_min(falltime * featureinfo.strength, maxFallFrames)
 				local fireFrequency = 5
 				if featureinfo.fire then
 					fireFrequency = math_floor(2 + ((gf - featureinfo.frame) / 70))
@@ -630,13 +657,18 @@ if gadgetHandler:IsSyncedCode() then
 						removeCount = removeCount + 1
 						removeFeatures[removeCount] = featureID
 							DestroyFeature(featureID)
-						elseif featureinfo.frame + thisfeaturefalltime + 250 <= gf and featureinfo.fire then
+						elseif featureinfo.frame + thisfeaturefalltime + 130 <= gf and featureinfo.fire then
 							featureinfo.fire = false
 							if featureinfo.fireSent then
 								spSendToUnsynced("treefire_stop", featureID)
 								featureinfo.fireSent = false
 							end
 						elseif featureinfo.frame + thisfeaturefalltime + 100 <= gf then
+							-- Tell the fire gadget to start tapering flames/embers as the tree sinks.
+							if featureinfo.fire and not featureinfo.fadeSent then
+								spSendToUnsynced("treefire_fade", featureID)
+								featureinfo.fadeSent = true
+							end
 							local dx, dy, dz = GetFeatureDirection(featureID)
 							if featureinfo.fire then
 								SetFeaturePosition(featureID, fx, fy - featureinfo.dissapearSpeed, fz, false)
