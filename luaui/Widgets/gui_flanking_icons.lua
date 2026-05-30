@@ -30,6 +30,13 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 local flankingVBO = nil
 local flankingShader = nil
 local luaShaderDir = "LuaUI/Include/"
+-- Select the no-GS DrawPrimitiveAtUnit backend on platforms whose GL backend
+-- does not expose a geometry-shader stage. Other platforms continue to use
+-- the original geometry-shader path unchanged. The widget's POST_ANIM
+-- snippet is a pure assignment to v_color / v_rotationY from constants and
+-- per-instance attribs; it has no accumulator or RNG state, so it is safe
+-- under the per-output-vertex execution model of the no-GS path.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
 local glTexture             = gl.Texture
 
 local udefHasFlankingIcon = {}
@@ -93,7 +100,11 @@ function widget:DrawWorldPreUnit()
 		flankingShader:Activate()
 		flankingShader:SetUniform("iconDistance",disticon)
 		flankingShader:SetUniform("addRadius",0)
-		flankingVBO.VAO:DrawArrays(GL.POINTS,flankingVBO.usedElements)
+		if UseNoGS then
+			flankingVBO.VAO:DrawArrays(GL.TRIANGLES, flankingVBO.numVerts, 0, flankingVBO.usedElements)
+		else
+			flankingVBO.VAO:DrawArrays(GL.POINTS,flankingVBO.usedElements)
+		end
 		flankingShader:Deactivate()
 		glTexture(0, false)
 	end
@@ -126,7 +137,10 @@ local function init()
 end
 
 function widget:Initialize()
-	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local primitivesInclude = UseNoGS
+		and luaShaderDir.."DrawPrimitiveAtUnitNoGS.lua"
+		or  luaShaderDir.."DrawPrimitiveAtUnit.lua"
+	local DPatUnit = VFS.Include(primitivesInclude)
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 0
