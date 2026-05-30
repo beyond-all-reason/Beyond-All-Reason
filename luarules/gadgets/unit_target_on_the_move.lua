@@ -230,39 +230,36 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function setTarget(unitID, targetData)
 		local unitData = unitTargets[unitID]
-		if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, targetData.target) then
-			local currentCmdID = spGetUnitCurrentCommand(unitID)
-			if currentCmdID == CMD.ATTACK then
-				return false
-			else
-				Spring.SetUnitTarget(unitID, nil)
-				return false
-			end
-		end
-		
 		local target = targetData.target
-		local isUnitTarget = type(target) == "number"
-		
-		if isUnitTarget then
-			if not spSetUnitTarget(unitID, target, false, targetData.userTarget) then
-				return false
+
+		if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, target) then
+			if unitData.hasTarget and spGetUnitCurrentCommand(unitID) ~= CMD.ATTACK then
+				spSetUnitTarget(unitID, nil)
 			end
-
-			spSetUnitRulesParam(unitID, "targetID", target)
-			spSetUnitRulesParam(unitID, "targetCoordX", -1)
-			spSetUnitRulesParam(unitID, "targetCoordY", -1)
-			spSetUnitRulesParam(unitID, "targetCoordZ", -1)
-
-		else
-			if not spSetUnitTarget(unitID, target[1], target[2], target[3], false, targetData.userTarget) then
-				return false
-			end
-
-			spSetUnitRulesParam(unitID, "targetID", -1)
-			spSetUnitRulesParam(unitID, "targetCoordX", target[1])
-			spSetUnitRulesParam(unitID, "targetCoordY", target[2])
-			spSetUnitRulesParam(unitID, "targetCoordZ", target[3])
+			unitData.hasTarget = false
+			return false
 		end
+
+		local targetID, targetX, targetY, targetZ = -1, -1, -1, -1
+		if type(target) == "number" then
+			targetID = target
+			if not spSetUnitTarget(unitID, targetID, false, targetData.userTarget) then
+				return false
+			end
+		else
+			targetX = target[1]
+			targetY = target[2]
+			targetZ = target[3]
+			if not spSetUnitTarget(unitID, targetX, targetY, targetZ, false, targetData.userTarget) then
+				return false
+			end
+		end
+		spSetUnitRulesParam(unitID, "targetID",     targetID)
+		spSetUnitRulesParam(unitID, "targetCoordX", targetX)
+		spSetUnitRulesParam(unitID, "targetCoordY", targetY)
+		spSetUnitRulesParam(unitID, "targetCoordZ", targetZ)
+
+		unitData.hasTarget = true
 		return true
 	end
 
@@ -346,6 +343,7 @@ if gadgetHandler:IsSyncedCode() then
 					allyTeam = spGetUnitAllyTeam(unitID),
 					weapons = unitWeapons[unitDefID],
 					currentIndex = 0,
+					hasTarget = false,
 				}
 			end
 			if not append then
@@ -380,11 +378,10 @@ if gadgetHandler:IsSyncedCode() then
 				checkForManualFire[unitID] = true
 			end
 			sendTargetsToUnsyncedBatched(unitID)
-			if setTarget(unitID, data.targets[1]) then
-				if data.currentIndex ~= 1 then
-					data.currentIndex = 1
-					SendToUnsynced("targetIndex", unitID, 1)
-				end
+			if not data.hasTarget and setTarget(unitID, data.targets[1]) then
+				data.currentIndex = 1
+				data.hasTarget = true
+				SendToUnsynced("targetIndex", unitID, 1)
 			end
 		end
 		--tracy.ZoneEnd()
@@ -407,7 +404,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		waitForCommandDone[unitID] = nil
 	end
-
 
 	local function refreshSendList(unitID, unitData, minIndex)
 		local targetList = unitData.targets
@@ -808,7 +804,7 @@ if gadgetHandler:IsSyncedCode() then
 						-- Mark for removal, but don't remove during iteration
 						targetData.invalid = true
 						targetOffset = targetOffset + 1
-					elseif not targetData.invalid and setTarget(unitID, targetData) then
+					elseif setTarget(unitID, targetData) then
 						targetIndex = index - targetOffset
 						break
 					end
