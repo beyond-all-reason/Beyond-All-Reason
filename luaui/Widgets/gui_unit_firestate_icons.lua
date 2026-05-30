@@ -35,6 +35,9 @@ local returnFireVBO  = nil
 local fireIconShader = nil
 
 local luaShaderDir = "LuaUI/Include/"
+-- Select the no-GS DrawPrimitiveAtUnit backend on platforms whose GL backend
+-- does not expose a geometry-shader stage.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
 local InstanceVBOTable    = gl.InstanceVBOTable
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
@@ -74,7 +77,10 @@ local instanceData = {0, 0, 0, 0,  0,  4,  0, 0, 0.85, 0,  0, 1, 0, 1,  0, 0, 0,
 -- GL4 Initialization
 --------------------------------------------------------------------------------
 local function initGL4()
-	local DrawPrimitiveAtUnit    = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
+	local primitivesInclude = UseNoGS
+		and luaShaderDir .. "DrawPrimitiveAtUnitNoGS.lua"
+		or  luaShaderDir .. "DrawPrimitiveAtUnit.lua"
+	local DrawPrimitiveAtUnit    = VFS.Include(primitivesInclude)
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig           = DrawPrimitiveAtUnit.shaderConfig
 
@@ -292,7 +298,11 @@ function widget:DrawScreenEffects()
 		fireIconShader:Activate()
 		fireIconShader:SetUniform("iconDistance", disticon)
 		fireIconShader:SetUniform("addRadius", 0)
-		holdFireVBO.VAO:DrawArrays(GL.POINTS, holdFireVBO.usedElements)
+		if UseNoGS then
+			holdFireVBO.VAO:DrawArrays(GL.TRIANGLES, holdFireVBO.numVerts, 0, holdFireVBO.usedElements)
+		else
+			holdFireVBO.VAO:DrawArrays(GL.POINTS, holdFireVBO.usedElements)
+		end
 		fireIconShader:Deactivate()
 		gl.Texture(false)
 	end
@@ -302,7 +312,11 @@ function widget:DrawScreenEffects()
 		fireIconShader:Activate()
 		fireIconShader:SetUniform("iconDistance", disticon)
 		fireIconShader:SetUniform("addRadius", 0)
-		returnFireVBO.VAO:DrawArrays(GL.POINTS, returnFireVBO.usedElements)
+		if UseNoGS then
+			returnFireVBO.VAO:DrawArrays(GL.TRIANGLES, returnFireVBO.numVerts, 0, returnFireVBO.usedElements)
+		else
+			returnFireVBO.VAO:DrawArrays(GL.POINTS, returnFireVBO.usedElements)
+		end
 		fireIconShader:Deactivate()
 		gl.Texture(false)
 	end
