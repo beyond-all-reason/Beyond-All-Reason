@@ -112,11 +112,11 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 
-		-- FIXME: We don't know which weaponDefs have submissile. We can check `nuke`, for now.
+		-- FIXME: We don't know which weaponDefs have submissile. We can check `nuclear`, for now.
 		local function getWeaponType(weapon)
 			if hasTargeting(weapon) then
 				local weaponDef = WeaponDefs[weapon.weaponDef]
-				return weaponDef.waterWeapon and not weaponDef.customParams.nuke and WATERWEAPON or 1
+				return weaponDef.waterWeapon and not weaponDef.customParams.nuclear and WATERWEAPON or 1
 			else
 				return false
 			end
@@ -750,7 +750,9 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneBeginN(string.format("AllowCommand %s %s", tostring(fromSynced), tostring(fromLua)))
 		--tracy.Message(string.format("Allowcommand params %s %s", table.toString(cmdOptions), table.toString(cmdParams)))
 		if isSetTargetCommand[cmdID] then
-			processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+			if validUnits[unitDefID] then
+				processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+			end
 			--tracy.ZoneEnd()
 			return false -- consume command
 		end
@@ -797,8 +799,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if n % 5 == 4 then
 			for unitID, unitData in pairsNext, unitTargets do
-				local targetIndex
-				local targetOffset = 0
+				local targetIndex, targetOffset = 1, 0
 				local targets = unitData.targets
 				-- Check each target and find first valid one
 				for index = 1, #targets do

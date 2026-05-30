@@ -38,9 +38,14 @@ local showEnergyFields = true -- Show energy reclaim fields separately
 
 --Metal value font
 local numberColor = {0.9, 0.9, 0.9, 1}
-local energyNumberColor = {0.95, 0.9, 0, 1}
-local fontSizeMin = 30
-local fontSizeMax = 110
+local energyNumberColor = {1.0, 0.9, 0.1, 1}
+
+-- Resource icons (shown in front of each metal/energy value label)
+local showResourceIcons = true -- Set to false to hide the icons
+local iconSizeRatio = 1.0    -- Icon size relative to text font size
+local iconGapRatio  = 0.0     -- Gap between icon and text relative to font size
+local fontSizeMin = 25
+local fontSizeMax = 75
 
 --Field color
 local reclaimColor = {0, 0, 0, 0.16}
@@ -48,7 +53,7 @@ local reclaimEdgeColor = {1, 1, 1, 0.18}
 
 --Energy field color (yellowish tint)
 local energyReclaimColor = {0.8, 0.8, 0, 0.16}
-local energyReclaimEdgeColor = {1, 1, 0, 0.18}
+local energyReclaimEdgeColor = {1, 0.9, 0, 0.18}
 
 --Energy field settings
 local energyOpacityMultiplier = 0.44 -- Multiplier for energy field opacity (relative to metal fields)
@@ -107,6 +112,8 @@ local animCfg = {
 	-- animation. Smaller changes (e.g. a single small wreck added/removed from
 	-- a large field) are ignored so the field only pulses on meaningful changes.
 	pulseMinRelativeChange = 0.12,
+	-- High-quality font object (loaded in Initialize/ViewResize via WG['fonts'])
+	font = nil,
 }
 
 local gameStarted = Spring.GetGameFrame() > 0
@@ -190,10 +197,6 @@ local lastCameraUpdateDraw = -999
 local cameraMovementThreshold = 10 -- Minimum distance to consider camera moved (in elmos)
 local cameraRotationThreshold = 0.01 -- Minimum dot product change to consider camera rotated
 local cameraGeneration = 0 -- Increments when camera moves to invalidate visibility cache
-
--- Text display list caching - tracks last camera facing angle for text rotation
-local minTextUpdateIntervalFrames = 15 -- Minimum frames between text display list recreations per cluster (~0.5s at 30fps)
-local immediateFadeChangeThreshold = 0.05 -- Small fade changes above this should update immediately for responsiveness
 
 -- Check if a point is within the camera view frustum
 local function IsInCameraView(x, y, z, radius, currentDrawCount)
@@ -452,7 +455,6 @@ local animState = {
 	DeleteFadingCluster = nil,
 	GetClusterAnimAlphaAndScale = nil,
 	CreateFadingClusterDisplayList = nil,
-	CreateFadingClusterTextDisplayList = nil,
 }
 
 -- Helper function to compute a simple hash/signature of cluster state
@@ -2739,7 +2741,7 @@ DeleteClusterDisplayList = function(cid, isEnergy, keepText)
 			-- Remove the table entirely when not preserving text
 			displayLists[cid] = nil
 		else
-			-- Preserve text; keep the table entry so CreateClusterTextDisplayList can reuse it
+			-- Preserve the table entry for potential reuse
 			displayLists[cid] = clusterData
 		end
 	end
@@ -2886,119 +2888,6 @@ local function CreateFadingClusterDisplayList(uid, isEnergy)
 	end)
 	entry.lastBakedAlpha = alphaMult
 end
-
--- Create / refresh the text list for a fading cluster. The text fades alongside
--- the hull, so we rebuild it when alpha changes meaningfully.
-local function CreateFadingClusterTextDisplayList(uid, isEnergy)
-	local fading = isEnergy and animState.fadingEnergy or animState.fading
-	local entry = fading[uid]
-	if not entry or not entry.text then return end
-	local dl = entry.displayLists
-	if not dl then
-		dl = {}
-		entry.displayLists = dl
-	end
-	if dl.text then glDeleteList(dl.text); dl.text = nil end
-	local fontSize = isEnergy and (entry.font * energyTextSizeMultiplier) or entry.font
-	local textColor = isEnergy and energyNumberColor or numberColor
-	local alphaMult = entry.alpha or 1
-	if alphaMult < 0 then alphaMult = 0 end
-	if alphaMult > 1 then alphaMult = 1 end
-	dl.text = glCreateList(function()
-		glColor(textColor[1], textColor[2], textColor[3], textColor[4] * alphaMult)
-		glText(entry.text, 0, 0, fontSize, alphaMult >= 0.95 and "cvo" or "cv")
-	end)
-	entry.lastBakedTextAlpha = alphaMult
-end
-
--- Create text display list for a single cluster
--- Text is rendered at origin (0,0) and positioned via matrix in DrawWorld
-local function CreateClusterTextDisplayList(cid, isEnergy, fadeMult)
-	local displayLists = isEnergy and energyClusterDisplayLists or clusterDisplayLists
-	local clusters = isEnergy and energyFeatureClusters or featureClusters
-
-	local cluster = clusters[cid]
-	if not cluster then return end
-
-	local clusterData = displayLists[cid]
-	if not clusterData then
-		clusterData = {}
-		displayLists[cid] = clusterData
-	end
-
-	if clusterData.text then
-		glDeleteList(clusterData.text)
-		clusterData.text = nil
-	end
-
-	local fontSize = isEnergy and (cluster.font * energyTextSizeMultiplier) or cluster.font
-	local textColor = isEnergy and energyNumberColor or numberColor
-	local textOptions = fadeMult >= 0.95 and "cvo" or "cv"
-
-	clusterData.text = glCreateList(function()
-		glColor(textColor[1], textColor[2], textColor[3], textColor[4] * fadeMult)
-		glText(cluster.text, 0, 0, fontSize, textOptions)
-	end)
-
-	local meta = clusterData.textMeta
-	if meta then
-		meta.fade = fadeMult
-		meta.text = cluster.text
-		meta.fontSize = fontSize
-		meta.lastUpdateFrame = spGetGameFrame()
-	else
-		clusterData.textMeta = {
-			fade = fadeMult,
-			text = cluster.text,
-			fontSize = fontSize,
-			lastUpdateFrame = spGetGameFrame(),
-		}
-	end
-end
-
--- Check if text display list needs updating
-local function TextDisplayListNeedsUpdate(cid, isEnergy, fadeMult)
-	local displayLists = isEnergy and energyClusterDisplayLists or clusterDisplayLists
-	local clusterData = displayLists[cid]
-
-	if not clusterData or not clusterData.text or not clusterData.textMeta then
-		return true
-	end
-
-	local meta = clusterData.textMeta
-	local clusters = isEnergy and energyFeatureClusters or featureClusters
-	local cluster = clusters[cid]
-
-	if not cluster or meta.text ~= cluster.text then
-		return true
-	end
-
-	-- Check font size changed (cluster was reclustered)
-	local fontSize = isEnergy and (cluster.font * energyTextSizeMultiplier) or cluster.font
-	if abs(fontSize - meta.fontSize) > 0.5 then
-		return true
-	end
-
-	local fadeDiff = abs(fadeMult - meta.fade)
-	if fadeMult >= 0.95 and meta.fade >= 0.95 then
-		return false
-	end
-	if fadeDiff > immediateFadeChangeThreshold then
-		return true
-	end
-
-	local currentFrame = spGetGameFrame()
-	if meta.lastUpdateFrame and (currentFrame - meta.lastUpdateFrame) < minTextUpdateIntervalFrames then
-		return false
-	end
-
-	if fadeDiff > 0.15 then
-		return true
-	end
-
-	return false
-end
-
 
 local cachedCameraFacing = 0
 
@@ -3348,6 +3237,7 @@ end
 function widget:Initialize()
 	gameStarted = Spring.GetGameFrame() > 0
 	screenx, screeny = widgetHandler:GetViewSizes()
+	animCfg.font = WG['fonts'] and WG['fonts'].getFont(2, 1.5)
 
 	-- Initialize camera scale early to avoid thick lines on first draw
 	local cx, cy, cz = spGetCameraPosition()
@@ -3647,6 +3537,7 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	screenx, screeny = widgetHandler:GetViewSizes()
 	vsx, vsy = Spring.GetViewGeometry()
+	animCfg.font = WG['fonts'] and WG['fonts'].getFont(1, 1.5)
 end
 
 --------------------------------------------------------------------------------
@@ -3787,83 +3678,209 @@ function widget:DrawWorld()
 	local negSinF = -sinF
 	local negCosF = -cosF
 
-	-- Draw metal text (positions pre-computed in ClusterizeFeatures)
-	if showMetal then
-		for clusterID = 1, #featureClusters do
-			local cluster = featureClusters[clusterID]
-			if cluster and cluster.textX then
-				-- effAlpha already folds in distance/frustum vis (smoothed), anim alpha,
-				-- and toggle fade. We don't need the cached.fadeMult anymore.
-				local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
-				if effAlpha > 0.01 then
-					if TextDisplayListNeedsUpdate(clusterID, false, effAlpha) then
-						CreateClusterTextDisplayList(clusterID, false, effAlpha)
-					end
-					local clusterData = clusterDisplayLists[clusterID]
-					if clusterData and clusterData.text then
+	-- Draw text using high-quality font in IMMEDIATE mode (no outer Begin/End).
+	-- Inside a Begin/End block the font batches all quads and flushes them at
+	-- End() with whatever modelview is current then (identity -> origin). In
+	-- immediate mode each Print flushes with the current GL matrix, so our
+	-- ground-plane glMultMatrix applies and text lies flat like the icons.
+	local widgetFont = animCfg.font
+	if widgetFont then
+		if showMetal then
+			local nc = numberColor
+			widgetFont:SetOutlineColor(0, 0, 0, 0.7)
+			for clusterID = 1, #featureClusters do
+				local cluster = featureClusters[clusterID]
+				if cluster and cluster.textX then
+					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
+					if effAlpha > 0.01 then
+						widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * effAlpha)
+						local fs = cluster.font
+						local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
 						glPushMatrix()
 						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
-						glCallList(clusterData.text)
+						widgetFont:Print(cluster.text, textOX, 0, fs, "cov")
 						glPopMatrix()
 					end
 				end
 			end
-		end
-		-- Fading-out metal cluster text
-		for uid, entry in pairs(animState.fading) do
-			local alpha = entry.alpha or 0
-			if alpha > 0.01 and entry.text then
-				if not entry.displayLists or not entry.displayLists.text
-					or not entry.lastBakedTextAlpha or abs(alpha - entry.lastBakedTextAlpha) > animCfg.rebuildThreshold then
-					CreateFadingClusterTextDisplayList(uid, false)
-					entry.lastBakedTextAlpha = alpha
-				end
-				if entry.displayLists and entry.displayLists.text then
+			for uid, entry in pairs(animState.fading) do
+				local alpha = entry.alpha or 0
+				if alpha > 0.01 and entry.text then
+					widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * alpha)
+					local fs = entry.font or fontSizeMin
+					local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
 					glPushMatrix()
 					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
-					glCallList(entry.displayLists.text)
+					widgetFont:Print(entry.text, textOX, 0, fs, "cov")
+					glPopMatrix()
+				end
+			end
+		end
+		if showEnergy then
+			local enc = energyNumberColor
+			widgetFont:SetOutlineColor(0, 0, 0, 0.7)
+			for clusterID = 1, #energyFeatureClusters do
+				local cluster = energyFeatureClusters[clusterID]
+				if cluster and cluster.textX then
+					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
+					if effAlpha > 0.01 then
+						widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * effAlpha)
+						local fs = cluster.font * energyTextSizeMultiplier
+						local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
+						glPushMatrix()
+						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
+						widgetFont:Print(cluster.text, textOX, 0, fs, "cov")
+						glPopMatrix()
+					end
+				end
+			end
+			for uid, entry in pairs(animState.fadingEnergy) do
+				local alpha = entry.alpha or 0
+				if alpha > 0.01 and entry.text then
+					widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * alpha)
+					local fs = (entry.font or fontSizeMin) * energyTextSizeMultiplier
+					local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
+					glPushMatrix()
+					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
+					widgetFont:Print(entry.text, textOX, 0, fs, "cov")
+					glPopMatrix()
+				end
+			end
+		end
+	else
+		-- Fallback to gl.Text if font handler not available
+		if showMetal then
+			for clusterID = 1, #featureClusters do
+				local cluster = featureClusters[clusterID]
+				if cluster and cluster.textX then
+					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
+					if effAlpha > 0.01 then
+						local nc = numberColor
+						glColor(nc[1], nc[2], nc[3], nc[4] * effAlpha)
+						glPushMatrix()
+						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
+						glText(cluster.text, 0, 0, cluster.font, "co")
+						glPopMatrix()
+					end
+				end
+			end
+			for uid, entry in pairs(animState.fading) do
+				local alpha = entry.alpha or 0
+				if alpha > 0.01 and entry.text then
+					local nc = numberColor
+					glColor(nc[1], nc[2], nc[3], nc[4] * alpha)
+					glPushMatrix()
+					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
+					glText(entry.text, 0, 0, entry.font or fontSizeMin, "co")
+					glPopMatrix()
+				end
+			end
+		end
+		if showEnergy then
+			for clusterID = 1, #energyFeatureClusters do
+				local cluster = energyFeatureClusters[clusterID]
+				if cluster and cluster.textX then
+					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
+					if effAlpha > 0.01 then
+						local enc = energyNumberColor
+						glColor(enc[1], enc[2], enc[3], enc[4] * effAlpha)
+						glPushMatrix()
+						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
+						glText(cluster.text, 0, 0, cluster.font * energyTextSizeMultiplier, "co")
+						glPopMatrix()
+					end
+				end
+			end
+			for uid, entry in pairs(animState.fadingEnergy) do
+				local alpha = entry.alpha or 0
+				if alpha > 0.01 and entry.text then
+					local enc = energyNumberColor
+					glColor(enc[1], enc[2], enc[3], enc[4] * alpha)
+					glPushMatrix()
+					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
+					glText(entry.text, 0, 0, (entry.font or fontSizeMin) * energyTextSizeMultiplier, "co")
 					glPopMatrix()
 				end
 			end
 		end
 	end
 
-	-- Draw energy text (positions pre-computed in ClusterizeFeatures)
-	if showEnergy then
-		for clusterID = 1, #energyFeatureClusters do
-			local cluster = energyFeatureClusters[clusterID]
-			if cluster and cluster.textX then
-				local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
-				if effAlpha > 0.01 then
-					if TextDisplayListNeedsUpdate(clusterID, true, effAlpha) then
-						CreateClusterTextDisplayList(clusterID, true, effAlpha)
-					end
-					local clusterData = energyClusterDisplayLists[clusterID]
-					if clusterData and clusterData.text then
+	-- Draw resource icons (ground-plane quads to the left of each value label,
+	-- using the same matrix as the text so they lie flat like the labels do)
+	if showResourceIcons then
+		local glTexRect = gl.TexRect
+		local glTexture = gl.Texture
+		local getTextWidth = widgetFont and widgetFont.GetTextWidth and
+			function(text) return widgetFont:GetTextWidth(text) end or gl.GetTextWidth
+		if showMetal then
+			glTexture(":l:LuaUI/Images/metal.png")
+			for clusterID = 1, #featureClusters do
+				local cluster = featureClusters[clusterID]
+				if cluster and cluster.textX and cluster.text then
+					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
+					if effAlpha > 0.01 then
+						local fs = cluster.font
+						local is = fs * iconSizeRatio
+						local tw = getTextWidth(cluster.text) * fs
+						local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 						glPushMatrix()
 						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
-						glCallList(clusterData.text)
+						glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * effAlpha)
+						glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
 						glPopMatrix()
 					end
 				end
 			end
-		end
-		-- Fading-out energy cluster text
-		for uid, entry in pairs(animState.fadingEnergy) do
-			local alpha = entry.alpha or 0
-			if alpha > 0.01 and entry.text then
-				if not entry.displayLists or not entry.displayLists.text
-					or not entry.lastBakedTextAlpha or abs(alpha - entry.lastBakedTextAlpha) > animCfg.rebuildThreshold then
-					CreateFadingClusterTextDisplayList(uid, true)
-					entry.lastBakedTextAlpha = alpha
-				end
-				if entry.displayLists and entry.displayLists.text then
+			for uid, entry in pairs(animState.fading) do
+				local alpha = entry.alpha or 0
+				if alpha > 0.01 and entry.text then
+					local fs = entry.font or fontSizeMin
+					local is = fs * iconSizeRatio
+					local tw = getTextWidth(entry.text) * fs
+					local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 					glPushMatrix()
 					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
-					glCallList(entry.displayLists.text)
+					glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * alpha)
+					glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
 					glPopMatrix()
 				end
 			end
+			glTexture(false)
+		end
+		if showEnergy then
+			glTexture(":l:LuaUI/Images/energy.png")
+			for clusterID = 1, #energyFeatureClusters do
+				local cluster = energyFeatureClusters[clusterID]
+				if cluster and cluster.textX and cluster.text then
+					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
+					if effAlpha > 0.01 then
+						local fs = cluster.font * energyTextSizeMultiplier
+						local is = fs * iconSizeRatio
+						local tw = getTextWidth(cluster.text) * fs
+						local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
+						glPushMatrix()
+						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
+						glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * effAlpha)
+						glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
+						glPopMatrix()
+					end
+				end
+			end
+			for uid, entry in pairs(animState.fadingEnergy) do
+				local alpha = entry.alpha or 0
+				if alpha > 0.01 and entry.text then
+					local fs = (entry.font or fontSizeMin) * energyTextSizeMultiplier
+					local is = fs * iconSizeRatio
+					local tw = getTextWidth(entry.text) * fs
+					local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
+					glPushMatrix()
+					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
+					glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * alpha)
+					glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
+					glPopMatrix()
+				end
+			end
+			glTexture(false)
 		end
 	end
 
