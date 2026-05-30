@@ -1427,6 +1427,14 @@ local CMD_MAX_CHAIN_UNITS = 6
 -- GPU-driven icon rendering: replaces the CPU-heavy DrawUnit+DrawIcons pipeline with a single
 -- instanced draw call via a texture atlas + VBO + geometry shader.
 -- Benefits: eliminates per-icon texture switches, per-icon draw calls, and most per-unit API calls.
+
+-- Select the GS-based or GS-free pipeline. On backends without a geometry-
+-- shader stage (e.g. Metal via Zink) the 4 inline GS programs in this widget
+-- (decal, icon, circle, quad) cannot link; the NoGS shader variants fold each
+-- GS body into its VS via gl_VertexID -> [0,1,2,2,1,3] strip-to-list decoding,
+-- per-rect attribs become instance-rate (divisor 1), and the 5 affected VAOs
+-- switch to AttachInstanceBuffer + 6-vert-per-instance triangle draws.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
 local gl4Icons = {
 	INSTANCE_STEP = 12,       -- floats per icon instance (3 x vec4)
 	MAX_INSTANCES = 16384,    -- pre-allocated capacity (covers 16k units without resize)
@@ -2525,6 +2533,87 @@ void main() {
 			atlasTex = 0,
 		},
 	},
+	-- NoGS variant of decalCode: per-instance attribs at divisor 1; each instance
+	-- draws as a 6-vertex triangle list (1 quad = 2 tris). gl_VertexID 0..5 decodes
+	-- via the strip-to-list map [0,1,2,2,1,3] into the original GS strip vertices
+	-- (BL, BR, TL, TR). The rotation-then-NDC-conversion math is folded into the VS.
+	decalCodeNoGS = {
+		vertex = [[
+#version 330
+// Per-instance decal data (one INSTANCE = one decal, divisor 1)
+layout(location = 0) in vec4 posRot;        // worldX, worldZ, rotation (rad), maxalpha
+layout(location = 1) in vec4 sizeAlpha;     // halfLengthX, halfWidthZ, alphastart, alphadecay
+layout(location = 2) in vec4 uvCoords;      // p, q, s, t (atlas UV rect)
+layout(location = 3) in vec4 spawnParams;   // spawnframe, 0, 0, 0
+
+uniform float gameFrame;
+uniform vec2 invMapSize;  // 2/mapSizeX, 2/mapSizeZ (factor of 2 because NDC spans -1..1)
+
+out vec2 f_texCoord;
+out float f_alpha;
+
+void main() {
+	float lifetonow = gameFrame - spawnParams.x;
+	float currentAlpha = sizeAlpha.z - lifetonow * sizeAlpha.w;
+	currentAlpha = clamp(currentAlpha, 0.0, posRot.w);
+
+	if (currentAlpha < 0.01) {
+		f_alpha = 0.0;
+		f_texCoord = vec2(0.0);
+		gl_Position = vec4(2.0, 2.0, 0.0, 1.0);  // off-screen degenerate
+		return;
+	}
+
+	f_alpha = currentAlpha;
+	vec2 ndc = posRot.xy * invMapSize - 1.0;
+
+	float ca = cos(posRot.z);
+	float sa = sin(posRot.z);
+	vec2 hs = sizeAlpha.xy;
+	vec2 dx = vec2(ca,  sa) * hs.x * invMapSize;
+	vec2 dy = vec2(-sa, ca) * hs.y * invMapSize;
+
+	// Strip ABCD = BL,BR,TL,TR  ->  triangle list [0,1,2,2,1,3].
+	int sIdx;
+	int vid = gl_VertexID;
+	if      (vid == 0) sIdx = 0;
+	else if (vid == 1) sIdx = 1;
+	else if (vid == 2) sIdx = 2;
+	else if (vid == 3) sIdx = 2;
+	else if (vid == 4) sIdx = 1;
+	else               sIdx = 3;
+
+	vec2 offset;
+	if      (sIdx == 0) { offset = -dx - dy; f_texCoord = vec2(uvCoords.x, uvCoords.z); } // BL
+	else if (sIdx == 1) { offset =  dx - dy; f_texCoord = vec2(uvCoords.y, uvCoords.z); } // BR
+	else if (sIdx == 2) { offset = -dx + dy; f_texCoord = vec2(uvCoords.x, uvCoords.w); } // TL
+	else                { offset =  dx + dy; f_texCoord = vec2(uvCoords.y, uvCoords.w); } // TR
+
+	gl_Position = vec4(ndc + offset, 0.0, 1.0);
+}
+		]],
+		fragment = [[
+#version 330
+uniform sampler2D atlasTex;
+in vec2 f_texCoord;
+in float f_alpha;
+out vec4 fragColor;
+
+void main() {
+	vec4 tex = texture(atlasTex, f_texCoord);
+	// Square alpha to match world decal shader (soft edge falloff)
+	float a = tex.a * tex.a * 0.999 * f_alpha;
+	// Brighten scar color toward mid-gray (world does tex * minimap * 2 + lighting)
+	vec3 scarColor = mix(tex.rgb, vec3(0.5), 0.35);
+	// Lerp from white toward scar color
+	vec3 result = mix(vec3(1.0), scarColor, a);
+	fragColor = vec4(result, 1.0);
+}
+		]],
+		uniformInt = {
+			atlasTex = 0,
+		},
+	},
 	-- Water overlay: renders water/lava tinting based on heightmap
 	water = nil,
 	waterCode = {
@@ -2998,6 +3087,139 @@ v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z * sizeExpand) * ndcScale;
 	},
 }
 
+-- NoGS variant of icon shaderCode: per-instance attribs at divisor 1; each
+-- instance draws as a 6-vertex triangle list via gl_VertexID -> [0,1,2,2,1,3]
+-- strip-to-list mapping. The quad expansion (BL,BR,TL,TR) that the GS did is
+-- folded into the VS using the pre-computed iconBaseSize * worldPos_size.z *
+-- sizeExpand half-size in NDC. The `flat` qualifier on f_flash is preserved.
+gl4Icons.shaderCodeNoGS = {
+	vertex = [[
+#version 330
+layout(location = 0) in vec4 worldPos_size;  // worldX, worldZ, iconSizeScale, flags (bitfield)
+layout(location = 1) in vec4 atlasUV;         // u0, v0, u1, v1
+layout(location = 2) in vec4 colorFlags;      // r, g, b, wobblePhase + flashFactor*100*7
+
+uniform vec2 wtp_scale;
+uniform vec2 wtp_offset;
+uniform vec2 ndcScale;
+uniform vec2 rotSC;
+uniform vec2 rotCenter;
+uniform float iconBaseSize;
+uniform float gameTime;
+uniform float wallClockTime;
+uniform float outlinePass;
+uniform float healthDarkenMax;
+
+out vec2 f_texCoord;
+out vec4 f_color;
+flat out float f_flash;
+
+void main() {
+float flags = worldPos_size.w;
+float bitFlags = mod(flags, 32.0);
+float healthPct = floor(flags / 32.0);
+float healthFrac = clamp(healthPct / 100.0, 0.0, 1.0);
+float isRadar    = mod(floor(bitFlags      ), 2.0);
+float isTakeable = mod(floor(bitFlags / 2.0 ), 2.0);
+float isStunned  = mod(floor(bitFlags / 4.0 ), 2.0);
+float isTracked  = mod(floor(bitFlags / 8.0 ), 2.0);
+float isSelfD    = mod(floor(bitFlags / 16.0), 2.0);
+
+float packedW = colorFlags.w;
+float flashFactor = floor(packedW / 7.0) / 100.0;
+float phase = mod(packedW, 7.0);
+
+vec2 pipPos;
+pipPos.x = wtp_offset.x + worldPos_size.x * wtp_scale.x;
+pipPos.y = wtp_offset.y + worldPos_size.y * wtp_scale.y;
+
+float wobbleAmp = iconBaseSize * sqrt(abs(wtp_scale.x)) * 0.03 * isRadar;
+pipPos.x += sin(gameTime * 3.0 + phase) * wobbleAmp;
+pipPos.y += cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp;
+
+vec2 d = pipPos - rotCenter;
+pipPos = rotCenter + vec2(
+d.x * rotSC.y - d.y * rotSC.x,
+d.x * rotSC.x + d.y * rotSC.y
+);
+
+gl_Position = vec4(pipPos * ndcScale - 1.0, 0.0, 1.0);
+
+vec3 col = colorFlags.rgb;
+float alpha = 1.0 - 0.25 * isRadar;
+
+float takeableBlink = step(0.0, sin(wallClockTime * 9.42));
+alpha *= mix(1.0, mix(0.3, 1.0, takeableBlink), isTakeable);
+
+float damage = 1.0 - healthFrac;
+col = max(col - vec3(damage * healthDarkenMax), vec3(0.0));
+
+float stunnedPulse = 0.5 + 0.5 * sin(wallClockTime * 12.57);
+col = mix(col, vec3(0.82, 0.85, 1.0), 0.45 * stunnedPulse * isStunned);
+
+float selfDPulse = 0.55 + 0.45 * sin(wallClockTime * 18.85);
+col = mix(col, vec3(1.0, 0.25, 0.0), 0.7 * selfDPulse * isSelfD);
+
+if (outlinePass > 0.5) {
+  float hasOutline = max(isTracked, isSelfD);
+  if (hasOutline < 0.5) {
+    alpha = 0.0;
+  } else if (isSelfD > 0.5) {
+    float selfDOutlinePulse = 0.5 + 0.5 * sin(wallClockTime * 18.85);
+    col = vec3(1.0, 0.3, 0.0);
+    alpha = 0.4 + 0.4 * selfDOutlinePulse;
+  } else {
+    col = vec3(1.0, 1.0, 1.0);
+    alpha = 0.5;
+  }
+}
+
+f_color = vec4(col, alpha);
+f_flash = flashFactor;
+float hasOutline = max(isTracked, isSelfD);
+float sizeExpand = 1.0 + 0.12 * outlinePass * hasOutline;
+vec2 hs = vec2(iconBaseSize * worldPos_size.z * sizeExpand) * ndcScale;
+
+// Strip ABCD = BL,BR,TL,TR -> triangle list [0,1,2,2,1,3].
+int vid = gl_VertexID;
+int sIdx;
+if      (vid == 0) sIdx = 0;
+else if (vid == 1) sIdx = 1;
+else if (vid == 2) sIdx = 2;
+else if (vid == 3) sIdx = 2;
+else if (vid == 4) sIdx = 1;
+else               sIdx = 3;
+
+vec2 off;
+if      (sIdx == 0) { off = vec2(-hs.x, -hs.y); f_texCoord = vec2(atlasUV.x, atlasUV.y); }
+else if (sIdx == 1) { off = vec2( hs.x, -hs.y); f_texCoord = vec2(atlasUV.z, atlasUV.y); }
+else if (sIdx == 2) { off = vec2(-hs.x,  hs.y); f_texCoord = vec2(atlasUV.x, atlasUV.w); }
+else                { off = vec2( hs.x,  hs.y); f_texCoord = vec2(atlasUV.z, atlasUV.w); }
+
+gl_Position = vec4(gl_Position.xy + off, gl_Position.z, 1.0);
+}
+	]],
+	fragment = [[
+		#version 330
+		uniform sampler2D iconAtlas;
+		in vec2 f_texCoord;
+		in vec4 f_color;
+		flat in float f_flash;
+		out vec4 fragColor;
+
+		void main() {
+			vec4 texColor = texture(iconAtlas, f_texCoord);
+			vec4 result = texColor * f_color;
+			result.rgb += f_color.rgb * f_flash * (1.0 - texColor.rgb);
+			if (result.a < 0.01) discard;
+			fragColor = result;
+		}
+	]],
+	uniformInt = {
+		iconAtlas = 0,
+	},
+}
+
 ----------------------------------------------------------------------------------------------------
 -- GL4 Primitive Shaders (circles, quads, lines)
 ----------------------------------------------------------------------------------------------------
@@ -3088,6 +3310,76 @@ gl4Prim.circleShaderCode = {
 	]],
 }
 
+-- NoGS variant of circleShaderCode: VS expands each instance into 6 verts via
+-- gl_VertexID -> [0,1,2,2,1,3] strip-to-list mapping. f_blendMode is `flat` on
+-- both VS->FS sides (matching the FS, which always had `flat in`); the
+-- original VS->GS->FS chain had a smooth VS->GS hop that the GS upgraded to
+-- flat, which is preserved by the collapse.
+gl4Prim.circleShaderCodeNoGS = {
+	vertex = [[
+		#version 330
+		layout(location = 0) in vec4 posRadius;    // worldX, worldZ, radius, alpha
+		layout(location = 1) in vec4 coreColor;    // coreR, coreG, coreB, edgeAlpha
+		layout(location = 2) in vec4 edgeColor;    // edgeR, edgeG, edgeB, blendMode (0=normal, 1=additive)
+
+		uniform vec2 wtp_scale;
+		uniform vec2 wtp_offset;
+		uniform vec2 ndcScale;
+		uniform vec2 rotSC;
+		uniform vec2 rotCenter;
+
+		out vec2 f_localCoord;
+		out vec4 f_coreColor;
+		out vec4 f_edgeColor;
+		flat out float f_blendMode;
+
+		void main() {
+			vec2 pipPos = wtp_offset + posRadius.xy * wtp_scale;
+			vec2 d = pipPos - rotCenter;
+			pipPos = rotCenter + vec2(d.x*rotSC.y - d.y*rotSC.x, d.x*rotSC.x + d.y*rotSC.y);
+			vec2 centerNDC = pipPos * ndcScale - 1.0;
+
+			float radiusPIP = posRadius.z * abs(wtp_scale.x);
+			vec2 hs = vec2(radiusPIP) * ndcScale;
+			f_coreColor = vec4(coreColor.rgb, posRadius.w);
+			f_edgeColor = vec4(edgeColor.rgb, coreColor.w);
+			f_blendMode = edgeColor.w;
+
+			int vid = gl_VertexID;
+			int sIdx;
+			if      (vid == 0) sIdx = 0;
+			else if (vid == 1) sIdx = 1;
+			else if (vid == 2) sIdx = 2;
+			else if (vid == 3) sIdx = 2;
+			else if (vid == 4) sIdx = 1;
+			else               sIdx = 3;
+
+			vec2 off;
+			if      (sIdx == 0) { off = vec2(-hs.x, -hs.y); f_localCoord = vec2(-1.0, -1.0); }
+			else if (sIdx == 1) { off = vec2( hs.x, -hs.y); f_localCoord = vec2( 1.0, -1.0); }
+			else if (sIdx == 2) { off = vec2(-hs.x,  hs.y); f_localCoord = vec2(-1.0,  1.0); }
+			else                { off = vec2( hs.x,  hs.y); f_localCoord = vec2( 1.0,  1.0); }
+
+			gl_Position = vec4(centerNDC + off, 0.0, 1.0);
+		}
+	]],
+	fragment = [[
+		#version 330
+		in vec2 f_localCoord;
+		in vec4 f_coreColor;
+		in vec4 f_edgeColor;
+		flat in float f_blendMode;
+		out vec4 fragColor;
+
+		void main() {
+			float dist = length(f_localCoord);
+			if (dist > 1.0) discard;
+			float t = smoothstep(0.0, 1.0, dist);
+			fragColor = mix(f_coreColor, f_edgeColor, t);
+		}
+	]],
+}
+
 -- Quad shader: point → rotated quad
 gl4Prim.quadShaderCode = {
 	vertex = [[
@@ -3159,6 +3451,70 @@ gl4Prim.quadShaderCode = {
 			gl_Position = vec4(c.xy + (-dx + dy) * ndc, 0, 1); EmitVertex();
 			gl_Position = vec4(c.xy + ( dx + dy) * ndc, 0, 1); EmitVertex();
 			EndPrimitive();
+		}
+	]],
+	fragment = [[
+		#version 330
+		in vec4 f_color;
+		out vec4 fragColor;
+		void main() {
+			fragColor = f_color;
+		}
+	]],
+}
+
+-- NoGS variant of quadShaderCode: VS expands each instance into 6 verts via
+-- gl_VertexID -> [0,1,2,2,1,3] strip-to-list mapping. Quad-rotation-combined-
+-- with-map-rotation math from the GS (sa*cos(m) + ca*sin(m) etc.) is folded
+-- into the VS, then pixel-space rotation is converted to NDC.
+gl4Prim.quadShaderCodeNoGS = {
+	vertex = [[
+		#version 330
+		layout(location = 0) in vec4 posSizeIn;     // worldX, worldZ, halfWidth, halfHeight
+		layout(location = 1) in vec4 colorIn;        // r, g, b, a
+		layout(location = 2) in vec4 angleFlags;     // angleDeg, 0, 0, 0
+
+		uniform vec2 wtp_scale;
+		uniform vec2 wtp_offset;
+		uniform vec2 ndcScale;
+		uniform vec2 rotSC;
+		uniform vec2 rotCenter;
+
+		out vec4 f_color;
+
+		void main() {
+			vec2 pipPos = wtp_offset + posSizeIn.xy * wtp_scale;
+			vec2 d = pipPos - rotCenter;
+			pipPos = rotCenter + vec2(d.x*rotSC.y - d.y*rotSC.x, d.x*rotSC.x + d.y*rotSC.y);
+			vec2 centerNDC = pipPos * ndcScale - 1.0;
+
+			float scalePIP = abs(wtp_scale.x);
+			vec2 hs = vec2(posSizeIn.z * scalePIP, posSizeIn.w * scalePIP);
+			f_color = colorIn;
+
+			float a = radians(angleFlags.x);
+			float sa = sin(a), ca = cos(a);
+			float sT = sa * rotSC.y + ca * rotSC.x;
+			float cT = ca * rotSC.y - sa * rotSC.x;
+			vec2 dx = vec2(cT, sT) * hs.x;
+			vec2 dy = vec2(-sT, cT) * hs.y;
+
+			int vid = gl_VertexID;
+			int sIdx;
+			if      (vid == 0) sIdx = 0;
+			else if (vid == 1) sIdx = 1;
+			else if (vid == 2) sIdx = 2;
+			else if (vid == 3) sIdx = 2;
+			else if (vid == 4) sIdx = 1;
+			else               sIdx = 3;
+
+			vec2 offPx;
+			if      (sIdx == 0) offPx = -dx - dy;
+			else if (sIdx == 1) offPx =  dx - dy;
+			else if (sIdx == 2) offPx = -dx + dy;
+			else                offPx =  dx + dy;
+
+			gl_Position = vec4(centerNDC + offPx * ndcScale, 0.0, 1.0);
 		}
 	]],
 	fragment = [[
@@ -3281,7 +3637,7 @@ local function InitGL4Icons()
 		gl4Icons.vbo = nil
 		return
 	end
-	vao:AttachVertexBuffer(vbo)
+	if UseNoGS then vao:AttachInstanceBuffer(vbo) else vao:AttachVertexBuffer(vbo) end
 	gl4Icons.vao = vao
 
 	-- Building VBO/VAO: separate buffer for building+ghost icons.
@@ -3308,7 +3664,7 @@ local function InitGL4Icons()
 		gl4Icons.vao = nil
 		return
 	end
-	bldgVao:AttachVertexBuffer(bldgVbo)
+	if UseNoGS then bldgVao:AttachInstanceBuffer(bldgVbo) else bldgVao:AttachVertexBuffer(bldgVbo) end
 	gl4Icons.bldgVbo = bldgVbo
 	gl4Icons.bldgVao = bldgVao
 
@@ -3351,7 +3707,7 @@ local function InitGL4Icons()
 		gl4Icons.bldgVao = nil
 		return
 	end
-	slowVao:AttachVertexBuffer(slowVbo)
+	if UseNoGS then slowVao:AttachInstanceBuffer(slowVbo) else slowVao:AttachVertexBuffer(slowVbo) end
 	gl4Icons.slowVbo = slowVbo
 	gl4Icons.slowVao = slowVao
 
@@ -3363,7 +3719,7 @@ local function InitGL4Icons()
 	gl4Icons.slowInstanceData = slowInstanceData
 
 	-- Compile shader
-	local shader = gl.CreateShader(gl4Icons.shaderCode)
+	local shader = gl.CreateShader(UseNoGS and gl4Icons.shaderCodeNoGS or gl4Icons.shaderCode)
 	if not shader then
 		Spring.Echo("[PIP] GL4 icons: Shader compilation failed: " .. tostring(gl.GetShaderLog()))
 		vao:Delete()
@@ -3469,7 +3825,7 @@ local function InitGL4Primitives()
 	cVbo:Define(gl4Prim.CIRCLE_MAX, circleLayout)
 	local cVao = gl.GetVAO()
 	if not cVao then cVbo:Delete(); return end
-	cVao:AttachVertexBuffer(cVbo)
+	if UseNoGS then cVao:AttachInstanceBuffer(cVbo) else cVao:AttachVertexBuffer(cVbo) end
 	local cData = {}
 	for i = 1, gl4Prim.CIRCLE_MAX * gl4Prim.CIRCLE_STEP do cData[i] = 0 end
 	gl4Prim.circles.vbo = cVbo
@@ -3487,7 +3843,7 @@ local function InitGL4Primitives()
 	qVbo:Define(gl4Prim.QUAD_MAX, quadLayout)
 	local qVao = gl.GetVAO()
 	if not qVao then qVbo:Delete(); cVao:Delete(); cVbo:Delete(); return end
-	qVao:AttachVertexBuffer(qVbo)
+	if UseNoGS then qVao:AttachInstanceBuffer(qVbo) else qVao:AttachVertexBuffer(qVbo) end
 	local qData = {}
 	for i = 1, gl4Prim.QUAD_MAX * gl4Prim.QUAD_STEP do qData[i] = 0 end
 	gl4Prim.quads.vbo = qVbo
@@ -3515,7 +3871,7 @@ local function InitGL4Primitives()
 	gl4Prim.normLines.vbo, gl4Prim.normLines.vao, gl4Prim.normLines.data = nlVbo, nlVao, nlData
 
 	-- Compile shaders
-	local cShader = gl.CreateShader(gl4Prim.circleShaderCode)
+	local cShader = gl.CreateShader(UseNoGS and gl4Prim.circleShaderCodeNoGS or gl4Prim.circleShaderCode)
 	if not cShader then
 		Spring.Echo("[PIP] GL4 circle shader failed: " .. tostring(gl.GetShaderLog()))
 		-- cleanup all
@@ -3526,7 +3882,7 @@ local function InitGL4Primitives()
 	end
 	gl4Prim.circles.shader = cShader
 
-	local qShader = gl.CreateShader(gl4Prim.quadShaderCode)
+	local qShader = gl.CreateShader(UseNoGS and gl4Prim.quadShaderCodeNoGS or gl4Prim.quadShaderCode)
 	if not qShader then
 		Spring.Echo("[PIP] GL4 quad shader failed: " .. tostring(gl.GetShaderLog()))
 		gl.DeleteShader(cShader)
@@ -3659,7 +4015,11 @@ local function GL4FlushEffects()
 		local c = gl4Prim.circles
 		c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
 		GL4SetPrimUniforms(c.shader, c.uniformLocs)
-		c.vao:DrawArrays(GL.POINTS, c.count)
+		if UseNoGS then
+			c.vao:DrawArrays(GL.TRIANGLES, 6, 0, c.count)
+		else
+			c.vao:DrawArrays(GL.POINTS, c.count)
+		end
 		gl.UseShader(0)
 	end
 
@@ -3668,7 +4028,11 @@ local function GL4FlushEffects()
 		local q = gl4Prim.quads
 		q.vbo:Upload(q.data, nil, 0, 1, q.count * gl4Prim.QUAD_STEP)
 		GL4SetPrimUniforms(q.shader, q.uniformLocs)
-		q.vao:DrawArrays(GL.POINTS, q.count)
+		if UseNoGS then
+			q.vao:DrawArrays(GL.TRIANGLES, 6, 0, q.count)
+		else
+			q.vao:DrawArrays(GL.POINTS, q.count)
+		end
 		gl.UseShader(0)
 	end
 
@@ -3714,7 +4078,11 @@ local function GL4FlushCirclesOnly()
 	local c = gl4Prim.circles
 	c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
 	GL4SetPrimUniforms(c.shader, c.uniformLocs)
-	c.vao:DrawArrays(GL.POINTS, c.count)
+	if UseNoGS then
+		c.vao:DrawArrays(GL.TRIANGLES, 6, 0, c.count)
+	else
+		c.vao:DrawArrays(GL.POINTS, c.count)
+	end
 	gl.UseShader(0)
 end
 
@@ -7320,7 +7688,7 @@ function widget:Initialize()
 	end
 
 	-- Initialize decal overlay shader + GL4 VBO/VAO
-	shaders.decal = gl.CreateShader(shaders.decalCode)
+	shaders.decal = gl.CreateShader(UseNoGS and shaders.decalCodeNoGS or shaders.decalCode)
 	if not shaders.decal then
 		Spring.Echo("PIP: Failed to compile decal shader")
 		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
@@ -9103,7 +9471,11 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 				local c = gl4Prim.circles
 				c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
 				GL4SetPrimUniforms(c.shader, c.uniformLocs)
-				c.vao:DrawArrays(GL.POINTS, c.count)
+				if UseNoGS then
+					c.vao:DrawArrays(GL.TRIANGLES, 6, 0, c.count)
+				else
+					c.vao:DrawArrays(GL.POINTS, c.count)
+				end
 				gl.UseShader(0)
 			end
 
@@ -10791,30 +11163,54 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		if bldgUsedElements > 0 then
 			if hasOutlines then
 				gl.UniformFloat(ul.outlinePass, 1.0)
-				gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
+				if UseNoGS then
+					gl4Icons.bldgVao:DrawArrays(GL.TRIANGLES, 6, 0, bldgUsedElements)
+				else
+					gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
+				end
 			end
 			gl.UniformFloat(ul.outlinePass, 0.0)
-			gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
+			if UseNoGS then
+				gl4Icons.bldgVao:DrawArrays(GL.TRIANGLES, 6, 0, bldgUsedElements)
+			else
+				gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
+			end
 		end
 
 		-- Slow mobile (ground units, above buildings)
 		if slowMobileUsedElements > 0 then
 			if hasOutlines then
 				gl.UniformFloat(ul.outlinePass, 1.0)
-				gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+				if UseNoGS then
+					gl4Icons.slowVao:DrawArrays(GL.TRIANGLES, 6, 0, slowMobileUsedElements)
+				else
+					gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+				end
 			end
 			gl.UniformFloat(ul.outlinePass, 0.0)
-			gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+			if UseNoGS then
+				gl4Icons.slowVao:DrawArrays(GL.TRIANGLES, 6, 0, slowMobileUsedElements)
+			else
+				gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+			end
 		end
 
 		-- Fast mobile (aircraft, commanders — always on top)
 		if mobileUsedElements > 0 then
 			if hasOutlines then
 				gl.UniformFloat(ul.outlinePass, 1.0)
-				gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+				if UseNoGS then
+					gl4Icons.vao:DrawArrays(GL.TRIANGLES, 6, 0, mobileUsedElements)
+				else
+					gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+				end
 			end
 			gl.UniformFloat(ul.outlinePass, 0.0)
-			gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+			if UseNoGS then
+				gl4Icons.vao:DrawArrays(GL.TRIANGLES, 6, 0, mobileUsedElements)
+			else
+				gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+			end
 		end
 
 		glFunc.Texture(0, false)
@@ -14838,7 +15234,7 @@ InitGL4Decals = function()
 		vbo:Delete()
 		return
 	end
-	vao:AttachVertexBuffer(vbo)
+	if UseNoGS then vao:AttachInstanceBuffer(vbo) else vao:AttachVertexBuffer(vbo) end
 
 	-- Pre-allocate instance data array
 	local instanceData = {}
@@ -14952,7 +15348,11 @@ local function decalR2TDraw()
 			local ul = decalGL4.uniformLocs
 			gl.UniformFloat(ul.gameFrame, decalGL4.renderFrame)
 			gl.UniformFloat(ul.invMapSize, 2.0 / mapInfo.mapSizeX, 2.0 / mapInfo.mapSizeZ)
-			decalGL4.vao:DrawArrays(GL.POINTS, decalGL4.instanceCount)
+			if UseNoGS then
+				decalGL4.vao:DrawArrays(GL.TRIANGLES, 6, 0, decalGL4.instanceCount)
+			else
+				decalGL4.vao:DrawArrays(GL.POINTS, decalGL4.instanceCount)
+			end
 			gl.UseShader(0)
 			glFunc.Texture(false)
 		end
