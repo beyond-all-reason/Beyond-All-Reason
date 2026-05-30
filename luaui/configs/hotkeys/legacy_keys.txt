@@ -96,6 +96,9 @@ bind Any+f4 ShowMetalMap
 bind Any+f5 HideInterface
 bind Any+f6 MuteSound
 bind Any+f7 DynamicSky
+bind f9      stateprefs_record
+bind Alt+f9  stateprefs_clearunit
+bind Ctrl+f9 stateprefs_savecurrent
 bind f10 options
 bind f11 luaui selector
 bind Any+f12 screenshot png
