@@ -168,8 +168,15 @@ local function CreatePanelDisplayList()
 			end
 		else
 			font:Print(textColor .. Spring.I18N('ui.scavs.bossHealth', { count = nBosses, health = gameInfo.scavBossHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
+
+			if Spring.GetGameRulesParam("scavBossStaggerActive") == false then
+				font:Print(textColor .. Spring.I18N('ui.scavs.bossStaggerPercentage', {count = nBosses, value = Spring.GetGameRulesParam("scavBossStaggerPercentage") }), panelMarginX, PanelRow(2), panelFontSize, "")
+			else
+				font:Print("\255\255\255\0" .. Spring.I18N('ui.scavs.bossStaggerActive', {count = nBosses}), panelMarginX, PanelRow(2), panelFontSize, "")
+				font:Print("\255\255\255\0" .. Spring.I18N('ui.scavs.bossStaggerPercentage', {count = nBosses, value = Spring.GetGameRulesParam("scavBossStaggerPercentage") }), panelMarginX, PanelRow(3), panelFontSize, "")
+			end
 			if nBosses > 1 then
-				font:Print(textColor .. Spring.I18N('ui.scavs.bossesKilled', { nKilled = gameInfo.scavBossesKilled, nTotal = nBosses }), panelMarginX, PanelRow(2), panelFontSize, "")
+				font:Print(textColor .. Spring.I18N('ui.scavs.bossesKilled', { nKilled = gameInfo.scavBossesKilled, nTotal = nBosses }), panelMarginX, PanelRow(4), panelFontSize, "")
 			end
 			for i = 1,#currentlyResistantToNames do
 				if i == 1 then
