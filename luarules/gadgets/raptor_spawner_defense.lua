@@ -161,6 +161,13 @@ if gadgetHandler:IsSyncedCode() then
 	local spawnQueue = {}
 	local deathQueue = {}
 	local queenResistance = {}
+	local queenStagger = {
+		Health = config.queenStagger.health,
+		CurrentHealth = config.queenStagger.health - 1,
+		Time = config.queenStagger.time,
+		CurrentTimer = config.queenStagger.time + 1,
+		currentlyStaggered = false,
+	}
 	local queenIDs = {}
 	local bosses = {resistances = queenResistance, statuses = {}, playerDamages = {}}
 	local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
@@ -196,9 +203,15 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	local isObject = {}
+	UnitDefStaggerMultiplier = {}
 	for udefID, def in ipairs(UnitDefs) do
 		if def.modCategories['object'] or def.customParams.objectify then
 			isObject[udefID] = true
+		end
+		if def.customParams.bossStaggerMultiplier then
+			UnitDefStaggerMultiplier[udefID] = tonumber(def.customParams.bossStaggerMultiplier)
+		else
+			UnitDefStaggerMultiplier[udefID] = 1
 		end
 	end
 
@@ -394,6 +407,13 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxXP = nextDifficulty.maxXP
 		config.angerBonus = nextDifficulty.angerBonus
 		config.queenTime = math.ceil(nextDifficulty.queenTime/(endlessLoopCounter/2))
+		queenStagger = {
+			Health = nextDifficulty.queenStagger.health,
+			CurrentHealth = nextDifficulty.queenStagger.health - 1,
+			Time = nextDifficulty.queenStagger.time,
+			CurrentTimer = nextDifficulty.queenStagger.time + 1,
+			currentlyStaggered = false,
+		}
 
 		queenTime = (config.queenTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.raptorPerPlayerMultiplier))+(config.maxBurrows*config.raptorPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8)))*config.raptorSpawnMultiplier
@@ -928,9 +948,57 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		--local queenStagger = {
+		--Health = config.queenStagger.health,
+		--CurrentHealth = config.queenStagger.health + 1,
+		--Time = config.queenStagger.time,
+		--CurrentTimer = config.queenStagger.time + 1,
+		--currentlyStaggered = false,
+		--}
+
+		if SetCount(queenIDs) > 0 then
+			
+
+			if queenStagger.currentlyStaggered == false then
+				if queenStagger.CurrentHealth > 0 then
+					SetGameRulesParam("raptorQueenStaggerPercentage", math.ceil((queenStagger.CurrentHealth/queenStagger.Health)*100))
+					for queenID, _ in pairs(queenIDs) do
+						Spring.SetUnitHealth(queenID, {paralyze = 0})
+					end
+				else
+					queenStagger.currentlyStaggered = true
+					queenStagger.CurrentTimer = queenStagger.Time + 0
+					SetGameRulesParam("raptorQueenStaggerPercentage", math.ceil((1 - (queenStagger.CurrentTimer/queenStagger.Time))*100))
+				end
+			end
+
+			if queenStagger.currentlyStaggered == true then
+				queenStagger.CurrentTimer = queenStagger.CurrentTimer - 1
+				if queenStagger.CurrentTimer > 0 then
+					SetGameRulesParam("raptorQueenStaggerPercentage", math.ceil((1 - (queenStagger.CurrentTimer/queenStagger.Time))*100))
+					for queenID, _ in pairs(queenIDs) do
+						Spring.SetUnitHealth(queenID, {paralyze = 16000000})
+					end
+				else
+					queenStagger.currentlyStaggered = false
+					queenStagger.Time = queenStagger.Time + 5
+					queenStagger.CurrentTimer = queenStagger.Time + 0
+					queenStagger.Health = queenStagger.Health*1.1
+					queenStagger.CurrentHealth = queenStagger.Health
+					SetGameRulesParam("raptorQueenStaggerPercentage", math.ceil((queenStagger.CurrentHealth/queenStagger.Health)*100))
+				end
+			end
+
+			if queenStagger.currentlyStaggered == false and queenStagger.CurrentHealth <= 0 then
+				queenStagger.CurrentTimer = queenStagger.CurrentTimer - 1
+			end
+
+			SetGameRulesParam("raptorQueenStaggerActive", queenStagger.currentlyStaggered)
+		end
+
 		SetGameRulesParam("raptorQueenHealth", math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100)))
 		SetGameRulesParam("pveBossInfo", Json.encode(bosses))
-		end
+	end
 
 	function SpawnQueen()
 		local bestScore = 0
@@ -1463,7 +1531,7 @@ if gadgetHandler:IsSyncedCode() then
 				attackerDefID = tostring(attackerDefID)
 				if not queenResistance[attackerDefID] then
 					queenResistance[attackerDefID] = {
-						damage = damage * 4 * config.queenResistanceMult,
+						damage = damage * 5 * config.queenResistanceMult,
 						notify = 0
 					}
 				end
@@ -1510,9 +1578,22 @@ if gadgetHandler:IsSyncedCode() then
 					end
 
 				end
-				damage = damage - (damage * resistPercent)
-				queenResistance[attackerDefID].damage = queenResistance[attackerDefID].damage + (damage * 4 * config.queenResistanceMult)
+				if UnitDefStaggerMultiplier[attackerDefID] then
+					queenStagger.CurrentHealth = queenStagger.CurrentHealth - ((math.min((damage * (1-resistPercent) * 2), damage) / nTotalQueens) * UnitDefStaggerMultiplier[attackerDefID])
+				else
+					queenStagger.CurrentHealth = queenStagger.CurrentHealth - (math.min((damage * (1-resistPercent) * 2), damage) / nTotalQueens)
+				end
+
+				if queenStagger.currentlyStaggered then
+					damage = damage - (damage * resistPercent * 0.5)
+				else
+					damage = damage - (damage * resistPercent)
+				end
+				
+				queenResistance[attackerDefID].damage = queenResistance[attackerDefID].damage + (damage * 5 * config.queenResistanceMult)
 				queenResistance[attackerDefID].percent = resistPercent
+				
+
 			else
 				damage = 1
 			end
@@ -1606,7 +1687,7 @@ if gadgetHandler:IsSyncedCode() then
 			if curH and maxH then
 				curH = math.max(curH, maxH*0.05)
 				local spawnChance = math.max(0, math.ceil(curH/maxH*10000))
-				if mRandom(0,spawnChance) == 1 then
+				if mRandom(0,spawnChance) == 1 and not queenStagger.currentlyStaggered then
 					SpawnMinions(unitID, GetUnitDefID(unitID))
 					SpawnMinions(unitID, GetUnitDefID(unitID))
 				end
@@ -1760,12 +1841,14 @@ if gadgetHandler:IsSyncedCode() then
 				SetUnitHealth(queenID, math.max(queenMaxHP*(techAnger*0.01), queenMaxHP*0.2))
 				SetUnitExperience(queenID, 0)
 				timeOfLastWave = t
-				for burrowID, _ in pairs(burrows) do
-					if mRandom() < config.spawnChance then
-						SpawnRandomOffWaveSquad(burrowID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
-						SpawnRandomOffWaveSquad(burrowID)
-					else
-						SpawnRandomOffWaveSquad(burrowID)
+				if nSpawnedQueens == 1 then
+					for burrowID, _ in pairs(burrows) do
+						if mRandom() < config.spawnChance then
+							SpawnRandomOffWaveSquad(burrowID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
+							SpawnRandomOffWaveSquad(burrowID)
+						else
+							SpawnRandomOffWaveSquad(burrowID)
+						end
 					end
 				end
 				SetGameRulesParam("BossFightStarted", 1)
@@ -1774,12 +1857,13 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		for queenID, _ in pairs(queenIDs) do
-			if mRandom() < config.spawnChance / 15 then
-				for i = 1,config.queenSpawnMult do
-					SpawnMinions(queenID, GetUnitDefID(queenID))
-					SpawnMinions(queenID, GetUnitDefID(queenID))
-
+		if not queenStagger.currentlyStaggered then
+			for queenID, _ in pairs(queenIDs) do
+				if mRandom() < config.spawnChance / 15 then
+					for i = 1,config.queenSpawnMult do
+						SpawnMinions(queenID, GetUnitDefID(queenID))
+						SpawnMinions(queenID, GetUnitDefID(queenID))
+					end
 				end
 			end
 		end

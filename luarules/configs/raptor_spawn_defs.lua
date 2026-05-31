@@ -316,6 +316,10 @@ local optionValues = {
 		raptorPerPlayerMultiplier = 0.25,
 		queenName                 = 'raptor_queen_veryeasy',
 		queenResistanceMult       = 0.5 * economyScale,
+		queenStagger			  = {
+			health = math.ceil(UnitDefNames["raptor_queen_veryeasy"].health*0.5),
+			time = 40,
+		},
 	},
 
 	[difficulties.easy] = {
@@ -336,6 +340,10 @@ local optionValues = {
 		raptorPerPlayerMultiplier = 0.25,
 		queenName                 = 'raptor_queen_easy',
 		queenResistanceMult       = 0.75 * economyScale,
+		queenStagger			  = {
+			health = math.ceil(UnitDefNames["raptor_queen_easy"].health*0.5),
+			time = 35,
+		},
 	},
 	[difficulties.normal] = {
 		gracePeriod               = 7 * Spring.GetModOptions().raptor_graceperiodmult * 60,
@@ -355,6 +363,10 @@ local optionValues = {
 		raptorPerPlayerMultiplier = 0.25,
 		queenName                 = 'raptor_queen_normal',
 		queenResistanceMult       = 1 * economyScale,
+		queenStagger			  = {
+			health = math.ceil(UnitDefNames["raptor_queen_normal"].health*0.5),
+			time = 30,
+		},
 	},
 	[difficulties.hard] = {
 		gracePeriod               = 6 * Spring.GetModOptions().raptor_graceperiodmult * 60,
@@ -374,6 +386,10 @@ local optionValues = {
 		raptorPerPlayerMultiplier = 0.25,
 		queenName                 = 'raptor_queen_hard',
 		queenResistanceMult       = 1.33 * economyScale,
+		queenStagger			  = {
+			health = math.ceil(UnitDefNames["raptor_queen_hard"].health*0.5),
+			time = 25,
+		},
 	},
 	[difficulties.veryhard] = {
 		gracePeriod               = 5 * Spring.GetModOptions().raptor_graceperiodmult * 60,
@@ -393,6 +409,10 @@ local optionValues = {
 		raptorPerPlayerMultiplier = 0.25,
 		queenName                 = 'raptor_queen_veryhard',
 		queenResistanceMult       = 1.67 * economyScale,
+		queenStagger			  = {
+			health = math.ceil(UnitDefNames["raptor_queen_veryhard"].health*0.5),
+			time = 20,
+		},
 	},
 	[difficulties.epic] = {
 		gracePeriod               = 4 * Spring.GetModOptions().raptor_graceperiodmult * 60,
@@ -412,6 +432,10 @@ local optionValues = {
 		raptorPerPlayerMultiplier = 0.25,
 		queenName                 = 'raptor_queen_epic',
 		queenResistanceMult       = 2 * economyScale,
+		queenStagger			  = {
+			health = math.ceil(UnitDefNames["raptor_queen_epic"].health*0.5),
+			time = 15,
+		},
 	},
 
 	-- [difficulties.survival] = {
