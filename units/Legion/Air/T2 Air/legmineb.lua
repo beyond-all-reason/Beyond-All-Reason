@@ -24,7 +24,7 @@ return {
 		maxslope = 10,
 		speed = 210.0,
 		maxwaterdepth = 0,
-		noautofire = true,
+		firestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/legmineb.s3o",
 		script = "Units/legmineb.cob",

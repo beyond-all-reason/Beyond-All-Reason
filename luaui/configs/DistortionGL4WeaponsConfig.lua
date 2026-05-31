@@ -653,7 +653,7 @@ local BaseClasses = {
 	},
 	FlameProjectileXL = {
 		distortionType = 'point', -- or cone or beam
-		fraction = 8, -- only spawn every nth distortion
+		fraction = 3, -- only spawn every nth distortion (lowered from 8 -- cordemon/corcrwh have long flame ranges and 1-in-8 left visible gaps)
 		distortionConfig = {
 			posx = 0, posy = 45, posz = 0, radius = 25,
 			noiseStrength = 4, noiseScaleSpace = -0.45, distanceFalloff = 1.6, onlyModelMap = 0,
@@ -1563,12 +1563,12 @@ explosionDistortionsNames['corblackhy_heavyplasma'] = {
 }
 
 projectileDefDistortionsNames["cormaw_dmaw"] =
-	GetDistortionClass("FlameProjectile", "Micro", {
+	GetDistortionClass("FlameProjectile", "Nano", {
 		lifeTime = 42, rampUp = 30,
 	})
 
 projectileDefDistortionsNames["corpyro_flamethrower"] =
-	GetDistortionClass("FlameProjectile", "Micro")
+	GetDistortionClass("FlameProjectile", "Pico")
 
 projectileDefDistortionsNames["cordemon_newdmaw"] =
 	GetDistortionClass("FlameProjectileXL", "Smaller", {
@@ -1578,7 +1578,7 @@ projectileDefDistortionsNames["cordemon_newdmaw"] =
 
 projectileDefDistortionsNames["corcrwh_dragonmawh"] =
 	GetDistortionClass("FlameProjectileXL", "Smaller", {
-		noiseStrength = 11, startRadius = 0.4, --noiseScaleSpace = -0.20,
+		noiseStrength = 15, startRadius = 0.4, --noiseScaleSpace = -0.20,
 		lifeTime = 50, rampUp = 15, decay = 70,
 	})
 
