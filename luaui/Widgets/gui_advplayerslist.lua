@@ -2585,6 +2585,7 @@ function DrawTakeSignal(posY)
 end
 
 function DrawShareButtons(posY, needm, neede)
+    -- woot where pop-cap share could be added
     gl_Color(1, 1, 1, 1)
     gl_Texture(pics["unitsPic"])
     DrawRect(m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
@@ -3223,6 +3224,7 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
 	end
 end
 
+-- woot sharing things
 function ShareTip(mouseX, playerID)
     if playerID == myPlayerID then
         if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
@@ -3570,6 +3572,7 @@ function widget:MousePress(x, y, button)
                                 end
                                 return true
                             end
+                            -- woot more share slider code
                             if IsOnRect(x, y, m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (playerOffset*playerScale)) then
                                 -- share energy button (initiates the slider)
                                 energyPlayer = clickedPlayer
@@ -3656,6 +3659,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseMove(x, y, dx, dy, button)
+    -- woot mouse sliding
     if energyPlayer ~= nil or metalPlayer ~= nil then
         -- move energy/metal share slider
         if sliderOrigin == nil then
@@ -3686,6 +3690,7 @@ function widget:MouseRelease(x, y, button)
         else
             release = nil
         end
+        -- woot energyShare actually being performed
         if energyPlayer ~= nil then
             -- share energy/metal mouse release
             if energyPlayer.team == myTeamID then
@@ -3698,12 +3703,14 @@ function widget:MouseRelease(x, y, button)
 					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergyAmount:amount='..shareAmount)
                 end
             elseif shareAmount > 0 then
+                -- duh, spShareResources is where it's actually happening all the chat stuff is just ui
                 sp.ShareResources(energyPlayer.team, "energy", shareAmount)
                 --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
                 if sharingTax and sharingTax > 0 then
                     local amount2 = mathFloor(shareAmount * (1- sharingTax))
                     Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy_taxed:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name)..':amount2='..amount2)
                 else
+                    -- woot, eep, no idea where this gets picked up at
 				    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name))
                 end
                 WG.sharedEnergyFrame = spGetGameFrame()
@@ -3981,6 +3988,7 @@ function CheckPlayersChange()
             end
             -- Update stall / cpu / ping info for each player
             if p.spec == false then
+                -- woot where to add p.needp check
                 p.needm = GetNeed("metal", p.team)
                 p.neede = GetNeed("energy", p.team)
                 p.rank = rank
