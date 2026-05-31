@@ -1179,7 +1179,10 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 end
 
 -- A unit that leaves a wreckage spawns short fire + long smoke at its position.
-function gadget:UnitDestroyed(unitID, unitDefID, attackerID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	-- Skip effects when the unit was reclaimed: attacker exists, is a different
+	-- unit, and no combat weapon was involved (weaponDefID nil or negative).
+	local isReclaimed = attackerID and attackerID ~= unitID and (not weaponDefID or weaponDefID < 0)
 	local e = unitFireEmitter[unitID]
 	if e then
 		-- stop the follow emitter; wreckage emitter takes over
@@ -1189,6 +1192,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, attackerID)
 		e.fireEnd  = mathMin(e.fireEnd, cachedGameFrame)
 		e.emberEnd = mathMin(e.emberEnd, cachedGameFrame)
 	end
+	if isReclaimed then return end
 	if leavesWreck[unitDefID] then
 		local x, y, z = spGetUnitPosition(unitID)
 		if x and y >= -4 then  -- no wreck fire underwater
