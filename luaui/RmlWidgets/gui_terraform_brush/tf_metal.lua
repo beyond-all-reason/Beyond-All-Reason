@@ -1,4 +1,4 @@
--- tf_metal.lua â€” Metal Brush attach + sync (extracted from gui_terraform_brush.lua)
+-- tf_metal.lua — Metal Brush attach + sync (extracted from gui_terraform_brush.lua)
 local M = {}
 
 function M.attach(doc, ctx)
@@ -10,7 +10,7 @@ function M.attach(doc, ctx)
 
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 	-- All data-event-click/change handlers (onMbXxx) are defined in initialModel
-	-- in gui_terraform_brush.lua â€” Recoil forbids adding or replacing function
+	-- in gui_terraform_brush.lua — Recoil forbids adding or replacing function
 	-- keys in a DataModel after OpenDataModel.
 	for _, entry in ipairs({
 		{ "mb-slider-cluster-radius",            "mb-cluster-radius" },

@@ -1,6 +1,14 @@
 -- tf_environment.lua: extracted tool module for gui_terraform_brush
 local M = {}
 
+-- Capture engine globals as module upvalues. RmlUi-dispatched event closures
+-- (AddEventListener bodies) may execute outside the host widget's global env,
+-- so referring to bare globals from inside a handler throws nil-index errors.
+-- See memory: rmlui_addeventlistener_globals.md.
+local WG = WG
+local Spring = Spring
+local gl = gl
+
 function M.attach(doc, ctx)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState

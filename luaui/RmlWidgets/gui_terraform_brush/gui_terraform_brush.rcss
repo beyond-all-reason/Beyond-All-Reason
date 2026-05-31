@@ -1,16 +1,16 @@
 * Terraform Brush - Widget-specific styles */
 /* Layout utilities, palette colors, and theme classes come from shared style guide files */
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   DESIGN TOKENS â€” Standard values for visual consistency across all
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — Standard values for visual consistency across all
    sub-panels (Terrain, Metal, Features, Splat, Decals, Weather,
    Environment, Lights). Update these comments when changing values.
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   ═══════════════════════════════════════════════════════════════════════
    SURFACES
      Panel bg:       #1d1d1d  (bg-darkest)
      Input bg:       #161620
-     Button bg (primary): #393942  â€” top-level mode, shape buttons
-     Button bg (secondary): #32323c â€” action, compact, env launcher, dist
+     Button bg (primary): #393942  — top-level mode, shape buttons
+     Button bg (secondary): #32323c — action, compact, env launcher, dist
      Button hover:   #484858  (secondary), #4c4c58 (primary)
      Inset bg:       #141418  (grouped toggles, dropdown interiors)
 
@@ -22,20 +22,20 @@
      Divider:        #34343e  (section separators)
 
    TEXT
-     Primary:        #e5e7eb  (text-light)  â€” headings, titles
-     Secondary:      #d8dce4  (text-medium) â€” button labels, body
-     Muted:          #9ca3af               â€” hints, keybinds
-     Keybind:        #a8c09a               â€” shortcut hints (on pill bg)
+     Primary:        #e5e7eb  (text-light)  — headings, titles
+     Secondary:      #d8dce4  (text-medium) — button labels, body
+     Muted:          #9ca3af               — hints, keybinds
+     Keybind:        #a8c09a               — shortcut hints (on pill bg)
 
    BUTTON HIERARCHY (height / border-radius)
-     Mode:           54dp / 8dp   â€” top-level mode buttons (Raise, Metalâ€¦)
-     Sub-mode:       40dp / 8dp   â€” tool sub-modes (Scatter, Pointâ€¦)
-     Compact:        28dp / 6dp   â€” text-only toggles (Point/Cone/Beam)
-     Distribution:   32dp / 7dp   â€” distribution selectors
-     Action:         36dp / 7dp   â€” Save, Load, Clear, Reset, Undoâ€¦
-     Env launcher:   36dp / 7dp   â€” environment category buttons (with icon)
-     Small (Â±):      22dp / 5dp   â€” increment/decrement
-     History (âŹŞâŹ©): 24dp / 5dp   â€” undo/redo arrows
+     Mode:           54dp / 8dp   — top-level mode buttons (Raise, Metal…)
+     Sub-mode:       40dp / 8dp   — tool sub-modes (Scatter, Point…)
+     Compact:        28dp / 6dp   — text-only toggles (Point/Cone/Beam)
+     Distribution:   32dp / 7dp   — distribution selectors
+     Action:         36dp / 7dp   — Save, Load, Clear, Reset, Undo…
+     Env launcher:   36dp / 7dp   — environment category buttons (with icon)
+     Small (±):      22dp / 5dp   — increment/decrement
+     History (⏪⏩): 24dp / 5dp   — undo/redo arrows
 
    SLIDERS
      Track height:   8dp,  bg #262630,  radius 4dp
@@ -49,7 +49,7 @@
 
    TRANSITIONS
      Standard:       0.15s
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════════════ */
 
 .text-keybind { color: #a0b896; }
 
@@ -732,7 +732,7 @@ body {
 	box-shadow: 0dp 0dp 5dp 0dp #22d3ee25;
 }
 
-/* Clone tool â€” layer chip grid (legacy, retained for compatibility) */
+/* Clone tool — layer chip grid (legacy, retained for compatibility) */
 .tf-cl-layer-grid {
 	display: flex;
 	flex-direction: row;
@@ -775,7 +775,7 @@ body {
 	color: #d1d5db;
 }
 
-/* Clone tool â€” hints */
+/* Clone tool — hints */
 .tf-cl-hints {
 	background-color: #12121a;
 	border-radius: 4dp;
@@ -1066,7 +1066,7 @@ body {
 	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff35;
 }
 
-/* === Transport toggle pill â€” click to reveal the 3 transport buttons === */
+/* === Transport toggle pill — click to reveal the 3 transport buttons === */
 .tf-transport-toggle {
 	padding: 2dp 6dp;
 	border-radius: 4dp;
@@ -1093,7 +1093,7 @@ body {
 	color: #fbbf5a;
 }
 
-/* === Transport (auto-scroll) button group â€” shown/hidden by toggle pill === */
+/* === Transport (auto-scroll) button group — shown/hidden by toggle pill === */
 .tf-transport-group {
 	display: flex;
 	align-items: center;
@@ -1104,18 +1104,18 @@ body {
 	display: none;
 }
 
-/* === Slider label rows â€” prevent wrapping when value is a single character === */
+/* === Slider label rows — prevent wrapping when value is a single character === */
 .tf-root .text-lg.text-light {
 	white-space: nowrap;
 }
 
-/* === Slider value span â€” fixed min-width prevents pill buttons from wiggling as number changes === */
+/* === Slider value span — fixed min-width prevents pill buttons from wiggling as number changes === */
 .tf-slider-val {
 	display: inline-block;
 	min-width: 8dp;
 }
 
-/* === Transport (auto-scroll) buttons â€” icon pill-shaped, orange highlights === */
+/* === Transport (auto-scroll) buttons — icon pill-shaped, orange highlights === */
 .tf-transport-btn {
 	padding: 3dp 5dp;
 	border-radius: 4dp;
@@ -2483,7 +2483,7 @@ body {
 }
 
 /* === Slider Wheel-Lock (double-click to lock) === */
-/* Locked â€” medium green tint fill + green outline (matches tf-header-btn active style) */
+/* Locked — medium green tint fill + green outline (matches tf-header-btn active style) */
 .slider-locked sliderbar {
 	background-color: #304838;
 	border: 2dp #4ade80bb;
@@ -2494,7 +2494,7 @@ body {
 	background-color: #3a5842;
 	border-color: #4ade80ee;
 }
-/* Pulse phase â€” border fades to dim; fill stays constant */
+/* Pulse phase — border fades to dim; fill stays constant */
 .slider-locked.slider-pulse sliderbar {
 	background-color: #304838;
 	border: 2dp #4ade8040;
@@ -2504,15 +2504,15 @@ body {
 	border-color: #4ade8088;
 }
 
-/* Keybind-scroll flash â€” brief green highlight that fades back via base transition */
+/* Keybind-scroll flash — brief green highlight that fades back via base transition */
 .slider-flash sliderbar {
 	background-color: #22c55e;
 	border: 2dp #22ff66aa;
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════════════
    PHASE 4: Section grouping & visual hierarchy
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════════════ */
 
 /* === Section Frame (fieldset/legend style — all collapsible sections) ===
  * The frame wraps each toggle-row + section-body pair.
@@ -2853,9 +2853,9 @@ body {
 	background-color: #24242c;
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════════════
    SETTINGS WINDOW
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════════════ */
 
 .tf-settings-window {
 	pointer-events: auto;
@@ -3043,7 +3043,7 @@ body {
 	color: #c8d0d8;
 }
 
-/* Warning chip â€” shown in the toggle header when section is collapsed but items within are active */
+/* Warning chip — shown in the toggle header when section is collapsed but items within are active */
 .tf-overlay-chip-warn {
 	padding: 2dp 6dp;
 	border-radius: 4dp;

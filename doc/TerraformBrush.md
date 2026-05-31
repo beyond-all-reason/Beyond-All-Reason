@@ -8,6 +8,72 @@ Custom terrain editing tool replacing BAR's default terraform commands with a un
 
 ---
 
+## Getting Started
+
+First-run orientation. The Terraform Brush is active in **skirmish, singleplayer, and replay sessions** (or any game where the host enabled the dev terraform modoption). Open the panel via the **Terraform Brush** button in the build/utility tray, or run `/terraformup` in chat to activate raise mode and pop the panel open.
+
+### Tool Row (top of the panel)
+
+Each icon switches the panel into a different tool. All tools share the same brush size/shape/rotation/curve sliders directly below the row.
+
+| Tool | Purpose |
+|------|---------|
+| **Terraform** | Raise/Lower/Level/Smooth/Ramp/Restore/Noise — the core terrain modes (this is the default tool). See [Modes](#modes). |
+| **Feature Placer** | Scatter trees, rocks, wreckage, decorations with random / regular / clustered distribution + smart filters. |
+| **Grass Brush** | Paint GL4 grass density. LMB paint, RMB erase. |
+| **Weather Brush** | Place CEG-based weather effects (rain, snow, dust, ambient sounds). |
+| **Light Placer** | Place dynamic map lights (radius, color, rotation). |
+| **Splat Painter** | Paint per-channel splat textures into the SSMF splat distribution map. |
+| **Decal Placer** | Stamp ground decals (cracks, scorches, custom PNGs). |
+| **Clone Tool** | Region copy/paste across all map layers (terrain, metal, features, grass, splats, decals, lights). |
+| **Environment** | Skybox, fog, sun, water, atmosphere, scene presets — see below. |
+
+Tools that are not currently active hide their sub-panel; click the icon to expand.
+
+### Environment Panel & Skybox Library
+
+Click the **Environment** icon in the tool row (rightmost group). The env panel opens with sections for:
+
+- **Skybox Library** — click the **SKYBOX LIBRARY** button at the top of the env panel. A floating window opens with thumbnail tiles for every skybox in `LuaUI/Images/skyboxes/`. Click a tile to apply it instantly. Toggle the **Fade** chip to crossfade between skyboxes instead of hard-cutting.
+- **Sun / fog / atmosphere** — sliders for sun direction, fog color/start/end, ambient/diffuse light, exposure, bloom.
+- **Water** — water type (0–4), color, foam, reflection/refraction toggles.
+- **Scene presets** — save/load named environment snapshots (`.env.lua` in your writeable data dir).
+
+To return to terrain editing, click any other tool icon (e.g. the mountain) — the env panel collapses automatically.
+
+### Key Shortcuts (cheat sheet)
+
+| Key | Action |
+|-----|--------|
+| `C` `S` `T` `H` `O` | Shape: Circle / Square / Triangle / Hexagon / Octagon |
+| `R` `E` `N` `L` `X` | Ramp / Restore / Noise / Smooth(→Level) / Clay |
+| `Ctrl+Scroll` | Brush radius |
+| `Shift+Scroll` | Curve (edge falloff) |
+| `Alt+Scroll` | Rotation |
+| `Space+Scroll` | Intensity (log scale) |
+| `Ctrl+R+Scroll` | Ring inner-ratio |
+| `Shift+drag` | Axis-lock + grid snap |
+| `RMB drag` | Temporary Lower (restores previous mode on release) |
+| `Ctrl+Z` / `Ctrl+Shift+Z` | Undo / Redo |
+
+Full table in [Interaction → Keyboard](#interaction).
+
+### Saving Your Work
+
+- **Terrain heightmap**: `/terraformexport` writes a PNG + metadata to your writeable data dir; `/terraformimport <file>` reloads it.
+- **Features / grass / splats / decals**: each tool has its own Save/Load/Clear row in its sub-panel.
+- **Environment**: Save/Load preset buttons in the env panel.
+
+All saved files live under `<bar data dir>/luaui/terraform_brush/` and friends — survive across sessions and can be shared with other mappers.
+
+### Getting Help
+
+- Mapping help, feedback, and showing off your work: **[BAR Discord](https://discord.gg/beyond-all-reason)** → `#mapping` channel.
+- Bug reports: tag `@BARb` (terraform brush maintainer) in `#mapping`, or open an issue against the realtime-terraformer branch on GitHub.
+- Project tracker / roadmap: see [TerraformBrush_QoL_Tracker.md](TerraformBrush_QoL_Tracker.md) and [TerraformBrush_1.0_Plan.md](TerraformBrush_1.0_Plan.md).
+
+---
+
 ## Modes
 
 ### Raise / Lower

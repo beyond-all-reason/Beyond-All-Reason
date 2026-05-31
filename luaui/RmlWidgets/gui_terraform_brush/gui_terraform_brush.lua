@@ -929,6 +929,7 @@ local function _deactivateAllTools()
 	if WG.SplatPainter   then WG.SplatPainter.deactivate()   end
 	if WG.MetalBrush     then WG.MetalBrush.deactivate()     end
 	if WG.GrassBrush     then WG.GrassBrush.deactivate()     end
+	if WG.DiffusePainter then WG.DiffusePainter.deactivate() end
 	widgetState.envActive      = false
 	widgetState.lightActive    = false
 	if WG.LightPlacer    then WG.LightPlacer.deactivate()    end
@@ -957,10 +958,16 @@ local initialModel = {
 	settingsTab = "keybinds",
 	noiseWindowVisible = false,
 	-- Active tool slot for panel-mode swap (data-if="activeTool == 'fp'" etc).
-	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, stp, cl.
+	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, stp, cl, diff.
 	activeTool = "",
 	stpSubMode = "",
 	stpStartboxMode = "",
+	-- Diffuse painter (Phase A MVP)
+	dfpRadiusStr = "128",
+	dfpStrengthStr = "0.60",
+	dfpCurveStr = "1.5",
+	dfpErase = false,
+	dfpActiveLayerName = "Paint",
 	-- splat smart filters
 	spAvoidCliffs = false,
 	spPreferSlopes = false,
@@ -1312,7 +1319,7 @@ local initialModel = {
 	envMapVisible = false,
 	envWaterVisible = false,
 	envDimensionsVisible = false,
-	-- Phase 2 step 6: tf_noise model-king handlers â€” defined here (not in M.attach)
+	-- Phase 2 step 6: tf_noise model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR changing function keys after OpenDataModel.
 	-- All closures capture file-level widgetState/uiState/WG/playSound upvalues.
 	onNoClose = function(_event)
@@ -1435,7 +1442,7 @@ local initialModel = {
 		_noSetSliderVal("noise-seed", newVal)
 		_noDmLabel("nsSeedStr", tostring(newVal))
 	end,
-	-- Phase 2 step 6: tf_clone model-king handlers â€” defined here (not in M.attach)
+	-- Phase 2 step 6: tf_clone model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture file-level widgetState/uiState/WG/playSound/ROTATION_STEP/clearPassthrough.
 	onClOnClone = function(_event)
@@ -1549,7 +1556,7 @@ local initialModel = {
 			for i = 1, -diff do WG.CloneTool.undo() end
 		end
 	end,
-	-- Phase 2 step 6: tf_weather model-king handlers â€” defined here (not in M.attach)
+	-- Phase 2 step 6: tf_weather model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture widgetState/uiState/WG/playSound/ROTATION_STEP/LENGTH_SCALE_STEP/
 	-- RADIUS_STEP/sliderToCadence/sliderToFrequency/sliderToPersist/PERSIST_PERMANENT_VAL/
@@ -1694,7 +1701,7 @@ local initialModel = {
 		playSound("reset")
 		if WG.WeatherBrush then WG.WeatherBrush.clearAllPersistent() end
 	end,
-	-- Phase 2 step 6: tf_startpos model-king handlers â€” defined here (not in M.attach)
+	-- Phase 2 step 6: tf_startpos model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture widgetState/uiState/WG/playSound/ROTATION_STEP/_noSliderVal upvalues.
 	-- Spring.GetMouseState/TraceScreenRay/Game accessed as globals (no upvalue cost).
@@ -1838,7 +1845,7 @@ local initialModel = {
 			WG.StartPosTool.loadStartboxes()
 		end
 	end,
-	-- Phase 2 step 6: tf_splat model-king handlers â€” defined here (not in M.attach)
+	-- Phase 2 step 6: tf_splat model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture file-level widgetState/uiState/WG/playSound/ROTATION_STEP/
 	-- CURVE_STEP/RADIUS_STEP/_splFindAnglePresetIdx/_splApplyAnglePreset upvalues.
@@ -2189,7 +2196,7 @@ local initialModel = {
 		WG.GrassBrush.setRadius((s.radius or 100) - RADIUS_STEP)
 	end,
 
-	-- Rotation (shared TerraformBrush â€” grass applyBrush always reads TB rotation)
+	-- Rotation (shared TerraformBrush — grass applyBrush always reads TB rotation)
 	onGbRotChange = function(_event)
 		if uiState.updatingFromCode or not WG.TerraformBrush then return end
 		WG.TerraformBrush.setRotation(_noSliderVal("gb-rotation", 0))
@@ -2661,7 +2668,7 @@ local initialModel = {
 		elseif diff < 0 then for i = 1, -diff do WG.FeaturePlacer.undo() end end
 	end,
 
-	-- Save / Clear / Load (fpLoad uses imperative DOM build for save list â€” justified)
+	-- Save / Clear / Load (fpLoad uses imperative DOM build for save list — justified)
 	onFpSave = function(_event)
 		playSound("save"); if WG.FeaturePlacer then WG.FeaturePlacer.save() end
 	end,
@@ -2868,7 +2875,7 @@ local initialModel = {
 	end,
 	onFpSnapSizeDown = function(_event) _fpSnapStep(-16) end,
 	onFpSnapSizeUp   = function(_event) _fpSnapStep(16) end,
-	-- Phase 2 step 6: tf_metal model-king handlers â€” defined here (not in M.attach)
+	-- Phase 2 step 6: tf_metal model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture file-level widgetState/uiState/WG/playSound/RADIUS_STEP/
 	-- ROTATION_STEP/LENGTH_SCALE_STEP/CURVE_STEP/_elemSliderVal/_elemSetSliderVal/
@@ -3240,7 +3247,7 @@ local initialModel = {
 			playSound("toggleOn")
 		end
 	end,
-	-- Phase 2 step 6: tf_decals model-king handlers â€” defined here (not in M.attach)
+	-- Phase 2 step 6: tf_decals model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture file-level widgetState/uiState/WG/playSound/_elemSliderVal/_noSliderVal upvalues.
 	onDcSetDist = function(_event, dist)
@@ -3448,7 +3455,7 @@ local initialModel = {
 		WG.DecalPlacer.load(saves[#saves])
 		Spring.Echo("[Decal Placer] Loaded " .. saves[#saves])
 	end,
-	-- Phase 2 step 6: tf_guide model-king handlers â€” defined here (not in M.attach)
+	-- Phase 2 step 6: tf_guide model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture widgetState/uiState/WG/playSound/_elemSliderVal/
 	-- populateKeybindList/updateAllKeybindBadges upvalues.
@@ -3713,7 +3720,7 @@ local initialModel = {
 			end
 		end
 	end,
-	-- Phase 2 step 6: tf_lights model-king handlers â€” defined here (not in M.attach)
+	-- Phase 2 step 6: tf_lights model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture file-level widgetState/uiState/WG/playSound/_elemSliderVal upvalues.
 	-- widgetState.lpPalette + widgetState.lpPopulateBuiltinPresets/lpPopulateUserPresets
@@ -4228,7 +4235,7 @@ local initialModel = {
 		local wlInputEl = doc and doc:GetElementById("input-dim-waterlevel")
 		local val = wlInputEl and tonumber(wlInputEl:GetAttribute("value"))
 		if val and val ~= 0 then
-			Spring.SendLuaRulesMsg("$wl$:" .. tostring(val))
+			Spring.SendCommands("luarules waterlevel " .. tostring(val))
 			if wlInputEl then wlInputEl:SetAttribute("value", "0") end
 			if widgetState.envRefreshDimExtremes then widgetState.envRefreshDimExtremes() end
 		end
@@ -4238,7 +4245,7 @@ local initialModel = {
 		local minHEl = doc and doc:GetElementById("input-dim-minheight")
 		local val = minHEl and tonumber(minHEl:GetAttribute("value"))
 		if val then
-			Spring.SendLuaRulesMsg("$hclampmin$:" .. tostring(val))
+			Spring.SendCommands("luarules clampminheight " .. tostring(val))
 			if widgetState.envRefreshDimExtremes then widgetState.envRefreshDimExtremes() end
 		end
 	end,
@@ -4247,7 +4254,7 @@ local initialModel = {
 		local maxHEl = doc and doc:GetElementById("input-dim-maxheight")
 		local val = maxHEl and tonumber(maxHEl:GetAttribute("value"))
 		if val then
-			Spring.SendLuaRulesMsg("$hclampmax$:" .. tostring(val))
+			Spring.SendCommands("luarules clampmaxheight " .. tostring(val))
 			if widgetState.envRefreshDimExtremes then widgetState.envRefreshDimExtremes() end
 		end
 	end,
@@ -4484,7 +4491,7 @@ local initialModel = {
 		Spring.Echo("[Environ] Loaded environment config: " .. newest)
 	end,
 
-	-- â”€â”€ Terraform mode buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	-- ── Terraform mode buttons ────────────────────────────────────────────────
 	-- data-event-click="onTfSetMode('raise')"
 	onTfSetMode = function(_event, mode)
 		if widgetState.noTerraform then return end
@@ -4709,7 +4716,7 @@ local initialModel = {
 		applyCap("min", capMinValue)
 	end,
 
-	-- â”€â”€ Tool-switch buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	-- ── Tool-switch buttons ───────────────────────────────────────────────────
 	onTfSwitchFeatures = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
@@ -4730,6 +4737,20 @@ local initialModel = {
 		if not WG.SplatPainter then return end
 		_deactivateAllTools()
 		WG.SplatPainter.activate()
+		local doc = widgetState.document
+		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
+		if clayBtn then clayBtn:SetClass("unavailable", true) end
+	end,
+	onTfSwitchDiffuse = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.DiffusePainter then return end
+		if WG.DiffusePainter.isActive and WG.DiffusePainter.isActive() then
+			WG.DiffusePainter.deactivate()
+			return
+		end
+		_deactivateAllTools()
+		WG.DiffusePainter.activate()
 		local doc = widgetState.document
 		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
 		if clayBtn then clayBtn:SetClass("unavailable", true) end
@@ -4827,8 +4848,8 @@ local initialModel = {
 		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchStartpos: " .. tostring(err2)) end
 	end,
 
-	-- â”€â”€ TB shared instrument controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-	-- Prefix P is 'st','cl','wb','sp','dc','lp' â€” one handler set covers all tools.
+	-- ── TB shared instrument controls ─────────────────────────────────────────
+	-- Prefix P is 'st','cl','wb','sp','dc','lp' — one handler set covers all tools.
 	-- Core terraform instrument handlers
 	onTfGridOverlay = function(_event)
 		_tbMirrorToggle("tf", "gridOverlay", function(v) WG.TerraformBrush.setGridOverlay(v) end, "GridOverlay")
@@ -5149,6 +5170,90 @@ local initialModel = {
 		WG.TerraformBrush.setSymmetryMirrorAngle(v)
 		local vStr = tostring(math.floor(v)); local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= vStr then dm.tbSymAngleStr = vStr end
 	end,
+
+	-- ── Diffuse Painter handlers (Phase A MVP) ────────────────────────────────
+	onDfpSliderRadius = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		local v = tonumber(_elemSliderVal("dfp-slider-radius", 128)) or 128
+		WG.DiffusePainter.setRadius(v)
+	end,
+	onDfpSliderStrength = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		local v = (tonumber(_elemSliderVal("dfp-slider-strength", 60)) or 60) / 100
+		WG.DiffusePainter.setStrength(v)
+	end,
+	onDfpSliderCurve = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		local v = (tonumber(_elemSliderVal("dfp-slider-curve", 15)) or 15) / 10
+		WG.DiffusePainter.setCurve(v)
+	end,
+	onDfpRadiusStep = function(_event, delta)
+		if not WG.DiffusePainter then return end
+		local r, _, _, _ = WG.DiffusePainter.getBrush()
+		WG.DiffusePainter.setRadius((r or 128) + (delta or 0))
+	end,
+	onDfpStrengthStep = function(_event, delta)
+		if not WG.DiffusePainter then return end
+		local _, s, _, _ = WG.DiffusePainter.getBrush()
+		WG.DiffusePainter.setStrength((s or 0.6) + (delta or 0))
+	end,
+	onDfpCurveStep = function(_event, delta)
+		if not WG.DiffusePainter then return end
+		local _, _, c, _ = WG.DiffusePainter.getBrush()
+		WG.DiffusePainter.setCurve((c or 1.5) + (delta or 0))
+	end,
+	onDfpToggleErase = function(_event)
+		if not WG.DiffusePainter then return end
+		local _, _, _, e = WG.DiffusePainter.getBrush()
+		WG.DiffusePainter.setErase(not e)
+		playSound("tick")
+	end,
+	onDfpBakeAll = function(_event)
+		if not WG.DiffusePainter then return end
+		WG.DiffusePainter.bakeAll()
+		playSound("tick")
+	end,
+	onDfpResetAll = function(_event)
+		if not WG.DiffusePainter then return end
+		WG.DiffusePainter.resetAll()
+		playSound("toggleOff")
+	end,
+	onDfpClearMaterial = function(_event)
+		if not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if id and WG.DiffusePainter.setLayerTexture then
+			WG.DiffusePainter.setLayerTexture(id, nil)
+			playSound("tick")
+		end
+	end,
+	onDfpAddLayer = function(_event)
+		if not (WG.DiffusePainter and WG.DiffusePainter.addLayer) then return end
+		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		local id = WG.DiffusePainter.addLayer({
+			name = "Layer " .. (#layers + 1),
+			color = { 1.0, 1.0, 1.0 },
+			handPaintEnabled = true,
+			enabled = true,
+			opacity = 1.0,
+		})
+		if id and WG.DiffusePainter.setActiveLayer then
+			WG.DiffusePainter.setActiveLayer(id)
+		end
+		playSound("tick")
+	end,
+	onDfpRemoveLayer = function(_event)
+		if not (WG.DiffusePainter and WG.DiffusePainter.removeLayer) then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if id then
+			WG.DiffusePainter.removeLayer(id)
+			playSound("toggleOff")
+		end
+	end,
+	onDfpExport = function(_event)
+		if not (WG.DiffusePainter and WG.DiffusePainter.exportSquares) then return end
+		WG.DiffusePainter.exportSquares()
+		playSound("tick")
+	end,
 }
 
 shapeNames = {
@@ -5367,7 +5472,7 @@ local guideHints = {
 	["btn-lower"]       = "Lower terrain downward under your cursor. Hold RMB and drag to carve valleys and trenches.",
 	["btn-level"]       = "MODIFY: average heights within the brush and blend toward that mean with a smooth falloff. Use the LEVEL submode to pin the target to your first-click height instead.",
 	["btn-ramp"]        = "Click and drag to build a smooth slope between two elevation points. Use Length to control taper width.",
-	["btn-restore"]     = "Erase your edits and restore the original map height â€” useful to undo a specific area without affecting the rest.",
+	["btn-restore"]     = "Erase your edits and restore the original map height — useful to undo a specific area without affecting the rest.",
 	["btn-noise"]       = "Apply procedural noise to the terrain. Opens the Noise Parameters window to choose the noise type and detail.",
 	["btn-passthrough"]  = "Pause all terraform tools and release keyboard/mouse controls back to the game. Click again or any mode button to resume.",
 	["btn-features"]    = "Place decorative props like trees, rocks and crystals using the Feature Placer sub-tool.",
@@ -5390,33 +5495,33 @@ local guideHints = {
 	["btn-ramp-straight"] = "Straight ramp: drag from start to end point to create a linear slope. Simple and precise.",
 	["btn-ramp-spline"]   = "Spline ramp: drag freely along a curved path to create a winding slope that follows your mouse movement.",
 	["btn-hexagon"]     = "Hex-shaped brush, ideal for large flat tiles, honeycomb terrain layouts and hex-grid maps.",
-	["btn-octagon"]     = "Eight-sided brush â€” a compact middle ground between circle and square for mid-sized edits.",
+	["btn-octagon"]     = "Eight-sided brush — a compact middle ground between circle and square for mid-sized edits.",
 	["btn-triangle"]    = "Three-sided brush for sharp wedge-shaped terrain edits, cliff faces and triangular plateaus.",
 	["btn-ring"]        = "Hollow ring brush that only affects the outer edge of the area. Perfect for craters and moats.",
 	["btn-fill"]        = "Fill brush: click inside any enclosed terrain shape to flood-fill it. Flat fill when walls are uniform height; smooth biharmonic surface when walls vary.",
 	["btn-clay-mode"]   = "Clay Brush restricts edits to only push terrain in one direction, preventing accidental raise while lowering and vice versa.",
 	-- Overlay / visual toggles
 	["btn-grid-overlay"]      = "Draws a measurement grid across the terrain to help align structures and judge distances. Always visible, not just inside the brush.",
-	["btn-dust-effects"]      = "Toggle dust particle effects when terraforming. Purely cosmetic â€” only applies when DJ Mode is active.",
+	["btn-dust-effects"]      = "Toggle dust particle effects when terraforming. Purely cosmetic — only applies when DJ Mode is active.",
 	["btn-seismic-effects"]   = "Toggle ground impact sounds while sculpting terrain. Only applies when DJ Mode is active.",
-	["btn-dj-activate"]       = "Master switch for DJ Mode â€” when ON, all enabled DJ Mode effects (dust, seismic) are applied during sculpting.",
-	["btn-height-colormap"]   = "Overlay a topographic height colormap on the brush footprint â€” colour-coded from blue (low) through green/yellow to red/white (high) with contour lines at 10% intervals.",
+	["btn-dj-activate"]       = "Master switch for DJ Mode — when ON, all enabled DJ Mode effects (dust, seismic) are applied during sculpting.",
+	["btn-height-colormap"]   = "Overlay a topographic height colormap on the brush footprint — colour-coded from blue (low) through green/yellow to red/white (high) with contour lines at 10% intervals.",
 	["btn-curve-overlay"]     = "Draws the edge fall-off curve as an arc inside the brush circle so you can preview the blend gradient while painting.",
 	["btn-velocity-intensity"] = "Scales brush intensity by mouse drag speed \xe2\x80\x94 move faster for stronger effect, slower for finer control.",
 	["btn-pen-pressure"]       = "Modulates brush intensity (and optionally size) using tablet pen pressure. Requires pen_pressure_server.py running.",
-	["btn-pen-intensity"]      = "Pen pressure is modulating intensity â€” click to toggle. Configure in Settings â†’ Stroke.",
-	["btn-pen-size"]           = "Pen pressure is modulating size â€” click to toggle. Configure in Settings â†’ Stroke.",
+	["btn-pen-intensity"]      = "Pen pressure is modulating intensity — click to toggle. Configure in Settings → Stroke.",
+	["btn-pen-size"]           = "Pen pressure is modulating size — click to toggle. Configure in Settings → Stroke.",
 	-- Undo / History
 	["btn-undo"]        = "Undo the last brush stroke. Keyboard shortcut: Ctrl+Z.",
 	["btn-redo"]        = "Redo a stroke that was undone. Keyboard shortcut: Ctrl+Shift+Z.",
-	["slider-history"]  = "Scrub through your edit history. Drag left to undo multiple steps, right to redo â€” like a time-slider for your terrain.",
+	["slider-history"]  = "Scrub through your edit history. Drag left to undo multiple steps, right to redo — like a time-slider for your terrain.",
 	-- Rotation
 	["btn-rot-ccw"]     = "Rotate the brush counter-clockwise by a small step. Affects non-circular shapes and ramp direction.",
 	["btn-rot-cw"]      = "Rotate the brush clockwise by a small step. Affects non-circular shapes and ramp direction.",
-	["slider-rotation"] = "Set the brush rotation angle from 0â€“359Â°. Affects all non-circular shapes. Shortcut: Alt+Scroll.",
+	["slider-rotation"] = "Set the brush rotation angle from 0–359°. Affects all non-circular shapes. Shortcut: Alt+Scroll.",
 	-- Intensity
-	["btn-intensity-down"] = "Decrease the sculpt speed â€” gentler edits that change height more slowly per second.",
-	["btn-intensity-up"]   = "Increase the sculpt speed â€” more aggressive edits that cut or raise terrain faster.",
+	["btn-intensity-down"] = "Decrease the sculpt speed — gentler edits that change height more slowly per second.",
+	["btn-intensity-up"]   = "Increase the sculpt speed — more aggressive edits that cut or raise terrain faster.",
 	["slider-intensity"]   = "Controls how fast terrain is sculpted. Low values are subtle and precise; high values are very aggressive. Space+Scroll.",
 
 	-- Restore strength
@@ -5436,8 +5541,8 @@ local guideHints = {
 	["btn-length-up"]   = "Lengthen the brush along its rotation axis, stretching it into an oval or ramp shape.",
 	["slider-length"]   = "Stretches the brush into an oval or elongated ramp along its rotation direction. Ctrl+Alt+Scroll.",
 	-- Fall-off Curve
-	["btn-curve-down"]  = "Flatten the edge fall-off â€” gives a wider plateau and a gradual slope to the edge.",
-	["btn-curve-up"]    = "Sharpen the edge fall-off â€” terrain drops off more steeply right at the brush boundary.",
+	["btn-curve-down"]  = "Flatten the edge fall-off — gives a wider plateau and a gradual slope to the edge.",
+	["btn-curve-up"]    = "Sharpen the edge fall-off — terrain drops off more steeply right at the brush boundary.",
 	["slider-curve"]    = "Controls edge fall-off sharpness. Low = gentle gradient, high = cliff-like drop at the brush edge. Shift+Scroll.",
 	-- Height Cap
 	["btn-cap-absolute"] = "When on, cap values are world-space elevations. When off, they are offsets relative to where you start the stroke.",
@@ -5454,7 +5559,7 @@ local guideHints = {
 	["btn-gb-alt-min-sample"] = "Sample ground height: click this, then click the map to set Min Altitude to the sampled elevation. Enables Min filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
 	["btn-gb-alt-max-sample"] = "Sample ground height: click this, then click the map to set Max Altitude to the sampled elevation. Enables Max filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
 	-- Restore defaults
-	["btn-defaults"]    = "Reset all brush settings â€” size, intensity, fall-off curve, rotation, height caps and toggle states â€” back to their factory defaults.",
+	["btn-defaults"]    = "Reset all brush settings — size, intensity, fall-off curve, rotation, height caps and toggle states — back to their factory defaults.",
 	-- Presets
 	["preset-name-input"] = "Type a name here to save the current brush settings as a reusable preset, or to filter the preset list.",
 	["btn-preset-save"]   = "Save the current brush settings under the typed name. Built-in presets show in italic and cannot be overwritten.",
@@ -5463,41 +5568,41 @@ local guideHints = {
 	["btn-export"]      = "Export the current heightmap as a 16-bit PNG image to disk for backup or external editing in other tools.",
 	["btn-import"]      = "Load the previously saved heightmap PNG for this map (Terraform Brush/Heightmaps/heightmap_export_<map>.png) and apply it to the terrain.",
 	-- Feature Placer sub-modes
-	["btn-fp-scatter"]  = "Scatter features randomly across the brush area with each drag â€” ideal for natural-looking forests and rock fields.",
+	["btn-fp-scatter"]  = "Scatter features randomly across the brush area with each drag — ideal for natural-looking forests and rock fields.",
 	["btn-fp-point"]    = "Place features exactly at the cursor position. Click once to plant a single feature precisely.",
-	["btn-fp-remove"]   = "Erase existing features under the brush cursor â€” removes props placed earlier without affecting terrain.",
+	["btn-fp-remove"]   = "Erase existing features under the brush cursor — removes props placed earlier without affecting terrain.",
 	-- Feature distribution
 	["btn-fp-dist-random"]    = "Spread features at randomly chosen positions within the brush area for an organic, varied look.",
 	["btn-fp-dist-regular"]   = "Space features in a uniform grid pattern inside the brush for orderly, evenly distributed arrangements.",
 	["btn-fp-dist-clustered"] = "Group features in tight natural clusters, mimicking how plants or rocks tend to gather together.",
 	-- Feature smart filter
-	["btn-fp-smart-toggle"] = "Enable Smart Filter â€” makes placement terrain-aware by skipping water, cliffs or altitude zones you configure below.",
+	["btn-fp-smart-toggle"] = "Enable Smart Filter — makes placement terrain-aware by skipping water, cliffs or altitude zones you configure below.",
 	["btn-fp-grid-overlay"] = "Draws a measurement grid across the terrain to help align features and judge distances. Always visible, not just inside the brush.",
 	["btn-fp-grid-snap"]    = "Snap feature placement positions to the build grid (48 elmo intervals) for precise, aligned placement.",
 	["fp-filter-chip-avoid-water"]  = "Skip placement on underwater terrain so features only land on dry ground above sea level.",
-	["fp-filter-chip-slope"]        = "Enable slope filtering â€” defaults to Avoid Slopes (reject terrain steeper than Max Slope). Use sub-toggles inside to switch to Prefer Slopes (only hillsides steeper than Min Slope).",
-	["fp-filter-chip-altitude"]     = "Enable and configure a min/max altitude band â€” features will only be placed within this elevation range.",
+	["fp-filter-chip-slope"]        = "Enable slope filtering — defaults to Avoid Slopes (reject terrain steeper than Max Slope). Use sub-toggles inside to switch to Prefer Slopes (only hillsides steeper than Min Slope).",
+	["fp-filter-chip-altitude"]     = "Enable and configure a min/max altitude band — features will only be placed within this elevation range.",
 	["fp-slope-mode-avoid"]         = "Reject terrain steeper than Max Slope (avoid slopes). Mutually exclusive with Prefer Slopes.",
 	["fp-slope-mode-prefer"]        = "Only place on hillsides steeper than Min Slope.",
-	["btn-fp-alt-min-enable"] = "Enable a minimum altitude filter â€” no features will be placed below this elevation threshold.",
-	["btn-fp-alt-max-enable"] = "Enable a maximum altitude filter â€” no features will be placed above this elevation threshold.",
+	["btn-fp-alt-min-enable"] = "Enable a minimum altitude filter — no features will be placed below this elevation threshold.",
+	["btn-fp-alt-max-enable"] = "Enable a maximum altitude filter — no features will be placed above this elevation threshold.",
 	-- Feature sliders
 	["fp-slider-size"]       = "Radius of the feature placement area. Ctrl+Scroll to resize while painting.",
 	["fp-slider-rotation"]   = "Base rotation angle for all placed features. Individual randomization is added on top of this value.",
-	["fp-slider-rot-random"] = "Randomizes each feature's orientation by Â±this percentage. 100% = fully random; 0% = all face the same direction.",
-	["fp-slider-count"]      = "Number of features placed per brush stroke â€” higher counts fill the area more densely.",
-	["fp-slider-cadence"]    = "How fast features are placed while dragging â€” lower values produce more features per distance traveled.",
+	["fp-slider-rot-random"] = "Randomizes each feature's orientation by ±this percentage. 100% = fully random; 0% = all face the same direction.",
+	["fp-slider-count"]      = "Number of features placed per brush stroke — higher counts fill the area more densely.",
+	["fp-slider-cadence"]    = "How fast features are placed while dragging — lower values produce more features per distance traveled.",
 	-- Feature undo/save/load
 	["btn-fp-undo"]    = "Undo the last batch of placed or removed features, restoring the previous state.",
 	["btn-fp-redo"]    = "Redo features that were just undone.",
 	["slider-fp-history"] = "Scrub through feature placement history. Drag left to undo multiple steps, right to redo.",
 	["btn-fp-save"]    = "Save the current feature layout to a file on disk so you can restore it later.",
 	["btn-fp-load"]    = "Load a previously saved feature layout from disk, restoring all features from that session.",
-	["btn-fp-clearall"] = "Remove all features placed in this session from the map â€” cannot be undone.",
+	["btn-fp-clearall"] = "Remove all features placed in this session from the map — cannot be undone.",
 	-- Weather sub-modes
 	["btn-wb-scatter"]  = "Scatter weather effects randomly across the brush area each time you paint.",
 	["btn-wb-point"]    = "Place a weather effect exactly at the clicked cursor position.",
-	["btn-wb-remove"]   = "Erase persistent weather effects under the brush â€” removes effects that were painted earlier.",
+	["btn-wb-remove"]   = "Erase persistent weather effects under the brush — removes effects that were painted earlier.",
 	-- Weather distribution
 	["btn-wb-dist-random"]  = "Spawn weather particles at randomly chosen positions within the brush area.",
 	["btn-wb-dist-regular"] = "Spawn weather particles in a uniform grid pattern for organized, evenly spaced effects.",
@@ -5512,20 +5617,20 @@ local guideHints = {
 	["btn-lp-dist-clustered"] = "Group lights in tight clusters for concentrated illumination.",
 	-- Weather sliders
 	["wb-slider-size"]      = "Area radius of the weather effect zone. Ctrl+Scroll to resize while painting.",
-	["wb-slider-length"]    = "Elongates the weather pattern along its axis â€” makes rain streaks or gusts cover a longer area.",
-	["wb-slider-rotation"]  = "Direction the weather moves â€” adjust this to set wind angle for rain, snow or dust.",
-	["wb-slider-count"]     = "Number of particles spawned per emission tick â€” higher values create denser effects.",
-	["wb-slider-cadence"]   = "How quickly particles are emitted while dragging to paint â€” controls density per stroke.",
+	["wb-slider-length"]    = "Elongates the weather pattern along its axis — makes rain streaks or gusts cover a longer area.",
+	["wb-slider-rotation"]  = "Direction the weather moves — adjust this to set wind angle for rain, snow or dust.",
+	["wb-slider-count"]     = "Number of particles spawned per emission tick — higher values create denser effects.",
+	["wb-slider-cadence"]   = "How quickly particles are emitted while dragging to paint — controls density per stroke.",
 	["wb-slider-frequency"] = "How often persistent effects repeat their spawn cycle. Lower interval = more frequent bursts.",
 	["wb-slider-persist"]   = "How long particles from a painted effect linger before fading. Increase for long-lasting rain or snow.",
-	["btn-wb-persistent"]   = "Enable permanent mode â€” painted weather effects never fade away until you manually clear them.",
+	["btn-wb-persistent"]   = "Enable permanent mode — painted weather effects never fade away until you manually clear them.",
 	["btn-wb-clearall"]     = "Remove all persistent weather effects currently active on the map.",
 	-- Noise Parameters (in noise window)
-	["btn-noise-perlin"]  = "Classic gradient noise â€” smooth, flowing and organic. The most natural-looking all-purpose noise type.",
+	["btn-noise-perlin"]  = "Classic gradient noise — smooth, flowing and organic. The most natural-looking all-purpose noise type.",
 	["btn-noise-voronoi"] = "Cell-based noise producing cracked earth, tile-like or rocky terrain patterns with distinct cell edges.",
 	["btn-noise-fbm"]     = "Fractal Brownian Motion stacks multiple noise layers for highly detailed, multi-scale natural terrain.",
 	["btn-noise-billow"]  = "Absolute-value noise creating billowy cloud-like domes and rolling hills with soft rounded peaks.",
-	["slider-noise-scale"]       = "Size of each noise cell in world units â€” larger values give broader, smoother terrain shapes.",
+	["slider-noise-scale"]       = "Size of each noise cell in world units — larger values give broader, smoother terrain shapes.",
 	["slider-noise-octaves"]     = "Number of detail layers stacked on top of each other. More octaves add progressively finer micro-detail.",
 	["slider-noise-persistence"] = "How much each successive octave's amplitude shrinks. Higher values keep fine details bold and prominent.",
 	["slider-noise-lacunarity"]  = "How much each octave's frequency multiplies per layer. Higher values pack in much more detail per octave.",
@@ -5555,10 +5660,10 @@ local guideHints = {
 	["btn-grass-density-up"]    = "Increase grass density by 5%.",
 	["btn-grass-save"]          = "Export the current grass map to a TGA image file for use in map distribution.",
 	["slider-gb-size"]          = "Brush radius for grass painting. Ctrl+Scroll.",
-	["slider-gb-rotation"]      = "Rotation angle for non-circular grass brush shapes (0-359Â°). Alt+Scroll.",
+	["slider-gb-rotation"]      = "Rotation angle for non-circular grass brush shapes (0-359°). Alt+Scroll.",
 	["slider-gb-curve"]         = "Edge fall-off sharpness for grass painting. Low = gentle gradient, high = hard edge. Shift+Scroll.",
 	["slider-mb-size"]          = "Brush radius for metal painting and stamping. Ctrl+Scroll.",
-	["slider-mb-rotation"]      = "Rotation angle for non-circular metal brush shapes (0â€“359Â°). Alt+Scroll.",
+	["slider-mb-rotation"]      = "Rotation angle for non-circular metal brush shapes (0–359°). Alt+Scroll.",
 	["slider-mb-length"]        = "Stretches the metal brush into an elongated shape along its rotation axis. Ctrl+Alt+Scroll.",
 	["slider-mb-curve"]         = "Edge fall-off sharpness for metal painting. Low = gentle gradient, high = hard edge. Shift+Scroll.",
 	-- Start Positions
@@ -5571,43 +5676,43 @@ local guideHints = {
 	["sp-slider-strength"]      = "Controls paint opacity per stroke. Low values let you blend textures subtly; high values replace quickly.",
 	["sp-slider-intensity"]     = "Multiplier on effective paint strength. Combines with Strength for aggressive or subtle painting. Space+Scroll.",
 	["sp-slider-size"]          = "Sets the brush radius in world units. Ctrl+Scroll to resize while painting.",
-	["sp-slider-rotation"]      = "Set the brush rotation angle from 0â€“359Â°. Affects non-circular shapes. Alt+Scroll.",
+	["sp-slider-rotation"]      = "Set the brush rotation angle from 0–359°. Affects non-circular shapes. Alt+Scroll.",
 	["sp-slider-curve"]         = "Controls edge fall-off sharpness. Low = gentle gradient, high = hard-edged painting at the brush boundary.",
-	["btn-sp-smart-toggle"]     = "Enable Smart Filter â€” makes painting terrain-aware by skipping water, cliffs or altitude zones you configure.",
+	["btn-sp-smart-toggle"]     = "Enable Smart Filter — makes painting terrain-aware by skipping water, cliffs or altitude zones you configure.",
 	["btn-sp-avoid-water"]      = "Skip painting on underwater terrain so splats only affect dry ground above sea level.",
 	["btn-sp-avoid-cliffs"]     = "Prevent painting on slopes steeper than the Max Slope angle.",
-	["btn-sp-prefer-slopes"]    = "Only paint on slopes steeper than the Min Slope angle â€” useful for cliff-face texturing.",
-	["btn-sp-alt-min-enable"]   = "Enable a minimum altitude filter â€” no painting below this elevation threshold.",
-	["btn-sp-alt-max-enable"]   = "Enable a maximum altitude filter â€” no painting above this elevation threshold.",
+	["btn-sp-prefer-slopes"]    = "Only paint on slopes steeper than the Min Slope angle — useful for cliff-face texturing.",
+	["btn-sp-alt-min-enable"]   = "Enable a minimum altitude filter — no painting below this elevation threshold.",
+	["btn-sp-alt-max-enable"]   = "Enable a maximum altitude filter — no painting above this elevation threshold.",
 	["btn-sp-export-format"]    = "Click to cycle the export image format between PNG, DDS and TGA.",
 	["btn-sp-save"]             = "Save the current splatmap distribution texture to disk for backup or external editing.",
 	["btn-decals"]              = "Open the Decals panel: decal library (scars, explosions, tracks, builds) and combat heatmap tools.",
 	["btn-dc-heatmap-export"]   = "Save the combat heatmap (accumulated explosion density) as CSV grid + PGM grayscale image.",
-	["btn-dc-heatmap-reset"]    = "Reset the heatmap â€” clears all accumulated explosion tracking data.",
+	["btn-dc-heatmap-reset"]    = "Reset the heatmap — clears all accumulated explosion tracking data.",
 	-- Light Placer controls
-	["btn-lt-point"]            = "Omnidirectional point light â€” radiates equally in all directions. Good for general ambient fill and glowing effects.",
-	["btn-lt-cone"]             = "Directional cone/spotlight â€” casts a focused beam in one direction. Use pitch/yaw to aim and theta to control spread.",
+	["btn-lt-point"]            = "Omnidirectional point light — radiates equally in all directions. Good for general ambient fill and glowing effects.",
+	["btn-lt-cone"]             = "Directional cone/spotlight — casts a focused beam in one direction. Use pitch/yaw to aim and theta to control spread.",
 	["btn-lt-beam"]             = "Linear beam light with a start and end point. Useful for laser-like effects and long glowing lines.",
 	["btn-lp-point"]            = "Place a single light at the exact cursor position. Click to place one at a time for precise control.",
 	["btn-lp-scatter"]          = "Scatter multiple lights in the brush area with each click. Adjust count and brush radius below.",
-	["btn-lp-remove"]           = "Erase placed lights under the brush cursor â€” removes lights within the brush radius.",
+	["btn-lp-remove"]           = "Erase placed lights under the brush cursor — removes lights within the brush radius.",
 	["btn-lp-dist-random"]      = "Distribute scattered lights at random positions within the brush for an organic look.",
 	["btn-lp-dist-regular"]     = "Space scattered lights in a uniform grid pattern for orderly, evenly distributed placement.",
 	["btn-lp-dist-clustered"]   = "Group scattered lights in tight clusters, mimicking how light sources tend to gather naturally.",
-	["slider-lp-color-r"]       = "Red channel intensity for the light color (0â€“1). Combine R, G, B to mix any color.",
-	["slider-lp-color-g"]       = "Green channel intensity for the light color (0â€“1). Combine R, G, B to mix any color.",
-	["slider-lp-color-b"]       = "Blue channel intensity for the light color (0â€“1). Combine R, G, B to mix any color.",
-	["slider-lp-brightness"]    = "Overall brightness multiplier. Higher values produce more intense light. Use with care â€” values above 5 can bloom significantly.",
+	["slider-lp-color-r"]       = "Red channel intensity for the light color (0–1). Combine R, G, B to mix any color.",
+	["slider-lp-color-g"]       = "Green channel intensity for the light color (0–1). Combine R, G, B to mix any color.",
+	["slider-lp-color-b"]       = "Blue channel intensity for the light color (0–1). Combine R, G, B to mix any color.",
+	["slider-lp-brightness"]    = "Overall brightness multiplier. Higher values produce more intense light. Use with care — values above 5 can bloom significantly.",
 	["slider-lp-light-radius"]  = "How far the light reaches from its center in world units (elmos). Larger radius = softer, wider light.",
 	["slider-lp-elevation"]     = "Height offset above the ground where lights are placed (in elmos). 0 = on the ground, higher = floating above terrain. Shift+Scroll.",
 	["slider-lp-pitch"]         = "Vertical aiming angle for cone/beam lights. -90 = straight down, 0 = horizontal, 90 = straight up.",
-	["slider-lp-yaw"]           = "Horizontal rotation angle for cone/beam lights (0â€“360Â°). Controls which compass direction the light faces.",
-	["slider-lp-roll"]          = "Roll rotation of cone/beam lights (0â€“360Â°). Mostly useful for asymmetric beam patterns.",
+	["slider-lp-yaw"]           = "Horizontal rotation angle for cone/beam lights (0–360°). Controls which compass direction the light faces.",
+	["slider-lp-roll"]          = "Roll rotation of cone/beam lights (0–360°). Mostly useful for asymmetric beam patterns.",
 	["slider-lp-theta"]         = "Cone half-angle spread in radians. Smaller = tighter spotlight, larger = wider floodlight.",
 	["slider-lp-beam-length"]   = "Length of the beam from start to end point in world units.",
 	["slider-lp-count"]         = "Number of lights placed per scatter operation.",
 	["slider-lp-brush-radius"]  = "Radius of the scatter brush area in world units. Lights are distributed within this zone.",
-	["btn-lp-smart-toggle"]     = "Enable Smart Filter for light placement â€” skips water, cliffs or altitude zones.",
+	["btn-lp-smart-toggle"]     = "Enable Smart Filter for light placement — skips water, cliffs or altitude zones.",
 	["btn-lp-sf-water"]         = "Skip light placement on underwater terrain.",
 	["btn-lp-sf-cliffs"]        = "Prevent lights from being placed on steep cliff faces.",
 	["btn-lp-library"]          = "Open the Light Library to browse built-in presets and your saved light arrangements.",
@@ -5616,11 +5721,11 @@ local guideHints = {
 	["slider-lp-history"]       = "Scrub through light placement history. Drag left to undo multiple steps, right to redo.",
 	["btn-lp-save"]             = "Save all currently placed lights to a timestamped file on disk.",
 	["btn-lp-load"]             = "Load a previously saved light layout from disk.",
-	["btn-lp-clear-all"]        = "Remove all placed lights from the map â€” cannot be undone.",
+	["btn-lp-clear-all"]        = "Remove all placed lights from the map — cannot be undone.",
 	["btn-lp-material-toggle"]  = "Show or hide the material properties section (model factor, specular, scattering, lens flare).",
 }
 
--- G3: Shortcut discovery tip groups â€” shown near cursor after 3 interactions (guide mode only)
+-- G3: Shortcut discovery tip groups — shown near cursor after 3 interactions (guide mode only)
 local g3TipGroups = {
 	intensity = "Tip: Hold Space\xe2\x80\x94then scroll the mouse wheel to adjust intensity while sculpting. Faster than reaching for the slider!",
 	size      = "Tip: Hold Ctrl and scroll to resize the brush in real time \xe2\x80\x94 no need to touch the slider.",
@@ -5700,10 +5805,10 @@ local function updateFloatingTip()
 	widgetState.floatingTipEl:SetClass("hidden", false)
 end
 
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+-- ═══════════════════════════════════════════════════════════════════════
 -- KEYBIND BADGE SYSTEM (G5) + SETTINGS WINDOW SUPPORT
 -- Maps button element IDs to keybind action names for dynamic badge text
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+-- ═══════════════════════════════════════════════════════════════════════
 local BADGE_ACTION_MAP = {
 	-- Terrain mode buttons
 	["btn-level"]    = "mode_level",
@@ -5731,7 +5836,7 @@ local BADGE_ACTION_MAP = {
 	["btn-clone"]       = "tool_clone",
 }
 
--- Maps tool keybind action â†’ button element ID for Click() dispatch
+-- Maps tool keybind action → button element ID for Click() dispatch
 local TOOL_BTN_MAP = {
 	tool_grass       = "btn-grass",
 	tool_metal       = "btn-metal",
@@ -6315,6 +6420,7 @@ local tfNoise = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_noise.lua")
 local tfStartPos = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_startpos.lua")
 local tfClone = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_clone.lua")
 local tfSplat = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_splat.lua")
+local tfDiffuse = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_diffuse.lua")
 local tfEnvironment = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_environment.lua")
 local tfGuide = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_guide.lua")
 
@@ -6763,7 +6869,7 @@ local function attachEventListeners()
 	-- Guard: AddEventListener must only be called once per document instance.
 	-- attachEventListeners can be called multiple times (widget re-enable); a second
 	-- registration means two click handlers fire per click, both see isOpen=false
-	-- (deferred DOM hasn't committed yet), both call rebuildImportList â†’ doubled rows.
+	-- (deferred DOM hasn't committed yet), both call rebuildImportList → doubled rows.
 	if importBtn and not importBtn:GetAttribute("data-import-wired") then
 		importBtn:SetAttribute("data-import-wired", "1")
 		local function closeImportDropdown()
@@ -6782,7 +6888,7 @@ local function attachEventListeners()
 			local function esc(s) return (s:gsub("&","&amp;"):gsub("<","&lt;"):gsub(">","&gt;")) end
 			local parts = {}
 			local isCollapsed = importDropdown:IsClassSet("collapsed")
-			local chevron = isCollapsed and "&#9656;" or "&#9662;" -- â–¸ / â–ľ
+			local chevron = isCollapsed and "&#9656;" or "&#9662;" -- ▸ / ▾
 			local headerLabel = count > 0
 				and ("Saved heightmaps  (" .. count .. ")")
 				or  "Saved heightmaps"
@@ -6997,12 +7103,12 @@ local function attachEventListeners()
 		if #s > 0 then s = s:sub(1,1):upper() .. s:sub(2) end
 		local r = math.floor(tonumber(pdata.radius) or 0)
 		local itxt = string.format("%.1f", tonumber(pdata.intensity) or 0)
-		local summary = m .. " Â· " .. s .. " Â· R:" .. r .. " Â· I:" .. itxt
+		local summary = m .. " · " .. s .. " · R:" .. r .. " · I:" .. itxt
 		-- Append save date for user presets that have the savedAt field
 		if not isBuiltin and pdata.savedAt and pdata.savedAt > 0 then
 			local ok, dateStr = pcall(os.date, "%b %d", pdata.savedAt)
 			if ok and dateStr and dateStr ~= "" then
-				summary = summary .. " Â· " .. dateStr
+				summary = summary .. " · " .. dateStr
 			end
 		end
 		return summary
@@ -7138,6 +7244,7 @@ local function attachEventListeners()
 	tfFeatures.attach(doc, ctx)
 	tfWeather.attach(doc, ctx)
 	tfSplat.attach(doc, ctx)
+	tfDiffuse.attach(doc, ctx)
 	tfDecals.attach(doc, ctx)
 	tfEnvironment.attach(doc, ctx)
 	tfLights.attach(doc, ctx)
@@ -8016,7 +8123,7 @@ function widget:Update()
 		WG.FeaturePlacer.setMode("scatter")
 	end
 
-	-- Poll-based window drag (position only â€” mouseup ends drag via doc listener)
+	-- Poll-based window drag (position only — mouseup ends drag via doc listener)
 	local ds = windowDragState
 	if ds.active and ds.rootEl then
 		local mx, my = GetMouseState()
@@ -8146,6 +8253,7 @@ function widget:Update()
 	local spState = WG.SplatPainter and WG.SplatPainter.getState()
 	local mbState = WG.MetalBrush and WG.MetalBrush.getState()
 	local gbState = WG.GrassBrush and WG.GrassBrush.getState()
+	local dfpActive = WG.DiffusePainter and WG.DiffusePainter.isActive and WG.DiffusePainter.isActive() or false
 	local tfActive = tfState and tfState.active
 	local fpActive = fpState and fpState.active
 	local wbActive = wbState and wbState.active
@@ -8162,37 +8270,37 @@ function widget:Update()
 	local decalsActive = widgetState.decalsActive and true or false
 
 	-- Deactivate environment mode when any other tool becomes active
-	if envActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or lpActive or stpActive or clActive or decalsActive) then
+	if envActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or lpActive or stpActive or clActive or decalsActive or dfpActive) then
 		widgetState.envActive = false
 		envActive = false
 	end
 	-- Deactivate light mode when any other tool becomes active
-	if lpActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or stpActive or clActive or decalsActive) then
+	if lpActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or stpActive or clActive or decalsActive or dfpActive) then
 		widgetState.lightActive = false
 		if WG.LightPlacer then WG.LightPlacer.deactivate() end
 		lpActive = false
 	end
 	-- Deactivate startpos mode when any other tool becomes active
-	if stpActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or clActive or decalsActive) then
+	if stpActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or clActive or decalsActive or dfpActive) then
 		widgetState.startposActive = false
 		if WG.StartPosTool then WG.StartPosTool.deactivate() end
 		stpActive = false
 	end
 	-- Deactivate clone mode when any other tool becomes active
-	if clActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or decalsActive) then
+	if clActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or decalsActive or dfpActive) then
 		widgetState.cloneActive = false
 		if WG.CloneTool then WG.CloneTool.deactivate() end
 		clActive = false
 	end
 	-- Deactivate decals mode when any other (real) tool becomes active
-	if decalsActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive) then
+	if decalsActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or dfpActive) then
 		widgetState.decalsActive = false
 		if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
 		decalsActive = false
 	end
 
 	-- Show panel if any tool is active (and panel not manually hidden), or if in passthrough mode
-	local panelVisible = (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or widgetState.passthroughMode) and not widgetState.panelHidden
+	local panelVisible = (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or dfpActive or widgetState.passthroughMode) and not widgetState.panelHidden
 	if widgetState.rootElement then
 		widgetState.rootElement:SetClass("hidden", not panelVisible)
 	end
@@ -8217,7 +8325,7 @@ function widget:Update()
 
 	-- Toggle section visibility
 	if panelVisible then
-	-- Drive panel-mode swap via data-if="activeTool == 'X'" â€” single dm field instead of 13 imperative SetClass writes.
+	-- Drive panel-mode swap via data-if="activeTool == 'X'" — single dm field instead of 13 imperative SetClass writes.
 	do
 		local tool = ""
 		if widgetState.decalsActive then tool = "dc"
@@ -8230,6 +8338,7 @@ function widget:Update()
 		elseif lpActive then tool = "lp"
 		elseif stpActive then tool = "stp"
 		elseif clActive then tool = "cl"
+		elseif dfpActive then tool = "diff"
 		end
 		if widgetState.dmHandle then
 			widgetState.dmHandle.activeTool = tool
@@ -8423,6 +8532,9 @@ function widget:Update()
 
 	elseif spActive then
 		tfSplat.sync(doc, ctx, spState, setSummary)
+
+	elseif dfpActive then
+		tfDiffuse.sync(doc, ctx, setSummary)
 
 
 	elseif fpActive then

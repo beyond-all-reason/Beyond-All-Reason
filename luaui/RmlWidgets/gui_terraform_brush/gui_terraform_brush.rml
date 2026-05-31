@@ -67,6 +67,11 @@
 			</div>
 		<div id="section-tools">
 		<div id="tf-tools-rows" class="flex flex-row gap-1 mb-1">
+			<div id="btn-diffuse" class="tf-mode-btn tf-btn-diffuse" style="display: none;" data-class-active="activeTool == 'diff'" data-event-mousedown="onTfSwitchDiffuse()">
+				<div class="tf-keybind-badge">D</div>
+				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_splat.png" />
+				<div class="tf-btn-text">DIFFUSE</div>
+			</div>
 			<div id="btn-metal" class="tf-mode-btn tf-btn-metal" data-class-active="activeTool == 'mb'" data-event-mousedown="onTfSwitchMetal()">
 				<div class="tf-keybind-badge">M</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_metal.png" />
@@ -4041,6 +4046,131 @@
 
 		</div><!-- /tf-decal-controls -->
 
+		<!-- ============ DIFFUSE PAINTER CONTROLS ============ -->
+		<div id="tf-diff-controls" data-if="activeTool == 'diff'">
+
+		<div class="tf-section-frame" id="frame-dfp-brush">
+			<div id="btn-toggle-dfp-brush" class="tf-section-title-row" style="cursor: pointer;">
+				<img id="img-toggle-dfp-brush" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<div class="tf-collapsible-title">BRUSH</div>
+			</div>
+		<div id="section-dfp-brush">
+
+			<div class="flex flex-row justify-between items-center mb-1">
+				<div class="text-lg text-light">SIZE: <span class="text-xl font-bold">{{dfpRadiusStr}}</span></div>
+				<div class="text-sm text-keybind">Ctrl+Scroll</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-dfp-radius-down" class="tf-sm-btn" data-event-mousedown="onDfpRadiusStep(-8)">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+				</div>
+				<input type="range" id="dfp-slider-radius" class="tf-slider" min="8" max="2000" step="1" value="128" data-event-change="onDfpSliderRadius()" />
+				<div id="btn-dfp-radius-up" class="tf-sm-btn" data-event-mousedown="onDfpRadiusStep(8)">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+				</div>
+				<input type="text" id="dfp-slider-radius-numbox" class="tf-slider-numbox" readonly value="128" />
+			</div>
+
+			<div class="flex flex-row justify-between items-center mb-1">
+				<div class="text-lg text-light">STRENGTH: <span class="text-xl font-bold">{{dfpStrengthStr}}</span></div>
+				<div class="text-sm text-keybind">Alt+Scroll</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-dfp-strength-down" class="tf-sm-btn" data-event-mousedown="onDfpStrengthStep(-0.05)">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+				</div>
+				<input type="range" id="dfp-slider-strength" class="tf-slider" min="1" max="100" step="1" value="60" data-event-change="onDfpSliderStrength()" />
+				<div id="btn-dfp-strength-up" class="tf-sm-btn" data-event-mousedown="onDfpStrengthStep(0.05)">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+				</div>
+				<input type="text" id="dfp-slider-strength-numbox" class="tf-slider-numbox" readonly value="60" />
+			</div>
+
+			<div class="flex flex-row justify-between items-center mb-1">
+				<div class="text-lg text-light">CURVE: <span class="text-xl font-bold">{{dfpCurveStr}}</span></div>
+				<div class="text-sm text-keybind">Shift+Scroll</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-dfp-curve-down" class="tf-sm-btn" data-event-mousedown="onDfpCurveStep(-0.1)">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+				</div>
+				<input type="range" id="dfp-slider-curve" class="tf-slider" min="1" max="50" step="1" value="15" data-event-change="onDfpSliderCurve()" />
+				<div id="btn-dfp-curve-up" class="tf-sm-btn" data-event-mousedown="onDfpCurveStep(0.1)">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+				</div>
+				<input type="text" id="dfp-slider-curve-numbox" class="tf-slider-numbox" readonly value="15" />
+			</div>
+
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-dfp-erase" class="tf-overlay-chip" data-class-active="dfpErase" data-event-mousedown="onDfpToggleErase()">
+					<div class="tf-overlay-chip-label">Erase</div>
+				</div>
+			</div>
+
+		</div><!-- /section-dfp-brush -->
+		</div><!-- /frame-dfp-brush -->
+
+		<div class="tf-section-frame" id="frame-dfp-layers">
+			<div id="btn-toggle-dfp-layers" class="tf-section-title-row" style="cursor: pointer;">
+				<img id="img-toggle-dfp-layers" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<div class="tf-collapsible-title">LAYERS</div>
+			</div>
+		<div id="section-dfp-layers">
+			<div class="flex flex-row justify-between items-center mb-1">
+				<div class="text-lg text-light">ACTIVE: <span class="text-xl font-bold">{{dfpActiveLayerName}}</span></div>
+			</div>
+			<div id="dfp-layer-list" class="flex flex-col gap-1 mb-1"></div>
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-dfp-add-layer" class="tf-action-btn" data-event-mousedown="onDfpAddLayer()" style="flex: 1;">
+					<div class="tf-action-btn-text">+ ADD LAYER</div>
+				</div>
+				<div id="btn-dfp-remove-layer" class="tf-action-btn" data-event-mousedown="onDfpRemoveLayer()" style="flex: 1;">
+					<div class="tf-action-btn-text">− REMOVE</div>
+				</div>
+			</div>
+		</div><!-- /section-dfp-layers -->
+		</div><!-- /frame-dfp-layers -->
+
+		<div class="tf-section-frame" id="frame-dfp-materials">
+			<div id="btn-toggle-dfp-materials" class="tf-section-title-row" style="cursor: pointer;">
+				<img id="img-toggle-dfp-materials" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<div class="tf-collapsible-title">MATERIALS</div>
+			</div>
+		<div id="section-dfp-materials">
+			<div class="text-sm text-light mb-1">Click a material: if the active layer is empty it gets that material; otherwise a new layer is added.</div>
+			<div id="dfp-material-list" class="flex flex-col gap-1 mb-1"></div>
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-dfp-clear-material" class="tf-action-btn" data-event-mousedown="onDfpClearMaterial()" style="flex: 1;">
+					<div class="tf-action-btn-text">CLEAR TEXTURE (use color)</div>
+				</div>
+			</div>
+		</div><!-- /section-dfp-materials -->
+		</div><!-- /frame-dfp-materials -->
+
+		<div class="tf-section-frame" id="frame-dfp-actions">
+			<div id="btn-toggle-dfp-actions" class="tf-section-title-row" style="cursor: pointer;">
+				<img id="img-toggle-dfp-actions" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<div class="tf-collapsible-title">ACTIONS</div>
+			</div>
+		<div id="section-dfp-actions">
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-dfp-bake-all" class="tf-action-btn" data-event-mousedown="onDfpBakeAll()" style="flex: 1;">
+					<div class="tf-action-btn-text">BAKE FULL MAP</div>
+				</div>
+				<div id="btn-dfp-reset-all" class="tf-action-btn" data-event-mousedown="onDfpResetAll()" style="flex: 1;">
+					<div class="tf-action-btn-text">RESET PAINT</div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-dfp-export" class="tf-action-btn" data-event-mousedown="onDfpExport()" style="flex: 1;">
+					<div class="tf-action-btn-text">EXPORT SQUARES (PNG)</div>
+				</div>
+			</div>
+		</div><!-- /section-dfp-actions -->
+		</div><!-- /frame-dfp-actions -->
+
+		</div><!-- /tf-diff-controls -->
+
 		<!-- ============ ENVIRONMENT CONTROLS ============ -->
 		<div id="tf-environment-controls" data-if="activeTool == 'env'">
 
@@ -4417,16 +4547,16 @@
 						<div class="flex flex-row gap-1 items-center">
 							<div class="lp-orient-label">Pitch</div>
 							<input type="text" id="lp-orient-pitch-input" class="lp-orient-numbox" value="-45" />
-							<div class="lp-orient-deg">Â°</div>
+							<div class="lp-orient-deg">°</div>
 						</div>
 						<div class="flex flex-row gap-1 items-center">
 							<div class="lp-orient-label">Yaw</div>
 							<input type="text" id="lp-orient-yaw-input" class="lp-orient-numbox" value="0" />
-							<div class="lp-orient-deg">Â°</div>
+							<div class="lp-orient-deg">°</div>
 						</div>
 					</div>
 				</div>
-				<div class="lp-orient-hintbar">drag Â· â—Ź=down, edge=horiz Â· Alt+Scroll=Yaw Â· Ctrl+Alt=Pitch</div>
+				<div class="lp-orient-hintbar">drag · ●=down, edge=horiz · Alt+Scroll=Yaw · Ctrl+Alt=Pitch</div>
 			</div>
 
 			<!-- Cone Theta (visible only for cone) -->

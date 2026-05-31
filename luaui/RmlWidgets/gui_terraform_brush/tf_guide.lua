@@ -1,6 +1,13 @@
 -- tf_guide.lua: extracted tool module for gui_terraform_brush
 local M = {}
 
+-- Capture engine globals as module upvalues. RmlUi-dispatched event closures
+-- (AddEventListener bodies) may execute outside the host widget's global env,
+-- so referring to bare globals from inside a handler throws nil-index errors.
+-- See memory: rmlui_addeventlistener_globals.md.
+local WG = WG
+local Spring = Spring
+
 function M.attach(doc, ctx)
 	local widgetState = ctx.widgetState
 	local trackSliderDrag = ctx.trackSliderDrag
@@ -28,7 +35,7 @@ function M.attach(doc, ctx)
 		end
 	end
 
-	-- G3: Shortcut discovery tips â€” fire near cursor after 3 interactions (guide mode only)
+	-- G3: Shortcut discovery tips — fire near cursor after 3 interactions (guide mode only)
 	for elemId, group in pairs(g3ElemGroup) do
 		local el = doc:GetElementById(elemId)
 		if el then
@@ -46,7 +53,7 @@ function M.attach(doc, ctx)
 	end
 
 	-- All data-event-click/change handlers (onGuideXxx) are defined in initialModel
-	-- in gui_terraform_brush.lua â€” Recoil forbids adding or replacing function
+	-- in gui_terraform_brush.lua — Recoil forbids adding or replacing function
 	-- keys in a DataModel after OpenDataModel.
 end
 

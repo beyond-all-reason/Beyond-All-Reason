@@ -324,6 +324,14 @@ Deferred rows (require human semantic review):
 
 ---
 
+## Post-1.0 / Future Tools
+
+| # | Status | Task | Notes |
+|---|--------|------|-------|
+| F1 | ⬜ | **Map ambience sounds editor** — new tool (or environment sub-section) for placing/editing positional ambience sound emitters on the map (loop, radius, gain, pitch jitter, day/night gating). Likely lives under ENVIRONMENT panel alongside skybox/lighting, with a placement sub-mode that reuses TB symmetry/snap/measure mirror chips. Persisted via map save/load like decals/lights. | Scope TBD: standalone tool prefix `am-` vs env sub-panel. Needs gadget for runtime playback + savegame serialization. |
+
+---
+
 ## Status Summary
 
 > Updated: 2026-05-04 (Phase 0 ✅, Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅ — all code phases complete)
