@@ -38,7 +38,6 @@ end
 --------------------------------------------------------------------------------
 local spEcho              = Spring.Echo
 local spGetUnitPosition   = Spring.GetUnitPosition
-local spGetCameraPosition = Spring.GetCameraPosition
 local spIsSphereInView    = Spring.IsSphereInView
 local spGetWind           = Spring.GetWind
 local spGetFPS            = Spring.GetFPS
@@ -380,7 +379,6 @@ local particleRemoveQueue = {}  -- [deathFrame] = { n = count, id, id, ... }
 local lastRemovedFrame    = 0
 
 local cachedGameFrame = 0
-local cachedCamX, cachedCamY, cachedCamZ = 0, 0, 0
 local windX, windZ = 0, 0
 
 local MAX_PARTICLES = CONFIG.maxParticles
@@ -562,6 +560,31 @@ local SMOKE_R = CONFIG.smokeTint[1]
 local SMOKE_G = CONFIG.smokeTint[2]
 local SMOKE_B = CONFIG.smokeTint[3]
 
+-- Hot-loop CONFIG constants hoisted to upvalues. Particle emit functions spawn
+-- hundreds of particles per frame; a direct upvalue read is much cheaper than a
+-- per-particle CONFIG table hash lookup.
+local FIRE_SIZE_BASE  = CONFIG.fireSizeBase
+local FIRE_SIZE_RAND  = CONFIG.fireSizeRand
+local FIRE_LIFE_MIN   = CONFIG.fireLifeMin
+local FIRE_LIFE_SPAN  = CONFIG.fireLifeSpan
+local FIRE_ALPHA      = CONFIG.fireAlpha
+local EMBER_SIZE_BASE = CONFIG.emberSizeBase
+local EMBER_SIZE_RAND = CONFIG.emberSizeRand
+local EMBER_LIFE_MIN  = CONFIG.emberLifeMin
+local EMBER_LIFE_SPAN = CONFIG.emberLifeSpan
+local EMBER_ALPHA     = CONFIG.emberAlpha
+local EMBER_VY_MIN    = CONFIG.emberVyMin
+local EMBER_VY_SPAN   = CONFIG.emberVySpan
+local SMOKE_SIZE_BASE = CONFIG.smokeSizeBase
+local SMOKE_SIZE_RAND = CONFIG.smokeSizeRand
+local SMOKE_LIFE_MIN  = CONFIG.smokeLifeMin
+local SMOKE_LIFE_SPAN = CONFIG.smokeLifeSpan
+local SMOKE_UPVEL_MIN = CONFIG.smokeUpVelMin
+local SMOKE_UPVEL_SPAN = CONFIG.smokeUpVelSpan
+local SMOKE_ALPHA     = CONFIG.smokeAlpha
+local TREE_SMOKE_SIZE_MULT = CONFIG.treeFire.smokeSizeMult or 1.0
+local CULL_PAD        = CONFIG.cullPad
+
 --------------------------------------------------------------------------------
 -- Emitters
 --------------------------------------------------------------------------------
@@ -646,13 +669,13 @@ local function emitTreeFire(e, n)
 			-- Particles near the center of the length are significantly larger.
 			local centerProx = 1.0 - 2.0 * mathMin(0.5, math.abs(hf - 0.5)) -- 1 at center, 0 at ends
 			local sizeCenterMult = 0.55 + 0.95 * centerProx
-			local size = (CONFIG.fireSizeBase + (mathRandom() - 0.5) * CONFIG.fireSizeRand) * scale * e.fireSizeMult * (0.35 + 0.65 * fadeMult) * sizeCenterMult
-			local life = (CONFIG.fireLifeMin + mathRandom() * CONFIG.fireLifeSpan) * lifeScale
+			local size = (FIRE_SIZE_BASE + (mathRandom() - 0.5) * FIRE_SIZE_RAND) * scale * e.fireSizeMult * (0.35 + 0.65 * fadeMult) * sizeCenterMult
+			local life = (FIRE_LIFE_MIN + mathRandom() * FIRE_LIFE_SPAN) * lifeScale
 			local vy = (0.4 + mathRandom() * 0.8) * scale
 			local r, g, b = fireColor()
 			spawnParticle(cx + mathCos(a2) * rr, cy + mathRandom() * rad * 0.3, cz + mathSin(a2) * rr,
 				(mathRandom() - 0.5) * 0.4, vy, (mathRandom() - 0.5) * 0.4,
-				size, 0, life, r, g, b, CONFIG.fireAlpha * (0.82 + 0.18 * mathRandom()))
+				size, 0, life, r, g, b, FIRE_ALPHA * (0.82 + 0.18 * mathRandom()))
 		end
 	end
 
@@ -669,13 +692,13 @@ local function emitTreeFire(e, n)
 			local cz = e.z + dirz * along * axisH
 			local a2 = mathRandom() * TWO_PI
 			local rr = mathSqrt(mathRandom()) * rad * 0.8
-			local size = (CONFIG.emberSizeBase + (mathRandom() - 0.5) * CONFIG.emberSizeRand) * scale
-			local life = (CONFIG.emberLifeMin + mathRandom() * CONFIG.emberLifeSpan) * lifeScale
-			local vy = CONFIG.emberVyMin + mathRandom() * CONFIG.emberVySpan
+			local size = (EMBER_SIZE_BASE + (mathRandom() - 0.5) * EMBER_SIZE_RAND) * scale
+			local life = (EMBER_LIFE_MIN + mathRandom() * EMBER_LIFE_SPAN) * lifeScale
+			local vy = EMBER_VY_MIN + mathRandom() * EMBER_VY_SPAN
 			local r, g, b = emberColor()
 			spawnParticle(cx + mathCos(a2) * rr, cy, cz + mathSin(a2) * rr,
 				(mathRandom() - 0.5) * 0.5, vy, (mathRandom() - 0.5) * 0.5,
-				size, 2, life, r, g, b, CONFIG.emberAlpha)
+				size, 2, life, r, g, b, EMBER_ALPHA)
 		end
 	end
 
@@ -700,14 +723,14 @@ local function emitTreeFire(e, n)
 			local cz = e.z + dirz * along * axisH
 			local a2 = mathRandom() * TWO_PI
 			local rr = mathSqrt(mathRandom()) * rad
-			local size = (CONFIG.smokeSizeBase + mathRandom() * CONFIG.smokeSizeRand) * scale * (CONFIG.treeFire.smokeSizeMult or 1.0)
-			local life = (CONFIG.smokeLifeMin + mathRandom() * CONFIG.smokeLifeSpan) * lifeScale
-			local svy = CONFIG.smokeUpVelMin + mathRandom() * CONFIG.smokeUpVelSpan
+			local size = (SMOKE_SIZE_BASE + mathRandom() * SMOKE_SIZE_RAND) * scale * TREE_SMOKE_SIZE_MULT
+			local life = (SMOKE_LIFE_MIN + mathRandom() * SMOKE_LIFE_SPAN) * lifeScale
+			local svy = SMOKE_UPVEL_MIN + mathRandom() * SMOKE_UPVEL_SPAN
 			local sv  = 0.25 + mathRandom() * 1.10
 			spawnParticle(cx + mathCos(a2) * rr, cy + rad * 0.4, cz + mathSin(a2) * rr,
 				(mathRandom() - 0.5) * 0.15, svy, (mathRandom() - 0.5) * 0.15,
 				size, 1, life, SMOKE_TR * sv, SMOKE_TG * sv, SMOKE_TB * sv,
-				CONFIG.smokeAlpha * smokeDecayMult)
+				SMOKE_ALPHA * smokeDecayMult)
 		end
 	end
 end
@@ -737,14 +760,14 @@ local function emitFromEmitter(e, n)
 			local ox  = mathCos(ang) * rr
 			local oz  = mathSin(ang) * rr
 			local oy  = mathRandom() * radius * 0.3
-			local size = (CONFIG.fireSizeBase + (mathRandom() - 0.5) * CONFIG.fireSizeRand) * scale
-			local life = (CONFIG.fireLifeMin + mathRandom() * CONFIG.fireLifeSpan) * lifeScale
+			local size = (FIRE_SIZE_BASE + (mathRandom() - 0.5) * FIRE_SIZE_RAND) * scale
+			local life = (FIRE_LIFE_MIN + mathRandom() * FIRE_LIFE_SPAN) * lifeScale
 			local vx = (mathRandom() - 0.5) * 0.4
 			local vy = (0.4 + mathRandom() * 0.8) * scale  -- rise height scales with fire size
 			local vz = (mathRandom() - 0.5) * 0.4
 			local r, g, b = fireColor()
 			spawnParticle(x + ox, y + oy, z + oz, vx, vy, vz, size, 0, life,
-				r, g, b, CONFIG.fireAlpha * fireDecayMult * (0.82 + 0.18 * mathRandom()))
+				r, g, b, FIRE_ALPHA * fireDecayMult * (0.82 + 0.18 * mathRandom()))
 		end
 	end
 
@@ -765,14 +788,14 @@ local function emitFromEmitter(e, n)
 			local ox  = mathCos(ang) * rr
 			local oz  = mathSin(ang) * rr
 			local oy  = radius * 0.2 + mathRandom() * radius * 0.3
-			local size = (CONFIG.emberSizeBase + (mathRandom() - 0.5) * CONFIG.emberSizeRand) * scale
-			local life = (CONFIG.emberLifeMin + mathRandom() * CONFIG.emberLifeSpan) * lifeScale
+			local size = (EMBER_SIZE_BASE + (mathRandom() - 0.5) * EMBER_SIZE_RAND) * scale
+			local life = (EMBER_LIFE_MIN + mathRandom() * EMBER_LIFE_SPAN) * lifeScale
 			local vx = (mathRandom() - 0.5) * 0.5
-			local vy = CONFIG.emberVyMin + mathRandom() * CONFIG.emberVySpan
+			local vy = EMBER_VY_MIN + mathRandom() * EMBER_VY_SPAN
 			local vz = (mathRandom() - 0.5) * 0.5
 			local r, g, b = emberColor()
 			spawnParticle(x + ox, y + oy, z + oz, vx, vy, vz, size, 2, life,
-				r, g, b, CONFIG.emberAlpha * emberDecayMult)
+				r, g, b, EMBER_ALPHA * emberDecayMult)
 		end
 	end
 
@@ -794,15 +817,15 @@ local function emitFromEmitter(e, n)
 			local ox  = mathCos(ang) * rr
 			local oz  = mathSin(ang) * rr
 			local oy  = radius * 0.4 + mathRandom() * radius * 0.6
-			local size = (CONFIG.smokeSizeBase + mathRandom() * CONFIG.smokeSizeRand) * scale
-			local life = (CONFIG.smokeLifeMin + mathRandom() * CONFIG.smokeLifeSpan) * lifeScale
-			local svy  = CONFIG.smokeUpVelMin + mathRandom() * CONFIG.smokeUpVelSpan
+			local size = (SMOKE_SIZE_BASE + mathRandom() * SMOKE_SIZE_RAND) * scale
+			local life = (SMOKE_LIFE_MIN + mathRandom() * SMOKE_LIFE_SPAN) * lifeScale
+			local svy  = SMOKE_UPVEL_MIN + mathRandom() * SMOKE_UPVEL_SPAN
 			-- Per-particle brightness: dark sooty cores (~0.25) to lighter billows (~1.35)
 			local sv   = 0.25 + mathRandom() * 1.10
 			spawnParticle(x + ox, y + oy, z + oz,
 				(mathRandom() - 0.5) * 0.15, svy, (mathRandom() - 0.5) * 0.15,
 				size, 1, life, SMOKE_R * sv, SMOKE_G * sv, SMOKE_B * sv,
-				CONFIG.smokeAlpha * smokeDecayMult)
+				SMOKE_ALPHA * smokeDecayMult)
 		end
 	end
 end
@@ -851,7 +874,7 @@ local function updateEmitters(n)
 
 		if n > e.fireEnd and n > e.smokeEnd and n > e.emberEnd then
 			removeEmitterAt(i)
-		elseif spIsSphereInView(e.x, e.y, e.z, e.radius + CONFIG.cullPad) then
+		elseif spIsSphereInView(e.x, e.y, e.z, e.radius + CULL_PAD) then
 			emitFromEmitter(e, n)
 		end
 	end
@@ -1183,6 +1206,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	-- Skip effects when the unit was reclaimed: attacker exists, is a different
 	-- unit, and no combat weapon was involved (weaponDefID nil or negative).
 	local isReclaimed = attackerID and attackerID ~= unitID and (not weaponDefID or weaponDefID < 0)
+	-- Skip effects for unfinished (still-being-built) units.
+	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+	local isUnfinished = buildProgress and buildProgress < 1.0
 	local e = unitFireEmitter[unitID]
 	if e then
 		-- stop the follow emitter; wreckage emitter takes over
@@ -1192,7 +1218,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		e.fireEnd  = mathMin(e.fireEnd, cachedGameFrame)
 		e.emberEnd = mathMin(e.emberEnd, cachedGameFrame)
 	end
-	if isReclaimed then return end
+	if isReclaimed or isUnfinished then return end
 	if leavesWreck[unitDefID] then
 		local x, y, z = spGetUnitPosition(unitID)
 		if x and y >= -4 then  -- no wreck fire underwater
@@ -1243,7 +1269,6 @@ function gadget:GameFrame(n)
 	if not particleVBO then return end
 
 	cachedGameFrame = n
-	cachedCamX, cachedCamY, cachedCamZ = spGetCameraPosition()
 
 	if n % 10 == 0 then
 		local _, _, _, _, wx, _, wz = spGetWind()
