@@ -26,9 +26,6 @@ local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glTranslate = gl.Translate
 local GL_LINE_LOOP = GL.LINE_LOOP
 
 local floor = math.floor
@@ -54,11 +51,10 @@ local DEFAULT_CADENCE = 50
 local DEFAULT_LENGTH_SCALE = 1.0
 local MIN_LENGTH_SCALE = 0.2
 local MAX_LENGTH_SCALE = 5.0
-local UPDATE_INTERVAL = 1 / 30 -- frame timing
 
--- Persistence: 0 = one-shot, slider 1..3600 seconds, 3601 = permanent
+-- Persistence: 0 = one-shot, 1..PERSIST_MAX_SECONDS seconds, PERSIST_PERMANENT = forever
 local PERSIST_MAX_SECONDS = 3600
-local PERSIST_PERMANENT = PERSIST_MAX_SECONDS + 1
+local PERSIST_PERMANENT = -1
 
 -- ===========================================================================
 -- CEG Library (loaded from effects/ directories)
@@ -644,10 +640,6 @@ local function sendCegBatch(entries)
 	SendLuaRulesMsg(CEG_HEADER .. table.concat(entries, "|"))
 end
 
-local function spawnCegAtPosition(cegName, x, z, altitude)
-	sendCegBatch({ cegName .. " " .. floor(x) .. " " .. floor(z) .. " " .. floor(altitude or 0) })
-end
-
 local function spawnWeatherAtArea(cegs, cx, cz, radius, count, shape, angleDeg, lengthScale, altitude)
 	if not cegs or #cegs == 0 then return end
 	local altStr = " " .. floor(altitude or 0)
@@ -684,7 +676,7 @@ local FADE_OUT_SECONDS = 8   -- seconds to ramp from full count down to 0
 local ESTIMATED_PARTICLE_LIFETIME_S = 10  -- conservative CEG lifetime guess
 
 local function addPersistentSpawner(cegs, cx, cz, radius, count, shape, angleDeg, durationSeconds, cegLifetimeS)
-	local frameRate = 30
+	local frameRate = Game.gameSpeed
 	local startFrame = GetGameFrame()
 	local expireFrame = nil
 	if durationSeconds and durationSeconds ~= PERSIST_PERMANENT then
@@ -739,7 +731,7 @@ end
 
 local function updatePersistentSpawners()
 	local frame = GetGameFrame()
-	local frameRate = 30
+	local frameRate = Game.gameSpeed
 	local expired = {}
 	for id, spawner in pairs(wb.persistentSpawners) do
 		-- Check expiry (with fade-out grace period already baked into count)
@@ -800,7 +792,7 @@ local function doScatterPlace(cx, cz)
 	spawnWeatherAtArea(wb.selectedCegs, cx, cz, wb.radius, wb.spawnCount, wb.shape, wb.rotation, wb.lengthScale, wb.altitude)
 
 	-- Only create ONE persistent spawner per drag (not per tick)
-	if wb.persistentMode and wb.persistenceSeconds > 0 and not wb.dragSpawnerCreated then
+	if wb.persistentMode and wb.persistenceSeconds ~= 0 and not wb.dragSpawnerCreated then
 		addPersistentSpawner(wb.selectedCegs, cx, cz, wb.radius, wb.spawnCount, wb.shape, wb.rotation, wb.persistenceSeconds, wb.cegLifetimeS)
 		wb.dragSpawnerCreated = true
 	end
@@ -812,7 +804,7 @@ local function doPointPlace(cx, cz)
 	spawnSingleCeg(wb.selectedCegs, cx, cz, wb.altitude)
 
 	-- Only create ONE persistent spawner per drag (not per tick)
-	if wb.persistentMode and wb.persistenceSeconds > 0 and not wb.dragSpawnerCreated then
+	if wb.persistentMode and wb.persistenceSeconds ~= 0 and not wb.dragSpawnerCreated then
 		addPersistentSpawner(wb.selectedCegs, cx, cz, 10, 1, "circle", 0, wb.persistenceSeconds, wb.cegLifetimeS)
 		wb.dragSpawnerCreated = true
 	end
@@ -895,7 +887,8 @@ local function rotate(delta)
 end
 
 local function setRotRandom(val)
-	wb.rotRandom = max(0, min(100, floor(val)))
+	-- rotRandom is a 0-100% random-rotation amount applied per placement
+	wb.rotRandom = math.clamp(floor(val), 0, 100)
 end
 
 local function setSpawnCount(val)
@@ -921,9 +914,14 @@ local function setDistribution(dist)
 end
 
 local function setPersistenceSeconds(val)
-	val = max(0, min(PERSIST_PERMANENT, floor(val)))
+	val = floor(val)
+	if val < 0 then
+		val = PERSIST_PERMANENT -- negative input means "forever"
+	else
+		val = math.clamp(val, 0, PERSIST_MAX_SECONDS)
+	end
 	wb.persistenceSeconds = val
-	wb.persistentMode = val > 0
+	wb.persistentMode = (val ~= 0)
 end
 
 -- CEG selection
@@ -975,8 +973,7 @@ local function applyWeatherPreset(index)
 end
 
 local function clearAllPersistent()
-	local count = 0
-	for _ in pairs(wb.persistentSpawners) do count = count + 1 end
+	local count = table.count(wb.persistentSpawners)
 	wb.persistentSpawners = {}
 	wb.nextSpawnerId = 1
 	if count > 0 then
@@ -1010,9 +1007,7 @@ end
 
 local function getStateWithCount()
 	local state = getState()
-	local count = 0
-	for _ in pairs(wb.persistentSpawners) do count = count + 1 end
-	state.persistentCount = count
+	state.persistentCount = table.count(wb.persistentSpawners)
 	return state
 end
 
@@ -1076,7 +1071,7 @@ function widget:KeyPress(key, mods, isRepeat)
 end
 
 function widget:IsAbove(x, y)
-	return false
+	return wb.active
 end
 
 function widget:MousePress(mx, my, button)
