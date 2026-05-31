@@ -1028,8 +1028,9 @@ local function savegrassCmd(_, _, params)
 			offset = offset + 1
 		end
 	end
-	local success = Spring.Utilities.SaveTGA(texture, filename)
-	if success then spEcho("Saving grass map image failed",filename,success) end
+	-- Spring.Utilities.SaveTGA returns nil on success, error string on failure.
+	local saveError = Spring.Utilities.SaveTGA(texture, filename)
+	if saveError then spEcho("Saving grass map image failed", filename, saveError) end
 end
 
 local function loadgrassCmd(_, _, params)
