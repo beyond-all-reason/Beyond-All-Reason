@@ -12,14 +12,19 @@ function gadget:GetInfo()
 	}
 end
 
+local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+
 -- Get Startbox Area of every player
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-local norushtimer = Spring.GetModOptions().norushtimer * 1800 -- modoption is stating minutes, and we need frames. 60 seconds * 30 frames = 1800
+local norushtimer = Spring.GetModOptions().norushtimer *
+	1800 -- modoption is stating minutes, and we need frames. 60 seconds * 30 frames = 1800
 local confinedToBase = not Spring.GetModOptions().norushmiddlefree
+local teamToAllyTeamTable = {}
 
-local spGetGameFrame = Spring.GetGameFrame
 
-local CommandsToCatchMap = {                                -- CMDTYPES: ICON_MAP, ICON_AREA, ICON_UNIT_OR_MAP, ICON_UNIT_OR_AREA, ICON_UNIT_FEATURE_OR_AREA, ICON_BUILDING
+local CommandsToCatchMap = { -- CMDTYPES: ICON_MAP, ICON_AREA, ICON_UNIT_OR_MAP, ICON_UNIT_OR_AREA, ICON_UNIT_FEATURE_OR_AREA, ICON_BUILDING
 	[CMD.MOVE] = true,
 	[CMD.PATROL] = true,
 	[CMD.FIGHT] = true,
@@ -77,6 +82,7 @@ for _, teamID in ipairs(Spring.GetTeamList()) do
 end
 
 if gadgetHandler:IsSyncedCode() then
+	local rushTimerComplete = false;
 	function gadget:Initialize()
 		gadgetHandler:RegisterAllowCommand(CMD.BUILD)
 
@@ -92,11 +98,23 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function isNoRushRestricted()
+		if rushTimerComplete then
+			return false
+		end
+		local frame = spGetGameFrame()
+		if frame < norushtimer then
+			return true
+		end
+
+		rushTimerComplete = true
+		return false
+	end
+
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 		local allowed = true
-		local frame = spGetGameFrame()
 
-		if frame < norushtimer and (not TeamIDsToExclude[unitTeam]) then
+		if isNoRushRestricted() and (not TeamIDsToExclude[unitTeam]) then
 			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam, false)
 
 			if cmdID < 0 then
@@ -143,5 +161,25 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		return allowed
+	end
+	
+	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID,
+								   attackerDefID, attackerTeam)
+		if not isNoRushRestricted() then
+			return damage, 1
+		end
+		-- compare (damaged) unit location to allyTeam startboxes and negate damage if they are in their box
+		local posx, posy, posz = spGetUnitPosition(unitID)
+		local unitAllyTeam = teamToAllyTeamTable[unitTeam]
+		if not unitAllyTeam then
+			unitAllyTeam = spGetUnitAllyTeam(unitID)
+			teamToAllyTeamTable[unitTeam] = unitAllyTeam
+		end
+
+		if positionCheckLibrary.StartboxCheck(posx, posy, posz, unitAllyTeam) then
+			return 0, 0
+		end
+
+		return damage, 1
 	end
 end
