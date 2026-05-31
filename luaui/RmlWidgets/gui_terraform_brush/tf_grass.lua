@@ -1,4 +1,4 @@
--- tf_grass.lua â€” Grass Brush attach + sync (extracted from gui_terraform_brush.lua)
+-- tf_grass.lua — Grass Brush attach + sync (extracted from gui_terraform_brush.lua)
 local M = {}
 
 function M.attach(doc, ctx)

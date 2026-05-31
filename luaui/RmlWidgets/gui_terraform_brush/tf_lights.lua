@@ -1,6 +1,13 @@
 -- tf_lights.lua: extracted tool module for gui_terraform_brush
 local M = {}
 
+-- Capture engine globals as module upvalues. RmlUi-dispatched event closures
+-- (AddEventListener bodies) may execute outside the host widget's global env,
+-- so referring to bare globals from inside a handler throws nil-index errors.
+-- See memory: rmlui_addeventlistener_globals.md.
+local WG = WG
+local Spring = Spring
+
 -- Color palette (shared by swatch click handler + guideHints population).
 local PALETTE = {
 	-- Row 1: neutrals + warm-to-cool spectrum (18)
@@ -448,7 +455,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 			local ny = -(math.cos(p) * math.cos(y))
 			local len = math.sqrt(nx * nx + ny * ny)
 			if len > 1 then nx = nx / len; ny = ny / len end
-			-- Globe R=41dp (100dp globe, 14dp indicator: center=50, half-ind=7, margin=2 â†’ 50-7-2=41)
+			-- Globe R=41dp (100dp globe, 14dp indicator: center=50, half-ind=7, margin=2 → 50-7-2=41)
 			local left = 43 + nx * 41
 			local top  = 43 + ny * 41
 			globeInd:SetAttribute("style", string.format("left: %.1fdp; top: %.1fdp;", left, top))

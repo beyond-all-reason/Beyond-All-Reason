@@ -909,7 +909,7 @@ local function constrainToAxis(originX, originZ, rawX, rawZ)
 	end
 end
 
--- Stamp mode: intensity maxed + at least one height cap â†’ instant apply
+-- Stamp mode: intensity maxed + at least one height cap → instant apply
 local function isStampMode()
 	return activeIntensity >= MAX_INTENSITY and (heightCapMin ~= nil or heightCapMax ~= nil)
 end
@@ -6078,7 +6078,7 @@ function widget:DrawWorld()
 		or extraState.symmetryDraggingOrigin
 		or extraState.symmetryHoveringOrigin
 
-	-- Animated glow outline â€” drawn every frame outside the display-list cache so it can pulse.
+	-- Animated glow outline — drawn every frame outside the display-list cache so it can pulse.
 	if activeMode and activeMode ~= "ramp" and not suppressBrush then
 		-- Map intensity (0.1-100) to a 0-1 strength via log scale
 		local intFrac = (math.log(activeIntensity + 1) / math.log(101))

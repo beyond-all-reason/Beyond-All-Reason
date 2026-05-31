@@ -1270,13 +1270,14 @@ function widget:Initialize()
 				offset = offset + 1
 			end
 		end
-		local success = Spring.Utilities.SaveTGA(texture, filename)
-		if not success then
-			spEcho("[Grass] Saved grass map: " .. filename)
-		else
-			spEcho("[Grass] Failed to save grass map: " .. filename)
+		-- Spring.Utilities.SaveTGA returns nil on success, error string on failure.
+		local saveError = Spring.Utilities.SaveTGA(texture, filename)
+		if saveError then
+			spEcho("[Grass] Failed to save grass map: " .. filename .. " (" .. tostring(saveError) .. ")")
+			return false
 		end
-		return not success
+		spEcho("[Grass] Saved grass map: " .. filename)
+		return true
 	end
 	WG['grassgl4'].loadGrass = function(filename)
 		if not filename or #filename < 2 then
