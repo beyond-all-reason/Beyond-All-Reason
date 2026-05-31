@@ -388,7 +388,7 @@ local optionValues = {
 		queenResistanceMult       = 1.33 * economyScale,
 		queenStagger			  = {
 			health = math.ceil(UnitDefNames["raptor_queen_hard"].health*0.5),
-			time = 25,
+			time = 30,
 		},
 	},
 	[difficulties.veryhard] = {
@@ -411,7 +411,7 @@ local optionValues = {
 		queenResistanceMult       = 1.67 * economyScale,
 		queenStagger			  = {
 			health = math.ceil(UnitDefNames["raptor_queen_veryhard"].health*0.5),
-			time = 20,
+			time = 30,
 		},
 	},
 	[difficulties.epic] = {
@@ -434,7 +434,7 @@ local optionValues = {
 		queenResistanceMult       = 2 * economyScale,
 		queenStagger			  = {
 			health = math.ceil(UnitDefNames["raptor_queen_epic"].health*0.5),
-			time = 15,
+			time = 30,
 		},
 	},
 

@@ -948,16 +948,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		--local queenStagger = {
-		--Health = config.queenStagger.health,
-		--CurrentHealth = config.queenStagger.health + 1,
-		--Time = config.queenStagger.time,
-		--CurrentTimer = config.queenStagger.time + 1,
-		--currentlyStaggered = false,
-		--}
-
 		if SetCount(queenIDs) > 0 then
-			
 
 			if queenStagger.currentlyStaggered == false then
 				if queenStagger.CurrentHealth > 0 then
@@ -1579,9 +1570,9 @@ if gadgetHandler:IsSyncedCode() then
 
 				end
 				if UnitDefStaggerMultiplier[attackerDefID] then
-					queenStagger.CurrentHealth = queenStagger.CurrentHealth - ((math.min((damage * (1-resistPercent) * 2), damage) / nTotalQueens) * UnitDefStaggerMultiplier[attackerDefID])
+					queenStagger.CurrentHealth = queenStagger.CurrentHealth - (math.max(damage*0.25, (math.min((damage * (1-resistPercent) * 2), damage)) / nTotalQueens) * UnitDefStaggerMultiplier[attackerDefID])
 				else
-					queenStagger.CurrentHealth = queenStagger.CurrentHealth - (math.min((damage * (1-resistPercent) * 2), damage) / nTotalQueens)
+					queenStagger.CurrentHealth = queenStagger.CurrentHealth - (math.max(damage*0.25, math.min((damage * (1-resistPercent) * 2), damage)) / nTotalQueens)
 				end
 
 				if queenStagger.currentlyStaggered then

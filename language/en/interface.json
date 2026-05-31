@@ -733,6 +733,14 @@
 				"one"   : "Boss is resistant to:",
 				"other" : "Bosses are resistant to:"
 			},
+			"bossStaggerActive": {
+				"one"   : "Boss is Staggered!",
+				"other" : "Bosss are Staggered!"
+			},
+			"bossStaggerPercentage": {
+				"one"   : "Boss Stagger %{value}%%",
+				"other" : "Bosss Stagger %{value}%%"
+			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
 			"burrowKillCount": "Burrows Killed: %{count}",
