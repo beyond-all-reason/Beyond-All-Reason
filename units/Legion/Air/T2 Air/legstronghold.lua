@@ -44,6 +44,9 @@ return {
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			crashable = 0,
+			transporterseats = 4,
+			transportercegname = "tractorbeam",
+			transportercegscale = "0.7",
 		},
 		sfxtypes = {
 			explosiongenerators = {

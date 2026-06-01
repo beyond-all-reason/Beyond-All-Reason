@@ -39,6 +39,9 @@ return {
 			paralyzemultiplier = 0,
 			subfolder = "Legion/Air",
 			crashable = 0,
+			transporterseats = 2,
+			transportercegname = "tractorbeam",
+			transportercegscale = "0.7",
 		},
 		sounds = {
 			canceldestruct = "cancel2",

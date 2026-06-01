@@ -39,6 +39,9 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "ArmAircraft",
+			transporterseats = 4,
+			transportercegname = "tractorbeam",
+			transportercegscale = "0.7",
 		},
 		sounds = {
 			canceldestruct = "cancel2",

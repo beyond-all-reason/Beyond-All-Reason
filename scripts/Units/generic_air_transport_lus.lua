@@ -51,13 +51,18 @@ include(AIR_TRANSPORT_INC .. "CargoHandler.lua")
 include(AIR_TRANSPORT_INC .. "TransportAnimator.lua")
 include(AIR_TRANSPORT_INC .. "GenericAnimator.lua")
 
-local setup = VFS.Include(UNIT_CONFIG_PATH .. "setup.lua")
-
+local AnimSetup = VFS.Include(UNIT_CONFIG_PATH .. "setup.lua")
+local transportSetup = VFS.Include(AIR_TRANSPORT_PATH .. "loadpadsdefinitions/loadpaddefs.lua")
+local thisSize = "size" .. (unitDef.customParams.transporterseats or "0")
+if not transportSetup[thisSize] then
+    Spring.Echo("Invalid transporterSeats in unitDef customParams: " .. tostring(unitDef.customParams.transporterseats))
+    return false
+end
 -- initialize handlers with config; handlers expose functions that the unit script calls 
 -- in response to game events (see PerformLoad, PerformUnload, etc below)
-cargo = CargoHandler.Init(setup.cargo)
-TransportAnimator.Init(setup.loadMethod)
-GenericAnimator.Init(setup.anim)
+cargo = CargoHandler.Init(transportSetup[thisSize].cargo)
+TransportAnimator.Init(transportSetup[thisSize].loadMethod)
+GenericAnimator.Init(AnimSetup.anim)
 
 function script.Create()
     -- setup the default state

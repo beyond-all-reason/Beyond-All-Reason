@@ -45,6 +45,9 @@ return {
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "emp",
+			transporterseats = 4,
+			transportercegname = "tractorbeam",
+			transportercegscale = "0.7",
 		},
 		sfxtypes = {
 			explosiongenerators = {

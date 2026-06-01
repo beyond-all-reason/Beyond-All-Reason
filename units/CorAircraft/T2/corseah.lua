@@ -43,6 +43,9 @@ return {
 			paralyzemultiplier = 0,
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
+			transporterseats = 6,
+			transportercegname = "tractorbeam",
+			transportercegscale = "0.7",
 		},
 		sounds = {
 			canceldestruct = "cancel2",

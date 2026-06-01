@@ -14,6 +14,7 @@ function CargoHandler.Init(setup)
 	for _, slot in ipairs(setup.slots) do res(slot.name) end
 
 	local slots = {}
+	local slotsBySize = {}  -- [size] = array of slotIDs
 	for _, slotCfg in ipairs(setup.slots) do
 		local pid  = nameToID[slotCfg.name]
 		local reqs = {}
@@ -21,18 +22,18 @@ function CargoHandler.Init(setup)
 			reqs[#reqs + 1] = nameToID[reqName]
 		end
 		slots[pid] = {
-			size     = slotCfg.size,  -- seat cost of a unit that fits this slot (1/4/8/16)
-			cargo    = nil,           -- passengerID currently occupying this slot, nil if empty
-			requires = reqs,          -- list of slotIDs that must be empty for this slot to be usable
+			size        = slotCfg.size,        -- seat cost of a unit that fits this slot (1/4/8/16)
+			cargo       = nil,                  -- passengerID currently occupying this slot, nil if empty
+			requires    = reqs,                 -- list of slotIDs that must be empty for this slot to be usable
+			overlapping = slotCfg.overlapping,  -- true if this slot physically overlaps a non-overlapping slot of the same size
 		}
+		if not slotsBySize[slotCfg.size] then slotsBySize[slotCfg.size] = {} end
+		slotsBySize[slotCfg.size][#slotsBySize[slotCfg.size] + 1] = pid
 	end
 
 	local slotSizes = {}
-	local slotSizesArr = {}
-	for _, slotCfg in ipairs(setup.slots) do
-		if not slotSizes[slotCfg.size] then
-			slotSizes[slotCfg.size] = true
-		end
+	for size in pairs(slotsBySize) do
+		slotSizes[size] = true
 	end
 
 	-- source of truth for all cargo tracking; all load/unload operations read and write this table.
@@ -40,12 +41,12 @@ function CargoHandler.Init(setup)
 	-- but outside of that reload path this is the only authoritative record of what is loaded and where.
 	local cargo = {
 		transporterID                  = transporterID,                       -- transporter unit ID
-		slots                   = slots,                        -- [slotID] = { size, cargo, requires } (see above)
-		primarySlot             = nameToID[setup.primarySlot],  -- slotID used for single-unit commands
+		slots                   = slots,                        -- [slotID] = { size, cargo, requires, overlapping } (see above)
+		slotsBySize             = slotsBySize,                  -- [size] = array of slotIDs of that size
 		passengers              = {},                           -- [passengerID] = passengerData  ({ id, height, slotID, beamPieces, wbX/Y/Z, animProgress })
 		count                   = 0,                            -- number of units currently loaded
 		transporterUsedSeats    = 0,                            -- sum of seat costs of all loaded units
-		transporterSeats        = setup.transporterSeats,       -- total seat capacity of this transporter
+		transporterSeats        = tonumber(UnitDefs[Spring.GetUnitDefID(transporterID)].customParams.transporterseats or 0),       -- total seat capacity of this transporter
 		transporterMaxSpeed		= UnitDefs[Spring.GetUnitDefID(transporterID)].speed, -- base max speed of the transporter, used for speed calculations
 		transporterAccRate		= UnitDefs[Spring.GetUnitDefID(transporterID)].maxAcc, -- base acceleration of the transporter, used for speed calculations
 		transporterDecRate		= UnitDefs[Spring.GetUnitDefID(transporterID)].maxDec, -- base deceleration of the transporter, used for speed calculations
@@ -74,8 +75,7 @@ function CargoHandler.Init(setup)
 		local rulesParamString = "transporterHasSlotOfSize"..size
 		SpSetUnitRulesParam(transporterID, rulesParamString, bool)
 	end
-
-	SpSetUnitRulesParam(transporterID, "transporterSeats",    setup.transporterSeats) -- used by gadget to determine if a passenger can be loaded, and by anim handler to determine whether to show hover effect
+	SpSetUnitRulesParam(transporterID, "transporterSeats",    cargo.transporterSeats) -- used by gadget to determine if a passenger can be loaded, and by anim handler to determine whether to show hover effect
 	SpSetUnitRulesParam(transporterID, "transporterUsedSeats", 0) -- used by gadget to determine if a passenger can be loaded/unloaded, and by anim handler to determine whether to show hover effect
 	CargoHandler.CanLoad(true)
 	CargoHandler.CanUnload(true)
@@ -135,48 +135,109 @@ function CargoHandler.EndUnloading(cargo)
 	end
 end
 
--- assigns a slot to the incoming passenger and returns its passengerData, or nil if no slot is available.
--- if no direct slot match is found but reorganizing could make room, triggers ReorganizeAndLoad instead.
-function CargoHandler.FindSlot(passengerID, cargo, allowReorganize)
+-- returns true if every slotID in slotData.requires is currently empty
+local function RequiresMet(slotData, slots)
+	for _, reqID in ipairs(slotData.requires) do
+		if slots[reqID] and slots[reqID].cargo ~= nil then
+			return false
+		end
+	end
+	return true
+end
+
+-- returns the squared XZ distance between passengerID and a slot piece on the transporter
+local function SlotDistSq(passengerID, slotID)
+	local px, _, pz = SpGetUnitPosition(passengerID)
+	local sx, _, sz = Spring.GetUnitPiecePosDir(transporterID, slotID)
+	local dx, dz = px - sx, pz - sz
+	return dx * dx + dz * dz
+end
+
+-- assigns the closest valid slot of the right size to passengerID and returns passengerData, or nil.
+-- when allowReorganize is true and only overlapping slots remain available, triggers ReorganizeAndLoad.
+-- when fromReorganize is true, overlapping slots are excluded from the search entirely.
+function CargoHandler.FindSlot(passengerID, cargo, allowReorganize, fromReorganize)
 	local seats = TransportAPI.GetPassengerSize(passengerID)
-	for slotID, slotData in pairs(cargo.slots) do
-		if slotData.cargo == nil and slotData.size == seats then
-			local ok = true
-			for _, reqID in ipairs(slotData.requires) do
-				if cargo.slots[reqID] and cargo.slots[reqID].cargo ~= nil then
-					ok = false
-					break
+	local sizeList = cargo.slotsBySize[seats]
+	if not sizeList then return nil end
+
+	local bestSlotID   = nil
+	local bestDistSq   = math.huge
+	local hasOverlap   = false  -- true if an overlapping slot is available but a non-overlapping one isn't
+
+	for _, slotID in ipairs(sizeList) do
+		local slotData = cargo.slots[slotID]
+		if slotData.cargo == nil and RequiresMet(slotData, cargo.slots) then
+			if slotData.overlapping then
+				if not fromReorganize then
+					hasOverlap = true  -- note it but keep looking for a clean slot
 				end
-			end
-			if ok then
-				slotData.cargo = passengerID
-				return { id = passengerID, height = SpGetUnitHeight(passengerID), radius = SpGetUnitRadius(passengerID), slotID = slotID }
+			else
+				local dSq = SlotDistSq(passengerID, slotID)
+				if dSq < bestDistSq then
+					bestDistSq = dSq
+					bestSlotID = slotID
+				end
 			end
 		end
 	end
+
+	-- a non-overlapping slot is available: claim it
+	if bestSlotID then
+		cargo.slots[bestSlotID].cargo = passengerID
+		return { id = passengerID, height = SpGetUnitHeight(passengerID), radius = SpGetUnitRadius(passengerID), slotID = bestSlotID }
+	end
+
+	-- only overlapping slots are available: try one (closest)
+	if not fromReorganize and hasOverlap then
+		for _, slotID in ipairs(sizeList) do
+			local slotData = cargo.slots[slotID]
+			if slotData.cargo == nil and slotData.overlapping and RequiresMet(slotData, cargo.slots) then
+				local dSq = SlotDistSq(passengerID, slotID)
+				if dSq < bestDistSq then
+					bestDistSq = dSq
+					bestSlotID = slotID
+				end
+			end
+		end
+		if bestSlotID then
+			cargo.slots[bestSlotID].cargo = passengerID
+			return { id = passengerID, height = SpGetUnitHeight(passengerID), radius = SpGetUnitRadius(passengerID), slotID = bestSlotID }
+		end
+	end
+
+	-- no slot at all: maybe reorganize can make room
 	if allowReorganize and CargoHandler.HasSlotOfSize(seats, cargo)
 		and cargo.transporterUsedSeats + seats <= cargo.transporterSeats then
 		CargoHandler.ReorganizeAndLoad(cargo, passengerID)
-		return nil
 	end
 	return nil
 end
 
--- instantly unloads all current cargo then reloads everything (including newpassengerID) in decreasing size order,
--- so that larger units always claim the most appropriate slots first
-function CargoHandler.ReorganizeAndLoad(cargo, newpassengerID)
+-- instantly unloads all current cargo then reloads everything (including newPassengerID) onto non-overlapping
+-- slots only, using a greedy closest-slot pass in descending size order.
+-- newPassengerID gets first pick (its slot is assigned before all others of the same size).
+function CargoHandler.ReorganizeAndLoad(cargo, newPassengerID)
 	-- kill all in-flight Load threads at once and repair the accounting they left dangling
 	Signal(TransportAnimator.SIG_LOAD)
 	cargo.loadingCount = 0
 	CargoHandler.CanUnload(true)
 
-	local toLoad = {}
+	-- build the reload list: new unit first within its size tier, then existing cargo
+	local newSize = TransportAPI.GetPassengerSize(newPassengerID)
+	local toLoad = { newPassengerID }
 	for passengerID in pairs(cargo.passengers) do
 		toLoad[#toLoad + 1] = passengerID
 	end
-	toLoad[#toLoad + 1] = newpassengerID
+	-- sort descending by size; within the same size newPassengerID stays first (it was inserted first)
 	table.sort(toLoad, function(a, b)
-		return TransportAPI.GetPassengerSize(a) > TransportAPI.GetPassengerSize(b)
+		local sa = TransportAPI.GetPassengerSize(a)
+		local sb = TransportAPI.GetPassengerSize(b)
+		if sa ~= sb then return sa > sb end
+		-- keep newPassengerID at front of its size group
+		if a == newPassengerID then return true end
+		if b == newPassengerID then return false end
+		return false
 	end)
 
 	local passengerSnapshot = {}
@@ -184,12 +245,13 @@ function CargoHandler.ReorganizeAndLoad(cargo, newpassengerID)
 		passengerSnapshot[passengerID] = passengerData
 	end
 	for passengerID, passengerData in pairs(passengerSnapshot) do
-		local transporterX, transporterY, transporterZ = SpGetUnitPosition(cargo.transporterID)
-		TransportAnimator.Unload(passengerData, transporterX, transporterY, transporterZ, false)
+		local tx, ty, tz = SpGetUnitPosition(cargo.transporterID)
+		TransportAnimator.Unload(passengerData, tx, ty, tz, false)
 	end
 
+	-- greedy closest non-overlapping slot, slots are marked taken as each unit is assigned
 	for _, passengerID in ipairs(toLoad) do
-		local passengerData = CargoHandler.FindSlot(passengerID, cargo)
+		local passengerData = CargoHandler.FindSlot(passengerID, cargo, false, true)
 		if passengerData then
 			StartThread(TransportAnimator.Load, passengerData)
 		end

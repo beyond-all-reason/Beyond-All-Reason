@@ -39,6 +39,9 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "CorAircraft",
+			transporterseats = 4,
+			transportercegname = "tractorbeam",
+			transportercegscale = "0.7",
 		},
 		sounds = {
 			canceldestruct = "cancel2",
