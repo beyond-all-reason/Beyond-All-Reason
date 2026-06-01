@@ -12,6 +12,8 @@ function gadget:GetInfo()
 	}
 end
 
+local deleteMaxDistance = 30
+local targetListLengthMax = 100
 
 local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
@@ -24,8 +26,6 @@ local isSetTargetCommand = {
 	[CMD_UNIT_CANCEL_TARGET]        = true,
 	[CMD_UNIT_SET_TARGET_RECTANGLE] = true,
 }
-
-local deleteMaxDistance = 30
 
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 
@@ -62,7 +62,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-	local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
 	local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
 	local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
@@ -72,7 +71,9 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetPlayerInfo = Spring.GetPlayerInfo
 
 	local tremove = table.remove
+	local ensureTable = table.ensureTable
 
+	local max = math.max
 	local diag = math.diag
 	local pairsNext = next
 	local tonumber = tonumber
@@ -85,26 +86,52 @@ if gadgetHandler:IsSyncedCode() then
 	local validUnits = {}
 	local unitWeapons = {}
 	local unitAlwaysSeen = {}
-	for unitDefID = 1, #UnitDefs do
-		local unitDef = UnitDefs[unitDefID]
-		if (unitDef.canAttack and unitDef.maxWeaponRange and unitDef.maxWeaponRange > 0) then
-			validUnits[unitDefID] = true
-		end
-		local weapons = unitDef.weapons
 
-		if #weapons > 0 then
-			-- filter this down to only the params that actually get used, weapons is an array full of stuff!
-			unitWeapons[unitDefID] = {}
-			for i=1, #weapons do
-				unitWeapons[unitDefID][i] = true
+	local WATERWEAPON = 0
+	do
+		-- Fastpass for units that don't have an attack command for other reasons.
+		local allowNonAttackerUnit = { legpede = true }
+
+		local function hasTargeting(weapon)
+			if weapon.slavedTo == 0 then
+				local weaponDef = WeaponDefs[weapon.weaponDef]
+				return weaponDef.type ~= "Shield" and not weaponDef.manualFire and weaponDef.range > 10
+			else
+				return false
 			end
 		end
-		unitAlwaysSeen[unitDefID] = unitDef.isBuilding or unitDef.speed == 0
-	end
 
-	-- fastpass for units that don't have an attack command for other reasons
-	if UnitDefNames.legpede then
-		validUnits[UnitDefNames.legpede.id] = true
+		local function canSetTarget(unitDef)
+			if (unitDef.canAttack or allowNonAttackerUnit[unitDef.name]) and unitDef.maxWeaponRange > 0 then
+				for _, weapon in pairs(unitDef.weapons) do
+					if hasTargeting(weapon) then
+						return true
+					end
+				end
+			end
+			return false
+		end
+
+		-- FIXME: We don't know which weaponDefs have submissile. We can check `nuclear`, for now.
+		local function getWeaponType(weapon)
+			if hasTargeting(weapon) then
+				local weaponDef = WeaponDefs[weapon.weaponDef]
+				return weaponDef.waterWeapon and not weaponDef.customParams.nuclear and WATERWEAPON or 1
+			else
+				return false
+			end
+		end
+
+		for unitDefID = 1, #UnitDefs do
+			local unitDef = UnitDefs[unitDefID]
+			if canSetTarget(unitDef) then
+				validUnits[unitDefID] = true
+				unitWeapons[unitDefID] = table.map(unitDef.weapons, function(weapon, index)
+					return getWeaponType(weapon), index
+				end)
+			end
+			unitAlwaysSeen[unitDefID] = unitDef.isBuilding or unitDef.speed == 0
+		end
 	end
 
 	local unitTargets = {} -- data holds all unitID data
@@ -163,17 +190,21 @@ if gadgetHandler:IsSyncedCode() then
 		return ownTeam and enemyTeam and spAreTeamsAllied(ownTeam, enemyTeam)
 	end
 
-	local function TargetCanBeReachedReal(unitID, weaponList, target)
-		local isUnitTarget = type(target) == "number"
-		for weaponNum in pairsNext, weaponList do
-			--GetUnitWeaponTryTarget tests both target type validity and target to be reachable for the moment
-			if isUnitTarget and spGetUnitWeaponTryTarget(unitID, weaponNum, target) then
+	local function testTargetUnit(unitID, weaponList, target)
+		for weaponNum = 1, #weaponList do
+			if weaponList[weaponNum] and spGetUnitWeaponTryTarget(unitID, weaponNum, target) then
 				return weaponNum
-			elseif
-				not isUnitTarget
-				and spGetUnitWeaponTestTarget(unitID, weaponNum, target[1], target[2], target[3])
-				and spGetUnitWeaponTestRange(unitID, weaponNum, target[1], target[2], target[3])
-				and spGetUnitWeaponHaveFreeLineOfFire(unitID, weaponNum, nil, nil, nil, target[1], target[2], target[3])
+			end
+		end
+	end
+
+	local function testTargetPos(unitID, weaponList, x, y, z)
+		for weaponNum = 1, #weaponList do
+			if
+				weaponList[weaponNum]
+				and spGetUnitWeaponTestTarget(unitID, weaponNum, x, y, z)
+				and spGetUnitWeaponTestRange(unitID, weaponNum, x, y, z)
+				and spGetUnitWeaponHaveFreeLineOfFire(unitID, weaponNum, nil, nil, nil, x, y, z)
 			then
 				return weaponNum
 			end
@@ -185,7 +216,11 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		return CallAsTeam(teamID, TargetCanBeReachedReal, unitID, weaponList, target)
+		if type(target) == "number" then
+			return CallAsTeam(teamID, testTargetUnit, unitID, weaponList, target)
+		else
+			return CallAsTeam(teamID, testTargetPos, unitID, weaponList, target[1], target[2], target[3])
+		end
 	end
 
 	local function checkTarget(unitID, target)
@@ -195,39 +230,34 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function setTarget(unitID, targetData)
 		local unitData = unitTargets[unitID]
-		if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, targetData.target) then
-			local currentCmdID = spGetUnitCurrentCommand(unitID)
-			if currentCmdID == CMD.ATTACK then
-				return false
-			else
-				Spring.SetUnitTarget(unitID, nil)
-				return false
-			end
-		end
-		
 		local target = targetData.target
-		local isUnitTarget = type(target) == "number"
-		
-		if isUnitTarget then
-			if not spSetUnitTarget(unitID, target, false, targetData.userTarget) then
-				return false
+
+		if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, target) then
+			if unitData.hasTarget and spGetUnitCurrentCommand(unitID) ~= CMD.ATTACK then
+				spSetUnitTarget(unitID, nil)
 			end
-
-			spSetUnitRulesParam(unitID, "targetID", target)
-			spSetUnitRulesParam(unitID, "targetCoordX", -1)
-			spSetUnitRulesParam(unitID, "targetCoordY", -1)
-			spSetUnitRulesParam(unitID, "targetCoordZ", -1)
-
-		else
-			if not spSetUnitTarget(unitID, target[1], target[2], target[3], false, targetData.userTarget) then
-				return false
-			end
-
-			spSetUnitRulesParam(unitID, "targetID", -1)
-			spSetUnitRulesParam(unitID, "targetCoordX", target[1])
-			spSetUnitRulesParam(unitID, "targetCoordY", target[2])
-			spSetUnitRulesParam(unitID, "targetCoordZ", target[3])
+			unitData.hasTarget = false
+			return false
 		end
+
+		local targetID, targetX, targetY, targetZ = -1, -1, -1, -1
+		if type(target) == "number" then
+			targetID = target
+			if not spSetUnitTarget(unitID, targetID, false, targetData.userTarget) then
+				return false
+			end
+		else
+			targetX, targetY, targetZ = target[1], target[2], target[3]
+			if not spSetUnitTarget(unitID, targetX, targetY, targetZ, false, targetData.userTarget) then
+				return false
+			end
+		end
+		spSetUnitRulesParam(unitID, "targetID",     targetID)
+		spSetUnitRulesParam(unitID, "targetCoordX", targetX)
+		spSetUnitRulesParam(unitID, "targetCoordY", targetY)
+		spSetUnitRulesParam(unitID, "targetCoordZ", targetZ)
+
+		unitData.hasTarget = true
 		return true
 	end
 
@@ -253,13 +283,13 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneBeginN(string.format("sendTargetsToUnsynced %d", unitID))
 		for index, targetData in ipairs(unitTargets[unitID].targets) do
 			if not targetData.sent then
+				targetData.sent = true
 				local target = targetData.target
 				if type(target) == "number" then
-					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, target)
+					SendToUnsynced("targetList", unitID, index, targetData.userTarget, target)
 				else
-					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, target[1], target[2], target[3])
+					SendToUnsynced("targetList", unitID, index, targetData.userTarget, target[1], target[2], target[3])
 				end
-				targetData.sent = true
 			end
 		end
 		--tracy.ZoneEnd()
@@ -272,36 +302,34 @@ if gadgetHandler:IsSyncedCode() then
 			sendTargetsToUnsynced(unitID)
 		elseif targetCount > 1 then
 			local data = {}
-			local count = 0
-			local stride = 8
+			local length = 0
 			for index, targetData in ipairs(unitTargets[unitID].targets) do
 				if not targetData.sent then
-					local target = targetData.target
-					data[count + 1] = unitID
-					data[count + 2] = index
-					data[count + 3] = targetData.alwaysSeen
-					data[count + 4] = targetData.ignoreStop
-					data[count + 5] = targetData.userTarget
-					if type(target) == "number" then
-						data[count + 6] = target
-						data[count + 7] = -1
-						data[count + 8] = -1
-					else
-						data[count + 6] = target[1]
-						data[count + 7] = target[2]
-						data[count + 8] = target[3]
-					end
 					targetData.sent = true
+					local target = targetData.target
+					data[length + 1] = index
+					data[length + 2] = targetData.userTarget
+					if type(target) == "number" then
+						data[length + 3] = target
+						data[length + 4] = false
+						data[length + 5] = false
+					else
+						data[length + 3] = target[1]
+						data[length + 4] = target[2]
+						data[length + 5] = target[3]
+					end
+					length = length + 5
+					if length > 4000 then break end
 				end
-				count = count + stride
-				if count > 4000 then break end
 			end
-			SendToUnsynced("targetListBatched", count, stride, data)
+			if length > 0 then
+				SendToUnsynced("targetListBatched", unitID, length, data)
+			end
 		end
 		--tracy.ZoneEnd()
 	end
 
-	local function addUnitTargets(unitID, unitDefID, targets, append, reason)
+	local function addUnitTargets(unitID, unitDefID, targets, append)
 		--tracy.ZoneBeginN(string.format("addUnitTargets:%s %d %d",tostring(reason), unitID, unitDefID))
 		if spValidUnitID(unitID) then
 			--needSend[#needSend] = unitID
@@ -312,6 +340,8 @@ if gadgetHandler:IsSyncedCode() then
 					teamID = spGetUnitTeam(unitID),
 					allyTeam = spGetUnitAllyTeam(unitID),
 					weapons = unitWeapons[unitDefID],
+					currentIndex = 0,
+					hasTarget = false,
 				}
 			end
 			if not append then
@@ -321,15 +351,23 @@ if gadgetHandler:IsSyncedCode() then
 			for i, targetData in ipairs(data.targets) do
 				currentTargets[targetData.target] = true
 			end
-			for _, targetData in ipairs(targets) do
-				if not currentTargets[targetData.target] then	-- check if this target isnt already in targetData
-					if checkTarget(unitID, targetData.target) then
-						targetData.sent = nil
-						data.targets[#data.targets + 1] = targetData
+			local remaining = targetListLengthMax - #data.targets
+			if remaining > 0 then
+				for i = 1, #targets do
+					local targetData = targets[i]
+					if not currentTargets[targetData.target] then
+						if checkTarget(unitID, targetData.target) then
+							remaining = remaining - 1
+							targetData.sent = false
+							data.targets[#data.targets + 1] = targetData
+						end
+						if remaining == 0 then
+							break
+						end
 					end
 				end
 			end
-			if #data.targets == 0 then
+			if not data.targets[1] then
 				return
 			end
 			unitTargets[unitID] = data
@@ -337,12 +375,11 @@ if gadgetHandler:IsSyncedCode() then
 			if waitForCommandDone[unitID] then
 				checkForManualFire[unitID] = true
 			end
-			sendTargetsToUnsynced(unitID)
-			if setTarget(unitID, data.targets[1]) then
-				if data.currentIndex ~= 1 then
-					data.currentIndex = 1
-					SendToUnsynced("targetIndex", unitID, 1)
-				end
+			sendTargetsToUnsyncedBatched(unitID)
+			if not data.hasTarget and setTarget(unitID, data.targets[1]) then
+				data.currentIndex = 1
+				data.hasTarget = true
+				SendToUnsynced("targetIndex", unitID, 1)
 			end
 		end
 		--tracy.ZoneEnd()
@@ -365,7 +402,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		waitForCommandDone[unitID] = nil
 	end
-
 
 	local function refreshSendList(unitID, unitData, minIndex)
 		local targetList = unitData.targets
@@ -477,166 +513,161 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	-- Command Tracking
 
-	local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+	local teamQueryCaches = {}
+	local ENEMY_UNITS = -4 -- From UnitAllegiance enum. Includes Gaia and ceasefired targets.
+
+	local function allowTargetUnit(unitID, weaponList, targetID)
+		for weaponNum = 1, #weaponList do
+			-- This only tests the validity of the target type, not range or other variable things.
+			if weaponList[weaponNum] and spGetUnitWeaponTestTarget(unitID, weaponNum, targetID) then
+				return true
+			end
+		end
+		return false
+	end
+
+	local function allowTargetPos(unitID, weaponList, xyz)
+		local x, y, z = xyz[1], xyz[2], xyz[3]
+		for weaponNum = 1, #weaponList do
+			local weaponType = weaponList[weaponNum]
+			-- Quirk: Targets are not adjusted engine-side for water level, unlike Attack commands and weapon aiming.
+			if weaponType and spGetUnitWeaponTestTarget(unitID, weaponNum, x, weaponType == WATERWEAPON and y or max(y, 1), z) then
+				-- We may or may not adjust this targetY depending on weapon order, which can tend to seem arbitrary.
+				if weaponType ~= WATERWEAPON then
+					xyz[2] = max(y, 1)
+				end
+				return true
+			end
+		end
+		return false
+	end
+
+	local function processCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
 		--tracy.ZoneBeginN(string.format("processCommand %d %d %d %d %s %s", unitID, unitDefID, teamID, cmdID, tostring(cmdParams), tostring(cmdOptions)))
 		--tracy.Message(string.format("processCommand params=%s oprt=%s", Json.encode(cmdParams), Json.encode(cmdOptions)))
 		local unitData = unitTargets[unitID] or pausedTargets[unitID]
+		local nParams = #cmdParams
+
 		if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
-			if validUnits[unitDefID] then
-				if cmdParams and #cmdParams > 3 and not (cmdOptions and cmdOptions.internal) then
-					SendToUnsynced("settarget_line_sound", teamID, -1, unitID, cmdID)
+			local addTargetList
+
+			if nParams == 4 and cmdParams[4] < 1 then
+				cmdParams[4] = nil
+				nParams = 3
+			end
+
+			local weaponList = unitWeapons[unitDefID]
+			local append = cmdOptions.shift or false
+			local userTarget = not cmdOptions.internal
+			local ignoreStop = cmdOptions.ctrl
+
+			if nParams > 3 then
+				if not cmdOptions.internal then
+					SendToUnsynced("settarget_line_sound", unitTeam, -1, unitID, cmdID)
 				end
-				local weaponList = unitWeapons[unitDefID]
-				local append = cmdOptions.shift or false
-				local userTarget = not cmdOptions.internal
-				local ignoreStop = cmdOptions.ctrl
 
-				-- Checks if the command is a valid area command {x,y,z,r} with radius more than 0:
-				if #cmdParams > 3 and not (#cmdParams == 4 and cmdParams[4] == 0) then
-					local targets
-					if #cmdParams == 6 then
-						--rectangle
-						local top, bot, left, right
-						if cmdParams[1] < cmdParams[4] then
-							left = cmdParams[1]
-							right = cmdParams[4]
-						else
-							left = cmdParams[4]
-							right = cmdParams[1]
-						end
-
-						if cmdParams[3] < cmdParams[6] then
-							top = cmdParams[3]
-							bot = cmdParams[6]
-						else
-							bot = cmdParams[6]
-							top = cmdParams[3]
-						end
-
-						targets = CallAsTeam(teamID, spGetUnitsInRectangle, left, top, right, bot, -4)
-					elseif #cmdParams == 4 then
-						--circle
-						targets = CallAsTeam(teamID, spGetUnitsInCylinder, cmdParams[1], cmdParams[3], cmdParams[4], -4)
+				local targets
+				if nParams == 6 then
+					local top, bot, left, right
+					if cmdParams[1] < cmdParams[4] then
+						left = cmdParams[1]
+						right = cmdParams[4]
+					else
+						left = cmdParams[4]
+						right = cmdParams[1]
 					end
-					if targets then
-						local orders = {}
-						local optionKeys = {}
-						local optionKeysCount = 0
-						--re-insert back the command options
-						for optionName, optionValue in pairsNext, cmdOptions do
-							if optionName == 'shift' then
-								-- Always add shift to enforce chained commands, but clear orders at
-								-- the beginning of our order chain when not an append (shift).
-								optionKeysCount = optionKeysCount + 1
-								optionKeys[optionKeysCount] = optionName
-							elseif optionValue then
-								optionKeysCount = optionKeysCount + 1
-								optionKeys[optionKeysCount] = optionName
-							end
-						end
-						if not append and unitData then
-							-- Need to clear orders if not in shift, since just sending the first one
-							-- as not-shift would sometimes fail if that unit is in the end not valid.
-							orders[1] = {CMD_UNIT_CANCEL_TARGET, {}, {}}
-						end
-						local base = #orders
-						for i = 1, #targets do
-							local target = targets[i]
-							orders[i+base] = {
-								CMD_UNIT_SET_TARGET,
-								target,
-								optionKeys
+					if cmdParams[3] < cmdParams[6] then
+						top = cmdParams[3]
+						bot = cmdParams[6]
+					else
+						bot = cmdParams[6]
+						top = cmdParams[3]
+					end
+					local teamCache = ensureTable(teamQueryCaches, spGetUnitAllyTeam(unitID))
+					local hash = left + top + right + bot
+					targets = teamCache[hash]
+					if not targets then
+						targets = CallAsTeam(unitTeam, spGetUnitsInRectangle, left, top, right, bot, ENEMY_UNITS)
+						teamCache[hash] = targets
+					end
+				elseif nParams == 4 then
+					local teamCache = ensureTable(teamQueryCaches, spGetUnitAllyTeam(unitID))
+					local hash = -(cmdParams[1] + cmdParams[2] + cmdParams[3] + cmdParams[4])
+					targets = teamCache[hash]
+					if not targets then
+						targets = CallAsTeam(unitTeam, spGetUnitsInCylinder, cmdParams[1], cmdParams[3], cmdParams[4], ENEMY_UNITS)
+						teamCache[hash] = targets
+					end
+				end
+				if targets and targets[1] then
+					local targetList, count = {}, 0
+					for i = 1, #targets do
+						local target = targets[i]
+						if allowTargetUnit(unitID, weaponList, target) then
+							count = count + 1
+							targetList[count] = {
+								alwaysSeen = true,
+								ignoreStop = ignoreStop,
+								userTarget = userTarget,
+								target = target,
+								sent = false,
 							}
-
 						end
-						-- This will re-call Gadget:AllowCommand for each order
-						-- Which... immediately reenters this function. Okay.
-						spGiveOrderArrayToUnit(unitID, orders)
 					end
-				else
-					if #cmdParams == 3 or #cmdParams == 4 then
-						-- if radius is 0, it's a single click
-						if cmdParams[4] == 0 then
-							if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
-								SendToUnsynced("failCommand", teamID)
-								--tracy.ZoneEnd()
-								return false
-							end
-							cmdParams[4] = nil
-						end
-						local target = cmdParams
-						--coordinate
-						local validTarget = false
-						if target[2] > spGetGroundHeight(target[1], target[3]) then
-							target[2] = spGetGroundHeight(target[1], target[3])
-						end -- clip to ground level
-						--only accept valid targets
-						if weaponList then
-							for weaponID = 1, #weaponList do
-								validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target[1], target[2], target[3])
-								if validTarget then
-									break
-								elseif target[2] < 0 and spGetUnitWeaponTestTarget(unitID, weaponID, target[1], 1, target[3]) then
-									target[2] = 1 -- clip to waterlevel +1
-									validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target[1], target[2], target[3])
-									if validTarget then
-										break
-									end
-								end
-							end
-						end
-						if validTarget then
-							addUnitTargets(unitID, unitDefID, {
-								{
-									alwaysSeen = true,
-									ignoreStop = ignoreStop,
-									userTarget = userTarget,
-									target = target,
-								}
-							}, append, "cmdparams 3 or 4 and validTarget")
-						end
-					elseif #cmdParams == 1 then
-						--single target
-						local target = cmdParams[1]
-						if spValidUnitID(target) and not spAreTeamsAllied(teamID, spGetUnitTeam(target)) then
-							local validTarget = false
-							--only accept valid targets
-							if weaponList then
-								for weaponID = 1, #weaponList do
-									--unit test target only tests the validity of the target type, not range or other variable things
-									validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target)
-									if validTarget then
-										break
-									end
-								end
-							end
-							if validTarget then
-								addUnitTargets(unitID, unitDefID, {
-									{
-										alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
-										ignoreStop = ignoreStop,
-										userTarget = userTarget,
-										target = target,
-									}
-								}, append, "cmdparams 1 and validTarget")
-							end
-						end
-					elseif #cmdParams == 0 then
-						--no param, unset target
-						removeUnit(unitID)
+					if count > 0 then
+						addTargetList = targetList
 					end
 				end
+			elseif nParams == 3 then
+				if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
+					SendToUnsynced("failCommand", unitTeam)
+					--tracy.ZoneEnd()
+					return false
+				end
+
+				local target = cmdParams
+				if target[2] > spGetGroundHeight(target[1], target[3]) then
+					target[2] = spGetGroundHeight(target[1], target[3])
+				end
+				if allowTargetPos(unitID, weaponList, target) then
+					addTargetList = {{
+						alwaysSeen = true,
+						ignoreStop = ignoreStop,
+						userTarget = userTarget,
+						target = target,
+						sent = false,
+					}}
+				end
+			elseif nParams == 1 then
+				local target = cmdParams[1]
+				if spValidUnitID(target) and not spAreTeamsAllied(unitTeam, spGetUnitTeam(target)) then
+					if allowTargetUnit(unitID, weaponList, target) then
+						addTargetList = {{
+							alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
+							ignoreStop = ignoreStop,
+							userTarget = userTarget,
+							target = target,
+							sent = false,
+						}}
+					end
+				end
+			end
+
+			if addTargetList then
+				addUnitTargets(unitID, unitDefID, addTargetList, append)
+			elseif unitData and not append then
+				removeUnit(unitID)
 			end
 			--tracy.ZoneEnd()
 			return true
 		elseif cmdID == CMD_UNIT_CANCEL_TARGET then
 			if unitData then
-				if #cmdParams == 0 then
+				if nParams == 0 then
 					removeUnit(unitID)
-				elseif #cmdParams == 1 and cmdOptions.alt then
+				elseif nParams == 1 and cmdOptions.alt then
 					--it's a position in the queue
 					removeTarget(unitID, cmdParams[1])
-				elseif #cmdParams == 1 and not cmdOptions.alt then
+				elseif nParams == 1 and not cmdOptions.alt then
 					--target is unitID
 					for index, val in ipairs(unitData.targets) do
 						if tonumber(val) then
@@ -647,7 +678,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 					end
-				elseif #cmdParams == 3 then
+				elseif nParams == 3 then
 					--target is a location
 					for index, val in ipairs(unitData.targets) do
 						if not tonumber(val) and val then
@@ -713,7 +744,9 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneBeginN(string.format("AllowCommand %s %s", tostring(fromSynced), tostring(fromLua)))
 		--tracy.Message(string.format("Allowcommand params %s %s", table.toString(cmdOptions), table.toString(cmdParams)))
 		if isSetTargetCommand[cmdID] then
-			processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+			if validUnits[unitDefID] then
+				processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+			end
 			--tracy.ZoneEnd()
 			return false -- consume command
 		end
@@ -760,8 +793,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if n % 5 == 4 then
 			for unitID, unitData in pairsNext, unitTargets do
-				local targetIndex
-				local targetOffset = 0
+				local targetIndex, targetOffset = 0, 0
 				local targets = unitData.targets
 				-- Check each target and find first valid one
 				for index = 1, #targets do
@@ -770,7 +802,7 @@ if gadgetHandler:IsSyncedCode() then
 						-- Mark for removal, but don't remove during iteration
 						targetData.invalid = true
 						targetOffset = targetOffset + 1
-					elseif not targetData.invalid and setTarget(unitID, targetData) then
+					elseif setTarget(unitID, targetData) then
 						targetIndex = index - targetOffset
 						break
 					end
@@ -818,6 +850,8 @@ if gadgetHandler:IsSyncedCode() then
 				waitForCommandDone[unitID] = nil
 			end
 		end
+
+		teamQueryCaches = {}
 	end
 
 
@@ -825,6 +859,16 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 
+	-- How many units' target lists are fully drawn before any are skipped.
+	-- We then skip units in small batches/chunks that slowly grow in size.
+	local unitsFullDrawCount = 100 -- So we then skip n+1 and draw n+2 etc.
+
+	-- Large selections of units tend to target a small number of enemies with high repetition.
+	-- So though the backoff eventually skips 15 of 16 units, we don't notice anything is culled.
+	-- ~1/8th of 32,000 max units => 4k target lists, which is enough to explode a potato PC.
+	-- 4k * 100 list length maximum is enough to assume target saturation with 32,000 unit cap.
+
+	local math_min = math.min
 
 	local glVertex = gl.Vertex
 	local glPushAttrib = gl.PushAttrib
@@ -857,6 +901,7 @@ else	-- UNSYNCED
 	local mySpec, fullview = spGetSpectatingState()
 
 	local lineWidth = 1.4
+	local lineWidthActiveTarget = 3.4
 	local queueColour = { 1, 0.75, 0, 0.3 }
 	local commandColour = { 1, 0.5, 0, 0.3 }
 
@@ -878,7 +923,6 @@ else	-- UNSYNCED
 		spSetCustomCommandDrawData(CMD_UNIT_SET_TARGET, "settarget", queueColour, true)
 		spSetCustomCommandDrawData(CMD_UNIT_SET_TARGET_NO_GROUND, "settargetrectangle", queueColour, true)
 		spSetCustomCommandDrawData(CMD_UNIT_SET_TARGET_RECTANGLE, "settargetnoground", queueColour, true)
-
 	end
 
 	function gadget:PlayerChanged(playerID)
@@ -911,47 +955,61 @@ else	-- UNSYNCED
 		end
 	end
 
-	function handleTargetListEvent(_, unitID, index, alwaysSeen, ignoreStop, userTarget, targetA, targetB, targetC)
-		--tracy.ZoneBeginN(string.format("handleTargetListEvent %d %d ", unitID, index))
+	local function getEventTargetList(unitID, index, remove)
 		if index == 0 then
 			targetList[unitID] = nil
+			return
+		end
+
+		local unitData = targetList[unitID]
+		if not unitData then
+			unitData = {
+				targets = {},
+				targetIndex = 0,
+			}
+			targetList[unitID] = unitData
+		end
+		local targets = unitData.targets
+
+		if remove then
+			if index == 1 then
+				targets = {}
+				unitData.targets = targets
+			else
+				for i = index, #targets do
+					targets[i] = nil
+				end
+			end
+		end
+
+		return targets
+	end
+
+	function handleTargetListEvent(_, unitID, index, userTarget, targetA, targetB, targetC)
+		--tracy.ZoneBeginN(string.format("handleTargetListEvent %d %d ", unitID, index))
+		local targets = getEventTargetList(unitID, index, targetA == nil)
+
+		if not targets then
 			--tracy.ZoneEnd()
 			return
 		end
-		targetList[unitID] = targetList[unitID] or {}
-		if index == 1 then
-			targetList[unitID].targets = {}
-		end
-		if targetA == nil then
-			if targetList[unitID].targets then
-				table.remove(targetList[unitID].targets, index)
-			end
-			return
-		end
-		targetList[unitID].targets = targetList[unitID].targets or {}
-		targetList[unitID].targets[index] = {
-			alwaysSeen = alwaysSeen,
-			ignoreStop = ignoreStop,
+
+		targets[index] = {
 			userTarget = userTarget,
-			target = (not tonumber(targetB) and targetA) or { targetA, targetB, targetC },
+			target     = (not targetB and targetA) or { targetA, targetB, targetC },
 		}
 		--tracy.ZoneEnd()
 	end
 
-	function handleTargetListBatchedEvent(_, count, stride, data)
-		for i =1, count, stride do
-			local targetB = data[i+6]
-			local targetC = data[i+7]
-			if targetB < 0 then
-				targetB = nil
-			end
-			if targetC < 0 then
-				targetC = nil
-			end
-			handleTargetListEvent(_, data[i], data[i+1], data[i+2], data[i+3], data[i+4], data[i+5], targetB, targetC)
+	function handleTargetListBatchedEvent(_, unitID, length, data)
+		local targets = getEventTargetList(unitID, data[1], false)
+		for i = 1, length, 5 do
+			targets[data[i]] = {
+				userTarget = data[i+1],
+				target     = (not data[i+3] and data[i+2]) or { data[i+2], data[i+3], data[i+4] },
+			}
 		end
 	end
-
 
 	function handleTargetIndexEvent(_, unitID, index)
 		if not targetList[unitID] then
@@ -992,8 +1050,7 @@ else	-- UNSYNCED
 		end
 	end
 
-	local function drawTargetCommand(targetData, myTeam, myAllyTeam)
-
+	local function drawTargetCommand(targetData)
 		if targetData and targetData.userTarget then
 			local target = targetData.target
 			local isUnitTarget = type(target) == "number"
@@ -1009,38 +1066,62 @@ else	-- UNSYNCED
 		end
 	end
 
-	local function drawCurrentTarget(unitID, unitData, myTeam, myAllyTeam)
+	local function drawCurrentTarget(unitID, unitData)
 		local _, _, _, x1, y1, z1 = spGetUnitPosition(unitID, true)
 		glVertex(x1, y1, z1)
-		drawTargetCommand(unitData.targets[unitData.targetIndex], myTeam, myAllyTeam)
+		drawTargetCommand(unitData.targets[unitData.targetIndex])
 	end
 
-	local function drawTargetQueue(unitID, unitData, myTeam, myAllyTeam)
+	local function drawTargetQueue(unitID, unitData)
 		local _, _, _, x1, y1, z1 = spGetUnitPosition(unitID, true)
-		glVertex(x1, y1, z1)
-		for _, targetData in ipairs(unitData.targets) do
-			drawTargetCommand(targetData, myTeam, myAllyTeam)
+		if unitData.targetIndex == 0 then
+			glVertex(x1, y1, z1)
+		elseif not unitData.targets[2] then
+			return
 		end
+		for _, targetData in ipairs(unitData.targets) do
+			drawTargetCommand(targetData)
+		end
+	end
+
+	local function initDrawing()
+		glPushAttrib(GL.LINE_BITS)
+		glLineStipple("any") -- use spring's default line stipple pattern, moving
+		glDepthTest(false)
+		glLineWidth(lineWidth)
+		return true
 	end
 
 	local function drawDecorations()
 		local init = false
+		local skipChunkSize, skipChunkLeft = 8, unitsFullDrawCount
+		local skipSize, skipLeft = 0, 0
 		for unitID, unitData in pairsNext, targetList do
-			if drawTarget[unitID] or drawAllTargets[spGetUnitTeam(unitID)] or spIsUnitSelected(unitID) then
-				if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
+			if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
+				if skipLeft == 0 and (drawTarget[unitID] or drawAllTargets[spGetUnitTeam(unitID)] or spIsUnitSelected(unitID)) then
 					if not init then
-						init = true
-						glPushAttrib(GL.LINE_BITS)
-						glLineStipple("any") -- use spring's default line stipple pattern, moving
-						glDepthTest(false)
+						init = initDrawing()
+					end
+
+					if unitData.targetIndex ~= 0 then
+						glColor(commandColour)
+						glLineWidth(lineWidthActiveTarget)
+						glBeginEnd(GL_LINES, drawCurrentTarget, unitID, unitData)
 						glLineWidth(lineWidth)
 					end
+
 					glColor(queueColour)
-					glBeginEnd(GL_LINE_STRIP, drawTargetQueue, unitID, unitData, myTeam, myAllyTeam)
-					if unitData.targetIndex then
-						glColor(commandColour)
-						glBeginEnd(GL_LINES, drawCurrentTarget, unitID, unitData, myTeam, myAllyTeam)
+					glBeginEnd(GL_LINE_STRIP, drawTargetQueue, unitID, unitData)
+
+					-- Use a gradual backoff to skip drawing commands at high unit counts.
+					skipChunkLeft = skipChunkLeft - 1
+					if skipChunkLeft == 0 then
+						skipChunkLeft = skipChunkSize
+						skipSize = math_min(16, 2 * (skipSize > 0 and skipSize or 1))
 					end
+					skipLeft = skipSize
+				else
+					skipLeft = skipLeft - 1
 				end
 			end
 		end
