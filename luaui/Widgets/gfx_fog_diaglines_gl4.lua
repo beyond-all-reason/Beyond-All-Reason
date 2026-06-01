@@ -20,10 +20,10 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 -- Tunables
-local strength       = 0.30  -- 0 = lines off, 1 = full opacity
+local strength       = 0.25  -- 0 = lines off, 1 = full opacity
 local lineFreq       = 35.94 -- elmos per line cycle (world-space; lines anchor to ground and grow with zoom). Now a true spacing since the shader uses a normalised line direction; was visually ~29.7 before two +10% spacing bumps.
 local lineWidth      = 0.38  -- 0..1 fraction of cycle that is line; lower = thinner lines + bigger gaps
-local lineSharpness  = 0.19  -- smoothstep half-width at the edge (smaller = sharper, auto-widened when zoomed out)
+local lineSharpness  = 0.3725 -- smoothstep half-width at the edge (smaller = sharper, auto-widened when zoomed out). 0.3725 == blur slider 0.43 (see sharpnessMin/Max below)
 local scrollSpeed    = 0.0067  -- cycles per second
 
 -- Subtle animated noise that locally fades the lines for a dynamic feel.
