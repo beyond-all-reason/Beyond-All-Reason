@@ -103,7 +103,7 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 
 **Status: DONE**
 - `BASE_RESOLUTION` constant deleted from all 4 widgets. ✅
-- `WG.RmlContextManager.getDpRatio()` accessor added to `rml_context_manager.lua`. ✅
+- `WG.TerraformerShared.getDpRatio()` accessor lives in the feature-owned `gui_terraformer_shared.lua` (the shared `rml_context_manager.lua` stays at master). ✅
 - Theme `<link>` imports: only `theme-base.rcss` remains in all 4 widget RMLs. ✅ (verified — no armada/cortex/legion imports present)
 - `scaleFactor` math: ✅ renamed to `dpRatio` in `gui_feature_placer.lua` for consistency with other call sites. All 4 widgets now read `getDpRatio()` directly.
 
@@ -116,7 +116,7 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 - Panel widths moved to RCSS: `width: 15vw; min-width: 220px; max-width: 360px;` (18vw/300/460 for `.fp-root`). Same on `.tf-env-float-window`, `.tf-noise-root`, `.tf-skybox-library-root`, `.tf-light-library-root`.
 - `buildRootStyle()` now emits only `left/top` — no more inline width writes from Lua.
 - `applyEnvWindowWidths()` + both callers deleted from terraform_brush.
-- feature_placer px-conversion sites (virtual-scroll `rowHeightPx`) now use `getDpRatio()` from `WG.RmlContextManager.getDpRatio()`.
+- feature_placer px-conversion sites (virtual-scroll `rowHeightPx`) now use `getDpRatio()` from `WG.TerraformerShared.getDpRatio()`.
 - `clampPanelPosition()` now prefers `rootElement.offset_width`, falls back to `panelWidthDp` constant on first frame.
 - Tried `162dp` first — on 4K dp_ratio made it 324px (too thin vs original `15vw` = 576px). Reverted to `vw` base.
 
@@ -125,10 +125,10 @@ Reviewer (mupersega) submitted a full declarative refactor of `gui_decal_placer`
 **Status:** Mirror killed ✅, context manager enriched ✅, standalone widgets migrated ✅, drag loop consolidation ✅.
 
 1. ✅ `WG.TerraformBrushPanel` had NO writer in the codebase — all 6 reads in weather/feature/decal were dead code. Confirmed gone.
-2. ✅ Added to `rml_context_manager.lua`: `registerDocument` / `unregisterDocument` / `getDocument` / `getElementRect(docName, elementId)` → `{left, top, width, height}` via live `offset_*` reads.
+2. ✅ Added to feature-owned `gui_terraformer_shared.lua` (`WG.TerraformerShared`): `registerDocument` / `unregisterDocument` / `getDocument` / `getElementRect(docName, elementId)` → `{left, top, width, height}` via live `offset_*` reads. (Originally prototyped in `rml_context_manager.lua`; relocated to a feature module so the shared context manager reverts cleanly to master.)
 3. ✅ All 4 widgets register on LoadDocument, unregister on Shutdown (`terraform_brush`, `weather_brush`, `feature_placer`, `decal_placer`). Registration is defensive for load-order robustness.
-4. ✅ 6 `WG.TerraformBrushPanel` reads in 3 follower widgets replaced with `WG.RmlContextManager.getElementRect("terraform_brush", "tf-root")`. Snap-to-terraform now actually works (was dead before).
-5. ✅ Drag loop consolidation: `WG.RmlContextManager.attachDraggable(doc, handleId, rootEl, opts)` added to `rml_context_manager.lua`. Returns `{ tick = function() end }`. 3 follower widgets (gui_weather_brush, gui_feature_placer, gui_decal_placer) converted — old `dragState` tables + `SNAP_THRESHOLD` locals removed, `widget:Update()` drag blocks replaced with `handle.tick()`. `gui_terraform_brush` left as-is (multi-window snap-to-siblings complexity).
+4. ✅ 6 `WG.TerraformBrushPanel` reads in 3 follower widgets replaced with `WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")`. Snap-to-terraform now actually works (was dead before).
+5. ✅ Drag loop consolidation: `WG.TerraformerShared.attachDraggable(doc, handleId, rootEl, opts)` in feature-owned `gui_terraformer_shared.lua`. Returns `{ tick = function() end }`. 3 follower widgets (gui_weather_brush, gui_feature_placer, gui_decal_placer) converted — old `dragState` tables + `SNAP_THRESHOLD` locals removed, `widget:Update()` drag blocks replaced with `handle.tick()`. `gui_terraform_brush` left as-is (multi-window snap-to-siblings complexity).
 
 ### Phase 2 — Declarative events + state (reviewer's #1 red line — THE pattern fix)
 

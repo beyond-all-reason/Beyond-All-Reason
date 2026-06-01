@@ -572,6 +572,14 @@ end
 -- ============================================================
 
 local function addStartboxVertex(x, z)
+	-- Honour the shared brush "instruments": when the grid-snap toggle is on,
+	-- snap polygon vertices to the same world grid the shape/express placement
+	-- paths use, so the Snap instrument actually affects startbox drawing.
+	local tb = WG.TerraformBrush
+	local stb = tb and tb.getState and tb.getState() or nil
+	if stb and stb.gridSnap and tb.snapWorld then
+		x, z = tb.snapWorld(x, z, 0)
+	end
 	x, z = clampToMap(x, z)
 	currentBoxVerts[#currentBoxVerts + 1] = {x = x, z = z}
 end
@@ -1474,9 +1482,15 @@ function widget:MousePress(mx, my, button)
 
 			if startboxMode == "box" then
 				-- Drag rectangle: press to start, release to finish (like copy tool's box)
+				local sx, sz = wx, wz
+				local tb = WG.TerraformBrush
+				local stb = tb and tb.getState and tb.getState() or nil
+				if stb and stb.gridSnap and tb.snapWorld then
+					sx, sz = tb.snapWorld(wx, wz, 0)
+				end
 				boxRectActive = true
-				boxRectStartX, boxRectStartZ = wx, wz
-				boxRectEndX,   boxRectEndZ   = wx, wz
+				boxRectStartX, boxRectStartZ = sx, sz
+				boxRectEndX,   boxRectEndZ   = sx, sz
 				dragStartX, dragStartY = mx, my
 				return true
 			elseif startboxMode == "freedraw" then
@@ -1721,6 +1735,11 @@ function widget:MouseMove(mx, my, dx, dy, button)
 	if subMode == "startbox" and boxRectActive then
 		local wx, wz = getWorldMousePosition()
 		if wx then
+			local tb = WG.TerraformBrush
+			local stb = tb and tb.getState and tb.getState() or nil
+			if stb and stb.gridSnap and tb.snapWorld then
+				wx, wz = tb.snapWorld(wx, wz, 0)
+			end
 			boxRectEndX, boxRectEndZ = wx, wz
 		end
 		return true

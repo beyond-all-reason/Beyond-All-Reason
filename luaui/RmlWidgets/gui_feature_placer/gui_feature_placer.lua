@@ -46,7 +46,10 @@ local initialModel = {
 }
 
 local lastSearchFilter = ""
-local activeCategory   = "all"
+-- Set of currently-selected category keys. Plain click selects exactly one;
+-- Shift+click toggles a category in/out of the set. The special "all" key is
+-- mutually exclusive with the specific categories.
+local selectedCategories = { all = true }
 local categoryButtons  = {} -- { [catKey] = element }
 local featureElements  = {} -- { [defName] = element }
 local thumbDivs        = {} -- { [defName] = div element }
@@ -82,8 +85,8 @@ local function buildRootStyle()
 end
 
 local function getDpRatio()
-	return (WG.RmlContextManager and WG.RmlContextManager.getDpRatio
-		and WG.RmlContextManager.getDpRatio()) or 1.0
+	return (WG.TerraformerShared and WG.TerraformerShared.getDpRatio
+		and WG.TerraformerShared.getDpRatio()) or 1.0
 end
 
 ----------------------------------------------------------------
@@ -626,24 +629,18 @@ local function rebuildFeatureList(filter)
 	local state = WG.FeaturePlacer.getState()
 	local selectedSet = state and state.selectedSet or {}
 	local lowerFilter = filter and filter:lower() or ""
-	local cat = activeCategory
+	local showAll = selectedCategories.all or not next(selectedCategories)
 
-	-- Build flat filtered list
+	-- Build flat filtered list, preserving category order. Iterating `order`
+	-- once also de-duplicates when multiple categories are selected.
 	local toShow = {}
-	if cat == "all" then
-		for _, catName in ipairs(order) do
+	for _, catName in ipairs(order) do
+		if showAll or selectedCategories[catName] then
 			local items = categories[catName]
 			if items then
 				for _, entry in ipairs(items) do
 					toShow[#toShow + 1] = entry
 				end
-			end
-		end
-	else
-		local items = categories[cat]
-		if items then
-			for _, entry in ipairs(items) do
-				toShow[#toShow + 1] = entry
 			end
 		end
 	end
@@ -689,6 +686,20 @@ function widget:OnSearchBlur()
 	Spring.SDLStopTextInput()
 end
 
+-- data-value="search" only writes dm.search AFTER the change event fires
+-- (RmlUi quirk), so read the input element's value directly here instead of
+-- relying on the Update() poll of dm.search — which is why typing previously
+-- appeared to do nothing.
+function widget:OnSearchChange()
+	local doc = widgetState.document
+	local el = doc and doc:GetElementById("feature-search")
+	local val = el and el:GetAttribute("value") or ""
+	if val == lastSearchFilter then return end
+	lastSearchFilter = val
+	if widgetState.dmHandle then widgetState.dmHandle.search = val end
+	rebuildFeatureList(val)
+end
+
 function widget:OnSearchClear()
 	if widgetState.dmHandle then
 		widgetState.dmHandle.search = ""
@@ -722,9 +733,25 @@ local function attachEventListeners()
 		if btn then
 			categoryButtons[key] = btn
 			btn:AddEventListener("click", function(event)
-				activeCategory = key
+				local _, _, _, shift = Spring.GetModKeyState()
+				if not shift or key == "all" then
+					-- Plain click (or "All"): select exactly this category.
+					selectedCategories = { [key] = true }
+				else
+					-- Shift+click: toggle this category in the additive set,
+					-- dropping the implicit "all".
+					selectedCategories.all = nil
+					if selectedCategories[key] then
+						selectedCategories[key] = nil
+					else
+						selectedCategories[key] = true
+					end
+					if not next(selectedCategories) then
+						selectedCategories = { all = true }
+					end
+				end
 				for k, el in pairs(categoryButtons) do
-					el:SetClass("active", k == key)
+					el:SetClass("active", selectedCategories[k] == true)
 				end
 				rebuildFeatureList(lastSearchFilter)
 				event:StopPropagation()
@@ -736,8 +763,8 @@ local function attachEventListeners()
 	rebuildFeatureList("")
 
 	-- Drag handle
-	if WG.RmlContextManager and WG.RmlContextManager.attachDraggable then
-		widgetState.dragHandle = WG.RmlContextManager.attachDraggable(
+	if WG.TerraformerShared and WG.TerraformerShared.attachDraggable then
+		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(
 			doc, "fp-handle", widgetState.rootElement,
 			{ onDragStart = function() userDragged = true end }
 		)
@@ -763,8 +790,8 @@ function widget:Initialize()
 	widgetState.document = document
 	document:Show()
 
-	if WG.RmlContextManager and WG.RmlContextManager.registerDocument then
-		WG.RmlContextManager.registerDocument("feature_placer", document)
+	if WG.TerraformerShared and WG.TerraformerShared.registerDocument then
+		WG.TerraformerShared.registerDocument("feature_placer", document)
 	end
 
 	widgetState.rootElement = document:GetElementById("fp-root")
@@ -815,8 +842,8 @@ function widget:Update()
 	end
 
 	-- Align to the left of the main terraform panel (only if not user-dragged)
-	local mainPanel = WG.RmlContextManager and WG.RmlContextManager.getElementRect
-		and WG.RmlContextManager.getElementRect("terraform_brush", "tf-root")
+	local mainPanel = WG.TerraformerShared and WG.TerraformerShared.getElementRect
+		and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
 	if not userDragged and mainPanel and widgetState.rootElement then
 		local myWidth = widgetState.rootElement.offset_width
 		if myWidth and myWidth > 0 then
@@ -888,8 +915,8 @@ function widget:Shutdown()
 	-- still active and will leak into the next session.
 	Spring.SDLStopTextInput()
 
-	if WG.RmlContextManager and WG.RmlContextManager.unregisterDocument then
-		WG.RmlContextManager.unregisterDocument("feature_placer")
+	if WG.TerraformerShared and WG.TerraformerShared.unregisterDocument then
+		WG.TerraformerShared.unregisterDocument("feature_placer")
 	end
 
 	cleanupThumbs()
@@ -906,5 +933,5 @@ function widget:Shutdown()
 	widgetState.rootElement = nil
 	featureElements = {}
 	categoryButtons = {}
-	activeCategory = "all"
+	selectedCategories = { all = true }
 end

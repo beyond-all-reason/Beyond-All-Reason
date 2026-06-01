@@ -48,9 +48,9 @@ local min    = math.min
 local cos    = math.cos
 local sin    = math.sin
 local pi     = math.pi
-local sqrt   = math.sqrt
-local atan2  = math.atan2
 local random = math.random
+
+local BrushShapes = VFS.Include("common/brush_shapes.lua")
 
 ----------------------------------------------------------------
 -- Constants
@@ -286,24 +286,8 @@ local function rotatePoint(px, pz, angleDeg)
 end
 
 local function isInsideShape(dx, dz, radius, shape, angleDeg)
-	local lx, lz = rotatePoint(dx, dz, -angleDeg)
-	local ax, az = math.abs(lx), math.abs(lz)
-	if shape == "circle" then
-		return lx * lx + lz * lz <= radius * radius
-	elseif shape == "square" then
-		return ax <= radius and az <= radius
-	elseif shape == "hexagon" or shape == "octagon" or shape == "triangle" then
-		local sides = shape == "hexagon" and 6 or (shape == "octagon" and 8 or 3)
-		local dist = sqrt(lx * lx + lz * lz)
-		if dist < 0.001 then return true end
-		local angle = atan2(lz, lx)
-		if angle < 0 then angle = angle + 2 * pi end
-		local secA = 2 * pi / sides
-		local inSec = (angle % secA) - secA / 2
-		local apothem = radius * cos(pi / sides)
-		return dist <= apothem / cos(inSec)
-	end
-	return false
+	-- Shared point-in-shape test (see common/brush_shapes.lua).
+	return (BrushShapes.isInside(dx, dz, radius, shape, angleDeg))
 end
 
 ----------------------------------------------------------------

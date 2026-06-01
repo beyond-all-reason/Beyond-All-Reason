@@ -51,6 +51,8 @@ local pi     = math.pi
 local sqrt   = math.sqrt
 local format = string.format
 
+local BrushShapes = VFS.Include("common/brush_shapes.lua")
+
 local KEYSYMS_SPACE  = 0x20
 local KEYSYMS_ESCAPE = 0x1B
 
@@ -204,47 +206,10 @@ local pipetteExcludePending = nil   -- { wx, wz } queued for exclude sample
 -- Shape Testing
 -- ============================================================
 
-local function rotateInv(dx, dz, angleDeg)
-	if angleDeg == 0 then return dx, dz end
-	local rad = -angleDeg * pi / 180
-	local c, s = cos(rad), sin(rad)
-	return dx * c - dz * s, dx * s + dz * c
-end
-
-local function isInsideShape(dx, dz, radius, shape, angleDeg, lengthScale)
-	lengthScale = lengthScale or 1.0
-	local rx, rz = rotateInv(dx, dz, angleDeg)
-	local radX = radius
-	local radZ = radius * lengthScale
-	if shape == "circle" then
-		local normX = rx / radX
-		local normZ = rz / radZ
-		local d = sqrt(normX * normX + normZ * normZ)
-		return d <= 1.0, d
-	elseif shape == "square" then
-		-- axis-aligned square; corners at (±radX, ±radZ) match outline
-		local d = max(abs(rx) / radX, abs(rz) / radZ)
-		return d <= 1.0, d
-	elseif shape == "hexagon" then
-		-- regular hexagon, vertices on ±x axis (pointy-on-x) matching outline
-		-- constraints: |x| + |z|/sqrt(3) <= 1  and  2|z|/sqrt(3) <= 1
-		local ax, az = abs(rx) / radX, abs(rz) / radZ
-		local d = max(ax + az * 0.5773503, az * 1.1547005)
-		return d <= 1.0, d
-	elseif shape == "octagon" then
-		-- regular octagon, vertex on +x axis matching outline
-		local ax, az = abs(rx) / radX, abs(rz) / radZ
-		local d = max(ax + az * 0.4142136, az + ax * 0.4142136)
-		return d <= 1.0, d
-	elseif shape == "triangle" then
-		-- equilateral triangle pointing +x, vertices at angles 0°,120°,240°
-		local nx = rx / radX
-		local az = abs(rz) / radZ
-		local d = max(nx + az * 1.7320508, -2 * nx)
-		return d <= 1.0, d
-	end
-	return false, 1
-end
+-- Shared point-in-shape test (see common/brush_shapes.lua).
+-- Signature: isInsideShape(dx, dz, radius, shape, angleDeg, lengthScale)
+--   -> inside (boolean), normDist (number)
+local isInsideShape = BrushShapes.isInside
 
 local function computeFalloff(normDist, curve)
 	if normDist >= 1 then return 0 end

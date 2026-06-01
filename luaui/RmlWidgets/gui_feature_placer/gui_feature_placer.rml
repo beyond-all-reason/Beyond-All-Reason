@@ -40,7 +40,7 @@
 			</div>
 			<div class="flex flex-row gap-1 mb-1">
 				<div class="fp-search-wrapper" style="flex: 1;">
-					<input type="text" id="feature-search" class="fp-search-input" placeholder="Search features..." data-value="search" onfocus="widget:OnSearchFocus()" onblur="widget:OnSearchBlur()" />
+					<input type="text" id="feature-search" class="fp-search-input" placeholder="Search features..." data-value="search" onfocus="widget:OnSearchFocus()" onblur="widget:OnSearchBlur()" onchange="widget:OnSearchChange()" />
 					<div id="btn-search-clear" class="fp-search-clear-btn" onclick="widget:OnSearchClear()"><img class="fp-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
 				</div>
 				<div id="btn-clear-selection" class="fp-clr-btn" onclick="widget:OnClearSelection()">

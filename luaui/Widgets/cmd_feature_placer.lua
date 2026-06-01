@@ -87,7 +87,7 @@ local fp = {
 	rotation      = 0,
 	rotRandom     = 100,   -- 0 = all same heading, 100 = fully random
 	featureCount  = 10,
-	cadence       = 50,        -- 1-1000 logarithmic (higher = faster)
+	cadence       = 10,        -- 1-1000 logarithmic (higher = faster)
 	distribution  = "random",  -- "random", "regular", or "clustered"
 	smartEnabled  = false,     -- terrain-aware filtering applied on top of distribution
 	smartFilters  = {

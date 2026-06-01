@@ -68,16 +68,60 @@ local widgetState = {
 local syncDecals          -- forward decl, assigned further down
 local lastSearchFilter = ""
 
+-- Set of currently-selected category keys. Plain click selects exactly one;
+-- Shift+click toggles a category in/out. "all" is mutually exclusive with the
+-- specific categories. Mirrored to dm boolean flags (dcCat*) for the
+-- data-class-active highlight bindings.
+local selectedDecalCats = { all = true }
+local DECAL_CAT_KEYS = { "all", "scars", "explosions", "tracks", "builds", "footprints", "scorch", "groundplates", "other" }
+local DECAL_CAT_FLAG = {
+	all = "dcCatAll", scars = "dcCatScars", explosions = "dcCatExplosions",
+	tracks = "dcCatTracks", builds = "dcCatBuilds", footprints = "dcCatFootprints",
+	scorch = "dcCatScorch", groundplates = "dcCatGroundplates", other = "dcCatOther",
+}
+local function applyDecalCatFlags()
+	local dm = widgetState.dmHandle
+	if not dm then return end
+	for _, key in ipairs(DECAL_CAT_KEYS) do
+		dm[DECAL_CAT_FLAG[key]] = selectedDecalCats[key] == true
+	end
+end
+
 ---@type DecalPlacerModel
 local initialModel = {
 	search = "",
 	activeCategory = "all",
 	selectedCount = 0,
+	dcCatAll = true,
+	dcCatScars = false,
+	dcCatExplosions = false,
+	dcCatTracks = false,
+	dcCatBuilds = false,
+	dcCatFootprints = false,
+	dcCatScorch = false,
+	dcCatGroundplates = false,
+	dcCatOther = false,
 
 	onCategorySelect = function(_event, key)
 		local dm = widgetState.dmHandle
-		if not dm or dm.activeCategory == key then return end
-		dm.activeCategory = key
+		if not dm then return end
+		local _, _, _, shift = Spring.GetModKeyState()
+		if not shift or key == "all" then
+			-- Plain click (or "All"): select exactly this category.
+			selectedDecalCats = { [key] = true }
+		else
+			-- Shift+click: toggle this category in the additive set.
+			selectedDecalCats.all = nil
+			if selectedDecalCats[key] then
+				selectedDecalCats[key] = nil
+			else
+				selectedDecalCats[key] = true
+			end
+			if not next(selectedDecalCats) then
+				selectedDecalCats = { all = true }
+			end
+		end
+		applyDecalCatFlags()
 		-- syncDecals is defined below; forward declared via the closure since
 		-- this whole table is the model and `syncDecals` is in module scope.
 		syncDecals()
@@ -239,14 +283,14 @@ syncDecals = function()
 	local state = WG.DecalPlacer.getState()
 	local selectedSet = state and state.selectedSet or {}
 	local lowerFilter = (lastSearchFilter or ""):lower()
-	local cat = dm.activeCategory or "all"
+	local showAll = selectedDecalCats.all or not next(selectedDecalCats)
 
 	-- Full DOM rebuild
 	listEl.inner_rml = ""
 	tileElements = {}
 
-	local catOrder = (cat == "all") and order or { cat }
-	for _, catName in ipairs(catOrder) do
+	for _, catName in ipairs(order) do
+	  if showAll or selectedDecalCats[catName] then
 		local items = categories[catName]
 		if items then
 			for _, entry in ipairs(items) do
@@ -321,6 +365,7 @@ syncDecals = function()
 				end
 			end
 		end
+	  end
 	end
 
 	dm.selectedCount = #(state and state.selectedDecals or {})
@@ -360,8 +405,8 @@ local function wireDragHandle()
 	local doc = widgetState.document
 	local rootEl = widgetState.rootElement
 	if not doc or not rootEl then return end
-	if WG.RmlContextManager and WG.RmlContextManager.attachDraggable then
-		widgetState.dragHandle = WG.RmlContextManager.attachDraggable(
+	if WG.TerraformerShared and WG.TerraformerShared.attachDraggable then
+		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(
 			doc, "dp-handle", rootEl,
 			{ onDragStart = function() userDragged = true end }
 		)
@@ -386,8 +431,8 @@ function widget:Initialize()
 		return false
 	end
 
-	if WG.RmlContextManager and WG.RmlContextManager.registerDocument then
-		WG.RmlContextManager.registerDocument("decal_placer", document)
+	if WG.TerraformerShared and WG.TerraformerShared.registerDocument then
+		WG.TerraformerShared.registerDocument("decal_placer", document)
 	end
 
 	widgetState.document:ReloadStyleSheet()
@@ -424,8 +469,8 @@ function widget:Update()
 	if not syncVisibilityFromTool() then return end
 
 	-- Auto-position next to terraform main panel until user drags
-	local mainPanel = WG.RmlContextManager and WG.RmlContextManager.getElementRect
-		and WG.RmlContextManager.getElementRect("terraform_brush", "tf-root")
+	local mainPanel = WG.TerraformerShared and WG.TerraformerShared.getElementRect
+		and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
 	if not userDragged and mainPanel and widgetState.rootElement then
 		local myWidth = widgetState.rootElement.offset_width
 		if myWidth and myWidth > 0 then
@@ -448,8 +493,8 @@ end
 
 function widget:Shutdown()
 	Spring.SDLStopTextInput()
-	if WG.RmlContextManager and WG.RmlContextManager.unregisterDocument then
-		WG.RmlContextManager.unregisterDocument("decal_placer")
+	if WG.TerraformerShared and WG.TerraformerShared.unregisterDocument then
+		WG.TerraformerShared.unregisterDocument("decal_placer")
 	end
 
 	if widgetState.rmlContext and widgetState.dmHandle then

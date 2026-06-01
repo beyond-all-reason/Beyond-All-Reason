@@ -439,9 +439,14 @@ local function spawnDust(centerX, centerZ, radius, intensity)
 		local x = centerX + cos(angle) * dist
 		local z = centerZ + sin(angle) * dist
 		local y = Spring.GetGroundHeight(x, z)
-		local ceg = DUST_CEGS[random(1, #DUST_CEGS)]
-		local scale = radius * (0.0125 + random() * 0.05) * intensityScale
-		SpawnCEG(ceg, x, y, z, 0, (0.5 + random() * 1.5) * intensityScale, 0, scale, 0)
+		-- Skip puffs that land underwater: dust over submerged terrain spawns
+		-- oversized clouds (and many of them), tanking framerate. Water FX is
+		-- only triggered when the brush centre itself is submerged.
+		if y >= 0 then
+			local ceg = DUST_CEGS[random(1, #DUST_CEGS)]
+			local scale = radius * (0.0125 + random() * 0.05) * intensityScale
+			SpawnCEG(ceg, x, y, z, 0, (0.5 + random() * 1.5) * intensityScale, 0, scale, 0)
+		end
 	end
 	local vol = math.min(4.0, radius / 100 * intensityScale)
 	local y = Spring.GetGroundHeight(centerX, centerZ)
