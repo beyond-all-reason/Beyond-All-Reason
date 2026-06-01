@@ -338,14 +338,14 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneEnd()
 	end
 
-	local function addUnitTargets(unitID, unitDefID, targets, append)
+	local function addUnitTargets(unitID, unitDefID, targetList, append)
 		--tracy.ZoneBeginN(string.format("addUnitTargets:%s %d %d",tostring(reason), unitID, unitDefID))
 		if spValidUnitID(unitID) then
-			--needSend[#needSend] = unitID
 			local data = unitTargets[unitID] or pausedTargets[unitID]
 			if not data then
 				data = {
 					targets = {},
+					currentTargets = {},
 					teamID = spGetUnitTeam(unitID),
 					allyTeam = spGetUnitAllyTeam(unitID),
 					weapons = unitWeapons[unitDefID],
@@ -354,29 +354,29 @@ if gadgetHandler:IsSyncedCode() then
 				}
 			elseif not append then
 				data.targets = {}
+				data.currentTargets = {}
 				SendToUnsynced("targetList", unitID, 0)
 			end
-			local currentTargets = {}
-			for i, targetData in ipairs(data.targets) do
-				currentTargets[targetData.target] = true
-			end
-			local remaining = targetListLengthMax - #data.targets
-			if remaining > 0 then
-				for i = 1, #targets do
-					local targetData = targets[i]
-					if not currentTargets[targetData.target] then
-						if checkTarget(unitID, targetData.target) then
-							remaining = remaining - 1
-							targetData.sent = false
-							data.targets[#data.targets + 1] = targetData
-						end
-						if remaining == 0 then
-							break
-						end
+			local targets, currentTargets = data.targets, data.currentTargets
+			local targetCount = #targets
+			local limitCount = targetListLengthMax - targetCount
+			for i = 1, #targetList do
+				if limitCount == 0 then
+					break
+				end
+				local targetData = targetList[i]
+				local target = targetData.target
+				if not currentTargets[target] and checkTarget(unitID, target) then
+					limitCount = limitCount - 1
+					targetCount = targetCount + 1
+					targets[targetCount] = targetData
+					if type(target) == "number" then
+						currentTargets[target] = true
 					end
+					targetData.sent = false
 				end
 			end
-			if not data.targets[1] then
+			if targetCount == 0 then
 				return
 			end
 			unitTargets[unitID] = data
@@ -424,22 +424,27 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function removeTarget(unitID, index)
 		local unitData = unitTargets[unitID] or pausedTargets[unitID]
-		tremove(unitData.targets, index)
-		if #unitData.targets == 0 then
-			removeUnit(unitID)
-		else
-			refreshSendList(unitID, unitData, index)
+		local removed = tremove(unitData.targets, index)
+		if removed then
+			if not unitData.targets[1] then
+				removeUnit(unitID)
+			else
+				unitData.currentTargets[removed.target] = nil
+				refreshSendList(unitID, unitData, index)
+			end
 		end
 	end
 
 	local function removeWithStop(unitID)
 		local unitData = unitTargets[unitID] or pausedTargets[unitID]
 		local targetList = unitData.targets
+		local currentTargets = unitData.currentTargets
 		local currentIndex = unitData.currentIndex
 		local minIndex
 		local n = #targetList
 		for i = n, 1, -1 do
 			if not targetList[i].ignoreStop then
+				currentTargets[targetList[i].target] = nil
 				tremove(targetList, i)
 				minIndex = i
 				if i == currentIndex then
