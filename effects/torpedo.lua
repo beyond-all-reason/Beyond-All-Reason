@@ -57,7 +57,7 @@ local definitions = {
         },
     },
     
-        ["torpedo-trail"] = {
+    ["torpedo-trail"] = {
         trail = {
             air                = false,
             class              = [[CBitmapMuzzleFlame]],
