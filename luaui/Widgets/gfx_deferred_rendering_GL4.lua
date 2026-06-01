@@ -253,6 +253,8 @@ end
 
 ------------------------------ Light and Shader configurations ------------------
 
+local enableProjectileLightFlares = false  -- set to true to show lens flare textures on projectile lights
+
 local unitDefLights
 local featureDefLights
 local unitEventLights -- Table of lights per unitDefID
@@ -1061,6 +1063,9 @@ local function LoadLightConfig()
 		projectileDefLights = result2.projectileDefLights
 		for weaponID, lightTable in pairs(projectileDefLights) do
 			InitializeLight(lightTable)
+			if not enableProjectileLightFlares and lightTable.lightParamTable then
+				lightTable.lightParamTable[16] = 0  -- lensflare
+			end
 		end
 	else
 		spEcho("Failed to load GL4 weapon light config", success2, result2)
@@ -1632,9 +1637,13 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	if pointLightVBO.usedElements > 0 or
 		unitPointLightVBO.usedElements > 0 or
 		beamLightVBO.usedElements > 0 or
+		unitBeamLightVBO.usedElements > 0 or
 		unitConeLightVBO.usedElements > 0 or
 		coneLightVBO.usedElements > 0 or
-		cursorPointLightVBO.usedElements > 0
+		cursorPointLightVBO.usedElements > 0 or
+		projectilePointLightVBO.usedElements > 0 or
+		projectileBeamLightVBO.usedElements > 0 or
+		projectileConeLightVBO.usedElements > 0
 		then
 
 		local alt, ctrl = spGetModKeyState()
