@@ -252,7 +252,7 @@ local function StartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStart
     end
 end
 
-local function NotInEnemyStartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStartbox) -- Return True when position is  within any enemy startbox.
+local function NotInEnemyStartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStartbox)
     for _,testAllyTeamID in pairs(AllyTeams) do
         if (testAllyTeamID ~= GaiaAllyTeamID) and (testAllyTeamID ~= allyTeamID) then
             if StartboxCheck(posx, posy, posz, testAllyTeamID, returnTrueWhenNoStartbox) then
