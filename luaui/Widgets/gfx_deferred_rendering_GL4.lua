@@ -377,6 +377,12 @@ local trackedProjectiles = {} -- used for finding out which projectiles can be c
 local trackedProjectileTypes = {} -- we have to track the types [point, light, cone] of projectile lights for efficient updates
 local lastGameFrame = -2
 
+local isTorpedoLauncher = {}
+for weaponDefID = 1, #WeaponDefs do
+	local weaponDef = WeaponDefs[weaponDefID]
+	isTorpedoLauncher[weaponDefID] = weaponDef.type == "TorpedoLauncher"
+end
+
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
@@ -1428,8 +1434,7 @@ local function updateProjectileLights(newgameframe)
 					-- Torpedo GL4 light delay:
 					-- TorpedoLauncher projectile lights should not appear while the projectile is still above water.
 					-- Do not track skipped torpedoes yet, so this block can try again after the projectile enters water.
-					local weaponDef = weaponDefID and WeaponDefs[weaponDefID]
-					if weaponDef and weaponDef.type == "TorpedoLauncher" and (not py or py > 2) then
+					if isTorpedoLauncher[weaponDefID] and (not py or py > 2) then
 						skipProjectileTracking = true
 					elseif projectileDefLights[weaponDefID] and (projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0) then
 						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
