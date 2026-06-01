@@ -1105,6 +1105,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				else
 					bossStagger.currentlyStaggered = true
+					GG["notifications"].queueNotification("Scav_BossGotStaggered")
 					bossStagger.CurrentTimer = bossStagger.Time + 0
 					SetGameRulesParam("scavBossStaggerPercentage", math.ceil((1 - (bossStagger.CurrentTimer/bossStagger.Time))*100))
 				end
@@ -1119,6 +1120,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				else
 					bossStagger.currentlyStaggered = false
+					GG["notifications"].queueNotification("Scav_BossNoLongerStaggered")
 					bossStagger.Time = bossStagger.Time + 5
 					bossStagger.CurrentTimer = bossStagger.Time + 0
 					bossStagger.Health = bossStagger.Health*1.1

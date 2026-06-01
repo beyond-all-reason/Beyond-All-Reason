@@ -31,11 +31,12 @@ end
 
 GG["notifications"] = {}
 ---@param event string Notification event name (e.g., "commanderDetected", "EnemyCommanderDied"). Must match an event defined in sounds/voice/config.lua with properties: delay (integer), stackedDelay (bool), resetOtherEventDelay (string), soundEffect (string), notext (bool), tutorial (bool)
----@param idtype "playerID"|"teamID"|"allyTeamID" Type of ID to target: "playerID" for specific player, "teamID" for all players on a team, "allyTeamID" for all players in an ally team
----@param id number|string PlayerID, TeamID, or AllyTeamID (converted to number internally)
+---@param idtype "playerID"|"teamID"|"allyTeamID"|nil Type of ID to target: "playerID" for specific player, "teamID" for all players on a team, "allyTeamID" for all players in an ally team, nil to send it to everyone.
+---@param id number|string|nil PlayerID, TeamID, or AllyTeamID (converted to number internally)
 ---@param forceplay boolean|nil If true, skips spectator check and allows playing in pregame
 GG["notifications"].queueNotification =  function(event, idtype, id, forceplay)
     local playerIDs = {}
+    if not id then id = -1 end
     id = tonumber(id)
 
     if idtype == "playerID" then
@@ -52,6 +53,11 @@ GG["notifications"].queueNotification =  function(event, idtype, id, forceplay)
             for j = 1,#playerList do
                 playerIDs[#playerIDs+1] = playerList[j]
             end
+        end
+    else
+        local playerList = Spring.GetPlayerList()
+        for j = 1,#playerList do
+            playerIDs[#playerIDs+1] = playerList[j]
         end
     end
 

@@ -676,8 +676,8 @@
 				"other" : "Queens are Staggered!"
 			},
 			"queenStaggerPercentage": {
-				"one"   : "Queen Stagger %{value}%%",
-				"other" : "Queens Stagger %{value}%%"
+				"one"   : "Queen Stagger: %{value}%%",
+				"other" : "Queens Stagger: %{value}%%"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
