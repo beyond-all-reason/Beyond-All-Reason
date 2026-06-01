@@ -13,7 +13,7 @@ function gadget:GetInfo()
 end
 
 local deleteMaxDistance = 30
-local targetListLengthMax = 100
+local targetListLengthMax = 200
 
 local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
@@ -328,8 +328,7 @@ if gadgetHandler:IsSyncedCode() then
 						data[length + 4] = target[2]
 						data[length + 5] = target[3]
 					end
-					length = length + 5
-					if length > 4000 then break end
+					length = length + 5 -- Limit this length through the max target list length.
 				end
 			end
 			if length > 0 then
