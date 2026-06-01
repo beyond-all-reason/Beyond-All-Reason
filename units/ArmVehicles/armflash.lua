@@ -1,7 +1,7 @@
 return {
 	armflash = {
 		buildpic = "ARMFLASH.DDS",
-		buildtime = 1960,
+		buildtime = 2000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "25 25 31",
@@ -11,7 +11,7 @@ return {
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 750,
+		health = 730,
 		leavetracks = true,
 		maxacc = 0.06788,
 		maxdec = 0.13575,
@@ -134,7 +134,7 @@ return {
 				weaponvelocity = 600,
 				damage = {
 					default = 9,
-					vtol = 3,
+					vtol = 2,
 				},
 			},
 		},
