@@ -2023,7 +2023,8 @@ function widget:MousePress(x, y, button)
 	end
 end
 
--- makes sure it gets unloaded at a free spot
+-- makes sure it gets unloaded at a free spot -- NO, we don't need that here, because allowCommand already snaps to valid pos.
+-- so we just give the unload command at current pos anyways
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local function unloadTransport(transportID, unitID, x, z, shift, depth)
 	if not depth then
@@ -2126,7 +2127,7 @@ function widget:MouseRelease(x, y, button)
 								end
 							end
 						end
-						unloadTransport(displayUnitID, unitID, math_floor(x), math_floor(z), shift)
+						Spring.GiveOrderToUnit(displayUnitID, CMD.UNLOAD_UNIT, {x,y,z,unitID}, {"shift"})
 						return -1
 					end
 				end

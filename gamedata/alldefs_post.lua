@@ -209,6 +209,7 @@ local function unitDef_Post(name, uDef)
 			uDef.holdsteady = true
 			uDef.releaseheld = true
 			uDef.loadingRadius = 512
+			uDef.unloadSpread = 0
 			uDef.objectname = "units/" .. name .. "_tractorbeam.s3o"
 			if name == "armdfly" or name == "legstronghold" then
 				uDef.script = "units/weaponized_air_transport_lus.lua"

@@ -275,7 +275,6 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 	if doAnim ~= false then
 		Spring.SetUnitRulesParam(passengerData.id, "inTransportAnim", 1)
 		local slotPosX, slotPosY, slotPosZ = SpGetUnitPiecePosDir(transporterID, passengerData.slotID)
-		SpSetUnitRadiusAndHeight(passengerData.id, slotPosY - SpGetGroundHeight(slotPosX, slotPosZ) + 20, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
 		local transporterPosX, _, transporterPosZ, startTransporterRotX, startTransporterRotY, startTransporterRotZ = getTransporterState(transporterID)
 		goalPosX, goalPosZ = goalPosX + (slotPosX - transporterPosX), goalPosZ + (slotPosZ - transporterPosZ)
 		goalPosY = SpGetGroundHeight(goalPosX, goalPosZ)	
@@ -286,8 +285,11 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 		local goalRotX, goalRotY, goalRotZ
 		local passengerDefID = SpGetUnitDefID(passengerData.id)
 		if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].speed == 0 then
+			SpSetUnitRadiusAndHeight(passengerData.id, slotPosY - SpGetGroundHeight(slotPosX, slotPosZ) + 20, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
 			goalRotY = math.floor(startRotY/(pi/2) + 0.5) *(pi/2) -- cardinal facing
 			goalPosX, goalPosY, goalPosZ = Spring.Pos2BuildPos(passengerDefID, goalPosX, goalPosY, goalPosZ) -- always align buildings on build grid
+		else
+			SpSetUnitRadiusAndHeight(passengerData.id, 0, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
 		end
 		
 		if UnitDefs[passengerDefID] and UnitDefs[passengerDefID].upright then
