@@ -104,6 +104,9 @@ function PerformUnload(passengerID, goalX, goalY, goalZ) -- entry point from gad
     if passengerData and SpValidUnitID(passengerID) and not SpGetUnitIsDead(passengerID) then
         StartThread(TransportAnimator.Unload, passengerData, goalX, goalY, goalZ)
     else -- unit invalid/dead: reset slot and unregister without animating
+        if SpValidUnitID(passengerID) then -- unit is valid but dead
+            SpUnitDetach(passengerID)
+        end
         if passengerData and passengerData.slotID then
             Move(passengerData.slotID, 1, 0)  Move(passengerData.slotID, 2, 0)  Move(passengerData.slotID, 3, 0)
             Turn(passengerData.slotID, 1, 0)  Turn(passengerData.slotID, 2, 0)  Turn(passengerData.slotID, 3, 0)
