@@ -243,10 +243,10 @@ if gadgetHandler:IsSyncedCode() then
 		local target = targetData.target
 
 		if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, target) then
-			if unitData.hasTarget and not inAttackCommand(unitID) then
+			if unitData.activeTarget and not inAttackCommand(unitID) then
 				spSetUnitTarget(unitID, nil)
 			end
-			unitData.hasTarget = false
+			unitData.activeTarget = false
 			return false
 		end
 
@@ -267,7 +267,7 @@ if gadgetHandler:IsSyncedCode() then
 		spSetUnitRulesParam(unitID, "targetCoordY", targetY)
 		spSetUnitRulesParam(unitID, "targetCoordZ", targetZ)
 
-		unitData.hasTarget = true
+		unitData.activeTarget = true
 		return true
 	end
 
@@ -350,7 +350,7 @@ if gadgetHandler:IsSyncedCode() then
 					allyTeam = spGetUnitAllyTeam(unitID),
 					weapons = unitWeapons[unitDefID],
 					currentIndex = 0,
-					hasTarget = false,
+					activeTarget = false,
 				}
 			elseif not append then
 				data.targets = {}
@@ -385,9 +385,9 @@ if gadgetHandler:IsSyncedCode() then
 				checkForManualFire[unitID] = true
 			end
 			sendTargetsToUnsyncedBatched(unitID)
-			if not data.hasTarget and setTarget(unitID, data.targets[1]) then
+			if not data.activeTarget and setTarget(unitID, data.targets[1]) then
 				data.currentIndex = 1
-				data.hasTarget = true
+				data.activeTarget = true
 				SendToUnsynced("targetIndex", unitID, 1)
 			end
 		end
