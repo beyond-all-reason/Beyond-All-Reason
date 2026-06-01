@@ -72,6 +72,8 @@ local MAX_SNAPSHOT_VERTICES = 8000000
 local undoStack = {}
 local redoStack = {}
 local totalVertexCount = 0  -- track approximate memory usage
+local pendingUndoEntries = nil  -- queued undo entries applied one-per-frame in GameFrame
+local pendingUndoStrokeId = nil -- stroke id associated with pendingUndoEntries
 
 -- Active drag session: all pushSnapshot/pushSnapshotFromFlat calls merge into mergeSnapshot until
 -- MERGE_END is received (sent by widget on mouse release).  No time window — MERGE_END is authoritative.

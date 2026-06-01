@@ -432,7 +432,7 @@ function widget:Initialize()
 	end
 
 	if WG.TerraformerShared and WG.TerraformerShared.registerDocument then
-		WG.TerraformerShared.registerDocument("decal_placer", document)
+		WG.TerraformerShared.registerDocument("decal_placer", widgetState.document)
 	end
 
 	widgetState.document:ReloadStyleSheet()
