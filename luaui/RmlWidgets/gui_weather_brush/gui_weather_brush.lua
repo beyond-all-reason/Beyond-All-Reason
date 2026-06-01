@@ -75,6 +75,19 @@ function widget:OnFilterBlur()
 	Spring.SDLStopTextInput()
 end
 
+-- data-value="filter" only writes dm.filter AFTER the change event fires
+-- (RmlUi quirk), so read the input element's value directly here. Without
+-- this the per-frame poll of dm.filter never saw typed text, so the CEG
+-- browser search appeared to do nothing.
+function widget:OnFilterChange()
+	local doc = widgetState.document
+	local el = doc and doc:GetElementById("wb-ceg-filter")
+	local val = el and el:GetAttribute("value") or ""
+	if widgetState.dmHandle then
+		widgetState.dmHandle.filter = val
+	end
+end
+
 function widget:OnClearCegs()
 	if WG.WeatherBrush then WG.WeatherBrush.clearSelectedCegs() end
 	if widgetState.dmHandle then
@@ -190,8 +203,8 @@ local function attachEventListeners()
 	if not doc then return end
 
 	-- Drag handle
-	if WG.RmlContextManager and WG.RmlContextManager.attachDraggable then
-		widgetState.dragHandle = WG.RmlContextManager.attachDraggable(
+	if WG.TerraformerShared and WG.TerraformerShared.attachDraggable then
+		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(
 			doc, "wb-handle", widgetState.rootElement,
 			{ onDragStart = function() userDragged = true end }
 		)
@@ -221,8 +234,8 @@ function widget:Initialize()
 	widgetState.document = document
 	document:Show()
 
-	if WG.RmlContextManager and WG.RmlContextManager.registerDocument then
-		WG.RmlContextManager.registerDocument("weather_brush", document)
+	if WG.TerraformerShared and WG.TerraformerShared.registerDocument then
+		WG.TerraformerShared.registerDocument("weather_brush", document)
 	end
 
 	widgetState.rootElement = document:GetElementById("wb-root")
@@ -260,8 +273,8 @@ function widget:Update()
 	if not wbActive then return end
 
 	-- Align to the left of the main terraform panel (only if not user-dragged)
-	local mainPanel = WG.RmlContextManager and WG.RmlContextManager.getElementRect
-		and WG.RmlContextManager.getElementRect("terraform_brush", "tf-root")
+	local mainPanel = WG.TerraformerShared and WG.TerraformerShared.getElementRect
+		and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
 	if not userDragged and mainPanel and widgetState.rootElement then
 		local myWidth = widgetState.rootElement.offset_width
 		if myWidth and myWidth > 0 then
@@ -397,8 +410,8 @@ end
 function widget:Shutdown()
 	WG.WeatherBrushInputFocused = nil
 
-	if WG.RmlContextManager and WG.RmlContextManager.unregisterDocument then
-		WG.RmlContextManager.unregisterDocument("weather_brush")
+	if WG.TerraformerShared and WG.TerraformerShared.unregisterDocument then
+		WG.TerraformerShared.unregisterDocument("weather_brush")
 	end
 
 	if widgetState.document then

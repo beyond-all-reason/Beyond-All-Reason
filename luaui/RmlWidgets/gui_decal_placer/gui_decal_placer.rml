@@ -22,15 +22,15 @@
 				<div class="text-sm text-keybind"><span>{{selectedCount}}</span> selected</div>
 			</div>
 			<div class="fp-cat-row">
-				<div class="fp-cat-btn" data-class-active="activeCategory == 'all'"          data-event-click="onCategorySelect('all')"><span class="fp-cat-label">All</span></div>
-				<div class="fp-cat-btn" data-class-active="activeCategory == 'scars'"        data-event-click="onCategorySelect('scars')"><span class="fp-cat-label">Scars</span></div>
-				<div class="fp-cat-btn" data-class-active="activeCategory == 'explosions'"   data-event-click="onCategorySelect('explosions')"><span class="fp-cat-label">Explos.</span></div>
-				<div class="fp-cat-btn" data-class-active="activeCategory == 'tracks'"       data-event-click="onCategorySelect('tracks')"><span class="fp-cat-label">Tracks</span></div>
-				<div class="fp-cat-btn" data-class-active="activeCategory == 'builds'"       data-event-click="onCategorySelect('builds')"><span class="fp-cat-label">Builds</span></div>
-				<div class="fp-cat-btn" data-class-active="activeCategory == 'footprints'"   data-event-click="onCategorySelect('footprints')"><span class="fp-cat-label">Foot</span></div>
-				<div class="fp-cat-btn" data-class-active="activeCategory == 'scorch'"       data-event-click="onCategorySelect('scorch')"><span class="fp-cat-label">Scorch</span></div>
-				<div class="fp-cat-btn" data-class-active="activeCategory == 'groundplates'" data-event-click="onCategorySelect('groundplates')"><span class="fp-cat-label">Plates</span></div>
-				<div class="fp-cat-btn" data-class-active="activeCategory == 'other'"        data-event-click="onCategorySelect('other')"><span class="fp-cat-label">Other</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatAll"          data-event-click="onCategorySelect('all')"><span class="fp-cat-label">All</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatScars"        data-event-click="onCategorySelect('scars')"><span class="fp-cat-label">Scars</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatExplosions"   data-event-click="onCategorySelect('explosions')"><span class="fp-cat-label">Explos.</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatTracks"       data-event-click="onCategorySelect('tracks')"><span class="fp-cat-label">Tracks</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatBuilds"       data-event-click="onCategorySelect('builds')"><span class="fp-cat-label">Builds</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatFootprints"   data-event-click="onCategorySelect('footprints')"><span class="fp-cat-label">Foot</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatScorch"       data-event-click="onCategorySelect('scorch')"><span class="fp-cat-label">Scorch</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatGroundplates" data-event-click="onCategorySelect('groundplates')"><span class="fp-cat-label">Plates</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatOther"        data-event-click="onCategorySelect('other')"><span class="fp-cat-label">Other</span></div>
 			</div>
 		</div>
 		<div class="fp-section-frame">

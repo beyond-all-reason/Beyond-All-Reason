@@ -62,6 +62,8 @@ local sqrt  = math.sqrt
 local rad   = math.rad
 local atan2 = math.atan2
 
+local BrushShapes = VFS.Include("common/brush_shapes.lua")
+
 ----------------------------------------------------------------
 -- Light type defaults
 ----------------------------------------------------------------
@@ -267,19 +269,9 @@ end
 -- Utility: shape containment test
 ----------------------------------------------------------------
 local function isInsideShape(dx, dz, radius, shape, rotDeg)
-	if shape == "circle" then
-		return dx * dx + dz * dz <= radius * radius
-	end
-	-- Rotate point by -rotation to test in axis-aligned space
-	local rotRad = rad(-rotDeg)
-	local c, s = cos(rotRad), sin(rotRad)
-	local rx = dx * c - dz * s
-	local rz = dx * s + dz * c
-	if shape == "square" then
-		return math.abs(rx) <= radius and math.abs(rz) <= radius
-	end
-	-- Default to circle
-	return dx * dx + dz * dz <= radius * radius
+	-- Shared point-in-shape test (see common/brush_shapes.lua).
+	-- Light placer only exposes circle/square; angle arg = rotDeg.
+	return (BrushShapes.isInside(dx, dz, radius, shape, rotDeg))
 end
 
 ----------------------------------------------------------------
@@ -1045,15 +1037,31 @@ local function drawBrushCircle(worldX, worldZ)
 	-- Brush outline
 	if lp.mode == "scatter" or lp.mode == "remove" then
 		local r = lp.radius
-		glBeginEnd(GL_LINE_LOOP, function()
-			for i = 0, CIRCLE_SEGMENTS - 1 do
-				local angle = (i / CIRCLE_SEGMENTS) * 2 * pi
-				local px = worldX + cos(angle) * r
-				local pz = worldZ + sin(angle) * r
-				local py = GetGroundHeight(px, pz) or gy
-				glVertex(px, py + 2, pz)
-			end
-		end)
+		if lp.shape == "square" then
+			-- Axis-aligned square rotated by the brush rotation.
+			local rotRad = rad(lp.rotation or 0)
+			local c, s = cos(rotRad), sin(rotRad)
+			local corners = { { -r, -r }, { r, -r }, { r, r }, { -r, r } }
+			glBeginEnd(GL_LINE_LOOP, function()
+				for i = 1, #corners do
+					local lx, lz = corners[i][1], corners[i][2]
+					local px = worldX + lx * c - lz * s
+					local pz = worldZ + lx * s + lz * c
+					local py = GetGroundHeight(px, pz) or gy
+					glVertex(px, py + 2, pz)
+				end
+			end)
+		else
+			glBeginEnd(GL_LINE_LOOP, function()
+				for i = 0, CIRCLE_SEGMENTS - 1 do
+					local angle = (i / CIRCLE_SEGMENTS) * 2 * pi
+					local px = worldX + cos(angle) * r
+					local pz = worldZ + sin(angle) * r
+					local py = GetGroundHeight(px, pz) or gy
+					glVertex(px, py + 2, pz)
+				end
+			end)
+		end
 	end
 
 	-- Light radius indicator for point mode

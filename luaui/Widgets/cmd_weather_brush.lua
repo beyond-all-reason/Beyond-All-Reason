@@ -34,8 +34,9 @@ local min = math.min
 local cos = math.cos
 local sin = math.sin
 local pi = math.pi
-local sqrt = math.sqrt
 local random = math.random
+
+local BrushShapes = VFS.Include("common/brush_shapes.lua")
 
 local WG = WG
 
@@ -582,39 +583,8 @@ local function getCadenceInterval()
 end
 
 local function isInsideShape(px, pz, cx, cz, radius, shape, angleDeg, lengthScale)
-	lengthScale = lengthScale or 1.0
-	local dx = px - cx
-	local dz = pz - cz
-
-	if shape == "circle" then
-		-- Normalize into ellipse space: X uses radius, Z uses radius * lengthScale
-		local angleRad = -angleDeg * pi / 180
-		local rx = dx * cos(angleRad) - dz * sin(angleRad)
-		local rz = dx * sin(angleRad) + dz * cos(angleRad)
-		local radiusZ = radius * lengthScale
-		return (rx * rx) / (radius * radius) + (rz * rz) / (radiusZ * radiusZ) <= 1
-	end
-
-	-- Rotate point into shape-local coordinates
-	local angleRad = -angleDeg * pi / 180
-	local rx = dx * cos(angleRad) - dz * sin(angleRad)
-	local rz = dx * sin(angleRad) + dz * cos(angleRad)
-	local radiusZ = radius * lengthScale
-
-	if shape == "square" then
-		return math.abs(rx) <= radius and math.abs(rz) <= radiusZ
-	elseif shape == "hexagon" then
-		local ax = math.abs(rx)
-		local az = math.abs(rz) / lengthScale
-		return az <= radius and ax <= radius * 0.866 and (ax + az * 0.577) <= radius * 0.866
-	elseif shape == "octagon" then
-		local ax = math.abs(rx)
-		local az = math.abs(rz) / lengthScale
-		local cut = radius * 0.4142
-		return ax <= radius and az <= radius and (ax + az) <= (radius + cut)
-	end
-	local dist = sqrt(dx * dx + dz * dz)
-	return dist <= radius
+	-- Shared point-in-shape test (see common/brush_shapes.lua).
+	return (BrushShapes.isInside(px - cx, pz - cz, radius, shape, angleDeg, lengthScale))
 end
 
 local function getRandomPositionInShape(cx, cz, radius, shape, angleDeg, lengthScale)
@@ -925,10 +895,32 @@ local function setPersistenceSeconds(val)
 end
 
 -- CEG selection
+-- Some CEGs are extremely bright, near full-screen flashes (the commander
+-- death blast being the worst offender). Spraying them with the normal
+-- multi-spawn / fast-cadence / persistent defaults flashbangs the player.
+-- When such a CEG becomes the selection, clamp to a single, slow, one-shot
+-- spawn so the effect stays usable without blinding.
+local function cegFlashbangOverride(name)
+	if not name then return nil end
+	if name:upper():find("COMMANDER_EXPLOSION", 1, true) then
+		return { spawnCount = 1, cadence = 2, persistence = 0 }
+	end
+	return nil
+end
+
+local function applyCegFlashbangOverride(name)
+	local ov = cegFlashbangOverride(name)
+	if not ov then return end
+	setSpawnCount(ov.spawnCount)
+	setCadence(ov.cadence)
+	setPersistenceSeconds(ov.persistence)
+end
+
 local function selectCeg(name)
 	if not cegNameSet[name] then return end
 	wb.selectedCegs = { name }
 	wb.selectedCegSet = { [name] = true }
+	applyCegFlashbangOverride(name)
 end
 
 local function toggleCeg(name)
@@ -943,6 +935,7 @@ local function toggleCeg(name)
 	else
 		wb.selectedCegSet[name] = true
 		wb.selectedCegs[#wb.selectedCegs + 1] = name
+		applyCegFlashbangOverride(name)
 	end
 end
 

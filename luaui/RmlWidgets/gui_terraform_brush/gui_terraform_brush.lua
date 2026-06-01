@@ -7378,8 +7378,8 @@ function widget:Initialize()
 	widgetState.document = document
 	document:Show()
 
-	if WG.RmlContextManager and WG.RmlContextManager.registerDocument then
-		WG.RmlContextManager.registerDocument("terraform_brush", document)
+	if WG.TerraformerShared and WG.TerraformerShared.registerDocument then
+		WG.TerraformerShared.registerDocument("terraform_brush", document)
 	end
 
 	-- Load persisted UI prefs (disableTips, etc.)
@@ -7627,6 +7627,14 @@ function widget:DrawScreenPost()
 	local dm = widgetState.dmHandle
 	if not dm or dm.activeTool ~= "sp" then return end
 	if widgetState.lobbyHidden then return end
+
+	-- The Channel section can be collapsed independently of the tool being
+	-- active. Draw* call-ins don't auto-hide with the panel (the engine only
+	-- hides RmlUi layout, not our gl.* overlay), so when the section carries
+	-- the "hidden" class we must skip rendering or the preview PNGs leak on
+	-- screen after the section/menu is closed.
+	local secEl = widgetState.spChannelSectionEl
+	if secEl and secEl:IsClassSet("hidden") then return end
 
 	local els = widgetState.spPreviewEls
 
@@ -9350,8 +9358,8 @@ end
 function widget:Shutdown()
 	WG.TerraformBrushUI = nil
 
-	if WG.RmlContextManager and WG.RmlContextManager.unregisterDocument then
-		WG.RmlContextManager.unregisterDocument("terraform_brush")
+	if WG.TerraformerShared and WG.TerraformerShared.unregisterDocument then
+		WG.TerraformerShared.unregisterDocument("terraform_brush")
 	end
 
 	-- If a text input had focus when we shut down, SDL text-input mode is still

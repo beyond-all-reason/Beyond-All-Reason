@@ -47,7 +47,7 @@
 			<div class="wb-section-line"></div>
 		</div>
 		<div class="wb-search-wrapper mb-1" style="margin-top: 4dp;">
-			<input type="text" id="wb-ceg-filter" class="wb-filter-input" maxlength="40" data-value="filter" onfocus="widget:OnFilterFocus()" onblur="widget:OnFilterBlur()" />
+			<input type="text" id="wb-ceg-filter" class="wb-filter-input" maxlength="40" data-value="filter" onfocus="widget:OnFilterFocus()" onblur="widget:OnFilterBlur()" onchange="widget:OnFilterChange()" />
 			<div id="btn-wb-ceg-clear" class="wb-search-clear-btn" onclick="widget:OnClearCegs()"><img class="wb-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 		<div id="wb-ceg-list" class="wb-ceg-list mb-1">
