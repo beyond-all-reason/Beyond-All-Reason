@@ -352,9 +352,9 @@ if gadgetHandler:IsSyncedCode() then
 					currentIndex = 0,
 					hasTarget = false,
 				}
-			end
-			if not append then
+			elseif not append then
 				data.targets = {}
+				SendToUnsynced("targetList", unitID, 0)
 			end
 			local currentTargets = {}
 			for i, targetData in ipairs(data.targets) do
@@ -452,8 +452,9 @@ if gadgetHandler:IsSyncedCode() then
 		if not targetList[1] then
 			removeUnit(unitID)
 		elseif minIndex then
-			unitTargets[unitID].currentIndex = currentIndex
+			unitData.currentIndex = currentIndex
 			refreshSendList(unitID, unitData, minIndex)
+			SendToUnsynced("targetIndex", unitID, currentIndex)
 		end
 	end
 
