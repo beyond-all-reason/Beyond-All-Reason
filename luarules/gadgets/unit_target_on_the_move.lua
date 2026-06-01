@@ -911,9 +911,8 @@ else	-- UNSYNCED
 	local mySpec, fullview = spGetSpectatingState()
 
 	local lineWidth = 1.4
-	local lineWidthActiveTarget = 3.4
 	local queueColour = { 1, 0.75, 0, 0.3 }
-	local commandColour = { 1, 0.5, 0, 0.3 }
+	local commandColour = { 1, 0.5, 0, 0.62 }
 
 	local drawAllTargets = {}
 	local drawTarget = {}
@@ -1115,9 +1114,7 @@ else	-- UNSYNCED
 
 					if unitData.targetIndex ~= 0 then
 						glColor(commandColour)
-						glLineWidth(lineWidthActiveTarget)
 						glBeginEnd(GL_LINES, drawCurrentTarget, unitID, unitData)
-						glLineWidth(lineWidth)
 					end
 
 					glColor(queueColour)
