@@ -205,7 +205,13 @@ end
 
 function MouseMoved(x, y)
 	if x ~= LastCursorPosX or y ~= LastCursorPosY then
-		return true
+		local dx = x - (LastCursorPosX or x)
+		local dy = y - (LastCursorPosY or y)
+		local distanceSqr = dx * dx + dy * dy
+		if distanceSqr > 128*128  then -- adjust the threshold as needed
+			--LastCursorPosX, LastCursorPosY = x, y
+			return true
+		end
 	end
 	return false
 end
