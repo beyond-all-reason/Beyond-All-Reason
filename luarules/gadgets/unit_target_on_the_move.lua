@@ -970,7 +970,7 @@ else	-- UNSYNCED
 	end
 
 	local function getEventTargetList(unitID, index, remove)
-		if index == 0 then
+		if index == 0 and remove then
 			targetList[unitID] = nil
 			return
 		end
