@@ -82,6 +82,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local CMD_STOP = CMD.STOP
 	local CMD_DGUN = CMD.DGUN
+	local CMD_ATTACK = CMD.ATTACK
+	local CMD_WAIT = CMD.WAIT
 
 	local validUnits = {}
 	local unitWeapons = {}
@@ -228,12 +230,20 @@ if gadgetHandler:IsSyncedCode() then
 		return (isUnitTarget and spValidUnitID(target) and not AreUnitsAllied(unitID, target)) or (not isUnitTarget and target)
 	end
 
+	local function inAttackCommand(unitID)
+		local inCommand = spGetUnitCurrentCommand(unitID)
+		if inCommand == CMD_WAIT then
+			inCommand = spGetUnitCurrentCommand(unitID, 2)
+		end
+		return inCommand == CMD_ATTACK
+	end
+
 	local function setTarget(unitID, targetData)
 		local unitData = unitTargets[unitID]
 		local target = targetData.target
 
 		if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, target) then
-			if unitData.hasTarget and spGetUnitCurrentCommand(unitID) ~= CMD.ATTACK then
+			if unitData.hasTarget and not inAttackCommand(unitID) then
 				spSetUnitTarget(unitID, nil)
 			end
 			unitData.hasTarget = false
