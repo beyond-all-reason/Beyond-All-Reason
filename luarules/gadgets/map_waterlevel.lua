@@ -16,18 +16,12 @@ function gadget:GetInfo()
 	}
 end
 
+local PACKET_HEADER = "$wl$"
+local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
+
 if gadgetHandler:IsSyncedCode() then
 
 	local waterlevel = Spring.GetModOptions().map_waterlevel
-
-	local function isAuthorized(playerID)
-		if Spring.IsCheatingEnabled() then
-			return true
-		end
-		local _, _, _, _, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
-		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-		return _G.permissions and _G.permissions.waterlevel and _G.permissions.waterlevel[accountID] or false
-	end
 
 	function adjustFeatureHeight()
 		local featuretable = Spring.GetAllFeatures()
@@ -47,51 +41,25 @@ if gadgetHandler:IsSyncedCode() then
 		adjustFeatureHeight()
 	end
 
-	local function handleWaterlevel(_cmd, _line, words, playerID)
-		if not isAuthorized(playerID) then return end
-		local val = tonumber(words[1])
-		if not val then return end
-		waterlevel = val
-		adjustWaterlevel()
-		Spring.Echo('Changed waterlevel: ' .. waterlevel)
-	end
-
-	local function handleClampMinHeight(_cmd, _line, words, playerID)
-		if not isAuthorized(playerID) then return end
-		local minH = tonumber(words[1])
-		if not minH then return end
+	local function clampMapHeight(limit, clampMin)
 		Spring.SetHeightMapFunc(function()
 			local sq = Game.squareSize
 			for x = 0, Game.mapSizeX, sq do
 				for z = 0, Game.mapSizeZ, sq do
 					local h = Spring.GetGroundHeight(x, z)
-					if h < minH then
-						Spring.SetHeightMap(x, z, minH)
+					if clampMin then
+						if h < limit then
+							Spring.SetHeightMap(x, z, limit)
+						end
+					else
+						if h > limit then
+							Spring.SetHeightMap(x, z, limit)
+						end
 					end
 				end
 			end
 		end)
 		adjustFeatureHeight()
-		Spring.Echo('Clamped map min height to: ' .. minH)
-	end
-
-	local function handleClampMaxHeight(_cmd, _line, words, playerID)
-		if not isAuthorized(playerID) then return end
-		local maxH = tonumber(words[1])
-		if not maxH then return end
-		Spring.SetHeightMapFunc(function()
-			local sq = Game.squareSize
-			for x = 0, Game.mapSizeX, sq do
-				for z = 0, Game.mapSizeZ, sq do
-					local h = Spring.GetGroundHeight(x, z)
-					if h > maxH then
-						Spring.SetHeightMap(x, z, maxH)
-					end
-				end
-			end
-		end)
-		adjustFeatureHeight()
-		Spring.Echo('Clamped map max height to: ' .. maxH)
 	end
 
 	function gadget:Initialize()
@@ -111,16 +79,6 @@ if gadgetHandler:IsSyncedCode() then
 				adjustWaterlevel()
 			end
 		end
-
-		gadgetHandler:AddChatAction('waterlevel', handleWaterlevel)
-		gadgetHandler:AddChatAction('clampminheight', handleClampMinHeight)
-		gadgetHandler:AddChatAction('clampmaxheight', handleClampMaxHeight)
-	end
-
-	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction('waterlevel')
-		gadgetHandler:RemoveChatAction('clampminheight')
-		gadgetHandler:RemoveChatAction('clampmaxheight')
 	end
 
 	function gadget:GameFrame(gf)
@@ -133,5 +91,77 @@ if gadgetHandler:IsSyncedCode() then
 		if waterlevel ~= 0 then
 			adjustFeatureHeight()
 		end
+	end
+
+	function gadget:RecvLuaMsg(msg, playerID)
+		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+			return
+		end
+
+		local accountID = Spring.Utilities.GetAccountID(playerID)
+		local authorized = _G.permissions.waterlevel[accountID]
+
+		if not (authorized or Spring.IsCheatingEnabled()) then
+			return
+		end
+
+		local params = string.split(msg, ':')
+		local command = params[2]
+		local value = tonumber(params[3])
+		if not value then
+			return
+		end
+
+		if command == 'waterlevel' then
+			waterlevel = value
+			adjustWaterlevel()
+			Spring.Echo('Changed waterlevel: ' .. waterlevel)
+		elseif command == 'clampminheight' then
+			clampMapHeight(value, true)
+			Spring.Echo('Clamped map min height to: ' .. value)
+		elseif command == 'clampmaxheight' then
+			clampMapHeight(value, false)
+			Spring.Echo('Clamped map max height to: ' .. value)
+		end
+	end
+
+else  -- UNSYNCED
+
+	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
+	local function isAuthorized()
+		local acID = Spring.Utilities.GetAccountID(myPlayerID)
+		local perms = SYNCED.permissions.waterlevel
+		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
+	end
+
+	local function sendCommand(command, words, playerID)
+		if not words[1] then
+			return
+		end
+		if (isAuthorized() or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
+			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. command .. ':' .. words[1])
+		end
+	end
+
+	local function waterlevel(cmd, line, words, playerID)
+		sendCommand('waterlevel', words, playerID)
+	end
+	local function clampMinHeight(cmd, line, words, playerID)
+		sendCommand('clampminheight', words, playerID)
+	end
+	local function clampMaxHeight(cmd, line, words, playerID)
+		sendCommand('clampmaxheight', words, playerID)
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddChatAction('waterlevel', waterlevel)
+		gadgetHandler:AddChatAction('clampminheight', clampMinHeight)
+		gadgetHandler:AddChatAction('clampmaxheight', clampMaxHeight)
+	end
+	function gadget:Shutdown()
+		gadgetHandler:RemoveChatAction('waterlevel')
+		gadgetHandler:RemoveChatAction('clampminheight')
+		gadgetHandler:RemoveChatAction('clampmaxheight')
 	end
 end
