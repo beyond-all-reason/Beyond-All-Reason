@@ -65,7 +65,6 @@ local weaponCustomParamKeys = {} -- [effect] = { [key] = conversion function }
 local weaponDefEffect = {}
 
 local projectiles = {}
-local projectilesData = {}
 
 local gameFrame = 0
 
@@ -569,61 +568,54 @@ local function torpedoWaterPen(projectileID)
 	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
 	local targetType, targetID = spGetProjectileTarget(projectileID)
 
-	-- Slight downward bias to keep torpedoes visually submerged
-	-- This prevents terrain correction from forcing unstable surface skimming.
-	local diveSpeed = -0.08
+	-- Default behavior is neutral vertical correction.
+	-- Surface-target torpedoes should skim near water level rather than constantly diving.
+	local diveSpeed = 0
 	local smooth = 0.45
-
-	local closeToTarget = false
 
 	if targetType == targetedUnit and targetID then
 		local targetX, targetY, targetZ = spGetUnitPosition(targetID)
 		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
+		local closeToTarget = false
 
-		if targetX then
+		-- Use a simple squared-distance check to avoid sqrt in this per-projectile path.
+		-- Close torpedoes get stronger correction so they do not miss from over-smoothing.
+		if targetX and positionX then
 			local dx = targetX - positionX
 			local dy = targetY - positionY
 			local dz = targetZ - positionZ
-
-			local distSq = dx * dx + dy * dy + dz * dz
-
-			-- Approximate terminal-guidance distance.
-			-- Beyond this range, prioritize smoother travel visuals.
-			-- Within this range, prioritize tracking correction and interception reliability.
-			closeToTarget = distSq < (180 * 180)
+			closeToTarget = (dx * dx + dy * dy + dz * dz) < (180 * 180)
 		end
 
 		local _, unitDepth = spGetUnitPosition(targetID)
 
-		-- Ships sit near water level; subs sit deeper.
 		if unitDepth and unitDepth < -10 then
-			-- Preserve some downward motion for sub targets.
-			diveSpeed = velocityY / 4
+			-- Sub targets sit deeper, so keep at least a slight downward bias.
+			-- If the torpedo is already diving faster, damp that dive instead of forcing
+			-- a fixed hard descent. Never let an upward velocity become the desired dive.
+			diveSpeed = math.min(velocityY / 4, -0.08)
 
-			-- Slow horizontal movement slightly so torps do not overshoot.
-			velocityX, velocityZ = velocityX / 1.3, velocityZ / 1.3
-
-			-- Far away = prettier travel.
-			-- Close = prioritize hit reliability.
-			if closeToTarget then
-				smooth = 1.0
-			else
-				smooth = 0.45
-			end
+			-- Far from sub targets, smooth for nicer travel.
+			-- Near impact, allow immediate correction for reliability.
+			smooth = closeToTarget and 1.0 or 0.45
 		else
-			-- Surface targets:
-			-- keep near surface while remaining slightly submerged.
-			diveSpeed = -0.08
-
-			if closeToTarget then
-				smooth = 0.85
+			-- Surface targets sit near the waterline.
+			-- Aircraft torpedoes can enter with strong downward momentum, so give
+			-- deep torpedoes a small recovery bias back toward the surface.
+			local _, projectileY = spGetProjectilePosition(projectileID)
+			if projectileY and projectileY < -8 then
+				diveSpeed = 0.08
 			else
-				smooth = 0.60
+				diveSpeed = 0
 			end
+
+			-- Allow stronger correction near impact, but keep distant travel smoother.
+			smooth = closeToTarget and 0.85 or 0.45
 		end
 	end
 
-	-- Terrain correction
+	-- Terrain correction removes velocity into the seafloor normal, helping torpedoes
+	-- avoid driving straight into slopes while still preserving their forward motion.
 	local positionX, _, positionZ = spGetProjectilePosition(projectileID)
 	local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ, true)
 
@@ -633,14 +625,13 @@ local function torpedoWaterPen(projectileID)
 		velocityZ * normalZ
 	)
 
-	-- Do not allow terrain correction to force a harder dive
-	-- than intended behavior.
+	-- Do not let terrain correction demand a harder dive than the target behavior wants.
 	if terrainCorrectedY < diveSpeed then
 		terrainCorrectedY = diveSpeed
 	end
 
-	-- Apply smoothing.
-	-- 0.0 = no correction, 1.0 = instant correction.
+	-- Blend toward the corrected vertical speed.
+	-- 0.0 = no correction, 1.0 = immediate correction.
 	velocityY = velocityY + (terrainCorrectedY - velocityY) * smooth
 
 	spSetProjectileVelocity(projectileID, velocityX, velocityY, velocityZ)
@@ -649,10 +640,8 @@ end
 specialEffectFunction.torpwaterpen = function(projectileID)
 	if isProjectileInWater(projectileID) then
 		torpedoWaterPen(projectileID)
+		return true
 	end
-	-- Keep returning false so torpedoes remain tracked and water-penetration
-	-- correction continues every frame while the projectile exists.
-	return false
 end
 
 -- Water penetration with retargeting (torpedo)
@@ -733,7 +722,7 @@ end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
-	end
+end
 
 function gadget:GameFrame(frame)
 	gameFrame = frame
