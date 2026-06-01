@@ -209,9 +209,8 @@ function TransportAnimator.Load(passengerData, doAnim)
 	nil, 0, 0,
 	transporterPosX, transporterPosY, transporterPosZ,
 	transporterRotX, transporterRotY, transporterRotZ) -- snap slot to passenger position at start of load anim
-
 	SpUnitAttach(transporterID, passengerData.id, passengerData.slotID)
-
+	Spring.SetUnitPhysicalStateBit(passengerData.id, -64) -- nice, this seems to work fine to "remove" a PSTATE bit
 	local count = CargoHandler.Register(passengerData.id, passengerData, cargo)
 	if count == 1 then TransportAnimator.HasCargo(true) end
 
