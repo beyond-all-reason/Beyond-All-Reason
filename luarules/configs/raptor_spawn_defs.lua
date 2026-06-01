@@ -317,7 +317,7 @@ local optionValues = {
 		queenName                 = 'raptor_queen_veryeasy',
 		queenResistanceMult       = 0.5 * economyScale,
 		queenStagger			  = {
-			health = math.ceil(UnitDefNames["raptor_queen_veryeasy"].health*0.5),
+			health = math.ceil(UnitDefNames["raptor_queen_veryeasy"].health*0.33),
 			time = 40,
 		},
 	},
@@ -341,7 +341,7 @@ local optionValues = {
 		queenName                 = 'raptor_queen_easy',
 		queenResistanceMult       = 0.75 * economyScale,
 		queenStagger			  = {
-			health = math.ceil(UnitDefNames["raptor_queen_easy"].health*0.5),
+			health = math.ceil(UnitDefNames["raptor_queen_easy"].health*0.33),
 			time = 35,
 		},
 	},
@@ -364,7 +364,7 @@ local optionValues = {
 		queenName                 = 'raptor_queen_normal',
 		queenResistanceMult       = 1 * economyScale,
 		queenStagger			  = {
-			health = math.ceil(UnitDefNames["raptor_queen_normal"].health*0.5),
+			health = math.ceil(UnitDefNames["raptor_queen_normal"].health*0.33),
 			time = 30,
 		},
 	},
@@ -387,7 +387,7 @@ local optionValues = {
 		queenName                 = 'raptor_queen_hard',
 		queenResistanceMult       = 1.33 * economyScale,
 		queenStagger			  = {
-			health = math.ceil(UnitDefNames["raptor_queen_hard"].health*0.5),
+			health = math.ceil(UnitDefNames["raptor_queen_hard"].health*0.33),
 			time = 30,
 		},
 	},
@@ -410,7 +410,7 @@ local optionValues = {
 		queenName                 = 'raptor_queen_veryhard',
 		queenResistanceMult       = 1.67 * economyScale,
 		queenStagger			  = {
-			health = math.ceil(UnitDefNames["raptor_queen_veryhard"].health*0.5),
+			health = math.ceil(UnitDefNames["raptor_queen_veryhard"].health*0.33),
 			time = 30,
 		},
 	},
@@ -433,7 +433,7 @@ local optionValues = {
 		queenName                 = 'raptor_queen_epic',
 		queenResistanceMult       = 2 * economyScale,
 		queenStagger			  = {
-			health = math.ceil(UnitDefNames["raptor_queen_epic"].health*0.5),
+			health = math.ceil(UnitDefNames["raptor_queen_epic"].health*0.33),
 			time = 30,
 		},
 	},

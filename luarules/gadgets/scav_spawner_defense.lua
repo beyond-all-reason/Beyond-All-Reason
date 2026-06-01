@@ -1098,6 +1098,7 @@ if gadgetHandler:IsSyncedCode() then
 		if SetCount(bossIDs) > 0 then
 			
 			if bossStagger.currentlyStaggered == false then
+				
 				if bossStagger.CurrentHealth > 0 then
 					SetGameRulesParam("scavBossStaggerPercentage", math.ceil((bossStagger.CurrentHealth/bossStagger.Health)*100))
 					for bossID, _ in pairs(bossIDs) do

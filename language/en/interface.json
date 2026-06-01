@@ -676,8 +676,8 @@
 				"other" : "Queens are Staggered!"
 			},
 			"queenStaggerPercentage": {
-				"one"   : "Queen Stagger %{value}%%",
-				"other" : "Queens Stagger %{value}%%"
+				"one"   : "Queen Stagger: %{value}%%",
+				"other" : "Queens Stagger: %{value}%%"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
@@ -738,8 +738,8 @@
 				"other" : "Bosss are Staggered!"
 			},
 			"bossStaggerPercentage": {
-				"one"   : "Boss Stagger %{value}%%",
-				"other" : "Bosss Stagger %{value}%%"
+				"one"   : "Boss Stagger: %{value}%%",
+				"other" : "Bosss Stagger: %{value}%%"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",

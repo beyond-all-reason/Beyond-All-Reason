@@ -52,7 +52,7 @@ local difficultyParameters = {
 		bossName                = 'scavengerbossv4_veryeasy_scav',
 		bossResistanceMult      = 1 * economyScale,
 		bossStagger			  = {
-			health = math.ceil(UnitDefNames["scavengerbossv4_veryeasy_scav"].health*0.5),
+			health = math.ceil(UnitDefNames["scavengerbossv4_veryeasy_scav"].health*0.33),
 			time = 40,
 		},
 	},
@@ -76,7 +76,7 @@ local difficultyParameters = {
 		bossName                = 'scavengerbossv4_easy_scav',
 		bossResistanceMult      = 1.5 * economyScale,
 		bossStagger			  = {
-			health = math.ceil(UnitDefNames["scavengerbossv4_easy_scav"].health*0.5),
+			health = math.ceil(UnitDefNames["scavengerbossv4_easy_scav"].health*0.33),
 			time = 35,
 		},
 	},
@@ -99,7 +99,7 @@ local difficultyParameters = {
 		bossName                = 'scavengerbossv4_normal_scav',
 		bossResistanceMult      = 2 * economyScale,
 		bossStagger			  = {
-			health = math.ceil(UnitDefNames["scavengerbossv4_normal_scav"].health*0.5),
+			health = math.ceil(UnitDefNames["scavengerbossv4_normal_scav"].health*0.33),
 			time = 30,
 		},
 	},
@@ -122,7 +122,7 @@ local difficultyParameters = {
 		bossName                = 'scavengerbossv4_hard_scav',
 		bossResistanceMult      = 2.5 * economyScale,
 		bossStagger			  = {
-			health = math.ceil(UnitDefNames["scavengerbossv4_hard_scav"].health*0.5),
+			health = math.ceil(UnitDefNames["scavengerbossv4_hard_scav"].health*0.33),
 			time = 30,
 		},
 	},
@@ -145,7 +145,7 @@ local difficultyParameters = {
 		bossName                = 'scavengerbossv4_veryhard_scav',
 		bossResistanceMult      = 3 * economyScale,
 		bossStagger			  = {
-			health = math.ceil(UnitDefNames["scavengerbossv4_veryhard_scav"].health*0.5),
+			health = math.ceil(UnitDefNames["scavengerbossv4_veryhard_scav"].health*0.33),
 			time = 30,
 		},
 	},
@@ -168,7 +168,7 @@ local difficultyParameters = {
 		bossName                = 'scavengerbossv4_epic_scav',
 		bossResistanceMult      = 3.5 * economyScale,
 		bossStagger			  = {
-			health = math.ceil(UnitDefNames["scavengerbossv4_epic_scav"].health*0.5),
+			health = math.ceil(UnitDefNames["scavengerbossv4_epic_scav"].health*0.33),
 			time = 30,
 		},
 	},
