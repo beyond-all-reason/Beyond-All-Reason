@@ -253,8 +253,6 @@ end
 
 ------------------------------ Light and Shader configurations ------------------
 
-local enableProjectileLightFlares = false  -- set to true to show lens flare textures on projectile lights
-
 local unitDefLights
 local featureDefLights
 local unitEventLights -- Table of lights per unitDefID
@@ -378,12 +376,6 @@ local gameFrame = 0
 local trackedProjectiles = {} -- used for finding out which projectiles can be culled {projectileID = updateFrame, ...}
 local trackedProjectileTypes = {} -- we have to track the types [point, light, cone] of projectile lights for efficient updates
 local lastGameFrame = -2
-
-local isTorpedoLauncher = {}
-	for weaponDefID = 1, #WeaponDefs do
-		local weaponDef = WeaponDefs[weaponDefID]
-		isTorpedoLauncher[weaponDefID] = weaponDef.type == "TorpedoLauncher"
-	end
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -572,6 +564,7 @@ end
 ---AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
 ---Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
+---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex number if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
@@ -584,14 +577,7 @@ local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, 
 		autoLightInstanceID = autoLightInstanceID + 1
 		instanceID = autoLightInstanceID
 	end
-	-- Preserve spawnframe on push-updates so time-based animations (lifetime/sustain/colortime)
-	-- don't get reset every time a light is updated in-place.
-	local existingIndex = targetVBO.instanceIDtoIndex[instanceID]
-	if existingIndex then
-		lightparams[spawnFramePos] = targetVBO.instanceData[(existingIndex - 1) * targetVBO.instanceStep + spawnFramePos]
-	else
-		lightparams[spawnFramePos] = gameFrame
-	end
+	lightparams[spawnFramePos] = gameFrame -- this might be problematic, as we will be modifying a table
 	lightparams[pieceIndexPos] = pieceIndex or 0
 	--tracy.ZoneBeginN("pushElementInstance")
 	instanceID = pushElementInstance(targetVBO, lightparams, instanceID, true, noUpload, unitID)
@@ -611,8 +597,9 @@ local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, 
 end
 
 ---AddPointLight
----DEPRECATED Note that instanceID can be nil if an auto-generated one is OK.
+---DEPRECTATED Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
+---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
@@ -726,8 +713,9 @@ local function AddRandomDecayingPointLight()
 end
 
 ---AddBeamLight
----DEPRECATED Note that instanceID can be nil if an auto-generated one is OK.
+---DEPRECTATED Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
+---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
@@ -809,6 +797,7 @@ end
 ---AddConeLight
 ---DEPRECATED! Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
+---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
@@ -1066,9 +1055,6 @@ local function LoadLightConfig()
 		projectileDefLights = result2.projectileDefLights
 		for weaponID, lightTable in pairs(projectileDefLights) do
 			InitializeLight(lightTable)
-			if not enableProjectileLightFlares and lightTable.lightParamTable then
-				lightTable.lightParamTable[16] = 0  -- lensflare
-			end
 		end
 	else
 		spEcho("Failed to load GL4 weapon light config", success2, result2)
@@ -1180,6 +1166,7 @@ function widget:VisibleUnitRemoved(unitID) -- remove all the lights for this uni
 end
 
 function widget:Shutdown()
+	-- TODO: delete the VBOs and shaders like a good boy
 	WG['lightsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddPointLight')
 	widgetHandler:DeregisterGlobal('AddBeamLight')
@@ -1390,7 +1377,7 @@ end
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
 	local weapon, piece = Spring.GetProjectileType(projectileID)
-	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
+	local weaponDefID = weapon and Spring.GetProjectileDefID ( projectileID )
 	Spring.Debug.TraceFullEcho()
 end
 
@@ -1414,25 +1401,9 @@ local function updateProjectileLights(newgameframe)
 			local lightType = 'point' -- default
 			if trackedProjectiles[projectileID] then
 				if newgameframe then
-					-- update projectile light position, unless this is a torpedo that has breached above water
+					--update proj pos
 					lightType = trackedProjectileTypes[projectileID]
-
-					-- Torpedo GL4 light cleanup:
-					-- Torpedo lights are only meant to exist underwater. If a tracked torpedo
-					-- jumps or breaches above the waterline, remove its light and stop tracking it.
-					-- The existing add-light path can add the light again if it re-enters water.
-					local weaponDefID = spGetProjectileDefID(projectileID)
-					local weaponDef = weaponDefID and WeaponDefs[weaponDefID]
-
-					if weaponDef and weaponDef.type == "TorpedoLauncher" and py and py > 2 then
-						if lightType and projectileLightVBOMap[lightType]
-							and projectileLightVBOMap[lightType].instanceIDtoIndex[projectileID]
-						then
-							popElementInstance(projectileLightVBOMap[lightType], projectileID, noUpload)
-						end
-						trackedProjectiles[projectileID] = nil
-						trackedProjectileTypes[projectileID] = nil
-					elseif lightType ~= 'beam' then
+					if lightType ~= 'beam' then
 						local dx,dy,dz = spGetProjectileVelocity(projectileID)
 						local instanceIndex = updateLightPosition(projectileLightVBOMap[lightType],
 							projectileID, px,py,pz, nil, dx,dy,dz)
@@ -1454,24 +1425,20 @@ local function updateProjectileLights(newgameframe)
 				else
 					local weaponDefID = spGetProjectileDefID(projectileID)
 
-				-- Torpedo GL4 light delay:
-				-- Projectile lights are only considered after confirming this weaponDefID has one.
-				local projectileLight = projectileDefLights[weaponDefID]
-
-				if projectileLight then
+					-- Torpedo GL4 light delay:
 					-- TorpedoLauncher projectile lights should not appear while the projectile is still above water.
 					-- Do not track skipped torpedoes yet, so this block can try again after the projectile enters water.
-					if isTorpedoLauncher[weaponDefID] and (not py or py > 2) then
+					local weaponDef = weaponDefID and WeaponDefs[weaponDefID]
+					if weaponDef and weaponDef.type == "TorpedoLauncher" and (not py or py > 2) then
 						skipProjectileTracking = true
-					elseif projectileID % (projectileLight.fraction or 1) == 0 then
-						local lightParamTable = projectileLight.lightParamTable
-						lightType = projectileLight.lightType
+					elseif projectileDefLights[weaponDefID] and (projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0) then
+						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
+						lightType = projectileDefLights[weaponDefID].lightType
 
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz
-
-						if debugproj then spEcho(lightType, projectileLight.lightClassName) end
+						if debugproj then spEcho(lightType, projectileDefLights[weaponDefID].lightClassName) end
 
 						local dx, dy, dz = spGetProjectileVelocity(projectileID)
 
@@ -1480,7 +1447,7 @@ local function updateProjectileLights(newgameframe)
 							lightParamTable[6] = py + dy
 							lightParamTable[7] = pz + dz
 						else
-							-- For points and cones, velocity gives the pointing direction.
+							-- for points and cones, velocity gives the pointing dir, and for cones it gives the pos super well.
 							lightParamTable[5] = dx
 							lightParamTable[6] = dy
 							lightParamTable[7] = dz
