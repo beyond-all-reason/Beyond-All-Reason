@@ -258,7 +258,8 @@ function M.sync(doc, ctx, spState, setSummary)
 					dm.spHeightColormap = s.heightColormap and true or false
 					-- Splat Map overlay chip (own state from SplatPainter)
 					local sp = WG.SplatPainter
-					dm.spSplatOverlay = (sp and sp.getState and sp.getState().showSplatOverlay) and true or false
+					local spState = sp and sp.getState and sp.getState()
+					dm.spSplatOverlay = (spState and spState.showSplatOverlay) and true or false
 					-- Instruments sub-chip active states
 					dm.spMeasureShowLength = s.measureShowLength and true or false
 					dm.spSymMirrorX = s.symmetryMirrorX and true or false

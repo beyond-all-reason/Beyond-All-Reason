@@ -1079,7 +1079,6 @@ function widget:Initialize()
 		setTexExcludeColor    = setTexExcludeColor,
 		setPipetteMode        = setPipetteMode,
 		setPipetteExcludeMode = setPipetteExcludeMode,
-		saveGrassMap   = saveGrassMap,
 		undo           = grassUndo,
 		redo           = grassRedo,
 		undoToIndex    = grassUndoToIndex,
