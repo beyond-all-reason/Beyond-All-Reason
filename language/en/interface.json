@@ -1218,6 +1218,7 @@
 				"lineofsight": "Fog of war",
 				"losopacity": "opacity",
 				"fogdiaglines": "diagonal lines",
+				"fogdiaglines_blur": "diagonal lines blur",
 				"water": "Water quality",
 				"decals": "Unit tracks",
 				"decals_descr": "0 = Off\nNOTE: Changes might require a restart (if you turn it On/Off)",
