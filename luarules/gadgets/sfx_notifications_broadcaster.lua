@@ -55,9 +55,12 @@ GG["notifications"].queueNotification =  function(event, idtype, id, forceplay)
             end
         end
     else
-        local playerList = Spring.GetPlayerList()
-        for j = 1,#playerList do
-            playerIDs[#playerIDs+1] = playerList[j]
+        local teamList = Spring.GetTeamList()
+        for i = 1,#teamList do
+            local playerList = Spring.GetPlayerList(teamList[i])
+            for j = 1,#playerList do
+                playerIDs[#playerIDs+1] = playerList[j]
+            end
         end
     end
 

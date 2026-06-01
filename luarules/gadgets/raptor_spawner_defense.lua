@@ -958,7 +958,6 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				else
 					queenStagger.currentlyStaggered = true
-					GG["notifications"].queueNotification("Raptor_QueenGotStaggered")
 					queenStagger.CurrentTimer = queenStagger.Time + 0
 					SetGameRulesParam("raptorQueenStaggerPercentage", math.ceil((1 - (queenStagger.CurrentTimer/queenStagger.Time))*100))
 				end
@@ -973,7 +972,6 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				else
 					queenStagger.currentlyStaggered = false
-					GG["notifications"].queueNotification("Raptor_QueenNoLongerStaggered")
 					queenStagger.Time = queenStagger.Time + 5
 					queenStagger.CurrentTimer = queenStagger.Time + 0
 					queenStagger.Health = queenStagger.Health*1.1
