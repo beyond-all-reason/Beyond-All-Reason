@@ -41,6 +41,7 @@ local spGetUnitLosState = Spring.GetUnitLosState
 local spGetUnitTransporter = Spring.GetUnitTransporter
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spSetUnitMoveGoal = Spring.SetUnitMoveGoal
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
@@ -258,6 +259,9 @@ local function CanBeTransportedStatic(passengerID, passengerDefID, transporterID
 	if not spValidUnitID(passengerID) then
 		return false
 	end
+	if spGetUnitIsDead(passengerID) then
+		return false	
+	end
 	if passengerID == transporterID then
 		return false	
 	end
@@ -277,6 +281,9 @@ end
 local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID)  -- things that might have changed since CanBeTransportedStatic and should cancel queue (lightweight check for dynamic conditions))
 	if not spValidUnitID(passengerID) then
 		return false
+	end
+	if spGetUnitIsDead(passengerID) then
+		return false	
 	end
 	if spGetUnitTransporter(passengerID) ~= nil then
 		return false	
@@ -314,6 +321,9 @@ end
 local function CanBeAutoClaimed(passengerID, transporterAllyTeam) -- things that should only deny queueing if within area cmds
 	if not spValidUnitID(passengerID) then
 		return false
+	end
+	if spGetUnitIsDead(passengerID) then
+		return false	
 	end
 	return not claimedBy[transporterAllyTeam][passengerID]
 end
