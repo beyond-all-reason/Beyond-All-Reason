@@ -75,8 +75,8 @@ end
 -- initialise loadTime, CEG params, velocity damping ratios, easing curve, and beam pieces from setup
 function TransportAnimator.Init(setup)
 	loadTime       = tonumber(UnitDefs[unitDefID].customParams.loadtime)
-	cegScaleFactor = setup.cegScaleFactor
-	cegName        = setup.cegName
+	cegScaleFactor = tonumber(UnitDefs[unitDefID].customParams.transportcegscalefactor or 0.7) 
+	cegName        = UnitDefs[unitDefID].customParams.transportcegname or "tractorbeam"
 
 	local def    = UnitDefs[unitDefID]
 	local vmax   = def.speed/30 -- it's in elmos/sec, not per frame (unlike Spring.GetUnitVelocity)
