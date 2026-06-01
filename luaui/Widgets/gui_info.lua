@@ -2127,7 +2127,7 @@ function widget:MouseRelease(x, y, button)
 								end
 							end
 						end
-						Spring.GiveOrderToUnit(displayUnitID, CMD.UNLOAD_UNIT, {x,y,z,unitID}, {"shift"})
+						Spring.GiveOrderToUnit(displayUnitID, CMD.UNLOAD_UNIT, {x,y,z,unitID}, {""})
 						return -1
 					end
 				end
