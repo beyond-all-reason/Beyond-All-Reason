@@ -994,11 +994,15 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transp
 	end	
 	-- handle custom transports
 	if customTransportUnload[transporterDefID] then
-		if spGetUnitRulesParam(transporterID, "canUnload") == 0 then return false end
+		if spGetUnitRulesParam(transporterID, "canUnload") == 0 then 
+			spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- just override the engine given movegoal so it does not slowly descend.
+			return false
+		end
 		local targets = TransportAPI.GetUnloadTargets(transporterID, passengerID)
 		for _, passengerID in ipairs(targets) do
 			customTransportUnload[transporterDefID](transporterID, 'PerformUnload', passengerID, goalX, goalY, goalZ)
 		end
+		spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- just override the engine given movegoal so it does not slowly descend.
 		spUnitFinishCommand(transporterID) -- consume the command so the transporter proceeds to the next
 		return false
 	end
