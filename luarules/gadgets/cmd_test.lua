@@ -1,6 +1,8 @@
 -- Temporary gadget to test if zoom level can be used to determine whether to
 -- use formation click drag (zoomed out) or area guard (zoomed in). If this works well, 
 -- we can expand this to other commands like repair area.
+local ZOOM_LEVEL_SWITCH = 2000
+
 
 local function tableToString(tbl, indent)
     if type(tbl) ~= "table" then return tostring(tbl) end
@@ -39,6 +41,7 @@ end
 --------------------------------
 local CMD_AREA_GUARD = GameCMD.AREA_GUARD
 local CMD_GUARD = CMD.GUARD
+local CMD_MOVE = CMD.MOVE
 
 local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -147,23 +150,16 @@ else
 		spSetCustomCommandDrawData(CMD_AREA_GUARD, "Guard", { 136/255, 251/255, 255, 0.7 }, true)
 	end
 
-    local last = false
 	function gadget:DefaultCommand(type, id, defaultCmd)
-        -- get the current zoom level
-        local cam = spGetCameraState()
-		if defaultCmd == CMD_GUARD and cam.dist < 3500 then
-            if last ~= true then
-                Spring.Echo("DefaultCommand: Replacing GUARD with AREA_GUARD due to zoom level", cam.dist)
-            end
-            last = true
-			return CMD_AREA_GUARD
+		if defaultCmd ~= CMD_GUARD then
+			return nil
 		end
 
-        if last ~= false then
-            Spring.Echo("DefaultCommand: Reverting to GUARD due to zoom level", cam.dist)
-        end
-        last = false
-    
-        return nil
+        -- Only remap GUARD based on current zoom level.
+        local cam = spGetCameraState()
+		if cam and cam.dist and cam.dist < ZOOM_LEVEL_SWITCH then
+			return CMD_AREA_GUARD
+		end
+		return CMD_MOVE
 	end
 end
