@@ -27,7 +27,7 @@ local rangeLineWidth = 4.5 -- (note: will end up larger for larger vertical scre
 local lineScale = 1 -- this is a multiplier for the line width, to make it look better on high res screens
 
 local circleSegments = 126 -- To ensure its only 2 warps per instance
-local rangecorrectionelmos = debugmode and -16 or 16 -- how much smaller they are drawn than truth due to LOS mipping
+local rangecorrectionelmos = debugmode and -16 or 16 -- visually align dotted line with fog-of-war radar edge (sharpened in shaders/GLSL/infoLOS.lua)
 --------- End configurables ------
 
 local minRadarDistance = 500
@@ -192,7 +192,7 @@ local unitList = {} -- all ally units and their coordinates and radar ranges
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.radarDistance and unitDef.radarDistance > minRadarDistance then	-- save perf by excluding low radar range units
-		unitRange[unitDefID] = unitDef.radarDistance
+		unitRange[unitDefID] = unitDef.radarDistance - rangecorrectionelmos
 	end
 end
 

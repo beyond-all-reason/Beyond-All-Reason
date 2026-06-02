@@ -915,6 +915,22 @@ void main(void){
 		metalness = 0.1;
 	}
 
+	#ifdef TREE_RANDOMIZATION
+	// Charring effect for burning felled trees. The tree-feller gadget drives a
+	// felled, burning tree's health fraction down (via Spring.SetFeatureHealth)
+	// while it burns, so healthFraction goes 1 -> ~0. A full-health tree has
+	// charAmount 0 and is completely unaffected. As it chars, the bark darkens
+	// toward near-black charcoal. Charred wood is also forced matte/non-metallic.
+	{
+		float charAmount = clamp(1.0 - aoterm_fogFactor_selfIllumMod_healthFraction.w, 0.0, 1.0);
+		if (charAmount > 0.002) {
+			albedoColor = mix(albedoColor, vec3(0.018, 0.015, 0.013), charAmount);
+			roughness = max(roughness, mix(roughness, 0.9, charAmount));
+			metalness = min(metalness, mix(metalness, 0.0, charAmount));
+		}
+	}
+	#endif
+
 	//roughness = SNORM2NORM( sin(simFrame * 0.25) );
 	//roughness = 0.5;
 

@@ -519,11 +519,11 @@ function widget:ViewResize()
 end
 
 local function createComnameIconList(unitID, attributes)
-	if comnameIconList[attributes[1]] ~= nil then
+	if comnameIconList[unitID] ~= nil then
 		-- Don't recreate if it already exists unless forced
 		return
 	end
-	comnameIconList[attributes[1]] = glCreateList(function()
+	comnameIconList[unitID] = glCreateList(function()
 		local x, y, z = spGetUnitPosition(unitID)
 		if x and y and z then
 			x, z = spWorldToScreenCoords(x, y, z)
@@ -615,7 +615,7 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so nametags rende
 	if next(drawScreenUnits) then
 		for unitID, attributes in pairs(drawScreenUnits) do
 			-- Only create the display list if it doesn't exist or has changed
-			if not comnameIconList[attributes[1]] then
+			if not comnameIconList[unitID] then
 				createComnameIconList(unitID, attributes)
 			end
 
@@ -642,7 +642,7 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so nametags rende
 				glPushMatrix()
 				glTranslate(x, z, 0)
 				glScale(finalScale, finalScale, finalScale)
-				glCallList(comnameIconList[attributes[1]])
+				glCallList(comnameIconList[unitID])
 				glPopMatrix()
 			end
 		end
@@ -771,6 +771,10 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	comms[unitID] = nil
+	if comnameIconList[unitID] then
+		glDeleteList(comnameIconList[unitID])
+		comnameIconList[unitID] = nil
+	end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)

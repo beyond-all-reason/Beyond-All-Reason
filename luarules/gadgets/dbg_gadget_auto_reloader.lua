@@ -97,6 +97,8 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
+	local updateQueue = {}
+
 	function gadget:Initialize()
 		CacheGadgets()
 	end
@@ -110,6 +112,15 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			pendingReHook = {}
 		end
+
+		local numGadgets = 15
+		while numGadgets > 0 and next(updateQueue) do
+			local gadgetName, fileName = next(updateQueue)
+			CheckForChanges(gadgetName, fileName, "synced")
+			updateQueue[gadgetName] = nil
+			numGadgets = numGadgets - 1
+		end
+
 		if frame - lastCheckFrame < 30 then
 			return
 		end
@@ -121,8 +132,9 @@ if gadgetHandler:IsSyncedCode() then
 		if frame - lastFullScanFrame >= 90 then
 			lastFullScanFrame = frame
 			CacheGadgets()
+			updateQueue = {}
 			for gadgetName, fileName in pairs(gadgetFileNames) do
-				CheckForChanges(gadgetName, fileName, "synced")
+				updateQueue[gadgetName] = fileName
 			end
 		end
 	end
@@ -137,6 +149,7 @@ else
 	end
 
 	local timeSinceCheck = 0
+	local updateQueue = {}
 	function gadget:Update(dt)
 		if next(pendingReHook) then
 			for name in pairs(pendingReHook) do
@@ -144,6 +157,17 @@ else
 			end
 			pendingReHook = {}
 		end
+
+		if next(updateQueue) then
+			local startTime = Spring.GetTimer()
+			-- 3 ms budget per frame
+			while next(updateQueue) and (Spring.DiffTimers(Spring.GetTimer(), startTime, true) < 3.0) do
+				local gadgetName, fileName = next(updateQueue)
+				CheckForChanges(gadgetName, fileName, "unsynced")
+				updateQueue[gadgetName] = nil
+			end
+		end
+
 		timeSinceCheck = timeSinceCheck + dt
 		if timeSinceCheck < 1 then
 			return
@@ -155,8 +179,9 @@ else
 
 		if not mouseOffscreen and prevMouseOffscreen then
 			CacheGadgets()
+			updateQueue = {}
 			for gadgetName, fileName in pairs(gadgetFileNames) do
-				CheckForChanges(gadgetName, fileName, "unsynced")
+				updateQueue[gadgetName] = fileName
 			end
 		else
 			for name, fileName in pairs(failedGadgets) do

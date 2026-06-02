@@ -5,6 +5,7 @@ return {
 		buildpic = "LEGAMPH.DDS",
 		buildtime = 16980,
 		canmove = true,
+		cantbetransported = true,
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "32 35 48",
 		collisionvolumetype = "Box",

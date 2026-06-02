@@ -2443,12 +2443,6 @@ local debugCircle = {
   },
 }
 
--- apparently math.round doesnt exist here yet
-if not math.round then
-	function math.round(num, idp)
-		return ("%." .. (((num == 0) and 0) or idp or 0) .. "f"):format(num)
-	end
-end
 local function count(radius)
   return math.round(2 + (radius - 75) / 84)
 end
