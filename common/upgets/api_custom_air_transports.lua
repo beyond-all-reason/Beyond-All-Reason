@@ -31,6 +31,19 @@ local spGetUnitRotation = Spring.GetUnitRotation
 local cachedCos, cachedSin = {}, {}
 local unloadPad = {}
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
+
+-- Maps transporterSeats (1-16) to unloadpad footprint size.
+-- Derived from universalPadGenerator.py: pad = (max(beam_footprint_w, beam_footprint_h) + 32) / 16
+local seatsToPadSize = {
+	[1]  = 4,
+	[2]  = 6,  [3]  = 6,  [4]  = 6,
+	[5]  = 8,  [6]  = 8,  [7]  = 8,
+	[8]  = 10, [9]  = 10, [10] = 10, [11] = 10, [12] = 10,
+	[13] = 12,
+	[14] = 10,
+	[15] = 12,
+	[16] = 10,
+}
 local spValidUnitID = Spring.ValidUnitID
 
 local function cachedCosSin(angle)
@@ -219,16 +232,13 @@ function TransportAPI.GetUnloadPadType(transporterID, passengerID)
 	local passengers = passengerID and {passengerID} or Spring.GetUnitIsTransporting(transporterID)
 	local suffix = TransportAPI.HasAmphibCargo(passengers) and "_amphib" or ""
 	Spring.Echo(suffix)
-	local padString = "unloadsize"..tostring(transporterSeats)..suffix
+	local padSize = seatsToPadSize[transporterSeats] or 10
+	local padString = "unloadsize"..tostring(padSize)..suffix
 	if UnitDefNames[padString] then
 		return UnitDefNames[padString].id
 	end
-	-- suffix variant not defined: fall back to land pad of the same size, then to unloadsize8
-	local padStringNoSuffix = "unloadsize"..tostring(transporterSeats)
-	if UnitDefNames[padStringNoSuffix] then
-		return UnitDefNames[padStringNoSuffix].id
-	end
-	return UnitDefNames["unloadsize8"].id
+	-- suffix variant not defined: fall back to land pad of the same size
+	return UnitDefNames["unloadsize"..tostring(padSize)].id
 end
 
 function TransportAPI.GetBiggestUnloadPadType(units)
@@ -256,15 +266,13 @@ function TransportAPI.GetBiggestUnloadPadType(units)
 		end
 	end
 	local suffix = TransportAPI.HasAmphibCargo(allPassengers) and "_amphib" or ""
-	local padString = "unloadsize"..tostring(transporterSeats)..suffix
+	local padSize = seatsToPadSize[transporterSeats] or 10
+	local padString = "unloadsize"..tostring(padSize)..suffix
 	if UnitDefNames[padString] then
 		return UnitDefNames[padString].id
 	end
-	local padStringNoSuffix = "unloadsize"..tostring(transporterSeats)
-	if UnitDefNames[padStringNoSuffix] then
-		return UnitDefNames[padStringNoSuffix].id
-	end
-	return UnitDefNames["unloadsize8"].id
+	-- suffix variant not defined: fall back to land pad of the same size
+	return UnitDefNames["unloadsize"..tostring(padSize)].id
 end
 
 

@@ -124,6 +124,16 @@ local unloadsize1 = {
 	unloadsize8.footprintz = 8
 	unloadsize8.yardmap = "oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo"
 	unloadsize8.objectname = "units/transportpads/unloadsize8.s3o"
+	local unloadsize10 = deepcopy(unloadsize1)
+	unloadsize10.footprintx = 10
+	unloadsize10.footprintz = 10
+	unloadsize10.yardmap = "oooooooooo oooooooooo oooooooooo oooooooooo oooooooooo oooooooooo oooooooooo oooooooooo oooooooooo oooooooooo"
+	unloadsize10.objectname = "units/transportpads/unloadsize10.s3o"
+	local unloadsize12 = deepcopy(unloadsize1)
+	unloadsize12.footprintx = 12
+	unloadsize12.footprintz = 12
+	unloadsize12.yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo"
+	unloadsize12.objectname = "units/transportpads/unloadsize12.s3o"
 
 -- amphib variants: float on water surface (hover and amphib units are dropped at y=0 and sink/float naturally)
 local unloadsize1_amphib = deepcopy(unloadsize1)
@@ -141,6 +151,12 @@ unloadsize6_amphib.floater = true
 local unloadsize8_amphib = deepcopy(unloadsize8)
 unloadsize8_amphib.maxwaterdepth = 10000
 unloadsize8_amphib.floater = true
+local unloadsize10_amphib = deepcopy(unloadsize10)
+unloadsize10_amphib.maxwaterdepth = 10000
+unloadsize10_amphib.floater = true
+local unloadsize12_amphib = deepcopy(unloadsize12)
+unloadsize12_amphib.maxwaterdepth = 10000
+unloadsize12_amphib.floater = true
 
 return {
 	unloadsize1 = unloadsize1,
@@ -148,10 +164,14 @@ return {
 	unloadsize4 = unloadsize4,
 	unloadsize6 = unloadsize6,
 	unloadsize8 = unloadsize8,
+	unloadsize10 = unloadsize10,
+	unloadsize12 = unloadsize12,
 	unloadsize1_amphib = unloadsize1_amphib,
 	unloadsize2_amphib = unloadsize2_amphib,
 	unloadsize4_amphib = unloadsize4_amphib,
 	unloadsize6_amphib = unloadsize6_amphib,
 	unloadsize8_amphib = unloadsize8_amphib,
+	unloadsize10_amphib = unloadsize10_amphib,
+	unloadsize12_amphib = unloadsize12_amphib,
 }
 
