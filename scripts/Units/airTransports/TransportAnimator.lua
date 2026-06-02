@@ -182,6 +182,7 @@ function TransportAnimator.Load(passengerData, doAnim)
 
 	local passengerPosX, passengerPosY, passengerPosZ = SpGetUnitPosition(passengerData.id)
 	local passengerRotX, passengerRotY, passengerRotZ = SpGetUnitRotation(passengerData.id)
+	Spring.SetUnitPhysicalStateBit(passengerData.id, -64) -- still needed for units to "fall" in water when landed
 	callUnitScript(passengerData.id, "StopMoving")
 
 	-- slot stays at rest position throughout; passenger moves up to meet it
