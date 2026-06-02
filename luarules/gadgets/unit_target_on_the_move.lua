@@ -13,7 +13,7 @@ function gadget:GetInfo()
 end
 
 local deleteMaxDistance = 30
-local targetListLengthMax = 200
+local targetListLengthMax = 128
 
 local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
