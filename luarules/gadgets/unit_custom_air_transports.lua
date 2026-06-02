@@ -208,16 +208,8 @@ local function BuggerOff(x, y, z, padDefID, transporterID) -- prolly needs to fi
 	end
 end
 
-function EnablePassenger(passengerID)
-	local passengerDefID = spGetUnitDefID(passengerID)
-	local defs = UnitDefs[passengerDefID]
-	if defs.buildSpeed > 0 then
-		local buildRange = defs.buildDistance
-		Spring.SetUnitBuildParams(passengerID, "buildRange", buildRange)
-	end
-	if defs.weapons and #defs.weapons > 0 then
-		Spring.SetUnitUseWeapons(passengerID, false, true)
-	end
+local function EnablePassenger(passengerID)
+	TransportAPI.EnablePassenger(passengerID)
 end
 
 -------------------------
@@ -294,8 +286,11 @@ local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPos
 	if isUnderwater(passengerID, passengerPosY) then
 		return false
 	end
-	if spGetUnitRulesParam(passengerID, "inTransportAnim") == 1 then
-		return false	
+	if spGetUnitRulesParam(passengerID, "inUnloadAnim") == 1 then
+		return false
+	end
+	if (spGetUnitRulesParam(passengerID, "inLoadAnim") or 0) > 0 then
+		return false
 	end
 	local allied = spAreTeamsAllied(passengerTeamID, transporterTeamID)
 	if allied then
@@ -739,17 +734,22 @@ function gadget:Initialize()
 	if #AllUnits > 0 then
 		for i = 1, #AllUnits do -- save/load compat
 			local unitID = AllUnits[i]
-			if spGetUnitRulesParam(unitID, "inTransportAnim") == 1 then
-				spEcho("Repairing unit " .. unitID .. " stuck in transport anim on gadget initialization")
-				-- this unit was in the middle of an unload anim, we need to "repair" it by releasing MoveCtrl and clip it to ground level (not fall, otherwise fall damages !!)
+			if spGetUnitRulesParam(unitID, "inUnloadAnim") == 1 then
+				spEcho("Repairing unit " .. unitID .. " stuck in unload anim on gadget initialization")
+				-- unit was mid-unload: release MoveCtrl, re-enable abilities, snap to ground
 				spMoveCtrlDisable(unitID, false)
-				spSetUnitRulesParam(unitID, "inTransportAnim", 0)
+				spSetUnitRulesParam(unitID, "inUnloadAnim", 0)
 				EnablePassenger(unitID)
-				-- repair customized radius from model defs
 				local unitDefID = spGetUnitDefID(unitID)
-				local radius = UnitDefs[unitDefID].radius
-				local height = UnitDefs[unitDefID].height
-				spSetUnitRadiusAndHeight(unitID, radius, height)
+				spSetUnitRadiusAndHeight(unitID, UnitDefs[unitDefID].radius, UnitDefs[unitDefID].height)
+				local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
+				spSetUnitPosition(unitID, unitPosX, spGetGroundHeight(unitPosX, unitPosZ), unitPosZ)
+			end
+			if (spGetUnitRulesParam(unitID, "inLoadAnim") or 0) > 0 then
+				spEcho("Repairing unit " .. unitID .. " stuck in load anim on gadget initialization")
+				-- unit was mid-load (not yet attached): release MoveCtrl and snap to ground
+				spMoveCtrlDisable(unitID, false)
+				spSetUnitRulesParam(unitID, "inLoadAnim", 0)
 				local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
 				spSetUnitPosition(unitID, unitPosX, spGetGroundHeight(unitPosX, unitPosZ), unitPosZ)
 			end
@@ -981,6 +981,10 @@ end
 
 -- still recquired for defaultCommand to work
 function gadget:AllowUnitTransport(transporterID, transporterDefID, transporterTeamID, passengerID, passengerDefID, passengerTeamID)
+	-- allow the attach that our own Load animation initiates
+	if spGetUnitRulesParam(passengerID, "inLoadAnim") == transporterID then
+		return true
+	end
 	--use our helper CanTransport
 	--I separated both to avoid FindUnitToTransport calling gadget:AllowUnitTransportLoad with an additional arg
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)

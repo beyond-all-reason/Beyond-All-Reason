@@ -86,12 +86,13 @@ local CARGO_KILL_WEAPON_ID    = -6 -- -CSolidObject::DAMAGE_EXTSOURCE_KILLED; sk
 -- the matching severity tier, returning the wreck level (or 1 as fallback)
 function GenericAnimator.Killed(severity)
 	for passengerID, passengerData in pairs(cargo.passengers) do
-		SpMoveCtrl.Disable(passengerID)
+		SpMoveCtrl.Disable(passengerID) -- safe to call on attached passengers too
 		if SpValidUnitID(passengerID) and not SpGetUnitIsDead(passengerID) then
-			Spring.SetUnitRulesParam(passengerID, "inTransportAnim", 0) -- release from unloading state for later loading
-			TransportAnimator.EnablePassenger(passengerID) -- re-enable passenger
-			SpSetUnitRadiusAndHeight(passengerID, passengerData.radius, passengerData.height) -- reset radius/height in case we were transporting a building with custom values
-			Spring.SetUnitPhysicalStateBit(passengerID, 128 + 512)  -- PSTATE_BIT_FLYING | PSTATE_BIT_SKIDDING (matches engine Releasepassengers releaseHeld path)
+			Spring.SetUnitRulesParam(passengerID, "inLoadAnim", 0)
+			Spring.SetUnitRulesParam(passengerID, "inUnloadAnim", 0)
+			TransportAPI.EnablePassenger(passengerID) -- re-enable if mid-unload (no-op if mid-load, abilities were never disabled)
+			SpSetUnitRadiusAndHeight(passengerID, passengerData.radius, passengerData.height)
+			Spring.SetUnitPhysicalStateBit(passengerID, 128 + 512)  -- PSTATE_BIT_FLYING | PSTATE_BIT_SKIDDING (matches engine ReleasePassengers releaseHeld path)
 		end
 
 		local passengerDefID = Spring.GetUnitDefID(passengerID)

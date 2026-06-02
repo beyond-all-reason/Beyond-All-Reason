@@ -319,6 +319,26 @@ function TransportAPI.IsPassengerCommander(passengerID)
 	return isCommander
 end
 
+function TransportAPI.EnablePassenger(passengerID)
+	local defs = UnitDefs[Spring.GetUnitDefID(passengerID)]
+	if defs.buildSpeed > 0 then
+		Spring.SetUnitBuildParams(passengerID, "buildRange", defs.buildDistance)
+	end
+	if defs.weapons and #defs.weapons > 0 then
+		Spring.SetUnitUseWeapons(passengerID, false, true)
+	end
+end
+
+function TransportAPI.DisablePassenger(passengerID)
+	local defs = UnitDefs[Spring.GetUnitDefID(passengerID)]
+	if defs.buildSpeed > 0 then
+		Spring.SetUnitBuildParams(passengerID, "buildRange", 0)
+	end
+	if defs.weapons and #defs.weapons > 0 then
+		Spring.SetUnitUseWeapons(passengerID, false, false)
+	end
+end
+
 function TransportAPI.CalculateTransporterSpeed(cargo)
 	local transporterSpeedModMode = cargo.transporterSpeedModMode or 0
 	if transporterSpeedModMode == 1 then
