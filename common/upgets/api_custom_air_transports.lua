@@ -141,7 +141,7 @@ end
 
 -- Inspects the transporter's command queue to detect area-unload orders.
 -- Returns all currently loaded passengers for area-unload, or {passengerID} for single-unload.
-function TransportAPI.GetUnloadTargets(transporterID, passengerID)
+function TransportAPI.GetUnloadTargets(transporterID, passengerID, goalX, goalY, goalZ)
 	local Q = Spring.GetUnitCommands(transporterID, 2) -- we only need the first two
 	local isAreaUnload = Q and Q[1] and (
 		Q[1].id == CMD.UNLOAD_UNITS or
@@ -154,8 +154,29 @@ function TransportAPI.GetUnloadTargets(transporterID, passengerID)
 		)
 	)
 	if isAreaUnload then
-		return Spring.GetUnitIsTransporting(transporterID)
+		-- multi passengers, filter per unit
+		local units = Spring.GetUnitIsTransporting(transporterID)
+		local writeIndex = 1
+		local passengerIDs = {}
+		local gy = Spring.GetGroundHeight(goalX, goalZ)
+		for idx = 1, #units do
+			local uID = units[idx]
+			if TransportAPI.HasAmphibCargo({uID}) then
+				-- hover and amphib units are dropped at water surface (y=0); they float or sink naturally
+				passengerIDs[writeIndex] = uID
+				writeIndex = writeIndex + 1
+			else
+				-- land unit: skip if the ground is below water and the unit would be submerged
+				local uHeight = Spring.GetUnitHeight(uID)
+				if uHeight + gy > 0 then
+					passengerIDs[writeIndex] = uID
+					writeIndex = writeIndex + 1
+				end
+			end
+		end
+		return passengerIDs
 	end
+	-- only one passenger, no filter needed
 	return { passengerID }
 end
 
@@ -187,51 +208,63 @@ function TransportAPI.GetPassengerSize(unitID) -- minimal perf improvement: cach
 	return cachedUnitSizes[udefID]
 end
 
-function TransportAPI.GetUnloadPadType(transporterID)
-	local transporterDefID = Spring.GetUnitDefID(transporterID)
-	if unloadPad[transporterDefID] then
-		return unloadPad[transporterDefID]
-	end
+-- passengerID is optional: when provided, pad type is based solely on that unit (for single-unload cmds).
+-- When nil, all currently loaded passengers are checked (for area unloads).
+function TransportAPI.GetUnloadPadType(transporterID, passengerID)
 	local transporterSeats = Spring.GetUnitRulesParam(transporterID, "transporterSeats")
 	if not transporterSeats then
 		Spring.Echo("Error, GetUnloadPadType expects a valid transporter ID as 1st arg, transporterID "..transporterID.." does not point to a valid transporter ID")
 		return nil
 	end
-	local padString = "unloadsize"..tostring(transporterSeats)
+	local passengers = passengerID and {passengerID} or Spring.GetUnitIsTransporting(transporterID)
+	local suffix = TransportAPI.HasAmphibCargo(passengers) and "_amphib" or ""
+	Spring.Echo(suffix)
+	local padString = "unloadsize"..tostring(transporterSeats)..suffix
 	if UnitDefNames[padString] then
-		unloadPad[transporterDefID] = UnitDefNames[padString].id
-	else
-		unloadPad[transporterDefID] = UnitDefNames["unloadsize8"].id -- fall back
+		return UnitDefNames[padString].id
 	end
-	return unloadPad[transporterDefID]
+	-- suffix variant not defined: fall back to land pad of the same size, then to unloadsize8
+	local padStringNoSuffix = "unloadsize"..tostring(transporterSeats)
+	if UnitDefNames[padStringNoSuffix] then
+		return UnitDefNames[padStringNoSuffix].id
+	end
+	return UnitDefNames["unloadsize8"].id
 end
 
 function TransportAPI.GetBiggestUnloadPadType(units)
+	if not units or #units == 0 then return nil end
+	-- find the largest seat count across all transporters in the selection
 	local transporterSeats = 0
-	local bestDefID = Spring.GetUnitDefID(units[1])
 	for i = 1, #units do
-	local unit = units[i]
-		local thisSeats = Spring.GetUnitRulesParam(unit, "transporterSeats") or 0
+		local thisSeats = Spring.GetUnitRulesParam(units[i], "transporterSeats") or 0
 		if thisSeats > transporterSeats then
-			bestDefID = Spring.GetUnitDefID(unit)
 			transporterSeats = thisSeats
 		end
 	end
-	local transporterDefID = bestDefID
-	if unloadPad[transporterDefID] then
-		return unloadPad[transporterDefID]
-	end
-	if not transporterSeats then
-		Spring.Echo("Error, GetUnloadPadType expects a valid tab[i] = transporterID table, transporterID "..units.." does not point to a valid table")
+	if transporterSeats == 0 then
+		Spring.Echo("Error, GetBiggestUnloadPadType: no valid transporters in units table")
 		return nil
 	end
-	local padString = "unloadsize"..tostring(transporterSeats)
-	if UnitDefNames[padString] then
-		unloadPad[transporterDefID] = UnitDefNames[padString].id
-	else
-		unloadPad[transporterDefID] = UnitDefNames["unloadsize8"].id -- fallback
+	-- aggregate all passengers across every transporter in the selection
+	local allPassengers = {}
+	for i = 1, #units do
+		local passengers = Spring.GetUnitIsTransporting(units[i])
+		if passengers then
+			for _, passengerID in ipairs(passengers) do
+				allPassengers[#allPassengers + 1] = passengerID
+			end
+		end
 	end
-	return unloadPad[transporterDefID]
+	local suffix = TransportAPI.HasAmphibCargo(allPassengers) and "_amphib" or ""
+	local padString = "unloadsize"..tostring(transporterSeats)..suffix
+	if UnitDefNames[padString] then
+		return UnitDefNames[padString].id
+	end
+	local padStringNoSuffix = "unloadsize"..tostring(transporterSeats)
+	if UnitDefNames[padStringNoSuffix] then
+		return UnitDefNames[padStringNoSuffix].id
+	end
+	return UnitDefNames["unloadsize8"].id
 end
 
 
