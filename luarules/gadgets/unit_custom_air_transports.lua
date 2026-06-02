@@ -389,7 +389,14 @@ end
 --- @param transporterID number
 --- @param transporterTeamID number  -- transporter teamID
 --- @return boolean
-local function CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID) -- things that should allow moving towards transporter to facilitate loading
+local function CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID, posY) -- things that should allow moving towards transporter to facilitate loading
+	if posY < 0 then
+		local passengerDefID = spGetUnitDefID(passengerID)
+		local isHover = UnitDefs[passengerDefID].modCategories["hover"] == true
+		if not isHover then -- ground units should not move to an underwater position
+			return false
+		end
+	end
 	if passengerTeamID == transporterTeamID then
 		return true -- if it's the same team, we can move it towards the transport to facilitate loading
 	end
@@ -578,7 +585,7 @@ local function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam
 		elseif CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterAllyTeam, transporterPosX, transporterPosY, transporterPosZ) then
 			customTransportLoad[transporterDefID](transporterID, 'PerformLoad', passengerID)
 			removalFlag = true
-		elseif dist2D(transporterPosX, transporterPosZ, cx, cz) < radius and CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID) then
+		elseif dist2D(transporterPosX, transporterPosZ, cx, cz) < radius and CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID, spGetGroundHeight(transporterPosX, transporterPosZ)) then
 			moveToTransporterFlag = true
 		end
 		if moveToTransporterFlag then
@@ -696,7 +703,7 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 		elseif CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterAllyTeam, transporterPosX, transporterPosY, transporterPosZ) then
 			customTransportLoad[transporterDefID](transporterID, 'PerformLoad', passengerID)
 			removalFlag = true
-		elseif dist2D(transporterPosX, transporterPosZ, passengerPosX, passengerPosZ) < 512  and CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID) then
+		elseif dist2D(transporterPosX, transporterPosZ, passengerPosX, passengerPosZ) < 512  and CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID, spGetGroundHeight(transporterPosX, transporterPosZ)) then
 			moveToTransporterFlag = true
 		end
 		if moveToTransporterFlag then -- do not order skipped passengers
