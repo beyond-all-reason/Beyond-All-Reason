@@ -122,9 +122,9 @@ function TransportAnimator.WatchBeams()
 						-- loading or unloading: passenger moved via MoveCtrl, use cached position
 						SpSpawnCEG(cegName,
 							passengerData.cachedPosX, passengerData.cachedPosY + passengerData.height, passengerData.cachedPosZ,
-							(beamPieceX - passengerData.cachedPosX) * cegScaleFactor,
-							(beamPieceY - (passengerData.cachedPosY + passengerData.height)) * cegScaleFactor,
-							(beamPieceZ - passengerData.cachedPosZ) * cegScaleFactor,
+							(beamPieceX - passengerData.cachedPosX),
+							(beamPieceY - (passengerData.cachedPosY + passengerData.height)),
+							(beamPieceZ - passengerData.cachedPosZ),
 							1, 0)
 					else
 						-- idle: simple downward beam from the anchor piece
