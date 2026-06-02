@@ -121,7 +121,7 @@ local CONFIG = {
 	windEmberMult = 0.0016,
 
 	-- Default emitter timings (frames @30Hz)
-	unitFireFrames   = 45,   -- how long after a hit a unit keeps burning
+	unitFireFrames   = 40,   -- how long after a hit a unit keeps burning
 	unitSmokeExtra   = 120,  -- smoke lingers this much longer than the fire
 	wreckFireFrames  = 50,   -- short fire on wreckage
 	wreckSmokeFrames = 320,  -- long smoke on wreckage
