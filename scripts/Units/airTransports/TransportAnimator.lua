@@ -276,7 +276,7 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 		local slotPosX, slotPosY, slotPosZ = SpGetUnitPiecePosDir(transporterID, passengerData.slotID)
 		local transporterPosX, _, transporterPosZ, startTransporterRotX, startTransporterRotY, startTransporterRotZ = getTransporterState(transporterID)
 		goalPosX, goalPosZ = goalPosX + (slotPosX - transporterPosX), goalPosZ + (slotPosZ - transporterPosZ)
-		goalPosY = SpGetGroundHeight(goalPosX, goalPosZ)	
+		goalPosY = math.max(0,SpGetGroundHeight(goalPosX, goalPosZ))
 		local passengerDefID = SpGetUnitDefID(passengerData.id)
 		local passengerTeamID = Spring.GetUnitTeam(passengerData.id)
 
