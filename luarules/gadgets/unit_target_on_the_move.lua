@@ -305,6 +305,7 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneEnd()
 	end
 
+	-- FIXME: Avoid. SendToUnsynced fails when sending tables only in online multiplayer.
 	local function sendTargetsToUnsyncedBatched(unitID)
 		--tracy.ZoneBeginN(string.format("sendTargetsToUnsyncedBatched %d", unitID))
 		local targetCount = #unitTargets[unitID].targets
@@ -384,7 +385,7 @@ if gadgetHandler:IsSyncedCode() then
 			if waitForCommandDone[unitID] then
 				checkForManualFire[unitID] = true
 			end
-			sendTargetsToUnsyncedBatched(unitID)
+			sendTargetsToUnsynced(unitID)
 			if not data.activeTarget and setTarget(unitID, data.targets[1]) then
 				data.currentIndex = 1
 				data.activeTarget = true
@@ -470,13 +471,6 @@ if gadgetHandler:IsSyncedCode() then
 	function GG.getUnitTargetIndex(unitID)
 		return unitTargets[unitID] and unitTargets[unitID].currentIndex
 	end
-
-	--[[function gadget:GameFramePost()
-		for _, unitID in ipairs(needSend) do
-			sendTargetsToUnsyncedBatched(unitID)
-		end
-		needSend = {}
-	end]]
 
 	function gadget:Initialize()
 		-- register command
