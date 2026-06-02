@@ -125,11 +125,33 @@ local unloadsize1 = {
 	unloadsize8.yardmap = "oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo"
 	unloadsize8.objectname = "units/transportpads/unloadsize8.s3o"
 
+-- amphib variants: float on water surface (hover and amphib units are dropped at y=0 and sink/float naturally)
+local unloadsize1_amphib = deepcopy(unloadsize1)
+unloadsize1_amphib.maxwaterdepth = 10000
+unloadsize1_amphib.floater = true
+local unloadsize2_amphib = deepcopy(unloadsize2)
+unloadsize2_amphib.maxwaterdepth = 10000
+unloadsize2_amphib.floater = true
+local unloadsize4_amphib = deepcopy(unloadsize4)
+unloadsize4_amphib.maxwaterdepth = 10000
+unloadsize4_amphib.floater = true
+local unloadsize6_amphib = deepcopy(unloadsize6)
+unloadsize6_amphib.maxwaterdepth = 10000
+unloadsize6_amphib.floater = true
+local unloadsize8_amphib = deepcopy(unloadsize8)
+unloadsize8_amphib.maxwaterdepth = 10000
+unloadsize8_amphib.floater = true
+
 return {
 	unloadsize1 = unloadsize1,
 	unloadsize2 = unloadsize2,
 	unloadsize4 = unloadsize4,
 	unloadsize6 = unloadsize6,
 	unloadsize8 = unloadsize8,
+	unloadsize1_amphib = unloadsize1_amphib,
+	unloadsize2_amphib = unloadsize2_amphib,
+	unloadsize4_amphib = unloadsize4_amphib,
+	unloadsize6_amphib = unloadsize6_amphib,
+	unloadsize8_amphib = unloadsize8_amphib,
 }
 

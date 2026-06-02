@@ -994,19 +994,20 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transp
 	if not isAirTransport[transporterDefID] then return true end	
 	-- distance gate for individual unload commands
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
-	local blocked = Spring.TestBuildOrder(TransportAPI.GetUnloadPadType(transporterID), goalX, goalY, goalZ, 0)
+	local unloadPadType = TransportAPI.GetUnloadPadType(transporterID)
+	local blocked = Spring.TestBuildOrder(unloadPadType, goalX, goalY, goalZ, 0)
 	if blocked == 0 then
 		--spEcho("unload position blocked for transporter " .. transporterID .. ", finding closest valid position")
-		goalX, goalY, goalZ = Spring.ClosestBuildPos(transporterTeamID, TransportAPI.GetUnloadPadType(transporterID), goalX, goalY, goalZ, 512, 0, 0)
+		goalX, goalY, goalZ = Spring.ClosestBuildPos(transporterTeamID, unloadPadType, goalX, goalY, goalZ, 512, 0, 0)
 		if not goalX then
 			spEcho("Error: no valid unload position found near target point for transporter " .. transporterID .. ", aborting unload")
 			return false
 		end
 	end
 	-- retest because we might still have mobile units in the way
-	blocked = Spring.TestBuildOrder(TransportAPI.GetUnloadPadType(transporterID), goalX, goalY, goalZ, 0)
+	blocked = Spring.TestBuildOrder(unloadPadType, goalX, goalY, goalZ, 0)
 	if blocked == 1 then
-		BuggerOff(goalX, goalY, goalZ,TransportAPI.GetUnloadPadType(transporterID), transporterID)
+		BuggerOff(goalX, goalY, goalZ, unloadPadType, transporterID)
 		--spEcho("need bugger off logic")
 	elseif blocked == 3 then
 		--spEcho("reclaimable feature in the way, should we unload ?")
@@ -1021,9 +1022,9 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transp
 			spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- just override the engine given movegoal so it does not slowly descend.
 			return false
 		end
-		local targets = TransportAPI.GetUnloadTargets(transporterID, passengerID)
-		for _, passengerID in ipairs(targets) do
-			customTransportUnload[transporterDefID](transporterID, 'PerformUnload', passengerID, goalX, goalY, goalZ)
+		local targets = TransportAPI.GetUnloadTargets(transporterID, passengerID, goalX, goalY, goalZ)
+		for i = 1, #targets do
+			customTransportUnload[transporterDefID](transporterID, 'PerformUnload', targets[i], goalX, goalY, goalZ)
 		end
 		spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- just override the engine given movegoal so it does not slowly descend.
 		spUnitFinishCommand(transporterID) -- consume the command so the transporter proceeds to the next
@@ -1064,7 +1065,11 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	end
 	if cmdID == CMD.UNLOAD_UNIT then
 		local posX, posY, posZ = cmdParams[1], cmdParams[2], cmdParams[3]
-		local newPosX, newPosY, newPosZ = Spring.ClosestBuildPos(unitTeam, TransportAPI.GetUnloadPadType(unitID), posX, posY, posZ, 512, 0, 0)
+		-- cmdParams[4] is the specific passengerID for single-unload cmds; nil for area-style unloads
+		if not spValidUnitID(cmdParams[4]) then
+			cmdParams[4] = nil -- force nil in case some odd looking cmd was given
+		end
+		local newPosX, newPosY, newPosZ = Spring.ClosestBuildPos(unitTeam, TransportAPI.GetUnloadPadType(unitID, cmdParams[4]), posX, posY, posZ, 512, 0, 0)
 		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
 			if fromInsert then

@@ -88,6 +88,21 @@ local function shortAngle(a)
     return a
 end
 
+-- Returns true if any passenger in the list is hover or amphib (canbeuw), false otherwise.
+function TransportAPI.HasAmphibCargo(passengers)
+	if not passengers or #passengers == 0 then return false end
+	for _, passengerID in ipairs(passengers) do
+		local udefID = Spring.GetUnitDefID(passengerID)
+		if udefID then
+			local def = UnitDefs[udefID]
+			if def.modCategories["canbeuw"] == true or def.modCategories["hover"] == true then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 -- converts a world-space position and rotation into the transporter's unit-local space
 TransportAPI.WorldToUnitSpace = function(unitID, wantedWorldSpacePosX, wantedWorldSpacePosY, wantedWorldSpacePosZ, wantedWorldSpaceRotX, wantedWorldSpaceRotY, wantedWorldSpaceRotZ, currentUnitPosX, currentUnitPosY, currentUnitPosZ, currentUnitRotX, currentUnitRotY, currentUnitRotZ)
     if not currentUnitPosX then
