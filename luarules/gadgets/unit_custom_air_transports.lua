@@ -894,6 +894,15 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 			local co = coroutine.create(function()
 					while true do
 						coroutine.yield() -- ticked by GameFrame every frame
+						local posX, posY, posZ = spGetUnitPosition(transporterID)
+						local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(cmdParams[1])
+						local disttoArea = dist2D(posX, posZ, passengerPosX, passengerPosZ)
+						while (disttoArea > 1024) or (Spring.GetGameFrame()%15 ~= transporterID%15) do
+							coroutine.yield() -- wait until we're close enough or every 15 frames to not do expensive checks every frame when far from the area
+							posX, posY, posZ = spGetUnitPosition(transporterID)
+							passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(cmdParams[1])
+							disttoArea = dist2D(posX, posZ, passengerPosX, passengerPosZ)
+						end
 						local Q = spGetUnitCommands(transporterID, 1)
 						local cmd = Q and Q[1]
 						if not (cmd and cmd.id == CMD_LOAD_UNIT) then
@@ -929,6 +938,13 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 				while true do
 					coroutine.yield() -- ticked by GameFrame every frame
 					coroutine.lastKnownParams = { cx, cy, cz, radius }
+					local posX, posY, posZ = spGetUnitPosition(transporterID)
+					local disttoArea = dist2D(posX, posZ, cx, cz)
+					while (disttoArea > 2*radius) or (Spring.GetGameFrame()%15 ~= transporterID%15) do
+						coroutine.yield() -- wait until we're close enough or every 15 frames to not do expensive checks every frame when far from the area
+						posX, posY, posZ = spGetUnitPosition(transporterID)
+						disttoArea = dist2D(posX, posZ, cx, cz)
+					end
 					-- update the coroutine's last known params 
 					-- so we can detect mid-coroutine changes, instead of exiting + recreating
 					local Q = spGetUnitCommands(transporterID, 1)
