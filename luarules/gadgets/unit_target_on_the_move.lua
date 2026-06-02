@@ -305,40 +305,6 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneEnd()
 	end
 
-	-- FIXME: Avoid. SendToUnsynced fails when sending tables only in online multiplayer.
-	local function sendTargetsToUnsyncedBatched(unitID)
-		--tracy.ZoneBeginN(string.format("sendTargetsToUnsyncedBatched %d", unitID))
-		local targetCount = #unitTargets[unitID].targets
-		if targetCount == 1 then
-			sendTargetsToUnsynced(unitID)
-		elseif targetCount > 1 then
-			local data = {}
-			local length = 0
-			for index, targetData in ipairs(unitTargets[unitID].targets) do
-				if not targetData.sent then
-					targetData.sent = true
-					local target = targetData.target
-					data[length + 1] = index
-					data[length + 2] = targetData.userTarget
-					if type(target) == "number" then
-						data[length + 3] = target
-						data[length + 4] = false
-						data[length + 5] = false
-					else
-						data[length + 3] = target[1]
-						data[length + 4] = target[2]
-						data[length + 5] = target[3]
-					end
-					length = length + 5 -- Limit this length through the max target list length.
-				end
-			end
-			if length > 0 then
-				SendToUnsynced("targetListBatched", unitID, length, data)
-			end
-		end
-		--tracy.ZoneEnd()
-	end
-
 	local function addUnitTargets(unitID, unitDefID, targetList, append)
 		--tracy.ZoneBeginN(string.format("addUnitTargets:%s %d %d",tostring(reason), unitID, unitDefID))
 		if spValidUnitID(unitID) then
@@ -921,7 +887,6 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction("targetdrawteam", handleTargetDrawEvent, "toggles drawing targets for units, params: teamID doDraw")
 		gadgetHandler:AddChatAction("targetdrawunit", handleUnitTargetDrawEvent, "toggles drawing targets for units, params: unitID")
 		gadgetHandler:AddSyncAction("targetList", handleTargetListEvent)
-		gadgetHandler:AddSyncAction("targetListBatched", handleTargetListBatchedEvent)
 		gadgetHandler:AddSyncAction("targetIndex", handleTargetIndexEvent)
 		gadgetHandler:AddSyncAction("failCommand", handleFailCommand)
 
@@ -943,7 +908,6 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction("targetdrawteam")
 		gadgetHandler:RemoveChatAction("targetdrawunit")
 		gadgetHandler:RemoveSyncAction("targetList")
-		gadgetHandler:RemoveSyncAction("targetListBatched")
 		gadgetHandler:RemoveSyncAction("targetIndex")
 		gadgetHandler:RemoveSyncAction("failCommand")
 	end
@@ -1007,16 +971,6 @@ else	-- UNSYNCED
 			target     = (not targetB and targetA) or { targetA, targetB, targetC },
 		}
 		--tracy.ZoneEnd()
-	end
-
-	function handleTargetListBatchedEvent(_, unitID, length, data)
-		local targets = getEventTargetList(unitID, data[1], false)
-		for i = 1, length, 5 do
-			targets[data[i]] = {
-				userTarget = data[i+1],
-				target     = (not data[i+3] and data[i+2]) or { data[i+2], data[i+3], data[i+4] },
-			}
-		end
 	end
 
 	function handleTargetIndexEvent(_, unitID, index)
