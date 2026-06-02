@@ -1,3 +1,10 @@
+-- Temporarly disable while we evalute cmd_test.lua to see if it makes
+-- sense to have different order behavior based on the zoom level 
+-- (e.g. area guard when zoomed in when dragging op of unit, line formatation
+-- when zoomed out).
+
+return nil
+
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
