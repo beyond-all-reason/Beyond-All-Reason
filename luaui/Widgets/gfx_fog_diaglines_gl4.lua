@@ -162,7 +162,9 @@ function widget:Initialize()
 		-- Blurriness slider: 0 = sharp edges, 1 = strongly blurred. Maps linearly
 		-- onto lineSharpness (the smoothstep half-width at each line edge).
 		getBlurriness = function()
-			return (lineSharpness - sharpnessMin) / (sharpnessMax - sharpnessMin)
+			local range = sharpnessMax - sharpnessMin
+			if range <= 0 then return 0 end -- guard against a degenerate (min == max) range
+			return (lineSharpness - sharpnessMin) / range
 		end,
 		setBlurriness = function(value)
 			local t = math.max(0, math.min(1, value or 0))
