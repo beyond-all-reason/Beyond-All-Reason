@@ -139,6 +139,109 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	--------------------------------------------------------------------------------
+	-- MCP companion: handle requests forwarded from dbg_bar_mcp.lua widget
+	--------------------------------------------------------------------------------
+	local JsonMcp = VFS.Include("common/luaUtilities/json.lua")
+
+	local function mcpReply(reqId, resultStr)
+		-- resultStr must be valid JSON (no bare newlines); Json.encode guarantees this
+		Spring.SendLuaUIMsg("mcp_result:" .. reqId .. ":" .. resultStr)
+	end
+
+	local function mcpEncodeValue(v)
+		if v == nil then return "null" end
+		local t = type(v)
+		if t == "boolean" or t == "number" then return tostring(v) end
+		local ok, enc = pcall(JsonMcp.encode, v)
+		return ok and enc or ('"' .. tostring(v):gsub('"', '\\"'):gsub("\n", "\\n") .. '"')
+	end
+
+	local function mcpSerialize(ok, ...)
+		if not ok then
+			local e = (...)
+			local _, enc = pcall(JsonMcp.encode, {error = tostring(e)})
+			return enc or '{"error":"unknown"}'
+		end
+		local n = select("#", ...)
+		if n == 0 then return "null" end
+		if n == 1 then return mcpEncodeValue((...)) end
+		local arr = {}
+		for i = 1, n do arr[i] = select(i, ...) end
+		local ok2, enc = pcall(JsonMcp.encode, arr)
+		return ok2 and enc or "[]"
+	end
+
+	local function splitIdRest(msg, prefix)
+		local rest = msg:sub(#prefix + 1)
+		local sep  = rest:find(":", 1, true)
+		if not sep then return nil, nil end
+		return rest:sub(1, sep - 1), rest:sub(sep + 1)
+	end
+
+	local MCP_exec    = "mcp_exec:"
+	local MCP_glist   = "mcp_gadget_list:"
+	local MCP_genable = "mcp_gadget_enable:"
+	local MCP_gdis    = "mcp_gadget_disable:"
+	local MCP_greload = "mcp_gadget_reload:"
+
+	function gadget:RecvLuaMsg(msg, playerID)
+		-- lua_eval_synced: mcp_exec:<reqId>:<code>
+		if msg:sub(1, #MCP_exec) == MCP_exec then
+			local reqId, code = splitIdRest(msg, MCP_exec)
+			if not reqId then return end
+			local fn, cerr = loadstring(code)
+			if not fn then
+				mcpReply(reqId, JsonMcp.encode({error = "compile: " .. tostring(cerr)}))
+				return
+			end
+			mcpReply(reqId, mcpSerialize(pcall(fn)))
+			return
+		end
+
+		-- gadget_list: mcp_gadget_list:<reqId>
+		if msg:sub(1, #MCP_glist) == MCP_glist then
+			local reqId = msg:sub(#MCP_glist + 1)
+			local list = {}
+			for name, ki in pairs(gadgetHandler.knownGadgets) do
+				list[#list + 1] = {name = name, active = ki.active == true, filename = ki.filename or ""}
+			end
+			table.sort(list, function(a, b) return a.name < b.name end)
+			local ok, enc = pcall(JsonMcp.encode, list)
+			mcpReply(reqId, ok and enc or "[]")
+			return
+		end
+
+		-- gadget_enable: mcp_gadget_enable:<reqId>:<name>
+		if msg:sub(1, #MCP_genable) == MCP_genable then
+			local reqId, name = splitIdRest(msg, MCP_genable)
+			if not reqId then return end
+			gadgetHandler:EnableGadget(name)
+			mcpReply(reqId, JsonMcp.encode({success = true, name = name, action = "enabled"}))
+			return
+		end
+
+		-- gadget_disable: mcp_gadget_disable:<reqId>:<name>
+		if msg:sub(1, #MCP_gdis) == MCP_gdis then
+			local reqId, name = splitIdRest(msg, MCP_gdis)
+			if not reqId then return end
+			gadgetHandler:DisableGadget(name)
+			mcpReply(reqId, JsonMcp.encode({success = true, name = name, action = "disabled"}))
+			return
+		end
+
+		-- gadget_reload: mcp_gadget_reload:<reqId>:<name>
+		if msg:sub(1, #MCP_greload) == MCP_greload then
+			local reqId, name = splitIdRest(msg, MCP_greload)
+			if not reqId then return end
+			gadgetHandler:DisableGadget(name)
+			gadgetHandler:EnableGadget(name)
+			pendingReHook[name] = true
+			mcpReply(reqId, JsonMcp.encode({success = true, name = name, action = "reloaded"}))
+			return
+		end
+	end
+
 else
 
 	local spGetMouseState = Spring.GetMouseState
