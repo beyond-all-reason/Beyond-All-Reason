@@ -2,45 +2,12 @@ TransportAnimator = {}
 
 local SIG_WATCH           = 2 -- signal to stop the WatchBeam thread when cargo state changes
 TransportAnimator.SIG_LOAD = 4 -- signal to kill all in-flight Load threads (used by ReorganizeAndLoad)
-local defaultPiecePos  = {} -- [pieceID] = {x,y,z} rest position in unit-local space, cached on first use
 local pi = math.pi
 
 local function shortAngle(a)
 	a = a % (2 * pi)
 	if a > pi then a = a - 2 * pi end
 	return a
-end
-
--- move and rotate a slot piece to match a world-space position/rotation, converting through unit-local space
-local function MovePieceWS(pieceNum, 
-    wantedWorldSpacePosX, wantedWorldSpacePosY, wantedWorldSpacePosZ, 
-    wantedWorldSpaceRotX, wantedWorldSpaceRotY, wantedWorldSpaceRotZ, 
-    speed, passengerHeight, normalizedProgress,
-    transporterPosX, transporterPosY, transporterPosZ, 
-    transporterRotX, transporterRotY, transporterRotZ)
-
-	local wantedUnitSpacePosX, wantedUnitSpacePosY, wantedUnitSpacePosZ,
-	    wantedUnitSpaceRotX, wantedUnitSpaceRotY, wantedUnitSpaceRotZ = 
-		    TransportAPI.WorldToUnitSpace(transporterID,
-			    wantedWorldSpacePosX, wantedWorldSpacePosY, wantedWorldSpacePosZ,
-			    wantedWorldSpaceRotX, wantedWorldSpaceRotY, wantedWorldSpaceRotZ,
-			    transporterPosX, transporterPosY, transporterPosZ,
-			    transporterRotX, transporterRotY, transporterRotZ)
-
-	-- Move() offsets are relative to the piece's own rest position, not the unit origin.
-	-- Subtract the rest position so the piece ends up at the correct unit-local coordinates.
-	if not defaultPiecePos[pieceNum] then
-		Move(pieceNum, 1, 0)  Move(pieceNum, 2, 0)  Move(pieceNum, 3, 0) -- move piece to rest pos and read it to cache the default position
-		local defaultPieceUnitSpacePosX, defaultPieceUnitSpacePosY, defaultPieceUnitSpacePosZ = Spring.GetUnitPiecePosition(transporterID, pieceNum)
-		defaultPiecePos[pieceNum] = { defaultPieceUnitSpacePosX, defaultPieceUnitSpacePosY, defaultPieceUnitSpacePosZ }
-	end
-	local defaultPiecePosition =    defaultPiecePos[pieceNum]
-	Move(pieceNum, 1, (wantedUnitSpacePosX + (1-normalizedProgress) * defaultPiecePosition[1]),speed)
-	Move(pieceNum, 2, wantedUnitSpacePosY - passengerHeight - (1-normalizedProgress) * defaultPiecePosition[2], speed)
-	Move(pieceNum, 3, wantedUnitSpacePosZ - (1-normalizedProgress) * defaultPiecePosition[3],speed)
-	Turn(pieceNum, 1, wantedUnitSpaceRotX, speed)
-	Turn(pieceNum, 2, wantedUnitSpaceRotY, speed)
-	Turn(pieceNum, 3, wantedUnitSpaceRotZ, speed)
 end
 
 local loadTime, ratio, ratioY, cegScaleFactor, cegName
