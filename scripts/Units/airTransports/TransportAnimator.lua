@@ -210,7 +210,16 @@ function TransportAnimator.Load(passengerData, doAnim)
 	transporterPosX, transporterPosY, transporterPosZ,
 	transporterRotX, transporterRotY, transporterRotZ) -- snap slot to passenger position at start of load anim
 	SpUnitAttach(transporterID, passengerData.id, passengerData.slotID)
-	Spring.SetUnitPhysicalStateBit(passengerData.id, -64) -- cleared PSTATE_BIT_MOVING -> Stop Moving; also recquired for smooth amphib "falling"
+	Spring.SetUnitPhysicalStateBit(passengerData.id, -64) -- PSTATE_BIT_FALLING to reset movetype and let the unit "fall" into place if it's not exactly on the ground already
+	local lusEnv = Spring.UnitScript.GetScriptEnv(passengerData.id)
+	if lusEnv and lusEnv.StopMoving then
+		lusEnv.StopMoving() -- trigger the MoveRate animation on the passenger after unloading, if it has one
+	else
+		local cobFuncID = Spring.GetCOBScriptID(passengerData.id, "StopMoving")
+		if cobFuncID then
+			Spring.CallCOBScript(passengerData.id, cobFuncID, 1) -- trigger the MoveRate animation on the passenger after unloading, if it has one
+		end
+	end
 	local count = CargoHandler.Register(passengerData.id, passengerData, cargo)
 	if count == 1 then TransportAnimator.HasCargo(true) end
 
