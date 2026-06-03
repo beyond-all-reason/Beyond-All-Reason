@@ -55,15 +55,15 @@ function CargoHandler.Init(setup)
 		transporterSpeedModMode = tonumber(UnitDefs[Spring.GetUnitDefID(transporterID)].customParams.transporterspeedmodmode or 0),
 		-- type of speed modification to apply:
 		-- 0 = no speed modification
-		-- 1 = if loadedCommandersCount > 0 then speed = maxSpeed * (1-transporterSpeedModStrength)
-		-- 2 = speed = maxSpeed * (1 - (usedSeats/nSeats) * transporterSpeedModStrength)
-		-- 3 = modified usedSeats/nSeats; 
+		-- 1 = speedNerf = (usedSeats/nSeats) * transporterSpeedModStrength
+		-- 2 = speedNerf = (totalWeight/nSeats) - 1; 
 		-- passengerWeight = passengerSize * (oversized and (1 + transporterSpeedModStrength) or 1)
-		-- speed = math.min(maxSpeed, maxSpeed * (1 - ((totalWeight/nSeats) - 1)))
 		-- this makes the slowdown based on excess, not cargo
-
-		-- all these data can be set from tweakDefs/tweakUnits without requirements for an update; so they will be testable/tweakable until a "final" setting is decided upon.
-		transporterSpeedModStrength = tonumber(UnitDefs[Spring.GetUnitDefID(transporterID)].customParams.transporterspeedmodstrength or 0.5), -- strength of speed modification, used as multiplier for the calculated speed mod in all modes
+		transporterSpeedModStrength = tonumber(UnitDefs[Spring.GetUnitDefID(transporterID)].customParams.transporterspeedmodstrength or 0), -- strength of speed modification, used as multiplier for the calculated speed mod in all modes
+		-- set to > 0 value to enable; effect depends on transporterSpeedModMode
+		transporterComSpeedModStrength = tonumber(UnitDefs[Spring.GetUnitDefID(transporterID)].customParams.transportercomspeedmodstrength or 0), -- separate speed mod strength for commanders, used in modes 1 and 3 as an override if it's higher than the regular mod strength
+		-- set to > 0 value to enable; slows down the transporter if it has a loaded commander
+		-- the resultant speedNerf value is then math.max(speedNerf, comSpeedNerf)
 		transporterAltitude		= tonumber(UnitDefs[Spring.GetUnitDefID(transporterID)].wantedHeight or 100), -- wanted height of the transporter, used for move type data and can be modified by passengers
 		slotSizes               = slotSizes,                    -- set of slot sizes available, eg { [1]=true, [4]=true }
 		loadingCount            = 0,                            -- number of load animations in progress
@@ -146,7 +146,7 @@ local function RequiresMet(slotData, slots)
 end
 
 -- returns the squared XZ distance between passengerID and a slot piece on the transporter
-local function SlotDistSq(passengerID, slotID)
+local function PassengerToSlotDistSq(passengerID, slotID)
 	local px, _, pz = SpGetUnitPosition(passengerID)
 	local sx, _, sz = Spring.GetUnitPiecePosDir(transporterID, slotID)
 	local dx, dz = px - sx, pz - sz
@@ -173,7 +173,7 @@ function CargoHandler.FindSlot(passengerID, cargo, allowReorganize, fromReorgani
 					hasOverlap = true  -- note it but keep looking for a clean slot
 				end
 			else
-				local dSq = SlotDistSq(passengerID, slotID)
+				local dSq = PassengerToSlotDistSq(passengerID, slotID)
 				if dSq < bestDistSq then
 					bestDistSq = dSq
 					bestSlotID = slotID
@@ -193,7 +193,7 @@ function CargoHandler.FindSlot(passengerID, cargo, allowReorganize, fromReorgani
 		for _, slotID in ipairs(sizeList) do
 			local slotData = cargo.slots[slotID]
 			if slotData.cargo == nil and slotData.overlapping and RequiresMet(slotData, cargo.slots) then
-				local dSq = SlotDistSq(passengerID, slotID)
+				local dSq = PassengerToSlotDistSq(passengerID, slotID)
 				if dSq < bestDistSq then
 					bestDistSq = dSq
 					bestSlotID = slotID

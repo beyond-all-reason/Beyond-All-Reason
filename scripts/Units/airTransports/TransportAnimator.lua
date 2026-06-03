@@ -42,8 +42,8 @@ end
 -- call a unit script function by name, trying LUS first then COB
 local function callUnitScript(id, funcName)
 	local lusEnv = Spring.UnitScript.GetScriptEnv(id)
-	if lusEnv and lusEnv[funcName] then
-		lusEnv[funcName]()
+	if lusEnv and lusEnv["script"] and lusEnv["script"][funcName] then
+		lusEnv["script"][funcName]()
 	else
 		local cobFuncID = Spring.GetCOBScriptID(id, funcName)
 		if cobFuncID then
@@ -149,7 +149,6 @@ function TransportAnimator.Load(passengerData, doAnim)
 
 	local passengerPosX, passengerPosY, passengerPosZ = SpGetUnitPosition(passengerData.id)
 	local passengerRotX, passengerRotY, passengerRotZ = SpGetUnitRotation(passengerData.id)
-	Spring.SetUnitPhysicalStateBit(passengerData.id, -64) -- still needed for units to "fall" in water when landed
 	callUnitScript(passengerData.id, "StopMoving")
 
 	-- slot stays at rest position throughout; passenger moves up to meet it
@@ -282,13 +281,15 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 		-- Spring.SetUnitRadiusAndHeight(passengerData.id, radius, height) -- reset radius/height in case we were transporting a building with custom values
 
 		if not aborted then -- unload anim completed, ensure unit is at final position/rotation
-			SpMoveCtrl.SetPosition(passengerData.id, goalPosX, goalPosY, goalPosZ)
+			local groundHeight = SpGetGroundHeight(goalPosX, goalPosZ)
+			SpMoveCtrl.SetPosition(passengerData.id, goalPosX, math.max(0, groundHeight), goalPosZ)
 			SpMoveCtrl.SetRotation(passengerData.id, goalRotX, goalRotY, goalRotZ)
 			SpMoveCtrl.Disable(passengerData.id)
-			Spring.SetUnitPosition(passengerData.id, goalPosX, goalPosY, goalPosZ) -- for transportable buildings, this is recquired after releasing movectrl
-			local Q = Spring.GetUnitCommands(passengerData.id, 1) -- has a task, try to trigger StartMoving (sorry, this is ugly)
+			if groundHeight < 0 then
+				Spring.SetUnitPhysicalStateBit(passengerData.id, 512 + 256) -- ensure correct water/land state after unloading
+			end
+			local Q = Spring.GetUnitCommands(passengerData.id, 1)
 			if Q[1] then
-				Spring.SetUnitPhysicalStateBit(passengerData.id, 64) -- PSTATE_BIT_FALLING to reset movetype and let the unit "fall" into place if it's not exactly on the ground already
 				callUnitScript(passengerData.id, "StartMoving")
 			end
 		end

@@ -281,14 +281,15 @@ function TransportAPI.DisablePassenger(passengerID)
 end
 
 function TransportAPI.CalculateTransporterSpeed(cargo)
+	local speedNerf = 0
 	local transporterSpeedModMode = cargo.transporterSpeedModMode or 0
 	if transporterSpeedModMode == 1 then
-		return 1 - (cargo.loadedCommandersCount > 0 and cargo.transporterSpeedModStrength or 0)
+		speedNerf = (cargo.transporterUsedSeats / cargo.transporterSeats) * cargo.transporterSpeedModStrength
 	elseif transporterSpeedModMode == 2 then
-		return 1 - (cargo.transporterUsedSeats / cargo.transporterSeats) * cargo.transporterSpeedModStrength
-	elseif transporterSpeedModMode == 3 then
-		local maxWeight = cargo.transporterSeats -- max
-		return 1 - math.max(0, (cargo.passengersTotalWeight / maxWeight) - 1)
+		local maxWeight = cargo.transporterSeats -- max capacity
+		speedNerf = (cargo.passengersTotalWeight / maxWeight) - 1
 	end
-	return 1
+	local comSpeedNerf = cargo.loadedCommandersCount > 0 and cargo.transporterComSpeedModStrength or 0
+	speedNerf = math.max(speedNerf, comSpeedNerf)
+	return math.max(0, 1 - speedNerf) -- final speed multiplier, between 0 and 1
 end
