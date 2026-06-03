@@ -56,8 +56,8 @@ function CargoHandler.Init(setup)
 		-- type of speed modification to apply:
 		-- 0 = no speed modification
 		-- 1 = speedNerf = (usedSeats/nSeats) * transporterSpeedModStrength
-		-- 2 = speedNerf = (totalWeight/nSeats) - 1; 
-		-- passengerWeight = passengerSize * (oversized and (1 + transporterSpeedModStrength) or 1)
+		-- 2 = speedNerf = ((passengersTotalWeight-transporterSeats) / (transporterSeats * 0.5)) * transporterSpeedModStrength
+		-- passengersTotalWeight = sum(passengerSize * ((oversized and 1.5) or 1))
 		-- this makes the slowdown based on excess, not cargo
 		transporterSpeedModStrength = tonumber(UnitDefs[Spring.GetUnitDefID(transporterID)].customParams.transporterspeedmodstrength or 0), -- strength of speed modification, used as multiplier for the calculated speed mod in all modes
 		-- set to > 0 value to enable; effect depends on transporterSpeedModMode
@@ -68,6 +68,15 @@ function CargoHandler.Init(setup)
 		slotSizes               = slotSizes,                    -- set of slot sizes available, eg { [1]=true, [4]=true }
 		loadingCount            = 0,                            -- number of load animations in progress
 		unloadingCount          = 0,                            -- number of unload animations in progress
+		currentMaxPassengerHeight = function() -- helper to get the current max passenger height for anim purposes, based on current cargo
+			local maxHeight = 0
+			for _, passengerData in pairs(cargo.passengers) do
+				if passengerData.height and passengerData.height > maxHeight then
+					maxHeight = passengerData.height
+				end
+			end
+			return maxHeight
+		end,
 	}
 
 	-- set some initial unit rules params for the gadget to read, and for UI display
@@ -274,10 +283,11 @@ function CargoHandler.Register(passengerID, passengerData, cargo)
 	cargo.passengersTotalWeight = cargo.passengersTotalWeight + (TransportAPI.GetPassengerWeight(passengerID, cargo) or 0)
 	cargo.loadedCommandersCount = cargo.loadedCommandersCount + (TransportAPI.IsPassengerCommander(passengerID) and 1 or 0)
 	local speedMod = TransportAPI.CalculateTransporterSpeed(cargo)
+	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "maxWantedSpeed", speedMod * cargo.transporterMaxSpeed)
 	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "maxSpeed", speedMod * cargo.transporterMaxSpeed)
 	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "accRate", speedMod * cargo.transporterAccRate)
 	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "decRate", speedMod * cargo.transporterDecRate)
-	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "wantedHeight", speedMod * cargo.transporterAltitude)
+	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "wantedHeight", math.max(cargo.currentMaxPassengerHeight() + 10, speedMod * cargo.transporterAltitude))
 	return cargo.count
 end
 
@@ -294,9 +304,10 @@ function CargoHandler.Unregister(passengerID, cargo)
 	cargo.passengersTotalWeight = math.max(0, cargo.passengersTotalWeight - (TransportAPI.GetPassengerWeight(passengerID,cargo) or 0))
 	cargo.loadedCommandersCount = math.max(0, cargo.loadedCommandersCount - (TransportAPI.IsPassengerCommander(passengerID) and 1 or 0))
 	local speedMod = TransportAPI.CalculateTransporterSpeed(cargo)
+	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "maxWantedSpeed", speedMod * cargo.transporterMaxSpeed)
 	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "maxSpeed", speedMod * cargo.transporterMaxSpeed)
 	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "accRate", speedMod * cargo.transporterAccRate)
 	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "decRate", speedMod * cargo.transporterDecRate)
-	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "wantedHeight", speedMod * cargo.transporterAltitude)	
+	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "wantedHeight", math.max(cargo.currentMaxPassengerHeight() + 10, speedMod * cargo.transporterAltitude))	
 	return cargo.count
 end

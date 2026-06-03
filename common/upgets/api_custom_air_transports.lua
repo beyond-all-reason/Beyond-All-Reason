@@ -251,7 +251,7 @@ end
 function TransportAPI.GetPassengerWeight(passengerID, cargo)
 	local weight = TransportAPI.GetPassengerSize(passengerID)
 	local oversized = UnitDefs[Spring.GetUnitDefID(passengerID)].customParams.oversized == "1"
-	weight = weight * (oversized and (1 + cargo.transporterSpeedModStrength) or 1)  -- size of "100 * nSeats" unless oversized
+	weight = weight * (oversized and (1.5) or 1)  -- weight of passengerSize or passengerSize * 1.5 depending on oversized tag
 	return weight
 end
 
@@ -287,7 +287,8 @@ function TransportAPI.CalculateTransporterSpeed(cargo)
 		speedNerf = (cargo.transporterUsedSeats / cargo.transporterSeats) * cargo.transporterSpeedModStrength
 	elseif transporterSpeedModMode == 2 then
 		local maxWeight = cargo.transporterSeats -- max capacity
-		speedNerf = (cargo.passengersTotalWeight / maxWeight) - 1
+		local maxOverWeight = maxWeight * 0.5
+		speedNerf = ((cargo.passengersTotalWeight - maxWeight) / maxOverWeight) * cargo.transporterSpeedModStrength
 	end
 	local comSpeedNerf = cargo.loadedCommandersCount > 0 and cargo.transporterComSpeedModStrength or 0
 	speedNerf = math.max(speedNerf, comSpeedNerf)
