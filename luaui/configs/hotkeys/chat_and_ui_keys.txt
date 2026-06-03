@@ -87,3 +87,5 @@ bind           Alt+sc_t  pip1_track     // track the selected units with pip1
 // bind                  pip2_switch
 // bind                  pip2_track
 
+// toggles
+bind            Any+alt toggle_allied_upgrade
