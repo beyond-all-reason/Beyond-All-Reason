@@ -33,8 +33,42 @@ local function echoObjectiveUpdate(objectiveID, objective)
 		.. " | completed: " .. tostring(objective.completed))
 end
 
+--- Update objective progress for a managed (statistics-based) objective.
+--- Called when the trigger's event fires with updated counts.
+local function updateObjectiveProgress(objectiveID, eventTeamID, eventUnitDefName, eventUnitNames, direction, managedObjMetadata)
+	if eventTeamID ~= managedObjMetadata.parameters.teamID then return end
+	if managedObjMetadata.parameters.unitDefName and eventUnitDefName ~= managedObjMetadata.parameters.unitDefName then return end
+	if managedObjMetadata.parameters.unitName and not (eventUnitNames or {})[managedObjMetadata.parameters.unitName] then return end
+
+	-- Track count regardless of stage:
+	managedObjMetadata._count = (managedObjMetadata._count or 0) + direction
+
+	if next(managedObjMetadata.stages) and not table.contains(managedObjMetadata.stages, GG['MissionAPI'].CurrentStageID) then return end
+
+	local objective = GG['MissionAPI'].Objectives[objectiveID]
+	if objective.completed then return end
+
+	objective.progress = managedObjMetadata._count
+
+	local isComplete
+	local amount = managedObjMetadata.amount
+	if amount == nil then
+		isComplete = true
+	elseif amount == 0 then
+		isComplete = managedObjMetadata._count == 0
+	else
+		isComplete = managedObjMetadata._count >= amount
+	end
+
+	objective.completed = isComplete
+	tryAdvanceStage(objective, managedObjMetadata.nextStage)
+
+	echoObjectiveUpdate(objectiveID, objective)
+end
+
 return {
-	ChangeStage         = changeStage,
-	TryAdvanceStage     = tryAdvanceStage,
-	EchoObjectiveUpdate = echoObjectiveUpdate,
+	ChangeStage             = changeStage,
+	TryAdvanceStage         = tryAdvanceStage,
+	UpdateObjectiveProgress = updateObjectiveProgress,
+	EchoObjectiveUpdate     = echoObjectiveUpdate,
 }

@@ -22,6 +22,7 @@ end
 local actionsDispatcher
 local types, triggers
 local trackedUnitNames, trackedUnitIDs
+local objectiveUtils
 local statisticsTriggerCounts = {}
 
 
@@ -351,9 +352,9 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 		end
 	end)
 
-	-- Objective callbacks:
-	for _, callback in ipairs(GG['MissionAPI'].ObjectiveTriggers[triggerType] or {}) do
-		callback(teamID, unitDefName, unitNames, direction)
+	-- Update managed objectives:
+	for _, managedObj in ipairs(GG['MissionAPI'].ManagedObjectivesByTriggerType[triggerType] or {}) do
+		objectiveUtils.UpdateObjectiveProgress(managedObj.objectiveID, teamID, unitDefName, unitNames, direction, managedObj)
 	end
 end
 local function incrementUnitStatistics(triggerType, teamID, unitDefName, unitNames)
@@ -454,6 +455,7 @@ function gadget:Initialize()
 	trackedUnitIDs          = GG['MissionAPI'].trackedUnitIDs
 
 	actionsDispatcher       = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
+	objectiveUtils          = VFS.Include('luarules/mission_api/objectives.lua')
 
 	local tracking          = VFS.Include('luarules/mission_api/tracking.lua')
 	doesUnitHaveName        = tracking.DoesUnitHaveName

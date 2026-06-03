@@ -73,13 +73,13 @@ function gadget:Initialize()
 	local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
 	GG['MissionAPI'].TriggerTypes = triggersSchema.Types
 	GG['MissionAPI'].ActionTypes = actionsSchema.Types
-	GG['MissionAPI'].trackedUnitIDs      = {}
-	GG['MissionAPI'].trackedUnitNames    = {}
-	GG['MissionAPI'].trackedFeatureIDs   = {}
-	GG['MissionAPI'].trackedFeatureNames = {}
-	GG['MissionAPI'].soundFiles          = {}
-	GG['MissionAPI'].soundQueue          = {}
-	GG['MissionAPI'].ObjectiveTriggers   = {}
+	GG['MissionAPI'].trackedUnitIDs                 = {}
+	GG['MissionAPI'].trackedUnitNames               = {}
+	GG['MissionAPI'].trackedFeatureIDs              = {}
+	GG['MissionAPI'].trackedFeatureNames            = {}
+	GG['MissionAPI'].soundFiles                     = {}
+	GG['MissionAPI'].soundQueue                     = {}
+	GG['MissionAPI'].ManagedObjectivesByTriggerType = {}
 
 	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')

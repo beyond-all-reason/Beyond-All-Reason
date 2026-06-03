@@ -580,10 +580,10 @@ local function validateObjectives(objectives)
 
 	for objectiveID, objective in pairs(objectives) do
 		-- Validate text:
-		if not objective.text then
-			logError("Objective missing text: " .. objectiveID)
-		elseif objective.text == '' then
-			logError("Objective has empty text: " .. objectiveID)
+		if not objective.textKey then
+			logError("Objective missing textKey: " .. objectiveID)
+		elseif objective.textKey == '' then
+			logError("Objective has empty textKey: " .. objectiveID)
 		end
 		-- Type-check all schema fields:
 		for fieldName, fieldType in pairs(objectivesSchemaSettings) do

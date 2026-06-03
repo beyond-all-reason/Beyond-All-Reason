@@ -21,38 +21,6 @@ local objectiveUtils = VFS.Include('luarules/mission_api/objectives.lua')
 
 local triggerTypesWithQuantity = validation.GetTypesWithParameterType(triggersSchema.Parameters, parameterTypes.Types.Quantity)
 
-local function makeObjectiveProgressCallback(objectiveID, amount, nextStage, stages, parameters)
-	local count = 0
-	return function(eventTeamID, eventUnitDefName, eventUnitNames, direction)
-		if parameters.unitDefName and eventUnitDefName ~= parameters.unitDefName then return end
-		if parameters.unitName and not eventUnitNames[parameters.unitName] then return end
-		if eventTeamID ~= parameters.teamID then return end
-
-		-- Track count regardless of stage:
-		count = count + direction
-
-		if next(stages) and not table.contains(stages, GG['MissionAPI'].CurrentStageID) then return end
-
-		local objective = GG['MissionAPI'].Objectives[objectiveID]
-		if objective.completed then return end
-
-		objective.progress = count
-
-		local isComplete
-		if amount == nil then
-			isComplete = true
-		elseif amount == 0 then
-			isComplete = count == 0
-		else
-			isComplete = count >= amount
-		end
-
-		objective.completed = isComplete
-		objectiveUtils.TryAdvanceStage(objective, nextStage)
-
-		objectiveUtils.EchoObjectiveUpdate(objectiveID, objective)
-	end
-end
 
 local function processRawObjectives(rawObjectives, rawTriggers, rawActions, initialStage)
 	local objectives = table.map(rawObjectives, table.copy)
@@ -68,10 +36,15 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, init
 			local triggerParameters = table.copy(objective.trigger.parameters or {})
 
 			if triggerTypesWithQuantity[triggerType] then
-				-- Managed objective: register a callback directly; no trigger or action synthesis.
-				table.ensureTable(GG['MissionAPI'].ObjectiveTriggers, triggerType)
-				table.insert(GG['MissionAPI'].ObjectiveTriggers[triggerType],
-					makeObjectiveProgressCallback(objectiveID, amount, objective.nextStage, objective.stages, triggerParameters))
+				-- Managed objective: register metadata for lookaside lookup; no trigger or action synthesis.
+				table.ensureTable(GG['MissionAPI'].ManagedObjectivesByTriggerType, triggerType)
+				table.insert(GG['MissionAPI'].ManagedObjectivesByTriggerType[triggerType], {
+					objectiveID = objectiveID,
+					amount = amount,
+					nextStage = objective.nextStage,
+					stages = objective.stages,
+					parameters = triggerParameters,
+				})
 			else
 				-- Non-managed objective: synthesize trigger + action as usual.
 				local isRepeating = amount ~= nil
