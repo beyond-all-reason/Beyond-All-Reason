@@ -54,18 +54,16 @@ local function migrateOldConfig()
 	end
 
 	setfenv(chunk, {})
-	-- in case a widgetHandler config exists, we want those to take preference, since they are definitely newer,
-	-- but we still want to use the old ones if there's no entry for that unit
 	local merged = chunk()
-	for i, v in pairs(unitSet) do
-		merged[i] = v
-	end
+	-- in case a widgetHandler config exists, we want those to take preference, since they are definitely newer, but we still want to use
+	-- the old ones if there's no entry for that unit. This is mainly just for users that move config files, for example from an old backup.
+	table.mergeInPlace(merged, unitSet)
 	os.remove(oldConfigPath)
 	return merged
 end
 
 function widget:GetConfigData()
-	unitSet = migrateOldConfig() or unitSet
+	unitSet = migrateOldConfig() or unitSet -- remove this line and the migration function once sufficient time has passed (implemented 2026-06-03)
 	return unitSet
 end
 
