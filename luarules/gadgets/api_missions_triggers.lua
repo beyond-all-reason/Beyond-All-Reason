@@ -500,11 +500,10 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	end)
 
 	local unitDefName = UnitDefs[unitDefID].name
-	local unitNames = trackedUnitNames[unitID] or {}
+	local unitNames = table.copy(trackedUnitNames[unitID] or {})
 
 	local nameOfUnitBeingSpawned = GG['MissionAPI'].nameOfUnitBeingSpawned
 	if nameOfUnitBeingSpawned then
-		unitNames = table.copy(unitNames)
 		unitNames[nameOfUnitBeingSpawned] = true
 	end
 	incrementUnitStatistics(types.UnitsOwned, unitTeam, unitDefName, unitNames)
