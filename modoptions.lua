@@ -2077,6 +2077,24 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         type    = "string",
         def     = "",
     },
+    {
+        key     = "mapmetadata_startboxes_set",
+        name    = "Map Metadata: Startboxes Set",
+        desc    = "Per-team-count startbox arrangements (rect or polygon). Format is: base64url(zlib(json))",
+        hidden  = true,
+        section = "mapmetadata",
+        type    = "string",
+        def     = "",
+    },
+    {
+        key     = "mapmetadata_startbox_override",
+        name    = "Map Metadata: Startbox Override",
+        desc    = "Custom startbox arrangement that overrides the set when its team count matches. Format is: base64url(zlib(json))",
+        hidden  = true,
+        section = "mapmetadata",
+        type    = "string",
+        def     = "",
+    },
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Cheats

@@ -19,8 +19,8 @@ end
 local PolygonLib = VFS.Include("common/lib_polygon.lua")
 
 local EXPLICIT_SOURCES = {
-	mapside = true,
-	autohost_polygon = true,
+	modoption_set = true,
+	modoption_override = true,
 }
 
 local startBoxConfig

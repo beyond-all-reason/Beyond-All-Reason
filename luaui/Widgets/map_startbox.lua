@@ -803,13 +803,16 @@ local function InitStartPolygons()
 		gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID() , false))
 	end
 
-	-- try loading polygon configs from startbox_utilities
+	-- try loading polygon configs from startbox_utilities. Only honor configs
+	-- that came from an explicit modoption source; the hardcoded fallback would
+	-- mask the engine startrect set by the lobby/host, which is the source of
+	-- truth in the no-modoption case.
 	local configLoaded = false
 	local ok, ParseBoxes = pcall(VFS.Include, "luarules/gadgets/include/startbox_utilities.lua")
 	if ok and ParseBoxes then
 		local pok, startBoxConfig, configSource = pcall(ParseBoxes)
-		if pok and startBoxConfig then
-			-- Build set of active allyTeams so we only render polygons for teams in this game
+		local isModoptionSource = configSource == "modoption_set" or configSource == "modoption_override"
+		if pok and startBoxConfig and isModoptionSource then
 			local activeAllyTeams = {}
 			for _, atID in ipairs(Spring.GetAllyTeamList()) do
 				activeAllyTeams[atID] = true
