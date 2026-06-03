@@ -158,7 +158,7 @@ describe("mission_api.validation", function()
 	describe("ValidateObjectives", function()
 		it("passes for a well-formed objective without a trigger", function()
 			validation.ValidateObjectives({
-				basic = { text = "Do the thing.", stages = { 'stageA' } },
+				basic = { textKey = "Do the thing.", stages = { 'stageA' } },
 			})
 			assert.are.same({}, logged)
 		end)
@@ -166,7 +166,7 @@ describe("mission_api.validation", function()
 		it("passes for an objective with a valid inline trigger", function()
 			validation.ValidateObjectives({
 				withTrigger = {
-					text    = "Do the thing.",
+					textKey = "Do the thing.",
 					stages  = { 'stageA' },
 					trigger = {
 						type       = triggerTypes.TimeElapsed,
@@ -177,26 +177,22 @@ describe("mission_api.validation", function()
 			assert.are.same({}, logged)
 		end)
 
-		it("logs an error for missing text", function()
+		it("logs an error for missing textKey", function()
 			validation.ValidateObjectives({ noText = { stages = {} } })
-			assert.is_true(hasError("Objective missing text: noText"))
+			assert.is_true(hasError("Objective missing textKey: noText"))
 		end)
 
-		it("logs an error for empty text", function()
-			validation.ValidateObjectives({ emptyText = { text = "", stages = {} } })
-			assert.is_true(hasError("Objective has empty text: emptyText"))
-		end)
-
-		it("logs an error for text containing the pipe character", function()
-			validation.ValidateObjectives({ pipeText = { text = "bad|text", stages = {} } })
-			assert.is_true(hasError("Objective text cannot contain the | character: pipeText"))
+		it("logs an error for empty textKey", function()
+			validation.ValidateObjectives({ emptyText = { textKey = "", stages = {} } })
+			assert.is_true(hasError("Objective has empty textKey: emptyText"))
 		end)
 
 		it("logs errors for incorrect schema field types", function()
 			validation.ValidateObjectives({
 				badTypes = {
-					text   = "ok",
+					textKey = "ok",
 					amount = 'notANumber',
+					stages = {},
 					coop   = 'notABoolean',
 				},
 			})
@@ -207,7 +203,8 @@ describe("mission_api.validation", function()
 		it("logs an error when the inline trigger has a 'settings' field", function()
 			validation.ValidateObjectives({
 				withSettings = {
-					text    = "ok",
+					textKey = "ok",
+					stages  = {},
 					trigger = {
 						settings   = { repeating = true },
 						type       = triggerTypes.TimeElapsed,
@@ -221,7 +218,8 @@ describe("mission_api.validation", function()
 		it("logs an error when the inline trigger has an 'actions' field", function()
 			validation.ValidateObjectives({
 				withActions = {
-					text    = "ok",
+					textKey = "ok",
+					stages  = {},
 					trigger = {
 						type       = triggerTypes.TimeElapsed,
 						parameters = { gameFrame = 1 },
@@ -235,7 +233,8 @@ describe("mission_api.validation", function()
 		it("logs an error for an inline trigger with a missing type", function()
 			validation.ValidateObjectives({
 				noTypeTrigger = {
-					text    = "ok",
+					textKey = "ok",
+					stages  = {},
 					trigger = { parameters = { gameFrame = 1 } },
 				},
 			})
@@ -245,7 +244,8 @@ describe("mission_api.validation", function()
 		it("logs an error for an inline trigger with an invalid type", function()
 			validation.ValidateObjectives({
 				badTypeTrigger = {
-					text    = "ok",
+					textKey = "ok",
+					stages  = {},
 					trigger = { type = 'notAType' },
 				},
 			})
@@ -255,7 +255,8 @@ describe("mission_api.validation", function()
 		it("logs an error for a missing required inline trigger parameter", function()
 			validation.ValidateObjectives({
 				missingParam = {
-					text    = "ok",
+					textKey = "ok",
+					stages  = {},
 					trigger = {
 						type       = triggerTypes.TimeElapsed,
 						parameters = {},
@@ -273,7 +274,7 @@ describe("mission_api.validation", function()
 		-- so each test calls ValidateObjectives first to populate it.
 
 		it("passes when objectives define stages and initialStage matches", function()
-			validation.ValidateObjectives({ obj = { text = "ok", stages = { 'stageA' } } })
+			validation.ValidateObjectives({ obj = { textKey = "ok", stages = { 'stageA' } } })
 			validation.ValidateInitialStage('stageA')
 			assert.are.same({}, logged)
 		end)
@@ -285,13 +286,13 @@ describe("mission_api.validation", function()
 		end)
 
 		it("logs an error when stages are defined but initialStage is not provided", function()
-			validation.ValidateObjectives({ obj = { text = "ok", stages = { 'stageA' } } })
+			validation.ValidateObjectives({ obj = { textKey = "ok", stages = { 'stageA' } } })
 			validation.ValidateInitialStage(nil)
 			assert.is_true(hasError("Stages are defined, but initialStage is not provided."))
 		end)
 
 		it("logs an error when initialStage does not exist in any objective's stages", function()
-			validation.ValidateObjectives({ obj = { text = "ok", stages = { 'stageA' } } })
+			validation.ValidateObjectives({ obj = { textKey = "ok", stages = { 'stageA' } } })
 			validation.ValidateInitialStage('stageB')
 			assert.is_true(hasError("Initial stage does not exist in stages: stageB"))
 		end)
@@ -396,37 +397,41 @@ describe("mission_api.validation", function()
 
 		describe("UnitDefName", function()
 			it("rejects wrong type", function()
-				actionErrors({
-					type       = actionTypes.SpawnUnits,
-					parameters = { unitDefName = 123, teamID = 0, position = { x = 0, z = 0 } },
+				triggerErrors({
+					type       = triggerTypes.UnitExists,
+					parameters = { unitDefName = 123 },
+					actions    = { 'ok' },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Action: a, Parameter: unitDefName"))
+				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Trigger: t, Parameter: unitDefName"))
 			end)
 
 			it("rejects unknown unit def name", function()
-				actionErrors({
-					type       = actionTypes.SpawnUnits,
-					parameters = { unitDefName = 'noSuch', teamID = 0, position = { x = 0, z = 0 } },
+				triggerErrors({
+					type       = triggerTypes.UnitExists,
+					parameters = { unitDefName = 'noSuch' },
+					actions    = { 'ok' },
 				})
-				assert.is_true(hasError("Invalid unitDefName: noSuch. Action: a, Parameter: unitDefName"))
+				assert.is_true(hasError("Invalid unitDefName: noSuch. Trigger: t, Parameter: unitDefName"))
 			end)
 		end)
 
 		describe("FeatureDefName", function()
 			it("rejects wrong type", function()
-				actionErrors({
-					type       = actionTypes.CreateFeature,
-					parameters = { featureDefName = 123, position = { x = 0, z = 0 } },
+				triggerErrors({
+					type       = triggerTypes.FeatureCreated,
+					parameters = { featureDefName = 123 },
+					actions    = { 'ok' },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Action: a, Parameter: featureDefName"))
+				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Trigger: t, Parameter: featureDefName"))
 			end)
 
 			it("rejects unknown feature def name", function()
-				actionErrors({
-					type       = actionTypes.CreateFeature,
-					parameters = { featureDefName = 'noSuch', position = { x = 0, z = 0 } },
+				triggerErrors({
+					type       = triggerTypes.FeatureCreated,
+					parameters = { featureDefName = 'noSuch' },
+					actions    = { 'ok' },
 				})
-				assert.is_true(hasError("Invalid featureDefName: noSuch. Action: a, Parameter: featureDefName"))
+				assert.is_true(hasError("Invalid featureDefName: noSuch. Trigger: t, Parameter: featureDefName"))
 			end)
 		end)
 
@@ -452,17 +457,17 @@ describe("mission_api.validation", function()
 			it("rejects non-string non-number type", function()
 				actionErrors({
 					type       = actionTypes.SpawnUnits,
-					parameters = { unitDefName = 'armwar', teamID = 0, position = { x = 0, z = 0 }, facing = {} },
+					parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, team = 0, facing = {} } } },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected string or number, got table. Action: a, Parameter: facing"))
+				assert.is_true(hasError("UnitLoadout entry #1, field 'facing': Unexpected parameter type, expected string or number, got table"))
 			end)
 
 			it("rejects invalid facing value", function()
 				actionErrors({
 					type       = actionTypes.SpawnUnits,
-					parameters = { unitDefName = 'armwar', teamID = 0, position = { x = 0, z = 0 }, facing = 'diagonal' },
+					parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, team = 0, facing = 'diagonal' } } },
 				})
-				assert.is_true(hasError("Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'.. Action: a, Parameter: facing"))
+				assert.is_true(hasError("UnitLoadout entry #1, field 'facing': Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'."))
 			end)
 		end)
 
@@ -493,20 +498,22 @@ describe("mission_api.validation", function()
 
 		describe("TeamID", function()
 			it("rejects wrong type", function()
-				actionErrors({
-					type       = actionTypes.SpawnUnits,
-					parameters = { unitDefName = 'armwar', teamID = 'bad', position = { x = 0, z = 0 } },
+				triggerErrors({
+					type       = triggerTypes.UnitExists,
+					parameters = { unitDefName = 'armwar', teamID = 'bad' },
+					actions    = { 'ok' },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Action: a, Parameter: teamID"))
+				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Trigger: t, Parameter: teamID"))
 			end)
 
 			it("rejects invalid team ID", function()
 				Spring.GetTeamAllyTeamID = function() return nil end
-				actionErrors({
-					type       = actionTypes.SpawnUnits,
-					parameters = { unitDefName = 'armwar', teamID = 99, position = { x = 0, z = 0 } },
+				triggerErrors({
+					type       = triggerTypes.UnitExists,
+					parameters = { unitDefName = 'armwar', teamID = 99 },
+					actions    = { 'ok' },
 				})
-				assert.is_true(hasError("Invalid teamID: 99. Action: a, Parameter: teamID"))
+				assert.is_true(hasError("Invalid teamID: 99. Trigger: t, Parameter: teamID"))
 			end)
 		end)
 
@@ -730,9 +737,9 @@ describe("mission_api.validation", function()
 				},
 			}
 			GG['MissionAPI'].Actions = {
-				spawn  = { type = actionTypes.SpawnUnits, parameters = { unitName = 'bot' } },
-				create = { type = actionTypes.CreateFeature, parameters = { featureName = 'rock' } },
-				delete = { type = actionTypes.DestroyFeature, parameters = { featureName = 'rock' } },
+				spawn  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, team = 0, unitName = 'bot' } } } },
+				create = { type = actionTypes.CreateFeatures, parameters = { featureLoadout = { { featureDefName = 'rockdef', x = 0, z = 0, featureName = 'rock' } } } },
+				delete = { type = actionTypes.DestroyFeatures, parameters = { featureName = 'rock' } },
 				add    = { type = actionTypes.AddMarker, parameters = { name = 'flag' } },
 				erase  = { type = actionTypes.EraseMarker, parameters = { name = 'flag' } },
 			}
@@ -745,19 +752,19 @@ describe("mission_api.validation", function()
 		it("logs errors for unit, feature, and marker names that are created-but-not-referenced or referenced-but-not-created",
 			function()
 			GG['MissionAPI'].Actions = {
-				spawnUnused  = { type = actionTypes.SpawnUnits, parameters = { unitName = 'unusedUnit' } },
+				spawnUnused  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, team = 0, unitName = 'unusedUnit' } } } },
 				useUnknown   = { type = actionTypes.DespawnUnits, parameters = { unitName = 'unknownUnit' } },
-				createUnused = { type = actionTypes.CreateFeature, parameters = { featureName = 'unusedRock' } },
-				deleteUnknown = { type = actionTypes.DestroyFeature, parameters = { featureName = 'unknownRock' } },
+				createUnused = { type = actionTypes.CreateFeatures, parameters = { featureLoadout = { { featureDefName = 'rockdef', x = 0, z = 0, featureName = 'unusedRock' } } } },
+				deleteUnknown = { type = actionTypes.DestroyFeatures, parameters = { featureName = 'unknownRock' } },
 				addUnused    = { type = actionTypes.AddMarker, parameters = { name = 'unusedFlag' } },
 				eraseUnknown = { type = actionTypes.EraseMarker, parameters = { name = 'unknownFlag' } },
 			}
 
 			validation.ValidateReferences()
 
-			assert.is_true(hasError("Unit name 'unusedUnit' created, but not referenced by any trigger or action. Created in: action spawnUnused"))
+			assert.is_true(hasError("Unit name 'unusedUnit' created, but not referenced by any trigger or action. Created in: action spawnUnused, unitLoadout entry #1"))
 			assert.is_true(hasError("Unit name 'unknownUnit' not created in any trigger or action. Referenced in: action useUnknown"))
-			assert.is_true(hasError("Feature name 'unusedRock' created, but not referenced by any trigger or action. Created in: action createUnused"))
+			assert.is_true(hasError("Feature name 'unusedRock' created, but not referenced by any trigger or action. Created in: action createUnused, featureLoadout entry #1"))
 			assert.is_true(hasError("Feature name 'unknownRock' not created in any trigger or action. Referenced in: action deleteUnknown"))
 			assert.is_true(hasError("Marker name 'unusedFlag' is not referenced by any action. Referenced in: addUnused"))
 			assert.is_true(hasError("Marker name 'unknownFlag' is not created in any action. Referenced in: eraseUnknown"))
