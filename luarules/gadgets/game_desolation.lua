@@ -16,31 +16,35 @@ if not gadgetHandler:IsSyncedCode() then return false end
 local DESOLATION_QUOTA_RATIO = 0.2
 local REDEEMABLE_CHANCE = 0.5
 local TURRET_GAIA_CHANCE = 0.75
-local SHOCKWAVE_DURATION = 120
+local SHOCKWAVE_DURATION = 45
 local WAIT_DURATION = 30
-local IMPLOSION_DURATION = 360
+local CASCADE_DURATION = 360
 local MAX_POWER_KILL_FRAMES = 90
 local MAX_RANDOM_KILL_FRAMES = 30
-local ORANGE_ARC_DELAY_FRAMES = 15
-local ORANGE_ARC_SPAWN_FRACTION = 0.005
-local ORANGE_ARC_MIN_SPAWNS = 1
-local SHOCKWAVE_ARC_CHANCE = 1
-local SHOCKWAVE_CEG = "tenebrium_implosion"
-local IMPLOSION_SEQUENCE_END_OFFSET = SHOCKWAVE_DURATION + WAIT_DURATION + IMPLOSION_DURATION + MAX_POWER_KILL_FRAMES + MAX_RANDOM_KILL_FRAMES
-local IMPLOSION_QUINT_EASE_BIAS = 4
+local TENEBRIUM_CORE_CEG = "tenebrium_implosion"
+local EXPLOSION_SEQUENCE_END_OFFSET = SHOCKWAVE_DURATION + WAIT_DURATION + CASCADE_DURATION + MAX_POWER_KILL_FRAMES + MAX_RANDOM_KILL_FRAMES
+local EXPLOSION_CUBIC_EASE_BIAS = 3
+local ARC_DANCE_SLICE_COUNT = 12
+local RANDOM_SHUFFLE_OFFSET = 5
+local ARC_DANCE_RESCHEDULE_MIN_FRAMES = 45
+local ARC_DANCE_RESCHEDULE_MAX_FRAMES = 120
+local ARC_DANCE_ORIGIN_CHANCE = 0.03
+local SKIP_DANCE_CHANCE = 0.5
+local ORIGIN_ARC_HEIGHT_ABOVE_GROUND = 20
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local FIRE_STATE_RETURN_FIRE = 1
 local FIRE_STATE_FIRE_AT_WILL = 2
-local DESOLATION_ORANGE_ARC_CEG_PREFIX = "tenebrium_desolation_orange_arc_"
-local ARC_SIZE_NAMES = { "tiny", "small", "medium", "large", "huge" }
-local ARC_SIZE_STEP_INITIAL = 0.5
-local ARC_SIZE_STEP_GROWTH = 1.5
 local TURRET_HOTSPOT_COUNT = 5
 local POWERFUL_TURRET_BIAS = 34
 local DESOLATE_GAIA = 0
 local DESOLATE_CORPSE = 1
 local DESOLATE_HEAP = 2
 local DESOLATE_ERASE = 3
+local ARC_CEGS = {
+	SMALL = "tenebrium_desolation_orange_arc_small",
+	MEDIUM = "tenebrium_desolation_orange_arc_medium",
+	LARGE = "tenebrium_desolation_orange_arc_large",
+}
 
 local CAN_MOVE_PENALTY_MULTIPLIER = 4
 
@@ -63,10 +67,11 @@ local mathRandom = math.random
 local mathMax = math.max
 local mathMin = math.min
 local mathFloor = math.floor
-local mathCeil = math.ceil
 local mathSqrt = math.sqrt
+local mathAtan2 = math.atan2
+local mathPi = math.pi
 local mathDistance2dSquared = math.distance2dSquared
-local cascadeOrigins = {x = 0, z = 0}
+local TWO_PI = mathPi * 2
 
 local gaiaTeam = Spring.GetGaiaTeamID()
 
@@ -74,24 +79,13 @@ local defData = {}
 local commanderDefs = {}
 local actionFrames = {}
 local cegActionFrames = {}
+local arcDanceFrames = {}
+local unitPairs = {}
+local unitAllyTeams = {}
+local allyTeamOrigins = {}
 local desolatedTeams = {}
 local distanceSqCache = {}
-local activeSequences = {}
 local fireStateLockEndFrame = 0
-
-local function getOrangeArcSizeName(unitDef)
-	local size = mathCeil((unitDef.xsize / 2 + unitDef.zsize / 2) / 2)
-	local threshold = ARC_SIZE_STEP_INITIAL
-	local step = ARC_SIZE_STEP_INITIAL
-	for sizeIndex = 1, #ARC_SIZE_NAMES - 1 do
-		if size <= threshold then
-			return ARC_SIZE_NAMES[sizeIndex]
-		end
-		step = step * ARC_SIZE_STEP_GROWTH
-		threshold = threshold + step
-	end
-	return ARC_SIZE_NAMES[#ARC_SIZE_NAMES]
-end
 
 --populate def types
 local function isTurretDef(unitDef)
@@ -131,29 +125,21 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.canMove then
 		data.canMove = true
 	end
-	data.orangeArcSize = getOrangeArcSizeName(unitDef)
 	defData[unitDefID] = data
 end
 
-local function setAllUnitsFireState(fireState)
+local function suspendViolence(suspended)
+	local fireState = suspended and FIRE_STATE_RETURN_FIRE or FIRE_STATE_FIRE_AT_WILL
 	for _, unitID in ipairs(spGetAllUnits()) do
 		if spValidUnitID(unitID) then
 			spGiveOrderToUnit(unitID, CMD_FIRE_STATE, fireState, 0)
 		end
 	end
-end
-
-local function beginImplosionFireStateLock(startFrame)
-	setAllUnitsFireState(FIRE_STATE_RETURN_FIRE)
-	fireStateLockEndFrame = mathMax(fireStateLockEndFrame, startFrame + IMPLOSION_SEQUENCE_END_OFFSET)
-end
-
-local function processImplosionFireStateUnlock(gameFrame)
-	if fireStateLockEndFrame <= 0 or gameFrame < fireStateLockEndFrame then
-		return
+	if suspended then
+		fireStateLockEndFrame = mathMax(fireStateLockEndFrame, Spring.GetGameFrame() + EXPLOSION_SEQUENCE_END_OFFSET)
+	else
+		fireStateLockEndFrame = 0
 	end
-	setAllUnitsFireState(FIRE_STATE_FIRE_AT_WILL)
-	fireStateLockEndFrame = 0
 end
 
 local function chooseFate(unitID)
@@ -212,34 +198,25 @@ local function dndStyleDisadvantageBias(rangeCount, degree)
 	return selection
 end
 
-local function outQuint(t)
-	return 1 - (1 - t) ^ IMPLOSION_QUINT_EASE_BIAS
+local function inCubic(t)
+	return t ^ EXPLOSION_CUBIC_EASE_BIAS
 end
 
-local implosionEase = outQuint
-
-local function getShockwaveRadiusSq(elapsedFrames, farthestDistanceSq)
-	if SHOCKWAVE_DURATION <= 0 or farthestDistanceSq <= 0 then
-		return farthestDistanceSq
-	end
-	local progress = mathMin(1, elapsedFrames / SHOCKWAVE_DURATION)
-	return progress * progress * farthestDistanceSq
+local function outCubic(t)
+	return 1 - (1 - t) ^ EXPLOSION_CUBIC_EASE_BIAS
 end
 
-local function getPowerBiasedVarianceMax(unitPower, minPower, maxPower)
-	if MAX_POWER_KILL_FRAMES <= 0 then
-		return 0
-	end
-	if maxPower <= minPower then
-		return MAX_POWER_KILL_FRAMES
-	end
-	local powerT = (unitPower - minPower) / (maxPower - minPower)
-	return mathFloor(powerT * MAX_POWER_KILL_FRAMES + 0.5)
-end
-
-local function applyKillVariance(frameOffset, unitPower, minPower, maxPower)
+local function getKillVarianceFrames(frameOffset, unitPower, minPower, maxPower)
 	local randomFrames = 0
-	local powerVarianceMax = getPowerBiasedVarianceMax(unitPower, minPower, maxPower)
+	local powerVarianceMax = 0
+	if MAX_POWER_KILL_FRAMES > 0 then
+		if maxPower <= minPower then
+			powerVarianceMax = MAX_POWER_KILL_FRAMES
+		else
+			local powerT = (unitPower - minPower) / (maxPower - minPower)
+			powerVarianceMax = mathFloor(powerT * MAX_POWER_KILL_FRAMES + 0.5)
+		end
+	end
 	if powerVarianceMax > 0 then
 		randomFrames = randomFrames + mathRandom(0, powerVarianceMax)
 	end
@@ -252,142 +229,95 @@ local function applyKillVariance(frameOffset, unitPower, minPower, maxPower)
 	return mathMax(0, frameOffset + randomFrames)
 end
 
-local function getTowardOriginDirection(positionX, positionY, positionZ, originX, originY, originZ)
-	local dirX = originX - positionX
-	local dirY = originY - positionY
-	local dirZ = originZ - positionZ
-	local magnitude = mathSqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
-	if magnitude <= 0.001 then
-		return 0, 1, 0
-	end
-	return dirX / magnitude, dirY / magnitude, dirZ / magnitude
-end
-
-local function spawnOrangeArc(unitID, originX, originY, originZ)
-	if not spValidUnitID(unitID) then
-		return
-	end
-	local positionX, positionY, positionZ = spGetUnitPosition(unitID)
-	if not positionX then
-		return
-	end
-	local unitDefID = spGetUnitDefID(unitID)
-	local unitDefEntry = defData[unitDefID]
-	local sizeName = unitDefEntry and unitDefEntry.orangeArcSize or "small"
-	local cegName = DESOLATION_ORANGE_ARC_CEG_PREFIX .. sizeName
-	local dirX, dirY, dirZ = getTowardOriginDirection(positionX, positionY, positionZ, originX, originY, originZ)
-	spSpawnCEG(cegName, positionX, positionY, positionZ, dirX, dirY, dirZ)
-end
-
-local function shufflePartialTable(tableToShuffle, entryCount)
-	for shuffleIndex = entryCount, 2, -1 do
-		local swapIndex = mathRandom(1, shuffleIndex)
-		tableToShuffle[shuffleIndex], tableToShuffle[swapIndex] = tableToShuffle[swapIndex], tableToShuffle[shuffleIndex]
-	end
-end
-
 local function removeEntrySwap(tableToMutate, removeIndex)
 	local lastIndex = #tableToMutate
 	tableToMutate[removeIndex] = tableToMutate[lastIndex]
 	tableToMutate[lastIndex] = nil
 end
 
-local function processOrangeArcBatch(sequence, gameFrame)
-	if ORANGE_ARC_SPAWN_FRACTION <= 0 then
+local function getArcCegName(distance)
+	
+	if distance <= 50 then
+		return nil
+	end
+	if distance <= 200 then
+		return ARC_CEGS.SMALL
+	end
+	if distance <= 500 then
+		return ARC_CEGS.MEDIUM
+	end
+	if distance <= 1000 then
+		return ARC_CEGS.LARGE
+	end
+	return nil
+end
+
+local function getShuffledPairedIndex(sourceIndex, sliceCount)
+	if sliceCount < 2 then
+		return nil
+	end
+	local targetIndex = sourceIndex + mathRandom(-RANDOM_SHUFFLE_OFFSET, RANDOM_SHUFFLE_OFFSET)
+	targetIndex = mathMax(1, mathMin(sliceCount, targetIndex))
+	if targetIndex == sourceIndex then
+		if sourceIndex == sliceCount then
+			targetIndex = sourceIndex - 1
+		elseif sourceIndex == 1 then
+			targetIndex = sourceIndex + 1
+		elseif mathRandom(1, 2) == 1 then
+			targetIndex = sourceIndex - 1
+		else
+			targetIndex = sourceIndex + 1
+		end
+	end
+	return targetIndex
+end
+
+local function removeUnitPair(unitID)
+	unitPairs[unitID] = nil
+	unitAllyTeams[unitID] = nil
+end
+
+local function buildUnitPairs(unitActions, originX, originZ)
+	local actionCount = #unitActions
+	if actionCount < 2 then
 		return
 	end
 
-	local readyFrameUnits = sequence.arcReadyFrames[gameFrame]
-	if readyFrameUnits then
-		sequence.arcReadyFrames[gameFrame] = nil
-		local eligibleUnits = sequence.arcEligibleUnits
-		local eligibleCount = sequence.arcEligibleCount
-		for unitIndex = 1, #readyFrameUnits do
-			local unitID = readyFrameUnits[unitIndex]
-			if spValidUnitID(unitID) then
-				eligibleCount = eligibleCount + 1
-				eligibleUnits[eligibleCount] = unitID
+	local unitIDsBySlice = {}
+	local sliceAngle = TWO_PI / ARC_DANCE_SLICE_COUNT
+	local rotationAngle = mathRandom() * sliceAngle
+
+	for sliceIndex = 1, ARC_DANCE_SLICE_COUNT do
+		unitIDsBySlice[sliceIndex] = {}
+	end
+
+	for actionIndex = 1, actionCount do
+		local unitID = unitActions[actionIndex].unitID
+		local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+		if unitX then
+			local angle = (mathAtan2(unitX - originX, unitZ - originZ) + rotationAngle) % TWO_PI
+			local sliceIndex = mathFloor(angle / sliceAngle) + 1
+			local sliceUnitIDs = unitIDsBySlice[sliceIndex]
+			sliceUnitIDs[#sliceUnitIDs + 1] = unitID
+		end
+	end
+
+	for sliceIndex = 1, ARC_DANCE_SLICE_COUNT do
+		local sliceUnitIDs = unitIDsBySlice[sliceIndex]
+		local sliceCount = #sliceUnitIDs
+		if sliceCount > 1 then
+			for withinSliceIndex = 1, sliceCount do
+				local targetWithinIndex = getShuffledPairedIndex(withinSliceIndex, sliceCount)
+				unitPairs[sliceUnitIDs[withinSliceIndex]] = sliceUnitIDs[targetWithinIndex]
 			end
 		end
-		sequence.arcEligibleCount = eligibleCount
 	end
 
-	local eligibleUnits = sequence.arcEligibleUnits
-	local eligibleCount = sequence.arcEligibleCount
-	if eligibleCount <= 0 then
-		return
-	end
-
-	local spawnCount = mathMax(ORANGE_ARC_MIN_SPAWNS, mathFloor(eligibleCount * ORANGE_ARC_SPAWN_FRACTION))
-	if spawnCount > eligibleCount then
-		spawnCount = eligibleCount
-	end
-
-	local originX = sequence.originX
-	local originY = sequence.originY
-	local originZ = sequence.originZ
-	local remainingEligibleCount = eligibleCount
-	for spawnIndex = 1, spawnCount do
-		local randomIndex = mathRandom(1, remainingEligibleCount)
-		eligibleUnits[randomIndex], eligibleUnits[remainingEligibleCount] = eligibleUnits[remainingEligibleCount], eligibleUnits[randomIndex]
-		spawnOrangeArc(eligibleUnits[remainingEligibleCount], originX, originY, originZ)
-		remainingEligibleCount = remainingEligibleCount - 1
-	end
-end
-
-local function processSequenceArcs(sequence, elapsedFrames, gameFrame)
-	local maxRadiusSq
-	if elapsedFrames < SHOCKWAVE_DURATION then
-		maxRadiusSq = getShockwaveRadiusSq(elapsedFrames, sequence.farthestDistanceSq)
-	else
-		maxRadiusSq = sequence.farthestDistanceSq
-	end
-
-	local unitsByDistance = sequence.unitsByDistance
-	local nextWaveUnitIndex = sequence.nextWaveUnitIndex
-	local unitCount = #unitsByDistance
-	while nextWaveUnitIndex <= unitCount do
-		local unitEntry = unitsByDistance[nextWaveUnitIndex]
-		if unitEntry.distanceSq > maxRadiusSq then
-			break
-		end
-		local unitID = unitEntry.unitID
-		if spValidUnitID(unitID) then
-			if SHOCKWAVE_ARC_CHANCE > 0 and mathRandom() <= SHOCKWAVE_ARC_CHANCE then
-				spawnOrangeArc(unitID, sequence.originX, sequence.originY, sequence.originZ)
-			end
-			local readyFrame = gameFrame + ORANGE_ARC_DELAY_FRAMES
-			local readyFrameUnits = sequence.arcReadyFrames[readyFrame]
-			if not readyFrameUnits then
-				readyFrameUnits = {}
-				sequence.arcReadyFrames[readyFrame] = readyFrameUnits
-			end
-			readyFrameUnits[#readyFrameUnits + 1] = unitID
-		end
-		nextWaveUnitIndex = nextWaveUnitIndex + 1
-	end
-	sequence.nextWaveUnitIndex = nextWaveUnitIndex
-
-	processOrangeArcBatch(sequence, gameFrame)
-end
-
-local function sequenceHasLivingUnits(sequence)
-	local sequenceUnits = sequence.units
-	for unitIndex = 1, #sequenceUnits do
-		if spValidUnitID(sequenceUnits[unitIndex].unitID) then
-			return true
-		end
-	end
-	return false
-end
-
-local function processActiveSequences(gameFrame)
-	for sequenceIndex = #activeSequences, 1, -1 do
-		local sequence = activeSequences[sequenceIndex]
-		local elapsedFrames = gameFrame - sequence.startFrame
-		processSequenceArcs(sequence, elapsedFrames, gameFrame)
-		if not sequenceHasLivingUnits(sequence) then
-			table.remove(activeSequences, sequenceIndex)
+	for actionIndex = 1, actionCount do
+		local unitID = unitActions[actionIndex].unitID
+		if not unitPairs[unitID] then
+			local targetActionIndex = getShuffledPairedIndex(actionIndex, actionCount)
+			unitPairs[unitID] = unitActions[targetActionIndex].unitID
 		end
 	end
 end
@@ -410,61 +340,144 @@ local function queueCegSpawn(cegName, positionX, positionY, positionZ, frame)
 	frameActions[#frameActions + 1] = { cegName = cegName, x = positionX, y = positionY, z = positionZ }
 end
 
-local function scheduleShockwave(startFrame, originX, originZ, farthestDistanceSq, livingUnits)
-	local groundY = spGetGroundHeight(originX, originZ)
-	local unitsByDistance = {}
-	for unitIndex = 1, #livingUnits do
-		unitsByDistance[unitIndex] = livingUnits[unitIndex]
+local function queueArcDanceFrame(unitID, frame)
+	if not unitPairs[unitID] then
+		return
 	end
-	table.sort(unitsByDistance, function(unitA, unitB)
-		return unitA.distanceSq < unitB.distanceSq
-	end)
-	local sequence = {
-		startFrame = startFrame,
-		originX = originX,
-		originY = groundY,
-		originZ = originZ,
-		farthestDistanceSq = farthestDistanceSq,
-		implosionStartFrame = startFrame + SHOCKWAVE_DURATION + WAIT_DURATION,
-		units = livingUnits,
-		unitsByDistance = unitsByDistance,
-		nextWaveUnitIndex = 1,
-		arcReadyFrames = {},
-		arcEligibleUnits = {},
-		arcEligibleCount = 0,
-	}
-	activeSequences[#activeSequences + 1] = sequence
-	spSpawnCEG(SHOCKWAVE_CEG, originX, groundY, originZ)
-	return sequence
+	local frameActions = arcDanceFrames[frame]
+	if not frameActions then
+		frameActions = {}
+		arcDanceFrames[frame] = frameActions
+	end
+	frameActions[#frameActions + 1] = unitID
 end
 
-local function scheduleWait(sequence)
-	sequence.waitEndFrame = sequence.startFrame + SHOCKWAVE_DURATION + WAIT_DURATION
-	return sequence.waitEndFrame
+local function getOriginArcY(originX, originZ)
+	return spGetGroundHeight(originX, originZ) + ORIGIN_ARC_HEIGHT_ABOVE_GROUND
 end
 
-local function scheduleImplosion(sequence, unitActions)
-	local implosionStartFrame = sequence.implosionStartFrame
+local function getUnitArcPosition(unitID)
+	local _, _, _, arcX, arcY, arcZ = spGetUnitPosition(unitID, false, true)
+	return arcX, arcY, arcZ
+end
+
+local function spawnArcBetween(fromX, fromY, fromZ, toX, toY, toZ)
+	local directionX = toX - fromX
+	local directionY = toY - fromY
+	local directionZ = toZ - fromZ
+	local distance = mathSqrt(directionX * directionX + directionY * directionY + directionZ * directionZ)
+	if distance <= 0 then
+		return false
+	end
+	local cegName = getArcCegName(distance)
+	if not cegName then
+		return false
+	end
+	spSpawnCEG(cegName, fromX, fromY, fromZ, directionX / distance, directionY / distance, directionZ / distance, 0, distance)
+	return true
+end
+
+local function spawnArcDance(unitID)
+	if not spValidUnitID(unitID) then
+		removeUnitPair(unitID)
+		return
+	end
+
+	local unitX, unitY, unitZ = getUnitArcPosition(unitID)
+	if not unitX then
+		removeUnitPair(unitID)
+		return
+	end
+
+	local danceRoll = mathRandom()
+	if danceRoll <= ARC_DANCE_ORIGIN_CHANCE then
+		local allyTeamID = unitAllyTeams[unitID]
+		local origin = allyTeamID and allyTeamOrigins[allyTeamID]
+		if origin then
+			if danceRoll <= SKIP_DANCE_CHANCE then
+				return
+			end
+			if not spawnArcBetween(origin.x, origin.y, origin.z, unitX, unitY, unitZ) then
+				removeUnitPair(unitID)
+			end
+			return
+		end
+	end
+
+	local pairedUnitID = unitPairs[unitID]
+	if not pairedUnitID or not spValidUnitID(pairedUnitID) then
+		removeUnitPair(unitID)
+		return
+	end
+
+	local pairedUnitX, pairedUnitY, pairedUnitZ = getUnitArcPosition(pairedUnitID)
+	if not pairedUnitX then
+		removeUnitPair(unitID)
+		return
+	end
+
+	if not spawnArcBetween(unitX, unitY, unitZ, pairedUnitX, pairedUnitY, pairedUnitZ) then
+		removeUnitPair(unitID)
+	end
+end
+
+local function processArcDance(gameFrame)
+	local scheduledUnitIDs = arcDanceFrames[gameFrame]
+	if not scheduledUnitIDs then
+		return
+	end
+	arcDanceFrames[gameFrame] = nil
+	for unitIndex = 1, #scheduledUnitIDs do
+		local unitID = scheduledUnitIDs[unitIndex]
+		if unitPairs[unitID] then
+			spawnArcDance(unitID)
+			if unitPairs[unitID] and spValidUnitID(unitID) then
+				queueArcDanceFrame(unitID, gameFrame + mathRandom(ARC_DANCE_RESCHEDULE_MIN_FRAMES, ARC_DANCE_RESCHEDULE_MAX_FRAMES))
+			end
+		end
+	end
+end
+
+local function scheduleEvents(startFrame, originX, originZ, unitActions, minPower, maxPower, allyTeamID)
+	suspendViolence(true)
+
+	local groundY = spGetGroundHeight(originX, originZ)
+	allyTeamOrigins[allyTeamID] = { x = originX, y = getOriginArcY(originX, originZ), z = originZ }
+	spSpawnCEG(TENEBRIUM_CORE_CEG, originX, groundY, originZ)
+
+	local explosionStartFrame = startFrame + SHOCKWAVE_DURATION + WAIT_DURATION
 	local actionCount = #unitActions
 	if actionCount == 0 then
 		return
 	end
+
 	if actionCount > 1 then
 		table.sort(unitActions, function(actionA, actionB)
-			local distanceSqA = distanceSqCache[actionA.unitID] or 0
-			local distanceSqB = distanceSqCache[actionB.unitID] or 0
-			return distanceSqA > distanceSqB
+			return (distanceSqCache[actionA.unitID] or 0) < (distanceSqCache[actionB.unitID] or 0)
 		end)
 	end
-	local minPower = sequence.minPower or math.huge
-	local maxPower = sequence.maxPower or -math.huge
+	buildUnitPairs(unitActions, originX, originZ)
+
 	for actionIndex = 1, actionCount do
-		local rankT = actionCount == 1 and 1 or (actionCount - actionIndex) / (actionCount - 1)
+		local cascadeRankT = actionCount == 1 and 1 or (actionCount - actionIndex) / (actionCount - 1)
 		local unitAction = unitActions[actionIndex]
-		local unitDefID = spGetUnitDefID(unitAction.unitID)
-		local unitPower = defData[unitDefID].power or 0
-		local frameOffset = applyKillVariance(mathFloor(implosionEase(1 - rankT) * IMPLOSION_DURATION + 0.5), unitPower, minPower, maxPower)
-		queueDesolationAction(unitAction.unitID, unitAction.fate, implosionStartFrame + frameOffset)
+		local unitPower = defData[spGetUnitDefID(unitAction.unitID)].power or 0
+		local danceFrameOffset = getKillVarianceFrames(
+			mathFloor(inCubic(1 - cascadeRankT) * SHOCKWAVE_DURATION + 0.5),
+			unitPower,
+			minPower,
+			maxPower
+		)
+		local desolationFrameOffset = getKillVarianceFrames(
+			mathFloor(outCubic(1 - cascadeRankT) * CASCADE_DURATION + 0.5),
+			unitPower,
+			minPower,
+			maxPower
+		)
+
+		unitAllyTeams[unitAction.unitID] = allyTeamID
+		queueArcDanceFrame(unitAction.unitID, startFrame + danceFrameOffset)
+		queueDesolationAction(unitAction.unitID, unitAction.fate, explosionStartFrame + desolationFrameOffset)
 	end
 end
 
@@ -512,14 +525,16 @@ local function sortUnitsByDesirabilityAndDistance(unitsTable, positionTable)
 end
 
 local function desolateTeam(teamID)
-	Spring.Echo("Team Desolated!", teamID)
 	desolatedTeams[teamID] = true
+	local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(teamID)
+	local origin = allyTeamOrigins[allyTeamID]
+	local originX = origin and origin.x or 0
+	local originZ = origin and origin.z or 0
 	local teamUnits = spGetTeamUnits(teamID)
 	local turrets = {}
 	local hotspots = {}
 	local currentFrame = Spring.GetGameFrame()
 	local currentPower = 0
-	local farthestDistanceSq = 0
 
 	--got turrets??
 	--Collect Distances
@@ -533,9 +548,7 @@ local function desolateTeam(teamID)
 		currentPower = currentPower + unitDefEntry.power
 
 		local x, y, z = spGetUnitPosition(unitID)
-		local distanceSq = mathDistance2dSquared(x, z, cascadeOrigins.x, cascadeOrigins.z)
-		distanceSqCache[unitID] = distanceSq
-		farthestDistanceSq = math.max(farthestDistanceSq, distanceSq)
+		distanceSqCache[unitID] = mathDistance2dSquared(x, z, originX, originZ)
 	end
 	turrets = sortUnitsByPower(turrets)
 
@@ -555,13 +568,11 @@ local function desolateTeam(teamID)
 
 	local erasurePowerTargetThreshold = currentPower * DESOLATION_QUOTA_RATIO
 	local unitActions = {}
-	local livingUnits = {}
 	local minPower = math.huge
 	local maxPower = -math.huge
 
 	local function rememberUnitPower(unitID)
-		local unitDefID = spGetUnitDefID(unitID)
-		local unitPower = defData[unitDefID].power or 0
+		local unitPower = defData[spGetUnitDefID(unitID)].power or 0
 		if unitPower < minPower then
 			minPower = unitPower
 		end
@@ -579,10 +590,6 @@ local function desolateTeam(teamID)
 		local unitID = teamUnits[randomSelection]
 		local unitPower = rememberUnitPower(unitID)
 		unitActions[#unitActions + 1] = { unitID = unitID, fate = DESOLATE_ERASE }
-		livingUnits[#livingUnits + 1] = {
-			unitID = unitID,
-			distanceSq = distanceSqCache[unitID] or 0,
-		}
 		currentPower = currentPower - unitPower
 		removeEntrySwap(teamUnits, randomSelection)
 	end
@@ -592,18 +599,9 @@ local function desolateTeam(teamID)
 		rememberUnitPower(unitID)
 		local fate = chooseFate(unitID)
 		unitActions[#unitActions + 1] = { unitID = unitID, fate = fate }
-		livingUnits[#livingUnits + 1] = {
-			unitID = unitID,
-			distanceSq = distanceSqCache[unitID] or 0,
-		}
 	end
 
-	local sequence = scheduleShockwave(currentFrame, cascadeOrigins.x, cascadeOrigins.z, farthestDistanceSq, livingUnits)
-	sequence.minPower = minPower
-	sequence.maxPower = maxPower
-	beginImplosionFireStateLock(currentFrame)
-	scheduleWait(sequence)
-	scheduleImplosion(sequence, unitActions)
+	scheduleEvents(currentFrame, originX, originZ, unitActions, minPower, maxPower, allyTeamID)
 end
 
 local function desolateCommand(cmd, line, words, playerID)
@@ -624,13 +622,18 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if defData[unitDefID].isCommander then
-		cascadeOrigins.x, _, cascadeOrigins.z = spGetUnitPosition(unitID)
+		local originX, _, originZ = spGetUnitPosition(unitID)
+		if originX then
+			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam)
+			allyTeamOrigins[allyTeamID] = { x = originX, y = getOriginArcY(originX, originZ), z = originZ }
+		end
 	end
 end
 
 function gadget:GameFrame(gameFrame)
-	processActiveSequences(gameFrame)
-	processImplosionFireStateUnlock(gameFrame)
+	if fireStateLockEndFrame > 0 and gameFrame >= fireStateLockEndFrame then
+		suspendViolence(false)
+	end
 	local scheduledCegActions = cegActionFrames[gameFrame]
 	if scheduledCegActions then
 		cegActionFrames[gameFrame] = nil
@@ -639,6 +642,7 @@ function gadget:GameFrame(gameFrame)
 			spSpawnCEG(action.cegName, action.x, action.y, action.z)
 		end
 	end
+	processArcDance(gameFrame)
 	local frameActions = actionFrames[gameFrame]
 	if not frameActions then
 		return
@@ -646,6 +650,7 @@ function gadget:GameFrame(gameFrame)
 	actionFrames[gameFrame] = nil
 	for actionIndex = 1, #frameActions do
 		local action = frameActions[actionIndex]
+		removeUnitPair(action.unitID)
 		desolateUnit(action.unitID, action.fate)
 	end
 end
