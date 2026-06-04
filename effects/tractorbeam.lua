@@ -69,12 +69,9 @@ return {
         particlelife       = 8,
         particlelifespread = 4,
         particlesize       = 5,
-        particlesizegrowth = -0.4,
         particlesizespread = 3,
         pos                = [[0, 0, 0]],
         texture            = [[flare2]],
-        vel                = 2.5,
-        velspread          = 1.2,
       },
     },
 
