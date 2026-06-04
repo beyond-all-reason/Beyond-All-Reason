@@ -25,6 +25,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local spGetRealBuildQueue = Spring.GetRealBuildQueue
+	local spGetUnitStates = Spring.GetUnitStates
 	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 
@@ -54,7 +55,7 @@ if gadgetHandler:IsSyncedCode() then
 		while count > 0 do
 			local opts = DEQUEUE_OPTS
 			if count >= 100 then
-			count = count - 100
+				count = count - 100
 				opts = opts + CMD.OPT_SHIFT + CMD.OPT_CTRL
 			elseif count >= 20 then
 				count = count - 20
@@ -75,8 +76,8 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 
-		-- Dequeue build order by sending build command to factory to minimize number of commands sent
-		-- As opposed to removing each build command individually
+		-- Dequeue build order by sending build command to factory to minimize number of commands sent.
+		-- As opposed to removing each build command individually.
 		local queue = spGetRealBuildQueue(unitID)
 		if queue ~= nil then
 			local total = 0
@@ -84,14 +85,27 @@ if gadgetHandler:IsSyncedCode() then
 				local _, count = next(buildPair, nil)
 				total = total + count
 			end
+
 			local keepDefID
-			if total > 1 then
+			local states = spGetUnitStates(unitID)
+			local repeatOn = states and states["repeat"]
+
+			-- Lab mode check
+			-- Normal mode:
+			-- Keep one copy of the currently-building unit to avoid accidentally canceling
+			-- an almost-complete unit.
+			--
+			-- Repeat mode:
+			-- Do not keep the current unit, because preserving it allows the factory
+			-- to continue producing forever on repeat after "Stop Production" is pressed.
+			if total > 1 and not repeatOn then
 				local firstCommand = Spring.GetFactoryCommands(unitID, 1)
 				local firstID = firstCommand[1]['id']
 				if firstID < 0 then
 					keepDefID = -firstID
 				end
 			end
+
 			for _, buildPair in ipairs(queue) do
 				local buildUnitDefID, count = next(buildPair, nil)
 				if keepDefID == buildUnitDefID then
