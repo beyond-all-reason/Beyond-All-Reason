@@ -79,7 +79,9 @@ function script.Create()
         local passengerData = CargoHandler.FindSlot(passengerID, cargo)
         if passengerData then
             local count = CargoHandler.Register(passengerID, passengerData, cargo)
+            CargoHandler.BeginLoading(cargo)
             TransportAnimator.Snap(passengerData)
+            CargoHandler.EndLoading(cargo)
             if count == 1 then TransportAnimator.HasCargo(true) end
         end
     end

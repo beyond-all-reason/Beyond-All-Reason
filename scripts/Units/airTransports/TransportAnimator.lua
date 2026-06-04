@@ -107,13 +107,8 @@ end
 function TransportAnimator.WatchBeams()
 	SetSignalMask(SIG_WATCH)
 	-- reusable local vars to avoid allocations in this hot loop
-	local velocityX, velocityY, velocityZ
 	local beamPieceX, beamPieceY, beamPieceZ
 	while true do
-		if (cargo.loadingCount + cargo.unloadingCount) > 0 then
-			velocityX, velocityY, velocityZ = SpGetUnitVelocity(unitID)
-			SpSetUnitVelocity(unitID, velocityX * ratio * ratio, velocityY * ratioY * ratioY, velocityZ * ratio * ratio)
-		end
 		for passengerID, passengerData in pairs(cargo.passengers) do
 			if passengerData.beamPieces then
 				for _, beamPiece in ipairs(passengerData.beamPieces) do

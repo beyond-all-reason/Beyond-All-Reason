@@ -50,6 +50,7 @@ function CargoHandler.Init(setup)
 		transporterMaxSpeed		= UnitDefs[Spring.GetUnitDefID(transporterID)].speed, -- base max speed of the transporter, used for speed calculations
 		transporterAccRate		= UnitDefs[Spring.GetUnitDefID(transporterID)].maxAcc, -- base acceleration of the transporter, used for speed calculations
 		transporterDecRate		= UnitDefs[Spring.GetUnitDefID(transporterID)].maxDec, -- base deceleration of the transporter, used for speed calculations
+		transporterTurnRate		= UnitDefs[Spring.GetUnitDefID(transporterID)].turnRate, -- base turn rate of the transporter, used for speed calculations
 		loadedCommandersCount	= 0,							-- number of loaded commanders
 		passengersTotalWeight	= 0,                            -- sum of "weights" of all loaded units, used for speed slowing
 		transporterSpeedModMode = tonumber(UnitDefs[Spring.GetUnitDefID(transporterID)].customParams.transporterspeedmodmode or 0),
@@ -68,7 +69,8 @@ function CargoHandler.Init(setup)
 		slotSizes               = slotSizes,                    -- set of slot sizes available, eg { [1]=true, [4]=true }
 		loadingCount            = 0,                            -- number of load animations in progress
 		unloadingCount          = 0,                            -- number of unload animations in progress
-		currentMaxPassengerHeight = function() -- helper to get the current max passenger height for anim purposes, based on current cargo
+	}
+	cargo.currentMaxPassengerHeight = function() -- helper to get the current max passenger height for anim purposes, based on current cargo
 			local maxHeight = 0
 			for _, passengerData in pairs(cargo.passengers) do
 				if passengerData.height and passengerData.height > maxHeight then
@@ -76,14 +78,14 @@ function CargoHandler.Init(setup)
 				end
 			end
 			return maxHeight
-		end,
-	}
+		end
 
 	-- set some initial unit rules params for the gadget to read, and for UI display
 	for size, bool in pairs (slotSizes) do
 		local rulesParamString = "transporterHasSlotOfSize"..size
 		SpSetUnitRulesParam(transporterID, rulesParamString, bool)
 	end
+	CargoHandler.SetSpeedDamping(1.0, cargo, true) -- make sure no silent damping stays after a reload, will be reapplied if necessary.
 	SpSetUnitRulesParam(transporterID, "transporterSeats",    cargo.transporterSeats) -- used by gadget to determine if a passenger can be loaded, and by anim handler to determine whether to show hover effect
 	SpSetUnitRulesParam(transporterID, "transporterUsedSeats", 0) -- used by gadget to determine if a passenger can be loaded/unloaded, and by anim handler to determine whether to show hover effect
 	CargoHandler.CanLoad(true)
@@ -126,12 +128,15 @@ end
 function CargoHandler.EndLoading(cargo)
 	cargo.loadingCount = math.max(0, cargo.loadingCount - 1)
 	if cargo.loadingCount == 0 then
+		local speedMod = TransportAPI.CalculateTransporterSpeed(cargo)
+		CargoHandler.SetSpeedDamping(speedMod, cargo, true)
 		CargoHandler.CanUnload(true)
 	end
 end
 
 function CargoHandler.BeginUnloading(cargo)
 	cargo.unloadingCount = cargo.unloadingCount + 1
+	CargoHandler.SetSpeedDamping(0.2, cargo, false)
 	if cargo.unloadingCount == 1 then
 		CargoHandler.CanLoad(false)
 	end
@@ -274,8 +279,17 @@ function CargoHandler.ReleaseSlot(slotID, cargo)
 	end
 end
 
+function CargoHandler.SetSpeedDamping(speedMod, cargo, changeAltitude)
+	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "maxSpeed", speedMod * cargo.transporterMaxSpeed)
+	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "accRate", speedMod * cargo.transporterAccRate)
+	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "turnRate", speedMod * cargo.transporterTurnRate)
+	if changeAltitude then
+		Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "wantedHeight", math.max(cargo.currentMaxPassengerHeight() + 10, speedMod * cargo.transporterAltitude))	
+	end
+end
+
 -- add a passenger entry to cargo.passengers and update seat/count accounting
-function CargoHandler.Register(passengerID, passengerData, cargo)
+function CargoHandler.Register(passengerID, passengerData, cargo) -- marks the start of begin loading
 	cargo.passengers[passengerID] = passengerData
 	cargo.count     = cargo.count + 1
 	cargo.transporterUsedSeats = cargo.transporterUsedSeats + (cargo.slots[passengerData.slotID].size or 0)
@@ -283,16 +297,12 @@ function CargoHandler.Register(passengerID, passengerData, cargo)
 	cargo.passengersTotalWeight = cargo.passengersTotalWeight + (TransportAPI.GetPassengerWeight(passengerID, cargo) or 0)
 	cargo.loadedCommandersCount = cargo.loadedCommandersCount + (TransportAPI.IsPassengerCommander(passengerID) and 1 or 0)
 	local speedMod = TransportAPI.CalculateTransporterSpeed(cargo)
-	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "maxWantedSpeed", speedMod * cargo.transporterMaxSpeed)
-	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "maxSpeed", speedMod * cargo.transporterMaxSpeed)
-	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "accRate", speedMod * cargo.transporterAccRate)
-	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "decRate", speedMod * cargo.transporterDecRate)
-	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "wantedHeight", math.max(cargo.currentMaxPassengerHeight() + 10, speedMod * cargo.transporterAltitude))
+	CargoHandler.SetSpeedDamping(0.2, cargo, false)
 	return cargo.count
 end
 
 -- remove a passenger entry from cargo.passengers, release its slot, and update seat/count accounting
-function CargoHandler.Unregister(passengerID, cargo)
+function CargoHandler.Unregister(passengerID, cargo) -- marks the end of unloading
 	local passengerData = cargo.passengers[passengerID]
 	if passengerData and passengerData.slotID then
 		cargo.transporterUsedSeats = math.max(0, cargo.transporterUsedSeats - (cargo.slots[passengerData.slotID].size or 0))
@@ -304,10 +314,6 @@ function CargoHandler.Unregister(passengerID, cargo)
 	cargo.passengersTotalWeight = math.max(0, cargo.passengersTotalWeight - (TransportAPI.GetPassengerWeight(passengerID,cargo) or 0))
 	cargo.loadedCommandersCount = math.max(0, cargo.loadedCommandersCount - (TransportAPI.IsPassengerCommander(passengerID) and 1 or 0))
 	local speedMod = TransportAPI.CalculateTransporterSpeed(cargo)
-	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "maxWantedSpeed", speedMod * cargo.transporterMaxSpeed)
-	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "maxSpeed", speedMod * cargo.transporterMaxSpeed)
-	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "accRate", speedMod * cargo.transporterAccRate)
-	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "decRate", speedMod * cargo.transporterDecRate)
-	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "wantedHeight", math.max(cargo.currentMaxPassengerHeight() + 10, speedMod * cargo.transporterAltitude))	
+	CargoHandler.SetSpeedDamping(speedMod, cargo, true)
 	return cargo.count
 end
