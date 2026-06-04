@@ -215,7 +215,7 @@ local function BuggerOff(x, y, z, padDefID, transporterID) -- prolly needs to fi
 				if length > 0 then
 					dirX, dirY, dirZ = dirX / length, dirY / length, dirZ / length
 				end
-				spSetUnitMoveGoal(unitID, x-dirX*padSize, y, z-dirZ*padSize)
+				spSetUnitMoveGoal(unitID, x-dirX*padSize, y, z-dirZ*padSize, 8)
 			end
 		else
 		end
