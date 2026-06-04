@@ -3,8 +3,8 @@ function widget:GetInfo()
         name    = "Curtesy Pause",
         desc    = "Client-side courtesy countdown before your own unpause",
         author  = "26Projects",
-        version = "2.0",
-        enabled = false,
+        version = "3.0",
+        enabled = true,
     }
 end
 
@@ -64,6 +64,7 @@ local allowNextRealUnpause = false
 local lastPausedState = true
 
 local ignoreTextCommandFrames = 0
+local passingThroughPauseAction = false
 
 local lastChatTime = -99999
 local lastPauseCommandTime = -99999
@@ -168,6 +169,27 @@ local function ArmLocalUnpause(command)
     localPauseCommandTime = GetTime()
 end
 
+local function PauseAction(_, _, args)
+    if passingThroughPauseAction then
+        return
+    end
+
+    local command = "pause"
+
+    if args and args[1] then
+        command = command .. " " .. tostring(args[1])
+    end
+
+    ArmLocalUnpause(command)
+
+    -- Registering an action for "pause" can intercept the typed /pause command.
+    -- Pass it back to the engine explicitly so normal pause ownership/toggle
+    -- behavior still happens.
+    passingThroughPauseAction = true
+    Spring.SendCommands(command)
+    passingThroughPauseAction = false
+end
+
 local function SendCountdownChat(text)
     local time = GetTime()
 
@@ -253,7 +275,12 @@ end
 
 function widget:Initialize()
     lastPausedState = IsPaused()
+    widgetHandler:AddAction("pause", PauseAction, nil, "t")
     Spring.Echo("[Courtesy Pause] Widget v2.0 loaded")
+end
+
+function widget:Shutdown()
+    widgetHandler:RemoveAction("pause")
 end
 
 --------------------------------------------------------------------------------
@@ -282,9 +309,11 @@ function widget:Update(dt)
         if allowNextRealUnpause then
             -- This was the widget's own final unpause.
             allowNextRealUnpause = false
-        elseif LocalUnpauseArmIsFresh() then
+        elseif (enableInSinglePlayer and IsOnlyHumanPlayer()) or LocalUnpauseArmIsFresh() then
             -- This client recently issued /pause, and that command really
-            -- unpaused the game. Re-pause once, then run the courtesy timer.
+            -- unpaused the game. In single player, the local user is the only
+            -- possible unpause source, so the arm hook is not required.
+            -- Re-pause once, then run the courtesy timer.
             ClearLocalUnpauseArm()
 
             if SendPauseCommand("pause 1") and StartCountdown() then
@@ -312,7 +341,7 @@ function widget:Update(dt)
                 currentStep = currentStep + 1
 
                 if steps[currentStep] then
-                    SendCountdownChat("Unpausing in " .. steps[currentStep] .. "...")
+                    SendCountdownChat(steps[currentStep] .. "...")
                     PlayTick()
                 else
                     countdownActive = false
