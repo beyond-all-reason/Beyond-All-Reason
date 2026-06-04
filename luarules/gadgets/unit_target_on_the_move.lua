@@ -636,7 +636,9 @@ if gadgetHandler:IsSyncedCode() then
 			--tracy.ZoneEnd()
 			return true
 		elseif cmdID == CMD_UNIT_CANCEL_TARGET then
-			if unitData then
+			if not unitData then
+				removeUnit(unitID) -- Force clear drawings in unsynced when synced holds no data.
+			else
 				if nParams == 0 then
 					removeUnit(unitID)
 				elseif nParams == 1 and cmdOptions.alt then
