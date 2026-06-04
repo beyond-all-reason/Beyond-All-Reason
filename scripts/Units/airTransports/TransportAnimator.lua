@@ -40,14 +40,47 @@ local function isDead(id) -- helper to check if a unit is dead or invalid.
 end
 
 -- call a unit script function by name, trying LUS first then COB
-local function callUnitScript(id, funcName)
+local function callUnitScriptOnLoad(id)
 	local lusEnv = Spring.UnitScript.GetScriptEnv(id)
-	if lusEnv and lusEnv["script"] and lusEnv["script"][funcName] then
-		lusEnv["script"][funcName]()
+	if lusEnv and lusEnv["script"] then
+		if lusEnv["script"]["BeingLoaded"] then
+			lusEnv["script"]["BeingLoaded"]()
+		elseif lusEnv["script"]["StopMoving"] then
+			lusEnv["script"]["StopMoving"]()
+		end
 	else
-		local cobFuncID = Spring.GetCOBScriptID(id, funcName)
-		if cobFuncID then
-			Spring.CallCOBScript(id, cobFuncID, 1)
+		local cobFuncIDBeingLoaded = Spring.GetCOBScriptID(id, "BeingLoaded")
+		local cobFuncIDStopMoving = Spring.GetCOBScriptID(id, "StopMoving")
+		if cobFuncIDBeingLoaded then
+			Spring.CallCOBScript(id, cobFuncIDBeingLoaded, 1)
+		elseif cobFuncIDStopMoving then
+			Spring.CallCOBScript(id, cobFuncIDStopMoving, 1)
+		end
+	end
+end
+
+local function callUnitScriptOnUnload(id)
+	local lusEnv = Spring.UnitScript.GetScriptEnv(id)
+	if lusEnv and lusEnv["script"] then
+		if lusEnv["script"]["BeingUnloaded"] then
+			lusEnv["script"]["BeingUnloaded"]()
+		elseif lusEnv["script"]["StartMoving"] then
+			local Q = Spring.GetUnitCommands(transporterID, 1)
+			if Q[1] then -- only call StartMoving if the unit has a move order queued, to avoid interrupting other scripts (e.g. building placement)
+				lusEnv["script"]["StartMoving"]()
+			end
+		end
+	else
+		local cobFuncIDBeingUnloaded = Spring.GetCOBScriptID(id, "BeingUnloaded")
+		local cobFuncIDStartMoving = Spring.GetCOBScriptID(id, "StartMoving")
+
+		if cobFuncIDBeingUnloaded then
+			Spring.CallCOBScript(id, cobFuncIDBeingUnloaded, 1)
+		elseif cobFuncIDStartMoving then
+			local Q = Spring.GetUnitCommands(transporterID, 1)
+			if Q[1] then -- only call StartMoving if the unit has a move order queued, to avoid interrupting other scripts (e.g. building placement)
+				Spring.CallCOBScript(id, cobFuncIDStartMoving, 1)
+			end
 		end
 	end
 end
@@ -144,7 +177,7 @@ function TransportAnimator.Load(passengerData, doAnim)
 
 	local passengerPosX, passengerPosY, passengerPosZ = SpGetUnitPosition(passengerData.id)
 	local passengerRotX, passengerRotY, passengerRotZ = SpGetUnitRotation(passengerData.id)
-	callUnitScript(passengerData.id, "StopMoving")
+	callUnitScriptOnLoad(passengerData.id)
 
 	-- slot stays at rest position throughout; passenger moves up to meet it
 	resetSlot(passengerData.slotID)
@@ -283,10 +316,7 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 			if groundHeight < 0 then
 				Spring.SetUnitPhysicalStateBit(passengerData.id, 512 + 256) -- ensure correct water/land state after unloading
 			end
-			local Q = Spring.GetUnitCommands(passengerData.id, 1)
-			if Q[1] then
-				callUnitScript(passengerData.id, "StartMoving")
-			end
+			callUnitScriptOnUnload(passengerData.id)
 		end
 	end
 
