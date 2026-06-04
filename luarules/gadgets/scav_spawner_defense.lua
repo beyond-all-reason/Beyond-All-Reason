@@ -148,6 +148,13 @@ if gadgetHandler:IsSyncedCode() then
 	local spawnQueue = {}
 	local deathQueue = {}
 	local bossResistance = {}
+	local bossStagger = {
+		Health = config.bossStagger.health,
+		CurrentHealth = config.bossStagger.health - 1,
+		Time = config.bossStagger.time,
+		CurrentTimer = config.bossStagger.time + 1,
+		currentlyStaggered = false,
+	}
 	local bossIDs = {}
 	local bosses = {resistances = bossResistance, statuses = {}, playerDamages = {}}
 	local scavTeamID = Spring.Utilities.GetScavTeamID()
@@ -180,6 +187,17 @@ if gadgetHandler:IsSyncedCode() then
 		needsregroup = false,
 		needsrefresh = true,
 	}
+
+	UnitDefStaggerMultiplier = {}
+	for udefID, def in ipairs(UnitDefs) do
+		if def.customParams.bossStaggerMultiplier then
+			UnitDefStaggerMultiplier[udefID] = tonumber(def.customParams.bossStaggerMultiplier)
+		else
+			UnitDefStaggerMultiplier[udefID] = 1
+		end
+	end
+
+
 	CommandersPopulation = 0
 	DecoyCommandersPopulation = 0
 	--FrontbusterPopulation = 0
@@ -385,6 +403,13 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxXP = nextDifficulty.maxXP
 		config.angerBonus = nextDifficulty.angerBonus
 		config.bossTime = math.ceil(nextDifficulty.bossTime/(endlessLoopCounter/2))
+		bossStagger = {
+			Health = nextDifficulty.bossStagger.health,
+			CurrentHealth = nextDifficulty.bossStagger.health - 1,
+			Time = nextDifficulty.bossStagger.time,
+			CurrentTimer = nextDifficulty.bossStagger.time + 1,
+			currentlyStaggered = false,
+		}
 
 		bossTime = (config.bossTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.scavPerPlayerMultiplier))+(config.maxBurrows*config.scavPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8)))*config.scavSpawnMultiplier
@@ -1070,6 +1095,46 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		if SetCount(bossIDs) > 0 then
+			
+			if bossStagger.currentlyStaggered == false then
+				
+				if bossStagger.CurrentHealth > 0 then
+					SetGameRulesParam("scavBossStaggerPercentage", math.ceil((bossStagger.CurrentHealth/bossStagger.Health)*100))
+					for bossID, _ in pairs(bossIDs) do
+						Spring.SetUnitHealth(bossID, {paralyze = 0})
+					end
+				else
+					bossStagger.currentlyStaggered = true
+					bossStagger.CurrentTimer = bossStagger.Time + 0
+					SetGameRulesParam("scavBossStaggerPercentage", math.ceil((1 - (bossStagger.CurrentTimer/bossStagger.Time))*100))
+				end
+			end
+
+			if bossStagger.currentlyStaggered == true then
+				bossStagger.CurrentTimer = bossStagger.CurrentTimer - 1
+				if bossStagger.CurrentTimer > 0 then
+					SetGameRulesParam("scavBossStaggerPercentage", math.ceil((1 - (bossStagger.CurrentTimer/bossStagger.Time))*100))
+					for bossID, _ in pairs(bossIDs) do
+						Spring.SetUnitHealth(bossID, {paralyze = 16000000})
+					end
+				else
+					bossStagger.currentlyStaggered = false
+					bossStagger.Time = bossStagger.Time + 5
+					bossStagger.CurrentTimer = bossStagger.Time + 0
+					bossStagger.Health = bossStagger.Health*1.1
+					bossStagger.CurrentHealth = bossStagger.Health
+					SetGameRulesParam("scavBossStaggerPercentage", math.ceil((bossStagger.CurrentHealth/bossStagger.Health)*100))
+				end
+			end
+
+			if bossStagger.currentlyStaggered == false and bossStagger.CurrentHealth <= 0 then
+				bossStagger.CurrentTimer = bossStagger.CurrentTimer - 1
+			end
+
+			SetGameRulesParam("scavBossStaggerActive", bossStagger.currentlyStaggered)
+		end
+
 		SetGameRulesParam("scavBossHealth", math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100)))
 		SetGameRulesParam("pveBossInfo", Json.encode(bosses))
 	end
@@ -1676,7 +1741,7 @@ if gadgetHandler:IsSyncedCode() then
 				attackerDefID = tostring(attackerDefID)
 				if not bossResistance[attackerDefID] then
 					bossResistance[attackerDefID] = {
-						damage = damage * 4 * config.bossResistanceMult,
+						damage = damage * 5 * config.bossResistanceMult,
 						notify = 0
 					}
 				end
@@ -1690,7 +1755,20 @@ if gadgetHandler:IsSyncedCode() then
 					damage = damage - (damage * resistPercent)
 
 				end
-				bossResistance[attackerDefID].damage = bossResistance[attackerDefID].damage + (damage * 4 * config.bossResistanceMult)
+
+				if UnitDefStaggerMultiplier[attackerDefID] then
+					bossStagger.CurrentHealth = bossStagger.CurrentHealth - ((math.max(damage*0.25, math.min((damage * (1-resistPercent) * 2), damage)) / nTotalBosses) * UnitDefStaggerMultiplier[attackerDefID])
+				else
+					bossStagger.CurrentHealth = bossStagger.CurrentHealth - (math.max(damage*0.25,math.min((damage * (1-resistPercent) * 2), damage)) / nTotalBosses)
+				end
+
+				if bossStagger.currentlyStaggered then
+					damage = damage - (damage * resistPercent * 0.5)
+				else
+					damage = damage - (damage * resistPercent)
+				end
+
+				bossResistance[attackerDefID].damage = bossResistance[attackerDefID].damage + (damage * 5 * config.bossResistanceMult)
 				bossResistance[attackerDefID].percent = resistPercent
 			else
 				damage = 1
@@ -1785,7 +1863,7 @@ if gadgetHandler:IsSyncedCode() then
 			if curH and maxH then
 				curH = math.max(curH, maxH*0.05)
 				local spawnChance = math.max(0, math.ceil(curH/maxH*10000))
-				if mRandom(0,spawnChance) == 1 then
+				if mRandom(0,spawnChance) == 1 and not bossStagger.currentlyStaggered then
 					SpawnMinions(unitID, Spring.GetUnitDefID(unitID))
 					SpawnMinions(unitID, Spring.GetUnitDefID(unitID))
 				end
@@ -1941,11 +2019,13 @@ if gadgetHandler:IsSyncedCode() then
 					lastBackupSpawn = Spring.GetGameFrame()
 				}
 				SetUnitBlocking(bossID, false, false)
-				for burrowID, _ in pairs(burrows) do
-					if mRandom() < config.spawnChance then
-						SpawnRandomOffWaveSquad(burrowID)
-					else
-						SpawnRandomOffWaveSquad(burrowID)
+				if nSpawnedBosses == 1 then
+					for burrowID, _ in pairs(burrows) do
+						if mRandom() < config.spawnChance then
+							SpawnRandomOffWaveSquad(burrowID)
+						else
+							SpawnRandomOffWaveSquad(burrowID)
+						end
 					end
 				end
 				Spring.SetGameRulesParam("BossFightStarted", 1)

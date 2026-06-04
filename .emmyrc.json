@@ -1,82 +1,103 @@
 {
-	"$schema": "https://raw.githubusercontent.com/EmmyLuaLs/emmylua-analyzer-rust/main/crates/emmylua_code_analysis/resources/schema.json",
-	"completion": {
-		"autoRequireSeparator": "/"
-	},
-	"diagnostics": {
-		"disable": ["duplicate-set-field"],
-		"globals": [
-			"Turn",
-			"Move",
-			"Spin",
-			"StopSpin",
-			"WaitForTurn",
-			"WaitForMove",
-			"Hide",
-			"Show",
-			"Explode",
-			"EmitSfx",
-			"StartThread",
-			"SetSignalMask",
-			"Signal",
-			"Sleep",
-			"GetUnitValue",
-			"SetUnitValue",
-			"piece",
-			"script",
-			"UnitScript",
-			"x_axis",
-			"y_axis",
-			"z_axis",
-			"SIG_WALK",
-			"UNITSCRIPT_DIR",
-
-			"widgetHandler",
-			"gadgetHandler",
-			"fontHandler",
-			"LUAUI_DIRNAME",
-			"socket",
-			"pairsByKeys",
-			"SendToUnsynced",
-			"CallAsTeam",
-			"handler",
-			"lowerkeys",
-			"addon",
-			"gcinfo",
-			"loadlib",
-
-			"_G",
-			"self",
-			"widget",
-			"gadget",
-			"GG",
-			"ghInfo",
-			"include",
-
-			"GameCMD",
-			"Scenario",
-			"game_engine",
-			"SG",
-			"CMD_AREA_MEX",
-			"CMD_WANT_CLOAK",
-			"CMD_WANTED_SPEED",
-			"GadgetCrashingAircraft",
-			"ExplosionDefs",
-			"GL_TEXTURE_2D"
-		]
-	},
-	"runtime": {
-		"version": "Lua5.1",
-		"requirePattern": ["?", "?.lua"],
-		"requireLikeFunction": ["VFS.Include", "include", "shard_include"]
-	},
-	"workspace": {
-		"ignoreDir": [
-			".vscode",
-			".lux"
-		],
-		"ignoreGlobs": [
-			"**/.lux/**"
-		]
-	}
+  "$schema": "https://raw.githubusercontent.com/EmmyLuaLs/emmylua-analyzer-rust/main/crates/emmylua_code_analysis/resources/schema.json",
+  "completion": {
+    "autoRequireSeparator": "/"
+  },
+  "diagnostics": {
+    "disable": [
+      "duplicate-set-field"
+    ],
+    "globals": [
+      "Turn",
+      "Move",
+      "Spin",
+      "StopSpin",
+      "WaitForTurn",
+      "WaitForMove",
+      "Hide",
+      "Show",
+      "Explode",
+      "EmitSfx",
+      "StartThread",
+      "SetSignalMask",
+      "Signal",
+      "Sleep",
+      "GetUnitValue",
+      "SetUnitValue",
+      "piece",
+      "script",
+      "UnitScript",
+      "x_axis",
+      "y_axis",
+      "z_axis",
+      "SIG_WALK",
+      "UNITSCRIPT_DIR",
+      "widgetHandler",
+      "gadgetHandler",
+      "fontHandler",
+      "LUAUI_DIRNAME",
+      "socket",
+      "pairsByKeys",
+      "SendToUnsynced",
+      "CallAsTeam",
+      "handler",
+      "lowerkeys",
+      "addon",
+      "gcinfo",
+      "loadlib",
+      "_G",
+      "self",
+      "widget",
+      "gadget",
+      "GG",
+      "ghInfo",
+      "include",
+      "GameCMD",
+      "Scenario",
+      "game_engine",
+      "SG",
+      "CMD_AREA_MEX",
+      "CMD_WANT_CLOAK",
+      "CMD_WANTED_SPEED",
+      "GadgetCrashingAircraft",
+      "ExplosionDefs",
+      "GL_TEXTURE_2D"
+    ]
+  },
+  "runtime": {
+    "version": "Lua5.1",
+    "requirePattern": [
+      "?",
+      "?.lua"
+    ],
+    "requireLikeFunction": [
+      "VFS.Include",
+      "include",
+      "shard_include"
+    ]
+  },
+  "workspace": {
+    "ignoreDir": [
+      ".vscode",
+      ".lux"
+    ],
+    "ignoreGlobs": [
+      "**/.lux/**"
+    ],
+    "library": [
+      ".lux/5.1/test_dependencies/5.1/01a3c364614bddff7370223a5a9c4580f8e62d144384148444c518ec5367a59b-mediator_lua@1.1.2-0/src",
+      ".lux/5.1/test_dependencies/5.1/15675821089b1c22d127cbe4d7c9866b44cc50645d556266696e6f5422e0c76c-dkjson@2.9-1/src",
+      ".lux/5.1/test_dependencies/5.1/287e827f4a088d41bba04af5f61a13614346c16fe8150eb7c4246e67d6fd163e-lua-term@0.8-1/src",
+      ".lux/5.1/test_dependencies/5.1/3b3d395f3fb9f72fec6e61ddca4f99228008e0fe4aa433b4823e9f50f4d93d84-luafilesystem@1.8.0-1/src",
+      ".lux/5.1/test_dependencies/5.1/455cd98d50c6191a9685cffcda4ce783efbb957934625e134c39f43bd5df6818-luassert@1.9.0-1/src",
+      ".lux/5.1/test_dependencies/5.1/4e9592a499c9ced4f8ce366db9db7d9c0dd1424ea8d4c8c16c1550ea3a61a696-say@1.4.1-3/src",
+      ".lux/5.1/test_dependencies/5.1/611b19eca413e8557258c177563402d31094cde79f82d340f5648d2ac8f3b8a1-luafilesystem@1.9.0-1/src",
+      ".lux/5.1/test_dependencies/5.1/6ce29c2c535c40246c386c056f24689344cddb56ec397473931431e6b67694d2-say@1.4.1-3/src",
+      ".lux/5.1/test_dependencies/5.1/8925c25e69bb2ef4a2007b536827894dfcca7c1ff54572256002997105acb847-inspect@3.1.3-0/src",
+      ".lux/5.1/test_dependencies/5.1/a6c5176043cb3de56336b7de119443dbb3d9e024be1d50e06289ad4b4959a2da-lua_cliargs@3.0.2-1/src",
+      ".lux/5.1/test_dependencies/5.1/c01bbd3c6e40fc95ea5966be4508aa2533b809cbadc91d5539a1666535a86cfd-penlight@1.15.0-1/src",
+      ".lux/5.1/test_dependencies/5.1/fa396ffe12257288dc0716c35d37ecff7c262c8b242e95906777055a08419940-busted@2.2.0-1/src",
+      ".lux/5.1/test_dependencies/5.1/fe607fc3a725b032acf5722632cf6993702c56ffa7c9f65e28f9d0324c17be34-luasystem@0.7.1-1/src"
+    ]
+  }
 }
