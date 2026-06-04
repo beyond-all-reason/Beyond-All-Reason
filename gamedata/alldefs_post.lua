@@ -178,6 +178,65 @@ local function unitDef_Post(name, uDef)
 	local weapondefs = uDef.weapondefs
 	local weapons = uDef.weapons
 
+	if toOversize[name] then
+		local passengerSize = toOversize[name].passengersize
+		if passengerSize == 0.5 then
+			uDef.customparams.oversized = "-1"
+			uDef.customparams.nseats = 1
+		elseif passengerSize == 1 then
+			uDef.customparams.oversized = "0"
+			uDef.customparams.nseats = 1
+		elseif passengerSize == 1.5 then
+			uDef.customparams.oversized = "1"
+			uDef.customparams.nseats = 1
+		elseif passengerSize == 2 then
+			uDef.customparams.oversized = "0"
+			uDef.customparams.nseats = 2
+		elseif passengerSize == 3 then
+			uDef.customparams.oversized = "1"
+			uDef.customparams.nseats = 2
+		elseif passengerSize == 4 then
+			uDef.customparams.oversized = "0"
+			uDef.customparams.nseats = 4
+		elseif passengerSize == 6 then
+			uDef.customparams.oversized = "1"
+			uDef.customparams.nseats = 4
+		else
+			uDef.customparams.oversized = "0"
+			uDef.customparams.nseats = 16
+		end
+	end
+
+	-- note: commander is a 4-seat oversized unit, meaning 4 seat transports carrying a comm will be slowed by transporterspeedmodstrength if speedmodMode is 2
+	-- unless transportercomspeedmodstrength is higher
+	-- so here it's mostly used for corseah, which has 6 seats but should be slowed with one commander
+	if name == "armdfly" then
+		uDef.speed = 210 -- 210 (empty or filled with non oversized) -> 151.2 comm or full oversized
+		uDef.customparams.transporterspeedmodmode = 2
+		uDef.customparams.transporterspeedmodstrength = 0.25
+		uDef.customparams.transportercomspeedmodstrength = 0.25
+	elseif name == "legstronghold" then
+		uDef.speed = 170 -- 170 (empty or filled with non oversized) -> 144.5 (comm or full oversized)
+		uDef.customparams.transporterspeedmodmode = 2
+		uDef.customparams.transporterspeedmodstrength = 0.15
+		uDef.customparams.transportercomspeedmodstrength = 0.15 
+	elseif name == "corseah" then
+		uDef.speed = 190 -- 190 (empty or filled with non oversized) -> 133 (comm or full oversized)
+		uDef.customparams.transporterspeedmodmode = 2
+		uDef.customparams.transporterspeedmodstrength = 0.3
+		uDef.customparams.transportercomspeedmodstrength = 0.3
+	elseif name == "armhvytrans" or name == "corhvytrans" or name == "legatrans" then
+		uDef.speed = 100 -- 100 (empty or filled with non oversized) -> 80 (comm or full oversized, no change since it's already very slow)
+		uDef.customparams.transporterspeedmodmode = 2
+		uDef.customparams.transporterspeedmodstrength = 0.2
+		uDef.customparams.transportercomspeedmodstrength = 0.2
+	elseif name == "armatlas" or name == "corvalk" or name == "leglts" then
+		uDef.speed = 170 -- 170 (empty or filled with non oversized) -> 136 (comm or full oversized)
+		uDef.customparams.transporterspeedmodmode = 2
+		uDef.customparams.transporterspeedmodstrength = 0.2
+		uDef.customparams.transportercomspeedmodstrength = 0.2 
+	end
+
 	if not uDef.icontype then
 		uDef.icontype = name
 	end
