@@ -42,7 +42,7 @@ if gadgetHandler:IsSyncedCode() then
 	local GetGameRulesParam = Spring.GetGameRulesParam
 	local GetTeamUnitCount = Spring.GetTeamUnitCount
 	local GetGameFrame = Spring.GetGameFrame
-	local GetGameSeconds = Spring.GetGameSeconds
+	local GetGameSeconds = Spring.GetGameSeconds()
 	local DestroyUnit = Spring.DestroyUnit
 	local GetTeamUnits = Spring.GetTeamUnits
 	local GetUnitPosition = Spring.GetUnitPosition
@@ -920,7 +920,7 @@ if gadgetHandler:IsSyncedCode() then
 			local spawnPosX, spawnPosY, spawnPosZ
 
 			if config.burrowSpawnType ~= "avoid" then
-				if config.useScum and (canSpawnBurrow and GetGameSeconds() >= config.gracePeriodInitial) then -- Attempt #1, find position in creep/scum (skipped if creep is disabled)
+				if config.useScum and (canSpawnBurrow and GetGameSeconds >= config.gracePeriodInitial) then -- Attempt #1, find position in creep/scum (skipped if creep is disabled)
 					if spread < MAPSIZEX - spread and spread < MAPSIZEZ - spread then
 						for _ = 1,1000 do
 							spawnPosX = mRandom(spread, MAPSIZEX - spread)
@@ -1047,7 +1047,7 @@ if gadgetHandler:IsSyncedCode() then
 				canSpawnBurrow = false
 			end
 
-			if (canSpawnBurrow and GetGameSeconds() < config.gracePeriodInitial*0.9) then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
+			if (canSpawnBurrow and GetGameSeconds < config.gracePeriodInitial*0.9) then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
 				canSpawnBurrow = not GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
 			end
 
@@ -1066,7 +1066,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			else
-				timeOfLastSpawn = GetGameSeconds()
+				timeOfLastSpawn = GetGameSeconds
 				--playerAggression = playerAggression + (config.angerBonus*(bossAnger*0.01))
 			end
 		end
@@ -1614,7 +1614,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
 				for i = 1, math.ceil(numOfTurrets) do
-					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriodInitial),1) and UnitDefNames[uName] and (Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
+					if mRandom() < config.spawnChance*math.min((GetGameSeconds/config.gracePeriodInitial),1) and UnitDefNames[uName] and (Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
 						if i <= numOfTurrets or math.random() <= numOfTurrets%1 then
 							local attempts = 0
 							local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
@@ -1718,7 +1718,7 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeam == scavTeamID then
 			damage = damage / config.healthMod
 
-			if math.random(0, 600) == 0 and math.random() <= config.spawnChance and attackerTeam ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+math.ceil(600/SetCount(humanTeams)) < GetGameFrame() and attackerID and UnitDefs[unitDefID].canMove then
+			if math.random(0, 1800) == 0 and math.random() <= config.spawnChance and attackerTeam ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+math.ceil(600/SetCount(humanTeams)) < GetGameFrame() and attackerID and UnitDefs[unitDefID].canMove then
 				local ux, uy, uz = GetUnitPosition(attackerID)
 				local burrow, distance = getNearestScavBeacon(ux, uy, uz)
 				--Spring.Echo("Nearest Beacon Distance", distance)
@@ -1750,10 +1750,8 @@ if gadgetHandler:IsSyncedCode() then
 					if bossResistance[attackerDefID].notify == 0 then
 						scavEvent("bossResistance", tonumber(attackerDefID))
 						bossResistance[attackerDefID].notify = 1
-						spawnCreepStructuresWave()
 					end
 					damage = damage - (damage * resistPercent)
-
 				end
 
 				if UnitDefStaggerMultiplier[attackerDefID] then
@@ -1778,105 +1776,109 @@ if gadgetHandler:IsSyncedCode() then
 		return damage, 1
 	end
 
+	UnitReactionsTimeout = {}
+	UnitLifetimeResetTimeout = {}
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 		local gf = GetGameFrame()
-		if config.scavBehaviours.SKIRMISH[attackerDefID] and (unitTeam ~= scavTeamID) and attackerID and (mRandom() < config.scavBehaviours.SKIRMISH[attackerDefID].chance) and unitTeam ~= attackerTeam then
-			local ux, uy, uz = GetUnitPosition(unitID)
-			local x, y, z = GetUnitPosition(attackerID)
-			if x and ux then
-				local angle = math.atan2(ux - x, uz - z)
-				local sinA, cosA = math.sin(angle), math.cos(angle)
-				local distance = mRandom(math.ceil(config.scavBehaviours.SKIRMISH[attackerDefID].distance*0.75), math.floor(config.scavBehaviours.SKIRMISH[attackerDefID].distance*1.25))
-				local dx, dz = sinA * distance, cosA * distance
-				if config.scavBehaviours.SKIRMISH[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(x - dx, y, z - dz, 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - dx, y, z - dz, 64) then
-					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
-					SetUnitPosition(attackerID, x - dx, z - dz)
-					GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
-					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x - dx, y, z - dz)
-					unitTeleportCooldown[attackerID] = gf + config.scavBehaviours.SKIRMISH[attackerDefID].teleportcooldown*30
-				else
-					GiveOrderToUnit(attackerID, CMD.MOVE, { x - dx, y, z - dz}, {})
+		if UnitReactionsTimeout[unitID] and UnitReactionsTimeout[unitID] < GetGameSeconds-2 then
+			if config.scavBehaviours.SKIRMISH[attackerDefID] and (unitTeam ~= scavTeamID) and attackerID and (mRandom() < config.scavBehaviours.SKIRMISH[attackerDefID].chance) and unitTeam ~= attackerTeam then
+				UnitReactionsTimeout[unitID] = GetGameSeconds
+				local ux, uy, uz = GetUnitPosition(unitID)
+				local x, y, z = GetUnitPosition(attackerID)
+				if x and ux then
+					local angle = math.atan2(ux - x, uz - z)
+					local sinA, cosA = math.sin(angle), math.cos(angle)
+					local distance = mRandom(math.ceil(config.scavBehaviours.SKIRMISH[attackerDefID].distance*0.75), math.floor(config.scavBehaviours.SKIRMISH[attackerDefID].distance*1.25))
+					local dx, dz = sinA * distance, cosA * distance
+					if config.scavBehaviours.SKIRMISH[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(x - dx, y, z - dz, 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - dx, y, z - dz, 64) then
+						GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
+						SetUnitPosition(attackerID, x - dx, z - dz)
+						GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
+						GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x - dx, y, z - dz)
+						unitTeleportCooldown[attackerID] = gf + config.scavBehaviours.SKIRMISH[attackerDefID].teleportcooldown*30
+					else
+						GiveOrderToUnit(attackerID, CMD.MOVE, { x - dx, y, z - dz}, {})
+					end
+					unitCowardCooldown[attackerID] = gf + 900
 				end
-				unitCowardCooldown[attackerID] = gf + 900
-			end
-		elseif config.scavBehaviours.COWARD[unitDefID] and (unitTeam == scavTeamID) and attackerID and (mRandom() < config.scavBehaviours.COWARD[unitDefID].chance) and unitTeam ~= attackerTeam then
-			local curH, maxH = GetUnitHealth(unitID)
-			if curH and maxH and curH < (maxH * 0.8) then
+			elseif config.scavBehaviours.COWARD[unitDefID] and (unitTeam == scavTeamID) and attackerID and (mRandom() < config.scavBehaviours.COWARD[unitDefID].chance) and unitTeam ~= attackerTeam then
+				UnitReactionsTimeout[unitID] = GetGameSeconds
+				local curH, maxH = GetUnitHealth(unitID)
+				if curH and maxH and curH < (maxH * 0.8) then
+					local ax, ay, az = GetUnitPosition(attackerID)
+					local x, y, z = GetUnitPosition(unitID)
+					if x and ax then
+						local angle = math.atan2(ax - x, az - z)
+						local sinA, cosA = math.sin(angle), math.cos(angle)
+						local distance = mRandom(math.ceil(config.scavBehaviours.COWARD[unitDefID].distance*0.75), math.floor(config.scavBehaviours.COWARD[unitDefID].distance*1.25))
+						local dx, dz = sinA * distance, cosA * distance
+						if config.scavBehaviours.COWARD[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(x - dx, y, z - dz, 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - dx, y, z - dz, 64) then
+							GG.ScavengersSpawnEffectUnitDefID(unitDefID, x, y, z)
+							SetUnitPosition(unitID, x - dx, z - dz)
+							GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+							GG.ScavengersSpawnEffectUnitDefID(unitDefID, x - dx, y, z - dz)
+							unitTeleportCooldown[unitID] = gf + config.scavBehaviours.COWARD[unitDefID].teleportcooldown*30
+						else
+							GiveOrderToUnit(unitID, CMD.MOVE, { x - dx, y, z - dz}, {})
+						end
+						unitCowardCooldown[unitID] = gf + 900
+					end
+				end
+			elseif config.scavBehaviours.BERSERK[unitDefID] and (unitTeam == scavTeamID) and attackerID and (mRandom() < config.scavBehaviours.BERSERK[unitDefID].chance) and unitTeam ~= attackerTeam then
+				UnitReactionsTimeout[unitID] = GetGameSeconds
 				local ax, ay, az = GetUnitPosition(attackerID)
 				local x, y, z = GetUnitPosition(unitID)
-				if x and ax then
-					local angle = math.atan2(ax - x, az - z)
-					local sinA, cosA = math.sin(angle), math.cos(angle)
-					local distance = mRandom(math.ceil(config.scavBehaviours.COWARD[unitDefID].distance*0.75), math.floor(config.scavBehaviours.COWARD[unitDefID].distance*1.25))
-					local dx, dz = sinA * distance, cosA * distance
-					if config.scavBehaviours.COWARD[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(x - dx, y, z - dz, 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - dx, y, z - dz, 64) then
+				local separation = GetUnitSeparation(unitID, attackerID)
+				if ax and separation < (config.scavBehaviours.BERSERK[unitDefID].distance or 10000) then
+					if config.scavBehaviours.BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
 						GG.ScavengersSpawnEffectUnitDefID(unitDefID, x, y, z)
-						SetUnitPosition(unitID, x - dx, z - dz)
+						ax = ax + mRandom(-256,256)
+						az = az + mRandom(-256,256)
+						SetUnitPosition(unitID, ax, ay, az)
 						GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-						GG.ScavengersSpawnEffectUnitDefID(unitDefID, x - dx, y, z - dz)
-						unitTeleportCooldown[unitID] = gf + config.scavBehaviours.COWARD[unitDefID].teleportcooldown*30
+						GG.ScavengersSpawnEffectUnitDefID(attackerDefID, ax, ay, az)
+						unitTeleportCooldown[unitID] = gf + config.scavBehaviours.BERSERK[unitDefID].teleportcooldown*30
 					else
-						GiveOrderToUnit(unitID, CMD.MOVE, { x - dx, y, z - dz}, {})
+						GiveOrderToUnit(unitID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
 					end
 					unitCowardCooldown[unitID] = gf + 900
 				end
-			end
-		elseif config.scavBehaviours.BERSERK[unitDefID] and (unitTeam == scavTeamID) and attackerID and (mRandom() < config.scavBehaviours.BERSERK[unitDefID].chance) and unitTeam ~= attackerTeam then
-			local ax, ay, az = GetUnitPosition(attackerID)
-			local x, y, z = GetUnitPosition(unitID)
-			local separation = GetUnitSeparation(unitID, attackerID)
-			if ax and separation < (config.scavBehaviours.BERSERK[unitDefID].distance or 10000) then
-				if config.scavBehaviours.BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
-					GG.ScavengersSpawnEffectUnitDefID(unitDefID, x, y, z)
-					ax = ax + mRandom(-256,256)
-					az = az + mRandom(-256,256)
-					SetUnitPosition(unitID, ax, ay, az)
-					GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, ax, ay, az)
-					unitTeleportCooldown[unitID] = gf + config.scavBehaviours.BERSERK[unitDefID].teleportcooldown*30
-				else
-					GiveOrderToUnit(unitID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
+			elseif config.scavBehaviours.BERSERK[attackerDefID] and (unitTeam ~= scavTeamID) and attackerID and (mRandom() < config.scavBehaviours.BERSERK[attackerDefID].chance) and unitTeam ~= attackerTeam then
+				UnitReactionsTimeout[unitID] = GetGameSeconds
+				local ax, ay, az = GetUnitPosition(unitID)
+				local x, y, z = GetUnitPosition(attackerID)
+				local separation = GetUnitSeparation(unitID, attackerID)
+				if ax and separation < (config.scavBehaviours.BERSERK[attackerDefID].distance or 10000) then
+					if config.scavBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
+						GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
+						ax = ax + mRandom(-256,256)
+						az = az + mRandom(-256,256)
+						SetUnitPosition(attackerID, ax, ay, az)
+						GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
+						GG.ScavengersSpawnEffectUnitDefID(unitDefID, ax, ay, az)
+						unitTeleportCooldown[attackerID] = gf + config.scavBehaviours.BERSERK[attackerDefID].teleportcooldown*30
+					else
+						GiveOrderToUnit(attackerID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
+					end
+					unitCowardCooldown[attackerID] = gf + 900
 				end
-				unitCowardCooldown[unitID] = gf + 900
-			end
-		elseif config.scavBehaviours.BERSERK[attackerDefID] and (unitTeam ~= scavTeamID) and attackerID and (mRandom() < config.scavBehaviours.BERSERK[attackerDefID].chance) and unitTeam ~= attackerTeam then
-			local ax, ay, az = GetUnitPosition(unitID)
-			local x, y, z = GetUnitPosition(attackerID)
-			local separation = GetUnitSeparation(unitID, attackerID)
-			if ax and separation < (config.scavBehaviours.BERSERK[attackerDefID].distance or 10000) then
-				if config.scavBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
-					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
-					ax = ax + mRandom(-256,256)
-					az = az + mRandom(-256,256)
-					SetUnitPosition(attackerID, ax, ay, az)
-					GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
-					GG.ScavengersSpawnEffectUnitDefID(unitDefID, ax, ay, az)
-					unitTeleportCooldown[attackerID] = gf + config.scavBehaviours.BERSERK[attackerDefID].teleportcooldown*30
-				else
-					GiveOrderToUnit(attackerID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
-				end
-				unitCowardCooldown[attackerID] = gf + 900
 			end
 		end
+
 		if bossIDs[unitID] then
-			local curH, maxH = GetUnitHealth(unitID)
-			if curH and maxH then
-				curH = math.max(curH, maxH*0.05)
-				local spawnChance = math.max(0, math.ceil(curH/maxH*10000))
-				if mRandom(0,spawnChance) == 1 and not bossStagger.currentlyStaggered then
-					SpawnMinions(unitID, Spring.GetUnitDefID(unitID))
-					SpawnMinions(unitID, Spring.GetUnitDefID(unitID))
-				end
-			end
 			if attackerTeam and attackerTeam ~= scavTeamID then
 				bosses.playerDamages[tostring(attackerTeam)] = (bosses.playerDamages[tostring(attackerTeam)] or 0) + damage
 			end
 		end
-		if unitTeam == scavTeamID or attackerTeam == scavTeamID then
-			if (unitID and unitSquadTable[unitID] and squadsTable[unitSquadTable[unitID]] and squadsTable[unitSquadTable[unitID]].squadLife and squadsTable[unitSquadTable[unitID]].squadLife < 10) then
+
+		if not UnitLifetimeResetTimeout[unitID] then
+			UnitLifetimeResetTimeout[unitID] = 0
+		end
+		if (unitTeam == scavTeamID or attackerTeam == scavTeamID) and UnitLifetimeResetTimeout[unitID] < GetGameSeconds-60 then
+			if (unitID and unitSquadTable[unitID] and squadsTable[unitSquadTable[unitID]] and squadsTable[unitSquadTable[unitID]].squadLife and squadsTable[unitSquadTable[unitID]].squadLife < 2) then
 				squadsTable[unitSquadTable[unitID]].squadLife = 10
 			end
-			if (attackerID and unitSquadTable[attackerID] and squadsTable[unitSquadTable[attackerID]] and squadsTable[unitSquadTable[attackerID]].squadLife and squadsTable[unitSquadTable[attackerID]].squadLife < 10) then
+			if (attackerID and unitSquadTable[attackerID] and squadsTable[unitSquadTable[attackerID]] and squadsTable[unitSquadTable[attackerID]].squadLife and squadsTable[unitSquadTable[attackerID]].squadLife < 2) then
 				squadsTable[unitSquadTable[attackerID]].squadLife = 10
 			end
 		end
@@ -2077,6 +2079,8 @@ if gadgetHandler:IsSyncedCode() then
 	local announcedFirstWave = false
 	function gadget:GameFrame(n)
 
+		GetGameSeconds = Spring.GetGameSeconds() + 0
+
 		if #createUnitQueue > 0 then
 			for i = 1,#createUnitQueue do
 				CreateUnit(createUnitQueue[i][1],createUnitQueue[i][2],createUnitQueue[i][3],createUnitQueue[i][4],createUnitQueue[i][5],createUnitQueue[i][6])
@@ -2084,7 +2088,7 @@ if gadgetHandler:IsSyncedCode() then
 			createUnitQueue = {}
 		end
 
-		if announcedFirstWave == false and GetGameSeconds() > config.gracePeriodInitial then
+		if announcedFirstWave == false and GetGameSeconds > config.gracePeriodInitial then
 			scavEvent("firstWave")
 			announcedFirstWave = true
 		end
@@ -2113,7 +2117,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if n%30 == 16 then
-			t = GetGameSeconds()
+			t = GetGameSeconds
 			local burrowCount = SetCount(burrows)
 			playerAggression = playerAggression*0.995
 			playerAggressionLevel = math.floor(playerAggression)

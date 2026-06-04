@@ -8,7 +8,6 @@ return {
 		cruisealtitude = 165,
 		energycost = 4400,
 		explodeas = "mediumexplosiongeneric",
-		firestate = 0,
 		footprintx = 3,
 		footprintz = 3,
 		health = 670,

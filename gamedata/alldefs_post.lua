@@ -54,7 +54,6 @@ local extraUnitsTweaks = VFS.Include("unitbasedefs/experimental_extra_units.lua"
 local processRaptorsUnit = VFS.Include("unitbasedefs/raptor_unitdefs_post.lua").Tweaks
 local scavUnitsForPlayers = VFS.Include("unitbasedefs/scavenger_units_for_players.lua").Tweaks
 local legionSimpleMexes = VFS.Include("unitbasedefs/legion_simplified_mexes.lua").Tweaks
-local lateGameRebalance = VFS.Include("unitbasedefs/lategame_rebalance.lua").Tweaks
 local junoReworkTweaks = VFS.Include("unitbasedefs/juno_rework.lua").Tweaks
 local navalBalanceTweaks = VFS.Include("unitbasedefs/naval_balance_tweaks.lua").Tweaks
 local skyshiftUnitTweaks = VFS.Include("unitbasedefs/skyshiftunits_post.lua").skyshiftUnitTweaks
@@ -556,11 +555,6 @@ local function unitDef_Post(name, uDef)
 	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
 	if modOptions.naval_balance_tweaks == true then
 		navalBalanceTweaks(name, uDef)
-	end
-
-	--Lategame Rebalance
-	if modOptions.lategame_rebalance == true then
-		lateGameRebalance(name, uDef)
 	end
 
 	-- Factory costs test
