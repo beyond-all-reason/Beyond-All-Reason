@@ -14,7 +14,8 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-	local spGetUnitDefID = Spring.GetUnitDefID
+	local spSetUnitDefAutoTargetPriority = Spring.SetUnitDefAutoTargetPriority
+	local spSetWeaponAutoTargetPriorityEnabled = Spring.SetWeaponAutoTargetPriorityEnabled
 	local stringFind = string.find
 
 	local PRIORITY_BOMBERS = 0.1
@@ -54,8 +55,11 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	-- Pre-compute direct unitDefID → priority multiplier for all air units
-	local airPriorityMultiplier = {}
+	-- Register the per-target-unitDef priority multiplier and opt-in the AA weapons that should
+	-- apply it. The engine then multiplies target priority by these factors directly in C++
+	-- (see Spring.SetUnitDefAutoTargetPriority), so no per-candidate AllowWeaponTarget Lua
+	-- callout is needed — which is the whole point: that callout was O(weapons × candidates)
+	-- and dominated furball CPU time.
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local weapons = unitDef.weapons
 		if unitDef.isAirUnit then
@@ -74,25 +78,15 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
-			airPriorityMultiplier[unitDefID] = mult
+			spSetUnitDefAutoTargetPriority(unitDefID, mult)
 		end
 
-		-- Set watch on vtol-targeting weapons so AllowWeaponTarget gets called
+		-- Opt vtol-targeting weapons into the engine-side priority table
 		for i = 1, #weapons do
 			local weapon = weapons[i]
 			if weapon.slavedTo == 0 and hasAntiAirPriority(weapon) then
-				Script.SetWatchAllowTarget(weapon.weaponDef, true)
+				spSetWeaponAutoTargetPriorityEnabled(weapon.weaponDef, true)
 			end
-		end
-	end
-
-	-- AllowWeaponTarget is only called for weapons with SetWatchAllowTarget (vtol-targeting),
-	-- so the attacker always has AA priority — no need to check hasPriorityAir or call
-	-- spGetUnitDefID on the attacker.
-	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-		local mult = airPriorityMultiplier[spGetUnitDefID(targetID)]
-		if mult then
-			return defPriority * mult
 		end
 	end
 end
