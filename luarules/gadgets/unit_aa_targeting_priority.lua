@@ -92,8 +92,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
 		local mult = airPriorityMultiplier[spGetUnitDefID(targetID)]
 		if mult then
-			defPriority = defPriority * mult
+			return defPriority * mult
 		end
-		return true, defPriority
 	end
 end
