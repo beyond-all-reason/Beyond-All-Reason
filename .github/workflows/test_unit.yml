@@ -9,27 +9,44 @@ on:
 jobs:
   busted:
     runs-on: ubuntu-latest
+    env:
+      FEDORA_VERSION: '43'
+    container:
+      image: fedora:${{ env.FEDORA_VERSION }}
 
     steps:
     - uses: actions/checkout@v5
 
-    - name: Install Lua 5.1
+    - name: Install build deps + Lua 5.1
       run: |
-        sudo apt-get update
-        sudo apt-get install -y lua5.1 liblua5.1-0-dev
+        # Fedora 43's `lua` package is 5.4; the 5.1 interpreter ships
+        # under the compat-lua* names (matches BAR-Devtools' dev image).
+        dnf install -y --setopt=install_weak_deps=False \
+          git gcc gcc-c++ make \
+          compat-lua compat-lua-devel \
+          gpgme
 
-    - name: Install Lux
-      uses: lumen-oss/gh-actions-lux@v1
-      with:
-        version: 0.26.1
+    - name: Install Lux via cargo-binstall
+      run: |
+        # GHA containers map $HOME to /github/home (not /root), so the
+        # cargo-binstall self-install lands at $HOME/.cargo/bin -- can't
+        # hardcode /root/.cargo/bin like the local Containerfile does.
+        curl -L --proto '=https' --tlsv1.2 -sSf \
+          https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh \
+          | bash
+        "$HOME/.cargo/bin/cargo-binstall" --no-confirm \
+          --version 0.28.3 \
+          --install-path /usr/local/bin \
+          lux-cli
+        ln -sf /usr/bin/lua-5.1 /usr/local/bin/lua
 
     - name: Cache Lux dependencies
       uses: actions/cache@v4
       with:
         path: .lux
-        key: lux-5.1-${{ runner.os }}-${{ hashFiles('lux.lock') }}
+        key: lux-5.1-fedora${{ env.FEDORA_VERSION }}-${{ hashFiles('lux.lock') }}
         restore-keys: |
-          lux-5.1-${{ runner.os }}-
+          lux-5.1-fedora${{ env.FEDORA_VERSION }}-
 
     - name: Run busted
       run: lx --lua-version 5.1 test

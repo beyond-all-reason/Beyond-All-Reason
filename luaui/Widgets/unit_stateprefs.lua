@@ -35,18 +35,40 @@ bind ctrl 	stateprefs_record
 bind sc_\ 	stateprefs_clearunit
 
 --]]------------------------------------------------------------------------------
-local unitArray = {}
+
 local unitName = {}
 for udid, ud in pairs(UnitDefs) do
 	unitName[udid] = ud.name
 end
 
 local unitSet = {}
-local chunk, err = loadfile("LuaUI/config/StatesPrefs.lua")
-if chunk then
-	local tmp = {}
-	setfenv(chunk, tmp)
-	unitArray = chunk()
+
+-- The config was previously using a seperate file, but after a bug with this file
+-- it was decided to simply use the widgetHandler shared config instead.
+local function migrateOldConfig()
+	local oldConfigPath = "LuaUI/config/StatesPrefs.lua"
+	local chunk = loadfile(oldConfigPath)
+	if not chunk then
+		-- no old config/already migrated
+		return nil
+	end
+
+	setfenv(chunk, {})
+	local merged = chunk()
+	-- in case a widgetHandler config exists, we want those to take preference, since they are definitely newer, but we still want to use
+	-- the old ones if there's no entry for that unit. This is mainly just for users that move config files, for example from an old backup.
+	table.mergeInPlace(merged, unitSet)
+	os.remove(oldConfigPath)
+	return merged
+end
+
+function widget:GetConfigData()
+	unitSet = migrateOldConfig() or unitSet -- remove this line and the migration function once sufficient time has passed (implemented 2026-06-03)
+	return unitSet
+end
+
+function widget:SetConfigData(data)
+	unitSet = data
 end
 
 local clearSound = 'LuaUI/Sounds/switchoff.wav'
@@ -90,12 +112,9 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	unitArray = unitArray or {}
-	for i, v in pairs(unitArray) do
-		unitSet[i] = v
-	end
 	if Spring.IsReplay() then
-		widget:GameOver()
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	widgetHandler:AddAction("stateprefs_record", onRecordPress, nil, "p")
@@ -122,9 +141,6 @@ function onClearRelease()
   isClearPressed = false
 end
 
-function saveStatePrefs()
-	table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
-end
 
 function doClearUnit()
 	local selectedUnits = spGetSelectedUnits()
@@ -136,7 +152,6 @@ function doClearUnit()
 		spEcho("All state prefs removed for unit: " .. name)
 	end
 	Spring.PlaySoundFile(clearSound , 0.6, 'ui')
-	saveStatePrefs()
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
@@ -161,11 +176,9 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		if #cmdParams == 1 and isClearPressed then
 			unitSet[name][cmdID] = nil
 			spEcho("State pref removed: " .. name .. ", " .. command.name)
-			saveStatePrefs()
 		elseif #cmdParams == 1 and not (unitSet[name][cmdID] == cmdParams[1]) then
 			unitSet[name][cmdID] = cmdParams[1]
 			spEcho("State pref changed:  " .. name .. ",  " .. command.name .. " " .. cmdParams[1])
-			saveStatePrefs()
 		end
 	end
 end
@@ -181,8 +194,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			if cmdID == 115 then
 				return
 			end -- we're skipping "repeat" command here for now
-			local success = Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
-			--spEcho("".. name .. ", " .. tostring(cmdID) .. ", " .. tostring(cmdParam) .. " success: ".. tostring(success))
+			Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
 		end
 	end
 end
@@ -213,8 +225,6 @@ function widget:GameFrame(n)
 end
 
 function widget:GameOver()
-	spEcho("Recorded States Prefs")
-	saveStatePrefs()
 	widgetHandler:RemoveWidget()
 end
 
