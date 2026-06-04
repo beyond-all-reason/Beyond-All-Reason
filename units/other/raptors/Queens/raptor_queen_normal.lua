@@ -66,6 +66,8 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
+			treeshader = "yes",
+			ispvefinalboss = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {
