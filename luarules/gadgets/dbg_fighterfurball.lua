@@ -70,8 +70,8 @@ if gadgetHandler:IsSyncedCode() then
 	local countPerSide = 1000          -- fighters spawned per clump
 	local fightFrames = 5 * 30         -- frames the two clumps are left to fight
 	local respawnGap = 15              -- frames between a kill and the next spawn
-	local clumpOffset = 1800           -- half the distance between clump centers (elmos)
-	local spacing = 60                 -- grid spacing between fighters within a clump (elmos)
+	local clumpOffset = 1000           -- half the distance between clump centers (elmos)
+	local spacing = 10                 -- grid spacing between fighters within a clump (elmos)
 	local team1unitDefName = "armfig"  -- Arm T1 fighter
 	local team2unitDefName = "corveng" -- Cor T1 fighter
 
@@ -232,6 +232,81 @@ if gadgetHandler:IsSyncedCode() then
 else -- UNSYNCED
 
 
+	local vsx, vsy = Spring.GetViewGeometry()
+	local uiScale = vsy / 1080
+
+	-- On-screen sim/update/draw frame timing (same approach as dbg_benchmark).
+	-- An Update always starts with gadget:Update, a draw frame spans DrawGenesis
+	-- to DrawScreenPost, and a sim frame starts at gadget:GameFrame.
+	local active = false
+	local lastDrawTimerUS = Spring.GetTimerMicros()
+	local lastSimTimerUS = Spring.GetTimerMicros()
+	local lastUpdateTimerUs = Spring.GetTimerMicros()
+	local lastFrameType = 'draw' -- can be draw, sim, update
+	local simTime = 0
+	local drawTime = 0
+	local updateTime = 0
+	local ss = 0 -- smoothed sim time
+	local sd = 0 -- smoothed draw time
+	local su = 0 -- smoothed update time
+	local alpha = 0.98
+
+	function gadget:ViewResize()
+		vsx, vsy = Spring.GetViewGeometry()
+		uiScale = vsy / 1080
+	end
+
+	function gadget:Update() -- START OF UPDATE
+		if active then
+			local now = Spring.GetTimerMicros()
+			if lastFrameType ~= 'draw' then
+				-- ending a sim frame: record its time
+				simTime = Spring.DiffTimers(now, lastSimTimerUS)
+				ss = alpha * ss + (1 - alpha) * simTime
+			end
+			lastUpdateTimerUs = Spring.GetTimerMicros()
+		end
+	end
+
+	function gadget:GameFrame(n) -- START OF SIM FRAME
+		if active then
+			local now = Spring.GetTimerMicros()
+			if lastFrameType == 'sim' then
+				-- double sim frame: record the previous one's time
+				simTime = Spring.DiffTimers(now, lastSimTimerUS)
+				ss = alpha * ss + (1 - alpha) * simTime
+			end
+			lastSimTimerUS = now
+			lastFrameType = 'sim'
+		end
+	end
+
+	function gadget:DrawGenesis() -- START OF DRAW
+		if active then
+			local now = Spring.GetTimerMicros()
+			updateTime = Spring.DiffTimers(now, lastUpdateTimerUs)
+			su = alpha * su + (1 - alpha) * updateTime
+			lastDrawTimerUS = now
+		end
+	end
+
+	function gadget:DrawScreenPost() -- END OF DRAW
+		if active then
+			drawTime = Spring.DiffTimers(Spring.GetTimerMicros(), lastDrawTimerUS)
+			sd = alpha * sd + (1 - alpha) * drawTime
+			lastFrameType = 'draw'
+		end
+	end
+
+	function gadget:DrawScreen()
+		if active then
+			local s = string.format(
+				"Sim = ~%3.2fms  (%3.2fms)\nUpdate = ~%3.2fms (%3.2fms)\nDraw = ~%3.2fms (%3.2fms)",
+				ss, simTime, su, updateTime, sd, drawTime)
+			gl.Text(s, 600 * uiScale, 600 * uiScale, 16 * uiScale)
+		end
+	end
+
 	local function centerCamera()
 		local camState = Spring.GetCameraState()
 		if camState then
@@ -262,6 +337,12 @@ else -- UNSYNCED
 		end
 		if not isAuthorized(playerID, "terrain") then
 			return
+		end
+		active = not active
+		if active then
+			lastDrawTimerUS = Spring.GetTimerMicros()
+			lastSimTimerUS = Spring.GetTimerMicros()
+			lastUpdateTimerUs = Spring.GetTimerMicros()
 		end
 		local msg = PACKET_HEADER .. "fighterfurball"
 		for i = 1, 4 do
