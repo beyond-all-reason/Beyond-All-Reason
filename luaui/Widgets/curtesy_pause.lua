@@ -1,7 +1,7 @@
 function widget:GetInfo()
     return {
-        name    = "Courtesy Pause",
-        desc    = "Client-side courtesy countdown before unpause",
+        name    = "Curtesy Pause",
+        desc    = "Client-side courtesy countdown before your own unpause",
         author  = "26Projects",
         version = "2.0",
         enabled = false,
@@ -18,28 +18,36 @@ local steps = {3, 2, 1}
 local framesPerSecond = 30
 local totalFrames = totalDelaySeconds * framesPerSecond
 local framesPerStep = math.floor(totalFrames / (#steps + 1))
+local secondsPerStep = framesPerStep / framesPerSecond
 
 local tickSound = "beep4"
 local tickVolume = 0.6
 
+-- How long a local /pause command is allowed to arm the next unpause.
+-- This keeps the widget scoped to the local user's own pause/unpause action.
+-- Keep this short: a pause command that actually unpauses should be reflected
+-- by the game state almost immediately. A long window can accidentally catch
+-- another player's later unpause after you only took pause control.
+local localPauseCommandValidSeconds = 12 / framesPerSecond
+
+-- Ignore pause-command echoes briefly after this widget sends pause commands.
 local selfCommandIgnoreFrames = 8
 
--- Multi-user guard:
--- Only the local client that recently issued /pause should take responsibility
--- for running the countdown after a paused -> unpaused transition.
-local localPauseCommandValidFrames = 30 -- about 1 second
+-- Set this to false if you want the widget to stay completely silent/passive
+-- when you are the only active human player in the game.
+local enableInSinglePlayer = true
 
 --------------------------------------------------------------------------------
 -- SAFETY LIMITS
 --------------------------------------------------------------------------------
 
-local minChatCommandFrames = 20
-local minPauseCommandFrames = 10
+local minChatCommandSeconds = 20 / framesPerSecond
+local minPauseCommandSeconds = 10 / framesPerSecond
 
-local maxPauseCommandsPerWindow = 6
-local pauseCommandWindowFrames = 90
+local maxPauseCommandsPerWindow = 4
+local pauseCommandWindowSeconds = 120 / framesPerSecond
 
-local safetyCooldownFrames = 150
+local safetyCooldownSeconds = 150 / framesPerSecond
 
 --------------------------------------------------------------------------------
 -- STATE
@@ -47,32 +55,34 @@ local safetyCooldownFrames = 150
 
 local countdownActive = false
 local currentStep = 1
-local stepFrameCounter = 0
+local stepTimer = 0
+
+local armedForLocalUnpause = false
+local localPauseCommandTime = -99999
 
 local allowNextRealUnpause = false
 local lastPausedState = true
 
 local ignoreTextCommandFrames = 0
 
-local lastChatFrame = -99999
-local lastPauseCommandFrame = -99999
+local lastChatTime = -99999
+local lastPauseCommandTime = -99999
 
 local pauseCommandWindowStart = 0
 local pauseCommandsInWindow = 0
-local safetyCooldownUntilFrame = 0
+local safetyCooldownUntilTime = 0
 
--- Updated when this local client issues /pause or /pause 0.
--- Remote players' pause commands should not pass through this client's
--- TextCommand(), so this helps avoid every widget-owning player starting
--- their own countdown for someone else's unpause.
-local localPauseCommandFrame = -99999
+-- Spring.GetGameFrame() does not reliably advance while paused. Recoil/Spring
+-- passes wall-clock delta time into widget:Update(dt), including while paused,
+-- so this widget uses localTime for countdowns, throttles, and cooldowns.
+local localTime = 0
 
 --------------------------------------------------------------------------------
 -- HELPERS
 --------------------------------------------------------------------------------
 
-local function GetFrame()
-    return Spring.GetGameFrame()
+local function GetTime()
+    return localTime
 end
 
 local function IsPaused()
@@ -88,9 +98,6 @@ local function IsOnlyHumanPlayer()
         local playerID = playerList[i]
         local _, active, spectator = Spring.GetPlayerInfo(playerID)
 
-        -- Count active, non-spectating human players.
-        -- AI teams are not returned by GetPlayerList(), so this should only
-        -- count real connected players.
         if active and not spectator then
             humanCount = humanCount + 1
         end
@@ -100,63 +107,108 @@ local function IsOnlyHumanPlayer()
 end
 
 local function SafetyCooldownActive()
-    return GetFrame() < safetyCooldownUntilFrame
+    return GetTime() < safetyCooldownUntilTime
 end
 
-local function LocalPlayerRecentlyRequestedUnpause()
-    return GetFrame() - localPauseCommandFrame <= localPauseCommandValidFrames
+local function LocalUnpauseArmIsFresh()
+    return armedForLocalUnpause
+        and (GetTime() - localPauseCommandTime <= localPauseCommandValidSeconds)
+end
+
+local function ClearLocalUnpauseArm()
+    armedForLocalUnpause = false
+    localPauseCommandTime = -99999
+end
+
+local function CancelCountdown()
+    countdownActive = false
+    currentStep = 1
+    stepTimer = 0
+    allowNextRealUnpause = false
 end
 
 local function TriggerSafetyCooldown(reason)
-    countdownActive = false
-    currentStep = 1
-    stepFrameCounter = 0
-    allowNextRealUnpause = false
+    CancelCountdown()
+    ClearLocalUnpauseArm()
 
-    safetyCooldownUntilFrame = GetFrame() + safetyCooldownFrames
+    safetyCooldownUntilTime = GetTime() + safetyCooldownSeconds
 
     Spring.Echo("[Courtesy Pause] Safety cooldown triggered: " .. reason)
 end
 
+local function NormalizeCommand(command)
+    local cmd = string.lower(command or "")
+    cmd = string.gsub(cmd, "^%s*/?", "")
+    cmd = string.gsub(cmd, "%s+$", "")
+    cmd = string.gsub(cmd, "%s+", " ")
+    return cmd
+end
+
+local function IsPauseUnpauseCommand(command)
+    local cmd = NormalizeCommand(command)
+    return cmd == "pause" or cmd == "pause 0"
+end
+
+local function ArmLocalUnpause(command)
+    if not IsPauseUnpauseCommand(command) then
+        return
+    end
+
+    if ignoreTextCommandFrames > 0 then
+        return
+    end
+
+    if SafetyCooldownActive()
+        or (not enableInSinglePlayer and IsOnlyHumanPlayer())
+        or countdownActive then
+        return
+    end
+
+    armedForLocalUnpause = true
+    localPauseCommandTime = GetTime()
+end
+
 local function SendCountdownChat(text)
-    local frame = GetFrame()
+    local time = GetTime()
 
     if SafetyCooldownActive() then
-        return
+        return false
     end
 
-    -- Hard chat throttle.
-    if frame - lastChatFrame < minChatCommandFrames then
-        return
+    if time - lastChatTime < minChatCommandSeconds then
+        return false
     end
 
-    lastChatFrame = frame
-    Spring.SendCommands("say " .. text)
+    lastChatTime = time
+
+    if Spring.SendPublicChat then
+        Spring.SendPublicChat(text)
+    else
+        Spring.SendCommands("say " .. text)
+    end
+
+    return true
 end
 
 local function PlayTick()
-    if SafetyCooldownActive() then
-        return
+    if not SafetyCooldownActive() then
+        Spring.PlaySoundFile(tickSound, tickVolume)
     end
-
-    Spring.PlaySoundFile(tickSound, tickVolume)
 end
 
 local function SendPauseCommand(command)
-    local frame = GetFrame()
+    local time = GetTime()
 
     if SafetyCooldownActive() then
         return false
     end
 
-    -- Hard pause-command throttle.
-    if frame - lastPauseCommandFrame < minPauseCommandFrames then
+    if time - lastPauseCommandTime < minPauseCommandSeconds then
         return false
     end
 
-    -- Rolling-window loop breaker.
-    if frame - pauseCommandWindowStart > pauseCommandWindowFrames then
-        pauseCommandWindowStart = frame
+    if time - pauseCommandWindowStart > pauseCommandWindowSeconds then
+        pauseCommandWindowStart = time
         pauseCommandsInWindow = 0
     end
 
@@ -167,7 +219,7 @@ local function SendPauseCommand(command)
         return false
     end
 
-    lastPauseCommandFrame = frame
+    lastPauseCommandTime = time
     ignoreTextCommandFrames = selfCommandIgnoreFrames
 
     Spring.SendCommands(command)
@@ -179,27 +231,20 @@ end
 --------------------------------------------------------------------------------
 
 local function StartCountdown()
-    if SafetyCooldownActive() then
-        return
-    end
-
-    if countdownActive then
-        return
+    if countdownActive
+        or SafetyCooldownActive()
+        or (not enableInSinglePlayer and IsOnlyHumanPlayer()) then
+        return false
     end
 
     countdownActive = true
     currentStep = 1
-    stepFrameCounter = 0
+    stepTimer = 0
 
     SendCountdownChat("Unpausing in " .. steps[currentStep] .. "...")
     PlayTick()
-end
 
-local function CancelCountdown()
-    countdownActive = false
-    currentStep = 1
-    stepFrameCounter = 0
-    allowNextRealUnpause = false
+    return true
 end
 
 --------------------------------------------------------------------------------
@@ -215,75 +260,69 @@ end
 -- MAIN LOOP
 --------------------------------------------------------------------------------
 
-function widget:Update()
+function widget:Update(dt)
+    localTime = localTime + (dt or (1 / framesPerSecond))
+
     if ignoreTextCommandFrames > 0 then
         ignoreTextCommandFrames = ignoreTextCommandFrames - 1
     end
 
     local paused = IsPaused()
 
-    --------------------------------------------------------------------------
-    -- Hard single-human fail-open gate.
-    --
-    -- If there is only one active human player, this widget should not send
-    -- pause commands, chat, sounds, or continue an existing countdown.
-    --------------------------------------------------------------------------
-
-    if IsOnlyHumanPlayer() then
-        if countdownActive then
-            CancelCountdown()
-        end
-
+    -- Optional solo-game silence. Leave enableInSinglePlayer=true for testing
+    -- or personal use; set it false to make the widget passive when alone.
+    if not enableInSinglePlayer and IsOnlyHumanPlayer() then
+        CancelCountdown()
+        ClearLocalUnpauseArm()
         lastPausedState = paused
         return
     end
 
-    --------------------------------------------------------------------------
-    -- Detect a real paused -> unpaused transition.
-    --
-    -- The countdown only starts if this local client recently issued /pause.
-    -- This prevents every player running the widget from responding to someone
-    -- else's unpause attempt.
-    --------------------------------------------------------------------------
-
     if lastPausedState and not paused then
         if allowNextRealUnpause then
+            -- This was the widget's own final unpause.
             allowNextRealUnpause = false
-        elseif LocalPlayerRecentlyRequestedUnpause() then
-            -- Only start the countdown if we actually re-paused.
-            -- If throttling/safety blocks the pause command, fail quiet.
-            if SendPauseCommand("pause 1") then
-                StartCountdown()
+        elseif LocalUnpauseArmIsFresh() then
+            -- This client recently issued /pause, and that command really
+            -- unpaused the game. Re-pause once, then run the courtesy timer.
+            ClearLocalUnpauseArm()
+
+            if SendPauseCommand("pause 1") and StartCountdown() then
                 paused = true
             else
                 TriggerSafetyCooldown("could not re-pause safely")
             end
+        else
+            -- Another user, the host, or the engine unpaused. Do not fight it.
+            CancelCountdown()
+            ClearLocalUnpauseArm()
         end
     end
 
-    --------------------------------------------------------------------------
-    -- Countdown timing.
-    --------------------------------------------------------------------------
-
     if countdownActive then
-        stepFrameCounter = stepFrameCounter + 1
+        if not paused then
+            -- If the game becomes unpaused before our own final pause 0,
+            -- fail open instead of holding the game hostage.
+            CancelCountdown()
+        else
+            stepTimer = stepTimer + (dt or (1 / framesPerSecond))
 
-        if stepFrameCounter >= framesPerStep then
-            stepFrameCounter = 0
-            currentStep = currentStep + 1
+            if stepTimer >= secondsPerStep then
+                stepTimer = stepTimer - secondsPerStep
+                currentStep = currentStep + 1
 
-            if steps[currentStep] then
-                SendCountdownChat("Unpausing in " .. steps[currentStep] .. "...")
-                PlayTick()
-            else
-                countdownActive = false
+                if steps[currentStep] then
+                    SendCountdownChat("Unpausing in " .. steps[currentStep] .. "...")
+                    PlayTick()
+                else
+                    countdownActive = false
+                    SendCountdownChat("GO!")
 
-                SendCountdownChat("GO!")
-
-                -- Only allow the next real unpause through if this widget
-                -- actually sent the final unpause command.
-                if SendPauseCommand("pause 0") then
-                    allowNextRealUnpause = true
+                    if SendPauseCommand("pause 0") then
+                        allowNextRealUnpause = true
+                    else
+                        TriggerSafetyCooldown("could not send final unpause")
+                    end
                 end
             end
         end
@@ -293,49 +332,18 @@ function widget:Update()
 end
 
 --------------------------------------------------------------------------------
--- TEXT COMMAND HOOK
+-- LOCAL COMMAND HOOKS
 --------------------------------------------------------------------------------
--- TextCommand() catches commands typed by this local client.
---
--- We use it to remember that the local player recently requested an unpause,
--- but we do not start the countdown here. The countdown starts only if the game
--- actually changes from paused to unpaused.
+-- TextCommand catches many local slash commands. GotChatMsg gives us a player
+-- ID for UI commands, so it is used as an extra local-user guard when present.
 --------------------------------------------------------------------------------
 
 function widget:TextCommand(command)
-    local cmd = string.lower(command or "")
+    ArmLocalUnpause(command)
+end
 
-    if cmd ~= "pause" and cmd ~= "pause 0" and cmd ~= "pause 1" then
-        return
-    end
-
-    if ignoreTextCommandFrames > 0 then
-        return
-    end
-
-    if SafetyCooldownActive() then
-        return
-    end
-
-    -- In solo games, this widget should be completely passive.
-    if IsOnlyHumanPlayer() then
-        return
-    end
-
-    -- Record only commands that can represent an unpause attempt.
-    -- Plain /pause is included because BaR uses it both for taking pause
-    -- control and for toggling pause once control is held.
-    if cmd == "pause" or cmd == "pause 0" then
-        localPauseCommandFrame = GetFrame()
-    end
-
-    if countdownActive then
-        -- Do not send pause commands blindly on every /pause text command.
-        -- Only re-pause if the game is actually unpaused.
-        if not IsPaused() then
-            SendPauseCommand("pause 1")
-        end
-
-        return
+function widget:GotChatMsg(msg, playerID)
+    if playerID == Spring.GetMyPlayerID() then
+        ArmLocalUnpause(msg)
     end
 end
