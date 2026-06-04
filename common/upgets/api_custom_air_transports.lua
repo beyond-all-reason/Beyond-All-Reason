@@ -172,7 +172,6 @@ function TransportAPI.GetUnloadPadType(transporterID, passengerID)
 	end
 	local passengers = passengerID and {passengerID} or Spring.GetUnitIsTransporting(transporterID)
 	local suffix = TransportAPI.HasAmphibCargo(passengers) and "_amphib" or ""
-	Spring.Echo(suffix)
 	local padSize = seatsToPadSize[transporterSeats] or 10
 	local padString = "unloadsize"..tostring(padSize)..suffix
 	if UnitDefNames[padString] then
