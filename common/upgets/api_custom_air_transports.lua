@@ -250,7 +250,8 @@ end
 function TransportAPI.GetPassengerWeight(passengerID, cargo)
 	local weight = TransportAPI.GetPassengerSize(passengerID)
 	local oversized = UnitDefs[Spring.GetUnitDefID(passengerID)].customParams.oversized == "1"
-	weight = weight * (oversized and (1.5) or 1)  -- weight of passengerSize or passengerSize * 1.5 depending on oversized tag
+	local undersized = UnitDefs[Spring.GetUnitDefID(passengerID)].customParams.oversized == "-1"
+	weight = weight * (oversized and (1.5) or undersized and (0.5) or 1)  -- weight of passengerSize or passengerSize * 1.5 depending on oversized tag
 	return weight
 end
 
