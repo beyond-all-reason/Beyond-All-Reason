@@ -27,6 +27,13 @@ if not TransportAPI then
 	return false
 end
 
+local GetPassengerSize = TransportAPI.GetPassengerSize
+local EnablePassenger = TransportAPI.EnablePassenger
+local IsTransportFull = TransportAPI.IsTransportFull
+local CanPassengerFitInTransporter = TransportAPI.CanPassengerFitInTransporter
+local GetUnloadPadType = TransportAPI.GetUnloadPadType
+local GetUnloadTargets = TransportAPI.GetUnloadTargets
+
 -- Math locals
 local mathSqrt = math.sqrt
 
@@ -62,6 +69,13 @@ local spMoveCtrlEnable = Spring.MoveCtrl.Enable
 local spGetAllyTeamList = Spring.GetAllyTeamList
 local spSetUnitPosition = Spring.SetUnitPosition
 local spSetUnitRadiusAndHeight = Spring.SetUnitRadiusAndHeight
+local spTestBuildOrder = Spring.TestBuildOrder
+local spClosestBuildPos = Spring.ClosestBuildPos
+local spGetUnitIsStunned = Spring.GetUnitIsStunned
+local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitsInBox = Spring.GetUnitsInBox
+
+
 
 -- Constants
 local mapSizeX = Game.mapSizeX
@@ -189,7 +203,7 @@ end
 local function BuggerOff(x, y, z, padDefID, transporterID) -- prolly needs to filter out units that should not be buggered off
 	local padSize = UnitDefs[padDefID].xsize * 8 -- it's by definition a square
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
-	local units = Spring.GetUnitsInBox(x - padSize/2, y-50, z - padSize/2, x + padSize/2, y+5, z + padSize/2)
+	local units = spGetUnitsInBox(x - padSize/2, y-50, z - padSize/2, x + padSize/2, y+5, z + padSize/2)
 	for i = 1, #units do
 		local unitID = units[i]
 		local allyTeam = spGetUnitAllyTeam(unitID)
@@ -208,9 +222,6 @@ local function BuggerOff(x, y, z, padDefID, transporterID) -- prolly needs to fi
 	end
 end
 
-local function EnablePassenger(passengerID)
-	TransportAPI.EnablePassenger(passengerID)
-end
 
 -------------------------
 -- Core logic functions--
@@ -354,7 +365,7 @@ local function CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, 
 		return false
 	end
 	if not spAreTeamsAllied(passengerTeamID, transporterTeamID) then
-		local isStunned = Spring.GetUnitIsStunned(passengerID) -- the first bool is (beingBuilt OR stunned), but we supposedly already excluded beingBuilt
+		local isStunned = spGetUnitIsStunned(passengerID) -- the first bool is (beingBuilt OR stunned), but we supposedly already excluded beingBuilt
 		if not isStunned then
 			-- OPTIONAL: allow non stunned after x frames spent within load range of a barely moving unit.
 			--[[
@@ -420,11 +431,11 @@ local function releasePassenger(passengerID, transporterAllyTeam)
 				resumeFrom = i - 1
 				break
 			end
-			total = total + (TransportAPI.GetPassengerSize(transporterClaims[transporterID][i]) or 0) -- API handles the invalid case
+			total = total + (GetPassengerSize(transporterClaims[transporterID][i]) or 0) -- API handles the invalid case
 		end
 		if resumeFrom > 0 then
 			for i = resumeFrom, 1, -1 do
-				total = total + (TransportAPI.GetPassengerSize(transporterClaims[transporterID][i]) or 0) -- API handles the invalid case
+				total = total + (GetPassengerSize(transporterClaims[transporterID][i]) or 0) -- API handles the invalid case
 			end
 		end
 		queuedSeats[transporterID] = total
@@ -456,7 +467,7 @@ local function claimPassenger(transporterID, passengerID, passengerSize, manualC
 				spEcho("Error: duplicate claim for passenger " .. passengerID .. " in transporter " .. transporterID .. "'s claims list") -- debug kept for now to debug potential double claims
 			end
 		end
-		total = total + (TransportAPI.GetPassengerSize(transporterClaims[transporterID][i]) or 0) -- API handles the invalid case
+		total = total + (GetPassengerSize(transporterClaims[transporterID][i]) or 0) -- API handles the invalid case
 	end
 	queuedSeats[transporterID] = total
 	return true
@@ -492,7 +503,7 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 	local unitsCount = #units
 	local bestUnit = nil
 	local bestDist = maxDistSq
-	if TransportAPI.IsTransportFull(transporterID, queuedSeats[transporterID]) then
+	if IsTransportFull(transporterID, queuedSeats[transporterID]) then
 		-- early exit if no seats
 		return nil
 	end
@@ -510,7 +521,7 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 			end
 			local passengerDefID = spGetUnitDefID(passengerID)
 			local passengerTeamID = spGetUnitTeam(passengerID)
-			local passengerSize = TransportAPI.GetPassengerSize(passengerID)
+			local passengerSize = GetPassengerSize(passengerID)
 			if not CanBeTransportedStatic(passengerID, passengerDefID, transporterID) then
 				break
 			end
@@ -522,7 +533,7 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 			units[w] = passengerID
 			w = w + 1
 			-- transporter dependant checks (should not write back into cache)
-			if not TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, queuedSeats[transporterID]) then
+			if not CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, queuedSeats[transporterID]) then
 				break
 			end
 			local dx, dz    = passengerPosX - transporterPosX, passengerPosZ - transporterPosZ
@@ -571,8 +582,8 @@ local function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam
 		if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) then
 			removalFlag = true
 		end
-		local passengerSize = TransportAPI.GetPassengerSize(passengerID)
-		if not TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, 0) then
+		local passengerSize = GetPassengerSize(passengerID)
+		if not CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, 0) then
 			removalFlag = true
 		end
 		if removalFlag then
@@ -619,7 +630,7 @@ local function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeamI
 	--	claimPassenger(transporterID, passengerID, TransportAPI.GetPassengerSize(passengerID), false)
 	--end
 	while passengerID do
-		claimPassenger(transporterID, passengerID, TransportAPI.GetPassengerSize(passengerID), false)
+		claimPassenger(transporterID, passengerID, GetPassengerSize(passengerID), false)
 		passengerID = findUnitToTransport(transporterID, transporterDefID, transporterTeamID, cx, cz, radius)
 	end
 
@@ -649,8 +660,8 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 	local queue = spGetUnitCommands(transporterID,  spGetUnitRulesParam(transporterID, "transporterSeats")) --  spGetUnitRulesParam(transporterID, "transporterSeats") being the max number of units we can queue on a single transport
 	local i = 1
 	local cmd = queue and queue[i]
-	if not TransportAPI.IsTransportFull(transporterID, queuedSeats[transporterID]) then
-		while cmd and cmd.id == CMD_LOAD_UNIT and not TransportAPI.IsTransportFull(transporterID, queuedSeats[transporterID]) do
+	if not IsTransportFull(transporterID, queuedSeats[transporterID]) then
+		while cmd and cmd.id == CMD_LOAD_UNIT and not IsTransportFull(transporterID, queuedSeats[transporterID]) do
 			local passengerID = cmd.params[1]
 			local passengerTeamID = spGetUnitTeam(passengerID)
 			local passengerDefID = spGetUnitDefID(passengerID)
@@ -660,12 +671,12 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 			elseif not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) then
 				idsToRemove[passengerID] = true -- can't be transported right now, mark for removal
 			elseif transporterID ~= claimedBy[transporterAllyTeam][passengerID] then
-				claimPassenger(transporterID, passengerID, TransportAPI.GetPassengerSize(passengerID), true) -- force claim for ourselves if not already claimed
+				claimPassenger(transporterID, passengerID, GetPassengerSize(passengerID), true) -- force claim for ourselves if not already claimed
 			end
 			i = i + 1
 			cmd = queue and queue[i]
 		end
-	elseif TransportAPI.IsTransportFull(transporterID, 0) then -- we still have queued commands despite being full, they can't be performed
+	elseif IsTransportFull(transporterID, 0) then -- we still have queued commands despite being full, they can't be performed
 		while cmd and cmd.id == CMD_LOAD_UNIT do
 			local passengerID = cmd.params[1]
 			idsToRemove[passengerID] = true -- mark command for removal
@@ -689,8 +700,8 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 		if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) then
 			removalFlag = true
 		end
-		local passengerSize = TransportAPI.GetPassengerSize(passengerID)
-		if not TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, 0) then
+		local passengerSize = GetPassengerSize(passengerID)
+		if not CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, 0) then
 			removalFlag = true
 		end
 		if removalFlag then
@@ -898,7 +909,7 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 						local posX, posY, posZ = spGetUnitPosition(transporterID)
 						local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(cmdParams[1])
 						local disttoArea = dist2D(posX, posZ, passengerPosX, passengerPosZ)
-						while (disttoArea > 1024) or (Spring.GetGameFrame()%15 ~= transporterID%15) do
+						while (disttoArea > 1024) and (spGetGameFrame()%15 ~= transporterID%15) do
 							coroutine.yield() -- wait until we're close enough or every 15 frames to not do expensive checks every frame when far from the area
 							posX, posY, posZ = spGetUnitPosition(transporterID)
 							passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(cmdParams[1])
@@ -941,7 +952,7 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 					coroutine.lastKnownParams = { cx, cy, cz, radius }
 					local posX, posY, posZ = spGetUnitPosition(transporterID)
 					local disttoArea = dist2D(posX, posZ, cx, cz)
-					while (disttoArea > 2*radius) or (Spring.GetGameFrame()%15 ~= transporterID%15) do
+					while (disttoArea > 2*radius) and (spGetGameFrame()%15 ~= transporterID%15) do
 						coroutine.yield() -- wait until we're close enough or every 15 frames to not do expensive checks every frame when far from the area
 						posX, posY, posZ = spGetUnitPosition(transporterID)
 						disttoArea = dist2D(posX, posZ, cx, cz)
@@ -990,7 +1001,7 @@ function gadget:AllowUnitTransport(transporterID, transporterDefID, transporterT
 	--I separated both to avoid FindUnitToTransport calling gadget:AllowUnitTransportLoad with an additional arg
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
 	local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
-	return CanBeTransportedStatic(passengerID, passengerDefID, transporterID) and CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) and TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, TransportAPI.GetPassengerSize(passengerID), 0)
+	return CanBeTransportedStatic(passengerID, passengerDefID, transporterID) and CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) and CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, GetPassengerSize(passengerID), 0)
 end
 
 -- unload commands haven't been changed (yet?)
@@ -999,18 +1010,18 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transp
 	if not isAirTransport[transporterDefID] then return true end	
 	-- distance gate for individual unload commands
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
-	local unloadPadType = TransportAPI.GetUnloadPadType(transporterID)
-	local blocked = Spring.TestBuildOrder(unloadPadType, goalX, goalY, goalZ, 0)
+	local unloadPadType = GetUnloadPadType(transporterID)
+	local blocked = spTestBuildOrder(unloadPadType, goalX, goalY, goalZ, 0)
 	if blocked == 0 then
 		--spEcho("unload position blocked for transporter " .. transporterID .. ", finding closest valid position")
-		goalX, goalY, goalZ = Spring.ClosestBuildPos(transporterTeamID, unloadPadType, goalX, goalY, goalZ, 512, 0, 0)
+		goalX, goalY, goalZ = spClosestBuildPos(transporterTeamID, unloadPadType, goalX, goalY, goalZ, 512, 0, 0)
 		if not goalX then
 			spEcho("Error: no valid unload position found near target point for transporter " .. transporterID .. ", aborting unload")
 			return false
 		end
 	end
 	-- retest because we might still have mobile units in the way
-	blocked = Spring.TestBuildOrder(unloadPadType, goalX, goalY, goalZ, 0)
+	blocked = spTestBuildOrder(unloadPadType, goalX, goalY, goalZ, 0)
 	if blocked == 1 then
 		BuggerOff(goalX, goalY, goalZ, unloadPadType, transporterID)
 		--spEcho("need bugger off logic")
@@ -1027,7 +1038,7 @@ function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transp
 			spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- just override the engine given movegoal so it does not slowly descend.
 			return false
 		end
-		local targets = TransportAPI.GetUnloadTargets(transporterID, passengerID, goalX, goalY, goalZ)
+		local targets = GetUnloadTargets(transporterID, passengerID, goalX, goalY, goalZ)
 		for i = 1, #targets do
 			customTransportUnload[transporterDefID](transporterID, 'PerformUnload', targets[i], goalX, goalY, goalZ)
 		end
@@ -1040,6 +1051,11 @@ end
 
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
+	-- TODO:
+	-- When a unit just started being loaded, it is not yet considered "cargo" because it is still ongoing load
+	-- so engine drops the UNLOAD commands that are given during this time (instantly performed -> finished)
+	-- it's a little frustrating
+	-- Maybe queue a move + UNLOAD?
 	if cmdID == CMD.LOAD_ONTO then
 		if fromInsert then
 			spEcho("Warning: CMD_LOAD_ONTO is deprecated and will be removed in a future update; this command will be ignored")
@@ -1074,7 +1090,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		if not spValidUnitID(cmdParams[4]) then
 			cmdParams[4] = nil -- force nil in case some odd looking cmd was given
 		end
-		local newPosX, newPosY, newPosZ = Spring.ClosestBuildPos(unitTeam, TransportAPI.GetUnloadPadType(unitID, cmdParams[4]), posX, posY, posZ, 512, 0, 0)
+		local newPosX, newPosY, newPosZ = spClosestBuildPos(unitTeam, GetUnloadPadType(unitID, cmdParams[4]), posX, posY, posZ, 512, 0, 0)
 		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
 			if fromInsert then
@@ -1090,7 +1106,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			spEcho("Warning: CMD.UNLOAD_UNITS areas deprecated, replacing with single point CMD.UNLOAD_UNIT command")
 		end
 		local posX, posY, posZ = cmdParams[1], cmdParams[2], cmdParams[3]
-		local newPosX, newPosY, newPosZ = Spring.ClosestBuildPos(unitTeam, TransportAPI.GetUnloadPadType(unitID), posX, posY, posZ, 512, 0, 0)
+		local newPosX, newPosY, newPosZ = spClosestBuildPos(unitTeam, GetUnloadPadType(unitID), posX, posY, posZ, 512, 0, 0)
 		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
 			cmdParams[4] = nil
