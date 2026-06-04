@@ -65,7 +65,7 @@ local function callUnitScriptOnUnload(id)
 		if lusEnv["script"]["BeingUnloaded"] then
 			Spring.UnitScript.CallAsUnit(id, lusEnv["script"]["BeingUnloaded"])
 		elseif lusEnv["script"]["StartMoving"] then
-			local Q = Spring.GetUnitCommands(transporterID, 1)
+			local Q = Spring.GetUnitCommands(id, 1)
 			if Q[1] then -- only call StartMoving if the unit has a move order queued, to avoid interrupting other scripts (e.g. building placement)
 				Spring.UnitScript.CallAsUnit(id, lusEnv["script"]["StartMoving"])
 			end
@@ -77,7 +77,7 @@ local function callUnitScriptOnUnload(id)
 		if cobFuncIDBeingUnloaded then
 			Spring.CallCOBScript(id, cobFuncIDBeingUnloaded, 1)
 		elseif cobFuncIDStartMoving then
-			local Q = Spring.GetUnitCommands(transporterID, 1)
+			local Q = Spring.GetUnitCommands(id, 1)
 			if Q[1] then -- only call StartMoving if the unit has a move order queued, to avoid interrupting other scripts (e.g. building placement)
 				Spring.CallCOBScript(id, cobFuncIDStartMoving, 1)
 			end
