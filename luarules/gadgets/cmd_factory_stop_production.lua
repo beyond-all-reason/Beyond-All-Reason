@@ -90,6 +90,7 @@ if gadgetHandler:IsSyncedCode() then
 			local states = spGetUnitStates(unitID)
 			local repeatOn = states and states["repeat"]
 
+			-- Lab mode check
 			-- Normal mode:
 			-- Keep one copy of the currently-building unit to avoid accidentally canceling
 			-- an almost-complete unit.
