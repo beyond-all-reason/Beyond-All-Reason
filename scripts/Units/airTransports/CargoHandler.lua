@@ -280,6 +280,7 @@ function CargoHandler.ReleaseSlot(slotID, cargo)
 end
 
 function CargoHandler.SetSpeedDamping(speedMod, cargo, changeAltitude)
+	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "maxWantedSpeed", speedMod * cargo.transporterMaxSpeed)
 	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "maxSpeed", speedMod * cargo.transporterMaxSpeed)
 	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "accRate", speedMod * cargo.transporterAccRate)
 	Spring.MoveCtrl.SetGunshipMoveTypeData(cargo.transporterID, "turnRate", speedMod * cargo.transporterTurnRate)
