@@ -1699,8 +1699,13 @@ end
 return ((ignore and -1) or 1)
 end
 
-
 function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
+	-- Calls with no input priority are pure pass/fail tests.
+	-- These are common, and BAR never disallows any of them.
+	if not defPriority then
+		return true -- The second return value is never used.
+	end
+
 	local allowed = true
 	local result = 1.0
 
@@ -1712,14 +1717,10 @@ function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum
 		end
 		allowed, result = defPriority > 0, defPriority
 	else
+		-- The actual callin. BAR only uses AllowWeaponTarget for the target priority.
 		for _, g in ipairs(self.AllowWeaponTargetList) do
-			local targetAllowed, targetPriority = g:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-
-			if not targetAllowed then
-				allowed = false;
-				break
-			end
-			if targetPriority > result then
+			local targetPriority = g:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
+			if targetPriority then
 				result = targetPriority
 			end
 		end
@@ -1728,6 +1729,10 @@ function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum
 	return allowed, result
 end
 
+function gadgetHandler:UnitAutoTargetRange(attackerID, autoTargetRange)
+	-- Implementation stub for g:UnitAutoTargetRange. See g:AllowWeaponTarget, above.
+	-- This is needed for gadgetHandler to "see" this callin and build its call list.
+end
 
 function gadgetHandler:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponNum, interceptorTargetID)
 	for _, g in ipairs(self.AllowWeaponInterceptTargetList) do
