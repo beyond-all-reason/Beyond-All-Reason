@@ -40,7 +40,7 @@ return {
 			paralyzemultiplier = 0,
 			subfolder = "CorAircraft",
 			transporterseats = 4,
-			transportercegname = "tractorbeam",
+			transportcegname = "cortex_grapple",
 			transportercegscale = "0.7",
 		},
 		sounds = {

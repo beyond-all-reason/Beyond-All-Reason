@@ -46,7 +46,7 @@ return {
 			techlevel = 2,
 			unitgroup = "emp",
 			transporterseats = 4,
-			transportercegname = "tractorbeam",
+			transportcegname = "armada_ion",
 			transportercegscale = "0.7",
 		},
 		sfxtypes = {

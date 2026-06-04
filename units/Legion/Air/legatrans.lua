@@ -40,7 +40,7 @@ return {
 			subfolder = "Legion/Air",
 			crashable = 0,
 			transporterseats = 4,
-			transportercegname = "tractorbeam",
+			transportcegname = "legion_grav_distort",
 			transportercegscale = "0.7",
 		},
 		sounds = {

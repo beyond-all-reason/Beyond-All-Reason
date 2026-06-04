@@ -1,5 +1,5 @@
 return {
-  ["tractorbeam"] = {
+  ["armada_ion"] = {
 
     -- white-hot core
     core = {

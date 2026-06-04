@@ -44,7 +44,7 @@ return {
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			transporterseats = 6,
-			transportercegname = "tractorbeam",
+			transportcegname = "cortex_grapple",
 			transportercegscale = "0.7",
 		},
 		sounds = {

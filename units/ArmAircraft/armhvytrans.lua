@@ -40,7 +40,7 @@ return {
 			paralyzemultiplier = 0,
 			subfolder = "ArmAircraft",
 			transporterseats = 4,
-			transportercegname = "tractorbeam",
+			transportcegname = "armada_ion",
 			transportercegscale = "0.7",
 		},
 		sounds = {

@@ -45,7 +45,7 @@ return {
 			techlevel = 2,
 			crashable = 0,
 			transporterseats = 4,
-			transportercegname = "tractorbeam",
+			transportcegname = "legion_grav_distort",
 			transportercegscale = "0.7",
 		},
 		sfxtypes = {
