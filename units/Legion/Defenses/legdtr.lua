@@ -84,10 +84,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium-impulse",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4-fire",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -140,15 +136,15 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					default = 240,
 					commanders = 375,
 					subs = 90,
 					vtol = 35,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

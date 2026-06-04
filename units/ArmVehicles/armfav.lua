@@ -1,7 +1,7 @@
 return {
 	armfav = {
 		buildpic = "ARMFAV.DDS",
-		buildtime = 950,
+		buildtime = 1000,
 		canmove = true,
 		category = "GROUNDSCOUT",
 		collisionvolumeoffsets = "0 0 0",
@@ -79,11 +79,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -112,7 +107,7 @@ return {
 				beamtime = 0.18,
 				beamttl = 1,
 				burstrate = 0.2,
-				corethickness = 0.3,
+				corethickness = 0.13,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -130,12 +125,11 @@ return {
 				range = 180,
 				reloadtime = 1,
 				rgbcolor = "1 1 0.4",
-				rgbcolor2 = "1 0.55 0.3",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir1",
 				soundtrigger = 1,
-				thickness = 0.9,
+				thickness = 0.85,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",

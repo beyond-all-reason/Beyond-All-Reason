@@ -10,7 +10,7 @@ return {
 		buildtime = 19000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 -3 0",
-		collisionvolumescales = "55 85 55",
+		collisionvolumescales = "55 70 55",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "mediumBuildingexplosiongeneric",
@@ -73,11 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-flak",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

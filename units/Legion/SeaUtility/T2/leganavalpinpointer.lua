@@ -5,9 +5,9 @@ return {
 		buildpic = "leganavalpinpointer.DDS",
 		buildtime = 10300,
 		canrepeat = false,
-		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "69 95 58",
-		collisionvolumetype = "CylY",
+		collisionvolumeoffsets = "0 -10 0",
+		collisionvolumescales = "42 80 42",
+		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 7500,
 		energyupkeep = 150,
@@ -67,13 +67,6 @@ return {
 				object = "Units/cor4X4D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

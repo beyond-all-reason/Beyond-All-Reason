@@ -186,7 +186,7 @@ local spIsPosInLos = Spring.IsPosInLos
 	-- feature bars dont actually need a reinit, now do they?
 -- TODO: make numbers, glyphs optional? -- done, but untested
 
---/luarules fightertest corak armpw 100 10 2000
+--/luarules benchmark corak armpw 100 10 2000
 
 local drawWhenGuiHidden = false
 
@@ -1246,7 +1246,11 @@ function widget:FeatureDestroyed(featureID)
 	featureBars[featureID] = nil
 end
 
-function widget:DrawWorld()
+function widget:DrawScreenEffects()
+	-- using DrawScreenEffects so healthbars render after deferred lighting,
+	-- distortion, bloom and tonemapping passes — keeps bar colors uncolored
+	-- and unaffected by water/heat distortion. The shader still does world->clip
+	-- via engine cameraViewProj UBO, and depth-test still occludes against terrain.
 	--spEcho(Engine.versionFull )
 	if chobbyInterface then return end
 	if not drawWhenGuiHidden and Spring.IsGUIHidden() then return end

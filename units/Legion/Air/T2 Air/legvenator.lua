@@ -46,17 +46,6 @@ return {
 			attacksafetydistance = 300,
 			fighter = 1,
 		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -107,13 +96,13 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
+				customparams = {
+					noattackrangearc= 1,
+				},
 				damage = {
 					commanders = 8,
 					default = 24,
 					vtol = 480,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 		},

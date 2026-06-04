@@ -35,11 +35,6 @@ return {
 			removewait = true,
 			subfolder = "ArmBuildings/LandUtil",
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

@@ -5,6 +5,9 @@ return {
 		buildpic = "leganavalfusion.DDS",
 		buildtime = 105000,
 		canrepeat = false,
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "101 59 69",
+		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 34000,
 		energymake = 1220,
@@ -72,11 +75,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[0] = "custom:subbubbles",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -121,6 +121,8 @@ function gadget:ProjectileDestroyed(proID)
 end
 
 function gadget:GameFrame(gf)
+	local removeList
+	local removeCount = 0
 	for proID, missile in pairs(missiles) do
 		if gf <= missile[6] then
 			local x, y, z = GetProjectilePosition(proID)
@@ -139,11 +141,18 @@ function gadget:GameFrame(gf)
 					end
 				end
 			else
-				missiles[proID] = nil
+				removeCount = removeCount + 1
+				if not removeList then removeList = {} end
+				removeList[removeCount] = proID
 			end
 		else
-			missiles[proID] = nil
+			removeCount = removeCount + 1
+			if not removeList then removeList = {} end
+			removeList[removeCount] = proID
 		end
+	end
+	for i = 1, removeCount do
+		missiles[removeList[i]] = nil
 	end
 end
 

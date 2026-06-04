@@ -186,10 +186,6 @@ return {
 				[3] = "custom:footstep-medium",
 				[4] = "custom:barrelshot-tiny",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath1",
@@ -245,6 +241,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 360,
 					vtol = 200,
@@ -283,6 +282,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 425,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					-- commanders = 375,
 					default = 300, --278.4375,
@@ -324,6 +326,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 250,
 				},
@@ -361,6 +366,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
@@ -414,6 +422,7 @@ return {
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 					spawns_mode = "random",
 					stockpilelimit = 4,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 0,

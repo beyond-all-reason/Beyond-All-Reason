@@ -134,9 +134,13 @@ function BuildingsHST:FindClosestBuildSite(unittype, bx,by,bz, minDist, maxDist,
 	--local ch = 2
 	--map:EraseAll(ch)
 
+	local math_sin = math.sin
+	local math_cos = math.cos
+	local math_random = math.random
+
 	maxDist = maxDist or 390
 	minDist = minDist or 1
-	minDist = math.max(minDist,1)
+	if minDist < 1 then minDist = 1 end
 
 	local twicePi = math.pi * 2
 	local angleIncMult = twicePi / minDist
@@ -145,13 +149,14 @@ function BuildingsHST:FindClosestBuildSite(unittype, bx,by,bz, minDist, maxDist,
 	---map:DrawPoint({x=bx,y=by,z=bz}, {1,0,0,1},'origin',  ch)
 	local attempt = 1
 	self:EchoDebug('maxDist',maxDist)
-	local maxtest = math.max(10,(maxDist - minDist) / 100)
+	local step = (maxDist - minDist) / 100
+	local maxtest = step > 10 and step or 10
 	local checkpos = recycledPos or {}
 	--self:EchoDebug('FindClosestBuildSite',unittype,bx,bz,minDist,maxDist,maxtest)
 	for radius = minDist, maxDist, maxtest do
 		self:EchoDebug('radius = minDist, maxDist, maxtest',radius , maxDist, maxtest)
 		local angleInc = radius * twicePi * angleIncMult
-		local initAngle = math.random() * twicePi
+		local initAngle = math_random() * twicePi
 		for angle = initAngle, initAngle+twicePi, angleInc do
 			self:EchoDebug('intAAngle initAngle+twicePi, angleinc',initAngle, initAngle+twicePi, angleInc)
 			attempt = attempt + 1
@@ -159,8 +164,8 @@ function BuildingsHST:FindClosestBuildSite(unittype, bx,by,bz, minDist, maxDist,
 			local realAngle = angle+0
 			local dx,dz
 			if realAngle > twicePi then realAngle = realAngle - twicePi end
-			local s = math.sin(realAngle)
-			local c = math.cos(realAngle)
+			local s = math_sin(realAngle)
+			local c = math_cos(realAngle)
 			if c > 0 then
 				dx = radius*c
 			else

@@ -7,6 +7,12 @@ allow_defined_top = true
 max_line_length = false
 codes = true
 
+exclude_files = {
+    "common/luaUtilities/**",
+    ".lux/**",
+    "recoil-lua-library/**",
+}
+
 -- Ideally reenable these warnings later
 redefined = false
 

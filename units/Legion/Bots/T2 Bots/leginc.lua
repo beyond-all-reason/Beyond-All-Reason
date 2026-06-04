@@ -69,13 +69,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -132,14 +125,13 @@ return {
 				thickness = 4.5,
 				turret = true,
 				weapontype = "BeamLaser",
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					commanders = 16,
 					default = 33,
 					vtol = 11,
-				},
-				customparams = {
-					exclude_preaim = true,
-					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				},
 			},
 		},

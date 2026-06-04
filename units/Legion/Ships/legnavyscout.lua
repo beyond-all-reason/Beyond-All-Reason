@@ -72,11 +72,6 @@ return {
 				[1] = "custom:barrelshot-tiny",
 				[2] = "custom:waterwake-small-long",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -115,7 +110,7 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
-				impulsefactor = 1.5,
+				impulsefactor = 0,
 				intensity = 0.8,
 				name = "Twin Rapid-fire Machine Guns",
 				noselfdamage = true,

@@ -33,20 +33,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmAircraft",
 		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -76,6 +62,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
+				cegtag = "missiletrailsmall-simple",
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 70,

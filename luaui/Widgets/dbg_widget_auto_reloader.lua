@@ -24,6 +24,7 @@ local spEcho = Spring.Echo
 
 local widgetContents = {} -- maps widgetname to raw code
 local widgetFilesNames = {} -- maps widgetname to filename
+local widgetDependents = {} -- maps widgetname to {dependentName1, ...}
 local mouseOffscreen = select(6, spGetMouseState())
 
 function widget:Initialize()
@@ -34,7 +35,19 @@ function widget:Initialize()
 		if not widgetContents[whInfo.name] then
 			widgetContents[whInfo.name] = VFS.LoadFile(whInfo.filename)
 		end
+		if widget.GetInfo then
+			local info = widget:GetInfo()
+			if info.dependents then
+				widgetDependents[whInfo.name] = info.dependents
+			end
+		end
 	end
+end
+
+local function ReloadWidget(widgetName)
+	spEcho("Reloading widget: " .. widgetName)
+	widgetHandler:DisableWidget(widgetName)
+	widgetHandler:EnableWidget(widgetName)
 end
 
 local function CheckForChanges(widgetName, fileName)
@@ -46,14 +59,36 @@ local function CheckForChanges(widgetName, fileName)
 			spEcho('Failed to load: ' .. fileName .. '  (' .. err .. ')')
 			return nil
 		end
-		widgetHandler:DisableWidget(widgetName)
-		--spEcho("Reloading widget: " .. widgetName)
-		widgetHandler:EnableWidget(widgetName)
+		ReloadWidget(widgetName)
+		local deps = widgetDependents[widgetName]
+		if deps then
+			for i = 1, #deps do
+				local depName = deps[i]
+				if widgetHandler:FindWidget(depName) then
+					spEcho("Reloading dependent widget: " .. depName .. " (of " .. widgetName .. ")")
+					ReloadWidget(depName)
+				end
+			end
+		end
 	end
 end
 
 local lastUpdate = Spring.GetTimer()
+local updateQueue = {}
 function widget:Update()
+	local widgetName, fileName = next(updateQueue)
+	if widgetName then
+		local startTime = Spring.GetTimer()
+		-- 2 ms budget per frame
+		while widgetName and (Spring.DiffTimers(Spring.GetTimer(), startTime, true) < 3.0) do
+			tracy.ZoneBeginN("Widget Auto Reloader:" .. widgetName)
+			CheckForChanges(widgetName, fileName)
+			updateQueue[widgetName] = nil
+			widgetName, fileName = next(updateQueue)
+			tracy.ZoneEnd()
+		end
+	end
+
 	if Spring.DiffTimers(Spring.GetTimer() , lastUpdate) < 1 then
 		return
 	end
@@ -64,8 +99,9 @@ function widget:Update()
 
 	if not mouseOffscreen and prevMouseOffscreen then
 		widget:Initialize()
+		updateQueue = {}
 		for widgetName, fileName in pairs(widgetFilesNames) do
-			CheckForChanges(widgetName, fileName)
+			updateQueue[widgetName] = fileName
 		end
 	end
 end

@@ -17,7 +17,7 @@ return {
 		canstop = true,
 		cantbetransported = false,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "46 80 46",
+		collisionvolumescales = "46 70 46",
 		collisionvolumetype = "CylY",
 		explodeas = "nanoboom",
 		floater = true,
@@ -50,13 +50,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBuildings/LandUtil",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
-			},
+			techlevel = 2,
 		},
 		sounds = {
 			build = "nanlath1",

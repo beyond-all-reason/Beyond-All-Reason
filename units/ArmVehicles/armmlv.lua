@@ -5,7 +5,6 @@ return {
 		builder = true,
 		buildpic = "ARMMLV.DDS",
 		buildtime = 3520,
-		canassist = false,
 		canmove = true,
 		canreclaim = false,
 		canrepair = true,
@@ -89,12 +88,6 @@ return {
 				object = "Units/arm3X3B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

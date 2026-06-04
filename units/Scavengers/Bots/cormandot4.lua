@@ -68,11 +68,6 @@ return {
 				[1] = "custom:barrelshot-small",
 				[2] = "custom:radarpulse_t1",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath2",

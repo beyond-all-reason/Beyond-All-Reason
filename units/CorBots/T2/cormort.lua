@@ -24,7 +24,7 @@ return {
 		script = "Units/CORMORT.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 300,
+		sightdistance = 380,
 		speed = 50.4,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -72,11 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

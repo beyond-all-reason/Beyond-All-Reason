@@ -2521,6 +2521,8 @@ local unitGrids = {
 	},
 }
 
+local priorityUnits = {"armshltx","armshltxuw","corgant","corgantuw","leggant","leggantuw","armalab", "armavp", "armasy", "armaap", "coralab", "coravp", "corasy", "coraap", "legalab", "legavp", "legadvshipyard", "legaap"}
+
 unitGrids["dummycom"] = unitGrids["armcom"]
 
 if Spring.GetModOptions().experimentalextraunits or Spring.GetModOptions().scavunitsforplayers then
@@ -3327,4 +3329,5 @@ end
 return {
 	LabGrids = labGrids,
 	UnitGrids = unitGrids,
+	PriorityUnits = priorityUnits
 }

@@ -19,7 +19,7 @@ return {
 		health = 5125,
 		leavetracks = true,
 		maxacc = 0.02547,
-		maxdec = 0.05093,
+		maxdec = 0.1,
 		maxwaterdepth = 0,
 		metalcost = 1,
 		movementclass = "MTANK3",
@@ -29,7 +29,7 @@ return {
 		script = "Units/scavboss/CORVACCT.cob",
 		seismicsignature = 0,
 		selfdestructas = "",
-		sightdistance = 1,
+		sightdistance = 330,
 		speed = 49.5,
 		stealth = true,
 		terraformspeed = 1250,
@@ -56,13 +56,6 @@ return {
 			techlevel = 2,
 			unitgroup = "buildert2",
 			virtualunit = 1,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

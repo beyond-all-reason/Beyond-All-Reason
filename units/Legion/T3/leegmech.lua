@@ -76,10 +76,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small-impulse",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -154,6 +150,7 @@ return {
 					area_onhit_time = 10,
 					overrange_distance = 805,
 					projectile_destruction_method = "descend",
+					water_splash = 0,
 				},
 				damage = {
 					default = 30,
@@ -305,6 +302,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 975,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 75,
 				},

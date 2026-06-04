@@ -24,7 +24,6 @@ return {
 		maxslope = 10,
 		speed = 210.0,
 		maxwaterdepth = 0,
-		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/legmineb.s3o",
 		script = "Units/legmineb.cob",
@@ -43,20 +42,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

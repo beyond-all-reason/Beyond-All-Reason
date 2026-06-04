@@ -13,7 +13,7 @@ return {
 		canfly = true,
 		canmove = true,
 		collide = true,
-		collisionvolumeoffsets = "0 0 0",
+		collisionvolumeoffsets = "0 6 0",
 		collisionvolumescales = "48 14 60",
 		collisionvolumetype = "Box",
 		cruisealtitude = 100,
@@ -49,20 +49,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
-		},
+			},		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -133,6 +120,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 2500,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					vtol = 37,
 				},
@@ -194,7 +184,8 @@ return {
 					dronedocktime = 2,
 					droneairtime = 60,
 					droneammo = 9,
-				}
+					weapons_group = 1,
+				},
 			},
 		},
 		weapons = {

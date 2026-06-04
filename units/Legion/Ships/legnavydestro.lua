@@ -9,8 +9,8 @@ return {
 		buildpic = "legnavydestro.DDS",
 		buildtime = 11500,
 		canmove = true,
-		collisionvolumeoffsets = "0 -5 -6",
-		collisionvolumescales = "35 48 84",
+		collisionvolumeoffsets = "0 -6 -4",
+		collisionvolumescales = "35 50 86",
 		collisionvolumetype = "ellipsoid",
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",
@@ -76,11 +76,6 @@ return {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:waterwake-small",
 				[3] = "custom:bowsplash-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

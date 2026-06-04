@@ -14,7 +14,7 @@ return {
 		health = 1030,
 		leavetracks = true,
 		maxacc = 0.02111,
-		maxdec = 0.04222,
+		maxdec = 0.1,
 		maxslope = 10,
 		maxwaterdepth = 12,
 		metalcost = 240,
@@ -25,7 +25,7 @@ return {
 		script = "Units/ARMJANUS.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 325,
+		sightdistance = 330,
 		speed = 54,
 		trackoffset = 3,
 		trackstrength = 6,
@@ -71,13 +71,6 @@ return {
 				object = "Units/arm2X2C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

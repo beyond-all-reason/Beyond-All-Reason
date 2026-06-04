@@ -21,7 +21,7 @@ return {
 		collide = false,
 		collision = false,
 		cruisealtitude = 200,
-		explodeas = "TINYBUG_DEATH",
+		explodeas = "MICROBUG_DEATH",
 		footprintx = 1,
 		footprintz = 1,
 		hoverattack = true,

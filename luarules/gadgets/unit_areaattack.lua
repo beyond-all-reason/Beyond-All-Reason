@@ -20,7 +20,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local attackList = {}
 	local closeList = {}
-	local range = {}
 
 	local math_random = math.random
 	local math_pi = math.pi
@@ -34,6 +33,7 @@ if gadgetHandler:IsSyncedCode() then
 			canAreaAttack[unitDefID] = WeaponDefs[unitDef.weapons[1].weaponDef].range
 		end
 	end
+	local range = canAreaAttack -- range per unitDefID, same data
 
 	local aadesc = {
 		name = "Area Attack",
@@ -87,7 +87,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(u, ud, team)
 		if canAreaAttack[ud] then
-			range[ud] = canAreaAttack[ud]	-- put the range inside canAreaAttack[ud]
 			Spring.InsertUnitCmdDesc(u,aadesc)
 		end
 	end

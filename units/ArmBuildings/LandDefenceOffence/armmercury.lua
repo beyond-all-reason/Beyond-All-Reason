@@ -68,13 +68,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			activate = "targon1",
 			canceldestruct = "cancel2",
@@ -120,9 +113,9 @@ return {
 				range = 2400,
 				reloadtime = 1.8,
 				smokecolor = 0.9,
-				smokeperiod = 3,
-				smokesize = 11,
-				smoketime = 24,
+				smokeperiod = 2,
+				smokesize = 9,
+				smoketime = 20,
 				smoketrail = true,
 				smoketrailcastshadow = false,
 				soundhit = "impact",

@@ -5,6 +5,7 @@ return {
 		buildpic = "LEGAMPH.DDS",
 		buildtime = 16980,
 		canmove = true,
+		cantbetransported = true,
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "32 35 48",
 		collisionvolumetype = "Box",
@@ -86,11 +87,6 @@ return {
 				[2] = "custom:subbubbles",
 				[3] = "custom:footstep-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -148,13 +144,13 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
+				customparams = {
+					sweepfire = 4.5,
+				},
 				damage = {
 					default = 33,
 					vtol = 10,
 				},
-				customparams = {
-					sweepfire=4.5,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}
 			},
 			coax_depthcharge = {
 				areaofeffect = 32,
@@ -197,6 +193,9 @@ return {
 				weaponacceleration = 75,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 350,
 				},

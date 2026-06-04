@@ -81,10 +81,6 @@ return {
 				[6] = "custom:smokegen-part2",
 				[7] = "custom:ventair-puff",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -177,6 +173,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},

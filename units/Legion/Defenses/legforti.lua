@@ -44,6 +44,7 @@ return {
 			removestop = true,
 			removewait = true,
 			subfolder = "legion/Defenses",
+			techlevel = 2,
 		},
 		featuredefs = {
 			rockteethx = {
@@ -63,12 +64,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				shadtrans = 1,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 	},

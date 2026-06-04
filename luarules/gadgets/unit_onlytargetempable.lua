@@ -45,6 +45,8 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 			return false
 		else
 			local _,_,_,_, y = Spring.GetUnitPosition(cmdParams[1], true)
+			local _, scaleY, _, _, offY = Spring.GetUnitCollisionVolumeData(cmdParams[1])
+			y = y + offY + (scaleY * 0.5)
 			if y and y >= 0 then
 				return true
 			else

@@ -75,13 +75,6 @@ return {						--costs should be same as legmohoconct and legmohoconin
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			activate = "mohorun2",
 			canceldestruct = "cancel2",

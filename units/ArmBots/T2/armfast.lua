@@ -23,7 +23,7 @@ return {
 		script = "Units/ARMFAST.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
-		sightdistance = 351,
+		sightdistance = 380,
 		speed = 111.3,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -73,11 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

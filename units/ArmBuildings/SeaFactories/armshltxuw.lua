@@ -79,10 +79,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			activate = "gantok2",

@@ -24,7 +24,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "pyroselfd",
 		selfdestructcountdown = 1,
-		sightdistance = 318,
+		sightdistance = 380,
 		speed = 82.5,
 		strafetoattack = true,
 		turninplace = true,
@@ -58,13 +58,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:pilotlight",
-				[2] = "custom:flamestream",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg3",
-				[4] = "deathceg4-fire",
 			},
 		},
 		sounds = {

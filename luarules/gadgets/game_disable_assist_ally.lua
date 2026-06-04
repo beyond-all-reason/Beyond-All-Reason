@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
 		layer   = 1, -- after unit_mex_upgrade_reclaimer and unit_geo_upgrade_reclaimer
-		enabled = Spring.GetModOptions().disable_assist_ally_construction or Spring.GetModOptions().easytax,
+		enabled = Spring.GetModOptions().disable_assist_ally_construction, -- or Spring.GetModOptions().easytax,  -- disabled for easytax and replaced with tax in game_tax_resource_sharing.lua
 	}
 end
 

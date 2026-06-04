@@ -4,7 +4,7 @@ return {
 		buildpic = "ARMCKFUS.DDS",
 		buildtime = 65000,
 		canrepeat = false,
-		cloakcost = 75,
+		cloakcost = 50,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "97 42 51",
 		collisionvolumetype = "Box",
@@ -20,7 +20,7 @@ return {
 		maxdec = 0,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		metalcost = 3650,
+		metalcost = 3550,
 		mincloakdistance = 100,
 		objectname = "Units/ARMCKFUS.s3o",
 		script = "Units/ARMCKFUS.cob",
@@ -67,13 +67,6 @@ return {
 				object = "Units/arm4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

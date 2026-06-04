@@ -76,10 +76,6 @@ return {
 				[1] = "custom:waterwake-small",
 				[2] = "custom:barrelshot-small",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -139,13 +135,14 @@ return {
 				weapontimer = 4,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 250,
+				customparams = {
+					speceffect = "torpwaterpen",
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 70,
 					default = 140,
 					vtol = 15,
-				},
-				customparams = {
-					speceffect = "torpwaterpen",
 				},
 			},
 			leg_alt_torpedo_launcher = {
@@ -184,13 +181,13 @@ return {
 				weapontimer = 4,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					commanders = 70,
 					default = 140,
 					vtol = 15,
-				},
-				customparams = {
-					--speceffect = "torpwaterpen",
 				},
 			},
 		},

@@ -28,7 +28,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
 
 
--- for testing: /luarules fightertest corak armpw 100 10 3000
+-- for testing: /luarules benchmark corak armpw 100 10 3000
 
 local paralyzedUnitShader, unitShapeShader
 
@@ -461,6 +461,10 @@ function widget:UnitDestroyed(unitID)
 end
 
 function widget:UnitLeftLos(unitID)
+	-- Spectators with fullview see all units regardless of LOS; don't strip the
+	-- effect on LOS-leave because UnitEnteredLos early-returns under fullview
+	-- and would never restore it (causes effect to vanish from paralyzed units).
+	if fullview then return end
 	StopDrawParalyzedUnitGL4(unitID)
 end
 

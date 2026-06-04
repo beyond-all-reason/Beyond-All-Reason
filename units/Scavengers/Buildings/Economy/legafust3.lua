@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizex = 20,
 			buildinggrounddecalsizey = 20,
 			buildinggrounddecaltype = "decals/legafus_aoplane.dds",
-			model_author = "Protar/Ghoulish",
+			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
@@ -71,13 +71,6 @@ return {
 				object = "Units/arm4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

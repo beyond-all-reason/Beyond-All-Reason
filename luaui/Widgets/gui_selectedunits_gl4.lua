@@ -17,6 +17,17 @@ end
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spEcho = Spring.Echo
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGameRulesParam = Spring.GetGameRulesParam
+local spIsGUIHidden = Spring.IsGUIHidden
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMouseState = Spring.GetMouseState
+local spTraceScreenRay = Spring.TraceScreenRay
+local spValidUnitID = Spring.ValidUnitID
+local spValidFeatureID = Spring.ValidFeatureID
+local spSetUnitBufferUniforms = gl.SetUnitBufferUniforms
+local spSetFeatureBufferUniforms = gl.SetFeatureBufferUniforms
 
 -- Configurable Parts:
 local texture = "luaui/images/solid.png"
@@ -29,6 +40,7 @@ local mouseoverHighlight = true
 
 ---- GL4 Backend Stuff----
 local selectionVBOGround = nil
+local selectionVBOWater = nil
 local selectionVBOAir = nil
 
 local mapHasWater = (Spring.GetGroundExtremes() < 0)
@@ -64,6 +76,9 @@ local selectedUnits = spGetSelectedUnits()
 
 local unitTeam = {}
 local unitUnitDefID = {}
+local unitWaterPass = {}
+local nextWaterPassCheckFrame = 0
+local waterPassCheckInterval = 6
 
 local unitScale = {}
 local unitCanFly = {}
@@ -81,6 +96,37 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 local unitBufferUniformCache = {0}
+
+local function getWaterLevel()
+	local lrs = WG.lavaRenderState
+	if lrs and lrs.level then
+		return lrs.level
+	end
+	local level = spGetGameRulesParam("lavaLevel")
+	if level and level ~= -99999 then
+		return level
+	end
+	return 0
+end
+
+local function shouldUseWaterPass(unitID, unitDefID)
+	if not mapHasWater or unitCanFly[unitDefID] then return false end
+	local x, y, z = spGetUnitPosition(unitID)
+	if not x or not y or not z then return false end
+	local waterLevel = getWaterLevel()
+	local groundY = spGetGroundHeight(x, z)
+	-- Route ships/submerged units to post-water pass to avoid water distortion.
+	return (groundY < waterLevel + 1) and (y <= waterLevel + 20)
+end
+
+local function shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
+	if not mapHasWater or unitCanFly[unitDefID] then return false end
+	local x, y, z = spGetUnitPosition(unitID)
+	if not x or not y or not z then return false end
+	local groundY = spGetGroundHeight(x, z)
+	-- Route ships/submerged units to post-water pass to avoid water distortion.
+	return (groundY < waterLevel + 1) and (y <= waterLevel + 20)
+end
 
 
 local function AddPrimitiveAtUnit(unitID)
@@ -126,8 +172,18 @@ local function AddPrimitiveAtUnit(unitID)
 		gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
 	end
 	--spEcho(unitID,radius,radius, spGetUnitTeam(unitID), numvertices, 1, gf)
+	local targetVBO
+	if unitCanFly[unitDefID] then
+		targetVBO = selectionVBOAir
+		unitWaterPass[unitID] = false
+	else
+		local useWaterPass = shouldUseWaterPass(unitID, unitDefID)
+		unitWaterPass[unitID] = useWaterPass
+		targetVBO = (useWaterPass and selectionVBOWater) or selectionVBOGround
+	end
+
 	pushElementInstance(
-		(unitCanFly[unitDefID] and selectionVBOAir) or selectionVBOGround, -- push into this Instance VBO Table
+		targetVBO, -- push into this Instance VBO Table
 		{
 			length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
 			unitTeam[unitID], -- teamID
@@ -190,28 +246,34 @@ end
 
 if mapHasWater then
 	function widget:DrawWorld()
+		-- Water-affected ground platters are drawn post-water to avoid refraction distortion.
+		DrawSelections(selectionVBOWater, false)
+		-- Draw air platters after water pass to avoid water refraction distortion.
 		DrawSelections(selectionVBOAir, true)
 	end
 end
 
 function widget:DrawWorldPreUnit()
+	-- Keep ground platters in pre-unit so units always overlap/occlude them.
 	DrawSelections(selectionVBOGround, false)
 end
 
 local function RemovePrimitive(unitID)
 	local selectionVBO
 	if selectionVBOGround.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOGround end
+	if selectionVBOWater and selectionVBOWater.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOWater end
 	if selectionVBOAir.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOAir end
 
 	if selectionVBO and selectionVBO.instanceIDtoIndex[unitID] then
 		if selectionHighlight then
 			unitBufferUniformCache[1] = 0
-			if Spring.ValidUnitID(unitID) then
-				gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
+			if spValidUnitID(unitID) then
+				spSetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
 			end
 		end
 		popElementInstance(selectionVBO, unitID)
 	end
+	unitWaterPass[unitID] = nil
 end
 
 function widget:SelectionChanged(sel)
@@ -222,17 +284,21 @@ end
 local lastMouseOverUnitID = nil
 local lastMouseOverFeatureID = nil
 local cleanedForHiddenUI = false
+local mouseOverUnitUniform = {0}
+local mouseOverFeatureUniform = {0}
 
 local function ClearLastMouseOver()
 	if lastMouseOverUnitID then
-		if Spring.ValidUnitID(lastMouseOverUnitID) then
-			gl.SetUnitBufferUniforms(lastMouseOverUnitID, {selUnits[lastMouseOverUnitID] and 1 or 0}, 6)
+		if spValidUnitID(lastMouseOverUnitID) then
+			mouseOverUnitUniform[1] = selUnits[lastMouseOverUnitID] and 1 or 0
+			spSetUnitBufferUniforms(lastMouseOverUnitID, mouseOverUnitUniform, 6)
 		end
 		lastMouseOverUnitID = nil
 	end
 	if lastMouseOverFeatureID then
-		if Spring.ValidFeatureID(lastMouseOverFeatureID) then
-			gl.SetFeatureBufferUniforms(lastMouseOverFeatureID, {0}, 6)
+		if spValidFeatureID(lastMouseOverFeatureID) then
+			mouseOverFeatureUniform[1] = 0
+			spSetFeatureBufferUniforms(lastMouseOverFeatureID, mouseOverFeatureUniform, 6)
 		end
 		lastMouseOverFeatureID = nil
 	end
@@ -241,8 +307,10 @@ end
 
 
 function widget:Update(dt)
+	local guiHidden = spIsGUIHidden()
+	local gf = spGetGameFrame()
 	-- Handle UI visibility: clear selections when hidden, resync on show
-	if Spring.IsGUIHidden() then
+	if guiHidden then
 		if not cleanedForHiddenUI then
 			ClearLastMouseOver()
 			for unitID, _ in pairs(selUnits) do
@@ -283,6 +351,22 @@ function widget:Update(dt)
 		selUnits = newSelUnits
 	end
 
+	if mapHasWater and gf >= nextWaterPassCheckFrame then
+		nextWaterPassCheckFrame = gf + waterPassCheckInterval
+		local waterLevel = getWaterLevel()
+		-- Keep selected naval/submerged units in the post-water VBO as they move.
+		for unitID, _ in pairs(selUnits) do
+			local unitDefID = unitUnitDefID[unitID]
+			if unitDefID and not unitCanFly[unitDefID] then
+				local desiredWaterPass = shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
+				if desiredWaterPass ~= unitWaterPass[unitID] then
+					RemovePrimitive(unitID)
+					AddPrimitiveAtUnit(unitID)
+				end
+			end
+		end
+	end
+
 	-- We move the check for mouseovered units here,
 	-- as this widget is the ground truth for our unitbufferuniform[2].z (#6)
 	-- 0 means unit is un selected
@@ -290,25 +374,27 @@ function widget:Update(dt)
 	-- +0.5 means ally also selected unit
 	-- +2 means its mouseovered
 	if mouseoverHighlight then
-		local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
+		local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode  = spGetMouseState()
 		if mouseOffScreen or cameraPanMode or mmb or p1 then
 			ClearLastMouseOver()
 		else
-			local result, data = Spring.TraceScreenRay(mx, my)
+			local result, data = spTraceScreenRay(mx, my)
 			--spEcho(result, (type(data) == 'table') or data, lastMouseOverUnitID, lastMouseOverFeatureID)
-			if result == 'unit' and not Spring.IsGUIHidden() then
+			if result == 'unit' and not guiHidden then
 				local unitID = data
 				if lastMouseOverUnitID ~= unitID then
 					ClearLastMouseOver()
 					local newUniform = (selUnits[unitID] and 1 or 0 ) + 2
-					gl.SetUnitBufferUniforms(unitID, {newUniform}, 6)
+					mouseOverUnitUniform[1] = newUniform
+					spSetUnitBufferUniforms(unitID, mouseOverUnitUniform, 6)
 					lastMouseOverUnitID = unitID
 				end
-			elseif result == 'feature' and not Spring.IsGUIHidden() then
+			elseif result == 'feature' and not guiHidden then
 				local featureID = data
 				if lastMouseOverFeatureID ~= featureID then
 					ClearLastMouseOver()
-					gl.SetFeatureBufferUniforms(featureID, {2}, 6)
+					mouseOverFeatureUniform[1] = 2
+					spSetFeatureBufferUniforms(featureID, mouseOverFeatureUniform, 6)
 					lastMouseOverFeatureID = featureID
 				end
 			else
@@ -331,6 +417,7 @@ function widget:UnitDestroyed(unitID)
 	end
 	unitTeam[unitID] = nil
 	unitUnitDefID[unitID] = nil
+	unitWaterPass[unitID] = nil
 end
 
 local function init()
@@ -348,8 +435,10 @@ local function init()
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
 	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsGround")
 	if mapHasWater then
+		selectionVBOWater = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsWater")
 		selectionVBOAir = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsAir")
 	else
+		selectionVBOWater = selectionVBOGround
 		selectionVBOAir = selectionVBOGround
 	end
 	ClearLastMouseOver()
@@ -358,6 +447,10 @@ local function init()
 		return false
 	end
 	if selectionVBOAir == nil then
+		widgetHandler:RemoveWidget()
+		return false
+	end
+	if selectionVBOWater == nil then
 		widgetHandler:RemoveWidget()
 		return false
 	end

@@ -85,11 +85,6 @@ return {
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-huge",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -156,7 +151,7 @@ return {
 					decayrate = 6,
 					attackformationspread = 120,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
 					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
-					carrierdeaththroe = "control",
+					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 24,
 					docktohealthreshold = 50,

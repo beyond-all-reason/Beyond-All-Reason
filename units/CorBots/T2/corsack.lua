@@ -27,7 +27,7 @@ return {
 		script = "Units/LEGACK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
-		sightdistance = 318.5,
+		sightdistance = 380,
 		speed = 33,
 		terraformspeed = 900,
 		turninplace = true,
@@ -88,13 +88,6 @@ return {
 				object = "Units/cor2X2B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

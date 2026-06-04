@@ -1,7 +1,7 @@
 return {
 	legfloat = {
 		maxacc = 0.034,
-		maxdec = 0.068,
+		maxdec = 0.1,
 		buildcostenergy = 12000,
 		buildcostmetal = 650,
 		buildpic = "LEGFLOAT.DDS",
@@ -87,11 +87,6 @@ return {
 				[3] = "custom:bowsplash-small",
 				[4] = "custom:bowsplash-medium",
 				[5] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

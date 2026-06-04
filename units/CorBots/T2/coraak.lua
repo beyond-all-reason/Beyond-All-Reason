@@ -72,11 +72,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium-aa",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -157,7 +152,7 @@ return {
 				name = "Missiles",
 				noselfdamage = true,
 				range = 1300,
-				reloadtime = 1.6,
+				reloadtime = 1.4,
 				smokecolor = 0.5,
 				smokeperiod = 6,
 				smokesize = 6,

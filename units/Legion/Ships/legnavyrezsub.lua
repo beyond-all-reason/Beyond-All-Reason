@@ -41,13 +41,6 @@ return {
 			subfolder = "Legion/Ships",
 			unitgroup = "builder",
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
-			},
-		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

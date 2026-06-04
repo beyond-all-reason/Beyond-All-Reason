@@ -6,8 +6,8 @@ return {
 		buildtime = 6100,
 		canattack = false,
 		canrepeat = false,
-		collisionvolumeoffsets = "0 30 0",
-		collisionvolumescales = "59 48 32",
+		collisionvolumeoffsets = "0 17 0",
+		collisionvolumescales = "59 54 32",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energycost = 2400,
@@ -56,13 +56,6 @@ return {
 				metal = 99,
 				object = "Units/leganavalsonarstation_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

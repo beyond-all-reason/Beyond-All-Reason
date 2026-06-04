@@ -162,10 +162,6 @@ return {
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath2",
@@ -233,6 +229,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 215,
 					subs = 85,
@@ -272,6 +271,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 200,
 					subs = 100,
@@ -310,6 +312,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,

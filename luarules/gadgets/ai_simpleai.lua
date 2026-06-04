@@ -46,6 +46,13 @@ local CMD_MOVE = CMD.MOVE
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_REPAIR = CMD.REPAIR
 local CMD_FIGHT = CMD.FIGHT
+local CMD_FIRE_STATE = CMD.FIRE_STATE
+local CMD_MOVE_STATE = CMD.MOVE_STATE
+local string_sub = string.sub
+local math_ceil = math.ceil
+local math_sqrt = math.sqrt
+local math_huge = math.huge
+local mapdiagonal = math_ceil(math_sqrt(mapsizeX * mapsizeX + mapsizeZ * mapsizeZ))
 
 local MakeHashedPosTable = VFS.Include("luarules/utilities/damgam_lib/hashpostable.lua")
 local HashPosTable = MakeHashedPosTable()
@@ -194,7 +201,7 @@ local spDgunCommand = CMD.DGUN
 local function SimpleGetClosestMexSpot(x, z)
 	--tracy.ZoneBeginN("SimpleAI:SimpleGetClosestMexSpot")
 	local bestSpot
-	local bestDist = math.huge
+	local bestDist = math_huge
 	local metalSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList or nil
 	if metalSpots then
 		for i = 1, #metalSpots do
@@ -257,16 +264,18 @@ local function SimpleBuildOrder(cUnitID, building)
 		local units = spGetUnitsInCylinder(cunitposx, cunitposz, searchRange)
 		if units and #units > 1 then
 			local gaveOrder = false
-			local maxTests = min(#units, 5 + b2 * 2)
+			local numUnits = #units
+			local maxTests = min(numUnits, 5 + b2 * 2)
 			for k=1, maxTests do
 				numtests = numtests+1
-				local buildnear = units[random(1, #units)]
+				local buildnear = units[random(1, numUnits)]
 				local refDefID = spGetUnitDefID(buildnear)
-				if refDefID and (isBuilding[refDefID] or isCommander[refDefID]) and spGetUnitTeam(buildnear) == team then
+				local refEntry = refDefID and (isBuilding[refDefID] or isCommander[refDefID])
+				if refEntry and spGetUnitTeam(buildnear) == team then
 					local refx, _, refz = spGetUnitPosition(buildnear)
 					if refx then
-						local reffootx = (isBuilding[refDefID] and isBuilding[refDefID][1] or isCommander[refDefID][1]) * 8
-						local reffootz = (isBuilding[refDefID] and isBuilding[refDefID][2] or isCommander[refDefID][2]) * 8
+						local reffootx = refEntry[1] * 8
+						local reffootz = refEntry[2] * 8
 						local spacing = random(64, 128)
 						local testspacing = spacing * 0.75
 						local buildingDefID = building
@@ -399,7 +408,6 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 					local mapcenterZ = mapsizeZ/2
 					local mapcenterY = spGetGroundHeight(mapcenterX, mapcenterZ)
 					if mapcenterY then
-						local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
 						spGiveOrderToUnit(unitID, CMD_RECLAIM,{mapcenterX+random(-100,100),mapcenterY,mapcenterZ+random(-100,100),mapdiagonal}, 0)
 						success = true
 					end
@@ -408,7 +416,6 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 					local mapcenterZ = mapsizeZ/2
 					local mapcenterY = spGetGroundHeight(mapcenterX, mapcenterZ)
 					if mapcenterY then
-						local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
 						spGiveOrderToUnit(unitID, CMD_REPAIR,{mapcenterX+random(-100,100),mapcenterY,mapcenterZ+random(-100,100),mapdiagonal}, 0)
 						success = true
 					end
@@ -434,7 +441,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 				if #spGetFullBuildQueue(unitID) < 5 then
 					local r = random(0, 5)
 					local luaAI = spGetTeamLuaAI(unitTeam)
-					if r == 0 or mcurrent > mstorage*0.9 or (luaAI and string.sub(luaAI, 1, 19) == 'SimpleConstructorAI') then
+					if r == 0 or mcurrent > mstorage*0.9 or (luaAI and string_sub(luaAI, 1, 19) == 'SimpleConstructorAI') then
 						local project = SimpleConstructorDefs:RandomChoice()
 						if buildOptions and buildOptions[project] then
 							local x, y, z = spGetUnitPosition(unitID)
@@ -483,24 +490,15 @@ if gadgetHandler:IsSyncedCode() then
 					local mcurrent, mstorage = spGetTeamResources(teamID, "metal")
 					local ecurrent, estorage = spGetTeamResources(teamID, "energy")
 					
-					-- cheats - cache this check
-					local isCheaterTeam = false
-					for j = 1, SimpleAITeamIDsCount do
-						if teamID == SimpleAITeamIDs[j] then
-							isCheaterTeam = true
-							break
-						end
+					-- resource boost (teamID is always in SimpleAITeamIDs)
+					if mcurrent < mstorage * 0.20 then
+						spSetTeamResource(teamID, "m", mstorage * 0.25)
 					end
-					
-					if isCheaterTeam then
-						if mcurrent < mstorage * 0.20 then
-							spSetTeamResource(teamID, "m", mstorage * 0.25)
-						end
-						if ecurrent < estorage * 0.20 then
-							spSetTeamResource(teamID, "e", estorage * 0.25)
-						end
+					if ecurrent < estorage * 0.20 then
+						spSetTeamResource(teamID, "e", estorage * 0.25)
 					end
 
+					local luaAI = spGetTeamLuaAI(teamID)
 					local units = spGetTeamUnits(teamID)
 					if units then
 						for k = 1, #units do
@@ -600,8 +598,7 @@ if gadgetHandler:IsSyncedCode() then
 
 											-- army
 											if SimpleUndefinedUnitDefs[unitDefID] then
-												local luaAI = spGetTeamLuaAI(teamID)
-												if luaAI and string.sub(luaAI, 1, 16) == 'SimpleDefenderAI' then
+										if luaAI and string_sub(luaAI, 1, 16) == 'SimpleDefenderAI' then
 													allunits = allunits or spGetAllUnits()
 													if allunits then
 														for t = 1,10 do
@@ -649,8 +646,8 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		for i = 1, SimpleAITeamIDsCount do
 			if SimpleAITeamIDs[i] == unitTeam then
-				spGiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
-				spGiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
+				spGiveOrderToUnit(unitID,CMD_FIRE_STATE,{2},0)
+				spGiveOrderToUnit(unitID,CMD_MOVE_STATE,{2},0)
 
 				if SimpleFactoriesDefs[unitDefID] then
 					SimpleFactoriesCount[unitTeam] = SimpleFactoriesCount[unitTeam] + 1
@@ -685,8 +682,8 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		for i = 1, SimpleAITeamIDsCount do
 			if SimpleAITeamIDs[i] == unitTeam then
-				spGiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
-				spGiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
+				spGiveOrderToUnit(unitID,CMD_FIRE_STATE,{2},0)
+				spGiveOrderToUnit(unitID,CMD_MOVE_STATE,{2},0)
 			end
 		end
 	end

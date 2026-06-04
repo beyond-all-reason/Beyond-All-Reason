@@ -72,11 +72,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -138,6 +133,7 @@ return {
 					area_onhit_damage = 60,
 					area_onhit_range = 75,
 					area_onhit_time = 7,
+					water_splash = 0,
 				},
 				damage = {
 					default = 60,

@@ -73,9 +73,7 @@ return {
 				[3] = "custom:dirt",
 			},
 			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-				[3] = "blood_spray",
+				[1] = "blood_spray",
 			},
 		},
 	},

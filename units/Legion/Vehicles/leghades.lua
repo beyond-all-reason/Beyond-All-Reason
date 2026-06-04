@@ -26,7 +26,7 @@ return {
 		script = "Units/LEGHADES.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 300,
+		sightdistance = 330,
 		trackoffset = 5,
 		trackstrength = 4,
 		tracktype = "armpincer_tracks",
@@ -80,10 +80,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

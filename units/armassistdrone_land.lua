@@ -71,13 +71,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles",
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

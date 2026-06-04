@@ -97,6 +97,10 @@ return {
 				weapontype = "Cannon",
 				weapontimer = 0.2,
 				weaponvelocity = 520,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 1280,
 					shields = 320,
@@ -145,6 +149,10 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 2000,
 				wobble = 32000,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 1,
 					vtol = 1000,
@@ -177,6 +185,9 @@ return {
 				weapontimer = 10,
 				weaponvelocity = 2000,
 				wobble = 0,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					raptor = 0.1,
 					default = 50000,

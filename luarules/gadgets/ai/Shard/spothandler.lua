@@ -13,11 +13,12 @@ function MetalSpotHandler:Init()
 	self.spots = self.game.map:GetMetalSpots()
 end
 
+local math_sqrt = math.sqrt
+
 function distance(pos1,pos2)
 	local xd = pos1.x-pos2.x
 	local yd = pos1.z-pos2.z
-	dist = math.sqrt(xd*xd + yd*yd)
-	return dist
+	return math_sqrt(xd*xd + yd*yd)
 end
 
 function MetalSpotHandler:ClosestFreeSpot(unittype,position)

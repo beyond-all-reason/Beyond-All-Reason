@@ -144,10 +144,6 @@ return {
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath1",
@@ -215,6 +211,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 950,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 13,
 					default = 26,
@@ -252,6 +251,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 250,
 					subs = 125,
@@ -280,6 +282,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 0,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 10000,
 				},
@@ -327,6 +332,10 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 150,
 					commanders = 1,

@@ -10,7 +10,7 @@ return {
 		canrepeat = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -7 0",
-		collisionvolumescales = "44 23 44",
+		collisionvolumescales = "44 30 44",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energystorage = 200,
@@ -75,13 +75,6 @@ return {
 				object = "Units/cor2X2A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

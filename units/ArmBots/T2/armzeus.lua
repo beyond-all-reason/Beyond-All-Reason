@@ -23,7 +23,7 @@ return {
 		script = "Units/ARMZEUS.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 331.5,
+		sightdistance = 380,
 		speed = 47.4,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -71,13 +71,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg2",
-				[4] = "deathceg3",
-				[5] = "deathceg4-lightning",
 			},
 		},
 		sounds = {

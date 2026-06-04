@@ -91,7 +91,7 @@ local function TriggerCommanderDance(unitID)
     end
 
     local scriptEnv = usGetScriptEnv(unitID)
-    if scriptEnv and scriptEnv.TriggerDance then
+    if scriptEnv and scriptEnv.TriggerDance and usCallAsUnit then
         usCallAsUnit(unitID, scriptEnv.TriggerDance)
         return true
     end

@@ -1,3 +1,51 @@
+# June
+• [Commando] 1560 -> 1800 health, EMP resistance, weapon inaccuracy removed, weapon can target air, but does reduced dmg vs air (30%)
+
+# May
+• [T1 bot constructors] +70 health
+• [Pawn] Weapon 3 -> 2 dmg vs Air
+• [Blitz] Weapon 3 -> 2 dmg vs Air, 750 -> 730 health
+• [Rover] 950 -> 1000 buildtime
+• [Stout] 75.9 -> 75 speed, 2900 -> 3100 buildtime, 1780 -> 1800 health
+• [Brute] 72.9 -> 72 speed, 3310 -> 3500 buildtime, 1970 -> 2000 health
+• [Pounder] 40.5 -> 40 speed, 3000 -> 3100 buildtime, 1490 -> 1500 health. Weapon projectile no longer overshoots its range, and doesn't gain extra range from elevation
+• [Hound] 1280 -> 1200 health, 3.167 -> 3.3s reloadtime
+• [Tiger] 70.5 -> 69 speed, 665 -> 690 metalcost
+• [Archangel] 1.5s -> 1.3s reloadtime for longrange missile
+• [Manticore] 1.6s -> 1.4s reloadtime for longrange missile
+• [Razorback] -5% dps
+• [Shiva] 48.3 -> 48 speed, 1550 -> 1600 metalcost
+• [Stormbringer] 105 -> 110 damage, +5% m/e/bt
+• [Skyhook] 200 -> 185 speed, 6400 -> 9000 energycost
+• [Abductor] 225 -> 210 speed, 6600 -> 10000 energycost
+• [Stronghold] 175 -> 160 speed, 11000 -> 13000 energycost
+• [Battleships] Reduced damage vs subs
+• [Cloaked Fusion] 3650 -> 3550 metalcost, 75e/s -> 50e/s cloakcost
+
+# April
+• [Brakerate] 
+	- Set to 90 elmos/s^2 for vehicles, if lower previously. 
+	- Mostly helps slow artillery units to not skid forward, after they've reached their firing range.
+	- Set to 180 elmos/s^2 for bots, if lower previously. Only affects radar and jammer bots.
+• [Sightdistance] 
+    - Set to 330 for vehicles, if lower previously. 
+	- Set to 380 for bots, if lower previously. Except crawling bombs, are kept at 260.
+	- Affects mostly cons and some artillery, plus notably Centurions, Fiends and rocket bots.
+• [Legion changes]
+	- New modoption added (legionsimplifiedmexes) which rebalances T1 legion to use the same T1 mexes as arm/cor.  Light T1 units are given a higher m cost and lower E cost and heavy T1 units are given a lower m cost and higher E cost
+	- Impulse removed from Goblin, Wheelie, and Hippocampus
+	- Wheelie cost reduced 25m370E->23m350E, range increased 160->168, bullet velocity increased to improve accuracy
+	- Phobos health increased 750->800
+	- Barrage's napalm aoe reduced 75->60
+	- Cacophony cost reduced 420m5500E->380m5500E, health reduced 2350->2200, dps reduced 270->255
+	- Adv solar health increased 800->1100
+	- Octeres (T1 Artillery ship) reloadtime reduced 11->10s, range increased 930->960
+	- Decurion energycost increased 3000->3600
+	- Lance reloadtime reduced 8->7.5s
+	- Arquebus cost reduced 800m16000E->750m15000E
+	- Javelin speed increased 65->68
+	- Praetorian speed increased 60->63, acceleration and turnrate improved
+
 # March
 • [Legion changes]
 	- Telchine (T2 amphib bot) script and targeting improvements, range increased 400->450

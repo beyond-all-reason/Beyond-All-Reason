@@ -39,13 +39,6 @@ return {
 			techlevel = 2,
 			instantselfd = true,
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -85,13 +78,13 @@ return {
 				soundhitwet = "splshbig",
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					crawlingbombs = 1000,
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
 			},
 			crawl_dummy = {
 				areaofeffect = 0,
@@ -113,12 +106,12 @@ return {
 				waterweapon = true,
 				weapontype = "Melee",
 				weaponvelocity = 100000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
 			},
 		},
 		weapons = {

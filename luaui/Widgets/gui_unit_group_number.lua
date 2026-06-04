@@ -237,7 +237,9 @@ function widget:GameFrame(gf)
 	gameFrame = gf
 end
 
-function widget:DrawWorld()
+function widget:DrawScreenEffects()
+	-- DrawScreenEffects so group numbers render after deferred lighting/distortion/bloom/tonemap;
+	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
 	if spIsGUIHidden() or gameFrame < hideBelowGameframe then
 		return
 	end

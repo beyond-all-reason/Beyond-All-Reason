@@ -6,7 +6,7 @@ return {
 		buildtime = 66000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "101 67 69",
+		collisionvolumescales = "101 59 69",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 25000,
@@ -72,13 +72,6 @@ return {
 				object = "Units/arm4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

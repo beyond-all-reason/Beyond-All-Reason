@@ -74,11 +74,6 @@ return {
 				[1] = "custom:waterwake-medium",
 				[2] = "custom:bowsplash-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

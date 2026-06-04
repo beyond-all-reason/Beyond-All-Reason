@@ -73,11 +73,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:footstep-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -146,6 +141,7 @@ return {
 				soundhitdryvolume = 17,
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					noexplosionlight = 1,
 				},
 				damage = {

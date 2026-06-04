@@ -29,7 +29,7 @@ return {
 		script = "Units/ARMASER.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 260,
+		sightdistance = 380,
 		speed = 48.3,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -72,13 +72,6 @@ return {
 				object = "Units/arm1X1A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

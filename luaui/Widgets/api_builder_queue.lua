@@ -38,8 +38,8 @@ local ipairs = ipairs
 -- Constants
 --------------------------------------------------------------------------------
 
-local MAX_QUEUE_DEPTH = 2000
-local MAX_UNITS_PROCESSED_PER_UPDATE = 50
+local MAX_QUEUE_DEPTH = 1200
+local MAX_UNITS_PROCESSED_PER_UPDATE = 40
 local PERIODIC_CHECK_DIVISOR = 30 -- every n ticks of UPDATE_INTERVAL
 local DEEP_CHECK_DIVISOR = 150 -- every n ticks of UPDATE_INTERVAL
 local PERIODIC_UPDATE_INTERVAL = 0.12 -- in seconds
@@ -244,7 +244,35 @@ local function clearBuilderCommands(unitId)
 	unitBuildCommands[unitId] = nil
 end
 
-local function checkBuilder(unitId, forceUpdate)
+-- Apply a known set of commandIds to a builder without fetching its full queue.
+-- Used when batch cache confirms this builder has the same queue as one already processed.
+local function applyCommandSet(unitId, commandIdSet)
+	local newCommands = getTable()
+	for commandId in pairs(commandIdSet) do
+		local buildCommand = buildCommands[commandId]
+		if buildCommand then
+			newCommands[commandId] = true
+			if not buildCommand.builderIds[unitId] then
+				buildCommand.builderIds[unitId] = true
+				buildCommand.builderCount = buildCommand.builderCount + 1
+			end
+		end
+	end
+
+	local oldCommands = unitBuildCommands[unitId]
+	if oldCommands then
+		for oldCommandId in pairs(oldCommands) do
+			if not newCommands[oldCommandId] then
+				removeBuilderFromCommand(oldCommandId, unitId)
+			end
+		end
+		releaseTable(oldCommands)
+	end
+
+	unitBuildCommands[unitId] = newCommands
+end
+
+local function checkBuilder(unitId, forceUpdate, batchCache)
 	local queueDepth = spGetUnitCommandCount(unitId)
 	if not queueDepth or queueDepth <= 0 then
 		clearBuilderCommands(unitId)
@@ -256,10 +284,32 @@ local function checkBuilder(unitId, forceUpdate)
 	end
 	lastQueueDepth[unitId] = queueDepth
 
+	-- Check batch cache: if another builder with the same queue depth and first
+	-- build command was already processed this batch, reuse its result.
+	if batchCache then
+		local cached = batchCache[queueDepth]
+		if cached then
+			local firstCmds = spGetUnitCommands(unitId, 1)
+			local firstCmd = firstCmds and firstCmds[1]
+			if firstCmd and firstCmd.id < 0 then
+				local params = firstCmd.params
+				if -firstCmd.id == cached.firstDefId
+					and mathFloor(params[1]) == cached.firstPosX
+					and mathFloor(params[3]) == cached.firstPosZ then
+					applyCommandSet(unitId, cached.commandIds)
+					return
+				end
+			end
+		end
+	end
+
 	local queue = spGetUnitCommands(unitId, mathMin(queueDepth, MAX_QUEUE_DEPTH))
 	if not queue then return end
 
 	local newCommands = getTable()
+	local firstBuildDefId = nil
+	local firstBuildPosX = nil
+	local firstBuildPosZ = nil
 
 	-- Step 1: Process the current queue and identify active commands
 	local queueLen = #queue
@@ -268,10 +318,16 @@ local function checkBuilder(unitId, forceUpdate)
 		local cmdId = queueCommand.id
 
 		if cmdId < 0 then
-			local unitDefId = mathAbs(cmdId)
+			local unitDefId = -cmdId
 			local params = queueCommand.params
 			local positionX = mathFloor(params[1])
 			local positionZ = mathFloor(params[3])
+
+			if not firstBuildDefId then
+				firstBuildDefId = unitDefId
+				firstBuildPosX = positionX
+				firstBuildPosZ = positionZ
+			end
 
 			local lookupX = commandLookup[unitDefId]
 			if not lookupX then
@@ -318,6 +374,16 @@ local function checkBuilder(unitId, forceUpdate)
 		end
 	end
 
+	-- Populate batch cache with the first result for this queue depth
+	if batchCache and firstBuildDefId and not batchCache[queueDepth] then
+		batchCache[queueDepth] = {
+			firstDefId = firstBuildDefId,
+			firstPosX = firstBuildPosX,
+			firstPosZ = firstBuildPosZ,
+			commandIds = newCommands,
+		}
+	end
+
 	-- Step 2: Compare old commands with current commands to find what was removed
 	local oldCommands = unitBuildCommands[unitId]
 	if oldCommands then
@@ -345,9 +411,11 @@ end
 
 local function processNewBuildCommands()
 	local processedUnits = 0
+	local batchCache = nil
 	for unitId, commandClockTime in pairs(unitsAwaitingCommandProcessing) do
 		if elapsedSeconds > commandClockTime then
-			checkBuilder(unitId, true)
+			if not batchCache then batchCache = {} end
+			checkBuilder(unitId, true, batchCache)
 			unitsAwaitingCommandProcessing[unitId] = nil
 
 			processedUnits = processedUnits + 1
@@ -442,9 +510,14 @@ function widget:PlayerChanged(playerId)
 	end
 end
 
-function widget:UnitCommand(unitId, unitDefId)
+function widget:UnitCommand(unitId, unitDefId, unitTeam, cmdId)
 	if buildersList[unitDefId] then
-		unitsAwaitingCommandProcessing[unitId] = elapsedSeconds + COMMAND_PROCESSING_DELAY
+		-- Only queue for processing if it's a build command (cmdId < 0)
+		-- or the builder currently has tracked build commands (non-build
+		-- commands can remove/reorder queued builds)
+		if cmdId < 0 or unitBuildCommands[unitId] then
+			unitsAwaitingCommandProcessing[unitId] = elapsedSeconds + COMMAND_PROCESSING_DELAY
+		end
 	end
 end
 

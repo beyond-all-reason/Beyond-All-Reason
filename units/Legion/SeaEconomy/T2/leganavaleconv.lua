@@ -5,9 +5,9 @@ return {
 		buildpic = "leganavaleconv.DDS",
 		buildtime = 31300,
 		canrepeat = false,
-		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "120 120 120",
-		collisionvolumetype = "Ell",
+		collisionvolumeoffsets = "0 -4 0",
+		collisionvolumescales = "70 70 70",
+		collisionvolumetype = "Sphere",
 		corpse = "DEAD",
 		energycost = 21000,
 		explodeas = "hugeBuildingExplosionGeneric",
@@ -65,13 +65,6 @@ return {
 				object = "Units/cor5X5A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -338,7 +338,7 @@ local function initializeUnitDefRing(unitDefID)
 			local isDgun = (weaponDef.type == "DGun") and 1 or 0
 
 			local wName = weaponDef.name
-			if (weaponDef.type == "AircraftBomb") or (wName:find("bogus")) or weaponDef.customParams.bogus or weaponDef.customParams.norangering then
+			if (weaponDef.type == "AircraftBomb") or weaponDef.customParams.bogus == "1" or weaponDef.customParams.norangering then
 				range = 0
 			end
 			--spEcho("weaponNum: ".. weaponNum ..", name: " .. tableToString(weaponDef.name))

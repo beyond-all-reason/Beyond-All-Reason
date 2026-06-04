@@ -23,7 +23,7 @@ return {
 		script = "Units/ARMWAR.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 350,
+		sightdistance = 380,
 		speed = 45,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -67,12 +67,6 @@ return {
 				object = "Units/arm2X2A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {

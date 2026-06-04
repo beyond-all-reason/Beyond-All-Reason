@@ -10,7 +10,7 @@ return {
 		collisionvolumescales = "52 21 52",
 		collisionvolumetype = "CylY",
 		cruisealtitude = 135,
-		energycost = 6400,
+		energycost = 9000,
 		explodeas = "hugeExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -27,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 500,
-		speed = 200,
+		speed = 185,
 		transportcapacity = 1,
 		transportsize = 4,
 		transportunloadmethod = 0,
@@ -42,20 +42,6 @@ return {
 			paralyzemultiplier = 0,
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

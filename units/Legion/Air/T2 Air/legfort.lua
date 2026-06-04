@@ -44,20 +44,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
-		},
+			},		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -141,13 +128,13 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 400,
+				customparams = {
+					noattackrangearc= 1,
+				},
 				damage = {
 					default = 166,
 					subs = 50,
 					vtol = 30,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 			aa_missiles = {
@@ -193,6 +180,9 @@ return {
 				weapontype = "StarburstLauncher",
 				weapontimer = 0.28,
 				weaponvelocity = 1200,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 76,
 				},

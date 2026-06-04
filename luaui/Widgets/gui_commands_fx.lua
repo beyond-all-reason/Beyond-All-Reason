@@ -91,6 +91,9 @@ local lineTextureSpeed = 4
 -- limit amount of effects to keep performance sane
 local maxCommandCount = 700        -- dont draw more commands than this amount, but keep processing them
 local maxTotalCommandCount = 1200        -- dont add more commands above this amount
+local cmdLimitPerUnitBase = 50            -- max commands fetched per unit at low load
+local cmdLimitPerUnitMin = 8              -- min commands fetched per unit at high load
+local cmdLimitPerUnit = cmdLimitPerUnitBase
 
 local lineImg = ":n:LuaUI/Images/commandsfx/line.dds"
 
@@ -145,6 +148,8 @@ local osClock
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spIsUnitInView = Spring.IsUnitInView
 local spIsSphereInView = Spring.IsSphereInView
 local spValidUnitID = Spring.ValidUnitID
@@ -183,6 +188,17 @@ local buildGhosts = {
 	r = {}, g = {}, b = {}, a = {},
 	count = 0,
 }
+
+-- Per-frame dedup for segments and build ghosts: avoids drawing identical
+-- waypoint->waypoint lines and glUnitShape calls when many units share the
+-- same build queue.  Uses a generation counter to avoid clearing per frame.
+local segDedupTbl = {}        -- [key] = generation
+local ghostDedupTbl = {}      -- [key] = generation
+local dedupGeneration = 0
+local MAX_BUILD_GHOSTS = 300  -- cap glUnitShape calls (expensive)
+
+-- Queue sharing: units with identical command queues share one parsed table
+local queueShareCache = {}  -- fingerprint -> { queue, queueSize, refCount }
 
 local function InitGL4()
 	if not gl.GetVBO or not gl.GetVAO or not gl.CreateShader then
@@ -365,6 +381,35 @@ local function releaseTable(t)
 	end
 end
 
+local function getQueueFingerprint(unitID)
+	local cmdCount = spGetUnitCommandCount(unitID)
+	if not cmdCount or cmdCount <= 0 then return nil end
+	-- GetUnitCurrentCommand returns values directly — zero table allocation
+	local cmdID, _, _, p1, p2, p3 = spGetUnitCurrentCommand(unitID)
+	if not cmdID then return nil end
+	-- Numeric fingerprint: cmdCount + cmdID + quantized position
+	local qp1 = mathFloor((p1 or 0) * 0.0625) % 1024
+	local qp3 = mathFloor((p3 or 0) * 0.0625) % 1024
+	local fid = cmdID < 0 and (50000 - cmdID) or cmdID
+	return cmdCount * 4294967296 + fid * 1048576 + qp1 * 1024 + qp3
+end
+
+local function releaseQueue(command)
+	if not command.queue then return end
+	local shared = command.sharedQueue
+	if shared then
+		shared.refCount = shared.refCount - 1
+		if shared.refCount <= 0 then
+			releaseTable(shared.queue)
+			shared.queue = nil
+		end
+	else
+		releaseTable(command.queue)
+	end
+	command.queue = nil
+	command.sharedQueue = nil
+end
+
 -- Cache for unit positions to avoid repeated API calls per frame
 -- Uses 3 flat tables instead of {x,y,z} sub-tables to avoid per-unit allocation
 local unitPosCacheX = {}
@@ -504,7 +549,10 @@ end
 
 local function RemovePreviousCommand(unitID)
 	if unitCommand[unitID] and commands[unitCommand[unitID]] then
-		commands[unitCommand[unitID]].draw = false
+		local prev = commands[unitCommand[unitID]]
+		prev.draw = false
+		releaseQueue(prev)
+		prev.queueSize = 0
 	end
 end
 
@@ -550,7 +598,13 @@ local QTARGET_UNIT = 2     -- unit target (needs live position each frame)
 local QTARGET_FEATURE = 3  -- feature target (position pre-extracted; features are static)
 
 local function getCommandsQueue(unitID)
-	local q = spGetUnitCommands(unitID, 35) or {}
+	local cmdCount = spGetUnitCommandCount(unitID)
+	if not cmdCount or cmdCount <= 0 then
+		local empty = getTable()
+		return empty, 0
+	end
+	local fetchCount = cmdCount < cmdLimitPerUnit and cmdCount or cmdLimitPerUnit
+	local q = spGetUnitCommands(unitID, fetchCount) or {}
 	local our_q = getTable()
 	local our_qCount = 0
 	for i = 1, #q do
@@ -650,7 +704,23 @@ function widget:Update(dt)
 
 		-- process new commands (cant be done directly because at
 		-- widget:UnitCommand() the queue isnt updated yet)
-		for k = 1, #unprocessedCommands do
+		-- Batch-limit: process at most 80 per tick to avoid allocation spikes
+		local processLimit = math.min(unprocessedCommandsNum, 80)
+		local processedCount = 0
+
+		-- Scale per-unit command fetch limit based on total active commands
+		if totalCommands < 200 then
+			cmdLimitPerUnit = cmdLimitPerUnitBase
+		elseif totalCommands > 800 then
+			cmdLimitPerUnit = cmdLimitPerUnitMin
+		else
+			cmdLimitPerUnit = mathMax(cmdLimitPerUnitMin, mathFloor(cmdLimitPerUnitBase - (totalCommands - 200) * ((cmdLimitPerUnitBase - cmdLimitPerUnitMin) / 600)))
+		end
+
+		-- Clear queue share cache for this batch
+		for fp in pairs(queueShareCache) do queueShareCache[fp] = nil end
+
+		for k = 1, processLimit do
 			local cmd = unprocessedCommands[k]
 			if totalCommands <= maxTotalCommandCount then
 				maxCommand = maxCommand + 1
@@ -661,10 +731,32 @@ function widget:Update(dt)
 				RemovePreviousCommand(cmd.unitID)
 				unitCommand[cmd.unitID] = i
 
-				-- get pruned command queue
-				local our_q, qsize = getCommandsQueue(cmd.unitID)
-				commands[i].queue = our_q
-				commands[i].queueSize = qsize
+				-- Try to share queue with another unit that has identical commands
+				local fingerprint = getQueueFingerprint(cmd.unitID)
+				local cached = fingerprint and queueShareCache[fingerprint]
+				local our_q, qsize
+				if cached and cached.queue then
+					-- Reuse existing parsed queue (zero allocation)
+					cached.refCount = cached.refCount + 1
+					our_q = cached.queue
+					qsize = cached.queueSize
+					commands[i].queue = our_q
+					commands[i].queueSize = qsize
+					commands[i].sharedQueue = cached
+				else
+					-- Full parse needed
+					our_q, qsize = getCommandsQueue(cmd.unitID)
+					commands[i].queue = our_q
+					commands[i].queueSize = qsize
+					if fingerprint then
+						local entry = { queue = our_q, queueSize = qsize, refCount = 1 }
+						queueShareCache[fingerprint] = entry
+						commands[i].sharedQueue = entry
+					else
+						commands[i].sharedQueue = false
+					end
+				end
+
 				if qsize > 0 then
 					commands[i].draw = true
 				end
@@ -672,7 +764,7 @@ function widget:Update(dt)
 				-- get location of final command (pre-extracted in getCommandsQueue)
 				if qsize > 0 then
 					local lastCmd = our_q[qsize]
-					if lastCmd.tx then
+					if lastCmd and lastCmd.tx then
 						commands[i].x = lastCmd.tx
 						commands[i].y = lastCmd.ty
 						commands[i].z = lastCmd.tz
@@ -683,12 +775,25 @@ function widget:Update(dt)
 				-- If we didn't use this command, release it back to pool
 				releaseTable(cmd)
 			end
+			processedCount = processedCount + 1
 		end
-		-- Clear unprocessedCommands array (tables already moved to commands or released)
-		for k = 1, unprocessedCommandsNum do
-			unprocessedCommands[k] = nil
+		-- Shift remaining unprocessed commands to front (if any left)
+		if processedCount < unprocessedCommandsNum then
+			local remaining = unprocessedCommandsNum - processedCount
+			for k = 1, remaining do
+				unprocessedCommands[k] = unprocessedCommands[processedCount + k]
+			end
+			for k = remaining + 1, unprocessedCommandsNum do
+				unprocessedCommands[k] = nil
+			end
+			unprocessedCommandsNum = remaining
+		else
+			-- Clear unprocessedCommands array (tables already moved to commands or released)
+			for k = 1, unprocessedCommandsNum do
+				unprocessedCommands[k] = nil
+			end
+			unprocessedCommandsNum = 0
 		end
-		unprocessedCommandsNum = 0
 	end
 end
 
@@ -735,6 +840,23 @@ function widget:DrawWorldPreUnit()
 	local segData = gl4.segData
 	buildGhosts.count = 0
 
+	-- Increment dedup generation (no table clearing needed)
+	dedupGeneration = dedupGeneration + 1
+	local dGen = dedupGeneration
+	local segDD = segDedupTbl
+	local ghostDD = ghostDedupTbl
+	local mFloor = mathFloor
+
+	-- Periodically prune stale dedup entries (~every 10 seconds at 60fps)
+	if dGen % 600 == 0 then
+		for k, g in pairs(segDD) do
+			if g < dGen - 2 then segDD[k] = nil end
+		end
+		for k, g in pairs(ghostDD) do
+			if g < dGen - 2 then ghostDD[k] = nil end
+		end
+	end
+
 	local commandCount = 0
 	local i = next(commands)
 	while i do
@@ -745,9 +867,7 @@ function widget:DrawWorldPreUnit()
 			local unitID = command.unitID
 
 			if progress >= 1 then
-				if command.queue then
-					releaseTable(command.queue)
-				end
+				releaseQueue(command)
 				commands[i] = nil
 				totalCommands = totalCommands - 1
 				if unitCommand[unitID] == i then
@@ -769,14 +889,13 @@ function widget:DrawWorldPreUnit()
 
 					for j = 1, queueSize do
 						local qe = queue[j]
+						if not qe then break end  -- safety: queue may have been partially cleared
 						-- Resolve position from pre-extracted data
 						local X, Y, Z
 						local ttype = qe.ttype
 						if ttype == QTARGET_UNIT then
 							X, Y, Z = getCachedUnitPosition(qe.targetID)
 						else
-							-- QTARGET_COORD and QTARGET_FEATURE: use pre-extracted position
-							-- (features are static, coords never change)
 							X, Y, Z = qe.tx, qe.ty, qe.tz
 						end
 						if X and Z and X >= 0 and X <= mapX and Z >= 0 and Z <= mapZ then
@@ -784,7 +903,23 @@ function widget:DrawWorldPreUnit()
 							local lineColour = cmdTeamColour or qe.colour
 							local lineAlpha = lineColour[4] * lineAlphaMultiplier
 							if lineAlpha > 0 then
-								if segCount < GL4_MAX_SEGMENTS then
+								-- Segment dedup for queue-internal segments (target->target).
+								-- The first segment (unit->first target) is always unique per
+								-- unit so we skip dedup for j==1.
+								local drawSeg = true
+								if j > 1 then
+									local sx = mFloor(prevX * 0.125)
+									local sz = mFloor(prevZ * 0.125)
+									local ex = mFloor(X * 0.125)
+									local ez = mFloor(Z * 0.125)
+									local segKey = sx * 68719476736 + sz * 16777216 + ex * 4096 + ez
+									if segDD[segKey] == dGen then
+										drawSeg = false
+									else
+										segDD[segKey] = dGen
+									end
+								end
+								if drawSeg and segCount < GL4_MAX_SEGMENTS then
 									segCount = segCount + 1
 									local base = (segCount - 1) * GL4_FLOATS_PER_SEG
 									segData[base+1]  = prevX
@@ -800,18 +935,23 @@ function widget:DrawWorldPreUnit()
 									segData[base+11] = lineColour[3]
 									segData[base+12] = texOffset
 								end
+								-- Ghost dedup: same position = same building = draw once
 								if drawBuildQueue and qe.buildingID then
-									local gc = buildGhosts.count + 1
-									buildGhosts.count = gc
-									buildGhosts.x[gc] = X
-									buildGhosts.y[gc] = Y
-									buildGhosts.z[gc] = Z
-									buildGhosts.defID[gc] = qe.buildingID
-									buildGhosts.facing[gc] = qe.facing
-									buildGhosts.r[gc] = lineColour[1]
-									buildGhosts.g[gc] = lineColour[2]
-									buildGhosts.b[gc] = lineColour[3]
-									buildGhosts.a[gc] = lineAlpha
+									local ghostKey = mFloor(X * 0.25) * 131072 + mFloor(Z * 0.25)
+									if ghostDD[ghostKey] ~= dGen and buildGhosts.count < MAX_BUILD_GHOSTS then
+										ghostDD[ghostKey] = dGen
+										local gc = buildGhosts.count + 1
+										buildGhosts.count = gc
+										buildGhosts.x[gc] = X
+										buildGhosts.y[gc] = Y
+										buildGhosts.z[gc] = Z
+										buildGhosts.defID[gc] = qe.buildingID
+										buildGhosts.facing[gc] = qe.facing
+										buildGhosts.r[gc] = lineColour[1]
+										buildGhosts.g[gc] = lineColour[2]
+										buildGhosts.b[gc] = lineColour[3]
+										buildGhosts.a[gc] = lineAlpha
+									end
 								end
 							end
 							prevX, prevY, prevZ = X, Y, Z
@@ -839,17 +979,26 @@ function widget:DrawWorldPreUnit()
 	-- Build queue ghosts (legacy pass — requires gl.UnitShape)
 	local ghostCount = buildGhosts.count
 	if ghostCount > 0 then
+		-- Additive blending so the fading ghost overlays without cancelling
+		-- the permanent shape from gfx_showbuilderqueue
+		glDepthTest(GL.LEQUAL)
+		gl.DepthMask(false)
+		gl.Culling(GL.BACK)
+		glBlending(GL.SRC_ALPHA, GL.ONE)
 		local bgX, bgY, bgZ = buildGhosts.x, buildGhosts.y, buildGhosts.z
 		local bgDefID, bgFacing = buildGhosts.defID, buildGhosts.facing
 		local bgR, bgG, bgB, bgA = buildGhosts.r, buildGhosts.g, buildGhosts.b, buildGhosts.a
 		for k = 1, ghostCount do
 			glColor(bgR[k], bgG[k], bgB[k], bgA[k])
 			glPushMatrix()
-			glTranslate(bgX[k], bgY[k] + 1, bgZ[k])
+			glTranslate(bgX[k], bgY[k], bgZ[k])
 			glRotate(90 * bgFacing[k], 0, 1, 0)
 			glUnitShape(bgDefID[k], myTeamID, true, false, false)
 			glPopMatrix()
 		end
+		gl.Culling(false)
+		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		glDepthTest(false)
 	end
 
 	glColor(1, 1, 1, 1)

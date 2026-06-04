@@ -78,10 +78,6 @@ return {
 				[1] = "custom:waterwake-tiny",
 				[2] = "custom:radarpulse_t1",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -147,6 +143,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 680,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 1,
 					vtol = 120,

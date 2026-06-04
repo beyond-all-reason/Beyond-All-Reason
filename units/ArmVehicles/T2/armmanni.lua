@@ -14,7 +14,7 @@ return {
 		health = 2800,
 		leavetracks = true,
 		maxacc = 0.00715,
-		maxdec = 0.01431,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 0,
 		metalcost = 1200,
@@ -77,13 +77,6 @@ return {
 				object = "Units/arm3X3C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

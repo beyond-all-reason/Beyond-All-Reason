@@ -75,11 +75,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -231,6 +226,7 @@ return {
 				soundhitwetvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					nodecal = true,
 					noexplosionlight = 1,
 				},

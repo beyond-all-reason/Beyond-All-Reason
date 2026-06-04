@@ -11,18 +11,12 @@ local function customKeyToUsefulTable(dataRaw)
 		if dataFunc then
 			local success, usefulTable = pcall(dataFunc)
 			if success then
-				if collectgarbage then
-					collectgarbage("collect")
-				end
 				return usefulTable
 			end
 		end
 		if err then
 			Spring.Echo("Customkey error", err)
 		end
-	end
-	if collectgarbage then
-		collectgarbage("collect")
 	end
 end
 

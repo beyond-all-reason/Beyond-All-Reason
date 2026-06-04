@@ -24,7 +24,7 @@ return {
 		script = "Units/CORCRASH.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 379.60001,
+		sightdistance = 380,
 		speed = 53.49,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -66,12 +66,6 @@ return {
 				object = "Units/cor2X2A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {

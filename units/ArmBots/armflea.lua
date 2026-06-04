@@ -68,11 +68,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -117,12 +112,11 @@ return {
 				range = 140,
 				reloadtime = 0.6,
 				rgbcolor = "1 1 0.4",
-				rgbcolor2 = "1 0.55 0.3",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir1",
 				soundtrigger = 1,
-				thickness = 0.9,
+				thickness = 0.8,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",

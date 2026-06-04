@@ -80,10 +80,6 @@ return {
 				[2] = "custom:bowsplash-small-hover",
 				[3] = "custom:hover-wake-tiny",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

@@ -18,7 +18,7 @@ return {
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 5,
 		footprintz = 5,
-		health = 800,
+		health = 1100,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/LEGADVSOL.s3o",
@@ -68,13 +68,6 @@ return {
 				object = "Units/cor5X5C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

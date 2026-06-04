@@ -26,24 +26,23 @@ end
 
 function Sleep:Update()
 	local done = {}
-	local count = 0
+	local doneCount = 0
 	for i = 1, #self.sleeping do
 		local sleeper = self.sleeping[i]
 		local frames = sleeper.frames
 		if (frames-1) < 1 then
 			-- limit the number of things woken up each frame to 50
-			if #done < 50 then
+			if doneCount < 50 then
 				self:Wakeup(sleeper)
-				table.insert(done,sleeper.key)
+				doneCount = doneCount + 1
+				done[doneCount] = sleeper.key
 			end
 		end
 		sleeper.frames = frames -1
 	end
-	for i=1,#done do
+	for i=1,doneCount do
 		self:Kill(done[i])
 	end
-	count = nil
-	done = nil
 end
 
 -- Pass in a function to be called in the future,

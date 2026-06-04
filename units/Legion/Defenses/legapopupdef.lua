@@ -10,6 +10,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "35 35 35",
 		collisionvolumetype = "CylY",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		explodeas = "smallBuildingExplosionGeneric",
@@ -83,11 +84,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large-impulse",
 				[2] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

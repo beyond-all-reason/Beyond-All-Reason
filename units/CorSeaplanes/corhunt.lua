@@ -39,22 +39,9 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
+			selectable_as_combat_unit = true,
 			subfolder = "CorSeaplanes",
 			unitgroup = "util",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

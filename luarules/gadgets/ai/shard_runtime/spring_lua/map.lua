@@ -1,6 +1,13 @@
 local map = {}
 map.metalSpots = shard_include("spring_lua/metal")
 map.geoSpots = shard_include("spring_lua/geo")
+
+local math_cos = math.cos
+local math_sin = math.sin
+local math_random = math.random
+local math_sqrt = math.sqrt
+local math_pi = math.pi
+local Spring_GetGroundHeight = Spring.GetGroundHeight
 	-- function map:FindClosestBuildSite(unittype,builderpos, searchradius, minimumdistance)
 	-- function map:CanBuildHere(unittype,position)
 	-- function map:GetMapFeatures()
@@ -24,21 +31,21 @@ function map:FindClosestBuildSite(unittype, builderpos, searchradius, minimumdis
 	validFunction = validFunction or function (position) return position end
 	searchradius = searchradius or 500
 	minimumdistance = minimumdistance or 50
-	local twicePi = math.pi * 2
+	local twicePi = math_pi * 2
 	local angleIncMult = twicePi / minimumdistance
 	local bx, bz = builderpos.x, builderpos.z
 	local maxX, maxZ = Game.mapSizeX, Game.mapSizeZ
 	for radius = 50, searchradius, minimumdistance do
 		local angleInc = radius * twicePi * angleIncMult
-		local initAngle = math.random() * twicePi
+		local initAngle = math_random() * twicePi
 		for angle = initAngle, initAngle+twicePi, angleInc do
 			local realAngle = angle+0
 			if realAngle > twicePi then realAngle = realAngle - twicePi end
-			local dx, dz = radius*math.cos(angle), radius*math.sin(angle)
+			local dx, dz = radius*math_cos(angle), radius*math_sin(angle)
 			local x, z = bx+dx, bz+dz
 			if x < 0 then x = 0 elseif x > maxX then x = maxX end
 			if z < 0 then z = 0 elseif z > maxZ then z = maxZ end
-			local y = Spring.GetGroundHeight(x,z)
+			local y = Spring_GetGroundHeight(x,z)
 			local buildable, position = self:CanBuildHere(unittype, {x=x, y=y, z=z})
 			if buildable then
 				position = validFunction(position)
@@ -117,7 +124,7 @@ function map:TestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,rad
 		local x = end_x - nextPositionX
 		local y = end_y - nextPositionY
 		local z = end_z - nextPositionZ
-		local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
+		local dist = math_sqrt( (x*x) + (y*y)+ (z*z) )
 		--Spring.MarkerAddPoint(nextPositionX, nextPositionY, nextPositionZ,'$: '..uname)
 		--Spring.Echo(dist,'next to target position:',start_x, start_y, start_z, end_x, end_y, end_z,nextPositionX,nextPositionY,nextPositionZ)
 		if dist <= radius * 1.1 then
@@ -175,7 +182,7 @@ function map:TestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,rad
 	local x = end_x - wp[1]
 	local y = end_y - wp[2]
 	local z = end_z - wp[3]
-	local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
+	local dist = math_sqrt( (x*x) + (y*y)+ (z*z) )
 	--Spring.MarkerAddPoint(wp[1],wp[2],wp[3],'& '..uname)
 	--Spring.Echo(dist,'last in complete path:',start_x, start_y, start_z, end_x, end_y, end_z,wp[1],wp[2],wp[3])
 	return dist,wp[1],wp[2],wp[3]
@@ -208,10 +215,8 @@ function map:GetMapFeatures()
 	local fv = Spring.GetAllFeatures()
 	if not fv then return {} end
 	local f = {}
-	local fCount = 0
 	for i=1,#fv do
-		fCount = fCount + 1
-		f[fCount] = Shard:shardify_feature(fv[i])
+		f[i] = Shard:shardify_feature(fv[i])
 	end
 	return f
 end
@@ -220,10 +225,8 @@ function map:GetMapFeaturesAt(position,radius)
 	local fv = Spring.GetFeaturesInSphere(position.x, position.y, position.z, radius)
 	if not fv then return {} end
 	local f = {}
-	local fCount = 0
 	for i=1,#fv do
-		fCount = fCount + 1
-		f[fCount] = Shard:shardify_feature(fv[i])
+		f[i] = Shard:shardify_feature(fv[i])
 	end
 	return f
 end
@@ -239,10 +242,8 @@ end
 function map:GetMetalSpots() -- returns a table of spot positions
 	local fv = self.metalSpots
 	local f = {}
-	local fCount = 0
 	for i=1,#fv do
-		fCount = fCount + 1
-		f[fCount] = fv[i]
+		f[i] = fv[i]
 	end
 	return f
 end
@@ -258,10 +259,8 @@ end
 function map:GetGeoSpots() -- returns a table of spot positions
 	local fv = self.geoSpots
 	local f = {}
-	local fCount = 0
 	for i=1,#fv do
-		fCount = fCount + 1
-		f[fCount] = fv[i]
+		f[i] = fv[i]
 	end
 	return f
 end

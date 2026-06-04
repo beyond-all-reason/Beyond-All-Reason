@@ -151,7 +151,7 @@ if gadgetHandler:IsSyncedCode() then -- Synced
                             spDestroyFeature(featureID)
                         end
                         aliveWrecks[featureID].lastResurrectionCheck = select(3, spGetFeatureHealth(featureID))
-                        aliveWrecks[featureID].age = aliveWrecks[featureID].age+0.0166
+                        aliveWrecks[featureID].age = aliveWrecks[featureID].age+0.0083
                     else
                         local featureHealth, featureMaxHealth = spGetFeatureHealth(featureID)
                         spSpawnCEG("scaspawn-trail", posx, posy, posz, 0,0,0)

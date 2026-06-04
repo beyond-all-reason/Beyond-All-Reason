@@ -22,7 +22,6 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		metalcost = 150,
-		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSHAD.s3o",
 		script = "Units/CORSHAD.cob",
@@ -40,20 +39,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorAircraft",
 			unitgroup = "weapon",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
