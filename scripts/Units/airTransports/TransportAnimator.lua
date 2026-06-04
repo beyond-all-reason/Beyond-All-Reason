@@ -172,6 +172,7 @@ end
 function TransportAnimator.Load(passengerData, doAnim)
 	SetSignalMask(TransportAnimator.SIG_LOAD)
 	passengerData.beamPieces = beamsBySlotID[passengerData.slotID]
+	TransportAPI.DisablePassenger(passengerData.id)
 	CargoHandler.BeginLoading(cargo)
 	Spring.SetUnitRulesParam(passengerData.id, "inLoadAnim", transporterID)
 
@@ -231,6 +232,7 @@ function TransportAnimator.Load(passengerData, doAnim)
 		local count = CargoHandler.Unregister(passengerData.id, cargo)
 		if count == 0 then TransportAnimator.HasCargo(false) end
 	end
+	TransportAPI.EnablePassenger(passengerData.id)
 
 	Spring.SetUnitRulesParam(passengerData.id, "inLoadAnim", 0)
 	CargoHandler.EndLoading(cargo)

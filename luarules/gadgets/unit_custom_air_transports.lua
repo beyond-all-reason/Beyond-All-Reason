@@ -748,6 +748,7 @@ function gadget:Initialize()
 			if (spGetUnitRulesParam(unitID, "inLoadAnim") or 0) > 0 then
 				spEcho("Repairing unit " .. unitID .. " stuck in load anim on gadget initialization")
 				-- unit was mid-load (not yet attached): release MoveCtrl and snap to ground
+				EnablePassenger(unitID)
 				spMoveCtrlDisable(unitID, false)
 				spSetUnitRulesParam(unitID, "inLoadAnim", 0)
 				local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
