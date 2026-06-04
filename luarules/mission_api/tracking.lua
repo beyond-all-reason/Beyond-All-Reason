@@ -62,6 +62,12 @@ end
 
 local function trackUnit(name, unitID)
 	trackEntity(name, unitID, trackedUnitIDs, trackedUnitNames)
+	if name and unitID then
+		local onUnitNameTracked = GG['MissionAPI'].OnUnitNameTracked
+		if onUnitNameTracked then
+			onUnitNameTracked(unitID, name)
+		end
+	end
 end
 
 local function isUnitIDUntracked(unitID)

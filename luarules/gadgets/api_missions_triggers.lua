@@ -327,8 +327,11 @@ local function checkFeatureDestroyed(trigger, featureID, featureDefID, attackerA
 	activateTrigger(trigger)
 end
 
-local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, direction)
+local function updateUnitStatisticsInternal(triggerType, teamID, unitDefName, unitNames, direction, shouldInclude)
 	processTriggersOfType(triggerType, function(trigger, triggerID)
+		if not shouldInclude(trigger.parameters or {}) then
+			return
+		end
 		if teamID ~= trigger.parameters.teamID then
 			return
 		end
@@ -354,9 +357,24 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 
 	-- Update managed objectives:
 	for _, managedObj in ipairs(GG['MissionAPI'].ManagedObjectivesByTriggerType[triggerType] or {}) do
-		objectiveUtils.UpdateObjectiveProgress(managedObj.objectiveID, teamID, unitDefName, unitNames, direction, managedObj)
+		if shouldInclude(managedObj.parameters or {}) then
+			objectiveUtils.UpdateObjectiveProgress(managedObj.objectiveID, teamID, unitDefName, unitNames, direction, managedObj)
+		end
 	end
 end
+
+local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, direction)
+	updateUnitStatisticsInternal(triggerType, teamID, unitDefName, unitNames, direction, function()
+		return true
+	end)
+end
+
+local function backfillUnitNameFilteredStatistics(triggerType, teamID, unitDefName, unitNames, direction)
+	updateUnitStatisticsInternal(triggerType, teamID, unitDefName, unitNames, direction, function(parameters)
+		return parameters.unitName ~= nil
+	end)
+end
+
 local function incrementUnitStatistics(triggerType, teamID, unitDefName, unitNames)
 	updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, 1)
 end
@@ -462,6 +480,19 @@ function gadget:Initialize()
 	untrackUnitID           = tracking.UntrackUnitID
 	doesFeatureHaveName     = tracking.DoesFeatureHaveName
 	untrackFeatureID        = tracking.UntrackFeatureID
+
+	-- Spring.CreateUnit triggers MetaUnitAdded, so SpawnUnit action can't add units to tracking before triggers need to
+	-- fire on them being named. This only affects statistic. So we update statistics upon tracking the unit created.
+	GG['MissionAPI'].OnUnitNameTracked = function(unitID, unitName)
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitTeam = Spring.GetUnitTeam(unitID)
+		if not unitDefID or not unitTeam then
+			return
+		end
+
+		local unitDefName = UnitDefs[unitDefID].name
+		backfillUnitNameFilteredStatistics(types.UnitsOwned, unitTeam, unitDefName, { [unitName] = true }, 1)
+	end
 end
 
 function gadget:GameFrame(frameNumber)
@@ -503,11 +534,6 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = table.copy(trackedUnitNames[unitID] or {})
-
-	local nameOfUnitBeingSpawned = GG['MissionAPI'].nameOfUnitBeingSpawned
-	if nameOfUnitBeingSpawned then
-		unitNames[nameOfUnitBeingSpawned] = true
-	end
 	incrementUnitStatistics(types.UnitsOwned, unitTeam, unitDefName, unitNames)
 end
 
