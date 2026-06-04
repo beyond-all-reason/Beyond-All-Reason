@@ -1986,11 +1986,6 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.SetUnitAlwaysVisible(unitID, true)
 				end
 
-				GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-				GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, 0)
-				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
-				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
-
 				setScavXP(unitID)
 			end
 			spawnQueue[i] = nil

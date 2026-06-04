@@ -1759,10 +1759,6 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 
-				GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, { "shift" })
-				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
-				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
-
 				setRaptorXP(unitID)
 			end
 			spawnQueue[i] = nil
