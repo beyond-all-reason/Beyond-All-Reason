@@ -38,7 +38,7 @@ return {
     },
     anim = {
         idleHover = {
-            piece = "chassis",
+            piece = "base",
             scale = 1,
             speed = 2,
         },
@@ -56,14 +56,14 @@ return {
         },
         killed = {
             { maxSeverity = 25,  wreck = 1, pieces = {
-                { name="chassis",  sfx = "BITMAPONLY|NO_HEATCLOUD" },
+                { name="base",  sfx = "BITMAPONLY|NO_HEATCLOUD" },
             }},
             { maxSeverity = 50,  wreck = 2, pieces = {
-                { name="chassis",  sfx = "BITMAPONLY|NO_HEATCLOUD" },
+                { name="base",  sfx = "BITMAPONLY|NO_HEATCLOUD" },
                 { useJets=true, sfx = "BITMAPONLY|NO_HEATCLOUD" },
             }},
             { maxSeverity = 100, wreck = 3, pieces = {
-                { name="chassis",  sfx = "BITMAPONLY|NO_HEATCLOUD" },
+                { name="base",  sfx = "BITMAPONLY|NO_HEATCLOUD" },
                 { useJets=true, sfx = "BITMAPONLY|NO_HEATCLOUD" },
             }},
         },
