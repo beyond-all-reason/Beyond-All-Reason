@@ -11,11 +11,48 @@ function gadget:GetInfo()
 	}
 end
 
+--[[ TODO:
+have slices of pies also have a chance to take something from the neighboring slice
+]]
+
 if not gadgetHandler:IsSyncedCode() then return false end
 
+-- biases and chances
+
+-- desolation power quota
+-- Stop power-erasing units once remaining team power is at or below this fraction of pre-desolation power (0.2 = 20% floor).
 local DESOLATION_QUOTA_RATIO = 0.2
+
+-- erasure and hotspot selection
+-- Hotspot turret picks: count of disadvantage rolls (take minimum index); higher = stronger bias toward high-power turrets in the power-sorted list.
+local POWERFUL_TURRET_BIAS = 34
+-- Erasure sort only: multiplies distance from hotspots for mobile units so they are treated as farther and erased earlier (4 = 4x effective distance).
+local CAN_MOVE_PENALTY_MULTIPLIER = 4
+
+-- unit fate after quota
+-- Per surviving unit: chance to avoid default heap fate and roll corpse or gaia instead (1 = always redeemable).
 local REDEEMABLE_CHANCE = 0.5
+-- Of redeemable turrets only: chance to become gaia rather than a corpse (1 = all redeemable turrets go gaia).
 local TURRET_GAIA_CHANCE = 0.75
+-- Reserved; not referenced yet (intended heap damage fraction if wired in).
+local TO_HEAP_DAMAGE_RATIO = 0.5
+
+-- cascade and kill timing spread
+-- Cascade timing curve sharpness for arc-dance and kill scheduling; higher = longer linger near start/end, steeper middle (3 = strong ease).
+local EXPLOSION_CUBIC_EASE_BIAS = 3
+
+-- arc dance pairing
+-- Within each angular slice, sort order blend for arc partners: 0 = bearing only, 1 = distance from origin only, 0.3 = 70% angle / 30% radius.
+local RADIAL_DANCE_PAIRING_BIAS = 0.3
+-- Per unit after sorting: chance to pair with a random unit in the dance pool instead of the next unit in the slice chain (1 = fully random partners).
+local DANCE_PAIRING_RANDOM_BIAS = 0.6
+
+-- arc dance spawn
+-- Each arc-dance tick: chance to target the allyteam origin instead of the paired unit (uses the same roll as SKIP_DANCE_CHANCE below).
+local ARC_DANCE_ORIGIN_CHANCE = 0.03
+-- When an origin arc is eligible, skip spawning if this roll threshold is met; must be below ARC_DANCE_ORIGIN_CHANCE or every origin attempt is skipped (0.8 > 0.03 skips all).
+local SKIP_DANCE_CHANCE = 0.8
+
 local SHOCKWAVE_DURATION = 45
 local WAIT_DURATION = 30
 local CASCADE_DURATION = 360
@@ -23,19 +60,14 @@ local MAX_POWER_KILL_FRAMES = 90
 local MAX_RANDOM_KILL_FRAMES = 30
 local TENEBRIUM_CORE_CEG = "tenebrium_implosion"
 local EXPLOSION_SEQUENCE_END_OFFSET = SHOCKWAVE_DURATION + WAIT_DURATION + CASCADE_DURATION + MAX_POWER_KILL_FRAMES + MAX_RANDOM_KILL_FRAMES
-local EXPLOSION_CUBIC_EASE_BIAS = 3
 local ARC_DANCE_SLICE_COUNT = 12
-local RANDOM_SHUFFLE_OFFSET = 5
 local ARC_DANCE_RESCHEDULE_MIN_FRAMES = 45
 local ARC_DANCE_RESCHEDULE_MAX_FRAMES = 120
-local ARC_DANCE_ORIGIN_CHANCE = 0.03
-local SKIP_DANCE_CHANCE = 0.5
 local ORIGIN_ARC_HEIGHT_ABOVE_GROUND = 20
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local FIRE_STATE_RETURN_FIRE = 1
 local FIRE_STATE_FIRE_AT_WILL = 2
 local TURRET_HOTSPOT_COUNT = 5
-local POWERFUL_TURRET_BIAS = 34
 local DESOLATE_GAIA = 0
 local DESOLATE_CORPSE = 1
 local DESOLATE_HEAP = 2
@@ -45,10 +77,6 @@ local ARC_CEGS = {
 	MEDIUM = "tenebrium_desolation_orange_arc_medium",
 	LARGE = "tenebrium_desolation_orange_arc_large",
 }
-
-local CAN_MOVE_PENALTY_MULTIPLIER = 4
-
-local TO_HEAP_DAMAGE_RATIO = 0.5
 
 local spSpawnExplosion = Spring.SpawnExplosion
 local spCreateFeature = Spring.CreateFeature
@@ -252,24 +280,35 @@ local function getArcCegName(distance)
 	return nil
 end
 
-local function getShuffledPairedIndex(sourceIndex, sliceCount)
-	if sliceCount < 2 then
+local function getRadialDancePairingSortKey(unitID, originX, originZ, maxDistanceSq)
+	local unitX, _, unitZ = spGetUnitPosition(unitID)
+	if not unitX then
+		return math.huge
+	end
+	local angle = mathAtan2(unitX - originX, unitZ - originZ) % TWO_PI
+	local distanceSq = distanceSqCache[unitID] or mathDistance2dSquared(unitX, unitZ, originX, originZ)
+	local angleSort = angle / TWO_PI
+	local radialSort = maxDistanceSq > 0 and (distanceSq / maxDistanceSq) or 0
+	return (1 - RADIAL_DANCE_PAIRING_BIAS) * angleSort + RADIAL_DANCE_PAIRING_BIAS * radialSort
+end
+
+local function pickRandomDancePartner(sourceUnitID, candidateUnitIDs)
+	local candidateCount = #candidateUnitIDs
+	if candidateCount < 2 then
 		return nil
 	end
-	local targetIndex = sourceIndex + mathRandom(-RANDOM_SHUFFLE_OFFSET, RANDOM_SHUFFLE_OFFSET)
-	targetIndex = mathMax(1, mathMin(sliceCount, targetIndex))
-	if targetIndex == sourceIndex then
-		if sourceIndex == sliceCount then
-			targetIndex = sourceIndex - 1
-		elseif sourceIndex == 1 then
-			targetIndex = sourceIndex + 1
-		elseif mathRandom(1, 2) == 1 then
-			targetIndex = sourceIndex - 1
-		else
-			targetIndex = sourceIndex + 1
-		end
+	local partnerUnitID = candidateUnitIDs[mathRandom(1, candidateCount)]
+	while partnerUnitID == sourceUnitID do
+		partnerUnitID = candidateUnitIDs[mathRandom(1, candidateCount)]
 	end
-	return targetIndex
+	return partnerUnitID
+end
+
+local function pickDancePartner(sourceUnitID, structuredPartnerUnitID, candidateUnitIDs)
+	if DANCE_PAIRING_RANDOM_BIAS <= 0 or mathRandom() >= DANCE_PAIRING_RANDOM_BIAS then
+		return structuredPartnerUnitID
+	end
+	return pickRandomDancePartner(sourceUnitID, candidateUnitIDs) or structuredPartnerUnitID
 end
 
 local function removeUnitPair(unitID)
@@ -283,9 +322,16 @@ local function buildUnitPairs(unitActions, originX, originZ)
 		return
 	end
 
+	local maxDistanceSq = 0
+	for actionIndex = 1, actionCount do
+		local distanceSq = distanceSqCache[unitActions[actionIndex].unitID] or 0
+		if distanceSq > maxDistanceSq then
+			maxDistanceSq = distanceSq
+		end
+	end
+
 	local unitIDsBySlice = {}
 	local sliceAngle = TWO_PI / ARC_DANCE_SLICE_COUNT
-	local rotationAngle = mathRandom() * sliceAngle
 
 	for sliceIndex = 1, ARC_DANCE_SLICE_COUNT do
 		unitIDsBySlice[sliceIndex] = {}
@@ -295,30 +341,36 @@ local function buildUnitPairs(unitActions, originX, originZ)
 		local unitID = unitActions[actionIndex].unitID
 		local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 		if unitX then
-			local angle = (mathAtan2(unitX - originX, unitZ - originZ) + rotationAngle) % TWO_PI
+			local angle = mathAtan2(unitX - originX, unitZ - originZ) % TWO_PI
 			local sliceIndex = mathFloor(angle / sliceAngle) + 1
 			local sliceUnitIDs = unitIDsBySlice[sliceIndex]
 			sliceUnitIDs[#sliceUnitIDs + 1] = unitID
 		end
 	end
 
+	local orderedUnitIDs = {}
 	for sliceIndex = 1, ARC_DANCE_SLICE_COUNT do
 		local sliceUnitIDs = unitIDsBySlice[sliceIndex]
-		local sliceCount = #sliceUnitIDs
-		if sliceCount > 1 then
-			for withinSliceIndex = 1, sliceCount do
-				local targetWithinIndex = getShuffledPairedIndex(withinSliceIndex, sliceCount)
-				unitPairs[sliceUnitIDs[withinSliceIndex]] = sliceUnitIDs[targetWithinIndex]
+		if #sliceUnitIDs > 0 then
+			table.sort(sliceUnitIDs, function(unitA, unitB)
+				return getRadialDancePairingSortKey(unitA, originX, originZ, maxDistanceSq)
+					< getRadialDancePairingSortKey(unitB, originX, originZ, maxDistanceSq)
+			end)
+			for unitIndex = 1, #sliceUnitIDs do
+				orderedUnitIDs[#orderedUnitIDs + 1] = sliceUnitIDs[unitIndex]
 			end
 		end
 	end
 
-	for actionIndex = 1, actionCount do
-		local unitID = unitActions[actionIndex].unitID
-		if not unitPairs[unitID] then
-			local targetActionIndex = getShuffledPairedIndex(actionIndex, actionCount)
-			unitPairs[unitID] = unitActions[targetActionIndex].unitID
-		end
+	local orderedCount = #orderedUnitIDs
+	if orderedCount < 2 then
+		return
+	end
+
+	for pairIndex = 1, orderedCount do
+		local sourceUnitID = orderedUnitIDs[pairIndex]
+		local structuredPartnerUnitID = orderedUnitIDs[pairIndex == orderedCount and 1 or pairIndex + 1]
+		unitPairs[sourceUnitID] = pickDancePartner(sourceUnitID, structuredPartnerUnitID, orderedUnitIDs)
 	end
 end
 
