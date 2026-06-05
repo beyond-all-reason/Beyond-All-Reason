@@ -2686,6 +2686,8 @@ addNewSquad({
 	scavsquadbehaviordistance - number, integrer - Distance at which the behaviors operate. Usually means the fleeing distance, except berserks and kamikazes, where it defines reaction range.
 	scavsquadbehaviorchance - number, float between 0 and 1 - How sensitive the unit is to the behavior triggers.
 	scavsquadsurface - string - "land", "sea", "mixed" defines what surfaces the custom squad should spawn on. default: mixed
+	scavsquadforceair - bool - Enforce this squad to be spawned through aircraft spawn pools, even if it's not an aircraft
+	scavsquadforcesurface - bool - Enforce this squad to be spawned through surface (land or sea) spawn pools, even if it's an aircraft
 
 	Behavior Classes:
 
@@ -2784,13 +2786,13 @@ for name, unitDef in pairs(UnitDefNames) do
 					if unitDef.customParams.scavsquadbehavior and unitDef.customParams.scavsquadbehavior == "healer" then
 						customSquadTable.type = "healerLand"
 					elseif unitDef.customParams.scavsquadrarity and unitDef.customParams.scavsquadrarity == "basic" then
-						if unitDef.canFly then
+						if (unitDef.canFly or unitDef.customParams.scavsquadforceair) and not unitDef.customParams.scavsquadforcesurface then
 							customSquadTable.type = "basicAirLand"
 						else
 							customSquadTable.type = "basicLand"
 						end
 					else
-						if unitDef.canFly then
+						if (unitDef.canFly or unitDef.customParams.scavsquadforceair) and not unitDef.customParams.scavsquadforcesurface then
 							customSquadTable.type = "specialAirLand"
 						else
 							customSquadTable.type = "specialLand"
@@ -2803,13 +2805,13 @@ for name, unitDef in pairs(UnitDefNames) do
 					if unitDef.customParams.scavsquadbehavior and unitDef.customParams.scavsquadbehavior == "healer" then
 						customSquadTable.type = "healerSea"
 					elseif unitDef.customParams.scavsquadrarity and unitDef.customParams.scavsquadrarity == "basic" then
-						if unitDef.canFly then
+						if (unitDef.canFly or unitDef.customParams.scavsquadforceair) and not unitDef.customParams.scavsquadforcesurface then
 							customSquadTable.type = "basicAirSea"
 						else
 							customSquadTable.type = "basicSea"
 						end
 					else
-						if unitDef.canFly then
+						if (unitDef.canFly or unitDef.customParams.scavsquadforceair) and not unitDef.customParams.scavsquadforcesurface then
 							customSquadTable.type = "specialAirSea"
 						else
 							customSquadTable.type = "specialSea"
