@@ -345,7 +345,7 @@ if gadgetHandler:IsSyncedCode() then
 			checkForManualFire[unitID] = true
 		end
 		sendTargetsToUnsynced(unitID)
-		if not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, targets[1]) then
+		if not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, targets[1].target) then
 			setTargetActive(unitID, data, 1)
 		end
 		--tracy.ZoneEnd()
@@ -358,15 +358,15 @@ if gadgetHandler:IsSyncedCode() then
 			spSetUnitRulesParam(unitID, "targetCoordX", -1)
 			spSetUnitRulesParam(unitID, "targetCoordY", -1)
 			spSetUnitRulesParam(unitID, "targetCoordZ", -1)
-			if unitTargets[unitID] and not keeptrack then
-				SendToUnsynced("targetList", unitID, 0)
-			end
 			unitTargets[unitID] = nil
 		elseif pausedTargets[unitID] then
 			SendToUnsynced("targetList", unitID, 0)
 			pausedTargets[unitID] = nil
 		end
 		waitForCommandDone[unitID] = nil
+		if not keeptrack then
+			SendToUnsynced("targetList", unitID, 0)
+		end
 	end
 
 	local function refreshSendData(unitID, unitData, minIndex)
@@ -382,7 +382,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function updateTarget(unitID, unitData, index, active)
 		if active == nil then
-			active = testTarget(unitID, unitData.teamID, unitData.weapons, unitData.targets[index])
+			local targetData = unitData.targets[index]
+			if targetData then
+				active = testTarget(unitID, unitData.teamID, unitData.weapons, targetData.target)
+			end
 		end
 		unitData.currentIndex = index
 		unitData.activeTarget = active
@@ -426,10 +429,11 @@ if gadgetHandler:IsSyncedCode() then
 		if not targetList[1] then
 			removeUnit(unitID)
 		elseif minIndex then
-			if currentIndex == 0 then
+			if currentIndex ~= unitData.currentIndex then
+				if currentIndex == 0 then
+					currentIndex = 1
+				end
 				updateTarget(unitID, unitData, 1)
-			else
-				unitData.currentIndex = currentIndex
 			end
 			refreshSendData(unitID, unitData, minIndex)
 		end
