@@ -262,15 +262,12 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("targetIndex", unitID, targetIndex, false)
 	end
 
-	local function removeUnseenTarget(targetData, attackerAllyTeam)
-		local target = targetData.target
-		if not targetData.alwaysSeen and type(target) == "number" and spValidUnitID(target) then
-			local los = spGetUnitLosState(target, attackerAllyTeam, true)
-			if not los or (los % 4 == 0) then
-				return true
-			end
+	local function isUnseenEnemyUnit(targetData, allyTeam)
+		if targetData.alwaysSeen or not spValidUnitID(targetData.target) then
+			return false
 		end
-		return false
+		local los = spGetUnitLosState(targetData.target, allyTeam, true)
+		return not los or los % 4 == 0
 	end
 
 	local function distance(posA, posB)
@@ -821,7 +818,7 @@ if gadgetHandler:IsSyncedCode() then
 			for unitID, unitData in pairsNext, unitTargets do
 				local targets = unitData.targets
 				for index = #targets, 1, -1 do
-					if removeUnseenTarget(targets[index], unitData.allyTeam) then
+					if isUnseenEnemyUnit(targets[index], unitData.allyTeam) then
 						removeTarget(unitID, index)
 					end
 				end
