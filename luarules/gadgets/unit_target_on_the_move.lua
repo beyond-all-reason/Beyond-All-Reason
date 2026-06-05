@@ -1041,7 +1041,7 @@ else	-- UNSYNCED
 
 	-- TODO: Need to handle unit ghosts. None of it works well currently.
 	local function isValidTargetData(targetData)
-		return targetData.alwaysSeen or spValidUnitID(targetData.target)
+		return type(targetData.target) == "table" or spValidUnitID(targetData.target)
 	end
 
 	local function getFirstValidTarget(targets)
