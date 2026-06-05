@@ -382,7 +382,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function updateTarget(unitID, unitData, index, active)
 		if active == nil then
-			active = testTarget(unitID, unitData.teamID, unitData.weapons, unitData.targets[1])
+			active = testTarget(unitID, unitData.teamID, unitData.weapons, unitData.targets[index])
 		end
 		unitData.currentIndex = index
 		unitData.activeTarget = active
@@ -947,7 +947,7 @@ else	-- UNSYNCED
 		end
 	end
 
-	local function getEventTargetList(unitID, removeFromIndex)
+	local function getUnitTargetList(unitID, removeFromIndex)
 		if removeFromIndex == 0 then
 			targetList[unitID] = nil
 			return
@@ -968,28 +968,33 @@ else	-- UNSYNCED
 			end
 			if removeFromIndex <= unitData.targetIndex then
 				unitData.targetIndex = 1
+				unitData.targetActive = false
 			end
 		end
-		return targets
+		return unitData
 	end
 
 	function handleTargetListEvent(_, unitID, index, userTarget, targetA, targetB, targetC)
 		--tracy.ZoneBeginN(string.format("handleTargetListEvent %d %d ", unitID, index))
-		local targets = getEventTargetList(unitID, not targetA and index)
-		if targets then
-			targets[index] = {
+		local unitData = getUnitTargetList(unitID, not targetA and index)
+		if unitData then
+			unitData.targets[index] = {
 				userTarget = userTarget,
 				target     = (not targetB and targetA) or { targetA, targetB, targetC },
 			}
+			if index == unitData.targetIndex then
+				unitData.targetActive = false
+			end
 		end
 		--tracy.ZoneEnd()
 	end
 
-	function handleTargetIndexEvent(_, unitID, index)
+	function handleTargetIndexEvent(_, unitID, index, active)
 		if not targetList[unitID] then
 			return
 		end
 		targetList[unitID].targetIndex = index
+		targetList[unitID].targetActive = active
 	end
 
 	function handleUnitTargetDrawEvent(_, _, params)
@@ -1141,8 +1146,8 @@ else	-- UNSYNCED
 		local skipSize, skipLeft = 0, 0
 		for unitID, unitData in pairsNext, targetList do
 			if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
-				if skipLeft == 0 then
-					if shouldDrawDecorations(unitID) then
+				if shouldDrawDecorations(unitID) then
+					if skipLeft == 0 then
 						if not init then
 							init = initDrawing()
 						end
@@ -1157,9 +1162,9 @@ else	-- UNSYNCED
 							skipSize = math_min(16, 2 * (skipSize > 0 and skipSize or 1))
 						end
 						skipLeft = skipSize
+					else
+						skipLeft = skipLeft - 1
 					end
-				else
-					skipLeft = skipLeft - 1
 				end
 			end
 		end
