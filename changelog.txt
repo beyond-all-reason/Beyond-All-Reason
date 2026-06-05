@@ -1,3 +1,6 @@
+# June
+• [Commando] 1560 -> 1800 health, EMP resistance, weapon inaccuracy removed, weapon can target air, but does reduced dmg vs air (30%)
+
 # May
 • [T1 bot constructors] +70 health
 • [Pawn] Weapon 3 -> 2 dmg vs Air

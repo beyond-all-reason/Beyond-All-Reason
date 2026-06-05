@@ -25,7 +25,6 @@ return {
 		maxslope = 10,
 		speed = 270,
 		maxwaterdepth = 0,
-		firestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/legphoenix.s3o",
 		script = "Units/legphoenix.cob",
