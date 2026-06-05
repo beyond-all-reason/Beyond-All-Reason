@@ -43,32 +43,34 @@ local TURRET_GAIA_CHANCE = 0.75
 -- Reserved; not referenced yet (intended heap damage fraction if wired in).
 local TO_HEAP_DAMAGE_RATIO = 0.5
 
--- initial shockwave expansion (elmos per frame; cubic ease from start speed at origin to end speed at rim)
--- Wave-front speed at the origin; first-cascade kill timing is derived by integrating this speed curve out to the farthest unit.
-local SHOCKWAVE_START_SPEED = 50
--- Wave-front speed at the farthest unit; shockwave decelerates from START to END over the expansion radius.
-local SHOCKWAVE_END_SPEED = 25
--- Cubic ease bias for speed interpolation along radius; higher = faster burst near origin, slower approach at the rim (3 = strong ease).
-local SHOCKWAVE_INTERPOLATIVE_BIAS = 1
+local GAME_SPEED = Game.gameSpeed
+local SHOCKWAVE_SPEED_ELMOS_PER_SEC = 150
+local SHOCKWAVE_SPEED = SHOCKWAVE_SPEED_ELMOS_PER_SEC / GAME_SPEED
+local SHOCKWAVE_DURATION_SECONDS = 10
+local SHOCKWAVE_DURATION_FRAMES = SHOCKWAVE_DURATION_SECONDS * GAME_SPEED
+local SHOCKWAVE_REACH_DISTANCE = SHOCKWAVE_SPEED_ELMOS_PER_SEC * SHOCKWAVE_DURATION_SECONDS
+local SHOCKWAVE_REACH_DISTANCE_SQ = SHOCKWAVE_REACH_DISTANCE * SHOCKWAVE_REACH_DISTANCE
 
 -- cascade and kill timing spread
 local MAX_RANDOM_KILL_FRAMES = 30
 
 -- cookoff sequence (top COOKOFF_TOP_UNIT_FRACTION by power survive the first cascade, cook off, then die in the second cascade)
 -- Length of one desolation_cookoff CEG playthrough in frames; must match COOKOFF_DELAY_WINDOW in effects/desolation_cookoff.lua (30 = ~1s at 30fps).
-local COOKOFF_DURATION_FRAMES = 30
+local COOKOFF_CEG_DURATION_FRAMES = 30
+local COOKOFF_CEG_COUNT = 2
+local COOKOFF_DURATION_FRAMES = SHOCKWAVE_DURATION_FRAMES
 -- Fraction of alive team units (by count, sorted by power) that cook off through the first cascade instead of dying in it: 0.2 = top 20% strongest at desolation start.
 local COOKOFF_TOP_UNIT_FRACTION = 0.1
--- Second cookoff kill cascade length as a multiple of shockwave reach time to the farthest unit; interpolated by power rank (weakest first, strongest last).
--- Longer window stretches bounce spacing (feels softer); shorter window compresses it (feels snappier).
-local COOKOFF_CASCADE_DURATION_MULTIPLIER = 1.25
--- Ease-out bounce parabola steepness per segment; must equal COOKOFF_BOUNCE_DIVISOR squared (Penner easeOutBounce).
+-- Cookoff kill spread within COOKOFF_DURATION_FRAMES; weakest first, strongest last (Penner easeOutBounce).
 local COOKOFF_BOUNCE_SCALE = 12.25
 -- Ease-out bounce segment count/spacing; higher = more tighter bounces, lower = fewer wider bounces.
 -- Segment offsets in timeFromCookoffRankT are calibrated for 3.5; change only with Penner easeOutBounce math.
 local COOKOFF_BOUNCE_DIVISOR = 3.5
 -- Max extra kill-delay frames added at the farthest cookoff unit; scales linearly with normalized distance for tie-break jitter.
 local COOKOFF_DISTANCE_JITTER_FRAMES = 5
+local HEAP_ARC_BURST = 410
+local HEAP_ARC_DELAY_FRAMES = 15
+local RANDOM_ARC_CHANCE = 0.75
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local FIRE_STATE_RETURN_FIRE = 1
 local FIRE_STATE_FIRE_AT_WILL = 2
@@ -84,11 +86,26 @@ local COOKOFF_CEGS = {
 	large = { "desolation_cookoff_large" },
 	huge = { "desolation_cookoff_huge" },
 }
+local TENEBRIUM_IMPLOSION_CEG = "tenebrium_implosion"
+local TENEBRIUM_IMPLOSION_Y_OFFSET = 30
+local HEAP_LIGHTNING_CEG = "tenebrium_desolation_heap_arc"
+local HEAP_EXPLOSION_CEGS = {
+	tiny = "desolation_heap_explosion_tiny",
+	small = "desolation_heap_explosion_small",
+	medium = "desolation_heap_explosion_medium",
+	large = "desolation_heap_explosion_large",
+	huge = "desolation_heap_explosion_huge",
+}
 
 local spSpawnExplosion = Spring.SpawnExplosion
 local spCreateFeature = Spring.CreateFeature
+local spDestroyFeature = Spring.DestroyFeature
+local spValidFeatureID = Spring.ValidFeatureID
+local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitHeading = Spring.GetUnitHeading
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitTeam = Spring.GetUnitTeam
 local spDestroyUnit = Spring.DestroyUnit
 local spGetTeamUnits = Spring.GetTeamUnits
 local spTransferUnit = Spring.TransferUnit
@@ -96,6 +113,7 @@ local spValidUnitID = Spring.ValidUnitID
 local spSpawnCEG = Spring.SpawnCEG
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetAllUnits = Spring.GetAllUnits
+local spGetGroundHeight = Spring.GetGroundHeight
 local mathRandom = math.random
 local mathMax = math.max
 local mathMin = math.min
@@ -109,10 +127,13 @@ local gaiaTeam = Spring.GetGaiaTeamID()
 local defData = {}
 local actionFrames = {}
 local cegActionFrames = {}
+local heapActionFrames = {}
 local allyTeamOrigins = {}
 local desolatedTeams = {}
 local distanceSqCache = {}
 local cookoffEligibleUnitIDs = {}
+local pendingHeapByUnitID = {}
+local implosionSpawnedAllyTeams = {}
 local fireStateLockEndFrame = 0
 
 --populate def types
@@ -152,6 +173,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	local corpseDefName = unitDef.corpse
 	if FeatureDefNames[corpseDefName] then
 		local corpseDefID = FeatureDefNames[corpseDefName].id
+		data.corpseDefID = corpseDefID
 		data.heap = FeatureDefs[corpseDefID].deathFeatureID
 	end
 
@@ -202,6 +224,41 @@ local function chooseFate(unitID)
 	return fate
 end
 
+local function getUnitArcTargetPosition(unitID)
+	local _, _, _, aimX, aimY, aimZ = spGetUnitPosition(unitID, false, true)
+	return aimX, aimY, aimZ
+end
+
+local function resolveHeapTargetPosition(entry)
+	if entry.targetX then
+		return entry.targetX, entry.targetY, entry.targetZ
+	end
+	local featureID = entry.featureID
+	if featureID and spValidFeatureID(featureID) then
+		local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
+		if featureX then
+			return featureX, featureY, featureZ
+		end
+	end
+end
+
+local function spawnHeapLightning(entry, targetX, targetY, targetZ)
+	local directionX = targetX - entry.originX
+	local directionY = targetY - entry.originY
+	local directionZ = targetZ - entry.originZ
+	local distance = mathSqrt(directionX * directionX + directionY * directionY + directionZ * directionZ)
+	if distance <= 0 then
+		return
+	end
+	spSpawnCEG(HEAP_LIGHTNING_CEG, entry.originX, entry.originY, entry.originZ, directionX / distance, directionY / distance, directionZ / distance, 0, distance)
+end
+
+local function spawnCorpseExplosionCeg(cegName, x, y, z)
+	if cegName then
+		spSpawnCEG(cegName, x, y, z)
+	end
+end
+
 local function desolateUnit(unitID, fate)
 	if not spValidUnitID(unitID) then
 		return
@@ -219,14 +276,26 @@ local function desolateUnit(unitID, fate)
 	if fate == DESOLATE_CORPSE then
 		spDestroyUnit(unitID, false, false, -1)
 		return
-	end	
-	
-	if fate == DESOLATE_HEAP or fate == DESOLATE_ERASE then
+	end
+
+	if fate == DESOLATE_HEAP then
+		local unitTeam = spGetUnitTeam(unitID)
+		local heading = spGetUnitHeading(unitID)
+		local entry = pendingHeapByUnitID[unitID]
+		spDestroyUnit(unitID, false, true, -1)
+		if entry and entry.corpseDefID then
+			entry.featureID = spCreateFeature(entry.corpseDefID, x, y, z, heading, unitTeam)
+			entry.targetX = x
+			entry.targetY = y
+			entry.targetZ = z
+			entry.unitTeam = unitTeam
+		end
+		return
+	end
+
+	if fate == DESOLATE_ERASE then
 		spDestroyUnit(unitID, false, true, -1)
 		spSpawnExplosion(x, y, z, 0, 0, 0, {weaponDef = data.explosionDefID, owner = unitID})
-	end
-	if fate == DESOLATE_HEAP then
-		spCreateFeature(data.heap, x, y, z)
 	end
 end
 
@@ -257,26 +326,24 @@ local function timeFromCookoffRankT(rankT)
 	return COOKOFF_BOUNCE_SCALE * adjustedRankT * adjustedRankT + 0.984375
 end
 
-local function getShockwaveSpeedAtRadiusT(radiusT)
-	local easeFactor = (1 - radiusT) ^ (1 / SHOCKWAVE_INTERPOLATIVE_BIAS)
-	return SHOCKWAVE_END_SPEED + (SHOCKWAVE_START_SPEED - SHOCKWAVE_END_SPEED) * easeFactor
-end
-
-local function computeShockwaveFrameAtDistance(distance, maxDistance)
-	if maxDistance <= 0 or distance <= 0 then
+local function computeShockwaveFrameAtDistance(distance)
+	if distance <= 0 then
 		return 0
 	end
 	local traveled = 0
 	local frames = 0
 	while traveled < distance do
-		traveled = traveled + getShockwaveSpeedAtRadiusT(traveled / maxDistance)
+		traveled = traveled + SHOCKWAVE_SPEED
 		frames = frames + 1
 	end
 	return frames
 end
 
-local function computeShockwaveFramesToFarthestUnit(maxDistance)
-	return computeShockwaveFrameAtDistance(maxDistance, maxDistance)
+local function buildShockwaveProfile(maxDistance)
+	return {
+		maxDistance = maxDistance,
+		targetFrames = SHOCKWAVE_DURATION_FRAMES,
+	}
 end
 
 local function getMaxDistanceSqFromUnitActions(unitActions)
@@ -337,20 +404,35 @@ local function queueCookoff(unitID, frame)
 	queueUnitCookoff(unitID, cegName, frame)
 end
 
-local function queueRepeatingCookoffs(unitID, startFrame, killFrame)
-	local cookoffFrame = startFrame
-	while cookoffFrame < killFrame do
-		queueCookoff(unitID, cookoffFrame)
-		cookoffFrame = cookoffFrame + COOKOFF_DURATION_FRAMES
+local function queueCookoffBurst(unitID, startFrame)
+	for cookoffIndex = 0, COOKOFF_CEG_COUNT - 1 do
+		queueCookoff(unitID, startFrame + cookoffIndex * COOKOFF_CEG_DURATION_FRAMES)
 	end
 end
 
-local function assignShockwaveOffsets(unitActions, shockwaveDuration, maxDistance, shockwaveFramesToFarthestUnit, allowKillVariance, offsetField)
+local function isBeyondShockwaveReach(unitID)
+	return (distanceSqCache[unitID] or 0) > SHOCKWAVE_REACH_DISTANCE_SQ
+end
+
+local function assignBeyondReachRandomOffsets(unitActions, durationFrames, offsetField)
+	if durationFrames <= 0 then
+		return
+	end
+	for actionIndex = 1, #unitActions do
+		local unitAction = unitActions[actionIndex]
+		if isBeyondShockwaveReach(unitAction.unitID) then
+			unitAction[offsetField] = mathRandom(0, durationFrames)
+		end
+	end
+end
+
+local function assignShockwaveOffsets(unitActions, shockwaveDuration, shockwaveProfile, allowKillVariance, offsetField)
+	local targetFrames = shockwaveProfile.targetFrames
 	for actionIndex = 1, #unitActions do
 		local unitAction = unitActions[actionIndex]
 		local distance = mathSqrt(distanceSqCache[unitAction.unitID] or 0)
-		local integrateFrame = computeShockwaveFrameAtDistance(distance, maxDistance)
-		local cascadeT = shockwaveFramesToFarthestUnit > 0 and integrateFrame / shockwaveFramesToFarthestUnit or 0
+		local integrateFrame = computeShockwaveFrameAtDistance(distance)
+		local cascadeT = targetFrames > 0 and mathMin(integrateFrame / targetFrames, 1) or 0
 		local baseFrameOffset = mathFloor(cascadeT * shockwaveDuration + 0.5)
 		unitAction[offsetField] = allowKillVariance and getKillVarianceFrames(baseFrameOffset, cascadeT) or baseFrameOffset
 	end
@@ -397,7 +479,7 @@ local function assignCookoffCascadeOffsets(unitActions, cascadeDuration)
 	for actionIndex = 1, actionCount do
 		local unitAction = unitActions[actionIndex]
 		local unitID = unitAction.unitID
-		local rankT = actionCount > 1 and (actionIndex - 1) / (actionCount - 1) or 0
+		local rankT = actionCount > 1 and (actionIndex - 1) / (actionCount - 1) or 1
 		local cascadeT = timeFromCookoffRankT(rankT)
 		local baseFrameOffset = mathFloor(cascadeT * cascadeDuration + 0.5)
 		local normalizedDistanceT = maxDistanceSq > 0 and distanceSqByUnit[unitID] / maxDistanceSq or 0
@@ -407,18 +489,78 @@ local function assignCookoffCascadeOffsets(unitActions, cascadeDuration)
 	end
 end
 
+local function getHeapArcOffset(killOffset)
+	return mathMax(killOffset, HEAP_ARC_BURST + mathRandom(0, MAX_RANDOM_KILL_FRAMES))
+end
+
+local function queueHeapAction(frame, entry, isHeap)
+	local frameActions = heapActionFrames[frame]
+	if not frameActions then
+		frameActions = {}
+		heapActionFrames[frame] = frameActions
+	end
+	frameActions[#frameActions + 1] = { entry = entry, isHeap = isHeap }
+end
+
+local function scheduleEraseArc(unitID, originX, originY, originZ, arcFrame, targetX, targetY, targetZ)
+	local entry = {
+		unitID = unitID,
+		originX = originX,
+		originY = originY,
+		originZ = originZ,
+		targetX = targetX,
+		targetY = targetY,
+		targetZ = targetZ,
+	}
+	queueHeapAction(arcFrame, entry, false)
+end
+
+local function scheduleHeapConversion(unitID, originX, originY, originZ, arcFrame, heapFrame)
+	local data = defData[spGetUnitDefID(unitID)]
+	if not data.heap then
+		return
+	end
+	local targetX, targetY, targetZ = getUnitArcTargetPosition(unitID)
+	local entry = {
+		unitID = unitID,
+		corpseDefID = data.corpseDefID,
+		heapExplosionCeg = HEAP_EXPLOSION_CEGS[data.cookoffSize],
+		heapDefID = data.heap,
+		originX = originX,
+		originY = originY,
+		originZ = originZ,
+		targetX = targetX,
+		targetY = targetY,
+		targetZ = targetZ,
+		beyondShockwaveReach = isBeyondShockwaveReach(unitID),
+	}
+	pendingHeapByUnitID[unitID] = entry
+	if not entry.beyondShockwaveReach then
+		queueHeapAction(arcFrame, entry, false)
+	end
+	queueHeapAction(heapFrame, entry, true)
+end
+
 local function scheduleEvents(startFrame, originX, originZ, allUnitActions, cookoffUnitActions, allyTeamID)
 	local maxDistanceSq = getMaxDistanceSqFromUnitActions(allUnitActions)
 	local maxDistance = mathSqrt(maxDistanceSq)
-	local shockwaveFramesToFarthestUnit = computeShockwaveFramesToFarthestUnit(maxDistance)
-	local cookoffCascadeDuration = mathFloor(shockwaveFramesToFarthestUnit * COOKOFF_CASCADE_DURATION_MULTIPLIER + 0.5)
-	local cookoffShockwaveDuration = 2 * shockwaveFramesToFarthestUnit
-	local secondCascadeStartOffset = shockwaveFramesToFarthestUnit + MAX_RANDOM_KILL_FRAMES
-	local sequenceEndOffset = secondCascadeStartOffset + cookoffCascadeDuration + COOKOFF_DURATION_FRAMES
+	local shockwaveProfile = buildShockwaveProfile(maxDistance)
+	local shockwaveFramesToFarthestUnit = shockwaveProfile.targetFrames
+	Spring.Echo("Desolate shockwave: maxDistance=" .. mathFloor(maxDistance + 0.5) .. " speed=" .. SHOCKWAVE_SPEED_ELMOS_PER_SEC .. " elmos/s targetFrames=" .. shockwaveFramesToFarthestUnit)
+	local cookoffEndOffset = COOKOFF_DURATION_FRAMES + COOKOFF_CEG_DURATION_FRAMES + HEAP_ARC_DELAY_FRAMES
+	local sequenceEndOffset = mathMax(HEAP_ARC_BURST + MAX_RANDOM_KILL_FRAMES + HEAP_ARC_DELAY_FRAMES, cookoffEndOffset)
 
 	suspendViolence(true, sequenceEndOffset)
 
-	allyTeamOrigins[allyTeamID] = { x = originX, z = originZ }
+	local existingOrigin = allyTeamOrigins[allyTeamID]
+	local originY = existingOrigin and existingOrigin.y or spGetGroundHeight(originX, originZ)
+	local implosionOriginY = originY + TENEBRIUM_IMPLOSION_Y_OFFSET
+	allyTeamOrigins[allyTeamID] = { x = originX, y = originY, z = originZ }
+
+	if not implosionSpawnedAllyTeams[allyTeamID] then
+		implosionSpawnedAllyTeams[allyTeamID] = true
+		spSpawnCEG(TENEBRIUM_IMPLOSION_CEG, originX, implosionOriginY, originZ)
+	end
 
 	local cookoffStartFrameByUnit = {}
 
@@ -430,26 +572,61 @@ local function scheduleEvents(startFrame, originX, originZ, allUnitActions, cook
 		end
 	end
 
-	assignShockwaveOffsets(allUnitActions, cookoffShockwaveDuration, maxDistance, shockwaveFramesToFarthestUnit, false, "cookoffStartOffset")
-	assignShockwaveOffsets(nonCookoffActions, shockwaveFramesToFarthestUnit, maxDistance, shockwaveFramesToFarthestUnit, true, "frameOffset")
+	assignShockwaveOffsets(nonCookoffActions, shockwaveFramesToFarthestUnit, shockwaveProfile, true, "frameOffset")
+	assignBeyondReachRandomOffsets(nonCookoffActions, shockwaveFramesToFarthestUnit, "frameOffset")
 	for actionIndex = 1, #allUnitActions do
 		local unitAction = allUnitActions[actionIndex]
 		if cookoffEligibleUnitIDs[unitAction.unitID] and unitAction.fate ~= DESOLATE_GAIA then
-			cookoffStartFrameByUnit[unitAction.unitID] = startFrame + unitAction.cookoffStartOffset
+			cookoffStartFrameByUnit[unitAction.unitID] = startFrame
 		else
 			queueDesolationAction(unitAction.unitID, unitAction.fate, startFrame + unitAction.frameOffset)
+			if unitAction.fate == DESOLATE_ERASE and not isBeyondShockwaveReach(unitAction.unitID) and mathRandom() <= RANDOM_ARC_CHANCE then
+				local targetX, targetY, targetZ = getUnitArcTargetPosition(unitAction.unitID)
+				if targetX then
+					scheduleEraseArc(unitAction.unitID, originX, implosionOriginY, originZ, startFrame + unitAction.frameOffset, targetX, targetY, targetZ)
+				end
+			end
 		end
 	end
 
-	assignCookoffCascadeOffsets(cookoffUnitActions, cookoffCascadeDuration)
+	local heapUnitActions = {}
+	for actionIndex = 1, #nonCookoffActions do
+		local unitAction = nonCookoffActions[actionIndex]
+		if unitAction.fate == DESOLATE_HEAP then
+			unitAction.heapKillOffset = unitAction.frameOffset
+			heapUnitActions[#heapUnitActions + 1] = unitAction
+		end
+	end
+	for actionIndex = 1, #heapUnitActions do
+		local unitAction = heapUnitActions[actionIndex]
+		local arcFrame = startFrame + getHeapArcOffset(unitAction.heapKillOffset)
+		scheduleHeapConversion(unitAction.unitID, originX, implosionOriginY, originZ, arcFrame, arcFrame + HEAP_ARC_DELAY_FRAMES)
+	end
+
+	assignCookoffCascadeOffsets(cookoffUnitActions, COOKOFF_DURATION_FRAMES)
+	local cookoffHeapUnitActions = {}
 	for actionIndex = 1, #cookoffUnitActions do
 		local unitAction = cookoffUnitActions[actionIndex]
-		local killFrame = startFrame + secondCascadeStartOffset + unitAction.frameOffset
+		local killFrame = startFrame + unitAction.frameOffset
 		local cookoffStartFrame = cookoffStartFrameByUnit[unitAction.unitID]
 		if cookoffStartFrame then
-			queueRepeatingCookoffs(unitAction.unitID, cookoffStartFrame, killFrame)
+			queueCookoffBurst(unitAction.unitID, cookoffStartFrame)
 		end
 		queueDesolationAction(unitAction.unitID, unitAction.fate, killFrame)
+		if unitAction.fate == DESOLATE_ERASE and not isBeyondShockwaveReach(unitAction.unitID) and mathRandom() <= RANDOM_ARC_CHANCE then
+			local targetX, targetY, targetZ = getUnitArcTargetPosition(unitAction.unitID)
+			if targetX then
+				scheduleEraseArc(unitAction.unitID, originX, implosionOriginY, originZ, killFrame, targetX, targetY, targetZ)
+			end
+		elseif unitAction.fate == DESOLATE_HEAP then
+			unitAction.heapKillOffset = unitAction.frameOffset
+			cookoffHeapUnitActions[#cookoffHeapUnitActions + 1] = unitAction
+		end
+	end
+	for actionIndex = 1, #cookoffHeapUnitActions do
+		local unitAction = cookoffHeapUnitActions[actionIndex]
+		local arcFrame = startFrame + getHeapArcOffset(unitAction.heapKillOffset)
+		scheduleHeapConversion(unitAction.unitID, originX, implosionOriginY, originZ, arcFrame, arcFrame + HEAP_ARC_DELAY_FRAMES)
 	end
 end
 
@@ -610,10 +787,10 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if defData[unitDefID].isCommander then
-		local originX, _, originZ = spGetUnitPosition(unitID)
+		local originX, originY, originZ = spGetUnitPosition(unitID)
 		if originX then
 			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam)
-			allyTeamOrigins[allyTeamID] = { x = originX, z = originZ }
+			allyTeamOrigins[allyTeamID] = { x = originX, y = originY, z = originZ }
 		end
 	end
 end
@@ -636,13 +813,40 @@ function gadget:GameFrame(gameFrame)
 		end
 	end
 	local frameActions = actionFrames[gameFrame]
-	if not frameActions then
-		return
+	if frameActions then
+		actionFrames[gameFrame] = nil
+		for actionIndex = 1, #frameActions do
+			local action = frameActions[actionIndex]
+			desolateUnit(action.unitID, action.fate)
+		end
 	end
-	actionFrames[gameFrame] = nil
-	for actionIndex = 1, #frameActions do
-		local action = frameActions[actionIndex]
-		desolateUnit(action.unitID, action.fate)
+	local scheduledHeapActions = heapActionFrames[gameFrame]
+	if scheduledHeapActions then
+		heapActionFrames[gameFrame] = nil
+		for actionIndex = 1, #scheduledHeapActions do
+			local heapAction = scheduledHeapActions[actionIndex]
+			local entry = heapAction.entry
+			local targetX, targetY, targetZ = resolveHeapTargetPosition(entry)
+			if targetX then
+				if heapAction.isHeap then
+					if entry.beyondShockwaveReach then
+						spawnCorpseExplosionCeg(entry.heapExplosionCeg, targetX, targetY, targetZ)
+					end
+					local featureID = entry.featureID
+					if featureID and spValidFeatureID(featureID) then
+						spDestroyFeature(featureID)
+					end
+					if entry.heapDefID then
+						spCreateFeature(entry.heapDefID, targetX, targetY, targetZ, 0, entry.unitTeam)
+					end
+					pendingHeapByUnitID[entry.unitID] = nil
+				else
+					spawnHeapLightning(entry, targetX, targetY, targetZ)
+				end
+			elseif heapAction.isHeap then
+				pendingHeapByUnitID[entry.unitID] = nil
+			end
+		end
 	end
 end
 
