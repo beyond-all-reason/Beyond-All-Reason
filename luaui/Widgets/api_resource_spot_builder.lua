@@ -178,6 +178,14 @@ local function getBestExtractorFromBuilders(units, constructorIds, extractors)
 	return bestExtractor
 end
 
+---Returns true if specified extractor is special (e.g. exploiter, twilight)
+---@param extractorDefId number unitDefID of checked extractor
+---@return boolean
+local function isExtractorSpecial(extractorDefId)
+	local extractorDef = UnitDefs[extractorDefId]
+	return extractorDef.stealth or #extractorDef.weapons > 0
+end
+
 ---extractorCanBeUpgraded
 ---@param currentExtractorUuid number uuid of current extractor
 ---@param newExtractorId number unitDefID of new extractor
@@ -188,27 +196,19 @@ local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 	end
 
 	local currentExtractorId = spGetUnitDefID(currentExtractorUuid)
-	local newExtractor = UnitDefs[newExtractorId]
 	local newExtractorStrength = mexBuildings[newExtractorId] or geoBuildings[newExtractorId]
 	local currentExtractorStrength = mexBuildings[currentExtractorId] or geoBuildings[currentExtractorId]
 
 	if not (newExtractorStrength and currentExtractorStrength) then
 		return false
-	end
-
-	local newExtractorIsSpecial = newExtractor.stealth or #newExtractor.weapons > 0
-
-	if (newExtractorStrength > currentExtractorStrength) then
+	elseif (newExtractorStrength > currentExtractorStrength) then
 		return true
-	end
-	if (newExtractorStrength == currentExtractorStrength and newExtractorIsSpecial) then
+	elseif newExtractorStrength == currentExtractorStrength and
+	       isExtractorSpecial(newExtractorId) and not isExtractorSpecial(currentExtractorId) then
 		return true
-	end
-	if currentExtractorStrength == newExtractorStrength then
+	else
 		return false
 	end
-
-	return false
 end
 
 ---Returns true if the specified extractor be built on this spot - considers upgrades and sidegrades
