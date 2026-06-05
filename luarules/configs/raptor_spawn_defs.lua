@@ -2948,6 +2948,8 @@ addNewSquad({
 	raptorsquadbehavior - string - explained below
 	raptorsquadbehaviordistance - number, integrer - Distance at which the behaviors operate. Usually means the fleeing distance, except berserks and kamikazes, where it defines reaction range.
 	raptorsquadbehaviorchance - number, float between 0 and 1 - How sensitive the unit is to the behavior triggers.
+	raptorsquadforceair - bool - Enforce this squad to be spawned through aircraft spawn pools, even if it's not an aircraft
+	raptorsquadforcesurface - bool - Enforce this squad to be spawned through surface (land or sea) spawn pools, even if it's an aircraft
 
 	Behavior Classes:
 
@@ -3044,13 +3046,13 @@ for name, unitDef in pairs(UnitDefNames) do
 
 			if not customSquadTable.type then
 				if unitDef.customParams.raptorsquadrarity and unitDef.customParams.raptorsquadrarity == "basic" then
-					if unitDef.canFly then
+					if (unitDef.canFly or unitDef.customParams.raptorsquadforceair) and not unitDef.customParams.raptorsquadforcesurface then
 						customSquadTable.type = "basicAir"
 					else
 						customSquadTable.type = "basic"
 					end
 				else
-					if unitDef.canFly then
+					if (unitDef.canFly or unitDef.customParams.raptorsquadforceair) and not unitDef.customParams.raptorsquadforcesurface then
 						customSquadTable.type = "specialAir"
 					else
 						customSquadTable.type = "special"
