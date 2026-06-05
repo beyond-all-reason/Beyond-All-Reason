@@ -1,3 +1,15 @@
+-- Startbox resolution: canonical contract for lobby implementations.
+-- The lobby (bar-lobby, BYAR-Chobby) produces these modoptions; this module
+-- consumes them. Any lobby-side resolution must mirror resolveArrangement
+-- below so previews match what the game enforces.
+--
+-- Modoptions (declared in modoptions.lua):
+--   mapmetadata_startboxes_set     base64url(zlib(json)) of { num_teams_str: arrangement, ... }
+--   mapmetadata_startbox_override  base64url(zlib(json)) of a single arrangement
+--
+-- arrangement shape == maps-metadata `startboxesInfo`:
+--   https://github.com/beyond-all-reason/maps-metadata schemas/map_list.yaml
+
 local SplineLib = VFS.Include("common/lib_spline.lua")
 local base64 = VFS.Include("common/luaUtilities/base64.lua")
 
