@@ -1,6 +1,7 @@
 local STANDARD_EXPLOSION = "genericshellexplosion-small"
 local LARGE_EXPLOSION = "genericshellexplosion-medium"
 local COOKOFF_DELAY_WINDOW = 30
+local COOKOFF_VOLUME_SCALE = 0.67
 local LARGE_EXPLOSION_FRACTION = 0.2
 
 local SIZE_PROFILES = {
@@ -50,7 +51,10 @@ local effects = {}
 
 for sizeName, profile in pairs(SIZE_PROFILES) do
 	local generators = { usedefaultexplosions = false }
-	local spawners = cookoffSpawners(profile.popCount, profile.spreadRadius, profile.heightSpread, COOKOFF_DELAY_WINDOW)
+	local popCount = math.max(1, math.floor(profile.popCount * COOKOFF_VOLUME_SCALE + 0.5))
+	local spreadRadius = math.max(1, math.floor(profile.spreadRadius * COOKOFF_VOLUME_SCALE + 0.5))
+	local heightSpread = math.max(1, math.floor(profile.heightSpread * COOKOFF_VOLUME_SCALE + 0.5))
+	local spawners = cookoffSpawners(popCount, spreadRadius, heightSpread, COOKOFF_DELAY_WINDOW)
 
 	for generatorName, generator in pairs(spawners) do
 		generators[generatorName] = generator

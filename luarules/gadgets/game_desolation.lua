@@ -43,24 +43,32 @@ local TURRET_GAIA_CHANCE = 0.75
 -- Reserved; not referenced yet (intended heap damage fraction if wired in).
 local TO_HEAP_DAMAGE_RATIO = 0.5
 
+-- initial shockwave expansion (elmos per frame; cubic ease from start speed at origin to end speed at rim)
+-- Wave-front speed at the origin; first-cascade kill timing is derived by integrating this speed curve out to the farthest unit.
+local SHOCKWAVE_START_SPEED = 50
+-- Wave-front speed at the farthest unit; shockwave decelerates from START to END over the expansion radius.
+local SHOCKWAVE_END_SPEED = 25
+-- Cubic ease bias for speed interpolation along radius; higher = faster burst near origin, slower approach at the rim (3 = strong ease).
+local SHOCKWAVE_INTERPOLATIVE_BIAS = 1
+
 -- cascade and kill timing spread
--- Cubic ease-out wave expansion; kill time uses the inverse curve on normalized radius. Higher = faster core burst, slower rim (3= strong ease).
-local EXPLOSION_CUBIC_EASE_BIAS = 3
+local MAX_RANDOM_KILL_FRAMES = 30
 
 -- cookoff sequence (top COOKOFF_TOP_UNIT_FRACTION by power survive the first cascade, cook off, then die in the second cascade)
 -- Length of one desolation_cookoff CEG playthrough in frames; must match COOKOFF_DELAY_WINDOW in effects/desolation_cookoff.lua (30 = ~1s at 30fps).
 local COOKOFF_DURATION_FRAMES = 30
 -- Fraction of alive team units (by count, sorted by power) that cook off through the first cascade instead of dying in it: 0.2 = top 20% strongest at desolation start.
-local COOKOFF_TOP_UNIT_FRACTION = 0.2
--- Frames over which the second cascade kills the cooking-off units; sorted by distance with power bias (higher = stronger units die later in the wave).
-local COOKOFF_CASCADE_DURATION = 300
--- Cookoff sort: multiplies distance² by (1 + COOKOFF_POWER_BIAS * normalizedPower) so high-power units skew later in the cookoff kill wave.
-local COOKOFF_POWER_BIAS = 2
-
-local CASCADE_DURATION = 150
-local MAX_RANDOM_KILL_FRAMES = 30
-local SECOND_CASCADE_START_OFFSET = CASCADE_DURATION + MAX_RANDOM_KILL_FRAMES
-local EXPLOSION_SEQUENCE_END_OFFSET = SECOND_CASCADE_START_OFFSET + COOKOFF_CASCADE_DURATION + COOKOFF_DURATION_FRAMES
+local COOKOFF_TOP_UNIT_FRACTION = 0.1
+-- Second cookoff kill cascade length as a multiple of shockwave reach time to the farthest unit; interpolated by power rank (weakest first, strongest last).
+-- Longer window stretches bounce spacing (feels softer); shorter window compresses it (feels snappier).
+local COOKOFF_CASCADE_DURATION_MULTIPLIER = 1.25
+-- Ease-out bounce parabola steepness per segment; must equal COOKOFF_BOUNCE_DIVISOR squared (Penner easeOutBounce).
+local COOKOFF_BOUNCE_SCALE = 12.25
+-- Ease-out bounce segment count/spacing; higher = more tighter bounces, lower = fewer wider bounces.
+-- Segment offsets in timeFromCookoffRankT are calibrated for 3.5; change only with Penner easeOutBounce math.
+local COOKOFF_BOUNCE_DIVISOR = 3.5
+-- Max extra kill-delay frames added at the farthest cookoff unit; scales linearly with normalized distance for tie-break jitter.
+local COOKOFF_DISTANCE_JITTER_FRAMES = 5
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local FIRE_STATE_RETURN_FIRE = 1
 local FIRE_STATE_FIRE_AT_WILL = 2
@@ -163,7 +171,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	defData[unitDefID] = data
 end
 
-local function suspendViolence(suspended)
+local function suspendViolence(suspended, sequenceEndOffset)
 	local fireState = suspended and FIRE_STATE_RETURN_FIRE or FIRE_STATE_FIRE_AT_WILL
 	for _, unitID in ipairs(spGetAllUnits()) do
 		if spValidUnitID(unitID) then
@@ -171,7 +179,7 @@ local function suspendViolence(suspended)
 		end
 	end
 	if suspended then
-		fireStateLockEndFrame = mathMax(fireStateLockEndFrame, Spring.GetGameFrame() + EXPLOSION_SEQUENCE_END_OFFSET)
+		fireStateLockEndFrame = mathMax(fireStateLockEndFrame, Spring.GetGameFrame() + sequenceEndOffset)
 	else
 		fireStateLockEndFrame = 0
 	end
@@ -233,8 +241,53 @@ local function dndStyleDisadvantageBias(rangeCount, degree)
 	return selection
 end
 
-local function cascadeTimeFromRadiusT(radiusT)
-	return 1 - (1 - radiusT) ^ (1 / EXPLOSION_CUBIC_EASE_BIAS)
+local function timeFromCookoffRankT(rankT)
+	if rankT < 1 / COOKOFF_BOUNCE_DIVISOR then
+		return COOKOFF_BOUNCE_SCALE * rankT * rankT
+	end
+	if rankT < 2 / COOKOFF_BOUNCE_DIVISOR then
+		local adjustedRankT = rankT - 1.5 / COOKOFF_BOUNCE_DIVISOR
+		return COOKOFF_BOUNCE_SCALE * adjustedRankT * adjustedRankT + 0.75
+	end
+	if rankT < 2.5 / COOKOFF_BOUNCE_DIVISOR then
+		local adjustedRankT = rankT - 2.25 / COOKOFF_BOUNCE_DIVISOR
+		return COOKOFF_BOUNCE_SCALE * adjustedRankT * adjustedRankT + 0.9375
+	end
+	local adjustedRankT = rankT - 2.625 / COOKOFF_BOUNCE_DIVISOR
+	return COOKOFF_BOUNCE_SCALE * adjustedRankT * adjustedRankT + 0.984375
+end
+
+local function getShockwaveSpeedAtRadiusT(radiusT)
+	local easeFactor = (1 - radiusT) ^ (1 / SHOCKWAVE_INTERPOLATIVE_BIAS)
+	return SHOCKWAVE_END_SPEED + (SHOCKWAVE_START_SPEED - SHOCKWAVE_END_SPEED) * easeFactor
+end
+
+local function computeShockwaveFrameAtDistance(distance, maxDistance)
+	if maxDistance <= 0 or distance <= 0 then
+		return 0
+	end
+	local traveled = 0
+	local frames = 0
+	while traveled < distance do
+		traveled = traveled + getShockwaveSpeedAtRadiusT(traveled / maxDistance)
+		frames = frames + 1
+	end
+	return frames
+end
+
+local function computeShockwaveFramesToFarthestUnit(maxDistance)
+	return computeShockwaveFrameAtDistance(maxDistance, maxDistance)
+end
+
+local function getMaxDistanceSqFromUnitActions(unitActions)
+	local maxDistanceSq = 0
+	for actionIndex = 1, #unitActions do
+		local distanceSq = distanceSqCache[unitActions[actionIndex].unitID] or 0
+		if distanceSq > maxDistanceSq then
+			maxDistanceSq = distanceSq
+		end
+	end
+	return maxDistanceSq
 end
 
 local function getKillVarianceFrames(frameOffset, cascadeT)
@@ -246,23 +299,6 @@ local function getKillVarianceFrames(frameOffset, cascadeT)
 		return frameOffset
 	end
 	return mathMax(0, frameOffset + mathRandom(0, varianceMax))
-end
-
-local function getCookoffWeightedDistanceSq(unitID, minPower, maxPower)
-	local distanceSq = distanceSqCache[unitID] or 0
-	if COOKOFF_POWER_BIAS <= 0 or maxPower <= minPower then
-		return distanceSq
-	end
-	local unitPower = defData[spGetUnitDefID(unitID)].power or 0
-	local powerT = (unitPower - minPower) / (maxPower - minPower)
-	return distanceSq * (1 + COOKOFF_POWER_BIAS * powerT)
-end
-
-local function getSortDistanceSq(unitID, minPower, maxPower, useCookoffWeighting)
-	if useCookoffWeighting then
-		return getCookoffWeightedDistanceSq(unitID, minPower, maxPower)
-	end
-	return distanceSqCache[unitID] or 0
 end
 
 local function removeEntrySwap(tableToMutate, removeIndex)
@@ -309,39 +345,78 @@ local function queueRepeatingCookoffs(unitID, startFrame, killFrame)
 	end
 end
 
-local function assignCascadeOffsets(unitActions, cascadeDuration, minPower, maxPower, useCookoffWeighting, allowKillVariance, offsetField)
+local function assignShockwaveOffsets(unitActions, shockwaveDuration, maxDistance, shockwaveFramesToFarthestUnit, allowKillVariance, offsetField)
+	for actionIndex = 1, #unitActions do
+		local unitAction = unitActions[actionIndex]
+		local distance = mathSqrt(distanceSqCache[unitAction.unitID] or 0)
+		local integrateFrame = computeShockwaveFrameAtDistance(distance, maxDistance)
+		local cascadeT = shockwaveFramesToFarthestUnit > 0 and integrateFrame / shockwaveFramesToFarthestUnit or 0
+		local baseFrameOffset = mathFloor(cascadeT * shockwaveDuration + 0.5)
+		unitAction[offsetField] = allowKillVariance and getKillVarianceFrames(baseFrameOffset, cascadeT) or baseFrameOffset
+	end
+end
+
+local function assignCookoffCascadeOffsets(unitActions, cascadeDuration)
 	local actionCount = #unitActions
 	if actionCount == 0 then
 		return
 	end
 
-	if actionCount > 1 then
-		table.sort(unitActions, function(actionA, actionB)
-			return getSortDistanceSq(actionA.unitID, minPower, maxPower, useCookoffWeighting)
-				< getSortDistanceSq(actionB.unitID, minPower, maxPower, useCookoffWeighting)
-		end)
+	local powerByUnit = {}
+	local distanceSqByUnit = {}
+	local maxDistanceSq = 0
+	for actionIndex = 1, actionCount do
+		local unitID = unitActions[actionIndex].unitID
+		local unitDefID = spGetUnitDefID(unitID)
+		powerByUnit[unitID] = defData[unitDefID].power or 0
+		local distanceSq = distanceSqCache[unitID] or 0
+		distanceSqByUnit[unitID] = distanceSq
+		if distanceSq > maxDistanceSq then
+			maxDistanceSq = distanceSq
+		end
 	end
 
-	local maxSortDistanceSq = 0
-	for actionIndex = 1, actionCount do
-		local sortDistanceSq = getSortDistanceSq(unitActions[actionIndex].unitID, minPower, maxPower, useCookoffWeighting)
-		if sortDistanceSq > maxSortDistanceSq then
-			maxSortDistanceSq = sortDistanceSq
-		end
+	if actionCount > 1 then
+		table.sort(unitActions, function(actionA, actionB)
+			local unitIDA = actionA.unitID
+			local unitIDB = actionB.unitID
+			local powerA = powerByUnit[unitIDA]
+			local powerB = powerByUnit[unitIDB]
+			if powerA ~= powerB then
+				return powerA < powerB
+			end
+			local distanceSqA = distanceSqByUnit[unitIDA]
+			local distanceSqB = distanceSqByUnit[unitIDB]
+			if distanceSqA ~= distanceSqB then
+				return distanceSqA < distanceSqB
+			end
+			return unitIDA < unitIDB
+		end)
 	end
 
 	for actionIndex = 1, actionCount do
 		local unitAction = unitActions[actionIndex]
-		local sortDistanceSq = getSortDistanceSq(unitAction.unitID, minPower, maxPower, useCookoffWeighting)
-		local radiusT = maxSortDistanceSq > 0 and mathSqrt(sortDistanceSq / maxSortDistanceSq) or 0
-		local cascadeT = cascadeTimeFromRadiusT(radiusT)
+		local unitID = unitAction.unitID
+		local rankT = actionCount > 1 and (actionIndex - 1) / (actionCount - 1) or 0
+		local cascadeT = timeFromCookoffRankT(rankT)
 		local baseFrameOffset = mathFloor(cascadeT * cascadeDuration + 0.5)
-		unitAction[offsetField] = allowKillVariance and getKillVarianceFrames(baseFrameOffset, cascadeT) or baseFrameOffset
+		local normalizedDistanceT = maxDistanceSq > 0 and distanceSqByUnit[unitID] / maxDistanceSq or 0
+		local distanceJitter = mathFloor(COOKOFF_DISTANCE_JITTER_FRAMES * normalizedDistanceT + 0.5)
+		local frameOffset = mathMin(cascadeDuration, baseFrameOffset + distanceJitter)
+		unitAction.frameOffset = mathMax(0, frameOffset)
 	end
 end
 
-local function scheduleEvents(startFrame, originX, originZ, allUnitActions, cookoffUnitActions, minPower, maxPower, allyTeamID)
-	suspendViolence(true)
+local function scheduleEvents(startFrame, originX, originZ, allUnitActions, cookoffUnitActions, allyTeamID)
+	local maxDistanceSq = getMaxDistanceSqFromUnitActions(allUnitActions)
+	local maxDistance = mathSqrt(maxDistanceSq)
+	local shockwaveFramesToFarthestUnit = computeShockwaveFramesToFarthestUnit(maxDistance)
+	local cookoffCascadeDuration = mathFloor(shockwaveFramesToFarthestUnit * COOKOFF_CASCADE_DURATION_MULTIPLIER + 0.5)
+	local cookoffShockwaveDuration = 2 * shockwaveFramesToFarthestUnit
+	local secondCascadeStartOffset = shockwaveFramesToFarthestUnit + MAX_RANDOM_KILL_FRAMES
+	local sequenceEndOffset = secondCascadeStartOffset + cookoffCascadeDuration + COOKOFF_DURATION_FRAMES
+
+	suspendViolence(true, sequenceEndOffset)
 
 	allyTeamOrigins[allyTeamID] = { x = originX, z = originZ }
 
@@ -350,30 +425,26 @@ local function scheduleEvents(startFrame, originX, originZ, allUnitActions, cook
 	local nonCookoffActions = {}
 	for actionIndex = 1, #allUnitActions do
 		local unitAction = allUnitActions[actionIndex]
-		if not (cookoffEligibleUnitIDs[unitAction.unitID]
-			and unitAction.fate ~= DESOLATE_GAIA
-			and unitAction.fate ~= DESOLATE_ERASE) then
+		if not cookoffEligibleUnitIDs[unitAction.unitID] or unitAction.fate == DESOLATE_GAIA then
 			nonCookoffActions[#nonCookoffActions + 1] = unitAction
 		end
 	end
 
-	assignCascadeOffsets(allUnitActions, CASCADE_DURATION, minPower, maxPower, false, false, "cookoffStartOffset")
-	assignCascadeOffsets(nonCookoffActions, CASCADE_DURATION, minPower, maxPower, false, true, "frameOffset")
+	assignShockwaveOffsets(allUnitActions, cookoffShockwaveDuration, maxDistance, shockwaveFramesToFarthestUnit, false, "cookoffStartOffset")
+	assignShockwaveOffsets(nonCookoffActions, shockwaveFramesToFarthestUnit, maxDistance, shockwaveFramesToFarthestUnit, true, "frameOffset")
 	for actionIndex = 1, #allUnitActions do
 		local unitAction = allUnitActions[actionIndex]
-		if cookoffEligibleUnitIDs[unitAction.unitID]
-			and unitAction.fate ~= DESOLATE_GAIA
-			and unitAction.fate ~= DESOLATE_ERASE then
+		if cookoffEligibleUnitIDs[unitAction.unitID] and unitAction.fate ~= DESOLATE_GAIA then
 			cookoffStartFrameByUnit[unitAction.unitID] = startFrame + unitAction.cookoffStartOffset
 		else
 			queueDesolationAction(unitAction.unitID, unitAction.fate, startFrame + unitAction.frameOffset)
 		end
 	end
 
-	assignCascadeOffsets(cookoffUnitActions, COOKOFF_CASCADE_DURATION, minPower, maxPower, true, false, "frameOffset")
+	assignCookoffCascadeOffsets(cookoffUnitActions, cookoffCascadeDuration)
 	for actionIndex = 1, #cookoffUnitActions do
 		local unitAction = cookoffUnitActions[actionIndex]
-		local killFrame = startFrame + SECOND_CASCADE_START_OFFSET + unitAction.frameOffset
+		local killFrame = startFrame + secondCascadeStartOffset + unitAction.frameOffset
 		local cookoffStartFrame = cookoffStartFrameByUnit[unitAction.unitID]
 		if cookoffStartFrame then
 			queueRepeatingCookoffs(unitAction.unitID, cookoffStartFrame, killFrame)
@@ -403,13 +474,15 @@ local function buildCookoffEligibleUnitIDs(teamUnits)
 	end
 	local teamUnitCount = #teamUnits
 	if teamUnitCount == 0 or COOKOFF_TOP_UNIT_FRACTION <= 0 then
-		return
+		return 0
 	end
 	local powerSortedUnits = sortUnitsByPower(teamUnits)
 	local cookoffCount = mathCeil(teamUnitCount * COOKOFF_TOP_UNIT_FRACTION)
+	cookoffCount = mathMin(cookoffCount, teamUnitCount)
 	for unitIndex = 1, cookoffCount do
 		cookoffEligibleUnitIDs[powerSortedUnits[unitIndex]] = true
 	end
+	return cookoffCount
 end
 
 local function sortUnitsByDesirabilityAndDistance(unitsTable, positionTable)
@@ -447,7 +520,7 @@ local function desolateTeam(teamID)
 	local originX = origin and origin.x or 0
 	local originZ = origin and origin.z or 0
 	local teamUnits = spGetTeamUnits(teamID)
-	buildCookoffEligibleUnitIDs(teamUnits)
+	local cookoffTargetCount = buildCookoffEligibleUnitIDs(teamUnits)
 	local turrets = {}
 	local hotspots = {}
 	local currentFrame = Spring.GetGameFrame()
@@ -485,19 +558,6 @@ local function desolateTeam(teamID)
 
 	local erasurePowerTargetThreshold = currentPower * DESOLATION_QUOTA_RATIO
 	local unitActions = {}
-	local minPower = math.huge
-	local maxPower = -math.huge
-
-	local function rememberUnitPower(unitID)
-		local unitPower = defData[spGetUnitDefID(unitID)].power or 0
-		if unitPower < minPower then
-			minPower = unitPower
-		end
-		if unitPower > maxPower then
-			maxPower = unitPower
-		end
-		return unitPower
-	end
 
 	for eraseIndex = 1, #teamUnits do
 		if currentPower <= erasurePowerTargetThreshold or #teamUnits == 0 then
@@ -505,7 +565,7 @@ local function desolateTeam(teamID)
 		end
 		local randomSelection = dndStyleDisadvantageBias(#teamUnits, 2)
 		local unitID = teamUnits[randomSelection]
-		local unitPower = rememberUnitPower(unitID)
+		local unitPower = defData[spGetUnitDefID(unitID)].power or 0
 		unitActions[#unitActions + 1] = { unitID = unitID, fate = DESOLATE_ERASE }
 		currentPower = currentPower - unitPower
 		removeEntrySwap(teamUnits, randomSelection)
@@ -513,7 +573,6 @@ local function desolateTeam(teamID)
 
 	for unitIndex = 1, #teamUnits do
 		local unitID = teamUnits[unitIndex]
-		rememberUnitPower(unitID)
 		local fate = chooseFate(unitID)
 		unitActions[#unitActions + 1] = { unitID = unitID, fate = fate }
 	end
@@ -521,14 +580,16 @@ local function desolateTeam(teamID)
 	local cookoffUnitActions = {}
 	for actionIndex = 1, #unitActions do
 		local unitAction = unitActions[actionIndex]
-		if cookoffEligibleUnitIDs[unitAction.unitID]
-			and unitAction.fate ~= DESOLATE_GAIA
-			and unitAction.fate ~= DESOLATE_ERASE then
+		if cookoffEligibleUnitIDs[unitAction.unitID] and unitAction.fate ~= DESOLATE_GAIA then
 			cookoffUnitActions[#cookoffUnitActions + 1] = unitAction
 		end
 	end
 
-	scheduleEvents(currentFrame, originX, originZ, unitActions, cookoffUnitActions, minPower, maxPower, allyTeamID)
+	local cookoffCount = #cookoffUnitActions
+	local nonCookoffCount = #unitActions - cookoffCount
+	Spring.Echo("Desolate: " .. cookoffCount .. " units cooking off (" .. cookoffTargetCount .. " targeted), " .. nonCookoffCount .. " units not cooking off")
+
+	scheduleEvents(currentFrame, originX, originZ, unitActions, cookoffUnitActions, allyTeamID)
 end
 
 local function desolateCommand(cmd, line, words, playerID)
