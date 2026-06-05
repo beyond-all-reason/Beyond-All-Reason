@@ -295,55 +295,58 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function addUnitTargets(unitID, unitDefID, targetList, append)
 		--tracy.ZoneBeginN(string.format("addUnitTargets:%s %d %d",tostring(reason), unitID, unitDefID))
-		if spValidUnitID(unitID) then
-			local data = unitTargets[unitID] or pausedTargets[unitID]
-			if not data then
-				data = {
-					targets = {},
-					currentTargets = {},
-					teamID = spGetUnitTeam(unitID),
-					allyTeam = spGetUnitAllyTeam(unitID),
-					weapons = unitWeapons[unitDefID],
-					currentIndex = 1,
-					activeTarget = false,
-				}
-			elseif not append then
-				data.targets = {}
-				data.currentTargets = {}
-				SendToUnsynced("targetList", unitID, 0)
+		if not spValidUnitID(unitID) then
+			--tracy.ZoneEnd()
+			return
+		end
+		local data = unitTargets[unitID] or pausedTargets[unitID]
+		if not data then
+			data = {
+				targets = {},
+				currentTargets = {},
+				teamID = spGetUnitTeam(unitID),
+				allyTeam = spGetUnitAllyTeam(unitID),
+				weapons = unitWeapons[unitDefID],
+				currentIndex = 1,
+				activeTarget = false,
+			}
+		elseif not append then
+			data.targets = {}
+			data.currentTargets = {}
+			SendToUnsynced("targetList", unitID, 0)
+		end
+		local teamID = data.teamID
+		local targets, currentTargets = data.targets, data.currentTargets
+		local targetCount = #targets
+		local limitCount = targetListLengthMax - targetCount
+		for i = 1, #targetList do
+			if limitCount == 0 then
+				break
 			end
-			local teamID = data.teamID
-			local targets, currentTargets = data.targets, data.currentTargets
-			local targetCount = #targets
-			local limitCount = targetListLengthMax - targetCount
-			for i = 1, #targetList do
-				if limitCount == 0 then
-					break
+			local targetData = targetList[i]
+			local target = targetData.target
+			if not currentTargets[target] and checkTarget(teamID, target) then
+				limitCount = limitCount - 1
+				targetCount = targetCount + 1
+				targets[targetCount] = targetData
+				if type(target) == "number" then
+					currentTargets[target] = true
 				end
-				local targetData = targetList[i]
-				local target = targetData.target
-				if not currentTargets[target] and checkTarget(teamID, target) then
-					limitCount = limitCount - 1
-					targetCount = targetCount + 1
-					targets[targetCount] = targetData
-					if type(target) == "number" then
-						currentTargets[target] = true
-					end
-					targetData.sent = false
-				end
+				targetData.sent = false
 			end
-			if targetCount == 0 then
-				return
-			end
-			unitTargets[unitID] = data
-			pausedTargets[unitID] = nil
-			if waitForCommandDone[unitID] then
-				checkForManualFire[unitID] = true
-			end
-			sendTargetsToUnsynced(unitID)
-			if not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, targets[1]) then
-				setTargetActive(unitID, data, 1)
-			end
+		end
+		if targetCount == 0 then
+			--tracy.ZoneEnd()
+			return
+		end
+		unitTargets[unitID] = data
+		pausedTargets[unitID] = nil
+		if waitForCommandDone[unitID] then
+			checkForManualFire[unitID] = true
+		end
+		sendTargetsToUnsynced(unitID)
+		if not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, targets[1]) then
+			setTargetActive(unitID, data, 1)
 		end
 		--tracy.ZoneEnd()
 	end
