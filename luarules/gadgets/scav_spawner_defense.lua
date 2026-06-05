@@ -2073,7 +2073,8 @@ if gadgetHandler:IsSyncedCode() then
 	local announcedFirstWave = false
 	function gadget:GameFrame(n)
 
-		GetGameSeconds = Spring.GetGameSeconds() + 0
+		GetGameSeconds = n/30
+		GetGameFrame = n
 
 		if #createUnitQueue > 0 then
 			for i = 1,#createUnitQueue do
@@ -2187,7 +2188,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n%((math.ceil(config.turretSpawnRate))*30) == 0 and n > 900 and scavTeamUnitCount < scavUnitCap then
 			spawnCreepStructuresWave()
 		end
-		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
+		local squadID = ((n % (#squadsTable*5))+1)/5 --*5 and /5 for lowering the rate of commands
 		if squadID and squadsTable[squadID] and squadsTable[squadID].squadRegroupEnabled then
 			local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
 			if targetx then
@@ -2204,7 +2205,7 @@ if gadgetHandler:IsSyncedCode() then
 				if defID and mRandom(1,math.ceil((33*math.max(1, GetTeamUnitDefCount(scavTeamID, defID))))) == 1 and mRandom() < config.spawnChance then
 					SpawnMinions(unitID, defID)
 				end
-				if mRandom(1,60) == 1 then
+				if mRandom(1,#scavs) == 1 then
 					if unitCowardCooldown[unitID] and (GetGameFrame > unitCowardCooldown[unitID]) then
 						unitCowardCooldown[unitID] = nil
 						GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
