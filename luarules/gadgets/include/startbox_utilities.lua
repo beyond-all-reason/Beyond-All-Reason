@@ -110,6 +110,21 @@ local function matchSetLarger(set, numTeams)
 	return bestKey and set[bestKey] or nil
 end
 
+local function matchSetSmaller(set, numTeams)
+	if not set then return nil end
+
+	local bestKey, bestNum
+	for k in pairs(set) do
+		local kn = tonumber(k)
+		if kn and kn < numTeams and (not bestNum or kn > bestNum) then
+			bestKey = k
+			bestNum = kn
+		end
+	end
+
+	return bestKey and set[bestKey] or nil
+end
+
 local function resolveArrangement(override, set, numTeams)
 	local match = matchOverride(override, numTeams)
 	if match then return match, "modoption_override" end
@@ -120,6 +135,10 @@ local function resolveArrangement(override, set, numTeams)
 	match = matchSetLarger(set, numTeams)
 	if match then return match, "modoption_set" end
 
+	match = matchSetSmaller(set, numTeams)
+	if match then return match, "modoption_set" end
+
+	-- No modoption arrangement applies; defer to the engine startrect.
 	return nil, nil
 end
 
