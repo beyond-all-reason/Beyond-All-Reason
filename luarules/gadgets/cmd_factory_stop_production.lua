@@ -30,11 +30,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 
 	local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
-	local CMD_INSERT = CMD.INSERT
-	local CMD_REMOVE = CMD.REMOVE
 	local CMD_WAIT = CMD.WAIT
-	local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
-	local CMD_OPT_CTRL = CMD.OPT_CTRL
 	local EMPTY = {}
 	local DEQUEUE_OPTS = CMD.OPT_RIGHT -- right: dequeue, ctrl+shift: 100
 
@@ -76,23 +72,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function isRepeating(unitID)
-		return select(4, Spring.GetUnitStates(unitID, false, true))
-	end
-
-	local function stripInternalOption(unitID, command)
-		if not command or command.id >= 0 or not command.options or not command.options.internal or not command.tag then
-			return
-		end
-
-		local params = { command.tag, command.id, command.options.coded - CMD_OPT_INTERNAL }
-		local commandParams = command.params
-		if commandParams then
-			for i = 1, #commandParams do
-				params[i + 3] = commandParams[i]
-			end
-		end
-		spGiveOrderToUnit(unitID, CMD_INSERT, params, CMD_OPT_CTRL)
-		spGiveOrderToUnit(unitID, CMD_REMOVE, { command.tag }, CMD_OPT_CTRL)
+		local states = spGetUnitStates(unitID)
+		return states and states["repeat"]
 	end
 
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
@@ -111,27 +92,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			local keepDefID
-<<<<<<< Updated upstream
-			local states = spGetUnitStates(unitID)
-			local repeatOn = states and states["repeat"]
-
-			-- Lab mode check
-			-- Normal mode:
-			-- Keep one copy of the currently-building unit to avoid accidentally canceling
-			-- an almost-complete unit.
-			--
-			-- Repeat mode:
-			-- Do not keep the current unit, because preserving it allows the factory
-			-- to continue producing forever on repeat after "Stop Production" is pressed.
-			if total > 1 and not repeatOn then
-=======
 			local keepCommand
 			if total > 1 and isRepeating(unitID) then
->>>>>>> Stashed changes
 				local firstCommand = Spring.GetFactoryCommands(unitID, 1)
 				keepCommand = firstCommand and firstCommand[1]
 				local firstID = keepCommand and keepCommand.id
-				if firstID and firstID < 0 then
+				if firstID and firstID < 0 and keepCommand.options and keepCommand.options.internal then
 					keepDefID = -firstID
 				end
 			end
@@ -144,7 +110,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				orderDequeue(unitID, buildUnitDefID, count)
 			end
-			stripInternalOption(unitID, keepCommand)
 		end
 
 		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- Removes wait if there is a wait but doesn't readd it.
