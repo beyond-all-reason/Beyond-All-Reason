@@ -69,33 +69,50 @@ local function getActiveAllyTeamCount()
 	return count
 end
 
-local function resolveArrangement(parsedOverride, parsedSet, numTeams)
-	if parsedOverride and parsedOverride.startboxes and #parsedOverride.startboxes == numTeams then
-		return parsedOverride, "modoption_override"
+local function matchOverride(override, numTeams)
+	if override and override.startboxes and #override.startboxes == numTeams then
+		return override
 	end
 
-	if parsedSet then
-		local exact = parsedSet[tostring(numTeams)]
-		if exact then
-			return exact, "modoption_set"
-		end
+	return nil
+end
 
-		local bestKey, bestNum
-		for k in pairs(parsedSet) do
-			local kn = tonumber(k)
-			if kn and kn > numTeams then
-				if not bestNum or kn < bestNum then
-					bestKey = k
-					bestNum = kn
-				end
-			end
-		end
-		if bestKey then
-			return parsedSet[bestKey], "modoption_set"
+local function matchSetExact(set, numTeams)
+	if not set then return nil end
+
+	return set[tostring(numTeams)]
+end
+
+local function matchSetLarger(set, numTeams)
+	if not set then return nil end
+
+	local bestKey, bestNum
+	for k in pairs(set) do
+		local kn = tonumber(k)
+		if kn and kn > numTeams and (not bestNum or kn < bestNum) then
+			bestKey = k
+			bestNum = kn
 		end
 	end
+
+	return bestKey and set[bestKey] or nil
+end
+
+local function resolveArrangement(override, set, numTeams)
+	local match = matchOverride(override, numTeams)
+	if match then return match, "modoption_override" end
+
+	match = matchSetExact(set, numTeams)
+	if match then return match, "modoption_set" end
+
+	match = matchSetLarger(set, numTeams)
+	if match then return match, "modoption_set" end
 
 	return nil, nil
+end
+
+local function isExplicitSource(configSource)
+	return configSource == "modoption_override" or configSource == "modoption_set"
 end
 
 local function expandPoly(poly)
@@ -262,7 +279,7 @@ local function ParseBoxes()
 		end
 	end
 
-	return startBoxConfig, configSource
+	return startBoxConfig, configSource, isExplicitSource(configSource)
 end
 
 return ParseBoxes
