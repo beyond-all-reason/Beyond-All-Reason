@@ -127,7 +127,7 @@ local featureData = {}
 local unitDamageReset = {}
 local featDamageReset = {}
 
-local inExplosion = {}
+local inExplosion = table.new(1, 0) -- lua trick for ref passing
 
 local regexArea, regexRepeat = '%-area%-', '%-repeat'
 local regexDigits = "%d+"
@@ -172,10 +172,12 @@ local function getExplosionParams(def, prefix)
 	local weaponDefID = areaDamageTypes[damageType]
 
 	if not weaponDefID then
+		-- Add an envDamage entry for area weapons of the same resistance.
+		-- These are used for scripted damages both by the engine and Lua.
 		local envDamageTypeMin = table.reduce(
 			Game.envDamageTypes,
 			function(acc, index) return index < acc and index or acc end,
-			-1 -- The "real" weaponDefIDs start at 0
+			-1 -- The "real" weaponDefIDs start at 0.
 		)
 		weaponDefID = envDamageTypeMin - 1
 		areaDamageTypes[damageType] = weaponDefID
@@ -323,16 +325,17 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
 		local blockingShields
 		if not explosion.penetrates then
 			local units, count = getShieldUnitsInSphere(px, elevation, pz, areaRange, true)
-			if units and count > 0 then
-				blockingShields = {}
+			if count and count > 0 then
 				local allyTeam = getAllyTeam(attackerID, projectileID)
-				for i = 1, count do
-					if allyTeam ~= spGetUnitAllyTeam(units[i]) and not isInShield(px, py + 1, pz, units[i]) then
-						blockingShields[#blockingShields + 1] = units[i]
+				for i = count, 1, -1 do
+					if allyTeam == spGetUnitAllyTeam(units[i]) or isInShield(px, py, pz, units[i]) then
+						units[i] = units[count]
+						units[count] = nil
+						count = count - 1
 					end
 				end
-				if not blockingShields[1] then
-					blockingShields = nil
+				if count > 0 then
+					blockingShields = units
 				end
 			end
 		end
@@ -350,13 +353,11 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             dz          = dz,
             ceg         = explosion.ceg,
             range       = areaRange,
-            resistance  = explosion.resistance,
             damage      = explosion.damage,
             damageCeg   = explosion.damageCeg,
             endFrame    = explosion.frames + frameNumber,
 			lastFrames  = explosion.lastFrames,
 			lastDamage  = explosion.lastDamage,
-			projectile  = projectileID,
 			suppressed  = blockingShields,
         }
 
@@ -548,7 +549,7 @@ function gadget:Initialize()
 	areaDamageTypes = GG.EnvAreaWeapons or {}
 	GG.EnvAreaWeapons = areaDamageTypes
 
-	inExplosion = GG.InTimedDamageArea or { nil }
+	inExplosion = GG.InTimedDamageArea or table.new(1, 0) -- lua trick for ref passing
 	GG.InTimedDamageArea = inExplosion
 
 	timedDamageWeapons = {}

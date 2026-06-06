@@ -141,10 +141,10 @@ local shieldUnitsData               = {}
 local forceDeleteWeapons            = {}
 local unitDefIDCache                = {}
 local unitDefWeaponDefs             = {}
-local shieldedUnits                 = {}
-local shieldCoverage                = {} -- reverse mapping: [shieldUnitID] = {[unitID] = true, ...}
-local bypassCoverages               = {} -- weapon ignores shield coverage (always)
-local ignoreCoverages               = {} -- projectile ignores shield coverage (conditional)
+local unitCoverages                 = {} -- [unitID] = {[shieldUnitID] = true, ...}
+local shieldCoverages               = {} -- [shieldUnitID] = {[unitID] = true, ...}
+local weaponIgnoreCoverage          = {}
+local projectileIgnoreCoverage      = {}
 local highestWeapDefDamages         = {}
 local armoredUnitDefs               = {}
 local destroyedUnitData             = {}
@@ -161,10 +161,10 @@ for weaponDefID = 0, #WeaponDefs do
 	end
 
 	if weaponDef.customParams.shield_aoe_penetration then
-		bypassCoverages[weaponDefID] = true
+		weaponIgnoreCoverage[weaponDefID] = true
 	end
 
-	if weaponDef.type == "BeamLaser" and weaponDef.customParams.beamtime_damage_reduction_multiplier then
+	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
 		local base = weaponDef.customParams.shield_damage or 0
 		local multiplier = weaponDef.customParams.beamtime_damage_reduction_multiplier
 		originalShieldDamages[weaponDefID] = mathCeil(base * multiplier)
@@ -265,24 +265,24 @@ local function getUnitShieldWeaponPosition(shieldUnitID, unitData)
 end
 
 local function removeCoveredUnits(shieldUnitID)
-	local covered = shieldCoverage[shieldUnitID]
+	local covered = shieldCoverages[shieldUnitID]
 	if covered then
 		for unitID in pairs(covered) do
-			local shieldList = shieldedUnits[unitID]
-			if shieldList then
-				shieldList[shieldUnitID] = nil
-				if not next(shieldList) then
-					shieldedUnits[unitID] = nil
+			local shieldSet = unitCoverages[unitID]
+			if shieldSet then
+				shieldSet[shieldUnitID] = nil
+				if not next(shieldSet) then
+					unitCoverages[unitID] = nil
 				end
 			end
 			covered[unitID] = nil -- clear for table reuse
 		end
-		shieldCoverage[shieldUnitID] = nil
+		shieldCoverages[shieldUnitID] = nil
 	end
 end
 
 local function setCoveredUnits(shieldUnitID)
-	local oldCovered = shieldCoverage[shieldUnitID]
+	local oldCovered = shieldCoverages[shieldUnitID]
 	removeCoveredUnits(shieldUnitID)
 
 	local shieldData = shieldUnitsData[shieldUnitID]
@@ -299,15 +299,15 @@ local function setCoveredUnits(shieldUnitID)
 	local covered = oldCovered or {} -- reuse cleared table to reduce GC
 	for i = 1, #unitsTable do
 		local unitID = unitsTable[i]
-		local shieldList = shieldedUnits[unitID]
-		if not shieldList then
-			shieldList = {}
-			shieldedUnits[unitID] = shieldList
+		local shieldSet = unitCoverages[unitID]
+		if not shieldSet then
+			shieldSet = {}
+			unitCoverages[unitID] = shieldSet
 		end
-		shieldList[shieldUnitID] = true
+		shieldSet[shieldUnitID] = true
 		covered[unitID] = true
 	end
-	shieldCoverage[shieldUnitID] = covered
+	shieldCoverages[shieldUnitID] = covered
 
 	shieldData.shieldCoverageChecked = true
 end
@@ -359,7 +359,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		unitData.power = (success and state == 1 and power) or unitData.power or 0
 	end
 	-- Clean up coverage tracking for any destroyed unit (shield or not)
-	shieldedUnits[unitID] = nil
+	unitCoverages[unitID] = nil
 	unitDefIDCache[unitID] = nil
 end
 
@@ -389,16 +389,16 @@ local function activateShield(unitID, unitData)
 	local x, y, z, radius = getUnitShieldWeaponPosition(unitID, unitData)
 	local projectiles = spGetProjectilesInSphere(x, y, z, radius)
 	for i = 1, #projectiles do
-		ignoreCoverages[projectiles[i]] = true
+		projectileIgnoreCoverage[projectiles[i]] = true
 	end
 end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
 	-- It is possible for attackerID to be nil, e.g. damage from death explosion
-	local unitShields = shieldedUnits[unitID]
+	local unitShields = unitCoverages[unitID]
 	-- Empty shield lists are nil'd out, so existence implies non-empty
 	if unitShields and attackerID and not spAreTeamsAllied(unitTeam, attackerTeam) then
-		local attackerShields = shieldedUnits[attackerID]
+		local attackerShields = unitCoverages[attackerID]
 		if not attackerShields then
 			return true
 		end
@@ -423,11 +423,11 @@ local areaWeaponDefID = GG.EnvAreaWeapons -- the repeating parts of damaging are
 local currentArea = GG.InTimedDamageArea -- has only a current entry, where [1] := area|nil
 
 local function isAreaBlocked(unitID)
-	local shieldCoversArea = currentArea[1].suppressed -- unlikely
-	if shieldCoversArea then
-		local shieldCoversUnit = shieldedUnits[unitID] -- guaranteed
-		for i = 1, #shieldCoversArea do
-			if shieldCoversUnit[shieldCoversArea[i]] then
+	local areaCoverage = currentArea[1].suppressed -- unlikely
+	if areaCoverage then
+		local unitCoverage = unitCoverages[unitID] -- guaranteed
+		for i = 1, #areaCoverage do
+			if unitCoverage[areaCoverage[i]] then
 				return true
 			end
 		end
@@ -536,8 +536,8 @@ function gadget:GameFrame(frame)
 		shieldCheckChunkSize = mathMax(mathCeil(count / 4), 1)
 
 		-- Periodic cleanup of projectile coverages (projectiles are short-lived)
-		for proID in pairs(ignoreCoverages) do
-			ignoreCoverages[proID] = nil
+		for proID in pairs(projectileIgnoreCoverage) do
+			projectileIgnoreCoverage[proID] = nil
 		end
 	end
 
@@ -577,8 +577,8 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if not shieldedUnits[unitID] or bypassCoverages[weaponDefID] or ignoreCoverages[projectileID] then
-		return damage
+	if not unitCoverages[unitID] or weaponIgnoreCoverage[weaponDefID] or projectileIgnoreCoverage[projectileID] then
+		return
 	end
 
 	local directHitThreshold = highestWeapDefDamages[weaponDefID]
@@ -588,22 +588,19 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			directHitThreshold = directHitThreshold * armoredMultiple
 		end
 		if damage >= directHitThreshold then
-			return damage
+			return
 		end
 	end
 
-	if projectileID == -1 and areaWeaponDefID[weaponDefID] then
+	if weaponDefID < 0 and areaWeaponDefID[weaponDefID] then
 		if isAreaBlocked(unitID) then
 			return 0, 0
-		else
-			return damage
 		end
+		return
 	end
 
 	if shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam) then
 		return 0, 0
-	else
-		return damage
 	end
 end
 
@@ -654,7 +651,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 	shieldCheckFlags[shieldUnitID] = true
 
 	if shieldData.shieldEnabled then
-		if not shieldData.shieldCoverageChecked and not bypassCoverages[weaponDefID] then
+		if not shieldData.shieldCoverageChecked and not weaponIgnoreCoverage[weaponDefID] then
 			setCoveredUnits(shieldUnitID)
 		end
 	else
