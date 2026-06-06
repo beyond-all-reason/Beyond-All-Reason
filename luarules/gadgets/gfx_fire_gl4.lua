@@ -146,11 +146,13 @@ local CONFIG = {
 		startHeightFrac = 0.18,  -- fire height at ignite (fraction of tree height)
 		canopyFrac      = 0.60,  -- default height fraction of canopy (where fuel is)
 		trunkRadiusFrac = 0.18,  -- trunk radius vs canopy radius
-		fireRate        = 1.8,
+		radiusMult      = 0.72,  -- tighten tree fire into a denser core instead of a broad sheet
+		fireRate        = 1.55,
 		smokeRate       = 0.5,
-		emberRate       = 0.5,
+		emberRate       = 0.42,
 		fireSizeMult    = 0.4,  -- individual flames are small; volume comes from many particles
-		smokeSizeMult   = 1.8,
+		smokeAlphaMult  = 0.67,
+		smokeSizeMult   = 1.206,
 		smokeTail       = 150,   -- smoke lingers this long after the fire stops
 	},
 
@@ -582,6 +584,7 @@ local SMOKE_LIFE_SPAN = CONFIG.smokeLifeSpan
 local SMOKE_UPVEL_MIN = CONFIG.smokeUpVelMin
 local SMOKE_UPVEL_SPAN = CONFIG.smokeUpVelSpan
 local SMOKE_ALPHA     = CONFIG.smokeAlpha
+local TREE_SMOKE_ALPHA_MULT = CONFIG.treeFire.smokeAlphaMult or 1.0
 local TREE_SMOKE_SIZE_MULT = CONFIG.treeFire.smokeSizeMult or 1.0
 local CULL_PAD        = CONFIG.cullPad
 
@@ -617,12 +620,28 @@ local function emitTreeFire(e, n)
 	if fallT < 0 then fallT = 0 elseif fallT > 1 then fallT = 1 end
 	local growT = elapsed / e.growFrames
 	if growT < 0 then growT = 0 elseif growT > 1 then growT = 1 end
+	local sizeLifeMult = 1.0
+	if e.fireSizeFadeStart and n > e.fireSizeFadeStart then
+		local fadeSpan = e.fireSizeFadeEnd - e.fireSizeFadeStart
+		if fadeSpan > 0 then
+			sizeLifeMult = 1.0 - mathMin(1.0, (n - e.fireSizeFadeStart) / fadeSpan)
+			if sizeLifeMult < 0.0 then sizeLifeMult = 0.0 end
+		end
+	end
+	local emberLifeMult = 0.20 + 0.80 * sizeLifeMult
 
 	-- Fade factor: 1.0 at full burn, ramps down to 0 as the fallen tree sinks.
 	local fadeMult = 1.0
 	if e.fadeStart then
 		fadeMult = 1.0 - mathMin(1.0, (n - e.fadeStart) / (e.fadeDuration or 150))
 		if fadeMult < 0.0 then fadeMult = 0.0 end
+	end
+	local smokeFireDiminishMult = 1.0
+	if n <= e.fireEnd then
+		smokeFireDiminishMult = 0.35 + 0.65 * sizeLifeMult
+		if e.fadeStart then
+			smokeFireDiminishMult = smokeFireDiminishMult * (0.35 + 0.65 * fadeMult)
+		end
 	end
 
 	local sHF = CONFIG.treeFire.startHeightFrac
@@ -669,7 +688,7 @@ local function emitTreeFire(e, n)
 			-- Particles near the center of the length are significantly larger.
 			local centerProx = 1.0 - 2.0 * mathMin(0.5, math.abs(hf - 0.5)) -- 1 at center, 0 at ends
 			local sizeCenterMult = 0.55 + 0.95 * centerProx
-			local size = (FIRE_SIZE_BASE + (mathRandom() - 0.5) * FIRE_SIZE_RAND) * scale * e.fireSizeMult * (0.35 + 0.65 * fadeMult) * sizeCenterMult
+			local size = (FIRE_SIZE_BASE + (mathRandom() - 0.5) * FIRE_SIZE_RAND) * scale * e.fireSizeMult * sizeLifeMult * (0.35 + 0.65 * fadeMult) * sizeCenterMult
 			local life = (FIRE_LIFE_MIN + mathRandom() * FIRE_LIFE_SPAN) * lifeScale
 			local vy = (0.4 + mathRandom() * 0.8) * scale
 			local r, g, b = fireColor()
@@ -681,7 +700,7 @@ local function emitTreeFire(e, n)
 
 	-- EMBERS
 	if n <= e.emberEnd then
-		local cnt = rateCount(e.emberRate * inten * fadeMult)
+		local cnt = rateCount(e.emberRate * inten * fadeMult * emberLifeMult)
 		for _ = 1, cnt do
 			local hf = cf + (mathRandom() - mathRandom()) * 0.5
 			if hf < 0 then hf = 0 elseif hf > 1 then hf = 1 end
@@ -692,7 +711,7 @@ local function emitTreeFire(e, n)
 			local cz = e.z + dirz * along * axisH
 			local a2 = mathRandom() * TWO_PI
 			local rr = mathSqrt(mathRandom()) * rad * 0.8
-			local size = (EMBER_SIZE_BASE + (mathRandom() - 0.5) * EMBER_SIZE_RAND) * scale
+			local size = (EMBER_SIZE_BASE + (mathRandom() - 0.5) * EMBER_SIZE_RAND) * scale * emberLifeMult
 			local life = (EMBER_LIFE_MIN + mathRandom() * EMBER_LIFE_SPAN) * lifeScale
 			local vy = EMBER_VY_MIN + mathRandom() * EMBER_VY_SPAN
 			local r, g, b = emberColor()
@@ -712,7 +731,7 @@ local function emitTreeFire(e, n)
 				if smokeDecayMult < 0.20 then smokeDecayMult = 0.20 end
 			end
 		end
-		local cnt = rateCount(e.smokeRate * inten * smokeDecayMult)
+		local cnt = rateCount(e.smokeRate * inten * smokeDecayMult * smokeFireDiminishMult)
 		for _ = 1, cnt do
 			local hf = cf + mathRandom() * (1.0 - cf) * 0.8 + 0.1
 			if hf > 1 then hf = 1 end
@@ -723,14 +742,14 @@ local function emitTreeFire(e, n)
 			local cz = e.z + dirz * along * axisH
 			local a2 = mathRandom() * TWO_PI
 			local rr = mathSqrt(mathRandom()) * rad
-			local size = (SMOKE_SIZE_BASE + mathRandom() * SMOKE_SIZE_RAND) * scale * TREE_SMOKE_SIZE_MULT
+			local size = (SMOKE_SIZE_BASE + mathRandom() * SMOKE_SIZE_RAND) * scale * TREE_SMOKE_SIZE_MULT * smokeFireDiminishMult
 			local life = (SMOKE_LIFE_MIN + mathRandom() * SMOKE_LIFE_SPAN) * lifeScale
 			local svy = SMOKE_UPVEL_MIN + mathRandom() * SMOKE_UPVEL_SPAN
 			local sv  = 0.25 + mathRandom() * 1.10
 			spawnParticle(cx + mathCos(a2) * rr, cy + rad * 0.4, cz + mathSin(a2) * rr,
 				(mathRandom() - 0.5) * 0.15, svy, (mathRandom() - 0.5) * 0.15,
 				size, 1, life, SMOKE_TR * sv, SMOKE_TG * sv, SMOKE_TB * sv,
-				SMOKE_ALPHA * smokeDecayMult)
+				SMOKE_ALPHA * TREE_SMOKE_ALPHA_MULT * smokeDecayMult)
 		end
 	end
 end
@@ -1033,7 +1052,7 @@ end
 -- synced gfx_tree_feller gadget via RecvFromSynced. The column climbs the tree
 -- and tilts into a ground line as the tree falls. Geometry (height/radius/
 -- canopyFrac) is derived from the tree's model mesh on the synced side.
-local function spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames)
+local function spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames, burnFrames)
 	if not x or not featureID then return end
 	-- Force the engine to refresh this feature's UNSYNCED (draw) matrix every
 	-- frame. Spring.SetFeatureDirection on the synced side only updates the synced
@@ -1046,6 +1065,7 @@ local function spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dir
 	if not height or height < 4 then height = 20 end
 	if not radius or radius < 2 then radius = mathMax(6, height * 0.2) end
 	local now = cachedGameFrame
+	if not burnFrames or burnFrames < 1 then burnFrames = 210 end
 	local existing = treeFireEmitters[featureID]
 	if existing then
 		-- Re-ignite / keep burning: extend timers, keep geometry & fall progress.
@@ -1053,6 +1073,8 @@ local function spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dir
 		existing.emberEnd = now + 1000000
 		existing.smokeEnd = now + 1000000
 		existing.smokeDecayStart = nil
+		existing.fireSizeFadeStart = now + burnFrames * 0.5
+		existing.fireSizeFadeEnd = now + burnFrames
 		return existing
 	end
 	dirx = dirx or 1; dirz = dirz or 0
@@ -1060,16 +1082,46 @@ local function spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dir
 	if dl > 0.0001 then dirx, dirz = dirx / dl, dirz / dl else dirx, dirz = 1, 0 end
 	local tf = CONFIG.treeFire
 	if not canopyFrac or canopyFrac <= 0 then canopyFrac = tf.canopyFrac end
-	-- heightNorm: 0 at h=20 (small tree), 1 at h=60 (large tree), clamped.
-	local heightNorm = mathMax(0.0, mathMin(1.0, (height - 20) / 40))
-	-- scale drives particle base size and rise velocity; grows with tree height.
-	local scale = 0.45 + 0.55 * heightNorm   -- 0.45 (small) .. 1.0 (large)
-	-- fireSizeMult: individual flame billboard size, also grows with height.
-	local fireSizeMult = tf.fireSizeMult * (1.0 + 0.9 * heightNorm)  -- 1.8 .. 3.4
-	-- More particles for bigger trees so density feels consistent.
-	local fireRate  = tf.fireRate  * (0.8 + 1.4 * heightNorm)   -- 2.0 .. 5.5
-	local smokeRate = tf.smokeRate * (0.8 + 0.6 * heightNorm)
-	local emberRate = tf.emberRate * (0.8 + 0.6 * heightNorm)
+	-- Use a simple tree-volume proxy (height * radius^2) so a tree that's only a
+	-- small fraction of a large tree's volume does not inherit a near-large fire.
+	local heightRatio = mathMax(0.22, mathMin(1.0, height / 60))
+	local radiusRatio = mathMax(0.22, mathMin(1.0, radius / 22))
+	local treeVolumeNorm = mathMax(0.03, mathMin(1.0, heightRatio * radiusRatio * radiusRatio))
+	local treeVisualNorm = treeVolumeNorm ^ 0.3333333
+	local treeRadiusMult = tf.radiusMult * (1.0 - 0.18 * treeVisualNorm)
+	-- scale drives particle base size and rise velocity; visual size follows the
+	-- cube root of volume, which better matches how tree dimensions read on screen.
+	local scale = 0.16 + 0.84 * treeVisualNorm   -- 0.16 (tiny) .. 1.0 (large)
+	-- fireSizeMult: individual flame billboard size tracks visual tree size.
+	local fireSizeMult = tf.fireSizeMult * (0.52 + 1.38 * treeVisualNorm)
+	-- Particle counts track estimated fuel volume more directly than visual size.
+	local fireRate  = tf.fireRate  * (0.04 + 2.16 * treeVolumeNorm)
+	local smokeRate = tf.smokeRate * (0.42 + 0.98 * treeVisualNorm)
+	local emberRate = tf.emberRate * (0.03 + 1.37 * treeVolumeNorm)
+	-- Hard low-end clamps: tiny trees should look categorically smaller and less
+	-- busy, not like scaled-down large-tree fires.
+	if treeVolumeNorm < 0.10 then
+		treeRadiusMult = treeRadiusMult * 0.72
+		scale = scale * 0.48
+		fireSizeMult = fireSizeMult * 0.42
+		fireRate = fireRate * 0.18
+		emberRate = emberRate * 0.14
+		smokeRate = smokeRate * 0.72
+	elseif treeVolumeNorm < 0.18 then
+		treeRadiusMult = treeRadiusMult * 0.82
+		scale = scale * 0.62
+		fireSizeMult = fireSizeMult * 0.56
+		fireRate = fireRate * 0.32
+		emberRate = emberRate * 0.28
+		smokeRate = smokeRate * 0.82
+	elseif treeVolumeNorm < 0.28 then
+		treeRadiusMult = treeRadiusMult * 0.90
+		scale = scale * 0.78
+		fireSizeMult = fireSizeMult * 0.76
+		fireRate = fireRate * 0.60
+		emberRate = emberRate * 0.55
+		smokeRate = smokeRate * 0.92
+	end
 	local frames = (fallFrames and fallFrames > 1) and fallFrames or tf.growFrames
 	local e = {
 		treeFire      = true,
@@ -1077,8 +1129,8 @@ local function spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dir
 		x = x, y = y, z = z,
 		yOffset       = 0,
 		height        = height,
-		canopyR       = radius,
-		trunkR        = mathMax(2, radius * tf.trunkRadiusFrac),
+		canopyR       = radius * treeRadiusMult,
+		trunkR        = mathMax(2, radius * tf.trunkRadiusFrac * treeRadiusMult),
 		canopyFrac    = canopyFrac,
 		dirx = dirx, dirz = dirz,
 		startFrame    = now,
@@ -1092,6 +1144,8 @@ local function spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dir
 		smokeRate     = smokeRate,
 		emberRate     = emberRate,
 		fireSizeMult  = fireSizeMult,
+		fireSizeFadeStart = now + burnFrames * 0.5,
+		fireSizeFadeEnd = now + burnFrames,
 		fireEnd       = now + 1000000,
 		emberEnd      = now + 1000000,
 		smokeEnd      = now + 1000000,
@@ -1245,16 +1299,16 @@ end
 -- Bridge so SYNCED gadgets can request fire effects via SendToUnsynced:
 --   SendToUnsynced("fire_spawn", x, y, z, scale, duration)
 --   SendToUnsynced("fire_wreck", x, y, z, scale)
---   SendToUnsynced("treefire_start", featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames)
+--   SendToUnsynced("treefire_start", featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames, burnFrames)
 --   SendToUnsynced("treefire_stop", featureID)
 --   SendToUnsynced("treefire_fade", featureID)
-function gadget:RecvFromSynced(name, a, b, c, d, e, f, g, h, i, j)
+function gadget:RecvFromSynced(name, a, b, c, d, e, f, g, h, i, j, k)
 	if name == "fire_spawn" then
 		spawnFire(a, b, c, { scale = d, duration = e })
 	elseif name == "fire_wreck" then
 		spawnWreckageFire(a, b, c, d)
 	elseif name == "treefire_start" then
-		spawnTreeFire(a, b, c, d, e, f, g, h, i, j)
+		spawnTreeFire(a, b, c, d, e, f, g, h, i, j, k)
 	elseif name == "treefire_stop" then
 		stopTreeFire(a)
 	elseif name == "treefire_fade" then
