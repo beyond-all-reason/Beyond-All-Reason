@@ -59,14 +59,6 @@ void main() {
 
 	modelPos = gl_Vertex;
 
-	if (BITMASK_FIELD(effects, 6)) {
-		float r = length(modelPos.xyz);
-		float theta = acos(modelPos.z / r);
-		float phi = atan(modelPos.y, modelPos.x);
-		r += 0.010 * r * SNORM2NORM(sin( (2.0 * theta + translationScale.z  * 13.0 + 3.3 * cos(phi + translationScale.x * 17.0)) * 8.0 + gameFrame * 0.05));
-		modelPos.xyz = vec3(r * sin(theta) * cos(phi), r * sin(theta) * sin(phi), r * cos(theta));
-	}
-
 	worldPos = vec4(translationScale.www * modelPos.xyz, 1.0);				//scaling
 	//worldPos.xyz = Rotate(worldPos.xyz, vec3(0.0, 1.0, 0.0), rotMargin.y);	//rotation around Yaw axis
 	worldPos.xyz  = RotateY(worldPos.xyz, rotMargin.y);

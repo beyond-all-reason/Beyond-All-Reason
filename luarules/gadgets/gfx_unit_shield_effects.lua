@@ -164,7 +164,11 @@ local IterableMap = VFS.Include("LuaRules/Gadgets/Include/IterableMap.lua")
 
 local MAX_POINTS = 24
 local LOS_UPDATE_PERIOD = 10
-local HIT_UPDATE_PERIOD = 2
+local HIT_UPDATE_PERIOD = 1
+
+-- Per-unit LOS fade: how fast enemy shield alpha lerps to 0/1 as it enters/leaves airLOS.
+-- At 60 fps render rate, 0.04 takes ~1.5 s to reach 0.9. Tune higher for snappier feel.
+local LOS_ALPHA_LERP_RATE = 0.04
 
 -- Fade-in/out when shield turns on or depletes (in 1/SHIELD_FADE_FRAMES per draw frame)
 local SHIELD_FADE_FRAMES = 120
@@ -208,7 +212,7 @@ for i = 1, MAX_POINTS + 1 do
 end
 
 -- Cached uniform locations (set after shader initialization)
-local uTranslationScale, uRotMargin, uEffects, uColor1, uColor2, uImpactCount, uShieldFade, uOverlapScale
+local uTranslationScale, uRotMargin, uEffects, uColor1, uColor2, uImpactCount, uShieldFade, uOverlapScale, uEnemyLOSClip, uEnemyLOSAlpha
 
 -- Scratch buffer reused every frame for the overlap pass to avoid allocations.
 local overlapScratch = {}
@@ -299,6 +303,7 @@ local function AddUnit(unitID, unitDefID)
 	shieldInfo.stunned = false
 	shieldInfo.fadeAlpha = 0.0
 	shieldInfo.overlapScale = 1.0
+	shieldInfo.losAlpha = 0.0  -- smooth per-unit LOS fade for enemy shields
 
 	local unitData = {
 		unitDefID  = unitDefID,
@@ -682,11 +687,49 @@ local function InitializeShader()
 	local uniformFloats = {
 		color1 = {1,1,1,1},
 		color2 = {1,1,1,1},
+		mapSizeX = Game.mapSizeX,
+		mapSizeZ = Game.mapSizeZ,
+		enemyLOSClip = 0.0,
+		enemyLOSAlpha = 1.0,
 		translationScale = {1,1,1,1},
 		rotMargin = {1,1,1,1},
 		shieldFade = 1.0,
 		overlapScale = 1.0,
 		["impactInfo.count"] = 1,
+		-- Art-editor tweakables (matching shader defaults)
+		uMaxAlpha     = 0.45,
+		uBlueTintR    = 0.38,
+		uBlueTintG    = 0.72,
+		uBlueTintB    = 0.74,
+		uRimSharpness = 1.5,
+		uRimAlpha     = 0.45,
+		uRimColorGain = 2.2,
+		uChromaSplit  = 0.5,
+		uBloomStrength= 1.10,
+		uBloomAlpha   = 0.28,
+		uHexScale     = 9.0,
+		uHexOpacity   = 0.13,
+		uHexFireProb  = 0.18,
+		uHexFireGain  = 1.8,
+		uRefractSplit = 0.010,
+		uRefractRimAmp= 2.5,
+		uHexTintR     = 0.97,
+		uHexTintG     = 0.41,
+		uHexTintB     = 1.38,
+		uFlowScale    = 2.4,
+		uFlowSpeed    = 1.13,
+		uFlowIntensity= 4.0,
+		uImpactWaveSpeed = 1.0,
+		uImpactWaveStrength = 1.0,
+		uBreathSpeed  = 0.018,
+		uArcBurstFreq = 0.013,
+		uArcBurstGain = 0.4,
+		uRotYSpeed    = 0.00022,
+		uRotZSpeed    = 0.000065,
+		uZoomNear     = 200.0,
+		uZoomFar      = 2600.0,
+		uZoomMinMult  = 0.24,
+		uZoomCurve    = 1.6,
 	}
 	for i = 1, MAX_POINTS + 1 do
 		uniformFloats[impactInfoStringTable[i-1]] = {0,0,0,0}
@@ -698,6 +741,7 @@ local function InitializeShader()
 		uniformInt = {
 			mapDepthTex = 0,
 			modelsDepthTex = 1,
+			airLosTex = 2,
 			effects = 0,
 		},
 		uniformFloat = uniformFloats,
@@ -727,6 +771,8 @@ local function InitializeShader()
 	uImpactCount = uniformLocations["impactInfo.count"]
 	uShieldFade = uniformLocations["shieldFade"]
 	uOverlapScale = uniformLocations["overlapScale"]
+	uEnemyLOSClip = uniformLocations["enemyLOSClip"]
+	uEnemyLOSAlpha = uniformLocations["enemyLOSAlpha"]
 
 	-- Cache impact info uniform locations
 	for i = 1, MAX_POINTS do
@@ -776,6 +822,11 @@ function gadget:DrawWorld()
 	haveUnitsOutline = false
 	canOutline = gl.LuaShader.isDeferredShadingEnabled and gl.LuaShader.GetAdvShadingActive()
 
+	-- Resolve fullview / enemy-LOS-clip state once per frame, before the bucket loop,
+	-- so losAlpha can be ticked for enemy shields during bucket collection.
+	local _, fullview = spGetSpectatingState()
+	local applyEnemyLOSClip = not fullview
+
 	-- Update stunned check throttling
 	checkStunnedTime = checkStunnedTime + 1
 	if checkStunnedTime > 40 then
@@ -794,6 +845,15 @@ function gadget:DrawWorld()
 				info.stunned = spGetUnitIsStunned(unitID)
 			end
 
+			-- Tick per-unit enemy LOS alpha every render frame so it fades in/out
+			-- independently of the visibleToMyAllyTeam gate used for allies.
+			local isEnemyUnit = applyEnemyLOSClip and unitData.allyTeamID ~= myAllyTeamID
+			if isEnemyUnit then
+				local losTarget = unitData.unitVisible and 1.0 or 0.0
+				local la = info.losAlpha
+				info.losAlpha = la + (losTarget - la) * LOS_ALPHA_LERP_RATE
+			end
+
 			-- Fade target: 1 if shield should be shown, 0 otherwise. Lerp every frame.
 			local fadeTarget = ((not info.stunned) and info.visibleToMyAllyTeam) and 1.0 or 0.0
 			local fa = info.fadeAlpha or 0.0
@@ -806,7 +866,10 @@ function gadget:DrawWorld()
 			end
 			info.fadeAlpha = fa
 
-			if fa > SHIELD_FADE_EPSILON then
+			-- Enemies enter the render bucket based on losAlpha (not fa, which is always
+			-- 0 for enemies since visibleToMyAllyTeam stays false for them).
+			local effectiveAlpha = isEnemyUnit and info.losAlpha or fa
+			if effectiveAlpha > SHIELD_FADE_EPSILON then
 				local radius = info.radius
 				local posx, posy, posz = spGetUnitPosition(unitID)
 
@@ -901,8 +964,10 @@ function gadget:DrawWorld()
 	if haveUnitsOutline then
 		gl.Texture(1, "$model_gbuffer_zvaltex")
 	end
+	gl.Texture(2, "$info:airlos")
 
 	local gf = spGetGameFrame() + spGetFrameTimeOffset()
+	-- fullview / applyEnemyLOSClip already computed above the bucket loop.
 	local glUniform = gl.Uniform
 	local glUniformInt = gl.UniformInt
 
@@ -911,6 +976,45 @@ function gadget:DrawWorld()
 	shieldShader:SetUniformFloat("gameFrame", gf)
 	shieldShader:SetUniformMatrix("viewMat", "view")
 	shieldShader:SetUniformMatrix("projMat", "projection")
+
+	-- Apply live overrides from the art-editor widget via Script.LuaUI
+	local _getP = Script.LuaUI.GetShieldEditorParams
+	local artP = _getP and _getP()
+	if artP then
+		shieldShader:SetUniformFloat("uMaxAlpha",      artP.maxAlpha      or 0.45)
+		shieldShader:SetUniformFloat("uBlueTintR",     artP.blueTintR     or 0.38)
+		shieldShader:SetUniformFloat("uBlueTintG",     artP.blueTintG     or 0.72)
+		shieldShader:SetUniformFloat("uBlueTintB",     artP.blueTintB     or 0.74)
+		shieldShader:SetUniformFloat("uRimSharpness",  artP.rimSharpness  or 1.5)
+		shieldShader:SetUniformFloat("uRimAlpha",      artP.rimAlpha      or 0.45)
+		shieldShader:SetUniformFloat("uRimColorGain",  artP.rimColorGain  or 2.2)
+		shieldShader:SetUniformFloat("uChromaSplit",   artP.chromaSplit   or 0.5)
+		shieldShader:SetUniformFloat("uBloomStrength", artP.bloomStrength or 1.10)
+		shieldShader:SetUniformFloat("uBloomAlpha",    artP.bloomAlpha    or 0.28)
+		shieldShader:SetUniformFloat("uHexScale",      artP.hexScale      or 9.0)
+		shieldShader:SetUniformFloat("uHexOpacity",    artP.hexOpacity    or 0.13)
+		shieldShader:SetUniformFloat("uHexFireProb",   artP.hexFireProb   or 0.18)
+		shieldShader:SetUniformFloat("uHexFireGain",   artP.hexFireGain   or 1.8)
+		shieldShader:SetUniformFloat("uRefractSplit",  artP.refractSplit  or 0.010)
+		shieldShader:SetUniformFloat("uRefractRimAmp", artP.refractRimAmp or 2.5)
+		shieldShader:SetUniformFloat("uHexTintR",      artP.hexTintR      or 0.97)
+		shieldShader:SetUniformFloat("uHexTintG",      artP.hexTintG      or 0.41)
+		shieldShader:SetUniformFloat("uHexTintB",      artP.hexTintB      or 1.38)
+		shieldShader:SetUniformFloat("uFlowScale",     artP.flowScale     or 2.4)
+		shieldShader:SetUniformFloat("uFlowSpeed",     artP.flowSpeed     or 1.13)
+		shieldShader:SetUniformFloat("uFlowIntensity", artP.flowIntensity or 4.0)
+		shieldShader:SetUniformFloat("uImpactWaveSpeed", artP.impactWaveSpeed or 1.0)
+		shieldShader:SetUniformFloat("uImpactWaveStrength", artP.impactWaveStrength or 1.0)
+		shieldShader:SetUniformFloat("uBreathSpeed",   artP.breathSpeed   or 0.018)
+		shieldShader:SetUniformFloat("uArcBurstFreq",  artP.arcBurstFreq  or 0.013)
+		shieldShader:SetUniformFloat("uArcBurstGain",  artP.arcBurstGain  or 0.4)
+		shieldShader:SetUniformFloat("uRotYSpeed",     artP.rotYSpeed     or 0.00022)
+		shieldShader:SetUniformFloat("uRotZSpeed",     artP.rotZSpeed     or 0.000065)
+		shieldShader:SetUniformFloat("uZoomNear",      artP.zoomNear      or 200.0)
+		shieldShader:SetUniformFloat("uZoomFar",       artP.zoomFar       or 2600.0)
+		shieldShader:SetUniformFloat("uZoomMinMult",   artP.zoomMinMult   or 0.24)
+		shieldShader:SetUniformFloat("uZoomCurve",     artP.zoomCurve     or 1.6)
+	end
 
 	for _, rb in pairs(renderBuckets) do
 		-- Iterate in pairs (unitID, unitData)
@@ -932,6 +1036,17 @@ function gadget:DrawWorld()
 				glUniform(uRotMargin, pitch, yaw, roll, info.margin)
 				if uShieldFade then glUniform(uShieldFade, fadeAlpha) end
 				if uOverlapScale then glUniform(uOverlapScale, info.overlapScale or 1.0) end
+				if uEnemyLOSClip then
+					local isEnemyUnit = applyEnemyLOSClip and unitData.allyTeamID ~= myAllyTeamID
+					-- losAlpha is already lerped every frame in the bucket-collection loop above.
+					if isEnemyUnit then
+						glUniform(uEnemyLOSClip, 1)
+						if uEnemyLOSAlpha then glUniform(uEnemyLOSAlpha, info.losAlpha) end
+					else
+						glUniform(uEnemyLOSClip, 0)
+						if uEnemyLOSAlpha then glUniform(uEnemyLOSAlpha, 1.0) end
+					end
+				end
 
 				if not info.optionX then
 					local optionX = 0
@@ -1019,6 +1134,7 @@ function gadget:DrawWorld()
 	if haveUnitsOutline then
 		gl.Texture(1, false)
 	end
+	gl.Texture(2, false)
 
 	gl.DepthTest(false)
 	gl.DepthMask(false)

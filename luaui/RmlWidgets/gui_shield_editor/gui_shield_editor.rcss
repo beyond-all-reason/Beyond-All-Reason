@@ -1,0 +1,164 @@
+/* ================================================================
+   Shield Shader Editor – RmlUI styles
+   Fixed panel, right side of screen. Art-tool only.
+   ================================================================ */
+
+body {
+    width: 100%;
+    height: 100%;
+    font-family: Exo 2;
+    font-size: 13dp;
+    color: #e0e8ff;
+    pointer-events: none;
+}
+
+#se-panel {
+    position: absolute;
+    right: 12dp;
+    top: 40dp;
+    width: 330dp;
+    background-color: #0d1520e6;
+    border-width: 1dp;
+    border-color: #2a4a80;
+    border-radius: 5dp;
+    overflow: hidden;
+    pointer-events: auto;
+    tab-index: none;
+}
+
+#se-titlebar {
+    background-color: #162a50;
+    padding: 6dp 10dp;
+    font-size: 14dp;
+    font-weight: bold;
+    color: #88bbff;
+    font-effect: outline(1dp #000000);
+    letter-spacing: 0.5dp;
+}
+
+#se-content {
+    padding: 6dp 8dp 10dp 8dp;
+    overflow-y: auto;
+    max-height: 88vh;
+}
+
+/* Section headers */
+.se-section-header {
+    font-size: 11dp;
+    font-weight: bold;
+    color: #6090cc;
+    text-transform: uppercase;
+    letter-spacing: 1dp;
+    margin-top: 8dp;
+    margin-bottom: 3dp;
+    border-bottom-width: 1dp;
+    border-color: #1e3a6a;
+    padding-bottom: 2dp;
+}
+
+/* Parameter row: label | slider | value */
+.se-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 3dp;
+    width: 100%;
+}
+
+.se-label {
+    width: 90dp;
+    font-size: 12dp;
+    color: #b0c8e8;
+    flex-shrink: 0;
+}
+
+.se-slider {
+    flex-grow: 1;
+    height: 25dp;
+    margin-left: 4dp;
+    margin-right: 6dp;
+    tab-index: none;
+}
+
+.se-slider slidertrack {
+    background-color: #1e3a6a;
+    border-radius: 4dp;
+    height: 8dp;
+    margin-top: 8dp;
+}
+
+.se-slider sliderbar {
+    width: 18dp;
+    height: 18dp;
+    background-color: #4488cc;
+    border-radius: 9dp;
+    border-width: 2dp;
+    border-color: #88bbff44;
+    margin-top: 3dp;
+}
+
+.se-slider sliderbar:hover {
+    background-color: #66aaff;
+}
+
+.se-slider sliderarrowdec,
+.se-slider sliderarrowinc {
+    display: none;
+}
+
+.se-val {
+    width: 38dp;
+    font-size: 11dp;
+    color: #80a8d8;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* Actions row */
+#se-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 6dp;
+    margin-top: 10dp;
+}
+
+#se-reset {
+    background-color: #1a3060;
+    border-width: 1dp;
+    border-color: #3a6aaa;
+    border-radius: 3dp;
+    padding: 4dp 12dp;
+    font-size: 12dp;
+    color: #88bbff;
+    cursor: pointer;
+}
+
+#se-reset:hover {
+    background-color: #254a8a;
+    color: #aaddff;
+}
+
+#se-reset:active {
+    background-color: #0e1e40;
+}
+
+#se-export {
+    background-color: #1a4030;
+    border-width: 1dp;
+    border-color: #3a8a5a;
+    border-radius: 3dp;
+    padding: 4dp 12dp;
+    font-size: 12dp;
+    color: #88ffbb;
+    cursor: pointer;
+}
+
+#se-export:hover {
+    background-color: #255a40;
+    color: #aaffcc;
+}
+
+#se-export:active {
+    background-color: #0e2018;
+}

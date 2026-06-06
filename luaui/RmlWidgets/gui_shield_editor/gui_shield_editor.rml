@@ -1,0 +1,81 @@
+<rml>
+<head>
+    <link type="text/rcss" href="gui_shield_editor.rcss" />
+</head>
+<body data-model="shield_editor">
+<div id="se-panel">
+
+    <div id="se-titlebar">Shield Shader Editor</div>
+
+    <div id="se-content">
+
+        <!-- OVERALL -->
+        <div class="se-section-header">Overall</div>
+        <div class="se-row"><span class="se-label">Max Opacity</span><input class="se-slider" type="range" id="se-sl-maxAlpha" min="0.0" max="0.80" step="0.005" value="0.45" /><span class="se-val" id="se-dv-maxAlpha">0.45</span></div>
+        <div class="se-row"><span class="se-label">Tint R</span><input class="se-slider" type="range" id="se-sl-blueTintR" min="0.0" max="1.5" step="0.01" value="0.38" /><span class="se-val" id="se-dv-blueTintR">0.38</span></div>
+        <div class="se-row"><span class="se-label">Tint G</span><input class="se-slider" type="range" id="se-sl-blueTintG" min="0.0" max="1.5" step="0.01" value="0.72" /><span class="se-val" id="se-dv-blueTintG">0.72</span></div>
+        <div class="se-row"><span class="se-label">Tint B</span><input class="se-slider" type="range" id="se-sl-blueTintB" min="0.0" max="1.5" step="0.01" value="0.74" /><span class="se-val" id="se-dv-blueTintB">0.74</span></div>
+
+        <!-- RIM -->
+        <div class="se-section-header">Rim</div>
+        <div class="se-row"><span class="se-label">Sharpness</span><input class="se-slider" type="range" id="se-sl-rimSharpness" min="0.3" max="6.0" step="0.05" value="1.5" /><span class="se-val" id="se-dv-rimSharpness">1.5</span></div>
+        <div class="se-row"><span class="se-label">Rim Alpha</span><input class="se-slider" type="range" id="se-sl-rimAlpha" min="0.0" max="1.0" step="0.005" value="0.45" /><span class="se-val" id="se-dv-rimAlpha">0.45</span></div>
+        <div class="se-row"><span class="se-label">Color Gain</span><input class="se-slider" type="range" id="se-sl-rimColorGain" min="0.2" max="6.0" step="0.05" value="2.2" /><span class="se-val" id="se-dv-rimColorGain">2.2</span></div>
+        <div class="se-row"><span class="se-label">Chroma Split</span><input class="se-slider" type="range" id="se-sl-chromaSplit" min="0.0" max="2.0" step="0.02" value="0.5" /><span class="se-val" id="se-dv-chromaSplit">0.5</span></div>
+        <div class="se-row"><span class="se-label">Bloom Str</span><input class="se-slider" type="range" id="se-sl-bloomStrength" min="0.0" max="3.0" step="0.05" value="1.1" /><span class="se-val" id="se-dv-bloomStrength">1.1</span></div>
+        <div class="se-row"><span class="se-label">Bloom Alpha</span><input class="se-slider" type="range" id="se-sl-bloomAlpha" min="0.0" max="1.0" step="0.005" value="0.28" /><span class="se-val" id="se-dv-bloomAlpha">0.28</span></div>
+
+        <!-- HEX GRID -->
+        <div class="se-section-header">Hex Grid</div>
+        <div class="se-row"><span class="se-label">Density</span><input class="se-slider" type="range" id="se-sl-hexScale" min="1.0" max="24.0" step="0.25" value="9.0" /><span class="se-val" id="se-dv-hexScale">9.0</span></div>
+        <div class="se-row"><span class="se-label">Opacity</span><input class="se-slider" type="range" id="se-sl-hexOpacity" min="0.0" max="0.6" step="0.005" value="0.13" /><span class="se-val" id="se-dv-hexOpacity">0.13</span></div>
+        <div class="se-row"><span class="se-label">Fire Prob</span><input class="se-slider" type="range" id="se-sl-hexFireProb" min="0.0" max="1.0" step="0.01" value="0.18" /><span class="se-val" id="se-dv-hexFireProb">0.18</span></div>
+        <div class="se-row"><span class="se-label">Fire Gain</span><input class="se-slider" type="range" id="se-sl-hexFireGain" min="0.5" max="6.0" step="0.05" value="1.8" /><span class="se-val" id="se-dv-hexFireGain">1.8</span></div>
+
+        <!-- DISPERSION -->
+        <div class="se-section-header">Dispersion</div>
+        <div class="se-row"><span class="se-label">Refract Split</span><input class="se-slider" type="range" id="se-sl-refractSplit" min="0.0" max="0.06" step="0.001" value="0.01" /><span class="se-val" id="se-dv-refractSplit">0.01</span></div>
+        <div class="se-row"><span class="se-label">Rim Amp</span><input class="se-slider" type="range" id="se-sl-refractRimAmp" min="0.0" max="6.0" step="0.05" value="2.5" /><span class="se-val" id="se-dv-refractRimAmp">2.5</span></div>
+        <div class="se-row"><span class="se-label">Hex Tint R</span><input class="se-slider" type="range" id="se-sl-hexTintR" min="0.0" max="3.0" step="0.02" value="0.97" /><span class="se-val" id="se-dv-hexTintR">0.97</span></div>
+        <div class="se-row"><span class="se-label">Hex Tint G</span><input class="se-slider" type="range" id="se-sl-hexTintG" min="0.0" max="1.5" step="0.01" value="0.41" /><span class="se-val" id="se-dv-hexTintG">0.41</span></div>
+        <div class="se-row"><span class="se-label">Hex Tint B</span><input class="se-slider" type="range" id="se-sl-hexTintB" min="0.0" max="3.0" step="0.02" value="1.38" /><span class="se-val" id="se-dv-hexTintB">1.38</span></div>
+
+        <!-- FLOW -->
+        <div class="se-section-header">Flow Noise</div>
+        <div class="se-row"><span class="se-label">Scale</span><input class="se-slider" type="range" id="se-sl-flowScale" min="0.2" max="10.0" step="0.1" value="2.4" /><span class="se-val" id="se-dv-flowScale">2.4</span></div>
+        <div class="se-row"><span class="se-label">Speed</span><input class="se-slider" type="range" id="se-sl-flowSpeed" min="0.0" max="5.0" step="0.05" value="1.13" /><span class="se-val" id="se-dv-flowSpeed">1.13</span></div>
+        <div class="se-row"><span class="se-label">Intensity</span><input class="se-slider" type="range" id="se-sl-flowIntensity" min="0.0" max="12.0" step="0.1" value="4.0" /><span class="se-val" id="se-dv-flowIntensity">4.0</span></div>
+
+        <!-- IMPACT WAVE -->
+        <div class="se-section-header">Impact Wave</div>
+        <div class="se-row"><span class="se-label">Wave Speed</span><input class="se-slider" type="range" id="se-sl-impactWaveSpeed" min="0.25" max="3.0" step="0.01" value="1.0" /><span class="se-val" id="se-dv-impactWaveSpeed">1.0</span></div>
+        <div class="se-row"><span class="se-label">Wave Strength</span><input class="se-slider" type="range" id="se-sl-impactWaveStrength" min="0.0" max="3.0" step="0.02" value="1.0" /><span class="se-val" id="se-dv-impactWaveStrength">1.0</span></div>
+
+        <!-- PULSE -->
+        <div class="se-section-header">Pulse &amp; Arc</div>
+        <div class="se-row"><span class="se-label">Breath Speed</span><input class="se-slider" type="range" id="se-sl-breathSpeed" min="0.0" max="0.08" step="0.001" value="0.018" /><span class="se-val" id="se-dv-breathSpeed">0.018</span></div>
+        <div class="se-row"><span class="se-label">Arc Freq</span><input class="se-slider" type="range" id="se-sl-arcBurstFreq" min="0.0" max="0.06" step="0.001" value="0.013" /><span class="se-val" id="se-dv-arcBurstFreq">0.013</span></div>
+        <div class="se-row"><span class="se-label">Arc Gain</span><input class="se-slider" type="range" id="se-sl-arcBurstGain" min="0.0" max="2.0" step="0.02" value="0.4" /><span class="se-val" id="se-dv-arcBurstGain">0.4</span></div>
+
+        <!-- ROTATION -->
+        <div class="se-section-header">Rotation</div>
+        <div class="se-row"><span class="se-label">Y-axis Speed</span><input class="se-slider" type="range" id="se-sl-rotYSpeed" min="0.0" max="0.001" step="0.00001" value="0.00022" /><span class="se-val" id="se-dv-rotYSpeed">0.00022</span></div>
+        <div class="se-row"><span class="se-label">Z-axis Speed</span><input class="se-slider" type="range" id="se-sl-rotZSpeed" min="0.0" max="0.001" step="0.000005" value="0.000065" /><span class="se-val" id="se-dv-rotZSpeed">6.5e-05</span></div>
+
+        <!-- DISTANCE MASK -->
+        <div class="se-section-header">Distance Fade</div>
+        <div class="se-row"><span class="se-label">Near (min)</span><input class="se-slider" type="range" id="se-sl-zoomNear" min="0.0" max="1000.0" step="10.0" value="200.0" /><span class="se-val" id="se-dv-zoomNear">200</span></div>
+        <div class="se-row"><span class="se-label">Far (max)</span><input class="se-slider" type="range" id="se-sl-zoomFar" min="500.0" max="8000.0" step="50.0" value="2600.0" /><span class="se-val" id="se-dv-zoomFar">2600</span></div>
+        <div class="se-row"><span class="se-label">Min Opacity</span><input class="se-slider" type="range" id="se-sl-zoomMinMult" min="0.0" max="1.0" step="0.01" value="0.24" /><span class="se-val" id="se-dv-zoomMinMult">0.24</span></div>
+        <div class="se-row"><span class="se-label">Curve</span><input class="se-slider" type="range" id="se-sl-zoomCurve" min="0.1" max="5.0" step="0.05" value="1.6" /><span class="se-val" id="se-dv-zoomCurve">1.6</span></div>
+
+        <!-- ACTIONS -->
+        <div id="se-actions">
+            <div id="se-reset">Reset to Defaults</div>
+            <div id="se-export">Export Config</div>
+        </div>
+
+    </div><!-- se-content -->
+</div><!-- se-panel -->
+</body>
+</rml>
