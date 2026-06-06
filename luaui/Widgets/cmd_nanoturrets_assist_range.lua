@@ -22,11 +22,34 @@ local spGetUnitBuildeeRadius = Spring.GetUnitBuildeeRadius
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local maxUnits = Game.maxUnits
 
-local nanoDefs = {}
+local nanoBuildDistances = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isBuilder and not unitDef.canMove and not unitDef.isFactory then
-		nanoDefs[unitDefID] = unitDef.buildDistance
+		nanoBuildDistances[unitDefID] = unitDef.buildDistance
 	end
+end
+
+local function isWithinBuildDistance(unitID, buildDistance, targetX, targetZ, targetRadius)
+	local nanoX, _, nanoZ = spGetUnitPosition(unitID)
+	-- nanoX is nil if nano died before the command was processed
+	if nanoX then
+		local adjustedRange = buildDistance + targetRadius
+		local dx = nanoX - targetX
+		local dz = nanoZ - targetZ
+		if dx * dx + dz * dz <= adjustedRange * adjustedRange then
+			return true
+		end
+	end
+	return false
+end
+
+local function hasNano(selectedUnits)
+	for _, unitID in ipairs(selectedUnits) do
+		if nanoBuildDistances[spGetUnitDefID(unitID)] then
+			return true
+		end
+	end
+	return false
 end
 
 function widget:CommandNotify(id, params, options)
@@ -37,41 +60,28 @@ function widget:CommandNotify(id, params, options)
 
 	local selectedUnits = spGetSelectedUnits()
 
-	local hasNano = false
-	for _, unitID in ipairs(selectedUnits) do
-		if nanoDefs[spGetUnitDefID(unitID)] then
-			hasNano = true
-			break
-		end
-	end
-	if not hasNano then return false end
+	if not hasNano(selectedUnits) then return false end
 
-	local tx, tz, targetRadius
+	local targetX, targetZ, targetRadius
 
 	if params[1] < maxUnits then
-		tx, _, tz = spGetUnitPosition(params[1])
+		targetX, _, targetZ = spGetUnitPosition(params[1])
 		targetRadius = spGetUnitBuildeeRadius(params[1]) or 0
 	else
-		tx, _, tz = spGetFeaturePosition(params[1] - maxUnits)
+		targetX, _, targetZ = spGetFeaturePosition(params[1] - maxUnits)
 		targetRadius = 0
 	end
 
-	-- tx is nil if target died before the command was processed
-	if not tx then return false end
+	-- targetX is nil if target died before the command was processed
+	if not targetX then return false end
 
 	for _, unitID in ipairs(selectedUnits) do
-		local unitDefID = spGetUnitDefID(unitID)
+		local buildDistance = nanoBuildDistances[spGetUnitDefID(unitID)]
 
-		if nanoDefs[unitDefID] ~= nil then
-			local nx, _, nz = spGetUnitPosition(unitID)
-			-- nx is nil if nano died before the command was processed
-			if nx then
-				local adjustedRange = nanoDefs[unitDefID] + targetRadius
-				local dx = nx - tx
-				local dz = nz - tz
-				if dx * dx + dz * dz <= adjustedRange * adjustedRange then
-					spGiveOrderToUnit(unitID, id, params, options)
-				end
+		-- buildDistance is nil when the unit is not a nano
+		if buildDistance ~= nil then
+			if isWithinBuildDistance(unitID, buildDistance, targetX, targetZ, targetRadius) then
+				spGiveOrderToUnit(unitID, id, params, options)
 			end
 		else
 			spGiveOrderToUnit(unitID, id, params, options)
