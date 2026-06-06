@@ -148,6 +148,13 @@ local function CubicInterpolate2(x0, x1, mix)
 	return x0 * (2 * mix3 - 3 * mix2 + 1) + x1 * (3 * mix2 - 2 * mix3)
 end
 
+local function sanitizeCoord(value, fallback)
+	if type(value) == "number" then
+		return value
+	end
+	return fallback
+end
+
 local function MouseCursorEvent(playerID, x1, z1, x2, z2, click)
 	if not isReplay and myPlayerID == playerID then
 		return true
@@ -155,6 +162,14 @@ local function MouseCursorEvent(playerID, x1, z1, x2, z2, click)
 
 	local acp = alliedCursorsPos[playerID]
 	if acp then
+		x1 = sanitizeCoord(x1, acp[1])
+		z1 = sanitizeCoord(z1, acp[2])
+		x2 = sanitizeCoord(x2, x1)
+		z2 = sanitizeCoord(z2, z1)
+		if x1 == nil or z1 == nil then
+			return
+		end
+
 		acp[5] = acp[1]
 		acp[6] = acp[2]
 		acp[1] = x1
@@ -164,6 +179,14 @@ local function MouseCursorEvent(playerID, x1, z1, x2, z2, click)
 		acp[TIMESTAMP_IDX] = clock()
 		acp[CLICK_IDX] = click
 	else
+		x1 = sanitizeCoord(x1, x2)
+		z1 = sanitizeCoord(z1, z2)
+		x2 = sanitizeCoord(x2, x1)
+		z2 = sanitizeCoord(z2, z1)
+		if x1 == nil or z1 == nil then
+			return
+		end
+
 		acp = { x1, z1, x2, z2, x1, z1 }
 		acp[TIMESTAMP_IDX] = clock()
 		acp[CLICK_IDX] = click
@@ -481,8 +504,14 @@ function widget:Update(dt)
 			local scale = (1 - (lastUpdatedDiff / packetInterval)) * numMousePos
 			local iscale = min(floor(scale), numMousePos - 1)
 			local fscale = scale - iscale
-			wx = CubicInterpolate2(data[iscale * 2 + 1], data[(iscale + 1) * 2 + 1], fscale)
-			wz = CubicInterpolate2(data[iscale * 2 + 2], data[(iscale + 1) * 2 + 2], fscale)
+			local x0 = data[iscale * 2 + 1]
+			local x1 = data[(iscale + 1) * 2 + 1]
+			local z0 = data[iscale * 2 + 2]
+			local z1 = data[(iscale + 1) * 2 + 2]
+			if x0 ~= nil and x1 ~= nil and z0 ~= nil and z1 ~= nil then
+				wx = CubicInterpolate2(x0, x1, fscale)
+				wz = CubicInterpolate2(z0, z1, fscale)
+			end
 		end
 
 		if notIdle[playerID] then
@@ -515,7 +544,7 @@ function widget:Update(dt)
 			end
 		else
 			-- mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
-			if wx and wz and wz_old and wz_old and (abs(wx_old - wx) >= 1 or abs(wz_old - wz) >= 1) then
+			if wx and wz and wx_old and wz_old and (abs(wx_old - wx) >= 1 or abs(wz_old - wz) >= 1) then
 				-- abs is needed because of floating point used in interpolation
 				notIdle[playerID] = true
 				wx_old = nil
