@@ -661,6 +661,12 @@ function widget:Initialize()
 	WG['ecostats'].setReclaim = function(value)
 		cfgTrackReclaim = value
 	end
+	WG['ecostats'].isvisible = function()
+		return myFullview and inSpecMode
+	end
+	WG['ecostats'].getWidgetPosY = function()
+		return widgetPosY
+	end
 
 	Init()
 	widget:ViewResize()

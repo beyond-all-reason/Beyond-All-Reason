@@ -87,7 +87,7 @@ local CONFIG = {
 	-- Spawn jitter around the unit center, as a fraction of unit radius.
 	-- Keep small so particles start near the center and expand visibly;
 	-- too large and they appear pre-spread with no expansion phase.
-	spawnJitterFrac = 0.4,
+	spawnJitterFrac = 0.35,
 	-- Compress vertical spawn jitter so particles don't spawn far below the
 	-- ground plane (1.0 = full sphere, 0.4 = flat oval).
 	spawnJitterYFrac = 0.66,
@@ -99,7 +99,7 @@ local CONFIG = {
 	-- more speed. Set useDeathExplosion=false to ignore the weapon entirely.
 	------------------------------------------------------------------
 	useDeathExplosion = true,
-	aoeJitterMul      = 0.1,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
+	aoeJitterMul      = 0.15,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
 	aoeSpeedMul       = 0.0035,  -- maxSpeed += aoe * mul
 	damageSpeedMul    = 0.0035,  -- maxSpeed += damage * mul
 	damageCountMul    = 0.022,  -- extra particles per damage point
@@ -111,7 +111,7 @@ local CONFIG = {
 	--   pos(t) = spawn + vel*t*(1 - 0.5*drag*t) + 0.5*gravity*t^2
 	-- t is in sim frames since spawn; vel/gravity in elmos/frame[^2].
 	------------------------------------------------------------------
-	drag     = 0.007,
+	drag     = 0.008,
 	gravityY = -0.003,
 
 	------------------------------------------------------------------
@@ -260,6 +260,9 @@ local qualifyingDefs = {}
 -- unitID set: populated by UnitFinished so UnitDestroyed can skip
 -- incomplete (under-construction) units. Cleared on UnitDestroyed.
 local finishedUnits = {}
+
+local reclaimedWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.Reclaimed
+local killedByLuaWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.KilledByLua
 
 -- Cached view state (refreshed each GameFrame).
 local cachedAllyTeamID   = spGetMyAllyTeamID()
@@ -1134,8 +1137,15 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, _attacker
 	local wasFinished = finishedUnits[unitID]
 	finishedUnits[unitID] = nil
 	if not wasFinished then return end
-	-- Skip reclaims: engine passes the reclaimer as attackerID with no weapon.
-	if attackerID and (not weaponDefID or weaponDefID < 0) then return end
+	if weaponDefID == reclaimedWeaponDefID then return end
+	-- Geo-upgrade reclaim cleanup currently arrives as KilledByLua with no attacker.
+	-- Treat that specific scripted geothermal removal as non-explosive.
+	if not attackerID and weaponDefID == killedByLuaWeaponDefID then
+		local ud = UnitDefs[unitDefID]
+		if ud and ud.customParams and ud.customParams.geothermal then return end
+	end
+	-- Legacy fallback used by other BAR visuals: builder attacker with no valid weapon.
+	if attackerID and attackerID ~= unitID and (not weaponDefID or weaponDefID < 0) then return end
 	local meta = qualifyingDefs[unitDefID]
 	if not meta then return end
 	local px, py, pz = spGetUnitPosition(unitID)
