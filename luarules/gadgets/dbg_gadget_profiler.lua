@@ -391,10 +391,19 @@ else
 		gadgetHandler:UpdateGadgetCallIn("DrawScreen", gadget)
 	end
 
-	local function SetMousePressCallin(mousePressCallin)
+	local function EnableMousePressCallin()
 		-- only claim mouse clicks while the profiler is drawn (for the drill-down)
-		gadget.MousePress = mousePressCallin
+		rawset(gadget, "MousePress", gadget.MousePress_)
 		gadgetHandler:UpdateGadgetCallIn("MousePress", gadget)
+	end
+
+	local function DisableMousePressCallin()
+		-- If this gadget currently owns the mouse press sequence, release ownership
+		-- before detaching MousePress so gadgetHandler won't call into stale owner state.
+		if gadgetHandler.mouseOwner == gadget then
+			rawset(gadgetHandler, "mouseOwner", nil)
+		end
+		gadgetHandler:RemoveGadgetCallIn("MousePress", gadget)
 	end
 
 	local function SyncedCallinStarted(_, gname, cname)
@@ -441,7 +450,7 @@ else
 			startTickTimer = spGetTimer()
 
 			SetDrawCallin(gadget.DrawScreen_)
-			SetMousePressCallin(gadget.MousePress_)
+			EnableMousePressCallin()
 
 			Spring.Echo("luarules profiler started (player " .. pID .. ")")
 		end
@@ -453,7 +462,7 @@ else
 
 			Spring.Echo("Killing...")
 			SetDrawCallin(nil)
-			SetMousePressCallin(nil)
+			DisableMousePressCallin()
 			KillHook()
 
 			selectedGadget = nil
