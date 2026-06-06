@@ -38,9 +38,6 @@ end
 --------------------------------------------------------------------------------
 local spEcho              = Spring.Echo
 local spGetUnitPosition   = Spring.GetUnitPosition
-local spGetUnitFeature    = Spring.GetUnitFeature
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetFeatureDefID   = Spring.GetFeatureDefID
 local spIsSphereInView    = Spring.IsSphereInView
 local spGetWind           = Spring.GetWind
 local spGetFPS            = Spring.GetFPS
@@ -68,7 +65,6 @@ local mathSin    = math.sin
 local mathCos    = math.cos
 local mathPi     = math.pi
 local TWO_PI     = mathPi * 2
-local stringFormat = string.format
 
 local LuaShader = gl.LuaShader
 local pushElementInstance = gl.InstanceVBOTable.pushElementInstance
@@ -132,6 +128,8 @@ local CONFIG = {
 	wreckSmokeFrames = 320,  -- long smoke on wreckage
 	wreckBridgeFrames = 22,  -- short bridge fire while waiting for corpse spawn
 	wreckAwaitFrames = 240,  -- max wait for delayed corpse spawn (long death animations)
+
+	unitDeathLifeMult = 1.2, -- global multiplier for how long unit death fire effects last (stacks with ftDurationMult and sdDurationMult)
 
 	-- Bonus multipliers for flamethrower units (stacks on top of other multipliers)
 	ftScaleMult = 2.0,       -- extra fire duration when a flamethrower unit dies
@@ -553,13 +551,23 @@ end
 local FIRE_BRI  = CONFIG.fireBrightness
 local EMBER_BRI = CONFIG.emberBrightness
 
-local function fireColor()
+local function fireColor(scavenger)
+	if scavenger then
+		return (0.88 + 0.18 * mathRandom()) * FIRE_BRI,
+		       (0.22 + 0.20 * mathRandom()) * FIRE_BRI,
+		       (0.62 + 0.34 * mathRandom()) * FIRE_BRI
+	end
 	return FIRE_BRI,
 	       (0.37 + 0.22 * mathRandom()) * FIRE_BRI,
 	       (0.07 + 0.12 * mathRandom()) * FIRE_BRI
 end
 
-local function emberColor()
+local function emberColor(scavenger)
+	if scavenger then
+		return (0.92 + 0.14 * mathRandom()) * EMBER_BRI,
+		       (0.36 + 0.24 * mathRandom()) * EMBER_BRI,
+		       (0.68 + 0.28 * mathRandom()) * EMBER_BRI
+	end
 	return EMBER_BRI,
 	       (0.62 + 0.30 * mathRandom()) * EMBER_BRI,
 	       (0.14 + 0.24 * mathRandom()) * EMBER_BRI
@@ -772,6 +780,7 @@ local function emitFromEmitter(e, n)
 	local spreadPoints = e.spreadPoints
 	local spreadCount = spreadPoints and #spreadPoints or 0
 	local spreadSizeMult = e.spreadSizeMult or 1.0
+	local scavenger = e.scavenger
 	local emitterFadeMult = 1.0
 	if e.fadeStart and n > e.fadeStart then
 		local fadeSpan = (e.fadeEnd or e.smokeEnd) - e.fadeStart
@@ -836,7 +845,7 @@ local function emitFromEmitter(e, n)
 			local vx = (mathRandom() - 0.5) * 0.4
 			local vy = (0.4 + mathRandom() * 0.8) * scale * (0.45 + 0.55 * fireRadiusDecayMult) * (0.08 + 0.92 * emitterFadeVisual)  -- lower rise as the wreck fire collapses
 			local vz = (mathRandom() - 0.5) * 0.4
-			local r, g, b = fireColor()
+			local r, g, b = fireColor(scavenger)
 			spawnParticle(sx + ox, y + oy, sz + oz, vx, vy, vz, size, 0, life,
 				r, g, b, FIRE_ALPHA * fireAlphaMult * fireAlphaDecayMult * emitterFadeVisual * (0.82 + 0.18 * mathRandom()))
 		end
@@ -883,7 +892,7 @@ local function emitFromEmitter(e, n)
 			local vx = (mathRandom() - 0.5) * 0.5
 			local vy = EMBER_VY_MIN + mathRandom() * EMBER_VY_SPAN
 			local vz = (mathRandom() - 0.5) * 0.5
-			local r, g, b = emberColor()
+			local r, g, b = emberColor(scavenger)
 			spawnParticle(sx + ox, y + oy, sz + oz, vx, vy, vz, size, 2, life,
 				r, g, b, EMBER_ALPHA * emberAlphaMult * emberAlphaDecayMult * emitterFadeVisual)
 		end
@@ -1003,6 +1012,9 @@ for udid, ud in pairs(UnitDefs) do
 	if ud.isBuilding then
 		wreckSpreadBias = wreckSpreadBias + mathMin(0.65, footprint / 120)
 	end
+	local cp = ud.customParams
+	local scavenger = cp and cp.isscavenger
+	scavenger = (scavenger == true) or (scavenger == 1) or (scavenger == "1") or (scavenger == "true")
 	unitFireParams[udid] = {
 		radius  = mathMax(6, r * 0.34),
 		yOffset = (ud.height or r) * 0.4,
@@ -1010,6 +1022,7 @@ for udid, ud in pairs(UnitDefs) do
 		wreckScale = wreckScale,
 		wreckLifeScale = wreckLifeScale,
 		wreckSpreadBias = wreckSpreadBias,
+		scavenger = scavenger,
 	}
 	if ud.corpse and FeatureDefNames and FeatureDefNames[ud.corpse] then
 		leavesWreck[udid] = true
@@ -1056,6 +1069,7 @@ local function spawnFire(x, y, z, opts)
 	local e = {
 		unitID     = opts.unitID,
 		mappedUnit = nil,
+		scavenger  = opts.scavenger and true or nil,
 		x = x or 0, y = y or 0, z = z or 0,
 		yOffset    = opts.yOffset or 0,
 		radius     = opts.radius or 14,
@@ -1088,9 +1102,11 @@ local function addUnitFire(unitID, unitDefID, durationFrames)
 	local radius  = p and p.radius  or 14
 	local yOffset = p and p.yOffset or 12
 	local scale   = p and p.scale   or 1.0
+	local scavenger = p and p.scavenger
 	e = {
 		unitID     = unitID,
 		mappedUnit = unitID,
+		scavenger  = scavenger and true or nil,
 		x = 0, y = 0, z = 0,
 		yOffset    = yOffset,
 		radius     = radius,
@@ -1143,6 +1159,7 @@ local function spawnWreckageFire(x, y, z, scale, opts)
 	local spreadPoints = opts and opts.spreadPoints
 	local coreRadiusMult = opts and opts.coreRadiusMult
 	local spreadSizeMult = opts and opts.spreadSizeMult
+	local scavenger = opts and opts.scavenger
 	if spreadPoints == nil and coreRadiusMult == nil and spreadSizeMult == nil then
 		spreadPoints, coreRadiusMult, spreadSizeMult = makeWreckSpreadPoints(visualScale, opts and opts.spreadBias)
 	end
@@ -1168,6 +1185,7 @@ local function spawnWreckageFire(x, y, z, scale, opts)
 		scale            = visualScale,
 		lifeScale        = lifeScale,   -- lifetime uses unit class, not scaleMult boost
 		intensity        = 1.0,
+		scavenger        = scavenger and true or nil,
 		fireRate         = CONFIG.fireRate  * 0.82 * sm,
 		smokeRate        = CONFIG.smokeRate * 1.3 * sm,
 		emberRate        = CONFIG.emberRate * 0.62 * sm,
@@ -1508,6 +1526,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 			local wreckScale = (p and p.wreckScale) or (p and p.scale) or 1.0
 			local wreckLifeScale = (p and p.wreckLifeScale) or wreckScale
 			local wreckSpreadBias = (p and p.wreckSpreadBias) or 1.0
+			local scavenger = p and p.scavenger
 			local sm   = 1.0
 			local dm   = 1.0
 			-- Smaller units burn for less time: scale duration by unit size,
@@ -1524,6 +1543,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 				sm = sm * CONFIG.sdScaleMult
 				dm = dm * CONFIG.sdDurationMult
 			end
+			-- Global tuning: make unit death fire linger ~33% longer.
+			dm = dm * CONFIG.unitDeathLifeMult
 			local spreadPoints, coreRadiusMult, spreadSizeMult = makeWreckSpreadPoints(wreckScale * sm, wreckSpreadBias)
 
 			-- Always spawn wreck fire immediately at death position.
@@ -1532,6 +1553,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 				scaleMult = sm,
 				durationMult = dm,
 				lifeScale = wreckLifeScale,
+				scavenger = scavenger,
 				spreadPoints = spreadPoints,
 				coreRadiusMult = coreRadiusMult,
 				spreadSizeMult = spreadSizeMult,
@@ -1572,6 +1594,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 				em.emberRateDecayPower = 1.0
 				em.emberAlphaDecayPower = 1.0
 				em.emberMinDecayMult  = 0.0
+				em.scavenger         = scavenger and true or nil
 				em.spreadPoints      = spreadPoints
 				em.spreadSizeMult    = spreadSizeMult
 				if spreadPoints then
@@ -1594,6 +1617,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 					yOffset = p and p.yOffset or 12,
 					radius = mathMax(3.5, 10 * wreckScale * sm),
 					scale = wreckScale * sm,
+					scavenger = scavenger,
 					duration = deathDuration,
 					emberDuration = deathDuration,
 					smokeDuration = deathDuration + CONFIG.unitSmokeExtra,
