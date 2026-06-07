@@ -67,7 +67,6 @@ local landCmd = {
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if isAirplant[unitDefID] then
-		landCmd.params[1] = 1
 		plantList[unitID] = 1
 		InsertUnitCmdDesc(unitID, 500, landCmd)
 	elseif plantList[builderID] then
