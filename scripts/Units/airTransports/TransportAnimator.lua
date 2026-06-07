@@ -90,6 +90,8 @@ function TransportAnimator.Init(setup)
 	loadTime       = tonumber(UnitDefs[unitDefID].customParams.loadtime)
 	cegScaleFactor = tonumber(UnitDefs[unitDefID].customParams.transportcegscalefactor or 0.7) 
 	cegName        = UnitDefs[unitDefID].customParams.transportcegname or "tractorbeam"
+	heightOffsetMult   = cegName == "armada_ion" and 1 or cegName == "cortex_grapple" and 0.5 or cegName == "legion_grav_distort" and 0.2 or 1
+	radiusOffsetMult   = cegName == "armada_ion" and 0 or cegName == "cortex_grapple" and 0.85 or cegName == "legion_grav_distort" and 0 or 1
 
 	local def    = UnitDefs[unitDefID]
 	local vmax   = def.speed/30 -- it's in elmos/sec, not per frame (unlike Spring.GetUnitVelocity)
@@ -141,27 +143,41 @@ function TransportAnimator.WatchBeams()
 	SetSignalMask(SIG_WATCH)
 	-- reusable local vars to avoid allocations in this hot loop
 	local beamPieceX, beamPieceY, beamPieceZ
+	local cegTopX, cegTopY, cegTopZ, cegDX, cegDY, cegDZ, cegLen, cegSpawnX, cegSpawnY, cegSpawnZ
 	while true do
 		for passengerID, passengerData in pairs(cargo.passengers) do
 			if passengerData.beamPieces then
+				if not passengerData.cachedPosX then
+					passengerData.cachedPosX, passengerData.cachedPosY, passengerData.cachedPosZ = SpGetUnitPosition(passengerID)
+				end
 				for _, beamPiece in ipairs(passengerData.beamPieces) do
 					beamPieceX, beamPieceY, beamPieceZ = SpGetUnitPiecePosDir(transporterID, beamPiece)
 					if passengerData.cachedPosX then
-						-- loading or unloading: passenger moved via MoveCtrl, use cached position
+						-- loading or unloading: beam originates from the unit surface toward the beam piece,
+						-- offset by radius from the top-center so multi-beam pieces spread around the unit
+						cegTopX = passengerData.cachedPosX
+						cegTopY = passengerData.cachedPosY + passengerData.height * heightOffsetMult
+						cegTopZ = passengerData.cachedPosZ
+						cegDX = beamPieceX - cegTopX
+						cegDY = beamPieceY - cegTopY
+						cegDZ = beamPieceZ - cegTopZ
+						cegLen = math.sqrt(cegDX * cegDX + cegDY * cegDY + cegDZ * cegDZ)
+						if cegLen > 0.01 then
+							cegSpawnX = cegTopX + cegDX * passengerData.radius * radiusOffsetMult / cegLen
+							cegSpawnY = cegTopY + cegDY * passengerData.radius * radiusOffsetMult / cegLen
+							cegSpawnZ = cegTopZ + cegDZ * passengerData.radius * radiusOffsetMult / cegLen
+						else
+							cegSpawnX, cegSpawnY, cegSpawnZ = cegTopX, cegTopY, cegTopZ
+						end
 						SpSpawnCEG(cegName,
-							passengerData.cachedPosX, passengerData.cachedPosY + passengerData.height, passengerData.cachedPosZ,
-							(beamPieceX - passengerData.cachedPosX),
-							(beamPieceY - (passengerData.cachedPosY + passengerData.height)),
-							(beamPieceZ - passengerData.cachedPosZ),
-							1, 0)
-					else
-						-- idle: simple downward beam from the anchor piece
-						SpSpawnCEG(cegName,
-							beamPieceX, beamPieceY, beamPieceZ,
-							0, -10, 0,
+							cegSpawnX, cegSpawnY, cegSpawnZ,
+							beamPieceX - cegSpawnX,
+							beamPieceY - cegSpawnY,
+							beamPieceZ - cegSpawnZ,
 							1, 0)
 					end
 				end
+				passengerData.cachedPosX, passengerData.cachedPosY, passengerData.cachedPosZ = nil,nil,nil
 			end
 		end
 		Sleep(66)
