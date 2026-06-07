@@ -90,8 +90,8 @@ function script.Create()
     StartThread(GenericAnimator.IdleHover)
 end
 
-function PerformLoad(passengerID) -- entry point from gadget transport handler: called on load approval, and by ReorganizeAndLoad
-    local passengerData = CargoHandler.FindSlot(passengerID, cargo, true)
+function PerformLoad(passengerID) -- entry point from gadget transport handler: called on load approval
+    local passengerData = CargoHandler.FindSlot(passengerID, cargo)
     if not passengerData then return end
     StartThread(TransportAnimator.Load, passengerData)
 end

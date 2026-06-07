@@ -167,109 +167,198 @@ local function PassengerToSlotDistSq(passengerID, slotID)
 	return dx * dx + dz * dz
 end
 
--- assigns the closest valid slot of the right size to passengerID and returns passengerData, or nil.
--- when allowReorganize is true and only overlapping slots remain available, triggers ReorganizeAndLoad.
--- when fromReorganize is true, overlapping slots are excluded from the search entirely.
-function CargoHandler.FindSlot(passengerID, cargo, allowReorganize, fromReorganize)
+-- axis-weighted distance: penalizes lateral movement (orthogonal to the transporter's main axis)
+-- via 1/|dot(forwardDir, displacementDir)|, biasing displaced passengers toward moving along
+-- the transport axis rather than crossing to the opposite side of the aircraft.
+-- guards against NaN: clamps the denominator to MIN_COS so factor never exceeds 1/MIN_COS.
+local AXIS_WEIGHT_MIN_COS = 0.15  -- movements beyond ~81 deg off-axis capped at ~6.7x penalty
+local function PassengerToSlotAxisWeightedDistSq(passengerID, slotID)
+	local px, _, pz = SpGetUnitPosition(passengerID)
+	local sx, _, sz = Spring.GetUnitPiecePosDir(transporterID, slotID)
+	local dx, dz = sx - px, sz - pz
+	local dSq = dx * dx + dz * dz
+	if dSq < 1e-4 then return 0 end  -- passenger already at slot: no penalty
+	-- transporter forward in XZ: (sin rotY, cos rotY) at rotY=0 faces +Z
+	local _, rotY, _ = SpGetUnitRotation(transporterID)
+	local fwdX, fwdZ = math.sin(rotY), math.cos(rotY)
+	local dLen    = math.sqrt(dSq)
+	local cosTheta = (fwdX * dx + fwdZ * dz) / dLen  -- dot(forward, normalizedDisplacement)
+	local factor  = 1 / math.max(math.abs(cosTheta), AXIS_WEIGHT_MIN_COS)
+	return dSq * factor
+end
+
+-- Assigns the closest slot of the right size to passengerID and returns passengerData, or nil.
+-- Fast path: closest slot is free and all requirements met — claim immediately, no side effects.
+-- Cascade path: new passenger unconditionally takes the closest slot; only directly conflicting
+-- passengers are displaced (occupant of claimed slot + occupants of ANY slot now blocked by it,
+-- regardless of size), cascading outward until all conflicts are resolved. Each displaced passenger
+-- picks the slot nearest to THEMSELVES (axis-weighted to avoid visual cross-overs), searching only
+-- slots of their own size.
+-- Fully attached passengers (animProgress == 1) are silently detached then re-animated to their
+-- new slot. Mid-load passengers (animProgress < 1) receive a redirectSlot that their running
+-- Load thread picks up on its next frame, reorienting the animation in-place with no restart.
+function CargoHandler.FindSlot(passengerID, cargo)
 	local seats = TransportAPI.GetPassengerSize(passengerID)
 	local sizeList = cargo.slotsBySize[seats]
 	if not sizeList then return nil end
 
-	local bestSlotID   = nil
-	local bestDistSq   = math.huge
-	local hasOverlap   = false  -- true if an overlapping slot is available but a non-overlapping one isn't
-
+	-- build slot list sorted by distance to the incoming passenger
+	local orderedSlots = {}
 	for _, slotID in ipairs(sizeList) do
-		local slotData = cargo.slots[slotID]
+		orderedSlots[#orderedSlots + 1] = { slotID = slotID, dSq = PassengerToSlotDistSq(passengerID, slotID) }
+	end
+	table.sort(orderedSlots, function(a, b) return a.dSq < b.dSq end)
+
+	-- fast path: closest slot is free and all requirements met
+	local closest = orderedSlots[1]
+	if closest then
+		local slotData = cargo.slots[closest.slotID]
 		if slotData.cargo == nil and RequiresMet(slotData, cargo.slots) then
-			if slotData.overlapping then
-				if not fromReorganize then
-					hasOverlap = true  -- note it but keep looking for a clean slot
+			cargo.slots[closest.slotID].cargo = passengerID
+			return { id = passengerID, height = SpGetUnitHeight(passengerID), radius = SpGetUnitRadius(passengerID), slotID = closest.slotID }
+		end
+	end
+	if not closest then return nil end
+
+	-- cascade path ----------------------------------------------------------
+	-- closeAndPropagate: marks sid unavailable and enqueues the occupant of sid
+	-- plus occupants of any slot now blocked because sid is taken.
+	local closedSlots   = {}
+	local assignments   = {}  -- [passengerID] = slotID
+	local displaceQueue = {}
+	local alreadyQueued = { [passengerID] = true }
+
+	local function closeAndPropagate(sid)
+		closedSlots[sid] = true
+		local occ = cargo.slots[sid].cargo
+		if occ and not alreadyQueued[occ] then
+			displaceQueue[#displaceQueue + 1] = occ
+			alreadyQueued[occ] = true
+		end
+		-- slots that sid requires to be empty are now blocked
+		for _, reqID in ipairs(cargo.slots[sid].requires) do
+			if not closedSlots[reqID] then
+				closedSlots[reqID] = true
+				local occ2 = cargo.slots[reqID].cargo
+				if occ2 and not alreadyQueued[occ2] then
+					displaceQueue[#displaceQueue + 1] = occ2
+					alreadyQueued[occ2] = true
 				end
+			end
+		end
+		-- slots that require sid to be empty are now blocked; search ALL slots regardless of size
+		for slotID, slotData in pairs(cargo.slots) do
+			if not closedSlots[slotID] then
+				for _, reqID in ipairs(slotData.requires) do
+					if reqID == sid then
+						closedSlots[slotID] = true
+						local occ3 = slotData.cargo
+						if occ3 and not alreadyQueued[occ3] then
+							displaceQueue[#displaceQueue + 1] = occ3
+							alreadyQueued[occ3] = true
+						end
+						break
+					end
+				end
+			end
+		end
+	end
+
+	-- new passenger unconditionally takes the closest slot
+	assignments[passengerID] = closest.slotID
+	closeAndPropagate(closest.slotID)
+
+	-- cascade: each displaced passenger picks the nearest available slot to THEMSELVES
+	local idx = 1
+	while idx <= #displaceQueue do
+		local pid = displaceQueue[idx]
+		idx = idx + 1
+
+		-- each displaced passenger searches slots of THEIR OWN size, axis-weighted
+		local pidSize     = TransportAPI.GetPassengerSize(pid)
+		local pidSizeList = cargo.slotsBySize[pidSize]
+		if not pidSizeList then
+			Spring.Echo("CargoHandler.FindSlot: displaced passenger " .. pid .. " has no slots of its size")
+		else
+			local pidSlots = {}
+			for _, slotID in ipairs(pidSizeList) do
+				pidSlots[#pidSlots + 1] = { slotID = slotID, dSq = PassengerToSlotAxisWeightedDistSq(pid, slotID) }
+			end
+			table.sort(pidSlots, function(a, b) return a.dSq < b.dSq end)
+
+			local chosenSlot = nil
+			for _, e in ipairs(pidSlots) do
+				if not closedSlots[e.slotID] and not cargo.slots[e.slotID].overlapping then
+					chosenSlot = e.slotID ; break
+				end
+			end
+			if not chosenSlot then
+				for _, e in ipairs(pidSlots) do
+					if not closedSlots[e.slotID] then
+						chosenSlot = e.slotID ; break
+					end
+				end
+			end
+			if chosenSlot then
+				assignments[pid] = chosenSlot
+				closeAndPropagate(chosenSlot)
 			else
-				local dSq = PassengerToSlotDistSq(passengerID, slotID)
-				if dSq < bestDistSq then
-					bestDistSq = dSq
-					bestSlotID = slotID
-				end
+				Spring.Echo("CargoHandler.FindSlot: no available slot for displaced passenger " .. pid)
 			end
 		end
 	end
 
-	-- a non-overlapping slot is available: claim it
-	if bestSlotID then
-		cargo.slots[bestSlotID].cargo = passengerID
-		return { id = passengerID, height = SpGetUnitHeight(passengerID), radius = SpGetUnitRadius(passengerID), slotID = bestSlotID }
+	-- snapshot pd references and attachment state before any mutations
+	local pdSnap     = {}
+	local wasAttached = {}
+	for _, pid in ipairs(displaceQueue) do
+		local pd = cargo.passengers[pid]
+		pdSnap[pid]      = pd
+		wasAttached[pid] = pd and (pd.animProgress == 1)
 	end
 
-	-- only overlapping slots are available: try one (closest)
-	if not fromReorganize and hasOverlap then
-		for _, slotID in ipairs(sizeList) do
-			local slotData = cargo.slots[slotID]
-			if slotData.cargo == nil and slotData.overlapping and RequiresMet(slotData, cargo.slots) then
-				local dSq = PassengerToSlotDistSq(passengerID, slotID)
-				if dSq < bestDistSq then
-					bestDistSq = dSq
-					bestSlotID = slotID
-				end
+	-- apply phase 1: release all displaced passengers from their current slots.
+	-- all releases happen before any new claims to avoid clobbering when passengers swap slots.
+	local tx, ty, tz = SpGetUnitPosition(cargo.transporterID)
+	for _, pid in ipairs(displaceQueue) do
+		local pd = pdSnap[pid]
+		if pd then
+			if wasAttached[pid] then
+				-- fully attached: silent detach-in-place; Unregister releases slot and cargo.passengers
+				TransportAnimator.Unload(pd, tx, ty, tz, false)
+				pd.unloading = nil
+			else
+				-- mid-load: Load thread is still alive; vacate the slot record so phase 2 can claim it
+				cargo.slots[pd.slotID].cargo = nil
 			end
 		end
-		if bestSlotID then
-			cargo.slots[bestSlotID].cargo = passengerID
-			return { id = passengerID, height = SpGetUnitHeight(passengerID), radius = SpGetUnitRadius(passengerID), slotID = bestSlotID }
+	end
+
+	-- apply phase 2: claim new slots and redirect or restart animations
+	for _, pid in ipairs(displaceQueue) do
+		local pd      = pdSnap[pid]
+		local newSlot = assignments[pid]
+		if pd and newSlot then
+			cargo.slots[newSlot].cargo = pid
+			if wasAttached[pid] then
+				-- Unload removed pd from cargo.passengers; restart Load from current detached position
+				pd.slotID = newSlot
+				StartThread(TransportAnimator.Load, pd)
+			else
+				-- pre-position new slot to -height immediately so beam rendering is correct
+				-- before the Load thread picks up the redirect on its next Sleep boundary
+				Move(newSlot, 1, 0)  Move(newSlot, 2, -pd.height)  Move(newSlot, 3, 0)
+				Turn(newSlot, 1, 0)  Turn(newSlot, 2, 0)           Turn(newSlot, 3, 0)
+				pd.redirectSlot = newSlot
+			end
 		end
 	end
 
-	-- no slot at all: maybe reorganize can make room
-	if allowReorganize and CargoHandler.HasSlotOfSize(seats, cargo)
-		and cargo.transporterUsedSeats + seats <= cargo.transporterSeats then
-		CargoHandler.ReorganizeAndLoad(cargo, passengerID)
-	end
-	return nil
-end
-
--- instantly unloads all current cargo then reloads everything (including newPassengerID) onto non-overlapping
--- slots only, using a greedy closest-slot pass in descending size order.
--- newPassengerID gets first pick (its slot is assigned before all others of the same size).
-function CargoHandler.ReorganizeAndLoad(cargo, newPassengerID)
-	-- kill all in-flight Load threads at once and repair the accounting they left dangling
-	Signal(TransportAnimator.SIG_LOAD)
-	cargo.loadingCount = 0
-	CargoHandler.CanUnload(true)
-
-	-- build the reload list: new unit first within its size tier, then existing cargo
-	local newSize = TransportAPI.GetPassengerSize(newPassengerID)
-	local toLoad = { newPassengerID }
-	for passengerID in pairs(cargo.passengers) do
-		toLoad[#toLoad + 1] = passengerID
-	end
-	-- sort descending by size; within the same size newPassengerID stays first (it was inserted first)
-	table.sort(toLoad, function(a, b)
-		local sa = TransportAPI.GetPassengerSize(a)
-		local sb = TransportAPI.GetPassengerSize(b)
-		if sa ~= sb then return sa > sb end
-		-- keep newPassengerID at front of its size group
-		if a == newPassengerID then return true end
-		if b == newPassengerID then return false end
-		return false
-	end)
-
-	local passengerSnapshot = {}
-	for passengerID, passengerData in pairs(cargo.passengers) do
-		passengerSnapshot[passengerID] = passengerData
-	end
-	for passengerID, passengerData in pairs(passengerSnapshot) do
-		local tx, ty, tz = SpGetUnitPosition(cargo.transporterID)
-		TransportAnimator.Unload(passengerData, tx, ty, tz, false)
-	end
-
-	-- greedy closest non-overlapping slot, slots are marked taken as each unit is assigned
-	for _, passengerID in ipairs(toLoad) do
-		local passengerData = CargoHandler.FindSlot(passengerID, cargo, false, true)
-		if passengerData then
-			StartThread(TransportAnimator.Load, passengerData)
-		end
-	end
+	-- claim slot for new passenger and return passengerData; PerformLoad starts its Load thread
+	local newSlot = assignments[passengerID]
+	if not newSlot then return nil end
+	cargo.slots[newSlot].cargo = passengerID
+	return { id = passengerID, height = SpGetUnitHeight(passengerID), radius = SpGetUnitRadius(passengerID), slotID = newSlot }
 end
 
 -- marks a slot as vacant; passengerData is still held in cargo.passengers until Unregister cleans it up
