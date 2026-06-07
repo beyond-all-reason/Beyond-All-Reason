@@ -177,7 +177,7 @@ local function unitDef_Post(name, uDef)
 	local weapondefs = uDef.weapondefs
 	local weapons = uDef.weapons
 
-	if toOversize[name] then
+	if toOversize and toOversize[name] then
 		local passengerSize = toOversize[name].passengersize
 		if passengerSize == 0.5 then
 			uDef.customparams.oversized = "-1"
