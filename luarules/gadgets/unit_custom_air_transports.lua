@@ -1066,6 +1066,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		return false
 	end
 	if cmdID == CMD.LOAD_UNITS then
+		if not isAirTransport[unitDefID] then return false end
 		if fromInsert then
 			if #cmdParams == 4 then -- inserted area cmd
 				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD_AREA_LOAD, 0, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4] }, {"alt"})
@@ -1085,6 +1086,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		end
 	end
 	if cmdID == CMD.UNLOAD_UNIT then
+		if not isAirTransport[unitDefID] then return false end
 		local posX, posY, posZ = cmdParams[1], cmdParams[2], cmdParams[3]
 		-- cmdParams[4] is the specific passengerID for single-unload cmds; nil for area-style unloads
 		if not spValidUnitID(cmdParams[4]) then
@@ -1102,6 +1104,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		end
 	end
 	if cmdID == CMD.UNLOAD_UNITS then
+		if not isAirTransport[unitDefID] then return false end
 		if cmdParams[4] then
 			spEcho("Warning: CMD.UNLOAD_UNITS areas deprecated, replacing with single point CMD.UNLOAD_UNIT command")
 		end
