@@ -1160,9 +1160,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if sx and sy and sz then
-			if bestBurrowID then
-				Spring.DestroyUnit(bestBurrowID, true, false)
-			end
+			--if bestBurrowID then
+			--	Spring.DestroyUnit(bestBurrowID, true, false)
+			--end
 			return CreateUnit(config.bossName, sx, sy, sz, mRandom(0,3), scavTeamID), burrowID
 		end
 
