@@ -91,16 +91,15 @@ if gadgetHandler:IsSyncedCode() then
 
 	local WATERWEAPON = 0
 	do
-		-- Fastpass for units that don't have an attack command for other reasons.
-		local allowNonAttackerUnit = { legpede = true }
+		local allowNonAttackerUnit = { legpede = true } -- Fastpass for units that don't have an attack command for other reasons.
+		local allowCommandFireWeapon = { armstil_stiletto_bomb = true } -- TODO: Why is this commandfire = true?
 
 		local function hasTargeting(weapon)
-			if weapon.slavedTo == 0 then
-				local weaponDef = WeaponDefs[weapon.weaponDef]
-				return weaponDef.type ~= "Shield" and not weaponDef.manualFire and weaponDef.range > 10
-			else
-				return false
-			end
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			return weapon.slavedTo == 0
+				and weaponDef.type ~= "Shield"
+				and (not weaponDef.manualFire or allowCommandFireWeapon[weaponDef.name])
+				and weaponDef.range > 10
 		end
 
 		local function canSetTarget(unitDef)
