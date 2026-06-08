@@ -82,34 +82,98 @@ end
 --   vbias            vertical direction bias of primary arms (-1 down .. 1 up)
 --   spread           child fork angular spread in radians
 --   growFrac         fraction of life an arm takes to extend to full length
+--   flowFrac         0..0.95 how much the arm tail advances toward the tip
+--                    during growth (higher = stronger outward propagation)
 --   tipTaper         leading-tip thinning (0.1 = sharp point, 1 = no taper)
 --   sizeVarMin/Max   random per-burst size range multiplier (correlates complexity/lifetime)
 --   intensityVar     extra random intensity variance around size-correlated base
 --   lifeVar          extra random lifetime variance around complexity-correlated base
+--   maxIntensityScale optional cap on per-burst intensityScale after variation
+--
+-- Optional "scatter" fields (for unit-centered bursts that crackle around an
+-- area over time, e.g. the commander-spawn effect). When scatterCount > 0 the
+-- API call emits one central burst plus a stream of smaller delayed sub-bursts
+-- spread across an area:
+--   startDelay        frames to wait before the central burst (and scatter window)
+--   centerHeight      vertical offset (elmos) added to the central burst origin
+--   centerSizeScale   size multiplier for the central burst
+--   centerIntensityScale  intensity multiplier for the central burst
+--   scatterCount      number of scattered area sparks
+--   scatterFrames     time window (frames) over which sparks appear
+--   scatterRadius     horizontal scatter radius (elmos)
+--   scatterHeightMin/Max  vertical offset range for sparks (elmos)
+--   scatterSizeMin/Max    size scale range for sparks (small -> simpler/shorter)
+--   scatterIntensityScale intensity multiplier for sparks
+--   scatterWidthScale     width multiplier for sparks (thickness only)
 --------------------------------------------------------------------------------
 local lightningConfigs = {
 	scavradiation = {
 		r = 0.50, g = 0.4, b = 1.00,
 		coreR = 0.82, coreG = 0.7, coreB = 1.00,
-		lifeFrames     = 28,
-		intensity      = 0.1,
-		feather        = 0.5,
+		lifeFrames     = 18,
+		intensity      = 0.25,
+		feather        = 0.4,
 		baseWidth      = 0.9,
-		reach          = 250,
+		reach          = 450,
 		branchCount    = 2,
 		childCount     = 2,
-		maxDepth       = 2,
+		maxDepth       = 4,
 		segments       = 2,
-		jitterAmp      = 14,
+		jitterAmp      = 22,
 		glowBrightness = 0.4,
 		vbias          = 0.20,
 		spread         = 4,
-		growFrac       = 0.45,
-		tipTaper       = 0.9,
+		growFrac       = 0.5,
+		flowFrac       = 0.3,
+		tipTaper       = 0.1,
 		sizeVarMin     = 0.3,
-		sizeVarMax     = 1.4,
-		intensityVar   = 0.16,
+		sizeVarMax     = 1.3,
+		intensityVar   = 0.4,
 		lifeVar        = 0.3,
+	},
+
+	-- Centered on a freshly spawned unit (commander spawn / warp-in). Unlike the
+	-- airborne scavradiation cloud, this fires a strong arc burst at the unit
+	-- plus a stream of smaller electric sparks crackling across the surrounding
+	-- area over roughly two seconds.
+	commanderspawn = {
+		r = 0.55, g = 0.66, b = 1.00,
+		coreR = 0.92, coreG = 0.96, coreB = 1.00,
+		lifeFrames     = 18,
+		intensity      = 0.12,
+		feather        = 0.5,
+		baseWidth      = 0.9,
+		reach          = 80,
+		branchCount    = 3,
+		childCount     = 3,
+		maxDepth       = 2,
+		segments       = 2,
+		jitterAmp      = 12,
+		glowBrightness = 0.35,
+		vbias          = 0.35,
+		spread         = 3.5,
+		growFrac       = 0.5,
+		flowFrac       = 0.3,
+		tipTaper       = 0.1,
+		sizeVarMin     = 0.85,
+		sizeVarMax     = 1.3,
+		intensityVar   = 0.1,
+		lifeVar        = 0.15,
+		maxIntensityScale = 1.35,
+		startDelay            = 18,
+		-- scatter / area behaviour
+		centerHeight          = 25,
+		centerSizeScale       = 1.35,
+		centerIntensityScale  = 1.45,
+		scatterCount          = 14,
+		scatterFrames         = 77,
+		scatterRadius         = 85,
+		scatterHeightMin      = 18,
+		scatterHeightMax      = 45,
+		scatterSizeMin        = 0.3,
+		scatterSizeMax        = 0.6,
+		scatterIntensityScale = 0.4,
+		scatterWidthScale     = 1.75,
 	},
 }
 
@@ -117,7 +181,6 @@ local lightningConfigs = {
 -- Localized functions
 --------------------------------------------------------------------------------
 local spGetGameFrame   = Spring.GetGameFrame
-local spGetGameSpeed   = Spring.GetGameSpeed
 local spIsAABBInView   = Spring.IsAABBInView
 
 local glBlending  = gl.Blending
@@ -190,6 +253,7 @@ for _, cfg in pairs(lightningConfigs) do
 	cfg.childCount = cfg.childCount or 0
 	cfg.maxDepth   = cfg.maxDepth   or 0
 	cfg.growFrac   = cfg.growFrac   or 0.4
+	cfg.flowFrac   = clamp(cfg.flowFrac or 0.0, 0.0, 0.95)
 	cfg.tipTaper   = cfg.tipTaper   or 0.15
 	cfg.vbias      = cfg.vbias      or 0.0
 	cfg.spread     = cfg.spread     or 0.8
@@ -711,11 +775,12 @@ local function buildBranches(cfg, sizeScale, branchCount, childCount, maxDepth, 
 	return branches, n
 end
 
-local function spawnBurst(configName, x, y, z, sizeScale, intensityScale)
+local function spawnBurst(configName, x, y, z, sizeScale, intensityScale, widthScale)
 	local cfg = lightningConfigs[configName]
 	if not cfg then return end
 	sizeScale = (sizeScale and sizeScale > 0) and sizeScale or 1.0
 	intensityScale = intensityScale or 1.0
+	widthScale = widthScale or 1.0
 
 	-- One master random controls most of the burst profile so visuals feel coherent:
 	-- small/light variants are usually simpler and shorter-lived; large ones richer/longer.
@@ -726,23 +791,37 @@ local function spawnBurst(configName, x, y, z, sizeScale, intensityScale)
 	local complexity01 = clamp((sizeVar - sizeVarMin) / sizeVarRange, 0, 1)
 
 	local burstSizeScale = sizeScale * sizeVar
+	-- External requested size must strongly affect complexity so tiny scatter sparks
+	-- become simpler (fewer branches/children/segments), not just visually smaller.
+	local scaleComplexity01 = clamp((burstSizeScale - 0.25) / 0.9, 0, 1)
+	complexity01 = clamp(complexity01 * 0.45 + scaleComplexity01 * 0.55, 0, 1)
 
-	local complexityScale = lerp(0.55, 1.45, complexity01)
+	local complexityScale = lerp(0.30, 1.45, complexity01)
 	local branchCount = mathMax(1, mathFloor(cfg.branchCount * complexityScale + 0.5))
-	local childCount = mathMax(0, mathFloor(cfg.childCount * complexityScale + 0.25))
+	local childCount = mathMax(0, mathFloor(cfg.childCount * lerp(0.18, 1.4, complexity01) + 0.2))
 	local maxDepth = cfg.maxDepth
+	if burstSizeScale < 0.65 and maxDepth > 0 then
+		maxDepth = maxDepth - 1
+	end
+	if burstSizeScale < 0.45 and maxDepth > 0 then
+		maxDepth = maxDepth - 1
+	end
 	if complexity01 < 0.25 and maxDepth > 0 then
 		maxDepth = maxDepth - 1
 	elseif complexity01 > 0.8 and cfg.maxDepth > 0 then
 		maxDepth = maxDepth + 1
 	end
 	maxDepth = clamp(maxDepth, 0, cfg.maxDepth + 1)
-	local segments = mathMax(3, mathFloor(cfg.segments * lerp(0.65, 1.35, complexity01) + 0.5))
+	local minSegments = (burstSizeScale < 0.5) and 1 or 2
+	local segments = mathMax(minSegments, mathFloor(cfg.segments * lerp(0.35, 1.35, complexity01) + 0.5))
 	local growFrac = clamp(cfg.growFrac * lerp(0.85, 1.15, complexity01), 0.18, 0.95)
 
 	local intensityJitter = 1.0 + ((mathRandom() * 2.0 - 1.0) * cfg.intensityVar)
 	local burstIntensity = intensityScale * lerp(0.78, 1.25, complexity01) * intensityJitter
 	if burstIntensity < 0.05 then burstIntensity = 0.05 end
+	if cfg.maxIntensityScale and burstIntensity > cfg.maxIntensityScale then
+		burstIntensity = cfg.maxIntensityScale
+	end
 
 	local lifeJitter = 1.0 + ((mathRandom() * 2.0 - 1.0) * cfg.lifeVar)
 	local burstLifeFrames = mathMax(6, mathFloor(cfg.lifeFrames * lerp(0.55, 1.40, complexity01) * lifeJitter + 0.5))
@@ -760,6 +839,7 @@ local function spawnBurst(configName, x, y, z, sizeScale, intensityScale)
 		lifeFrames = burstLifeFrames,
 		intensity = cfg.intensity * burstIntensity,
 		intensityScale = burstIntensity,
+		widthScale = widthScale,
 		segments = segments,
 		baseWidth = cfg.baseWidth * burstSizeScale,
 		jitterAmp = cfg.jitterAmp * burstSizeScale,
@@ -776,6 +856,104 @@ local function spawnBurst(configName, x, y, z, sizeScale, intensityScale)
 	nActive = nActive + 1
 	active[nActive] = burst
 	idleSkipCounter = 0
+end
+
+--------------------------------------------------------------------------------
+-- Scheduled / scattered spawns
+-- Bursts can be delayed and scattered across an area over time (e.g. the
+-- commander-spawn crackle). Pending entries are kept in a queue and emitted by
+-- updateBolts() once their target frame is reached.
+--------------------------------------------------------------------------------
+local pending  = {}
+local nPending = 0
+local nextPendingFrame = math.huge
+
+local function schedule(configName, x, y, z, sizeScale, intensityScale, widthScale, atFrame)
+	nPending = nPending + 1
+	pending[nPending] = {
+		configName = configName,
+		x = x, y = y, z = z,
+		sizeScale = sizeScale,
+		intensityScale = intensityScale,
+		widthScale = widthScale,
+		frame = atFrame,
+	}
+	if atFrame < nextPendingFrame then
+		nextPendingFrame = atFrame
+	end
+	idleSkipCounter = 0
+end
+
+-- Public entry point used by the sync action: dispatches a config's central
+-- burst plus any scattered area sparks it defines.
+local function requestLightning(configName, x, y, z, sizeScale, intensityScale)
+	local cfg = lightningConfigs[configName]
+	if not cfg then return end
+	sizeScale = (sizeScale and sizeScale > 0) and sizeScale or 1.0
+	intensityScale = intensityScale or 1.0
+
+	local frame = spGetGameFrame()
+	local startDelay = cfg.startDelay or 0
+
+	-- Central burst (at the unit), optionally raised and delayed.
+	local cx = x
+	local cy = y + (cfg.centerHeight or 0)
+	local cz = z
+	local cSize = sizeScale * (cfg.centerSizeScale or 1.0)
+	local cInt  = intensityScale * (cfg.centerIntensityScale or 1.0)
+	local cWidth = cfg.centerWidthScale or 1.0
+	if startDelay <= 0 then
+		spawnBurst(configName, cx, cy, cz, cSize, cInt, cWidth)
+	else
+		schedule(configName, cx, cy, cz, cSize, cInt, cWidth, frame + startDelay)
+	end
+
+	-- Scattered area sparks crackling around the origin over time.
+	local scatterCount = cfg.scatterCount or 0
+	if scatterCount > 0 then
+		local scatterFrames = cfg.scatterFrames or 60
+		local scatterRadius = cfg.scatterRadius or 120
+		local hMin = cfg.scatterHeightMin or 20
+		local hMax = cfg.scatterHeightMax or 60
+		local sMin = cfg.scatterSizeMin or 0.3
+		local sMax = cfg.scatterSizeMax or 0.7
+		local sInt = cfg.scatterIntensityScale or 1.0
+		local sWidth = cfg.scatterWidthScale or 1.0
+		for _ = 1, scatterCount do
+			local ang = mathRandom() * 2.0 * mathPi
+			local rad = mathSqrt(mathRandom()) * scatterRadius   -- uniform over disc
+			local sx = x + mathCos(ang) * rad
+			local sz = z + mathSin(ang) * rad
+			local sy = y + hMin + mathRandom() * (hMax - hMin)
+			local ss = sizeScale * (sMin + mathRandom() * (sMax - sMin))
+			local at = frame + startDelay + mathFloor(mathRandom() * scatterFrames)
+			schedule(configName, sx, sy, sz, ss, intensityScale * sInt, sWidth, at)
+		end
+	end
+end
+
+local function processPending(frame)
+	if nPending == 0 then
+		nextPendingFrame = math.huge
+		return
+	end
+	local w = 0
+	local nextFrame = math.huge
+	for r = 1, nPending do
+		local p = pending[r]
+		if p.frame <= frame then
+			spawnBurst(p.configName, p.x, p.y, p.z, p.sizeScale, p.intensityScale, p.widthScale)
+		else
+			w = w + 1
+			pending[w] = p
+			if p.frame < nextFrame then
+				nextFrame = p.frame
+			end
+		end
+	end
+	for i = w + 1, nPending do pending[i] = nil end
+	nPending = w
+	nextPendingFrame = nextFrame
 end
 
 --------------------------------------------------------------------------------
@@ -799,23 +977,39 @@ local function pushArm(beamData, offset, burst, br, life, alphaMul)
 	local armAlpha = alphaMul * appear
 
 	local ox, oy, oz = burst.x, burst.y, burst.z
-	local sx = ox + br.sx
-	local sy = oy + br.sy
-	local sz = oz + br.sz
-	local ex = sx + br.dx * grown
-	local ey = sy + br.dy * grown
-	local ez = sz + br.dz * grown
+	local baseSx = ox + br.sx
+	local baseSy = oy + br.sy
+	local baseSz = oz + br.sz
+	local sx = baseSx
+	local sy = baseSy
+	local sz = baseSz
+	-- Move the tail forward as the branch grows so lightning visually flows away
+	-- from the spawn point instead of remaining fully anchored at origin.
+	local flowFrac = cfg.flowFrac
+	if flowFrac > 0 then
+		local tailAdvance = grown * flowFrac * (local01 * local01)
+		sx = sx + br.dx * tailAdvance
+		sy = sy + br.dy * tailAdvance
+		sz = sz + br.dz * tailAdvance
+	end
+	local ex = baseSx + br.dx * grown
+	local ey = baseSy + br.dy * grown
+	local ez = baseSz + br.dz * grown
 
 	-- length falloff: dim toward the tip
 	local lengthFalloff = 0.45
 
-	local widthScale = br.widthScale
+	local widthScale = br.widthScale * (burst.widthScale or 1.0)
 	local feather = cfg.feather
-	local glowMult = cfg.glowBrightness * burst.intensityScale
+	-- Keep intensity-driven size/glow bounded so one very bright burst does not
+	-- over-bloom nearby lightning effects.
+	local widthIntensityScale = clamp(burst.intensityScale, 0.70, 1.25)
+	local glowIntensityScale = clamp(burst.intensityScale, 0.70, 1.20)
+	local glowMult = cfg.glowBrightness * glowIntensityScale
 	local tipTaper = cfg.tipTaper
 	local jitterAmp = burst.jitterAmp
 	local baseWidth = burst.baseWidth
-	local intensityW = burst.intensityScale
+	local intensityW = widthIntensityScale
 
 	local cr, cg, cb = cfg.coreR, cfg.coreG, cfg.coreB
 	local er, eg, eb = cfg.r, cfg.g, cfg.b
@@ -853,14 +1047,18 @@ local function pushArm(beamData, offset, burst, br, life, alphaMul)
 end
 
 local function updateBolts()
-	if idleSkipCounter > 0 and nActive == 0 then
+	local frame = spGetGameFrame()
+	if frame >= nextPendingFrame then
+		processPending(frame)
+	end
+
+	if idleSkipCounter > 0 and nActive == 0 and nPending == 0 then
 		idleSkipCounter = idleSkipCounter - 1
 		boltVBO.usedElements = 0
 		return
 	end
 
 	boltVBO.usedElements = 0
-	local frame = spGetGameFrame()
 	local beamData = boltVBO.instanceData
 	local beamCount = 0
 	local offset = 0
@@ -914,7 +1112,7 @@ local function updateBolts()
 	if beamCount > 0 then
 		idleSkipCounter = 0
 		uploadAllElements(boltVBO)
-	elseif nActive == 0 then
+	elseif nActive == 0 and nPending == 0 then
 		idleSkipCounter = IDLE_SKIP_FRAMES
 	end
 end
@@ -947,7 +1145,7 @@ end
 -- Callins
 --------------------------------------------------------------------------------
 local function handleSpawn(_, configName, x, y, z, sizeScale, intensityScale)
-	spawnBurst(configName, x, y, z, sizeScale, intensityScale)
+	requestLightning(configName, x, y, z, sizeScale, intensityScale)
 end
 
 function gadget:Initialize()
@@ -963,8 +1161,7 @@ end
 function gadget:DrawWorld()
 	if not boltVBO then return end
 	local simFrame = spGetGameFrame()
-	local _, _, isPaused = spGetGameSpeed()
-	if isPaused or simFrame ~= lastBuildFrame then
+	if simFrame ~= lastBuildFrame then
 		lastBuildFrame = simFrame
 		updateBolts()
 	end
