@@ -213,23 +213,7 @@ function TransportAnimator.Load(passengerData, doAnim)
 
 	if doAnim ~= false then
 		SpMoveCtrl.Enable(passengerData.id)
-		local frame = 0
-		while frame < loadTime do
-			-- handle slot redirect issued by CargoHandler.FindSlot during a cascade reorganize:
-			-- reset frame to 0 so the full easing curve replays from the current mid-air position
-			-- toward the new slot; slot piece is already at -height (pre-positioned by CargoHandler)
-			if passengerData.redirectSlot then
-				--resetSlot(passengerData.slotID)
-				passengerData.slotID     = passengerData.redirectSlot
-				passengerData.beamPieces = beamsBySlotID[passengerData.slotID]
-				--resetSlot(passengerData.slotID)
-				Move(passengerData.slotID, 2, -passengerData.height)
-				passengerPosX, passengerPosY, passengerPosZ = SpGetUnitPosition(passengerData.id)
-				passengerRotX, passengerRotY, passengerRotZ = SpGetUnitRotation(passengerData.id)
-				passengerData.redirectSlot = nil
-				frame = 0
-			end
-
+		for frame = 0, loadTime - 1 do
 			normalizedProgress = progress[frame]
 			passengerData.animProgress = normalizedProgress
 
@@ -251,7 +235,6 @@ function TransportAnimator.Load(passengerData, doAnim)
 
 			Sleep(33)
 			if isDead(passengerData.id) then aborted = true ; break end
-			frame = frame + 1
 		end
 		passengerData.cachedPosX = nil ; passengerData.cachedPosY = nil ; passengerData.cachedPosZ = nil
 		SpMoveCtrl.Disable(passengerData.id)
