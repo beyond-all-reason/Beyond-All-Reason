@@ -114,8 +114,8 @@ describe("SpringUnsyncedBuilder", function()
         widget.WG.tmp_unsynced.callGiveOrder(6, -11)
 
         assert.equals(2, #calls)
-        assert.same({ unitID = 5, cmdID = -10 }, calls[1])
-        assert.same({ unitID = 6, cmdID = -11 }, calls[2])
+        assert.same({ unitID = 5, cmdID = -10, params = {} }, calls[1])
+        assert.same({ unitID = 6, cmdID = -11, params = {} }, calls[2])
     end)
 
     it("captureArrayOrders records GiveOrderArrayToUnitArray calls", function()

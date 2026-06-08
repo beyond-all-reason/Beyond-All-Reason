@@ -499,5 +499,29 @@ describe("api_build_orders", function()
 				assert.equals(10, defID, "armrcon should only ever be ordered to build armmex (10)")
 			end
 		end)
+
+		it("sends a builder that can build nothing to guard a working builder", function()
+			local bo = widget.WG.api_build_orders
+			local arrayCalls = widget.captureArrayOrders()
+			local unitCalls = widget.captureUnitOrders()
+
+			-- armrcon builds only armmex; it can construct none of an all-armsolr
+			-- blueprint, while armcon can build every solr.
+			bo.splitBuildOrders(builderInfos(bo, { 1, 3 }), {
+				building(1, 11, "armsolr", 0),
+				building(2, 11, "armsolr", 16),
+			}, {})
+
+			-- armcon (1) does the building; armrcon (3) gets no build orders
+			assert.is_not_nil(callForBuilder(arrayCalls, 1), "armcon (1) should receive build orders")
+			assert.is_nil(callForBuilder(arrayCalls, 3), "armrcon (3) should not receive build orders")
+
+			-- instead of idling, armrcon (3) is told to guard the working builder
+			assert.equals(1, #unitCalls, "exactly one guard order should be issued")
+			local guard = unitCalls[1]
+			assert.equals(3, guard.unitID, "armrcon (3) should be the one guarding")
+			assert.equals(widget.env.CMD.GUARD, guard.cmdID, "the order should be a guard")
+			assert.equals(1, guard.params[1], "armrcon should guard the working builder armcon (1)")
+		end)
 	end)
 end)

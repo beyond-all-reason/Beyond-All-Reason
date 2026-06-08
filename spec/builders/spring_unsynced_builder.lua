@@ -95,6 +95,7 @@ local function makeEnv(self)
 		RemoveWidget = function() end,
 		AddAction = function() end,
 	}
+	env.CMD = { GUARD = 25 }
 	env.UnitDefs = self.unitDefs:GetUnitDefsByID()
 	env.UnitDefNames = self.unitDefs:GetUnitDefNames()
 	env.gl = {
@@ -191,8 +192,8 @@ function SUB:LoadWidget(widgetPath)
 
 	function mock.captureUnitOrders()
 		local calls = {}
-		env.Spring.GiveOrderToUnit = function(unitID, cmdID, _, _)
-			table.insert(calls, { unitID = unitID, cmdID = cmdID })
+		env.Spring.GiveOrderToUnit = function(unitID, cmdID, params, _)
+			table.insert(calls, { unitID = unitID, cmdID = cmdID, params = params })
 		end
 		return calls
 	end

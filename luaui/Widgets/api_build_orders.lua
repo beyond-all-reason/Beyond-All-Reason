@@ -4,6 +4,8 @@ local BpDefs = VFS.Include("luaui/Include/blueprint_substitution/definitions.lua
 
 local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
 
+local CMD_GUARD = CMD.GUARD
+
 function widget:GetInfo()
 	return {
 		name = "Build Orders API",
@@ -275,6 +277,41 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 					return b.unitID
 				end)
 				Spring.GiveOrderArrayToUnitArray(groupBuilderIDs, orders, false)
+			end
+		end
+	end
+
+	-- 7. Builders that can construct none of these buildings would otherwise idle.
+	-- Send each to guard a working builder so it assists construction instead of
+	-- sitting idle. (Builders that *can* build something but lost out on the split
+	-- are left alone -- they are not ineligible, just unlucky.)
+	local workingBuilderIDs = {}
+	for _, groupData in ipairs(allBuilderGroups) do
+		if #assignedBuildings[groupData.key] > 0 then
+			for _, builder in ipairs(groupData.group) do
+				table.insert(workingBuilderIDs, builder.unitID)
+			end
+		end
+	end
+
+	if #workingBuilderIDs > 0 then
+		local guardIndex = 1
+		for _, groupData in ipairs(allBuilderGroups) do
+			if #assignedBuildings[groupData.key] == 0 then
+				local canBuildAny = false
+				for _, building in ipairs(allBuildings) do
+					if canBuild(groupData.group, building, groupData.side, true) then
+						canBuildAny = true
+						break
+					end
+				end
+
+				if not canBuildAny then
+					for _, builder in ipairs(groupData.group) do
+						Spring.GiveOrderToUnit(builder.unitID, CMD_GUARD, { workingBuilderIDs[guardIndex] }, cmdOpts)
+						guardIndex = guardIndex % #workingBuilderIDs + 1
+					end
+				end
 			end
 		end
 	end
