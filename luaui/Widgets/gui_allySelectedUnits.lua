@@ -59,6 +59,13 @@ local GL_POINTS				= GL.POINTS
 local spGetUnitDefID        = spGetUnitDefID
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spGetSpectatingState	= Spring.GetSpectatingState
+local spGetTeamInfo         = Spring.GetTeamInfo
+local spGetMyPlayerID       = Spring.GetMyPlayerID
+local spGetMyAllyTeamID     = Spring.GetMyAllyTeamID
+local spSelectUnitArray     = Spring.SelectUnitArray
+local spValidUnitID         = Spring.ValidUnitID
+local spGetUnitIsDead       = Spring.GetUnitIsDead
+local spGetPlayerList       = Spring.GetPlayerList
 
 local playerIsSpec = {}
 for i,playerID in pairs(Spring.GetPlayerList()) do
@@ -67,14 +74,24 @@ end
 
 local spec, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
-local myAllyTeam = Spring.GetMyAllyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
+local myAllyTeam = spGetMyAllyTeamID()
+local myPlayerID = spGetMyPlayerID()
 local selectedUnits = {}
 local playerSelectedUnits = {}  -- [playerID][unitID] = true
+local playerSelectedUnitsCount = {}
+local playerSelectionVersion = {}
+local playerTeamID = {}
 local lockPlayerID
+local lockPlayerLastAppliedID
+local lockPlayerLastAppliedVersion = -1
 
 local unitAllyteam = {}
 local spGetUnitTeam = Spring.GetUnitTeam
+local teamAllyTeam = {}
+
+local function bumpPlayerSelectionVersion(playerID)
+	playerSelectionVersion[playerID] = (playerSelectionVersion[playerID] or 0) + 1
+end
 
 local unitScale = {}
 local unitCanFly = {}
@@ -147,7 +164,7 @@ end
 
 local function addUnit(unitID)
 	if selectedUnits[unitID] ~= nil and selectedUnits[unitID] == false and (fullview or myAllyTeam == unitAllyteam[unitID]) then
-		if not Spring.ValidUnitID(unitID) or Spring.GetUnitIsDead(unitID) then
+		if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
 			return
 		end
 		if enablePlatter then
@@ -167,16 +184,22 @@ local function removeUnit(unitID)
 end
 
 local function selectPlayerSelectedUnits(playerID)
+	if not playerID then return end
+	local selectedByPlayer = playerSelectedUnits[playerID]
+	if not selectedByPlayer then
+		spSelectUnitArray({})
+		return
+	end
+
 	local units = {}
 	local count = 0
-	local teamID = select(4, spGetPlayerInfo(playerID))
-	for unitID, drawn in pairs(selectedUnits) do
-		if spGetUnitTeam(unitID) == teamID then
+	for unitID in pairs(selectedByPlayer) do
+		if selectedUnits[unitID] and (fullview or myAllyTeam == unitAllyteam[unitID]) then
 			count = count + 1
 			units[count] = unitID
 		end
 	end
-	Spring.SelectUnitArray(units)
+	spSelectUnitArray(units)
 end
 
 -- called by gadget
@@ -184,20 +207,24 @@ local function selectedUnitsClear(playerID)
 	if not spec and playerID == myPlayerID then
 		return
 	end
+	local selectedByPlayer = playerSelectedUnits[playerID]
 	-- Clear per-player tracking
-	if playerSelectedUnits[playerID] then
+	if selectedByPlayer then
 		playerSelectedUnits[playerID] = {}
+		playerSelectedUnitsCount[playerID] = 0
+		bumpPlayerSelectionVersion(playerID)
 	end
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
-		local teamID = select(4, spGetPlayerInfo(playerID))
-		for unitID, drawn in pairs(selectedUnits) do
-			if spGetUnitTeam(unitID) == teamID then
+		if selectedByPlayer then
+			for unitID in pairs(selectedByPlayer) do
 				widget:VisibleUnitRemoved(unitID)
 			end
 		end
 	end
 	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
 		selectPlayerSelectedUnits(lockPlayerID)
+		lockPlayerLastAppliedID = lockPlayerID
+		lockPlayerLastAppliedVersion = playerSelectionVersion[lockPlayerID] or 0
 	end
 end
 
@@ -209,18 +236,31 @@ local function selectedUnitsAdd(playerID,unitID)
 	-- Track per player
 	if not playerSelectedUnits[playerID] then
 		playerSelectedUnits[playerID] = {}
+		playerSelectedUnitsCount[playerID] = 0
 	end
-	playerSelectedUnits[playerID][unitID] = true
+	if not playerSelectedUnits[playerID][unitID] then
+		playerSelectedUnits[playerID][unitID] = true
+		playerSelectedUnitsCount[playerID] = playerSelectedUnitsCount[playerID] + 1
+		bumpPlayerSelectionVersion(playerID)
+	end
 
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if spGetUnitDefID(unitID) then
 			selectedUnits[unitID] = false
-			unitAllyteam[unitID] = select(6, Spring.GetTeamInfo(spGetUnitTeam(unitID), false))
+			local unitTeam = spGetUnitTeam(unitID)
+			local allyTeam = teamAllyTeam[unitTeam]
+			if allyTeam == nil then
+				allyTeam = select(6, spGetTeamInfo(unitTeam, false))
+				teamAllyTeam[unitTeam] = allyTeam
+			end
+			unitAllyteam[unitID] = allyTeam
 			addUnit(unitID)
 		end
 	end
 	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
 		selectPlayerSelectedUnits(lockPlayerID)
+		lockPlayerLastAppliedID = lockPlayerID
+		lockPlayerLastAppliedVersion = playerSelectionVersion[lockPlayerID] or 0
 	end
 end
 
@@ -230,8 +270,13 @@ local function selectedUnitsRemove(playerID,unitID)
 		return
 	end
 	-- Remove from per-player tracking
-	if playerSelectedUnits[playerID] then
+	if playerSelectedUnits[playerID] and playerSelectedUnits[playerID][unitID] then
 		playerSelectedUnits[playerID][unitID] = nil
+		local count = playerSelectedUnitsCount[playerID] or 0
+		if count > 0 then
+			playerSelectedUnitsCount[playerID] = count - 1
+		end
+		bumpPlayerSelectionVersion(playerID)
 	end
 
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
@@ -239,20 +284,104 @@ local function selectedUnitsRemove(playerID,unitID)
 	end
 	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
 		selectPlayerSelectedUnits(lockPlayerID)
+		lockPlayerLastAppliedID = lockPlayerID
+		lockPlayerLastAppliedVersion = playerSelectionVersion[lockPlayerID] or 0
+	end
+end
+
+-- called by gadget
+local function selectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
+	if not spec and playerID == myPlayerID then
+		return
+	end
+
+	local selectedByPlayer = playerSelectedUnits[playerID]
+	if not selectedByPlayer then
+		selectedByPlayer = {}
+		playerSelectedUnits[playerID] = selectedByPlayer
+		playerSelectedUnitsCount[playerID] = 0
+	end
+
+	local count = playerSelectedUnitsCount[playerID] or 0
+	local changed = false
+	local shouldDraw = not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID)
+
+	if remCount and remCount > 0 and remUnits then
+		for i=1,remCount do
+			local unitID = remUnits[i]
+			if unitID and selectedByPlayer[unitID] then
+				selectedByPlayer[unitID] = nil
+				if count > 0 then
+					count = count - 1
+				end
+				changed = true
+			end
+			if unitID and shouldDraw then
+				widget:VisibleUnitRemoved(unitID)
+			end
+		end
+	end
+
+	if addCount and addCount > 0 and addUnits then
+		for i=1,addCount do
+			local unitID = addUnits[i]
+			if unitID then
+				if not selectedByPlayer[unitID] then
+					selectedByPlayer[unitID] = true
+					count = count + 1
+					changed = true
+				end
+
+				if shouldDraw and spGetUnitDefID(unitID) then
+					selectedUnits[unitID] = false
+					local unitTeam = spGetUnitTeam(unitID)
+					local allyTeam = teamAllyTeam[unitTeam]
+					if allyTeam == nil then
+						allyTeam = select(6, spGetTeamInfo(unitTeam, false))
+						teamAllyTeam[unitTeam] = allyTeam
+					end
+					unitAllyteam[unitID] = allyTeam
+					addUnit(unitID)
+				end
+			end
+		end
+	end
+
+	playerSelectedUnitsCount[playerID] = count
+	if changed then
+		bumpPlayerSelectionVersion(playerID)
+	end
+
+	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
+		selectPlayerSelectedUnits(lockPlayerID)
+		lockPlayerLastAppliedID = lockPlayerID
+		lockPlayerLastAppliedVersion = playerSelectionVersion[lockPlayerID] or 0
 	end
 end
 
 function widget:PlayerRemoved(playerID, reason)
-	local teamID = select(4, spGetPlayerInfo(playerID))
-	for unitID, drawn in pairs(selectedUnits) do
-		if spGetUnitTeam(unitID) == teamID then
+	local selectedByPlayer = playerSelectedUnits[playerID]
+	playerTeamID[playerID] = nil
+	playerSelectedUnits[playerID] = nil
+	playerSelectedUnitsCount[playerID] = nil
+	playerSelectionVersion[playerID] = nil
+	playerIsSpec[playerID] = nil
+	if selectedByPlayer then
+		for unitID in pairs(selectedByPlayer) do
 			widget:VisibleUnitRemoved(unitID)
 		end
 	end
 end
 
 function widget:PlayerAdded(playerID)
-	playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID, false))
+	local _,_,isSpec,teamID = spGetPlayerInfo(playerID, false)
+	playerIsSpec[playerID] = isSpec
+	playerTeamID[playerID] = teamID
+	if not playerSelectedUnits[playerID] then
+		playerSelectedUnits[playerID] = {}
+		playerSelectedUnitsCount[playerID] = 0
+		playerSelectionVersion[playerID] = 0
+	end
 end
 
 function widget:PlayerChanged(playerID)
@@ -261,8 +390,8 @@ function widget:PlayerChanged(playerID)
 		return
 	end
 	myTeamID = spGetMyTeamID()
-	myAllyTeam = Spring.GetMyAllyTeamID()
-	myPlayerID = Spring.GetMyPlayerID()
+	myAllyTeam = spGetMyAllyTeamID()
+	myPlayerID = spGetMyPlayerID()
 
 	-- when changing fullview mode
 	local prevFullview = fullview
@@ -279,12 +408,13 @@ function widget:PlayerChanged(playerID)
 		end
 	end
 
-	for i,playerID in pairs(Spring.GetPlayerList()) do
-		local spec = select(3, spGetPlayerInfo(playerID, false))
-		if spec and not playerIsSpec[playerID] then
+	for i,playerID in pairs(spGetPlayerList()) do
+		local _,_,isSpec,teamID = spGetPlayerInfo(playerID, false)
+		if isSpec and not playerIsSpec[playerID] then
 			selectedUnitsClear(playerID)
 		end
-		playerIsSpec[playerID] = spec
+		playerTeamID[playerID] = teamID
+		playerIsSpec[playerID] = isSpec
 	end
 end
 
@@ -314,9 +444,19 @@ function widget:Update(dt)
 	if WG.lockcamera then
 		updateTime = updateTime + dt
 		if updateTime > checkLockPlayerInterval then
-			lockPlayerID = WG.lockcamera.GetPlayerID()
+			local newLockPlayerID = WG.lockcamera.GetPlayerID()
+			if lockPlayerID ~= newLockPlayerID then
+				lockPlayerID = newLockPlayerID
+				lockPlayerLastAppliedID = nil
+				lockPlayerLastAppliedVersion = -1
+			end
 			if lockPlayerID ~= nil and selectPlayerUnits then
-				selectPlayerSelectedUnits(lockPlayerID)
+				local version = playerSelectionVersion[lockPlayerID] or 0
+				if lockPlayerLastAppliedID ~= lockPlayerID or lockPlayerLastAppliedVersion ~= version then
+					selectPlayerSelectedUnits(lockPlayerID)
+					lockPlayerLastAppliedID = lockPlayerID
+					lockPlayerLastAppliedVersion = version
+				end
 			end
 			updateTime = 0
 		end
@@ -350,7 +490,7 @@ function widget:Initialize()
 		return
 	end
 	if not init() then return end
-	for _, playerID in pairs(Spring.GetPlayerList()) do
+	for _, playerID in pairs(spGetPlayerList()) do
 		widget:PlayerAdded(playerID)
 	end
 	widget:PlayerChanged(myPlayerID)
@@ -358,6 +498,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('selectedUnitsRemove', selectedUnitsRemove)
 	widgetHandler:RegisterGlobal('selectedUnitsClear', selectedUnitsClear)
 	widgetHandler:RegisterGlobal('selectedUnitsAdd', selectedUnitsAdd)
+	widgetHandler:RegisterGlobal('selectedUnitsBatchUpdate', selectedUnitsBatchUpdate)
 
 	WG['allyselectedunits'] = {}
 	WG['allyselectedunits'].getSelectPlayerUnits = function()
@@ -375,6 +516,7 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('selectedUnitsRemove')
 	widgetHandler:DeregisterGlobal('selectedUnitsClear')
 	widgetHandler:DeregisterGlobal('selectedUnitsAdd')
+	widgetHandler:DeregisterGlobal('selectedUnitsBatchUpdate')
 	for unitID, drawn in pairs(selectedUnits) do
 		removeUnit(unitID)
 	end
