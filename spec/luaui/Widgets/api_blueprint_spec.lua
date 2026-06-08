@@ -146,6 +146,30 @@ local function orderDefIDs(orders)
 	return ids
 end
 
+-- Extract the x coordinate of each order's build position (used to identify
+-- which building an order targets in split-mode tests).
+local function orderXs(orders)
+	local xs = {}
+	for _, order in ipairs(orders) do
+		table.insert(xs, order[2][1])
+	end
+	return xs
+end
+
+-- Find the GiveOrderArrayToUnitArray call whose target group includes a given
+-- builder. In split mode every builder forms its own group, so each call targets
+-- a single builder; in sequential mode a group may contain several.
+local function callForBuilder(calls, builderID)
+	for _, c in ipairs(calls) do
+		for _, id in ipairs(c.unitIDs or {}) do
+			if id == builderID then
+				return c
+			end
+		end
+	end
+	return nil
+end
+
 -- ============================================================
 -- Tests
 -- ============================================================
@@ -320,12 +344,71 @@ describe("api_blueprint.placeBlueprint", function()
 			-- chunk order first (armmex from armcon's own slice), then leftovers
 			assert.same({ 10, 11, 11, 11 }, orderDefIDs(conCall.orders))
 		end)
+
+		it("only the first order per builder group honors the caller's shift state", function()
+			-- The first order keeps the caller's cmdOpts so it replaces the queue
+			-- when shift isn't held; the rest force shift so the blueprint's other
+			-- buildings queue instead of overwriting one another.
+			local calls = widget.captureArrayOrders()
+
+			widget.WG.api_blueprint.placeBlueprint(
+				armBlueprint({
+					bpUnit(1, 10, "armmex", 0),
+					bpUnit(2, 11, "armsolr", 16),
+					bpUnit(3, 10, "armmex", 32),
+				}),
+				ORIGIN,
+				{ 1 }, -- armcon
+				false,
+				{} -- shift not held
+			)
+
+			assert.equals(1, #calls)
+			local orders = calls[1].orders
+			assert.equals(3, #orders)
+			assert.is_falsy(orders[1][3].shift, "first order should not force shift")
+			for i = 2, #orders do
+				assert.is_true(orders[i][3].shift, "order " .. i .. " should force shift")
+			end
+		end)
+
+		it("distributes 3 buildings 2:1 by builder count (two corcon vs one armcon)", function()
+			-- Proportionality tracks each group's total build power, which scales
+			-- with builder count: two corcon (power 200) take twice the share of one
+			-- armcon (power 100) -- not a flat 50/50. (efrec's #cons>>>#cons case.)
+			local calls = widget.captureArrayOrders()
+
+			widget.WG.api_blueprint.placeBlueprint(
+				armBlueprint({
+					bpUnit(1, 10, "armmex", 0),
+					bpUnit(2, 10, "armmex", 16),
+					bpUnit(3, 10, "armmex", 32),
+				}),
+				ORIGIN,
+				{ 1, 4, 5 }, -- one armcon + two corcon
+				false,
+				{}
+			)
+
+			assert.equals(2, #calls, "one call per builder group (armcon, corcon)")
+
+			local corCall = callForBuilder(calls, 4) -- the corcon group is { 4, 5 }
+			local armCall = callForBuilder(calls, 1)
+			assert.is_not_nil(corCall, "corcon group should receive orders")
+			assert.is_not_nil(armCall, "armcon group should receive orders")
+			---@cast corCall -nil
+			---@cast armCall -nil
+			assert.equals(2, #corCall.orders, "corcon (power 200) should get 2 of 3 buildings")
+			assert.equals(1, #armCall.orders, "armcon (power 100) should get 1 of 3 buildings")
+		end)
 	end)
 
-	-- In split mode, builders are grouped by faction. For each building,
-	-- capable factions are determined and the buildings are round-robined
-	-- across them. Within each faction, individual builders also take turns.
-	-- Each faction always receives orders in its own defIDs.
+	-- In split mode each builder works its own fork: it gets a proportional,
+	-- contiguous chunk of the blueprint first, then every other building it can
+	-- build is appended as a followup so it helps peers once its own chunk is
+	-- done. Buildings are substituted to each builder's own faction. There is no
+	-- faction round-robin -- the split tracks build power, not a flat 50/50 per
+	-- side. Orders are issued per builder via GiveOrderArrayToUnitArray.
 	describe("in split mode (isBuildSplit=true)", function()
 		---@type UnsyncedWidgetMock
 		local widget
@@ -334,8 +417,8 @@ describe("api_blueprint.placeBlueprint", function()
 			widget = withArmCorSubLogic(buildArmCorWorld()):LoadWidget(WIDGET_PATH)
 		end)
 
-		it("alternates two same-faction COR builders and substitutes ARM defIDs to COR", function()
-			local calls = widget.captureUnitOrders()
+		it("gives each builder its own disjoint chunk first, then peers' buildings as followups", function()
+			local calls = widget.captureArrayOrders()
 
 			widget.WG.api_blueprint.placeBlueprint(
 				armBlueprint({
@@ -350,27 +433,32 @@ describe("api_blueprint.placeBlueprint", function()
 				{}
 			)
 
-			assert.equals(4, #calls, "one GiveOrderToUnit call per building")
+			assert.equals(2, #calls, "one GiveOrderArrayToUnitArray call per builder")
 
-			local by4, by5 = {}, {}
+			local c4, c5 = callForBuilder(calls, 4), callForBuilder(calls, 5)
+			assert.is_not_nil(c4, "corcon 4 should receive orders")
+			assert.is_not_nil(c5, "corcon 5 should receive orders")
+			---@cast c4 -nil
+			---@cast c5 -nil
+
+			-- every order is in COR defIDs (each builder builds in its own faction)
 			for _, c in ipairs(calls) do
-				if c.unitID == 4 then
-					table.insert(by4, c)
-				end
-				if c.unitID == 5 then
-					table.insert(by5, c)
+				for _, defID in ipairs(orderDefIDs(c.orders)) do
+					assert.is_true(defID == 20 or defID == 21, "expected COR defID 20/21, got " .. tostring(defID))
 				end
 			end
-			assert.equals(2, #by4, "builder 4 should receive 2 orders (round-robin)")
-			assert.equals(2, #by5, "builder 5 should receive 2 orders (round-robin)")
 
-			for _, c in ipairs(calls) do
-				assert.is_true(c.cmdID == -20 or c.cmdID == -21, "expected COR defID -20 (cormex) or -21 (corsolr), got " .. tostring(c.cmdID))
-			end
+			-- each builder gets its own 2-building chunk first, then the other 2 as
+			-- followups (4 orders total), and the two own-chunks partition all four.
+			assert.equals(4, #c4.orders, "builder 4 gets its 2-building fork plus 2 followups")
+			assert.equals(4, #c5.orders, "builder 5 gets its 2-building fork plus 2 followups")
+			local own = { orderXs(c4.orders)[1], orderXs(c4.orders)[2], orderXs(c5.orders)[1], orderXs(c5.orders)[2] }
+			table.sort(own)
+			assert.same({ 0, 16, 32, 48 }, own, "the two own-chunks should partition all four buildings")
 		end)
 
-		it("gives each faction its own defIDs when ARM and COR builders share the same blueprint", function()
-			local calls = widget.captureUnitOrders()
+		it("substitutes per builder's faction and does not force a 50/50 split", function()
+			local calls = widget.captureArrayOrders()
 
 			widget.WG.api_blueprint.placeBlueprint(
 				armBlueprint({
@@ -383,24 +471,72 @@ describe("api_blueprint.placeBlueprint", function()
 				{}
 			)
 
-			assert.equals(2, #calls, "one order per building")
+			local armCall, corCall = callForBuilder(calls, 1), callForBuilder(calls, 4)
+			assert.is_not_nil(armCall, "armcon (1) should receive orders")
+			assert.is_not_nil(corCall, "corcon (4) should receive orders")
+			---@cast armCall -nil
+			---@cast corCall -nil
 
-			local armOrder, corOrder
+			-- each builder builds both mexes (its own fork + the peer's as a
+			-- followup), each in its own faction's defID -- no faction round-robin.
+			for _, defID in ipairs(orderDefIDs(armCall.orders)) do
+				assert.equals(10, defID, "armcon should build armmex (10)")
+			end
+			for _, defID in ipairs(orderDefIDs(corCall.orders)) do
+				assert.equals(20, defID, "corcon should build cormex (20), not armmex")
+			end
+		end)
+
+		it("doubles up builders onto buildings when builders outnumber buildings", function()
+			local calls = widget.captureArrayOrders()
+
+			widget.WG.api_blueprint.placeBlueprint(
+				armBlueprint({
+					bpUnit(1, 10, "armmex", 0),
+					bpUnit(2, 10, "armmex", 16),
+				}),
+				ORIGIN,
+				{ 1, 2, 3 }, -- armcon + armhcon + armrcon, all build armmex
+				true,
+				{}
+			)
+
+			-- every builder gets work (nobody idle), and each building is queued to
+			-- more than one builder via followups
+			assert.equals(3, #calls, "all three builders should receive orders")
+			local counts = {}
 			for _, c in ipairs(calls) do
-				if c.unitID == 1 then
-					armOrder = c
-				end
-				if c.unitID == 4 then
-					corOrder = c
+				for _, x in ipairs(orderXs(c.orders)) do
+					counts[x] = (counts[x] or 0) + 1
 				end
 			end
+			assert.is_true((counts[0] or 0) >= 2, "building @0 should be queued to multiple builders")
+			assert.is_true((counts[16] or 0) >= 2, "building @16 should be queued to multiple builders")
+		end)
 
-			assert.is_not_nil(armOrder, "armcon (unitID=1) should receive an order")
-			assert.is_not_nil(corOrder, "corcon (unitID=4) should receive an order")
-			---@cast armOrder -nil
-			---@cast corOrder -nil
-			assert.equals(-10, armOrder.cmdID, "ARM builder should receive armmex defID (10)")
-			assert.equals(-20, corOrder.cmdID, "COR builder should receive cormex defID (20), not armmex (10)")
+		it("excludes buildings a builder cannot construct, even as followups", function()
+			local calls = widget.captureArrayOrders()
+
+			widget.WG.api_blueprint.placeBlueprint(
+				armBlueprint({
+					bpUnit(1, 10, "armmex", 0),
+					bpUnit(2, 11, "armsolr", 16),
+				}),
+				ORIGIN,
+				{ 1, 3 }, -- armcon (builds both) + armrcon (builds only armmex)
+				true,
+				{}
+			)
+
+			local rconCall = callForBuilder(calls, 3)
+			assert.is_not_nil(rconCall, "armrcon (3) should receive orders")
+			---@cast rconCall -nil
+
+			-- armrcon can only build armmex (10); armsolr must never appear in its
+			-- queue, not even as a followup.
+			for _, defID in ipairs(orderDefIDs(rconCall.orders)) do
+				assert.equals(10, defID, "armrcon should only ever be ordered to build armmex (10)")
+			end
 		end)
 	end)
 end)

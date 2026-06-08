@@ -21,12 +21,12 @@ local SUB = {}
 SUB.__index = SUB
 
 function SUB.new()
-    return setmetatable({
-        unitDefs = UnitDefsBuilder.new(),
-        springOverrides = {},
-        vfsIncludeOverrides = {},
-        headless = true,
-    }, SUB)
+	return setmetatable({
+		unitDefs = UnitDefsBuilder.new(),
+		springOverrides = {},
+		vfsIncludeOverrides = {},
+		headless = true,
+	}, SUB)
 end
 
 ---Register a unit definition. Delegates to the underlying UnitDefsBuilder.
@@ -35,8 +35,8 @@ end
 ---@param def table
 ---@return SpringUnsyncedBuilder
 function SUB:WithUnitDef(defID, def)
-    self.unitDefs:WithUnitDef(defID, def)
-    return self
+	self.unitDefs:WithUnitDef(defID, def)
+	return self
 end
 
 ---Place a live unit instance on the map. Errors if the def is not registered.
@@ -44,23 +44,23 @@ end
 ---@param defIDOrName number|string
 ---@return SpringUnsyncedBuilder
 function SUB:WithUnit(unitID, defIDOrName)
-    self.unitDefs:WithUnit(unitID, defIDOrName)
-    return self
+	self.unitDefs:WithUnit(unitID, defIDOrName)
+	return self
 end
 
 ---Load real BAR UnitDefs from gamedata into the registry.
 ---@return SpringUnsyncedBuilder
 function SUB:WithRealUnitDefs()
-    self.unitDefs:WithRealUnitDefs()
-    return self
+	self.unitDefs:WithRealUnitDefs()
+	return self
 end
 
 ---@param name string
 ---@param fn function|table
 ---@return SpringUnsyncedBuilder
 function SUB:WithSpringFn(name, fn)
-    self.springOverrides[name] = fn
-    return self
+	self.springOverrides[name] = fn
+	return self
 end
 
 ---Override what VFS.Include(path) returns inside the sandbox.
@@ -69,112 +69,135 @@ end
 ---@param value any
 ---@return SpringUnsyncedBuilder
 function SUB:WithVFSInclude(path, value)
-    self.vfsIncludeOverrides[path] = value
-    return self
+	self.vfsIncludeOverrides[path] = value
+	return self
 end
 
 ---@param headless boolean|nil  defaults to true
 ---@return SpringUnsyncedBuilder
 function SUB:WithHeadless(headless)
-    self.headless = headless ~= false
-    return self
+	self.headless = headless ~= false
+	return self
 end
 
 local function makeEnv(self)
-    local env = setmetatable({}, { __index = _G })
+	local env = setmetatable({}, { __index = _G })
 
-    ---@diagnostic disable-next-line: missing-fields
-    env.widget = {}
-    env.GL = {}
-    env.Platform = { gl = not self.headless }
-    env.WG = {}
-    env.widgetHandler = {
-        RemoveWidget = function() end,
-        AddAction = function() end,
-    }
-    env.UnitDefs = self.unitDefs:GetUnitDefsByID()
-    env.UnitDefNames = self.unitDefs:GetUnitDefNames()
-    env.gl = {
-        LuaShader = function() end,
-        InstanceVBOTable = {
-            pushElementInstance = function() end,
-            popElementInstance = function() end,
-        },
-    }
+	---@diagnostic disable-next-line: missing-fields
+	env.widget = {}
+	env.GL = {}
+	env.Platform = { gl = not self.headless }
+	env.WG = {}
+	env.Game = {
+		footprintScale = 2,
+	}
+	env.widgetHandler = {
+		RemoveWidget = function() end,
+		AddAction = function() end,
+	}
+	env.UnitDefs = self.unitDefs:GetUnitDefsByID()
+	env.UnitDefNames = self.unitDefs:GetUnitDefNames()
+	env.gl = {
+		LuaShader = function() end,
+		InstanceVBOTable = {
+			pushElementInstance = function() end,
+			popElementInstance = function() end,
+		},
+	}
 
-    local unitDefs = self.unitDefs
-    local springTable = {
-        Utilities                 = { IsDevMode = function() return false end },
-        Echo                      = function() end,
-        GetUnitDefID              = function(id) return unitDefs:GetUnitDefID(id) end,
-        ValidUnitID               = function() return false end,
-        GiveOrderToUnit           = function() end,
-        GiveOrderArrayToUnitArray = function() end,
-        GetGroundHeight           = function() return 0 end,
-        Pos2BuildPos              = function(_, x, y, z) return x, y, z end,
-        GetUnitBuildFacing        = function() return 0 end,
-        GetUnitPosition           = function() return 0, 0, 0 end,
-        TestBuildOrder            = function() return 0 end,
-        GetMyTeamID               = function() return 0 end,
-    }
-    for k, v in pairs(self.springOverrides) do
-        springTable[k] = v
-    end
-    env.Spring = setmetatable(springTable, { __index = _G.Spring })
+	local unitDefs = self.unitDefs
+	local springTable = {
+		Utilities = {
+			IsDevMode = function()
+				return false
+			end,
+		},
+		Echo = function() end,
+		GetUnitDefID = function(id)
+			return unitDefs:GetUnitDefID(id)
+		end,
+		ValidUnitID = function()
+			return false
+		end,
+		GiveOrderToUnit = function() end,
+		GiveOrderArrayToUnitArray = function() end,
+		GetGroundHeight = function()
+			return 0
+		end,
+		Pos2BuildPos = function(_, x, y, z)
+			return x, y, z
+		end,
+		GetUnitBuildFacing = function()
+			return 0
+		end,
+		GetUnitPosition = function()
+			return 0, 0, 0
+		end,
+		TestBuildOrder = function()
+			return 0
+		end,
+		GetMyTeamID = function()
+			return 0
+		end,
+	}
+	for k, v in pairs(self.springOverrides) do
+		springTable[k] = v
+	end
+	env.Spring = setmetatable(springTable, { __index = _G.Spring })
 
-    local realInclude = _G.VFS and _G.VFS.Include
-    local includeOverrides = self.vfsIncludeOverrides
-    env.VFS = setmetatable({
-        Include = function(path, ...)
-            local override = includeOverrides[path]
-            if override ~= nil then
-                if type(override) == "function" then
-                    return override(path, ...)
-                end
-                return override
-            end
-            if realInclude then
-                return realInclude(path, ...)
-            end
-        end,
-    }, { __index = _G.VFS })
+	local realInclude = _G.VFS and _G.VFS.Include
+	local includeOverrides = self.vfsIncludeOverrides
+	env.VFS = setmetatable({
+		Include = function(path, ...)
+			local override = includeOverrides[path]
+			if override ~= nil then
+				if type(override) == "function" then
+					return override(path, ...)
+				end
+				return override
+			end
+			if realInclude then
+				return realInclude(path, ...)
+			end
+		end,
+	}, { __index = _G.VFS })
 
-    return env
+	return env
 end
 
 ---Load the widget at widgetPath into a fresh sandboxed env and call its Initialize.
 ---@param widgetPath string
 ---@return UnsyncedWidgetMock
 function SUB:LoadWidget(widgetPath)
-    local env = makeEnv(self)
+	local env = makeEnv(self)
 
-    local chunk = assert(loadfile(widgetPath))
-    setfenv(chunk, env)
-    chunk()
-    env.widget:Initialize()
+	local chunk = assert(loadfile(widgetPath))
+	setfenv(chunk, env)
+	chunk()
+	env.widget:Initialize()
 
-    local mock = {
-        env = env,
-        WG = env.WG,
-    }
+	local mock = {
+		env = env,
+		WG = env.WG,
+	}
 
-    function mock.captureArrayOrders()
-        local calls = {}
-        env.Spring.GiveOrderArrayToUnitArray = function(unitIDs, orders, _)
-            table.insert(calls, { unitIDs = unitIDs, orders = orders })
-        end
-        return calls
-    end
+	function mock.captureArrayOrders()
+		local calls = {}
+		env.Spring.GiveOrderArrayToUnitArray = function(unitIDs, orders, _)
+			table.insert(calls, { unitIDs = unitIDs, orders = orders })
+		end
+		return calls
+	end
 
-    function mock.captureUnitOrders()
-        local calls = {}
-        env.Spring.GiveOrderToUnit = function(unitID, cmdID, _, _)
-            table.insert(calls, { unitID = unitID, cmdID = cmdID })
-        end
-        return calls
-    end
+	function mock.captureUnitOrders()
+		local calls = {}
+		env.Spring.GiveOrderToUnit = function(unitID, cmdID, _, _)
+			table.insert(calls, { unitID = unitID, cmdID = cmdID })
+		end
+		return calls
+	end
 
-    return mock
+	return mock
 end
 
 return SUB

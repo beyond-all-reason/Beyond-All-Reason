@@ -3,7 +3,6 @@ local widget = widget ---@type Widget
 -- makes the intent of our usage of Spring.Echo clear
 local FeedbackForUser = Spring.Echo
 
-local SIDES = VFS.Include("gamedata/sides_enum.lua")
 local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
 
 ---@type table<Blueprint, SerializedBlueprint>
@@ -1132,7 +1131,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end)
 
 		if #builders == 0 then
-			FeedbackForUser("[Blueprint] No builders selected.")
+			Spring.PlaySoundFile("FailedCommand", 1.0, "ui")
 			return false
 		end
 

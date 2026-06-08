@@ -267,7 +267,8 @@ end
 -- ====
 
 local SQUARE_SIZE = 8
-local BUILD_SQUARE_SIZE = SQUARE_SIZE * 2
+local FOOTPRINT_SCALE = Game.footprintScale
+local BUILD_SQUARE_SIZE = SQUARE_SIZE * FOOTPRINT_SCALE
 
 local UNIT_ALPHA = 0.6
 
@@ -634,85 +635,211 @@ local function canBuild(builderGroup, building, side, allowSubstitution)
 	return false
 end
 
+--- Distributes a blueprint's buildings across builder groups, proportional to
+--- each group's build power, with capability-aware leftover redistribution. The
+--- first order issued to each group honors the user's shift state (replacing the
+--- queue when shift wasn't held); the rest are queued.
+---
+--- When peerFollowups is true (split mode), each group also receives every other
+--- building it is capable of constructing as lower-priority followups, so a
+--- builder finishes its own fork and then helps with whatever remains. When
+--- builders outnumber buildings, the extras have empty own-chunks and simply
+--- start helping (double-up). The engine skips orders whose positions are already
+--- built, so the redundant followups self-clean.
+---@param builderGroups table<number, table> Builders grouped -- by unit type for
+--- the linear path, or one-per-builder for split.
+---@param allBuildings table The buildings to place, with positions.
+---@param cmdOpts table Command options.
+---@param peerFollowups boolean|nil If true, append peers' buildings as followups.
+local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerFollowups)
+	-- A blueprint is many build orders, so every order after the first must queue
+	-- (shift) or it would overwrite the previous one.
+	local queuedOpts = table.copy(cmdOpts)
+	queuedOpts.shift = true
+
+	local allBuilderGroups = {}
+	for key, builderGroup in pairs(builderGroups) do
+		if #builderGroup > 0 and builderGroup[1].buildSpeed > 0 then
+			local groupPower = #builderGroup * builderGroup[1].buildSpeed
+			table.insert(allBuilderGroups, {
+				group = builderGroup,
+				power = groupPower,
+				side = builderGroup[1].side,
+				key = key,
+			})
+		end
+	end
+	table.sort(allBuilderGroups, function(a, b)
+		return a.power > b.power
+	end)
+
+	-- 1. Calculate cost-based workload quotas
+	local totalBuildPower = 0
+	for _, groupData in ipairs(allBuilderGroups) do
+		totalBuildPower = totalBuildPower + groupData.power
+	end
+
+	if totalBuildPower <= 0 then
+		return
+	end
+
+	local allBuildingsWithCost = {}
+	local totalBuildCost = 0
+	for _, building in ipairs(allBuildings) do
+		local unitDef = UnitDefs[building.unitDefID]
+		local cost = (unitDef and unitDef.cost) or 0
+		table.insert(allBuildingsWithCost, { building = building, cost = cost })
+		totalBuildCost = totalBuildCost + cost
+	end
+
+	-- 2. Partition the blueprint into cost-based linear chunks
+	local chunks = {}
+	local buildingIndex = 1
+	for i, groupData in ipairs(allBuilderGroups) do
+		local proportion = groupData.power / totalBuildPower
+		local targetCostForGroup = totalBuildCost * proportion
+
+		local buildingsForGroup = {}
+		local accumulatedCost = 0
+
+		if i == #allBuilderGroups then
+			-- Last group takes all remaining buildings
+			for j = buildingIndex, #allBuildingsWithCost do
+				table.insert(buildingsForGroup, allBuildingsWithCost[j].building)
+			end
+		else
+			while buildingIndex <= #allBuildingsWithCost do
+				local currentBuilding = allBuildingsWithCost[buildingIndex]
+				local costAfterAdding = accumulatedCost + currentBuilding.cost
+
+				-- Stop if adding the next building makes the chunk's cost further from the target
+				if accumulatedCost > 0 and math.abs(costAfterAdding - targetCostForGroup) > math.abs(accumulatedCost - targetCostForGroup) then
+					break
+				end
+
+				table.insert(buildingsForGroup, currentBuilding.building)
+				accumulatedCost = costAfterAdding
+				buildingIndex = buildingIndex + 1
+			end
+		end
+
+		table.insert(chunks, { groupData = groupData, buildings = buildingsForGroup })
+	end
+
+	-- 3. Assign each group its own chunk; what a group can't build spills over
+	local assignedBuildings = {} -- groupKey -> ordered list of building objects
+	for _, groupData in ipairs(allBuilderGroups) do
+		assignedBuildings[groupData.key] = {}
+	end
+
+	local leftovers = {}
+	for _, chunk in ipairs(chunks) do
+		local groupData = chunk.groupData
+		for _, building in ipairs(chunk.buildings) do
+			if canBuild(groupData.group, building, groupData.side, true) then
+				table.insert(assignedBuildings[groupData.key], building)
+			else
+				table.insert(leftovers, building)
+			end
+		end
+	end
+
+	-- 4. Redistribute leftovers to capable groups (round-robin within a category)
+	local leftoverTracker = {} -- category -> index
+	for _, building in ipairs(leftovers) do
+		local capableGroups = {}
+		for _, groupData in ipairs(allBuilderGroups) do
+			if canBuild(groupData.group, building, groupData.side, true) then
+				table.insert(capableGroups, groupData)
+			end
+		end
+
+		if #capableGroups > 0 then
+			local targetGroupData
+			if #capableGroups == 1 then
+				targetGroupData = capableGroups[1]
+			else
+				table.sort(capableGroups, function(a, b)
+					return a.key > b.key
+				end) -- deterministic sort
+				local category = BpDefs.unitCategories[UnitDefs[building.unitDefID].name:lower()] or "uncategorized"
+				local currentIndex = (leftoverTracker[category] or 0) + 1
+				if currentIndex > #capableGroups then
+					currentIndex = 1
+				end
+				targetGroupData = capableGroups[currentIndex]
+				leftoverTracker[category] = currentIndex
+			end
+
+			if targetGroupData then
+				table.insert(assignedBuildings[targetGroupData.key], building)
+			end
+		end
+	end
+
+	-- 5. Split only: after its own chunk, give each group every other building it
+	-- can build as a followup, so each builder helps peers once its fork is done.
+	if peerFollowups then
+		for _, groupData in ipairs(allBuilderGroups) do
+			local own = {}
+			for _, building in ipairs(assignedBuildings[groupData.key]) do
+				own[building] = true
+			end
+			for _, building in ipairs(allBuildings) do
+				if not own[building] and canBuild(groupData.group, building, groupData.side, true) then
+					table.insert(assignedBuildings[groupData.key], building)
+				end
+			end
+		end
+	end
+
+	-- 6. Issue each group's orders. The first order honors the user's real shift
+	-- state (replaces the queue when not held); the rest are queued.
+	for _, groupData in ipairs(allBuilderGroups) do
+		local buildings = assignedBuildings[groupData.key]
+		if #buildings > 0 then
+			local orders = {}
+			for _, building in ipairs(buildings) do
+				local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, groupData.side)
+				if substitutedUnitDefID then
+					table.insert(orders, { -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, queuedOpts })
+				end
+			end
+			if #orders > 0 then
+				orders[1][3] = cmdOpts
+				local groupBuilderIDs = table.map(groupData.group, function(b)
+					return b.unitID
+				end)
+				Spring.GiveOrderArrayToUnitArray(groupBuilderIDs, orders, false)
+			end
+		end
+	end
+end
+
+---Groups builders so that each builder forms its own group, keyed by unitID.
+---Used by split mode, where every builder works its own fork.
+---@param builders table A list of builder info objects.
+---@return table<number, table> One group per builder.
+local function forkBuilders(builders)
+	local forkGroups = {}
+	for _, builderInfo in ipairs(builders) do
+		forkGroups[builderInfo.unitID] = { builderInfo }
+	end
+	return forkGroups
+end
+
+--- Splits a blueprint across builders so each works its own fork first, then
+--- helps peers. Building-aware: each builder only receives buildings it can
+--- construct (with faction substitution), and extra builders double up.
 ---@param builders table A list of builder info objects.
 ---@param buildings table A list of building objects.
 ---@param cmdOpts table Command options.
 local function splitBuildOrders(builders, buildings, cmdOpts)
-	local buildCount = #buildings
-	local builderCount = #builders
-
-	if buildCount == 0 or builderCount == 0 then
+	if #builders == 0 or #buildings == 0 then
 		return
 	end
 
-	-- 1. Group builders by their faction (side)
-	local buildersBySide = {}
-	for _, builderInfo in ipairs(builders) do
-		local side = builderInfo.side
-		if side then
-			buildersBySide[side] = buildersBySide[side] or {}
-			table.insert(buildersBySide[side], builderInfo)
-		end
-	end
-
-	-- 2. For each building, determine which factions can build it and distribute
-	local ordersBySide = {}
-	for side in pairs(buildersBySide) do
-		ordersBySide[side] = {}
-	end
-
-	local buildingDistribution = {} -- building_originalName -> { sides = {arm=true, cor=true}, nextSideIndex=1 }
-
-	for _, building in ipairs(buildings) do
-		local originalName = building.originalName
-		if not buildingDistribution[originalName] then
-			local capableSides = {}
-			for side, sideBuilders in pairs(buildersBySide) do
-				-- Check if any builder of this faction can build this type of building
-				if canBuild(sideBuilders, building, side, true) then
-					table.insert(capableSides, side)
-				end
-			end
-			buildingDistribution[originalName] = { sides = capableSides, nextSideIndex = 1 }
-		end
-
-		local distInfo = buildingDistribution[originalName]
-		if #distInfo.sides > 0 then
-			local targetSide = distInfo.sides[distInfo.nextSideIndex]
-			table.insert(ordersBySide[targetSide], building)
-
-			-- Cycle to the next side for the next building of this type
-			distInfo.nextSideIndex = distInfo.nextSideIndex + 1
-			if distInfo.nextSideIndex > #distInfo.sides then
-				distInfo.nextSideIndex = 1
-			end
-		end
-	end
-
-	-- 3. For each faction, distribute their assigned buildings among their builders
-	for side, sideBuilders in pairs(buildersBySide) do
-		local sideBuildings = ordersBySide[side]
-		local sideBuilderCount = #sideBuilders
-		local sideBuildingCount = #sideBuildings
-
-		if sideBuildingCount > 0 and sideBuilderCount > 0 then
-			local builderIndex = 1
-			for i = 1, sideBuildingCount do
-				local building = sideBuildings[i]
-				local builderInfo = sideBuilders[builderIndex]
-
-				local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, side)
-				if substitutedUnitDefID then
-					Spring.GiveOrderToUnit(builderInfo.unitID, -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, cmdOpts)
-				end
-
-				builderIndex = builderIndex + 1
-				if builderIndex > sideBuilderCount then
-					builderIndex = 1
-				end
-			end
-		end
-	end
+	distributeBuildOrders(forkBuilders(builders), buildings, cmdOpts, true)
 end
 
 --- Gives build orders for a blueprint to a set of builders.
@@ -725,9 +852,6 @@ local function placeBlueprint(blueprint, buildPositions, builders, isBuildSplit,
 	local builderGroups = groupBuilders(builders)
 	local allBuildings = createBuildings(blueprint, buildPositions)
 
-	local newOpts = table.copy(cmdOpts)
-	newOpts.shift = true
-
 	if isBuildSplit then
 		local allBuilders = {}
 		for _, builderID in ipairs(builders) do
@@ -737,163 +861,9 @@ local function placeBlueprint(blueprint, buildPositions, builders, isBuildSplit,
 			end
 		end
 
-		if #allBuilders == 0 then
-			return
-		end
-
-		splitBuildOrders(allBuilders, allBuildings, newOpts)
+		splitBuildOrders(allBuilders, allBuildings, cmdOpts)
 	else
-		-- Regular mode: Proportional, sequential assignment
-		local allBuilderGroups = {}
-		for unitDefID, builderGroup in pairs(builderGroups) do
-			if #builderGroup > 0 and builderGroup[1].buildSpeed > 0 then
-				local groupPower = #builderGroup * builderGroup[1].buildSpeed
-				table.insert(allBuilderGroups, {
-					group = builderGroup,
-					power = groupPower,
-					side = builderGroup[1].side,
-					key = unitDefID,
-				})
-			end
-		end
-		table.sort(allBuilderGroups, function(a, b)
-			return a.power > b.power
-		end)
-
-		-- 1. Calculate cost-based workload quotas
-		local totalBuildPower = 0
-		for _, groupData in ipairs(allBuilderGroups) do
-			totalBuildPower = totalBuildPower + groupData.power
-		end
-
-		if totalBuildPower > 0 then
-			local allBuildingsWithCost = {}
-			local totalBuildCost = 0
-			for _, building in ipairs(allBuildings) do
-				local unitDef = UnitDefs[building.unitDefID]
-				local cost = (unitDef and unitDef.cost) or 0
-				table.insert(allBuildingsWithCost, { building = building, cost = cost })
-				totalBuildCost = totalBuildCost + cost
-			end
-
-			-- 2. Partition the blueprint into cost-based linear chunks
-			local chunks = {}
-			local buildingIndex = 1
-			for i, groupData in ipairs(allBuilderGroups) do
-				local proportion = groupData.power / totalBuildPower
-				local targetCostForGroup = totalBuildCost * proportion
-
-				local buildingsForGroup = {}
-				local accumulatedCost = 0
-
-				if i == #allBuilderGroups then
-					-- Last group takes all remaining buildings
-					for j = buildingIndex, #allBuildingsWithCost do
-						table.insert(buildingsForGroup, allBuildingsWithCost[j].building)
-					end
-				else
-					while buildingIndex <= #allBuildingsWithCost do
-						local currentBuilding = allBuildingsWithCost[buildingIndex]
-						local costAfterAdding = accumulatedCost + currentBuilding.cost
-
-						-- Stop if adding the next building makes the chunk's cost further from the target
-						if accumulatedCost > 0 and math.abs(costAfterAdding - targetCostForGroup) > math.abs(accumulatedCost - targetCostForGroup) then
-							break
-						end
-
-						table.insert(buildingsForGroup, currentBuilding.building)
-						accumulatedCost = costAfterAdding
-						buildingIndex = buildingIndex + 1
-					end
-				end
-
-				table.insert(chunks, { groupData = groupData, buildings = buildingsForGroup })
-			end
-
-			-- 3. Resolve chunks and create final orders
-			local finalOrders = {}
-			local leftovers = {}
-			for _, groupData in ipairs(allBuilderGroups) do
-				finalOrders[groupData.key] = {}
-			end
-
-			for _, chunk in ipairs(chunks) do
-				local groupData = chunk.groupData
-				local builderGroup = groupData.group
-				local groupSide = groupData.side
-				local groupKey = groupData.key
-
-				for _, building in ipairs(chunk.buildings) do
-					if canBuild(builderGroup, building, groupSide, true) then
-						local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, groupSide)
-						if substitutedUnitDefID then
-							table.insert(finalOrders[groupKey], { -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, newOpts })
-						end
-					else
-						table.insert(leftovers, building)
-					end
-				end
-			end
-
-			-- 4. Handle leftovers
-			local leftoverTracker = {} -- category -> index
-			for _, building in ipairs(leftovers) do
-				-- Find all capable groups for this leftover
-				local capableGroups = {}
-				for _, groupData in ipairs(allBuilderGroups) do
-					if canBuild(groupData.group, building, groupData.side, true) then
-						table.insert(capableGroups, groupData)
-					end
-				end
-
-				if #capableGroups > 0 then
-					-- Round-robin assignment
-					local targetGroupData
-					if #capableGroups == 1 then
-						targetGroupData = capableGroups[1]
-					else
-						table.sort(capableGroups, function(a, b)
-							return a.key > b.key
-						end) -- deterministic sort
-						local category = BpDefs.unitCategories[UnitDefs[building.unitDefID].name:lower()] or "uncategorized"
-						local currentIndex = (leftoverTracker[category] or 0) + 1
-						if currentIndex > #capableGroups then
-							currentIndex = 1
-						end
-						targetGroupData = capableGroups[currentIndex]
-						leftoverTracker[category] = currentIndex
-					end
-
-					if targetGroupData then
-						local groupKey = targetGroupData.key
-						local groupSide = targetGroupData.side
-						local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, groupSide)
-						if substitutedUnitDefID then
-							table.insert(finalOrders[groupKey], { -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, newOpts })
-						end
-					end
-				end
-			end
-
-			-- 5. Issue commands
-			for groupKey, orders in pairs(finalOrders) do
-				if #orders > 0 then
-					local groupData
-					for _, gd in ipairs(allBuilderGroups) do
-						if gd.key == groupKey then
-							groupData = gd
-							break
-						end
-					end
-					if groupData then
-						local groupBuilderIDs = table.map(groupData.group, function(b)
-							return b.unitID
-						end)
-						Spring.GiveOrderArrayToUnitArray(groupBuilderIDs, orders, false)
-					end
-				end
-			end
-		end
+		distributeBuildOrders(builderGroups, allBuildings, cmdOpts)
 	end
 end
 
