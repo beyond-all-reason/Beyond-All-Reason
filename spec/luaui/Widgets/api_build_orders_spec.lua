@@ -8,7 +8,7 @@ local Builders = VFS.Include("spec/builders/index.lua")
 
 local UnitDef = Builders.UnitDef
 
-local WIDGET_PATH = "luaui/Widgets/api_blueprint.lua"
+local WIDGET_PATH = "luaui/Widgets/api_build_orders.lua"
 local DEFINITIONS_PATH = "luaui/Include/blueprint_substitution/definitions.lua"
 local LOGIC_PATH = "luaui/Include/blueprint_substitution/logic.lua"
 
@@ -16,8 +16,8 @@ local LOGIC_PATH = "luaui/Include/blueprint_substitution/logic.lua"
 -- SubLogic mocks
 --
 -- The real definitions/logic modules iterate UnitDefs at load and pull in
--- the full BAR substitution table; here we stub them so placeBlueprint sees
--- a known getEquivalentUnitDefID contract and we can test its algorithm in
+-- the full BAR substitution table; here we stub them so the engine sees a
+-- known getEquivalentUnitDefID contract and we can test its algorithm in
 -- isolation. A future integration spec can use the real includes.
 -- ============================================================
 
@@ -94,7 +94,7 @@ end
 -- A two-faction world: ARM and COR, each with its own metal extractor and
 -- solar collector. Three ARM constructors (standard, heavy, recon-only) and
 -- two COR constructors (one player owns two of them) give us the variation
--- needed for proportional and round-robin tests.
+-- needed for proportional and fork/followup tests.
 local function buildArmCorWorld()
 	return Builders
 		.SpringUnsynced
@@ -121,11 +121,10 @@ end
 -- Helpers
 -- ============================================================
 
-local function armBlueprint(units)
-	return { units = units, name = "test", spacing = 0, facing = 0 }
-end
-
-local function bpUnit(blueprintUnitID, defID, name, x)
+-- A building object as produced by api_blueprint.createBuildings and consumed by
+-- the engine (identity-positioned here, which is what createBuildings yields at
+-- facing 0 / a single origin in the mock).
+local function building(blueprintUnitID, defID, name, x)
 	return {
 		blueprintUnitID = blueprintUnitID,
 		unitDefID = defID,
@@ -135,7 +134,18 @@ local function bpUnit(blueprintUnitID, defID, name, x)
 	}
 end
 
-local ORIGIN = { { 0, 0, 0 } }
+-- Resolve a list of unit IDs to BuilderInfo objects via the engine's own
+-- getBuilderInfo, dropping any that don't resolve (mirrors placeBlueprint).
+local function builderInfos(bo, ids)
+	local infos = {}
+	for _, id in ipairs(ids) do
+		local info = bo.getBuilderInfo(id)
+		if info then
+			table.insert(infos, info)
+		end
+	end
+	return infos
+end
 
 -- Extract positive building defIDs from a GiveOrderArrayToUnitArray orders list.
 local function orderDefIDs(orders)
@@ -174,7 +184,7 @@ end
 -- Tests
 -- ============================================================
 
-describe("api_blueprint.placeBlueprint", function()
+describe("api_build_orders", function()
 	describe("with no real units to act on", function()
 		---@type UnsyncedWidgetMock
 		local widget
@@ -183,24 +193,25 @@ describe("api_blueprint.placeBlueprint", function()
 			widget = withMinimalSubLogic(Builders.SpringUnsynced.new()):LoadWidget(WIDGET_PATH)
 		end)
 
-		it("issues no orders when buildPositions is empty", function()
-			local arrayCalls = widget.captureArrayOrders()
-			local unitCalls = widget.captureUnitOrders()
-			widget.WG.api_blueprint.placeBlueprint(armBlueprint({}), {}, {}, false, {})
-			assert.equals(0, #arrayCalls)
-			assert.equals(0, #unitCalls)
+		it("issues no orders when there are no buildings", function()
+			local bo = widget.WG.api_build_orders
+			local calls = widget.captureArrayOrders()
+			bo.distributeBuildOrders(bo.groupBuilders({}), {}, {})
+			assert.equals(0, #calls)
 		end)
 
 		it("in split mode, issues no orders when the builders list is empty", function()
-			local calls = widget.captureUnitOrders()
-			widget.WG.api_blueprint.placeBlueprint(armBlueprint({}), ORIGIN, {}, true, {})
+			local bo = widget.WG.api_build_orders
+			local calls = widget.captureArrayOrders()
+			bo.splitBuildOrders({}, { building(1, 10, "armmex", 0) }, {})
 			assert.equals(0, #calls)
 		end)
 
 		it("in split mode, issues no orders when no builder has a valid unit def", function()
-			-- GetUnitDefID returns nil for unmapped IDs (default mock)
-			local calls = widget.captureUnitOrders()
-			widget.WG.api_blueprint.placeBlueprint(armBlueprint({}), ORIGIN, { 100, 101 }, true, {})
+			-- getBuilderInfo returns nil for unmapped IDs (default mock)
+			local bo = widget.WG.api_build_orders
+			local calls = widget.captureArrayOrders()
+			bo.splitBuildOrders(builderInfos(bo, { 100, 101 }), { building(1, 10, "armmex", 0) }, {})
 			assert.equals(0, #calls)
 		end)
 	end)
@@ -209,18 +220,19 @@ describe("api_blueprint.placeBlueprint", function()
 		it("issues no orders", function()
 			local widget = withMinimalSubLogic(Builders.SpringUnsynced.new():WithUnitDef(UnitDef.new("armcon"):WithDefID(42):WithSpeed(0)):WithUnit(1, "armcon")):LoadWidget(WIDGET_PATH)
 
+			local bo = widget.WG.api_build_orders
 			local calls = widget.captureArrayOrders()
-			widget.WG.api_blueprint.placeBlueprint(armBlueprint({}), ORIGIN, { 1 }, false, {})
+			bo.distributeBuildOrders(bo.groupBuilders({ 1 }), {}, {})
 			assert.equals(0, #calls)
 		end)
 	end)
 
-	-- In sequential mode, builder groups are sorted by total build power
-	-- (count × speed). Buildings are partitioned into cost-proportional
-	-- chunks, the highest-power group gets the first chunk, the last group
-	-- takes whatever remains. Buildings a group cannot construct become
-	-- "leftovers" that get round-robined to any capable group.
-	describe("in sequential mode (isBuildSplit=false)", function()
+	-- distributeBuildOrders: builder groups are sorted by total build power
+	-- (count × speed). Buildings are partitioned into cost-proportional chunks,
+	-- the highest-power group gets the first chunk, the last group takes whatever
+	-- remains. Buildings a group cannot construct become "leftovers" that get
+	-- round-robined to any capable group.
+	describe("distributeBuildOrders (proportional / sequential)", function()
 		---@type UnsyncedWidgetMock
 		local widget
 
@@ -229,18 +241,13 @@ describe("api_blueprint.placeBlueprint", function()
 		end)
 
 		it("issues ARM orders to an ARM builder placing an ARM blueprint", function()
+			local bo = widget.WG.api_build_orders
 			local calls = widget.captureArrayOrders()
 
-			widget.WG.api_blueprint.placeBlueprint(
-				armBlueprint({
-					bpUnit(1, 10, "armmex", 0),
-					bpUnit(2, 11, "armsolr", 16),
-				}),
-				ORIGIN,
-				{ 1 }, -- armcon
-				false,
-				{}
-			)
+			bo.distributeBuildOrders(bo.groupBuilders({ 1 }), {
+				building(1, 10, "armmex", 0),
+				building(2, 11, "armsolr", 16),
+			}, {})
 
 			assert.equals(1, #calls)
 			local call = calls[1]
@@ -249,21 +256,16 @@ describe("api_blueprint.placeBlueprint", function()
 			assert.same({ 10, 11 }, orderDefIDs(call.orders))
 		end)
 
-		it("substitutes ARM defIDs to COR equivalents when a COR builder places an ARM blueprint", function()
+		it("substitutes ARM defIDs to COR equivalents when a COR builder builds an ARM blueprint", function()
 			-- Documents the bug fix: passing a string name to getEquivalentUnitDefID
 			-- caused canBuild() to always return false for cross-faction placements.
+			local bo = widget.WG.api_build_orders
 			local calls = widget.captureArrayOrders()
 
-			widget.WG.api_blueprint.placeBlueprint(
-				armBlueprint({
-					bpUnit(1, 10, "armmex", 0),
-					bpUnit(2, 11, "armsolr", 16),
-				}),
-				ORIGIN,
-				{ 4 }, -- corcon
-				false,
-				{}
-			)
+			bo.distributeBuildOrders(bo.groupBuilders({ 4 }), {
+				building(1, 10, "armmex", 0),
+				building(2, 11, "armsolr", 16),
+			}, {})
 
 			assert.equals(1, #calls)
 			local call = calls[1]
@@ -273,20 +275,15 @@ describe("api_blueprint.placeBlueprint", function()
 		end)
 
 		it("distributes 4 buildings 3:1 between armhcon and armcon (build power 300:100)", function()
+			local bo = widget.WG.api_build_orders
 			local calls = widget.captureArrayOrders()
 
-			widget.WG.api_blueprint.placeBlueprint(
-				armBlueprint({
-					bpUnit(1, 10, "armmex", 0),
-					bpUnit(2, 10, "armmex", 16),
-					bpUnit(3, 10, "armmex", 32),
-					bpUnit(4, 10, "armmex", 48),
-				}),
-				ORIGIN,
-				{ 1, 2 }, -- armcon + armhcon
-				false,
-				{}
-			)
+			bo.distributeBuildOrders(bo.groupBuilders({ 1, 2 }), {
+				building(1, 10, "armmex", 0),
+				building(2, 10, "armmex", 16),
+				building(3, 10, "armmex", 32),
+				building(4, 10, "armmex", 48),
+			}, {})
 
 			assert.equals(2, #calls, "expected one GiveOrderArrayToUnitArray call per builder group")
 
@@ -313,20 +310,15 @@ describe("api_blueprint.placeBlueprint", function()
 			-- and totalPower=300 (armrcon=200, armcon=100), armrcon's 0.67 share
 			-- targets [armsolr×3] but it can build none of them — so all 3 spill
 			-- to armcon, which already had the 1 armmex from its own slice.
+			local bo = widget.WG.api_build_orders
 			local calls = widget.captureArrayOrders()
 
-			widget.WG.api_blueprint.placeBlueprint(
-				armBlueprint({
-					bpUnit(1, 11, "armsolr", 0),
-					bpUnit(2, 11, "armsolr", 16),
-					bpUnit(3, 11, "armsolr", 32),
-					bpUnit(4, 10, "armmex", 48),
-				}),
-				ORIGIN,
-				{ 1, 3 }, -- armcon + armrcon
-				false,
-				{}
-			)
+			bo.distributeBuildOrders(bo.groupBuilders({ 1, 3 }), {
+				building(1, 11, "armsolr", 0),
+				building(2, 11, "armsolr", 16),
+				building(3, 11, "armsolr", 32),
+				building(4, 10, "armmex", 48),
+			}, {})
 
 			for _, c in ipairs(calls) do
 				assert.not_equals(3, c.unitIDs[1], "armrcon (unitID=3) should not receive any orders")
@@ -349,19 +341,14 @@ describe("api_blueprint.placeBlueprint", function()
 			-- The first order keeps the caller's cmdOpts so it replaces the queue
 			-- when shift isn't held; the rest force shift so the blueprint's other
 			-- buildings queue instead of overwriting one another.
+			local bo = widget.WG.api_build_orders
 			local calls = widget.captureArrayOrders()
 
-			widget.WG.api_blueprint.placeBlueprint(
-				armBlueprint({
-					bpUnit(1, 10, "armmex", 0),
-					bpUnit(2, 11, "armsolr", 16),
-					bpUnit(3, 10, "armmex", 32),
-				}),
-				ORIGIN,
-				{ 1 }, -- armcon
-				false,
-				{} -- shift not held
-			)
+			bo.distributeBuildOrders(bo.groupBuilders({ 1 }), {
+				building(1, 10, "armmex", 0),
+				building(2, 11, "armsolr", 16),
+				building(3, 10, "armmex", 32),
+			}, {}) -- shift not held
 
 			assert.equals(1, #calls)
 			local orders = calls[1].orders
@@ -376,19 +363,14 @@ describe("api_blueprint.placeBlueprint", function()
 			-- Proportionality tracks each group's total build power, which scales
 			-- with builder count: two corcon (power 200) take twice the share of one
 			-- armcon (power 100) -- not a flat 50/50. (efrec's #cons>>>#cons case.)
+			local bo = widget.WG.api_build_orders
 			local calls = widget.captureArrayOrders()
 
-			widget.WG.api_blueprint.placeBlueprint(
-				armBlueprint({
-					bpUnit(1, 10, "armmex", 0),
-					bpUnit(2, 10, "armmex", 16),
-					bpUnit(3, 10, "armmex", 32),
-				}),
-				ORIGIN,
-				{ 1, 4, 5 }, -- one armcon + two corcon
-				false,
-				{}
-			)
+			bo.distributeBuildOrders(bo.groupBuilders({ 1, 4, 5 }), {
+				building(1, 10, "armmex", 0),
+				building(2, 10, "armmex", 16),
+				building(3, 10, "armmex", 32),
+			}, {})
 
 			assert.equals(2, #calls, "one call per builder group (armcon, corcon)")
 
@@ -403,13 +385,12 @@ describe("api_blueprint.placeBlueprint", function()
 		end)
 	end)
 
-	-- In split mode each builder works its own fork: it gets a proportional,
-	-- contiguous chunk of the blueprint first, then every other building it can
-	-- build is appended as a followup so it helps peers once its own chunk is
-	-- done. Buildings are substituted to each builder's own faction. There is no
-	-- faction round-robin -- the split tracks build power, not a flat 50/50 per
-	-- side. Orders are issued per builder via GiveOrderArrayToUnitArray.
-	describe("in split mode (isBuildSplit=true)", function()
+	-- splitBuildOrders: each builder works its own fork -- a proportional,
+	-- contiguous chunk first, then every other building it can build appended as a
+	-- followup so it helps peers once its own chunk is done. Buildings are
+	-- substituted to each builder's own faction. There is no faction round-robin --
+	-- the split tracks build power, not a flat 50/50 per side.
+	describe("splitBuildOrders (per-builder forks)", function()
 		---@type UnsyncedWidgetMock
 		local widget
 
@@ -418,20 +399,15 @@ describe("api_blueprint.placeBlueprint", function()
 		end)
 
 		it("gives each builder its own disjoint chunk first, then peers' buildings as followups", function()
+			local bo = widget.WG.api_build_orders
 			local calls = widget.captureArrayOrders()
 
-			widget.WG.api_blueprint.placeBlueprint(
-				armBlueprint({
-					bpUnit(1, 10, "armmex", 0),
-					bpUnit(2, 10, "armmex", 16),
-					bpUnit(3, 11, "armsolr", 32),
-					bpUnit(4, 11, "armsolr", 48),
-				}),
-				ORIGIN,
-				{ 4, 5 }, -- two corcon
-				true,
-				{}
-			)
+			bo.splitBuildOrders(builderInfos(bo, { 4, 5 }), {
+				building(1, 10, "armmex", 0),
+				building(2, 10, "armmex", 16),
+				building(3, 11, "armsolr", 32),
+				building(4, 11, "armsolr", 48),
+			}, {})
 
 			assert.equals(2, #calls, "one GiveOrderArrayToUnitArray call per builder")
 
@@ -458,18 +434,13 @@ describe("api_blueprint.placeBlueprint", function()
 		end)
 
 		it("substitutes per builder's faction and does not force a 50/50 split", function()
+			local bo = widget.WG.api_build_orders
 			local calls = widget.captureArrayOrders()
 
-			widget.WG.api_blueprint.placeBlueprint(
-				armBlueprint({
-					bpUnit(1, 10, "armmex", 0),
-					bpUnit(2, 10, "armmex", 16),
-				}),
-				ORIGIN,
-				{ 1, 4 }, -- armcon + corcon
-				true,
-				{}
-			)
+			bo.splitBuildOrders(builderInfos(bo, { 1, 4 }), {
+				building(1, 10, "armmex", 0),
+				building(2, 10, "armmex", 16),
+			}, {})
 
 			local armCall, corCall = callForBuilder(calls, 1), callForBuilder(calls, 4)
 			assert.is_not_nil(armCall, "armcon (1) should receive orders")
@@ -488,18 +459,13 @@ describe("api_blueprint.placeBlueprint", function()
 		end)
 
 		it("doubles up builders onto buildings when builders outnumber buildings", function()
+			local bo = widget.WG.api_build_orders
 			local calls = widget.captureArrayOrders()
 
-			widget.WG.api_blueprint.placeBlueprint(
-				armBlueprint({
-					bpUnit(1, 10, "armmex", 0),
-					bpUnit(2, 10, "armmex", 16),
-				}),
-				ORIGIN,
-				{ 1, 2, 3 }, -- armcon + armhcon + armrcon, all build armmex
-				true,
-				{}
-			)
+			bo.splitBuildOrders(builderInfos(bo, { 1, 2, 3 }), {
+				building(1, 10, "armmex", 0),
+				building(2, 10, "armmex", 16),
+			}, {})
 
 			-- every builder gets work (nobody idle), and each building is queued to
 			-- more than one builder via followups
@@ -515,18 +481,13 @@ describe("api_blueprint.placeBlueprint", function()
 		end)
 
 		it("excludes buildings a builder cannot construct, even as followups", function()
+			local bo = widget.WG.api_build_orders
 			local calls = widget.captureArrayOrders()
 
-			widget.WG.api_blueprint.placeBlueprint(
-				armBlueprint({
-					bpUnit(1, 10, "armmex", 0),
-					bpUnit(2, 11, "armsolr", 16),
-				}),
-				ORIGIN,
-				{ 1, 3 }, -- armcon (builds both) + armrcon (builds only armmex)
-				true,
-				{}
-			)
+			bo.splitBuildOrders(builderInfos(bo, { 1, 3 }), {
+				building(1, 10, "armmex", 0),
+				building(2, 11, "armsolr", 16),
+			}, {})
 
 			local rconCall = callForBuilder(calls, 3)
 			assert.is_not_nil(rconCall, "armrcon (3) should receive orders")

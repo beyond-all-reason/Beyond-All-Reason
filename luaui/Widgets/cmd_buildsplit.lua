@@ -120,7 +120,7 @@ function widget:Update()
 		local uDef = UnitDefs[uDefID]
 		if uDef and uDef.buildOptions and #uDef.buildOptions > 0 then
 			for _, uID in ipairs(uIDs) do
-				local builderInfo = WG["api_blueprint"].getBuilderInfo(uID)
+				local builderInfo = WG["api_build_orders"].getBuilderInfo(uID)
 				if builderInfo then
 					table.insert(builders, builderInfo)
 				end
@@ -138,7 +138,7 @@ function widget:Update()
 		})
 	end
 
-	WG["api_blueprint"].splitBuildOrders(builders, buildings, { "shift" })
+	WG["api_build_orders"].splitBuildOrders(builders, buildings, { "shift" })
 
 	buildCount = 0
 end
