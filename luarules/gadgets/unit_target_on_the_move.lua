@@ -533,13 +533,13 @@ if gadgetHandler:IsSyncedCode() then
 		local unitData = unitTargets[unitID] or pausedTargets[unitID]
 		local nParams = #cmdParams
 
+		if nParams == 4 and cmdParams[4] < 1 then
+			cmdParams[4] = nil
+			nParams = 3
+		end
+
 		if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
 			local addTargetList
-
-			if nParams == 4 and cmdParams[4] < 1 then
-				cmdParams[4] = nil
-				nParams = 3
-			end
 
 			local weaponList = unitWeapons[unitDefID]
 			local append = cmdOptions.shift or false
