@@ -651,24 +651,22 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				if nParams == 0 then
 					removeUnit(unitID)
-				elseif nParams == 1 and cmdOptions.alt then
-					--it's a position in the queue
-					removeTarget(unitID, cmdParams[1])
-				elseif nParams == 1 and not cmdOptions.alt then
-					--target is unitID
-					for index, val in ipairs(unitData.targets) do
-						if tonumber(val) then
-							--element is a unitID
-							if val == cmdParams[1] then
+				elseif nParams == 1 then
+					if cmdOptions.alt then
+						local targetIndex = cmdParams[1]
+						removeTarget(unitID, targetIndex)
+					else
+						local targetID = cmdParams[1]
+						for index, targetData in ipairs(unitData.targets) do
+							if targetData.target == targetID then
 								removeTarget(unitID, index)
 								break
 							end
 						end
 					end
 				elseif nParams == 3 then
-					--target is a location
-					for index, val in ipairs(unitData.targets) do
-						if type(val) == "table" and inCancelDistance(val, cmdParams) then
+					for index, targetData in ipairs(unitData.targets) do
+						if type(targetData.target) == "table" and inCancelDistance(targetData.target, cmdParams) then
 							removeTarget(unitID, index)
 						end
 					end
