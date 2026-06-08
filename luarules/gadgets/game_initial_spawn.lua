@@ -299,6 +299,7 @@ if gadgetHandler:IsSyncedCode() then
 		--for _, playerID in pairs(playerList) do
 		--	Spring.SetGameRulesParam("player_" .. playerID .. "_ready_status", 0)
 		--end
+
 	end
 
 	----------------------------------------------------------------
@@ -307,7 +308,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- keep track of choosing faction ingame
 	function gadget:RecvLuaMsg(msg, playerID)
 		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
-		
+
 		local startUnit = false
 		if string.sub(msg, 1, string.len("changeStartUnit")) == "changeStartUnit" then
 			startUnit = tonumber(msg:match(changeStartUnitRegex))
@@ -358,7 +359,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not playerIsSpec and (draftMode ~= nil and draftMode ~= "disabled") then
 			DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
 		end
-		
+
 		if string.sub(msg, 1, 17) == "aiPlacedPosition:" then
 			local data = string.sub(msg, 18)
 			local teamID, x, z = string.match(data, "(%d+):([%d%.]+):([%d%.]+)")
@@ -622,7 +623,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function spawnRegularly(teamID, allyTeamID)
 		local x, _, z = Spring.GetTeamStartPosition(teamID)
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-		
+
 		if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
 			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
 				-- guess points for the ones classified in startPointTable as not genuine
@@ -690,7 +691,18 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local lastGameFrame = 0
 	function gadget:GameFrame(n)
+		-- for debug purpose
+		-- if GG.SpawnEnvironmentalLightning then
+		-- 	if n > lastGameFrame then
+		-- 		lastGameFrame = n + 110
+		-- 		for _, unitID in ipairs(Spring.GetAllUnits()) do
+		-- 			local x, y, z = Spring.GetUnitPosition(unitID)
+		-- 			GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
+		-- 		end
+		-- 	end
+		-- end
 		if not scenarioSpawnsUnits then
             if n == spawnInitialFrame then
 
@@ -699,6 +711,9 @@ if gadgetHandler:IsSyncedCode() then
                     local y = startUnitList[i].y
                     local z = startUnitList[i].z
                     Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+                    if GG.SpawnEnvironmentalLightning then
+                        GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
+                    end
 					GG.ComSpawnDefoliate(x, y, z)
 
                 end
@@ -717,7 +732,7 @@ if gadgetHandler:IsSyncedCode() then
             end
 		end
 		if n > spawnWarpInFrame then
-			gadgetHandler:RemoveGadget(self)
+			--gadgetHandler:RemoveGadget(self)
 		end
 	end
 

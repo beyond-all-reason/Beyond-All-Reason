@@ -89,6 +89,9 @@ if gadgetHandler:IsSyncedCode() then
 			local ex,ey,ez = spGetUnitPosition(effigyID)
 			Spring.SetUnitPosition(unitID, ex, ez, true)
 			Spring.SpawnCEG("commander-spawn", ex, ey, ez, 0, 0, 0)
+			if GG.SpawnEnvironmentalLightning then
+				GG.SpawnEnvironmentalLightning("commanderspawn", ex, ey, ez)
+			end
 			Spring.PlaySoundFile("commanderspawn-mono", 1.0, ex, ey, ez, 0, 0, 0, "sfx")
 			GG.ComSpawnDefoliate(ex, ey, ez)
 
@@ -100,6 +103,9 @@ if gadgetHandler:IsSyncedCode() then
 			if meta.respawn_pad == "false" then
 				Spring.SetUnitPosition(effigyID, x, z, true)
 				Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+				if GG.SpawnEnvironmentalLightning then
+					GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
+				end
 				Spring.PlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
 				GG.ComSpawnDefoliate(x, y, z)
 			end
@@ -125,7 +131,7 @@ if gadgetHandler:IsSyncedCode() then
 			if meta.respawn_health then
 				respawnHealth = meta.respawn_health
 			end
-			
+
 			if meta.respawn_stun_duration then
 				stunDuration = meta.respawn_stun_duration
 			end
