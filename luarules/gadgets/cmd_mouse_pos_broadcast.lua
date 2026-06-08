@@ -157,7 +157,7 @@ else
 			updateTick = updateTimer + saveEach
 		end
 
-		if n > numMousePos then
+		if n >= numMousePos then
 			n = 0
 			updateTimer = 0
 			updateTick = saveEach
