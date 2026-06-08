@@ -12,7 +12,10 @@ jobs:
     env:
       FEDORA_VERSION: '43'
     container:
-      image: fedora:${{ env.FEDORA_VERSION }}
+      # NOTE: keep this in sync with env.FEDORA_VERSION below. The `env`
+      # context is not available in `container.image` (evaluated too early),
+      # so the version must be hardcoded here.
+      image: fedora:43
 
     steps:
     - uses: actions/checkout@v5
