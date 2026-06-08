@@ -77,6 +77,7 @@ if gadgetHandler:IsSyncedCode() then
 	local diag = math.diag
 	local pairsNext = next
 	local tonumber = tonumber
+	local type = type
 
 	local isEnqueuedFirst = Game.Commands.IsEnqueuedFirst
 
@@ -268,10 +269,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local los = spGetUnitLosState(targetData.target, allyTeam, true)
 		return not los or los % 4 == 0
-	end
-
-	local function distance(posA, posB)
-		diag(posA[1] - posB[1], posA[2] - posB[2], posA[3] - posB[3])
 	end
 
 	--------------------------------------------------------------------------------
@@ -526,6 +523,10 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
+	local function inCancelDistance(posA, posB)
+		return diag(posA[1] - posB[1], posA[2] - posB[2], posA[3] - posB[3]) < deleteMaxDistance
+	end
+
 	local function processCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
 		--tracy.ZoneBeginN(string.format("processCommand %d %d %d %d %s %s", unitID, unitDefID, teamID, cmdID, tostring(cmdParams), tostring(cmdOptions)))
 		--tracy.Message(string.format("processCommand params=%s oprt=%s", Json.encode(cmdParams), Json.encode(cmdOptions)))
@@ -667,12 +668,8 @@ if gadgetHandler:IsSyncedCode() then
 				elseif nParams == 3 then
 					--target is a location
 					for index, val in ipairs(unitData.targets) do
-						if not tonumber(val) and val then
-							--element is not a unitID
-							if distance(val, cmdParams) < deleteMaxDistance then
-								removeTarget(unitID, index)
-								break
-							end
+						if type(val) == "table" and inCancelDistance(val, cmdParams) then
+							removeTarget(unitID, index)
 						end
 					end
 				end
