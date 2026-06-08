@@ -76,7 +76,7 @@ if gadgetHandler:IsSyncedCode() then
 	local max = math.max
 	local diag = math.diag
 	local pairsNext = next
-	local tonumber = tonumber
+	local type = type
 
 	local isEnqueuedFirst = Game.Commands.IsEnqueuedFirst
 
@@ -268,10 +268,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local los = spGetUnitLosState(targetData.target, allyTeam, true)
 		return not los or los % 4 == 0
-	end
-
-	local function distance(posA, posB)
-		diag(posA[1] - posB[1], posA[2] - posB[2], posA[3] - posB[3])
 	end
 
 	--------------------------------------------------------------------------------
@@ -526,19 +522,23 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
+	local function inCancelDistance(posA, posB)
+		return diag(posA[1] - posB[1], posA[2] - posB[2], posA[3] - posB[3]) < deleteMaxDistance
+	end
+
 	local function processCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
 		--tracy.ZoneBeginN(string.format("processCommand %d %d %d %d %s %s", unitID, unitDefID, teamID, cmdID, tostring(cmdParams), tostring(cmdOptions)))
 		--tracy.Message(string.format("processCommand params=%s oprt=%s", Json.encode(cmdParams), Json.encode(cmdOptions)))
 		local unitData = unitTargets[unitID] or pausedTargets[unitID]
 		local nParams = #cmdParams
 
+		if nParams == 4 and cmdParams[4] < 1 then
+			cmdParams[4] = nil
+			nParams = 3
+		end
+
 		if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
 			local addTargetList
-
-			if nParams == 4 and cmdParams[4] < 1 then
-				cmdParams[4] = nil
-				nParams = 3
-			end
 
 			local weaponList = unitWeapons[unitDefID]
 			local append = cmdOptions.shift or false
@@ -650,29 +650,23 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				if nParams == 0 then
 					removeUnit(unitID)
-				elseif nParams == 1 and cmdOptions.alt then
-					--it's a position in the queue
-					removeTarget(unitID, cmdParams[1])
-				elseif nParams == 1 and not cmdOptions.alt then
-					--target is unitID
-					for index, val in ipairs(unitData.targets) do
-						if tonumber(val) then
-							--element is a unitID
-							if val == cmdParams[1] then
+				elseif nParams == 1 then
+					if cmdOptions.alt then
+						local targetIndex = cmdParams[1]
+						removeTarget(unitID, targetIndex)
+					else
+						local targetID = cmdParams[1]
+						for index, targetData in ipairs(unitData.targets) do
+							if targetData.target == targetID then
 								removeTarget(unitID, index)
 								break
 							end
 						end
 					end
 				elseif nParams == 3 then
-					--target is a location
-					for index, val in ipairs(unitData.targets) do
-						if not tonumber(val) and val then
-							--element is not a unitID
-							if distance(val, cmdParams) < deleteMaxDistance then
-								removeTarget(unitID, index)
-								break
-							end
+					for index, targetData in ipairs(unitData.targets) do
+						if type(targetData.target) == "table" and inCancelDistance(targetData.target, cmdParams) then
+							removeTarget(unitID, index)
 						end
 					end
 				end
