@@ -76,7 +76,6 @@ if gadgetHandler:IsSyncedCode() then
 	local max = math.max
 	local diag = math.diag
 	local pairsNext = next
-	local tonumber = tonumber
 	local type = type
 
 	local isEnqueuedFirst = Game.Commands.IsEnqueuedFirst
