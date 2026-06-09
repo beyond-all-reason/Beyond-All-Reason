@@ -12,6 +12,8 @@ function widget:GetInfo()
 	}
 end
 
+local showFireStateIcons = true
+
 --------------------------------------------------------------------------------
 -- Localized Spring API
 --------------------------------------------------------------------------------
@@ -19,6 +21,8 @@ local spGetGameFrame  = Spring.GetGameFrame
 local spGetUnitStates = Spring.GetUnitStates
 local spValidUnitID   = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
+
+local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local HOLD_FIRE   = 0
 local RETURN_FIRE = 1
@@ -108,6 +112,11 @@ local function initGL4()
 	return true
 end
 
+WG['unitfirestate'] = {}
+WG['unitfirestate'].setEnabled = function(value)
+    showFireStateIcons = value
+end
+
 --------------------------------------------------------------------------------
 -- Helper: push a unit into a fire-state VBO
 --------------------------------------------------------------------------------
@@ -182,13 +191,16 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		visibleUnits[unitID] = unitDefID
 		local teamID = Spring.GetUnitTeam(unitID)
-		unitToTeam[unitID] = teamID
-		if not crashingUnits[unitID] and not deadAllyTeams[teamToAllyTeam[teamID]] then
-			local states = spGetUnitStates(unitID)
-			if states then
-				local fs = states.firestate
-				unitFireState[unitID] = fs
-				applyFireState(unitID, unitDefID, fs, gf)
+
+		if teamID ~= gaiaTeamID then
+			unitToTeam[unitID] = teamID
+			if not crashingUnits[unitID] and not deadAllyTeams[teamToAllyTeam[teamID]] then
+				local states = spGetUnitStates(unitID)
+				if states then
+					local fs = states.firestate
+					unitFireState[unitID] = fs
+					applyFireState(unitID, unitDefID, fs, gf)
+				end
 			end
 		end
 	end
@@ -197,6 +209,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	if unitTeam == gaiaTeamID then return end
 	visibleUnits[unitID] = unitDefID
 	unitToTeam[unitID] = unitTeam
 	if crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[unitTeam]] then return end
@@ -223,6 +236,7 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:CrashingAircraft(unitID, unitDefID, teamID)
+	if teamID == gaiaTeamID then return end
 	crashingUnits[unitID] = true
 	unitFireState[unitID] = nil
 	if holdFireVBO.instanceIDtoIndex[unitID] then
@@ -234,6 +248,7 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts)
+	if teamID == gaiaTeamID then return end
 	if cmdID ~= CMD.FIRE_STATE then return end
 	if not visibleUnits[unitID] or crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[teamID]] then return end
 	local fs = cmdParams[1]
@@ -245,6 +260,7 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 end
 
 function widget:TeamDied(teamID)
+	if teamID == gaiaTeamID then return end
 	local allyTeamID = teamToAllyTeam[teamID]
 	if not allyTeamID then return end
 	deadTeamCount[allyTeamID] = (deadTeamCount[allyTeamID] or 0) + 1
@@ -277,6 +293,7 @@ function widget:DrawScreenEffects()
 	-- the shader still uses engine cameraViewProj UBO and depth-tests terrain occlusion.
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
+	if not showFireStateIcons then return end
 
 	if holdFireVBO.usedElements == 0 and returnFireVBO.usedElements == 0 then
 		return

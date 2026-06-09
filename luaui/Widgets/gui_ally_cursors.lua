@@ -29,8 +29,8 @@ local rotY = 0
 
 local dlistAmount = 5        -- number of dlists generated for each player (# available opacity levels)
 
-local packetInterval = 0.33
-local numMousePos = 2 --//num mouse pos in 1 packet
+local packetInterval = 0.2 -- fallback for first packet; runtime interval adapts to observed packet cadence
+local numMousePos = 1 --//num mouse pos in 1 packet
 
 local showSpectatorName = false
 local showPlayerName = true
@@ -86,11 +86,13 @@ local math_deg = math.deg
 local abs = math.abs
 local floor = math.floor
 local min = math.min
+local max = math.max
 local diag = math.diag
 local clock = os.clock
 local TIMESTAMP_IDX = (numMousePos + 1) * 2 + 1
 local CLICK_IDX = (numMousePos + 1) * 2 + 2
 local TEAMID_IDX = (numMousePos + 1) * 2 + 3
+local PACKET_INTERVAL_IDX = (numMousePos + 1) * 2 + 4
 
 local alliedCursorsPos = {}
 local prevCursorPos = {}
@@ -148,24 +150,53 @@ local function CubicInterpolate2(x0, x1, mix)
 	return x0 * (2 * mix3 - 3 * mix2 + 1) + x1 * (3 * mix2 - 2 * mix3)
 end
 
+local function sanitizeCoord(value, fallback)
+	if type(value) == "number" then
+		return value
+	end
+	return fallback
+end
+
 local function MouseCursorEvent(playerID, x1, z1, x2, z2, click)
 	if not isReplay and myPlayerID == playerID then
 		return true
 	end
 
+	local now = clock()
+
 	local acp = alliedCursorsPos[playerID]
 	if acp then
+		x1 = sanitizeCoord(x1, acp[1])
+		z1 = sanitizeCoord(z1, acp[2])
+		x2 = sanitizeCoord(x2, x1)
+		z2 = sanitizeCoord(z2, z1)
+		if x1 == nil or z1 == nil then
+			return
+		end
+
 		acp[5] = acp[1]
 		acp[6] = acp[2]
 		acp[1] = x1
 		acp[2] = z1
 		acp[3] = x2
 		acp[4] = z2
-		acp[TIMESTAMP_IDX] = clock()
+		local observedInterval = min(max(now - (acp[TIMESTAMP_IDX] or now), 0.05), 1)
+		local prevInterval = acp[PACKET_INTERVAL_IDX] or observedInterval
+		acp[PACKET_INTERVAL_IDX] = min(max(prevInterval * 0.7 + observedInterval * 0.3, 0.05), 1)
+		acp[TIMESTAMP_IDX] = now
 		acp[CLICK_IDX] = click
 	else
+		x1 = sanitizeCoord(x1, x2)
+		z1 = sanitizeCoord(z1, z2)
+		x2 = sanitizeCoord(x2, x1)
+		z2 = sanitizeCoord(z2, z1)
+		if x1 == nil or z1 == nil then
+			return
+		end
+
 		acp = { x1, z1, x2, z2, x1, z1 }
-		acp[TIMESTAMP_IDX] = clock()
+		acp[TIMESTAMP_IDX] = now
+		acp[PACKET_INTERVAL_IDX] = packetInterval
 		acp[CLICK_IDX] = click
 		acp[TEAMID_IDX] = playerTeamIDs[playerID] or select(4, spGetPlayerInfo(playerID, false))
 		alliedCursorsPos[playerID] = acp
@@ -476,13 +507,27 @@ function widget:Update(dt)
 	rotY = getCameraRotationY()
 	for playerID, data in pairs(alliedCursorsPos) do
 		local wx, wz = data[1], data[2]
-		local lastUpdatedDiff = now - data[TIMESTAMP_IDX] + 0.025
-		if lastUpdatedDiff < packetInterval then
-			local scale = (1 - (lastUpdatedDiff / packetInterval)) * numMousePos
+		local lastUpdatedDiff = now - data[TIMESTAMP_IDX]
+		local interpInterval = data[PACKET_INTERVAL_IDX] or packetInterval
+		if numMousePos <= 1 then
+			if lastUpdatedDiff < interpInterval and data[5] ~= nil and data[6] ~= nil then
+				local mix = min(max(lastUpdatedDiff / max(interpInterval, 0.05), 0), 1)
+				wx = CubicInterpolate2(data[5], data[1], mix)
+				wz = CubicInterpolate2(data[6], data[2], mix)
+			end
+		elseif lastUpdatedDiff < interpInterval then
+			lastUpdatedDiff = lastUpdatedDiff + 0.025
+			local scale = (1 - (lastUpdatedDiff / interpInterval)) * numMousePos
 			local iscale = min(floor(scale), numMousePos - 1)
 			local fscale = scale - iscale
-			wx = CubicInterpolate2(data[iscale * 2 + 1], data[(iscale + 1) * 2 + 1], fscale)
-			wz = CubicInterpolate2(data[iscale * 2 + 2], data[(iscale + 1) * 2 + 2], fscale)
+			local x0 = data[iscale * 2 + 1]
+			local x1 = data[(iscale + 1) * 2 + 1]
+			local z0 = data[iscale * 2 + 2]
+			local z1 = data[(iscale + 1) * 2 + 2]
+			if x0 ~= nil and x1 ~= nil and z0 ~= nil and z1 ~= nil then
+				wx = CubicInterpolate2(x0, x1, fscale)
+				wz = CubicInterpolate2(z0, z1, fscale)
+			end
 		end
 
 		if notIdle[playerID] then
@@ -515,7 +560,7 @@ function widget:Update(dt)
 			end
 		else
 			-- mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
-			if wx and wz and wz_old and wz_old and (abs(wx_old - wx) >= 1 or abs(wz_old - wz) >= 1) then
+			if wx and wz and wx_old and wz_old and (abs(wx_old - wx) >= 1 or abs(wz_old - wz) >= 1) then
 				-- abs is needed because of floating point used in interpolation
 				notIdle[playerID] = true
 				wx_old = nil
