@@ -56,6 +56,7 @@ local thumbDivs        = {} -- { [defName] = div element }
 local manuallyHidden   = false
 local lastActive       = false
 local userDragged      = false  -- once user drags, stop auto-positioning
+local lobbyHidden      = false  -- true while the lobby/menu overlay is up (LobbyOverlayActive)
 
 
 
@@ -828,9 +829,9 @@ function widget:Update()
 		manuallyHidden = false
 	end
 	lastActive = isActive
-	setHidden((not isActive) or manuallyHidden)
+	setHidden((not isActive) or manuallyHidden or lobbyHidden)
 
-	if not isActive then return end
+	if not isActive or lobbyHidden then return end
 
 	-- Sync two-way-bound search filter back to internal state
 	if widgetState.dmHandle then
@@ -897,14 +898,32 @@ function widget:Update()
 	end
 end
 
+-- Hide the panel while the lobby/menu overlay is up so it doesn't draw over
+-- Chobby. Mirrors the LobbyOverlayActive handling in gui_terraform_brush; the
+-- broadcast comes from barwidgets.lua. document:Hide() stops rendering; the
+-- lobbyHidden flag keeps Update() from re-showing it until the overlay closes.
+function widget:RecvLuaMsg(message, playerID)
+	local document = widgetState.document
+	if not document then return end
+	if message:sub(1, 19) == 'LobbyOverlayActive0' then
+		lobbyHidden = false
+		document:Show()
+	elseif message:sub(1, 19) == 'LobbyOverlayActive1' then
+		lobbyHidden = true
+		document:Hide()
+	end
+end
+
 function widget:DrawScreen()
+	if lobbyHidden then return end
 	if thumbGenerating then
 		processThumbQueue()
 	end
 end
 
 function widget:DrawScreenPost()
-	-- Skip entirely when panel is hidden (feature placer inactive or manually closed)
+	-- Skip entirely when panel is hidden (feature placer inactive, manually closed, or lobby overlay up)
+	if lobbyHidden then return end
 	if widgetState.rootElement and widgetState.rootElement:IsClassSet("hidden") then return end
 	if not next(thumbTextures) then return end
 	drawThumbnailOverlays()
