@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name = "Weather Brush",
 		desc = "Place weather effects and CEG-based atmospheric conditions on the map",
-		author = "BARb",
+		author = "PtaQ",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
 		layer = 0,

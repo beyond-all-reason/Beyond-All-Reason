@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name = "Grass Brush",
 		desc = "Paint, fill and erase grass density with smart filters and texture-color matching.",
-		author = "BARb",
+		author = "PtaQ",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
 		layer = 1,

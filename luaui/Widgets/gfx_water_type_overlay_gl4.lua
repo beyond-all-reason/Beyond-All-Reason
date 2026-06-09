@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name      = "Water Type Overlay GL4",
 		desc      = "Renders lava/acid shader overlay for water type presets",
-		author    = "BARb",
+		author    = "PtaQ",
 		date      = "2026",
 		license   = "GNU GPL v2",
 		layer     = -5,

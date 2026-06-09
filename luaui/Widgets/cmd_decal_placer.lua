@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name    = "Decal Placer",
 		desc    = "Brush tool for placing, scattering, and removing ground decals from the engine atlas",
-		author  = "BARb",
+		author  = "PtaQ",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,

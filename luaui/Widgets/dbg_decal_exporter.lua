@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name = "Decal Exporter & Analytics",
 		desc = "Export decal snapshots, generate combat heatmaps, and produce mapper-friendly data files",
-		author = "BARb",
+		author = "PtaQ",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
 		layer = 0,

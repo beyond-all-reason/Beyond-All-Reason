@@ -2,7 +2,7 @@ function gadget:GetInfo()
 	return {
 		name    = "Weather Brush CEG Spawner",
 		desc    = "Synced gadget that spawns CEGs on behalf of the Weather Brush widget",
-		author  = "BARb",
+		author  = "PtaQ",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,

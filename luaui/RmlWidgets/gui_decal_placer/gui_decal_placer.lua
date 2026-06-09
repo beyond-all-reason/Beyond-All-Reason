@@ -8,7 +8,7 @@ function widget:GetInfo()
 	return {
 		name    = "Decal Placer UI",
 		desc    = "RmlUI library panel for the decal placer (terraform brush companion)",
-		author  = "BARb",
+		author  = "PtaQ",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = 1,

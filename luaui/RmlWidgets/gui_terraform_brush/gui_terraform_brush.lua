@@ -8,7 +8,7 @@ function widget:GetInfo()
 	return {
 		name = "Terraform Brush UI",
 		desc = "RmlUI panel for terraform brush shape, mode, and rotation controls",
-		author = "BARb",
+		author = "PtaQ",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
 		layer = 1,

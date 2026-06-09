@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name    = "Diffuse Painter",
 		desc    = "WM/Gaea/Terragen-style layered diffuse paint over the SMF base texture",
-		author  = "BARb",
+		author  = "PtaQ",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,

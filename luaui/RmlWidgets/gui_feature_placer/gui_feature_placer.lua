@@ -8,7 +8,7 @@ function widget:GetInfo()
 	return {
 		name    = "Feature Placer UI",
 		desc    = "RmlUI asset library panel for feature placer",
-		author  = "BARb",
+		author  = "PtaQ",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = 1,

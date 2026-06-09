@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name    = "Feature Placer",
 		desc    = "Brush tool for placing, arranging, and removing map features",
-		author  = "BARb",
+		author  = "PtaQ",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
@@ -602,10 +602,16 @@ local function handleSaveEnd(count)
 		return
 	end
 
+	-- FeaturePlacer setcfg format: unitlist / buildinglist / objectlist with `rot`,
+	-- consumed out-of-the-box by the map-side feature placer gadget.
+	file:write("----------------------------------------------------------\n")
 	file:write("-- Feature map: " .. mapName .. "\n")
 	file:write("-- Saved: " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n")
 	file:write("-- Features: " .. tostring(count or 0) .. "\n")
-	file:write("return {\n")
+	file:write("local setcfg = {\n")
+	file:write("\tunitlist = {\n\t},\n")
+	file:write("\tbuildinglist = {\n\t},\n")
+	file:write("\tobjectlist = {\n")
 
 	for _, batchStr in ipairs(saveBuffer) do
 		for entry in batchStr:gmatch("[^|]+") do
@@ -616,14 +622,16 @@ local function handleSaveEnd(count)
 			local defName = parts[1]
 			local x       = parts[2]
 			local z       = parts[3]
-			local heading = parts[4] or "0"
+			local rot     = parts[4] or "0"   -- engine heading, written as rot
 			if defName and x and z then
-				file:write(string.format('\t{name=%q, x=%s, z=%s, heading=%s},\n', defName, x, z, heading))
+				file:write(string.format('\t{ name = %q, x = %s, z = %s, rot = %s },\n', defName, x, z, rot))
 			end
 		end
 	end
 
+	file:write("\t},\n")
 	file:write("}\n")
+	file:write("return setcfg\n")
 	file:close()
 
 	saveBuffer = {}
@@ -668,15 +676,22 @@ local function featureLoad(filename)
 		return
 	end
 
+	-- Accept the setcfg/objectlist format (map-gadget compatible, `rot`) as well as
+	-- the legacy flat array of {name, x, z, heading}.
+	local list = data.objectlist or data
+
 	-- Send features to gadget in batches
 	local BATCH = 50
-	local count = #data
+	local count = #list
 	for i = 1, count, BATCH do
 		local batch = {}
 		for j = i, min(i + BATCH - 1, count) do
-			local f = data[j]
+			local f = list[j]
 			if f.name and f.x and f.z then
-				batch[#batch + 1] = f.name .. " " .. floor(f.x) .. " " .. floor(f.z) .. " " .. (f.heading or 0)
+				-- `rot` (setcfg) or `heading` (legacy); "random"/non-numeric → random heading
+				local rot = f.rot or f.heading or 0
+				if type(rot) ~= "number" then rot = math.random(-32768, 32767) end
+				batch[#batch + 1] = f.name .. " " .. floor(f.x) .. " " .. floor(f.z) .. " " .. floor(rot)
 			end
 		end
 		if #batch > 0 then

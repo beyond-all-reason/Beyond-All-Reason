@@ -2,7 +2,7 @@ function gadget:GetInfo()
 	return {
 		name    = "Feature Placer",
 		desc    = "Synced gadget for placing, removing, and managing map features via brush tool",
-		author  = "BARb",
+		author  = "PtaQ",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,

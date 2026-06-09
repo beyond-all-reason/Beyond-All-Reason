@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name = "Terraform Brush",
 		desc = "Hover mouse and raise/lower terrain with /terraformup and /terraformdown commands",
-		author = "BARb",
+		author = "PtaQ",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
 		layer = 0,

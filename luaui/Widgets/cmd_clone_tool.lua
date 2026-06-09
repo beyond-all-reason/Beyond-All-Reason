@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name = "Clone Tool",
 		desc = "Select, copy, and paste map regions (terrain, metal, features, splats, grass, decals, weather, lights)",
-		author = "BARb",
+		author = "PtaQ",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
 		layer = 1,

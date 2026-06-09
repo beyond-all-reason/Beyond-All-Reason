@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name      = "Water Type Overlay State",
 		desc      = "Exposes GG.WaterTypeOverlay; applies lava/acid damage when overlay active",
-		author    = "BARb",
+		author    = "PtaQ",
 		date      = "2026",
 		license   = "GNU GPL v2",
 		layer     = 0,

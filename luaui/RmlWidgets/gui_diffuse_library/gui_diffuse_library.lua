@@ -8,7 +8,7 @@ function widget:GetInfo()
 	return {
 		name    = "Diffuse Library UI",
 		desc    = "RmlUI material library panel for the Diffuse Painter (thumbnail grid)",
-		author  = "BARb",
+		author  = "PtaQ",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = 1,

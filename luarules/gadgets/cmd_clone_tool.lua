@@ -2,7 +2,7 @@ function gadget:GetInfo()
 	return {
 		name = "Clone Tool",
 		desc = "Handles synced operations for clone tool: terrain height, metal, features",
-		author = "BARb",
+		author = "PtaQ",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
 		layer = 0,

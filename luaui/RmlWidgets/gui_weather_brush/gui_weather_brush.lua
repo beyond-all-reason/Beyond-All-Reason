@@ -8,7 +8,7 @@ function widget:GetInfo()
 	return {
 		name = "Weather Brush UI",
 		desc = "RmlUI panel for weather brush library and CEG selection",
-		author = "BARb",
+		author = "PtaQ",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
 		layer = 1,

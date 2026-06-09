@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name    = "Light Placer",
 		desc    = "Brush tool for placing, arranging, and removing deferred GL4 lights on the map",
-		author  = "BARb",
+		author  = "PtaQ",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
