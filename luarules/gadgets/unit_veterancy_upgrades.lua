@@ -25,6 +25,22 @@ end
 -- Different unit types (to be determined) will have different default ranks and upgrades.
 -- Custom ranks and upgrades will be configurable via unitdefs so also supports tweakdefs.
 
+-- Veterancy effect names
+--
+-- Replacements for engine scaling:
+-- - power
+-- - health
+-- - reload
+-- - damage
+-- - acc_weight
+--
+-- Custom veterancy upgrades:
+-- - autoheal
+-- - damages
+-- - range
+-- - reload_then_burst
+-- - reload_then_damages
+
 -- customparams[prefix .. name] = number|"default", where "default" refers to some XP scale.
 local customParamPrefix = "veterancy_" -- e.g. `veterancy_health = "default"`
 local weaponParamIgnore = "no_veterancy_" -- e.g. `no_veterancy_reload = true`.
@@ -608,7 +624,7 @@ veterancyEffects.reload_then_burst = {
 -- When a weapon's reload time equals its burst duration, faster reloads provide no benefit.
 -- This XP upgrade continues to scale the weapon's DPS output by directly increasing damage.
 -- NOTE: Preferable to reload_then_burst usually but we have no scaling damage vfx just yet.
-veterancyEffects.reload_then_damage = {
+veterancyEffects.reload_then_damages = {
 	add = function(unitDef, upgrades)
 		-- Shares its scaling customparams with `reload`/`damage`, but does not check `damageScale`:
 		local unitReloadScale = getScale(unitDef, "reload", reloadScale)
@@ -617,7 +633,7 @@ veterancyEffects.reload_then_damage = {
 			return false
 		end
 
-		local upgrade = { veterancyEffects.reload_then_damage.effect, unitReloadScale, unitDamageScale } ---@type VeterancyUpgrade
+		local upgrade = { veterancyEffects.reload_then_damages.effect, unitReloadScale, unitDamageScale } ---@type VeterancyUpgrade
 		local offset = #upgrade
 
 		local hasUpgradeWeapon = false
