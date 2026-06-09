@@ -8,7 +8,13 @@
 <body data-model="terraform_brush_model">
 	<div id="tf-root" class="tf-root hidden widget-shadow rounded-md bg-darkest p-2-5">
 		<div class="flex flex-row justify-between items-center mb-2">
-			<div id="tf-handle" class="tf-drag-handle font-bold text-light text-outline-darker" style="flex: 1; font-size: 16dp;">TERRAFORM BRUSH</div>
+			<div class="tf-file-menu-wrap">
+				<div id="btn-file" class="tf-header-menu-btn" data-class-active="fileMenuOpen" data-event-mousedown="onFileMenuToggle()">FILE</div>
+				<div id="tf-file-menu" class="tf-file-menu" data-if="fileMenuOpen">
+					<div id="btn-file-newmap" class="tf-file-menu-item" data-event-mousedown="onFileNewMap()">New Map...</div>
+				</div>
+			</div>
+			<div id="tf-handle" class="tf-drag-handle font-bold text-light text-outline-darker" style="flex: 1; font-size: 16dp; margin-left: 6dp;">TERRAFORM BRUSH</div>
 			<div id="btn-sound" class="tf-header-btn tf-sound-btn" data-class-muted="soundMuted" data-event-mousedown="onGuideToggleSound()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/volume.png" /></div>
 			<div id="btn-guide" class="tf-header-btn tf-guide-btn" data-class-active="guideMode" data-event-mousedown="onGuideToggle()"><span>?</span></div>
 			<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -4049,6 +4055,7 @@
 		<!-- ============ DIFFUSE PAINTER CONTROLS ============ -->
 		<div id="tf-diff-controls" data-if="activeTool == 'diff'">
 
+		<!-- Diffuse Painter: BRUSH -->
 		<div class="tf-section-frame" id="frame-dfp-brush">
 			<div id="btn-toggle-dfp-brush" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-dfp-brush" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -4056,116 +4063,263 @@
 			</div>
 		<div id="section-dfp-brush">
 
-			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">SIZE: <span class="text-xl font-bold">{{dfpRadiusStr}}</span></div>
-				<div class="text-sm text-keybind">Ctrl+Scroll</div>
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">SIZE: <span class="text-xl font-bold">{{dfpRadiusStr}}</span></div>
+			<div class="text-sm text-keybind">Ctrl+Scroll</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-dfp-radius-down" class="tf-sm-btn" data-event-mousedown="onDfpRadiusStep(-8)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-dfp-radius-down" class="tf-sm-btn" data-event-mousedown="onDfpRadiusStep(-8)">
-					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-				</div>
-				<input type="range" id="dfp-slider-radius" class="tf-slider" min="8" max="2000" step="1" value="128" data-event-change="onDfpSliderRadius()" />
-				<div id="btn-dfp-radius-up" class="tf-sm-btn" data-event-mousedown="onDfpRadiusStep(8)">
-					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-				</div>
-				<input type="text" id="dfp-slider-radius-numbox" class="tf-slider-numbox" readonly value="128" />
+			<input type="range" id="dfp-slider-radius" class="tf-slider" min="8" max="2000" step="1" value="128" data-event-change="onDfpSliderRadius()" />
+			<div id="btn-dfp-radius-up" class="tf-sm-btn" data-event-mousedown="onDfpRadiusStep(8)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
+			<input type="text" id="dfp-slider-radius-numbox" class="tf-slider-numbox" readonly value="128" />
+		</div>
 
-			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">STRENGTH: <span class="text-xl font-bold">{{dfpStrengthStr}}</span></div>
-				<div class="text-sm text-keybind">Alt+Scroll</div>
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">STRENGTH: <span class="text-xl font-bold">{{dfpStrengthStr}}</span></div>
+			<div class="text-sm text-keybind">Alt+Scroll</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-dfp-strength-down" class="tf-sm-btn" data-event-mousedown="onDfpStrengthStep(-0.05)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-dfp-strength-down" class="tf-sm-btn" data-event-mousedown="onDfpStrengthStep(-0.05)">
-					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-				</div>
-				<input type="range" id="dfp-slider-strength" class="tf-slider" min="1" max="100" step="1" value="60" data-event-change="onDfpSliderStrength()" />
-				<div id="btn-dfp-strength-up" class="tf-sm-btn" data-event-mousedown="onDfpStrengthStep(0.05)">
-					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-				</div>
-				<input type="text" id="dfp-slider-strength-numbox" class="tf-slider-numbox" readonly value="60" />
+			<input type="range" id="dfp-slider-strength" class="tf-slider" min="1" max="100" step="1" value="100" data-event-change="onDfpSliderStrength()" />
+			<div id="btn-dfp-strength-up" class="tf-sm-btn" data-event-mousedown="onDfpStrengthStep(0.05)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
+			<input type="text" id="dfp-slider-strength-numbox" class="tf-slider-numbox" readonly value="60" />
+		</div>
 
-			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">CURVE: <span class="text-xl font-bold">{{dfpCurveStr}}</span></div>
-				<div class="text-sm text-keybind">Shift+Scroll</div>
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">FALL-OFF: <span class="text-xl font-bold">{{dfpCurveStr}}</span></div>
+			<div class="text-sm text-keybind">Shift+Scroll</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-dfp-curve-down" class="tf-sm-btn" data-event-mousedown="onDfpCurveStep(-0.1)">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/curve_flat.png" />
 			</div>
-			<div class="flex flex-row gap-1 items-center mb-1">
-				<div id="btn-dfp-curve-down" class="tf-sm-btn" data-event-mousedown="onDfpCurveStep(-0.1)">
-					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-				</div>
-				<input type="range" id="dfp-slider-curve" class="tf-slider" min="1" max="50" step="1" value="15" data-event-change="onDfpSliderCurve()" />
-				<div id="btn-dfp-curve-up" class="tf-sm-btn" data-event-mousedown="onDfpCurveStep(0.1)">
-					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-				</div>
-				<input type="text" id="dfp-slider-curve-numbox" class="tf-slider-numbox" readonly value="15" />
+			<input type="range" id="dfp-slider-curve" class="tf-slider" min="1" max="50" step="1" value="15" data-event-change="onDfpSliderCurve()" />
+			<div id="btn-dfp-curve-up" class="tf-sm-btn" data-event-mousedown="onDfpCurveStep(0.1)">
+				<img class="tf-icon-sm" src="/luaui/images/terraform_brush/curve_sharp.png" />
 			</div>
+			<input type="text" id="dfp-slider-curve-numbox" class="tf-slider-numbox" readonly value="15" />
+		</div>
 
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-dfp-erase" class="tf-overlay-chip" data-class-active="dfpErase" data-event-mousedown="onDfpToggleErase()">
-					<div class="tf-overlay-chip-label">Erase</div>
-				</div>
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">FRACTAL EDGE: <span class="text-xl font-bold">{{dfpFractalStr}}</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-dfp-fractal-down" class="tf-sm-btn" data-event-mousedown="onDfpFractalStep(-5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
+			<input type="range" id="dfp-slider-fractal" class="tf-slider" min="0" max="100" step="1" value="0" data-event-change="onDfpSliderFractal()" />
+			<div id="btn-dfp-fractal-up" class="tf-sm-btn" data-event-mousedown="onDfpFractalStep(5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="dfp-slider-fractal-numbox" class="tf-slider-numbox" readonly value="0" />
+		</div>
+
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">FRACTAL FREQ: <span class="text-xl font-bold">{{dfpFractalFreqStr}}</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-dfp-fractal-freq-down" class="tf-sm-btn" data-event-mousedown="onDfpFractalFreqStep(-5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="dfp-slider-fractal-freq" class="tf-slider" min="1" max="50" step="1" value="30" data-event-change="onDfpSliderFractalFreq()" />
+			<div id="btn-dfp-fractal-freq-up" class="tf-sm-btn" data-event-mousedown="onDfpFractalFreqStep(5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="dfp-slider-fractal-freq-numbox" class="tf-slider-numbox" readonly value="30" />
+		</div>
+
+		<div class="flex flex-row items-center gap-1 mb-1">
+			<div id="btn-dfp-erase" class="tf-overlay-chip" data-class-active="dfpErase" data-event-mousedown="onDfpToggleErase()">
+				<div class="tf-overlay-chip-label">Erase</div>
+			</div>
+		</div>
 
 		</div><!-- /section-dfp-brush -->
 		</div><!-- /frame-dfp-brush -->
 
+
+		<!-- Diffuse Painter: BLEND & EFFECTS -->
+		<div class="tf-section-frame tf-collapsed" id="frame-dfp-effects">
+			<div id="btn-toggle-dfp-effects" class="tf-section-title-row" style="cursor: pointer;">
+				<img id="img-toggle-dfp-effects" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+				<div class="tf-collapsible-title">BLEND &amp; EFFECTS</div>
+				<div id="warn-chip-dfp-effects" class="tf-overlay-chip tf-overlay-chip-warn hidden">
+					<div class="tf-overlay-chip-label">Active</div>
+				</div>
+			</div>
+		<div id="section-dfp-effects" class="hidden">
+
+		<div class="flex flex-row items-center flex-wrap gap-1 mb-1">
+			<div class="tf-overlay-chip" data-class-active="dfpBlend == 'normal'"     data-event-mousedown="onDfpSetBlend('normal')"><div class="tf-overlay-chip-label">Normal</div></div>
+			<div class="tf-overlay-chip" data-class-active="dfpBlend == 'multiply'"   data-event-mousedown="onDfpSetBlend('multiply')"><div class="tf-overlay-chip-label">Multiply</div></div>
+			<div class="tf-overlay-chip" data-class-active="dfpBlend == 'screen'"     data-event-mousedown="onDfpSetBlend('screen')"><div class="tf-overlay-chip-label">Screen</div></div>
+			<div class="tf-overlay-chip" data-class-active="dfpBlend == 'overlay'"    data-event-mousedown="onDfpSetBlend('overlay')"><div class="tf-overlay-chip-label">Overlay</div></div>
+			<div class="tf-overlay-chip" data-class-active="dfpBlend == 'softlight'"  data-event-mousedown="onDfpSetBlend('softlight')"><div class="tf-overlay-chip-label">Soft Light</div></div>
+			<div class="tf-overlay-chip" data-class-active="dfpBlend == 'colordodge'" data-event-mousedown="onDfpSetBlend('colordodge')"><div class="tf-overlay-chip-label">Color Dodge</div></div>
+			<div class="tf-overlay-chip" data-class-active="dfpBlend == 'hardlight'"  data-event-mousedown="onDfpSetBlend('hardlight')"><div class="tf-overlay-chip-label">Hard Light</div></div>
+			<div class="tf-overlay-chip" data-class-active="dfpBlend == 'difference'" data-event-mousedown="onDfpSetBlend('difference')"><div class="tf-overlay-chip-label">Difference</div></div>
+		</div>
+
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">HYDRO EROSION</div>
+			<div id="btn-dfp-hydro-toggle" class="tf-overlay-chip" data-class-active="dfpHydroEnabled" data-event-mousedown="onDfpToggleHydro()">
+				<div class="tf-overlay-chip-label">ON</div>
+			</div>
+		</div>
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">STRENGTH: <span class="text-xl font-bold">{{dfpHydroStrStr}}</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-dfp-hydro-str-down" class="tf-sm-btn" data-event-mousedown="onDfpHydroStrStep(-5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="dfp-slider-hydro-strength" class="tf-slider" min="1" max="100" step="1" value="20" data-event-change="onDfpSliderHydroStrength()" />
+			<div id="btn-dfp-hydro-str-up" class="tf-sm-btn" data-event-mousedown="onDfpHydroStrStep(5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="dfp-slider-hydro-strength-numbox" class="tf-slider-numbox" readonly value="20" />
+		</div>
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">FALLOFF LOW: <span class="text-xl font-bold">{{dfpHydroFalloffLoStr}}</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-dfp-hydro-flo-down" class="tf-sm-btn" data-event-mousedown="onDfpHydroFalloffLoStep(-5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="dfp-slider-hydro-flo" class="tf-slider" min="0" max="100" step="1" value="10" data-event-change="onDfpSliderHydroFalloffLo()" />
+			<div id="btn-dfp-hydro-flo-up" class="tf-sm-btn" data-event-mousedown="onDfpHydroFalloffLoStep(5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="dfp-slider-hydro-flo-numbox" class="tf-slider-numbox" readonly value="10" />
+		</div>
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">FALLOFF HIGH: <span class="text-xl font-bold">{{dfpHydroFalloffHiStr}}</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-dfp-hydro-fhi-down" class="tf-sm-btn" data-event-mousedown="onDfpHydroFalloffHiStep(-5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="dfp-slider-hydro-fhi" class="tf-slider" min="1" max="100" step="1" value="60" data-event-change="onDfpSliderHydroFalloffHi()" />
+			<div id="btn-dfp-hydro-fhi-up" class="tf-sm-btn" data-event-mousedown="onDfpHydroFalloffHiStep(5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="dfp-slider-hydro-fhi-numbox" class="tf-slider-numbox" readonly value="60" />
+		</div>
+
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">THERMO EROSION</div>
+			<div id="btn-dfp-thermo-toggle" class="tf-overlay-chip" data-class-active="dfpThermoEnabled" data-event-mousedown="onDfpToggleThermo()">
+				<div class="tf-overlay-chip-label">ON</div>
+			</div>
+		</div>
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">REPOSE ANGLE: <span class="text-xl font-bold">{{dfpThermoAngleStr}}&#176;</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-dfp-thermo-angle-down" class="tf-sm-btn" data-event-mousedown="onDfpThermoAngleStep(-1)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="dfp-slider-thermo-angle" class="tf-slider" min="5" max="75" step="1" value="30" data-event-change="onDfpSliderThermoAngle()" />
+			<div id="btn-dfp-thermo-angle-up" class="tf-sm-btn" data-event-mousedown="onDfpThermoAngleStep(1)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="dfp-slider-thermo-angle-numbox" class="tf-slider-numbox" readonly value="30" />
+		</div>
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">BAND WIDTH: <span class="text-xl font-bold">{{dfpThermoFalloffStr}}&#176;</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-dfp-thermo-falloff-down" class="tf-sm-btn" data-event-mousedown="onDfpThermoFalloffStep(-1)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="dfp-slider-thermo-falloff" class="tf-slider" min="1" max="40" step="1" value="8" data-event-change="onDfpSliderThermoFalloff()" />
+			<div id="btn-dfp-thermo-falloff-up" class="tf-sm-btn" data-event-mousedown="onDfpThermoFalloffStep(1)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="dfp-slider-thermo-falloff-numbox" class="tf-slider-numbox" readonly value="8" />
+		</div>
+
+		</div><!-- /section-dfp-effects -->
+		</div><!-- /frame-dfp-effects -->
+
+
+		<!-- Diffuse Painter: LAYERS -->
 		<div class="tf-section-frame" id="frame-dfp-layers">
 			<div id="btn-toggle-dfp-layers" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-dfp-layers" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 				<div class="tf-collapsible-title">LAYERS</div>
 			</div>
 		<div id="section-dfp-layers">
-			<div class="flex flex-row justify-between items-center mb-1">
-				<div class="text-lg text-light">ACTIVE: <span class="text-xl font-bold">{{dfpActiveLayerName}}</span></div>
+
+		<div class="flex flex-row items-center mb-1">
+			<div class="text-lg text-light">ACTIVE: <span class="text-xl font-bold">{{dfpActiveLayerName}}</span></div>
+		</div>
+		<div id="dfp-layer-list" class="flex flex-col gap-1 mb-1"></div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-dfp-add-layer" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onDfpAddLayer()">
+				<div class="tf-action-btn-text">+ ADD LAYER</div>
 			</div>
-			<div id="dfp-layer-list" class="flex flex-col gap-1 mb-1"></div>
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-dfp-add-layer" class="tf-action-btn" data-event-mousedown="onDfpAddLayer()" style="flex: 1;">
-					<div class="tf-action-btn-text">+ ADD LAYER</div>
-				</div>
-				<div id="btn-dfp-remove-layer" class="tf-action-btn" data-event-mousedown="onDfpRemoveLayer()" style="flex: 1;">
-					<div class="tf-action-btn-text">− REMOVE</div>
-				</div>
+			<div id="btn-dfp-remove-layer" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onDfpRemoveLayer()">
+				<div class="tf-action-btn-text">&#8722; REMOVE</div>
 			</div>
+		</div>
+
 		</div><!-- /section-dfp-layers -->
 		</div><!-- /frame-dfp-layers -->
 
-		<div class="tf-section-frame" id="frame-dfp-materials">
+
+		<!-- Diffuse Painter: MATERIALS -->
+		<div class="tf-section-frame tf-collapsed" id="frame-dfp-materials">
 			<div id="btn-toggle-dfp-materials" class="tf-section-title-row" style="cursor: pointer;">
-				<img id="img-toggle-dfp-materials" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<img id="img-toggle-dfp-materials" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">MATERIALS</div>
 			</div>
-		<div id="section-dfp-materials">
-			<div class="text-sm text-light mb-1">Click a material: if the active layer is empty it gets that material; otherwise a new layer is added.</div>
-			<div id="dfp-material-list" class="flex flex-col gap-1 mb-1"></div>
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-dfp-clear-material" class="tf-action-btn" data-event-mousedown="onDfpClearMaterial()" style="flex: 1;">
-					<div class="tf-action-btn-text">CLEAR TEXTURE (use color)</div>
-				</div>
+		<div id="section-dfp-materials" class="hidden">
+
+		<div class="flex flex-row items-center mb-1">
+			<div class="text-sm text-keybind">Click: assign to layer or add new layer</div>
+		</div>
+		<div id="dfp-material-list" class="flex flex-col gap-1 mb-1"></div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-dfp-clear-material" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onDfpClearMaterial()">
+				<div class="tf-action-btn-text">CLEAR TEXTURE (use color)</div>
 			</div>
+		</div>
+
 		</div><!-- /section-dfp-materials -->
 		</div><!-- /frame-dfp-materials -->
 
-		<div class="tf-section-frame" id="frame-dfp-actions">
+
+		<!-- Diffuse Painter: ACTIONS -->
+		<div class="tf-section-frame tf-collapsed" id="frame-dfp-actions">
 			<div id="btn-toggle-dfp-actions" class="tf-section-title-row" style="cursor: pointer;">
-				<img id="img-toggle-dfp-actions" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<img id="img-toggle-dfp-actions" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 				<div class="tf-collapsible-title">ACTIONS</div>
 			</div>
-		<div id="section-dfp-actions">
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-dfp-bake-all" class="tf-action-btn" data-event-mousedown="onDfpBakeAll()" style="flex: 1;">
-					<div class="tf-action-btn-text">BAKE FULL MAP</div>
-				</div>
-				<div id="btn-dfp-reset-all" class="tf-action-btn" data-event-mousedown="onDfpResetAll()" style="flex: 1;">
-					<div class="tf-action-btn-text">RESET PAINT</div>
-				</div>
+		<div id="section-dfp-actions" class="hidden">
+
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-dfp-bake-all" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onDfpBakeAll()">
+				<div class="tf-action-btn-text">BAKE FULL MAP</div>
 			</div>
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-dfp-export" class="tf-action-btn" data-event-mousedown="onDfpExport()" style="flex: 1;">
-					<div class="tf-action-btn-text">EXPORT SQUARES (PNG)</div>
-				</div>
+			<div id="btn-dfp-reset-all" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onDfpResetAll()">
+				<div class="tf-action-btn-text">RESET PAINT</div>
 			</div>
+		</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-dfp-export" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onDfpExport()">
+				<div class="tf-action-btn-text">EXPORT SQUARES (PNG)</div>
+			</div>
+		</div>
+
 		</div><!-- /section-dfp-actions -->
 		</div><!-- /frame-dfp-actions -->
 
@@ -6534,6 +6688,51 @@
 					<div class="tf-dj-activate-desc">Hides the pulsing blue notification dots on collapsed section headers.</div>
 				</div>
 				<div id="pill-ui-disable-tips" class="tf-dj-toggle-pill">{{disableTipsStr}}</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- ============ NEW MAP WINDOW (floating, opened from FILE menu) ============ -->
+	<div id="tf-newmap-root" class="tf-newmap-window widget-shadow rounded-md bg-darkest p-2-5" style="left: 35vw; top: 18vh;" data-if="newMapOpen">
+		<div class="flex flex-row justify-between items-center mb-2">
+			<div id="tf-newmap-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">New Map</div>
+			<div id="btn-newmap-close" class="tf-quit-btn" data-event-mousedown="onNewMapClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+
+		<div class="text-base text-keybind mb-2">Create a fresh flat map and reload the current session onto it. Unsaved terrain edits will be lost.</div>
+
+		<!-- Width -->
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">WIDTH: <span class="text-xl font-bold">{{newMapWidthStr}}</span></div>
+			<div class="text-sm text-keybind">map units</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-newmap-width-down" class="tf-sm-btn" data-event-mousedown="onNewMapWidthDown()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+			<input type="range" id="slider-newmap-width" class="tf-slider" min="4" max="32" step="2" value="12" data-event-change="onNewMapWidthChange()" />
+			<div id="btn-newmap-width-up" class="tf-sm-btn" data-event-mousedown="onNewMapWidthUp()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+		</div>
+
+		<!-- Height -->
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">HEIGHT: <span class="text-xl font-bold">{{newMapHeightStr}}</span></div>
+			<div class="text-sm text-keybind">map units</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-newmap-height-down" class="tf-sm-btn" data-event-mousedown="onNewMapHeightDown()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+			<input type="range" id="slider-newmap-height" class="tf-slider" min="4" max="32" step="2" value="12" data-event-change="onNewMapHeightChange()" />
+			<div id="btn-newmap-height-up" class="tf-sm-btn" data-event-mousedown="onNewMapHeightUp()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+		</div>
+
+		<div class="flex flex-row justify-center items-center mb-2">
+			<div class="text-base text-keybind">{{newMapElmoStr}}</div>
+		</div>
+
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-newmap-create" class="tf-action-btn tf-save-btn" style="flex: 2;" data-event-mousedown="onNewMapCreate()">
+				<div class="tf-action-btn-text">CREATE &amp; RELOAD</div>
+			</div>
+			<div id="btn-newmap-cancel" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onNewMapClose()">
+				<div class="tf-action-btn-text">CANCEL</div>
 			</div>
 		</div>
 	</div>

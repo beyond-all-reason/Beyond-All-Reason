@@ -1226,6 +1226,79 @@ body {
 	height: 14dp;
 }
 
+/* === FILE menu (header dropdown) === */
+.tf-file-menu-wrap {
+	position: relative;
+	flex-shrink: 0;
+}
+
+.tf-header-menu-btn {
+	height: 22dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0dp 10dp;
+	cursor: pointer;
+	border-radius: 5dp;
+	border: 1dp #40404a60;
+	background-color: #2a2a34;
+	color: #c8ccd6;
+	font-size: 13dp;
+	font-weight: bold;
+	flex-shrink: 0;
+	transition: background-color 0.15s;
+	decorator: vertical-gradient(#3a3a46 #1e1e28);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-header-menu-btn:hover {
+	background-color: #3e3e4c;
+	border-color: #7878909a;
+	color: #f0f0f0;
+	decorator: vertical-gradient(#4a4a5a #2c2c38);
+}
+
+.tf-header-menu-btn.active {
+	border-color: #fbbf24aa;
+	background-color: #2a2a0a;
+	color: #fbbf24;
+}
+
+.tf-file-menu {
+	position: absolute;
+	left: 0dp;
+	top: 26dp;
+	min-width: 130dp;
+	z-index: 1000;
+	background-color: #1e1e28;
+	border: 1dp #5a5a6a;
+	border-radius: 5dp;
+	padding: 3dp;
+	box-shadow: 0dp 4dp 10dp 0dp #00000088;
+}
+
+.tf-file-menu-item {
+	padding: 6dp 10dp;
+	cursor: pointer;
+	border-radius: 4dp;
+	color: #c8ccd6;
+	font-size: 13dp;
+}
+
+.tf-file-menu-item:hover {
+	background-color: #3a3a48;
+	color: #ffffff;
+}
+
+/* === New Map window (floating, FILE > New Map) === */
+.tf-newmap-window {
+	pointer-events: auto;
+	position: absolute;
+	z-index: 920;
+	width: 300dp;
+	min-width: 260dp;
+}
+
 /* === Sound Toggle Button === */
 .tf-sound-btn.muted {
 	border-color: #5a3a3a;

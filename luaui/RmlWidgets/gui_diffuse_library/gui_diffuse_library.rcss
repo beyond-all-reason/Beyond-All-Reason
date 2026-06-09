@@ -1,0 +1,291 @@
+/* Diffuse Painter Material Library - Styles (modelled on gui_feature_placer) */
+
+.text-keybind { color: #6b8a5aCC; }
+
+body {
+	pointer-events: none;
+}
+
+/* === Root === */
+.dml-root {
+	pointer-events: auto;
+	position: absolute;
+	left: 70vw;
+	top: 10vh;
+	width: 13vw;
+	min-width: 300px;
+	z-index: 900;
+}
+
+.dml-drag-handle {
+	cursor: move;
+	padding: 4dp 0;
+}
+
+/* === Quit Button === */
+.dml-quit-btn {
+	width: 22dp;
+	height: 22dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 4dp;
+}
+
+.dml-quit-btn:hover {
+	background-color: #4a2424;
+}
+
+.dml-icon-sm {
+	width: 18dp;
+	height: 18dp;
+}
+
+/* === Section Frames === */
+.dml-section-frame {
+	position: relative;
+	margin-top: 14dp;
+	margin-bottom: 6dp;
+	padding: 7dp 4dp 4dp 4dp;
+	border: 1dp #4a4a6899;
+	border-radius: 4dp;
+}
+
+.dml-section-title-row {
+	position: absolute;
+	top: -10dp;
+	left: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+	background-color: #1d1d1d;
+	padding: 0 5dp;
+}
+
+/* === Category Button Row === */
+.dml-cat-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 3dp;
+	margin-bottom: 2dp;
+}
+
+.dml-cat-btn {
+	flex: 1;
+	min-width: 56dp;
+	padding: 6dp 6dp;
+	font-size: 1.1rem;
+	color: #9ca3af;
+	background-color: #2a2a32;
+	border: 1dp #3a3a4a80;
+	border-radius: 4dp;
+	cursor: pointer;
+	transition: background-color 0.15s;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 4dp;
+}
+
+.dml-cat-btn:hover {
+	background-color: #3a3a4a;
+	color: #d1d5db;
+}
+
+.dml-cat-btn.active {
+	background-color: #3a2e1a;
+	color: #e8b96b;
+	border-color: #e8b96b40;
+}
+
+.dml-cat-label {
+}
+
+/* === Search Input === */
+.dml-search-input {
+	flex: 1;
+	height: 24dp;
+	padding: 2dp 6dp;
+	font-size: 1.0rem;
+	color: #d1d5db;
+	background-color: #1a1a22;
+	border: 1dp #4a4a4a80;
+	border-radius: 4dp;
+}
+
+.dml-search-input:focus {
+	border-color: #6a6a6acc;
+}
+
+.dml-search-wrapper {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	position: relative;
+}
+
+.dml-search-wrapper .dml-search-input {
+	flex: 1;
+	padding-right: 22dp;
+}
+
+.dml-search-clear-btn {
+	position: absolute;
+	right: 5dp;
+	top: 5dp;
+	width: 18dp;
+	height: 18dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 3dp;
+	opacity: 0.5;
+}
+
+.dml-search-clear-btn:hover {
+	opacity: 0.85;
+	background-color: #3a3a4a;
+}
+
+.dml-search-clear-icon {
+	width: 10dp;
+	height: 10dp;
+}
+
+/* === Material List — tile grid === */
+.dml-material-list {
+	max-height: 460dp;
+	overflow-y: auto;
+	background-color: #1a1a22;
+	border: 1dp #3a3a3a80;
+	border-radius: 4dp;
+	padding: 4dp;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 3dp;
+	align-content: flex-start;
+}
+
+/* === Material Tile === */
+.dml-material-item {
+	width: 84dp;
+	height: 104dp;
+	cursor: pointer;
+	border-radius: 4dp;
+	border: 2dp transparent;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	background-color: #1e1e28;
+	position: relative;
+	transition: border-color 0.15s;
+}
+
+.dml-material-item:hover {
+	border-color: #7a6a4a;
+}
+
+.dml-material-item.selected {
+	border-color: #e8b96bcc;
+	background-color: #2a2418;
+}
+
+/* Thumbnail fills the tile body; the GL texture is drawn over this div by Lua,
+   so the background colour only shows until thumbnails finish baking. */
+.dml-material-thumb {
+	flex: 1;
+	width: 100%;
+	border-radius: 0;
+}
+
+/* Resolution badge (top-right) */
+.dml-material-res {
+	position: absolute;
+	top: 2dp;
+	right: 2dp;
+	padding: 1dp 3dp;
+	font-size: 0.8rem;
+	color: #e0e0e8;
+	background-color: #0c0c14cc;
+	border-radius: 3dp;
+}
+
+/* Name bar (bottom of tile) */
+.dml-material-name {
+	height: 22dp;
+	flex-shrink: 0;
+	padding: 2dp 3dp;
+	font-size: 0.9rem;
+	color: #e0e0e8;
+	background-color: #0c0c14ee;
+	display: block;
+	text-align: center;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+/* Placeholder thumbnail tints per category (shown before bake completes) */
+.dml-thumb-rock  { background-color: #78716c; }
+.dml-thumb-sand  { background-color: #d8c48a; }
+.dml-thumb-grass { background-color: #6f9b54; }
+.dml-thumb-mud   { background-color: #6b4f3a; }
+.dml-thumb-snow  { background-color: #cdd6df; }
+.dml-thumb-moon  { background-color: #8a8a92; }
+.dml-thumb-other { background-color: #6b7280; }
+
+/* === Thumbnail Loading Bar === */
+.dml-loading-bar {
+	width: 100%;
+	height: 18dp;
+	background-color: #2a2a32;
+	border-radius: 3dp;
+	margin-bottom: 4dp;
+	position: relative;
+	overflow: hidden;
+}
+
+.dml-loading-fill {
+	height: 100%;
+	background-color: #e8b96b40;
+	border-radius: 3dp;
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.dml-loading-label {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.85rem;
+	color: #9ca3af;
+}
+
+/* === Scrollbar === */
+.dml-material-list scrollbarvertical {
+	width: 8dp;
+}
+
+.dml-material-list scrollbarvertical slidertrack {
+	background-color: #1a1a2200;
+}
+
+.dml-material-list scrollbarvertical sliderbar {
+	background-color: #4a4a5a;
+	border-radius: 4dp;
+}
+
+.dml-material-list scrollbarvertical sliderbar:hover {
+	background-color: #6a6a7a;
+}

@@ -26,13 +26,50 @@ function M.attach(doc, ctx)
 	widgetState.dfpLastMatSig   = nil
 
 	for _, entry in ipairs({
-		{ "dfp-slider-radius",   "dfp-radius" },
-		{ "dfp-slider-strength", "dfp-strength" },
-		{ "dfp-slider-curve",    "dfp-curve" },
+		{ "dfp-slider-radius",          "dfp-radius" },
+		{ "dfp-slider-strength",        "dfp-strength" },
+		{ "dfp-slider-curve",           "dfp-curve" },
+		{ "dfp-slider-fractal",         "dfp-fractal" },
+		{ "dfp-slider-fractal-freq",    "dfp-fractal-freq" },
+		{ "dfp-slider-hydro-strength",  "dfp-hydro-strength" },
+		{ "dfp-slider-hydro-flo",       "dfp-hydro-flo" },
+		{ "dfp-slider-hydro-fhi",       "dfp-hydro-fhi" },
+		{ "dfp-slider-thermo-angle",    "dfp-thermo-angle" },
+		{ "dfp-slider-thermo-falloff",  "dfp-thermo-falloff" },
 	}) do
 		local sliderEl = doc:GetElementById(entry[1])
 		if sliderEl and trackSliderDrag then trackSliderDrag(sliderEl, entry[2]) end
 	end
+
+	-- Wire collapse buttons for diffuse-specific sections.
+	-- Reuse the same pattern as tf_environment.lua (envSectionToggle).
+	local function dfpSectionToggle(btnId, imgId, sectionId, defaultExpanded)
+		local btnEl  = doc:GetElementById(btnId)
+		local imgEl  = doc:GetElementById(imgId)
+		local secEl  = doc:GetElementById(sectionId)
+		if not (btnEl and secEl) then return end
+		local expanded = defaultExpanded ~= false
+		local function apply()
+			if expanded then
+				secEl:SetAttribute("style", "display: block;")
+				if imgEl then imgEl:SetAttribute("src", "/luaui/images/terraform_brush/minus.png") end
+			else
+				secEl:SetAttribute("style", "display: none;")
+				if imgEl then imgEl:SetAttribute("src", "/luaui/images/terraform_brush/plus.png") end
+			end
+		end
+		apply()
+		btnEl:AddEventListener("mousedown", function(_ev)
+			expanded = not expanded
+			apply()
+		end, false)
+	end
+
+	dfpSectionToggle("btn-toggle-dfp-brush",   "img-toggle-dfp-brush",   "section-dfp-brush",   true)
+	dfpSectionToggle("btn-toggle-dfp-effects", "img-toggle-dfp-effects", "section-dfp-effects", false)
+	dfpSectionToggle("btn-toggle-dfp-layers",  "img-toggle-dfp-layers",  "section-dfp-layers",  true)
+	dfpSectionToggle("btn-toggle-dfp-materials", "img-toggle-dfp-materials", "section-dfp-materials", false)
+	dfpSectionToggle("btn-toggle-dfp-actions", "img-toggle-dfp-actions", "section-dfp-actions", false)
 end
 
 -- Build a signature of the current layer stack so we can detect when the list
@@ -208,7 +245,7 @@ function M.sync(doc, ctx, setSummary)
 	if dm then
 		local radius, strength, curve, erase = WG.DiffusePainter.getBrush()
 		local radiusStr   = tostring(radius or 128)
-		local strengthStr = string.format("%.2f", strength or 0.6)
+		local strengthStr = string.format("%.2f", strength or 1.0)
 		local curveStr    = string.format("%.1f", curve or 1.5)
 		if dm.dfpRadiusStr   ~= radiusStr   then dm.dfpRadiusStr   = radiusStr   end
 		if dm.dfpStrengthStr ~= strengthStr then dm.dfpStrengthStr = strengthStr end
@@ -220,6 +257,45 @@ function M.sync(doc, ctx, setSummary)
 			if layers[i].id == activeId then activeName = layers[i].name or "" break end
 		end
 		if dm.dfpActiveLayerName ~= activeName then dm.dfpActiveLayerName = activeName end
+
+		-- Fractal brush
+		if WG.DiffusePainter.getFractal then
+			local amt, freq = WG.DiffusePainter.getFractal()
+			local fracStr = tostring(math.floor((amt or 0) * 100 + 0.5))
+			if dm.dfpFractalStr ~= fracStr then dm.dfpFractalStr = fracStr end
+			-- Freq 0.0002..0.01 → slider 1..50 (linear)
+			local freqSlider = math.floor(1 + ((freq or 0.003) - 0.0002) / (0.01 - 0.0002) * 49 + 0.5)
+			freqSlider = math.max(1, math.min(50, freqSlider))
+			local freqStr = tostring(freqSlider)
+			if dm.dfpFractalFreqStr ~= freqStr then dm.dfpFractalFreqStr = freqStr end
+		end
+
+		-- Blend mode for active layer
+		local blendStr = (activeLayer and activeLayer.blend) or "normal"
+		if dm.dfpBlend ~= blendStr then dm.dfpBlend = blendStr end
+
+		-- Hydro/thermo for active layer
+		local hydroEn = activeLayer and activeLayer.hydroEnabled and true or false
+		if dm.dfpHydroEnabled ~= hydroEn then dm.dfpHydroEnabled = hydroEn end
+		local hydroStr = tostring(math.floor(((activeLayer and activeLayer.hydroStrength) or 0.02) * 1000 + 0.5))
+		if dm.dfpHydroStrStr ~= hydroStr then dm.dfpHydroStrStr = hydroStr end
+		local hydroFloStr = tostring(math.floor(((activeLayer and activeLayer.hydroFalloffLo) or 0.1) * 100 + 0.5))
+		if dm.dfpHydroFalloffLoStr ~= hydroFloStr then dm.dfpHydroFalloffLoStr = hydroFloStr end
+		local hydroFhiStr = tostring(math.floor(((activeLayer and activeLayer.hydroFalloffHi) or 0.6) * 100 + 0.5))
+		if dm.dfpHydroFalloffHiStr ~= hydroFhiStr then dm.dfpHydroFalloffHiStr = hydroFhiStr end
+
+		local thermoEn = activeLayer and activeLayer.thermoEnabled and true or false
+		if dm.dfpThermoEnabled ~= thermoEn then dm.dfpThermoEnabled = thermoEn end
+		local thermoAngStr = tostring(math.floor((activeLayer and activeLayer.thermoAngle) or 30))
+		if dm.dfpThermoAngleStr ~= thermoAngStr then dm.dfpThermoAngleStr = thermoAngStr end
+		local thermoFallStr = tostring(math.floor((activeLayer and activeLayer.thermoFalloff) or 8))
+		if dm.dfpThermoFalloffStr ~= thermoFallStr then dm.dfpThermoFalloffStr = thermoFallStr end
+
+		-- Warn chip: active when blend is non-normal, or hydro/thermo is on
+		local effectsActive = hydroEn or thermoEn or (blendStr ~= "normal")
+		if doc and ctx.syncWarnChip then
+			ctx.syncWarnChip(doc, "warn-chip-dfp-effects", "section-dfp-effects", effectsActive)
+		end
 	end
 
 	-- Sliders
@@ -227,8 +303,25 @@ function M.sync(doc, ctx, setSummary)
 		uiState.updatingFromCode = true
 		local radius, strength, curve = WG.DiffusePainter.getBrush()
 		syncAndFlash(doc:GetElementById("dfp-slider-radius"),   "dfp-radius",   tostring(radius or 128))
-		syncAndFlash(doc:GetElementById("dfp-slider-strength"), "dfp-strength", tostring(math.floor((strength or 0.6) * 100 + 0.5)))
+		syncAndFlash(doc:GetElementById("dfp-slider-strength"), "dfp-strength", tostring(math.floor((strength or 1.0) * 100 + 0.5)))
 		syncAndFlash(doc:GetElementById("dfp-slider-curve"),    "dfp-curve",    tostring(math.floor((curve or 1.5) * 10 + 0.5)))
+		if WG.DiffusePainter.getFractal then
+			local amt, freq = WG.DiffusePainter.getFractal()
+			syncAndFlash(doc:GetElementById("dfp-slider-fractal"), "dfp-fractal", tostring(math.floor((amt or 0) * 100 + 0.5)))
+			local freqSlider = math.floor(1 + ((freq or 0.003) - 0.0002) / (0.01 - 0.0002) * 49 + 0.5)
+			freqSlider = math.max(1, math.min(50, freqSlider))
+			syncAndFlash(doc:GetElementById("dfp-slider-fractal-freq"), "dfp-fractal-freq", tostring(freqSlider))
+		end
+		if activeLayer then
+			local hs = math.floor((activeLayer.hydroStrength or 0.02) * 1000 + 0.5)
+			syncAndFlash(doc:GetElementById("dfp-slider-hydro-strength"), "dfp-hydro-strength", tostring(hs))
+			local hlo = math.floor((activeLayer.hydroFalloffLo or 0.1) * 100 + 0.5)
+			syncAndFlash(doc:GetElementById("dfp-slider-hydro-flo"), "dfp-hydro-flo", tostring(hlo))
+			local hhi = math.floor((activeLayer.hydroFalloffHi or 0.6) * 100 + 0.5)
+			syncAndFlash(doc:GetElementById("dfp-slider-hydro-fhi"), "dfp-hydro-fhi", tostring(hhi))
+			syncAndFlash(doc:GetElementById("dfp-slider-thermo-angle"),   "dfp-thermo-angle",   tostring(math.floor(activeLayer.thermoAngle  or 30)))
+			syncAndFlash(doc:GetElementById("dfp-slider-thermo-falloff"), "dfp-thermo-falloff", tostring(math.floor(activeLayer.thermoFalloff or 8)))
+		end
 		uiState.updatingFromCode = false
 	end
 

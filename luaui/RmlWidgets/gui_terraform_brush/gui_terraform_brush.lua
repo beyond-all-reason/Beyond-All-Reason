@@ -941,6 +941,112 @@ local function _deactivateAllTools()
 	if WG.DecalPlacer    then WG.DecalPlacer.deactivate()    end
 end
 
+-- ============ New Map (FILE > New Map) helpers ============
+-- Map dimensions are entered in "map units" where 1 unit = 512 elmos. The
+-- Recoil blank-map generator (CBlankMapGenerator) takes blank_map_x/y in those
+-- same spring map dimensions (it internally halves them: mapSize = N/2), so the
+-- value entered here is passed through verbatim. Units must be even (the engine
+-- divides by 2 and mapx must be a multiple of 128 heightmap squares).
+local NEWMAP_MIN_UNITS    = 4
+local NEWMAP_MAX_UNITS    = 32
+local NEWMAP_DEFAULT_UNIT = 12
+local NEWMAP_BASE_HEIGHT  = 100              -- starting ground height (elmos)
+local NEWMAP_COLOR        = { 110, 130, 90 } -- base diffuse colour (0..255), muted grass
+
+local function _nmClampEven(v, default)
+	v = tonumber(v) or default
+	v = math.floor(v / 2 + 0.5) * 2
+	if v < NEWMAP_MIN_UNITS then v = NEWMAP_MIN_UNITS end
+	if v > NEWMAP_MAX_UNITS then v = NEWMAP_MAX_UNITS end
+	return v
+end
+
+-- Source of truth for the dialog is widgetState.newMapW / newMapH (map units),
+-- NOT the RML slider's `value` attribute: RmlUi range sliders only report the
+-- dragged value via the change event's `event.parameters.value`; GetAttribute()
+-- read later (e.g. on the Create click) returns the stale RML default. So we
+-- capture into widgetState on every change and read widgetState on Create.
+
+-- Push widgetState dimensions into the data-model labels (width/height/elmo).
+local function _nmRefreshLabels()
+	local d = widgetState.dmHandle
+	if not d then return end
+	local w = widgetState.newMapW or NEWMAP_DEFAULT_UNIT
+	local h = widgetState.newMapH or NEWMAP_DEFAULT_UNIT
+	local ws, hs = tostring(w), tostring(h)
+	if d.newMapWidthStr  ~= ws then d.newMapWidthStr  = ws end
+	if d.newMapHeightStr ~= hs then d.newMapHeightStr = hs end
+	local elmoStr = string.format("%d x %d elmos", w * 512, h * 512)
+	if d.newMapElmoStr ~= elmoStr then d.newMapElmoStr = elmoStr end
+end
+
+-- Set one axis (explicit step / button path): clamp, store, move the slider
+-- thumb, and refresh labels.
+local function _nmSetAxis(axis, units)
+	units = _nmClampEven(units, NEWMAP_DEFAULT_UNIT)
+	if axis == "h" then
+		widgetState.newMapH = units
+		_elemSetSliderVal("slider-newmap-height", units)
+	else
+		widgetState.newMapW = units
+		_elemSetSliderVal("slider-newmap-width", units)
+	end
+	_nmRefreshLabels()
+end
+
+-- Build a start script for a blank/flat map of the given size by cloning the
+-- current session's _script.txt (preserving players/teams/modoptions) and
+-- injecting the engine blank-map-generator keys. Returns (scriptText) or
+-- (nil, errorMessage).
+local function buildBlankMapStartScript(widthUnits, heightUnits)
+	local base = VFS.LoadFile("_script.txt")
+	if not base or base == "" then
+		return nil, "no _script.txt available (not in a game?)"
+	end
+
+	local mapName = string.format("Editor Flat %dx%d", widthUnits, heightUnits)
+	local seed = math.random(1, 2000000000)
+
+	local script = base
+
+	-- The engine rewrites _script.txt after every restart, so a previous New Map
+	-- leaves a [mapoptions] block plus initblank/mapseed keys behind. If we don't
+	-- remove them, our freshly injected values collide with the stale ones and the
+	-- old dimensions win (engine kept reading blank_map_x=12). Strip them first.
+	-- (case-insensitive: the engine normalises keys to lowercase on write)
+	script = script:gsub("%[[Mm][Aa][Pp][Oo][Pp][Tt][Ii][Oo][Nn][Ss]%]%s*{.-}", "")
+	script = script:gsub("[Ii][Nn][Ii][Tt][Bb][Ll][Aa][Nn][Kk]%s*=[^;\r\n]*;?", "")
+	script = script:gsub("[Mm][Aa][Pp][Ss][Ee][Ee][Dd]%s*=[^;\r\n]*;?", "")
+
+	-- Swap the map name (the generator uses it as the generated map's label).
+	if script:find("[Mm][Aa][Pp][Nn][Aa][Mm][Ee]%s*=") then
+		script = (script:gsub("[Mm][Aa][Pp][Nn][Aa][Mm][Ee]%s*=[^;\r\n]*;?", "mapname=" .. mapName .. ";", 1))
+	end
+
+	local inject = table.concat({
+		"InitBlank=1;",
+		"MapSeed=" .. seed .. ";",
+		"[mapoptions]",
+		"{",
+		"blank_map_x=" .. widthUnits .. ";",
+		"blank_map_y=" .. heightUnits .. ";",
+		"blank_map_height=" .. NEWMAP_BASE_HEIGHT .. ";",
+		"blank_map_color_r=" .. NEWMAP_COLOR[1] .. ";",
+		"blank_map_color_g=" .. NEWMAP_COLOR[2] .. ";",
+		"blank_map_color_b=" .. NEWMAP_COLOR[3] .. ";",
+		"}",
+	}, "\n")
+
+	-- Insert immediately after the opening brace of the [game] block so the new
+	-- keys sit at game scope alongside mapname/modoptions.
+	local _, e = script:find("%[[Gg][Aa][Mm][Ee]%]%s*\r?\n?%s*{")
+	if not e then
+		return nil, "could not locate [game] block in start script"
+	end
+	script = script:sub(1, e) .. "\n" .. inject .. "\n" .. script:sub(e + 1)
+	return script
+end
+
 local initialModel = {
 	radius = 100,
 	shapeName = "Circle",
@@ -957,6 +1063,12 @@ local initialModel = {
 	settingsOpen = false,
 	settingsTab = "keybinds",
 	noiseWindowVisible = false,
+	-- FILE menu + New Map dialog
+	fileMenuOpen = false,
+	newMapOpen = false,
+	newMapWidthStr = "12",
+	newMapHeightStr = "12",
+	newMapElmoStr = "6144 x 6144 elmos",
 	-- Active tool slot for panel-mode swap (data-if="activeTool == 'fp'" etc).
 	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, stp, cl, diff.
 	activeTool = "",
@@ -964,10 +1076,20 @@ local initialModel = {
 	stpStartboxMode = "",
 	-- Diffuse painter (Phase A MVP)
 	dfpRadiusStr = "128",
-	dfpStrengthStr = "0.60",
+	dfpStrengthStr = "1.00",
 	dfpCurveStr = "1.5",
 	dfpErase = false,
 	dfpActiveLayerName = "Paint",
+	dfpFractalStr = "0",
+	dfpFractalFreqStr = "30",
+	dfpBlend = "normal",
+	dfpHydroEnabled = false,
+	dfpHydroStrStr = "20",
+	dfpHydroFalloffLoStr = "10",
+	dfpHydroFalloffHiStr = "60",
+	dfpThermoEnabled = false,
+	dfpThermoAngleStr = "30",
+	dfpThermoFalloffStr = "8",
 	-- splat smart filters
 	spAvoidCliffs = false,
 	spPreferSlopes = false,
@@ -3459,6 +3581,67 @@ local initialModel = {
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture widgetState/uiState/WG/playSound/_elemSliderVal/
 	-- populateKeybindList/updateAllKeybindBadges upvalues.
+	-- ===== FILE menu + New Map dialog handlers =====
+	onFileMenuToggle = function(_event)
+		playSound("click")
+		local d = widgetState.dmHandle; if d then d.fileMenuOpen = not d.fileMenuOpen end
+	end,
+	onFileNewMap = function(_event)
+		playSound("click")
+		-- Reset to the RML slider default so widgetState, the thumb and the label
+		-- all agree when the (re)created dialog appears.
+		widgetState.newMapW = NEWMAP_DEFAULT_UNIT
+		widgetState.newMapH = NEWMAP_DEFAULT_UNIT
+		local d = widgetState.dmHandle
+		if d then
+			d.fileMenuOpen = false
+			d.newMapOpen = true
+		end
+		_nmRefreshLabels()
+	end,
+	onNewMapClose = function(_event)
+		playSound("click")
+		local d = widgetState.dmHandle; if d then d.newMapOpen = false end
+	end,
+	onNewMapWidthChange = function(event)
+		if uiState.updatingFromCode then return end
+		local raw = (event and event.parameters and event.parameters.value)
+		if raw == nil then raw = _elemSliderVal("slider-newmap-width", NEWMAP_DEFAULT_UNIT) end
+		widgetState.newMapW = _nmClampEven(raw, NEWMAP_DEFAULT_UNIT)
+		_nmRefreshLabels()
+	end,
+	onNewMapWidthUp = function(_event)
+		_nmSetAxis("w", (widgetState.newMapW or NEWMAP_DEFAULT_UNIT) + 2)
+	end,
+	onNewMapWidthDown = function(_event)
+		_nmSetAxis("w", (widgetState.newMapW or NEWMAP_DEFAULT_UNIT) - 2)
+	end,
+	onNewMapHeightChange = function(event)
+		if uiState.updatingFromCode then return end
+		local raw = (event and event.parameters and event.parameters.value)
+		if raw == nil then raw = _elemSliderVal("slider-newmap-height", NEWMAP_DEFAULT_UNIT) end
+		widgetState.newMapH = _nmClampEven(raw, NEWMAP_DEFAULT_UNIT)
+		_nmRefreshLabels()
+	end,
+	onNewMapHeightUp = function(_event)
+		_nmSetAxis("h", (widgetState.newMapH or NEWMAP_DEFAULT_UNIT) + 2)
+	end,
+	onNewMapHeightDown = function(_event)
+		_nmSetAxis("h", (widgetState.newMapH or NEWMAP_DEFAULT_UNIT) - 2)
+	end,
+	onNewMapCreate = function(_event)
+		local w = _nmClampEven(widgetState.newMapW or NEWMAP_DEFAULT_UNIT, NEWMAP_DEFAULT_UNIT)
+		local h = _nmClampEven(widgetState.newMapH or NEWMAP_DEFAULT_UNIT, NEWMAP_DEFAULT_UNIT)
+		local script, err = buildBlankMapStartScript(w, h)
+		if not script then
+			Spring.Echo("[Terraform Brush] New Map failed: " .. tostring(err))
+			return
+		end
+		playSound("exit")
+		Spring.Echo(string.format("[Terraform Brush] Generating blank %dx%d map (%dx%d elmos); reloading...",
+			w, h, w * 512, h * 512))
+		Spring.Restart("", script)
+	end,
 	onGuideToggleSound = function(_event)
 		widgetState.soundMuted = not widgetState.soundMuted
 		local d = widgetState.dmHandle; if d then d.soundMuted = widgetState.soundMuted end
@@ -5195,7 +5378,7 @@ local initialModel = {
 	onDfpStrengthStep = function(_event, delta)
 		if not WG.DiffusePainter then return end
 		local _, s, _, _ = WG.DiffusePainter.getBrush()
-		WG.DiffusePainter.setStrength((s or 0.6) + (delta or 0))
+		WG.DiffusePainter.setStrength((s or 1.0) + (delta or 0))
 	end,
 	onDfpCurveStep = function(_event, delta)
 		if not WG.DiffusePainter then return end
@@ -5253,6 +5436,168 @@ local initialModel = {
 		if not (WG.DiffusePainter and WG.DiffusePainter.exportSquares) then return end
 		WG.DiffusePainter.exportSquares()
 		playSound("tick")
+	end,
+
+	-- ── Diffuse Painter: fractal brush ───────────────────────────────────────
+	onDfpSliderFractal = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		local v = (tonumber(_elemSliderVal("dfp-slider-fractal", 0)) or 0) / 100
+		if WG.DiffusePainter.setFractal then WG.DiffusePainter.setFractal(v, nil) end
+	end,
+	onDfpFractalStep = function(_event, delta)
+		if not WG.DiffusePainter or not WG.DiffusePainter.getFractal then return end
+		local amt, freq = WG.DiffusePainter.getFractal()
+		if WG.DiffusePainter.setFractal then
+			WG.DiffusePainter.setFractal((amt or 0) + (delta or 0) / 100, nil)
+		end
+	end,
+	onDfpSliderFractalFreq = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		-- slider 1-50 maps linearly to freq 0.0002..0.01 (1/elmos)
+		local v = tonumber(_elemSliderVal("dfp-slider-fractal-freq", 30)) or 30
+		local freq = 0.0002 + (v - 1) / 49 * (0.01 - 0.0002)
+		if WG.DiffusePainter.setFractal then WG.DiffusePainter.setFractal(nil, freq) end
+	end,
+	onDfpFractalFreqStep = function(_event, delta)
+		if not WG.DiffusePainter or not WG.DiffusePainter.getFractal then return end
+		local _, freq = WG.DiffusePainter.getFractal()
+		-- convert current freq back to slider units (1-50), step, clamp, convert back
+		local v = math.floor(0.5 + 1 + ((freq or 0.0002) - 0.0002) / (0.01 - 0.0002) * 49)
+		v = math.max(1, math.min(50, v + (delta or 0)))
+		local newFreq = 0.0002 + (v - 1) / 49 * (0.01 - 0.0002)
+		if WG.DiffusePainter.setFractal then WG.DiffusePainter.setFractal(nil, newFreq) end
+	end,
+
+	-- ── Diffuse Painter: blend mode ───────────────────────────────────────────
+	onDfpSetBlend = function(_event, mode)
+		if not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if id and WG.DiffusePainter.setLayerBlend then
+			WG.DiffusePainter.setLayerBlend(id, mode)
+			playSound("tick")
+		end
+	end,
+
+	-- ── Diffuse Painter: hydro erosion mask ───────────────────────────────────
+	onDfpToggleHydro = function(_event)
+		if not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		local layer = nil
+		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		if layer and WG.DiffusePainter.setLayerHydro then
+			WG.DiffusePainter.setLayerHydro(id, not layer.hydroEnabled, nil, nil, nil)
+			playSound("tick")
+		end
+	end,
+	onDfpSliderHydroStrength = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local v = (tonumber(_elemSliderVal("dfp-slider-hydro-strength", 20)) or 20) * 0.001
+		if WG.DiffusePainter.setLayerHydro then WG.DiffusePainter.setLayerHydro(id, nil, v, nil, nil) end
+	end,
+	onDfpHydroStrStep = function(_event, delta)
+		if not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		local layer = nil
+		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		if layer and WG.DiffusePainter.setLayerHydro then
+			local raw = math.max(1, math.min(100, math.floor(0.5 + (layer.hydroStrength or 0.02) * 1000) + (delta or 0)))
+			WG.DiffusePainter.setLayerHydro(id, nil, raw * 0.001, nil, nil)
+		end
+	end,
+	onDfpSliderHydroFalloffLo = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local v = (tonumber(_elemSliderVal("dfp-slider-hydro-flo", 10)) or 10) / 100
+		if WG.DiffusePainter.setLayerHydro then WG.DiffusePainter.setLayerHydro(id, nil, nil, v, nil) end
+	end,
+	onDfpHydroFalloffLoStep = function(_event, delta)
+		if not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		local layer = nil
+		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		if layer and WG.DiffusePainter.setLayerHydro then
+			local raw = math.max(0, math.min(100, math.floor(0.5 + (layer.hydroFalloffLo or 0.1) * 100) + (delta or 0)))
+			WG.DiffusePainter.setLayerHydro(id, nil, nil, raw / 100, nil)
+		end
+	end,
+	onDfpSliderHydroFalloffHi = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local v = (tonumber(_elemSliderVal("dfp-slider-hydro-fhi", 60)) or 60) / 100
+		if WG.DiffusePainter.setLayerHydro then WG.DiffusePainter.setLayerHydro(id, nil, nil, nil, v) end
+	end,
+	onDfpHydroFalloffHiStep = function(_event, delta)
+		if not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		local layer = nil
+		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		if layer and WG.DiffusePainter.setLayerHydro then
+			local raw = math.max(1, math.min(100, math.floor(0.5 + (layer.hydroFalloffHi or 0.6) * 100) + (delta or 0)))
+			WG.DiffusePainter.setLayerHydro(id, nil, nil, nil, raw / 100)
+		end
+	end,
+
+	-- ── Diffuse Painter: thermo erosion mask ──────────────────────────────────
+	onDfpToggleThermo = function(_event)
+		if not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		local layer = nil
+		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		if layer and WG.DiffusePainter.setLayerThermo then
+			WG.DiffusePainter.setLayerThermo(id, not layer.thermoEnabled, nil, nil)
+			playSound("tick")
+		end
+	end,
+	onDfpSliderThermoAngle = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local v = tonumber(_elemSliderVal("dfp-slider-thermo-angle", 30)) or 30
+		if WG.DiffusePainter.setLayerThermo then WG.DiffusePainter.setLayerThermo(id, nil, v, nil) end
+	end,
+	onDfpThermoAngleStep = function(_event, delta)
+		if not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		local layer = nil
+		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		if layer and WG.DiffusePainter.setLayerThermo then
+			WG.DiffusePainter.setLayerThermo(id, nil, (layer.thermoAngle or 30) + (delta or 0), nil)
+		end
+	end,
+	onDfpSliderThermoFalloff = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local v = tonumber(_elemSliderVal("dfp-slider-thermo-falloff", 8)) or 8
+		if WG.DiffusePainter.setLayerThermo then WG.DiffusePainter.setLayerThermo(id, nil, nil, v) end
+	end,
+	onDfpThermoFalloffStep = function(_event, delta)
+		if not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
+		local layer = nil
+		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		if layer and WG.DiffusePainter.setLayerThermo then
+			local v = math.max(1, math.min(40, math.floor(0.5 + (layer.thermoFalloff or 8)) + (delta or 0)))
+			WG.DiffusePainter.setLayerThermo(id, nil, nil, v)
+		end
 	end,
 }
 
@@ -7340,6 +7685,7 @@ local function attachEventListeners()
 		makeWindowDraggable("tf-splattex-handle", widgetState.splatTexRootEl)
 		makeWindowDraggable("tf-light-library-handle", widgetState.lightLibraryRootEl)
 		makeWindowDraggable("tf-settings-handle", widgetState.settingsRootEl)
+		makeWindowDraggable("tf-newmap-handle", getCachedEl(doc, "tf-newmap-root"))
 	end
 
 	-- ===== Transport (auto-scroll) button listeners =====

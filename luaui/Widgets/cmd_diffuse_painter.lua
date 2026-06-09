@@ -59,7 +59,7 @@ local MAX_RADIUS = 2000
 local DEFAULT_RADIUS = 128
 local MIN_STRENGTH = 0.01
 local MAX_STRENGTH = 1.0
-local DEFAULT_STRENGTH = 0.6
+local DEFAULT_STRENGTH = 1.0
 local MIN_CURVE = 0.1
 local MAX_CURVE = 5.0
 local DEFAULT_CURVE = 1.5
@@ -67,6 +67,12 @@ local DEFAULT_CURVE = 1.5
 local RADIUS_STEP   = 8
 local STRENGTH_STEP = 0.05
 local CURVE_STEP    = 0.1
+
+local MIN_FRACTAL       = 0.0
+local MAX_FRACTAL       = 1.0
+local MIN_FRACTAL_FREQ  = 0.0001
+local MAX_FRACTAL_FREQ  = 0.05
+local FRACTAL_FREQ_STEP = 0.001
 
 -- ============================================================================
 -- State
@@ -98,10 +104,12 @@ local nextLayerId = 1
 local materialLibrary = {}
 
 -- Brush
-local brushRadius   = DEFAULT_RADIUS
-local brushStrength = DEFAULT_STRENGTH
-local brushCurve    = DEFAULT_CURVE
-local eraseMode     = false
+local brushRadius        = DEFAULT_RADIUS
+local brushStrength      = DEFAULT_STRENGTH
+local brushCurve         = DEFAULT_CURVE
+local eraseMode          = false
+local brushFractalAmount = 0.0   -- 0 = no warp, 1 = maximum organic fractal edge
+local brushFractalFreq   = 0.003 -- world-space fBm frequency (1/elmos)
 
 -- Pen-pressure modulation (reuses WG.TerraformBrush pen-pressure system).
 -- Returns (effRadius, effStrength) for the current frame. When pressure is
@@ -272,6 +280,10 @@ local FRACTAL_SAMPLE_GLSL = [[
 
 -- Compositor: 1 layer per pass. Reads compositeTex as input (start = seed),
 -- samples layer mask + procedural masks, blends layer.color over input.
+-- Supports blend modes: 0=Normal 1=Multiply 2=Screen 3=Overlay 4=SoftLight
+--                       5=ColorDodge 6=HardLight 7=Difference
+-- Hydro erosion mask: paints preferentially in concave valleys/channels.
+-- Thermo erosion mask: paints at slope transitions near the repose angle.
 local COMPOSITOR_FRAG_SRC = [[
 	#version 130
 	uniform sampler2D srcTex;      // current composite
@@ -283,20 +295,29 @@ local COMPOSITOR_FRAG_SRC = [[
 	uniform vec2  mapSize;         // full map size (elmos)
 	uniform vec3  layerColor;
 	uniform float layerOpacity;
+	uniform int   blendMode;       // 0=normal 1=multiply 2=screen 3=overlay 4=softlight 5=colordodge 6=hardlight 7=difference
 	uniform int   useLayerTex;
 	uniform float tileScale;       // world elmos per material UV tile
-	// Procedural mask gates
+	// Altitude mask
 	uniform int   altEnabled;
-	uniform float altMin;
-	uniform float altMax;
-	uniform float altFalloffLo;
-	uniform float altFalloffHi;
+	uniform float altMin, altMax, altFalloffLo, altFalloffHi;
+	// Slope mask
 	uniform int   slopeEnabled;
 	uniform float slopeMinCos;     // cos(maxAngle) — higher = flatter
 	uniform float slopeMaxCos;     // cos(minAngle)
 	uniform float slopeFalloffLo;  // in cos units
 	uniform float slopeFalloffHi;
+	// Hand paint
 	uniform int   handPaintEnabled;
+	// Hydro erosion (valley/channel affinity via heightmap concavity)
+	uniform int   hydroEnabled;
+	uniform float hydroStrength;   // scale: larger = more selective to valleys
+	uniform float hydroFalloffLo;  // normalised flow at which painting starts
+	uniform float hydroFalloffHi;  // normalised flow at full strength
+	// Thermo erosion (talus / repose-angle zone)
+	uniform int   thermoEnabled;
+	uniform float thermoAngle;     // repose angle (degrees, e.g. 30)
+	uniform float thermoFalloff;   // ± band width around repose angle (degrees)
 
 	float smoothBand(float v, float lo, float hi, float fLo, float fHi) {
 		float a = (fLo > 0.001) ? smoothstep(lo - fLo, lo, v) : step(lo, v);
@@ -304,9 +325,24 @@ local COMPOSITOR_FRAG_SRC = [[
 		return clamp(a * b, 0.0, 1.0);
 	}
 
-	float sampleHeightAtWorld(vec2 world) {
-		vec2 uv = world / mapSize;
-		return texture2D(heightMap, uv).x;
+	// Photoshop-style blend: base = existing layer, blend = incoming colour.
+	vec3 blendColors(int mode, vec3 base, vec3 blend) {
+		if (mode == 0) return blend;                                              // Normal
+		if (mode == 1) return base * blend;                                       // Multiply
+		if (mode == 2) return base + blend - base * blend;                        // Screen
+		if (mode == 3) return mix(2.0*base*blend,                                 // Overlay
+		                          1.0 - 2.0*(1.0-base)*(1.0-blend),
+		                          step(vec3(0.5), base));
+		if (mode == 4) return mix(                                                // Soft Light
+		                    2.0*base*blend + base*base*(1.0-2.0*blend),
+		                    sqrt(clamp(base,0.0001,1.0))*(2.0*blend-1.0) + 2.0*base*(1.0-blend),
+		                    step(vec3(0.5), blend));
+		if (mode == 5) return clamp(base / max(1.0-blend, vec3(0.001)), 0.0, 1.4); // Color Dodge
+		if (mode == 6) return mix(2.0*base*blend,                                 // Hard Light
+		                          1.0 - 2.0*(1.0-base)*(1.0-blend),
+		                          step(vec3(0.5), blend));
+		if (mode == 7) return abs(base - blend);                                  // Difference
+		return blend;
 	}
 
 	void main() {
@@ -314,35 +350,73 @@ local COMPOSITOR_FRAG_SRC = [[
 		vec2 worldXZ = squareOrigin + localUV * squareSize;
 		vec4 src = texture2D(srcTex, localUV);
 
-		// Hand-paint layers: canvas already has material*color baked in per
-		// stroke. Ignore procedural alt/slope filters — paint goes where the
-		// artist painted. Switching texturePath only affects future strokes.
+		// Hand-paint: colour already baked at stroke time; just blend with mode.
 		if (handPaintEnabled == 1) {
 			vec4 paint = texture2D(maskTex, localUV);
-			float a = clamp(paint.a * layerOpacity, 0.0, 1.0);
-			gl_FragColor = vec4(mix(src.rgb, paint.rgb, a), 1.0);
+			float pa = clamp(paint.a * layerOpacity, 0.0, 1.0);
+			// paint.rgb is premultiplied (stored as color * alpha by the stamp shader).
+			// De-premultiply to recover the actual deposited colour before blending,
+			// otherwise the deposit contribution is paint.a² instead of paint.a.
+			vec3 paintColor = (paint.a > 0.001) ? paint.rgb / paint.a : vec3(0.0);
+			vec3 bl = blendColors(blendMode, src.rgb, paintColor);
+			gl_FragColor = vec4(mix(src.rgb, bl, pa), 1.0);
 			return;
 		}
 
-		// Procedural (rule-based) layer path
 		float m = 1.0;
 
-		if (altEnabled == 1) {
-			float h = sampleHeightAtWorld(worldXZ);
-			m *= smoothBand(h, altMin, altMax, altFalloffLo, altFalloffHi);
-		}
+		// Shared heightmap samples (one tap for alt, four more for gradients).
+		vec2 hmTexel = 1.0 / vec2(textureSize(heightMap, 0));
+		vec2 uvCtr   = worldXZ / mapSize;
+		vec2 cellSz  = mapSize * hmTexel;
 
-		if (slopeEnabled == 1) {
-			vec2 hmTexel = 1.0 / vec2(textureSize(heightMap, 0));
-			vec2 uvCenter = worldXZ / mapSize;
-			float hL = texture2D(heightMap, uvCenter + vec2(-hmTexel.x, 0.0)).x;
-			float hR = texture2D(heightMap, uvCenter + vec2( hmTexel.x, 0.0)).x;
-			float hD = texture2D(heightMap, uvCenter + vec2(0.0, -hmTexel.y)).x;
-			float hU = texture2D(heightMap, uvCenter + vec2(0.0,  hmTexel.y)).x;
-			vec2 cellSize = mapSize * hmTexel;
-			vec3 n = normalize(vec3(hL - hR, 2.0 * cellSize.x, hD - hU));
-			float ny = n.y;
-			m *= smoothBand(ny, slopeMinCos, slopeMaxCos, slopeFalloffLo, slopeFalloffHi);
+		if (altEnabled == 1 || slopeEnabled == 1 || hydroEnabled == 1 || thermoEnabled == 1) {
+			float hC = texture2D(heightMap, uvCtr).x;
+			float hL = texture2D(heightMap, uvCtr + vec2(-hmTexel.x, 0.0)).x;
+			float hR = texture2D(heightMap, uvCtr + vec2( hmTexel.x, 0.0)).x;
+			float hD = texture2D(heightMap, uvCtr + vec2(0.0, -hmTexel.y)).x;
+			float hU = texture2D(heightMap, uvCtr + vec2(0.0,  hmTexel.y)).x;
+
+			if (altEnabled == 1) {
+				m *= smoothBand(hC, altMin, altMax, altFalloffLo, altFalloffHi);
+			}
+
+			if (slopeEnabled == 1) {
+				vec3 nrm = normalize(vec3(hL - hR, 2.0 * cellSz.x, hD - hU));
+				m *= smoothBand(nrm.y, slopeMinCos, slopeMaxCos, slopeFalloffLo, slopeFalloffHi);
+			}
+
+			if (hydroEnabled == 1) {
+				// Positive Laplacian = concave = valley/channel = high flow.
+				float lap  = hL + hR + hD + hU - 4.0 * hC;
+				float flow = clamp(lap * hydroStrength, 0.0, 1.0);
+				float hfHi = max(hydroFalloffHi, hydroFalloffLo + 0.001);
+				m *= smoothstep(hydroFalloffLo, hfHi, flow);
+			}
+
+			if (thermoEnabled == 1) {
+				// Surface normal → slope angle in degrees.
+				vec3 nrmT = normalize(vec3(hL - hR, 2.0 * cellSz.x, hD - hU));
+				float slopeAngleDeg = acos(clamp(nrmT.y, 0.0, 1.0)) * (180.0 / 3.14159265);
+				float tFall = max(thermoFalloff, 0.5);
+				float tLo   = max(0.0, thermoAngle - tFall);
+				float tHi   = thermoAngle + tFall;
+				float tMask = smoothBand(slopeAngleDeg, tLo, tHi, tFall, tFall);
+				// Weight by steepness of uphill source terrain (6-texel radius).
+				vec2 grad2d = vec2(hR - hL, hU - hD);
+				float gLen  = length(grad2d);
+				float steep = 0.0;
+				if (gLen > 0.0001) {
+					vec2 upDir = (grad2d / gLen) * hmTexel * 6.0;
+					vec2 upUV  = clamp(uvCtr + upDir, vec2(0.001), vec2(0.999));
+					float hUp  = texture2D(heightMap, upUV).x;
+					float rise = hUp - hC;
+					float run  = length((grad2d / gLen) * cellSz * 6.0);
+					float upAng = atan(rise / max(run, 0.001)) * (180.0 / 3.14159265);
+					steep = clamp(upAng / 45.0, 0.0, 1.0);
+				}
+				m *= tMask * steep;
+			}
 		}
 
 		float a = clamp(m * layerOpacity, 0.0, 1.0);
@@ -351,7 +425,8 @@ local COMPOSITOR_FRAG_SRC = [[
 			vec2 tileUV = worldXZ / max(tileScale, 1.0);
 			layerRGB = sampleNoTile(layerTex, tileUV) * layerColor;
 		}
-		vec3 outRGB = mix(src.rgb, layerRGB, a);
+		vec3 blended = blendColors(blendMode, src.rgb, layerRGB);
+		vec3 outRGB  = mix(src.rgb, blended, a);
 		gl_FragColor = vec4(outRGB, 1.0);
 	}
 ]]
@@ -361,6 +436,7 @@ local COMPOSITOR_FRAG_SRC = [[
 -- and blends it over the canvas using brush alpha. This way the deposited RGB
 -- is fully baked at stroke time — switching material later only affects FUTURE
 -- strokes. Erase reduces canvas alpha to fade the paint.
+-- fractalAmount > 0 applies fBm domain-warp to create organic/fractal edges.
 local STAMP_FRAG_SRC = [[
 	#version 130
 	uniform sampler2D srcMask;     // current RGBA canvas
@@ -380,17 +456,44 @@ local STAMP_FRAG_SRC = [[
 	uniform float tileScale;
 	uniform float pbrStrength;     // 0 = no shading bake; ~1.0 = strong
 	uniform vec3  layerColor;
+	uniform float fractalAmount;   // 0 = off, 0-1 = brush-edge fBm warp strength
+	uniform float fractalFreq;     // world-space fBm frequency (1/elmos)
 
 	float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
 
+	// Value-noise fBm for organic brush-edge warping
+	float hfh(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+	float hfn(vec2 p) {
+		vec2 i = floor(p), f = fract(p);
+		vec2 u = f * f * (3.0 - 2.0 * f);
+		return mix(mix(hfh(i), hfh(i+vec2(1.0,0.0)), u.x),
+		           mix(hfh(i+vec2(0.0,1.0)), hfh(i+vec2(1.0,1.0)), u.x), u.y) * 2.0 - 1.0;
+	}
+	float hffbm(vec2 p) {
+		float v = 0.0;
+		v += 0.500 * hfn(p); p *= 2.13;
+		v += 0.225 * hfn(p); p *= 2.13;
+		v += 0.101 * hfn(p); p *= 2.13;
+		v += 0.045 * hfn(p);
+		return v;
+	}
+
 	void main() {
-		vec2 uv = gl_TexCoord[0].st;
+		vec2 uv    = gl_TexCoord[0].st;
 		vec2 world = squareOrigin + uv * squareSize;
-		vec2 d = world - brushPos;
+
+		// Domain-warp world position to produce fractal / organic brush edges.
+		if (fractalAmount > 0.001) {
+			float wx = hffbm(world * fractalFreq + vec2(31.4, 57.2));
+			float wy = hffbm(world * fractalFreq + vec2(89.7, 23.1));
+			world += vec2(wx, wy) * brushRadius * fractalAmount;
+		}
+
+		vec2  d = world - brushPos;
 		float r = length(d) / brushRadius;
 		vec4 current = texture2D(srcMask, uv);
 		if (r >= 1.0) { gl_FragColor = current; return; }
-		float fall = 1.0 - pow(r, brushCurve);
+		float fall   = 1.0 - pow(r, brushCurve);
 		float amount = clamp(brushStrength * fall, 0.0, 1.0);
 		if (brushErase == 1) {
 			float newA = max(0.0, current.a - amount);
@@ -398,7 +501,7 @@ local STAMP_FRAG_SRC = [[
 			return;
 		}
 		vec3 deposit = layerColor;
-		vec2 tileUV = world / max(tileScale, 1.0);
+		vec2 tileUV  = world / max(tileScale, 1.0);
 		if (useLayerTex == 1) {
 			deposit = sampleNoTile(layerTex, tileUV) * layerColor;
 		}
@@ -453,7 +556,7 @@ local STAMP_FRAG_SRC = [[
 			deposit += vec3(specTerm * specStrength * pbrStrength);
 			deposit = clamp(deposit, 0.0, 1.4);
 		}
-		float newA = current.a + (1.0 - current.a) * amount;
+		float newA  = current.a + (1.0 - current.a) * amount;
 		vec3 newRGB = mix(current.rgb, deposit, amount);
 		gl_FragColor = vec4(newRGB, clamp(newA, 0.0, 1.0));
 	}
@@ -481,6 +584,7 @@ local function createShaders()
 	uComp.mapSize          = glGetUniformLocation(compositorShader, "mapSize")
 	uComp.layerColor       = glGetUniformLocation(compositorShader, "layerColor")
 	uComp.layerOpacity     = glGetUniformLocation(compositorShader, "layerOpacity")
+	uComp.blendMode        = glGetUniformLocation(compositorShader, "blendMode")
 	uComp.altEnabled       = glGetUniformLocation(compositorShader, "altEnabled")
 	uComp.altMin           = glGetUniformLocation(compositorShader, "altMin")
 	uComp.altMax           = glGetUniformLocation(compositorShader, "altMax")
@@ -494,6 +598,13 @@ local function createShaders()
 	uComp.handPaintEnabled = glGetUniformLocation(compositorShader, "handPaintEnabled")
 	uComp.useLayerTex      = glGetUniformLocation(compositorShader, "useLayerTex")
 	uComp.tileScale        = glGetUniformLocation(compositorShader, "tileScale")
+	uComp.hydroEnabled     = glGetUniformLocation(compositorShader, "hydroEnabled")
+	uComp.hydroStrength    = glGetUniformLocation(compositorShader, "hydroStrength")
+	uComp.hydroFalloffLo   = glGetUniformLocation(compositorShader, "hydroFalloffLo")
+	uComp.hydroFalloffHi   = glGetUniformLocation(compositorShader, "hydroFalloffHi")
+	uComp.thermoEnabled    = glGetUniformLocation(compositorShader, "thermoEnabled")
+	uComp.thermoAngle      = glGetUniformLocation(compositorShader, "thermoAngle")
+	uComp.thermoFalloff    = glGetUniformLocation(compositorShader, "thermoFalloff")
 
 	stampShader = glCreateShader({
 		vertex = VERT_SRC, fragment = injectFractal(STAMP_FRAG_SRC),
@@ -515,6 +626,8 @@ local function createShaders()
 	uStamp.useNormalTex  = glGetUniformLocation(stampShader, "useNormalTex")
 	uStamp.useRoughTex   = glGetUniformLocation(stampShader, "useRoughTex")
 	uStamp.pbrStrength   = glGetUniformLocation(stampShader, "pbrStrength")
+	uStamp.fractalAmount = glGetUniformLocation(stampShader, "fractalAmount")
+	uStamp.fractalFreq   = glGetUniformLocation(stampShader, "fractalFreq")
 
 	copyShader = glCreateShader({
 		vertex = VERT_SRC, fragment = COPY_FRAG_SRC,
@@ -679,6 +792,9 @@ local function bakeSquare(s)
 					glUniform(uComp.mapSize, mapSizeX, mapSizeZ)
 					glUniform(uComp.layerColor, layer.color[1], layer.color[2], layer.color[3])
 					glUniform(uComp.layerOpacity, layer.opacity)
+					local blendModeIdx = ({ normal=0, multiply=1, screen=2, overlay=3,
+					                        softlight=4, colordodge=5, hardlight=6, difference=7 })[layer.blend or "normal"] or 0
+					glUniformInt(uComp.blendMode, blendModeIdx)
 					glUniformInt(uComp.altEnabled, layer.altEnabled and 1 or 0)
 					glUniform(uComp.altMin, layer.altMin)
 					glUniform(uComp.altMax, layer.altMax)
@@ -699,6 +815,15 @@ local function bakeSquare(s)
 					glUniform(uComp.slopeFalloffLo, fLo)
 					glUniform(uComp.slopeFalloffHi, fHi)
 					glUniformInt(uComp.handPaintEnabled, (layer.handPaintEnabled and maskTex) and 1 or 0)
+					-- Hydro erosion mask
+					glUniformInt(uComp.hydroEnabled, layer.hydroEnabled and 1 or 0)
+					glUniform(uComp.hydroStrength, layer.hydroStrength or 0.02)
+					glUniform(uComp.hydroFalloffLo, layer.hydroFalloffLo or 0.1)
+					glUniform(uComp.hydroFalloffHi, layer.hydroFalloffHi or 0.6)
+					-- Thermo erosion mask
+					glUniformInt(uComp.thermoEnabled, layer.thermoEnabled and 1 or 0)
+					glUniform(uComp.thermoAngle, layer.thermoAngle or 30.0)
+					glUniform(uComp.thermoFalloff, layer.thermoFalloff or 8.0)
 
 					glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)
 
@@ -817,6 +942,8 @@ local function executeStroke(wx, wz, layerId, erase)
 						glUniform(uStamp.tileScale, layer.tileScale or 384)
 						glUniform(uStamp.pbrStrength, layer.pbrStrength or 1.0)
 						glUniform(uStamp.layerColor, layer.color[1], layer.color[2], layer.color[3])
+						glUniform(uStamp.fractalAmount, brushFractalAmount)
+						glUniform(uStamp.fractalFreq,   brushFractalFreq)
 						glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)
 						glTexture(0, false)
 						glUseShader(0)
@@ -855,6 +982,11 @@ local function defaultLayer(name, r, g, b)
 		slopeEnabled = false, slopeMin = 0, slopeMax = 30, slopeFalloffLo = 3, slopeFalloffHi = 3,
 		handPaintEnabled = false,
 		texturePath = nil, tileScale = 384,
+		-- Hydro erosion: paint preferentially in concave valleys / flow channels
+		hydroEnabled = false, hydroStrength = 0.02,
+		hydroFalloffLo = 0.1, hydroFalloffHi = 0.6,
+		-- Thermo erosion: paint at slope transitions near the repose angle
+		thermoEnabled = false, thermoAngle = 30.0, thermoFalloff = 8.0,
 	}
 end
 
@@ -915,11 +1047,14 @@ end
 local function scanMaterialLibrary()
 	materialLibrary = {}
 	local ROOT = "luaui/images/terraform_brush/textures/"
-	local subDirs = (VFS.SubDirs and VFS.SubDirs(ROOT, "*", VFS.RAW_FIRST)) or {}
 	local byKey = {} -- prefer lowest-resolution diffuse per material key
-	for _, d in ipairs(subDirs) do
-		local files = (VFS.DirList and VFS.DirList(d .. "textures/", "*_diff_*.jpg", VFS.RAW_FIRST)) or {}
-		for _, f in ipairs(files) do
+
+	-- Diffuse textures may sit at any depth under ROOT (the source packs nest
+	-- them in `<pack>.blend/textures/textures/`), so walk the tree explicitly
+	-- rather than relying on a recursive DirList flag that not every engine
+	-- build honours. Bounded depth guards against symlink/loop surprises.
+	local function consume(files)
+		for _, f in ipairs(files or {}) do
 			local base = f:gsub("^.*/", "")
 			-- Parse: <name>_diff_<NK>.jpg
 			local mat, res = base:match("^(.-)_diff_(%d+)k%.jpg$")
@@ -937,6 +1072,16 @@ local function scanMaterialLibrary()
 			end
 		end
 	end
+
+	local function walk(dir, depth)
+		if depth > 8 then return end
+		consume(VFS.DirList and VFS.DirList(dir, "*_diff_*k.jpg", VFS.RAW_FIRST) or {})
+		for _, sub in ipairs((VFS.SubDirs and VFS.SubDirs(dir, "*", VFS.RAW_FIRST)) or {}) do
+			walk(sub, depth + 1)
+		end
+	end
+	walk(ROOT, 0)
+
 	for _, v in pairs(byKey) do materialLibrary[#materialLibrary + 1] = v end
 	table.sort(materialLibrary, function(a, b) return a.key < b.key end)
 end
@@ -1081,10 +1226,36 @@ function widget:Initialize()
 		bakeAll        = function() pendingFullCover = true end,
 		exportSquares  = exportSquares,
 		getBrush       = function() return brushRadius, brushStrength, brushCurve, eraseMode end,
-		setRadius      = function(r) brushRadius = max(MIN_RADIUS, min(MAX_RADIUS, floor(r))) end,
-		setStrength    = function(v) brushStrength = max(MIN_STRENGTH, min(MAX_STRENGTH, v)) end,
-		setCurve       = function(v) brushCurve = max(MIN_CURVE, min(MAX_CURVE, v)) end,
-		setErase       = function(b) eraseMode = b and true or false end,
+		setRadius        = function(r) brushRadius = max(MIN_RADIUS, min(MAX_RADIUS, floor(r))) end,
+		setStrength      = function(v) brushStrength = max(MIN_STRENGTH, min(MAX_STRENGTH, v)) end,
+		setCurve         = function(v) brushCurve = max(MIN_CURVE, min(MAX_CURVE, v)) end,
+		setErase         = function(b) eraseMode = b and true or false end,
+		setFractal       = function(amount, freq)
+			if amount ~= nil then brushFractalAmount = max(MIN_FRACTAL, min(MAX_FRACTAL, amount)) end
+			if freq   ~= nil then brushFractalFreq   = max(MIN_FRACTAL_FREQ, min(MAX_FRACTAL_FREQ, freq)) end
+		end,
+		getFractal       = function() return brushFractalAmount, brushFractalFreq end,
+		setLayerBlend    = function(id, mode)
+			local layer = findLayer(id)
+			if layer then layer.blend = mode or "normal"; pendingFullBake = true end
+		end,
+		setLayerHydro    = function(id, enabled, strength, fallLo, fallHi)
+			local layer = findLayer(id)
+			if not layer then return end
+			if enabled   ~= nil then layer.hydroEnabled   = enabled and true or false end
+			if strength  ~= nil then layer.hydroStrength  = max(0.001, strength) end
+			if fallLo    ~= nil then layer.hydroFalloffLo = max(0.0, fallLo) end
+			if fallHi    ~= nil then layer.hydroFalloffHi = max(0.0, fallHi) end
+			pendingFullBake = true
+		end,
+		setLayerThermo   = function(id, enabled, angle, falloff)
+			local layer = findLayer(id)
+			if not layer then return end
+			if enabled ~= nil then layer.thermoEnabled = enabled and true or false end
+			if angle   ~= nil then layer.thermoAngle   = max(0.0, min(85.0, angle)) end
+			if falloff ~= nil then layer.thermoFalloff = max(0.5, min(45.0, falloff)) end
+			pendingFullBake = true
+		end,
 		resetSquare    = function(wx, wz)
 			local sx, sy = floor(wx / SQUARE_SIZE_ELMOS), floor(wz / SQUARE_SIZE_ELMOS)
 			local k = squareKey(sx, sy)

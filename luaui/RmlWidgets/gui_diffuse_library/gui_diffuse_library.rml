@@ -1,0 +1,48 @@
+<rml>
+<head>
+	<link type="text/rcss" href="../styles.rcss" />
+	<link type="text/rcss" href="../rml-utility-classes.rcss" />
+	<link type="text/rcss" href="../palette-standard-global.rcss" />
+	<link type="text/rcss" href="gui_diffuse_library.rcss" />
+</head>
+<body data-model="diffuse_library_model">
+	<div id="dml-root" class="dml-root widget-shadow rounded-md bg-darkest p-2" data-class-hidden="hidden">
+		<div class="flex flex-row justify-between items-center mb-2">
+			<div id="dml-handle" class="dml-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Material Library</div>
+			<div id="btn-quit" class="dml-quit-btn" onclick="widget:OnQuit()"><img class="dml-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+
+		<div class="dml-section-frame">
+			<div class="dml-section-title-row">
+				<div class="text-lg text-light">CATEGORY</div>
+			</div>
+			<div id="dml-category-buttons" class="dml-cat-row">
+				<div id="btn-dmlcat-all" class="dml-cat-btn active"><span class="dml-cat-label">All</span></div>
+				<div id="btn-dmlcat-rock" class="dml-cat-btn"><span class="dml-cat-label">Rock</span></div>
+				<div id="btn-dmlcat-sand" class="dml-cat-btn"><span class="dml-cat-label">Sand</span></div>
+				<div id="btn-dmlcat-grass" class="dml-cat-btn"><span class="dml-cat-label">Grass</span></div>
+				<div id="btn-dmlcat-mud" class="dml-cat-btn"><span class="dml-cat-label">Mud</span></div>
+				<div id="btn-dmlcat-snow" class="dml-cat-btn"><span class="dml-cat-label">Snow</span></div>
+				<div id="btn-dmlcat-moon" class="dml-cat-btn"><span class="dml-cat-label">Moon</span></div>
+				<div id="btn-dmlcat-other" class="dml-cat-btn"><span class="dml-cat-label">Other</span></div>
+			</div>
+		</div>
+
+		<div class="dml-section-frame">
+			<div class="dml-section-title-row">
+				<div class="text-lg text-light">BROWSE</div>
+			</div>
+			<div class="text-sm text-keybind mb-1">Click: assign to layer or add new layer</div>
+			<div class="flex flex-row gap-1 mb-1">
+				<div class="dml-search-wrapper" style="flex: 1;">
+					<input type="text" id="material-search" class="dml-search-input" placeholder="Search materials..." data-value="search" onfocus="widget:OnSearchFocus()" onblur="widget:OnSearchBlur()" onchange="widget:OnSearchChange()" />
+					<div id="btn-search-clear" class="dml-search-clear-btn" onclick="widget:OnSearchClear()"><img class="dml-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+				</div>
+			</div>
+			<div id="material-list" class="dml-material-list">
+				<!-- Populated dynamically by Lua -->
+			</div>
+		</div>
+	</div>
+</body>
+</rml>
