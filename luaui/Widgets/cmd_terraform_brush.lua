@@ -1546,6 +1546,11 @@ local importRowIndex = 0
 local IMPORT_ROWS_PER_FRAME = 32
 local pendingExport = false
 
+-- 16-bit greyscale PNG codec (see file header for why gl.SaveImage can't do this).
+-- Attached to extraState rather than a new chunk-level local (main chunk is at the
+-- 200-local limit).
+extraState._heightmapPNG = VFS.Include("luaui/Widgets/cmd_terraform_brush_png.lua")
+
 local function getState()
 	return {
 		active = activeMode ~= nil,
@@ -1697,21 +1702,40 @@ local function doExportHeightmap()
 	local w = Game.mapSizeX / squareSize + 1
 	local h = Game.mapSizeZ / squareSize + 1
 
+	-- Sample the full-precision float heights directly (row 0 = world z=0). We do NOT
+	-- round-trip through the framebuffer here: gl.SaveImage is 8-bit only, which would
+	-- quantise to 256 levels and terrace the terrain on re-import. Instead we write a
+	-- true 16-bit greyscale PNG from these floats (65536 levels), the standard heightmap
+	-- format pymapconv / World Machine read.
 	local minH, maxH = math.huge, -math.huge
-	local heightGrid = {}
+	local heights = {}
+	local idx = 0
 	for zi = 0, Game.mapSizeZ, squareSize do
-		local row = {}
 		for xi = 0, Game.mapSizeX, squareSize do
 			local gh = GetGroundHeight(xi, zi)
 			if gh < minH then minH = gh end
 			if gh > maxH then maxH = gh end
-			row[#row + 1] = gh
+			idx = idx + 1
+			heights[idx] = gh
 		end
-		heightGrid[#heightGrid + 1] = row
 	end
 
 	local heightRange = maxH - minH
 	if heightRange < 1 then heightRange = 1 end
+
+	-- Normalise to 16-bit greyscale: black (0) = min height, white (65535) = max height.
+	local samples = {}
+	for i = 1, idx do
+		local norm = (heights[i] - minH) / heightRange
+		if norm < 0 then norm = 0 elseif norm > 1 then norm = 1 end
+		samples[i] = floor(norm * 65535 + 0.5)
+	end
+
+	local png = extraState._heightmapPNG.encodeGray16(w, h, samples)
+	if not png then
+		Echo("[Terraform Brush] Failed to encode heightmap PNG")
+		return
+	end
 
 	local HEIGHTMAPS_DIR = "Terraform Brush/Heightmaps/"
 	Spring.CreateDir(HEIGHTMAPS_DIR)
@@ -1721,78 +1745,23 @@ local function doExportHeightmap()
 	local baseName = HEIGHTMAPS_DIR .. "heightmap_export_" .. Game.mapName .. "_" .. stamp
 	local filename = baseName .. ".png"
 
-	local fboTex = gl.CreateTexture(w, h, {
-		border = false,
-		min_filter = GL.NEAREST,
-		mag_filter = GL.NEAREST,
-		wrap_s = GL.CLAMP_TO_EDGE,
-		wrap_t = GL.CLAMP_TO_EDGE,
-		fbo = true,
-	})
-
-	if not fboTex then
-		Echo("[Terraform Brush] Failed to create FBO texture for export")
+	local pngFile = io.open(filename, "wb")
+	if not pngFile then
+		Echo("[Terraform Brush] Failed to open " .. filename .. " for writing")
 		return
 	end
+	pngFile:write(png)
+	pngFile:close()
 
-	-- Render heights AND save inside same FBO binding (proven pattern from GenEnvLut/GenBrdfLut)
-	gl.RenderToTexture(fboTex, function()
-		gl.Blending(false)
-		gl.DepthTest(false)
-
-		gl.MatrixMode(GL.PROJECTION)
-		gl.PushMatrix()
-		gl.LoadIdentity()
-		gl.MatrixMode(GL.MODELVIEW)
-		gl.PushMatrix()
-		gl.LoadIdentity()
-
-		gl.BeginEnd(GL.QUADS, function()
-			for zi = 1, #heightGrid do
-				local row = heightGrid[zi]
-				local y0 = (zi - 1) / #heightGrid * 2 - 1
-				local y1 = zi / #heightGrid * 2 - 1
-				for xi = 1, #row do
-					local norm = (row[xi] - minH) / heightRange
-					if norm < 0 then norm = 0 elseif norm > 1 then norm = 1 end
-					-- Pack 16-bit precision into R (high byte) + G (low byte).
-					-- B = 1.0 is the format marker so the loader can tell new files
-					-- from legacy 8-bit greyscale exports.
-					local packed = floor(norm * 65535 + 0.5)
-					local hi = floor(packed / 256)
-					local lo = packed - hi * 256
-					gl.Color(hi / 255, lo / 255, 1.0, 1)
-					local x0 = (xi - 1) / #row * 2 - 1
-					local x1 = xi / #row * 2 - 1
-					gl.Vertex(x0, y0, 0)
-					gl.Vertex(x1, y0, 0)
-					gl.Vertex(x1, y1, 0)
-					gl.Vertex(x0, y1, 0)
-				end
-			end
-		end)
-
-		gl.MatrixMode(GL.PROJECTION)
-		gl.PopMatrix()
-		gl.MatrixMode(GL.MODELVIEW)
-		gl.PopMatrix()
-
-		-- Save INSIDE the FBO callback (critical!)
-		gl.SaveImage(0, 0, w, h, filename, { yflip = false })
-
-		gl.Blending(true)
-	end)
-
-	gl.DeleteTexture(fboTex)
-
-	-- Write metadata
+	-- Write metadata. "<minH> <maxH> grey16" — the trailing token marks the 16-bit
+	-- greyscale PNG format so the loader decodes it at full depth (see doImportHeightmapRead).
 	local metaFile = io.open(baseName .. ".txt", "w")
 	if metaFile then
-		metaFile:write(string.format("%.2f %.2f\n", minH, maxH))
+		metaFile:write(string.format("%.2f %.2f grey16\n", minH, maxH))
 		metaFile:close()
 	end
 
-	Echo("[Terraform Brush] Exported to: " .. filename .. " (" .. w .. "x" .. h .. ", range: " .. floor(minH) .. " to " .. floor(maxH) .. ")")
+	Echo("[Terraform Brush] Exported to: " .. filename .. " (" .. w .. "x" .. h .. ", 16-bit, range: " .. floor(minH) .. " to " .. floor(maxH) .. ")")
 end
 
 local pendingImportFile = nil
@@ -1817,6 +1786,83 @@ local function doImportHeightmapRead()
 	pendingImportFile = nil
 
 	local squareSize = Game.squareSize
+
+	-- Read metadata first (min/max height range + format token), so we can pick the
+	-- decode path before touching GL.
+	local metaBase = filename:gsub("%.png$", ".txt")
+	local minH, maxH, heightmapFormat
+	local metaFile = io.open(metaBase, "r")
+	if metaFile then
+		local content = metaFile:read("*a")
+		metaFile:close()
+		if content then
+			local a, b, fmt = content:match("([%-%.%d]+)%s+([%-%.%d]+)%s*(%w*)")
+			minH = tonumber(a)
+			maxH = tonumber(b)
+			heightmapFormat = (fmt and fmt ~= "") and fmt or nil
+		end
+	end
+
+	if not minH or not maxH then
+		local gMin, gMax = Spring.GetGroundExtremes()
+		minH = gMin or -200
+		maxH = gMax or 800
+		Echo("[Terraform Brush] No metadata file, using map height range: " .. minH .. " to " .. maxH)
+	end
+
+	local heightRange = maxH - minH
+
+	-- High-precision path: decode the greyscale PNG ourselves in Lua so we keep the
+	-- full 16-bit depth. (gl.Texture round-trips at 8-bit -> 256 levels -> terracing.)
+	-- The decoded image is row-major with row 0 = world z=0, matching the exporter.
+	if heightmapFormat == "grey16" or heightmapFormat == "grey" then
+		local f = io.open(filename, "rb")
+		if f then
+			local bytes = f:read("*a")
+			f:close()
+			local img = bytes and extraState._heightmapPNG.decode(bytes)
+			if img and img.gray then
+				local pw, ph = img.width, img.height
+				local gray = img.gray
+				-- Resample (bilinear) onto the current map grid so heightmaps from a
+				-- differently-sized map still apply. Exact/lossless when sizes match
+				-- (the integer source coords land on a pixel and the weights are 0).
+				local w = Game.mapSizeX / squareSize + 1
+				local h = Game.mapSizeZ / squareSize + 1
+				local columns = {}
+				for px = 1, w do
+					local sx = (w > 1) and ((px - 1) / (w - 1) * (pw - 1)) or 0
+					local x0 = floor(sx)
+					local fx = sx - x0
+					local x1 = (x0 + 1 < pw) and (x0 + 1) or (pw - 1)
+					local col = {}
+					for py = 1, h do
+						local sy = (h > 1) and ((py - 1) / (h - 1) * (ph - 1)) or 0
+						local y0 = floor(sy)
+						local fy = sy - y0
+						local y1 = (y0 + 1 < ph) and (y0 + 1) or (ph - 1)
+						local g00 = gray[y0 * pw + x0 + 1]
+						local g10 = gray[y0 * pw + x1 + 1]
+						local g01 = gray[y1 * pw + x0 + 1]
+						local g11 = gray[y1 * pw + x1 + 1]
+						local g0 = g00 + (g10 - g00) * fx
+						local g1 = g01 + (g11 - g01) * fx
+						col[py] = minH + (g0 + (g1 - g0) * fy) * heightRange
+					end
+					columns[px] = col
+				end
+				importHeightRows = columns
+				importRowIndex = 0
+				Echo("[Terraform Brush] Loaded " .. filename .. " (" .. pw .. "x" .. ph .. ", " ..
+					img.bitDepth .. "-bit), applying " .. IMPORT_ROWS_PER_FRAME .. " cols/frame...")
+				return
+			end
+		end
+		Echo("[Terraform Brush] PNG decode failed, falling back to 8-bit GL load")
+	end
+
+	-- Legacy / fallback path (8-bit via GL): handles the older RG-packed exports and
+	-- any un-tagged greyscale files. Lower precision but preserves backward compatibility.
 	local w = Game.mapSizeX / squareSize + 1
 	local h = Game.mapSizeZ / squareSize + 1
 
@@ -1875,32 +1921,7 @@ local function doImportHeightmapRead()
 		return
 	end
 
-	-- Read metadata
-	local metaBase = filename:gsub("%.png$", ".txt")
-	local minH, maxH
-	local metaFile = io.open(metaBase, "r")
-	if metaFile then
-		local content = metaFile:read("*a")
-		metaFile:close()
-		if content then
-			local a, b = content:match("([%-%.%d]+)%s+([%-%.%d]+)")
-			minH = tonumber(a)
-			maxH = tonumber(b)
-		end
-	end
-
-	if not minH or not maxH then
-		local gMin, gMax = Spring.GetGroundExtremes()
-		minH = gMin or -200
-		maxH = gMax or 800
-		Echo("[Terraform Brush] No metadata file, using map height range: " .. minH .. " to " .. maxH)
-	end
-
-	local heightRange = maxH - minH
 	-- gl.ReadPixels returns res[row+1][col+1] (outer = row/y, inner = col/x).
-	-- Export writes world X to image x, world Z to image y, with z=0 at bottom of FBO
-	-- (and gl.SaveImage yflip=false keeps that GL bottom-origin in the PNG). The round-trip
-	-- preserves orientation, so pixel (px, py) maps directly to (X=px*sq, Z=py*sq).
 	local pixelHeight = #res
 	local pixelWidth = #res[1]
 	local columns = {}
@@ -1909,19 +1930,16 @@ local function doImportHeightmapRead()
 		for py = 1, pixelHeight do
 			local pixel = res[py][px]
 			local norm
-			-- B near 1.0 marks the 16-bit packed format (R = hi byte, G = lo byte).
-			-- Older greyscale exports have B == R == G, so B will not be saturated
-			-- unless the height happens to be max — fall back to grey averaging in
-			-- that case still works because packed encoding gives the same result
-			-- when R == G == 1.
 			if pixel[3] and pixel[3] > 0.95 and not (pixel[1] > 0.95 and pixel[2] > 0.95) then
+				-- Legacy 16-bit RG-packed format (R = hi byte, G = lo byte, B = 1.0 marker).
 				local hi = floor(pixel[1] * 255 + 0.5)
 				local lo = floor(pixel[2] * 255 + 0.5)
 				norm = (hi * 256 + lo) / 65535
 			elseif pixel[3] and pixel[3] > 0.95 then
-				-- saturated marker AND saturated R/G → max height
+				-- packed marker AND saturated R/G → max height
 				norm = 1
 			else
+				-- legacy un-tagged 8-bit greyscale export
 				norm = (pixel[1] + pixel[2] + pixel[3]) / 3
 			end
 			heights[py] = minH + norm * heightRange
@@ -1931,7 +1949,7 @@ local function doImportHeightmapRead()
 
 	importHeightRows = columns
 	importRowIndex = 0
-	Echo("[Terraform Brush] Loaded " .. filename .. " (" .. pixelWidth .. "x" .. pixelHeight .. "), applying " .. IMPORT_ROWS_PER_FRAME .. " cols/frame...")
+	Echo("[Terraform Brush] Loaded " .. filename .. " (" .. pixelWidth .. "x" .. pixelHeight .. ", 8-bit), applying " .. IMPORT_ROWS_PER_FRAME .. " cols/frame...")
 end
 
 local function doImportHeightmapSend()
