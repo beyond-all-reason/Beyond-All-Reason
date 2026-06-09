@@ -110,16 +110,16 @@ local lightningConfigs = {
 	scavradiation = {
 		r = 0.50, g = 0.4, b = 1.00,
 		coreR = 0.82, coreG = 0.7, coreB = 1.00,
-		lifeFrames     = 18,
-		intensity      = 0.25,
+		lifeFrames     = 11,
+		intensity      = 0.3,
 		feather        = 0.4,
 		baseWidth      = 0.9,
 		reach          = 450,
 		branchCount    = 2,
-		childCount     = 2,
+		childCount     = 1,
 		maxDepth       = 4,
-		segments       = 2,
-		jitterAmp      = 22,
+		segments       = 3,
+		jitterAmp      = 32,
 		glowBrightness = 0.4,
 		vbias          = 0.20,
 		spread         = 4,
@@ -128,7 +128,7 @@ local lightningConfigs = {
 		tipTaper       = 0.1,
 		sizeVarMin     = 0.3,
 		sizeVarMax     = 1.3,
-		intensityVar   = 0.4,
+		intensityVar   = 0.5,
 		lifeVar        = 0.3,
 	},
 
@@ -139,7 +139,7 @@ local lightningConfigs = {
 	commanderspawn = {
 		r = 0.55, g = 0.66, b = 1.00,
 		coreR = 0.92, coreG = 0.96, coreB = 1.00,
-		lifeFrames     = 15,
+		lifeFrames     = 11,
 		intensity      = 0.12,
 		feather        = 0.5,
 		baseWidth      = 0.9,
@@ -207,6 +207,10 @@ local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
 
 local function clamp(v, lo, hi) return v < lo and lo or (v > hi and hi or v) end
 local function lerp(a, b, t) return a + (b - a) * t end
+
+-- When false, bolt shape/brightness no longer reroll every render frame.
+-- Bursts still spawn/grow/fade normally, but each bolt stays temporally stable.
+local ENABLE_DYNAMIC_ANIMATION = false
 
 --------------------------------------------------------------------------------
 -- Config / tuning constants (global shader behaviour; per-burst overrides come
@@ -319,7 +323,7 @@ void main()
 	vec3 perpA = normalize(cross(forward, upRef));
 	vec3 perpB = normalize(cross(forward, perpA));
 
-	float frameTick = floor(timeInfo.z * 30.0);
+	float frameTick = ENV_LIGHTNING_ANIMATE > 0.5 ? floor(timeInfo.z * 30.0) : 0.0;
 
 	// Per-segment t with deterministic per-boundary length jitter (endpoints fixed)
 	float yNorm = position_xy_uv.y * 0.5 + 0.5;
@@ -369,8 +373,11 @@ void main()
 
 	float segWobble = mix(1.0 - THICKNESS_VARIATION, 1.0 + THICKNESS_VARIATION,
 		hash11(seed * 3.1 + segIndex * 5.7 + frameTick * 0.21));
-	float flickerSeed = seed * 0.97 + frameTick * 0.13;
-	float flicker = 1.0 - FLICKER_AMPLITUDE * 0.5 + FLICKER_AMPLITUDE * hash11(flickerSeed);
+	float flicker = 1.0;
+	if (ENV_LIGHTNING_ANIMATE > 0.5) {
+		float flickerSeed = seed * 0.97 + frameTick * 0.13;
+		flicker = 1.0 - FLICKER_AMPLITUDE * 0.5 + FLICKER_AMPLITUDE * hash11(flickerSeed);
+	}
 
 	// Leading-tip taper: thin to a point toward the (unconnected) far end.
 	float tipW = mix(1.0, tipTaper, smoothstep(TIP_TAPER_START, 1.0, tHere));
@@ -505,8 +512,11 @@ void main()
 		right = right / rightLen;
 	}
 
-	float frameTick = floor(timeInfo.z * 30.0);
-	float flicker = 1.0 - FLICKER_AMPLITUDE * 0.5 + FLICKER_AMPLITUDE * hash11(seed * 0.97 + frameTick * 0.13);
+	float flicker = 1.0;
+	if (ENV_LIGHTNING_ANIMATE > 0.5) {
+		float frameTick = floor(timeInfo.z * 30.0);
+		flicker = 1.0 - FLICKER_AMPLITUDE * 0.5 + FLICKER_AMPLITUDE * hash11(seed * 0.97 + frameTick * 0.13);
+	}
 	float glowWidth = baseWidth * GLOW_WIDTH_MULT * flicker;
 
 	float camDist = length(camPos - posOnAxis);
@@ -582,6 +592,7 @@ local boltShaderConfig = {
 	FLICKER_AMPLITUDE   = FLICKER_AMPLITUDE,
 	THICKNESS_VARIATION = THICKNESS_VARIATION,
 	SEGMENT_LENGTH_VAR  = SEGMENT_LENGTH_VAR,
+	ENV_LIGHTNING_ANIMATE = ENABLE_DYNAMIC_ANIMATION and 1 or 0,
 	JITTER_MAX_BOLT_FRAC  = JITTER_MAX_BOLT_FRAC,
 	BRUSH_MAX_JITTER_FRAC = BRUSH_MAX_JITTER_FRAC,
 	CORE_EDGE_START     = CORE_EDGE_START,
@@ -594,6 +605,7 @@ local boltShaderConfig = {
 
 local glowShaderConfig = {
 	FLICKER_AMPLITUDE    = FLICKER_AMPLITUDE,
+	ENV_LIGHTNING_ANIMATE = ENABLE_DYNAMIC_ANIMATION and 1 or 0,
 	GLOW_WIDTH_MULT      = GLOW_WIDTH_MULT,
 	GLOW_FALLOFF_POWER   = GLOW_FALLOFF_POWER,
 	GLOW_MIN_PIXEL_WIDTH = GLOW_MIN_PIXEL_WIDTH,
