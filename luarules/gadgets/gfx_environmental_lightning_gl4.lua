@@ -139,13 +139,13 @@ local lightningConfigs = {
 	commanderspawn = {
 		r = 0.55, g = 0.66, b = 1.00,
 		coreR = 0.92, coreG = 0.96, coreB = 1.00,
-		lifeFrames     = 18,
+		lifeFrames     = 15,
 		intensity      = 0.12,
 		feather        = 0.5,
 		baseWidth      = 0.9,
-		reach          = 80,
+		reach          = 50,
 		branchCount    = 3,
-		childCount     = 3,
+		childCount     = 2,
 		maxDepth       = 2,
 		segments       = 2,
 		jitterAmp      = 12,
@@ -153,7 +153,7 @@ local lightningConfigs = {
 		vbias          = 0.35,
 		spread         = 3.5,
 		growFrac       = 0.5,
-		flowFrac       = 0.3,
+		flowFrac       = 0.2,
 		tipTaper       = 0.1,
 		sizeVarMin     = 0.85,
 		sizeVarMax     = 1.3,
@@ -165,14 +165,14 @@ local lightningConfigs = {
 		centerHeight          = 25,
 		centerSizeScale       = 1.35,
 		centerIntensityScale  = 1.45,
-		scatterCount          = 14,
-		scatterFrames         = 77,
-		scatterRadius         = 85,
+		scatterCount          = 10,
+		scatterFrames         = 45,
+		scatterRadius         = 30,
 		scatterHeightMin      = 18,
 		scatterHeightMax      = 45,
 		scatterSizeMin        = 0.3,
 		scatterSizeMax        = 0.6,
-		scatterIntensityScale = 0.4,
+		scatterIntensityScale = 1.0,
 		scatterWidthScale     = 1.75,
 	},
 }
@@ -214,7 +214,7 @@ local function lerp(a, b, t) return a + (b - a) * t end
 --------------------------------------------------------------------------------
 local INITIAL_VBO_SIZE = 512
 local IDLE_SKIP_FRAMES = 3
-local MAX_ACTIVE       = 96     -- hard cap on simultaneous bursts (oldest dropped)
+local MAX_ACTIVE       = 256     -- hard cap on simultaneous bursts (oldest dropped)
 
 -- Lifetime envelope (fractions of each burst's lifeFrames)
 local FADE_IN_FRAC   = 0.08    -- burst fades in over this fraction of life
