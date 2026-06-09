@@ -2278,7 +2278,11 @@ if gadgetHandler:IsSyncedCode() then
 							if captureLevel+captureProgress >= 0.99 then
 								SpawnCEG("scavmist", ux, uy+100, uz, 0,0,0)
 								SpawnCEG("scavradiation", ux, uy+100, uz, 0,0,0)
-								SpawnCEG("scavradiation-lightning", ux, uy+100, uz, 0,0,0)
+								if GG.SpawnEnvironmentalLightning then
+									GG.SpawnEnvironmentalLightning("scavradiation", ux, uy+100, uz)
+								else
+									SpawnCEG("scavradiation-lightning", ux, uy+100, uz, 0,0,0)
+								end
 								-- UnitGiven may destroy and replace this unit with a _scav variant
 								TransferUnit(unitID, scavTeamID, false)
 								if ValidUnitID(unitID) then
