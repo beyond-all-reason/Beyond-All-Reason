@@ -287,7 +287,7 @@ local function addToExplosions(explosions, area)
 	tableInsert(explosions, index, area)
 end
 
-local getShieldUnitsInSphere, isInShield -- from shield behaviors
+local getBlockingShieldUnits -- from shield behaviors
 
 local function getAllyTeam(attackerID, projectileID)
 	return (attackerID and spGetUnitAllyTeam(attackerID))
@@ -324,19 +324,10 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
 		-- and the explosion volume and resulting area volume have some discrepancy, as well.
 		local blockingShields
 		if not explosion.penetrates then
-			local units, count = getShieldUnitsInSphere(px, elevation, pz, areaRange, true)
+			local allyTeam = getAllyTeam(attackerID, projectileID)
+			local units, count = getBlockingShieldUnits(px, elevation, pz, areaRange, allyTeam, true)
 			if count and count > 0 then
-				local allyTeam = getAllyTeam(attackerID, projectileID)
-				for i = count, 1, -1 do
-					if allyTeam == spGetUnitAllyTeam(units[i]) or isInShield(px, py, pz, units[i]) then
-						units[i] = units[count]
-						units[count] = nil
-						count = count - 1
-					end
-				end
-				if count > 0 then
-					blockingShields = units
-				end
+				blockingShields = units
 			end
 		end
 
@@ -543,13 +534,11 @@ end
 -- Gadget callins --------------------------------------------------------------
 
 function gadget:Initialize()
-	getShieldUnitsInSphere = GG.Shields.GetShieldUnitsInSphere
-	isInShield = GG.Shields.IsInShield
+	getBlockingShieldUnits = GG.Shields.GetBlockingShieldUnits
 
 	areaDamageTypes = GG.EnvAreaWeapons or {}
-	GG.EnvAreaWeapons = areaDamageTypes
-
 	inExplosion = GG.InTimedDamageArea or table.new(1, 0) -- lua trick for ref passing
+	GG.EnvAreaWeapons = areaDamageTypes
 	GG.InTimedDamageArea = inExplosion
 
 	timedDamageWeapons = {}

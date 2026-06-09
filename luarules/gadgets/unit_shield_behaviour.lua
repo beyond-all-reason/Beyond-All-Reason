@@ -125,6 +125,7 @@ local distanceSquared               = math.distance3dSquared
 local spSetUnitShieldRechargeDelay  = Spring.SetUnitShieldRechargeDelay
 local spDeleteProjectile            = Spring.DeleteProjectile
 local spGetProjectileDefID          = Spring.GetProjectileDefID
+local spGetUnitAllyTeam             = Spring.GetUnitAllyTeam
 local spGetUnitPosition             = Spring.GetUnitPosition
 local spGetUnitWeaponVectors        = Spring.GetUnitWeaponVectors
 local spGetUnitsInSphere            = Spring.GetUnitsInSphere
@@ -724,10 +725,22 @@ local function isBallShellIntersection(dx, dy, dz, ballRadius, shellRadius)
 		and distanceSq <= (shellRadius + ballRadius) * (shellRadius + ballRadius)
 end
 
+local function isExternalBallShellIntersection(dx, dy, dz, ballRadius, shellRadius)
+	local distanceSq = dx * dx + dy * dy + dz * dz
+	return distanceSq >= shellRadius * shellRadius -- Must be outside the shield.
+		and distanceSq <= (shellRadius + ballRadius) * (shellRadius + ballRadius)
+end
+
+local function isBallInsideShell(dx, dy, dz, ballRadius, shellRadius)
+	local distanceSq = dx * dx + dy * dy + dz * dz
+	return distanceSq <= (shellRadius - ballRadius) * (shellRadius - ballRadius)
+end
+
+---Get all shield spheres that intersect a search sphere.
 ---@param x number
 ---@param y number
 ---@param z number
----@param radius number? Additive with the radius of the target shield (default := `0`)
+---@param radius number? Additive with the radius of the target shield (default := `0.01`)
 ---@param onlyAlive boolean? Navigate the rework's one-frame delay on shield effects by excluding recently-dead units (default := `false`)
 ---@return integer[] shieldUnits
 ---@return integer count
@@ -737,7 +750,6 @@ local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
 	local units, count = {}, 0
 	local position, intersect = getUnitShieldWeaponPosition, isBallShellIntersection
 
-	-- Find intersections of the solid search sphere and thin-shelled shield spheres.
 	for unitID, unitData in pairs(shieldUnitsData) do
 		if unitData.shieldEnabled then
 			local sx, sy, sz, shieldRadius = position(unitID, unitData)
@@ -756,6 +768,92 @@ local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
 		if unitData.shieldEnabled then
 			local sx, sy, sz, shieldRadius = position(unitID, unitData)
 			if intersect(x - sx, y - sy, z - sz, radius, shieldRadius) then
+				count = count + 1
+				units[count] = unitID
+			end
+		end
+	end
+
+	return units, count
+end
+
+---Shield blocking only works on external, non-allied projectiles and explosions.
+---Shield coverage applies to internal ally units and internal enemy projectiles.
+---@param x number
+---@param y number
+---@param z number
+---@param allyTeam integer The ally team for the incoming damage source.
+---@param radius number? Additive with the radius of the target shield (default := `0.01`)
+---@param onlyAlive boolean? Navigate the rework's one-frame delay on shield effects by excluding recently-dead units (default := `false`)
+---@return integer[] shieldUnits
+---@return integer count
+local function getBlockingShieldUnits(x, y, z, radius, allyTeam, onlyAlive)
+	radius = mathMax(radius or 0, 0.001)
+
+	local units, count = {}, 0
+	local position, blocking = getUnitShieldWeaponPosition, isExternalBallShellIntersection
+
+	for unitID, unitData in pairs(shieldUnitsData) do
+		if unitData.shieldEnabled and allyTeam ~= spGetUnitAllyTeam(unitID) then
+			local sx, sy, sz, shieldRadius = position(unitID, unitData)
+			if sx and blocking(x - sx, y - sy, z - sz, radius, shieldRadius) then
+				count = count + 1
+				units[count] = unitID
+			end
+		end
+	end
+
+	if onlyAlive then
+		return units, count
+	end
+
+	for unitID, unitData in pairs(destroyedUnitData) do
+		if unitData.shieldEnabled and allyTeam ~= spGetUnitAllyTeam(unitID) then
+			local sx, sy, sz, shieldRadius = position(unitID, unitData)
+			if blocking(x - sx, y - sy, z - sz, radius, shieldRadius) then
+				count = count + 1
+				units[count] = unitID
+			end
+		end
+	end
+
+	return units, count
+end
+
+---Find all shields that contain a point, without checking shield unit ally team.
+---Your code should filter any results based on team or ally team as appropriate.
+---Shield coverage applies to internal ally units and internal enemy projectiles.
+---@param x number
+---@param y number
+---@param z number
+---@param radius number? Additive with the radius of the target shield (default := `0.01`)
+---@param onlyAlive boolean? Navigate the rework's one-frame delay on shield effects by excluding recently-dead units (default := `false`)
+---@return integer[] shieldUnits
+---@return integer count
+local function getCoveringShieldUnits(x, y, z, radius, onlyAlive)
+	radius = mathMax(radius or 0, 0.001)
+
+	local units, count = {}, 0
+	local position, contained = getUnitShieldWeaponPosition, isBallInsideShell
+
+	for unitID, unitData in pairs(shieldUnitsData) do
+		if unitData.shieldEnabled then
+			local sx, sy, sz, shieldRadius = position(unitID, unitData)
+			if sx and contained(x - sx, y - sy, z - sz, radius, shieldRadius) then
+				count = count + 1
+				units[count] = unitID
+			end
+		end
+	end
+
+	if onlyAlive then
+		return units, count
+	end
+
+	for unitID, unitData in pairs(destroyedUnitData) do
+		if unitData.shieldEnabled then
+			local sx, sy, sz, shieldRadius = position(unitID, unitData)
+			if contained(x - sx, y - sy, z - sz, radius, shieldRadius) then
 				count = count + 1
 				units[count] = unitID
 			end
@@ -789,6 +887,8 @@ function gadget:Initialize()
 	GG.Shields.DamageToShields = originalShieldDamages
 	GG.Shields.GetUnitShieldPosition = getUnitShieldPosition
 	GG.Shields.GetShieldUnitsInSphere = getShieldUnitsInSphere
+	GG.Shields.GetBlockingShieldUnits = getBlockingShieldUnits
+	GG.Shields.GetCoveringShieldUnits = getCoveringShieldUnits
 	GG.Shields.GetUnitShieldState = getUnitShieldState
 	GG.Shields.IsInShield = isInShield
 	GG.Shields.RegisterShieldPreDamaged = registerShieldPreDamaged

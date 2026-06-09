@@ -70,14 +70,14 @@ local spGetUnitTeam           = Spring.GetUnitTeam
 local spGetUnitsInSphere      = Spring.GetUnitsInSphere
 local spGetProjectileTeamID   = Spring.GetProjectileTeamID
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spAreTeamsAllied        = Spring.AreTeamsAllied
+local spGetTeamAllyTeamID     = Spring.GetTeamAllyTeamID
 local spSpawnProjectile       = Spring.SpawnProjectile
 local spDeleteProjectile      = Spring.DeleteProjectile
 
 local gameSpeed  = Game.gameSpeed
 local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * -1
 
-local addShieldDamage, damageToShields, getShieldPosition, getShieldUnitsInSphere, isInShield -- see unit_shield_behaviour
+local addShieldDamage, damageToShields, getShieldPosition, getBlockingShieldUnits, isInShield -- see unit_shield_behaviour
 
 --------------------------------------------------------------------------------
 -- Initialize ------------------------------------------------------------------
@@ -392,30 +392,6 @@ local function getShieldDeflection(x, y, z, dx, dy, dz, shieldUnits)
 	return dx, dy, dz
 end
 
-local function isInAlliance(teamID, unitID)
-	local unitTeam = spGetUnitTeam(unitID)
-	return teamID and unitTeam and (teamID == unitTeam or spAreTeamsAllied(teamID, unitTeam))
-end
-
-local function getNearShields(x, y, z, scatterDistance, teamID)
-	local shields, count = getShieldUnitsInSphere(x, y, z, scatterDistance)
-
-	if count and count > 0 then
-		for i = count, 1, -1 do
-			local shieldUnitID = shields[i]
-			if not isInAlliance(teamID, shieldUnitID) and isInShield(x, y, z, shieldUnitID) then
-				shields[i] = shields[count]
-				shields[count] = nil
-				count = count - 1
-			end
-		end
-
-		if count > 0 then
-			return shields
-		end
-	end
-end
-
 local function inheritMomentum(projectileID)
 	local vx, vy, vz, vw = spGetProjectileVelocity(projectileID)
 	-- Apply major loss from scattering (~50%) and reduce hyperspeeds (1 is convenient).
@@ -433,8 +409,6 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
 
 	local hitShields = projectileHitShield[projectileID]
-	local nearShields = customShieldDeflect and getNearShields(x, y, z, projectileSpeed * subframeScatter, attackerTeam)
-	local shieldDamage = nearShields and damageToShields[clusterDefID]
 
 	if hitShields and getShieldPosition then
 		deflectX, deflectY, deflectZ = getShieldDeflection(x, y, z, deflectX, deflectY, deflectZ, hitShields)
@@ -445,6 +419,17 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 		deflectX = deflectX + inheritX
 		deflectY = deflectY + inheritY
 		deflectZ = deflectZ + inheritZ
+	end
+
+	local nearShields, shieldDamage
+	if customShieldDeflect then
+		local scatterDistance = projectileSpeed * subframeScatter
+		local attackerAllyTeam = spGetTeamAllyTeamID(attackerTeam)
+		local shields, count = getBlockingShieldUnits(x, y, z, scatterDistance, attackerAllyTeam)
+		if count > 0 then
+			nearShields = shields
+			shieldDamage = damageToShields[clusterDefID]
+		end
 	end
 
 	local directionVectors = directions[projectileCount]
@@ -546,7 +531,7 @@ function gadget:Initialize()
 	addShieldDamage = GG.Shields.AddShieldDamage
 	damageToShields = GG.Shields.DamageToShields
 	getShieldPosition = GG.Shields.GetUnitShieldPosition
-	getShieldUnitsInSphere = GG.Shields.GetShieldUnitsInSphere
+	getBlockingShieldUnits = GG.Shields.GetBlockingShieldUnits
 	isInShield = GG.Shields.IsInShield
 
 	-- Metatable for lookup on projectiles, rather than on our weaponDefIDs.
