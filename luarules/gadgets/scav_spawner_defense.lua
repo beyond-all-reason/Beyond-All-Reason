@@ -1059,6 +1059,9 @@ if gadgetHandler:IsSyncedCode() then
 						if burrowID then
 							SetupBurrow(burrowID, spawnPosX, spawnPosY, spawnPosZ)
 							Spring.SpawnCEG("commander-spawn-alwaysvisible", spawnPosX, spawnPosY, spawnPosZ, 0, 0, 0)
+							if GG.SpawnEnvironmentalLightning then
+								GG.SpawnEnvironmentalLightning("commanderspawn", spawnPosX, spawnPosY, spawnPosZ)
+							end
 							Spring.PlaySoundFile("commanderspawn-mono", 0.15, spawnPosX, spawnPosY, spawnPosZ, 0, 0, 0, "sfx")
 							GG.ComSpawnDefoliate(spawnPosX, spawnPosY, spawnPosZ)
 							break
@@ -1096,9 +1099,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if SetCount(bossIDs) > 0 then
-			
+
 			if bossStagger.currentlyStaggered == false then
-				
+
 				if bossStagger.CurrentHealth > 0 then
 					SetGameRulesParam("scavBossStaggerPercentage", math.ceil((bossStagger.CurrentHealth/bossStagger.Health)*100))
 					for bossID, _ in pairs(bossIDs) do
@@ -1160,9 +1163,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if sx and sy and sz then
-			if bestBurrowID then
-				Spring.DestroyUnit(bestBurrowID, true, false)
-			end
+			--if bestBurrowID then
+			--	Spring.DestroyUnit(bestBurrowID, true, false)
+			--end
 			return CreateUnit(config.bossName, sx, sy, sz, mRandom(0,3), scavTeamID), burrowID
 		end
 

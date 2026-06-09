@@ -329,13 +329,62 @@ end
 
 
 local function CheckCom(unitID, unitDefID, unitTeam)
-	if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
-		if unitTeam ~= GaiaTeam then
-			comms[unitID] = GetCommAttributes(unitID, unitDefID)
+	if not comHeight[unitDefID] or unitTeam == GaiaTeam then
+		if comms[unitID] then
+			comms[unitID] = nil
+			if comnameIconList[unitID] then
+				glDeleteList(comnameIconList[unitID])
+				comnameIconList[unitID] = nil
+			end
 		end
-	elseif comms[unitID] then
-		comms[unitID] = nil
+		return false
 	end
+
+	local oldAttributes = comms[unitID]
+	local newAttributes = GetCommAttributes(unitID, unitDefID)
+	if not newAttributes then
+		if comms[unitID] then
+			comms[unitID] = nil
+			if comnameIconList[unitID] then
+				glDeleteList(comnameIconList[unitID])
+				comnameIconList[unitID] = nil
+			end
+		end
+		return false
+	end
+
+	comms[unitID] = newAttributes
+
+	if not oldAttributes then
+		return true
+	end
+
+	local hasChanged = (
+		oldAttributes[1] ~= newAttributes[1]
+		or oldAttributes[6] ~= newAttributes[6]
+		or oldAttributes[8] ~= newAttributes[8]
+		or oldAttributes[2][1] ~= newAttributes[2][1]
+		or oldAttributes[2][2] ~= newAttributes[2][2]
+		or oldAttributes[2][3] ~= newAttributes[2][3]
+		or oldAttributes[2][4] ~= newAttributes[2][4]
+	)
+
+	if hasChanged then
+		if oldAttributes[1] and comnameList[oldAttributes[1]] then
+			glDeleteList(comnameList[oldAttributes[1]])
+			comnameList[oldAttributes[1]] = nil
+		end
+		if newAttributes[1] and comnameList[newAttributes[1]] then
+			glDeleteList(comnameList[newAttributes[1]])
+			comnameList[newAttributes[1]] = nil
+		end
+		if comnameIconList[unitID] then
+			glDeleteList(comnameIconList[unitID])
+			comnameIconList[unitID] = nil
+		end
+	end
+
+	return hasChanged
 end
 
 
@@ -373,9 +422,8 @@ local function CheckAllComs()
 			if comUnits then
 				for i = 1, #comUnits do
 					local unitID = comUnits[i]
-					if not comms[unitID] then
-						local unitDefID = spGetUnitDefID(unitID)
-						comms[unitID] = GetCommAttributes(unitID, unitDefID)
+					local unitDefID = spGetUnitDefID(unitID)
+					if unitDefID and CheckCom(unitID, unitDefID, teamID) then
 						commsChanged = true
 					end
 				end
@@ -778,11 +826,11 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	CheckCom(unitID, unitDefID, unitTeam)
+	CheckCom(unitID, unitDefID, spGetUnitTeam(unitID) or unitTeam)
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	CheckCom(unitID, unitDefID, unitTeam)
+	CheckCom(unitID, unitDefID, spGetUnitTeam(unitID) or newTeam or unitTeam)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam)
