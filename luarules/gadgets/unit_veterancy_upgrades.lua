@@ -305,6 +305,7 @@ veterancyEffects.reload = {
 			end
 		end
 		-- Assumes it is safe not to include a call to "SetMaxReloadTime". See scripted_reload.
+		-- TODO: Unit scripts need a review first but should make ^that call for animation reasons.
 	end,
 }
 
@@ -441,6 +442,8 @@ veterancyEffects.autoheal = {
 }
 
 -- TODO: We do not scale weapon-less weapondefs' damages, e.g. missile ship clusters, impact clusters.
+-- TODO: We can scale damages without increased impulse by reducing the impulse factor proprtionately.
+-- TODO: Other effects scale with damage, too, like cratering strength. Some do not, like firestarter.
 veterancyEffects.damages = {
 	add = function(unitDef, upgrades)
 		-- Dynamic damages per-weapon are scaled at the unit-level for consistency.
