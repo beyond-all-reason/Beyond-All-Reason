@@ -5006,6 +5006,30 @@ function init()
 				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'armyValue' }, value, { 'armyValue', value })
 			end,
 		},
+		{ id = "spectator_hud_metric_landArmyValue", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.landArmyValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('landArmyValue')) or 1, description = Spring.I18N('ui.spectator_hud.landArmyValue_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_landArmyValue", { 'metricsEnabled', 'landArmyValue' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'landArmyValue' }, value, { 'landArmyValue', value })
+			end,
+		},
+		{ id = "spectator_hud_metric_airArmyValue", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.airArmyValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('airArmyValue')) or 1, description = Spring.I18N('ui.spectator_hud.airArmyValue_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_airArmyValue", { 'metricsEnabled', 'airArmyValue' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'airArmyValue' }, value, { 'airArmyValue', value })
+			end,
+		},
+		{ id = "spectator_hud_metric_navalArmyValue", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.navalArmyValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('navalArmyValue')) or 1, description = Spring.I18N('ui.spectator_hud.navalArmyValue_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_navalArmyValue", { 'metricsEnabled', 'navalArmyValue' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'navalArmyValue' }, value, { 'navalArmyValue', value })
+			end,
+		},
 		{ id = "spectator_hud_metric_defenseValue", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.defenseValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('defenseValue')) or 1, description = Spring.I18N('ui.spectator_hud.defenseValue_tooltip'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_defenseValue", { 'metricsEnabled', 'defenseValue' })
@@ -6564,6 +6588,9 @@ function init()
 		options[getOptionByID('spectator_hud_metric_metalExcess')] = nil
 		options[getOptionByID('spectator_hud_metric_energyExcess')] = nil
 		options[getOptionByID('spectator_hud_metric_armyValue')] = nil
+		options[getOptionByID('spectator_hud_metric_landArmyValue')] = nil
+		options[getOptionByID('spectator_hud_metric_airArmyValue')] = nil
+		options[getOptionByID('spectator_hud_metric_navalArmyValue')] = nil
 		options[getOptionByID('spectator_hud_metric_defenseValue')] = nil
 		options[getOptionByID('spectator_hud_metric_utilityValue')] = nil
 		options[getOptionByID('spectator_hud_metric_economyValue')] = nil
