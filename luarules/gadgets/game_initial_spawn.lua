@@ -693,16 +693,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local lastGameFrame = 0
 	function gadget:GameFrame(n)
-		-- for debug purpose
-		-- if GG.SpawnEnvironmentalLightning then
-		-- 	if n > lastGameFrame then
-		-- 		lastGameFrame = n + 110
-		-- 		for _, unitID in ipairs(Spring.GetAllUnits()) do
-		-- 			local x, y, z = Spring.GetUnitPosition(unitID)
-		-- 			GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
-		-- 		end
-		-- 	end
-		-- end
 		if not scenarioSpawnsUnits then
             if n == spawnInitialFrame then
 
@@ -731,8 +721,19 @@ if gadgetHandler:IsSyncedCode() then
                 end
             end
 		end
+		-- for debug purpose
+		-- if GG.SpawnEnvironmentalLightning then
+		-- 	if n > lastGameFrame then
+		-- 		lastGameFrame = n + 150
+		-- 		for _, unitID in ipairs(Spring.GetAllUnits()) do
+		-- 			local x, y, z = Spring.GetUnitPosition(unitID)
+		-- 			GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
+        --             Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+		-- 		end
+		-- 	end
+		-- end
 		if n > spawnWarpInFrame then
-			--gadgetHandler:RemoveGadget(self)
+			gadgetHandler:RemoveGadget(self)
 		end
 	end
 
