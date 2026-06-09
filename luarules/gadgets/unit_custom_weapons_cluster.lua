@@ -403,18 +403,16 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	local clusterDefID = data.weaponID
 	local projectileCount = data.number
 	local projectileSpeed = data.weaponSpeed
-	local attackerTeam = spGetProjectileTeamID(projectileID) or (attackerID and spGetUnitTeam(attackerID))
+	local attackerTeam = spGetProjectileTeamID(projectileID) or (attackerID and spGetUnitTeam(attackerID)) or -1
 	local subframeScatter = gameSpeed * 0.33
 
 	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
-
 	local hitShields = projectileHitShield[projectileID]
-
 	if hitShields and getShieldPosition then
 		deflectX, deflectY, deflectZ = getShieldDeflection(x, y, z, deflectX, deflectY, deflectZ, hitShields)
 	elseif y - spGetGroundHeight(x, z) < 0.5 then
-		-- Inherited momentum does not depend on deflection, nor account for it,
-		-- so avoid it in most cases, except for direct impacts against terrain.
+		-- Inherited momentum does not depend on deflection, nor account for it.
+		-- We avoid it in most cases, except for direct impacts against terrain.
 		local inheritX, inheritY, inheritZ = inheritMomentum(projectileID)
 		deflectX = deflectX + inheritX
 		deflectY = deflectY + inheritY
@@ -437,7 +435,7 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 
 	local params = spawnCache
 	params.owner = attackerID or -1
-	params.team = attackerTeam or -1
+	params.team = attackerTeam
 	params.ttl = data.weaponTtl
 	local speed = params.speed
 	local position = params.pos
