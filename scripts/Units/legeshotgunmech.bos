@@ -13,11 +13,10 @@ rBackFoot,
 rLowerLeg,
 rUpperLeg,
 rFootPivot,
-clusterBarrel,
-clusterSleeve,
-clusterHeadingPivot,
-missileBattery,
-clusterPitchPivot,
+lmissileBattery1,
+rmissileBattery1,
+lmissileBattery2,
+rmissileBattery2,
 rArmUpper,
 rArmUpperPivot,
 rArmGun,
@@ -46,11 +45,20 @@ fronthipFlare,
 fronttorsoFlare,
 rArmFlare,
 lArmFlare,
-clusterFlare,
-missileFlare1,
-missileFlare2,
-missileFlare3,
-batteryPivotFlare,
+lmissileFlare1,
+lmissileFlare2,
+lmissileFlare3,
+lmissileFlare4,
+lmissileFlare5,
+lmissileFlare6,
+lbatteryPivotFlare,
+rmissileFlare1,
+rmissileFlare2,
+rmissileFlare3,
+rmissileFlare4,
+rmissileFlare5,
+rmissileFlare6,
+rbatteryPivotFlare,
 aaMuzzleFlare;
 
 ///
@@ -78,16 +86,17 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 
             turn rUpperLeg to y-axis <0> speed <100>;
             turn lUpperLeg to y-axis <0> speed <100>;
-			turn lFootPivot to x-axis <-47.494789> speed <77.377506> / animSpeed; 
+			turn lFootPivot to x-axis <-46.4812602795662> speed <97.4556391301237> / animSpeed; 
 			turn lFootPivot to z-axis <-3.278511> speed <18.928776> / animSpeed; 
 			turn lLowerLeg to x-axis <24.915591> speed <232.897942> / animSpeed; 
-			turn lUpperLeg to x-axis <22.712459> speed <153.759374> / animSpeed; 
+			turn lUpperLeg to x-axis <11.5089187211464> speed <213.309867415957> / animSpeed; 
 
-			turn rFootPivot to x-axis <11.546414> speed <67.569106> / animSpeed; 
-			turn rLowerLeg to x-axis <-17.318474> speed <59.731285> / animSpeed; 
-			turn rUpperLeg to x-axis <6.033432> speed <7.632391> / animSpeed; 
+			turn rFootPivot to x-axis <27.0182915680326> speed <85.793269767302> / animSpeed; 
+			turn rLowerLeg to x-axis <-7.318474> speed <59.731285> / animSpeed; 
+			turn rUpperLeg to x-axis <-11.5865159289941> speed <10.6431961282051> / animSpeed; 
 
-
+			move hip to y-axis [-2.5] speed [50] / animSpeed; 
+			
             if(!aimingPose){		
             move torso to y-axis [-1.110559] speed [3.574723] / animSpeed;
             }
@@ -105,19 +114,20 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 	while(isMoving) {
 		if (isMoving) { //Frame:5
 
-			turn lFootPivot to x-axis <-37.177795> speed <309.509817> / animSpeed; 
+			turn lFootPivot to x-axis <-33.4871836266995> speed <389.822295807552> / animSpeed; 
 			turn lFootPivot to z-axis <-0.754674> speed <75.715112> / animSpeed; 
 			turn lFootPivot to y-axis <-9.262542> speed <8.072976> / animSpeed; 
 			turn lLowerLeg to x-axis <-6.137471> speed <931.591857> / animSpeed; 
-			turn lUpperLeg to x-axis <43.213709> speed <615.037498> / animSpeed; 
+			turn lUpperLeg to x-axis <39.9502345615802> speed <853.23947243842> / animSpeed; 
 
-			turn rFootPivot to x-axis <2.537199> speed <270.276464> / animSpeed; 
+			turn rFootPivot to x-axis <15.5791878319757> speed <343.173129857667> / animSpeed; 
 			turn rFootPivot to z-axis <0.101447> speed <11.707318> / animSpeed; 
 			turn rFootPivot to y-axis <-7.585626> speed <5.606373> / animSpeed; 
-			turn rLowerLeg to x-axis <-9.354300> speed <238.925217> / animSpeed; 
-			turn rUpperLeg to x-axis <7.051083> speed <30.529537> / animSpeed; 
+			turn rLowerLeg to x-axis <-0.354300> speed <238.925217> / animSpeed; 
+			turn rUpperLeg to x-axis <-10.1674246923077> speed <42.5727468619329> / animSpeed; 
 
-
+			move hip to y-axis [-2.5] speed [50] / animSpeed; 
+			
             if(!aimingPose){		
             move torso to y-axis [-1.587189] speed [14.298888] / animSpeed; 
 			move torso to z-axis [-0.217341] speed [4.691424] / animSpeed;
@@ -134,21 +144,22 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		}
 		if (isMoving) { //Frame:10
 
-			turn lFootPivot to x-axis <-16.174648> speed <630.094428> / animSpeed; 
+			turn lFootPivot to x-axis <-7.03408090419849> speed <793.593104345722> / animSpeed; 
 			turn lFootPivot to z-axis <1.475774> speed <66.913424> / animSpeed; 
 			turn lFootPivot to y-axis <-6.415985> speed <85.396694> / animSpeed; 
 			turn lLowerLeg to x-axis <-35.484994> speed <880.425706> / animSpeed; 
-			turn lUpperLeg to x-axis <51.645751> speed <252.961281> / animSpeed; 
+			turn lUpperLeg to x-axis <51.645751> speed <350.93234258017> / animSpeed; 
 
-			turn rFootPivot to x-axis <-3.077262> speed <168.433835> / animSpeed; 
+			turn rFootPivot to x-axis <8.45044223082783> speed <213.862374382994> / animSpeed; 
 			turn rFootPivot to z-axis <0.315366> speed <6.417581> / animSpeed; 
 			turn rFootPivot to y-axis <-5.281533> speed <69.122791> / animSpeed; 
-			turn rLowerLeg to x-axis <-10.479661> speed <33.760823> / animSpeed; 
-			turn rUpperLeg to x-axis <13.741886> speed <200.724063> / animSpeed; 
+			turn rLowerLeg to x-axis <-0.479661> speed <33.760823> / animSpeed; 
+			turn rUpperLeg to x-axis <-0.837251672583825> speed <279.905152940828> / animSpeed; 
 
-
+			move hip to y-axis [-1] speed [50] / animSpeed; 
+			
             if(!aimingPose){
-			turn hip to y-axis <2.556190> speed <37.940783> / animSpeed;		
+			turn hip to y-axis <2.556190>*2 speed <37.940783>*2 / animSpeed;		
             move torso to y-axis [-1.251717] speed [10.064163] / animSpeed; 
 			move torso to z-axis [-0.865512] speed [19.445133] / animSpeed;
             }
@@ -164,20 +175,21 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		}
 		if (isMoving) { //Frame:15
  
-			turn lFootPivot to x-axis <5.047130> speed <636.653343> / animSpeed; 
+			turn lFootPivot to x-axis <19.6943838057858> speed <801.853945077977> / animSpeed; 
 			turn lFootPivot to z-axis <-0.233797> speed <51.287112> / animSpeed; 
 			turn lFootPivot to y-axis <-0.769145> speed <169.405197> / animSpeed; 
 			turn lLowerLeg to x-axis <-51.185865> speed <471.026101> / animSpeed; 
-			turn lUpperLeg to x-axis <46.369693> speed <158.281745> / animSpeed; 
+			turn lUpperLeg to x-axis <44.3285206529822> speed <219.583737641363> / animSpeed; 
  
-			turn rFootPivot to x-axis <-11.888159> speed <264.326912> / animSpeed; 
+			turn rFootPivot to x-axis <-2.73685486339319> speed <335.618915366053> / animSpeed; 
 			turn rFootPivot to y-axis <-1.040126> speed <127.242211> / animSpeed; 
-			turn rLowerLeg to x-axis <-7.752336> speed <81.819758> / animSpeed; 
-			turn rUpperLeg to x-axis <19.860100> speed <183.546436> / animSpeed; 
+			turn rLowerLeg to x-axis <2.752336> speed <81.819758> / animSpeed; 
+			turn rUpperLeg to x-axis <7.69445897435897> speed <255.951341719921> / animSpeed; 
 
-
+			move hip to y-axis [-1] speed [50] / animSpeed; 
+			
             if(!aimingPose){
-			turn hip to y-axis <0.466550> speed <62.689199> / animSpeed; 			
+			turn hip to y-axis <0.466550>*2 speed <62.689199>*2 / animSpeed; 			
             move torso to y-axis [-0.381851] speed [26.095963] / animSpeed; 
 			move torso to z-axis [-1.199576] speed [10.021906] / animSpeed;
             }
@@ -193,21 +205,22 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		}
 		if (isMoving) { //Frame:20
  
-			turn lFootPivot to x-axis <25.675649> speed <618.855569> / animSpeed; 
+			turn lFootPivot to x-axis <45.675649> speed <779.437954566943> / animSpeed; 
 			turn lFootPivot to z-axis <-1.734864> speed <45.032019> / animSpeed; 
 			turn lFootPivot to y-axis <3.964605> speed <142.012497> / animSpeed; 
 			turn lLowerLeg to x-axis <-55.389911> speed <126.121390> / animSpeed; 
-			turn lUpperLeg to x-axis <29.886288> speed <494.502144> / animSpeed; 
+			turn lUpperLeg to x-axis <21.4611477986057> speed <686.021177307514> / animSpeed; 
  
-			turn rFootPivot to x-axis <-25.168499> speed <398.410194> / animSpeed; 
+			turn rFootPivot to x-axis <-19.5990550562075> speed <505.86599816616> / animSpeed; 
 			turn rFootPivot to z-axis <0.669479> speed <10.322929> / animSpeed; 
 			turn rFootPivot to y-axis <3.879213> speed <147.580175> / animSpeed; 
-			turn rLowerLeg to x-axis <2.509378> speed <307.851420> / animSpeed; 
-			turn rUpperLeg to x-axis <22.875002> speed <90.447055> / animSpeed; 
+			turn rLowerLeg to x-axis <7.509378> speed <307.851420> / animSpeed; 
+			turn rUpperLeg to x-axis <11.8986714280079> speed <126.126366637081> / animSpeed; 
 
-
+			move hip to y-axis [-1] speed [50] / animSpeed; 
+			
             if(!aimingPose){
-			turn hip to y-axis <-1.774251> speed <67.224005> / animSpeed;		
+			turn hip to y-axis <-1.774251>*2 speed <67.224005>*2 / animSpeed;		
             move torso to y-axis [-0.006668] speed [11.255493] / animSpeed; 
 			move torso to z-axis [-0.824326] speed [11.257485] / animSpeed;
             } 
@@ -223,21 +236,22 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		}
 		if (isMoving) { //Frame:25
 
-			turn lFootPivot to x-axis <21.427593> speed <127.441699> / animSpeed; 
+			turn lFootPivot to x-axis <40.3252954677919> speed <160.510629896418> / animSpeed; 
 			turn lFootPivot to z-axis <-1.225308> speed <15.286690> / animSpeed; 
 			turn lFootPivot to y-axis <6.541539> speed <77.308043> / animSpeed; 
 			turn lLowerLeg to x-axis <-32.833348> speed <676.696894> / animSpeed; 
-			turn lUpperLeg to x-axis <11.637714> speed <547.457224> / animSpeed; 
+			turn lUpperLeg to x-axis <-3.85503813013167> speed <759.485583411309> / animSpeed; 
 
-			turn rFootPivot to x-axis <-41.907541> speed <502.171251> / animSpeed; 
+			turn rFootPivot to x-axis <-40.8528088938296> speed <637.612603701261> / animSpeed; 
 			turn rFootPivot to z-axis <2.536557> speed <56.012357> / animSpeed; 
 			turn rFootPivot to y-axis <7.791846> speed <117.378974> / animSpeed; 
 			turn rLowerLeg to x-axis <21.886018> speed <581.299183> / animSpeed; 
-			turn rUpperLeg to x-axis <20.200964> speed <80.221135> / animSpeed; 
+			turn rUpperLeg to x-axis <8.16978609072978> speed <111.866553145957> / animSpeed; 
 
-
+			move hip to y-axis [-1] speed [50] / animSpeed; 
+			
             if(!aimingPose){
-			turn hip to y-axis <-3.441245> speed <50.009808> / animSpeed;			
+			turn hip to y-axis <-3.441245>*2 speed <50.009808>*2 / animSpeed;			
             move torso to y-axis [-0.570015] speed [16.900406] / animSpeed; 
 			move torso to z-axis [-0.183693] speed [19.218997] / animSpeed;
             } 
@@ -253,21 +267,22 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		}
 		if (isMoving) { //Frame:30
 
-			turn lFootPivot to x-axis <4.831425> speed <497.885034> / animSpeed; 
+			turn lFootPivot to x-axis <19.4227070650213> speed <627.077644526219> / animSpeed; 
 			turn lFootPivot to z-axis <0.038033> speed <37.900207> / animSpeed; 
 			turn lFootPivot to y-axis <7.810957> speed <38.082514> / animSpeed; 
-			turn lLowerLeg to x-axis <-8.614274> speed <726.572216> / animSpeed; 
-			turn lUpperLeg to x-axis <4.059140> speed <227.357228> / animSpeed; 
+			turn lLowerLeg to x-axis <2.614274> speed <726.572216> / animSpeed; 
+			turn lUpperLeg to x-axis <-14.3687685979861> speed <315.411925134005> / animSpeed; 
 
-			turn rFootPivot to x-axis <-45.818135> speed <117.317822> / animSpeed; 
+			turn rFootPivot to x-axis <-45.818135> speed <148.959785724534> / animSpeed; 
 			turn rFootPivot to z-axis <2.732568> speed <5.880306> / animSpeed; 
 			turn rFootPivot to y-axis <9.497118> speed <51.158160> / animSpeed; 
 			turn rLowerLeg to x-axis <12.600466> speed <278.566550> / animSpeed; 
-			turn rUpperLeg to x-axis <33.268711> speed <392.032402> / animSpeed; 
+			turn rUpperLeg to x-axis <26.3924628737673> speed <546.680292335306> / animSpeed; 
 
-
+			move hip to y-axis [-2.5] speed [50] / animSpeed; 
+			
             if(!aimingPose){
-			turn hip to y-axis <-4.001350> speed <16.803175> / animSpeed;			
+			turn hip to y-axis <-4.001350>*2 speed <16.803175>*2 / animSpeed;			
             move torso to y-axis [-1.405441] speed [25.062790] / animSpeed; 
 			move torso to z-axis [-0.035562] speed [4.443941] / animSpeed;
             }
@@ -283,21 +298,22 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		}
 		if (isMoving) { //Frame:35
 
-			turn lFootPivot to x-axis <-0.921367> speed <172.583764> / animSpeed; 
+			turn lFootPivot to x-axis <12.1771643986208> speed <217.366285029947> / animSpeed; 
 			turn lFootPivot to z-axis <-0.204803> speed <7.285061> / animSpeed; 
 			turn lFootPivot to y-axis <6.650703> speed <34.807609> / animSpeed; 
-			turn lLowerLeg to x-axis <-10.061916> speed <43.429271> / animSpeed; 
-			turn lUpperLeg to x-axis <11.179181> speed <213.601244> / animSpeed; 
+			turn lLowerLeg to x-axis <-0.061916> speed <43.429271> / animSpeed; 
+			turn lUpperLeg to x-axis <-4.49115943377227> speed <296.328294348567> / animSpeed; 
  
-			turn rFootPivot to x-axis <-24.492218> speed <639.777502> / animSpeed; 
+			turn rFootPivot to x-axis <-18.7403733049423> speed <812.332840694038> / animSpeed; 
 			turn rFootPivot to z-axis <-1.164570> speed <116.914129> / animSpeed; 
 			turn rFootPivot to y-axis <8.220776> speed <38.290237> / animSpeed; 
 			turn rLowerLeg to x-axis <-25.735840> speed <1150.089194> / animSpeed; 
-			turn rUpperLeg to x-axis <50.079797> speed <504.332596> / animSpeed; 
+			turn rUpperLeg to x-axis <49.8351409842209> speed <703.280365625247> / animSpeed; 
 
-
+			move hip to y-axis [-2.5] speed [50] / animSpeed; 
+			
             if(!aimingPose){
-			turn hip to y-axis <-3.277776> speed <21.707234> / animSpeed;		
+			turn hip to y-axis <-3.277776>*2 speed <21.707234>*2 / animSpeed;		
             move torso to y-axis [-1.524612] speed [3.575134] / animSpeed; 
 			move torso to z-axis [-0.555175] speed [15.588410] / animSpeed;
             }
@@ -313,21 +329,22 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		}
 		if (isMoving) { //Frame:40
  
-			turn lFootPivot to x-axis <-7.373806> speed <193.573149> / animSpeed; 
+			turn lFootPivot to x-axis <4.05042835865157> speed <243.802054749938> / animSpeed; 
 			turn lFootPivot to z-axis <-0.307446> speed <3.079308> / animSpeed; 
 			turn lFootPivot to y-axis <3.179913> speed <104.123702> / animSpeed; 
-			turn lLowerLeg to x-axis <-9.720464> speed <10.243568> / animSpeed; 
-			turn lUpperLeg to x-axis <17.293725> speed <183.436299> / animSpeed; 
+			turn lLowerLeg to x-axis <0.720464> speed <10.243568> / animSpeed; 
+			turn lUpperLeg to x-axis <3.99152709140201> speed <254.480566621998> / animSpeed; 
 
-			turn rFootPivot to x-axis <-3.436912> speed <631.659196> / animSpeed; 
+			turn rFootPivot to x-axis <7.99379049605706> speed <802.024934345366> / animSpeed; 
 			turn rFootPivot to z-axis <-0.739691> speed <12.746366> / animSpeed; 
 			turn rFootPivot to y-axis <3.454384> speed <142.991780> / animSpeed; 
 			turn rLowerLeg to x-axis <-46.271120> speed <616.058389> / animSpeed; 
-			turn rUpperLeg to x-axis <49.886855> speed <5.788278> / animSpeed; 
+			turn rUpperLeg to x-axis <49.5660877416174> speed <8.07162237869822> / animSpeed; 
 
-
+			move hip to y-axis [-1] speed [50] / animSpeed; 
+			
             if(!aimingPose){
-			turn hip to y-axis <-1.499168> speed <53.358238> / animSpeed;		
+			turn hip to y-axis <-1.499168>*2 speed <53.358238>*2 / animSpeed;		
             move torso to y-axis [-0.786552] speed [22.141800] / animSpeed; 
 			move torso to z-axis [-1.127817] speed [17.179264] / animSpeed;
             }
@@ -344,20 +361,21 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		}
 		if (isMoving) { //Frame:45
 
-			turn lFootPivot to x-axis <-19.592056> speed <366.547515> / animSpeed; 
+			turn lFootPivot to x-axis <-11.338247554496> speed <461.66029628667> / animSpeed; 
 			turn lFootPivot to y-axis <-1.633120> speed <144.390978> / animSpeed; 
-			turn lLowerLeg to x-axis <-2.548249> speed <215.166442> / animSpeed; 
-			turn lUpperLeg to x-axis <22.369865> speed <152.284207> / animSpeed; 
+			turn lLowerLeg to x-axis <7.548249> speed <215.166442> / animSpeed; 
+			turn lUpperLeg to x-axis <11.0336392060418> speed <211.263373150271> / animSpeed; 
 
-			turn rFootPivot to x-axis <17.850366> speed <638.618344> / animSpeed; 
+			turn rFootPivot to x-axis <35.0224918091328> speed <810.861044471117> / animSpeed; 
 			turn rFootPivot to z-axis <1.309630> speed <61.479630> / animSpeed; 
 			turn rFootPivot to y-axis <-2.109116> speed <166.904989> / animSpeed; 
 			turn rLowerLeg to x-axis <-55.172861> speed <267.052234> / animSpeed; 
-			turn rUpperLeg to x-axis <37.517590> speed <371.077928> / animSpeed; 
+			turn rUpperLeg to x-axis <32.3174282642998> speed <517.459753641026> / animSpeed; 
 
-
+			move hip to y-axis [-1] speed [50] / animSpeed; 
+			
             if(!aimingPose){
-			turn hip to y-axis <0.764559> speed <67.911809> / animSpeed;			
+			turn hip to y-axis <0.764559>*2 speed <67.911809>*2 / animSpeed;			
             move torso to y-axis [-0.064400] speed [21.664581] / animSpeed;
             }
 			
@@ -372,21 +390,22 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		}
 		if (isMoving) { //Frame:50
 
-			turn lFootPivot to x-axis <-34.614593> speed <450.676099> / animSpeed; 
+			turn lFootPivot to x-axis <-30.2588747544853> speed <567.618802145366> / animSpeed; 
 			turn lFootPivot to z-axis <-1.462187> speed <32.724249> / animSpeed; 
 			turn lFootPivot to y-axis <-6.199245> speed <136.983753> / animSpeed; 
 			turn lLowerLeg to x-axis <12.597248> speed <454.364926> / animSpeed; 
-			turn lUpperLeg to x-axis <22.202754> speed <5.013325> / animSpeed; 
+			turn lUpperLeg to x-axis <10.801806672347> speed <6.95496907436096> / animSpeed; 
 
-			turn rFootPivot to x-axis <28.335178> speed <314.544350> / animSpeed; 
+			turn rFootPivot to x-axis <48.335178> speed <399.380573028902> / animSpeed; 
 			turn rFootPivot to z-axis <1.667402> speed <10.733174> / animSpeed; 
 			turn rFootPivot to y-axis <-5.440215> speed <99.932972> / animSpeed; 
 			turn rLowerLeg to x-axis <-45.309812> speed <295.891479> / animSpeed; 
-			turn rUpperLeg to x-axis <17.176561> speed <610.230872> / animSpeed; 
+			turn rUpperLeg to x-axis <3.95232470808678> speed <850.953109475345> / animSpeed; 
 
-
+			move hip to y-axis [-1] speed [50] / animSpeed; 
+			
             if(!aimingPose){
-			turn hip to y-axis <2.780623> speed <60.481895> / animSpeed;		
+			turn hip to y-axis <2.780623>*2 speed <60.481895>*2 / animSpeed;		
             move torso to y-axis [-0.212486] speed [4.442596] / animSpeed; 
 			move torso to z-axis [-0.461094] speed [18.448336] / animSpeed;
             }
@@ -403,21 +422,22 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		}
 		if (isMoving) { //Frame:55
 
-			turn lFootPivot to x-axis <-51.400746> speed <503.584588> / animSpeed; 
+			turn lFootPivot to x-axis <-51.400746> speed <634.256134846476> / animSpeed; 
 			turn lFootPivot to z-axis <-4.013503> speed <76.539483> / animSpeed; 
 			turn lFootPivot to y-axis <-9.133439> speed <88.025826> / animSpeed; 
 			turn lLowerLeg to x-axis <30.766369> speed <545.073608> / animSpeed; 
-			turn lUpperLeg to x-axis <20.808081> speed <41.840202> / animSpeed; 
+			turn lUpperLeg to x-axis <8.866981464756> speed <58.0447728752905> / animSpeed; 
 
-			turn rFootPivot to x-axis <9.751624> speed <557.506618> / animSpeed; 
+			turn rFootPivot to x-axis <24.7394260959091> speed <707.872554583306> / animSpeed; 
 			turn rFootPivot to z-axis <0.211583> speed <43.674583> / animSpeed; 
 			turn rFootPivot to y-axis <-7.483421> speed <61.296175> / animSpeed; 
-			turn rLowerLeg to x-axis <-12.755174> speed <976.639127> / animSpeed; 
-			turn rUpperLeg to x-axis <3.287829> speed <416.661968> / animSpeed; 
+			turn rLowerLeg to x-axis <-2.755174> speed <976.639127> / animSpeed; 
+			turn rUpperLeg to x-axis <-15.415197035503> speed <581.025663463511> / animSpeed; 
 
-
+			move hip to y-axis [-1] speed [50] / animSpeed; 
+			
             if(!aimingPose){
-			turn hip to y-axis <3.899984> speed <33.580845> / animSpeed;		
+			turn hip to y-axis <3.899984>*2 speed <33.580845>*2 / animSpeed;
             move torso to y-axis [-1.055618] speed [25.293961] / animSpeed; 
 			move torso to z-axis [-0.010479] speed [13.518457] / animSpeed;
             }
@@ -438,6 +458,7 @@ StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 	move torso to y-axis [0.000000] speed [48.383546] / animSpeed;
 	move torso to z-axis [0.000000] speed [38.890266] / animSpeed;
+	move hip to y-axis [0] speed [50] / animSpeed; 
 	turn hip to y-axis <0> speed <271.647238> / animSpeed;
 	turn lArmGun to x-axis <0> speed <186.817262> / animSpeed;
 	turn lArmUpper to y-axis <0> speed <97.478461> / animSpeed;
@@ -493,14 +514,12 @@ Open()
 		start-script RestoreAfterDelay();
 		aimingPose = 1;
 		
-        move missileBattery to y-axis [0] speed [20];
-        move clusterSleeve to y-axis [4] speed [10];
-
-        move clusterHeadingPivot to y-axis [0] speed [50];
-        move clusterHeadingPivot to z-axis [0] speed [20];
-        wait-for-move clusterPitchPivot along z-axis;
-        turn clusterPitchPivot to x-axis <0> speed <90>;
-		wait-for-move missileBattery along y-axis;
+        move lmissileBattery1 to y-axis [0] speed [20];
+		move rmissileBattery1 to y-axis [0] speed [20];
+		sleep 200;
+		move lmissileBattery2 to y-axis [0] speed [20];
+		move rmissileBattery2 to y-axis [0] speed [20];
+		wait-for-move lmissileBattery2 along y-axis;
 		
 		deployed = 1;
         
@@ -516,15 +535,11 @@ Close()
 		aimingPose = 0;
 		deployed = 0;
         
-        move missileBattery to y-axis [-8.5] speed [10];
-        move clusterSleeve to y-axis [0] speed [5];
-		turn clusterHeadingPivot to y-axis <0> speed <90>;
-
-        turn clusterPitchPivot to x-axis <-90> speed <90>;
-        wait-for-turn clusterPitchPivot around x-axis;
-		wait-for-turn clusterHeadingPivot around y-axis;
-        move clusterHeadingPivot to z-axis [-10] speed [10];
-        move clusterHeadingPivot to y-axis [-5] speed [5];
+        move lmissileBattery1 to y-axis [-6] speed [10];
+		move rmissileBattery1 to y-axis [-6] speed [10];
+		sleep 200;
+		move lmissileBattery2 to y-axis [-6] speed [10];
+		move rmissileBattery2 to y-axis [-6] speed [10];
 	}
 }
 
@@ -547,16 +562,25 @@ Create()
 
 	// move aaMinigunFlare to z-axis [-60] now;
 
-    turn batteryPivotFlare to z-axis <65> now;
+    turn lbatteryPivotFlare to z-axis <65> now;
+	turn rbatteryPivotFlare to z-axis <-65> now;
 	
     hide fronthipFlare;
     hide fronttorsoFlare;
     hide rArmFlare;
     hide lArmFlare;
-    hide clusterFlare;
-    hide missileFlare1;
-    hide missileFlare2;
-    hide missileFlare3;
+    hide lmissileFlare1;
+    hide lmissileFlare2;
+    hide lmissileFlare3;
+	hide lmissileFlare4;
+    hide lmissileFlare5;
+    hide lmissileFlare6;
+	hide rmissileFlare1;
+    hide rmissileFlare2;
+    hide rmissileFlare3;
+	hide rmissileFlare4;
+    hide rmissileFlare5;
+    hide rmissileFlare6;
     while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
@@ -831,79 +855,66 @@ Shot2(zero)
 	return(1);
 }
 
-
-QueryWeapon3(piecenum) //L Railgun
+QueryWeapon3(piecenum) 
 {
-	piecenum = clusterFlare;
+	if(missile_count == 0)
+	{
+		piecenum = lmissileFlare1;
+	}
+	if(missile_count == 1)
+	{
+		piecenum = rmissileFlare1;
+	}
+	if(missile_count == 2)
+	{
+		piecenum = lmissileFlare2;
+	}
+	if(missile_count == 3)
+	{
+		piecenum = rmissileFlare2;
+	}
+	if(missile_count == 4)
+	{
+		piecenum = lmissileFlare3;
+	}
+	if(missile_count == 5)
+	{
+		piecenum = rmissileFlare3;
+	}
+	if(missile_count == 6)
+	{
+		piecenum = lmissileFlare4;
+	}
+	if(missile_count == 7)
+	{
+		piecenum = rmissileFlare4;
+	}
+	if(missile_count == 8)
+	{
+		piecenum = lmissileFlare5;
+	}
+	if(missile_count == 9)
+	{
+		piecenum = rmissileFlare5;
+	}
+	if(missile_count == 10)
+	{
+		piecenum = lmissileFlare6;
+	}
+	if(missile_count == 11)
+	{
+		piecenum = rmissileFlare6;
+	}
 	// return (0);
 }
 
 AimFromWeapon3(piecenum)
 {
-	piecenum = torso;
+	piecenum = rmissileBattery1;
 	// return (0);
 }
 
-AimWeapon3(heading, pitch) //pew pew
-{
-	if( !aimingPose )
-	{
-        start-script Open();
-	}
-	if( !deployed )
-	{
-		return (0);
-	}
-	signal SIG_AIM_3;
-	signal SIG_RESTORE;
-	set-signal-mask SIG_AIM_3;
-	turn clusterHeadingPivot to y-axis heading - torsoaim speed <90.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn clusterPitchPivot to x-axis -1*pitch speed <90.0000>;
-	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 2500) AND ((get ABS(wpn3_lasthead - heading)) < 64236)))
-	{
-		wpn3_lasthead = 1000000;
-		wait-for-turn clusterHeadingPivot around y-axis;
-		wait-for-turn clusterPitchPivot around x-axis;
-        
-	}
-	wpn3_lasthead = heading;
-    start-script RestoreAfterDelay();
-	return (1);
-}
-
-FireWeapon3()
-{
-	emit-sfx 1024 + 1 from clusterFlare;
-	move clusterBarrel to z-axis [-5.5] speed [27.5];
-	sleep 200;
-	move clusterBarrel to z-axis [0] speed [4.4];
-	return (1);
-}
-
-QueryWeapon4(piecenum) //Mid Guns
-{
-	if(missile_count == 0)
-	{
-		piecenum = missileFlare1;
-	}
-	if(missile_count == 1)
-	{
-		piecenum = missileFlare2;
-	}
-	if(missile_count == 2)
-	{
-		piecenum = missileFlare3;
-	}
-	// return (0);
-}
-
-AimFromWeapon4(piecenum)
-{
-	piecenum = missileBattery;
-	// return (0);
-}
-
-AimWeapon4(heading, pitch)
+AimWeapon3(heading, pitch)
 {
 	if( !deployed )
 	{
@@ -922,20 +933,66 @@ AimWeapon4(heading, pitch)
 	return (1);
 }
 
-FireWeapon4()
+FireWeapon3()
 {
-
 	return (1);
-
 }
 
-Shot4(zero)
+Shot3(zero)
 {
 	signal SIG_FIRE3;
 	set-signal-mask SIG_FIRE3;
 	sleep 32;
+	if(missile_count == 0)
+	{
+		emit-sfx 1024 + 3 from lmissileFlare1;
+	}
+	if(missile_count == 1)
+	{
+		emit-sfx 1024 + 3 from rmissileFlare1;
+	}
+	if(missile_count == 2)
+	{
+		emit-sfx 1024 + 3 from lmissileFlare2;
+	}
+	if(missile_count == 3)
+	{
+		emit-sfx 1024 + 3 from rmissileFlare2;
+	}
+	if(missile_count == 4)
+	{
+		emit-sfx 1024 + 3 from lmissileFlare3;
+	}
+	if(missile_count == 5)
+	{
+		emit-sfx 1024 + 3 from rmissileFlare3;
+	}
+	if(missile_count == 6)
+	{
+		emit-sfx 1024 + 3 from lmissileFlare4;
+	}
+	if(missile_count == 7)
+	{
+		emit-sfx 1024 + 3 from rmissileFlare4;
+	}
+	if(missile_count == 8)
+	{
+		emit-sfx 1024 + 3 from lmissileFlare5;
+	}
+	if(missile_count == 9)
+	{
+		emit-sfx 1024 + 3 from rmissileFlare5;
+	}
+	if(missile_count == 10)
+	{
+		emit-sfx 1024 + 3 from lmissileFlare6;
+	}
+	if(missile_count == 11)
+	{
+		emit-sfx 1024 + 3 from rmissileFlare6;
+	}
 	++missile_count;
-	if(missile_count>3)
+	if(missile_count>11)
 	{
 		missile_count=0;
 	}
@@ -944,19 +1001,19 @@ Shot4(zero)
 
 
 
-QueryWeapon5(piecenum) 
+QueryWeapon4(piecenum) 
 {
 	piecenum = aaMinigunFlare;
 	// return (0);
 }
 
-AimFromWeapon5(piecenum)
+AimFromWeapon4(piecenum)
 {
 	piecenum = aaMinigunBase;
 	// return (0);
 }
 
-AimWeapon5(heading, pitch) //pew pew
+AimWeapon4(heading, pitch) //pew pew
 {
 	signal SIG_AIM_5;
 	signal SIG_RESTORE;
@@ -975,14 +1032,14 @@ AimWeapon5(heading, pitch) //pew pew
 	return (1);
 }
 
-FireWeapon5()
+FireWeapon4()
 {
 	spin aaMinigunBarrel around z-axis speed <-2000.0>;
 
 	stop-spin aaMinigunBarrel around z-axis decelerate <12>;
 }
 
-Shot5(zero){
+Shot4(zero){
 	emit-sfx 1024+2 from aaMuzzleFlare;
 }
 
@@ -1006,7 +1063,6 @@ Killed(severity, corpsetype)
 		explode rFrontFoot 		type BITMAPONLY | NOHEATCLOUD;
 		explode rArmGun 		type BITMAPONLY | NOHEATCLOUD;
 		explode torso 			type BITMAPONLY | NOHEATCLOUD;
-		explode clusterBarrel 	type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -1021,7 +1077,6 @@ Killed(severity, corpsetype)
 		explode rFrontFoot 			type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rArmGun 			type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso 				type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode clusterBarrel 		type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rBackFoot 			type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -1037,7 +1092,6 @@ Killed(severity, corpsetype)
 		explode rFrontFoot 		type BITMAPONLY | NOHEATCLOUD;
 		explode rArmGun 		type SMOKE | FALL | NOHEATCLOUD;
 		explode torso 			type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode clusterBarrel 	type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -1050,7 +1104,6 @@ Killed(severity, corpsetype)
 		explode rFrontFoot 			type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rArmGun 			type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso 				type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode clusterBarrel 		type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rBackFoot 			type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
