@@ -419,23 +419,19 @@ veterancyEffects.acc_weight = {
 veterancyEffects.autoheal = {
 	add = function(unitDef, upgrades)
 		-- Autoheal can start at zero, and we'd rather not scale against health.
-		local valueMaxXP = getScale(unitDef, "autoheal", 0)
-		if valueMaxXP <= 0 then
+		local valueAtFullXP = getScale(unitDef, "autoheal", 0)
+		if valueAtFullXP <= 0 then
 			return false
 		end
 
 		---@type VeterancyUpgrade
 		local upgrade = {
 			veterancyEffects.autoheal.effect,
-			valueMaxXP,
+			valueAtFullXP,
 		}
 
-		if upgrade[2] > 0 and upgrade[3] > 0 then
-			upgrades[#upgrades + 1] = upgrade
-			return true
-		else
-			return false
-		end
+		upgrades[#upgrades + 1] = upgrade
+		return true
 	end,
 
 	effect = function(unitID, upgrade, experience)
