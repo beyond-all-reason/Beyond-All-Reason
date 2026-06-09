@@ -38,7 +38,6 @@ local defaultVeterancyUpgrades = {
 ---@alias VeterancyEffect fun(unitID:integer, upgrade:VeterancyUpgrade, experience:number) Applied on experience gain.
 ---@alias VeterancyUpgrade { [1]:VeterancyEffect, [2]:any|false, [3]:any|false } Compact upgrade information per-unitdef.
 
-local table_new = table.new
 local math_floor = math.floor
 local math_round = math.round
 local math_max = math.max
@@ -122,7 +121,7 @@ local function applyVeterancyEffects(unitID, experience, upgrades)
 	end
 end
 
-local unitVeterancyUpgrades = table_new(#UnitDefs, 0)
+local unitVeterancyUpgrades = table.new(#UnitDefs, 0)
 local queuedExperienceGains = {}
 
 -- Increases to autoheal and idle autoheal have to be handled in game code.
@@ -138,7 +137,7 @@ local mtAppendKeyToName = {
 }
 local call = setmetatable({}, {
 	__index = function(self, key)
-		local tbl = table_new(6, 1)
+		local tbl = table.new(6, 1)
 		tbl.name = key
 		self[key] = tbl
 		setmetatable(tbl, mtAppendKeyToName)
@@ -177,19 +176,19 @@ local function getBurstStats(weaponDef)
 	return stats
 end
 
-local armorTargetIndex = armorTypeMin - 1
-local damagesTemp = table.new(armorTypeMax, 1 - armorTypeMin)
+local damagesTemp = table.new(armorTypeMax + 1, 0)
 
 local function getDamages(weaponDef)
-	local damages = table.new(armorTypeMax, 1 - armorTypeMin)
-	damages[armorTargetIndex] = armorTypeMin
+	local damages = table.new(armorTypeMax + 1, 0)
+	local armorTarget = armorTypeMin
 	local armorDamage = weaponDef.damages[armorTypeMin]
 	for i = armorTypeMin, armorTypeMax do
 		damages[i] = weaponDef.damages[i]
 		if damages[i] > armorDamage then
-			damages[armorTargetIndex], armorDamage = i, damages[i]
+			armorTarget, armorDamage = i, damages[i]
 		end
 	end
+	damages[armorTypeMax + 1] = armorTarget
 	if armorDamage > 0 then
 		return damages
 	end
@@ -197,7 +196,7 @@ end
 
 local function scaleDamages(unitID, weaponNum, damages, damageMult)
 	-- Avoid updates that do not change damage to the primary armor target:
-	local armorTarget = damages[armorTargetIndex]
+	local armorTarget = damages[armorTypeMax + 1]
 	local armorDamage = spGetUnitWeaponDamages(unitID, weaponNum, armorTarget)
 	if armorDamage == math_round(damages[armorTarget] * damageMult) then
 		return
