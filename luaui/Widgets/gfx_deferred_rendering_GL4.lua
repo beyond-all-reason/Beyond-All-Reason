@@ -1462,9 +1462,9 @@ local function updateProjectileLights(newgameframe)
 							lightParamTable[6] = dy
 							lightParamTable[7] = dz
 						end
-						if debugproj then spEcho(lightType, px, py, pz, dx, dy, dz) end
+						if debugproj then spEcho(lightType, px,py,pz, dx, dy,dz) end
 
-						AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable, noUpload)
+						AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable,noUpload)
 						--AddLight(projectileID, nil, nil, projectilePointLightVBO, lightParamTable)
 					else
 						--spEcho("No projectile light defined for", projectileID, weaponDefID, px, pz)
