@@ -244,7 +244,7 @@ if gadgetHandler:IsSyncedCode() then
 				local units = GetTeamUnits(teamID)
 				scavteamhasplayers = true
 				for u = 1,#units do
-					Spring.DestroyUnit(units[u], false, true)
+					DestroyUnit(units[u], false, true)
 				end
 				Spring.KillTeam(teamID)
 			end
@@ -257,7 +257,7 @@ if gadgetHandler:IsSyncedCode() then
 			if (AI or LuaAI) and scavAllies[i] ~= scavTeamID then
 				local units = GetTeamUnits(scavAllies[i])
 				for u = 1,#units do
-					Spring.DestroyUnit(units[u], false, true)
+					DestroyUnit(units[u], false, true)
 					Spring.KillTeam(scavAllies[i])
 				end
 			end
@@ -481,9 +481,7 @@ if gadgetHandler:IsSyncedCode() then
 				-- Spring.Echo("Life is 0, time to do some killing")
 				if SetCount(squadsTable[i].squadUnits) > 0 and SetCount(burrows) > 2 then
 					if squadsTable[i].squadBurrow and nSpawnedBosses == 0 then
-						if Spring.GetUnitTeam(squadsTable[i].squadBurrow) == scavTeamID then
-							Spring.DestroyUnit(squadsTable[i].squadBurrow, true, false)
-						elseif Spring.GetUnitIsDead(squadsTable[i].squadBurrow) == false then
+						if Spring.GetUnitIsDead(squadsTable[i].squadBurrow) == false then
 							squadsTable[i].squadBurrow = nil
 						end
 					end
@@ -499,7 +497,7 @@ if gadgetHandler:IsSyncedCode() then
 					for j = 1,#destroyQueue do
 						-- Spring.Echo("Destroying Unit. ID: ".. unitID .. ", Name:" .. UnitDefs[Spring.GetUnitDefID(unitID)].name)
 						if Spring.GetUnitTeam(destroyQueue[j]) == scavTeamID then
-							Spring.DestroyUnit(destroyQueue[j], true, false)
+							DestroyUnit(destroyQueue[j], true, false)
 						end
 					end
 					destroyQueue = nil
@@ -1668,7 +1666,7 @@ if gadgetHandler:IsSyncedCode() then
 				if not UnitDefs[unitDefID].customParams.scav_swap_override_created then
 					if UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
 						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
-						Spring.DestroyUnit(unitID, true, true)
+						DestroyUnit(unitID, true, true)
 					end
 				elseif UnitDefs[unitDefID].customParams.scav_swap_override_created == "delete" then
 					Spring.DestroyUnit(unitID, true, true)
@@ -1676,7 +1674,7 @@ if gadgetHandler:IsSyncedCode() then
 					if UnitDefNames[UnitDefs[unitDefID].customParams.scav_swap_override_created] then
 						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].customParams.scav_swap_override_created, x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
 					end
-					Spring.DestroyUnit(unitID, true, true)
+					DestroyUnit(unitID, true, true)
 				end
 				return
 			else
