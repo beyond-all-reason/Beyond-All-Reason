@@ -6,11 +6,12 @@
 -- "scavradiation-lightning".
 --
 -- Synced API (call from any synced gadget):
---   GG.SpawnEnvironmentalLightning(configName, x, y, z [, sizeScale [, intensityScale]])
+--   GG.SpawnEnvironmentalLightning(configName, x, y, z [, sizeScale [, intensityScale [, ownerTeamID]]])
 --     configName     : key into the `lightningConfigs` table below (string)
 --     x, y, z         : world origin of the burst
 --     sizeScale       : optional multiplier on reach + thickness (default 1)
 --     intensityScale  : optional multiplier on brightness (default 1)
+--     ownerTeamID     : optional team that owns the effect (visible to that allyTeam even out of LOS)
 --
 -- Per-config visual parameters (see `lightningConfigs`):
 --   color (r,g,b + core color), lifetime, intensity, feather, size (width + reach),
@@ -37,15 +38,18 @@ end
 if gadgetHandler:IsSyncedCode() then
 
 	local SendToUnsynced = SendToUnsynced
+	local spGetTeamInfo = Spring.GetTeamInfo
 
 	function gadget:Initialize()
-		GG.SpawnEnvironmentalLightning = function(configName, x, y, z, sizeScale, intensityScale)
+		GG.SpawnEnvironmentalLightning = function(configName, x, y, z, sizeScale, intensityScale, ownerTeamID)
 			if not configName or not x or not y or not z then return end
+			local ownerAllyTeamID = ownerTeamID and select(6, spGetTeamInfo(ownerTeamID, false))
 			SendToUnsynced("envLightningSpawn",
 				tostring(configName),
 				x, y, z,
 				sizeScale or 1.0,
-				intensityScale or 1.0)
+				intensityScale or 1.0,
+				ownerAllyTeamID or -1)
 		end
 	end
 
@@ -1513,10 +1517,11 @@ end
 --------------------------------------------------------------------------------
 -- Callins
 --------------------------------------------------------------------------------
-local function handleSpawn(_, configName, x, y, z, sizeScale, intensityScale)
+local function handleSpawn(_, configName, x, y, z, sizeScale, intensityScale, ownerAllyTeamID)
 	-- Synced callsites are global; per-client LOS filtering must happen unsynced.
 	local cfg = lightningConfigs[configName]
-	if not (cfg and cfg.alwaysVisible) and not cachedSpecFullView and not spIsPosInLos(x, y, z, cachedAllyTeamID) then
+	local ownedByMe = (ownerAllyTeamID and ownerAllyTeamID >= 0 and ownerAllyTeamID == cachedAllyTeamID)
+	if not (cfg and cfg.alwaysVisible) and not cachedSpecFullView and not ownedByMe and not spIsPosInLos(x, y, z, cachedAllyTeamID) then
 		return
 	end
 	requestLightning(configName, x, y, z, sizeScale, intensityScale)
