@@ -145,6 +145,7 @@ if gadgetHandler:IsSyncedCode() then
 	local SpGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local SpDestroyUnit = Spring.DestroyUnit
 	local SpGetUnitDefID = Spring.GetUnitDefID
+	local SpGetUnitTeam = Spring.GetUnitTeam
 	local SpValidUnitID = Spring.ValidUnitID
 	local SpGetUnitPosition = Spring.GetUnitPosition
 	local SpGetGroundHeight = Spring.GetGroundHeight
@@ -176,10 +177,10 @@ if gadgetHandler:IsSyncedCode() then
 		return s - Mfloor(s)
 	end
 
-	local function SpawnJunoDamageEffects(px, py, pz)
+	local function SpawnJunoDamageEffects(px, py, pz, ownerTeamID)
 		SpSpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
 		if GG.SpawnEnvironmentalLightning then
-			GG.SpawnEnvironmentalLightning("junodamagezap", px, py + 10, pz, 1.0, 1.0)
+			GG.SpawnEnvironmentalLightning("junodamagezap", px, py + 10, pz, 1.0, 1.0, ownerTeamID)
 		end
 	end
 
@@ -207,7 +208,7 @@ if gadgetHandler:IsSyncedCode() then
 			if uID and SpValidUnitID(uID) then
 				local px, py, pz = SpGetUnitPosition(uID)
 				if px then
-					SpawnJunoDamageEffects(px, py, pz)
+					SpawnJunoDamageEffects(px, py, pz, aTeam)
 				end
 				if aID and SpValidUnitID(aID) then
 					SpDestroyUnit(uID, false, false, aID)
@@ -237,7 +238,8 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Explosion(weaponID, px, py, pz, ownerID)
 		if junoWeapons[weaponID] then
 			local curtime = SpGetGameSeconds()
-			local junoExpl = { x = px, y = py, z = pz, t = curtime, f = SpGetGameFrame(), o = ownerID }
+			local ownerTeam = ownerID and SpGetUnitTeam(ownerID)
+			local junoExpl = { x = px, y = py, z = pz, t = curtime, f = SpGetGameFrame(), o = ownerID, ownerTeam = ownerTeam }
 			centers[counter] = junoExpl
 			--SendToUnsynced("AddToCenters", counter, px, py, pz, curtime)
 			counter = counter + 1
@@ -288,7 +290,7 @@ if gadgetHandler:IsSyncedCode() then
 						local ly = SpGetGroundHeight(lx, lz) + stormHeightOffset
 						local sizeScale = stormSizeMin + hash01(seed + 7.7) * (stormSizeMax - stormSizeMin)
 						local intensityScale = stormIntensityMin + hash01(seed + 11.3) * (stormIntensityMax - stormIntensityMin)
-						GG.SpawnEnvironmentalLightning("junoareastorm", lx, ly, lz, sizeScale, intensityScale)
+						GG.SpawnEnvironmentalLightning("junoareastorm", lx, ly, lz, sizeScale, intensityScale, expl.ownerTeam)
 
 						expl.pulseCount = expl.pulseCount + 1
 						local jitterSeed = (expl.f or frame) * 0.021 + counter * 4.913 + expl.pulseCount * 1.771
@@ -311,7 +313,7 @@ if gadgetHandler:IsSyncedCode() then
 						local dz = expl.z - pz
 						if (dx * dx + dz * dz) > (q * (radius - width)) * (q * (radius - width)) then
 							-- linear and not O(n^2)
-							SpawnJunoDamageEffects(px, py, pz)
+							SpawnJunoDamageEffects(px, py, pz, expl.ownerTeam)
 							SpDestroyUnit(unitID, true, false)
 						end
 					end
