@@ -18,7 +18,7 @@ local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
 -- Get Startbox Area of every player
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-local norushtimer = Spring.GetModOptions().norushtimer * 60 * 30 -- Seconds Times Frames
+local norushtimer = Spring.GetModOptions().norushtimer * 60 * Game.gameSpeed -- modoption is in minutes
 local confinedToBase = not Spring.GetModOptions().norushmiddlefree
 local teamToAllyTeamTable = {}
 
