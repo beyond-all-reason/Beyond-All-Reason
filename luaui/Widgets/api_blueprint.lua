@@ -324,6 +324,17 @@ local function getBlueprintDimensions(blueprint, facing)
 	end
 end
 
+---Snap a single axis coordinate to the build-square grid for a footprint of the
+---given world size. A footprint spanning an odd number of build-squares centers
+---on a cell center (half-square offset); an even span centers on a grid line.
+---@param coord number
+---@param sizeElmos number
+---@return number
+local function snapAxisToBuildGrid(coord, sizeElmos)
+	local halfSquare = (mathFloor(sizeElmos / BUILD_SQUARE_SIZE) % 2) * SQUARE_SIZE
+	return mathFloor((coord + SQUARE_SIZE - halfSquare) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + halfSquare
+end
+
 ---Find the closest position for a blueprint that is aligned with the map grid.
 ---
 ---Analogous to Pos2BuildPos (which positions individual units), but for whole blueprints.
@@ -331,24 +342,9 @@ end
 ---@param pos Point
 ---@param facing number
 local function snapBlueprint(blueprint, pos, facing)
-	local result = { 0, pos[2], 0 }
-
 	local xSize, zSize = getBlueprintDimensions(blueprint, facing or 0)
 
-	-- snap build-positions to the build-square grid
-	if mathFloor(xSize / BUILD_SQUARE_SIZE) % 2 > 0 then
-		result[1] = mathFloor(pos[1] / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
-	else
-		result[1] = mathFloor((pos[1] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
-	end
-
-	if mathFloor(zSize / BUILD_SQUARE_SIZE) % 2 > 0 then
-		result[3] = mathFloor(pos[3] / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
-	else
-		result[3] = mathFloor((pos[3] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
-	end
-
-	return result
+	return { snapAxisToBuildGrid(pos[1], xSize), pos[2], snapAxisToBuildGrid(pos[3], zSize) }
 end
 
 ---See FillRowOfBuildPos
