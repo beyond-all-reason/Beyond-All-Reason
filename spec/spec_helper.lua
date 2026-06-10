@@ -37,6 +37,15 @@ _G.Spring.Echo = _G.Spring.Echo or function(...)
 	print(...)
 end
 
+-- spring-split: Engine.{Synced,Unsynced,Shared} all proxy to the current
+-- _G.Spring mock, resolved per access so a test that swaps _G.Spring (rather
+-- than mutating it) doesn't leave Engine pointing at a stale table.
+_G.Engine = _G.Engine or setmetatable({}, {
+	__index = function()
+		return _G.Spring
+	end,
+})
+
 _G.GG = _G.GG or {}
 
 _G.unpack = _G.unpack or table.unpack or function(t, i, j)
