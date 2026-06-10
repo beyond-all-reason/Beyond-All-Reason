@@ -50,8 +50,17 @@ local sqrt, abs       = math.sqrt, math.abs
 -- Constants
 -- ============================================================================
 local SQUARE_SIZE_ELMOS = 1024 -- engine constant (one SMF texture square)
-local TILE_PX           = 1024 -- composite/seed texture resolution per square
-local MASK_PX           = 512  -- per-layer hand-paint mask resolution
+-- TILE_PX is the texture we hand to the engine via SetMapSquareTexture; it MUST
+-- match the engine's native square size (1024) or the bind is rejected and the
+-- square shows nothing. So the composite is capped at 1 texel/elmo — we cannot
+-- exceed native map diffuse resolution through this API.
+-- MASK_PX is internal (the compositor samples it, the engine never sees it). It
+-- used to be 512, i.e. hand-paint deposits were 0.5 texel/elmo and got upscaled
+-- into the 1024 composite — that upscale was the blur. Matching it to TILE_PX
+-- removes the upscale step entirely (2x sharper painted strokes), which is the
+-- most fidelity we can get out of the 8K source at this composite resolution.
+local TILE_PX           = 1024 -- composite/seed resolution per square (engine-fixed, do not raise)
+local MASK_PX           = 1024 -- per-layer hand-paint mask resolution (match TILE_PX: no upscale blur)
 local MAX_LAYERS        = 8
 
 local MIN_RADIUS = 8
@@ -651,6 +660,9 @@ end
 -- ============================================================================
 local function allocateSquare(s)
 	if s.seedTex and s.compositeTex then return true end
+	-- A square that already failed to seed stays failed — callers poll this every
+	-- stroke, so without this guard one bad square spams the log indefinitely.
+	if s.allocFailed then return false end
 
 	local seedTex = glCreateTexture(TILE_PX, TILE_PX, {
 		border = false,
@@ -663,14 +675,16 @@ local function allocateSquare(s)
 	})
 	if not seedTex then
 		Echo("[Diffuse Painter] failed to create seed tex for square " .. s.sx .. "," .. s.sy)
+		s.allocFailed = true
 		return false
 	end
 
 	-- Ask engine to copy its current diffuse for this square into the seed tex
 	local ok = GetMapSquareTextureFn(s.sx, s.sy, 0, seedTex, 0)
 	if not ok then
-		Echo("[Diffuse Painter] GetMapSquareTexture failed for " .. s.sx .. "," .. s.sy)
+		Echo("[Diffuse Painter] GetMapSquareTexture failed for " .. s.sx .. "," .. s.sy .. " (seeding disabled for this square)")
 		glDeleteTexture(seedTex)
+		s.allocFailed = true
 		return false
 	end
 
@@ -1047,7 +1061,7 @@ end
 local function scanMaterialLibrary()
 	materialLibrary = {}
 	local ROOT = "luaui/images/terraform_brush/textures/"
-	local byKey = {} -- prefer lowest-resolution diffuse per material key
+	local byKey = {} -- prefer highest-resolution diffuse per material key (use the 8K)
 
 	-- Diffuse textures may sit at any depth under ROOT (the source packs nest
 	-- them in `<pack>.blend/textures/textures/`), so walk the tree explicitly
@@ -1061,7 +1075,7 @@ local function scanMaterialLibrary()
 			if mat and res then
 				local resK = tonumber(res) or 8
 				local prev = byKey[mat]
-				if (not prev) or resK < prev.resK then
+				if (not prev) or resK > prev.resK then
 					byKey[mat] = {
 						key = mat, name = mat:gsub("_", " "), path = f, resK = resK,
 						normalPath = findSibling(f, "nor_gl"),

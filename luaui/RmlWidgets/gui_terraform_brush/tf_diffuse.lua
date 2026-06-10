@@ -21,9 +21,7 @@ function M.attach(doc, ctx)
 
 	widgetState.dfpControlsEl   = doc:GetElementById("tf-diff-controls")
 	widgetState.dfpLayerListEl  = doc:GetElementById("dfp-layer-list")
-	widgetState.dfpMaterialListEl = doc:GetElementById("dfp-material-list")
 	widgetState.dfpLastLayerSig = nil
-	widgetState.dfpLastMatSig   = nil
 
 	for _, entry in ipairs({
 		{ "dfp-slider-radius",          "dfp-radius" },
@@ -68,7 +66,6 @@ function M.attach(doc, ctx)
 	dfpSectionToggle("btn-toggle-dfp-brush",   "img-toggle-dfp-brush",   "section-dfp-brush",   true)
 	dfpSectionToggle("btn-toggle-dfp-effects", "img-toggle-dfp-effects", "section-dfp-effects", false)
 	dfpSectionToggle("btn-toggle-dfp-layers",  "img-toggle-dfp-layers",  "section-dfp-layers",  true)
-	dfpSectionToggle("btn-toggle-dfp-materials", "img-toggle-dfp-materials", "section-dfp-materials", false)
 	dfpSectionToggle("btn-toggle-dfp-actions", "img-toggle-dfp-actions", "section-dfp-actions", false)
 end
 
@@ -90,11 +87,6 @@ local function buildSig(layers, activeId)
 			(activeId == layer.id) and "A" or "-")
 	end
 	return table.concat(parts, "|")
-end
-
-local function buildMatSig(library, activeLayer)
-	local active = activeLayer and tostring(activeLayer.texturePath or "") or ""
-	return tostring(#library) .. "#" .. active
 end
 
 local function rebuildLayerList(doc, ctx, layers, activeId)
@@ -159,61 +151,6 @@ local function rebuildLayerList(doc, ctx, layers, activeId)
 	end
 end
 
-local function rebuildMaterialList(doc, ctx, library, activeLayerId)
-	local listEl = ctx.widgetState.dfpMaterialListEl
-	if not listEl then return end
-	listEl.inner_rml = ""
-
-	local activeLayer = nil
-	local layers = WG.DiffusePainter and WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
-	for i = 1, #layers do if layers[i].id == activeLayerId then activeLayer = layers[i] break end end
-	local activePath = activeLayer and activeLayer.texturePath or nil
-
-	for i = 1, #library do
-		local mat = library[i]
-		local row = doc:CreateElement("div")
-		row:SetAttribute("id", "dfp-mat-" .. mat.key)
-		row:SetClass("tf-overlay-chip", true)
-		if activePath == mat.path then row:SetClass("active", true) end
-		row:SetAttribute("style",
-			"display: flex; flex-direction: row; align-items: center; gap: 6dp; padding: 4dp 6dp; cursor: pointer;")
-
-		local nameEl = doc:CreateElement("div")
-		nameEl:SetClass("tf-overlay-chip-label", true)
-		nameEl:SetAttribute("style", "flex: 1;")
-		nameEl.inner_rml = mat.name
-		row:AppendChild(nameEl)
-
-		local resEl = doc:CreateElement("div")
-		resEl:SetClass("text-sm", true)
-		resEl.inner_rml = tostring(mat.resK) .. "k"
-		row:AppendChild(resEl)
-
-		row:AddEventListener("mousedown", function(_event)
-			local API = WG.DiffusePainter
-			if not API then return end
-			local id = API.getActiveLayerId and API.getActiveLayerId()
-			local currentLayers = API.getLayers and API.getLayers() or {}
-			local activeLayer = nil
-			if id then
-				for j = 1, #currentLayers do
-					if currentLayers[j].id == id then activeLayer = currentLayers[j] break end
-				end
-			end
-			-- Smart routing: if the active layer has no material yet, assign
-			-- this material to it (and rename). Otherwise spawn a new layer
-			-- using this material so existing painted strokes are preserved.
-			if activeLayer and (not activeLayer.texturePath or activeLayer.texturePath == "") then
-				if API.setLayerTexture then API.setLayerTexture(id, mat.path, nil, mat.name) end
-			else
-				if API.addLayerFromMaterial then API.addLayerFromMaterial(mat.path, mat.name) end
-			end
-		end, false)
-
-		listEl:AppendChild(row)
-	end
-end
-
 function M.sync(doc, ctx, setSummary)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
@@ -230,15 +167,9 @@ function M.sync(doc, ctx, setSummary)
 		rebuildLayerList(doc, ctx, layers, activeId)
 	end
 
-	-- Rebuild material list when active layer's texture changes or library size changes
-	local library = WG.DiffusePainter.getMaterialLibrary and WG.DiffusePainter.getMaterialLibrary() or {}
+	-- Resolve the active layer (used for DM labels and slider sync below)
 	local activeLayer = nil
 	for i = 1, #layers do if layers[i].id == activeId then activeLayer = layers[i] break end end
-	local matSig = buildMatSig(library, activeLayer)
-	if matSig ~= widgetState.dfpLastMatSig then
-		widgetState.dfpLastMatSig = matSig
-		rebuildMaterialList(doc, ctx, library, activeId)
-	end
 
 	-- DM labels for brush + active layer
 	local dm = widgetState.dmHandle

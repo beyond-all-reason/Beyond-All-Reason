@@ -496,11 +496,17 @@ end
 
 -- ============ TEXTURE MANAGEMENT ============
 
+local noSplatWarned = false
+
 local function initSplatTexture()
 	-- Get dimensions of existing splat distribution texture
 	local texInfo = gl.TextureInfo(SPLAT_TEX_NAME)
 	if not texInfo or texInfo.xsize <= 0 or texInfo.ysize <= 0 then
-		Echo("[Splat Painter] Could not query splat distribution texture dimensions. Map may not have SSMF splat textures.")
+		-- Blank/generated maps carry no SSMF splat distribution. Warn once, calmly.
+		if not noSplatWarned then
+			Echo("[Splat Painter] This map has no SSMF splat textures, so splat painting is unavailable here. (A New Map needs a splat set baked in at generation, which requires engine DNTS support.)")
+			noSplatWarned = true
+		end
 		return false
 	end
 
@@ -1467,7 +1473,6 @@ function widget:DrawWorld()
 	if pendingInit then
 		pendingInit = false
 		if not initSplatTexture() then
-			Echo("[Splat Painter] Texture initialization failed")
 			active = false
 			destroyShaders()
 			return

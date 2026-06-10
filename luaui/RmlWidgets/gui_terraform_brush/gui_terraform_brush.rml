@@ -8,13 +8,13 @@
 <body data-model="terraform_brush_model">
 	<div id="tf-root" class="tf-root hidden widget-shadow rounded-md bg-darkest p-2-5">
 		<div class="flex flex-row justify-between items-center mb-2">
-			<div class="tf-file-menu-wrap">
+			<div id="tf-handle" class="tf-drag-handle font-bold text-light text-outline-darker" style="flex: 1; font-size: 16dp;">TERRAFORM BRUSH</div>
+			<div class="tf-file-menu-wrap" style="margin-right: 3dp;">
 				<div id="btn-file" class="tf-header-menu-btn" data-class-active="fileMenuOpen" data-event-mousedown="onFileMenuToggle()">FILE</div>
 				<div id="tf-file-menu" class="tf-file-menu" data-if="fileMenuOpen">
 					<div id="btn-file-newmap" class="tf-file-menu-item" data-event-mousedown="onFileNewMap()">New Map...</div>
 				</div>
 			</div>
-			<div id="tf-handle" class="tf-drag-handle font-bold text-light text-outline-darker" style="flex: 1; font-size: 16dp; margin-left: 6dp;">TERRAFORM BRUSH</div>
 			<div id="btn-sound" class="tf-header-btn tf-sound-btn" data-class-muted="soundMuted" data-event-mousedown="onGuideToggleSound()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/volume.png" /></div>
 			<div id="btn-guide" class="tf-header-btn tf-guide-btn" data-class-active="guideMode" data-event-mousedown="onGuideToggle()"><span>?</span></div>
 			<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -4275,29 +4275,6 @@
 		</div><!-- /section-dfp-layers -->
 		</div><!-- /frame-dfp-layers -->
 
-
-		<!-- Diffuse Painter: MATERIALS -->
-		<div class="tf-section-frame tf-collapsed" id="frame-dfp-materials">
-			<div id="btn-toggle-dfp-materials" class="tf-section-title-row" style="cursor: pointer;">
-				<img id="img-toggle-dfp-materials" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-				<div class="tf-collapsible-title">MATERIALS</div>
-			</div>
-		<div id="section-dfp-materials" class="hidden">
-
-		<div class="flex flex-row items-center mb-1">
-			<div class="text-sm text-keybind">Click: assign to layer or add new layer</div>
-		</div>
-		<div id="dfp-material-list" class="flex flex-col gap-1 mb-1"></div>
-		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-dfp-clear-material" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onDfpClearMaterial()">
-				<div class="tf-action-btn-text">CLEAR TEXTURE (use color)</div>
-			</div>
-		</div>
-
-		</div><!-- /section-dfp-materials -->
-		</div><!-- /frame-dfp-materials -->
-
-
 		<!-- Diffuse Painter: ACTIONS -->
 		<div class="tf-section-frame tf-collapsed" id="frame-dfp-actions">
 			<div id="btn-toggle-dfp-actions" class="tf-section-title-row" style="cursor: pointer;">
@@ -4305,6 +4282,12 @@
 				<div class="tf-collapsible-title">ACTIONS</div>
 			</div>
 		<div id="section-dfp-actions" class="hidden">
+
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-dfp-clear-material" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onDfpClearMaterial()">
+				<div class="tf-action-btn-text">CLEAR TEXTURE (use color)</div>
+			</div>
+		</div>
 
 		<div class="flex flex-row gap-1 mb-1">
 			<div id="btn-dfp-bake-all" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onDfpBakeAll()">
@@ -6725,6 +6708,17 @@
 
 		<div class="flex flex-row justify-center items-center mb-2">
 			<div class="text-base text-keybind">{{newMapElmoStr}}</div>
+		</div>
+
+		<!-- Splat set (DNTS detail textures baked into the generated map) -->
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">SPLAT SET</div>
+			<div class="text-sm text-keybind">detail textures</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-2">
+			<div id="btn-newmap-splat-prev" class="tf-sm-btn" data-event-mousedown="onNewMapSplatPrev()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+			<div class="text-base text-light" style="flex: 1; text-align: center;">{{newMapSplatStr}}</div>
+			<div id="btn-newmap-splat-next" class="tf-sm-btn" data-event-mousedown="onNewMapSplatNext()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
 		</div>
 
 		<div class="flex flex-row gap-1 mb-1">

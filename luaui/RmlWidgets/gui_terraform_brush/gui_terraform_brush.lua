@@ -953,6 +953,39 @@ local NEWMAP_DEFAULT_UNIT = 12
 local NEWMAP_BASE_HEIGHT  = 100              -- starting ground height (elmos)
 local NEWMAP_COLOR        = { 110, 130, 90 } -- base diffuse colour (0..255), muted grass
 
+-- ---- DNTS splat-set catalog (harvested from BAR maps) ----
+-- Each entry: { name, textures = {4 files}, scales = {4}, mults = {4}, diffuseAlpha }.
+-- A fresh blank map has no SSMF splat textures, so the chosen set is injected into
+-- the blank-map start script (blank_map_splat* keys) to give the splat painter a
+-- detail-normal set to paint. Files live in luaui/images/terraform_brush/textures/dnts/.
+local DNTS_DIR = "luaui/images/terraform_brush/textures/dnts/"
+local dntsSets = {}
+do
+	local chunk = VFS.LoadFile(DNTS_DIR .. "dnts_sets.lua")
+	if chunk then
+		local ok, list = pcall(function() return loadstring(chunk)() end)
+		if ok and type(list) == "table" then dntsSets = list end
+	end
+end
+
+-- Resolve the currently-selected splat set (1-based, wraps), or nil if none loaded.
+local function _nmCurrentSplatSet()
+	if #dntsSets == 0 then return nil end
+	local i = widgetState.newMapSplatIdx or 1
+	if i < 1 then i = #dntsSets elseif i > #dntsSets then i = 1 end
+	widgetState.newMapSplatIdx = i
+	return dntsSets[i]
+end
+
+-- Push the selected splat-set name into the data model label.
+local function _nmRefreshSplatLabel()
+	local d = widgetState.dmHandle
+	if not d then return end
+	local s = _nmCurrentSplatSet()
+	local name = s and s.name or "None"
+	if d.newMapSplatStr ~= name then d.newMapSplatStr = name end
+end
+
 local function _nmClampEven(v, default)
 	v = tonumber(v) or default
 	v = math.floor(v / 2 + 0.5) * 2
@@ -998,7 +1031,7 @@ end
 -- current session's _script.txt (preserving players/teams/modoptions) and
 -- injecting the engine blank-map-generator keys. Returns (scriptText) or
 -- (nil, errorMessage).
-local function buildBlankMapStartScript(widthUnits, heightUnits)
+local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet)
 	local base = VFS.LoadFile("_script.txt")
 	if not base or base == "" then
 		return nil, "no _script.txt available (not in a game?)"
@@ -1023,17 +1056,36 @@ local function buildBlankMapStartScript(widthUnits, heightUnits)
 		script = (script:gsub("[Mm][Aa][Pp][Nn][Aa][Mm][Ee]%s*=[^;\r\n]*;?", "mapname=" .. mapName .. ";", 1))
 	end
 
-	local inject = table.concat({
-		"InitBlank=1;",
-		"MapSeed=" .. seed .. ";",
-		"[mapoptions]",
-		"{",
+	local opt = {
 		"blank_map_x=" .. widthUnits .. ";",
 		"blank_map_y=" .. heightUnits .. ";",
 		"blank_map_height=" .. NEWMAP_BASE_HEIGHT .. ";",
 		"blank_map_color_r=" .. NEWMAP_COLOR[1] .. ";",
 		"blank_map_color_g=" .. NEWMAP_COLOR[2] .. ";",
 		"blank_map_color_b=" .. NEWMAP_COLOR[3] .. ";",
+	}
+
+	-- Inject the chosen DNTS splat set so the generated map loads with splat detail
+	-- normal textures (distribution channels R,G,B,A). Paths are game-VFS relative;
+	-- the blank-map generator must honour these blank_map_splat* keys.
+	if dntsSet and dntsSet.textures then
+		local t, sc, mu = dntsSet.textures, dntsSet.scales or {}, dntsSet.mults or {}
+		for ch = 1, 4 do
+			if t[ch] then
+				opt[#opt + 1] = "blank_map_splatdetailnormaltex" .. ch .. "=" .. DNTS_DIR .. t[ch] .. ";"
+				opt[#opt + 1] = "blank_map_splattexscale" .. ch .. "=" .. (sc[ch] or 0.01) .. ";"
+				opt[#opt + 1] = "blank_map_splattexmult" .. ch .. "=" .. (mu[ch] or 1.0) .. ";"
+			end
+		end
+		opt[#opt + 1] = "blank_map_splatdetailnormaldiffusealpha=" .. (dntsSet.diffuseAlpha == 1 and 1 or 0) .. ";"
+	end
+
+	local inject = table.concat({
+		"InitBlank=1;",
+		"MapSeed=" .. seed .. ";",
+		"[mapoptions]",
+		"{",
+		table.concat(opt, "\n"),
 		"}",
 	}, "\n")
 
@@ -1069,6 +1121,7 @@ local initialModel = {
 	newMapWidthStr = "12",
 	newMapHeightStr = "12",
 	newMapElmoStr = "6144 x 6144 elmos",
+	newMapSplatStr = "",
 	-- Active tool slot for panel-mode swap (data-if="activeTool == 'fp'" etc).
 	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, stp, cl, diff.
 	activeTool = "",
@@ -3598,10 +3651,25 @@ local initialModel = {
 			d.newMapOpen = true
 		end
 		_nmRefreshLabels()
+		_nmRefreshSplatLabel()
 	end,
 	onNewMapClose = function(_event)
 		playSound("click")
 		local d = widgetState.dmHandle; if d then d.newMapOpen = false end
+	end,
+	onNewMapSplatPrev = function(_event)
+		if #dntsSets == 0 then return end
+		widgetState.newMapSplatIdx = (widgetState.newMapSplatIdx or 1) - 1
+		if widgetState.newMapSplatIdx < 1 then widgetState.newMapSplatIdx = #dntsSets end
+		_nmRefreshSplatLabel()
+		playSound("click")
+	end,
+	onNewMapSplatNext = function(_event)
+		if #dntsSets == 0 then return end
+		widgetState.newMapSplatIdx = (widgetState.newMapSplatIdx or 1) + 1
+		if widgetState.newMapSplatIdx > #dntsSets then widgetState.newMapSplatIdx = 1 end
+		_nmRefreshSplatLabel()
+		playSound("click")
 	end,
 	onNewMapWidthChange = function(event)
 		if uiState.updatingFromCode then return end
@@ -3632,7 +3700,7 @@ local initialModel = {
 	onNewMapCreate = function(_event)
 		local w = _nmClampEven(widgetState.newMapW or NEWMAP_DEFAULT_UNIT, NEWMAP_DEFAULT_UNIT)
 		local h = _nmClampEven(widgetState.newMapH or NEWMAP_DEFAULT_UNIT, NEWMAP_DEFAULT_UNIT)
-		local script, err = buildBlankMapStartScript(w, h)
+		local script, err = buildBlankMapStartScript(w, h, _nmCurrentSplatSet())
 		if not script then
 			Spring.Echo("[Terraform Brush] New Map failed: " .. tostring(err))
 			return
@@ -7996,7 +8064,8 @@ function widget:DrawScreenPost()
 
 		local isDNTS = true
 
-		local logRetry = (widgetState.spPreviewRetries == 1 or widgetState.spPreviewRetries == 30 or widgetState.spPreviewRetries == 120)
+		local SP_PREVIEW_DEBUG = false  -- set true to log DNTS texture discovery to infolog
+		local logRetry = SP_PREVIEW_DEBUG and (widgetState.spPreviewRetries == 1 or widgetState.spPreviewRetries == 30 or widgetState.spPreviewRetries == 120)
 
 		local function tryTex(path)
 
@@ -8150,7 +8219,7 @@ function widget:DrawScreenPost()
 
 			widgetState.spPreviewVerified = true
 
-			Spring.Echo("[TFBrush] Texture discovery DONE at retry " .. widgetState.spPreviewRetries .. " found=" .. tostring(next(found) ~= nil))
+			if SP_PREVIEW_DEBUG then Spring.Echo("[TFBrush] Texture discovery DONE at retry " .. widgetState.spPreviewRetries .. " found=" .. tostring(next(found) ~= nil)) end
 
 		end
 
