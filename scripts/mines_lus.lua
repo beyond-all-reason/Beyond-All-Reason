@@ -61,14 +61,6 @@ function SetStunned(a,b) -- called by unit_stun_script.lua
 	end
 end
 
-function script.Activate() -- use on/off rather than firestate toggle
-	StartThread(EnemyDetect)
-end
-
-function script.Deactivate()
-	Signal(stop_detect)
-end
-
 function Detonate()
 	Sleep(500)
 	Spring.DestroyUnit(unitID, false, false)
