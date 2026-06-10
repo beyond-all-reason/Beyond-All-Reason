@@ -8,6 +8,15 @@ local stop_detect = 1
 
 -- Author: Doo update jan 2026
 
+function FireStateChange(toFireState)
+	if toFireState < 2 then
+		Signal(stop_detect)
+	else
+		Signal(stop_detect) -- in case called while already active
+		StartThread(EnemyDetect)
+	end
+end
+
 function script.AimWeapon()
 	return false
 end
