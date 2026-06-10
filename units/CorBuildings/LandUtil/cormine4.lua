@@ -1,6 +1,5 @@
 return {
 	cormine4 = {
-		activatewhenbuilt = true,
 		blocking = false,
 		buildpic = "CORMINE2.DDS",
 		buildtime = 200,
@@ -31,9 +30,7 @@ return {
 		metalcost = 16,
 		mincloakdistance = 8,
 		nochasecategory = "VTOL",
-		noautofire = true,
 		objectname = "Units/CORMINE2.s3o",
-		onoffable = true,
 		script = "mines_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "MINE_MEDIUM",
