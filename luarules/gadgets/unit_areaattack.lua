@@ -61,11 +61,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 		-- accepts: CMD_AREA_ATTACK_GROUND
-		if canAreaAttack[unitDefID] then
-			return true
-		else
-			return false
-		end
+		return canAreaAttack[unitDefID] and #cmdParams == 4
 	end
 
 	function gadget:CommandFallback(u,ud,team,cmd,param,opt)
