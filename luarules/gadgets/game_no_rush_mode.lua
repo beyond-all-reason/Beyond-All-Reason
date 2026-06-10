@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		name    = "No Rush Mode",
 		desc    = "Stops players from executing commands out-of-their or within-an-enemy startbox for a set amount of time.",
 		author  = "Damgam, Chemdude8",
-		date    = "2022, 2026",
+		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = -100,
 		enabled = Spring.GetModOptions().norushtimer > 0,
@@ -18,8 +18,7 @@ local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
 -- Get Startbox Area of every player
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-local norushtimer = Spring.GetModOptions().norushtimer *
-	1800 -- modoption is stating minutes, and we need frames. 60 seconds * 30 frames = 1800
+local norushtimer = Spring.GetModOptions().norushtimer * 60 * 30 -- Seconds Times Frames
 local confinedToBase = not Spring.GetModOptions().norushmiddlefree
 local teamToAllyTeamTable = {}
 
@@ -166,7 +165,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID,
 								   attackerDefID, attackerTeam)
 		if not isNoRushRestricted() then
-			return damage, 1
+			return
 		end
 		-- compare (damaged) unit location to allyTeam startboxes and negate damage if they are in their box
 		local posx, posy, posz = spGetUnitPosition(unitID)
@@ -179,7 +178,5 @@ if gadgetHandler:IsSyncedCode() then
 		if positionCheckLibrary.StartboxCheck(posx, posy, posz, unitAllyTeam) then
 			return 0, 0
 		end
-
-		return damage, 1
 	end
 end

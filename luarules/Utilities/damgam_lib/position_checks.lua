@@ -22,14 +22,14 @@ local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 
 -- Team Startboxes
 local AllyTeamStartboxes = {}
-local AllyTeams = Spring.GetAllyTeamList()
+local allyTeams = Spring.GetAllyTeamList()
 local startPositionsInitialized = false
 
 local function initializeStartPositionTable()
     if (startPositionsInitialized) then
         return
     end
-    for _, testAllyTeamID in ipairs(AllyTeams) do
+    for _, testAllyTeamID in ipairs(allyTeams) do
         local allyTeamHasStartbox = true
         local xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(testAllyTeamID)
         if xMin == 0 and zMin == 0 and xMax == mapSizeX and zMax == mapSizeZ then
@@ -216,7 +216,7 @@ local function VisibilityCheck(posx, posy, posz, posradius, allyTeamID, checkLoS
 end
 
 local function VisibilityCheckEnemy(posx, posy, posz, posradius, allyTeamID, checkLoS, checkAirLos, checkRadar) -- Return True when position is not in sensor ranges of all enemies of specified allyTeam.
-    for _,testAllyTeamID in ipairs(AllyTeams) do
+    for _,testAllyTeamID in ipairs(allyTeams) do
 		local posCheck = true
         if testAllyTeamID ~= allyTeamID and testAllyTeamID ~= GaiaAllyTeamID then
             posCheck = VisibilityCheck(posx, posy, posz, posradius, testAllyTeamID, checkLoS, checkAirLos, checkRadar)
@@ -253,7 +253,7 @@ local function StartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStart
 end
 
 local function NotInEnemyStartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStartbox)
-    for _,testAllyTeamID in pairs(AllyTeams) do
+    for _,testAllyTeamID in pairs(allyTeams) do
         if (testAllyTeamID ~= GaiaAllyTeamID) and (testAllyTeamID ~= allyTeamID) then
             if StartboxCheck(posx, posy, posz, testAllyTeamID, returnTrueWhenNoStartbox) then
                 return false;
