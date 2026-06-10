@@ -218,6 +218,12 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_matriarch_healer"].id] = { distance = 500, chance = 0.001 },
 		[UnitDefNames["raptor_matriarch_basic"].id] = { distance = 500, chance = 0.001 },
 		[UnitDefNames["raptor_matriarch_fire"].id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames["raptor_queen_veryeasy"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 60, },
+		[UnitDefNames["raptor_queen_easy"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 50, },
+		[UnitDefNames["raptor_queen_normal"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 40, },
+		[UnitDefNames["raptor_queen_hard"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 30, },
+		[UnitDefNames["raptor_queen_veryhard"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 20, },
+		[UnitDefNames["raptor_queen_epic"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 10, },
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
 		[UnitDefNames["raptor_land_spiker_basic_t4_v1"].id] = { chance = 0.2, distance = 750 },
