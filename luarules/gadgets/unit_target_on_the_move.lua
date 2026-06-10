@@ -39,9 +39,9 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	-- Unseen targets will be removed after max USEEN_UPDATE_FREQUENCY frames.
-	-- Should be small enough to not be evident, and big enough to save perf.
-	local USEEN_UPDATE_FREQUENCY = 15
+	-- The rate of removing unseen/untracked units from the unit target lists.
+	-- Done once per N target list update passes to reduce the overhead costs.
+	local unseenUpdatePasses = 3
 
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -708,7 +708,9 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	-- Target update
 
-	function gadget:GameFrame(n)
+	local updateUnseenUnits = unseenUpdatePasses
+
+	function gadget:GameFrame(frame)
 		-- ideally timing would be synced with slow update to reduce attack jittering
 		-- SlowUpdate+ causes attack command to override target command
 		-- unfortunately since 103 that's not possible, attempt to override every frame
@@ -716,7 +718,30 @@ if gadgetHandler:IsSyncedCode() then
 		-- a set target command, howrever a quick test with 300 fidos only increased by 1%
 		-- sim here
 
-		if n % 5 == 4 then
+		teamQueryCaches = {}
+
+		local offset = frame % 5
+
+		if offset == 0 then
+
+			if updateUnseenUnits ~= 1 then
+				updateUnseenUnits = updateUnseenUnits - 1
+				return
+			end
+
+			updateUnseenUnits = unseenUpdatePasses
+
+			for unitID, unitData in pairsNext, activeTargets do
+				local targets = unitData.targets
+				for index = #targets, 1, -1 do
+					if isUnseenEnemyUnit(targets[index], unitData.allyTeam) then
+						removeTarget(unitID, index)
+					end
+				end
+			end
+
+		elseif offset == 1 then
+
 			for unitID, unitData in pairsNext, activeTargets do
 				local targets, teamID, weapons = unitData.targets, unitData.teamID, unitData.weapons
 				local length, targetIndex, countRemoved = #targets, 0, 0
@@ -758,32 +783,24 @@ if gadgetHandler:IsSyncedCode() then
 					setTargetPassive(unitID, unitData, 1)
 				end
 			end
-		end
 
-		if n % USEEN_UPDATE_FREQUENCY == 0 then
-			for unitID, unitData in pairsNext, activeTargets do
-				local targets = unitData.targets
-				for index = #targets, 1, -1 do
-					if isUnseenEnemyUnit(targets[index], unitData.allyTeam) then
-						removeTarget(unitID, index)
-					end
-				end
-			end
-		end
+		elseif offset == 2 or offset == 4 then
 
-		for unitID in pairs(setTargetData) do
-			if activeTargets[unitID] then
+			for unitID in pairs(activeTargets) do
 				if inAttackCommand(unitID) then
 					pauseTargetting(unitID)
 				end
-			else
+			end
+
+		else -- once per update cycle:
+
+			for unitID in pairs(pausedTargets) do
 				if not inAttackCommand(unitID) then
 					unpauseTargetting(unitID)
 				end
 			end
-		end
 
-		teamQueryCaches = {}
+		end
 	end
 
 
