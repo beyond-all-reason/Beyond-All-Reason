@@ -988,6 +988,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		SetGameRulesParam("raptorQueenHealth", math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100)))
 		SetGameRulesParam("pveBossInfo", Json.encode(bosses))
+		RaptorQueenHealthPercentage = math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100))
 	end
 
 	function SpawnQueen()
@@ -1513,6 +1514,20 @@ if gadgetHandler:IsSyncedCode() then
 				if weaponID == -1 and damage > 1 then
 					damage = 1
 				end
+
+				if RaptorQueenHealthPercentage then
+					if RaptorQueenHealthPercentage > 50 then
+						damage = damage * 2
+					elseif RaptorQueenHealthPercentage > 25 then
+					elseif RaptorQueenHealthPercentage > 10 then
+						damage = damage * 0.5
+					elseif RaptorQueenHealthPercentage > 5 then
+						damage = damage * 0.25
+					elseif RaptorQueenHealthPercentage <= 5 then
+						damage = damage * 0.1
+					end
+				end
+
 				attackerDefID = tostring(attackerDefID)
 				if not queenResistance[attackerDefID] then
 					queenResistance[attackerDefID] = {
@@ -1548,6 +1563,20 @@ if gadgetHandler:IsSyncedCode() then
 				damage = 1
 			end
 			return damage
+		end
+		if attackerID and queenIDs[attackerID] then -- Boss Resistance
+			if ScavBossHealthPercentage then
+				if RaptorQueenHealthPercentage > 50 then
+					damage = damage * 0.1
+				elseif RaptorQueenHealthPercentage > 25 then
+					damage = damage * 0.25
+				elseif RaptorQueenHealthPercentage > 10 then
+					damage = damage * 0.5
+				elseif RaptorQueenHealthPercentage > 5 then
+				elseif RaptorQueenHealthPercentage <= 5 then
+					damage = damage * 2
+				end
+			end
 		end
 		return damage, 1
 	end	

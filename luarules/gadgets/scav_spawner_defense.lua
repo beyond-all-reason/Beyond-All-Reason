@@ -1140,6 +1140,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		SetGameRulesParam("scavBossHealth", math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100)))
 		SetGameRulesParam("pveBossInfo", Json.encode(bosses))
+		ScavBossHealthPercentage = math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100))
 	end
 
 	function SpawnBoss()
@@ -1741,6 +1742,20 @@ if gadgetHandler:IsSyncedCode() then
 				if weaponID == -1 and damage > 1 then
 					damage = 1
 				end
+
+				if ScavBossHealthPercentage then
+					if ScavBossHealthPercentage > 50 then
+						damage = damage * 2
+					elseif ScavBossHealthPercentage > 25 then
+					elseif ScavBossHealthPercentage > 10 then
+						damage = damage * 0.5
+					elseif ScavBossHealthPercentage > 5 then
+						damage = damage * 0.25
+					elseif ScavBossHealthPercentage <= 5 then
+						damage = damage * 0.1
+					end
+				end
+
 				attackerDefID = tostring(attackerDefID)
 				if not bossResistance[attackerDefID] then
 					bossResistance[attackerDefID] = {
@@ -1775,6 +1790,21 @@ if gadgetHandler:IsSyncedCode() then
 				damage = 1
 			end
 			return damage
+		end
+
+		if attackerID and bossIDs[attackerID] then -- Boss Resistance
+			if ScavBossHealthPercentage then
+				if ScavBossHealthPercentage > 50 then
+					damage = damage * 0.1
+				elseif ScavBossHealthPercentage > 25 then
+					damage = damage * 0.25
+				elseif ScavBossHealthPercentage > 10 then
+					damage = damage * 0.5
+				elseif ScavBossHealthPercentage > 5 then
+				elseif ScavBossHealthPercentage <= 5 then
+					damage = damage * 2
+				end
+			end
 		end
 		return damage, 1
 	end
