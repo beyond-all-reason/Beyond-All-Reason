@@ -27,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "crawl_blast",
 		selfdestructcountdown = 0,
-		sightdistance = 273,
+		sightdistance = 260,
 		speed = 84,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -108,6 +108,9 @@ return {
 				soundhitwet = "splshbig",
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					crawlingbombs = 1000,
 					default = 1000,

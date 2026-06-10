@@ -22,7 +22,6 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		metalcost = 150,
-		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSHAD.s3o",
 		script = "Units/CORSHAD.cob",

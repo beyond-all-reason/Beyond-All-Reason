@@ -134,6 +134,7 @@ return {
 					cluster_number = 7,
 					exclude_preaim = true,
 					smart_priority = true,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 345,
@@ -198,6 +199,7 @@ return {
 					cluster_number = 7,
 					exclude_preaim = true,
 					smart_backup = true,
+					weapons_group = 2,
 				},
 				damage = {
 					default = 345,
@@ -230,6 +232,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				customparams = {
+					bogus = 1,
 					exclude_preaim = true,
 					smart_trajectory_checker = true,
 				},
@@ -292,7 +295,7 @@ return {
 					dronesusestockpile = true,
 					dronedocktime = 2,
 					droneairtime = 90,
-				}
+				},
 			},
 			light_antiair_missile = {
 				areaofeffect = 16,
@@ -342,6 +345,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 2500,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 37,
 				},

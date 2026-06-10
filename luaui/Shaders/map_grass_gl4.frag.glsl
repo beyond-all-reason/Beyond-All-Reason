@@ -49,13 +49,10 @@ void main() {
 	fragColor = texture(grassBladeColorTex, texCoord0.xy);
 	fragColor.rgb = mix(fragColor.rgb,fragColor.rgb * (mapColor.rgb * 2.0), MAPCOLORFACTOR); //blend mapcolor multiplicative
 	fragColor.rgb = mix(fragColor.rgb,mapColor.rgb, (1.0 - texCoord0.y)* MAPCOLORBASE); // blend more mapcolor mix at base
-	//fragColor.rgb = fragColor.rgb * 0.8; // futher darken
 	fragColor.rgb = mix(fogColor.rgb,fragColor.rgb, mapColor.a ); // blend fog
 	fragColor.a = fragColor.a * grassuniforms.w * instanceParamsVS.x; // increase transparency with distance
-	fragColor.rgb = fragColor.rgb * instanceParamsVS.y; // darken with shadows
-	fragColor.rgb = fragColor.rgb * instanceParamsVS.z; // darken out of los
-	fragColor.rgb = fragColor.rgb * instanceParamsVS.w; // darken with windnoise
-	fragColor.rgb *= GRASSBRIGHTNESS;
+	// Combined shadow * LOS * windnoise * brightness in single multiply
+	fragColor.rgb *= instanceParamsVS.y * instanceParamsVS.z * instanceParamsVS.w * GRASSBRIGHTNESS;
 
 	fragColor.a = clamp((fragColor.a-0.5) * 1.5 + 0.5, 0.0, 1.0);
 

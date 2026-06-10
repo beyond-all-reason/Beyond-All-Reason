@@ -115,21 +115,40 @@ end
 GG.wipeoutTeam = wipeoutTeam
 GG.wipeoutAllyTeam = wipeoutAllyTeam
 
+local destroyThisFrame = {}
+local destroyThisFrameCount = 0
+
 function gadget:GameFrame(gf)
 	if next(destroyUnitQueue) then
-		local selfD = not GG.wipeoutWithWreckage
+		-- Collect units to destroy first, since spDestroyUnit triggers synchronous
+		-- callins (UnitDestroyed -> TeamDied -> wipeoutAllyTeam) that can insert
+		-- new entries into destroyUnitQueue, causing "invalid key to 'next'"
+		destroyThisFrameCount = 0
 		for unitID, defs in pairs(destroyUnitQueue) do
 			if gf > defs.frame then
-                if defs.attackerUnitID then
-					spDestroyUnit(unitID, selfD, false, defs.attackerUnitID)
-				else
-					if selfD and isCommander[spGetUnitDefID(unitID)]  then
-						spDestroyUnit(unitID, false, false)	-- always leave commander wreckage (ffa reclaims all on early dropped players now)
-					else
-						spDestroyUnit(unitID, selfD, false) -- if 4th arg is given, it cannot be nil (or engine complains)
-					end
-                end
+				destroyThisFrameCount = destroyThisFrameCount + 1
+				destroyThisFrame[destroyThisFrameCount] = unitID
+			end
+		end
+
+		if destroyThisFrameCount > 0 then
+			local selfD = not GG.wipeoutWithWreckage
+			for i = 1, destroyThisFrameCount do
+				local unitID = destroyThisFrame[i]
+				local defs = destroyUnitQueue[unitID]
 				destroyUnitQueue[unitID] = nil
+				destroyThisFrame[i] = nil
+				if defs then
+					if defs.attackerUnitID then
+						spDestroyUnit(unitID, selfD, false, defs.attackerUnitID)
+					else
+						if selfD and isCommander[spGetUnitDefID(unitID)] then
+							spDestroyUnit(unitID, false, false)	-- always leave commander wreckage (ffa reclaims all on early dropped players now)
+						else
+							spDestroyUnit(unitID, selfD, false) -- if 4th arg is given, it cannot be nil (or engine complains)
+						end
+					end
+				end
 			end
 		end
 	end

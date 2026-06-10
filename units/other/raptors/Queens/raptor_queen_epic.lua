@@ -66,6 +66,8 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
+			treeshader = "yes",
+			ispvefinalboss = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -190,6 +192,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 2000,
 				wobble = 32000,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 1,
 					vtol = 1000*playerCountScale,

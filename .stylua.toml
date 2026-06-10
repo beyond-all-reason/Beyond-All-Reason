@@ -5,7 +5,6 @@ indent_type = "Tabs"
 indent_width = 4
 quote_style = "AutoPreferDouble"
 call_parentheses = "Always"
-block_newline_gaps = "Preserve"
 collapse_simple_statement = "Never"
 space_after_function_names = "Never"
 

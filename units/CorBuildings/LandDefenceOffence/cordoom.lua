@@ -201,6 +201,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 40,
 				},

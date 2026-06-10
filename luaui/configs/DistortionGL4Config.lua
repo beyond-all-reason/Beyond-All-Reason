@@ -22,10 +22,10 @@ local exampleDistortion = {
 			dirx = 0, diry = 0, dirz = 1, theta = 0.5,
 		-- beam distortions only, specifies the endpoint of the beam:
 			pos2x = 100, pos2y = 100, pos2z = 100,
-		lifeTime = 0, sustain = 1, 	selfshadowing = 0 
+		lifeTime = 0, sustain = 1, 	selfshadowing = 0
 	},
 }
- 
+
 -- multiple distortions per unitdef/piece are possible, as the distortions are keyed by distortionname
 
 local unitDistortions = {
@@ -106,7 +106,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = -6.5, posz = 0.01, radius = 23,
-								pos2x = 0, pos2y = 15, pos2z = 0, radius2 = 23, 
+								pos2x = 0, pos2y = 15, pos2z = 0, radius2 = 23,
 								noiseStrength = 0.5, noiseScaleSpace = -1, distanceFalloff = 0.8,
 								rampUp = 30, decay = -1.2,
 								lifeTime = 0,  effectType = 0},
@@ -117,7 +117,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = 2.0, posy = 5, posz = -12, radius = 2.4,
-								pos2x = -2.0, pos2y = 5, pos2z = -12, radius2 = 23, 
+								pos2x = -2.0, pos2y = 5, pos2z = -12, radius2 = 23,
 								noiseStrength = 0.7, noiseScaleSpace = -2, distanceFalloff = 0.8,
 								rampUp = 30, decay = 0,
 								lifeTime = 0,  effectType = 0},
@@ -206,7 +206,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = -10, posy = 10, posz = -50, radius = 13,
-								pos2x = 10, pos2y = 10, pos2z = -50.1, radius2 = 23, 
+								pos2x = 10, pos2y = 10, pos2z = -50.1, radius2 = 23,
 								noiseStrength = 0.5, noiseScaleSpace = -1, distanceFalloff = 0.8,
 								rampUp = 30, decay = -1.2,
 								lifeTime = 0,  effectType = 0},
@@ -215,7 +215,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = -10, posy = 10, posz = -33, radius = 13,
-								pos2x = 10, pos2y = 10, pos2z = -33, radius2 = 23, 
+								pos2x = 10, pos2y = 10, pos2z = -33, radius2 = 23,
 								noiseStrength = 0.5, noiseScaleSpace = -1, distanceFalloff = 0.8,
 								rampUp = 30, decay = -1.2,
 								lifeTime = 0,  effectType = 0},
@@ -248,7 +248,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = 0, posz = 0.01, radius = 28,
-								pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 28, 
+								pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 28,
 								noiseStrength = 0.7, noiseScaleSpace = -1.3, distanceFalloff = 0.8,
 								rampUp = 30, decay = -1.2,
 								lifeTime = 0,  effectType = 0},
@@ -261,7 +261,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = 0, posz = 0.01, radius = 40,
-								pos2x = 0, pos2y = 25, pos2z = 0, radius2 = 40, 
+								pos2x = 0, pos2y = 25, pos2z = 0, radius2 = 40,
 								noiseStrength = 0.5, noiseScaleSpace = -1.4, distanceFalloff = 0.8,
 								rampUp = 30, decay = -1.3,
 								lifeTime = 0,  effectType = 0},
@@ -491,7 +491,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = 30, posz = 0, radius = 12,
-								pos2x = 0, pos2y = 45, pos2z = 0.1, 
+								pos2x = 0, pos2y = 45, pos2z = 0.1,
 								noiseStrength = 0.5, noiseScaleSpace = -1.4, distanceFalloff = 0.8,
 								rampUp = 30, decay = 0,
 								lifeTime = 0,  effectType = 0},
@@ -500,7 +500,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = 5, posz = 34, radius = 17,
-								pos2x = 0, pos2y = 35, pos2z = 34.1, 
+								pos2x = 0, pos2y = 35, pos2z = 34.1,
 								noiseStrength = 0.6, noiseScaleSpace = -1.4, distanceFalloff = 0.8,
 								rampUp = 30, decay = -1.2,
 								lifeTime = 0,  effectType = 0},
@@ -509,7 +509,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = -29, posy = 5, posz = -16, radius = 17,
-								pos2x = -29, pos2y = 35, pos2z = -16.1, 
+								pos2x = -29, pos2y = 35, pos2z = -16.1,
 								noiseStrength = 0.6, noiseScaleSpace = -1.4, distanceFalloff = 0.8,
 								rampUp = 30, decay = -1.2,
 								lifeTime = 0,  effectType = 0},
@@ -518,7 +518,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = 29, posy = 5, posz = -16, radius = 17,
-								pos2x = 29, pos2y = 35, pos2z = -16.1, 
+								pos2x = 29, pos2y = 35, pos2z = -16.1,
 								noiseStrength = 0.6, noiseScaleSpace = -1.4, distanceFalloff = 0.8,
 								rampUp = 30, decay = -1.2,
 								lifeTime = 0,  effectType = 0},
@@ -566,8 +566,8 @@ local unitDistortions = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'base',
 		-- 	distortionConfig = { posx = 0, posy = 25, posz = 0, radius = 20,
-		-- 					lifeTime = 0,  
-		-- 					magnificationRate = 4.0, effectType = "magnifier"}, 
+		-- 					lifeTime = 0,
+		-- 					magnificationRate = 4.0, effectType = "magnifier"},
 		-- },
 	},
 
@@ -758,7 +758,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'wheel',
 			distortionConfig = { posx = 0, posy = -2.2, posz = -18, radius = 12,
-								pos2x = 0, pos2y = -2.2, pos2z = 18, radius2 = 12, 
+								pos2x = 0, pos2y = -2.2, pos2z = 18, radius2 = 12,
 								noiseStrength = 2.5, noiseScaleSpace = 0.7, distanceFalloff = 0.75,
 								rampUp = 0, decay = 0,
 								windAffected = -1, riseRate = 1,
@@ -772,7 +772,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'wheel',
 			distortionConfig = { posx = 0, posy = -2.2, posz = -10, radius = 22,
-								pos2x = 0, pos2y = -2.2, pos2z = 10, 
+								pos2x = 0, pos2y = -2.2, pos2z = 10,
 								noiseStrength = 2.5, noiseScaleSpace = 0.7, distanceFalloff = 0.75,
 								rampUp = 0, decay = 0,
 								windAffected = -1, riseRate = 1,
@@ -829,7 +829,7 @@ local unitDistortions = {
 	-- 		distortionType = 'beam',
 	-- 		pieceName = 'base',
 	-- 		distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 23,
-	-- 						pos2x = 0, pos2y = 100, pos2z = 0, radius2 = 23, 
+	-- 						pos2x = 0, pos2y = 100, pos2z = 0, radius2 = 23,
 	-- 						noiseScaleSpace = 1,
 	-- 						lifeTime = 0,  effectType = 0},
 	-- 	},
@@ -839,7 +839,7 @@ local unitDistortions = {
 	-- 		distortionType = 'beam',
 	-- 		pieceName = 'base',
 	-- 		distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 23,
-	-- 						pos2x = 0, pos2y = 100, pos2z = 0, radius2 = 23, 
+	-- 						pos2x = 0, pos2y = 100, pos2z = 0, radius2 = 23,
 	-- 						noiseScaleSpace = -1,
 	-- 						lifeTime = 0,  effectType = 0},
 	-- 	},
@@ -850,8 +850,8 @@ local unitDistortions = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'head',
 		-- 	distortionConfig = { posx = 0, posy = 0, posz = 3, radius = 5,
-		-- 					--pos2x = 0, pos2y = 30, pos2z = 0, radius2 = 15, 
-							
+		-- 					--pos2x = 0, pos2y = 30, pos2z = 0, radius2 = 15,
+
 		-- 					noiseStrength = 3, noiseScaleSpace = -1.5, distanceFalloff = 0.75, onlyModelMap = -1,
 		-- 					lifeTime = 0,  effectType = 0},
 		-- },
@@ -874,8 +874,8 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'base',
 			distortionConfig = { posx = 5.5, posy = 20.6, posz = 22.7, radius = 2.0,
-							lifeTime = 0,  
-							magnificationRate = 1.2, effectType = "magnifier"}, 
+							lifeTime = 0,
+							magnificationRate = 1.2, effectType = "magnifier"},
 		},
 		cloakmodule1 = {
 			distortionType = 'point',
@@ -932,15 +932,15 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'base',
 			distortionConfig = { posx = 6.5, posy = 16.2, posz = 23.7, radius = 2.0,
-							lifeTime = 0,  
-							magnificationRate = 1.2, effectType = "magnifier"}, 
+							lifeTime = 0,
+							magnificationRate = 1.2, effectType = "magnifier"},
 		},
 		-- cloakblobb = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'base',
 		-- 	distortionConfig = { posx = 6.5, posy = 16.2, posz = -23.7, radius = 2.0,
-		-- 					lifeTime = 0,  
-		-- 					magnificationRate = 1.6, effectType = "magnifier"}, 
+		-- 					lifeTime = 0,
+		-- 					magnificationRate = 1.6, effectType = "magnifier"},
 		-- },
 		cloakmodule1 = {
 			distortionType = 'point',
@@ -977,8 +977,8 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'turret',
 			distortionConfig = { posx = 0, posy = 3, posz = 15, radius = 1.8,
-							lifeTime = 0,  
-							magnificationRate = 0.6, effectType = "magnifier"}, 
+							lifeTime = 0,
+							magnificationRate = 0.6, effectType = "magnifier"},
 		},
 		cloakblobdistort = {
 			distortionType = 'point',
@@ -995,24 +995,24 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = 2.8, posz = 10.2, radius = 1.8,
-							lifeTime = 0,  
-							magnificationRate = 0.6, effectType = "magnifier"}, 
+							lifeTime = 0,
+							magnificationRate = 0.6, effectType = "magnifier"},
 		},
 		cloakblobb = {
 			distortionType = 'point',
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = 2.8, posz = -10.2, radius = 1.8,
-							lifeTime = 0,  
-							magnificationRate = 1.6, effectType = "magnifier"}, 
+							lifeTime = 0,
+							magnificationRate = 1.6, effectType = "magnifier"},
 		},
 		-- cloakblobsleeve = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'sleeve',
 		-- 	distortionConfig = { posx = 0, posy = 2.8, posz = 0, radius = 2.8,
-		-- 					lifeTime = 0,  
-		-- 					magnificationRate = 1.6, effectType = "magnifier"}, 
+		-- 					lifeTime = 0,
+		-- 					magnificationRate = 1.6, effectType = "magnifier"},
 		-- },
-		-- cloakblobfdistort = { 
+		-- cloakblobfdistort = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'base',
 		-- 	distortionConfig = { posx = 0, posy = 2.8, posz = 10.2, radius = 2.5,
@@ -1161,8 +1161,8 @@ local unitDistortions = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'base',
 		-- 	distortionConfig = { posx = 0, posy = 90, posz = 0, radius = 20,
-		-- 					lifeTime = 0,  
-		-- 					magnificationRate = 10.0, effectType = "magnifier"}, 
+		-- 					lifeTime = 0,
+		-- 					magnificationRate = 10.0, effectType = "magnifier"},
 		-- },
 		jamdistortion = {
 			distortionType = 'point',
@@ -1172,7 +1172,7 @@ local unitDistortions = {
 							windAffected = -1,
 							lifeTime = 0,  effectType = 0},
 		},
-	}, 
+	},
 
 	['armjam'] = {
 		jamdistortion = {
@@ -1205,7 +1205,7 @@ local unitDistortions = {
 							windAffected = -1,
 							lifeTime = 0,  effectType = 0},
 		},
-	}, 
+	},
 
 	['corap'] = {
 		heatvent1 = {
@@ -1352,24 +1352,24 @@ local unitDistortions = {
 							lifeTime = 0, effectType = 'heatDistortion'},
 		},
 	},
-	
+
 	['corfus'] = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
-							noiseStrength = 1.2, noiseScaleSpace = 1.3, distanceFalloff = 0.5,
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 23,
+							noiseStrength = 3.3, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
 							windAffected = -0.5, riseRate = -0.7,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
-	
+
 	['corafus'] = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
 			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 38,
-							noiseStrength = 1.5, noiseScaleSpace = 1.4, distanceFalloff = 0.5,
+							noiseStrength = 2.3, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
 							windAffected = -0.5, riseRate = -0.7,
 							lifeTime = 0,  effectType = 0},
 		},
@@ -1413,7 +1413,7 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'emit1',
 			distortionConfig = { posx = 0, posy = -2, posz = 0, radius = 15,
-							noiseStrength = 2, noiseScaleSpace = -1.2, distanceFalloff = 0.9,
+							noiseStrength = 2, noiseScaleSpace = -1.5, distanceFalloff = 0.9,
 							windAffected = -0.5, riseRate = -2, decay = -1.3,
 							lifeTime = 0,  effectType = 0},
 		},
@@ -1426,13 +1426,13 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 0},
 		},
 	},
-	
+
 	['armafus'] = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 32,
-							noiseStrength = 1.5, noiseScaleSpace = 1.4, distanceFalloff = 0.6,
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 31,
+							noiseStrength = 3, noiseScaleSpace = 2, distanceFalloff = 0.6,
 							windAffected = -0.5, riseRate = -0.7,
 							lifeTime = 0,  effectType = 0},
 		},
@@ -1449,8 +1449,8 @@ local unitDistortions = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'emit',
 		-- 	distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 32,
-		-- 					lifeTime = 0,  
-		-- 					magnificationRate = 1.5, effectType = "magnifier"}, 
+		-- 					lifeTime = 0,
+		-- 					magnificationRate = 1.5, effectType = "magnifier"},
 		-- },
 	},
 
@@ -1491,15 +1491,15 @@ local unitDistortions = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'turret',
 		-- 	distortionConfig = { posx = 0, posy = 24, posz = -5, radius = 14,
-		-- 					lifeTime = 0,  
-		-- 					magnificationRate = 1.5, effectType = "magnifier"}, 
+		-- 					lifeTime = 0,
+		-- 					magnificationRate = 1.5, effectType = "magnifier"},
 		-- },
 		-- SHIELD DISTORTION disabled for now, as it is too distorting in massive shieldbubbles
 		-- shielddistortion = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'base',
 		-- 	distortionConfig = { posx = 0, posy = -6.5, posz = 0.01, radius = 552,
-		-- 						pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 20, 
+		-- 						pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 20,
 		-- 						noiseStrength = 5.5, noiseScaleSpace = -0.15, distanceFalloff = -0.5,
 		-- 						rampUp = 0, decay = 0,
 		-- 						--magnificationRate = -8.0,
@@ -1577,7 +1577,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'jam',
 			distortionConfig = { posx = 0, posy = 0, posz = -4, radius = 4.5,
-								pos2x = 0, pos2y = 0, pos2z = 4, 
+								pos2x = 0, pos2y = 0, pos2z = 4,
 								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
 								windAffected = -1,
 								lifeTime = 0,  effectType = 0},
@@ -1589,7 +1589,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'turret',
 			distortionConfig = { posx = 0, posy = 7, posz = 0, radius = 3.5,
-								pos2x = 0, pos2y = 6, pos2z = 0.1, 
+								pos2x = 0, pos2y = 6, pos2z = 0.1,
 								noiseStrength = 2, noiseScaleSpace = -1.8, distanceFalloff = 1.5,
 								windAffected = -1,
 								lifeTime = 0,  effectType = 0},
@@ -1598,15 +1598,15 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'turret',
 			distortionConfig = { posx = 0, posy = 6.5, posz = 0, radius = 3,
-							lifeTime = 0,  
-							magnificationRate = 0.6, effectType = "magnifier"}, 
+							lifeTime = 0,
+							magnificationRate = 0.6, effectType = "magnifier"},
 		},
 		-- magnifier = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'turret',
 		-- 	distortionConfig = { posx = -8, posy = 10, posz = -3, radius = 4,
-		-- 					lifeTime = 0,  
-		-- 					magnificationRate = 4.0, effectType = "magnifier"}, 
+		-- 					lifeTime = 0,
+		-- 					magnificationRate = 4.0, effectType = "magnifier"},
 		-- },
 	},
 
@@ -1615,7 +1615,7 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'head',
 			distortionConfig = { posx = 0, posy = -22, posz = 8, radius = 42,
-								pos2x = 0, pos2y = 6, pos2z = 0.1, 
+								pos2x = 0, pos2y = 6, pos2z = 0.1,
 								noiseStrength = 2, noiseScaleSpace = -0.6, distanceFalloff = 1.0,
 								windAffected = -1, effectStrength = 1.5,
 								lifeTime = 0,  effectType = 0},
@@ -1624,15 +1624,15 @@ local unitDistortions = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'head',
 		-- 	distortionConfig = { posx = 0, posy = -21, posz = 8, radius = 16,
-		-- 					lifeTime = 0,  
-		-- 					magnificationRate = 1.6, effectType = "magnifier"}, 
+		-- 					lifeTime = 0,
+		-- 					magnificationRate = 1.6, effectType = "magnifier"},
 		-- },
 		-- magnifier = {
 		-- 	distortionType = 'point',
 		-- 	pieceName = 'turret',
 		-- 	distortionConfig = { posx = -8, posy = 10, posz = -3, radius = 4,
-		-- 					lifeTime = 0,  
-		-- 					magnificationRate = 4.0, effectType = "magnifier"}, 
+		-- 					lifeTime = 0,
+		-- 					magnificationRate = 4.0, effectType = "magnifier"},
 		-- },
 	},
 
@@ -1641,7 +1641,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'jam',
 			distortionConfig = { posx = 0, posy = 0, posz = -15, radius = 4.5,
-								pos2x = 0, pos2y = 0, pos2z = -22, 
+								pos2x = 0, pos2y = 0, pos2z = -22,
 								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
 								windAffected = -1,
 								lifeTime = 0,  effectType = 0},
@@ -1650,7 +1650,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'jam',
 			distortionConfig = { posx = 0, posy = 0, posz = 15, radius = 4.5,
-								pos2x = 0, pos2y = 0, pos2z = 22, 
+								pos2x = 0, pos2y = 0, pos2z = 22,
 								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
 								windAffected = -1,
 								lifeTime = 0,  effectType = 0},
@@ -1673,7 +1673,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'jam',
 			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 6.5,
-								pos2x = -9, pos2y = 0, pos2z = 0.1, 
+								pos2x = -9, pos2y = 0, pos2z = 0.1,
 								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
 								windAffected = -1,
 								lifeTime = 0,  effectType = 0},
@@ -1685,7 +1685,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'jam',
 			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 6.5,
-								pos2x = 0, pos2y = 0, pos2z = 2, 
+								pos2x = 0, pos2y = 0, pos2z = 2,
 								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
 								windAffected = -1,
 								lifeTime = 0,  effectType = 0},
@@ -1697,7 +1697,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'blob',
 			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 6.5,
-								pos2x = 0, pos2y = 0, pos2z = 2, 
+								pos2x = 0, pos2y = 0, pos2z = 2,
 								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
 								windAffected = -1,
 								lifeTime = 0,  effectType = 0},
@@ -1709,7 +1709,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'cloaklight',
 			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 6.5,
-								pos2x = 0, pos2y = 0, pos2z = 2, 
+								pos2x = 0, pos2y = 0, pos2z = 2,
 								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
 								windAffected = -1,
 								lifeTime = 0,  effectType = 0},
@@ -1740,12 +1740,12 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'mainbarrel',
 			distortionConfig = { posx = 0, posy = 0, posz = 2, radius = 4.5,
-							lifeTime = 0,  
-							magnificationRate = -0.2, effectType = "magnifier"}, 
+							lifeTime = 0,
+							magnificationRate = -0.2, effectType = "magnifier"},
 		},
 	},
 
-	
+
 	['armjuno'] = {
 		distortion = {
 			distortionType = 'point',
@@ -1756,7 +1756,7 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 0},
 		},
 	},
-	
+
 	['lootboxbronze'] = {
 		distortion = {
 			distortionType = 'point',
@@ -1767,7 +1767,7 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 0},
 		},
 	},
-	
+
 	['lootboxsilver'] = {
 		distortion = {
 			distortionType = 'point',
@@ -1778,7 +1778,7 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 0},
 		},
 	},
-	
+
 	['lootboxgold'] = {
 		distortion = {
 			distortionType = 'point',
@@ -1789,7 +1789,7 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 0},
 		},
 	},
-	
+
 	['lootboxplatinum'] = {
 		distortion = {
 			distortionType = 'point',
@@ -1964,7 +1964,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = 15, posy = 32, posz = -21, radius = 8,
-								pos2x = 15, pos2y = 32, pos2z = 7, radius2 = 28, 
+								pos2x = 15, pos2y = 32, pos2z = 7, radius2 = 28,
 								noiseStrength = 0.2, noiseScaleSpace = -2.1, distanceFalloff = 0.8,
 								rampUp = 30, decay = -1.5,
 								lifeTime = 0,  effectType = 0},
@@ -1973,7 +1973,7 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = -15, posy = 32, posz = -21, radius = 8,
-								pos2x = -15, pos2y = 32, pos2z = 7, radius2 = 28, 
+								pos2x = -15, pos2y = 32, pos2z = 7, radius2 = 28,
 								noiseStrength = 0.2, noiseScaleSpace = -2.1, distanceFalloff = 0.8,
 								rampUp = 30, decay = -1.5,
 								lifeTime = 0,  effectType = 0},
@@ -2018,7 +2018,7 @@ local unitDistortions = {
 		-- 	distortionType = 'beam',
 		-- 	pieceName = 'base',
 		-- 	distortionConfig = { posx = 15, posy = 32, posz = -21, radius = 8,
-		-- 						pos2x = 15, pos2y = 32, pos2z = 7, radius2 = 28, 
+		-- 						pos2x = 15, pos2y = 32, pos2z = 7, radius2 = 28,
 		-- 						noiseStrength = 0.2, noiseScaleSpace = -2.1, distanceFalloff = 0.8,
 		-- 						rampUp = 30, decay = -1.5,
 		-- 						lifeTime = 0,  effectType = 0},
@@ -2027,7 +2027,7 @@ local unitDistortions = {
 		-- 	distortionType = 'beam',
 		-- 	pieceName = 'base',
 		-- 	distortionConfig = { posx = -15, posy = 32, posz = -21, radius = 8,
-		-- 						pos2x = -15, pos2y = 32, pos2z = 7, radius2 = 28, 
+		-- 						pos2x = -15, pos2y = 32, pos2z = 7, radius2 = 28,
 		-- 						noiseStrength = 0.2, noiseScaleSpace = -2.1, distanceFalloff = 0.8,
 		-- 						rampUp = 30, decay = -1.5,
 		-- 						lifeTime = 0,  effectType = 0},
@@ -2110,7 +2110,7 @@ local unitDistortions = {
 local airjets_effects = VFS.Include("luaui/configs/airjet_effects.lua")
 --	["armfig"] = {
 --	{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust" },
---}, 
+--},
 do
 	-- This is the base effect for the airjet distortion, tune it to affect all airjets
 	local longAirJet = { posx = 0, posy = 0, posz = 0, radius = 130,
@@ -2120,11 +2120,11 @@ do
 		lifeTime = 0,  effectType = 0}
 
 	for unitDefName, airjets in pairs(airjets_effects) do
-		if not unitDistortions[unitDefName] then 
+		if not unitDistortions[unitDefName] then
 			unitDistortions[unitDefName] = {}
 		end
-		for i, airjet in ipairs(airjets) do 
-			-- if that piece already has a distortion attached to it, we wont overwrite it. 
+		for i, airjet in ipairs(airjets) do
+			-- if that piece already has a distortion attached to it, we wont overwrite it.
 			local alreadyhasjet = false
 			for j, distortion in pairs(unitDistortions[unitDefName]) do
 				if distortion.pieceName == airjet.piece then
@@ -2142,10 +2142,10 @@ do
 				airjetConfig.radius = airjet.length * 6
 				-- We need to set the theta angle (half -angle of the cone in radians) to ensure that the width-length ratio is correct
 				airjetConfig.theta = math.atan(airjet.width / airjet.length) * 1.2
-				
+
 				--Spring.Echo("airjetConfig.theta", airjetConfig.theta, airjet.width, airjet.length)
 
-				
+
 				unitDistortions[unitDefName][effectname] = {
 					distortionType = 'cone',
 					pieceName = airjet.piece,
@@ -2195,7 +2195,7 @@ local unitEventDistortionsNames = {
 	--corint disabled for now since it has static positioning - now only 'working' when shooting to east:
 
 	UnitScriptDistortions = {
-		
+
 		['corkorg'] = {
 			[1] = {
 				-- Footstep shockwave
@@ -2204,11 +2204,11 @@ local unitEventDistortionsNames = {
 				distortionName = 'corkorgfootstep',
 				pieceName = 'none',
 				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 120,
-								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
+								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1,
 								effectStrength = 1.0, --needed for shockwave
 								lifeTime = 25, rampUp = 3, decay = 15, startRadius = 0.3,
 								shockWidth = 5, effectType = 'groundShockwave'},
-	
+
 			},
 		},
 
@@ -2220,11 +2220,11 @@ local unitEventDistortionsNames = {
 				distortionName = 'corsumofootstepfl',
 				pieceName = 'footfl',
 				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
-								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1, 
+								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1,
 								effectStrength = 0.8, refractiveIndex = -1.02, --needed for shockwave
 								lifeTime = 15, rampUp = 3, decay = 10, startRadius = 0.4,
 								shockWidth = 0.6, effectType = 'groundShockwave'},
-	
+
 			},
 			[2] = {
 				-- Footstep shockwave
@@ -2233,11 +2233,11 @@ local unitEventDistortionsNames = {
 				distortionName = 'corsumofootstepbr',
 				pieceName = 'footbr',
 				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
-								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1, 
+								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1,
 								effectStrength = 0.8, refractiveIndex = -1.02, --needed for shockwave
 								lifeTime = 15, rampUp = 3, decay = 10, startRadius = 0.4,
 								shockWidth = 0.6, effectType = 'groundShockwave'},
-	
+
 			},
 			[3] = {
 				-- Footstep shockwave
@@ -2246,11 +2246,11 @@ local unitEventDistortionsNames = {
 				distortionName = 'corsumofootstepfr',
 				pieceName = 'footfr',
 				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
-								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1, 
+								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1,
 								effectStrength = 0.8, refractiveIndex = -1.02, --needed for shockwave
 								lifeTime = 15, rampUp = 3, decay = 10, startRadius = 0.4,
 								shockWidth = 0.6, effectType = 'groundShockwave'},
-	
+
 			},
 			[4] = {
 				-- Footstep shockwave
@@ -2259,11 +2259,11 @@ local unitEventDistortionsNames = {
 				distortionName = 'corsumofootstepbl',
 				pieceName = 'footbl',
 				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
-								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1, 
+								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1,
 								effectStrength = 0.8, refractiveIndex = -1.02, --needed for shockwave
 								lifeTime = 15, rampUp = 3, decay = 10, startRadius = 0.4,
 								shockWidth = 0.6, effectType = 'groundShockwave'},
-	
+
 			},
 		},
 
@@ -2275,11 +2275,11 @@ local unitEventDistortionsNames = {
 				distortionName = 'bigassfootstep',
 				pieceName = 'lfootstepf',
 				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
-								noiseStrength = 1.1, noiseScaleSpace = 0.6, distanceFalloff = 0.4, onlyModelMap = 1, 
+								noiseStrength = 1.1, noiseScaleSpace = 0.6, distanceFalloff = 0.4, onlyModelMap = 1,
 								effectStrength = 1.2, --needed for shockwave
 								lifeTime = 18, rampUp = 10, decay = 10,
 								shockWidth = 1.5, startRadius = 0.1, effectType = 'groundShockwave'},
-	
+
 			},
 			[2] = {
 				-- Footstep shockwave
@@ -2288,7 +2288,7 @@ local unitEventDistortionsNames = {
 				distortionName = 'bigassfootstep2',
 				pieceName = 'rfootstepf',
 				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
-								noiseStrength = 1.1, noiseScaleSpace = 0.6, distanceFalloff = 0.4, onlyModelMap = 1, 
+								noiseStrength = 1.1, noiseScaleSpace = 0.6, distanceFalloff = 0.4, onlyModelMap = 1,
 								effectStrength = 1.2, --needed for shockwave
 								lifeTime = 18, rampUp = 10, decay = 10,
 								shockWidth = 1.5, startRadius = 0.1, effectType = 'groundShockwave'},
@@ -2300,11 +2300,11 @@ local unitEventDistortionsNames = {
 				distortionName = 'bigassfootstep3',
 				pieceName = 'lfootstepb',
 				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 52,
-								noiseStrength = 1.1, noiseScaleSpace = 0.6, distanceFalloff = 0.4, onlyModelMap = 1, 
+								noiseStrength = 1.1, noiseScaleSpace = 0.6, distanceFalloff = 0.4, onlyModelMap = 1,
 								effectStrength = 1.2, --needed for shockwave
 								lifeTime = 18, rampUp = 10, decay = 10,
 								shockWidth = 1.5, startRadius = 0.1, effectType = 'groundShockwave'},
-	
+
 			},
 			[4] = {
 				-- Footstep shockwave
@@ -2313,11 +2313,11 @@ local unitEventDistortionsNames = {
 				distortionName = 'bigassfootstep4',
 				pieceName = 'rfootstepb',
 				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 52,
-								noiseStrength = 1.1, noiseScaleSpace = 0.6, distanceFalloff = 0.4, onlyModelMap = 1, 
+								noiseStrength = 1.1, noiseScaleSpace = 0.6, distanceFalloff = 0.4, onlyModelMap = 1,
 								effectStrength = 1.2, --needed for shockwave
 								lifeTime = 18, rampUp = 10, decay = 10,
 								shockWidth = 1.5, startRadius = 0.1, effectType = 'groundShockwave'},
-	
+
 			},
 		},
 
@@ -2330,11 +2330,11 @@ local unitEventDistortionsNames = {
 		-- 		distortionName = 'radarwave',
 		-- 		pieceName = 'none',
 		-- 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
-		-- 						noiseStrength = 0.2, noiseScaleSpace = 0.8, distanceFalloff = 0.1, onlyModelMap = 1, 
+		-- 						noiseStrength = 0.2, noiseScaleSpace = 0.8, distanceFalloff = 0.1, onlyModelMap = 1,
 		-- 						effectStrength = -1.5, --needed for shockwave
 		-- 						lifeTime = 60, rampUp = 20, decay = 15,
 		-- 						shockWidth = 0.7, startRadius = 0.1, effectType = 'groundShockwave'},
-	
+
 		-- 	},
 		-- },
 
@@ -2347,7 +2347,7 @@ local unitEventDistortionsNames = {
 				pieceName = 'lfbarrel2',
 				distortionConfig = { posx = 0, posy = 5, posz = 0, radius = 11,
 								noiseStrength = 0.4, noiseScaleSpace = 1.8, distanceFalloff = 1.1,
-								onlyModelMap = 0, 
+								onlyModelMap = 0,
 								effectStrength = 1.0, --needed for heat
 								riseRate = 1.2, windAffected = 0.3,
 								lifeTime = 250, rampUp = 40, decay = 120,
@@ -2361,7 +2361,7 @@ local unitEventDistortionsNames = {
 				pieceName = 'rfbarrel2',
 				distortionConfig = { posx = 0, posy = 5, posz = 0, radius = 11,
 								noiseStrength = 0.4, noiseScaleSpace = 1.8, distanceFalloff = 1.1,
-								onlyModelMap = 0, 
+								onlyModelMap = 0,
 								effectStrength = 1.0, --needed for heat
 								riseRate = 1.2, windAffected = 0.3,
 								lifeTime = 250, rampUp = 40, decay = 120,
@@ -2376,7 +2376,7 @@ local unitEventDistortionsNames = {
 			-- 	distortionConfig = { posx = 0, posy = 5, posz = 25, radius = 35,
 			-- 					pos2x = 0, pos2y = 5, pos2z = 185,
 			-- 					noiseStrength = 4, noiseScaleSpace = -0.3, distanceFalloff = 3.5,
-			-- 					onlyModelMap = 0, 
+			-- 					onlyModelMap = 0,
 			-- 					effectStrength = 3.0, --needed for heat
 			-- 					windAffected = 0.1, riseRate = -0.5,
 			-- 					lifeTime = 15, rampUp = 0, decay = 0,
@@ -2391,7 +2391,7 @@ local unitEventDistortionsNames = {
 				distortionConfig = { posx = 0, posy = 5, posz = 0, radius = 350,
 								dirx =  0, diry = 0, dirz = 1.0, theta = 0.3,
 								noiseStrength = 4, noiseScaleSpace = -0.2, distanceFalloff = 3.5,
-								onlyModelMap = 0, 
+								onlyModelMap = 0,
 								effectStrength = 3.0, --needed for heat
 								windAffected = 0.1, riseRate = -0.5,
 								lifeTime = 15, rampUp = 25, decay = 0,
@@ -2406,7 +2406,7 @@ local unitEventDistortionsNames = {
 				distortionConfig = { posx = 0, posy = 5, posz = 0, radius = 350,
 								dirx =  0, diry = 0, dirz = 1.0, theta = 0.4,
 								noiseStrength = 4, noiseScaleSpace = 0.12, distanceFalloff = 3.5,
-								onlyModelMap = 0, 
+								onlyModelMap = 0,
 								effectStrength = 2.0, --needed for heat
 								windAffected = 0.1, riseRate = -0.5,
 								lifeTime = 15, rampUp = 25, decay = 0,
@@ -2423,7 +2423,7 @@ local unitEventDistortionsNames = {
 				pieceName = 'lcannon',
 				distortionConfig = { posx = 0, posy = 5, posz = 23.5, radius = 8,
 								noiseStrength = 0.3, noiseScaleSpace = -1.8, distanceFalloff = 0.8,
-								onlyModelMap = 0, 
+								onlyModelMap = 0,
 								effectStrength = 0.5, --needed for heat
 								lifeTime = 160, rampUp = 25, decay = 25,
 								riseRate = 0.2, windAffected = -0.3,
@@ -2437,7 +2437,7 @@ local unitEventDistortionsNames = {
 				pieceName = 'rcannon',
 				distortionConfig = { posx = 0, posy = 5, posz = 23.5, radius = 8,
 								noiseStrength = 0.3, noiseScaleSpace = -1.8, distanceFalloff = 0.8,
-								onlyModelMap = 0, 
+								onlyModelMap = 0,
 								effectStrength = 0.5, --needed for heat
 								lifeTime = 160, rampUp = 25, decay = 25,
 								riseRate = 0.2, windAffected = -0.3,
@@ -2445,7 +2445,7 @@ local unitEventDistortionsNames = {
 			},
 		},
 
-				
+
 		['armbrtha'] = {
 			[1] = {
 				-- Barrel Heat after shot
@@ -2458,9 +2458,9 @@ local unitEventDistortionsNames = {
 								onlyModelMap = 0,
 								riseRate = 0.5, windAffected = -0.5,
 								noiseStrength = 0.3, noiseScaleSpace = 1.0, distanceFalloff = 1.0,
-								rampUp = 5, decay = 200, 
+								rampUp = 5, decay = 200,
 								lifeTime = 240,  effectType = 0},
-	
+
 			},
 		},
 
@@ -2476,9 +2476,9 @@ local unitEventDistortionsNames = {
 								onlyModelMap = 0,
 								riseRate = 0.5, windAffected = -0.5,
 								noiseStrength = 0.3, noiseScaleSpace = 1.0, distanceFalloff = 1.0,
-								rampUp = 5, decay = 200, 
+								rampUp = 5, decay = 200,
 								lifeTime = 240,  effectType = 0},
-	
+
 			},
 		},
 	},
@@ -2501,7 +2501,7 @@ local unitEventDistortionsNames = {
 	},
 
 	UnitFinished = {
-		--[[ 
+		--[[
 		default = {
 			default = {
 				distortionType = 'cone',
@@ -2612,9 +2612,9 @@ local unitEventDistortionsNames = {
 
 -- Copy all distortions from source unitname to array of target unitnames
 local function DuplicateDistortions(source, targets)
-	for i, target in pairs(targets) do 
-		if UnitDefNames[source] and UnitDefNames[target] then 
-			if unitDistortions[source]  then 
+	for i, target in pairs(targets) do
+		if UnitDefNames[source] and UnitDefNames[target] then
+			if unitDistortions[source]  then
 				unitDistortions[target] = table.copy(unitDistortions[source])
 			end
 
@@ -2706,7 +2706,7 @@ unitDefDistortions = table.merge(unitDefDistortions, scavUnitDefDistortions)
 scavUnitDefDistortions = nil
 
 local featureDefDistortions = {
-	
+
 }
 
 local crystalDistortionBase =  {
@@ -2714,7 +2714,7 @@ local crystalDistortionBase =  {
 			distortionConfig = { posx = 0, posy = 8, posz = 0, radius = 20,
 							onlyModelMap = 0,
 							riseRate = 0.5, windAffected = -0.5,
-							
+
 							noiseStrength = 0.4, noiseScaleSpace = 2.2, distanceFalloff = 1.2,
 							lifeTime = 0,  effectType = 0},
 		}
@@ -2755,7 +2755,7 @@ for colorname, colorvalues in pairs(crystalColors) do
 		end
 	end
 end
- 
+
 
 local allDistortions = {unitEventDistortions = unitEventDistortions, unitDefDistortions = unitDefDistortions, featureDefDistortions = featureDefDistortions}
 
@@ -2767,7 +2767,7 @@ local distortionParamKeyOrder = {	posx = 1, posy = 2, posz = 3, radius = 4,
 	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cone distortions only, specify direction and half-angle in radians
 	pos2x = 5, pos2y = 6, pos2z = 7, -- beam distortions only, specifies the endpoint of the beam
 	modelfactor = 13, specular = 14, scattering = 15, lensflare = 16,
-	lifeTime = 18, sustain = 19, effectType = 20 
+	lifeTime = 18, sustain = 19, effectType = 20
 }
 
 for typename, typetable in pairs(allDistortions) do

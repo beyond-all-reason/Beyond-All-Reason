@@ -76,7 +76,6 @@ return {
 				[1] = "custom:waterwake-medium",
 				[2] = "custom:bowsplash-small",
 				[3] = "custom:pilotlight",
-				[4] = "custom:flamestream",
 			},
 		},
 		sounds = {
@@ -143,6 +142,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 450,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 138,
 				},

@@ -12,10 +12,10 @@ function gadget:GetInfo()
 	}
 end
 
-local broadcastPeriod = 0.12	-- will send packet in this interval (s)
+local broadcastPeriod = 0.1	-- will send packet in this interval (s) for non-spectators
+local spectatorBroadcastPeriod = 0.2	-- will send packet in this interval (s) for spectators
 
 local PACKET_HEADER = "="
-local PACKET_HEADER_LENGTH = #PACKET_HEADER
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -57,8 +57,6 @@ else	-- UNSYNCED
 	local math_ldexp = math.ldexp
 
 	local timeSinceBroadcast = 0
-
-	local lastPacketSent
 
 	local CAMERA_IDS = Spring.GetCameraNames()
 	local CAMERA_NAMES = {}
@@ -256,14 +254,51 @@ else	-- UNSYNCED
 		end
 	end
 
+	local lastCameraName
+	local lastCameraValues = {}
+
+	local function CameraStateChanged(state)
+		local name = state.name
+		if name ~= lastCameraName then
+			lastCameraName = name
+			-- Camera type changed — must rebuild cache
+			local stateFormat = CAMERA_STATE_FORMATS[name]
+			if stateFormat then
+				for i = 1, #stateFormat do
+					lastCameraValues[stateFormat[i]] = state[stateFormat[i]]
+				end
+			end
+			return true
+		end
+		local stateFormat = CAMERA_STATE_FORMATS[name]
+		if not stateFormat then return false end
+		for i = 1, #stateFormat do
+			local key = stateFormat[i]
+			if state[key] ~= lastCameraValues[key] then
+				for j = i, #stateFormat do
+					local k2 = stateFormat[j]
+					lastCameraValues[k2] = state[k2]
+				end
+				return true
+			end
+		end
+		return false
+	end
+
 	function gadget:Update()
 		local dt = GetLastUpdateSeconds()
 		timeSinceBroadcast = timeSinceBroadcast + dt
-		if timeSinceBroadcast < broadcastPeriod then
+		local activeBroadcastPeriod = spec and spectatorBroadcastPeriod or broadcastPeriod
+		if timeSinceBroadcast < activeBroadcastPeriod then
+			return
+		end
+		timeSinceBroadcast = timeSinceBroadcast - activeBroadcastPeriod
+
+		local state = GetCameraState()
+		if not CameraStateChanged(state) then
 			return
 		end
 
-		local state = GetCameraState()
 		local msg = CameraStateToPacket(state)
 
 		if not msg then
@@ -271,13 +306,7 @@ else	-- UNSYNCED
 			return
 		end
 
-		--don't send duplicates
-		if msg ~= lastPacketSent then
-			SendLuaRulesMsg(msg)
-			lastPacketSent = msg
-		end
-
-		timeSinceBroadcast = timeSinceBroadcast - broadcastPeriod
+		SendLuaRulesMsg(msg)
 	end
 end
 

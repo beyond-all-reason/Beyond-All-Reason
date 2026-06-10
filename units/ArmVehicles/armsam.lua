@@ -15,7 +15,7 @@ return {
 		health = 820,
 		leavetracks = true,
 		maxacc = 0.0236,
-		maxdec = 0.0472,
+		maxdec = 0.1,
 		maxslope = 16,
 		maxwaterdepth = 12,
 		metalcost = 150,
@@ -143,6 +143,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 670,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 1,
 					vtol = 160,
@@ -191,6 +194,7 @@ return {
 				customparams = {
 					overrange_distance = 633,
 					projectile_destruction_method = "descend",
+					weapons_group = 2,
 				},
 				damage = {
 					default = 86,

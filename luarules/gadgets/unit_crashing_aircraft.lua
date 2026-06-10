@@ -117,12 +117,23 @@ if gadgetHandler:IsSyncedCode() then
 		return damage,1
 	end
 
+	local crashDestroyList = {}
+	local crashDestroyCount = 0
+
 	function gadget:GameFrame(gf)
 		if crashingCount > 0 and gf % 44 == 1 then
+			-- Collect first: DestroyUnit triggers UnitDestroyed synchronously,
+			-- which nils entries from 'crashing', invalidating the pairs() iterator
+			crashDestroyCount = 0
 			for unitID, deathGameFrame in pairs(crashing) do
 				if gf >= deathGameFrame then
-					DestroyUnit(unitID, false, true) -- dont selfd, but also dont leave wreck at all
+					crashDestroyCount = crashDestroyCount + 1
+					crashDestroyList[crashDestroyCount] = unitID
 				end
+			end
+			for i = 1, crashDestroyCount do
+				DestroyUnit(crashDestroyList[i], false, true)
+				crashDestroyList[i] = nil
 			end
 		end
 	end

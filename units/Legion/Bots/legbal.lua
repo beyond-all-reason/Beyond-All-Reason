@@ -24,7 +24,7 @@ return {
 		script = "Units/LEGBAL.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 344.5,
+		sightdistance = 380,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.089,
@@ -130,12 +130,12 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 230,
-				damage = {
-					default = 250,
-				},
 				customparams = {
 					projectile_destruction_method = "descend",
 					overrange_distance = 529,
+				},
+				damage = {
+					default = 250,
 				},
 			},
 		},

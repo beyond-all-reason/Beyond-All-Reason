@@ -242,6 +242,9 @@ local spectatorHUDConfigOptions = {
 }
 
 local startScript = VFS.LoadFile("_script.txt")
+local rwsBuffer      = nil  -- reassembly buffer for restart-with-state chunks (save path)
+local rwsRestoreData = nil  -- serialised state to send to gadget after restart (restore path)
+local RWS_MSG_CHUNK  = 4000
 if not startScript then
 	local modoptions = ''
 	for key, value in pairs(Spring.GetModOptionsCopy()) do
@@ -1177,6 +1180,37 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
+	-- restart-with-state: receive serialised unit state from the gadget and write it to disk
+	if msg == "rws:begin" then
+		rwsBuffer = {}
+		return true
+	end
+	local rwsChunk = msg:match("^rws:chunk:(.*)")
+	if rwsChunk then
+		if rwsBuffer then rwsBuffer[#rwsBuffer + 1] = rwsChunk end
+		return true
+	end
+	if msg == "rws:commit" then
+		if not rwsBuffer then return true end
+		local data = table.concat(rwsBuffer)
+		rwsBuffer = nil
+		Spring.CreateDir("LuaUI/Config")
+		local f, err = io.open("LuaUI/Config/restart_state.lua", "w")
+		if not f then
+			Spring.Echo("[Restart With State] Could not write state file: " .. tostring(err))
+			return true
+		end
+		f:write(data)
+		f:close()
+		Spring.Echo("[Restart With State] State saved (" .. tostring(#data) .. " bytes). Restarting...")
+		Spring.Restart("", startScript)
+		return true
+	end
+	if msg == "rws:clear" then
+		local f = io.open("LuaUI/Config/restart_state.lua", "w")
+		if f then f:close() end
+		return true
+	end
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 		updateGrabinput()
@@ -2263,6 +2297,7 @@ function init()
 			distortioneffects = false,
 			snow = false,
 			particles = 10000,
+			nanoparticletype = 0,
 			guishader = 0,
 			decalsgl4 = 0,
 			decals = 0,
@@ -2286,6 +2321,7 @@ function init()
 			distortioneffects = true,
 			snow = false,
 			particles = 15000,
+			nanoparticletype = 2,
 			guishader = 0,
 			decalsgl4 = 1,
 			decals = 1,
@@ -2309,6 +2345,7 @@ function init()
 			distortioneffects = true,
 		 	snow = true,
 		 	particles = 20000,
+			nanoparticletype = 2,
 			decalsgl4 = 1,
 		 	decals = 2,
 			shadowslider = 4,
@@ -2331,6 +2368,7 @@ function init()
 			distortioneffects = true,
 			snow = true,
 			particles = 30000,
+			nanoparticletype = 2,
 			decalsgl4 = 1,
 			decals = 3,
 			shadowslider = 5,
@@ -2353,6 +2391,7 @@ function init()
 			distortioneffects = true,
 			snow = true,
 			particles = 40000,
+			nanoparticletype = 2,
 			decalsgl4 = 1,
 			decals = 4,
 			shadowslider = 6,
@@ -2778,7 +2817,7 @@ function init()
 		},
 
 		{ id = "ssao", group = "gfx", category = types.basic, widget = "SSAO", name = Spring.I18N('ui.settings.option.ssao'), type = "bool", value = GetWidgetToggleValue("SSAO"), description = Spring.I18N('ui.settings.option.ssao_descr') },
-		{ id = "ssao_strength", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.ssao_strength'), type = "slider", min = 5, max = 11, step = 1, value = 8, description = '',
+		{ id = "ssao_strength", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.ssao_strength'), type = "slider", min = 5, max = 15, step = 1, value = 10, description = '',
 		  onload = function(i)
 			  loadWidgetData("SSAO", "ssao_strength", { 'strength' })
 		  end,
@@ -2798,7 +2837,7 @@ function init()
 		},
 
 		{ id = "bloomdeferred", group = "gfx", category = types.basic, widget = "Bloom Shader Deferred", name = Spring.I18N('ui.settings.option.bloomdeferred'), type = "bool", value = GetWidgetToggleValue("Bloom Shader Deferred"), description = Spring.I18N('ui.settings.option.bloomdeferred_descr') },
-		{ id = "bloomdeferredbrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.bloomdeferredbrightness'), type = "slider", min = 0.4, max = 1.4, step = 0.05, value = 0.9, description = '',
+		{ id = "bloomdeferredbrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.bloomdeferredbrightness'), type = "slider", min = 0.5, max = 2.0, step = 0.05, value = 1.0, description = '',
 		  onload = function(i)
 			  loadWidgetData("Bloom Shader Deferred", "bloomdeferredbrightness", { 'glowAmplifier' })
 		  end,
@@ -2893,12 +2932,30 @@ function init()
 		  end,
 		},
 
-		{ id = "losopacity", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.losopacity'), type = "slider", min = 0.01, max = 1, step = 0.01, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 1, description = '',
+		{ id = "losopacity", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.losopacity'), type = "slider", min = 0.01, max = 1, step = 0.01, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 0.66, description = '',
 		  onload = function(i)
 			  loadWidgetData("LOS colors", "losopacity", { 'opacity' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('LOS colors', 'los', 'setOpacity', { 'opacity' }, value)
+		  end,
+		},
+
+		{ id = "fogdiaglines", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.fogdiaglines'), type = "slider", min = 0, max = 1, step = 0.01, value = (WG.fogdiaglines ~= nil and WG.fogdiaglines.getStrength ~= nil and WG.fogdiaglines.getStrength()) or 0.30, description = '',
+		  onload = function(i)
+			  loadWidgetData("Fog Diagonal Lines GL4", "fogdiaglines", { 'strength' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Fog Diagonal Lines GL4', 'fogdiaglines', 'setStrength', { 'strength' }, value)
+		  end,
+		},
+
+		{ id = "fogdiaglines_blur", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.fogdiaglines_blur'), type = "slider", min = 0, max = 1, step = 0.01, value = (WG.fogdiaglines ~= nil and WG.fogdiaglines.getBlurriness ~= nil and WG.fogdiaglines.getBlurriness()) or 0.187, description = '',
+		  onload = function(i)
+			  loadWidgetData("Fog Diagonal Lines GL4", "fogdiaglines_blur", { 'blurriness' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Fog Diagonal Lines GL4', 'fogdiaglines', 'setBlurriness', { 'blurriness' }, value)
 		  end,
 		},
 
@@ -3026,7 +3083,38 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("MaxParticles", value)
-			  Spring.SetConfigInt("MaxNanoParticles", math.floor(value*0.34))
+			  -- Keep the engine nano-spray budget in sync when the gadget is
+			  -- handing particles back to the engine (NanoParticleMode 0).
+			  if Spring.GetConfigInt("NanoParticleMode", 1) == 0 then
+				  Spring.SetConfigInt("MaxNanoParticles", math.floor(value * 0.34))
+				if Spring.GetConfigInt("NanoParticleMode", 1) == 0 then
+					Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
+				else
+					Spring.SetConfigInt("MaxNanoParticles", 0)
+				end
+			  end
+		  end,
+		},
+
+		{ id = "nanoparticletype", group = "gfx", category = types.basic,
+		  name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticletype'),
+		  type = "select",
+		  options = {
+			  Spring.I18N('ui.settings.option.nanoparticletype_simple'),
+			  Spring.I18N('ui.settings.option.nanoparticletype_shapes'),
+		  },
+		  value = (tonumber(Spring.GetConfigInt("NanoParticleMode", 1)) or 1) + 1,
+		  description = Spring.I18N('ui.settings.option.nanoparticletype_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  local mode = value - 1
+			  Spring.SetConfigInt("NanoParticleMode", mode)
+			  if mode == 0 then
+				  Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
+			  else
+				  Spring.SetConfigInt("MaxNanoParticles", 0)
+			  end
 		  end,
 		},
 
@@ -3047,10 +3135,6 @@ function init()
 			  saveOptionValue('Depth of Field', 'dof', 'setFstop', { 'fStop' }, value)
 		  end,
 		},
-
-		{ id = "label_gfx_game", group = "gfx", name = Spring.I18N('ui.settings.option.label_game'), category = types.advanced },
-		{ id = "label_gfx_game_spacer", group = "gfx", category = types.basic },
-		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos GL4", name = Spring.I18N('ui.settings.option.resurrectionhalos'), type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = Spring.I18N('ui.settings.option.resurrectionhalos_descr') },
 
 
 		-- SOUND
@@ -3824,6 +3908,9 @@ function init()
 		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = Spring.GetConfigFloat("MinimapMaxHeight", 0.32), description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("MinimapMaxHeight", value)
+			  if WG['minimap'] and WG['minimap'].setMaxHeight then
+				  WG['minimap'].setMaxHeight(value)
+			  end
 		  end,
 		},
 		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapleftclick'), type = "bool", value = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1, description = Spring.I18N('ui.settings.option.minimapleftclick_descr'),
@@ -4224,7 +4311,7 @@ function init()
 		--  end,
 		--},
 		{ id = "autoeraser", group = "ui", category = types.basic, widget = "Auto mapmark eraser", name = Spring.I18N('ui.settings.option.autoeraser'), type = "bool", value = GetWidgetToggleValue("Auto mapmark eraser"), description = Spring.I18N('ui.settings.option.autoeraser_descr') },
-		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 10, max = 200, step = 1, value = 60, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
+		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 5, max = 600, step = 5, value = 60, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
 		  onload = function(i)
 			  loadWidgetData("Auto mapmark eraser", "autoeraser_erasetime", { 'eraseTime' })
 		  end,
@@ -4551,6 +4638,10 @@ function init()
 		{ id = "unitenergyicons", group = "ui", category = types.advanced, widget = "Unit Energy Icons", name = Spring.I18N('ui.settings.option.unitenergyicons'), type = "bool", value = GetWidgetToggleValue("Unit Energy Icons"), description = Spring.I18N('ui.settings.option.unitenergyicons_descr') },
 
 		{ id = "unitidlebuildericons", group = "ui", category = types.advanced, widget = "Unit Idle Builder Icons", name = Spring.I18N('ui.settings.option.unitidlebuildericons'), type = "bool", value = GetWidgetToggleValue("Unit Idle Builder Icons"), description = Spring.I18N('ui.settings.option.unitidlebuildericons_descr') },
+
+		{ id = "unitfirestateicons", group = "ui", category = types.advanced, widget = "Unit Fire State Icons", name = Spring.I18N('ui.settings.option.unitfirestateicons'), type = "bool", value = GetWidgetToggleValue("Unit Fire State Icons"), description = Spring.I18N('ui.settings.option.unitfirestateicons_descr') },
+
+		{ id = "resurrectionhalos", group = "ui", category = types.advanced, widget = "Resurrection Halos GL4", name = Spring.I18N('ui.settings.option.resurrectionhalos'), type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = Spring.I18N('ui.settings.option.resurrectionhalos_descr') },
 
 		{ id = "nametags_rank", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.nametags_rank'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.nametags_rank_descr'),
 		  onload = function(i)
@@ -5029,6 +5120,13 @@ function init()
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuilders', { 'includeBuilders' }, value)
 		  end,
 		},
+		{ id = "smartselect_includeresurrectors", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeresurrectors'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeresurrectors_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeResurrectors', { 'includeResurrectors' }, value)
+		  end,
+		},
 		{ id = "smartselect_includeantinuke", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeantinuke'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeantinuke_descr'),
 		  onload = function(i)
 		  end,
@@ -5151,6 +5249,7 @@ function init()
 		},
 
 		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = Spring.I18N('ui.settings.option.onlyfighterspatrol'), type = "bool", value = GetWidgetToggleValue("Autoquit"), description = Spring.I18N('ui.settings.option.onlyfighterspatrol_descr') },
+		{ id = "bombers_default_hold_fire", group = "game", category = types.basic, widget = "BombersDefaultHoldFire", name = Spring.I18N('ui.settings.option.bombers_default_hold_fire'), type = "bool", value = GetWidgetToggleValue("BombersDefaultHoldFire"), description = Spring.I18N('ui.settings.option.bombers_default_hold_fire_descr') },
 		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = Spring.I18N('ui.settings.option.fightersfly'), type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = Spring.I18N('ui.settings.option.fightersfly_descr') },
 
 		{ id = "settargetdefault", group = "game", category = types.basic, widget = "Set target default", name = Spring.I18N('ui.settings.option.settargetdefault'), type = "bool", value = GetWidgetToggleValue("Set target default"), description = Spring.I18N('ui.settings.option.settargetdefault_descr') },
@@ -5332,6 +5431,12 @@ function init()
 		  onchange = function(i, value)
 			  options[getOptionByID('restart')].value = false
 			  Spring.Restart("", startScript)
+		  end,
+		},
+		{ id = "restart_with_state", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.restart_with_state'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.restart_with_state_descr'),
+		  onchange = function(i, value)
+			  options[getOptionByID('restart_with_state')].value = false
+			  Spring.SendLuaRulesMsg("restart_with_state")
 		  end,
 		},
 
@@ -6938,6 +7043,10 @@ function init()
 		options[getOptionByID('gridmenu')] = nil
 	end
 
+	if not isSinglePlayer then
+		options[getOptionByID('restart_with_state')] = nil
+	end
+
 	-- add user widgets
 
 
@@ -7161,6 +7270,21 @@ end
 
 
 function widget:Initialize()
+	-- Restart-with-state restore: if a saved state file exists from a previous
+	-- restart-with-state trigger, read it now (io is available in LuaUI) and
+	-- schedule it to be forwarded to the gadget on the first game frame.
+	local RWS_FILE = "LuaUI/Config/restart_state.lua"
+	local f = io.open(RWS_FILE, "r")
+	if f then
+		local content = f:read("*all")
+		f:close()
+		if content and content ~= "" then
+			rwsRestoreData = content
+		end
+		-- Clear the file immediately so we don't restore again on the next restart
+		local fc = io.open(RWS_FILE, "w")
+		if fc then fc:close() end
+	end
 
 	-- disable ambient player widget
 	if widgetHandler:IsWidgetKnown("Ambient Player") then
@@ -7389,6 +7513,20 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "devmode", devmodeCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "profile", profileCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "grapher", grapherCmd, nil, 't')
+end
+
+function widget:GameFrame(n)
+	-- Send the saved restore state to the gadget on the very first frame.
+	-- We wait until frame 1 so that all gadgets are fully initialised.
+	if rwsRestoreData and n == 1 then
+		local data = rwsRestoreData
+		rwsRestoreData = nil
+		Spring.SendLuaRulesMsg("rws_restore_begin")
+		for i = 1, #data, RWS_MSG_CHUNK do
+			Spring.SendLuaRulesMsg("rws_restore_chunk:" .. data:sub(i, i + RWS_MSG_CHUNK - 1))
+		end
+		Spring.SendLuaRulesMsg("rws_restore_commit")
+	end
 end
 
 function widget:Shutdown()

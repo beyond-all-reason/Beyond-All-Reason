@@ -114,13 +114,13 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 2500,
+				customparams = {
+					noattackrangearc= 1,
+				},
 				damage = {
 					commanders = 1,
 					default = 2,
 					vtol = 80,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 

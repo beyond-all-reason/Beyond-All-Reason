@@ -169,6 +169,9 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 200,
 				},

@@ -71,12 +71,17 @@ local maxPosY = 0.74
 
 local disableInputWhenSpec = false		-- disable specs selecting buildoptions
 
-local showPrice = false		-- false will still show hover
+local showPrice = true		-- false will still show hover
 local showRadarIcon = true		-- false will still show hover
 local showGroupIcon = true		-- false will still show hover
 local showBuildProgress = true
 local progressColor = { 0.08, 0.08, 0.08, 0.6 }
 local drawnBuildTargets = {}
+
+-- Highlight API state: { [unitDefID] = { color={r,g,b}, startTime=os_clock() } }
+local highlights = {}
+local highlightCount = 0
+local defaultHighlightColor = { 1.0, 1.0, 1.0 }
 
 local zoomMult = 1.5
 local defaultCellZoom = 0.025 * zoomMult
@@ -145,6 +150,7 @@ local height = 0
 local selectedBuilders = {}
 local selectedBuilderCount = 0
 local selectedFactoryCount = 0
+local prevAnyFactoryUnfinished = false
 local cellRects = {}
 local cmds = {}
 local cmdsCount = 0
@@ -705,12 +711,17 @@ function drawBuildmenuBg()
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0, nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
-local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
+local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruction)
 	local uDefID = -cmds[cellRectID].id
 
 	-- unit icon
+	local texprefix = ''
 	if disabled then
 		glColor(0.4, 0.4, 0.4, 1)
+		texprefix = 't0.3,0.3,0.3'
+	elseif underConstruction then
+		glColor(0.77, 0.77, 0.77, 1)
+		texprefix = 't0.63,0.63,0.63'
 	else
 		glColor(1, 1, 1, 1)
 	end
@@ -723,8 +734,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		usedZoom,
 		nil, disabled and 0 or nil,
 		'#' .. uDefID,
-		showRadarIcon and (((units.unitIconType[uDefID] and iconTypes[units.unitIconType[uDefID]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypes[units.unitIconType[uDefID]] or nil)) or nil,
-		showGroupIcon and (groups[units.unitGroup[uDefID]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[units.unitGroup[uDefID]] or nil) or nil,
+		showRadarIcon and (((units.unitIconType[uDefID] and iconTypes[units.unitIconType[uDefID]]) and ':l' .. texprefix ..':' .. iconTypes[units.unitIconType[uDefID]] or nil)) or nil,
+		showGroupIcon and (groups[units.unitGroup[uDefID]] and ':l' .. texprefix ..':' ..groups[units.unitGroup[uDefID]] or nil) or nil,
 		{units.unitMetalCost[uDefID], units.unitEnergyCost[uDefID]},
 		tonumber(cmds[cellRectID].params[1])
 	)
@@ -851,6 +862,54 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 	end
 end
 
+local function drawHighlights()
+	if highlightCount == 0 or not next(highlights) then return end
+	local now = os_clock()
+	for uDefID, hl in pairs(highlights) do
+		local cellRectID = unitDefToCellMap[uDefID]
+		local rect = cellRectID and cellRects[cellRectID]
+		if rect then
+			local color = hl.color or defaultHighlightColor
+			local r, g, b = color[1], color[2], color[3]
+			local t = now - (hl.startTime or now)
+			-- Pulse, period ~1.4s
+			local pulse = 0.5 + 0.5 * math.sin(t * 4.5)
+
+			local x1 = rect[1] + cellPadding + iconPadding
+			local y1 = rect[2] + cellPadding + iconPadding
+			local x2 = rect[3] - cellPadding - iconPadding
+			local y2 = rect[4] - cellPadding - iconPadding
+
+			-- Brighten unit icon (additive overlay using its own texture)
+			local brighten = 0.10 + 0.22 * pulse
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			glColor(r * brighten, g * brighten, b * brighten, 1)
+			glTexture('#' .. uDefID)
+			UiUnit(x1, y1, x2, y2, cornerSize, 1, 1, 1, 1, defaultCellZoom)
+			glTexture(false)
+
+			-- Feathered inner outline ring with pulsing alpha (proper chamfered corners)
+			local thickness = math_max(2, math_floor((x2 - x1) * 0.04))
+			local outlineAlpha = 0.45 + 0.5 * pulse
+			local cs = cornerSize
+			local outerCol = { r, g, b, outlineAlpha }
+			local innerCol = { r, g, b, outlineAlpha * 0.85 }
+			WG.FlowUI.Draw.RectRoundOutline(x1, y1, x2, y2, cs, thickness, 1, 1, 1, 1, outerCol, innerCol)
+
+			-- Soft inner glow fading inward from the outline
+			local glowAlpha = 0.10 + 0.20 * pulse
+			local glowWidth = thickness * 3
+			WG.FlowUI.Draw.RectRoundOutline(
+				x1 + thickness, y1 + thickness, x2 - thickness, y2 - thickness,
+				math_max(0, cs - thickness), glowWidth, 1, 1, 1, 1,
+				{ r, g, b, glowAlpha }, { r, g, b, 0 }
+			)
+
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		end
+	end
+end
+
 function drawBuildmenu()
 	local activeArea = {
 		backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin,
@@ -871,6 +930,21 @@ function drawBuildmenu()
 	local maxCellRectID = numCellsPerPage * currentPage
 	if maxCellRectID > cmdsCount then
 		maxCellRectID = cmdsCount
+	end
+	-- build set of unit defs that can be built by at least one finished factory
+	local finishedBuildable = {}
+	if selectedFactoryCount > 0 then
+		for _, unitID in ipairs(spGetSelectedUnits()) do
+			local defID = spGetUnitDefID(unitID)
+			if units.isFactory and units.isFactory[defID] and not spGetUnitIsBeingBuilt(unitID) then
+				local opts = unitBuildOptions[defID]
+				if opts then
+					for _, optDefID in ipairs(opts) do
+						finishedBuildable[optDefID] = true
+					end
+				end
+			end
+		end
 	end
 	font2:Begin(true)
 	local iconCount = 0
@@ -904,7 +978,8 @@ function drawBuildmenu()
 			local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[-cmds[cellRectID].id])
+			local uDefIDCell = -cmds[cellRectID].id
+			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[uDefIDCell], selectedFactoryCount > 0 and not finishedBuildable[uDefIDCell])
 		end
 	end
 
@@ -931,6 +1006,7 @@ end
 
 
 function widget:DrawScreen()
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	if WG['buildmenu'] then
 		WG['buildmenu'].hoverID = nil
@@ -1150,6 +1226,9 @@ function widget:DrawScreen()
 			end
 		end
 
+		-- draw attention highlights (animated)
+		drawHighlights()
+
 		-- draw builders buildoption progress
 		if showBuildProgress then
 			for builderUnitID, _ in pairs(selectedBuilders) do
@@ -1235,6 +1314,23 @@ function widget:GameStart()
 	preGamestartPlayer = false
 
 	unbindBuildUnits()
+end
+
+function widget:GameFrame(n)
+	if n % 15 ~= 0 or selectedFactoryCount == 0 then return end
+	local finishedCount = 0
+	for _, unitID in ipairs(spGetSelectedUnits()) do
+		local defID = spGetUnitDefID(unitID)
+		if units.isFactory and units.isFactory[defID] then
+			if not spGetUnitIsBeingBuilt(unitID) then
+				finishedCount = finishedCount + 1
+			end
+		end
+	end
+	if finishedCount ~= prevAnyFactoryUnfinished then
+		prevAnyFactoryUnfinished = finishedCount
+		refreshBuildmenu = true
+	end
 end
 
 local function setPreGamestartDefID(uDefID)
@@ -1467,14 +1563,19 @@ local function bindBuildUnits(widget)
 
 	unbindBuildUnits()
 
-	comBuildOptions = { armcom = {}, corcom = {} }
+	comBuildOptions = table.filterTable({
+		armcom = {},
+		corcom = {},
+		legcom = {}
+	}, function(value, key)
+		return UnitDefNames[key] ~= nil
+	end)
 
-	for _, comDefName in ipairs({ "armcom", "corcom" }) do
+	for comDefName, buildOptions in pairs(comBuildOptions) do
 		for _, buildOption in ipairs(UnitDefNames[comDefName].buildOptions) do
 			if not units.unitRestricted[buildOption] then
 				local unitDefName = unitName[buildOption]
-
-				comBuildOptions[comDefName][buildOption] = true
+				buildOptions[buildOption] = true
 				table.insert(boundUnits, unitDefName)
 				widgetHandler.actionHandler:AddAction(widget, "buildunit_" .. unitDefName, buildUnitHandler, { unitDefID = buildOption }, 'p')
 			end
@@ -1630,6 +1731,46 @@ function widget:Initialize()
 			end
 		end
 		clear()
+	end
+
+	---Highlight a build option to draw the player's attention to it with a pulsing
+	---inner outline and a soft inner glow. Non-destructive: does not affect input or
+	---block hover/selection visuals. Subsequent calls update the existing highlight.
+	---@param unitDefID number The unit definition ID to highlight.
+	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
+	WG['buildmenu'].setHighlight = function(unitDefID, color)
+		if not unitDefID then return end
+		if not highlights[unitDefID] then
+			highlightCount = highlightCount + 1
+		end
+		highlights[unitDefID] = {
+			color = color,
+			startTime = (highlights[unitDefID] and highlights[unitDefID].startTime) or os_clock(),
+		}
+	end
+
+	---Remove a highlight previously set via setHighlight.
+	---@param unitDefID number
+	WG['buildmenu'].removeHighlight = function(unitDefID)
+		if unitDefID and highlights[unitDefID] then
+			highlights[unitDefID] = nil
+			highlightCount = math_max(0, highlightCount - 1)
+		end
+	end
+
+	---Clear all active highlights.
+	WG['buildmenu'].clearHighlights = function()
+		for k in pairs(highlights) do
+			highlights[k] = nil
+		end
+		highlightCount = 0
+	end
+
+	---Returns true if there is an active highlight for the given unitDefID.
+	---@param unitDefID number
+	---@return boolean
+	WG['buildmenu'].hasHighlight = function(unitDefID)
+		return unitDefID ~= nil and highlights[unitDefID] ~= nil
 	end
 end
 

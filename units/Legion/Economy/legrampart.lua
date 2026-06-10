@@ -171,7 +171,7 @@ return {
 					dronedocktime = 2,
 					droneairtime = 90,
 					droneammo = 40,
-				}
+				},
 			},
         },
         weapons = {

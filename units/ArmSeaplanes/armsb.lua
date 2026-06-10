@@ -22,7 +22,6 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 255,
 		metalcost = 240,
-		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSB.s3o",
 		script = "Units/ARMSB.cob",

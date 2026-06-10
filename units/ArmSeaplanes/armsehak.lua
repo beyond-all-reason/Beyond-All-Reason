@@ -39,6 +39,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			selectable_as_combat_unit = true,
 			subfolder = "ArmSeaplanes",
 			unitgroup = "util",
 		},

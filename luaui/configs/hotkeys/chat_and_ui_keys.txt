@@ -69,15 +69,23 @@ bind            Any+alt  movereset      // fast camera reset on mousewheel
 bind            Any+alt  moverotate     // rotate on x,y with mmb hold + move (Spring Camera)
 bind           Any+ctrl  movetilt       // rotate on x with mousewheel
 
+bind          ctrl+sc_o  fov_dec 5      // decrease field of view 5 degrees
+bind          ctrl+sc_p  fov_inc 5      // increase field of view 5 degrees
+bind         sc_numpad1  fov_dec 5      // decrease field of view 5 degrees
+bind         sc_numpad7  fov_inc 5      // increase field of view 5 degrees
+// bind                  fov 40         // set field of view to 40 degrees
+
 // picture in picture camera controls
 // bind                  pip0_activity      // Focus advanced minimap onto recently placed map markers
 // bind                  pip0_trackplayer   // Focus advanced minimap (while spectating)
 // bind                  pip0_tv            // Advanced minimap follows the current action
 // bind                  pip0_view          // Limit advanced minimap to team view (while spectating)
-bind           alt+sc_q  pip1_copy      // Copy the current camera location to pip1
-bind         shift+sc_q  pip1_switch    // Switch the current camera location with pip1
-bind           alt+sc_a  pip1_track     // track the selected units with pip1
+bind      Meta+ctrl+tab  pip1_copy      // Copy the current camera location to pip1
+bind           Meta+tab  pip1_switch    // Switch the current camera location with pip1
+bind           Alt+sc_t  pip1_track     // track the selected units with pip1
 // bind                  pip2_copy
 // bind                  pip2_switch
 // bind                  pip2_track
 
+// toggles
+bind            Any+alt toggle_allied_upgrade

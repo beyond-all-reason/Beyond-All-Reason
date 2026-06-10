@@ -1,6 +1,10 @@
 {
 	"ui": {
 		"forceResignMessage": "You have been force-resigned: Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
+		"factoryqmanager": {
+			"saved": "Saved",
+			"loaded": "Loaded"
+		},
 		"rejoin": {
 			"catchingUp": "Catching up to "
 		},
@@ -17,6 +21,7 @@
 				"changes": "Changes",
 				"keys": "Keys",
 				"scavengers": "Scavengers",
+				"mission": "Mission",
 				"stats": "Statistics",
 				"graphs": "Graphs",
 				"save": "Save"
@@ -36,7 +41,7 @@
 			"commanderCount": "Commander Counter",
 			"commanderCountTooltip": "Displays the number of ally and enemy commanders",
 			"tidalspeed": "Tidal Speed",
-			"tidalspeedTooltip": "Tidal speed on this map (always constant)",
+			"tidalspeedTooltip": "Tidal (water) speed on this map  (always constant)",
 			"windspeed": "Wind Speed",
 			"windspeedTooltip": "(small numbers are minimum and maximum)\nAverage wind speed on this map is %{avgWindValue}\nCurrent wind risk is %{riskWindValue} (percentage of time wind speed will be below 6)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
 			"wind": {
@@ -264,6 +269,8 @@
 			"Maneuver": "Maneuver",
 			"Roam": "Roam",
 			"movestate_tooltip": "Set how far out of its way a unit should move to attack enemies",
+			"bomber_targeting": "Targeting",
+			"bomber_targeting_tooltip": "Hold Fire: Only attack with an explicit order. Fire at will: Idle bombers will seek targets within range.",
 			"Repeat on": "Repeat On",
 			"Repeat off": "Repeat Off",
 			"repeat_tooltip": "Repeat unit command queue",
@@ -323,6 +330,15 @@
 		},
 		"changelog": {
 			"title": "Changelog"
+		},
+		"missioninfo": {
+			"title": "Mission Info",
+			"difficulty": "Difficulty",
+			"objectives": "Objectives",
+			"victory": "Victory condition",
+			"defeat": "Defeat condition",
+			"summary": "Summary",
+			"briefing": "Briefing"
 		},
 		"keybinds": {
 			"title": "Keybinds",
@@ -460,7 +476,8 @@
 				"removeAutoGroup": "Remove unit type from autogroup",
 				"groupKey": "(num)",
 				"group": "Select all units assigned to group (num)",
-				"sameType": "Select all units of same type as selected"
+				"sameType": "Select all units of same type as selected",
+				"damaged": "Select damaged units"
 			},
 			"drawing": {
 				"title": "Drawing",
@@ -478,6 +495,14 @@
 				"pauseKey": "/pause",
 				"pause": "Pause"
 			}
+		},
+		"blueprint": {
+			"cursor_active": "Blueprint #%{index}",
+			"cursor_none": "No Blueprints",
+			"hotkey_next": "Next",
+			"hotkey_prev": "Previous",
+			"hotkey_delete": "Delete",
+			"hotkey_none": "<none>"
 		},
 		"ignore": {
 			"unknown": "unknown accountID",
@@ -646,6 +671,14 @@
 				"one"   : "Queen is resistant to:",
 				"other" : "Queens are resistant to:"
 			},
+			"queenStaggerActive": {
+				"one"   : "Queen is Staggered!",
+				"other" : "Queens are Staggered!"
+			},
+			"queenStaggerPercentage": {
+				"one"   : "Queen Stagger: %{value}%%",
+				"other" : "Queens Stagger: %{value}%%"
+			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
 			"burrowKillCount": "Burrows Killed: %{count}",
@@ -699,6 +732,14 @@
 			"bossResistantToList": {
 				"one"   : "Boss is resistant to:",
 				"other" : "Bosses are resistant to:"
+			},
+			"bossStaggerActive": {
+				"one"   : "Boss is Staggered!",
+				"other" : "Bosss are Staggered!"
+			},
+			"bossStaggerPercentage": {
+				"one"   : "Boss Stagger: %{value}%%",
+				"other" : "Bosss Stagger: %{value}%%"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
@@ -1176,6 +1217,8 @@
 				"mapedgeextension_curvature_descr": "Curve the mirrored edges away into the floor/seabed",
 				"lineofsight": "Fog of war",
 				"losopacity": "opacity",
+				"fogdiaglines": "diagonal lines",
+				"fogdiaglines_blur": "diagonal lines blur",
 				"water": "Water quality",
 				"decals": "Unit tracks",
 				"decals_descr": "0 = Off\nNOTE: Changes might require a restart (if you turn it On/Off)",
@@ -1196,6 +1239,11 @@
 				"featuredrawdist_descr": "Features (trees, stones, wreckage) stop being displayed at this distance",
 				"particles": "Particle limit",
 				"particles_descr": "Particle limit used for explosions, smoke, fire, missile trails and build particles\n\nBeware: too low value can result in missing effects.",
+				"nanoparticletype": "Particle type",
+				"nanoparticletype_descr": "Select the type of particles used for building and repairing units.",
+				"nanoparticletype_simple": "simple",
+				"nanoparticletype_smart": "smart",
+				"nanoparticletype_shapes": "shapes",
 				"lighteffects": "Lights",
 				"lighteffects_descr": "Adds lights to projectiles, lasers and explosions.",
 				"lighteffects_life": "lifetime",
@@ -1236,8 +1284,6 @@
 				"snowautoreduce_descr": "Automatically reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again",
 				"snowamount": "amount",
 				"snowamount_descr": "disable \"auto reduce\" option to see the max snow amount you have set",
-				"resurrectionhalos": "Resurrected unit halos",
-				"resurrectionhalos_descr": "Adds halos above resurrected units.",
 				"xmas": "X-mas balls",
 				"xmas_descr": "disabling will make the xmas ball invisible (other decorations stay)",
 				"tombstones": "Tombstones",
@@ -1633,6 +1679,10 @@
 				"unitenergyicons_descr": "Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven't enough energy available.",
 				"unitidlebuildericons": "Unit idle builder icons",
 				"unitidlebuildericons_descr": "Shows a sleep icon above builder units that are idle.",
+				"unitfirestateicons": "Unit firing state icons",
+				"unitfirestateicons_descr": "Shows an icon above units that are either set on Hold Fire or Return Fire.",
+				"resurrectionhalos": "Resurrected unit halos",
+				"resurrectionhalos_descr": "Adds halos above resurrected units.",
 				"nametags_rank": "Commander name tag rank icon",
 				"nametags_rank_descr": "Display the player rank icon left of the commander player name.\n(only shown in multiplayer)",
 				"nametags_icon": "Commander name on icon",
@@ -1716,6 +1766,8 @@
 				"smartselect_includebuildings_descr": "When rectangle-drag-selecting an area, include building units too?\n\nDisabled: non-mobile units will be excluded (hold Shift to override)\nNote: Construction Turrets will always be selected",
 				"smartselect_includebuilders": "include builders (if above is off)",
 				"smartselect_includebuilders_descr": "When rectangle-drag-selecting an area, exclude builder units (hold Shift to override)",
+				"smartselect_includeresurrectors": "include resurrectors (if above is off)",
+				"smartselect_includeresurrectors_descr": "When rectangle-drag-selecting an area, exclude resurrection units (hold Shift to override)",
 				"smartselect_includeantinuke": "include antinuke units (if above is off)",
 				"smartselect_includeantinuke_descr": "When rectangle-drag-selecting an area, exclude antinuke units (hold Shift to override)",
 				"smartselect_includeradar": "include radar units (if above is off)",
@@ -1724,6 +1776,8 @@
 				"smartselect_includejammer_descr": "When rectangle-drag-selecting an area, exclude jammer units (hold Shift to override)",
 				"onlyfighterspatrol": "Only fighters patrol",
 				"onlyfighterspatrol_descr": "Only fighters obey a factory's patrol route after leaving airlab.",
+				"bombers_default_hold_fire": "Set bombers on hold fire",
+				"bombers_default_hold_fire_descr": "Produced bombers start on Hold Fire after leaving airlab.",
 				"fightersfly": "Set fighters on Fly mode",
 				"fightersfly_descr": "Setting fighters on Fly mode when created",
 				"prioconturrets": "Priority construction turrets",
@@ -1750,8 +1804,6 @@
 				"factoryholdpos_descr": "Sets factories and units they produce, to hold position automatically (not aircraft)",
 				"factoryrepeat": "auto-repeat",
 				"factoryrepeat_descr": "Sets new factories on Repeat mode",
-				"transportai": "Transport AI",
-				"transportai_descr": "Transport units automatically pick up new units going to factory waypoint.",
 				"settargetdefault": "Set-target as default",
 				"settargetdefault_descr": "Replace default attack command to a set-target command\n(when rightclicked on enemy unit)",
 				"dgunnogroundenemies": "Dont snap DGun to ground units",
@@ -1782,6 +1834,8 @@
 				"autocheat_descr": "does: /cheat, /globallos, /godmode",
 				"restart": "Restart",
 				"restart_descr": "Restarts the game",
+				"restart_with_state": "Restart (keep units & orders)",
+				"restart_with_state_descr": "Saves every current unit (with its health, states and command queue), restarts the game, then restores them. Best used in singleplayer.",
 				"echocamerastate": "Echo cameraState",
 				"echocamerastate_descr": "Echoes contents of Spring.GetCameraState()",
 				"storedefaultsettings": "Store default settings",

@@ -135,7 +135,9 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 100,
 				customparams = {
+					bogus = 1,
 					scavforcecommandfire = true,
+					weapons_group = 2,
 				},
 				damage = {
 					default = 0,
@@ -193,6 +195,7 @@ return {
 					scavforcecommandfire = true,
 					stockpilelimit = 10,
 					nuclear = 1,
+					weapons_group = 2,
 				},
 				damage = {
 					commanders = 2500,
@@ -230,6 +233,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 290,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 340,
 					default = 800,

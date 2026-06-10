@@ -128,13 +128,13 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 400,
+				customparams = {
+					noattackrangearc= 1,
+				},
 				damage = {
 					default = 166,
 					subs = 50,
 					vtol = 30,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 			aa_missiles = {
@@ -180,6 +180,9 @@ return {
 				weapontype = "StarburstLauncher",
 				weapontimer = 0.28,
 				weaponvelocity = 1200,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 76,
 				},

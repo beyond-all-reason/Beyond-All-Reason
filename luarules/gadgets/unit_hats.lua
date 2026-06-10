@@ -49,6 +49,8 @@ local unitsWearingHats = {} -- key unitID of wearer, value unitID of hat
 
 local Hats = {}  -- key of unitID of hat, value of wearer unitID
 
+local spGetUnitHealth = Spring.GetUnitHealth
+
 local unitDefHat = {}
 for udid, ud in pairs(UnitDefs) do
 	--almost all raptors have dying anims
@@ -99,24 +101,13 @@ local kings = {
 	[82263] = true,  -- TM_autopilot
 }
 
-local goldMedals = { -- Nation Wars 1st place, last season top1 finishers
-	[64215] = true,  -- Darth_Revan
-	[116414] = true, -- [SG]random_variable
-	[3778] = true,   -- PRO_che
-	[9361] = true,   -- [DmE]ChickenDinner
-	[1422] = true,   -- ZaRxT4
+local goldMedals = { -- last season top1 finishers
 	[50820] = true,  -- Emre
 
 	-- BAR Pro League
 	[151863] = true,  -- Blodir
 }
-local silverMedals = { -- Nation Wars 2nd place, last season top2 finishers
-	[63960] = true,  -- Delfea
-	[59916] = true,  -- Kuchy
-	[137454] = true, -- Chronopolize
-	[44807] = true,  -- Ezreal
-	[97867] = true,  -- [KILL]SirIcecream55
-	[119832] = true, -- Darkclone
+local silverMedals = { -- last season top2 finishers
 	[151863] = true,  -- Blodir
 	[1332] = true,  -- Flash
 	[915] = true,  -- PRO_rANDY
@@ -124,11 +115,7 @@ local silverMedals = { -- Nation Wars 2nd place, last season top2 finishers
 	-- BAR Pro League
 	[915] = true,  -- PRO_rANDY
 }
-local bronzeMedals = { -- Nation Wars 3rd place, last season top3 finishers
-	[82811] = true,   -- [DmE]SlickLikeVik
-	[134499] = true,  -- Archangels
-	[60841] = true,   -- Alhazred
-	[8069] = true,    -- Grumpy
+local bronzeMedals = { -- last season top3 finishers
 	[82263] = true, -- TM_autopilot
 	[70311] = true, -- PRO_BTCV
 	[142011] = true, -- [BAC]OutlawElite
@@ -235,12 +222,12 @@ function gadget:GameFrame(gf)
 	-- periodically update hat health	(damage gets applied instantly at gadget:UnitDamaged anyway)
 	if gf % 61 == 1 then
 		for unitID, hatUnitID in pairs(unitsWearingHats) do
-			local health, maxHealth = Spring.GetUnitHealth(unitID)
-			local hatHealth, hatMaxHealth = Spring.GetUnitHealth(hatUnitID)
+			local health, maxHealth = spGetUnitHealth(unitID)
+			local hatHealth, hatMaxHealth = spGetUnitHealth(hatUnitID)
 			if hatMaxHealth then
 				Spring.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
 			else
-				unitsWearingHats[hatUnitID] = nil
+				unitsWearingHats[unitID] = nil
 			end
 		end
 	end
@@ -366,8 +353,8 @@ end
 -- also damage the hat
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if unitsWearingHats[unitID] then
-		local health, maxHealth = Spring.GetUnitHealth(unitID)
-		local hatHealth, hatMaxHealth = Spring.GetUnitHealth(unitsWearingHats[unitID])
+		local health, maxHealth = spGetUnitHealth(unitID)
+		local hatHealth, hatMaxHealth = spGetUnitHealth(unitsWearingHats[unitID])
 		if hatHealth then
 			Spring.SetUnitHealth(unitsWearingHats[unitID], (health / maxHealth) * hatMaxHealth)
 		end

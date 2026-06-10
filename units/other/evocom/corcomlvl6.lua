@@ -246,6 +246,9 @@ return {
 				weapontimer = 1,
 				weapontype = "Flame",
 				weaponvelocity = 500,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 90,
 					subs = 25,
@@ -284,6 +287,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 1200,
 					subs = 600,
@@ -321,11 +327,14 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
-					raptorqueen = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
             corcomeyelaser = {
@@ -364,6 +373,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 26,
 				},
@@ -429,6 +441,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 310,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 675,
 					subs = 180,

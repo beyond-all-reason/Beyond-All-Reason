@@ -73,7 +73,6 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:flamestreamxxl",
 				[2] = "custom:pilotlightxl",
 			},
 		},
@@ -187,6 +186,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 820,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 100,
 					vtol = 150,

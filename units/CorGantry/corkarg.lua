@@ -21,8 +21,8 @@ return {
 		metalcost = 2500,
 		movementclass = "HTBOT6",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORKARG.s3o",
-		script = "Units/CORKARG.COB",
+		objectname = "Units/corkarg.s3o",
+		script = "Units/corkarg.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3",
 		sightdistance = 455,
@@ -135,6 +135,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 820,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 100,
 					vtol = 150,

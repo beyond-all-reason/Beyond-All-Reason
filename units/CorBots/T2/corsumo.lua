@@ -141,6 +141,7 @@ return {
 				soundhitdryvolume = 17,
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					noexplosionlight = 1,
 				},
 				damage = {

@@ -9,7 +9,7 @@ return {
 		buildtime = 159000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "63 105 52",
+		collisionvolumescales = "54 105 54",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "explosiont3",
@@ -123,6 +123,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 360,
 				customparams = {
+					bogus = 1,
 					preaim_range = 650,
 				},
 				damage = {
@@ -322,6 +323,7 @@ return {
 				weaponvelocity = 1900,
 				customparams = {
 					norangering = 1,
+					weapons_role = "secondary",
 				},
 				damage = {
 					vtol = 40,

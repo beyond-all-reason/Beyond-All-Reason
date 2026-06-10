@@ -114,7 +114,7 @@ local definitions = {
             underwater         = true,
             water              = true,
             properties = {
-                colormap           = [[0.9 0.75 0.3 0.009   0.9 0.7 0.2 0.007   0.9 0.3 0.1 0.004   0 0 0 0.01]],
+                colormap           = [[0.9 0.75 0.3 0.0   0.9 0.75 0.3 0.009   0.9 0.7 0.2 0.007   0.9 0.3 0.1 0.004   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[none]],
@@ -122,31 +122,12 @@ local definitions = {
                 sidetexture        = [[trail]],
                 size               = 1.8,
                 sizegrowth         = -0.05,
-                ttl                = 6,
+                ttl                = 5,
                 useairlos          = true,
             },
         },
-	-- traillight = {
-	--         air                = true,
-	--         class              = [[CBitmapMuzzleFlame]],
-	--         count              = 1,
-	--         ground             = true,
-	--         underwater         = 1,
-	--         water              = true,
-	--         properties = {
-	--             colormap           = [[0.7 0.40 0.08 0.008   0.6 0.35 0.32 0.009   0.5 0.28 0.08 0.004   0.05 0.05 0.05 0.003    0 0 0 0]],
-	--             dir                = [[dir]],
-	--             frontoffset        = 0,
-	--             fronttexture       = [[trans]],
-	--             length             = -1.5,
-	--             sidetexture        = [[shot]],
-	--             size               = 2.0,
-	--             sizegrowth         = -0.3,
-	--             ttl                = 3,
- --        	},
- --    	},
 	},
-		["Heavy-Plasma"] = {
+	["Heavy-Plasma"] = {
 		flame = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
@@ -155,7 +136,7 @@ local definitions = {
             underwater         = true,
             water              = true,
             properties = {
-                colormap           = [[0.9 0.65 0.3 0.007   0.9 0.6 0.2 0.006   0.8 0.3 0.1 0.004   0 0 0 0.01]],
+                colormap           = [[0.9 0.65 0.3 0.0   0.9 0.65 0.3 0.007   0.9 0.6 0.2 0.006   0.8 0.3 0.1 0.004   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0, --0.03
                 fronttexture       = [[null]], --glow
@@ -163,7 +144,7 @@ local definitions = {
                 sidetexture        = [[trail]],
                 size               = 14,
                 sizegrowth         = 0.0,
-                ttl                = 2,
+                ttl                = 3,
                 useairlos          = true,
                 castShadow         = true,
         	},
@@ -178,15 +159,15 @@ local definitions = {
             underwater         = true,
             water              = true,
             properties = {
-                colormap           = [[0.9 0.75 0.4 0.006   0.8 0.70 0.3 0.005   0.8 0.5 0.1 0.005   0 0 0 0.01]],
+                colormap           = [[0.9 0.75 0.4 0.0  0.9 0.75 0.4 0.00.9 0.75 0.4 0.006   0.8 0.70 0.3 0.005   0.8 0.5 0.1 0.005   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[none]],
                 length             = -3.9,
                 sidetexture        = [[trail]],
-                size               = 2.0,
+                size               = 2.5,
                 sizegrowth         = -0.16,
-                ttl                = 2,
+                ttl                = 3,
                 useairlos          = true,
             },
         },
@@ -200,15 +181,15 @@ local definitions = {
             underwater         = true,
             water              = true,
             properties = {
-                colormap           = [[0.9 0.65 0.3 0.006   0.9 0.6 0.2 0.005   0.8 0.3 0.1 0.004   0 0 0 0.01]],
+                colormap           = [[0.9 0.65 0.3 0   0.9 0.65 0.3 0.006   0.9 0.6 0.2 0.005   0.8 0.3 0.1 0.004   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[trans]],
                 length             = -4.2,
                 sidetexture        = [[trail]],
-                size               = 3.4,
+                size               = 4.2,
                 sizegrowth         = -0.09,
-                ttl                = 3,
+                ttl                = 4,
                 useairlos          = true,
                 castShadow         = true,
         	},
@@ -223,15 +204,15 @@ local definitions = {
             underwater         = true,
             water              = true,
             properties = {
-                colormap           = [[0.9 0.65 0.3 0.007   0.9 0.6 0.2 0.006   0.8 0.3 0.1 0.004   0 0 0 0.01]],
+                colormap           = [[0.9 0.65 0.3 0.0   0.9 0.65 0.3 0.007   0.9 0.6 0.2 0.006   0.8 0.3 0.1 0.004   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0, --0.03
                 fronttexture       = [[null]], --glow
                 length             = -4.9,
                 sidetexture        = [[trail]],
-                size               = 4.6,
+                size               = 5.5,
                 sizegrowth         = -0.09,
-                ttl                = 3,
+                ttl                = 4,
                 useairlos          = true,
                 castShadow         = true,
         	},
@@ -246,7 +227,7 @@ local definitions = {
             underwater         = true,
             water              = true,
             properties = {
-                colormap           = [[0.9 0.65 0.3 0.007   0.9 0.6 0.2 0.006   0.9 0.3 0.1 0.005   0 0 0 0.01]],
+                colormap           = [[0.9 0.65 0.3 0.0   0.9 0.65 0.3 0.007   0.9 0.6 0.2 0.006   0.9 0.3 0.1 0.005   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0, --0.05
                 fronttexture       = [[null]], --glow
@@ -254,7 +235,7 @@ local definitions = {
                 sidetexture        = [[trail]],
                 size               = 7.2,
                 sizegrowth         = -0.09,
-                ttl                = 3,
+                ttl                = 4,
                 useairlos          = true,
                 castShadow         = true,
             },
@@ -586,8 +567,8 @@ local definitions = {
       		},
     	},
 	},
-	
-	
+
+
 	["starfire"] = {
 		flame = {
             air                = true,
@@ -727,7 +708,7 @@ local definitions = {
       	-- 	},
     	-- },
 	},
-	
+
 	  ["starfire_tiny"] = {
 		flame = {
             air                = true,
@@ -782,7 +763,7 @@ local definitions = {
       		},
     	},
 	},
-	
+
 	["ministarfire"] = {
 		flame = {
             air                = true,

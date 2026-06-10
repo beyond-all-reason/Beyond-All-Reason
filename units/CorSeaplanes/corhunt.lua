@@ -39,6 +39,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
+			selectable_as_combat_unit = true,
 			subfolder = "CorSeaplanes",
 			unitgroup = "util",
 		},

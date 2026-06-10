@@ -25,7 +25,6 @@ return {
 		maxslope = 10,
 		speed = 215,
 		maxwaterdepth = 0,
-		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGNAP.s3o",
 		script = "Units/CORHURC.cob",
@@ -98,6 +97,7 @@ return {
 					area_onhit_damage = 30,
 					area_onhit_range = 150,
 					area_onhit_time = 15,
+					water_splash = 0,
 				},
 				damage = {
 					default = 50,

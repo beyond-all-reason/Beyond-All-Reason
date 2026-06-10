@@ -84,13 +84,8 @@ return {
 			[23] = "legtl",
 			[24] = "legfrl",
 			[25] = "legfrad",
-			-- Experimental:
 			[26] = "leghp",
 			[27] = "legfhp",
-			--[28] = "armmg",
-			--[29] = "armclaw",
-			--[30] = "armferret",
-			--[31] = "legjam",
 		},
 		customparams = {
 			unitgroup = 'builder',
@@ -99,7 +94,7 @@ return {
 			iscommander = true,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			paralyzemultiplier = 0.025,
+			paralyzemultiplier = 0,
 			subfolder = "",
 		},
 		featuredefs = {
@@ -203,6 +198,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 175,
 					subs = 25,
@@ -239,6 +237,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 250,
 					subs = 125,
@@ -287,6 +288,10 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 150,
 					commanders = 1,
@@ -325,6 +330,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,

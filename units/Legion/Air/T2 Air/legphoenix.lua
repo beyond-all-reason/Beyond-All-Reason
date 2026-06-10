@@ -25,7 +25,6 @@ return {
 		maxslope = 10,
 		speed = 270,
 		maxwaterdepth = 0,
-		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/legphoenix.s3o",
 		script = "Units/legphoenix.cob",
@@ -161,14 +160,14 @@ return {
 				range = 1280,
 				reloadtime = 7,
 				weapontype = "AircraftBomb",
-				damage = {
-					default = 0,
-					subs = 0,
-				},
 				customparams = {
 					bogus = 1,
 					nodecal = 1,
 					water_splash = 0, -- targetting weapon aircraftbomb
+				},
+				damage = {
+					default = 0,
+					subs = 0,
 				},
 			},
 			legphsound = {
@@ -180,14 +179,12 @@ return {
 				SoundHitDryVolume = 18,
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
+					nodecal = 1,
 					noexplosionlight = 1,
 				},
 				damage = {
 					default = 0,
-				},
-				customparams = {
-					bogus = 1,
-					nodecal = 1,
 				},
 			},
 		},
