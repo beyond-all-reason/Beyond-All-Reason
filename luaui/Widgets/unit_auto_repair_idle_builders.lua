@@ -39,11 +39,6 @@ local CMD_MOVE_STATE = CMD.MOVE_STATE
 local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 local ALLY_UNITS = Spring.ALLY_UNITS
 
--- Known issues
--- This doesn't take into account the width of the unit being repaired, so the hold 
--- position radius is too small. It's good to be conservative, but we should update
--- this later to properly take the width into account.
-
 ----------------------------------------------------------------
 -- Constants
 ----------------------------------------------------------------
@@ -64,6 +59,8 @@ local isMobileBuilder = {}
 local builderBuildDist = {}
 local cachedUnitDefs = {}
 
+local maxUnitRadius = 0
+
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isBuilder and (unitDef.canAssist or unitDef.canResurrect) and unitDef.canMove and not unitDef.isFactory then
 		isMobileBuilder[unitDefID] = true
@@ -71,6 +68,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 
 	cachedUnitDefs[unitDefID] = { radius = unitDef.radius }
+	if unitDef.radius > maxUnitRadius then
+		maxUnitRadius = unitDef.radius
+	end
 end
 
 ----------------------------------------------------------------
@@ -101,12 +101,7 @@ local function getLeashRadius(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
 	local buildDist = builderBuildDist[unitDefID] or 0
 	local states = spGetUnitStates(unitID)
-	local extra = DEFAULT_LEASH_EXTRA
-	if states then
-		extra = LEASH_EXTRA[states.movestate] or DEFAULT_LEASH_EXTRA
-	end
-
-	return buildDist + extra
+	return buildDist + (LEASH_EXTRA[states.movestate] or DEFAULT_LEASH_EXTRA)
 end
 
 local function sendHome(builderID, info)
@@ -344,7 +339,7 @@ function widget:GameFrame(frame)
 			idleBuilders[builderID] = nil
 		else
 			local leash = getLeashRadius(builderID)
-			local nearbyUnits = spGetUnitsInCylinder(homePos.homeX, homePos.homeZ, leash, ALLY_UNITS)
+			local nearbyUnits = spGetUnitsInCylinder(homePos.homeX, homePos.homeZ, leash + maxUnitRadius, ALLY_UNITS)
 
 			local bestTarget = nil
 			local bestDistSq = math.huge
@@ -359,7 +354,9 @@ function widget:GameFrame(frame)
 						local tx, _, tz = spGetUnitPosition(candidateID)
 						local dx, dz = tx - homePos.homeX, tz - homePos.homeZ
 						local distSq = dx * dx + dz * dz
-						if distSq < bestDistSq then
+						local candidateDefID = spGetUnitDefID(candidateID)
+						local effectiveLeash = leash + cachedUnitDefs[candidateDefID].radius
+						if distSq <= effectiveLeash * effectiveLeash and distSq < bestDistSq then
 							bestDistSq = distSq
 							bestTarget = candidateID
 						end
