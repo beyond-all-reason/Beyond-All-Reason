@@ -92,108 +92,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local maxunits = 200
-	local feedstep = 20
-	local mapcx = Game.mapSizeX/2
-	local mapcz = Game.mapSizeZ/2
-	local mapcy = Spring.GetGroundHeight(mapcx,mapcz)
-	local fightertestenabled = false
-	local placementradius = 2000
-	local keepfeatures = 150
-	local fighterteststartgameframe = 0
-	local fightertesttotalunitsspawned = 0
-
-	local team1unitDefName = "armbull"
-	local team2unitDefName = "armbull"
-
-
-	local seededrand = {}
-	local randindex = 1
-	local function initrandom(seed)
-		math.randomseed(seed)
-		for i=1, 5000 do
-			seededrand[i] = math.random()
-		end
-		randindex = 1
-	end
-
-	local function getrandom()
-		if #seededrand < 1 then initrandom(7654321) end
-		randindex = randindex + 1
-		if randindex > #seededrand then randindex = 1 end
-		return seededrand[randindex]
-	end
-
-	local function SpawnUnitDefsForTeam(teamID, unitDefName)
-		local unitcount = Spring.GetTeamUnits(teamID)
-		if (#unitcount < maxunits) then
-			local cmd = string.format(
-				"give %d %s %d @%d,%d,%d",
-				feedstep,
-				unitDefName,
-				teamID,
-				mapcx + placementradius*(getrandom() - 0.5),
-				mapcy,
-				mapcz + placementradius*(getrandom()- 0.5)
-			)
-			Spring.SendCommands({cmd})
-			fightertesttotalunitsspawned = fightertesttotalunitsspawned + feedstep
-		end
-	end
-
-	local function SpawnUnitDefsForTeamSynced(teamID, unitDefName)
-		--Spring.GetTeamUnitDefCount ( number teamID, number unitDefID )
-		--return: nil | number count
-		local unitDefID = UnitDefNames[unitDefName].id
-
-
-		local unitcount = Spring.GetTeamUnitDefCount(teamID, unitDefID)
-
-		if (unitcount < maxunits) then
-			local cx = mapcx + placementradius*(getrandom() - 0.5)
-			local cz = mapcz + placementradius*(getrandom()- 0.5)
-
-			local sqrtfeed = math.ceil(math.sqrt(feedstep))
-			local footprint = math.max(UnitDefs[unitDefID].xsize, UnitDefs[unitDefID].zsize)
-			local newUnitIDs = {}
-			local numspawned = 0
-			for x=1,sqrtfeed do
-				for z = 1, sqrtfeed do
-					if numspawned < feedstep then
-						local px = cx + 12 * footprint * x
-						local pz = cz + 12 * footprint * z
-						local py = Spring.GetGroundHeight(px,pz)
-						local unitID = Spring.CreateUnit(unitDefID, px, py, pz, "n", teamID)
-						if unitID then
-							numspawned = numspawned + 1
-							newUnitIDs[#newUnitIDs + 1] = unitID
-						end
-					end
-				end
-			end
-
-			--Spring.GiveOrderToUnitArray ( table unitArray = { [1] = number unitID, etc... }, number cmdID, table params = {number, etc...}, table options = {"alt", "ctrl", "shift", "right"} )
-			--return: nil | bool true
-			--CMD.MOVE, { p.x, p.y, p.z }, 0 )
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.REPEAT, { 1 }, 0)
-
-			local ncx = mapcx + placementradius*(getrandom() - 0.5)
-			local ncz = mapcz + placementradius*(getrandom() - 0.5)
-			local gh = Spring.GetGroundHeight(ncx,ncz)
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {ncx,gh,ncz}, {"shift"})
-
-			ncx = mapcx + placementradius*(getrandom() - 0.5)
-			ncz = mapcz + placementradius*(getrandom() - 0.5)
-			gh = Spring.GetGroundHeight(ncx,ncz)
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {ncx,gh,ncz}, {"shift"})
-
-			gh = Spring.GetGroundHeight(cx,cz)
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {cx,gh,cz}, {"shift"})
-
-			fightertesttotalunitsspawned = fightertesttotalunitsspawned + numspawned
-		end
-	end
-
 	local terrainTerraformers = {
 		-- invertmap, flips the heightmap, where the height defined is the lowest point, invalid is autotuned to turn land new lowest point at height 0
 		invertmap = function(value)
@@ -556,7 +454,7 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "units"
 		elseif cmd == "playertoteam" or cmd == "killteam" then
 			subPermission = "teams"
-		elseif cmd == "fightertest" or cmd == "globallos" or cmd == "clearwrecks" or cmd == "reducewrecks" then
+		elseif cmd == "globallos" or cmd == "clearwrecks" or cmd == "reducewrecks" then
 			subPermission = "terrain"
 		end
 
@@ -607,8 +505,6 @@ if gadgetHandler:IsSyncedCode() then
 			ClearWrecks()
 		elseif cmd == "reducewrecks" then
 			ReduceWrecksAndHeaps()
-		elseif cmd == "fightertest" then
-			fightertest(words)
 		elseif cmd == "globallos" then
 			globallos(words)
 		elseif cmd == "playertoteam" then
@@ -622,8 +518,6 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveChatAction('loadmissiles')
 		gadgetHandler:RemoveChatAction('halfhealth')
 	end
-	local featuredefstoremove = {}
-
 	function globallos(words)
 		local allyteams = Spring.GetAllyTeamList()
         for i = 1,#allyteams do
@@ -641,91 +535,6 @@ if gadgetHandler:IsSyncedCode() then
 	function killteam(words)
 		Spring.KillTeam(tonumber(words[2]))
 	end
-	function fightertest(words)
-		fightertestenabled = not fightertestenabled
-		if not fightertestenabled then
-			Spring.Echo(string.format("Fightertest ended, %d units spawned over %d gameframes, Units/frame = %f",
-					fightertesttotalunitsspawned,
-					Spring.GetGameFrame() - fighterteststartgameframe,
-					fightertesttotalunitsspawned * (1.0 / (Spring.GetGameFrame() - fighterteststartgameframe))
-					))
-			ExecuteRemoveUnitDefName(team1unitDefName)
-			ExecuteRemoveUnitDefName(team2unitDefName)
-			return
-		end
-		fighterteststartgameframe = Spring.GetGameFrame()
-		fightertesttotalunitsspawned = 0
-		initrandom(7654321)
-		if words[2] and UnitDefNames[words[2]] then	team1unitDefName = words[2]
-		else Spring.Echo(words[2], "is not a valid unitDefName, using", team1unitDefName, "instead") end
-
-		if words[3] and UnitDefNames[words[3]] then	team2unitDefName = words[3]
-		else Spring.Echo(words[3], "is not a valid unitDefName, using", team2unitDefName, "instead") end
-
-
-		if words[4] then
-			local maxunitsint = tonumber(words[4])
-			if maxunitsint == nil then
-				Spring.Echo(words[4], "must be the number of max units to keep spawning, using", maxunits, "instead")
-			else
-				maxunits = math.floor(maxunitsint)
-			end
-		end
-		if words[5] then
-			local feedstepint = tonumber(words[5])
-			if feedstepint == nil then
-				Spring.Echo(words[5], "must be the number units to spawn each step, using", maxunits, "instead")
-			else
-				feedstep = math.floor(feedstepint)
-			end
-		end
-		if words[6] then
-			local placementradiusint = tonumber(words[6])
-			if placementradiusint == nil then
-				Spring.Echo(words[6], "must be the radius in which to spawn units, using ", placementradius, "instead")
-			else
-				placementradius = math.floor(placementradiusint)
-			end
-		end
-		if words[7] then
-			local keepfeaturesint = tonumber(words[7])
-			if keepfeaturesint == nil then
-				Spring.Echo(words[7], "must be the number of frames wrecks will live ", placementradius, "instead")
-			else
-				keepfeatures = math.floor(keepfeaturesint)
-			end
-		end
-
-		Spring.Echo(string.format("Starting fightertest %s vs %s with %i maxunits and %i units per step in a %d radius, features live %d frames",
-				team1unitDefName,
-				team2unitDefName,
-				maxunits,
-				feedstep,
-				placementradius,
-				keepfeatures))
-		featuredefstoremove = {}
-		for _, udn in ipairs({team1unitDefName,team2unitDefName}) do
-			for _, wreckheap in ipairs({'_dead','_heap'}) do
-				if FeatureDefNames[udn .. wreckheap] and FeatureDefNames[udn .. wreckheap].id then
-					featuredefstoremove[FeatureDefNames[udn .. wreckheap].id] = true
-					Spring.Echo(udn .. wreckheap)
-				end
-			end
-		end
-	end
-
-
-	local featurestoremove = {}
-	function gadget:FeatureCreated(featureID, allyTeam)
-		if fightertestenabled then
-			local featureDefID = Spring.GetFeatureDefID(featureID)
-			if featureDefID and featuredefstoremove[featureDefID] then
-				featurestoremove[featureID] = Spring.GetGameFrame() + keepfeatures
-			end
-		end
-	end
-
-
 	local function adjustFeatureHeight()
 		local featuretable = Spring.GetAllFeatures()
 		local x, y, z
@@ -738,23 +547,6 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(n)
 		if n == 1 and isTerrainMod(Spring.GetModOptions().debugcommands) then
 			adjustFeatureHeight()
-		end
-		if fightertestenabled then
-			if (n % 3 == 0)  then
-				SpawnUnitDefsForTeamSynced(0, team1unitDefName)
-				SpawnUnitDefsForTeamSynced(1, team2unitDefName)
-			end
-
-			if (n % 3 == 1)  then
-				for featureID, deathtime in pairs(featurestoremove) do
-					if deathtime < n then
-						if Spring.ValidFeatureID(featureID) then
-							Spring.DestroyFeature(featureID)
-						end
-						featurestoremove[featureID] = nil
-					end
-				end
-			end
 		end
 		if debugcommands then
 			if debugcommands[n] then
@@ -944,9 +736,6 @@ else	-- UNSYNCED
 
 
 
-	local vsx,vsy = Spring.GetViewGeometry()
-	local uiScale = vsy / 1080
-
 	function gadget:Initialize()
 		-- doing it via GotChatMsg ensures it will only listen to the caller
 		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor] or /luarules givecat unitname [teamid]
@@ -969,7 +758,6 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
 		gadgetHandler:AddChatAction('reducewrecks', reduceWrecks, "") -- /luarules reducewrecks applies damage to reduce wrecks to heaps and to destroy heaps
 
-		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
 		gadgetHandler:AddChatAction('globallos', globallos, "") -- /luarules globallos [1|0] [allyteam] -- sets global los for all teams, 1 = on, 0 = off  (allyteam is optional)
 		gadgetHandler:AddChatAction('playertoteam', playertoteam, "") -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
 		gadgetHandler:AddChatAction('killteam', killteam, "") -- /luarules killteam [teamID] -- kills the team
@@ -992,7 +780,6 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('removeunitdefs')
 		gadgetHandler:RemoveChatAction('clearwrecks')
 		gadgetHandler:RemoveChatAction('reducewrecks')
-		gadgetHandler:RemoveChatAction('fightertest')
 		gadgetHandler:RemoveChatAction('globallos')
 		gadgetHandler:RemoveChatAction('playertoteam')
 		gadgetHandler:RemoveChatAction('killteam')
@@ -1192,7 +979,6 @@ else	-- UNSYNCED
 		end
 	end
 
-	------------------------------UNSYNCED-----------------------------
 	local fightertestactive = false
 	local fighterteststats
 

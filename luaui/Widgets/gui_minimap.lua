@@ -25,7 +25,7 @@ local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 
-local maxAllowedWidth = 0.26
+local maxAllowedWidth = 0.25
 local maxAllowedHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32)
 local leftClickMove = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1
 
@@ -102,7 +102,7 @@ function widget:ViewResize()
 
 	if WG['topbar'] ~= nil then
 		local topbarArea = WG['topbar'].GetPosition()
-		maxAllowedWidth = (topbarArea[1] - elementMargin - elementPadding) / vsx
+		maxAllowedWidth = (topbarArea[1] - (elementMargin*6)) / vsx
 	end
 
 	maxWidth = mathMin(maxAllowedHeight * ratio, maxAllowedWidth * (vsx / vsy))

@@ -28,7 +28,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
 
 
--- for testing: /luarules fightertest corak armpw 100 10 3000
+-- for testing: /luarules benchmark corak armpw 100 10 3000
 
 local paralyzedUnitShader, unitShapeShader
 

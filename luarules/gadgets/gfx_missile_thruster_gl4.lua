@@ -33,6 +33,9 @@ local spIsPosInAirLos             = Spring.IsPosInAirLos
 local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 local spGetFrameTimeOffset        = Spring.GetFrameTimeOffset
+local spGetGameSpeed              = Spring.GetGameSpeed
+local spGetCameraPosition         = Spring.GetCameraPosition
+local spGetCameraDirection        = Spring.GetCameraDirection
 
 local glBlending  = gl.Blending
 local glTexture   = gl.Texture
@@ -90,7 +93,7 @@ local THRUSTER_CONFIGS = {
 	-- Standard small missiles (orange flame trailing behind)
 	missiletrailsmall = {
 		length = -20,
-		size = 1.8, sizeGrowth = 0.2,
+		size = 1.8, sizeGrowth = 0.15,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
 		glowSize = 28, glowR = 0.09, glowG = 0.06, glowB = 0.012,
@@ -98,7 +101,7 @@ local THRUSTER_CONFIGS = {
 	},
 	["missiletrailsmall-simple"] = {
 		length = -20,
-		size = 1.8, sizeGrowth = 0.2,
+		size = 1.8, sizeGrowth = 0.15,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
 		glowSize = 28, glowR = 0.09, glowG = 0.06, glowB = 0.012,
@@ -124,7 +127,7 @@ local THRUSTER_CONFIGS = {
 	-- Medium missiles
 	missiletrailmedium = {
 		length = -24,
-		size = 3.3, sizeGrowth = 0.2,
+		size = 3.3, sizeGrowth = 0.15,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
 		glowSize = 50, glowR = 0.12, glowG = 0.08, glowB = 0.02,
@@ -132,7 +135,7 @@ local THRUSTER_CONFIGS = {
 	},
 	["missiletrailmedium-red"] = {
 		length = -24,
-		size = 3.3, sizeGrowth = 0.2,
+		size = 3.3, sizeGrowth = 0.15,
 		colorR = 1.0, colorG = 0.33, colorB = 0.17,
 		colorEndR = 1.0, colorEndG = 0.22, colorEndB = 0.05,
 		glowSize = 50, glowR = 0.13, glowG = 0.06, glowB = 0.01,
@@ -140,7 +143,7 @@ local THRUSTER_CONFIGS = {
 	},
 	["missiletraillarge-red"] = {
 		length = -28,
-		size = 3.7, sizeGrowth = 0.2,
+		size = 3.7, sizeGrowth = 0.15,
 		colorR = 1.0, colorG = 0.33, colorB = 0.11,
 		colorEndR = 1.0, colorEndG = 0.12, colorEndB = 0.05,
 		glowSize = 50, glowR = 0.13, glowG = 0.06, glowB = 0.01,
@@ -148,7 +151,7 @@ local THRUSTER_CONFIGS = {
 	},
 	missiletrailviper = {
 		length = -32,
-		size = 2.8, sizeGrowth = 0.5,
+		size = 2.8, sizeGrowth = 0.33,
 		colorR = 1.0, colorG = 0.7, colorB = 0.4,
 		colorEndR = 1.0, colorEndG = 0.4, colorEndB = 0.1,
 		glowSize = 50, glowR = 0.12, glowG = 0.07, glowB = 0.02,
@@ -171,6 +174,14 @@ local THRUSTER_CONFIGS = {
 		colorEndR = 0.5, colorEndG = 0.1, colorEndB = 0.4,
 		glowSize = 32, glowR = 0.1, glowG = 0.045, glowB = 0.09,
 		thrusterOffset = -8,
+	},
+	["missiletrailaa-medium"] = {
+		length = -60,
+		size = 3.7, sizeGrowth = 0,
+		colorR = 1.0, colorG = 0.5, colorB = 0.85,
+		colorEndR = 0.5, colorEndG = 0.1, colorEndB = 0.4,
+		glowSize = 48, glowR = 0.11, glowG = 0.045, glowB = 0.1,
+		thrusterOffset = 0,
 	},
 	["missiletrailaa-large"] = {
 		length = -100,
@@ -251,7 +262,7 @@ end
 
 -- Precompute config defaults and per-frame constants to avoid per-missile overhead
 for _, cfg in pairs(weaponConfigs) do
-	cfg.sizeGrowth     = cfg.sizeGrowth or 0.2
+	cfg.sizeGrowth     = cfg.sizeGrowth or 0.15
 	cfg.glowSize       = cfg.glowSize or 0
 	cfg.glowR          = cfg.glowR or 0.1
 	cfg.glowG          = cfg.glowG or 0.06
@@ -674,6 +685,10 @@ local glowShader
 
 -- Per-projectile persistent state (direction + position cache for pause fallback)
 local projectileCache = {}  -- proID -> {dx, dy, dz, px, py, pz}
+
+-- Subscription handle for the shared projectile dispatcher (set in Initialize).
+-- When nil, we fall back to calling Spring.GetVisibleProjectiles directly.
+local dispatchHandle = nil
 local cacheCleanupFrame = 0
 
 -- Cross-section billboard (camera-facing, visible when looking along missile velocity)
@@ -683,6 +698,12 @@ local CROSS_SECTION_SIZE_MULT  = 1.5   -- cross-section billboard size relative 
 -- Idle skip: when no missiles found, throttle GetVisibleProjectiles polling
 local idleSkipCounter = 0
 local IDLE_SKIP_FRAMES = 5  -- only poll every Nth draw frame when idle
+
+-- Paused-state camera tracking: while paused, only rebuild when camera moves
+local pausedCamX, pausedCamY, pausedCamZ = 0, 0, 0
+local pausedCamRX, pausedCamRY, pausedCamRZ = 0, 0, 0
+local pausedLastRebuildTimer = nil
+local PAUSED_MOVE_MIN_INTERVAL = 0.05
 
 -- Cached ally team (updated via PlayerChanged / spectator change)
 local cachedAllyTeamID = spGetMyAllyTeamID()
@@ -853,6 +874,28 @@ end
 --------------------------------------------------------------------------------
 
 local function updateMissiles()
+	-- When paused, projectiles aren't moving and FPS is uncapped, so re-running
+	-- the full visible-projectile scan + VBO upload every draw frame is pure waste.
+	-- Only rebuild when the camera changes (so panning back to offscreen missiles
+	-- still works); otherwise reuse the previously uploaded VBO contents.
+	local _, _, isPaused = spGetGameSpeed()
+	if isPaused then
+		local cx, cy, cz = spGetCameraPosition()
+		local dx, dy, dz = spGetCameraDirection()
+		if cx == pausedCamX and cy == pausedCamY and cz == pausedCamZ
+			and dx == pausedCamRX and dy == pausedCamRY and dz == pausedCamRZ then
+			return
+		end
+		-- Camera moved while paused: cap rebuild rate by wall clock (FPS-indep).
+		local now = Spring.GetTimer()
+		if pausedLastRebuildTimer and Spring.DiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
+			return
+		end
+		pausedLastRebuildTimer = now
+		pausedCamX, pausedCamY, pausedCamZ = cx, cy, cz
+		pausedCamRX, pausedCamRY, pausedCamRZ = dx, dy, dz
+	end
+
 	-- When idle (no missiles last check), throttle polling to every Nth draw frame
 	if idleSkipCounter > 0 then
 		idleSkipCounter = idleSkipCounter - 1
@@ -863,8 +906,22 @@ local function updateMissiles()
 
 	local ftoAdj = spGetFrameTimeOffset() - 1.0
 
-	local projectiles = spGetVisibleProjectiles(-1, true, true, false)
-	if not projectiles or #projectiles == 0 then
+	-- Pull the pre-filtered missile projectile list from the shared dispatcher.
+	-- When the dispatcher is loaded it has already called GetProjectileDefID
+	-- once per projectile (shared with every other gfx_*_gl4 consumer) and
+	-- handed us a parallel defID array, so we skip the per-projectile defID
+	-- query that this loop used to do. Fallback to direct engine call when
+	-- the dispatcher isn't loaded.
+	local projectiles, matchDefIDs, nProj
+	local PS = GG.ProjectileScan
+	local dispatcherFiltered = (PS ~= nil and dispatchHandle ~= nil)
+	if dispatcherFiltered then
+		projectiles, matchDefIDs, nProj = PS.GetMatchesWithDefIDs(dispatchHandle)
+	else
+		projectiles = spGetVisibleProjectiles(-1, true, true, false)
+		nProj = projectiles and #projectiles or 0
+	end
+	if not projectiles or nProj == 0 then
 		idleSkipCounter = IDLE_SKIP_FRAMES
 		return
 	end
@@ -875,9 +932,14 @@ local function updateMissiles()
 	local myAllyTeam = cachedAllyTeamID
 	local needLosCheck = not cachedSpecFullView
 
-	for i = 1, #projectiles do
+	for i = 1, nProj do
 		local proID = projectiles[i]
-		local cfg = weaponConfigs[spGetProjectileDefID(proID)]
+		local cfg
+		if dispatcherFiltered then
+			cfg = weaponConfigs[matchDefIDs[i]]
+		else
+			cfg = weaponConfigs[spGetProjectileDefID(proID)]
+		end
 		if cfg then
 			-- Skip thruster if missile has run out of propulsion (TTL expired)
 			local ttl = spGetProjectileTimeToLive(proID)
@@ -981,6 +1043,17 @@ function gadget:Initialize()
 	if not initGL4() then return end
 	local n = 0
 	for _ in pairs(weaponConfigs) do n = n + 1 end
+
+	-- Subscribe to the shared projectile dispatcher so we share the per-frame
+	-- GetVisibleProjectiles + GetProjectileDefID scan with the other gfx_*_gl4
+	-- gadgets instead of each calling them independently.
+	local PS = GG.ProjectileScan
+	if PS then
+		local defIDSet = {}
+		for wDefID in pairs(weaponConfigs) do defIDSet[wDefID] = true end
+		dispatchHandle = PS.Subscribe("missile_thruster", defIDSet, PS.SCAN_VISIBLE)
+	end
+
 	spEcho("Missile Thruster GL4: initialized with " .. n .. " weapon configs")
 end
 

@@ -1,0 +1,23 @@
+---@meta
+
+--- BAR `modules/graphics/LuaShader.lua` instance (compiled shader wrapper).
+
+---@class LuaShader
+---@field shaderObj integer?
+---@field shaderName string?
+---@field Activate fun(self: LuaShader): boolean?
+---@field Deactivate fun(self: LuaShader)
+---@field ActivateWith fun(self: LuaShader, func: function, ...: any)
+---@field SetUniform fun(self: LuaShader, name: string, u1?: number|string, u2?: number, u3?: number, u4?: number): boolean?
+---@field SetUniformInt fun(self: LuaShader, name: string, u1?: integer, u2?: integer, u3?: integer, u4?: integer): boolean?
+---@field SetUniformFloat fun(self: LuaShader, name: string, u1?: number, u2?: number, u3?: number, u4?: number): boolean?
+---@field SetUniformAlways fun(self: LuaShader, name: string, u1?: number|string, u2?: number, u3?: number, u4?: number): boolean?
+---@field SetUniformIntAlways fun(self: LuaShader, name: string, u1?: integer, u2?: integer, u3?: integer, u4?: integer): boolean?
+---@field SetUniformMatrix fun(self: LuaShader, name: string, ...: any): boolean?
+---@field Finalize fun(self: LuaShader)
+---@field Delete fun(self: LuaShader)
+---@field Compile fun(self: LuaShader, ...: any): boolean?
+---@field Initialize fun(self: LuaShader, ...: any): boolean?
+---@field GetHandle fun(self: LuaShader): integer?
+---@field DrawPrintf fun(self: LuaShader?, xoffset?: number, yoffset?: number)?
+---@field [string] any

@@ -8,6 +8,7 @@ function setup()
 	Test.clearMap()
 
 	Test.prepareWidget(widgetName)
+	Test.expectCallin("UnitCommand")
 end
 
 function cleanup()
@@ -34,26 +35,27 @@ function test()
 
 	-- standard selfd command
 	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
-	Test.waitFrames(1)
+	Test.waitUntilCallinArgs("UnitCommand", { unitID, nil, nil, CMD.SELFD })
 	assert(table.count(widget.activeSelfD) == 1)
 	assert(table.count(widget.queuedSelfD) == 0)
 
 	-- cancel selfd order
 	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
-	Test.waitFrames(1)
+	Test.waitUntilCallinArgs("UnitCommand", { unitID, nil, nil, CMD.SELFD })
 	assert(table.count(widget.activeSelfD) == 0)
 	assert(table.count(widget.queuedSelfD) == 0)
 
 	-- queued selfd order
 	Spring.GiveOrderToUnit(unitID, CMD.MOVE, { 1, 1, 1 }, 0)
 	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, { "shift" })
-	Test.waitFrames(1)
+	Test.waitUntilCallinArgs("UnitCommand", { unitID, nil, nil, CMD.SELFD })
 	assert(table.count(widget.activeSelfD) == 0)
 	assert(table.count(widget.queuedSelfD) == 1)
 
 	-- remove move order
 	Spring.GiveOrderToUnit(unitID, CMD.REMOVE, { CMD.MOVE }, { "alt" })
-	Test.waitFrames(1)
-	assert(table.count(widget.activeSelfD) == 1)
-	assert(table.count(widget.queuedSelfD) == 0)
+	Test.waitUntil(function()
+		return table.count(widget.activeSelfD) == 1
+			and table.count(widget.queuedSelfD) == 0
+	end, 10)
 end
