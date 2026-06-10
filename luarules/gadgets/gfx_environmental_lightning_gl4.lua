@@ -74,7 +74,11 @@ end
 --   baseWidth        bolt core thickness in elmos
 --   reach            full length of the primary arms in elmos
 --   branchCount      number of primary arms shooting out of the origin
---   childCount       child forks spawned per branch node
+--   childCount       child forks spawned per branch node (may be fractional; the
+--                    .x part is a per-node chance of one more fork)
+--   childDecay       0..1 multiplier applied to childCount at each deeper depth, so
+--                    forking thins out further from the origin. 1 = no decay
+--                    (constant), 0.5 = half the forks each level deeper. Default 1.
 --   maxDepth         recursion depth of forking (0 = only primary arms)
 --   segments         jagged segments per arm (visual detail)
 --   jitterAmp        perpendicular jaggedness amplitude in elmos
@@ -84,11 +88,41 @@ end
 --   growFrac         fraction of life an arm takes to extend to full length
 --   flowFrac         0..0.95 how much the arm tail advances toward the tip
 --                    during growth (higher = stronger outward propagation)
---   tipTaper         leading-tip thinning (0.1 = sharp point, 1 = no taper)
+--   tipTaper         leading-tip (far end) thinning (0.1 = sharp point, 1 = no taper)
+--   rootTaper        origin (start) thinning (0.1 = sharp point, 1 = no taper/full width)
 --   sizeVarMin/Max   random per-burst size range multiplier (correlates complexity/lifetime)
 --   intensityVar     extra random intensity variance around size-correlated base
 --   lifeVar          extra random lifetime variance around complexity-correlated base
 --   maxIntensityScale optional cap on per-burst intensityScale after variation
+--   maxStrikes       max number of discrete "restrikes" over the lifetime. Each
+--                    strike shows a fresh branch shape that grows + fades within
+--                    its own time window (no per-frame flicker). 1 = single strike
+--                    (default). Only longer/richer bursts reach the higher counts.
+--   strikeOverlap    0..0.9 fraction by which consecutive strikes overlap in time
+--                    (higher = the next strike appears before the previous fully
+--                    fades; 0 = clean sequential strikes). Default 0.25.
+--   restrikeChance   0..1 probability that an eligible (complex enough) burst is
+--                    allowed to restrike at all. 1 = always (default), 0.3 = only
+--                    ~30% of eligible bursts get multiple strikes, the rest are one.
+--   strikeFullDist   camera distance (elmos) within which full strike count is used.
+--   strikeCullDist   camera distance beyond which bursts are forced to a single
+--                    strike; between full and cull it ramps down linearly (perf).
+--
+-- Deferred GL4 point light flashed at each burst origin (needs the GL4 deferred
+-- lighting widget). All optional; lightBrightness/lightRadius 0 or absent = no light.
+--   lightBrightness  light alpha/brightness multiplier (multiplied by burstIntensity)
+--   lightRadius      light radius in elmos (scales with burst size)
+--   lightRadiusComplexity  extra radius FRACTION at full burst complexity (0..n).
+--                    e.g. 0.5 = up to +50% radius for the biggest/richest bolts.
+--                    Complexity aggregates size, child count, lifetime and intensity.
+--   lightLifeComplexity    extra lifetime FRACTION at full burst complexity (0..n).
+--                    e.g. 0.5 = up to +50% light lifetime for the biggest bolts.
+--   lightColor       {r,g,b} light color (default = bolt core color coreR/G/B)
+--   lightLifeFrames  light lifetime in sim frames (default = the burst's lifetime)
+--   lightSustainFrac 0..1 fraction of lifetime held at full brightness before the
+--                    fade-out (default 0.6)
+--   lightModelFactor / lightSpecular / lightScattering / lightLensflare
+--                    deferred-light surface response factors (defaults 1,1,1,0)
 --
 -- Optional "scatter" fields (for unit-centered bursts that crackle around an
 -- area over time, e.g. the commander-spawn effect). When scatterCount > 0 the
@@ -110,26 +144,115 @@ local lightningConfigs = {
 	scavradiation = {
 		r = 0.50, g = 0.4, b = 1.00,
 		coreR = 0.82, coreG = 0.7, coreB = 1.00,
-		lifeFrames     = 18,
-		intensity      = 0.25,
+		lifeFrames     = 9,
+		intensity      = 0.20,
 		feather        = 0.4,
-		baseWidth      = 0.9,
-		reach          = 450,
-		branchCount    = 2,
-		childCount     = 2,
-		maxDepth       = 4,
-		segments       = 2,
-		jitterAmp      = 22,
+		baseWidth      = 2.3,
+		reach          = 425,
+		branchCount    = 1,
+		childCount     = 1.5,
+		childDecay     = 0.6,    -- forks thin out with depth (1.2 -> 0.72 -> 0.43 ...)
+		maxDepth       = 5,
+		segments       = 8,
+		jitterAmp      = 20,
 		glowBrightness = 0.4,
 		vbias          = 0.20,
-		spread         = 4,
-		growFrac       = 0.5,
-		flowFrac       = 0.3,
+		spread         = 1.57,
+		growFrac       = 0.15,
+		flowFrac       = 0.08,
 		tipTaper       = 0.1,
-		sizeVarMin     = 0.3,
-		sizeVarMax     = 1.3,
-		intensityVar   = 0.4,
-		lifeVar        = 0.3,
+		rootTaper      = 0.1,
+		sizeVarMin     = 0.72,
+		sizeVarMax     = 1.14,
+		intensityVar   = 0.75,
+		lifeVar        = 0.8,
+		maxStrikes     = 3,
+		strikeOverlap  = 0.25,
+		restrikeChance = 0.6,    -- only ~half of eligible bursts get extra strikes
+		strikeFullDist = 2200,   -- full strike count within this camera distance
+		strikeCullDist = 5000,   -- forced to a single strike beyond this distance
+		-- deferred GL4 point light flashed at the burst origin (0 brightness = off)
+		lightRadius      = 450,
+		lightBrightness  = 0.08,
+		lightSustainFrac = 0.6,    -- hold full brightness for 60% of life, then fade
+		lightColor       = {0.88, 0.5, 1.0},  -- override; default follows core color
+		lightLifeFrames  = 6,    -- override base; default = burst lifetime
+		lightRadiusComplexity = 0.65,  -- big/rich bolts: up to +50% radius
+		lightLifeComplexity   = 0.4,  -- big/rich bolts: up to +50% light lifetime
+		lightModelFactor = 0.5,
+		-- lightSpecular    = 1.0,
+		lightScattering  = 1.0,
+		-- lightLensflare   = 0.0,
+	},
+
+	junoareastorm = {
+		r = 0.44, g = 0.94, b = 0.5,
+		coreR = 0.66, coreG = 1.00, coreB = 0.7,
+		lifeFrames     = 10,
+		intensity      = 0.66,
+		feather        = 0.42,
+		baseWidth      = 1.25,
+		reach          = 280,
+		branchCount    = 1,
+		childCount     = 1.0,
+		maxDepth       = 2,
+		segments       = 6,
+		jitterAmp      = 28,
+		glowBrightness = 0.35,
+		vbias          = 0.18,
+		spread         = 1.4,
+		growFrac       = 0.2,
+		flowFrac       = 0.08,
+		tipTaper       = 0.1,
+		rootTaper      = 0.1,
+		sizeVarMin     = 0.82,
+		sizeVarMax     = 1.08,
+		intensityVar   = 0.6,
+		lifeVar        = 0.4,
+		maxStrikes     = 1,
+		lightRadius      = 340,
+		lightBrightness  = 0.05,
+		lightSustainFrac = 0.58,
+		lightColor       = {0.55, 1.0, 0.58},
+		lightLifeFrames  = 6,
+		lightRadiusComplexity = 0.4,
+		lightLifeComplexity   = 0.25,
+		lightModelFactor = 0.45,
+		lightScattering  = 1.0,
+	},
+
+	junodamagezap = {
+		r = 0.30, g = 0.8, b = 0.35,
+		coreR = 0.70, coreG = 1.00, coreB = 0.75,
+		lifeFrames     = 6,
+		intensity      = 0.2,
+		feather        = 0.45,
+		baseWidth      = 0.9,
+		reach          = 50,
+		branchCount    = 2,
+		childCount     = 0.5,
+		maxDepth       = 1,
+		segments       = 3,
+		jitterAmp      = 12,
+		glowBrightness = 0.26,
+		vbias          = 0.3,
+		spread         = 1.8,
+		growFrac       = 0.35,
+		flowFrac       = 0.14,
+		tipTaper       = 0.18,
+		rootTaper      = 0.12,
+		sizeVarMin     = 0.9,
+		sizeVarMax     = 1.1,
+		intensityVar   = 0.2,
+		lifeVar        = 0.2,
+		maxStrikes     = 1,
+		lightRadius      = 120,
+		lightBrightness  = 0.04,
+		lightSustainFrac = 0.45,
+		lightColor       = {0.65, 1.0, 0.72},
+		lightLifeFrames  = 4,
+		lightModelFactor = 0.4,
+		lightScattering  = 1.0,
 	},
 
 	-- Centered on a freshly spawned unit (commander spawn / warp-in). Unlike the
@@ -139,41 +262,45 @@ local lightningConfigs = {
 	commanderspawn = {
 		r = 0.55, g = 0.66, b = 1.00,
 		coreR = 0.92, coreG = 0.96, coreB = 1.00,
-		lifeFrames     = 15,
-		intensity      = 0.12,
+		lifeFrames     = 12,
+		intensity      = 0.14,
 		feather        = 0.5,
-		baseWidth      = 0.9,
-		reach          = 50,
+		baseWidth      = 1.4,
+		reach          = 150,
 		branchCount    = 3,
 		childCount     = 2,
 		maxDepth       = 2,
 		segments       = 2,
-		jitterAmp      = 12,
+		jitterAmp      = 24,
 		glowBrightness = 0.35,
 		vbias          = 0.35,
 		spread         = 3.5,
-		growFrac       = 0.5,
-		flowFrac       = 0.2,
+		growFrac       = 0.45,
+		flowFrac       = 0.3,
 		tipTaper       = 0.1,
+		rootTaper      = 0.1,
 		sizeVarMin     = 0.85,
-		sizeVarMax     = 1.3,
-		intensityVar   = 0.1,
+		sizeVarMax     = 1.5,
+		intensityVar   = 0.4,
 		lifeVar        = 0.15,
+		maxStrikes     = 2,
+		strikeOverlap  = 0.25,
+		restrikeChance = 0.8,
 		maxIntensityScale = 1.35,
 		startDelay            = 18,
 		-- scatter / area behaviour
-		centerHeight          = 25,
-		centerSizeScale       = 1.35,
+		centerHeight          = 20,
+		centerSizeScale       = 1.25,
 		centerIntensityScale  = 1.45,
-		scatterCount          = 10,
-		scatterFrames         = 45,
+		scatterCount          = 12,
+		scatterFrames         = 105,
 		scatterRadius         = 30,
-		scatterHeightMin      = 18,
-		scatterHeightMax      = 45,
-		scatterSizeMin        = 0.3,
-		scatterSizeMax        = 0.6,
+		scatterHeightMin      = 10,
+		scatterHeightMax      = 20,
+		scatterSizeMin        = 0.4,
+		scatterSizeMax        = 0.7,
 		scatterIntensityScale = 1.0,
-		scatterWidthScale     = 1.75,
+		scatterWidthScale     = 2.0,
 	},
 }
 
@@ -182,6 +309,7 @@ local lightningConfigs = {
 --------------------------------------------------------------------------------
 local spGetGameFrame   = Spring.GetGameFrame
 local spIsAABBInView   = Spring.IsAABBInView
+local spGetCameraPosition = Spring.GetCameraPosition
 
 local glBlending  = gl.Blending
 local glDepthTest = gl.DepthTest
@@ -207,6 +335,16 @@ local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
 
 local function clamp(v, lo, hi) return v < lo and lo or (v > hi and hi or v) end
 local function lerp(a, b, t) return a + (b - a) * t end
+-- Probabilistic rounding: the fractional part becomes the chance of rounding up.
+-- e.g. 1.5 -> 1 or 2 with equal odds, 1.2 -> mostly 1 (20% chance of 2).
+local function probRound(v)
+	local base = mathFloor(v)
+	return (mathRandom() < (v - base)) and (base + 1) or base
+end
+
+-- When false, bolt shape/brightness no longer reroll every render frame.
+-- Bursts still spawn/grow/fade normally, but each bolt stays temporally stable.
+local ENABLE_DYNAMIC_ANIMATION = false
 
 --------------------------------------------------------------------------------
 -- Config / tuning constants (global shader behaviour; per-burst overrides come
@@ -217,14 +355,21 @@ local IDLE_SKIP_FRAMES = 3
 local MAX_ACTIVE       = 256     -- hard cap on simultaneous bursts (oldest dropped)
 
 -- Lifetime envelope (fractions of each burst's lifeFrames)
-local FADE_IN_FRAC   = 0.08    -- burst fades in over this fraction of life
-local FADE_OUT_FRAC  = 0.35    -- burst fades out over the final fraction of life
-local BRANCH_APPEAR  = 0.06    -- per-arm pop-in fade window (life fraction)
+local FADE_IN_FRAC   = 0.04    -- burst fades in over this fraction of life
+local FADE_OUT_FRAC  = 0.19    -- burst fades out over the final fraction of life
+local BRANCH_APPEAR  = 0.03    -- per-arm pop-in fade window (life fraction)
+-- Per-restrike envelope (fractions of each strike's own time window)
+local STRIKE_FADE_IN  = 0.06   -- a restrike pops in over this fraction of its window
+local STRIKE_FADE_OUT = 0.15   -- a restrike fades out over the final fraction of its window
+
+-- Dynamic animation reroll rate (steps per second) when ENABLE_DYNAMIC_ANIMATION
+-- is on. 30 = rerolls 30x/sec (fast tesla buzz); lower = slower, calmer crackle.
+local ANIMATE_RATE = 6.0
 
 -- Bolt body look
-local FLICKER_AMPLITUDE   = 0.45
-local THICKNESS_VARIATION = 0.7
-local SEGMENT_LENGTH_VAR  = 0.75
+local FLICKER_AMPLITUDE   = 0.25
+local THICKNESS_VARIATION = 0.5
+local SEGMENT_LENGTH_VAR  = 1.75
 local JITTER_MAX_BOLT_FRAC  = 0.10
 local BRUSH_MAX_JITTER_FRAC = 0.5
 local CORE_EDGE_START   = 0.03
@@ -232,10 +377,12 @@ local CORE_EDGE_END     = 0.3
 local CORE_BRIGHTNESS   = 2.3
 local BRIGHTNESS_MULT   = 2.5
 local MIN_PIXEL_WIDTH   = 0.0018
-local TIP_TAPER_START   = 0.55  -- segPos where tip taper begins
+local TIP_TAPER_START   = 0.6  -- segPos where tip taper begins (taper toward tip)
+local ROOT_TAPER_END    = 0.6  -- segPos where root taper ends (taper from origin)
+local LENGTH_FALLOFF    = 0.45  -- constant dimming toward the tip along each arm
 
 -- Glow halo
-local GLOW_WIDTH_MULT      = 12.0
+local GLOW_WIDTH_MULT      = 14.0
 local GLOW_FALLOFF_POWER   = 5.0
 local GLOW_MIN_PIXEL_WIDTH = 0.005
 
@@ -251,16 +398,23 @@ for _, cfg in pairs(lightningConfigs) do
 	cfg.feather    = cfg.feather    or 0.5
 	cfg.intensity  = cfg.intensity  or 1.0
 	cfg.childCount = cfg.childCount or 0
+	cfg.childDecay = clamp(cfg.childDecay or 1.0, 0.0, 1.0)
 	cfg.maxDepth   = cfg.maxDepth   or 0
 	cfg.growFrac   = cfg.growFrac   or 0.4
 	cfg.flowFrac   = clamp(cfg.flowFrac or 0.0, 0.0, 0.95)
 	cfg.tipTaper   = cfg.tipTaper   or 0.15
+	cfg.rootTaper  = cfg.rootTaper  or 1.0
 	cfg.vbias      = cfg.vbias      or 0.0
 	cfg.spread     = cfg.spread     or 0.8
 	cfg.sizeVarMin = cfg.sizeVarMin or 1.0
 	cfg.sizeVarMax = cfg.sizeVarMax or 1.0
 	cfg.intensityVar = cfg.intensityVar or 0.0
 	cfg.lifeVar = cfg.lifeVar or 0.0
+	cfg.maxStrikes = mathMax(1, cfg.maxStrikes or 1)
+	cfg.strikeOverlap = clamp(cfg.strikeOverlap or 0.25, 0.0, 0.9)
+	cfg.restrikeChance = clamp(cfg.restrikeChance or 1.0, 0.0, 1.0)
+	cfg.strikeFullDist = cfg.strikeFullDist or 2200   -- within this dist: full strikes
+	cfg.strikeCullDist = cfg.strikeCullDist or 5000   -- beyond this dist: single strike
 end
 
 --------------------------------------------------------------------------------
@@ -281,7 +435,7 @@ layout (location = 0) in vec4 position_xy_uv;
 layout (location = 1) in vec4 startPosAndWidth;   // xyz = arm start, w = base width
 layout (location = 2) in vec4 endPosAndTip;       // xyz = current (grown) tip, w = tip taper
 layout (location = 3) in vec4 coreColor;          // rgb = core color, a = alphaMul
-layout (location = 4) in vec4 edgeColor;          // rgb = edge color, a = length falloff
+layout (location = 4) in vec4 edgeColor;          // rgb = edge color, a = root taper
 layout (location = 5) in vec4 boltParams;         // x = seed, y = segIndex, z = segCount, w = jitterAmp
 layout (location = 6) in vec4 extraParams;        // x = widthMul, y = widthScale, z = glowMult, w = feather
 
@@ -304,6 +458,7 @@ void main()
 	float baseWidth = startPosAndWidth.w * extraParams.y * extraParams.x;
 	vec3 endPos     = endPosAndTip.xyz;
 	float tipTaper  = endPosAndTip.w;
+	float rootTaper = edgeColor.a;
 
 	float seed     = boltParams.x;
 	float segIndex = boltParams.y;
@@ -319,7 +474,7 @@ void main()
 	vec3 perpA = normalize(cross(forward, upRef));
 	vec3 perpB = normalize(cross(forward, perpA));
 
-	float frameTick = floor(timeInfo.z * 30.0);
+	float frameTick = ENV_LIGHTNING_ANIMATE > 0.5 ? floor(timeInfo.z * ANIMATE_RATE) : 0.0;
 
 	// Per-segment t with deterministic per-boundary length jitter (endpoints fixed)
 	float yNorm = position_xy_uv.y * 0.5 + 0.5;
@@ -369,13 +524,18 @@ void main()
 
 	float segWobble = mix(1.0 - THICKNESS_VARIATION, 1.0 + THICKNESS_VARIATION,
 		hash11(seed * 3.1 + segIndex * 5.7 + frameTick * 0.21));
-	float flickerSeed = seed * 0.97 + frameTick * 0.13;
-	float flicker = 1.0 - FLICKER_AMPLITUDE * 0.5 + FLICKER_AMPLITUDE * hash11(flickerSeed);
+	float flicker = 1.0;
+	if (ENV_LIGHTNING_ANIMATE > 0.5) {
+		float flickerSeed = seed * 0.97 + frameTick * 0.13;
+		flicker = 1.0 - FLICKER_AMPLITUDE * 0.5 + FLICKER_AMPLITUDE * hash11(flickerSeed);
+	}
 
-	// Leading-tip taper: thin to a point toward the (unconnected) far end.
+	// Leading-tip taper: thin toward the (unconnected) far end.
 	float tipW = mix(1.0, tipTaper, smoothstep(TIP_TAPER_START, 1.0, tHere));
+	// Root taper: thin toward the origin (1.0 = no taper, full width at start).
+	float rootW = mix(1.0, rootTaper, 1.0 - smoothstep(0.0, ROOT_TAPER_END, tHere));
 
-	float width = baseWidth * segWobble * flicker * tipW;
+	float width = baseWidth * segWobble * flicker * tipW * rootW;
 
 	float camDist = length(camPos - mix(startPos, endPos, 0.5));
 	float minWidth = camDist * MIN_PIXEL_WIDTH;
@@ -392,8 +552,7 @@ void main()
 	coverage = coverageVal;
 	feather  = extraParams.w;
 
-	float lengthFalloff = edgeColor.a;
-	alpha = coreColor.a * coverageVal * flicker * (1.0 - lengthFalloff * tHere);
+	alpha = coreColor.a * coverageVal * flicker * (1.0 - LENGTH_FALLOFF * tHere);
 }
 ]]
 
@@ -480,6 +639,7 @@ void main()
 	float seed     = boltParams.x;
 	float segIndex = boltParams.y;
 	float segCount = boltParams.z;
+	float jitterAmp= boltParams.w;
 
 	vec3 boltDir = endPos - startPos;
 	float boltLen = length(boltDir);
@@ -505,9 +665,17 @@ void main()
 		right = right / rightLen;
 	}
 
-	float frameTick = floor(timeInfo.z * 30.0);
-	float flicker = 1.0 - FLICKER_AMPLITUDE * 0.5 + FLICKER_AMPLITUDE * hash11(seed * 0.97 + frameTick * 0.13);
-	float glowWidth = baseWidth * GLOW_WIDTH_MULT * flicker;
+	float flicker = 1.0;
+	if (ENV_LIGHTNING_ANIMATE > 0.5) {
+		float frameTick = floor(timeInfo.z * ANIMATE_RATE);
+		flicker = 1.0 - FLICKER_AMPLITUDE * 0.5 + FLICKER_AMPLITUDE * hash11(seed * 0.97 + frameTick * 0.13);
+	}
+	float jitterScale = min(jitterAmp, boltLen * JITTER_MAX_BOLT_FRAC);
+	float jitterRatio = clamp(jitterScale / max(boltLen, 0.001), 0.0, 1.0);
+	// Strongly bent/jagged branches can diverge from the straight glow axis;
+	// tighten + dim the halo there to reduce off-axis glow bleed.
+	float alignment = 1.0 - smoothstep(0.02, 0.10, jitterRatio);
+	float glowWidth = baseWidth * GLOW_WIDTH_MULT * flicker * mix(0.58, 1.0, alignment);
 
 	float camDist = length(camPos - posOnAxis);
 	float minWidth = camDist * GLOW_MIN_PIXEL_WIDTH;
@@ -520,8 +688,7 @@ void main()
 	widthPos = position_xy_uv.x;
 	lengthT  = tHere;
 	glowColor = edgeColor.rgb;
-	float lengthFalloff = edgeColor.a;
-	alpha = coreColor.a * flicker * coverageVal * (1.0 - lengthFalloff * tHere);
+	alpha = coreColor.a * flicker * coverageVal * (1.0 - LENGTH_FALLOFF * tHere) * mix(0.72, 1.0, alignment);
 	glowMult = extraParams.z;
 	feather  = extraParams.w;
 }
@@ -582,6 +749,8 @@ local boltShaderConfig = {
 	FLICKER_AMPLITUDE   = FLICKER_AMPLITUDE,
 	THICKNESS_VARIATION = THICKNESS_VARIATION,
 	SEGMENT_LENGTH_VAR  = SEGMENT_LENGTH_VAR,
+	ENV_LIGHTNING_ANIMATE = ENABLE_DYNAMIC_ANIMATION and 1 or 0,
+	ANIMATE_RATE        = ANIMATE_RATE,
 	JITTER_MAX_BOLT_FRAC  = JITTER_MAX_BOLT_FRAC,
 	BRUSH_MAX_JITTER_FRAC = BRUSH_MAX_JITTER_FRAC,
 	CORE_EDGE_START     = CORE_EDGE_START,
@@ -590,13 +759,19 @@ local boltShaderConfig = {
 	BRIGHTNESS_MULT     = BRIGHTNESS_MULT,
 	MIN_PIXEL_WIDTH     = MIN_PIXEL_WIDTH,
 	TIP_TAPER_START     = TIP_TAPER_START,
+	ROOT_TAPER_END      = ROOT_TAPER_END,
+	LENGTH_FALLOFF      = LENGTH_FALLOFF,
 }
 
 local glowShaderConfig = {
 	FLICKER_AMPLITUDE    = FLICKER_AMPLITUDE,
+	ENV_LIGHTNING_ANIMATE = ENABLE_DYNAMIC_ANIMATION and 1 or 0,
+	ANIMATE_RATE         = ANIMATE_RATE,
 	GLOW_WIDTH_MULT      = GLOW_WIDTH_MULT,
 	GLOW_FALLOFF_POWER   = GLOW_FALLOFF_POWER,
 	GLOW_MIN_PIXEL_WIDTH = GLOW_MIN_PIXEL_WIDTH,
+	JITTER_MAX_BOLT_FRAC = JITTER_MAX_BOLT_FRAC,
+	LENGTH_FALLOFF       = LENGTH_FALLOFF,
 }
 
 --------------------------------------------------------------------------------
@@ -713,9 +888,14 @@ local function buildBranches(cfg, sizeScale, branchCount, childCount, maxDepth, 
 	local reach = cfg.reach * sizeScale
 	local spread = cfg.spread
 	local vbias = cfg.vbias
+	-- Per-depth child decay: each deeper level forks less. 1 = no decay (constant),
+	-- 0.5 = half as many children each level deeper. Fractional counts resolve via
+	-- probabilistic rounding, so a count of e.g. 0.6 = 60% chance of one more fork.
+	local childDecay = cfg.childDecay
 
-	-- recursive generation via explicit stack to avoid deep closures
-	local function addBranch(sx, sy, sz, dx, dy, dz, len, startFrac, growFrac, depth, widthScale)
+	-- recursive generation via explicit stack to avoid deep closures.
+	-- childrem is this node's (already decayed) expected child count.
+	local function addBranch(sx, sy, sz, dx, dy, dz, len, startFrac, growFrac, depth, widthScale, childrem)
 		n = n + 1
 		branches[n] = {
 			sx = sx, sy = sy, sz = sz,
@@ -726,9 +906,12 @@ local function buildBranches(cfg, sizeScale, branchCount, childCount, maxDepth, 
 			seed = mathRandom() * 1000.0,
 			widthScale = widthScale,
 		}
-		if depth >= maxDepth or childCount <= 0 then return end
+		if depth >= maxDepth then return end
+		local kids = probRound(childrem)
+		if kids <= 0 then return end
+		local childremNext = childrem * childDecay
 		local ax, ay, az, bx, by, bz = perpBasis(dx, dy, dz)
-		for _ = 1, childCount do
+		for _ = 1, kids do
 			local anchorFrac = 0.30 + mathRandom() * 0.55
 			-- child base position along this (straight) arm
 			local cx = sx + dx * len * anchorFrac
@@ -745,13 +928,15 @@ local function buildBranches(cfg, sizeScale, branchCount, childCount, maxDepth, 
 			local ndx = dx * c + pmx * s
 			local ndy = dy * c + pmy * s
 			local ndz = dz * c + pmz * s
+			-- Keep forks from pointing below horizontal too.
+			if ndy < 0.0 then ndy = 0.0 end
 			local nl = mathSqrt(ndx*ndx + ndy*ndy + ndz*ndz)
 			if nl > 0.001 then ndx, ndy, ndz = ndx/nl, ndy/nl, ndz/nl end
 			local childLen = len * (0.45 + mathRandom() * 0.30)
 			local childStart = startFrac + growFrac * anchorFrac
 			if childStart < 0.98 then
 				addBranch(cx, cy, cz, ndx, ndy, ndz, childLen,
-					childStart, growFrac * 0.7, depth + 1, widthScale * 0.7)
+					childStart, growFrac * 0.7, depth + 1, widthScale * 0.7, childremNext)
 			end
 		end
 	end
@@ -766,13 +951,59 @@ local function buildBranches(cfg, sizeScale, branchCount, childCount, maxDepth, 
 		rx, ry, rz = rx/rl, ry/rl, rz/rl
 		-- blend vertical component toward the bias
 		ry = ry * (1.0 - mathAbs(vbias)) + vbias
+		-- Never point below horizontal: horizontal is the lowest allowed direction.
+		if ry < 0.0 then ry = 0.0 end
 		local bl = mathSqrt(rx*rx + ry*ry + rz*rz)
 		rx, ry, rz = rx/bl, ry/bl, rz/bl
 		local armLen = reach * (0.70 + mathRandom() * 0.30)
-		-- positions are origin-relative; the burst origin is added at emit time
-		addBranch(0, 0, 0, rx, ry, rz, armLen, 0.0, growFrac, 0, 1.0)
+		-- positions are origin-relative; the burst origin is added at emit time.
+		-- Depth 0 nodes start with the full childCount; it decays each level deeper.
+		addBranch(0, 0, 0, rx, ry, rz, armLen, 0.0, growFrac, 0, 1.0, childCount)
 	end
 	return branches, n
+end
+
+-- Flash a deferred GL4 point light at the burst origin via the lights widget.
+-- The lights live widget-side (WG['lightsgl4']), unreachable from a gadget, so we
+-- hand off through Script.LuaUI to a receiver the lights widget registers. A >0
+-- lifetime makes the light auto-expire, so no manual cleanup is needed here.
+local ScriptLuaUI = Script.LuaUI
+local function emitBurstLight(cfg, x, y, z, burstSizeScale, burstIntensity, burstLifeFrames, complexity01)
+	local brightness = cfg.lightBrightness
+	if not brightness or brightness <= 0 then return end
+	if not ScriptLuaUI("EnvLightningPointLight") then return end
+
+	-- Bigger/richer/longer/brighter bursts get a larger, longer-lived light.
+	-- complexity01 (0..1) already aggregates size, branching, lifetime and intensity.
+	-- The *Complexity fields add up to that fraction extra at full complexity.
+	local radiusBoost = 1.0 + (cfg.lightRadiusComplexity or 0.0) * complexity01
+	local lifeBoost   = 1.0 + (cfg.lightLifeComplexity   or 0.0) * complexity01
+
+	local radius = (cfg.lightRadius or 200) * burstSizeScale * radiusBoost
+	local a = brightness * burstIntensity
+
+	-- Light color: explicit lightColor {r,g,b}, else follow the bolt core color.
+	local lc = cfg.lightColor
+	local lr, lg, lb
+	if lc then lr, lg, lb = lc[1], lc[2], lc[3]
+	else lr, lg, lb = cfg.coreR, cfg.coreG, cfg.coreB end
+
+	-- Lifetime: explicit lightLifeFrames, else follow the burst's own lifetime;
+	-- then extend by the complexity boost so large bolts linger a bit longer.
+	local lifetime = mathFloor((cfg.lightLifeFrames or burstLifeFrames) * lifeBoost + 0.5)
+	if lifetime < 1 then lifetime = 1 end
+	-- Sustain: fraction of lifetime held at full brightness before fading out.
+	local sustain = mathMax(1, mathFloor(lifetime * (cfg.lightSustainFrac or 0.6)))
+
+	ScriptLuaUI.EnvLightningPointLight(
+		x, y, z, radius,
+		lr, lg, lb, a,
+		lifetime, sustain,
+		cfg.lightModelFactor or 1.0,
+		cfg.lightSpecular    or 1.0,
+		cfg.lightScattering  or 1.0,
+		cfg.lightLensflare   or 0.0,
+		spGetGameFrame())
 end
 
 local function spawnBurst(configName, x, y, z, sizeScale, intensityScale, widthScale)
@@ -798,7 +1029,10 @@ local function spawnBurst(configName, x, y, z, sizeScale, intensityScale, widthS
 
 	local complexityScale = lerp(0.30, 1.45, complexity01)
 	local branchCount = mathMax(1, mathFloor(cfg.branchCount * complexityScale + 0.5))
-	local childCount = mathMax(0, mathFloor(cfg.childCount * lerp(0.18, 1.4, complexity01) + 0.2))
+	-- Keep childCount fractional here: buildBranches resolves it per depth level via
+	-- probabilistic rounding (and applies childDecay), so e.g. 1.1 averages ~1.1
+	-- forks near the origin and tapers to fewer/none deeper in the tree.
+	local childCount = mathMax(0, cfg.childCount * lerp(0.18, 1.4, complexity01))
 	local maxDepth = cfg.maxDepth
 	if burstSizeScale < 0.65 and maxDepth > 0 then
 		maxDepth = maxDepth - 1
@@ -826,7 +1060,49 @@ local function spawnBurst(configName, x, y, z, sizeScale, intensityScale, widthS
 	local lifeJitter = 1.0 + ((mathRandom() * 2.0 - 1.0) * cfg.lifeVar)
 	local burstLifeFrames = mathMax(6, mathFloor(cfg.lifeFrames * lerp(0.55, 1.40, complexity01) * lifeJitter + 0.5))
 
+	-- Number of discrete restrikes over the lifetime. Three gates, cheapest first:
+	--   1) complexity: only longer/richer bursts want multiple shapes
+	--   2) chance: even eligible bursts only restrike with restrikeChance probability
+	--   3) distance: far-away bursts are capped down to a single strike (perf)
+	local nStrikes = mathMax(1, mathFloor(lerp(1, cfg.maxStrikes, complexity01) + 0.5))
+	if nStrikes > 1 then
+		-- chance gate: roll once; on failure this burst stays a single strike
+		if cfg.restrikeChance < 1.0 and mathRandom() >= cfg.restrikeChance then
+			nStrikes = 1
+		else
+			-- distance gate: cap allowed strikes by how far the burst is from camera
+			local cx, cy, cz = spGetCameraPosition()
+			local dx, dy, dz = x - cx, y - cy, z - cz
+			local dist = mathSqrt(dx*dx + dy*dy + dz*dz)
+			if dist > cfg.strikeFullDist then
+				local fade = clamp(
+					(dist - cfg.strikeFullDist) / mathMax(1, cfg.strikeCullDist - cfg.strikeFullDist),
+					0.0, 1.0)
+				local distMax = mathMax(1, mathFloor(lerp(cfg.maxStrikes, 1, fade) + 0.5))
+				if nStrikes > distMax then nStrikes = distMax end
+			end
+		end
+	end
+
+	-- Build the branch geometry ONCE: all strikes share the same arm directions
+	-- and branching tree. A restrike is the SAME bolt re-jittering along the same
+	-- line, not a brand-new bolt in a random direction. Each strike only gets its
+	-- own seed offset so the zigzag detail (computed in the shader from the seed)
+	-- differs between strikes while the underlying line stays put.
 	local branches, nBranches = buildBranches(cfg, burstSizeScale, branchCount, childCount, maxDepth, growFrac)
+
+	-- Per-strike normalized life windows, evenly divided across [0,1] and widened
+	-- by strikeOverlap so a new strike appears slightly before the previous fades.
+	local overlap = cfg.strikeOverlap
+	local span = 1.0 / nStrikes
+	local strikes = {}
+	for i = 1, nStrikes do
+		local t0 = (i - 1) * span
+		local t1 = t0 + span * (1.0 + overlap)
+		if t1 > 1.0 then t1 = 1.0 end
+		-- seedJitter shifts the shader's per-arm jitter pattern for this strike
+		strikes[i] = { t0 = t0, t1 = t1, seedJitter = (i - 1) * 137.13 }
+	end
 
 	-- Padding for view culling: longest reachable extent + glow halo.
 	local maxExtent = cfg.reach * burstSizeScale * 1.4
@@ -846,6 +1122,8 @@ local function spawnBurst(configName, x, y, z, sizeScale, intensityScale, widthS
 		aabbPad = aabbPad,
 		branches = branches,
 		nBranches = nBranches,
+		strikes = strikes,
+		nStrikes = nStrikes,
 	}
 
 	if nActive >= MAX_ACTIVE then
@@ -856,6 +1134,8 @@ local function spawnBurst(configName, x, y, z, sizeScale, intensityScale, widthS
 	nActive = nActive + 1
 	active[nActive] = burst
 	idleSkipCounter = 0
+
+	emitBurstLight(cfg, x, y, z, burstSizeScale, burstIntensity, burstLifeFrames, complexity01)
 end
 
 --------------------------------------------------------------------------------
@@ -959,7 +1239,7 @@ end
 --------------------------------------------------------------------------------
 -- Per-frame VBO build
 --------------------------------------------------------------------------------
-local function pushArm(beamData, offset, burst, br, life, alphaMul)
+local function pushArm(beamData, offset, burst, br, life, alphaMul, seedJitter)
 	local cfg = burst.cfg
 	local segs = burst.segments
 
@@ -996,9 +1276,6 @@ local function pushArm(beamData, offset, burst, br, life, alphaMul)
 	local ey = baseSy + br.dy * grown
 	local ez = baseSz + br.dz * grown
 
-	-- length falloff: dim toward the tip
-	local lengthFalloff = 0.45
-
 	local widthScale = br.widthScale * (burst.widthScale or 1.0)
 	local feather = cfg.feather
 	-- Keep intensity-driven size/glow bounded so one very bright burst does not
@@ -1007,13 +1284,15 @@ local function pushArm(beamData, offset, burst, br, life, alphaMul)
 	local glowIntensityScale = clamp(burst.intensityScale, 0.70, 1.20)
 	local glowMult = cfg.glowBrightness * glowIntensityScale
 	local tipTaper = cfg.tipTaper
+	local rootTaper = cfg.rootTaper
 	local jitterAmp = burst.jitterAmp
 	local baseWidth = burst.baseWidth
 	local intensityW = widthIntensityScale
 
 	local cr, cg, cb = cfg.coreR, cfg.coreG, cfg.coreB
 	local er, eg, eb = cfg.r, cfg.g, cfg.b
-	local seed = br.seed
+	-- Same arm, different jitter per restrike: offset the shader seed only.
+	local seed = br.seed + (seedJitter or 0.0)
 	local count = 0
 	for s = 0, segs - 1 do
 		beamData[offset + 1]  = sx
@@ -1031,7 +1310,7 @@ local function pushArm(beamData, offset, burst, br, life, alphaMul)
 		beamData[offset + 13] = er
 		beamData[offset + 14] = eg
 		beamData[offset + 15] = eb
-		beamData[offset + 16] = lengthFalloff
+		beamData[offset + 16] = rootTaper
 		beamData[offset + 17] = seed
 		beamData[offset + 18] = s
 		beamData[offset + 19] = segs
@@ -1074,29 +1353,49 @@ local function updateBolts()
 			w = w + 1
 			active[w] = burst
 
-			-- overall fade envelope
+			-- overall fade envelope (across the whole burst lifetime)
 			local envIn  = life < FADE_IN_FRAC and (life / FADE_IN_FRAC) or 1.0
 			local envOut = (1.0 - life) < FADE_OUT_FRAC and ((1.0 - life) / FADE_OUT_FRAC) or 1.0
-			local alphaMul = envIn * envOut * burst.intensity
+			local burstAlpha = envIn * envOut * burst.intensity
 
-			if alphaMul > 0.001 then
+			if burstAlpha > 0.001 then
 				local pad = burst.aabbPad
 				if spIsAABBInView(
 					burst.x - pad, burst.y - pad, burst.z - pad,
 					burst.x + pad, burst.y + pad, burst.z + pad
 				) then
-					local nBranches = burst.nBranches
-					-- ensure capacity for the whole burst at once
-					local need = beamCount + nBranches * burst.segments
+					-- Capacity: at most two strikes overlap at a time, but reserve for
+					-- all of them at once to stay safe regardless of overlap setting.
+					local need = beamCount + burst.nStrikes * burst.nBranches * burst.segments
 					if need > boltVBO.maxElements then
 						resizeBoltVBO(need + 128)
 						beamData = boltVBO.instanceData
 					end
+
+					-- All strikes share the same branch geometry; each only re-jitters
+					-- along the same line (via its seed offset) within its own life
+					-- window, so the bolt subtly re-forms a few times instead of
+					-- jumping to a brand-new random shape.
 					local branches = burst.branches
-					for b = 1, nBranches do
-						local pushed
-						offset, pushed = pushArm(beamData, offset, burst, branches[b], life, alphaMul)
-						beamCount = beamCount + pushed
+					local nBranches = burst.nBranches
+					for si = 1, burst.nStrikes do
+						local strike = burst.strikes[si]
+						if life >= strike.t0 and life < strike.t1 then
+							local span = strike.t1 - strike.t0
+							local strikeLife = (life - strike.t0) / span
+							-- per-strike fade-in/out so each restrike pops in and dims
+							local sIn  = strikeLife < STRIKE_FADE_IN  and (strikeLife / STRIKE_FADE_IN) or 1.0
+							local sOut = (1.0 - strikeLife) < STRIKE_FADE_OUT and ((1.0 - strikeLife) / STRIKE_FADE_OUT) or 1.0
+							local strikeAlpha = burstAlpha * sIn * sOut
+							if strikeAlpha > 0.001 then
+								local seedJitter = strike.seedJitter
+								for b = 1, nBranches do
+									local pushed
+									offset, pushed = pushArm(beamData, offset, burst, branches[b], strikeLife, strikeAlpha, seedJitter)
+									beamCount = beamCount + pushed
+								end
+							end
+						end
 					end
 				end
 			end

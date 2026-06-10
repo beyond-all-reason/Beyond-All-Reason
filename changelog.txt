@@ -1,5 +1,14 @@
 # June
 • [Commando] 1560 -> 1800 health, EMP resistance, weapon inaccuracy removed, weapon can target air, but does reduced dmg vs air (30%)
+• [Legion changes]
+	- Phalanx cost increased 450m4750E -> 470m5000E
+	- Praetorian speed increased 63 -> 72, health reduced 25000 -> 22000, flak dps reduced 514 -> 385, missile battery changed from a burst of 3 -> 12 with smaller missiles (dps 100 -> 300), cluster cannon removed
+	- Aquilon (T2 aa bot) airlos increased 850 -> 1100, railgun range increased 1050->1150, reloadtime reduced 4s -> 3s (dps 56 -> 75), microflak range increased 650 -> 700, dps reduced 506 -> 300
+	- Glaucus (scout hover) speed increased 96 -> 102
+	- Thalassa (T2 cruiser) range increased 450 -> 500
+	- Belcher sprayangle reduced 2500 -> 1500
+	- Advanced solar buildtime 13580 -> 12500
+	
 
 # May
 • [T1 bot constructors] +70 health
