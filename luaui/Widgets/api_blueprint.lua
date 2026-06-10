@@ -335,14 +335,14 @@ local function snapBlueprint(blueprint, pos, facing)
 
 	local xSize, zSize = getBlueprintDimensions(blueprint, facing or 0)
 
-	-- snap build-positions to 16-elmo grid
-	if mathFloor(xSize / 16) % 2 > 0 then
+	-- snap build-positions to the build-square grid
+	if mathFloor(xSize / BUILD_SQUARE_SIZE) % 2 > 0 then
 		result[1] = mathFloor(pos[1] / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
 	else
 		result[1] = mathFloor((pos[1] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
 	end
 
-	if mathFloor(zSize / 16) % 2 > 0 then
+	if mathFloor(zSize / BUILD_SQUARE_SIZE) % 2 > 0 then
 		result[3] = mathFloor(pos[3] / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
 	else
 		result[3] = mathFloor((pos[3] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
