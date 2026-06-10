@@ -139,9 +139,11 @@ end
 --   scatterSizeMin/Max    size scale range for sparks (small -> simpler/shorter)
 --   scatterIntensityScale intensity multiplier for sparks
 --   scatterWidthScale     width multiplier for sparks (thickness only)
+--   alwaysVisible     when true, bypasses local LOS filtering (still per-client)
 --------------------------------------------------------------------------------
 local lightningConfigs = {
 	scavradiation = {
+		alwaysVisible = true,
 		r = 0.50, g = 0.4, b = 1.00,
 		coreR = 0.82, coreG = 0.7, coreB = 1.00,
 		lifeFrames     = 9,
@@ -366,6 +368,9 @@ local lightningConfigs = {
 local spGetGameFrame   = Spring.GetGameFrame
 local spIsAABBInView   = Spring.IsAABBInView
 local spGetCameraPosition = Spring.GetCameraPosition
+local spIsPosInLos     = Spring.IsPosInLos
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
 
 local glBlending  = gl.Blending
 local glDepthTest = gl.DepthTest
@@ -920,6 +925,15 @@ local active   = {}    -- array of bursts
 local nActive  = 0
 local idleSkipCounter = 0
 local lastBuildFrame  = -1
+
+local cachedAllyTeamID = -1
+local cachedSpecFullView = false
+
+local function updateViewCache()
+	cachedAllyTeamID = spGetMyAllyTeamID() or -1
+	local _, fullView = spGetSpectatingState()
+	cachedSpecFullView = fullView and true or false
+end
 
 -- Build an arbitrary perpendicular basis around a unit forward vector.
 local function perpBasis(fx, fy, fz)
@@ -1500,12 +1514,22 @@ end
 -- Callins
 --------------------------------------------------------------------------------
 local function handleSpawn(_, configName, x, y, z, sizeScale, intensityScale)
+	-- Synced callsites are global; per-client LOS filtering must happen unsynced.
+	local cfg = lightningConfigs[configName]
+	if not (cfg and cfg.alwaysVisible) and not cachedSpecFullView and not spIsPosInLos(x, y, z, cachedAllyTeamID) then
+		return
+	end
 	requestLightning(configName, x, y, z, sizeScale, intensityScale)
 end
 
 function gadget:Initialize()
 	if not initGL4() then return end
+	updateViewCache()
 	gadgetHandler:AddSyncAction("envLightningSpawn", handleSpawn)
+end
+
+function gadget:PlayerChanged()
+	updateViewCache()
 end
 
 function gadget:Shutdown()
