@@ -264,7 +264,7 @@ end
 -- draw
 -- ====
 
-local SQUARE_SIZE = 8
+local SQUARE_SIZE = Game.squareSize
 local FOOTPRINT_SCALE = Game.footprintScale
 local BUILD_SQUARE_SIZE = SQUARE_SIZE * FOOTPRINT_SCALE
 
