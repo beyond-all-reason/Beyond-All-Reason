@@ -255,6 +255,62 @@ local lightningConfigs = {
 		lightScattering  = 1.0,
 	},
 
+	-- Electric burst for paralyzer (EMP) weapon impacts. A single burst is a
+	-- compact star of arcs crackling outward from the hit point; the EMP lightning
+	-- gadget (gfx_emp_lightning.lua) scales reach/intensity by weapon AoE+damage
+	-- and fires several of these around the blast for larger weapons, so the look
+	-- here is intentionally one self-contained "zap" rather than an area effect.
+	empimpact = {
+		r = 0.40, g = 0.60, b = 1.00,
+		coreR = 0.80, coreG = 0.90, coreB = 1.00,
+		lifeFrames     = 7,
+		intensity      = 0.2,
+		feather        = 0.42,
+		baseWidth      = 1.5,
+		reach          = 40,    -- reach at sizeScale 1; the gadget scales by AoE
+		branchCount    = 2,
+		childCount     = 1,
+		childDecay     = 0.6,
+		maxDepth       = 3,
+		segments       = 6,
+		jitterAmp      = 16,
+		glowBrightness = 0.4,
+		vbias          = 0.10,   -- mostly outward, with a slight upward bias
+		spread         = 1.7,
+		growFrac       = 0.18,
+		flowFrac       = 0.1,
+		tipTaper       = 0.1,
+		rootTaper      = 0.1,
+		sizeVarMin     = 0.4,
+		sizeVarMax     = 1.3,
+		intensityVar   = 0.4,
+		lifeVar        = 0.4,
+		maxStrikes     = 8,
+		strikeOverlap  = 0.3,
+		restrikeChance = 0.7,
+		strikeFullDist = 2600,
+		strikeCullDist = 5200,
+		-- deferred GL4 point light flashed at the impact
+		lightRadius      = 85,
+		lightBrightness  = 0.07,
+		lightSustainFrac = 0.5,
+		lightColor       = {0.6, 0.78, 1.0},
+		lightLifeFrames  = 7,
+		lightRadiusComplexity = 0.6,
+		lightLifeComplexity   = 0.35,
+		lightModelFactor = 0.5,
+		lightScattering  = 1.0,
+		scatterCount          = 1,
+		scatterFrames         = 40,
+		scatterRadius         = 40,
+		scatterHeightMin      = 10,
+		scatterHeightMax      = 20,
+		scatterSizeMin        = 0.4,
+		scatterSizeMax        = 0.7,
+		scatterIntensityScale = 0.4,
+		scatterWidthScale     = 1.0,
+	},
+
 	-- Centered on a freshly spawned unit (commander spawn / warp-in). Unlike the
 	-- airborne scavradiation cloud, this fires a strong arc burst at the unit
 	-- plus a stream of smaller electric sparks crackling across the surrounding
