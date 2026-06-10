@@ -74,7 +74,11 @@ end
 --   baseWidth        bolt core thickness in elmos
 --   reach            full length of the primary arms in elmos
 --   branchCount      number of primary arms shooting out of the origin
---   childCount       child forks spawned per branch node
+--   childCount       child forks spawned per branch node (may be fractional; the
+--                    .x part is a per-node chance of one more fork)
+--   childDecay       0..1 multiplier applied to childCount at each deeper depth, so
+--                    forking thins out further from the origin. 1 = no decay
+--                    (constant), 0.5 = half the forks each level deeper. Default 1.
 --   maxDepth         recursion depth of forking (0 = only primary arms)
 --   segments         jagged segments per arm (visual detail)
 --   jitterAmp        perpendicular jaggedness amplitude in elmos
@@ -141,29 +145,30 @@ local lightningConfigs = {
 		r = 0.50, g = 0.4, b = 1.00,
 		coreR = 0.82, coreG = 0.7, coreB = 1.00,
 		lifeFrames     = 9,
-		intensity      = 0.25,
+		intensity      = 0.20,
 		feather        = 0.4,
-		baseWidth      = 1.5,
+		baseWidth      = 2.3,
 		reach          = 425,
 		branchCount    = 1,
-		childCount     = 1.1,
-		maxDepth       = 3,
-		segments       = 7,
-		jitterAmp      = 32,
+		childCount     = 1.5,
+		childDecay     = 0.6,    -- forks thin out with depth (1.2 -> 0.72 -> 0.43 ...)
+		maxDepth       = 5,
+		segments       = 8,
+		jitterAmp      = 20,
 		glowBrightness = 0.4,
 		vbias          = 0.20,
 		spread         = 1.57,
-		growFrac       = 0.20,
+		growFrac       = 0.15,
 		flowFrac       = 0.08,
 		tipTaper       = 0.1,
 		rootTaper      = 0.1,
-		sizeVarMin     = 0.78,
+		sizeVarMin     = 0.72,
 		sizeVarMax     = 1.14,
 		intensityVar   = 0.75,
 		lifeVar        = 0.8,
-		maxStrikes     = 1,
+		maxStrikes     = 3,
 		strikeOverlap  = 0.25,
-		restrikeChance = 0.5,    -- only ~half of eligible bursts get extra strikes
+		restrikeChance = 0.6,    -- only ~half of eligible bursts get extra strikes
 		strikeFullDist = 2200,   -- full strike count within this camera distance
 		strikeCullDist = 5000,   -- forced to a single strike beyond this distance
 		-- deferred GL4 point light flashed at the burst origin (0 brightness = off)
@@ -280,17 +285,21 @@ local IDLE_SKIP_FRAMES = 3
 local MAX_ACTIVE       = 256     -- hard cap on simultaneous bursts (oldest dropped)
 
 -- Lifetime envelope (fractions of each burst's lifeFrames)
-local FADE_IN_FRAC   = 0.07    -- burst fades in over this fraction of life
-local FADE_OUT_FRAC  = 0.22    -- burst fades out over the final fraction of life
-local BRANCH_APPEAR  = 0.06    -- per-arm pop-in fade window (life fraction)
+local FADE_IN_FRAC   = 0.04    -- burst fades in over this fraction of life
+local FADE_OUT_FRAC  = 0.19    -- burst fades out over the final fraction of life
+local BRANCH_APPEAR  = 0.03    -- per-arm pop-in fade window (life fraction)
 -- Per-restrike envelope (fractions of each strike's own time window)
 local STRIKE_FADE_IN  = 0.06   -- a restrike pops in over this fraction of its window
 local STRIKE_FADE_OUT = 0.15   -- a restrike fades out over the final fraction of its window
 
+-- Dynamic animation reroll rate (steps per second) when ENABLE_DYNAMIC_ANIMATION
+-- is on. 30 = rerolls 30x/sec (fast tesla buzz); lower = slower, calmer crackle.
+local ANIMATE_RATE = 6.0
+
 -- Bolt body look
-local FLICKER_AMPLITUDE   = 0.45
-local THICKNESS_VARIATION = 0.7
-local SEGMENT_LENGTH_VAR  = 0.75
+local FLICKER_AMPLITUDE   = 0.25
+local THICKNESS_VARIATION = 0.5
+local SEGMENT_LENGTH_VAR  = 1.75
 local JITTER_MAX_BOLT_FRAC  = 0.10
 local BRUSH_MAX_JITTER_FRAC = 0.5
 local CORE_EDGE_START   = 0.03
@@ -298,12 +307,12 @@ local CORE_EDGE_END     = 0.3
 local CORE_BRIGHTNESS   = 2.3
 local BRIGHTNESS_MULT   = 2.5
 local MIN_PIXEL_WIDTH   = 0.0018
-local TIP_TAPER_START   = 0.55  -- segPos where tip taper begins (taper toward tip)
-local ROOT_TAPER_END    = 0.45  -- segPos where root taper ends (taper from origin)
+local TIP_TAPER_START   = 0.6  -- segPos where tip taper begins (taper toward tip)
+local ROOT_TAPER_END    = 0.6  -- segPos where root taper ends (taper from origin)
 local LENGTH_FALLOFF    = 0.45  -- constant dimming toward the tip along each arm
 
 -- Glow halo
-local GLOW_WIDTH_MULT      = 12.0
+local GLOW_WIDTH_MULT      = 14.0
 local GLOW_FALLOFF_POWER   = 5.0
 local GLOW_MIN_PIXEL_WIDTH = 0.005
 
@@ -319,6 +328,7 @@ for _, cfg in pairs(lightningConfigs) do
 	cfg.feather    = cfg.feather    or 0.5
 	cfg.intensity  = cfg.intensity  or 1.0
 	cfg.childCount = cfg.childCount or 0
+	cfg.childDecay = clamp(cfg.childDecay or 1.0, 0.0, 1.0)
 	cfg.maxDepth   = cfg.maxDepth   or 0
 	cfg.growFrac   = cfg.growFrac   or 0.4
 	cfg.flowFrac   = clamp(cfg.flowFrac or 0.0, 0.0, 0.95)
@@ -394,7 +404,7 @@ void main()
 	vec3 perpA = normalize(cross(forward, upRef));
 	vec3 perpB = normalize(cross(forward, perpA));
 
-	float frameTick = ENV_LIGHTNING_ANIMATE > 0.5 ? floor(timeInfo.z * 30.0) : 0.0;
+	float frameTick = ENV_LIGHTNING_ANIMATE > 0.5 ? floor(timeInfo.z * ANIMATE_RATE) : 0.0;
 
 	// Per-segment t with deterministic per-boundary length jitter (endpoints fixed)
 	float yNorm = position_xy_uv.y * 0.5 + 0.5;
@@ -586,7 +596,7 @@ void main()
 
 	float flicker = 1.0;
 	if (ENV_LIGHTNING_ANIMATE > 0.5) {
-		float frameTick = floor(timeInfo.z * 30.0);
+		float frameTick = floor(timeInfo.z * ANIMATE_RATE);
 		flicker = 1.0 - FLICKER_AMPLITUDE * 0.5 + FLICKER_AMPLITUDE * hash11(seed * 0.97 + frameTick * 0.13);
 	}
 	float glowWidth = baseWidth * GLOW_WIDTH_MULT * flicker;
@@ -664,6 +674,7 @@ local boltShaderConfig = {
 	THICKNESS_VARIATION = THICKNESS_VARIATION,
 	SEGMENT_LENGTH_VAR  = SEGMENT_LENGTH_VAR,
 	ENV_LIGHTNING_ANIMATE = ENABLE_DYNAMIC_ANIMATION and 1 or 0,
+	ANIMATE_RATE        = ANIMATE_RATE,
 	JITTER_MAX_BOLT_FRAC  = JITTER_MAX_BOLT_FRAC,
 	BRUSH_MAX_JITTER_FRAC = BRUSH_MAX_JITTER_FRAC,
 	CORE_EDGE_START     = CORE_EDGE_START,
@@ -679,6 +690,7 @@ local boltShaderConfig = {
 local glowShaderConfig = {
 	FLICKER_AMPLITUDE    = FLICKER_AMPLITUDE,
 	ENV_LIGHTNING_ANIMATE = ENABLE_DYNAMIC_ANIMATION and 1 or 0,
+	ANIMATE_RATE         = ANIMATE_RATE,
 	GLOW_WIDTH_MULT      = GLOW_WIDTH_MULT,
 	GLOW_FALLOFF_POWER   = GLOW_FALLOFF_POWER,
 	GLOW_MIN_PIXEL_WIDTH = GLOW_MIN_PIXEL_WIDTH,
@@ -799,9 +811,14 @@ local function buildBranches(cfg, sizeScale, branchCount, childCount, maxDepth, 
 	local reach = cfg.reach * sizeScale
 	local spread = cfg.spread
 	local vbias = cfg.vbias
+	-- Per-depth child decay: each deeper level forks less. 1 = no decay (constant),
+	-- 0.5 = half as many children each level deeper. Fractional counts resolve via
+	-- probabilistic rounding, so a count of e.g. 0.6 = 60% chance of one more fork.
+	local childDecay = cfg.childDecay
 
-	-- recursive generation via explicit stack to avoid deep closures
-	local function addBranch(sx, sy, sz, dx, dy, dz, len, startFrac, growFrac, depth, widthScale)
+	-- recursive generation via explicit stack to avoid deep closures.
+	-- childrem is this node's (already decayed) expected child count.
+	local function addBranch(sx, sy, sz, dx, dy, dz, len, startFrac, growFrac, depth, widthScale, childrem)
 		n = n + 1
 		branches[n] = {
 			sx = sx, sy = sy, sz = sz,
@@ -812,9 +829,12 @@ local function buildBranches(cfg, sizeScale, branchCount, childCount, maxDepth, 
 			seed = mathRandom() * 1000.0,
 			widthScale = widthScale,
 		}
-		if depth >= maxDepth or childCount <= 0 then return end
+		if depth >= maxDepth then return end
+		local kids = probRound(childrem)
+		if kids <= 0 then return end
+		local childremNext = childrem * childDecay
 		local ax, ay, az, bx, by, bz = perpBasis(dx, dy, dz)
-		for _ = 1, childCount do
+		for _ = 1, kids do
 			local anchorFrac = 0.30 + mathRandom() * 0.55
 			-- child base position along this (straight) arm
 			local cx = sx + dx * len * anchorFrac
@@ -839,7 +859,7 @@ local function buildBranches(cfg, sizeScale, branchCount, childCount, maxDepth, 
 			local childStart = startFrac + growFrac * anchorFrac
 			if childStart < 0.98 then
 				addBranch(cx, cy, cz, ndx, ndy, ndz, childLen,
-					childStart, growFrac * 0.7, depth + 1, widthScale * 0.7)
+					childStart, growFrac * 0.7, depth + 1, widthScale * 0.7, childremNext)
 			end
 		end
 	end
@@ -859,8 +879,9 @@ local function buildBranches(cfg, sizeScale, branchCount, childCount, maxDepth, 
 		local bl = mathSqrt(rx*rx + ry*ry + rz*rz)
 		rx, ry, rz = rx/bl, ry/bl, rz/bl
 		local armLen = reach * (0.70 + mathRandom() * 0.30)
-		-- positions are origin-relative; the burst origin is added at emit time
-		addBranch(0, 0, 0, rx, ry, rz, armLen, 0.0, growFrac, 0, 1.0)
+		-- positions are origin-relative; the burst origin is added at emit time.
+		-- Depth 0 nodes start with the full childCount; it decays each level deeper.
+		addBranch(0, 0, 0, rx, ry, rz, armLen, 0.0, growFrac, 0, 1.0, childCount)
 	end
 	return branches, n
 end
@@ -931,9 +952,10 @@ local function spawnBurst(configName, x, y, z, sizeScale, intensityScale, widthS
 
 	local complexityScale = lerp(0.30, 1.45, complexity01)
 	local branchCount = mathMax(1, mathFloor(cfg.branchCount * complexityScale + 0.5))
-	-- Fractional childCount works: the .x part is the per-burst chance of an extra
-	-- fork (probabilistic rounding), so e.g. 1.5 averages ~1.5 forks across bursts.
-	local childCount = mathMax(0, probRound(cfg.childCount * lerp(0.18, 1.4, complexity01)))
+	-- Keep childCount fractional here: buildBranches resolves it per depth level via
+	-- probabilistic rounding (and applies childDecay), so e.g. 1.1 averages ~1.1
+	-- forks near the origin and tapers to fewer/none deeper in the tree.
+	local childCount = mathMax(0, cfg.childCount * lerp(0.18, 1.4, complexity01))
 	local maxDepth = cfg.maxDepth
 	if burstSizeScale < 0.65 and maxDepth > 0 then
 		maxDepth = maxDepth - 1
