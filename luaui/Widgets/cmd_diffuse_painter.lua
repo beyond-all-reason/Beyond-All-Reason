@@ -1060,7 +1060,9 @@ end
 
 local function scanMaterialLibrary()
 	materialLibrary = {}
-	local ROOT = "luaui/images/terraform_brush/textures/"
+	-- Write-dir asset library (not committed to the game repo). VFS.RAW_FIRST
+	-- below resolves it from <datadir>/Terraform Brush/textures/.
+	local ROOT = "Terraform Brush/textures/"
 	local byKey = {} -- prefer highest-resolution diffuse per material key (use the 8K)
 
 	-- Diffuse textures may sit at any depth under ROOT (the source packs nest

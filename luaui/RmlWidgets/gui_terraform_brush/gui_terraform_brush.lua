@@ -957,11 +957,13 @@ local NEWMAP_COLOR        = { 110, 130, 90 } -- base diffuse colour (0..255), mu
 -- Each entry: { name, textures = {4 files}, scales = {4}, mults = {4}, diffuseAlpha }.
 -- A fresh blank map has no SSMF splat textures, so the chosen set is injected into
 -- the blank-map start script (blank_map_splat* keys) to give the splat painter a
--- detail-normal set to paint. Files live in luaui/images/terraform_brush/textures/dnts/.
-local DNTS_DIR = "luaui/images/terraform_brush/textures/dnts/"
+-- detail-normal set to paint. The heavy asset library lives OUTSIDE the game
+-- archive, in the write dir (Terraform Brush/textures/dnts/), so it isn't
+-- committed; users drop the downloadable pack there. Loaded raw via VFS.RAW.
+local DNTS_DIR = "Terraform Brush/textures/dnts/"
 local dntsSets = {}
 do
-	local chunk = VFS.LoadFile(DNTS_DIR .. "dnts_sets.lua")
+	local chunk = VFS.LoadFile(DNTS_DIR .. "dnts_sets.lua", VFS.RAW)
 	if chunk then
 		local ok, list = pcall(function() return loadstring(chunk)() end)
 		if ok and type(list) == "table" then dntsSets = list end
