@@ -185,6 +185,76 @@ local lightningConfigs = {
 		-- lightLensflare   = 0.0,
 	},
 
+	junoareastorm = {
+		r = 0.44, g = 0.94, b = 0.5,
+		coreR = 0.66, coreG = 1.00, coreB = 0.7,
+		lifeFrames     = 10,
+		intensity      = 0.66,
+		feather        = 0.42,
+		baseWidth      = 1.25,
+		reach          = 280,
+		branchCount    = 1,
+		childCount     = 1.0,
+		maxDepth       = 2,
+		segments       = 6,
+		jitterAmp      = 28,
+		glowBrightness = 0.35,
+		vbias          = 0.18,
+		spread         = 1.4,
+		growFrac       = 0.2,
+		flowFrac       = 0.08,
+		tipTaper       = 0.1,
+		rootTaper      = 0.1,
+		sizeVarMin     = 0.82,
+		sizeVarMax     = 1.08,
+		intensityVar   = 0.6,
+		lifeVar        = 0.4,
+		maxStrikes     = 1,
+		lightRadius      = 340,
+		lightBrightness  = 0.05,
+		lightSustainFrac = 0.58,
+		lightColor       = {0.55, 1.0, 0.58},
+		lightLifeFrames  = 6,
+		lightRadiusComplexity = 0.4,
+		lightLifeComplexity   = 0.25,
+		lightModelFactor = 0.45,
+		lightScattering  = 1.0,
+	},
+
+	junodamagezap = {
+		r = 0.30, g = 0.8, b = 0.35,
+		coreR = 0.70, coreG = 1.00, coreB = 0.75,
+		lifeFrames     = 6,
+		intensity      = 0.2,
+		feather        = 0.45,
+		baseWidth      = 0.9,
+		reach          = 50,
+		branchCount    = 2,
+		childCount     = 0.5,
+		maxDepth       = 1,
+		segments       = 3,
+		jitterAmp      = 12,
+		glowBrightness = 0.26,
+		vbias          = 0.3,
+		spread         = 1.8,
+		growFrac       = 0.35,
+		flowFrac       = 0.14,
+		tipTaper       = 0.18,
+		rootTaper      = 0.12,
+		sizeVarMin     = 0.9,
+		sizeVarMax     = 1.1,
+		intensityVar   = 0.2,
+		lifeVar        = 0.2,
+		maxStrikes     = 1,
+		lightRadius      = 120,
+		lightBrightness  = 0.04,
+		lightSustainFrac = 0.45,
+		lightColor       = {0.65, 1.0, 0.72},
+		lightLifeFrames  = 4,
+		lightModelFactor = 0.4,
+		lightScattering  = 1.0,
+	},
+
 	-- Centered on a freshly spawned unit (commander spawn / warp-in). Unlike the
 	-- airborne scavradiation cloud, this fires a strong arc burst at the unit
 	-- plus a stream of smaller electric sparks crackling across the surrounding
@@ -569,6 +639,7 @@ void main()
 	float seed     = boltParams.x;
 	float segIndex = boltParams.y;
 	float segCount = boltParams.z;
+	float jitterAmp= boltParams.w;
 
 	vec3 boltDir = endPos - startPos;
 	float boltLen = length(boltDir);
@@ -599,7 +670,12 @@ void main()
 		float frameTick = floor(timeInfo.z * ANIMATE_RATE);
 		flicker = 1.0 - FLICKER_AMPLITUDE * 0.5 + FLICKER_AMPLITUDE * hash11(seed * 0.97 + frameTick * 0.13);
 	}
-	float glowWidth = baseWidth * GLOW_WIDTH_MULT * flicker;
+	float jitterScale = min(jitterAmp, boltLen * JITTER_MAX_BOLT_FRAC);
+	float jitterRatio = clamp(jitterScale / max(boltLen, 0.001), 0.0, 1.0);
+	// Strongly bent/jagged branches can diverge from the straight glow axis;
+	// tighten + dim the halo there to reduce off-axis glow bleed.
+	float alignment = 1.0 - smoothstep(0.02, 0.10, jitterRatio);
+	float glowWidth = baseWidth * GLOW_WIDTH_MULT * flicker * mix(0.58, 1.0, alignment);
 
 	float camDist = length(camPos - posOnAxis);
 	float minWidth = camDist * GLOW_MIN_PIXEL_WIDTH;
@@ -612,7 +688,7 @@ void main()
 	widthPos = position_xy_uv.x;
 	lengthT  = tHere;
 	glowColor = edgeColor.rgb;
-	alpha = coreColor.a * flicker * coverageVal * (1.0 - LENGTH_FALLOFF * tHere);
+	alpha = coreColor.a * flicker * coverageVal * (1.0 - LENGTH_FALLOFF * tHere) * mix(0.72, 1.0, alignment);
 	glowMult = extraParams.z;
 	feather  = extraParams.w;
 }
@@ -694,6 +770,7 @@ local glowShaderConfig = {
 	GLOW_WIDTH_MULT      = GLOW_WIDTH_MULT,
 	GLOW_FALLOFF_POWER   = GLOW_FALLOFF_POWER,
 	GLOW_MIN_PIXEL_WIDTH = GLOW_MIN_PIXEL_WIDTH,
+	JITTER_MAX_BOLT_FRAC = JITTER_MAX_BOLT_FRAC,
 	LENGTH_FALLOFF       = LENGTH_FALLOFF,
 }
 

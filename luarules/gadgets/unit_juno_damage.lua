@@ -141,14 +141,47 @@ if gadgetHandler:IsSyncedCode() then
 
 	--locals
 	local SpGetGameSeconds = Spring.GetGameSeconds
+	local SpGetGameFrame = Spring.GetGameFrame
 	local SpGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local SpDestroyUnit = Spring.DestroyUnit
 	local SpGetUnitDefID = Spring.GetUnitDefID
 	local SpValidUnitID = Spring.ValidUnitID
 	local SpGetUnitPosition = Spring.GetUnitPosition
+	local SpGetGroundHeight = Spring.GetGroundHeight
 	local SpSpawnCEG = Spring.SpawnCEG
 	local Mmin = math.min
+	local Mfloor = math.floor
+	local Msqrt = math.sqrt
+	local Msin = math.sin
+	local Mcos = math.cos
+	local Mpi = math.pi
 
+	-- DEBUG: spawn a fake juno impact once every (effectlength + 5) seconds at a fixed map position
+	local DEBUG_JUNO_IMPACT = false
+	local debugImpactX = 1300
+	local debugImpactZ = 2900
+	local debugIntervalFrames = (effectlength + 5) * 30  -- effectlength seconds + 5 idle seconds, at 30fps
+
+	local stormPulseIntervalFrames = 33
+	local stormPulseJitterFrames = 15
+	local stormOuterMargin = 24
+	local stormHeightOffset = 18
+	local stormSizeMin = 0.72
+	local stormSizeMax = 1.05
+	local stormIntensityMin = 0.82
+	local stormIntensityMax = 1.2
+
+	local function hash01(v)
+		local s = Msin(v) * 43758.5453
+		return s - Mfloor(s)
+	end
+
+	local function SpawnJunoDamageEffects(px, py, pz)
+		SpSpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
+		if GG.SpawnEnvironmentalLightning then
+			GG.SpawnEnvironmentalLightning("junodamagezap", px, py + 10, pz, 1.0, 1.0)
+		end
+	end
 
 	-- kill appropriate things from initial juno blast --
 
@@ -174,7 +207,7 @@ if gadgetHandler:IsSyncedCode() then
 			if uID and SpValidUnitID(uID) then
 				local px, py, pz = SpGetUnitPosition(uID)
 				if px then
-					SpSpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
+					SpawnJunoDamageEffects(px, py, pz)
 				end
 				if aID and SpValidUnitID(aID) then
 					SpDestroyUnit(uID, false, false, aID)
@@ -204,7 +237,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Explosion(weaponID, px, py, pz, ownerID)
 		if junoWeapons[weaponID] then
 			local curtime = SpGetGameSeconds()
-			local junoExpl = { x = px, y = py, z = pz, t = curtime, o = ownerID }
+			local junoExpl = { x = px, y = py, z = pz, t = curtime, f = SpGetGameFrame(), o = ownerID }
 			centers[counter] = junoExpl
 			--SendToUnsynced("AddToCenters", counter, px, py, pz, curtime)
 			counter = counter + 1
@@ -222,6 +255,16 @@ if gadgetHandler:IsSyncedCode() then
 		--SendToUnsynced("RecieveConstants", width, radius, effectlength, fadetime)
 		--end
 
+		if DEBUG_JUNO_IMPACT and frame % debugIntervalFrames == 0 then
+			local curtime = SpGetGameSeconds()
+			local debugY = Spring.GetGroundHeight(debugImpactX, debugImpactZ)
+			SpSpawnCEG("juno-explo", debugImpactX, debugY, debugImpactZ, 0, 1, 0)
+			local debugExpl = { x = debugImpactX, y = debugY, z = debugImpactZ, t = curtime, f = frame }
+			centers[counter] = debugExpl
+			counter = counter + 1
+			Spring.Echo("[juno_damage DEBUG] spawned juno impact at (" .. debugImpactX .. ", " .. debugY .. ", " .. debugImpactZ .. ") frame=" .. frame)
+		end
+
 		local curtime = SpGetGameSeconds()
 
 		for counter, expl in pairs(centers) do
@@ -231,19 +274,44 @@ if gadgetHandler:IsSyncedCode() then
 					q = (1 / fadetime) * Mmin(curtime - expl.t, expl.t + effectlength - curtime)
 				end
 
+				if GG.SpawnEnvironmentalLightning then
+					expl.nextStormFrame = expl.nextStormFrame or ((expl.f or frame) + stormPulseIntervalFrames)
+					expl.pulseCount = expl.pulseCount or 0
+					if frame >= expl.nextStormFrame then
+						local ageFrames = frame - (expl.f or frame)
+						local stormRadius = q * radius + stormOuterMargin
+						local seed = (expl.f or frame) * 0.013 + counter * 3.173 + ageFrames * 0.071
+						local angle = hash01(seed) * (2 * Mpi)
+						local dist = Msqrt(hash01(seed + 19.19)) * stormRadius
+						local lx = expl.x + Mcos(angle) * dist
+						local lz = expl.z + Msin(angle) * dist
+						local ly = SpGetGroundHeight(lx, lz) + stormHeightOffset
+						local sizeScale = stormSizeMin + hash01(seed + 7.7) * (stormSizeMax - stormSizeMin)
+						local intensityScale = stormIntensityMin + hash01(seed + 11.3) * (stormIntensityMax - stormIntensityMin)
+						GG.SpawnEnvironmentalLightning("junoareastorm", lx, ly, lz, sizeScale, intensityScale)
+
+						expl.pulseCount = expl.pulseCount + 1
+						local jitterSeed = (expl.f or frame) * 0.021 + counter * 4.913 + expl.pulseCount * 1.771
+						local signedJitter = (hash01(jitterSeed) * 2 - 1) * stormPulseJitterFrames
+						local nextInterval = Mfloor(stormPulseIntervalFrames + signedJitter)
+						if nextInterval < 8 then nextInterval = 8 end
+						expl.nextStormFrame = frame + nextInterval
+					end
+				end
+
 				local unitIDsBig = SpGetUnitsInCylinder(expl.x, expl.z, q * radius)
 
 				for i = 1, #unitIDsBig do
 					-- linear and not O(n^2)
 					local unitID = unitIDsBig[i]
 					local unitDefID = SpGetUnitDefID(unitID)
-				if todenyUnits[unitDefID] then
+					if todenyUnits[unitDefID] then
 						local px, py, pz = SpGetUnitPosition(unitID)
 						local dx = expl.x - px
 						local dz = expl.z - pz
 						if (dx * dx + dz * dz) > (q * (radius - width)) * (q * (radius - width)) then
 							-- linear and not O(n^2)
-							SpSpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
+							SpawnJunoDamageEffects(px, py, pz)
 							SpDestroyUnit(unitID, true, false)
 						end
 					end
