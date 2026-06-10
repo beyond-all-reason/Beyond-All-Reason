@@ -484,9 +484,7 @@ if gadgetHandler:IsSyncedCode() then
 				-- Spring.Echo("Life is 0, time to do some killing")
 				if SetCount(squadsTable[i].squadUnits) > 0 and SetCount(burrows) > 2 then
 					if squadsTable[i].squadBurrow and nSpawnedQueens == 0 then
-						if GetUnitTeam(squadsTable[i].squadBurrow) == raptorTeamID then
-							DestroyUnit(squadsTable[i].squadBurrow, true, false)
-						elseif GetUnitIsDead(squadsTable[i].squadBurrow) == false then
+						if GetUnitIsDead(squadsTable[i].squadBurrow) == false then
 							squadsTable[i].squadBurrow = nil
 						end
 					end

@@ -73,6 +73,7 @@ local spGetUnitLosState          = Spring.GetUnitLosState
 local spIsSphereInView           = Spring.IsSphereInView
 local spGetCameraPosition        = Spring.GetCameraPosition
 local spGetUnitCollisionVolumeData = Spring.GetUnitCollisionVolumeData
+local spGetGroundHeight          = Spring.GetGroundHeight
 
 -- Engine encodes feature targets in worker-task results as (featureID + MaxUnits()).
 -- Used for CMD_RESURRECT (always) and CMD_RECLAIM of features. See engine
@@ -378,6 +379,144 @@ local GAME_SPEED     = Game.gameSpeed or 30
 -- copy the values they need into function-locals at function entry, so per-
 -- particle reads still hit a local rather than a table key.
 local U = {}
+
+-- Optional terrain clamp for particle paths. Disabled by default because it
+-- adds extra ground-height queries in hot paths.
+U.GROUND_CLAMP_ENABLED = true
+U.GROUND_CLAMP_MARGIN  = 11.0
+-- In-flight correction cadence. Enabled mode can periodically reproject active
+-- particles above terrain to prevent straight-line tunneling through cliffs.
+-- 0 means "all active particles each pass".
+U.GROUND_CLAMP_RUN_EVERY    = 6
+U.GROUND_CLAMP_MAX_PER_STEP = 0
+U.GROUND_CLAMP_RECHECK_HIT  = 6
+U.GROUND_CLAMP_RECHECK_MISS = 12
+U.GROUND_CLAMP_USE_WAYPOINT = true
+-- Smart gate: only enable clamp for builders/targets in rough terrain.
+U.GROUND_CLAMP_SMART              = true
+U.GROUND_CLAMP_SMART_DELTA        = 4.0
+U.GROUND_CLAMP_SMART_RADIUS       = 128.0
+U.GROUND_CLAMP_SMART_CACHE_FRAMES = 45
+
+U.GROUND_CACHE_INV_CELL = 1 / 16
+U.GROUND_CACHE_STRIDE = mathFloor(((Game.mapSizeZ or 65536) * U.GROUND_CACHE_INV_CELL) + 0.5) + 1024
+U._groundYCache = {}
+U._groundYStamp = {}
+U._groundClampGateCache = {}
+
+-- Clamp-focused debug stream (lightweight; independent from full DEBUG timers)
+local CLAMP_DEBUG = false
+local clampDbg = {
+	emitChecks = 0,
+	emitEnabled = 0,
+	registered = 0,
+	processed = 0,
+	corrected = 0,
+	dropped = 0,
+	maxSubset = 0,
+}
+
+-- Ground-height cache for clamp hot paths. Quantized keys trade tiny spatial
+-- precision for far fewer Spring.GetGroundHeight calls in dense sprays.
+local function getGroundYMargin(x, z, frame)
+	if frame then
+		local qx = mathFloor(x * U.GROUND_CACHE_INV_CELL + 0.5)
+		local qz = mathFloor(z * U.GROUND_CACHE_INV_CELL + 0.5)
+		local key = qx * U.GROUND_CACHE_STRIDE + qz
+		if U._groundYStamp[key] == frame then
+			return U._groundYCache[key]
+		end
+		local gy = spGetGroundHeight(x, z) + U.GROUND_CLAMP_MARGIN
+		U._groundYStamp[key] = frame
+		U._groundYCache[key] = gy
+		return gy
+	end
+	return spGetGroundHeight(x, z) + U.GROUND_CLAMP_MARGIN
+end
+
+local function clampYAboveGround(x, y, z, frame)
+	if not U.GROUND_CLAMP_ENABLED then return y end
+	local gy = getGroundYMargin(x, z, frame)
+	if y < gy then return gy end
+	return y
+end
+
+local function shouldClampEmit(builderID, sx, sy, sz, ex, ey, ez, frame)
+	if not U.GROUND_CLAMP_ENABLED then return false end
+	if not U.GROUND_CLAMP_SMART then return true end
+	if CLAMP_DEBUG then clampDbg.emitChecks = clampDbg.emitChecks + 1 end
+	local qex = mathFloor(ex * U.GROUND_CACHE_INV_CELL + 0.5)
+	local qez = mathFloor(ez * U.GROUND_CACHE_INV_CELL + 0.5)
+	local targetKey = qex * U.GROUND_CACHE_STRIDE + qez
+	local cached = U._groundClampGateCache[builderID]
+	if cached and cached[3] == targetKey and (frame - cached[1]) < U.GROUND_CLAMP_SMART_CACHE_FRAMES then
+		return cached[2], cached[4], cached[5]
+	end
+	local delta = U.GROUND_CLAMP_SMART_DELTA
+	local guideY = -1e9
+	local peakT = 0.5
+	local dx = ex - sx
+	local dz = ez - sz
+	local dy = ey - sy
+	local maxPen = -1e9
+	local longPath = (dx * dx + dz * dz) > 4096
+	local n = longPath and 8 or 3
+	for i = 1, n do
+		local t
+		if longPath then
+			if i == 1 then t = 0.12
+			elseif i == 2 then t = 0.22
+			elseif i == 3 then t = 0.35
+			elseif i == 4 then t = 0.50
+			elseif i == 5 then t = 0.65
+			elseif i == 6 then t = 0.78
+			elseif i == 7 then t = 0.90
+			else t = 0.96 end
+		else
+			if i == 1 then t = 0.35
+			elseif i == 2 then t = 0.50
+			else t = 0.65 end
+		end
+		local mx = sx + dx * t
+		local mz = sz + dz * t
+		local my = sy + dy * t
+		local gy = getGroundYMargin(mx, mz, frame)
+		if gy > guideY then guideY = gy end
+		local pen = gy - my
+		if pen > maxPen then
+			maxPen = pen
+			peakT = t
+		end
+	end
+	local enable = maxPen > delta
+	if CLAMP_DEBUG and enable then clampDbg.emitEnabled = clampDbg.emitEnabled + 1 end
+	U._groundClampGateCache[builderID] = { frame, enable, targetKey, guideY, peakT }
+	return enable, guideY, peakT
+end
+
+-- Round-robin cursor for bounded global in-flight clamp passes.
+local groundClampCursor = 1
+local groundClampParticles = {}
+local groundClampFree = {}
+
+local function registerGroundClampParticle(id, death, wp, fx, fy, fz)
+	local nFree = #groundClampFree
+	local entry = groundClampFree[nFree]
+	if entry then
+		groundClampFree[nFree] = nil
+	else
+		entry = {}
+	end
+	entry.id = id
+	entry.death = death
+	entry.wp = wp
+	entry.fx = fx
+	entry.fy = fy
+	entry.fz = fz
+	entry.next = wp or 0
+	groundClampParticles[#groundClampParticles + 1] = entry
+	if CLAMP_DEBUG then clampDbg.registered = clampDbg.registered + 1 end
+end
 
 -- Populate every mode-derived value from MODE_SETTINGS[name]. Called once at
 -- file load. Kept as a function so future mode additions can re-invoke it
@@ -1365,6 +1504,9 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 	count = count or 1
 	spreadFrames = spreadFrames or 0
 	pieceIdx = pieceIdx or pickNanoPiece(info)
+	local clampThisEmit = false
+	local clampGuideY
+	local clampPeakT
 
 	-- Spring.GetUnitPiecePosDir is the hot Spring->C call here. Cached by
 	-- (unitID, pieceIdx) for the duration of one scan frame, invalidated by
@@ -1383,6 +1525,13 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 			entry[2] = sx; entry[3] = sy; entry[4] = sz
 		else
 			piecePosCache[key] = { piecePosEpoch, sx, sy, sz }
+		end
+	end
+
+	if U.GROUND_CLAMP_ENABLED and (not info.isFactory) then
+		clampThisEmit, clampGuideY, clampPeakT = shouldClampEmit(builderID, sx, sy, sz, endX, endY, endZ, frame)
+		if clampThisEmit then
+			endY = clampYAboveGround(endX, endY, endZ, frame)
 		end
 	end
 
@@ -1508,6 +1657,9 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 			else
 				px, py, pz = sx, sy, sz
 			end
+			if clampThisEmit and inverse then
+				py = clampYAboveGround(px, py, pz, frame)
+			end
 
 			-- Stagger this particle's spawn along its velocity by `tOff` frames,
 			-- where tOff is in [-spreadFrames, +spreadFrames]. Negative offsets
@@ -1544,7 +1696,39 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				if not visible then break end
 			end
 
+			local wpFrame, finalX, finalY, finalZ
+			local useWaypoint = clampThisEmit and U.GROUND_CLAMP_USE_WAYPOINT and clampGuideY and (not inverse)
+			if useWaypoint then
+				finalX = px + vx * lifetime
+				finalY = py + vy * lifetime
+				finalZ = pz + vz * lifetime
+				local peak = clampPeakT or 0.5
+				if peak < 0.15 then peak = 0.15 elseif peak > 0.85 then peak = 0.85 end
+				local leg1 = mathFloor(lifetime * peak)
+				if leg1 < 1 then leg1 = 1 end
+				if leg1 < lifetime then
+					local wpX = px + (finalX - px) * peak
+					local wpY = py + (finalY - py) * peak
+					local wpZ = pz + (finalZ - pz) * peak
+					if clampGuideY > wpY then wpY = clampGuideY end
+					local invLeg1 = 1.0 / leg1
+					vx = (wpX - px) * invLeg1
+					vy = (wpY - py) * invLeg1
+					vz = (wpZ - pz) * invLeg1
+					wpFrame = frame + leg1
+				end
+			end
+
 			local pid = spawnParticle(px, py, pz, vx, vy, vz, lifetime, r, g, b, frame, fadeFrames, inverse)
+			if pid and clampThisEmit then
+				if useWaypoint then
+					if wpFrame then
+						registerGroundClampParticle(pid, frame + lifetime, wpFrame, finalX, finalY, finalZ)
+					end
+				else
+					registerGroundClampParticle(pid, frame + lifetime)
+				end
+			end
 
 			-- Inverse particles converge on the builder. If the builder moves
 			-- before the particle dies, the original straight-line trajectory
@@ -1558,9 +1742,9 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				local nL = #list
 				if nL >= HOMING_MAX_PER_BUILDER then
 					for i = 1, nL - 1 do list[i] = list[i + 1] end
-					list[nL] = { id = pid, pieceIdx = pieceIdx, death = frame + lifetime }
+					list[nL] = { id = pid, pieceIdx = pieceIdx, death = frame + lifetime, gc = clampThisEmit }
 				else
-					list[nL + 1] = { id = pid, pieceIdx = pieceIdx, death = frame + lifetime }
+					list[nL + 1] = { id = pid, pieceIdx = pieceIdx, death = frame + lifetime, gc = clampThisEmit }
 				end
 			elseif (not inverse) and pid and targetUnitID then
 				-- Forward emission aimed at a moving unit (repair/capture).
@@ -1592,9 +1776,9 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 						local fn = #flist
 						if fn >= FADE_FWD_MAX_PER_TARGET then
 							for i = 1, fn - 1 do flist[i] = flist[i + 1] end
-							flist[fn] = { id = pid, death = frame + lifetime }
+							flist[fn] = { id = pid, death = frame + lifetime, gc = clampThisEmit }
 						else
-							flist[fn + 1] = { id = pid, death = frame + lifetime }
+							flist[fn + 1] = { id = pid, death = frame + lifetime, gc = clampThisEmit }
 						end
 						break
 					end
@@ -1621,9 +1805,9 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				local nL = #list
 				if nL >= HOMING_FWD_MAX_PER_TARGET then
 					for i = 1, nL - 1 do list[i] = list[i + 1] end
-					list[nL] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ }
+					list[nL] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit }
 				else
-					list[nL + 1] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ }
+					list[nL + 1] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit }
 				end
 			end
 		until true
@@ -1863,6 +2047,10 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 			-- Hoist the high half of the piecePosCache key out of the per-particle
 			-- loop. Hot path: ~thousands of particles per scan in heavy reclaim.
 			local builderKeyHi = builderID * 256
+			local clampDelta = U.GROUND_CLAMP_SMART_DELTA
+			local piecePosByKey = {}
+			local pieceMovingByKey = {}
+			local pieceGroundYByKey = {}
 			for i = 1, #list do
 				local p = list[i]
 				local remaining = p.death - frame
@@ -1871,23 +2059,62 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 					-- Resolve current piece position via the per-frame cache.
 					local pieceIdx = p.pieceIdx
 					local key = builderKeyHi + pieceIdx
-					local entry = piecePosCache[key]
+					local pos = piecePosByKey[key]
+					local pieceMoving = pieceMovingByKey[key]
 					local nx, ny, nz
-					if entry and entry[1] == piecePosEpoch then
-						nx, ny, nz = entry[2], entry[3], entry[4]
+					if pos then
+						nx, ny, nz = pos[1], pos[2], pos[3]
 					else
-						nx, ny, nz = spGetUnitPiecePosDir(builderID, pieceIdx)
-						if nx then
-							if entry then
-								entry[1] = piecePosEpoch
-								entry[2] = nx; entry[3] = ny; entry[4] = nz
-							else
-								piecePosCache[key] = { piecePosEpoch, nx, ny, nz }
+						local entry = piecePosCache[key]
+						if entry and entry[1] == piecePosEpoch then
+							nx, ny, nz = entry[2], entry[3], entry[4]
+							if pieceMoving == nil then
+								local px, py, pz = entry[5], entry[6], entry[7]
+								if px then
+									local mdx = nx - px
+									local mdy = ny - py
+									local mdz = nz - pz
+									pieceMoving = (mdx*mdx + mdy*mdy + mdz*mdz) >= 1.0
+								else
+									pieceMoving = true
+								end
+								pieceMovingByKey[key] = pieceMoving
 							end
+						else
+							local ox, oy, oz
+							if entry then ox, oy, oz = entry[2], entry[3], entry[4] end
+							nx, ny, nz = spGetUnitPiecePosDir(builderID, pieceIdx)
+							if nx then
+								if entry then
+									entry[1] = piecePosEpoch
+									entry[2] = nx; entry[3] = ny; entry[4] = nz
+									entry[5] = ox or nx; entry[6] = oy or ny; entry[7] = oz or nz
+								else
+									piecePosCache[key] = { piecePosEpoch, nx, ny, nz, nx, ny, nz }
+								end
+								if pieceMoving == nil then
+									if ox then
+										local mdx = nx - ox
+										local mdy = ny - oy
+										local mdz = nz - oz
+										pieceMoving = (mdx*mdx + mdy*mdy + mdz*mdz) >= 1.0
+									else
+										pieceMoving = true
+									end
+									pieceMovingByKey[key] = pieceMoving
+								end
+							end
+						end
+						if nx then
+							piecePosByKey[key] = { nx, ny, nz }
 						end
 					end
 
 					if nx then
+						if pieceMoving == false and (not p.gc) then
+							writeIdx = writeIdx + 1
+							list[writeIdx] = p
+						else
 						local base = (slot - 1) * step
 						local sx, sy, sz   = data[base+1], data[base+2], data[base+3]
 						local vx, vy, vz   = data[base+5], data[base+6], data[base+7]
@@ -1896,6 +2123,23 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 						local cpx = sx + vx * elapsed
 						local cpy = sy + vy * elapsed
 						local cpz = sz + vz * elapsed
+						local aimY = ny
+						if p.gc then
+							-- For reclaim on high-to-low terrain, keep particles above current
+							-- ground during homing updates so they travel along the upper
+							-- surface before descending at the cliff break.
+							local gyCur = getGroundYMargin(cpx, cpz, frame)
+							if cpy < gyCur then cpy = gyCur end
+							local gyDst = pieceGroundYByKey[key]
+							if gyDst == nil then
+								gyDst = getGroundYMargin(nx, nz, frame)
+								pieceGroundYByKey[key] = gyDst
+							end
+							if aimY < gyDst then aimY = gyDst end
+							if gyCur > (aimY + clampDelta) then
+								aimY = gyCur
+							end
+						end
 						-- Inverse particles all converge on the builder piece (engine
 						-- behaviour: speed = -dif*3 makes pos arrive at startPos exactly).
 						-- Visual spread comes from staggered spawn positions, not from
@@ -1903,7 +2147,7 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 						local invR = 1.0 / remaining
 						data[base+1] = cpx;            data[base+2] = cpy;            data[base+3] = cpz
 						data[base+5] = (nx - cpx) * invR
-						data[base+6] = (ny - cpy) * invR
+						data[base+6] = (aimY - cpy) * invR
 						data[base+7] = (nz - cpz) * invR
 						data[base+8] = frame
 						local s0 = slot - 1
@@ -1911,6 +2155,7 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 						if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
 						writeIdx = writeIdx + 1
 						list[writeIdx] = p
+						end
 					end
 				end
 			end
@@ -2071,8 +2316,8 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 						-- so the spray width at the destination is preserved as the
 						-- target moves.
 						local aimX = tx + p.ox
-						local aimY = ty + p.oy
 						local aimZ = tz + p.oz
+						local aimY = ty + p.oy
 						local invR = 1.0 / remaining
 						data[base+1] = cpx;            data[base+2] = cpy;            data[base+3] = cpz
 						data[base+5] = (aimX - cpx) * invR
@@ -2096,6 +2341,133 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 			end -- end of "not fully repaired" else
 		end
 	end
+	return dirtyMin, dirtyMax
+end
+
+--------------------------------------------------------------------------------
+-- Optional global in-flight terrain clamp. Reprojects current particle position
+-- (and destination inferred from remaining velocity) above ground+margin.
+-- This addresses straight-line tunneling through cliffs for non-homed particles.
+--------------------------------------------------------------------------------
+
+local function applyGroundClamp(frame, dirtyMin, dirtyMax)
+	if not U.GROUND_CLAMP_ENABLED then return dirtyMin, dirtyMax end
+	if not nanoVBO then return dirtyMin, dirtyMax end
+	local runEvery = U.GROUND_CLAMP_RUN_EVERY or 1
+	if runEvery < 1 then runEvery = 1 end
+	if (frame % runEvery) ~= 0 then return dirtyMin, dirtyMax end
+
+	local total = #groundClampParticles
+	if CLAMP_DEBUG and total > clampDbg.maxSubset then clampDbg.maxSubset = total end
+	if total == 0 then
+		groundClampCursor = 1
+		return dirtyMin, dirtyMax
+	end
+
+	local maxPer = U.GROUND_CLAMP_MAX_PER_STEP or 0
+	if maxPer < 1 or maxPer > total then maxPer = total end
+
+	local data = nanoVBO.instanceData
+	local step = nanoVBO.instanceStep
+	local idtoIndex = nanoVBO.instanceIDtoIndex
+	local recheckHit = U.GROUND_CLAMP_RECHECK_HIT or 2
+	local recheckMiss = U.GROUND_CLAMP_RECHECK_MISS or 4
+	local idx = groundClampCursor
+	if idx < 1 or idx > total then idx = 1 end
+
+	local processed = 0
+	local checked = 0
+	local maxChecks = total + maxPer
+	local n = total
+	while processed < maxPer and checked < maxChecks do
+		if n == 0 then
+			idx = 1
+			break
+		end
+		if idx > n then idx = 1 end
+		local entry = groundClampParticles[idx]
+		local slot = idtoIndex[entry.id]
+		if (not slot) or entry.death <= frame + 1 then
+			local removed = entry
+			groundClampParticles[idx] = groundClampParticles[n]
+			groundClampParticles[n] = nil
+			n = n - 1
+			groundClampFree[#groundClampFree + 1] = removed
+			if CLAMP_DEBUG then clampDbg.dropped = clampDbg.dropped + 1 end
+		elseif entry.next and frame < entry.next then
+			idx = idx + 1
+		elseif entry.wp then
+			local base = (slot - 1) * step
+			local rem = entry.death - frame
+			if rem > 1 and entry.fx then
+				local sx, sy, sz = data[base + 1], data[base + 2], data[base + 3]
+				local vx, vy, vz = data[base + 5], data[base + 6], data[base + 7]
+				local spawnF = data[base + 8]
+				local elapsed = frame - spawnF
+				local cpx = sx + vx * elapsed
+				local cpy = sy + vy * elapsed
+				local cpz = sz + vz * elapsed
+				local invR = 1.0 / rem
+				data[base + 1] = cpx
+				data[base + 2] = cpy
+				data[base + 3] = cpz
+				data[base + 5] = (entry.fx - cpx) * invR
+				data[base + 6] = (entry.fy - cpy) * invR
+				data[base + 7] = (entry.fz - cpz) * invR
+				data[base + 8] = frame
+				local s0 = slot - 1
+				if s0 < dirtyMin then dirtyMin = s0 end
+				if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
+				if CLAMP_DEBUG then clampDbg.corrected = clampDbg.corrected + 1 end
+			end
+			local removed = entry
+			groundClampParticles[idx] = groundClampParticles[n]
+			groundClampParticles[n] = nil
+			n = n - 1
+			groundClampFree[#groundClampFree + 1] = removed
+			processed = processed + 1
+			if CLAMP_DEBUG then clampDbg.processed = clampDbg.processed + 1 end
+		else
+			local base = (slot - 1) * step
+			local remaining = entry.death - frame
+			local sx, sy, sz = data[base + 1], data[base + 2], data[base + 3]
+			local vx, vy, vz = data[base + 5], data[base + 6], data[base + 7]
+			local spawnF = data[base + 8]
+			local elapsed = frame - spawnF
+			local cpx = sx + vx * elapsed
+			local cpy = sy + vy * elapsed
+			local cpz = sz + vz * elapsed
+			local clampedCpy = clampYAboveGround(cpx, cpy, cpz, frame)
+
+			if clampedCpy ~= cpy then
+				local aimX = cpx + vx * remaining
+				local aimY = cpy + vy * remaining
+				local aimZ = cpz + vz * remaining
+				local invR = 1.0 / remaining
+				data[base + 1] = cpx
+				data[base + 2] = clampedCpy
+				data[base + 3] = cpz
+				data[base + 5] = (aimX - cpx) * invR
+				data[base + 6] = (aimY - clampedCpy) * invR
+				data[base + 7] = (aimZ - cpz) * invR
+				data[base + 8] = frame
+				local s0 = slot - 1
+				if s0 < dirtyMin then dirtyMin = s0 end
+				if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
+				if CLAMP_DEBUG then clampDbg.corrected = clampDbg.corrected + 1 end
+				entry.next = frame + recheckHit
+			else
+				entry.next = frame + recheckMiss
+			end
+
+			processed = processed + 1
+			if CLAMP_DEBUG then clampDbg.processed = clampDbg.processed + 1 end
+			idx = idx + 1
+		end
+		checked = checked + 1
+	end
+
+	groundClampCursor = idx
 	return dirtyMin, dirtyMax
 end
 
@@ -2501,6 +2873,7 @@ local function scanBuilders(frame)
 			dirtyMin, dirtyMax = applyHoming(frame, dirtyMin, dirtyMax)
 			dirtyMin, dirtyMax = applyForwardHoming(frame, dirtyMin, dirtyMax)
 		end
+		dirtyMin, dirtyMax = applyGroundClamp(frame, dirtyMin, dirtyMax)
 		local postUsed = nanoVBO.usedElements
 		if postUsed > preUsed then
 			if preUsed  < dirtyMin then dirtyMin = preUsed  end
@@ -2714,6 +3087,31 @@ function gadget:GameFrame(n)
 	else
 		scanBuilders(n)
 		cullDead(n)
+	end
+
+	if CLAMP_DEBUG and (n % 90 == 0) then
+		local checks = clampDbg.emitChecks
+		local enabledPct = (checks > 0) and (100.0 * clampDbg.emitEnabled / checks) or 0.0
+		spEcho(string.format(
+			"[NanoGL4 ClampDbg] f=%d checks=%d enabled=%d(%.1f%%) reg=%d subsetNow=%d subsetMax=%d proc=%d corr=%d drop=%d",
+			n,
+			checks,
+			clampDbg.emitEnabled,
+			enabledPct,
+			clampDbg.registered,
+			#groundClampParticles,
+			clampDbg.maxSubset,
+			clampDbg.processed,
+			clampDbg.corrected,
+			clampDbg.dropped
+		))
+		clampDbg.emitChecks = 0
+		clampDbg.emitEnabled = 0
+		clampDbg.registered = 0
+		clampDbg.processed = 0
+		clampDbg.corrected = 0
+		clampDbg.dropped = 0
+		clampDbg.maxSubset = 0
 	end
 end
 
