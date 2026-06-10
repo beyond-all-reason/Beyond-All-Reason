@@ -73,6 +73,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local CMD_STOP = CMD.STOP
 	local CMD_ATTACK = CMD.ATTACK
+	local CMD_FIGHT = CMD.FIGHT
+	local CMD_GUARD = CMD.GUARD
 	local CMD_WAIT = CMD.WAIT
 
 	local isAttackCommand = {
@@ -223,6 +225,46 @@ if gadgetHandler:IsSyncedCode() then
 			inCommand = spGetUnitCurrentCommand(unitID, 2)
 		end
 		return inCommand and isAttackCommand[inCommand]
+	end
+
+	-- Target precedence goes before target priority and ideally after target visibility, in range, unblocked, etc.
+	-- Autotargeting "target priority" is then a weighted value, and Set Target priority uses the order of the list.
+	local function hasTargetPrecedence(unitID)
+		local index = 1
+		local inCommand, _, _, param1, param2 = spGetUnitCurrentCommand(unitID, index)
+		if inCommand == CMD_WAIT then
+			index = index + 1
+			inCommand, _, _, param1, param2 = spGetUnitCurrentCommand(unitID, index)
+		end
+
+		if not inCommand or not isAttackCommand[inCommand] then
+			return true
+		end
+
+		-- Only Attack commands against units are emplaced/internal.
+		if param2 or inCommand ~= CMD_ATTACK then
+			return false
+		end
+
+		local nextCommand, _, _, nextParam1 = spGetUnitCurrentCommand(unitID, index + 1)
+
+		if not nextCommand then
+			return false
+		elseif nextCommand == CMD_FIGHT then
+			-- Set Target does not violate an active Fight command by prioritizing the user's target.
+			-- ! FIXME: We assume the Attack command originated from within Fight but cannot be sure.
+			return true
+		elseif nextCommand == CMD_GUARD then
+			-- Guard and Return Fire have an automatic retaliation behavior that precedes Set Target.
+			-- The user intent is to protect either the guardee unit or the unit itself from damages.
+			if spValidUnitID(param1) then
+				local _, _, target = spGetUnitWeaponTarget(param1, 1)
+				if target ~= nextParam1 then -- flimsy
+					return true
+				end
+			end
+		end
+		return false
 	end
 
 	local function setTargetActive(unitID, unitData, targetIndex)
@@ -720,6 +762,18 @@ if gadgetHandler:IsSyncedCode() then
 
 		teamQueryCaches = {}
 
+		for unitID in pairs(setTargetData) do
+			if activeTargets[unitID] then
+				if not hasTargetPrecedence(unitID) then
+					pauseTargetting(unitID)
+				end
+			else
+				if hasTargetPrecedence(unitID) then
+					unpauseTargetting(unitID)
+				end
+			end
+		end
+
 		local offset = frame % 5
 
 		if offset == 0 then
@@ -783,23 +837,6 @@ if gadgetHandler:IsSyncedCode() then
 					setTargetPassive(unitID, unitData, 1)
 				end
 			end
-
-		elseif offset == 2 or offset == 4 then
-
-			for unitID in pairs(activeTargets) do
-				if inAttackCommand(unitID) then
-					pauseTargetting(unitID)
-				end
-			end
-
-		else -- once per update cycle:
-
-			for unitID in pairs(pausedTargets) do
-				if not inAttackCommand(unitID) then
-					unpauseTargetting(unitID)
-				end
-			end
-
 		end
 	end
 
