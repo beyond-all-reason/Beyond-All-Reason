@@ -140,8 +140,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 		if crashing[unitID] then
-			crashingCount = crashingCount - 1
 			crashing[unitID] = nil
+			SetUnitNoSelect(unitID, false)
+			crashingCount = crashingCount - 1
 		end
 	end
 

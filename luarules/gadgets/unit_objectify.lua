@@ -118,9 +118,11 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		if isDecoration[unitDefID] then
+			Spring.SetUnitNoSelect(unitID, false)
 			numDecorations = numDecorations - 1
 		end
 		if isObject[unitDefID] then
+			Spring.SetUnitNoSelect(unitID, false)
 			numObjects = numObjects - 1
 		end
 	end

@@ -1,3 +1,5 @@
+---@diagnostic disable duplicate-set-field
+
 if Spring.GetModOptions then
 	local modOptions = Spring.GetModOptions()
 	local modOptionsFile = VFS.Include('modoptions.lua')
@@ -82,4 +84,20 @@ if Spring.Echo then
 	end
 
 	Spring.Echo = multiEcho
+end
+
+-- Synced does not have access to Spring.GetUnitNoSelect, so we shim it in.
+-- BAR uses this to set dead/dying/crashing and fake units non-interactive.
+if Spring.SetUnitNoSelect and not Spring.GetUnitNoSelect then
+	local spSetUnitNoSelect = Spring.SetUnitNoSelect
+	local isUnitNoSelect = {}
+
+	Spring.SetUnitNoSelect = function(unitID, unitNoSelect)
+		spSetUnitNoSelect(unitID, unitNoSelect)
+		isUnitNoSelect[unitID] = unitNoSelect or nil
+	end
+
+	Spring.GetUnitNoSelect = function(unitID)
+		return isUnitNoSelect[unitID]
+	end
 end
