@@ -6,14 +6,14 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = 'Juno Damage Mini',
-		desc = 'Handles Juno_mini damage',
-		author = 'Niobium, Bluestone',
-		version = 'v2.0',
-		date = '05/2013',
-		license = 'GNU GPL, v2 or later',
+		name = "Juno Damage Mini",
+		desc = "Handles Juno_mini damage",
+		author = "Niobium, Bluestone",
+		version = "v2.0",
+		date = "05/2013",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -21,72 +21,71 @@ end
 -- Synced only
 ----------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
-
 	----------------------------------------------------------------
 	-- Config
 	----------------------------------------------------------------
 	local tokillUnitsNames = {
-		['armarad'] = true,
-		['armaser'] = true,
-		['armason'] = true,
-		['armeyes'] = true,
-		['armfrad'] = true,
-		['armjam'] = true,
-		['armjamt'] = true,
-		['armmark'] = true,
-		['armrad'] = true,
-		['armseer'] = true,
-		['armsjam'] = true,
-		['armsonar'] = true,
-		['armveil'] = true,
-		['corarad'] = true,
-		['corason'] = true,
-		['coreter'] = true,
-		['coreyes'] = true,
-		['corfrad'] = true,
-		['corjamt'] = true,
-		['corrad'] = true,
-		['legjam'] = true,
-		['legrad'] = true,
-		['corshroud'] = true,
-		['corsjam'] = true,
-		['corsonar'] = true,
-		['corspec'] = true,
-		['corvoyr'] = true,
-		['corvrad'] = true,
-		['legarad'] = true,
-		['legajam'] = true,
-		['legavrad'] = true,
-		['legavjam'] = true,
-		['legaradk'] = true,
-		['legajamk'] = true,
-		['legfrad'] = true,
-		
-		['armmine1'] = true,
-		['armmine2'] = true,
-		['armmine3'] = true,
-		['armfmine3'] = true,	
-		['cormine1'] = true,
-		['cormine2'] = true,
-		['cormine3'] = true,		
-		['cormine4'] = true,		
-		['corfmine3'] = true,	
-		['legmine1'] = true,
-		['legmine2'] = true,
-		['legmine3'] = true,		
+		["armarad"] = true,
+		["armaser"] = true,
+		["armason"] = true,
+		["armeyes"] = true,
+		["armfrad"] = true,
+		["armjam"] = true,
+		["armjamt"] = true,
+		["armmark"] = true,
+		["armrad"] = true,
+		["armseer"] = true,
+		["armsjam"] = true,
+		["armsonar"] = true,
+		["armveil"] = true,
+		["corarad"] = true,
+		["corason"] = true,
+		["coreter"] = true,
+		["coreyes"] = true,
+		["corfrad"] = true,
+		["corjamt"] = true,
+		["corrad"] = true,
+		["legjam"] = true,
+		["legrad"] = true,
+		["corshroud"] = true,
+		["corsjam"] = true,
+		["corsonar"] = true,
+		["corspec"] = true,
+		["corvoyr"] = true,
+		["corvrad"] = true,
+		["legarad"] = true,
+		["legajam"] = true,
+		["legavrad"] = true,
+		["legavjam"] = true,
+		["legaradk"] = true,
+		["legajamk"] = true,
+		["legfrad"] = true,
 
-		['corfav'] = true,
-		['armfav'] = true,
-		['armflea'] = true,
-		['legscout'] = true,
-		['raptor_land_swarmer_brood_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t2_v1'] = true,
-		['raptor_land_kamikaze_emp_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t4_v1'] = true,
-		['raptor_land_kamikaze_emp_t4_v1'] = true,
-		['scavmist'] = true,
-		['scavmistxl'] = true,
-		['scavmistxxl'] = true,
+		["armmine1"] = true,
+		["armmine2"] = true,
+		["armmine3"] = true,
+		["armfmine3"] = true,
+		["cormine1"] = true,
+		["cormine2"] = true,
+		["cormine3"] = true,
+		["cormine4"] = true,
+		["corfmine3"] = true,
+		["legmine1"] = true,
+		["legmine2"] = true,
+		["legmine3"] = true,
+
+		["corfav"] = true,
+		["armfav"] = true,
+		["armflea"] = true,
+		["legscout"] = true,
+		["raptor_land_swarmer_brood_t2_v1"] = true,
+		["raptor_land_kamikaze_basic_t2_v1"] = true,
+		["raptor_land_kamikaze_emp_t2_v1"] = true,
+		["raptor_land_kamikaze_basic_t4_v1"] = true,
+		["raptor_land_kamikaze_emp_t4_v1"] = true,
+		["scavmist"] = true,
+		["scavmistxl"] = true,
+		["scavmistxxl"] = true,
 	}
 	-- convert unitname -> unitDefID
 	local tokillUnits = {}
@@ -98,18 +97,18 @@ if gadgetHandler:IsSyncedCode() then
 	tokillUnitsNames = nil
 
 	local todenyUnitsNames = {
-		['corfav'] = true,
-		['armfav'] = true,
-		['armflea'] = true,
-		['legscout'] = true,
-		['raptor_land_swarmer_brood_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t2_v1'] = true,
-		['raptor_land_kamikaze_emp_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t4_v1'] = true,
-		['raptor_land_kamikaze_emp_t4_v1'] = true,
-		['scavmist'] = true,
-		['scavmistxl'] = true,
-		['scavmistxxl'] = true,
+		["corfav"] = true,
+		["armfav"] = true,
+		["armflea"] = true,
+		["legscout"] = true,
+		["raptor_land_swarmer_brood_t2_v1"] = true,
+		["raptor_land_kamikaze_basic_t2_v1"] = true,
+		["raptor_land_kamikaze_emp_t2_v1"] = true,
+		["raptor_land_kamikaze_basic_t4_v1"] = true,
+		["raptor_land_kamikaze_emp_t4_v1"] = true,
+		["scavmist"] = true,
+		["scavmistxl"] = true,
+		["scavmistxxl"] = true,
 	}
 	-- convert unitname -> unitDefID
 	local todenyUnits = {}
@@ -123,18 +122,17 @@ if gadgetHandler:IsSyncedCode() then
 	for udid, ud in pairs(UnitDefs) do
 		for id, v in pairs(tokillUnits) do
 			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
-			--if string.find(ud.name, UnitDefs[id].name) then
+				--if string.find(ud.name, UnitDefs[id].name) then
 				tokillUnits[udid] = v
 			end
 		end
 		for id, v in pairs(todenyUnits) do
 			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
-			--if string.find(ud.name, UnitDefs[id].name) then
+				--if string.find(ud.name, UnitDefs[id].name) then
 				todenyUnits[udid] = v
 			end
 		end
 	end
-
 
 	--config -- see also in unsynced
 	local radius = 315 --outer radius of area denial ring
@@ -150,11 +148,10 @@ if gadgetHandler:IsSyncedCode() then
 	local SpValidUnitID = Spring.ValidUnitID
 	local Mmin = math.min
 
-
 	-- kill appropriate things from initial juno blast --
 
 	local junoWeaponsNames = {
-		['legcib_juno_pulse_mini'] = true,
+		["legcib_juno_pulse_mini"] = true,
 	}
 	-- convert unitname -> unitDefID
 	local junoWeapons = {}
@@ -516,7 +513,6 @@ else
 		end
 
 
-	]]--
-
+	]]
+	--
 end
-

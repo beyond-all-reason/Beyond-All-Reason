@@ -35,7 +35,7 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 220,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies, EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			techlevel = 2,

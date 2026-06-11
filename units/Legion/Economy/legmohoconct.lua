@@ -1,4 +1,4 @@
-return {						--costs should be same as legmohocon and legmohoconin
+return { --costs should be same as legmohocon and legmohoconin
 	legmohoconct = {
 		activatewhenbuilt = true,
 		maxacc = 0,
@@ -46,7 +46,7 @@ return {						--costs should be same as legmohocon and legmohoconin
 			buildinggrounddecalsizey = 7,
 			buildinggrounddecalsizex = 7,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Tharsis and Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			scav_swap_override_created = "delete", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)

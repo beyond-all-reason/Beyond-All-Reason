@@ -1,4 +1,3 @@
-
 if not Spring.GetModOptions().emprework then
 	return
 end
@@ -7,32 +6,27 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Wanted Speed",
-		desc      = "Adds a command which sets maxWantedSpeed.",
-		author    = "GoogleFrog",
-		date      = "11 November 2018",
-		license   = "GNU GPL, v2 or later",
-		layer     = -1000000, -- Before every state toggle gadget.
-		enabled   = true,
+		name = "Wanted Speed",
+		desc = "Adds a command which sets maxWantedSpeed.",
+		author = "GoogleFrog",
+		date = "11 November 2018",
+		license = "GNU GPL, v2 or later",
+		layer = -1000000, -- Before every state toggle gadget.
+		enabled = true,
 	}
 end
-
 
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
-
 
 --I have no idea what this is trying to do or why
 ---local CMD_WANTED_SPEED = Spring.Utilities.CMD.WANTED_SPEED
 
 --local wantedCommand = {
 
-	--[CMD_WANTED_SPEED] = true,
+--[CMD_WANTED_SPEED] = true,
 --}
-
-
-
 
 local function getMovetype(ud)
 	if ud.canFly or ud.isAirUnit then
@@ -47,18 +41,12 @@ local function getMovetype(ud)
 	return false -- For structures or any other invalid movetype
 end
 
-
-
-		--Spring.Echo('hornet debug wanted_speed loaded')
-
-
+--Spring.Echo('hornet debug wanted_speed loaded')
 
 local units = {}
 local moveTypeByDefID = {}
 local moveType = 0
 do
-
-
 	--local moveData = {}
 	--local moveType = 0
 
@@ -68,30 +56,25 @@ do
 		moveTypeByDefID[i] = getMovetype(UnitDefs[i])
 	end
 
-
 	--local getMovetype = Spring.Utilities.getMovetype
 	--for i = 1, #UnitDefs do
-		--moveTypeByDefID[i] = getMovetype(UnitDefs[i])
-		--moveData = spGetUnitMoveTypeData(i)
+	--moveTypeByDefID[i] = getMovetype(UnitDefs[i])
+	--moveData = spGetUnitMoveTypeData(i)
 
+	--Spring.Echo("hornet movedef name" .. UnitDefs[i].moveDef.name)
+	--Spring.Echo("hornet movedef name")
 
-		--Spring.Echo("hornet movedef name" .. UnitDefs[i].moveDef.name)
-		--Spring.Echo("hornet movedef name")
+	--Spring.Echo('hornetdebug UnitDefs[i]')
+	--Spring.Echo(UnitDefs[i])
+	--for k,v in pairs(UnitDefs[i]) do
+	--  Spring.Echo(k,v)
+	--end
 
+	--moveType = 0
+	--moveType = SU.getMovetypeByID(UnitDefs[i])
 
-		--Spring.Echo('hornetdebug UnitDefs[i]')
-		--Spring.Echo(UnitDefs[i])
-		--for k,v in pairs(UnitDefs[i]) do
-		--  Spring.Echo(k,v)
-		--end
-
-
-		--moveType = 0
-		--moveType = SU.getMovetypeByID(UnitDefs[i])
-
-
-		--if UnitDefs[i].moveDef.name == "ground" then moveType = 2 end
-		--moveTypeByDefID[i] = moveType
+	--if UnitDefs[i].moveDef.name == "ground" then moveType = 2 end
+	--moveTypeByDefID[i] = moveType
 	--end
 end
 
@@ -99,9 +82,7 @@ end
 -------------------------------------------------------------------------------------
 
 local function SetUnitWantedSpeed(unitID, unitDefID, wantedSpeed, forceUpdate)
-
-
---Spring.Echo("hornet SetUnitWantedSpeed" .. unitID .. "wanted speed " .. (wantedSpeed or 'nil'))
+	--Spring.Echo("hornet SetUnitWantedSpeed" .. unitID .. "wanted speed " .. (wantedSpeed or 'nil'))
 
 	if not unitDefID then
 		return
@@ -138,8 +119,6 @@ local function SetUnitWantedSpeed(unitID, unitDefID, wantedSpeed, forceUpdate)
 		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxWantedSpeed", (wantedSpeed or 2000))
 	end
 end
-
-
 
 ---this makes no sense, why does this chain exist
 function GG.ForceUpdateWantedMaxSpeed(unitID, unitDefID, clearWanted)

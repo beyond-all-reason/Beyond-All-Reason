@@ -2,33 +2,33 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Auto Cloak Units",
-		desc      = "Auto cloaks Units with Cloak",
-		author    = "wilkubyk",
-		date      = "2022.12.29",
-		license   = "GNU GPL, v2 or later",
-		layer     = -99999,
-		enabled   = true
+		name = "Auto Cloak Units",
+		desc = "Auto cloaks Units with Cloak",
+		author = "wilkubyk",
+		date = "2022.12.29",
+		license = "GNU GPL, v2 or later",
+		layer = -99999,
+		enabled = true,
 	}
 end
 
 -- defaults
 local unitdefConfigNames = {
-	['armdecom'] = false,
-	['cordecom'] = false,
-	['armferret'] = false,
-	['armamb'] = false,
-	['armpb'] = false,
-	['armsnipe'] = false,
-	['corsktl'] = false,
-	['armgremlin'] = true,
-	['armamex'] = true,
-	['armshockwave'] = true,
-	['armckfus'] = true,
-	['armspy'] = true,
-	['corspy'] = true,
-	['legaspy'] = true,
-	['corphantom'] = true,
+	["armdecom"] = false,
+	["cordecom"] = false,
+	["armferret"] = false,
+	["armamb"] = false,
+	["armpb"] = false,
+	["armsnipe"] = false,
+	["corsktl"] = false,
+	["armgremlin"] = true,
+	["armamex"] = true,
+	["armshockwave"] = true,
+	["armckfus"] = true,
+	["armspy"] = true,
+	["corspy"] = true,
+	["legaspy"] = true,
+	["corphantom"] = true,
 }
 -- convert unitname -> unitDefID
 local unitdefConfig = {}
@@ -46,32 +46,30 @@ local giveOrderToUnit = Spring.GiveOrderToUnit --optimization
 local spUnitTeam = Spring.GetMyTeamID --optimization
 
 local function cloakDeActive(unitID, unitDefID) --DeActivator of Cloak for all units with clock
-    if unitdefConfig[unitDefID] then
-        cloakunits[unitID] = true
-        giveOrderToUnit(unitID, cloak, {0}, 0)
-    end
+	if unitdefConfig[unitDefID] then
+		cloakunits[unitID] = true
+		giveOrderToUnit(unitID, cloak, { 0 }, 0)
+	end
 end
 
 local function cloakActive(unitID, unitDefID) --Activator of Cloak
-    if unitdefConfig[unitDefID] then
-        cloakunits[unitID] = true
-        giveOrderToUnit(unitID, cloak, {1}, 0)
-    end
+	if unitdefConfig[unitDefID] then
+		cloakunits[unitID] = true
+		giveOrderToUnit(unitID, cloak, { 1 }, 0)
+	end
 end
 
 local function unitIDs(unitID, unitDefID) --check later if could be removed
-    if unitdefConfig[unitDefID] then
-        cloakunits[unitID] = true
-    end
+	if unitdefConfig[unitDefID] then
+		cloakunits[unitID] = true
+	end
 end
 
 local function NewUnit(unitID, unitDefID, unitTeam) --check later if could be removed
-    if unitTeam ~= spUnitTeam then
-        return
-        unitIDs(unitID, unitDefID)
-    end
+	if unitTeam ~= spUnitTeam then
+		return unitIDs(unitID, unitDefID)
+	end
 end
-
 
 local function maybeRemoveSelf()
 	if Spring.GetSpectatingState() then
@@ -79,23 +77,22 @@ local function maybeRemoveSelf()
 	end
 end
 
-
 function widget:Initialize()
-    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-        maybeRemoveSelf()
-    end
+	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+		maybeRemoveSelf()
+	end
 
-    WG['autocloak'] = {}
-	WG['autocloak'].getUnitdefConfig = function()
+	WG["autocloak"] = {}
+	WG["autocloak"].getUnitdefConfig = function()
 		return unitdefConfig
 	end
-	WG['autocloak'].setUnitdefConfig = function(data)
+	WG["autocloak"].setUnitdefConfig = function(data)
 		local type, value = data[1], data[2]
 		unitdefConfig[type] = value
 	end
 
 	local allUnits = Spring.GetAllUnits()
-	for i=1, #allUnits do
+	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		cloakActive(unitID, Spring.GetUnitDefID(unitID))
 	end
@@ -127,7 +124,7 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam)
 end
 
 function widget:PlayerChanged(playerID)
-    maybeRemoveSelf()
+	maybeRemoveSelf()
 end
 
 function widget:GetConfigData()

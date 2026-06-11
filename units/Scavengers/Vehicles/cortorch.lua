@@ -37,7 +37,7 @@ return {
 		turninplacespeedlimit = 4.7,
 		turnrate = 364,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Flaka, Itanthias kitbash",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.0130,

@@ -1,4 +1,3 @@
-
 if not Spring.GetModOptions().map_atmosphere then
 	return
 end
@@ -26,25 +25,23 @@ local enableGenericConfig = Spring.GetModOptions().mapatmospherics or "enabled"
 local currentMapname = Game.mapName:lower()
 local mapList = VFS.DirList("luarules/configs/Atmosphereconfigs/", "*.lua")
 
-Spring.Echo("[ATMOSPHERIC] Current map: "..currentMapname)
-local mapFileName = ''	-- (Include at bottom of this file)
-for i = 1,#mapList+1 do
-	if i == #mapList+1 then
+Spring.Echo("[ATMOSPHERIC] Current map: " .. currentMapname)
+local mapFileName = "" -- (Include at bottom of this file)
+for i = 1, #mapList + 1 do
+	if i == #mapList + 1 then
 		Spring.Echo("[ATMOSPHERIC] No map config found. Turning off the gadget")
 		return
 	end
-	mapFileName = string.sub(mapList[i], 36, string.len(mapList[i])-4):lower()
+	mapFileName = string.sub(mapList[i], 36, string.len(mapList[i]) - 4):lower()
 	if string.find(currentMapname, mapFileName) then
-		Spring.Echo("[ATMOSPHERIC] Success! Map names match!: " ..mapFileName)
+		Spring.Echo("[ATMOSPHERIC] Success! Map names match!: " .. mapFileName)
 		break
 	else
 		--Spring.Echo("[ATMOSPHERIC] Map names don't match: " ..mapFileName)
 	end
 end
 
-
 if not gadgetHandler:IsSyncedCode() then
-
 	--[[
 			Spring.SetSunLighting({ groundAmbientColor = { transitionred * gar, transitiongreen * gag, transitionblue * gab } })
 		Spring.SetSunLighting({ unitAmbientColor = { transitionred * uar, transitiongreen * uag, transitionblue * uab } })
@@ -59,45 +56,51 @@ if not gadgetHandler:IsSyncedCode() then
 		Spring.SetAtmosphere({ fogColor = { transitionred * fogcr, transitiongreen * fogcg, transitionblue * fogcb } })
 
 		Spring.SetSunLighting({ groundShadowDensity = transition * shadowdensity, modelShadowDensity = transition * shadowdensity })
-	]]--
+	]]
+	--
 
-
-	local function GetLightingAndAtmosphere()  -- returns a table of the common parameters
-		local res =  {
+	local function GetLightingAndAtmosphere() -- returns a table of the common parameters
+		local res = {
 			lighting = {
-				groundAmbientColor =  {gl.GetSun("ambient")},
-				groundDiffuseColor =  {gl.GetSun("diffuse")},
-				groundSpecularColor =  {gl.GetSun("specular")},
+				groundAmbientColor = { gl.GetSun("ambient") },
+				groundDiffuseColor = { gl.GetSun("diffuse") },
+				groundSpecularColor = { gl.GetSun("specular") },
 
-				unitAmbientColor =  {gl.GetSun("ambient","unit")},
-				unitDiffuseColor =  {gl.GetSun("diffuse","unit")},
-				unitSpecularColor =  {gl.GetSun("specular","unit")},
+				unitAmbientColor = { gl.GetSun("ambient", "unit") },
+				unitDiffuseColor = { gl.GetSun("diffuse", "unit") },
+				unitSpecularColor = { gl.GetSun("specular", "unit") },
 
 				groundShadowDensity = gl.GetSun("shadowDensity"),
-				modelShadowDensity = gl.GetSun("shadowDensity","unit"),
+				modelShadowDensity = gl.GetSun("shadowDensity", "unit"),
 			},
 			atmosphere = {
-				skyColor = {gl.GetAtmosphere("skyColor")},
-				sunColor = {gl.GetAtmosphere("sunColor")},
-				cloudColor = {gl.GetAtmosphere("cloudColor")},
-				fogColor = {gl.GetAtmosphere("fogColor")},
-				fogColor = {gl.GetAtmosphere("fogColor")},
+				skyColor = { gl.GetAtmosphere("skyColor") },
+				sunColor = { gl.GetAtmosphere("sunColor") },
+				cloudColor = { gl.GetAtmosphere("cloudColor") },
+				fogColor = { gl.GetAtmosphere("fogColor") },
+				fogColor = { gl.GetAtmosphere("fogColor") },
 				fogStart = gl.GetAtmosphere("fogStart"),
 				fogEnd = gl.GetAtmosphere("fogEnd"),
 			},
-			sunDir = {gl.GetSun("pos")},
+			sunDir = { gl.GetSun("pos") },
 		}
 
 		return res
 	end
 
 	local function SetLightingAndAtmosphere(lightandatmos)
-		if lightandatmos.atmosphere then Spring.SetAtmosphere(lightandatmos.atmosphere) end
-		if lightandatmos.lighting then Spring.SetSunLighting(lightandatmos.lighting) end
-		if lightandatmos.sunDir then Spring.SetSunDirection(lightandatmos.sunDir[1], lightandatmos.sunDir[2], lightandatmos.sunDir[3] ) end
+		if lightandatmos.atmosphere then
+			Spring.SetAtmosphere(lightandatmos.atmosphere)
+		end
+		if lightandatmos.lighting then
+			Spring.SetSunLighting(lightandatmos.lighting)
+		end
+		if lightandatmos.sunDir then
+			Spring.SetSunDirection(lightandatmos.sunDir[1], lightandatmos.sunDir[2], lightandatmos.sunDir[3])
+		end
 	end
 
-	local atmosphere_lighting = {"atmosphere","lighting"}
+	local atmosphere_lighting = { "atmosphere", "lighting" }
 	local atan2 = math.atan2
 	local diag = math.diag
 	local mix = math.mix
@@ -105,16 +108,19 @@ if not gadgetHandler:IsSyncedCode() then
 	local cos = math.cos
 	-- Mix everything specified in A into B, if not specified in B, then replace with A
 	local function MixLightingAndAtmosphere(a, b, mixfactor, target)
-		if target == nil then target = b end
-		for _,k in ipairs(atmosphere_lighting) do
+		if target == nil then
+			target = b
+		end
+		for _, k in ipairs(atmosphere_lighting) do
 			if a[k] and b[k] then
 				local aa = a[k]
 				local bb = b[k]
 				for ka, va in pairs(aa) do
-					if bb[ka] == nil then target[ka] = aa[ka]
+					if bb[ka] == nil then
+						target[ka] = aa[ka]
 					else
-						if type(va) == 'table' then
-							for i=1,#va do
+						if type(va) == "table" then
+							for i = 1, #va do
 								--Spring.Echo(k, ka, i, aa[ka][i],bb[ka][i], mixfactor )
 								target[k][ka][i] = mix(aa[ka][i], bb[ka][i], mixfactor)
 							end
@@ -125,14 +131,14 @@ if not gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		if a['sunDir'] and b['sunDir'] then
-			local asun = a['sunDir']
-			local bsun = b['sunDir']
+		if a["sunDir"] and b["sunDir"] then
+			local asun = a["sunDir"]
+			local bsun = b["sunDir"]
 			local alength = 1.0 / diag(asun[1], asun[2], asun[3])
 			local blength = 1.0 / diag(bsun[1], bsun[2], bsun[3])
 
-			local aworldrot = atan2(asun[1]*alength, asun[3]*alength) --https://en.wikipedia.org/wiki/Atan2
-			local bworldrot = atan2(bsun[1]*blength, bsun[3]*blength)
+			local aworldrot = atan2(asun[1] * alength, asun[3] * alength) --https://en.wikipedia.org/wiki/Atan2
+			local bworldrot = atan2(bsun[1] * blength, bsun[3] * blength)
 
 			--Spring.Echo(("Arot = %.2f, Brot = %.2f"):format(aworldrot, bworldrot))
 
@@ -145,18 +151,19 @@ if not gadgetHandler:IsSyncedCode() then
 				bworldrot = bworldrot - 2 * math.pi
 			end
 
-			local aheight =   atan2(asun[2]*alength, diag(asun[1]*alength, asun[3]*alength))
-			local bheight =   atan2(bsun[2]*blength, diag(bsun[1]*blength, bsun[3]*blength))
+			local aheight = atan2(asun[2] * alength, diag(asun[1] * alength, asun[3] * alength))
+			local bheight = atan2(bsun[2] * blength, diag(bsun[1] * blength, bsun[3] * blength))
 
 			local targetrot = mix(aworldrot, bworldrot, mixfactor)
 			local targetheight = mix(aheight, bheight, mixfactor)
 
-			if target['sunDir'] == nil then target['sunDir'] = {0,1,0} end
-			target['sunDir'][1] = sin(targetrot) * cos(targetheight)
-			target['sunDir'][2] = sin(targetheight)
-			target['sunDir'][3] = cos(targetrot) * cos(targetheight)
+			if target["sunDir"] == nil then
+				target["sunDir"] = { 0, 1, 0 }
+			end
+			target["sunDir"][1] = sin(targetrot) * cos(targetheight)
+			target["sunDir"][2] = sin(targetheight)
+			target["sunDir"][3] = cos(targetrot) * cos(targetheight)
 			--Spring.Echo("sunDir", mixfactor, "targetrot",targetrot, "targetheight", targetheight, aworldrot ,  bworldrot)
-
 		end
 	end
 
@@ -167,7 +174,9 @@ if not gadgetHandler:IsSyncedCode() then
 	local mixedlight
 
 	function gadget:GameFrame(n)
-		if true then return end
+		if true then
+			return
+		end
 		if initlight == nil then
 			--Spring.Echo("Loaded Sun Conf for: " .. Game.mapName)
 			initlight = GetLightingAndAtmosphere()
@@ -176,11 +185,11 @@ if not gadgetHandler:IsSyncedCode() then
 			endlight.sunDir[1] = -1 * endlight.sunDir[1]
 			--endlight.sunDir[2] = 0.3 * endlight.sunDir[2]
 			endlight.sunDir[3] = -1 * endlight.sunDir[3]
-			local nightfactor = {0.3, 0.3, 0.45, 1.0}
-			for _,k in ipairs(atmosphere_lighting) do
+			local nightfactor = { 0.3, 0.3, 0.45, 1.0 }
+			for _, k in ipairs(atmosphere_lighting) do
 				for k2, v2 in pairs(endlight[k]) do
 					if string.find(k2, "Color", nil, true) then
-						for i =1, #v2 do
+						for i = 1, #v2 do
 							endlight[k][k2][i] = endlight[k][k2][i] * nightfactor[i]
 						end
 					end
@@ -191,18 +200,17 @@ if not gadgetHandler:IsSyncedCode() then
 		local tstart = 60
 
 		if n > tstart then
-			local tfloor = math.floor((n-tstart)/dt)
-			local mixfac = ((n-tstart) % dt) / dt
+			local tfloor = math.floor((n - tstart) / dt)
+			local mixfac = ((n - tstart) % dt) / dt
 			--mixfac = math.smoothstep(0,1,mixfac);
 			--Spring.Echo(n,mixfac)
-			if tfloor % 2 ==0 then
+			if tfloor % 2 == 0 then
 				MixLightingAndAtmosphere(initlight, endlight, mixfac, mixedlight)
 			else
 				MixLightingAndAtmosphere(endlight, initlight, mixfac, mixedlight)
 			end
 			SetLightingAndAtmosphere(mixedlight)
 		end
-
 	end
 
 	local gar, gag, gab = gl.GetSun("ambient")
@@ -291,7 +299,6 @@ if not gadgetHandler:IsSyncedCode() then
 		if sundir then -- try to calculate an 'orbit', while attempting to
 			local origworldrot = math.atan2(sundirx, sundirz)
 			local origheight = math.atan2(sundirx, sundiry)
-
 		end
 
 		Spring.SetSunLighting({ groundAmbientColor = { transitionred * gar, transitiongreen * gag, transitionblue * gab } })
@@ -337,7 +344,7 @@ if not gadgetHandler:IsSyncedCode() then
 
 	function gadget:TextCommand(msg)
 		if string.sub(msg, 1, 18) == "atmosplaysoundfile" then
-			Spring.PlaySoundFile(string.sub(msg, 20), 0.85, 'ui')
+			Spring.PlaySoundFile(string.sub(msg, 20), 0.85, "ui")
 		end
 	end
 
@@ -357,8 +364,6 @@ if not gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveSyncAction("MixLightingAndAtmosphere")
 		SetLightingAndAtmosphere(initial_atmosphere_lighting)
 	end
-
-
 else
 	-- SYNCED
 
@@ -369,7 +374,6 @@ else
 	local math_random = math.random
 	local spSpawnCEG = Spring.SpawnCEG
 	local spGetGroundHeight = Spring.GetGroundHeight
-
 
 	function AtmosSendMessage(_, msg)
 		if Script.LuaUI("GadgetAddMessage") then
@@ -384,7 +388,7 @@ else
 	function SpawnCEGInPosition(cegname, posx, posy, posz, damage, paralyzetime, damageradius, sound, soundvolume)
 		spSpawnCEG(cegname, posx, posy, posz)
 		if sound then
-			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
+			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 		end
 		if damage or paralyzetime then
 			local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
@@ -417,7 +421,7 @@ else
 		local posy = spGetGroundHeight(posx, posz) + (groundOffset or 0)
 		spSpawnCEG(cegname, posx, posy, posz)
 		if sound then
-			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
+			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 		end
 		if damage or paralyzetime then
 			local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
@@ -451,7 +455,7 @@ else
 		local posz = midposz + math_random(-radius, radius)
 		spSpawnCEG(cegname, posx, posy, posz)
 		if sound then
-			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
+			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 		end
 		if damage or paralyzetime then
 			local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
@@ -486,7 +490,7 @@ else
 		local posy = spGetGroundHeight(posx, posz) + (groundOffset or 0)
 		spSpawnCEG(cegname, posx, posy, posz)
 		if sound then
-			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
+			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 		end
 		if damage or paralyzetime then
 			local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
@@ -521,7 +525,7 @@ else
 		local posy = spGetGroundHeight(posx, posz) + (groundOffset or 0)
 		spSpawnCEG(cegname, posx, posy, posz)
 		if sound then
-			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
+			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 		end
 		if damage or paralyzetime then
 			local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
@@ -551,7 +555,7 @@ else
 	end
 
 	function SpawnCEGInRandomMapPosAvoidUnits(cegname, groundOffset, radius, sound, soundvolume)
-		for y = 1,50 do
+		for y = 1, 50 do
 			local posx = math_random(0, mapsizeX)
 			local posz = math_random(0, mapsizeZ)
 			local posy = spGetGroundHeight(posx, posz) + (groundOffset or 0)
@@ -559,7 +563,7 @@ else
 			if #units == 0 then
 				spSpawnCEG(cegname, posx, posy, posz)
 				if sound then
-					Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
+					Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 				end
 				break
 			end
@@ -575,7 +579,7 @@ else
 			if groundposy <= spawnOnlyBelowY then
 				spSpawnCEG(cegname, posx, posy, posz)
 				if sound then
-					Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
+					Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 				end
 				break
 			end
@@ -614,7 +618,7 @@ else
 		local posz = math_random(0, mapsizeZ)
 		spSpawnCEG(cegname, posx, posy, posz)
 		if sound then
-			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
+			Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, "sfx")
 		end
 		if damage or paralyzetime then
 			local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
@@ -645,5 +649,3 @@ else
 
 	VFS.Include("luarules/configs/Atmosphereconfigs/" .. mapFileName .. ".lua")
 end
-
-

@@ -9,10 +9,9 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -1,
 		enabled = true,
-		depends = {'gl4'},
+		depends = { "gl4" },
 	}
 end
-
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
@@ -32,7 +31,7 @@ local luaShaderDir = "LuaUI/Include/"
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local popElementInstance = InstanceVBOTable.popElementInstance
 
 local debugmode = false
 
@@ -47,29 +46,46 @@ local GL_POINTS = GL.POINTS
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameFrame = Spring.GetGameFrame
 
-local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload,reason)
+local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason)
 	local gf = spGetGameFrame()
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
-	if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these cant/dont have plates
+	if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then
+		return
+	end -- these cant/dont have plates
 
 	local decalInfo = unitDefIDtoDecalInfo[unitDefID]
 
-	local p,q,s,t = getUVCoords(atlas, decalInfo.texfile)
+	local p, q, s, t = getUVCoords(atlas, decalInfo.texfile)
 	--spEcho(decalInfo.texfile, p,q,s,t)
 
 	return pushElementInstance(
 		groundPlateVBO, -- push into this Instance VBO Table
-			{decalInfo.sizey, decalInfo.sizex, 0, 0,  -- length, width, cornersize, height
+		{
+			decalInfo.sizey,
+			decalInfo.sizex,
+			0,
+			0, -- length, width, cornersize, height
 			0, -- Spring.GetUnitTeam(unitID), -- teamID, but its not used here so just pass zero
 			4, -- how many vertices should we make (4 is a quad)
-			gf, 0, decalInfo.alpha, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			q,p,t,s, -- These are our default UV atlas tranformations, note how Y axis is flipped for atlas
-			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
+			gf,
+			0,
+			decalInfo.alpha,
+			0, -- the gameFrame (for animations), and any other parameters one might want to add
+			q,
+			p,
+			t,
+			s, -- These are our default UV atlas tranformations, note how Y axis is flipped for atlas
+			0,
+			0,
+			0,
+			0,
+		}, -- these are just padding zeros, that will get filled in
 		unitID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		noUpload, -- noupload, this is used when reinitializing everything on VisibleUnitsChanged
-		unitID) -- last one should be UNITID!
+		unitID
+	) -- last one should be UNITID!
 end
 
 local firstRun = true
@@ -86,7 +102,7 @@ function widget:DrawWorldPreUnit()
 		glDepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		glTexture(0, atlas.atlasimage)
 		groundPlateShader:Activate()
-		groundPlateVBO.VAO:DrawArrays(GL_POINTS,groundPlateVBO.usedElements)
+		groundPlateVBO.VAO:DrawArrays(GL_POINTS, groundPlateVBO.usedElements)
 		groundPlateShader:Deactivate()
 		glTexture(0, false)
 		glCulling(false)
@@ -101,25 +117,25 @@ function widget:Initialize()
 	--makeAtlas()
 
 	-- Init the unitDefIDtoDecalInfo
-	for id , UD in pairs(UnitDefs) do
+	for id, UD in pairs(UnitDefs) do
 		if UD.customParams and UD.customParams.usebuildinggrounddecal and UD.customParams.buildinggrounddecaltype then
 			--local UD.name
 			local texname = "unittextures/" .. UD.customParams.buildinggrounddecaltype
 			--spEcho(texname)
 			if atlas[texname] then
 				unitDefIDtoDecalInfo[id] = {
-						texfile = texname,
-						-- note that this is hacky, as customparams are always strings, but multiplying number with stringnumber is number
-						sizex  = (UD.customParams.buildinggrounddecalsizex or 0.0 ) * 16,
-						sizey  = (UD.customParams.buildinggrounddecalsizey or 0.0 ) * 16,
-						alpha  = (UD.customParams.buildinggrounddecalalpha or 1.0 ) * groundaoplatealpha,
-					}
+					texfile = texname,
+					-- note that this is hacky, as customparams are always strings, but multiplying number with stringnumber is number
+					sizex = (UD.customParams.buildinggrounddecalsizex or 0.0) * 16,
+					sizey = (UD.customParams.buildinggrounddecalsizey or 0.0) * 16,
+					alpha = (UD.customParams.buildinggrounddecalalpha or 1.0) * groundaoplatealpha,
+				}
 			end
 		end
 	end
 
 	-- Init GL4 things
-	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 0
@@ -144,8 +160,8 @@ function widget:Initialize()
 	end
 
 	-- Add all units
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
+		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
 	end
 end
 
@@ -163,9 +179,10 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
-	if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
+	if debugmode then
+		Spring.Debug.TraceEcho("remove", unitID, reason)
+	end
 	if groundPlateVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(groundPlateVBO, unitID)
 	end
 end
-

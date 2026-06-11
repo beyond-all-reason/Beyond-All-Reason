@@ -39,7 +39,7 @@ return {
 		wingangle = 0.06296,
 		wingdrag = 0.08,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorAircraft",
@@ -81,7 +81,7 @@ return {
 				impulsefactor = 0,
 				model = "epulse_mini.s3o",
 				model = "legmediumrocket.s3o",
-        		mygravity = 0.2,
+				mygravity = 0.2,
 				name = "Anti radar/minefield/jammer magnetic impulse bomb",
 				range = 450,
 				reloadtime = 10,

@@ -1,17 +1,16 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-   return {
-      name      = "API Unit Tracker Tester GL4",
-      desc      = "Tracks visibleunitslist",
-      author    = "Beherith",
-      date      = "2022.03.01",
-      license   = "GNU GPL, v2 or later",
-      layer     = -8288887,
-      enabled   = false
-   }
+	return {
+		name = "API Unit Tracker Tester GL4",
+		desc = "Tracks visibleunitslist",
+		author = "Beherith",
+		date = "2022.03.01",
+		license = "GNU GPL, v2 or later",
+		layer = -8288887,
+		enabled = false,
+	}
 end
-
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
@@ -26,37 +25,48 @@ local texture = "luaui/images/solid.png"
 
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local function initGL4()
-	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
-	shaderConfig.TRANSPARENCY = 0.5	
+	shaderConfig.TRANSPARENCY = 0.5
 	shaderConfig.ANIMATION = 0
 	shaderConfig.HEIGHTOFFSET = 3.99
 	unitTrackerVBO, unitTrackerShader = InitDrawPrimitiveAtUnit(shaderConfig, "unitTrackerTester")
-	if unitTrackerVBO == nil then 
+	if unitTrackerVBO == nil then
 		widgetHandler:RemoveWidget()
 	end
 end
 
-
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	spEcho("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam)
-	local teamID = spGetUnitTeam(unitID) or 0 
+	spEcho("widget:VisibleUnitAdded", unitID, unitDefID, unitTeam)
+	local teamID = spGetUnitTeam(unitID) or 0
 	local gf = Spring.GetGameFrame()
 	myvisibleUnits[unitID] = unitDefID
 	pushElementInstance(
 		unitTrackerVBO, -- push into this Instance VBO Table
 		{
-			96, 96, 8, 8,  -- lengthwidthcornerheight
+			96,
+			96,
+			8,
+			8, -- lengthwidthcornerheight
 			teamID, -- teamID
 			12, -- how many trianges should we make (2 = cornerrect)
-			gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			0, 1, 0, 1, -- These are our default UV atlas tranformations
-			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
+			gf,
+			0,
+			0,
+			0, -- the gameFrame (for animations), and any other parameters one might want to add
+			0,
+			1,
+			0,
+			1, -- These are our default UV atlas tranformations
+			0,
+			0,
+			0,
+			0, -- these are just padding zeros, that will get filled in
 		},
 		unitID, -- this is the key inside the VBO TAble,
 		true, -- update existing element
@@ -66,16 +76,16 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	spEcho("widget:VisibleUnitsChanged",extVisibleUnits, extNumVisibleUnits)
+	spEcho("widget:VisibleUnitsChanged", extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.clearInstanceTable(unitTrackerVBO)
-	for unitID, unitDefID in pairs(extVisibleUnits) do 
+	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
 end
 
 function widget:VisibleUnitRemoved(unitID)
-	spEcho("widget:VisibleUnitRemoved",unitID)
-	if unitTrackerVBO.instanceIDtoIndex[unitID] then 
+	spEcho("widget:VisibleUnitRemoved", unitID)
+	if unitTrackerVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(unitTrackerVBO, unitID)
 		myvisibleUnits[unitID] = nil
 	end

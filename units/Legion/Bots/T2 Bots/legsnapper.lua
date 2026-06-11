@@ -32,7 +32,7 @@ return {
 		turninplacespeedlimit = 1.750,
 		turnrate = 1650,
 		customparams = {
-			unitgroup = 'explo',
+			unitgroup = "explo",
 			model_author = "Hornet",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/bots/t2 bots",

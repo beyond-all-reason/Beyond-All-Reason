@@ -58,7 +58,7 @@ return {
 		wingangle = 0.06593,
 		wingdrag = 0.835,
 		workertime = 0,
-        hoverAttack = true,
+		hoverAttack = true,
 		customparams = {
 			subfolder = "other/raptors",
 			model_author = "KDR_11k, Beherith",

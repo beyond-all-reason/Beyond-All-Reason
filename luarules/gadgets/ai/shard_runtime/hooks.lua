@@ -1,8 +1,7 @@
-
 hooks = {}
 fselfs = {}
 
-function add_hook(hookname,f,fself)
+function add_hook(hookname, f, fself)
 	if hooks[hookname] == nil then
 		hooks[hookname] = {}
 	end
@@ -22,21 +21,21 @@ end
 
 function remove_hooks(hookname)
 	if hooks[hookname] ~= nil then
-		for k,v in pairs(hooks[hookname]) do
-			remove_hook(k,fselfs[k])
+		for k, v in pairs(hooks[hookname]) do
+			remove_hook(k, fselfs[k])
 		end
 		hooks[hookname] = nil
 	end
 end
 
-function do_hook(hookname,data)
+function do_hook(hookname, data)
 	if hooks[hookname] ~= nil then
-		for k,v in pairs(hooks[hookname]) do
+		for k, v in pairs(hooks[hookname]) do
 			local s = fselfs[k]
 			if s == nil then
 				k(data)
 			else
-				k(s,data)
+				k(s, data)
 			end
 		end
 	end

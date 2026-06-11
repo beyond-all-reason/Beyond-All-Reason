@@ -1,6 +1,6 @@
 return {
 	legbastion = {
-		maxacc= 0,
+		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,
 		buildangle = 4096,
@@ -40,7 +40,7 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Gabs",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -148,7 +148,7 @@ return {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "t2heatray",
 				onlytargetcategory = "SURFACE",
-			}
+			},
 		},
 	},
 }

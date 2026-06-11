@@ -1,4 +1,3 @@
-
 --------------------------------------------------------------------------------
 function widget:GetInfo()
 	return {
@@ -9,10 +8,9 @@ function widget:GetInfo()
 		date = "2024.11.19",
 		license = "GPL V2",
 		layer = -10000, -- lol this isnt even a number
-		enabled = false
+		enabled = false,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
@@ -22,10 +20,10 @@ local spEcho = Spring.Echo
 ---	- [ ] Customize grid
 --- - [ ] Ensure draw order is correct after decals_gl4
 --- - [ ] Mark los edge with white line
---- - [ ] Mark radar edge with stippled green line 
+--- - [ ] Mark radar edge with stippled green line
 --- - [ ] Find a nice noise approach
 --- - [ ] Implement desat-darken approach
---- - [ ] scanlines dont work underwater if drawn preunit :'( 
+--- - [ ] scanlines dont work underwater if drawn preunit :'(
 --- - [ ] If drawn postunit, then ghosts are shaded incorrectly
 ---
 ---
@@ -34,7 +32,7 @@ local spEcho = Spring.Echo
 local autoreload = false
 
 local shaderConfig = {
-    DEBUG = autoreload and 1 or 0,
+	DEBUG = autoreload and 1 or 0,
 	PREUNIT = 1, -- 1 for preunit, 0 for postunit
 }
 
@@ -47,21 +45,20 @@ local vsx, vsy, vpx, vpy
 local losViewShader = nil
 local fullScreenQuadVAO = nil
 local losViewShaderSourceCache = {
-		vssrcpath = "LuaUI/Shaders/infolos_view.vert.glsl",
-		fssrcpath = "LuaUI/Shaders/infolos_view.frag.glsl",
-		uniformFloat = {
-			blendfactors = {1,1,1,1},
-		},
-		uniformInt = {
-			mapDepths = 0,
-			modelDepths = 1,
-			screenCopyTex = 2,
-			losTex = 3,
-		},
-		shaderName = "LosViewShader GL4",
-		shaderConfig = shaderConfig
-	}
-
+	vssrcpath = "LuaUI/Shaders/infolos_view.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/infolos_view.frag.glsl",
+	uniformFloat = {
+		blendfactors = { 1, 1, 1, 1 },
+	},
+	uniformInt = {
+		mapDepths = 0,
+		modelDepths = 1,
+		screenCopyTex = 2,
+		losTex = 3,
+	},
+	shaderName = "LosViewShader GL4",
+	shaderConfig = shaderConfig,
+}
 
 function widget:PlayerChanged(playerID)
 	currentAllyTeam = Spring.GetMyAllyTeamID()
@@ -69,8 +66,10 @@ end
 
 function widget:ViewResize()
 	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
-	if ScreenCopyTexture then gl.DeleteTexture(ScreenCopyTexture) end
-	ScreenCopyTexture = gl.CreateTexture(vsx  , vsy, {
+	if ScreenCopyTexture then
+		gl.DeleteTexture(ScreenCopyTexture)
+	end
+	ScreenCopyTexture = gl.CreateTexture(vsx, vsy, {
 		border = false,
 		min_filter = GL.LINEAR,
 		mag_filter = GL.LINEAR,
@@ -85,17 +84,19 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-    if not WG['infolosapi'] then
-        spEcho("Los View GL4: Missing InfoLOS API")
-        widgetHandler:RemoveWidget()
-        return
-    end
+	if not WG["infolosapi"] then
+		spEcho("Los View GL4: Missing InfoLOS API")
+		widgetHandler:RemoveWidget()
+		return
+	end
 
-    widget:ViewResize()
-    losViewShader = LuaShader.CheckShaderUpdates(losViewShaderSourceCache)
-    fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
-    losViewShader:Initialize()
-    if not losViewShader then spEcho("Failed to compile losViewShader GL4") end
+	widget:ViewResize()
+	losViewShader = LuaShader.CheckShaderUpdates(losViewShaderSourceCache)
+	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO() --  -1, -1, 1, 0,   0,0,1, 0.5)
+	losViewShader:Initialize()
+	if not losViewShader then
+		spEcho("Failed to compile losViewShader GL4")
+	end
 end
 
 function widget:Shutdown()
@@ -104,30 +105,34 @@ function widget:Shutdown()
 end
 
 function widget:DrawPreDecals()
-    if autoreload then
-        losViewShader = LuaShader.CheckShaderUpdates(losViewShaderSourceCache) or losViewShader
-    end
-    
-    gl.CopyToTexture(ScreenCopyTexture, 0, 0, vpx, vpy, vsx, vsy)
-    gl.Texture(0, "$map_gbuffer_zvaltex")
-    gl.Texture(1, "$model_gbuffer_zvaltex")
-    gl.Texture(2, ScreenCopyTexture)
-    gl.Texture(3, WG['infolosapi'].GetInfoLOSTexture(currentAllyTeam))
-    gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-    gl.Culling(false) -- ffs
-    gl.DepthTest(false)
-    gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
+	if autoreload then
+		losViewShader = LuaShader.CheckShaderUpdates(losViewShaderSourceCache) or losViewShader
+	end
 
-    losViewShader:Activate()
-    losViewShader:SetUniformFloat("blendfactors", {1,1,1,1})
-    fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
-    losViewShader:Deactivate()
-    gl.DepthTest(true)
-    for i = 0,3 do gl.Texture(i, false) end
+	gl.CopyToTexture(ScreenCopyTexture, 0, 0, vpx, vpy, vsx, vsy)
+	gl.Texture(0, "$map_gbuffer_zvaltex")
+	gl.Texture(1, "$model_gbuffer_zvaltex")
+	gl.Texture(2, ScreenCopyTexture)
+	gl.Texture(3, WG["infolosapi"].GetInfoLOSTexture(currentAllyTeam))
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Culling(false) -- ffs
+	gl.DepthTest(false)
+	gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
+
+	losViewShader:Activate()
+	losViewShader:SetUniformFloat("blendfactors", { 1, 1, 1, 1 })
+	fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
+	losViewShader:Deactivate()
+	gl.DepthTest(true)
+	for i = 0, 3 do
+		gl.Texture(i, false)
+	end
 end
 
-if autoreload then 
-    function widget:DrawScreen()
-        if losViewShader.DrawPrintf then losViewShader.DrawPrintf() end
-    end
+if autoreload then
+	function widget:DrawScreen()
+		if losViewShader.DrawPrintf then
+			losViewShader.DrawPrintf()
+		end
+	end
 end

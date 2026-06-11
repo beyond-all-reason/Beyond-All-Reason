@@ -1,4 +1,3 @@
-
 ShardUnitType = class(function(a, id)
 	a.id = id
 	a.def = UnitDefs[id]
@@ -74,7 +73,6 @@ end
 function ShardUnitType:ExtractorEfficiency()
 	return self.def.extractsMetal
 end
-
 
 function ShardUnitType:CanAttack()
 	return self.def.canAttack

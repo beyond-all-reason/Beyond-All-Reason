@@ -12,7 +12,7 @@ function setup()
 	local widget_gui_pregame_build = widgetHandler:FindWidget("Pregame Queue")
 	assert(widget_gui_pregame_build)
 
-	WG['pregame-build'].setBuildQueue({})
+	WG["pregame-build"].setBuildQueue({})
 	WG["pregame-build"].setPreGamestartDefID(nil)
 
 	initialCameraState = Spring.GetCameraState()
@@ -28,7 +28,7 @@ end
 function cleanup()
 	Test.clearMap()
 
-	WG['pregame-build'].setBuildQueue({})
+	WG["pregame-build"].setBuildQueue({})
 	WG["pregame-build"].setPreGamestartDefID(nil)
 
 	Spring.SetCameraState(initialCameraState)
@@ -37,7 +37,7 @@ end
 -- tests both pregame mex snap behavior, as well as basic queue and blueprint handling
 function test()
 	local mexUnitDefId = UnitDefNames["armmex"].id
-	local metalSpots = WG['resource_spot_finder'].metalSpotsList
+	local metalSpots = WG["resource_spot_finder"].metalSpotsList
 
 	local midX, midZ = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	local targetMex = nil
@@ -64,12 +64,7 @@ function test()
 	assert(WG.ExtractorSnap.position ~= nil)
 
 	-- did it snap to the closest mex?
-	assert(math.distance2d(
-		WG.ExtractorSnap.position.x,
-		WG.ExtractorSnap.position.z,
-		targetMex.x,
-		targetMex.z
-	) < 100)
+	assert(math.distance2d(WG.ExtractorSnap.position.x, WG.ExtractorSnap.position.z, targetMex.x, targetMex.z) < 100)
 
 	local snappedPosition = table.copy(WG.ExtractorSnap.position)
 
@@ -105,6 +100,6 @@ function test()
 	assert(activeBlueprint == nil, "Active blueprint should be nil")
 
 	-- Did the mex get de-queued?
-	local buildQueue = WG['pregame-build'].getBuildQueue()
+	local buildQueue = WG["pregame-build"].getBuildQueue()
 	assert(#buildQueue == 0, "Build queue should be empty")
 end

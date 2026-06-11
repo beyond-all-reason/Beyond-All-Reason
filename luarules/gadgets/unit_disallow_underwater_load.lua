@@ -1,4 +1,3 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -15,7 +14,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	function gadget:AllowUnitTransport(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam)
-		local _,y,_ = Spring.GetUnitPosition(transporteeID)
+		local _, y, _ = Spring.GetUnitPosition(transporteeID)
 		local height = Spring.GetUnitHeight(transporteeID)
 		if not height or y + height < 0 then
 			return false

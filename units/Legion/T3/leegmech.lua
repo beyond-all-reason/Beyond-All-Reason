@@ -34,7 +34,7 @@ return {
 		turnrate = 450,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			customrange = 400,
 			model_author = "Kremenchuk",
 			normaltex = "unittextures/leegmech_normal.dds",

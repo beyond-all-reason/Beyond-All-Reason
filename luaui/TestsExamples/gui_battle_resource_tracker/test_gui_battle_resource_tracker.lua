@@ -41,7 +41,7 @@ function test()
 
 	Test.clearMap()
 
-	assert(#(combineEventsSpy.calls) == n - 1, #(combineEventsSpy.calls))
+	assert(#combineEventsSpy.calls == n - 1, #combineEventsSpy.calls)
 
 	events = widget.spatialHash:allEvents()
 	assert(#events == 1)

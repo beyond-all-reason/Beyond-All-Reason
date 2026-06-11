@@ -36,7 +36,7 @@ return {
 			buildinggrounddecalsizey = 8,
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'energy',
+			unitgroup = "energy",
 			model_author = "Hornet",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,

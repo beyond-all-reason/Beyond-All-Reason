@@ -20,7 +20,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 	end
 
-	if (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) and not (unitDef.customParams.restrictions_exclusion and string.find(unitDef.customParams.restrictions_exclusion, "_nosea_")) then
+	if (unitDef.minWaterDepth > 0 or unitDef.modCategories["ship"]) and not (unitDef.customParams.restrictions_exclusion and string.find(unitDef.customParams.restrictions_exclusion, "_nosea_")) then
 		isWaterUnit[unitDefID] = true
 	end
 end
@@ -31,7 +31,7 @@ end
 
 local function shouldShowWaterUnits()
 	local voidWater = false
-	local success, mapinfo = pcall(VFS.Include,"mapinfo.lua")
+	local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
 	if success and mapinfo then
 		voidWater = mapinfo.voidwater
 	end
@@ -44,11 +44,7 @@ local function shouldShowWaterUnits()
 
 	-- terraform, done too late to read w/ get ground, and too hectic to even try and guess
 	if debugCommands and debugCommands:len() > 1 then
-		if	debugCommands:find("waterlevel")
-		or	debugCommands:find("height")
-		or	debugCommands:find("extreme")
-		or	debugCommands:find("invertmap")
-		then
+		if debugCommands:find("waterlevel") or debugCommands:find("height") or debugCommands:find("extreme") or debugCommands:find("invertmap") then
 			return true
 		end
 	end

@@ -2,13 +2,13 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Unit Fire State Icons", -- GL4
-		desc      = "Shows hold fire and return fire icons above units",
-		author    = "Floris",
-		date      = "2026",
-		license   = "GNU GPL, v2 or later",
-		layer     = -39,
-		enabled   = true
+		name = "Unit Fire State Icons", -- GL4
+		desc = "Shows hold fire and return fire icons above units",
+		author = "Floris",
+		date = "2026",
+		license = "GNU GPL, v2 or later",
+		layer = -39,
+		enabled = true,
 	}
 end
 
@@ -17,32 +17,32 @@ local showFireStateIcons = true
 --------------------------------------------------------------------------------
 -- Localized Spring API
 --------------------------------------------------------------------------------
-local spGetGameFrame  = Spring.GetGameFrame
+local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitStates = Spring.GetUnitStates
-local spValidUnitID   = Spring.ValidUnitID
+local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
-local HOLD_FIRE   = 0
+local HOLD_FIRE = 0
 local RETURN_FIRE = 1
 
 -- Textures to display (replace with dedicated icons if available)
-local holdFireTexture   = "LuaUI/Images/holdfire.png"
+local holdFireTexture = "LuaUI/Images/holdfire.png"
 local returnFireTexture = "LuaUI/Images/returnfire.png"
 
 --------------------------------------------------------------------------------
 -- GL4 Backend
 --------------------------------------------------------------------------------
-local holdFireVBO    = nil
-local returnFireVBO  = nil
+local holdFireVBO = nil
+local returnFireVBO = nil
 local fireIconShader = nil
 
 local luaShaderDir = "LuaUI/Include/"
-local InstanceVBOTable    = gl.InstanceVBOTable
-local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local InstanceVBOTable = gl.InstanceVBOTable
+local uploadAllElements = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local popElementInstance = InstanceVBOTable.popElementInstance
 
 --------------------------------------------------------------------------------
 -- Per-UnitDef config: [unitDefID] = {iconSize, iconHeight}
@@ -50,50 +50,50 @@ local popElementInstance  = InstanceVBOTable.popElementInstance
 --------------------------------------------------------------------------------
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
-    local hasWeapons = unitDef.weapons and #unitDef.weapons > 0
-    local isFactory  = unitDef.isFactory
-	local isDrone    = unitDef.customParams and unitDef.customParams.drone
-    if (hasWeapons or isFactory) and not isDrone then
-        local xsize, zsize = unitDef.xsize, unitDef.zsize
-        local scale = 2.5 * (xsize*xsize + zsize*zsize)^0.5
-        unitConf[udid] = {11 + (scale / 2.2), unitDef.height}
-    end
+	local hasWeapons = unitDef.weapons and #unitDef.weapons > 0
+	local isFactory = unitDef.isFactory
+	local isDrone = unitDef.customParams and unitDef.customParams.drone
+	if (hasWeapons or isFactory) and not isDrone then
+		local xsize, zsize = unitDef.xsize, unitDef.zsize
+		local scale = 2.5 * (xsize * xsize + zsize * zsize) ^ 0.5
+		unitConf[udid] = { 11 + (scale / 2.2), unitDef.height }
+	end
 end
 
 -- All visible units: [unitID] = unitDefID
-local visibleUnits    = {}
-local crashingUnits   = {} -- unitIDs currently crashing; skip icon for these
+local visibleUnits = {}
+local crashingUnits = {} -- unitIDs currently crashing; skip icon for these
 local chobbyInterface = false
-local unitFireState   = {} -- [unitID] = cached fire state; avoids GetUnitStates every frame
-local unitToTeam        = {} -- [unitID] = teamID; needed to filter dead-allyteam units
-local deadAllyTeams     = {} -- [allyTeamID] = true when entire allyteam has been wiped out
-local teamToAllyTeam    = {} -- [teamID] = allyTeamID; built at Initialize
-local deadTeamCount     = {} -- [allyTeamID] = number of dead teams in that allyteam
+local unitFireState = {} -- [unitID] = cached fire state; avoids GetUnitStates every frame
+local unitToTeam = {} -- [unitID] = teamID; needed to filter dead-allyteam units
+local deadAllyTeams = {} -- [allyTeamID] = true when entire allyteam has been wiped out
+local teamToAllyTeam = {} -- [teamID] = allyTeamID; built at Initialize
+local deadTeamCount = {} -- [allyTeamID] = number of dead teams in that allyteam
 local allyTeamTeamCount = {} -- [allyTeamID] = total number of teams in that allyteam
 
 -- Pre-allocated and reused for every pushElementInstance call to avoid per-push table allocation
-local instanceData = {0, 0, 0, 0,  0,  4,  0, 0, 0.85, 0,  0, 1, 0, 1,  0, 0, 0, 0}
+local instanceData = { 0, 0, 0, 0, 0, 4, 0, 0, 0.85, 0, 0, 1, 0, 1, 0, 0, 0, 0 }
 
 --------------------------------------------------------------------------------
 -- GL4 Initialization
 --------------------------------------------------------------------------------
 local function initGL4()
-	local DrawPrimitiveAtUnit    = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
+	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
-	local shaderConfig           = DrawPrimitiveAtUnit.shaderConfig
+	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig
 
-	shaderConfig.BILLBOARD      = 1
-	shaderConfig.HEIGHTOFFSET   = 0
-	shaderConfig.TRANSPARENCY   = 0.85
-	shaderConfig.ANIMATION      = 1
-	shaderConfig.FULL_ROTATION  = 0
-	shaderConfig.CLIPTOLERANCE  = 1.2
-	shaderConfig.INITIALSIZE    = 0.22
-	shaderConfig.BREATHESIZE    = 0.05
-	shaderConfig.ZPULL          = 512.0
-	shaderConfig.POST_SHADING   = "fragColor.rgba = vec4(texcolor.rgb, texcolor.a * g_uv.z);"
-	shaderConfig.MAXVERTICES    = 4
-	shaderConfig.USE_CIRCLES    = nil
+	shaderConfig.BILLBOARD = 1
+	shaderConfig.HEIGHTOFFSET = 0
+	shaderConfig.TRANSPARENCY = 0.85
+	shaderConfig.ANIMATION = 1
+	shaderConfig.FULL_ROTATION = 0
+	shaderConfig.CLIPTOLERANCE = 1.2
+	shaderConfig.INITIALSIZE = 0.22
+	shaderConfig.BREATHESIZE = 0.05
+	shaderConfig.ZPULL = 512.0
+	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb, texcolor.a * g_uv.z);"
+	shaderConfig.MAXVERTICES = 4
+	shaderConfig.USE_CIRCLES = nil
 	shaderConfig.USE_CORNERRECT = nil
 
 	holdFireVBO, fireIconShader = InitDrawPrimitiveAtUnit(shaderConfig, "hold fire icons")
@@ -112,23 +112,29 @@ local function initGL4()
 	return true
 end
 
-WG['unitfirestate'] = {}
-WG['unitfirestate'].setEnabled = function(value)
-    showFireStateIcons = value
+WG["unitfirestate"] = {}
+WG["unitfirestate"].setEnabled = function(value)
+	showFireStateIcons = value
 end
 
 --------------------------------------------------------------------------------
 -- Helper: push a unit into a fire-state VBO
 --------------------------------------------------------------------------------
 local function pushToVBO(vbo, unitID, unitDefID, gf)
-	if vbo.instanceIDtoIndex[unitID] then return end
-	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then return end
+	if vbo.instanceIDtoIndex[unitID] then
+		return
+	end
+	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
+		return
+	end
 	local conf = unitConf[unitDefID]
-	if not conf then return end -- unit has no weapons, skip
-	instanceData[1] = conf[1]  -- width
-	instanceData[2] = conf[1]  -- height
-	instanceData[4] = conf[2]  -- unit height offset
-	instanceData[7] = gf       -- gameframe for animation
+	if not conf then
+		return
+	end -- unit has no weapons, skip
+	instanceData[1] = conf[1] -- width
+	instanceData[2] = conf[1] -- height
+	instanceData[4] = conf[2] -- unit height offset
+	instanceData[7] = gf -- gameframe for animation
 	pushElementInstance(vbo, instanceData, unitID, false, true, unitID)
 end
 
@@ -164,7 +170,9 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if not initGL4() then return end
+	if not initGL4() then
+		return
+	end
 
 	-- Build team → allyteam mapping
 	for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
@@ -176,8 +184,8 @@ function widget:Initialize()
 		end
 	end
 
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
+		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
 	end
 end
 
@@ -204,22 +212,36 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 			end
 		end
 	end
-	if holdFireVBO.dirty then uploadAllElements(holdFireVBO) end
-	if returnFireVBO.dirty then uploadAllElements(returnFireVBO) end
+	if holdFireVBO.dirty then
+		uploadAllElements(holdFireVBO)
+	end
+	if returnFireVBO.dirty then
+		uploadAllElements(returnFireVBO)
+	end
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	if unitTeam == gaiaTeamID then return end
+	if unitTeam == gaiaTeamID then
+		return
+	end
 	visibleUnits[unitID] = unitDefID
 	unitToTeam[unitID] = unitTeam
-	if crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[unitTeam]] then return end
+	if crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[unitTeam]] then
+		return
+	end
 	local states = spGetUnitStates(unitID)
-	if not states then return end
+	if not states then
+		return
+	end
 	local fs = states.firestate
 	unitFireState[unitID] = fs
 	applyFireState(unitID, unitDefID, fs, spGetGameFrame())
-	if holdFireVBO.dirty then uploadAllElements(holdFireVBO) end
-	if returnFireVBO.dirty then uploadAllElements(returnFireVBO) end
+	if holdFireVBO.dirty then
+		uploadAllElements(holdFireVBO)
+	end
+	if returnFireVBO.dirty then
+		uploadAllElements(returnFireVBO)
+	end
 end
 
 function widget:VisibleUnitRemoved(unitID)
@@ -236,7 +258,9 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:CrashingAircraft(unitID, unitDefID, teamID)
-	if teamID == gaiaTeamID then return end
+	if teamID == gaiaTeamID then
+		return
+	end
 	crashingUnits[unitID] = true
 	unitFireState[unitID] = nil
 	if holdFireVBO.instanceIDtoIndex[unitID] then
@@ -248,21 +272,37 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts)
-	if teamID == gaiaTeamID then return end
-	if cmdID ~= CMD.FIRE_STATE then return end
-	if not visibleUnits[unitID] or crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[teamID]] then return end
+	if teamID == gaiaTeamID then
+		return
+	end
+	if cmdID ~= CMD.FIRE_STATE then
+		return
+	end
+	if not visibleUnits[unitID] or crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[teamID]] then
+		return
+	end
 	local fs = cmdParams[1]
-	if unitFireState[unitID] == fs then return end
+	if unitFireState[unitID] == fs then
+		return
+	end
 	unitFireState[unitID] = fs
 	applyFireState(unitID, unitDefID, fs, spGetGameFrame())
-	if holdFireVBO.dirty then uploadAllElements(holdFireVBO) end
-	if returnFireVBO.dirty then uploadAllElements(returnFireVBO) end
+	if holdFireVBO.dirty then
+		uploadAllElements(holdFireVBO)
+	end
+	if returnFireVBO.dirty then
+		uploadAllElements(returnFireVBO)
+	end
 end
 
 function widget:TeamDied(teamID)
-	if teamID == gaiaTeamID then return end
+	if teamID == gaiaTeamID then
+		return
+	end
 	local allyTeamID = teamToAllyTeam[teamID]
-	if not allyTeamID then return end
+	if not allyTeamID then
+		return
+	end
 	deadTeamCount[allyTeamID] = (deadTeamCount[allyTeamID] or 0) + 1
 	if deadTeamCount[allyTeamID] < (allyTeamTeamCount[allyTeamID] or 1) then
 		return -- still has surviving teams in this allyteam
@@ -283,17 +323,23 @@ function widget:TeamDied(teamID)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == "LobbyOverlayActive" then
+		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 	end
 end
 
 function widget:DrawScreenEffects()
 	-- DrawScreenEffects renders after deferred lighting/distortion/bloom/tonemap;
 	-- the shader still uses engine cameraViewProj UBO and depth-tests terrain occlusion.
-	if chobbyInterface then return end
-	if Spring.IsGUIHidden() then return end
-	if not showFireStateIcons then return end
+	if chobbyInterface then
+		return
+	end
+	if Spring.IsGUIHidden() then
+		return
+	end
+	if not showFireStateIcons then
+		return
+	end
 
 	if holdFireVBO.usedElements == 0 and returnFireVBO.usedElements == 0 then
 		return

@@ -2,12 +2,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Camera Remember",
-		desc    = "Remembers the camera mode",
-		author  = "Otto Von Lichtenstein",
-		date    = "April 1st",
+		name = "Camera Remember",
+		desc = "Remembers the camera mode",
+		author = "Otto Von Lichtenstein",
+		date = "April 1st",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 	}
 end

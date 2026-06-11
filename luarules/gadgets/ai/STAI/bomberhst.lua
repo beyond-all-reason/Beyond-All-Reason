@@ -16,10 +16,12 @@ function BomberHST:Init()
 end
 
 function BomberHST:Update()
-	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
+	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then
+		return
+	end
 	self:SetMassLimit()
 	self:DraftBomberSquads()
-	for index,squad in pairs(self.squads) do
+	for index, squad in pairs(self.squads) do
 		if self:SquadsIntegrityCheck(squad) then
 			--self:SquadPosition(squad)
 			self:SquadMass(squad)
@@ -49,15 +51,15 @@ function BomberHST:SetMassLimit()
 end
 
 function BomberHST:SquadsIntegrityCheck(squad)
-	self:EchoDebug('integrity',squad.squadID)
-	for id,member in pairs(squad.members) do
+	self:EchoDebug("integrity", squad.squadID)
+	for id, member in pairs(squad.members) do
 		if not self.ai.tool:UnitPos(member) then
 			squad.members[id] = nil
 			self:RemoveRecruit(member)
 		end
 	end
 
-	for id,_ in pairs(squad.members) do
+	for id, _ in pairs(squad.members) do
 		return true
 	end
 
@@ -73,12 +75,12 @@ function BomberHST:DraftBomberSquads()
 	local f = self.game:Frame()
 	for id, bomber in pairs(self.recruits) do
 		if not bomber.squad then
-			for index,squad in pairs(self.squads) do
+			for index, squad in pairs(self.squads) do
 				if not squad.lock and squad.layer == bomber.layer then
 					squad.members[id] = bomber
 					bomber.squad = index
 					squad.counter = squad.counter + 1
-					if (squad.mass > self.squadMassLimit or #squad.members > 10) or (squad.mass > 2000)then
+					if (squad.mass > self.squadMassLimit or #squad.members > 10) or (squad.mass > 2000) then
 						squad.lock = true
 					end
 				end
@@ -94,8 +96,8 @@ function BomberHST:DraftBomberSquads()
 				squad.layer = bomber.layer
 				squad.mass = 0
 				bomber.squad = self.squadID
-				squad.colour = {0,math.random(),math.random(),1}
-				if (squad.mass > self.squadMassLimit ) or (squad.mass > 2000)then
+				squad.colour = { 0, math.random(), math.random(), 1 }
+				if (squad.mass > self.squadMassLimit) or (squad.mass > 2000) then
 					squad.lock = true
 				end
 			end
@@ -105,18 +107,18 @@ end
 
 function BomberHST:SquadMass(squad)
 	squad.mass = 0
-	for i,bmbrbehaviour in pairs(squad.members) do
+	for i, bmbrbehaviour in pairs(squad.members) do
 		local mass = bmbrbehaviour.mass
 		squad.mass = squad.mass + mass
 	end
-	if (squad.mass > self.squadMassLimit or #squad.members >= 20)then
+	if squad.mass > self.squadMassLimit or #squad.members >= 20 then
 		squad.lock = true
 	end
-	self:EchoDebug('squad mass',squad.mass,'/',self.squadMassLimit)
+	self:EchoDebug("squad mass", squad.mass, "/", self.squadMassLimit)
 end
 
 function BomberHST:SquadsTargetUpdate(squad)
-	self:EchoDebug('targetUpdate',squad.lock , squad.targetUnit ,self:SquadTargetExist(squad))
+	self:EchoDebug("targetUpdate", squad.lock, squad.targetUnit, self:SquadTargetExist(squad))
 	if squad.lock and (not squad.targetUnit or not self:SquadTargetExist(squad)) then
 		self:GetTarget(squad)
 	end
@@ -124,44 +126,42 @@ end
 
 function BomberHST:SquadTargetExist(squad)
 	if squad.targetUnit and game:GetUnitByID(squad.targetUnit):GetPosition() then --maybe the target is already nil if the cell is destroied??
-		self:EchoDebug('targetExist true')
+		self:EchoDebug("targetExist true")
 		return true
 	end
-	self:EchoDebug('targetExist false')
+	self:EchoDebug("targetExist false")
 end
 
 function BomberHST:IsBombing(squad)
-	self:EchoDebug('isBombing')
+	self:EchoDebug("isBombing")
 	for index, member in pairs(squad.members) do
 		local currentCommand = member.unit:Internal():GetUnitCommands()
 		if currentCommand and currentCommand[1] and currentCommand[1].params[1] == squad.targetUnit then
-			self:EchoDebug('isBombing true')
+			self:EchoDebug("isBombing true")
 			return true
 		end
 	end
-	self:EchoDebug('isBombing false')
-end 
+	self:EchoDebug("isBombing false")
+end
 
 function BomberHST:SquadsPerformBombing(squad)
-	self:EchoDebug('SquadsPerformBombing',squad.lock and self:SquadTargetExist(squad) and not self:IsBombing(squad))
+	self:EchoDebug("SquadsPerformBombing", squad.lock and self:SquadTargetExist(squad) and not self:IsBombing(squad))
 	if squad.lock and self:SquadTargetExist(squad) and not self:IsBombing(squad) then
 		squad.cmdUnitId = self.ai.tool:ResetTable(squad.cmdUnitId)
-		for index,member in pairs(squad.members) do
+		for index, member in pairs(squad.members) do
 			squad.cmdUnitId[index] = member.unit:Internal():ID()
-			
-			
 		end
-		self.ai.tool:GiveOrder(squad.cmdUnitId,CMD.ATTACK ,squad.targetUnit,0,'1-2')
+		self.ai.tool:GiveOrder(squad.cmdUnitId, CMD.ATTACK, squad.targetUnit, 0, "1-2")
 	end
-end 
+end
 
 function BomberHST:GetTarget(squad)
-	self:EchoDebug('squad ',squad.squadID,'get new target')
+	self:EchoDebug("squad ", squad.squadID, "get new target")
 	local bestCell = nil
 	local bestValue = 0
-	for X,cells in pairs(self.ai.loshst.ENEMY) do
-		for Z,cell in pairs(cells) do
-			if squad.layer == 'S' then
+	for X, cells in pairs(self.ai.loshst.ENEMY) do
+		for Z, cell in pairs(cells) do
+			if squad.layer == "S" then
 				if cell.POS.y < 5 then
 					if cell.BUILDINGS > bestValue then
 						bestValue = cell.BUILDINGS
@@ -179,21 +179,21 @@ function BomberHST:GetTarget(squad)
 		end
 	end
 	if bestCell then
-		self:EchoDebug('get a valuable target')
+		self:EchoDebug("get a valuable target")
 		local bestUnit
 		local bestValue = 0
-		for id,M in pairs(bestCell.units) do
+		for id, M in pairs(bestCell.units) do
 			local unit = game:GetUnitByID(id)
 			local uName = unit:Name()
 			local ut = self.ai.armyhst.unitTable[uName]
-			self:EchoDebug(id,uName,ut.metalCost)
+			self:EchoDebug(id, uName, ut.metalCost)
 			if ut.metalCost > bestValue then
 				bestValue = ut.metalCost
 				bestUnit = id
 			end
 		end
 		if bestUnit then
-			self:EchoDebug('get a unit to bomb')
+			self:EchoDebug("get a unit to bomb")
 			squad.targetUnit = bestUnit
 		end
 	end

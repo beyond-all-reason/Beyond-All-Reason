@@ -33,7 +33,7 @@ return {
 		turnrate = 270,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmShips",
 			techlevel = 3,

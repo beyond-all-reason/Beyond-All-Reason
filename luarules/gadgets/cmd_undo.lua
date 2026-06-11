@@ -1,19 +1,18 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "Undo Self Destruction Havoc",
-		desc	= 'Restore selfdestructed units and the ones those killed (only availible to a select few playernames)',
-		author	= 'Floris',
-		date	= 'June 2017',
-		license	= 'GNU GPL, v2 or later',
-		layer	= 1,
-		enabled	= false
+		name = "Undo Self Destruction Havoc",
+		desc = "Restore selfdestructed units and the ones those killed (only availible to a select few playernames)",
+		author = "Floris",
+		date = "June 2017",
+		license = "GNU GPL, v2 or later",
+		layer = 1,
+		enabled = false,
 	}
 end
 
-if (#Spring.GetTeamList())-1 <= 64 then
+if (#Spring.GetTeamList()) - 1 <= 64 then
 	return
 end
 
@@ -22,7 +21,7 @@ end
 -- only works when being spectator and you werent a player before
 -- only availible to a select few playernames
 
-local cmdname = 'undo'
+local cmdname = "undo"
 
 local rememberGameframes = 9000 -- 9000 -> 5 minutes
 local mathFloor = math.floor
@@ -38,7 +37,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local dgunDef = {}
 	for weaponDefID, weaponDef in ipairs(WeaponDefs) do
-		if weaponDef.type == 'DGun' then
+		if weaponDef.type == "DGun" then
 			dgunDef[weaponDefID] = true
 		end
 	end
@@ -67,8 +66,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local startPlayers = {}
 	local function checkStartPlayers()
-		for _,playerID in ipairs(Spring.GetPlayerList()) do -- update player infos
-			local playername,_,spec,teamID = Spring.GetPlayerInfo(playerID,false)
+		for _, playerID in ipairs(Spring.GetPlayerList()) do -- update player infos
+			local playername, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
 			if not spec then
 				startPlayers[playername] = true
 			end
@@ -114,11 +113,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function restoreUnits(teamID, seconds, toTeamID, playerID)
-		if not Spring.GetTeamInfo(toTeamID,false) then
+		if not Spring.GetTeamInfo(toTeamID, false) then
 			return
 		end
 		if teamSelfdUnits[teamID] == nil then
-			Spring.SendMessageToPlayer(playerID, 'There is no self destruct unit history for team '..teamID)
+			Spring.SendMessageToPlayer(playerID, "There is no self destruct unit history for team " .. teamID)
 			return
 		end
 		local oldestGameFrame = Spring.GetGameFrame() - (seconds * 30)
@@ -126,10 +125,9 @@ if gadgetHandler:IsSyncedCode() then
 		local leftovers = {}
 		for oldUnitID, params in pairs(teamSelfdUnits[teamID]) do
 			if params[1] > oldestGameFrame then
-
 				-- destroy old unit wreckage if any
-				local features = Spring.GetFeaturesInCylinder(math.floor(params[4]),math.floor(params[6]),70)	-- using radius larger than 1 cause wreckage can fly off a bit
-				for i=1,#features do
+				local features = Spring.GetFeaturesInCylinder(math.floor(params[4]), math.floor(params[6]), 70) -- using radius larger than 1 cause wreckage can fly off a bit
+				for i = 1, #features do
 					local featureID = features[i]
 					if UnitDefs[params[2]] ~= nil then
 						local wreckName = UnitDefs[params[2]].wreckName
@@ -160,7 +158,7 @@ if gadgetHandler:IsSyncedCode() then
 				if UnitDefs[params[2]].selfDExplosion ~= nil then
 					local radius = WeaponDefs[WeaponDefNames[UnitDefs[params[2]].selfDExplosion].id].damageAreaOfEffect
 					if radius ~= nil then
-						sceduledRestoreHeightmap[Spring.GetGameFrame() + 15][#sceduledRestoreHeightmap[Spring.GetGameFrame() + 15]+1] = {params[4]-radius, params[6]-radius, params[4]+radius, params[6]+radius}
+						sceduledRestoreHeightmap[Spring.GetGameFrame() + 15][#sceduledRestoreHeightmap[Spring.GetGameFrame() + 15] + 1] = { params[4] - radius, params[6] - radius, params[4] + radius, params[6] + radius }
 						--table.insert(sceduledRestoreHeightmap[Spring.GetGameFrame() + 15], {params[4]-radius, params[6]-radius, params[4]+radius, params[6]+radius})
 					end
 				end
@@ -169,19 +167,18 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		teamSelfdUnits[teamID] = leftovers
-		Spring.SendMessageToPlayer(playerID, 'Restored: '..numRestoredUnits..' units')
+		Spring.SendMessageToPlayer(playerID, "Restored: " .. numRestoredUnits .. " units")
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,2)=="un" and msg:sub(3,4)==validation then
-
+		if msg:sub(1, 2) == "un" and msg:sub(3, 4) == validation then
 			local accountID = Spring.Utilities.GetAccountID(playerID)
 			local authorized = false
 			if _G.permissions.undo[accountID] then
 				authorized = true
 			end
 			if authorized then
-				local params = string.split(msg, ':')
+				local params = string.split(msg, ":")
 				restoreUnits(tonumber(params[2]), tonumber(params[3]), tonumber(params[4]), playerID)
 				return true
 			end
@@ -189,7 +186,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function notify(message)
-		for _,playerID in pairs(Spring.GetPlayerList()) do
+		for _, playerID in pairs(Spring.GetPlayerList()) do
 			local accountID = Spring.Utilities.GetAccountID(playerID)
 			if _G.permissions.undo[accountID] then
 				Spring.SendMessageToPlayer(playerID, message)
@@ -201,40 +198,40 @@ if gadgetHandler:IsSyncedCode() then
 		if safeguardedUnits[unitDefID] and attackerTeam and Spring.AreTeamsAllied(unitTeam, attackerTeam) then
 			if dgunDef[weaponID] or weaponUnitSelfd[weaponID] or not Spring.GetUnitNearestEnemy(unitID, 1000) then
 				local _, playerID, _, victimIsAi = Spring.GetTeamInfo(unitTeam, false)
-				local name = Spring.GetPlayerInfo(playerID,false)
-				if victimIsAi and Spring.GetGameRulesParam('ainame_' .. unitTeam) then
-					name = Spring.GetGameRulesParam('ainame_' .. unitTeam)..' (AI)'
+				local name = Spring.GetPlayerInfo(playerID, false)
+				if victimIsAi and Spring.GetGameRulesParam("ainame_" .. unitTeam) then
+					name = Spring.GetGameRulesParam("ainame_" .. unitTeam) .. " (AI)"
 				end
-				name = name or '---'
+				name = name or "---"
 				local _, attackerPlayerID, _, attackerIsAi = Spring.GetTeamInfo(attackerTeam, false)
-				local attackerName = Spring.GetPlayerInfo(attackerPlayerID,false)
-				if attackerIsAi and Spring.GetGameRulesParam('ainame_' .. attackerTeam) then
-					attackerName = Spring.GetGameRulesParam('ainame_' .. attackerTeam)..' (AI)'
+				local attackerName = Spring.GetPlayerInfo(attackerPlayerID, false)
+				if attackerIsAi and Spring.GetGameRulesParam("ainame_" .. attackerTeam) then
+					attackerName = Spring.GetGameRulesParam("ainame_" .. attackerTeam) .. " (AI)"
 				end
-				attackerName = attackerName or '---'
-				local x,_,z = Spring.GetUnitPosition(unitID)
+				attackerName = attackerName or "---"
+				local x, _, z = Spring.GetUnitPosition(unitID)
 				local unitName = UnitDefs[unitDefID].name
-				local atPosition = not x and '' or "   (pos: "..math.floor(math.floor(x/100)*100)..", "..math.floor(math.floor(z/100)*100)..")"
+				local atPosition = not x and "" or "   (pos: " .. math.floor(math.floor(x / 100) * 100) .. ", " .. math.floor(math.floor(z / 100) * 100) .. ")"
 				--if not attackerIsAi then
 				if dgunDef[weaponID] then
 					if name == attackerName then
-						notify("\255\255\100\100 -- ALERT --   "..attackerName.." tried to DGUN their own "..unitName..atPosition)
+						notify("\255\255\100\100 -- ALERT --   " .. attackerName .. " tried to DGUN their own " .. unitName .. atPosition)
 					else
-						notify("\255\255\100\100 -- ALERT --   "..attackerName.." tried to DGUN "..name.."'s "..unitName..atPosition)
+						notify("\255\255\100\100 -- ALERT --   " .. attackerName .. " tried to DGUN " .. name .. "'s " .. unitName .. atPosition)
 					end
 					return 0, 0
 				elseif weaponUnitSelfd[weaponID] then
 					if name == attackerName then
-						notify("\255\255\100\100 -- ALERT --   "..attackerName.." tried to damage their own "..unitName.." (via a SELFD)"..atPosition)
+						notify("\255\255\100\100 -- ALERT --   " .. attackerName .. " tried to damage their own " .. unitName .. " (via a SELFD)" .. atPosition)
 					else
-						notify("\255\255\100\100 -- ALERT --   "..attackerName.." tried to damage "..name.."'s "..unitName.." (via a SELFD)"..atPosition)
+						notify("\255\255\100\100 -- ALERT --   " .. attackerName .. " tried to damage " .. name .. "'s " .. unitName .. " (via a SELFD)" .. atPosition)
 					end
 					return 0, 0
 				elseif not Spring.GetUnitNearestEnemy(unitID, 1000) then
 					if name == attackerName then
-						notify("\255\255\100\100 -- ALERT --   "..attackerName.." tried to damage their own "..unitName.." without nearby enemy"..atPosition)
+						notify("\255\255\100\100 -- ALERT --   " .. attackerName .. " tried to damage their own " .. unitName .. " without nearby enemy" .. atPosition)
 					else
-						notify("\255\255\100\100 -- ALERT --   "..attackerName.." tried to damage "..name.."'s "..unitName.." without nearby enemy"..atPosition)
+						notify("\255\255\100\100 -- ALERT --   " .. attackerName .. " tried to damage " .. name .. "'s " .. unitName .. " without nearby enemy" .. atPosition)
 					end
 					return 0, 0
 				end
@@ -247,33 +244,32 @@ if gadgetHandler:IsSyncedCode() then
 	-- log selfd units and all the deaths they caused
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID, weaponDefID)
 		if (attackerID == nil and selfdCmdUnits[unitID]) or (attackerID ~= nil and selfdCmdUnits[attackerID]) then -- attackerID == nil -> selfd/reclaim
-			local ux,uy,uz = Spring.GetUnitPosition(unitID)
+			local ux, uy, uz = Spring.GetUnitPosition(unitID)
 			local health, maxHealth = Spring.GetUnitHealth(unitID)
-			local buildFacing =  Spring.GetUnitBuildFacing(unitID)
-			local dx, dy, dz =  Spring.GetUnitDirection(unitID)
+			local buildFacing = Spring.GetUnitBuildFacing(unitID)
+			local dx, dy, dz = Spring.GetUnitDirection(unitID)
 			if attackerID ~= nil then
 				selfdCmdUnits[unitID] = Spring.GetGameFrame() - Spring.GetUnitSelfDTime(unitID)
 				teamID = lastSelfdTeamID
-				health = maxHealth	-- health only applicable to actual selfd units
+				health = maxHealth -- health only applicable to actual selfd units
 			else
 				lastSelfdTeamID = teamID
 			end
 			if teamSelfdUnits[teamID] == nil then
 				teamSelfdUnits[teamID] = {}
 			end
-			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz}
+			teamSelfdUnits[teamID][unitID] = { Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz }
 		end
 	end
 
 	-- log selfd commands
 	function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-
 		-- check for queued selfd (to check if queue gets cancelled)
 		if selfdCmdUnits[unitID] then
 			local foundSelfdCmd = false
-			local unitQueue = Spring.GetUnitCommands(unitID,20) or {}
+			local unitQueue = Spring.GetUnitCommands(unitID, 20) or {}
 			if #unitQueue > 0 then
-				for i=1, #unitQueue do
+				for i = 1, #unitQueue do
 					local cmd = unitQueue[i]
 					if cmd.id == CMD.SELFD then
 						foundSelfdCmd = true
@@ -287,16 +283,14 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if cmdID == CMD.SELFD then
-			if Spring.GetUnitSelfDTime(unitID) > 0 then  	-- since cmd hasnt been cancelled yet
+			if Spring.GetUnitSelfDTime(unitID) > 0 then -- since cmd hasnt been cancelled yet
 				selfdCmdUnits[unitID] = nil
 			else
 				selfdCmdUnits[unitID] = Spring.GetGameFrame()
 			end
 		end
 	end
-
-else	-- UNSYNCED
-
+else -- UNSYNCED
 	local validation = SYNCED.validationUndo
 
 	function gadget:Initialize()
@@ -313,8 +307,7 @@ else	-- UNSYNCED
 			if words[3] ~= nil then
 				targetTeamID = words[3]
 			end
-			Spring.SendLuaRulesMsg('un'..validation..':'..words[1]..':'..words[2]..':'..targetTeamID)
+			Spring.SendLuaRulesMsg("un" .. validation .. ":" .. words[1] .. ":" .. words[2] .. ":" .. targetTeamID)
 		end
 	end
 end
-

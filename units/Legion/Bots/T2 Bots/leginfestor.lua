@@ -38,10 +38,10 @@ return {
 		turnrate = 1214.40002,
 		workertime = 100,
 		buildoptions = {
-			[1] = "leginfestor"
+			[1] = "leginfestor",
 		},
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Zath (model), Tuerk (animation)",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.2,

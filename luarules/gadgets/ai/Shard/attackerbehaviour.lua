@@ -1,4 +1,4 @@
-shard_include( "attackers" )
+shard_include("attackers")
 
 local attackerSet = {}
 for _, name in ipairs(attackerlist) do
@@ -19,7 +19,6 @@ function AttackerBehaviour:OwnerBuilt()
 	self.attacking = false
 	self.ai.attackhandler:AddRecruit(self)
 end
-
 
 function AttackerBehaviour:OwnerDead()
 	self.ai.attackhandler:RemoveRecruit(self)
@@ -61,7 +60,6 @@ function AttackerBehaviour:Activate()
 		self.ai.attackhandler:AddRecruit(self)
 	end
 end
-
 
 function AttackerBehaviour:OwnerDied()
 	self.ai.attackhandler:RemoveRecruit(self)

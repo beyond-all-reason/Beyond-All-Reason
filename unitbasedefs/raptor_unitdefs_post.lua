@@ -9,7 +9,7 @@ local function processRaptorUnitDef(uDef)
 	uDef.mass = raptorHealth
 	uDef.canhover = true
 	uDef.autoheal = math.ceil(math.sqrt(raptorHealth * 0.8))
-	customparams.paralyzemultiplier = customparams.paralyzemultiplier or .2
+	customparams.paralyzemultiplier = customparams.paralyzemultiplier or 0.2
 	customparams.areadamageresistance = "_RAPTORACID_"
 	uDef.upright = false
 	uDef.floater = true

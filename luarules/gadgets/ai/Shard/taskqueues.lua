@@ -1,19 +1,22 @@
 --[[
  Task Queues!
-]]--
+]]
+--
 
-math.randomseed( os.time() )
-math.random(); math.random(); math.random()
+math.randomseed(os.time())
+math.random()
+math.random()
+math.random()
 
-function CoreWindSolar( taskqueuebehaviour )
+function CoreWindSolar(taskqueuebehaviour)
 	if taskqueuebehaviour.ai.map:AverageWind() > 10 then
 		return "corwind"
 	else
 		return "corsolar"
 	end
 end
-function randomLab( taskqueuebehaviour )
-	local r = math.random(0,2)
+function randomLab(taskqueuebehaviour)
+	local r = math.random(0, 2)
 	if r == 0 then
 		return "corlab"
 	elseif r == 1 then

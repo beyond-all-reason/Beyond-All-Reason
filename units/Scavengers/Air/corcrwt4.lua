@@ -36,7 +36,7 @@ return {
 		upright = true,
 		customparams = {
 			maxrange = "450",
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "Mr Bob, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/scavengers",
@@ -111,7 +111,7 @@ return {
 				damage = {
 					default = 40,
 					subs = 10,
-				}
+				},
 			},
 
 			edragon_missile = {
@@ -251,7 +251,7 @@ return {
 				def = "kmaw",
 				onlytargetcategory = "SURFACE",
 				maindir = "0 -1 1",
-                maxangledif = 180,
+				maxangledif = 180,
 			},
 			[2] = {
 				def = "edragon_missile",
@@ -263,25 +263,25 @@ return {
 				def = "KROWBOSSLASER",
 				onlytargetcategory = "SURFACE",
 				maindir = "1 -1 0",
-                maxangledif = 180,
+				maxangledif = 180,
 			},
 			[4] = {
 				def = "KROWBOSSLASER",
 				onlytargetcategory = "SURFACE",
 				maindir = "1 -1 0",
-                maxangledif = 180,
+				maxangledif = 180,
 			},
 			[5] = {
 				def = "KROWBOSSLASER",
 				onlytargetcategory = "SURFACE",
 				maindir = "-1 -1 0",
-                maxangledif = 180,
+				maxangledif = 180,
 			},
 			[6] = {
 				def = "KROWBOSSLASER",
 				onlytargetcategory = "SURFACE",
 				maindir = "-1 -1 0",
-                maxangledif = 180,
+				maxangledif = 180,
 			},
 		},
 	},

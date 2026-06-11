@@ -2,12 +2,12 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "Bomber Move State",
-		desc    = "Hides the Move State button for bombers",
-		author  = "Pexo",
-		date    = "2026-03-03",
+		name = "Bomber Move State",
+		desc = "Hides the Move State button for bombers",
+		author = "Pexo",
+		date = "2026-03-03",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 	}
 end

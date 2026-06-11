@@ -1,14 +1,14 @@
 local scenariodata = {
-	index			= 16, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
-	scenarioid		= "neuropeww225", -- no spaces, lowercase, this will be used to save the score
-    version         = "1.0", -- increment this to keep the score when changing a mission
-	title			= "World War XXV", -- can be anything
-	author			= "Beherith", -- your name here
+	index = 16, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
+	scenarioid = "neuropeww225", -- no spaces, lowercase, this will be used to save the score
+	version = "1.0", -- increment this to keep the score when changing a mission
+	title = "World War XXV", -- can be anything
+	author = "Beherith", -- your name here
 	isnew = true,
-	imagepath		= "scenario016.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Neurope has experienced quite the geological shift", -- This text will be drawn over image
-    summary         = [[Multiple allegiances have formed around continental Neurope, and you must retake the entire continental area from the northwest island]],
-	briefing 		= [[One large alliance of three commanders controls the center of the continent, the other is formed between the east, southeast and southwest. The northern and central territories have attempted to remain neutral, but are gearing up for battle. 
+	imagepath = "scenario016.jpg", -- placed next to lua file, should be 3:1 ratio banner style
+	imageflavor = "Neurope has experienced quite the geological shift", -- This text will be drawn over image
+	summary = [[Multiple allegiances have formed around continental Neurope, and you must retake the entire continental area from the northwest island]],
+	briefing = [[One large alliance of three commanders controls the center of the continent, the other is formed between the east, southeast and southwest. The northern and central territories have attempted to remain neutral, but are gearing up for battle. 
  
 You will start on the northwestern large island, and the northern resource rich island is still unclaimed according to our scouting reports. 
  
@@ -31,39 +31,39 @@ The difficulty modifier will change the amount of resources you and the enemy re
  - Brutal: Regular resources for you, +100% for the enemy
     ]],
 
-	mapfilename		= "Neurope_Remake 4.2", -- the name of the map to be displayed here
-	playerstartx	= "5%", -- X position of where player comm icon should be drawn, from top left of the map
-	playerstarty	= "10%", -- Y position of where player comm icon should be drawn, from top left of the map
-	partime 		= 3000, -- par time in seconds
-	parresources	= 10000000, -- par resource amount
-	difficulty		= 5, -- Percieved difficulty at 'normal' level: integer 1-10
-    defaultdifficulty = "Normal", -- an entry of the difficulty table
-    difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
-        {name = "Beginner", playerhandicap = 50 , enemyhandicap = -50},
-        {name = "Novice"  , playerhandicap = 25 , enemyhandicap = -25},
-        {name = "Normal"  , playerhandicap = 0  , enemyhandicap = 0  },
-        {name = "Hard"    , playerhandicap = 0, enemyhandicap = 50 },
-        {name = "Brutal"  , playerhandicap = 0, enemyhandicap = 100 },
-    },
-    allowedsides     = {"Armada","Cortex","Random"}, --these are the permitted factions for this mission
-	victorycondition= "Kill all enemy Commanders", -- This is plaintext, but should be reflected in startscript
-	losscondition	= "Loss of your Commander",  -- This is plaintext, but should be reflected in startscript
-    unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
-	-- dont use the one in startscript, put it here!
-        --armavp = 0,
-        --coravp = 0,
-    } ,
+	mapfilename = "Neurope_Remake 4.2", -- the name of the map to be displayed here
+	playerstartx = "5%", -- X position of where player comm icon should be drawn, from top left of the map
+	playerstarty = "10%", -- Y position of where player comm icon should be drawn, from top left of the map
+	partime = 3000, -- par time in seconds
+	parresources = 10000000, -- par resource amount
+	difficulty = 5, -- Percieved difficulty at 'normal' level: integer 1-10
+	defaultdifficulty = "Normal", -- an entry of the difficulty table
+	difficulties = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
+		{ name = "Beginner", playerhandicap = 50, enemyhandicap = -50 },
+		{ name = "Novice", playerhandicap = 25, enemyhandicap = -25 },
+		{ name = "Normal", playerhandicap = 0, enemyhandicap = 0 },
+		{ name = "Hard", playerhandicap = 0, enemyhandicap = 50 },
+		{ name = "Brutal", playerhandicap = 0, enemyhandicap = 100 },
+	},
+	allowedsides = { "Armada", "Cortex", "Random" }, --these are the permitted factions for this mission
+	victorycondition = "Kill all enemy Commanders", -- This is plaintext, but should be reflected in startscript
+	losscondition = "Loss of your Commander", -- This is plaintext, but should be reflected in startscript
+	unitlimits = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
+		-- dont use the one in startscript, put it here!
+		--armavp = 0,
+		--coravp = 0,
+	},
 
-    scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
-        myoption = "dostuff",
-        scenarioid = "neuropeww225", --must be present for scores
+	scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
+		myoption = "dostuff",
+		scenarioid = "neuropeww225", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
 		--unitloadout = {
 		--	{name = 'corrad', x = 5760, y = 751, z = 5616, rot = 0 , team = 7},
 		--}
-    },
-    -- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
-	startscript		= [[
+	},
+	-- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
+	startscript = [[
 
  [Game]
 {
@@ -297,7 +297,6 @@ The difficulty modifier will change the amount of resources you and the enemy re
 }
 
 	]],
-
 }
 
 return scenariodata -- scenariodata

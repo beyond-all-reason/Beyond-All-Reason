@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = 'Place Target On Ground',
-		desc      = 'Make some units, like nukes, target ground instead of units',
-		author    = 'Itanthias, Chronographer',
-		date      = 'August 2023',
-		license   = 'GNU GPL, v2 or later',
-		layer     = -12,
-		enabled   = true
+		name = "Place Target On Ground",
+		desc = "Make some units, like nukes, target ground instead of units",
+		author = "Itanthias, Chronographer",
+		date = "August 2023",
+		license = "GNU GPL, v2 or later",
+		layer = -12,
+		enabled = true,
 	}
 end
 
@@ -19,7 +19,7 @@ end
 local place_target_on_ground = {}
 for uDefID, uDef in pairs(UnitDefs) do
 	local weapons = uDef.weapons
-	for i=1, #weapons do
+	for i = 1, #weapons do
 		local wDef = WeaponDefs[weapons[i].weaponDef]
 		if wDef.customParams then
 			if wDef.customParams.place_target_on_ground then
@@ -41,15 +41,15 @@ local mapz = Game.mapSizeZ
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
-local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE 
+local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 local CMDTYPE_ICON_MAP = CMDTYPE.ICON_MAP
 
-local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua confs
 local hasVoid = false
 if success and type(mapinfo) == "table" and mapinfo.voidwater then
-  hasVoid = true
+	hasVoid = true
 elseif not success then
-  Spring.Echo("Place Target On Ground failed to load the mapinfo.lua")
+	Spring.Echo("Place Target On Ground failed to load the mapinfo.lua")
 end
 
 function gadget:Initialize()
@@ -61,46 +61,46 @@ function gadget:Initialize()
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    if place_target_on_ground[unitDefID] then
+	if place_target_on_ground[unitDefID] then
 		local cmdDesc
-        local cmdIdx = spFindUnitCmdDesc(unitID, CMD_ATTACK)
-        if cmdIdx then
-            cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
-            if cmdDesc then
-                cmdDesc.type = CMDTYPE_ICON_MAP -- Forces attack commands to accept (x,y,z) spatial coordinates, and not allow unitIDs as valid parameters.
+		local cmdIdx = spFindUnitCmdDesc(unitID, CMD_ATTACK)
+		if cmdIdx then
+			cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
+			if cmdDesc then
+				cmdDesc.type = CMDTYPE_ICON_MAP -- Forces attack commands to accept (x,y,z) spatial coordinates, and not allow unitIDs as valid parameters.
 				-- HOWEVER, this does not seem to propogate to default right click commands.
-				-- so the below AllowCommand function checks for any attacks just targeting a unitID and places the command on the floor.  
-                spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
-            end
-        end
+				-- so the below AllowCommand function checks for any attacks just targeting a unitID and places the command on the floor.
+				spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
+			end
+		end
 
 		cmdIdx = spFindUnitCmdDesc(unitID, CMD_UNIT_SET_TARGET)
-        if cmdIdx then
-            cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
-            if cmdDesc then
-                cmdDesc.type = CMDTYPE_ICON_MAP
-                spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
-            end
-        end
+		if cmdIdx then
+			cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
+			if cmdDesc then
+				cmdDesc.type = CMDTYPE_ICON_MAP
+				spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
+			end
+		end
 
 		cmdIdx = spFindUnitCmdDesc(unitID, CMD_UNIT_SET_TARGET_NO_GROUND)
-        if cmdIdx then
-            cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
-            if cmdDesc then
-                cmdDesc.type = CMDTYPE_ICON_MAP
-                spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
-            end
-        end
+		if cmdIdx then
+			cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
+			if cmdDesc then
+				cmdDesc.type = CMDTYPE_ICON_MAP
+				spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
+			end
+		end
 
 		cmdIdx = spFindUnitCmdDesc(unitID, CMD_UNIT_SET_TARGET_RECTANGLE)
-        if cmdIdx then
-            cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
-            if cmdDesc then
-                cmdDesc.type = CMDTYPE_ICON_MAP
-                spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
-            end
-        end
-    end
+		if cmdIdx then
+			cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
+			if cmdDesc then
+				cmdDesc.type = CMDTYPE_ICON_MAP
+				spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
+			end
+		end
+	end
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
@@ -108,19 +108,19 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	-- usually from user side DefaultCommand widget function
 	if place_target_on_ground[unitDefID] then
 		-- no need to check cmdID due to RegisterAllowCommand above
-		if hasVoid and (#cmdParams == 3 or #cmdParams == 4) then 
-			local x,y,z = cmdParams[1], cmdParams[2], cmdParams[3]
-			if x ~= nil and (y < 0) and ( x >= 0 and x <= mapx ) and (z >= 0 and z <= mapz) then
+		if hasVoid and (#cmdParams == 3 or #cmdParams == 4) then
+			local x, y, z = cmdParams[1], cmdParams[2], cmdParams[3]
+			if x ~= nil and (y < 0) and (x >= 0 and x <= mapx) and (z >= 0 and z <= mapz) then
 				return false
 			end
-		elseif (#cmdParams == 1) then -- give an attack command at the ground, and deny the intial attack unit command
+		elseif #cmdParams == 1 then -- give an attack command at the ground, and deny the intial attack unit command
 			local basePointX, basePointY, basePointZ = spGetUnitPosition(cmdParams[1])
 			if basePointX and basePointZ then
 				local yGround = spGetGroundHeight(basePointX, basePointZ)
 				if hasVoid and (yGround < 0) then
 					return false
-				end 
-				spGiveOrderToUnit(unitID, cmdID, {basePointX, yGround, basePointZ}, cmdOptions)
+				end
+				spGiveOrderToUnit(unitID, cmdID, { basePointX, yGround, basePointZ }, cmdOptions)
 				return false
 			end
 		end

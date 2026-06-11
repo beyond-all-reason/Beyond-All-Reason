@@ -12,7 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathFloor = math.floor
 
@@ -20,7 +19,7 @@ local mathFloor = math.floor
 local spGetGameFrame = Spring.GetGameFrame
 
 local showRejoinUI = false
-local CATCH_UP_THRESHOLD = 11 * Game.gameSpeed    -- only show the window if behind this much
+local CATCH_UP_THRESHOLD = 11 * Game.gameSpeed -- only show the window if behind this much
 local UPDATE_RATE_F = 5 -- frames
 local UPDATE_RATE_S = UPDATE_RATE_F / Game.gameSpeed
 local t = UPDATE_RATE_S
@@ -55,16 +54,15 @@ local function DrawRect(px, py, sx, sy, zoom)
 end
 
 local function updateRejoin()
-
 	if showRejoinUI and serverFrame then
 		local area = rejoinArea
 		local catchup = spGetGameFrame() / serverFrame
 		if not dlistRejoinGuishader then
 			dlistRejoinGuishader = gl.CreateList(function()
-				RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
+				RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
 			end)
-			if WG['guishader'] then
-				WG['guishader'].InsertDlist(dlistRejoinGuishader, 'rejoinprogress')
+			if WG["guishader"] then
+				WG["guishader"].InsertDlist(dlistRejoinGuishader, "rejoinprogress")
 			end
 		end
 
@@ -75,7 +73,7 @@ local function updateRejoin()
 			UiElement(area[1], area[2], area[3], area[4], 1, 1, 1, 1)
 
 			local barHeight = mathFloor((height * widgetScale / 7.5) + 0.5)
-			local barHeightPadding = 1+mathFloor(vsy*0.007)
+			local barHeightPadding = 1 + mathFloor(vsy * 0.007)
 			local barLeftPadding = barHeightPadding
 			local barRightPadding = barHeightPadding
 			local barArea = { area[1] + barLeftPadding, area[2] + barHeightPadding, area[3] - barRightPadding, area[2] + barHeight + barHeightPadding }
@@ -88,8 +86,8 @@ local function updateRejoin()
 			RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.2 }, { 0.8, 0.8, 0.8, 0.16 })
 
 			gl.Texture(noiseBackgroundTexture)
-			gl.Color(1,1,1, 0.12)
-			TexturedRectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, barWidth*0.6, 0)
+			gl.Color(1, 1, 1, 0.12)
+			TexturedRectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, barWidth * 0.6, 0)
 			gl.Texture(false)
 
 			-- gloss
@@ -104,12 +102,12 @@ local function updateRejoin()
 			RectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, { 0, 0.55, 0, 1 }, { 0, 1, 0, 1 })
 
 			gl.Texture(stripesTexture)
-			gl.Color(1,1,1, 0.16)
-			TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, (barArea[3]-barArea[1]) * 0.22, - os.clock()*0.06)
+			gl.Color(1, 1, 1, 0.16)
+			TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, (barArea[3] - barArea[1]) * 0.22, -os.clock() * 0.06)
 
 			gl.Texture(noiseBackgroundTexture)
-			gl.Color(1,1,1, 0.07)
-			TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, barWidth*0.6, 0)
+			gl.Color(1, 1, 1, 0.07)
+			TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, barWidth * 0.6, 0)
 			gl.Texture(false)
 
 			-- Bar value highlight
@@ -127,32 +125,31 @@ local function updateRejoin()
 			DrawRect((barArea[1] + (catchup * barWidth)) + (glowSize * 2), barArea[2] - glowSize, barArea[1] + (catchup * barWidth), barArea[4] + glowSize, 0.008)
 			gl.Texture(false)
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-			gl.Color(1,1,1,1)
+			gl.Color(1, 1, 1, 1)
 
 			local mins = mathFloor(serverFrame / 30 / 60)
 			local secs = mathFloor(((serverFrame / 30 / 60) - mins) * 60)
-			local gametime = mins..':'..(secs < 10 and '0'..secs or secs)
+			local gametime = mins .. ":" .. (secs < 10 and "0" .. secs or secs)
 
 			-- Text
-			local fontsize = mathFloor(height*0.34)
+			local fontsize = mathFloor(height * 0.34)
 			font2:Begin()
 			font2:SetTextColor(0.92, 0.92, 0.92, 1)
 			font2:SetOutlineColor(0, 0, 0, 1)
-			font2:Print('\255\225\255\225' .. Spring.I18N('ui.rejoin.catchingUp') .. ' \255\166\166\166'..gametime, area[1] + ((area[3] - area[1]) / 2), area[2] + barHeight * 2 + (fontsize*0.89), fontsize, 'cor')
+			font2:Print("\255\225\255\225" .. Spring.I18N("ui.rejoin.catchingUp") .. " \255\166\166\166" .. gametime, area[1] + ((area[3] - area[1]) / 2), area[2] + barHeight * 2 + (fontsize * 0.89), fontsize, "cor")
 			font2:End()
 		end)
 	end
 end
 
 function widget:Update(dt)
-
 	-- rejoin
 	if not isReplay and serverFrame then
 		t = t - dt
 		if t <= 0 then
 			t = t + UPDATE_RATE_S
 
-			if Spring.IsGameOver() then		-- not sure if widget:GameOver() even works so I do this here as well
+			if Spring.IsGameOver() then -- not sure if widget:GameOver() even works so I do this here as well
 				widgetHandler:RemoveWidget()
 				return
 			end
@@ -171,8 +168,8 @@ function widget:Update(dt)
 			elseif showRejoinUI then
 				showRejoinUI = false
 				if dlistRejoinGuishader ~= nil then
-					if WG['guishader'] then
-						WG['guishader'].RemoveDlist('rejoinprogress')
+					if WG["guishader"] then
+						WG["guishader"].RemoveDlist("rejoinprogress")
 					end
 					gl.DeleteList(dlistRejoinGuishader)
 					dlistRejoinGuishader = nil
@@ -190,8 +187,8 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = gl.GetViewSizes()
-	width = mathFloor(vsy*0.23)
-	height = mathFloor(vsy*0.046)
+	width = mathFloor(vsy * 0.23)
+	height = mathFloor(vsy * 0.046)
 	widgetScale = (vsy / height) * 0.0425
 	widgetScale = widgetScale * ui_scale
 
@@ -199,13 +196,13 @@ function widget:ViewResize()
 	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	font2 = WG['fonts'].getFont(2)
+	font2 = WG["fonts"].getFont(2)
 
-	rejoinArea = { mathFloor(0.5*vsx)-mathFloor(width*0.5), mathFloor(posY*vsy)-mathFloor(height*0.5), mathFloor(0.5*vsx) + mathFloor(width*0.5), mathFloor(posY*vsy)+mathFloor(height*0.5) }
+	rejoinArea = { mathFloor(0.5 * vsx) - mathFloor(width * 0.5), mathFloor(posY * vsy) - mathFloor(height * 0.5), mathFloor(0.5 * vsx) + mathFloor(width * 0.5), mathFloor(posY * vsy) + mathFloor(height * 0.5) }
 
 	if dlistRejoinGuishader ~= nil then
-		if WG['guishader'] then
-			WG['guishader'].RemoveDlist('rejoinprogress')
+		if WG["guishader"] then
+			WG["guishader"].RemoveDlist("rejoinprogress")
 		end
 		gl.DeleteList(dlistRejoinGuishader)
 		dlistRejoinGuishader = nil
@@ -215,7 +212,7 @@ function widget:ViewResize()
 end
 
 -- used for rejoin progress functionality
-function widget:GameProgress(n)	-- happens every 150 frames
+function widget:GameProgress(n) -- happens every 150 frames
 	serverFrame = n
 end
 
@@ -228,15 +225,15 @@ function widget:GameStart()
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if not serverFrame and msg:sub(1,12) == 'ServerFrame' then
+	if not serverFrame and msg:sub(1, 12) == "ServerFrame" then
 		serverFrame = tonumber(msg:sub(13))
 	end
 end
 
 function widget:Initialize()
 	widget:ViewResize()
-	WG['rejoin'] = {}
-	WG['rejoin'].showingRejoining = function()
+	WG["rejoin"] = {}
+	WG["rejoin"].showingRejoining = function()
 		return showRejoinUI
 	end
 end
@@ -245,8 +242,8 @@ function widget:Shutdown()
 	if dlistRejoin ~= nil then
 		gl.DeleteList(dlistRejoin)
 	end
-	if dlistRejoinGuishader ~= nil and WG['guishader'] then
-		WG['guishader'].RemoveDlist('rejoinprogress')
+	if dlistRejoinGuishader ~= nil and WG["guishader"] then
+		WG["guishader"].RemoveDlist("rejoinprogress")
 	end
-	WG['rejoin'] = nil
+	WG["rejoin"] = nil
 end

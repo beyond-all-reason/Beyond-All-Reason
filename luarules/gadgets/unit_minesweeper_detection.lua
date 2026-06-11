@@ -19,12 +19,12 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spSetUnitLosState		= Spring.SetUnitLosState
-local spSetUnitLosMask		= Spring.SetUnitLosMask
-local spGetUnitPosition		= Spring.GetUnitPosition
-local spGetUnitsInCylinder	= Spring.GetUnitsInCylinder
-local spGetUnitDefID		= Spring.GetUnitDefID
-local spGetUnitTeam			= Spring.GetUnitTeam
+local spSetUnitLosState = Spring.SetUnitLosState
+local spSetUnitLosMask = Spring.SetUnitLosMask
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitTeam = Spring.GetUnitTeam
 
 local minesweeperRanges = {}
 local minesweepers = {}
@@ -66,7 +66,7 @@ end
 local function processTeamsSweepers(teamID)
 	local minesToReveal = {}
 
-	for sweeper, sweeperDef in pairs(minesweepers[teamID])  do
+	for sweeper, sweeperDef in pairs(minesweepers[teamID]) do
 		local x, y, z = spGetUnitPosition(sweeper)
 		if x and z then
 			local nearUnits = spGetUnitsInCylinder(x, z, minesweeperRanges[sweeperDef])

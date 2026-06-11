@@ -36,7 +36,7 @@ return {
 		turnrate = 120,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "tHARSIS",
 			normaltex = "unittextures/LEG_normal.dds",
 			subfolder = "CorAircraft/T2",
@@ -45,7 +45,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},		},
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -101,7 +102,7 @@ return {
 				customparams = {
 					--isupgraded = isupgraded,
 					--damagetype = "ehbotkarganneth",
-					noattackrangearc= 1,
+					noattackrangearc = 1,
 				},
 				damage = {
 					default = 50,

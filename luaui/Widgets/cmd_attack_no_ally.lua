@@ -2,13 +2,13 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name         = "Attack no Ally",
-		desc         = "Redirects attack on allies to ground and fully exits attack mode on RMB press",
-		author       = "Ceddral, Floris (modified by Zain M)",
-		date         = "April 2018 (modified December 2025)",
-		license      = "GNU GPL, v2 or later",
-		layer        = 0,
-		enabled      = true
+		name = "Attack no Ally",
+		desc = "Redirects attack on allies to ground and fully exits attack mode on RMB press",
+		author = "Ceddral, Floris (modified by Zain M)",
+		date = "April 2018 (modified December 2025)",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -45,20 +45,19 @@ local function IssueGroundCommand(cmdID, cmdOptions)
 end
 
 function widget:Initialize()
-	WG['attacknoally'] = true
+	WG["attacknoally"] = true
 end
 
 function widget:Shutdown()
-	WG['attacknoally'] = nil
+	WG["attacknoally"] = nil
 end
-	-- Right mouse button
+-- Right mouse button
 function widget:MousePress(x, y, button)
-
 	if button ~= 3 then
 		return false
 	end
 
-	if WG['attacknoally'] then
+	if WG["attacknoally"] then
 		local _, activeCmdID = Spring.GetActiveCommand()
 		if activeCmdID and hasRightClickAttack[activeCmdID] then
 			rmbCancelPending = true
@@ -76,7 +75,7 @@ function widget:MouseMove(x, y, dx, dy, button)
 		return false
 	end
 
-	local distSq = (x - rmbStartX)^2 + (y - rmbStartY)^2
+	local distSq = (x - rmbStartX) ^ 2 + (y - rmbStartY) ^ 2
 	if distSq >= rmbDragThresholdSq then
 		rmbDragged = true
 	end

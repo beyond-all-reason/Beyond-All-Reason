@@ -1,17 +1,17 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-    return {
-        name = "Building Grid GL4",
-        desc = "Draw a configurable grid to assist build spacing",
-        author = "Hobo Joe, Beherith, LSR",
-        date = "June 2023",
-        license = "GNU GPL, v2 or later",
+	return {
+		name = "Building Grid GL4",
+		desc = "Draw a configurable grid to assist build spacing",
+		author = "Hobo Joe, Beherith, LSR",
+		date = "June 2023",
+		license = "GNU GPL, v2 or later",
 		version = 0.2,
-        layer = -1,
-        enabled = false,
-        depends = {'gl4'},
-    }
+		layer = -1,
+		enabled = false,
+		depends = { "gl4" },
+	}
 end
 
 local opacity = 0.5
@@ -44,9 +44,7 @@ local shaderConfig = { -- These will be replaced in the shader using #defines's
 	MAXVIEWDIST = config.maxViewDistance,
 }
 
-
 local LuaShader = gl.LuaShader
-
 
 local vsSrc = [[
 #version 420
@@ -111,8 +109,8 @@ void main(void) {
 ]]
 
 local function goodbye(reason)
-    Spring.Echo("Building Grid GL4 widget exiting with reason: " .. reason)
-    widgetHandler:RemoveWidget()
+	Spring.Echo("Building Grid GL4 widget exiting with reason: " .. reason)
+	widgetHandler:RemoveWidget()
 end
 
 local mousePosUniform
@@ -131,8 +129,8 @@ function initShader()
 		},
 		uniformFloat = {
 			waterLevel = waterLevel,
-			mousePos = {0.0, 0.0, 0.0},
-		}
+			mousePos = { 0.0, 0.0, 0.0 },
+		},
 	}, "gridShader")
 	local shaderCompiled = gridShader:Initialize()
 	if not shaderCompiled then
@@ -155,67 +153,69 @@ local function getForceShowUnitDefID()
 end
 
 function widget:Initialize()
-    WG['buildinggrid'] = {}
-    WG['buildinggrid'].getOpacity = function()
-        return opacity
-    end
-    WG['buildinggrid'].setOpacity = function(value)
-        opacity = value
-        -- widget needs reloading wholly
-    end
-    WG['buildinggrid'].setForceShow = function(reason, enabled, unitDefID)
-        if enabled then
-            forceShow[reason] = unitDefID
-        else
-            forceShow[reason] = nil
-        end
-    end
+	WG["buildinggrid"] = {}
+	WG["buildinggrid"].getOpacity = function()
+		return opacity
+	end
+	WG["buildinggrid"].setOpacity = function(value)
+		opacity = value
+		-- widget needs reloading wholly
+	end
+	WG["buildinggrid"].setForceShow = function(reason, enabled, unitDefID)
+		if enabled then
+			forceShow[reason] = unitDefID
+		else
+			forceShow[reason] = nil
+		end
+	end
 
-    initShader()
+	initShader()
 
-	if not gridShader then return end
-	if gridVBO then return end
+	if not gridShader then
+		return
+	end
+	if gridVBO then
+		return
+	end
 
-    local VBOData = {} -- the lua array that will be uploaded to the GPU
-    for row = 0, Game.mapSizeX, spacing do
-        for col = 0, Game.mapSizeZ, spacing do
-            if row ~= Game.mapSizeX then -- skip last
-
-				local strength = ((col/spacing) % config.strongLineSpacing == 0 and config.strongLineOpacity or config.weakLineOpacity) * opacity
-                -- vertical lines
-                VBOData[#VBOData + 1] = row
-                VBOData[#VBOData + 1] = col
+	local VBOData = {} -- the lua array that will be uploaded to the GPU
+	for row = 0, Game.mapSizeX, spacing do
+		for col = 0, Game.mapSizeZ, spacing do
+			if row ~= Game.mapSizeX then -- skip last
+				local strength = ((col / spacing) % config.strongLineSpacing == 0 and config.strongLineOpacity or config.weakLineOpacity) * opacity
+				-- vertical lines
+				VBOData[#VBOData + 1] = row
+				VBOData[#VBOData + 1] = col
 				VBOData[#VBOData + 1] = strength
-                VBOData[#VBOData + 1] = row + spacing
-                VBOData[#VBOData + 1] = col
+				VBOData[#VBOData + 1] = row + spacing
+				VBOData[#VBOData + 1] = col
 				VBOData[#VBOData + 1] = strength
-            end
+			end
 
-            if col ~= Game.mapSizeZ then -- skip last
-				local strength = ((row/spacing) % config.strongLineSpacing == 0 and config.strongLineOpacity or config.weakLineOpacity) * opacity
-                -- horizonal lines
-                VBOData[#VBOData + 1] = row
-                VBOData[#VBOData + 1] = col
+			if col ~= Game.mapSizeZ then -- skip last
+				local strength = ((row / spacing) % config.strongLineSpacing == 0 and config.strongLineOpacity or config.weakLineOpacity) * opacity
+				-- horizonal lines
+				VBOData[#VBOData + 1] = row
+				VBOData[#VBOData + 1] = col
 				VBOData[#VBOData + 1] = strength
-                VBOData[#VBOData + 1] = row
-                VBOData[#VBOData + 1] = col + spacing
+				VBOData[#VBOData + 1] = row
+				VBOData[#VBOData + 1] = col + spacing
 				VBOData[#VBOData + 1] = strength
-            end
-        end
-    end
+			end
+		end
+	end
 
-    gridVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	gridVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
 	-- this is 2d position + opacity
-    gridVBO:Define(#VBOData / 3, {{
-        id = 0,
-        name = "position",
-        size = 3
-    }}) -- number of elements (vertices), size is 2 for the vec2 position
-    gridVBO:Upload(VBOData)
-    gridVAO = gl.GetVAO()
-    gridVAO:AttachVertexBuffer(gridVBO)
+	gridVBO:Define(#VBOData / 3, { {
+		id = 0,
+		name = "position",
+		size = 3,
+	} }) -- number of elements (vertices), size is 2 for the vec2 position
+	gridVBO:Upload(VBOData)
+	gridVAO = gl.GetVAO()
+	gridVAO:AttachVertexBuffer(gridVBO)
 end
-
 
 function widget:Update()
 	local _, cmdID = Spring.GetActiveCommand()
@@ -239,17 +239,17 @@ function widget:DrawWorldPreUnit()
 	end
 
 	gl.LineWidth(1.75)
-    gl.Culling(GL.BACK) -- not needed really, only for triangles
-    gl.DepthTest(GL.ALWAYS) -- so that it wont be drawn behind terrain
-    gl.DepthMask(false) -- so that we dont write the depth of the drawn pixels
-    gl.Texture(0, "$heightmap") -- bind engine heightmap texture to sampler 0
-    gridShader:Activate()
+	gl.Culling(GL.BACK) -- not needed really, only for triangles
+	gl.DepthTest(GL.ALWAYS) -- so that it wont be drawn behind terrain
+	gl.DepthMask(false) -- so that we dont write the depth of the drawn pixels
+	gl.Texture(0, "$heightmap") -- bind engine heightmap texture to sampler 0
+	gridShader:Activate()
 	gl.UniformInt(waterSurfaceModeUniform, waterSurfaceMode and 1 or 0)
 	gl.Uniform(mousePosUniform, unpack(mousePos, 1, 3))
-    gridVAO:DrawArrays(GL.LINES) -- draw the lines
-    gridShader:Deactivate()
-    gl.Texture(0, false)
-    gl.DepthTest(false)
+	gridVAO:DrawArrays(GL.LINES) -- draw the lines
+	gridShader:Deactivate()
+	gl.Texture(0, false)
+	gl.DepthTest(false)
 end
 
 function widget:GameStart()
@@ -257,11 +257,11 @@ function widget:GameStart()
 end
 
 function widget:GetConfigData(data)
-    return {
-        opacity = opacity,
-    }
+	return {
+		opacity = opacity,
+	}
 end
 
 function widget:SetConfigData(data)
-    opacity = data.opacity or opacity
+	opacity = data.opacity or opacity
 end

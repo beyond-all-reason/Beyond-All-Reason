@@ -30,7 +30,7 @@ return {
 		waterline = 7,
 		yardmap = "wwwwwwwww",
 		customparams = {
-			unitgroup = 'energy',
+			unitgroup = "energy",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,

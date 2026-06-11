@@ -1,43 +1,42 @@
-local blueprintConfig = VFS.Include('luarules/gadgets/ruins/Blueprints/' .. Game.gameShortName .. '/blueprint_tiers.lua')
+local blueprintConfig = VFS.Include("luarules/gadgets/ruins/Blueprints/" .. Game.gameShortName .. "/blueprint_tiers.lua")
 local tiers = blueprintConfig.Tiers
 local types = blueprintConfig.BlueprintTypes
 
 local blueprintTypes = {
 	Constructor = 1,
-	Spawner     = 2,
-	Ruin        = 3,
+	Spawner = 2,
+	Ruin = 3,
 }
 
 local dummyBlueprint = function()
 	return {
 		type = types.Land,
-		tiers = { },
+		tiers = {},
 		radius = 0,
-		buildings = { }
+		buildings = {},
 	}
 end
 
 local constructorBlueprints = {
 	[types.Land] = {
-		[tiers.T0] = { },
-		[tiers.T1] = { },
-		[tiers.T2] = { },
-		[tiers.T3] = { },
-		[tiers.T4] = { },
+		[tiers.T0] = {},
+		[tiers.T1] = {},
+		[tiers.T2] = {},
+		[tiers.T3] = {},
+		[tiers.T4] = {},
 	},
 
 	[types.Sea] = {
-		[tiers.T0] = { },
-		[tiers.T1] = { },
-		[tiers.T2] = { },
-		[tiers.T3] = { },
-		[tiers.T4] = { },
+		[tiers.T0] = {},
+		[tiers.T1] = {},
+		[tiers.T2] = {},
+		[tiers.T3] = {},
+		[tiers.T4] = {},
 	},
 }
 
-
 local blueprintsConfig = {
-	[1] = { table = constructorBlueprints, tiered = true,  directory = 'luarules/gadgets/ruins/Blueprints/' .. Game.gameShortName .. '/Blueprints/', },
+	[1] = { table = constructorBlueprints, tiered = true, directory = "luarules/gadgets/ruins/Blueprints/" .. Game.gameShortName .. "/Blueprints/" },
 }
 
 local function insertDummyBlueprints(blueprintType)
@@ -59,7 +58,7 @@ local function insertDummyBlueprints(blueprintType)
 end
 
 local function populateBlueprints(blueprintType)
-	local blueprintsDirectory = VFS.DirList(blueprintsConfig[1].directory, '*.lua')
+	local blueprintsDirectory = VFS.DirList(blueprintsConfig[1].directory, "*.lua")
 	local blueprintTable = blueprintsConfig[1].table
 
 	for _, blueprintFile in ipairs(blueprintsDirectory) do
@@ -83,7 +82,6 @@ local function populateBlueprints(blueprintType)
 					end
 				end
 			end
-
 		end
 	end
 

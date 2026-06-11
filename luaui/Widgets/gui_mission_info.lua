@@ -9,12 +9,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Mission Info",
-		desc    = "Shows the scenario mission briefing, objectives, and details.",
-		author  = "Floirs",
-		date    = "May 2026",
+		name = "Mission Info",
+		desc = "Shows the scenario mission briefing, objectives, and details.",
+		author = "Floirs",
+		date = "May 2026",
 		license = "GNU GPL, v2 or later",
-		layer   = -99990,
+		layer = -99990,
 		enabled = true,
 	}
 end
@@ -25,38 +25,38 @@ local mathMax = math.max
 
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
-local spGetGameSpeed   = Spring.GetGameSpeed
+local spGetGameSpeed = Spring.GetGameSpeed
 
 local vsx, vsy = spGetViewGeometry()
 
-local show          = true   -- shown by default on first open
-local showOnceMore  = false  -- used for guishader delay
-local wePaused      = false  -- tracks if we issued the pause
-local justClosedFromPress = false  -- prevents toggleWindow re-opening after mouseEvent close
+local show = true -- shown by default on first open
+local showOnceMore = false -- used for guishader delay
+local wePaused = false -- tracks if we issued the pause
+local justClosedFromPress = false -- prevents toggleWindow re-opening after mouseEvent close
 
 local screenHeightOrg = 520
-local screenWidthOrg  = 1050
+local screenWidthOrg = 1050
 local screenHeight = screenHeightOrg
-local screenWidth  = screenWidthOrg
-local startLine    = 1
+local screenWidth = screenWidthOrg
+local startLine = 1
 
-local customScale  = 1
-local centerPosX   = 0.5
-local centerPosY   = 0.5
+local customScale = 1
+local centerPosX = 0.5
+local centerPosY = 0.5
 local screenX = (vsx * centerPosX) - (screenWidth / 2)
 local screenY = (vsy * centerPosY) + (screenHeight / 2)
 
 local math_isInRect = math.isInRect
 
 local glCreateList = gl.CreateList
-local glCallList   = gl.CallList
+local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
 local widgetScale = 1
 
-local textLines      = {}
+local textLines = {}
 local totalTextLines = 0
-local maxLines       = 20
+local maxLines = 20
 
 local font, font2, loadedFontSize, titleRect, backgroundGuishader, textList, dlistcreated
 
@@ -68,22 +68,32 @@ local scenarioData = nil
 
 local function getScenarioid()
 	local raw = _modOpts.scenariooptions
-	if not raw then return nil end
+	if not raw then
+		return nil
+	end
 	local ok, decoded = pcall(string.base64Decode, raw)
-	if not ok or not decoded then return nil end
+	if not ok or not decoded then
+		return nil
+	end
 	local ok2, opts = pcall(Json.decode, decoded)
-	if not ok2 or type(opts) ~= 'table' then return nil end
+	if not ok2 or type(opts) ~= "table" then
+		return nil
+	end
 	return opts.scenarioid
 end
 
 local function findScenarioData(targetid)
-	if not targetid then return nil end
+	if not targetid then
+		return nil
+	end
 	local files = VFS.DirList("singleplayer/scenarios/", "*.lua")
-	if not files then return nil end
+	if not files then
+		return nil
+	end
 	for _, fpath in ipairs(files) do
 		if not string.find(fpath, "scenarioscripts") then
 			local ok, data = pcall(VFS.Include, fpath)
-			if ok and type(data) == 'table' and data.scenarioid == targetid then
+			if ok and type(data) == "table" and data.scenarioid == targetid then
 				return data
 			end
 		end
@@ -107,12 +117,12 @@ local function buildTextLines(data)
 	end
 
 	-- Scenario title as the main heading
-	addTitle(data.title or Spring.I18N('ui.missioninfo.title'))
+	addTitle(data.title or Spring.I18N("ui.missioninfo.title"))
 	addLine("")
 
 	-- Difficulty
 	if data.defaultdifficulty then
-		local diffStr = Spring.I18N('ui.missioninfo.difficulty') .. ": " .. data.defaultdifficulty
+		local diffStr = Spring.I18N("ui.missioninfo.difficulty") .. ": " .. data.defaultdifficulty
 		if data.difficulty then
 			diffStr = diffStr .. "  (" .. data.difficulty .. "/10)"
 		end
@@ -123,20 +133,20 @@ local function buildTextLines(data)
 
 	-- Objectives
 	if data.victorycondition or data.losscondition then
-		addHeader(Spring.I18N('ui.missioninfo.objectives'))
+		addHeader(Spring.I18N("ui.missioninfo.objectives"))
 		addLine("")
 		if data.victorycondition then
-			addLine(Spring.I18N('ui.missioninfo.victory') .. ":  " .. data.victorycondition)
+			addLine(Spring.I18N("ui.missioninfo.victory") .. ":  " .. data.victorycondition)
 		end
 		if data.losscondition then
-			addLine(Spring.I18N('ui.missioninfo.defeat') .. ":  " .. data.losscondition)
+			addLine(Spring.I18N("ui.missioninfo.defeat") .. ":  " .. data.losscondition)
 		end
 		addLine("")
 	end
 
 	-- Summary
 	if data.summary and data.summary ~= "" then
-		addHeader(Spring.I18N('ui.missioninfo.summary'))
+		addHeader(Spring.I18N("ui.missioninfo.summary"))
 		addLine("")
 		for _, l in ipairs(string.lines(data.summary)) do
 			addLine(l)
@@ -146,7 +156,7 @@ local function buildTextLines(data)
 
 	-- Briefing
 	if data.briefing and data.briefing ~= "" then
-		addHeader(Spring.I18N('ui.missioninfo.briefing'))
+		addHeader(Spring.I18N("ui.missioninfo.briefing"))
 		addLine("")
 		for _, l in ipairs(string.lines(data.briefing)) do
 			addLine(l)
@@ -164,24 +174,26 @@ function widget:ViewResize()
 	widgetScale = widgetScale * (1 - (0.11 * ((vsx / vsy) - 1.78)))
 
 	screenHeight = mathFloor(screenHeightOrg * widgetScale)
-	screenWidth  = mathFloor(screenWidthOrg  * widgetScale)
-	screenX = mathFloor((vsx * centerPosX) - (screenWidth  / 2))
+	screenWidth = mathFloor(screenWidthOrg * widgetScale)
+	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
-	font, loadedFontSize = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2)
+	font, loadedFontSize = WG["fonts"].getFont()
+	font2 = WG["fonts"].getFont(2)
 	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound  = WG.FlowUI.Draw.RectRound
-	UiElement  = WG.FlowUI.Draw.Element
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
 	UiScroller = WG.FlowUI.Draw.Scroller
 
-	if textList then gl.DeleteList(textList) end
+	if textList then
+		gl.DeleteList(textList)
+	end
 	textList = gl.CreateList(DrawWindow)
 
 	-- Layout changed: invalidate the guishader DList so it gets rebuilt next draw
-	if backgroundGuishader ~= nil and WG['guishader'] then
-		WG['guishader'].DeleteDlist('missiontext')
+	if backgroundGuishader ~= nil and WG["guishader"] then
+		WG["guishader"].DeleteDlist("missiontext")
 		backgroundGuishader = nil
 	end
 end
@@ -189,36 +201,29 @@ end
 -- ─── Drawing ─────────────────────────────────────────────────────────────────
 
 function DrawTextarea(x, y, width, height, scrollbar)
-	local scrollbarOffsetTop    = 0
+	local scrollbarOffsetTop = 0
 	local scrollbarOffsetBottom = 0
-	local scrollbarMargin       = 10 * widgetScale
-	local scrollbarWidth        = 8  * widgetScale
-	local scrollbarPosWidth     = 4  * widgetScale
+	local scrollbarMargin = 10 * widgetScale
+	local scrollbarWidth = 8 * widgetScale
+	local scrollbarPosWidth = 4 * widgetScale
 
 	local fontSizeTitle = 18 * widgetScale
-	local fontSizeLine  = 16 * widgetScale
-	local lineSeparator = 2  * widgetScale
+	local fontSizeLine = 16 * widgetScale
+	local lineSeparator = 2 * widgetScale
 
-	local fontColorTitle  = { 1,    1,    1,    1 }
-	local fontColorHeader = { 0.9,  0.78, 0.45, 1 }
-	local fontColorLine   = { 0.8,  0.77, 0.74, 1 }
+	local fontColorTitle = { 1, 1, 1, 1 }
+	local fontColorHeader = { 0.9, 0.78, 0.45, 1 }
+	local fontColorLine = { 0.8, 0.77, 0.74, 1 }
 
 	maxLines = mathFloor(height / (lineSeparator + fontSizeTitle))
 
 	-- scrollbar
 	if scrollbar then
 		if totalTextLines > maxLines or startLine > 1 then
-			local scrollbarTop    = y - scrollbarOffsetTop    - scrollbarMargin - (scrollbarWidth - scrollbarPosWidth)
+			local scrollbarTop = y - scrollbarOffsetTop - scrollbarMargin - (scrollbarWidth - scrollbarPosWidth)
 			local scrollbarBottom = y - scrollbarOffsetBottom - height + scrollbarMargin + (scrollbarWidth - scrollbarPosWidth)
 
-			UiScroller(
-				mathFloor(x + width - scrollbarMargin - scrollbarWidth),
-				mathFloor(scrollbarBottom - (scrollbarWidth - scrollbarPosWidth)),
-				mathFloor(x + width - scrollbarMargin),
-				mathFloor(scrollbarTop    + (scrollbarWidth - scrollbarPosWidth)),
-				(#textLines) * (lineSeparator + fontSizeTitle),
-				(startLine - 1) * (lineSeparator + fontSizeTitle)
-			)
+			UiScroller(mathFloor(x + width - scrollbarMargin - scrollbarWidth), mathFloor(scrollbarBottom - (scrollbarWidth - scrollbarPosWidth)), mathFloor(x + width - scrollbarMargin), mathFloor(scrollbarTop + (scrollbarWidth - scrollbarPosWidth)), #textLines * (lineSeparator + fontSizeTitle), (startLine - 1) * (lineSeparator + fontSizeTitle))
 		end
 	end
 
@@ -228,8 +233,12 @@ function DrawTextarea(x, y, width, height, scrollbar)
 		local lineKey = startLine
 		local j = 1
 		while j < maxLines + 1 do
-			if (lineSeparator + fontSizeTitle) * j > height then break end
-			if textLines[lineKey] == nil then break end
+			if (lineSeparator + fontSizeTitle) * j > height then
+				break
+			end
+			if textLines[lineKey] == nil then
+				break
+			end
 
 			local entry = textLines[lineKey]
 			local kind = entry.kind
@@ -245,7 +254,9 @@ function DrawTextarea(x, y, width, height, scrollbar)
 				-- body: word-wrapped
 				font:SetTextColor(fontColorLine)
 				local wrappedText, numLines = font:WrapText(text, (width - (50 * widgetScale)) * (loadedFontSize / fontSizeLine))
-				if (lineSeparator + fontSizeTitle) * (j + numLines - 1) > height then break end
+				if (lineSeparator + fontSizeTitle) * (j + numLines - 1) > height then
+					break
+				end
 				font:Print(wrappedText, x, y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
 				j = j + (numLines - 1)
 			end
@@ -262,7 +273,7 @@ function DrawWindow()
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	-- title tab
-	local title = Spring.I18N('ui.topbar.button.mission')
+	local title = Spring.I18N("ui.topbar.button.mission")
 	local titleFontSize = 18 * widgetScale
 	titleRect = {
 		screenX,
@@ -282,13 +293,7 @@ function DrawWindow()
 	font2:End()
 
 	-- content area
-	DrawTextarea(
-		screenX + mathFloor(28 * widgetScale),
-		screenY - mathFloor(14 * widgetScale),
-		screenWidth - mathFloor(28 * widgetScale),
-		screenHeight - mathFloor(28 * widgetScale),
-		1
-	)
+	DrawTextarea(screenX + mathFloor(28 * widgetScale), screenY - mathFloor(14 * widgetScale), screenWidth - mathFloor(28 * widgetScale), screenHeight - mathFloor(28 * widgetScale), 1)
 end
 
 function widget:DrawScreen()
@@ -301,24 +306,22 @@ function widget:DrawScreen()
 
 		glCallList(textList)
 
-		if WG['guishader'] and backgroundGuishader == nil then
+		if WG["guishader"] and backgroundGuishader == nil then
 			backgroundGuishader = glCreateList(function()
 				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
 			dlistcreated = true
-			WG['guishader'].InsertDlist(backgroundGuishader, 'missiontext')
+			WG["guishader"].InsertDlist(backgroundGuishader, "missiontext")
 		end
 		showOnceMore = false
 
 		local x, y = Spring.GetMouseState()
-		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY)
-		or (titleRect and math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) then
-			Spring.SetMouseCursor('cursornormal')
+		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or (titleRect and math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) then
+			Spring.SetMouseCursor("cursornormal")
 		end
-
-	elseif dlistcreated and WG['guishader'] then
-		WG['guishader'].DeleteDlist('missiontext')
+	elseif dlistcreated and WG["guishader"] then
+		WG["guishader"].DeleteDlist("missiontext")
 		backgroundGuishader = nil
 		dlistcreated = nil
 	end
@@ -344,7 +347,7 @@ local function unpauseGame()
 end
 
 function widget:KeyPress(key)
-	if key == 27 then  -- ESC
+	if key == 27 then -- ESC
 		show = false
 	end
 end
@@ -356,9 +359,13 @@ function widget:MouseWheel(up, value)
 		if startLine >= totalTextLines - maxLines then
 			startLine = totalTextLines - maxLines + 1
 		end
-		if startLine < 1 then startLine = 1 end
+		if startLine < 1 then
+			startLine = 1
+		end
 
-		if textList then glDeleteList(textList) end
+		if textList then
+			glDeleteList(textList)
+		end
 		textList = gl.CreateList(DrawWindow)
 		return true
 	end
@@ -374,7 +381,9 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-	if Spring.IsGUIHidden() then return end
+	if Spring.IsGUIHidden() then
+		return
+	end
 	if show then
 		-- Inside main panel: consume the click
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
@@ -405,22 +414,22 @@ function widget:Initialize()
 	else
 		-- Fallback: show what we can from the scenarioid alone
 		textLines = {
-			{ kind = "title", text = Spring.I18N('ui.missioninfo.title') },
-			{ kind = "body",  text = "" },
-			{ kind = "body",  text = "Mission ID: " .. (scenarioid or "unknown") },
-			{ kind = "body",  text = "" },
-			{ kind = "body",  text = "No additional briefing data found." },
+			{ kind = "title", text = Spring.I18N("ui.missioninfo.title") },
+			{ kind = "body", text = "" },
+			{ kind = "body", text = "Mission ID: " .. (scenarioid or "unknown") },
+			{ kind = "body", text = "" },
+			{ kind = "body", text = "No additional briefing data found." },
 		}
 	end
 
 	totalTextLines = #textLines
 
-	WG['missioninfo'] = {}
-	WG['missioninfo'].toggle = function(state)
+	WG["missioninfo"] = {}
+	WG["missioninfo"].toggle = function(state)
 		local wasVisible = show
 		if state ~= nil then
 			show = state
-			justClosedFromPress = false  -- explicit state set clears the flag
+			justClosedFromPress = false -- explicit state set clears the flag
 		else
 			show = not show
 		end
@@ -430,11 +439,13 @@ function widget:Initialize()
 			unpauseGame()
 		end
 		if show then
-			if textList then glDeleteList(textList) end
+			if textList then
+				glDeleteList(textList)
+			end
 			textList = gl.CreateList(DrawWindow)
 		end
 	end
-	WG['missioninfo'].isvisible = function()
+	WG["missioninfo"].isvisible = function()
 		-- Report true while justClosedFromPress so toggleWindow treats us as
 		-- "was open" and doesn't immediately re-open after our mouseEvent close.
 		return show or justClosedFromPress
@@ -462,10 +473,10 @@ function widget:Shutdown()
 		glDeleteList(textList)
 		textList = nil
 	end
-	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('missiontext')
+	if WG["guishader"] then
+		WG["guishader"].DeleteDlist("missiontext")
 	end
-	WG['missioninfo'] = nil
+	WG["missioninfo"] = nil
 end
 
 function widget:LanguageChanged()

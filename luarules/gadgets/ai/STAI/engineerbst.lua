@@ -12,8 +12,6 @@ function EngineerBST:Init()
 	self.id = self.unit:Internal():ID()
 	self.mtype = self.ai.armyhst.unitTable[self.name].mtype
 	self.builder = nil
-
-
 end
 
 function EngineerBST:Priority()
@@ -23,49 +21,44 @@ end
 function EngineerBST:Update()
 	local f = self.game:Frame()
 
-
-	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'EngineerBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= "EngineerBST" then
+		return
+	end
 
 	if not self:checkBuilder() then
-		self:EchoDebug('not check builder')
-
-
+		self:EchoDebug("not check builder")
 
 		local myBuilder = self:GetBuilder()
-		self:EchoDebug('myBuilder',myBuilder)
-		if myBuilder  and self.ai.engineerhst.Builders[myBuilder] then
+		self:EchoDebug("myBuilder", myBuilder)
+		if myBuilder and self.ai.engineerhst.Builders[myBuilder] then
 			--self.unit:Internal():Guard(myBuilder)
-			self.ai.tool:GiveOrder(self.id,CMD.GUARD,myBuilder,0,'1-1')
-			self:EchoDebug('guarding')
+			self.ai.tool:GiveOrder(self.id, CMD.GUARD, myBuilder, 0, "1-1")
+			self:EchoDebug("guarding")
 			self.ai.engineerhst.Engineers[self.id] = myBuilder
 			self.builder = myBuilder
-			self:EchoDebug('engineers 42 ',self.ai.engineerhst.Builders,self.ai.engineerhst.Builders[myBuilder])
+			self:EchoDebug("engineers 42 ", self.ai.engineerhst.Builders, self.ai.engineerhst.Builders[myBuilder])
 			self.ai.engineerhst.Builders[myBuilder][self.id] = true
 		end
 	end
 end
 
-
 function EngineerBST:NumberCheck(id)
 	local count = 0
-	for _,builderID in pairs(self.ai.engineerhst.Engineers) do
-
+	for _, builderID in pairs(self.ai.engineerhst.Engineers) do
 		if builderID == id then
 			count = count + 1
 			if count >= self.ai.engineerhst.maxEngineersPerBuilder * self.ai.engineerhst[self.ai.buildingshst.roles[builderID].role] then
-				self:EchoDebug('numbercheck count', builderID,'have enough engineer',count)
+				self:EchoDebug("numbercheck count", builderID, "have enough engineer", count)
 				return false
 			end
 		end
 	end
-	self:EchoDebug('numbercheck countid' ,id ,'fail all builders have enough engineers')
+	self:EchoDebug("numbercheck countid", id, "fail all builders have enough engineers")
 	return true
-
-
 end
 
 function EngineerBST:GetBuilder()
-	for id,role in pairs(self.ai.buildingshst.roles) do
+	for id, role in pairs(self.ai.buildingshst.roles) do
 		if self.ai.armyhst.engineers[self.name] == role.builderName then
 			if self:NumberCheck(id) then
 				return id
@@ -80,10 +73,10 @@ function EngineerBST:checkBuilder()
 	end
 
 	local builder = game:GetUnitByID(self.builder)
-	self:EchoDebug('self.builder',self.builder)
+	self:EchoDebug("self.builder", self.builder)
 	if not builder:GetRawPos() then
 		self.ai.engineerhst.Engineers[self.id] = nil
-		if self.ai.engineerhst.Builders[self.builder] and self.ai.engineerhst.Builders[self.builder][self.id]then
+		if self.ai.engineerhst.Builders[self.builder] and self.ai.engineerhst.Builders[self.builder][self.id] then
 			self.ai.engineerhst.Builders[self.builder] = nil
 		end
 		self.builder = nil
@@ -91,30 +84,24 @@ function EngineerBST:checkBuilder()
 	end
 
 	local currentOrder = self.unit:Internal():GetUnitCommands(1)[1]
-	self:EchoDebug(self.name,'currentOrder',currentOrder,self.builder)
-	if not currentOrder or not  currentOrder.id  then
+	self:EchoDebug(self.name, "currentOrder", currentOrder, self.builder)
+	if not currentOrder or not currentOrder.id then
 		self.ai.engineerhst.Engineers[self.id] = nil
-		if self.ai.engineerhst.Builders[self.builder] and self.ai.engineerhst.Builders[self.builder][self.id]then
+		if self.ai.engineerhst.Builders[self.builder] and self.ai.engineerhst.Builders[self.builder][self.id] then
 			self.ai.engineerhst.Builders[self.builder][self.id] = nil
 		end
 		self.builder = nil
 		return false
 	end
 
-
-
 	return true
 end
 
-
-
 function EngineerBST:OwnerDead()
-
 	self.active = nil
 	self.builder = nil
 	self.ai.engineerhst.Engineers[self.id] = nil
 	if self.builder then
-
 		self.ai.engineerhst.Builders[self.builder][self.id] = nil
 	end
 end

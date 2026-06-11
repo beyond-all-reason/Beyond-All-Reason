@@ -1,18 +1,16 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Startbox Editor",
-		desc    = "cruder than yo momma",
-		author  = "git blame",
-		date    = "git log",
+		name = "Startbox Editor",
+		desc = "cruder than yo momma",
+		author = "git blame",
+		date = "git log",
 		license = "PD",
-		layer   = 999999,
+		layer = 999999,
 		enabled = false,
 	}
 end
-
 
 -- Localized functions for performance
 local mathAbs = math.abs
@@ -33,10 +31,10 @@ S to export and add team boxes to file startboxes_mapname.txt
 how to apply the export, see: http://zero-k.info/mediawiki/index.php?title=Startbox_API
 ]]
 
-local polygon = { }
-local final_polygons = { }
+local polygon = {}
+local final_polygons = {}
 local exportedTeam = 0
-local exported = ''
+local exported = ""
 local exportPrefix = "return {\n"
 local exportSuffix = "}\n"
 
@@ -49,17 +47,17 @@ function widget:MousePress(mx, my, button)
 	end
 
 	if #polygon == 0 then
-		polygon[#polygon+1] = pos
+		polygon[#polygon + 1] = pos
 	else
 		local dx = mathAbs(pos[1] - polygon[#polygon][1])
 		local dz = mathAbs(pos[3] - polygon[#polygon][3])
-		if (dx > 10 or dz > 10) then
-			polygon[#polygon+1] = pos
+		if dx > 10 or dz > 10 then
+			polygon[#polygon + 1] = pos
 		end
 	end
 
 	if button ~= 1 then
-		final_polygons[#final_polygons+1] = polygon
+		final_polygons[#final_polygons + 1] = polygon
 		polygon = {}
 	end
 	return true
@@ -82,7 +80,7 @@ function widget:MouseMove(mx, my)
 		local dx = mathAbs(pos[1] - polygon[#polygon][1])
 		local dz = mathAbs(pos[3] - polygon[#polygon][3])
 		if dx > 10 or dz > 10 then
-			polygon[#polygon+1] = pos
+			polygon[#polygon + 1] = pos
 		end
 	end
 	return true
@@ -92,9 +90,9 @@ include("keysym.h.lua")
 
 function widget:KeyPress(key)
 	if key == KEYSYMS.S then
-		local str = "\t["..exportedTeam.."] = {\n"
-		str = str .. "\t\tnameLong = \"\",\n"
-		str = str .. "\t\tnameShort = \"\",\n"
+		local str = "\t[" .. exportedTeam .. "] = {\n"
+		str = str .. '\t\tnameLong = "",\n'
+		str = str .. '\t\tnameShort = "",\n'
 		str = str .. "\t\tstartpoints = {},\n"
 		str = str .. "\t\tboxes = {\n" -- not as separate echoes because timestamp keeps getting in the way
 		for j = 1, #final_polygons do
@@ -110,11 +108,11 @@ function widget:KeyPress(key)
 		str = str .. "\t},\n"
 
 		exported = exported .. str
-		local filename = 'startboxes_'..Game.mapName..'.txt'
-		local file = assert(io.open(filename, 'w'), 'Unable to save '..filename)
-		file:write(exportPrefix..exported..exportSuffix)
+		local filename = "startboxes_" .. Game.mapName .. ".txt"
+		local file = assert(io.open(filename, "w"), "Unable to save " .. filename)
+		file:write(exportPrefix .. exported .. exportSuffix)
 		file:close()
-		Spring.Echo((exportedTeam == 0 and 'saved' or 'added')..' team '..exportedTeam..' startboxes to '..filename)
+		Spring.Echo((exportedTeam == 0 and "saved" or "added") .. " team " .. exportedTeam .. " startboxes to " .. filename)
 
 		final_polygons = {}
 		exportedTeam = exportedTeam + 1
@@ -129,13 +127,13 @@ local function DrawLine()
 		local x = polygon[i][1]
 		local z = polygon[i][3]
 		local y = spGetGroundHeight(x, z)
-		gl.Vertex(x,y,z)
+		gl.Vertex(x, y, z)
 	end
 
-	local mx,my = Spring.GetMouseState()
+	local mx, my = Spring.GetMouseState()
 	local pos = select(2, spTraceScreenRay(mx, my, true))
 	if pos then
-		gl.Vertex(pos[1],pos[2],pos[3])
+		gl.Vertex(pos[1], pos[2], pos[3])
 	end
 end
 
@@ -145,14 +143,16 @@ local function DrawFinalLine(fpi)
 		local x = poly[i][1]
 		local z = poly[i][3]
 		local y = spGetGroundHeight(x, z)
-		gl.Vertex(x,y,z)
+		gl.Vertex(x, y, z)
 	end
 
 	gl.Vertex(poly[1][1], poly[1][2], poly[1][3])
 end
 
 function widget:DrawWorld()
-	if #final_polygons == 0 and #polygon == 0 then return end
+	if #final_polygons == 0 and #polygon == 0 then
+		return
+	end
 	gl.LineWidth(3.0)
 	gl.Color(0, 1, 0, 0.5)
 	for i = 1, #final_polygons do

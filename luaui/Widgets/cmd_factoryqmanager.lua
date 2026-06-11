@@ -11,10 +11,9 @@ function widget:GetInfo()
 		date = "Jul 6, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = -9000,
-		enabled = false
+		enabled = false,
 	}
 end
-
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -40,7 +39,6 @@ local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 --added: "Repeat"-State gets saved. Repeating queues show up as green preset number labels, non-repeated in gray as usual
 --added: Queues can be loaded by left-clicking on the preset box
 --added: Queues get saved for each mod seperately
-
 
 local vsx, vsy = spGetViewGeometry()
 
@@ -72,7 +70,6 @@ local repeatIcon = "LuaUI/Images/repeat.png"
 local SAVED_TEXT = Spring.I18N("ui.factoryqmanager.saved")
 local LOADED_TEXT = Spring.I18N("ui.factoryqmanager.loaded")
 
-
 --------------------------------------------------------------------------------
 --INTERNAL USE
 --------------------------------------------------------------------------------
@@ -81,7 +78,7 @@ local alpha = 0.0
 local modifiedSaved = nil
 local modifiedGroup = nil
 local modifiedGroupTime = nil
-local defaultScreenResY = 960  --dont change it, its just to keep the same absolute size i had while developing
+local defaultScreenResY = 960 --dont change it, its just to keep the same absolute size i had while developing
 local savedQueues = {}
 local drawX = nil
 local facRepeatIdx = "facq_repeat"
@@ -193,7 +190,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 
-	font = WG['fonts'].getFont(1, 1.5)
+	font = WG["fonts"].getFont(1, 1.5)
 
 	UiUnit = WG.FlowUI.Draw.Unit
 	UiElement = WG.FlowUI.Draw.Element
@@ -219,7 +216,7 @@ end
 -- Included FactoryClear Lua widget
 function RemoveBuildOrders(unitID, buildDefID, count)
 	local opts = {}
-	while (count > 0) do
+	while count > 0 do
 		if count >= 100 then
 			opts = { "right", "ctrl", "shift" }
 			count = count - 100
@@ -350,7 +347,7 @@ function saveQueue(unitId, unitDef, groupNo)
 	else
 		savedQueues[curModId][unitDef.id][groupNo] = unitQ
 		savedQueues[curModId][unitDef.id][groupNo][facQuota] = unitQuota
-		savedQueues[curModId][unitDef.id][groupNo][facRepeatIdx] = select(4, Spring.GetUnitStates(unitId, false, true))    -- 4=repeat
+		savedQueues[curModId][unitDef.id][groupNo][facRepeatIdx] = select(4, Spring.GetUnitStates(unitId, false, true)) -- 4=repeat
 		savedQueues[curModId][unitDef.id][groupNo][facQuotaIdx] = unitQuotaIdx
 	end
 
@@ -405,8 +402,7 @@ function loadQueue(unitId, unitDef, groupNo)
 					spGiveOrderToUnit(unitId, cmd.id, cmd.params, opts)
 				end
 			end
-		end 	
-
+		end
 	end
 end
 
@@ -418,14 +414,15 @@ local function factoryPresetKeyHandler(_, _, args)
 	local selUnit, unitDef = getSingleFactory()
 	local gr = tonumber(key)
 
-	if selUnit == nil then return end
+	if selUnit == nil then
+		return
+	end
 
 	if mode == "save" then
 		saveQueue(selUnit, unitDef, gr)
 	elseif mode == "load" then
 		loadQueue(selUnit, unitDef, gr)
 	end
-
 end
 
 local function factoryPresetRender(_, _, _, data)
@@ -463,17 +460,10 @@ function CalcDrawCoords(unitId, heightAll)
 end
 
 function DrawBoxTitle(x, y, alpha, unitDef, selUnit)
-	UiElement(x, y - boxHeightTitle, x + boxWidth, y, 1,1,1,0, 1,1,0,1, WG.FlowUI.clampedOpacity)
+	UiElement(x, y - boxHeightTitle, x + boxWidth, y, 1, 1, 1, 0, 1, 1, 0, 1, WG.FlowUI.clampedOpacity)
 	gl.Color(1, 1, 1, 1)
 
-	UiUnit(
-		x + boxIconBorder, y - boxHeightTitle + boxIconBorder, x + boxHeightTitle, y - boxIconBorder,
-		nil,
-		1,1,1,1,
-		0.08,
-		nil, nil,
-		'#'..unitDef.id
-	)
+	UiUnit(x + boxIconBorder, y - boxHeightTitle + boxIconBorder, x + boxHeightTitle, y - boxIconBorder, nil, 1, 1, 1, 1, 0.08, nil, nil, "#" .. unitDef.id)
 	local text = unitDef.translatedHumanName
 
 	font:Begin()
@@ -491,17 +481,16 @@ function SortQueueToUnits(queue)
 				local idx = -1 * entity.id
 				local queuedunit = units[idx]
 				if not queuedunit then
-                	queuedunit = { alt = 0, normal = 0 }
-                	units[idx] = queuedunit
+					queuedunit = { alt = 0, normal = 0 }
+					units[idx] = queuedunit
 				end
 				local isAlt = entity.options and entity.options.alt
 				if isAlt then
-                	queuedunit.alt = queuedunit.alt + 1
-            	else
-                	queuedunit.normal = queuedunit.normal + 1
-            	end
-            end
-
+					queuedunit.alt = queuedunit.alt + 1
+				else
+					queuedunit.normal = queuedunit.normal + 1
+				end
+			end
 		end
 	end
 	return units
@@ -526,7 +515,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 	end
 
 	--Draw Background Box
-	UiElement(x, y - boxHeight, x + boxWidth, y, 0,1,1,1, 1,1,1,1, WG.FlowUI.clampedOpacity)
+	UiElement(x, y - boxHeight, x + boxWidth, y, 0, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 	--UiElement(x + boxIconBorder, y - boxHeight + 3, x + groupLabelMargin, y - 3, 1, 1, 1, 1)
 	--gl.Color(0, 0, 0, mathMin(alpha, 0.6))
 	--gl.Rect(x, y, x + boxWidth, y - boxHeight)
@@ -541,7 +530,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 	--Draw group Label
 	if queue[facQuotaIdx] and queue[facQuotaIdx] == true then
 		font:SetTextColor(1, 0.51, 0.745, alpha or 1)
-	elseif  queue[facRepeatIdx] == nil or queue[facRepeatIdx] == true then
+	elseif queue[facRepeatIdx] == nil or queue[facRepeatIdx] == true then
 		font:SetTextColor(0, 1, 0, alpha or 1)
 	else
 		font:SetTextColor(1, 1, 1, alpha or 1)
@@ -554,82 +543,56 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 			local altCount = unitCounts.alt
 			local normalCount = unitCounts.normal
 			local unitCount = altCount + normalCount
-			if unitCount == 0 then break end
+			if unitCount == 0 then
+				break
+			end
 			if x + boxHeight + boxIconBorder + xOff + boxHeight + unitIconSpacing > x + boxWidth then
 				font:SetTextColor(1, 1, 1, alpha)
 				font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
 				break
 			else
-				gl.Color(0.8,0.8,0.8 ,1)
-				UiUnit(
-					x + boxIconBorder + xOff, y - boxHeight + boxIconBorder, x + boxHeight - boxIconBorder + xOff, y - boxIconBorder,
-					nil,
-					1,1,1,1,
-					0.08,
-					nil, nil,
-					'#'..k
-				)
+				gl.Color(0.8, 0.8, 0.8, 1)
+				UiUnit(x + boxIconBorder + xOff, y - boxHeight + boxIconBorder, x + boxHeight - boxIconBorder + xOff, y - boxIconBorder, nil, 1, 1, 1, 1, 0.08, nil, nil, "#" .. k)
 				font:SetTextColor(1, 1, 1, alpha)
-				font:Print(unitCount, x + (boxHeight*0.5) - boxIconBorder + xOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cndo")
+				font:Print(unitCount, x + (boxHeight * 0.5) - boxIconBorder + xOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cndo")
 			end
 			xOff = xOff + boxHeight - boxIconBorder - boxIconBorder + unitIconSpacing
 		end
 	elseif queue[facRepeatIdx] == true then
 		for k, unitCounts in pairs(units) do
 			local altCount = unitCounts.alt
-			if altCount ~= 0 then 
+			if altCount ~= 0 then
 				if x + boxHeight + boxIconBorder + xOff + boxHeight + unitIconSpacing > x + boxWidth then
 					font:SetTextColor(1, 1, 1, alpha)
 					font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
 					break
 				else
-					gl.Color(0.8,0.8,0.8 ,1)
-					UiUnit(
-						x + boxIconBorder + xOff, y - boxHeight + boxIconBorder, x + boxHeight - boxIconBorder + xOff, y - boxIconBorder,
-						nil,
-						1,1,1,1,
-						0.08,
-						nil, nil,
-						'#'..k
-					)
+					gl.Color(0.8, 0.8, 0.8, 1)
+					UiUnit(x + boxIconBorder + xOff, y - boxHeight + boxIconBorder, x + boxHeight - boxIconBorder + xOff, y - boxIconBorder, nil, 1, 1, 1, 1, 0.08, nil, nil, "#" .. k)
 					font:SetTextColor(1, 1, 1, alpha)
-					font:Print(altCount, x + (boxHeight*0.5) - boxIconBorder + xOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cndo")
+					font:Print(altCount, x + (boxHeight * 0.5) - boxIconBorder + xOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cndo")
 				end
 				xOff = xOff + boxHeight - boxIconBorder - boxIconBorder + unitIconSpacing
 			end
 		end
 		for k, unitCounts in pairs(units) do
 			local normalCount = unitCounts.normal
-			if normalCount ~= 0 then 
+			if normalCount ~= 0 then
 				if x + boxHeight + boxIconBorder + xOff + boxHeight + unitIconSpacing > x + boxWidth then
 					font:SetTextColor(1, 1, 1, alpha)
 					font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
 					break
 				else
-					gl.Color(0.8,0.8,0.8 ,1)
+					gl.Color(0.8, 0.8, 0.8, 1)
 					local x1 = x + boxIconBorder + xOff
 					local y1 = y - boxHeight + boxIconBorder
 					local x2 = x + boxHeight - boxIconBorder + xOff
 					local y2 = y - boxIconBorder
-					UiUnit(
-						x1, y1, x2, y2,
-						nil,
-						1,1,1,1,
-						0.08,
-						nil, nil,
-						'#'..k
-					)
-					gl.Color(1,1,1 ,0.8)
-					UiUnit(
-						x2 - repIcoSize, y2 - repIcoSize, x2, y2,
-						nil,
-						1,1,1,1,
-						0.08,
-						nil, nil,
-						repeatIcon
-					)
+					UiUnit(x1, y1, x2, y2, nil, 1, 1, 1, 1, 0.08, nil, nil, "#" .. k)
+					gl.Color(1, 1, 1, 0.8)
+					UiUnit(x2 - repIcoSize, y2 - repIcoSize, x2, y2, nil, 1, 1, 1, 1, 0.08, nil, nil, repeatIcon)
 					font:SetTextColor(1, 1, 1, alpha)
-					font:Print(normalCount, x + (boxHeight*0.5) - boxIconBorder + xOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cndo")
+					font:Print(normalCount, x + (boxHeight * 0.5) - boxIconBorder + xOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cndo")
 				end
 				xOff = xOff + boxHeight - boxIconBorder - boxIconBorder + unitIconSpacing
 			end
@@ -643,22 +606,14 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 				font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
 				break
 			else
-				gl.Color(0.8,0.8,0.8 ,1)
-				UiUnit(
-					x + boxIconBorder + xOff, y - boxHeight + boxIconBorder, x + boxHeight - boxIconBorder + xOff, y - boxIconBorder,
-					nil,
-					1,1,1,1,
-					0.08,
-					nil, nil,
-					'#'..k
-				)
+				gl.Color(0.8, 0.8, 0.8, 1)
+				UiUnit(x + boxIconBorder + xOff, y - boxHeight + boxIconBorder, x + boxHeight - boxIconBorder + xOff, y - boxIconBorder, nil, 1, 1, 1, 1, 0.08, nil, nil, "#" .. k)
 				font:SetTextColor(1, 0.51, 0.745, alpha)
-				font:Print(unitQuotaCount, x + (boxHeight*0.5) - boxIconBorder + xOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cndo")
+				font:Print(unitQuotaCount, x + (boxHeight * 0.5) - boxIconBorder + xOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cndo")
 			end
 			xOff = xOff + boxHeight - boxIconBorder - boxIconBorder + unitIconSpacing
 		end
 	end
-
 
 	--draw "loaded" text
 	if modifiedGroup == groupNo and modifiedGroupTime > Spring.GetGameSeconds() - loadedBorderDisplayTime then
@@ -706,7 +661,7 @@ function DrawBoxes()
 	local yOffset = 0
 	local k = 1
 	local first = true
-	while (k < 10) do
+	while k < 10 do
 		local q = savedQueues[curModId][unitDef.id][k]
 		if q ~= nil then
 			local height = boxHeight
@@ -735,7 +690,6 @@ function DrawBoxes()
 			k = k + 1
 		end
 	end
-
 end
 
 function widget:Initialize()
@@ -747,8 +701,8 @@ function widget:Initialize()
 	curModId = string.upper(Game.gameShortName or "")
 
 	widgetHandler:AddAction("factory_preset", factoryPresetKeyHandler, nil, "p")
-	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, {true}, "p")
-	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, {false}, "r")
+	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, { true }, "p")
+	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, { false }, "r")
 end
 
 function widget:Update()

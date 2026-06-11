@@ -2,13 +2,13 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name 		= "Exclude walls from area attacks",
-		desc 		= "Stops walls from being included in area attacks if units are present",
-		date		= "April 2025",
-		author		= "Slouse",
-		license 	= "GNU GPL, v2 or later",
-		layer 		= 1,
-		enabled 	= true
+		name = "Exclude walls from area attacks",
+		desc = "Stops walls from being included in area attacks if units are present",
+		date = "April 2025",
+		author = "Slouse",
+		license = "GNU GPL, v2 or later",
+		layer = 1,
+		enabled = true,
 	}
 end
 
@@ -35,10 +35,7 @@ end
 
 local isBomberUnitDef = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if (unitDef.weapons and unitDef.weapons[1] and isBombWeapon[unitDef.weapons[1].weaponDef])
-		or string.find(unitDef.name, "armlance")
-		or string.find(unitDef.name, "cortitan")
-		or string.find(unitDef.name, "legatorpbomber") then
+	if (unitDef.weapons and unitDef.weapons[1] and isBombWeapon[unitDef.weapons[1].weaponDef]) or string.find(unitDef.name, "armlance") or string.find(unitDef.name, "cortitan") or string.find(unitDef.name, "legatorpbomber") then
 		isBomberUnitDef[unitDefID] = true
 	end
 end
@@ -54,9 +51,9 @@ local function addNewCommand(newCmds, unitID, cmdOpts, cmdID)
 		-- Need to clear orders if not in shift, since just sending the first one
 		-- as not-shift would sometimes fail if that unit is in the end not valid
 		local stopCmd = (cmdID == CMD_ATTACK) and CMD_STOP or CMD_UNIT_CANCEL_TARGET
-		newCmds[1] = {stopCmd, {}, {}}
+		newCmds[1] = { stopCmd, {}, {} }
 	end
-	newCmds[#newCmds + 1] = {cmdID, unitID, CMD.OPT_SHIFT}
+	newCmds[#newCmds + 1] = { cmdID, unitID, CMD.OPT_SHIFT }
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
@@ -102,5 +99,3 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return true
 	end
 end
-
-

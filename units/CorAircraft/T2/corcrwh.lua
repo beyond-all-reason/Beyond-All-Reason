@@ -43,8 +43,7 @@ return {
 			unitgroup = "weapon",
 		},
 		sfxtypes = {
-			explosiongenerators = {
-			},
+			explosiongenerators = {},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

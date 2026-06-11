@@ -13,7 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -73,8 +72,10 @@ function widget:Initialize()
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { true }, "p")
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { false }, "r")
 
-	WG['build_split'] = {
-		isActive = function() return activeModifier end,
+	WG["build_split"] = {
+		isActive = function()
+			return activeModifier
+		end,
 	}
 end
 
@@ -83,7 +84,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts) -- 3 of 3 parameters
 	if cmdID == GameCMD.BLUEPRINT_PLACE or cmdID == GameCMD.BLUEPRINT_CREATE then
 		return false
 	end
-	
+
 	if not (cmdID < 0 and cmdOpts.shift and activeModifier) then
 		return false
 	end -- Note: All multibuilds require shift
@@ -144,5 +145,5 @@ function widget:Update()
 end
 
 function widget:Shutdown()
-	WG['build_split'] = nil
+	WG["build_split"] = nil
 end

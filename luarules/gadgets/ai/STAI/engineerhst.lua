@@ -21,30 +21,24 @@ function EngineerHST:Init()
 	self.metalMaker = 2
 	self.nano = 0
 	self.engineersNeeded = 0
-
 end
-
-
-
 
 function EngineerHST:EngineersNeeded()
 	self.maxEngineersPerBuilder = math.ceil(self.ai.ecohst.Energy.income / 3000)
 	local engineersNeeded = 0
 
-	self:EchoDebug('EngineersNeeded',self.maxEngineersPerBuilder)
+	self:EchoDebug("EngineersNeeded", self.maxEngineersPerBuilder)
 	for builderID, engineers in pairs(self.Builders) do
 		local count = 0
-		self:EchoDebug('engineers builders',builderID, engineers)
-		for enginerID,_ in pairs(engineers) do
+		self:EchoDebug("engineers builders", builderID, engineers)
+		for enginerID, _ in pairs(engineers) do
 			count = count + 1
-
 		end
-		self:EchoDebug('builder',builderID,'have',count,'engineers')
+		self:EchoDebug("builder", builderID, "have", count, "engineers")
 		local builderRole = self.ai.buildingshst.roles[builderID]
 		local add = false
 		if builderRole then
-
-			for engineerName,builderName in pairs(self.ai.armyhst.engineers) do
+			for engineerName, builderName in pairs(self.ai.armyhst.engineers) do
 				if builderRole.builderName == builderName then
 					add = true
 					break
@@ -57,6 +51,6 @@ function EngineerHST:EngineersNeeded()
 			end
 		end
 	end
-	self:EchoDebug('---------------------------------------------------------------------------------------------------engineersNeeded',engineersNeeded,self.maxEngineersPerBuilder)
+	self:EchoDebug("---------------------------------------------------------------------------------------------------engineersNeeded", engineersNeeded, self.maxEngineersPerBuilder)
 	return engineersNeeded
 end

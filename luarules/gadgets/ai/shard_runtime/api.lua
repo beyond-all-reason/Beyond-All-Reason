@@ -6,29 +6,29 @@
 local api = {}
 
 function api.Position()
-	return { x=0, y=0, z=0 }
+	return { x = 0, y = 0, z = 0 }
 end
 
 function api.vectorFloat()
 	local floats = { values = {} }
 	function floats:push_back(value)
-		self.values[#self.values+1] = value
+		self.values[#self.values + 1] = value
 	end
 	return floats
 end
 
 if ShardSpringLua then
 	-- it's a LuaAI inside a game archive!
-	api.game = shard_include "spring_lua/game"
-	api.map = shard_include "spring_lua/map"
+	api.game = shard_include("spring_lua/game")
+	api.map = shard_include("spring_lua/map")
 elseif game_engine then
-	 -- it's a native AI!
-	api.game = shard_include "spring_cpp/game"
-	api.map = shard_include "spring_cpp/map"
+	-- it's a native AI!
+	api.game = shard_include("spring_cpp/game")
+	api.map = shard_include("spring_cpp/map")
 else
 	-- who knows! Load a Null non-op API
-	api.game = shard_include "shard_runtime/shard_null/game"
-	api.map = shard_include "shard_runtime/shard_null/map"
+	api.game = shard_include("shard_runtime/shard_null/game")
+	api.map = shard_include("shard_runtime/shard_null/map")
 end
 
 api.game.map = api.map
@@ -120,4 +120,5 @@ IUnit/ engine unit objects
 
 }
 
-return infos]]--
+return infos]]
+--

@@ -43,7 +43,7 @@ return {
 			buildinggrounddecalsizey = 15,
 			buildinggrounddecalsizex = 19,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'buildert3',
+			unitgroup = "buildert3",
 			restrictions_inclusion = "_noair_",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

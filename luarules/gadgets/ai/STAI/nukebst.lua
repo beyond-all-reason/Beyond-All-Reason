@@ -14,10 +14,10 @@ function NukeBST:Init()
 	end
 	self.position = self.unit:Internal():GetPosition()
 	self.range = self.ai.armyhst.unitTable[uname].groundRange
-    self.lastStockpileFrame = 0
-    self.lastLaunchFrame = 0
-    self.gotTarget = false
-    self.finished = false
+	self.lastStockpileFrame = 0
+	self.lastLaunchFrame = 0
+	self.gotTarget = false
+	self.finished = false
 end
 
 function NukeBST:SetStock()
@@ -27,11 +27,14 @@ function NukeBST:SetStock()
 	end
 end
 
-
 function NukeBST:Update()
-	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'NukeBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= "NukeBST" then
+		return
+	end
 	local f = game:Frame()
-	if not self.active then return end
+	if not self.active then
+		return
+	end
 	self:SetStock()
 	if self.stock > 0 and not self.gotTarget then
 		self.gotTarget = false
@@ -56,11 +59,10 @@ function NukeBST:Update()
 			self.currentTarget = nil
 			return
 		end
-		self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.ATTACK, self.currentTarget.POS, 0,'1-1')
+		self.ai.tool:GiveOrder(self.unit:Internal():ID(), CMD.ATTACK, self.currentTarget.POS, 0, "1-1")
 		--self.unit:Internal():AttackPos(self.currentTarget.POS)
-		self:EchoDebug('current target:',self.currentTarget.POS.x,self.currentTarget.POS.z)
+		self:EchoDebug("current target:", self.currentTarget.POS.x, self.currentTarget.POS.z)
 	end
-
 end
 
 function NukeBST:GetBestNukeCell()
@@ -68,7 +70,7 @@ function NukeBST:GetBestNukeCell()
 	local bestValueThreat = 0
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z, cell in pairs(cells) do
-			local areaCell = self.ai.maphst:getCellsFields(cell.POS,{'ENEMY'},2,self.ai.loshst.ENEMY)
+			local areaCell = self.ai.maphst:getCellsFields(cell.POS, { "ENEMY" }, 2, self.ai.loshst.ENEMY)
 			if areaCell and areaCell > bestValueThreat then
 				best = cell
 				bestValueThreat = areaCell

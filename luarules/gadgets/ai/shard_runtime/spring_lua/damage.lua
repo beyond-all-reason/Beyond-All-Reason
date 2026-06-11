@@ -1,11 +1,11 @@
 ShardSpringDamage = class(function(a)
-   --
+	--
 end)
 
 local spGetGameFrame = Spring.GetGameFrame
 local spGetProjectileDirection = Spring.GetProjectileDirection
-   
-function ShardSpringDamage:Init( damage, weaponDefID, paralyzer, projectileID, engineAttacker )
+
+function ShardSpringDamage:Init(damage, weaponDefID, paralyzer, projectileID, engineAttacker)
 	self.damage = damage
 	self.weaponDefID = weaponDefID
 	self.paralyzer = paralyzer
@@ -14,7 +14,7 @@ function ShardSpringDamage:Init( damage, weaponDefID, paralyzer, projectileID, e
 	self.gameframe = spGetGameFrame()
 	if projectileID then
 		local dx, dy, dz = spGetProjectileDirection(projectileID)
-		self.direction = {x=dx, y=dy, z=dz}
+		self.direction = { x = dx, y = dy, z = dz }
 	end
 	self.damageType = weaponDefID
 	if weaponDefID then
@@ -43,4 +43,4 @@ end
 
 function ShardSpringDamage:WeaponType()
 	return self.weaponType
-end 
+end

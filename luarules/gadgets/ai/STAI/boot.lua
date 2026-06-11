@@ -3,12 +3,12 @@
 if ShardSpringLua then
 	-- VFS.Include( "luarules/gadgets/ai/shard_runtime/spring_lua/boot.lua" )
 elseif game_engine then
-	require "spring_cpp/boot"
+	require("spring_cpp/boot")
 else
-	require "shard_runtime/shard_null/boot"
+	require("shard_runtime/shard_null/boot")
 end
 
-shard_include( "ai" )
+shard_include("ai")
 
 -- create and use an AI
 if ShardSpringLua then

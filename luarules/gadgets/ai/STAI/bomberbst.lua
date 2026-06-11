@@ -13,11 +13,11 @@ function BomberBST:Init()
 	if self.ai.armyhst.unitTable[self.name].submergedRange > 0 then
 		self.weapon = "torpedo"
 		self.hurts = "submerged"
-		self.layer = 'S'
+		self.layer = "S"
 	else
 		self.weapon = "bomb"
 		self.hurts = "ground"
-		self.layer = 'G'
+		self.layer = "G"
 	end
 	self.homepos = self.ai.tool:UnitPos(self)
 	self:EchoDebug("init", self.weapon)
@@ -27,7 +27,7 @@ end
 
 function BomberBST:OwnerBuilt()
 	self:EchoDebug("built")
- 	self.ai.bomberhst:AddRecruit(self)
+	self.ai.bomberhst:AddRecruit(self)
 	self:SetIdleMode()
 end
 
@@ -55,8 +55,8 @@ end
 function BomberBST:Deactivate()
 	self:EchoDebug("deactivate")
 	self.active = false
-	self.unit:Internal():Move(self.ai.tool:RandomAway( self.homepos, math.random(100,300))) -- you're drunk go home
-	self.ai.tool:GiveOrderToUnit(self.unit:Internal(),CMD.MOVE, self.homepos, 0,'1-1')
+	self.unit:Internal():Move(self.ai.tool:RandomAway(self.homepos, math.random(100, 300))) -- you're drunk go home
+	self.ai.tool:GiveOrderToUnit(self.unit:Internal(), CMD.MOVE, self.homepos, 0, "1-1")
 end
 
 --[[function BomberBST:Update()
@@ -72,15 +72,12 @@ end]]
 function BomberBST:BombPosition(position)
 	self:EchoDebug("bomb position")
 	--self.unit:Internal():Attack(position,32)
-	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.ATTACK, position, 0,'1-1')
+	self.ai.tool:GiveOrder(self.unit:Internal():ID(), CMD.ATTACK, position, 0, "1-1")
 end
 
-
-
 function BomberBST:SetIdleMode()
- 	--self.unit:Internal():IdleModeFly()
-	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.IDLEMODE, 1, 0,'1-1')
-
+	--self.unit:Internal():IdleModeFly()
+	self.ai.tool:GiveOrder(self.unit:Internal():ID(), CMD.IDLEMODE, 1, 0, "1-1")
 end
 
 --[[function BomberBST:BombUnit(targetUnit)

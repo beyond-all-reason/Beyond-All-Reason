@@ -2,18 +2,18 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Lua UiKeys loader",
-		desc      = "Loads uikeys.txt file in LuaUI/Widgets to apply binds",
-		author    = "Doo",
-		date      = "2018",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = false,
+		name = "Lua UiKeys loader",
+		desc = "Loads uikeys.txt file in LuaUI/Widgets to apply binds",
+		author = "Doo",
+		date = "2018",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = false,
 	}
 end
 
 function widget:Initialize()
-	local k = ''
+	local k = ""
 	if VFS.FileExists("LuaUI/Widgets/uikeys.txt") then
 		k = tostring(VFS.LoadFile("LuaUI/Widgets/uikeys.txt"))
 	end

@@ -2,14 +2,14 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "CMD limiter",
-		desc      = "",
-		author    = "Floris",
-		version   = "1",
-		date      = "September 2023",
-		license   = "GNU GPL, v2 or later",
-		layer     = -999999,
-		enabled   = true,
+		name = "CMD limiter",
+		desc = "",
+		author = "Floris",
+		version = "1",
+		date = "September 2023",
+		license = "GNU GPL, v2 or later",
+		layer = -999999,
+		enabled = true,
 	}
 end
 
@@ -29,7 +29,7 @@ local history = {}
 local totalCmdCount = 0
 local totalOffence = 0
 local offenceBuckets = {}
-local currentTime = 0   -- accumulated real time in seconds
+local currentTime = 0 -- accumulated real time in seconds
 
 local spec = Spring.GetSpectatingState()
 function gadget:PlayerChanged(playerID)
@@ -37,9 +37,9 @@ function gadget:PlayerChanged(playerID)
 end
 
 function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	if cmdID < 0 and not spec then	-- is build order
+	if cmdID < 0 and not spec then -- is build order
 		if cmdOpts.shift then
-			local bucket = mathFloor(currentTime * 30)	-- ~30fps granularity buckets
+			local bucket = mathFloor(currentTime * 30) -- ~30fps granularity buckets
 			if offenceBuckets[bucket] then
 				return true
 			end
@@ -58,14 +58,13 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 						Spring.Echo("\255\255\085\085YOU HAVE QUEUED TOO MUCH BUILDINGS IN A SHORT PERIOD, KEEP DOING THIS AND YOU WILL GET AUTO RESIGNED!")
 					end
 				end
-				totalCmdCount = totalCmdCount - mathFloor(maxCommands/2)	-- remove some so user can instantly queue something next without instantly being warned again
+				totalCmdCount = totalCmdCount - mathFloor(maxCommands / 2) -- remove some so user can instantly queue something next without instantly being warned again
 				return true
 			end
 		end
 	end
 	return false
 end
-
 
 function gadget:Update(dt)
 	currentTime = currentTime + dt

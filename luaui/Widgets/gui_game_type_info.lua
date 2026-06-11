@@ -22,10 +22,9 @@ function widget:GetInfo()
 		date = "Jul 6, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
@@ -49,7 +48,7 @@ function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-	font = WG['fonts'].getFont(1, 1.5)
+	font = WG["fonts"].getFont(1, 1.5)
 
 	if messages[1] then
 		messages[1].x = widgetScale * 60
@@ -89,23 +88,21 @@ function widget:LanguageChanged()
 	local deathmode = Spring.GetModOptions().deathmode
 
 	if deathmode == "killall" then
-		key = 'killAllUnits'
+		key = "killAllUnits"
 	elseif deathmode == "builders" then
-		key = 'killAllBuilders'
+		key = "killAllBuilders"
 	elseif deathmode == "territorial_domination" and not Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
-		key = 'territorialDomination'
+		key = "territorialDomination"
 	else
-		key = 'killAllCommanders'
+		key = "killAllCommanders"
 	end
 
-	messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.' .. key)
+	messages[1].str = "\255\255\255\255" .. Spring.I18N("ui.gametypeInfo.victoryCondition") .. ": " .. Spring.I18N("ui.gametypeInfo." .. key)
 
 	if deathmode == "own_com" then
-		messages[3].str = "\255\255\150\150" .. Spring.I18N('ui.gametypeInfo.owncomends')
+		messages[3].str = "\255\255\150\150" .. Spring.I18N("ui.gametypeInfo.owncomends")
 	end
 end
-
-
 
 function widget:DrawScreen()
 	if spGetGameSeconds() > 0 then
@@ -114,7 +111,9 @@ function widget:DrawScreen()
 	end
 
 	local y = 0.19
-	if (Game.startPosType == 2) and (draftMode ~= nil and draftMode ~= "disabled") then y = 0.68 end
+	if (Game.startPosType == 2) and (draftMode ~= nil and draftMode ~= "disabled") then
+		y = 0.68
+	end
 	glPushMatrix()
 	glTranslate((vsx * 0.5), (vsy * y), 0) --has to be below where newbie info appears!
 	glScale(1.5, 1.5, 1)

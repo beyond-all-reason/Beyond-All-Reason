@@ -1,24 +1,23 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-   return {
-      name         = "DGun no ally",
-      desc         = "Prevents dgun aim to snap onto ally units",
-      author       = "Ceddral",
-      date         = "2018-04-27",
-      license      = "GPL",
-      layer        = 0,
-      enabled      = true
-   }
+	return {
+		name = "DGun no ally",
+		desc = "Prevents dgun aim to snap onto ally units",
+		author = "Ceddral",
+		date = "2018-04-27",
+		license = "GPL",
+		layer = 0,
+		enabled = true,
+	}
 end
 
-
 function widget:Initialize()
-	WG['dgunnoally'] = true
+	WG["dgunnoally"] = true
 end
 
 function widget:Shutdown()
-	WG['dgunnoally'] = nil
+	WG["dgunnoally"] = nil
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)

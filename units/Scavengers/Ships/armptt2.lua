@@ -35,7 +35,7 @@ return {
 		turnrate = 180,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weaponaa',
+			unitgroup = "weaponaa",
 			maxrange = "260",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

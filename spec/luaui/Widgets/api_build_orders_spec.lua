@@ -97,7 +97,7 @@ end
 -- needed for proportional and fork/followup tests.
 local function buildArmCorWorld()
 	return Builders
-		.SpringUnsynced
+		.EngineUnsynced
 		.new()
 		-- Buildings
 		:WithUnitDef(UnitDef.new("armmex"):WithDefID(10):WithCost(100):WithFootprint(2, 2))
@@ -190,7 +190,7 @@ describe("api_build_orders", function()
 		local widget
 
 		before_each(function()
-			widget = withMinimalSubLogic(Builders.SpringUnsynced.new()):LoadWidget(WIDGET_PATH)
+			widget = withMinimalSubLogic(Builders.EngineUnsynced.new()):LoadWidget(WIDGET_PATH)
 		end)
 
 		it("issues no orders when there are no buildings", function()
@@ -218,7 +218,7 @@ describe("api_build_orders", function()
 
 	describe("when every builder has zero build speed", function()
 		it("issues no orders", function()
-			local widget = withMinimalSubLogic(Builders.SpringUnsynced.new():WithUnitDef(UnitDef.new("armcon"):WithDefID(42):WithSpeed(0)):WithUnit(1, "armcon")):LoadWidget(WIDGET_PATH)
+			local widget = withMinimalSubLogic(Builders.EngineUnsynced.new():WithUnitDef(UnitDef.new("armcon"):WithDefID(42):WithSpeed(0)):WithUnit(1, "armcon")):LoadWidget(WIDGET_PATH)
 
 			local bo = widget.WG.api_build_orders
 			local calls = widget.captureArrayOrders()

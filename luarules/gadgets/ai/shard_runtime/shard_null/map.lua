@@ -1,37 +1,36 @@
 local map = {}
 
-	-- function map:FindClosestBuildSite(unittype,builderpos, searchradius, minimumdistance)
-	-- function map:CanBuildHere(unittype,position)
-	-- function map:GetMapFeatures()
-	-- function map:GetMapFeaturesAt(position,radius)
-	-- function map:SpotCount()
-	-- function map:GetSpot(idx)
-	-- function map:GetMetalSpots()
-	-- function map:MapDimensions()
-	-- function map:MapName()
-	-- function map:AverageWind()
-	-- function map:MinimumWindSpeed()
-	-- function map:MaximumWindSpeed()
-	-- function map:TidalStrength()
-	-- function map:MaximumHeight()
-	-- function map:MinimumHeight()
+-- function map:FindClosestBuildSite(unittype,builderpos, searchradius, minimumdistance)
+-- function map:CanBuildHere(unittype,position)
+-- function map:GetMapFeatures()
+-- function map:GetMapFeaturesAt(position,radius)
+-- function map:SpotCount()
+-- function map:GetSpot(idx)
+-- function map:GetMetalSpots()
+-- function map:MapDimensions()
+-- function map:MapName()
+-- function map:AverageWind()
+-- function map:MinimumWindSpeed()
+-- function map:MaximumWindSpeed()
+-- function map:TidalStrength()
+-- function map:MaximumHeight()
+-- function map:MinimumHeight()
 
 -- ###################
 
-function map:FindClosestBuildSite(unittype,builderpos, searchradius, minimumdistance) -- returns Position
+function map:FindClosestBuildSite(unittype, builderpos, searchradius, minimumdistance) -- returns Position
 	return false
 end
 
-function map:CanBuildHere(unittype,position) -- returns boolean
+function map:CanBuildHere(unittype, position) -- returns boolean
 	return false
 end
 
 function map:GetMapFeatures()
-
 	return {}
 end
 
-function map:GetMapFeaturesAt(position,radius)
+function map:GetMapFeaturesAt(position, radius)
 	return {}
 end
 
@@ -74,7 +73,6 @@ function map:AverageWind() -- returns (minwind+maxwind)/2
 	return 1
 end
 
-
 function map:MinimumWindSpeed() -- returns minimum windspeed
 	return 0
 end
@@ -98,11 +96,11 @@ end
 -- DRAWING FUNCTIONS
 
 local function dataToString(...)
-	local data = {...}
-	local str = ''
+	local data = { ... }
+	local str = ""
 	for i = 1, #data do
 		local d = data[i]
-		str = str .. '|' .. tostring(d)
+		str = str .. "|" .. tostring(d)
 	end
 	return str
 end
@@ -153,6 +151,6 @@ end
 
 -- END DRAWING FUNCTIONS
 
-	-- game.map = map
+-- game.map = map
 
 return map

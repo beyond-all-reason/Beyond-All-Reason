@@ -141,8 +141,8 @@ local inactive = {
 	corfgate = true,
 	corfmine3 = true,
 	corfrad = true,
-	corsonar = true
-	}
+	corsonar = true,
+}
 
 function UnitHandler:Name()
 	return "UnitHandler"
@@ -163,7 +163,7 @@ function UnitHandler:Init()
 end
 
 function UnitHandler:Update()
-	for k,v in pairs(self.myActiveUnits) do
+	for k, v in pairs(self.myActiveUnits) do
 		if ShardSpringLua then
 			local ux, uy, uz = Spring.GetUnitPosition(v:Internal():ID())
 			if not ux then
@@ -185,14 +185,14 @@ function UnitHandler:Update()
 end
 
 function UnitHandler:GameEnd()
-	for k,v in pairs(self.myActiveUnits) do
+	for k, v in pairs(self.myActiveUnits) do
 		v:GameEnd()
 	end
 end
 
 function UnitHandler:UnitCreated(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
-	for k,v in pairs(self.myActiveUnits) do
+	for k, v in pairs(self.myActiveUnits) do
 		v:UnitCreated(u)
 	end
 end
@@ -200,7 +200,7 @@ end
 function UnitHandler:UnitBuilt(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
 	if u ~= nil then
-		for k,v in pairs(self.myActiveUnits) do
+		for k, v in pairs(self.myActiveUnits) do
 			v:UnitBuilt(u)
 		end
 	end
@@ -209,7 +209,7 @@ end
 function UnitHandler:UnitDead(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
 	if u ~= nil then
-		for k,v in pairs(self.myActiveUnits) do
+		for k, v in pairs(self.myActiveUnits) do
 			v:UnitDead(u)
 		end
 	end
@@ -220,11 +220,11 @@ function UnitHandler:UnitDead(engineUnit)
 	self.reallyActuallyDead[engineUnit:ID()] = self.game:Frame()
 end
 
-function UnitHandler:UnitDamaged(engineUnit,engineAttacker,damage)
+function UnitHandler:UnitDamaged(engineUnit, engineAttacker, damage)
 	local u = self:AIRepresentation(engineUnit)
 	-- local a = self:AIRepresentation(engineAttacker)
-	for k,v in pairs(self.myActiveUnits) do
-		v:UnitDamaged(u,engineAttacker,damage)
+	for k, v in pairs(self.myActiveUnits) do
+		v:UnitDamaged(u, engineAttacker, damage)
 	end
 end
 
@@ -246,7 +246,7 @@ function UnitHandler:AIRepresentation(engineUnit)
 	if u == nil then
 		-- self.game:SendToConsole(self.ai.id, "adding unit to unithandler tables", engineUnit:ID(), engineUnit:Name())
 		u = Unit()
-		u:SetAI( self.ai )
+		u:SetAI(self.ai)
 		self.units[engineUnit:ID()] = u
 		u:SetEngineRepresentation(engineUnit)
 		u:Init()
@@ -266,7 +266,7 @@ end
 function UnitHandler:UnitIdle(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
 	if u ~= nil then
-		for k,v in pairs(self.units) do
+		for k, v in pairs(self.units) do
 			v:UnitIdle(u)
 		end
 	end

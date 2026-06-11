@@ -2,16 +2,15 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Font handler",
-		desc      = "handles font object creation",
-		author    = "Floris",
-		date      = "June 2020",
-		license   = "GNU GPL, v2 or later",
-		layer     = -1200001,
-		enabled   = true
+		name = "Font handler",
+		desc = "handles font object creation",
+		author = "Floris",
+		date = "June 2020",
+		license = "GNU GPL, v2 or later",
+		layer = -1200001,
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -20,7 +19,7 @@ local mathFloor = math.floor
 local spEcho = Spring.Echo
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local vsx,vsy = spGetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local defaultFont = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local defaultFont2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -39,14 +38,13 @@ local sceduledDeleteFonts = {}
 local sceduledDeleteFontsClock
 
 local function createFont(file, size, outlineSize, outlineStrength)
-	local id = file..'_'..size..'_'..outlineSize..'_'..outlineStrength
+	local id = file .. "_" .. size .. "_" .. outlineSize .. "_" .. outlineStrength
 	if fonts[id] ~= nil then
-		sceduledDeleteFonts[#sceduledDeleteFonts+1] = fonts[id]
+		sceduledDeleteFonts[#sceduledDeleteFonts + 1] = fonts[id]
 		sceduledDeleteFontsClock = os.clock() + 5
 	end
-	fonts[id] = gl.LoadFont(file, size*fontScale, outlineSize*fontScale, outlineStrength)
+	fonts[id] = gl.LoadFont(file, size * fontScale, outlineSize * fontScale, outlineStrength)
 end
-
 
 local sec = 0
 function widget:Update(dt)
@@ -69,7 +67,7 @@ function widget:Update(dt)
 	-- end
 
 	if sceduledDeleteFontsClock and sceduledDeleteFontsClock < os.clock() then
-		for i,font in pairs(sceduledDeleteFonts) do
+		for i, font in pairs(sceduledDeleteFonts) do
 			gl.DeleteFont(font)
 		end
 		sceduledDeleteFonts = {}
@@ -79,15 +77,15 @@ end
 
 function widget:Initialize()
 	if gl.AddFallbackFont then
-		gl.AddFallbackFont('fallbacks/NotoEmoji-VariableFont_wght.ttf')
-		gl.AddFallbackFont('fallbacks/SourceHanSans-Regular.ttc')
+		gl.AddFallbackFont("fallbacks/NotoEmoji-VariableFont_wght.ttf")
+		gl.AddFallbackFont("fallbacks/SourceHanSans-Regular.ttc")
 	end
 
-	vsx,vsy = spGetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	widget:ViewResize(vsx, vsy, true)
 
-	WG['fonts'] = {}
-	WG['fonts'].getFont = function(file, size, outlineSize, outlineStrength)
+	WG["fonts"] = {}
+	WG["fonts"].getFont = function(file, size, outlineSize, outlineStrength)
 		if not file or file == 1 then
 			file = defaultFont
 		elseif file == 2 then
@@ -99,20 +97,20 @@ function widget:Initialize()
 		outlineSize = mathFloor((defaultSize * (outlineSize and outlineSize or defaultOutlineSize)) + 0.5)
 		outlineStrength = (outlineStrength and outlineStrength or defaultOutlineStrength)
 
-		local id = file..'_'..size..'_'..outlineSize..'_'..outlineStrength
+		local id = file .. "_" .. size .. "_" .. outlineSize .. "_" .. outlineStrength
 		if fonts[id] == nil then
 			createFont(file, size, outlineSize, outlineStrength)
 		end
-		return fonts[id], size*fontScale
+		return fonts[id], size * fontScale
 	end
 end
 
 function widget:ViewResize(vsx, vsy, init)
-	vsx,vsy = spGetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	local newFontScale = (vsy / 1080) * ui_scale
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	defaultOutlineSize = 0.22*(outlineMult*0.9)
+	local outlineMult = math.clamp(1 / (vsy / 1400), 1, 1.5)
+	defaultOutlineSize = 0.22 * (outlineMult * 0.9)
 
 	if fontScale ~= newFontScale then
 		fontScale = newFontScale
@@ -127,14 +125,14 @@ end
 function widget:GetConfigData()
 	return {
 		fonts = fonts,
-		fontScale = fontScale
+		fontScale = fontScale,
 	}
 end
 
 function widget:SetConfigData(data)
 	if Spring.GetGameFrame() > 0 then
 		if data.fonts ~= nil then
-			fonts = data.fonts		-- not sure why BYAR.lua just shows empty table while it has the fonts when restoring o_0
+			fonts = data.fonts -- not sure why BYAR.lua just shows empty table while it has the fonts when restoring o_0
 			fontScale = data.fontScale
 		end
 	end

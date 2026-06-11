@@ -2,17 +2,17 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "PBR enabler",
-		desc      = "Generates BRDF Lookup table for PBR shaders and sets necessary spring configuration parameters",
-		author    = "ivand",
-		date      = "2019",
-		license   = "PD",
-		layer     = -1,
-		enabled   = true,
+		name = "PBR enabler",
+		desc = "Generates BRDF Lookup table for PBR shaders and sets necessary spring configuration parameters",
+		author = "ivand",
+		date = "2019",
+		license = "PD",
+		layer = -1,
+		enabled = true,
 	}
 end
 
-if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
+if not gadgetHandler:IsSyncedCode() then --unsynced gadget
 	GG.GetBrdfTexture = nil
 	GG.GetEnvTexture = nil
 
@@ -55,7 +55,7 @@ if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
 	end
 
 	local envLutDebug = false
-	
+
 	function gadget:DrawWorldPreUnit() --after IBL textures are rendered into, but before units are drawn
 		if envLut then
 			envLut:Execute(envLutDebug)
@@ -103,4 +103,3 @@ if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
 		end
 	end
 end
-

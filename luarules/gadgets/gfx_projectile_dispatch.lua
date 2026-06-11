@@ -70,14 +70,14 @@
 
 function gadget:GetInfo()
 	return {
-		name    = "Projectile Dispatch",
-		desc    = "Shared per-frame projectile scan + defID filter for other gadgets",
-		author  = "Floris",
-		date    = "May 2026",
+		name = "Projectile Dispatch",
+		desc = "Shared per-frame projectile scan + defID filter for other gadgets",
+		author = "Floris",
+		date = "May 2026",
 		license = "GNU GPL v2",
 		-- Loaded before all gfx_*_gl4 visual gadgets (which use layer = 0) so
 		-- GG.ProjectileScan exists at their Initialize time.
-		layer   = -50,
+		layer = -50,
 		enabled = true,
 	}
 end
@@ -90,11 +90,11 @@ end
 --------------------------------------------------------------------------------
 -- Localized engine calls
 --------------------------------------------------------------------------------
-local spGetVisibleProjectiles     = Spring.GetVisibleProjectiles
+local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
-local spGetProjectileDefID        = Spring.GetProjectileDefID
-local spGetGameFrame              = Spring.GetGameFrame
-local spGetGameSpeed              = Spring.GetGameSpeed
+local spGetProjectileDefID = Spring.GetProjectileDefID
+local spGetGameFrame = Spring.GetGameFrame
+local spGetGameSpeed = Spring.GetGameSpeed
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -102,30 +102,30 @@ local mapSizeZ = Game.mapSizeZ
 --------------------------------------------------------------------------------
 -- Scan IDs
 --------------------------------------------------------------------------------
-local SCAN_VISIBLE     = 1
+local SCAN_VISIBLE = 1
 local SCAN_MAP_WEAPONS = 2
-local SCAN_MAP_PIECES  = 3
+local SCAN_MAP_PIECES = 3
 
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
 -- scanState[scanID] = { lastTick, projectiles, projectileCount }
 local scanState = {
-	[SCAN_VISIBLE]     = { lastTick = -1, projectiles = nil, projectileCount = 0 },
+	[SCAN_VISIBLE] = { lastTick = -1, projectiles = nil, projectileCount = 0 },
 	[SCAN_MAP_WEAPONS] = { lastTick = -1, projectiles = nil, projectileCount = 0 },
-	[SCAN_MAP_PIECES]  = { lastTick = -1, projectiles = nil, projectileCount = 0 },
+	[SCAN_MAP_PIECES] = { lastTick = -1, projectiles = nil, projectileCount = 0 },
 }
 
 -- subscribersByScan[scanID] = { sub, sub, ... }
 local subscribersByScan = {
-	[SCAN_VISIBLE]     = {},
+	[SCAN_VISIBLE] = {},
 	[SCAN_MAP_WEAPONS] = {},
-	[SCAN_MAP_PIECES]  = {},
+	[SCAN_MAP_PIECES] = {},
 }
 
 -- handle -> { name, defIDSet, scanID, matches, matchCount, lastTick }
 local subscribers = {}
-local nextHandle  = 0
+local nextHandle = 0
 
 -- Tick monotonically bumps on every sim frame (GameFrame) and on every render
 -- frame while paused (Update). Each scanID runs at most once per tick.
@@ -137,7 +137,9 @@ local lastBumpedSimFrame = -1
 --------------------------------------------------------------------------------
 local function runScan(scanID)
 	local state = scanState[scanID]
-	if state.lastTick == currentTick then return end
+	if state.lastTick == currentTick then
+		return
+	end
 	state.lastTick = currentTick
 
 	local projectiles
@@ -157,19 +159,21 @@ local function runScan(scanID)
 		projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
 	end
 
-	state.projectiles     = projectiles
+	state.projectiles = projectiles
 	state.projectileCount = projectiles and #projectiles or 0
 
 	-- Reset all subscribers' match arrays for this scan.
-	local subs  = subscribersByScan[scanID]
+	local subs = subscribersByScan[scanID]
 	local nSubs = #subs
 	for s = 1, nSubs do
 		local sub = subs[s]
 		sub.matchCount = 0
-		sub.lastTick   = currentTick
+		sub.lastTick = currentTick
 	end
 
-	if not projectiles or nSubs == 0 then return end
+	if not projectiles or nSubs == 0 then
+		return
+	end
 
 	-- Single pass: one GetProjectileDefID per projectile, dispatched to every
 	-- interested subscriber. Piece projectiles have no weapon-def ID, so for
@@ -182,13 +186,13 @@ local function runScan(scanID)
 			for s = 1, nSubs do
 				local sub = subs[s]
 				local c = sub.matchCount + 1
-				sub.matchCount   = c
-				sub.matches[c]   = proID
+				sub.matchCount = c
+				sub.matches[c] = proID
 			end
 		end
 	else
 		for i = 1, n do
-			local proID  = projectiles[i]
+			local proID = projectiles[i]
 			local wDefID = spGetProjectileDefID(proID)
 			if wDefID then
 				for s = 1, nSubs do
@@ -196,8 +200,8 @@ local function runScan(scanID)
 					local set = sub.defIDSet
 					if not set or set[wDefID] then
 						local c = sub.matchCount + 1
-						sub.matchCount   = c
-						sub.matches[c]   = proID
+						sub.matchCount = c
+						sub.matches[c] = proID
 						sub.matchDefIDs[c] = wDefID
 					end
 				end
@@ -217,13 +221,13 @@ local function Subscribe(name, defIDSet, scanID)
 	end
 	nextHandle = nextHandle + 1
 	local sub = {
-		name        = name,
-		defIDSet    = defIDSet,
-		scanID      = scanID,
-		matches     = {},
+		name = name,
+		defIDSet = defIDSet,
+		scanID = scanID,
+		matches = {},
 		matchDefIDs = {},
-		matchCount  = 0,
-		lastTick    = -1,
+		matchCount = 0,
+		lastTick = -1,
 	}
 	subscribers[nextHandle] = sub
 	subs[#subs + 1] = sub
@@ -232,7 +236,9 @@ end
 
 local function GetMatches(handle)
 	local sub = subscribers[handle]
-	if not sub then return nil, 0 end
+	if not sub then
+		return nil, 0
+	end
 	if sub.lastTick ~= currentTick then
 		runScan(sub.scanID)
 	end
@@ -241,7 +247,9 @@ end
 
 local function GetMatchesWithDefIDs(handle)
 	local sub = subscribers[handle]
-	if not sub then return nil, nil, 0 end
+	if not sub then
+		return nil, nil, 0
+	end
 	if sub.lastTick ~= currentTick then
 		runScan(sub.scanID)
 	end
@@ -250,7 +258,9 @@ end
 
 local function GetScan(scanID)
 	local state = scanState[scanID]
-	if not state then return nil, 0 end
+	if not state then
+		return nil, 0
+	end
 	if state.lastTick ~= currentTick then
 		runScan(scanID)
 	end
@@ -265,13 +275,13 @@ function gadget:Initialize()
 	lastBumpedSimFrame = spGetGameFrame()
 
 	GG.ProjectileScan = {
-		SCAN_VISIBLE     = SCAN_VISIBLE,
+		SCAN_VISIBLE = SCAN_VISIBLE,
 		SCAN_MAP_WEAPONS = SCAN_MAP_WEAPONS,
-		SCAN_MAP_PIECES  = SCAN_MAP_PIECES,
-		Subscribe              = Subscribe,
-		GetMatches             = GetMatches,
-		GetMatchesWithDefIDs   = GetMatchesWithDefIDs,
-		GetScan                = GetScan,
+		SCAN_MAP_PIECES = SCAN_MAP_PIECES,
+		Subscribe = Subscribe,
+		GetMatches = GetMatches,
+		GetMatchesWithDefIDs = GetMatchesWithDefIDs,
+		GetScan = GetScan,
 	}
 end
 

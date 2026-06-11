@@ -1,39 +1,38 @@
-
 return {
 
-  ["meteortrail"] = {
-    
-    fireglow = {
-      air                = true,
-      class              = [[CSimpleParticleSystem]],
-      count              = 1,
-      ground             = true,
-      water              = true,
-      properties = {
-		alwaysVisible = 1,
-        airdrag            = 0,
-        colormap           = [[0.23 0.2 0.014 0.01   0 0 0 0.01]],
-        directional        = true,
-        emitrot            = 90,
-        emitrotspread      = 0,
-        emitvector         = [[0.0, 1, 0.0]],
-        gravity            = [[0.0, 0.0, 0.0]],
-        numparticles       = 1,
-        particlelife       = 2,
-        particlelifespread = 0,
-        particlesize       = 200,
-        particlesizespread = 45,
-        particlespeed      = 0,
-        particlespeedspread = 0,
-        pos                = [[0.0, 0, 0.0]],
-        sizegrowth         = -1.7,
-        sizemod            = 1,
-        texture            = [[glow2]],
-        useairlos          = true,
-      },
-    },
-    
-    smoke = {
+	["meteortrail"] = {
+
+		fireglow = {
+			air = true,
+			class = [[CSimpleParticleSystem]],
+			count = 1,
+			ground = true,
+			water = true,
+			properties = {
+				alwaysVisible = 1,
+				airdrag = 0,
+				colormap = [[0.23 0.2 0.014 0.01   0 0 0 0.01]],
+				directional = true,
+				emitrot = 90,
+				emitrotspread = 0,
+				emitvector = [[0.0, 1, 0.0]],
+				gravity = [[0.0, 0.0, 0.0]],
+				numparticles = 1,
+				particlelife = 2,
+				particlelifespread = 0,
+				particlesize = 200,
+				particlesizespread = 45,
+				particlespeed = 0,
+				particlespeedspread = 0,
+				pos = [[0.0, 0, 0.0]],
+				sizegrowth = -1.7,
+				sizemod = 1,
+				texture = [[glow2]],
+				useairlos = true,
+			},
+		},
+
+		smoke = {
 			class = [[CSimpleParticleSystem]],
 			air = 1,
 			water = 1,
@@ -59,6 +58,6 @@ return {
 				emitRot = 360,
 				emitRotSpread = 360,
 			},
-	  },
+		},
 	},
 }

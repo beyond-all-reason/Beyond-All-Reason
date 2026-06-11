@@ -8,14 +8,14 @@ function gadget:GetInfo()
 		date = "April 2024",
 		license = "Public domain",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
-
-
 -- synced only
-if not gadgetHandler:IsSyncedCode() then return false end
+if not gadgetHandler:IsSyncedCode() then
+	return false
+end
 
 -- workertimeboost = number -- in the unitdefs of the builder. This is the mulitplier by which workertime is boosted.
 -- wtboostunittype = "MOBILE TURRET" defined in unitdef of builder which defines what units trigger workertime boost for that builder.
@@ -26,11 +26,11 @@ local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local boostableUnits = {}
 local builderWatchDefs = {}
 local builderWatch = {}
-	
+
 for id, def in pairs(UnitDefs) do
 	if def.buildSpeed then
 		if def.customParams.workertimeboost and def.customParams.wtboostunittype then
-			builderWatchDefs[id] = {buildspeed = def.buildSpeed, boost = def.customParams.workertimeboost*def.buildSpeed, trigger = def.customParams.wtboostunittype, timestamp = 0}
+			builderWatchDefs[id] = { buildspeed = def.buildSpeed, boost = def.customParams.workertimeboost * def.buildSpeed, trigger = def.customParams.wtboostunittype, timestamp = 0 }
 		end
 	end
 	boostableUnits[id] = {}
@@ -68,7 +68,7 @@ function gadget:GameFrame(frame)
 			if data.timestamp < frame then
 				local project = spGetUnitIsBuilding(id) or nil
 				if project then
-					local projectStrings = boostableUnits[spGetUnitDefID(project)] or {" "}
+					local projectStrings = boostableUnits[spGetUnitDefID(project)] or { " " }
 					local enableBoost = false
 					for _, string in pairs(projectStrings) do
 						if projectStrings and string.find(data.trigger, string) then
@@ -81,7 +81,7 @@ function gadget:GameFrame(frame)
 						spSetUnitRulesParam(id, "workertimeBoosted", data.boost)
 					else
 						Spring.SetUnitBuildSpeed(id, data.buildspeed)
-						data.timestamp = frame+60
+						data.timestamp = frame + 60
 						spSetUnitRulesParam(id, "workertimeBoosted", 0)
 					end
 				else

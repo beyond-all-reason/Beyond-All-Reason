@@ -2,39 +2,39 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Auto Repair Idle Builders",
-		desc    = "Idle mobile builders automatically repair nearby damaged allied units within a leash radius based on movement state",
-		author  = "Flameink",
-		date    = "2026-03-23",
+		name = "Auto Repair Idle Builders",
+		desc = "Idle mobile builders automatically repair nearby damaged allied units within a leash radius based on movement state",
+		author = "Flameink",
+		date = "2026-03-23",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
+		layer = 0,
+		enabled = true,
 	}
 end
 
 ----------------------------------------------------------------
 -- Speedups
 ----------------------------------------------------------------
-local spGetMyTeamID          = Spring.GetMyTeamID
-local spGetTeamUnits         = Spring.GetTeamUnits
-local spGetUnitDefID         = Spring.GetUnitDefID
-local spGetUnitPosition      = Spring.GetUnitPosition
-local spGetUnitHealth        = Spring.GetUnitHealth
-local spGetUnitStates        = Spring.GetUnitStates
-local spGetUnitCommandCount  = Spring.GetUnitCommandCount
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetTeamUnits = Spring.GetTeamUnits
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitStates = Spring.GetUnitStates
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitIsBeingBuilt  = Spring.GetUnitIsBeingBuilt
-local spGetUnitIsDead        = Spring.GetUnitIsDead
-local spGetUnitsInCylinder   = Spring.GetUnitsInCylinder
-local spGiveOrderToUnit      = Spring.GiveOrderToUnit
-local spValidUnitID          = Spring.ValidUnitID
-local spGetGameFrame         = Spring.GetGameFrame
-local spGetSelectedUnits     = Spring.GetSelectedUnits
-local spGetUnitRulesParam 	 = Spring.GetUnitRulesParam
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spValidUnitID = Spring.ValidUnitID
+local spGetGameFrame = Spring.GetGameFrame
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
 
-local CMD_REPAIR  	 = CMD.REPAIR
-local CMD_MOVE    	 = CMD.MOVE
-local CMD_RECLAIM    = CMD.RECLAIM
+local CMD_REPAIR = CMD.REPAIR
+local CMD_MOVE = CMD.MOVE
+local CMD_RECLAIM = CMD.RECLAIM
 local CMD_MOVE_STATE = CMD.MOVE_STATE
 local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 local ALLY_UNITS = Spring.ALLY_UNITS
@@ -43,10 +43,10 @@ local ALLY_UNITS = Spring.ALLY_UNITS
 -- Constants
 ----------------------------------------------------------------
 local LEASH_EXTRA = {
-	[-1] = 0,    -- Structure
-	[0] = 0,     -- hold position
-	[1] = 100,   -- maneuver
-	[2] = 200,   -- roam
+	[-1] = 0, -- Structure
+	[0] = 0, -- hold position
+	[1] = 100, -- maneuver
+	[2] = 200, -- roam
 }
 local DEFAULT_LEASH_EXTRA = 100
 local POLL_INTERVAL = Game.gameSpeed
@@ -128,7 +128,9 @@ end
 
 local function hasActiveReclaimers(targetID)
 	for _, tid in pairs(activeReclaimers) do
-		if tid == targetID then return true end
+		if tid == targetID then
+			return true
+		end
 	end
 
 	return false
@@ -163,7 +165,7 @@ function widget:Initialize()
 	end
 
 	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
-		local unitDefID = spGetUnitDefID(unitID) 
+		local unitDefID = spGetUnitDefID(unitID)
 		if isMobileBuilder[unitDefID] and spGetUnitCommandCount(unitID) == 0 then
 			local x, y, z = spGetUnitPosition(unitID)
 			idleBuilders[unitID] = { homeX = x, homeY = y, homeZ = z }
@@ -205,8 +207,8 @@ function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	end
 
 	onReclaimerStopped(unitID)
-	if not isMobileBuilder[unitDefID] then 
-		return 
+	if not isMobileBuilder[unitDefID] then
+		return
 	end
 
 	local x, y, z = spGetUnitPosition(unitID)
@@ -292,7 +294,7 @@ function widget:GameFrame(frame)
 
 	-- Phase 2: Monitor active repairs
 	for builderID, info in pairs(activeRepairs) do
-		local cloakState = spGetUnitRulesParam(builderID, 'wantcloak')
+		local cloakState = spGetUnitRulesParam(builderID, "wantcloak")
 		local wantsCloak = (cloakState and cloakState == 1)
 		if not isUnitAlive(builderID) then
 			activeRepairs[builderID] = nil
@@ -304,7 +306,7 @@ function widget:GameFrame(frame)
 				-- Repair complete
 				sendHome(builderID, info)
 			else
-				local unitDefID = spGetUnitDefID(info.targetID) 
+				local unitDefID = spGetUnitDefID(info.targetID)
 				local unitDef = cachedUnitDefs[unitDefID]
 				-- Check if target has left leash radius
 				local tx, _, tz = spGetUnitPosition(info.targetID)
@@ -326,7 +328,7 @@ function widget:GameFrame(frame)
 
 	-- Phase 3: Assign idle builders to repair targets
 	for builderID, homePos in pairs(idleBuilders) do
-		local cloakState = spGetUnitRulesParam(builderID, 'wantcloak')
+		local cloakState = spGetUnitRulesParam(builderID, "wantcloak")
 		local wantsCloak = (cloakState and cloakState == 1)
 		if activeRepairs[builderID] then
 			-- Already assigned (shouldn't happen but guard against it)
@@ -345,10 +347,7 @@ function widget:GameFrame(frame)
 			local bestDistSq = math.huge
 
 			for _, candidateID in ipairs(nearbyUnits) do
-				if candidateID ~= builderID
-					and not reclaimBlacklist[candidateID]
-					and not spGetUnitIsBeingBuilt(candidateID)
-				then
+				if candidateID ~= builderID and not reclaimBlacklist[candidateID] and not spGetUnitIsBeingBuilt(candidateID) then
 					local health, maxHealth = spGetUnitHealth(candidateID)
 					if health and maxHealth and health < maxHealth then
 						local tx, _, tz = spGetUnitPosition(candidateID)

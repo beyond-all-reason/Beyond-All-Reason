@@ -12,10 +12,10 @@ function PlacementHandler:Init()
 	self.jobs = {}
 end
 
-function snap_to_grid( pos , gridsize )
-    pos.x = pos.x - (pos.x % gridsize )
-    pos.z = pos.z - (pos.z % gridsize )
-    return pos
+function snap_to_grid(pos, gridsize)
+	pos.x = pos.x - (pos.x % gridsize)
+	pos.z = pos.z - (pos.z % gridsize)
+	return pos
 end
 
 --[[
@@ -48,8 +48,7 @@ end
 
 ]]
 
-
-function PlacementHandler:NewJob( details )
+function PlacementHandler:NewJob(details)
 	--[[
 	local default = {
 		start_position,
@@ -61,7 +60,8 @@ function PlacementHandler:NewJob( details )
 		increment=8
 		cleanup_on_unit_death
 	}
-	]]--
+	]]
+	--
 	if details["start_position"] == nil then
 		return false
 	end
@@ -77,25 +77,24 @@ function PlacementHandler:NewJob( details )
 	if details.increment < 16 then
 		details.increment = 16
 	end
-	details.status = 'new'
+	details.status = "new"
 	details.step = 1
 
 	-- snap the position to a 16x16 grid for consistency
-	details.start_position = snap_to_grid( start_position, 16 )
+	details.start_position = snap_to_grid(start_position, 16)
 
 	-- figure out the spiral search pattern necessary
 	local max_width = details.max_radius * 2
-	local spiral_width = max_width/details.increment
-	details.spiral = self:GenerateSpiral(spiral_width, spiral_width )
+	local spiral_width = max_width / details.increment
+	details.spiral = self:GenerateSpiral(spiral_width, spiral_width)
 
-	table.insert( self.jobs, details )
+	table.insert(self.jobs, details)
 
 	-- for now it's using a completion handler, which is a function
 	-- passed along that it will call when it's finished, but tbh I'd
 	-- prefer to return some sort of promise structure
 	return true
 end
-
 
 function PlacementHandler:Update()
 	--[[
@@ -136,70 +135,70 @@ function PlacementHandler:Update()
 end
 
 function PlacementHandler:RunIterations()
-	for i,j in ipairs(self.jobs) do
-		if j.status ~= 'cleanup' then
+	for i, j in ipairs(self.jobs) do
+		if j.status ~= "cleanup" then
 			local job = self.jobs[i]
-			self:RunJobIterations( job )
+			self:RunJobIterations(job)
 		end
 	end
 end
 
-function PlacementHandler:RunJobIterations( job )
+function PlacementHandler:RunJobIterations(job)
 	local stillGotTime = 4 --500
 	-- given this particular job, lets give it a time budget and do as many
 	-- iterations as we can
-	while ( stillGotTime > 0 ) and ( job.status ~= 'cleanup' ) do
-		self:IterateJob( job )
+	while (stillGotTime > 0) and (job.status ~= "cleanup") do
+		self:IterateJob(job)
 		stillGotTime = stillGotTime - 1
 	end
 end
 
-function PlacementHandler:IterateJob( job )
+function PlacementHandler:IterateJob(job)
 	-- setup this run
 	local spiralLen = #job.spiral
 	if job.step > spiralLen then
 		-- we reached the end of the search pattern, we failed to
 		-- find a location, tell the requested and end the job
-		job.onFail( job )
-		job.status = 'cleanup'
+		job.onFail(job)
+		job.status = "cleanup"
 		job.result = false
 		return
 	end
-	job.status = 'running'
+	job.status = "running"
 	local step = job.step
 	local spos = job.spiral[step]
-	local pos = { x=0,y=0,z=0}
+	local pos = { x = 0, y = 0, z = 0 }
 	pos.x = spos.x * job.increment + job.start_position.x
 	pos.z = spos.y * job.increment + job.start_position.z
 	pos.y = job.start_position.y
 
 	-- test this particular step of the spiral
-	local buildable = self:CanBuildAt(job.unittype, pos )
+	local buildable = self:CanBuildAt(job.unittype, pos)
 	if buildable then
 		-- we found a place!
 		job.result = pos
-		job.status = 'cleanup'
-		SendToUnsynced("shard_debug_position",pos.x,pos.z,"final_choice")
-		job.onSuccess( job, pos )
+		job.status = "cleanup"
+		SendToUnsynced("shard_debug_position", pos.x, pos.z, "final_choice")
+		job.onSuccess(job, pos)
 	end
 
 	job.step = job.step + 1
 	if job.step > spiralLen then
 		-- we reached the end of the search pattern, we failed to
 		-- find a location, tell the requested and end the job
-		job.onFail( job )
-		job.status = 'cleanup'
+		job.onFail(job)
+		job.status = "cleanup"
 		job.result = false
 	end
 end
 
-function PlacementHandler:CanBuildAt( unittype, pos )
-	local buildable = self.ai.map:CanBuildHere( unittype, pos )
+function PlacementHandler:CanBuildAt(unittype, pos)
+	local buildable = self.ai.map:CanBuildHere(unittype, pos)
 	if not buildable then
-		SendToUnsynced("shard_debug_position",pos.x,pos.z,"main_bad")
+		SendToUnsynced("shard_debug_position", pos.x, pos.z, "main_bad")
 		return false
 	end
-	SendToUnsynced("shard_debug_position",pos.x,pos.z,"main_good")
+	SendToUnsynced("shard_debug_position", pos.x, pos.z, "main_good")
 
 	-- check spacing
 	-- we're going to do this in a hacky way for now until a blocking
@@ -213,94 +212,94 @@ function PlacementHandler:CanBuildAt( unittype, pos )
 
 	local fixed_spacing = 80
 	local px, py, pz = pos.x, pos.y, pos.z
-	local testpos = { x=px, y=py, z=pz }
+	local testpos = { x = px, y = py, z = pz }
 	local aimap = self.ai.map
 
 	-- North
 	testpos.x = px
 	testpos.z = pz - fixed_spacing
-	buildable = aimap:CanBuildHere( unittype, testpos )
+	buildable = aimap:CanBuildHere(unittype, testpos)
 	if false == buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
+		SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_bad")
 		return false
 	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
+	SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_good")
 
 	-- North East
 	testpos.x = px + fixed_spacing
 	testpos.z = pz - fixed_spacing
-	buildable = aimap:CanBuildHere( unittype, testpos )
+	buildable = aimap:CanBuildHere(unittype, testpos)
 	if false == buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
+		SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_bad")
 		return false
 	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
+	SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_good")
 
 	-- North West
 	testpos.x = px - fixed_spacing
 	testpos.z = pz - fixed_spacing
-	buildable = aimap:CanBuildHere( unittype, testpos )
+	buildable = aimap:CanBuildHere(unittype, testpos)
 	if false == buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
+		SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_bad")
 		return false
 	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
+	SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_good")
 
 	-- South
 	testpos.x = px
 	testpos.z = pz + fixed_spacing
-	buildable = aimap:CanBuildHere( unittype, testpos )
+	buildable = aimap:CanBuildHere(unittype, testpos)
 	if not buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
+		SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_bad")
 		return false
 	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
+	SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_good")
 
 	-- South East
 	testpos.x = px + fixed_spacing
 	testpos.z = pz + fixed_spacing
-	buildable = aimap:CanBuildHere( unittype, testpos )
+	buildable = aimap:CanBuildHere(unittype, testpos)
 	if not buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
+		SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_bad")
 		return false
 	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
+	SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_good")
 
 	-- South West
 	testpos.x = px - fixed_spacing
 	testpos.z = pz + fixed_spacing
-	buildable = aimap:CanBuildHere( unittype, testpos )
+	buildable = aimap:CanBuildHere(unittype, testpos)
 	if not buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
+		SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_bad")
 		return false
 	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
+	SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_good")
 
 	-- East
 	testpos.x = px + fixed_spacing
 	testpos.z = pz
-	buildable = aimap:CanBuildHere( unittype, testpos )
+	buildable = aimap:CanBuildHere(unittype, testpos)
 	if not buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
+		SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_bad")
 		return false
 	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
+	SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_good")
 
 	-- West
 	testpos.x = px - fixed_spacing
 	testpos.z = pz
-	buildable = aimap:CanBuildHere( unittype, testpos )
+	buildable = aimap:CanBuildHere(unittype, testpos)
 	if not buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
+		SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_bad")
 		return false
 	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
+	SendToUnsynced("shard_debug_position", testpos.x, testpos.z, "secondary_good")
 
 	return true
 end
 
-function is_not_cleanup( job )
-	if job.status ~= 'cleanup' then
+function is_not_cleanup(job)
+	if job.status ~= "cleanup" then
 		return true
 	end
 	return false
@@ -309,10 +308,10 @@ end
 -- filter(function, table)
 -- e.g: filter(is_even, {1,2,3,4}) -> {2,4}
 function filter(func, tbl)
-	 local newtbl= {}
-	 for i,v in pairs(tbl) do
+	local newtbl = {}
+	for i, v in pairs(tbl) do
 		if func(v) then
-			newtbl[i]=v
+			newtbl[i] = v
 		end
 	end
 	return newtbl
@@ -321,10 +320,10 @@ end
 function PlacementHandler:CleanupJobs()
 	-- try and clean up dead recruits where possible
 	--self.jobs = filter( is_not_cleanup, self.jobs )
-	for i,j in ipairs(self.jobs) do
-		if j.status == 'cleanup' then
+	for i, j in ipairs(self.jobs) do
+		if j.status == "cleanup" then
 			local job = self.jobs[i]
-			table.remove( self.jobs, i )
+			table.remove(self.jobs, i)
 			return
 		end
 	end
@@ -337,29 +336,28 @@ unit dies then the associated job is unnecessary, and needs to
 be cleaned up to save cpu
 ]]
 function PlacementHandler:UnitDead(engineunit)
-	for i,j in ipairs(self.jobs) do
-		if j['cleanup_on_unit_death'] ~= nil then
+	for i, j in ipairs(self.jobs) do
+		if j["cleanup_on_unit_death"] ~= nil then
 			if j.cleanup_on_unit_death == engineunit:ID() then
-				j.status = 'cleanup'
+				j.status = "cleanup"
 			end
 		end
 	end
 end
 
-
-function PlacementHandler:GenerateSpiral( width, height)
+function PlacementHandler:GenerateSpiral(width, height)
 	local x = 0
 	local y = 0
 	local dx = 0
 	local dy = -1
 	local t = (width > height and width or height)
-	local maxI = t*t;
+	local maxI = t * t
 	local result = {}
-	for i=0, maxI do
-		if  ((-width/2 <= x) and (x <= width/2) and (-height/2 <= y) and (y <= height/2)) then
-			table.insert( result, {x=x,y=y} )
+	for i = 0, maxI do
+		if (-width / 2 <= x) and (x <= width / 2) and (-height / 2 <= y) and (y <= height / 2) then
+			table.insert(result, { x = x, y = y })
 		end
-		if ( ( x == y ) or ( ( x < 0 ) and ( x == -y ) ) or ( (x > 0) and ( x == 1-y ) ) ) then
+		if (x == y) or ((x < 0) and (x == -y)) or ((x > 0) and (x == 1 - y)) then
 			t = dx
 			dx = dy * -1
 			dy = t

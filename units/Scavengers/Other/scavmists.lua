@@ -1,76 +1,75 @@
 local lvlParams = {
 	[""] = {
 		autoheal = 125,
-        buildtime = 5500,
-        explodeas = "",
-        explosiongenerator = "custom:scavmist",
-        health = 1250,
-        jamandlosdistance = 300,
-        power = 500,
-        selfdestructas = "",
-        unitname = "scavmist",
-        workertime = 200,
+		buildtime = 5500,
+		explodeas = "",
+		explosiongenerator = "custom:scavmist",
+		health = 1250,
+		jamandlosdistance = 300,
+		power = 500,
+		selfdestructas = "",
+		unitname = "scavmist",
+		workertime = 200,
 
-        --unitspawning
-        landunitspawns = "armwar armham armrock armstump armflash armpincer armjanus corthud corstorm corlevlr corgarp corraid corgator legbal legkark legcen leglob legamphtank leggat leghelios leghades armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob",
-        landturretspawns = "armbeamer armhlt armclaw armferret armrl armrl corhllt corhlt cormaw cormadsam corrl corrl legmg legdtr legrhapsis legrl legrl armllt corllt leglht armllt corllt leglht armllt corllt leglht armllt corllt leglht armllt corllt leglht",
-        waterspawns = "armdecade armpship armsub corpship corpt armanac corsnap legner armpt coresupp armsh corsh legsh armpt coresupp armsh corsh legsh armpt coresupp armsh corsh legsh armpt coresupp armsh corsh legsh",
-        unitspawnrange = 200,
-        turretspawnrange = 300,
-        landunitburst = 10, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
-        landturretburst = 4, --same here
-        waterburst = 8, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
+		--unitspawning
+		landunitspawns = "armwar armham armrock armstump armflash armpincer armjanus corthud corstorm corlevlr corgarp corraid corgator legbal legkark legcen leglob legamphtank leggat leghelios leghades armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob armpw corak leggob",
+		landturretspawns = "armbeamer armhlt armclaw armferret armrl armrl corhllt corhlt cormaw cormadsam corrl corrl legmg legdtr legrhapsis legrl legrl armllt corllt leglht armllt corllt leglht armllt corllt leglht armllt corllt leglht armllt corllt leglht",
+		waterspawns = "armdecade armpship armsub corpship corpt armanac corsnap legner armpt coresupp armsh corsh legsh armpt coresupp armsh corsh legsh armpt coresupp armsh corsh legsh armpt coresupp armsh corsh legsh",
+		unitspawnrange = 200,
+		turretspawnrange = 300,
+		landunitburst = 10, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
+		landturretburst = 4, --same here
+		waterburst = 8, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
 	},
 	["xl"] = {
-        autoheal = 250,
-        buildtime = 17000,
-        explodeas = "",--"mistexploxl",
-        explosiongenerator = "custom:scavmistxl",
-        health = 2500,
-        jamandlosdistance = 300,
-        power = 1000,
-        selfdestructas = "",--"mistexploxl",
-        unitname = "scavmistxl",
-        workertime = 400,
+		autoheal = 250,
+		buildtime = 17000,
+		explodeas = "", --"mistexploxl",
+		explosiongenerator = "custom:scavmistxl",
+		health = 2500,
+		jamandlosdistance = 300,
+		power = 1000,
+		selfdestructas = "", --"mistexploxl",
+		unitname = "scavmistxl",
+		workertime = 400,
 
-        --unitspawning
-        landunitspawns = "armsptk armmav armfido armamph armlatnk armbull armgremlin armzeus armfast corpyro corsala corhal correap coramph cortermite corcan corparrow armcroc legaskirmtank legfloat legmrv legaheattank legshot legstr armstump corraid leggat armstump corraid leggat armstump corraid leggat armstump corraid leggat armstump corraid leggat armstump corraid leggat armstump corraid leggat armstump corraid leggat armstump corraid leggat",
-        landturretspawns = "armpb armclaw armclaw armcir corvipe cormaw cormaw corerad legbombard legdtr legdtr legrhapsis legrhapsis armferret armferret legrhapsis legrhapsis cormadsam cormadsam armhlt corhlt legmg  armhlt corhlt legmg armhlt corhlt legmg armhlt corhlt legmg armhlt corhlt legmg",
-        waterspawns = "armlship armbats armserp armcrus corshark corbats corfship corssub corcrus corhal corhal armpship corpship armanac corsnap legner armpship corpship armanac corsnap legner armpship corpship armanac corsnap legner",
-        unitspawnrange = 275, 
-        turretspawnrange = 375, 
-        landunitburst = 10, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
-        landturretburst = 4, --same here
-        waterburst = 10, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
+		--unitspawning
+		landunitspawns = "armsptk armmav armfido armamph armlatnk armbull armgremlin armzeus armfast corpyro corsala corhal correap coramph cortermite corcan corparrow armcroc legaskirmtank legfloat legmrv legaheattank legshot legstr armstump corraid leggat armstump corraid leggat armstump corraid leggat armstump corraid leggat armstump corraid leggat armstump corraid leggat armstump corraid leggat armstump corraid leggat armstump corraid leggat",
+		landturretspawns = "armpb armclaw armclaw armcir corvipe cormaw cormaw corerad legbombard legdtr legdtr legrhapsis legrhapsis armferret armferret legrhapsis legrhapsis cormadsam cormadsam armhlt corhlt legmg  armhlt corhlt legmg armhlt corhlt legmg armhlt corhlt legmg armhlt corhlt legmg",
+		waterspawns = "armlship armbats armserp armcrus corshark corbats corfship corssub corcrus corhal corhal armpship corpship armanac corsnap legner armpship corpship armanac corsnap legner armpship corpship armanac corsnap legner",
+		unitspawnrange = 275,
+		turretspawnrange = 375,
+		landunitburst = 10, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
+		landturretburst = 4, --same here
+		waterburst = 10, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
 	},
 	["xxl"] = {
-        autoheal = 500,
-        buildtime = 25500,
-        explodeas = "",--"mistexploxxl",
-        explosiongenerator = "custom:scavmistxl",
+		autoheal = 500,
+		buildtime = 25500,
+		explodeas = "", --"mistexploxxl",
+		explosiongenerator = "custom:scavmistxl",
 		health = 5000,
-        jamandlosdistance = 300,
-        power = 2000,
-        selfdestructas = "",--"mistexploxxl",
-        unitname = "scavmistxxl",
-        workertime = 600,
+		jamandlosdistance = 300,
+		power = 2000,
+		selfdestructas = "", --"mistexploxxl",
+		unitname = "scavmistxxl",
+		workertime = 600,
 
-        --unitspawning
-        landunitspawns = "armmeatball armassimilator armpwt4 armraz corthermite corakt4 corkarg cordemon armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok",
-        landturretspawns = "armflak armminivulc corhllllt corflak legbombard legflak corminibuzz armlwall cormwall legrwall armlwall cormwall legrwall armlwall cormwall legrwall",
-        waterspawns = "armlun armlun armlship armlship armlship armbats armserp armcrus armcrus corshark corbats corfship corfship corfship corfship corssub corcrus corcrus corsok corsok ",
-        unitspawnrange = 300, 
-        turretspawnrange = 400, 
-        landunitburst = 10, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
-        landturretburst = 8, --same here
-        waterburst = 12, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
-
+		--unitspawning
+		landunitspawns = "armmeatball armassimilator armpwt4 armraz corthermite corakt4 corkarg cordemon armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok",
+		landturretspawns = "armflak armminivulc corhllllt corflak legbombard legflak corminibuzz armlwall cormwall legrwall armlwall cormwall legrwall armlwall cormwall legrwall",
+		waterspawns = "armlun armlun armlship armlship armlship armbats armserp armcrus armcrus corshark corbats corfship corfship corfship corfship corssub corcrus corcrus corsok corsok ",
+		unitspawnrange = 300,
+		turretspawnrange = 400,
+		landunitburst = 10, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
+		landturretburst = 8, --same here
+		waterburst = 12, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
 	},
 }
 local unitsTable = {}
 for lvl, stats in pairs(lvlParams) do
 	unitsTable["scavmist" .. lvl] = {
-        maxacc = 0.207,
+		maxacc = 0.207,
 		autoheal = 50,
 		maxdec = 0.6486,
 		energycost = 1,
@@ -82,7 +81,7 @@ for lvl, stats in pairs(lvlParams) do
 		canmove = true,
 		canassist = true,
 		cancloak = true,
-        initcloaked = true,
+		initcloaked = true,
 		decloakonfire = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "64 24 64",
@@ -102,8 +101,8 @@ for lvl, stats in pairs(lvlParams) do
 		movementclass = "SCAVMIST",
 		nochasecategory = "ALL",
 		objectname = "scavs/scavmistflare.s3o",
-        power = stats.power,
-        radardistancejam = stats.jamandlosdistance,
+		power = stats.power,
+		radardistancejam = stats.jamandlosdistance,
 		script = "scavs/SCAVMIST.cob",
 		seismicsignature = 0,
 		selfdestructas = stats.selfdestructas,
@@ -122,7 +121,7 @@ for lvl, stats in pairs(lvlParams) do
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.001,
 			subfolder = "Scavengers",
-            inheritxpratemultiplier = 0.1,
+			inheritxpratemultiplier = 0.1,
 			childreninheritxp = "BOTCANNON",
 			parentsinheritxp = "BOTCANNON",
 		},
@@ -167,12 +166,14 @@ for lvl, stats in pairs(lvlParams) do
 				explosiongenerator = "",
 				gravityaffected = "true",
 				heightboostfactor = 0,
-                model = "",
+				model = "",
 				name = "Teleporter",
 				noselfdamage = true,
 				range = stats.unitspawnrange,
 				reloadtime = 60,
-                rgb = 0.0, 0.0, 0.0,
+				rgb = 0.0,
+				0.0,
+				0.0,
 				soundhit = "",
 				soundhitwet = "",
 				soundstart = "",
@@ -184,8 +185,8 @@ for lvl, stats in pairs(lvlParams) do
 					spawns_name = stats.landunitspawns,
 					spawns_surface = "LAND",
 					spawns_mode = "random",
-                    spawns_ceg = "scav-spawnexplo-medium",
-					spawns_stun = 1
+					spawns_ceg = "scav-spawnexplo-medium",
+					spawns_stun = 1,
 				},
 				damage = {
 					default = 0,
@@ -210,13 +211,15 @@ for lvl, stats in pairs(lvlParams) do
 				explosiongenerator = "",
 				gravityaffected = "true",
 				heightboostfactor = 0,
-                model = "",
+				model = "",
 				name = "Teleporter",
 				noselfdamage = true,
 				proximitypriority = -1,
 				range = stats.turretspawnrange,
 				reloadtime = 60,
-                rgb = 0.0, 0.0, 0.0,
+				rgb = 0.0,
+				0.0,
+				0.0,
 				soundhit = "",
 				soundhitwet = "",
 				soundstart = "",
@@ -229,8 +232,8 @@ for lvl, stats in pairs(lvlParams) do
 					spawns_surface = "LAND",
 					spawns_mode = "random",
 					spawns_expire = 60,
-                    spawns_ceg = "scav-spawnexplo-medium",
-					spawns_stun = 1
+					spawns_ceg = "scav-spawnexplo-medium",
+					spawns_stun = 1,
 				},
 				damage = {
 					default = 0,
@@ -244,7 +247,7 @@ for lvl, stats in pairs(lvlParams) do
 				burnblow = true,
 				burst = stats.waterburst,
 				burstrate = 0.1,
-                craterareaofeffect = 0,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				collidefriendly = false,
@@ -256,13 +259,15 @@ for lvl, stats in pairs(lvlParams) do
 				explosiongenerator = "",
 				gravityaffected = "true",
 				heightboostfactor = 0,
-                model = "",
+				model = "",
 				name = "Teleporter",
 				noselfdamage = true,
 				proximitypriority = -1,
 				range = stats.turretspawnrange,
 				reloadtime = 60,
-                rgb = 0.0, 0.0, 0.0,
+				rgb = 0.0,
+				0.0,
+				0.0,
 				soundhit = "",
 				soundhitwet = "",
 				soundstart = "",
@@ -274,8 +279,8 @@ for lvl, stats in pairs(lvlParams) do
 					spawns_name = stats.waterspawns,
 					spawns_surface = "SEA",
 					spawns_mode = "random",
-                    spawns_ceg = "scav-spawnexplo-medium",
-					spawns_stun = 1
+					spawns_ceg = "scav-spawnexplo-medium",
+					spawns_stun = 1,
 				},
 				damage = {
 					default = 0,
@@ -284,19 +289,18 @@ for lvl, stats in pairs(lvlParams) do
 		},
 		weapons = {
 			[1] = {
-                badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "landunitspawner",
-                onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
-                badtargetcategory = "VTOL UNDERWATER",
+				badtargetcategory = "VTOL UNDERWATER",
 				def = "landturretspawner",
 			},
 			[3] = {
-                badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "waterspawner",
 			},
-
 		},
 	}
 end

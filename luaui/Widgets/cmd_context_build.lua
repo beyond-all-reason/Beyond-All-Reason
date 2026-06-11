@@ -1,9 +1,8 @@
-
 local voidWater = false
 local waterLevel = Spring.GetModOptions().map_waterlevel
 local waterIsLava = Spring.Lava.isLavaMap
 local minHeight, _, _, _ = Spring.GetGroundExtremes()
-local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua confs
 if success and mapinfo then
 	voidWater = mapinfo.voidwater
 end
@@ -13,15 +12,14 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Context Build",
-		desc = "Toggles buildings between water/ground equivalent buildings automagically" ,
+		desc = "Toggles buildings between water/ground equivalent buildings automagically",
 		author = "Rebuilt by Hobo Joe, original by dizekat and BrainDamage",
 		date = "Dec 2023",
 		license = "GNU LGPL, v2.1 or later",
 		layer = 1,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local tableInsert = table.insert
@@ -33,77 +31,75 @@ local isPregame = spGetGameFrame() == 0 and not isSpec
 
 local uDefNames = UnitDefNames
 
-local GetActiveCommand		= Spring.GetActiveCommand
-local SetActiveCommand		= Spring.SetActiveCommand
-local spGetMouseState 		= Spring.GetMouseState
-local spTraceScreenRay 		= Spring.TraceScreenRay
-local currentTime 			= os.clock
+local GetActiveCommand = Spring.GetActiveCommand
+local SetActiveCommand = Spring.SetActiveCommand
+local spGetMouseState = Spring.GetMouseState
+local spTraceScreenRay = Spring.TraceScreenRay
+local currentTime = os.clock
 
 --- Human friendly list. Automatically converted to unitdef IDs on init
 -- this should only ever swap between pairs of (buildable) units
 local unitlist = {
-	{'armmakr','armfmkr'},
-	{'cormakr','corfmkr'},
-	{'armdrag','armfdrag'},
-	{'cordrag','corfdrag'},
-	{'armmstor', 'armuwms'},
-	{'armestor', 'armuwes'},
-	{'cormstor', 'coruwms'},
-	{'corestor', 'coruwes'},
-	{'armrl','armfrt'},
-	{'corrl','corfrt'},
-	{'armhp','armfhp'},
-	{'corhp','corfhp'},
-	{'armrad','armfrad'},
-	{'corrad','corfrad'},
-	{'armhlt','armfhlt'},
-	{'corhlt','corfhlt'},
-	{'armtarg','armfatf'},
-	{'cortarg','corfatf'},
-	{'armmmkr','armuwmmm'},
-	{'cormmkr','coruwmmm'},
-	{'armfus','armuwfus'},
-	{'corfus','coruwfus'},
-	{'armflak','armfflak'},
-	{'corflak','corenaa'},
-	{'armmoho','armuwmme'},
-	{'cormoho','coruwmme'},
-	{'armsolar','armtide'},
-	{'corsolar','cortide'},
-	{'armlab','armsy'},
-	{'corlab','corsy'},
-	{'armllt','armtl'},
-	{'corllt','cortl'},
-	{'armnanotc','armnanotcplat'},
-	{'cornanotc','cornanotcplat'},
-	{'armvp','armamsub'},
-	{'corvp','coramsub'},
-	{'armap','armplat'},
-	{'corap','corplat'},
-	{'armgeo','armuwgeo'},
-	{'armageo','armuwageo'},
-	{'corgeo','coruwgeo'},
-	{'corageo','coruwageo'},
+	{ "armmakr", "armfmkr" },
+	{ "cormakr", "corfmkr" },
+	{ "armdrag", "armfdrag" },
+	{ "cordrag", "corfdrag" },
+	{ "armmstor", "armuwms" },
+	{ "armestor", "armuwes" },
+	{ "cormstor", "coruwms" },
+	{ "corestor", "coruwes" },
+	{ "armrl", "armfrt" },
+	{ "corrl", "corfrt" },
+	{ "armhp", "armfhp" },
+	{ "corhp", "corfhp" },
+	{ "armrad", "armfrad" },
+	{ "corrad", "corfrad" },
+	{ "armhlt", "armfhlt" },
+	{ "corhlt", "corfhlt" },
+	{ "armtarg", "armfatf" },
+	{ "cortarg", "corfatf" },
+	{ "armmmkr", "armuwmmm" },
+	{ "cormmkr", "coruwmmm" },
+	{ "armfus", "armuwfus" },
+	{ "corfus", "coruwfus" },
+	{ "armflak", "armfflak" },
+	{ "corflak", "corenaa" },
+	{ "armmoho", "armuwmme" },
+	{ "cormoho", "coruwmme" },
+	{ "armsolar", "armtide" },
+	{ "corsolar", "cortide" },
+	{ "armlab", "armsy" },
+	{ "corlab", "corsy" },
+	{ "armllt", "armtl" },
+	{ "corllt", "cortl" },
+	{ "armnanotc", "armnanotcplat" },
+	{ "cornanotc", "cornanotcplat" },
+	{ "armvp", "armamsub" },
+	{ "corvp", "coramsub" },
+	{ "armap", "armplat" },
+	{ "corap", "corplat" },
+	{ "armgeo", "armuwgeo" },
+	{ "armageo", "armuwageo" },
+	{ "corgeo", "coruwgeo" },
+	{ "corageo", "coruwageo" },
 }
 
-
-
 local legionUnitlist = {
-	{'legeconv','legfeconv'},
-	{'legdrag','legfdrag'},
-	{'legmstor', 'leguwmstore'},
-	{'legestor', 'leguwestore'},
-	{'legrl','legfrl'},
-	{'leghp','legfhp'},
-	{'legrad','legfrad'},
+	{ "legeconv", "legfeconv" },
+	{ "legdrag", "legfdrag" },
+	{ "legmstor", "leguwmstore" },
+	{ "legestor", "leguwestore" },
+	{ "legrl", "legfrl" },
+	{ "leghp", "legfhp" },
+	{ "legrad", "legfrad" },
 	--{'legmg','legfmg'},
-	{'legsolar','legtide'},
-	{'leglab','legsy'},
-	{'leglht','legtl'},
-	{'leghive', 'legfhive'},
-	{'legnanotc','legnanotcplat'},
-	{'legvp','legamsub'},
-	{'leggeo','leguwgeo'},
+	{ "legsolar", "legtide" },
+	{ "leglab", "legsy" },
+	{ "leglht", "legtl" },
+	{ "leghive", "legfhive" },
+	{ "legnanotc", "legnanotcplat" },
+	{ "legvp", "legamsub" },
+	{ "leggeo", "leguwgeo" },
 	--{'cortarg','corfatf'}, --asym pairs cannot overlap with core placeholders
 	--{'cormmkr','coruwmmm'},
 	--{'corfus','coruwfus'},
@@ -126,7 +122,6 @@ local updateRate = 0.1
 local lastUpdateTime = 0
 local gameStarted
 
-
 local function maybeRemoveSelf()
 	if waterIsLava or voidWater or waterLevel < minHeight then
 		widgetHandler:RemoveWidget()
@@ -134,12 +129,12 @@ local function maybeRemoveSelf()
 end
 
 function widget:GameStart()
-    gameStarted = true
-    maybeRemoveSelf()
+	gameStarted = true
+	maybeRemoveSelf()
 end
 
 function widget:PlayerChanged(playerID)
-    maybeRemoveSelf()
+	maybeRemoveSelf()
 end
 
 local function setPreGamestartDefID(uDefID)
@@ -166,8 +161,8 @@ end
 -- returns the unitDefID of the selected building, or false if there is no selected building
 local function isBuilding()
 	local _, cmdID
-	if isPregame and WG['pregame-build'] and WG['pregame-build'].getPreGameDefID then
-		cmdID = WG['pregame-build'].getPreGameDefID()
+	if isPregame and WG["pregame-build"] and WG["pregame-build"].getPreGameDefID then
+		cmdID = WG["pregame-build"].getPreGameDefID()
 		cmdID = cmdID and -cmdID or 0 --invert to get the correct negative value
 	else
 		_, cmdID = GetActiveCommand()
@@ -179,7 +174,6 @@ local function isBuilding()
 		return false
 	end
 end
-
 
 local function getCursorWorldPosition()
 	local mx, my = spGetMouseState()
@@ -193,7 +187,6 @@ function widget:MousePress(mx, my, button)
 	end
 end
 
-
 -- Return the first index with the given value (or nil if not found).
 local function indexOf(array, value)
 	for i, v in ipairs(array) do
@@ -206,7 +199,6 @@ end
 
 -- DrawWorld because update doesn't run pregame
 function widget:DrawWorld()
-
 	-- update only x times per second
 	if lastUpdateTime > currentTime() + updateRate then
 		return
@@ -261,7 +253,7 @@ function widget:DrawWorld()
 					setPreGamestartDefID(alt)
 				end
 			else
-				SetActiveCommand('buildunit_'..name)
+				SetActiveCommand("buildunit_" .. name)
 			end
 		end
 	else
@@ -272,7 +264,7 @@ function widget:DrawWorld()
 					setPreGamestartDefID(alt)
 				end
 			else
-				SetActiveCommand('buildunit_'..unitName[alt])
+				SetActiveCommand("buildunit_" .. unitName[alt])
 			end
 		end
 	end
@@ -292,7 +284,7 @@ local function addUnitDefPair(firstUnitName, lastUnitName)
 		return
 	end
 
-	for i, unitDef in ipairs({firstUnitDef, lastUnitDef}) do
+	for i, unitDef in ipairs({ firstUnitDef, lastUnitDef }) do
 		local unitDefID = unitDef.id
 		local isWater = i % 2 == 0
 
@@ -311,13 +303,12 @@ function widget:Initialize()
 	end
 
 	if Spring.GetModOptions().experimentallegionfaction then
-		for _,v in ipairs(legionUnitlist) do
+		for _, v in ipairs(legionUnitlist) do
 			tableInsert(unitlist, v)
 		end
 	end
 
-
-	for _,unitNames in ipairs(unitlist) do
+	for _, unitNames in ipairs(unitlist) do
 		addUnitDefPair(unitNames[1], unitNames[2])
 	end
 end

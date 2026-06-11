@@ -24,16 +24,13 @@ end
 
 local startingMetal = modOptions.startmetal or 1000
 
-local shouldRunWidget = modOptions.quick_start == "enabled" or
-	modOptions.quick_start == "factory_discount" or
-	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
+local shouldRunWidget = modOptions.quick_start == "enabled" or modOptions.quick_start == "factory_discount" or (modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
 if not shouldRunWidget then
 	return false
 end
 
-local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or
-	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
+local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or (modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetMyTeamID = Spring.GetMyTeamID
@@ -45,8 +42,8 @@ local MODEL_NAME = "quick_start_model"
 local RML_PATH = "luaui/RmlWidgets/gui_quick_start/gui_quick_start.rml"
 local QUICK_START_CONDITION_KEY = "quickStartUnallocatedBudget"
 
-local ENERGY_VALUE_CONVERSION_MULTIPLIER = 1/60 --60 being the energy conversion rate of t2 energy converters, statically defined so future changes not to affect this.
-local BUILD_TIME_VALUE_CONVERSION_MULTIPLIER = 1/300 --300 being a representative of commander workertime, statically defined so future com unitdef adjustments don't change this.
+local ENERGY_VALUE_CONVERSION_MULTIPLIER = 1 / 60 --60 being the energy conversion rate of t2 energy converters, statically defined so future changes not to affect this.
+local BUILD_TIME_VALUE_CONVERSION_MULTIPLIER = 1 / 300 --300 being a representative of commander workertime, statically defined so future com unitdef adjustments don't change this.
 local DEFAULT_INSTANT_BUILD_RANGE = 500
 local TRAVERSABILITY_GRID_RESOLUTION = 32
 local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
@@ -75,11 +72,7 @@ local function linesHaveChanged(newLines, oldLines)
 
 	for i, newLine in ipairs(newLines) do
 		local oldLine = oldLines[i]
-		if not oldLine or
-		   newLine.A ~= oldLine.A or
-		   newLine.B ~= oldLine.B or
-		   newLine.C ~= oldLine.C or
-		   newLine.originVal ~= oldLine.originVal then
+		if not oldLine or newLine.A ~= oldLine.A or newLine.B ~= oldLine.B or newLine.C ~= oldLine.C or newLine.originVal ~= oldLine.originVal then
 			return true
 		end
 	end
@@ -91,9 +84,9 @@ local function updateSpawnPositions(spawnPositions)
 	if not spawnPositions then
 		return
 	end
-	
+
 	local hasChanged = false
-	
+
 	for teamID, oldPos in pairs(externalSpawnPositions) do
 		if not spawnPositions[teamID] then
 			hasChanged = true
@@ -105,7 +98,7 @@ local function updateSpawnPositions(spawnPositions)
 			break
 		end
 	end
-	
+
 	if not hasChanged then
 		for teamID, newPos in pairs(spawnPositions) do
 			if not externalSpawnPositions[teamID] then
@@ -114,20 +107,20 @@ local function updateSpawnPositions(spawnPositions)
 			end
 		end
 	end
-	
+
 	if not hasChanged then
 		return
 	end
-	
+
 	externalSpawnPositions = {}
 	for teamID, pos in pairs(spawnPositions) do
 		if pos.x and pos.z then
-			externalSpawnPositions[teamID] = {x = pos.x, z = pos.z}
+			externalSpawnPositions[teamID] = { x = pos.x, z = pos.z }
 		end
 	end
-	
+
 	externalSpawnPositionsChanged = true
-	
+
 	if WG["pregame-build"] and WG["pregame-build"].forceRefresh then
 		WG["pregame-build"].forceRefresh()
 	end
@@ -163,15 +156,15 @@ local function updateDisplayList(commanderX, commanderZ)
 		gl.DeleteList(overlapLinesDisplayList)
 		overlapLinesDisplayList = nil
 	end
-	
+
 	local gameRules = getCachedGameRules()
 	local buildRadius = gameRules.instantBuildRange or DEFAULT_INSTANT_BUILD_RANGE
-	
+
 	if #cachedOverlapLines == 0 then
 		overlapLinesDisplayList = createBuildRangeCircleDisplayList(commanderX, commanderZ, buildRadius)
 		return
 	end
-	
+
 	local drawingSegments = overlapLines.getDrawingSegments(cachedOverlapLines, commanderX, commanderZ, buildRadius)
 	if not drawingSegments or #drawingSegments == 0 then
 		overlapLinesDisplayList = createBuildRangeCircleDisplayList(commanderX, commanderZ, buildRadius)
@@ -199,7 +192,7 @@ local function updateDisplayList(commanderX, commanderZ)
 				end
 			end)
 		end
-		
+
 		gl.Color(1, 1, 1, 1)
 		gl.LineWidth(1)
 	end)
@@ -252,7 +245,9 @@ local initialModel = {
 
 local function calculateBudgetWithDiscount(unitDefID, factoryDiscountAmount, shouldApplyDiscount, isFirstFactory)
 	local unitDef = UnitDefs[unitDefID]
-	if not unitDef then return 0 end
+	if not unitDef then
+		return 0
+	end
 
 	local metalCost = unitDef.metalCost or 0
 	local energyCost = unitDef.energyCost or 0
@@ -306,19 +301,19 @@ local function updateTraversabilityGrid()
 		lastCommanderZ = nil
 		return
 	end
-	
+
 	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ or externalSpawnPositionsChanged then
 		externalSpawnPositionsChanged = false
 		local gameRules = getCachedGameRules()
 		traversabilityGrid.generateTraversableGrid(commanderX, commanderZ, gameRules.traversabilityGridRange, TRAVERSABILITY_GRID_RESOLUTION, "myGrid")
-		
+
 		local neighbors = {}
 		for otherTeamID, pos in pairs(externalSpawnPositions) do
 			if otherTeamID ~= myTeamID and pos.x and pos.z then
-				table.insert(neighbors, {x = pos.x, z = pos.z})
+				table.insert(neighbors, { x = pos.x, z = pos.z })
 			end
 		end
-		
+
 		local gameRules = getCachedGameRules()
 		local newOverlapLines = overlapLines.getOverlapLines(commanderX, commanderZ, neighbors, gameRules.instantBuildRange or DEFAULT_INSTANT_BUILD_RANGE)
 
@@ -330,7 +325,7 @@ local function updateTraversabilityGrid()
 					A = line.A,
 					B = line.B,
 					C = line.C,
-					originVal = line.originVal
+					originVal = line.originVal,
 				}
 			end
 		end
@@ -338,7 +333,7 @@ local function updateTraversabilityGrid()
 		cachedOverlapLines = newOverlapLines
 		hasOverlapLines = true
 		updateDisplayList(commanderX, commanderZ)
-		
+
 		lastCommanderX = commanderX
 		lastCommanderZ = commanderZ
 	end
@@ -351,31 +346,28 @@ local function updateUIElementText(document, elementId, text)
 	end
 end
 
-
 local function showDeductionAnimation(deductionAmount)
 	local currentIndex = widgetState.currentDeductionIndex
 	local deductionElement = widgetState.deductionElements[currentIndex]
-	
+
 	if not deductionElement then
 		return
 	end
-	
+
 	local nextIndex = currentIndex % 5 + 1
 	local nextElement = widgetState.deductionElements[nextIndex]
-	
+
 	if nextElement then
 		nextElement:SetClass("animate", false) -- we have to remove the animate class on a different frame than we add it, otherwise it doesn't play.
 	end
-	
+
 	local modelKey = "deductionAmount" .. currentIndex
 	widgetState.dmHandle[modelKey] = "-" .. tostring(math.floor(deductionAmount))
-	
+
 	deductionElement:SetClass("animate", true)
-	
+
 	widgetState.currentDeductionIndex = nextIndex
 end
-
-
 
 local function createBudgetBarElements()
 	if not widgetState.document then
@@ -389,14 +381,14 @@ local function createBudgetBarElements()
 		widgetState.budgetBarElements.fillElement = fillElement
 		widgetState.budgetBarElements.projectedElement = projectedElement
 	end
-	
+
 	for i = 1, 5 do
 		local deductionElement = widgetState.document:GetElementById("qs-deduction-amount-" .. i)
 		if deductionElement then
 			widgetState.deductionElements[i] = deductionElement
 		end
 	end
-	
+
 	local warningTextElement = widgetState.document:GetElementById("qs-warning-text")
 	local factoryTextElement = widgetState.document:GetElementById("qs-factory-text")
 	local refundOverlayElement = widgetState.document:GetElementById("qs-budget-refund-overlay")
@@ -463,10 +455,9 @@ local function computeProjectedUsage()
 		if buildPositions and #buildPositions > 0 then
 			positionsToCheck = buildPositions
 		else
-			local _, pos = Spring.TraceScreenRay(mx, my, true, false, false,
-				uDef.modCategories and uDef.modCategories.underwater)
+			local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, uDef.modCategories and uDef.modCategories.underwater)
 			if pos then
-				positionsToCheck = {{x = pos[1], y = pos[2], z = pos[3]}}
+				positionsToCheck = { { x = pos[1], y = pos[2], z = pos[3] } }
 			end
 		end
 
@@ -533,8 +524,8 @@ local function updateUnitCostOverride(unitDefID, unitDef, gameRules, factoryAlre
 		bottom = {
 			value = budgetCost,
 			color = "\255\255\110\255",
-			colorDisabled = "\255\200\50\200"
-		}
+			colorDisabled = "\255\200\50\200",
+		},
 	}
 
 	if wgBuildMenu and wgBuildMenu.setCostOverride then
@@ -569,11 +560,10 @@ local function updateAllCostOverrides(force)
 		end
 	end
 
-
 	if not force and widgetState.lastFactoryAlreadyPlaced == factoryAlreadyPlaced then
 		return
 	end
-	
+
 	local stateChanged = (widgetState.lastFactoryAlreadyPlaced ~= nil) and (widgetState.lastFactoryAlreadyPlaced ~= factoryAlreadyPlaced)
 	widgetState.lastFactoryAlreadyPlaced = factoryAlreadyPlaced
 
@@ -590,14 +580,15 @@ local function updateAllCostOverrides(force)
 end
 
 local function updateDataModel(forceUpdate)
-	if not widgetState.dmHandle then return end
+	if not widgetState.dmHandle then
+		return
+	end
 
 	local buildQueue = wgPregameBuild and wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
 	local currentQueueLength = #buildQueue
 	local currentTime = os.clock()
 
-	if not forceUpdate and widgetState.lastQueueLength == currentQueueLength and
-		(currentTime - widgetState.lastUpdate) < widgetState.updateInterval then
+	if not forceUpdate and widgetState.lastQueueLength == currentQueueLength and (currentTime - widgetState.lastUpdate) < widgetState.updateInterval then
 		return
 	end
 
@@ -609,7 +600,7 @@ local function updateDataModel(forceUpdate)
 	if forceUpdate or currentQueueLength ~= widgetState.lastQueueLength then
 		updateAllCostOverrides(forceUpdate)
 	end
-	
+
 	if currentQueueLength > widgetState.lastQueueLength then
 		if currentBudgetRemaining < widgetState.lastBudgetRemaining then
 			if modelUpdate.budgetTotal >= modelUpdate.budgetUsed then
@@ -621,16 +612,16 @@ local function updateDataModel(forceUpdate)
 			Spring.PlaySoundFile("cmd-build", 1.0, nil, nil, nil, nil, nil, nil, "ui")
 		end
 	end
-	
+
 	if widgetState.lastBudgetRemaining > currentBudgetRemaining then
 		local deductionAmount = widgetState.lastBudgetRemaining - currentBudgetRemaining
 		showDeductionAnimation(deductionAmount)
 		hideWarnings()
 	end
-	
+
 	widgetState.lastQueueLength = currentQueueLength
 	widgetState.lastBudgetRemaining = currentBudgetRemaining
-	
+
 	local gameRules = getCachedGameRules()
 	local budgetThreshold = gameRules.budgetThresholdToAllowStart or 0
 	local budgetUsed = modelUpdate.budgetUsed or 0
@@ -669,7 +660,7 @@ local function updateDataModel(forceUpdate)
 	if widgetState.document then
 		local budgetPercent = widgetState.dmHandle.budgetPercent or 0
 		local budgetRemaining = math.floor(widgetState.dmHandle.budgetRemaining or 0)
-		
+
 		if widgetState.budgetBarElements.fillElement then
 			widgetState.budgetBarElements.fillElement:SetAttribute("style", "width: " .. string.format("%.1f%%", budgetPercent))
 		end
@@ -694,43 +685,43 @@ local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
 	local gameRules = getCachedGameRules()
 	local spawnResults = {
 		queueSpawned = {},
-		selectedSpawned = false
+		selectedSpawned = false,
 	}
-	
+
 	local remainingBudget = gameRules.budgetTotal
 	local firstFactoryPlaced = false
 	local commanderX, commanderZ = getCommanderPosition(myTeamID)
-	
+
 	if buildQueue and #buildQueue > 0 then
 		for i = 1, #buildQueue do
 			local queueItem = buildQueue[i]
 			local unitDefID = queueItem[1]
 			local isSpawned = false
-			
+
 			if unitDefID and unitDefID > 0 and UnitDefs[unitDefID] then
 				local buildX, buildZ = queueItem[2], queueItem[4]
-				
+
 				if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
 					local budgetCost = calculateBudgetForItem(unitDefID, gameRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
-					
+
 					if remainingBudget >= budgetCost then
 						isSpawned = true
 						remainingBudget = remainingBudget - budgetCost
-						
+
 						if UnitDefs[unitDefID].isFactory and not firstFactoryPlaced then
 							firstFactoryPlaced = true
 						end
 					end
 				end
 			end
-			
+
 			spawnResults.queueSpawned[i] = isSpawned
 		end
 	end
 	if selectedBuildData and selectedBuildData[1] and selectedBuildData[1] > 0 then
 		local unitDefID = selectedBuildData[1]
 		local buildX, buildZ = selectedBuildData[2], selectedBuildData[4]
-		
+
 		if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
 			local budgetCost = calculateBudgetForItem(unitDefID, gameRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
 			spawnResults.selectedSpawned = remainingBudget >= budgetCost
@@ -738,12 +729,11 @@ local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
 			spawnResults.selectedSpawned = false
 		end
 	end
-	
+
 	return spawnResults
 end
 
 function widget:Initialize()
-
 	local isSpectating = Spring.GetSpectatingState()
 	if isSpectating then
 		widgetHandler:RemoveWidget(self)
@@ -760,7 +750,6 @@ function widget:Initialize()
 	end
 	widgetState.dmHandle = dm
 
-
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH)
 	if not document then
 		widget:Shutdown()
@@ -769,23 +758,25 @@ function widget:Initialize()
 	widgetState.document = document
 	document:Show()
 
-	wgBuildMenu = WG['buildmenu']
-	wgGridMenu = WG['gridmenu']
-	wgTopbar = WG['topbar']
-	wgPregameBuild = WG['pregame-build']
-	wgPregameUI = WG['pregameui']
-	wgPregameUIDraft = WG['pregameui_draft']
+	wgBuildMenu = WG["buildmenu"]
+	wgGridMenu = WG["gridmenu"]
+	wgTopbar = WG["topbar"]
+	wgPregameBuild = WG["pregame-build"]
+	wgPregameUI = WG["pregameui"]
+	wgPregameUIDraft = WG["pregameui_draft"]
 	wgGetBuildQueueFunc = wgPregameBuild and wgPregameBuild.getBuildQueue
 	wgGetBuildPositionsFunc = wgPregameBuild and wgPregameBuild.getBuildPositions
-	wgGetPregameUnitSelectedFunc = function() return WG['pregame-unit-selected'] or -1 end
+	wgGetPregameUnitSelectedFunc = function()
+		return WG["pregame-unit-selected"] or -1
+	end
 
-	updateUIElementText(document, "qs-budget-header", spI18N('ui.quickStart.preGameResources'))
-	updateUIElementText(document, "qs-warning-text", spI18N('ui.quickStart.remainingResourcesWarning'))
-	
+	updateUIElementText(document, "qs-budget-header", spI18N("ui.quickStart.preGameResources"))
+	updateUIElementText(document, "qs-warning-text", spI18N("ui.quickStart.remainingResourcesWarning"))
+
 	local factoryTextElement = document:GetElementById("qs-factory-text")
 	if factoryTextElement then
 		if shouldApplyFactoryDiscount then
-			updateUIElementText(document, "qs-factory-text", spI18N('ui.quickStart.placeDiscountedFactory'))
+			updateUIElementText(document, "qs-factory-text", spI18N("ui.quickStart.placeDiscountedFactory"))
 			factoryTextElement:SetClass("visible", true)
 		else
 			factoryTextElement:SetAttribute("style", "display: none;")
@@ -793,7 +784,7 @@ function widget:Initialize()
 	end
 
 	createBudgetBarElements()
-	
+
 	local warningTextElement = document:GetElementById("qs-warning-text")
 	if warningTextElement then
 		warningTextElement:SetClass("visible", true)
@@ -866,7 +857,7 @@ function widget:Update()
 		widgetHandler:RemoveWidget(self)
 		return
 	end
-	
+
 	updateDataModel(false)
 	local currentTime = os.clock()
 	if (currentTime - widgetState.lastWidgetUpdate) < widgetState.widgetUpdateInterval then
@@ -885,11 +876,13 @@ end
 
 function widget:RecvLuaMsg(message, playerID)
 	local document = widgetState.document
-	if not document then return end
-	
-	if message:sub(1, 19) == 'LobbyOverlayActive0' then
+	if not document then
+		return
+	end
+
+	if message:sub(1, 19) == "LobbyOverlayActive0" then
 		document:Show()
-	elseif message:sub(1, 19) == 'LobbyOverlayActive1' then
+	elseif message:sub(1, 19) == "LobbyOverlayActive1" then
 		document:Hide()
 	end
 end

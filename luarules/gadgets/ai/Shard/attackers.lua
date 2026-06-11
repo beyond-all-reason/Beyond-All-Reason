@@ -1,6 +1,7 @@
 --[[
 Attackers!
-]]--
+]]
+--
 
 attackerlist = {
 	"corak",

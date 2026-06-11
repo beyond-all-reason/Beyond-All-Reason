@@ -10,12 +10,12 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name 	= "Paused is paused",
-		desc	= "Prevent commands being queued while paused",
-		author	= "Floris",
-		date	= "May 2023",
-		license	= "GNU GPL, v2 or later",
-		layer	= 0,
+		name = "Paused is paused",
+		desc = "Prevent commands being queued while paused",
+		author = "Floris",
+		date = "May 2023",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
 		enabled = true,
 	}
 end

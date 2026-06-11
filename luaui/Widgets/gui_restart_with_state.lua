@@ -1,18 +1,20 @@
 -- Superseded: all logic moved into gui_options.lua (guaranteed-loaded, has startScript).
 -- This file is kept as a stub so existing widget handler state doesn't break.
-do return end
+do
+	return
+end
 
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Restart With State IO",
-		desc      = "Writes/reads the restart-with-state save file on behalf of the gadget (io is unavailable in LuaRules)",
-		author    = "Copilot",
-		date      = "2026",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true,
+		name = "Restart With State IO",
+		desc = "Writes/reads the restart-with-state save file on behalf of the gadget (io is unavailable in LuaRules)",
+		author = "Copilot",
+		date = "2026",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -35,7 +37,9 @@ function widget:RecvLuaMsg(msg, _playerID)
 	end
 
 	if msg == "rws:commit" then
-		if not recvBuffer then return true end
+		if not recvBuffer then
+			return true
+		end
 		local data = table.concat(recvBuffer)
 		recvBuffer = nil
 
@@ -62,8 +66,9 @@ function widget:RecvLuaMsg(msg, _playerID)
 		-- Truncate to empty; VFS.LoadFile returns "" for an empty file, which the
 		-- gadget's Initialize now skips gracefully.
 		local f = io.open(STATE_FILE, "w")
-		if f then f:close() end
+		if f then
+			f:close()
+		end
 		return true
 	end
 end
-

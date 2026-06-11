@@ -148,7 +148,6 @@ local function GetValidStrips(spot)
 	spot.validRight = validRight
 end
 
-
 local function GetBuildingPositions(spot, uDefID, facing, testBuild)
 	local xoff, zoff
 	if facing == 0 or facing == 2 then
@@ -180,7 +179,6 @@ local function GetBuildingPositions(spot, uDefID, facing, testBuild)
 	return positions
 end
 
-
 local function IsBuildingPositionValid(spot, x, z)
 	-- add an extra mapSquareSize to account for snapping behaviours from api users
 	local expandedRadius = extractorRadius + metalMapSquareSize
@@ -188,7 +186,7 @@ local function IsBuildingPositionValid(spot, x, z)
 		return false
 	end
 
-	local expandedRadiusSqr = expandedRadius*expandedRadius
+	local expandedRadiusSqr = expandedRadius * expandedRadius
 	local sLeft, sRight = spot.left, spot.right
 	for sz = spot.minZ, spot.maxZ, metalMapSquareSize do
 		local dz = sz - z
@@ -362,14 +360,12 @@ local function GetSpotsMetal()
 	return spots, false
 end
 
-
-
 ------------------------------------------------------------
 -- Callins
 ------------------------------------------------------------
 
 function upget:Initialize()
-	if(gadget) then
+	if gadget then
 		-- With armmex.extractsMetal=0.001 and armmoho.extractsMetal=0.004
 		-- base_extraction=0.001 is meant to say that T1 mex is baseline x1, and T2 is baseline x4
 		-- as opposed to T1 being x0.5 and T2 being x2.
@@ -393,7 +389,7 @@ function upget:Initialize()
 	globalScope["resource_spot_finder"].GetBuildingPositions = GetBuildingPositions
 	globalScope["resource_spot_finder"].IsMexPositionValid = IsBuildingPositionValid
 
-	if(gadget) then
+	if gadget then
 		setMexGameRules(metalSpots)
 	end
 end

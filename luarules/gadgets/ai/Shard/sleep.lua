@@ -20,7 +20,7 @@ function Sleep:GetSleeper(key)
 		end
 	end
 	local sleeper = { key = key, frames = 0 }
-	self.sleeping[#self.sleeping+1] = sleeper
+	self.sleeping[#self.sleeping + 1] = sleeper
 	return sleeper
 end
 
@@ -30,7 +30,7 @@ function Sleep:Update()
 	for i = 1, #self.sleeping do
 		local sleeper = self.sleeping[i]
 		local frames = sleeper.frames
-		if (frames-1) < 1 then
+		if (frames - 1) < 1 then
 			-- limit the number of things woken up each frame to 50
 			if doneCount < 50 then
 				self:Wakeup(sleeper)
@@ -38,9 +38,9 @@ function Sleep:Update()
 				done[doneCount] = sleeper.key
 			end
 		end
-		sleeper.frames = frames -1
+		sleeper.frames = frames - 1
 	end
-	for i=1,doneCount do
+	for i = 1, doneCount do
 		self:Kill(done[i])
 	end
 end

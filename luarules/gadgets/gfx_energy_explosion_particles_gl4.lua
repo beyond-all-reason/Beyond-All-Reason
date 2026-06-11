@@ -16,18 +16,20 @@
 
 function gadget:GetInfo()
 	return {
-		name      = "Energy Explosion Particles GL4",
-		desc      = "Nano-style particle burst when energy producers/storers die",
-		author    = "Floris",
-		date      = "May 2026",
-		license   = "GNU GPL v2",
-		layer     = 0,
-		enabled   = true,
+		name = "Energy Explosion Particles GL4",
+		desc = "Nano-style particle burst when energy producers/storers die",
+		author = "Floris",
+		date = "May 2026",
+		license = "GNU GPL v2",
+		layer = 0,
+		enabled = true,
 	}
 end
 
 -- Synced side: nothing to do. The gadget runs unsynced only.
-if gadgetHandler:IsSyncedCode() then return end
+if gadgetHandler:IsSyncedCode() then
+	return
+end
 
 --------------------------------------------------------------------------------
 -- CONFIG (edit these freely)
@@ -43,11 +45,11 @@ local CONFIG = {
 	-- Weights map UnitDef resource fields to a single "energy score". The
 	-- score is also the baseline particle count for that def (before the
 	-- master multiplier). Tune these to taste.
-	weightEnergyMake     = 0.16,   -- particles per energy/sec produced
-	weightEnergyStorage  = 0.006,  -- particles per energy stored
-	weightWindGenerator  = 0.05,   -- particles per max-wind output
-	weightTidalGenerator = 0.05,   -- particles per tidal output
-	weightEnergyConv     = 0.05,   -- particles per customParams.energyconv_capacity
+	weightEnergyMake = 0.16, -- particles per energy/sec produced
+	weightEnergyStorage = 0.006, -- particles per energy stored
+	weightWindGenerator = 0.05, -- particles per max-wind output
+	weightTidalGenerator = 0.05, -- particles per tidal output
+	weightEnergyConv = 0.05, -- particles per customParams.energyconv_capacity
 
 	-- Defs whose total score is below this threshold get no burst.
 	minEnergyScore = 15,
@@ -70,14 +72,14 @@ local CONFIG = {
 	maxParticleCount = 250,
 
 	-- Global cap so a wave of dying fusions can't blow the pool.
-	maxLiveParticles  = 6000,
+	maxLiveParticles = 6000,
 	-- Hard cap on bursts processed per render frame (extras are dropped).
 	maxBurstsPerFrame = 16,
 	-- Frames to wait after UnitDestroyed before spawning energy particles.
 	-- 0 = spawn immediately (no delay). Increase to let the initial CEG fireball
 	-- start dispersing before energy particles appear (trades visual "lateness"
 	-- for less CEG obstruction at spawn).
-	spawnDelayFrames  = 1,
+	spawnDelayFrames = 1,
 
 	------------------------------------------------------------------
 	-- Velocity / spawn geometry
@@ -86,9 +88,9 @@ local CONFIG = {
 	-- [minSpeed, maxSpeed] with `rand ^ speedPower` -- speedPower > 1 means
 	-- most particles are slow with a long high-speed tail ("shrapnel" feel),
 	-- < 1 means most fly fast.
-	minSpeed     = 0.2,
-	maxSpeed     = 2,
-	speedPower   = 1.5,
+	minSpeed = 0.2,
+	maxSpeed = 2,
+	speedPower = 1.5,
 	-- Direction bias. 1.0 = strictly +Y, 0.0 = uniform full sphere,
 	-- intermediate values blend (cosTheta = (2r-1)*(1-bias) + bias).
 	upwardBias = 0.15,
@@ -107,19 +109,19 @@ local CONFIG = {
 	-- more speed. Set useDeathExplosion=false to ignore the weapon entirely.
 	------------------------------------------------------------------
 	useDeathExplosion = true,
-	aoeJitterMul      = 0.15,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
-	aoeSpeedMul       = 0.0035,  -- maxSpeed += aoe * mul
-	damageSpeedMul    = 0.0035,  -- maxSpeed += damage * mul
-	damageCountMul    = 0.022,  -- extra particles per damage point
-	damageCountMax    = 2.5,     -- hard cap on the damage/aoe particle bonus
-	maxSpeedBonus     = 3.3,   -- hard cap on the aoe+damage speed bonus (elmos/frame)
+	aoeJitterMul = 0.15, -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
+	aoeSpeedMul = 0.0035, -- maxSpeed += aoe * mul
+	damageSpeedMul = 0.0035, -- maxSpeed += damage * mul
+	damageCountMul = 0.022, -- extra particles per damage point
+	damageCountMax = 2.5, -- hard cap on the damage/aoe particle bonus
+	maxSpeedBonus = 3.3, -- hard cap on the aoe+damage speed bonus (elmos/frame)
 
 	------------------------------------------------------------------
 	-- Physics (applied in vertex shader, global)
 	--   pos(t) = spawn + vel*t*(1 - 0.5*drag*t) + 0.5*gravity*t^2
 	-- t is in sim frames since spawn; vel/gravity in elmos/frame[^2].
 	------------------------------------------------------------------
-	drag     = 0.008,
+	drag = 0.008,
 	gravityY = -0.003,
 
 	------------------------------------------------------------------
@@ -130,9 +132,9 @@ local CONFIG = {
 	-- Lifetime scales with burst size: at count == maxParticleCount the
 	-- min/max lifetime are multiplied by this value. At minimum count, scale
 	-- is 1.0 (no extension). Set to 1.0 to disable.
-	lifetimeBigMul    = 1.8,
-	fadeFramesMin     = 11,
-	fadeFramesMax     = 44,
+	lifetimeBigMul = 1.8,
+	fadeFramesMin = 11,
+	fadeFramesMax = 44,
 	-- Frames over which a freshly-spawned particle ramps from invisible to full
 	-- alpha. Hides the "pop into existence" at the unit center while the
 	-- explosion debris is still bright.
@@ -140,7 +142,7 @@ local CONFIG = {
 	-- particles invisible for the first N frames -- against the dim coreBoost
 	-- and small alpha the burst then appears to "pop in late". Set to a small
 	-- value (e.g. 2) if you want a brief soft attack instead of an instant start.
-	fadeInFrames      = 2,
+	fadeInFrames = 2,
 
 	------------------------------------------------------------------
 	-- Visual
@@ -190,49 +192,49 @@ local CONFIG = {
 -- Locals
 --------------------------------------------------------------------------------
 
-local spEcho               = Spring.Echo
-local spGetUnitPosition    = Spring.GetUnitPosition
-local spGetUnitRadius      = Spring.GetUnitRadius
-local spGetMyAllyTeamID    = Spring.GetMyAllyTeamID
+local spEcho = Spring.Echo
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitRadius = Spring.GetUnitRadius
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
-local spIsPosInLos         = Spring.IsPosInLos
-local spIsSphereInView     = Spring.IsSphereInView
-local spGetTeamColor       = Spring.GetTeamColor
+local spIsPosInLos = Spring.IsPosInLos
+local spIsSphereInView = Spring.IsSphereInView
+local spGetTeamColor = Spring.GetTeamColor
 
-local glBlending      = gl.Blending
-local glDepthTest     = gl.DepthTest
-local glDepthMask     = gl.DepthMask
-local glCulling       = gl.Culling
-local glAlphaTest     = gl.AlphaTest
-local glColor         = gl.Color
-local glColorMask     = gl.ColorMask
-local glScissor       = gl.Scissor
+local glBlending = gl.Blending
+local glDepthTest = gl.DepthTest
+local glDepthMask = gl.DepthMask
+local glCulling = gl.Culling
+local glAlphaTest = gl.AlphaTest
+local glColor = gl.Color
+local glColorMask = gl.ColorMask
+local glScissor = gl.Scissor
 local glPolygonOffset = gl.PolygonOffset
-local glPolygonMode   = gl.PolygonMode
-local glStencilTest   = gl.StencilTest
+local glPolygonMode = gl.PolygonMode
+local glStencilTest = gl.StencilTest
 
-local GL_ONE                 = GL.ONE
+local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local GL_SRC_ALPHA           = GL.SRC_ALPHA
-local GL_FRONT_AND_BACK      = GL.FRONT_AND_BACK
-local GL_FILL                = GL.FILL
-local GL_LEQUAL              = GL.LEQUAL
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
+local GL_FILL = GL.FILL
+local GL_LEQUAL = GL.LEQUAL
 
-local LuaShader           = gl.LuaShader
-local InstanceVBOTable    = gl.InstanceVBOTable
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local popElementInstance  = InstanceVBOTable.popElementInstance
-local uploadElementRange  = InstanceVBOTable.uploadElementRange
+local popElementInstance = InstanceVBOTable.popElementInstance
+local uploadElementRange = InstanceVBOTable.uploadElementRange
 
 local mathRandom = math.random
-local mathSqrt   = math.sqrt
-local mathFloor  = math.floor
-local mathPi     = math.pi
-local mathSin    = math.sin
-local mathCos    = math.cos
-local mathMax    = math.max
-local mathMin    = math.min
-local mathHuge   = math.huge
+local mathSqrt = math.sqrt
+local mathFloor = math.floor
+local mathPi = math.pi
+local mathSin = math.sin
+local mathCos = math.cos
+local mathMax = math.max
+local mathMin = math.min
+local mathHuge = math.huge
 local stringFind = string.find
 
 -- Cube/GS path -- no texture sampled.
@@ -240,10 +242,10 @@ local stringFind = string.find
 -- VBO ceiling (instance slots allocated once at Init).
 local MAX_PARTICLES_VBO = CONFIG.maxLiveParticles
 local liveCount = 0
-local nextID    = 1
+local nextID = 1
 
 -- Per-instance scratch buffer (4 vec4 = 16 floats), reused per spawn.
-local instanceScratch = { 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0 }
+local instanceScratch = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 
 -- death-frame buckets for cheap O(1) cull
 local deathBuckets = {}
@@ -274,7 +276,7 @@ local reclaimedWeaponDefID = Game and Game.envDamageTypes and Game.envDamageType
 local killedByLuaWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.KilledByLua
 
 -- Cached view state (refreshed each GameFrame).
-local cachedAllyTeamID   = spGetMyAllyTeamID()
+local cachedAllyTeamID = spGetMyAllyTeamID()
 local cachedSpecFullView = false
 
 -- Dirty range for batched per-frame upload (updated inline in processBurst).
@@ -283,7 +285,6 @@ local dirtyMin, dirtyMax = mathHuge, -1
 --------------------------------------------------------------------------------
 -- Shaders
 --------------------------------------------------------------------------------
-
 
 local vsSrc = [[
 #version 430 core
@@ -700,35 +701,38 @@ end
 
 -- Visual constants taken verbatim from gfx_nano_particles_gl4.lua
 -- (MODE_SETTINGS.shape) so the chunks look identical to nano spray.
-local SHAPE_ID         = 0    -- 0 = cube, 1 = octahedron
-local DRAW_RADIUS      = 1.5  -- shape spans ~2 * drawRadius elmos
+local SHAPE_ID = 0 -- 0 = cube, 1 = octahedron
+local DRAW_RADIUS = 1.5 -- shape spans ~2 * drawRadius elmos
 local CUBE_SHOW_INSIDE = 4.0
-local CUBE_NOISE       = 6.0
+local CUBE_NOISE = 6.0
 local CUBE_NOISE_SPEED = 25.0
 local CUBE_NOISE_SCALE = 1.75
-local GLOW_SCALE       = 11.0
-local GLOW_INTENSITY   = 0.15
-local GLOW_FALLOFF     = 9.5
-local CORE_BOOST       = 0.3
-local HUE_JITTER       = 0.1
-local GLOW_BREATH      = 4.0
+local GLOW_SCALE = 11.0
+local GLOW_INTENSITY = 0.15
+local GLOW_FALLOFF = 9.5
+local CORE_BOOST = 0.3
+local HUE_JITTER = 0.1
+local GLOW_BREATH = 4.0
 local GLOW_BREATH_FREQ = 2.0
-local GLOW_BREATH_VAR  = 0.5
+local GLOW_BREATH_VAR = 0.5
 local GLOW_BREATH_FREQ_VAR = 0.5
-local WOBBLE_AMP       = 2.5
-local WOBBLE_VAR       = 0.5
-local WOBBLE_FREQ      = 0.2
-local WOBBLE_FREQ_VAR  = 0.5
+local WOBBLE_AMP = 2.5
+local WOBBLE_VAR = 0.5
+local WOBBLE_FREQ = 0.2
+local WOBBLE_FREQ_VAR = 0.5
 local WOBBLE_RAMP_FRAMES = 7.0
-local WHITE_HOTSPOT          = 1.5
+local WHITE_HOTSPOT = 1.5
 local WHITE_HOTSPOT_THRESHOLD = 0.6
-local SIZE_VAR    = 0.3
-local ALPHA_VAR   = 2.5
-local NANO_ALPHA  = 50 / 255
-local ROT_VAL_BASE  = -180  local ROT_VAL_RANGE = 360
-local ROT_VEL_BASE  = -40   local ROT_VEL_RANGE = 80
+local SIZE_VAR = 0.3
+local ALPHA_VAR = 2.5
+local NANO_ALPHA = 50 / 255
+local ROT_VAL_BASE = -180
+local ROT_VAL_RANGE = 360
+local ROT_VEL_BASE = -40
+local ROT_VEL_RANGE = 80
 -- rotAcc in deg/sec² converted to deg/frame² (GAME_SPEED = 30)
-local ROT_ACC_BASE  = -40 / (30*30)   local ROT_ACC_RANGE = 80 / (30*30)
+local ROT_ACC_BASE = -40 / (30 * 30)
+local ROT_ACC_RANGE = 80 / (30 * 30)
 
 local function initGL4()
 	if not LuaShader.isGeometryShaderSupported then
@@ -740,35 +744,35 @@ local function initGL4()
 		fsSrc = fsSrc,
 		gsSrc = gsSrc,
 		shaderName = "UnitEnergyExplosionParticlesGL4",
-		uniformInt   = { u_shape = SHAPE_ID },
+		uniformInt = { u_shape = SHAPE_ID },
 		uniformFloat = {
-			drag        = CONFIG.drag,
-			gravity     = { 0, CONFIG.gravityY, 0 },
+			drag = CONFIG.drag,
+			gravity = { 0, CONFIG.gravityY, 0 },
 			fadeInFrames = CONFIG.fadeInFrames,
-			drawRadius  = DRAW_RADIUS,
+			drawRadius = DRAW_RADIUS,
 			cubeShowInside = CUBE_SHOW_INSIDE,
-			cubeNoise      = CUBE_NOISE,
+			cubeNoise = CUBE_NOISE,
 			cubeNoiseSpeed = CUBE_NOISE_SPEED,
 			cubeNoiseScale = CUBE_NOISE_SCALE,
-			glowScale     = GLOW_SCALE,
+			glowScale = GLOW_SCALE,
 			glowIntensity = GLOW_INTENSITY,
-			glowFalloff   = GLOW_FALLOFF,
-			coreBoost     = CORE_BOOST,
-			hueJitter     = HUE_JITTER,
-			glowBreath    = GLOW_BREATH,
+			glowFalloff = GLOW_FALLOFF,
+			coreBoost = CORE_BOOST,
+			hueJitter = HUE_JITTER,
+			glowBreath = GLOW_BREATH,
 			glowBreathFreq = GLOW_BREATH_FREQ,
-			glowBreathVar  = GLOW_BREATH_VAR,
+			glowBreathVar = GLOW_BREATH_VAR,
 			glowBreathFreqVar = GLOW_BREATH_FREQ_VAR,
-			wobbleAmp     = WOBBLE_AMP,
-			wobbleVar     = WOBBLE_VAR,
-			wobbleFreq    = WOBBLE_FREQ,
+			wobbleAmp = WOBBLE_AMP,
+			wobbleVar = WOBBLE_VAR,
+			wobbleFreq = WOBBLE_FREQ,
 			wobbleFreqVar = WOBBLE_FREQ_VAR,
 			wobbleRampFrames = WOBBLE_RAMP_FRAMES,
-			whiteHotspot          = WHITE_HOTSPOT,
+			whiteHotspot = WHITE_HOTSPOT,
 			whiteHotspotThreshold = WHITE_HOTSPOT_THRESHOLD,
 		},
 		shaderConfig = {},
-		forceupdate  = true,
+		forceupdate = true,
 	}
 	particleShader = LuaShader.CheckShaderUpdates(shaderCache)
 	if not particleShader then
@@ -776,22 +780,18 @@ local function initGL4()
 		return false
 	end
 
-	local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(
-		-1, -1, 1, 1,
-		0, 0, 1, 1,
-		"eepQuadVBO"
-	)
+	local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(-1, -1, 1, 1, 0, 0, 1, 1, "eepQuadVBO")
 	-- Shape GS only needs ONE triangle per instance; use a 3-index VBO so the
 	-- GS doesn't get invoked twice per particle.
 	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
 	indexVBO:Define(3)
-	indexVBO:Upload({0, 1, 2})
+	indexVBO:Upload({ 0, 1, 2 })
 
 	local layout = {
-		{ id = 1, name = "spawnPosAndSize",  size = 4 },
+		{ id = 1, name = "spawnPosAndSize", size = 4 },
 		{ id = 2, name = "velAndSpawnFrame", size = 4 },
-		{ id = 3, name = "instColor",        size = 4 },
-		{ id = 4, name = "rotData",          size = 4 },
+		{ id = 3, name = "instColor", size = 4 },
+		{ id = 4, name = "rotData", size = 4 },
 	}
 	particleVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "eepParticleVBO")
 	if not particleVBO then
@@ -799,15 +799,18 @@ local function initGL4()
 		return false
 	end
 	particleVBO.numVertices = numVertices
-	particleVBO.vertexVBO   = quadVBO
-	particleVBO.indexVBO    = indexVBO
-	particleVBO.VAO         = particleVBO:makeVAOandAttach(quadVBO, particleVBO.instanceVBO, indexVBO)
+	particleVBO.vertexVBO = quadVBO
+	particleVBO.indexVBO = indexVBO
+	particleVBO.VAO = particleVBO:makeVAOandAttach(quadVBO, particleVBO.instanceVBO, indexVBO)
 	particleVBO.primitiveType = GL.TRIANGLES
 	return true
 end
 
 local function cleanupGL4()
-	if particleVBO then particleVBO:Delete(); particleVBO = nil end
+	if particleVBO then
+		particleVBO:Delete()
+		particleVBO = nil
+	end
 	particleShader = nil
 end
 
@@ -820,13 +823,15 @@ local function computeScore(ud)
 	-- Energy production in BAR can be expressed either as positive `energyMake`
 	-- (most generators) or as negative `energyUpkeep` (solar collectors and a
 	-- handful of others). Take whichever is larger so both styles count.
-	local make   = ud.energyMake or 0
+	local make = ud.energyMake or 0
 	local upkeep = ud.energyUpkeep or 0
 	local production = make
-	if upkeep < 0 and -upkeep > production then production = -upkeep end
-	s = s + production               * CONFIG.weightEnergyMake
-	s = s + (ud.energyStorage  or 0) * CONFIG.weightEnergyStorage
-	s = s + (ud.windGenerator  or 0) * CONFIG.weightWindGenerator
+	if upkeep < 0 and -upkeep > production then
+		production = -upkeep
+	end
+	s = s + production * CONFIG.weightEnergyMake
+	s = s + (ud.energyStorage or 0) * CONFIG.weightEnergyStorage
+	s = s + (ud.windGenerator or 0) * CONFIG.weightWindGenerator
 	s = s + (ud.tidalGenerator or 0) * CONFIG.weightTidalGenerator
 	local cp = ud.customParams
 	if cp then
@@ -842,12 +847,11 @@ local function classifyDefs()
 	local n = 0
 	for defID, ud in pairs(UnitDefs) do
 		local cp = ud.customParams
-		local isRaptor = (ud.category and stringFind(ud.category, "RAPTOR", 1, true))
-			or (cp and cp.subfolder == "other/raptors")
+		local isRaptor = (ud.category and stringFind(ud.category, "RAPTOR", 1, true)) or (cp and cp.subfolder == "other/raptors")
 
 		if not CONFIG.excludeUnitDefs[ud.name] and not isRaptor then
 			local score = computeScore(ud)
-			local ov    = CONFIG.overrides[ud.name]
+			local ov = CONFIG.overrides[ud.name]
 			-- Energy converters/metal-makers qualify via their energyconv_capacity
 			-- regardless of the energy score threshold.
 			local hasConverter = cp and tonumber(cp.energyconv_capacity) and tonumber(cp.energyconv_capacity) > 0
@@ -855,8 +859,7 @@ local function classifyDefs()
 			-- relative to its build cost. This prevents combat units with a small
 			-- passive generator (e.g. armbanth) from triggering the effect.
 			local metalCost = ud.metalCost or 0
-			local scoreQualifies = score >= CONFIG.minEnergyScore
-				and (metalCost == 0 or score / metalCost >= CONFIG.minEnergyScoreRatio)
+			local scoreQualifies = score >= CONFIG.minEnergyScore and (metalCost == 0 or score / metalCost >= CONFIG.minEnergyScoreRatio)
 			if (ov and ov.particleCount) or scoreQualifies or hasConverter then
 				-- Look up the unit's death-explosion weapon (if any) so we can
 				-- scale spread/speed/count by the weapon's AoE and damage.
@@ -873,7 +876,9 @@ local function classifyDefs()
 								deathDmg = dmgs[0] or dmgs.default or 0
 								if deathDmg == 0 then
 									for _, v in pairs(dmgs) do
-										if type(v) == "number" and v > deathDmg then deathDmg = v end
+										if type(v) == "number" and v > deathDmg then
+											deathDmg = v
+										end
 									end
 								end
 							end
@@ -890,22 +895,26 @@ local function classifyDefs()
 					local dmgBonus = mathMin(deathDmg * CONFIG.damageCountMul, CONFIG.damageCountMax)
 					count = mathFloor((score ^ pow) * mul + dmgBonus + 0.5)
 				end
-				if count < CONFIG.minParticleCount then count = CONFIG.minParticleCount end
-				if count > CONFIG.maxParticleCount then count = CONFIG.maxParticleCount end
+				if count < CONFIG.minParticleCount then
+					count = CONFIG.minParticleCount
+				end
+				if count > CONFIG.maxParticleCount then
+					count = CONFIG.maxParticleCount
+				end
 
 				--Spring.Echo(ud.name, count, score, aoe, deathDmg)
 
-				local jf       = (ov and ov.spawnJitterFrac) or CONFIG.spawnJitterFrac
-				local jitter   = (ud.radius or 32) * jf + aoe * CONFIG.aoeJitterMul
+				local jf = (ov and ov.spawnJitterFrac) or CONFIG.spawnJitterFrac
+				local jitter = (ud.radius or 32) * jf + aoe * CONFIG.aoeJitterMul
 				local speedBonus = mathMin(aoe * CONFIG.aoeSpeedMul + deathDmg * CONFIG.damageSpeedMul, CONFIG.maxSpeedBonus)
 
 				qualifyingDefs[defID] = {
-					count        = count,
-					overrideRef  = ov,
+					count = count,
+					overrideRef = ov,
 					jitterRadius = jitter,
-					speedBonus   = speedBonus,
-					aoe          = aoe,
-					deathDamage  = deathDmg,
+					speedBonus = speedBonus,
+					aoe = aoe,
+					deathDamage = deathDmg,
 				}
 
 				n = n + 1
@@ -923,12 +932,16 @@ end
 
 local function fetchTeamColor(teamID)
 	local cached = teamColorCache[teamID]
-	if cached then return cached[1], cached[2], cached[3] end
+	if cached then
+		return cached[1], cached[2], cached[3]
+	end
 	local r, g, b = spGetTeamColor(teamID)
-	if not r then r, g, b = 1, 1, 1 end
+	if not r then
+		r, g, b = 1, 1, 1
+	end
 	local eq = CONFIG.colorEqualize
 	if eq > 0.001 then
-		local luma = 0.2126*r + 0.7152*g + 0.0722*b
+		local luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
 		local target = 0.55
 		local boost = (luma > 0.001) and (target / luma) or 1.0
 		boost = mathMin(boost, 4.0)
@@ -947,65 +960,74 @@ end
 
 -- Resolve effective per-burst parameters. ov may be nil.
 local function paramOr(ov, key)
-	if ov and ov[key] ~= nil then return ov[key] end
+	if ov and ov[key] ~= nil then
+		return ov[key]
+	end
 	return CONFIG[key]
 end
 
 local function processBurst(px, py, pz, teamID, meta, frame)
-	local count        = meta.count
+	local count = meta.count
 	local jitterRadius = meta.jitterRadius
-	local overrideRef  = meta.overrideRef
-	local speedBonus   = meta.speedBonus or 0
+	local overrideRef = meta.overrideRef
+	local speedBonus = meta.speedBonus or 0
 
 	-- Frustum gate: if the burst sphere isn't in view, skip entirely.
-	if not spIsSphereInView(px, py, pz, jitterRadius + 64) then return end
+	if not spIsSphereInView(px, py, pz, jitterRadius + 64) then
+		return
+	end
 
 	local r, g, b = fetchTeamColor(teamID)
 
-	local minS          = paramOr(overrideRef, "minSpeed")
-	local maxS          = paramOr(overrideRef, "maxSpeed") + speedBonus
-	local speedPow      = paramOr(overrideRef, "speedPower")
-	local szMin         = paramOr(overrideRef, "sizeMin")
-	local szMax         = paramOr(overrideRef, "sizeMax")
-	local lifeMin       = paramOr(overrideRef, "minLifetimeFrames")
-	local lifeMax       = paramOr(overrideRef, "maxLifetimeFrames")
+	local minS = paramOr(overrideRef, "minSpeed")
+	local maxS = paramOr(overrideRef, "maxSpeed") + speedBonus
+	local speedPow = paramOr(overrideRef, "speedPower")
+	local szMin = paramOr(overrideRef, "sizeMin")
+	local szMax = paramOr(overrideRef, "sizeMax")
+	local lifeMin = paramOr(overrideRef, "minLifetimeFrames")
+	local lifeMax = paramOr(overrideRef, "maxLifetimeFrames")
 	-- Scale lifetime range with burst size: small bursts use the configured
 	-- range; large bursts (approaching maxParticleCount) get up to lifetimeBigMul
 	-- times longer life so fusion-sized explosions linger.
-	local lifeScale  = 1.0 + (CONFIG.lifetimeBigMul - 1.0)
-		* mathMin(count / CONFIG.maxParticleCount, 1.0)
+	local lifeScale = 1.0 + (CONFIG.lifetimeBigMul - 1.0) * mathMin(count / CONFIG.maxParticleCount, 1.0)
 	lifeMax = lifeMax * lifeScale
-	local bias          = paramOr(overrideRef, "upwardBias")
-	local alpha         = paramOr(overrideRef, "alpha")
+	local bias = paramOr(overrideRef, "upwardBias")
+	local alpha = paramOr(overrideRef, "alpha")
 	local fadeFramesMin = paramOr(overrideRef, "fadeFramesMin")
 	local fadeFramesMax = paramOr(overrideRef, "fadeFramesMax")
-	local fadeInFrames  = paramOr(overrideRef, "fadeInFrames")
-	local jyFrac        = paramOr(overrideRef, "spawnJitterYFrac")
+	local fadeInFrames = paramOr(overrideRef, "fadeInFrames")
+	local jyFrac = paramOr(overrideRef, "spawnJitterYFrac")
 
 	-- Cache the VBO reference; bail early if it disappeared.
 	local _pVBO = particleVBO
-	if not _pVBO then return end
+	if not _pVBO then
+		return
+	end
 	local _liveCount = liveCount
 	local budget = MAX_PARTICLES_VBO - _liveCount
-	if budget <= 0 then return end
-	if count > budget then count = budget end
+	if budget <= 0 then
+		return
+	end
+	if count > budget then
+		count = budget
+	end
 
 	-- Hoist frequently-mutated upvalues into locals so the tight per-particle
 	-- loop avoids repeated upvalue indirection (each upvalue access requires an
 	-- extra pointer dereference vs a plain local stack slot).
-	local _nextID   = nextID
+	local _nextID = nextID
 	local _dirtyMin = dirtyMin
 	local _dirtyMax = dirtyMax
-	local _scratch  = instanceScratch
-	local _buckets  = deathBuckets
+	local _scratch = instanceScratch
+	local _buckets = deathBuckets
 
 	-- Pre-compute per-burst invariants so they aren't recomputed each iteration.
 	local speedRange = maxS - minS
-	local szRange    = szMax - szMin
-	local lifeRange  = lifeMax - lifeMin
-	local fadeRange  = fadeFramesMax - fadeFramesMin
-	local biasTerm   = 1.0 - bias   -- weight for the (2r-1) term in cosTheta
-	local twoPi      = 2.0 * mathPi
+	local szRange = szMax - szMin
+	local lifeRange = lifeMax - lifeMin
+	local fadeRange = fadeFramesMax - fadeFramesMin
+	local biasTerm = 1.0 - bias -- weight for the (2r-1) term in cosTheta
+	local twoPi = 2.0 * mathPi
 	local hasAlphaVar = ALPHA_VAR > 0
 
 	for _ = 1, count do
@@ -1015,7 +1037,7 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 			jx = mathRandom() * 2 - 1
 			jy = mathRandom() * 2 - 1
 			jz = mathRandom() * 2 - 1
-		until (jx*jx + jy*jy + jz*jz) <= 1.0
+		until (jx * jx + jy * jy + jz * jz) <= 1.0
 		local sx = px + jx * jitterRadius
 		local sy = py + jy * jitterRadius * jyFrac
 		local sz = pz + jz * jitterRadius
@@ -1023,11 +1045,15 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 		-- Inlined sampleExplosionDir: uniform sphere biased toward +Y.
 		-- bias=0 -> full sphere, bias=1 -> straight up.
 		local cosT = (2.0 * mathRandom() - 1.0) * biasTerm + bias
-		if cosT < -1 then cosT = -1 elseif cosT > 1 then cosT = 1 end
+		if cosT < -1 then
+			cosT = -1
+		elseif cosT > 1 then
+			cosT = 1
+		end
 		local sinT = mathSqrt(mathMax(0.0, 1.0 - cosT * cosT))
-		local phi  = mathRandom() * twoPi
-		local dx   = sinT * mathCos(phi)
-		local dz   = sinT * mathSin(phi)
+		local phi = mathRandom() * twoPi
+		local dx = sinT * mathCos(phi)
+		local dz = sinT * mathSin(phi)
 
 		-- Power-law speed sample: rand^speedPow biases distribution toward minS
 		-- when speedPow > 1 (long high-speed tail = "shrapnel").
@@ -1039,7 +1065,7 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 
 		-- Fade window scales linearly with the particle's own lifetime so
 		-- short-lived particles don't get a disproportionately long tail.
-		local lifeFrac   = (lifeRange > 0) and (lifetime - lifeMin) / lifeRange or 0.0
+		local lifeFrac = (lifeRange > 0) and (lifetime - lifeMin) / lifeRange or 0.0
 		local fadeFrames = mathFloor(fadeFramesMin + fadeRange * lifeFrac + 0.5)
 
 		-- Per-particle alpha jitter (matches nano gadget look). Centred on the
@@ -1047,7 +1073,7 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 		local pa = hasAlphaVar and (alpha * (1.0 + ALPHA_VAR * (mathRandom() * 2 - 1))) or alpha
 
 		-- Inlined spawnParticle: pack size+fade, randomise rotation, push VBO slot.
-		local death  = frame + lifetime
+		local death = frame + lifetime
 		local packed = mathFloor(sizeMult * 256 + 0.5) + (fadeFrames or 0) * 1024
 		local rotVal = ROT_VAL_BASE + ROT_VAL_RANGE * (mathRandom() * 2 - 1)
 		local rotVel = ROT_VEL_BASE + ROT_VEL_RANGE * (mathRandom() * 2 - 1)
@@ -1056,10 +1082,22 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 		local id = _nextID
 		_nextID = _nextID + 1
 
-		_scratch[1]  = sx;    _scratch[2]  = sy;    _scratch[3]  = sz;    _scratch[4]  = packed
-		_scratch[5]  = vx;    _scratch[6]  = vy;    _scratch[7]  = vz;    _scratch[8]  = frame
-		_scratch[9]  = r;     _scratch[10] = g;     _scratch[11] = b;     _scratch[12] = pa
-		_scratch[13] = rotVal; _scratch[14] = rotVel; _scratch[15] = rotAcc; _scratch[16] = death
+		_scratch[1] = sx
+		_scratch[2] = sy
+		_scratch[3] = sz
+		_scratch[4] = packed
+		_scratch[5] = vx
+		_scratch[6] = vy
+		_scratch[7] = vz
+		_scratch[8] = frame
+		_scratch[9] = r
+		_scratch[10] = g
+		_scratch[11] = b
+		_scratch[12] = pa
+		_scratch[13] = rotVal
+		_scratch[14] = rotVel
+		_scratch[15] = rotAcc
+		_scratch[16] = death
 
 		-- noUpload=true: we batch the GPU upload at end of GameFrame.
 		-- pushElementInstance returns the instanceID (not the slot index!), so we
@@ -1077,20 +1115,23 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 			end
 			_liveCount = _liveCount + 1
 			local slot = _pVBO.usedElements - 1
-			if slot < _dirtyMin then _dirtyMin = slot end
-			if slot > _dirtyMax then _dirtyMax = slot end
+			if slot < _dirtyMin then
+				_dirtyMin = slot
+			end
+			if slot > _dirtyMax then
+				_dirtyMax = slot
+			end
 		end
 	end
 
 	-- Write back the upvalues that changed inside the loop.
 	liveCount = _liveCount
-	nextID    = _nextID
-	dirtyMin  = _dirtyMin
-	dirtyMax  = _dirtyMax
+	nextID = _nextID
+	dirtyMin = _dirtyMin
+	dirtyMax = _dirtyMax
 
 	if CONFIG.debug then
-		spEcho(("EEP: burst @ (%d, %d, %d) team=%d count=%d aoe=%d dmg=%d")
-			:format(px, py, pz, teamID, count, meta.aoe or 0, meta.deathDamage or 0))
+		spEcho(("EEP: burst @ (%d, %d, %d) team=%d count=%d aoe=%d dmg=%d"):format(px, py, pz, teamID, count, meta.aoe or 0, meta.deathDamage or 0))
 	end
 end
 
@@ -1100,7 +1141,9 @@ end
 
 local function cullDead(frame)
 	local bucket = deathBuckets[frame]
-	if not bucket then return end
+	if not bucket then
+		return
+	end
 	local nb = #bucket
 	local _pVBO = particleVBO
 	if not _pVBO then
@@ -1123,8 +1166,15 @@ end
 --------------------------------------------------------------------------------
 
 function gadget:Initialize()
-	if not CONFIG.enabled then spEcho("EEP: disabled in CONFIG, removing"); gadgetHandler:RemoveGadget(); return end
-	if not initGL4() then spEcho("EEP: initGL4 failed, bailing"); return end
+	if not CONFIG.enabled then
+		spEcho("EEP: disabled in CONFIG, removing")
+		gadgetHandler:RemoveGadget()
+		return
+	end
+	if not initGL4() then
+		spEcho("EEP: initGL4 failed, bailing")
+		return
+	end
 	classifyDefs()
 	-- Populate finishedUnits for any qualifying units already on the map
 	-- (handles mid-game widget reloads and gadget restarts).
@@ -1150,26 +1200,42 @@ function gadget:UnitFinished(unitID, unitDefID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, _attackerDefID, _attackerTeam, weaponDefID)
-	if nanoParticleMode == 0 then return end
+	if nanoParticleMode == 0 then
+		return
+	end
 	-- Skip units that were still under construction when they died.
 	local wasFinished = finishedUnits[unitID]
 	finishedUnits[unitID] = nil
-	if not wasFinished then return end
-	if weaponDefID == reclaimedWeaponDefID then return end
+	if not wasFinished then
+		return
+	end
+	if weaponDefID == reclaimedWeaponDefID then
+		return
+	end
 	-- Geo-upgrade reclaim cleanup currently arrives as KilledByLua with no attacker.
 	-- Treat that specific scripted geothermal removal as non-explosive.
 	if not attackerID and weaponDefID == killedByLuaWeaponDefID then
 		local ud = UnitDefs[unitDefID]
-		if ud and ud.customParams and ud.customParams.geothermal then return end
+		if ud and ud.customParams and ud.customParams.geothermal then
+			return
+		end
 	end
 	-- Legacy fallback used by other BAR visuals: builder attacker with no valid weapon.
-	if attackerID and attackerID ~= unitID and (not weaponDefID or weaponDefID < 0) then return end
+	if attackerID and attackerID ~= unitID and (not weaponDefID or weaponDefID < 0) then
+		return
+	end
 	local meta = qualifyingDefs[unitDefID]
-	if not meta then return end
+	if not meta then
+		return
+	end
 	local px, py, pz = spGetUnitPosition(unitID)
-	if not px then return end
+	if not px then
+		return
+	end
 	-- LOS gate: skip if the local player can't see the unit's position.
-	if not cachedSpecFullView and not spIsPosInLos(px, py, pz, cachedAllyTeamID) then return end
+	if not cachedSpecFullView and not spIsPosInLos(px, py, pz, cachedAllyTeamID) then
+		return
+	end
 	-- Lift slightly above the model base so particles emerge from the volume.
 	local r = spGetUnitRadius(unitID) or 32
 	py = py + r * 0.35
@@ -1190,14 +1256,18 @@ function gadget:GameFrame(n)
 	end
 
 	-- Engine-spray mode: GL4 nano particles are off, so skip our burst too.
-	if nanoParticleMode == 0 then return end
+	if nanoParticleMode == 0 then
+		return
+	end
 
 	-- Drain burst queue, capped per frame.
 	local processed = 0
 	local cap = CONFIG.maxBurstsPerFrame
 	while burstHead <= burstTail and processed < cap do
 		local b = burstQueue[burstHead]
-		if b[6] > n then break end  -- delay not yet elapsed; queue is FIFO so no later entry is ready
+		if b[6] > n then
+			break
+		end -- delay not yet elapsed; queue is FIFO so no later entry is ready
 		burstQueue[burstHead] = nil
 		burstHead = burstHead + 1
 		processBurst(b[1], b[2], b[3], b[4], b[5], n)
@@ -1217,9 +1287,13 @@ function gadget:GameFrame(n)
 end
 
 function gadget:DrawWorld()
-	if nanoParticleMode == 0 then return end
+	if nanoParticleMode == 0 then
+		return
+	end
 	local _pVBO = particleVBO
-	if not _pVBO or _pVBO.usedElements == 0 then return end
+	if not _pVBO or _pVBO.usedElements == 0 then
+		return
+	end
 
 	-- Defensive GL state (same rationale as nano gadget).
 	glDepthTest(GL_LEQUAL)

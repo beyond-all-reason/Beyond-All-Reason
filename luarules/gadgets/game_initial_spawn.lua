@@ -2,14 +2,14 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = 'Initial Spawn',
-		desc = 'Handles initial spawning of units',
-		author = 'Niobium, nbusseneau, SethDGamre',
-		version = 'v2.0',
-		date = 'April 2011',
-		license = 'GNU GPL, v2 or later',
+		name = "Initial Spawn",
+		desc = "Handles initial spawning of units",
+		author = "Niobium, nbusseneau, SethDGamre",
+		version = "v2.0",
+		date = "April 2011",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -40,8 +40,8 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Config
 	----------------------------------------------------------------
-	local changeStartUnitRegex = 'changeStartUnit(%d+)$'
-	local startUnitParamName = 'startUnit'
+	local changeStartUnitRegex = "changeStartUnit(%d+)$"
+	local startUnitParamName = "startUnit"
 	local tooCloseToSpawn = 350
 
 	local allowEnemyAIPlacement = Spring.GetModOptions().allow_enemy_ai_spawn_placement or false
@@ -59,19 +59,19 @@ if gadgetHandler:IsSyncedCode() then
 	local SPAWN_CHOOSE_BEFORE_GAME = 1
 	local SPAWN_CHOOSE_IN_GAME = 2
 
-	local READYSTATE_UNPLACED_UNREADY = 0     -- player did not place startpoint, is unready
-	local READYSTATE_READY = 1                 -- game starting, player is ready
-	local READYSTATE_READY_FORCED = 2          -- player pressed ready OR game is starting and player is forcibly readied
-	local READYSTATE_FORCESTART_ABSENT = 3     -- game forcestarted & player absent
-	local READYSTATE_AUTO_READY = -1           -- players will not be allowed to place startpoints; automatically readied once ingame
-	local READYSTATE_PLACED_UNREADY = 4        -- player has placed a startpoint but is not yet ready
+	local READYSTATE_UNPLACED_UNREADY = 0 -- player did not place startpoint, is unready
+	local READYSTATE_READY = 1 -- game starting, player is ready
+	local READYSTATE_READY_FORCED = 2 -- player pressed ready OR game is starting and player is forcibly readied
+	local READYSTATE_FORCESTART_ABSENT = 3 -- game forcestarted & player absent
+	local READYSTATE_AUTO_READY = -1 -- players will not be allowed to place startpoints; automatically readied once ingame
+	local READYSTATE_PLACED_UNREADY = 4 -- player has placed a startpoint but is not yet ready
 
 	local getValidRandom, isUnitValid
 
 	local function updateAIManualPlacement(teamID, x, z)
 		if allowEnemyAIPlacement then
 			if x and z then
-				spSetTeamRulesParam(teamID, "aiManualPlacement", x .. "," .. z, {public=true})
+				spSetTeamRulesParam(teamID, "aiManualPlacement", x .. "," .. z, { public = true })
 			else
 				spSetTeamRulesParam(teamID, "aiManualPlacement", nil)
 			end
@@ -85,9 +85,9 @@ if gadgetHandler:IsSyncedCode() then
 			local legcomDefID = modoptions.experimentallegionfaction and UnitDefNames.legcom and UnitDefNames.legcom.id
 			local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
 			local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
-			local ARM_MASK = 2^0
-			local COR_MASK = 2^1
-			local LEG_MASK = 2^2
+			local ARM_MASK = 2 ^ 0
+			local COR_MASK = 2 ^ 1
+			local LEG_MASK = 2 ^ 2
 			local FULL_BITMASK = mathBitOr(ARM_MASK, COR_MASK, LEG_MASK)
 
 			local allyTeams = Spring.GetAllyTeamList()
@@ -96,7 +96,7 @@ if gadgetHandler:IsSyncedCode() then
 				local allyStartUnits = {}
 				local unitsCount = 1
 
-				local allyTeamBitmask = mathBitAnd(mathFloor(factionlimiter/2^(allyTeam*3)), FULL_BITMASK)
+				local allyTeamBitmask = mathBitAnd(mathFloor(factionlimiter / 2 ^ (allyTeam * 3)), FULL_BITMASK)
 				allyTeamBitmask = allyTeamBitmask == 0 and FULL_BITMASK or allyTeamBitmask
 
 				if legcomDefID then
@@ -120,9 +120,9 @@ if gadgetHandler:IsSyncedCode() then
 				local packedOptions = allyStartUnits[1]
 				if unitsCount > 1 then
 					for j = 2, #allyStartUnits do
-						packedOptions = packedOptions.."|"..allyStartUnits[j]
+						packedOptions = packedOptions .. "|" .. allyStartUnits[j]
 					end
-					packedOptions = packedOptions.."|"..RANDOM_DUMMY
+					packedOptions = packedOptions .. "|" .. RANDOM_DUMMY
 				end
 
 				validStartUnits[allyTeam] = allyStartUnits
@@ -150,19 +150,18 @@ if gadgetHandler:IsSyncedCode() then
 					return true
 				end
 			end
-
 		else
 			local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
 			if armcomDefID then
-				validStartUnits[#validStartUnits+1] = armcomDefID
+				validStartUnits[#validStartUnits + 1] = armcomDefID
 			end
 			local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
 			if corcomDefID then
-				validStartUnits[#validStartUnits+1] = corcomDefID
+				validStartUnits[#validStartUnits + 1] = corcomDefID
 			end
 			local legcomDefID = modoptions.experimentallegionfaction and UnitDefNames.legcom and UnitDefNames.legcom.id
 			if legcomDefID then
-				validStartUnits[#validStartUnits+1] = legcomDefID
+				validStartUnits[#validStartUnits + 1] = legcomDefID
 			end
 
 			getValidRandom = function(allyTeamID)
@@ -185,12 +184,11 @@ if gadgetHandler:IsSyncedCode() then
 			local packedOptions = validStartUnits[1]
 			if #validStartUnits > 1 then
 				for j = 2, #validStartUnits do
-					packedOptions = packedOptions.."|"..validStartUnits[j]
+					packedOptions = packedOptions .. "|" .. validStartUnits[j]
 				end
-				packedOptions = packedOptions.."|"..RANDOM_DUMMY
+				packedOptions = packedOptions .. "|" .. RANDOM_DUMMY
 			end
 			Spring.SetGameRulesParam("validStartUnits", packedOptions)
-
 		end
 	end
 
@@ -285,7 +283,7 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			initState = 0 -- players will be allowed to place startpoints
 
-			if (draftMode ~= nil and draftMode ~= "disabled") then
+			if draftMode ~= nil and draftMode ~= "disabled" then
 				draftModeInitialize()
 			end
 		end
@@ -299,7 +297,6 @@ if gadgetHandler:IsSyncedCode() then
 		--for _, playerID in pairs(playerList) do
 		--	Spring.SetGameRulesParam("player_" .. playerID .. "_ready_status", 0)
 		--end
-
 	end
 
 	----------------------------------------------------------------
@@ -370,11 +367,11 @@ if gadgetHandler:IsSyncedCode() then
 
 				local aiAllyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
 
-			if playerIsSpec or (aiAllyTeamID ~= allyTeamID and not allowEnemyAIPlacement) then
-				return false
-			end
+				if playerIsSpec or (aiAllyTeamID ~= allyTeamID and not allowEnemyAIPlacement) then
+					return false
+				end
 
-			local isValid = validateSpawnPosition(x, z, teamID, playerID)
+				local isValid = validateSpawnPosition(x, z, teamID, playerID)
 
 				if not isValid then
 					local currentPos = startPointTable[teamID]
@@ -393,7 +390,7 @@ if gadgetHandler:IsSyncedCode() then
 				else
 					local y = spGetGroundHeight(x, z)
 					Spring.SetTeamStartPosition(teamID, x, y, z)
-					startPointTable[teamID] = {x, z}
+					startPointTable[teamID] = { x, z }
 					updateAIManualPlacement(teamID, x, z)
 				end
 				return true
@@ -420,18 +417,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if type == 2 then
-			return not (Spring.TestMoveOrder(unitDefID, x, y, z) and
-			Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0) and
-			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1) and
-			Spring.TestMoveOrder(unitDefID, x, y, z,-1, 0, 0) and
-			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0,-1))
+			return not (Spring.TestMoveOrder(unitDefID, x, y, z) and Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0) and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1) and Spring.TestMoveOrder(unitDefID, x, y, z, -1, 0, 0) and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, -1))
 		end
 
 		return Spring.TestBuildOrder(unitDefID, x, y, z, "s") == 0
 	end
 
 	function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z)
-
 		--[[
 		-- for debugging
 		local name,_,_,tID = Spring.GetPlayerInfo(playerID,false)
@@ -454,10 +446,12 @@ if gadgetHandler:IsSyncedCode() then
 		end --fail
 
 		local myTurn
-		if (draftMode ~= nil and draftMode ~= "disabled") then
+		if draftMode ~= nil and draftMode ~= "disabled" then
 			local allowToPlace
 			myTurn, allowToPlace = Draft_PreAllowStartPosition(teamID, allyTeamID)
-			if allowToPlace == false then return false end
+			if allowToPlace == false then
+				return false
+			end
 		end -- The rest of the code remains untouched; it's a simple implementation
 
 		-- don't allow player to place startpoint unless its inside the startbox, if we have a startbox
@@ -468,14 +462,13 @@ if gadgetHandler:IsSyncedCode() then
 		if xmin >= xmax or zmin >= zmax then
 			return true
 		else
-			local isOutsideStartbox = (xmin + 1 >= x) or (x >= xmax - 1) or (zmin + 1 >= z) or
-					(z >= zmax - 1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
+			local isOutsideStartbox = (xmin + 1 >= x) or (x >= xmax - 1) or (zmin + 1 >= z) or (z >= zmax - 1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
 			if isOutsideStartbox then
 				return false
 			end
 		end
 
-		if isFootingUntraversable(x,y,z, tonumber(spGetTeamRulesParam(teamID, startUnitParamName))) then
+		if isFootingUntraversable(x, y, z, tonumber(spGetTeamRulesParam(teamID, startUnitParamName))) then
 			return false
 		end
 
@@ -515,7 +508,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if (draftMode ~= nil and draftMode ~= "disabled") then
+		if draftMode ~= nil and draftMode ~= "disabled" then
 			Draft_PostAllowStartPosition(myTurn, allyTeamID)
 		end
 		return true
@@ -568,7 +561,6 @@ if gadgetHandler:IsSyncedCode() then
 				scenarioSpawnsUnits = true
 			end
 		end
-
 
 		if not scenarioSpawnsUnits then
 			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI")) then
@@ -660,7 +652,7 @@ if gadgetHandler:IsSyncedCode() then
 					if guessedX and guessedZ then
 						local y = spGetGroundHeight(guessedX, guessedZ)
 						Spring.SetTeamStartPosition(teamID, guessedX, y, guessedZ)
-						startPointTable[teamID] = {guessedX, guessedZ}
+						startPointTable[teamID] = { guessedX, guessedZ }
 					end
 				end
 			end
@@ -676,14 +668,11 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			-- otherwise default to spawning regularly
 			if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
-				Spring.Log(gadget:GetInfo().name, LOG.INFO,
-					"manual spawning based on positions chosen by players in start boxes")
+				Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes")
 			elseif Game.startPosType == SPAWN_CHOOSE_BEFORE_GAME then
-				Spring.Log(gadget:GetInfo().name, LOG.INFO,
-					"automatic spawning using default map start positions, in random order")
+				Spring.Log(gadget:GetInfo().name, LOG.INFO, "automatic spawning using default map start positions, in random order")
 			elseif Game.startPosType == SPAWN_FIXED then
-				Spring.Log(gadget:GetInfo().name, LOG.INFO,
-					"automatic spawning using default map start positions, in fixed order")
+				Spring.Log(gadget:GetInfo().name, LOG.INFO, "automatic spawning using default map start positions, in fixed order")
 			end
 			for teamID, allyTeamID in pairs(teams) do
 				spawnRegularly(teamID, allyTeamID)
@@ -694,32 +683,30 @@ if gadgetHandler:IsSyncedCode() then
 	local lastGameFrame = 0
 	function gadget:GameFrame(n)
 		if not scenarioSpawnsUnits then
-            if n == spawnInitialFrame then
-
-                for i = 1, #startUnitList do
-                    local x = startUnitList[i].x
-                    local y = startUnitList[i].y
-                    local z = startUnitList[i].z
-                    Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
-                    if GG.SpawnEnvironmentalLightning then
-                        GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
-                    end
+			if n == spawnInitialFrame then
+				for i = 1, #startUnitList do
+					local x = startUnitList[i].x
+					local y = startUnitList[i].y
+					local z = startUnitList[i].z
+					Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+					if GG.SpawnEnvironmentalLightning then
+						GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
+					end
 					GG.ComSpawnDefoliate(x, y, z)
-
-                end
-            end
-            if n == spawnWarpInFrame then
-                for i = 1, #startUnitList do
-                    local unitID = startUnitList[i].unitID
-                    Spring.MoveCtrl.Disable(unitID)
-                    Spring.SetUnitNoDraw(unitID, false)
-                    Spring.SetUnitHealth(unitID, { paralyze = 0 })
+				end
+			end
+			if n == spawnWarpInFrame then
+				for i = 1, #startUnitList do
+					local unitID = startUnitList[i].unitID
+					Spring.MoveCtrl.Disable(unitID)
+					Spring.SetUnitNoDraw(unitID, false)
+					Spring.SetUnitHealth(unitID, { paralyze = 0 })
 					local unitBlocking = startUnitBlocking[unitID]
 					if unitBlocking then
 						Spring.SetUnitBlocking(unitID, unpack(unitBlocking))
 					end
-                end
-            end
+				end
+			end
 		end
 		-- for debug purpose
 		-- if GG.SpawnEnvironmentalLightning then
@@ -728,7 +715,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- 		for _, unitID in ipairs(Spring.GetAllUnits()) do
 		-- 			local x, y, z = Spring.GetUnitPosition(unitID)
 		-- 			GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
-        --             Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+		--             Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
 		-- 		end
 		-- 	end
 		-- end
@@ -741,8 +728,8 @@ if gadgetHandler:IsSyncedCode() then
 	------------------------------------------------------------------------------
 else -- UNSYNCED
 	local function positionTooClose(_, playerID)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.initialSpawn.tooClose')
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message = Script.LuaUI.GadgetMessageProxy("ui.initialSpawn.tooClose")
 			Spring.SendMessageToPlayer(playerID, message)
 		end
 	end
@@ -756,7 +743,7 @@ else -- UNSYNCED
 
 	function gadget:GameFrame(n)
 		if n == spawnInitialFrame then
-			Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
+			Spring.PlaySoundFile("commanderspawn", 0.6, "ui")
 		end
 		if n > spawnWarpInFrame then
 			gadgetHandler:RemoveGadget(self)

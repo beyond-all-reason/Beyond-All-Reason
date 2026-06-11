@@ -45,20 +45,39 @@ function ResourceDataBuilder:WithField(fieldName, value)
 	return self
 end
 
-function ResourceDataBuilder:WithCurrent(value) return self:WithField("current", value) end
-function ResourceDataBuilder:WithStorage(value) return self:WithField("storage", value) end
-function ResourceDataBuilder:WithPull(value) return self:WithField("pull", value) end
-function ResourceDataBuilder:WithIncome(value) return self:WithField("income", value) end
-function ResourceDataBuilder:WithExpense(value) return self:WithField("expense", value) end
-function ResourceDataBuilder:WithShareSlider(value) return self:WithField("shareSlider", value) end
-function ResourceDataBuilder:WithSent(value) return self:WithField("sent", value) end
-function ResourceDataBuilder:WithReceived(value) return self:WithField("received", value) end
-function ResourceDataBuilder:WithExcess(value) return self:WithField("excess", value) end
-function ResourceDataBuilder:WithResourceType(value) return self:WithField("resourceType", value) end
+function ResourceDataBuilder:WithCurrent(value)
+	return self:WithField("current", value)
+end
+function ResourceDataBuilder:WithStorage(value)
+	return self:WithField("storage", value)
+end
+function ResourceDataBuilder:WithPull(value)
+	return self:WithField("pull", value)
+end
+function ResourceDataBuilder:WithIncome(value)
+	return self:WithField("income", value)
+end
+function ResourceDataBuilder:WithExpense(value)
+	return self:WithField("expense", value)
+end
+function ResourceDataBuilder:WithShareSlider(value)
+	return self:WithField("shareSlider", value)
+end
+function ResourceDataBuilder:WithSent(value)
+	return self:WithField("sent", value)
+end
+function ResourceDataBuilder:WithReceived(value)
+	return self:WithField("received", value)
+end
+function ResourceDataBuilder:WithExcess(value)
+	return self:WithField("excess", value)
+end
+function ResourceDataBuilder:WithResourceType(value)
+	return self:WithField("resourceType", value)
+end
 
 function ResourceDataBuilder:Build()
 	return clone(self.data)
 end
 
 return ResourceDataBuilder
-

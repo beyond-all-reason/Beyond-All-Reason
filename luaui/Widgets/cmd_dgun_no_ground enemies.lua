@@ -1,23 +1,23 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-   return {
-      name         = "DGun no ground enemies",
-      desc         = "Prevents dgun aim to snap onto enemy ground units, holding SHIFT will still target units",
-      author       = "Floris", -- (derivate of a Ceddral widget)
-      date         = "",
-	  license      = "GNU GPL, v2 or later",
-      layer        = 0,
-      enabled      = false
-   }
+	return {
+		name = "DGun no ground enemies",
+		desc = "Prevents dgun aim to snap onto enemy ground units, holding SHIFT will still target units",
+		author = "Floris", -- (derivate of a Ceddral widget)
+		date = "",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = false,
+	}
 end
 
 function widget:Initialize()
-	WG['dgunnoenemy'] = true
+	WG["dgunnoenemy"] = true
 end
 
 function widget:Shutdown()
-	WG['dgunnoenemy'] = nil
+	WG["dgunnoenemy"] = nil
 end
 
 local isAirUnit = {}
@@ -61,7 +61,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if cmdParams2[1] > 0 and not Spring.IsUnitAllied(cmdParams2[1]) then -- still snap aim at enemy units
 		local unitDefID = Spring.GetUnitDefID(cmdParams[1])
 		-- exclude air and ships, also hovers when on water
-		if isAirUnit[unitDefID] or isShip[unitDefID] or isUnderwater[unitDefID] or (Spring.GetGroundHeight(cmdParams2[1],cmdParams2[3]) < 0 and isHover[unitDefID]) then
+		if isAirUnit[unitDefID] or isShip[unitDefID] or isUnderwater[unitDefID] or (Spring.GetGroundHeight(cmdParams2[1], cmdParams2[3]) < 0 and isHover[unitDefID]) then
 			return false
 		end
 	end

@@ -1,3 +1,3 @@
-function shardify_unit( unit )
+function shardify_unit(unit)
 	return unit
 end

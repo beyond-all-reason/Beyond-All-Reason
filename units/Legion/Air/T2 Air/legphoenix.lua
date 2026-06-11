@@ -1,6 +1,6 @@
 return {
 	legphoenix = {
-		maxacc= 0.05,
+		maxacc = 0.05,
 		blocking = false,
 		maxdec = 0.025,
 		energycost = 25000,
@@ -38,7 +38,7 @@ return {
 		wingangle = 0.06148,
 		wingdrag = 0.125,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Protar/Hornet",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legionaircraft/T2",
@@ -71,8 +71,8 @@ return {
 			},
 		},
 		sfxtypes = {
-			explosiongenerators = {
-			},		},
+			explosiongenerators = {},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -117,7 +117,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				proximitypriority = -1,
-				range = 950,--this is VERTICAL, not lateral
+				range = 950, --this is VERTICAL, not lateral
 				reloadtime = 8,
 				rgbcolor = "1 0.5 0",
 				rgbcolor2 = "0.9 1.0 0.5",
@@ -136,10 +136,10 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					sweepfire=7, --multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}
+					sweepfire = 7, --multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+				},
 			},
-			legphtarg = {--targetting only
+			legphtarg = { --targetting only
 				areaofeffect = 121,
 				avoidfeature = false,
 				burst = 5,

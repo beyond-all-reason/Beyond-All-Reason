@@ -42,7 +42,7 @@ return {
 		wingangle = 0.06296,
 		wingdrag = 0.06,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air",
@@ -51,7 +51,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:genericunitexplosion-large",
-			},		},
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

@@ -11,7 +11,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 
@@ -19,15 +18,15 @@ if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePla
 	return
 end
 
-local Proxy = VFS.Include('common/testing/synced_proxy.lua')
-local MochaJSONReporter = VFS.Include('common/testing/mocha_json_reporter.lua')
-local Assertions = VFS.Include('common/testing/assertions.lua')
-local TestResults = VFS.Include('common/testing/results.lua')
-local Util = VFS.Include('common/testing/util.lua')
-local Mock = VFS.Include('common/testing/mock.lua')
-local TestExtraUtils = VFS.Include('common/testing/test_extra_utils.lua')
+local Proxy = VFS.Include("common/testing/synced_proxy.lua")
+local MochaJSONReporter = VFS.Include("common/testing/mocha_json_reporter.lua")
+local Assertions = VFS.Include("common/testing/assertions.lua")
+local TestResults = VFS.Include("common/testing/results.lua")
+local Util = VFS.Include("common/testing/util.lua")
+local Mock = VFS.Include("common/testing/mock.lua")
+local TestExtraUtils = VFS.Include("common/testing/test_extra_utils.lua")
 
-local rpc = VFS.Include('common/testing/rpc.lua'):new()
+local rpc = VFS.Include("common/testing/rpc.lua"):new()
 
 local LOG_LEVEL = LOG.INFO
 
@@ -62,11 +61,7 @@ local function log(level, str, ...)
 	if level < LOG_LEVEL then
 		return
 	end
-	Spring.Log(
-		widget:GetInfo().name,
-		LOG.NOTICE,
-		str
-	)
+	Spring.Log(widget:GetInfo().name, LOG.NOTICE, str)
 end
 
 local function logStartTests()
@@ -93,16 +88,8 @@ local function logTestResult(testResult)
 		return
 	end
 
-	testReporter:testResult(
-		testResult.label,
-		testResult.filename,
-		(testResult.result == TestResults.TEST_RESULT.PASS),
-		(testResult.result == TestResults.TEST_RESULT.SKIP),
-		testResult.milliseconds,
-		testResult.error
-	)
+	testReporter:testResult(testResult.label, testResult.filename, (testResult.result == TestResults.TEST_RESULT.PASS), (testResult.result == TestResults.TEST_RESULT.SKIP), testResult.milliseconds, testResult.error)
 end
-
 
 local function matchesPatterns(str, patterns)
 	for _, p in ipairs(patterns) do
@@ -122,16 +109,16 @@ local function processScenarioArguments(args)
 	if args then
 		for index, pair in ipairs(args) do
 			for key, default in pairs(pair) do
-				local val = scenarioOpts[index+1]
-				if val and type(default) == 'number' then
+				local val = scenarioOpts[index + 1]
+				if val and type(default) == "number" then
 					val = tonumber(val)
 				end
 				scenarioConfig[key] = val or default
 			end
 		end
 	else
-		for idx=2, #scenarioOpts do
-			scenarioConfig[idx-1] = scenarioOpts[idx]
+		for idx = 2, #scenarioOpts do
+			scenarioConfig[idx - 1] = scenarioOpts[idx]
 		end
 	end
 end
@@ -141,8 +128,8 @@ end
 
 local function findTestFiles(directory, patterns, rootDirectory, result)
 	if rootDirectory == nil then
-		if directory:sub(-1) ~= '/' then
-			directory = directory .. '/'
+		if directory:sub(-1) ~= "/" then
+			directory = directory .. "/"
 		end
 		rootDirectory = directory
 	end
@@ -182,7 +169,7 @@ local function findAllTestFiles(patterns)
 		end
 	end
 	if headless then
-		result[#result+1] = {label="infolog", filename="common/testing/infologtest.lua"}
+		result[#result + 1] = { label = "infolog", filename = "common/testing/infologtest.lua" }
 	end
 	return result
 end
@@ -220,9 +207,8 @@ local testRunState
 local activeTestState
 local resumeState
 local returnState
-local callinState = {callins = {}, recording = {}, unsafe = false}
+local callinState = { callins = {}, recording = {}, unsafe = false }
 local spyControls
-
 
 -- callin tracking
 -- =========
@@ -279,24 +265,22 @@ local function initRecorderFunction(name)
 	local buffers = callinState.buffer
 	local recorderFunc = function(_, ...)
 		local buffer = buffers[name]
-		buffer[#buffer+1] = {...}
+		buffer[#buffer + 1] = { ... }
 	end
 	return recorderFunc
 end
-
 
 local function trackCallin(target, name, callback, mode)
 	if not target then
 		target = widget
 	end
-	if name == 'GameFrame' or name == 'Shutdown' then
+	if name == "GameFrame" or name == "Shutdown" then
 		error("Can't track GameFrame or Shutdown callins")
 	end
 	target[name] = callback
 	widgetHandler:UpdateWidgetCallInRaw(name, target)
 	callinState.callins[name] = mode
 end
-
 
 -- Hook callin
 -- Will register to count either predicate success or execution counts.
@@ -310,7 +294,7 @@ function registerCallin(name, predicate, target, depth)
 
 	-- checks and init
 	if not callinState.unsafe and not callinState.recording[name] then
-		error("[registerCallin:" .. name .. "] need to call Test.expectCallin(\"" .. name .. "\") first", depth)
+		error("[registerCallin:" .. name .. '] need to call Test.expectCallin("' .. name .. '") first', depth)
 	end
 	local mode = getRecordMode(predicate)
 	local prevMode = callinState.callins[name]
@@ -341,7 +325,7 @@ end
 function startRecordingCallin(name, full, target, depth)
 	local depth = depth + 1
 	if callinState.recording[name] then
-		error("[preRegisterCallin:" ..  name .. "] already pre-registered", depth)
+		error("[preRegisterCallin:" .. name .. "] already pre-registered", depth)
 	elseif callinState.callins[name] then
 		error("[preRegisterCallin:" .. name .. "] already registered", depth)
 	end
@@ -398,7 +382,6 @@ local function removeAllCallins(target)
 	callinState.buffer = {}
 	callinState.counts = {}
 end
-
 
 -- state reset
 -- =========
@@ -465,7 +448,6 @@ end
 
 resetState()
 
-
 local MAX_START_TESTS_ATTEMPTS = 10
 local MAX_START_WAIT_SECS = 10
 local queuedStartTests = false
@@ -489,35 +471,22 @@ local function startTests(patterns)
 	end
 
 	if not Spring.GetGameRulesParam("isSyncedProxyEnabled") then
-		log(
-			LOG.ERROR,
-			"The Synced Proxy gadget is required in order to run tests. It requires single player, dev mode, " ..
-				"and cheating  to be enabled."
-		)
+		log(LOG.ERROR, "The Synced Proxy gadget is required in order to run tests. It requires single player, dev mode, " .. "and cheating  to be enabled.")
 		return
 	end
 
 	local neededActions = {}
 	if not Spring.IsCheatingEnabled() then
-		neededActions[#neededActions+1] = {'cheat',
-						   'Cheats are disabled; attempting to enable them...',
-						   'Could not enable cheats; tests cannot be run.'}
+		neededActions[#neededActions + 1] = { "cheat", "Cheats are disabled; attempting to enable them...", "Could not enable cheats; tests cannot be run." }
 	end
 	if not Spring.IsDevLuaEnabled() then
-		neededActions[#neededActions+1] = {'devlua',
-						   'DevLua mode disabled; attempting to enable it...',
-						   'Could not enable DevLua mode; tests cannot be run.'}
+		neededActions[#neededActions + 1] = { "devlua", "DevLua mode disabled; attempting to enable it...", "Could not enable DevLua mode; tests cannot be run." }
 	end
-	if Spring.GetModOptions().deathmode ~= 'neverend' and not Spring.GetGameRulesParam('testEndConditionsOverride') then
-		neededActions[#neededActions+1] = {'luarules setTestEndConditions',
-						   "Disabling end conditions...",
-						   "Could not override game end condition. Please use deathmode='neverend' game end mode. " ..
-					           "This is required in order to run tests, so that the game stays active between tests."}
+	if Spring.GetModOptions().deathmode ~= "neverend" and not Spring.GetGameRulesParam("testEndConditionsOverride") then
+		neededActions[#neededActions + 1] = { "luarules setTestEndConditions", "Disabling end conditions...", "Could not override game end condition. Please use deathmode='neverend' game end mode. " .. "This is required in order to run tests, so that the game stays active between tests." }
 	end
-	if spGetGameFrame() < 1 and not Spring.GetGameRulesParam('testEnvironmentStarting') then
-		neededActions[#neededActions+1] = {'luarules setTestReadyPlayers',
-						   "Preparing players to start game...",
-						   'Could not prepare players. Please start game manually.'}
+	if spGetGameFrame() < 1 and not Spring.GetGameRulesParam("testEnvironmentStarting") then
+		neededActions[#neededActions + 1] = { "luarules setTestReadyPlayers", "Preparing players to start game...", "Could not prepare players. Please start game manually." }
 	end
 	if #neededActions > 0 then
 		if not queuedStartTests then
@@ -550,7 +519,7 @@ local function startTests(patterns)
 		elseif os.clock() - startGameTime > MAX_START_WAIT_SECS then
 			startGameTime = 0
 			queuedStartTests = false
-			log(LOG.ERROR, "Game didn't start in time for tests", os.clock() - (startGameTime))
+			log(LOG.ERROR, "Game didn't start in time for tests", os.clock() - startGameTime)
 		end
 		return
 	end
@@ -570,7 +539,7 @@ local function startTests(patterns)
 
 	testRunState.files = findAllTestFiles(patterns)
 
-	if testRunState.files == nil or #(testRunState.files) == 0 then
+	if testRunState.files == nil or #testRunState.files == 0 then
 		log(LOG.INFO, "no test files found")
 		return
 	end
@@ -600,14 +569,14 @@ local function finishTest(result)
 
 	logTestResult(result)
 
-	testRunState.results[#(testRunState.results) + 1] = result
+	testRunState.results[#testRunState.results + 1] = result
 
 	resetActiveTestState()
 	resetResumeState()
 	resetReturnState()
 	resetCallinState()
 
-	if testRunState.filesIndex < #(testRunState.files) then
+	if testRunState.filesIndex < #testRunState.files then
 		testRunState.filesIndex = testRunState.filesIndex + 1
 	else
 		-- done
@@ -715,25 +684,17 @@ Test = {
 	waitFrames = function(frames)
 		log(LOG.DEBUG, "[waitFrames] " .. frames)
 		local startFrame = spGetGameFrame()
-		Test.waitUntil(
-			function()
-				return spGetGameFrame() >= (startFrame + frames)
-			end,
-			frames + 5,
-			1
-		)
+		Test.waitUntil(function()
+			return spGetGameFrame() >= (startFrame + frames)
+		end, frames + 5, 1)
 		log(LOG.DEBUG, "[waitFrames.done]")
 	end,
 	waitTime = function(milliseconds, timeout)
 		log(LOG.DEBUG, "[waitTime] " .. milliseconds)
 		local startTimer = Spring.GetTimer()
-		Test.waitUntil(
-			function()
-				return Spring.DiffTimers(Spring.GetTimer(), startTimer, true) >= milliseconds
-			end,
-			timeout or (milliseconds * 30 / 1000 + 5),
-			1
-		)
+		Test.waitUntil(function()
+			return Spring.DiffTimers(Spring.GetTimer(), startTimer, true) >= milliseconds
+		end, timeout or (milliseconds * 30 / 1000 + 5), 1)
 		log(LOG.DEBUG, "[waitTime.done]")
 	end,
 	expectCallin = function(name, countOnly, depth)
@@ -752,9 +713,9 @@ Test = {
 
 		local count = count or 1
 		local counts = callinState.counts
-		Test.waitUntil(function() return counts[name] >= count end,
-			       timeout,
-			       1)
+		Test.waitUntil(function()
+			return counts[name] >= count
+		end, timeout, 1)
 
 		if callinState.recording[name] then
 			resumeRecordingCallin(name, nil, depth)
@@ -848,7 +809,7 @@ Test = {
 			local restoreOk, restoreResult = pcall(Test.restoreWidget, widgetName)
 			if not restoreOk then
 				allOk = false
-				failed[#failed+1] = widgetName
+				failed[#failed + 1] = widgetName
 				log(LOG.DEBUG, "[restoreWidgets.error] " .. widgetName .. " " .. tostring(restoreResult))
 			end
 		end
@@ -868,7 +829,7 @@ function widget:RecvLuaMsg(msg)
 		return
 	end
 
-	if msg:sub(1, #(Proxy.PREFIX.RETURN)) == Proxy.PREFIX.RETURN then
+	if msg:sub(1, #Proxy.PREFIX.RETURN) == Proxy.PREFIX.RETURN then
 		local serializedReturn = msg:sub(#Proxy.PREFIX.RETURN + 1)
 		local returnOk, returnValueOrError, returnID = rpc:deserializeFunctionReturn(serializedReturn)
 
@@ -908,7 +869,8 @@ local function runTestInternal()
 		log(LOG.DEBUG, "[runTestInternal.skip]")
 		skipOk, skipResult = Util.yieldable_pcall(skip)
 		log(LOG.DEBUG, "[runTestInternal.skip.done] " .. table.toString({
-			skipOk, skipResult
+			skipOk,
+			skipResult,
 		}))
 
 		if not skipOk then
@@ -926,7 +888,8 @@ local function runTestInternal()
 		log(LOG.DEBUG, "[runTestInternal.setup]")
 		setupOk, setupResult = Util.yieldable_pcall(setup)
 		log(LOG.DEBUG, "[runTestInternal.setup.done] " .. table.toString({
-			setupOk, setupResult
+			setupOk,
+			setupResult,
 		}))
 	else
 		log(LOG.DEBUG, "[runTestInternal.setup.skipped]")
@@ -938,7 +901,8 @@ local function runTestInternal()
 		log(LOG.DEBUG, "[runTestInternal.test]")
 		testOk, testResult = Util.yieldable_pcall(test)
 		log(LOG.DEBUG, "[runTestInternal.test.done] " .. table.toString({
-			testOk, testResult
+			testOk,
+			testResult,
 		}))
 	end
 
@@ -948,7 +912,8 @@ local function runTestInternal()
 		log(LOG.DEBUG, "[runTestInternal.cleanup]")
 		cleanupOk, cleanupResult = Util.yieldable_pcall(cleanup)
 		log(LOG.DEBUG, "[runTestInternal.cleanup.done] " .. table.toString({
-			cleanupOk, cleanupResult
+			cleanupOk,
+			cleanupResult,
 		}))
 	else
 		log(LOG.DEBUG, "[runTestInternal.cleanup.skipped]")
@@ -1104,17 +1069,15 @@ local function handleReturn()
 			log(LOG.DEBUG, "[handleReturn] timeout -> error")
 			return {
 				status = "error",
-				error = "waiting for synced return timed out"
+				error = "waiting for synced return timed out",
 			}
 		end
 	end
 
 	if returnState.waitingForReturnID then
-		log(LOG.DEBUG, string.format(
-			"[handleReturn] waiting for return ID: %s", returnState.waitingForReturnID
-		))
+		log(LOG.DEBUG, string.format("[handleReturn] waiting for return ID: %s", returnState.waitingForReturnID))
 		return {
-			status = "wait"
+			status = "wait",
 		}
 	end
 
@@ -1127,7 +1090,7 @@ local function handleReturn()
 		resetReturnState()
 		return {
 			status = "continue",
-			returnValue = tempReturnValue
+			returnValue = tempReturnValue,
 		}
 	else
 		-- remote function errored
@@ -1163,12 +1126,12 @@ local function handleWait()
 			log(LOG.DEBUG, "[handleWait] predicate success + true -> continue")
 			resetResumeState()
 			return {
-				status = "continue"
+				status = "continue",
 			}
 		else
 			-- failed, wait and try again next frame
 			return {
-				status = "wait"
+				status = "wait",
 			}
 		end
 	else
@@ -1176,7 +1139,7 @@ local function handleWait()
 		log(LOG.DEBUG, "[handleWait] predicate error -> error")
 		return {
 			status = "error",
-			error = returnOrError
+			error = returnOrError,
 		}
 	end
 end
@@ -1230,7 +1193,7 @@ local function step()
 		else
 			finishTest({
 				result = TestResults.TEST_RESULT.ERROR,
-				error = envOrError
+				error = envOrError,
 			})
 			return
 		end
@@ -1254,19 +1217,12 @@ local function step()
 			coroutineArgs = nil
 		end
 
-		log(
-			LOG.DEBUG,
-			"Resuming test: " .. activeTestState.label .. " with value: " .. table.toString({
-				coroutineOk = coroutineOk,
-				coroutineArgs = coroutineArgs,
-			})
-		)
+		log(LOG.DEBUG, "Resuming test: " .. activeTestState.label .. " with value: " .. table.toString({
+			coroutineOk = coroutineOk,
+			coroutineArgs = coroutineArgs,
+		}))
 
-		resumeOk, resumeResult = coroutine.resume(
-			activeTestState.coroutine,
-			coroutineOk,
-			coroutineArgs and unpack(coroutineArgs) or nil
-		)
+		resumeOk, resumeResult = coroutine.resume(activeTestState.coroutine, coroutineOk, coroutineArgs and unpack(coroutineArgs) or nil)
 		log(LOG.DEBUG, "Unresuming test: " .. table.toString({
 			result = resumeOk,
 			error = resumeResult,
@@ -1302,7 +1258,7 @@ function widget:Update(dt)
 	if spGetGameFrame() <= 0 then
 		step()
 	else
-		widgetHandler:RemoveWidgetCallIn('Update', self)
+		widgetHandler:RemoveWidgetCallIn("Update", self)
 	end
 end
 
@@ -1313,45 +1269,27 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget(self)
 	end
 
-	widgetHandler.actionHandler:AddAction(
-		self,
-		"runtests",
-		function(cmd, optLine, optWords, data, isRepeat, release, actions)
-			testModeScenario = false
-			config.returnTimeout = defaultTestTimeout
-			startTests(Util.splitPhrases(optLine))
-		end,
-		nil,
-		"t"
-	)
-	widgetHandler.actionHandler:AddAction(
-		self,
-		"runscenario",
-		function(cmd, optLine, optWords, data, isRepeat, release, actions)
-			testModeScenario = true
-			config.returnTimeout = defaultScenarioTimeout
-			scenarioConfig = {}
-			scenarioOpts = Util.splitPhrases(optLine)
-			startTests(scenarioOpts[1])
-		end,
-		nil,
-		"t"
-	)
-	widgetHandler.actionHandler:AddAction(
-		self,
-		"runtestsheadless",
-		function(cmd, optLine, optWords, data, isRepeat, release, actions)
-			headless = true
-			config.noColorOutput = true
-			config.quitWhenDone = true
-			config.gameStartTestPatterns = Util.splitPhrases(optLine)
-			config.testResultsFilePath = "testlog/results.json"
+	widgetHandler.actionHandler:AddAction(self, "runtests", function(cmd, optLine, optWords, data, isRepeat, release, actions)
+		testModeScenario = false
+		config.returnTimeout = defaultTestTimeout
+		startTests(Util.splitPhrases(optLine))
+	end, nil, "t")
+	widgetHandler.actionHandler:AddAction(self, "runscenario", function(cmd, optLine, optWords, data, isRepeat, release, actions)
+		testModeScenario = true
+		config.returnTimeout = defaultScenarioTimeout
+		scenarioConfig = {}
+		scenarioOpts = Util.splitPhrases(optLine)
+		startTests(scenarioOpts[1])
+	end, nil, "t")
+	widgetHandler.actionHandler:AddAction(self, "runtestsheadless", function(cmd, optLine, optWords, data, isRepeat, release, actions)
+		headless = true
+		config.noColorOutput = true
+		config.quitWhenDone = true
+		config.gameStartTestPatterns = Util.splitPhrases(optLine)
+		config.testResultsFilePath = "testlog/results.json"
 
-			widgetHandler:EnableWidget("Test Runner Watchdog")
-		end,
-		nil,
-		"t"
-	)
+		widgetHandler:EnableWidget("Test Runner Watchdog")
+	end, nil, "t")
 
 	TestExtraUtils.linkActions(self)
 	gameTimer = Spring.GetTimer()

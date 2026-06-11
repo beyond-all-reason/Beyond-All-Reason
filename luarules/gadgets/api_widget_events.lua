@@ -1,23 +1,25 @@
-if gadgetHandler:IsSyncedCode() then return end
+if gadgetHandler:IsSyncedCode() then
+	return
+end
 
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Widget Events",
-		desc      = "Tells widgets about events they can know about",
-		author    = "Sprung, Klon, Beherith",
-		date      = "2015-05-27",
-		license   = "PD",
-		layer     = 0,
-		enabled   = true,
+		name = "Widget Events",
+		desc = "Tells widgets about events they can know about",
+		author = "Sprung, Klon, Beherith",
+		date = "2015-05-27",
+		license = "PD",
+		layer = 0,
+		enabled = true,
 	}
 end
 
-local spAreTeamsAllied     	= Spring.AreTeamsAllied
-local spGetMyAllyTeamID    	= Spring.GetMyAllyTeamID
-local spGetSpectatingState 	= Spring.GetSpectatingState
-local spGetUnitLosState    	= Spring.GetUnitLosState
+local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitLosState = Spring.GetUnitLosState
 
 local myAllyTeamID, myTeamID, spec, specFullView
 
@@ -33,39 +35,38 @@ function gadget:PlayerChanged()
 	spec, specFullView = spGetSpectatingState()
 end
 
-
 --[[ NB: these are proxies, not the actual lua functions currently linked LuaUI-side,
      so it is safe to cache them here even if the underlying func changes afterwards ]]
-local scriptUnitDestroyed		= Script.LuaUI.UnitDestroyed
-local scriptUnitDestroyedByTeam	= Script.LuaUI.UnitDestroyedByTeam
+local scriptUnitDestroyed = Script.LuaUI.UnitDestroyed
+local scriptUnitDestroyedByTeam = Script.LuaUI.UnitDestroyedByTeam
 
-function gadget:UnitDestroyed (unitID, unitDefID, unitTeam, attUnitID, attUnitDefID, attTeamID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attUnitID, attUnitDefID, attTeamID)
 	local isAllyUnit = spAreTeamsAllied(unitTeam, myTeamID)
 	--Spring.Echo("Gadget:UnitDest", unitID, Script.LuaUI('UnitDestroyedByTeam') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView)
 	-- we need to check if any widget uses the callin, otherwise it is not bound and will produce error spam
-	if Script.LuaUI('UnitDestroyedByTeam') then
+	if Script.LuaUI("UnitDestroyedByTeam") then
 		if spec then
-			scriptUnitDestroyedByTeam (unitID, unitDefID, unitTeam, attTeamID)
+			scriptUnitDestroyedByTeam(unitID, unitDefID, unitTeam, attTeamID)
 			if not specFullView and not isAllyUnit and (spGetUnitLosState(unitID, myAllyTeamID, true) % 2 == 1) then
-				scriptUnitDestroyed (unitID, unitDefID, unitTeam)
+				scriptUnitDestroyed(unitID, unitDefID, unitTeam)
 			end
 		else
 			local attackerInLos = attUnitID and (spGetUnitLosState(attUnitID, myAllyTeamID, true) % 2 == 1)
 			if isAllyUnit then
-				scriptUnitDestroyedByTeam (unitID, unitDefID, unitTeam, attackerInLos and attTeamID or nil)
+				scriptUnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerInLos and attTeamID or nil)
 			elseif spGetUnitLosState(unitID, myAllyTeamID, true) % 2 == 1 then
-					scriptUnitDestroyed (unitID, unitDefID, unitTeam)
-					scriptUnitDestroyedByTeam (unitID, unitDefID, unitTeam, attackerInLos and attTeamID or nil)
+				scriptUnitDestroyed(unitID, unitDefID, unitTeam)
+				scriptUnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerInLos and attTeamID or nil)
 			end
 		end
 	else
 		if not isAllyUnit and (not (spec and specFullView) and (spGetUnitLosState(unitID, spGetMyAllyTeamID(), true) % 2 == 1)) then
-			scriptUnitDestroyed (unitID, unitDefID, unitTeam)
+			scriptUnitDestroyed(unitID, unitDefID, unitTeam)
 		end
 	end
 end
 
-local scriptUnitTaken		= Script.LuaUI.UnitTaken
+local scriptUnitTaken = Script.LuaUI.UnitTaken
 function gadget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	-- we need to notify my team if a unit transfer between two other teams happens, within my radar or los
 	local unitwasandisenemy = not (spAreTeamsAllied(oldTeamID, myTeamID) or spAreTeamsAllied(newTeamID, myTeamID))
@@ -76,7 +77,7 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	end
 end
 
-local scriptUnitGiven		= Script.LuaUI.UnitGiven
+local scriptUnitGiven = Script.LuaUI.UnitGiven
 function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	-- we need to notify my team if a unit transfer between two other teams happens, within my radar or los
 	local unitwasandisenemy = not (spAreTeamsAllied(oldTeamID, myTeamID) or spAreTeamsAllied(newTeamID, myTeamID))
@@ -87,9 +88,11 @@ function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	end
 end
 
-local scriptUnitFinished		= Script.LuaUI.UnitFinished
+local scriptUnitFinished = Script.LuaUI.UnitFinished
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if spec and specFullView then return end
+	if spec and specFullView then
+		return
+	end
 	-- Important: Enemy units finished within LOS do not get the respective widget:UnitFinished calls!
 	-- Also important: units that are created and finished in the same gameframe (like /give, or created fully built) are not in los yet, so this wont trigger!
 	local unitisenemy = not spAreTeamsAllied(unitTeam, myTeamID)
@@ -105,7 +108,7 @@ function gadget:FeatureCreated(featureID, allyTeam) -- assume that features are 
 	local isAllyUnit = (allyTeam == myAllyTeamID)
 	--Spring.Echo("Gadget:FeatureCreated", featureID, FeatureDefs[Spring.GetFeatureDefID(featureID)].name, Script.LuaUI('FeatureCreated') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView)
 	-- we need to check if any widget uses the callin, otherwise it is not bound and will produce error spam
-	if not isAllyUnit and (not (spec and specFullView)) and Script.LuaUI('FeatureCreated') then
+	if not isAllyUnit and not (spec and specFullView) and Script.LuaUI("FeatureCreated") then
 		--Spring.Echo("gadget:FeatureCreated",featureID, allyTeam)
 		scriptFeatureCreated(featureID, allyTeam)
 	end
@@ -119,7 +122,7 @@ function gadget:FeatureDestroyed(featureID, allyTeam)
 	local isAllyUnit = (allyTeam == myAllyTeamID)
 	--Spring.Echo("Gadget:FeatureDestroyed", featureID, FeatureDefs[Spring.GetFeatureDefID(featureID)].name, Script.LuaUI('FeatureDestroyed') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView, allyTeam, Spring.GetMyTeamID())
 	-- we need to check if any widget uses the callin, otherwise it is not bound and will produce error spam
-	if not isAllyUnit and (not (spec and specFullView)) and Script.LuaUI('FeatureDestroyed')  then
+	if not isAllyUnit and not (spec and specFullView) and Script.LuaUI("FeatureDestroyed") then
 		--Spring.Echo("gadget:FeatureDestroyed",featureID, allyTeam)
 		scriptFeatureDestroyed(featureID, allyTeam)
 	end

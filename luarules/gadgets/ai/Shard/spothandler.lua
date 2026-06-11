@@ -1,6 +1,5 @@
 MetalSpotHandler = class(Module)
 
-
 function MetalSpotHandler:Name()
 	return "MetalSpotHandler"
 end
@@ -15,22 +14,22 @@ end
 
 local math_sqrt = math.sqrt
 
-function distance(pos1,pos2)
-	local xd = pos1.x-pos2.x
-	local yd = pos1.z-pos2.z
-	return math_sqrt(xd*xd + yd*yd)
+function distance(pos1, pos2)
+	local xd = pos1.x - pos2.x
+	local yd = pos1.z - pos2.z
+	return math_sqrt(xd * xd + yd * yd)
 end
 
-function MetalSpotHandler:ClosestFreeSpot(unittype,position)
+function MetalSpotHandler:ClosestFreeSpot(unittype, position)
 	local pos = nil
 	local bestDistance = 10000
 
 	spotCount = self.game.map:SpotCount()
-	for i,v in ipairs(self.spots) do
+	for i, v in ipairs(self.spots) do
 		local p = v
-		local dist = distance(position,p)
+		local dist = distance(position, p)
 		if dist < bestDistance then
-			if self.game.map:CanBuildHere(unittype,p) then
+			if self.game.map:CanBuildHere(unittype, p) then
 				bestDistance = dist
 				pos = p
 			end

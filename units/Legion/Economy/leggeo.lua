@@ -33,7 +33,7 @@ return {
 			buildinggrounddecalsizey = 8,
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'energy',
+			unitgroup = "energy",
 			cvbuildable = true,
 			geothermal = 1,
 			model_author = "Tharsis",

@@ -1,6 +1,6 @@
 local smallTeamThreshold = 4
 local initialized = false
-local settings = { }
+local settings = {}
 
 local holidaysList = VFS.Include("common/holidays.lua")
 
@@ -28,7 +28,7 @@ local function getSettings()
 			local isAllyTeamValid = true
 
 			for _, teamID in ipairs(teamList) do
-				if select (4, Spring.GetTeamInfo(teamID, false)) then
+				if select(4, Spring.GetTeamInfo(teamID, false)) then
 					allyteamEntirelyHuman = false
 				else
 					local teamPlayers = Spring.GetPlayerList(teamID)
@@ -55,12 +55,12 @@ local function getSettings()
 			end
 
 			if isAllyTeamValid then
-				allyTeamList[#allyTeamList+1] = allyTeamID
-				allyTeamSizes[#allyTeamSizes+1] = #teamList
+				allyTeamList[#allyTeamList + 1] = allyTeamID
+				allyTeamSizes[#allyTeamSizes + 1] = #teamList
 			end
 
 			if allyteamEntirelyHuman then
-				entirelyHumanAllyTeams[#entirelyHumanAllyTeams+1] = allyTeamID
+				entirelyHumanAllyTeams[#entirelyHumanAllyTeams + 1] = allyTeamID
 			end
 		end
 	end
@@ -146,46 +146,83 @@ end
 
 return {
 	---Get number of ally teams (humans and AIs, but not Raptors and Scavengers).
-	GetAllyTeamCount = function() return getSettings().allyTeamCount end,
+	GetAllyTeamCount = function()
+		return getSettings().allyTeamCount
+	end,
 	---Get ally team list (humans and AIs, but not Raptors and Scavengers).
 	---@return integer[] allyTeamList table[i] = allyTeamID
-	GetAllyTeamList  = function () return getSettings().allyTeamList end,
+	GetAllyTeamList = function()
+		return getSettings().allyTeamList
+	end,
 	---@return integer? playerCount Get number of players in a game, nil If it's an AI only game.
-	GetPlayerCount   = function () return getSettings().playerCount end,
+	GetPlayerCount = function()
+		return getSettings().playerCount
+	end,
 	Gametype = {
 		---@return boolean
-		IsSinglePlayer = function () return getSettings().isSinglePlayer end,
+		IsSinglePlayer = function()
+			return getSettings().isSinglePlayer
+		end,
 		---@return boolean
-		Is1v1          = function () return getSettings().is1v1          end,
+		Is1v1 = function()
+			return getSettings().is1v1
+		end,
 		---@return boolean
-		IsTeams        = function () return getSettings().isTeams        end,
+		IsTeams = function()
+			return getSettings().isTeams
+		end,
 		---@return boolean
-		IsBigTeams     = function () return getSettings().isBigTeams     end,
+		IsBigTeams = function()
+			return getSettings().isBigTeams
+		end,
 		---@return boolean
-		IsSmallTeams   = function () return getSettings().isSmallTeams   end,
+		IsSmallTeams = function()
+			return getSettings().isSmallTeams
+		end,
 		---@return boolean
-		IsRaptors      = function () return getSettings().isRaptors      end,
+		IsRaptors = function()
+			return getSettings().isRaptors
+		end,
 		---@return boolean
-		IsScavengers   = function () return getSettings().isScavengers   end,
+		IsScavengers = function()
+			return getSettings().isScavengers
+		end,
 		---@return boolean
-		IsPvE          = function () return getSettings().isPvE          end,
+		IsPvE = function()
+			return getSettings().isPvE
+		end,
 		---@return boolean
-		IsCoop         = function () return getSettings().isCoop         end,
+		IsCoop = function()
+			return getSettings().isCoop
+		end,
 		---@return boolean
-		IsFFA          = function () return getSettings().isFFA          end,
+		IsFFA = function()
+			return getSettings().isFFA
+		end,
 		---@return boolean
-		IsSandbox      = function () return getSettings().isSandbox      end,
-		---@return table? isHoliday Currently running holiday events. 
+		IsSandbox = function()
+			return getSettings().isSandbox
+		end,
+		---@return table? isHoliday Currently running holiday events.
 		---See common/holidays.lua for more information.
-		GetCurrentHolidays = function () return getSettings().isHoliday end,
+		GetCurrentHolidays = function()
+			return getSettings().isHoliday
+		end,
 	},
 	---@return integer? scavTeamID Team ID for the scavenger team.
-	GetScavTeamID = function () return getSettings().scavTeamID end,
+	GetScavTeamID = function()
+		return getSettings().scavTeamID
+	end,
 	---@return integer? scavAllyTeamID Team ID for the scavenger ally team.
-	GetScavAllyTeamID = function () return getSettings().scavAllyTeamID end,
+	GetScavAllyTeamID = function()
+		return getSettings().scavAllyTeamID
+	end,
 	---@return integer? raptorTeamID Team ID for the raptor team.
-	GetRaptorTeamID = function () return getSettings().raptorTeamID end,
+	GetRaptorTeamID = function()
+		return getSettings().raptorTeamID
+	end,
 	---@return integer? raptorAllyTeamID Team ID for the raptor ally team.
-	GetRaptorAllyTeamID = function () return getSettings().raptorAllyTeamID end,
-
+	GetRaptorAllyTeamID = function()
+		return getSettings().raptorAllyTeamID
+	end,
 }

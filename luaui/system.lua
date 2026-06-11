@@ -11,18 +11,28 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
-
-if (System == nil) then
+if System == nil then
 	if tracy == nil then
 		Spring.Echo("Tracy: No support detected, replacing tracy.* with function stubs.")
 		tracy = {}
-		tracy.ZoneBeginN = function () return end
-		tracy.ZoneBegin = function () return end
-		tracy.ZoneEnd = function () return end --Spring.Echo("No Tracy") return end
-		tracy.Message = function () return end
-		tracy.ZoneName = function () return end
-		tracy.ZoneText = function () return end
+		tracy.ZoneBeginN = function()
+			return
+		end
+		tracy.ZoneBegin = function()
+			return
+		end
+		tracy.ZoneEnd = function()
+			return
+		end --Spring.Echo("No Tracy") return end
+		tracy.Message = function()
+			return
+		end
+		tracy.ZoneName = function()
+			return
+		end
+		tracy.ZoneText = function()
+			return
+		end
 	end
 
 	System = {
@@ -49,12 +59,12 @@ if (System == nil) then
 		CMDTYPE = CMDTYPE,
 		LOG = LOG,
 
-		UnitDefs        = UnitDefs,
-		UnitDefNames    = UnitDefNames,
-		FeatureDefs     = FeatureDefs,
+		UnitDefs = UnitDefs,
+		UnitDefNames = UnitDefNames,
+		FeatureDefs = FeatureDefs,
 		FeatureDefNames = FeatureDefNames,
-		WeaponDefs      = WeaponDefs,
-		WeaponDefNames  = WeaponDefNames,
+		WeaponDefs = WeaponDefs,
+		WeaponDefNames = WeaponDefNames,
 
 		--
 		--  Standard libraries
@@ -75,50 +85,50 @@ if (System == nil) then
 		RmlUi = RmlUi,
 
 		-- luasocket
-		socket          = socket,
+		socket = socket,
 
 		--
 		--  Standard functions and variables
 		--
-		assert         = assert,
-		error          = error,
+		assert = assert,
+		error = error,
 
-		print          = print,
+		print = print,
 
-		next           = next,
-		pairs          = pairs,
-		pairsByKeys    = pairsByKeys, -- custom: defined in `common\tablefunctions.lua`
-		ipairs         = ipairs,
+		next = next,
+		pairs = pairs,
+		pairsByKeys = pairsByKeys, -- custom: defined in `common\tablefunctions.lua`
+		ipairs = ipairs,
 
-		tonumber       = tonumber,
-		tostring       = tostring,
-		type           = type,
+		tonumber = tonumber,
+		tostring = tostring,
+		type = type,
 
 		collectgarbage = collectgarbage,
-		gcinfo         = gcinfo,
+		gcinfo = gcinfo,
 
-		unpack         = unpack,
-		select         = select,
+		unpack = unpack,
+		select = select,
 
-		dofile         = dofile,
-		loadfile       = loadfile,
-		loadlib        = loadlib,
-		loadstring     = loadstring,
-		require        = require,
+		dofile = dofile,
+		loadfile = loadfile,
+		loadlib = loadlib,
+		loadstring = loadstring,
+		require = require,
 
-		getmetatable   = getmetatable,
-		setmetatable   = setmetatable,
+		getmetatable = getmetatable,
+		setmetatable = setmetatable,
 
-		rawequal       = rawequal,
-		rawget         = rawget,
-		rawset         = rawset,
+		rawequal = rawequal,
+		rawget = rawget,
+		rawset = rawset,
 
-		getfenv        = getfenv,
-		setfenv        = setfenv,
+		getfenv = getfenv,
+		setfenv = setfenv,
 
-		pcall          = pcall,
-		xpcall         = xpcall,
+		pcall = pcall,
+		xpcall = xpcall,
 
-		_VERSION       = _VERSION
+		_VERSION = _VERSION,
 	}
 end

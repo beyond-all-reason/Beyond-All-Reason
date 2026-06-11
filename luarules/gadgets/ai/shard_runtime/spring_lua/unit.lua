@@ -1,5 +1,3 @@
-
-
 ShardUnit = class(function(a, id)
 	a.id = id
 	a.className = "unit"
@@ -8,10 +6,10 @@ ShardUnit = class(function(a, id)
 	a.type = ShardUnitType(udefid)
 end)
 
-function ShardUnit:Unit_to_id( unit )
+function ShardUnit:Unit_to_id(unit)
 	local gid = unit
-	if type( unit ) == 'table' then
-		if unit['id'] ~= nil then
+	if type(unit) == "table" then
+		if unit["id"] ~= nil then
 			gid = unit.id
 		else
 			-- error!
@@ -41,20 +39,20 @@ function ShardUnit:isNeutral()
 	return Spring.GetUnitNeutral(self.id)
 end
 
-function ShardUnit:IsMine( myTeam )
-	return ( myTeam == self:Team() )
+function ShardUnit:IsMine(myTeam)
+	return (myTeam == self:Team())
 end
 
-function ShardUnit:IsNotMine( myTeam )
-	return ( myTeam ~= self:Team() )
+function ShardUnit:IsNotMine(myTeam)
+	return (myTeam ~= self:Team())
 end
 
-function ShardUnit:IsFriendly( myAllyTeam )
-	return ( myAllyTeam == self:AllyTeam() )
+function ShardUnit:IsFriendly(myAllyTeam)
+	return (myAllyTeam == self:AllyTeam())
 end
 
-function ShardUnit:IsEnemy( myAllyTeam )
-	return ( myAllyTeam ~= self:AllyTeam() )
+function ShardUnit:IsEnemy(myAllyTeam)
+	return (myAllyTeam ~= self:AllyTeam())
 end
 
 function ShardUnit:Stunned()
@@ -66,8 +64,8 @@ function ShardUnit:Name()
 	return self.type:Name()
 end
 
-function ShardUnit:InList( unitTypeNames )
-	for i,name in ipairs(unitTypeNames) do
+function ShardUnit:InList(unitTypeNames)
+	for i, name in ipairs(unitTypeNames) do
 		if name == self:Name() then
 			return true
 		end
@@ -91,7 +89,7 @@ end
 
 function ShardUnit:GetLos(bitmask)
 	bitmask = bitmask or true
-	return Spring.GetUnitLosState(self.id ,self:GetUnitAllyTeam(),bitmask)
+	return Spring.GetUnitLosState(self.id, self:GetUnitAllyTeam(), bitmask)
 end
 
 function ShardUnit:IsCloaked()
@@ -127,7 +125,6 @@ function ShardUnit:CanMove()
 	return self:Type():CanMove()
 end
 
-
 function ShardUnit:CanDeploy()
 	return self:Type():CanDeploy()
 end
@@ -137,15 +134,14 @@ function ShardUnit:CanMorph()
 end
 
 function ShardUnit:IsBeingBuilt()
-	return Spring.GetUnitIsBeingBuilt( self.id )
+	return Spring.GetUnitIsBeingBuilt(self.id)
 end
 
 function ShardUnit:IsMorphing()
 	return false
 end
 
-
-function ShardUnit:CanAssistBuilding( unit )-- IUnit* unit) -- the unit that is under construction to help with
+function ShardUnit:CanAssistBuilding(unit) -- IUnit* unit) -- the unit that is under construction to help with
 	return true -- not sure when this would not be true in Spring
 	-- return false
 end
@@ -167,36 +163,35 @@ function ShardUnit:CanBuildWhenDeployed()
 	return false
 end
 
-
 function ShardUnit:CanBuildWhenNotDeployed()
 	return false
 end
 
 function ShardUnit:FactoryWait()
-	local topQueue = Spring.GetFactoryCommands(self.id,1)[1]
+	local topQueue = Spring.GetFactoryCommands(self.id, 1)[1]
 	if topQueue and topQueue.id ~= CMD.WAIT then
-		local order = self:SyncOrder( self.id, CMD.WAIT, {0}, 0 )
+		local order = self:SyncOrder(self.id, CMD.WAIT, { 0 }, 0)
 		--Spring.GiveOrderToUnit( self.id, CMD.WAIT, {}, 0 )
 	end
 end
 
 function ShardUnit:FactoryUnWait()
-	local topQueue = Spring.GetFactoryCommands(self.id,1)[1]
+	local topQueue = Spring.GetFactoryCommands(self.id, 1)[1]
 	if topQueue and topQueue.id == CMD.WAIT then
-		local order = self:SyncOrder( self.id, CMD.WAIT, {0}, 0 )
+		local order = self:SyncOrder(self.id, CMD.WAIT, { 0 }, 0)
 		--Spring.GiveOrderToUnit( self.id, CMD.WAIT, {}, 0 )
 	end
 end
 
 function ShardUnit:IsWaiting()
-	local topQueue = Spring.GetFactoryCommands(self.id,1)[1]
+	local topQueue = Spring.GetFactoryCommands(self.id, 1)[1]
 	if topQueue and topQueue.id == CMD.WAIT then
 		return true
 	end
 end
 
- function ShardUnit:getFactoryCommands()
- 	return Spring.GetFactoryCommands(self.id,1)
+function ShardUnit:getFactoryCommands()
+	return Spring.GetFactoryCommands(self.id, 1)
 end
 
 --[[
@@ -219,75 +214,75 @@ end
 ]]
 
 function ShardUnit:GetUnitCommands(count)
-    if count == 0 then
+	if count == 0 then
 		Spring.Echo(self:Name(), self.id, "Get Unit Commands received 0 as parameter index")
-        return {} -- FIXME: Why am I receiving 0 count?
-    end
+		return {} -- FIXME: Why am I receiving 0 count?
+	end
 
-    count = count or 1
-    local currentOrder = Spring.GetUnitCommands(self.id,count)
-    return currentOrder
+	count = count or 1
+	local currentOrder = Spring.GetUnitCommands(self.id, count)
+	return currentOrder
 end
 
 function ShardUnit:Stop()
-	local order = self:SyncOrder( self.id, CMD.STOP, {}, 0 )
+	local order = self:SyncOrder(self.id, CMD.STOP, {}, 0)
 	--return Spring.GiveOrderToUnit( self.id, CMD.STOP, {}, 0 )
 end
 
 function ShardUnit:Stockpile()
-	local order = self:SyncOrder( self.id, CMD.STOCKPILE, {0}, 0 )
+	local order = self:SyncOrder(self.id, CMD.STOCKPILE, { 0 }, 0)
 	--return Spring.GiveOrderToUnit( self.id, CMD.STOCKPILE, {}, 0 )
 end
 
 function ShardUnit:SelfDestruct()
-	local order = self:SyncOrder( self.id, CMD.SELFD, {}, 0 )
+	local order = self:SyncOrder(self.id, CMD.SELFD, {}, 0)
 	--return Spring.GiveOrderToUnit( self.id, CMD.SELFD, {}, 0 )
 end
 
 function ShardUnit:Cloak()
-	local order = self:SyncOrder( self.id, CMD.CLOAK, { 1 }, 0 )
+	local order = self:SyncOrder(self.id, CMD.CLOAK, { 1 }, 0)
 	--return Spring.GiveOrderToUnit( self.id, CMD.CLOAK, { 1 }, 0 )
 end
 
 function ShardUnit:UnCloak()
-	local order = self:SyncOrder( self.id, CMD.CLOAK, { 0 }, 0 )
+	local order = self:SyncOrder(self.id, CMD.CLOAK, { 0 }, 0)
 	--return Spring.GiveOrderToUnit( self.id, CMD.CLOAK, { 0 }, 0 )
 end
 
 function ShardUnit:TurnOn()
-	local order = self:SyncOrder( self.id, CMD.ONOFF, { 1 }, 0 )
+	local order = self:SyncOrder(self.id, CMD.ONOFF, { 1 }, 0)
 	--return Spring.GiveOrderToUnit( self.id, CMD.ONOFF, { 1 }, 0 )
 end
 
 function ShardUnit:TurnOff()
-	local order = self:SyncOrder( self.id, CMD.ONOFF, { 0 }, 0 )
+	local order = self:SyncOrder(self.id, CMD.ONOFF, { 0 }, 0)
 	--return Spring.GiveOrderToUnit( self.id, CMD.ONOFF, { 0 }, 0 )
 end
 
-function ShardUnit:Guard( unit )
-	local gid = self:Unit_to_id( unit )
-	local order = self:SyncOrder( self.id, CMD.GUARD, { gid }, 0 )
+function ShardUnit:Guard(unit)
+	local gid = self:Unit_to_id(unit)
+	local order = self:SyncOrder(self.id, CMD.GUARD, { gid }, 0)
 	--return Spring.GiveOrderToUnit( self.id, CMD.GUARD, { gid }, 0 )
 end
 
-function ShardUnit:Repair( unit )
-	local gid = self:Unit_to_id( unit )
-	local order = self:SyncOrder( self.id, CMD.REPAIR, { gid }, 0 )
+function ShardUnit:Repair(unit)
+	local gid = self:Unit_to_id(unit)
+	local order = self:SyncOrder(self.id, CMD.REPAIR, { gid }, 0)
 	--return Spring.GiveOrderToUnit( self.id, CMD.REPAIR, { gid }, 0 )
 end
 
 function ShardUnit:DGun(p)
-	return self:AltAttack( p )
+	return self:AltAttack(p)
 end
 
 function ShardUnit:ManualFire(p)
-	local order = self:SyncOrder( self.id, CMD.DGUN, { p.x, p.y, p.z }, 0 )
+	local order = self:SyncOrder(self.id, CMD.DGUN, { p.x, p.y, p.z }, 0)
 	--return Spring.GiveOrderToUnit( self.id, CMD.DGUN, { p.x, p.y, p.z }, 0 )
 end
 
-function ShardUnit:Move(p,opts)
+function ShardUnit:Move(p, opts)
 	local opts = opts or 0
-	local order = self:SyncOrder( self.id, CMD.MOVE, { p.x, p.y, p.z }, opts )
+	local order = self:SyncOrder(self.id, CMD.MOVE, { p.x, p.y, p.z }, opts)
 	--return Spring.GiveOrderToUnit( self.id, CMD.MOVE, { p.x, p.y, p.z }, 0 )
 end
 
@@ -296,13 +291,13 @@ function ShardUnit:AttackMove(p)
 end
 
 function ShardUnit:MoveAndFire(p)
-	self:SyncOrder( self.id, CMD.FIGHT, { p.x, p.y, p.z }, 0 )
+	self:SyncOrder(self.id, CMD.FIGHT, { p.x, p.y, p.z }, 0)
 	--return Spring.GiveOrderToUnit( self.id, CMD.FIGHT, { p.x, p.y, p.z }, 0 )
 end
 
 function ShardUnit:Patrol(p)
 	--local order = self:SyncOrder(self.id, CMD.PATROL, p, 0)
- 	return self:MoveAndPatrol(p)
+	return self:MoveAndPatrol(p)
 end
 
 function ShardUnit:MoveAndPatrol(p)
@@ -310,153 +305,152 @@ function ShardUnit:MoveAndPatrol(p)
 	--return Spring.GiveOrderToUnit( self.id, CMD.PATROL, { p.x, p.y, p.z }, 0 )
 end
 
+function ShardUnit:Build(t, p, f, opts) -- IUnitType* , timeout????
+	if type(t) == "string" then
+		t = game:GetTypeByName(t)
+	end
 
-
-function ShardUnit:Build(t, p, f, opts ) -- IUnitType* , timeout????
- 	if type(t) == "string" then
- 		t = game:GetTypeByName(t)
- 	end
-	
--- 	if type(opts) == 'table' then
--- 		opts = table.concat(opts,',')
--- 	end
-	opts = opts or {0}
+	-- 	if type(opts) == 'table' then
+	-- 		opts = table.concat(opts,',')
+	-- 	end
+	opts = opts or { 0 }
 	f = f or 0
 	p = p or self:GetPosition()
 	--if not p then p = self:GetPosition() end
 	timeout = timeout or 2000
-	local order = self:SyncOrder(self.id,-t:ID(),{p.x, p.y, p.z, f},opts,timeout)
+	local order = self:SyncOrder(self.id, -t:ID(), { p.x, p.y, p.z, f }, opts, timeout)
 end
 
-
-
-function ShardUnit:Reclaim( thing )--IMapFeature* mapFeature)
-	if not thing then return end
-	local gid = self:Unit_to_id( thing )
+function ShardUnit:Reclaim(thing) --IMapFeature* mapFeature)
+	if not thing then
+		return
+	end
+	local gid = self:Unit_to_id(thing)
 	if thing.className == "feature" then
-		local order = self:SyncOrder( self.id, CMD.RECLAIM, { gid + Game.maxUnits }, 0 )
+		local order = self:SyncOrder(self.id, CMD.RECLAIM, { gid + Game.maxUnits }, 0)
 		--return Spring.GiveOrderToUnit( self.id, CMD.RECLAIM, { gid + Game.maxUnits }, 0 )
 	elseif thing.className == "unit" then
-		local order = self:SyncOrder( self.id, CMD.RECLAIM, { gid }, 0 )
+		local order = self:SyncOrder(self.id, CMD.RECLAIM, { gid }, 0)
 		--return Spring.GiveOrderToUnit( self.id, CMD.RECLAIM, { gid }, 0 )
 	end
 end
 
-function ShardUnit:AreaReclaim( p, radius )--Position p, double radius)
-	local order = self:SyncOrder( self.id, CMD.RECLAIM, { p.x, p.y, p.z, radius }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.RECLAIM, { p.x, p.y, p.z, radius }, 0 )
+function ShardUnit:AreaReclaim(p, radius) --Position p, double radius)
+	local order = self:SyncOrder(self.id, CMD.RECLAIM, { p.x, p.y, p.z, radius }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.RECLAIM, { p.x, p.y, p.z, radius }, 0 )
 end
 
-
-function ShardUnit:Ressurect( thing )--IMapFeature* mapFeature)
-	if not thing then return end
-	local gid = self:Unit_to_id( thing )
+function ShardUnit:Ressurect(thing) --IMapFeature* mapFeature)
+	if not thing then
+		return
+	end
+	local gid = self:Unit_to_id(thing)
 	if thing.className == "feature" then
-		local order = self:SyncOrder( self.id, CMD.RESURRECT, { gid + Game.maxUnits }, 0 )
--- 		return Spring.GiveOrderToUnit( self.id, CMD.RESURRECT, { gid + Game.maxUnits }, 0 )
+		local order = self:SyncOrder(self.id, CMD.RESURRECT, { gid + Game.maxUnits }, 0)
+	-- 		return Spring.GiveOrderToUnit( self.id, CMD.RESURRECT, { gid + Game.maxUnits }, 0 )
 	elseif thing.className == "unit" then
-		local order = self:SyncOrder( self.id, CMD.RESURRECT, { gid }, 0 )
--- 		return Spring.GiveOrderToUnit( self.id, CMD.RESURRECT, { gid }, 0 )
+		local order = self:SyncOrder(self.id, CMD.RESURRECT, { gid }, 0)
+		-- 		return Spring.GiveOrderToUnit( self.id, CMD.RESURRECT, { gid }, 0 )
 	end
 	return false
 end
 
-function ShardUnit:AreaResurrect( p, radius )--Position p, double radius)
-	local order = self:SyncOrder( self.id, CMD.RESURRECT, { p.x, p.y, p.z, radius }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.RESURRECT, { p.x, p.y, p.z, radius }, 0 )
+function ShardUnit:AreaResurrect(p, radius) --Position p, double radius)
+	local order = self:SyncOrder(self.id, CMD.RESURRECT, { p.x, p.y, p.z, radius }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.RESURRECT, { p.x, p.y, p.z, radius }, 0 )
 end
 
-function ShardUnit:AreaRESURRECT( p, radius )--Position p, double radius)
-	return self:AreaResurrect( p, radius )
+function ShardUnit:AreaRESURRECT(p, radius) --Position p, double radius)
+	return self:AreaResurrect(p, radius)
 end
 
-function ShardUnit:AttackPos( pos )
-	local order = self:SyncOrder( self.id, CMD.ATTACK, { pos.x, pos.y, pos.z }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.ATTACK, { gid }, 0 )
+function ShardUnit:AttackPos(pos)
+	local order = self:SyncOrder(self.id, CMD.ATTACK, { pos.x, pos.y, pos.z }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.ATTACK, { gid }, 0 )
 end
 
-function ShardUnit:Attack( unit )
-	local gid = self:Unit_to_id( unit )
-	local order = self:SyncOrder( self.id, CMD.ATTACK, { gid }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.ATTACK, { gid }, 0 )
+function ShardUnit:Attack(unit)
+	local gid = self:Unit_to_id(unit)
+	local order = self:SyncOrder(self.id, CMD.ATTACK, { gid }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.ATTACK, { gid }, 0 )
 end
 
-function ShardUnit:AreaAttack(p,radius)
-	local order = self:SyncOrder( self.id, CMD.AREA_ATTACK, { p.x, p.y, p.z, radius }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.AREA_ATTACK, { p.x, p.y, p.z, radius }, 0 )
+function ShardUnit:AreaAttack(p, radius)
+	local order = self:SyncOrder(self.id, CMD.AREA_ATTACK, { p.x, p.y, p.z, radius }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.AREA_ATTACK, { p.x, p.y, p.z, radius }, 0 )
 end
 
-function ShardUnit:Repair( unit )
-	local gid = self:Unit_to_id( unit )
-	local order = self:SyncOrder( self.id, CMD.REPAIR, { gid }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.REPAIR, { gid }, 0 )
+function ShardUnit:Repair(unit)
+	local gid = self:Unit_to_id(unit)
+	local order = self:SyncOrder(self.id, CMD.REPAIR, { gid }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.REPAIR, { gid }, 0 )
 end
 
-function ShardUnit:AreaRepair( p, radius )
-	local gid = self:Unit_to_id( unit )
-	local order = self:SyncOrder( self.id, CMD.REPAIR, { p.x, p.y, p.z, radius }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.REPAIR, { p.x, p.y, p.z, radius }, 0 )
+function ShardUnit:AreaRepair(p, radius)
+	local gid = self:Unit_to_id(unit)
+	local order = self:SyncOrder(self.id, CMD.REPAIR, { p.x, p.y, p.z, radius }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.REPAIR, { p.x, p.y, p.z, radius }, 0 )
 end
 
-function ShardUnit:RestoreTerrain( p, radius )
-	local gid = self:Unit_to_id( unit )
-	local order = self:SyncOrder( self.id, CMD.RESTORE, { p.x, p.y, p.z, radius }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.RESTORE, { p.x, p.y, p.z, radius }, 0 )
+function ShardUnit:RestoreTerrain(p, radius)
+	local gid = self:Unit_to_id(unit)
+	local order = self:SyncOrder(self.id, CMD.RESTORE, { p.x, p.y, p.z, radius }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.RESTORE, { p.x, p.y, p.z, radius }, 0 )
 end
 
-function ShardUnit:Capture( unit )
-	local gid = self:Unit_to_id( unit )
-	local order = self:SyncOrder( self.id, CMD.CAPTURE, { gid }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.CAPTURE, { gid }, 0 )
+function ShardUnit:Capture(unit)
+	local gid = self:Unit_to_id(unit)
+	local order = self:SyncOrder(self.id, CMD.CAPTURE, { gid }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.CAPTURE, { gid }, 0 )
 end
 
-function ShardUnit:AreaCapture( p, radius )
-	local gid = self:Unit_to_id( unit )
-	local order = self:SyncOrder( self.id, CMD.CAPTURE, { p.x, p.y, p.z, radius }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.CAPTURE, { p.x, p.y, p.z, radius }, 0 )
+function ShardUnit:AreaCapture(p, radius)
+	local gid = self:Unit_to_id(unit)
+	local order = self:SyncOrder(self.id, CMD.CAPTURE, { p.x, p.y, p.z, radius }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.CAPTURE, { p.x, p.y, p.z, radius }, 0 )
 end
 
-function ShardUnit:MorphInto( type )
-	local order = self:SyncOrder( self.id, GameCMD.MORPH, { self.id }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, GameCMD.MORPH, { self.id }, 0 )
+function ShardUnit:MorphInto(type)
+	local order = self:SyncOrder(self.id, GameCMD.MORPH, { self.id }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, GameCMD.MORPH, { self.id }, 0 )
 end
 
 function ShardUnit:HoldFire()
-	local order = self:SyncOrder( self.id, CMD.FIRE_STATE, { 0 }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.FIRE_STATE, { 0 }, 0 )
+	local order = self:SyncOrder(self.id, CMD.FIRE_STATE, { 0 }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.FIRE_STATE, { 0 }, 0 )
 end
 
 function ShardUnit:ReturnFire()
-	local order = self:SyncOrder( self.id, CMD.FIRE_STATE, { 1 }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.FIRE_STATE, { 1 }, 0 )
+	local order = self:SyncOrder(self.id, CMD.FIRE_STATE, { 1 }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.FIRE_STATE, { 1 }, 0 )
 end
 
 function ShardUnit:FireAtWill()
-	local order = self:SyncOrder( self.id, CMD.FIRE_STATE, { 2 }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.FIRE_STATE, { 2 }, 0 )
+	local order = self:SyncOrder(self.id, CMD.FIRE_STATE, { 2 }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.FIRE_STATE, { 2 }, 0 )
 end
 
 function ShardUnit:HoldPosition()
-	local order = self:SyncOrder( self.id, CMD.MOVE_STATE, { 0 }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.MOVE_STATE, { 0 }, 0 )
+	local order = self:SyncOrder(self.id, CMD.MOVE_STATE, { 0 }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.MOVE_STATE, { 0 }, 0 )
 end
 
 function ShardUnit:Manoeuvre()
-	local order = self:SyncOrder( self.id, CMD.MOVE_STATE, { 1 }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.MOVE_STATE, { 1 }, 0 )
+	local order = self:SyncOrder(self.id, CMD.MOVE_STATE, { 1 }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.MOVE_STATE, { 1 }, 0 )
 end
 
 function ShardUnit:Roam()
-	local order = self:SyncOrder( self.id, CMD.MOVE_STATE, { 2 }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.MOVE_STATE, { 2 }, 0 )
+	local order = self:SyncOrder(self.id, CMD.MOVE_STATE, { 2 }, 0)
+	-- 	return Spring.GiveOrderToUnit( self.id, CMD.MOVE_STATE, { 2 }, 0 )
 end
 
 function ShardUnit:IdleModeFly()
-	local order = self:SyncOrder( self.id, CMD.IDLEMODE, { 0 }, 0 )
+	local order = self:SyncOrder(self.id, CMD.IDLEMODE, { 0 }, 0)
 end
 
 function ShardUnit:IdleModeLand()
-	local order = self:SyncOrder( self.id, CMD.IDLEMODE, { 1 }, 0 )
+	local order = self:SyncOrder(self.id, CMD.IDLEMODE, { 1 }, 0)
 end
 
 function ShardUnit:CurrentCommand()
@@ -487,63 +481,59 @@ function ShardUnit:GetRawPos()
 end
 
 function ShardUnit:GetHealtsParams()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( self.id )
-	return health, maxHealth, paralyzeDamage, captureProgress, buildProgress, health/maxHealth
+	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth(self.id)
+	return health, maxHealth, paralyzeDamage, captureProgress, buildProgress, health / maxHealth
 end
 
 function ShardUnit:GetHealth()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( self.id )
+	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth(self.id)
 	return health
 end
 
-
 function ShardUnit:GetMaxHealth()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( self.id )
+	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth(self.id)
 	return maxHealth
 end
 
 function ShardUnit:ParalysisDamage()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( self.id )
+	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth(self.id)
 	return paralyzeDamage
 end
 
 function ShardUnit:CaptureProgress()
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( self.id )
+	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth(self.id)
 	return captureProgress
 end
 
 function ShardUnit:BuildProgress()
-	local isBuilding, buildProgress = Spring.GetUnitIsBeingBuilt( self.id )
+	local isBuilding, buildProgress = Spring.GetUnitIsBeingBuilt(self.id)
 	return buildProgress
 end
-
 
 function ShardUnit:WeaponCount()
 	return self:Type():WeaponCount()
 end
 
-
 function ShardUnit:MaxWeaponsRange()
 	return Spring.GetUnitMaxRange(self.id)
 end
 
-
-function ShardUnit:CanBuild( uType )
-	if type(uType ) == 'string' then
+function ShardUnit:CanBuild(uType)
+	if type(uType) == "string" then
 		uType = game:GetTypeByName(uType)
 	end
 	return self:Type():CanBuild(uType)
 end
 
 function ShardUnit:GetFacing(id)
-	return Spring.GetUnitBuildFacing ( id )
--- 	0, "s", "south"
---     1, "e", "east"
---     2, "n", "north"
---     3, "w", "west"
+	return Spring.GetUnitBuildFacing(id)
+	-- 	0, "s", "south"
+	--     1, "e", "east"
+	--     2, "n", "north"
+	--     3, "w", "west"
 end
 
-function ShardUnit:GetResourceUsage( idx )
+function ShardUnit:GetResourceUsage(idx)
 	local metalMake, metalUse, energyMake, energyUse = Spring.GetUnitResources(self.id)
 	local SResourceTransfer = { gameframe = Spring.GameFrame(), rate = 1 }
 	if Shard.resourceIds[idx] == "metal" then
@@ -556,12 +546,17 @@ function ShardUnit:GetResourceUsage( idx )
 	return SResourceTransfer
 end
 
-function ShardUnit:TestMoveOrder( p )
-	return Spring.TestMoveOrder( self.UnitDefID, p.x, p.y, p.z, nil, nil, nil, true, true,false )
+function ShardUnit:TestMoveOrder(p)
+	return Spring.TestMoveOrder(self.UnitDefID, p.x, p.y, p.z, nil, nil, nil, true, true, false)
 end
 
-function ShardUnit:SyncOrder(id,cmd,pos,opts--[[,timeout]])
-	self:Warn('STAI syncOrder is unsupported please use GiveOrder instead')
+function ShardUnit:SyncOrder(
+	id,
+	cmd,
+	pos,
+	opts --[[,timeout]]
+)
+	self:Warn("STAI syncOrder is unsupported please use GiveOrder instead")
 end
 
 --- Issue an arbitrary command to the spring engine
@@ -592,19 +587,19 @@ end
 -- 	return Spring.GiveOrderToUnit(self.id, cmdId, params_list, options, timeOut )
 -- end
 
-function ShardUnit:DrawHighlight( color, label, channel )
+function ShardUnit:DrawHighlight(color, label, channel)
 	channel = channel or 1
 	color = color or {}
-	if (Script.LuaUI('ShardDrawAddUnit')) then
+	if Script.LuaUI("ShardDrawAddUnit") then
 		Script.LuaUI.ShardDrawAddUnit(self.id, { color[1], color[2], color[3], color[4] }, label, ai.game:GetTeamID(), channel)
 	end
 	--SendToUnsynced('ShardDrawAddUnit', self.id, color[1], color[2], color[3], color[4], label, ai.game:GetTeamID(), channel)
 end
 
-function ShardUnit:EraseHighlight( color, label, channel )
+function ShardUnit:EraseHighlight(color, label, channel)
 	channel = channel or 1
 	color = color or {}
-	if (Script.LuaUI('ShardDrawEraseUnit')) then
+	if Script.LuaUI("ShardDrawEraseUnit") then
 		Script.LuaUI.ShardDrawEraseUnit(self.id, { color[1], color[2], color[3], color[4] }, label, ai.game:GetTeamID(), channel)
 	end
 	--SendToUnsynced('ShardDrawEraseUnit', self.id, color[1], color[2], color[3], color[4], label, ai.game:GetTeamID(), channel)

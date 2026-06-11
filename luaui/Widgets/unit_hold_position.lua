@@ -1,18 +1,16 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Everything hold position",
-		desc    = "Sets every unit built or received to hold position (except air)",
-		author  = "Hobo Joe",
-		date    = "April 2024",
+		name = "Everything hold position",
+		desc = "Sets every unit built or received to hold position (except air)",
+		author = "Hobo Joe",
+		date = "April 2024",
 		license = "GNU GPL, v2 or later",
-		layer   = -9999, -- Run before everything, so that other movestate handling will override it
-		enabled = false
+		layer = -9999, -- Run before everything, so that other movestate handling will override it
+		enabled = false,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spGetMyTeamID = Spring.GetMyTeamID

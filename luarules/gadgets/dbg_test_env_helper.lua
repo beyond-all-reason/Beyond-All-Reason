@@ -11,15 +11,14 @@ function gadget:GetInfo()
 	}
 end
 
-local ENABLED_RULES_PARAM = 'isTestEnvironmentHelperEnabled'
+local ENABLED_RULES_PARAM = "isTestEnvironmentHelperEnabled"
 
 if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
 if gadgetHandler:IsSyncedCode() then
-
-	local removeGadgets = {'Team Com Ends', 'Game End'}
+	local removeGadgets = { "Team Com Ends", "Game End" }
 
 	Spring.SetGameRulesParam(ENABLED_RULES_PARAM, true)
 
@@ -46,23 +45,23 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		gadgetHandler.actionHandler.AddChatAction(gadget, 'setTestEndConditions', SetTestEndConditionsCmd)
-		gadgetHandler.actionHandler.AddChatAction(gadget, 'setTestReadyPlayers', SetTestReadyPlayersCmd)
+		gadgetHandler.actionHandler.AddChatAction(gadget, "setTestEndConditions", SetTestEndConditionsCmd)
+		gadgetHandler.actionHandler.AddChatAction(gadget, "setTestReadyPlayers", SetTestReadyPlayersCmd)
 		if Spring.GetGameRulesParam("testEndConditionsOverride") then
 			SetTestEndConditionsCmd()
 		end
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler.actionHandler.RemoveChatAction(gadget, 'setTestEndConditions')
-		gadgetHandler.actionHandler.RemoveChatAction(gadget, 'setTestReadyPlayers')
+		gadgetHandler.actionHandler.RemoveChatAction(gadget, "setTestEndConditions")
+		gadgetHandler.actionHandler.RemoveChatAction(gadget, "setTestReadyPlayers")
 		Spring.SetGameRulesParam(ENABLED_RULES_PARAM, false)
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg == 'testEnvironmentStarting' then
-			Spring.SetGameRulesParam('testEnvironmentStarting', true)
-			gadgetHandler:RemoveGadgetCallIn('RecvLuaMsg', self)
+		if msg == "testEnvironmentStarting" then
+			Spring.SetGameRulesParam("testEnvironmentStarting", true)
+			gadgetHandler:RemoveGadgetCallIn("RecvLuaMsg", self)
 		end
 	end
 else
@@ -72,7 +71,7 @@ else
 
 	function gadget:Update(n)
 		if (Spring.GetPlayerTraffic(SYSTEM_ID, NETMSG_STARTPLAYING) or 0) > 0 then
-			Spring.SendLuaRulesMsg('testEnvironmentStarting')
+			Spring.SendLuaRulesMsg("testEnvironmentStarting")
 			gadgetHandler:RemoveGadget(self)
 		end
 	end

@@ -1,19 +1,17 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = 'FlowUI GL4 Atlas',
-		desc      = 'FlowUI GL4 Atlas Maker',
-		author    = 'Beherith',
-		version   = '1.0',
-		date      = '2021.05.26',
-		license   = 'GNU GPL, v2 or later',
-		layer     = 100000000,
-		enabled   = false,
+		name = "FlowUI GL4 Atlas",
+		desc = "FlowUI GL4 Atlas Maker",
+		author = "Beherith",
+		version = "1.0",
+		date = "2021.05.26",
+		license = "GNU GPL, v2 or later",
+		layer = 100000000,
+		enabled = false,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
@@ -25,14 +23,14 @@ local atlasID = nil
 local atlassedImages = {}
 
 local function addDirToAtlas(atlas, path)
-	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
+	local imgExts = { bmp = true, tga = true, jpg = true, png = true, dds = true, tif = true }
 	local numadded = 0
 	local files = VFS.DirList(path)
-	spEcho("Adding",#files, "images to atlas from", path)
-	for i=1, #files do
-		if imgExts[string.sub(files[i],-3,-1)] then
-			gl.AddAtlasTexture(atlas,files[i])
-			atlassedImages[files[i]] = true 
+	spEcho("Adding", #files, "images to atlas from", path)
+	for i = 1, #files do
+		if imgExts[string.sub(files[i], -3, -1)] then
+			gl.AddAtlasTexture(atlas, files[i])
+			atlassedImages[files[i]] = true
 			numadded = numadded + 1
 			--spEcho("Adding",files[i], "to atlas")
 			--if i > (#files)*0.57 then break end
@@ -46,7 +44,7 @@ end
 local function makeAtlas()
 	local atlasSize = 8192
 	spEcho("attempt to make atlas")
-	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
+	atlasID = gl.CreateTextureAtlas(atlasSize, atlasSize, 1)
 	spEcho("Attempt to add texture")
 
 	addDirToAtlas(atlasID, "unitpics/")
@@ -69,15 +67,14 @@ local function makeAtlas()
 	gl.FinalizeTextureAtlas(atlasID)
 end
 
-
 function widget:Initialize()
 	makeAtlas()
-	WG['flowui_atlas'] = atlasID
-	WG['flowui_atlassedImages'] = atlassedImages
+	WG["flowui_atlas"] = atlasID
+	WG["flowui_atlassedImages"] = atlassedImages
 end
 
 function widget:Shutdown()
-	if atlasID ~= nil then 
+	if atlasID ~= nil then
 		gl.DeleteTextureAtlas(atlasID)
 	end
 end

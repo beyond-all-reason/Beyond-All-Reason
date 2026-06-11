@@ -2,12 +2,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "BombersDefaultHoldFire",
-		desc    = "Sets produced bombers to Hold Fire after leaving an airlab.",
-		author  = "Pexo",
-		date    = "2026-02-27",
+		name = "BombersDefaultHoldFire",
+		desc = "Sets produced bombers to Hold Fire after leaving an airlab.",
+		author = "Pexo",
+		date = "2026-02-27",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 	}
 end

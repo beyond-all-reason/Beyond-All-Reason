@@ -10,8 +10,8 @@ local DEFAULT_GRID_SPACING = 32 -- the interval at which terrain is tested using
 local GRID_RESOLUTION_MULTIPLIER_DEFAULT = 2 -- how many GRID_SPACINGs step to check in each direction to determine if a spot is reachable or not.
 local DEFAULT_MAX_SLOPE = 0.36 -- calibrated using quickstart on ascendency
 
-local BFS_NDX = {1, -1, 0,  0}
-local BFS_NDZ = {0,  0, 1, -1}
+local BFS_NDX = { 1, -1, 0, 0 }
+local BFS_NDZ = { 0, 0, 1, -1 }
 
 local unitIDTraversabilityGrids = {}
 local unitIDGridResolutions = {}
@@ -53,8 +53,8 @@ local function generateTraversableGrid(originX, originZ, range, gridResolution, 
 	visited[snappedOriginX] = visited[snappedOriginX] or {}
 	visited[snappedOriginX][snappedOriginZ] = true
 
-	local queueX = {snappedOriginX}
-	local queueZ = {snappedOriginZ}
+	local queueX = { snappedOriginX }
+	local queueZ = { snappedOriginZ }
 	local queueLen = 1
 	local rangeSq = range * range
 
@@ -128,5 +128,5 @@ end
 return {
 	generateTraversableGrid = generateTraversableGrid,
 	canMoveToPosition = canMoveToPosition,
-	unitIDTraversabilityGrids = unitIDTraversabilityGrids
+	unitIDTraversabilityGrids = unitIDTraversabilityGrids,
 }
