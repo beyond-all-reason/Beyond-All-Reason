@@ -36,23 +36,23 @@ local fallDamageCompoundingFactor = 1.05
 
 local gameFrame = 0
 local gameFrameExpirationThreshold = 3
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = Engine.Shared.GetGaiaTeamID()
 local waterDamageDefID = Game.envDamageTypes.Water
 local gameSpeed = Game.gameSpeed
 
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spValidUnitID = Spring.ValidUnitID
-local spAddUnitDamage = Spring.AddUnitDamage
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spGetUnitBasePosition = Spring.GetUnitBasePosition
-local spGetUnitPosition = Spring.GetUnitPosition
-local spSpawnCEG = Spring.SpawnCEG
-local spPlaySoundFile = Spring.PlaySoundFile
-local spTestMoveOrder = Spring.TestMoveOrder
-local spGetUnitHealth = Spring.GetUnitHealth
-local spDestroyUnit = Spring.DestroyUnit
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
+local spValidUnitID = Engine.Shared.ValidUnitID
+local spAddUnitDamage = Engine.Synced.AddUnitDamage
+local spGetUnitVelocity = Engine.Shared.GetUnitVelocity
+local spGetUnitBasePosition = Engine.Shared.GetUnitBasePosition
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spSpawnCEG = Engine.Synced.SpawnCEG
+local spPlaySoundFile = Engine.Unsynced.PlaySoundFile
+local spTestMoveOrder = Engine.Shared.TestMoveOrder
+local spGetUnitHealth = Engine.Shared.GetUnitHealth
+local spDestroyUnit = Engine.Synced.DestroyUnit
 
-local waterIsLava = Spring.GetModOptions().map_waterislava
+local waterIsLava = Engine.Shared.GetModOptions().map_waterislava
 local largeSplashCEG = waterIsLava and "lavasplash_large" or "watersplash_large"
 local smallSplashCEG = waterIsLava and "lavasplash_small" or "watersplash_small"
 

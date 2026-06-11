@@ -26,22 +26,22 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = Engine.Shared.GetGameFrame
 
 local maxOrdersCheck = 100 -- max amount of orders to check for duplicate orders on units
 local maxReclaimOrders = 1000 -- max amount of orders to issue at once
 
 local maxUnits = Game.maxUnits
-local GetSelectedUnits = Spring.GetSelectedUnits
-local GetUnitDefID = Spring.GetUnitDefID
-local GetUnitCommands = Spring.GetUnitCommands
-local GetUnitPosition = Spring.GetUnitPosition
-local GetFeaturePosition = Spring.GetFeaturePosition
-local GetFeatureResources = Spring.GetFeatureResources
-local GiveOrderToUnit = Spring.GiveOrderToUnit
+local GetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local GetUnitDefID = Engine.Shared.GetUnitDefID
+local GetUnitCommands = Engine.Shared.GetUnitCommands
+local GetUnitPosition = Engine.Shared.GetUnitPosition
+local GetFeaturePosition = Engine.Shared.GetFeaturePosition
+local GetFeatureResources = Engine.Shared.GetFeatureResources
+local GiveOrderToUnit = Engine.Shared.GiveOrderToUnit
 
-local WorldToScreenCoords = Spring.WorldToScreenCoords
-local TraceScreenRay = Spring.TraceScreenRay
+local WorldToScreenCoords = Engine.Unsynced.WorldToScreenCoords
+local TraceScreenRay = Engine.Unsynced.TraceScreenRay
 
 local sort = table.sort
 
@@ -70,7 +70,7 @@ for udefID, def in ipairs(UnitDefs) do
 end
 
 local function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if Engine.Unsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -85,7 +85,7 @@ function widget:PlayerChanged()
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if Engine.Unsynced.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 end
@@ -222,7 +222,7 @@ function widget:CommandNotify(id, params, options)
 	local x, y, z, r = params[1], params[2], params[3], params[4]
 
 	if r > mapSize / 4 then
-		Spring.Log(widget.GetInfo().name, LOG.WARNING, "Smart reclaim area is too large, limiting size")
+		Engine.Shared.Log(widget.GetInfo().name, LOG.WARNING, "Smart reclaim area is too large, limiting size")
 		r = math.floor(mapSize / 4)
 	end
 
@@ -233,7 +233,7 @@ function widget:CommandNotify(id, params, options)
 		return false
 	end
 
-	local commandHeight = Spring.GetGroundHeight(x, z)
+	local commandHeight = Engine.Shared.GetGroundHeight(x, z)
 
 	local mobiles, stationaries = {}, {}
 	local mobileb, stationaryb = false, false
@@ -277,7 +277,7 @@ function widget:CommandNotify(id, params, options)
 		local retw, rmtw, retg, rmtg = {}, {}, {}, {}
 
 		-- Sort features by above water, below water, metal value, energy value
-		local features = Spring.GetFeaturesInCylinder(x, z, r)
+		local features = Engine.Shared.GetFeaturesInCylinder(x, z, r)
 		for i = 1, #features, 1 do
 			local featureID = features[i]
 			local _, featY, _ = GetFeaturePosition(featureID)
@@ -336,7 +336,7 @@ function widget:CommandNotify(id, params, options)
 					end
 				end
 				if mListCount > maxReclaimOrders then
-					Spring.Log(widget:GetInfo().name, LOG.WARNING, "Command count exceeded, feature selection may be incomplete")
+					Engine.Shared.Log(widget:GetInfo().name, LOG.WARNING, "Command count exceeded, feature selection may be incomplete")
 					break
 				end
 			end

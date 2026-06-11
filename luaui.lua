@@ -28,7 +28,7 @@ do
 	end
 end
 
-Spring.Echo("Using LUAUI_DIRNAME = " .. LUAUI_DIRNAME)
+Engine.Shared.Echo("Using LUAUI_DIRNAME = " .. LUAUI_DIRNAME)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

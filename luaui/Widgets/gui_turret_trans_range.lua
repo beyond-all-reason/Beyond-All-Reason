@@ -27,8 +27,8 @@ local color
 --speedups
 --------------------------------------------------------------------------------
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
-local spGetActiveCmd = Spring.GetActiveCommand
-local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+local spGetActiveCmd = Engine.Unsynced.GetActiveCommand
+local GetSelectedUnitsSorted = Engine.Unsynced.GetSelectedUnitsSorted
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glDrawGroundCircle = gl.DrawGroundCircle
@@ -109,8 +109,8 @@ function widget:DrawWorldPreUnit()
 	local turret = isTurret[ranges[1].unitDefID]
 	color = turret and colors.turret or colors.tower
 	--Spring.Echo(transportWithBuilding[unitId])
-	local mouseX, mouseY = Spring.GetMouseState()
-	local desc, args = Spring.TraceScreenRay(mouseX, mouseY, true)
+	local mouseX, mouseY = Engine.Unsynced.GetMouseState()
+	local desc, args = Engine.Unsynced.TraceScreenRay(mouseX, mouseY, true)
 	if desc == nil then
 		return
 	end

@@ -38,15 +38,15 @@ local udefTab = UnitDefs
 local weapNamTab = WeaponDefNames
 local weapTab = WeaponDefs
 
-local spGetKeyState = Spring.GetKeyState
-local spGetModKeyState = Spring.GetModKeyState
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetGameSeconds = Spring.GetGameSeconds
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local spEcho = Spring.Echo
+local spGetKeyState = Engine.Unsynced.GetKeyState
+local spGetModKeyState = Engine.Unsynced.GetModKeyState
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetGameSeconds = Engine.Shared.GetGameSeconds
+local spGetActiveCommand = Engine.Unsynced.GetActiveCommand
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spTraceScreenRay = Engine.Unsynced.TraceScreenRay
+local spEcho = Engine.Shared.Echo
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
@@ -61,8 +61,8 @@ local glBillboard = gl.Billboard
 local sqrt = math.sqrt
 local lower = string.lower
 
-local spIsSphereInView = Spring.IsSphereInView
-local spGetGroundHeight = Spring.GetGroundHeight
+local spIsSphereInView = Engine.Unsynced.IsSphereInView
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
 
 local font, chobbyInterface
 
@@ -103,7 +103,7 @@ function widget:ViewResize()
 	font = WG["fonts"].getFont(1, 1.5)
 end
 
-local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnits = Engine.Unsynced.GetSelectedUnits()
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
 end
@@ -202,7 +202,7 @@ function DrawBuildMenuBlastRange()
 		return
 	end
 
-	local centerX, _, centerZ = Spring.Pos2BuildPos(unitDefID, coords[1], 0, coords[3])
+	local centerX, _, centerZ = Engine.Shared.Pos2BuildPos(unitDefID, coords[1], 0, coords[3])
 
 	glLineWidth(blastLineWidth)
 	glColor(expBlastColor[1], expBlastColor[2], expBlastColor[3], blastAlphaValue)

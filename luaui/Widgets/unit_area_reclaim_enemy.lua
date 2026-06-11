@@ -15,22 +15,22 @@ local allyTeam = Spring.GetMyAllyTeamID()
 
 -- Speedups
 
-local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-local spGetUnitPosition = Spring.GetUnitPosition
+local spGiveOrderToUnitArray = Engine.Shared.GiveOrderToUnitArray
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local spGetUnitsInCylinder = Engine.Shared.GetUnitsInCylinder
+local spWorldToScreenCoords = Engine.Unsynced.WorldToScreenCoords
+local spTraceScreenRay = Engine.Unsynced.TraceScreenRay
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+local spGetUnitCmdDescs = Engine.Shared.GetUnitCmdDescs
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
 
 local reclaimEnemy = Game.reclaimAllowEnemies
 
 local CMD_RECLAIM = CMD.RECLAIM
 
 function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0) then
+	if Engine.Unsynced.GetSpectatingState() and (Engine.Shared.GetGameFrame() > 0) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -44,7 +44,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() then
+	if Engine.Unsynced.IsReplay() then
 		maybeRemoveSelf()
 	end
 end
@@ -71,7 +71,7 @@ function widget:CommandNotify(id, params, options)
 	-- get all enemy units in the area
 	for i = 1, #areaUnits do
 		local unitID = areaUnits[i]
-		local enemyUnit = not Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), Spring.GetMyTeamID())
+		local enemyUnit = not Engine.Shared.AreTeamsAllied(Engine.Shared.GetUnitTeam(unitID), Spring.GetMyTeamID())
 		if enemyUnit then
 			table.insert(enemyUnits, unitID)
 		end
@@ -82,7 +82,7 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	-- get avg point of selected units
-	local avgx, avgy, avgz = Spring.GetUnitArrayCentroid(selectedUnits)
+	local avgx, avgy, avgz = Engine.Shared.GetUnitArrayCentroid(selectedUnits)
 	-- sort enemyUnits by distance from averagePoint of selected units
 	table.sort(enemyUnits, function(unit1, unit2)
 		local x1, _, z1 = spGetUnitPosition(unit1)
@@ -106,7 +106,7 @@ function widget:CommandNotify(id, params, options)
 
 	-- add the command to all units with reclaim
 	if #newCmds > 0 then
-		Spring.GiveOrderArrayToUnitArray(selectedUnits, newCmds)
+		Engine.Shared.GiveOrderArrayToUnitArray(selectedUnits, newCmds)
 		return true
 	end
 end

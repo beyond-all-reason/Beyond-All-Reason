@@ -90,11 +90,11 @@ end
 --------------------------------------------------------------------------------
 -- Localized engine calls
 --------------------------------------------------------------------------------
-local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
-local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetGameFrame = Spring.GetGameFrame
-local spGetGameSpeed = Spring.GetGameSpeed
+local spGetVisibleProjectiles = Engine.Unsynced.GetVisibleProjectiles
+local spGetProjectilesInRectangle = Engine.Shared.GetProjectilesInRectangle
+local spGetProjectileDefID = Engine.Shared.GetProjectileDefID
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetGameSpeed = Engine.Unsynced.GetGameSpeed
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -216,7 +216,7 @@ end
 local function Subscribe(name, defIDSet, scanID)
 	local subs = subscribersByScan[scanID]
 	if not subs then
-		Spring.Echo("[gfx_projectile_dispatch] invalid scanID: " .. tostring(scanID))
+		Engine.Shared.Echo("[gfx_projectile_dispatch] invalid scanID: " .. tostring(scanID))
 		return nil
 	end
 	nextHandle = nextHandle + 1

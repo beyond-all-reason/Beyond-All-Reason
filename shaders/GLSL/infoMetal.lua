@@ -25,8 +25,8 @@ end
 
 return {
 	definitions = {
-		Spring.GetConfigInt("HighResInfoTexture") and "#define HIGH_QUALITY\n" or "",
-		"#define MetalViewBrightness " .. tostring(Spring.GetConfigFloat("MetalViewBrightness", 1.0) or 1.0),
+		Engine.Unsynced.GetConfigInt("HighResInfoTexture") and "#define HIGH_QUALITY\n" or "",
+		"#define MetalViewBrightness " .. tostring(Engine.Unsynced.GetConfigFloat("MetalViewBrightness", 1.0) or 1.0),
 	},
 	vertex = [[#version 130
 		varying vec2 texCoord;

@@ -17,12 +17,12 @@ local showFireStateIcons = true
 --------------------------------------------------------------------------------
 -- Localized Spring API
 --------------------------------------------------------------------------------
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitStates = Spring.GetUnitStates
-local spValidUnitID = Spring.ValidUnitID
-local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetUnitStates = Engine.Shared.GetUnitStates
+local spValidUnitID = Engine.Shared.ValidUnitID
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
 
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = Engine.Shared.GetGaiaTeamID()
 
 local HOLD_FIRE = 0
 local RETURN_FIRE = 1
@@ -175,8 +175,8 @@ function widget:Initialize()
 	end
 
 	-- Build team → allyteam mapping
-	for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		local teams = Spring.GetTeamList(allyTeamID)
+	for _, allyTeamID in ipairs(Engine.Shared.GetAllyTeamList()) do
+		local teams = Engine.Shared.GetTeamList(allyTeamID)
 		allyTeamTeamCount[allyTeamID] = #teams
 		deadTeamCount[allyTeamID] = 0
 		for _, teamID in ipairs(teams) do
@@ -198,7 +198,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	local gf = spGetGameFrame()
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		visibleUnits[unitID] = unitDefID
-		local teamID = Spring.GetUnitTeam(unitID)
+		local teamID = Engine.Shared.GetUnitTeam(unitID)
 
 		if teamID ~= gaiaTeamID then
 			unitToTeam[unitID] = teamID
@@ -334,7 +334,7 @@ function widget:DrawScreenEffects()
 	if chobbyInterface then
 		return
 	end
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 	if not showFireStateIcons then
@@ -345,7 +345,7 @@ function widget:DrawScreenEffects()
 		return
 	end
 
-	local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5
+	local disticon = Engine.Unsynced.GetConfigInt("UnitIconDistance", 200) * 27.5
 
 	gl.DepthTest(true)
 	gl.DepthMask(false)

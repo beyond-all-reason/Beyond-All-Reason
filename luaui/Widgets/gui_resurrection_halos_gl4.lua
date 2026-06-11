@@ -63,12 +63,12 @@ local function initGL4()
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	local rezRulesParam = Spring.GetUnitRulesParam(unitID, "resurrected")
+	local rezRulesParam = Engine.Shared.GetUnitRulesParam(unitID, "resurrected")
 	if unitConf[unitDefID] == nil or not rezRulesParam or rezRulesParam == 0 then
 		return
 	end
 
-	local gf = Spring.GetGameFrame()
+	local gf = Engine.Shared.GetGameFrame()
 	pushElementInstance(
 		resurrectionHalosVBO, -- push into this Instance VBO Table
 		{
@@ -101,7 +101,7 @@ end
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.clearInstanceTable(resurrectionHalosVBO)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		widget:VisibleUnitAdded(unitID, unitDefID, Spring.GetUnitTeam(unitID))
+		widget:VisibleUnitAdded(unitID, unitDefID, Engine.Shared.GetUnitTeam(unitID))
 	end
 end
 
@@ -122,7 +122,7 @@ function widget:DrawWorld()
 	if chobbyInterface then
 		return
 	end
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 

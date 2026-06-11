@@ -23,7 +23,7 @@ local mathFloor = math.floor
 local mathMin = math.min
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
 
 local config = VFS.Include("LuaRules/Configs/raptor_spawn_defs.lua")
 
@@ -38,11 +38,11 @@ if not Spring.Utilities.Gametype.IsRaptors() then
 	return false
 end
 
-if not Spring.GetGameRulesParam("raptorDifficulty") then
+if not Engine.Shared.GetGameRulesParam("raptorDifficulty") then
 	return false
 end
 
-local GetGameSeconds = Spring.GetGameSeconds
+local GetGameSeconds = Engine.Shared.GetGameSeconds
 
 local displayList
 local panelTexture = ":n:LuaUI/Images/raptorpanel.tga"
@@ -67,7 +67,7 @@ local gameInfo
 local waveSpeed = 0.1
 local waveCount = 0
 local waveTime
-local bossToastTimer = Spring.GetTimer()
+local bossToastTimer = Engine.Unsynced.GetTimer()
 local enabled
 local gotScore
 local scoreCount = 0
@@ -79,8 +79,8 @@ local guiPanel --// a displayList
 local updatePanel
 local hasRaptorEvent = false
 
-local difficultyOption = Spring.GetModOptions().raptor_difficulty
-local nBosses = Spring.GetModOptions().raptor_queen_count
+local difficultyOption = Engine.Shared.GetModOptions().raptor_difficulty
+local nBosses = Engine.Shared.GetModOptions().raptor_queen_count
 
 local rules = {
 	"raptorQueenTime",
@@ -186,11 +186,11 @@ local function CreatePanelDisplayList()
 	if currentTime > gameInfo.raptorGracePeriod then
 		if gameInfo.raptorQueenAnger < 100 then
 			local gain = 0
-			if Spring.GetGameRulesParam("RaptorQueenAngerGain_Base") then
-				font:Print(textColor .. Spring.I18N("ui.raptors.queenAngerBase", { value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) }), panelMarginX + 5, PanelRow(3), panelFontSize, "")
-				font:Print(textColor .. Spring.I18N("ui.raptors.queenAngerAggression", { value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) }), panelMarginX + 5, PanelRow(4), panelFontSize, "")
+			if Engine.Shared.GetGameRulesParam("RaptorQueenAngerGain_Base") then
+				font:Print(textColor .. Spring.I18N("ui.raptors.queenAngerBase", { value = math.round(Engine.Shared.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) }), panelMarginX + 5, PanelRow(3), panelFontSize, "")
+				font:Print(textColor .. Spring.I18N("ui.raptors.queenAngerAggression", { value = math.round(Engine.Shared.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) }), panelMarginX + 5, PanelRow(4), panelFontSize, "")
 				--font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerEco', { value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Eco"), 3) }), panelMarginX+5, PanelRow(5), panelFontSize, "")
-				gain = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) + math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) + math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Eco"), 3)
+				gain = math.round(Engine.Shared.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) + math.round(Engine.Shared.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) + math.round(Engine.Shared.GetGameRulesParam("RaptorQueenAngerGain_Eco"), 3)
 			end
 			--font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerWithGain', { anger = gameInfo.raptorQueenAnger, gain = math.round(gain, 3) }), panelMarginX, PanelRow(1), panelFontSize, "")
 			font:Print(textColor .. Spring.I18N("ui.raptors.queenAngerWithTech", { anger = mathFloor(0.5 + gameInfo.raptorQueenAnger), techAnger = gameInfo.raptorTechAnger }), panelMarginX, PanelRow(1), panelFontSize, "")
@@ -209,11 +209,11 @@ local function CreatePanelDisplayList()
 			end
 		else
 			font:Print(textColor .. Spring.I18N("ui.raptors.queenHealth", { count = nBosses, health = gameInfo.raptorQueenHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
-			if Spring.GetGameRulesParam("raptorQueenStaggerActive") == false then
-				font:Print(textColor .. Spring.I18N("ui.raptors.queenStaggerPercentage", { count = nBosses, value = 100 - Spring.GetGameRulesParam("raptorQueenStaggerPercentage") }), panelMarginX, PanelRow(2), panelFontSize, "")
+			if Engine.Shared.GetGameRulesParam("raptorQueenStaggerActive") == false then
+				font:Print(textColor .. Spring.I18N("ui.raptors.queenStaggerPercentage", { count = nBosses, value = 100 - Engine.Shared.GetGameRulesParam("raptorQueenStaggerPercentage") }), panelMarginX, PanelRow(2), panelFontSize, "")
 			else
 				font:Print("\255\255\255\0" .. Spring.I18N("ui.raptors.queenStaggerActive", { count = nBosses }), panelMarginX, PanelRow(2), panelFontSize, "")
-				font:Print("\255\255\255\0" .. Spring.I18N("ui.raptors.queenStaggerPercentage", { count = nBosses, value = 100 - Spring.GetGameRulesParam("raptorQueenStaggerPercentage") }), panelMarginX, PanelRow(3), panelFontSize, "")
+				font:Print("\255\255\255\0" .. Spring.I18N("ui.raptors.queenStaggerPercentage", { count = nBosses, value = 100 - Engine.Shared.GetGameRulesParam("raptorQueenStaggerPercentage") }), panelMarginX, PanelRow(3), panelFontSize, "")
 			end
 
 			if nBosses > 1 then
@@ -232,7 +232,7 @@ local function CreatePanelDisplayList()
 
 	font:Print(textColor .. Spring.I18N("ui.raptors.raptorKillCount", { count = gameInfo.raptorKills }), panelMarginX, PanelRow(6), panelFontSize, "")
 	local endless = ""
-	if Spring.GetModOptions().raptor_endless then
+	if Engine.Shared.GetModOptions().raptor_endless then
 		endless = " (" .. Spring.I18N("ui.raptors.difficulty.endless") .. ")"
 	end
 	local difficultyCaption = Spring.I18N("ui.raptors.difficulty." .. difficultyOption)
@@ -302,9 +302,9 @@ local function Draw()
 	end
 
 	if showMarqueeMessage then
-		local t = Spring.GetTimer()
+		local t = Engine.Unsynced.GetTimer()
 
-		local waveY = viewSizeY - Spring.DiffTimers(t, waveTime) * waveSpeed * viewSizeY
+		local waveY = viewSizeY - Engine.Unsynced.DiffTimers(t, waveTime) * waveSpeed * viewSizeY
 		if waveY > 0 then
 			if refreshMarqueeMessage or not marqueeMessage then
 				marqueeMessage = getMarqueeMessage(messageArgs)
@@ -322,7 +322,7 @@ local function Draw()
 		end
 	elseif #resistancesTable > 0 then
 		marqueeMessage = getResistancesMessage()
-		waveTime = Spring.GetTimer()
+		waveTime = Engine.Unsynced.GetTimer()
 		showMarqueeMessage = true
 	end
 end
@@ -333,7 +333,7 @@ local function UpdateRules()
 	end
 
 	for _, rule in ipairs(rules) do
-		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 0
+		gameInfo[rule] = Engine.Shared.GetGameRulesParam(rule) or 0
 	end
 	gameInfo.raptorCounts = getRaptorCounts("Count")
 	gameInfo.raptorKills = getRaptorCounts("Kills")
@@ -342,13 +342,13 @@ local function UpdateRules()
 end
 
 function RaptorEvent(raptorEventArgs)
-	if raptorEventArgs.type == "firstWave" or (raptorEventArgs.type == "queen" and Spring.DiffTimers(Spring.GetTimer(), bossToastTimer) > 10) then
+	if raptorEventArgs.type == "firstWave" or (raptorEventArgs.type == "queen" and Engine.Unsynced.DiffTimers(Engine.Unsynced.GetTimer(), bossToastTimer) > 10) then
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
 		messageArgs = raptorEventArgs
-		waveTime = Spring.GetTimer()
+		waveTime = Engine.Unsynced.GetTimer()
 		if raptorEventArgs.type == "queen" then
-			bossToastTimer = Spring.GetTimer()
+			bossToastTimer = Engine.Unsynced.GetTimer()
 		end
 	end
 
@@ -367,7 +367,7 @@ function RaptorEvent(raptorEventArgs)
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
 		messageArgs = raptorEventArgs
-		waveTime = Spring.GetTimer()
+		waveTime = Engine.Unsynced.GetTimer()
 	end
 end
 
@@ -397,7 +397,7 @@ end
 
 function widget:Shutdown()
 	if hasRaptorEvent then
-		Spring.SendCommands({ "luarules HasRaptorEvent 0" })
+		Engine.Unsynced.SendCommands({ "luarules HasRaptorEvent 0" })
 	end
 
 	if guiPanel then
@@ -412,7 +412,7 @@ end
 
 function widget:GameFrame(n)
 	if not hasRaptorEvent and n > 1 then
-		Spring.SendCommands({ "luarules HasRaptorEvent 1" })
+		Engine.Unsynced.SendCommands({ "luarules HasRaptorEvent 1" })
 		hasRaptorEvent = true
 	end
 	if n % 30 < 1 then

@@ -47,11 +47,11 @@ local minImpulseToDamageRatio = 0.2
 
 local groundCollisionDefID = Game.envDamageTypes.GroundCollision
 local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spSetUnitVelocity = Spring.SetUnitVelocity
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spDestroyUnit = Spring.DestroyUnit
+local spGetUnitHealth = Engine.Shared.GetUnitHealth
+local spGetUnitVelocity = Engine.Shared.GetUnitVelocity
+local spSetUnitVelocity = Engine.Synced.SetUnitVelocity
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
+local spDestroyUnit = Engine.Synced.DestroyUnit
 local mathMin = math.min
 local mathMax = math.max
 local mathAbs = math.abs
@@ -266,7 +266,7 @@ local function setVelocityControl(unitID, enabled)
 	elseif not unitInertiaCheckFlags[unitID] then
 		unitInertiaCheckFlags[unitID] = {
 			expirationFrame = gameFrame + velocityWatchFrames,
-			velocityCap = unitDefData[Spring.GetUnitDefID(unitID)].velocityCap,
+			velocityCap = unitDefData[Engine.Shared.GetUnitDefID(unitID)].velocityCap,
 		}
 	end
 end

@@ -1,4 +1,4 @@
-if gl.CreateShader == nil or Spring.GetSpectatingState() then
+if gl.CreateShader == nil or Engine.Unsynced.GetSpectatingState() then
 	return
 end
 
@@ -15,7 +15,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = Engine.Shared.Echo
 
 -- Shameless port from https://gist.github.com/martymcmodding/30304c4bffa6e2bd2eb59ff8bb09d135
 
@@ -286,27 +286,27 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged()
-	if Spring.GetSpectatingState() then
+	if Engine.Unsynced.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 end
 
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = Engine.Shared.GetGaiaTeamID()
 local myteamid = Spring.GetMyTeamID()
 local effectOn = false
 local effectStart = 0
 
 function widget:FeatureDestroyed(featureID, allyTeam)
-	if allyTeam == gaiaTeamID and glasstriggerfeaturedefsids[Spring.GetFeatureDefID(featureID)] then
-		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
-		local featureHealth = Spring.GetFeatureHealth(featureID)
-		local mr, mm, er, em, rl = Spring.GetFeatureResources(featureID)
+	if allyTeam == gaiaTeamID and glasstriggerfeaturedefsids[Engine.Shared.GetFeatureDefID(featureID)] then
+		local fx, fy, fz = Engine.Shared.GetFeaturePosition(featureID)
+		local featureHealth = Engine.Shared.GetFeatureHealth(featureID)
+		local mr, mm, er, em, rl = Engine.Shared.GetFeatureResources(featureID)
 		spEcho("Reclaiming that was probably not a good idea...", featureHealth, mr, mm, er, em, rl)
 		if featureHealth > 0 and er == 0 then
-			local unitsnearby = Spring.GetUnitsInCylinder(fx, fz, 170, myteamid)
+			local unitsnearby = Engine.Shared.GetUnitsInCylinder(fx, fz, 170, myteamid)
 			for i, unitID in ipairs(unitsnearby) do
 				--spEcho("nearby", unitID)
-				local unitDefID = Spring.GetUnitDefID(unitID)
+				local unitDefID = Engine.Shared.GetUnitDefID(unitID)
 				--spEcho("nearby", unitID, UnitDefs[unitDefID].name)
 				if UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom" then
 					if effectOn == false then
@@ -347,7 +347,7 @@ function widget:DrawScreenEffects()
 		glTexture(0, screenCopyTex)
 		glBlending(true)
 		glassShader:Activate()
-		glassShader:SetUniform("iTime", 0.01 * Spring.GetGameFrame())
+		glassShader:SetUniform("iTime", 0.01 * Engine.Shared.GetGameFrame())
 		glassShader:SetUniform("strength", strength)
 		fullTexQuad:DrawArrays(GL.TRIANGLES, 3)
 		glassShader:Deactivate()

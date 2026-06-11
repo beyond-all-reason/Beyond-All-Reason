@@ -43,11 +43,11 @@ local companionRadiusStart = 140 -- if mapcritter is spawned this close it will 
 local companionRadiusAfterStart = 13
 local companionPatrolRadius = 200
 
-local amountMultiplier = Spring.GetModOptions().critters
+local amountMultiplier = Engine.Shared.GetModOptions().critters
 local minMulti = 0.2
 local maxMulti = 5
 
-local GaiaTeamID = Spring.GetGaiaTeamID()
+local GaiaTeamID = Engine.Shared.GetGaiaTeamID()
 
 local critterConfig = include("LuaRules/configs/critters.lua")
 local critterUnits = {} --critter units that are currently alive
@@ -56,13 +56,13 @@ local companionCritters = {}
 local sceduledOrders = {}
 local commanders = {}
 
-local GetGroundHeight = Spring.GetGroundHeight
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitDefID = Spring.GetUnitDefID
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local CreateUnit = Spring.CreateUnit
-local GetUnitTeam = Spring.GetUnitTeam
-local ValidUnitID = Spring.ValidUnitID
+local GetGroundHeight = Engine.Shared.GetGroundHeight
+local GetUnitPosition = Engine.Shared.GetUnitPosition
+local GetUnitDefID = Engine.Shared.GetUnitDefID
+local GiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local CreateUnit = Engine.Synced.CreateUnit
+local GetUnitTeam = Engine.Shared.GetUnitTeam
+local ValidUnitID = Engine.Shared.ValidUnitID
 
 local random = math.random
 local floor = math.floor
@@ -216,16 +216,16 @@ local function randomPatrolInCircle(unitID, ux, uz, ur, minWaterDepth) -- only d
 end
 
 local function setGaiaUnitSpecifics(unitID)
-	Spring.SetUnitNeutral(unitID, true)
-	Spring.SetUnitNoSelect(unitID, true)
-	Spring.SetUnitStealth(unitID, true)
-	Spring.SetUnitNoMinimap(unitID, true)
-	Spring.SetUnitMaxHealth(unitID, 2)
-	Spring.SetUnitBlocking(unitID, false)
-	Spring.SetUnitSensorRadius(unitID, "los", 0)
-	Spring.SetUnitSensorRadius(unitID, "airLos", 0)
-	Spring.SetUnitSensorRadius(unitID, "radar", 0)
-	Spring.SetUnitSensorRadius(unitID, "sonar", 0)
+	Engine.Synced.SetUnitNeutral(unitID, true)
+	Engine.Unsynced.SetUnitNoSelect(unitID, true)
+	Engine.Synced.SetUnitStealth(unitID, true)
+	Engine.Unsynced.SetUnitNoMinimap(unitID, true)
+	Engine.Synced.SetUnitMaxHealth(unitID, 2)
+	Engine.Synced.SetUnitBlocking(unitID, false)
+	Engine.Synced.SetUnitSensorRadius(unitID, "los", 0)
+	Engine.Synced.SetUnitSensorRadius(unitID, "airLos", 0)
+	Engine.Synced.SetUnitSensorRadius(unitID, "radar", 0)
+	Engine.Synced.SetUnitSensorRadius(unitID, "sonar", 0)
 	for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
 		GiveOrderToUnit(unitID, CMD_FIRE_STATE, { 0 }, 0)
 		--Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesnt seem to work :S (maybe because they still patrol)
@@ -243,7 +243,7 @@ local mapConfig
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_ATTACK)
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = Engine.Shared.GetAllUnits()
 	for _, unitID in pairs(allUnits) do
 		local unitDefID = GetUnitDefID(unitID)
 		if unitDefID and isCommander[unitDefID] then
@@ -261,13 +261,13 @@ function gadget:Initialize()
 	end
 
 	if amountMultiplier == 0 then
-		Spring.Echo("[Gaia Critters] Critters disabled via ModOption")
+		Engine.Shared.Echo("[Gaia Critters] Critters disabled via ModOption")
 		gadgetHandler:RemoveGadget(self)
 	end
 
-	Spring.Echo("[Gaia Critters] gadget:Initialize() Game.mapName=" .. Game.mapName)
+	Engine.Shared.Echo("[Gaia Critters] gadget:Initialize() Game.mapName=" .. Game.mapName)
 	if mapConfig then
-		Spring.Echo("[Gaia Critters] No critter config for this map")
+		Engine.Shared.Echo("[Gaia Critters] No critter config for this map")
 		--gadgetHandler:RemoveGadget(self)		-- disabled so if you /give critters they still will be auto patrolled
 	end
 
@@ -291,11 +291,11 @@ end
 -- excluding gaia units
 local function getTotalUnits()
 	local totalUnits = 0
-	local teamList = Spring.GetTeamList()
+	local teamList = Engine.Shared.GetTeamList()
 	for i = 1, #teamList do
 		local teamID = teamList[i]
 		if teamID ~= GaiaTeamID then
-			totalUnits = totalUnits + Spring.GetTeamUnitCount(teamID)
+			totalUnits = totalUnits + Engine.Shared.GetTeamUnitCount(teamID)
 		end
 	end
 	return totalUnits
@@ -336,7 +336,7 @@ local function adjustCritters(newAliveCritters)
 			critterBackup[unitID].y = y
 			critterBackup[unitID].z = z
 
-			Spring.DestroyUnit(unitID, false, true) -- reclaimed
+			Engine.Synced.DestroyUnit(unitID, false, true) -- reclaimed
 			totalCritters = totalCritters + 1 -- DestroyUnit callin substracts 1 here but we want to keep it constant, so re-adding
 
 			changed = true
@@ -446,7 +446,7 @@ local function addMapCritters()
 							--makeUnitCritter(unitID)
 							critterUnits[unitID].unitName = unitName
 						else
-							Spring.Echo("[Gaia Critters] Failed to create " .. unitName)
+							Engine.Shared.Echo("[Gaia Critters] Failed to create " .. unitName)
 						end
 					end
 				end
@@ -489,7 +489,7 @@ local function addMapCritters()
 							--makeUnitCritter(unitID)
 							critterUnits[unitID].unitName = unitName
 						else
-							Spring.Echo("[Gaia Critters] Failed to create " .. unitName)
+							Engine.Shared.Echo("[Gaia Critters] Failed to create " .. unitName)
 						end
 					end
 				end
@@ -598,7 +598,7 @@ function gadget:UnitIdle(unitID, unitDefID, unitTeam)
 end
 
 local function getTeamCommanderUnitID(teamID)
-	local teamUnits = Spring.GetTeamUnits(teamID)
+	local teamUnits = Engine.Shared.GetTeamUnits(teamID)
 	if teamUnits then
 		for i = 1, #teamUnits do
 			local unitID = teamUnits[i]

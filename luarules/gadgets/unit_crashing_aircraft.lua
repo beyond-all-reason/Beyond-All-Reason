@@ -15,26 +15,26 @@ end
 if gadgetHandler:IsSyncedCode() then
 	local gravityMult = 1.7
 
-	local SetUnitSensorRadius = Spring.SetUnitSensorRadius
-	local SetUnitWeaponState = Spring.SetUnitWeaponState
-	local GetUnitHealth = Spring.GetUnitHealth
-	local GetGameFrame = Spring.GetGameFrame
-	local GetUnitMoveTypeData = Spring.GetUnitMoveTypeData
-	local SetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
+	local SetUnitSensorRadius = Engine.Synced.SetUnitSensorRadius
+	local SetUnitWeaponState = Engine.Synced.SetUnitWeaponState
+	local GetUnitHealth = Engine.Shared.GetUnitHealth
+	local GetGameFrame = Engine.Shared.GetGameFrame
+	local GetUnitMoveTypeData = Engine.Shared.GetUnitMoveTypeData
+	local SetAirMoveTypeData = Engine.Synced.MoveCtrl.SetAirMoveTypeData
 	local SetUnitCOBValue = Spring.SetUnitCOBValue
-	local GiveOrderToUnit = Spring.GiveOrderToUnit
-	local DestroyUnit = Spring.DestroyUnit
+	local GiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+	local DestroyUnit = Engine.Synced.DestroyUnit
 	local SendToUnsynced = SendToUnsynced
-	local GetUnitRulesParam = Spring.GetUnitRulesParam
-	local SetUnitRulesParam = Spring.SetUnitRulesParam
-	local SetUnitNoSelect = Spring.SetUnitNoSelect
-	local SetUnitNoMinimap = Spring.SetUnitNoMinimap
-	local SetUnitIconDraw = Spring.SetUnitIconDraw
-	local SetUnitStealth = Spring.SetUnitStealth
-	local SetUnitAlwaysVisible = Spring.SetUnitAlwaysVisible
-	local SetUnitNeutral = Spring.SetUnitNeutral
-	local SetUnitBlocking = Spring.SetUnitBlocking
-	local SetUnitCrashing = Spring.SetUnitCrashing
+	local GetUnitRulesParam = Engine.Shared.GetUnitRulesParam
+	local SetUnitRulesParam = Engine.Synced.SetUnitRulesParam
+	local SetUnitNoSelect = Engine.Unsynced.SetUnitNoSelect
+	local SetUnitNoMinimap = Engine.Unsynced.SetUnitNoMinimap
+	local SetUnitIconDraw = Engine.Unsynced.SetUnitIconDraw
+	local SetUnitStealth = Engine.Synced.SetUnitStealth
+	local SetUnitAlwaysVisible = Engine.Synced.SetUnitAlwaysVisible
+	local SetUnitNeutral = Engine.Synced.SetUnitNeutral
+	local SetUnitBlocking = Engine.Synced.SetUnitBlocking
+	local SetUnitCrashing = Engine.Synced.SetUnitCrashing
 
 	local COB_CRASHING = COB.CRASHING
 	local COM_BLAST = WeaponDefNames["commanderexplosion"].id -- used to prevent them being boosted and flying far away
@@ -146,8 +146,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 else -- UNSYNCED
-	local GetSpectatingState = Spring.GetSpectatingState
-	local GetUnitLosState = Spring.GetUnitLosState
+	local GetSpectatingState = Engine.Unsynced.GetSpectatingState
+	local GetUnitLosState = Engine.Shared.GetUnitLosState
 	local GetMyAllyTeamID = Spring.GetMyAllyTeamID
 
 	local function notifyCrashingAircraft(unitID, unitDefID, unitTeam)

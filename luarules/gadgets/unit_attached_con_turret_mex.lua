@@ -17,8 +17,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetUnitHealth = Engine.Shared.GetUnitHealth
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
 
 -- TODO: do not use hardcoded unit names
 local unitDefData = {
@@ -65,60 +65,60 @@ local pairedUnits = {}
 local setMexSpeed = {}
 
 local function setExtractionRate(conID, mexID)
-	local extractionRate = Spring.GetUnitMetalExtraction(mexID)
-	Spring.CallCOBScript(conID, "SetSpeed", 0, (extractionRate or 0) * 1000) -- COB is scaled for integer-only
+	local extractionRate = Engine.Shared.GetUnitMetalExtraction(mexID)
+	Engine.Synced.CallCOBScript(conID, "SetSpeed", 0, (extractionRate or 0) * 1000) -- COB is scaled for integer-only
 end
 
 local function doSwapMex(unitID, unitTeam, unitData)
 	local Spring = Spring
 
-	local isUnitNeutral = Spring.GetUnitNeutral(unitID)
+	local isUnitNeutral = Engine.Shared.GetUnitNeutral(unitID)
 	local unitHealth = spGetUnitHealth(unitID)
 
-	Spring.DestroyUnit(unitID, false, true) -- clears unitID from mexesToSwap in g:UnitDestroyed
+	Engine.Synced.DestroyUnit(unitID, false, true) -- clears unitID from mexesToSwap in g:UnitDestroyed
 
 	local ux, uy, uz, unitFacing = unitData.x, unitData.y, unitData.z, unitData.facing
 
-	local mexID = Spring.CreateUnit(unitData.swapDefs.mex, ux, uy, uz, unitFacing, unitTeam)
+	local mexID = Engine.Synced.CreateUnit(unitData.swapDefs.mex, ux, uy, uz, unitFacing, unitTeam)
 	if not mexID then
-		Spring.AddTeamResource(unitTeam, "m", unitData.metal)
-		Spring.AddTeamResource(unitTeam, "e", unitData.energy)
+		Engine.Synced.AddTeamResource(unitTeam, "m", unitData.metal)
+		Engine.Synced.AddTeamResource(unitTeam, "e", unitData.energy)
 		return
 	end
-	Spring.SetUnitBlocking(mexID, true, true, false)
-	Spring.SetUnitNoSelect(mexID, true)
-	Spring.SetUnitStealth(mexID, true)
+	Engine.Synced.SetUnitBlocking(mexID, true, true, false)
+	Engine.Unsynced.SetUnitNoSelect(mexID, true)
+	Engine.Synced.SetUnitStealth(mexID, true)
 
-	local conID = Spring.CreateUnit(unitData.swapDefs.con, ux, uy, uz, unitFacing, unitTeam)
+	local conID = Engine.Synced.CreateUnit(unitData.swapDefs.con, ux, uy, uz, unitFacing, unitTeam)
 	if not conID then
-		Spring.DestroyUnit(mexID, false, true)
-		Spring.AddTeamResource(unitTeam, "m", unitData.metal)
-		Spring.AddTeamResource(unitTeam, "e", unitData.energy)
+		Engine.Synced.DestroyUnit(mexID, false, true)
+		Engine.Synced.AddTeamResource(unitTeam, "m", unitData.metal)
+		Engine.Synced.AddTeamResource(unitTeam, "e", unitData.energy)
 		return
 	end
-	Spring.SetUnitHealth(conID, unitHealth)
+	Engine.Synced.SetUnitHealth(conID, unitHealth)
 
 	-- TODO: Get attachment piece by customparam.
-	Spring.UnitAttach(mexID, conID, 6, true)
-	Spring.SetUnitRulesParam(conID, "pairedUnitID", mexID)
-	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
+	Engine.Synced.UnitAttach(mexID, conID, 6, true)
+	Engine.Synced.SetUnitRulesParam(conID, "pairedUnitID", mexID)
+	Engine.Synced.SetUnitRulesParam(mexID, "pairedUnitID", conID)
 	pairedUnits[conID] = mexID
 	pairedUnits[mexID] = conID
 	setMexSpeed[conID] = mexID
 
 	if isUnitNeutral then
-		Spring.SetUnitNeutral(mexID, true)
-		Spring.SetUnitNeutral(conID, true)
+		Engine.Synced.SetUnitNeutral(mexID, true)
+		Engine.Synced.SetUnitNeutral(conID, true)
 	end
 end
 
 local function trySwapMex(unitID, unitData)
-	if Spring.GetUnitIsDead(unitID) ~= false then
+	if Engine.Shared.GetUnitIsDead(unitID) ~= false then
 		return
 	end
 
-	local unitTeam = Spring.GetUnitTeam(unitID)
-	local unitMax, unitCount = Spring.GetTeamMaxUnits(unitTeam)
+	local unitTeam = Engine.Shared.GetUnitTeam(unitID)
+	local unitMax, unitCount = Engine.Shared.GetTeamMaxUnits(unitTeam)
 
 	if not unitCount or unitMax < unitCount + 2 then
 		return
@@ -143,18 +143,18 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if fakeBuildDefID[unitDefID] then
 		local swapDefs = fakeBuildDefID[unitDefID]
-		local ux, uy, uz = Spring.GetUnitPosition(unitID)
-		local _, metalCost, energyCost = Spring.GetUnitCosts(unitID)
+		local ux, uy, uz = Engine.Shared.GetUnitPosition(unitID)
+		local _, metalCost, energyCost = Engine.Shared.GetUnitCosts(unitID)
 
 		mexesToSwap[unitID] = {
 			swapDefs = swapDefs,
 			x = ux,
 			y = uy,
 			z = uz,
-			facing = Spring.GetUnitBuildFacing(unitID),
+			facing = Engine.Shared.GetUnitBuildFacing(unitID),
 			metal = metalCost,
 			energy = energyCost,
-			frame = Spring.GetGameFrame() + 1,
+			frame = Engine.Shared.GetGameFrame() + 1,
 		}
 	end
 end
@@ -162,11 +162,11 @@ end
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if mexTurretDefID[unitDefID] then
 		local pairedID = pairedUnits[unitID]
-		if not pairedID and Spring.GetUnitRulesParam then
-			pairedID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
+		if not pairedID and Engine.Shared.GetUnitRulesParam then
+			pairedID = Engine.Shared.GetUnitRulesParam(unitID, "pairedUnitID")
 		end
 		if pairedID and pairedID ~= 0 then
-			Spring.TransferUnit(pairedID, newTeam)
+			Engine.Synced.TransferUnit(pairedID, newTeam)
 		end
 	end
 end
@@ -176,17 +176,17 @@ local function doUnitDamaged(unitID, unitDefID, unitTeam, damage)
 
 	if health - damage < 0 and damage < maxHealth * 0.5 then
 		local buildAsUnitName = mexTurretDefID[unitDefID]
-		local xx, yy, zz = Spring.GetUnitPosition(unitID)
-		local facing = Spring.GetUnitBuildFacing(unitID)
+		local xx, yy, zz = Engine.Shared.GetUnitPosition(unitID)
+		local facing = Engine.Shared.GetUnitBuildFacing(unitID)
 
 		-- todo: "damage" is not "recent damage" is not "damage severity"
 		if damage < maxHealth * 0.25 then
-			local featureID = Spring.CreateFeature(buildAsUnitName .. "_dead", xx, yy, zz, facing, unitTeam)
+			local featureID = Engine.Synced.CreateFeature(buildAsUnitName .. "_dead", xx, yy, zz, facing, unitTeam)
 			if featureID then
-				Spring.SetFeatureResurrect(featureID, buildAsUnitName, facing, 0)
+				Engine.Synced.SetFeatureResurrect(featureID, buildAsUnitName, facing, 0)
 			end
 		else
-			Spring.CreateFeature(buildAsUnitName .. "_heap", xx, yy, zz, facing, unitTeam)
+			Engine.Synced.CreateFeature(buildAsUnitName .. "_heap", xx, yy, zz, facing, unitTeam)
 		end
 	end
 end
@@ -204,7 +204,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		if pairedUnitID then
 			pairedUnits[unitID] = nil
 			pairedUnits[pairedUnitID] = nil
-			Spring.DestroyUnit(pairedUnitID, false, true)
+			Engine.Synced.DestroyUnit(pairedUnitID, false, true)
 		end
 	end
 end
@@ -224,13 +224,13 @@ end
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.ONOFF)
 
-	for _, unitID in pairs(Spring.GetAllUnits()) do
-		if not Spring.GetUnitIsBeingBuilt(unitID) then
-			local unitDefID = Spring.GetUnitDefID(unitID)
+	for _, unitID in pairs(Engine.Shared.GetAllUnits()) do
+		if not Engine.Shared.GetUnitIsBeingBuilt(unitID) then
+			local unitDefID = Engine.Shared.GetUnitDefID(unitID)
 			gadget:UnitFinished(unitID, unitDefID)
 
 			if mexActualDefID[unitDefID] then
-				local pairedUnitID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
+				local pairedUnitID = Engine.Shared.GetUnitRulesParam(unitID, "pairedUnitID")
 				if pairedUnitID then
 					pairedUnits[unitID] = pairedUnitID
 					pairedUnits[pairedUnitID] = unitID

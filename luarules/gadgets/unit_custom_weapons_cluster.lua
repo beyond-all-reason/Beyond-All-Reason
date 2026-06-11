@@ -63,19 +63,19 @@ local sin = math.sin
 local atan2 = math.atan2
 local distsq = math.distance3dSquared
 
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGroundNormal = Spring.GetGroundNormal
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitRadius = Spring.GetUnitRadius
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitsInSphere = Spring.GetUnitsInSphere
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spSpawnProjectile = Spring.SpawnProjectile
-local spDeleteProjectile = Spring.DeleteProjectile
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGetGroundNormal = Engine.Shared.GetGroundNormal
+local spGetProjectileDefID = Engine.Shared.GetProjectileDefID
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitRadius = Engine.Shared.GetUnitRadius
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetUnitsInSphere = Engine.Shared.GetUnitsInSphere
+local spGetProjectileTeamID = Engine.Shared.GetProjectileTeamID
+local spGetProjectileVelocity = Engine.Shared.GetProjectileVelocity
+local spAreTeamsAllied = Engine.Shared.AreTeamsAllied
+local spSpawnProjectile = Engine.Synced.SpawnProjectile
+local spDeleteProjectile = Engine.Synced.DeleteProjectile
 
 local gameSpeed = Game.gameSpeed
 local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * -1
@@ -109,7 +109,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 			local clusterCount = tonumber(weaponDef.customParams.cluster_number)
 
 			if clusterCount < minSpawnNumber or clusterCount > maxSpawnNumber then
-				Spring.Log(gadget:GetInfo().name, LOG.WARNING, weaponDef.name .. ": cluster_count of " .. clusterCount .. ", clamping to " .. minSpawnNumber .. "-" .. maxSpawnNumber)
+				Engine.Shared.Log(gadget:GetInfo().name, LOG.WARNING, weaponDef.name .. ": cluster_count of " .. clusterCount .. ", clamping to " .. minSpawnNumber .. "-" .. maxSpawnNumber)
 				clusterCount = clamp(clusterCount, minSpawnNumber, maxSpawnNumber)
 			end
 
@@ -130,10 +130,10 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 						weaponTtl = clusterDef.flighttime or defaultSpawnTtl,
 					}
 				else
-					Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Invalid weapon spawn type: " .. clusterDef.type)
+					Engine.Shared.Log(gadget:GetInfo().name, LOG.ERROR, "Invalid weapon spawn type: " .. clusterDef.type)
 				end
 			else
-				Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Could not find weapon def matching cluster_def: " .. clusterDefName)
+				Engine.Shared.Log(gadget:GetInfo().name, LOG.ERROR, "Could not find weapon def matching cluster_def: " .. clusterDefName)
 			end
 		end
 	end
@@ -146,7 +146,7 @@ for weaponDefID, weaponData in pairs(clusterWeaponDefs) do
 	end
 end
 for weaponDefID in pairs(removeIDs) do
-	Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Preventing nested explosions: " .. WeaponDefs[weaponDefID].name)
+	Engine.Shared.Log(gadget:GetInfo().name, LOG.ERROR, "Preventing nested explosions: " .. WeaponDefs[weaponDefID].name)
 	clusterWeaponDefs[weaponDefID] = nil
 end
 
@@ -251,7 +251,7 @@ end
 DirectionsUtil.ProvisionDirections(maxDataNum)
 
 -- When not using the engine's shield bounce, clusters add their own deflection.
-local customShieldDeflect = table.contains({ "unchanged", "absorbeverything" }, Spring.GetModOptions().experimentalshields)
+local customShieldDeflect = table.contains({ "unchanged", "absorbeverything" }, Engine.Shared.GetModOptions().experimentalshields)
 local projectileHitShield = {}
 
 --------------------------------------------------------------------------------
@@ -539,7 +539,7 @@ end
 
 function gadget:Initialize()
 	if not next(clusterWeaponDefs) then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Removing gadget. No weapons found.")
+		Engine.Shared.Log(gadget:GetInfo().name, LOG.INFO, "Removing gadget. No weapons found.")
 		gadgetHandler:RemoveGadget(self)
 		return
 	end
@@ -549,7 +549,7 @@ function gadget:Initialize()
 	end
 
 	if not GG.Shields then
-		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (cluster)")
+		Engine.Shared.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (cluster)")
 		return
 	end
 

@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = Engine.Shared.Echo
 
 local export_folder_path = "json_export"
 
@@ -167,7 +167,7 @@ end
 
 local function ExportWeaponDefs(soundIndex)
 	local subdir = export_folder_path .. "/weaponDefs"
-	Spring.CreateDir(subdir)
+	Engine.Unsynced.CreateDir(subdir)
 	for _, weaponDef in pairs(WeaponDefs) do
 		spEcho(string.format("Exporting weapondef: %s", weaponDef.name))
 		local flattened = FlattenWeaponDef(weaponDef)
@@ -178,7 +178,7 @@ end
 
 local function ExportUnitDefs(soundIndex, iconTypeIndex)
 	local subdir = export_folder_path .. "/unitDefs"
-	Spring.CreateDir(subdir)
+	Engine.Unsynced.CreateDir(subdir)
 	for _, unitDef in pairs(UnitDefs) do
 		spEcho(string.format("Exporting unitdef: %s", unitDef.name))
 		local flattened = FlattenUnitDef(unitDef)
@@ -189,7 +189,7 @@ end
 
 local function ExportDefs()
 	if not VFS.FileExists(export_folder_path) then
-		Spring.CreateDir(export_folder_path)
+		Engine.Unsynced.CreateDir(export_folder_path)
 	end
 
 	spEcho("Building asset indices")

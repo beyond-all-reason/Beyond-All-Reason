@@ -12,9 +12,9 @@ function widget:GetInfo()
 	}
 end
 
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGetUnitStates = Spring.GetUnitStates
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetSelectedUnitsSorted = Engine.Unsynced.GetSelectedUnitsSorted
+local spGetUnitStates = Engine.Shared.GetUnitStates
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
 
 local unitOnOffable = {}
 for udid, ud in pairs(UnitDefs) do

@@ -5,10 +5,10 @@ local SimpleFactoriesCount = {}
 local SimpleFactories = {}
 local SimpleT1Mexes = {}
 local SimpleFactoryDelay = {}
-local teams = Spring.GetTeamList()
+local teams = Engine.Shared.GetTeamList()
 for i = 1, #teams do
 	local teamID = teams[i]
-	local luaAI = Spring.GetTeamLuaAI(teamID)
+	local luaAI = Engine.Shared.GetTeamLuaAI(teamID)
 	if luaAI and luaAI ~= "" and (string.sub(luaAI, 1, 8) == "SimpleAI" or string.sub(luaAI, 1, 15) == "SimpleCheaterAI" or string.sub(luaAI, 1, 16) == "SimpleDefenderAI" or string.sub(luaAI, 1, 19) == "SimpleConstructorAI") then
 		enabled = true
 		SimpleAITeamIDsCount = SimpleAITeamIDsCount + 1
@@ -174,26 +174,26 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGroundInfo = Spring.GetGroundInfo
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetTeamResources = Spring.GetTeamResources
-local spTestBuildOrder = Spring.TestBuildOrder
-local spGetFullBuildQueue = Spring.GetFullBuildQueue
-local spGetTeamUnits = Spring.GetTeamUnits
-local spGetAllUnits = Spring.GetAllUnits
-local spSetTeamResource = Spring.SetTeamResource
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetTeamLuaAI = Spring.GetTeamLuaAI
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local spGetUnitNearestEnemy = Engine.Shared.GetUnitNearestEnemy
+local spGetUnitsInCylinder = Engine.Shared.GetUnitsInCylinder
+local spGetUnitsInRectangle = Engine.Shared.GetUnitsInRectangle
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGetGroundInfo = Engine.Shared.GetGroundInfo
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitCommandCount = Engine.Shared.GetUnitCommandCount
+local spGetUnitHealth = Engine.Shared.GetUnitHealth
+local spGetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+local spGetTeamResources = Engine.Shared.GetTeamResources
+local spTestBuildOrder = Engine.Shared.TestBuildOrder
+local spGetFullBuildQueue = Engine.Shared.GetFullBuildQueue
+local spGetTeamUnits = Engine.Shared.GetTeamUnits
+local spGetAllUnits = Engine.Shared.GetAllUnits
+local spSetTeamResource = Engine.Synced.SetTeamResource
+local spGetTeamInfo = Engine.Shared.GetTeamInfo
+local spGetTeamLuaAI = Engine.Shared.GetTeamLuaAI
 local spDgunCommand = CMD.DGUN
 
 local function SimpleGetClosestMexSpot(x, z)

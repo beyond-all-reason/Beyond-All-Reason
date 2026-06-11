@@ -22,10 +22,10 @@ end
 -- childreninheritxp = "TURRET MOBILEBUILT DRONE BOTCANNON", --  determines what kinds of units linked to parent inherit XP
 -- parentsinheritxp = "TURRET MOBILEBUILT DRONE BOTCANNON", -- determines what kinds of units linked to the parent will give the parent XP
 
-local spGetUnitExperience = Spring.GetUnitExperience
-local spSetUnitExperience = Spring.SetUnitExperience
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitExperience = Engine.Shared.GetUnitExperience
+local spSetUnitExperience = Engine.Synced.SetUnitExperience
+local spGetUnitRulesParam = Engine.Shared.GetUnitRulesParam
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
 
 local inheritChildrenXP = {} -- stores the value of XP rate to be derived from unitdef
 local inheritCreationXP = {} -- multiplier of XP to inherit to newly created units, indexed by unitID
@@ -182,7 +182,7 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	local evoID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
+	local evoID = Engine.Shared.GetUnitRulesParam(unitID, "unit_evolved")
 	if evoID then
 		for id, data in pairs(childrenWithParents) do
 			if data.parentunitid == unitID then

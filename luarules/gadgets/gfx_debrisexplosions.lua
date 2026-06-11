@@ -29,9 +29,9 @@ if gadgetHandler:IsSyncedCode() then
 		Script.SetWatchExplosion(-1, true) -- well that doesnt register anything!
 	end
 
-	local spGetProjectileType = Spring.GetProjectileType
-	local spSpawnCEG = Spring.SpawnCEG
-	local spGetProjectilePosition = Spring.GetProjectilePosition
+	local spGetProjectileType = Engine.Shared.GetProjectileType
+	local spSpawnCEG = Engine.Synced.SpawnCEG
+	local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
 
 	function gadget:ProjectileDestroyed(proID) -- Catch debris explosions, get position, pick random ceg, spawn it at position.
 		local weapon, piece = spGetProjectileType(proID)

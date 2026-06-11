@@ -41,11 +41,11 @@ end
 
 ----- Speed ups ------
 local myTeam = spGetMyTeamID()
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetFactoryCommands = Spring.GetFactoryCommands
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local spGetFactoryCommands = Engine.Shared.GetFactoryCommands
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitCmdDescs = Engine.Shared.GetUnitCmdDescs
+local spFindUnitCmdDesc = Engine.Shared.FindUnitCmdDesc
 
 local CMD_INSERT = CMD.INSERT
 local CMD_OPT_ALT = CMD.OPT_ALT
@@ -95,10 +95,10 @@ local function isFactoryUsable(factoryID)
 end
 
 local function appendToFactoryQueue(factoryID, unitDefID)
-	local currentCmdID, targetID = Spring.GetUnitWorkerTask(factoryID)
+	local currentCmdID, targetID = Engine.Shared.GetUnitWorkerTask(factoryID)
 	local insertPosition = 1
 	if targetID then
-		local _, _, _, _, buildProgress = Spring.GetUnitHealth(targetID)
+		local _, _, _, _, buildProgress = Engine.Shared.GetUnitHealth(targetID)
 		if buildProgress < maxBuildProg and metalcosts[-currentCmdID] and (buildProgress * metalcosts[-currentCmdID]) < maxMetal then -- 7.5 % is the most that it is willing to cancel, and maximally 500 metal
 			insertPosition = 0
 		end
@@ -172,7 +172,7 @@ function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() then
+	if Engine.Unsynced.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 	myTeam = spGetMyTeamID()

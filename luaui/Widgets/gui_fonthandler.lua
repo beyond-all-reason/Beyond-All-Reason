@@ -16,21 +16,21 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
+local spEcho = Engine.Shared.Echo
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
 
 local vsx, vsy = spGetViewGeometry()
 
-local defaultFont = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local defaultFont2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local defaultFont3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
+local defaultFont = "fonts/" .. Engine.Unsynced.GetConfigString("bar_font", "Poppins-Regular.otf")
+local defaultFont2 = "fonts/" .. Engine.Unsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local defaultFont3 = "fonts/monospaced/" .. Engine.Unsynced.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 
 local defaultSize = 34
 
 local defaultOutlineStrength = 1.7
 local defaultOutlineSize -- assigned in ViewResize
 
-local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+local ui_scale = Engine.Unsynced.GetConfigFloat("ui_scale", 1)
 
 local fonts = {}
 local fontScale = 1
@@ -130,7 +130,7 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	if Spring.GetGameFrame() > 0 then
+	if Engine.Shared.GetGameFrame() > 0 then
 		if data.fonts ~= nil then
 			fonts = data.fonts -- not sure why BYAR.lua just shows empty table while it has the fonts when restoring o_0
 			fontScale = data.fontScale

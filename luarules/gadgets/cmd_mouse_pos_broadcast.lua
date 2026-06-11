@@ -62,12 +62,12 @@ else
 
 	--------------------------------------------------------------------------------
 
-	local GetMouseState = Spring.GetMouseState
-	local TraceScreenRay = Spring.TraceScreenRay
-	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
-	local GetSpectatingState = Spring.GetSpectatingState
-	local GetPlayerInfo = Spring.GetPlayerInfo
-	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
+	local GetMouseState = Engine.Unsynced.GetMouseState
+	local TraceScreenRay = Engine.Unsynced.TraceScreenRay
+	local SendLuaRulesMsg = Engine.Unsynced.SendLuaRulesMsg
+	local GetSpectatingState = Engine.Unsynced.GetSpectatingState
+	local GetPlayerInfo = Engine.Shared.GetPlayerInfo
+	local GetLastUpdateSeconds = Engine.Unsynced.GetLastUpdateSeconds
 
 	local floor = math.floor
 	local abs = math.abs
@@ -117,7 +117,7 @@ else
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
-			spec, _ = Spring.GetSpectatingState()
+			spec, _ = Engine.Unsynced.GetSpectatingState()
 			myAllyTeamID = select(5, GetPlayerInfo(myPlayerID, false))
 			if spec then
 				saveEach = sendPacketEveryWhenSpec / numMousePos

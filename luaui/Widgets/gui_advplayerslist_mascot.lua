@@ -438,7 +438,7 @@ function updatePosition(force)
 	elseif WG["advplayerlist_api"] ~= nil then
 		parentPos = WG["advplayerlist_api"].GetPosition()
 	else
-		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
+		local scale = (vsy / 880) * (1 + (Engine.Unsynced.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
 		parentPos = { 0, vsx - (220 * scale), 0, vsx, scale }
 	end
 	if parentPos[5] ~= nil then
@@ -459,7 +459,7 @@ end
 
 local function tryPlaySound(soundPath)
 	if soundPath then
-		Spring.PlaySoundFile(soundPath, 1.0, "ui")
+		Engine.Unsynced.PlaySoundFile(soundPath, 1.0, "ui")
 	end
 end
 
@@ -668,7 +668,7 @@ function widget:TextCommand(command)
 		soundTimer = 0
 		resetEmoteState()
 		toggleOptions(tonumber(string.sub(command, 8)))
-		Spring.Echo("Playerlist mascot: " .. OPTIONS[currentOption].name)
+		Engine.Shared.Echo("Playerlist mascot: " .. OPTIONS[currentOption].name)
 	end
 end
 

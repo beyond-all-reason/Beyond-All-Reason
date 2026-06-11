@@ -1,11 +1,11 @@
 -- run test using BAR command (in chat): `/runtests select_api`
-local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
 local selectApi = VFS.Include("luaui/Include/select_api.lua")
 local nameLookup = {}
 local passed = true
 
 function skip()
-	return Spring.GetGameFrame() <= 0 or not Platform.gl
+	return Engine.Shared.GetGameFrame() <= 0 or not Platform.gl
 end
 
 function setup()
@@ -13,7 +13,7 @@ function setup()
 end
 
 function cleanup()
-	Spring.SendCommands("setspeed " .. 1)
+	Engine.Unsynced.SendCommands("setspeed " .. 1)
 end
 
 local function printTable(tbl, indent)
@@ -95,11 +95,11 @@ local function createAndAddUnit(udefid, name, x, z, uids, group)
 		local z = locals.z
 		local group = locals.group
 
-		local y = Spring.GetGroundHeight(x, z)
-		local unitID = Spring.CreateUnit(udefid, x, y, z, "east", 0)
+		local y = Engine.Shared.GetGroundHeight(x, z)
+		local unitID = Engine.Synced.CreateUnit(udefid, x, y, z, "east", 0)
 
 		if group == 1 then
-			Spring.SetUnitGroup(unitID, 1)
+			Engine.Unsynced.SetUnitGroup(unitID, 1)
 		end
 		return unitID
 	end)
@@ -172,18 +172,18 @@ local function test_command(preSelectedUnitIDs, filter, command, conclusion)
 	-- api command
 	local apiCommand = selectApi.getCommand(command)
 	local apiCommandUnitSet = {}
-	Spring.SelectUnitArray(preSelectedUnitIDs)
+	Engine.Unsynced.SelectUnitArray(preSelectedUnitIDs)
 	apiCommand()
-	local apiUnits = Spring.GetSelectedUnits()
+	local apiUnits = Engine.Unsynced.GetSelectedUnits()
 	for _, uid in pairs(apiUnits) do
 		apiCommandUnitSet[uid] = true
 	end
 
 	-- spring
 	local springUnitSet = {}
-	Spring.SelectUnitArray(preSelectedUnitIDs)
-	Spring.SendCommands(springCommand)
-	local springUnits = Spring.GetSelectedUnits()
+	Engine.Unsynced.SelectUnitArray(preSelectedUnitIDs)
+	Engine.Unsynced.SendCommands(springCommand)
+	local springUnits = Engine.Unsynced.GetSelectedUnits()
 	for _, uid in pairs(springUnits) do
 		springUnitSet[uid] = true
 	end

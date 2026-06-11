@@ -16,11 +16,11 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local EditUnitCmdDesc = Spring.EditUnitCmdDesc
-local FindUnitCmdDesc = Spring.FindUnitCmdDesc
-local InsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local SetUnitNeutral = Spring.SetUnitNeutral
+local EditUnitCmdDesc = Engine.Synced.EditUnitCmdDesc
+local FindUnitCmdDesc = Engine.Shared.FindUnitCmdDesc
+local InsertUnitCmdDesc = Engine.Synced.InsertUnitCmdDesc
+local GiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local SetUnitNeutral = Engine.Synced.SetUnitNeutral
 local CMD_IDLEMODE = CMD.IDLEMODE
 local CMD_LAND_AT = GameCMD.LAND_AT
 

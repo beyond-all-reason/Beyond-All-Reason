@@ -31,9 +31,9 @@ local mathRandom = math.random
 local mathPi = math.pi
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetDrawFrame = Spring.GetDrawFrame
+local spEcho = Engine.Shared.Echo
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spGetDrawFrame = Engine.Unsynced.GetDrawFrame
 
 -- pre unitStencilTexture it takes 800 ms per frame
 -- todo: fake more ground ao in blur pass?
@@ -141,9 +141,9 @@ local cusMult = 1.4
 local strengthMult = 1
 local strengthMultCached = 0 -- pre-computed shaderConfig.SSAO_ALPHA_POW / 7.0, updated in InitGL
 
-local initialTonemapA = Spring.GetConfigFloat("tonemapA", 4.75)
-local initialTonemapD = Spring.GetConfigFloat("tonemapD", 0.85)
-local initialTonemapE = Spring.GetConfigFloat("tonemapE", 1.0)
+local initialTonemapA = Engine.Unsynced.GetConfigFloat("tonemapA", 4.75)
+local initialTonemapD = Engine.Unsynced.GetConfigFloat("tonemapD", 0.85)
+local initialTonemapE = Engine.Unsynced.GetConfigFloat("tonemapE", 1.0)
 
 local preset = 3
 local presets = {
@@ -398,10 +398,10 @@ local function InitGL()
 
 	-- make unit lighting brighter to compensate for darkening (also restoring values on Shutdown())
 	if presets[preset].tonemapA then
-		Spring.SetConfigFloat("tonemapA", initialTonemapA + (presets[preset].tonemapA * ((shaderConfig.SSAO_ALPHA_POW * strengthMult) / 11)))
-		Spring.SetConfigFloat("tonemapD", initialTonemapD + (presets[preset].tonemapD * ((shaderConfig.SSAO_ALPHA_POW * strengthMult) / 11)))
-		Spring.SetConfigFloat("tonemapE", initialTonemapE + (presets[preset].tonemapE * ((shaderConfig.SSAO_ALPHA_POW * strengthMult) / 11)))
-		Spring.SendCommands("luarules updatesun")
+		Engine.Unsynced.SetConfigFloat("tonemapA", initialTonemapA + (presets[preset].tonemapA * ((shaderConfig.SSAO_ALPHA_POW * strengthMult) / 11)))
+		Engine.Unsynced.SetConfigFloat("tonemapD", initialTonemapD + (presets[preset].tonemapD * ((shaderConfig.SSAO_ALPHA_POW * strengthMult) / 11)))
+		Engine.Unsynced.SetConfigFloat("tonemapE", initialTonemapE + (presets[preset].tonemapE * ((shaderConfig.SSAO_ALPHA_POW * strengthMult) / 11)))
+		Engine.Unsynced.SendCommands("luarules updatesun")
 	end
 
 	vsx, vsy = spGetViewGeometry()
@@ -663,7 +663,7 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 1 then
 		sec = 0
-		if Spring.GetConfigInt("cus", 1) == 1 then
+		if Engine.Unsynced.GetConfigInt("cus", 1) == 1 then
 			if WG.disabledCus then
 				strengthMult = 1
 			else
@@ -678,10 +678,10 @@ end
 function widget:Shutdown()
 	-- restore unit lighting settings
 	if presets[preset].tonemapA then
-		Spring.SetConfigFloat("tonemapA", initialTonemapA)
-		Spring.SetConfigFloat("tonemapD", initialTonemapD)
-		Spring.SetConfigFloat("tonemapE", initialTonemapE)
-		Spring.SendCommands("luarules updatesun")
+		Engine.Unsynced.SetConfigFloat("tonemapA", initialTonemapA)
+		Engine.Unsynced.SetConfigFloat("tonemapD", initialTonemapD)
+		Engine.Unsynced.SetConfigFloat("tonemapE", initialTonemapE)
+		Engine.Unsynced.SendCommands("luarules updatesun")
 	end
 
 	if shaderDefinedSlidersLayer and shaderDefinedSlidersLayer.Destroy then
@@ -846,10 +846,10 @@ function widget:GetConfigData(data)
 	}
 end
 
-local lastfps = Spring.GetFPS()
+local lastfps = Engine.Unsynced.GetFPS()
 function widget:DrawScreen()
 	if shaderDefinedSlidersLayer then
-		local newfps = Spring.GetFPS()
+		local newfps = Engine.Unsynced.GetFPS()
 		if ssaoShaderCache.updateFlag then
 			ssaoShaderCache.updateFlag = nil
 			lastfps = newfps

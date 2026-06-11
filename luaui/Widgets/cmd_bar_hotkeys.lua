@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = Engine.Shared.Echo
 
 local currentLayout
 local currentKeybindingsFile
@@ -42,15 +42,15 @@ end
 local function fallbackToDefault(currentKeys)
 	local default = keyConfig.keybindingLayoutFiles[1]
 	spEcho("BAR Hotkeys: Did not find keybindings file " .. currentKeys .. ". Loading grid keys")
-	Spring.SendCommands("keyreload " .. default)
+	Engine.Unsynced.SendCommands("keyreload " .. default)
 	return default
 end
 
 local function reloadBindings()
 	-- Second parameter here is just a fallback if this config is undefined
-	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+	currentLayout = Engine.Unsynced.GetConfigString("KeyboardLayout", "qwerty")
 
-	currentKeybindingsFile = Spring.GetConfigString("KeybindingFile", keyConfig.keybindingLayoutFiles[1])
+	currentKeybindingsFile = Engine.Unsynced.GetConfigString("KeybindingFile", keyConfig.keybindingLayoutFiles[1])
 
 	-- detect if old "default" settings are present, replace with "legacy"
 	local usingOldPreset = string.find(currentKeybindingsFile, "default") and true or false
@@ -64,11 +64,11 @@ local function reloadBindings()
 	end
 
 	if VFS.FileExists(currentKeybindingsFile) then
-		Spring.SendCommands("keyreload " .. currentKeybindingsFile)
+		Engine.Unsynced.SendCommands("keyreload " .. currentKeybindingsFile)
 		spEcho("BAR Hotkeys: Loaded hotkeys from " .. currentKeybindingsFile)
 		if usingOldPreset then
 			-- resolve upgrading from old "default" to "legacy"
-			Spring.SetConfigString("KeybindingFile", currentKeybindingsFile)
+			Engine.Unsynced.SetConfigString("KeybindingFile", currentKeybindingsFile)
 		end
 	else
 		spEcho("BAR Hotkeys: No hotkey file found")
@@ -85,6 +85,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	Spring.SendCommands("keyreload")
+	Engine.Unsynced.SendCommands("keyreload")
 	reloadWidgetsBindings()
 end

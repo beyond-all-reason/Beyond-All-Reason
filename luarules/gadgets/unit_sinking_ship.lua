@@ -18,12 +18,12 @@ end
 
 local damping = 0.1
 
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetFeatureVelocity = Spring.GetFeatureVelocity
-local spGetFeatureRotation = Spring.GetFeatureRotation
-local spSetFeaturePhysics = Spring.SetFeaturePhysics
-local spGetGameFrame = Spring.GetGameFrame
+local spGetFeaturePosition = Engine.Shared.GetFeaturePosition
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGetFeatureVelocity = Engine.Shared.GetFeatureVelocity
+local spGetFeatureRotation = Engine.Shared.GetFeatureRotation
+local spSetFeaturePhysics = Engine.Synced.SetFeaturePhysics
+local spGetGameFrame = Engine.Shared.GetGameFrame
 
 function gadget:FeatureCreated(featureID)
 	if spGetGameFrame() < 1 then

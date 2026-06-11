@@ -17,9 +17,9 @@ local CMD_MOVE_STATE = CMD.MOVE_STATE
 local gameStarted = false
 local isBomber = {}
 
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = Engine.Shared.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGiveOrder = Spring.GiveOrderToUnit
+local spGiveOrder = Engine.Shared.GiveOrderToUnit
 local myTeamID = spGetMyTeamID()
 
 local function UnitDefIsBomber(ud)
@@ -57,7 +57,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, factID, factDefID, user
 end
 
 local function maybeRemoveSelf()
-	if Spring.IsReplay() or (Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted)) then
+	if Engine.Unsynced.IsReplay() or (Engine.Unsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted)) then
 		widgetHandler:RemoveWidget()
 	end
 end

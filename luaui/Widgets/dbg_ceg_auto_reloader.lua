@@ -20,8 +20,8 @@ end
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetMouseState = Spring.GetMouseState
-local spEcho = Spring.Echo
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spEcho = Engine.Shared.Echo
 
 local mouseOffscreen = select(6, spGetMouseState())
 
@@ -972,7 +972,7 @@ local function ScanChanges()
 	if allok then
 		for cegDefname, cegDefFile in pairs(needsReload) do
 			spEcho("Reloading: " .. cegDefname)
-			Spring.SendCommands("reloadcegs")
+			Engine.Unsynced.SendCommands("reloadcegs")
 		end
 	end
 end
@@ -994,12 +994,12 @@ function widget:Initialize()
 	LoadAllCegs()
 end
 
-local lastUpdate = Spring.GetTimer()
+local lastUpdate = Engine.Unsynced.GetTimer()
 function widget:Update()
-	if Spring.DiffTimers(Spring.GetTimer(), lastUpdate) < 1 then
+	if Engine.Unsynced.DiffTimers(Engine.Unsynced.GetTimer(), lastUpdate) < 1 then
 		return
 	end
-	lastUpdate = Spring.GetTimer()
+	lastUpdate = Engine.Unsynced.GetTimer()
 
 	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, spGetMouseState())
@@ -1009,6 +1009,6 @@ function widget:Update()
 	--end
 
 	if spamCeg then
-		Spring.SendCommands("luarules spawnceg " .. spamCeg .. " 0")
+		Engine.Unsynced.SendCommands("luarules spawnceg " .. spamCeg .. " 0")
 	end
 end

@@ -17,29 +17,29 @@ function widget:GetInfo()
 end
 
 function widget:MouseWheel(up)
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = Engine.Unsynced.GetModKeyState()
 
 	if alt or ctrl or meta or shift then
 		return
 	end
 
-	local camState = Spring.GetCameraState()
+	local camState = Engine.Unsynced.GetCameraState()
 	local isOverview = camState.name == "ov"
 
-	if Spring.GetConfigInt("ScrollWheelSpeed", 1) > 0 then
+	if Engine.Unsynced.GetConfigInt("ScrollWheelSpeed", 1) > 0 then
 		up = not up
 	end
 
 	if up then
 		if isOverview then
-			Spring.SendCommands({ "toggleoverview" })
+			Engine.Unsynced.SendCommands({ "toggleoverview" })
 		end
 
 		return true
 	end
 
 	if not isOverview then
-		Spring.SendCommands({ "toggleoverview" })
+		Engine.Unsynced.SendCommands({ "toggleoverview" })
 	end
 
 	return true

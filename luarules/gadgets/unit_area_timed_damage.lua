@@ -82,19 +82,19 @@ local stringLower = string.lower
 local tableInsert = table.insert
 local tableRemove = table.remove
 
-local spAddUnitDamage = Spring.AddUnitDamage
-local spAddFeatureDamage = Spring.AddFeatureDamage
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
-local spGetFeatureRadius = Spring.GetFeatureRadius
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGroundNormal = Spring.GetGroundNormal
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitRadius = Spring.GetUnitRadius
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spGetWaterPlaneLevel = Spring.GetWaterPlaneLevel
-local spSpawnCEG = Spring.SpawnCEG
+local spAddUnitDamage = Engine.Synced.AddUnitDamage
+local spAddFeatureDamage = Engine.Synced.AddFeatureDamage
+local spGetFeaturePosition = Engine.Shared.GetFeaturePosition
+local spGetFeaturesInCylinder = Engine.Shared.GetFeaturesInCylinder
+local spGetFeatureRadius = Engine.Shared.GetFeatureRadius
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGetGroundNormal = Engine.Shared.GetGroundNormal
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitRadius = Engine.Shared.GetUnitRadius
+local spGetUnitsInCylinder = Engine.Shared.GetUnitsInCylinder
+local spGetWaterPlaneLevel = Engine.Shared.GetWaterPlaneLevel
+local spSpawnCEG = Engine.Synced.SpawnCEG
 
 local gameSpeed = Game.gameSpeed
 
@@ -523,17 +523,17 @@ function gadget:Initialize()
 				if params.ceg ~= ceg or params.range ~= range then
 					params.ceg = ceg
 					params.range = range
-					Spring.Log(gadget:GetInfo().name, LOG.INFO, "Set " .. name .. " to range, ceg = " .. range .. ", " .. ceg)
+					Engine.Shared.Log(gadget:GetInfo().name, LOG.INFO, "Set " .. name .. " to range, ceg = " .. range .. ", " .. ceg)
 				end
 			else
 				timedDamageWeapons[weaponDefID] = nil
-				Spring.Log(gadget:GetInfo().name, LOG.WARN, "Removed " .. name .. " from area timed damage weapons.")
+				Engine.Shared.Log(gadget:GetInfo().name, LOG.WARN, "Removed " .. name .. " from area timed damage weapons.")
 			end
 		end
 	end
 
 	if not next(timedDamageWeapons) then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
+		Engine.Shared.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
 		gadgetHandler:RemoveGadget(self)
 		return
 	end
@@ -602,18 +602,18 @@ function gadget:Initialize()
 		aliveExplosions[ii] = {}
 	end
 
-	frameNumber = Spring.GetGameFrame()
+	frameNumber = Engine.Shared.GetGameFrame()
 	frameExplosions = aliveExplosions[1 + (frameNumber % frameInterval)]
 	for frame = frameNumber - 1, frameNumber + gameSpeed do
 		unitDamageReset[frame] = {}
 		featDamageReset[frame] = {}
 	end
 
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
+	for _, unitID in ipairs(Engine.Shared.GetAllUnits()) do
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 	end
 
-	for _, featureID in ipairs(Spring.GetAllFeatures()) do
+	for _, featureID in ipairs(Engine.Shared.GetAllFeatures()) do
 		gadget:FeatureCreated(featureID)
 	end
 end
@@ -651,7 +651,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:FeatureCreated(featureID, allyTeam)
-	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local featureDefID = Engine.Shared.GetFeatureDefID(featureID)
 	featureData[featureID] = {
 		damageTaken = 0,
 		damageImmune = featureDamageImmunity[featureDefID],
@@ -665,8 +665,8 @@ end
 if lavaWater then
 	local positionError = 24
 
-	local spGetProjectilePosition = Spring.GetProjectilePosition
-	local spSetProjectileCollision = Spring.SetProjectileCollision
+	local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
+	local spSetProjectileCollision = Engine.Synced.SetProjectileCollision
 
 	local projectiles = {}
 	local lastAreaElevation = waterPlaneLevel

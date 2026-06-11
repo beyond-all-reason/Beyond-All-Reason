@@ -19,7 +19,7 @@ end
 
 local SELF_NAME = "Gadget Auto Reloader"
 
-local spEcho = Spring.Echo
+local spEcho = Engine.Shared.Echo
 
 local gadgetContents = {}
 local gadgetFileNames = {}
@@ -140,7 +140,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 else
-	local spGetMouseState = Spring.GetMouseState
+	local spGetMouseState = Engine.Unsynced.GetMouseState
 	local mouseOffscreen = select(6, spGetMouseState())
 
 	function gadget:Initialize()
@@ -158,9 +158,9 @@ else
 		end
 
 		if next(updateQueue) then
-			local startTime = Spring.GetTimer()
+			local startTime = Engine.Unsynced.GetTimer()
 			-- 3 ms budget per frame
-			while next(updateQueue) and (Spring.DiffTimers(Spring.GetTimer(), startTime, true) < 3.0) do
+			while next(updateQueue) and (Engine.Unsynced.DiffTimers(Engine.Unsynced.GetTimer(), startTime, true) < 3.0) do
 				local gadgetName, fileName = next(updateQueue)
 				CheckForChanges(gadgetName, fileName, "unsynced")
 				updateQueue[gadgetName] = nil

@@ -44,11 +44,11 @@ end
 
 local luaFiles = VFS.DirList("units/", "*.lua", nil, true)
 
-local legionEnabled = Spring.GetModOptions().experimentallegionfaction
+local legionEnabled = Engine.Shared.GetModOptions().experimentallegionfaction
 local scavengersEnabled = Spring.Utilities.Gametype.IsScavengers()
 local raptorsEnabled = Spring.Utilities.Gametype.IsRaptors()
 
-if Spring.GetModOptions().ruins == "enabled" then
+if Engine.Shared.GetModOptions().ruins == "enabled" then
 	legionEnabled = true
 	scavengersEnabled = true
 end
@@ -57,17 +57,17 @@ if scavengersEnabled then
 	legionEnabled = true
 end
 
-if Spring.GetModOptions().zombies ~= "disabled" then
+if Engine.Shared.GetModOptions().zombies ~= "disabled" then
 	scavengersEnabled = true
 	legionEnabled = true
 end
 
-if Spring.GetModOptions().experimentalextraunits or Spring.GetModOptions().scavunitsforplayers then
+if Engine.Shared.GetModOptions().experimentalextraunits or Engine.Shared.GetModOptions().scavunitsforplayers then
 	scavengersEnabled = true
 	legionEnabled = true
 end
 
-if Spring.GetModOptions().forceallunits then
+if Engine.Shared.GetModOptions().forceallunits then
 	raptorsEnabled = true
 	scavengersEnabled = true
 	legionEnabled = true
@@ -86,15 +86,15 @@ for _, filename in ipairs(luaFiles) do
 		setmetatable(unitDefsEnv, { __index = system })
 		local success, defs = pcall(VFS.Include, filename, unitDefsEnv, VFS_MODES)
 		if not success then
-			Spring.Log(section, LOG.ERROR, "Error parsing " .. filename .. ": " .. tostring(defs))
+			Engine.Shared.Log(section, LOG.ERROR, "Error parsing " .. filename .. ": " .. tostring(defs))
 		elseif type(defs) ~= "table" then
-			Spring.Log(section, LOG.ERROR, "Bad return table from: " .. filename)
+			Engine.Shared.Log(section, LOG.ERROR, "Bad return table from: " .. filename)
 		else
 			for unitDefName, unitDef in pairs(defs) do
 				if (type(unitDefName) == "string") and (type(unitDef) == "table") then
 					unitDefs[unitDefName] = unitDef
 				else
-					Spring.Log(section, LOG.ERROR, "Bad return table entry from: " .. filename)
+					Engine.Shared.Log(section, LOG.ERROR, "Bad return table entry from: " .. filename)
 				end
 			end
 		end
@@ -125,12 +125,12 @@ for name, def in pairs(unitDefs) do
 	local model = def.objectname
 	if model == nil then
 		unitDefs[name] = nil
-		Spring.Log(section, LOG.ERROR, "removed " .. name .. " unitDef, missing objectname param")
+		Engine.Shared.Log(section, LOG.ERROR, "removed " .. name .. " unitDef, missing objectname param")
 	else
 		local objfile = "objects3d/" .. model
 		if not VFS.FileExists(objfile) then
 			unitDefs[name] = nil
-			Spring.Log(section, LOG.ERROR, "removed " .. name .. " unitDef, missing model file  (" .. model .. ")")
+			Engine.Shared.Log(section, LOG.ERROR, "removed " .. name .. " unitDef, missing model file  (" .. model .. ")")
 		end
 	end
 end

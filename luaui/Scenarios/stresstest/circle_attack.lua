@@ -1,18 +1,18 @@
 VFS.Include("luaui/Scenarios/stresstest/multi_attack.lua")
 
 function radius_attack(targetsCenter, nattackers)
-	local y = Spring.GetGroundHeight(targetsCenter[1], targetsCenter[2])
+	local y = Engine.Shared.GetGroundHeight(targetsCenter[1], targetsCenter[2])
 	local targetPosition = { targetsCenter[1], y + 5, targetsCenter[2], targetsCenter[3] }
 
 	local CMD_ATTACK = CMD.ATTACK
 
 	-- get units
-	local spGetUnitDefID = Spring.GetUnitDefID
+	local spGetUnitDefID = Engine.Shared.GetUnitDefID
 
 	local attackers = table.new and table.new(nattackers) or {}
 	local attackerDefID = UnitDefNames[Scenario.attackerDef].id
 
-	local all_units = Spring.GetAllUnits()
+	local all_units = Engine.Shared.GetAllUnits()
 	for _, unitID in ipairs(all_units) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if unitDefID == attackerDefID then
@@ -21,9 +21,9 @@ function radius_attack(targetsCenter, nattackers)
 	end
 
 	-- give order
-	Spring.SelectUnitArray(attackers)
-	Spring.GiveOrder(CMD_ATTACK, targetPosition, 0)
-	Spring.SelectUnitArray({})
+	Engine.Unsynced.SelectUnitArray(attackers)
+	Engine.Unsynced.GiveOrder(CMD_ATTACK, targetPosition, 0)
+	Engine.Unsynced.SelectUnitArray({})
 end
 
 function test()
@@ -37,11 +37,11 @@ function test()
 	local doCircle = true
 
 	local circle = SyncedRun(synced_setup)
-	Spring.Echo("init time preinit:", os.clock() - t0)
+	Engine.Shared.Echo("init time preinit:", os.clock() - t0)
 
 	Test.waitFrames(1)
 
 	radius_attack(circle, nattackers)
 
-	Spring.Echo("total time:", os.clock() - t0)
+	Engine.Shared.Echo("total time:", os.clock() - t0)
 end

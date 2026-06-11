@@ -21,11 +21,11 @@ if gadgetHandler:IsSyncedCode() then
 				geoFeatureDefs[defID] = true
 			end
 		end
-		local features = Spring.GetAllFeatures()
+		local features = Engine.Shared.GetAllFeatures()
 		for i = 1, #features do
-			if geoFeatureDefs[Spring.GetFeatureDefID(features[i])] then
-				local x, y, z = Spring.GetFeaturePosition(features[i])
-				Spring.SetFeaturePosition(features[i], x, Spring.GetGroundHeight(x, z), z, true) -- snaptoground = true
+			if geoFeatureDefs[Engine.Shared.GetFeatureDefID(features[i])] then
+				local x, y, z = Engine.Shared.GetFeaturePosition(features[i])
+				Engine.Synced.SetFeaturePosition(features[i], x, Engine.Shared.GetGroundHeight(x, z), z, true) -- snaptoground = true
 			end
 		end
 		gadgetHandler:RemoveGadget(self)

@@ -13,18 +13,18 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-	local spCreateUnit = Spring.CreateUnit
-	local spDestroyUnit = Spring.DestroyUnit
-	local spGiveOrderToUnit = Spring.GiveOrderToUnit
-	local spSetUnitRulesParam = Spring.SetUnitRulesParam
-	local spGetUnitPosition = Spring.GetUnitPosition
-	local spGetUnitRulesParam = Spring.GetUnitRulesParam
-	local spGetUnitHealth = Spring.GetUnitHealth
-	local spGetUnitTeam = Spring.GetUnitTeam
-	local spSetUnitHealth = Spring.SetUnitHealth
-	local spGetGameSeconds = Spring.GetGameSeconds
-	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
-	local spGetUnitDefID = Spring.GetUnitDefID
+	local spCreateUnit = Engine.Synced.CreateUnit
+	local spDestroyUnit = Engine.Synced.DestroyUnit
+	local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+	local spSetUnitRulesParam = Engine.Synced.SetUnitRulesParam
+	local spGetUnitPosition = Engine.Shared.GetUnitPosition
+	local spGetUnitRulesParam = Engine.Shared.GetUnitRulesParam
+	local spGetUnitHealth = Engine.Shared.GetUnitHealth
+	local spGetUnitTeam = Engine.Shared.GetUnitTeam
+	local spSetUnitHealth = Engine.Synced.SetUnitHealth
+	local spGetGameSeconds = Engine.Shared.GetGameSeconds
+	local spGetUnitNearestEnemy = Engine.Shared.GetUnitNearestEnemy
+	local spGetUnitDefID = Engine.Shared.GetUnitDefID
 
 	local diag = math.diag
 
@@ -77,12 +77,12 @@ if gadgetHandler:IsSyncedCode() then
 			local health, maxHealth = spGetUnitHealth(unitID)
 			local effigyID = meta.effigyID
 			local ex, ey, ez = spGetUnitPosition(effigyID)
-			Spring.SetUnitPosition(unitID, ex, ez, true)
-			Spring.SpawnCEG("commander-spawn", ex, ey, ez, 0, 0, 0)
+			Engine.Synced.SetUnitPosition(unitID, ex, ez, true)
+			Engine.Synced.SpawnCEG("commander-spawn", ex, ey, ez, 0, 0, 0)
 			if GG.SpawnEnvironmentalLightning then
 				GG.SpawnEnvironmentalLightning("commanderspawn", ex, ey, ez)
 			end
-			Spring.PlaySoundFile("commanderspawn-mono", 1.0, ex, ey, ez, 0, 0, 0, "sfx")
+			Engine.Unsynced.PlaySoundFile("commanderspawn-mono", 1.0, ex, ey, ez, 0, 0, 0, "sfx")
 			GG.ComSpawnDefoliate(ex, ey, ez)
 
 			-- Mark effigy as used for respawning to prevent "lost" notifications
@@ -91,12 +91,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if meta.respawn_pad == "false" then
-				Spring.SetUnitPosition(effigyID, x, z, true)
-				Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+				Engine.Synced.SetUnitPosition(effigyID, x, z, true)
+				Engine.Synced.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
 				if GG.SpawnEnvironmentalLightning then
 					GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
 				end
-				Spring.PlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
+				Engine.Unsynced.PlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
 				GG.ComSpawnDefoliate(x, y, z)
 			end
 
@@ -136,14 +136,14 @@ if gadgetHandler:IsSyncedCode() then
 		local udcp = defCustomParams[unitDefID]
 		if udcp and udcp.iscommander and respawnMetaList[unitID] then
 			local unitTeam = respawnMetaList[unitID].unitTeam
-			local allPlayers = Spring.GetPlayerList()
+			local allPlayers = Engine.Shared.GetPlayerList()
 			local notificationEvent
 			for _, playerID in ipairs(allPlayers) do
-				local playerName, active, isSpectator, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, true)
+				local playerName, active, isSpectator, teamID, allyTeamID = Engine.Shared.GetPlayerInfo(playerID, true)
 				if teamID and unitTeam and not isSpectator then
 					if teamID == unitTeam then
 						notificationEvent = "RespawningCommanders/CommanderTransposed"
-					elseif teamID and Spring.AreTeamsAllied(teamID, unitTeam) then
+					elseif teamID and Engine.Shared.AreTeamsAllied(teamID, unitTeam) then
 						notificationEvent = "RespawningCommanders/AlliedCommanderTransposed"
 					else
 						notificationEvent = "RespawningCommanders/EnemyCommanderTransposed"
@@ -186,8 +186,8 @@ if gadgetHandler:IsSyncedCode() then
 				local blockedIncrement = 1
 				for i = 1, 500, blockedIncrement do
 					local x, y, z = spGetUnitPosition(unitID)
-					local blockType, blockID = Spring.GetGroundBlocked(x - i, z - i)
-					local groundH = Spring.GetGroundHeight(x - i, z - i)
+					local blockType, blockID = Engine.Shared.GetGroundBlocked(x - i, z - i)
+					local groundH = Engine.Shared.GetGroundHeight(x - i, z - i)
 
 					if respawnMetaList[unitID].effigy_offset == 0 then
 						local newUnitID = spCreateUnit(respawnMetaList[unitID].effigy, x, groundH, z, 0, unitTeam)
@@ -221,7 +221,7 @@ if gadgetHandler:IsSyncedCode() then
 				if oldeffigyID then
 					local oldEffigyBuildProgress = select(5, spGetUnitHealth(oldeffigyID))
 					if oldEffigyBuildProgress == 1 then
-						Spring.SetUnitCosts(unitID, { buildTime = 1, metalCost = 1, energyCost = 1 })
+						Engine.Synced.SetUnitCosts(unitID, { buildTime = 1, metalCost = 1, energyCost = 1 })
 					end
 					destroyEffigy(oldeffigyID, false, true)
 				end
@@ -238,7 +238,7 @@ if gadgetHandler:IsSyncedCode() then
 						if oldeffigyID then
 							local oldEffigyBuildProgress = select(5, spGetUnitHealth(oldeffigyID))
 							if oldEffigyBuildProgress == 1 then
-								Spring.SetUnitCosts(unitID, { buildTime = 1, metalCost = 1, energyCost = 1 })
+								Engine.Synced.SetUnitCosts(unitID, { buildTime = 1, metalCost = 1, energyCost = 1 })
 							end
 							destroyEffigy(oldeffigyID, false, true)
 						end
@@ -254,14 +254,14 @@ if gadgetHandler:IsSyncedCode() then
 		local effigyOwnerID = effigyToCommander[unitID]
 
 		if effigyOwnerID then
-			local udcp = defCustomParams[Spring.GetUnitDefID(effigyOwnerID)]
+			local udcp = defCustomParams[Engine.Shared.GetUnitDefID(effigyOwnerID)]
 			if udcp and udcp.iscommander and respawnMetaList[effigyOwnerID].effigyID then
 				-- Only send notification if the effigy wasn't already used for respawning
 				local commanderTeam = respawnMetaList[effigyOwnerID].unitTeam
 
-				local allPlayers = Spring.GetPlayerList()
+				local allPlayers = Engine.Shared.GetPlayerList()
 				for _, playerID in ipairs(allPlayers) do
-					local playerName, active, isSpectator, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, true)
+					local playerName, active, isSpectator, teamID, allyTeamID = Engine.Shared.GetPlayerInfo(playerID, true)
 					if teamID == commanderTeam then
 						GG.notifications.queueNotification("RespawningCommanders/CommanderEffigyLost", "playerID", tostring(playerID))
 					end
@@ -287,7 +287,7 @@ if gadgetHandler:IsSyncedCode() then
 						if respawnMetaList[newID] and respawnMetaList[newID].effigyID then
 							local ex, ey, ez = spGetUnitPosition(respawnMetaList[unitID].effigyID)
 							if ex then
-								Spring.SetUnitPosition(respawnMetaList[newID].effigyID, ex, ez, true)
+								Engine.Synced.SetUnitPosition(respawnMetaList[newID].effigyID, ex, ez, true)
 							else
 								destroyEffigy(respawnMetaList[newID].effigyID, false, true)
 							end
@@ -317,7 +317,7 @@ if gadgetHandler:IsSyncedCode() then
 						if not attackerTeam then
 							attackerTeam = unitTeam -- lava damage team = nil, so set to self team if nil
 						end
-						local friendlyFire = Spring.AreTeamsAllied(unitTeam, attackerTeam)
+						local friendlyFire = Engine.Shared.AreTeamsAllied(unitTeam, attackerTeam)
 						local enemyNearby = spGetUnitNearestEnemy(unitID, 1000)
 						if friendlyFire and enemyNearby then
 							friendlyFire = false
@@ -333,7 +333,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 else
-	local spGetGameSeconds = Spring.GetGameSeconds
+	local spGetGameSeconds = Engine.Shared.GetGameSeconds
 
 	local announcementStart = 0
 	local announcementEnabled = false
@@ -342,8 +342,8 @@ else
 
 	local displayList
 
-	local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-	local vsx, vsy = Spring.GetViewGeometry()
+	local fontfile = "fonts/" .. Engine.Unsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+	local vsx, vsy = Engine.Unsynced.GetViewGeometry()
 	local fontfileScale = (0.5 + (vsx * vsy / 6200000))
 	local fontfileSize = 50
 	local fontfileOutlineSize = 10
@@ -351,7 +351,7 @@ else
 	local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 	local function Draw(newAnnouncement, newAnnouncementSize)
-		vsx, vsy = Spring.GetViewGeometry()
+		vsx, vsy = Engine.Unsynced.GetViewGeometry()
 		local uiScale = (0.7 + (vsx * vsy / 6500000))
 		displayList = gl.CreateList(function()
 			font:Begin()
@@ -374,7 +374,7 @@ else
 	end
 
 	function gadget:DrawScreen()
-		if Spring.IsGUIHidden() then
+		if Engine.Unsynced.IsGUIHidden() then
 			return
 		end
 		if announcementEnabled then

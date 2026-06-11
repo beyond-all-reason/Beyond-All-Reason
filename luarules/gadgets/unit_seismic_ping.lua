@@ -18,10 +18,10 @@ end
 --------------------------------------------------------------------------------
 -- Speedups
 --------------------------------------------------------------------------------
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
 
 local glColor = gl.Color
 local glPushMatrix = gl.PushMatrix
@@ -336,7 +336,7 @@ end
 function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	local spec, fullview = spGetSpectatingState()
 	local myAllyTeam = spGetMyAllyTeamID()
-	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	local unitAllyTeam = Engine.Shared.GetUnitAllyTeam(unitID)
 
 	if (spec or allyTeam == myAllyTeam) and unitAllyTeam ~= allyTeam then
 		if spec and not fullview then
@@ -360,15 +360,15 @@ function gadget:Update(dt)
 end
 
 function gadget:DrawWorld()
-	if #pings == 0 or Spring.IsGUIHidden() then
+	if #pings == 0 or Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 
 	glDepthTest(false)
 
 	-- Get visible world bounds for culling
-	local cx, cy, cz = Spring.GetCameraPosition()
-	local cs = Spring.GetCameraState()
+	local cx, cy, cz = Engine.Unsynced.GetCameraPosition()
+	local cs = Engine.Unsynced.GetCameraState()
 	local vsx, vsy = spGetViewGeometry()
 
 	-- Calculate visible world area based on camera state

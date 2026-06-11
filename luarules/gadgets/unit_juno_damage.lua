@@ -9,7 +9,7 @@ function gadget:GetInfo()
 		date = "05/2013",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = not Spring.GetModOptions().junorework,
+		enabled = not Engine.Shared.GetModOptions().junorework,
 	}
 end
 
@@ -137,16 +137,16 @@ if gadgetHandler:IsSyncedCode() then
 	local fadetime = 2 --how long fade in/out effect lasts, in seconds
 
 	--locals
-	local SpGetGameSeconds = Spring.GetGameSeconds
-	local SpGetGameFrame = Spring.GetGameFrame
-	local SpGetUnitsInCylinder = Spring.GetUnitsInCylinder
-	local SpDestroyUnit = Spring.DestroyUnit
-	local SpGetUnitDefID = Spring.GetUnitDefID
-	local SpGetUnitTeam = Spring.GetUnitTeam
-	local SpValidUnitID = Spring.ValidUnitID
-	local SpGetUnitPosition = Spring.GetUnitPosition
-	local SpGetGroundHeight = Spring.GetGroundHeight
-	local SpSpawnCEG = Spring.SpawnCEG
+	local SpGetGameSeconds = Engine.Shared.GetGameSeconds
+	local SpGetGameFrame = Engine.Shared.GetGameFrame
+	local SpGetUnitsInCylinder = Engine.Shared.GetUnitsInCylinder
+	local SpDestroyUnit = Engine.Synced.DestroyUnit
+	local SpGetUnitDefID = Engine.Shared.GetUnitDefID
+	local SpGetUnitTeam = Engine.Shared.GetUnitTeam
+	local SpValidUnitID = Engine.Shared.ValidUnitID
+	local SpGetUnitPosition = Engine.Shared.GetUnitPosition
+	local SpGetGroundHeight = Engine.Shared.GetGroundHeight
+	local SpSpawnCEG = Engine.Synced.SpawnCEG
 	local Mmin = math.min
 	local Mfloor = math.floor
 	local Msqrt = math.sqrt
@@ -256,12 +256,12 @@ if gadgetHandler:IsSyncedCode() then
 
 		if DEBUG_JUNO_IMPACT and frame % debugIntervalFrames == 0 then
 			local curtime = SpGetGameSeconds()
-			local debugY = Spring.GetGroundHeight(debugImpactX, debugImpactZ)
+			local debugY = Engine.Shared.GetGroundHeight(debugImpactX, debugImpactZ)
 			SpSpawnCEG("juno-explo", debugImpactX, debugY, debugImpactZ, 0, 1, 0)
 			local debugExpl = { x = debugImpactX, y = debugY, z = debugImpactZ, t = curtime, f = frame }
 			centers[counter] = debugExpl
 			counter = counter + 1
-			Spring.Echo("[juno_damage DEBUG] spawned juno impact at (" .. debugImpactX .. ", " .. debugY .. ", " .. debugImpactZ .. ") frame=" .. frame)
+			Engine.Shared.Echo("[juno_damage DEBUG] spawned juno impact at (" .. debugImpactX .. ", " .. debugY .. ", " .. debugImpactZ .. ") frame=" .. frame)
 		end
 
 		local curtime = SpGetGameSeconds()

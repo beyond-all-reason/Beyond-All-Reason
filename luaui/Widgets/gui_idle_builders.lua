@@ -17,10 +17,10 @@ local mathFloor = math.floor
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = Engine.Shared.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
 
 local alwaysShow = true -- always show AT LEAST the label
 local alwaysShowLabel = true -- always show the label regardless
@@ -43,13 +43,13 @@ local spec = spGetSpectatingState()
 
 local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, UiElement, UiUnit
 
-local spValidUnitID = Spring.ValidUnitID
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spValidUnitID = Engine.Shared.ValidUnitID
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
+local spGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
 
-local spGetMouseState = Spring.GetMouseState
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spGetUnitCommandCount = Engine.Shared.GetUnitCommandCount
+local spGetFactoryCommandCount = Engine.Shared.GetFactoryCommandCount
 local myTeamID = Spring.GetMyTeamID()
 
 local floor = mathFloor
@@ -62,7 +62,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
-local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local uiScale = tonumber(Engine.Unsynced.GetConfigFloat("ui_scale", 1) or 1)
 local height = setHeight * uiScale
 local posX = 0
 local posY = 0
@@ -75,7 +75,7 @@ local hovered = false
 local prevHovered = false
 local numIcons = 0
 local hoveredIcon
-local selectedUnits = Spring.GetSelectedUnits() or {}
+local selectedUnits = Engine.Unsynced.GetSelectedUnits() or {}
 local buildmenuShowingPosY = 0
 local buildmenuAlwaysShow = false
 local buildmenuIsShowing = true
@@ -110,7 +110,7 @@ end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		widget:VisibleUnitAdded(unitID, unitDefID, Spring.GetUnitTeam(unitID))
+		widget:VisibleUnitAdded(unitID, unitDefID, Engine.Shared.GetUnitTeam(unitID))
 	end
 end
 
@@ -550,7 +550,7 @@ end
 
 local sec = 0
 local sec2 = 0
-local timerStart = Spring.GetTimer()
+local timerStart = Engine.Unsynced.GetTimer()
 local function Update()
 	if spGetGameFrame() <= initializeGameFrame and initializeGameFrame ~= 0 then
 		return
@@ -563,8 +563,8 @@ local function Update()
 	if WG["topbar"] and WG["topbar"].showingQuit() then
 		return
 	end
-	local now = Spring.GetTimer()
-	local dt = Spring.DiffTimers(now, timerStart)
+	local now = Engine.Unsynced.GetTimer()
+	local dt = Engine.Unsynced.DiffTimers(now, timerStart)
 	timerStart = now
 
 	doUpdate = false
@@ -599,7 +599,7 @@ local function Update()
 			WG["tooltip"].ShowTooltip("idlebuilders", tooltipAddition, nil, nil, tooltipTitle)
 		end
 
-		Spring.SetMouseCursor("cursornormal")
+		Engine.Unsynced.SetMouseCursor("cursornormal")
 		if b then
 			sec = sec + 0.4
 		end
@@ -663,12 +663,12 @@ function widget:DrawScreen()
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 
 	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-		local _, _, _, shift = Spring.GetModKeyState()
+		local _, _, _, shift = Engine.Unsynced.GetModKeyState()
 		if button == 1 or button == 3 then
 			for i, v in pairs(iconButtons) do
 				if math_isInRect(x, y, iconButtons[i][1], iconButtons[i][2], iconButtons[i][3], iconButtons[i][4]) then
@@ -689,13 +689,13 @@ function widget:MousePress(x, y, button)
 							end
 							units = { idleList[unitDefID][num] }
 						end
-						Spring.SelectUnitArray(units)
+						Engine.Unsynced.SelectUnitArray(units)
 					end
 					if button == 3 then
-						Spring.SendCommands("viewselection")
+						Engine.Unsynced.SendCommands("viewselection")
 					end
 					if playSounds then
-						Spring.PlaySoundFile((button == 3 and rightclick or leftclick), soundVolume, "ui")
+						Engine.Unsynced.PlaySoundFile((button == 3 and rightclick or leftclick), soundVolume, "ui")
 					end
 					return true
 				end

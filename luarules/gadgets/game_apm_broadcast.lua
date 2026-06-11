@@ -15,12 +15,12 @@ end
 if gadgetHandler:IsSyncedCode() then
 	local teamAddedActionFrame = {}
 	local ignoreUnits = {}
-	local gameFrame = Spring.GetGameFrame()
-	local startFrame = Spring.GetGameFrame() -- used in case of luarules reload
-	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+	local gameFrame = Engine.Shared.GetGameFrame()
+	local startFrame = Engine.Shared.GetGameFrame() -- used in case of luarules reload
+	local spGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
 
 	local totalTeamActions = {}
-	local teamList = Spring.GetTeamList()
+	local teamList = Engine.Shared.GetTeamList()
 	for i = 1, #teamList do
 		totalTeamActions[teamList[i]] = 0
 	end

@@ -14,7 +14,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = Engine.Shared.Echo
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ local hasBadCulling = false
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spIsAABBInView = Spring.IsAABBInView
+local spIsAABBInView = Engine.Unsynced.IsAABBInView
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 
 --------------------------------------------------------------------------------
@@ -547,7 +547,7 @@ function widget:Initialize()
 		--UpdateShader()
 	end
 
-	Spring.SendCommands("mapborder 1") --..(mapBorderStyle == 'cutaway' and "1" or "0"))
+	Engine.Unsynced.SendCommands("mapborder 1") --..(mapBorderStyle == 'cutaway' and "1" or "0"))
 
 	if gl.GetMapRendering("voidGround") then
 		restoreMapBorder = false
@@ -562,13 +562,13 @@ function widget:Initialize()
 	-----------
 	terrainVAO = gl.GetVAO()
 	if terrainVAO == nil then
-		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
+		Engine.Unsynced.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
 	end
 
 	terrainInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, true) -- GL.ARRAY_BUFFER, false
 	if terrainInstanceVBO == nil then
-		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
+		Engine.Unsynced.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
 	end
 
@@ -619,7 +619,7 @@ function widget:Initialize()
 	local shaderCompiled = mapExtensionShader:Initialize()
 
 	if not shaderCompiled then
-		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
+		Engine.Unsynced.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
 	end
 
@@ -640,15 +640,15 @@ function widget:Initialize()
 	local shaderCompiled = mapExtensionShaderDeferred:Initialize()
 
 	if not shaderCompiled then
-		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
+		Engine.Unsynced.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
 	end
 
-	Spring.SendCommands("luaui disablewidget External VR Grid")
+	Engine.Unsynced.SendCommands("luaui disablewidget External VR Grid")
 end
 
 function widget:Shutdown()
-	Spring.SendCommands("mapborder " .. (restoreMapBorder and "1" or "0"))
+	Engine.Unsynced.SendCommands("mapborder " .. (restoreMapBorder and "1" or "0"))
 
 	if mapExtensionShader then
 		mapExtensionShader:Finalize()
@@ -679,8 +679,8 @@ local function UpdateMirrorParams()
 		return x1 * x2 + y1 * y2 + z1 * z2
 	end
 
-	local cpX, cpY, cpZ = Spring.GetCameraPosition()
-	local cdX, cdY, cdZ = Spring.GetCameraDirection()
+	local cpX, cpY, cpZ = Engine.Unsynced.GetCameraPosition()
+	local cdX, cdY, cdZ = Engine.Unsynced.GetCameraDirection()
 
 	local checkInView = false
 
@@ -702,7 +702,7 @@ local function UpdateMirrorParams()
 		return
 	end
 
-	local minY, maxY = Spring.GetGroundExtremes()
+	local minY, maxY = Engine.Shared.GetGroundExtremes()
 
 	mirrorParams = {}
 	-- spIsAABBInView params are copied from map_edge_extension.lua
@@ -881,7 +881,7 @@ end
 
 local lastSunChanged = -1
 function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
-	local df = Spring.GetDrawFrame()
+	local df = Engine.Unsynced.GetDrawFrame()
 
 	if df == lastSunChanged then
 		return

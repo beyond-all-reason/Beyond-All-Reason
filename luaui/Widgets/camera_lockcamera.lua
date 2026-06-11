@@ -27,17 +27,17 @@ local newBroadcaster = false
 local desiredLosmodeChanged = 0
 local desiredLosmode, myLastCameraState
 
-local spGetCameraState = Spring.GetCameraState
-local spSetCameraState = Spring.SetCameraState
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spSendCommands = Spring.SendCommands
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetMapDrawMode = Spring.GetMapDrawMode
+local spGetCameraState = Engine.Unsynced.GetCameraState
+local spSetCameraState = Engine.Unsynced.SetCameraState
+local spGetPlayerInfo = Engine.Shared.GetPlayerInfo
+local spSendCommands = Engine.Unsynced.SendCommands
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spGetMapDrawMode = Engine.Unsynced.GetMapDrawMode
 local spGetMyPlayerID = Spring.GetMyPlayerID
-local spGetLocalAllyTeamID = Spring.GetLocalAllyTeamID
-local spGetLocalTeamID = Spring.GetLocalTeamID
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetGameFrame = Spring.GetGameFrame
+local spGetLocalAllyTeamID = Engine.Unsynced.GetLocalAllyTeamID
+local spGetLocalTeamID = Engine.Unsynced.GetLocalTeamID
+local spGetTeamInfo = Engine.Shared.GetTeamInfo
+local spGetGameFrame = Engine.Shared.GetGameFrame
 
 local os_clock = os.clock
 local math_pi = math.pi

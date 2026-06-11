@@ -17,10 +17,10 @@ local mathCeil = math.ceil
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetGameFrame = Spring.GetGameFrame
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
@@ -77,8 +77,8 @@ local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 
 local soundButton = "LuaUI/Sounds/buildbar_waypoint.wav"
 
-local uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
-local uiScale = Spring.GetConfigFloat("ui_scale", 1)
+local uiOpacity = Engine.Unsynced.GetConfigFloat("ui_opacity", 0.7)
+local uiScale = Engine.Unsynced.GetConfigFloat("ui_scale", 1)
 
 local backgroundRect = {}
 local activeRect = {}
@@ -178,8 +178,8 @@ local hiddenCommandTypes = {
 local CMDTYPE_ICON_BUILDING = CMDTYPE.ICON_BUILDING
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
+local spGetActiveCommand = Engine.Unsynced.GetActiveCommand
+local spGetActiveCmdDescs = Engine.Unsynced.GetActiveCmdDescs
 
 local os_clock = os.clock
 
@@ -318,12 +318,12 @@ local function computeWaitState()
 	end
 	-- Use cached first unit instead of calling spGetSelectedUnits() which allocates a large table
 	local ref = cachedFirstUnit
-	if ref and Spring.ValidUnitID(ref) and Spring.FindUnitCmdDesc(ref, CMD.WAIT) then
+	if ref and Engine.Shared.ValidUnitID(ref) and Engine.Shared.FindUnitCmdDesc(ref, CMD.WAIT) then
 		local commandQueue
-		if isFactory[Spring.GetUnitDefID(ref)] then
-			commandQueue = Spring.GetFactoryCommands(ref, 1)
+		if isFactory[Engine.Shared.GetUnitDefID(ref)] then
+			commandQueue = Engine.Shared.GetFactoryCommands(ref, 1)
 		else
-			commandQueue = Spring.GetUnitCommands(ref, 1)
+			commandQueue = Engine.Shared.GetUnitCommands(ref, 1)
 		end
 		if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
 			cachedWaitState = 2
@@ -570,7 +570,7 @@ function widget:ViewResize()
 end
 
 local function reloadBindings()
-	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+	currentLayout = Engine.Unsynced.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 end
 
@@ -708,7 +708,7 @@ function widget:Update(dt)
 		end
 
 		disableInput = isSpectating
-		if Spring.IsGodModeEnabled() then
+		if Engine.Shared.IsGodModeEnabled() then
 			disableInput = false
 		end
 	end
@@ -729,15 +729,15 @@ function widget:Update(dt)
 		cancelTargetPollSec = 0
 		if #commands > 0 or alwaysShow then
 			local hasTarget = false
-			local selected = Spring.GetSelectedUnits()
+			local selected = Engine.Unsynced.GetSelectedUnits()
 			for i = 1, #selected do
 				local uid = selected[i]
-				local targetID = Spring.GetUnitRulesParam(uid, "targetID")
+				local targetID = Engine.Shared.GetUnitRulesParam(uid, "targetID")
 				if targetID and targetID > 0 then
 					hasTarget = true
 					break
 				end
-				local targetX = Spring.GetUnitRulesParam(uid, "targetCoordX")
+				local targetX = Engine.Shared.GetUnitRulesParam(uid, "targetCoordX")
 				if targetX and targetX >= 0 then
 					hasTarget = true
 					break
@@ -1053,11 +1053,11 @@ end
 
 function widget:DrawScreen()
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	local x, y = Spring.GetMouseState()
+	local x, y = Engine.Unsynced.GetMouseState()
 	local cellHovered
 	if not WG["topbar"] or not WG["topbar"].showingQuit() then
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-			Spring.SetMouseCursor("cursornormal")
+			Engine.Unsynced.SetMouseCursor("cursornormal")
 			for cell = 1, #cellRects do
 				if commands[cell] then
 					if math_isInRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
@@ -1262,7 +1262,7 @@ function widget:DrawScreen()
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 	if ordermenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
@@ -1293,10 +1293,10 @@ function widget:MousePress(x, y, button)
 							end
 
 							if playSounds then
-								Spring.PlaySoundFile(soundButton, 0.6, "ui")
+								Engine.Unsynced.PlaySoundFile(soundButton, 0.6, "ui")
 							end
-							if cmd.id and Spring.GetCmdDescIndex(cmd.id) then
-								Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id), button, true, false, Spring.GetModKeyState())
+							if cmd.id and Engine.Unsynced.GetCmdDescIndex(cmd.id) then
+								Engine.Unsynced.SetActiveCommand(Engine.Unsynced.GetCmdDescIndex(cmd.id), button, true, false, Engine.Unsynced.GetModKeyState())
 							end
 							break
 						end
@@ -1338,12 +1338,12 @@ function widget:SelectionChanged(sel)
 	cancelTargetLastState = false
 	for i = 1, #sel do
 		local uid = sel[i]
-		local targetID = Spring.GetUnitRulesParam(uid, "targetID")
+		local targetID = Engine.Shared.GetUnitRulesParam(uid, "targetID")
 		if targetID and targetID > 0 then
 			cancelTargetLastState = true
 			break
 		end
-		local targetX = Spring.GetUnitRulesParam(uid, "targetCoordX")
+		local targetX = Engine.Shared.GetUnitRulesParam(uid, "targetCoordX")
 		if targetX and targetX >= 0 then
 			cancelTargetLastState = true
 			break

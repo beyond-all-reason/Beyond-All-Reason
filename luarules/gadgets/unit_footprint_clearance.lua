@@ -36,20 +36,20 @@ function gadget:UnitCreated(uID, uDefID, uTeam, bID)
 	--Instagibb any features that are unlucky enough to be in the build radius of new construction projects
 	if unitXsize5[uDefID] then -- buildings/factories
 		local xr, zr
-		if Spring.GetUnitBuildFacing(uID) % 2 == 0 then
+		if Engine.Shared.GetUnitBuildFacing(uID) % 2 == 0 then
 			xr, zr = unitXsize5[uDefID], unitZsize5[uDefID]
 		else
 			xr, zr = unitZsize5[uDefID], unitXsize5[uDefID]
 		end
 
-		local ux, _, uz = Spring.GetUnitPosition(uID)
-		local features = Spring.GetFeaturesInRectangle(ux - xr, uz - zr, ux + xr, uz + zr)
+		local ux, _, uz = Engine.Shared.GetUnitPosition(uID)
+		local features = Engine.Shared.GetFeaturesInRectangle(ux - xr, uz - zr, ux + xr, uz + zr)
 		for i = 1, #features do
-			if gibFeatureDefs[Spring.GetFeatureDefID(features[i])] then
-				local fx, fy, fz = Spring.GetFeaturePosition(features[i])
-				Spring.DestroyFeature(features[i])
-				Spring.SpawnCEG("sparklegreen", fx, fy, fz)
-				Spring.PlaySoundFile("reclaimate", 1, fx, fy, fz, "sfx")
+			if gibFeatureDefs[Engine.Shared.GetFeatureDefID(features[i])] then
+				local fx, fy, fz = Engine.Shared.GetFeaturePosition(features[i])
+				Engine.Synced.DestroyFeature(features[i])
+				Engine.Synced.SpawnCEG("sparklegreen", fx, fy, fz)
+				Engine.Unsynced.PlaySoundFile("reclaimate", 1, fx, fy, fz, "sfx")
 			end
 		end
 	end

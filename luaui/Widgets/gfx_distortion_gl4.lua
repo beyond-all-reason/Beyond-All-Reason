@@ -27,31 +27,31 @@ local pcall = pcall
 local select = select
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetWind = Spring.GetWind
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spIsUnitAllied = Spring.IsUnitAllied
-local spGetUnitPieceMap = Spring.GetUnitPieceMap
-local spGetUnitHeight = Spring.GetUnitHeight
-local spGetUnitLosState = Spring.GetUnitLosState
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spEcho = Engine.Shared.Echo
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spGetWind = Engine.Shared.GetWind
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
+local spIsUnitAllied = Engine.Unsynced.IsUnitAllied
+local spGetUnitPieceMap = Engine.Shared.GetUnitPieceMap
+local spGetUnitHeight = Engine.Shared.GetUnitHeight
+local spGetUnitLosState = Engine.Shared.GetUnitLosState
+local spGetFeatureDefID = Engine.Shared.GetFeatureDefID
+local spGetFeaturePosition = Engine.Shared.GetFeaturePosition
 local spGetProjectileName = Spring.GetProjectileName
-local spGetModKeyState = Spring.GetModKeyState
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
-local spGetTimerMicros = Spring.GetTimerMicros
-local spGetConfigString = Spring.GetConfigString
-local spGetAllFeatures = Spring.GetAllFeatures
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
-local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetCameraDirection = Spring.GetCameraDirection
+local spGetModKeyState = Engine.Unsynced.GetModKeyState
+local spGetTimer = Engine.Unsynced.GetTimer
+local spDiffTimers = Engine.Unsynced.DiffTimers
+local spGetTimerMicros = Engine.Unsynced.GetTimerMicros
+local spGetConfigString = Engine.Unsynced.GetConfigString
+local spGetAllFeatures = Engine.Shared.GetAllFeatures
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spGetVisibleProjectiles = Engine.Unsynced.GetVisibleProjectiles
+local spGetProjectilesInRectangle = Engine.Shared.GetProjectilesInRectangle
+local spTraceScreenRay = Engine.Unsynced.TraceScreenRay
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
+local spGetCameraDirection = Engine.Unsynced.GetCameraDirection
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
 
@@ -84,19 +84,19 @@ local glBlending = gl.Blending
 local glTexture = gl.Texture
 
 -- Strong:
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileType = Spring.GetProjectileType
-local spGetPieceProjectileParams = Spring.GetPieceProjectileParams
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spIsSphereInView = Spring.IsSphereInView
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spValidUnitID = Spring.ValidUnitID
+local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
+local spGetProjectileVelocity = Engine.Shared.GetProjectileVelocity
+local spGetProjectileType = Engine.Shared.GetProjectileType
+local spGetPieceProjectileParams = Engine.Shared.GetPieceProjectileParams
+local spGetProjectileDefID = Engine.Shared.GetProjectileDefID
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spIsSphereInView = Engine.Unsynced.IsSphereInView
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
+local spValidUnitID = Engine.Shared.ValidUnitID
 
 -- Weak:
-local spIsGUIHidden = Spring.IsGUIHidden
+local spIsGUIHidden = Engine.Unsynced.IsGUIHidden
 
 local math_max = mathMax
 local math_ceil = mathCeil
@@ -771,7 +771,7 @@ for wdid, wd in pairs(WeaponDefs) do
 end
 
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if targetable[weaponID] and py - 7300 > Spring.GetGroundHeight(px, pz) then -- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
+	if targetable[weaponID] and py - 7300 > Engine.Shared.GetGroundHeight(px, pz) then -- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
 		return
 	end
 	if explosionDistortions[weaponID] then
@@ -1070,8 +1070,8 @@ end
 
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
-	local weapon, piece = Spring.GetProjectileType(projectileID)
-	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
+	local weapon, piece = Engine.Shared.GetProjectileType(projectileID)
+	local weaponDefID = weapon and Engine.Shared.GetProjectileDefID(projectileID)
 	Spring.Debug.TraceFullEcho()
 end
 
@@ -1094,7 +1094,7 @@ local lastCamPx, lastCamPy, lastCamPz = nil, nil, nil
 local lastCamDx, lastCamDy, lastCamDz = nil, nil, nil
 
 local function updateViewGroundRect()
-	local drawFrame = Spring.GetDrawFrame and Spring.GetDrawFrame() or 0
+	local drawFrame = Engine.Unsynced.GetDrawFrame and Engine.Unsynced.GetDrawFrame() or 0
 	if drawFrame == viewRectFrame then
 		return
 	end

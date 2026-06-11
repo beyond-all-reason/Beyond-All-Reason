@@ -20,16 +20,16 @@ local mathFloor = math.floor
 local mathRandom = math.random
 local mathAbs = math.abs
 
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = Engine.Shared.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
-local spEcho = Spring.Echo
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetTeamList = Spring.GetTeamList
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamStartPosition = Spring.GetTeamStartPosition
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spGetGroundHeight = Spring.GetGroundHeight
+local spEcho = Engine.Shared.Echo
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spGetTeamList = Engine.Shared.GetTeamList
+local spGetTeamInfo = Engine.Shared.GetTeamInfo
+local spGetPlayerInfo = Engine.Shared.GetPlayerInfo
+local spGetTeamStartPosition = Engine.Shared.GetTeamStartPosition
+local spGetTeamRulesParam = Engine.Shared.GetTeamRulesParam
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
 local glDrawGroundCircle = gl.DrawGroundCircle
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -46,13 +46,13 @@ if Game.startPosType ~= 2 then
 	return false
 end
 
-local draftMode = Spring.GetModOptions().draft_mode
-local allowEnemyAIPlacement = Spring.GetModOptions().allow_enemy_ai_spawn_placement
+local draftMode = Engine.Shared.GetModOptions().draft_mode
+local allowEnemyAIPlacement = Engine.Shared.GetModOptions().allow_enemy_ai_spawn_placement
 
 local tooCloseToSpawn
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx, vsy = Spring.GetViewGeometry()
+local fontfile = "fonts/" .. Engine.Unsynced.GetConfigString("bar_font", "Poppins-Regular.otf")
+local vsx, vsy = Engine.Unsynced.GetViewGeometry()
 local fontfileScale = 0.5 + (vsx * vsy / 5700000)
 local fontfileSize = 50
 local fontfileOutlineSize = 8
@@ -60,7 +60,7 @@ local fontfileOutlineStrength = 1.65
 local fontfileOutlineStrength2 = 10
 local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 local shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.5)
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfile2 = "fonts/" .. Engine.Unsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength2)
 
 local useThickLeterring = false
@@ -77,12 +77,12 @@ local widgetScale = (1 + (vsx * vsy / 5500000))
 local startPosRatio = 0.0001
 local startPosScale
 if getCurrentMiniMapRotationOption() == ROTATION.DEG_90 or getCurrentMiniMapRotationOption() == ROTATION.DEG_270 then
-	startPosScale = (vsx * startPosRatio) / select(4, Spring.GetMiniMapGeometry())
+	startPosScale = (vsx * startPosRatio) / select(4, Engine.Unsynced.GetMiniMapGeometry())
 else
-	startPosScale = (vsx * startPosRatio) / select(3, Spring.GetMiniMapGeometry())
+	startPosScale = (vsx * startPosRatio) / select(3, Engine.Unsynced.GetMiniMapGeometry())
 end
 
-local isSpec = spGetSpectatingState() or Spring.IsReplay()
+local isSpec = spGetSpectatingState() or Engine.Unsynced.IsReplay()
 local myTeamID = spGetMyTeamID()
 
 local placeVoiceNotifTimer = false
@@ -92,12 +92,12 @@ local amPlaced = false
 
 local gaiaTeamID
 
-local startTimer = Spring.GetTimer()
+local startTimer = Engine.Unsynced.GetTimer()
 local lastRot = -1 --TODO: switch this to use MiniMapRotationChanged Callin when it is added to Engine
 
 local infotextList
 
-local GetTeamColor = Spring.GetTeamColor
+local GetTeamColor = Engine.Unsynced.GetTeamColor
 
 local ColorIsDark = Spring.Utilities.Color.ColorIsDark
 
@@ -159,8 +159,8 @@ local function getAIName(teamID, includeLock)
 	if not baseName then
 		local _, playerID, _, isAI = spGetTeamInfo(teamID, false)
 		if isAI then
-			local _, _, _, aiName = Spring.GetAIInfo(teamID)
-			local niceName = Spring.GetGameRulesParam("ainame_" .. teamID)
+			local _, _, _, aiName = Engine.Shared.GetAIInfo(teamID)
+			local niceName = Engine.Shared.GetGameRulesParam("ainame_" .. teamID)
 			if niceName then
 				aiName = niceName
 			end
@@ -288,8 +288,8 @@ local posCache = {}
 
 local function getEffectiveStartPosition(teamID)
 	if draggingTeamID == teamID then
-		local mouseX, mouseY = Spring.GetMouseState()
-		local traceType, pos = Spring.TraceScreenRay(mouseX, mouseY, true)
+		local mouseX, mouseY = Engine.Unsynced.GetMouseState()
+		local traceType, pos = Engine.Unsynced.TraceScreenRay(mouseX, mouseY, true)
 		if traceType == "ground" then
 			local x = pos[1] + dragOffsetX
 			local z = pos[3] + dragOffsetZ
@@ -504,7 +504,7 @@ local startConeVBOTable = nil
 local startConeShader = nil
 
 local function DrawStartPolygons(inminimap)
-	local _, advMapShading = Spring.HaveAdvShading()
+	local _, advMapShading = Engine.Unsynced.HaveAdvShading()
 
 	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
@@ -622,7 +622,7 @@ local function getStartUnitTexture(teamID)
 	return "unitpics/other/dice.dds"
 end
 
-local totalTeams = #Spring.GetTeamList() - 1
+local totalTeams = #Engine.Shared.GetTeamList() - 1
 local function buildIconList(sx, sz)
 	-- Ensure teams data is populated (DrawInMiniMap may be called before DrawWorld)
 	if not teamsToRenderCount or teamsToRenderCount == 0 then
@@ -803,13 +803,13 @@ end
 
 local function InitStartPolygons()
 	local gaiaAllyTeamID
-	if Spring.GetGaiaTeamID() then
-		gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID(), false))
+	if Engine.Shared.GetGaiaTeamID() then
+		gaiaAllyTeamID = select(6, spGetTeamInfo(Engine.Shared.GetGaiaTeamID(), false))
 	end
-	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
+	for i, teamID in ipairs(Engine.Shared.GetAllyTeamList()) do
 		if teamID ~= gaiaAllyTeamID then
 			--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
-			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
+			local xn, zn, xp, zp = Engine.Shared.GetAllyTeamStartBox(teamID)
 			--spEcho("Allyteam",teamID,"startbox",xn, zn, xp, zp)
 			StartPolygons[teamID] = { { xn, zn }, { xp, zn }, { xp, zp }, { xn, zp } }
 		end
@@ -841,8 +841,8 @@ local function InitStartPolygons()
 
 	shaderSourceCache.shaderConfig.NUM_BOXES = #StartPolygons
 
-	local minY, maxY = Spring.GetGroundExtremes()
-	local waterlevel = (Spring.GetModOption and Spring.GetModOptions().map_waterlevel) or 0
+	local minY, maxY = Engine.Shared.GetGroundExtremes()
+	local waterlevel = (Engine.Shared.GetModOption and Engine.Shared.GetModOptions().map_waterlevel) or 0
 	if waterlevel > 0 then
 		minY = minY - waterlevel
 		maxY = maxY - waterlevel
@@ -856,7 +856,7 @@ local function InitStartPolygons()
 	for teamID, polygon in pairs(StartPolygons) do
 		numPolygons = numPolygons + 1
 		local numPoints = #polygon
-		local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
+		local xn, zn, xp, zp = Engine.Shared.GetAllyTeamStartBox(teamID)
 		--spEcho("teamID", teamID, "at " ,xn, zn, xp, zp)
 		for vertexID, vertex in ipairs(polygon) do
 			local x, z = vertex[1], vertex[2]
@@ -929,7 +929,7 @@ function widget:Initialize()
 		return
 	end
 
-	tooCloseToSpawn = Spring.GetGameRulesParam("tooCloseToSpawn") or 350
+	tooCloseToSpawn = Engine.Shared.GetGameRulesParam("tooCloseToSpawn") or 350
 
 	widgetHandler:RegisterGlobal("GadgetCoopStartPoint", CoopStartPoint)
 
@@ -939,7 +939,7 @@ function widget:Initialize()
 	updateTeamList()
 	assignTeamColors()
 
-	gaiaTeamID = Spring.GetGaiaTeamID()
+	gaiaTeamID = Engine.Shared.GetGaiaTeamID()
 
 	for _, teamID in ipairs(cachedTeamList) do
 		if teamID ~= gaiaTeamID then
@@ -1022,7 +1022,7 @@ function widget:DrawWorld()
 
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
+	local time = Engine.Unsynced.DiffTimers(Engine.Unsynced.GetTimer(), startTimer)
 	local alpha = 0.5 + mathAbs(((time * 3) % 1) - 0.5)
 
 	InstanceVBOTable.clearInstanceTable(startConeVBOTable)
@@ -1082,7 +1082,7 @@ function widget:DrawScreenEffects()
 		end
 
 		if name then
-			local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
+			local sx, sy, sz = Engine.Unsynced.WorldToScreenCoords(x, y + 120, z)
 			if sz < 1 then
 				drawName(sx, sy, name, teamID)
 			end
@@ -1119,9 +1119,9 @@ function widget:ViewResize(x, y)
 
 	local currRot = getCurrentMiniMapRotationOption()
 	if currRot == ROTATION.DEG_90 or currRot == ROTATION.DEG_270 then
-		startPosScale = (vsx * startPosRatio) / select(4, Spring.GetMiniMapGeometry())
+		startPosScale = (vsx * startPosRatio) / select(4, Engine.Unsynced.GetMiniMapGeometry())
 	else
-		startPosScale = (vsx * startPosRatio) / select(3, Spring.GetMiniMapGeometry())
+		startPosScale = (vsx * startPosRatio) / select(3, Engine.Unsynced.GetMiniMapGeometry())
 	end
 	removeTeamLists()
 	invalidateMinimapIcons()
@@ -1310,8 +1310,8 @@ function widget:Update(delta)
 				for _, teamID in ipairs(cachedTeamList) do
 					if teamID ~= gaiaTeamID then
 						local _, _, _, isAI, _, allyTeamID = spGetTeamInfo(teamID, false)
-						if isAI and not aiPlacedPositions[teamID] and (allyTeamID == myAllyTeamID or isSpec or Spring.IsCheatingEnabled() or allowEnemyAIPlacement) then
-							local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyTeamID)
+						if isAI and not aiPlacedPositions[teamID] and (allyTeamID == myAllyTeamID or isSpec or Engine.Shared.IsCheatingEnabled() or allowEnemyAIPlacement) then
+							local xmin, zmin, xmax, zmax = Engine.Shared.GetAllyTeamStartBox(allyTeamID)
 							local x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 							if x and x > 0 and z and z > 0 then
 								local prevPos = aiPredictedPositions[teamID]
@@ -1360,14 +1360,14 @@ function widget:RecvLuaMsg(msg)
 				invalidatePosCacheEntry(teamID)
 				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetMyPlayerID(), false)
 				aiLocationI18NTable.aiName = getAIName(teamID)
-				Spring.SendMessage(Spring.I18N("ui.startbox.aiStartLocationRemoved", aiLocationI18NTable))
+				Engine.Unsynced.SendMessage(Spring.I18N("ui.startbox.aiStartLocationRemoved", aiLocationI18NTable))
 			else
 				aiPlacedPositions[teamID] = { x = x, z = z }
 				aiPlacementStatus[teamID] = true
 				invalidatePosCacheEntry(teamID)
 				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetMyPlayerID(), false)
 				aiLocationI18NTable.aiName = getAIName(teamID)
-				Spring.SendMessage(Spring.I18N("ui.startbox.aiStartLocationChanged", aiLocationI18NTable))
+				Engine.Unsynced.SendMessage(Spring.I18N("ui.startbox.aiStartLocationChanged", aiLocationI18NTable))
 			end
 
 			invalidateMinimapIcons()
@@ -1392,7 +1392,7 @@ function widget:MousePress(x, y, button)
 		return false
 	end
 
-	local traceType, pos = Spring.TraceScreenRay(x, y, true)
+	local traceType, pos = Engine.Unsynced.TraceScreenRay(x, y, true)
 	if traceType ~= "ground" then
 		return false
 	end
@@ -1401,7 +1401,7 @@ function widget:MousePress(x, y, button)
 	if button == RIGHT_BUTTON then
 		if aiCurrentlyBeingPlaced then
 			aiCurrentlyBeingPlaced = nil
-			Spring.SendLuaUIMsg("aiPlacementCancel:")
+			Engine.Unsynced.SendLuaUIMsg("aiPlacementCancel:")
 			return true
 		end
 
@@ -1413,8 +1413,8 @@ function widget:MousePress(x, y, button)
 					local dz = worldZ - placedPos.z
 					if (dx * dx + dz * dz) <= (CONE_CLICK_RADIUS * CONE_CLICK_RADIUS) then
 						aiPlacedPositions[teamID] = nil
-						Spring.SendLuaRulesMsg("aiPlacedPosition:" .. teamID .. ":0:0")
-						Spring.SendLuaUIMsg("aiPlacementComplete:" .. teamID .. ":0:0")
+						Engine.Unsynced.SendLuaRulesMsg("aiPlacedPosition:" .. teamID .. ":0:0")
+						Engine.Unsynced.SendLuaUIMsg("aiPlacementComplete:" .. teamID .. ":0:0")
 						return true
 					end
 				end
@@ -1427,10 +1427,10 @@ function widget:MousePress(x, y, button)
 		local aiTeamID = aiCurrentlyBeingPlaced
 		local _, _, _, _, _, aiAllyTeamID = spGetTeamInfo(aiTeamID, false)
 
-		local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
+		local xmin, zmin, xmax, zmax = Engine.Shared.GetAllyTeamStartBox(aiAllyTeamID)
 		if xmin < xmax and zmin < zmax then
 			if worldX >= xmin and worldX <= xmax and worldZ >= zmin and worldZ <= zmax then
-				Spring.SendLuaRulesMsg("aiPlacedPosition:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
+				Engine.Unsynced.SendLuaRulesMsg("aiPlacedPosition:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
 				aiCurrentlyBeingPlaced = nil
 				return true
 			end
@@ -1473,20 +1473,20 @@ function widget:MouseRelease(x, y, button)
 	end
 
 	if button == LEFT_BUTTON and draggingTeamID then
-		local traceType, pos = Spring.TraceScreenRay(x, y, true)
+		local traceType, pos = Engine.Unsynced.TraceScreenRay(x, y, true)
 		if traceType == "ground" then
 			local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
 			local finalX = worldX + dragOffsetX
 			local finalZ = worldZ + dragOffsetZ
 
 			local _, _, _, _, _, aiAllyTeamID = spGetTeamInfo(draggingTeamID, false)
-			local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
+			local xmin, zmin, xmax, zmax = Engine.Shared.GetAllyTeamStartBox(aiAllyTeamID)
 
 			if xmin < xmax and zmin < zmax then
 				if finalX >= xmin and finalX <= xmax and finalZ >= zmin and finalZ <= zmax then
 					aiPlacedPositions[draggingTeamID] = { x = finalX, z = finalZ }
 					posCache[draggingTeamID] = nil
-					Spring.SendLuaRulesMsg("aiPlacedPosition:" .. draggingTeamID .. ":" .. finalX .. ":" .. finalZ)
+					Engine.Unsynced.SendLuaRulesMsg("aiPlacedPosition:" .. draggingTeamID .. ":" .. finalX .. ":" .. finalZ)
 					notifySpawnPositionsChanged()
 				end
 			end

@@ -24,22 +24,22 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spEcho = Spring.Echo
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local spIsPosInLos = Spring.IsPosInLos
-local spIsPosInAirLos = Spring.IsPosInAirLos
+local spEcho = Engine.Shared.Echo
+local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
+local spGetProjectileVelocity = Engine.Shared.GetProjectileVelocity
+local spGetProjectileDefID = Engine.Shared.GetProjectileDefID
+local spGetProjectileTeamID = Engine.Shared.GetProjectileTeamID
+local spGetTeamAllyTeamID = Engine.Shared.GetTeamAllyTeamID
+local spIsPosInLos = Engine.Shared.IsPosInLos
+local spIsPosInAirLos = Engine.Shared.IsPosInAirLos
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetGameFrame = Spring.GetGameFrame
-local spGetFrameTimeOffset = Spring.GetFrameTimeOffset
-local spGetGameSpeed = Spring.GetGameSpeed
-local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
-local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
-local spIsAABBInView = Spring.IsAABBInView
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetFrameTimeOffset = Engine.Unsynced.GetFrameTimeOffset
+local spGetGameSpeed = Engine.Unsynced.GetGameSpeed
+local spGetProjectileOwnerID = Engine.Shared.GetProjectileOwnerID
+local spGetProjectilesInRectangle = Engine.Shared.GetProjectilesInRectangle
+local spIsAABBInView = Engine.Unsynced.IsAABBInView
 
 local glBlending = gl.Blending
 local glTexture = gl.Texture
@@ -975,15 +975,15 @@ local pausedLastRebuildTimer = nil
 -- associated upvalues.
 local function pausedShouldSkipRebuild(usePausedCache, isPaused)
 	if usePausedCache then
-		local cx, cy, cz = Spring.GetCameraPosition()
-		local dx, dy, dz = Spring.GetCameraDirection()
+		local cx, cy, cz = Engine.Unsynced.GetCameraPosition()
+		local dx, dy, dz = Engine.Unsynced.GetCameraDirection()
 		if cx == pausedCamX and cy == pausedCamY and cz == pausedCamZ and dx == pausedCamDX and dy == pausedCamDY and dz == pausedCamDZ then
 			return true
 		end
 		-- Camera moved while paused: cap rebuild rate to ~20Hz wall-clock
 		-- (FPS-independent, stays cheap at uncapped paused FPS during pans).
-		local now = Spring.GetTimer()
-		if pausedLastRebuildTimer and Spring.DiffTimers(now, pausedLastRebuildTimer) < 0.05 then
+		local now = Engine.Unsynced.GetTimer()
+		if pausedLastRebuildTimer and Engine.Unsynced.DiffTimers(now, pausedLastRebuildTimer) < 0.05 then
 			return true
 		end
 		pausedLastRebuildTimer = now
@@ -991,8 +991,8 @@ local function pausedShouldSkipRebuild(usePausedCache, isPaused)
 		pausedCamDX, pausedCamDY, pausedCamDZ = dx, dy, dz
 	elseif isPaused then
 		-- First paused frame: prime camera cache so we can early-out next frame.
-		pausedCamX, pausedCamY, pausedCamZ = Spring.GetCameraPosition()
-		pausedCamDX, pausedCamDY, pausedCamDZ = Spring.GetCameraDirection()
+		pausedCamX, pausedCamY, pausedCamZ = Engine.Unsynced.GetCameraPosition()
+		pausedCamDX, pausedCamDY, pausedCamDZ = Engine.Unsynced.GetCameraDirection()
 		pausedLastRebuildTimer = nil
 	end
 	return false

@@ -12,21 +12,21 @@ function gadget:GetInfo()
 	}
 end
 
-if Spring.GetModOptions().fixedallies then
+if Engine.Shared.GetModOptions().fixedallies then
 	return -- no use if alliances are disabled
 end
 
 if gadgetHandler:IsSyncedCode() then
-	local GetUnitDefID = Spring.GetUnitDefID
-	local AreTeamsAllied = Spring.AreTeamsAllied
-	local GetUnitsInSphere = Spring.GetUnitsInSphere
-	local GetUnitTeam = Spring.GetUnitTeam
-	local GetUnitAllyTeam = Spring.GetUnitAllyTeam
-	local GetTeamList = Spring.GetTeamList
-	local GetUnitHealth = Spring.GetUnitHealth
-	local GetUnitsInCylinder = Spring.GetUnitsInCylinder
-	local SetAlly = Spring.SetAlly
-	local ValidUnitID = Spring.ValidUnitID
+	local GetUnitDefID = Engine.Shared.GetUnitDefID
+	local AreTeamsAllied = Engine.Shared.AreTeamsAllied
+	local GetUnitsInSphere = Engine.Shared.GetUnitsInSphere
+	local GetUnitTeam = Engine.Shared.GetUnitTeam
+	local GetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+	local GetTeamList = Engine.Shared.GetTeamList
+	local GetUnitHealth = Engine.Shared.GetUnitHealth
+	local GetUnitsInCylinder = Engine.Shared.GetUnitsInCylinder
+	local SetAlly = Engine.Synced.SetAlly
+	local ValidUnitID = Engine.Shared.ValidUnitID
 	local min = math.min
 
 	local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
@@ -38,7 +38,7 @@ if gadgetHandler:IsSyncedCode() then
 	local UPDATE_RATE = 3 --in times per second ( max one time per sim frame )
 	local UPDATE_FRAMES = math.floor(Game.gameSpeed / UPDATE_RATE)
 
-	local allyTeamList = Spring.GetAllyTeamList()
+	local allyTeamList = Engine.Shared.GetAllyTeamList()
 
 	local attackAOEs = {}
 	local attackDamages = {}
@@ -145,9 +145,9 @@ else
 	-- Unsynced
 	----------------------------------------------------------------
 
-	local SendMessageToTeam = Spring.SendMessageToTeam
-	local GetTeamInfo = Spring.GetTeamInfo
-	local GetPlayerInfo = Spring.GetPlayerInfo
+	local SendMessageToTeam = Engine.Unsynced.SendMessageToTeam
+	local GetTeamInfo = Engine.Shared.GetTeamInfo
+	local GetPlayerInfo = Engine.Shared.GetPlayerInfo
 
 	-- Dynamic alliances are not supported for AI teams
 	local function getTeamLeaderName(teamID)

@@ -21,7 +21,7 @@ local function IsIgnoredPlayer(playerID)
 		return false
 	end
 
-	local name, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID, false)
+	local name, _, _, _, _, _, _, _, _, _, playerInfo = Engine.Shared.GetPlayerInfo(playerID, false)
 	local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
 	if accountID and ignoredAccounts[accountID] then
 		return true
@@ -53,8 +53,8 @@ function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 		return
 	end
 	if cmdType == "point" then
-		Spring.PlaySoundFile(mapmarkFile, volume * 20, x, y, z, nil, nil, nil, "ui")
-		Spring.PlaySoundFile(mapmarkFile, volume * 0.3, nil, "ui") -- to make sure it's still somewhat audible when far away
+		Engine.Unsynced.PlaySoundFile(mapmarkFile, volume * 20, x, y, z, nil, nil, nil, "ui")
+		Engine.Unsynced.PlaySoundFile(mapmarkFile, volume * 0.3, nil, "ui") -- to make sure it's still somewhat audible when far away
 	end
 end
 

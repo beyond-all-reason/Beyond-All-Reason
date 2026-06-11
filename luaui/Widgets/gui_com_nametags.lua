@@ -13,29 +13,29 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = Engine.Shared.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetViewGeometry = Spring.GetViewGeometry
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetPlayerList = Spring.GetPlayerList
-local spGetTeamColor = Spring.GetTeamColor
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
-local spIsUnitVisible = Spring.IsUnitVisible
-local spIsUnitIcon = Spring.IsUnitIcon
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetTeamLuaAI = Spring.GetTeamLuaAI
-local spGetGameRulesParam = Spring.GetGameRulesParam
-local spGetTeamList = Spring.GetTeamList
-local spGetGaiaTeamID = Spring.GetGaiaTeamID
-local spGetModOptions = Spring.GetModOptions
-local spGetConfigString = Spring.GetConfigString
-local spIsGUIHidden = Spring.IsGUIHidden
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spWorldToScreenCoords = Engine.Unsynced.WorldToScreenCoords
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetPlayerInfo = Engine.Shared.GetPlayerInfo
+local spGetTeamInfo = Engine.Shared.GetTeamInfo
+local spGetPlayerList = Engine.Shared.GetPlayerList
+local spGetTeamColor = Engine.Unsynced.GetTeamColor
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetTeamUnitsByDefs = Engine.Shared.GetTeamUnitsByDefs
+local spIsUnitVisible = Engine.Unsynced.IsUnitVisible
+local spIsUnitIcon = Engine.Unsynced.IsUnitIcon
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetTeamLuaAI = Engine.Shared.GetTeamLuaAI
+local spGetGameRulesParam = Engine.Shared.GetGameRulesParam
+local spGetTeamList = Engine.Shared.GetTeamList
+local spGetGaiaTeamID = Engine.Shared.GetGaiaTeamID
+local spGetModOptions = Engine.Shared.GetModOptions
+local spGetConfigString = Engine.Unsynced.GetConfigString
+local spIsGUIHidden = Engine.Unsynced.IsGUIHidden
 
 -- Localized Lua functions
 local mathFloor = math.floor
@@ -109,7 +109,7 @@ local fonticon = glLoadFont(fontfile, fontfileSize * fontfileScale2, fontfileOut
 
 local singleTeams = false
 local teamListLen = #spGetTeamList()
-local allyTeamListLen = #Spring.GetAllyTeamList()
+local allyTeamListLen = #Engine.Shared.GetAllyTeamList()
 if teamListLen - 1 == allyTeamListLen - 1 then
 	singleTeams = true
 end
@@ -498,7 +498,7 @@ function widget:Update(dt)
 	end
 end
 
-local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
 
 local function DrawName(attributes)
 	if comnameList[attributes[1]] == nil then

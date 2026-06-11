@@ -16,8 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spSetUnitStealth = Spring.SetUnitStealth
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spSetUnitStealth = Engine.Synced.SetUnitStealth
 local stringFind = string.find
 
 local stealthyUnits = {}

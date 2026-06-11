@@ -17,7 +17,7 @@ function gadget:GetInfo()
 end
 
 -- no need to enable when sound is muted
-local enabled = ((Spring.GetConfigInt("snd_unitsound", 1) or 1) ~= 0 and (Spring.GetConfigInt("snd_volmaster", 1) or 100) > 0 and ((Spring.GetConfigInt("snd_volui", 1) or 100) > 0 or (Spring.GetConfigInt("snd_volbattle", 1) or 100) > 0))
+local enabled = ((Engine.Unsynced.GetConfigInt("snd_unitsound", 1) or 1) ~= 0 and (Engine.Unsynced.GetConfigInt("snd_volmaster", 1) or 100) > 0 and ((Engine.Unsynced.GetConfigInt("snd_volui", 1) or 100) > 0 or (Engine.Unsynced.GetConfigInt("snd_volbattle", 1) or 100) > 0))
 
 local DelayRandomization = 2 -- frames
 
@@ -108,26 +108,26 @@ end
 GUIUnitSoundEffects = newGUIUnitSoundEffects
 newGUIUnitSoundEffects = nil
 
-local CurrentGameFrame = Spring.GetGameFrame()
+local CurrentGameFrame = Engine.Shared.GetGameFrame()
 local myTeamID = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
-local spectator, fullview = Spring.GetSpectatingState()
+local spectator, fullview = Engine.Unsynced.GetSpectatingState()
 
-local spGetUnitIsActive = Spring.GetUnitIsActive
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetUnitPosition = Spring.GetUnitPosition
-local spIsUnitInView = Spring.IsUnitInView
-local spIsUnitInLos = Spring.IsUnitInLos
-local spIsUnitSelected = Spring.IsUnitSelected
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetMouseState = Spring.GetMouseState
+local spGetUnitIsActive = Engine.Shared.GetUnitIsActive
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spIsUnitInView = Engine.Unsynced.IsUnitInView
+local spIsUnitInLos = Engine.Shared.IsUnitInLos
+local spIsUnitSelected = Engine.Unsynced.IsUnitSelected
+local spGetSelectedUnitsCount = Engine.Unsynced.GetSelectedUnitsCount
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local spGetMouseState = Engine.Unsynced.GetMouseState
 local spGetMyPlayerID = Spring.GetMyPlayerID
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetGameFrame = Spring.GetGameFrame
-local spPlaySoundFile = Spring.PlaySoundFile
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spPlaySoundFile = Engine.Unsynced.PlaySoundFile
 
 local math_random = math.random
 
@@ -205,7 +205,7 @@ end
 
 function gadget:Initialize()
 	units = {}
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = Engine.Shared.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
@@ -254,7 +254,7 @@ end
 
 local slowTimer, fastTimer = 0, 0
 function gadget:Update()
-	local dt = Spring.GetLastUpdateSeconds()
+	local dt = Engine.Unsynced.GetLastUpdateSeconds()
 	fastTimer = fastTimer + dt
 	if fastTimer > commandSoundTimer then
 		fastTimer = 0
@@ -265,8 +265,8 @@ function gadget:Update()
 		slowTimer = 0
 		myTeamID = Spring.GetMyTeamID()
 		myAllyTeamID = Spring.GetMyAllyTeamID()
-		spectator, fullview = Spring.GetSpectatingState()
-		enabled = ((Spring.GetConfigInt("snd_unitsound", 1) or 1) ~= 0 and (Spring.GetConfigInt("snd_volmaster", 1) or 100) > 0 and ((Spring.GetConfigInt("snd_volui", 1) or 100) > 0 or (Spring.GetConfigInt("snd_volbattle", 1) or 100) > 0))
+		spectator, fullview = Engine.Unsynced.GetSpectatingState()
+		enabled = ((Engine.Unsynced.GetConfigInt("snd_unitsound", 1) or 1) ~= 0 and (Engine.Unsynced.GetConfigInt("snd_volmaster", 1) or 100) > 0 and ((Engine.Unsynced.GetConfigInt("snd_volui", 1) or 100) > 0 or (Engine.Unsynced.GetConfigInt("snd_volbattle", 1) or 100) > 0))
 	end
 end
 
@@ -365,7 +365,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		return
 	end
 	if builderID and GUIUnitSoundEffects[unitDefID] then
-		local _, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
+		local _, buildProgress = Engine.Shared.GetUnitIsBeingBuilt(unitID)
 		if buildProgress < 0.05 then --buildProgress
 			if myTeamID == spGetUnitTeam(builderID) then
 				local posx, posy, posz = spGetUnitPosition(unitID)

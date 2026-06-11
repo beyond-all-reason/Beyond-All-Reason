@@ -18,8 +18,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetMouseState = Spring.GetMouseState
-local spEcho = Spring.Echo
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spEcho = Engine.Shared.Echo
 
 local widgetContents = {} -- maps widgetname to raw code
 local widgetFilesNames = {} -- maps widgetname to filename
@@ -72,14 +72,14 @@ local function CheckForChanges(widgetName, fileName)
 	end
 end
 
-local lastUpdate = Spring.GetTimer()
+local lastUpdate = Engine.Unsynced.GetTimer()
 local updateQueue = {}
 function widget:Update()
 	local widgetName, fileName = next(updateQueue)
 	if widgetName then
-		local startTime = Spring.GetTimer()
+		local startTime = Engine.Unsynced.GetTimer()
 		-- 2 ms budget per frame
-		while widgetName and (Spring.DiffTimers(Spring.GetTimer(), startTime, true) < 3.0) do
+		while widgetName and (Engine.Unsynced.DiffTimers(Engine.Unsynced.GetTimer(), startTime, true) < 3.0) do
 			tracy.ZoneBeginN("Widget Auto Reloader:" .. widgetName)
 			CheckForChanges(widgetName, fileName)
 			updateQueue[widgetName] = nil
@@ -88,10 +88,10 @@ function widget:Update()
 		end
 	end
 
-	if Spring.DiffTimers(Spring.GetTimer(), lastUpdate) < 1 then
+	if Engine.Unsynced.DiffTimers(Engine.Unsynced.GetTimer(), lastUpdate) < 1 then
 		return
 	end
-	lastUpdate = Spring.GetTimer()
+	lastUpdate = Engine.Unsynced.GetTimer()
 
 	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, spGetMouseState())

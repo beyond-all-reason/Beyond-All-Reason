@@ -20,5 +20,5 @@ function widget:Initialize()
 
 	local json = Json.encode(result)
 
-	Spring.SendLuaRulesMsg("unitdefs:" .. VFS.ZlibCompress(json))
+	Engine.Unsynced.SendLuaRulesMsg("unitdefs:" .. VFS.ZlibCompress(json))
 end

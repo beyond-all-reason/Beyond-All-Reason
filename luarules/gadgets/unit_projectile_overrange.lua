@@ -37,16 +37,16 @@ local mapGravity = Game.gravity / Game.gameSpeed ^ 2
 local descentGravity = -mapGravity * 5
 
 --functions
-local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
 local mathRandom = math.random
 local mathCeil = math.ceil
 local mathSqrt = math.sqrt
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spSetProjectileCollision = Spring.SetProjectileCollision
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spSetProjectileVelocity = Spring.SetProjectileVelocity
-local spSetProjectileTimeToLive = Spring.SetProjectileTimeToLive
-local spSetProjectileGravity = Spring.SetProjectileGravity
+local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
+local spSetProjectileCollision = Engine.Synced.SetProjectileCollision
+local spGetProjectileVelocity = Engine.Shared.GetProjectileVelocity
+local spSetProjectileVelocity = Engine.Synced.SetProjectileVelocity
+local spSetProjectileTimeToLive = Engine.Synced.SetProjectileTimeToLive
+local spSetProjectileGravity = Engine.Synced.SetProjectileGravity
 
 --tables
 local defWatchTable = {}

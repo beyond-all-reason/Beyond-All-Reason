@@ -35,11 +35,11 @@ else
 	local tConcat = table.concat
 	local ZlibCompress = Spring.ZlibCompress
 	local ZlibDeCompress = Spring.ZlibDeCompress
-	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
-	local GetSelectedUnits = Spring.GetSelectedUnits
-	local GetSpectatingState = Spring.GetSpectatingState
-	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
-	local GetPlayerInfo = Spring.GetPlayerInfo
+	local SendLuaRulesMsg = Engine.Unsynced.SendLuaRulesMsg
+	local GetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+	local GetSpectatingState = Engine.Unsynced.GetSpectatingState
+	local GetLastUpdateSeconds = Engine.Unsynced.GetLastUpdateSeconds
+	local GetPlayerInfo = Engine.Shared.GetPlayerInfo
 	local PackU16 = VFS.PackU16
 	local UnpackU16 = VFS.UnpackU16
 	local LuaUICallIn = Script.LuaUI

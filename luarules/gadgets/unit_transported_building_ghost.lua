@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-spSetUnitLeavesGhost = Spring.SetUnitLeavesGhost
+spSetUnitLeavesGhost = Engine.Synced.SetUnitLeavesGhost
 
 if not gadgetHandler:IsSyncedCode() then
 	return

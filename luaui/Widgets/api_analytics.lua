@@ -12,11 +12,11 @@ function widget:GetInfo()
 	}
 end
 
-local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetPlayerInfo = Engine.Shared.GetPlayerInfo
 local spGetMyPlayerID = Spring.GetMyPlayerID
-local spGetGameFrame = Spring.GetGameFrame
-local spLog = Spring.Log
-local spSendLuaUIMsg = Spring.SendLuaUIMsg
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spLog = Engine.Shared.Log
+local spSendLuaUIMsg = Engine.Unsynced.SendLuaUIMsg
 
 local pendingAnalytics = {}
 

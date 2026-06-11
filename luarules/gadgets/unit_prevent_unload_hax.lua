@@ -25,13 +25,13 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
-local SpSetUnitVelocity = Spring.SetUnitVelocity
-local SpGetUnitVelocity = Spring.GetUnitVelocity
-local SpGetGroundHeight = Spring.GetGroundHeight
-local SpGetUnitPosition = Spring.GetUnitPosition
-local SpGetGameFrame = Spring.GetGameFrame
-local SpSetUnitPhysics = Spring.SetUnitPhysics
-local SpSetUnitDirection = Spring.SetUnitDirection
+local SpSetUnitVelocity = Engine.Synced.SetUnitVelocity
+local SpGetUnitVelocity = Engine.Shared.GetUnitVelocity
+local SpGetGroundHeight = Engine.Shared.GetGroundHeight
+local SpGetUnitPosition = Engine.Shared.GetUnitPosition
+local SpGetGameFrame = Engine.Shared.GetGameFrame
+local SpSetUnitPhysics = Engine.Synced.SetUnitPhysics
+local SpSetUnitDirection = Engine.Synced.SetUnitDirection
 
 local unloadedUnits = {}
 
@@ -61,8 +61,8 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		SpSetUnitVelocity(unitID, x, y, z)
 	else
 		-- prevent unloaded units from sliding across the map
-		local px, py, pz = Spring.GetUnitPosition(unitID)
-		local dx, dy, dz = Spring.GetUnitDirection(unitID)
+		local px, py, pz = Engine.Shared.GetUnitPosition(unitID)
+		local dx, dy, dz = Engine.Shared.GetUnitDirection(unitID)
 		local frame = SpGetGameFrame() + frameMargin
 		unloadedUnits[unitID] = { ["px"] = px, ["py"] = py, ["pz"] = pz, ["dx"] = dx, ["dy"] = dy, ["dz"] = dz, ["frame"] = frame }
 

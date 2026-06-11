@@ -31,15 +31,15 @@ function SkipAlliedUpgradeWidget.filterOutAlliedSpots(spots, unitDefIdsToCheck)
 
 	for i = 1, #spots do
 		local spot = spots[i]
-		local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game.extractorRadius)
+		local units = Engine.Shared.GetUnitsInCylinder(spot.x, spot.z, Game.extractorRadius)
 		local hasAlliedExtractor = false
 
 		for j = 1, #units do
-			local unitDefID = Spring.GetUnitDefID(units[j])
+			local unitDefID = Engine.Shared.GetUnitDefID(units[j])
 
 			if unitDefIdsToCheck[unitDefID] then
-				local unitTeam = Spring.GetUnitTeam(units[j])
-				if Spring.AreTeamsAllied(myTeamID, unitTeam) and unitTeam ~= myTeamID then
+				local unitTeam = Engine.Shared.GetUnitTeam(units[j])
+				if Engine.Shared.AreTeamsAllied(myTeamID, unitTeam) and unitTeam ~= myTeamID then
 					hasAlliedExtractor = true
 					break
 				end

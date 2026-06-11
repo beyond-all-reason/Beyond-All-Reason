@@ -26,13 +26,13 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = Engine.Shared.GetGameFrame
 
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitDirection = Spring.GetUnitDirection
+local GiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local GetUnitPosition = Engine.Shared.GetUnitPosition
+local GetUnitDirection = Engine.Shared.GetUnitDirection
 local GetMyTeamID = Spring.GetMyTeamID
-local GetUnitDefID = Spring.GetUnitDefID
+local GetUnitDefID = Engine.Shared.GetUnitDefID
 
 local CMD_MOVE = CMD.MOVE
 
@@ -45,7 +45,7 @@ local moveUnitsDefs = {}
 local gameStarted
 
 function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if Engine.Unsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -60,7 +60,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if Engine.Unsynced.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -75,7 +75,7 @@ function widget:Initialize()
 		end
 	end
 
-	local units = Spring.GetTeamUnits(myTeamID)
+	local units = Engine.Shared.GetTeamUnits(myTeamID)
 	for i = 1, #units do
 		local unitID = units[i]
 		widget:UnitCreated(unitID, GetUnitDefID(unitID), myTeamID)

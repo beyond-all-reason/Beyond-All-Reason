@@ -16,7 +16,7 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = Engine.Shared.Echo
 
 --------------------------------------------------------------------------------
 -- Bindable actions:	fov [number] - Set Field of View to [number] or 45 degrees
@@ -40,7 +40,7 @@ local function limitFieldOfView(fov)
 end
 
 local function updateFieldOfView(fovTarget, direction)
-	local current_cam_state = Spring.GetCameraState()
+	local current_cam_state = Engine.Unsynced.GetCameraState()
 	if direction == 1 or direction == -1 then
 		current_cam_state.fov = mathFloor(current_cam_state.fov + direction * fovTarget)
 		current_cam_state.fov = limitFieldOfView(current_cam_state.fov)
@@ -49,7 +49,7 @@ local function updateFieldOfView(fovTarget, direction)
 	end
 
 	spEcho("FOV: " .. current_cam_state.fov)
-	Spring.SetCameraState(current_cam_state, WG["options"] and WG["options"].getCameraSmoothness() or 2)
+	Engine.Unsynced.SetCameraState(current_cam_state, WG["options"] and WG["options"].getCameraSmoothness() or 2)
 end
 
 local function fieldOfViewHandler(_, _, args, data, isRepeat, isRelease)

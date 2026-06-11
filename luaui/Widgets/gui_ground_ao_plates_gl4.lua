@@ -14,7 +14,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = Engine.Shared.Echo
 
 -- Configurable Parts:
 local groundaoplatealpha = 1.0
@@ -43,8 +43,8 @@ local glDepthMask = gl.DepthMask
 local GL_BACK = GL.BACK
 local GL_LEQUAL = GL.LEQUAL
 local GL_POINTS = GL.POINTS
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetGameFrame = Engine.Shared.GetGameFrame
 
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason)
 	local gf = spGetGameFrame()

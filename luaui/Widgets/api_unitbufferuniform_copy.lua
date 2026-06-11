@@ -12,8 +12,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spEcho = Engine.Shared.Echo
 
 local LuaShader = gl.LuaShader
 

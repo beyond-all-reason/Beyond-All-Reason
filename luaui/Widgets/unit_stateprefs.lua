@@ -16,9 +16,9 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spEcho = Spring.Echo
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local spEcho = Engine.Shared.Echo
 
 --[[------------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ local isRecordPressed = false
 local isClearPressed = false
 local spawnInitialFrame = Game.spawnInitialFrame
 local spawnWarpInFrame = Game.spawnWarpInFrame
-local spectatingState = select(1, Spring.GetSpectatingState())
+local spectatingState = select(1, Engine.Unsynced.GetSpectatingState())
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -106,13 +106,13 @@ local function GetCmdOpts(alt, ctrl, meta, shift, right)
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() then
+	if Engine.Unsynced.GetSpectatingState() then
 		widget:GameOver()
 	end
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() then
+	if Engine.Unsynced.IsReplay() then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -149,7 +149,7 @@ function doClearUnit()
 		unitSet[name] = {}
 		spEcho("All state prefs removed for unit: " .. name)
 	end
-	Spring.PlaySoundFile(clearSound, 0.6, "ui")
+	Engine.Unsynced.PlaySoundFile(clearSound, 0.6, "ui")
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
@@ -157,8 +157,8 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return false
 	end
 
-	local index = Spring.GetCmdDescIndex(cmdID)
-	local command = Spring.GetActiveCmdDesc(index)
+	local index = Engine.Unsynced.GetCmdDescIndex(cmdID)
+	local command = Engine.Unsynced.GetActiveCmdDesc(index)
 	-- need to filter only state commands!
 	if type(command) ~= "table" or command.type ~= CMDTYPE_ICON_MODE then
 		return
@@ -192,24 +192,24 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			if cmdID == 115 then
 				return
 			end -- we're skipping "repeat" command here for now
-			Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
+			Engine.Shared.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
 		end
 	end
 end
 
 local function ApplyUnitStates()
 	local teamID = (not spectatingState) and Spring.GetMyTeamID()
-	local units = (teamID and Spring.GetTeamUnits(teamID)) or Spring.GetAllUnits()
+	local units = (teamID and Engine.Shared.GetTeamUnits(teamID)) or Engine.Shared.GetAllUnits()
 	if units then
 		for i = 1, #units do
-			widget:UnitFinished(units[i], Spring.GetUnitDefID(units[i]), teamID or Spring.GetUnitTeam(units[i]))
+			widget:UnitFinished(units[i], Engine.Shared.GetUnitDefID(units[i]), teamID or Engine.Shared.GetUnitTeam(units[i]))
 		end
 	end
 end
 
 function widget:GameFrame(n)
-	if Spring.GetGameState then
-		local finishedLoading, loadedFromSave, locallyPaused, lagging = Spring.GetGameState()
+	if Engine.Unsynced.GetGameState then
+		local finishedLoading, loadedFromSave, locallyPaused, lagging = Engine.Unsynced.GetGameState()
 		if loadedFromSave then
 			widgetHandler:RemoveCallIn("GameFrame", self)
 			return

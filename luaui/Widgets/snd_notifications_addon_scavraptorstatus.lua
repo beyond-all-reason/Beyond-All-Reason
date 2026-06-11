@@ -22,9 +22,9 @@ function widget:Update(dt)
 		UpdateTimer = UpdateTimer - 1
 
 		if Spring.Utilities.Gametype.IsRaptors() then
-			FinalBossProgress = Spring.GetGameRulesParam("raptorQueenAnger")
-			FinalBossHealth = Spring.GetGameRulesParam("raptorQueenHealth")
-			TechProgress = Spring.GetGameRulesParam("raptorTechAnger")
+			FinalBossProgress = Engine.Shared.GetGameRulesParam("raptorQueenAnger")
+			FinalBossHealth = Engine.Shared.GetGameRulesParam("raptorQueenHealth")
+			TechProgress = Engine.Shared.GetGameRulesParam("raptorTechAnger")
 
 			if TechProgress and TechProgress >= 50 and not PlayedMessages["AntiNukeReminder1"] then
 				WG["notifications"].queueNotification("PvE/AntiNukeReminder")
@@ -64,7 +64,7 @@ function widget:Update(dt)
 				if FinalBossIsAlive and FinalBossHealth <= 0 and not PlayedMessages["FinalBossIsDestroyed"] then
 					WG["notifications"].queueNotification("PvE/Raptor_QueenIsDestroyed")
 					PlayedMessages["FinalBossIsDestroyed"] = true
-					if Spring.GetModOptions().scav_endless then
+					if Engine.Shared.GetModOptions().scav_endless then
 						FinalBossIsAlive = false
 						PlayedMessages = {}
 					end
@@ -94,7 +94,7 @@ function widget:Update(dt)
 					PlayedMessages["FinalBossHealth5"] = true
 				end
 
-				CurrentlyStaggered = Spring.GetGameRulesParam("raptorQueenStaggerActive")
+				CurrentlyStaggered = Engine.Shared.GetGameRulesParam("raptorQueenStaggerActive")
 				if CurrentlyStaggered == true and not PlayedMessages["FinalBossStaggered"] then
 					PlayedMessages["FinalBossStaggered"] = true
 					WG["notifications"].queueNotification("PvE/Raptor_QueenGotStaggered")
@@ -104,9 +104,9 @@ function widget:Update(dt)
 				end
 			end
 		elseif Spring.Utilities.Gametype.IsScavengers() then
-			FinalBossProgress = Spring.GetGameRulesParam("scavBossAnger")
-			FinalBossHealth = Spring.GetGameRulesParam("scavBossHealth")
-			TechProgress = Spring.GetGameRulesParam("scavTechAnger")
+			FinalBossProgress = Engine.Shared.GetGameRulesParam("scavBossAnger")
+			FinalBossHealth = Engine.Shared.GetGameRulesParam("scavBossHealth")
+			TechProgress = Engine.Shared.GetGameRulesParam("scavTechAnger")
 
 			if TechProgress and TechProgress >= 50 and not PlayedMessages["AntiNukeReminder1"] then
 				WG["notifications"].queueNotification("PvE/AntiNukeReminder")
@@ -146,7 +146,7 @@ function widget:Update(dt)
 				if FinalBossIsAlive and FinalBossHealth <= 0 and not PlayedMessages["FinalBossIsDestroyed"] then
 					WG["notifications"].queueNotification("PvE/Scav_BossIsDestroyed")
 					PlayedMessages["FinalBossIsDestroyed"] = true
-					if Spring.GetModOptions().scav_endless then
+					if Engine.Shared.GetModOptions().scav_endless then
 						FinalBossIsAlive = false
 						PlayedMessages = {}
 					end
@@ -176,7 +176,7 @@ function widget:Update(dt)
 					PlayedMessages["FinalBossHealth5"] = true
 				end
 
-				CurrentlyStaggered = Spring.GetGameRulesParam("scavBossStaggerActive")
+				CurrentlyStaggered = Engine.Shared.GetGameRulesParam("scavBossStaggerActive")
 				if CurrentlyStaggered == true and not PlayedMessages["FinalBossStaggered"] then
 					PlayedMessages["FinalBossStaggered"] = true
 					WG["notifications"].queueNotification("PvE/Scav_BossGotStaggered")

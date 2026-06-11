@@ -16,10 +16,10 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local spGetAllUnits = Spring.GetAllUnits
-local spGetUnitDefID = Spring.GetUnitDefID
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-local spRemoveUnitCmdDesc = Spring.RemoveUnitCmdDesc
+local spGetAllUnits = Engine.Shared.GetAllUnits
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spFindUnitCmdDesc = Engine.Shared.FindUnitCmdDesc
+local spRemoveUnitCmdDesc = Engine.Synced.RemoveUnitCmdDesc
 
 local CMD_MOVE_STATE = CMD.MOVE_STATE
 

@@ -140,10 +140,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		--function gadget:Initialize()
-		local t = Spring.GetTeamList()
+		local t = Engine.Shared.GetTeamList()
 		for _, teamID in ipairs(t) do
-			if select(4, Spring.GetTeamInfo(teamID, false)) then -- is AI?
-				Spring.SetGameRulesParam("ainame_" .. teamID, getName(teamID, string.find(Spring.GetTeamLuaAI(teamID) or "", "Raptors"), string.find(Spring.GetTeamLuaAI(teamID) or "", "Scavenger")))
+			if select(4, Engine.Shared.GetTeamInfo(teamID, false)) then -- is AI?
+				Engine.Synced.SetGameRulesParam("ainame_" .. teamID, getName(teamID, string.find(Engine.Shared.GetTeamLuaAI(teamID) or "", "Raptors"), string.find(Engine.Shared.GetTeamLuaAI(teamID) or "", "Scavenger")))
 			end
 		end
 		gadgetHandler:RemoveGadget(self)

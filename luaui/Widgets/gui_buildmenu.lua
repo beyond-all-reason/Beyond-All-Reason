@@ -18,11 +18,11 @@ local mathFloor = math.floor
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetGameSeconds = Spring.GetGameSeconds
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetGameSeconds = Engine.Shared.GetGameSeconds
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
 
 include("keysym.h.lua")
 local unitBlocking = VFS.Include("luaui/Include/unitBlocking.lua")
@@ -125,15 +125,15 @@ local vsx, vsy = spGetViewGeometry()
 local ordermenuLeft = mathFloor(vsx / 5)
 local advplayerlistLeft = vsx * 0.8
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
-local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+local ui_opacity = Engine.Unsynced.GetConfigFloat("ui_opacity", 0.7)
+local ui_scale = Engine.Unsynced.GetConfigFloat("ui_scale", 1)
 
 local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 
 local isSpec = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
 
-local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+local startDefID = Engine.Shared.GetTeamRulesParam(myTeamID, "startUnit")
 
 local disableInput = disableInputWhenSpec and isSpec
 local backgroundRect = { 0, 0, 0, 0 }
@@ -205,17 +205,17 @@ local function refreshUnitDefs()
 	end
 end
 
-local spIsUnitSelected = Spring.IsUnitSelected
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
-local spGetCmdDescIndex = Spring.GetCmdDescIndex
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spGetMouseState = Spring.GetMouseState
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
+local spIsUnitSelected = Engine.Unsynced.IsUnitSelected
+local spGetSelectedUnitsCount = Engine.Unsynced.GetSelectedUnitsCount
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local spGetActiveCommand = Engine.Unsynced.GetActiveCommand
+local spGetActiveCmdDescs = Engine.Unsynced.GetActiveCmdDescs
+local spGetCmdDescIndex = Engine.Unsynced.GetCmdDescIndex
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetTeamRulesParam = Engine.Shared.GetTeamRulesParam
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
+local spGetUnitIsBuilding = Engine.Shared.GetUnitIsBuilding
 
 local SelectedUnitsCount = spGetSelectedUnitsCount()
 
@@ -614,7 +614,7 @@ function widget:Update(dt)
 
 			SelectedUnitsCount = spGetSelectedUnitsCount()
 			if SelectedUnitsCount > 0 then
-				local sel = Spring.GetSelectedUnits()
+				local sel = Engine.Unsynced.GetSelectedUnits()
 				for _, unitID in ipairs(sel) do
 					local uDefID = spGetUnitDefID(unitID)
 					if units.isFactory[uDefID] then
@@ -699,7 +699,7 @@ function widget:Update(dt)
 			widget:ViewResize()
 		end
 
-		disableInput = Spring.IsGodModeEnabled() and false or (disableInputWhenSpec and isSpec)
+		disableInput = Engine.Shared.IsGodModeEnabled() and false or (disableInputWhenSpec and isSpec)
 	end
 end
 
@@ -1031,7 +1031,7 @@ function widget:DrawScreen()
 
 	local hovering = false
 	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-		Spring.SetMouseCursor("cursornormal")
+		Engine.Unsynced.SetMouseCursor("cursornormal")
 		hovering = true
 	end
 
@@ -1046,7 +1046,7 @@ function widget:DrawScreen()
 						local uDefID = -cmds[cellRectID].id
 						WG["buildmenu"].hoverID = uDefID
 						gl.Color(1, 1, 1, 1)
-						local alt, ctrl, meta, shift = Spring.GetModKeyState()
+						local alt, ctrl, meta, shift = Engine.Unsynced.GetModKeyState()
 						if WG["tooltip"] and not meta then
 							-- when meta: unitstats does the tooltip
 							local text
@@ -1217,8 +1217,8 @@ function widget:DrawWorld()
 		return
 	end
 
-	if startDefID ~= Spring.GetTeamRulesParam(myTeamID, "startUnit") then
-		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	if startDefID ~= Engine.Shared.GetTeamRulesParam(myTeamID, "startUnit") then
+		startDefID = Engine.Shared.GetTeamRulesParam(myTeamID, "startUnit")
 		doUpdate = true
 	end
 end
@@ -1309,7 +1309,7 @@ end
 local function updateQuotaNumber(unitDefID, count)
 	if WG.Quotas then
 		local quotaChanged = false
-		for _, builderID in ipairs(Spring.GetSelectedUnits()) do
+		for _, builderID in ipairs(Engine.Unsynced.GetSelectedUnits()) do
 			local uDefID = spGetUnitDefID(builderID)
 			if units.isFactory[uDefID] and table.contains(unitBuildOptions[uDefID], unitDefID) then
 				local quotas = WG.Quotas.getQuotas()
@@ -1326,7 +1326,7 @@ local function updateQuotaNumber(unitDefID, count)
 end
 
 local function changeQuotas(uDefID, quantity)
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = Engine.Unsynced.GetModKeyState()
 	if ctrl then
 		quantity = quantity * modKeyMultiplier.ctrl
 	end
@@ -1337,7 +1337,7 @@ local function changeQuotas(uDefID, quantity)
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 	if WG["topbar"] and WG["topbar"].showingQuit() then
@@ -1365,10 +1365,10 @@ function widget:MousePress(x, y, button)
 					if cmds[cellRectID] and cmds[cellRectID].id and unitTranslatedHumanName[-cmds[cellRectID].id] and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not units.unitRestricted[-cmds[cellRectID].id] then
 						local uDefID = cmds[cellRectID].id --WARNING: THIS IS -unitDefID, not unitDefID
 						local setQuotas = isOnQuotaBuildMode(-uDefID)
-						local alt, ctrl, meta, shift = Spring.GetModKeyState()
+						local alt, ctrl, meta, shift = Engine.Unsynced.GetModKeyState()
 						if button ~= 3 then
 							if playSounds then
-								Spring.PlaySoundFile(sound_queue_add, 0.75, "ui")
+								Engine.Unsynced.PlaySoundFile(sound_queue_add, 0.75, "ui")
 							end
 							if setQuotas and not alt then
 								changeQuotas(-uDefID, 1)
@@ -1381,7 +1381,7 @@ function widget:MousePress(x, y, button)
 									if isRepeatMex then
 										WG["areamex"].setAreaMexType(uDefID)
 									end
-									Spring.SetActiveCommand(cmd, 1, true, false, alt, ctrl, meta, shift)
+									Engine.Unsynced.SetActiveCommand(cmd, 1, true, false, alt, ctrl, meta, shift)
 								end
 							end
 						else
@@ -1389,18 +1389,18 @@ function widget:MousePress(x, y, button)
 
 							local function decreaseQuota()
 								if changeQuotas(-uDefID, modKeyMultiplier.right) and playSounds then
-									Spring.PlaySoundFile(sound_queue_rem, 0.75, "ui")
+									Engine.Unsynced.PlaySoundFile(sound_queue_rem, 0.75, "ui")
 								end
 							end
 
 							local function decreaseQueue()
 								if queueCount > 0 and playSounds then
-									Spring.PlaySoundFile(sound_queue_rem, 0.75, "ui")
+									Engine.Unsynced.PlaySoundFile(sound_queue_rem, 0.75, "ui")
 								end
 								if preGamestartPlayer then
 									setPreGamestartDefID(-cmds[cellRectID].id)
 								elseif spGetCmdDescIndex(cmds[cellRectID].id) then
-									Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 3, false, true, Spring.GetModKeyState())
+									Engine.Unsynced.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 3, false, true, Engine.Unsynced.GetModKeyState())
 								end
 							end
 
@@ -1456,9 +1456,9 @@ local function buildUnitHandler(_, _, _, data)
 
 	-- Find the buildcycle for current key and iterate on it
 	local pressedKey, pressedScan
-	for k, v in pairs(Spring.GetPressedKeys()) do
+	for k, v in pairs(Engine.Unsynced.GetPressedKeys()) do
 		if v and tonumber(k) then
-			local key = Spring.GetKeySymbol(tonumber(k))
+			local key = Engine.Unsynced.GetKeySymbol(tonumber(k))
 			if key and #key == 1 then
 				pressedKey = key
 				break
@@ -1467,10 +1467,10 @@ local function buildUnitHandler(_, _, _, data)
 	end
 
 	-- check if engine supports GetPressedScans first, adjust when/if https://github.com/beyond-all-reason/spring/pull/388 is deployed
-	local pressedScans = Spring.GetPressedScans and Spring.GetPressedScans() or {}
+	local pressedScans = Engine.Unsynced.GetPressedScans and Engine.Unsynced.GetPressedScans() or {}
 	for k, v in pairs(pressedScans) do
 		if v and tonumber(k) then
-			local scan = Spring.GetScanSymbol(tonumber(k))
+			local scan = Engine.Unsynced.GetScanSymbol(tonumber(k))
 			if scan and #scan == 4 then -- quick hack to avoid modifiers
 				pressedScan = scan
 				break
@@ -1486,7 +1486,7 @@ local function buildUnitHandler(_, _, _, data)
 	-- Clear and reuse temp table instead of creating new one
 	clearTable(buildCycleTemp)
 	local buildCycleCount = 0
-	for _, keybind in ipairs(Spring.GetKeyBindings(pressedKey, pressedScan)) do
+	for _, keybind in ipairs(Engine.Unsynced.GetKeyBindings(pressedKey, pressedScan)) do
 		if string_sub(keybind.command, 1, 10) == "buildunit_" then
 			local uDefName = string_sub(keybind.command, 11)
 			local uDef = UnitDefNames[uDefName]
@@ -1773,7 +1773,7 @@ function widget:GetConfigData()
 		defaultColls = defaultColls,
 		stickToBottom = stickToBottom,
 		maxPosY = maxPosY,
-		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
+		gameID = Game.gameID and Game.gameID or Engine.Shared.GetGameRulesParam("GameID"),
 		alwaysShow = alwaysShow,
 	}
 end

@@ -17,7 +17,7 @@ if not Spring.Utilities.Gametype.IsScavengers() then
 end
 
 if gadgetHandler:IsSyncedCode() then -- Synced
-	local teams = Spring.GetTeamList()
+	local teams = Engine.Shared.GetTeamList()
 	local scavTeamID = Spring.Utilities.GetScavTeamID()
 	local mapx = Game.mapSizeX
 	local mapz = Game.mapSizeZ
@@ -35,19 +35,19 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 	local cooldown = 0 -- 1 minute cooldown at the start
 
 	local mRandom = math.random
-	local spGetGroundHeight = Spring.GetGroundHeight
-	local spSpawnCEG = Spring.SpawnCEG
-	local spPlaySoundFile = Spring.PlaySoundFile
-	local spGetUnitPosition = Spring.GetUnitPosition
-	local spDestroyUnit = Spring.DestroyUnit
-	local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
-	local spGetFeaturePosition = Spring.GetFeaturePosition
-	local spGetFeatureResurrect = Spring.GetFeatureResurrect
-	local spGetFeatureHealth = Spring.GetFeatureHealth
-	local spSetFeatureResurrect = Spring.SetFeatureResurrect
-	local spSetFeatureHealth = Spring.SetFeatureHealth
-	local spDestroyFeature = Spring.DestroyFeature
-	local spCreateUnit = Spring.CreateUnit
+	local spGetGroundHeight = Engine.Shared.GetGroundHeight
+	local spSpawnCEG = Engine.Synced.SpawnCEG
+	local spPlaySoundFile = Engine.Unsynced.PlaySoundFile
+	local spGetUnitPosition = Engine.Shared.GetUnitPosition
+	local spDestroyUnit = Engine.Synced.DestroyUnit
+	local spGetTeamUnitDefCount = Engine.Shared.GetTeamUnitDefCount
+	local spGetFeaturePosition = Engine.Shared.GetFeaturePosition
+	local spGetFeatureResurrect = Engine.Shared.GetFeatureResurrect
+	local spGetFeatureHealth = Engine.Shared.GetFeatureHealth
+	local spSetFeatureResurrect = Engine.Synced.SetFeatureResurrect
+	local spSetFeatureHealth = Engine.Synced.SetFeatureHealth
+	local spDestroyFeature = Engine.Synced.DestroyFeature
+	local spCreateUnit = Engine.Synced.CreateUnit
 	local SendToUnsynced = SendToUnsynced
 
 	function gadget:GameFrame(frame)

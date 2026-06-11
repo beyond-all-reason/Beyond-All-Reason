@@ -23,9 +23,9 @@ for uDefID, uDef in pairs(UnitDefs) do
 	end
 end
 
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
+local spFindUnitCmdDesc = Engine.Shared.FindUnitCmdDesc
+local spGetUnitCmdDescs = Engine.Shared.GetUnitCmdDescs
+local spEditUnitCmdDesc = Engine.Synced.EditUnitCmdDesc
 
 local CMD_DGUN = CMD.MANUALFIRE
 local CMDTYPE_ICON_UNIT_OR_MAP = CMDTYPE.ICON_UNIT_OR_MAP

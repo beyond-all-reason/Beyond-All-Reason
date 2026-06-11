@@ -14,7 +14,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	local SendToUnsynced = SendToUnsynced
-	local spGetProjectilePosition = Spring.GetProjectilePosition
+	local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
 
 	local explosionTypes = {
 		Flame = true,
@@ -72,15 +72,15 @@ if gadgetHandler:IsSyncedCode() then
 else -- Unsynced
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myAllyID = Spring.GetMyAllyTeamID()
-	local fullView = select(2, Spring.GetSpectatingState())
-	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-	local spIsPosInLos = Spring.IsPosInLos
+	local fullView = select(2, Engine.Unsynced.GetSpectatingState())
+	local spGetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+	local spIsPosInLos = Engine.Shared.IsPosInLos
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
 			myPlayerID = Spring.GetMyPlayerID()
 			myAllyID = Spring.GetMyAllyTeamID()
-			fullView = select(2, Spring.GetSpectatingState())
+			fullView = select(2, Engine.Unsynced.GetSpectatingState())
 		end
 	end
 

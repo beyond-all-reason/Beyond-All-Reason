@@ -15,18 +15,18 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamColor = Spring.GetTeamColor
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spGetPlayerInfo = Engine.Shared.GetPlayerInfo
+local spGetTeamColor = Engine.Unsynced.GetTeamColor
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMyPlayerID = Spring.GetMyPlayerID
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spEcho = Spring.Echo
-local spPlaySoundFile = Spring.PlaySoundFile
+local spGetUnitHealth = Engine.Shared.GetUnitHealth
+local spGetUnitRulesParam = Engine.Shared.GetUnitRulesParam
+local spEcho = Engine.Shared.Echo
+local spPlaySoundFile = Engine.Unsynced.PlaySoundFile
 local spI18N = Spring.I18N
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
+local spWorldToScreenCoords = Engine.Unsynced.WorldToScreenCoords
 
 -- Localized GL functions
 local glColor = gl.Color

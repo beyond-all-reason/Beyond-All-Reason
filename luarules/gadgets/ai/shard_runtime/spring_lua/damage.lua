@@ -2,8 +2,8 @@ ShardSpringDamage = class(function(a)
 	--
 end)
 
-local spGetGameFrame = Spring.GetGameFrame
-local spGetProjectileDirection = Spring.GetProjectileDirection
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetProjectileDirection = Engine.Shared.GetProjectileDirection
 
 function ShardSpringDamage:Init(damage, weaponDefID, paralyzer, projectileID, engineAttacker)
 	self.damage = damage

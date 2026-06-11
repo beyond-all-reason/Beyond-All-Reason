@@ -27,18 +27,18 @@ local function GetAllyTarget(cmdParams)
 		return nil
 	end
 	local targetUnitID = cmdParams[1]
-	if Spring.IsUnitAllied(targetUnitID) then
+	if Engine.Unsynced.IsUnitAllied(targetUnitID) then
 		return targetUnitID
 	end
 	return nil
 end
 
 local function IssueGroundCommand(cmdID, cmdOptions)
-	local mx, my = Spring.GetMouseState()
-	local _, pos = Spring.TraceScreenRay(mx, my, true)
+	local mx, my = Engine.Unsynced.GetMouseState()
+	local _, pos = Engine.Unsynced.TraceScreenRay(mx, my, true)
 
 	if pos and pos[1] then
-		Spring.GiveOrder(cmdID, { pos[1], pos[2], pos[3] }, cmdOptions or {})
+		Engine.Unsynced.GiveOrder(cmdID, { pos[1], pos[2], pos[3] }, cmdOptions or {})
 		return true
 	end
 	return false
@@ -58,13 +58,13 @@ function widget:MousePress(x, y, button)
 	end
 
 	if WG["attacknoally"] then
-		local _, activeCmdID = Spring.GetActiveCommand()
+		local _, activeCmdID = Engine.Unsynced.GetActiveCommand()
 		if activeCmdID and hasRightClickAttack[activeCmdID] then
 			rmbCancelPending = true
 			rmbDragTracking = true
 			rmbDragged = false
 			rmbStartX, rmbStartY = x, y
-			local dragThreshold = Spring.GetConfigInt("MouseDragFrontCommandThreshold") or 20
+			local dragThreshold = Engine.Unsynced.GetConfigInt("MouseDragFrontCommandThreshold") or 20
 			rmbDragThresholdSq = dragThreshold * dragThreshold
 		end
 	end
@@ -107,7 +107,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 		rmbCancelPending = false
 		rmbDragTracking = false
 		rmbDragged = false
-		Spring.SetActiveCommand(nil)
+		Engine.Unsynced.SetActiveCommand(nil)
 		return true
 	end
 
@@ -118,7 +118,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 			return false
 		end
 		if not IssueGroundCommand(cmdID, cmdOptions) then
-			Spring.SetActiveCommand(nil)
+			Engine.Unsynced.SetActiveCommand(nil)
 		end
 		return true
 	end

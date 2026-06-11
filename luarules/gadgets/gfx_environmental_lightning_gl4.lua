@@ -37,7 +37,7 @@ end
 --------------------------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
 	local SendToUnsynced = SendToUnsynced
-	local spGetTeamInfo = Spring.GetTeamInfo
+	local spGetTeamInfo = Engine.Shared.GetTeamInfo
 
 	function gadget:Initialize()
 		GG.SpawnEnvironmentalLightning = function(configName, x, y, z, sizeScale, intensityScale, ownerTeamID)
@@ -385,12 +385,12 @@ local lightningConfigs = {
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spGetGameFrame = Spring.GetGameFrame
-local spIsAABBInView = Spring.IsAABBInView
-local spGetCameraPosition = Spring.GetCameraPosition
-local spIsPosInLos = Spring.IsPosInLos
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spIsAABBInView = Engine.Unsynced.IsAABBInView
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
+local spIsPosInLos = Engine.Shared.IsPosInLos
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
 
 local glBlending = gl.Blending
 local glDepthTest = gl.DepthTest
@@ -867,7 +867,7 @@ local boltShader
 local glowShader
 
 local function goodbye(reason)
-	Spring.Echo("[Environmental Lightning GL4] removing self: " .. tostring(reason))
+	Engine.Shared.Echo("[Environmental Lightning GL4] removing self: " .. tostring(reason))
 	gadgetHandler:RemoveGadget()
 end
 

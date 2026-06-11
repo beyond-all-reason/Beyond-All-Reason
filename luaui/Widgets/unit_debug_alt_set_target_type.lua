@@ -14,15 +14,15 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = Engine.Shared.GetGameFrame
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
-local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitsInCylinder = Engine.Shared.GetUnitsInCylinder
+local spAreTeamsAllied = Engine.Shared.AreTeamsAllied
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGiveOrderArrayToUnit = Engine.Shared.GiveOrderArrayToUnit
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
 
 local trackedUnitsToUnitDefID = {}
 local unitRanges = {}
@@ -38,7 +38,7 @@ local UNIT_RANGE_MULTIPLIER = 1.5
 local shouldLog = true
 local function printf(arg)
 	if shouldLog then
-		Spring.Echo(arg)
+		Engine.Shared.Echo(arg)
 	end
 end
 
@@ -158,7 +158,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 end
 
 function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if Engine.Unsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		printf("CAT6: removing self for some reason")
 		widgetHandler:RemoveWidget()
 	end
@@ -177,7 +177,7 @@ end
 
 function widget:Initialize()
 	printf("CAT6: Init widget")
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if Engine.Unsynced.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 end

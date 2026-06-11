@@ -11,23 +11,23 @@ function gadget:GetInfo()
 end
 
 -- localization
-local spEcho = Spring.Echo
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetTeamLuaAI = Spring.GetTeamLuaAI
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetTeamStartPosition = Spring.GetTeamStartPosition
-local spGetAllUnits = Spring.GetAllUnits
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetGaiaTeamID = Spring.GetGaiaTeamID()
-local spGiveOrderTounit = Spring.GiveOrderToUnit
-local spGiveOrderArrayTounit = Spring.GiveOrderArrayToUnit
-local spGiveOrderTounitArray = Spring.GiveOrderToUnitArray
-local spGiveOrderArrayTounitArray = Spring.GiveOrderArrayToUnitArray
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGameFrame = Spring.GetGameFrame
-local spValidUnitID = Spring.ValidUnitID
-local teamList = Spring.GetTeamList()
+local spEcho = Engine.Shared.Echo
+local spGetTeamInfo = Engine.Shared.GetTeamInfo
+local spGetTeamLuaAI = Engine.Shared.GetTeamLuaAI
+local spAreTeamsAllied = Engine.Shared.AreTeamsAllied
+local spGetTeamStartPosition = Engine.Shared.GetTeamStartPosition
+local spGetAllUnits = Engine.Shared.GetAllUnits
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+local spGetGaiaTeamID = Engine.Shared.GetGaiaTeamID()
+local spGiveOrderTounit = Engine.Shared.GiveOrderToUnit
+local spGiveOrderArrayTounit = Engine.Shared.GiveOrderArrayToUnit
+local spGiveOrderTounitArray = Engine.Shared.GiveOrderToUnitArray
+local spGiveOrderArrayTounitArray = Engine.Shared.GiveOrderArrayToUnitArray
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spValidUnitID = Engine.Shared.ValidUnitID
+local teamList = Engine.Shared.GetTeamList()
 local syncTables = {}
 local cmdCounter = { ii = 0, zi = 0, iz = 0, zz = 0, old = 0 }
 local string_sub = string.sub

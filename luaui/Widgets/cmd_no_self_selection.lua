@@ -17,7 +17,7 @@ end
 -- Configuration ---------------------------------------------------------------
 
 ---@type number in seconds
-local doubleClickTime = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
+local doubleClickTime = Engine.Unsynced.GetConfigInt("DoubleClickTime", 200) / 1000
 ---@type integer in pixels, as the Manhattan norm
 local doubleClickDist = 12
 ---@type table<CMD, true>
@@ -30,12 +30,12 @@ local allowSelfCommand = {
 
 local math_abs = math.abs
 
-local sp_GetActiveCommand = Spring.GetActiveCommand
-local sp_GetMouseState = Spring.GetMouseState
-local sp_GetUnitDefID = Spring.GetUnitDefID
-local sp_GetUnitSelectionVolumeData = Spring.GetUnitSelectionVolumeData
-local sp_SetUnitSelectionVolumeData = Spring.SetUnitSelectionVolumeData
-local sp_TraceScreenRay = Spring.TraceScreenRay
+local sp_GetActiveCommand = Engine.Unsynced.GetActiveCommand
+local sp_GetMouseState = Engine.Unsynced.GetMouseState
+local sp_GetUnitDefID = Engine.Shared.GetUnitDefID
+local sp_GetUnitSelectionVolumeData = Engine.Unsynced.GetUnitSelectionVolumeData
+local sp_SetUnitSelectionVolumeData = Engine.Unsynced.SetUnitSelectionVolumeData
+local sp_TraceScreenRay = Engine.Unsynced.TraceScreenRay
 
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
@@ -259,14 +259,14 @@ end
 
 function widget:Initialize()
 	WG.SpringTraceScreenRay = sp_TraceScreenRay
-	Spring.TraceScreenRay = traceScreenRay
+	Engine.Unsynced.TraceScreenRay = traceScreenRay
 	widgetHandler:RegisterGlobal("RemoveSelectionVolume", naiveRemoveSelectionVolume)
 	widgetHandler:RegisterGlobal("RestoreSelectionVolume", naiveRestoreSelectionVolume)
 end
 
 function widget:Shutdown()
 	naiveRestoreSelectionVolume()
-	Spring.TraceScreenRay = sp_TraceScreenRay
+	Engine.Unsynced.TraceScreenRay = sp_TraceScreenRay
 	widgetHandler:DeregisterGlobal("RemoveSelectionVolume")
 	widgetHandler:DeregisterGlobal("RestoreSelectionVolume")
 end

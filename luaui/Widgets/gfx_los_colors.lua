@@ -29,7 +29,7 @@ local losColors = {
 }
 
 local always, LOS, radar, jam, radar2
-local spSetLosViewColors = Spring.SetLosViewColors
+local spSetLosViewColors = Engine.Unsynced.SetLosViewColors
 
 local function lerp(a, b, t)
 	return a + (b - a) * t
@@ -62,7 +62,7 @@ function widget:Initialize()
 		opacity = value
 		updateLOS()
 	end
-	always, LOS, radar, jam, radar2 = Spring.GetLosViewColors()
+	always, LOS, radar, jam, radar2 = Engine.Unsynced.GetLosViewColors()
 
 	updateLOS()
 end

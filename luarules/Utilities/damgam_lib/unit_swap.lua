@@ -1,29 +1,29 @@
 local function SwapUnit(unitID, newUnitName)
 	-- Collect info about unit
-	local unitDefID = Spring.GetUnitDefID(unitID)
-	local unitTeam = Spring.GetUnitTeam(unitID)
-	local unitHealth, unitMaxHealth, unitParalyze, unitCapture, unitBuildProgress = Spring.GetUnitHealth(unitID)
-	local unitExperience = Spring.GetUnitExperience(unitID)
-	local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(unitID)
-	local unitDirectionX, unitDirectionY, unitDirectionZ = Spring.GetUnitDirection(unitID)
-	local unitVelocityX, unitVelocityY, unitVelocityZ = Spring.GetUnitVelocity(unitID)
-	local unitResurrected = Spring.GetUnitRulesParam(unitID, "resurrected")
+	local unitDefID = Engine.Shared.GetUnitDefID(unitID)
+	local unitTeam = Engine.Shared.GetUnitTeam(unitID)
+	local unitHealth, unitMaxHealth, unitParalyze, unitCapture, unitBuildProgress = Engine.Shared.GetUnitHealth(unitID)
+	local unitExperience = Engine.Shared.GetUnitExperience(unitID)
+	local unitPosX, unitPosY, unitPosZ = Engine.Shared.GetUnitPosition(unitID)
+	local unitDirectionX, unitDirectionY, unitDirectionZ = Engine.Shared.GetUnitDirection(unitID)
+	local unitVelocityX, unitVelocityY, unitVelocityZ = Engine.Shared.GetUnitVelocity(unitID)
+	local unitResurrected = Engine.Shared.GetUnitRulesParam(unitID, "resurrected")
 
 	-- Spawn new unit, and if successful, despawn old one.
-	local newUnitID = Spring.CreateUnit(newUnitName, unitPosX, unitPosY, unitPosZ, 0, unitTeam)
+	local newUnitID = Engine.Synced.CreateUnit(newUnitName, unitPosX, unitPosY, unitPosZ, 0, unitTeam)
 	if newUnitID then
-		Spring.DestroyUnit(unitID, false, true)
+		Engine.Synced.DestroyUnit(unitID, false, true)
 		GG.ScavengersSpawnEffectUnitID(newUnitID)
 
 		-- Apply stats of old unit to new one
-		Spring.SetUnitExperience(newUnitID, unitExperience)
-		local newUnitMaxHealth = select(2, Spring.GetUnitHealth(newUnitID))
+		Engine.Synced.SetUnitExperience(newUnitID, unitExperience)
+		local newUnitMaxHealth = select(2, Engine.Shared.GetUnitHealth(newUnitID))
 		local newUnitHealth = (unitHealth / unitMaxHealth) * newUnitMaxHealth
-		Spring.SetUnitHealth(newUnitID, newUnitHealth, unitCapture, unitParalyze, unitBuildProgress)
-		Spring.SetUnitDirection(newUnitID, unitDirectionX, unitDirectionY, unitDirectionZ)
-		Spring.SetUnitVelocity(newUnitID, unitVelocityX, unitVelocityY, unitVelocityZ)
+		Engine.Synced.SetUnitHealth(newUnitID, newUnitHealth, unitCapture, unitParalyze, unitBuildProgress)
+		Engine.Synced.SetUnitDirection(newUnitID, unitDirectionX, unitDirectionY, unitDirectionZ)
+		Engine.Synced.SetUnitVelocity(newUnitID, unitVelocityX, unitVelocityY, unitVelocityZ)
 		if unitResurrected then
-			Spring.SetUnitRulesParam(newUnitID, "resurrected", 1, { inlos = true })
+			Engine.Synced.SetUnitRulesParam(newUnitID, "resurrected", 1, { inlos = true })
 		end
 	end
 end

@@ -1,5 +1,5 @@
 function skip()
-	return Spring.GetGameFrame() <= 0
+	return Engine.Shared.GetGameFrame() <= 0
 end
 
 function setup()
@@ -9,7 +9,7 @@ end
 function cleanup()
 	Test.clearMap()
 
-	Spring.SendCommands("setspeed " .. 1)
+	Engine.Unsynced.SendCommands("setspeed " .. 1)
 end
 
 function test()
@@ -30,8 +30,8 @@ function test()
 			local x = locals.midX - locals.xOffset
 			for i = 1, locals.n do
 				local z = locals.startZ
-				local y = Spring.GetGroundHeight(x, z)
-				Spring.CreateUnit(locals.units[0], x, y, z + locals.zStep * i, "east", 0)
+				local y = Engine.Shared.GetGroundHeight(x, z)
+				Engine.Synced.CreateUnit(locals.units[0], x, y, z + locals.zStep * i, "east", 0)
 			end
 		end
 
@@ -39,29 +39,29 @@ function test()
 			local x = locals.midX + locals.xOffset
 			for i = 1, locals.n do
 				local z = locals.startZ
-				local y = Spring.GetGroundHeight(x, z)
-				Spring.CreateUnit(locals.units[1], x, y, z + locals.zStep * i, "west", 1)
+				local y = Engine.Shared.GetGroundHeight(x, z)
+				Engine.Synced.CreateUnit(locals.units[1], x, y, z + locals.zStep * i, "west", 1)
 			end
 		end
 	end)
 
 	Test.waitFrames(1)
 
-	Spring.GiveOrderToUnitArray(Spring.GetTeamUnits(0), CMD.FIGHT, { midX, 0, midZ }, 0)
-	Spring.GiveOrderToUnitArray(Spring.GetTeamUnits(1), CMD.FIGHT, { midX, 0, midZ }, 0)
+	Engine.Shared.GiveOrderToUnitArray(Engine.Shared.GetTeamUnits(0), CMD.FIGHT, { midX, 0, midZ }, 0)
+	Engine.Shared.GiveOrderToUnitArray(Engine.Shared.GetTeamUnits(1), CMD.FIGHT, { midX, 0, midZ }, 0)
 
-	Spring.SendCommands("setspeed " .. 20)
+	Engine.Unsynced.SendCommands("setspeed " .. 20)
 
 	-- wait until one team has no units left
 	Test.waitUntil(function()
-		return #(Spring.GetTeamUnits(0)) == 0 or #(Spring.GetTeamUnits(1)) == 0
+		return #(Engine.Shared.GetTeamUnits(0)) == 0 or #(Engine.Shared.GetTeamUnits(1)) == 0
 	end, 30 * 30)
 
-	Spring.SendCommands("setspeed " .. 1)
+	Engine.Unsynced.SendCommands("setspeed " .. 1)
 
-	if #(Spring.GetTeamUnits(0)) > #(Spring.GetTeamUnits(1)) then
+	if #(Engine.Shared.GetTeamUnits(0)) > #(Engine.Shared.GetTeamUnits(1)) then
 		winner = 0
-	elseif #(Spring.GetTeamUnits(1)) > #(Spring.GetTeamUnits(0)) then
+	elseif #(Engine.Shared.GetTeamUnits(1)) > #(Engine.Shared.GetTeamUnits(0)) then
 		winner = 1
 	end
 
@@ -72,12 +72,12 @@ function test()
 			unitName = UnitDefNames[units[winner]].translatedHumanName or units[winner]
 		end
 		resultStr = resultStr .. "team " .. winner .. " wins"
-		resultStr = resultStr .. " with " .. #(Spring.GetAllUnits()) .. " " .. unitName .. " left"
+		resultStr = resultStr .. " with " .. #(Engine.Shared.GetAllUnits()) .. " " .. unitName .. " left"
 	else
 		resultStr = resultStr .. "tie"
 	end
 
-	Spring.Echo(resultStr)
+	Engine.Shared.Echo(resultStr)
 
 	-- pawns should win
 	assert(winner == 0)

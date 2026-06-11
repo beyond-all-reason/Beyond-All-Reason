@@ -24,9 +24,9 @@ function widget:Initialize()
 		numLines = numLines + 1
 	end
 	for ct, line in pairs(lines) do
-		Spring.SendCommands(line)
+		Engine.Unsynced.SendCommands(line)
 	end
 	if numLines > 0 then
-		Spring.Echo("Succesfully loaded LuaUI/Widgets/uikeys.txt")
+		Engine.Shared.Echo("Succesfully loaded LuaUI/Widgets/uikeys.txt")
 	end
 end

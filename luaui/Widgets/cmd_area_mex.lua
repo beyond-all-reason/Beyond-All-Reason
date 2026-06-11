@@ -15,11 +15,11 @@ end
 
 local CMD_AREA_MEX = GameCMD.AREA_MEX
 
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetUnitCommands = Spring.GetUnitCommands
-local spGetMapDrawMode = Spring.GetMapDrawMode
-local spGetUnitPosition = Spring.GetUnitPosition
-local spSendCommands = Spring.SendCommands
+local spGetActiveCommand = Engine.Unsynced.GetActiveCommand
+local spGetUnitCommands = Engine.Shared.GetUnitCommands
+local spGetMapDrawMode = Engine.Unsynced.GetMapDrawMode
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spSendCommands = Engine.Unsynced.SendCommands
 local taremove = table.remove
 
 local toggledMetal, retoggleLos
@@ -186,7 +186,7 @@ function widget:CommandNotify(id, params, options)
 		selectedMex = WG["resource_spot_builder"].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
 	end
 
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = Engine.Unsynced.GetModKeyState()
 	local cmds = getCmdsForValidSpots(spots, shift)
 	local sortedCmds = calculateCmdOrder(cmds, spots, shift)
 
@@ -207,7 +207,7 @@ function widget:Update(dt)
 	local _, cmd, _ = spGetActiveCommand()
 	if cmd == CMD_AREA_MEX then
 		if spGetMapDrawMode() ~= "metal" then
-			if Spring.GetMapDrawMode() == "los" then
+			if Engine.Unsynced.GetMapDrawMode() == "los" then
 				retoggleLos = true
 			end
 			spSendCommands("ShowMetalMap")
@@ -217,7 +217,7 @@ function widget:Update(dt)
 		if toggledMetal then
 			spSendCommands("ShowStandard")
 			if retoggleLos then
-				Spring.SendCommands("togglelos")
+				Engine.Unsynced.SendCommands("togglelos")
 				retoggleLos = nil
 			end
 			toggledMetal = false

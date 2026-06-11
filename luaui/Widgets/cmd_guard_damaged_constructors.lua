@@ -29,11 +29,11 @@ function widget:DefaultCommand(targetType, targetID, engineCmd)
 	end
 
 	if engineCmd == CMD.REPAIR then
-		if Spring.GetUnitIsBeingBuilt(targetID) then
+		if Engine.Shared.GetUnitIsBeingBuilt(targetID) then
 			return
 		end
 
-		local unitDefID = Spring.GetUnitDefID(targetID)
+		local unitDefID = Engine.Shared.GetUnitDefID(targetID)
 		if (isConstructor[unitDefID] and guardConstructors) or (isFactory[unitDefID] and guardFactories) then
 			return CMD.GUARD
 		end

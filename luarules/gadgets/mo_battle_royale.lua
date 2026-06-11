@@ -33,10 +33,10 @@ end
 ]]
 --
 -- in minutes
-local starttime = tonumber(Spring.GetModOptions().battle_royale_starttime) or -1
+local starttime = tonumber(Engine.Shared.GetModOptions().battle_royale_starttime) or -1
 
 -- in minutes, hopefully never less than the commander's walk rate
-local shrinktime = tonumber(Spring.GetModOptions().battle_royale_shrinktime) or 5
+local shrinktime = tonumber(Engine.Shared.GetModOptions().battle_royale_shrinktime) or 5
 
 if starttime <= 0 then
 	return false
@@ -56,7 +56,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function BattleRoyaleDebug()
-		Spring.Echo("Battle Royale reset to", startradius / 2)
+		Engine.Shared.Echo("Battle Royale reset to", startradius / 2)
 		radius = startradius / 2
 	end
 
@@ -76,10 +76,10 @@ if gadgetHandler:IsSyncedCode() then
 		radius = math.max(radius, 0)
 		radiussquared = radius * radius
 		if gameFrame % 11 == 0 then
-			local allunits = Spring.GetAllUnits()
+			local allunits = Engine.Shared.GetAllUnits()
 			local numdestroyed = 0
 			for _, unitID in ipairs(allunits) do
-				local ux, uy, uz = Spring.GetUnitPosition(unitID)
+				local ux, uy, uz = Engine.Shared.GetUnitPosition(unitID)
 				if ux and distsqrgreater(ux - mapCenterX, uz - mapCenterZ, radiussquared) then
 					--Spring.DestroyUnit(unitID, true, false)
 					numdestroyed = numdestroyed + 1
@@ -111,7 +111,7 @@ else
 	local hextexture = "LuaUI/Images/hexgrid.tga"
 
 	local function goodbye(reason)
-		Spring.Echo("Ground Circle GL4 widget exiting with reason: " .. reason)
+		Engine.Shared.Echo("Ground Circle GL4 widget exiting with reason: " .. reason)
 		if circleShader then
 			circleShader:Finalize()
 		end
@@ -237,7 +237,7 @@ else
 	local battleroyaleradius = -1
 	local function BattleRoyaleRadius(_, radius)
 		if battleroyaleradius == -1 then
-			Spring.SendMessage("Battle Royale has begun, you have " .. tostring(shrinktime) .. " minutes left")
+			Engine.Unsynced.SendMessage("Battle Royale has begun, you have " .. tostring(shrinktime) .. " minutes left")
 		end
 		battleroyaleradius = radius
 		pushElementInstance(
@@ -251,7 +251,7 @@ else
 	local function BattleRoyaleDebug() end
 
 	function gadget:Initialize()
-		minY, maxY = Spring.GetGroundExtremes()
+		minY, maxY = Engine.Shared.GetGroundExtremes()
 		gadgetHandler:AddSyncAction("BattleRoyaleRadius", BattleRoyaleRadius)
 		initgl4()
 	end

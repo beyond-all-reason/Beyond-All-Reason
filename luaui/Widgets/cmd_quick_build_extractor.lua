@@ -14,16 +14,16 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetMouseState = Spring.GetMouseState
-local spSetMouseCursor = Spring.SetMouseCursor
-local spGetModKeyState = Spring.GetModKeyState
+local spTraceScreenRay = Engine.Unsynced.TraceScreenRay
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spSetMouseCursor = Engine.Unsynced.SetMouseCursor
+local spGetModKeyState = Engine.Unsynced.GetModKeyState
 
 local CMD_RECLAIM = CMD.RECLAIM
 
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
+local spGetActiveCommand = Engine.Unsynced.GetActiveCommand
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
 
 local mathAbs = math.abs
 local mathHuge = math.huge
@@ -68,7 +68,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isCloakableBuilder[unitDefID] = true
 	end
 end
-local spGetUnitStates = Spring.GetUnitStates
+local spGetUnitStates = Engine.Shared.GetUnitStates
 local function unitIsCloaked(uDefId)
 	return isCloakableBuilder[spGetUnitDefID(uDefId)] and select(5, spGetUnitStates(uDefId, false, true))
 end
@@ -109,7 +109,7 @@ local function clearGhostBuild()
 	lastMx, lastMy = -1, -1
 end
 
-local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnits = Engine.Unsynced.GetSelectedUnits()
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
 	bestMex = spotBuilder.GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)

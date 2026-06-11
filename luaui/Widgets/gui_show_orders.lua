@@ -30,7 +30,7 @@ end
 -----------------------------------------------------
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
 
 local vsx, vsy = spGetViewGeometry()
 local widgetScale = vsy / 2000
@@ -61,7 +61,7 @@ local maxScale = 1.0 -- Maximum scale factor (1.0 = 100% of original size)
 -- Globals
 -----------------------------------------------------
 local isFactory = {}
-local GaiaTeamID = Spring.GetGaiaTeamID() -- set to -1 to include Gaia units
+local GaiaTeamID = Engine.Shared.GetGaiaTeamID() -- set to -1 to include Gaia units
 
 local font, chobbyInterface
 
@@ -140,20 +140,20 @@ end
 -----------------------------------------------------
 local floor = math.floor
 
-local spGetModKeyState = Spring.GetModKeyState
-local spDrawUnitCommands = Spring.DrawUnitCommands
-local spGetFactoryCommands = Spring.GetFactoryCommands
-local spGetSpecState = Spring.GetSpectatingState
-local spGetTeamList = Spring.GetTeamList
-local spGetTeamUnits = Spring.GetTeamUnits
+local spGetModKeyState = Engine.Unsynced.GetModKeyState
+local spDrawUnitCommands = Engine.Unsynced.DrawUnitCommands
+local spGetFactoryCommands = Engine.Shared.GetFactoryCommands
+local spGetSpecState = Engine.Unsynced.GetSpectatingState
+local spGetTeamList = Engine.Shared.GetTeamList
+local spGetTeamUnits = Engine.Shared.GetTeamUnits
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitStates = Spring.GetUnitStates
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetTeamInfo = Spring.GetTeamInfo
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spWorldToScreenCoords = Engine.Unsynced.WorldToScreenCoords
+local spGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
+local spGetUnitStates = Engine.Shared.GetUnitStates
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
+local spGetTeamInfo = Engine.Shared.GetTeamInfo
 
 local glColor = gl.Color
 local glTexture = gl.Texture

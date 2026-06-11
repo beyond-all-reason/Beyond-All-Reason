@@ -17,12 +17,12 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+local spGetPlayerInfo = Engine.Shared.GetPlayerInfo
+local spGetTeamAllyTeamID = Engine.Shared.GetTeamAllyTeamID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitsInCylinder = Engine.Shared.GetUnitsInCylinder
 
 local gExtractorRadius = Game.extractorRadius
 
@@ -39,7 +39,7 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
 	local isMetalMap = GG["resource_spot_finder"].isMetalMap
 	if isMetalMap then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Metal map detected, removing self")
+		Engine.Shared.Log(gadget:GetInfo().name, LOG.INFO, "Metal map detected, removing self")
 		gadgetHandler:RemoveGadget(self)
 	end
 	metalSpotsList = GG["resource_spot_finder"].metalSpotsList

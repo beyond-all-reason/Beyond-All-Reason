@@ -27,7 +27,7 @@ end
 local function setToHoldPos(unitID, unitDefID, unitTeam)
 	if unitTeam == myTeamID then
 		if not isAir[unitDefID] then
-			Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
+			Engine.Shared.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
 		end
 	end
 end
@@ -47,7 +47,7 @@ end
 ---------------------------------------------------------------
 
 local function maybeRemoveSelf()
-	if Spring.IsReplay() or Spring.GetSpectatingState() then
+	if Engine.Unsynced.IsReplay() or Engine.Unsynced.GetSpectatingState() then
 		widgetHandler.RemoveWidget()
 	end
 end

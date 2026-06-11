@@ -11,11 +11,11 @@ local mousemoved = false
 ----------------------------------------------------------------
 -- speedups
 ----------------------------------------------------------------
-local DiffTimers = Spring.DiffTimers
-local GetTimer = Spring.GetTimer
-local SendCommands = Spring.SendCommands
-local Echo = Spring.Echo
-local GetMouseState = Spring.GetMouseState
+local DiffTimers = Engine.Unsynced.DiffTimers
+local GetTimer = Engine.Unsynced.GetTimer
+local SendCommands = Engine.Unsynced.SendCommands
+local Echo = Engine.Shared.Echo
+local GetMouseState = Engine.Unsynced.GetMouseState
 
 ----------------------------------------------------------------
 -- callins
@@ -36,7 +36,7 @@ function widget:GetInfo()
 end
 
 local chobbyLoaded = false
-if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), "chobby") ~= nil then
+if Engine.Unsynced.GetMenuName and string.find(string.lower(Engine.Unsynced.GetMenuName()), "chobby") ~= nil then
 	chobbyLoaded = true
 end
 
@@ -60,14 +60,14 @@ function widget:Update(dt)
 		elseif not mousemoved and DiffTimers(GetTimer(), endTime) > delay then
 			Echo("<autoquit> Autoquit sending quit command.")
 			if chobbyLoaded then
-				Spring.Reload("")
+				Engine.Unsynced.Reload("")
 			else
 				SendCommands("quitforce")
 			end
 		elseif mousemoved and DiffTimers(GetTimer(), endTime) > mousemovedDelay then
 			Echo("<autoquit> Autoquit sending quit command.")
 			if chobbyLoaded then
-				Spring.Reload("")
+				Engine.Unsynced.Reload("")
 			else
 				SendCommands("quitforce")
 			end

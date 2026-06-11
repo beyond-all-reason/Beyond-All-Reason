@@ -1,7 +1,7 @@
 local widget = widget ---@type Widget
 
 -- makes the intent of our usage of Spring.Echo clear
-local FeedbackForUser = Spring.Echo
+local FeedbackForUser = Engine.Shared.Echo
 
 function widget:GetInfo()
 	return {
@@ -22,9 +22,9 @@ local tableInsert = table.insert
 local tableSort = table.sort
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
 
 -- types
 -- =====
@@ -44,11 +44,11 @@ local spGetViewGeometry = Spring.GetViewGeometry
 -- optimization
 -- ============
 
-local SpringGetMouseState = Spring.GetMouseState
-local SpringGetModKeyState = Spring.GetModKeyState
-local SpringGetActiveCommand = Spring.GetActiveCommand
-local SpringTraceScreenRay = Spring.TraceScreenRay
-local SpringGetUnitPosition = Spring.GetUnitPosition
+local SpringGetMouseState = Engine.Unsynced.GetMouseState
+local SpringGetModKeyState = Engine.Unsynced.GetModKeyState
+local SpringGetActiveCommand = Engine.Unsynced.GetActiveCommand
+local SpringTraceScreenRay = Engine.Unsynced.TraceScreenRay
+local SpringGetUnitPosition = Engine.Shared.GetUnitPosition
 
 -- util
 -- ====
@@ -376,7 +376,7 @@ local function createBlueprint(unitIDs, ordered)
 				blueprintUnitID = nextBlueprintUnitID(),
 				unitDefID = unitDefID,
 				position = { x, y, z },
-				facing = Spring.GetUnitBuildFacing(unitID),
+				facing = Engine.Shared.GetUnitBuildFacing(unitID),
 				originalName = unitName,
 			}
 		end),
@@ -480,7 +480,7 @@ local function setBlueprintPlacementActive(active)
 	if active then
 		widget:SelectionChanged(spGetSelectedUnits())
 
-		Spring.PlaySoundFile(sounds.activateBlueprint, 0.75, "ui")
+		Engine.Unsynced.PlaySoundFile(sounds.activateBlueprint, 0.75, "ui")
 	else
 		WG["api_blueprint"].setActiveBlueprint(nil)
 		WG["api_blueprint"].setBlueprintPositions({})
@@ -549,7 +549,7 @@ function widget:Update(dt)
 	end
 	t = 0
 
-	if pendingBoxSelect and not Spring.GetSelectionBox() then
+	if pendingBoxSelect and not Engine.Unsynced.GetSelectionBox() then
 		updateSelectedUnits(spGetSelectedUnits())
 		pendingBoxSelect = false
 	end
@@ -691,7 +691,7 @@ local drawCursorText = setmetatable({}, {
 })
 
 local function reloadBindings()
-	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+	currentLayout = Engine.Unsynced.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 	drawCursorText.invalidate()
 end
@@ -736,7 +736,7 @@ function widget:SelectionChanged(selection)
 	end
 
 	-- track selection order (skip if we're still box selecting)
-	if Spring.GetSelectionBox() then
+	if Engine.Unsynced.GetSelectionBox() then
 		pendingBoxSelect = true
 	else
 		updateSelectedUnits(selection)
@@ -785,7 +785,7 @@ local function handleBlueprintNextAction()
 	setSelectedBlueprintIndex(getNextFilteredBlueprintIndex())
 	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
-	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
+	Engine.Unsynced.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
 
 	return true
 end
@@ -803,7 +803,7 @@ local function handleBlueprintPrevAction()
 	setSelectedBlueprintIndex(getPrevFilteredBlueprintIndex())
 	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
-	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
+	Engine.Unsynced.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
 
 	return true
 end
@@ -814,7 +814,7 @@ local function handleBlueprintCreateAction()
 	createBlueprint(unitIDs, true)
 	setSelectedBlueprintIndex(#blueprints)
 
-	Spring.PlaySoundFile(sounds.createBlueprint, 0.75, "ui")
+	Engine.Unsynced.PlaySoundFile(sounds.createBlueprint, 0.75, "ui")
 
 	return true
 end
@@ -836,7 +836,7 @@ local function handleBlueprintDeleteAction()
 
 	deleteBlueprint(selectedBlueprintIndex)
 
-	Spring.PlaySoundFile(sounds.deleteBlueprint, 0.75, "ui")
+	Engine.Unsynced.PlaySoundFile(sounds.deleteBlueprint, 0.75, "ui")
 
 	return true
 end
@@ -860,7 +860,7 @@ local function handleFacingAction(_, _, args)
 	if newFacing then
 		setBlueprintFacing(newFacing)
 
-		Spring.PlaySoundFile(sounds.facing, 0.75, "ui")
+		Engine.Unsynced.PlaySoundFile(sounds.facing, 0.75, "ui")
 
 		return true
 	end
@@ -886,7 +886,7 @@ local function handleSpacingAction(_, _, args)
 	if newSpacing then
 		setBlueprintSpacing(newSpacing)
 
-		Spring.PlaySoundFile(sounds.spacing, 0.75, "ui")
+		Engine.Unsynced.PlaySoundFile(sounds.spacing, 0.75, "ui")
 
 		return true
 	end
@@ -935,8 +935,8 @@ end
 
 local function createBuildingComparator(sortSpec)
 	return function(a, b)
-		a = pack(Spring.Pos2BuildPos(a.unitDefID, a.position[1], a.position[2], a.position[3], a.facing))
-		b = pack(Spring.Pos2BuildPos(b.unitDefID, b.position[1], b.position[2], b.position[3], b.facing))
+		a = pack(Engine.Shared.Pos2BuildPos(a.unitDefID, a.position[1], a.position[2], a.position[3], a.facing))
+		b = pack(Engine.Shared.Pos2BuildPos(b.unitDefID, b.position[1], b.position[2], b.position[3], b.facing))
 		for _, index in ipairs(sortSpec) do
 			local ascending = index > 0
 			index = mathAbs(index)
@@ -1006,9 +1006,9 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				table.map(blueprint.units, function(bpu)
 					local x = pos[1] + bpu.position[1]
 					local z = pos[3] + bpu.position[3]
-					local y = Spring.GetGroundHeight(x, z)
+					local y = Engine.Shared.GetGroundHeight(x, z)
 
-					local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
+					local sx, sy, sz = Engine.Shared.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
 
 					return {
 						blueprintUnitID = bpu.blueprintUnitID,
@@ -1021,7 +1021,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 
 		if #builders == 0 then
-			Spring.PlaySoundFile("FailedCommand", 1.0, "ui")
+			Engine.Unsynced.PlaySoundFile("FailedCommand", 1.0, "ui")
 			return false
 		end
 
@@ -1155,7 +1155,7 @@ end
 local loadedBlueprints = false
 
 function widget:Initialize()
-	if Spring.GetModOptions().scenariooptions then
+	if Engine.Shared.GetModOptions().scenariooptions then
 		widgetHandler:RemoveWidget(self)
 		return
 	end

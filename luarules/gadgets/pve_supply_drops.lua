@@ -1,4 +1,4 @@
-local teams = Spring.GetTeamList()
+local teams = Engine.Shared.GetTeamList()
 mapsizeX = Game.mapSizeX
 mapsizeZ = Game.mapSizeZ
 local scavengerAITeamID = Spring.Utilities.GetScavTeamID()
@@ -6,7 +6,7 @@ local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 
 if Spring.Utilities.Gametype.IsScavengers() then
 	scavengersAIEnabled = true
-	ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(scavengerAllyTeamID)
+	ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Engine.Shared.GetAllyTeamStartBox(scavengerAllyTeamID)
 	if ScavengerStartboxXMin == 0 and ScavengerStartboxZMin == 0 and ScavengerStartboxXMax == mapsizeX and ScavengerStartboxZMax == mapsizeZ then
 		ScavengerStartboxExists = false
 	else
@@ -14,7 +14,7 @@ if Spring.Utilities.Gametype.IsScavengers() then
 	end
 end
 
-if Spring.GetModOptions().lootboxes == "enabled" or (Spring.GetModOptions().lootboxes == "scav_only" and scavengersAIEnabled) then
+if Engine.Shared.GetModOptions().lootboxes == "enabled" or (Engine.Shared.GetModOptions().lootboxes == "scav_only" and scavengersAIEnabled) then
 	lootboxSpawnEnabled = true
 	--Spring.Echo("LOOTBOXES ENABLED")
 else
@@ -82,15 +82,15 @@ local mapsizeZ = Game.mapSizeZ
 local xBorder = math.floor(mapsizeX / 10)
 local zBorder = math.floor(mapsizeZ / 10)
 local math_random = math.random
-local spGroundHeight = Spring.GetGroundHeight
-local spGaiaTeam = Spring.GetGaiaTeamID()
-local spGaiaAllyTeam = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
-local spCreateUnit = Spring.CreateUnit
-local spSetUnitNeutral = Spring.SetUnitNeutral
-local spSetUnitAlwaysVisible = Spring.SetUnitAlwaysVisible
-local spSpawnCEG = Spring.SpawnCEG
-local spPlaySoundFile = Spring.PlaySoundFile
-local spGetUnitPosition = Spring.GetUnitPosition
+local spGroundHeight = Engine.Shared.GetGroundHeight
+local spGaiaTeam = Engine.Shared.GetGaiaTeamID()
+local spGaiaAllyTeam = select(6, Engine.Shared.GetTeamInfo(Engine.Shared.GetGaiaTeamID()))
+local spCreateUnit = Engine.Synced.CreateUnit
+local spSetUnitNeutral = Engine.Synced.SetUnitNeutral
+local spSetUnitAlwaysVisible = Engine.Synced.SetUnitAlwaysVisible
+local spSpawnCEG = Engine.Synced.SpawnCEG
+local spPlaySoundFile = Engine.Unsynced.PlaySoundFile
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
 
 -- Use hash tables instead of arrays for O(1) lookup
 local aliveLootboxes = {}
@@ -109,7 +109,7 @@ local aliveLootboxTier = {} -- Cache tier for each lootbox
 
 local LootboxesToSpawn = 0
 
-local lootboxesDensity = Spring.GetModOptions().lootboxes_density
+local lootboxesDensity = Engine.Shared.GetModOptions().lootboxes_density
 local lootboxDensityMultiplier = 1
 if lootboxesDensity == "veryrare" then
 	lootboxDensityMultiplier = 0.2
@@ -240,7 +240,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if UnitName == "lootdroppod_gold" or UnitName == "lootdroppod_gold_scav" then
 		spSetUnitNeutral(unitID, true)
 		spSetUnitAlwaysVisible(unitID, true)
-		Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, { "shift" })
+		Engine.Shared.GiveOrderToUnit(unitID, CMD.SELFD, {}, { "shift" })
 	end
 end
 

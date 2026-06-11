@@ -1,4 +1,4 @@
-local _modOpts = Spring.GetModOptions()
+local _modOpts = Engine.Shared.GetModOptions()
 local isScenario = _modOpts ~= nil and _modOpts.scenariooptions ~= nil
 
 if not isScenario then
@@ -24,8 +24,8 @@ local mathFloor = math.floor
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetGameSpeed = Spring.GetGameSpeed
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spGetGameSpeed = Engine.Unsynced.GetGameSpeed
 
 local vsx, vsy = spGetViewGeometry()
 
@@ -316,9 +316,9 @@ function widget:DrawScreen()
 		end
 		showOnceMore = false
 
-		local x, y = Spring.GetMouseState()
+		local x, y = Engine.Unsynced.GetMouseState()
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or (titleRect and math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) then
-			Spring.SetMouseCursor("cursornormal")
+			Engine.Unsynced.SetMouseCursor("cursornormal")
 		end
 	elseif dlistcreated and WG["guishader"] then
 		WG["guishader"].DeleteDlist("missiontext")
@@ -334,7 +334,7 @@ end
 local function pauseGame()
 	local _, _, isPaused = spGetGameSpeed()
 	if not isPaused then
-		Spring.SendCommands("pause 1")
+		Engine.Unsynced.SendCommands("pause 1")
 		wePaused = true
 	end
 end
@@ -342,7 +342,7 @@ end
 local function unpauseGame()
 	if wePaused then
 		wePaused = false
-		Spring.SendCommands("pause 0")
+		Engine.Unsynced.SendCommands("pause 0")
 	end
 end
 
@@ -381,7 +381,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 	if show then

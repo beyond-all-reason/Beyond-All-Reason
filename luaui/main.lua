@@ -12,15 +12,15 @@
 --------------------------------------------------------------------------------
 
 -- set default gaia teamcolor
-Spring.SetTeamColor(Spring.GetGaiaTeamID(), 0.3, 0.3, 0.3)
+Engine.Unsynced.SetTeamColor(Engine.Shared.GetGaiaTeamID(), 0.3, 0.3, 0.3)
 
-local spSendCommands = Spring.SendCommands
+local spSendCommands = Engine.Unsynced.SendCommands
 spSendCommands("ctrlpanel " .. LUAUI_DIRNAME .. "ctrlpanel.txt")
 
 VFS.Include("init.lua", nil, VFS.ZIP)
 
 VFS.Include(LUAUI_DIRNAME .. "rml_setup.lua", nil, VFS.ZIP)
-Spring.I18N.setLanguage(Spring.GetConfigString("language", "en"))
+Spring.I18N.setLanguage(Engine.Unsynced.GetConfigString("language", "en"))
 
 VFS.Include(LUAUI_DIRNAME .. "utils.lua", nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "setupdefs.lua", nil, VFS.ZIP)

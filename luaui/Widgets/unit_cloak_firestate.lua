@@ -22,8 +22,8 @@ local spGetMyTeamID = Spring.GetMyTeamID
 --------------------------------------------------------------------------------
 
 -- Speedups
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local GetUnitStates = Spring.GetUnitStates
+local GiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local GetUnitStates = Engine.Shared.GetUnitStates
 local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 local FIRESTATE_HOLDFIRE = CMD.FIRESTATE_HOLDFIRE
 
@@ -89,7 +89,7 @@ end
 ------------------------------------------------------------------------------------------------
 
 local function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0) or Spring.IsReplay() then
+	if Engine.Unsynced.GetSpectatingState() and (Engine.Shared.GetGameFrame() > 0) or Engine.Unsynced.IsReplay() then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -97,8 +97,8 @@ end
 function widget:Initialize()
 	myTeam = spGetMyTeamID()
 	maybeRemoveSelf()
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		widget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	for _, unitID in ipairs(Engine.Shared.GetAllUnits()) do
+		widget:UnitCreated(unitID, Engine.Shared.GetUnitDefID(unitID))
 	end
 end
 

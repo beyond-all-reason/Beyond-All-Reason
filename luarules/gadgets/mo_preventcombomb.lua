@@ -16,18 +16,18 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local GetTeamInfo = Spring.GetTeamInfo
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitHealth = Spring.GetUnitHealth
-local GetGroundHeight = Spring.GetGroundHeight
-local GetTeamUnitDefCount = Spring.GetTeamUnitDefCount
-local GetTeamList = Spring.GetTeamList
-local MoveCtrlEnable = Spring.MoveCtrl.Enable
-local MoveCtrlDisable = Spring.MoveCtrl.Disable
-local MoveCtrlSetPosition = Spring.MoveCtrl.SetPosition
-local GetGameFrame = Spring.GetGameFrame
-local DestroyUnit = Spring.DestroyUnit
-local GetUnitTeam = Spring.GetUnitTeam
+local GetTeamInfo = Engine.Shared.GetTeamInfo
+local GetUnitPosition = Engine.Shared.GetUnitPosition
+local GetUnitHealth = Engine.Shared.GetUnitHealth
+local GetGroundHeight = Engine.Shared.GetGroundHeight
+local GetTeamUnitDefCount = Engine.Shared.GetTeamUnitDefCount
+local GetTeamList = Engine.Shared.GetTeamList
+local MoveCtrlEnable = Engine.Synced.MoveCtrl.Enable
+local MoveCtrlDisable = Engine.Synced.MoveCtrl.Disable
+local MoveCtrlSetPosition = Engine.Synced.MoveCtrl.SetPosition
+local GetGameFrame = Engine.Shared.GetGameFrame
+local DestroyUnit = Engine.Synced.DestroyUnit
+local GetUnitTeam = Engine.Shared.GetUnitTeam
 local math_random = math.random
 
 local immuneDgunList = {}

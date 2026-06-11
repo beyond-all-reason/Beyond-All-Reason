@@ -45,13 +45,13 @@ local COLOR_BLOCKED = { 1.0, 0.25, 0.2 }
 --------------------------------------------------------------------------------
 -- Locals
 --------------------------------------------------------------------------------
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local spPos2BuildPos = Spring.Pos2BuildPos
-local spTestBuildOrder = Spring.TestBuildOrder
-local spGetBuildFacing = Spring.GetBuildFacing
-local spGetGroundHeight = Spring.GetGroundHeight
+local spGetActiveCommand = Engine.Unsynced.GetActiveCommand
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spTraceScreenRay = Engine.Unsynced.TraceScreenRay
+local spPos2BuildPos = Engine.Shared.Pos2BuildPos
+local spTestBuildOrder = Engine.Shared.TestBuildOrder
+local spGetBuildFacing = Engine.Unsynced.GetBuildFacing
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
 
 local glColor = gl.Color
 local glVertex = gl.Vertex
@@ -81,8 +81,8 @@ local cache = {
 }
 local cellDisplayList = nil
 local outlineDisplayList = nil
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
+local spGetTimer = Engine.Unsynced.GetTimer
+local spDiffTimers = Engine.Unsynced.DiffTimers
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList

@@ -18,7 +18,7 @@ local mathFloor = math.floor
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
@@ -199,7 +199,7 @@ end
 
 local function refreshText()
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
-	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+	currentLayout = Engine.Unsynced.GetConfigString("KeyboardLayout", "qwerty")
 
 	keybindsText = {
 		{ type = lineType.title, text = Spring.I18N("ui.keybinds.chat.title") },
@@ -371,9 +371,9 @@ function widget:DrawScreen()
 		end
 		showOnceMore = false
 
-		local x, y, pressed = Spring.GetMouseState()
+		local x, y, pressed = Engine.Unsynced.GetMouseState()
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
-			Spring.SetMouseCursor("cursornormal")
+			Engine.Unsynced.SetMouseCursor("cursornormal")
 		end
 	else
 		if backgroundGuishader ~= nil then
@@ -395,7 +395,7 @@ function widget:KeyPress(key)
 end
 
 local function mouseEvent(x, y, button, release)
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return false
 	end
 

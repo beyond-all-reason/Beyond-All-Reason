@@ -41,24 +41,24 @@ end
 --------------------------------------------------------------------------------
 -- Localized engine functions
 --------------------------------------------------------------------------------
-local spEcho = Spring.Echo
-local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
+local spEcho = Engine.Shared.Echo
+local spGetVisibleProjectiles = Engine.Unsynced.GetVisibleProjectiles
+local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
+local spGetProjectileVelocity = Engine.Shared.GetProjectileVelocity
+local spGetProjectileDefID = Engine.Shared.GetProjectileDefID
+local spGetProjectileTeamID = Engine.Shared.GetProjectileTeamID
+local spGetProjectileOwnerID = Engine.Shared.GetProjectileOwnerID
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetTeamAllyTeamID = Engine.Shared.GetTeamAllyTeamID
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spIsPosInLos = Spring.IsPosInLos
-local spIsSphereInView = Spring.IsSphereInView
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetFPS = Spring.GetFPS
-local spGetWind = Spring.GetWind
-local spGetGameSpeed = Spring.GetGameSpeed
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spIsPosInLos = Engine.Shared.IsPosInLos
+local spIsSphereInView = Engine.Unsynced.IsSphereInView
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
+local spGetFPS = Engine.Unsynced.GetFPS
+local spGetWind = Engine.Shared.GetWind
+local spGetGameSpeed = Engine.Unsynced.GetGameSpeed
 
 local glBlending = gl.Blending
 local glTexture = gl.Texture
@@ -2012,7 +2012,7 @@ function gadget:Initialize()
 	end
 
 	if missingAlldefsPost > 0 then
-		Spring.Echo(string.format("[gfx_flamethrower_gl4] WARNING: %d flame weapon(s) still have engine flame visuals + cegtag active. " .. "gamedata/alldefs_post.lua only runs at GAME START -- /luarules reload does NOT re-run it. " .. "Quit to menu and start a new game to fully suppress the engine flame billboard and cegtag smoke trail.", missingAlldefsPost))
+		Engine.Shared.Echo(string.format("[gfx_flamethrower_gl4] WARNING: %d flame weapon(s) still have engine flame visuals + cegtag active. " .. "gamedata/alldefs_post.lua only runs at GAME START -- /luarules reload does NOT re-run it. " .. "Quit to menu and start a new game to fully suppress the engine flame billboard and cegtag smoke trail.", missingAlldefsPost))
 	end
 
 	GG.Flamethrower = {
@@ -2098,7 +2098,7 @@ local function dumpDiagnostics(n)
 		queueTotal = queueTotal + #q
 	end
 	local idMapSize = particleVBO and particleVBO.instanceIDtoIndex and countTable(particleVBO.instanceIDtoIndex) or 0
-	Spring.Echo(string.format("[flameDiag] f=%d used=%d/%d(%d) idMap=%d  tracked=%d ignored=%d  rmQ=%d(%dids)  nextID=%d fpsInt=%d", n, particleVBO and particleVBO.usedElements or -1, K.MAX_PARTICLES, K.HARD_MAX_PARTICLES, idMapSize, trackedCount, ignoredCount, queueKeys, queueTotal, nextParticleID, fpsUpdateInterval))
+	Engine.Shared.Echo(string.format("[flameDiag] f=%d used=%d/%d(%d) idMap=%d  tracked=%d ignored=%d  rmQ=%d(%dids)  nextID=%d fpsInt=%d", n, particleVBO and particleVBO.usedElements or -1, K.MAX_PARTICLES, K.HARD_MAX_PARTICLES, idMapSize, trackedCount, ignoredCount, queueKeys, queueTotal, nextParticleID, fpsUpdateInterval))
 end
 
 -- Force-clear the entire particle VBO and all per-projectile attribution
@@ -2107,7 +2107,7 @@ end
 -- projectile re-emits naturally). Loud Spring.Echo so a leak event is
 -- impossible to miss in logs/infolog.
 local function emergencyResetParticles(reason)
-	Spring.Echo("[gfx_flamethrower_gl4] EMERGENCY RESET: " .. tostring(reason))
+	Engine.Shared.Echo("[gfx_flamethrower_gl4] EMERGENCY RESET: " .. tostring(reason))
 	if particleVBO then
 		-- clearInstanceTable resets usedElements + both id<->index maps in one
 		-- call, then re-uploads an empty buffer.
@@ -2161,7 +2161,7 @@ local function runSafetyNet(n)
 		drift = -drift
 	end
 	if drift > SAFETY_DRIFT_TOLERANCE then
-		Spring.Echo(string.format("[gfx_flamethrower_gl4] ACCOUNTING DRIFT detected: usedElements=%d idMap=%d (diff=%d). " .. "This is the suspected long-run leak. Triggering self-heal.", used, mapSize, used - mapSize))
+		Engine.Shared.Echo(string.format("[gfx_flamethrower_gl4] ACCOUNTING DRIFT detected: usedElements=%d idMap=%d (diff=%d). " .. "This is the suspected long-run leak. Triggering self-heal.", used, mapSize, used - mapSize))
 		emergencyResetParticles("accounting drift used=" .. used .. " idMap=" .. mapSize)
 		return
 	end

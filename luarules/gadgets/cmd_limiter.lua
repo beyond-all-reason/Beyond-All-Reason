@@ -31,9 +31,9 @@ local totalOffence = 0
 local offenceBuckets = {}
 local currentTime = 0 -- accumulated real time in seconds
 
-local spec = Spring.GetSpectatingState()
+local spec = Engine.Unsynced.GetSpectatingState()
 function gadget:PlayerChanged(playerID)
-	spec = Spring.GetSpectatingState()
+	spec = Engine.Unsynced.GetSpectatingState()
 end
 
 function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
@@ -51,11 +51,11 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				if not isSingleplayer then
 					if totalOffence >= maxOffences then
 						--Spring.I18N('ui.cmdlimiter.forceresign')
-						Spring.Echo("\255\255\040\040YOU QUEUED TOO MUCH BUILDINGS TOO MANY TIMES, YOU HAVE BEEN FORCE RESIGNED!")
-						Spring.SendCommands("spectator")
+						Engine.Shared.Echo("\255\255\040\040YOU QUEUED TOO MUCH BUILDINGS TOO MANY TIMES, YOU HAVE BEEN FORCE RESIGNED!")
+						Engine.Unsynced.SendCommands("spectator")
 					elseif totalOffence >= startWarningOffences then
 						--Spring.I18N('ui.cmdlimiter.forceresignwarning')
-						Spring.Echo("\255\255\085\085YOU HAVE QUEUED TOO MUCH BUILDINGS IN A SHORT PERIOD, KEEP DOING THIS AND YOU WILL GET AUTO RESIGNED!")
+						Engine.Shared.Echo("\255\255\085\085YOU HAVE QUEUED TOO MUCH BUILDINGS IN A SHORT PERIOD, KEEP DOING THIS AND YOU WILL GET AUTO RESIGNED!")
 					end
 				end
 				totalCmdCount = totalCmdCount - mathFloor(maxCommands / 2) -- remove some so user can instantly queue something next without instantly being warned again

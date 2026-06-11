@@ -15,7 +15,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = Engine.Shared.Echo
 
 -- Shameless port from https://gist.github.com/martymcmodding/30304c4bffa6e2bd2eb59ff8bb09d135
 
@@ -182,7 +182,7 @@ function widget:Initialize()
 		return
 	end
 
-	_, _, vpx, vpy = Spring.GetViewGeometry()
+	_, _, vpx, vpy = Engine.Unsynced.GetViewGeometry()
 
 	--local commonTexOpts = {
 	--	target = GL_TEXTURE_2D,

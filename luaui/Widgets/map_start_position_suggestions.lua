@@ -23,10 +23,10 @@ local tableInsert = table.insert
 local tableConcat = table.concat
 
 -- Localized Spring API for performance
-local spGetMouseState = Spring.GetMouseState
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetTeamColor = Spring.GetTeamColor
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spGetTeamColor = Engine.Unsynced.GetTeamColor
 
 --todo: gl4 (also make circles more transparent as you zoom in)
 
@@ -72,10 +72,10 @@ local resMult = vsy / 1440
 -- engine call optimizations
 -- =========================
 
-local SpringGetCameraState = Spring.GetCameraState
-local SpringIsGUIHidden = Spring.IsGUIHidden
-local SpringGetCameraRotation = Spring.GetCameraRotation
-local SpringGetGameFrame = Spring.GetGameFrame
+local SpringGetCameraState = Engine.Unsynced.GetCameraState
+local SpringIsGUIHidden = Engine.Unsynced.IsGUIHidden
+local SpringGetCameraRotation = Engine.Unsynced.GetCameraRotation
+local SpringGetGameFrame = Engine.Shared.GetGameFrame
 
 local glColor = gl.Color
 local glDepthTest = gl.DepthTest
@@ -137,17 +137,17 @@ local function convertXYToXZ(p)
 	}
 end
 
-local gaiaTeamID = Spring.GetGaiaTeamID()
-local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
+local gaiaTeamID = Engine.Shared.GetGaiaTeamID()
+local gaiaAllyTeamID = select(6, Engine.Shared.GetTeamInfo(gaiaTeamID, false))
 
 local function getTeamSizes()
-	local allyTeams = Spring.GetAllyTeamList()
+	local allyTeams = Engine.Shared.GetAllyTeamList()
 	local allyTeamCount = 0
 	local playersPerTeam = 0
 	for _, allyTeamID in ipairs(allyTeams) do
 		if allyTeamID ~= gaiaAllyTeamID then
 			allyTeamCount = allyTeamCount + 1
-			local teamList = Spring.GetTeamList(allyTeamID) or {}
+			local teamList = Engine.Shared.GetTeamList(allyTeamID) or {}
 			playersPerTeam = mathMax(playersPerTeam, #teamList)
 		end
 	end
@@ -171,14 +171,14 @@ local function processModoptionTeamConfig(positions, teamPositions)
 end
 
 local function selectModoptionConfigForPlayers(modoptionData, allyTeamCount, playersPerTeam)
-	Spring.Log(widget:GetInfo().name, LOG.INFO, "Searching for start positions for " .. table.toString({
+	Engine.Shared.Log(widget:GetInfo().name, LOG.INFO, "Searching for start positions for " .. table.toString({
 		allyTeamCount = allyTeamCount,
 		playersPerTeam = playersPerTeam,
 	}))
 
 	for _, teamConfig in ipairs(modoptionData.team) do
 		if teamConfig.playersPerTeam == playersPerTeam and teamConfig.teamCount == allyTeamCount then
-			Spring.Log(widget:GetInfo().name, LOG.INFO, "Found start positions")
+			Engine.Shared.Log(widget:GetInfo().name, LOG.INFO, "Found start positions")
 			return teamConfig.sides
 		end
 	end
@@ -187,10 +187,10 @@ local function selectModoptionConfigForPlayers(modoptionData, allyTeamCount, pla
 end
 
 local function loadStartPositions()
-	local modoptionDataRaw = Spring.GetModOptions().mapmetadata_startpos
+	local modoptionDataRaw = Engine.Shared.GetModOptions().mapmetadata_startpos
 
 	if modoptionDataRaw == nil or string.len(modoptionDataRaw) == 0 then
-		Spring.Log(widget:GetInfo().name, LOG.WARNING, "No modoption start position data found")
+		Engine.Shared.Log(widget:GetInfo().name, LOG.WARNING, "No modoption start position data found")
 		return
 	end
 
@@ -202,7 +202,7 @@ local function loadStartPositions()
 	local selectedConfig = selectModoptionConfigForPlayers(parsed, allyTeamCount, playersPerTeam)
 
 	if selectedConfig == nil then
-		Spring.Log(widget:GetInfo().name, LOG.WARNING, "Could not find matching start positions")
+		Engine.Shared.Log(widget:GetInfo().name, LOG.WARNING, "Could not find matching start positions")
 		return
 	end
 
@@ -602,7 +602,7 @@ local function wrapText(str, maxLength)
 end
 
 local function drawTooltip()
-	if not tooltipKey or Spring.DiffTimers(Spring.GetTimer(), tooltipStartTime) < config.tooltipDelay then
+	if not tooltipKey or Engine.Unsynced.DiffTimers(Engine.Unsynced.GetTimer(), tooltipStartTime) < config.tooltipDelay then
 		return
 	end
 
@@ -643,8 +643,8 @@ function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	resMult = vsy / 1440
 	local baseFontSize = mathMax(config.playerTextSize, config.roleTextSize) * 0.6
-	font = gl.LoadFont("fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"), baseFontSize * resMult, (baseFontSize * resMult) / 14, 1)
-	fontTutorial = gl.LoadFont("fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"), config.tutorialTextSize * resMult, (config.tutorialTextSize * resMult) / 14, 1)
+	font = gl.LoadFont("fonts/" .. Engine.Unsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf"), baseFontSize * resMult, (baseFontSize * resMult) / 14, 1)
+	fontTutorial = gl.LoadFont("fonts/" .. Engine.Unsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf"), config.tutorialTextSize * resMult, (config.tutorialTextSize * resMult) / 14, 1)
 end
 
 function widget:GetConfigData()
@@ -660,7 +660,7 @@ function widget:SetConfigData(data)
 end
 
 function widget:Initialize()
-	Spring.SetLogSectionFilterLevel(widget:GetInfo().name, LOG.INFO)
+	Engine.Unsynced.SetLogSectionFilterLevel(widget:GetInfo().name, LOG.INFO)
 	widget:ViewResize()
 	startPositions = loadStartPositions()
 	if not startPositions then
@@ -678,7 +678,7 @@ end
 
 local function checkTooltips()
 	local mx, my = spGetMouseState()
-	local _, mw = Spring.TraceScreenRay(mx, my, true, true)
+	local _, mw = Engine.Unsynced.TraceScreenRay(mx, my, true, true)
 	local mwx, mwy, mwz
 	if mw ~= nil then
 		mwx, mwy, mwz = unpack(mw)
@@ -702,7 +702,7 @@ local function checkTooltips()
 
 			if newKey then
 				if newKey ~= prevTooltipKey then
-					tooltipStartTime = Spring.GetTimer()
+					tooltipStartTime = Engine.Unsynced.GetTimer()
 				end
 				tooltipKey = newKey
 			end
@@ -712,11 +712,11 @@ end
 
 local function getPlacedCommanders()
 	local newPlacedCommanders = {}
-	for _, teamID in ipairs(Spring.GetTeamList()) do
-		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
-		local name, _, spec = Spring.GetPlayerInfo(playerID, false)
+	for _, teamID in ipairs(Engine.Shared.GetTeamList()) do
+		local playerID = select(2, Engine.Shared.GetTeamInfo(teamID, false))
+		local name, _, spec = Engine.Shared.GetPlayerInfo(playerID, false)
 		if name ~= nil and not spec and teamID ~= gaiaTeamID then
-			local x, y, z = Spring.GetTeamStartPosition(teamID)
+			local x, y, z = Engine.Shared.GetTeamStartPosition(teamID)
 			if x and y and z then
 				tableInsert(newPlacedCommanders, {
 					position = { x, y, z },

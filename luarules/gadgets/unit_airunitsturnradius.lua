@@ -19,12 +19,12 @@ end
 local attackTurnRadius = 500
 
 local CMD_ATTACK = CMD.ATTACK
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
-local spMoveCtrlEnable = Spring.MoveCtrl.Enable
-local spMoveCtrlIsEnabled = Spring.MoveCtrl.IsEnabled
-local spMoveCtrlDisable = Spring.MoveCtrl.Disable
-local spMoveCtrlSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
+local spGetUnitCurrentCommand = Engine.Shared.GetUnitCurrentCommand
+local spGetUnitMoveTypeData = Engine.Shared.GetUnitMoveTypeData
+local spMoveCtrlEnable = Engine.Synced.MoveCtrl.Enable
+local spMoveCtrlIsEnabled = Engine.Synced.MoveCtrl.IsEnabled
+local spMoveCtrlDisable = Engine.Synced.MoveCtrl.Disable
+local spMoveCtrlSetAirMoveTypeData = Engine.Synced.MoveCtrl.SetAirMoveTypeData
 
 local Bombers = {}
 local bomberTurnRadius = {}
@@ -44,8 +44,8 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.ANY)
-	for ct, unitID in pairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	for ct, unitID in pairs(Engine.Shared.GetAllUnits()) do
+		gadget:UnitCreated(unitID, Engine.Shared.GetUnitDefID(unitID))
 	end
 end
 

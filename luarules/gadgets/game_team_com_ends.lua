@@ -16,18 +16,18 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local GetTeamList = Spring.GetTeamList
-local GetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetTeamList = Spring.GetTeamList
-local spKillTeam = Spring.KillTeam
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetTeamLuaAI = Spring.GetTeamLuaAI
-local spGetAllyTeamList = Spring.GetAllyTeamList
-local spGetAllUnits = Spring.GetAllUnits
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local GetTeamList = Engine.Shared.GetTeamList
+local GetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+local spGetTeamInfo = Engine.Shared.GetTeamInfo
+local spGetTeamList = Engine.Shared.GetTeamList
+local spKillTeam = Engine.Synced.KillTeam
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetTeamLuaAI = Engine.Shared.GetTeamLuaAI
+local spGetAllyTeamList = Engine.Shared.GetAllyTeamList
+local spGetAllUnits = Engine.Shared.GetAllUnits
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local gaiaTeamID = Engine.Shared.GetGaiaTeamID()
 
 -- Exclude Gaia / Scavengers / Raptors
 local ignoredTeams = {
@@ -60,7 +60,7 @@ local commanderDeathQueue = {}
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander or (Spring.GetModOptions().deathmode == "builders" and ((unitDef.buildOptions and #unitDef.buildOptions > 0) or unitDef.canResurrect == true)) then
+	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander or (Engine.Shared.GetModOptions().deathmode == "builders" and ((unitDef.buildOptions and #unitDef.buildOptions > 0) or unitDef.canResurrect == true)) then
 		isCommander[unitDefID] = true
 	end
 end
@@ -79,7 +79,7 @@ local function commanderDeath(teamID, originX, originZ) -- optional: attackerUni
 		end
 	end
 
-	if Spring.GetModOptions().deathmode == "own_com" and aliveTeamComCount[teamID] <= 0 then
+	if Engine.Shared.GetModOptions().deathmode == "own_com" and aliveTeamComCount[teamID] <= 0 then
 		if not select(3, spGetTeamInfo(teamID, false)) then
 			spKillTeam(teamID)
 		end
@@ -137,7 +137,7 @@ end
 
 function gadget:Initialize()
 	-- disable gadget when deathmode is "killall" or "none", or scoremode isnt regular
-	local deathmode = Spring.GetModOptions().deathmode
+	local deathmode = Engine.Shared.GetModOptions().deathmode
 	if deathmode ~= "com" and deathmode ~= "own_com" and deathmode ~= "territorial_domination" and deathmode ~= "builders" then
 		gadgetHandler:RemoveGadget(self)
 	end
@@ -159,7 +159,7 @@ function gadget:Initialize()
 	end
 
 	-- for debug purpose: destroy comless allyteams (usefull when team has no coms because of error and you do luarules reload)
-	if Spring.GetGameFrame() > 1 then
+	if Engine.Shared.GetGameFrame() > 1 then
 		for allyTeamID, count in ipairs(aliveComCount) do
 			if count <= 0 then
 				local allyTeams = GetTeamList(allyTeamID)

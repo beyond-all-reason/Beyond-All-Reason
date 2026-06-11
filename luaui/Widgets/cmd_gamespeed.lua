@@ -31,13 +31,13 @@ local speedLevels = {
 }
 
 local function setGameSpeed(speed)
-	if Spring.Utilities.Gametype.IsSinglePlayer() or Spring.IsCheatingEnabled() or Spring.IsReplay() then
-		Spring.SendCommands("setspeed " .. speed)
+	if Spring.Utilities.Gametype.IsSinglePlayer() or Engine.Shared.IsCheatingEnabled() or Engine.Unsynced.IsReplay() then
+		Engine.Unsynced.SendCommands("setspeed " .. speed)
 	end
 end
 
 local function increaseSpeed()
-	local currentSpeed = Spring.GetGameSpeed()
+	local currentSpeed = Engine.Unsynced.GetGameSpeed()
 
 	if currentSpeed >= speedLevels[#speedLevels] then
 		return
@@ -52,7 +52,7 @@ local function increaseSpeed()
 end
 
 local function decreaseSpeed()
-	local currentSpeed = Spring.GetGameSpeed()
+	local currentSpeed = Engine.Unsynced.GetGameSpeed()
 
 	if currentSpeed <= speedLevels[1] then
 		return

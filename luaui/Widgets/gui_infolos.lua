@@ -18,7 +18,7 @@ end
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = Engine.Shared.Echo
 
 local GL_RGBA32F_ARB = 0x8814
 --------------------------------------------------------------------------------
@@ -71,7 +71,7 @@ local shaderConfig = {
 }
 ---------------------------------------------------------------------------
 
-local alwaysColor, losColor, radarColor, jamColor, radarColor2 = Spring.GetLosViewColors() --unused
+local alwaysColor, losColor, radarColor, jamColor, radarColor2 = Engine.Unsynced.GetLosViewColors() --unused
 local outputAlpha = 0.07
 local numFastUpdates = 10 -- how many quick updates to do on large-scale changes
 local updateRate = 2 -- on each Nth frame
@@ -152,9 +152,9 @@ local function UpdateInfoLOSTexture(count)
 	infoShader:SetUniformFloat("outputAlpha", outputAlpha)
 	for i = 1, count do
 		if i == count then
-			infoShader:SetUniformFloat("time", (Spring.GetDrawFrame() + 0) / 1000)
+			infoShader:SetUniformFloat("time", (Engine.Unsynced.GetDrawFrame() + 0) / 1000)
 		else
-			infoShader:SetUniformFloat("time", (Spring.GetDrawFrame() + math.random()) / 1000)
+			infoShader:SetUniformFloat("time", (Engine.Unsynced.GetDrawFrame() + math.random()) / 1000)
 		end
 		gl.RenderToTexture(infoTextures[currentAllyTeam], renderToTextureFunc)
 	end
@@ -190,7 +190,7 @@ function widget:Initialize()
 	end
 	currentAllyTeam = Spring.GetMyAllyTeamID()
 
-	for _, a in ipairs(Spring.GetAllyTeamList()) do
+	for _, a in ipairs(Engine.Shared.GetAllyTeamList()) do
 		infoTextures[a] = CreateLosTexture()
 	end
 

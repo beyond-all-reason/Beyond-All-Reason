@@ -1,7 +1,7 @@
 if Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
-	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Activated!")
+	Engine.Shared.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Activated!")
 else
-	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Deactivated!")
+	Engine.Shared.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Deactivated!")
 	return false
 end
 
@@ -54,50 +54,50 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	--
 
-	local ValidUnitID = Spring.ValidUnitID
-	local GetUnitNeutral = Spring.GetUnitNeutral
-	local GetTeamList = Spring.GetTeamList
-	local GetTeamLuaAI = Spring.GetTeamLuaAI
-	local GetGaiaTeamID = Spring.GetGaiaTeamID
-	local SetGameRulesParam = Spring.SetGameRulesParam
-	local GetGameRulesParam = Spring.GetGameRulesParam
-	local GetTeamUnitCount = Spring.GetTeamUnitCount
-	local GetGameFrame = Spring.GetGameFrame()
-	local GetGameSeconds = Spring.GetGameSeconds()
-	local DestroyUnit = Spring.DestroyUnit
-	local GetTeamUnits = Spring.GetTeamUnits
-	local GetUnitPosition = Spring.GetUnitPosition
-	local GiveOrderToUnit = Spring.GiveOrderToUnit
-	local TestBuildOrder = Spring.TestBuildOrder
-	local GetGroundBlocked = Spring.GetGroundBlocked
-	local CreateUnit = Spring.CreateUnit
-	local SetUnitBlocking = Spring.SetUnitBlocking
-	local GetGroundHeight = Spring.GetGroundHeight
-	local GetUnitHealth = Spring.GetUnitHealth
-	local SetUnitExperience = Spring.SetUnitExperience
-	local GetUnitIsDead = Spring.GetUnitIsDead
-	local SetUnitPosition = Spring.SetUnitPosition
-	local GetUnitSeparation = Spring.GetUnitSeparation
-	local GetUnitDefID = Spring.GetUnitDefID
-	local GetTeamUnitDefCount = Spring.GetTeamUnitDefCount
-	local GetUnitCommandCount = Spring.GetUnitCommandCount
-	local GetUnitTeam = Spring.GetUnitTeam
-	local SetUnitHealth = Spring.SetUnitHealth
-	local SetUnitAlwaysVisible = Spring.SetUnitAlwaysVisible
-	local KillTeam = Spring.KillTeam
-	local GetTeamInfo = Spring.GetTeamInfo
-	local GetPlayerList = Spring.GetPlayerList
-	local GetPlayerInfo = Spring.GetPlayerInfo
-	local AssignPlayerToTeam = Spring.AssignPlayerToTeam
-	local CreateFeature = Spring.CreateFeature
-	local SetFeatureMoveCtrl = Spring.SetFeatureMoveCtrl
-	local SetFeatureVelocity = Spring.SetFeatureVelocity
-	local SetFeatureResources = Spring.SetFeatureResources
-	local SetFeatureHealth = Spring.SetFeatureHealth
-	local GetFeatureHealth = Spring.GetFeatureHealth
-	local DestroyFeature = Spring.DestroyFeature
-	local GetFeatureDefID = Spring.GetFeatureDefID
-	local SpawnCEG = Spring.SpawnCEG
+	local ValidUnitID = Engine.Shared.ValidUnitID
+	local GetUnitNeutral = Engine.Shared.GetUnitNeutral
+	local GetTeamList = Engine.Shared.GetTeamList
+	local GetTeamLuaAI = Engine.Shared.GetTeamLuaAI
+	local GetGaiaTeamID = Engine.Shared.GetGaiaTeamID
+	local SetGameRulesParam = Engine.Synced.SetGameRulesParam
+	local GetGameRulesParam = Engine.Shared.GetGameRulesParam
+	local GetTeamUnitCount = Engine.Shared.GetTeamUnitCount
+	local GetGameFrame = Engine.Shared.GetGameFrame()
+	local GetGameSeconds = Engine.Shared.GetGameSeconds()
+	local DestroyUnit = Engine.Synced.DestroyUnit
+	local GetTeamUnits = Engine.Shared.GetTeamUnits
+	local GetUnitPosition = Engine.Shared.GetUnitPosition
+	local GiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+	local TestBuildOrder = Engine.Shared.TestBuildOrder
+	local GetGroundBlocked = Engine.Shared.GetGroundBlocked
+	local CreateUnit = Engine.Synced.CreateUnit
+	local SetUnitBlocking = Engine.Synced.SetUnitBlocking
+	local GetGroundHeight = Engine.Shared.GetGroundHeight
+	local GetUnitHealth = Engine.Shared.GetUnitHealth
+	local SetUnitExperience = Engine.Synced.SetUnitExperience
+	local GetUnitIsDead = Engine.Shared.GetUnitIsDead
+	local SetUnitPosition = Engine.Synced.SetUnitPosition
+	local GetUnitSeparation = Engine.Shared.GetUnitSeparation
+	local GetUnitDefID = Engine.Shared.GetUnitDefID
+	local GetTeamUnitDefCount = Engine.Shared.GetTeamUnitDefCount
+	local GetUnitCommandCount = Engine.Shared.GetUnitCommandCount
+	local GetUnitTeam = Engine.Shared.GetUnitTeam
+	local SetUnitHealth = Engine.Synced.SetUnitHealth
+	local SetUnitAlwaysVisible = Engine.Synced.SetUnitAlwaysVisible
+	local KillTeam = Engine.Synced.KillTeam
+	local GetTeamInfo = Engine.Shared.GetTeamInfo
+	local GetPlayerList = Engine.Shared.GetPlayerList
+	local GetPlayerInfo = Engine.Shared.GetPlayerInfo
+	local AssignPlayerToTeam = Engine.Synced.AssignPlayerToTeam
+	local CreateFeature = Engine.Synced.CreateFeature
+	local SetFeatureMoveCtrl = Engine.Synced.SetFeatureMoveCtrl
+	local SetFeatureVelocity = Engine.Synced.SetFeatureVelocity
+	local SetFeatureResources = Engine.Synced.SetFeatureResources
+	local SetFeatureHealth = Engine.Synced.SetFeatureHealth
+	local GetFeatureHealth = Engine.Shared.GetFeatureHealth
+	local DestroyFeature = Engine.Synced.DestroyFeature
+	local GetFeatureDefID = Engine.Shared.GetFeatureDefID
+	local SpawnCEG = Engine.Synced.SpawnCEG
 
 	local mRandom = math.random
 	local math = math
@@ -105,14 +105,14 @@ if gadgetHandler:IsSyncedCode() then
 	local table = table
 	local ipairs = ipairs
 	local pairs = pairs
-	local modOptions = Spring.GetModOptions()
+	local modOptions = Engine.Shared.GetModOptions()
 
 	local MAPSIZEX = Game.mapSizeX
 	local MAPSIZEZ = Game.mapSizeZ
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
-	Spring.SetGameRulesParam("BossFightStarted", 0)
+	Engine.Synced.SetGameRulesParam("BossFightStarted", 0)
 	local nKilledQueens = 0
 	local nSpawnedQueens = 0
 	local nTotalQueens = modOptions.raptor_queen_count or 1
@@ -738,9 +738,9 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			elseif not UnitDefNames[raptorType] then
-				Spring.Echo("[ERROR] Invalid Raptor Unit Name", raptorType)
+				Engine.Shared.Echo("[ERROR] Invalid Raptor Unit Name", raptorType)
 			else
-				Spring.Echo("[ERROR] Invalid Raptor Squad", raptorType)
+				Engine.Shared.Echo("[ERROR] Invalid Raptor Squad", raptorType)
 			end
 		else
 			squadCounter = 0
@@ -773,9 +773,9 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 					elseif not UnitDefNames[raptorName] then
-						Spring.Echo("[ERROR] Invalid Raptor Unit Name", raptorName)
+						Engine.Shared.Echo("[ERROR] Invalid Raptor Unit Name", raptorName)
 					else
-						Spring.Echo("[ERROR] Invalid Raptor Squad", raptorName)
+						Engine.Shared.Echo("[ERROR] Invalid Raptor Squad", raptorName)
 					end
 				end
 			end
@@ -959,7 +959,7 @@ if gadgetHandler:IsSyncedCode() then
 				if queenStagger.CurrentHealth > 0 then
 					SetGameRulesParam("raptorQueenStaggerPercentage", math.ceil((queenStagger.CurrentHealth / queenStagger.Health) * 100))
 					for queenID, _ in pairs(queenIDs) do
-						Spring.SetUnitHealth(queenID, { paralyze = 0 })
+						Engine.Synced.SetUnitHealth(queenID, { paralyze = 0 })
 					end
 				else
 					queenStagger.currentlyStaggered = true
@@ -973,7 +973,7 @@ if gadgetHandler:IsSyncedCode() then
 				if queenStagger.CurrentTimer > 0 then
 					SetGameRulesParam("raptorQueenStaggerPercentage", math.ceil((1 - (queenStagger.CurrentTimer / queenStagger.Time)) * 100))
 					for queenID, _ in pairs(queenIDs) do
-						Spring.SetUnitHealth(queenID, { paralyze = 16000000 })
+						Engine.Synced.SetUnitHealth(queenID, { paralyze = 16000000 })
 					end
 				else
 					queenStagger.currentlyStaggered = false
@@ -1224,9 +1224,9 @@ if gadgetHandler:IsSyncedCode() then
 									end
 								end
 							elseif not UnitDefNames[raptorName] then
-								Spring.Echo("[ERROR] Invalid Raptor Unit Name", raptorName)
+								Engine.Shared.Echo("[ERROR] Invalid Raptor Unit Name", raptorName)
 							else
-								Spring.Echo("[ERROR] Invalid Raptor Squad", raptorName)
+								Engine.Shared.Echo("[ERROR] Invalid Raptor Squad", raptorName)
 							end
 						end
 					end
@@ -1253,9 +1253,9 @@ if gadgetHandler:IsSyncedCode() then
 										end
 									end
 								elseif not UnitDefNames[raptorName] then
-									Spring.Echo("[ERROR] Invalid Raptor Unit Name", raptorName)
+									Engine.Shared.Echo("[ERROR] Invalid Raptor Unit Name", raptorName)
 								else
-									Spring.Echo("[ERROR] Invalid Raptor Squad", raptorName)
+									Engine.Shared.Echo("[ERROR] Invalid Raptor Squad", raptorName)
 								end
 							end
 						end
@@ -1687,11 +1687,11 @@ if gadgetHandler:IsSyncedCode() then
 				lsx1, lsz1, lsx2, lsz2 = RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax
 				if not lsx1 or not lsz1 or not lsx2 or not lsz2 then
 					config.burrowSpawnType = "avoid"
-					Spring.Log(gadget:GetInfo().name, LOG.INFO, "No Raptor start box available, Burrow Placement set to 'Avoid Players'")
+					Engine.Shared.Log(gadget:GetInfo().name, LOG.INFO, "No Raptor start box available, Burrow Placement set to 'Avoid Players'")
 					noRaptorStartbox = true
 				elseif lsx1 == 0 and lsz1 == 0 and lsx2 == Game.mapSizeX and lsz2 == Game.mapSizeX then
 					config.burrowSpawnType = "avoid"
-					Spring.Log(gadget:GetInfo().name, LOG.INFO, "No Raptor start box available, Burrow Placement set to 'Avoid Players'")
+					Engine.Shared.Log(gadget:GetInfo().name, LOG.INFO, "No Raptor start box available, Burrow Placement set to 'Avoid Players'")
 					noRaptorStartbox = true
 				end
 			end

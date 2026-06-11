@@ -19,9 +19,9 @@ local CMD_STOP = CMD.STOP
 
 local excludedUnitsDefID = {}
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitNeutral = Spring.GetUnitNeutral
-local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitNeutral = Engine.Shared.GetUnitNeutral
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
 
 -- Keep in sync with unit_areaattack_limiter.lua
 local BATCH_LIMIT = 30
@@ -78,7 +78,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 
 	local cmdX, _, cmdZ, cmdRadius = unpack(cmdParams)
-	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, Spring.ENEMY_UNITS)
+	local areaUnits = Engine.Shared.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, Engine.Shared.ENEMY_UNITS)
 
 	local newCmds = {}
 	local somethingWasExcluded = false
@@ -95,7 +95,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 	end
 	if #newCmds > 0 and somethingWasExcluded then
-		Spring.GiveOrderArrayToUnitArray(spGetSelectedUnits(), newCmds)
+		Engine.Shared.GiveOrderArrayToUnitArray(spGetSelectedUnits(), newCmds)
 		return true
 	end
 end

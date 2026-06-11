@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = Engine.Shared.Echo
 
 include("keysym.h.lua")
 
@@ -41,12 +41,12 @@ end
 function widget:Update()
 	if doReload then
 		local reloadedCobDefs = {}
-		local selection = Spring.GetSelectedUnits()
+		local selection = Engine.Unsynced.GetSelectedUnits()
 		for i, unitID in ipairs(selection) do
-			local unitDefID = Spring.GetUnitDefID(unitID)
+			local unitDefID = Engine.Shared.GetUnitDefID(unitID)
 			if not reloadedCobDefs[unitDefID] then
 				local unitDefName = UnitDefs[unitDefID].name
-				Spring.SendCommands("reloadcob " .. unitDefName)
+				Engine.Unsynced.SendCommands("reloadcob " .. unitDefName)
 				spEcho("Reloaded COB: " .. unitDefName .. " from " .. UnitDefs[unitDefID].scriptName)
 				reloadedCobDefs[unitDefID] = true
 			end

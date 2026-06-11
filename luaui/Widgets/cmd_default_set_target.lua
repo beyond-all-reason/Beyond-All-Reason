@@ -13,16 +13,16 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = Engine.Shared.GetGameFrame
 
 local rebindKeys = false
 
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 
-local IsUnitAllied = Spring.IsUnitAllied
-local GetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
-local GetActionHotKeys = Spring.GetActionHotKeys
-local SendCommmands = Spring.SendCommands
+local IsUnitAllied = Engine.Unsynced.IsUnitAllied
+local GetSelectedUnitsCounts = Engine.Unsynced.GetSelectedUnitsCounts
+local GetActionHotKeys = Engine.Unsynced.GetActionHotKeys
+local SendCommmands = Engine.Unsynced.SendCommands
 
 local hotKeys = {}
 local gameStarted
@@ -35,7 +35,7 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if Engine.Unsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 		return true
 	end
@@ -51,7 +51,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if Engine.Unsynced.IsReplay() or spGetGameFrame() > 0 then
 		if maybeRemoveSelf() then
 			return
 		end

@@ -16,9 +16,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetTeamInfo = Engine.Shared.GetTeamInfo
+local spGetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
 
 local reissueOrder = Game.Commands.ReissueOrder
 

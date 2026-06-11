@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
 
 -- Configurable Parts:
 local texture = "luaui/images/flank_icon.tga"
@@ -39,11 +39,11 @@ end
 local spec, fullview = spGetSpectatingState()
 local allyTeamID = Spring.GetMyAllyTeamID()
 
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitRadius = Spring.GetUnitRadius
-local spGetUnitFlanking = Spring.GetUnitFlanking
-local spGetGameFrame = Spring.GetGameFrame
-local spIsUnitAllied = Spring.IsUnitAllied
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetUnitRadius = Engine.Shared.GetUnitRadius
+local spGetUnitFlanking = Engine.Shared.GetUnitFlanking
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spIsUnitAllied = Engine.Unsynced.IsUnitAllied
 
 local instanceCache = {
 	0,
@@ -101,11 +101,11 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 end
 
 function widget:DrawWorldPreUnit()
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 	if flankingVBO.usedElements > 0 then
-		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
+		local disticon = 27 * Engine.Unsynced.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		glTexture(0, texture)
 		flankingShader:Activate()
 		flankingShader:SetUniform("iconDistance", disticon)

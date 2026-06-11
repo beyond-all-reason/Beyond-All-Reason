@@ -25,7 +25,7 @@ local mathSin = math.sin
 local mathPi = math.pi
 
 -- Localized Spring API for performance
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
 
 --------------------------------------------------------------------------------
 -- OPTIONS
@@ -55,18 +55,18 @@ local glLineWidth = gl.LineWidth
 local glDepthTest = gl.DepthTest
 local glDrawGroundCircle = gl.DrawGroundCircle
 
-local spGetAllUnits = Spring.GetAllUnits
-local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
-local spGetTeamList = Spring.GetTeamList
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetUnitPosition = Spring.GetUnitPosition
-local spIsSphereInView = Spring.IsSphereInView
-local spIsUnitSelected = Spring.IsUnitSelected
-local spValidUnitID = Spring.ValidUnitID
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetGameSeconds = Spring.GetGameSeconds
+local spGetAllUnits = Engine.Shared.GetAllUnits
+local spGetTeamUnitsByDefs = Engine.Shared.GetTeamUnitsByDefs
+local spGetTeamList = Engine.Shared.GetTeamList
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spIsSphereInView = Engine.Unsynced.IsSphereInView
+local spIsUnitSelected = Engine.Unsynced.IsUnitSelected
+local spValidUnitID = Engine.Shared.ValidUnitID
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitIsCloaked = Engine.Shared.GetUnitIsCloaked
+local spGetGameSeconds = Engine.Shared.GetGameSeconds
 
 --------------------------------------------------------------------------------
 -- COMMAND CONSTANTS
@@ -211,7 +211,7 @@ end
 -- DRAWING
 --------------------------------------------------------------------------------
 function widget:DrawWorldPreUnit()
-	if chobbyInterface or Spring.IsGUIHidden() then
+	if chobbyInterface or Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 

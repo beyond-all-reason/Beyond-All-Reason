@@ -22,9 +22,9 @@ function widget:Update(dt)
 	if t > CHECK_PERIOD then
 		t = 0
 		if widgetHandler:FindWidget("Test Runner") == nil then
-			Spring.Log(widget:GetInfo().name, LOG.WARNING, "Test runner crashed, exiting game")
+			Engine.Shared.Log(widget:GetInfo().name, LOG.WARNING, "Test runner crashed, exiting game")
 			widgetHandler:DisableWidget(widget:GetInfo().name)
-			Spring.SendCommands("quitforce")
+			Engine.Unsynced.SendCommands("quitforce")
 		end
 	end
 end

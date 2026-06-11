@@ -15,8 +15,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetGameFrame = Engine.Shared.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
 
 local showAsSpectator = true
@@ -56,18 +56,18 @@ local GL_REPLACE = GL.REPLACE
 local GL_POINTS = GL.POINTS
 
 local spGetUnitDefID = spGetUnitDefID
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetTeamInfo = Spring.GetTeamInfo
+local spGetPlayerInfo = Engine.Shared.GetPlayerInfo
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spGetTeamInfo = Engine.Shared.GetTeamInfo
 local spGetMyPlayerID = Spring.GetMyPlayerID
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spSelectUnitArray = Spring.SelectUnitArray
-local spValidUnitID = Spring.ValidUnitID
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetPlayerList = Spring.GetPlayerList
+local spSelectUnitArray = Engine.Unsynced.SelectUnitArray
+local spValidUnitID = Engine.Shared.ValidUnitID
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
+local spGetPlayerList = Engine.Shared.GetPlayerList
 
 local playerIsSpec = {}
-for i, playerID in pairs(Spring.GetPlayerList()) do
+for i, playerID in pairs(Engine.Shared.GetPlayerList()) do
 	playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID, false))
 end
 
@@ -85,7 +85,7 @@ local lockPlayerLastAppliedID
 local lockPlayerLastAppliedVersion = -1
 
 local unitAllyteam = {}
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
 local teamAllyTeam = {}
 
 local function bumpPlayerSelectionVersion(playerID)
@@ -545,7 +545,7 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 

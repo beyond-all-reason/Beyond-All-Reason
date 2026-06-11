@@ -46,10 +46,10 @@ end
 
 -- get the first mex bellow that isn't itself, stacking more than one should be prevented by yardmaps
 local function hasMexBeneath(unitID)
-	local x, _, z = Spring.GetUnitPosition(unitID)
-	local units = Spring.GetUnitsInCylinder(x, z, 10)
+	local x, _, z = Engine.Shared.GetUnitPosition(unitID)
+	local units = Engine.Shared.GetUnitsInCylinder(x, z, 10)
 	for k, uID in ipairs(units) do
-		if isMex[Spring.GetUnitDefID(uID)] and Spring.GetUnitIsDead(uID) == false then
+		if isMex[Engine.Shared.GetUnitDefID(uID)] and Engine.Shared.GetUnitIsDead(uID) == false then
 			if unitID ~= uID then
 				return uID
 			end
@@ -63,12 +63,12 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if isMex[unitDefID] then
 		local mex = hasMexBeneath(unitID)
 		if mex then
-			Spring.SetUnitNoSelect(mex, true)
+			Engine.Unsynced.SetUnitNoSelect(mex, true)
 			if transferInstantly then
-				local mexTeamID = Spring.GetUnitTeam(mex)
-				if mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
-					_G.transferredUnits[unitID] = Spring.GetGameFrame()
-					Spring.TransferUnit(unitID, mexTeamID)
+				local mexTeamID = Engine.Shared.GetUnitTeam(mex)
+				if mexTeamID ~= unitTeam and not select(3, Engine.Shared.GetTeamInfo(mexTeamID, false)) then
+					_G.transferredUnits[unitID] = Engine.Shared.GetGameFrame()
+					Engine.Synced.TransferUnit(unitID, mexTeamID)
 				end
 			end
 		end
@@ -80,7 +80,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if isMex[unitDefID] then
 		local mex = hasMexBeneath(unitID)
 		if mex then
-			Spring.SetUnitNoSelect(mex, false)
+			Engine.Unsynced.SetUnitNoSelect(mex, false)
 		end
 	end
 end
@@ -92,12 +92,12 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		-- if theres a mex below this one reclaim it, and donate this one to the owner of the previous mex
 		local mex = hasMexBeneath(unitID)
 		if mex then
-			local mexTeamID = Spring.GetUnitTeam(mex)
-			Spring.DestroyUnit(mex, false, true)
-			Spring.AddTeamResource(unitTeam, "metal", isMex[Spring.GetUnitDefID(mex)])
-			if not transferInstantly and mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
-				_G.transferredUnits[unitID] = Spring.GetGameFrame()
-				Spring.TransferUnit(unitID, mexTeamID)
+			local mexTeamID = Engine.Shared.GetUnitTeam(mex)
+			Engine.Synced.DestroyUnit(mex, false, true)
+			Engine.Synced.AddTeamResource(unitTeam, "metal", isMex[Engine.Shared.GetUnitDefID(mex)])
+			if not transferInstantly and mexTeamID ~= unitTeam and not select(3, Engine.Shared.GetTeamInfo(mexTeamID, false)) then
+				_G.transferredUnits[unitID] = Engine.Shared.GetGameFrame()
+				Engine.Synced.TransferUnit(unitID, mexTeamID)
 			end
 		end
 	end

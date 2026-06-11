@@ -13,14 +13,14 @@ function gadget:GetInfo()
 	}
 end
 
-local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetPlayerInfo = Engine.Shared.GetPlayerInfo
 
 local function GetAllyTeamID(teamID)
-	return select(6, Spring.GetTeamInfo(teamID, false))
+	return select(6, Engine.Shared.GetTeamInfo(teamID, false))
 end
 
 local function PlayersInAllyTeamID(allyTeamID)
-	local players = Spring.GetPlayerList()
+	local players = Engine.Shared.GetPlayerList()
 	local _, _, spec, _, allyTeam
 	for ct, id in pairs(players) do
 		_, _, spec, _, allyTeam = spGetPlayerInfo(id, false)
@@ -32,7 +32,7 @@ local function PlayersInAllyTeamID(allyTeamID)
 end
 
 local function AllButAllyTeamID(allyTeamID)
-	local players = Spring.GetPlayerList()
+	local players = Engine.Shared.GetPlayerList()
 	local _, _, spec, _, allyTeam
 	for ct, id in pairs(players) do
 		_, _, spec, _, allyTeam = spGetPlayerInfo(id, false)
@@ -44,7 +44,7 @@ local function AllButAllyTeamID(allyTeamID)
 end
 
 local function AlliedPlayersExceptTeamID(allyTeamID, excludedTeamID)
-	local players = Spring.GetPlayerList()
+	local players = Engine.Shared.GetPlayerList()
 	local _, _, spec, teamID, allyTeam
 	for ct, id in pairs(players) do
 		_, _, spec, teamID, allyTeam = spGetPlayerInfo(id, false)
@@ -81,7 +81,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- UNITS RECEIVED send to all in team
 	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 		if not _G.transferredUnits or not _G.transferredUnits[unitID] then -- exclude upgraded units (t2 mex/geo) because allied players could have done this
-			local players = Spring.GetPlayerList(newTeam)
+			local players = Engine.Shared.GetPlayerList(newTeam)
 			for ct, player in pairs(players) do
 				if tostring(player) then
 					if GetAllyTeamID(newTeam) == GetAllyTeamID(oldTeam) then -- We got it from a teammate
@@ -96,8 +96,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- NUKE LAUNCH
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-		if nukeWeapons[Spring.GetProjectileDefID(proID)] then
-			local ownerTeamID = Spring.GetUnitTeam(proOwnerID)
+		if nukeWeapons[Engine.Shared.GetProjectileDefID(proID)] then
+			local ownerTeamID = Engine.Shared.GetUnitTeam(proOwnerID)
 			if not ownerTeamID then
 				return
 			end
@@ -121,8 +121,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 		local event = "UnitDetected/StealthyUnitsDetected"
-		local players = Spring.GetPlayerList()
-		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+		local players = Engine.Shared.GetPlayerList()
+		local unitAllyTeam = Engine.Shared.GetUnitAllyTeam(unitID)
 		local _, _, spec, _, playerAllyTeam
 		for ct, playerID in pairs(players) do
 			if tostring(playerID) then
@@ -134,7 +134,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 else
-	local enableLastcomNotif = (Spring.GetModOptions().deathmode == "com")
+	local enableLastcomNotif = (Engine.Shared.GetModOptions().deathmode == "com")
 
 	local isCommander = {}
 	local isRadar = {}
@@ -182,12 +182,12 @@ else
 		end
 	end
 
-	local isSpec = Spring.GetSpectatingState()
+	local isSpec = Engine.Unsynced.GetSpectatingState()
 	local myTeamID = Spring.GetMyTeamID()
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	function gadget:PlayerChanged(playerID)
-		isSpec = Spring.GetSpectatingState()
+		isSpec = Engine.Unsynced.GetSpectatingState()
 		myTeamID = Spring.GetMyTeamID()
 		myPlayerID = Spring.GetMyPlayerID()
 		myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -195,11 +195,11 @@ else
 
 	local numTeams = 0
 	local playingAsHorde = false
-	local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
+	local myAllyTeamList = Engine.Shared.GetTeamList(myAllyTeamID)
 	for _, teamID in ipairs(myAllyTeamList) do
 		numTeams = numTeams + 1
-		if select(4, Spring.GetTeamInfo(teamID, false)) then -- is AI?
-			local luaAI = Spring.GetTeamLuaAI(teamID)
+		if select(4, Engine.Shared.GetTeamInfo(teamID, false)) then -- is AI?
+			local luaAI = Engine.Shared.GetTeamLuaAI(teamID)
 			if luaAI and luaAI ~= "" then
 				if string.find(luaAI, "Scavengers") or string.find(luaAI, "Raptors") then
 					playingAsHorde = true
@@ -219,11 +219,11 @@ else
 			GG["notifications"].queueNotification("LrpcTargetUnits", "playerID", tostring(myPlayerID))
 		end
 		if isCommander[unitDefID] then
-			commanderLastDamaged[unitID] = Spring.GetGameFrame()
+			commanderLastDamaged[unitID] = Engine.Shared.GetGameFrame()
 		end
 		if unitTeam == myTeamID and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID and not isObjectified[unitDefID] then
 			if isCommander[unitDefID] then
-				local health, maxhealth = Spring.GetUnitHealth(unitID)
+				local health, maxhealth = Engine.Shared.GetUnitHealth(unitID)
 				local healthPercent = health / maxhealth
 				if healthPercent < 0.2 then
 					GG["notifications"].queueNotification("ComHeavyDamage", "playerID", tostring(myPlayerID))
@@ -264,10 +264,10 @@ else
 			end
 		end
 
-		if isCommander[unitDefID] and not select(3, Spring.GetTeamInfo(unitTeam)) and not Spring.GetUnitRulesParam(unitID, "muteDestructionNotification") then
+		if isCommander[unitDefID] and not select(3, Engine.Shared.GetTeamInfo(unitTeam)) and not Engine.Shared.GetUnitRulesParam(unitID, "muteDestructionNotification") then
 			local myComCount = 0
 			local allyComCount = 0
-			local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
+			local myAllyTeamList = Engine.Shared.GetTeamList(myAllyTeamID)
 			for _, teamID in ipairs(myAllyTeamList) do
 				if unitTeam == teamID then
 					allyComCount = allyComCount - 1 -- current com death has not been subtracted from GetTeamUnitDefCount yet, so we do this manually
@@ -276,7 +276,7 @@ else
 					end
 				end
 				for unitDefID, _ in pairs(isCommander) do
-					local comCount = Spring.GetTeamUnitDefCount(teamID, unitDefID)
+					local comCount = Engine.Shared.GetTeamUnitDefCount(teamID, unitDefID)
 					allyComCount = allyComCount + comCount
 					if teamID == myTeamID and comCount > 0 then
 						myComCount = myComCount + comCount
@@ -285,12 +285,12 @@ else
 			end
 			if (not isSpec) and (unitTeam ~= myTeamID) then
 				if numTeams > 1 and not playingAsHorde then
-					local players = PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
+					local players = PlayersInAllyTeamID(GetAllyTeamID(Engine.Shared.GetUnitTeam(unitID)))
 					for ct, player in pairs(players) do
 						if tostring(player) then
 							--if not unitInView then
-							if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-							elseif not attackerTeam and select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID] + 150 < Spring.GetGameFrame()) then
+							if Engine.Shared.GetUnitRulesParam(unitID, "unit_evolved") then
+							elseif not attackerTeam and select(6, Engine.Shared.GetTeamInfo(unitTeam, false)) == myAllyTeamID and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID] + 150 < Engine.Shared.GetGameFrame()) then
 								GG["notifications"].queueNotification("FriendlyCommanderSelfD", "playerID", tostring(player))
 							else
 								GG["notifications"].queueNotification("FriendlyCommanderDied", "playerID", tostring(player))
@@ -307,30 +307,30 @@ else
 					end
 				end
 				--if not unitInView then
-				local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
+				local players = AllButAllyTeamID(GetAllyTeamID(Engine.Shared.GetUnitTeam(unitID)))
 				for ct, player in pairs(players) do
-					if tostring(player) and not Spring.GetUnitRulesParam(unitID, "unit_evolved") then
+					if tostring(player) and not Engine.Shared.GetUnitRulesParam(unitID, "unit_evolved") then
 						GG["notifications"].queueNotification("EnemyCommanderDied", "playerID", tostring(player))
 					end
 				end
 				--end
 			else
-				local players = PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
+				local players = PlayersInAllyTeamID(GetAllyTeamID(Engine.Shared.GetUnitTeam(unitID)))
 				for ct, player in pairs(players) do
 					if tostring(player) then
-						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID] + 150 < Spring.GetGameFrame()) then
+						if Engine.Shared.GetUnitRulesParam(unitID, "unit_evolved") then
+						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID] + 150 < Engine.Shared.GetGameFrame()) then
 							GG["notifications"].queueNotification("NeutralCommanderSelfD", "playerID", tostring(player), true)
 						else
 							GG["notifications"].queueNotification("NeutralCommanderDied", "playerID", tostring(player), true)
 						end
 					end
 				end
-				local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
+				local players = AllButAllyTeamID(GetAllyTeamID(Engine.Shared.GetUnitTeam(unitID)))
 				for ct, player in pairs(players) do
 					if tostring(player) then
-						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID] + 150 < Spring.GetGameFrame()) then
+						if Engine.Shared.GetUnitRulesParam(unitID, "unit_evolved") then
+						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID] + 150 < Engine.Shared.GetGameFrame()) then
 							GG["notifications"].queueNotification("NeutralCommanderSelfD", "playerID", tostring(player), true)
 						else
 							GG["notifications"].queueNotification("NeutralCommanderDied", "playerID", tostring(player), true)

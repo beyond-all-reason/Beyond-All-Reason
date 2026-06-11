@@ -45,9 +45,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local spGetAllUnits = Spring.GetAllUnits
-local spGetUnitDefID = Spring.GetUnitDefID
-local spCallCOBScript = Spring.CallCOBScript
+local spGetAllUnits = Engine.Shared.GetAllUnits
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spCallCOBScript = Engine.Synced.CallCOBScript
 local stringFind = string.find
 local stringLower = string.lower
 

@@ -14,20 +14,20 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = Engine.Shared.GetGameFrame
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
-local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitsInCylinder = Engine.Shared.GetUnitsInCylinder
+local spAreTeamsAllied = Engine.Shared.AreTeamsAllied
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGiveOrderArrayToUnit = Engine.Shared.GiveOrderArrayToUnit
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetModKeyState = Spring.GetModKeyState
+local spGetActiveCommand = Engine.Unsynced.GetActiveCommand
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spTraceScreenRay = Engine.Unsynced.TraceScreenRay
+local spGetModKeyState = Engine.Unsynced.GetModKeyState
 
 local trackedUnitsToUnitDefID = {}
 local unitRanges = {}
@@ -275,7 +275,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 end
 
 function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if Engine.Unsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -290,7 +290,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if Engine.Unsynced.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 end

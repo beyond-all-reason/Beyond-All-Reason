@@ -22,8 +22,8 @@ local pairs = pairs
 local next = next
 local ipairs = ipairs
 
-local spGetUnitShieldState = Spring.GetUnitShieldState
-local spSetUnitShieldState = Spring.SetUnitShieldState
+local spGetUnitShieldState = Engine.Shared.GetUnitShieldState
+local spSetUnitShieldState = Engine.Synced.SetUnitShieldState
 
 local SHIELDSTATE_DISABLED = 0
 local SHIELDSTATE_ENABLED = 1
@@ -35,7 +35,7 @@ local scriptedShieldDamages = {}
 
 -- Some modoptions require engine shield behaviors (namely their bounce/repulsion effects):
 
-if Spring.GetModOptions().experimentalshields:find("bounce") then
+if Engine.Shared.GetModOptions().experimentalshields:find("bounce") then
 	for weaponDefID = 0, #WeaponDefs do
 		local weaponDef = WeaponDefs[weaponDefID]
 		originalShieldDamages[weaponDefID] = weaponDef.damages and weaponDef.damages[armorTypeShields] or 0
@@ -120,19 +120,19 @@ local INLOS = { inlos = true }
 
 local mathCeil = math.ceil
 
-local spSetUnitShieldRechargeDelay = Spring.SetUnitShieldRechargeDelay
-local spDeleteProjectile = Spring.DeleteProjectile
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitWeaponVectors = Spring.GetUnitWeaponVectors
-local spGetUnitsInSphere = Spring.GetUnitsInSphere
-local spGetProjectilesInSphere = Spring.GetProjectilesInSphere
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitIsActive = Spring.GetUnitIsActive
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spUseUnitResource = Spring.UseUnitResource
-local spSetUnitRulesParam = Spring.SetUnitRulesParam
-local spGetUnitArmored = Spring.GetUnitArmored
+local spSetUnitShieldRechargeDelay = Engine.Synced.SetUnitShieldRechargeDelay
+local spDeleteProjectile = Engine.Synced.DeleteProjectile
+local spGetProjectileDefID = Engine.Shared.GetProjectileDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitWeaponVectors = Engine.Shared.GetUnitWeaponVectors
+local spGetUnitsInSphere = Engine.Shared.GetUnitsInSphere
+local spGetProjectilesInSphere = Engine.Shared.GetProjectilesInSphere
+local spAreTeamsAllied = Engine.Shared.AreTeamsAllied
+local spGetUnitIsActive = Engine.Shared.GetUnitIsActive
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
+local spUseUnitResource = Engine.Synced.UseUnitResource
+local spSetUnitRulesParam = Engine.Synced.SetUnitRulesParam
+local spGetUnitArmored = Engine.Shared.GetUnitArmored
 
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
@@ -753,9 +753,9 @@ function gadget:Initialize()
 	GG.Shields.GetUnitShieldState = getUnitShieldState
 	GG.Shields.RegisterShieldPreDamaged = registerShieldPreDamaged
 
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		local unitTeam = Spring.GetUnitTeam(unitID)
+	for _, unitID in ipairs(Engine.Shared.GetAllUnits()) do
+		local unitDefID = Engine.Shared.GetUnitDefID(unitID)
+		local unitTeam = Engine.Shared.GetUnitTeam(unitID)
 		gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end

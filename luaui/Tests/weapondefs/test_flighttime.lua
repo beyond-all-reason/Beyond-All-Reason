@@ -6,17 +6,17 @@ end
 function setup()
 	Test.clearMap()
 
-	Spring.SendCommands("editdefs 1")
-	Spring.SendCommands("globallos")
-	Spring.SendCommands("setspeed 5")
+	Engine.Unsynced.SendCommands("editdefs 1")
+	Engine.Unsynced.SendCommands("globallos")
+	Engine.Unsynced.SendCommands("setspeed 5")
 end
 
 function cleanup()
 	Test.clearMap()
 
-	Spring.SendCommands("globallos")
-	Spring.SendCommands("setspeed 1")
-	Spring.SendCommands("editdefs 0")
+	Engine.Unsynced.SendCommands("globallos")
+	Engine.Unsynced.SendCommands("setspeed 1")
+	Engine.Unsynced.SendCommands("editdefs 0")
 end
 
 function runDistanceTest(flightTime, shouldAlive)
@@ -40,8 +40,8 @@ function runDistanceTest(flightTime, shouldAlive)
 		local function createUnit(def, x, z, teamID)
 			local x = midX + x
 			local z = midZ + z
-			local y = Spring.GetGroundHeight(x, z)
-			local unitID = Spring.CreateUnit(def, x, y, z, "south", teamID)
+			local y = Engine.Shared.GetGroundHeight(x, z)
+			local unitID = Engine.Synced.CreateUnit(def, x, y, z, "south", teamID)
 			units[#units + 1] = unitID
 			unitNames[def] = unitID
 			return unitID
@@ -56,14 +56,14 @@ function runDistanceTest(flightTime, shouldAlive)
 		createUnit("armtarg", 700, -500, 0)
 		createUnit("corbuzz", 500, 0, 0)
 
-		Spring.GiveOrderToUnitArray(units, CMD.FIRE_STATE, { 0 }, 0)
+		Engine.Shared.GiveOrderToUnitArray(units, CMD.FIRE_STATE, { 0 }, 0)
 
 		createUnit("armarad", 900, 50, 0)
 		for i = 0, 5 do
 			createUnit("armrock", 850 + i * 50, 100, 0)
 		end
 		createUnit("corstorm", 1150, 100, 0)
-		Spring.GiveOrderToUnitArray(units, CMD.MOVE_STATE, { 0 }, 0)
+		Engine.Shared.GiveOrderToUnitArray(units, CMD.MOVE_STATE, { 0 }, 0)
 
 		createUnit("armarad", 400, Game.mapSizeZ / 2.0 - 1200, 0)
 		-- enemies
@@ -75,14 +75,14 @@ function runDistanceTest(flightTime, shouldAlive)
 
 	Test.waitFrames(1)
 
-	Spring.GiveOrderToUnit(unitNames["corbuzz"], CMD.ATTACK, { unitNames["armsolar"] }, 0)
-	Spring.GiveOrderToUnit(unitNames["corstorm"], CMD.ATTACK, { unitNames["armpw"] }, 0)
-	Spring.GiveOrderToUnit(unitNames["armrock"], CMD.ATTACK, { unitNames["armpw"] }, 0)
+	Engine.Shared.GiveOrderToUnit(unitNames["corbuzz"], CMD.ATTACK, { unitNames["armsolar"] }, 0)
+	Engine.Shared.GiveOrderToUnit(unitNames["corstorm"], CMD.ATTACK, { unitNames["armpw"] }, 0)
+	Engine.Shared.GiveOrderToUnit(unitNames["armrock"], CMD.ATTACK, { unitNames["armpw"] }, 0)
 
 	Test.waitFrames(300)
 
-	local isAlive = Spring.ValidUnitID(unitNames["armsolar"])
-	local isAlive2 = Spring.ValidUnitID(unitNames["armpw"])
+	local isAlive = Engine.Shared.ValidUnitID(unitNames["armsolar"])
+	local isAlive2 = Engine.Shared.ValidUnitID(unitNames["armpw"])
 
 	assert(isAlive == shouldAlive)
 	assert(isAlive2 == shouldAlive)

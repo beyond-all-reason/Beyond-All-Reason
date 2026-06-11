@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
 local reissueOrder = Game.Commands.ReissueOrder
 local CMD_ATTACK = CMD.ATTACK
 

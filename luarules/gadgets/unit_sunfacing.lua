@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spCallCOBScript = Spring.CallCOBScript
+local spCallCOBScript = Engine.Synced.CallCOBScript
 local mathAtan2 = math.atan2
 local COBSCALE_HEADING = (COBSCALE / math.deg(math.tau)) / math.pi
 
@@ -41,7 +41,7 @@ function gadget:Initialize()
 		if mapinfo.lighting and mapinfo.lighting.sundir then
 			sundir = mapinfo.lighting.sundir
 		else
-			Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Missing sun facing for " .. Game.mapName)
+			Engine.Shared.Log(gadget:GetInfo().name, LOG.WARNING, "Missing sun facing for " .. Game.mapName)
 			gadgetHandler:RemoveGadget()
 		end
 	end

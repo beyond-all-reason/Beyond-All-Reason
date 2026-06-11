@@ -16,7 +16,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetCameraPosition = Spring.GetCameraPosition
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
 
 local darknessvalue = 0
 local maxDarkness = 0.6
@@ -27,7 +27,7 @@ local maxDarkness = 0.6
 local features
 
 local camX, camY, camZ = spGetCameraPosition()
-local camDirX, camDirY, camDirZ = Spring.GetCameraDirection()
+local camDirX, camDirY, camDirZ = Engine.Unsynced.GetCameraDirection()
 
 function widget:Shutdown()
 	WG["darkenmap"] = nil
@@ -60,13 +60,13 @@ prevCam[1], prevCam[2], prevCam[3] = spGetCameraPosition()
 function widget:Update(dt)
 	if darknessvalue >= 0.01 then
 		camX, camY, camZ = spGetCameraPosition()
-		camDirX, camDirY, camDirZ = Spring.GetCameraDirection()
+		camDirX, camDirY, camDirZ = Engine.Unsynced.GetCameraDirection()
 	end
 end
 
 function widget:DrawWorldPreUnit()
 	if darknessvalue >= 0.01 then
-		local drawMode = Spring.GetMapDrawMode()
+		local drawMode = Engine.Unsynced.GetMapDrawMode()
 		if (drawMode == "height") or (drawMode == "path") then
 			return
 		end

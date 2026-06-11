@@ -14,17 +14,17 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local spSetProjectilePosition = Spring.SetProjectilePosition
-local spSetProjectileVelocity = Spring.SetProjectileVelocity
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileDirection = Spring.GetProjectileDirection
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetGroundHeight = Spring.GetGroundHeight
-local spDeleteProjectile = Spring.DeleteProjectile
-local spSetProjectileCollision = Spring.SetProjectileCollision
-local spGetUnitPosition = Spring.GetUnitPosition
-local spSpawnCEG = Spring.SpawnCEG
-local spGetGameFrame = Spring.GetGameFrame
+local spSetProjectilePosition = Engine.Synced.SetProjectilePosition
+local spSetProjectileVelocity = Engine.Synced.SetProjectileVelocity
+local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
+local spGetProjectileDirection = Engine.Shared.GetProjectileDirection
+local spGetProjectileVelocity = Engine.Shared.GetProjectileVelocity
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spDeleteProjectile = Engine.Synced.DeleteProjectile
+local spSetProjectileCollision = Engine.Synced.SetProjectileCollision
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spSpawnCEG = Engine.Synced.SpawnCEG
+local spGetGameFrame = Engine.Shared.GetGameFrame
 
 local mathSqrt = math.sqrt
 local mathMax = math.max
@@ -204,7 +204,7 @@ end
 
 function gadget:Initialize()
 	if not GG.Shields then
-		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (dgun)")
+		Engine.Shared.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (dgun)")
 		return
 	end
 

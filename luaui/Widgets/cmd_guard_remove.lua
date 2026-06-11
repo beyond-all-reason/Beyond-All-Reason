@@ -28,9 +28,9 @@ include("keysym.h.lua")
 
 local math_distsq = math.distance3dSquared
 
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetUnitCommandCount = Engine.Shared.GetUnitCommandCount
+local spGetUnitCurrentCommand = Engine.Shared.GetUnitCurrentCommand
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
 
 local CMD_REMOVE = CMD.REMOVE
 local CANCEL_DIST_SQUARED = (Game.squareSize * Game.footprintScale + 1) ^ 2 -- from CommandAI.cpp
@@ -43,7 +43,7 @@ local recentUnits = {}
 local updateTime = 0
 local gameTime = 0
 -- Regardless of the preference above, we don't need to go any lower than the double-click speed.
-safeguardDuration = math.max(safeguardDuration, Spring.GetConfigInt("DoubleClickTime", 200) / 1000)
+safeguardDuration = math.max(safeguardDuration, Engine.Unsynced.GetConfigInt("DoubleClickTime", 200) / 1000)
 
 local validUnit = {}
 for udid, ud in pairs(UnitDefs) do

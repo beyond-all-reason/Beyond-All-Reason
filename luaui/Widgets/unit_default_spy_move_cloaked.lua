@@ -13,12 +13,12 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local spGetGameFrame = Spring.GetGameFrame
+local spGetSelectedUnitsCount = Engine.Unsynced.GetSelectedUnitsCount
+local spGetGameFrame = Engine.Shared.GetGameFrame
 
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+local spGetSelectedUnitsSorted = Engine.Unsynced.GetSelectedUnitsSorted
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetUnitStates = Spring.GetUnitStates
+local spGetUnitStates = Engine.Shared.GetUnitStates
 
 local idCanBuildCloakMove = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -33,7 +33,7 @@ local CMD_MOVE = CMD.MOVE
 local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 
 local function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if Engine.Unsynced.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -48,7 +48,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if Engine.Unsynced.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 end

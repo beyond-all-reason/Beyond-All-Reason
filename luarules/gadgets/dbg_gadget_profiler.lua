@@ -104,10 +104,10 @@ local highres = false
 local tick = 0.2
 local retainSortTime = 10
 
-local spGetTimer = Spring.GetTimer
+local spGetTimer = Engine.Unsynced.GetTimer
 
-local spDiffTimers = Spring.DiffTimers
-local spGetLuaMemUsage = Spring.GetLuaMemUsage or function()
+local spDiffTimers = Engine.Unsynced.DiffTimers
+local spGetLuaMemUsage = Engine.Unsynced.GetLuaMemUsage or function()
 	return 0, 0, 0, 0, 0, 0, 0, 0
 end
 
@@ -178,12 +178,12 @@ if gadgetHandler:IsSyncedCode() then
 else
 	local t, s
 
-	if Spring.GetTimerMicros and Spring.GetConfigInt("UseHighResTimer", 0) == 1 then
-		spGetTimer = Spring.GetTimerMicros
+	if Engine.Unsynced.GetTimerMicros and Engine.Unsynced.GetConfigInt("UseHighResTimer", 0) == 1 then
+		spGetTimer = Engine.Unsynced.GetTimerMicros
 		highres = true
 	end
 	if not highres then
-		Spring.Echo("Profiler not using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
+		Engine.Shared.Echo("Profiler not using highres timers", highres, Engine.Unsynced.GetConfigInt("UseHighResTimer", 0))
 	end
 
 	hookPreRealFunction = function(gadgetName, callinName)
@@ -292,12 +292,12 @@ local function StartHook(optName, line, words, playerID) -- this one is synced?
 	end
 
 	hookset = true
-	Spring.Echo("start profiling (" .. (SendToUnsynced ~= nil and "synced" or "unsynced") .. ")")
+	Engine.Shared.Echo("start profiling (" .. (SendToUnsynced ~= nil and "synced" or "unsynced") .. ")")
 
 	--// hook all existing callins
 	ForAllGadgetCallins(AddHook)
 
-	Spring.Echo("hooked all callins")
+	Engine.Shared.Echo("hooked all callins")
 
 	--// hook the UpdateCallin function
 	oldUpdateGadgetCallIn = gadgetHandler.UpdateGadgetCallIn
@@ -320,7 +320,7 @@ local function StartHook(optName, line, words, playerID) -- this one is synced?
 		end
 	end
 
-	Spring.Echo("hooked UpdateCallin")
+	Engine.Shared.Echo("hooked UpdateCallin")
 
 	return false -- allow the unsynced chataction to execute too
 end
@@ -337,16 +337,16 @@ function KillHook()
 		return true
 	end
 
-	Spring.Echo("stop profiling (" .. (SendToUnsynced ~= nil and "synced" or "unsynced") .. ")")
+	Engine.Shared.Echo("stop profiling (" .. (SendToUnsynced ~= nil and "synced" or "unsynced") .. ")")
 
 	ForAllGadgetCallins(RemoveHook)
 
-	Spring.Echo("unhooked all callins")
+	Engine.Shared.Echo("unhooked all callins")
 
 	--// unhook the UpdateCallin function
 	gadgetHandler.UpdateGadgetCallIn = oldUpdateGadgetCallIn
 
-	Spring.Echo("unhooked UpdateCallin")
+	Engine.Shared.Echo("unhooked UpdateCallin")
 
 	hookset = false
 	return false -- allow the unsynced chataction to execute too
@@ -428,20 +428,20 @@ else
 			tick = (words and words[1] and tonumber(words[1])) or tick
 
 			if highres and true then -- this tests the timers for correctness
-				local starttime = Spring.GetTimer()
-				local starttimeus = Spring.GetTimerMicros()
+				local starttime = Engine.Unsynced.GetTimer()
+				local starttimeus = Engine.Unsynced.GetTimerMicros()
 				local j = 0
 				for i = 1, 1000000 do
 					j = j + 1
 				end
 
-				local endtime = Spring.GetTimer()
-				local endtimeus = Spring.GetTimerMicros()
+				local endtime = Engine.Unsynced.GetTimer()
+				local endtimeus = Engine.Unsynced.GetTimerMicros()
 
-				Spring.Echo("GetTimer secs", Spring.DiffTimers(endtime, starttime, nil))
-				Spring.Echo("GetTimer msecs", Spring.DiffTimers(endtime, starttime, true))
-				Spring.Echo("GetTimerMicros secs", Spring.DiffTimers(endtimeus, starttimeus, nil, true))
-				Spring.Echo("GetTimerMicros msecs", Spring.DiffTimers(endtimeus, starttimeus, true, true))
+				Engine.Shared.Echo("GetTimer secs", Engine.Unsynced.DiffTimers(endtime, starttime, nil))
+				Engine.Shared.Echo("GetTimer msecs", Engine.Unsynced.DiffTimers(endtime, starttime, true))
+				Engine.Shared.Echo("GetTimerMicros secs", Engine.Unsynced.DiffTimers(endtimeus, starttimeus, nil, true))
+				Engine.Shared.Echo("GetTimerMicros msecs", Engine.Unsynced.DiffTimers(endtimeus, starttimeus, true, true))
 			end
 
 			StartHook() -- the unsynced one!
@@ -450,7 +450,7 @@ else
 			SetDrawCallin(gadget.DrawScreen_)
 			EnableMousePressCallin()
 
-			Spring.Echo("luarules profiler started (player " .. pID .. ")")
+			Engine.Shared.Echo("luarules profiler started (player " .. pID .. ")")
 		end
 	end
 
@@ -458,7 +458,7 @@ else
 		if running then
 			running = false
 
-			Spring.Echo("Killing...")
+			Engine.Shared.Echo("Killing...")
 			SetDrawCallin(nil)
 			DisableMousePressCallin()
 			KillHook()
@@ -470,7 +470,7 @@ else
 			timersSynced = {}
 			memUsageSynced = {}
 
-			Spring.Echo("luarules profiler killed (player " .. pID .. ")")
+			Engine.Shared.Echo("luarules profiler killed (player " .. pID .. ")")
 		end
 	end
 
@@ -598,11 +598,11 @@ else
 		-- and only in the list (unsynced/synced) it was selected from.
 		local captureThisList = selectedGadget and (isSynced == selectedSynced)
 
-		local averageTime = Spring.GetConfigFloat("profiler_averagetime", 2)
-		local sortByLoad = Spring.GetConfigInt("profiler_sort_by_load", 1) == 1
+		local averageTime = Engine.Unsynced.GetConfigFloat("profiler_averagetime", 2)
+		local sortByLoad = Engine.Unsynced.GetConfigInt("profiler_sort_by_load", 1) == 1
 
 		-- Cache FPS and frame calculation
-		local frames = mathMin(1 / tick, Spring.GetFPS()) * retainSortTime
+		local frames = mathMin(1 / tick, Engine.Unsynced.GetFPS()) * retainSortTime
 		local framesMinusOne = frames - 1
 
 		for gname, callins in pairs(stats) do
@@ -1022,7 +1022,7 @@ else
 		end
 
 		if not next(callinStats) and not next(callinStatsSYNCED) then
-			Spring.Echo("no data in profiler!")
+			Engine.Shared.Echo("no data in profiler!")
 			return
 		end
 
@@ -1086,7 +1086,7 @@ else
 		Line(0, title_colour, "Click a gadget to break it down per-callin")
 
 		Line(1, title_colour, "Tick time: " .. tick .. "s")
-		Line(0, title_colour, "Smoothing time: " .. Spring.GetConfigFloat("profiler_averagetime", 2) .. "s")
+		Line(0, title_colour, "Smoothing time: " .. Engine.Unsynced.GetConfigFloat("profiler_averagetime", 2) .. "s")
 
 		gl.EndText()
 	end

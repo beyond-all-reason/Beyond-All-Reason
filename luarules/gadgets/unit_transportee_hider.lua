@@ -16,13 +16,13 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local SetUnitNoDraw = Spring.SetUnitNoDraw
-local SetUnitStealth = Spring.SetUnitStealth
-local SetUnitSonarStealth = Spring.SetUnitSonarStealth
-local GetUnitDefID = Spring.GetUnitDefID
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local GetAllUnits = Spring.GetAllUnits
-local GetUnitTeam = Spring.GetUnitTeam
+local SetUnitNoDraw = Engine.Unsynced.SetUnitNoDraw
+local SetUnitStealth = Engine.Synced.SetUnitStealth
+local SetUnitSonarStealth = Engine.Synced.SetUnitSonarStealth
+local GetUnitDefID = Engine.Shared.GetUnitDefID
+local GiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local GetAllUnits = Engine.Shared.GetAllUnits
+local GetUnitTeam = Engine.Shared.GetUnitTeam
 
 local CMD_LOAD_ONTO = CMD.LOAD_ONTO
 local CMD_STOP = CMD.STOP

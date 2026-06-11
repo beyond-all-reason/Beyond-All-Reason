@@ -21,9 +21,9 @@ local tableSort = table.sort
 local tableSortStable = table.sortStable
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local spGetSelectedUnitsCount = Engine.Unsynced.GetSelectedUnitsCount
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
 
 local texts = {}
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
@@ -113,7 +113,7 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = 1
 local xOffset = (32 + (fontSize * 0.9)) * widgetScale
 local yOffset = -((32 - (fontSize * 0.9)) * widgetScale)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = tonumber(Engine.Unsynced.GetConfigFloat("ui_scale", 1) or 1)
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -143,20 +143,20 @@ local char = string.char
 local glColor = gl.Color
 
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetTeamResources = Spring.GetTeamResources
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamColor = Spring.GetTeamColor
-local spIsUserWriting = Spring.IsUserWriting
-local spGetModKeyState = Spring.GetModKeyState
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
+local spGetTeamResources = Engine.Shared.GetTeamResources
+local spGetTeamInfo = Engine.Shared.GetTeamInfo
+local spGetPlayerInfo = Engine.Shared.GetPlayerInfo
+local spGetTeamColor = Engine.Unsynced.GetTeamColor
+local spIsUserWriting = Engine.Unsynced.IsUserWriting
+local spGetModKeyState = Engine.Unsynced.GetModKeyState
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spTraceScreenRay = Engine.Unsynced.TraceScreenRay
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitExperience = Spring.GetUnitExperience
-local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
-local spGetUnitWeaponState = Spring.GetUnitWeaponState
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetUnitExperience = Engine.Shared.GetUnitExperience
+local spGetUnitSensorRadius = Engine.Shared.GetUnitSensorRadius
+local spGetUnitWeaponState = Engine.Shared.GetUnitWeaponState
 
 local uDefs = UnitDefs
 local wDefs = WeaponDefs
@@ -193,13 +193,13 @@ local cachedGuishaderX, cachedGuishaderY = nil, nil
 
 local spec = spGetSpectatingState()
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousMode = Engine.Shared.GetModOptions().teamcolors_anonymous_mode
 local anonymousName = "?????"
 
 local showStats = false
 
 -- TODO: Shield damages are overridden in the shields rework (now in main game)
-local shieldsRework = not Spring.GetModOptions().experimentalshields:find("bounce")
+local shieldsRework = not Engine.Shared.GetModOptions().experimentalshields:find("bounce")
 
 -- TODO: Localize, same as armorTypes
 -- TODO: Compose this list somewhere and reinclude it here
@@ -362,8 +362,8 @@ local function GetTeamName(teamID)
 
 	local leaderName = spGetPlayerInfo(teamLeader, false)
 	leaderName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamLeader)) or leaderName
-	if Spring.GetGameRulesParam("ainame_" .. teamID) then
-		leaderName = Spring.GetGameRulesParam("ainame_" .. teamID)
+	if Engine.Shared.GetGameRulesParam("ainame_" .. teamID) then
+		leaderName = Engine.Shared.GetGameRulesParam("ainame_" .. teamID)
 	end
 
 	if not spec and anonymousMode ~= "disabled" then
@@ -433,7 +433,7 @@ function widget:Initialize()
 	widgetHandler:AddAction("unit_stats", enableStats, nil, "p")
 	widgetHandler:AddAction("unit_stats", disableStats, nil, "r")
 
-	spTraceScreenRay = Spring.TraceScreenRay -- fix for monkey-patching
+	spTraceScreenRay = Engine.Unsynced.TraceScreenRay -- fix for monkey-patching
 end
 
 function widget:Shutdown()
@@ -456,7 +456,7 @@ function init()
 end
 
 function widget:ViewResize(n_vsx, n_vsy)
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = Engine.Unsynced.GetViewGeometry()
 	widgetScale = (1 + ((vsy - 850) / 1800)) * (0.95 + (ui_scale - 1) / 2.5)
 
 	bgpadding = WG.FlowUI.elementPadding
@@ -505,8 +505,8 @@ local function computeContent(uDefID, uID, shiftBool)
 	local isBuilding, buildProg, uExp
 
 	if uID then
-		isBuilding, buildProg = Spring.GetUnitIsBeingBuilt(uID)
-		maxHP = select(2, Spring.GetUnitHealth(uID))
+		isBuilding, buildProg = Engine.Shared.GetUnitIsBeingBuilt(uID)
+		maxHP = select(2, Engine.Shared.GetUnitHealth(uID))
 		uTeam = spGetUnitTeam(uID)
 		losRadius = spGetUnitSensorRadius(uID, "los") or 0
 		airLosRadius = spGetUnitSensorRadius(uID, "airLos") or 0
@@ -516,7 +516,7 @@ local function computeContent(uDefID, uID, shiftBool)
 		sonarJammingRadius = spGetUnitSensorRadius(uID, "sonarJammer") or 0
 		seismicRadius = spGetUnitSensorRadius(uID, "seismic") or 0
 		uExp = spGetUnitExperience(uID)
-		armoredMultiple = select(2, Spring.GetUnitArmored(uID))
+		armoredMultiple = select(2, Engine.Shared.GetUnitArmored(uID))
 	end
 
 	maxWidth = 0
@@ -575,10 +575,10 @@ local function computeContent(uDefID, uID, shiftBool)
 	DrawText(texts.cost .. ":", format(metalColor .. "%d" .. white .. " / " .. energyColor .. "%d" .. white .. " / " .. buildColor .. "%d", uDef.metalCost, uDef.energyCost, uDef.buildTime))
 
 	if not (uDef.isBuilding or uDef.isFactory) then
-		if not uID or not Spring.GetUnitMoveTypeData(uID) then
+		if not uID or not Engine.Shared.GetUnitMoveTypeData(uID) then
 			DrawText(texts.move .. ":", format("%.1f / %.1f / %.0f (" .. texts.speedaccelturn .. ")", uDef.speed, 900 * uDef.maxAcc, simSpeed * uDef.turnRate * (180 / 32767)))
 		else
-			local mData = Spring.GetUnitMoveTypeData(uID)
+			local mData = Engine.Shared.GetUnitMoveTypeData(uID)
 			local mSpeed = mData.maxSpeed or uDef.speed
 			local mAccel = mData.accRate or uDef.maxAcc
 			local mTurnRate = mData.baseTurnRate or uDef.turnRate
@@ -929,7 +929,7 @@ local function computeContent(uDefID, uID, shiftBool)
 
 	-- Cache dynamic data for future dirty checks
 	if uID then
-		cachedBuildProg = select(2, Spring.GetUnitIsBeingBuilt(uID))
+		cachedBuildProg = select(2, Engine.Shared.GetUnitIsBeingBuilt(uID))
 		cachedExp = spGetUnitExperience(uID)
 	else
 		cachedBuildProg = nil
@@ -953,12 +953,12 @@ local function drawStats(uDefID, uID)
 	end
 
 	-- Dirty check for content caching
-	local gameFrame = Spring.GetGameFrame()
+	local gameFrame = Engine.Shared.GetGameFrame()
 	local shiftBool = (shift ~= false)
 	local contentDirty = (uDefID ~= cachedDefID) or (uID ~= cachedUnitID) or (shiftBool ~= cachedShift)
 
 	if not contentDirty and uID and (gameFrame - lastComputeFrame >= COMPUTE_INTERVAL) then
-		local _, bp = Spring.GetUnitIsBeingBuilt(uID)
+		local _, bp = Engine.Shared.GetUnitIsBeingBuilt(uID)
 		if bp ~= cachedBuildProg then
 			contentDirty = true
 		elseif spGetUnitExperience(uID) ~= cachedExp then
@@ -1064,7 +1064,7 @@ function widget:DrawScreen()
 		showUnitID = nil
 	end
 	local useHoverID = false
-	local _, activeID = Spring.GetActiveCommand()
+	local _, activeID = Engine.Unsynced.GetActiveCommand()
 	if not activeID then
 		activeID = 0
 	end
@@ -1078,7 +1078,7 @@ function widget:DrawScreen()
 		uID = nil
 		useHoverID = false
 	end
-	if uID and not Spring.ValidUnitID(uID) then
+	if uID and not Engine.Shared.ValidUnitID(uID) then
 		RemoveGuishader()
 		return
 	end

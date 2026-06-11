@@ -22,12 +22,12 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitSeparation = Spring.GetUnitSeparation
-local GetGameFrame = Spring.GetGameFrame
-local GetUnitCommands = Spring.GetUnitCommands
-local GetUnitTeam = Spring.GetUnitTeam
+local GiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local GetUnitPosition = Engine.Shared.GetUnitPosition
+local GetUnitSeparation = Engine.Shared.GetUnitSeparation
+local GetGameFrame = Engine.Shared.GetGameFrame
+local GetUnitCommands = Engine.Shared.GetUnitCommands
+local GetUnitTeam = Engine.Shared.GetUnitTeam
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_MOVE = CMD.MOVE
 local CMD_REMOVE = CMD.REMOVE

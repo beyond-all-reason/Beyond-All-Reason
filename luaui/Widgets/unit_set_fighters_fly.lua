@@ -22,9 +22,9 @@ local spGetMyTeamID = Spring.GetMyTeamID
 
 --------------------------------------------------------------------------------
 
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetTeamUnits = Spring.GetTeamUnits
-local spGetUnitDefID = Spring.GetUnitDefID
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local spGetTeamUnits = Engine.Shared.GetTeamUnits
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
 local cmdFly = 145
 local myTeamID = spGetMyTeamID()
 
@@ -57,13 +57,13 @@ end
 
 function widget:PlayerChanged(playerID)
 	myTeamID = spGetMyTeamID()
-	if Spring.GetSpectatingState() then
+	if Engine.Unsynced.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if Engine.Unsynced.IsReplay() or Engine.Shared.GetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
 	for _, unitID in ipairs(spGetTeamUnits(myTeamID)) do -- init existing labs

@@ -27,21 +27,21 @@ local rad = math.rad
 
 local osClock = os.clock
 
-local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetProjectileTarget = Spring.GetProjectileTarget
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetGroundHeight = Spring.GetGroundHeight
+local spGetProjectilesInRectangle = Engine.Shared.GetProjectilesInRectangle
+local spGetProjectileDefID = Engine.Shared.GetProjectileDefID
+local spGetProjectileTarget = Engine.Shared.GetProjectileTarget
+local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetViewGeometry = Spring.GetViewGeometry
-local spIsGUIHidden = Spring.IsGUIHidden
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetProjectileTeamID = Engine.Shared.GetProjectileTeamID
+local spGetTeamInfo = Engine.Shared.GetTeamInfo
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spIsGUIHidden = Engine.Unsynced.IsGUIHidden
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
 local spGetMyTeamID = Spring.GetMyTeamID
-local spIsSphereInView = Spring.IsSphereInView
-local spGetCameraPosition = Spring.GetCameraPosition
+local spIsSphereInView = Engine.Unsynced.IsSphereInView
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ

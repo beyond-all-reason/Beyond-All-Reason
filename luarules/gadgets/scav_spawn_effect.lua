@@ -52,30 +52,30 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 	end
 
 	function ScavengersSpawnEffectUnitID(unitID)
-		local posx, posy, posz = Spring.GetUnitPosition(unitID)
-		local unitDefID = Spring.GetUnitDefID(unitID)
+		local posx, posy, posz = Engine.Shared.GetUnitPosition(unitID)
+		local unitDefID = Engine.Shared.GetUnitDefID(unitID)
 		local size = getUnitSize(unitDefID)
-		Spring.SpawnCEG("scav-spawnexplo-" .. size, posx, posy, posz, 0, 0, 0)
+		Engine.Synced.SpawnCEG("scav-spawnexplo-" .. size, posx, posy, posz, 0, 0, 0)
 	end
 	GG.ScavengersSpawnEffectUnitID = ScavengersSpawnEffectUnitID
 
 	function ScavengersSpawnEffectUnitDefID(unitDefID, posx, posy, posz)
 		local size = getUnitSize(unitDefID)
-		Spring.SpawnCEG("scav-spawnexplo-" .. size, posx, posy, posz, 0, 0, 0)
+		Engine.Synced.SpawnCEG("scav-spawnexplo-" .. size, posx, posy, posz, 0, 0, 0)
 	end
 	GG.ScavengersSpawnEffectUnitDefID = ScavengersSpawnEffectUnitDefID
 
 	function ScavengersSpawnEffectFeatureID(featureID)
-		local posx, posy, posz = Spring.GetFeaturePosition(featureID)
-		local featureDefID = Spring.GetFeatureDefID(featureID)
+		local posx, posy, posz = Engine.Shared.GetFeaturePosition(featureID)
+		local featureDefID = Engine.Shared.GetFeatureDefID(featureID)
 		local size = getFeatureSize(featureDefID)
-		Spring.SpawnCEG("scav-spawnexplo-" .. size, posx, posy, posz, 0, 0, 0)
+		Engine.Synced.SpawnCEG("scav-spawnexplo-" .. size, posx, posy, posz, 0, 0, 0)
 	end
 	GG.ScavengersSpawnEffectFeatureID = ScavengersSpawnEffectFeatureID
 
 	function ScavengersSpawnEffectFeatureDefID(featureDefID, posx, posy, posz)
 		local size = getFeatureSize(featureDefID)
-		Spring.SpawnCEG("scav-spawnexplo-" .. size, posx, posy, posz, 0, 0, 0)
+		Engine.Synced.SpawnCEG("scav-spawnexplo-" .. size, posx, posy, posz, 0, 0, 0)
 	end
 	GG.ScavengersSpawnEffectFeatureDefID = ScavengersSpawnEffectFeatureDefID
 end

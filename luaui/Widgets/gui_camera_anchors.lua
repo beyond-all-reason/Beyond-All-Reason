@@ -18,10 +18,10 @@ function widget:GetInfo()
 	}
 end
 
-local GetCameraState = Spring.GetCameraState
-local SetCameraState = Spring.SetCameraState
-local GetConfigInt = Spring.GetConfigInt
-local SendCommands = Spring.SendCommands
+local GetCameraState = Engine.Unsynced.GetCameraState
+local SetCameraState = Engine.Unsynced.SetCameraState
+local GetConfigInt = Engine.Unsynced.GetConfigInt
+local SendCommands = Engine.Unsynced.SendCommands
 
 function widget:Initialize()
 	widgetHandler:AddAction("set_camera_anchor", SetCameraAnchor, nil, "pt")
@@ -36,7 +36,7 @@ function SetCameraAnchor(_, _, args)
 
 	cameraAnchors[anchorId] = cameraState
 
-	Spring.Echo("Camera anchor set: " .. anchorId)
+	Engine.Shared.Echo("Camera anchor set: " .. anchorId)
 
 	return true
 end

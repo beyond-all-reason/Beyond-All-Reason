@@ -14,10 +14,10 @@ end
 
 local limit = 16
 function widget:Update()
-	local _, cmdID = Spring.GetActiveCommand()
+	local _, cmdID = Engine.Unsynced.GetActiveCommand()
 	if cmdID and cmdID < 0 then
-		if Spring.GetBuildSpacing() > limit then
-			Spring.SetBuildSpacing(limit)
+		if Engine.Unsynced.GetBuildSpacing() > limit then
+			Engine.Unsynced.SetBuildSpacing(limit)
 		end
 	end
 end

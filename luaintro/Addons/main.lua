@@ -69,9 +69,9 @@ end
 local loadscreens = {}
 local loadscreenPath = "bitmaps/loadpictures/"
 
-local teamList = Spring.GetTeamList()
+local teamList = Engine.Shared.GetTeamList()
 for _, teamID in ipairs(teamList) do
-	local luaAI = Spring.GetTeamLuaAI(teamID)
+	local luaAI = Engine.Shared.GetTeamLuaAI(teamID)
 	if luaAI then
 		if luaAI:find("Raptors") then
 			loadscreens = VFS.DirList(loadscreenPath .. "manual/raptors/")
@@ -96,7 +96,7 @@ if math.random(1, 15) == 1 then
 	backgroundTexture = "bitmaps/loadpictures/manual/donations.jpg"
 end
 
-local showTips = (Spring.GetConfigInt("loadscreen_tips", 1) == 1)
+local showTips = (Engine.Unsynced.GetConfigInt("loadscreen_tips", 1) == 1)
 if string.find(backgroundTexture, "guide") then
 	showTips = false
 end
@@ -212,11 +212,11 @@ local blurtex2
 local stenciltex
 local guishaderRects = {}
 local guishaderDlists = {}
-local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+local vsx, vsy, vpx, vpy = Engine.Unsynced.GetViewGeometry()
 local ivsx, ivsy = vsx, vsy
 
-local wsx, wsy, _, _ = Spring.GetWindowGeometry()
-local ssx, ssy, _, _ = Spring.GetScreenGeometry()
+local wsx, wsy, _, _ = Engine.Unsynced.GetWindowGeometry()
+local ssx, ssy, _, _ = Engine.Unsynced.GetScreenGeometry()
 if wsx > ssx or wsy > ssy then
 end
 
@@ -231,16 +231,16 @@ function lines(str)
 end
 
 local defaultFont = "Poppins-Regular.otf"
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", defaultFont)
+local fontfile = "fonts/" .. Engine.Unsynced.GetConfigString("bar_font", defaultFont)
 if not VFS.FileExists(fontfile) then
-	Spring.SetConfigString("bar_font", defaultFont)
+	Engine.Unsynced.SetConfigString("bar_font", defaultFont)
 	fontfile = "fonts/" .. defaultFont
 end
 
 local defaultFont2 = "Exo2-SemiBold.otf"
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", defaultFont2)
+local fontfile2 = "fonts/" .. Engine.Unsynced.GetConfigString("bar_font2", defaultFont2)
 if not VFS.FileExists(fontfile2) then
-	Spring.SetConfigString("bar_font2", defaultFont2)
+	Engine.Unsynced.SetConfigString("bar_font2", defaultFont2)
 	fontfile2 = "fonts/" .. defaultFont2
 end
 
@@ -451,7 +451,7 @@ function addon.DrawLoadScreen()
 		aspectRatio = texInfo.xsize / texInfo.ysize
 	end
 
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	vsx, vsy, vpx, vpy = Engine.Unsynced.GetViewGeometry()
 
 	-- Handle viewport resize: recalculate layout and recreate shader resources
 	if vsx ~= ivsx or vsy ~= ivsy then
@@ -491,7 +491,7 @@ function addon.DrawLoadScreen()
 
 	-- background
 	local scale = 1
-	local ssx, ssy, spx, spy = Spring.GetScreenGeometry()
+	local ssx, ssy, spx, spy = Engine.Unsynced.GetScreenGeometry()
 	if ssx / vsx < 1 then -- adjust when window is larger than the screen resolution
 		--scale = ssx / vsx
 		--xDiv = xDiv * scale	-- this doesnt work
@@ -606,7 +606,7 @@ function addon.DrawLoadScreen()
 		loadProgress = math.clamp(loadProgress, lastProgress[1], lastProgress[2])
 	end
 
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	vsx, vsy, vpx, vpy = Engine.Unsynced.GetViewGeometry()
 
 	local loadvalue = math.max(0, loadProgress) * (1 - posX - posX)
 	loadvalue = math.floor((loadvalue * vsx) + 0.5) / vsx

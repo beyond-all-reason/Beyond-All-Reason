@@ -17,20 +17,20 @@ function widget:GetInfo()
 end
 
 function widget:Update(f)
-	local modOpts = Spring.GetModOptions()
+	local modOpts = Engine.Shared.GetModOptions()
 	if modOpts ~= nil and modOpts.scenariooptions ~= nil then
 		widgetHandler:RemoveCallIn("Update")
 		return
 	end
-	if not Spring.IsCheatingEnabled() then
-		Spring.SendCommands("say !cheats")
-		Spring.SendCommands("say !hostsay /globallos")
-		Spring.SendCommands("say !hostsay /godmode")
+	if not Engine.Shared.IsCheatingEnabled() then
+		Engine.Unsynced.SendCommands("say !cheats")
+		Engine.Unsynced.SendCommands("say !hostsay /globallos")
+		Engine.Unsynced.SendCommands("say !hostsay /godmode")
 		--Spring.SendCommands("say !hostsay /nocost")
 
-		Spring.SendCommands("cheat")
-		Spring.SendCommands("globallos")
-		Spring.SendCommands("godmode")
+		Engine.Unsynced.SendCommands("cheat")
+		Engine.Unsynced.SendCommands("globallos")
+		Engine.Unsynced.SendCommands("godmode")
 		--Spring.SendCommands("nocost")
 	end
 	widgetHandler:RemoveCallIn("Update")

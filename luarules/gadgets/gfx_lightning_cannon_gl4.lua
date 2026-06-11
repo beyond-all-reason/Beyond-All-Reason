@@ -25,24 +25,24 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local spIsPosInLos = Spring.IsPosInLos
-local spIsPosInAirLos = Spring.IsPosInAirLos
+local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
+local spGetProjectileVelocity = Engine.Shared.GetProjectileVelocity
+local spGetProjectileDefID = Engine.Shared.GetProjectileDefID
+local spGetProjectileTeamID = Engine.Shared.GetProjectileTeamID
+local spGetTeamAllyTeamID = Engine.Shared.GetTeamAllyTeamID
+local spIsPosInLos = Engine.Shared.IsPosInLos
+local spIsPosInAirLos = Engine.Shared.IsPosInAirLos
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetGameFrame = Spring.GetGameFrame
-local spGetGameSpeed = Spring.GetGameSpeed
-local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
-local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetGameSpeed = Engine.Unsynced.GetGameSpeed
+local spGetProjectileOwnerID = Engine.Shared.GetProjectileOwnerID
+local spGetProjectilesInRectangle = Engine.Shared.GetProjectilesInRectangle
 
 -- Subscription handle for the shared projectile dispatcher (set in Initialize).
 -- When nil, we fall back to calling Spring.GetProjectilesInRectangle directly.
 local dispatchHandle = nil
-local spIsAABBInView = Spring.IsAABBInView
+local spIsAABBInView = Engine.Unsynced.IsAABBInView
 
 local glBlending = gl.Blending
 local glDepthTest = gl.DepthTest
@@ -897,7 +897,7 @@ local glowShader
 local impactShader
 
 local function goodbye(reason)
-	Spring.Echo("[Lightning Cannon GL4] removing self: " .. tostring(reason))
+	Engine.Shared.Echo("[Lightning Cannon GL4] removing self: " .. tostring(reason))
 	gadgetHandler:RemoveGadget()
 end
 
@@ -1293,21 +1293,21 @@ local function updateBolts()
 	-- camera hasn't moved since the last paused rebuild; the existing VBO is
 	-- replayed by drawAll(). At uncapped paused FPS this saves a lot of work.
 	if usePausedCache then
-		local cx, cy, cz = Spring.GetCameraPosition()
-		local dx, dy, dz = Spring.GetCameraDirection()
+		local cx, cy, cz = Engine.Unsynced.GetCameraPosition()
+		local dx, dy, dz = Engine.Unsynced.GetCameraDirection()
 		if cx == pausedCamX and cy == pausedCamY and cz == pausedCamZ and dx == pausedCamDX and dy == pausedCamDY and dz == pausedCamDZ then
 			return
 		end
-		local now = Spring.GetTimer()
-		if pausedLastRebuildTimer and Spring.DiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
+		local now = Engine.Unsynced.GetTimer()
+		if pausedLastRebuildTimer and Engine.Unsynced.DiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
 			return
 		end
 		pausedLastRebuildTimer = now
 		pausedCamX, pausedCamY, pausedCamZ = cx, cy, cz
 		pausedCamDX, pausedCamDY, pausedCamDZ = dx, dy, dz
 	elseif isPaused then
-		pausedCamX, pausedCamY, pausedCamZ = Spring.GetCameraPosition()
-		pausedCamDX, pausedCamDY, pausedCamDZ = Spring.GetCameraDirection()
+		pausedCamX, pausedCamY, pausedCamZ = Engine.Unsynced.GetCameraPosition()
+		pausedCamDX, pausedCamDY, pausedCamDZ = Engine.Unsynced.GetCameraDirection()
 		pausedLastRebuildTimer = nil
 	end
 

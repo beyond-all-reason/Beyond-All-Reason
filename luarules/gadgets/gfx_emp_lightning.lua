@@ -83,9 +83,9 @@ local config = {
 --------------------------------------------------------------------------------
 -- Localized API
 --------------------------------------------------------------------------------
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
 local mathLog = math.log
 local mathMin = math.min
 local mathMax = math.max

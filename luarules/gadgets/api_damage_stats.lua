@@ -27,7 +27,7 @@ local info = {}
 local gameType
 
 function gadget:Initialize()
-	local tList = Spring.GetTeamList()
+	local tList = Engine.Shared.GetTeamList()
 
 	if Spring.Utilities.Gametype.IsFFA() then
 		gameType = "free for all"
@@ -38,10 +38,10 @@ function gadget:Initialize()
 	local nAITeams = 0
 	local nRaptorTeams = 0
 	for _, teamID in pairs(tList) do
-		local luaAI = Spring.GetTeamLuaAI(teamID) or ""
+		local luaAI = Engine.Shared.GetTeamLuaAI(teamID) or ""
 		local aiRaptor = (luaAI:find("Raptor") ~= nil)
-		local aiTeam = select(4, Spring.GetTeamInfo(teamID, false))
-		local gaiaTeam = (teamID == Spring.GetGaiaTeamID())
+		local aiTeam = select(4, Engine.Shared.GetTeamInfo(teamID, false))
+		local gaiaTeam = (teamID == Engine.Shared.GetGaiaTeamID())
 		if aiRaptor then
 			nRaptorTeams = nRaptorTeams + 1
 		end
@@ -68,11 +68,11 @@ function gadget:Initialize()
 end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
-	local pList = Spring.GetPlayerList(teamID)
+	local pList = Engine.Shared.GetPlayerList(teamID)
 	local playerID = pList[1]
 	local customtable = false
 	if playerID then
-		customtable = select(11, Spring.GetPlayerInfo(playerID)) or {}
+		customtable = select(11, Engine.Shared.GetPlayerInfo(playerID)) or {}
 	end
 	local tsMu = customtable and customtable.skill or ""
 	local mu = tsMu and tonumber(tsMu:match("%d+%.?%d*")) or 25
@@ -81,7 +81,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
 
 	info[unitDefID].n = info[unitDefID].n + 1
 	info[unitDefID].ts = info[unitDefID].ts + mu
-	info[unitDefID].minutes = info[unitDefID].minutes + Spring.GetGameFrame() / (30 * 60)
+	info[unitDefID].minutes = info[unitDefID].minutes + Engine.Shared.GetGameFrame() / (30 * 60)
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
@@ -97,10 +97,10 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 	if not info[unitDefID] then
 		return
 	end
-	if Spring.AreTeamsAllied(unitTeam, attackerTeam) then
+	if Engine.Shared.AreTeamsAllied(unitTeam, attackerTeam) then
 		return
 	end
-	local h, _, _ = Spring.GetUnitHealth(unitID)
+	local h, _, _ = Engine.Shared.GetUnitHealth(unitID)
 	if h > damage then
 		damage = h
 	end

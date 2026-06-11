@@ -39,10 +39,10 @@ local massUsageFraction = 0
 local allowedSpeed = 0
 local currentMassUsage = 0
 
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spSetUnitVelocity = Spring.SetUnitVelocity
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
+local spGetUnitVelocity = Engine.Shared.GetUnitVelocity
+local spSetUnitVelocity = Engine.Synced.SetUnitVelocity
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitIsTransporting = Engine.Shared.GetUnitIsTransporting
 
 -- update allowed speed for transport
 local function updateAllowedSpeed(transportId)

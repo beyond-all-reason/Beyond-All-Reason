@@ -42,13 +42,13 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if isCommando[unitDefID] then
 		if weaponID < 0 then
-			local x, y, z = Spring.GetUnitPosition(unitID)
+			local x, y, z = Engine.Shared.GetUnitPosition(unitID)
 			if x < 0 or z < 0 or x > MAPSIZEX or z > MAPSIZEZ then
-				Spring.DestroyUnit(unitID)
+				Engine.Synced.DestroyUnit(unitID)
 				return damage, 1
 			end
-			x, y, z = Spring.GetUnitVelocity(unitID)
-			Spring.AddUnitImpulse(unitID, x * -0.66, y * -0.66, z * -0.66)
+			x, y, z = Engine.Shared.GetUnitVelocity(unitID)
+			Engine.Synced.AddUnitImpulse(unitID, x * -0.66, y * -0.66, z * -0.66)
 			return damage * 0.12, 0
 		elseif MINE_BLAST[weaponID] then
 			return damage * 0.12, 0.24
@@ -60,7 +60,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if builderID and unitDefID == MINE2 and isCommando[Spring.GetUnitDefID(builderID)] then
+	if builderID and unitDefID == MINE2 and isCommando[Engine.Shared.GetUnitDefID(builderID)] then
 		mines[unitID] = builderID
 	end
 end
@@ -75,12 +75,12 @@ end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	if isCommando[unitDefID] then
-		Spring.SetUnitStealth(transportID, true)
+		Engine.Synced.SetUnitStealth(transportID, true)
 	end
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	if isCommando[unitDefID] then
-		Spring.SetUnitStealth(transportID, false)
+		Engine.Synced.SetUnitStealth(transportID, false)
 	end
 end

@@ -52,7 +52,7 @@ local defaultMaterialTemplate = {
 
 		"#define ROUGHNESS_AA 1.0",
 
-		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+		"#define ENV_SMPL_NUM " .. tostring(Engine.Unsynced.GetConfigInt("ENV_SMPL_NUM", 64)),
 		"#define USE_ENVIRONMENT_DIFFUSE 1",
 		"#define USE_ENVIRONMENT_SPECULAR 1",
 
@@ -70,7 +70,7 @@ local defaultMaterialTemplate = {
 
 		"#define ROUGHNESS_AA 1.0",
 
-		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+		"#define ENV_SMPL_NUM " .. tostring(Engine.Unsynced.GetConfigInt("ENV_SMPL_NUM", 64)),
 		"#define USE_ENVIRONMENT_DIFFUSE 1",
 		"#define USE_ENVIRONMENT_SPECULAR 1",
 
@@ -105,7 +105,7 @@ local defaultMaterialTemplate = {
 
 		"#define ROUGHNESS_AA 1.0",
 
-		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+		"#define ENV_SMPL_NUM " .. tostring(Engine.Unsynced.GetConfigInt("ENV_SMPL_NUM", 64)),
 		"#define USE_ENVIRONMENT_DIFFUSE 1",
 		"#define USE_ENVIRONMENT_SPECULAR 1",
 
@@ -191,16 +191,16 @@ local shaderPlugins = {
 
 local function SunChanged(luaShader)
 	luaShader:SetUniformFloatArrayAlways("pbrParams", {
-		Spring.GetConfigFloat("tonemapA", 4.75),
-		Spring.GetConfigFloat("tonemapB", 0.75),
-		Spring.GetConfigFloat("tonemapC", 3.5),
-		Spring.GetConfigFloat("tonemapD", 0.85),
-		Spring.GetConfigFloat("tonemapE", 1.0),
-		Spring.GetConfigFloat("envAmbient", 0.125),
-		Spring.GetConfigFloat("unitSunMult", 1.0),
-		Spring.GetConfigFloat("unitExposureMult", 1.0),
+		Engine.Unsynced.GetConfigFloat("tonemapA", 4.75),
+		Engine.Unsynced.GetConfigFloat("tonemapB", 0.75),
+		Engine.Unsynced.GetConfigFloat("tonemapC", 3.5),
+		Engine.Unsynced.GetConfigFloat("tonemapD", 0.85),
+		Engine.Unsynced.GetConfigFloat("tonemapE", 1.0),
+		Engine.Unsynced.GetConfigFloat("envAmbient", 0.125),
+		Engine.Unsynced.GetConfigFloat("unitSunMult", 1.0),
+		Engine.Unsynced.GetConfigFloat("unitExposureMult", 1.0),
 	})
-	luaShader:SetUniformFloatAlways("gamma", Spring.GetConfigFloat("modelGamma", 1.0))
+	luaShader:SetUniformFloatAlways("gamma", Engine.Unsynced.GetConfigFloat("modelGamma", 1.0))
 end
 
 defaultMaterialTemplate.SunChangedOrig = SunChanged

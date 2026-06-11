@@ -17,8 +17,8 @@ local mathSin = math.sin
 local mathCos = math.cos
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
 
 local showValue = false
 local metalViewOnly = false
@@ -30,11 +30,11 @@ local opacity = 0.5
 local innersize = 3.0 -- outersize-innersize = circle width
 local outersize = 3.32 -- outersize-innersize = circle width
 
-local spIsGUIHidden = Spring.IsGUIHidden
-local spGetUnitsInSphere = Spring.GetUnitsInSphere
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMapDrawMode = Spring.GetMapDrawMode
+local spIsGUIHidden = Engine.Unsynced.IsGUIHidden
+local spGetUnitsInSphere = Engine.Shared.GetUnitsInSphere
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGetMapDrawMode = Engine.Unsynced.GetMapDrawMode
 
 local spots = {}
 local numSpots = 0
@@ -66,9 +66,9 @@ for defID, def in pairs(FeatureDefs) do
 	end
 end
 
-local spGetAllFeatures = Spring.GetAllFeatures
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetAllFeatures = Engine.Shared.GetAllFeatures
+local spGetFeatureDefID = Engine.Shared.GetFeatureDefID
+local spGetFeaturePosition = Engine.Shared.GetFeaturePosition
 
 local showGeothermalUnits = false
 local function checkGeothermalFeatures()
@@ -175,7 +175,7 @@ void main(void)
 ]]
 
 local function goodbye(reason)
-	Spring.Echo("Geothermalspots GL4 widget exiting with reason: " .. reason)
+	Engine.Shared.Echo("Geothermalspots GL4 widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
 end
 
@@ -393,7 +393,7 @@ end
 
 function widget:ViewResize()
 	local old_vsx, old_vsy = vsx, vsy
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = Engine.Unsynced.GetViewGeometry()
 	if old_vsx ~= vsx or old_vsy ~= vsy then
 		widget:Initialize()
 	end

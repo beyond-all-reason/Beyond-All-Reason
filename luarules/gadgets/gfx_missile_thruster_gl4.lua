@@ -23,21 +23,21 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spEcho = Spring.Echo
-local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
-local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local spIsPosInAirLos = Spring.IsPosInAirLos
+local spEcho = Engine.Shared.Echo
+local spGetVisibleProjectiles = Engine.Unsynced.GetVisibleProjectiles
+local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
+local spGetProjectileVelocity = Engine.Shared.GetProjectileVelocity
+local spGetProjectileDefID = Engine.Shared.GetProjectileDefID
+local spGetProjectileTeamID = Engine.Shared.GetProjectileTeamID
+local spGetProjectileTimeToLive = Engine.Shared.GetProjectileTimeToLive
+local spGetTeamAllyTeamID = Engine.Shared.GetTeamAllyTeamID
+local spIsPosInAirLos = Engine.Shared.IsPosInAirLos
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetFrameTimeOffset = Spring.GetFrameTimeOffset
-local spGetGameSpeed = Spring.GetGameSpeed
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetCameraDirection = Spring.GetCameraDirection
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spGetFrameTimeOffset = Engine.Unsynced.GetFrameTimeOffset
+local spGetGameSpeed = Engine.Unsynced.GetGameSpeed
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
+local spGetCameraDirection = Engine.Unsynced.GetCameraDirection
 
 local glBlending = gl.Blending
 local glTexture = gl.Texture
@@ -1027,8 +1027,8 @@ local function updateMissiles()
 			return
 		end
 		-- Camera moved while paused: cap rebuild rate by wall clock (FPS-indep).
-		local now = Spring.GetTimer()
-		if pausedLastRebuildTimer and Spring.DiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
+		local now = Engine.Unsynced.GetTimer()
+		if pausedLastRebuildTimer and Engine.Unsynced.DiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
 			return
 		end
 		pausedLastRebuildTimer = now

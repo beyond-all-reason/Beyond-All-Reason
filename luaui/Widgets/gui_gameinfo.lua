@@ -18,7 +18,7 @@ local mathMax = math.max
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
 
 local titlecolor = "\255\255\205\100"
 local keycolor = ""
@@ -35,7 +35,7 @@ local raptorsEnabled = Spring.Utilities.Gametype.IsRaptors()
 local content = ""
 
 local tidal = Game.tidal
-local map_tidal = Spring.GetModOptions().map_tidal
+local map_tidal = Engine.Shared.GetModOptions().map_tidal
 local reclaimable_metal = 0
 local reclaimable_energy = 0
 
@@ -48,8 +48,8 @@ elseif map_tidal == "high" then
 	tidal = 23
 end
 
-if Spring.GetTidal then
-	tidal = Spring.GetTidal()
+if Engine.Shared.GetTidal then
+	tidal = Engine.Shared.GetTidal()
 end
 
 -- modoptions
@@ -334,9 +334,9 @@ function widget:DrawScreen()
 		end
 		showOnceMore = false
 
-		local x, y, pressed = Spring.GetMouseState()
+		local x, y, pressed = Engine.Unsynced.GetMouseState()
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-			Spring.SetMouseCursor("cursornormal")
+			Engine.Unsynced.SetMouseCursor("cursornormal")
 		end
 	else
 		if backgroundGuishader then
@@ -380,7 +380,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return false
 	end
 
@@ -466,10 +466,10 @@ local function closeInfoHandler()
 	end
 end
 
-local spGetAllFeatures = Spring.GetAllFeatures
-local spGetFeatureResources = Spring.GetFeatureResources
-local spGetFeatureTeam = Spring.GetFeatureTeam
-local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local spGetAllFeatures = Engine.Shared.GetAllFeatures
+local spGetFeatureResources = Engine.Shared.GetFeatureResources
+local spGetFeatureTeam = Engine.Shared.GetFeatureTeam
+local spGetGaiaTeamID = Engine.Shared.GetGaiaTeamID
 local gaiaTeamId = spGetGaiaTeamID()
 
 function widget:GamePreload()

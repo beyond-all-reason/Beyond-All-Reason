@@ -44,35 +44,35 @@ local startMetal = 1000
 local startEnergy = 1000
 local teamList = {}
 local additionalStorage = {}
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = Engine.Shared.GetGaiaTeamID()
 
 function gadget:Initialize()
-	gaiaTeamID = Spring.GetGaiaTeamID()
+	gaiaTeamID = Engine.Shared.GetGaiaTeamID()
 end
 
 function gadget:GamePreload()
-	if Spring.GetGameRulesParam("loadedGame") == 1 then
-		Spring.Echo("Scenario: Loading saved game, skipping loadout")
+	if Engine.Shared.GetGameRulesParam("loadedGame") == 1 then
+		Engine.Shared.Echo("Scenario: Loading saved game, skipping loadout")
 		gadgetHandler:RemoveGadget(self)
 	end
 
-	if Spring.GetGameFrame() < 1 and not loadoutcomplete then
+	if Engine.Shared.GetGameFrame() < 1 and not loadoutcomplete then
 		-- so that loaded savegames dont re-place
-		if Spring.GetModOptions().scenariooptions then
-			Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
-			local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
+		if Engine.Shared.GetModOptions().scenariooptions then
+			Engine.Shared.Echo("Scenario: Spawning on frame", Engine.Shared.GetGameFrame())
+			local scenariooptions = string.base64Decode(Engine.Shared.GetModOptions().scenariooptions)
 			scenariooptions = Json.decode(scenariooptions)
 			if scenariooptions and scenariooptions.unitloadout then
-				Spring.Echo("Scenario: Creating unit loadout")
+				Engine.Shared.Echo("Scenario: Creating unit loadout")
 				local unitloadout = scenariooptions.unitloadout
 				if unitloadout then
 					for k, unit in pairs(unitloadout) do
 						-- make sure unitdefname is valid
 						if UnitDefNames[unit.name] then
 							local rot = rot_to_facing(unit.rot)
-							local unitID = Spring.CreateUnit(unit.name, unit.x, Spring.GetGroundHeight(unit.x, unit.z), unit.z, rot, unit.team)
+							local unitID = Engine.Synced.CreateUnit(unit.name, unit.x, Engine.Shared.GetGroundHeight(unit.x, unit.z), unit.z, rot, unit.team)
 							if unitID then
-								Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+								Engine.Shared.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 								if UnitDefNames[unit.name].energyStorage > 0 or UnitDefNames[unit.name].metalStorage > 0 then
 									if additionalStorage[unit.team] == nil then
 										additionalStorage[unit.team] = { metal = 0, energy = 0 }
@@ -85,27 +85,27 @@ function gadget:GamePreload()
 								nanoturretunitIDs[unitID] = true
 							end
 							if unit.neutral == true or unit.neutral == "true" then
-								Spring.SetUnitNeutral(unitID, true)
+								Engine.Synced.SetUnitNeutral(unitID, true)
 							end
 						else
-							Spring.Echo("Scenario: UnitDef name is invalid:", unit.name)
+							Engine.Shared.Echo("Scenario: UnitDef name is invalid:", unit.name)
 						end
 					end
 				end
 			end
 			if scenariooptions and scenariooptions.featureloadout then
-				Spring.Echo("Scenario: Creating feature loadout")
+				Engine.Shared.Echo("Scenario: Creating feature loadout")
 				local featureloadout = scenariooptions.featureloadout
 				if featureloadout and next(featureloadout) then
 					for k, feature in pairs(featureloadout) do
 						if FeatureDefNames[feature.name] then
 							local rot = tonumber(feature.rot) or 0
-							local featureID = Spring.CreateFeature(feature.name, feature.x, Spring.GetGroundHeight(feature.x, feature.z), feature.z, rot, gaiaTeamID)
+							local featureID = Engine.Synced.CreateFeature(feature.name, feature.x, Engine.Shared.GetGroundHeight(feature.x, feature.z), feature.z, rot, gaiaTeamID)
 							if feature.resurrectas and UnitDefNames[feature.resurrectas] then
-								Spring.SetFeatureResurrect(featureID, feature.resurrectas)
+								Engine.Synced.SetFeatureResurrect(featureID, feature.resurrectas)
 							end
 						else
-							Spring.Echo("Scenario: FeatureDef name is invalid:", feature.name)
+							Engine.Shared.Echo("Scenario: FeatureDef name is invalid:", feature.name)
 						end
 					end
 				end
@@ -120,15 +120,15 @@ function gadget:GameFrame(n)
 	if n == 1 then
 		if next(nanoturretunitIDs) then
 			for unitID, _ in pairs(nanoturretunitIDs) do
-				Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+				Engine.Shared.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 			end
 		end
 		if next(additionalStorage) then
 			for teamID, additionalstorage in pairs(additionalStorage) do
-				local m, mstore = Spring.GetTeamResources(teamID, "metal")
-				local e, estore = Spring.GetTeamResources(teamID, "energy")
-				Spring.SetTeamResource(teamID, "ms", mstore + additionalstorage.metal)
-				Spring.SetTeamResource(teamID, "es", estore + additionalstorage.energy)
+				local m, mstore = Engine.Shared.GetTeamResources(teamID, "metal")
+				local e, estore = Engine.Shared.GetTeamResources(teamID, "energy")
+				Engine.Synced.SetTeamResource(teamID, "ms", mstore + additionalstorage.metal)
+				Engine.Synced.SetTeamResource(teamID, "es", estore + additionalstorage.energy)
 			end
 			additionalStorage = nil
 		end

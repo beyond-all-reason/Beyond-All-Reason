@@ -29,12 +29,12 @@ for uDefID, uDef in pairs(UnitDefs) do
 	end
 end
 
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spFindUnitCmdDesc = Engine.Shared.FindUnitCmdDesc
+local spGetUnitCmdDescs = Engine.Shared.GetUnitCmdDescs
+local spEditUnitCmdDesc = Engine.Synced.EditUnitCmdDesc
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
 local mapx = Game.mapSizeX
 local mapz = Game.mapSizeZ
 
@@ -49,7 +49,7 @@ local hasVoid = false
 if success and type(mapinfo) == "table" and mapinfo.voidwater then
 	hasVoid = true
 elseif not success then
-	Spring.Echo("Place Target On Ground failed to load the mapinfo.lua")
+	Engine.Shared.Echo("Place Target On Ground failed to load the mapinfo.lua")
 end
 
 function gadget:Initialize()

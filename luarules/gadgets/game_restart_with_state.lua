@@ -106,46 +106,46 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function collectUnitState()
 		local data = {
-			gameFrame = Spring.GetGameFrame(),
+			gameFrame = Engine.Shared.GetGameFrame(),
 			units = {},
 		}
-		local allUnits = Spring.GetAllUnits()
+		local allUnits = Engine.Shared.GetAllUnits()
 		-- Map each nanoframe that is actively being built to its builder. Nanoframes
 		-- with a builder are skipped on save; the builder's own command queue
 		-- (factory build orders / Repair / Guard) will recreate them after restart.
 		local beingBuilt = {}
 		for i = 1, #allUnits do
 			local bID = allUnits[i]
-			local targetID = Spring.GetUnitIsBuilding and Spring.GetUnitIsBuilding(bID)
+			local targetID = Engine.Shared.GetUnitIsBuilding and Engine.Shared.GetUnitIsBuilding(bID)
 			if targetID then
 				beingBuilt[targetID] = bID
 			end
 		end
 		for i = 1, #allUnits do
 			local uID = allUnits[i]
-			local uDefID = Spring.GetUnitDefID(uID)
+			local uDefID = Engine.Shared.GetUnitDefID(uID)
 			if uDefID then
 				local uDef = UnitDefs[uDefID]
-				local x, y, z = Spring.GetUnitPosition(uID)
-				local transporter = Spring.GetUnitTransporter and Spring.GetUnitTransporter(uID)
+				local x, y, z = Engine.Shared.GetUnitPosition(uID)
+				local transporter = Engine.Shared.GetUnitTransporter and Engine.Shared.GetUnitTransporter(uID)
 				-- Skip units without a valid world position (nil), that are being
 				-- transported (their reported position is the transport's, not theirs),
 				-- or nanoframes that have an active builder (the builder's queue will
 				-- recreate them).
 				if x and not transporter and not beingBuilt[uID] then
-					local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(uID)
-					local teamID = Spring.GetUnitTeam(uID)
-					local heading = Spring.GetUnitHeading(uID) or 0
-					local buildFacing = Spring.GetUnitBuildFacing(uID)
-					local exp = Spring.GetUnitExperience(uID) or 0
-					local states = Spring.GetUnitStates(uID) or {}
+					local health, maxHealth, _, _, buildProgress = Engine.Shared.GetUnitHealth(uID)
+					local teamID = Engine.Shared.GetUnitTeam(uID)
+					local heading = Engine.Shared.GetUnitHeading(uID) or 0
+					local buildFacing = Engine.Shared.GetUnitBuildFacing(uID)
+					local exp = Engine.Shared.GetUnitExperience(uID) or 0
+					local states = Engine.Shared.GetUnitStates(uID) or {}
 					-- Builder Priority (low/high) is a custom command; the gadget stores
 					-- the active value in the "builderPriority" rules param (0=low, 1=high).
-					local builderPriority = Spring.GetUnitRulesParam(uID, "builderPriority")
+					local builderPriority = Engine.Shared.GetUnitRulesParam(uID, "builderPriority")
 					-- BAR uses its own CMD_WANT_CLOAK (GameCMD.WANT_CLOAK) instead of
 					-- CMD.CLOAK; the active state lives in the "wantcloak" rules param.
-					local wantCloak = Spring.GetUnitRulesParam(uID, "wantcloak")
-					local commands = Spring.GetUnitCommands(uID, -1) or {}
+					local wantCloak = Engine.Shared.GetUnitRulesParam(uID, "wantcloak")
+					local commands = Engine.Shared.GetUnitCommands(uID, -1) or {}
 					local cmdsClean = {}
 					for j = 1, #commands do
 						local c = commands[j]
@@ -167,8 +167,8 @@ if gadgetHandler:IsSyncedCode() then
 					-- Factories keep their unit-build queue in a separate list. We save
 					-- it independently and re-issue after restart.
 					local factoryCmdsClean = nil
-					if uDef and uDef.isFactory and Spring.GetFactoryCommands then
-						local fcmds = Spring.GetFactoryCommands(uID, -1) or {}
+					if uDef and uDef.isFactory and Engine.Shared.GetFactoryCommands then
+						local fcmds = Engine.Shared.GetFactoryCommands(uID, -1) or {}
 						if #fcmds > 0 then
 							factoryCmdsClean = {}
 							for j = 1, #fcmds do
@@ -259,18 +259,18 @@ if gadgetHandler:IsSyncedCode() then
 			restoreBuffer = nil
 			local fn, err = loadstring("return " .. content)
 			if not fn then
-				Spring.Echo("[Restart With State] Failed to parse state: " .. tostring(err))
+				Engine.Shared.Echo("[Restart With State] Failed to parse state: " .. tostring(err))
 				return true
 			end
 			local ok, data = pcall(fn)
 			if not ok or type(data) ~= "table" or type(data.units) ~= "table" then
-				Spring.Echo("[Restart With State] State data invalid; ignoring.")
+				Engine.Shared.Echo("[Restart With State] State data invalid; ignoring.")
 				return true
 			end
 			pendingRestore = data
 			-- restore after initial commander warp-in is complete
 			restoreFrame = (Game.spawnWarpInFrame or 90) + 10
-			Spring.Echo("[Restart With State] State received (" .. tostring(#data.units) .. " units). Will restore at frame " .. restoreFrame)
+			Engine.Shared.Echo("[Restart With State] State received (" .. tostring(#data.units) .. " units). Will restore at frame " .. restoreFrame)
 			return true
 		end
 		return false
@@ -286,7 +286,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- Snapshot existing units BEFORE creating any new ones.
 		-- We create restored units first so the engine never sees zero units
 		-- (which would immediately trigger a defeat condition).
-		local oldUnits = Spring.GetAllUnits()
+		local oldUnits = Engine.Shared.GetAllUnits()
 
 		local idMap = {}
 		local createdCount = 0
@@ -295,71 +295,71 @@ if gadgetHandler:IsSyncedCode() then
 		for i = 1, #data.units do
 			local u = data.units[i]
 			if not UnitDefs[u.unitDefID] then
-				Spring.Echo("[Restart With State] Unknown unitDefID " .. tostring(u.unitDefID) .. ", skipping.")
+				Engine.Shared.Echo("[Restart With State] Unknown unitDefID " .. tostring(u.unitDefID) .. ", skipping.")
 			else
 				local createY = u.y
 				-- For ground/sea units, snap to the actual ground height so they don't
 				-- spawn floating in mid-air at a stale position (the saved y is the
 				-- unit's last in-game y, which for moving units is mid-flight/jump).
 				if not u.canFly then
-					createY = Spring.GetGroundHeight(u.x, u.z)
+					createY = Engine.Shared.GetGroundHeight(u.x, u.z)
 				end
 				-- Spawn unfinished units as nanoframes (build=true), otherwise as completed.
 				local isUnderConstruction = u.buildProgress and u.buildProgress < 1
-				local ok, newID = pcall(Spring.CreateUnit, u.unitDefID, u.x, createY, u.z, u.facing or 0, u.teamID, isUnderConstruction and true or false)
+				local ok, newID = pcall(Engine.Synced.CreateUnit, u.unitDefID, u.x, createY, u.z, u.facing or 0, u.teamID, isUnderConstruction and true or false)
 				if ok and newID then
 					idMap[u.unitID] = newID
 					createdCount = createdCount + 1
-					Spring.SetUnitHeadingAndUpDir(newID, u.heading, 0, 1, 0)
+					Engine.Synced.SetUnitHeadingAndUpDir(newID, u.heading, 0, 1, 0)
 
 					-- Restore health and build progress together so nanoframes keep both.
 					if u.health then
-						Spring.SetUnitHealth(newID, { health = u.health, build = u.buildProgress or 1 })
+						Engine.Synced.SetUnitHealth(newID, { health = u.health, build = u.buildProgress or 1 })
 					end
 					if u.experience and u.experience > 0 then
-						Spring.SetUnitExperience(newID, u.experience)
+						Engine.Synced.SetUnitExperience(newID, u.experience)
 					end
 
 					local s = u.states
 					if s then
 						if s.firestate then
-							Spring.GiveOrderToUnit(newID, CMD.FIRE_STATE, { s.firestate }, 0)
+							Engine.Shared.GiveOrderToUnit(newID, CMD.FIRE_STATE, { s.firestate }, 0)
 						end
 						if s.movestate then
-							Spring.GiveOrderToUnit(newID, CMD.MOVE_STATE, { s.movestate }, 0)
+							Engine.Shared.GiveOrderToUnit(newID, CMD.MOVE_STATE, { s.movestate }, 0)
 						end
 						if s["repeat"] ~= nil then
-							Spring.GiveOrderToUnit(newID, CMD.REPEAT, { s["repeat"] and 1 or 0 }, 0)
+							Engine.Shared.GiveOrderToUnit(newID, CMD.REPEAT, { s["repeat"] and 1 or 0 }, 0)
 						end
 						if s.active ~= nil then
-							Spring.GiveOrderToUnit(newID, CMD.ONOFF, { s.active and 1 or 0 }, 0)
+							Engine.Shared.GiveOrderToUnit(newID, CMD.ONOFF, { s.active and 1 or 0 }, 0)
 						end
 						if s.trajectory ~= nil then
-							Spring.GiveOrderToUnit(newID, CMD.TRAJECTORY, { s.trajectory and 1 or 0 }, 0)
+							Engine.Shared.GiveOrderToUnit(newID, CMD.TRAJECTORY, { s.trajectory and 1 or 0 }, 0)
 						end
 					end
 
 					-- Builder Priority: re-issue via the custom CMD so the gadget
 					-- (unit_builder_priority) updates its rules param and cmd desc.
 					if u.builderPriority ~= nil and GameCMD and GameCMD.PRIORITY then
-						Spring.GiveOrderToUnit(newID, GameCMD.PRIORITY, { u.builderPriority }, 0)
+						Engine.Shared.GiveOrderToUnit(newID, GameCMD.PRIORITY, { u.builderPriority }, 0)
 					end
 
 					-- Cloak (BAR-specific): unit_cloak.lua rejects vanilla CMD.CLOAK
 					-- and only honors GameCMD.WANT_CLOAK, which sets the "wantcloak"
 					-- rules param and actually cloaks the unit.
 					if u.wantCloak ~= nil and GameCMD and GameCMD.WANT_CLOAK then
-						Spring.GiveOrderToUnit(newID, GameCMD.WANT_CLOAK, { u.wantCloak }, 0)
+						Engine.Shared.GiveOrderToUnit(newID, GameCMD.WANT_CLOAK, { u.wantCloak }, 0)
 					end
 				else
-					Spring.Echo("[Restart With State] CreateUnit failed for defID " .. tostring(u.unitDefID) .. ": " .. tostring(newID))
+					Engine.Shared.Echo("[Restart With State] CreateUnit failed for defID " .. tostring(u.unitDefID) .. ": " .. tostring(newID))
 				end
 			end
 		end
 
 		-- Now that restored units exist, safely remove the old pre-restore units.
 		for i = 1, #oldUnits do
-			Spring.DestroyUnit(oldUnits[i], false, true)
+			Engine.Synced.DestroyUnit(oldUnits[i], false, true)
 		end
 
 		-- Pass 2: re-issue command queues, remapping any old unitID params to new ones
@@ -423,7 +423,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 							local issueParams = params or {}
 
-							pcall(Spring.GiveOrderToUnit, newID, c.id, issueParams, coded)
+							pcall(Engine.Shared.GiveOrderToUnit, newID, c.id, issueParams, coded)
 						end
 					end
 				end
@@ -451,12 +451,12 @@ if gadgetHandler:IsSyncedCode() then
 					coded = clearBit(coded, 32) -- SHIFT (x5)
 					coded = clearBit(coded, 64) -- CTRL  (x20)
 					coded = clearBit(coded, 128) -- ALT   (insert front)
-					pcall(Spring.GiveOrderToUnit, newID, c.id, c.params or {}, coded)
+					pcall(Engine.Shared.GiveOrderToUnit, newID, c.id, c.params or {}, coded)
 				end
 			end
 		end
 
-		Spring.Echo("[Restart With State] Restored " .. tostring(createdCount) .. "/" .. tostring(#data.units) .. " units.")
+		Engine.Shared.Echo("[Restart With State] Restored " .. tostring(createdCount) .. "/" .. tostring(#data.units) .. " units.")
 	end
 
 	-- Restore path is driven by LuaUI sending chunks via Spring.SendLuaRulesMsg;
@@ -488,15 +488,15 @@ else -- UNSYNCED
 		-- io/os are not available in LuaRules; forward to the companion widget via SendLuaUIMsg
 		local data = table.concat(saveBuffer)
 		saveBuffer = {}
-		Spring.SendLuaUIMsg("rws:begin")
+		Engine.Unsynced.SendLuaUIMsg("rws:begin")
 		for i = 1, #data, UI_CHUNK_SIZE do
-			Spring.SendLuaUIMsg("rws:chunk:" .. data:sub(i, i + UI_CHUNK_SIZE - 1))
+			Engine.Unsynced.SendLuaUIMsg("rws:chunk:" .. data:sub(i, i + UI_CHUNK_SIZE - 1))
 		end
-		Spring.SendLuaUIMsg("rws:commit")
+		Engine.Unsynced.SendLuaUIMsg("rws:commit")
 	end
 
 	local function rwsClear()
-		Spring.SendLuaUIMsg("rws:clear")
+		Engine.Unsynced.SendLuaUIMsg("rws:clear")
 	end
 
 	function gadget:Initialize()

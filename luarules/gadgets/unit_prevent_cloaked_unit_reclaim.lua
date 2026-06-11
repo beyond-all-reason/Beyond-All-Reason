@@ -20,16 +20,16 @@ local checkedUnits = {}
 local maxBuildDist = 0
 
 if gadgetHandler:IsSyncedCode() then
-	local GetUnitAllyTeam = Spring.GetUnitAllyTeam
-	local GetUnitWorkerTask = Spring.GetUnitWorkerTask
-	local GiveOrderToUnit = Spring.GiveOrderToUnit
-	local GetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-	local GetAllUnits = Spring.GetAllUnits
-	local IsUnitInRadar = Spring.IsUnitInRadar
-	local GetUnitPosition = Spring.GetUnitPosition
-	local GetUnitsInCylinder = Spring.GetUnitsInCylinder
-	local GetUnitDefID = Spring.GetUnitDefID
-	local GetUnitIsCloaked = Spring.GetUnitIsCloaked
+	local GetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+	local GetUnitWorkerTask = Engine.Shared.GetUnitWorkerTask
+	local GiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+	local GetUnitCurrentCommand = Engine.Shared.GetUnitCurrentCommand
+	local GetAllUnits = Engine.Shared.GetAllUnits
+	local IsUnitInRadar = Engine.Shared.IsUnitInRadar
+	local GetUnitPosition = Engine.Shared.GetUnitPosition
+	local GetUnitsInCylinder = Engine.Shared.GetUnitsInCylinder
+	local GetUnitDefID = Engine.Shared.GetUnitDefID
+	local GetUnitIsCloaked = Engine.Shared.GetUnitIsCloaked
 
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams)
 		if (#cmdParams == 1) and GetUnitIsCloaked(cmdParams[1]) and (GetUnitAllyTeam(unitID) ~= GetUnitAllyTeam(cmdParams[1])) and not IsUnitInRadar(cmdParams[1], GetUnitAllyTeam(unitID)) then

@@ -25,22 +25,22 @@ local spotlightTypes = {
 			if not unitID then
 				return nil
 			end
-			local unitDefID = Spring.GetUnitDefID(unitID)
+			local unitDefID = Engine.Shared.GetUnitDefID(unitID)
 			if not unitDefID then
 				return nil
 			end
 			return UnitDefs[unitDefID].radius
 		end,
 		isValid = function(unitID)
-			return Spring.ValidUnitID(unitID)
+			return Engine.Shared.ValidUnitID(unitID)
 		end,
 	},
 	feature = {
 		getDefaultRadius = function(featureID)
-			return FeatureDefs[Spring.GetFeatureDefID(featureID)].radius
+			return FeatureDefs[Engine.Shared.GetFeatureDefID(featureID)].radius
 		end,
 		isValid = function(featureID)
-			return Spring.ValidFeatureID(featureID)
+			return Engine.Shared.ValidFeatureID(featureID)
 		end,
 		postProcessVBO = function(vbo)
 			vbo.featureIDs = true
@@ -316,7 +316,7 @@ local function addSpotlight(objectType, owner, objectID, color, options)
 	end
 
 	if not spotlightTypes[objectType].isValid(objectID) then
-		Spring.Echo("invalid spotlight object id: " .. (objectID or "<nil>"))
+		Engine.Shared.Echo("invalid spotlight object id: " .. (objectID or "<nil>"))
 		return
 	end
 
@@ -332,7 +332,7 @@ local function addSpotlight(objectType, owner, objectID, color, options)
 	local startTime
 	local expireTime
 	if options.duration ~= nil then
-		startTime = Spring.GetDrawSeconds()
+		startTime = Engine.Unsynced.GetDrawSeconds()
 		expireTime = startTime + options.duration
 	end
 
@@ -457,7 +457,7 @@ function widget:Update(dt)
 
 	-- remove expired spotlights
 	local toRemove = {}
-	local gs = Spring.GetDrawSeconds()
+	local gs = Engine.Unsynced.GetDrawSeconds()
 	for objectType, objectOwnerTimes in pairs(objectExpireTimes) do
 		for objectID, ownerTimes in pairs(objectOwnerTimes) do
 			for owner, expireTime in pairs(ownerTimes) do
@@ -474,7 +474,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 

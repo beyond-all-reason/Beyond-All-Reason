@@ -36,9 +36,9 @@ else
 	-- unsynced
 	--------------------------------------------------------------------------------
 
-	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
-	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
-	local GetFPS = Spring.GetFPS
+	local GetLastUpdateSeconds = Engine.Unsynced.GetLastUpdateSeconds
+	local SendLuaRulesMsg = Engine.Unsynced.SendLuaRulesMsg
+	local GetFPS = Engine.Unsynced.GetFPS
 
 	local updateTimer = 0
 	local avgFps = GetFPS()

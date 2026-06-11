@@ -16,14 +16,14 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitCosts = Spring.GetUnitCosts
-local spAddUnitResource = Spring.AddUnitResource
-local spAddTeamResource = Spring.AddTeamResource
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spValidUnitID = Spring.ValidUnitID
-local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitCosts = Engine.Shared.GetUnitCosts
+local spAddUnitResource = Engine.Synced.AddUnitResource
+local spAddTeamResource = Engine.Synced.AddTeamResource
+local spAreTeamsAllied = Engine.Shared.AreTeamsAllied
+local spGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
+local spValidUnitID = Engine.Shared.ValidUnitID
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
 
 local reclaimedWeaponDefID = Game.envDamageTypes.Reclaimed
 

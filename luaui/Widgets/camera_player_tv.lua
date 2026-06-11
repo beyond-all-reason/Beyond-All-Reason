@@ -17,11 +17,11 @@ local mathFloor = math.floor
 local mathRandom = math.random
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
+local spGetGameFrame = Engine.Shared.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetMouseState = Spring.GetMouseState
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
 
 --[[ Commands
 	/playerview #playerID		(playerID is optional)
@@ -50,10 +50,10 @@ local nextTrackingPlayerChange = os.clock() - 200
 
 local tsOrderedPlayers = {}
 
-local teamList = Spring.GetTeamList()
+local teamList = Engine.Shared.GetTeamList()
 local isSpec, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
-local myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
+local myTeamPlayerID = select(2, Engine.Shared.GetTeamInfo(myTeamID))
 local vsx, vsy = spGetViewGeometry()
 local widgetScale = (0.7 + (vsx * vsy / 5000000))
 
@@ -64,9 +64,9 @@ local desiredLosmodeChanged = 0
 
 local math_isInRect = math.isInRect
 
-local playersList = Spring.GetPlayerList()
-local spGetTeamColor = Spring.GetTeamColor
-local spGetPlayerInfo = Spring.GetPlayerInfo
+local playersList = Engine.Shared.GetPlayerList()
+local spGetTeamColor = Engine.Unsynced.GetTeamColor
+local spGetPlayerInfo = Engine.Shared.GetPlayerInfo
 
 local ColorIsDark = Spring.Utilities.Color.ColorIsDark
 
@@ -75,7 +75,7 @@ local teamColorKeys = {}
 for i = 1, #teamList do
 	local r, g, b, a = spGetTeamColor(teamList[i])
 	teamColorKeys[teamList[i]] = r .. "_" .. g .. "_" .. b
-	local _, _, _, isAiTeam = Spring.GetTeamInfo(teamList[i], false)
+	local _, _, _, isAiTeam = Engine.Shared.GetTeamInfo(teamList[i], false)
 	if isAiTeam then
 		aiTeams[teamList[i]] = true
 	end
@@ -85,8 +85,8 @@ local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, toggleButton2, 
 local RectRound, elementCorner, bgpadding
 local guishaderWasActive = false
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = { Spring.GetConfigInt("anonymousColorR", 255) / 255, Spring.GetConfigInt("anonymousColorG", 0) / 255, Spring.GetConfigInt("anonymousColorB", 0) / 255 }
+local anonymousMode = Engine.Shared.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = { Engine.Unsynced.GetConfigInt("anonymousColorR", 255) / 255, Engine.Unsynced.GetConfigInt("anonymousColorG", 0) / 255, Engine.Unsynced.GetConfigInt("anonymousColorB", 0) / 255 }
 
 local function tsOrderPlayers()
 	tsOrderedPlayers = {}
@@ -334,7 +334,7 @@ local function updatePosition()
 	elseif WG["advplayerlist_api"] ~= nil then
 		parentPos = WG["advplayerlist_api"].GetPosition() -- returns {top,left,bottom,right,widgetScale}
 	else
-		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
+		local scale = (vsy / 880) * (1 + (Engine.Unsynced.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
 		parentPos = { 0, vsx - (220 * scale), 0, vsx, scale }
 	end
 	if parentPos[5] ~= nil then
@@ -363,7 +363,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	myTeamID = spGetMyTeamID()
-	myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
+	myTeamPlayerID = select(2, Engine.Shared.GetTeamInfo(myTeamID))
 	isSpec, fullview = spGetSpectatingState()
 	tsOrderPlayers()
 	local receateLists = false
@@ -375,9 +375,9 @@ function widget:PlayerChanged(playerID)
 	end
 	local name = spGetPlayerInfo(playerID, false)
 	name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-	if select(4, Spring.GetTeamInfo(myTeamID, false)) then -- is AI?
-		local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
-		local niceName = Spring.GetGameRulesParam("ainame_" .. myTeamID)
+	if select(4, Engine.Shared.GetTeamInfo(myTeamID, false)) then -- is AI?
+		local _, _, _, aiName = Engine.Shared.GetAIInfo(myTeamID)
+		local niceName = Engine.Shared.GetGameRulesParam("ainame_" .. myTeamID)
 		name = niceName or aiName
 	end
 	if name and drawlistsPlayername[name] then
@@ -459,16 +459,16 @@ function widget:Update(dt)
 
 	if scheduledSpecFullView ~= nil then
 		-- this is needed else the minimap/world doesnt update properly
-		Spring.SendCommands("specfullview")
+		Engine.Unsynced.SendCommands("specfullview")
 		scheduledSpecFullView = scheduledSpecFullView - 1
 		if scheduledSpecFullView == 0 then
 			scheduledSpecFullView = nil
 		end
 	end
 	if desiredLosmodeChanged + 0.3 > os.clock() then
-		if desiredLosmode ~= Spring.GetMapDrawMode() then
+		if desiredLosmode ~= Engine.Unsynced.GetMapDrawMode() then
 			-- this is needed else the minimap/world doesnt update properly
-			Spring.SendCommands("togglelos")
+			Engine.Unsynced.SendCommands("togglelos")
 		end
 	end
 
@@ -520,15 +520,15 @@ function widget:Update(dt)
 	if (isSpec or lockPlayerID) and not rejoining then
 		if WG["tooltip"] and not toggled and not lockPlayerID then
 			if buttonHovered and buttonHovered == 1 then
-				Spring.SetMouseCursor("cursornormal")
+				Engine.Unsynced.SetMouseCursor("cursornormal")
 				WG["tooltip"].ShowTooltip("playertv", Spring.I18N("ui.playerTV.tooltip"))
 			end
 			if buttonHovered and buttonHovered == 2 then
-				Spring.SetMouseCursor("cursornormal")
+				Engine.Unsynced.SetMouseCursor("cursornormal")
 				WG["tooltip"].ShowTooltip("playertv", Spring.I18N("ui.playerTV.playerViewTooltip"))
 			end
 			if buttonHovered and buttonHovered == 3 then
-				Spring.SetMouseCursor("cursornormal")
+				Engine.Unsynced.SetMouseCursor("cursornormal")
 				WG["tooltip"].ShowTooltip("playertv", Spring.I18N("ui.playerTV.playerCameraTooltip"))
 			end
 		end
@@ -593,9 +593,9 @@ local function drawContent()
 				end
 				local name, _, spec, teamID, _, _, _, _, _ = spGetPlayerInfo(myTeamPlayerID, false)
 				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(myTeamPlayerID)) or name
-				if select(4, Spring.GetTeamInfo(myTeamID, false)) then -- is AI?
-					local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
-					local niceName = Spring.GetGameRulesParam("ainame_" .. myTeamID)
+				if select(4, Engine.Shared.GetTeamInfo(myTeamID, false)) then -- is AI?
+					local _, _, _, aiName = Engine.Shared.GetAIInfo(myTeamID)
+					local niceName = Engine.Shared.GetGameRulesParam("ainame_" .. myTeamID)
 					name = niceName or aiName
 					name = Spring.I18N("ui.playersList.aiName", { name = name })
 				end
@@ -705,22 +705,22 @@ local function togglePlayerView(state)
 	if not toggled2 then
 		-- global viewpoint
 		if not fullview then
-			Spring.SendCommands("specfullview")
+			Engine.Unsynced.SendCommands("specfullview")
 		end
 		if WG.lockcamera and WG.lockcamera.SetLosMode then
 			WG.lockcamera.SetLosMode("normal")
-		elseif Spring.GetMapDrawMode() == "los" then
-			Spring.SendCommands("togglelos")
+		elseif Engine.Unsynced.GetMapDrawMode() == "los" then
+			Engine.Unsynced.SendCommands("togglelos")
 		end
 	else
 		-- player viewpoint
 		if fullview then
 			scheduledSpecFullView = 2 -- this is needed else the minimap/world doesnt update properly
-			Spring.SendCommands("specfullview")
+			Engine.Unsynced.SendCommands("specfullview")
 		end
 		if WG.lockcamera and WG.lockcamera.SetLosMode then
 			WG.lockcamera.SetLosMode("los")
-		elseif Spring.GetMapDrawMode() ~= "los" then
+		elseif Engine.Unsynced.GetMapDrawMode() ~= "los" then
 			desiredLosmode = "los"
 			desiredLosmodeChanged = os.clock()
 		end
@@ -733,7 +733,7 @@ local function playerviewCmd(_, _, params)
 		local playerID = tonumber(params[1])
 		local teamID = select(4, spGetPlayerInfo(playerID))
 		if teamID then
-			Spring.SendCommands("specteam " .. teamID)
+			Engine.Unsynced.SendCommands("specteam " .. teamID)
 		end
 	end
 	togglePlayerView()
@@ -748,7 +748,7 @@ local function playertvCmd(_, _, params)
 		local playerID = tonumber(params[1])
 		local teamID = select(4, spGetPlayerInfo(playerID))
 		if teamID and WG.lockcamera and WG.lockcamera.SetPlayerID then
-			Spring.SendCommands("specteam " .. teamID)
+			Engine.Unsynced.SendCommands("specteam " .. teamID)
 			WG.lockcamera.SetPlayerID(playerID)
 		else
 			togglePlayerTV()
@@ -775,7 +775,7 @@ function widget:Initialize()
 		local _, _, spec, team = spGetPlayerInfo(playerID, false)
 		if not spec then
 			playersTS[playerID] = GetSkill(playerID)
-			local isDestroyable, isDead = select(3, Spring.GetTeamInfo(team, false))
+			local isDestroyable, isDead = select(3, Engine.Shared.GetTeamInfo(team, false))
 			if not isDestroyable and not isDead then
 				humanPlayers = humanPlayers + 1
 			end

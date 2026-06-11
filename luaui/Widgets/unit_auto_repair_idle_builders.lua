@@ -16,28 +16,28 @@ end
 -- Speedups
 ----------------------------------------------------------------
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetTeamUnits = Spring.GetTeamUnits
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitStates = Spring.GetUnitStates
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spValidUnitID = Spring.ValidUnitID
-local spGetGameFrame = Spring.GetGameFrame
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetTeamUnits = Engine.Shared.GetTeamUnits
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitHealth = Engine.Shared.GetUnitHealth
+local spGetUnitStates = Engine.Shared.GetUnitStates
+local spGetUnitCommandCount = Engine.Shared.GetUnitCommandCount
+local spGetUnitCurrentCommand = Engine.Shared.GetUnitCurrentCommand
+local spGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
+local spGetUnitsInCylinder = Engine.Shared.GetUnitsInCylinder
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local spValidUnitID = Engine.Shared.ValidUnitID
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local spGetUnitRulesParam = Engine.Shared.GetUnitRulesParam
 
 local CMD_REPAIR = CMD.REPAIR
 local CMD_MOVE = CMD.MOVE
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_MOVE_STATE = CMD.MOVE_STATE
 local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
-local ALLY_UNITS = Spring.ALLY_UNITS
+local ALLY_UNITS = Engine.Shared.ALLY_UNITS
 
 ----------------------------------------------------------------
 -- Constants
@@ -152,7 +152,7 @@ end
 -- Setup / teardown
 ----------------------------------------------------------------
 local function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0) or Spring.IsReplay() then
+	if Engine.Unsynced.GetSpectatingState() and (spGetGameFrame() > 0) or Engine.Unsynced.IsReplay() then
 		widgetHandler:RemoveWidget()
 		return true
 	end

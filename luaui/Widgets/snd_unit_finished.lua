@@ -16,9 +16,9 @@ end
 --------------------------------------------------------------------------------
 
 local activateSounds = {}
-local GetUnitPosition = Spring.GetUnitPosition
-local PlaySoundFile = Spring.PlaySoundFile
-local configVolume = tonumber(Spring.GetConfigString("snd_volunitreply") or 100)
+local GetUnitPosition = Engine.Shared.GetUnitPosition
+local PlaySoundFile = Engine.Unsynced.PlaySoundFile
+local configVolume = tonumber(Engine.Unsynced.GetConfigString("snd_volunitreply") or 100)
 local volume = ((configVolume or 100) / 100)
 
 function widget:Initialize()

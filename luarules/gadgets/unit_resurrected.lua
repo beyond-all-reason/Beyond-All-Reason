@@ -24,11 +24,11 @@ local VISIBILITY_INLOS = { inlos = true }
 local UPDATE_INTERVAL = Game.gameSpeed
 local TIMEOUT_FRAMES = Game.gameSpeed * 3 -- long enough to get grabbed by FeatureCreated callback
 
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetFeatureRulesParam = Spring.GetFeatureRulesParam
-local spSetFeatureRulesParam = Spring.SetFeatureRulesParam
+local spGetUnitHealth = Engine.Shared.GetUnitHealth
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local spGetUnitCurrentCommand = Engine.Shared.GetUnitCurrentCommand
+local spGetFeatureRulesParam = Engine.Shared.GetFeatureRulesParam
+local spSetFeatureRulesParam = Engine.Synced.SetFeatureRulesParam
 
 local shouldWaitForHealing = {}
 local toBeUnWaited = {}
@@ -40,7 +40,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local function RestoreStateMechanics(unitID, featureID)
-	Spring.SetUnitExperience(unitID, spGetFeatureRulesParam(featureID, "previous_xp") or 0)
+	Engine.Synced.SetUnitExperience(unitID, spGetFeatureRulesParam(featureID, "previous_xp") or 0)
 end
 
 local function RestoreStateGUI(unitID, featureID)
@@ -60,7 +60,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		return
 	end
 
-	local cmdID, featureID = Spring.GetUnitWorkerTask(builderID)
+	local cmdID, featureID = Engine.Shared.GetUnitWorkerTask(builderID)
 	if cmdID ~= CMD_RESURRECT then
 		return
 	end
@@ -76,25 +76,25 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 
 	-- FIXME: 1 -> true (0 is truthy in lua too), but would need to be fixed elsewhere as well
-	Spring.SetUnitRulesParam(unitID, "resurrected", 1, VISIBILITY_INLOS)
+	Engine.Synced.SetUnitRulesParam(unitID, "resurrected", 1, VISIBILITY_INLOS)
 
-	Spring.SetUnitHealth(unitID, spGetUnitHealth(unitID) * 0.05)
+	Engine.Synced.SetUnitHealth(unitID, spGetUnitHealth(unitID) * 0.05)
 
 	RestoreStateMechanics(unitID, featureID)
 
 	-- Don't retain GUI settings (movestate etc) from other players
-	if Spring.GetFeatureTeam(featureID) == Spring.GetUnitTeam(unitID) then
+	if Engine.Shared.GetFeatureTeam(featureID) == Engine.Shared.GetUnitTeam(unitID) then
 		RestoreStateGUI(unitID, featureID)
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	local states = Spring.GetUnitStates(unitID)
+	local states = Engine.Shared.GetUnitStates(unitID)
 	priorStates[unitID] = {
-		timeout = Spring.GetGameFrame() + TIMEOUT_FRAMES,
+		timeout = Engine.Shared.GetGameFrame() + TIMEOUT_FRAMES,
 		firestate = states.firestate,
 		movestate = states.movestate,
-		xp = Spring.GetUnitExperience(unitID),
+		xp = Engine.Shared.GetUnitExperience(unitID),
 	}
 end
 

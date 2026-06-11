@@ -192,14 +192,14 @@ local CONFIG = {
 -- Locals
 --------------------------------------------------------------------------------
 
-local spEcho = Spring.Echo
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitRadius = Spring.GetUnitRadius
+local spEcho = Engine.Shared.Echo
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitRadius = Engine.Shared.GetUnitRadius
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spIsPosInLos = Spring.IsPosInLos
-local spIsSphereInView = Spring.IsSphereInView
-local spGetTeamColor = Spring.GetTeamColor
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spIsPosInLos = Engine.Shared.IsPosInLos
+local spIsSphereInView = Engine.Unsynced.IsSphereInView
+local spGetTeamColor = Engine.Unsynced.GetTeamColor
 
 local glBlending = gl.Blending
 local glDepthTest = gl.DepthTest
@@ -256,7 +256,7 @@ local particleShader
 -- When NanoParticleMode == 0 the engine renders its own nano spray and the
 -- GL4 nano gadget is inactive; energy explosion particles would look out of
 -- place, so we go dormant too. Polled every 30 frames.
-local nanoParticleMode = Spring.GetConfigInt("NanoParticleMode", 1)
+local nanoParticleMode = Engine.Unsynced.GetConfigInt("NanoParticleMode", 1)
 
 -- Pending bursts queue (drained from GameFrame, capped per frame).
 local burstQueue = {}
@@ -1178,10 +1178,10 @@ function gadget:Initialize()
 	classifyDefs()
 	-- Populate finishedUnits for any qualifying units already on the map
 	-- (handles mid-game widget reloads and gadget restarts).
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
+	for _, unitID in ipairs(Engine.Shared.GetAllUnits()) do
+		local unitDefID = Engine.Shared.GetUnitDefID(unitID)
 		if qualifyingDefs[unitDefID] then
-			local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+			local _, _, _, _, buildProgress = Engine.Shared.GetUnitHealth(unitID)
 			if buildProgress and buildProgress >= 1.0 then
 				finishedUnits[unitID] = true
 			end
@@ -1240,7 +1240,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, _attacker
 	local r = spGetUnitRadius(unitID) or 32
 	py = py + r * 0.35
 	-- Delay so energy particles appear after the initial CEG fireball peaks.
-	local targetFrame = Spring.GetGameFrame() + CONFIG.spawnDelayFrames
+	local targetFrame = Engine.Shared.GetGameFrame() + CONFIG.spawnDelayFrames
 	burstTail = burstTail + 1
 	burstQueue[burstTail] = { px, py, pz, unitTeam, meta, targetFrame }
 end
@@ -1248,7 +1248,7 @@ end
 function gadget:GameFrame(n)
 	-- Refresh view caches and NanoParticleMode at low cadence.
 	if n % 30 == 0 then
-		nanoParticleMode = Spring.GetConfigInt("NanoParticleMode", 1)
+		nanoParticleMode = Engine.Unsynced.GetConfigInt("NanoParticleMode", 1)
 		cachedAllyTeamID = spGetMyAllyTeamID()
 		local _, full = spGetSpectatingState()
 		cachedSpecFullView = full and true or false

@@ -22,10 +22,10 @@ local mathMax = math.max
 
 local function GetTeamPlayerCounts()
 	local teamPlayerCounts = {}
-	local playerList = Spring.GetPlayerList()
+	local playerList = Engine.Shared.GetPlayerList()
 	for i = 1, #playerList do
 		local playerID = playerList[i]
-		local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID, false)
+		local _, _, isSpec, teamID = Engine.Shared.GetPlayerInfo(playerID, false)
 		if not isSpec then
 			teamPlayerCounts[teamID] = (teamPlayerCounts[teamID] or 0) + 1
 		end
@@ -34,11 +34,11 @@ local function GetTeamPlayerCounts()
 end
 
 local function setup(addResources)
-	local startMetalStorage = Spring.GetModOptions().startmetalstorage
-	local startEnergyStorage = Spring.GetModOptions().startenergystorage
-	local startMetal = Spring.GetModOptions().startmetal
-	local startEnergy = Spring.GetModOptions().startenergy
-	local bonusMultiplierEnabled = Spring.GetModOptions().bonusstartresourcemultiplier
+	local startMetalStorage = Engine.Shared.GetModOptions().startmetalstorage
+	local startEnergyStorage = Engine.Shared.GetModOptions().startenergystorage
+	local startMetal = Engine.Shared.GetModOptions().startmetal
+	local startEnergy = Engine.Shared.GetModOptions().startenergy
+	local bonusMultiplierEnabled = Engine.Shared.GetModOptions().bonusstartresourcemultiplier
 
 	local commanderMinMetal, commanderMinEnergy = 0, 0
 
@@ -48,7 +48,7 @@ local function setup(addResources)
 		teamPlayerCounts = GetTeamPlayerCounts()
 	end
 
-	local teamList = Spring.GetTeamList()
+	local teamList = Engine.Shared.GetTeamList()
 	for i = 1, #teamList do
 		local teamID = teamList[i]
 
@@ -61,7 +61,7 @@ local function setup(addResources)
 		--If starting bonus multiplication is enabled, multiply it.
 		local teamMultiplier = 1
 		if bonusMultiplierEnabled then
-			teamMultiplier = select(7, Spring.GetTeamInfo(teamID))
+			teamMultiplier = select(7, Engine.Shared.GetTeamInfo(teamID))
 		end
 
 		-- Get starting resources and storage including any bonuses from mods
@@ -71,23 +71,23 @@ local function setup(addResources)
 		local startingEnergyStorage = startEnergyStorage * teamMultiplier * multiplier
 
 		-- Get the player's start unit to make sure starting storage is no less than its storage
-		local com = UnitDefs[Spring.GetTeamRulesParam(teamID, "startUnit")]
+		local com = UnitDefs[Engine.Shared.GetTeamRulesParam(teamID, "startUnit")]
 		if com then
 			commanderMinMetal = com.metalStorage or 0
 			commanderMinEnergy = com.energyStorage or 0
 		end
 
-		Spring.SetTeamResource(teamID, "ms", mathMax(minStorageMetal, startingMetalStorage, startingMetal, commanderMinMetal))
-		Spring.SetTeamResource(teamID, "es", mathMax(minStorageEnergy, startingEnergyStorage, startingEnergy, commanderMinEnergy))
+		Engine.Synced.SetTeamResource(teamID, "ms", mathMax(minStorageMetal, startingMetalStorage, startingMetal, commanderMinMetal))
+		Engine.Synced.SetTeamResource(teamID, "es", mathMax(minStorageEnergy, startingEnergyStorage, startingEnergy, commanderMinEnergy))
 		if addResources then
-			Spring.SetTeamResource(teamID, "m", startingMetal)
-			Spring.SetTeamResource(teamID, "e", startingEnergy)
+			Engine.Synced.SetTeamResource(teamID, "m", startingMetal)
+			Engine.Synced.SetTeamResource(teamID, "e", startingEnergy)
 		end
 	end
 end
 
 function gadget:Initialize()
-	if Spring.GetGameFrame() > 0 then
+	if Engine.Shared.GetGameFrame() > 0 then
 		return
 	end
 	setup(true)
@@ -99,6 +99,6 @@ function gadget:GameStart()
 end
 
 function gadget:TeamDied(teamID)
-	Spring.SetTeamShareLevel(teamID, "metal", 0)
-	Spring.SetTeamShareLevel(teamID, "energy", 0)
+	Engine.Synced.SetTeamShareLevel(teamID, "metal", 0)
+	Engine.Synced.SetTeamShareLevel(teamID, "energy", 0)
 end

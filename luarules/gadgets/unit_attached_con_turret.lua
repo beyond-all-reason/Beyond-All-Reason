@@ -20,28 +20,28 @@ end
 local CMD_REPAIR = CMD.REPAIR
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_STOP = CMD.STOP
-local SpGetUnitCommands = Spring.GetUnitCommands
-local SpGiveOrderToUnit = Spring.GiveOrderToUnit
-local SpGetUnitPosition = Spring.GetUnitPosition
-local SpGetFeaturePosition = Spring.GetFeaturePosition
-local SpGetUnitDefID = Spring.GetUnitDefID
-local SpGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local SpGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local SpGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
-local SpGetFeatureDefID = Spring.GetFeatureDefID
-local SpGetFeatureResurrect = Spring.GetFeatureResurrect
-local SpGetUnitHealth = Spring.GetUnitHealth
-local SpGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local SpGetUnitDefDimensions = Spring.GetUnitDefDimensions
-local SpGetFeatureRadius = Spring.GetFeatureRadius
-local SpGetUnitRadius = Spring.GetUnitRadius
-local SpGetUnitFeatureSeparation = Spring.GetUnitFeatureSeparation
-local SpGetUnitSeparation = Spring.GetUnitSeparation
-local SpGetUnitTransporter = Spring.GetUnitTransporter
+local SpGetUnitCommands = Engine.Shared.GetUnitCommands
+local SpGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local SpGetUnitPosition = Engine.Shared.GetUnitPosition
+local SpGetFeaturePosition = Engine.Shared.GetFeaturePosition
+local SpGetUnitDefID = Engine.Shared.GetUnitDefID
+local SpGetUnitsInCylinder = Engine.Shared.GetUnitsInCylinder
+local SpGetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+local SpGetFeaturesInCylinder = Engine.Shared.GetFeaturesInCylinder
+local SpGetFeatureDefID = Engine.Shared.GetFeatureDefID
+local SpGetFeatureResurrect = Engine.Shared.GetFeatureResurrect
+local SpGetUnitHealth = Engine.Shared.GetUnitHealth
+local SpGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
+local SpGetUnitDefDimensions = Engine.Shared.GetUnitDefDimensions
+local SpGetFeatureRadius = Engine.Shared.GetFeatureRadius
+local SpGetUnitRadius = Engine.Shared.GetUnitRadius
+local SpGetUnitFeatureSeparation = Engine.Shared.GetUnitFeatureSeparation
+local SpGetUnitSeparation = Engine.Shared.GetUnitSeparation
+local SpGetUnitTransporter = Engine.Shared.GetUnitTransporter
 
-local SpGetHeadingFromVector = Spring.GetHeadingFromVector
-local SpGetUnitHeading = Spring.GetUnitHeading
-local SpCallCOBScript = Spring.CallCOBScript
+local SpGetHeadingFromVector = Engine.Shared.GetHeadingFromVector
+local SpGetUnitHeading = Engine.Shared.GetUnitHeading
+local SpCallCOBScript = Engine.Synced.CallCOBScript
 
 --repairs and reclaims start at the edge of the unit radius
 --so we need to increase our search radius by the maximum unit radius
@@ -58,7 +58,7 @@ end
 local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	local transporterID = SpGetUnitTransporter(baseUnitID)
 	if transporterID then
-		Spring.GiveOrderToUnit(nanoID, CMD_STOP, {}, 0)
+		Engine.Shared.GiveOrderToUnit(nanoID, CMD_STOP, {}, 0)
 		return
 	end
 	-- first, check command the body is performing
@@ -204,29 +204,29 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	-- for now, just corvac gets an attached con turret
 	if unitDef.name == "corvac" then
 		local xx, yy, zz = SpGetUnitPosition(unitID)
-		nanoID = Spring.CreateUnit("corvacct", xx, yy, zz, 0, Spring.GetUnitTeam(unitID))
+		nanoID = Engine.Synced.CreateUnit("corvacct", xx, yy, zz, 0, Engine.Shared.GetUnitTeam(unitID))
 		if not nanoID then
 			-- unit limit hit or invalid spawn surface
 			return
 		end
-		Spring.UnitAttach(unitID, nanoID, 3)
+		Engine.Synced.UnitAttach(unitID, nanoID, 3)
 		-- makes the attached con turret as non-interacting as possible
-		Spring.SetUnitBlocking(nanoID, false, false, false)
-		Spring.SetUnitNoSelect(nanoID, true)
+		Engine.Synced.SetUnitBlocking(nanoID, false, false, false)
+		Engine.Unsynced.SetUnitNoSelect(nanoID, true)
 		attached_builders[nanoID] = unitID
 		attached_builder_def[nanoID] = SpGetUnitDefID(nanoID)
 	end
 	if unitDef.name == "legmohobp" then
 		local xx, yy, zz = SpGetUnitPosition(unitID)
-		nanoID = Spring.CreateUnit("legmohobpct", xx, yy, zz, 0, Spring.GetUnitTeam(unitID))
+		nanoID = Engine.Synced.CreateUnit("legmohobpct", xx, yy, zz, 0, Engine.Shared.GetUnitTeam(unitID))
 		if not nanoID then
 			-- unit limit hit or invalid spawn surface
 			return
 		end
-		Spring.UnitAttach(unitID, nanoID, 3)
+		Engine.Synced.UnitAttach(unitID, nanoID, 3)
 		-- makes the attached con turret as non-interacting as possible
-		Spring.SetUnitBlocking(nanoID, false, false, false)
-		Spring.SetUnitNoSelect(nanoID, false)
+		Engine.Synced.SetUnitBlocking(nanoID, false, false, false)
+		Engine.Unsynced.SetUnitNoSelect(nanoID, false)
 		attached_builders[nanoID] = unitID
 		attached_builder_def[nanoID] = SpGetUnitDefID(nanoID)
 	end

@@ -15,10 +15,10 @@ end
 --------------------------------------------------------------------------------
 -- Localized Spring API
 --------------------------------------------------------------------------------
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitStates = Spring.GetUnitStates
-local spValidUnitID = Spring.ValidUnitID
-local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetUnitStates = Engine.Shared.GetUnitStates
+local spValidUnitID = Engine.Shared.ValidUnitID
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
 
 local repeatTexture = "LuaUI/Images/repeat.png"
 
@@ -228,14 +228,14 @@ function widget:DrawScreenEffects()
 	if chobbyInterface then
 		return
 	end
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 	if repeatVBO.usedElements == 0 then
 		return
 	end
 
-	local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5
+	local disticon = Engine.Unsynced.GetConfigInt("UnitIconDistance", 200) * 27.5
 
 	gl.DepthTest(true)
 	gl.DepthMask(false)

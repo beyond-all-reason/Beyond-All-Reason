@@ -21,12 +21,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	local CMD_SELFD = CMD.SELFD
 	local selfdCheckTeamUnits = {}
-	local spGetUnitSelfDTime = Spring.GetUnitSelfDTime
-	local spGetTeamUnits = Spring.GetTeamUnits
-	local spGetTeamList = Spring.GetTeamList
-	local spGetTeamInfo = Spring.GetTeamInfo
-	local spGetAllyTeamList = Spring.GetAllyTeamList
-	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local spGetUnitSelfDTime = Engine.Shared.GetUnitSelfDTime
+	local spGetTeamUnits = Engine.Shared.GetTeamUnits
+	local spGetTeamList = Engine.Shared.GetTeamList
+	local spGetTeamInfo = Engine.Shared.GetTeamInfo
+	local spGetAllyTeamList = Engine.Shared.GetAllyTeamList
+	local gaiaTeamID = Engine.Shared.GetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, spGetTeamInfo(gaiaTeamID, false))
 
 	local function isLastAliveNonGaiaAllyTeam(teamID)
@@ -60,16 +60,16 @@ if gadgetHandler:IsSyncedCode() then
 		for i = 1, #units do
 			local unitID = units[i]
 			if spGetUnitSelfDTime(unitID) > 0 then
-				Spring.GiveOrderToUnit(unitID, CMD_SELFD, {}, 0)
+				Engine.Shared.GiveOrderToUnit(unitID, CMD_SELFD, {}, 0)
 			end
 		end
 
-		Spring.KillTeam(teamID)
+		Engine.Synced.KillTeam(teamID)
 
 		-- notify players in this team
-		local players = Spring.GetPlayerList()
+		local players = Engine.Shared.GetPlayerList()
 		for _, playerID in pairs(players) do
-			if teamID == select(4, Spring.GetPlayerInfo(playerID, false)) then
+			if teamID == select(4, Engine.Shared.GetPlayerInfo(playerID, false)) then
 				SendToUnsynced("forceResignMessage", playerID)
 			end
 		end
@@ -112,7 +112,7 @@ if gadgetHandler:IsSyncedCode() then
 						if skippedUnitCount >= skipResignAmount then
 							break
 						elseif selfdUnitCount >= triggerResignAmount then
-							local LuaAI = Spring.GetTeamLuaAI(teamID)
+							local LuaAI = Engine.Shared.GetTeamLuaAI(teamID)
 							if not LuaAI or not (string.find(LuaAI, "Scavengers") or string.find(LuaAI, "Raptors")) then
 								forceResignTeam(teamID)
 							end
@@ -135,21 +135,21 @@ if gadgetHandler:IsSyncedCode() then
 else -- UNSYNCED
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myTeamID = Spring.GetMyTeamID()
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
-	local spGetTeamList = Spring.GetTeamList
+	local gaiaTeamID = Engine.Shared.GetGaiaTeamID()
+	local gaiaAllyTeamID = select(6, Engine.Shared.GetTeamInfo(gaiaTeamID, false))
+	local spGetTeamList = Engine.Shared.GetTeamList
 
 	local function isLastAliveNonGaiaAllyTeam(teamID)
-		local teamAllyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
+		local teamAllyTeamID = select(6, Engine.Shared.GetTeamInfo(teamID, false))
 		if not teamAllyTeamID then
 			return false
 		end
 
 		local aliveNonGaiaAllyTeams = 0
-		for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+		for _, allyTeamID in ipairs(Engine.Shared.GetAllyTeamList()) do
 			if allyTeamID ~= gaiaAllyTeamID then
 				for _, tID in ipairs(spGetTeamList(allyTeamID) or {}) do
-					if not select(4, Spring.GetTeamInfo(tID, false)) then
+					if not select(4, Engine.Shared.GetTeamInfo(tID, false)) then
 						aliveNonGaiaAllyTeams = aliveNonGaiaAllyTeams + 1
 						break
 					end
@@ -165,22 +165,22 @@ else -- UNSYNCED
 
 	local function forceResignMessage(_, playerID)
 		if playerID == myPlayerID then
-			if not Spring.GetSpectatingState() then
+			if not Engine.Unsynced.GetSpectatingState() then
 				if isLastAliveNonGaiaAllyTeam(myTeamID) then
 					return
 				end
 				-- check first if player has team players
 				local numActiveTeamPlayers = 0
-				local allyID = select(6, Spring.GetTeamInfo(myTeamID, false))
-				local teamList = Spring.GetTeamList(allyID)
+				local allyID = select(6, Engine.Shared.GetTeamInfo(myTeamID, false))
+				local teamList = Engine.Shared.GetTeamList(allyID)
 				for _, tID in ipairs(teamList) do
-					local luaAI = Spring.GetTeamLuaAI(tID)
-					if tID ~= myTeamID and not select(4, Spring.GetTeamInfo(tID, false)) and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(tID, "numActivePlayers") > 0 then
+					local luaAI = Engine.Shared.GetTeamLuaAI(tID)
+					if tID ~= myTeamID and not select(4, Engine.Shared.GetTeamInfo(tID, false)) and (not luaAI or luaAI == "") and Engine.Shared.GetTeamRulesParam(tID, "numActivePlayers") > 0 then
 						numActiveTeamPlayers = numActiveTeamPlayers + 1
 					end
 				end
 				if numActiveTeamPlayers > 0 and Script.LuaUI("GadgetMessageProxy") then
-					Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy("ui.forceResignMessage"))
+					Engine.Shared.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy("ui.forceResignMessage"))
 				end
 			end
 		end

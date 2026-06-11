@@ -1,9 +1,9 @@
 local mapWidth = Game.mapSizeX
 local mapHeight = Game.mapSizeZ
 
-local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMiniMapRotation = Spring.GetMiniMapRotation
+local spGetMiniMapGeometry = Engine.Unsynced.GetMiniMapGeometry
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGetMiniMapRotation = Engine.Unsynced.GetMiniMapRotation
 
 local math_floor = math.floor
 local PI_HALF = math.pi / 2

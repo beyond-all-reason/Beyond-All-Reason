@@ -94,16 +94,16 @@ function i18n.setLanguage(language)
 	-- Manually switching fonts is requred until Spring handles font substitution at the engine level
 	-- LuaUI reload must be invoked for widgets to refresh all their font objects
 	local asianLanguage = language == "zh"
-	local currentFont = Spring.GetConfigString("bar_font")
+	local currentFont = Engine.Unsynced.GetConfigString("bar_font")
 
 	if asianLanguage and currentFont ~= asianFont then
-		Spring.SetConfigString("bar_font", asianFont)
-		Spring.SetConfigString("bar_font2", asianFont)
-		Spring.SendCommands("luarules reloadluaui")
+		Engine.Unsynced.SetConfigString("bar_font", asianFont)
+		Engine.Unsynced.SetConfigString("bar_font2", asianFont)
+		Engine.Unsynced.SendCommands("luarules reloadluaui")
 	elseif not asianLanguage and currentFont == asianFont then
-		Spring.SetConfigString("bar_font", "Poppins-Regular.otf")
-		Spring.SetConfigString("bar_font2", "Exo2-SemiBold.otf")
-		Spring.SendCommands("luarules reloadluaui")
+		Engine.Unsynced.SetConfigString("bar_font", "Poppins-Regular.otf")
+		Engine.Unsynced.SetConfigString("bar_font2", "Exo2-SemiBold.otf")
+		Engine.Unsynced.SendCommands("luarules reloadluaui")
 	end
 end
 

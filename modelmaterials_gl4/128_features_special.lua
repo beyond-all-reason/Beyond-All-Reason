@@ -7,11 +7,11 @@ local GL_FLOAT = 0x1406
 local GL_INT = 0x1404
 -- args=<objID, matName, lodMatNum, uniformName, uniformType, uniformData>
 local mySetMaterialUniform = {
-	[false] = Spring.FeatureRendering.SetForwardMaterialUniform,
-	[true] = Spring.FeatureRendering.SetDeferredMaterialUniform,
+	[false] = Engine.Unsynced.FeatureRendering.SetForwardMaterialUniform,
+	[true] = Engine.Unsynced.FeatureRendering.SetDeferredMaterialUniform,
 }
 
-local spGetFeatureHealth = Spring.GetFeatureHealth
+local spGetFeatureHealth = Engine.Shared.GetFeatureHealth
 local featuresHealth = {} --cache
 local healthArray = { [1] = 0.0 }
 
@@ -394,11 +394,11 @@ for id = 1, #FeatureDefs do
 			local fromUnit = featureDef.name:find("_dead") or featureDef.name:find("_heap")
 
 			if fromUnit then
-				Spring.PreloadFeatureDefModel(id)
+				Engine.Unsynced.PreloadFeatureDefModel(id)
 				local lowercasetex1 = ""
 
 				if featureDef.model.textures.tex1 == nil then
-					Spring.Echo("nil texture 1 detected for", featureDef.name)
+					Engine.Shared.Echo("nil texture 1 detected for", featureDef.name)
 				else
 					lowercasetex1 = string.lower(featureDef.model.textures.tex1)
 				end
@@ -412,7 +412,7 @@ for id = 1, #FeatureDefs do
 
 				if not wreckNormalTex then
 					table.insert(failedwrecknormaltex, 1, featureDef.name)
-					Spring.Echo("Failed to find normal map for unit wreck: ", featureDef.name, lowercasetex1)
+					Engine.Shared.Echo("Failed to find normal map for unit wreck: ", featureDef.name, lowercasetex1)
 				end
 
 				featureMaterials[id] = { "featuresMetalDeadOrHeap", NORMALTEX = wreckNormalTex }
@@ -425,7 +425,7 @@ for id = 1, #FeatureDefs do
 end
 
 if #failedwrecknormaltex > 0 then
-	Spring.Echo("Failed to find normal map for unit wreck: ", table.concat(failedwrecknormaltex, ","))
+	Engine.Shared.Echo("Failed to find normal map for unit wreck: ", table.concat(failedwrecknormaltex, ","))
 end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

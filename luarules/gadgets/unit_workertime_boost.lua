@@ -20,9 +20,9 @@ end
 -- workertimeboost = number -- in the unitdefs of the builder. This is the mulitplier by which workertime is boosted.
 -- wtboostunittype = "MOBILE TURRET" defined in unitdef of builder which defines what units trigger workertime boost for that builder.
 
-local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local spGetUnitDefID = Spring.GetUnitDefID
-local spSetUnitRulesParam = Spring.SetUnitRulesParam
+local spGetUnitIsBuilding = Engine.Shared.GetUnitIsBuilding
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spSetUnitRulesParam = Engine.Synced.SetUnitRulesParam
 local boostableUnits = {}
 local builderWatchDefs = {}
 local builderWatch = {}
@@ -77,15 +77,15 @@ function gadget:GameFrame(frame)
 						end
 					end
 					if enableBoost == true then
-						Spring.SetUnitBuildSpeed(id, data.boost)
+						Engine.Synced.SetUnitBuildSpeed(id, data.boost)
 						spSetUnitRulesParam(id, "workertimeBoosted", data.boost)
 					else
-						Spring.SetUnitBuildSpeed(id, data.buildspeed)
+						Engine.Synced.SetUnitBuildSpeed(id, data.buildspeed)
 						data.timestamp = frame + 60
 						spSetUnitRulesParam(id, "workertimeBoosted", 0)
 					end
 				else
-					Spring.SetUnitBuildSpeed(id, data.buildspeed)
+					Engine.Synced.SetUnitBuildSpeed(id, data.buildspeed)
 				end
 			end
 		end

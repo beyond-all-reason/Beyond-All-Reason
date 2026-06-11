@@ -11,7 +11,7 @@ function gadget:GetInfo()
 	}
 end
 
-local modOptions = Spring.GetModOptions()
+local modOptions = Engine.Shared.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
 if modOptions.deathmode ~= "territorial_domination" or not isSynced then
 	return false
@@ -70,22 +70,22 @@ local max = math.max
 local min = math.min
 local random = math.random
 
-local spGetGameFrame = Spring.GetGameFrame
-local spGetGameSeconds = Spring.GetGameSeconds
-local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetPositionLosState = Spring.GetPositionLosState
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetTeamList = Spring.GetTeamList
-local spGetGaiaTeamID = Spring.GetGaiaTeamID
-local spDestroyUnit = Spring.DestroyUnit
-local spSpawnCEG = Spring.SpawnCEG
-local spPlaySoundFile = Spring.PlaySoundFile
-local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetGameSeconds = Engine.Shared.GetGameSeconds
+local spGetUnitsInRectangle = Engine.Shared.GetUnitsInRectangle
+local spGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+local spGetUnitIsCloaked = Engine.Shared.GetUnitIsCloaked
+local spGetPositionLosState = Engine.Shared.GetPositionLosState
+local spGetTeamInfo = Engine.Shared.GetTeamInfo
+local spGetTeamList = Engine.Shared.GetTeamList
+local spGetGaiaTeamID = Engine.Shared.GetGaiaTeamID
+local spDestroyUnit = Engine.Synced.DestroyUnit
+local spSpawnCEG = Engine.Synced.SpawnCEG
+local spPlaySoundFile = Engine.Unsynced.PlaySoundFile
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
 local SendToUnsynced = SendToUnsynced
 
 local mapSizeX = Game.mapSizeX
@@ -315,7 +315,7 @@ local function setAllyTeamRanks()
 					topLivingRankedScoreIndex = i
 				end
 			end
-			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_rank", currentRank)
+			Engine.Synced.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_rank", currentRank)
 		end
 	else
 		topLivingRankedScoreIndex = currentRank
@@ -326,7 +326,7 @@ local function processLivingTeams()
 	allyTeamsCount = 0
 	allyTeamsWatch = {}
 
-	allTeams = Spring.GetTeamList()
+	allTeams = Engine.Shared.GetTeamList()
 	for _, teamID in ipairs(allTeams) do
 		local _, _, isDead, _, _, allyID = spGetTeamInfo(teamID)
 		if not isDead and not doomedAllies[allyID] then
@@ -399,7 +399,7 @@ local function defeatAlly(allyID)
 			killQueue[killFrame] = killQueue[killFrame] or {}
 			killQueue[killFrame][unitID] = true
 
-			Spring.SetUnitRulesParam(unitID, "muteDestructionNotification", 1)
+			Engine.Synced.SetUnitRulesParam(unitID, "muteDestructionNotification", 1)
 
 			local x, y, z = spGetUnitPosition(unitID)
 			spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
@@ -409,16 +409,16 @@ local function defeatAlly(allyID)
 			spPlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
 			GG.ComSpawnDefoliate(x, y, z)
 
-			local allPlayers = Spring.GetPlayerList()
+			local allPlayers = Engine.Shared.GetPlayerList()
 			for _, playerID in ipairs(allPlayers) do
-				local _, _, _, _, playerAllyID = Spring.GetPlayerInfo(playerID, false)
+				local _, _, _, _, playerAllyID = Engine.Shared.GetPlayerInfo(playerID, false)
 				local notificationEvent = (playerAllyID == allyID) and "TerritorialDomination/YourTeamEliminated" or "TerritorialDomination/EnemyTeamEliminated"
 				SendToUnsynced("NotificationEvent", notificationEvent, tostring(playerID))
 			end
 		end
 	end
 
-	Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", 0)
+	Engine.Synced.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", 0)
 end
 
 local function addProgress(gridID, progressChange, winningAllyID, delayDecay)
@@ -582,12 +582,12 @@ local function updateProjectedPoints()
 
 		if currentRound <= MAX_ROUNDS then
 			projectedAllyTeamPoints[allyID] = projectedScore
-			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", projectedScore)
+			Engine.Synced.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", projectedScore)
 		else
 			projectedAllyTeamPoints[allyID] = 0
-			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", 0)
+			Engine.Synced.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", 0)
 		end
-		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_territoryCount", territoryCount)
+		Engine.Synced.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_territoryCount", territoryCount)
 	end
 end
 
@@ -645,19 +645,19 @@ function gadget:GameFrame(frame)
 
 			if currentRound <= MAX_ROUNDS then
 				eliminationThreshold = math.floor(newHighestScore * ELIMINATION_THRESHOLD_MULTIPLIER)
-				Spring.SetGameRulesParam("territorialDominationEliminationThreshold", eliminationThreshold)
+				Engine.Synced.SetGameRulesParam("territorialDominationEliminationThreshold", eliminationThreshold)
 				roundTimestamp = seconds + ROUND_SECONDS
 			end
 		end
 		updateProjectedPoints()
 		setAllyTeamRanks()
 
-		Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", currentRound > MAX_ROUNDS and 0 or roundTimestamp)
-		Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
-		Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
+		Engine.Synced.SetGameRulesParam("territorialDominationRoundEndTimestamp", currentRound > MAX_ROUNDS and 0 or roundTimestamp)
+		Engine.Synced.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
+		Engine.Synced.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
 
 		for allyID, scoreData in pairs(allyData) do
-			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_score", scoreData.score)
+			Engine.Synced.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_score", scoreData.score)
 		end
 	end
 
@@ -686,28 +686,28 @@ function gadget:Initialize()
 		end
 	end
 
-	local units = Spring.GetAllUnits()
+	local units = Engine.Shared.GetAllUnits()
 	for i = 1, #units do
 		local unitID = units[i]
-		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), Engine.Shared.GetUnitTeam(unitID))
 	end
 
-	allTeams = Spring.GetTeamList()
+	allTeams = Engine.Shared.GetTeamList()
 
 	updateProjectedPoints()
 
-	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
-	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
+	Engine.Synced.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
+	Engine.Synced.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
 
 	for allyID in pairs(allyTeamsWatch) do
-		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_score", 0)
-		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_rank", 1)
+		Engine.Synced.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_score", 0)
+		Engine.Synced.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_rank", 1)
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if commandersDefs[unitDefID] then
-		livingCommanders[unitID] = select(6, Spring.GetTeamInfo(unitTeam))
+		livingCommanders[unitID] = select(6, Engine.Shared.GetTeamInfo(unitTeam))
 	end
 end
 

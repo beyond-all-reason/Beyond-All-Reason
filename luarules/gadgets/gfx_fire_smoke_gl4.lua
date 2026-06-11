@@ -30,27 +30,27 @@ local debugEcho = false
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spGetGroundHeight = Spring.GetGroundHeight
-local spEcho = Spring.Echo
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
-local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spEcho = Engine.Shared.Echo
+local spGetTimer = Engine.Unsynced.GetTimer
+local spDiffTimers = Engine.Unsynced.DiffTimers
+local spGetProjectilesInRectangle = Engine.Shared.GetProjectilesInRectangle
 
 -- Subscription handle for the shared projectile dispatcher (set in Initialize).
 -- When nil, we fall back to calling Spring.GetProjectilesInRectangle directly.
 local dispatchHandle = nil
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spIsSphereInView = Spring.IsSphereInView
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
-local spGetFPS = Spring.GetFPS
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spValidUnitID = Spring.ValidUnitID
-local spGetWind = Spring.GetWind
-local spGetConfigInt = Spring.GetConfigInt
-local spGetGameSpeed = Spring.GetGameSpeed
+local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
+local spGetProjectileVelocity = Engine.Shared.GetProjectileVelocity
+local spIsSphereInView = Engine.Unsynced.IsSphereInView
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
+local spGetProjectileOwnerID = Engine.Shared.GetProjectileOwnerID
+local spGetFPS = Engine.Unsynced.GetFPS
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitVelocity = Engine.Shared.GetUnitVelocity
+local spValidUnitID = Engine.Shared.ValidUnitID
+local spGetWind = Engine.Shared.GetWind
+local spGetConfigInt = Engine.Unsynced.GetConfigInt
+local spGetGameSpeed = Engine.Unsynced.GetGameSpeed
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ

@@ -15,8 +15,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local spGetSelectedUnitsCount = Engine.Unsynced.GetSelectedUnitsCount
 
 -- Behavior:
 -- To give a line command: select command, then right click & drag
@@ -132,7 +132,7 @@ local usingRMB = false -- All commands use right mouse + drag to do a formation 
 local inMinimap = false -- Is the line being drawn in the minimap
 local endShift = false -- True to reset command when shift is released
 
-local MiniMapFullProxy = (Spring.GetConfigInt("MiniMapFullProxy", 0) == 1)
+local MiniMapFullProxy = (Engine.Unsynced.GetConfigInt("MiniMapFullProxy", 0) == 1)
 
 --------------------------------------------------------------------------------
 -- Speedups
@@ -149,22 +149,22 @@ local glScale = gl.Scale
 local glTranslate = gl.Translate
 local glLoadIdentity = gl.LoadIdentity
 
-local spGetActiveCommand = Spring.GetActiveCommand
-local spSetActiveCommand = Spring.SetActiveCommand
-local spGetDefaultCommand = Spring.GetDefaultCommand
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-local spGetModKeyState = Spring.GetModKeyState
-local spGetInvertQueueKey = Spring.GetInvertQueueKey
-local spIsAboveMiniMap = Spring.IsAboveMiniMap
-local spGiveOrder = Spring.GiveOrder
-local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
-local spGetUnitCommands = Spring.GetUnitCommands
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetViewGeometry = Spring.GetViewGeometry
-local spTraceScreenRay = Spring.TraceScreenRay
+local spGetActiveCommand = Engine.Unsynced.GetActiveCommand
+local spSetActiveCommand = Engine.Unsynced.SetActiveCommand
+local spGetDefaultCommand = Engine.Unsynced.GetDefaultCommand
+local spFindUnitCmdDesc = Engine.Shared.FindUnitCmdDesc
+local spGetModKeyState = Engine.Unsynced.GetModKeyState
+local spGetInvertQueueKey = Engine.Unsynced.GetInvertQueueKey
+local spIsAboveMiniMap = Engine.Unsynced.IsAboveMiniMap
+local spGiveOrder = Engine.Unsynced.GiveOrder
+local spGetUnitIsTransporting = Engine.Shared.GetUnitIsTransporting
+local spGetUnitCommands = Engine.Shared.GetUnitCommands
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGetFeaturePosition = Engine.Shared.GetFeaturePosition
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spTraceScreenRay = Engine.Unsynced.TraceScreenRay
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local maxUnits = Game.maxUnits
@@ -636,7 +636,7 @@ function widget:MouseRelease(mx, my, mButton)
 
 		-- we add the drag threshold code here
 		-- tracing to a point with a drag threshold pixel delta added to mouse coord, to get world distance
-		local selectionThreshold = Spring.GetConfigInt("MouseDragFrontCommandThreshold")
+		local selectionThreshold = Engine.Unsynced.GetConfigInt("MouseDragFrontCommandThreshold")
 		local _, dragDeltaPos = spTraceScreenRay(mx, my + selectionThreshold, true, false, false, true)
 		local _, pos = spTraceScreenRay(mx, my, true, false, false, true)
 		local dragDelta = 0
@@ -693,7 +693,7 @@ function widget:MouseRelease(mx, my, mButton)
 						local orderPos = orderPair[2]
 						GiveNotifyingOrderToUnit(unitArr, orderArr, orderPair[1], CMD_INSERT, { 0, usingCmd, cmdOpts.coded, orderPos[1], orderPos[2], orderPos[3] }, altOpts)
 						if (i == #orders and #unitArr > 0) or #unitArr >= 100 then
-							Spring.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
+							Engine.Shared.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
 							unitArr = {}
 							orderArr = {}
 						end
@@ -703,14 +703,14 @@ function widget:MouseRelease(mx, my, mButton)
 						local orderPair = orders[i]
 						GiveNotifyingOrderToUnit(unitArr, orderArr, orderPair[1], usingCmd, orderPair[2], cmdOpts)
 						if (i == #orders and #unitArr > 0) or #unitArr >= 100 then
-							Spring.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
+							Engine.Shared.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
 							unitArr = {}
 							orderArr = {}
 						end
 					end
 				end
 				if usingCmd == CMD_SETTARGET then
-					Spring.SendLuaRulesMsg("settarget_line")
+					Engine.Unsynced.SendLuaRulesMsg("settarget_line")
 				end
 				spSetActiveCommand(0) -- Deselect command
 			end
@@ -1494,7 +1494,7 @@ function widget:Initialize()
 			local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
 
 			-- Get drag threshold
-			local selectionThreshold = Spring.GetConfigInt("MouseDragFrontCommandThreshold") or 20
+			local selectionThreshold = Engine.Unsynced.GetConfigInt("MouseDragFrontCommandThreshold") or 20
 			local dragDelta = selectionThreshold -- Approximate for external callers
 			local adjustedMinFormationLength = max(dragDelta, minFormationLength)
 
@@ -1525,7 +1525,7 @@ function widget:Initialize()
 							local orderPos = orderPair[2]
 							GiveNotifyingOrderToUnit(unitArr, orderArr, orderPair[1], CMD_INSERT, { 0, usingCmd, cmdOpts.coded, orderPos[1], orderPos[2], orderPos[3] }, altOpts)
 							if (i == #orders and #unitArr > 0) or #unitArr >= 100 then
-								Spring.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
+								Engine.Shared.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
 								unitArr = {}
 								orderArr = {}
 							end
@@ -1535,7 +1535,7 @@ function widget:Initialize()
 							local orderPair = orders[i]
 							GiveNotifyingOrderToUnit(unitArr, orderArr, orderPair[1], usingCmd, orderPair[2], cmdOpts)
 							if (i == #orders and #unitArr > 0) or #unitArr >= 100 then
-								Spring.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
+								Engine.Shared.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
 								unitArr = {}
 								orderArr = {}
 							end

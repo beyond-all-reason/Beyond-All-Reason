@@ -25,7 +25,7 @@ local mathPi = math.pi
 
 -- Localized Spring API for performance
 local spGetMyTeamID = Spring.GetMyTeamID
-local spEcho = Spring.Echo
+local spEcho = Engine.Shared.Echo
 
 ---------------------------
 
@@ -466,16 +466,16 @@ local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_KEEP = 0x1E00 --GL.KEEP
 local GL_REPLACE = GL.REPLACE --GL.KEEP
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitWeaponVectors = Spring.GetUnitWeaponVectors
-local spGetUnitWeaponState = Spring.GetUnitWeaponState
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local GetModKeyState = Spring.GetModKeyState
-local GetActiveCommand = Spring.GetActiveCommand
-local GetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitWeaponVectors = Engine.Shared.GetUnitWeaponVectors
+local spGetUnitWeaponState = Engine.Shared.GetUnitWeaponState
+local spGetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spTraceScreenRay = Engine.Unsynced.TraceScreenRay
+local GetModKeyState = Engine.Unsynced.GetModKeyState
+local GetActiveCommand = Engine.Unsynced.GetActiveCommand
+local GetSelectedUnits = Engine.Unsynced.GetSelectedUnits
 local chobbyInterface
 
 local CMD_ATTACK = CMD.ATTACK
@@ -822,7 +822,7 @@ end
 
 local function InitializeBuilders()
 	builders = {}
-	for _, unitID in ipairs(Spring.GetTeamUnits(spGetMyTeamID())) do
+	for _, unitID in ipairs(Engine.Shared.GetTeamUnits(spGetMyTeamID())) do
 		if unitBuilder[spGetUnitDefID(unitID)] then
 			builders[unitID] = true
 		end
@@ -962,7 +962,7 @@ local function cycleUnitDisplay(direction)
 		soundEffect = soundEffectOff
 		volume = 0.6
 	end
-	Spring.PlaySoundFile(soundEffect, volume, "ui")
+	Engine.Unsynced.PlaySoundFile(soundEffect, volume, "ui")
 
 	RefreshEverything()
 end
@@ -974,8 +974,8 @@ local function cycleUnitDisplayHandler(_, _, _, data)
 end
 
 function widget:PlayerChanged(playerID)
-	myAllyTeamID = Spring.GetLocalAllyTeamID()
-	myTeamID = Spring.GetLocalTeamID()
+	myAllyTeamID = Engine.Unsynced.GetLocalAllyTeamID()
+	myTeamID = Engine.Unsynced.GetLocalTeamID()
 
 	InitializeBuilders()
 end
@@ -1236,7 +1236,7 @@ function widget:DrawWorld(inMiniMap)
 	if chobbyInterface or not (selUnitCount > 0 or mouseUnit) then
 		return
 	end
-	if not Spring.IsGUIHidden() and (not WG["topbar"] or not WG["topbar"].showingQuit()) then
+	if not Engine.Unsynced.IsGUIHidden() and (not WG["topbar"] or not WG["topbar"].showingQuit()) then
 		-- For PIP minimap, use thicker lines since PIP is larger than engine minimap
 		local inPip = inMiniMap and WG["minimap"] and WG["minimap"].isDrawingInPip
 		if inPip then
@@ -1331,7 +1331,7 @@ end
 
 function widget:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
-	unitTeam = unitTeam or Spring.GetUnitTeam(unitID)
+	unitTeam = unitTeam or Engine.Shared.GetUnitTeam(unitID)
 	RemoveSelectedUnit(unitID, false)
 	builders[unitID] = nil
 end

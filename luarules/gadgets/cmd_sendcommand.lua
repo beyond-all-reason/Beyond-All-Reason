@@ -21,8 +21,8 @@ local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 if gadgetHandler:IsSyncedCode() then
 	local startPlayers = {}
 	function checkStartPlayers()
-		for _, playerID in ipairs(Spring.GetPlayerList()) do -- update player infos
-			local playername, _, spec = Spring.GetPlayerInfo(playerID, false)
+		for _, playerID in ipairs(Engine.Shared.GetPlayerList()) do -- update player infos
+			local playername, _, spec = Engine.Shared.GetPlayerInfo(playerID, false)
 			if not spec then
 				startPlayers[playername] = true
 			end
@@ -39,20 +39,20 @@ if gadgetHandler:IsSyncedCode() then
 		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
 		end
-		local playername, _, spec = Spring.GetPlayerInfo(playerID)
+		local playername, _, spec = Engine.Shared.GetPlayerInfo(playerID)
 		local accountID = Spring.Utilities.GetAccountID(playerID)
 		local authorized = false
 		if _G.permissions.cmd[accountID] then
 			authorized = true
 		end
 		if not authorized then
-			Spring.SendMessageToPlayer(playerID, "You are not authorized to send commands for a player")
+			Engine.Unsynced.SendMessageToPlayer(playerID, "You are not authorized to send commands for a player")
 			return
 		elseif not spec then
-			Spring.SendMessageToPlayer(playerID, "You arent allowed to send commands when playing")
+			Engine.Unsynced.SendMessageToPlayer(playerID, "You arent allowed to send commands when playing")
 			return
 		elseif startPlayers[playername] ~= nil then
-			Spring.SendMessageToPlayer(playerID, "You arent allowed to send commands when you have been a player")
+			Engine.Unsynced.SendMessageToPlayer(playerID, "You arent allowed to send commands when you have been a player")
 			return
 		end
 		local params = string.split(msg, ":")
@@ -61,7 +61,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 else -- UNSYNCED
 	local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
+	local myPlayerName = Engine.Shared.GetPlayerInfo(myPlayerID)
 	local function isAuthorized()
 		local acID = Spring.Utilities.GetAccountID(myPlayerID)
 		local perms = SYNCED.permissions.cmd
@@ -69,8 +69,8 @@ else -- UNSYNCED
 	end
 
 	local function execCmd(_, playername, cmd)
-		if playername == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) or playername == "*" then
-			Spring.SendCommands(cmd)
+		if playername == select(1, Engine.Shared.GetPlayerInfo(Spring.GetMyPlayerID())) or playername == "*" then
+			Engine.Unsynced.SendCommands(cmd)
 		end
 	end
 
@@ -85,9 +85,9 @@ else -- UNSYNCED
 						end
 					end
 				end
-				Spring.SendLuaRulesMsg(PACKET_HEADER .. ":" .. words[1] .. ":" .. command)
+				Engine.Unsynced.SendLuaRulesMsg(PACKET_HEADER .. ":" .. words[1] .. ":" .. command)
 			else
-				Spring.SendMessageToPlayer(playerID, "failed to execute, check syntax")
+				Engine.Unsynced.SendMessageToPlayer(playerID, "failed to execute, check syntax")
 			end
 		end
 	end

@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local spSetUnitWeaponState = Spring.SetUnitWeaponState
+local spSetUnitWeaponState = Engine.Synced.SetUnitWeaponState
 local tableCopy = table.copy
 
 local convertedUnitsNames = {

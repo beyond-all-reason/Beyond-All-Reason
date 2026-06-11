@@ -9,11 +9,11 @@ function test()
 	local targetDef = Scenario.targetDef
 
 	SyncedRun(synced_nano_setup)
-	Spring.Echo("init time preinit:", os.clock() - t0)
+	Engine.Shared.Echo("init time preinit:", os.clock() - t0)
 
 	Test.waitFrames(1)
 
 	run_nano_commands(nturrets, ntargets, turretDef, targetDef)
 
-	Spring.Echo("total time:", os.clock() - t0)
+	Engine.Shared.Echo("total time:", os.clock() - t0)
 end

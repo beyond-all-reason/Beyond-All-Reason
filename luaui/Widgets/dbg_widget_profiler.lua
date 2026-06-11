@@ -39,10 +39,10 @@ local tonumber = tonumber
 local type = type
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
-local spGetLuaMemUsage = Spring.GetLuaMemUsage
-local spDiffTimers = Spring.DiffTimers
-local spGetTimer = Spring.GetTimer
+local spEcho = Engine.Shared.Echo
+local spGetLuaMemUsage = Engine.Unsynced.GetLuaMemUsage
+local spDiffTimers = Engine.Unsynced.DiffTimers
+local spGetTimer = Engine.Unsynced.GetTimer
 local glText = gl.Text
 local glColor = gl.Color
 local glBeginText = gl.BeginText
@@ -111,12 +111,12 @@ local redStrength = {}
 
 local ColorString = Spring.Utilities.Color.ToString
 
-if Spring.GetTimerMicros and Spring.GetConfigInt("UseHighResTimer", 0) == 1 then
-	spGetTimer = Spring.GetTimerMicros
+if Engine.Unsynced.GetTimerMicros and Engine.Unsynced.GetConfigInt("UseHighResTimer", 0) == 1 then
+	spGetTimer = Engine.Unsynced.GetTimerMicros
 	highres = true
 end
 
-spEcho("Profiler using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
+spEcho("Profiler using highres timers", highres, Engine.Unsynced.GetConfigInt("UseHighResTimer", 0))
 
 local prefixedWnames = {}
 local widgetNameColors = {} -- Store RGB values for background tinting
@@ -643,7 +643,7 @@ function widget:DrawScreen()
 		return
 	end
 
-	local averageTime = Spring.GetConfigFloat("profiler_averagetime", 2)
+	local averageTime = Engine.Unsynced.GetConfigFloat("profiler_averagetime", 2)
 
 	-- sort & count timing
 	deltaTime = spDiffTimers(spGetTimer(), startTimer, nil, highres)
@@ -654,10 +654,10 @@ function widget:DrawScreen()
 		allOverTime = 0
 		allOverSpace = 0
 		local n = 1
-		local sortByLoad = Spring.GetConfigInt("profiler_sort_by_load", 1) == 1
+		local sortByLoad = Engine.Unsynced.GetConfigInt("profiler_sort_by_load", 1) == 1
 
 		-- Cache FPS and frame calculation
-		local frames = mathMin(1 / tick, Spring.GetFPS()) * retainSortTime
+		local frames = mathMin(1 / tick, Engine.Unsynced.GetFPS()) * retainSortTime
 		local framesMinusOne = frames - 1
 
 		for wname, callins in pairs(callinStats) do

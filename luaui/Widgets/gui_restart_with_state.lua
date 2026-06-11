@@ -43,10 +43,10 @@ function widget:RecvLuaMsg(msg, _playerID)
 		local data = table.concat(recvBuffer)
 		recvBuffer = nil
 
-		Spring.CreateDir("LuaUI/Config")
+		Engine.Unsynced.CreateDir("LuaUI/Config")
 		local f, err = io.open(STATE_FILE, "w")
 		if not f then
-			Spring.Echo("[Restart With State] Could not write state file: " .. tostring(err))
+			Engine.Shared.Echo("[Restart With State] Could not write state file: " .. tostring(err))
 			return true
 		end
 		f:write(data)
@@ -54,11 +54,11 @@ function widget:RecvLuaMsg(msg, _playerID)
 
 		local startScript = VFS.LoadFile("_script.txt")
 		if not startScript or startScript == "" then
-			Spring.Echo("[Restart With State] No _script.txt available; cannot restart automatically.")
+			Engine.Shared.Echo("[Restart With State] No _script.txt available; cannot restart automatically.")
 			return true
 		end
-		Spring.Echo("[Restart With State] State saved (" .. tostring(#data) .. " bytes). Restarting...")
-		Spring.Restart("", startScript)
+		Engine.Shared.Echo("[Restart With State] State saved (" .. tostring(#data) .. " bytes). Restarting...")
+		Engine.Unsynced.Restart("", startScript)
 		return true
 	end
 

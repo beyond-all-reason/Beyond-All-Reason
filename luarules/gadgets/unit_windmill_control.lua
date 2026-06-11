@@ -18,7 +18,7 @@ end
 
 -- Only apply these when resource multipliers are active, to save performance
 local energyMultActive = false
-if Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome ~= 1 then
+if Engine.Shared.GetModOptions().multiplier_energyproduction * Engine.Shared.GetModOptions().multiplier_resourceincome ~= 1 then
 	energyMultActive = true
 end
 
@@ -38,15 +38,15 @@ end
 
 local windmills = {}
 
-local GetCOBScriptID = Spring.GetCOBScriptID
-local AddUnitResource = Spring.AddUnitResource
-local GetUnitIsStunned = Spring.GetUnitIsStunned
+local GetCOBScriptID = Engine.Synced.GetCOBScriptID
+local AddUnitResource = Engine.Synced.AddUnitResource
+local GetUnitIsStunned = Engine.Shared.GetUnitIsStunned
 --local CallCOBScript = Spring.CallCOBScript
 --local GetHeadingFromVector = Spring.GetHeadingFromVector
 
 function gadget:GameFrame(n)
 	if (n + 15) % 30 < 0.1 then
-		local _, _, _, strength, x, _, z = Spring.GetWind()
+		local _, _, _, strength, x, _, z = Engine.Shared.GetWind()
 		for unitID, scriptIDs in pairs(windmills) do
 			if not GetUnitIsStunned(unitID) then
 				AddUnitResource(unitID, "e", strength * (scriptIDs.mult - 1))
@@ -66,8 +66,8 @@ local function SetupUnit(unitID, unitDefID)
 end
 
 function gadget:Initialize()
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
+	for _, unitID in ipairs(Engine.Shared.GetAllUnits()) do
+		local unitDefID = Engine.Shared.GetUnitDefID(unitID)
 		if windDefs[unitDefID] then
 			SetupUnit(unitID, unitDefID)
 		end

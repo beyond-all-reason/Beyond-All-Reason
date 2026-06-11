@@ -16,12 +16,12 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
-local spValidUnitID = Spring.ValidUnitID
-local spGetGroundNormal = Spring.GetGroundNormal
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitIsTransporting = Engine.Shared.GetUnitIsTransporting
+local spValidUnitID = Engine.Shared.ValidUnitID
+local spGetGroundNormal = Engine.Shared.GetGroundNormal
 local stringFind = string.find
 
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
@@ -31,7 +31,7 @@ local Nanos = {
 	[UnitDefNames.cornanotc.id] = true,
 	[UnitDefNames.armnanotc.id] = true,
 }
-if Spring.GetModOptions().experimentallegionfaction then
+if Engine.Shared.GetModOptions().experimentallegionfaction then
 	Nanos[UnitDefNames.legnanotc.id] = true
 end
 for udid, ud in pairs(UnitDefs) do

@@ -20,35 +20,35 @@ local PACKET_HEADER = "$wl$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 if gadgetHandler:IsSyncedCode() then
-	local waterlevel = Spring.GetModOptions().map_waterlevel
+	local waterlevel = Engine.Shared.GetModOptions().map_waterlevel
 
 	function adjustFeatureHeight()
-		local featuretable = Spring.GetAllFeatures()
+		local featuretable = Engine.Shared.GetAllFeatures()
 		local x, y, z
 		for i = 1, #featuretable do
-			x, y, z = Spring.GetFeaturePosition(featuretable[i])
-			Spring.SetFeaturePosition(featuretable[i], x, y, z, true) -- snaptoground = true
+			x, y, z = Engine.Shared.GetFeaturePosition(featuretable[i])
+			Engine.Synced.SetFeaturePosition(featuretable[i], x, y, z, true) -- snaptoground = true
 		end
 	end
 
 	function adjustWaterlevel()
 		-- Spring.SetMapRenderingParams({ voidWater = false})
-		Spring.Echo("Map Waterlevel: adjusting water level with: " .. waterlevel)
-		Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
-		Spring.AdjustOriginalHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
-		Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
+		Engine.Shared.Echo("Map Waterlevel: adjusting water level with: " .. waterlevel)
+		Engine.Synced.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
+		Engine.Synced.AdjustOriginalHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
+		Engine.Synced.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		adjustFeatureHeight()
 	end
 
 	function gadget:Initialize()
-		if Spring.GetGameFrame() == 0 then
-			local modOptions = Spring.GetModOptions()
+		if Engine.Shared.GetGameFrame() == 0 then
+			local modOptions = Engine.Shared.GetModOptions()
 			if modOptions.map_waterlevel ~= 0 then
 				waterlevel = modOptions.map_waterlevel
 
 				-- adjust tidal strength if previosuly not present and applicable
-				if (modOptions.map_tidal == nil or modOptions.map_tidal == "unchanged") and Spring.GetTidal() == 0 and select(1, Spring.GetGroundExtremes()) > 0 then
-					Spring.SetTidal(15)
+				if (modOptions.map_tidal == nil or modOptions.map_tidal == "unchanged") and Engine.Shared.GetTidal() == 0 and select(1, Engine.Shared.GetGroundExtremes()) > 0 then
+					Engine.Synced.SetTidal(15)
 				end
 
 				adjustWaterlevel()
@@ -76,18 +76,18 @@ if gadgetHandler:IsSyncedCode() then
 		local accountID = Spring.Utilities.GetAccountID(playerID)
 		local authorized = _G.permissions.waterlevel[accountID]
 
-		if not (authorized or Spring.IsCheatingEnabled()) then
+		if not (authorized or Engine.Shared.IsCheatingEnabled()) then
 			return
 		end
 
 		local params = string.split(msg, ":")
 		waterlevel = tonumber(params[2])
 		adjustWaterlevel()
-		Spring.Echo("Changed waterlevel: " .. waterlevel)
+		Engine.Shared.Echo("Changed waterlevel: " .. waterlevel)
 	end
 else -- UNSYNCED
 	local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
+	local myPlayerName = Engine.Shared.GetPlayerInfo(myPlayerID)
 	local function isAuthorized()
 		local acID = Spring.Utilities.GetAccountID(myPlayerID)
 		local perms = SYNCED.permissions.waterlevel
@@ -96,8 +96,8 @@ else -- UNSYNCED
 
 	local function waterlevel(cmd, line, words, playerID)
 		if words[1] then
-			if (isAuthorized() or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
-				Spring.SendLuaRulesMsg(PACKET_HEADER .. ":" .. words[1])
+			if (isAuthorized() or Engine.Shared.IsCheatingEnabled()) and playerID == myPlayerID then
+				Engine.Unsynced.SendLuaRulesMsg(PACKET_HEADER .. ":" .. words[1])
 			end
 		end
 	end

@@ -11,11 +11,11 @@ function widget:GetInfo()
 	}
 end
 
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitsInSphere = Spring.GetUnitsInSphere
-local GetUnitCommands = Spring.GetUnitCommands
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local GetUnitDefID = Spring.GetUnitDefID
+local GetUnitPosition = Engine.Shared.GetUnitPosition
+local GetUnitsInSphere = Engine.Shared.GetUnitsInSphere
+local GetUnitCommands = Engine.Shared.GetUnitCommands
+local GiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local GetUnitDefID = Engine.Shared.GetUnitDefID
 local UnitDefs = UnitDefs
 local CMD_REPAIR = CMD.REPAIR
 local CMD_FIGHT = CMD.FIGHT

@@ -21,9 +21,9 @@ local CMD_AREA_ATTACK = CMD.AREA_ATTACK
 local CMD_FIGHT = CMD.FIGHT
 local CMD_STOP = CMD.STOP
 
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGiveOrderArrayToUnitArray = Engine.Shared.GiveOrderArrayToUnitArray
 
 local isBombWeapon = {}
 for weaponDefID, weaponDef in pairs(WeaponDefs) do
@@ -108,23 +108,23 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	-- commands (4-param CMD_ATTACK) to the engine.
 	isReissuing = true
 
-	Spring.SelectUnitArray(attackUnits)
+	Engine.Unsynced.SelectUnitArray(attackUnits)
 	if cmdOpts.shift then
-		Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
+		Engine.Unsynced.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
 	else
-		Spring.GiveOrder(CMD_STOP, {}, 0)
-		Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
+		Engine.Unsynced.GiveOrder(CMD_STOP, {}, 0)
+		Engine.Unsynced.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
 	end
 
-	Spring.SelectUnitArray(fightUnits)
+	Engine.Unsynced.SelectUnitArray(fightUnits)
 	if cmdOpts.shift then
-		Spring.GiveOrder(CMD_FIGHT, { x, y, z }, opts + CMD.OPT_SHIFT)
+		Engine.Unsynced.GiveOrder(CMD_FIGHT, { x, y, z }, opts + CMD.OPT_SHIFT)
 	else
-		Spring.GiveOrder(CMD_STOP, {}, 0)
-		Spring.GiveOrder(CMD_FIGHT, { x, y, z }, opts + CMD.OPT_SHIFT)
+		Engine.Unsynced.GiveOrder(CMD_STOP, {}, 0)
+		Engine.Unsynced.GiveOrder(CMD_FIGHT, { x, y, z }, opts + CMD.OPT_SHIFT)
 	end
 
-	Spring.SelectUnitArray(selUnits)
+	Engine.Unsynced.SelectUnitArray(selUnits)
 	isReissuing = false
 
 	return true

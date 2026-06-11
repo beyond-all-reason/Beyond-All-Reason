@@ -25,7 +25,7 @@ end
 ---@param builderID number
 ---@return BuilderInfo
 local function getBuilderInfo(builderID)
-	local unitDefID = Spring.GetUnitDefID(builderID)
+	local unitDefID = Engine.Shared.GetUnitDefID(builderID)
 	if not unitDefID then
 		return nil
 	end
@@ -276,7 +276,7 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 				local groupBuilderIDs = table.map(groupData.group, function(b)
 					return b.unitID
 				end)
-				Spring.GiveOrderArrayToUnitArray(groupBuilderIDs, orders, false)
+				Engine.Shared.GiveOrderArrayToUnitArray(groupBuilderIDs, orders, false)
 			end
 		end
 	end
@@ -308,7 +308,7 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 
 				if not canBuildAny then
 					for _, builder in ipairs(groupData.group) do
-						Spring.GiveOrderToUnit(builder.unitID, CMD_GUARD, { workingBuilderIDs[guardIndex] }, cmdOpts)
+						Engine.Shared.GiveOrderToUnit(builder.unitID, CMD_GUARD, { workingBuilderIDs[guardIndex] }, cmdOpts)
 						guardIndex = guardIndex % #workingBuilderIDs + 1
 					end
 				end

@@ -36,8 +36,8 @@ local function SetMMRulesParams()
 		local unitName = UnitDefs[uDID].name or ""
 		local capacity = conv.c
 		local ratio = conv.e
-		Spring.SetGameRulesParam(unitName .. "_mm_capacity", capacity)
-		Spring.SetGameRulesParam(unitName .. "_mm_ratio", ratio)
+		Engine.Synced.SetGameRulesParam(unitName .. "_mm_capacity", capacity)
+		Engine.Synced.SetGameRulesParam(unitName .. "_mm_ratio", ratio)
 	end
 end
 
@@ -62,16 +62,16 @@ local paralysisRelRate = 75 -- unit HP / paralysisRelRate = paralysis dmg drop r
 -- Speedups
 ----------------------------------------------------------------
 
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spSetTeamRulesParam = Spring.SetTeamRulesParam
-local spGetTeamResources = Spring.GetTeamResources
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitDefID = Spring.GetUnitDefID
-local spSetUnitResourcing = Spring.SetUnitResourcing
-local spCallCOBScript = Spring.CallCOBScript
-local spGetTeamList = Spring.GetTeamList
+local spGetPlayerInfo = Engine.Shared.GetPlayerInfo
+local spGetTeamRulesParam = Engine.Shared.GetTeamRulesParam
+local spSetTeamRulesParam = Engine.Synced.SetTeamRulesParam
+local spGetTeamResources = Engine.Shared.GetTeamResources
+local spGetUnitHealth = Engine.Shared.GetUnitHealth
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spSetUnitResourcing = Engine.Synced.SetUnitResourcing
+local spCallCOBScript = Engine.Synced.CallCOBScript
+local spGetTeamList = Engine.Shared.GetTeamList
 local mathCeil = math.ceil
 local tableSort = table.sort
 

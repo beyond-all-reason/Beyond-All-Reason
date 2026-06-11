@@ -28,25 +28,25 @@ local range = 200
 --------------------------------------------------------------------------------
 --speedups
 --------------------------------------------------------------------------------
-local GetUnitsInCylinder = Spring.GetUnitsInCylinder
+local GetUnitsInCylinder = Engine.Shared.GetUnitsInCylinder
 local GetMyTeamID = Spring.GetMyTeamID
-local GetUnitTeam = Spring.GetUnitTeam
-local GetSelectedUnits = Spring.GetSelectedUnits
-local GetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local ShareResources = Spring.ShareResources
+local GetUnitTeam = Engine.Shared.GetUnitTeam
+local GetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local GetTeamAllyTeamID = Engine.Shared.GetTeamAllyTeamID
+local ShareResources = Engine.Unsynced.ShareResources
 local I18N = Spring.I18N
-local GetSpectatingState = Spring.GetSpectatingState
-local WorldToScreenCoords = Spring.WorldToScreenCoords
-local PlaySoundFile = Spring.PlaySoundFile
-local GetTeamColor = Spring.GetTeamColor
-local GetActiveCommand = Spring.GetActiveCommand
-local GetCameraPosition = Spring.GetCameraPosition
-local GetMouseState = Spring.GetMouseState
-local TraceScreenRay = Spring.TraceScreenRay
-local GetPlayerList = Spring.GetPlayerList
-local GetPlayerInfo = Spring.GetPlayerInfo
-local GetGameRulesParam = Spring.GetGameRulesParam
-local GetViewGeometry = Spring.GetViewGeometry
+local GetSpectatingState = Engine.Unsynced.GetSpectatingState
+local WorldToScreenCoords = Engine.Unsynced.WorldToScreenCoords
+local PlaySoundFile = Engine.Unsynced.PlaySoundFile
+local GetTeamColor = Engine.Unsynced.GetTeamColor
+local GetActiveCommand = Engine.Unsynced.GetActiveCommand
+local GetCameraPosition = Engine.Unsynced.GetCameraPosition
+local GetMouseState = Engine.Unsynced.GetMouseState
+local TraceScreenRay = Engine.Unsynced.TraceScreenRay
+local GetPlayerList = Engine.Shared.GetPlayerList
+local GetPlayerInfo = Engine.Shared.GetPlayerInfo
+local GetGameRulesParam = Engine.Shared.GetGameRulesParam
+local GetViewGeometry = Engine.Unsynced.GetViewGeometry
 
 local glBeginEnd = gl.BeginEnd
 local glCallList = gl.CallList
@@ -201,7 +201,7 @@ local function colourNames(teamId)
 	if tonumber(teamId) < 0 then
 		return ""
 	end
-	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamId)
+	local nameColourR, nameColourG, nameColourB, nameColourA = Engine.Unsynced.GetTeamColor(teamId)
 	return Spring.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
 end
 
@@ -357,7 +357,7 @@ function widget:CommandsChanged()
 		return
 	end
 
-	local teams = Spring.GetTeamList(myAllyTeamID)
+	local teams = Engine.Shared.GetTeamList(myAllyTeamID)
 	if not teams or #teams <= 1 then
 		return -- no allied teams to share to
 	end

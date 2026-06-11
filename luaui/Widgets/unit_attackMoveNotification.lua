@@ -17,14 +17,14 @@ local mathRandom = math.random
 
 local alarmInterval = 15 --seconds
 
-local spGetLocalTeamID = Spring.GetLocalTeamID
-local spPlaySoundFile = Spring.PlaySoundFile
-local spEcho = Spring.Echo
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
-local spIsUnitInView = Spring.IsUnitInView
-local spGetUnitPosition = Spring.GetUnitPosition
-local spSetLastMessagePosition = Spring.SetLastMessagePosition
+local spGetLocalTeamID = Engine.Unsynced.GetLocalTeamID
+local spPlaySoundFile = Engine.Unsynced.PlaySoundFile
+local spEcho = Engine.Shared.Echo
+local spGetTimer = Engine.Unsynced.GetTimer
+local spDiffTimers = Engine.Unsynced.DiffTimers
+local spIsUnitInView = Engine.Unsynced.IsUnitInView
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spSetLastMessagePosition = Engine.Unsynced.SetLastMessagePosition
 local random = mathRandom
 
 local lastAlarmTime = nil
@@ -50,7 +50,7 @@ local function refreshUnitInfo()
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() then
+	if Engine.Unsynced.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 	localTeamID = spGetLocalTeamID()
@@ -63,7 +63,7 @@ end
 function widget:Initialize()
 	refreshUnitInfo()
 
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if Engine.Unsynced.IsReplay() or Engine.Shared.GetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
 

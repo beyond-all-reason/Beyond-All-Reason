@@ -12,9 +12,9 @@ function widget:GetInfo()
 	}
 end
 
-local spEcho = Spring.Echo
-local spGetMapDrawMode = Spring.GetMapDrawMode
-local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Engine.Shared.Echo
+local spGetMapDrawMode = Engine.Unsynced.GetMapDrawMode
+local spGetGameFrame = Engine.Shared.GetGameFrame
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable

@@ -12,9 +12,9 @@ function widget:GetInfo()
 	}
 end
 
-local spGetGroupUnitsCount = Spring.GetGroupUnitsCount
-local spSelectUnitMap = Spring.SelectUnitMap
-local spGetModKeyState = Spring.GetModKeyState
+local spGetGroupUnitsCount = Engine.Unsynced.GetGroupUnitsCount
+local spSelectUnitMap = Engine.Unsynced.SelectUnitMap
+local spGetModKeyState = Engine.Unsynced.GetModKeyState
 
 local function ClearSelectionIfGroupSelected(groupIndex)
 	if spGetGroupUnitsCount(groupIndex) > 0 then

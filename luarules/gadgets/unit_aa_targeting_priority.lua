@@ -14,7 +14,7 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-	local spGetUnitDefID = Spring.GetUnitDefID
+	local spGetUnitDefID = Engine.Shared.GetUnitDefID
 	local stringFind = string.find
 
 	local PRIORITY_BOMBERS = 0.1

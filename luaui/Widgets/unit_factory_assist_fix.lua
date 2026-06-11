@@ -14,7 +14,7 @@ end
 
 -- Localized Spring API for performance
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetTeamUnits = Spring.GetTeamUnits
+local spGetTeamUnits = Engine.Shared.GetTeamUnits
 
 ----------------------------------------------------------------
 -- Globals
@@ -29,12 +29,12 @@ local isAssistBuilder = {}
 ----------------------------------------------------------------
 -- Speedups
 ----------------------------------------------------------------
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitCurrentCommand = Engine.Shared.GetUnitCurrentCommand
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local spAreTeamsAllied = Engine.Shared.AreTeamsAllied
+local spGetUnitHealth = Engine.Shared.GetUnitHealth
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
 
 local CMD_REPAIR = CMD.REPAIR
 local CMD_GUARD = CMD.GUARD
@@ -95,7 +95,7 @@ end
 
 ----- Returns true if the widget was actually removed
 local function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0) or Spring.IsReplay() then
+	if Engine.Unsynced.GetSpectatingState() and (Engine.Shared.GetGameFrame() > 0) or Engine.Unsynced.IsReplay() then
 		widgetHandler:RemoveWidget()
 		return true
 	end

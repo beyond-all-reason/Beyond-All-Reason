@@ -17,16 +17,16 @@ local mathAbs = math.abs
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetCameraPosition = Spring.GetCameraPosition
-local spEcho = Spring.Echo
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
+local spEcho = Engine.Shared.Echo
 
 --------------------------- INFO -------------------------------
 -- You can also add an exponential component to the load in ms with a second number param to the /****frameload commands
 
 ---------------------------Speedups-----------------------------
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
+local spGetTimer = Engine.Unsynced.GetTimer
+local spDiffTimers = Engine.Unsynced.DiffTimers
 ---------------------------Internal vars---------------------------
 
 local viewSizeX, viewSizeY = 0, 0
@@ -41,9 +41,9 @@ local cammovespread = 0
 local camalpha = 0.03
 
 function widget:Initialize()
-	drawtimer = Spring.GetTimer()
-	timerstart = Spring.GetTimer()
-	timerold = Spring.GetTimer()
+	drawtimer = Engine.Unsynced.GetTimer()
+	timerstart = Engine.Unsynced.GetTimer()
+	timerold = Engine.Unsynced.GetTimer()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
 	--simtime = spGetGameFrame()/30
 	camX, camY, camZ = spGetCameraPosition()
@@ -61,11 +61,11 @@ local function Loadms(millisecs, spread)
 		millisecs = millisecs + math.min(10 * spread, -1.0 * spread * math.log(1.0 - math.random()))
 	end
 	--spEcho(millisecs)
-	local starttimer = Spring.GetTimer()
+	local starttimer = Engine.Unsynced.GetTimer()
 	local nowtimer
 	for i = 1, 10000000 do
-		nowtimer = Spring.GetTimer()
-		if Spring.DiffTimers(nowtimer, starttimer) * 1000 >= millisecs then
+		nowtimer = Engine.Unsynced.GetTimer()
+		if Engine.Unsynced.DiffTimers(nowtimer, starttimer) * 1000 >= millisecs then
 			break
 		end
 	end
@@ -142,8 +142,8 @@ function widget:DrawScreen()
 	local camerarelativejitter = cammovespread / mathMax(cammovemean, 0.001)
 
 	drawspergameframe = drawspergameframe + 1
-	local drawpersimframe = math.floor(Spring.GetFPS() / 30.0 + 0.5)
-	local fto = Spring.GetFrameTimeOffset()
+	local drawpersimframe = math.floor(Engine.Unsynced.GetFPS() / 30.0 + 0.5)
+	local fto = Engine.Unsynced.GetFrameTimeOffset()
 
 	local timernew = spGetTimer()
 	drawtimesmooth = spDiffTimers(timernew, drawtimer) + correctionfactor
@@ -182,7 +182,7 @@ function widget:DrawScreen()
 	text = text .. string.format("mean jitter = %.3f  \n", avgjitter * 30)
 	text = text .. string.format("averageCTO = %.3f, spreadCTO = %.3f  \n", averageCTO, spreadCTO)
 	text = text .. string.format("CamJitter = %.3f \n", camerarelativejitter)
-	text = text .. string.format("DrawFrame = %d \n", Spring.GetDrawFrame())
+	text = text .. string.format("DrawFrame = %d \n", Engine.Unsynced.GetDrawFrame())
 	gl.Text(text, viewSizeX - timerwidth, viewSizeY - timerYoffset + 48, 16, "d")
 	--gl.Text(string.format("DrawFrame FTODelta = %.3f  FTO = %.3f", currCTOdelta, fto), viewSizeX - timerwidth, viewSizeY - timerYoffset, 16, "d")
 
@@ -199,7 +199,7 @@ function widget:DrawScreen()
 	gl.PopMatrix()
 
 	-- Frame Drop Indicator!!
-	local df = Spring.GetDrawFrame()
+	local df = Engine.Unsynced.GetDrawFrame()
 	local offset = 32 * (df % 8)
 	gl.Rect(viewSizeX - timerwidth + offset, viewSizeY - timerYoffset + timerheight - 116, viewSizeX - timerwidth + 32 + offset, viewSizeY - timerYoffset + timerheight - 116 - 32)
 	if drawframeload > 0 then

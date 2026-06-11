@@ -16,14 +16,14 @@ function gadget:GetInfo()
 	}
 end
 
-local spGetUnitBuildFacing = Spring.GetUnitBuildFacing
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitRadius = Spring.GetUnitRadius
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-local spTestMoveOrder = Spring.TestMoveOrder
+local spGetUnitBuildFacing = Engine.Shared.GetUnitBuildFacing
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitRadius = Engine.Shared.GetUnitRadius
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local spInsertUnitCmdDesc = Engine.Synced.InsertUnitCmdDesc
+local spEditUnitCmdDesc = Engine.Synced.EditUnitCmdDesc
+local spFindUnitCmdDesc = Engine.Shared.FindUnitCmdDesc
+local spTestMoveOrder = Engine.Shared.TestMoveOrder
 
 local CMD_FACTORY_GUARD = GameCMD.FACTORY_GUARD
 local CMD_GUARD = CMD.GUARD
@@ -145,8 +145,8 @@ function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 		return -- already has user assigned orders
 	end
 
-	local factoryGuardCmdDescID = Spring.FindUnitCmdDesc(factID, CMD_FACTORY_GUARD) -- get CmdDescID
-	local cmdDesc = Spring.GetUnitCmdDescs(factID, factoryGuardCmdDescID)[1] -- use CmdDescID to get state of that cmd (comes back as a table, we get the first element)
+	local factoryGuardCmdDescID = Engine.Shared.FindUnitCmdDesc(factID, CMD_FACTORY_GUARD) -- get CmdDescID
+	local cmdDesc = Engine.Shared.GetUnitCmdDescs(factID, factoryGuardCmdDescID)[1] -- use CmdDescID to get state of that cmd (comes back as a table, we get the first element)
 	local factoryGuardEnabled = cmdDesc.params[1] == "1"
 	if not cmdDesc or not factoryGuardEnabled then -- if state is missing or false, do nothing
 		return
@@ -167,9 +167,9 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_FACTORY_GUARD)
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = Engine.Shared.GetAllUnits()
 	for i = 1, #allUnits do
-		gadget:UnitCreated(allUnits[i], Spring.GetUnitDefID(allUnits[i]))
+		gadget:UnitCreated(allUnits[i], Engine.Shared.GetUnitDefID(allUnits[i]))
 	end
 end
 --------------------------------------------------------------------------------

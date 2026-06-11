@@ -1,12 +1,12 @@
-if not Spring.GetModOptions then
+if not Engine.Shared.GetModOptions then
 	return
 end
 
-if not Spring.GetModOptions().holiday_events then
+if not Engine.Shared.GetModOptions().holiday_events then
 	return
 end
 
-local modOptions = Spring.GetModOptions()
+local modOptions = Engine.Shared.GetModOptions()
 local currentDay = modOptions.date_day
 local currentMonth = modOptions.date_month
 local currentYear = modOptions.date_year

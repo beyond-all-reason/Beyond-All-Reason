@@ -12,21 +12,21 @@ function widget:GetInfo()
 	}
 end
 
-local lastGameUpdate = Spring.GetGameSeconds()
+local lastGameUpdate = Engine.Shared.GetGameSeconds()
 
-local spGetUnitViewPosition = Spring.GetUnitViewPosition
-local spGetGameSeconds = Spring.GetGameSeconds
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetCameraPosition = Spring.GetCameraPosition
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetFeatureResources = Spring.GetFeatureResources
-local spGetFeatureHealth = Spring.GetFeatureHealth
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetUnitViewPosition = Engine.Unsynced.GetUnitViewPosition
+local spGetGameSeconds = Engine.Shared.GetGameSeconds
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
+local spWorldToScreenCoords = Engine.Unsynced.WorldToScreenCoords
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spGetUnitAllyTeam = Engine.Shared.GetUnitAllyTeam
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spGetFeatureResources = Engine.Shared.GetFeatureResources
+local spGetFeatureHealth = Engine.Shared.GetFeatureHealth
+local spGetFeatureDefID = Engine.Shared.GetFeatureDefID
+local spGetFeaturePosition = Engine.Shared.GetFeaturePosition
 local spec, fullview = spGetSpectatingState()
 local myAllyTeam = Spring.GetMyAllyTeamID()
 
@@ -114,11 +114,11 @@ end
 
 local function init()
 	unitETATable = {}
-	local units = Spring.GetAllUnits()
+	local units = Engine.Shared.GetAllUnits()
 	for i = 1, #units do
 		local unitID = units[i]
 		if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
-			unitETATable[unitID] = makeUnitETA(unitID, Spring.GetUnitDefID(unitID))
+			unitETATable[unitID] = makeUnitETA(unitID, Engine.Shared.GetUnitDefID(unitID))
 		end
 	end
 end
@@ -281,7 +281,7 @@ local function drawEtaText(timeLeft, alpha, fontSize)
 end
 
 function widget:DrawScreenEffects()
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 

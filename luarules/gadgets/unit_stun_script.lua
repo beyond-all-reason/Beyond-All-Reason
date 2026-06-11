@@ -25,9 +25,9 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
-local spGetUnitIsStunned = Spring.GetUnitIsStunned
-local spCallCOBScript = Spring.CallCOBScript
-local spGetCOBScriptID = Spring.GetCOBScriptID
+local spGetUnitIsStunned = Engine.Shared.GetUnitIsStunned
+local spCallCOBScript = Engine.Synced.CallCOBScript
+local spGetCOBScriptID = Engine.Synced.GetCOBScriptID
 
 function gadget:GameFrame(n)
 	-- check if stunned units have become deparalyzed
@@ -42,8 +42,8 @@ function gadget:GameFrame(n)
 end
 
 function gadget:Initialize()
-	for i, unitID in pairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	for i, unitID in pairs(Engine.Shared.GetAllUnits()) do
+		gadget:UnitCreated(unitID, Engine.Shared.GetUnitDefID(unitID))
 	end
 end
 

@@ -36,10 +36,10 @@ else
 	-- unsynced
 	--------------------------------------------------------------------------------
 
-	local GetMouseState = Spring.GetMouseState
-	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
-	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
-	local GetCameraState = Spring.GetCameraState
+	local GetMouseState = Engine.Unsynced.GetMouseState
+	local GetLastUpdateSeconds = Engine.Unsynced.GetLastUpdateSeconds
+	local SendLuaRulesMsg = Engine.Unsynced.SendLuaRulesMsg
+	local GetCameraState = Engine.Unsynced.GetCameraState
 
 	local activity = false
 	local old_mx, old_my = 0, 0

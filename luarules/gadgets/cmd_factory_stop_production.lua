@@ -23,9 +23,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local spGetRealBuildQueue = Spring.GetRealBuildQueue
-	local spGiveOrderToUnit = Spring.GiveOrderToUnit
-	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
+	local spGetRealBuildQueue = Engine.Shared.GetRealBuildQueue
+	local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+	local spInsertUnitCmdDesc = Engine.Synced.InsertUnitCmdDesc
 
 	local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
 	local CMD_WAIT = CMD.WAIT
@@ -85,7 +85,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			local keepDefID
 			if total > 1 then
-				local firstCommand = Spring.GetFactoryCommands(unitID, 1)
+				local firstCommand = Engine.Shared.GetFactoryCommands(unitID, 1)
 				local firstID = firstCommand[1]["id"]
 				if firstID < 0 then
 					keepDefID = -firstID
@@ -119,22 +119,22 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		gadgetHandler:RegisterCMDID(CMD_STOP_PRODUCTION)
 		gadgetHandler:RegisterAllowCommand(CMD_STOP_PRODUCTION)
-		for _, unitID in pairs(Spring.GetAllUnits()) do
-			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+		for _, unitID in pairs(Engine.Shared.GetAllUnits()) do
+			gadget:UnitCreated(unitID, Engine.Shared.GetUnitDefID(unitID))
 		end
 	end
 else
 	local myTeamID, isSpec
 
 	local function stopProduction(_, unitID, unitDefID, unitTeam, cmdID)
-		if isSpec or Spring.AreTeamsAllied(unitTeam, myTeamID) then
+		if isSpec or Engine.Shared.AreTeamsAllied(unitTeam, myTeamID) then
 			Script.LuaUI.UnitCommand(unitID, unitDefID, unitTeam, cmdID, {}, { coded = 0 })
 		end
 	end
 
 	function gadget:PlayerChanged()
 		myTeamID = Spring.GetMyTeamID()
-		isSpec = Spring.GetSpectatingState()
+		isSpec = Engine.Unsynced.GetSpectatingState()
 	end
 
 	function gadget:Initialize()

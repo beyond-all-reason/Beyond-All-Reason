@@ -10,6 +10,6 @@ end
 
 function STAI:test()
 	for i, v in pairs(STAI) do
-		Spring.Echo("H.I.V.E. ST AI module:", i, v)
+		Engine.Shared.Echo("H.I.V.E. ST AI module:", i, v)
 	end
 end

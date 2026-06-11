@@ -24,25 +24,25 @@ end
 -- spawns_ceg = use to spawn an arbitrary ceg in addition to the explosion effect used in the weapondefs. uses Spring.SpawnCEG()
 -- spawns_stun = a number, use it to define how long a unit will be stunned for after landing.
 
-local spCreateFeature = Spring.CreateFeature
-local spCreateUnit = Spring.CreateUnit
-local spDestroyUnit = Spring.DestroyUnit
-local spGetGameFrame = Spring.GetGameFrame
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetUnitShieldState = Spring.GetUnitShieldState
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spSetFeatureDirection = Spring.SetFeatureDirection
-local spSetUnitRulesParam = Spring.SetUnitRulesParam
-local spSpawnCEG = Spring.SpawnCEG
-local spGetUnitHealth = Spring.GetUnitHealth
-local spSetUnitHealth = Spring.SetUnitHealth
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetUnitTeam = Spring.GetUnitTeam
-local spSetUnitDirection = Spring.SetUnitDirection
-local spAddUnitImpulse = Spring.AddUnitImpulse
-local spEcho = Spring.Echo
+local spCreateFeature = Engine.Synced.CreateFeature
+local spCreateUnit = Engine.Synced.CreateUnit
+local spDestroyUnit = Engine.Synced.DestroyUnit
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetProjectileDefID = Engine.Shared.GetProjectileDefID
+local spGetProjectileTeamID = Engine.Shared.GetProjectileTeamID
+local spGetUnitShieldState = Engine.Shared.GetUnitShieldState
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local spSetFeatureDirection = Engine.Synced.SetFeatureDirection
+local spSetUnitRulesParam = Engine.Synced.SetUnitRulesParam
+local spSpawnCEG = Engine.Synced.SpawnCEG
+local spGetUnitHealth = Engine.Shared.GetUnitHealth
+local spSetUnitHealth = Engine.Synced.SetUnitHealth
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spSetUnitDirection = Engine.Synced.SetUnitDirection
+local spAddUnitImpulse = Engine.Synced.AddUnitImpulse
+local spEcho = Engine.Shared.Echo
 
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
@@ -100,9 +100,9 @@ for weaponDefID = 1, #WeaponDefs do
 end
 
 local scavengerAITeamID = 999
-local teams = Spring.GetTeamList()
+local teams = Engine.Shared.GetTeamList()
 for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	local luaAI = Engine.Shared.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == "ScavengersAI" then
 		scavengerAITeamID = i - 1
 		break
@@ -240,9 +240,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		local health = spGetUnitHealth(unitID)
 		if health and damage and damage > health then
 			if attackerID then
-				Spring.DestroyUnit(unitID, true, false, attackerID)
+				Engine.Synced.DestroyUnit(unitID, true, false, attackerID)
 			else
-				Spring.DestroyUnit(unitID, true)
+				Engine.Synced.DestroyUnit(unitID, true)
 			end
 		end
 	end

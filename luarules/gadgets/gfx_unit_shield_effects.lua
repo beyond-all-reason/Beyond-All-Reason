@@ -65,7 +65,7 @@ end
 -----------------------------------------------------------------
 
 if gadgetHandler:IsSyncedCode() then
-	local spSetUnitRulesParam = Spring.SetUnitRulesParam
+	local spSetUnitRulesParam = Engine.Synced.SetUnitRulesParam
 	local SendToUnsynced = SendToUnsynced
 	local INLOS_ACCESS = { inlos = true }
 	local gameFrame = 0
@@ -104,9 +104,9 @@ if gadgetHandler:IsSyncedCode() then
 		local dmgMod = 1
 		local weaponDefID
 		if proID and proID ~= -1 then
-			weaponDefID = Spring.GetProjectileDefID(proID)
+			weaponDefID = Engine.Shared.GetProjectileDefID(proID)
 		elseif beamEmitterUnitID then -- hitscan weapons
-			local uDefID = Spring.GetUnitDefID(beamEmitterUnitID)
+			local uDefID = Engine.Shared.GetUnitDefID(beamEmitterUnitID)
 			if unitBeamWeapons[uDefID] and unitBeamWeapons[uDefID][beamEmitterWeaponNum] then
 				weaponDefID = unitBeamWeapons[uDefID][beamEmitterWeaponNum]
 				if weaponType[weaponDefID] ~= "LightningCannon" then
@@ -121,7 +121,7 @@ if gadgetHandler:IsSyncedCode() then
 				dmg = weaponDamages[weaponDefID][SHIELDARMORIDALT]
 			end
 
-			local x, y, z = Spring.GetUnitPosition(shieldCarrierUnitID)
+			local x, y, z = Engine.Shared.GetUnitPosition(shieldCarrierUnitID)
 			local dx, dy, dz
 			local onlyMove = false
 			if bounceProjectile then
@@ -145,15 +145,15 @@ end
 --------------------------------------------------------------------------------
 
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetUnitPosition = Spring.GetUnitPosition
-local spIsSphereInView = Spring.IsSphereInView
-local spGetUnitRotation = Spring.GetUnitRotation
-local spGetUnitShieldState = Spring.GetUnitShieldState
-local spGetUnitIsStunned = Spring.GetUnitIsStunned
-local spGetGameFrame = Spring.GetGameFrame
-local spGetFrameTimeOffset = Spring.GetFrameTimeOffset
-local spGetCameraPosition = Spring.GetCameraPosition
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spIsSphereInView = Engine.Unsynced.IsSphereInView
+local spGetUnitRotation = Engine.Shared.GetUnitRotation
+local spGetUnitShieldState = Engine.Shared.GetUnitShieldState
+local spGetUnitIsStunned = Engine.Shared.GetUnitIsStunned
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetFrameTimeOffset = Engine.Unsynced.GetFrameTimeOffset
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
 
 local IterableMap = VFS.Include("LuaRules/Gadgets/Include/IterableMap.lua")
 
@@ -218,10 +218,10 @@ local function UpdateVisibility(unitID, unitData, fullview, forceUpdate)
 	-- spectator fullview, own allyteam, direct LoS / AirLoS on the unit itself,
 	-- or LoS / AirLoS on a point on the shield surface (so partial visibility
 	-- of a large shield reveals the whole sphere).
-	local unitVisible = fullview or (myAllyTeamID == unitData.allyTeamID) or Spring.IsUnitInLos(unitID, myAllyTeamID) or Spring.IsUnitInAirLos(unitID, myAllyTeamID)
+	local unitVisible = fullview or (myAllyTeamID == unitData.allyTeamID) or Engine.Shared.IsUnitInLos(unitID, myAllyTeamID) or Engine.Shared.IsUnitInAirLos(unitID, myAllyTeamID)
 
 	if not unitVisible then
-		local ux, uy, uz = Spring.GetUnitPosition(unitID)
+		local ux, uy, uz = Engine.Shared.GetUnitPosition(unitID)
 		if ux then
 			local r = unitData.radius or 0
 			-- Sample 8 cardinal/diagonal points on the shield's horizontal
@@ -233,7 +233,7 @@ local function UpdateVisibility(unitID, unitData, fullview, forceUpdate)
 				for i = 1, #samples do
 					local sx = ux + samples[i][1]
 					local sz = uz + samples[i][2]
-					if Spring.IsPosInLos(sx, cy, sz, myAllyTeamID) or Spring.IsPosInAirLos(sx, cy, sz, myAllyTeamID) then
+					if Engine.Shared.IsPosInLos(sx, cy, sz, myAllyTeamID) or Engine.Shared.IsPosInAirLos(sx, cy, sz, myAllyTeamID) then
 						unitVisible = true
 						break
 					end
@@ -241,14 +241,14 @@ local function UpdateVisibility(unitID, unitData, fullview, forceUpdate)
 			end
 			if not unitVisible and r > 0 then
 				-- Also check top and bottom of the shield sphere
-				if Spring.IsPosInLos(ux, uy + r, uz, myAllyTeamID) or Spring.IsPosInAirLos(ux, uy + r, uz, myAllyTeamID) or Spring.IsPosInLos(ux, uy - r, uz, myAllyTeamID) or Spring.IsPosInAirLos(ux, uy - r, uz, myAllyTeamID) then
+				if Engine.Shared.IsPosInLos(ux, uy + r, uz, myAllyTeamID) or Engine.Shared.IsPosInAirLos(ux, uy + r, uz, myAllyTeamID) or Engine.Shared.IsPosInLos(ux, uy - r, uz, myAllyTeamID) or Engine.Shared.IsPosInAirLos(ux, uy - r, uz, myAllyTeamID) then
 					unitVisible = true
 				end
 			end
 		end
 	end
 
-	local unitIsActive = Spring.GetUnitIsActive(unitID)
+	local unitIsActive = Engine.Shared.GetUnitIsActive(unitID)
 	if unitIsActive ~= unitData.isActive then
 		forceUpdate = true
 		unitData.isActive = unitIsActive
@@ -257,7 +257,7 @@ local function UpdateVisibility(unitID, unitData, fullview, forceUpdate)
 	-- The shield-on rules param is gated by inlos, so for enemies it is only
 	-- readable when we have direct LoS. Use it to suppress rendering when we
 	-- can see the unit but its shield is currently disabled.
-	local shieldEnabled = Spring.GetUnitRulesParam(unitID, SHIELDONRULESPARAMINDEX)
+	local shieldEnabled = Engine.Shared.GetUnitRulesParam(unitID, SHIELDONRULESPARAMINDEX)
 	if unitVisible and shieldEnabled == 0 then
 		unitVisible = false
 	end
@@ -280,7 +280,7 @@ local function AddUnit(unitID, unitDefID)
 
 	-- Validate shield capacity
 	if not def.shieldCapacity or def.shieldCapacity <= 0 then
-		Spring.Echo("Warning: Shield unit " .. unitDefID .. " has invalid capacity: " .. tostring(def.shieldCapacity))
+		Engine.Shared.Echo("Warning: Shield unit " .. unitDefID .. " has invalid capacity: " .. tostring(def.shieldCapacity))
 		return
 	end
 
@@ -298,7 +298,7 @@ local function AddUnit(unitID, unitDefID)
 		capacity = def.shieldCapacity,
 		radius = def.shieldRadius,
 		shieldInfo = shieldInfo,
-		allyTeamID = Spring.GetUnitAllyTeam(unitID),
+		allyTeamID = Engine.Shared.GetUnitAllyTeam(unitID),
 	}
 
 	if highEnoughQuality then
@@ -678,11 +678,11 @@ local function InitializeShader()
 
 	-- Check if shader files exist
 	if not VFS.FileExists("shaders/ShieldSphereColor.vert") then
-		Spring.Echo("Shield shader error: shaders/ShieldSphereColor.vert not found!")
+		Engine.Shared.Echo("Shield shader error: shaders/ShieldSphereColor.vert not found!")
 		return false
 	end
 	if not VFS.FileExists("shaders/ShieldSphereColor.frag") then
-		Spring.Echo("Shield shader error: shaders/ShieldSphereColor.frag not found!")
+		Engine.Shared.Echo("Shield shader error: shaders/ShieldSphereColor.frag not found!")
 		return false
 	end
 
@@ -690,7 +690,7 @@ local function InitializeShader()
 	local shieldShaderFrag = VFS.LoadFile("shaders/ShieldSphereColor.frag")
 
 	if not shieldShaderVert or not shieldShaderFrag then
-		Spring.Echo("Shield shader error: Failed to load shader files!")
+		Engine.Shared.Echo("Shield shader error: Failed to load shader files!")
 		return false
 	end
 
@@ -723,14 +723,14 @@ local function InitializeShader()
 
 	local shaderCompiled = shieldShader:Initialize()
 	if not shaderCompiled then
-		Spring.Echo("Shield shader failed to compile!")
+		Engine.Shared.Echo("Shield shader failed to compile!")
 		shieldShader = nil
 		return false
 	end
 
 	-- Verify shader object is valid
 	if not shieldShader or not shieldShader.uniformLocations then
-		Spring.Echo("Shield shader object is invalid after initialization!")
+		Engine.Shared.Echo("Shield shader object is invalid after initialization!")
 		shieldShader = nil
 		return false
 	end
@@ -1084,7 +1084,7 @@ end
 function gadget:UnitTaken(unitID, unitDefID, newTeam, oldTeam)
 	local unitData = IterableMap.Get(shieldUnits, unitID)
 	if unitData then
-		unitData.allyTeamID = Spring.GetUnitAllyTeam(unitID)
+		unitData.allyTeamID = Engine.Shared.GetUnitAllyTeam(unitID)
 	end
 end
 
@@ -1118,7 +1118,7 @@ function gadget:Initialize(n)
 	-- Initialize shader and geometry
 	local shaderSuccess = InitializeShader()
 	if not shaderSuccess then
-		Spring.Echo("Shield gadget: Failed to initialize shader, disabling")
+		Engine.Shared.Echo("Shield gadget: Failed to initialize shader, disabling")
 		gadgetHandler:RemoveGadget(self)
 		return
 	end
@@ -1129,11 +1129,11 @@ function gadget:Initialize(n)
 	end
 
 	-- Add existing units
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = Engine.Shared.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		local unitTeam = Spring.GetUnitTeam(unitID)
+		local unitDefID = Engine.Shared.GetUnitDefID(unitID)
+		local unitTeam = Engine.Shared.GetUnitTeam(unitID)
 		if unitDefID and unitTeam then
 			gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
@@ -1150,7 +1150,7 @@ function gadget:Shutdown()
 	FinalizeShader()
 
 	-- Remove all units
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = Engine.Shared.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		RemoveUnit(unitID)

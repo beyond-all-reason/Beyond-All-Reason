@@ -24,10 +24,10 @@ local strUpper = string.upper
 local osClock = os.clock
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMouseState = Spring.GetMouseState
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
 
 --[[Changelog
 	before v8.0 developed outside of BA by Marmoth
@@ -103,25 +103,25 @@ local AdvPlayersListAtlas
 --------------------------------------------------------------------------------
 
 local sp = {
-	GetAllyTeamList = Spring.GetAllyTeamList,
-	GetTeamInfo = Spring.GetTeamInfo,
-	GetTeamList = Spring.GetTeamList,
-	GetPlayerInfo = Spring.GetPlayerInfo,
-	GetPlayerList = Spring.GetPlayerList,
-	GetTeamColor = Spring.GetTeamColor,
-	GetLocalAllyTeamID = Spring.GetLocalAllyTeamID,
-	GetLocalTeamID = Spring.GetLocalTeamID,
-	GetLocalPlayerID = Spring.GetLocalPlayerID,
-	ShareResources = Spring.ShareResources,
-	GetTeamUnitCount = Spring.GetTeamUnitCount,
-	GetTeamResources = Spring.GetTeamResources,
-	SendCommands = Spring.SendCommands,
+	GetAllyTeamList = Engine.Shared.GetAllyTeamList,
+	GetTeamInfo = Engine.Shared.GetTeamInfo,
+	GetTeamList = Engine.Shared.GetTeamList,
+	GetPlayerInfo = Engine.Shared.GetPlayerInfo,
+	GetPlayerList = Engine.Shared.GetPlayerList,
+	GetTeamColor = Engine.Unsynced.GetTeamColor,
+	GetLocalAllyTeamID = Engine.Unsynced.GetLocalAllyTeamID,
+	GetLocalTeamID = Engine.Unsynced.GetLocalTeamID,
+	GetLocalPlayerID = Engine.Unsynced.GetLocalPlayerID,
+	ShareResources = Engine.Unsynced.ShareResources,
+	GetTeamUnitCount = Engine.Shared.GetTeamUnitCount,
+	GetTeamResources = Engine.Shared.GetTeamResources,
+	SendCommands = Engine.Unsynced.SendCommands,
 	GetMouseState = spGetMouseState,
-	GetAIInfo = Spring.GetAIInfo,
-	GetTeamRulesParam = Spring.GetTeamRulesParam,
+	GetAIInfo = Engine.Shared.GetAIInfo,
+	GetTeamRulesParam = Engine.Shared.GetTeamRulesParam,
 	GetMyTeamID = Spring.GetMyTeamID,
-	AreTeamsAllied = Spring.AreTeamsAllied,
-	GetTeamStatsHistory = Spring.GetTeamStatsHistory,
+	AreTeamsAllied = Engine.Shared.AreTeamsAllied,
+	GetTeamStatsHistory = Engine.Shared.GetTeamStatsHistory,
 }
 
 local Color = {
@@ -214,11 +214,11 @@ local originalColourNames = {} -- loaded in SetOriginalColourNames, format is or
 
 local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = { Spring.GetConfigInt("anonymousColorR", 255) / 255, Spring.GetConfigInt("anonymousColorG", 0) / 255, Spring.GetConfigInt("anonymousColorB", 0) / 255 }
+local anonymousMode = Engine.Shared.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = { Engine.Unsynced.GetConfigInt("anonymousColorR", 255) / 255, Engine.Unsynced.GetConfigInt("anonymousColorG", 0) / 255, Engine.Unsynced.GetConfigInt("anonymousColorB", 0) / 255 }
 
-local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount or 0
-if Spring.GetModOptions().easytax then
+local sharingTax = Engine.Shared.GetModOptions().tax_resource_sharing_amount or 0
+if Engine.Shared.GetModOptions().easytax then
 	sharingTax = 0.3 -- 30% tax for easytax modoption
 end
 
@@ -290,11 +290,11 @@ local accountIDLookup = {} -- accountID -> playerID for fast duplicate detection
 
 -- local player info
 local myPlayerID = Spring.GetMyPlayerID()
-local myAllyTeamID = Spring.GetLocalAllyTeamID()
-local myTeamID = Spring.GetLocalTeamID()
-local myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
+local myAllyTeamID = Engine.Unsynced.GetLocalAllyTeamID()
+local myTeamID = Engine.Unsynced.GetLocalTeamID()
+local myTeamPlayerID = select(2, Engine.Shared.GetTeamInfo(myTeamID))
 local mySpecStatus, fullView, _ = spGetSpectatingState()
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = Engine.Shared.GetGaiaTeamID()
 
 --General players/spectator count and tables
 local player = {}
@@ -326,7 +326,7 @@ local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local isSingle = false
 if not mySpecStatus then
-	local teamList = Spring.GetTeamList(myAllyTeamID) or {}
+	local teamList = Engine.Shared.GetTeamList(myAllyTeamID) or {}
 	isSingle = #teamList == 1
 end
 --------------------------------------------------------------------------------
@@ -572,7 +572,7 @@ m_chat = {
 }
 position = position + 1
 
-local drawAllyButton = not Spring.GetModOptions().fixedallies
+local drawAllyButton = not Engine.Shared.GetModOptions().fixedallies
 
 m_alliance = {
 	name = "ally",
@@ -625,7 +625,7 @@ local specsLabelOffset = 0
 local enemyLabelOffset = 0
 
 local hideShareIcons = false
-local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
+local numTeamsInAllyTeam = #Engine.Shared.GetTeamList(myAllyTeamID)
 
 if mySpecStatus or numTeamsInAllyTeam <= 1 then
 	hideShareIcons = true
@@ -854,9 +854,9 @@ function widget:PlayerChanged(playerID)
 		end
 	end
 	myPlayerID = Spring.GetMyPlayerID()
-	myAllyTeamID = Spring.GetLocalAllyTeamID()
-	myTeamID = Spring.GetLocalTeamID()
-	myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
+	myAllyTeamID = Engine.Unsynced.GetLocalAllyTeamID()
+	myTeamID = Engine.Unsynced.GetLocalTeamID()
+	myTeamPlayerID = select(2, Engine.Shared.GetTeamInfo(myTeamID))
 	-- UNTESTED: reset original color names for the player, cause they can be wrong depending on the anonymous mode
 	if anonymousMode and playerID == myPlayerID and not mySpecStatus and spGetSpectatingState() then
 		SetOriginalColourNames()
@@ -988,8 +988,8 @@ function widget:Initialize()
 			specListShow = false
 		end
 	end
-	if Spring.GetConfigInt("ShowPlayerInfo") == 1 then
-		Spring.SendCommands("info 0")
+	if Engine.Unsynced.GetConfigInt("ShowPlayerInfo") == 1 then
+		Engine.Unsynced.SendCommands("info 0")
 	end
 
 	if spGetGameFrame() > 0 then
@@ -1134,9 +1134,9 @@ end
 
 function SetSidePics()
 	--record readyStates
-	local playerList = Spring.GetPlayerList()
+	local playerList = Engine.Shared.GetPlayerList()
 	for _, playerID in pairs(playerList) do
-		playerReadyState[playerID] = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_readyState")
+		playerReadyState[playerID] = Engine.Shared.GetGameRulesParam("player_" .. tostring(playerID) .. "_readyState")
 	end
 
 	--set factions, from TeamRulesParam when possible and from initial info if not
@@ -1264,7 +1264,7 @@ function round(num, idp)
 end
 
 function GetSkill(playerID)
-	local customtable = select(11, Spring.GetPlayerInfo(playerID))
+	local customtable = select(11, Engine.Shared.GetPlayerInfo(playerID))
 	local osMu = customtable.skill
 	local osSigma = customtable.skilluncertainty
 	local osSkill = ""
@@ -1378,7 +1378,7 @@ function CreatePlayer(playerID)
 		energy = energy,
 		energyStorage = energyStorage,
 		energyShare = energyShare,
-		energyConversion = Spring.GetTeamRulesParam(tteam, "mmLevel"),
+		energyConversion = Engine.Shared.GetTeamRulesParam(tteam, "mmLevel"),
 		metal = metal,
 		metalStorage = metalStorage,
 		metalShare = metalShare,
@@ -1391,7 +1391,7 @@ end
 
 function GetAIName(teamID)
 	local _, _, _, name, _, options = sp.GetAIInfo(teamID)
-	local niceName = Spring.GetGameRulesParam("ainame_" .. teamID)
+	local niceName = Engine.Shared.GetGameRulesParam("ainame_" .. teamID)
 
 	if niceName then
 		name = niceName
@@ -1421,7 +1421,7 @@ function CreatePlayerFromTeam(teamID)
 		tdead = false
 		tai = true
 	else
-		if Spring.GetGameSeconds() < 0.1 then
+		if Engine.Shared.GetGameSeconds() < 0.1 then
 			tname = absentName
 			ttotake = false
 			tdead = false
@@ -1471,7 +1471,7 @@ function CreatePlayerFromTeam(teamID)
 		energy = energy,
 		energyStorage = energyStorage,
 		energyShare = energyShare,
-		energyConversion = Spring.GetTeamRulesParam(teamID, "mmLevel"),
+		energyConversion = Engine.Shared.GetTeamRulesParam(teamID, "mmLevel"),
 		metal = metal,
 		metalStorage = metalStorage,
 		metalShare = metalShare,
@@ -1514,7 +1514,7 @@ function UpdatePlayerResources()
 					p.metalStorage = metalStorage
 					p.metalShare = metalShare
 					if not p.spec then
-						p.energyConversion = Spring.GetTeamRulesParam(p.team, "mmLevel")
+						p.energyConversion = Engine.Shared.GetTeamRulesParam(p.team, "mmLevel")
 					end
 					local pAllyteam = p.allyteam
 					if not allyTeamMaxStorage[pAllyteam] then
@@ -1598,7 +1598,7 @@ function SortList()
 		playerScale = playerScale - 0.05 - (playerScale * ((#sp.GetAllyTeamList() - 2) / 200)) -- reduce size some more when mega ffa
 	end
 	if playerScale < 0.9 then
-		playerScale = playerScale - (playerScale * (Spring.GetConfigFloat("ui_scale", 1) - 1))
+		playerScale = playerScale - (playerScale * (Engine.Unsynced.GetConfigFloat("ui_scale", 1) - 1))
 	end
 
 	-- calls the (cascade) sorting for players
@@ -2879,9 +2879,9 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
 		local lastKnownName = pDraw and pDraw.lastKnownName
 		if not lastKnownName and team then
 			-- Live fallback: resolve via the team leader player ID stored in the engine
-			local teamLeaderID = select(2, Spring.GetTeamInfo(team, false))
+			local teamLeaderID = select(2, Engine.Shared.GetTeamInfo(team, false))
 			if teamLeaderID and teamLeaderID >= 0 then
-				local pName, _, pSpec, pTeam = Spring.GetPlayerInfo(teamLeaderID, false)
+				local pName, _, pSpec, pTeam = Engine.Shared.GetPlayerInfo(teamLeaderID, false)
 				if pName and pName ~= "" and not pSpec and pTeam == team then
 					lastKnownName = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamLeaderID) or pName
 					-- Persist so GetAllPlayers picks it up and doesn't look it up again
@@ -2899,9 +2899,9 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
 
 	if not gameStarted then
 		if playerID >= specOffset then
-			willSub = (Spring.GetGameRulesParam("Player" .. (playerID - specOffset) .. "willSub") == 1) and " (sub)" or "" --pID-specOffset because apl uses dummy playerIDs for absent players
+			willSub = (Engine.Shared.GetGameRulesParam("Player" .. (playerID - specOffset) .. "willSub") == 1) and " (sub)" or "" --pID-specOffset because apl uses dummy playerIDs for absent players
 		else
-			willSub = (Spring.GetGameRulesParam("Player" .. playerID .. "willSub") == 1) and " (sub)" or ""
+			willSub = (Engine.Shared.GetGameRulesParam("Player" .. playerID .. "willSub") == 1) and " (sub)" or ""
 		end
 	end
 
@@ -3171,7 +3171,7 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
 			local text = ""
 			local c = 0
 
-			local pname = Spring.GetPlayerInfo(playerID, false)
+			local pname = Engine.Shared.GetPlayerInfo(playerID, false)
 			for i, name in ipairs(pTip.history) do
 				if pTip.name ~= name then
 					if c > 0 then
@@ -3434,7 +3434,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	if button == 1 then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local alt, ctrl, meta, shift = Engine.Unsynced.GetModKeyState()
 		sliderPosition = nil
 		shareAmount = 0
 
@@ -3477,7 +3477,7 @@ function widget:MousePress(x, y, button)
 							if clickedPlayer.pointTime ~= nil then
 								if IsOnRect(x, y, widgetPosX - 33, posY - 2, widgetPosX - 17, posY + (playerOffset * playerScale)) then
 									--point button
-									Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
+									Engine.Unsynced.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
 									return true
 								end
 							end
@@ -3541,10 +3541,10 @@ function widget:MousePress(x, y, button)
 									if release >= now then
 										if clickedPlayer.team == myTeamID then
 											--sp.SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
-											Spring.SendLuaRulesMsg("msg:ui.playersList.chat.needSupport")
+											Engine.Unsynced.SendLuaRulesMsg("msg:ui.playersList.chat.needSupport")
 										else
 											sp.ShareResources(clickedPlayer.team, "units")
-											Spring.PlaySoundFile("beep4", 1, "ui")
+											Engine.Unsynced.PlaySoundFile("beep4", 1, "ui")
 										end
 									end
 									release = nil
@@ -3594,7 +3594,7 @@ function widget:MousePress(x, y, button)
 							if clickedPlayer.pointTime ~= nil then
 								if clickedPlayer.allyteam == myAllyTeamID then
 									if IsOnRect(x, y, widgetPosX - 28, posY - 1, widgetPosX - 12, posY + 17) then
-										Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
+										Engine.Unsynced.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
 										return true
 									end
 								end
@@ -3655,7 +3655,7 @@ function widget:MouseMove(x, y, dx, dy, button)
 		UpdateResources()
 		if playSounds and (lastSliderSound == nil or osClock() - lastSliderSound > 0.05) and shareAmount ~= prevAmountEM then
 			lastSliderSound = osClock()
-			Spring.PlaySoundFile(sliderdrag, 0.3, "ui")
+			Engine.Unsynced.PlaySoundFile(sliderdrag, 0.3, "ui")
 		end
 	end
 end
@@ -3672,22 +3672,22 @@ function widget:MouseRelease(x, y, button)
 		if energyPlayer ~= nil then
 			-- share energy/metal mouse release
 			if energyPlayer.team == myTeamID then
-				Spring.SendLuaUIMsg("alert:allyRequest:energy", "allies")
+				Engine.Unsynced.SendLuaUIMsg("alert:allyRequest:energy", "allies")
 				if shareAmount == 0 then
 					--sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergy'))
-					Spring.SendLuaRulesMsg("msg:ui.playersList.chat.needEnergy")
+					Engine.Unsynced.SendLuaRulesMsg("msg:ui.playersList.chat.needEnergy")
 				else
 					--sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergyAmount', { amount = shareAmount }))
-					Spring.SendLuaRulesMsg("msg:ui.playersList.chat.needEnergyAmount:amount=" .. shareAmount)
+					Engine.Unsynced.SendLuaRulesMsg("msg:ui.playersList.chat.needEnergyAmount:amount=" .. shareAmount)
 				end
 			elseif shareAmount > 0 then
 				sp.ShareResources(energyPlayer.team, "energy", shareAmount)
 				--sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
 				if sharingTax and sharingTax > 0 then
 					local amount2 = mathFloor(shareAmount * (1 - sharingTax))
-					Spring.SendLuaRulesMsg("msg:ui.playersList.chat.giveEnergy_taxed:amount=" .. shareAmount .. ":name=" .. (energyPlayer.orgname or energyPlayer.name) .. ":amount2=" .. amount2)
+					Engine.Unsynced.SendLuaRulesMsg("msg:ui.playersList.chat.giveEnergy_taxed:amount=" .. shareAmount .. ":name=" .. (energyPlayer.orgname or energyPlayer.name) .. ":amount2=" .. amount2)
 				else
-					Spring.SendLuaRulesMsg("msg:ui.playersList.chat.giveEnergy:amount=" .. shareAmount .. ":name=" .. (energyPlayer.orgname or energyPlayer.name))
+					Engine.Unsynced.SendLuaRulesMsg("msg:ui.playersList.chat.giveEnergy:amount=" .. shareAmount .. ":name=" .. (energyPlayer.orgname or energyPlayer.name))
 				end
 				WG.sharedEnergyFrame = spGetGameFrame()
 			end
@@ -3700,22 +3700,22 @@ function widget:MouseRelease(x, y, button)
 
 		if metalPlayer ~= nil and shareAmount then
 			if metalPlayer.team == myTeamID then
-				Spring.SendLuaUIMsg("alert:allyRequest:metal", "allies")
+				Engine.Unsynced.SendLuaUIMsg("alert:allyRequest:metal", "allies")
 				if shareAmount == 0 then
 					--sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetal'))
-					Spring.SendLuaRulesMsg("msg:ui.playersList.chat.needMetal")
+					Engine.Unsynced.SendLuaRulesMsg("msg:ui.playersList.chat.needMetal")
 				else
 					--sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetalAmount', { amount = shareAmount }))
-					Spring.SendLuaRulesMsg("msg:ui.playersList.chat.needMetalAmount:amount=" .. shareAmount)
+					Engine.Unsynced.SendLuaRulesMsg("msg:ui.playersList.chat.needMetalAmount:amount=" .. shareAmount)
 				end
 			elseif shareAmount > 0 then
 				sp.ShareResources(metalPlayer.team, "metal", shareAmount)
 				--sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
 				if sharingTax and sharingTax > 0 then
 					local amount2 = mathFloor(shareAmount * (1 - sharingTax))
-					Spring.SendLuaRulesMsg("msg:ui.playersList.chat.giveMetal_taxed:amount=" .. shareAmount .. ":name=" .. (metalPlayer.orgname or metalPlayer.name) .. ":amount2=" .. amount2)
+					Engine.Unsynced.SendLuaRulesMsg("msg:ui.playersList.chat.giveMetal_taxed:amount=" .. shareAmount .. ":name=" .. (metalPlayer.orgname or metalPlayer.name) .. ":amount2=" .. amount2)
 				else
-					Spring.SendLuaRulesMsg("msg:ui.playersList.chat.giveMetal:amount=" .. shareAmount .. ":name=" .. (metalPlayer.orgname or metalPlayer.name))
+					Engine.Unsynced.SendLuaRulesMsg("msg:ui.playersList.chat.giveMetal:amount=" .. shareAmount .. ":name=" .. (metalPlayer.orgname or metalPlayer.name))
 				end
 				WG.sharedMetalFrame = spGetGameFrame()
 			end
@@ -3729,12 +3729,12 @@ function widget:MouseRelease(x, y, button)
 end
 
 function Spec(teamID)
-	local oldMapDrawMode = Spring.GetMapDrawMode()
+	local oldMapDrawMode = Engine.Unsynced.GetMapDrawMode()
 	sp.SendCommands("specteam " .. teamID)
 	-- restore current los drawmode (doing specteam makes it non normal non los view)
-	local newMapDrawMode = Spring.GetMapDrawMode()
+	local newMapDrawMode = Engine.Unsynced.GetMapDrawMode()
 	if oldMapDrawMode == "los" and oldMapDrawMode ~= newMapDrawMode then
-		Spring.SendCommands("togglelos")
+		Engine.Unsynced.SendCommands("togglelos")
 	end
 	SortList()
 end
@@ -4070,7 +4070,7 @@ function widget:Update(delta)
 		if tipText and WG["tooltip"] then
 			WG["tooltip"].ShowTooltip("advplayerlist", tipText, nil, nil, tipTextTitle)
 		end
-		Spring.SetMouseCursor("cursornormal")
+		Engine.Unsynced.SetMouseCursor("cursornormal")
 	end
 
 	lockPlayerID = WG.lockcamera and WG.lockcamera.GetPlayerID() or false
@@ -4093,7 +4093,7 @@ function widget:Update(delta)
 
 	if scheduledSpecFullView ~= nil then
 		-- this is needed else the minimap/world doesnt update properly
-		Spring.SendCommands("specfullview")
+		Engine.Unsynced.SendCommands("specfullview")
 		scheduledSpecFullView = scheduledSpecFullView - 1
 		if scheduledSpecFullView == 0 then
 			scheduledSpecFullView = nil
@@ -4118,9 +4118,9 @@ function widget:Update(delta)
 				end
 			end
 			if detailedToSay then
-				Spring.SendLuaRulesMsg("msg:ui.playersList.chat.takeTeam:name=" .. tookTeamName .. ":units=" .. mathFloor(afterU) .. ":energy=" .. mathFloor(afterE) .. ":metal=" .. mathFloor(afterE))
+				Engine.Unsynced.SendLuaRulesMsg("msg:ui.playersList.chat.takeTeam:name=" .. tookTeamName .. ":units=" .. mathFloor(afterU) .. ":energy=" .. mathFloor(afterE) .. ":metal=" .. mathFloor(afterE))
 			else
-				Spring.SendLuaRulesMsg("msg:ui.playersList.chat.takeTeam:name=" .. tookTeamName)
+				Engine.Unsynced.SendLuaRulesMsg("msg:ui.playersList.chat.takeTeam:name=" .. tookTeamName)
 			end
 
 			for j = 0, (specOffset * 2) - 1 do
@@ -4176,7 +4176,7 @@ function updateWidgetScale()
 	end
 	local prevWidgetScale = widgetScale
 	widgetScale = (vsy / 980) * (1 + ((vsx / vsy) * 0.065)) * customScale
-	widgetScale = widgetScale * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
+	widgetScale = widgetScale * (1 + (Engine.Unsynced.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
 	if prevWidgetScale ~= widgetScale then
 		prevWidgetScale = widgetScale
 		forceMainListRefresh = true

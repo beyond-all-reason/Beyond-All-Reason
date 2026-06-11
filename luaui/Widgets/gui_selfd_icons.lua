@@ -13,8 +13,8 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
 
 local ignoreUnitDefs = {}
 local unitConf = {}
@@ -40,14 +40,14 @@ local drawLists = {}
 local glDrawListAtUnit = gl.DrawListAtUnit
 local glDepthTest = gl.DepthTest
 local spGetUnitDefID = spGetUnitDefID
-local spIsUnitInView = Spring.IsUnitInView
-local spGetUnitSelfDTime = Spring.GetUnitSelfDTime
-local spGetAllUnits = Spring.GetAllUnits
-local spGetUnitCommands = Spring.GetUnitCommands
-local spIsUnitAllied = Spring.IsUnitAllied
-local spGetCameraDirection = Spring.GetCameraDirection
-local spIsGUIHidden = Spring.IsGUIHidden
-local spGetUnitTransporter = Spring.GetUnitTransporter
+local spIsUnitInView = Engine.Unsynced.IsUnitInView
+local spGetUnitSelfDTime = Engine.Shared.GetUnitSelfDTime
+local spGetAllUnits = Engine.Shared.GetAllUnits
+local spGetUnitCommands = Engine.Shared.GetUnitCommands
+local spIsUnitAllied = Engine.Unsynced.IsUnitAllied
+local spGetCameraDirection = Engine.Unsynced.GetCameraDirection
+local spIsGUIHidden = Engine.Unsynced.IsGUIHidden
+local spGetUnitTransporter = Engine.Shared.GetUnitTransporter
 
 local spec = spGetSpectatingState()
 

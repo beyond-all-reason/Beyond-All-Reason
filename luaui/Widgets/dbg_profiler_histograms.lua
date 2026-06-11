@@ -21,15 +21,15 @@ end
 local mathRandom = math.random
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spEcho = Spring.Echo
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spEcho = Engine.Shared.Echo
 
 ---------------------------Speedups-----------------------------
-local spGetProfilerTimeRecord = Spring.GetProfilerTimeRecord
+local spGetProfilerTimeRecord = Engine.Unsynced.GetProfilerTimeRecord
 ---------------------------Internal vars---------------------------
 local timerstart = nil
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = Engine.Unsynced.GetViewGeometry()
 ----------------------------GL4 vars----------------------------
 
 local boundingbox = { vsx / 4, vsy / 4, 3 * vsx / 4, 3 * vsy / 4 }
@@ -224,10 +224,10 @@ function widget:Initialize()
 		spEcho("Failed to compile shaders for: frame grapher v2")
 		widgetHandler:RemoveWidget(self)
 	end
-	timerstart = Spring.GetTimer()
-	timerold = Spring.GetTimer()
+	timerstart = Engine.Unsynced.GetTimer()
+	timerold = Engine.Unsynced.GetTimer()
 
-	for k, v in pairs(Spring.GetProfilerRecordNames()) do
+	for k, v in pairs(Engine.Unsynced.GetProfilerRecordNames()) do
 		--spEcho(k,v)
 		profilerecords[k] = v
 		histograms[v] = createhistogram(v)
@@ -235,7 +235,7 @@ function widget:Initialize()
 end
 
 local function PrintRecord(name)
-	local total, current, maxdt, time, peak = Spring.GetProfilerTimeRecord(name, false)
+	local total, current, maxdt, time, peak = Engine.Unsynced.GetProfilerTimeRecord(name, false)
 	-- where total is in milliseconds
 	-- current gets reset ever 33 frames, and is a running tally
 	-- maxdt is the peak value
@@ -249,7 +249,7 @@ local function PrintRecord(name)
 end
 
 local function GetRecordCurrent(name)
-	local total, current = Spring.GetProfilerTimeRecord(name, false)
+	local total, current = Engine.Unsynced.GetProfilerTimeRecord(name, false)
 	return current
 end
 

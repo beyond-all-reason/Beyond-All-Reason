@@ -13,13 +13,13 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-	local GetUnitRulesParam = Spring.GetUnitRulesParam
-	local SetUnitRulesParam = Spring.SetUnitRulesParam
+	local GetUnitRulesParam = Engine.Shared.GetUnitRulesParam
+	local SetUnitRulesParam = Engine.Synced.SetUnitRulesParam
 
 	local teamAllyteam = {}
-	local teamList = Spring.GetTeamList()
+	local teamList = Engine.Shared.GetTeamList()
 	for i = 1, #teamList do
-		teamAllyteam[teamList[i]] = select(6, Spring.GetTeamInfo(teamList[i]))
+		teamAllyteam[teamList[i]] = select(6, Engine.Shared.GetTeamInfo(teamList[i]))
 	end
 
 	-- crashing planes are handled in crashing_aircraft gadget

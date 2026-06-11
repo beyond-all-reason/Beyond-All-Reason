@@ -32,20 +32,20 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 function gadget:Initialize()
-	for ct, unitID in pairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	for ct, unitID in pairs(Engine.Shared.GetAllUnits()) do
+		gadget:UnitCreated(unitID, Engine.Shared.GetUnitDefID(unitID))
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
 	if attackSafetyDistance[unitDefID] then
-		local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)
+		local curMoveCtrl = Engine.Synced.MoveCtrl.IsEnabled(unitID)
 		if curMoveCtrl then
-			Spring.MoveCtrl.Disable(unitID)
+			Engine.Synced.MoveCtrl.Disable(unitID)
 		end
-		Spring.MoveCtrl.SetAirMoveTypeData(unitID, "attackSafetyDistance", attackSafetyDistance[unitDefID])
+		Engine.Synced.MoveCtrl.SetAirMoveTypeData(unitID, "attackSafetyDistance", attackSafetyDistance[unitDefID])
 		if curMoveCtrl then
-			Spring.MoveCtrl.Enable(unitID)
+			Engine.Synced.MoveCtrl.Enable(unitID)
 		end
 	end
 end

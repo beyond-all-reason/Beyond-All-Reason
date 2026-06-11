@@ -17,8 +17,8 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local GetUnitCOBValue = Spring.GetUnitCOBValue
-local SetUnitNeutral = Spring.SetUnitNeutral
-local ValidUnitID = Spring.ValidUnitID
+local SetUnitNeutral = Engine.Synced.SetUnitNeutral
+local ValidUnitID = Engine.Shared.ValidUnitID
 local neutralUnits = {}
 local armourTurrets = {}
 for udid, ud in ipairs(UnitDefs) do
@@ -32,10 +32,10 @@ local UPDATE = 30
 local timeCounter = 15
 
 function gadget:Initialize()
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		if not Spring.GetUnitIsBeingBuilt(unitID) then
+	for _, unitID in ipairs(Engine.Shared.GetAllUnits()) do
+		if not Engine.Shared.GetUnitIsBeingBuilt(unitID) then
 			---@diagnostic disable-next-line: missing-parameter, param-type-mismatch -- OK
-			gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID))
+			gadget:UnitFinished(unitID, Engine.Shared.GetUnitDefID(unitID))
 		end
 	end
 end

@@ -47,10 +47,10 @@ local floor, ceil = math.floor, math.ceil
 local sqrt = math.sqrt
 local huge = math.huge
 
-local spGetGroundInfo = Spring.GetGroundInfo
-local spGetGroundHeight = Spring.GetGroundHeight
-local spTestBuildOrder = Spring.TestBuildOrder
-local spSetGameRulesParam = Spring.SetGameRulesParam
+local spGetGroundInfo = Engine.Shared.GetGroundInfo
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spTestBuildOrder = Engine.Shared.TestBuildOrder
+local spSetGameRulesParam = Engine.Synced.SetGameRulesParam
 
 local extractorRadius = Game.extractorRadius
 local extractorRadiusSqr = extractorRadius * extractorRadius
@@ -95,11 +95,11 @@ local function GetSpotsGeo()
 		end
 	end
 	local spots = {}
-	local features = Spring.GetAllFeatures()
+	local features = Engine.Shared.GetAllFeatures()
 	local spotCount = 0
 	for i = 1, #features do
-		if geoFeatureDefs[Spring.GetFeatureDefID(features[i])] then
-			local x, y, z = Spring.GetFeaturePosition(features[i])
+		if geoFeatureDefs[Engine.Shared.GetFeatureDefID(features[i])] then
+			local x, y, z = Engine.Shared.GetFeaturePosition(features[i])
 			spotCount = spotCount + 1
 			spots[spotCount] = {
 				isGeo = true,
@@ -217,7 +217,7 @@ local function setMexGameRules(spots)
 			spSetGameRulesParam("mex_metal" .. i, mex.worth)
 		end
 	else
-		Spring.SetGameRulesParam("mex_count", -1)
+		Engine.Synced.SetGameRulesParam("mex_count", -1)
 	end
 end
 
@@ -370,7 +370,7 @@ function upget:Initialize()
 		-- base_extraction=0.001 is meant to say that T1 mex is baseline x1, and T2 is baseline x4
 		-- as opposed to T1 being x0.5 and T2 being x2.
 		-- Unused now.
-		Spring.SetGameRulesParam("base_extraction", 1.0)
+		Engine.Synced.SetGameRulesParam("base_extraction", 1.0)
 	end
 
 	if metalMaps[Game.mapName] then

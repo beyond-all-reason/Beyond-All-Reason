@@ -24,21 +24,21 @@ local prevRanking = {}
 local allyteamCost = {}
 local unfinishedUnits = {}
 local teamAllyteam = {}
-local teamList = Spring.GetTeamList()
-local GaiaTeamID = Spring.GetGaiaTeamID()
+local teamList = Engine.Shared.GetTeamList()
+local GaiaTeamID = Engine.Shared.GetGaiaTeamID()
 for i = 1, #teamList do
 	local teamID = teamList[i]
 	if teamID ~= GaiaTeamID then
-		local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
+		local allyTeamID = select(6, Engine.Shared.GetTeamInfo(teamID))
 		teamAllyteam[teamID] = allyTeamID
 		allyteamCost[allyTeamID] = 0
 		unfinishedUnits[allyTeamID] = {}
 	end
 end
 
-local spGetTeamResources = Spring.GetTeamResources
-local spGetTeamList = Spring.GetTeamList
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetTeamResources = Engine.Shared.GetTeamResources
+local spGetTeamList = Engine.Shared.GetTeamList
+local spGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
 local mathFloor = math.floor
 local tableSort = table.sort
 local rankSortFunc = function(m1, m2)
@@ -118,8 +118,8 @@ function gadget:UnitTaken(unitID, unitDefID, unitTeam, oldTeam)
 end
 
 function gadget:Initialize()
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+	for _, unitID in ipairs(Engine.Shared.GetAllUnits()) do
+		gadget:UnitCreated(unitID, Engine.Shared.GetUnitDefID(unitID), Engine.Shared.GetUnitTeam(unitID))
 	end
 end
 

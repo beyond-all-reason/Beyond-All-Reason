@@ -33,9 +33,9 @@ function shard_generate_include_func(runtime_path, ai_path)
 				return VFS.Include(file)
 			end
 		end
-		Spring.Echo("Failed to load " .. file .. " we attempted to load the first of the following:")
+		Engine.Shared.Echo("Failed to load " .. file .. " we attempted to load the first of the following:")
 		for index, file in ipairs(candidates) do
-			Spring.Echo(index .. ": " .. file)
+			Engine.Shared.Echo(index .. ": " .. file)
 		end
 		return nil
 	end
@@ -50,7 +50,7 @@ function shard_include(file)
 	if VFS.FileExists(runtime_file) then
 		return VFS.Include(runtime_file)
 	end
-	Spring.Echo("Failed to load " .. runtime_file)
+	Engine.Shared.Echo("Failed to load " .. runtime_file)
 	return
 end
 

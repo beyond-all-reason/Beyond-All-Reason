@@ -22,10 +22,10 @@ if gadgetHandler:IsSyncedCode() then
 end
 
 local function isAuthorized(playerID, subPermission)
-	if Spring.IsCheatingEnabled() then
+	if Engine.Shared.IsCheatingEnabled() then
 		return true
 	end
-	local playername = Spring.GetPlayerInfo(playerID)
+	local playername = Engine.Shared.GetPlayerInfo(playerID)
 	local accountID = Spring.Utilities.GetAccountID(playerID)
 	local hasPermission = false
 	if (_G and _G.permissions.devhelpers and (_G.permissions.devhelpers[accountID] or (playername and _G.permissions.devhelpers[playername]))) or (SYNCED and SYNCED.permissions.devhelpers and (SYNCED.permissions.devhelpers[accountID] or (playername and SYNCED.permissions.devhelpers[playername]))) then
@@ -150,21 +150,21 @@ if gadgetHandler:IsSyncedCode() then
 			areaOffsetZ = 1 - areaFraction
 		end
 
-		runStartFrame = Spring.GetGameFrame()
+		runStartFrame = Engine.Shared.GetGameFrame()
 		initrandom(RUN_SEED)
 		scanAnchors()
 		initCategoriesForRun()
 		computeFeatureDefsToRemove()
 		featurestoremove = {}
 
-		Spring.Echo(string.format("[synctest] starting: totalframes=%d area=%.2f offset=%.2f,%.2f mult=%.2f categories=%d anchors land/water/air=%d/%d/%d", totalFrames, areaFraction, areaOffsetX, areaOffsetZ, unitMultiplier, #enabledCats, #anchorsByClass.land, #anchorsByClass.water, #anchorsByClass.air))
+		Engine.Shared.Echo(string.format("[synctest] starting: totalframes=%d area=%.2f offset=%.2f,%.2f mult=%.2f categories=%d anchors land/water/air=%d/%d/%d", totalFrames, areaFraction, areaOffsetX, areaOffsetZ, unitMultiplier, #enabledCats, #anchorsByClass.land, #anchorsByClass.water, #anchorsByClass.air))
 		SendToUnsynced("synctest_synchash_begin", totalFrames, runStartFrame)
 		active = true
 	end
 
 	local function endRun()
 		active = false
-		Spring.Echo(string.format("[synctest] ending after %d frames", Spring.GetGameFrame() - runStartFrame))
+		Engine.Shared.Echo(string.format("[synctest] ending after %d frames", Engine.Shared.GetGameFrame() - runStartFrame))
 		removeAllSpawnedUnits()
 		SendToUnsynced("synctest_synchash_end")
 	end
@@ -199,8 +199,8 @@ if gadgetHandler:IsSyncedCode() then
 		if runFrame % cleanupMod == 1 then
 			for featureID, deathtime in pairs(featurestoremove) do
 				if deathtime < runFrame then
-					if Spring.ValidFeatureID(featureID) then
-						Spring.DestroyFeature(featureID)
+					if Engine.Shared.ValidFeatureID(featureID) then
+						Engine.Synced.DestroyFeature(featureID)
 					end
 					featurestoremove[featureID] = nil
 				end
@@ -232,7 +232,7 @@ if gadgetHandler:IsSyncedCode() then
 				local x0 = originX + rx * regionW + stride * 0.5
 				for z = z0, originZ + (rz + 1) * regionH, stride do
 					for x = x0, originX + (rx + 1) * regionW, stride do
-						local h = Spring.GetGroundHeight(x, z)
+						local h = Engine.Shared.GetGroundHeight(x, z)
 						if not pickedLand and h > 32 then
 							anchorsByClass.land[#anchorsByClass.land + 1] = { x = x, z = z }
 							pickedLand = true
@@ -263,7 +263,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- test is solid.
 
 	function spawnBurstForCategoryAtAnchor(cat, teamID, udID, anchor)
-		if Spring.GetTeamUnitDefCount(teamID, udID) >= cat.effectiveMax then
+		if Engine.Shared.GetTeamUnitDefCount(teamID, udID) >= cat.effectiveMax then
 			return {}
 		end
 
@@ -278,8 +278,8 @@ if gadgetHandler:IsSyncedCode() then
 				if numspawned < cat.effectiveStep then
 					local px = cx + 12 * footprint * x
 					local pz = cz + 12 * footprint * z
-					local py = Spring.GetGroundHeight(px, pz)
-					local uid = Spring.CreateUnit(udID, px, py, pz, "n", teamID)
+					local py = Engine.Shared.GetGroundHeight(px, pz)
+					local uid = Engine.Synced.CreateUnit(udID, px, py, pz, "n", teamID)
 					if uid then
 						numspawned = numspawned + 1
 						newUnitIDs[#newUnitIDs + 1] = uid
@@ -291,16 +291,16 @@ if gadgetHandler:IsSyncedCode() then
 		-- Give some randomized orders to the new units, to mix up the execution paths and
 		-- make sure they actually do something instead of just sitting idle.
 		if #newUnitIDs > 0 then
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.REPEAT, { 1 }, 0)
+			Engine.Shared.GiveOrderToUnitArray(newUnitIDs, CMD.REPEAT, { 1 }, 0)
 			local classAnchors = anchorsByClass[cat.class]
 			for _ = 1, 3 do
 				local destIdx = 1 + math.floor(getrandom() * #classAnchors)
 				local dest = classAnchors[destIdx]
-				local gh = Spring.GetGroundHeight(dest.x, dest.z)
-				Spring.GiveOrderToUnitArray(newUnitIDs, CMD.FIGHT, { dest.x, gh, dest.z }, { "shift" })
+				local gh = Engine.Shared.GetGroundHeight(dest.x, dest.z)
+				Engine.Shared.GiveOrderToUnitArray(newUnitIDs, CMD.FIGHT, { dest.x, gh, dest.z }, { "shift" })
 			end
-			local rh = Spring.GetGroundHeight(anchor.x, anchor.z)
-			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.FIGHT, { anchor.x, rh, anchor.z }, { "shift" })
+			local rh = Engine.Shared.GetGroundHeight(anchor.x, anchor.z)
+			Engine.Shared.GiveOrderToUnitArray(newUnitIDs, CMD.FIGHT, { anchor.x, rh, anchor.z }, { "shift" })
 		end
 		return newUnitIDs
 	end
@@ -343,7 +343,7 @@ if gadgetHandler:IsSyncedCode() then
 					allTeamUnitDefNames[cat.t1] = true
 					allTeamUnitDefNames[cat.t2] = true
 				else
-					Spring.Echo(string.format("[synctest] skipping category %s: no %s anchors", cat.name, cat.class))
+					Engine.Shared.Echo(string.format("[synctest] skipping category %s: no %s anchors", cat.name, cat.class))
 				end
 			end
 		end
@@ -369,32 +369,32 @@ if gadgetHandler:IsSyncedCode() then
 		if not active then
 			return
 		end
-		local fdID = Spring.GetFeatureDefID(featureID)
+		local fdID = Engine.Shared.GetFeatureDefID(featureID)
 		if fdID and featureDefsToRemove[fdID] then
-			featurestoremove[featureID] = (Spring.GetGameFrame() - runStartFrame) + cleanupFeatureLife
+			featurestoremove[featureID] = (Engine.Shared.GetGameFrame() - runStartFrame) + cleanupFeatureLife
 		end
 	end
 
 	function removeAllSpawnedUnits()
-		local all = Spring.GetAllUnits()
+		local all = Engine.Shared.GetAllUnits()
 		local removedByDef = {}
 		for _, uid in ipairs(all) do
-			local udID = Spring.GetUnitDefID(uid)
+			local udID = Engine.Shared.GetUnitDefID(uid)
 			local ud = udID and UnitDefs[udID]
 			if ud and allTeamUnitDefNames[ud.name] then
-				Spring.DestroyUnit(uid, false, true)
+				Engine.Synced.DestroyUnit(uid, false, true)
 				removedByDef[ud.name] = (removedByDef[ud.name] or 0) + 1
 			end
 		end
-		local allFeatures = Spring.GetAllFeatures()
+		local allFeatures = Engine.Shared.GetAllFeatures()
 		for _, fid in ipairs(allFeatures) do
-			local fdID = Spring.GetFeatureDefID(fid)
+			local fdID = Engine.Shared.GetFeatureDefID(fid)
 			if fdID and featureDefsToRemove[fdID] then
-				Spring.DestroyFeature(fid)
+				Engine.Synced.DestroyFeature(fid)
 			end
 		end
 		for name, n in pairs(removedByDef) do
-			Spring.Echo(string.format("[synctest] removed %d x %s", n, name))
+			Engine.Shared.Echo(string.format("[synctest] removed %d x %s", n, name))
 		end
 	end
 
@@ -403,8 +403,8 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------
 
 	local function recordStartPlayers()
-		for _, playerID in ipairs(Spring.GetPlayerList()) do
-			local playername, _, spec = Spring.GetPlayerInfo(playerID, false)
+		for _, playerID in ipairs(Engine.Shared.GetPlayerList()) do
+			local playername, _, spec = Engine.Shared.GetPlayerInfo(playerID, false)
 			if not spec then
 				startPlayers[playername] = true
 			end
@@ -469,7 +469,7 @@ else -- UNSYNCED
 	-- HUD
 	--------------------------------------------------------------------
 
-	local vsx, vsy = Spring.GetViewGeometry()
+	local vsx, vsy = Engine.Unsynced.GetViewGeometry()
 	local uiScale = vsy / 1080
 
 	local hudActive = false
@@ -477,7 +477,7 @@ else -- UNSYNCED
 	local hudRunStartFrame = nil
 
 	function gadget:ViewResize()
-		vsx, vsy = Spring.GetViewGeometry()
+		vsx, vsy = Engine.Unsynced.GetViewGeometry()
 		uiScale = vsy / 1080
 	end
 
@@ -485,7 +485,7 @@ else -- UNSYNCED
 		if not hudActive then
 			return
 		end
-		local gameFrame = Spring.GetGameFrame()
+		local gameFrame = Engine.Shared.GetGameFrame()
 		local runFrame = hudRunStartFrame and (gameFrame - hudRunStartFrame) or 0
 		gl.Color(1, 1, 1, 1)
 		gl.Text(string.format("Synctest  frame %d / %d", runFrame, hudTotalFrames), 600 * uiScale, 600 * uiScale, 16 * uiScale)
@@ -505,7 +505,7 @@ else -- UNSYNCED
 		synchashFirstFrame, synchashLastFrame = nil, nil
 		hudActive = true
 		hudTotalFrames = tonumber(totalFrames) or 0
-		hudRunStartFrame = tonumber(runStartFrame) or Spring.GetGameFrame()
+		hudRunStartFrame = tonumber(runStartFrame) or Engine.Shared.GetGameFrame()
 	end
 
 	function gadget:GameFrame(n)
@@ -530,7 +530,7 @@ else -- UNSYNCED
 		hudActive = false
 		local count = #checksumBuffer
 		if count == 0 then
-			Spring.Echo("[synctest] sync-hash: no frames collected (Engine.hasSyncChecksums is false — engine built without SYNCCHECK)")
+			Engine.Shared.Echo("[synctest] sync-hash: no frames collected (Engine.hasSyncChecksums is false — engine built without SYNCCHECK)")
 			return
 		end
 
@@ -554,12 +554,12 @@ else -- UNSYNCED
 
 		local f, err = io.open(path, "w")
 		if not f then
-			Spring.Echo("[synctest] sync-hash: failed to open " .. tostring(path) .. ": " .. tostring(err))
+			Engine.Shared.Echo("[synctest] sync-hash: failed to open " .. tostring(path) .. ": " .. tostring(err))
 			return
 		end
 		f:write(content)
 		f:close()
-		Spring.Echo(string.format("[synctest] sync-hash: wrote %s (md5=%s, %d frames %d..%d)", path, digest, count, synchashFirstFrame or -1, synchashLastFrame or -1))
+		Engine.Shared.Echo(string.format("[synctest] sync-hash: wrote %s (md5=%s, %d frames %d..%d)", path, digest, count, synchashFirstFrame or -1, synchashLastFrame or -1))
 		frameBuffer = {}
 		checksumBuffer = {}
 	end
@@ -572,7 +572,7 @@ else -- UNSYNCED
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
-		Spring.Echo("[synctest]", line, playerID, action)
+		Engine.Shared.Echo("[synctest]", line, playerID, action)
 		if not isAuthorized(playerID, "terrain") then
 			return
 		end
@@ -582,7 +582,7 @@ else -- UNSYNCED
 				msg = msg .. " " .. tostring(words[i])
 			end
 		end
-		Spring.SendLuaRulesMsg(msg)
+		Engine.Unsynced.SendLuaRulesMsg(msg)
 	end
 
 	function gadget:Initialize()

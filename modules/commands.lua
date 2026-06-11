@@ -3,13 +3,13 @@
 
 local bit_and = math.bit_and
 
-local spGetActiveCmdDesc = Spring.GetActiveCmdDesc
-local spGetCmdDescIndex = Spring.GetCmdDescIndex
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetActiveCmdDesc = Engine.Unsynced.GetActiveCmdDesc
+local spGetCmdDescIndex = Engine.Unsynced.GetCmdDescIndex
+local spFindUnitCmdDesc = Engine.Shared.FindUnitCmdDesc
+local spGetUnitCmdDescs = Engine.Shared.GetUnitCmdDescs
+local spGetUnitCommandCount = Engine.Shared.GetUnitCommandCount
+local spGetUnitCurrentCommand = Engine.Shared.GetUnitCurrentCommand
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
 
 local CMD_INSERT = CMD.INSERT
 

@@ -31,26 +31,26 @@ local mathCeil = math.ceil
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local GetSelectedUnits = Spring.GetSelectedUnits
-local GetUnitCommands = Spring.GetUnitCommands
-local GetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local GetUnitPosition = Spring.GetUnitPosition
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local GetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local GetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local GetUnitCommands = Engine.Shared.GetUnitCommands
+local GetUnitCurrentCommand = Engine.Shared.GetUnitCurrentCommand
+local GetUnitPosition = Engine.Shared.GetUnitPosition
+local GiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local GetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
 
 local buildList = {}
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() then
+	if Engine.Unsynced.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if Engine.Unsynced.IsReplay() or Engine.Shared.GetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
-	for _, unitID in ipairs(Spring.GetTeamUnits(Spring.GetMyTeamID())) do
+	for _, unitID in ipairs(Engine.Shared.GetTeamUnits(Spring.GetMyTeamID())) do
 		if GetUnitIsBeingBuilt(unitID) then
 			widget:UnitCreated(unitID)
 		end

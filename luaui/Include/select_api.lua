@@ -7,17 +7,17 @@ local SelectApi = {}
 local defaultdamagetag = Game.armorTypes["default"]
 local vtoldamagetag = Game.armorTypes["vtol"]
 
-local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetUnitCommands = Spring.GetUnitCommands
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitGroup = Spring.GetUnitGroup
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local spIsUnitSelected = Spring.IsUnitSelected
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitIsCloaked = Engine.Shared.GetUnitIsCloaked
+local spGetUnitCommands = Engine.Shared.GetUnitCommands
+local spGetUnitCommandCount = Engine.Shared.GetUnitCommandCount
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitGroup = Engine.Unsynced.GetUnitGroup
+local spGetUnitHealth = Engine.Shared.GetUnitHealth
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spTraceScreenRay = Engine.Unsynced.TraceScreenRay
+local spIsUnitSelected = Engine.Unsynced.IsUnitSelected
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
 
 local customFilterLookup = {}
 local customCommandLookup = {}
@@ -51,7 +51,7 @@ local function handleCaching(invert, tokenLower, filterFunction, optionalArg)
 end
 
 local function logError(message)
-	Spring.Log("Select API", LOG.ERROR, message)
+	Engine.Shared.Log("Select API", LOG.ERROR, message)
 end
 
 local function isBuilder(udef)
@@ -487,12 +487,12 @@ local function parseConclusion(conclusionDef)
 
 	if conclusionDefLower == "selectall" then
 		return function(uids)
-			Spring.SelectUnitArray(uids, appendSelected)
+			Engine.Unsynced.SelectUnitArray(uids, appendSelected)
 		end
 	elseif conclusionDefLower == "selectone" then
 		return function(uids)
 			if #uids == 0 then
-				Spring.SelectUnitArray({}, appendSelected)
+				Engine.Unsynced.SelectUnitArray({}, appendSelected)
 				return
 			end
 
@@ -500,25 +500,25 @@ local function parseConclusion(conclusionDef)
 			local uid = uids[1]
 
 			if not uid then
-				Spring.SelectUnitArray({}, appendSelected)
+				Engine.Unsynced.SelectUnitArray({}, appendSelected)
 				return
 			end
 
 			-- center on unit
 			local ux, uy, uz = spGetUnitPosition(uid)
-			Spring.SetCameraTarget(ux, uy, uz, 1)
-			Spring.SelectUnitArray(uids, appendSelected)
+			Engine.Unsynced.SetCameraTarget(ux, uy, uz, 1)
+			Engine.Unsynced.SelectUnitArray(uids, appendSelected)
 		end
 	elseif conclusionDefLower == "selectclosesttocursor" then
 		return function(uids)
 			if not uids or #uids == 0 then
-				Spring.SelectUnitArray({}, appendSelected)
+				Engine.Unsynced.SelectUnitArray({}, appendSelected)
 				return
 			end
 
 			local x, y, z = getMouseWorldPos()
 			if x == nil or y == nil or z == nil then
-				Spring.SelectUnitArray({}, appendSelected)
+				Engine.Unsynced.SelectUnitArray({}, appendSelected)
 				return
 			end
 
@@ -540,18 +540,18 @@ local function parseConclusion(conclusionDef)
 			end
 
 			local oneUid = { closest_uid }
-			Spring.SelectUnitArray(oneUid, appendSelected)
+			Engine.Unsynced.SelectUnitArray(oneUid, appendSelected)
 		end
 	elseif startsWith(conclusionDefLower, "selectnum_") or startsWith(conclusionDefLower, "selectnumber_") then
 		return parseNumber(conclusionDef, function(countUntil, uids)
 			uids = getCountUnits(uids, countUntil, appendSelected)
-			Spring.SelectUnitArray(uids, appendSelected)
+			Engine.Unsynced.SelectUnitArray(uids, appendSelected)
 		end)
 	elseif startsWith(conclusionDefLower, "selectpart_") then
 		return parseNumber(conclusionDef, function(percent, uids)
 			local countUntil = math.floor(#uids * percent / 100)
 			uids = getCountUnits(uids, countUntil, appendSelected)
-			Spring.SelectUnitArray(uids, appendSelected)
+			Engine.Unsynced.SelectUnitArray(uids, appendSelected)
 		end)
 	else
 		logError(conclusionDef .. " is not a valid conclusion")
@@ -564,12 +564,12 @@ local function parseSource(sourceDef)
 	if sourceDefLower == "allmap" then
 		return function()
 			local myTeamId = Spring.GetMyTeamID()
-			return Spring.GetTeamUnits(myTeamId)
+			return Engine.Shared.GetTeamUnits(myTeamId)
 		end
 	elseif sourceDefLower == "visible" then
 		return function()
 			local myTeamId = Spring.GetMyTeamID()
-			return Spring.GetVisibleUnits(myTeamId)
+			return Engine.Unsynced.GetVisibleUnits(myTeamId)
 		end
 	elseif sourceDefLower == "prevselection" or sourceDefLower == "previousselection" then
 		return function()
@@ -579,7 +579,7 @@ local function parseSource(sourceDef)
 		return parseNumber(sourceDef, function(distance)
 			local x, y, z = getMouseWorldPos()
 			if x and y and z then
-				return Spring.GetUnitsInSphere(x, y, z, distance)
+				return Engine.Shared.GetUnitsInSphere(x, y, z, distance)
 			else
 				return {}
 			end
@@ -588,7 +588,7 @@ local function parseSource(sourceDef)
 		return parseNumber(sourceDef, function(distance)
 			local x, y, z = getMouseWorldPos()
 			if x and z then
-				return Spring.GetUnitsInCylinder(x, z, distance)
+				return Engine.Shared.GetUnitsInCylinder(x, z, distance)
 			else
 				return {}
 			end

@@ -26,12 +26,12 @@ end
 -------------------------------------------------------------------------------
 --- CACHED VALUES
 -------------------------------------------------------------------------------
-local spGetCmdDescIndex = Spring.GetCmdDescIndex
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetCmdDescIndex = Engine.Unsynced.GetCmdDescIndex
+local spGetActiveCommand = Engine.Unsynced.GetActiveCommand
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
+local spGetSelectedUnitsSorted = Engine.Unsynced.GetSelectedUnitsSorted
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
 
 local math_floor = math.floor
 local math_ceil = math.ceil
@@ -157,7 +157,7 @@ include("keysym.h.lua")
 local unitBlocking = VFS.Include("luaui/Include/unitBlocking.lua")
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
-local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+local currentLayout = Engine.Unsynced.GetConfigString("KeyboardLayout", "qwerty")
 local categoryKeys = {}
 local keyLayout = {}
 local nextPageKey
@@ -210,7 +210,7 @@ end
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner, TexRectRound
 local ui_opacity, ui_scale
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = Engine.Unsynced.GetViewGeometry()
 
 local ordermenuLeft = math.floor(vsx / 5)
 local advplayerlistLeft = vsx * 0.8
@@ -325,7 +325,7 @@ end
 
 -- starting units
 local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
-if Spring.GetModOptions().experimentallegionfaction then
+if Engine.Shared.GetModOptions().experimentallegionfaction then
 	startUnits[#startUnits + 1] = UnitDefNames.legcom.id
 end
 local startBuildOptions = {}
@@ -392,12 +392,12 @@ local function setHoveredRectTooltip(rect, text, title, clicked)
 end
 
 local function updateHoverState()
-	local x, y, left, _, right = Spring.GetMouseState()
+	local x, y, left, _, right = Engine.Unsynced.GetMouseState()
 	local isAboveBg = backgroundRect:contains(x, y)
 	local isAboveBuilders = not isAboveBg and selectedBuildersCount > 1 and (buildersRect:contains(x, y) or nextBuilderRect:contains(x, y))
 
 	if isAboveBuilders then
-		Spring.SetMouseCursor("cursornormal")
+		Engine.Unsynced.SetMouseCursor("cursornormal")
 
 		-- builder buttons
 		if nextBuilderRect:contains(x, y) then
@@ -434,7 +434,7 @@ local function updateHoverState()
 		return
 	end
 
-	Spring.SetMouseCursor("cursornormal")
+	Engine.Unsynced.SetMouseCursor("cursornormal")
 
 	for _, cellRect in pairs(cellRects) do
 		if cellRect:contains(x, y) then
@@ -547,7 +547,7 @@ local function updateQuotaNumber(unitDefID, quantity)
 	end
 	local cellRect = cellRects[cellId]
 	if WG.Quotas then
-		for _, builderID in ipairs(Spring.GetSelectedUnitsSorted()[activeBuilder]) do
+		for _, builderID in ipairs(Engine.Unsynced.GetSelectedUnitsSorted()[activeBuilder]) do
 			local quotas = WG.Quotas.getQuotas()
 			quotas[builderID] = quotas[builderID] or {}
 			quotas[builderID][unitDefID] = quotas[builderID][unitDefID] or 0
@@ -555,9 +555,9 @@ local function updateQuotaNumber(unitDefID, quantity)
 			cellRect.opts.quotanumber = quotas[builderID][unitDefID]
 		end
 		if quantity > 0 then
-			Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+			Engine.Unsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 		else
-			Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+			Engine.Unsynced.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 		end
 	end
 	redraw = true
@@ -600,7 +600,7 @@ local function updateBuildProgress()
 		return
 	end
 
-	local unitBuildID = Spring.GetUnitIsBuilding(activeBuilderID)
+	local unitBuildID = Engine.Shared.GetUnitIsBuilding(activeBuilderID)
 	local unitBuildDefID = unitBuildID and spGetUnitDefID(unitBuildID)
 
 	currentlyBuildingRectID = uDefCellIds[unitBuildDefID]
@@ -866,7 +866,7 @@ local function refreshCommands()
 			return
 		end
 	elseif builderIsFactory then
-		local activeCmdDescs = Spring.GetUnitCmdDescs(activeBuilderID)
+		local activeCmdDescs = Engine.Shared.GetUnitCmdDescs(activeBuilderID)
 
 		if activeCmdDescs then
 			gridOpts = grid.getSortedGridForLab(activeBuilder, activeCmdDescs)
@@ -899,7 +899,7 @@ end
 
 local function getActionHotkey(action)
 	local key
-	for _, keybinding in pairs(Spring.GetActionHotKeys(action)) do
+	for _, keybinding in pairs(Engine.Unsynced.GetActionHotKeys(action)) do
 		if (not key) or keybinding:len() < key:len() then
 			key = keybinding
 		end
@@ -920,7 +920,7 @@ local function getGridKey(action)
 end
 
 local function reloadBindings()
-	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+	currentLayout = Engine.Unsynced.GetConfigString("KeyboardLayout", "qwerty")
 
 	keyLayout = { {}, {}, {} }
 
@@ -961,10 +961,10 @@ local function setLabBuildMode(value)
 end
 
 local function setActiveCommand(cmd, button, leftClick, rightClick)
-	local didChangeCmd = button and Spring.SetActiveCommand(cmd, button, leftClick, rightClick, Spring.GetModKeyState()) or Spring.SetActiveCommand(cmd)
+	local didChangeCmd = button and Engine.Unsynced.SetActiveCommand(cmd, button, leftClick, rightClick, Engine.Unsynced.GetModKeyState()) or Engine.Unsynced.SetActiveCommand(cmd)
 
 	if not didChangeCmd then
-		Spring.Echo("<Grid menu> Unable to change active command", cmd)
+		Engine.Shared.Echo("<Grid menu> Unable to change active command", cmd)
 		return
 	end
 
@@ -1075,7 +1075,7 @@ local function gridmenuCategoryHandler(_, _, args)
 		return
 	end
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
-		Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+		Engine.Unsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 		setLabBuildMode(true)
 		refreshCommands()
 		return true
@@ -1085,7 +1085,7 @@ local function gridmenuCategoryHandler(_, _, args)
 		return
 	end
 
-	local alt, ctrl, meta, _ = Spring.GetModKeyState()
+	local alt, ctrl, meta, _ = Engine.Unsynced.GetModKeyState()
 	if alt or ctrl or meta then
 		return
 	end
@@ -1126,7 +1126,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		return currentCategory and true or false
 	end
 
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, meta, shift = Engine.Unsynced.GetModKeyState()
 
 	if builderIsFactory then
 		local quantity = 1
@@ -1151,9 +1151,9 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 			if quantity < 0 then
 				quantity = quantity * -1
 				removing = true
-				Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+				Engine.Unsynced.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 			else
-				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+				Engine.Unsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 			end
 			--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
 			quantity = multiQueue(uDefID, quantity, 100, { "ctrl", "shift", alt and "alt", removing and "right" })
@@ -1266,8 +1266,8 @@ function widget:Initialize()
 	end
 
 	myTeamID = Spring.GetMyTeamID()
-	isSpec = Spring.GetSpectatingState()
-	isPregame = Spring.GetGameFrame() == 0 and not isSpec
+	isSpec = Engine.Unsynced.GetSpectatingState()
+	isPregame = Engine.Shared.GetGameFrame() == 0 and not isSpec
 
 	WG["gridmenu"] = {}
 	WG["buildmenu"] = {}
@@ -1297,7 +1297,7 @@ function widget:Initialize()
 
 	-- Get our starting unit
 	if isPregame then
-		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+		startDefID = Engine.Shared.GetTeamRulesParam(myTeamID, "startUnit")
 	end
 
 	widget:ViewResize()
@@ -1305,7 +1305,7 @@ function widget:Initialize()
 	if isPregame then
 		refreshCommands()
 	else
-		widget:SelectionChanged(Spring.GetSelectedUnits())
+		widget:SelectionChanged(Engine.Unsynced.GetSelectedUnits())
 	end
 
 	WG["gridmenu"].getAlwaysReturn = function()
@@ -1514,7 +1514,7 @@ end
 
 -- Set up all of the UI positioning
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = Engine.Unsynced.GetViewGeometry()
 
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
@@ -1681,7 +1681,7 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.33 then
 		sec = 0
-		if delayRefresh and Spring.GetGameSeconds() >= delayRefresh then
+		if delayRefresh and Engine.Shared.GetGameSeconds() >= delayRefresh then
 			redraw = true
 			doUpdate = true
 			updateGrid()
@@ -1711,7 +1711,7 @@ function widget:Update(dt)
 		end
 
 		disableInput = CONFIG.disableInputWhenSpec and isSpec
-		if Spring.IsGodModeEnabled() then
+		if Engine.Shared.IsGodModeEnabled() then
 			disableInput = false
 		end
 	end
@@ -1744,7 +1744,7 @@ function widget:Update(dt)
 	-- PERF: Maybe make this slow-ish-update?
 	if isPregame then
 		local previousStartDefID = startDefID
-		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+		startDefID = Engine.Shared.GetTeamRulesParam(myTeamID, "startUnit")
 
 		-- Don't update unless defid has changed
 		doUpdate = previousStartDefID ~= startDefID
@@ -2321,7 +2321,7 @@ function widget:KeyRelease(key)
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 	if WG["topbar"] and WG["topbar"].showingQuit() then
@@ -2332,7 +2332,7 @@ function widget:MousePress(x, y, button)
 		if activeBuilder then
 			if pages > 1 then
 				if nextPageRect and nextPageRect:contains(x, y) then
-					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+					Engine.Unsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 					nextPageHandler()
 					return true
 				end
@@ -2340,7 +2340,7 @@ function widget:MousePress(x, y, button)
 
 			if currentCategory or labBuildModeActive then
 				if backRect and backRect:contains(x, y) then
-					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+					Engine.Unsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 					clearCategory()
 					return true
 				end
@@ -2348,7 +2348,7 @@ function widget:MousePress(x, y, button)
 
 			if useLabBuildMode and builderIsFactory and not labBuildModeActive then
 				if labBuildModeRect:contains(x, y) then
-					Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+					Engine.Unsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 					setLabBuildMode(true)
 					updateGrid()
 					return true
@@ -2376,7 +2376,7 @@ function widget:MousePress(x, y, button)
 					for cat, catRect in pairs(catRects) do
 						if catRect:contains(x, y) then
 							setCurrentCategory(cat)
-							Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+							Engine.Unsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 							return true
 						end
 					end
@@ -2385,7 +2385,7 @@ function widget:MousePress(x, y, button)
 				for _, cellRect in pairs(cellRects) do
 					local unitDefID = cellRect.opts.uDefID
 					if unitDefID and unitTranslatedHumanName[unitDefID] and cellRect:contains(x, y) and not cellRect.opts.disabled then
-						local alt, ctrl, meta, shift = Spring.GetModKeyState()
+						local alt, ctrl, meta, shift = Engine.Unsynced.GetModKeyState()
 						if button ~= 3 then
 							if builderIsFactory and WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
 								local amount = 1
@@ -2398,7 +2398,7 @@ function widget:MousePress(x, y, button)
 								updateQuotaNumber(unitDefID, amount)
 								return true
 							end
-							Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+							Engine.Unsynced.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 
 							if isPregame then
 								setPregameBlueprint(unitDefID)
@@ -2418,7 +2418,7 @@ function widget:MousePress(x, y, button)
 							end
 
 							local function decreaseQueue()
-								Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+								Engine.Unsynced.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 								setActiveCommand(spGetCmdDescIndex(-unitDefID), 3, false, true)
 							end
 
@@ -2635,7 +2635,7 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, optio
 	end
 
 	-- If factory is in repeat, queue does not change, except if it is alt-queued
-	local factoryRepeat = select(4, Spring.GetUnitStates(unitID, false, true))
+	local factoryRepeat = select(4, Engine.Shared.GetUnitStates(unitID, false, true))
 
 	if factoryRepeat and not options.alt then
 		return
@@ -2717,7 +2717,7 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged()
-	isSpec = Spring.GetSpectatingState()
+	isSpec = Engine.Unsynced.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
 end
 
@@ -2730,7 +2730,7 @@ function widget:GetConfigData()
 		showRadarIcon = showRadarIcon,
 		showGroupIcon = showGroupIcon,
 		stickToBottom = stickToBottom,
-		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
+		gameID = Game.gameID and Game.gameID or Engine.Shared.GetGameRulesParam("GameID"),
 		alwaysShow = alwaysShow,
 		ctrlKeyModifier = modKeyMultiplier.keyPress.ctrl,
 		shiftKeyModifier = modKeyMultiplier.keyPress.shift,
@@ -2773,8 +2773,8 @@ end
 function widget:UnitBlocked(unitDefID, reasons)
 	units.unitRestricted[unitDefID] = next(reasons) ~= nil
 	units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
-	if not delayRefresh or delayRefresh < Spring.GetGameSeconds() then
-		delayRefresh = Spring.GetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
+	if not delayRefresh or delayRefresh < Engine.Shared.GetGameSeconds() then
+		delayRefresh = Engine.Shared.GetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
 	end
 end
 

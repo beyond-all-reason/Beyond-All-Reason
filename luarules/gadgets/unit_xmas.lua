@@ -54,8 +54,8 @@ local candycaneSnowMapMult = 2.5
 local addGaiaBalls = false -- if false, only own team colored balls are added
 
 local enableUnitDecorations = true -- burst out xmas ball after unit death
-for _, teamID in ipairs(Spring.GetTeamList()) do
-	if select(4, Spring.GetTeamInfo(teamID, false)) then -- is AI?
+for _, teamID in ipairs(Engine.Shared.GetTeamList()) do
+	if select(4, Engine.Shared.GetTeamInfo(teamID, false)) then -- is AI?
 		enableUnitDecorations = false
 	end
 end
@@ -120,9 +120,9 @@ local decorations = {}
 local decorationsTerminal = {}
 local createDecorations = {}
 local createdDecorations = {}
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = Engine.Shared.GetGaiaTeamID()
 local random = math.random
-local GetGroundHeight = Spring.GetGroundHeight
+local GetGroundHeight = Engine.Shared.GetGroundHeight
 local initiated
 
 VFS.Include("luarules/configs/map_biomes.lua")
@@ -143,9 +143,9 @@ function initiateXmas()
 
 		-- spawn candy canes (if not already done)
 		local detectedCandycane = false
-		local allfeatures = Spring.GetAllFeatures()
+		local allfeatures = Engine.Shared.GetAllFeatures()
 		for i, featureID in ipairs(allfeatures) do
-			local featureDefID = Spring.GetFeatureDefID(featureID)
+			local featureDefID = Engine.Shared.GetFeatureDefID(featureID)
 			if string.find(FeatureDefs[featureDefID].name, "candycane") then
 				detectedCandycane = true
 				break
@@ -157,11 +157,11 @@ function initiateXmas()
 				local z = random(0, Game.mapSizeZ)
 				local y = GetGroundHeight(x, z)
 				if y > 5 then
-					local groundType, groundType2 = Spring.GetGroundInfo(x, z)
+					local groundType, groundType2 = Engine.Shared.GetGroundInfo(x, z)
 					if type(groundType) == "string" and groundType ~= "void" or groundType2 ~= "void" then -- 105 compatibility
 						local caneType = math.ceil(random(1, 7))
-						local featureID = Spring.CreateFeature("candycane" .. caneType, x, y, z, random(0, 360))
-						Spring.SetFeatureRotation(featureID, random(-12, 12), random(-12, 12), random(-180, 180))
+						local featureID = Engine.Synced.CreateFeature("candycane" .. caneType, x, y, z, random(0, 360))
+						Engine.Synced.SetFeatureRotation(featureID, random(-12, 12), random(-12, 12), random(-180, 180))
 					end
 				end
 			end
@@ -174,15 +174,15 @@ function gadget:GameFrame(n)
 		for unitID, frame in pairs(decorations) do
 			if frame < n then
 				decorations[unitID] = nil
-				local x, y, z = Spring.GetUnitPosition(unitID)
+				local x, y, z = Engine.Shared.GetUnitPosition(unitID)
 				if x then
-					local gy = Spring.GetGroundHeight(x, z)
+					local gy = Engine.Shared.GetGroundHeight(x, z)
 					decorationsTerminal[unitID] = n + random(0, 50) + 225 + ((y - gy) * 33) -- allows if in sea to take longer to go under seafloor
 					if decorationsTerminal[unitID] > n + 1500 then -- limit time
 						decorationsTerminal[unitID] = n + 1500
 					end
-					local env = Spring.UnitScript.GetScriptEnv(unitID)
-					Spring.UnitScript.CallAsUnit(unitID, env.Sink)
+					local env = Engine.Synced.UnitScript.GetScriptEnv(unitID)
+					Engine.Synced.UnitScript.CallAsUnit(unitID, env.Sink)
 				end
 			end
 		end
@@ -191,8 +191,8 @@ function gadget:GameFrame(n)
 		for unitID, frame in pairs(decorationsTerminal) do
 			if frame < n then
 				decorationsTerminal[unitID] = nil
-				if Spring.GetUnitIsDead(unitID) == false then
-					Spring.DestroyUnit(unitID, false, true)
+				if Engine.Shared.GetUnitIsDead(unitID) == false then
+					Engine.Synced.DestroyUnit(unitID, false, true)
 				end
 			end
 		end
@@ -212,13 +212,13 @@ function gadget:GameFrame(n)
 				local size = math.clamp(math.floor(hasDecoration[data[5]][4]), 1, #decorationSizes) -- retrieve max size
 				size = math.min(size, (math.ceil((size * 0.35) + (math.random() * (size * 0.65))))) -- pick a size
 				local decorationDefID = decorationSizes[size][math.floor(1 + (math.random() * (#decorationSizes[size] - 0.001)))] -- pick one of 2 variants/textured baubles
-				uID = Spring.CreateUnit(decorationDefID, data[1], data[2], data[3], 0, teamID)
+				uID = Engine.Synced.CreateUnit(decorationDefID, data[1], data[2], data[3], 0, teamID)
 				if uID ~= nil then
 					decorationCount = decorationCount + 1
-					decorations[uID] = Spring.GetGameFrame() + hasDecoration[data[5]][3] + (random() * (hasDecoration[data[5]][3] * 0.33))
-					Spring.SetUnitRotation(uID, random() * 360, random() * 360, random() * 360)
+					decorations[uID] = Engine.Shared.GetGameFrame() + hasDecoration[data[5]][3] + (random() * (hasDecoration[data[5]][3] * 0.33))
+					Engine.Synced.SetUnitRotation(uID, random() * 360, random() * 360, random() * 360)
 					local impulseMult = hasDecoration[data[5]][2]
-					Spring.AddUnitImpulse(uID, (random() - 0.5) * (impulseMult / 2), 1 + (random() * impulseMult), (random() - 0.5) * (impulseMult / 2))
+					Engine.Synced.AddUnitImpulse(uID, (random() - 0.5) * (impulseMult / 2), 1 + (random() * impulseMult), (random() - 0.5) * (impulseMult / 2))
 				end
 				i = i + 1
 			end
@@ -230,11 +230,11 @@ function gadget:GameFrame(n)
 	for _, unitID in ipairs(createdDecorations) do
 		if not decorations[unitID] then
 			decorationCount = decorationCount + 1
-			decorations[unitID] = Spring.GetGameFrame() + 2000 + (random() * 1000)
-			Spring.SetUnitRotation(unitID, random() * 360, random() * 360, random() * 360)
+			decorations[unitID] = Engine.Shared.GetGameFrame() + 2000 + (random() * 1000)
+			Engine.Synced.SetUnitRotation(unitID, random() * 360, random() * 360, random() * 360)
 			--Spring.AddUnitImpulse(unitID, (random()-0.5)*2, 3.8+(random()*1), (random()-0.5)*2)
 			local impulseMult = 80
-			Spring.AddUnitImpulse(unitID, (random() - 0.5) * (impulseMult / 3), 1 + (random() * (impulseMult / 1.6)), (random() - 0.5) * (impulseMult / 3))
+			Engine.Synced.AddUnitImpulse(unitID, (random() - 0.5) * (impulseMult / 3), 1 + (random() * (impulseMult / 1.6)), (random() - 0.5) * (impulseMult / 3))
 		end
 	end
 	createdDecorations = {}
@@ -248,19 +248,19 @@ end
 
 function gadget:FeatureCreated(featureID, allyTeam)
 	-- replace comwreck with xmas comwreck
-	if isComWreck[Spring.GetFeatureDefID(featureID)] then
-		local px, py, pz = Spring.GetFeaturePosition(featureID)
-		local rx, ry, rz = Spring.GetFeatureRotation(featureID)
-		local dx, dy, dz = Spring.GetFeatureDirection(featureID)
-		local heading = Spring.GetFeatureHeading(featureID)
-		local teamID = Spring.GetFeatureTeam(featureID)
-		Spring.DestroyFeature(featureID)
-		local xmasFeatureID = Spring.CreateFeature(xmasComwreckDefID, px, py, pz, heading, teamID)
+	if isComWreck[Engine.Shared.GetFeatureDefID(featureID)] then
+		local px, py, pz = Engine.Shared.GetFeaturePosition(featureID)
+		local rx, ry, rz = Engine.Shared.GetFeatureRotation(featureID)
+		local dx, dy, dz = Engine.Shared.GetFeatureDirection(featureID)
+		local heading = Engine.Shared.GetFeatureHeading(featureID)
+		local teamID = Engine.Shared.GetFeatureTeam(featureID)
+		Engine.Synced.DestroyFeature(featureID)
+		local xmasFeatureID = Engine.Synced.CreateFeature(xmasComwreckDefID, px, py, pz, heading, teamID)
 		if xmasFeatureID then
-			Spring.SetFeatureRotation(xmasFeatureID, rx, ry, rz)
-			Spring.SetFeatureDirection(xmasFeatureID, dx, dy, dz)
-			local featureResurrect = Spring.GetFeatureResurrect(featureID)
-			Spring.SetFeatureResurrect(xmasFeatureID, featureResurrect, "s", 0)
+			Engine.Synced.SetFeatureRotation(xmasFeatureID, rx, ry, rz)
+			Engine.Synced.SetFeatureDirection(xmasFeatureID, dx, dy, dz)
+			local featureResurrect = Engine.Shared.GetFeatureResurrect(featureID)
+			Engine.Synced.SetFeatureResurrect(xmasFeatureID, featureResurrect, "s", 0)
 		end
 	end
 end
@@ -275,9 +275,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		decorationCount = decorationCount - 1
 	elseif attackerID ~= nil then --and (not _G.destroyingTeam or not _G.destroyingTeam[select(6,Spring.GetTeamInfo(teamID,false))]) then	-- is not reclaimed and not lastcom death chain ripple explosion
 		if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and (decorationCount < maxDecorations or hasDecoration[unitDefID][5]) then
-			local inProgress = Spring.GetUnitIsBeingBuilt(unitID)
+			local inProgress = Engine.Shared.GetUnitIsBeingBuilt(unitID)
 			if not inProgress then -- exclude incompleted nanoframes
-				local x, y, z = Spring.GetUnitPosition(unitID)
+				local x, y, z = Engine.Shared.GetUnitPosition(unitID)
 				createDecorations[#createDecorations + 1] = { x, y, z, teamID, unitDefID }
 				--Spring.Echo(hasDecoration[unitDefID][1])
 			end

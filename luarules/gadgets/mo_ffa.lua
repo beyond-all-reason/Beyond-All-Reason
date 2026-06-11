@@ -26,22 +26,22 @@ if gadgetHandler:IsSyncedCode() then
 		lateDropGrace = Game.gameSpeed * 8
 	end
 
-	local leaveWreckage = Spring.GetModOptions().ffa_wreckage or false
+	local leaveWreckage = Engine.Shared.GetModOptions().ffa_wreckage or false
 	local leaveWreckageFromFrame = Game.gameSpeed * 60 * 3
 
-	local GetPlayerInfo = Spring.GetPlayerInfo
-	local GetPlayerList = Spring.GetPlayerList
-	local GetAIInfo = Spring.GetAIInfo
-	local GetTeamLuaAI = Spring.GetTeamLuaAI
+	local GetPlayerInfo = Engine.Shared.GetPlayerInfo
+	local GetPlayerList = Engine.Shared.GetPlayerList
+	local GetAIInfo = Engine.Shared.GetAIInfo
+	local GetTeamLuaAI = Engine.Shared.GetTeamLuaAI
 	local deadTeam = {}
 	local droppedTeam = {}
 	local teamsWithUnitsToKill = {}
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local teamList = Spring.GetTeamList()
+	local gaiaTeamID = Engine.Shared.GetGaiaTeamID()
+	local teamList = Engine.Shared.GetTeamList()
 	local teamInfo = {}
 
 	function gadget:Initialize()
-		if Spring.GetGameFrame() >= leaveWreckageFromFrame then
+		if Engine.Shared.GetGameFrame() >= leaveWreckageFromFrame then
 			GG.wipeoutWithWreckage = leaveWreckage
 		end
 	end
@@ -55,33 +55,33 @@ if gadgetHandler:IsSyncedCode() then
 	local function destroyTeam(teamID)
 		-- Check if the entire allyteam is dead and wipeout their units if so
 		local allyTeamDead = true
-		local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
-		local allyTeamList = Spring.GetTeamList(allyTeamID)
+		local allyTeamID = select(6, Engine.Shared.GetTeamInfo(teamID))
+		local allyTeamList = Engine.Shared.GetTeamList(allyTeamID)
 		if allyTeamList then
 			for _, checkTeamID in ipairs(allyTeamList) do
-				if checkTeamID ~= teamID and not select(3, Spring.GetTeamInfo(checkTeamID)) then
+				if checkTeamID ~= teamID and not select(3, Engine.Shared.GetTeamInfo(checkTeamID)) then
 					allyTeamDead = false
 					break
 				end
 			end
 			-- ensure the wipeout is initiated (for some reason game_end doesnt kill the allyteam I think)
 			if allyTeamDead then
-				local wipeoutAllyID = select(6, Spring.GetTeamInfo(teamID))
+				local wipeoutAllyID = select(6, Engine.Shared.GetTeamInfo(teamID))
 				if GG.wipeoutAllyTeam then
 					GG.wipeoutAllyTeam(wipeoutAllyID)
 				else
-					local teams = Spring.GetTeamList(wipeoutAllyID)
+					local teams = Engine.Shared.GetTeamList(wipeoutAllyID)
 					for _, tID in pairs(teams) do
-						local teamUnits = Spring.GetTeamUnits(tID)
+						local teamUnits = Engine.Shared.GetTeamUnits(tID)
 						for i = 1, #teamUnits do
-							Spring.DestroyUnit(teamUnits[i], false, leaveWreckage)
+							Engine.Synced.DestroyUnit(teamUnits[i], false, leaveWreckage)
 						end
 					end
 				end
 			end
 		end
 
-		Spring.KillTeam(teamID)
+		Engine.Synced.KillTeam(teamID)
 		deadTeam[teamID] = true
 	end
 
@@ -147,9 +147,9 @@ if gadgetHandler:IsSyncedCode() then
 			if gameFrame - frame > (frame < earlyDropLimit and earlyDropGrace or lateDropGrace) then
 				if gameFrame < leaveWreckageFromFrame then
 					-- silent removal
-					local teamUnits = Spring.GetTeamUnits(teamID)
+					local teamUnits = Engine.Shared.GetTeamUnits(teamID)
 					for i = 1, #teamUnits do
-						Spring.DestroyUnit(teamUnits[i], false, true) -- reclaim, dont want to leave FFA comwreck for idling starts
+						Engine.Synced.DestroyUnit(teamUnits[i], false, true) -- reclaim, dont want to leave FFA comwreck for idling starts
 					end
 				end
 				destroyTeam(teamID)
@@ -169,21 +169,21 @@ else -- UNSYNCED
 	local function teamDestroyed(_, teamID)
 		if Script.LuaUI("GadgetMessageProxy") then
 			local message = Script.LuaUI.GadgetMessageProxy("ui.ffaNoOwner.destroyed", { team = teamID })
-			Spring.SendMessage(message)
+			Engine.Unsynced.SendMessage(message)
 		end
 	end
 
 	local function playerWarned(_, teamID, gracePeriod)
 		if Script.LuaUI("GadgetMessageProxy") then
 			local message = Script.LuaUI.GadgetMessageProxy("ui.ffaNoOwner.disconnected", { team = teamID, gracePeriod = gracePeriod })
-			Spring.SendMessage(message)
+			Engine.Unsynced.SendMessage(message)
 		end
 	end
 
 	local function playerReconnected(_, teamID)
 		if Script.LuaUI("GadgetMessageProxy") then
 			local message = Script.LuaUI.GadgetMessageProxy("ui.ffaNoOwner.reconnected", { team = teamID })
-			Spring.SendMessage(message)
+			Engine.Unsynced.SendMessage(message)
 		end
 	end
 

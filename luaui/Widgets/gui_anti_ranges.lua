@@ -15,7 +15,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
+local spEcho = Engine.Shared.Echo
 
 -- project page on github: https://github.com/jamerlan/gui_mobile_anti_defence_range
 
@@ -56,15 +56,15 @@ local glDepthTest = gl.DepthTest
 local glLineWidth = gl.LineWidth
 local glDrawGroundCircle = gl.DrawGroundCircle
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetPositionLosState = Spring.GetPositionLosState
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetUnitStockpile = Spring.GetUnitStockpile
-local spGetAllUnits = Spring.GetAllUnits
-local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
-local spGetTeamList = Spring.GetTeamList
-local GetUnitIsStunned = Spring.GetUnitIsStunned
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetPositionLosState = Engine.Shared.GetPositionLosState
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
+local spGetUnitStockpile = Engine.Shared.GetUnitStockpile
+local spGetAllUnits = Engine.Shared.GetAllUnits
+local spGetTeamUnitsByDefs = Engine.Shared.GetTeamUnitsByDefs
+local spGetTeamList = Engine.Shared.GetTeamList
+local GetUnitIsStunned = Engine.Shared.GetUnitIsStunned
 
 local antiInLos = {}
 local antiOutLos = {}
@@ -112,7 +112,7 @@ function widget:DrawWorldPreUnit()
 	if chobbyInterface then
 		return
 	end
-	if Spring.IsGUIHidden() then
+	if Engine.Unsynced.IsGUIHidden() then
 		return
 	end
 	local camX, camY, camZ = spGetCameraPosition()
@@ -129,7 +129,7 @@ function widget:DrawWorldPreUnit()
 
 	for uID, pos in pairs(antiInLos) do
 		local x, y, z = spGetUnitPosition(uID)
-		if x ~= nil and y ~= nil and z ~= nil and Spring.IsSphereInView(x, y, z, pos[4]) then
+		if x ~= nil and y ~= nil and z ~= nil and Engine.Unsynced.IsSphereInView(x, y, z, pos[4]) then
 			drawCircle(uID, pos[4], x, y, z, camX, camY, camZ)
 		end
 	end

@@ -17,13 +17,13 @@ end
 -- Spring API Imports
 --------------------------------------------------------------------------------
 
-local spGetUnitCommands = Spring.GetUnitCommands
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetAllUnits = Spring.GetAllUnits
-local spEcho = Spring.Echo
+local spGetUnitCommands = Engine.Shared.GetUnitCommands
+local spGetUnitCommandCount = Engine.Shared.GetUnitCommandCount
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetAllUnits = Engine.Shared.GetAllUnits
+local spEcho = Engine.Shared.Echo
 
 -- Localize frequently used functions
 local mathFloor = math.floor

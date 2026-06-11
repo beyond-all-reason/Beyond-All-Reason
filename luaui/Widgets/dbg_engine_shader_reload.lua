@@ -25,34 +25,34 @@ function widget:Initialize()
 	end
 end
 
-local lastUpdate = Spring.GetTimer()
+local lastUpdate = Engine.Unsynced.GetTimer()
 local updateQueue = {}
 function widget:Update()
 	local changed = false
 
 	local filename, oldContents = next(updateQueue)
 	if filename then
-		local startTime = Spring.GetTimer()
-		while (Spring.DiffTimers(Spring.GetTimer(), startTime, true) < 1) and filename do
+		local startTime = Engine.Unsynced.GetTimer()
+		while (Engine.Unsynced.DiffTimers(Engine.Unsynced.GetTimer(), startTime, true) < 1) and filename do
 			local newContents = VFS.LoadFile(filename)
 			if newContents ~= oldContents then
 				interval = 1
 				changed = true
 				shaderContents[filename] = newContents
-				Spring.Echo("Reloading shader: " .. filename)
+				Engine.Shared.Echo("Reloading shader: " .. filename)
 			end
 			updateQueue[filename] = nil
 			filename, oldContents = next(updateQueue)
 		end
 	end
 	if changed then
-		Spring.SendCommands("reloadshaders")
+		Engine.Unsynced.SendCommands("reloadshaders")
 	end
 
-	if Spring.DiffTimers(Spring.GetTimer(), lastUpdate) < interval then
+	if Engine.Unsynced.DiffTimers(Engine.Unsynced.GetTimer(), lastUpdate) < interval then
 		return
 	end
-	lastUpdate = Spring.GetTimer()
+	lastUpdate = Engine.Unsynced.GetTimer()
 	updateQueue = {}
 	for filename, oldContents in pairs(shaderContents) do
 		updateQueue[filename] = oldContents

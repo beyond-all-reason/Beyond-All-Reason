@@ -18,14 +18,14 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMouseState = Spring.GetMouseState
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
 
 local vsx, vsy = spGetViewGeometry()
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
-local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+local ui_opacity = Engine.Unsynced.GetConfigFloat("ui_opacity", 0.7)
+local ui_scale = Engine.Unsynced.GetConfigFloat("ui_scale", 1)
 
 local buttonWidth = 0.037
 local buttonHeight = 0.033
@@ -80,7 +80,7 @@ local function clicked_button(b)
 end
 
 local function setReplaySpeed(speed)
-	Spring.SendCommands("setspeed " .. speed)
+	Engine.Unsynced.SendCommands("setspeed " .. speed)
 end
 
 local function draw_buttons(b)
@@ -113,7 +113,7 @@ end
 
 function widget:Initialize()
 	widget:ViewResize()
-	if not Spring.IsReplay() then
+	if not Engine.Unsynced.IsReplay() then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -196,10 +196,10 @@ function widget:MousePress(x, y, button)
 	if cb == "playpauseskip" then
 		if spGetGameFrame() > 1 then
 			isPaused = not isPaused
-			Spring.SendCommands("pause " .. (isPaused and "1" or "0"))
+			Engine.Unsynced.SendCommands("pause " .. (isPaused and "1" or "0"))
 			buttons[i].text = (isPaused and "  >>" or "  ||")
 		else
-			Spring.SendCommands("skip 1")
+			Engine.Unsynced.SendCommands("skip 1")
 			buttons[i].text = "  ||"
 		end
 		sceduleUpdate = true
@@ -213,7 +213,7 @@ end
 
 function widget:Update(dt)
 	prevIsActive = isActive
-	isActive = #Spring.GetSelectedUnits() == 0
+	isActive = #Engine.Unsynced.GetSelectedUnits() == 0
 end
 
 function widget:GameStart()

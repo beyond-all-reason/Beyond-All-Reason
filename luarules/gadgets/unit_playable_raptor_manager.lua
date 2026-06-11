@@ -1,4 +1,4 @@
-local modoptions = Spring.GetModOptions()
+local modoptions = Engine.Shared.GetModOptions()
 if modoptions.playableraptors ~= true and modoptions.forceallunits ~= true then
 	return false
 end
@@ -29,10 +29,10 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		local builderDefID = Spring.GetUnitDefID(builderID)
+		local builderDefID = Engine.Shared.GetUnitDefID(builderID)
 		if foundling[builderDefID] then
-			Spring.SetUnitHealth(unitID, { health = 2, build = 1 })
-			Spring.DestroyUnit(builderID, false, true)
+			Engine.Synced.SetUnitHealth(unitID, { health = 2, build = 1 })
+			Engine.Synced.DestroyUnit(builderID, false, true)
 		end
 	end
 else

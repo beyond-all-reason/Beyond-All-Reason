@@ -19,20 +19,20 @@ end
 local strSub = string.sub
 local mathAbs = math.abs
 
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetGameFrame = Spring.GetGameFrame
-local spSendMessageToPlayer = Spring.SendMessageToPlayer
-local spValidUnitID = Spring.ValidUnitID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetCOBScriptID = Spring.GetCOBScriptID
-local spCallCOBScript = Spring.CallCOBScript
-local spIsCheatingEnabled = Spring.IsCheatingEnabled
+local spGetPlayerInfo = Engine.Shared.GetPlayerInfo
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spSendMessageToPlayer = Engine.Unsynced.SendMessageToPlayer
+local spValidUnitID = Engine.Shared.ValidUnitID
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitVelocity = Engine.Shared.GetUnitVelocity
+local spGetUnitIsBuilding = Engine.Shared.GetUnitIsBuilding
+local spGetUnitCurrentCommand = Engine.Shared.GetUnitCurrentCommand
+local spGetCOBScriptID = Engine.Synced.GetCOBScriptID
+local spCallCOBScript = Engine.Synced.CallCOBScript
+local spIsCheatingEnabled = Engine.Shared.IsCheatingEnabled
 
-local UnitScript = Spring.UnitScript
+local UnitScript = Engine.Synced.UnitScript
 local usGetScriptEnv = UnitScript.GetScriptEnv
 local usCallAsUnit = UnitScript.CallAsUnit
 

@@ -13,18 +13,18 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spEcho = Spring.Echo
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGameRulesParam = Spring.GetGameRulesParam
-local spIsGUIHidden = Spring.IsGUIHidden
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local spValidUnitID = Spring.ValidUnitID
-local spValidFeatureID = Spring.ValidFeatureID
+local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+local spEcho = Engine.Shared.Echo
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGetGameRulesParam = Engine.Shared.GetGameRulesParam
+local spIsGUIHidden = Engine.Unsynced.IsGUIHidden
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spTraceScreenRay = Engine.Unsynced.TraceScreenRay
+local spValidUnitID = Engine.Shared.ValidUnitID
+local spValidFeatureID = Engine.Shared.ValidFeatureID
 local spSetUnitBufferUniforms = gl.SetUnitBufferUniforms
 local spSetFeatureBufferUniforms = gl.SetFeatureBufferUniforms
 
@@ -42,7 +42,7 @@ local selectionVBOGround = nil
 local selectionVBOWater = nil
 local selectionVBOAir = nil
 
-local mapHasWater = (Spring.GetGroundExtremes() < 0)
+local mapHasWater = (Engine.Shared.GetGroundExtremes() < 0)
 
 local selectShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -135,17 +135,17 @@ local function shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
 end
 
 local function AddPrimitiveAtUnit(unitID)
-	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true or Spring.IsGUIHidden() then
+	if Engine.Shared.ValidUnitID(unitID) ~= true or Engine.Shared.GetUnitIsDead(unitID) == true or Engine.Unsynced.IsGUIHidden() then
 		return
 	end
-	local gf = Spring.GetGameFrame()
-	local _, _, isPaused = Spring.GetGameSpeed()
+	local gf = Engine.Shared.GetGameFrame()
+	local _, _, isPaused = Engine.Unsynced.GetGameSpeed()
 	if isPaused then
 		gf = gf - 10
 	end
 
 	if not unitUnitDefID[unitID] then
-		unitUnitDefID[unitID] = Spring.GetUnitDefID(unitID)
+		unitUnitDefID[unitID] = Engine.Shared.GetUnitDefID(unitID)
 	end
 	local unitDefID = unitUnitDefID[unitID]
 	if unitDefID == nil then
@@ -519,12 +519,12 @@ function widget:Initialize()
 		return selectimouseoverHighlightonHighlight
 	end
 
-	Spring.LoadCmdColorsConfig("unitBox  0 1 0 0")
+	Engine.Unsynced.LoadCmdColorsConfig("unitBox  0 1 0 0")
 end
 
 function widget:Shutdown()
 	if not (WG.teamplatter or WG.highlightselunits) then
-		Spring.LoadCmdColorsConfig("unitBox  0 1 0 1")
+		Engine.Unsynced.LoadCmdColorsConfig("unitBox  0 1 0 1")
 	end
 	WG.selectedunits = nil
 end

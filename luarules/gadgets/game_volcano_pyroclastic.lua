@@ -20,16 +20,16 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	-- Shortcuts
 	--------------------------------------------------------------------------------
-	local spCreateUnit = Spring.CreateUnit
-	local spDestroyUnit = Spring.DestroyUnit
-	local spGiveOrderToUnit = Spring.GiveOrderToUnit
-	local spSpawnCEG = Spring.SpawnCEG
-	local spGetGroundHeight = Spring.GetGroundHeight
-	local spSetUnitCloak = Spring.SetUnitCloak
-	local spMoveCtrlEnable = Spring.MoveCtrl.Enable
-	local spMoveCtrlSetPosition = Spring.MoveCtrl.SetPosition
+	local spCreateUnit = Engine.Synced.CreateUnit
+	local spDestroyUnit = Engine.Synced.DestroyUnit
+	local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+	local spSpawnCEG = Engine.Synced.SpawnCEG
+	local spGetGroundHeight = Engine.Shared.GetGroundHeight
+	local spSetUnitCloak = Engine.Synced.SetUnitCloak
+	local spMoveCtrlEnable = Engine.Synced.MoveCtrl.Enable
+	local spMoveCtrlSetPosition = Engine.Synced.MoveCtrl.SetPosition
 
-	local GameFrame = Spring.GetGameFrame
+	local GameFrame = Engine.Shared.GetGameFrame
 	local SendToUnsynced = SendToUnsynced
 
 	local CMD_ATTACK = CMD.ATTACK
@@ -71,7 +71,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function IsVolcanoEnabled()
-		local modOpts = (Spring.GetModOptions and Spring.GetModOptions()) or {}
+		local modOpts = (Engine.Shared.GetModOptions and Engine.Shared.GetModOptions()) or {}
 		local v = modOpts.forge_volcano
 		return v == nil or v == true or v == 1 or v == "1" or v == "true"
 	end
@@ -127,18 +127,18 @@ if gadgetHandler:IsSyncedCode() then
 			local accountID = Spring.Utilities.GetAccountID(playerID)
 			local authorized = _G.permissions.volcano[accountID]
 
-			if not (authorized or Spring.IsCheatingEnabled()) then
-				Spring.Echo("[Volcano] Unauthorized command.")
+			if not (authorized or Engine.Shared.IsCheatingEnabled()) then
+				Engine.Shared.Echo("[Volcano] Unauthorized command.")
 				return
 			end
 
 			volcanoActive = not volcanoActive
 			if volcanoActive then
 				nextErupt = GameFrame() + R(COOLDOWN_MIN, COOLDOWN_MAX)
-				Spring.Echo("[Volcano] Volcano system resumed.")
+				Engine.Shared.Echo("[Volcano] Volcano system resumed.")
 			else
 				ResetVolcanoState()
-				Spring.Echo("[Volcano] Volcano system paused.")
+				Engine.Shared.Echo("[Volcano] Volcano system paused.")
 			end
 		end)
 	end
@@ -212,7 +212,7 @@ if gadgetHandler:IsSyncedCode() then
 			ejectScheduled = false
 		end
 
-		local uid = spCreateUnit("volcano_projectile_unit", VX, LAUNCHER_Y, VZ, 0, Spring.GetGaiaTeamID())
+		local uid = spCreateUnit("volcano_projectile_unit", VX, LAUNCHER_Y, VZ, 0, Engine.Shared.GetGaiaTeamID())
 		if not uid then
 			return
 		end
@@ -389,9 +389,9 @@ if gadgetHandler:IsSyncedCode() then
 -- UNSYNCED (SOUNDS + WARNING UI)
 --------------------------------------------------------------------------------
 else
-	local spPlaySoundFile = Spring.PlaySoundFile
-	local spGetGameFrame = Spring.GetGameFrame
-	local spGetViewGeometry = Spring.GetViewGeometry
+	local spPlaySoundFile = Engine.Unsynced.PlaySoundFile
+	local spGetGameFrame = Engine.Shared.GetGameFrame
+	local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
 
 	local glPushMatrix = gl.PushMatrix
 	local glPopMatrix = gl.PopMatrix
@@ -417,7 +417,7 @@ else
 			warningText = msg or "SEISMIC ACTIVITY DETECTED"
 			warningEnd = spGetGameFrame() + WARNING_FRAMES
 
-			Spring.Echo("[Volcano] Warning: " .. warningText)
+			Engine.Shared.Echo("[Volcano] Warning: " .. warningText)
 			spPlaySoundFile("sounds/voice-soundeffects/LavaAlert.wav", 1.0, "ui")
 		end)
 	end

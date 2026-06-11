@@ -24,18 +24,18 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spEcho = Spring.Echo
-local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetProjectileTeamID = Spring.GetProjectileTeamID
-local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local spIsPosInAirLos = Spring.IsPosInAirLos
+local spEcho = Engine.Shared.Echo
+local spGetVisibleProjectiles = Engine.Unsynced.GetVisibleProjectiles
+local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
+local spGetProjectileVelocity = Engine.Shared.GetProjectileVelocity
+local spGetProjectileDefID = Engine.Shared.GetProjectileDefID
+local spGetProjectileTeamID = Engine.Shared.GetProjectileTeamID
+local spGetTeamAllyTeamID = Engine.Shared.GetTeamAllyTeamID
+local spIsPosInAirLos = Engine.Shared.IsPosInAirLos
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetGameFrame = Spring.GetGameFrame
-local spGetFrameTimeOffset = Spring.GetFrameTimeOffset
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spGetFrameTimeOffset = Engine.Unsynced.GetFrameTimeOffset
 
 local glBlending = gl.Blending
 local glTexture = gl.Texture
@@ -903,25 +903,25 @@ local function updateProjectiles()
 	-- moved since the last paused rebuild (uncapped paused FPS otherwise makes
 	-- this a large cost). Camera move forces a fresh rebuild so projectiles
 	-- panned back on-screen reappear.
-	local _, _, isPaused = Spring.GetGameSpeed()
+	local _, _, isPaused = Engine.Unsynced.GetGameSpeed()
 	local usePausedCache = isPaused and lastUpdateWasPaused
 	lastUpdateWasPaused = isPaused
 	if usePausedCache then
-		local cx, cy, cz = Spring.GetCameraPosition()
-		local dx, dy, dz = Spring.GetCameraDirection()
+		local cx, cy, cz = Engine.Unsynced.GetCameraPosition()
+		local dx, dy, dz = Engine.Unsynced.GetCameraDirection()
 		if cx == pausedCamX and cy == pausedCamY and cz == pausedCamZ and dx == pausedCamDX and dy == pausedCamDY and dz == pausedCamDZ then
 			return
 		end
-		local now = Spring.GetTimer()
-		if pausedLastRebuildTimer and Spring.DiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
+		local now = Engine.Unsynced.GetTimer()
+		if pausedLastRebuildTimer and Engine.Unsynced.DiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
 			return
 		end
 		pausedLastRebuildTimer = now
 		pausedCamX, pausedCamY, pausedCamZ = cx, cy, cz
 		pausedCamDX, pausedCamDY, pausedCamDZ = dx, dy, dz
 	elseif isPaused then
-		pausedCamX, pausedCamY, pausedCamZ = Spring.GetCameraPosition()
-		pausedCamDX, pausedCamDY, pausedCamDZ = Spring.GetCameraDirection()
+		pausedCamX, pausedCamY, pausedCamZ = Engine.Unsynced.GetCameraPosition()
+		pausedCamDX, pausedCamDY, pausedCamDZ = Engine.Unsynced.GetCameraDirection()
 		pausedLastRebuildTimer = nil
 	end
 

@@ -17,11 +17,11 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 -- Localize and pre-compute things
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetProjectileTarget = Spring.GetProjectileTarget
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetProjectilePosition = Spring.GetProjectilePosition
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetProjectileTarget = Engine.Shared.GetProjectileTarget
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetFeaturePosition = Engine.Shared.GetFeaturePosition
+local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
 
 local unitTargetType = string.byte("u")
 local featureTargetType = string.byte("f")

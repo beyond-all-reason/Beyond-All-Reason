@@ -20,11 +20,11 @@ end
 	- has no alive teams
 ]]
 if gadgetHandler:IsSyncedCode() then
-	local sharedDynamicAllianceVictory = Spring.GetModOptions().shareddynamicalliancevictory
-	local fixedallies = Spring.GetModOptions().fixedallies
+	local sharedDynamicAllianceVictory = Engine.Shared.GetModOptions().shareddynamicalliancevictory
+	local fixedallies = Engine.Shared.GetModOptions().fixedallies
 
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
+	local gaiaTeamID = Engine.Shared.GetGaiaTeamID()
+	local gaiaAllyTeamID = select(6, Engine.Shared.GetTeamInfo(gaiaTeamID, false))
 
 	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
 
@@ -32,16 +32,16 @@ if gadgetHandler:IsSyncedCode() then
 	local ignoredTeams = {
 		[gaiaTeamID] = true,
 	}
-	local allyteamList = Spring.GetAllyTeamList()
-	local teamList = Spring.GetTeamList()
+	local allyteamList = Engine.Shared.GetAllyTeamList()
+	local teamList = Engine.Shared.GetTeamList()
 	for i = 1, #teamList do
-		local luaAI = Spring.GetTeamLuaAI(teamList[i])
+		local luaAI = Engine.Shared.GetTeamLuaAI(teamList[i])
 		if luaAI and (luaAI:find("Raptors") or luaAI:find("Scavengers")) then
 			ignoredTeams[teamList[i]] = true
 
 			-- ignore all other teams in this allyteam as well
-			local allyTeamID = select(6, Spring.GetTeamInfo(teamList[i], false))
-			local teammates = Spring.GetTeamList(allyTeamID)
+			local allyTeamID = select(6, Engine.Shared.GetTeamInfo(teamList[i], false))
+			local teammates = Engine.Shared.GetTeamList(allyTeamID)
 			for j = 1, #teammates do
 				ignoredTeams[teammates[j]] = true
 			end
@@ -59,16 +59,16 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local KillTeam = Spring.KillTeam
-	local GetPlayerInfo = Spring.GetPlayerInfo
-	local GetPlayerList = Spring.GetPlayerList
-	local GetTeamInfo = Spring.GetTeamInfo
-	local GetTeamUnitCount = Spring.GetTeamUnitCount
-	local GetAIInfo = Spring.GetAIInfo
-	local GetTeamLuaAI = Spring.GetTeamLuaAI
-	local GameOver = Spring.GameOver
-	local AreTeamsAllied = Spring.AreTeamsAllied
-	local GetGameFrame = Spring.GetGameFrame
+	local KillTeam = Engine.Synced.KillTeam
+	local GetPlayerInfo = Engine.Shared.GetPlayerInfo
+	local GetPlayerList = Engine.Shared.GetPlayerList
+	local GetTeamInfo = Engine.Shared.GetTeamInfo
+	local GetTeamUnitCount = Engine.Shared.GetTeamUnitCount
+	local GetAIInfo = Engine.Shared.GetAIInfo
+	local GetTeamLuaAI = Engine.Shared.GetTeamLuaAI
+	local GameOver = Engine.Synced.GameOver
+	local AreTeamsAllied = Engine.Shared.AreTeamsAllied
+	local GetGameFrame = Engine.Shared.GetGameFrame
 
 	local playerQuitIsDead = true -- gets turned off for 1v1's
 	local oneTeamWasActive = false
@@ -122,9 +122,9 @@ if gadgetHandler:IsSyncedCode() then
 		if wipeout and not allyTeamInfos[allyTeamID].dead then
 			if isFFA and gf < earlyDropGrace then
 				for teamID, team in pairs(allyTeamInfos[allyTeamID].teams) do
-					local teamUnits = Spring.GetTeamUnits(teamID)
+					local teamUnits = Engine.Shared.GetTeamUnits(teamID)
 					for i = 1, #teamUnits do
-						Spring.DestroyUnit(teamUnits[i], false, true) -- reclaim, dont want to leave FFA comwreck for idling starts
+						Engine.Synced.DestroyUnit(teamUnits[i], false, true) -- reclaim, dont want to leave FFA comwreck for idling starts
 					end
 				end
 			else
@@ -203,7 +203,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		if Spring.GetModOptions().deathmode == "neverend" then
+		if Engine.Shared.GetModOptions().deathmode == "neverend" then
 			gadgetHandler:RemoveGadget(self)
 			return
 		end
@@ -224,7 +224,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- at start, fill in the table of all alive allyteams
 		for _, allyTeamID in ipairs(allyteamList) do
 			if allyTeamID ~= gaiaAllyTeamID then
-				local allyteamTeams = Spring.GetTeamList(allyTeamID)
+				local allyteamTeams = Engine.Shared.GetTeamList(allyTeamID)
 				local allyTeamInfo = {
 					unitCount = 0,
 					unitDecorationCount = 0,
@@ -254,9 +254,9 @@ if gadgetHandler:IsSyncedCode() then
 
 					teamInfo.unitCount = GetTeamUnitCount(teamID)
 					allyTeamInfo.unitCount = allyTeamInfo.unitCount + teamInfo.unitCount
-					local units = Spring.GetTeamUnits(teamID)
+					local units = Engine.Shared.GetTeamUnits(teamID)
 					for u = 1, #units do
-						if unitDecoration[Spring.GetUnitDefID(units[u])] then
+						if unitDecoration[Engine.Shared.GetUnitDefID(units[u])] then
 							allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount + 1
 						end
 					end
@@ -334,7 +334,7 @@ if gadgetHandler:IsSyncedCode() then
 		if gameoverFrame then
 			if not globalLosGranted then
 				for _, allyTeamId in ipairs(gameoverWinners) do
-					Spring.SetGlobalLos(allyTeamId, true)
+					Engine.Synced.SetGlobalLos(allyTeamId, true)
 				end
 
 				globalLosGranted = true
@@ -346,13 +346,13 @@ if gadgetHandler:IsSyncedCode() then
 
 			if gf == gameoverAnimFrame then
 				for unitID, _ in pairs(gameoverAnimUnits) do
-					if Spring.ValidUnitID(unitID) then
-						if Spring.GetCOBScriptID(unitID, "GameOverAnim") then
-							Spring.CallCOBScript(unitID, "GameOverAnim", 0, true)
+					if Engine.Shared.ValidUnitID(unitID) then
+						if Engine.Synced.GetCOBScriptID(unitID, "GameOverAnim") then
+							Engine.Synced.CallCOBScript(unitID, "GameOverAnim", 0, true)
 						else
-							local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
+							local scriptEnv = Engine.Synced.UnitScript.GetScriptEnv(unitID)
 							if scriptEnv and scriptEnv["GameOverAnim"] then
-								Spring.UnitScript.CallAsUnit(unitID, scriptEnv["GameOverAnim"], true)
+								Engine.Synced.UnitScript.CallAsUnit(unitID, scriptEnv["GameOverAnim"], true)
 							end
 						end
 					end
@@ -373,8 +373,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if winners then
-				if Spring.GetModOptions().scenariooptions then
-					Spring.Echo("winners", winners[1])
+				if Engine.Shared.GetModOptions().scenariooptions then
+					Engine.Shared.Echo("winners", winners[1])
 					SendToUnsynced("scenariogameend", winners[1])
 				end
 
@@ -391,11 +391,11 @@ if gadgetHandler:IsSyncedCode() then
 					for u = 1, #winners do
 						winnerSet[winners[u]] = true
 					end
-					local units = Spring.GetAllUnits()
+					local units = Engine.Shared.GetAllUnits()
 					for i = 1, #units do
 						local unitID = units[i]
-						if isCommander[Spring.GetUnitDefID(unitID)] and winnerSet[Spring.GetUnitAllyTeam(unitID)] then
-							Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0) -- give stop cmd so commanders can animate in place
+						if isCommander[Engine.Shared.GetUnitDefID(unitID)] and winnerSet[Engine.Shared.GetUnitAllyTeam(unitID)] then
+							Engine.Shared.GiveOrderToUnit(unitID, CMD.STOP, 0, 0) -- give stop cmd so commanders can animate in place
 							gameoverAnimUnits[unitID] = true
 						end
 					end
@@ -477,14 +477,14 @@ if gadgetHandler:IsSyncedCode() then
 else -- Unsynced
 	local sec = 0
 	local cheated = false
-	local IsCheatingEnabled = Spring.IsCheatingEnabled
+	local IsCheatingEnabled = Engine.Shared.IsCheatingEnabled
 
 	function gadget:Update(dt)
-		if Spring.GetGameFrame() == 0 then
-			sec = sec + Spring.GetLastUpdateSeconds()
+		if Engine.Shared.GetGameFrame() == 0 then
+			sec = sec + Engine.Unsynced.GetLastUpdateSeconds()
 			if sec > 3 then
 				sec = 0
-				Spring.SendLuaRulesMsg("pc")
+				Engine.Unsynced.SendLuaRulesMsg("pc")
 			end
 		end
 	end
@@ -496,33 +496,33 @@ else -- Unsynced
 	end
 
 	local function ScenarioGameEnd(_, winners)
-		if Spring.IsReplay() then
+		if Engine.Unsynced.IsReplay() then
 			return
 		end
 		local myTeamID = Spring.GetMyAllyTeamID()
-		local cur_max = Spring.GetTeamStatsHistory(myTeamID)
-		local stats = Spring.GetTeamStatsHistory(myTeamID, cur_max, cur_max)
+		local cur_max = Engine.Shared.GetTeamStatsHistory(myTeamID)
+		local stats = Engine.Shared.GetTeamStatsHistory(myTeamID, cur_max, cur_max)
 		stats = stats[1]
 		stats.cheated = cheated
 		stats.winners = winners
 		stats.won = (myTeamID == winners)
-		stats.endtime = Spring.GetGameFrame() / 30
-		stats.scenariooptions = Spring.GetModOptions().scenariooptions -- pass it back so we know difficulty
+		stats.endtime = Engine.Shared.GetGameFrame() / 30
+		stats.scenariooptions = Engine.Shared.GetModOptions().scenariooptions -- pass it back so we know difficulty
 
-		if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), "chobby") ~= nil then
+		if Engine.Unsynced.GetMenuName and string.find(string.lower(Engine.Unsynced.GetMenuName()), "chobby") ~= nil then
 			local message = Json.encode(stats)
-			Spring.SendLuaMenuMsg("ScenarioGameEnd " .. message)
+			Engine.Unsynced.SendLuaMenuMsg("ScenarioGameEnd " .. message)
 		end
 	end
 
 	function gadget:Initialize()
-		if Spring.GetModOptions().scenariooptions then
+		if Engine.Shared.GetModOptions().scenariooptions then
 			gadgetHandler:AddSyncAction("scenariogameend", ScenarioGameEnd)
 		end
 	end
 
 	function gadget:Shutdown()
-		if Spring.GetModOptions().scenariooptions then
+		if Engine.Shared.GetModOptions().scenariooptions then
 			gadgetHandler:RemoveSyncAction("scenariogameend")
 		end
 	end

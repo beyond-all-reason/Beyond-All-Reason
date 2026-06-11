@@ -38,14 +38,14 @@ end
 --------------------------------------------------------------------------------
 -- Localized engine functions
 --------------------------------------------------------------------------------
-local spEcho = Spring.Echo
-local spGetUnitPosition = Spring.GetUnitPosition
-local spIsSphereInView = Spring.IsSphereInView
-local spGetWind = Spring.GetWind
-local spGetFPS = Spring.GetFPS
+local spEcho = Engine.Shared.Echo
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spIsSphereInView = Engine.Unsynced.IsSphereInView
+local spGetWind = Engine.Shared.GetWind
+local spGetFPS = Engine.Unsynced.GetFPS
 -- Unsynced-only: forces a feature's draw matrix to refresh each frame so that
 -- synced SetFeatureDirection spins (e.g. falling trees) are actually rendered.
-local spSetFeatureAlwaysUpdateMatrix = Spring.SetFeatureAlwaysUpdateMatrix
+local spSetFeatureAlwaysUpdateMatrix = Engine.Unsynced.SetFeatureAlwaysUpdateMatrix
 
 local glBlending = gl.Blending
 local glTexture = gl.Texture
@@ -1563,7 +1563,7 @@ function gadget:Initialize()
 		-- AddUnitFire(unitID[, durationFrames]): attach a burning effect that
 		-- follows the unit. Refreshes the timer if already burning.
 		AddUnitFire = function(unitID, durationFrames)
-			local udid = Spring.GetUnitDefID(unitID)
+			local udid = Engine.Shared.GetUnitDefID(unitID)
 			if udid then
 				return addUnitFire(unitID, udid, durationFrames)
 			end
@@ -1610,7 +1610,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	-- unit, and no combat weapon was involved (weaponDefID nil or negative).
 	local isReclaimed = attackerID and attackerID ~= unitID and (not weaponDefID or weaponDefID < 0)
 	-- Skip effects for unfinished (still-being-built) units.
-	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+	local _, _, _, _, buildProgress = Engine.Shared.GetUnitHealth(unitID)
 	local isUnfinished = buildProgress and buildProgress < 1.0
 	local e = unitFireEmitter[unitID]
 	if isReclaimed or isUnfinished then

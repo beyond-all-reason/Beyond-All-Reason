@@ -121,12 +121,12 @@ local animCfg = {
 	font = nil,
 }
 
-local gameStarted = Spring.GetGameFrame() > 0
-local lastCheckFrame = Spring.GetGameFrame() - 999
+local gameStarted = Engine.Shared.GetGameFrame() > 0
+local lastCheckFrame = Engine.Shared.GetGameFrame() - 999
 local lastCheckFrameClock = os.clock() - 99
 local lastClusterRebuildClock = os.clock() - 99
 local lastProcessedFrame = -1
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = Engine.Unsynced.GetViewGeometry()
 
 --------------------------------------------------------------------------------
 -- Speedups
@@ -166,20 +166,20 @@ local glText = gl.Text
 local glTranslate = gl.Translate
 local glVertex = gl.Vertex
 
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetFeatureResources = Spring.GetFeatureResources
-local spGetFeatureVelocity = Spring.GetFeatureVelocity
-local spGetFeatureRadius = Spring.GetFeatureRadius
-local spValidFeatureID = Spring.ValidFeatureID
-local spGetGroundHeight = Spring.GetGroundHeight
-local spIsGUIHidden = Spring.IsGUIHidden
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetMapDrawMode = Spring.GetMapDrawMode
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetCameraVectors = Spring.GetCameraVectors
-local spGetGameFrame = Spring.GetGameFrame
+local spGetCameraPosition = Engine.Unsynced.GetCameraPosition
+local spGetFeaturePosition = Engine.Shared.GetFeaturePosition
+local spGetFeatureResources = Engine.Shared.GetFeatureResources
+local spGetFeatureVelocity = Engine.Shared.GetFeatureVelocity
+local spGetFeatureRadius = Engine.Shared.GetFeatureRadius
+local spValidFeatureID = Engine.Shared.ValidFeatureID
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spIsGUIHidden = Engine.Unsynced.IsGUIHidden
+local spTraceScreenRay = Engine.Unsynced.TraceScreenRay
+local spGetActiveCommand = Engine.Unsynced.GetActiveCommand
+local spGetMapDrawMode = Engine.Unsynced.GetMapDrawMode
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetCameraVectors = Engine.Unsynced.GetCameraVectors
+local spGetGameFrame = Engine.Shared.GetGameFrame
 
 -- TIMING INSTRUMENTATION (set to true to enable periodic timing echo)
 local debugTiming = false
@@ -3508,8 +3508,8 @@ end
 -- Widget call-ins
 
 function widget:Initialize()
-	gameStarted = Spring.GetGameFrame() > 0
-	showResourceIcons = Spring.GetModOptions().scenariooptions ~= nil
+	gameStarted = Engine.Shared.GetGameFrame() > 0
+	showResourceIcons = Engine.Shared.GetModOptions().scenariooptions ~= nil
 	screenx, screeny = widgetHandler:GetViewSizes()
 	local f = WG["fonts"] and WG["fonts"].getFont(2, 1.5)
 	animCfg.font = f
@@ -3636,13 +3636,13 @@ function widget:Initialize()
 	cachedKnownFeaturesCount = 0 -- Reset cached count
 	featureReclaimScanCounter = 0
 
-	for _, featureID in ipairs(Spring.GetAllFeatures()) do
+	for _, featureID in ipairs(Engine.Shared.GetAllFeatures()) do
 		widget:FeatureCreated(featureID)
 	end
 
 	camUpVector = spGetCameraVectors().up
 
-	widget:SelectionChanged(Spring.GetSelectedUnits())
+	widget:SelectionChanged(Engine.Unsynced.GetSelectedUnits())
 end
 
 function widget:Shutdown()
@@ -3816,7 +3816,7 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	screenx, screeny = widgetHandler:GetViewSizes()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = Engine.Unsynced.GetViewGeometry()
 	local f = WG["fonts"] and WG["fonts"].getFont(2, 1.5)
 	animCfg.font = f
 	animCfg.getTextWidth = (f and f.GetTextWidth) and function(text)
@@ -4308,7 +4308,7 @@ function widget:DrawWorldPreUnit()
 	timingCount = timingCount + 1
 	if debugTiming and timingCount >= timingInterval then
 		local div = timingCount
-		Spring.Echo(string.format("[ReclaimField TIMING] per-call avg (ms): UpdateReclaim=%.3f  DrawWorldText=%.3f  DrawPreUnit=%.3f  | Update()=%.3f  | clusters=%d  features=%d", timingAccum.updateReclaim / div * 1000, timingAccum.drawWorldText / div * 1000, timingAccum.drawPreUnit / div * 1000, timingAccum.updateFunc / div * 1000, #featureClusters, cachedKnownFeaturesCount))
+		Engine.Shared.Echo(string.format("[ReclaimField TIMING] per-call avg (ms): UpdateReclaim=%.3f  DrawWorldText=%.3f  DrawPreUnit=%.3f  | Update()=%.3f  | clusters=%d  features=%d", timingAccum.updateReclaim / div * 1000, timingAccum.drawWorldText / div * 1000, timingAccum.drawPreUnit / div * 1000, timingAccum.updateFunc / div * 1000, #featureClusters, cachedKnownFeaturesCount))
 		for k in pairs(timingAccum) do
 			timingAccum[k] = 0
 		end

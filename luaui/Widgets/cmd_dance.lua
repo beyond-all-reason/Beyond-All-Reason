@@ -23,21 +23,21 @@ function widget:Initialize()
 		end
 	end
 	widgetHandler:AddAction("dance", function()
-		local selected = Spring.GetSelectedUnits()
+		local selected = Engine.Unsynced.GetSelectedUnits()
 		local ids = {}
 		for i = 1, #selected do
-			local unitDefID = Spring.GetUnitDefID(selected[i])
+			local unitDefID = Engine.Shared.GetUnitDefID(selected[i])
 			if unitDefID and commanderDefs[unitDefID] then
 				ids[#ids + 1] = selected[i]
 			end
 		end
 
 		if #ids == 0 then
-			Spring.Echo("[Dance] Select a commander first!")
+			Engine.Shared.Echo("[Dance] Select a commander first!")
 			return true
 		end
 
-		Spring.SendLuaRulesMsg(REQUEST_HEADER .. table.concat(ids, ","))
+		Engine.Unsynced.SendLuaRulesMsg(REQUEST_HEADER .. table.concat(ids, ","))
 		return true
 	end, nil, "t")
 end

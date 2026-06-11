@@ -17,12 +17,12 @@ end
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetMyPlayerID = Spring.GetMyPlayerID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetGameFrame = Spring.GetGameFrame
-local spIsGUIHidden = Spring.IsGUIHidden
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Engine.Unsynced.GetSpectatingState
+local spGetGameFrame = Engine.Shared.GetGameFrame
+local spIsGUIHidden = Engine.Unsynced.IsGUIHidden
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
 
-local isReplay = Spring.IsReplay()
+local isReplay = Engine.Unsynced.IsReplay()
 
 -- The shared state table
 local state = {

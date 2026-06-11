@@ -38,18 +38,18 @@ end
 local maybeDead = {}
 
 local function isDeadOrCrashing(unitID)
-	return Spring.GetUnitIsDead(unitID) ~= false or Spring.GetUnitMoveTypeData(unitID).aircraftState == "crashing"
+	return Engine.Shared.GetUnitIsDead(unitID) ~= false or Engine.Shared.GetUnitMoveTypeData(unitID).aircraftState == "crashing"
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
-	if Spring.GetUnitRulesParam(unitID, "unit_effigy") then
+	if Engine.Shared.GetUnitRulesParam(unitID, "unit_effigy") then
 		--don't destroy units with effigies. Spring.SetUnitPosition cannot move a unit mid-fall.
 		return
 	end
 
 	if isParatrooper[unitDefID] then
 		--commandos are given a move order to the location of the ground below where the transport died; remove it
-		Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+		Engine.Shared.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 		return
 	end
 
@@ -65,8 +65,8 @@ function gadget:GameFramePost(gameFrame)
 
 	for unitID, transportID in pairs(maybeDead) do
 		if isDeadOrCrashing(transportID) and not isDeadOrCrashing(unitID) then
-			Spring.UnitDetach(unitID) -- secret sauce
-			Spring.AddUnitDamage(unitID, 1e6, nil, nil, Game.envDamageTypes.TransportKilled) -- TODO: attackerID
+			Engine.Synced.UnitDetach(unitID) -- secret sauce
+			Engine.Synced.AddUnitDamage(unitID, 1e6, nil, nil, Game.envDamageTypes.TransportKilled) -- TODO: attackerID
 		end
 	end
 

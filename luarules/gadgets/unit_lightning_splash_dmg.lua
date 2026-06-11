@@ -21,16 +21,16 @@ end
 local terminal_spark_effect = "genericshellexplosion-splash-lightning" -- can refactor into sparkWeapons if per-unit effects defined by customParams are desired
 local visual_chain_weapon = WeaponDefNames["lightning_chain"].id -- can refactor into sparkWeapons if per-unit effects defined by customParams are desired
 
-local spGetUnitsInSphere = Spring.GetUnitsInSphere
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spSpawnCEG = Spring.SpawnCEG
-local spAddUnitDamage = Spring.AddUnitDamage
-local spSpawnProjectile = Spring.SpawnProjectile
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
+local spGetUnitsInSphere = Engine.Shared.GetUnitsInSphere
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spSpawnCEG = Engine.Synced.SpawnCEG
+local spAddUnitDamage = Engine.Synced.AddUnitDamage
+local spSpawnProjectile = Engine.Synced.SpawnProjectile
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spGetProjectilePosition = Engine.Shared.GetProjectilePosition
+local spGetProjectileVelocity = Engine.Shared.GetProjectileVelocity
 
 local math_random = math.random
 local math_pi = math.pi

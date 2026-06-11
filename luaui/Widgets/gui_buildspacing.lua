@@ -17,10 +17,10 @@ function widget:MousePress(mx, my, button)
 	--local alt,ctrl,meta,shift = Spring.GetModKeyState()
 	if button == 4 then
 		-- Spring.SetActiveCommand("selfd")
-		Spring.SendCommands("buildspacing inc")
+		Engine.Unsynced.SendCommands("buildspacing inc")
 		return true
 	elseif button == 5 then
-		Spring.SendCommands("buildspacing dec")
+		Engine.Unsynced.SendCommands("buildspacing dec")
 		return true
 	end
 	return false

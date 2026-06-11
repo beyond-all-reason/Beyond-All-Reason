@@ -30,17 +30,17 @@ local mathFloor = math.floor
 local mathSqrt = math.sqrt
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetActiveCommand = Spring.GetActiveCommand
-local spGetMouseState = Spring.GetMouseState
-local spGetMouseCursor = Spring.GetMouseCursor
-local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
-local spGetFeatureResources = Spring.GetFeatureResources
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
-local spGetGroundHeight = Spring.GetGroundHeight
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spTraceScreenRay = Engine.Unsynced.TraceScreenRay
+local spGetActiveCommand = Engine.Unsynced.GetActiveCommand
+local spGetMouseState = Engine.Unsynced.GetMouseState
+local spGetMouseCursor = Engine.Unsynced.GetMouseCursor
+local spGetFeaturesInCylinder = Engine.Shared.GetFeaturesInCylinder
+local spGetFeatureResources = Engine.Shared.GetFeatureResources
+local spGetUnitHealth = Engine.Shared.GetUnitHealth
+local spGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
+local spGetMiniMapGeometry = Engine.Unsynced.GetMiniMapGeometry
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
 local spI18N = Spring.I18N
 
 local start = false --reclaim area cylinder drawing has been started
@@ -86,7 +86,7 @@ function widget:Initialize()
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = Engine.Unsynced.GetViewGeometry()
 	font = WG["fonts"].getFont(1, 1.5)
 	form = mathFloor(vsx / 87)
 end

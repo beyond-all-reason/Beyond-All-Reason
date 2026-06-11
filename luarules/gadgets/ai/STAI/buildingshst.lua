@@ -218,8 +218,8 @@ function BuildingsHST:FindClosestBuildSite(unittype, bx, by, bz, minDist, maxDis
 end
 
 function BuildingsHST:CanBuildHere(unittype, x, y, z) -- returns boolean
-	local newX, newY, newZ = Spring.Pos2BuildPos(unittype:ID(), x, y, z)
-	local buildable = Spring.TestBuildOrder(unittype:ID(), newX, newY, newZ, 1) --TODO check if it really necessary
+	local newX, newY, newZ = Engine.Shared.Pos2BuildPos(unittype:ID(), x, y, z)
+	local buildable = Engine.Shared.TestBuildOrder(unittype:ID(), newX, newY, newZ, 1) --TODO check if it really necessary
 
 	self:EchoDebug("canbuildhere", unittype:Name(), newX, newY, newZ, buildable)
 	if buildable == 0 then

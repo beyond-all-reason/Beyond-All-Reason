@@ -13,28 +13,28 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-	local spCreateUnit = Spring.CreateUnit
-	local spDestroyUnit = Spring.DestroyUnit
-	local spGiveOrderToUnit = Spring.GiveOrderToUnit
-	local spSetUnitRulesParam = Spring.SetUnitRulesParam
-	local spGetUnitPosition = Spring.GetUnitPosition
-	local spGetUnitStates = Spring.GetUnitStates
-	local spGetUnitHealth = Spring.GetUnitHealth
-	local spGetUnitTransporter = Spring.GetUnitTransporter
+	local spCreateUnit = Engine.Synced.CreateUnit
+	local spDestroyUnit = Engine.Synced.DestroyUnit
+	local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+	local spSetUnitRulesParam = Engine.Synced.SetUnitRulesParam
+	local spGetUnitPosition = Engine.Shared.GetUnitPosition
+	local spGetUnitStates = Engine.Shared.GetUnitStates
+	local spGetUnitHealth = Engine.Shared.GetUnitHealth
+	local spGetUnitTransporter = Engine.Shared.GetUnitTransporter
 
-	local spGetTeamList = Spring.GetTeamList
-	local spGetUnitExperience = Spring.GetUnitExperience
-	local spGetUnitTeam = Spring.GetUnitTeam
-	local spGetUnitDirection = Spring.GetUnitDirection
-	local spGetUnitStockpile = Spring.GetUnitStockpile
-	local spEcho = Spring.Echo
-	local spSetUnitHealth = Spring.SetUnitHealth
+	local spGetTeamList = Engine.Shared.GetTeamList
+	local spGetUnitExperience = Engine.Shared.GetUnitExperience
+	local spGetUnitTeam = Engine.Shared.GetUnitTeam
+	local spGetUnitDirection = Engine.Shared.GetUnitDirection
+	local spGetUnitStockpile = Engine.Shared.GetUnitStockpile
+	local spEcho = Engine.Shared.Echo
+	local spSetUnitHealth = Engine.Synced.SetUnitHealth
 
-	local spSetUnitExperience = Spring.SetUnitExperience
-	local spSetUnitStockpile = Spring.SetUnitStockpile
-	local spSetUnitDirection = Spring.SetUnitDirection
-	local spGetGameSeconds = Spring.GetGameSeconds
-	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
+	local spSetUnitExperience = Engine.Synced.SetUnitExperience
+	local spSetUnitStockpile = Engine.Synced.SetUnitStockpile
+	local spSetUnitDirection = Engine.Synced.SetUnitDirection
+	local spGetGameSeconds = Engine.Shared.GetGameSeconds
+	local spGetUnitNearestEnemy = Engine.Shared.GetUnitNearestEnemy
 
 	local GAME_SPEED = Game.gameSpeed
 	local PRIVATE = { private = true }
@@ -86,22 +86,22 @@ if gadgetHandler:IsSyncedCode() then
 	}
 
 	local function reAssignAssists(newUnit, oldUnit)
-		local allUnits = Spring.GetAllUnits()
+		local allUnits = Engine.Shared.GetAllUnits()
 		for _, unitID in pairs(allUnits) do
 			if GG.GetUnitTarget and GG.GetUnitTarget(unitID) == oldUnit and newUnit then
 				-- GG.SetUnitTarget(unitID, newUnit) -- FIXME: unit_target_on_the_move provides only GetUnitTarget
-				Spring.SetUnitTarget(unitID, newUnit)
+				Engine.Synced.SetUnitTarget(unitID, newUnit)
 			end
 
-			local cmds = Spring.GetUnitCommands(unitID, -1)
+			local cmds = Engine.Shared.GetUnitCommands(unitID, -1)
 			for j = 1, #cmds do
 				local cmd = cmds[j]
 				local params = cmd.params
 				if (unitTargetCommand[cmd.id] or (singleParamUnitTargetCommand[cmd.id] and #params == 1)) and (params[1] == oldUnit) then
 					params[1] = newUnit
 					local opts = (cmd.options.meta and CMD.OPT_META or 0) + (cmd.options.ctrl and CMD.OPT_CTRL or 0) + (cmd.options.alt and CMD.OPT_ALT or 0)
-					Spring.GiveOrderToUnit(unitID, CMD.INSERT, { cmd.tag, cmd.id, opts, params[1], params[2], params[3] }, 0)
-					Spring.GiveOrderToUnit(unitID, CMD.REMOVE, cmd.tag, 0)
+					Engine.Shared.GiveOrderToUnit(unitID, CMD.INSERT, { cmd.tag, cmd.id, opts, params[1], params[2], params[3] }, 0)
+					Engine.Shared.GiveOrderToUnit(unitID, CMD.REMOVE, cmd.tag, 0)
 				end
 			end
 		end
@@ -161,11 +161,11 @@ if gadgetHandler:IsSyncedCode() then
 		local team = spGetUnitTeam(unitID)
 		local states = spGetUnitStates(unitID)
 		local dx, dy, dz = spGetUnitDirection(unitID)
-		local heading = Spring.GetUnitHeading(unitID)
-		local face = Spring.GetFacingFromHeading(heading)
+		local heading = Engine.Shared.GetUnitHeading(unitID)
+		local face = Engine.Shared.GetFacingFromHeading(heading)
 		local stockpile, stockpilequeued, stockpilebuildpercent = spGetUnitStockpile(unitID)
-		local commandQueue = Spring.GetUnitCommands(unitID, -1)
-		local transporter = Spring.GetUnitTransporter(unitID)
+		local commandQueue = Engine.Shared.GetUnitCommands(unitID, -1)
+		local transporter = Engine.Shared.GetUnitTransporter(unitID)
 
 		local toUnitNameSkipped, delayedSeconds = skipEvolutions(evolution)
 		if not UnitDefNames[toUnitNameSkipped] then
@@ -222,25 +222,25 @@ if gadgetHandler:IsSyncedCode() then
 		reAssignAssists(newUnitID, unitID)
 
 		if commandQueue[1] then
-			local teamID = Spring.GetUnitTeam(unitID)
+			local teamID = Engine.Shared.GetUnitTeam(unitID)
 			for _, command in pairs(commandQueue) do
 				local coded = command.options.coded + (command.options.shift and 0 or CMD.OPT_SHIFT) -- orders without SHIFT can appear at positions other than the 1st due to CMD.INSERT; they'd cancel any previous commands if added raw
 				if command.id < 0 then -- repair case for construction
-					local units = CallAsTeam(teamID, Spring.GetUnitsInRectangle, command.params[1] - 16, command.params[3] - 16, command.params[1] + 16, command.params[3] + 16, -3)
+					local units = CallAsTeam(teamID, Engine.Shared.GetUnitsInRectangle, command.params[1] - 16, command.params[3] - 16, command.params[1] + 16, command.params[3] + 16, -3)
 					local notFound = true
 					for j = 1, #units do
 						local areaUnitID = units[j]
-						if Spring.GetUnitDefID(areaUnitID) == -command.id then
-							Spring.GiveOrderToUnit(newUnitID, CMD.REPAIR, areaUnitID, coded)
+						if Engine.Shared.GetUnitDefID(areaUnitID) == -command.id then
+							Engine.Shared.GiveOrderToUnit(newUnitID, CMD.REPAIR, areaUnitID, coded)
 							notFound = false
 							break
 						end
 					end
 					if notFound then
-						Spring.GiveOrderToUnit(newUnitID, command.id, command.params, coded)
+						Engine.Shared.GiveOrderToUnit(newUnitID, command.id, command.params, coded)
 					end
 				else
-					Spring.GiveOrderToUnit(newUnitID, command.id, command.params, coded)
+					Engine.Shared.GiveOrderToUnit(newUnitID, command.id, command.params, coded)
 				end
 			end
 		end
@@ -338,8 +338,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function getTotalUnitCount()
 		local totalUnits = 0
-		for _, teamID in ipairs(Spring.GetTeamList()) do
-			totalUnits = totalUnits + Spring.GetTeamUnitCount(teamID)
+		for _, teamID in ipairs(Engine.Shared.GetTeamList()) do
+			totalUnits = totalUnits + Engine.Shared.GetTeamUnitCount(teamID)
 		end
 		return totalUnits
 	end
@@ -420,9 +420,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 else
-	local spSelectUnitArray = Spring.SelectUnitArray
-	local spGetSelectedUnits = Spring.GetSelectedUnits
-	local spGetGameSeconds = Spring.GetGameSeconds
+	local spSelectUnitArray = Engine.Unsynced.SelectUnitArray
+	local spGetSelectedUnits = Engine.Unsynced.GetSelectedUnits
+	local spGetGameSeconds = Engine.Shared.GetGameSeconds
 
 	local announcementStart = 0
 	local announcementEnabled = false
@@ -431,8 +431,8 @@ else
 
 	local displayList
 
-	local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-	local vsx, vsy = Spring.GetViewGeometry()
+	local fontfile = "fonts/" .. Engine.Unsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+	local vsx, vsy = Engine.Unsynced.GetViewGeometry()
 	local fontfileScale = (0.5 + (vsx * vsy / 6200000))
 	local fontfileSize = 50
 	local fontfileOutlineSize = 10
@@ -440,7 +440,7 @@ else
 	local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 	local function draw(newAnnouncement, newAnnouncementSize)
-		vsx, vsy = Spring.GetViewGeometry()
+		vsx, vsy = Engine.Unsynced.GetViewGeometry()
 		local uiScale = (0.7 + (vsx * vsy / 6500000))
 		displayList = gl.CreateList(function()
 			font:Begin()
@@ -454,9 +454,9 @@ else
 
 	local function evolveFinished(cmd, oldID, newID, newAnnouncement, newAnnouncementSize)
 		local selUnits = spGetSelectedUnits()
-		local unitGroup = Spring.GetUnitGroup(oldID)
+		local unitGroup = Engine.Unsynced.GetUnitGroup(oldID)
 		if unitGroup then
-			Spring.SetUnitGroup(newID, unitGroup)
+			Engine.Unsynced.SetUnitGroup(newID, unitGroup)
 		end
 		for i = 1, #selUnits do
 			local unitID = selUnits[i]
@@ -475,7 +475,7 @@ else
 	end
 
 	function gadget:DrawScreen()
-		if Spring.IsGUIHidden() then
+		if Engine.Unsynced.IsGUIHidden() then
 			return
 		end
 		if announcementEnabled then

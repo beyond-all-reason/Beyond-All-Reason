@@ -1,5 +1,5 @@
 function skip()
-	return Spring.GetGameFrame() <= 0
+	return Engine.Shared.GetGameFrame() <= 0
 end
 
 function scenario_arguments()
@@ -10,13 +10,13 @@ function setup()
 	-- test on quicksilver remake 1.24
 	Test.clearMap()
 
-	Spring.SetCameraTarget(Game.mapSizeX / 2 + 500, 50, Game.mapSizeZ / 2 - 500, 0.5)
+	Engine.Unsynced.SetCameraTarget(Game.mapSizeX / 2 + 500, 50, Game.mapSizeZ / 2 - 500, 0.5)
 end
 
 function synced_nano_setup(locals)
 	local function createUnitAt(unitdefname, x, z, teamID)
-		local y = Spring.GetGroundHeight(x, z)
-		return Spring.CreateUnit(unitdefname, x, y, z, 1, teamID)
+		local y = Engine.Shared.GetGroundHeight(x, z)
+		return Engine.Synced.CreateUnit(unitdefname, x, y, z, 1, teamID)
 	end
 
 	local colturrets = 5
@@ -47,7 +47,7 @@ function synced_nano_setup(locals)
 	end
 	-- make sure the turrets don't have other orders
 	for _, unitID in pairs(turrets) do
-		Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+		Engine.Shared.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 	end
 end
 
@@ -62,17 +62,17 @@ function run_nano_commands(nturrets, ntargets, turretDef, targetDef)
 	local shiftOpts = { "shift" }
 	local currOpt
 	local CMD_RECLAIM = CMD.RECLAIM
-	local spGiveOrderToUnit = Spring.GiveOrderToUnit
+	local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
 
 	-- get units
-	local spGetUnitDefID = Spring.GetUnitDefID
+	local spGetUnitDefID = Engine.Shared.GetUnitDefID
 
 	local turrets = table.new and table.new(nturrets) or {}
 	local targets = table.new and table.new(ntargets) or {}
 	local turretDefID = UnitDefNames[turretDef].id
 	local targetDefID = UnitDefNames[targetDef].id
 
-	local all_units = Spring.GetAllUnits()
+	local all_units = Engine.Shared.GetAllUnits()
 	for _, unitID in ipairs(all_units) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if unitDefID == turretDefID then
@@ -102,11 +102,11 @@ function test()
 	local targetDef = Scenario.targetDef
 
 	SyncedRun(synced_nano_setup)
-	Spring.Echo("init time preinit:", os.clock() - t0)
+	Engine.Shared.Echo("init time preinit:", os.clock() - t0)
 
 	Test.waitFrames(1)
 
 	SyncedRun(run_nano_commands)
 
-	Spring.Echo("total time:", os.clock() - t0)
+	Engine.Shared.Echo("total time:", os.clock() - t0)
 end

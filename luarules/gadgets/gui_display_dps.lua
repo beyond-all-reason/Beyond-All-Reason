@@ -29,23 +29,23 @@ if gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local enabled = (tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1)
+local enabled = (tonumber(Engine.Unsynced.GetConfigInt("DisplayDPS", 0) or 0) == 1)
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local vsx, vsy = Spring.GetViewGeometry()
+local fontfile = "fonts/" .. Engine.Unsynced.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local vsx, vsy = Engine.Unsynced.GetViewGeometry()
 local fontfileScale = 1 + (vsx * vsy / 5700000)
 local fontfileSize = 25
 local fontfileOutlineSize = 6
 local fontfileOutlineStrength = 1.3
 local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
-local GetUnitDefID = Spring.GetUnitDefID
-local GetUnitDefDimensions = Spring.GetUnitDefDimensions
-local AreTeamsAllied = Spring.AreTeamsAllied
-local GetGameSpeed = Spring.GetGameSpeed
-local GetGameSeconds = Spring.GetGameSeconds
-local GetUnitViewPosition = Spring.GetUnitViewPosition
-local IsUnitInView = Spring.IsUnitInView
+local GetUnitDefID = Engine.Shared.GetUnitDefID
+local GetUnitDefDimensions = Engine.Shared.GetUnitDefDimensions
+local AreTeamsAllied = Engine.Shared.AreTeamsAllied
+local GetGameSpeed = Engine.Unsynced.GetGameSpeed
+local GetGameSeconds = Engine.Shared.GetGameSeconds
+local GetUnitViewPosition = Engine.Unsynced.GetUnitViewPosition
+local IsUnitInView = Engine.Unsynced.IsUnitInView
 
 local glTranslate = gl.Translate
 local glBillboard = gl.Billboard
@@ -57,7 +57,7 @@ local glDrawFuncAtUnit = gl.DrawFuncAtUnit
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glCallList = gl.CallList
-local IsGUIHidden = Spring.IsGUIHidden
+local IsGUIHidden = Engine.Unsynced.IsGUIHidden
 local math_floor = math.floor
 local math_ceil = math.ceil
 local math_random = math.random
@@ -87,7 +87,7 @@ local drawTextLists = {}
 local drawTextListsDeath = {}
 local drawTextListsEmp = {}
 local myTeamID = Spring.GetMyTeamID()
-local _, fullview = Spring.GetSpectatingState()
+local _, fullview = Engine.Unsynced.GetSpectatingState()
 local chobbyInterface
 local ignoreDamageTypes = {}
 
@@ -109,7 +109,7 @@ ignoreDamageTypes[Game.envDamageTypes.KilledByCheat] = true
 ignoreDamageTypes[Game.envDamageTypes.KilledByLua] = true
 
 function gadget:ViewResize(n_vsx, n_vsy)
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = Engine.Unsynced.GetViewGeometry()
 	local fontScale = 1 + (vsx * vsy / 5700000)
 	gadget:Shutdown()
 	font = gl.LoadFont(fontfile, 52 * fontScale, 17 * fontScale, 1.3)
@@ -314,7 +314,7 @@ end
 
 function gadget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
-	_, fullview = Spring.GetSpectatingState()
+	_, fullview = Engine.Unsynced.GetSpectatingState()
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
@@ -325,7 +325,7 @@ end
 
 function checkEnabled()
 	local prevEnabled = enabled
-	enabled = (tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1)
+	enabled = (tonumber(Engine.Unsynced.GetConfigInt("DisplayDPS", 0) or 0) == 1)
 	if prevEnabled ~= enabled then
 		damageTable = {}
 		unitParalyze = {}
@@ -353,7 +353,7 @@ end
 
 local sec = 0
 function gadget:Update()
-	sec = sec + Spring.GetLastUpdateSeconds()
+	sec = sec + Engine.Unsynced.GetLastUpdateSeconds()
 	if sec > 2 then
 		sec = 0
 		checkEnabled()

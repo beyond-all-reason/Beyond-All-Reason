@@ -13,7 +13,7 @@
 
 if System == nil then
 	if tracy == nil then
-		Spring.Echo("Tracy: No support detected, replacing tracy.* with function stubs.")
+		Engine.Shared.Echo("Tracy: No support detected, replacing tracy.* with function stubs.")
 		tracy = {}
 		tracy.ZoneBeginN = function()
 			return

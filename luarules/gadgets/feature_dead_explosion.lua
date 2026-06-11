@@ -28,14 +28,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:FeatureDestroyed(featureID, allyTeamID)
-		local featureDefID = Spring.GetFeatureDefID(featureID)
+		local featureDefID = Engine.Shared.GetFeatureDefID(featureID)
 		if isCorpse[featureDefID] then
-			local _, _, resurrectProgress = Spring.GetFeatureHealth(featureID)
+			local _, _, resurrectProgress = Engine.Shared.GetFeatureHealth(featureID)
 			if resurrectProgress < 0.98 then
-				local x, y, z = Spring.GetFeaturePosition(featureID)
+				local x, y, z = Engine.Shared.GetFeaturePosition(featureID)
 				local fsize = isCorpse[featureDefID]
-				Spring.SpawnCEG(effectsTable[fsize].ceg, x, y, z)
-				Spring.PlaySoundFile(effectsTable[fsize].sound, 1, x, y, z, "sfx")
+				Engine.Synced.SpawnCEG(effectsTable[fsize].ceg, x, y, z)
+				Engine.Unsynced.PlaySoundFile(effectsTable[fsize].sound, 1, x, y, z, "sfx")
 			end
 		end
 	end

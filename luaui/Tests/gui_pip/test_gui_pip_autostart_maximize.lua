@@ -2,13 +2,13 @@ local widgetName = "Picture-in-Picture"
 local originalGetSpectatingState = nil
 
 function skip()
-	return Spring.GetGameFrame() <= 0 or widgetHandler.knownWidgets[widgetName] == nil
+	return Engine.Shared.GetGameFrame() <= 0 or widgetHandler.knownWidgets[widgetName] == nil
 end
 
 function setup()
 	Test.clearMap()
-	originalGetSpectatingState = Spring.GetSpectatingState
-	Spring.GetSpectatingState = function()
+	originalGetSpectatingState = Engine.Unsynced.GetSpectatingState
+	Engine.Unsynced.GetSpectatingState = function()
 		return false, false
 	end
 	widget = Test.prepareWidget(widgetName)
@@ -17,15 +17,15 @@ end
 
 function cleanup()
 	if originalGetSpectatingState ~= nil then
-		Spring.GetSpectatingState = originalGetSpectatingState
+		Engine.Unsynced.GetSpectatingState = originalGetSpectatingState
 		originalGetSpectatingState = nil
 	end
 	Test.clearMap()
 end
 
 function test()
-	local vsx, vsy = Spring.GetViewGeometry()
-	local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+	local vsx, vsy = Engine.Unsynced.GetViewGeometry()
+	local uiScale = tonumber(Engine.Unsynced.GetConfigFloat("ui_scale", 1) or 1)
 	local widgetScale = (vsy / 2000) * uiScale
 	local minExpandedSize = math.floor(125 * widgetScale)
 

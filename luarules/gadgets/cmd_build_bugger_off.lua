@@ -21,21 +21,21 @@ local math_max = math.max
 local math_diag = math.diag
 local math_pointOnCircle = math.closestPointOnCircle
 
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitStates = Spring.GetUnitStates
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitCurrentCommand = Engine.Shared.GetUnitCurrentCommand
+local spGetUnitStates = Engine.Shared.GetUnitStates
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitsInCylinder = Engine.Shared.GetUnitsInCylinder
+local spGetUnitIsDead = Engine.Shared.GetUnitIsDead
+local spGetUnitIsBeingBuilt = Engine.Shared.GetUnitIsBeingBuilt
+local spGetUnitIsBuilding = Engine.Shared.GetUnitIsBuilding
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitVelocity = Engine.Shared.GetUnitVelocity
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
 
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spDestroyUnit = Spring.DestroyUnit
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spTestMoveOrder = Spring.TestMoveOrder
+local spAreTeamsAllied = Engine.Shared.AreTeamsAllied
+local spDestroyUnit = Engine.Synced.DestroyUnit
+local spGiveOrderToUnit = Engine.Shared.GiveOrderToUnit
+local spTestMoveOrder = Engine.Shared.TestMoveOrder
 
 local gameSpeed = Game.gameSpeed
 local footprint = Game.squareSize * Game.footprintScale
@@ -74,7 +74,7 @@ local areaCommandCooldown = {}
 local FAST_UPDATE_RADIUS = 400
 -- builders take about this much to enter build stance; determined empirically
 local BUILDER_DELAY_SECONDS = 3.3
-local BUILDER_BUILD_RADIUS = 200 * Spring.GetModOptions().multiplier_builddistance -- ! varies per-unit
+local BUILDER_BUILD_RADIUS = 200 * Engine.Shared.GetModOptions().multiplier_builddistance -- ! varies per-unit
 -- Assume the units are super-fast and medium-sized.
 local SEARCH_RADIUS_OFFSET = unitSpeedMax + 2 * footprint
 local FAST_UPDATE_FREQUENCY = gameSpeed * 0.5

@@ -18,16 +18,16 @@ local unitRendering = {
 	lods = {},
 	curHighestLOD = 0,
 	activeMats = {},
-	spSetLODCount = Spring.UnitRendering.SetLODCount,
-	spSetMaterialLastLOD = Spring.UnitRendering.SetMaterialLastLOD,
+	spSetLODCount = Engine.Unsynced.UnitRendering.SetLODCount,
+	spSetMaterialLastLOD = Engine.Unsynced.UnitRendering.SetMaterialLastLOD,
 }
 
 local featureRendering = {
 	lods = {},
 	curHighestLOD = 0,
 	activeMats = {},
-	spSetLODCount = Spring.FeatureRendering.SetLODCount,
-	spSetMaterialLastLOD = Spring.FeatureRendering.SetMaterialLastLOD,
+	spSetLODCount = Engine.Unsynced.FeatureRendering.SetLODCount,
+	spSetMaterialLastLOD = Engine.Unsynced.FeatureRendering.SetMaterialLastLOD,
 }
 
 local function SetLODCount(rendering, objectID, lod_count)

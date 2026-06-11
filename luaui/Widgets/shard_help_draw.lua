@@ -66,16 +66,16 @@ local mSin = math.sin
 local twicePi = math.pi * 2
 local mMin = math.min
 
-local spIsSphereInView = Spring.IsSphereInView
-local spGetGroundHeight = Spring.GetGroundHeight
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
+local spIsSphereInView = Engine.Unsynced.IsSphereInView
+local spGetGroundHeight = Engine.Shared.GetGroundHeight
+local spWorldToScreenCoords = Engine.Unsynced.WorldToScreenCoords
+local spEcho = Engine.Shared.Echo
+local spGetViewGeometry = Engine.Unsynced.GetViewGeometry
+local spGetUnitPosition = Engine.Shared.GetUnitPosition
+local spGetUnitDefID = Engine.Shared.GetUnitDefID
+local spGetUnitTeam = Engine.Shared.GetUnitTeam
+local spGetTimer = Engine.Unsynced.GetTimer
+local spDiffTimers = Engine.Unsynced.DiffTimers
 
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
@@ -947,7 +947,7 @@ local function InterpretStringData(data, command)
 end
 
 local function SaveTable(tableinput, tablename, filename)
-	Spring.Echo("Saving " .. tablename .. " on " .. filename)
+	Engine.Shared.Echo("Saving " .. tablename .. " on " .. filename)
 	local fileobj = io.open(filename, "w")
 	fileobj:write(tablename .. " = " .. tableinput)
 	fileobj:close()
@@ -1166,7 +1166,7 @@ function widget:Shutdown()
 	if i == 0 then
 		return
 	end
-	Spring.SendCommands("screenshot")
+	Engine.Unsynced.SendCommands("screenshot")
 	EchoStats("", timerPermaStats[anyName], longestName, longestKV, true)
 	local namesBySum = {}
 	for name, stats in pairs(timerPermaStats) do

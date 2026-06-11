@@ -271,6 +271,6 @@ function widget:Initialize()
 		end
 	end
 
-	Spring.Echo("Exported units to file: " .. filename)
+	Engine.Shared.Echo("Exported units to file: " .. filename)
 	file:close()
 end

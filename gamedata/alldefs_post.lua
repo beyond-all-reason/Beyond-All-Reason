@@ -41,7 +41,7 @@ end
 -- DEFS POST PROCESSING
 -------------------------
 
-local modOptions = Spring.GetModOptions()
+local modOptions = Engine.Shared.GetModOptions()
 
 local holidays = Spring.Utilities.Gametype.GetCurrentHolidays()
 local isAprilFools = holidays.aprilfools
@@ -770,10 +770,10 @@ local function unitDef_Post(name, uDef)
 			if oldscript:find(".cob", nil, true) and (not oldscript:find("_clean.", nil, true)) then
 				local newscript = string.sub(oldscript, 1, -5) .. "_clean.cob"
 				if VFS.FileExists("scripts/" .. newscript) then
-					Spring.Echo("Using new script for", name, oldscript, "->", newscript)
+					Engine.Shared.Echo("Using new script for", name, oldscript, "->", newscript)
 					uDef.script = newscript
 				else
-					Spring.Echo("Unable to find new script for", name, oldscript, "->", newscript, "using old one")
+					Engine.Shared.Echo("Unable to find new script for", name, oldscript, "->", newscript, "using old one")
 				end
 			end
 		end
@@ -783,7 +783,7 @@ local function unitDef_Post(name, uDef)
 		-- Remove invalid unit defs.
 		for index, option in pairs(buildoptions) do
 			if not UnitDefs[option] then
-				Spring.Log("AllDefs", LOG.INFO, "Removed buildoption (unit not loaded?): " .. tostring(option))
+				Engine.Shared.Log("AllDefs", LOG.INFO, "Removed buildoption (unit not loaded?): " .. tostring(option))
 				buildoptions[index] = nil
 			end
 		end
@@ -1260,13 +1260,13 @@ local function explosionDef_Post(name, eDef) end
 -- process modoptions (last, because they should not get baked)
 local function modOptions_Post(UnitDefs, WeaponDefs)
 	-- transporting enemy coms
-	if Spring.GetModOptions().transportenemy == "notcoms" then
+	if Engine.Shared.GetModOptions().transportenemy == "notcoms" then
 		for name, ud in pairs(UnitDefs) do
 			if ud.customparams.iscommander then
 				ud.transportbyenemy = false
 			end
 		end
-	elseif Spring.GetModOptions().transportenemy == "none" then
+	elseif Engine.Shared.GetModOptions().transportenemy == "none" then
 		for name, ud in pairs(UnitDefs) do
 			ud.transportbyenemy = false
 		end
