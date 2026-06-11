@@ -1656,7 +1656,7 @@ if gadgetHandler:IsSyncedCode() then
 				if ax and separation < (config.raptorBehaviours.BERSERK[attackerDefID].distance or 10000) then
 					ax = ax + mRandom(-128,128)
 					az = az + mRandom(-128,128)
-					if config.raptorBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < GetGameFrame and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
+					if config.raptorBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < GetGameFrame and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) and positionCheckLibrary.OccupancyCheck(ax, ay, az, 64) then
 						GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
 						SetUnitPosition(attackerID, ax, ay, az)
 						GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
