@@ -34,9 +34,9 @@ end
 CMDnames[CMD.ATTACK] = "CMD.ATTACK"
 CMDnames[CMD.INSERT] = "CMD.INSERT"
 CMDnames[CMD.REMOVE] = "CMD.REMOVE"
-CMDnames[CMD.DGUN] = "CMD.DGUN"
+CMDnames[CMD.MANUALFIRE] = "CMD.MANUALFIRE"
 
-local function count(tbl)
+local function summaryOrSomething(tbl)
 	if VERBOSE then
 		return tbl
 	end
@@ -75,7 +75,7 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeam ~= 0 then
 			return false
 		end
-		Spring.Echo("CommandFallback", "uID", unitID, "defID", unitDefID,   command(cmdID), "params", count(cmdParams), "opts", count(cmdOptions), "tag", cmdTag)
+		Spring.Echo("CommandFallback", "uID", unitID, "defID", unitDefID,   command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions), "tag", cmdTag)
 		return false
 	end
 	
@@ -84,13 +84,13 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 
-		Spring.Echo("AllowCommand", "uID", unitID, "defID", unitDefID,   command(cmdID), "params", count(cmdParams), "opts", count(cmdOptions), "tag", cmdTag, "synced", fromSynced, "lua", fromLua)
+		Spring.Echo("AllowCommand", "uID", unitID, "defID", unitDefID,   command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions), "tag", cmdTag, "synced", fromSynced, "lua", fromLua)
 		return true
 	end
 else
 	-- Unsynced
 	function gadget:CommandNotify(cmdID, cmdParams, cmdOptions)
-		Spring.Echo("CommandNotify",  command(cmdID), "params", count(cmdParams), "opts", count(cmdOptions))
+		Spring.Echo("CommandNotify",  command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions))
 
 		return false
 	end
@@ -111,7 +111,7 @@ else
 			return
 		end
 		
-		Spring.Echo("UnitCommand", "uID", unitID, "defID", unitDefID,   command(cmdID), "params", count(cmdParams), "opts", count(cmdOptions), "tag", cmdTag)
+		Spring.Echo("UnitCommand", "uID", unitID, "defID", unitDefID,   command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions), "tag", cmdTag)
 	end
 	
 	function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
@@ -119,7 +119,7 @@ else
 			return
 		end
 
-		Spring.Echo("UnitCmdDone", "uID", unitID, "defID", unitDefID,   command(cmdID), "params", count(cmdParams), "opts", count(cmdOptions), "tag", cmdTag)
+		Spring.Echo("UnitCmdDone", "uID", unitID, "defID", unitDefID,   command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions), "tag", cmdTag)
 		local x, y, z = Spring.GetUnitPosition(unitID)
 		if PING then
 			Spring.MarkerAddPoint(x, y, z, "UnitCmdDone: " .. command(cmdID) .. " (tag: " .. tostring(cmdTag) .. ")")
