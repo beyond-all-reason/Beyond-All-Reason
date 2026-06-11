@@ -85,6 +85,7 @@ local config = {
 --------------------------------------------------------------------------------
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitTeam = Spring.GetUnitTeam
 local mathLog    = math.log
 local mathMin    = math.min
 local mathMax    = math.max
@@ -149,8 +150,8 @@ local function resolveTier(aoe, damage)
 	return config.sizeTiers[tierIndex], tierIndex, dn
 end
 
-local function spawnImpactCluster(spawn, px, py, pz, aoe, sizeScale, intensityScale, burstCount, scatterRadiusScale)
-	spawn(config.lightningConfig, px, py + config.heightOffset, pz, sizeScale, intensityScale)
+local function spawnImpactCluster(spawn, px, py, pz, aoe, sizeScale, intensityScale, burstCount, scatterRadiusScale, ownerTeamID)
+	spawn(config.lightningConfig, px, py + config.heightOffset, pz, sizeScale, intensityScale, ownerTeamID)
 
 	if burstCount <= 1 then return end
 
@@ -163,11 +164,11 @@ local function spawnImpactCluster(spawn, px, py, pz, aoe, sizeScale, intensitySc
 		local sz = pz + mathSin(ang) * rad
 		local sy = mathMax(spGetGroundHeight(sx, sz), py) + config.heightOffset + mathRandom() * config.heightJitter
 		local ss = sizeScale * (config.scatterSizeMin + mathRandom() * sizeRange)
-		spawn(config.lightningConfig, sx, sy, sz, ss, intensityScale)
+		spawn(config.lightningConfig, sx, sy, sz, ss, intensityScale, ownerTeamID)
 	end
 end
 
-local function scheduleTailPulses(nowFrame, px, py, pz, aoe, sizeScale, intensityScale, burstCount, scatterRadiusScale)
+local function scheduleTailPulses(nowFrame, px, py, pz, aoe, sizeScale, intensityScale, burstCount, scatterRadiusScale, ownerTeamID)
 	if not config.tailEnabled then return end
 
 	for i = 1, config.tailPulseCount do
@@ -193,6 +194,7 @@ local function scheduleTailPulses(nowFrame, px, py, pz, aoe, sizeScale, intensit
 			intensityScale = pulseIntensity,
 			burstCount = pulseBursts,
 			scatterRadiusScale = pulseScatter,
+			ownerTeamID = ownerTeamID,
 		}
 	end
 end
@@ -218,12 +220,13 @@ function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
 		burstCount = burstCount + 1
 	end
 	local scatterRadiusScale = tier.scatterRadiusScale
+	local ownerTeamID = attackerID and spGetUnitTeam(attackerID)
 
-	spawnImpactCluster(spawn, px, py, pz, aoe, sizeScale, intensityScale, burstCount, scatterRadiusScale)
+	spawnImpactCluster(spawn, px, py, pz, aoe, sizeScale, intensityScale, burstCount, scatterRadiusScale, ownerTeamID)
 
 	-- Add a decaying tail only for the largest visual tier.
 	if tierIndex == #config.sizeTiers then
-		scheduleTailPulses(spGetGameFrame(), px, py, pz, aoe, sizeScale, intensityScale, burstCount, scatterRadiusScale)
+		scheduleTailPulses(spGetGameFrame(), px, py, pz, aoe, sizeScale, intensityScale, burstCount, scatterRadiusScale, ownerTeamID)
 	end
 end
 
@@ -237,7 +240,7 @@ function gadget:GameFrame(frame)
 	for read = 1, #pendingTailPulses do
 		local p = pendingTailPulses[read]
 		if p.frame <= frame then
-			spawnImpactCluster(spawn, p.x, p.y, p.z, p.aoe, p.sizeScale, p.intensityScale, p.burstCount, p.scatterRadiusScale)
+			spawnImpactCluster(spawn, p.x, p.y, p.z, p.aoe, p.sizeScale, p.intensityScale, p.burstCount, p.scatterRadiusScale, p.ownerTeamID)
 		else
 			pendingTailPulses[write] = p
 			write = write + 1

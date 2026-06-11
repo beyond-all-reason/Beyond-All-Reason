@@ -6,11 +6,12 @@
 -- "scavradiation-lightning".
 --
 -- Synced API (call from any synced gadget):
---   GG.SpawnEnvironmentalLightning(configName, x, y, z [, sizeScale [, intensityScale]])
+--   GG.SpawnEnvironmentalLightning(configName, x, y, z [, sizeScale [, intensityScale [, ownerTeamID]]])
 --     configName     : key into the `lightningConfigs` table below (string)
 --     x, y, z         : world origin of the burst
 --     sizeScale       : optional multiplier on reach + thickness (default 1)
 --     intensityScale  : optional multiplier on brightness (default 1)
+--     ownerTeamID     : optional team that owns the effect (visible to that allyTeam even out of LOS)
 --
 -- Per-config visual parameters (see `lightningConfigs`):
 --   color (r,g,b + core color), lifetime, intensity, feather, size (width + reach),
@@ -37,15 +38,18 @@ end
 if gadgetHandler:IsSyncedCode() then
 
 	local SendToUnsynced = SendToUnsynced
+	local spGetTeamInfo = Spring.GetTeamInfo
 
 	function gadget:Initialize()
-		GG.SpawnEnvironmentalLightning = function(configName, x, y, z, sizeScale, intensityScale)
+		GG.SpawnEnvironmentalLightning = function(configName, x, y, z, sizeScale, intensityScale, ownerTeamID)
 			if not configName or not x or not y or not z then return end
+			local ownerAllyTeamID = ownerTeamID and select(6, spGetTeamInfo(ownerTeamID, false))
 			SendToUnsynced("envLightningSpawn",
 				tostring(configName),
 				x, y, z,
 				sizeScale or 1.0,
-				intensityScale or 1.0)
+				intensityScale or 1.0,
+				ownerAllyTeamID or -1)
 		end
 	end
 
@@ -139,9 +143,11 @@ end
 --   scatterSizeMin/Max    size scale range for sparks (small -> simpler/shorter)
 --   scatterIntensityScale intensity multiplier for sparks
 --   scatterWidthScale     width multiplier for sparks (thickness only)
+--   alwaysVisible     when true, bypasses local LOS filtering (still per-client)
 --------------------------------------------------------------------------------
 local lightningConfigs = {
 	scavradiation = {
+		alwaysVisible = true,
 		r = 0.50, g = 0.4, b = 1.00,
 		coreR = 0.82, coreG = 0.7, coreB = 1.00,
 		lifeFrames     = 9,
@@ -366,6 +372,9 @@ local lightningConfigs = {
 local spGetGameFrame   = Spring.GetGameFrame
 local spIsAABBInView   = Spring.IsAABBInView
 local spGetCameraPosition = Spring.GetCameraPosition
+local spIsPosInLos     = Spring.IsPosInLos
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
 
 local glBlending  = gl.Blending
 local glDepthTest = gl.DepthTest
@@ -920,6 +929,15 @@ local active   = {}    -- array of bursts
 local nActive  = 0
 local idleSkipCounter = 0
 local lastBuildFrame  = -1
+
+local cachedAllyTeamID = -1
+local cachedSpecFullView = false
+
+local function updateViewCache()
+	cachedAllyTeamID = spGetMyAllyTeamID() or -1
+	local _, fullView = spGetSpectatingState()
+	cachedSpecFullView = fullView and true or false
+end
 
 -- Build an arbitrary perpendicular basis around a unit forward vector.
 local function perpBasis(fx, fy, fz)
@@ -1499,13 +1517,24 @@ end
 --------------------------------------------------------------------------------
 -- Callins
 --------------------------------------------------------------------------------
-local function handleSpawn(_, configName, x, y, z, sizeScale, intensityScale)
+local function handleSpawn(_, configName, x, y, z, sizeScale, intensityScale, ownerAllyTeamID)
+	-- Synced callsites are global; per-client LOS filtering must happen unsynced.
+	local cfg = lightningConfigs[configName]
+	local ownedByMe = (ownerAllyTeamID and ownerAllyTeamID >= 0 and ownerAllyTeamID == cachedAllyTeamID)
+	if not (cfg and cfg.alwaysVisible) and not cachedSpecFullView and not ownedByMe and not spIsPosInLos(x, y, z, cachedAllyTeamID) then
+		return
+	end
 	requestLightning(configName, x, y, z, sizeScale, intensityScale)
 end
 
 function gadget:Initialize()
 	if not initGL4() then return end
+	updateViewCache()
 	gadgetHandler:AddSyncAction("envLightningSpawn", handleSpawn)
+end
+
+function gadget:PlayerChanged()
+	updateViewCache()
 end
 
 function gadget:Shutdown()

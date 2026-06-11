@@ -56,6 +56,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+	local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
 	local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
 	local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
@@ -92,20 +93,20 @@ if gadgetHandler:IsSyncedCode() then
 	local WATERWEAPON = 0
 	do
 		local allowNonAttackerUnit = { legpede = true } -- Fastpass for units that don't have an attack command for other reasons.
-		local allowCommandFireWeapon = { armstil_stiletto_bomb = true } -- TODO: Why is this commandfire = true?
 
-		local function hasTargeting(weapon)
+		local function hasTargeting(weapon, canManualFire)
 			local weaponDef = WeaponDefs[weapon.weaponDef]
 			return weapon.slavedTo == 0
 				and weaponDef.type ~= "Shield"
-				and (not weaponDef.manualFire or allowCommandFireWeapon[weaponDef.name])
+				and not (canManualFire and weaponDef.manualFire)
 				and weaponDef.range > 10
 		end
 
 		local function canSetTarget(unitDef)
 			if (unitDef.canAttack or allowNonAttackerUnit[unitDef.name]) and unitDef.maxWeaponRange > 0 then
+				local canManualFire = unitDef.canManualFire
 				for _, weapon in pairs(unitDef.weapons) do
-					if hasTargeting(weapon) then
+					if hasTargeting(weapon, canManualFire) then
 						return true
 					end
 				end
@@ -114,8 +115,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		-- FIXME: We don't know which weaponDefs have submissile. We can check `nuclear`, for now.
-		local function getWeaponType(weapon)
-			if hasTargeting(weapon) then
+		local function getWeaponType(weapon, canManualFire)
+			if hasTargeting(weapon, canManualFire) then
 				local weaponDef = WeaponDefs[weapon.weaponDef]
 				return weaponDef.waterWeapon and not weaponDef.customParams.nuclear and WATERWEAPON or 1
 			else
@@ -128,7 +129,7 @@ if gadgetHandler:IsSyncedCode() then
 			if canSetTarget(unitDef) then
 				validUnits[unitDefID] = true
 				unitWeapons[unitDefID] = table.map(unitDef.weapons, function(weapon, index)
-					return getWeaponType(weapon), index
+					return getWeaponType(weapon, unitDef.canManualFire), index
 				end)
 			end
 			unitAlwaysSeen[unitDefID] = unitDef.isBuilding or unitDef.speed == 0
