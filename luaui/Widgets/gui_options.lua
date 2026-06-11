@@ -2950,6 +2950,15 @@ function init()
 		  end,
 		},
 
+		{ id = "fogdiaglines_blur", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.fogdiaglines_blur'), type = "slider", min = 0, max = 1, step = 0.01, value = (WG.fogdiaglines ~= nil and WG.fogdiaglines.getBlurriness ~= nil and WG.fogdiaglines.getBlurriness()) or 0.187, description = '',
+		  onload = function(i)
+			  loadWidgetData("Fog Diagonal Lines GL4", "fogdiaglines_blur", { 'blurriness' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Fog Diagonal Lines GL4', 'fogdiaglines', 'setBlurriness', { 'blurriness' }, value)
+		  end,
+		},
+
 		{ id = "water", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.water'), type = "select", options = { Spring.I18N('ui.settings.option.select_low'), Spring.I18N('ui.settings.option.select_high') }, value = desiredWaterValue == 4 and 2 or 1,
 		  onload = function(i)
 		  end,
@@ -3126,10 +3135,6 @@ function init()
 			  saveOptionValue('Depth of Field', 'dof', 'setFstop', { 'fStop' }, value)
 		  end,
 		},
-
-		{ id = "label_gfx_game", group = "gfx", name = Spring.I18N('ui.settings.option.label_game'), category = types.advanced },
-		{ id = "label_gfx_game_spacer", group = "gfx", category = types.basic },
-		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos GL4", name = Spring.I18N('ui.settings.option.resurrectionhalos'), type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = Spring.I18N('ui.settings.option.resurrectionhalos_descr') },
 
 
 		-- SOUND
@@ -3903,6 +3908,9 @@ function init()
 		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = Spring.GetConfigFloat("MinimapMaxHeight", 0.32), description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("MinimapMaxHeight", value)
+			  if WG['minimap'] and WG['minimap'].setMaxHeight then
+				  WG['minimap'].setMaxHeight(value)
+			  end
 		  end,
 		},
 		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapleftclick'), type = "bool", value = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1, description = Spring.I18N('ui.settings.option.minimapleftclick_descr'),
@@ -4630,6 +4638,10 @@ function init()
 		{ id = "unitenergyicons", group = "ui", category = types.advanced, widget = "Unit Energy Icons", name = Spring.I18N('ui.settings.option.unitenergyicons'), type = "bool", value = GetWidgetToggleValue("Unit Energy Icons"), description = Spring.I18N('ui.settings.option.unitenergyicons_descr') },
 
 		{ id = "unitidlebuildericons", group = "ui", category = types.advanced, widget = "Unit Idle Builder Icons", name = Spring.I18N('ui.settings.option.unitidlebuildericons'), type = "bool", value = GetWidgetToggleValue("Unit Idle Builder Icons"), description = Spring.I18N('ui.settings.option.unitidlebuildericons_descr') },
+
+		{ id = "unitfirestateicons", group = "ui", category = types.advanced, widget = "Unit Fire State Icons", name = Spring.I18N('ui.settings.option.unitfirestateicons'), type = "bool", value = GetWidgetToggleValue("Unit Fire State Icons"), description = Spring.I18N('ui.settings.option.unitfirestateicons_descr') },
+
+		{ id = "resurrectionhalos", group = "ui", category = types.advanced, widget = "Resurrection Halos GL4", name = Spring.I18N('ui.settings.option.resurrectionhalos'), type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = Spring.I18N('ui.settings.option.resurrectionhalos_descr') },
 
 		{ id = "nametags_rank", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.nametags_rank'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.nametags_rank_descr'),
 		  onload = function(i)

@@ -36,15 +36,13 @@ if gadgetHandler:IsSyncedCode() then
 		TorpedoLauncher = true,
 	}
 
-	local function hasAntiAirPriority(weapon)
+	local function hasAntiAirPriority(unitDef, weapon)
 		local weaponDef = WeaponDefs[weapon.weaponDef]
-		if nonAntiAirTypes[weaponDef.type] or weaponDef.manualFire or weaponDef.range < 100 then
+		if nonAntiAirTypes[weaponDef.type] or (unitDef.canManualFire and weaponDef.manualFire) or weaponDef.range < 100 then
 			return false
 		end
-		if not table.any(weapon.onlyTargets, function(v, k) return isAirCategory[k] end) then
-			return false
-		end
-		if table.any(weapon.badTargets, function(v, k) return isAirCategory[k] end) then
+		if not table.any(weapon.onlyTargets, function(v, k) return isAirCategory[k] end)
+			or table.any(weapon.badTargets,  function(v, k) return isAirCategory[k] end) then
 			return false
 		end
 		local damages = weaponDef.damages
@@ -80,7 +78,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- Set watch on vtol-targeting weapons so AllowWeaponTarget gets called
 		for i = 1, #weapons do
 			local weapon = weapons[i]
-			if weapon.slavedTo == 0 and hasAntiAirPriority(weapon) then
+			if weapon.slavedTo == 0 and hasAntiAirPriority(unitDef, weapon) then
 				Script.SetWatchAllowTarget(weapon.weaponDef, true)
 			end
 		end
@@ -90,11 +88,9 @@ if gadgetHandler:IsSyncedCode() then
 	-- so the attacker always has AA priority — no need to check hasPriorityAir or call
 	-- spGetUnitDefID on the attacker.
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-		defPriority = defPriority or 1.0
 		local mult = airPriorityMultiplier[spGetUnitDefID(targetID)]
 		if mult then
-			defPriority = defPriority * mult
+			return defPriority * mult
 		end
-		return true, defPriority
 	end
 end

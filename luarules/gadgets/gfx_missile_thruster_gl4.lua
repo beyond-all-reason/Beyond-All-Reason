@@ -175,6 +175,14 @@ local THRUSTER_CONFIGS = {
 		glowSize = 32, glowR = 0.1, glowG = 0.045, glowB = 0.09,
 		thrusterOffset = -8,
 	},
+	["missiletrailaa-medium"] = {
+		length = -60,
+		size = 3.7, sizeGrowth = 0,
+		colorR = 1.0, colorG = 0.5, colorB = 0.85,
+		colorEndR = 0.5, colorEndG = 0.1, colorEndB = 0.4,
+		glowSize = 48, glowR = 0.11, glowG = 0.045, glowB = 0.1,
+		thrusterOffset = 0,
+	},
 	["missiletrailaa-large"] = {
 		length = -100,
 		size = 7.5, sizeGrowth = 0,

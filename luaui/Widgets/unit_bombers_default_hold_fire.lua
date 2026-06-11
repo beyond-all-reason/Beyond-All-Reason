@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 local CMD_FIRE_STATE = CMD.FIRE_STATE
-local CMD_MANUALFIRE = CMD.MANUALFIRE
+local CMD_MOVE_STATE = CMD.MOVE_STATE
 local gameStarted = false
 local isBomber = {}
 

@@ -22,7 +22,6 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		metalcost = 310,
-		firestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORHURC.s3o",
 		script = "Units/CORHURC.cob",

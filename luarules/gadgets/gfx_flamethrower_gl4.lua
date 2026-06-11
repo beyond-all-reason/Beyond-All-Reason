@@ -129,7 +129,7 @@ local CONFIG = {
 	-- muzzleTaperMax: relative size at max weapon range (normally 1.0 for full size).
 	-- Curve is quadratic (distT^2) so growth is gentle near the nozzle and
 	-- accelerates downrange, giving a thin-jet-to-fat-fire profile.
-	muzzleTaperMin       = 0.25,       -- size fraction at muzzle (0 = nothing at nozzle, 1 = full size at nozzle)
+	muzzleTaperMin       = 0.32,       -- size fraction at muzzle (0 = nothing at nozzle, 1 = full size at nozzle)
 	muzzleTaperMax       = 1.0,        -- size fraction at max weapon range
 
 	coreSizeBase         = 7.0,        -- base elmos for core flame chunks (large, dense, painterly)
@@ -189,9 +189,9 @@ local CONFIG = {
 	-- muzzle. The blue is handled separately by the nozzle jet.
 	-- Stops are: (t, r, g, b)
 	tintStops = {
-		{ 0.00, 1.00, 0.95, 0.7 },    -- near-white hot pinch at the nozzle
-		{ 0.12, 1.00, 0.93, 0.58 },    -- bright pale yellow
-		{ 0.32, 1.00, 0.8, 0.45 },    -- saturated yellow-orange (main body)
+		{ 0.00, 1.00, 0.93, 0.68 },    -- near-white hot pinch at the nozzle
+		{ 0.12, 1.00, 0.92, 0.57 },    -- bright pale yellow
+		{ 0.32, 1.00, 0.79, 0.43 },    -- saturated yellow-orange (main body)
 		--{ 0.58, 1.00, 0.55, 0.12 },    -- orange
 		--{ 1.00, 0.55, 0.10, 0.04 },    -- dying ember
 	},
@@ -205,10 +205,10 @@ local CONFIG = {
 	-- Rendered as a soft additive radial disc -- no fire/smoke sprite -- to
 	-- give a clean, jet-like look that contrasts with the chaotic flame.
 	jetColor             = { 0.55, 0.80, 1.00 }, -- base blue color of the jet stream
-	jetBrightness        = 1.33,        -- additive intensity of the jet (drives bloom feel)
-	jetAlphaBase         = 0.75,
+	jetBrightness        = 1.25,        -- additive intensity of the jet (drives bloom feel)
+	jetAlphaBase         = 0.6,
 	jetWobble            = 0.33,       -- jet wobble amplitude (kept very small for clean look)
-	jetStretchMult       = 1.5,        -- jet billboards are stretched along the projectile velocity by this factor (length = baseSize * jetStretchMult, width = baseSize). Lets a single particle cover the screen-space distance the projectile would otherwise need 8 round particles for -- the jet reads as a streak rather than a chain of dots, and the per-frame particle budget for jets effectively pays for ~8x its visible coverage.
+	jetStretchMult       = 2.0,        -- jet billboards are stretched along the projectile velocity by this factor (length = baseSize * jetStretchMult, width = baseSize). Lets a single particle cover the screen-space distance the projectile would otherwise need 8 round particles for -- the jet reads as a streak rather than a chain of dots, and the per-frame particle budget for jets effectively pays for ~8x its visible coverage.
 
 	-- Scavenger tint: applied when the projectile owner unit has
 	-- customParams.isscavenger. scavJetColor REPLACES the blue jet RGB, and

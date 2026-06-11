@@ -52,6 +52,14 @@ local CONFIG = {
 	-- Defs whose total score is below this threshold get no burst.
 	minEnergyScore = 15,
 
+	-- Units whose energy score divided by metalcost is below this ratio are
+	-- treated as "incidental energy" (a combat unit with a passive generator)
+	-- and receive no burst. Units qualifying via energyconv_capacity or an
+	-- explicit overrides.particleCount entry are exempt from this check.
+	-- armbanth (score 24 / metal 13500 = 0.0018) → excluded.
+	-- armcarry  (score 48 / metal  1400 = 0.034)  → included.
+	minEnergyScoreRatio = 0.003,
+
 	-- Final particleCount = clamp(score ^ particleCountPower * particleCountMul, minPC, maxPC)
 	-- particleCountPower < 1 gives diminishing returns: doubling a unit's energy
 	-- output no longer doubles its particle burst. 0.7 is a mild curve (2× energy
@@ -87,7 +95,7 @@ local CONFIG = {
 	-- Spawn jitter around the unit center, as a fraction of unit radius.
 	-- Keep small so particles start near the center and expand visibly;
 	-- too large and they appear pre-spread with no expansion phase.
-	spawnJitterFrac = 0.4,
+	spawnJitterFrac = 0.35,
 	-- Compress vertical spawn jitter so particles don't spawn far below the
 	-- ground plane (1.0 = full sphere, 0.4 = flat oval).
 	spawnJitterYFrac = 0.66,
@@ -99,7 +107,7 @@ local CONFIG = {
 	-- more speed. Set useDeathExplosion=false to ignore the weapon entirely.
 	------------------------------------------------------------------
 	useDeathExplosion = true,
-	aoeJitterMul      = 0.1,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
+	aoeJitterMul      = 0.15,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
 	aoeSpeedMul       = 0.0035,  -- maxSpeed += aoe * mul
 	damageSpeedMul    = 0.0035,  -- maxSpeed += damage * mul
 	damageCountMul    = 0.022,  -- extra particles per damage point
@@ -111,7 +119,7 @@ local CONFIG = {
 	--   pos(t) = spawn + vel*t*(1 - 0.5*drag*t) + 0.5*gravity*t^2
 	-- t is in sim frames since spawn; vel/gravity in elmos/frame[^2].
 	------------------------------------------------------------------
-	drag     = 0.007,
+	drag     = 0.008,
 	gravityY = -0.003,
 
 	------------------------------------------------------------------
@@ -225,6 +233,7 @@ local mathCos    = math.cos
 local mathMax    = math.max
 local mathMin    = math.min
 local mathHuge   = math.huge
+local stringFind = string.find
 
 -- Cube/GS path -- no texture sampled.
 
@@ -260,6 +269,9 @@ local qualifyingDefs = {}
 -- unitID set: populated by UnitFinished so UnitDestroyed can skip
 -- incomplete (under-construction) units. Cleared on UnitDestroyed.
 local finishedUnits = {}
+
+local reclaimedWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.Reclaimed
+local killedByLuaWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.KilledByLua
 
 -- Cached view state (refreshed each GameFrame).
 local cachedAllyTeamID   = spGetMyAllyTeamID()
@@ -829,14 +841,23 @@ end
 local function classifyDefs()
 	local n = 0
 	for defID, ud in pairs(UnitDefs) do
-		if not CONFIG.excludeUnitDefs[ud.name] then
+		local cp = ud.customParams
+		local isRaptor = (ud.category and stringFind(ud.category, "RAPTOR", 1, true))
+			or (cp and cp.subfolder == "other/raptors")
+
+		if not CONFIG.excludeUnitDefs[ud.name] and not isRaptor then
 			local score = computeScore(ud)
 			local ov    = CONFIG.overrides[ud.name]
 			-- Energy converters/metal-makers qualify via their energyconv_capacity
 			-- regardless of the energy score threshold.
-			local cp = ud.customParams
 			local hasConverter = cp and tonumber(cp.energyconv_capacity) and tonumber(cp.energyconv_capacity) > 0
-			if (ov and ov.particleCount) or score >= CONFIG.minEnergyScore or hasConverter then
+			-- A unit qualifies via energy score only if the score is also significant
+			-- relative to its build cost. This prevents combat units with a small
+			-- passive generator (e.g. armbanth) from triggering the effect.
+			local metalCost = ud.metalCost or 0
+			local scoreQualifies = score >= CONFIG.minEnergyScore
+				and (metalCost == 0 or score / metalCost >= CONFIG.minEnergyScoreRatio)
+			if (ov and ov.particleCount) or scoreQualifies or hasConverter then
 				-- Look up the unit's death-explosion weapon (if any) so we can
 				-- scale spread/speed/count by the weapon's AoE and damage.
 				local aoe, deathDmg = 0, 0
@@ -1134,8 +1155,15 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, _attacker
 	local wasFinished = finishedUnits[unitID]
 	finishedUnits[unitID] = nil
 	if not wasFinished then return end
-	-- Skip reclaims: engine passes the reclaimer as attackerID with no weapon.
-	if attackerID and (not weaponDefID or weaponDefID < 0) then return end
+	if weaponDefID == reclaimedWeaponDefID then return end
+	-- Geo-upgrade reclaim cleanup currently arrives as KilledByLua with no attacker.
+	-- Treat that specific scripted geothermal removal as non-explosive.
+	if not attackerID and weaponDefID == killedByLuaWeaponDefID then
+		local ud = UnitDefs[unitDefID]
+		if ud and ud.customParams and ud.customParams.geothermal then return end
+	end
+	-- Legacy fallback used by other BAR visuals: builder attacker with no valid weapon.
+	if attackerID and attackerID ~= unitID and (not weaponDefID or weaponDefID < 0) then return end
 	local meta = qualifyingDefs[unitDefID]
 	if not meta then return end
 	local px, py, pz = spGetUnitPosition(unitID)

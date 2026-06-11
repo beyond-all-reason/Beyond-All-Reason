@@ -583,6 +583,16 @@ function gadgetHandler:FinalizeGadget(gadget, filename, basename)
 		__metatable = "protected"
 	}
 	setmetatable(gadget.ghInfo, mt)
+	-- cache tracy zone name strings to avoid per-frame string allocation
+	if tracy then 
+		gadget._tracyGameFrameName          = "G:GameFrame:"          .. gi.name
+		gadget._tracyGameFramePostName      = "G:GameFramePost:"      .. gi.name
+		gadget._tracyViewResizeName         = "G:ViewResize:"         .. gi.name
+		gadget._tracyPlayerChangedName      = "G:PlayerChanged:"      .. gi.name
+		gadget._tracyUpdateName             = "G:Update:"             .. gi.name
+		gadget._tracyDrawWorldName          = "G:DrawWorld:"          .. gi.name
+		gadget._tracyDrawWorldPreUnitName   = "G:DrawWorldPreUnit:"   .. gi.name
+	end
 end
 
 function gadgetHandler:ValidateGadget(gadget)
@@ -1138,7 +1148,7 @@ function gadgetHandler:GameFrame(frameNum)
 	callinDepth = 1
 	tracy.ZoneBeginN("G:GameFrame")
 	for _, g in ipairs(self.GameFrameList) do
-		tracy.ZoneBeginN("G:GameFrame:"..g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyGameFrameName)
 		g:GameFrame(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -1152,7 +1162,7 @@ function gadgetHandler:GameFramePost(frameNum)
 	local list = self.GameFramePostList
 	for i = #list, 1, -1 do
 		local g = list[i]
-		tracy.ZoneBeginN("G:GameFramePost:"..g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyGameFramePostName)
 		g:GameFramePost(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -1262,7 +1272,7 @@ end
 function gadgetHandler:ViewResize(vsx, vsy)
 	tracy.ZoneBeginN("G:ViewResize")
 	for _, g in ipairs(self.ViewResizeList) do
-		tracy.ZoneBeginN("G:ViewResize:"..g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyViewResizeName)
 		g:ViewResize(vsx, vsy)
 		tracy.ZoneEnd()
 	end
@@ -1307,7 +1317,7 @@ end
 function gadgetHandler:PlayerChanged(playerID)
 	tracy.ZoneBeginN("G:PlayerChanged")
 	for _, g in ipairs(self.PlayerChangedList) do
-		tracy.ZoneBeginN("G:PlayerChanged:"..g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyPlayerChangedName)
 		g:PlayerChanged(playerID)
 		tracy.ZoneEnd()
 	end
@@ -1699,8 +1709,13 @@ end
 return ((ignore and -1) or 1)
 end
 
-
 function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
+	-- Calls with no input priority are pure pass/fail tests.
+	-- These are common, and BAR never disallows any of them.
+	if not defPriority then
+		return true -- The second return value is never used.
+	end
+
 	local allowed = true
 	local result = 1.0
 
@@ -1712,14 +1727,10 @@ function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum
 		end
 		allowed, result = defPriority > 0, defPriority
 	else
+		-- The actual callin. BAR only uses AllowWeaponTarget for the target priority.
 		for _, g in ipairs(self.AllowWeaponTargetList) do
-			local targetAllowed, targetPriority = g:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-
-			if not targetAllowed then
-				allowed = false;
-				break
-			end
-			if targetPriority > result then
+			local targetPriority = g:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
+			if targetPriority then
 				result = targetPriority
 			end
 		end
@@ -1728,6 +1739,10 @@ function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum
 	return allowed, result
 end
 
+function gadgetHandler:UnitAutoTargetRange(attackerID, autoTargetRange)
+	-- Implementation stub for g:UnitAutoTargetRange. See g:AllowWeaponTarget, above.
+	-- This is needed for gadgetHandler to "see" this callin and build its call list.
+end
 
 function gadgetHandler:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponNum, interceptorTargetID)
 	for _, g in ipairs(self.AllowWeaponInterceptTargetList) do
@@ -2170,7 +2185,7 @@ function gadgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	tracy.ZoneBeginN("G:Update")
 	for _, g in ipairs(self.UpdateList) do
-		tracy.ZoneBeginN("G:Update:"..g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyUpdateName)
 		g:Update(deltaTime)
 		tracy.ZoneEnd()
 	end
@@ -2231,7 +2246,7 @@ end
 function gadgetHandler:DrawWorld()
 	tracy.ZoneBeginN("G:DrawWorld")
 	for _, g in ipairs(self.DrawWorldList) do
-		tracy.ZoneBeginN("G:DrawWorld:"..g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyDrawWorldName)
 		g:DrawWorld()
 		tracy.ZoneEnd()
 	end
@@ -2242,7 +2257,7 @@ end
 function gadgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("G:DrawWorldPreUnit")
 	for _, g in ipairs(self.DrawWorldPreUnitList) do
-		tracy.ZoneBeginN("G:DrawWorldPreUnit:"..g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyDrawWorldPreUnitName)
 		g:DrawWorldPreUnit()
 		tracy.ZoneEnd()
 	end
