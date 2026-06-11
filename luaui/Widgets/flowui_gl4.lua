@@ -2662,8 +2662,7 @@ function widget:DrawScreen()
 			Draw.Toggle(rectRoundVBO, nil, 0.5, x, y, w, h, true)
 		elseif r < 0.8 then
 			--Draw.TexturedRectRound(rectRoundVBO, nil, 0.5, x,y,w,h, 10,1,1,1,1,nil,nil,nil,"icons/armpwt4.png")
-			Draw.Element(rectRoundVBO, nil, 0.5, x, y, w, h, 1, 1, 1, 1, 1, 1, 1, 1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.8, 0.2, 0.8 }, nil
-)
+			Draw.Element(rectRoundVBO, nil, 0.5, x, y, w, h, 1, 1, 1, 1, 1, 1, 1, 1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.8, 0.2, 0.8 }, nil)
 		elseif r < 0.9 then
 			Draw.Unit(
 				rectRoundVBO,
