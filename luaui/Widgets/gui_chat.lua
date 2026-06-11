@@ -894,6 +894,19 @@ end
 local function getColoredPlayerName(name, gameFrame, isSpectator)
 	local displayName = (playernames[name] and playernames[name][7]) or name
 	if isSpectator then
+		local formerTeamColor = playernames[name] and playernames[name][5]
+		local becameSpectatorFrame = playernames[name] and playernames[name][8]
+		if formerTeamColor and becameSpectatorFrame then
+			local teamColor = colorSpecStr
+			if ColorString then
+				if not mySpec and anonymousMode ~= "disabled" then
+					teamColor = ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]) or colorSpecStr
+				else
+					teamColor = ColorString(formerTeamColor[1], formerTeamColor[2], formerTeamColor[3]) or colorSpecStr
+				end
+			end
+			return teamColor .. '■ ' .. colorSpecStr .. '(s) ' .. displayName
+		end
 		return colorSpecStr .. '(s) ' .. displayName
 	end
 	return getPlayerColorString(name, gameFrame) .. displayName
