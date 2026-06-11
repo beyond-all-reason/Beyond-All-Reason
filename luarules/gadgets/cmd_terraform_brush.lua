@@ -58,6 +58,8 @@ local MERGE_END_HEADER = "$terraform_merge_end$"
 local STROKE_END_HEADER = "$terraform_stroke_end$"
 local NOISE_HEADER = "$terraform_noise$"
 local NOISE_HEADER_LENGTH = #NOISE_HEADER
+local WARM_HEADER = "$terraform_warm$"
+local WARM_HEADER_LENGTH = #WARM_HEADER
 local HEIGHT_STEP = 8
 local MAX_UNDO = 10000
 -- Total vertex budget across all undo+redo entries. Each vertex = 3 array
@@ -127,23 +129,31 @@ local random = math.random
 local SpawnCEG = Spring.SpawnCEG
 
 -- Apply a batch of {x, z, newHeight} entries to the heightmap.
--- Uses inline anonymous functions for SetHeightMapFunc (engine requirement).
+-- SetHeightMapFunc requires a function argument (engine requirement); the
+-- workers are module-level closures fed via upvalues.
 local nanHeightSkipped = false
+local ahcData, ahcCount = nil, 0
+
+local function applyHeightChangesWorker()
+	local SetHeightMap = Spring.SetHeightMap
+	for i = 1, ahcCount do
+		local entry = ahcData[i]
+		local h = entry[3]
+		if h == h then  -- NaN check: NaN ~= NaN
+			SetHeightMap(entry[1], entry[2], h)
+		else
+			nanHeightSkipped = true
+		end
+	end
+end
 
 local function applyHeightChanges(heightData, count)
 	count = count or #heightData
 	if count == 0 then return end
 
-	Spring.SetHeightMapFunc(function()
-		for i = 1, count do
-			local h = heightData[i][3]
-			if h == h then  -- NaN check: NaN ~= NaN
-				Spring.SetHeightMap(heightData[i][1], heightData[i][2], h)
-			else
-				nanHeightSkipped = true
-			end
-		end
-	end)
+	ahcData, ahcCount = heightData, count
+	Spring.SetHeightMapFunc(applyHeightChangesWorker)
+	ahcData = nil
 	if nanHeightSkipped then
 		Spring.Echo("[Terraform Brush] Warning: NaN height skipped — possible div0 in brush math")
 		nanHeightSkipped = false
@@ -152,19 +162,26 @@ end
 
 -- Flat-buffer variant: reads {x1,z1,h1, x2,z2,h2,...} without sub-tables.
 -- Used by undo/redo where snapshots are stored flat to minimise allocations.
+local ahcFlat, ahcFlatCount = nil, 0
+
+local function applyHeightChangesFlatWorker()
+	local SetHeightMap = Spring.SetHeightMap
+	for i = 0, ahcFlatCount - 1 do
+		local base = i * 3
+		local h = ahcFlat[base + 3]
+		if h == h then  -- NaN check
+			SetHeightMap(ahcFlat[base + 1], ahcFlat[base + 2], h)
+		else
+			nanHeightSkipped = true
+		end
+	end
+end
+
 local function applyHeightChangesFlat(flatData, vertexCount)
 	if vertexCount == 0 then return end
-	Spring.SetHeightMapFunc(function()
-		for i = 0, vertexCount - 1 do
-			local base = i * 3
-			local h = flatData[base + 3]
-			if h == h then  -- NaN check
-				Spring.SetHeightMap(flatData[base + 1], flatData[base + 2], h)
-			else
-				nanHeightSkipped = true
-			end
-		end
-	end)
+	ahcFlat, ahcFlatCount = flatData, vertexCount
+	Spring.SetHeightMapFunc(applyHeightChangesFlatWorker)
+	ahcFlat = nil
 	if nanHeightSkipped then
 		Spring.Echo("[Terraform Brush] Warning: NaN height skipped in undo/redo")
 		nanHeightSkipped = false
@@ -579,7 +596,9 @@ end
 local FALLOFF_STAMP_LIMIT = 4
 local FALLOFF_EPSILON     = 1 / 255   -- below this, treat as zero (sub-quantisation)
 local falloffStampCache   = {}
-local falloffStampOrder   = {}  -- LRU queue of keys (oldest first)
+local falloffStampGen     = {}  -- key → last-use generation (monotonic clock)
+local falloffStampCount   = 0
+local falloffStampClock   = 0
 
 local function quantiseStampParams(radius, angleDeg, curve, lengthScale, ringRatio)
 	local rQ  = floor(radius)
@@ -621,28 +640,26 @@ end
 local function getFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ringRatio, ss)
 	local rQ, aQ, cQ, lQ, rrQ = quantiseStampParams(radius, angleDeg, curve, lengthScale, ringRatio)
 	local key = string.format("%s|%d|%d|%.2f|%.2f|%.2f|%d", shape, rQ, aQ, cQ, lQ, rrQ, ss)
+	falloffStampClock = falloffStampClock + 1
 	local stamp = falloffStampCache[key]
 	if stamp then
-		-- Bump LRU recency
-		local n = #falloffStampOrder
-		for i = 1, n do
-			if falloffStampOrder[i] == key then
-				if i ~= n then
-					table.remove(falloffStampOrder, i)
-					falloffStampOrder[n] = key
-				end
-				break
-			end
-		end
+		falloffStampGen[key] = falloffStampClock
 		return stamp
 	end
 	stamp = buildFalloffStamp(rQ, shape, aQ, cQ, lQ, rrQ, ss)
 	falloffStampCache[key] = stamp
-	falloffStampOrder[#falloffStampOrder + 1] = key
-	while #falloffStampOrder > FALLOFF_STAMP_LIMIT do
-		local oldKey = falloffStampOrder[1]
-		table.remove(falloffStampOrder, 1)
+	falloffStampGen[key] = falloffStampClock
+	falloffStampCount = falloffStampCount + 1
+	if falloffStampCount > FALLOFF_STAMP_LIMIT then
+		local oldKey, oldGen
+		for k, g in pairs(falloffStampGen) do
+			if oldGen == nil or g < oldGen then
+				oldKey, oldGen = k, g
+			end
+		end
 		falloffStampCache[oldKey] = nil
+		falloffStampGen[oldKey] = nil
+		falloffStampCount = falloffStampCount - 1
 	end
 	return stamp
 end
@@ -656,11 +673,18 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 	-- Clay mode: compute a target plane at center height + full brush displacement
 	local clayPlane
 	if clayMode and direction ~= 0 and direction ~= 2 then
-		local centerHeight = Spring.GetGroundHeight(centerX, centerZ)
+		local centerHeight = GetGroundHeight(centerX, centerZ)
 		clayPlane = centerHeight + direction * HEIGHT_STEP * intensity
 	end
 
 	opacity = opacity or 0.3
+	local dirStep = direction * HEIGHT_STEP
+	local levelTarget
+	if direction == 0 then
+		-- Heights are only written after the loop, so this matches the
+		-- per-cell read it replaces.
+		levelTarget = flattenHeight or GetGroundHeight(centerX, centerZ)
+	end
 
 	-- Falloff stamp: precomputed per-cell falloff field keyed by quantised
 	-- (radius, shape, angle, curve, length, ringRatio). Skips per-cell sin/cos
@@ -693,7 +717,7 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 					local xCell = centerCellX + (ix - sCx)
 					local x = xCell * squareSize
 					if x >= 0 and x <= mapSizeX then
-						local current = Spring.GetGroundHeight(x, z)
+						local current = GetGroundHeight(x, z)
 						-- Write to flat scratch buffer (no sub-table allocation)
 						local base = sCount * 3
 						snapFlat[base + 1] = x
@@ -710,23 +734,21 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 							elseif direction < 0 and heightMin then
 								newHeight = current + (heightMin - current) * falloff
 							elseif direction == 0 then
-								local targetHeight = flattenHeight or Spring.GetGroundHeight(centerX, centerZ)
-								newHeight = current + (targetHeight - current) * falloff
+								newHeight = current + (levelTarget - current) * falloff
 								if heightMin then newHeight = max(heightMin, newHeight) end
 								if heightMax then newHeight = min(heightMax, newHeight) end
 							else
 								-- Fallback for direction==2 (random) or missing cap
-								local delta = direction * HEIGHT_STEP * falloff * intensity * opacity
+								local delta = dirStep * falloff * intensity * opacity
 								newHeight = current + delta
 								if heightMin then newHeight = max(heightMin, newHeight) end
 								if heightMax then newHeight = min(heightMax, newHeight) end
 							end
 						elseif direction == 2 then
-							local delta = (math.random() * 2 - 1) * HEIGHT_STEP * falloff * intensity * opacity
+							local delta = (random() * 2 - 1) * HEIGHT_STEP * falloff * intensity * opacity
 							newHeight = current + delta
 						elseif direction == 0 then
-							local targetHeight = flattenHeight or Spring.GetGroundHeight(centerX, centerZ)
-							local diff = targetHeight - current
+							local diff = levelTarget - current
 							local blend = min(1.0, falloff * opacity * intensity)
 							newHeight = current + diff * blend
 						else
@@ -743,7 +765,7 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 									newHeight = current
 								end
 							else
-								local delta = direction * HEIGHT_STEP * falloff * intensity * opacity
+								local delta = dirStep * falloff * intensity * opacity
 								newHeight = current + delta
 							end
 						end
@@ -1724,6 +1746,30 @@ function gadget:RecvLuaMsg(msg, playerID)
 	if msg == STROKE_END_HEADER then
 		finalizeMerge()
 		currentStrokeId = currentStrokeId + 1
+		return true
+	end
+
+	if msg:sub(1, WARM_HEADER_LENGTH) == WARM_HEADER then
+		-- Cache warm-up hint sent by the widget on tool/param change so the
+		-- falloff stamp is built before the first apply of a stroke. Builds
+		-- the same deterministic cache entry the apply would; never touches
+		-- the heightmap or ringInnerRatio. Quiet gate: no echo spam.
+		if mapDamageEnabled and (Spring.IsCheatingEnabled() or certified) then
+			local parts = parseParts(msg:sub(WARM_HEADER_LENGTH + 1))
+			local radius = tonumber(parts[1])
+			if radius then
+				local shape = parts[2] or "circle"
+				local angleDeg = tonumber(parts[3]) or 0
+				local curve = tonumber(parts[4]) or 1.0
+				local lengthScale = tonumber(parts[5]) or 1.0
+				local ringRatio = tonumber(parts[6]) or ringInnerRatio
+				radius = max(MIN_RADIUS, min(MAX_RADIUS, radius))
+				curve = max(0.1, min(5.0, curve))
+				lengthScale = max(0.2, min(5.0, lengthScale))
+				ringRatio = max(0.05, min(0.95, ringRatio))
+				getFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ringRatio, Game.squareSize)
+			end
+		end
 		return true
 	end
 

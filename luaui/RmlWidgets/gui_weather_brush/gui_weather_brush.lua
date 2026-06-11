@@ -288,14 +288,22 @@ function widget:Update()
 	local doc = widgetState.document
 	if not doc then return end
 
-	-- Selected CEGs label
-	local selectedLabel = doc:GetElementById("wb-selected-cegs-label")
+	-- Selected CEGs label (cached element + dirty-check: runs every Update tick)
+	local selectedLabel = widgetState.selectedCegsLabelEl
+	if not selectedLabel then
+		selectedLabel = doc:GetElementById("wb-selected-cegs-label")
+		widgetState.selectedCegsLabelEl = selectedLabel
+	end
 	if selectedLabel then
+		local display
 		if #wbState.selectedCegs == 0 then
-			selectedLabel.inner_rml = '<span style="color: #6b7280;">none</span>'
+			display = '<span style="color: #6b7280;">none</span>'
 		else
-			local display = table.concat(wbState.selectedCegs, ", ")
+			display = table.concat(wbState.selectedCegs, ", ")
 			if #display > 50 then display = display:sub(1, 47) .. "..." end
+		end
+		if widgetState.lastSelectedCegsRml ~= display then
+			widgetState.lastSelectedCegsRml = display
 			selectedLabel.inner_rml = display
 		end
 	end
@@ -418,6 +426,8 @@ function widget:Shutdown()
 		widgetState.document:Close()
 		widgetState.document = nil
 	end
+	widgetState.selectedCegsLabelEl = nil
+	widgetState.lastSelectedCegsRml = nil
 
 	if widgetState.rmlContext then
 		widgetState.rmlContext:RemoveDataModel(MODEL_NAME)

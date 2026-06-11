@@ -405,11 +405,21 @@ end
 local function updateSelectedCount()
 	local doc = widgetState.document
 	if not doc then return end
-	local el = doc:GetElementById("selected-count")
+	-- Cached element + last-written string: runs every Update tick, so avoid
+	-- the repeated GetElementById and the inner_rml re-parse on unchanged counts.
+	local el = widgetState.selectedCountEl
+	if not el then
+		el = doc:GetElementById("selected-count")
+		widgetState.selectedCountEl = el
+	end
 	if el and WG.FeaturePlacer then
 		local state = WG.FeaturePlacer.getState()
 		local n = state and #state.selectedDefs or 0
-		el.inner_rml = tostring(n)
+		local s = tostring(n)
+		if widgetState.lastSelectedCountRml ~= s then
+			widgetState.lastSelectedCountRml = s
+			el.inner_rml = s
+		end
 	end
 end
 
@@ -875,7 +885,13 @@ function widget:Update()
 
 	-- Virtual scroll: update visible window when user scrolls
 	if #virtualItems > 0 then
-		local listEl = widgetState.document and widgetState.document:GetElementById("feature-list")
+		-- Cached lookup: this runs every Update tick; the element itself survives
+		-- list rebuilds (only its children are replaced via inner_rml).
+		local listEl = widgetState.featureListEl
+		if not listEl and widgetState.document then
+			listEl = widgetState.document:GetElementById("feature-list")
+			widgetState.featureListEl = listEl
+		end
 		if listEl then
 			local scrollTop = listEl.scroll_top or 0
 			if scrollTop ~= virtualScrollTop then
@@ -950,6 +966,9 @@ function widget:Shutdown()
 	end
 	widgetState.dmHandle = nil
 	widgetState.rootElement = nil
+	widgetState.selectedCountEl = nil
+	widgetState.lastSelectedCountRml = nil
+	widgetState.featureListEl = nil
 	featureElements = {}
 	categoryButtons = {}
 	selectedCategories = { all = true }

@@ -123,6 +123,12 @@ local splatTexHeight = 0
 local fboTex = nil
 local texApplied = false
 
+-- Reusable ping-pong temp texture for paint strokes. The paint shader
+-- overwrites every texel each stroke (full-quad TexRect, blending off), so
+-- one cached texture is safe to reuse; recreated only when the size changes.
+local paintTempTex = nil
+local paintTempW, paintTempH = 0, 0
+
 -- Paint shader
 local paintShader = nil
 local uLocBrushPos = nil
@@ -564,6 +570,11 @@ local function destroySplatTexture()
 		glDeleteTexture(fboTex)
 		fboTex = nil
 	end
+	if paintTempTex then
+		glDeleteTexture(paintTempTex)
+		paintTempTex = nil
+		paintTempW, paintTempH = 0, 0
+	end
 end
 
 -- ============ PAINT OPERATION ============
@@ -609,16 +620,25 @@ local function executePaintStroke(worldX, worldZ, rotDeg)
 	if not fboTex or not paintShader then return end
 	rotDeg = rotDeg or activeRotation
 
-	-- We need a second FBO to ping-pong (read from current, write to new)
-	local tempTex = glCreateTexture(splatTexWidth, splatTexHeight, {
-		border = false,
-		min_filter = GL.LINEAR,
-		mag_filter = GL.LINEAR,
-		wrap_s = GL.CLAMP_TO_EDGE,
-		wrap_t = GL.CLAMP_TO_EDGE,
-		fbo = true,
-		format = GL.RGBA8,
-	})
+	-- We need a second FBO to ping-pong (read from current, write to new).
+	-- Reuse the cached temp texture; recreate only when the size changed.
+	if paintTempTex and (paintTempW ~= splatTexWidth or paintTempH ~= splatTexHeight) then
+		glDeleteTexture(paintTempTex)
+		paintTempTex = nil
+	end
+	if not paintTempTex then
+		paintTempTex = glCreateTexture(splatTexWidth, splatTexHeight, {
+			border = false,
+			min_filter = GL.LINEAR,
+			mag_filter = GL.LINEAR,
+			wrap_s = GL.CLAMP_TO_EDGE,
+			wrap_t = GL.CLAMP_TO_EDGE,
+			fbo = true,
+			format = GL.RGBA8,
+		})
+		paintTempW, paintTempH = splatTexWidth, splatTexHeight
+	end
+	local tempTex = paintTempTex
 
 	if not tempTex then return end
 
@@ -676,8 +696,6 @@ local function executePaintStroke(worldX, worldZ, rotDeg)
 		glUseShader(0)
 		glBlending(true)
 	end)
-
-	glDeleteTexture(tempTex)
 
 	-- Re-apply to engine
 	if texApplied then
@@ -1446,19 +1464,27 @@ function widget:DrawWorld()
 			local dz3 =  s * sr + s * cr
 			local dx4 = -s * cr - s * sr
 			local dz4 = -s * sr + s * cr
+			local wx1, wz1 = d.x + dx1, d.z + dz1
+			local wx2, wz2 = d.x + dx2, d.z + dz2
+			local wx3, wz3 = d.x + dx3, d.z + dz3
+			local wx4, wz4 = d.x + dx4, d.z + dz4
+			local y1 = GetGroundHeight(wx1, wz1) + dy
+			local y2 = GetGroundHeight(wx2, wz2) + dy
+			local y3 = GetGroundHeight(wx3, wz3) + dy
+			local y4 = GetGroundHeight(wx4, wz4) + dy
 			glBeginEnd(GL_TRIANGLES, function()
 				glTexCoord(0, 0)
-				glVertex(d.x + dx1, GetGroundHeight(d.x + dx1, d.z + dz1) + dy, d.z + dz1)
+				glVertex(wx1, y1, wz1)
 				glTexCoord(1, 0)
-				glVertex(d.x + dx2, GetGroundHeight(d.x + dx2, d.z + dz2) + dy, d.z + dz2)
+				glVertex(wx2, y2, wz2)
 				glTexCoord(1, 1)
-				glVertex(d.x + dx3, GetGroundHeight(d.x + dx3, d.z + dz3) + dy, d.z + dz3)
+				glVertex(wx3, y3, wz3)
 				glTexCoord(0, 0)
-				glVertex(d.x + dx1, GetGroundHeight(d.x + dx1, d.z + dz1) + dy, d.z + dz1)
+				glVertex(wx1, y1, wz1)
 				glTexCoord(1, 1)
-				glVertex(d.x + dx3, GetGroundHeight(d.x + dx3, d.z + dz3) + dy, d.z + dz3)
+				glVertex(wx3, y3, wz3)
 				glTexCoord(0, 1)
-				glVertex(d.x + dx4, GetGroundHeight(d.x + dx4, d.z + dz4) + dy, d.z + dz4)
+				glVertex(wx4, y4, wz4)
 			end)
 		end
 		glTexture(false)

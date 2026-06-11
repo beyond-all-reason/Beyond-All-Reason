@@ -24,6 +24,7 @@ local GetModKeyState      = Spring.GetModKeyState
 local GetKeyState         = Spring.GetKeyState
 local IsCheatingEnabled   = Spring.IsCheatingEnabled
 local GetActiveCommand    = Spring.GetActiveCommand
+local GetDrawFrame        = Spring.GetDrawFrame
 local Echo                = Spring.Echo
 
 local glColor         = gl.Color
@@ -226,17 +227,17 @@ end
 local function isPointValid(px, pz, sf)
 	local h = GetGroundHeight(px, pz)
 	if sf.avoidWater and h < 0 then return false end
-	if sf.avoidCliffs then
+	if sf.avoidCliffs or sf.preferSlopes then
 		local _, ny = GetGroundNormal(px, pz)
 		ny = ny or 1.0
-		local nyMin = cos(sf.slopeMax * pi / 180)
-		if ny < nyMin then return false end
-	end
-	if sf.preferSlopes then
-		local _, ny = GetGroundNormal(px, pz)
-		ny = ny or 1.0
-		local nyMax = cos(sf.slopeMin * pi / 180)
-		if ny > nyMax then return false end
+		if sf.avoidCliffs then
+			local nyMin = cos(sf.slopeMax * pi / 180)
+			if ny < nyMin then return false end
+		end
+		if sf.preferSlopes then
+			local nyMax = cos(sf.slopeMin * pi / 180)
+			if ny > nyMax then return false end
+		end
 	end
 	if sf.altMinEnable and h < sf.altMin then return false end
 	if sf.altMaxEnable and h > sf.altMax then return false end
@@ -780,6 +781,11 @@ local function getWorldPos()
 	return nil, nil
 end
 
+-- Per-draw-frame mouse trace shared between DrawWorld and DrawScreen (both
+-- run inside the same draw pass, so the raw trace result is identical).
+local frameTraceDF = -1
+local frameTraceX, frameTraceZ = nil, nil
+
 local function drawShapeOutline(worldX, worldZ, radius, shape, angleDeg, lengthScale)
 	lengthScale = lengthScale or 1.0
 	if shape == "circle" then
@@ -1303,6 +1309,7 @@ function widget:DrawWorld()
 	if checkConflictAndDeactivate() then return end
 
 	local worldX, worldZ = getWorldPos()
+	frameTraceX, frameTraceZ, frameTraceDF = worldX, worldZ, GetDrawFrame()
 	do
 		local tb = WG.TerraformBrush
 		if tb and tb.animateUnmouse then
@@ -1376,7 +1383,13 @@ function widget:DrawScreen()
 	-- Complete deferred ReadPixels from previous frame (GPU already done → no stall)
 	flushDiffuseRead()
 
-	local worldX, worldZ = getWorldPos()
+	-- Reuse DrawWorld's mouse trace from this draw pass when available
+	local worldX, worldZ
+	if frameTraceDF == GetDrawFrame() then
+		worldX, worldZ = frameTraceX, frameTraceZ
+	else
+		worldX, worldZ = getWorldPos()
+	end
 	if not worldX then return end
 
 	-- Process pending pipette sample (queued by MousePress, executed here in DrawScreen GL context)

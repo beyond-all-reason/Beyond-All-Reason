@@ -168,13 +168,15 @@ local updateTimer = 0
 
 -- Cursor preview light (removed when deactivated or position changes enough)
 local previewLight   = { id = nil, shape = nil }
-local previewLastHash = nil
+-- Last-applied preview params (plain values; cursor quantized to whole elmos
+-- to match the old "%.0f" string-hash rebuild cadence)
+local previewLast    = { valid = false }
 
 -- Pending preset: when set, MousePress places this entire preset at cursor
 -- and the preview shows the composite of preset lights following the cursor.
 local pendingPreset      = nil   -- presetData (with .lights array) or nil
 local presetPreviewLights = {}   -- array of { shape, id }
-local presetPreviewHash   = nil
+local presetPreviewLast   = { valid = false }
 
 ----------------------------------------------------------------
 -- Builtin presets
@@ -898,17 +900,31 @@ local function removePreviewLight()
 	end
 	previewLight.id    = nil
 	previewLight.shape = nil
-	previewLastHash    = nil
+	previewLast.valid  = false
 end
 
 local function updatePreviewLight(worldX, worldZ)
 	local api = WG['lightsgl4']
 	if not api then removePreviewLight(); return end
-	local hash = string.format("%.0f_%.0f_%s_%.3f_%.3f_%.3f_%.2f_%d_%d_%d_%.1f_%.2f_%d",
-		worldX, worldZ, lp.lightType,
-		lp.color[1], lp.color[2], lp.color[3],
-		lp.brightness, lp.lightRadius, lp.pitch, lp.yaw, lp.theta, lp.elevation, lp.beamLength)
-	if hash == previewLastHash then return end
+	-- Compare against the last-applied params directly instead of building a
+	-- format string every frame; cursor is quantized to whole elmos so
+	-- sub-elmo mouse jitter doesn't rebuild the light (same as the old hash).
+	local qx = floor(worldX + 0.5)
+	local qz = floor(worldZ + 0.5)
+	local pl = previewLast
+	if pl.valid
+		and pl.x == qx and pl.z == qz
+		and pl.lightType == lp.lightType
+		and pl.r == lp.color[1] and pl.g == lp.color[2] and pl.b == lp.color[3]
+		and pl.brightness == lp.brightness
+		and pl.lightRadius == lp.lightRadius
+		and pl.pitch == lp.pitch and pl.yaw == lp.yaw
+		and pl.theta == lp.theta
+		and pl.elevation == lp.elevation
+		and pl.beamLength == lp.beamLength
+	then
+		return
+	end
 	removePreviewLight()
 	local py = (GetGroundHeight(worldX, worldZ) or 0) + lp.elevation
 	local r  = lp.color[1] * lp.brightness
@@ -941,7 +957,17 @@ local function updatePreviewLight(worldX, worldZ)
 	end
 	if id then
 		previewLight.id = id
-		previewLastHash = hash
+		local pl2 = previewLast
+		pl2.valid = true
+		pl2.x, pl2.z = qx, qz
+		pl2.lightType = lp.lightType
+		pl2.r, pl2.g, pl2.b = lp.color[1], lp.color[2], lp.color[3]
+		pl2.brightness = lp.brightness
+		pl2.lightRadius = lp.lightRadius
+		pl2.pitch, pl2.yaw = lp.pitch, lp.yaw
+		pl2.theta = lp.theta
+		pl2.elevation = lp.elevation
+		pl2.beamLength = lp.beamLength
 	end
 end
 
@@ -956,7 +982,7 @@ local function removePresetPreviewLights()
 		end
 	end
 	presetPreviewLights = {}
-	presetPreviewHash = nil
+	presetPreviewLast.valid = false
 end
 
 local function updatePresetPreviewLights(worldX, worldZ)
@@ -966,8 +992,15 @@ local function updatePresetPreviewLights(worldX, worldZ)
 	end
 	local api = WG['lightsgl4']
 	if not api then removePresetPreviewLights(); return end
-	local hash = string.format("%.0f_%.0f_%d", worldX, worldZ, #pendingPreset.lights)
-	if hash == presetPreviewHash and #presetPreviewLights > 0 then return end
+	-- Plain value comparison (cursor quantized to whole elmos, matching the
+	-- old "%.0f" string-hash rebuild cadence)
+	local qx = floor(worldX + 0.5)
+	local qz = floor(worldZ + 0.5)
+	local pp = presetPreviewLast
+	if pp.valid and pp.x == qx and pp.z == qz and pp.count == #pendingPreset.lights
+		and #presetPreviewLights > 0 then
+		return
+	end
 	removePresetPreviewLights()
 	for _, l in ipairs(pendingPreset.lights) do
 		local px = worldX + (l.offsetX or 0)
@@ -1004,7 +1037,9 @@ local function updatePresetPreviewLights(worldX, worldZ)
 			presetPreviewLights[#presetPreviewLights + 1] = { shape = ltype, id = id }
 		end
 	end
-	presetPreviewHash = hash
+	presetPreviewLast.valid = true
+	presetPreviewLast.x, presetPreviewLast.z = qx, qz
+	presetPreviewLast.count = #pendingPreset.lights
 end
 
 local function setPendingPreset(preset)

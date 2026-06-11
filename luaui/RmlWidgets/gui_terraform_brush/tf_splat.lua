@@ -56,12 +56,16 @@ function M.sync(doc, ctx, spState, setSummary)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local syncAndFlash = ctx.syncAndFlash
+	local getCachedEl = ctx.getCachedEl
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
 		-- ===== Splat Painter mode: update splat controls =====
 		-- btn-splat active state driven by data-class-active="activeTool == 'sp'" in RML.
 
-		if widgetState.dmHandle then widgetState.dmHandle.activeShape = spState.shape or "circle" end
+		if widgetState.dmHandle then
+			local shp = spState.shape or "circle"
+			if widgetState.dmHandle.activeShape ~= shp then widgetState.dmHandle.activeShape = shp end
+		end
 
 		if doc then
 			uiState.updatingFromCode = true
@@ -89,11 +93,11 @@ function M.sync(doc, ctx, spState, setSummary)
 			end
 
 			-- Splat sliders
-			syncAndFlash(doc:GetElementById("sp-slider-strength"), "sp-strength", tostring(math.floor(spState.strength * 100 + 0.5)))
-			syncAndFlash(doc:GetElementById("sp-slider-intensity"), "sp-intensity", tostring(math.floor(spState.intensity * 10 + 0.5)))
-			syncAndFlash(doc:GetElementById("sp-slider-size"), "sp-size", tostring(spState.radius))
-			syncAndFlash(doc:GetElementById("sp-slider-rotation"), "sp-rotation", tostring(spState.rotationDeg))
-			syncAndFlash(doc:GetElementById("sp-slider-curve"), "sp-curve", tostring(math.floor(spState.curve * 10 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "sp-slider-strength"), "sp-strength", tostring(math.floor(spState.strength * 100 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "sp-slider-intensity"), "sp-intensity", tostring(math.floor(spState.intensity * 10 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "sp-slider-size"), "sp-size", tostring(spState.radius))
+			syncAndFlash(getCachedEl(doc, "sp-slider-rotation"), "sp-rotation", tostring(spState.rotationDeg))
+			syncAndFlash(getCachedEl(doc, "sp-slider-curve"), "sp-curve", tostring(math.floor(spState.curve * 10 + 0.5)))
 
 			-- Smart filter UI sync
 			do
@@ -107,10 +111,12 @@ function M.sync(doc, ctx, spState, setSummary)
 					local sf = spState.smartFilters
 					-- Mirror smart-filter flags into data-model for data-if visibility.
 					if widgetState.dmHandle then
-						widgetState.dmHandle.spAvoidCliffs = sf.avoidCliffs == true
-						widgetState.dmHandle.spPreferSlopes = sf.preferSlopes == true
-						widgetState.dmHandle.spAltMinEnable = sf.altMinEnable == true
-						widgetState.dmHandle.spAltMaxEnable = sf.altMaxEnable == true
+						local dmh = widgetState.dmHandle
+						local function setDm(f, v) if dmh[f] ~= v then dmh[f] = v end end
+						setDm("spAvoidCliffs", sf.avoidCliffs == true)
+						setDm("spPreferSlopes", sf.preferSlopes == true)
+						setDm("spAltMinEnable", sf.altMinEnable == true)
+						setDm("spAltMaxEnable", sf.altMaxEnable == true)
 					end
 					-- NB: slope/altitude chip active class is owned by wireVisibilityChip
 					-- (tf_environment.lua) which treats active==section-expanded. Do NOT
@@ -129,7 +135,7 @@ function M.sync(doc, ctx, spState, setSummary)
 						local v = tostring(sf.slopeMax)
 						if widgetState.dmHandle.splatSlopeMaxStr ~= v then widgetState.dmHandle.splatSlopeMaxStr = v end
 					end
-					local spSSlopeMax = doc:GetElementById("sp-slider-slope-max")
+					local spSSlopeMax = getCachedEl(doc, "sp-slider-slope-max")
 					if spSSlopeMax and ds ~= "sp-slope-max" then
 						spSSlopeMax:SetAttribute("value", tostring(sf.slopeMax))
 					end
@@ -139,12 +145,12 @@ function M.sync(doc, ctx, spState, setSummary)
 						local v = tostring(sf.slopeMin)
 						if widgetState.dmHandle.splatSlopeMinStr ~= v then widgetState.dmHandle.splatSlopeMinStr = v end
 					end
-					local spSSlopeMin = doc:GetElementById("sp-slider-slope-min")
+					local spSSlopeMin = getCachedEl(doc, "sp-slider-slope-min")
 					if spSSlopeMin and ds ~= "sp-slope-min" then
 						spSSlopeMin:SetAttribute("value", tostring(sf.slopeMin))
 					end
 
-					local altMinEnableBtn = doc:GetElementById("btn-sp-alt-min-enable")
+					local altMinEnableBtn = getCachedEl(doc, "btn-sp-alt-min-enable")
 					if altMinEnableBtn then
 						altMinEnableBtn:SetAttribute("src", sf.altMinEnable
 							and "/luaui/images/terraform_brush/check_on.png"
@@ -155,12 +161,12 @@ function M.sync(doc, ctx, spState, setSummary)
 						local v = tostring(sf.altMin)
 						if widgetState.dmHandle.splatAltMinStr ~= v then widgetState.dmHandle.splatAltMinStr = v end
 					end
-					local spSAltMin = doc:GetElementById("sp-slider-alt-min")
+					local spSAltMin = getCachedEl(doc, "sp-slider-alt-min")
 					if spSAltMin and ds ~= "sp-alt-min" then
 						spSAltMin:SetAttribute("value", tostring(sf.altMin))
 					end
 
-					local altMaxEnableBtn = doc:GetElementById("btn-sp-alt-max-enable")
+					local altMaxEnableBtn = getCachedEl(doc, "btn-sp-alt-max-enable")
 					if altMaxEnableBtn then
 						altMaxEnableBtn:SetAttribute("src", sf.altMaxEnable
 							and "/luaui/images/terraform_brush/check_on.png"
@@ -171,7 +177,7 @@ function M.sync(doc, ctx, spState, setSummary)
 						local v = tostring(sf.altMax)
 						if widgetState.dmHandle.splatAltMaxStr ~= v then widgetState.dmHandle.splatAltMaxStr = v end
 					end
-					local spSAltMax = doc:GetElementById("sp-slider-alt-max")
+					local spSAltMax = getCachedEl(doc, "sp-slider-alt-max")
 					if spSAltMax and ds ~= "sp-alt-max" then
 						spSAltMax:SetAttribute("value", tostring(sf.altMax))
 					end
@@ -198,14 +204,14 @@ function M.sync(doc, ctx, spState, setSummary)
 				local undoCount = spState.undoCount or 0
 				local redoCount = spState.redoCount or 0
 				local total = undoCount + redoCount
-				local spHistSlider = doc:GetElementById("slider-sp-history")
+				local spHistSlider = getCachedEl(doc, "slider-sp-history")
 				if spHistSlider and ds ~= "sp-history" then
 					spHistSlider:SetAttribute("max", tostring(total))
 					spHistSlider:SetAttribute("value", tostring(undoCount))
 				end
-				local spHistNumbox = doc:GetElementById("slider-sp-history-numbox")
+				local spHistNumbox = getCachedEl(doc, "slider-sp-history-numbox")
 				if spHistNumbox then
-					spHistNumbox.inner_rml = tostring(undoCount)
+					ctx.setInnerRmlIfChanged(spHistNumbox, "slider-sp-history-numbox", tostring(undoCount))
 				end
 			end
 
@@ -246,38 +252,39 @@ function M.sync(doc, ctx, spState, setSummary)
 					-- Visibility + active flags pushed to data-model (data-if and data-class-active in RML).
 				local dm = widgetState.dmHandle
 				if dm then
-					dm.spGridSnap = s.gridSnap and true or false
-					dm.spAngleSnap = s.angleSnap and true or false
-					dm.spMeasureActive = s.measureActive and true or false
-					dm.spSymmetryActive = s.symmetryActive and true or false
-					dm.spSymmetryRadial = s.symmetryRadial and true or false
-					dm.spSymmetryMirrorAny = (s.symmetryMirrorX or s.symmetryMirrorY) and true or false
-					dm.spSymHasAxis = (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false
-					dm.spAngleSnapAuto = s.angleSnapAuto and true or false
-					dm.spGridOverlay = s.gridOverlay and true or false
-					dm.spHeightColormap = s.heightColormap and true or false
+					local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
+					setDm("spGridSnap", s.gridSnap and true or false)
+					setDm("spAngleSnap", s.angleSnap and true or false)
+					setDm("spMeasureActive", s.measureActive and true or false)
+					setDm("spSymmetryActive", s.symmetryActive and true or false)
+					setDm("spSymmetryRadial", s.symmetryRadial and true or false)
+					setDm("spSymmetryMirrorAny", (s.symmetryMirrorX or s.symmetryMirrorY) and true or false)
+					setDm("spSymHasAxis", (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false)
+					setDm("spAngleSnapAuto", s.angleSnapAuto and true or false)
+					setDm("spGridOverlay", s.gridOverlay and true or false)
+					setDm("spHeightColormap", s.heightColormap and true or false)
 					-- Splat Map overlay chip (own state from SplatPainter)
 					local sp = WG.SplatPainter
 					local spState = sp and sp.getState and sp.getState()
-					dm.spSplatOverlay = (spState and spState.showSplatOverlay) and true or false
+					setDm("spSplatOverlay", (spState and spState.showSplatOverlay) and true or false)
 					-- Instruments sub-chip active states
-					dm.spMeasureShowLength = s.measureShowLength and true or false
-					dm.spSymMirrorX = s.symmetryMirrorX and true or false
-					dm.spSymMirrorY = s.symmetryMirrorY and true or false
+					setDm("spMeasureShowLength", s.measureShowLength and true or false)
+					setDm("spSymMirrorX", s.symmetryMirrorX and true or false)
+					setDm("spSymMirrorY", s.symmetryMirrorY and true or false)
 				end
 				-- Hint dot: visible (pulsing) while DISPLAY section is closed
 				do
 					local tipsDisabled = widgetState.uiPrefs and widgetState.uiPrefs.disableTips
 					local alreadySeen = widgetState.uiPrefs and widgetState.uiPrefs.seenSplatDisplayHint
-					local sec = doc:GetElementById("section-sp-overlays")
+					local sec = getCachedEl(doc, "section-sp-overlays")
 					local hidden = tipsDisabled or alreadySeen or (sec and not sec:IsClassSet("hidden")) or false
-					if dm then dm.spDisplayHintVisible = not hidden end
+					if dm and dm.spDisplayHintVisible ~= not hidden then dm.spDisplayHintVisible = not hidden end
 				end
 				-- Chip 2-pulse: fires the frame after DISPLAY section is opened
 				if widgetState.splatDisplayPulseFrame and Spring.GetGameFrame() >= widgetState.splatDisplayPulseFrame then
 					widgetState.splatDisplayPulseFrame = nil
 					local tipsDisabled = widgetState.uiPrefs and widgetState.uiPrefs.disableTips
-					local splatChip = doc:GetElementById("btn-sp-splat-overlay")
+					local splatChip = getCachedEl(doc, "btn-sp-splat-overlay")
 					if splatChip and not tipsDisabled then
 						splatChip:SetClass("tf-chip-2pulse", false)
 						splatChip:SetClass("tf-chip-2pulse", true)
@@ -287,7 +294,7 @@ function M.sync(doc, ctx, spState, setSummary)
 				-- Remove 2-pulse class after animation completes
 				if widgetState.splatChip2PulseExpiry and (Spring.GetGameSeconds() or 0) >= widgetState.splatChip2PulseExpiry then
 					widgetState.splatChip2PulseExpiry = nil
-					local splatChip = doc:GetElementById("btn-sp-splat-overlay")
+					local splatChip = getCachedEl(doc, "btn-sp-splat-overlay")
 					if splatChip then splatChip:SetClass("tf-chip-2pulse", false) end
 				end
 				-- sp instrument chip active states driven by data-class-active in RML
@@ -312,12 +319,29 @@ function M.sync(doc, ctx, spState, setSummary)
 				end
 				-- Numbox + slider value sync (avoid re-firing change)
 				uiState.updatingFromCode = true
-				local nb = doc:GetElementById("sp-slider-grid-snap-size-numbox")
+				local nb = getCachedEl(doc, "sp-slider-grid-snap-size-numbox")
 				if nb then nb:SetAttribute("value", tostring(s.gridSnapSize or 48)) end
-				local sz = doc:GetElementById("sp-slider-grid-snap-size")
-				if sz and uiState.draggingSlider ~= "sp-grid-snap-size" then sz:SetAttribute("value", tostring(s.gridSnapSize or 48)) end
-				local cntSlSp = doc:GetElementById("sp-slider-symmetry-radial-count"); if cntSlSp then cntSlSp:SetAttribute("value", tostring(s.symmetryRadialCount or 2)) end
-				local angSlSp = doc:GetElementById("sp-slider-symmetry-mirror-angle"); if angSlSp then angSlSp:SetAttribute("value", tostring(math.floor(s.symmetryMirrorAngle or 0))) end
+				-- NOTE: these ids are also synced through ctx.setAttrValueIfChanged
+				-- in syncTBMirrorControls("sp"); keep its cache (keyed by element
+				-- id) coherent after these direct writes.
+				local sz = getCachedEl(doc, "sp-slider-grid-snap-size")
+				if sz and uiState.draggingSlider ~= "sp-grid-snap-size" then
+					local szStr = tostring(s.gridSnapSize or 48)
+					sz:SetAttribute("value", szStr)
+					widgetState.lastAttrValue["sp-slider-grid-snap-size"] = szStr
+				end
+				local cntSlSp = getCachedEl(doc, "sp-slider-symmetry-radial-count")
+				if cntSlSp then
+					local cntStr = tostring(s.symmetryRadialCount or 2)
+					cntSlSp:SetAttribute("value", cntStr)
+					widgetState.lastAttrValue["sp-slider-symmetry-radial-count"] = cntStr
+				end
+				local angSlSp = getCachedEl(doc, "sp-slider-symmetry-mirror-angle")
+				if angSlSp then
+					local angStr = tostring(math.floor(s.symmetryMirrorAngle or 0))
+					angSlSp:SetAttribute("value", angStr)
+					widgetState.lastAttrValue["sp-slider-symmetry-mirror-angle"] = angStr
+				end
 				uiState.updatingFromCode = false
 			end
 		end

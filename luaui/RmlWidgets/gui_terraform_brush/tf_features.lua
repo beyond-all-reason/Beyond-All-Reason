@@ -39,6 +39,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local syncAndFlash = ctx.syncAndFlash
+	local getCachedEl = ctx.getCachedEl
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
 		-- ===== Feature Placer mode: update feature controls =====
@@ -57,12 +58,18 @@ function M.sync(doc, ctx, fpState, setSummary)
 
 		-- Feature sub-mode and distribution (driven by dm fields via data-class-active)
 		if widgetState.dmHandle then
-			widgetState.dmHandle.fpSubMode = fpState.mode or "scatter"
-			widgetState.dmHandle.fpDistMode = fpState.distribution or "random"
+			local dmh = widgetState.dmHandle
+			local sm = fpState.mode or "scatter"
+			if dmh.fpSubMode ~= sm then dmh.fpSubMode = sm end
+			local dist = fpState.distribution or "random"
+			if dmh.fpDistMode ~= dist then dmh.fpDistMode = dist end
 		end
 
 		-- Feature shape buttons
-		if widgetState.dmHandle then widgetState.dmHandle.activeShape = fpState.shape or "circle" end
+		if widgetState.dmHandle then
+			local shp = fpState.shape or "circle"
+			if widgetState.dmHandle.activeShape ~= shp then widgetState.dmHandle.activeShape = shp end
+		end
 
 		if doc then
 			uiState.updatingFromCode = true
@@ -85,14 +92,14 @@ function M.sync(doc, ctx, fpState, setSummary)
 			end
 
 			-- Feature sliders
-			syncAndFlash(doc:GetElementById("fp-slider-size"), "fp-size", tostring(fpState.radius))
-			syncAndFlash(doc:GetElementById("fp-slider-rotation"), "fp-rotation", tostring(fpState.rotation))
-			syncAndFlash(doc:GetElementById("fp-slider-rot-random"), "fp-rot-random", tostring(fpState.rotRandom))
-			syncAndFlash(doc:GetElementById("fp-slider-count"), "fp-count", tostring(fpState.featureCount))
-			syncAndFlash(doc:GetElementById("fp-slider-cadence"), "fp-cadence", tostring(cadenceToSlider(fpState.cadence)))
+			syncAndFlash(getCachedEl(doc, "fp-slider-size"), "fp-size", tostring(fpState.radius))
+			syncAndFlash(getCachedEl(doc, "fp-slider-rotation"), "fp-rotation", tostring(fpState.rotation))
+			syncAndFlash(getCachedEl(doc, "fp-slider-rot-random"), "fp-rot-random", tostring(fpState.rotRandom))
+			syncAndFlash(getCachedEl(doc, "fp-slider-count"), "fp-count", tostring(fpState.featureCount))
+			syncAndFlash(getCachedEl(doc, "fp-slider-cadence"), "fp-cadence", tostring(cadenceToSlider(fpState.cadence)))
 
 			-- Smart filter UI sync
-			local fpSmartToggle = doc:GetElementById("btn-fp-smart-toggle")
+			local fpSmartToggle = getCachedEl(doc, "btn-fp-smart-toggle")
 			if fpSmartToggle then
 				fpSmartToggle:SetAttribute("src", fpState.smartEnabled
 					and "/luaui/images/terraform_brush/check_on.png"
@@ -111,18 +118,20 @@ function M.sync(doc, ctx, fpState, setSummary)
 
 				-- Mirror smart-filter flags into data-model for data-if visibility.
 				if widgetState.dmHandle then
-					widgetState.dmHandle.fpAvoidCliffs = sf.avoidCliffs == true
-					widgetState.dmHandle.fpPreferSlopes = sf.preferSlopes == true
-					widgetState.dmHandle.fpAltMinEnable = sf.altMinEnable == true
-					widgetState.dmHandle.fpAltMaxEnable = sf.altMaxEnable == true
+					local dmh = widgetState.dmHandle
+					local function setDm(f, v) if dmh[f] ~= v then dmh[f] = v end end
+					setDm("fpAvoidCliffs", sf.avoidCliffs == true)
+					setDm("fpPreferSlopes", sf.preferSlopes == true)
+					setDm("fpAltMinEnable", sf.altMinEnable == true)
+					setDm("fpAltMaxEnable", sf.altMaxEnable == true)
 				end
 
 				-- Filter chips: Avoid Water mirrors filter state; slope sub-chips mirror avoidCliffs / preferSlopes
-				local avoidWaterChip = doc:GetElementById("fp-filter-chip-avoid-water")
+				local avoidWaterChip = getCachedEl(doc, "fp-filter-chip-avoid-water")
 				if avoidWaterChip then avoidWaterChip:SetClass("active", sf.avoidWater == true) end
-				local slopeAvoidChip = doc:GetElementById("fp-slope-mode-avoid")
+				local slopeAvoidChip = getCachedEl(doc, "fp-slope-mode-avoid")
 				if slopeAvoidChip then slopeAvoidChip:SetClass("active", sf.avoidCliffs == true) end
-				local slopePreferChip = doc:GetElementById("fp-slope-mode-prefer")
+				local slopePreferChip = getCachedEl(doc, "fp-slope-mode-prefer")
 				if slopePreferChip then slopePreferChip:SetClass("active", sf.preferSlopes == true) end
 
 				-- Slope-max rows visibility driven by data-if="fpAvoidCliffs"
@@ -131,7 +140,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 					local v = tostring(sf.slopeMax)
 					if widgetState.dmHandle.fpSlopeMaxStr ~= v then widgetState.dmHandle.fpSlopeMaxStr = v end
 				end
-				local fpSSlopeMax = doc:GetElementById("fp-slider-slope-max")
+				local fpSSlopeMax = getCachedEl(doc, "fp-slider-slope-max")
 				if fpSSlopeMax and ds ~= "fp-slope-max" then
 					fpSSlopeMax:SetAttribute("value", tostring(sf.slopeMax))
 				end
@@ -142,12 +151,12 @@ function M.sync(doc, ctx, fpState, setSummary)
 					local v = tostring(sf.slopeMin)
 					if widgetState.dmHandle.fpSlopeMinStr ~= v then widgetState.dmHandle.fpSlopeMinStr = v end
 				end
-				local fpSSlopeMin = doc:GetElementById("fp-slider-slope-min")
+				local fpSSlopeMin = getCachedEl(doc, "fp-slider-slope-min")
 				if fpSSlopeMin and ds ~= "fp-slope-min" then
 					fpSSlopeMin:SetAttribute("value", tostring(sf.slopeMin))
 				end
 
-				local altMinEnableBtn = doc:GetElementById("btn-fp-alt-min-enable")
+				local altMinEnableBtn = getCachedEl(doc, "btn-fp-alt-min-enable")
 				if altMinEnableBtn then
 					altMinEnableBtn:SetAttribute("src", sf.altMinEnable
 						and "/luaui/images/terraform_brush/check_on.png"
@@ -159,12 +168,12 @@ function M.sync(doc, ctx, fpState, setSummary)
 					local v = tostring(sf.altMin)
 					if widgetState.dmHandle.fpAltMinStr ~= v then widgetState.dmHandle.fpAltMinStr = v end
 				end
-				local fpSAltMin = doc:GetElementById("fp-slider-alt-min")
+				local fpSAltMin = getCachedEl(doc, "fp-slider-alt-min")
 				if fpSAltMin and ds ~= "fp-alt-min" then
 					fpSAltMin:SetAttribute("value", tostring(sf.altMin))
 				end
 
-				local altMaxEnableBtn = doc:GetElementById("btn-fp-alt-max-enable")
+				local altMaxEnableBtn = getCachedEl(doc, "btn-fp-alt-max-enable")
 				if altMaxEnableBtn then
 					altMaxEnableBtn:SetAttribute("src", sf.altMaxEnable
 						and "/luaui/images/terraform_brush/check_on.png"
@@ -176,96 +185,99 @@ function M.sync(doc, ctx, fpState, setSummary)
 					local v = tostring(sf.altMax)
 					if widgetState.dmHandle.fpAltMaxStr ~= v then widgetState.dmHandle.fpAltMaxStr = v end
 				end
-				local fpSAltMax = doc:GetElementById("fp-slider-alt-max")
+				local fpSAltMax = getCachedEl(doc, "fp-slider-alt-max")
 				if fpSAltMax and ds ~= "fp-alt-max" then
 					fpSAltMax:SetAttribute("value", tostring(sf.altMax))
 				end
 
 				-- SAMPLE button active state mirrors TerraformBrush heightSamplingMode
 				local hsm = WG.TerraformBrush and (WG.TerraformBrush.getState() or {}).heightSamplingMode
-				local sampMin = doc:GetElementById("btn-fp-alt-min-sample")
+				local sampMin = getCachedEl(doc, "btn-fp-alt-min-sample")
 				if sampMin then sampMin:SetClass("active", hsm == "fpAltMin") end
-				local sampMax = doc:GetElementById("btn-fp-alt-max-sample")
+				local sampMax = getCachedEl(doc, "btn-fp-alt-max-sample")
 				if sampMax then sampMax:SetClass("active", hsm == "fpAltMax") end
 			end
 
 			-- Grid snap chip sync (FP-specific snap state)
-			local fpGridSnapBtn = doc:GetElementById("btn-fp-grid-snap")
+			local fpGridSnapBtn = getCachedEl(doc, "btn-fp-grid-snap")
 			if fpGridSnapBtn then
 				fpGridSnapBtn:SetClass("active", fpState.gridSnap == true)
 			end
 			if widgetState.dmHandle then
-				widgetState.dmHandle.fpGridSnap = fpState.gridSnap == true
+				local v = fpState.gridSnap == true
+				if widgetState.dmHandle.fpGridSnap ~= v then widgetState.dmHandle.fpGridSnap = v end
 				-- Snap size label + slider
 				local ss = tostring(fpState.gridSnapSize or 48)
 				if widgetState.dmHandle.fpGridSnapSizeStr ~= ss then widgetState.dmHandle.fpGridSnapSizeStr = ss end
 			end
-			local fpSnapSizeSlider = doc:GetElementById("fp-slider-grid-snap-size")
+			local fpSnapSizeSlider = getCachedEl(doc, "fp-slider-grid-snap-size")
 			if fpSnapSizeSlider and uiState.draggingSlider ~= "fp-grid-snap-size" then
 				fpSnapSizeSlider:SetAttribute("value", tostring(fpState.gridSnapSize or 48))
 			end
-			local fpSnapSizeNb = doc:GetElementById("fp-slider-grid-snap-size-numbox")
+			local fpSnapSizeNb = getCachedEl(doc, "fp-slider-grid-snap-size-numbox")
 			if fpSnapSizeNb then fpSnapSizeNb:SetAttribute("value", tostring(fpState.gridSnapSize or 48)) end
 
 			-- Display overlay sync (shared TerraformBrush state)
 			if WG.TerraformBrush then
 				local tbState = WG.TerraformBrush.getState()
 				if tbState then
-					local fpHMap = doc:GetElementById("btn-fp-height-colormap")
+					local fpHMap = getCachedEl(doc, "btn-fp-height-colormap")
 					if fpHMap then fpHMap:SetClass("active", tbState.heightColormap == true) end
-					local fpMeas = doc:GetElementById("btn-fp-measure")
+					local fpMeas = getCachedEl(doc, "btn-fp-measure")
 					if fpMeas then fpMeas:SetClass("active", tbState.measureActive == true) end
-					local fpSym = doc:GetElementById("btn-fp-symmetry")
+					local fpSym = getCachedEl(doc, "btn-fp-symmetry")
 					if fpSym then fpSym:SetClass("active", tbState.symmetryActive == true) end
 					-- Mirror display + symmetry/measure flags into data-model.
 					if widgetState.dmHandle then
+						local dmh = widgetState.dmHandle
+						local function setDm(f, v) if dmh[f] ~= v then dmh[f] = v end end
 						-- fpGridOverlay is FP's own building grid, NOT the terrain grid
-						widgetState.dmHandle.fpGridOverlay    = fpState.gridOverlay == true
-						widgetState.dmHandle.fpHeightColormap = tbState.heightColormap == true
-						widgetState.dmHandle.fpSymmetryActive = tbState.symmetryActive == true
-						widgetState.dmHandle.fpSymmetryRadial = tbState.symmetryRadial == true
-						widgetState.dmHandle.fpSymmetryMirrorAny = (tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false
-						widgetState.dmHandle.fpSymHasAxis = (tbState.symmetryRadial or tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false
-						widgetState.dmHandle.fpMeasureActive    = tbState.measureActive == true
-						widgetState.dmHandle.fpMeasureRulerMode  = tbState.measureRulerMode == true
-						widgetState.dmHandle.fpMeasureStickyMode = tbState.measureStickyMode == true
-						widgetState.dmHandle.fpMeasureShowLength = tbState.measureShowLength == true
-						widgetState.dmHandle.fpSymMirrorX = tbState.symmetryMirrorX == true
-						widgetState.dmHandle.fpSymMirrorY = tbState.symmetryMirrorY == true
+						setDm("fpGridOverlay",    fpState.gridOverlay == true)
+						setDm("fpHeightColormap", tbState.heightColormap == true)
+						setDm("fpSymmetryActive", tbState.symmetryActive == true)
+						setDm("fpSymmetryRadial", tbState.symmetryRadial == true)
+						setDm("fpSymmetryMirrorAny", (tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false)
+						setDm("fpSymHasAxis", (tbState.symmetryRadial or tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false)
+						setDm("fpMeasureActive",    tbState.measureActive == true)
+						setDm("fpMeasureRulerMode",  tbState.measureRulerMode == true)
+						setDm("fpMeasureStickyMode", tbState.measureStickyMode == true)
+						setDm("fpMeasureShowLength", tbState.measureShowLength == true)
+						setDm("fpSymMirrorX", tbState.symmetryMirrorX == true)
+						setDm("fpSymMirrorY", tbState.symmetryMirrorY == true)
 					end
 					-- fp-symmetry-toolbar-row visibility driven by data-if="fpSymmetryActive"
-					local fpSymRadial = doc:GetElementById("fp-btn-symmetry-radial")
+					local fpSymRadial = getCachedEl(doc, "fp-btn-symmetry-radial")
 					if fpSymRadial then fpSymRadial:SetClass("active", tbState.symmetryRadial == true) end
-					local fpSymMX = doc:GetElementById("fp-btn-symmetry-mirror-x")
+					local fpSymMX = getCachedEl(doc, "fp-btn-symmetry-mirror-x")
 					if fpSymMX then fpSymMX:SetClass("active", tbState.symmetryMirrorX == true) end
-					local fpSymMY = doc:GetElementById("fp-btn-symmetry-mirror-y")
+					local fpSymMY = getCachedEl(doc, "fp-btn-symmetry-mirror-y")
 					if fpSymMY then fpSymMY:SetClass("active", tbState.symmetryMirrorY == true) end
 					-- Measure sub-chip active states
-					local fpMeasRL = doc:GetElementById("fp-btn-measure-ruler")
+					local fpMeasRL = getCachedEl(doc, "fp-btn-measure-ruler")
 					if fpMeasRL then fpMeasRL:SetClass("active", tbState.measureRulerMode == true) end
-					local fpMeasST = doc:GetElementById("fp-btn-measure-sticky")
+					local fpMeasST = getCachedEl(doc, "fp-btn-measure-sticky")
 					if fpMeasST then fpMeasST:SetClass("active", tbState.measureStickyMode == true) end
-					local fpMeasSL = doc:GetElementById("fp-btn-measure-show-length")
+					local fpMeasSL = getCachedEl(doc, "fp-btn-measure-show-length")
 					if fpMeasSL then fpMeasSL:SetClass("active", tbState.measureShowLength == true) end
 					-- fp-symmetry-radial-count-row visibility driven by data-if="fpSymmetryRadial"
 					if widgetState.dmHandle then
 						local v = tostring(tbState.symmetryRadialCount or 2)
 						if widgetState.dmHandle.tbSymCountStr ~= v then widgetState.dmHandle.tbSymCountStr = v end
 					end
-					local fpSymRadSlider = doc:GetElementById("fp-slider-symmetry-radial-count")
+					local fpSymRadSlider = getCachedEl(doc, "fp-slider-symmetry-radial-count")
 					if fpSymRadSlider then fpSymRadSlider:SetAttribute("value", tostring(tbState.symmetryRadialCount or 2)) end
 					-- fp-symmetry-mirror-angle-row visibility driven by data-if="fpSymmetryMirrorAny"
 					if widgetState.dmHandle then
 						local v = tostring(math.floor(tbState.symmetryMirrorAngle or 0))
 						if widgetState.dmHandle.tbSymAngleStr ~= v then widgetState.dmHandle.tbSymAngleStr = v end
 					end
-					local fpSymAngSlider = doc:GetElementById("fp-slider-symmetry-mirror-angle")
+					local fpSymAngSlider = getCachedEl(doc, "fp-slider-symmetry-mirror-angle")
 					if fpSymAngSlider then fpSymAngSlider:SetAttribute("value", tostring(tbState.symmetryMirrorAngle or 0)) end
 				end
 			end
 
 			-- Feature history slider sync
-			local sliderFpHist = doc:GetElementById("slider-fp-history")
+			local sliderFpHist = getCachedEl(doc, "slider-fp-history")
 			if sliderFpHist and ds ~= "fp-history" then
 				local totalSteps = (fpState.undoCount or 0) + (fpState.redoCount or 0)
 				local maxVal = math.min(totalSteps, 400)
@@ -273,7 +285,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 				sliderFpHist:SetAttribute("max", tostring(maxVal))
 				sliderFpHist:SetAttribute("value", tostring(fpState.undoCount or 0))
 			end
-			local fpHistNumbox = doc:GetElementById("slider-fp-history-numbox")
+			local fpHistNumbox = getCachedEl(doc, "slider-fp-history-numbox")
 			if fpHistNumbox then
 				fpHistNumbox:SetAttribute("value", tostring(fpState.undoCount or 0))
 			end

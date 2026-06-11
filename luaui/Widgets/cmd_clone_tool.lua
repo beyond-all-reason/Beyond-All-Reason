@@ -125,6 +125,15 @@ local pasteHeightOffset = 0
 local pasteMirrorX = false
 local pasteMirrorZ = false
 
+-- Paste-preview terrain sample cache: drawPastePreview otherwise re-samples
+-- GetGroundHeight (plus transformPoint) for every preview cell every frame.
+-- Rebuilt only when the paste transform changes or the terrain is modified
+-- (invalidated via UnsyncedHeightMapUpdate). pasteHeightOffset is applied at
+-- draw time, so offset changes don't invalidate the cache.
+local ppCells = {}            -- flat array: wx, wz, groundH, gridH (4 per cell)
+local ppCellCount = 0
+local ppKey = { valid = false }
+
 -- Terrain quality: "full" (float, step=8), "balanced" (int, step=8), "fast" (int, step=24, gadget fill)
 local terrainQuality = "full"
 
@@ -960,40 +969,36 @@ local function drawPastePreview(targetX, targetZ)
 	local buf = cloneBuffer
 	local rotRad = rad(pasteRotation)
 
-	-- Draw outline of paste region
-	local corners = {
-		transformPoint(0, 0, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ),
-		transformPoint(buf.sizeX, 0, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ),
-		transformPoint(buf.sizeX, buf.sizeZ, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ),
-		transformPoint(0, buf.sizeZ, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ),
-	}
-
-	-- Transform returns two values, need to handle differently
+	-- Outline corners of paste region (transformPoint returns two values)
 	local c1x, c1z = transformPoint(0, 0, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 	local c2x, c2z = transformPoint(buf.sizeX, 0, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 	local c3x, c3z = transformPoint(buf.sizeX, buf.sizeZ, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 	local c4x, c4z = transformPoint(0, buf.sizeZ, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 
 	local yoff = 4
+	local c1y = spGetGroundHeight(c1x, c1z) + yoff
+	local c2y = spGetGroundHeight(c2x, c2z) + yoff
+	local c3y = spGetGroundHeight(c3x, c3z) + yoff
+	local c4y = spGetGroundHeight(c4x, c4z) + yoff
 
 	-- Dashed outline in cyan
 	glColor(0.0, 0.9, 1.0, 0.85)
 	glLineWidth(2.5)
 	glBeginEnd(GL_LINE_LOOP, function()
-		glVertex(c1x, spGetGroundHeight(c1x, c1z) + yoff, c1z)
-		glVertex(c2x, spGetGroundHeight(c2x, c2z) + yoff, c2z)
-		glVertex(c3x, spGetGroundHeight(c3x, c3z) + yoff, c3z)
-		glVertex(c4x, spGetGroundHeight(c4x, c4z) + yoff, c4z)
+		glVertex(c1x, c1y, c1z)
+		glVertex(c2x, c2y, c2z)
+		glVertex(c3x, c3y, c3z)
+		glVertex(c4x, c4y, c4z)
 	end)
 
 	-- Semi-transparent fill
 	glColor(0.0, 0.6, 0.8, 0.12)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	glBeginEnd(GL_QUADS, function()
-		glVertex(c1x, spGetGroundHeight(c1x, c1z) + yoff, c1z)
-		glVertex(c2x, spGetGroundHeight(c2x, c2z) + yoff, c2z)
-		glVertex(c3x, spGetGroundHeight(c3x, c3z) + yoff, c3z)
-		glVertex(c4x, spGetGroundHeight(c4x, c4z) + yoff, c4z)
+		glVertex(c1x, c1y, c1z)
+		glVertex(c2x, c2y, c2z)
+		glVertex(c3x, c3y, c3z)
+		glVertex(c4x, c4y, c4z)
 	end)
 
 	-- Feature ghost markers
@@ -1035,31 +1040,52 @@ local function drawPastePreview(targetX, targetZ)
 		local t = buf.terrain
 		glColor(0.4, 0.7, 1.0, 0.25)
 		local previewStep = max(1, floor(t.cols / 50)) -- limit density for perf
-		for r = 0, t.rows - 1, previewStep do
-			for c = 0, t.cols - 1, previewStep do
-				local lx = c * t.stepX
-				local lz = r * t.stepZ
-				local wx, wz = transformPoint(lx, lz, buf.sizeX, buf.sizeZ,
-					rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-				local targetH = t.grid[r + 1][c + 1] + pasteHeightOffset
-				local currentH = spGetGroundHeight(wx, wz)
-				local delta = targetH - currentH
-				-- Color by delta: blue=lower, green=same, red=raise
-				if delta > 5 then
-					glColor(0.9, 0.3, 0.1, 0.35)
-				elseif delta < -5 then
-					glColor(0.1, 0.3, 0.9, 0.35)
-				else
-					glColor(0.3, 0.8, 0.3, 0.2)
+		-- Rebuild the sampled cell cache only when the paste transform or the
+		-- terrain changed; otherwise replay the cached samples.
+		if not (ppKey.valid and ppKey.x == targetX and ppKey.z == targetZ
+			and ppKey.rot == pasteRotation and ppKey.mirX == pasteMirrorX
+			and ppKey.mirZ == pasteMirrorZ and ppKey.buf == buf) then
+			local n = 0
+			for r = 0, t.rows - 1, previewStep do
+				for c = 0, t.cols - 1, previewStep do
+					local lx = c * t.stepX
+					local lz = r * t.stepZ
+					local wx, wz = transformPoint(lx, lz, buf.sizeX, buf.sizeZ,
+						rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+					ppCells[n + 1] = wx
+					ppCells[n + 2] = wz
+					ppCells[n + 3] = spGetGroundHeight(wx, wz)
+					ppCells[n + 4] = t.grid[r + 1][c + 1]
+					n = n + 4
 				end
-				local ms = max(4, t.stepX * previewStep * 0.4)
-				glBeginEnd(GL_QUADS, function()
-					glVertex(wx - ms, currentH + yoff, wz - ms)
-					glVertex(wx + ms, currentH + yoff, wz - ms)
-					glVertex(wx + ms, currentH + yoff, wz + ms)
-					glVertex(wx - ms, currentH + yoff, wz + ms)
-				end)
 			end
+			ppCellCount = n
+			ppKey.valid = true
+			ppKey.x, ppKey.z = targetX, targetZ
+			ppKey.rot = pasteRotation
+			ppKey.mirX, ppKey.mirZ = pasteMirrorX, pasteMirrorZ
+			ppKey.buf = buf
+		end
+		local ms = max(4, t.stepX * previewStep * 0.4)
+		for n = 0, ppCellCount - 4, 4 do
+			local wx = ppCells[n + 1]
+			local wz = ppCells[n + 2]
+			local currentH = ppCells[n + 3]
+			local delta = (ppCells[n + 4] + pasteHeightOffset) - currentH
+			-- Color by delta: blue=lower, green=same, red=raise
+			if delta > 5 then
+				glColor(0.9, 0.3, 0.1, 0.35)
+			elseif delta < -5 then
+				glColor(0.1, 0.3, 0.9, 0.35)
+			else
+				glColor(0.3, 0.8, 0.3, 0.2)
+			end
+			glBeginEnd(GL_QUADS, function()
+				glVertex(wx - ms, currentH + yoff, wz - ms)
+				glVertex(wx + ms, currentH + yoff, wz - ms)
+				glVertex(wx + ms, currentH + yoff, wz + ms)
+				glVertex(wx - ms, currentH + yoff, wz + ms)
+			end)
 		end
 	end
 
@@ -1457,6 +1483,11 @@ end
 
 function widget:IsAbove(x, y)
 	return false
+end
+
+-- Terrain changed (paste applied, terraform, etc.) → preview samples are stale
+function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
+	ppKey.valid = false
 end
 
 -- ---------------------------------------------------------------------------

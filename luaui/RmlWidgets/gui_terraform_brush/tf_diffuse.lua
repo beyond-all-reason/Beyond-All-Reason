@@ -232,26 +232,27 @@ function M.sync(doc, ctx, setSummary)
 	-- Sliders
 	if doc then
 		uiState.updatingFromCode = true
+		local getCachedEl = ctx.getCachedEl
 		local radius, strength, curve = WG.DiffusePainter.getBrush()
-		syncAndFlash(doc:GetElementById("dfp-slider-radius"),   "dfp-radius",   tostring(radius or 128))
-		syncAndFlash(doc:GetElementById("dfp-slider-strength"), "dfp-strength", tostring(math.floor((strength or 1.0) * 100 + 0.5)))
-		syncAndFlash(doc:GetElementById("dfp-slider-curve"),    "dfp-curve",    tostring(math.floor((curve or 1.5) * 10 + 0.5)))
+		syncAndFlash(getCachedEl(doc, "dfp-slider-radius"),   "dfp-radius",   tostring(radius or 128))
+		syncAndFlash(getCachedEl(doc, "dfp-slider-strength"), "dfp-strength", tostring(math.floor((strength or 1.0) * 100 + 0.5)))
+		syncAndFlash(getCachedEl(doc, "dfp-slider-curve"),    "dfp-curve",    tostring(math.floor((curve or 1.5) * 10 + 0.5)))
 		if WG.DiffusePainter.getFractal then
 			local amt, freq = WG.DiffusePainter.getFractal()
-			syncAndFlash(doc:GetElementById("dfp-slider-fractal"), "dfp-fractal", tostring(math.floor((amt or 0) * 100 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "dfp-slider-fractal"), "dfp-fractal", tostring(math.floor((amt or 0) * 100 + 0.5)))
 			local freqSlider = math.floor(1 + ((freq or 0.003) - 0.0002) / (0.01 - 0.0002) * 49 + 0.5)
 			freqSlider = math.max(1, math.min(50, freqSlider))
-			syncAndFlash(doc:GetElementById("dfp-slider-fractal-freq"), "dfp-fractal-freq", tostring(freqSlider))
+			syncAndFlash(getCachedEl(doc, "dfp-slider-fractal-freq"), "dfp-fractal-freq", tostring(freqSlider))
 		end
 		if activeLayer then
 			local hs = math.floor((activeLayer.hydroStrength or 0.02) * 1000 + 0.5)
-			syncAndFlash(doc:GetElementById("dfp-slider-hydro-strength"), "dfp-hydro-strength", tostring(hs))
+			syncAndFlash(getCachedEl(doc, "dfp-slider-hydro-strength"), "dfp-hydro-strength", tostring(hs))
 			local hlo = math.floor((activeLayer.hydroFalloffLo or 0.1) * 100 + 0.5)
-			syncAndFlash(doc:GetElementById("dfp-slider-hydro-flo"), "dfp-hydro-flo", tostring(hlo))
+			syncAndFlash(getCachedEl(doc, "dfp-slider-hydro-flo"), "dfp-hydro-flo", tostring(hlo))
 			local hhi = math.floor((activeLayer.hydroFalloffHi or 0.6) * 100 + 0.5)
-			syncAndFlash(doc:GetElementById("dfp-slider-hydro-fhi"), "dfp-hydro-fhi", tostring(hhi))
-			syncAndFlash(doc:GetElementById("dfp-slider-thermo-angle"),   "dfp-thermo-angle",   tostring(math.floor(activeLayer.thermoAngle  or 30)))
-			syncAndFlash(doc:GetElementById("dfp-slider-thermo-falloff"), "dfp-thermo-falloff", tostring(math.floor(activeLayer.thermoFalloff or 8)))
+			syncAndFlash(getCachedEl(doc, "dfp-slider-hydro-fhi"), "dfp-hydro-fhi", tostring(hhi))
+			syncAndFlash(getCachedEl(doc, "dfp-slider-thermo-angle"),   "dfp-thermo-angle",   tostring(math.floor(activeLayer.thermoAngle  or 30)))
+			syncAndFlash(getCachedEl(doc, "dfp-slider-thermo-falloff"), "dfp-thermo-falloff", tostring(math.floor(activeLayer.thermoFalloff or 8)))
 		end
 		uiState.updatingFromCode = false
 	end

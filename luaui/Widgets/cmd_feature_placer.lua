@@ -803,16 +803,18 @@ local GRID_STEP = 24   -- elmos between sample points
 -- Check if a point passes the current smart filter constraints
 local function isPointValid(px, pz, sf)
 	local h = GetGroundHeight(px, pz)
-	local _, ny = GetGroundNormal(px, pz)
-	ny = ny or 1.0
 	if sf.avoidWater and h < 0 then return false end
-	if sf.avoidCliffs then
-		local nyMin = cos(sf.slopeMax * pi / 180)
-		if ny < nyMin then return false end
-	end
-	if sf.preferSlopes then
-		local nyMax = cos(sf.slopeMin * pi / 180)
-		if ny > nyMax then return false end
+	if sf.avoidCliffs or sf.preferSlopes then
+		local _, ny = GetGroundNormal(px, pz)
+		ny = ny or 1.0
+		if sf.avoidCliffs then
+			local nyMin = cos(sf.slopeMax * pi / 180)
+			if ny < nyMin then return false end
+		end
+		if sf.preferSlopes then
+			local nyMax = cos(sf.slopeMin * pi / 180)
+			if ny > nyMax then return false end
+		end
 	end
 	if sf.altMinEnable and h < sf.altMin then return false end
 	if sf.altMaxEnable and h > sf.altMax then return false end

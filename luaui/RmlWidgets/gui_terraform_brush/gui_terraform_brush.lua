@@ -785,7 +785,14 @@ local function _elemSetSliderVal(fullId, v)
 	local doc = widgetState.document
 	if not doc then return end
 	local sl = doc:GetElementById(fullId)
-	if sl then sl:SetAttribute("value", tostring(v)) end
+	if sl then
+		local vStr = tostring(v)
+		sl:SetAttribute("value", vStr)
+		-- Keep setAttrValueIfChanged's dirty-check cache coherent: some of the
+		-- ids written here (e.g. gb-/mb-slider-angle-snap-step) are also
+		-- synced per-frame through that guard, keyed by element id.
+		widgetState.lastAttrValue[fullId] = vStr
+	end
 end
 
 -- Splat angle-snap preset array and helpers (captured by onSpl* closures in initialModel).
@@ -5375,7 +5382,7 @@ local initialModel = {
 		local nStr = tostring(n)
 		local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= nStr then dm.tbSymCountStr = nStr end
 		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-radial-count")
-		if sl then sl:SetAttribute("value", nStr) end
+		if sl then sl:SetAttribute("value", nStr); widgetState.lastAttrValue[P.."-slider-symmetry-radial-count"] = nStr end
 		playSound("tick")
 	end,
 	onTbSymCountUp = function(_event, P)
@@ -5386,7 +5393,7 @@ local initialModel = {
 		local nStr = tostring(n)
 		local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= nStr then dm.tbSymCountStr = nStr end
 		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-radial-count")
-		if sl then sl:SetAttribute("value", nStr) end
+		if sl then sl:SetAttribute("value", nStr); widgetState.lastAttrValue[P.."-slider-symmetry-radial-count"] = nStr end
 		playSound("tick")
 	end,
 	onTbSymCountChange = function(_event, P)
@@ -5403,7 +5410,7 @@ local initialModel = {
 		local aStr = tostring(math.floor(a))
 		local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= aStr then dm.tbSymAngleStr = aStr end
 		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-mirror-angle")
-		if sl then sl:SetAttribute("value", tostring(a)) end
+		if sl then sl:SetAttribute("value", tostring(a)); widgetState.lastAttrValue[P.."-slider-symmetry-mirror-angle"] = tostring(a) end
 		playSound("tick")
 	end,
 	onTbSymAngleUp = function(_event, P)
@@ -5414,7 +5421,7 @@ local initialModel = {
 		local aStr = tostring(math.floor(a))
 		local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= aStr then dm.tbSymAngleStr = aStr end
 		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-mirror-angle")
-		if sl then sl:SetAttribute("value", tostring(a)) end
+		if sl then sl:SetAttribute("value", tostring(a)); widgetState.lastAttrValue[P.."-slider-symmetry-mirror-angle"] = tostring(a) end
 		playSound("tick")
 	end,
 	onTbSymAngleChange = function(_event, P)
@@ -5813,6 +5820,11 @@ local function trackSliderDrag(element, id)
 						v = math.floor((v - minVal) / step + 0.5) * step + minVal
 					end
 					element:SetAttribute("value", tostring(math.max(minVal, math.min(maxVal, v))))
+					-- This write bypasses setAttrValueIfChanged: invalidate its
+					-- dirty-check cache (keyed by element id) so the next sync
+					-- writes through even if the canonical value string is
+					-- unchanged (e.g. 360 wraps back to a state of 0).
+					widgetState.lastAttrValue[element.id] = nil
 				end
 				applyMX(event.parameters.mouse_x)
 				-- Attach synthetic drag: follow mouse until mouseup.
@@ -5824,7 +5836,12 @@ local function trackSliderDrag(element, id)
 					applyMX(ev.parameters.mouse_x)
 				end, false)
 				doc:AddEventListener("mouseup", function()
-					moveActive = false
+					if moveActive then
+						moveActive = false
+						-- Drag ended: force the next sync to write through
+						-- (the element's value diverged from the guard cache).
+						widgetState.lastAttrValue[element.id] = nil
+					end
 					uiState.draggingSlider = nil
 				end, false)
 			end
@@ -5837,6 +5854,7 @@ local function trackSliderDrag(element, id)
 			element:SetClass("slider-pulse", false)
 			lt[id] = nil
 			uiState.draggingSlider = id
+			uiState.draggingSliderEl = element
 			return
 		end
 
@@ -5855,8 +5873,24 @@ local function trackSliderDrag(element, id)
 
 		-- Normal drag behavior
 		uiState.draggingSlider = id
+		uiState.draggingSliderEl = element
 	end, false)
-	element:AddEventListener("mouseup", function() uiState.draggingSlider = nil end, false)
+	element:AddEventListener("mouseup", function()
+		-- Drag (or click) on this slider ended: the user may have moved the
+		-- element's value past the guard cache. Invalidate so the first
+		-- post-drag sync always writes the canonical value back through.
+		widgetState.lastAttrValue[element.id] = nil
+		-- The release may land on a different slider than the one being dragged
+		-- (this handler fires for the element under the cursor). Invalidate the
+		-- dragged slider's cache too before dropping the tracking ref, or the
+		-- doc-level safety net would find it already nil'd and skip it.
+		local dEl = uiState.draggingSliderEl
+		if dEl and dEl ~= element then
+			widgetState.lastAttrValue[dEl.id] = nil
+		end
+		uiState.draggingSlider = nil
+		uiState.draggingSliderEl = nil
+	end, false)
 end
 
 -- Helper: sync slider value from state and flash green if it changed externally
@@ -6651,6 +6685,9 @@ local function wireSliderNumbox(slider, numbox)
 		end
 		local valStr = tostring(val)
 		slider:SetAttribute("value", valStr)
+		-- Keep setAttrValueIfChanged's cache (keyed by element id) coherent so
+		-- the per-frame sync can still snap the slider to its canonical value.
+		widgetState.lastAttrValue[slider.id] = valStr
 		numbox:SetAttribute("value", valStr)
 	end
 
@@ -6759,6 +6796,11 @@ widgetState.regTransports = function(doc)
 				             wrap = (sid:find("rotation") ~= nil),
 				             toggleEl=getCachedEl(doc, sid .. "-transport-toggle"),
 				             groupEl=getCachedEl(doc, sid .. "-transport"),
+				             -- min/max/step cached at creation (never change at runtime,
+				             -- except slider-intensity max — refreshed at its write site).
+				             rmin  = tonumber(slEl:GetAttribute("min"))  or 0,
+				             rmax  = tonumber(slEl:GetAttribute("max"))  or 100,
+				             rstep = tonumber(slEl:GetAttribute("step")) or 1,
 				             toggleVisible=false }
 				widgetState.transports[sid] = ts
 				if ts.toggleEl then
@@ -6847,6 +6889,9 @@ local ctx = {
 	setActiveClass = setActiveClass,
 	trackSliderDrag = trackSliderDrag,
 	syncAndFlash = syncAndFlash,
+	getCachedEl = getCachedEl,
+	setInnerRmlIfChanged = setInnerRmlIfChanged,
+	setAttrValueIfChanged = setAttrValueIfChanged,
 	clearPassthrough = clearPassthrough,
 	WG = WG,
 	-- Constants
@@ -6884,9 +6929,9 @@ local ctx = {
 -- collapsed AND something is engaged. Called from each tool's M.sync.
 ctx.syncWarnChip = function(doc, chipId, sectionId, anyActive)
 	if not doc then return end
-	local sec = doc:GetElementById(sectionId)
+	local sec = getCachedEl(doc, sectionId)
 	local collapsed = sec and sec:IsClassSet("hidden")
-	local chip = doc:GetElementById(chipId)
+	local chip = getCachedEl(doc, chipId)
 	if chip then chip:SetClass("hidden", not (anyActive and collapsed)) end
 end
 
@@ -6943,8 +6988,10 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	if dm and dm.tbGridSnapSizeStr ~= snapSizeStr then dm.tbGridSnapSizeStr = snapSizeStr end
 	local sliSnap = getCachedEl(doc, P.."-slider-grid-snap-size")
 	if sliSnap and uiState.draggingSlider ~= P.."-grid-snap-size" then
-		sliSnap:SetAttribute("value", snapSizeStr)
+		setAttrValueIfChanged(sliSnap, P.."-slider-grid-snap-size", snapSizeStr)
 	end
+	-- NB: numboxes stay unconditional — the per-frame write is what restores
+	-- the text after a rejected (non-numeric) manual edit.
 	local nbSnap = getCachedEl(doc, P.."-slider-grid-snap-size-numbox")
 	if nbSnap then nbSnap:SetAttribute("value", snapSizeStr) end
 
@@ -6959,7 +7006,7 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	if dm and dm.tbAngleSnapStepStr ~= stepStr then dm.tbAngleSnapStepStr = stepStr end
 	local sliStep = getCachedEl(doc, P.."-slider-angle-snap-step")
 	if sliStep and uiState.draggingSlider ~= P.."-angle-snap-step" then
-		sliStep:SetAttribute("value", tostring(curIdx - 1))
+		setAttrValueIfChanged(sliStep, P.."-slider-angle-snap-step", tostring(curIdx - 1))
 	end
 	local nbStep = getCachedEl(doc, P.."-slider-angle-snap-step-numbox")
 	if nbStep then nbStep:SetAttribute("value", stepStr) end
@@ -6969,13 +7016,13 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	if dm and dm.tbSymCountStr ~= countStr then dm.tbSymCountStr = countStr end
 	local countSli = getCachedEl(doc, P.."-slider-symmetry-radial-count")
 	if countSli and uiState.draggingSlider ~= P.."-symmetry-radial-count" then
-		countSli:SetAttribute("value", countStr)
+		setAttrValueIfChanged(countSli, P.."-slider-symmetry-radial-count", countStr)
 	end
 	local angleStr = tostring(math.floor(s.symmetryMirrorAngle or 0))
 	if dm and dm.tbSymAngleStr ~= angleStr then dm.tbSymAngleStr = angleStr end
 	local angleSli = getCachedEl(doc, P.."-slider-symmetry-mirror-angle")
 	if angleSli and uiState.draggingSlider ~= P.."-symmetry-mirror-angle" then
-		angleSli:SetAttribute("value", tostring(s.symmetryMirrorAngle or 0))
+		setAttrValueIfChanged(angleSli, P.."-slider-symmetry-mirror-angle", tostring(s.symmetryMirrorAngle or 0))
 	end
 end
 
@@ -7047,8 +7094,18 @@ local function attachEventListeners()
 		return
 	end
 
-	-- Safety net: clear drag state if mouseup happens anywhere on document
-	doc:AddEventListener("mouseup", function() uiState.draggingSlider = nil end, false)
+	-- Safety net: clear drag state if mouseup happens anywhere on document.
+	-- Also invalidate the dirty-write cache for the dragged slider so the
+	-- first post-drag sync writes through (the drag changed the element's
+	-- value behind setAttrValueIfChanged's back).
+	doc:AddEventListener("mouseup", function()
+		local dEl = uiState.draggingSliderEl
+		if dEl then
+			widgetState.lastAttrValue[dEl.id] = nil
+			uiState.draggingSliderEl = nil
+		end
+		uiState.draggingSlider = nil
+	end, false)
 
 	-- ctx.widget must be set before attachDeclarativeHandlers so bridges work.
 	ctx.widget = widget
@@ -8633,11 +8690,13 @@ function widget:Update()
 	-- Transport auto-scroll tick
 	do
 		local TSPEEDS = {0.005, 0.02, 0.08, 0.25}  -- fraction of range per second at each speed level
-		for _, t in pairs(widgetState.transports) do
+		for tid, t in pairs(widgetState.transports) do
 			if not t.paused then
-				local rmin  = tonumber(t.el:GetAttribute("min"))  or 0
-				local rmax  = tonumber(t.el:GetAttribute("max"))  or 100
-				local rstep = tonumber(t.el:GetAttribute("step")) or 1
+				-- min/max/step cached at transport creation (see regTransports);
+				-- slider-intensity max refreshes the cache where it is written.
+				local rmin  = t.rmin
+				local rmax  = t.rmax
+				local rstep = t.rstep
 				-- directional scroll
 				if t.dir ~= 0 then
 					local rate  = (TSPEEDS[t.speed] or 0.005) * (rmax - rmin) * t.dir
@@ -8654,7 +8713,12 @@ function widget:Update()
 							nv = math.max(rmin, math.min(rmax, cur + delta))
 						end
 						if cur ~= nv then
-							t.el:SetAttribute("value", tostring(nv))
+							local nvStr = tostring(nv)
+							t.el:SetAttribute("value", nvStr)
+							-- Transports are keyed by element id: keep the
+							-- setAttrValueIfChanged cache coherent so syncs
+							-- can still snap the value back when needed.
+							widgetState.lastAttrValue[tid] = nvStr
 						end
 					end
 				end
@@ -8766,11 +8830,11 @@ function widget:Update()
 		elseif dfpActive then tool = "diff"
 		end
 		if widgetState.dmHandle then
-			widgetState.dmHandle.activeTool = tool
+			if widgetState.dmHandle.activeTool ~= tool then widgetState.dmHandle.activeTool = tool end
 			-- Mutual exclusion: terrain row (activeMode) and tools row (activeTool) share the
 			-- .active visual; only one button across both rows should highlight. When a non-tf
 			-- tool is active, clear activeMode so the stale terrain-mode highlight drops.
-			if tool ~= "" then widgetState.dmHandle.activeMode = "" end
+			if tool ~= "" and widgetState.dmHandle.activeMode ~= "" then widgetState.dmHandle.activeMode = "" end
 		end
 	end
 	if not spActive then widgetState.splatTexOpen = false end
@@ -8778,10 +8842,11 @@ function widget:Update()
 	do
 		local dm = widgetState.dmHandle
 		if dm then
-			dm.splatTexVisible = spActive and (widgetState.splatTexOpen or false)
+			local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
+			setDm("splatTexVisible", spActive and (widgetState.splatTexOpen or false))
 			local showTransforms = clActive and clState and (clState.state == "paste_preview" or clState.state == "copied")
-			dm.clonePasteTransformsVisible = showTransforms and true or false
-			dm.skyboxLibraryVisible = envActive and (widgetState.skyboxLibraryOpen or false)
+			setDm("clonePasteTransformsVisible", showTransforms and true or false)
+			setDm("skyboxLibraryVisible", envActive and (widgetState.skyboxLibraryOpen or false))
 			-- env sub-windows
 			if not envActive then
 				widgetState.envSunOpen = false
@@ -8792,13 +8857,13 @@ function widget:Update()
 				widgetState.envWaterOpen = false
 				widgetState.envDimensionsOpen = false
 			end
-			dm.envSunVisible            = envActive and (widgetState.envSunOpen or false)
-			dm.envFogVisible            = envActive and (widgetState.envFogOpen or false)
-			dm.envGroundLightingVisible = envActive and (widgetState.envGroundLightingOpen or false)
-			dm.envUnitLightingVisible   = envActive and (widgetState.envUnitLightingOpen or false)
-			dm.envMapVisible            = envActive and (widgetState.envMapOpen or false)
-			dm.envWaterVisible          = envActive and (widgetState.envWaterOpen or false)
-			dm.envDimensionsVisible     = envActive and (widgetState.envDimensionsOpen or false)
+			setDm("envSunVisible",            envActive and (widgetState.envSunOpen or false))
+			setDm("envFogVisible",            envActive and (widgetState.envFogOpen or false))
+			setDm("envGroundLightingVisible", envActive and (widgetState.envGroundLightingOpen or false))
+			setDm("envUnitLightingVisible",   envActive and (widgetState.envUnitLightingOpen or false))
+			setDm("envMapVisible",            envActive and (widgetState.envMapOpen or false))
+			setDm("envWaterVisible",          envActive and (widgetState.envWaterOpen or false))
+			setDm("envDimensionsVisible",     envActive and (widgetState.envDimensionsOpen or false))
 			-- light library already driven by dm.lpLibraryOpen in tf_lights; just reset widgetState when tool inactive
 			if not lpActive and widgetState.lightLibraryOpen then
 				widgetState.lightLibraryOpen = false
@@ -8807,15 +8872,15 @@ function widget:Update()
 			-- shape row: hidden for env/clone/startpos/weather (weather has no shape picker)
 			local hideShape = envActive or clActive or stpActive or wbActive
 				or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
-			dm.tfShapeRowVisible = not hideShape
+			setDm("tfShapeRowVisible", not hideShape)
 			-- smooth submodes: visible only in smooth/level terraform mode
 			local otherToolActive = fpActive or wbActive or spActive or mbActive or gbActive
 				or envActive or lpActive or stpActive or clActive or decalsActive
 			local inSmoothGroup = tfActive and tfState and (tfState.mode == "smooth" or tfState.mode == "level")
-			dm.tfSmoothSubmodesVisible = not otherToolActive and inSmoothGroup and true or false
+			setDm("tfSmoothSubmodesVisible", not otherToolActive and inSmoothGroup and true or false)
 			-- clay/full-restore visibility
 			local inTfRestore = tfActive and tfState and tfState.mode == "restore"
-			dm.tfInRestore = inTfRestore and true or false
+			setDm("tfInRestore", inTfRestore and true or false)
 		end
 	end
 	end -- if panelVisible
@@ -8829,7 +8894,8 @@ function widget:Update()
 	end
 	widgetState.lastNoiseActive = noiseActive
 	if widgetState.dmHandle then
-		widgetState.dmHandle.noiseWindowVisible = noiseActive and not widgetState.noiseManuallyHidden
+		local v = noiseActive and not widgetState.noiseManuallyHidden
+		if widgetState.dmHandle.noiseWindowVisible ~= v then widgetState.dmHandle.noiseWindowVisible = v end
 	end
 
 	-- Disable ring shape when in feature, weather, splat, metal, or light mode
@@ -8915,7 +8981,7 @@ function widget:Update()
 				buf[#buf + 1] = '<span class="tf-ss-label">' .. label .. '</span><span class="tf-ss-val">' .. value .. '</span>'
 			end
 		end
-		sumEl.inner_rml = table.concat(buf)
+		setInnerRmlIfChanged(sumEl, "status-summary", table.concat(buf))
 	end
 
 	-- Tool button .active class is driven by data-class-active="activeTool == '<code>'" in RML.
@@ -8928,8 +8994,8 @@ function widget:Update()
 			local hideShape2 = envActive or clActive or stpActive or wbActive
 				or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
 			if widgetState.dmHandle then
-				widgetState.dmHandle.tfRampMode = false
-				widgetState.dmHandle.tfShapeRowVisible = not hideShape2
+				if widgetState.dmHandle.tfRampMode ~= false then widgetState.dmHandle.tfRampMode = false end
+				if widgetState.dmHandle.tfShapeRowVisible ~= not hideShape2 then widgetState.dmHandle.tfShapeRowVisible = not hideShape2 end
 			end
 		end
 
@@ -9003,12 +9069,10 @@ function widget:Update()
 				local drag = uiS.draggingSlider
 				local function ss(sid, val)
 					if drag == sid then return end
-					local el = getCE(docc, sid)
-					if el then el:SetAttribute("value", tostring(val)) end
+					setAttrValueIfChanged(getCE(docc, sid), sid, tostring(val))
 				end
 				local function sl(id, text)
-					local el = getCE(docc, id)
-					if el then el.inner_rml = text end
+					setInnerRmlIfChanged(getCE(docc, id), id, text)
 				end
 				-- Size (slider value = radius)
 				local sv = math.floor(wbs.radius)
@@ -9134,7 +9198,14 @@ function widget:Update()
 			do
 				local elIntensity = getCachedEl(doc, "slider-intensity")
 				if elIntensity then
-					elIntensity:SetAttribute("max", tostring(intensityToSlider(effectiveMaxIntensity)))
+					local maxStr = tostring(intensityToSlider(effectiveMaxIntensity))
+					if widgetState.lastAttrValue["slider-intensity@max"] ~= maxStr then
+						widgetState.lastAttrValue["slider-intensity@max"] = maxStr
+						elIntensity:SetAttribute("max", maxStr)
+						-- Keep the transport range cache coherent (see regTransports).
+						local tIntensity = widgetState.transports["slider-intensity"]
+						if tIntensity then tIntensity.rmax = tonumber(maxStr) or 100 end
+					end
 				end
 				local penEnabled = state.penPressureEnabled == true
 				local penActive = penEnabled and state.penInContact and state.penPressureModulateIntensity
@@ -9167,15 +9238,24 @@ function widget:Update()
 			if ringWidthRowEl then
 				-- keep for cache; visibility driven by dm.tfRingVisible
 			end
-			if widgetState.dmHandle then widgetState.dmHandle.tfRingVisible = (state.shape == "ring") end
+			if widgetState.dmHandle then
+				local v = (state.shape == "ring")
+				if widgetState.dmHandle.tfRingVisible ~= v then widgetState.dmHandle.tfRingVisible = v end
+			end
 			-- Sync ringWidthPct from widget state (e.g. changed by Ctrl+R scroll)
 			if state.ringInnerRatio then
 				ringWidthPct = math.floor((1 - state.ringInnerRatio) * 100 + 0.5)
 			end
 			syncAndFlash(getCachedEl(doc, "slider-ring-width"), "ring-width", tostring(ringWidthPct))
-			if widgetState.dmHandle then widgetState.dmHandle.tfRingWidthStr = tostring(ringWidthPct) .. "%" end
+			if widgetState.dmHandle then
+				local v = tostring(ringWidthPct) .. "%"
+				if widgetState.dmHandle.tfRingWidthStr ~= v then widgetState.dmHandle.tfRingWidthStr = v end
+			end
 
-			if widgetState.dmHandle then widgetState.dmHandle.tfInRestore = (state.mode == "restore") end
+			if widgetState.dmHandle then
+				local v = (state.mode == "restore")
+				if widgetState.dmHandle.tfInRestore ~= v then widgetState.dmHandle.tfInRestore = v end
+			end
 			local restoreStrengthRow = getCachedEl(doc, "restore-strength-row")
 			if restoreStrengthRow then
 				-- visibility driven by dm.tfInRestore
@@ -9184,7 +9264,10 @@ function widget:Update()
 			if sliderRestoreStrength and ds ~= "restoreStrength" then
 				sliderRestoreStrength:SetAttribute("value", tostring(math.floor((state.restoreStrength or 1.0) * 100 + 0.5)))
 			end
-			if widgetState.dmHandle then widgetState.dmHandle.tfRestoreStrengthStr = tostring(math.floor((state.restoreStrength or 1.0) * 100 + 0.5)) .. "%" end
+			if widgetState.dmHandle then
+				local v = tostring(math.floor((state.restoreStrength or 1.0) * 100 + 0.5)) .. "%"
+				if widgetState.dmHandle.tfRestoreStrengthStr ~= v then widgetState.dmHandle.tfRestoreStrengthStr = v end
+			end
 
 			local sliderCapMax = getCachedEl(doc, "slider-cap-max")
 			if sliderCapMax and ds ~= "capmax" then
@@ -9219,7 +9302,10 @@ function widget:Update()
 			if snapSizeRow then
 				-- visibility driven by dm.tfGridSnap
 			end
-			if widgetState.dmHandle then widgetState.dmHandle.tfGridSnap = state.gridSnap and true or false end
+			if widgetState.dmHandle then
+				local v = state.gridSnap and true or false
+				if widgetState.dmHandle.tfGridSnap ~= v then widgetState.dmHandle.tfGridSnap = v end
+			end
 			local sliderSnapSizeSync = getCachedEl(doc, "slider-grid-snap-size")
 			if sliderSnapSizeSync and uiState.draggingSlider ~= "tf-grid-snap-size" then
 				sliderSnapSizeSync:SetAttribute("value", tostring(state.gridSnapSize or 48))
@@ -9238,7 +9324,10 @@ function widget:Update()
 			if angleStepRow then
 				-- visibility driven by dm.tfAngleSnap
 			end
-			if widgetState.dmHandle then widgetState.dmHandle.tfAngleSnap = state.angleSnap and true or false end
+			if widgetState.dmHandle then
+				local v = state.angleSnap and true or false
+				if widgetState.dmHandle.tfAngleSnap ~= v then widgetState.dmHandle.tfAngleSnap = v end
+			end
 			local ANGLE_PRESETS_SYNC = {7.5, 15, 30, 45, 60, 90}
 			local function findAnglePresetIdxSync(val)
 				local best, bestD = 1, math.huge
@@ -9266,7 +9355,7 @@ function widget:Update()
 			-- Autosnap toggle + manual spoke sync
 			do
 				local isAuto = state.angleSnapAuto ~= false
-				if widgetState.dmHandle then widgetState.dmHandle.tfAngleSnapAuto = isAuto end
+				if widgetState.dmHandle and widgetState.dmHandle.tfAngleSnapAuto ~= isAuto then widgetState.dmHandle.tfAngleSnapAuto = isAuto end
 				if not isAuto then
 					local step2 = state.angleSnapStep or 15
 					local numSpokes2 = math.max(1, math.floor(360 / step2))
@@ -9321,7 +9410,10 @@ function widget:Update()
 			if measureToolRow then
 				-- visibility driven by dm.tfMeasureActive
 			end
-			if widgetState.dmHandle then widgetState.dmHandle.tfMeasureActive = state.measureActive and true or false end
+			if widgetState.dmHandle then
+				local v = state.measureActive and true or false
+				if widgetState.dmHandle.tfMeasureActive ~= v then widgetState.dmHandle.tfMeasureActive = v end
+			end
 			if dm then
 				dm.tfMeasureRuler = state.measureRulerMode == true
 				dm.tfMeasureSticky = state.measureStickyMode == true
@@ -9346,10 +9438,11 @@ function widget:Update()
 				local hasAxial = state.symmetryMirrorX or state.symmetryMirrorY
 				if widgetState.dmHandle then
 					local dm = widgetState.dmHandle
-					dm.tfSymmetryActive = state.symmetryActive and true or false
-					dm.tfSymmetryRadial = state.symmetryRadial and true or false
-					dm.tfSymmetryMirrorAny = hasAxial and true or false
-					dm.tfSymHasAxis = (state.symmetryRadial or state.symmetryMirrorX or state.symmetryMirrorY) and true or false
+					local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
+					setDm("tfSymmetryActive", state.symmetryActive and true or false)
+					setDm("tfSymmetryRadial", state.symmetryRadial and true or false)
+					setDm("tfSymmetryMirrorAny", hasAxial and true or false)
+					setDm("tfSymHasAxis", (state.symmetryRadial or state.symmetryMirrorX or state.symmetryMirrorY) and true or false)
 				end
 			end
 			if dustEl then
@@ -9396,8 +9489,10 @@ function widget:Update()
 				if dm then dm.tfPenSizeActive = showSize end
 				_noDmLabel("tfPenSizeStr", pctStr)
 				if widgetState.dmHandle then
-					widgetState.dmHandle.tfPenIntVisible = showInt and true or false
-					widgetState.dmHandle.tfPenSizeVisible = showSize and true or false
+					local vi = showInt and true or false
+					if widgetState.dmHandle.tfPenIntVisible ~= vi then widgetState.dmHandle.tfPenIntVisible = vi end
+					local vs = showSize and true or false
+					if widgetState.dmHandle.tfPenSizeVisible ~= vs then widgetState.dmHandle.tfPenSizeVisible = vs end
 				end
 
 				-- Pen pressure labels only (no slider movement to avoid feedback loops)
@@ -9445,22 +9540,23 @@ function widget:Update()
 		local dm = widgetState.dmHandle
 		do
 			local primaryKey = (state.mode == "level") and "smooth" or state.mode
-			if dm then dm.activeMode = primaryKey end
+			if dm and dm.activeMode ~= primaryKey then dm.activeMode = primaryKey end
 		end
-		if dm then dm.activeShape = state.shape end
+		if dm and dm.activeShape ~= state.shape then dm.activeShape = state.shape end
 
 		-- Smooth/Level submode active chip sync (visibility handled below, after tool-active checks)
 		do
 			local inSmoothGroup = state.mode == "smooth" or state.mode == "level"
-			if dm then dm.activeSmoothMode = (inSmoothGroup and state.mode) or "" end
+			local v = (inSmoothGroup and state.mode) or ""
+			if dm and dm.activeSmoothMode ~= v then dm.activeSmoothMode = v end
 		end
 
 		-- Show ramp-type-row when in ramp mode; hide normal shape row
 		do
 			local isRamp = state.mode == "ramp"
 			if widgetState.dmHandle then
-				widgetState.dmHandle.tfRampMode = isRamp
-				widgetState.dmHandle.tfShapeRowVisible = not isRamp
+				if widgetState.dmHandle.tfRampMode ~= isRamp then widgetState.dmHandle.tfRampMode = isRamp end
+				if widgetState.dmHandle.tfShapeRowVisible ~= not isRamp then widgetState.dmHandle.tfShapeRowVisible = not isRamp end
 			end
 		end
 		-- Ramp type active state driven by dm.activeShape (data-class-active in RML)
@@ -9498,13 +9594,13 @@ function widget:Update()
 					parts[#parts + 1] = sep
 					parts[#parts + 1] = lv("Str ", tostring(math.floor((state.restoreStrength or 1) * 100 + 0.5)) .. "%")
 				end
-				sumEl.inner_rml = table.concat(parts)
+				setInnerRmlIfChanged(sumEl, "status-summary", table.concat(parts))
 			end
 		end
 
 		-- Sync noise type buttons when in noise mode
 		if state.mode == "noise" and state.noiseType then
-			if dm then dm.noiseType = state.noiseType end
+			if dm and dm.noiseType ~= state.noiseType then dm.noiseType = state.noiseType end
 
 			-- Sync noise sliders from state (handles preset loads, keyboard changes, etc.)
 			uiState.updatingFromCode = true
@@ -9514,31 +9610,31 @@ function widget:Update()
 			if noiseSliderScale and ds ~= "noise-scale" then
 				noiseSliderScale:SetAttribute("value", tostring(state.noiseScale))
 			end
-			if dm then dm.nsScaleStr = tostring(state.noiseScale) end
+			if dm then local v = tostring(state.noiseScale); if dm.nsScaleStr ~= v then dm.nsScaleStr = v end end
 
 			local noiseSliderOctaves = getCachedEl(doc, "slider-noise-octaves")
 			if noiseSliderOctaves and ds ~= "noise-octaves" then
 				noiseSliderOctaves:SetAttribute("value", tostring(state.noiseOctaves))
 			end
-			if dm then dm.nsOctavesStr = tostring(state.noiseOctaves) end
+			if dm then local v = tostring(state.noiseOctaves); if dm.nsOctavesStr ~= v then dm.nsOctavesStr = v end end
 
 			local noiseSliderPersist = getCachedEl(doc, "slider-noise-persistence")
 			if noiseSliderPersist and ds ~= "noise-persistence" then
 				noiseSliderPersist:SetAttribute("value", tostring(math.floor(state.noisePersistence * 100 + 0.5)))
 			end
-			if dm then dm.nsPersistenceStr = string.format("%.2f", state.noisePersistence) end
+			if dm then local v = string.format("%.2f", state.noisePersistence); if dm.nsPersistenceStr ~= v then dm.nsPersistenceStr = v end end
 
 			local noiseSliderLacun = getCachedEl(doc, "slider-noise-lacunarity")
 			if noiseSliderLacun and ds ~= "noise-lacunarity" then
 				noiseSliderLacun:SetAttribute("value", tostring(math.floor(state.noiseLacunarity * 10 + 0.5)))
 			end
-			if dm then dm.nsLacunarityStr = string.format("%.1f", state.noiseLacunarity) end
+			if dm then local v = string.format("%.1f", state.noiseLacunarity); if dm.nsLacunarityStr ~= v then dm.nsLacunarityStr = v end end
 
 			local noiseSliderSeed = getCachedEl(doc, "slider-noise-seed")
 			if noiseSliderSeed and ds ~= "noise-seed" then
 				noiseSliderSeed:SetAttribute("value", tostring(state.noiseSeed))
 			end
-			if dm then dm.nsSeedStr = tostring(state.noiseSeed) end
+			if dm then local v = tostring(state.noiseSeed); if dm.nsSeedStr ~= v then dm.nsSeedStr = v end end
 
 			uiState.updatingFromCode = false
 		end
@@ -9644,7 +9740,8 @@ function widget:Update()
 		local sumEl2 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
 		if sumEl2 then
 			local sep = '<span class="tf-ss-sep">|</span>'
-			sumEl2.inner_rml = '<span class="tf-ss-mode tf-ss-pulse" style="color: #10b981;">GRASS</span>' .. sep .. '<span class="tf-ss-val tf-ss-pulse" style="color: #fbbf24;">No grass data for this map</span>'
+			setInnerRmlIfChanged(sumEl2, "status-summary",
+				'<span class="tf-ss-mode tf-ss-pulse" style="color: #10b981;">GRASS</span>' .. sep .. '<span class="tf-ss-val tf-ss-pulse" style="color: #fbbf24;">No grass data for this map</span>')
 		end
 	end
 	-- Reactive refresh of section warn chips after state sync
@@ -9710,7 +9807,11 @@ function widget:MouseWheel(up, value)
 		local wheelStep = math.max(step, math.floor(range * 0.02 / step + 0.5) * step)
 		local delta = up and wheelStep or -wheelStep
 		local newVal = math.max(min, math.min(max, cur + delta))
-		element:SetAttribute("value", tostring(newVal))
+		local newValStr = tostring(newVal)
+		element:SetAttribute("value", newValStr)
+		-- Keep the setAttrValueIfChanged cache coherent (keyed by element id;
+		-- `id` here is the drag-tracking id, which can differ).
+		widgetState.lastAttrValue[element.id] = newValStr
 	end
 	return true
 end
@@ -9797,6 +9898,8 @@ function widget:Shutdown()
 	widgetState.lastInnerRml = {}
 	widgetState.lastAttrValue = {}
 	widgetState.prevSyncValues = {}
+	uiState.draggingSlider = nil
+	uiState.draggingSliderEl = nil
 
 	if widgetState.rmlContext then
 		widgetState.rmlContext:RemoveDataModel(MODEL_NAME)

@@ -54,11 +54,12 @@ function M.sync(doc, ctx, clState, setSummary)
 					local v = tostring(math.floor(clState.pasteRotation)) .. "\194\176"
 					if widgetState.dmHandle.clRotationStr ~= v then widgetState.dmHandle.clRotationStr = v end
 				end
-				local rotSl = doc:GetElementById("slider-cl-rotation")
+				local getCachedEl = ctx.getCachedEl
+				local rotSl = getCachedEl(doc, "slider-cl-rotation")
 				if rotSl and ds ~= "cl-rotation" and clState then
 					rotSl:SetAttribute("value", tostring(math.floor(clState.pasteRotation)))
 				end
-				local rotNumbox = doc:GetElementById("slider-cl-rotation-numbox")
+				local rotNumbox = getCachedEl(doc, "slider-cl-rotation-numbox")
 				if rotNumbox and ds ~= "cl-rotation" and clState then
 					rotNumbox:SetAttribute("value", tostring(math.floor(clState.pasteRotation)))
 				end
@@ -66,11 +67,11 @@ function M.sync(doc, ctx, clState, setSummary)
 					local v = tostring(math.floor(clState.pasteHeightOffset))
 					if widgetState.dmHandle.clHeightStr ~= v then widgetState.dmHandle.clHeightStr = v end
 				end
-				local heightSl = doc:GetElementById("slider-cl-height")
+				local heightSl = getCachedEl(doc, "slider-cl-height")
 				if heightSl and ds ~= "cl-height" and clState then
 					heightSl:SetAttribute("value", tostring(math.floor(clState.pasteHeightOffset)))
 				end
-				local heightNumbox = doc:GetElementById("slider-cl-height-numbox")
+				local heightNumbox = getCachedEl(doc, "slider-cl-height-numbox")
 				if heightNumbox and ds ~= "cl-height" and clState then
 					heightNumbox:SetAttribute("value", tostring(math.floor(clState.pasteHeightOffset)))
 				end
@@ -105,7 +106,7 @@ function M.sync(doc, ctx, clState, setSummary)
 				end
 
 				-- Sync history slider
-				local sliderClHist = doc:GetElementById("slider-cl-history")
+				local sliderClHist = getCachedEl(doc, "slider-cl-history")
 				if sliderClHist and ds ~= "cl-history" and clState then
 					local totalSteps = (clState.undoCount or 0) + (clState.redoCount or 0)
 					local maxVal = math.min(totalSteps, 400)

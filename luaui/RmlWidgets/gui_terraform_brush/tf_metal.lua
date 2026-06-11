@@ -27,6 +27,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local syncAndFlash = ctx.syncAndFlash
+	local getCachedEl = ctx.getCachedEl
 	local WG = ctx.WG
 	local dm = widgetState.dmHandle
 
@@ -42,27 +43,31 @@ function M.sync(doc, ctx, mbState, setSummary)
 	end
 
 	-- Metal sub-mode buttons (driven by dm.mbSubMode via data-class-active)
-	if widgetState.dmHandle then widgetState.dmHandle.mbSubMode = mbState.subMode or "paint" end
+	if dm then
+		local sm = mbState.subMode or "paint"
+		if dm.mbSubMode ~= sm then dm.mbSubMode = sm end
+	end
 
 	-- Instruments sub-row visibility flags (data-if driven) + chip active states (data-class-active)
 	do
 		local s = WG.TerraformBrush and WG.TerraformBrush.getState and WG.TerraformBrush.getState()
 		if dm and s then
-			dm.mbGridSnap        = s.gridSnap and true or false
-			dm.mbAngleSnap       = s.angleSnap and true or false
-			dm.mbMeasureActive   = s.measureActive and true or false
-			dm.mbSymmetryActive  = s.symmetryActive and true or false
-			dm.mbSymmetryRadial  = s.symmetryRadial and true or false
-			dm.mbSymmetryMirrorAny = (s.symmetryMirrorX or s.symmetryMirrorY) and true or false
-			dm.mbSymHasAxis = (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false
-			dm.mbAngleSnapAuto   = s.angleSnapAuto and true or false
-			dm.mbGridOverlay     = s.gridOverlay and true or false
-			dm.mbHeightColormap  = s.heightColormap and true or false
-			dm.mbSymMirrorX      = s.symmetryMirrorX and true or false
-			dm.mbSymMirrorY      = s.symmetryMirrorY and true or false
-			dm.mbMeasureRulerMode  = s.measureRulerMode and true or false
-			dm.mbMeasureStickyMode = s.measureStickyMode and true or false
-			dm.mbMeasureShowLength = s.measureShowLength and true or false
+			local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
+			setDm("mbGridSnap",        s.gridSnap and true or false)
+			setDm("mbAngleSnap",       s.angleSnap and true or false)
+			setDm("mbMeasureActive",   s.measureActive and true or false)
+			setDm("mbSymmetryActive",  s.symmetryActive and true or false)
+			setDm("mbSymmetryRadial",  s.symmetryRadial and true or false)
+			setDm("mbSymmetryMirrorAny", (s.symmetryMirrorX or s.symmetryMirrorY) and true or false)
+			setDm("mbSymHasAxis", (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false)
+			setDm("mbAngleSnapAuto",   s.angleSnapAuto and true or false)
+			setDm("mbGridOverlay",     s.gridOverlay and true or false)
+			setDm("mbHeightColormap",  s.heightColormap and true or false)
+			setDm("mbSymMirrorX",      s.symmetryMirrorX and true or false)
+			setDm("mbSymMirrorY",      s.symmetryMirrorY and true or false)
+			setDm("mbMeasureRulerMode",  s.measureRulerMode and true or false)
+			setDm("mbMeasureStickyMode", s.measureStickyMode and true or false)
+			setDm("mbMeasureShowLength", s.measureShowLength and true or false)
 		end
 		-- data-class-active bindings in RML drive active state for all chips above.
 	end
@@ -79,7 +84,7 @@ function M.sync(doc, ctx, mbState, setSummary)
 		do
 			local mv = math.max(0.01, mbState.metalValue)
 			local sv = math.floor(1000 * math.log(mv / 0.01) / math.log(50.0 / 0.01) + 0.5)
-			syncAndFlash(doc:GetElementById("slider-metal-value"), "mb-value", tostring(sv))
+			syncAndFlash(getCachedEl(doc, "slider-metal-value"), "mb-value", tostring(sv))
 		end
 
 		-- Sync size, rotation, length, curve from shared terraform state
@@ -89,32 +94,32 @@ if dm then
 				local v = tostring(tfSt2.radius)
 				if dm.mbSizeStr ~= v then dm.mbSizeStr = v end
 			end
-			syncAndFlash(doc:GetElementById("slider-mb-size"), "mb-size", tostring(tfSt2.radius))
+			syncAndFlash(getCachedEl(doc, "slider-mb-size"), "mb-size", tostring(tfSt2.radius))
 
 if dm then
 				local v = tostring(tfSt2.rotationDeg) .. "\194\176"
 				if dm.mbRotStr ~= v then dm.mbRotStr = v end
 			end
-			syncAndFlash(doc:GetElementById("slider-mb-rotation"), "mb-rotation", tostring(tfSt2.rotationDeg))
+			syncAndFlash(getCachedEl(doc, "slider-mb-rotation"), "mb-rotation", tostring(tfSt2.rotationDeg))
 
 if dm then
 				local v = string.format("%.1f", tfSt2.lengthScale)
 				if dm.mbLengthStr ~= v then dm.mbLengthStr = v end
 			end
-			syncAndFlash(doc:GetElementById("slider-mb-length"), "mb-length", tostring(math.floor(tfSt2.lengthScale * 10 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "slider-mb-length"), "mb-length", tostring(math.floor(tfSt2.lengthScale * 10 + 0.5)))
 
 
 			if dm then
 				local v = string.format("%.1f", tfSt2.curve)
 				if dm.mbCurveStr ~= v then dm.mbCurveStr = v end
 			end
-			syncAndFlash(doc:GetElementById("slider-mb-curve"), "mb-curve", tostring(math.floor(tfSt2.curve * 10 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "slider-mb-curve"), "mb-curve", tostring(math.floor(tfSt2.curve * 10 + 0.5)))
 		end
 		-- Symmetry count + angle slider sync (labels driven by dm.tbSymCountStr/tbSymAngleStr via syncTBMirrorControls)
 		local symSt = WG.TerraformBrush and WG.TerraformBrush.getState()
 		if symSt then
-			syncAndFlash(doc:GetElementById("mb-slider-symmetry-radial-count"), "mb-symmetry-radial-count", tostring(symSt.symmetryRadialCount or 2))
-			syncAndFlash(doc:GetElementById("mb-slider-symmetry-mirror-angle"), "mb-symmetry-mirror-angle", tostring(symSt.symmetryMirrorAngle or 0))
+			syncAndFlash(getCachedEl(doc, "mb-slider-symmetry-radial-count"), "mb-symmetry-radial-count", tostring(symSt.symmetryRadialCount or 2))
+			syncAndFlash(getCachedEl(doc, "mb-slider-symmetry-mirror-angle"), "mb-symmetry-mirror-angle", tostring(symSt.symmetryMirrorAngle or 0))
 		end
 
 		uiState.updatingFromCode = false
@@ -122,8 +127,9 @@ if dm then
 
 	-- Shape: use terraform brush shape (shared)
 	local tfSt = WG.TerraformBrush and WG.TerraformBrush.getState()
-	if tfSt then
-		if widgetState.dmHandle then widgetState.dmHandle.activeShape = tfSt.shape or "circle" end
+	if tfSt and dm then
+		local shp = tfSt.shape or "circle"
+		if dm.activeShape ~= shp then dm.activeShape = shp end
 	end
 
 	-- P3.2 Metal grayouts (per Phase 3 relevance matrix)
@@ -173,12 +179,13 @@ if dm then
 		widgetState.mbInspectorOpen = inspectorOpen and true or false
 		-- Map analysis sub-row visibility + chip active states driven by data model
 		if dm then
-			dm.mbInspectorOpen = inspectorOpen and true or false
-			dm.mbClusterOpen   = mbState.clusterCounter and true or false
-			dm.mbLassoOpen     = (mbState.lassoActive or mbState.lassoClosed) and true or false
-			dm.mbAxisOpen      = mbState.balanceAxisActive and true or false
-			dm.mbMapOverlay    = mbState.mapOverlay and true or false
-			dm.mbLassoActive   = mbState.lassoActive and true or false
+			local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
+			setDm("mbInspectorOpen", inspectorOpen and true or false)
+			setDm("mbClusterOpen",   mbState.clusterCounter and true or false)
+			setDm("mbLassoOpen",     (mbState.lassoActive or mbState.lassoClosed) and true or false)
+			setDm("mbAxisOpen",      mbState.balanceAxisActive and true or false)
+			setDm("mbMapOverlay",    mbState.mapOverlay and true or false)
+			setDm("mbLassoActive",   mbState.lassoActive and true or false)
 		end
 		-- Labels driven by {{mbClusterRadiusStr}}/{{mbAxisAngleStr}}/{{mbAxisAStr}}/{{mbAxisBStr}}/{{mbAxisBalanceStr}}/{{mbLassoTotalStr}} in RML.
 		if dm then
@@ -207,9 +214,9 @@ if dm then
 			end
 		end
 		uiState.updatingFromCode = true
-		local clRadSlider = doc:GetElementById("mb-slider-cluster-radius")
+		local clRadSlider = getCachedEl(doc, "mb-slider-cluster-radius")
 		if clRadSlider then syncAndFlash(clRadSlider, "mb-cluster-radius", tostring(mbState.clusterRadius or 256)) end
-		local axisSlider = doc:GetElementById("mb-slider-axis-angle")
+		local axisSlider = getCachedEl(doc, "mb-slider-axis-angle")
 		if axisSlider then syncAndFlash(axisSlider, "mb-axis-angle", tostring(math.floor((mbState.balanceAxisAngleDeg or 0) + 0.5))) end
 		uiState.updatingFromCode = false
 	end

@@ -179,6 +179,12 @@ local compositorShader = nil
 local stampShader      = nil
 local copyShader       = nil
 
+-- Reusable ping-pong scratch textures keyed by size (TILE_PX / MASK_PX).
+-- Both the compositor and stamp passes overwrite every texel of the temp
+-- target (full-quad TexRect with blending off), so previous contents never
+-- leak through and one cached texture per size is safe to reuse.
+local scratchTex = {}
+
 local uComp = {} -- uniform locations on compositorShader
 local uStamp = {}
 
@@ -228,6 +234,18 @@ local function getWorldMousePosition()
 	local _, pos = TraceScreenRay(mx, my, true)
 	if pos then return pos[1], pos[3] end
 	return nil, nil
+end
+
+local function getScratchTex(px)
+	local tex = scratchTex[px]
+	if tex then return tex end
+	tex = glCreateTexture(px, px, {
+		border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true, format = GL.RGBA8,
+	})
+	scratchTex[px] = tex
+	return tex
 end
 
 local function findLayer(id)
@@ -780,11 +798,7 @@ local function bakeSquare(s)
 				maskTex = ensureLayerMaskTex(layer.id, key)
 			end
 
-			local tempTex = glCreateTexture(TILE_PX, TILE_PX, {
-				border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-				wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
-				fbo = true, format = GL.RGBA8,
-			})
+			local tempTex = getScratchTex(TILE_PX)
 			if tempTex then
 				glRenderToTexture(tempTex, function()
 					glBlending(false)
@@ -856,8 +870,6 @@ local function bakeSquare(s)
 					glUseShader(0)
 					glBlending(true)
 				end)
-
-				glDeleteTexture(tempTex)
 			end
 		end
 	end
@@ -904,11 +916,7 @@ local function executeStroke(wx, wz, layerId, erase)
 			local maskTex = ensureLayerMaskTex(layerId, key)
 			if maskTex then
 				-- Ping-pong stamp: write to temp, copy back
-				local tempMask = glCreateTexture(MASK_PX, MASK_PX, {
-					border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-					wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
-					fbo = true, format = GL.RGBA8,
-				})
+				local tempMask = getScratchTex(MASK_PX)
 				if tempMask then
 					local squareOriginX = sx * SQUARE_SIZE_ELMOS
 					local squareOriginZ = sy * SQUARE_SIZE_ELMOS
@@ -976,7 +984,6 @@ local function executeStroke(wx, wz, layerId, erase)
 						glUseShader(0)
 						glBlending(true)
 					end)
-					glDeleteTexture(tempMask)
 				end
 				dirtySquares[key] = true
 			end
@@ -1306,6 +1313,8 @@ function widget:Shutdown()
 		for _, maskTex in pairs(layerMasks) do glDeleteTexture(maskTex) end
 	end
 	masks = {}
+	for _, tex in pairs(scratchTex) do glDeleteTexture(tex) end
+	scratchTex = {}
 	destroyShaders()
 	widgetHandler:RemoveAction("diffusepaint")
 	widgetHandler:RemoveAction("diffusepaintoff")

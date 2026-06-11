@@ -700,6 +700,7 @@ local function removePersistentSpawnersInArea(cx, cz, radius, shape, angleDeg, l
 end
 
 local function updatePersistentSpawners()
+	if next(wb.persistentSpawners) == nil then return end
 	local frame = GetGameFrame()
 	local frameRate = Game.gameSpeed
 	local expired = {}

@@ -2258,6 +2258,9 @@ function widget:DrawWorld()
 	local phase = drawFrame * 0.04  -- ~2.4 rad/sec @ 60fps
 
 	local wx, wz = getWorldMousePosition()
+	-- Share this draw pass's mouse trace with DrawScreenEffects via the widget
+	-- table: DrawWorld is at LuaJIT's 60-upvalue limit, so no new module locals.
+	self.frameTraceX, self.frameTraceZ, self.frameTraceDF = wx, wz, drawFrame
 	do
 		local tb2 = WG.TerraformBrush
 		local st2 = tb2 and tb2.getState and tb2.getState()
@@ -2809,7 +2812,14 @@ function widget:DrawScreenEffects()
 
 	-- Shape preview small badges
 	if subMode == "shape" then
-		local wx, wz = getWorldMousePosition()
+		-- Reuse DrawWorld's mouse trace from this draw pass when available
+		-- (read via self/Spring globals: this function is near the upvalue limit)
+		local wx, wz
+		if self.frameTraceDF == (Spring.GetDrawFrame() or 0) then
+			wx, wz = self.frameTraceX, self.frameTraceZ
+		else
+			wx, wz = getWorldMousePosition()
+		end
 		if wx then
 			local previewPts = generateShapePositions(wx, wz)
 			local numAlly = math_max(1, numAllyTeams)

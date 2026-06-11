@@ -48,12 +48,12 @@ function M.sync(doc, ctx, setSummary)
 			-- Sync brush/option labels, sliders, and numboxes.
 			-- syncAndFlash guards against writing while user is dragging a slider,
 			-- which prevents visual choppiness from the setter ↔ sync loop.
+			local getCachedEl = ctx.getCachedEl
 			local function setLbl(id, txt)
-				local e = doc and doc:GetElementById(id)
-				if e then e.inner_rml = tostring(txt) end
+				ctx.setInnerRmlIfChanged(doc and getCachedEl(doc, id), id, tostring(txt))
 			end
 			local function setNum(id, val)
-				local e = doc and doc:GetElementById(id)
+				local e = doc and getCachedEl(doc, id)
 				if e then e:SetAttribute("value", tostring(val)) end
 			end
 			local radiusV   = tostring(dpState.radius or 0)
@@ -72,14 +72,14 @@ function M.sync(doc, ctx, setSummary)
 			setLbl("dc-sizemin-label",  dpState.sizeMin or 0)
 			setLbl("dc-sizemax-label",  dpState.sizeMax or 0)
 			setLbl("dc-alpha-label",    math.floor((dpState.alpha or 0) * 100))
-			syncAndFlash(doc:GetElementById("dc-slider-radius"),   "dc-radius",   radiusV)
-			syncAndFlash(doc:GetElementById("dc-slider-rotation"), "dc-rotation", rotV)
-			syncAndFlash(doc:GetElementById("dc-slider-rotrand"),  "dc-rotrand",  rotRandV)
-			syncAndFlash(doc:GetElementById("dc-slider-count"),    "dc-count",    countV)
-			syncAndFlash(doc:GetElementById("dc-slider-cadence"),  "dc-cadence",  cadenceV)
-			syncAndFlash(doc:GetElementById("dc-slider-sizemin"),  "dc-sizemin",  sizeMinV)
-			syncAndFlash(doc:GetElementById("dc-slider-sizemax"),  "dc-sizemax",  sizeMaxV)
-			syncAndFlash(doc:GetElementById("dc-slider-alpha"),    "dc-alpha",    alphaV)
+			syncAndFlash(getCachedEl(doc, "dc-slider-radius"),   "dc-radius",   radiusV)
+			syncAndFlash(getCachedEl(doc, "dc-slider-rotation"), "dc-rotation", rotV)
+			syncAndFlash(getCachedEl(doc, "dc-slider-rotrand"),  "dc-rotrand",  rotRandV)
+			syncAndFlash(getCachedEl(doc, "dc-slider-count"),    "dc-count",    countV)
+			syncAndFlash(getCachedEl(doc, "dc-slider-cadence"),  "dc-cadence",  cadenceV)
+			syncAndFlash(getCachedEl(doc, "dc-slider-sizemin"),  "dc-sizemin",  sizeMinV)
+			syncAndFlash(getCachedEl(doc, "dc-slider-sizemax"),  "dc-sizemax",  sizeMaxV)
+			syncAndFlash(getCachedEl(doc, "dc-slider-alpha"),    "dc-alpha",    alphaV)
 			setNum("dc-slider-radius-numbox",   radiusV)
 			setNum("dc-slider-rotation-numbox", rotV)
 			setNum("dc-slider-rotrand-numbox",  rotRandV)
@@ -98,7 +98,7 @@ function M.sync(doc, ctx, setSummary)
 				if dm.dcDistribution ~= d then dm.dcDistribution = d end
 			end
 			-- Align toggle icon
-			local alignBtn = doc and doc:GetElementById("btn-dc-align-toggle")
+			local alignBtn = doc and getCachedEl(doc, "btn-dc-align-toggle")
 			if alignBtn then
 				alignBtn:SetAttribute("src", dpState.alignToNormal
 					and "/luaui/images/terraform_brush/check_on.png"
@@ -106,8 +106,8 @@ function M.sync(doc, ctx, setSummary)
 			end
 			-- DC undo history slider
 			local dcUndoCnt = dpState.undoCount or 0
-			local slDcHist = doc and doc:GetElementById("slider-dc-history")
-			local nbDcHist = doc and doc:GetElementById("slider-dc-history-numbox")
+			local slDcHist = doc and getCachedEl(doc, "slider-dc-history")
+			local nbDcHist = doc and getCachedEl(doc, "slider-dc-history-numbox")
 			if slDcHist and uiState.draggingSlider ~= "dc-history" then
 				local dcMax = math.max(dcUndoCnt, 1)
 				slDcHist:SetAttribute("max",   tostring(dcMax))

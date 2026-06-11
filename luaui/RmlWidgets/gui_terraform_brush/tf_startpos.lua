@@ -30,7 +30,8 @@ function M.sync(doc, ctx, stpState, setSummary)
 
 		-- Startpos shape (stpShapeMode dm field)
 		if widgetState.dmHandle then
-			widgetState.dmHandle.stpShapeMode = stpState.shapeType or "circle"
+			local shp = stpState.shapeType or "circle"
+			if widgetState.dmHandle.stpShapeMode ~= shp then widgetState.dmHandle.stpShapeMode = shp end
 		end
 
 		-- Startbox placement-mode buttons (box / polygon / freedraw)
@@ -39,8 +40,9 @@ function M.sync(doc, ctx, stpState, setSummary)
 			local inStartbox = stpState.subMode == "startbox"
 			-- Sync data-model flags driving data-if visibility
 			if widgetState.dmHandle then
-				widgetState.dmHandle.stpSubMode = stpState.subMode or ""
-				widgetState.dmHandle.stpStartboxMode = sbxMode
+				local sm = stpState.subMode or ""
+				if widgetState.dmHandle.stpSubMode ~= sm then widgetState.dmHandle.stpSubMode = sm end
+				if widgetState.dmHandle.stpStartboxMode ~= sbxMode then widgetState.dmHandle.stpStartboxMode = sbxMode end
 			end
 			-- Contextual hint visibility now driven by data-if on the elements.
 		end
@@ -52,26 +54,28 @@ function M.sync(doc, ctx, stpState, setSummary)
 		-- Update labels via dm interpolation (Phase 2 step 4)
 		local dm = widgetState.dmHandle
 		if dm then
-			dm.stpAllyTeamsStr = tostring(stpState.numAllyTeams)
-			dm.stpCountStr = tostring(stpState.shapeCount)
-			dm.stpSizeStr = tostring(math.floor(stpState.shapeRadius))
-			dm.stpRotationStr = tostring(math.floor(stpState.shapeRotation)) .. "\194\176"
-			dm.stpTeamsPerAllyStr = tostring(stpState.numTeamsPerAlly or 1)
-			dm.stpPlacementModeStr = (stpState.placementMode or "roundrobin"):upper():gsub("ROUNDROBIN", "ROUND-ROBIN")
+			local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
+			setDm("stpAllyTeamsStr", tostring(stpState.numAllyTeams))
+			setDm("stpCountStr", tostring(stpState.shapeCount))
+			setDm("stpSizeStr", tostring(math.floor(stpState.shapeRadius)))
+			setDm("stpRotationStr", tostring(math.floor(stpState.shapeRotation)) .. "\194\176")
+			setDm("stpTeamsPerAllyStr", tostring(stpState.numTeamsPerAlly or 1))
+			setDm("stpPlacementModeStr", (stpState.placementMode or "roundrobin"):upper():gsub("ROUNDROBIN", "ROUND-ROBIN"))
 		end
 
 		-- Sync sliders
-		local allySlider = doc and doc:GetElementById("slider-sp-allyteams")
+		local getCachedEl = ctx.getCachedEl
+		local allySlider = doc and getCachedEl(doc, "slider-sp-allyteams")
 		if allySlider then allySlider:SetAttribute("value", tostring(stpState.numAllyTeams)) end
-		local tpaSlider = doc and doc:GetElementById("slider-sp-teams-per-ally")
+		local tpaSlider = doc and getCachedEl(doc, "slider-sp-teams-per-ally")
 		if tpaSlider then tpaSlider:SetAttribute("value", tostring(stpState.numTeamsPerAlly or 1)) end
-		local tpaNumbox = doc and doc:GetElementById("slider-sp-teams-per-ally-numbox")
+		local tpaNumbox = doc and getCachedEl(doc, "slider-sp-teams-per-ally-numbox")
 		if tpaNumbox then tpaNumbox:SetAttribute("value", tostring(stpState.numTeamsPerAlly or 1)) end
-		local countSlider = doc and doc:GetElementById("slider-sp-count")
+		local countSlider = doc and getCachedEl(doc, "slider-sp-count")
 		if countSlider then countSlider:SetAttribute("value", tostring(stpState.shapeCount)) end
-		local sizeSlider = doc and doc:GetElementById("slider-sp-size")
+		local sizeSlider = doc and getCachedEl(doc, "slider-sp-size")
 		if sizeSlider then sizeSlider:SetAttribute("value", tostring(math.floor(stpState.shapeRadius))) end
-		local rotSlider = doc and doc:GetElementById("slider-sp-rotation")
+		local rotSlider = doc and getCachedEl(doc, "slider-sp-rotation")
 		if rotSlider then rotSlider:SetAttribute("value", tostring(math.floor(stpState.shapeRotation))) end
 
 		setSummary("START POS", "#9ca3af",

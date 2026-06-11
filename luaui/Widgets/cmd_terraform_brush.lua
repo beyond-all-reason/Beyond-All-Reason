@@ -458,6 +458,7 @@ local extraState = {
 	},
 	gridDL = nil,
 	gridDirty = true,
+	terrainVersion = 0,         -- bumped on every UnsyncedHeightMapUpdate; keys height-sample caches
 	-- Height sampling mode: pick a terrain height from the colormap to set as a height cap
 	heightSamplingMode = nil,   -- nil, "max", or "min" – which cap to populate
 	colormapHoverContour = nil, -- height of the topo contour line currently under cursor (or nil)
@@ -783,6 +784,14 @@ local function markTessellationDirty()
 	tessellationDirtyFrames = TESS_DIRTY_FRAMES
 end
 
+-- Terrain-change signal for draw-path caches: the engine fires this for ANY heightmap
+-- modification (our brush ticks, undo/redo, imports, other gadgets), so caches that
+-- bake GetGroundHeight samples key on extraState.terrainVersion and resample exactly
+-- when the ground actually moved — never on a timer.
+function widget:UnsyncedHeightMapUpdate()
+	extraState.terrainVersion = extraState.terrainVersion + 1
+end
+
 -- Per-tick MERGE_END: each tick creates one undo entry within the current stroke.
 -- The gadget tags all entries with the same stroke ID until closeBrushStroke().
 -- UNDO_STROKE pops all entries for the latest stroke atomically.
@@ -953,18 +962,40 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 	local effectiveIntensity = activeIntensity * (extraState.velocityIntensity and extraState.dragVelocityFactor or 1) * (extraState.interpIntensityScale or 1) * penPressureFactor
 	local positions = extraState.getSymmetricPositions(worldX, worldZ, rotation)
 	local isFlipped = extraState.symmetryFlipped
+	-- Hoist the per-tick-invariant message pieces out of the symmetry loops: only
+	-- dir / p.x / p.z / p.rot vary per copy. Concatenating the same substrings in
+	-- the same order keeps the wire bytes identical to the old per-copy build.
+	local curveStr   = string.format("%.1f", curve)
+	local intenStr   = string.format("%.1f", effectiveIntensity)
+	local lenStr     = string.format("%.1f", activeLengthScale)
+	local clayStr    = clayMode and "1" or "0"
+	local dustStr    = (djMode and dustEffects) and "1" or "0"
+	local opacityStr = string.format("%.2f", brushOpacity)
+	local ringStr    = string.format("%.2f", ringInnerRatio)
+	local msgMid     = " " .. radius .. " " .. shape .. " "
+	local msgTail    = " " .. curveStr .. " "
+		.. absCapMin .. " "
+		.. absCapMax .. " "
+		.. intenStr .. " "
+		.. lenStr .. " "
+		.. clayStr .. " "
+		.. dustStr .. " "
+		.. opacityStr .. " "
+		.. instant .. " "
+		.. flattenStr .. " "
+		.. ringStr
 	-- Sticky mode recording: snapshot this stroke parametrically (primary position only)
 	if extraState.measureRulerMode and extraState.measureStickyMode then
 		extraState.recordLinkedStroke(
 			worldX, worldZ, direction, radius, shape, rotation, curve,
 			flattenStr, absCapMin, absCapMax,
-			string.format("%.1f", effectiveIntensity),
-			string.format("%.1f", activeLengthScale),
-			(clayMode and "1" or "0"),
-			(djMode and dustEffects and "1" or "0"),
-			string.format("%.2f", brushOpacity),
+			intenStr,
+			lenStr,
+			clayStr,
+			dustStr,
+			opacityStr,
 			instant,
-			string.format("%.2f", ringInnerRatio))
+			ringStr)
 		-- Set baseline on first sticky stroke so we can compute undo count from gadget feedback
 		if not extraState.stickyUndoBaseline then
 			extraState.stickyUndoBaseline = extraState.gadgetUndoCount or 0
@@ -975,25 +1006,11 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 			local p = positions[i]
 			local dir = direction
 			if isFlipped and i > 1 then dir = -direction end
-			local msg = MSG.BRUSH
+			SendLuaRulesMsg(MSG.BRUSH
 				.. dir .. " "
 				.. floor(p.x) .. " "
-				.. floor(p.z) .. " "
-				.. radius .. " "
-				.. shape .. " "
-				.. p.rot .. " "
-				.. string.format("%.1f", curve) .. " "
-				.. absCapMin .. " "
-				.. absCapMax .. " "
-				.. string.format("%.1f", effectiveIntensity) .. " "
-				.. string.format("%.1f", activeLengthScale) .. " "
-				.. (clayMode and "1" or "0") .. " "
-				.. (djMode and dustEffects and "1" or "0") .. " "
-				.. string.format("%.2f", brushOpacity) .. " "
-				.. instant .. " "
-				.. flattenStr .. " "
-				.. string.format("%.2f", ringInnerRatio)
-			SendLuaRulesMsg(msg)
+				.. floor(p.z) .. msgMid
+				.. p.rot .. msgTail)
 		end
 		afterBrushTick()
 		return
@@ -1005,25 +1022,11 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 		if isFlipped and i > 1 then
 			dir = -direction
 		end
-		local msg = MSG.BRUSH
+		SendLuaRulesMsg(MSG.BRUSH
 			.. dir .. " "
 			.. floor(p.x) .. " "
-			.. floor(p.z) .. " "
-			.. radius .. " "
-			.. shape .. " "
-			.. p.rot .. " "
-			.. string.format("%.1f", curve) .. " "
-			.. absCapMin .. " "
-			.. absCapMax .. " "
-			.. string.format("%.1f", effectiveIntensity) .. " "
-			.. string.format("%.1f", activeLengthScale) .. " "
-			.. (clayMode and "1" or "0") .. " "
-			.. (djMode and dustEffects and "1" or "0") .. " "
-			.. string.format("%.2f", brushOpacity) .. " "
-			.. instant .. " "
-			.. flattenStr .. " "
-			.. string.format("%.2f", ringInnerRatio)
-		SendLuaRulesMsg(msg)
+			.. floor(p.z) .. msgMid
+			.. p.rot .. msgTail)
 	end
 	-- Caller calls afterBrushTick() ONCE after the full interpolated loop so all
 	-- steps + symmetric copies land in the same per-tick undo entry.
@@ -2395,6 +2398,10 @@ function widget:Shutdown()
 		glDeleteList(extraState.gridDL)
 		extraState.gridDL = nil
 	end
+	if extraState.protractorDL then
+		glDeleteList(extraState.protractorDL)
+		extraState.protractorDL = nil
+	end
 	-- Release text ownership if measure mode was active when widget unloaded
 	if extraState.measureActive then
 		widgetHandler:DisownText()
@@ -2754,6 +2761,16 @@ function widget:Update(dt)
 		return
 	end
 	updateTimer = 0
+
+	-- Warm the gadget's falloff-stamp cache ahead of the first apply
+	if activeMode ~= "ramp" then
+		local warmSig = activeShape .. "|" .. activeRadius .. "|" .. activeRotation .. "|" .. activeCurve .. "|" .. activeLengthScale .. "|" .. ringInnerRatio
+		if warmSig ~= extraState.stampWarmSig then
+			extraState.stampWarmSig = warmSig
+			SendLuaRulesMsg("$terraform_warm$" .. activeRadius .. " " .. activeShape .. " " .. activeRotation .. " "
+				.. string.format("%.1f %.1f %.2f", activeCurve, activeLengthScale, ringInnerRatio))
+		end
+	end
 
 	local mx, my, leftPressed, _, rightPressed = GetMouseState()
 	local anyPressed = leftPressed or (rightPressed and rightMouseHeld)
@@ -4013,8 +4030,16 @@ do
 		-- Compute height range within brush footprint (two-pass: sample then draw)
 		local spanX = radius
 		local spanZ = radius * lengthScale
-		-- Collect grid data: world positions and heights
-		local gx, gz, gy = {}, {}, {} -- arrays of grid point data [row * (gridN+1) + col]
+		-- Collect grid data: world positions and heights.
+		-- Grid vertices are world-snapped (see fracOff logic below), so the sampled
+		-- positions/heights only change when the snapped grid origin moves or the
+		-- terrain is modified — cache them in reused scratch arrays keyed on exactly that.
+		local cmc = extraState.cmapCache
+		if not cmc then
+			cmc = { gx = {}, gz = {}, gy = {}, ga = {} }
+			extraState.cmapCache = cmc
+		end
+		local gx, gz, gy, ga = cmc.gx, cmc.gz, cmc.gy, cmc.ga -- [row * (gridN+1) + col]
 		local hMin, hMax = 1e9, -1e9
 		local peakX, peakZ = cx, cz
 		local sinA = sin(angleDeg * pi / 180)
@@ -4026,10 +4051,13 @@ do
 		local cellSizeZ = 2 * spanZ / gridN
 		local projX = cx * cosA + cz * sinA
 		local projZ = -cx * sinA + cz * cosA
-		local fracOffX = projX % cellSizeX
-		if fracOffX > cellSizeX * 0.5 then fracOffX = fracOffX - cellSizeX end
-		local fracOffZ = projZ % cellSizeZ
-		if fracOffZ > cellSizeZ * 0.5 then fracOffZ = fracOffZ - cellSizeZ end
+		-- Derive the offset from the snapped cell indices (see snapKX/snapKZ below) so
+		-- the cache key and the sampled vertex positions can never disagree at a
+		-- half-cell tie: fracOff in [-cellSize/2, cellSize/2).
+		local snapKX = floor(projX / cellSizeX + 0.5)
+		local snapKZ = floor(projZ / cellSizeZ + 0.5)
+		local fracOffX = projX - snapKX * cellSizeX
+		local fracOffZ = projZ - snapKZ * cellSizeZ
 		-- Per-vertex shape alpha: smooth 0..1 fade at brush boundary (eliminates staircase edges)
 		local fadeNorm = 2.0 / gridN  -- ~1 cell width in normalized shape space
 		local function shapeAlpha(lx, lz)
@@ -4061,23 +4089,55 @@ do
 			if d <= 0 then return 0.0 end
 			return d / fadeNorm
 		end
-		local ga = {} -- per-vertex shape alpha
-		for row = 0, gridN do
-			for col = 0, gridN do
-				local lx = -spanX + col * cellSizeX - fracOffX
-				local lz = -spanZ + row * cellSizeZ - fracOffZ
-				-- Rotate to world space
-				local wx = cx + lx * cosA - lz * sinA
-				local wz = cz + lx * sinA + lz * cosA
-				local idx = row * (gridN + 1) + col
-				gx[idx] = wx
-				gz[idx] = wz
-				local h = GetGroundHeight(wx, wz)
-				gy[idx] = h
-				ga[idx] = shapeAlpha(lx, lz)
-				if h < hMin then hMin = h end
-				if h > hMax then hMax = h; peakX = wx; peakZ = wz end
+		-- Snapped grid-origin cell indices (snapKX/snapKZ above): the vertex world
+		-- positions (and thus the sampled heights) depend only on these integers, not
+		-- on the continuous cursor position within a cell.
+		local tv = extraState.terrainVersion
+		if cmc.kx == snapKX and cmc.kz == snapKZ
+			and cmc.spanX == spanX and cmc.spanZ == spanZ
+			and cmc.angle == angleDeg and cmc.gridN == gridN
+			and cmc.terrain == tv then
+			-- Cache hit: skip (gridN+1)^2 GetGroundHeight calls. Only the per-vertex
+			-- shape alpha depends on the continuous cursor offset (and shape), so
+			-- recompute just that — it is pure math, no ground sampling.
+			hMin, hMax = cmc.hMin, cmc.hMax
+			peakX, peakZ = cmc.peakX, cmc.peakZ
+			for row = 0, gridN do
+				for col = 0, gridN do
+					local lx = -spanX + col * cellSizeX - fracOffX
+					local lz = -spanZ + row * cellSizeZ - fracOffZ
+					ga[row * (gridN + 1) + col] = shapeAlpha(lx, lz)
+				end
 			end
+		else
+			for row = 0, gridN do
+				for col = 0, gridN do
+					local lx = -spanX + col * cellSizeX - fracOffX
+					local lz = -spanZ + row * cellSizeZ - fracOffZ
+					-- Rotate to world space
+					local wx = cx + lx * cosA - lz * sinA
+					local wz = cz + lx * sinA + lz * cosA
+					local idx = row * (gridN + 1) + col
+					gx[idx] = wx
+					gz[idx] = wz
+					local h = GetGroundHeight(wx, wz)
+					gy[idx] = h
+					ga[idx] = shapeAlpha(lx, lz)
+					if h < hMin then hMin = h end
+					if h > hMax then hMax = h; peakX = wx; peakZ = wz end
+				end
+			end
+			cmc.kx = snapKX
+			cmc.kz = snapKZ
+			cmc.spanX = spanX
+			cmc.spanZ = spanZ
+			cmc.angle = angleDeg
+			cmc.gridN = gridN
+			cmc.terrain = tv
+			cmc.hMin = hMin
+			cmc.hMax = hMax
+			cmc.peakX = peakX
+			cmc.peakZ = peakZ
 		end
 		-- If terrain is perfectly flat, nothing useful to show
 		local hRange = hMax - hMin
@@ -4220,7 +4280,12 @@ do
 		extraState.colormapContourStep = contourStep
 		extraState.colormapHMin = hMin
 		extraState.colormapHMax = hMax
-		extraState.colormapLastMesh = { gx = gx, gz = gz, gy = gy, ga = ga, gridN = gridN }
+		local mesh = extraState.colormapLastMesh
+		if not mesh then
+			mesh = {}
+			extraState.colormapLastMesh = mesh
+		end
+		mesh.gx, mesh.gz, mesh.gy, mesh.ga, mesh.gridN = gx, gz, gy, ga, gridN
 		glLineWidth(1)
 		gl.DepthTest(true)
 	end
@@ -5258,11 +5323,35 @@ function extraState.measureFindNearEndpoint(sx, sy)
 	local ms    = extraState.measureLines
 	local best  = nil
 	local bestD = extraState.MEASURE_SNAP_PX * extraState.MEASURE_SNAP_PX
+	-- Per-endpoint ground-height cache: endpoints rarely move and the terrain under
+	-- them rarely changes, so avoid one GetGroundHeight per point per frame. Keyed
+	-- by point-table identity, validated against the live coordinates (catches both
+	-- in-place edits and table replacement), and dropped wholesale whenever the
+	-- terrain changes. WorldToScreenCoords still runs every frame (camera moves).
+	local tv = extraState.terrainVersion
+	local hc = extraState.measureHeightCache
+	if not hc or extraState.measureHeightCacheTerrain ~= tv then
+		hc = setmetatable({}, { __mode = "k" })
+		extraState.measureHeightCache = hc
+		extraState.measureHeightCacheTerrain = tv
+	end
 	for ci = 1, #ms do
 		local pts = ms[ci].pts
 		for pi = 1, #pts do
-			local wx, wz = pts[pi][1], pts[pi][2]
-			local wy = GetGroundHeight(wx, wz)
+			local pt = pts[pi]
+			local wx, wz = pt[1], pt[2]
+			local rec = hc[pt]
+			local wy
+			if rec and rec[1] == wx and rec[2] == wz then
+				wy = rec[3]
+			else
+				wy = GetGroundHeight(wx, wz)
+				if rec then
+					rec[1], rec[2], rec[3] = wx, wz, wy
+				else
+					hc[pt] = { wx, wz, wy }
+				end
+			end
 			local ex, ey = Spring.WorldToScreenCoords(wx, wy, wz)
 			if ex then
 				local ddx, ddy = sx - ex, sy - ey
@@ -5335,12 +5424,31 @@ function widget:DrawScreen()
 		local pstep = extraState.protractorStep
 		local hiAng = extraState.protractorHighlight
 		local numSp = floor(360 / pstep)
+		-- Spoke-tip ground heights: resample only when the protractor moved/resized
+		-- or the terrain changed; WorldToScreenCoords still runs every frame (camera).
+		local tipHs = extraState.protractorTipHeights
+		local tv = extraState.terrainVersion
+		if not (tipHs and extraState.protractorTipX == cx and extraState.protractorTipZ == cz
+			and extraState.protractorTipLen == slen and extraState.protractorTipStep == pstep
+			and extraState.protractorTipTerrain == tv) then
+			tipHs = tipHs or {}
+			for si = 0, numSp - 1 do
+				local rad = si * pstep * pi / 180
+				tipHs[si] = GetGroundHeight(cx + cos(rad) * slen, cz + sin(rad) * slen)
+			end
+			extraState.protractorTipHeights = tipHs
+			extraState.protractorTipX = cx
+			extraState.protractorTipZ = cz
+			extraState.protractorTipLen = slen
+			extraState.protractorTipStep = pstep
+			extraState.protractorTipTerrain = tv
+		end
 		for si = 0, numSp - 1 do
 			local angleDeg = si * pstep
 			local rad      = angleDeg * pi / 180
 			local tipX = cx + cos(rad) * slen
 			local tipZ = cz + sin(rad) * slen
-			local tipY = GetGroundHeight(tipX, tipZ) + 4
+			local tipY = tipHs[si] + 4
 			local sx, sy = Spring.WorldToScreenCoords(tipX, tipY, tipZ)
 			if sx then
 				local lbl = tostring(angleDeg)
@@ -5681,57 +5789,82 @@ extraState.drawProtractorOverlay = function(cx, cz, radius)
 		activeRotation = highlightAngle
 	end
 
-	local function drawSpoke(rad, len)
-		local dx = cos(rad) * (len / SEGS)
-		local dz = sin(rad) * (len / SEGS)
-		glBeginEnd(GL.LINE_STRIP, function()
-			for s = 0, SEGS do
-				local sx = cx + dx * s
-				local sz = cz + dz * s
-				glVertex(sx, GetGroundHeight(sx, sz) + BUMP, sz)
-			end
-		end)
-	end
-	local function drawBiSpoke(rad, len)
-		local dx = cos(rad) * (len / SEGS)
-		local dz = sin(rad) * (len / SEGS)
-		glBeginEnd(GL.LINE_STRIP, function()
-			for s = -SEGS, SEGS do
-				local sx = cx + dx * s
-				local sz = cz + dz * s
-				glVertex(sx, GetGroundHeight(sx, sz) + BUMP, sz)
-			end
-		end)
-	end
-
 	extraState.protractorCursorX  = cx
 	extraState.protractorCursorZ  = cz
 	extraState.protractorSpokeLen = spokeLen
 	extraState.protractorStep     = step
 	extraState.protractorHighlight = highlightAngle
 
-	glPolygonOffset(-1, -1)
-	glLineWidth(1)
-	glColor(1.0, 0.92, 0.25, 0.22)
-	for si = 0, numSpokes - 1 do
-		local angleDeg = si * step
-		if angleDeg ~= highlightAngle then
-			drawSpoke(angleDeg * pi / 180, spokeLen)
+	-- Display-list cache: the spokes bake hundreds of per-vertex GetGroundHeight
+	-- samples, so rebuild only when center/radius/step/highlight changes or the
+	-- terrain itself changed (terrainVersion bumps on every UnsyncedHeightMapUpdate).
+	-- While the brush moves this misses every frame (same cost as immediate mode);
+	-- when stationary the spokes replay from the list for free.
+	local tv = extraState.terrainVersion
+	if not (extraState.protractorDL
+		and extraState.protractorDLX == cx and extraState.protractorDLZ == cz
+		and extraState.protractorDLRadius == radius
+		and extraState.protractorDLStep == step
+		and extraState.protractorDLHighlight == highlightAngle
+		and extraState.protractorDLTerrain == tv) then
+		if extraState.protractorDL then
+			glDeleteList(extraState.protractorDL)
 		end
+		extraState.protractorDL = glCreateList(function()
+			local function drawSpoke(rad, len)
+				local dx = cos(rad) * (len / SEGS)
+				local dz = sin(rad) * (len / SEGS)
+				glBeginEnd(GL.LINE_STRIP, function()
+					for s = 0, SEGS do
+						local sx = cx + dx * s
+						local sz = cz + dz * s
+						glVertex(sx, GetGroundHeight(sx, sz) + BUMP, sz)
+					end
+				end)
+			end
+			local function drawBiSpoke(rad, len)
+				local dx = cos(rad) * (len / SEGS)
+				local dz = sin(rad) * (len / SEGS)
+				glBeginEnd(GL.LINE_STRIP, function()
+					for s = -SEGS, SEGS do
+						local sx = cx + dx * s
+						local sz = cz + dz * s
+						glVertex(sx, GetGroundHeight(sx, sz) + BUMP, sz)
+					end
+				end)
+			end
+
+			glPolygonOffset(-1, -1)
+			glLineWidth(1)
+			glColor(1.0, 0.92, 0.25, 0.22)
+			for si = 0, numSpokes - 1 do
+				local angleDeg = si * step
+				if angleDeg ~= highlightAngle then
+					drawSpoke(angleDeg * pi / 180, spokeLen)
+				end
+			end
+			local aRad = highlightAngle * pi / 180
+			glLineWidth(9)
+			glColor(1.0, 0.88, 0.1, 0.12)
+			drawBiSpoke(aRad, activeLen)
+			glLineWidth(5)
+			glColor(1.0, 0.88, 0.1, 0.40)
+			drawBiSpoke(aRad, activeLen)
+			glLineWidth(2)
+			glColor(1.0, 1.0, 0.6, 1.0)
+			drawBiSpoke(aRad, activeLen)
+			glLineWidth(1)
+			glColor(1, 1, 1, 1)
+			glPolygonOffset(0, 0)
+		end)
+		extraState.protractorDLX = cx
+		extraState.protractorDLZ = cz
+		extraState.protractorDLRadius = radius
+		extraState.protractorDLStep = step
+		extraState.protractorDLHighlight = highlightAngle
+		extraState.protractorDLTerrain = tv
 	end
-	local aRad = highlightAngle * pi / 180
-	glLineWidth(9)
-	glColor(1.0, 0.88, 0.1, 0.12)
-	drawBiSpoke(aRad, activeLen)
-	glLineWidth(5)
-	glColor(1.0, 0.88, 0.1, 0.40)
-	drawBiSpoke(aRad, activeLen)
-	glLineWidth(2)
-	glColor(1.0, 1.0, 0.6, 1.0)
-	drawBiSpoke(aRad, activeLen)
-	glLineWidth(1)
-	glColor(1, 1, 1, 1)
-	glPolygonOffset(0, 0)
+	glCallList(extraState.protractorDL)
 end
 
 function widget:DrawWorld()

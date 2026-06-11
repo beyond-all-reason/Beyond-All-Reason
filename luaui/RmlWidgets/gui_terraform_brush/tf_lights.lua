@@ -350,17 +350,25 @@ function M.sync(doc, ctx, lpState, setSummary)
 
 		-- Light type/mode/dist buttons driven by dm.lpLightType/lpMode/lpDistMode (data-class-active).
 		-- Sync shape button active state to LightPlacer's shape
-		if widgetState.dmHandle then widgetState.dmHandle.activeShape = lpState.shape or "circle" end
-		-- Show/hide direction/theta/beam/scatter sections via dm flags (data-if in RML)
+		local getCachedEl = ctx.getCachedEl
 		local dm = widgetState.dmHandle
 		if dm then
-			dm.lpLightType = lpState.lightType or "point"
-			dm.lpMode = lpState.mode or "place"
+			local shp = lpState.shape or "circle"
+			if dm.activeShape ~= shp then dm.activeShape = shp end
+		end
+		-- Show/hide direction/theta/beam/scatter sections via dm flags (data-if in RML)
+		if dm then
+			local lt = lpState.lightType or "point"
+			if dm.lpLightType ~= lt then dm.lpLightType = lt end
+			local md = lpState.mode or "place"
+			if dm.lpMode ~= md then dm.lpMode = md end
 			local dist = lpState.distribution or "random"
 			if dm.lpDistMode ~= dist then dm.lpDistMode = dist end
 			local tbs = WG.TerraformBrush and WG.TerraformBrush.getState and WG.TerraformBrush.getState() or {}
-			dm.lpSymmetryRadial = tbs.symmetryRadial and true or false
-			dm.lpSymmetryMirrorAny = (tbs.symmetryMirrorX or tbs.symmetryMirrorY) and true or false
+			local sr = tbs.symmetryRadial and true or false
+			if dm.lpSymmetryRadial ~= sr then dm.lpSymmetryRadial = sr end
+			local sma = (tbs.symmetryMirrorX or tbs.symmetryMirrorY) and true or false
+			if dm.lpSymmetryMirrorAny ~= sma then dm.lpSymmetryMirrorAny = sma end
 			local cs = tostring(tbs.symmetryRadialCount or 2)
 			if dm.lpSymCountStr ~= cs then dm.lpSymCountStr = cs end
 			local as = tostring(math.floor(tbs.symmetryMirrorAngle or 0))
@@ -394,21 +402,21 @@ function M.sync(doc, ctx, lpState, setSummary)
 		-- syncAndFlash is guarded against the user's active drag on that slider.
 		if syncAndFlash then
 			uiState.updatingFromCode = true
-			syncAndFlash(doc:GetElementById("slider-lp-brush-radius"),  "lp-brush-radius",  tostring(math.floor(lpState.radius)))
-			syncAndFlash(doc:GetElementById("slider-lp-brightness"),    "lp-brightness",    tostring(math.floor(lpState.brightness * 100 + 0.5)))
-			syncAndFlash(doc:GetElementById("slider-lp-light-radius"),  "lp-light-radius",  tostring(math.floor(lpState.lightRadius)))
-			syncAndFlash(doc:GetElementById("slider-lp-elevation"),     "lp-elevation",     tostring(math.floor(lpState.elevation)))
-			syncAndFlash(doc:GetElementById("slider-lp-count"),         "lp-count",         tostring(lpState.lightCount))
-			syncAndFlash(doc:GetElementById("slider-lp-color-r"),       "lp-color-r",       tostring(math.floor((lpState.color[1] or 0) * 1000 + 0.5)))
-			syncAndFlash(doc:GetElementById("slider-lp-color-g"),       "lp-color-g",       tostring(math.floor((lpState.color[2] or 0) * 1000 + 0.5)))
-			syncAndFlash(doc:GetElementById("slider-lp-color-b"),       "lp-color-b",       tostring(math.floor((lpState.color[3] or 0) * 1000 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "slider-lp-brush-radius"),  "lp-brush-radius",  tostring(math.floor(lpState.radius)))
+			syncAndFlash(getCachedEl(doc, "slider-lp-brightness"),    "lp-brightness",    tostring(math.floor(lpState.brightness * 100 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "slider-lp-light-radius"),  "lp-light-radius",  tostring(math.floor(lpState.lightRadius)))
+			syncAndFlash(getCachedEl(doc, "slider-lp-elevation"),     "lp-elevation",     tostring(math.floor(lpState.elevation)))
+			syncAndFlash(getCachedEl(doc, "slider-lp-count"),         "lp-count",         tostring(lpState.lightCount))
+			syncAndFlash(getCachedEl(doc, "slider-lp-color-r"),       "lp-color-r",       tostring(math.floor((lpState.color[1] or 0) * 1000 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "slider-lp-color-g"),       "lp-color-g",       tostring(math.floor((lpState.color[2] or 0) * 1000 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "slider-lp-color-b"),       "lp-color-b",       tostring(math.floor((lpState.color[3] or 0) * 1000 + 0.5)))
 			do
 				local tbs = WG.TerraformBrush and WG.TerraformBrush.getState and WG.TerraformBrush.getState() or {}
-				syncAndFlash(doc:GetElementById("lp-slider-symmetry-radial-count"), "lp-symmetry-radial-count", tostring(tbs.symmetryRadialCount or 2))
-				syncAndFlash(doc:GetElementById("lp-slider-symmetry-mirror-angle"), "lp-symmetry-mirror-angle", tostring(math.floor(tbs.symmetryMirrorAngle or 0)))
+				syncAndFlash(getCachedEl(doc, "lp-slider-symmetry-radial-count"), "lp-symmetry-radial-count", tostring(tbs.symmetryRadialCount or 2))
+				syncAndFlash(getCachedEl(doc, "lp-slider-symmetry-mirror-angle"), "lp-symmetry-mirror-angle", tostring(math.floor(tbs.symmetryMirrorAngle or 0)))
 			end
 			local setNum = function(id, v)
-				local el = doc:GetElementById(id)
+				local el = getCachedEl(doc, id)
 				if el then el:SetAttribute("value", v) end
 			end
 			setNum("slider-lp-brush-radius-numbox", tostring(math.floor(lpState.radius)))
@@ -422,7 +430,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 			uiState.updatingFromCode = false
 		end
 		-- Color preview (live background-color via SetAttribute, no label span in RML)
-		local colorPreview = doc and doc:GetElementById("lp-color-preview")
+		local colorPreview = doc and getCachedEl(doc, "lp-color-preview")
 		if colorPreview then
 			local cr = math.floor(lpState.color[1] * 255)
 			local cg = math.floor(lpState.color[2] * 255)
@@ -435,7 +443,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 			if widgetState.dmHandle.lpPlacedCountStr ~= v then widgetState.dmHandle.lpPlacedCountStr = v end
 		end
 		-- Light history slider sync
-		local sliderLpHist = doc and doc:GetElementById("slider-lp-history")
+		local sliderLpHist = doc and getCachedEl(doc, "slider-lp-history")
 		if sliderLpHist and uiState.draggingSlider ~= "lp-history" then
 			uiState.updatingFromCode = true
 			local totalSteps = (lpState.undoCount or 0) + (lpState.redoCount or 0)
@@ -447,7 +455,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 		end
 
 		-- Globe orientation indicator sync
-		local globeInd = doc and doc:GetElementById("lp-orient-indicator")
+		local globeInd = doc and getCachedEl(doc, "lp-orient-indicator")
 		if globeInd then
 			local p = math.rad(lpState.pitch)
 			local y = math.rad(lpState.yaw)
@@ -461,11 +469,11 @@ function M.sync(doc, ctx, lpState, setSummary)
 			globeInd:SetAttribute("style", string.format("left: %.1fdp; top: %.1fdp;", left, top))
 		end
 		-- Pitch / Yaw numbox sync (skip while user is typing)
-		local pitchInp = doc and doc:GetElementById("lp-orient-pitch-input")
+		local pitchInp = doc and getCachedEl(doc, "lp-orient-pitch-input")
 		if pitchInp and widgetState.focusedRmlInput ~= pitchInp then
 			pitchInp:SetAttribute("value", tostring(math.floor(lpState.pitch)))
 		end
-		local yawInp = doc and doc:GetElementById("lp-orient-yaw-input")
+		local yawInp = doc and getCachedEl(doc, "lp-orient-yaw-input")
 		if yawInp and widgetState.focusedRmlInput ~= yawInp then
 			yawInp:SetAttribute("value", tostring(math.floor(lpState.yaw)))
 		end

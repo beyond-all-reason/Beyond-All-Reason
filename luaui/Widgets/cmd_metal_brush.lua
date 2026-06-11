@@ -31,6 +31,7 @@ local GetGroundHeight = Spring.GetGroundHeight
 local GetMetalAmount = Spring.GetMetalAmount
 local GetMetalMapSize = Spring.GetMetalMapSize
 local WorldToScreenCoords = Spring.WorldToScreenCoords
+local GetDrawFrame = Spring.GetDrawFrame
 local Echo = Spring.Echo
 local IsCheatingEnabled = Spring.IsCheatingEnabled
 
@@ -115,6 +116,11 @@ local function getWorldPos()
 	end
 	return nil, nil
 end
+
+-- Per-draw-frame mouse trace shared between DrawWorld and DrawScreen (both
+-- run inside the same draw pass, so the raw trace result is identical).
+local frameTraceDF = -1
+local frameTraceX, frameTraceZ = nil, nil
 
 local function sendPaintMessage(worldX, worldZ)
 	local ss = getSharedState()
@@ -732,7 +738,7 @@ local function drawPolyPoints(pts)
 	gl.PointSize(1)
 end
 
-local function drawLassoWorld()
+local function drawLassoWorld(cursorX, cursorZ)
 	glLineWidth(2)
 
 	-- Committed closed loops
@@ -763,7 +769,7 @@ local function drawLassoWorld()
 				end
 			end)
 		end
-		local cx, cz = getWorldPos()
+		local cx, cz = cursorX, cursorZ
 		if cx then
 			local last = lassoPoints[n]
 			glBeginEnd(GL_LINES, function()
@@ -1049,7 +1055,8 @@ local function drawBalanceAxisWorld()
 	else
 		glColor(1.0, 0.85, 0.2, 0.95)
 	end
-	local oyOrigin = GetGroundHeight(ox, oz) + 6
+	local oyGround = GetGroundHeight(ox, oz)
+	local oyOrigin = oyGround + 6
 	glBeginEnd(GL_LINES, function()
 		glVertex(x1, GetGroundHeight(x1, z1) + 6, z1)
 		glVertex(ox, oyOrigin, oz)
@@ -1063,12 +1070,12 @@ local function drawBalanceAxisWorld()
 	glLineWidth(2)
 	glColor(0.4, 1.0, 0.4, 0.9)
 	glBeginEnd(GL_LINES, function()
-		glVertex(ox, GetGroundHeight(ox, oz) + 6, oz)
+		glVertex(ox, oyOrigin, oz)
 		glVertex(ox + nx * tL, GetGroundHeight(ox + nx * tL, oz + nz * tL) + 6, oz + nz * tL)
 	end)
 	glColor(1.0, 0.5, 0.5, 0.9)
 	glBeginEnd(GL_LINES, function()
-		glVertex(ox, GetGroundHeight(ox, oz) + 6, oz)
+		glVertex(ox, oyOrigin, oz)
 		glVertex(ox - nx * tL, GetGroundHeight(ox - nx * tL, oz - nz * tL) + 6, oz - nz * tL)
 	end)
 
@@ -1076,7 +1083,7 @@ local function drawBalanceAxisWorld()
 	gl.PointSize(balanceAxisHovering and 12 or 9)
 	glColor(1, 1, 1, 1)
 	glBeginEnd(GL_POINTS, function()
-		glVertex(ox, GetGroundHeight(ox, oz) + 8, oz)
+		glVertex(ox, oyGround + 8, oz)
 	end)
 	gl.PointSize(1)
 	glLineWidth(1)
@@ -1488,6 +1495,10 @@ end
 function widget:DrawWorld()
 	if not active then return end
 
+	-- One raw mouse trace per draw pass, shared with helpers and DrawScreen
+	local worldX, worldZ = getWorldPos()
+	frameTraceX, frameTraceZ, frameTraceDF = worldX, worldZ, GetDrawFrame()
+
 	-- Map-wide metal overlay (full map)
 	if mapOverlay then
 		if overlayListDirty or not overlayList then buildOverlayList() end
@@ -1502,7 +1513,7 @@ function widget:DrawWorld()
 
 	-- Lasso polygon
 	if lassoActive or #lassos > 0 then
-		drawLassoWorld()
+		drawLassoWorld(worldX, worldZ)
 	end
 
 	-- Balance axis
@@ -1510,7 +1521,6 @@ function widget:DrawWorld()
 		drawBalanceAxisWorld()
 	end
 
-	local worldX, worldZ = getWorldPos()
 	do
 		local tb = WG.TerraformBrush
 		if tb and tb.animateUnmouse then
@@ -1581,7 +1591,13 @@ function widget:DrawScreen()
 	if lassoActive or #lassos > 0 then drawLassoInfo() end
 	if balanceAxisActive then drawBalanceAxisInfo() end
 
-	local worldX, worldZ = getWorldPos()
+	-- Reuse DrawWorld's mouse trace from this draw pass when available
+	local worldX, worldZ
+	if frameTraceDF == GetDrawFrame() then
+		worldX, worldZ = frameTraceX, frameTraceZ
+	else
+		worldX, worldZ = getWorldPos()
+	end
 	if not worldX then return end
 
 	drawCursorInfo(worldX, worldZ)

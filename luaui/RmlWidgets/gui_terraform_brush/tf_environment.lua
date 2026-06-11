@@ -1634,7 +1634,7 @@ function M.sync(doc, ctx, setSummary)
 	local shapeNames = ctx.shapeNames
 		-- ===== Environment mode: highlight button, clear other highlights =====
 		-- btn-environment active state driven by data-class-active="activeTool == 'env'" in RML.
-		if widgetState.dmHandle then widgetState.dmHandle.activeMode = "" end
+		if widgetState.dmHandle and widgetState.dmHandle.activeMode ~= "" then widgetState.dmHandle.activeMode = "" end
 
 		setSummary("ENVIRONMENT", "#9ca3af")
 
