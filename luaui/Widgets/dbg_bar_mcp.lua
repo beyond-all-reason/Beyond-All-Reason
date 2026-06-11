@@ -31,16 +31,12 @@ end
 --   lua_eval          – run Lua in the unsynced widget environment, return value(s)
 --   lua_eval_synced   – run Lua in the synced gadget environment (async; needs cheats)
 --   widget_list       – list all known LuaUI widgets and their active state
---   widget_enable     – load a widget by name
---   widget_disable    – unload a widget by name
 --   widget_reload     – disable then re-enable a widget by name
 --   spring_command    – send a Spring/Recoil console command (e.g. "reloadshaders")
 --   vfs_read          – read a VFS file (capped at 512 KB)
 --   vfs_list          – list VFS directory contents with a glob pattern
 --   game_info         – current frame, map/mod name, player, cheat/dev flags
 --   gadget_list       – list all known LuaRules gadgets (async via gadget companion)
---   gadget_enable     – load a gadget by name (async)
---   gadget_disable    – unload a gadget by name (async)
 --   gadget_reload     – disable then re-enable a gadget (async)
 --
 -- Async tools forward a message to the synced gadget companion via
@@ -89,10 +85,14 @@ local MCP_PORT    = 23452
 local MCP_HOST    = "127.0.0.1"
 local MCP_VERSION = "2025-11-25"
 local VFS_CAP     = 512 * 1024 -- 512 KB read cap
+local MAX_CLIENT_BUFFER = 1024 * 1024 -- Drop clients that send >1 MB without a newline
+local MAX_CONSOLE_CACHE_LINES = 4096
+local INFOLOG_MARKER_PREFIX = "[BARMCP_INFOLOG_MARKER]"
+local INFOLOG_ERROR_PATTERN = "^%[t=[%d%.:]*%]%[f=[%-%d]*%] Error.*"
 
 local Json   = Json or VFS.Include("common/luaUtilities/json.lua")
 local spEcho = Spring.Echo
-
+local debugMode = true
 --------------------------------------------------------------------------------
 -- Socket state
 --------------------------------------------------------------------------------
@@ -103,6 +103,7 @@ local selectSet = {}  -- all sockets for socket.select
 -- pending async tool calls awaiting gadget response: reqId -> {client, jsonId}
 local pending   = {}
 local nextReqId = 0
+local consoleLineCache = {}
 
 local function newReqId()
 	nextReqId = nextReqId + 1
@@ -129,12 +130,49 @@ end
 --------------------------------------------------------------------------------
 -- JSON-RPC helpers
 --------------------------------------------------------------------------------
+local pendingSends = {}  -- array of {sock, data}
+
+local function sendAll(sock, data)
+	-- Queue data for non-blocking send.
+	-- widget:Update() will drain the queue each frame.
+	pendingSends[#pendingSends + 1] = {sock = sock, data = data}
+end
+
+local function drainPendingSends()
+	for i = #pendingSends, 1, -1 do
+		local ps = pendingSends[i]
+		local sent, err, partial = ps.sock:send(ps.data)
+		if sent then
+			if sent < #ps.data then
+				-- Partial send: keep the remaining data for the next frame
+				ps.data = ps.data:sub(sent + 1)
+			else
+				-- Full send succeeded
+				table.remove(pendingSends, i)
+			end
+		elseif err == "timeout" or err == "wantwrite" or err == "wantread" then
+			if type(partial) == "number" and partial > 0 then
+				ps.data = ps.data:sub(partial + 1)
+				if ps.data == "" then
+					table.remove(pendingSends, i)
+				end
+			end
+		else
+			-- Real error (closed, reset, etc.)
+			table.remove(pendingSends, i)
+			spEcho("[BARMCP] send error: " .. tostring(err))
+			pcall(function() ps.sock:close() end)
+			removeClient(ps.sock)
+		end
+	end
+end
+
 local function sendRaw(client, tbl)
 	local ok, line = pcall(Json.encode, tbl)
 	if not ok then
 		line = '{"jsonrpc":"2.0","error":{"code":-32603,"message":"encode error"}}'
 	end
-	client.sock:send(line .. "\n")
+	sendAll(client.sock, line .. "\n")
 end
 
 local function sendResult(client, id, result)
@@ -152,6 +190,191 @@ end
 
 local function mcpErr(text)
 	return {content = {{type = "text", text = tostring(text)}}, isError = true}
+end
+
+local function debugPreview(value)
+	local s = tostring(value)
+	if #s > 1024 then
+		return s:sub(1, 1024) .. "\n[BARMCP: debug log truncated, bytes=" .. tostring(#s) .. "]"
+	end
+	return s
+end
+
+local QUIET_TOOL_NAMES = {
+	ping = true,
+}
+
+local function jsonEncodeOrFallback(value, fallback)
+	local ok, enc = pcall(Json.encode, value)
+	return ok and enc or fallback
+end
+
+local function splitLines(text)
+	local lines = {}
+	if type(text) ~= "string" or text == "" then
+		return lines
+	end
+	text = text:gsub("\r\n", "\n"):gsub("\r", "\n")
+	for line in (text .. "\n"):gmatch("(.-)\n") do
+		if line ~= "" then
+			lines[#lines + 1] = line
+		end
+	end
+	return lines
+end
+
+local function findLastPlain(text, needle)
+	local found = nil
+	local from = 1
+	while true do
+		local idx = text:find(needle, from, true)
+		if not idx then
+			return found
+		end
+		found = idx
+		from = idx + 1
+	end
+end
+
+local function cacheConsoleLine(line, priority)
+	consoleLineCache[#consoleLineCache + 1] = {
+		frame = Spring.GetGameFrame(),
+		line = tostring(line),
+		priority = priority,
+	}
+	while #consoleLineCache > MAX_CONSOLE_CACHE_LINES do
+		table.remove(consoleLineCache, 1)
+	end
+end
+
+local function lineIsInfologError(line)
+	return line:match(INFOLOG_ERROR_PATTERN) ~= nil or line:match("^Error[:%s].*") ~= nil
+end
+
+local function fillInfologReportFromLines(report, lines, source)
+	local errorLines = {}
+	for _, line in ipairs(lines) do
+		if lineIsInfologError(line) then
+			errorLines[#errorLines + 1] = line
+		end
+	end
+	report.checked = true
+	report.source = source
+	report.lines = lines
+	report.errorLines = errorLines
+	report.lineCount = #lines
+	report.errorCount = #errorLines
+	return report
+end
+
+local function collectConsoleDelta(probe, report)
+	local markerIndex = nil
+	for i = #consoleLineCache, 1, -1 do
+		if consoleLineCache[i].line:find(probe.marker, 1, true) then
+			markerIndex = i
+			break
+		end
+	end
+	if not markerIndex then
+		return nil, "marker was not found in cached console lines"
+	end
+	local lines = {}
+	for i = markerIndex + 1, #consoleLineCache do
+		lines[#lines + 1] = consoleLineCache[i].line
+	end
+	return fillInfologReportFromLines(report, lines, "console")
+end
+
+local function readInfologSnapshot()
+	local ok, content = pcall(function()
+		return VFS.LoadFile("infolog.txt")
+	end)
+	if not ok then
+		return nil, "VFS.LoadFile('infolog.txt') failed"
+	end
+	if type(content) ~= "string" or content == "" then
+		return nil, "infolog.txt is unavailable from VFS"
+	end
+	return content
+end
+
+local function beginInfologProbe(toolName, requestId)
+	local probe = {
+		tool = toolName,
+		requestId = requestId,
+		checked = false,
+		path = "infolog.txt",
+	}
+	local marker = string.format(
+		"%s tool=%s request=%s frame=%s clock=%.6f",
+		INFOLOG_MARKER_PREFIX,
+		tostring(toolName),
+		tostring(requestId),
+		tostring(Spring.GetGameFrame()),
+		(os and os.clock and os.clock()) or 0
+	)
+	probe.marker = marker
+	cacheConsoleLine(marker, "marker")
+	spEcho(marker)
+	return probe
+end
+
+local function collectInfologDelta(probe)
+	local report = {
+		path = probe and probe.path or "infolog.txt",
+		marker = probe and probe.marker or nil,
+		checked = false,
+		lineCount = 0,
+		errorCount = 0,
+		lines = {},
+		errorLines = {},
+	}
+	if not probe then
+		report.reason = "no infolog probe was created"
+		return report
+	end
+	if not probe.marker then
+		report.reason = probe.reason or "infolog marker is unavailable"
+		return report
+	end
+	local consoleReport, consoleMiss = collectConsoleDelta(probe, report)
+	if consoleReport then
+		return consoleReport
+	end
+	local snapshot, readErr = readInfologSnapshot()
+	if not snapshot then
+		report.reason = tostring(consoleMiss) .. "; VFS fallback failed: " .. tostring(readErr)
+		return report
+	end
+	local markerIdx = findLastPlain(snapshot, probe.marker)
+	if not markerIdx then
+		report.reason = tostring(consoleMiss) .. "; marker was not found in VFS infolog"
+		return report
+	end
+	local after = snapshot:sub(markerIdx + #probe.marker)
+	if after:sub(1, 2) == "\r\n" then
+		after = after:sub(3)
+	elseif after:sub(1, 1) == "\n" or after:sub(1, 1) == "\r" then
+		after = after:sub(2)
+	end
+	local lines = splitLines(after)
+	return fillInfologReportFromLines(report, lines, "vfs")
+end
+
+local function buildInfologToolPayload(toolName, commandResult, infolog)
+	local success = infolog.checked and infolog.errorCount == 0
+	local hasErrors = infolog.checked and infolog.errorCount > 0
+	local payload = {
+		tool = toolName,
+		success = success,
+		commandResult = tostring(commandResult),
+		infolog = infolog,
+	}
+	local fallback = tostring(commandResult)
+	if infolog.reason then
+		fallback = fallback .. "\n[BARMCP] infolog check unavailable: " .. tostring(infolog.reason)
+	end
+	return success, hasErrors, jsonEncodeOrFallback(payload, fallback)
 end
 
 --------------------------------------------------------------------------------
@@ -258,15 +481,26 @@ local function tool_game_info(args)
 	return ok and enc or "{}"
 end
 
+local function tool_ping(args)
+	return "pong"
+end
+
 --------------------------------------------------------------------------------
 -- Tool registry
 --------------------------------------------------------------------------------
 local TOOLS = {
 	{
+		name        = "ping",
+		description = "Heartbeat check for the BAR MCP TCP connection.",
+		inputSchema = {type="object", properties={}},
+		handler     = tool_ping,
+	},
+	{
 		name        = "lua_eval",
 		description = "Execute Lua code in the unsynced LuaUI widget environment. Returns the serialized return value(s).",
 		inputSchema = {type="object", properties={code={type="string", description="Lua code to execute"}}, required={"code"}},
 		handler     = tool_lua_eval,
+		infologCheck = true,
 	},
 	{
 		name        = "lua_eval_synced",
@@ -281,28 +515,18 @@ local TOOLS = {
 		handler     = tool_widget_list,
 	},
 	{
-		name        = "widget_enable",
-		description = "Enable (load) a LuaUI widget by name.",
-		inputSchema = {type="object", properties={name={type="string", description="Widget name"}}, required={"name"}},
-		handler     = tool_widget_enable,
-	},
-	{
-		name        = "widget_disable",
-		description = "Disable (unload) a LuaUI widget by name.",
-		inputSchema = {type="object", properties={name={type="string", description="Widget name"}}, required={"name"}},
-		handler     = tool_widget_disable,
-	},
-	{
 		name        = "widget_reload",
 		description = "Reload (disable then re-enable) a LuaUI widget by name.",
 		inputSchema = {type="object", properties={name={type="string", description="Widget name"}}, required={"name"}},
 		handler     = tool_widget_reload,
+		infologCheck = true,
 	},
 	{
 		name        = "spring_command",
 		description = "Send a Spring/Recoil engine console command, e.g. 'pause', 'setspeed 4', 'globallos', 'reloadshaders'.",
 		inputSchema = {type="object", properties={command={type="string", description="Command string without leading /"}}, required={"command"}},
 		handler     = tool_spring_command,
+		infologCheck = true,
 	},
 	{
 		name        = "vfs_read",
@@ -329,22 +553,11 @@ local TOOLS = {
 		async       = true,
 	},
 	{
-		name        = "gadget_enable",
-		description = "Enable (load) a LuaRules gadget by name. Async.",
-		inputSchema = {type="object", properties={name={type="string", description="Gadget name"}}, required={"name"}},
-		async       = true,
-	},
-	{
-		name        = "gadget_disable",
-		description = "Disable (unload) a LuaRules gadget by name. Async.",
-		inputSchema = {type="object", properties={name={type="string", description="Gadget name"}}, required={"name"}},
-		async       = true,
-	},
-	{
 		name        = "gadget_reload",
 		description = "Reload (disable then re-enable) a LuaRules gadget by name. Async.",
 		inputSchema = {type="object", properties={name={type="string", description="Gadget name"}}, required={"name"}},
 		async       = true,
+		infologCheck = true,
 	},
 }
 
@@ -381,26 +594,64 @@ local function onToolsCall(client, msg)
 		return
 	end
 
+	-- Debug: log tool call with params
+	if debugMode and not QUIET_TOOL_NAMES[toolName] then
+		local okArgs, argsStr = pcall(Json.encode, args)
+		spEcho("[BARMCP] >>> tool '" .. toolName .. "' args=" .. tostring(okArgs and argsStr or args))
+	end
+
 	-- Async tools: forwarded to the synced gadget companion via LuaRulesMsg
 	if tool.async then
 		local reqId = newReqId()
-		pending[reqId] = {client = client, jsonId = msg.id}
+		local infologProbe = nil
+		if tool.infologCheck then
+			infologProbe = beginInfologProbe(toolName, msg.id)
+		end
+		pending[reqId] = {
+			client = client,
+			jsonId = msg.id,
+			toolName = toolName,
+			infologProbe = infologProbe,
+		}
 		local fwd
 		if     toolName == "lua_eval_synced" then fwd = "mcp_exec:"           .. reqId .. ":" .. tostring(args.code or "")
 		elseif toolName == "gadget_list"     then fwd = "mcp_gadget_list:"    .. reqId
-		elseif toolName == "gadget_enable"   then fwd = "mcp_gadget_enable:"  .. reqId .. ":" .. tostring(args.name or "")
-		elseif toolName == "gadget_disable"  then fwd = "mcp_gadget_disable:" .. reqId .. ":" .. tostring(args.name or "")
 		elseif toolName == "gadget_reload"   then fwd = "mcp_gadget_reload:"  .. reqId .. ":" .. tostring(args.name or "")
+		end
+		if debugMode and not QUIET_TOOL_NAMES[toolName] then
+			spEcho("[BARMCP] >>> async forward: " .. fwd)
 		end
 		Spring.SendLuaRulesMsg(fwd)
 		return
 	end
 
 	-- Sync tools: call handler directly
+	local infologProbe = nil
+	if tool.infologCheck then
+		infologProbe = beginInfologProbe(toolName, msg.id)
+	end
 	local ok, result = pcall(tool.handler, args)
 	if not ok then
+		if debugMode and not QUIET_TOOL_NAMES[toolName] then
+			spEcho("[BARMCP] <<< tool '" .. toolName .. "' ERROR: " .. tostring(result))
+		end
 		sendResult(client, msg.id, mcpErr(tostring(result)))
 		return
+	end
+	if infologProbe then
+		local success, hasErrors, payload = buildInfologToolPayload(toolName, result, collectInfologDelta(infologProbe))
+		if debugMode and not QUIET_TOOL_NAMES[toolName] then
+			spEcho("[BARMCP] <<< tool '" .. toolName .. "' result=" .. debugPreview(payload))
+		end
+		if hasErrors then
+			sendResult(client, msg.id, mcpErr(payload))
+		else
+			sendResult(client, msg.id, mcpOk(payload))
+		end
+		return
+	end
+	if debugMode and not QUIET_TOOL_NAMES[toolName] then
+		spEcho("[BARMCP] <<< tool '" .. toolName .. "' result=" .. debugPreview(result))
 	end
 	sendResult(client, msg.id, mcpOk(result))
 end
@@ -459,6 +710,9 @@ end
 function widget:Update(dt)
 	if not server then return end
 
+	-- Drain any pending sends from the previous frame
+	drainPendingSends()
+
 	local readable, _, err = socket.select(selectSet, nil, 0)
 	if err and err ~= "timeout" then
 		spEcho("[BARMCP] select error: " .. tostring(err))
@@ -484,6 +738,12 @@ function widget:Update(dt)
 				for _, c in ipairs(clients) do
 					if c.sock == sock then
 						c.buffer = c.buffer .. chunk
+						if #c.buffer > MAX_CLIENT_BUFFER then
+							spEcho("[BARMCP] client buffer exceeded " .. tostring(MAX_CLIENT_BUFFER) .. " bytes without newline; disconnecting")
+							pcall(function() sock:close() end)
+							removeClient(sock)
+							break
+						end
 						while true do
 							local nl = c.buffer:find("\n", 1, true)
 							if not nl then break end
@@ -505,6 +765,14 @@ function widget:Update(dt)
 	end
 end
 
+function widget:AddConsoleLine(lines, priority)
+	for _, line in ipairs(splitLines(lines)) do
+		if not line:find(INFOLOG_MARKER_PREFIX, 1, true) then
+			cacheConsoleLine(line, priority)
+		end
+	end
+end
+
 -- Receive async results from the synced gadget companion
 function widget:RecvLuaMsg(msg, playerID)
 	local PREFIX = "mcp_result:"
@@ -517,5 +785,21 @@ function widget:RecvLuaMsg(msg, playerID)
 	local p = pending[reqId]
 	if not p then return end
 	pending[reqId] = nil
+	if p.infologProbe then
+		local _success, hasErrors, payload = buildInfologToolPayload(
+			p.toolName or "async_tool",
+			resultStr,
+			collectInfologDelta(p.infologProbe)
+		)
+		if debugMode and not QUIET_TOOL_NAMES[p.toolName] then
+			spEcho("[BARMCP] <<< async tool '" .. tostring(p.toolName) .. "' result=" .. debugPreview(payload))
+		end
+		if hasErrors then
+			sendResult(p.client, p.jsonId, mcpErr(payload))
+		else
+			sendResult(p.client, p.jsonId, mcpOk(payload))
+		end
+		return
+	end
 	sendResult(p.client, p.jsonId, mcpOk(resultStr))
 end
