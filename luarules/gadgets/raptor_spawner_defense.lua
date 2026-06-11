@@ -1518,11 +1518,11 @@ if gadgetHandler:IsSyncedCode() then
 						damage = damage * 2
 					elseif RaptorQueenHealthPercentage > 25 then
 					elseif RaptorQueenHealthPercentage > 10 then
-						damage = damage * 0.5
+						damage = damage * 0.75
 					elseif RaptorQueenHealthPercentage > 5 then
-						damage = damage * 0.25
+						damage = damage * 0.5
 					elseif RaptorQueenHealthPercentage <= 5 then
-						damage = damage * 0.1
+						damage = damage * 0.25
 					end
 				end
 
@@ -1565,11 +1565,11 @@ if gadgetHandler:IsSyncedCode() then
 		if attackerID and queenIDs[attackerID] then -- Boss Resistance
 			if ScavBossHealthPercentage then
 				if RaptorQueenHealthPercentage > 50 then
-					damage = damage * 0.1
-				elseif RaptorQueenHealthPercentage > 25 then
 					damage = damage * 0.25
-				elseif RaptorQueenHealthPercentage > 10 then
+				elseif RaptorQueenHealthPercentage > 25 then
 					damage = damage * 0.5
+				elseif RaptorQueenHealthPercentage > 10 then
+					damage = damage * 0.75
 				elseif RaptorQueenHealthPercentage > 5 then
 				elseif RaptorQueenHealthPercentage <= 5 then
 					damage = damage * 2

@@ -1746,11 +1746,11 @@ if gadgetHandler:IsSyncedCode() then
 						damage = damage * 2
 					elseif ScavBossHealthPercentage > 25 then
 					elseif ScavBossHealthPercentage > 10 then
-						damage = damage * 0.5
+						damage = damage * 0.75
 					elseif ScavBossHealthPercentage > 5 then
-						damage = damage * 0.25
+						damage = damage * 0.5
 					elseif ScavBossHealthPercentage <= 5 then
-						damage = damage * 0.1
+						damage = damage * 0.25
 					end
 				end
 
@@ -1793,11 +1793,11 @@ if gadgetHandler:IsSyncedCode() then
 		if attackerID and bossIDs[attackerID] then -- Boss Resistance
 			if ScavBossHealthPercentage then
 				if ScavBossHealthPercentage > 50 then
-					damage = damage * 0.1
-				elseif ScavBossHealthPercentage > 25 then
 					damage = damage * 0.25
-				elseif ScavBossHealthPercentage > 10 then
+				elseif ScavBossHealthPercentage > 25 then
 					damage = damage * 0.5
+				elseif ScavBossHealthPercentage > 10 then
+					damage = damage * 0.75
 				elseif ScavBossHealthPercentage > 5 then
 				elseif ScavBossHealthPercentage <= 5 then
 					damage = damage * 2
