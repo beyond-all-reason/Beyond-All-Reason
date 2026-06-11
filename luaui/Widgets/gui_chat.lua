@@ -896,7 +896,19 @@ local function getColoredPlayerName(name, gameFrame, isSpectator)
 	if isSpectator then
 		local formerTeamColor = playernames[name] and playernames[name][5]
 		local becameSpectatorFrame = playernames[name] and playernames[name][8]
+		local likelyFormerPlayer = false
 		if formerTeamColor and becameSpectatorFrame then
+			likelyFormerPlayer = true
+		elseif formerTeamColor and playernames[name] then
+			local teamID = playernames[name][3]
+			if teamID and teamID ~= Spring.GetGaiaTeamID() then
+				local _, leader = spGetTeamInfo(teamID, false)
+				if leader == playernames[name][4] then
+					likelyFormerPlayer = true
+				end
+			end
+		end
+		if likelyFormerPlayer then
 			local teamColor = colorSpecStr
 			if ColorString then
 				if not mySpec and anonymousMode ~= "disabled" then
@@ -2640,15 +2652,23 @@ function widget:PlayerChanged(playerID)
 	if mySpec and inputMode == 'a:' then
 		inputMode = 's:'
 	end
-	local name, _, isSpec = spGetPlayerInfo(playerID, false)
+	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
 	--local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 	if not playernames[name] then
 		widget:PlayerAdded(playerID)
 	else
-		if isSpec ~= playernames[name].isSpec then
+		playernames[name][1] = allyTeamID
+		playernames[name][3] = teamID
+		if not isSpec and teamID and teamID ~= Spring.GetGaiaTeamID() then
+			playernames[name][5] = { spGetTeamColor(teamID) }
+		end
+		if isSpec ~= playernames[name][2] then
 			playernames[name][2] = isSpec
 			if isSpec then
 				playernames[name][8] = Spring.GetGameFrame()	-- log frame of death
+				if (not playernames[name][5]) and teamID and teamID ~= Spring.GetGaiaTeamID() then
+					playernames[name][5] = { spGetTeamColor(teamID) }
+				end
 			end
 		end
 	end
@@ -2657,7 +2677,14 @@ end
 function widget:PlayerAdded(playerID)
 	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
 	local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)), historyName }
+	local teamColor = nil
+	if teamID and teamID ~= Spring.GetGaiaTeamID() then
+		local _, leader = spGetTeamInfo(teamID, false)
+		if (not isSpec) or leader == playerID then
+			teamColor = { spGetTeamColor(teamID) }
+		end
+	end
+	playernames[name] = { allyTeamID, isSpec, teamID, playerID, teamColor, teamColor and ColorIsDark(teamColor[1], teamColor[2], teamColor[3]) or false, historyName }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 	if historyName ~= name then
 		autocompletePlayernames[#autocompletePlayernames+1] = historyName
@@ -2849,7 +2876,14 @@ function widget:Initialize()
 	for _, playerID in ipairs(playersList) do
 		local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
 		local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-		playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)), historyName }
+		local teamColor = nil
+		if teamID and teamID ~= Spring.GetGaiaTeamID() then
+			local _, leader = spGetTeamInfo(teamID, false)
+			if (not isSpec) or leader == playerID then
+				teamColor = { spGetTeamColor(teamID) }
+			end
+		end
+		playernames[name] = { allyTeamID, isSpec, teamID, playerID, teamColor, teamColor and ColorIsDark(teamColor[1], teamColor[2], teamColor[3]) or false, historyName }
 		autocompletePlayernames[#autocompletePlayernames+1] = name
 		if historyName ~= name then
 			autocompletePlayernames[#autocompletePlayernames+1] = historyName
