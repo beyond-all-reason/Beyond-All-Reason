@@ -3,7 +3,7 @@ if not Spring.Utilities.IsDevMode() then
 end
 
 --------------------------------------------------------------------------------
--- BAR MCP Server — Developer Tool
+-- BAR MCP Server - Developer Tool
 --
 -- Implements a Model Context Protocol (MCP) server over a local TCP socket so
 -- that AI coding assistants (e.g. Claude Desktop, VS Code GitHub Copilot) can
@@ -14,30 +14,21 @@ end
 -- Guard:     Only loads in dev mode (Spring.Utilities.IsDevMode() == true).
 --
 -- Architecture
--- ┌─────────────────────────────┐   TCP/JSON-RPC    ┌────────────────────────┐
--- │  AI client (Claude / Copilot│ ◄────────────────► │  dbg_bar_mcp.lua       │
--- │  VS Code MCP extension …)   │                   │  (LuaUI widget,        │
--- └─────────────────────────────┘                   │   unsynced context)    │
---                                                   └──────────┬─────────────┘
---                                  Spring.SendLuaRulesMsg ▼   │ ▲ Spring.SendLuaUIMsg
---                                                   ┌──────────┴─────────────┐
---                                                   │  dbg_gadget_auto_      │
---                                                   │  reloader.lua          │
---                                                   │  (LuaRules gadget,     │
---                                                   │   synced context)      │
---                                                   └────────────────────────┘
+--   AI MCP client <-> dbg_bar_mcp.lua (LuaUI widget, unsynced)
+--   dbg_bar_mcp.lua -> Spring.SendLuaRulesMsg -> dbg_gadget_auto_reloader.lua
+--   dbg_gadget_auto_reloader.lua -> Spring.SendLuaUIMsg -> dbg_bar_mcp.lua
 --
 -- Exposed MCP tools
---   lua_eval          – run Lua in the unsynced widget environment, return value(s)
---   lua_eval_synced   – run Lua in the synced gadget environment (async; needs cheats)
---   widget_list       – list all known LuaUI widgets and their active state
---   widget_reload     – disable then re-enable a widget by name
---   spring_command    – send a Spring/Recoil console command (e.g. "reloadshaders")
---   vfs_read          – read a VFS file (capped at 512 KB)
---   vfs_list          – list VFS directory contents with a glob pattern
---   game_info         – current frame, map/mod name, player, cheat/dev flags
---   gadget_list       – list all known LuaRules gadgets (async via gadget companion)
---   gadget_reload     – disable then re-enable a gadget (async)
+--   lua_eval          - run Lua in the unsynced widget environment, return value(s)
+--   lua_eval_synced   - run Lua in the synced gadget environment (async; needs cheats)
+--   widget_list       - list all known LuaUI widgets and their active state
+--   widget_reload     - disable then re-enable a widget by name
+--   spring_command    - send a Spring/Recoil console command (e.g. "reloadshaders")
+--   vfs_read          - read a VFS file (capped at 512 KB)
+--   vfs_list          - list VFS directory contents with a glob pattern
+--   game_info         - current frame, map/mod name, player, cheat/dev flags
+--   gadget_list       - list all known LuaRules gadgets (async via gadget companion)
+--   gadget_reload     - disable then re-enable a gadget (async)
 --
 -- Async tools forward a message to the synced gadget companion via
 -- Spring.SendLuaRulesMsg("mcp_<op>:<reqId>:<args>").  The gadget executes the
@@ -45,7 +36,7 @@ end
 -- Spring.SendLuaUIMsg("mcp_result:<reqId>:<json>"), which widget:RecvLuaMsg
 -- picks up and delivers back to the waiting TCP client.
 --
--- MCP client setup (Claude Desktop — claude_desktop_config.json):
+-- MCP client setup (Claude Desktop - claude_desktop_config.json):
 --   {
 --     "mcpServers": {
 --       "BAR": {
@@ -55,7 +46,7 @@ end
 --     }
 --   }
 -- Note: MCP-over-raw-TCP is not yet part of the official MCP spec; use an
--- intermediary proxy (mcp-remote, socat, or a thin stdio↔TCP bridge) if your
+-- intermediary proxy (mcp-remote, socat, or a thin stdio<->TCP bridge) if your
 -- client only supports stdio or SSE transports.
 --------------------------------------------------------------------------------
 --
@@ -87,6 +78,7 @@ local MCP_VERSION = "2025-11-25"
 local VFS_CAP     = 512 * 1024 -- 512 KB read cap
 local MAX_CLIENT_BUFFER = 1024 * 1024 -- Drop clients that send >1 MB without a newline
 local MAX_CONSOLE_CACHE_LINES = 4096
+local INFOLOG_DELAY_UPDATES = 2
 local INFOLOG_MARKER_PREFIX = "[BARMCP_INFOLOG_MARKER]"
 local INFOLOG_ERROR_PATTERN = "^%[t=[%d%.:]*%]%[f=[%-%d]*%] Error.*"
 
@@ -104,6 +96,10 @@ local selectSet = {}  -- all sockets for socket.select
 local pending   = {}
 local nextReqId = 0
 local consoleLineCache = {}
+local delayedToolResponses = {}
+local requestQueue = {}
+local activeRequest = nil
+local updateSerial = 0
 
 local function newReqId()
 	nextReqId = nextReqId + 1
@@ -139,27 +135,29 @@ local function sendAll(sock, data)
 end
 
 local function drainPendingSends()
-	for i = #pendingSends, 1, -1 do
-		local ps = pendingSends[i]
+	while #pendingSends > 0 do
+		local ps = pendingSends[1]
 		local sent, err, partial = ps.sock:send(ps.data)
 		if sent then
 			if sent < #ps.data then
 				-- Partial send: keep the remaining data for the next frame
 				ps.data = ps.data:sub(sent + 1)
+				return
 			else
 				-- Full send succeeded
-				table.remove(pendingSends, i)
+				table.remove(pendingSends, 1)
 			end
 		elseif err == "timeout" or err == "wantwrite" or err == "wantread" then
 			if type(partial) == "number" and partial > 0 then
 				ps.data = ps.data:sub(partial + 1)
 				if ps.data == "" then
-					table.remove(pendingSends, i)
+					table.remove(pendingSends, 1)
 				end
 			end
+			return
 		else
 			-- Real error (closed, reset, etc.)
-			table.remove(pendingSends, i)
+			table.remove(pendingSends, 1)
 			spEcho("[BARMCP] send error: " .. tostring(err))
 			pcall(function() ps.sock:close() end)
 			removeClient(ps.sock)
@@ -181,6 +179,10 @@ end
 
 local function sendRpcError(client, id, code, msg)
 	sendRaw(client, {jsonrpc = "2.0", id = id, error = {code = code, message = msg}})
+end
+
+local function completeActiveRequest()
+	activeRequest = nil
 end
 
 -- MCP tool result wrappers
@@ -248,7 +250,10 @@ local function cacheConsoleLine(line, priority)
 end
 
 local function lineIsInfologError(line)
-	return line:match(INFOLOG_ERROR_PATTERN) ~= nil or line:match("^Error[:%s].*") ~= nil
+	return line:match(INFOLOG_ERROR_PATTERN) ~= nil
+		or line:match("^Error[:%s].*") ~= nil
+		or line:match("^%[t=[%d%.:]*%]%[f=[%-%d]*%] Failed to load:.*") ~= nil
+		or line:match("^Failed to load:.*") ~= nil
 end
 
 local function fillInfologReportFromLines(report, lines, source)
@@ -375,6 +380,41 @@ local function buildInfologToolPayload(toolName, commandResult, infolog)
 		fallback = fallback .. "\n[BARMCP] infolog check unavailable: " .. tostring(infolog.reason)
 	end
 	return success, hasErrors, jsonEncodeOrFallback(payload, fallback)
+end
+
+local function sendInfologToolResult(client, id, toolName, commandResult, infologProbe)
+	local success, hasErrors, payload = buildInfologToolPayload(toolName, commandResult, collectInfologDelta(infologProbe))
+	if debugMode and not QUIET_TOOL_NAMES[toolName] then
+		spEcho("[BARMCP] <<< tool '" .. toolName .. "' result=" .. debugPreview(payload))
+	end
+	if hasErrors then
+		sendResult(client, id, mcpErr(payload))
+	else
+		sendResult(client, id, mcpOk(payload))
+	end
+	return success, hasErrors, payload
+end
+
+local function queueDelayedInfologToolResult(client, id, toolName, commandResult, infologProbe, delayUpdates)
+	delayedToolResponses[#delayedToolResponses + 1] = {
+		client = client,
+		jsonId = id,
+		toolName = toolName,
+		commandResult = commandResult,
+		infologProbe = infologProbe,
+		dueUpdate = updateSerial + (delayUpdates or INFOLOG_DELAY_UPDATES),
+	}
+end
+
+local function drainDelayedToolResponses()
+	for i = #delayedToolResponses, 1, -1 do
+		local p = delayedToolResponses[i]
+		if updateSerial >= p.dueUpdate then
+			table.remove(delayedToolResponses, i)
+			sendInfologToolResult(p.client, p.jsonId, p.toolName, p.commandResult, p.infologProbe)
+			completeActiveRequest()
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -520,6 +560,7 @@ local TOOLS = {
 		inputSchema = {type="object", properties={name={type="string", description="Widget name"}}, required={"name"}},
 		handler     = tool_widget_reload,
 		infologCheck = true,
+		infologDelayUpdates = INFOLOG_DELAY_UPDATES,
 	},
 	{
 		name        = "spring_command",
@@ -573,6 +614,7 @@ local function onInitialize(client, msg)
 		capabilities    = {tools = {}},
 		serverInfo      = {name = "BARMCP", version = "1.0.0"},
 	})
+	return false
 end
 
 local function onToolsList(client, msg)
@@ -581,6 +623,7 @@ local function onToolsList(client, msg)
 		list[#list + 1] = {name = t.name, description = t.description, inputSchema = t.inputSchema}
 	end
 	sendResult(client, msg.id, {tools = list})
+	return false
 end
 
 local function onToolsCall(client, msg)
@@ -591,7 +634,7 @@ local function onToolsCall(client, msg)
 	local tool = TOOL_MAP[toolName]
 	if not tool then
 		sendRpcError(client, msg.id, -32601, "Unknown tool: " .. tostring(toolName))
-		return
+		return false
 	end
 
 	-- Debug: log tool call with params
@@ -622,7 +665,7 @@ local function onToolsCall(client, msg)
 			spEcho("[BARMCP] >>> async forward: " .. fwd)
 		end
 		Spring.SendLuaRulesMsg(fwd)
-		return
+		return true
 	end
 
 	-- Sync tools: call handler directly
@@ -636,50 +679,65 @@ local function onToolsCall(client, msg)
 			spEcho("[BARMCP] <<< tool '" .. toolName .. "' ERROR: " .. tostring(result))
 		end
 		sendResult(client, msg.id, mcpErr(tostring(result)))
-		return
+		return false
 	end
 	if infologProbe then
-		local success, hasErrors, payload = buildInfologToolPayload(toolName, result, collectInfologDelta(infologProbe))
-		if debugMode and not QUIET_TOOL_NAMES[toolName] then
-			spEcho("[BARMCP] <<< tool '" .. toolName .. "' result=" .. debugPreview(payload))
-		end
-		if hasErrors then
-			sendResult(client, msg.id, mcpErr(payload))
+		if tool.infologDelayUpdates then
+			queueDelayedInfologToolResult(client, msg.id, toolName, result, infologProbe, tool.infologDelayUpdates)
+			return true
 		else
-			sendResult(client, msg.id, mcpOk(payload))
+			sendInfologToolResult(client, msg.id, toolName, result, infologProbe)
 		end
-		return
+		return false
 	end
 	if debugMode and not QUIET_TOOL_NAMES[toolName] then
 		spEcho("[BARMCP] <<< tool '" .. toolName .. "' result=" .. debugPreview(result))
 	end
 	sendResult(client, msg.id, mcpOk(result))
+	return false
 end
 
 local HANDLERS = {
 	["initialize"]                = onInitialize,
-	["notifications/initialized"] = function() end, -- no-op
+	["notifications/initialized"] = function() return false end, -- no-op
 	["tools/list"]                = onToolsList,
 	["tools/call"]                = onToolsCall,
 }
 
-local function dispatchLine(client, line)
+local function enqueueLine(client, line)
 	if line == "" then return end
 	local ok, msg = pcall(Json.decode, line)
 	if not ok or type(msg) ~= "table" then
 		sendRpcError(client, Json.null, -32700, "Parse error")
 		return
 	end
+	requestQueue[#requestQueue + 1] = {client = client, msg = msg}
+end
+
+local function processNextRequest()
+	if activeRequest or #requestQueue == 0 then
+		return
+	end
+	local request = table.remove(requestQueue, 1)
+	activeRequest = request
+	local client = request.client
+	local msg = request.msg
 	local h = HANDLERS[msg.method]
 	if h then
-		local ok2, err = pcall(h, client, msg)
+		local ok2, pendingOrErr = pcall(h, client, msg)
 		if not ok2 then
-			sendRpcError(client, msg.id, -32603, "Internal error: " .. tostring(err))
+			sendRpcError(client, msg.id, -32603, "Internal error: " .. tostring(pendingOrErr))
+			completeActiveRequest()
+		elseif not pendingOrErr then
+			completeActiveRequest()
 		end
 	elseif msg.id ~= nil then
 		sendRpcError(client, msg.id, -32601, "Method not found: " .. tostring(msg.method))
+		completeActiveRequest()
+	else
+		-- notifications with unknown method: silently ignore
+		completeActiveRequest()
 	end
-	-- notifications with unknown method: silently ignore
 end
 
 --------------------------------------------------------------------------------
@@ -690,7 +748,7 @@ function widget:Initialize()
 	server:setoption("reuseaddr", true)
 	local ok, err = server:bind(MCP_HOST, MCP_PORT)
 	if not ok then
-		spEcho("[BARMCP] bind failed on " .. MCP_HOST .. ":" .. MCP_PORT .. " — " .. tostring(err))
+		spEcho("[BARMCP] bind failed on " .. MCP_HOST .. ":" .. MCP_PORT .. " - " .. tostring(err))
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -704,13 +762,17 @@ function widget:Shutdown()
 	for _, c in ipairs(clients) do pcall(function() c.sock:close() end) end
 	if server then pcall(function() server:close() end) end
 	clients, server, selectSet = {}, nil, {}
+	requestQueue, activeRequest = {}, nil
+	delayedToolResponses = {}
 	spEcho("[BARMCP] Stopped.")
 end
 
 function widget:Update(dt)
 	if not server then return end
+	updateSerial = updateSerial + 1
 
 	-- Drain any pending sends from the previous frame
+	drainDelayedToolResponses()
 	drainPendingSends()
 
 	local readable, _, err = socket.select(selectSet, nil, 0)
@@ -749,7 +811,7 @@ function widget:Update(dt)
 							if not nl then break end
 							local line = c.buffer:sub(1, nl - 1)
 							c.buffer   = c.buffer:sub(nl + 1)
-							dispatchLine(c, line)
+							enqueueLine(c, line)
 						end
 						break
 					end
@@ -763,6 +825,8 @@ function widget:Update(dt)
 			end
 		end
 	end
+
+	processNextRequest()
 end
 
 function widget:AddConsoleLine(lines, priority)
@@ -799,7 +863,9 @@ function widget:RecvLuaMsg(msg, playerID)
 		else
 			sendResult(p.client, p.jsonId, mcpOk(payload))
 		end
+		completeActiveRequest()
 		return
 	end
 	sendResult(p.client, p.jsonId, mcpOk(resultStr))
+	completeActiveRequest()
 end
