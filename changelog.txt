@@ -1,4 +1,5 @@
 # June
+• [All Builders] Idle mobile builders now auto-repair units within a range that depends on the movement state.
 • [Commando] 1560 -> 1800 health, EMP resistance, weapon inaccuracy removed, weapon can target air, but does reduced dmg vs air (30%)
 • [Legion changes]
 	- Phalanx cost increased 450m4750E -> 470m5000E

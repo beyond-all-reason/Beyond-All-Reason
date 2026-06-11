@@ -34,7 +34,7 @@ local myTeam = spGetMyTeamID()
 
 local cloakFireState = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.canCloak and unitDef.customParams.firestateoncloak and not unitDef.customParams.isscavenger) then
+	if unitDef.canCloak and unitDef.customParams.firestateoncloak and not unitDef.customParams.isscavenger then
 		cloakFireState[unitDefID] = tonumber(unitDef.customParams.firestateoncloak) or FIRESTATE_HOLDFIRE
 	end
 end
