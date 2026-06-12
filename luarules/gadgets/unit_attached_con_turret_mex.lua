@@ -200,6 +200,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	mexesToSwap[unitID] = nil
 
 	if mexActualDefID[unitDefID] or mexTurretDefID[unitDefID] then
+		Spring.SetUnitNoSelect(unitID, false)
 		local pairedUnitID = pairedUnits[unitID]
 		if pairedUnitID then
 			pairedUnits[unitID] = nil

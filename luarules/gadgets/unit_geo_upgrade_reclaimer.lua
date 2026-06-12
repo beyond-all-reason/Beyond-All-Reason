@@ -48,7 +48,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if isGeo[unitDefID] then
 		local geo = hasGeoUnderneat(unitID)
 		if geo then
-			Spring.SetUnitNoSelect(geo, true)
+			Spring.Utilities.SetUnitNoSelect(geo, true)
 			if transferInstantly then
 				local mexTeamID = Spring.GetUnitTeam(geo)
 				if mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then

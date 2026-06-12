@@ -49,6 +49,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spValidUnitID = Spring.ValidUnitID
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitLosState = Spring.GetUnitLosState
+	local spGetUnitNoSelect = Spring.GetUnitNoSelect
 	local spGetUnitTeam = Spring.GetUnitTeam
 	local spAreTeamsAllied = Spring.AreTeamsAllied
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
@@ -215,8 +216,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function checkTarget(teamID, target)
-		return type(target) ~= "number" or not isAlliedUnit(teamID, target)
+	local function isValidTarget(teamID, target)
+		return type(target) ~= "number" or not (spGetUnitNoSelect(target) or isAlliedUnit(teamID, target))
 	end
 
 	local function inAttackCommand(unitID)
@@ -267,10 +268,24 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
+	local function setTargetDefault(unitID, unitData)
+		unitData.activeTarget = false
+		unitData.currentIndex = 1
+		spSetUnitRulesParam(unitID, "targetID",     nil)
+		spSetUnitRulesParam(unitID, "targetCoordX", nil)
+		spSetUnitRulesParam(unitID, "targetCoordY", nil)
+		spSetUnitRulesParam(unitID, "targetCoordZ", nil)
+		SendToUnsynced("targetIndex", unitID, 1, false)
+	end
+
 	local function setTargetActive(unitID, unitData, targetIndex)
+		local targetData = unitData.targets[targetIndex]
+		if not targetData then
+			setTargetDefault(unitID, unitData)
+			return
+		end
 		unitData.activeTarget = true
 		unitData.currentIndex = targetIndex
-		local targetData = unitData.targets[targetIndex]
 		local target = targetData.target
 		local targetID, targetX, targetY, targetZ = -1, -1, -1, -1
 		if type(target) == "number" then
@@ -287,17 +302,11 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("targetIndex", unitID, targetIndex, true)
 	end
 
-	local function setTargetPassive(unitID, unitData, targetIndex)
-		unitData.activeTarget = false
-		unitData.currentIndex = targetIndex
+	local function setTargetPassive(unitID, unitData)
 		if not inAttackCommand(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
-		spSetUnitRulesParam(unitID, "targetID",     nil)
-		spSetUnitRulesParam(unitID, "targetCoordX", nil)
-		spSetUnitRulesParam(unitID, "targetCoordY", nil)
-		spSetUnitRulesParam(unitID, "targetCoordZ", nil)
-		SendToUnsynced("targetIndex", unitID, targetIndex, false)
+		setTargetDefault(unitID, unitData)
 	end
 
 	local function isUnseenEnemyUnit(targetData, allyTeam)
@@ -359,7 +368,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			local targetData = targetList[i]
 			local target = targetData.target
-			if not currentTargets[target] and checkTarget(teamID, target) then
+			if not currentTargets[target] and isValidTarget(teamID, target) then
 				limitCount = limitCount - 1
 				targetCount = targetCount + 1
 				targets[targetCount] = targetData
@@ -622,7 +631,7 @@ if gadgetHandler:IsSyncedCode() then
 						if allowTargetUnit(unitID, weaponList, target) then
 							count = count + 1
 							targetList[count] = {
-								alwaysSeen = true,
+								alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
 								ignoreStop = ignoreStop,
 								userTarget = userTarget,
 								target = target,
@@ -803,7 +812,7 @@ if gadgetHandler:IsSyncedCode() then
 				-- Target priority is in list-order on the target list.
 				for index = 1, length do
 					local targetData = targets[index]
-					if not checkTarget(teamID, targetData.target) then
+					if not isValidTarget(teamID, targetData.target) then
 						targetData.invalid = true
 						countRemoved = countRemoved + 1
 					elseif testTarget(unitID, teamID, weapons, targetData.target) then
@@ -834,7 +843,7 @@ if gadgetHandler:IsSyncedCode() then
 				elseif targetIndex ~= 0 then
 					setTargetActive(unitID, unitData, targetIndex)
 				elseif unitData.activeTarget then
-					setTargetPassive(unitID, unitData, 1)
+					setTargetPassive(unitID, unitData)
 				end
 			end
 		end

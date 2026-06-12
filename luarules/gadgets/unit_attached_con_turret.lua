@@ -199,8 +199,11 @@ end
 attached_builders = {}
 attached_builder_def = {}
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	attached_builders[unitID] = nil
-	attached_builder_def[unitID] = nil
+	if attached_builder_def[unitID] then
+		attached_builder_def[unitID] = nil
+		attached_builders[unitID] = nil
+		Spring.SetUnitNoSelect(unitID, false)
+	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)

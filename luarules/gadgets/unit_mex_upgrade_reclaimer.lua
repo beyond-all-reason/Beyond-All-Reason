@@ -65,7 +65,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if isMex[unitDefID] then
 		local mex = hasMexBeneath(unitID)
 		if mex then
-			Spring.SetUnitNoSelect(mex, true)
+			Spring.Utilities.SetUnitNoSelect(mex, true)
 			if transferInstantly then
 				local mexTeamID = Spring.GetUnitTeam(mex)
 				if mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
@@ -82,7 +82,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if isMex[unitDefID] then
 		local mex = hasMexBeneath(unitID)
 		if mex then
-			Spring.SetUnitNoSelect(mex, false)
+			Spring.Utilities.SetUnitNoSelect(mex, false)
 		end
     end
 end
