@@ -622,7 +622,7 @@ if gadgetHandler:IsSyncedCode() then
 						if allowTargetUnit(unitID, weaponList, target) then
 							count = count + 1
 							targetList[count] = {
-								alwaysSeen = true,
+								alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
 								ignoreStop = ignoreStop,
 								userTarget = userTarget,
 								target = target,
