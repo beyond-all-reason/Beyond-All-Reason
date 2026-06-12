@@ -955,7 +955,7 @@ else	-- UNSYNCED
 		end
 		local targets = unitData.targets
 		if removeFromIndex then
-			for i = #targets, removeFromIndex, 1 do
+			for i = #targets, removeFromIndex, -1 do
 				targets[i] = nil
 			end
 			if removeFromIndex <= unitData.targetIndex then
