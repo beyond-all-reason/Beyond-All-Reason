@@ -1045,7 +1045,7 @@ else	-- UNSYNCED
 		local result
 		repeat
 			weaponNum = weaponNum + 1
-			local _, currentTarget = spGetUnitWeaponTarget(unitID, weaponNum)
+			local _, _, currentTarget = spGetUnitWeaponTarget(unitID, weaponNum)
 			if currentTarget then
 				result = currentTarget == target
 			else
@@ -1060,7 +1060,7 @@ else	-- UNSYNCED
 		local result
 		repeat
 			weaponNum = weaponNum + 1
-			local _, currentTarget = spGetUnitWeaponTarget(unitID, weaponNum)
+			local _, _, currentTarget = spGetUnitWeaponTarget(unitID, weaponNum)
 			if currentTarget then
 				result = currentTarget[1] == x
 					and currentTarget[2] == y
