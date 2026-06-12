@@ -74,6 +74,8 @@ local spClosestBuildPos = Spring.ClosestBuildPos
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitsInBox = Spring.GetUnitsInBox
+local reissueOrder = Game.Commands.ReissueOrder
+local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 
 
 
@@ -87,6 +89,7 @@ local LOAD_RADIUS = 128    -- elmos XZ; transporter must be within this range to
 local UNLOAD_RADIUS = 32  -- elmos XZ; transporter must be within this range to fire PerformUnload
 local CMD_AREA_LOAD = 39751 -- custom area-load command; needs to be logged in customcmds
 local CMD_LOAD_UNIT = 39752 -- custom load-unit command; needs to be logged in customcmds
+local CMD_LOAD_WAIT = 39753 -- custom load-wait command; needs to be logged in customcmds
 local cachedCylinderUnitsLifespan = 1 -- 1 frame
 local cachedCylinderUnitsRounding = 16 -- 1 how close a previously cached result do we need to be to actually use it?
 
@@ -636,7 +639,11 @@ local function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeamI
 
 	if queuedSeats[transporterID] == 0 then -- queuedSeats val ~= #transporterClaims but both are 0 when no queue.
 		areaLoadCoroutines[transporterID] = nil
-		return true -- either no claimable units, or all claims loaded, command is finished
+		local canUnload = spGetUnitRulesParam(transporterID, "canUnload") == 1
+		if not canUnload then
+			return false -- no claimable units, still in load anim
+		end
+		return true
 	end
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
 	local distToArea = dist2D(transporterPosX, transporterPosZ, cx, cz)
@@ -722,10 +729,18 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 	-- remove invalidated/finished commands before giving a move goal, making sure don't accidently movegoal to a skipped unit
 	for passengerID,v in pairs(idsToRemove) do
 		releasePassenger(passengerID, transporterAllyTeam) -- release claim so it can be targeted by future loads
-		for i = 1, #queue do
-			if queue[i].id == CMD_LOAD_UNIT and queue[i].params[1] == passengerID then -- find the corresponding command
-				spGiveOrderToUnit(transporterID, CMD.REMOVE, {queue[i].tag}, 0) -- consume the command so the transporter proceeds to the next
-				break
+		if queue[2].id ~= CMD_LOAD_UNIT then -- means we're on the last successive load command in the queue
+			--  we keep it around until the load anim finished (load wait stance)
+			local canUnload = spGetUnitRulesParam(transporterID, "canUnload") == 1
+			if canUnload then
+				spUnitFinishCommand(transporterID)
+			end
+		else
+			for i = 1, #queue do
+				if queue[i].id == CMD_LOAD_UNIT and queue[i].params[1] == passengerID then -- find the corresponding command
+					spGiveOrderToUnit(transporterID, CMD.REMOVE, {queue[i].tag}, 0) -- consume the command so the transporter proceeds to the next
+					break
+				end
 			end
 		end
 	end
@@ -1051,11 +1066,6 @@ end
 
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
-	-- TODO:
-	-- When a unit just started being loaded, it is not yet considered "cargo" because it is still ongoing load
-	-- so engine drops the UNLOAD commands that are given during this time (instantly performed -> finished)
-	-- it's a little frustrating
-	-- Maybe queue a move + UNLOAD?
 	if cmdID == CMD.LOAD_ONTO then
 		if fromInsert then
 			spEcho("Warning: CMD_LOAD_ONTO is deprecated and will be removed in a future update; this command will be ignored")
@@ -1065,46 +1075,31 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		spGiveOrderToUnit( cmdParams[1], CMD.INSERT, { 0, CMD_LOAD_UNIT, 0, unitID }, {"alt"}) -- insert in front of target's queue a load units cmd
 		return false
 	end
+	if not isAirTransport[unitDefID] then return false end
 	if cmdID == CMD.LOAD_UNITS then
-		if not isAirTransport[unitDefID] then return false end
-		if fromInsert then
-			if #cmdParams == 4 then -- inserted area cmd
-				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD_AREA_LOAD, 0, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4] }, {"alt"})
-				return false
-			elseif #cmdParams == 1 then -- inserted successive cmd
-				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD_LOAD_UNIT, 0, cmdParams[1] }, {"alt"})
-				return false
-			end
-			return false -- malformed cmd ? ignore
+		if #cmdParams == 4 then -- inserted area cmd
+			reissueOrder(unitID, CMD_AREA_LOAD, cmdParams, cmdOptions, cmdTag, fromInsert)
+		elseif #cmdParams == 1 then -- inserted successive cmd
+			reissueOrder(unitID, CMD_LOAD_UNIT, cmdParams, cmdOptions, cmdTag, fromInsert)
 		end
-		if #cmdParams == 4 then
-			spGiveOrderToUnit(unitID, CMD_AREA_LOAD, cmdParams, cmdOptions)
-			return false
-		elseif #cmdParams == 1 then
-			spGiveOrderToUnit(unitID, CMD_LOAD_UNIT, cmdParams, cmdOptions)
-			return false
-		end
+		return false -- malformed cmd ? ignore
 	end
 	if cmdID == CMD.UNLOAD_UNIT then
-		if not isAirTransport[unitDefID] then return false end
+		local transportedUnits = spGetUnitIsTransporting(unitID)
+
 		local posX, posY, posZ = cmdParams[1], cmdParams[2], cmdParams[3]
-		-- cmdParams[4] is the specific passengerID for single-unload cmds; nil for area-style unloads
 		if not spValidUnitID(cmdParams[4]) then
 			cmdParams[4] = nil -- force nil in case some odd looking cmd was given
 		end
 		local newPosX, newPosY, newPosZ = spClosestBuildPos(unitTeam, GetUnloadPadType(unitID, cmdParams[4]), posX, posY, posZ, 512, 0, 0)
 		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
-			if fromInsert then
-				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD.UNLOAD_UNIT, 0, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4] }, {"alt"})
-				return false
-			end
-			spGiveOrderToUnit(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions)
+			reissueOrder(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions, cmdTag, fromInsert)
 			return false
 		end
+		return true
 	end
 	if cmdID == CMD.UNLOAD_UNITS then
-		if not isAirTransport[unitDefID] then return false end
 		if cmdParams[4] then
 			spEcho("Warning: CMD.UNLOAD_UNITS areas deprecated, replacing with single point CMD.UNLOAD_UNIT command")
 		end
@@ -1114,13 +1109,9 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
 			cmdParams[4] = nil
 			cmdParams[5] = nil
-			if fromInsert then
-				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD.UNLOAD_UNIT, 0, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4] }, {"alt"})
-				return false
-			end
-			spGiveOrderToUnit(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions)
-			return false
+			reissueOrder(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions, cmdTag, fromInsert)
 		end
+		return false
 	end
 	return true, true
 end
