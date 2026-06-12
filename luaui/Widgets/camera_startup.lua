@@ -13,6 +13,13 @@ function widget:GetInfo()
 end
 
 function widget:Initialize()
+    -- this is not accidental, we need to get the camera state twice
+    local nameCameraState = Spring.GetCameraState(true)
+    if nameCameraState.name ~= "ta" and nameCameraState.name ~= "spring" then
+        Spring.Echo("Camera Startup: Unsupported camera mode, expected 'ta' or 'spring', got '" .. nameCameraState.name .. "'")
+        return
+    end
+
     -- Calculate the center of the startbox
     local xMin,zMin,xMax,zMax = Spring.GetAllyTeamStartBox(Spring.GetMyAllyTeamID())
     if not xMin or not zMin or not xMax or not zMax then
