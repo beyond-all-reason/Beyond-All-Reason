@@ -54,6 +54,10 @@ if gadgetHandler:IsSyncedCode() then
 		return weapon.slavedTo == 0 and hasAntiAirTargeting(weapon)
 	end
 
+	local function isNotFakeWeapon(weapon)
+		return not WeaponDefs[weapon.weaponDef].customParams.bogus
+	end
+
 	local function hasAntiAirPriority(unitDef, weapon)
 		if not hasTargeting(unitDef, weapon) or not hasAntiAirTargeting(weapon) then
 			return false
@@ -76,6 +80,7 @@ if gadgetHandler:IsSyncedCode() then
 			airPriorityMultiplier[unitDefID] = (unitDef.isTransport or unitDef.isBuilder) and PRIORITY_VTOLS
 				or table.any(weapons, isBomberWeapon) and PRIORITY_BOMBERS
 				or table.any(weapons, isFighterWeapon) and PRIORITY_FIGHTERS
+				or table.any(weapons, isNotFakeWeapon) and PRIORITY_VTOLS -- doubles as the PRIORITY_GUNSHIP
 				or PRIORITY_SCOUTS
 		end
 		for i = 1, #weapons do
