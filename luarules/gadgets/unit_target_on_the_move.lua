@@ -622,7 +622,7 @@ if gadgetHandler:IsSyncedCode() then
 						if allowTargetUnit(unitID, weaponList, target) then
 							count = count + 1
 							targetList[count] = {
-								alwaysSeen = true,
+								alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
 								ignoreStop = ignoreStop,
 								userTarget = userTarget,
 								target = target,
@@ -955,7 +955,7 @@ else	-- UNSYNCED
 		end
 		local targets = unitData.targets
 		if removeFromIndex then
-			for i = #targets, removeFromIndex, 1 do
+			for i = #targets, removeFromIndex, -1 do
 				targets[i] = nil
 			end
 			if removeFromIndex <= unitData.targetIndex then
