@@ -1112,10 +1112,12 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			reissueOrder(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions, cmdTag, fromInsert)
 			return false
 		end
+
 		if needsShift then
 			reissueOrder(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions, cmdTag, fromInsert)
 			return false
 		end
+
 		return true
 	end
 	if cmdID == CMD.UNLOAD_UNITS then
