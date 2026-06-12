@@ -1095,9 +1095,15 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		local hasShift = cmdOptions.shift == true
 		if #transportedUnits == 0 then
 			local Q = spGetUnitCommands(unitID, 2)
-			needsMove = (#Q == 0 or (Q[1].id ~= CMD_AREA_LOAD and Q[1].id ~= CMD_LOAD_UNIT)) and (not hasShift)
-			needsShift = needsMove or ((Q[1] and (Q[1].id == CMD_AREA_LOAD or Q[1].id == CMD_LOAD_UNIT)) and not Q[2])
+			local queueEmpty = not Q or #Q == 0
+			local inWaitStance = Q and Q[1] and (Q[1].id == CMD_AREA_LOAD or Q[1].id == CMD_LOAD_UNIT)
+			local hasMoreCommands = #Q > 1
+			needsMove = (queueEmpty or not hasShift) and not (inWaitStance and not hasMoreCommands) -- if we're going to leave an "empty" queue before unload, 
+			-- make sure there is a move command inbetween that avoids unload to instant drop
+			needsShift = needsMove or (inWaitStance and not hasMoreCommands) -- if we spawned a move command,
+			-- or if the current command is load and we have nothing queued afterwards, we need to queue unload, not override
 			if needsMove then
+				spGiveOrderToUnit(unitID, CMD.STOP, {}, {}) -- STOP first
 				spGiveOrderToUnit(unitID, CMD.MOVE, {posX, posY, posZ}, {""}) -- just move there, the unload will be triggered by the engine once the load anim is finished
 			end	
 			needsShift = needsShift and not hasShift
