@@ -729,7 +729,7 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 	-- remove invalidated/finished commands before giving a move goal, making sure don't accidently movegoal to a skipped unit
 	for passengerID,v in pairs(idsToRemove) do
 		releasePassenger(passengerID, transporterAllyTeam) -- release claim so it can be targeted by future loads
-		if queue[2].id ~= CMD_LOAD_UNIT then -- means we're on the last successive load command in the queue
+		if (queue[2] and queue[2].id ~= CMD_LOAD_UNIT) or (not queue[2]) then -- means we're on the last successive load command in the queue
 			--  we keep it around until the load anim finished (load wait stance)
 			local canUnload = spGetUnitRulesParam(transporterID, "canUnload") == 1
 			if canUnload then
@@ -1086,14 +1086,33 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	end
 	if cmdID == CMD.UNLOAD_UNIT then
 		local transportedUnits = spGetUnitIsTransporting(unitID)
-
 		local posX, posY, posZ = cmdParams[1], cmdParams[2], cmdParams[3]
 		if not spValidUnitID(cmdParams[4]) then
 			cmdParams[4] = nil -- force nil in case some odd looking cmd was given
 		end
+		local needsShift = false
+		local needsMove = false
+		local hasShift = cmdOptions.shift == true
+		if #transportedUnits == 0 then
+			local Q = spGetUnitCommands(unitID, 2)
+			needsMove = (#Q == 0 or (Q[1].id ~= CMD_AREA_LOAD and Q[1].id ~= CMD_LOAD_UNIT)) and (not hasShift)
+			needsShift = needsMove or ((Q[1] and (Q[1].id == CMD_AREA_LOAD or Q[1].id == CMD_LOAD_UNIT)) and not Q[2])
+			if needsMove then
+				spGiveOrderToUnit(unitID, CMD.MOVE, {posX, posY, posZ}, {""}) -- just move there, the unload will be triggered by the engine once the load anim is finished
+			end	
+			needsShift = needsShift and not hasShift
+			if needsShift then
+				cmdOptions.shift = true
+				cmdOptions.coded = cmdOptions.coded + CMD.OPT_SHIFT
+			end
+		end
 		local newPosX, newPosY, newPosZ = spClosestBuildPos(unitTeam, GetUnloadPadType(unitID, cmdParams[4]), posX, posY, posZ, 512, 0, 0)
 		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
+			reissueOrder(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions, cmdTag, fromInsert)
+			return false
+		end
+		if needsShift then
 			reissueOrder(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions, cmdTag, fromInsert)
 			return false
 		end
