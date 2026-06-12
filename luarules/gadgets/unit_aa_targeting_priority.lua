@@ -73,7 +73,7 @@ if gadgetHandler:IsSyncedCode() then
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local weapons = unitDef.weapons
 		if unitDef.isAirUnit then
-			airPriorityMultiplier[unitDefID] = (unitDef.isHoveringAirUnit or unitDef.isTransport or unitDef.isBuilder) and PRIORITY_VTOLS
+			airPriorityMultiplier[unitDefID] = (unitDef.isTransport or unitDef.isBuilder) and PRIORITY_VTOLS
 				or table.any(weapons, isBomberWeapon) and PRIORITY_BOMBERS
 				or table.any(weapons, isFighterWeapon) and PRIORITY_FIGHTERS
 				or PRIORITY_SCOUTS
