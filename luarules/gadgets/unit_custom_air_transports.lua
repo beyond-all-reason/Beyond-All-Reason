@@ -914,6 +914,14 @@ end
 -- 2. The coroutine continues running until the successive load commands are removed from the queue (either by being finished or by being invalidated), at which point it stops.
 
 function gadget:CommandFallback(transporterID, transporterDefID, transporterTeamID, cmdID, cmdParams, cmdOptions, cmdTag)
+	if cmdID == CMD_LOAD_WAIT then
+		local canUnload = spGetUnitRulesParam(transporterID, "canUnload") == 1
+		if canUnload then
+			return true, true
+		else
+			return true,false
+		end
+	end
 	if cmdID == CMD_LOAD_UNIT then
 		ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeamID)
 		if not transporterCoroutines[transporterID] or transporterCoroutines[transporterID].type ~= "successive" then
@@ -1096,15 +1104,14 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		if #transportedUnits == 0 then
 			local Q = spGetUnitCommands(unitID, 2)
 			local queueEmpty = not Q or #Q == 0
-			local inWaitStance = Q and Q[1] and (Q[1].id == CMD_AREA_LOAD or Q[1].id == CMD_LOAD_UNIT)
+			local inWaitStance = Q and Q[1] and (Q[1].id == CMD_AREA_LOAD or Q[1].id == CMD_LOAD_UNIT or Q[1].id == CMD_LOAD_WAIT)
 			local hasMoreCommands = #Q > 1
-			needsMove = (queueEmpty or not hasShift) and not (inWaitStance and not hasMoreCommands) -- if we're going to leave an "empty" queue before unload, 
-			-- make sure there is a move command inbetween that avoids unload to instant drop
-			needsShift = needsMove or (inWaitStance and not hasMoreCommands) -- if we spawned a move command,
-			-- or if the current command is load and we have nothing queued afterwards, we need to queue unload, not override
+			needsMove = (queueEmpty or not hasShift) and not (inWaitStance and not hasMoreCommands)
+			-- if we want to override queue, or have no waitStance/queue; we need to spawn a wait stance first
+			needsShift = needsMove or (inWaitStance and not hasMoreCommands)
+			-- if we just spawned a wait stance, or are already on a wait stance
 			if needsMove then
-				spGiveOrderToUnit(unitID, CMD.STOP, {}, {}) -- STOP first
-				spGiveOrderToUnit(unitID, CMD.MOVE, {posX, posY, posZ}, {""}) -- just move there, the unload will be triggered by the engine once the load anim is finished
+				spGiveOrderToUnit(unitID, CMD_LOAD_WAIT, {posX, posY, posZ}, {""}) -- just move there, the unload will be triggered by the engine once the load anim is finished
 			end	
 			needsShift = needsShift and not hasShift
 			if needsShift then
