@@ -74,6 +74,8 @@ local spClosestBuildPos = Spring.ClosestBuildPos
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitsInBox = Spring.GetUnitsInBox
+local reissueOrder = Game.Commands.ReissueOrder
+local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 
 
 
@@ -87,6 +89,7 @@ local LOAD_RADIUS = 128    -- elmos XZ; transporter must be within this range to
 local UNLOAD_RADIUS = 32  -- elmos XZ; transporter must be within this range to fire PerformUnload
 local CMD_AREA_LOAD = 39751 -- custom area-load command; needs to be logged in customcmds
 local CMD_LOAD_UNIT = 39752 -- custom load-unit command; needs to be logged in customcmds
+local CMD_LOAD_WAIT = 39753 -- custom load-wait command; needs to be logged in customcmds
 local cachedCylinderUnitsLifespan = 1 -- 1 frame
 local cachedCylinderUnitsRounding = 16 -- 1 how close a previously cached result do we need to be to actually use it?
 
@@ -636,7 +639,11 @@ local function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeamI
 
 	if queuedSeats[transporterID] == 0 then -- queuedSeats val ~= #transporterClaims but both are 0 when no queue.
 		areaLoadCoroutines[transporterID] = nil
-		return true -- either no claimable units, or all claims loaded, command is finished
+		local canUnload = spGetUnitRulesParam(transporterID, "canUnload") == 1
+		if not canUnload then
+			return false -- no claimable units, still in load anim
+		end
+		return true
 	end
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
 	local distToArea = dist2D(transporterPosX, transporterPosZ, cx, cz)
@@ -1102,12 +1109,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
 			cmdParams[4] = nil
 			cmdParams[5] = nil
-			if fromInsert then
-				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD.UNLOAD_UNIT, 0, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4] }, {"alt"})
-				return false
-			end
-			spGiveOrderToUnit(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions)
-			return false
+			reissueOrder(unitID, CMD.UNLOAD_UNIT, cmdParams, cmdOptions, cmdTag, fromInsert)
 		end
 		return false
 	end
