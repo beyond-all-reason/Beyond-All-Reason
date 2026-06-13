@@ -1,50 +1,46 @@
-
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-	return {
-		name = "Unit Killed Population Count Transfer",
-		desc = "Allows modifying population count to or from killed units allyteam or to Gaia",
-		author = "Chemdude8",
-		date = "2026-05-06",
-		license = "None",
-		layer = 49,
-		enabled = true
-	}
+    return {
+        name = "Unit Killed Population Count Transfer",
+        desc = "Allows modifying population count to or from killed units allyteam or to Gaia",
+        author = "Chemdude8",
+        date = "2026-05-06",
+        license = "None",
+        layer = 49,
+        enabled = true
+    }
 end
 
-if not gadgetHandler:IsSyncedCode() then
-	return false
-end
+if gadgetHandler:IsSyncedCode() then
+    -- Can use Spring.GetTeamMaxUnits to get number of popcap
+    -- how do we listen on chat messages?
 
 
+    -- Local copies of spring/recoil functions
+    local spTransferTeamMaxUnits = Spring.TransferTeamMaxUnits
+    local spGetTeamMaxUnits = Spring.GetTeamMaxUnits
+    local spGetPlayerInfo = Spring.GetPlayerInfo
+    local spGetTeamList = Spring.GetTeamList
+    local math = math
+    local string = string
+
+    -- One-off spring calls
+    local modOptions = Spring.GetModOptions()
+    local GaiaTeamID = Spring.GetGaiaTeamID()
+
+    -- Local long running variables
+    local killedTeamToCountTable = {} -- either the teamID of the killed player in gaia-mode, or killedTeam..attackerTeam to count in transfer mode
 
 
--- Can use Spring.GetTeamMaxUnits to get number of popcap
--- how do we listen on chat messages?
-
-
--- Local copies of spring/recoil functions
-local spTransferTeamMaxUnits = Spring.TransferTeamMaxUnits
-local spGetTeamMaxUnits = Spring.GetTeamMaxUnits
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamList = Spring.GetTeamList
-
--- One-off spring calls
-local modOptions = Spring.GetModOptions()
-local GaiaTeamID = Spring.GetGaiaTeamID()
-
--- Local long running variables
-local killedTeamToCountTable = {} -- either the teamID of the killed player in gaia-mode, or killedTeam..attackerTeam to count in transfer mode
-local rebalanceCommand = 'rebalancepopulation'
-
-
--- Only intended to fix the pop-cap loss on take/take2 player reconnect
-	local function rebalancePopulation(cmd, line, words, playerID)
-		
+    -- Only intended to fix the pop-cap loss on take/take2 player reconnect
+    --local function rebalancePopulation(_, line, words, player)
+  --[[   local function rebalancePopulation(_, line, words, playerID)
+        Spring.Echo('woot, chat listener invoked! ')
+        print('woot eep, in rabalance')
+        if true then return end
         -- get the allyPlayerIds for the allyTeam which contains the playerID
-        local _, _, _, allyTeamID = spGetPlayerInfo(playerID)
+        local _, _, _, allyTeamID = spGetPlayerInfo(player)
         local allyIDs = spGetTeamList(allyTeamID)
         -- looks like {1: {2000, 100}}, {teamID: {currentMaxPop, currentInUsePop}}
         local allyPlayerIDsToPopInfo = {}
@@ -54,8 +50,8 @@ local rebalanceCommand = 'rebalancepopulation'
         end
 
         for i in #allyIDs do
-            allyPlayerIDsToPopInfo[allyIDs[i]].popInfo = {spGetTeamMaxUnits(allyIDs[i])}
-            totalAllyTeamPop = totalAllyTeamPop + allyPlayerIDsToPopInfo[allyIDs[i]].popInfo[1]
+            allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo = { spGetTeamMaxUnits(allyIDs[i]) }
+            totalAllyTeamPop = totalAllyTeamPop + allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo[1]
         end
 
         local averageTeamPop = totalAllyTeamPop / #allyIDs
@@ -65,86 +61,99 @@ local rebalanceCommand = 'rebalancepopulation'
         -- teamID to negative amount needed
         local capto = {}
         for i in #allyIDs do
-            -- allyPlayerIDsToPopInfo[allyIDs[i]].popInfo.capdiff = averageTeamPop - allyPlayerIDsToPopInfo[allyIDs[i]].popInfo[1]
-            local capdiff = averageTeamPop - allyPlayerIDsToPopInfo[allyIDs[i]].popInfo[1]
+            -- allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo.capdiff = averageTeamPop - allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo[1]
+            local capdiff = averageTeamPop - allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo[1]
             if capdiff > 0 then
-                if allyPlayerIDsToPopInfo[allyIDs[i]].popInfo[2] < averageTeamPop then
-                    local availtosend = averageTeamPop - allyPlayerIDsToPopInfo[allyIDs[i]].popInfo[2]
-                    allyPlayerIDsToPopInfo[allyIDs[i]].popInfo.shouldsend = (capdiff < availtosend and capdiff) or availtosend
-                    capfrom[allyIDs[i] ] = allyPlayerIDsToPopInfo[allyIDs[i]].popInfo.shouldsend
-
+                if allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo[2] < averageTeamPop then
+                    local availtosend = averageTeamPop - allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo[2]
+                    allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo.shouldsend = (capdiff < availtosend and capdiff) or
+                        availtosend
+                    capfrom[allyIDs[i] ] = allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo.shouldsend
                 end
-            else if allyPlayerIDsToPopInfo[allyIDs[i]].popInfo.capdiff < 0 then
-                capto[allyIDs[i] ] = capdiff
+            else
+                if allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo.capdiff < 0 then
+                    capto[allyIDs[i] ] = capdiff
+                end
             end
         end
-
         -- need the average amount we actually have to make other teams whole based on available pop
 
 
-        
         -- divide by allyTeamCount, initiate transfers to teams that have less than average from teams above average (checking for available)
+    end ]]
 
+    function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 
-
-
-        
-	end
-
-	function gadget:Initialize()
-		gadgetHandler:AddChatAction(rebalanceCommand, rebalancePopulation, "Evenly rebalance allyTeam population counts if possible.")
-	end
-
-	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction(rebalanceCommand)
-	end
-
-
-
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-    if modOptions.populationtransfer == "disabled" or modOptions.populationtransfer == nil or modOptions.populationtransferratio == 0 then
-        return
-    end
-
-    -- could argue in gaia mode you might not need an attackerTeam but lava cases could punish you unnecessarily then
-    if unitTeam == nil or attackerTeam == nil then
-        return
-    end
-
-    local transferIncrement = nil
-    if modOptions.populationtransfer == "reduce" then
-        
-        killedTeamToCountTable[unitTeam] = (killedTeamToCountTable[unitTeam] == nil and modOptions.populationtransferratio) or killedTeamToCountTable[unitTeam] + modOptions.populationtransferratio;
-        if math.abs(killedTeamToCountTable[unitTeam]) >= 1 then
-            transferIncrement = 1
-            killedTeamToCountTable[unitTeam] = 0
+        if modOptions.populationtransfer == "disabled" or modOptions.populationtransfer == nil or modOptions.populationtransferratio == 0 then
+            return
         end
-    elseif modOptions.populationtransfer == "transfer" then
-        killedTeamToCountTable[unitTeam..attackerTeam] = (killedTeamToCountTable[unitTeam..attackerTeam] == nil and modOptions.populationtransferratio) or killedTeamToCountTable[unitTeam..attackerTeam] + modOptions.populationtransferratio;
-        if math.abs(killedTeamToCountTable[unitTeam..attackerTeam]) >= 1 then
-            transferIncrement = 1
-            killedTeamToCountTable[unitTeam..attackerTeam] = 0
+
+        -- In gaia mode you might not need an attackerTeam but lava cases could punish you unnecessarily then
+        if unitTeam == nil or attackerTeam == nil then
+            return
         end
-    end
 
-    if (transferIncrement == nil or math.abs(transferIncrement) < 1) then
-        return
-    end
-
-    if modOptions.populationtransferratio > 0 then
+        local transferIncrement = nil
         if modOptions.populationtransfer == "reduce" then
-            spTransferTeamMaxUnits(unitTeam, GaiaTeamID, 1);
+            killedTeamToCountTable[unitTeam] = (killedTeamToCountTable[unitTeam] == nil and modOptions.populationtransferratio) or
+                killedTeamToCountTable[unitTeam] + modOptions.populationtransferratio;
+            if math.abs(killedTeamToCountTable[unitTeam]) >= 1 then
+                transferIncrement = 1
+                killedTeamToCountTable[unitTeam] = 0
+            end
         elseif modOptions.populationtransfer == "transfer" then
-            spTransferTeamMaxUnits(unitTeam, attackerTeam, 1);
+            killedTeamToCountTable[unitTeam .. attackerTeam] = (killedTeamToCountTable[unitTeam .. attackerTeam] == nil and modOptions.populationtransferratio) or
+                killedTeamToCountTable[unitTeam .. attackerTeam] + modOptions.populationtransferratio;
+            if math.abs(killedTeamToCountTable[unitTeam .. attackerTeam]) >= 1 then
+                transferIncrement = 1
+                killedTeamToCountTable[unitTeam .. attackerTeam] = 0
+            end
         end
-    else
-        -- is this legit? Can I reduce/take from Gaia? not allowing this for now.
-        if modOptions.populationtransfer == "reduce" then
-            -- spTransferTeamMaxUnits(GaiaTeamID, unitTeam, 1);
-        elseif modOptions.populationtransfer == "transfer" then
-            spTransferTeamMaxUnits(attackerTeam, unitTeam, 1);
+
+        if (transferIncrement == nil or math.abs(transferIncrement) < 1) then
+            return
+        end
+
+        if modOptions.populationtransferratio > 0 then
+            if modOptions.populationtransfer == "reduce" then
+                spTransferTeamMaxUnits(unitTeam, GaiaTeamID, 1);
+            elseif modOptions.populationtransfer == "transfer" then
+                spTransferTeamMaxUnits(unitTeam, attackerTeam, 1);
+            end
+        else
+            -- Intentionally not allowing taking population from gaia currently
+            --[[ if modOptions.populationtransfer == "reduce" then
+                   spTransferTeamMaxUnits(GaiaTeamID, unitTeam, 1);
+            else ]]
+            if modOptions.populationtransfer == "transfer" then
+                spTransferTeamMaxUnits(attackerTeam, unitTeam, 1);
+            end
         end
     end
-end
 
+    function gadget:RecvLuaMsg(msg, playerID)
+        Spring.Echo("LuaRules message received by Gadget from Playerv1 " .. msg .. " from player: " .. playerID)
+        -- Incoming message expected to look like Spring.SendLuaRulesMsg('pct|d|'..myTeamID..'|'..populationPlayer.team..'|'..shareAmount)
+        if string.find(msg, 'pct') == 1 then
+            Spring.Echo("PopCapTransfer message received " .. msg .. " from player: " .. playerID)
+            
+            local splitIterator = string.split(msg, "|")
+            local arguments = {}
+            for i, v in pairs(splitIterator) do
+                arguments[i] = v
+            end
+            arguments[3] = tonumber(arguments[3])
+            arguments[4] = tonumber(arguments[4])
+            arguments[5] = tonumber(arguments[5])
 
+            -- Ensure the 'from' player matches the message producer
+            if #arguments == 5 and arguments[2] == 'd' and playerID == arguments[3] then
+                Spring.Echo("PopCapTransfer message parsed " .. msg .. " from player: " .. playerID)
+                -- Direct transfer from one player giving to another
+                spTransferTeamMaxUnits(arguments[3], arguments[4], arguments[5]);
+            end
+
+        end
+    end
+
+end -- end of syncd
