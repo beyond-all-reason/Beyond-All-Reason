@@ -546,6 +546,7 @@ m_income = {
 position = position + 1
 
 
+-- Was exploring if I could enable/disable additional slider based on the settings panel enabling of the pop cap display widget
 local function isWidgetActive(targetName)
     if not widgetHandler or not widgetHandler.knownWidgets then 
         Spring.Echo('woot, widget handler not a thing')

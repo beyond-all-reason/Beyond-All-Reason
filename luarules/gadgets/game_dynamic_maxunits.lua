@@ -21,7 +21,6 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
--- if my fixes werent here, they should have been
 
 --[[
 	Dynamic Maxunits Redistribution
