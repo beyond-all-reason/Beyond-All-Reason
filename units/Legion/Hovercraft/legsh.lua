@@ -16,7 +16,7 @@ return {
 		footprintz = 3,
 		health = 220,
 		maxslope = 16,
-		speed = 96,
+		speed = 102,
 		maxwaterdepth = 0,
 		movementclass = "HOVER2",
 		nochasecategory = "VTOL",

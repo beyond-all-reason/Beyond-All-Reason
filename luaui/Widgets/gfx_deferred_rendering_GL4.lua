@@ -1183,6 +1183,7 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GetLightVBO')
 
 	widgetHandler:DeregisterGlobal('UnitScriptLight')
+	widgetHandler:DeregisterGlobal('EnvLightningPointLight')
 
 	deferredLightShader:Delete()
 	local ram = 0
@@ -1844,6 +1845,24 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
 
 	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
+
+	-- Gadget bridge: gfx_environmental_lightning_gl4 (a gadget, no WG access) flashes
+	-- a short-lived point light at each lightning burst origin via Script.LuaUI.
+	-- The gadget owns all tuning (see its lightning configs); this just forwards the
+	-- already-resolved values to AddPointLight. r2/g2/b2 = same color so the light
+	-- does not animate toward black; sustain holds full brightness before the fade.
+	-- Args: x,y,z, radius, r,g,b,a, lifetime, sustain, modelfactor, specular,
+	--       scattering, lensflare, spawnframe.
+	WG['lightsgl4'].EnvLightningPointLight = function(x, y, z, radius, r, g, b, a,
+			lifetime, sustain, modelfactor, specular, scattering, lensflare, spawnframe)
+		AddPointLight(nil, nil, nil, pointLightVBO,
+			x, y, z, radius,
+			r, g, b, a,                                   -- color + brightness
+			r, g, b, 0,                                   -- r2,g2,b2 = same color, colortime 0
+			modelfactor, specular, scattering, lensflare, -- light surface response
+			spawnframe, lifetime, sustain)                -- spawnframe, lifetime, sustain (auto-expire)
+	end
+	widgetHandler:RegisterGlobal('EnvLightningPointLight', WG['lightsgl4'].EnvLightningPointLight)
 end
 
 if autoupdate then

@@ -49,6 +49,8 @@ local unitsWearingHats = {} -- key unitID of wearer, value unitID of hat
 
 local Hats = {}  -- key of unitID of hat, value of wearer unitID
 
+local spGetUnitHealth = Spring.GetUnitHealth
+
 local unitDefHat = {}
 for udid, ud in pairs(UnitDefs) do
 	--almost all raptors have dying anims
@@ -220,8 +222,8 @@ function gadget:GameFrame(gf)
 	-- periodically update hat health	(damage gets applied instantly at gadget:UnitDamaged anyway)
 	if gf % 61 == 1 then
 		for unitID, hatUnitID in pairs(unitsWearingHats) do
-			local health, maxHealth = Spring.GetUnitHealth(unitID)
-			local hatHealth, hatMaxHealth = Spring.GetUnitHealth(hatUnitID)
+			local health, maxHealth = spGetUnitHealth(unitID)
+			local hatHealth, hatMaxHealth = spGetUnitHealth(hatUnitID)
 			if hatMaxHealth then
 				Spring.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
 			else
@@ -351,8 +353,8 @@ end
 -- also damage the hat
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if unitsWearingHats[unitID] then
-		local health, maxHealth = Spring.GetUnitHealth(unitID)
-		local hatHealth, hatMaxHealth = Spring.GetUnitHealth(unitsWearingHats[unitID])
+		local health, maxHealth = spGetUnitHealth(unitID)
+		local hatHealth, hatMaxHealth = spGetUnitHealth(unitsWearingHats[unitID])
 		if hatHealth then
 			Spring.SetUnitHealth(unitsWearingHats[unitID], (health / maxHealth) * hatMaxHealth)
 		end

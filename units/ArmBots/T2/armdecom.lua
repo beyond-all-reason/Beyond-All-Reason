@@ -72,6 +72,7 @@ return {
 		},
 		customparams = {
 			decoyfor = "armcom",
+			firestateoncloak = 0,
 			isdecoycommander = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

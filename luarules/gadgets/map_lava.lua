@@ -69,6 +69,7 @@ if gadgetHandler:IsSyncedCode() then
 	local speedDefs = {}
 	local turnDefs = {}
 	local accDefs = {}
+	local isDecoration = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitMoveDef[unitDefID] = unitDef.moveDef -- Will remove this when decision on hovercraft is made
 		if unitDef.canFly then
@@ -79,6 +80,9 @@ if gadgetHandler:IsSyncedCode() then
 			accDefs[unitDefID] = unitDef.maxAcc
 		end
 		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
+		if unitDef.customParams and unitDef.customParams.decoration then
+			isDecoration[unitDefID] = true
+		end
 	end
 	local geoThermal = {}
 	local featureHasMetal = {}
@@ -154,7 +158,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function lavaKnownUnitsCheck()
 		for unitID, data in pairs(lavaUnits) do
 			local unitDefID = spGetUnitDefID(unitID)
-			if unitDefID then
+			if unitDefID and not isDecoration[unitDefID] then
 				local x, y, z = spGetUnitBasePosition(unitID)
 				if y and y < lavaLevel then
 					if data.slowed then
@@ -184,7 +188,9 @@ if gadgetHandler:IsSyncedCode() then
 		local all_units = spGetAllUnits()
 		for _, unitID in ipairs(all_units) do
 			local unitDefID = spGetUnitDefID(unitID)
-			if canFly[unitDefID] then
+			if isDecoration[unitDefID] then
+				-- skip decoration units
+			elseif canFly[unitDefID] then
 				if lavaDamageAirUnits then
 					local x,y,z = spGetUnitBasePosition(unitID)
 					if y and y < lavaLevel then
