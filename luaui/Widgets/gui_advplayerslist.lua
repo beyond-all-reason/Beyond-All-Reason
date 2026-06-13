@@ -1181,8 +1181,8 @@ function GetAllPlayers()
             if not lastKnownTeamNames[i] then
                 local teamLeaderID = select(2, sp.GetTeamInfo(i, false))
                 if teamLeaderID and teamLeaderID >= 0 then
-                    local pName = sp.GetPlayerInfo(teamLeaderID, false)
-                    if pName then
+                    local pName, _, pSpec, pTeam = sp.GetPlayerInfo(teamLeaderID, false)
+                    if pName and not pSpec and pTeam == i then
                         lastKnownTeamNames[i] = (WG.playernames and WG.playernames.getPlayername)
                             and WG.playernames.getPlayername(teamLeaderID) or pName
                     end
@@ -1192,8 +1192,8 @@ function GetAllPlayers()
             if not lastKnownTeamNames[i] then
                 local allTeamPlayers = sp.GetPlayerList(i, false)
                 for _, pID in ipairs(allTeamPlayers) do
-                    local pName = sp.GetPlayerInfo(pID, false)
-                    if pName then
+                    local pName, _, pSpec, pTeam = sp.GetPlayerInfo(pID, false)
+                    if pName and not pSpec and pTeam == i then
                         lastKnownTeamNames[i] = (WG.playernames and WG.playernames.getPlayername)
                             and WG.playernames.getPlayername(pID) or pName
                         break
@@ -1209,7 +1209,7 @@ function GetAllPlayers()
             player[playerID] = CreatePlayer(playerID)
         end
     end
-    local specPlayers = sp.GetTeamList()
+    local specPlayers = sp.GetPlayerList(-1, false) or {}
     for _, playerID in ipairs(specPlayers) do
         local name, active, spec = sp.GetPlayerInfo(playerID, false)
         if spec then
@@ -1302,6 +1302,7 @@ end
 
 function CreatePlayer(playerID)
     local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank, _, accountInfo, desynced = sp.GetPlayerInfo(playerID)
+    local accountID = nil
 	if accountInfo and accountInfo.accountid then
 		accountID = tonumber(accountInfo.accountid)
 	end
