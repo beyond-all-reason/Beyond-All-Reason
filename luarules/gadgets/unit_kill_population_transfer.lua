@@ -13,15 +13,9 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-    -- Can use Spring.GetTeamMaxUnits to get number of popcap
-    -- how do we listen on chat messages?
-
 
     -- Local copies of spring/recoil functions
     local spTransferTeamMaxUnits = Spring.TransferTeamMaxUnits
-    local spGetTeamMaxUnits = Spring.GetTeamMaxUnits
-    local spGetPlayerInfo = Spring.GetPlayerInfo
-    local spGetTeamList = Spring.GetTeamList
     local math = math
     local string = string
 
@@ -31,56 +25,6 @@ if gadgetHandler:IsSyncedCode() then
 
     -- Local long running variables
     local killedTeamToCountTable = {} -- either the teamID of the killed player in gaia-mode, or killedTeam..attackerTeam to count in transfer mode
-
-
-    -- Only intended to fix the pop-cap loss on take/take2 player reconnect
-    --local function rebalancePopulation(_, line, words, player)
-  --[[   local function rebalancePopulation(_, line, words, playerID)
-        Spring.Echo('woot, chat listener invoked! ')
-        print('woot eep, in rabalance')
-        if true then return end
-        -- get the allyPlayerIds for the allyTeam which contains the playerID
-        local _, _, _, allyTeamID = spGetPlayerInfo(player)
-        local allyIDs = spGetTeamList(allyTeamID)
-        -- looks like {1: {2000, 100}}, {teamID: {currentMaxPop, currentInUsePop}}
-        local allyPlayerIDsToPopInfo = {}
-        local totalAllyTeamPop = 0
-        if not allyIDs then
-            return
-        end
-
-        for i in #allyIDs do
-            allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo = { spGetTeamMaxUnits(allyIDs[i]) }
-            totalAllyTeamPop = totalAllyTeamPop + allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo[1]
-        end
-
-        local averageTeamPop = totalAllyTeamPop / #allyIDs
-        -- woot, eep might want to hold the totals for available/needed here in case they dont line up.
-        -- teamID to positive amount to send
-        local capfrom = {}
-        -- teamID to negative amount needed
-        local capto = {}
-        for i in #allyIDs do
-            -- allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo.capdiff = averageTeamPop - allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo[1]
-            local capdiff = averageTeamPop - allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo[1]
-            if capdiff > 0 then
-                if allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo[2] < averageTeamPop then
-                    local availtosend = averageTeamPop - allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo[2]
-                    allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo.shouldsend = (capdiff < availtosend and capdiff) or
-                        availtosend
-                    capfrom[allyIDs[i] ] = allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo.shouldsend
-                end
-            else
-                if allyPlayerIDsToPopInfo[allyIDs[i] ].popInfo.capdiff < 0 then
-                    capto[allyIDs[i] ] = capdiff
-                end
-            end
-        end
-        -- need the average amount we actually have to make other teams whole based on available pop
-
-
-        -- divide by allyTeamCount, initiate transfers to teams that have less than average from teams above average (checking for available)
-    end ]]
 
     function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 

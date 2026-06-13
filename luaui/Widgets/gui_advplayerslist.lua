@@ -122,7 +122,6 @@ local sp = {
 	GetMyTeamID = Spring.GetMyTeamID,
 	AreTeamsAllied = Spring.AreTeamsAllied,
 	GetTeamStatsHistory = Spring.GetTeamStatsHistory,
-    TransferTeamMaxUnits = Spring.TransferTeamMaxUnits,
 }
 
 local Color = {
@@ -135,8 +134,7 @@ local gl_Texture = gl.Texture
 local gl_Color = gl.Color
 local gl_CreateList = gl.CreateList
 local gl_DeleteList = gl.DeleteList
--- woot needed a variable
--- local gl_CallList = gl.CallList
+local gl_CallList = gl.CallList
 
 local math_isInRect = math.isInRect
 
@@ -329,9 +327,7 @@ end
 -- Button check variable
 --------------------------------------------------------------------------------
 
-local energyPlayer    -- player to share energy with (nil when no energy sharing)
-local metalPlayer    -- player to share metal with(nil when no metal sharing)
-local populationPlayer -- player to share population with (nil when no population sharing)
+local sharingPlayerInfo = {}
 local shareAmount = 0      -- amount of metal/energy to share/ask
 local maxShareAmount    -- max amount of metal/energy to share/ask
 local sliderPosition      -- slider position in metal and energy sharing
@@ -545,30 +541,12 @@ m_income = {
 }
 position = position + 1
 
-
--- Was exploring if I could enable/disable additional slider based on the settings panel enabling of the pop cap display widget
-local function isWidgetActive(targetName)
-    if not widgetHandler or not widgetHandler.knownWidgets then 
-        Spring.Echo('woot, widget handler not a thing')
-        return false 
-    end
-    
-    if widgetHandler.knownWidgets and widgetHandler.knownWidgets[targetName] then
-        Spring.Echo('woot, found target in known widgets, returning: ' .. widgetHandler.knownWidgets[targetName].active)
-        return widgetHandler.knownWidgets[targetName].active
-    end
-    Spring.Echo('woot, knownWidgets didNotFindTarget')
-    return false
-end
-
--- woot this fixes the width but obviously isn't dynamic based on whether sharing popCap is allowed.
-local isPopulationCapShown = WG['unittotals']
 m_share = {
     name = "share",
     spec = false,
     play = true,
     active = true,
-    width = 65,
+    width = 50,
     position = position,
     posX = 0,
     pic = pics["sharePic"],
@@ -1203,8 +1181,8 @@ function GetAllPlayers()
             if not lastKnownTeamNames[i] then
                 local teamLeaderID = select(2, sp.GetTeamInfo(i, false))
                 if teamLeaderID and teamLeaderID >= 0 then
-                    local pName, _, pSpec, pTeam = sp.GetPlayerInfo(teamLeaderID, false)
-                    if pName and not pSpec and pTeam == i then
+                    local pName = sp.GetPlayerInfo(teamLeaderID, false)
+                    if pName then
                         lastKnownTeamNames[i] = (WG.playernames and WG.playernames.getPlayername)
                             and WG.playernames.getPlayername(teamLeaderID) or pName
                     end
@@ -1214,8 +1192,8 @@ function GetAllPlayers()
             if not lastKnownTeamNames[i] then
                 local allTeamPlayers = sp.GetPlayerList(i, false)
                 for _, pID in ipairs(allTeamPlayers) do
-                    local pName, _, pSpec, pTeam = sp.GetPlayerInfo(pID, false)
-                    if pName and not pSpec and pTeam == i then
+                    local pName = sp.GetPlayerInfo(pID, false)
+                    if pName then
                         lastKnownTeamNames[i] = (WG.playernames and WG.playernames.getPlayername)
                             and WG.playernames.getPlayername(pID) or pName
                         break
@@ -1231,7 +1209,7 @@ function GetAllPlayers()
             player[playerID] = CreatePlayer(playerID)
         end
     end
-    local specPlayers = sp.GetPlayerList(-1, false) or {}
+    local specPlayers = sp.GetTeamList()
     for _, playerID in ipairs(specPlayers) do
         local name, active, spec = sp.GetPlayerInfo(playerID, false)
         if spec then
@@ -1324,7 +1302,6 @@ end
 
 function CreatePlayer(playerID)
     local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank, _, accountInfo, desynced = sp.GetPlayerInfo(playerID)
-    local accountID = nil
 	if accountInfo and accountInfo.accountid then
 		accountID = tonumber(accountInfo.accountid)
 	end
@@ -1920,7 +1897,7 @@ function widget:DrawScreen()
         CreateMainList(true, true, true)
     end
     if (MainList or mainListTex) and (MainList2 or mainList2Tex) and MainList3 then
-        gl.CallList(MainList3)
+        gl_CallList(MainList3)
     end
 
     -- handle/draw hover highlight
@@ -1940,7 +1917,7 @@ function widget:DrawScreen()
 
     -- draw share energy/metal sliders
     if sliderPosition and ShareSlider then
-        gl.CallList(ShareSlider)
+        gl_CallList(ShareSlider)
     end
 
 	-- Pop matrix to restore GL state for other widgets
@@ -2092,47 +2069,45 @@ end
 
 function UpdateResources()
     if sliderPosition then
-        if energyPlayer ~= nil then
-			if energyPlayer.team == myTeamID then
+        if sharingPlayerInfo['energyPlayer'] ~= nil then
+			if sharingPlayerInfo['energyPlayer'].team == myTeamID then
 				local current, storage = sp.GetTeamResources(myTeamID, "energy")
 				maxShareAmount = storage - current
 				shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
 				shareAmount = shareAmount - (shareAmount % 1)
 			else
 				maxShareAmount = sp.GetTeamResources(myTeamID, "energy")
-				local energy, energyStorage, _, _, _, shareSliderPos = sp.GetTeamResources(energyPlayer.team, "energy")
+				local energy, energyStorage, _, _, _, shareSliderPos = sp.GetTeamResources(sharingPlayerInfo['energyPlayer'].team, "energy")
 				maxShareAmount = mathMin(maxShareAmount, ((energyStorage*shareSliderPos) - energy))
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             end
         end
 
-        if metalPlayer ~= nil then
-            if metalPlayer.team == myTeamID then
+        if sharingPlayerInfo['metalPlayer'] ~= nil then
+            if sharingPlayerInfo['metalPlayer'].team == myTeamID then
                 local current, storage = sp.GetTeamResources(myTeamID, "metal")
                 maxShareAmount = storage - current
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             else
                 maxShareAmount = sp.GetTeamResources(myTeamID, "metal")
-				local metal, metalStorage, _, _, _, shareSliderPos = sp.GetTeamResources(metalPlayer.team, "metal")
+				local metal, metalStorage, _, _, _, shareSliderPos = sp.GetTeamResources(sharingPlayerInfo['metalPlayer'].team, "metal")
 				maxShareAmount = mathMin(maxShareAmount, ((metalStorage*shareSliderPos) - metal))
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             end
         end
 
-        if populationPlayer ~= nil then
-            if populationPlayer.team == myTeamID then
-                -- local current, storage = sp.GetTeamResources(myTeamID, "metal")
-                -- woot cheap hack fix later
-                maxShareAmount = 1000
+        if sharingPlayerInfo['populationPlayer'] ~= nil then
+            if sharingPlayerInfo['populationPlayer'].team == myTeamID then
+                local max, _ = Spring.GetTeamMaxUnits(myTeamID)
+                maxShareAmount = 2 * max
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             else
-                maxShareAmount = 1000
-                -- fix oversharing later
-				-- maxShareAmount = mathMin(maxShareAmount, ((metalStorage*shareSliderPos) - metal))
+                local max, current = Spring.GetTeamMaxUnits(myTeamID)
+                maxShareAmount = max - current
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             end
@@ -2623,7 +2598,6 @@ function DrawTakeSignal(posY)
 end
 
 function DrawShareButtons(posY, needm, neede)
-    -- woot where pop-cap share could be added
     gl_Color(1, 1, 1, 1)
     gl_Texture(pics["unitsPic"])
     DrawRect(m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
@@ -2631,9 +2605,6 @@ function DrawShareButtons(posY, needm, neede)
     DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
     gl_Texture(pics["metalPic"])
     DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
-    -- woot theory:
-    gl_Texture(pics["metalPic"])
-    DrawRect(m_share.posX + widgetPosX + (49*playerScale), posY, m_share.posX + widgetPosX + (65*playerScale), posY + (16*playerScale))
     gl_Texture(pics["lowPic"])
 
     if needm then
@@ -2951,8 +2922,8 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
             -- Live fallback: resolve via the team leader player ID stored in the engine
             local teamLeaderID = select(2, Spring.GetTeamInfo(team, false))
             if teamLeaderID and teamLeaderID >= 0 then
-                local pName, _, pSpec, pTeam = Spring.GetPlayerInfo(teamLeaderID, false)
-                if pName and pName ~= "" and not pSpec and pTeam == team then
+                local pName = Spring.GetPlayerInfo(teamLeaderID, false)
+                if pName and pName ~= "" then
                     lastKnownName = (WG.playernames and WG.playernames.getPlayername)
                         and WG.playernames.getPlayername(teamLeaderID) or pName
                     -- Persist so GetAllPlayers picks it up and doesn't look it up again
@@ -3265,16 +3236,6 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
 	end
 end
 
-
-local numShares = 3
-local boxBounds = {}
-for currentShareBox = 1, numShares, 1 do
-     boxBounds[currentShareBox] = {playerScaleOffsetStart = 1 + (18 * (currentShareBox - 1)), playerScaleOffsetEnd = (18 * numShares) - 1 }
-end
-
-
-
--- woot sharing things
 function ShareTip(mouseX, playerID)
     if playerID == myPlayerID then
         if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
@@ -3286,9 +3247,6 @@ function ShareTip(mouseX, playerID)
         elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
             tipText = Spring.I18N('ui.playersList.requestMetal')
             tipTextTime = osClock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.requestMetal')
-            tipTextTime = osClock()
         end
     else
         if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
@@ -3296,9 +3254,6 @@ function ShareTip(mouseX, playerID)
             tipTextTime = osClock()
         elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
             tipText = Spring.I18N('ui.playersList.shareEnergy')
-            tipTextTime = osClock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.shareMetal')
             tipTextTime = osClock()
         elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
             tipText = Spring.I18N('ui.playersList.shareMetal')
@@ -3442,8 +3397,8 @@ function CreateShareSlider()
         if sliderPosition then
             font:Begin(true)
             local posY
-            if energyPlayer ~= nil then
-                posY = widgetPosY + widgetHeight - energyPlayer.posY
+            if sharingPlayerInfo['energyPlayer'] ~= nil then
+                posY = widgetPosY + widgetHeight - sharingPlayerInfo['energyPlayer'].posY
                 gl_Texture(pics["barPic"])
                 DrawRect(m_share.posX + widgetPosX + (16*playerScale), posY - (3*playerScale), m_share.posX + widgetPosX + (34*playerScale), posY + shareSliderHeight + (18*playerScale))
                 gl_Texture(pics["energyPic"])
@@ -3452,8 +3407,8 @@ function CreateShareSlider()
 				gl_Color(0.45,0.45,0.45,1)
 				RectRound(mathFloor(m_share.posX + widgetPosX - (28*playerScale)), mathFloor(posY - 1 + sliderPosition), mathFloor(m_share.posX + widgetPosX + (19*playerScale)), mathFloor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
 				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX - (5*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
-            elseif metalPlayer ~= nil then
-                posY = widgetPosY + widgetHeight - metalPlayer.posY
+            elseif sharingPlayerInfo['metalPlayer'] ~= nil then
+                posY = widgetPosY + widgetHeight - sharingPlayerInfo['metalPlayer'].posY
                 gl_Texture(pics["barPic"])
                 DrawRect(m_share.posX + widgetPosX + (32*playerScale), posY - 3, m_share.posX + widgetPosX + (50*playerScale), posY + shareSliderHeight + (18*playerScale))
                 gl_Texture(pics["metalPic"])
@@ -3462,15 +3417,16 @@ function CreateShareSlider()
 				gl_Color(0.45,0.45,0.45,1)
 				RectRound(mathFloor(m_share.posX + widgetPosX - (12*playerScale)), mathFloor(posY - 1 + sliderPosition), mathFloor(m_share.posX + widgetPosX + (35*playerScale)), mathFloor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
 				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX + (11*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
-            elseif populationPlayer ~= nil then
-                posY = widgetPosY + widgetHeight - populationPlayer.posY
+            elseif sharingPlayerInfo['populationPlayer'] ~= nil then
+                posY = widgetPosY + widgetHeight - sharingPlayerInfo['populationPlayer'].posY
                 gl_Texture(pics["barPic"])
-                DrawRect(m_share.posX + widgetPosX + (48*playerScale), posY - 3, m_share.posX + widgetPosX + (65*playerScale), posY + shareSliderHeight + (18*playerScale))
+                -- woot, need to verify the unit transer x offsets
+                DrawRect(m_share.posX + widgetPosX + (1*playerScale), posY - 3, m_share.posX + widgetPosX + (17*playerScale), posY + shareSliderHeight + (18*playerScale))
                 gl_Texture(pics["metalPic"])
-                DrawRect(m_share.posX + widgetPosX + (49*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (64*playerScale), posY + (16*playerScale) + sliderPosition)
+                DrawRect(m_share.posX + widgetPosX + (2*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (16*playerScale), posY + (16*playerScale) + sliderPosition)
                 gl_Texture(false)
 				gl_Color(0.45,0.45,0.45,1)
-				RectRound(mathFloor(m_share.posX + widgetPosX - (12*playerScale)), mathFloor(posY - 1 + sliderPosition), mathFloor(m_share.posX + widgetPosX + (51*playerScale)), mathFloor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
+				RectRound(mathFloor(m_share.posX + widgetPosX - (12*playerScale)), mathFloor(posY - 1 + sliderPosition), mathFloor(m_share.posX + widgetPosX + (35*playerScale)), mathFloor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
 				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX + (11*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
             end
             font:End()
@@ -3635,23 +3591,18 @@ function widget:MousePress(x, y, button)
                                     release = nil
                                 else
                                     firstclick = now + 1
+                                    sharingPlayerInfo['populationPlayer'] = clickedPlayer
                                 end
                                 return true
                             end
-                            -- woot more share slider code
                             if IsOnRect(x, y, m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (playerOffset*playerScale)) then
                                 -- share energy button (initiates the slider)
-                                energyPlayer = clickedPlayer
+                                sharingPlayerInfo['energyPlayer'] = clickedPlayer
                                 return true
                             end
                             if IsOnRect(x, y, m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (playerOffset*playerScale)) then
                                 -- share metal button (initiates the slider)
-                                metalPlayer = clickedPlayer
-                                return true
-                            end
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + (49*playerScale), posY, m_share.posX + widgetPosX + (65*playerScale), posY + (playerOffset*playerScale)) then
-                                -- share metal button (initiates the slider)
-                                populationPlayer = clickedPlayer
+                                sharingPlayerInfo['metalPlayer'] = clickedPlayer
                                 return true
                             end
                         end
@@ -3730,8 +3681,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseMove(x, y, dx, dy, button)
-    -- woot mouse sliding
-    if energyPlayer ~= nil or metalPlayer ~= nil or populationPlayer ~= nil then
+    if sharingPlayerInfo['energyPlayer'] ~= nil or sharingPlayerInfo['metalPlayer'] ~= nil or sharingPlayerInfo['populationPlayer'] ~= nil then
         -- move energy/metal share slider
         if sliderOrigin == nil then
             sliderOrigin = y
@@ -3761,10 +3711,9 @@ function widget:MouseRelease(x, y, button)
         else
             release = nil
         end
-        -- woot energyShare actually being performed
-        if energyPlayer ~= nil then
+        if sharingPlayerInfo['energyPlayer'] ~= nil then
             -- share energy/metal mouse release
-            if energyPlayer.team == myTeamID then
+            if sharingPlayerInfo['energyPlayer'].team == myTeamID then
                 Spring.SendLuaUIMsg('alert:allyRequest:energy', 'allies')
                 if shareAmount == 0 then
                     --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergy'))
@@ -3774,14 +3723,13 @@ function widget:MouseRelease(x, y, button)
 					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergyAmount:amount='..shareAmount)
                 end
             elseif shareAmount > 0 then
-                -- duh, spShareResources is where it's actually happening all the chat stuff is just ui
-                sp.ShareResources(energyPlayer.team, "energy", shareAmount)
-                --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
+                sp.ShareResources(sharingPlayerInfo['energyPlayer'].team, "energy", shareAmount)
+                --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = sharingPlayerInfo['energyPlayer'].name }))
                 if sharingTax and sharingTax > 0 then
                     local amount2 = mathFloor(shareAmount * (1- sharingTax))
-                    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy_taxed:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name)..':amount2='..amount2)
+                    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy_taxed:amount='..shareAmount..':name='..(sharingPlayerInfo['energyPlayer'].orgname or sharingPlayerInfo['energyPlayer'].name)..':amount2='..amount2)
                 else
-				    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name))
+				    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..(sharingPlayerInfo['energyPlayer'].orgname or sharingPlayerInfo['energyPlayer'].name))
                 end
                 WG.sharedEnergyFrame = spGetGameFrame()
             end
@@ -3789,12 +3737,11 @@ function widget:MouseRelease(x, y, button)
             maxShareAmount = nil
             sliderPosition = nil
             shareAmount = nil
-            energyPlayer = nil
-            populationPlayer = nil
+            sharingPlayerInfo['energyPlayer'] = nil
         end
 
-        if metalPlayer ~= nil and shareAmount then
-            if metalPlayer.team == myTeamID then
+        if sharingPlayerInfo['metalPlayer'] ~= nil and shareAmount then
+            if sharingPlayerInfo['metalPlayer'].team == myTeamID then
                 Spring.SendLuaUIMsg('alert:allyRequest:metal', 'allies')
                 if shareAmount == 0 then
                     --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetal'))
@@ -3804,13 +3751,13 @@ function widget:MouseRelease(x, y, button)
 					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needMetalAmount:amount='..shareAmount)
                 end
             elseif shareAmount > 0 then
-                sp.ShareResources(metalPlayer.team, "metal", shareAmount)
-                --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
+                sp.ShareResources(sharingPlayerInfo['metalPlayer'].team, "metal", shareAmount)
+                --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = sharingPlayerInfo['metalPlayer'].name }))
                 if sharingTax and sharingTax > 0 then
                     local amount2 = mathFloor(shareAmount * (1- sharingTax))
-                    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal_taxed:amount='..shareAmount..':name='..(metalPlayer.orgname or metalPlayer.name)..':amount2='..amount2)
+                    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal_taxed:amount='..shareAmount..':name='..(sharingPlayerInfo['metalPlayer'].orgname or sharingPlayerInfo['metalPlayer'].name)..':amount2='..amount2)
                 else
-				    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..(metalPlayer.orgname or metalPlayer.name))
+				    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..(sharingPlayerInfo['metalPlayer'].orgname or sharingPlayerInfo['metalPlayer'].name))
                 end
                 WG.sharedMetalFrame = spGetGameFrame()
             end
@@ -3818,39 +3765,33 @@ function widget:MouseRelease(x, y, button)
             maxShareAmount = nil
             sliderPosition = nil
             shareAmount = nil
-            metalPlayer = nil
-            populationPlayer = nil
+            sharingPlayerInfo['metalPlayer'] = nil
         end
 
-        if populationPlayer ~= nil and shareAmount then
-            if populationPlayer.team == myTeamID then
-                Spring.SendLuaUIMsg('alert:allyRequest:metal', 'allies')
+        if sharingPlayerInfo['populationPlayer'] ~= nil and shareAmount then
+            if sharingPlayerInfo['populationPlayer'].team == myTeamID then
+                Spring.SendLuaUIMsg('alert:allyRequest:population', 'allies')
                 if shareAmount == 0 then
-                    --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetal'))
-					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needMetal')
+					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needPopulation')
                 else
-                    --sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetalAmount', { amount = shareAmount }))
-					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needMetalAmount:amount='..shareAmount)
+					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needPopulationAmount:amount='..shareAmount)
                 end
-            elseif shareAmount > 0 then
-                Spring.Echo('woot about to transferv2: ' .. myTeamID .. ' to ' .. populationPlayer.team .. ' amount: ' .. shareAmount)
-                Spring.SendLuaRulesMsg('pct|d|'..myTeamID..'|'..populationPlayer.team..'|'..shareAmount)
-
-                -- woot, figure out sharing tax
+            elseif shareAmount > 0 then                
+                local taxAmount = 0
                 if sharingTax and sharingTax > 0 then
-                    local amount2 = mathFloor(shareAmount * (1- sharingTax))
-                --    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal_taxed:amount='..shareAmount..':name='..(populationPlayer.orgname or populationPlayer.name)..':amount2='..amount2)
+                    taxAmount = mathFloor(shareAmount * (1- sharingTax))
+                    Spring.SendLuaRulesMsg('pct|d|'..myTeamID..'|'..gaiaTeamID..'|'..taxAmount)
+                    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.givePopulation_taxed:amount='..shareAmount..':name='..(sharingPlayerInfo['populationPlayer'].orgname or sharingPlayerInfo['populationPlayer'].name)..':amount2='..shareAmount - taxAmount)
                 else
-				--    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..(populationPlayer.orgname or populationPlayer.name))
+                    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.givePopulation:amount='..shareAmount..':name='..(sharingPlayerInfo['populationPlayer'].orgname or sharingPlayerInfo['populationPlayer'].name))
                 end
-                WG.sharedPopulationFrame = spGetGameFrame()
+                Spring.SendLuaRulesMsg('pct|d|'..myTeamID..'|'..sharingPlayerInfo['populationPlayer'].team..'|'..shareAmount - taxAmount)
             end
             sliderOrigin = nil
             maxShareAmount = nil
             sliderPosition = nil
             shareAmount = nil
-            metalPlayer = nil
-            populationPlayer = nil
+            sharingPlayerInfo['populationPlayer'] = nil
         end
     end
 end
@@ -4091,7 +4032,6 @@ function CheckPlayersChange()
             end
             -- Update stall / cpu / ping info for each player
             if p.spec == false then
-                -- woot where to add p.needp check
                 p.needm = GetNeed("metal", p.team)
                 p.neede = GetNeed("energy", p.team)
                 p.rank = rank
