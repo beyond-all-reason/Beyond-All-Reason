@@ -108,8 +108,11 @@
 				"needMetalAmount": "¡Necesito %{amount} de metal!",
 				"needEnergy": "¡Necesito energía!",
 				"needEnergyAmount": "¡Necesito %{amount} de energía!",
+				"needPopulation": "¡Necesito recuento de población!",
+				"needPopulationAmount": "¡Necesito %{amount} recuento de población!",
 				"giveMetal": "He enviado %{amount} de metal a %{name}",
 				"giveEnergy": "He enviado %{amount} de energía a %{name}",
+				"givePopulation": "He enviado %{amount} recuento de población a %{name}",
 				"takeTeam": "Juego con %{name}.",
 				"takeTeamAmount": "Juego con %{name}: %{units} unidades, %{energy} de energía y %{metal} de metal."
 			}

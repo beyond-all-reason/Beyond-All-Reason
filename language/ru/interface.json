@@ -108,8 +108,11 @@
 				"needMetalAmount": "Мне нужно %{amount} ед. Металла!",
 				"needEnergy": "Мне нужна Энергия!",
 				"needEnergyAmount": "Мне нужно %{amount} ед. Энергии!",
+				"needPopulation": "Мне нужна численность населения!",
+				"needPopulationAmount": "Мне нужно %{amount} ед. численность населения!",
 				"giveMetal": "Я отправил %{amount} Металла %{name} ",
 				"giveEnergy": "Я отправил %{amount} Энергии %{name}",
+				"givePopulation": "Я отправил %{amount} численность населения %{name}",
 				"takeTeam": "Я взял %{name}.",
 				"takeTeamAmount": "Я забрал %{name}: %{units} юнитов, %{energy} Энергии и %{metal} Металла."
 			}

@@ -96,8 +96,11 @@
 				"needMetalAmount": "Ich benötige %{amount} Metall!",
 				"needEnergy": "Ich benötige Energie!",
 				"needEnergyAmount": "Ich benötige %{amount} Energie!",
+				"needPopulation": "Ich benötige Bevölkerungszahl!",
+				"needPopulationAmount": "Ich benötige %{amount} Bevölkerungszahl!",
 				"giveMetal": "Ich habe %{name} %{amount} Metall gesendet.",
 				"giveEnergy": "Ich habe %{name} %{amount} Energie gesendet.",
+				"givePopulation": "Ich habe %{name} %{amount} Bevölkerungszahl gesendet.",
 				"takeTeam": "Ich habe %{name}übernommen. ",
 				"takeTeamAmount": "Ich habe %{name}:%{units}Einheiten, %{energy} Energie und %{metal}Metal übermommen."
 			}

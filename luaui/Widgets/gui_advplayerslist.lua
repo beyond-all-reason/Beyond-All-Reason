@@ -3420,7 +3420,6 @@ function CreateShareSlider()
             elseif sharingPlayerInfo['populationPlayer'] ~= nil then
                 posY = widgetPosY + widgetHeight - sharingPlayerInfo['populationPlayer'].posY
                 gl_Texture(pics["barPic"])
-                -- woot, need to verify the unit transer x offsets
                 DrawRect(m_share.posX + widgetPosX + (1*playerScale), posY - 3, m_share.posX + widgetPosX + (17*playerScale), posY + shareSliderHeight + (18*playerScale))
                 gl_Texture(pics["metalPic"])
                 DrawRect(m_share.posX + widgetPosX + (2*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (16*playerScale), posY + (16*playerScale) + sliderPosition)

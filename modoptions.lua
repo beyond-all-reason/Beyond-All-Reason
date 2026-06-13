@@ -1531,7 +1531,7 @@ local options = {
     {
         key    	= "populationtransferratio",
         name   	= "Population count transfer ratio",
-        desc   	= "How many kills are required to transfer 1 population",
+        desc   	= "Ratio of population transfer to number of kills",
         type   	= "number",
         section	= "options_extra",
         def    	= 1,

@@ -97,8 +97,11 @@
 				"needMetalAmount": "J'ai besoin de %{amount} métal !",
 				"needEnergy": "J'ai besoin d'énergie !",
 				"needEnergyAmount": "J'ai besoin de %{amount} d'énergie !",
+				"needPopulation": "J'ai besoin effectif de la population !",
+				"needPopulationAmount": "J'ai besoin de %{amount} effectif de la population !",
 				"giveMetal": "J'ai envoyé %{amount} métal à %{name}",
 				"giveEnergy": "J'ai envoyé %{amount} énergie à %{name}",
+				"givePopulation": "J'ai envoyé %{amount} effectif de la population à %{name}",
 				"takeTeam": "J'ai pris %{name}",
 				"takeTeamAmount": "j'ai pris %{name} : %{units} unités, %{energy} énergie et %{metal} métal."
 			}

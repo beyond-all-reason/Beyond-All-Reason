@@ -484,8 +484,6 @@ end
 function gadget:RecvLuaMsg(msg, playerID)
 	-- Incoming message expected to look like Spring.SendLuaRulesMsg('pct|d|'..myTeamID..'|'..populationPlayer.team..'|'..shareAmount)
 	if string.find(msg, 'pct') == 1 then
-		Spring.Echo("PopCapTransfer message received " .. msg .. " from player: " .. playerID)
-
 		local splitIterator = string.split(msg, "|")
 		local arguments = {}
 		for i, v in pairs(splitIterator) do
@@ -497,7 +495,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 		-- Ensure the 'from' player matches the message producer
 		if #arguments == 5 and arguments[2] == 'd' and playerID == arguments[3] then
-			Spring.Echo("PopCapTransfer message parsed " .. msg .. " from player: " .. playerID)
 			-- Direct transfer from one player giving to another
 			spTransferTeamMaxUnits(arguments[3], arguments[4], arguments[5]);
 		end
