@@ -2923,8 +2923,8 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
             -- Live fallback: resolve via the team leader player ID stored in the engine
             local teamLeaderID = select(2, Spring.GetTeamInfo(team, false))
             if teamLeaderID and teamLeaderID >= 0 then
-                local pName = Spring.GetPlayerInfo(teamLeaderID, false)
-                if pName and pName ~= "" then
+                local pName, _, pSpec, pTeam = Spring.GetPlayerInfo(teamLeaderID, false)
+                if pName and pName ~= "" and not pSpec and pTeam == team then
                     lastKnownName = (WG.playernames and WG.playernames.getPlayername)
                         and WG.playernames.getPlayername(teamLeaderID) or pName
                     -- Persist so GetAllPlayers picks it up and doesn't look it up again
