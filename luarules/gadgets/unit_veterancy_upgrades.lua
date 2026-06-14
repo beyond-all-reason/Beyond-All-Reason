@@ -31,7 +31,6 @@ end
 -- - power
 -- - health
 -- - reload
--- - damage
 -- - acc_weight
 --
 -- Custom veterancy upgrades:
