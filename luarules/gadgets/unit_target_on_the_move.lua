@@ -12,33 +12,15 @@ function gadget:GetInfo()
 	}
 end
 
-local deleteMaxDistance = 30
-local targetListLengthMax = 128
-
 local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-
-function GG.GetUnitTarget(unitID)
-	local targetID = spGetUnitRulesParam(unitID, "targetID")
-	targetID = tonumber(targetID) and targetID >= 0 and targetID or nil
-	if not targetID then
-		targetID = {
-			spGetUnitRulesParam(unitID, "targetCoordX"),
-			spGetUnitRulesParam(unitID, "targetCoordY"),
-			spGetUnitRulesParam(unitID, "targetCoordZ"),
-		}
-		targetID = targetID[1] ~= -1 and targetID[3] ~= -1 and targetID or nil
-	end
-	return targetID
-end
-
-
 if gadgetHandler:IsSyncedCode() then
 
+	local deleteMaxDistance = 30
+	local targetListLengthMax = 128
 	-- The rate of removing unseen/untracked units from the unit target lists.
 	-- Done once per N target list update passes to reduce the overhead costs.
 	local unseenUpdatePasses = 3
@@ -457,11 +439,17 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function GG.getUnitTargetList(unitID)
+	function GG.GetUnitTarget(unitID)
+		local unitData = activeTargets[unitID]
+		local targetData = unitData and unitData.targets[unitData.currentIndex]
+		return targetData and targetData.target
+	end
+
+	function GG.GetUnitTargetList(unitID)
 		return activeTargets[unitID] and activeTargets[unitID].targets
 	end
 
-	function GG.getUnitTargetIndex(unitID)
+	function GG.GetUnitTargetIndex(unitID)
 		return activeTargets[unitID] and activeTargets[unitID].currentIndex
 	end
 
