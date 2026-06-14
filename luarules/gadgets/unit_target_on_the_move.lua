@@ -384,9 +384,10 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		elseif pausedTargets[unitID] then
 			pausedTargets[unitID] = nil
-			SendToUnsynced("targetList", unitID, 0)
 		end
-		if not keeptrack then
+		if keeptrack then
+			SendToUnsynced("targetIndex", unitID, 1, false)
+		else
 			setTargetData[unitID] = nil
 			SendToUnsynced("targetList", unitID, 0)
 		end
