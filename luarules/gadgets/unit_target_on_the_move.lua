@@ -754,43 +754,53 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function updateTargetList(unitID, unitData)
 		local targets, teamID, weapons = unitData.targets, unitData.teamID, unitData.weapons
-		local length, targetIndex, countRemoved = #targets, 0, 0
-
-		-- Target priority is in list-order on the target list.
-		for index = 1, length do
+		local targetCount = #targets
+		local activeIndex = 0
+		local updateIndex = 0 -- table.remove is slow, as is iterating forward then backward, so we do an erase-remove
+		for index = 1, targetCount do
 			local targetData = targets[index]
-			if not checkTarget(teamID, targetData.target) then
-				targetData.invalid = true
-				countRemoved = countRemoved + 1
-			elseif testTarget(unitID, teamID, weapons, targetData.target) then
-				targetIndex = index - countRemoved
-				break
-			end
-		end
-
-		-- But we remove in reverse to minimize shifted entries.
-		local isEmptyList = false
-		if countRemoved > 0 then
-			local maxIndex = targetIndex == 0 and length or targetIndex + countRemoved
-			for index = maxIndex, 1, -1 do
-				if targets[index].invalid then
-					-- TODO: Some duplicated effort. This updates the activeTarget/currentIndex.
-					-- TODO: We need that in the unseen loop, below, but this is redundant here.
-					removeTarget(unitID, index)
+			if checkTarget(teamID, targetData.target) then
+				updateIndex = updateIndex + 1
+				if testTarget(unitID, teamID, weapons, targetData.target) then
+					if updateIndex ~= index then
+						targets[updateIndex] = targetData
+					end
+					activeIndex = updateIndex
+					updateIndex = index
+					-- if moveToIndex == index then
+					break -- Avoid continuing tests for better performance.
+					-- end
 				end
-			end
-			isEmptyList = not targets[1]
-			if not isEmptyList then
-				sendTargetsToUnsynced(unitID)
+				if updateIndex ~= index then
+					targets[updateIndex] = targetData
+				end
+			else
+				-- ! FIXME: WE NEED THIS FOR UNSYNCED TO WORK
+				-- ! FIXME: AAAHHH BREAKING COMMIT NO MERGE!!
+				SendToUnsynced("targetDrop", unitID, index)
 			end
 		end
-
-		if isEmptyList then
-			--
-		elseif targetIndex ~= 0 then
-			setTargetActive(unitID, unitData, targetIndex)
-		elseif unitData.activeTarget then
-			setTargetPassive(unitID, unitData, 1)
+		if updateIndex == 0 then
+			removeUnit(unitID)
+		elseif activeIndex == 0 then
+			if unitData.activeTarget then
+				setTargetPassive(unitID, unitData)
+			end
+			-- Remove entries only once we are done shifting indices.
+			for index = updateIndex + 1, targetCount do
+				targets[index] = nil
+			end
+		else
+			setTargetActive(unitID, unitData, activeIndex)
+			-- We broke iter early so have to finish shifting indices.
+			local removedCount = updateIndex - activeIndex
+			for index = activeIndex + 1, targetCount - removedCount do
+				updateIndex = updateIndex + 1
+				targets[index] = targets[updateIndex]
+			end
+			for index = targetCount - removedCount + 1, targetCount do
+				targets[index] = nil
+			end
 		end
 	end
 
