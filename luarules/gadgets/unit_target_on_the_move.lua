@@ -722,15 +722,13 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function pauseTargetting(unitID)
-		if activeTargets[unitID] and not pausedTargets[unitID] then
-			local data = activeTargets[unitID]
-			removeUnit(unitID, true)
-			pausedTargets[unitID] = data
-		end
+		pausedTargets[unitID] = activeTargets[unitID]
+		removeUnit(unitID, true)
 	end
 
 	local function unpauseTargetting(unitID)
-		addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
+		activeTargets[unitID] = pausedTargets[unitID]
+		pausedTargets[unitID] = nil
 	end
 
 	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
