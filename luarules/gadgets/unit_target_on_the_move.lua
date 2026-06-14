@@ -53,7 +53,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spAreTeamsAllied = Spring.AreTeamsAllied
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 	local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
@@ -272,18 +271,11 @@ if gadgetHandler:IsSyncedCode() then
 		unitData.currentIndex = targetIndex
 		local targetData = unitData.targets[targetIndex]
 		local target = targetData.target
-		local targetID, targetX, targetY, targetZ = -1, -1, -1, -1
 		if type(target) == "number" then
-			targetID = target
-			spSetUnitTarget(unitID, targetID, false, targetData.userTarget)
+			spSetUnitTarget(unitID, target, false, targetData.userTarget)
 		else
-			targetX, targetY, targetZ = target[1], target[2], target[3]
-			spSetUnitTarget(unitID, targetX, targetY, targetZ, false, targetData.userTarget)
+			spSetUnitTarget(unitID, target[1], target[2], target[3], false, targetData.userTarget)
 		end
-		spSetUnitRulesParam(unitID, "targetID",     targetID)
-		spSetUnitRulesParam(unitID, "targetCoordX", targetX)
-		spSetUnitRulesParam(unitID, "targetCoordY", targetY)
-		spSetUnitRulesParam(unitID, "targetCoordZ", targetZ)
 		SendToUnsynced("targetIndex", unitID, targetIndex, true)
 	end
 
@@ -293,10 +285,6 @@ if gadgetHandler:IsSyncedCode() then
 		if not inAttackCommand(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
-		spSetUnitRulesParam(unitID, "targetID",     nil)
-		spSetUnitRulesParam(unitID, "targetCoordX", nil)
-		spSetUnitRulesParam(unitID, "targetCoordY", nil)
-		spSetUnitRulesParam(unitID, "targetCoordZ", nil)
 		SendToUnsynced("targetIndex", unitID, targetIndex, false)
 	end
 
@@ -386,10 +374,6 @@ if gadgetHandler:IsSyncedCode() then
 	local function removeUnit(unitID, keeptrack)
 		if activeTargets[unitID] then
 			activeTargets[unitID] = nil
-			spSetUnitRulesParam(unitID, "targetID", nil)
-			spSetUnitRulesParam(unitID, "targetCoordX", nil)
-			spSetUnitRulesParam(unitID, "targetCoordY", nil)
-			spSetUnitRulesParam(unitID, "targetCoordZ", nil)
 			if not inAttackCommand(unitID) then
 				spSetUnitTarget(unitID, nil)
 			end
