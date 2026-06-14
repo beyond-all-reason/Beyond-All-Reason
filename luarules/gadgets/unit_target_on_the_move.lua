@@ -752,6 +752,48 @@ if gadgetHandler:IsSyncedCode() then
 
 	local updateUnseenUnits = unseenUpdatePasses
 
+	local function updateTargetList(unitID, unitData)
+		local targets, teamID, weapons = unitData.targets, unitData.teamID, unitData.weapons
+		local length, targetIndex, countRemoved = #targets, 0, 0
+
+		-- Target priority is in list-order on the target list.
+		for index = 1, length do
+			local targetData = targets[index]
+			if not checkTarget(teamID, targetData.target) then
+				targetData.invalid = true
+				countRemoved = countRemoved + 1
+			elseif testTarget(unitID, teamID, weapons, targetData.target) then
+				targetIndex = index - countRemoved
+				break
+			end
+		end
+
+		-- But we remove in reverse to minimize shifted entries.
+		local isEmptyList = false
+		if countRemoved > 0 then
+			local maxIndex = targetIndex == 0 and length or targetIndex + countRemoved
+			for index = maxIndex, 1, -1 do
+				if targets[index].invalid then
+					-- TODO: Some duplicated effort. This updates the activeTarget/currentIndex.
+					-- TODO: We need that in the unseen loop, below, but this is redundant here.
+					removeTarget(unitID, index)
+				end
+			end
+			isEmptyList = not targets[1]
+			if not isEmptyList then
+				sendTargetsToUnsynced(unitID)
+			end
+		end
+
+		if isEmptyList then
+			--
+		elseif targetIndex ~= 0 then
+			setTargetActive(unitID, unitData, targetIndex)
+		elseif unitData.activeTarget then
+			setTargetPassive(unitID, unitData, 1)
+		end
+	end
+
 	function gadget:GameFrame(frame)
 		-- ideally timing would be synced with slow update to reduce attack jittering
 		-- SlowUpdate+ causes attack command to override target command
@@ -797,45 +839,7 @@ if gadgetHandler:IsSyncedCode() then
 		elseif offset == 1 then
 
 			for unitID, unitData in pairsNext, activeTargets do
-				local targets, teamID, weapons = unitData.targets, unitData.teamID, unitData.weapons
-				local length, targetIndex, countRemoved = #targets, 0, 0
-
-				-- Target priority is in list-order on the target list.
-				for index = 1, length do
-					local targetData = targets[index]
-					if not checkTarget(teamID, targetData.target) then
-						targetData.invalid = true
-						countRemoved = countRemoved + 1
-					elseif testTarget(unitID, teamID, weapons, targetData.target) then
-						targetIndex = index - countRemoved
-						break
-					end
-				end
-
-				-- But we remove in reverse to minimize shifted entries.
-				local isEmptyList = false
-				if countRemoved > 0 then
-					local maxIndex = targetIndex == 0 and length or targetIndex + countRemoved
-					for index = maxIndex, 1, -1 do
-						if targets[index].invalid then
-							-- TODO: Some duplicated effort. This updates the activeTarget/currentIndex.
-							-- TODO: We need that in the unseen loop, below, but this is redundant here.
-							removeTarget(unitID, index)
-						end
-					end
-					isEmptyList = not targets[1]
-					if not isEmptyList then
-						sendTargetsToUnsynced(unitID)
-					end
-				end
-
-				if isEmptyList then
-					--
-				elseif targetIndex ~= 0 then
-					setTargetActive(unitID, unitData, targetIndex)
-				elseif unitData.activeTarget then
-					setTargetPassive(unitID, unitData, 1)
-				end
+				updateTargetList(unitID, unitData)
 			end
 		end
 	end
