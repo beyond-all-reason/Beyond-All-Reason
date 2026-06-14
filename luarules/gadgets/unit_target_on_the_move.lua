@@ -463,8 +463,7 @@ if gadgetHandler:IsSyncedCode() then
 		unitData.activeTarget = active
 	end
 
-	local function removeTarget(unitID, index)
-		local unitData = setTargetData[unitID]
+	local function removeTarget(unitID, unitData, index)
 		local removed = tremove(unitData.targets, index)
 		if removed then
 			if not unitData.targets[1] then
@@ -473,9 +472,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			unitData.currentTargets[removed.target] = nil
 			if index == unitData.currentIndex then
-				updateTarget(unitID, unitData, 1)
+				unitData.currentIndex = 1
+				unitData.activeTarget = false
+			elseif index < unitData.currentIndex then
+				unitData.currentIndex = unitData.currentIndex - 1
 			end
-			refreshSendData(unitID, unitData, index)
+			SendToUnsynced("targetDrop", unitID, index)
 		end
 	end
 
@@ -723,12 +725,12 @@ if gadgetHandler:IsSyncedCode() then
 				elseif nParams == 1 then
 					if cmdOptions.alt then
 						local targetIndex = cmdParams[1]
-						removeTarget(unitID, targetIndex)
+						removeTarget(unitID, unitData, targetIndex)
 					else
 						local targetID = cmdParams[1]
 						for index, targetData in ipairs(unitData.targets) do
 							if targetData.target == targetID then
-								removeTarget(unitID, index)
+								removeTarget(unitID, unitData, index)
 								break
 							end
 						end
@@ -736,7 +738,7 @@ if gadgetHandler:IsSyncedCode() then
 				elseif nParams == 3 then
 					for index, targetData in ipairs(unitData.targets) do
 						if type(targetData.target) == "table" and inCancelDistance(targetData.target, cmdParams) then
-							removeTarget(unitID, index)
+							removeTarget(unitID, unitData, index)
 						end
 					end
 				end
@@ -793,7 +795,7 @@ if gadgetHandler:IsSyncedCode() then
 			local targets = unitData.targets
 			for index = #targets, 1, -1 do
 				if isUnseenEnemyUnit(targets[index], unitData.allyTeam) then
-					removeTarget(unitID, index)
+					removeTarget(unitID, unitData, index)
 				end
 			end
 			if not targets[1] then
@@ -834,8 +836,6 @@ if gadgetHandler:IsSyncedCode() then
 					targets[updateIndex] = targetData
 				end
 			else
-				-- ! FIXME: WE NEED THIS FOR UNSYNCED TO WORK
-				-- ! FIXME: AAAHHH BREAKING COMMIT NO MERGE!!
 				SendToUnsynced("targetDrop", unitID, index)
 			end
 		end
@@ -845,20 +845,27 @@ if gadgetHandler:IsSyncedCode() then
 			if unitData.activeTarget then
 				setTargetPassive(unitID, unitData)
 			end
-			-- Remove entries only once we are done shifting indices.
-			for index = updateIndex + 1, targetCount do
-				targets[index] = nil
+			if updateIndex + 1 <= targetCount then
+				-- Remove entries only once we are done shifting indices.
+				for index = updateIndex + 1, targetCount do
+					targets[index] = nil
+				end
+				SendToUnsynced("targetList", unitID, updateIndex + 1)
 			end
 		else
 			setTargetActive(unitID, unitData, activeIndex)
 			-- We broke iter early so have to finish shifting indices.
 			local removedCount = updateIndex - activeIndex
+			local removeFromIndex = targetCount - removedCount + 1
 			for index = activeIndex + 1, targetCount - removedCount do
 				updateIndex = updateIndex + 1
 				targets[index] = targets[updateIndex]
 			end
-			for index = targetCount - removedCount + 1, targetCount do
-				targets[index] = nil
+			if removeFromIndex <= targetCount then
+				for index = removeFromIndex, targetCount do
+					targets[index] = nil
+				end
+				SendToUnsynced("targetList", unitID, removeFromIndex)
 			end
 		end
 	end
@@ -903,6 +910,8 @@ else	-- UNSYNCED
 	-- 4k * 100 list length maximum is enough to assume target saturation with 32,000 unit cap.
 
 	local math_min = math.min
+	local table_remove = table.remove
+	local pairsNext = next
 
 	local glVertex = gl.Vertex
 	local glPushAttrib = gl.PushAttrib
@@ -929,7 +938,6 @@ else	-- UNSYNCED
 	local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 	local spSetCustomCommandDrawData = Spring.SetCustomCommandDrawData
 	local spAddWorldIcon = Spring.AddWorldIcon
-	local pairsNext = next
 
 	local myAllyTeam = spGetMyAllyTeamID()
 	local myTeam = spGetMyTeamID()
@@ -947,6 +955,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction("targetdrawteam", handleTargetDrawEvent, "toggles drawing targets for units, params: teamID doDraw")
 		gadgetHandler:AddChatAction("targetdrawunit", handleUnitTargetDrawEvent, "toggles drawing targets for units, params: unitID")
 		gadgetHandler:AddSyncAction("targetList", handleTargetListEvent)
+		gadgetHandler:AddSyncAction("targetDrop", handleTargetDropEvent)
 		gadgetHandler:AddSyncAction("targetIndex", handleTargetIndexEvent)
 		gadgetHandler:AddSyncAction("failCommand", handleFailCommand)
 
@@ -968,6 +977,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction("targetdrawteam")
 		gadgetHandler:RemoveChatAction("targetdrawunit")
 		gadgetHandler:RemoveSyncAction("targetList")
+		gadgetHandler:RemoveSyncAction("targetDrop")
 		gadgetHandler:RemoveSyncAction("targetIndex")
 		gadgetHandler:RemoveSyncAction("failCommand")
 	end
@@ -1001,8 +1011,8 @@ else	-- UNSYNCED
 			}
 			targetList[unitID] = unitData
 		end
-		local targets = unitData.targets
 		if removeFromIndex then
+			local targets = unitData.targets
 			for i = #targets, removeFromIndex, -1 do
 				targets[i] = nil
 			end
@@ -1027,6 +1037,13 @@ else	-- UNSYNCED
 			end
 		end
 		--tracy.ZoneEnd()
+	end
+
+	function handleTargetDropEvent(_, unitID, index)
+		local unitData = getUnitTargetList(unitID, false)
+		if unitData then
+			table_remove(unitData.targets, index)
+		end
 	end
 
 	function handleTargetIndexEvent(_, unitID, index, active)
