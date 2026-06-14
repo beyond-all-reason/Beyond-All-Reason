@@ -459,6 +459,10 @@ pieceCollisionVolume['legmohoconct'] = {
 	['0']={70,30,70,0,-3,0,1,1},
 	['1']={21,16,30,0,-3,-1,2,1},
 }
+pieceCollisionVolume['legkeres'] = {
+	['0']={58,22,68,0,-6,1,2,0},
+	['2']={44,19,48,0,9.5,2,2,0},
+}
 
 for name, v in pairs(pieceCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
