@@ -38,6 +38,9 @@ function script.FireWeapon()
 end
 
 function script.Create()
+	-- this seems to be loaded after the first UnitCommand() CMD.FIRE_STATE is fired
+	-- meaning we could already have fireState < 2 despite the default value of 2
+	currentFireState = Spring.GetUnitStates(unitID).firestate
 	isBuilt = Spring.GetUnitIsBeingBuilt(unitID) == false
 	while (not isBuilt) do
 		isBuilt = Spring.GetUnitIsBeingBuilt(unitID) == false

@@ -12,12 +12,14 @@ function gadget:GetInfo()
 	}
 end
 
-local spCallAsUnit = Spring.UnitScript.CallAsUnit
-local spGetScriptEnv = Spring.UnitScript.GetScriptEnv
+
 
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
+
+-- setting Spring.UnitScript locals fails here, maybe due to alphabetical order of loading?
+-- due to the relatively low expected number of mines firestates changes, i'm not bothering with optimizations here.
 
 local handledUnitDefIDs = {}
 
@@ -33,11 +35,10 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	end
 	if cmdID == CMD.FIRE_STATE then
 		local toFireState = cmdParams[1]
-		local scriptEnv = spGetScriptEnv(unitID)
-		-- we already made sure the unit was a mine so it HAS mine_lus loaded
-		-- so I don't think it's worth nil-checking
-		-- I don't think it's worth caching the scriptEnv.FireStateChange functions
-		-- because we don't CMD.FIRE_STATE that often anyway
-		spCallAsUnit(unitID, scriptEnv.FireStateChange, toFireState)
+		local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
+		if not scriptEnv then -- apparently still needed, the script might be loaded after the first UnitCommand() fired
+			return
+		end
+		Spring.UnitScript.CallAsUnit(unitID, scriptEnv.FireStateChange, toFireState)
 	end
 end
