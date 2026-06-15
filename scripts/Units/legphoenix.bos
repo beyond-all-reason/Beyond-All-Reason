@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  base, triparent, x, z, lthrust, llthrust, rthrust, rrthrust, ring1, ring2, ring3, ringlight, fireline, lineflare, wingr, wingl, wingbr, wingbl;
-static-var maxSpeed, currentSpeed, shotcount, timer, isfiring;
+static-var maxSpeed, currentSpeed, shotcount, timer, isfiring, fireTime;
 
 
 
@@ -82,8 +82,13 @@ Create()
 	//hide llthrust;
 	//hide rthrust;
 	//hide rrthrust;
-
 }
+
+SetSweepfireFireTime1(fireTimeValue)
+{
+	fireTime = fireTimeValue;
+}
+
 
 Activate()
 {
@@ -143,12 +148,10 @@ StrafeFire() {
 
 	while (isfiring == 1) {
 		timer = timer + 1;
-		if (timer<65) {
-			
-			//this might need a modulus type limiter for only running every X frames?
+		if (timer<fireTime) {
+			//get PRINT(timer);
 			emit-sfx 2048+1 from fireline;
 			call-script FakeUprightTurn();
-			//get PRINT(timer);
 			sleep 1;
 		} else {
 			spin ring1 around x-axis speed <90> accelerate <200>;
@@ -160,8 +163,6 @@ StrafeFire() {
 		}
 	}
 }
-
-
 
 FirePrimary() {
 
