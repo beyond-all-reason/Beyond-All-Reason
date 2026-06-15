@@ -9,7 +9,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
     return {
         name	= "Self-Destruct Resign",
-        desc	= "Cancel the order and resign player when he tries to self-destruct all his units",
+        desc	= "Cancel the order and resign players which try to self-destruct all their units",
         author	= "Floris",
         date	= "October 2021",
         license	= "GNU GPL, v2 or later",
@@ -21,11 +21,12 @@ end
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetTeamList = Spring.GetTeamList
 local spGetAllyTeamList = Spring.GetAllyTeamList
+local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local gaiaAllyTeamID = select(6, spGetTeamInfo(gaiaTeamID, false))
+local gaiaAllyTeamID = spGetTeamAllyTeamID(gaiaTeamID)
 
 local function isLastAliveNonGaiaAllyTeam(teamID)
-	local teamAllyTeamID = select(6, spGetTeamInfo(teamID, false))
+	local teamAllyTeamID = spGetTeamAllyTeamID(teamID)
 	if not teamAllyTeamID then
 		return false
 	end
@@ -50,7 +51,7 @@ local function isLastAliveNonGaiaAllyTeam(teamID)
 end
 
 local function hasActiveHumanTeammate(teamID)
-	local allyTeamID = select(6, spGetTeamInfo(teamID, false))
+	local allyTeamID = spGetTeamAllyTeamID(teamID)
 	for _, tID in ipairs(spGetTeamList(allyTeamID) or {}) do
 		local luaAI = Spring.GetTeamLuaAI(tID)
 		if tID ~= teamID and not select(4, spGetTeamInfo(tID, false)) and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(tID, "numActivePlayers") > 0 then
