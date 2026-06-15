@@ -2,7 +2,7 @@
 local base = piece("base")
 local unitDefID = Spring.GetUnitDefID(unitID)
 local triggerRange = tonumber(UnitDefs[unitDefID].customParams.detonaterange) or 64
-local SpGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
+local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 local stop_detect = 1
 local currentFireState = 2 -- default to fire at will, UnitCommand will change it on StatePrefs triggering
 local isBuilt = false
@@ -54,7 +54,7 @@ end
 function EnemyDetect()
 	SetSignalMask(stop_detect)
 	while true do
-		if SpGetUnitNearestEnemy(unitID, triggerRange) ~= nil then
+		if spGetUnitNearestEnemy(unitID, triggerRange) ~= nil then
 			StartThread(Detonate) -- I keep this because once the thread starts, a stop_detect signal should not prevent from autodesctruction
 			break
 		else
