@@ -5,7 +5,7 @@
 
 piece  base, heatray, lcheek, ldownbackleg, ldownloeg, lfin1, lfin2, lfin3, lfin4, lfin5, lfoot, lfootback, lheatsinkflap, lupbackleg, lupleg, neck, rcheek, rdownbackleg, rdownleg, rfin1, rfin2, rfin3, rfin4, rfin5, rfoot, rfootback, rheatsinkflap, rupbackleg, rupleg, tail1, tail2, tailbase, tailtip, topcheek, torpedolauncha, torpedotube, torpaimflare, torpaimx, heatrayaimflare, heatray_xy, lvent, rvent;
 
-static-var  isInWater, inWaterForm, isMoving, isAiming, isFiring, restore_delay, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy, gun_deploy, explosions, shieldup, gameframe, lastfired, firetime, aimAdj, oldsteerheading, cooldown, adjheading;
+static-var  isInWater, inWaterForm, isMoving, isAiming, isFiring, restore_delay, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy, gun_deploy, explosions, shieldup, gameframe, lastfired, firetime, aimAdj, oldsteerheading, cooldown, fireTime, reloadTime, adjheading;
 
 static-var  Stunned;
 
@@ -37,7 +37,7 @@ Steering(heading, steery, currentSpeed)
 		if (isFiring)
 		{
 			cooldown = cooldown + 1;
-			if (cooldown > 90)
+			if (cooldown > reloadTime)
 			{
 				cooldown = 0;
 				isFiring = 0;
@@ -1355,6 +1355,16 @@ Create()
 	}
 }
 
+SetSweepfireFireTime1(fireTimeValue)
+{
+	fireTime = fireTimeValue;
+}
+
+SetSweepfireReloadTime1(reloadTimeValue)
+{
+	reloadTime = reloadTimeValue;
+}
+
 IN_WATER_CUSTOM() {
 	//isInWater = get IN_WATER(0);
 	var groundheight;
@@ -1640,7 +1650,7 @@ AimPrimary(heading, pitch)
 	turn heatray_xy to y-axis adjheading - aimAdj speed <100.000000>;
 	turn heatray_xy to x-axis <0.000000> - pitch speed <50.000000>;
 	start-script RestoreAfterDelay();
-	if (cooldown > 30)
+	if (cooldown > fireTime)
 	{
 		return (0);
 	}
