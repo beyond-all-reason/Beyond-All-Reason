@@ -1,0 +1,117 @@
+local gadget = gadget ---@type Gadget
+
+if not gadgetHandler:IsSyncedCode() then
+	return false
+end
+
+function gadget:GetInfo()
+	return {
+		name    = "Unit Script Attributes",
+		desc    = "Sends customparam values to scripts at unit creation",
+		author  = "efrec",
+		version = "1.0",
+		date    = "2026-06",
+		license = "GNU GPL, v2 or later",
+		layer   = 1, -- after unit_script.lua
+		enabled = true,
+	}
+end
+
+-- Conversion functions for customParams
+
+local DEGREEPERSEC_TO_COBANGLEPERFRAME = 182 -- TODO: Show derivation, copied from old unit_turretspeed.
+
+local function customArray(text)
+	return table.map(tostring(text):split("%s"), function(v, k) return tonumber(v), k end)
+end
+
+local function customArrayToCobAngle(text)
+	local array = customArray(text)
+	if array then
+		-- Humanized values from the defs are degrees/sec. We need cobnonsenses/sec.
+		-- COB cannot do these conversions due to int precision issues; LUS is fine.
+		return table.map(array, function (v, k) return v * DEGREEPERSEC_TO_COBANGLEPERFRAME, k end)
+	end
+end
+
+-- Configured attributes and script callins
+
+local unitCustomParams = {
+	--
+}
+
+local weaponCustomParams = {
+	sweepfire_firetime = { method = "SetSweepfireFireTime", numbered = true, convert = tonumber },
+	turretspeeds       = { method = "SetWeaponTurretSpeed", numbered = true, convert = customArrayToCobAngle },
+}
+
+-- Initialization and setup
+
+local spCallCobScript = Spring.CallCOBScript
+local callLUS = Spring.UnitScript.CallAsUnit
+local callCOB = function(unitID, funcName, ...)
+	spCallCobScript(unitID, funcName, 0, ...) -- Adaptor for COB to add the return count.
+end
+local function getUnitScriptCall(unitID)
+	local lusEnv = Spring.UnitScript.GetScriptEnv(unitID)
+	return lusEnv
+		and function(unitID, funcName, ...)
+			callLUS(unitID, lusEnv[funcName], ...) -- Hold `env` in a temporary closure.
+		end
+		or callCOB
+end
+
+local function getUnitAttributes(customParams, attributes)
+	for key, attribute in pairs(unitCustomParams) do
+		if customParams[key] ~= nil then
+			if attribute.convert then
+				attributes[attribute.method] = attribute.convert(customParams[key])
+			else
+				attributes[attribute.method] = customParams[key]
+			end
+		end
+	end
+end
+
+local function getWeaponAttributes(weapons, attributes)
+	for weaponNum, weapon in ipairs(weapons) do
+		local customParams = WeaponDefs[weapon.weaponDef].customParams
+		for key, attribute in pairs(weaponCustomParams) do
+			if customParams[key] ~= nil then
+				local method = attribute.method .. (attribute.numbered and weaponNum or "")
+				if attribute.convert then
+					attributes[method] = attribute.convert(customParams[key])
+				else
+					attributes[method] = customParams[key]
+				end
+			end
+		end
+	end
+end
+
+local unitScriptAttributes = {}
+
+for unitDefID, unitDef in pairs(UnitDefs) do
+	local attributes = {}
+	getUnitAttributes(unitDef.customParams, attributes)
+	getWeaponAttributes(unitDef.weapons, attributes)
+	if next(attributes) then
+		unitScriptAttributes[unitDefID] = attributes
+	end
+end
+
+-- Engine callins
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	local attributes = unitScriptAttributes[unitDefID]
+	if attributes then
+		local call = getUnitScriptCall(unitID)
+		for methodName, arguments in pairs(attributes) do
+			if type(arguments) == "table" then
+				call(unitID, methodName, unpack(arguments))
+			else
+				call(unitID, methodName, arguments)
+			end
+		end
+	end
+end
