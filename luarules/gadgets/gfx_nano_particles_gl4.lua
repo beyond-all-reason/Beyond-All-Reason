@@ -8,10 +8,10 @@
 -- Behaviour mirrors the engine reference (rts/Sim/Projectiles/ProjectileHandler
 -- ::AddNanoParticle and rts/Rendering/Env/Particles/Classes/NanoProjectile):
 --
---   * Each gameframe we iterate visible builders, ask GetUnitCurrentBuildPower
+--   * Each sim frame we iterate the tracked builders, ask GetUnitCurrentBuildPower
 --     to filter active ones, then GetUnitWorkerTask to find their target. This
 --     replaces the synced AllowUnitBuildStep/AllowFeatureBuildStep callins
---     while still firing approximately every gameframe a builder is busy.
+--     while still firing approximately every sim frame a builder is busy.
 --   * For each emission: direction = normalize(end-start) + jitter*0.15,
 --     velocity = dir * 3.0, lifetime = floor(len/3.0), team-color tint,
 --     alpha = 20/255 (matching engine constants).
@@ -119,7 +119,7 @@ local CMD_REPAIR    = CMD.REPAIR
 local MAX_PARTICLES_VBO = 15000
 
 -- Live soft cap. Driven by the MaxParticles springsetting (~33% share, with a
--- 6000 floor so the gadget always has *some* headroom). Polled in GameFrame
+-- 6000 floor so the gadget always has *some* headroom). Polled in gadget:Update
 -- so the gfx options menu can adjust it without a /luarules reload.
 local MAX_PARTICLES_FLOOR = 5000
 local MAX_PARTICLES_FRACTION = 0.33
@@ -140,7 +140,7 @@ local LOS_FILTER      = true   -- drop emissions outside our LOS
 -- MODE_SETTINGS). Driven by the "NanoParticleMode" springsetting (gfx options UI):
 --   0 = engine nano spray (gadget stays loaded but inert)
 --   1 = gadget 3D shapes
--- Polled live in GameFrame so changes take effect without a /luarules reload.
+-- Polled live in gadget:Update so changes take effect without a /luarules reload.
 if Spring.GetConfigInt("NanoParticleMode", 1) == 2 then
 	Spring.SetConfigInt("NanoParticleMode", 1)
 end
@@ -274,9 +274,11 @@ local FEEDBACK_EMIT_MIN_GAP = 60   -- ~2s at 30 sim Hz
 
 -- Throttling knobs. These trade a small amount of visual latency for a large
 -- CPU win in builder-heavy games (hundreds of active nanos):
---   * HOMING_RUN_EVERY: run per-frame in-place re-aim every Nth frame instead
---     of every frame. Particle speed is small vs typical unit movement over
---     1-2 frames so this is visually identical.
+--   * HOMING_RUN_EVERY: re-aim each particle only every Nth Update() pass, for an
+--     even CPU cadence. At 1x a target moves little across N passes, so the
+--     skip is imperceptible; under catch-up a pass spans many sim frames,
+--     so re-aims get sparser in sim-time and aim goes more stale. Acceptable,
+--     since in catch-up we care more about keeping up than perfect fidelity.
 local LOS_CACHE_FRAMES           = 7
 -- When an enemy builder is detected by radar/sonar but not visually visible
 -- (e.g. a submarine), show only this fraction of its particles. Gives a
@@ -289,8 +291,8 @@ local HOMING_RUN_EVERY           = 4
 -- in mass-repair scenarios. UnitFinished/UnitDestroyed callins fade
 -- immediately, so this only catches the slow "repaired to full HP" edge.
 local HEALTH_CHECK_EVERY         = 15
--- Run the per-frame builder scan only every Nth sim frame. Scales with pool
--- saturation: empty -> every frame, full -> every MAX_SCAN_RUN_EVERY frames
+-- Run the builder scan only every Nth Update() pass. Scales with pool
+-- saturation: empty -> every pass, full -> every MAX_SCAN_RUN_EVERY passes
 -- (the saturation gate would drop most emissions anyway). Per-builder emit
 -- count is multiplied by the chosen value so total emission rate is preserved.
 local MIN_SCAN_RUN_EVERY         = 1
@@ -327,7 +329,7 @@ local DISTANT_EMIT_FAR_SQ   = DISTANT_EMIT_RANGE      * DISTANT_EMIT_RANGE
 local DISTANT_EMIT_BAND_INV = 1.0 / (DISTANT_EMIT_FAR_SQ - DISTANT_EMIT_NEAR_SQ)
 local DISTANT_EMIT_DROP     = 1.0 - DISTANT_EMIT_KEEP
 
--- Dynamic scan stride: builders are scanned 1/stride per sim frame. Per-builder
+-- Dynamic scan stride: 1/stride of the builders are scanned per scan pass. Per-builder
 -- emit count is multiplied by stride so total rate is preserved. Grows with
 -- pool saturation (the gate would drop most emissions at high fill anyway).
 local MIN_SCAN_STRIDE = 1
@@ -596,7 +598,7 @@ local builderCache = {}
 local trackedBuilders     = {}  -- unitID -> arrayIndex (also used as membership set)
 local trackedBuildersList = {}  -- arrayIndex -> unitID
 
--- Forward declaration so the Initialize/GameFrame callins can call into it.
+-- Forward declaration so earlier callins (Initialize/Update) can call into it.
 local trackUnit
 
 -- Cached visibility state
@@ -621,33 +623,10 @@ local function refreshSpec()
 	cachedAllyTeamID   = spGetMyAllyTeamID()
 end
 
--- High gamespeed throttle. When the engine runs faster than 1x (catchup after
--- reconnect, or user /speed) scanBuilders fires many times per render frame and
--- can dominate the Lua budget. Ramps from 0 at *_START to 1 at *_FULL and is
--- used at scan time to cap effective particle pool and cut emitProb.
--- Refreshed in GameFrame on a 1s cadence (cheap, one Spring.GetGameSpeed call).
-local GAMESPEED_THROTTLE_START = 1.5   -- below this, no extra throttle
-local GAMESPEED_THROTTLE_FULL  = 5.0   -- at or above this, full throttle
-local GAMESPEED_EMIT_CUT       = 0.66   -- emitProb cut at full throttle (0..1)
-local GAMESPEED_MAX_CUT        = 0.85   -- effective-max cut at full throttle (0..1)
-local speedThrottle = 0.0              -- 0 = none, 1 = max (set in GameFrame)
-
-local function refreshSpeedThrottle()
-	local _, speedFactor = Spring.GetGameSpeed()
-	if not speedFactor or speedFactor <= GAMESPEED_THROTTLE_START then
-		speedThrottle = 0.0
-		return
-	end
-	local t = (speedFactor - GAMESPEED_THROTTLE_START)
-	        / (GAMESPEED_THROTTLE_FULL - GAMESPEED_THROTTLE_START)
-	if t < 0 then t = 0 elseif t > 1 then t = 1 end
-	speedThrottle = t
-end
-
 -- Cached infoTex-is-LOS state. Spring.GetMapDrawMode() returns the active
 -- mini-map mode (""/"los"/"height"/"metal"/"path"); when not LOS, $info holds
 -- other map data and our LOS smoothstep would discard most of the map.
--- Polled on the same 1s GameFrame cadence as the speed throttle.
+-- Polled on a slow (~1s) tick in gadget:Update.
 local cachedInfoIsLos = true
 local function refreshInfoIsLos()
 	local m = Spring.GetMapDrawMode()
@@ -721,7 +700,7 @@ void main() {
 	// rotData.x and .y are spawn-time random (never rewritten by homing). Using
 	// these to generate a stable perpendicular basis ensures wobble doesn't flip
 	// or jitter when the particle is re-aimed during forward homing. For moving
-	// targets, velocity changes every 3 frames (HOMING_RUN_EVERY), which would
+	// targets, velocity is rewritten every HOMING_RUN_EVERY updates, which would
 	// cause the computed wobble axis to rotate/flip abruptly -- jittery/extreme.
 	// Deriving the basis from spawn-time values keeps it stable across updates.
 	if (wobbleAmp > 0.0001) {
@@ -1236,7 +1215,7 @@ end
 
 -- Team color cache: spGetTeamColor is a Spring->C call; teamID -> {r, g, b}.
 -- Colors can change mid-game (commshare, alliance, modoptions), so a periodic
--- refresh in GameFrame re-fetches every cached team and propagates any change
+-- refresh in gadget:Update re-fetches every cached team and propagates any change
 -- into the per-builder info entries via builderCacheByTeam[team] = {info, ...}.
 local teamColorCache    = {}
 local builderCacheByTeam = {}  -- teamID -> array of info tables (for color propagation)
@@ -2350,12 +2329,14 @@ end
 -- This addresses straight-line tunneling through cliffs for non-homed particles.
 --------------------------------------------------------------------------------
 
-local function applyGroundClamp(frame, dirtyMin, dirtyMax)
+local function applyGroundClamp(frame, tick, dirtyMin, dirtyMax)
 	if not U.GROUND_CLAMP_ENABLED then return dirtyMin, dirtyMax end
 	if not nanoVBO then return dirtyMin, dirtyMax end
 	local runEvery = U.GROUND_CLAMP_RUN_EVERY or 1
 	if runEvery < 1 then runEvery = 1 end
-	if (frame % runEvery) ~= 0 then return dirtyMin, dirtyMax end
+	-- `frame` (sim frame) drives the position math below; `tick` (counts Update()
+	-- passes) drives this cadence gate so it stays even under fast-forward.
+	if (tick % runEvery) ~= 0 then return dirtyMin, dirtyMax end
 
 	local total = #groundClampParticles
 	if CLAMP_DEBUG and total > clampDbg.maxSubset then clampDbg.maxSubset = total end
@@ -2475,11 +2456,14 @@ end
 -- Per-frame builder scan
 --------------------------------------------------------------------------------
 
-local function scanBuilders(frame)
-	-- Engine emits nano particles for every active builder regardless of camera
-	-- frustum. Iterate the tracked builder set; LOS filtering happens in emitNano.
-	-- Per-frame epoch bump implicitly invalidates piecePosCache / targetPosCache
-	-- without clearing the tables.
+local function scanBuilders(frame, tick)
+	-- `frame` = sim frame, used for emission timestamps. `tick` = Update()-pass
+	-- counter, used for the scan/homing/clamp cadence so it stays even under fast-forward.
+	-- We iterate the whole tracked builder set (the engine emits for every active
+	-- builder, on- or off-screen); LOS filtering happens later, in emitNano.
+
+	-- Bump the epoch instead of clearing piecePosCache / targetPosCache: every
+	-- cached entry is tagged with its epoch, so this invalidates them all at once.
 	piecePosEpoch = piecePosEpoch + 1
 
 	-- Snapshot pre-scan tail so we can do ONE upload covering all spawns this
@@ -2489,27 +2473,21 @@ local function scanBuilders(frame)
 
 	-- Engine-style saturation gate evaluated per-emission. Pre-computed once so
 	-- we skip per-builder math (GetUnitPiecePosDir, sqrt, RNG, target resolution)
-	-- for the majority of dropped emissions when at capacity. Under high-gamespeed
-	-- catchup, shrink the effective cap so saturation ramps up faster.
+	-- for the majority of dropped emissions when at capacity.
 	local effectiveMax = MAX_PARTICLES
-	if speedThrottle > 0.0 then
-		effectiveMax = MAX_PARTICLES * (1.0 - GAMESPEED_MAX_CUT * speedThrottle)
-	end
 	local saturation = liveCount / effectiveMax
-	-- NOTE: don't early-return on saturation or scan-skip here -- the
-	-- per-frame homing pass at the bottom must still run, otherwise long-lived
-	-- particles aimed at far/moving targets (which are the ones that saturate
-	-- the pool in the first place) fly on their stale spawn-time trajectory
-	-- and never curve toward the target. Instead, skip just the per-builder
-	-- emission loop below.
+	-- NOTE: When saturated we skip emission, but must NOT early-return from the function:
+	-- the homing pass at the bottom still has to run. Skipping it would freeze
+	-- long-lived particles aimed at far/moving targets on their stale spawn-time
+	-- trajectory -- and those are exactly the particles that saturated the pool.
 	local skipEmit = saturation >= 1.0
 
-	-- Dynamic scan-frame skip: empty pool -> every frame, saturated -> every
-	-- MAX_SCAN_RUN_EVERY frames. emitProb scales by runEvery so total emission
-	-- rate is preserved.
+	-- Dynamic scan skip: empty pool -> every Update(), saturated -> every
+	-- MAX_SCAN_RUN_EVERY Update()s. Per-builder elapsed emit count compensates so
+	-- total emission rate is preserved.
 	local runEvery = MIN_SCAN_RUN_EVERY + math.floor(saturation * (MAX_SCAN_RUN_EVERY - MIN_SCAN_RUN_EVERY) + 0.5)
 	if runEvery < 1 then runEvery = 1 end
-	if (frame % runEvery) ~= 0 then skipEmit = true end
+	if (tick % runEvery) ~= 0 then skipEmit = true end
 
   if not skipEmit then
 	-- Camera position for the per-emit distance throttle. One call per scan;
@@ -2533,10 +2511,10 @@ local function scanBuilders(frame)
 
 	local list = trackedBuildersList
 	local n    = #list
-	-- Use scan-call counter (frame/runEvery) for the stride offset rather than
-	-- raw frame: otherwise runEvery=2 + stride=2 makes frame always even,
-	-- frame%stride always 0, and even-indexed builders never visited.
-	local scanTick = mathFloor(frame / runEvery)
+	-- Use the scan-call counter (tick/runEvery) for the stride offset rather than
+	-- raw tick: otherwise runEvery=2 + stride=2 makes the offset always even,
+	-- tick%stride always 0, and even-indexed builders never visited.
+	local scanTick = mathFloor(tick / runEvery)
 	local start = (scanTick % stride) + 1
 	-- Iterate this scan's stride-coset (indices start, start+stride, ..., <= n)
 	-- starting from a per-scan rotating offset rather than always ascending.
@@ -2752,18 +2730,25 @@ local function scanBuilders(frame)
 							if DEBUG then _dbgEmits = _dbgEmits + 1 end
 							-- Factories always use the engine's fixed 0.15 jitter regardless of buildee size.
 							if info.isFactory then jitterRadius = nil end
-							-- Per-visit emission count scales with actual buildpower
-							-- throughput (buildSpeed * bp), so a 100-BP commander
-							-- assisting a 3000-BP factory emits ~1/30th as many
-							-- particles -- not the same number, which would visually
-							-- erase its contribution. Integrated over real elapsed
-							-- frames since this builder's last visit so the count is
-							-- proportional regardless of stride/runEvery throttling
-							-- and per-builder visit-skip RNG.
+							-- Per-visit emission count scales with buildpower throughput
+							-- (buildSpeed * bp) and with `elapsed`, so total output stays
+							-- proportional to buildpower*time however the scan paced its
+							-- visits. (A 100-BP commander assisting a 3000-BP factory thus
+							-- emits ~1/30th as many particles, not the same count -- which
+							-- would visually erase its contribution.)
+							--
+							-- `elapsed` = sim frames since this builder's last visit: 1 in
+							-- normal play, larger under stride/runEvery throttling or a
+							-- fast-forward jump (Update() sees the sim frame advance by >1).
+							-- Cleared to nil on idle visits (above) so a just-resumed builder
+							-- isn't credited its idle gap.
+							local prevVisit = info.lastVisitFrame
 							info.lastVisitFrame = frame
-							-- Always emit only this frame's share. No catch-up burst
-							-- when a builder was skipped due to pool saturation.
-							local elapsed = 1
+							local elapsed = prevVisit and (frame - prevVisit) or 1
+							-- Clamp elapsed to 8 so a long unvisited gap (extreme stride,
+							-- big burst, post-reload) can't dump one huge emission spike;
+							-- the MAX_PARTICLES saturation gate still caps the pool anyway.
+							if elapsed < 1 then elapsed = 1 elseif elapsed > 8 then elapsed = 8 end
 							local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * elapsed * (NanoParticleRate or 1.0)
 							-- Deterministic accumulator: carries the fractional
 							-- remainder across visits. Eliminates the Bernoulli jitter
@@ -2869,11 +2854,11 @@ local function scanBuilders(frame)
 		-- Re-aim runs on a slower cadence than the scan: it rewrites per-particle
 		-- pos/vel for every live homed particle (potentially thousands) and only
 		-- needs to keep up with target movement.
-		if (frame % HOMING_RUN_EVERY) == 0 then
+		if (tick % HOMING_RUN_EVERY) == 0 then
 			dirtyMin, dirtyMax = applyHoming(frame, dirtyMin, dirtyMax)
 			dirtyMin, dirtyMax = applyForwardHoming(frame, dirtyMin, dirtyMax)
 		end
-		dirtyMin, dirtyMax = applyGroundClamp(frame, dirtyMin, dirtyMax)
+		dirtyMin, dirtyMax = applyGroundClamp(frame, tick, dirtyMin, dirtyMax)
 		local postUsed = nanoVBO.usedElements
 		if postUsed > preUsed then
 			if preUsed  < dirtyMin then dirtyMin = preUsed  end
@@ -2886,28 +2871,34 @@ local function scanBuilders(frame)
 end
 
 --------------------------------------------------------------------------------
--- Per-frame: cull dead particles. Called from GameFrame (deaths only advance
--- once per sim frame, no point doing this per render frame).
+-- Cull dead particles, once per Update(). Deaths are keyed by exact deathFrame in
+-- deathBuckets; the game frame can advance by >1 between Update()s, so sweep the
+-- whole (prevFrame, frame] range, not just deathBuckets[frame].
 --------------------------------------------------------------------------------
 
-local function cullDead(frame)
-	local bucket = deathBuckets[frame]
-	if not bucket then return end
-	local nb = #bucket
-	if not nanoVBO then
-		liveCount = liveCount - nb
-		deathBuckets[frame] = nil
-		return
+local function cullDead(frame, prevFrame)
+	local from = (prevFrame or (frame - 1)) + 1
+	-- Drain every bucket in range: a skipped one strands its VBO slots -> the pool
+	-- fills to the cap, saturation pins emission off, and the stuck particles are all
+	-- past their death frame so the shader discards them -> every particle vanishes.
+	for f = from, frame do
+		local bucket = deathBuckets[f]
+		if bucket then
+			local nb = #bucket
+			if nanoVBO then
+				-- Per-pop upload (~64B/swap). Tried batching with one
+				-- uploadElementRange at the end and cull jumped from ~2-4ms to
+				-- ~15-18ms in factory-heavy scenes -- per-element marshalling cost
+				-- in uploadElementRange dominates the GL submit savings when slots
+				-- are scattered.
+				for i = 1, nb do
+					popElementInstance(nanoVBO, bucket[i], false)
+				end
+			end
+			liveCount = liveCount - nb
+			deathBuckets[f] = nil
+		end
 	end
-	-- Per-pop upload (~64B/swap). Tried batching with one uploadElementRange
-	-- at the end and cull jumped from ~2-4ms to ~15-18ms in factory-heavy
-	-- scenes -- per-element marshalling cost in uploadElementRange dominates
-	-- the GL submit savings when slots are scattered.
-	for i = 1, nb do
-		popElementInstance(nanoVBO, bucket[i], false)
-	end
-	liveCount = liveCount - nb
-	deathBuckets[frame] = nil
 end
 
 --------------------------------------------------------------------------------
@@ -2957,6 +2948,8 @@ function gadget:Initialize()
 	-- The gadget always stays loaded so it can observe live NanoParticleMode
 	-- changes from the gfx options menu. Mode 0 = engine spray: we just leave
 	-- nanoVBO unset and skip emission/draw; switching to 1 lazy-inits GL.
+	U.updateGateFrame = -1   -- re-arm the Update gate for /luarules reloads
+	U.updateTick = 0           -- reset amortization cadence counter
 	applyParticleMode(NANO_PARTICLE_MODE, true)
 	refreshSpec()
 	-- Seed tracked builder set with units that already exist (handles
@@ -2971,6 +2964,8 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
+	U.updateGateFrame = -1
+	U.updateTick = 0
 	cleanupGL4()
 end
 
@@ -2981,14 +2976,51 @@ function gadget:PlayerChanged()
 	refreshTeamColors()
 end
 
--- Emission once per gameframe (matches the engine's per-frame AddNanoParticle
--- cadence for an active builder).
-function gadget:GameFrame(n)
+-- Engine originally does emission once per gameframe, which runs during sim frames.
+-- For performance, instead do the emit/cull/homing work from the unsynced Update callin,
+-- which runs _after_ a batch of sim frames. In normal saturation, this is equivalent to
+-- the engine's cadence. In high sim saturation, the update must catch up on multiple 
+-- sim frames at once.
+-- So: the main loop drains 0..N queued sim frames before each draw:
+-- * 0 new sim frames -> skip
+-- * 1 -> normal
+-- * N (catch-up) -> one pass over the whole jump. 
+--
+-- When it does run, Update() works from that latest state rather than replaying each
+-- skipped frame, so it must still account for them or emission/refresh falls behind at
+-- speed. So:
+--  * (a) per-builder emit counts integrate over the sim frames since that builder's 
+--        last visit (see `elapsed` in scanBuilders), keeping density proportional to 
+--        buildpower*time at any speed
+--  * (b) periodic blocks fire on boundary *crossings* (floor(n/K) changes), not exact
+--        n % K == 0 which a jump could step over. prev = the previous processed frame.
+function gadget:Update()
+	local n = spGetGameFrame()
+	-- Gate FIRST -- before any dN math -- so a paused game (n frozen, no new sim
+	-- frame) does zero emission/cull/homing. Also collapses the many per-draw
+	-- Update() calls within one sim frame into a single pass of the work below.
+	if n <= (U.updateGateFrame or -1) then return end
+	local prev = U.updateGateFrame
+	if prev == nil or prev < 0 then prev = n - 1 end   -- first run / post-reload
+	U.updateGateFrame = n
+
+	-- Update()-pass counter: +1 each time this work runs (at most once per sim
+	-- frame), regardless of how many sim frames `n` jumped. The amortization throttles
+	-- (scan runEvery/stride, homing, ground clamp) key off this so their cadence
+	-- stays even under fast-forward / catch-up.
+	U.updateTick = (U.updateTick or 0) + 1
+	local tick = U.updateTick
+
+	-- Fire the periodic blocks on boundary crossings rather than exact n % K == 0:
+	-- under fast-forward / catch-up n can jump past the multiple. floor(n/K)
+	-- changing means we crossed a K-boundary since the last Update().
+	local function crossed(k) return mathFloor(n / k) ~= mathFloor(prev / k) end
+
 	-- Poll NanoParticleMode. The springsetting is written by the gfx options
 	-- UI; engine doesn't fire a callin on change so we sample on a slow tick.
 	-- Cheap (one GetConfigInt) and 1s latency on a settings-menu toggle is
 	-- imperceptible.
-	if n % 30 == 0 then
+	if crossed(30) then
 		local mode = Spring.GetConfigInt("NanoParticleMode", 1)
 		if mode ~= NANO_PARTICLE_MODE then
 			applyParticleMode(mode, false)
@@ -3000,9 +3032,7 @@ function gadget:GameFrame(n)
 				Spring.SetConfigInt("MaxNanoParticles", 0)
 			end
 		end
-		-- Refresh high-gamespeed throttle (reconnect catchup, user /speed) and
-		-- the cached map-draw-mode (heightmap / metalmap / pathmap views).
-		refreshSpeedThrottle()
+		-- Refresh the cached map-draw-mode (heightmap / metalmap / pathmap views).
 		refreshInfoIsLos()
 		refreshMaxParticles()
 		-- Color equalization slider: cheap poll; if changed, force a full
@@ -3030,7 +3060,7 @@ function gadget:GameFrame(n)
 	-- Periodic team-color refresh: colors can change mid-game (commshare,
 	-- alliance, custom recolor widgets). Cheap (one Spring call per cached
 	-- team, only propagates on actual change).
-	if n % 150 == 0 then
+	if crossed(150) then
 		refreshTeamColors()
 	end
 
@@ -3038,7 +3068,7 @@ function gadget:GameFrame(n)
 	-- unsynced context (e.g. mid-game gadget reloads, spectator transitions).
 	-- Unit{Created,Finished,Given,Taken,Destroyed} cover the steady state, so
 	-- every 10 seconds is plenty for the safety net.
-	if n % 300 == 0 then
+	if crossed(300) then
 		if DEBUG then
 			local t0 = spGetTimer()
 			local all = spGetAllUnits()
@@ -3066,11 +3096,11 @@ function gadget:GameFrame(n)
 
 	if DEBUG then
 		local t0 = spGetTimer()
-		scanBuilders(n)
+		scanBuilders(n, tick)
 		_dbgTScan = _dbgTScan + spDiffTimers(spGetTimer(), t0)
 
 		local tc0 = spGetTimer()
-		cullDead(n)
+		cullDead(n, prev)
 		_dbgTCull = _dbgTCull + spDiffTimers(spGetTimer(), tc0)
 
 		_dbgFrame = _dbgFrame + 1
@@ -3085,11 +3115,11 @@ function gadget:GameFrame(n)
 			_dbgTScan, _dbgTCull, _dbgTDraw, _dbgTRescan, _dbgDraws = 0, 0, 0, 0, 0
 		end
 	else
-		scanBuilders(n)
-		cullDead(n)
+		scanBuilders(n, tick)
+		cullDead(n, prev)
 	end
 
-	if CLAMP_DEBUG and (n % 90 == 0) then
+	if CLAMP_DEBUG and crossed(90) then
 		local checks = clampDbg.emitChecks
 		local enabledPct = (checks > 0) and (100.0 * clampDbg.emitEnabled / checks) or 0.0
 		spEcho(string.format(
@@ -3393,8 +3423,8 @@ function gadget:DrawWorld()
 	nanoShader:Activate()
 	-- losAlwaysVisible: bypass the LOS/infoTex sample either with full view
 	-- (spectator) or when $info isn't currently rendering LOS (heightmap /
-	-- metalmap / pathmap modes hold other map data). Refreshed on the 1s
-	-- GameFrame poll, not per render frame.
+	-- metalmap / pathmap modes hold other map data). Refreshed on a slow (~1s)
+	-- tick in gadget:Update, not per render frame.
 	local losU = (cachedSpecFullView or not cachedInfoIsLos) and 1 or 0
 	if losU ~= lastLosUniform then
 		nanoShader:SetUniform("losAlwaysVisible", losU)
