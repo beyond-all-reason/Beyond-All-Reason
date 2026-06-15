@@ -1,6 +1,7 @@
 /* Diffuse Painter Material Library - Styles (modelled on gui_feature_placer) */
 
-.text-keybind { color: #6b8a5aCC; }
+/* Same keybind-hint green as gui_terraform_brush.rcss */
+.text-keybind { color: #a0b896; }
 
 body {
 	pointer-events: none;

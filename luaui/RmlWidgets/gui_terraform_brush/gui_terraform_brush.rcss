@@ -300,6 +300,9 @@ body {
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-evenly;
+	/* Long values must clip instead of wrapping over the rows below */
+	overflow: hidden;
+	white-space: nowrap;
 }
 .tf-ss-mode {
 	font-weight: bold;
@@ -338,6 +341,13 @@ body {
 	position: relative;
 	decorator: vertical-gradient(#4e4e5a #2c2c34);
 	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+/* .tf-mode-btn declares display:flex at the same specificity as the global
+   .hidden utility, so an explicit combined rule is needed to actually hide
+   (used by btn-diffuse until its painter widget is loaded). */
+.tf-mode-btn.hidden {
+	display: none;
 }
 
 .tf-mode-btn:hover {
@@ -649,6 +659,11 @@ body {
 	background-color: #2a2a0a;
 }
 
+.tf-btn-erode.active {
+	border-color: #d97706;
+	background-color: #2e2210;
+}
+
 .tf-noise-type-btn.active {
 	border-color: #fbbf24;
 	background-color: #2a2a0a;
@@ -662,6 +677,12 @@ body {
 .tf-btn-splat.active {
 	border-color: #22c55e;
 	background-color: #1a3a2a;
+}
+
+/* Diffuse painter - amber/gold theme (matches its #e8b96b summary color) */
+.tf-btn-diffuse.active {
+	border-color: #e8b96b;
+	background-color: #3a2e1a;
 }
 
 .tf-btn-decals.active {
@@ -2410,6 +2431,11 @@ body {
 	border-color: #ffb830;
 }
 
+.tf-btn-erode.active:hover {
+	background-color: #553e20;
+	border-color: #f59e0b;
+}
+
 .tf-noise-type-btn.active:hover {
 	background-color: #584628;
 	border-color: #ffb830;
@@ -2479,6 +2505,11 @@ body {
 .tf-btn-splat.active:hover {
 	background-color: #2a5e48;
 	border-color: #44e080;
+}
+
+.tf-btn-diffuse.active:hover {
+	background-color: #54431f;
+	border-color: #f2cd8a;
 }
 
 .tf-btn-decals.active:hover {

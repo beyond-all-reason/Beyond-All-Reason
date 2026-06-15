@@ -23,12 +23,18 @@ function M.attach(doc, ctx)
 	widgetState.dfpLayerListEl  = doc:GetElementById("dfp-layer-list")
 	widgetState.dfpLastLayerSig = nil
 
+	-- Slider drag tracking only; section collapse for dfp-* frames is wired
+	-- centrally in tf_environment.lua (envSectionToggle) like every other tool.
 	for _, entry in ipairs({
 		{ "dfp-slider-radius",          "dfp-radius" },
 		{ "dfp-slider-strength",        "dfp-strength" },
 		{ "dfp-slider-curve",           "dfp-curve" },
 		{ "dfp-slider-fractal",         "dfp-fractal" },
 		{ "dfp-slider-fractal-freq",    "dfp-fractal-freq" },
+		{ "dfp-slider-history",         "dfp-history" },
+		{ "dfp-slider-specint",         "dfp-specint" },
+		{ "dfp-slider-glow",            "dfp-glow" },
+		{ "dfp-slider-grass",           "dfp-grass" },
 		{ "dfp-slider-hydro-strength",  "dfp-hydro-strength" },
 		{ "dfp-slider-hydro-flo",       "dfp-hydro-flo" },
 		{ "dfp-slider-hydro-fhi",       "dfp-hydro-fhi" },
@@ -38,35 +44,6 @@ function M.attach(doc, ctx)
 		local sliderEl = doc:GetElementById(entry[1])
 		if sliderEl and trackSliderDrag then trackSliderDrag(sliderEl, entry[2]) end
 	end
-
-	-- Wire collapse buttons for diffuse-specific sections.
-	-- Reuse the same pattern as tf_environment.lua (envSectionToggle).
-	local function dfpSectionToggle(btnId, imgId, sectionId, defaultExpanded)
-		local btnEl  = doc:GetElementById(btnId)
-		local imgEl  = doc:GetElementById(imgId)
-		local secEl  = doc:GetElementById(sectionId)
-		if not (btnEl and secEl) then return end
-		local expanded = defaultExpanded ~= false
-		local function apply()
-			if expanded then
-				secEl:SetAttribute("style", "display: block;")
-				if imgEl then imgEl:SetAttribute("src", "/luaui/images/terraform_brush/minus.png") end
-			else
-				secEl:SetAttribute("style", "display: none;")
-				if imgEl then imgEl:SetAttribute("src", "/luaui/images/terraform_brush/plus.png") end
-			end
-		end
-		apply()
-		btnEl:AddEventListener("mousedown", function(_ev)
-			expanded = not expanded
-			apply()
-		end, false)
-	end
-
-	dfpSectionToggle("btn-toggle-dfp-brush",   "img-toggle-dfp-brush",   "section-dfp-brush",   true)
-	dfpSectionToggle("btn-toggle-dfp-effects", "img-toggle-dfp-effects", "section-dfp-effects", false)
-	dfpSectionToggle("btn-toggle-dfp-layers",  "img-toggle-dfp-layers",  "section-dfp-layers",  true)
-	dfpSectionToggle("btn-toggle-dfp-actions", "img-toggle-dfp-actions", "section-dfp-actions", false)
 end
 
 -- Build a signature of the current layer stack so we can detect when the list
@@ -151,14 +128,22 @@ local function rebuildLayerList(doc, ctx, layers, activeId)
 	end
 end
 
-function M.sync(doc, ctx, setSummary)
+-- Layer names come from material basenames; keep the one-line summary readable
+-- if a long custom name sneaks in.
+local function shortName(name, maxLen)
+	name = tostring(name or "-")
+	if #name > maxLen then return name:sub(1, maxLen - 1) .. "…" end
+	return name
+end
+
+function M.sync(doc, ctx, dfpState, setSummary)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local syncAndFlash = ctx.syncAndFlash
-	if not WG.DiffusePainter then return end
+	if not dfpState or not WG.DiffusePainter then return end
 
-	local layers   = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
-	local activeId = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+	local layers   = dfpState.layers or {}
+	local activeId = dfpState.activeLayerId
 
 	-- Rebuild layer list only when needed
 	local sig = buildSig(layers, activeId)
@@ -174,24 +159,20 @@ function M.sync(doc, ctx, setSummary)
 	-- DM labels for brush + active layer
 	local dm = widgetState.dmHandle
 	if dm then
-		local radius, strength, curve, erase = WG.DiffusePainter.getBrush()
-		local radiusStr   = tostring(radius or 128)
-		local strengthStr = string.format("%.2f", strength or 1.0)
-		local curveStr    = string.format("%.1f", curve or 1.5)
+		local radiusStr   = tostring(dfpState.radius or 128)
+		local strengthStr = string.format("%.2f", dfpState.strength or 1.0)
+		local curveStr    = string.format("%.1f", dfpState.curve or 1.5)
 		if dm.dfpRadiusStr   ~= radiusStr   then dm.dfpRadiusStr   = radiusStr   end
 		if dm.dfpStrengthStr ~= strengthStr then dm.dfpStrengthStr = strengthStr end
 		if dm.dfpCurveStr    ~= curveStr    then dm.dfpCurveStr    = curveStr    end
-		if dm.dfpErase       ~= (erase == true) then dm.dfpErase = (erase == true) end
+		if dm.dfpErase       ~= (dfpState.erase == true) then dm.dfpErase = (dfpState.erase == true) end
 
-		local activeName = ""
-		for i = 1, #layers do
-			if layers[i].id == activeId then activeName = layers[i].name or "" break end
-		end
+		local activeName = shortName(activeLayer and activeLayer.name or "", 28)
 		if dm.dfpActiveLayerName ~= activeName then dm.dfpActiveLayerName = activeName end
 
 		-- Fractal brush
-		if WG.DiffusePainter.getFractal then
-			local amt, freq = WG.DiffusePainter.getFractal()
+		do
+			local amt, freq = dfpState.fractalAmount, dfpState.fractalFreq
 			local fracStr = tostring(math.floor((amt or 0) * 100 + 0.5))
 			if dm.dfpFractalStr ~= fracStr then dm.dfpFractalStr = fracStr end
 			-- Freq 0.0002..0.01 → slider 1..50 (linear)
@@ -222,10 +203,30 @@ function M.sync(doc, ctx, setSummary)
 		local thermoFallStr = tostring(math.floor((activeLayer and activeLayer.thermoFalloff) or 8))
 		if dm.dfpThermoFalloffStr ~= thermoFallStr then dm.dfpThermoFalloffStr = thermoFallStr end
 
-		-- Warn chip: active when blend is non-normal, or hydro/thermo is on
-		local effectsActive = hydroEn or thermoEn or (blendStr ~= "normal")
+		-- SSMF material channels
+		local chN = dfpState.channelNormals  and true or false
+		local chS = dfpState.channelSpecular and true or false
+		local chE = dfpState.channelEmission and true or false
+		if dm.dfpChNormals  ~= chN then dm.dfpChNormals  = chN end
+		if dm.dfpChSpecular ~= chS then dm.dfpChSpecular = chS end
+		if dm.dfpChEmission ~= chE then dm.dfpChEmission = chE end
+		local specIntStr = tostring(math.floor((dfpState.specIntensity or 0.25) * 100 + 0.5))
+		if dm.dfpSpecIntStr ~= specIntStr then dm.dfpSpecIntStr = specIntStr end
+		local glowStr = tostring(math.floor(((activeLayer and activeLayer.glowStrength) or 0) * 100 + 0.5))
+		if dm.dfpGlowStr ~= glowStr then dm.dfpGlowStr = glowStr end
+
+		-- Grass attach
+		local gAttach = dfpState.grassAttach and true or false
+		if dm.dfpGrassAttach ~= gAttach then dm.dfpGrassAttach = gAttach end
+		local grassStr = tostring(math.floor(((activeLayer and activeLayer.grassDensity) or 0) * 100 + 0.5))
+		if dm.dfpGrassStr ~= grassStr then dm.dfpGrassStr = grassStr end
+
+		-- Warn chips: effects when blend/hydro/thermo/channels engaged; layers
+		-- when more than the starter layer exists (visible only while collapsed).
+		local effectsActive = hydroEn or thermoEn or (blendStr ~= "normal") or chN or chS or chE
 		if doc and ctx.syncWarnChip then
 			ctx.syncWarnChip(doc, "warn-chip-dfp-effects", "section-dfp-effects", effectsActive)
+			ctx.syncWarnChip(doc, "warn-chip-dfp-layers", "section-dfp-layers", #layers > 1)
 		end
 	end
 
@@ -233,16 +234,35 @@ function M.sync(doc, ctx, setSummary)
 	if doc then
 		uiState.updatingFromCode = true
 		local getCachedEl = ctx.getCachedEl
-		local radius, strength, curve = WG.DiffusePainter.getBrush()
-		syncAndFlash(getCachedEl(doc, "dfp-slider-radius"),   "dfp-radius",   tostring(radius or 128))
-		syncAndFlash(getCachedEl(doc, "dfp-slider-strength"), "dfp-strength", tostring(math.floor((strength or 1.0) * 100 + 0.5)))
-		syncAndFlash(getCachedEl(doc, "dfp-slider-curve"),    "dfp-curve",    tostring(math.floor((curve or 1.5) * 10 + 0.5)))
-		if WG.DiffusePainter.getFractal then
-			local amt, freq = WG.DiffusePainter.getFractal()
+		syncAndFlash(getCachedEl(doc, "dfp-slider-radius"),   "dfp-radius",   tostring(dfpState.radius or 128))
+		syncAndFlash(getCachedEl(doc, "dfp-slider-strength"), "dfp-strength", tostring(math.floor((dfpState.strength or 1.0) * 100 + 0.5)))
+		syncAndFlash(getCachedEl(doc, "dfp-slider-curve"),    "dfp-curve",    tostring(math.floor((dfpState.curve or 1.5) * 10 + 0.5)))
+		do
+			local amt, freq = dfpState.fractalAmount, dfpState.fractalFreq
 			syncAndFlash(getCachedEl(doc, "dfp-slider-fractal"), "dfp-fractal", tostring(math.floor((amt or 0) * 100 + 0.5)))
 			local freqSlider = math.floor(1 + ((freq or 0.003) - 0.0002) / (0.01 - 0.0002) * 49 + 0.5)
 			freqSlider = math.max(1, math.min(50, freqSlider))
 			syncAndFlash(getCachedEl(doc, "dfp-slider-fractal-freq"), "dfp-fractal-freq", tostring(freqSlider))
+		end
+
+		-- Channel sliders
+		syncAndFlash(getCachedEl(doc, "dfp-slider-specint"), "dfp-specint", tostring(math.floor((dfpState.specIntensity or 0.25) * 100 + 0.5)))
+		if activeLayer then
+			syncAndFlash(getCachedEl(doc, "dfp-slider-glow"), "dfp-glow", tostring(math.floor((activeLayer.glowStrength or 0) * 100 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "dfp-slider-grass"), "dfp-grass", tostring(math.floor((activeLayer.grassDensity or 0) * 100 + 0.5)))
+		end
+
+		-- History slider sync (same shape as tf_grass)
+		do
+			local histIdx = dfpState.historyIndex or 0
+			local histMax = dfpState.historyMax or 0
+			local slH = getCachedEl(doc, "dfp-slider-history")
+			if slH then
+				slH:SetAttribute("max", tostring(histMax))
+				syncAndFlash(slH, "dfp-history", tostring(histIdx))
+			end
+			local numH = getCachedEl(doc, "dfp-slider-history-numbox")
+			if numH then numH:SetAttribute("value", tostring(histIdx)) end
 		end
 		if activeLayer then
 			local hs = math.floor((activeLayer.hydroStrength or 0.02) * 1000 + 0.5)
@@ -258,12 +278,11 @@ function M.sync(doc, ctx, setSummary)
 	end
 
 	if setSummary then
-		local r, s, c, e = WG.DiffusePainter.getBrush()
-		setSummary("Diffuse Painter", "#e8b96b",
-			"Layer", tostring(activeLayer and activeLayer.name or "-"),
-			"Size", tostring(r or 128),
-			"Strength", string.format("%d%%", math.floor((s or 0.6) * 100 + 0.5)),
-			"Mode", e and "Erase" or "Paint")
+		setSummary("DIFFUSE", "#e8b96b",
+			"", shortName(activeLayer and activeLayer.name, 18),
+			"R ", tostring(dfpState.radius or 128),
+			"Str ", string.format("%d%%", math.floor((dfpState.strength or 0.6) * 100 + 0.5)),
+			"", dfpState.erase and "ERASE" or "PAINT")
 	end
 end
 

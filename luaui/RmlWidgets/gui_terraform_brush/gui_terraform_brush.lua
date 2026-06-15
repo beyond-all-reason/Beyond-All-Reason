@@ -125,6 +125,7 @@ local uiSounds = {
 	click       = "LuaUI/Sounds/tock.wav",
 	tick        = "LuaUI/Sounds/hover.wav",
 	undo        = "LuaUI/Sounds/buildbar_rem.wav",
+	redo        = "LuaUI/Sounds/buildbar_add.wav",
 	save        = "LuaUI/Sounds/buildbar_waypoint.wav",
 	dropdown    = "LuaUI/Sounds/buildbar_click.wav",
 	panelOpen   = "LuaUI/Sounds/buildbar_click.wav",
@@ -141,6 +142,7 @@ local uiSoundVolumes = {
 	click       = 0.35,
 	tick        = 0.15,
 	undo        = 0.4,
+	redo        = 0.4,
 	save        = 0.5,
 	dropdown    = 0.3,
 	panelOpen   = 0.3,
@@ -1152,6 +1154,15 @@ local initialModel = {
 	dfpThermoEnabled = false,
 	dfpThermoAngleStr = "30",
 	dfpThermoFalloffStr = "8",
+	-- Diffuse painter: SSMF material channels
+	dfpChNormals = false,
+	dfpChSpecular = false,
+	dfpChEmission = false,
+	dfpSpecIntStr = "25",
+	dfpGlowStr = "0",
+	-- Diffuse painter: grass attach
+	dfpGrassAttach = true,
+	dfpGrassStr = "0",
 	-- splat smart filters
 	spAvoidCliffs = false,
 	spPreferSlopes = false,
@@ -1415,6 +1426,8 @@ local initialModel = {
 	nsPersistenceStr = "0.50",
 	nsLacunarityStr = "2.0",
 	nsSeedStr = "0",
+	-- Erode mode: repose angle slider label
+	tfErodeReposeStr = "33\xc2\xb0",
 	-- Phase 2 step 4: DJ / stroke pill labels
 	djModeStr = "OFF",
 	dustEffectsStr = "OFF",
@@ -1457,6 +1470,7 @@ local initialModel = {
 	tfRampMode = false,
 	tfShapeRowVisible = true,
 	tfSmoothSubmodesVisible = false,
+	tfErodeControlsVisible = false,
 	-- terraform pen pressure pill visibility
 	tfPenIntVisible = false,
 	tfPenSizeVisible = false,
@@ -4787,6 +4801,36 @@ local initialModel = {
 		if widgetState.dmHandle then widgetState.dmHandle.activeSmoothMode = mode end
 	end,
 
+	-- ── Erode mode: repose angle slider ──────────────────────────────────────
+	-- data-event-change="onTfErodeReposeChange()"
+	onTfErodeReposeChange = function(_event)
+		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		local val = _noSliderVal("erode-repose", 33)
+		if WG.TerraformBrush.setErodeReposeDeg then WG.TerraformBrush.setErodeReposeDeg(val) end
+		-- Keep the attribute coherent for the steppers: outside a change event
+		-- GetAttribute returns the stale pre-drag value (rmlui quirk).
+		_noSetSliderVal("erode-repose", val)
+		_noDmLabel("tfErodeReposeStr", tostring(val) .. "\xc2\xb0")
+	end,
+	-- Steppers read the authoritative widget state, not the slider attribute,
+	-- which is only guaranteed fresh inside a change handler.
+	onTfErodeReposeUp = function(_event)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState and WG.TerraformBrush.getState()
+		local val = math.min(60, ((s and s.erodeReposeDeg) or 33) + 1)
+		if WG.TerraformBrush.setErodeReposeDeg then WG.TerraformBrush.setErodeReposeDeg(val) end
+		_noSetSliderVal("erode-repose", val)
+		_noDmLabel("tfErodeReposeStr", tostring(val) .. "\xc2\xb0")
+	end,
+	onTfErodeReposeDown = function(_event)
+		if not WG.TerraformBrush then return end
+		local s = WG.TerraformBrush.getState and WG.TerraformBrush.getState()
+		local val = math.max(10, ((s and s.erodeReposeDeg) or 33) - 1)
+		if WG.TerraformBrush.setErodeReposeDeg then WG.TerraformBrush.setErodeReposeDeg(val) end
+		_noSetSliderVal("erode-repose", val)
+		_noDmLabel("tfErodeReposeStr", tostring(val) .. "\xc2\xb0")
+	end,
+
 	-- data-event-click="onTfSetShape('circle')"
 	onTfSetShape = function(_event, shape)
 		playSound("shapeSwitch")
@@ -5515,6 +5559,84 @@ local initialModel = {
 		playSound("tick")
 	end,
 
+	-- ── Diffuse Painter: SSMF material channels ──────────────────────────────
+	onDfpToggleChannel = function(_event, key)
+		if not (WG.DiffusePainter and WG.DiffusePainter.setChannelEnabled) then return end
+		local st = WG.DiffusePainter.getState and WG.DiffusePainter.getState()
+		if not st then return end
+		local cur = (key == "normals" and st.channelNormals)
+			or (key == "specular" and st.channelSpecular)
+			or (key == "emission" and st.channelEmission)
+		WG.DiffusePainter.setChannelEnabled(key, not cur)
+		playSound("tick")
+	end,
+	onDfpSliderSpecInt = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		local v = (tonumber(_elemSliderVal("dfp-slider-specint", 25)) or 25) / 100
+		if WG.DiffusePainter.setSpecIntensity then WG.DiffusePainter.setSpecIntensity(v) end
+	end,
+	onDfpSpecIntStep = function(_event, delta)
+		if not (WG.DiffusePainter and WG.DiffusePainter.setSpecIntensity) then return end
+		local st = WG.DiffusePainter.getState and WG.DiffusePainter.getState()
+		WG.DiffusePainter.setSpecIntensity(((st and st.specIntensity) or 0.25) + (delta or 0))
+	end,
+	onDfpSliderGlow = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local v = (tonumber(_elemSliderVal("dfp-slider-glow", 0)) or 0) / 100
+		if WG.DiffusePainter.setLayerGlow then WG.DiffusePainter.setLayerGlow(id, v) end
+	end,
+	onDfpGlowStep = function(_event, delta)
+		if not (WG.DiffusePainter and WG.DiffusePainter.setLayerGlow) then return end
+		local st = WG.DiffusePainter.getState and WG.DiffusePainter.getState()
+		if not st or not st.activeLayerId then return end
+		local cur = 0
+		for i = 1, #st.layers do
+			if st.layers[i].id == st.activeLayerId then cur = st.layers[i].glowStrength or 0 break end
+		end
+		WG.DiffusePainter.setLayerGlow(st.activeLayerId, cur + (delta or 0))
+	end,
+
+	-- ── Diffuse Painter: grass attach ────────────────────────────────────────
+	onDfpToggleGrassAttach = function(_event)
+		if not (WG.DiffusePainter and WG.DiffusePainter.setGrassAttach) then return end
+		local st = WG.DiffusePainter.getState and WG.DiffusePainter.getState()
+		WG.DiffusePainter.setGrassAttach(not (st and st.grassAttach))
+		playSound("tick")
+	end,
+	onDfpSliderGrass = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
+		if not id then return end
+		local v = (tonumber(_elemSliderVal("dfp-slider-grass", 0)) or 0) / 100
+		if WG.DiffusePainter.setLayerGrassDensity then WG.DiffusePainter.setLayerGrassDensity(id, v) end
+	end,
+	onDfpGrassStep = function(_event, delta)
+		if not (WG.DiffusePainter and WG.DiffusePainter.setLayerGrassDensity) then return end
+		local st = WG.DiffusePainter.getState and WG.DiffusePainter.getState()
+		if not st or not st.activeLayerId then return end
+		local cur = 0
+		for i = 1, #st.layers do
+			if st.layers[i].id == st.activeLayerId then cur = st.layers[i].grassDensity or 0 break end
+		end
+		WG.DiffusePainter.setLayerGrassDensity(st.activeLayerId, cur + (delta or 0))
+	end,
+
+	-- ── Diffuse Painter: undo / redo / history ───────────────────────────────
+	onDfpUndo = function(_event)
+		if WG.DiffusePainter and WG.DiffusePainter.undo then playSound("undo"); WG.DiffusePainter.undo() end
+	end,
+	onDfpRedo = function(_event)
+		if WG.DiffusePainter and WG.DiffusePainter.redo then playSound("redo"); WG.DiffusePainter.redo() end
+	end,
+	onDfpHistoryChange = function(_event)
+		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if WG.DiffusePainter.undoToIndex then
+			WG.DiffusePainter.undoToIndex(_elemSliderVal("dfp-slider-history", 0))
+		end
+	end,
+
 	-- ── Diffuse Painter: fractal brush ───────────────────────────────────────
 	onDfpSliderFractal = function(_event)
 		if uiState.updatingFromCode or not WG.DiffusePainter then return end
@@ -5695,7 +5817,7 @@ local function setActiveClass(buttons, activeKey)
 	end
 end
 
-CLAY_UNAVAILABLE_MODES = { noise = true, restore = true }
+CLAY_UNAVAILABLE_MODES = { noise = true, restore = true, erode = true }
 
 clearPassthrough = function()
 	if widgetState.passthroughMode then
@@ -5923,6 +6045,8 @@ local guideHints = {
 	["btn-ramp"]        = "Click and drag to build a smooth slope between two elevation points. Use Length to control taper width.",
 	["btn-restore"]     = "Erase your edits and restore the original map height — useful to undo a specific area without affecting the rest.",
 	["btn-noise"]       = "Apply procedural noise to the terrain. Opens the Noise Parameters window to choose the noise type and detail.",
+	["btn-erode"]       = "Thermal erosion: slopes steeper than the repose angle shed material downhill while you hold LMB, weathering sharp cliffs into natural talus aprons.",
+	["slider-erode-repose"] = "Repose angle (10\xc2\xb0\xe2\x80\x9360\xc2\xb0): the steepest slope that survives erosion. Lower angles erode more aggressively into gentle scree; higher angles keep cliffs mostly intact.",
 	["btn-passthrough"]  = "Pause all terraform tools and release keyboard/mouse controls back to the game. Click again or any mode button to resume.",
 	["btn-features"]    = "Place decorative props like trees, rocks and crystals using the Feature Placer sub-tool.",
 	["btn-weather"]     = "Spawn persistent weather particle effects such as rain, snow or dust with configurable rate and lifetime.",
@@ -6172,6 +6296,30 @@ local guideHints = {
 	["btn-lp-load"]             = "Load a previously saved light layout from disk.",
 	["btn-lp-clear-all"]        = "Remove all placed lights from the map — cannot be undone.",
 	["btn-lp-material-toggle"]  = "Show or hide the material properties section (model factor, specular, scattering, lens flare).",
+	-- Diffuse Painter controls
+	["btn-diffuse"]                 = "Open the Diffuse Painter: paint layered materials from the library directly onto the map texture.",
+	["dfp-slider-radius"]           = "Sets the brush radius in world units. Ctrl+Scroll to resize while painting.",
+	["dfp-slider-strength"]         = "Paint opacity per stroke. Low values build texture up gradually; high values replace quickly. Alt+Scroll.",
+	["dfp-slider-curve"]            = "Edge fall-off sharpness. Low = soft gradient toward the rim, high = hard-edged stamp. Shift+Scroll.",
+	["dfp-slider-fractal"]          = "Warps the brush edge with fractal noise for organic, natural-looking material borders.",
+	["dfp-slider-fractal-freq"]     = "Scale of the fractal edge noise. Low = large sweeping irregularities, high = fine crinkly detail.",
+	["btn-dfp-erase"]               = "Toggle erase mode — strokes remove paint from the active layer instead of adding it. Right-click also erases.",
+	["btn-dfp-undo"]                = "Undo the last paint stroke.",
+	["btn-dfp-redo"]                = "Redo a paint stroke that was just undone.",
+	["dfp-slider-history"]          = "Scrub through paint history. Drag left to undo multiple strokes, right to redo.",
+	["btn-dfp-add-layer"]           = "Add a new empty paint layer above the current stack (8 max).",
+	["btn-dfp-remove-layer"]        = "Delete the active layer and all of its painted strokes.",
+	["btn-dfp-clear-material"]      = "Detach the material texture from the active layer — future strokes paint flat layer color instead.",
+	["btn-dfp-bake-all"]            = "Composite every map square through the layer stack (heavy on large maps — allocates all squares).",
+	["btn-dfp-reset-all"]           = "Clear all painted strokes on all layers. Cannot be undone.",
+	["btn-dfp-export"]              = "Export every painted map square as PNG tiles into the write directory, for repacking into an SMF map.",
+	["btn-dfp-ch-normals"]          = "Paint the material's normal map into the map's blend normals ($ssmf_normals) with each stroke — real bumpy lighting, not baked shading.",
+	["btn-dfp-ch-specular"]         = "Paint a specular map ($ssmf_specular) derived from the material's albedo and roughness — wet/shiny vs matte surfaces.",
+	["btn-dfp-ch-emission"]         = "Paint self-illumination ($ssmf_emission) using the layer color at the Layer Glow strength — lava, crystals, tech panels.",
+	["dfp-slider-specint"]          = "How much of the material's color tints the specular highlight. The guide wants spec color to be the albedo greatly darkened — keep this low.",
+	["dfp-slider-glow"]             = "Emission strength for the active layer (0 = none). Painted into the emissive channel when it is enabled.",
+	["btn-dfp-grass-attach"]        = "Master toggle: layers with a grass density also plant engine grass along each stroke (erase removes it). Grass tints itself to match the painted texture.",
+	["dfp-slider-grass"]            = "Grass density planted by the active layer's strokes (0 = none). Grass-category materials default to 80.",
 }
 
 -- G3: Shortcut discovery tip groups — shown near cursor after 3 interactions (guide mode only)
@@ -8878,6 +9026,9 @@ function widget:Update()
 				or envActive or lpActive or stpActive or clActive or decalsActive
 			local inSmoothGroup = tfActive and tfState and (tfState.mode == "smooth" or tfState.mode == "level")
 			setDm("tfSmoothSubmodesVisible", not otherToolActive and inSmoothGroup and true or false)
+			-- erode controls: visible only in erode terraform mode
+			local inErode = tfActive and tfState and tfState.mode == "erode"
+			setDm("tfErodeControlsVisible", not otherToolActive and inErode and true or false)
 			-- clay/full-restore visibility
 			local inTfRestore = tfActive and tfState and tfState.mode == "restore"
 			setDm("tfInRestore", inTfRestore and true or false)
@@ -9011,6 +9162,17 @@ function widget:Update()
 			end
 			widgetState.grassNoDataThisMap = not hasGrass
 		end
+
+		-- Reveal the diffuse painter button only when its widget is loaded
+		-- (the RML default-hides it so the grid has no dead button otherwise).
+		do
+			local dfpAvail = WG.DiffusePainter ~= nil
+			if widgetState.dfpBtnShown ~= dfpAvail then
+				widgetState.dfpBtnShown = dfpAvail
+				local dfpBtnEl = getCachedEl(doc, "btn-diffuse")
+				if dfpBtnEl then dfpBtnEl:SetClass("hidden", not dfpAvail) end
+			end
+		end
 	end
 
 	if mbActive then
@@ -9025,7 +9187,8 @@ function widget:Update()
 		tfSplat.sync(doc, ctx, spState, setSummary)
 
 	elseif dfpActive then
-		tfDiffuse.sync(doc, ctx, setSummary)
+		local dfpState = WG.DiffusePainter and WG.DiffusePainter.getState and WG.DiffusePainter.getState()
+		tfDiffuse.sync(doc, ctx, dfpState, setSummary)
 
 
 	elseif fpActive then
@@ -9567,7 +9730,7 @@ function widget:Update()
 			if sumEl then
 				local modeColors = {
 					raise = "#22c55e", lower = "#ef4444", level = "#06b6d4", smooth = "#06b6d4",
-					ramp = "#fad400", restore = "#a855f7", noise = "#fbbf24",
+					ramp = "#fad400", restore = "#a855f7", noise = "#fbbf24", erode = "#d97706",
 				}
 				local m = state.mode or "---"
 				local mc = modeColors[m] or "#9ca3af"
@@ -9636,6 +9799,21 @@ function widget:Update()
 			end
 			if dm then local v = tostring(state.noiseSeed); if dm.nsSeedStr ~= v then dm.nsSeedStr = v end end
 
+			uiState.updatingFromCode = false
+		end
+
+		-- Sync repose slider from state when in erode mode (document reloads,
+		-- external setters); same pattern as the noise sliders above.
+		if state.mode == "erode" and state.erodeReposeDeg then
+			uiState.updatingFromCode = true
+			local erodeSlider = getCachedEl(doc, "slider-erode-repose")
+			if erodeSlider and uiState.draggingSlider ~= "erode-repose" then
+				erodeSlider:SetAttribute("value", tostring(state.erodeReposeDeg))
+			end
+			if dm then
+				local v = tostring(state.erodeReposeDeg) .. "\xc2\xb0"
+				if dm.tfErodeReposeStr ~= v then dm.tfErodeReposeStr = v end
+			end
 			uiState.updatingFromCode = false
 		end
 

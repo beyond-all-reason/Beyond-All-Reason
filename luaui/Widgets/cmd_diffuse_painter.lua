@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
-		enabled = false, -- WIP: disabled by default
+		enabled = true,
 	}
 end
 
@@ -22,6 +22,7 @@ local GetGroundHeight       = Spring.GetGroundHeight
 local GetGroundNormal       = Spring.GetGroundNormal
 local SetMapSquareTexture   = Spring.SetMapSquareTexture
 local GetMapSquareTextureFn = Spring.GetMapSquareTexture
+local SetMapShadingTexture  = Spring.SetMapShadingTexture
 
 local glCreateTexture  = gl.CreateTexture
 local glDeleteTexture  = gl.DeleteTexture
@@ -112,6 +113,52 @@ local nextLayerId = 1
 -- Material library catalog: array of { key, name, path, resK }
 local materialLibrary = {}
 
+-- ============================================================================
+-- Shading-map channels (SSMF global textures painted alongside the diffuse).
+-- This registry is the extension point: a future engine feature (e.g. biplanar
+-- weights) becomes one more entry + one branch in the channel stamp shader.
+-- All three current channels share a "zero alpha = no effect" contract in the
+-- engine SMF shader ($ssmf_normals: a blends vs geometry normal; $ssmf_specular:
+-- black rgb = no highlight; $ssmf_emission: a masks base color), so a fresh
+-- texture is visually neutral and strokes accumulate alpha exactly like the
+-- diffuse paint masks.
+--   div: texture resolution divisor vs elmos (normals stay sharper than spec,
+--        per Beherith's guide spec/splat can run at 1/4 of diffuse res).
+-- ============================================================================
+local CHANNEL_DEFS = {
+	{ key = "normals",  texName = "$ssmf_normals",  div = 2, mode = 0, neutral = { 0.5, 0.5, 1.0, 0.0 } },
+	{ key = "specular", texName = "$ssmf_specular", div = 4, mode = 1, neutral = { 0.0, 0.0, 0.0, 0.0 } },
+	{ key = "emission", texName = "$ssmf_emission", div = 4, mode = 2, neutral = { 0.0, 0.0, 0.0, 0.0 } },
+}
+local CHANNEL_MAX_PX = 8192 -- GL-safe cap for 32x32 maps
+local CH_TILE_PX     = 512  -- undo snapshot granularity on channel textures
+
+-- channels[key] = { def, tex, w, h, bound }
+local channels = {}
+local channelsEnabled = { normals = false, specular = false, emission = false }
+-- Global specular intensity: how much of the material albedo leaks into the
+-- spec color. The guide wants spec RGB to be the albedo "greatly darkened".
+local specIntensity = 0.25
+
+-- Grass attach: layers with grassDensity > 0 also plant grass (via the
+-- grassgl4 patch API) along each stroke; erase strokes remove it. Master
+-- toggle lets users paint texture-only without touching their grass work.
+local grassAttachEnabled = true
+local GRASS_KEYWORDS = { "grass", "moss", "forest", "leaves", "meadow" }
+-- Grass stamps are far cheaper to skip than texture stamps (each changed patch
+-- is an immediate VBO upload in grassgl4), and max-blend makes dense stamp
+-- overlap redundant — so grass runs at its own, wider spacing within a drag.
+local grassLastX, grassLastZ = nil, nil
+local grassEditModeArmed = false
+
+local function defaultGrassDensityFor(name)
+	local n = (name or ""):lower()
+	for i = 1, #GRASS_KEYWORDS do
+		if n:find(GRASS_KEYWORDS[i], 1, true) then return 0.8 end
+	end
+	return 0
+end
+
 -- Brush
 local brushRadius        = DEFAULT_RADIUS
 local brushStrength      = DEFAULT_STRENGTH
@@ -167,6 +214,20 @@ end
 local leftMouseHeld = false
 local lastPaintX, lastPaintZ = nil, nil
 
+-- Undo/redo. One entry per drag stroke; each entry holds the pre-stroke copy of
+-- every (layerId, squareKey) mask the stroke touched (false = mask did not
+-- exist yet, undo clears it). Snapshot textures are MASK_PX RGBA8 (~4 MB each),
+-- so the stack is capped: worst case MAX_UNDO strokes * touched squares.
+-- Channel-tile snapshots (1 MB per 512px tile) and grass patches ride in the
+-- same entries; a max-radius drag with all channels on can add ~40 MB/entry,
+-- so MAX_UNDO is also the lever if channel VRAM ever becomes a complaint.
+local MAX_UNDO  = 10
+local undoStack = {}   -- array of { {layerId=, key=, tex=texOrFalse}, ... }
+local redoStack = {}
+local strokeSnap = nil -- in-flight drag: { items = {...}, seen = {"id:key"=true} }
+local pendingStrokeFinish = false -- mouse released but queued strokes not yet executed
+local pendingHistoryOps = {} -- "undo"/"redo"/number(target index); run in DrawWorld (GL context)
+
 -- Deferred GL work (Draw call-in context required)
 local pendingInit       = false
 local pendingFullBake   = false  -- re-bake already-allocated squares
@@ -175,9 +236,10 @@ local pendingPaintStrokes = {}   -- array of {wx, wz, layerId, erase}
 local dirtySquares      = {}     -- squareKey -> true; consumed each Draw
 
 -- Shaders
-local compositorShader = nil
-local stampShader      = nil
-local copyShader       = nil
+local compositorShader   = nil
+local stampShader        = nil
+local copyShader         = nil
+local channelStampShader = nil
 
 -- Reusable ping-pong scratch textures keyed by size (TILE_PX / MASK_PX).
 -- Both the compositor and stamp passes overwrite every texel of the temp
@@ -187,6 +249,7 @@ local scratchTex = {}
 
 local uComp = {} -- uniform locations on compositorShader
 local uStamp = {}
+local uChan = {} -- uniform locations on channelStampShader
 
 -- ============================================================================
 -- Helpers
@@ -236,21 +299,575 @@ local function getWorldMousePosition()
 	return nil, nil
 end
 
-local function getScratchTex(px)
-	local tex = scratchTex[px]
+local function getScratchTexRect(w, h)
+	local key = w * 100000 + h
+	local tex = scratchTex[key]
 	if tex then return tex end
-	tex = glCreateTexture(px, px, {
+	tex = glCreateTexture(w, h, {
 		border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true, format = GL.RGBA8,
 	})
-	scratchTex[px] = tex
+	scratchTex[key] = tex
 	return tex
+end
+
+local function getScratchTex(px)
+	return getScratchTexRect(px, px)
 end
 
 local function findLayer(id)
 	for i = 1, #layers do
 		if layers[i].id == id then return layers[i], i end
+	end
+end
+
+-- ============================================================================
+-- Undo/redo: per-stroke mask snapshots (GL context required for all of these)
+-- ============================================================================
+local function copyTexInto(dstTex, srcTex)
+	glRenderToTexture(dstTex, function()
+		glBlending(false)
+		glUseShader(copyShader)
+		glTexture(0, srcTex)
+		glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+		glTexture(0, false)
+		glUseShader(0)
+		glBlending(true)
+	end)
+end
+
+local function clearMaskTex(maskTex)
+	glRenderToTexture(maskTex, function()
+		glBlending(false); glColor(0, 0, 0, 0); glTexRect(-1, -1, 1, 1); glBlending(true)
+	end)
+end
+
+local function freeHistoryEntry(entry)
+	for i = 1, #entry do
+		if entry[i].tex then glDeleteTexture(entry[i].tex) end
+	end
+end
+
+-- Record the pre-stroke state of one (layer, square) mask, once per drag.
+local function snapshotMaskForStroke(layerId, key, existingMaskTex)
+	if not strokeSnap then return end
+	local seenKey = layerId .. ":" .. key
+	if strokeSnap.seen[seenKey] then return end
+	strokeSnap.seen[seenKey] = true
+	local item = { layerId = layerId, key = key, tex = false }
+	if existingMaskTex then
+		local snapTex = glCreateTexture(MASK_PX, MASK_PX, {
+			border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+			wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+			fbo = true, format = GL.RGBA8,
+		})
+		if snapTex then
+			copyTexInto(snapTex, existingMaskTex)
+			item.tex = snapTex
+		end
+	end
+	strokeSnap.items[#strokeSnap.items + 1] = item
+end
+
+local function finishStrokeSnapshot()
+	if not strokeSnap then return end
+	local items = strokeSnap.items
+	strokeSnap = nil
+	if #items == 0 then return end
+	-- New stroke invalidates the redo branch.
+	for i = 1, #redoStack do freeHistoryEntry(redoStack[i]) end
+	redoStack = {}
+	undoStack[#undoStack + 1] = items
+	while #undoStack > MAX_UNDO do
+		freeHistoryEntry(table.remove(undoStack, 1))
+	end
+end
+
+-- Drop all undo/redo history (used when reset/bulk ops make snapshots stale —
+-- restoring a single stroke over a cleared map would resurrect paint).
+local function clearHistory()
+	for i = 1, #undoStack do freeHistoryEntry(undoStack[i]) end
+	undoStack = {}
+	for i = 1, #redoStack do freeHistoryEntry(redoStack[i]) end
+	redoStack = {}
+end
+
+-- Remove one layer's items from both stacks (its masks are gone, the snapshots
+-- would only hold dead VRAM and produce no-op history steps).
+local function purgeLayerFromHistory(layerId)
+	local function purgeStack(stack)
+		for ei = #stack, 1, -1 do
+			local entry = stack[ei]
+			for ii = #entry, 1, -1 do
+				if entry[ii].layerId == layerId then
+					if entry[ii].tex then glDeleteTexture(entry[ii].tex) end
+					table.remove(entry, ii)
+				end
+			end
+			if #entry == 0 then table.remove(stack, ei) end
+		end
+	end
+	purgeStack(undoStack)
+	purgeStack(redoStack)
+end
+
+-- Restore one layer-mask history item: capture the current mask in-place so
+-- the item becomes its own inverse, then copy the saved state back (or clear,
+-- for "mask did not exist yet" items).
+local function restoreMaskItem(item)
+	local layerMasks = masks[item.layerId]
+	local curTex = layerMasks and layerMasks[item.key]
+	local savedTex = item.tex
+	if not curTex then return end
+	local capTex = glCreateTexture(MASK_PX, MASK_PX, {
+		border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true, format = GL.RGBA8,
+	})
+	if not capTex then
+		-- VRAM pressure: leave both the mask and the saved snapshot untouched
+		-- rather than degrading the entry into "clear".
+		Echo("[Diffuse Painter] undo capture texture failed; step skipped")
+		return
+	end
+	copyTexInto(capTex, curTex)
+	if savedTex then
+		copyTexInto(curTex, savedTex)
+		glDeleteTexture(savedTex)
+	else
+		clearMaskTex(curTex)
+	end
+	item.tex = capTex
+	dirtySquares[item.key] = true
+end
+
+-- Restore one channel-region history item (forward-declared: it needs the
+-- channel table helpers defined below; assigned right after them).
+local restoreChannelItem
+
+-- Swap an entry's saved state with the current one (works for both undo and
+-- redo: the popped entry, with current state captured into it, goes onto the
+-- opposite stack).
+local function applyHistoryEntry(entry)
+	for i = 1, #entry do
+		local item = entry[i]
+		if item.channel then
+			if restoreChannelItem then restoreChannelItem(item) end
+		elseif item.grass then
+			-- Grass-attach patch: swap stored density with the current one.
+			local api = WG['grassgl4']
+			if api and api.getDensityAt and api.setDensityAt then
+				local cur = api.getDensityAt(item.x, item.z) or 0
+				api.setDensityAt(item.x, item.z, item.d or 0)
+				item.d = cur
+			end
+		else
+			restoreMaskItem(item)
+		end
+	end
+end
+
+local function runHistoryOps()
+	-- An undo landing mid-drag would rewrite masks the open snapshot already
+	-- captured, corrupting that stroke's "before" state. Keep ops queued until
+	-- the drag seals.
+	if leftMouseHeld or strokeSnap then return end
+	for i = 1, #pendingHistoryOps do
+		local op = pendingHistoryOps[i]
+		local steps
+		if op == "undo" then steps = { -1 }
+		elseif op == "redo" then steps = { 1 }
+		else
+			-- numeric target index into the undo history
+			steps = {}
+			local target = max(0, min(op, #undoStack + #redoStack))
+			local delta = target - #undoStack
+			for _ = 1, abs(delta) do steps[#steps + 1] = (delta > 0) and 1 or -1 end
+		end
+		for j = 1, #steps do
+			if steps[j] < 0 and #undoStack > 0 then
+				local entry = table.remove(undoStack)
+				applyHistoryEntry(entry)
+				redoStack[#redoStack + 1] = entry
+			elseif steps[j] > 0 and #redoStack > 0 then
+				local entry = table.remove(redoStack)
+				applyHistoryEntry(entry)
+				undoStack[#undoStack + 1] = entry
+			end
+		end
+	end
+	pendingHistoryOps = {}
+end
+
+-- ============================================================================
+-- Shading-map channels: allocation, seeding, engine binding (GL context only,
+-- except unbindChannel which is plain engine API)
+-- ============================================================================
+local pendingChannelEnable = {} -- channel keys awaiting GL-side setup in DrawWorld
+local pendingChannelReseed = false
+
+local function channelDef(key)
+	for i = 1, #CHANNEL_DEFS do
+		if CHANNEL_DEFS[i].key == key then return CHANNEL_DEFS[i] end
+	end
+end
+
+-- Fill a channel texture with the map's own shading texture when it has one
+-- (so painting starts from the shipped art), else the neutral value.
+-- Must run while the engine still binds ITS texture (or after unbinding ours),
+-- otherwise we'd copy our own paint back onto itself.
+local function seedChannelTex(ch)
+	local def = ch.def
+	local existing = gl.TextureInfo and gl.TextureInfo(def.texName)
+	if existing and (existing.xsize or 0) > 1 then
+		glRenderToTexture(ch.tex, function()
+			glBlending(false)
+			glUseShader(copyShader)
+			glTexture(0, def.texName)
+			glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+			glTexture(0, false)
+			glUseShader(0)
+			glBlending(true)
+		end)
+	else
+		local n = def.neutral
+		glRenderToTexture(ch.tex, function()
+			glBlending(false)
+			glColor(n[1], n[2], n[3], n[4])
+			glTexRect(-1, -1, 1, 1)
+			glColor(1, 1, 1, 1)
+			glBlending(true)
+		end)
+	end
+end
+
+local function ensureChannel(key)
+	local ch = channels[key]
+	if ch and ch.tex then return ch end
+	local def = channelDef(key)
+	if not def then return nil end
+	local w = min(CHANNEL_MAX_PX, floor(mapSizeX / def.div))
+	local h = min(CHANNEL_MAX_PX, floor(mapSizeZ / def.div))
+	local tex = glCreateTexture(w, h, {
+		border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true, format = GL.RGBA8,
+	})
+	if not tex then
+		Echo("[Diffuse Painter] failed to create " .. key .. " channel texture (" .. w .. "x" .. h .. ")")
+		return nil
+	end
+	ch = { def = def, tex = tex, w = w, h = h, bound = false }
+	seedChannelTex(ch)
+	channels[key] = ch
+	return ch
+end
+
+local function bindChannel(ch)
+	if not ch or ch.bound then return end
+	if SetMapShadingTexture(ch.def.texName, ch.tex) then
+		ch.bound = true
+	else
+		Echo("[Diffuse Painter] SetMapShadingTexture failed for " .. ch.def.texName)
+	end
+end
+
+local function unbindChannel(ch)
+	if not ch or not ch.bound then return end
+	SetMapShadingTexture(ch.def.texName, "") -- empty string reverts to engine default
+	ch.bound = false
+end
+
+local function setChannelEnabled(key, on)
+	if channelsEnabled[key] == nil then return end
+	on = on and true or false
+	if channelsEnabled[key] == on then return end
+	channelsEnabled[key] = on
+	if on then
+		pendingChannelEnable[#pendingChannelEnable + 1] = key
+	else
+		-- Keep the texture so re-enabling is instant; just hand the engine its
+		-- own texture back.
+		unbindChannel(channels[key])
+	end
+end
+
+-- Snapshot the CH_TILE_PX tiles a stamp's pixel bbox covers, once per drag.
+local function snapshotChannelTiles(ch, x0, y0, x1, y1)
+	if not strokeSnap then return end
+	local tx0, ty0 = floor(x0 / CH_TILE_PX), floor(y0 / CH_TILE_PX)
+	local tx1, ty1 = floor((x1 - 1) / CH_TILE_PX), floor((y1 - 1) / CH_TILE_PX)
+	for ty = ty0, ty1 do
+		for tx = tx0, tx1 do
+			local seenKey = "ch:" .. ch.def.key .. ":" .. tx .. ":" .. ty
+			if not strokeSnap.seen[seenKey] then
+				strokeSnap.seen[seenKey] = true
+				local px = tx * CH_TILE_PX
+				local py = ty * CH_TILE_PX
+				local w = min(CH_TILE_PX, ch.w - px)
+				local h = min(CH_TILE_PX, ch.h - py)
+				if w > 0 and h > 0 then
+					local snapTex = glCreateTexture(w, h, {
+						border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+						wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+						fbo = true, format = GL.RGBA8,
+					})
+					if snapTex then
+						local u0, v0 = px / ch.w, py / ch.h
+						local u1, v1 = (px + w) / ch.w, (py + h) / ch.h
+						glRenderToTexture(snapTex, function()
+							glBlending(false)
+							glUseShader(copyShader)
+							glTexture(0, ch.tex)
+							glTexRect(-1, -1, 1, 1, u0, v0, u1, v1)
+							glTexture(0, false)
+							glUseShader(0)
+							glBlending(true)
+						end)
+						strokeSnap.items[#strokeSnap.items + 1] = {
+							channel = ch.def.key, x0 = px, y0 = py, w = w, h = h, tex = snapTex,
+						}
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Channel-region history restore (assigned to the forward-declared local used
+-- by applyHistoryEntry). Same capture-swap contract as restoreMaskItem.
+restoreChannelItem = function(item)
+	local ch = channels[item.channel]
+	if not ch or not ch.tex then return end
+	local capTex = glCreateTexture(item.w, item.h, {
+		border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true, format = GL.RGBA8,
+	})
+	if not capTex then
+		Echo("[Diffuse Painter] channel undo capture texture failed; step skipped")
+		return
+	end
+	local u0, v0 = item.x0 / ch.w, item.y0 / ch.h
+	local u1, v1 = (item.x0 + item.w) / ch.w, (item.y0 + item.h) / ch.h
+	-- Current region -> capTex
+	glRenderToTexture(capTex, function()
+		glBlending(false)
+		glUseShader(copyShader)
+		glTexture(0, ch.tex)
+		glTexRect(-1, -1, 1, 1, u0, v0, u1, v1)
+		glTexture(0, false)
+		glUseShader(0)
+		glBlending(true)
+	end)
+	-- Saved region -> channel texture
+	glRenderToTexture(ch.tex, function()
+		glBlending(false)
+		glUseShader(copyShader)
+		glTexture(0, item.tex)
+		glTexRect(u0 * 2 - 1, v0 * 2 - 1, u1 * 2 - 1, v1 * 2 - 1, 0, 0, 1, 1)
+		glTexture(0, false)
+		glUseShader(0)
+		glBlending(true)
+	end)
+	glDeleteTexture(item.tex)
+	item.tex = capTex
+end
+
+-- Should this channel receive paint from this stroke?
+local function channelApplies(key, layer, erase)
+	if not channelsEnabled[key] then return false end
+	if erase then return true end
+	if key == "normals"  then return (layer.normalPath or "") ~= "" end
+	if key == "specular" then return true end -- albedo falls back to layer color
+	if key == "emission" then return (layer.glowStrength or 0) > 0.001 end
+	return false
+end
+
+-- One brush stamp into every applicable global channel texture. Two passes per
+-- channel: copy the brush bbox region into a scratch (the stamp blend reads the
+-- destination, and FBO feedback is undefined), then stamp the bbox back.
+local function stampChannels(wx, wz, layer, erase, effR, effS)
+	if not channelStampShader then return end
+	-- The fractal warp displaces the sampled world position, so the touched
+	-- region extends past the radius by the warp reach (fBm amplitude sum is
+	-- ±0.871 per axis → warp vector length reaches ~1.23R·amount).
+	local pad = effR * brushFractalAmount * 1.25 + 8
+	local wx0 = max(0, wx - effR - pad)
+	local wz0 = max(0, wz - effR - pad)
+	local wx1 = min(mapSizeX, wx + effR + pad)
+	local wz1 = min(mapSizeZ, wz + effR + pad)
+	if wx1 <= wx0 or wz1 <= wz0 then return end
+
+	for ci = 1, #CHANNEL_DEFS do
+		local key = CHANNEL_DEFS[ci].key
+		if channelApplies(key, layer, erase) then
+			local ch = channels[key]
+			if ch and ch.tex then
+				local x0 = floor(wx0 / mapSizeX * ch.w)
+				local y0 = floor(wz0 / mapSizeZ * ch.h)
+				local x1 = min(ch.w, floor(wx1 / mapSizeX * ch.w) + 1)
+				local y1 = min(ch.h, floor(wz1 / mapSizeZ * ch.h) + 1)
+
+				-- Bounded scratch: only the bbox is staged, so the scratch can be
+				-- much smaller than the channel (a channel-sized scratch would
+				-- double channel VRAM — +256 MB on a 32x32 map). Brushes whose
+				-- bbox exceeds the scratch get a downsampled destination read
+				-- (LINEAR), which only ever happens at extreme radius+fractal.
+				local SW = min(ch.w, 4096)
+				local SH = min(ch.h, 4096)
+				local scratch = getScratchTexRect(SW, SH)
+				if scratch then
+					-- Snapshot only after the scratch is known good: a failed
+					-- scratch alloc must not leave no-op tiles in the undo entry.
+					snapshotChannelTiles(ch, x0, y0, x1, y1)
+
+					local u0, v0 = x0 / ch.w, y0 / ch.h
+					local u1, v1 = x1 / ch.w, y1 / ch.h
+					local nx0, ny0 = u0 * 2 - 1, v0 * 2 - 1
+					local nx1, ny1 = u1 * 2 - 1, v1 * 2 - 1
+					local usedW = min(x1 - x0, SW)
+					local usedH = min(y1 - y0, SH)
+					local su1, sv1 = usedW / SW, usedH / SH
+
+					-- Pass 1: bbox content -> scratch region [0..su1, 0..sv1]
+					glRenderToTexture(scratch, function()
+						glBlending(false)
+						glUseShader(copyShader)
+						glTexture(0, ch.tex)
+						glTexRect(-1, -1, su1 * 2 - 1, sv1 * 2 - 1, u0, v0, u1, v1)
+						glTexture(0, false)
+						glUseShader(0)
+						glBlending(true)
+					end)
+
+					-- Pass 2: stamp bbox back into the channel texture
+					local useTex = false
+					if layer.texturePath and layer.texturePath ~= "" then
+						useTex = pcall(glTexture, 1, layer.texturePath) and true or false
+					end
+					if not useTex then glTexture(1, "$heightmap") end
+					local useNormal = false
+					if layer.normalPath and layer.normalPath ~= "" then
+						useNormal = pcall(glTexture, 2, layer.normalPath) and true or false
+					end
+					if not useNormal then glTexture(2, "$heightmap") end
+					local useRough = false
+					if layer.roughPath and layer.roughPath ~= "" then
+						useRough = pcall(glTexture, 3, layer.roughPath) and true or false
+					end
+					if not useRough then glTexture(3, "$heightmap") end
+
+					glRenderToTexture(ch.tex, function()
+						glBlending(false)
+						glUseShader(channelStampShader)
+						glTexture(0, scratch)
+						glUniform(uChan.dstUvOffset, u0, v0)
+						glUniform(uChan.dstUvScale, su1 / (u1 - u0), sv1 / (v1 - v0))
+						glUniform(uChan.mapSize, mapSizeX, mapSizeZ)
+						glUniform(uChan.brushPos, wx, wz)
+						glUniform(uChan.brushRadius, effR)
+						glUniform(uChan.brushStrength, effS)
+						glUniform(uChan.brushCurve, brushCurve)
+						glUniformInt(uChan.brushErase, erase and 1 or 0)
+						glUniformInt(uChan.channelMode, ch.def.mode)
+						glUniformInt(uChan.useLayerTex, useTex and 1 or 0)
+						glUniformInt(uChan.useNormalTex, useNormal and 1 or 0)
+						glUniformInt(uChan.useRoughTex, useRough and 1 or 0)
+						glUniform(uChan.tileScale, layer.tileScale or 384)
+						glUniform(uChan.layerColor, layer.color[1], layer.color[2], layer.color[3])
+						glUniform(uChan.glowStrength, layer.glowStrength or 0)
+						glUniform(uChan.specIntensity, specIntensity)
+						glUniform(uChan.fractalAmount, brushFractalAmount)
+						glUniform(uChan.fractalFreq, brushFractalFreq)
+						glTexRect(nx0, ny0, nx1, ny1, u0, v0, u1, v1)
+						glTexture(0, false)
+						glUseShader(0)
+						glBlending(true)
+					end)
+					glTexture(3, false)
+					glTexture(2, false)
+					glTexture(1, false)
+				end
+			end
+		end
+	end
+end
+
+-- ============================================================================
+-- Grass attach: plant grass along strokes through the grassgl4 patch API
+-- ============================================================================
+local function paintGrassAttach(wx, wz, layer, erase, effR, effS)
+	if not grassAttachEnabled then return end
+	local gd = layer.grassDensity or 0
+	if gd <= 0.001 then return end -- erase included: don't touch grass the layer never planted
+	local api = WG['grassgl4']
+	if not (api and api.setDensityAt and api.getDensityAt) then return end
+	-- Blank/new maps ship no grass data; materialize the editable grass map
+	-- once instead of silently no-opping (the New Map flow is a primary user).
+	if api.hasGrass and not api.hasGrass() then
+		if not grassEditModeArmed and api.enableEditMode then
+			grassEditModeArmed = true
+			api.enableEditMode()
+		end
+		if api.hasGrass and not api.hasGrass() then return end
+	end
+
+	-- Texture stamps land every 0.3*R; grass max-blend makes that overlap
+	-- redundant and each changed patch costs a VBO upload — thin to ~0.75*R.
+	if grassLastX then
+		local gdx, gdz = wx - grassLastX, wz - grassLastZ
+		if (gdx * gdx + gdz * gdz) < (effR * 0.75) * (effR * 0.75) then return end
+	end
+	grassLastX, grassLastZ = wx, wz
+
+	local step, minVisible = 32, 0
+	if api.getConfig then
+		local cfg = api.getConfig()
+		if cfg then
+			step = cfg.patchResolution or 32
+			-- Below this density grassgl4 quantizes to zero; skipping it here
+			-- avoids re-uploading the whole falloff fringe as no-ops.
+			minVisible = (cfg.grassMinSize or 1) / max(1, cfg.grassMaxSize or 20)
+		end
+	end
+	-- Align to the patch grid (stable undo keys across stamps) and clamp to
+	-- the map: grassgl4's world->cell math wraps rows instead of clamping, so
+	-- unclamped coords would plant grass on the opposite map edge.
+	local x0 = max(0, floor((wx - effR) / step) * step)
+	local z0 = max(0, floor((wz - effR) / step) * step)
+	local x1 = min(mapSizeX, wx + effR)
+	local z1 = min(mapSizeZ, wz + effR)
+	local r2 = effR * effR
+	for x = x0, x1, step do
+		for z = z0, z1, step do
+			local dx, dz = x - wx, z - wz
+			local d2 = dx * dx + dz * dz
+			if d2 <= r2 then
+				local fall = 1.0 - (d2 / r2) ^ (brushCurve * 0.5) -- == 1-(d/r)^curve
+				local cur = api.getDensityAt(x, z) or 0
+				local new
+				if erase then
+					new = max(0, cur - gd * effS * fall)
+				else
+					-- Max-blend like the grass brush paint mode: repeated strokes
+					-- never exceed the layer's target density.
+					new = max(cur, gd * effS * fall)
+				end
+				if new < minVisible then new = 0 end
+				if new ~= cur then
+					if strokeSnap then
+						local seenKey = "g:" .. x .. ":" .. z
+						if not strokeSnap.seen[seenKey] then
+							strokeSnap.seen[seenKey] = true
+							strokeSnap.items[#strokeSnap.items + 1] = { grass = true, x = x, z = z, d = cur }
+						end
+					end
+					api.setDensityAt(x, z, new)
+				end
+			end
+		end
 	end
 end
 
@@ -301,6 +918,23 @@ local FRACTAL_SAMPLE_GLSL = [[
 		vec3 sb = texture2D(tex, uvb).rgb;
 		vec3 sc = texture2D(tex, uvc).rgb;
 		vec3 sd = texture2D(tex, uvd).rgb;
+		return mix(mix(sa, sb, b.x), mix(sc, sd, b.x), b.y);
+	}
+	// Direction-preserving variant for normal maps: random per-cell OFFSETS
+	// only, no mirroring — flipping a tangent-space normal map's UVs without
+	// negating its XY inverts the lighting in the mirrored cells.
+	vec3 sampleNoTileOffset(sampler2D tex, vec2 uv) {
+		vec2 iuv = floor(uv);
+		vec2 fuv = fract(uv);
+		vec2 oa = hash4(iuv + vec2(0.0, 0.0)).xy;
+		vec2 ob = hash4(iuv + vec2(1.0, 0.0)).xy;
+		vec2 oc = hash4(iuv + vec2(0.0, 1.0)).xy;
+		vec2 od = hash4(iuv + vec2(1.0, 1.0)).xy;
+		vec2 b = smoothstep(0.45, 0.55, fuv);
+		vec3 sa = texture2D(tex, uv + oa).rgb;
+		vec3 sb = texture2D(tex, uv + ob).rgb;
+		vec3 sc = texture2D(tex, uv + oc).rgb;
+		vec3 sd = texture2D(tex, uv + od).rgb;
 		return mix(mix(sa, sb, b.x), mix(sc, sd, b.x), b.y);
 	}
 ]]
@@ -540,7 +1174,7 @@ local STAMP_FRAG_SRC = [[
 			// luminance gradient at multiple scales (free pseudo-bump).
 			vec3 N;
 			if (useNormalTex == 1) {
-				vec3 nm = sampleNoTile(normalTex, tileUV) * 2.0 - 1.0;
+				vec3 nm = sampleNoTileOffset(normalTex, tileUV) * 2.0 - 1.0;
 				N = normalize(vec3(nm.x, nm.y, max(nm.z, 0.05)));
 			} else if (useLayerTex == 1) {
 				// Gradient must use PLAIN texture() (not sampleNoTile) — the
@@ -586,6 +1220,112 @@ local STAMP_FRAG_SRC = [[
 		float newA  = current.a + (1.0 - current.a) * amount;
 		vec3 newRGB = mix(current.rgb, deposit, amount);
 		gl_FragColor = vec4(newRGB, clamp(newA, 0.0, 1.0));
+	}
+]]
+
+-- Channel stamp: writes one brush stamp into a global SSMF shading texture.
+-- Drawn as the brush's bbox sub-quad only; texcoords carry the channel
+-- texture's own UVs, so worldXZ = uv * mapSize. The previous content arrives
+-- pre-copied into dstTex (same UVs) because the falloff blend needs a read of
+-- the destination and FBO feedback loops are undefined behaviour.
+-- Engine semantics painted against (verified in SMFFragProg.glsl):
+--   normals : rgb*2-1 tangent normal, a = blend weight vs geometry normal
+--   specular: rgb additive highlight color (premultiply by exponent per the
+--             mapping guide), a*16 = Blinn exponent
+--   emission: rgb added to frag, a masks out the underlying diffuse
+local CHANNEL_STAMP_FRAG_SRC = [[
+	#version 130
+	uniform sampler2D dstTex;      // bbox copy of current channel content
+	uniform vec2  dstUvOffset;     // bbox origin in channel UV space
+	uniform vec2  dstUvScale;      // channel UV -> scratch UV (bbox may be downsampled)
+	uniform sampler2D layerTex;    // material diffuse
+	uniform sampler2D normalTex;   // material normal (nor_gl)
+	uniform sampler2D roughTex;    // material roughness
+	uniform vec2  mapSize;         // full map size (elmos)
+	uniform vec2  brushPos;
+	uniform float brushRadius;
+	uniform float brushStrength;
+	uniform float brushCurve;
+	uniform int   brushErase;
+	uniform int   channelMode;     // 0 = normals, 1 = specular, 2 = emission
+	uniform int   useLayerTex;
+	uniform int   useNormalTex;
+	uniform int   useRoughTex;
+	uniform float tileScale;
+	uniform vec3  layerColor;
+	uniform float glowStrength;    // emission level for this layer (0..1)
+	uniform float specIntensity;   // global albedo->spec color factor
+	uniform float fractalAmount;
+	uniform float fractalFreq;
+
+	// Same value-noise fBm as the diffuse stamp, so channel strokes warp
+	// identically and stay registered with the painted diffuse.
+	float hfh(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+	float hfn(vec2 p) {
+		vec2 i = floor(p), f = fract(p);
+		vec2 u = f * f * (3.0 - 2.0 * f);
+		return mix(mix(hfh(i), hfh(i+vec2(1.0,0.0)), u.x),
+		           mix(hfh(i+vec2(0.0,1.0)), hfh(i+vec2(1.0,1.0)), u.x), u.y) * 2.0 - 1.0;
+	}
+	float hffbm(vec2 p) {
+		float v = 0.0;
+		v += 0.500 * hfn(p); p *= 2.13;
+		v += 0.225 * hfn(p); p *= 2.13;
+		v += 0.101 * hfn(p); p *= 2.13;
+		v += 0.045 * hfn(p);
+		return v;
+	}
+
+	void main() {
+		vec2 uv    = gl_TexCoord[0].st;
+		vec2 world = uv * mapSize;
+		if (fractalAmount > 0.001) {
+			float wx = hffbm(world * fractalFreq + vec2(31.4, 57.2));
+			float wy = hffbm(world * fractalFreq + vec2(89.7, 23.1));
+			world += vec2(wx, wy) * brushRadius * fractalAmount;
+		}
+		vec4 dst = texture2D(dstTex, (uv - dstUvOffset) * dstUvScale);
+		vec2  d = world - brushPos;
+		float r = length(d) / brushRadius;
+		if (r >= 1.0) { gl_FragColor = dst; return; }
+		float fall   = 1.0 - pow(r, brushCurve);
+		float amount = clamp(brushStrength * fall, 0.0, 1.0);
+		vec2 tileUV  = world / max(tileScale, 1.0);
+
+		if (brushErase == 1) {
+			if (channelMode == 1) {
+				// Spec alpha is exponent data, not coverage — fade the color.
+				gl_FragColor = vec4(dst.rgb * (1.0 - amount), dst.a);
+			} else if (channelMode == 2) {
+				// Emission rgb is added unconditionally by the engine (alpha only
+				// masks the base diffuse), so the glow color must fade too or
+				// erasing makes the area BRIGHTER.
+				gl_FragColor = vec4(dst.rgb * (1.0 - amount), max(0.0, dst.a - amount));
+			} else {
+				gl_FragColor = vec4(dst.rgb, max(0.0, dst.a - amount));
+			}
+			return;
+		}
+
+		if (channelMode == 0) {
+			// No-mirror sampler: the mirroring no-tile variant flips UVs without
+			// negating the normal's XY, which inverts the lighting per macro-cell.
+			vec3 nm = (useNormalTex == 1) ? sampleNoTileOffset(normalTex, tileUV) : vec3(0.5, 0.5, 1.0);
+			float newA = dst.a + (1.0 - dst.a) * amount;
+			gl_FragColor = vec4(mix(dst.rgb, nm, amount), newA);
+		} else if (channelMode == 1) {
+			vec3 albedo = layerColor;
+			if (useLayerTex == 1) albedo = sampleNoTile(layerTex, tileUV) * layerColor;
+			float rough = 0.55;
+			if (useRoughTex == 1) rough = clamp(sampleNoTile(roughTex, tileUV).r, 0.0, 1.0);
+			// Exponent below ~16/255 reads as diffuse light (guide p.10) — floor it.
+			float expA    = clamp(1.0 - rough, 0.07, 1.0);
+			vec3  specRGB = albedo * specIntensity * expA; // premultiplied by exponent
+			gl_FragColor = vec4(mix(dst.rgb, specRGB, amount), mix(dst.a, expA, amount));
+		} else {
+			vec3 glowRGB = layerColor * glowStrength;
+			gl_FragColor = vec4(mix(dst.rgb, glowRGB, amount), mix(dst.a, glowStrength, amount));
+		}
 	}
 ]]
 
@@ -664,13 +1404,30 @@ local function createShaders()
 		Echo("[Diffuse Painter] copy shader failed: " .. tostring(gl.GetShaderLog())); return false
 	end
 
+	channelStampShader = glCreateShader({
+		vertex = VERT_SRC, fragment = injectFractal(CHANNEL_STAMP_FRAG_SRC),
+		uniformInt = { dstTex = 0, layerTex = 1, normalTex = 2, roughTex = 3 },
+	})
+	if not channelStampShader then
+		Echo("[Diffuse Painter] channel stamp shader failed: " .. tostring(gl.GetShaderLog())); return false
+	end
+	for _, name in ipairs({
+		"mapSize", "brushPos", "brushRadius", "brushStrength", "brushCurve",
+		"brushErase", "channelMode", "useLayerTex", "useNormalTex", "useRoughTex",
+		"tileScale", "layerColor", "glowStrength", "specIntensity",
+		"fractalAmount", "fractalFreq", "dstUvOffset", "dstUvScale",
+	}) do
+		uChan[name] = glGetUniformLocation(channelStampShader, name)
+	end
+
 	return true
 end
 
 local function destroyShaders()
-	if compositorShader then glDeleteShader(compositorShader); compositorShader = nil end
-	if stampShader      then glDeleteShader(stampShader);      stampShader      = nil end
-	if copyShader       then glDeleteShader(copyShader);       copyShader       = nil end
+	if compositorShader   then glDeleteShader(compositorShader);   compositorShader   = nil end
+	if stampShader        then glDeleteShader(stampShader);        stampShader        = nil end
+	if copyShader         then glDeleteShader(copyShader);         copyShader         = nil end
+	if channelStampShader then glDeleteShader(channelStampShader); channelStampShader = nil end
 end
 
 -- ============================================================================
@@ -913,6 +1670,9 @@ local function executeStroke(wx, wz, layerId, erase)
 		if s then
 			if not s.seedTex then allocateSquare(s) end
 			local key = squareKey(sx, sy)
+			-- Snapshot the pre-stroke mask before ensureLayerMaskTex can create it
+			-- (a nil here records "mask did not exist" — undo will clear it).
+			snapshotMaskForStroke(layerId, key, masks[layerId] and masks[layerId][key])
 			local maskTex = ensureLayerMaskTex(layerId, key)
 			if maskTex then
 				-- Ping-pong stamp: write to temp, copy back
@@ -989,6 +1749,14 @@ local function executeStroke(wx, wz, layerId, erase)
 			end
 		end
 	end
+
+	-- Mirror the stroke into the enabled global shading channels (normals /
+	-- specular / emission) so one gesture paints the whole material.
+	stampChannels(wx, wz, layer, erase, effR, effS)
+
+	-- Grass attach: plant/remove grass along the stroke for layers that carry
+	-- a grass density. Plain CPU patch writes (no GL), undo-tracked per patch.
+	paintGrassAttach(wx, wz, layer, erase, effR, effS)
 end
 
 -- ============================================================================
@@ -1008,6 +1776,13 @@ local function defaultLayer(name, r, g, b)
 		hydroFalloffLo = 0.1, hydroFalloffHi = 0.6,
 		-- Thermo erosion: paint at slope transitions near the repose angle
 		thermoEnabled = false, thermoAngle = 30.0, thermoFalloff = 8.0,
+		-- Emission channel: layerColor * glowStrength is painted into
+		-- $ssmf_emission when the channel is enabled
+		glowStrength = 0.0,
+		-- Grass attach: strokes also plant grass at this density (0 = off).
+		-- grassDensityCustom marks a user override that material auto-defaults
+		-- must not clobber.
+		grassDensity = 0.0, grassDensityCustom = false,
 	}
 end
 
@@ -1037,6 +1812,7 @@ local function removeLayer(id)
 		for _, maskTex in pairs(masks[id]) do glDeleteTexture(maskTex) end
 		masks[id] = nil
 	end
+	purgeLayerFromHistory(id)
 	if activeLayerId == id then activeLayerId = layers[1] and layers[1].id or nil end
 	pendingFullBake = true
 end
@@ -1078,7 +1854,10 @@ local function scanMaterialLibrary()
 	-- build honours. Bounded depth guards against symlink/loop surprises.
 	local function consume(files)
 		for _, f in ipairs(files or {}) do
-			local base = f:gsub("^.*/", "")
+			-- Windows write-dir listings come back with backslashes; strip both
+			-- separators or the "basename" keeps the whole path and every material
+			-- name/layer label becomes a full path string.
+			local base = f:gsub("^.*[/\\]", "")
 			-- Parse: <name>_diff_<NK>.jpg
 			local mat, res = base:match("^(.-)_diff_(%d+)k%.jpg$")
 			if mat and res then
@@ -1135,6 +1914,11 @@ local function setLayerTexture(id, path, tileScale, name)
 	if name and not layer.customName then
 		layer.name = name
 	end
+	-- Grass-category materials default to planting grass; explicit user
+	-- settings survive material swaps.
+	if not layer.grassDensityCustom then
+		layer.grassDensity = defaultGrassDensityFor(name or path)
+	end
 	-- Hand-paint layers bake material at stroke time, so changing the active
 	-- material must NOT rebake the canvas — only future strokes use the new
 	-- texture. Procedural layers do sample texturePath in the compositor and
@@ -1151,9 +1935,14 @@ local function addLayerFromMaterial(path, name)
 		handPaintEnabled = true,
 		enabled = true,
 		opacity = 1.0,
-		texturePath = path,
 	})
-	if id then activeLayerId = id end
+	if id then
+		-- Route through setLayerTexture so PBR sibling pairing, auto-naming and
+		-- the grass-density default all apply (assigning texturePath directly
+		-- would skip them).
+		setLayerTexture(id, path, nil, name)
+		activeLayerId = id
+	end
 	return id
 end
 
@@ -1178,6 +1967,10 @@ local function deactivate()
 	active = false
 	leftMouseHeld = false
 	lastPaintX, lastPaintZ = nil, nil
+	-- Seal any in-flight drag so its snapshot textures land in the undo stack
+	-- instead of leaking (DrawWorld still processes queued strokes + the finish
+	-- flag while inactive).
+	if strokeSnap then pendingStrokeFinish = true end
 end
 
 -- ============================================================================
@@ -1231,9 +2024,52 @@ function widget:Initialize()
 		return count
 	end
 	widgetHandler:AddAction("diffusepaintexport", function() exportSquares() end, nil, "t")
+	widgetHandler:AddAction("diffusepaintundo", function()
+		if active then pendingHistoryOps[#pendingHistoryOps + 1] = "undo" end
+	end, nil, "t")
+	widgetHandler:AddAction("diffusepaintredo", function()
+		if active then pendingHistoryOps[#pendingHistoryOps + 1] = "redo" end
+	end, nil, "t")
 
 	WG.DiffusePainter = {
 		isActive       = function() return active end,
+		-- Snapshot of everything the UI needs, mirroring WG.TerraformBrush.getState.
+		getState       = function()
+			return {
+				active        = active,
+				radius        = brushRadius,
+				strength      = brushStrength,
+				curve         = brushCurve,
+				erase         = eraseMode,
+				fractalAmount = brushFractalAmount,
+				fractalFreq   = brushFractalFreq,
+				layers        = layers,
+				activeLayerId = activeLayerId,
+				historyIndex  = #undoStack,
+				historyMax    = #undoStack + #redoStack,
+				channelNormals  = channelsEnabled.normals,
+				channelSpecular = channelsEnabled.specular,
+				channelEmission = channelsEnabled.emission,
+				specIntensity   = specIntensity,
+				grassAttach     = grassAttachEnabled,
+			}
+		end,
+		undo           = function() pendingHistoryOps[#pendingHistoryOps + 1] = "undo" end,
+		redo           = function() pendingHistoryOps[#pendingHistoryOps + 1] = "redo" end,
+		undoToIndex    = function(idx) pendingHistoryOps[#pendingHistoryOps + 1] = tonumber(idx) or 0 end,
+		setChannelEnabled = setChannelEnabled,
+		setSpecIntensity  = function(v) specIntensity = max(0.0, min(1.0, v or 0.25)) end,
+		setLayerGlow      = function(id, v)
+			local layer = findLayer(id)
+			if layer then layer.glowStrength = max(0.0, min(1.0, v or 0)) end
+		end,
+		setGrassAttach    = function(on) grassAttachEnabled = on and true or false end,
+		setLayerGrassDensity = function(id, v)
+			local layer = findLayer(id)
+			if not layer then return end
+			layer.grassDensity = max(0.0, min(1.0, v or 0))
+			layer.grassDensityCustom = true
+		end,
 		activate       = activate,
 		deactivate     = deactivate,
 		getLayers      = function() return layers end,
@@ -1284,22 +2120,21 @@ function widget:Initialize()
 			local k = squareKey(sx, sy)
 			for layerId, layerMasks in pairs(masks) do
 				local maskTex = layerMasks[k]
-				if maskTex then
-					glRenderToTexture(maskTex, function()
-						glBlending(false); glColor(0,0,0,0); glTexRect(-1,-1,1,1); glBlending(true)
-					end)
-				end
+				if maskTex then clearMaskTex(maskTex) end
 			end
+			-- Snapshots of this square are stale now; undoing one would restore
+			-- paint onto a square the user explicitly cleared.
+			clearHistory()
 			dirtySquares[k] = true
 		end,
 		resetAll       = function()
 			for layerId, layerMasks in pairs(masks) do
 				for k, maskTex in pairs(layerMasks) do
-					glRenderToTexture(maskTex, function()
-						glBlending(false); glColor(0,0,0,0); glTexRect(-1,-1,1,1); glBlending(true)
-					end)
+					clearMaskTex(maskTex)
 				end
 			end
+			clearHistory()
+			pendingChannelReseed = true
 			pendingFullBake = true
 		end,
 	}
@@ -1307,6 +2142,11 @@ end
 
 function widget:Shutdown()
 	unbindAllSquares()
+	for _, ch in pairs(channels) do
+		unbindChannel(ch)
+		if ch.tex then glDeleteTexture(ch.tex) end
+	end
+	channels = {}
 	for _, s in pairs(squares) do freeSquare(s) end
 	squares = {}
 	for _, layerMasks in pairs(masks) do
@@ -1315,11 +2155,21 @@ function widget:Shutdown()
 	masks = {}
 	for _, tex in pairs(scratchTex) do glDeleteTexture(tex) end
 	scratchTex = {}
+	for i = 1, #undoStack do freeHistoryEntry(undoStack[i]) end
+	undoStack = {}
+	for i = 1, #redoStack do freeHistoryEntry(redoStack[i]) end
+	redoStack = {}
+	if strokeSnap then
+		freeHistoryEntry(strokeSnap.items)
+		strokeSnap = nil
+	end
 	destroyShaders()
 	widgetHandler:RemoveAction("diffusepaint")
 	widgetHandler:RemoveAction("diffusepaintoff")
 	widgetHandler:RemoveAction("diffusepaintbake")
 	widgetHandler:RemoveAction("diffusepaintexport")
+	widgetHandler:RemoveAction("diffusepaintundo")
+	widgetHandler:RemoveAction("diffusepaintredo")
 	WG.DiffusePainter = nil
 end
 
@@ -1334,6 +2184,11 @@ function widget:MousePress(mx, my, button)
 	end
 	leftMouseHeld = true
 	eraseMode = (button == 3)
+	-- A second button pressed mid-drag must seal the in-flight snapshot first,
+	-- or its already-captured textures leak and that drag's undo entry is lost.
+	if strokeSnap then finishStrokeSnapshot() end
+	strokeSnap = { items = {}, seen = {} }
+	grassLastX, grassLastZ = nil, nil
 	local wx, wz = getWorldMousePosition()
 	if wx and activeLayerId then
 		pendingPaintStrokes[#pendingPaintStrokes + 1] = { wx, wz, activeLayerId, eraseMode }
@@ -1347,6 +2202,13 @@ function widget:MouseRelease(mx, my, button)
 	if button == 1 or button == 3 then
 		leftMouseHeld = false
 		lastPaintX, lastPaintZ = nil, nil
+		-- Queued strokes for this drag may not have executed yet (they run in
+		-- DrawWorld); defer sealing the undo entry until they have.
+		if #pendingPaintStrokes == 0 then
+			finishStrokeSnapshot()
+		else
+			pendingStrokeFinish = true
+		end
 		return true
 	end
 	return false
@@ -1402,6 +2264,21 @@ function widget:DrawWorld()
 		pendingInit = false
 	end
 
+	-- Channel enable requests (texture alloc + seed need this GL context).
+	-- Must run BEFORE strokes: channelsEnabled flips synchronously in the UI
+	-- handler, so a stroke queued the same frame would otherwise pass the
+	-- channelApplies check while channels[key] is still nil and skip silently.
+	if #pendingChannelEnable > 0 then
+		for i = 1, #pendingChannelEnable do
+			local key = pendingChannelEnable[i]
+			if channelsEnabled[key] then
+				local ch = ensureChannel(key)
+				if ch then bindChannel(ch) end
+			end
+		end
+		pendingChannelEnable = {}
+	end
+
 	-- Strokes
 	if #pendingPaintStrokes > 0 then
 		for i = 1, #pendingPaintStrokes do
@@ -1409,6 +2286,29 @@ function widget:DrawWorld()
 			executeStroke(stroke[1], stroke[2], stroke[3], stroke[4])
 		end
 		pendingPaintStrokes = {}
+	end
+	if pendingStrokeFinish then
+		pendingStrokeFinish = false
+		finishStrokeSnapshot()
+	end
+
+	-- Undo/redo requests queued from UI/actions (need this GL context)
+	if #pendingHistoryOps > 0 then
+		runHistoryOps()
+	end
+
+	-- Reset-all also reverts channels to their seeded state. Unbind first so
+	-- the seed copy reads the map's own texture, not our painted one.
+	if pendingChannelReseed then
+		pendingChannelReseed = false
+		for key, ch in pairs(channels) do
+			if ch.tex then
+				local wasBound = ch.bound
+				unbindChannel(ch)
+				seedChannelTex(ch)
+				if wasBound and channelsEnabled[key] then bindChannel(ch) end
+			end
+		end
 	end
 
 	-- Full bake = re-bake every ALREADY-allocated square. Cheap for layer

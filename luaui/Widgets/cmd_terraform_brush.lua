@@ -26,6 +26,7 @@ local MSG = {
 	MERGE_END   = "$terraform_merge_end$",
 	STROKE_END  = "$terraform_stroke_end$",
 	NOISE       = "$terraform_noise$",
+	ERODE       = "$terraform_erode$",
 	FILL_SHAPE  = "$terraform_fill$",
 }
 local DEFAULT_RADIUS = 100
@@ -540,6 +541,9 @@ local extraState = {
 	penPressureRadiusScale = 0.5,     -- how much pressure affects radius (0=none, 1=full)
 	penPressureSensitivity = 1.0,     -- multiplier applied before curve (0.1–3.0)
 	penPressureCurve = 2,             -- 1=linear, 2=quadratic, 3=cubic, 4=s-curve, 5=log
+	-- Erode: thermal (talus) erosion brush
+	erodeReposeDeg = 33,  -- repose angle in degrees (10–60); slopes steeper than this shed material
+	erodePhase = 0,       -- tick counter; rotates the gadget's strided cell subset on large brushes
 }
 
 -- Pen pressure: read tablet pressure from shared file written by tools/pen_pressure_server.py
@@ -623,6 +627,7 @@ extraState.modeCursors = {
 	ramp    = "cursornormal",
 	restore = "cursornormal",
 	noise   = "cursornormal",
+	erode   = "cursornormal",
 }
 
 -- D5: trigger cursor-anchored parameter feedback HUD (1.5s fade)
@@ -1052,7 +1057,7 @@ local function activate(direction, mode, args)
 		clayMode = true
 		activeIntensity = 0.5
 	end
-	local modeLabels = { raise = "RAISE", lower = "LOWER", level = "LEVEL", smooth = "SMOOTH", ramp = "RAMP", restore = "RESTORE" }
+	local modeLabels = { raise = "RAISE", lower = "LOWER", level = "LEVEL", smooth = "SMOOTH", ramp = "RAMP", restore = "RESTORE", erode = "ERODE" }
 	local modeLabel = modeLabels[mode] or mode
 	Echo("[Terraform Brush] Mode: " .. modeLabel .. " | Radius: " .. activeRadius .. " | Hold left-click to terraform, /terraformbrushoff to stop")
 	return true
@@ -1124,6 +1129,9 @@ local function setMode(mode)
 	elseif mode == "noise" then
 		activeDirection = 1
 		activeMode = "noise"
+	elseif mode == "erode" then
+		activeDirection = 0
+		activeMode = "erode"
 	end
 end
 
@@ -1607,6 +1615,7 @@ local function getState()
 		noisePersistence = noisePersistence,
 		noiseLacunarity = noiseLacunarity,
 		noiseSeed = noiseSeed,
+		erodeReposeDeg = extraState.erodeReposeDeg,
 		ringInnerRatio = ringInnerRatio,
 		importProgress = importHeightRows and importRowIndex or nil,
 		importTotal = importHeightRows and #importHeightRows or nil,
@@ -2020,6 +2029,7 @@ function widget:Initialize()
 	widgetHandler:AddAction("terraformdown", activateTerraformDown, nil, "t")
 	widgetHandler:AddAction("terraformlevel", activateTerraformLevel, nil, "t")
 	widgetHandler:AddAction("terraformsmooth", function(_, _, args) return activate(0, "smooth", args) end, nil, "t")
+	widgetHandler:AddAction("terraformerode", function(_, _, args) return activate(0, "erode", args) end, nil, "t")
 	widgetHandler:AddAction("terraformramp", activateTerraformRamp, nil, "t")
 	widgetHandler:AddAction("terraformrestore", activateTerraformRestore, nil, "t")
 	widgetHandler:AddAction("terraformbrushoff", deactivateTerraform, nil, "t")
@@ -2163,6 +2173,9 @@ function widget:Initialize()
 		end,
 		setRestoreStrength = function(value)
 			extraState.restoreStrength = max(0.0, min(1.0, tonumber(value) or 1.0))
+		end,
+		setErodeReposeDeg = function(value)
+			extraState.erodeReposeDeg = max(10, min(60, tonumber(value) or 33))
 		end,
 		setRingInnerRatio = setRingInnerRatio,
 		-- Pen pressure API
@@ -2411,6 +2424,7 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("terraformdown")
 	widgetHandler:RemoveAction("terraformlevel")
 	widgetHandler:RemoveAction("terraformsmooth")
+	widgetHandler:RemoveAction("terraformerode")
 	widgetHandler:RemoveAction("terraformramp")
 	widgetHandler:RemoveAction("terraformrestore")
 	widgetHandler:RemoveAction("terraformbrushoff")
@@ -2804,6 +2818,7 @@ function widget:Update(dt)
 		extraState.lastDragScreenX = nil
 		extraState.lastDragScreenY = nil
 		extraState.dragVelocityFactor = 1.0
+		extraState.erodePhase = 0
 		rampEndX = nil
 		rampEndZ = nil
 		if extraState.splineCacheList then
@@ -2938,6 +2953,46 @@ function widget:Update(dt)
 				.. string.format("%.2f", extraState.restoreStrength)
 			SendLuaRulesMsg(msg)
 		end
+		afterBrushTick()
+	elseif activeMode == "erode" then
+		if mx ~= lastScreenX or my ~= lastScreenY then
+			lastScreenX = mx
+			lastScreenY = my
+			local worldX, worldZ = getWorldMousePositionOnPlane(lockedGroundY)
+			if worldX then
+				if shift and (shiftState.originX or dragOriginX) then
+					local ox = shiftState.originX or dragOriginX
+					local oz = shiftState.originZ or dragOriginZ
+					worldX, worldZ = constrainToAxis(ox, oz, worldX, worldZ)
+				end
+				if extraState.measureActive and extraState.measureRulerMode then
+					worldX, worldZ = extraState.snapToMeasureLine(worldX, worldZ)
+				end
+				lockedWorldX = worldX
+				lockedWorldZ = worldZ
+			end
+		end
+
+		-- Thermal erosion: the gadget relaxes at most its per-message cell budget;
+		-- the phase counter rotates the strided cell subset so large brushes
+		-- converge over successive ticks instead of spiking a single frame.
+		local erodePositions = extraState.getSymmetricPositions(lockedWorldX, lockedWorldZ, activeRotation)
+		for ei = 1, #erodePositions do
+			local ep = erodePositions[ei]
+			local msg = MSG.ERODE
+				.. floor(ep.x) .. " "
+				.. floor(ep.z) .. " "
+				.. activeRadius .. " "
+				.. activeShape .. " "
+				.. ep.rot .. " "
+				.. string.format("%.1f", activeCurve) .. " "
+				.. string.format("%.1f", activeIntensity) .. " "
+				.. string.format("%.1f", activeLengthScale) .. " "
+				.. floor(extraState.erodeReposeDeg + 0.5) .. " "
+				.. extraState.erodePhase
+			SendLuaRulesMsg(msg)
+		end
+		extraState.erodePhase = extraState.erodePhase + 1
 		afterBrushTick()
 	elseif activeMode == "noise" then
 		if mx ~= lastScreenX or my ~= lastScreenY then
@@ -3105,6 +3160,7 @@ local function getModeRGB()
 	elseif activeMode == "restore" then return 0.7,  0.3,  0.9
 	elseif activeMode == "noise"   then return 0.96, 0.62, 0.04
 	elseif activeMode == "ramp"    then return 0.9,  0.7,  0.2
+	elseif activeMode == "erode"   then return 0.72, 0.5,  0.25
 	else                               return 0.3,  0.5,  0.9   -- level
 	end
 end
@@ -3116,6 +3172,7 @@ local function getModeRGBBright()
 	elseif activeMode == "restore" then return 0.88, 0.58, 1.0
 	elseif activeMode == "noise"   then return 1.0,  0.82, 0.3
 	elseif activeMode == "ramp"    then return 1.0,  0.88, 0.4
+	elseif activeMode == "erode"   then return 0.92, 0.7,  0.42
 	else                               return 0.5,  0.78, 1.0   -- level
 	end
 end

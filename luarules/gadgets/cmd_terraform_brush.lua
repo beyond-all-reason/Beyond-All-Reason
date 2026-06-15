@@ -58,6 +58,8 @@ local MERGE_END_HEADER = "$terraform_merge_end$"
 local STROKE_END_HEADER = "$terraform_stroke_end$"
 local NOISE_HEADER = "$terraform_noise$"
 local NOISE_HEADER_LENGTH = #NOISE_HEADER
+local ERODE_HEADER = "$terraform_erode$"
+local ERODE_HEADER_LENGTH = #ERODE_HEADER
 local WARM_HEADER = "$terraform_warm$"
 local WARM_HEADER_LENGTH = #WARM_HEADER
 local HEIGHT_STEP = 8
@@ -1271,6 +1273,165 @@ local function applyNoise(centerX, centerZ, radius, shape, angleDeg, curve, inte
 end
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- ERODE BRUSH — thermal (talus) erosion
+--
+-- Classic thermal weathering on the heightmap grid: any cell whose drop to a
+-- 4-neighbor exceeds the talus threshold (the height step at which one
+-- squareSize step is steeper than the repose angle) sheds material downhill:
+--   transfer = rate * 0.5 * (dh - talus)   per too-steep neighbor pair
+-- Transfers accumulate into a delta buffer and apply in one batch, so the
+-- relaxation pass is order-independent. Per-cell transfer scales with the
+-- brush falloff so stroke edges erode gently. No hydraulic component, no
+-- deposition mask — pure talus relaxation.
+--
+-- Time slicing: at most ERODE_CELL_BUDGET source cells relax per message.
+-- Larger footprints process a strided (interleaved) subset; the widget
+-- advances `phase` every tick so successive ticks cover the remaining cells.
+-- ─────────────────────────────────────────────────────────────────────────────
+local ERODE_CELL_BUDGET = 8000
+
+local function applyErode(centerX, centerZ, radius, shape, angleDeg, curve, intensity, lengthScale, reposeDeg, phase)
+	local squareSize = Game.squareSize
+	local mapSizeX = Game.mapSizeX
+	local mapSizeZ = Game.mapSizeZ
+	lengthScale = lengthScale or 1.0
+
+	-- Height difference at which one grid step exceeds the repose angle
+	local talus = math.tan(reposeDeg * pi / 180) * squareSize
+	-- Per-pair transfer rate. A sender sheds to up to 4 neighbors while each
+	-- receiver rises by its share, so the post-pass pair difference is
+	-- dh - 5*amt; amt = (dh-talus)*0.5*rate stays slope-preserving only when
+	-- 0.5*rate <= 1/5. Cap at 0.4 so even a pinnacle with 4 equal downhill
+	-- neighbors lands exactly at the talus slope instead of inverting.
+	local rate = min(0.4, intensity * 0.125)
+
+	local stamp = getFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ringInnerRatio, squareSize)
+	local sw    = stamp.w
+	local sh    = stamp.h
+	local sCx   = stamp.cx
+	local sCz   = stamp.cz
+	local sdata = stamp.data
+	-- Count active stamp cells once, cache on the stamp (stamps are cached/reused)
+	local nCells = stamp.cellCount
+	if not nCells then
+		nCells = 0
+		for _ in pairs(sdata) do nCells = nCells + 1 end
+		stamp.cellCount = nCells
+	end
+	local stride = floor((nCells + ERODE_CELL_BUDGET - 1) / ERODE_CELL_BUDGET)
+	if stride < 1 then stride = 1 end
+	local strideOffset = phase % stride
+
+	-- Snap brush center to nearest grid cell so the cached stamp aligns
+	local centerCellX = floor(centerX / squareSize + 0.5)
+	local centerCellZ = floor(centerZ / squareSize + 0.5)
+
+	-- Working window = stamp + 1-cell border so footprint-edge cells can shed
+	-- material outward (the border only receives, it is never a source).
+	local ww = sw + 2
+	local originCellX = centerCellX - sCx - 1   -- world cell of window column 0
+	local originCellZ = centerCellZ - sCz - 1   -- world cell of window row 0
+
+	local heights  = {}   -- [windowIdx] = lazily cached GetGroundHeight
+	local delta    = {}   -- [windowIdx] = accumulated height change this pass
+	local touched  = {}   -- windowIdx list in first-touch order (deterministic apply)
+	local nTouched = 0
+
+	-- Move material from source cell (cIdx, height h) to neighbor (nIdx at nx,nz)
+	local function shed(cIdx, h, cellRate, nIdx, nx, nz)
+		if nx < 0 or nx > mapSizeX or nz < 0 or nz > mapSizeZ then return end
+		local hn = heights[nIdx]
+		if not hn then
+			hn = GetGroundHeight(nx, nz)
+			heights[nIdx] = hn
+		end
+		local dh = h - hn
+		if dh > talus then
+			local amt = (dh - talus) * 0.5 * cellRate
+			local dc = delta[cIdx]
+			if dc == nil then
+				nTouched = nTouched + 1
+				touched[nTouched] = cIdx
+				dc = 0
+			end
+			delta[cIdx] = dc - amt
+			local dn = delta[nIdx]
+			if dn == nil then
+				nTouched = nTouched + 1
+				touched[nTouched] = nIdx
+				dn = 0
+			end
+			delta[nIdx] = dn + amt
+		end
+	end
+
+	local seq = 0  -- running index over active stamp cells (drives the stride subset)
+	for iz = 0, sh - 1 do
+		local sBase = iz * sw
+		local wz = iz + 1                       -- window row of this stamp row
+		local z = (originCellZ + wz) * squareSize
+		for ix = 0, sw - 1 do
+			local falloff = sdata[sBase + ix + 1]
+			if falloff then
+				seq = seq + 1
+				if (seq % stride) == strideOffset then
+					local wx = ix + 1
+					local x = (originCellX + wx) * squareSize
+					if x >= 0 and x <= mapSizeX and z >= 0 and z <= mapSizeZ then
+						local cIdx = wz * ww + wx + 1
+						local h = heights[cIdx]
+						if not h then
+							h = GetGroundHeight(x, z)
+							heights[cIdx] = h
+						end
+						local cellRate = rate * falloff
+						shed(cIdx, h, cellRate, cIdx - 1,  x - squareSize, z)
+						shed(cIdx, h, cellRate, cIdx + 1,  x + squareSize, z)
+						shed(cIdx, h, cellRate, cIdx - ww, x, z - squareSize)
+						shed(cIdx, h, cellRate, cIdx + ww, x, z + squareSize)
+					end
+				end
+			end
+		end
+	end
+
+	-- Apply all accumulated deltas in one batch (order-independent pass)
+	local heightData = scratchHeightData
+	local snapFlat = scratchSnapFlat
+	local hIdx = 0
+	local sCount = 0
+	for i = 1, nTouched do
+		local idx = touched[i]
+		local d = delta[idx]
+		if d > 0.001 or d < -0.001 then
+			local wi = idx - 1
+			local wzc = floor(wi / ww)
+			local wxc = wi - wzc * ww
+			local x = (originCellX + wxc) * squareSize
+			local z = (originCellZ + wzc) * squareSize
+			local h = heights[idx]
+			local base = sCount * 3
+			snapFlat[base + 1] = x
+			snapFlat[base + 2] = z
+			snapFlat[base + 3] = h
+			sCount = sCount + 1
+			hIdx = hIdx + 1
+			local he = heightData[hIdx]
+			if he then he[1] = x; he[2] = z; he[3] = h + d
+			else heightData[hIdx] = {x, z, h + d} end
+		end
+	end
+
+	-- Trim scratch heightData using tracked max (avoids # on reused table)
+	for i = hIdx + 1, scratchHeightDataMax do heightData[i] = nil end
+	scratchHeightDataMax = hIdx
+	if hIdx > 0 then
+		applyHeightChanges(heightData, hIdx)
+		pushSnapshotFromFlat(snapFlat, sCount)
+	end
+end
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- FILL BRUSH — Radial-ray rim detection + BFS basin + IDW curved fill
 --
 -- Phase 1: Cast 48 radial rays from click outward. Each ray tracks the
@@ -2020,6 +2181,41 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if noiseDustMode then
 			spawnDust(centerX, centerZ, radius, intensity)
 		end
+		return true
+	end
+
+	if msg:sub(1, ERODE_HEADER_LENGTH) == ERODE_HEADER then
+		if not isTerraformAllowed(certified) then
+			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+			return true
+		end
+
+		local payload = msg:sub(ERODE_HEADER_LENGTH + 1)
+		local parts = parseParts(payload)
+
+		local centerX = tonumber(parts[1])
+		local centerZ = tonumber(parts[2])
+		local radius = tonumber(parts[3])
+		local shape = parts[4] or "circle"
+		local angleDeg = tonumber(parts[5]) or 0
+		local curve = tonumber(parts[6]) or 1.0
+		local intensity = tonumber(parts[7]) or 1.0
+		local lengthScale = tonumber(parts[8]) or 1.0
+		local reposeDeg = tonumber(parts[9]) or 33
+		local phase = tonumber(parts[10]) or 0
+
+		if not centerX or not centerZ or not radius then
+			return true
+		end
+
+		radius = max(MIN_RADIUS, min(MAX_RADIUS, radius))
+		curve = max(0.1, min(5.0, curve))
+		intensity = max(0.1, min(100.0, intensity))
+		lengthScale = max(0.2, min(5.0, lengthScale))
+		reposeDeg = max(10, min(60, reposeDeg))
+		phase = floor(max(0, phase))
+
+		applyErode(centerX, centerZ, radius, shape, angleDeg, curve, intensity, lengthScale, reposeDeg, phase)
 		return true
 	end
 
