@@ -259,6 +259,9 @@ function widget:Initialize()
 		end
 	end
 	WG['stateprefs'].setUnitDefaultState = function(unitName, cmdID, state)
+		if not cmdID then
+			unitName, cmdID, state = unitName[1], unitName[2], unitName[3]
+		end
 		unitSet[unitName] = unitSet[unitName] or {}
 		unitSet[unitName][cmdID] = state
 	end

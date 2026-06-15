@@ -2970,6 +2970,43 @@ function applyFilter()
 	windowList = gl.CreateList(DrawWindow)
 end
 
+local function getAutoCloakDefaults()
+	local autoCloakDefaults = {
+		['armdecom'] = false,
+		['cordecom'] = false,
+		['armferret'] = false,
+		['armamb'] = false,
+		['armpb'] = false,
+		['armsnipe'] = false,
+		['corsktl'] = false,
+		['armgremlin'] = true,
+		['armamex'] = true,
+		['armshockwave'] = true,
+		['armckfus'] = true,
+		['armspy'] = true,
+		['corspy'] = true,
+		['legaspy'] = true,
+		['corphantom'] = true,
+	}
+	if WG['stateprefs'] then
+		for unitName, default in pairs(autoCloakDefaults) do
+			if WG['stateprefs'].getUnitDefaultState(unitName, GameCMD.WANT_CLOAK) then
+				autoCloakDefaults[unitName] = WG['stateprefs'].getUnitDefaultState(unitName, GameCMD.WANT_CLOAK) == 1
+			else
+				WG['stateprefs'].setUnitDefaultState(unitName, GameCMD.WANT_CLOAK, default and 1 or 0)
+			end
+		end
+	elseif widgetHandler.configData["State Prefs V2"] then
+		for unitName, defaults in pairs(widgetHandler.configData["State Prefs V2"]) do
+			if defaults[GameCMD.WANT_CLOAK] then
+				autoCloakDefaults[unitName] = defaults[GameCMD.WANT_CLOAK] == 1
+			end
+		end
+	end
+
+	return autoCloakDefaults
+end
+
 function init()
 	presets = {
 		lowest = {
@@ -9222,16 +9259,6 @@ function init()
 		},
 		{ id = "label_ui_cloak_spacer", group = "game", category = types.basic },
 
-		{
-			id = "autocloak",
-			group = "game",
-			category = types.basic,
-			widget = "Auto Cloak Units",
-			name = BAR.I18N("ui.settings.option.autocloak"),
-			type = "bool",
-			value = GetWidgetToggleValue("Auto Cloak Units"),
-		},
-
 		-- ACCESSIBILITY
 
 		{
@@ -12000,76 +12027,22 @@ function init()
 	end
 
 	-- add auto cloak toggles
-	local defaultUnitdefConfig = { -- copy pasted defaults from the widget
-		[UnitDefNames.armdecom and UnitDefNames.armdecom.id or -1] = false,
-		[UnitDefNames.cordecom and UnitDefNames.cordecom.id or -1] = false,
-		[UnitDefNames.armferret and UnitDefNames.armferret.id or -1] = false,
-		[UnitDefNames.armamb and UnitDefNames.armamb.id or -1] = false,
-		[UnitDefNames.armpb and UnitDefNames.armpb.id or -1] = false,
-		[UnitDefNames.armsnipe and UnitDefNames.armsnipe.id or -1] = false,
-		[UnitDefNames.corsktl and UnitDefNames.corsktl.id or -1] = false,
-		[UnitDefNames.armgremlin and UnitDefNames.armgremlin.id or -1] = true,
-		[UnitDefNames.armamex and UnitDefNames.armamex.id or -1] = true,
-		[UnitDefNames.armshockwave and UnitDefNames.armshockwave.id or -1] = true,
-		[UnitDefNames.armckfus and UnitDefNames.armckfus.id or -1] = true,
-		[UnitDefNames.armspy and UnitDefNames.armspy.id or -1] = true,
-		[UnitDefNames.corspy and UnitDefNames.corspy.id or -1] = true,
-		[UnitDefNames.corphantom and UnitDefNames.corphantom.id or -1] = true,
-		[UnitDefNames.legaspy and UnitDefNames.legaspy.id or -1] = true,
-	}
-	local unitdefConfig = {}
-	if WG.autocloak ~= nil then
-		unitdefConfig = WG.autocloak.getUnitdefConfig()
-	elseif
-		widgetHandler.configData["Auto Cloak Units"] ~= nil
-		and widgetHandler.configData["Auto Cloak Units"].unitdefConfig ~= nil
-	then
-		for unitName, value in pairs(widgetHandler.configData["Auto Cloak Units"].unitdefConfig) do
-			if UnitDefNames[unitName] then
-				local unitDefID = UnitDefNames[unitName].id
-				unitdefConfig[unitDefID] = value
-			end
-		end
-	end
-	unitdefConfig = table.merge(defaultUnitdefConfig, unitdefConfig)
-	if type(unitdefConfig) == "table" then
-		local newOptions = {}
-		local count = 0
-		for i, option in pairs(options) do
-			count = count + 1
-			newOptions[count] = option
-			if option.id == "autocloak" then
-				for k, v in pairs(unitdefConfig) do
-					if UnitDefs[k] then
-						local faction = BAR.I18N("units.factions." .. string.sub(UnitDefs[k].name, 1, 3))
-						if faction then
-							count = count + 1
-							newOptions[count] = {
-								id = "autocloak_" .. k,
-								group = "game",
-								category = types.basic,
-								name = widgetOptionColor
-									.. "   "
-									.. UnitDefs[k].translatedHumanName
-									.. "  ("
-									.. faction
-									.. ")",
-								type = "bool",
-								value = v,
-								description = UnitDefs[k].translatedTooltip,
-								onchange = function(i, value)
-									saveOptionValue(
-										"Auto Cloak Units",
-										"autocloak",
-										"setUnitdefConfig",
-										{ "unitdefConfig", k },
-										value,
-										{ k, value }
-									)
-								end,
-							}
-						end
-					end
+	local autoCloakDefaults = getAutoCloakDefaults()
+	local newOptions = {}
+	local count = 0
+	for i, option in pairs(options) do
+		count = count + 1
+		newOptions[count] = option
+		if option.id == 'label_ui_cloak_spacer' then --previous option was label_ui_cloak_spacer
+			for unitName, value in pairs(autoCloakDefaults) do
+				local faction = Spring.I18N('units.factions.' .. string.sub(unitName,1,3))
+				if faction and UnitDefNames[unitName] then
+					count = count + 1
+					newOptions[count] = { id = "autocloak_" .. unitName, group = "game", category = types.basic, name = widgetOptionColor .. "   " .. UnitDefNames[unitName].translatedHumanName..'  ('..faction..')', type = "bool", value = value, description = UnitDefNames[unitName].translatedTooltip,
+						onchange = function(i, value)
+							saveOptionValue('State Prefs V2', 'stateprefs', 'setUnitDefaultState', { unitName, GameCMD.WANT_CLOAK }, value and 1 or 0, { unitName, GameCMD.WANT_CLOAK, value and 1 or 0 } )
+						end,
+					}
 				end
 			end
 		end
