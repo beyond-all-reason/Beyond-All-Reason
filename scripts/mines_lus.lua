@@ -11,6 +11,9 @@ local isBuilt = false
 
 function FireStateChange(toFireState)
 	currentFireState = toFireState -- update fireState on cmds
+	if not isBuilt then -- gate by isBuilt, because units being built can be set to fire at will
+		return
+	end
 	if toFireState < 2 then
 		Signal(stop_detect)
 	else
@@ -61,7 +64,9 @@ function SetStunned(isStunned) -- called by unit_stun_script.lua
 	if isStunned then
 		Signal(stop_detect)
 	else
-		StartThread(EnemyDetect)
+		if isBuilt and currentFireState == 2 then -- gate by fireState AND isBuilt (because units being built can become unstunned)
+			StartThread(EnemyDetect)
+		end
 	end
 end
 
