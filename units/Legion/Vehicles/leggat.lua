@@ -45,8 +45,6 @@ return {
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Vehicles",
-			weapon1turretx = 45,
-			weapon1turrety = 80,
 		},
 		featuredefs = {
 			dead = {
@@ -144,6 +142,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 900,
+				customparams = {
+					turretspeeds = "45 80",
+				},
 				damage = {
 					default = 12,
 					vtol = 3,

@@ -37,8 +37,6 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Bots",
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 			reactive_armor_health = 300,
 			reactive_armor_restore = 15,
 		},
@@ -131,6 +129,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
+				customparams = {
+					turretspeeds = "200 200",
+				},
 				damage = {
 					default = 160,
 					vtol = 25,

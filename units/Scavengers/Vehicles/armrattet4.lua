@@ -45,8 +45,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "other/scavengers",
 			techlevel = 3,
-			weapon1turretx = 45,
-			weapon1turrety = 80,
 		},
 		featuredefs = {
 			dead = {
@@ -121,6 +119,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					turretspeeds = "45 80",
+				},
 				damage = {
 					commanders = 400,
 					default = 1200,

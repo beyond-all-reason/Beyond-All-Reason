@@ -35,8 +35,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBots",
 			unitgroup = "weapon",
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -119,6 +117,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
+				customparams = {
+					turretspeeds = "200 200",
+				},
 				damage = {
 					default = 55,
 					vtol = 9,

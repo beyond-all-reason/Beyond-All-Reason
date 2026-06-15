@@ -43,8 +43,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 45,
-			weapon1turrety = 80,
 		},
 		featuredefs = {
 			dead = {
@@ -126,6 +124,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 225,
+				customparams = {
+					turretspeeds = "45 80",
+				},
 				damage = {
 					default = 97,
 					vtol = 18,

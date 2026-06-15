@@ -35,8 +35,6 @@ return {
 			model_author = "Odin",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBots",
-			weapon1turretx = 300,
-			weapon1turrety = 300,
 		},
 		featuredefs = {
 			dead = {
@@ -127,6 +125,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 960,
+				customparams = {
+					turretspeeds = "300 300",
+				},
 				damage = {
 					default = 40,
 					vtol = 13,

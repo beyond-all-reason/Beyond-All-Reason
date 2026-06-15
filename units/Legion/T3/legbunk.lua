@@ -40,8 +40,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "leggantry",
 			techlevel = 3,
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -130,6 +128,7 @@ return {
 				customparams = {
 					bogus = 1,
 					noattackrangearc = 1,
+					turretspeeds = "200 200",
 				},
 				damage = {
 					default = 0,

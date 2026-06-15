@@ -44,8 +44,6 @@ return {
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 125,
-			weapon1turrety = 125,
 		},
 		featuredefs = {
 			dead = {
@@ -147,6 +145,7 @@ return {
 				customparams = {
 					projectile_destruction_method = "descend",
 					overrange_distance = 920,
+					turretspeeds = "125 125",
 				},
 				damage = {
 					default = 1000,

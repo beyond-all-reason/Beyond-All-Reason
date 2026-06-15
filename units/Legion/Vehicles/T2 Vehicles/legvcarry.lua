@@ -49,8 +49,6 @@ return {
 			subfolder = "Legion/Vehicles/T2 Vehicles",
 			techlevel = 2,
 			unitgroup = 'weapon',
-			weapon1turretx = 45,
-			weapon1turrety = 80,
 		},
 		featuredefs = {
 			dead = {
@@ -167,7 +165,8 @@ return {
 					droneairtime = 60,
 					dronedocktime = 3,
 					droneammo = 12,
-				}
+					turretspeeds = "45 80",
+				},
 			},
 		},
 		weapons = {

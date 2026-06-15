@@ -38,8 +38,6 @@ return {
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -132,6 +130,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 920,
+				customparams = {
+					turretspeeds = "200 200",
+				},
 				damage = {
 					default = 105,
 					vtol = 20,

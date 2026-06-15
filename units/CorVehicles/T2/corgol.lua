@@ -50,8 +50,6 @@ return {
 			techlevel = 2,
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
-			weapon1turretx = 30,
-			weapon1turrety = 40,
 		},
 		featuredefs = {
 			dead = {
@@ -133,6 +131,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 310,
+				customparams = {
+					turretspeeds = "30 40",
+				},
 				damage = {
 					default = 900,
 					subs = 200,

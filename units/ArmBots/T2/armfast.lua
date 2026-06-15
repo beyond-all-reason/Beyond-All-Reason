@@ -36,8 +36,6 @@ return {
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 400,
-			weapon1turrety = 500,
 		},
 		featuredefs = {
 			dead = {
@@ -124,6 +122,9 @@ return {
 				weapontimer = 0.6,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					turretspeeds = "400 500",
+				},
 				damage = {
 					default = 12,
 					vtol = 4,

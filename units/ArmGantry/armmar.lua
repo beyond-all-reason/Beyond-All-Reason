@@ -39,8 +39,6 @@ return {
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
-			weapon1turretx = 90,
-			weapon1turrety = 150,
 		},
 		featuredefs = {
 			dead = {
@@ -172,6 +170,9 @@ return {
 				weapontimer = 2,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					turretspeeds = "90 150",
+				},
 				damage = {
 					default = 235,
 					vtol = 60,

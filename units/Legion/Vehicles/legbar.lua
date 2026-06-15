@@ -48,8 +48,6 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorVehicles/T2",
-			weapon1turretx = 30,
-			weapon1turrety = 40,
 		},
 		featuredefs = {
 			dead = {
@@ -148,6 +146,7 @@ return {
 					area_onhit_range = 60,
 					area_onhit_time = 7,
 					water_splash = 0,
+					turretspeeds = "30 40",
 				},
 				damage = {
 					default = 60,

@@ -38,8 +38,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmGantry",
 			techlevel = 3,
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -170,8 +168,7 @@ return {
 				turret = true,
 				weaponvelocity = 1000,
 				customparams = {
-					--isupgraded = isupgraded,
-					--damagetype = "ehbotkarganneth",
+					turretspeeds = "200 200",
 				},
 				damage = {
 					default = 33,

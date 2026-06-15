@@ -43,8 +43,6 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmVehicles",
-			weapon1turretx = 240,
-			weapon1turrety = 240,
 		},
 		featuredefs = {
 			dead = {
@@ -128,6 +126,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 550,
+				customparams = {
+					turretspeeds = "240 240",
+				},
 				damage = {
 					default = 75,
 					vtol = 25,

@@ -46,8 +46,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.125,
 			subfolder = "Legion/Vehicles",
-			weapon1turretx = 130,
-			weapon1turrety = 130,
 		},
 		featuredefs = {
 			dead = {
@@ -127,6 +125,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					turretspeeds = "135 135",
+				},
 				damage = {
 					default = 116,
 					vtol = 25,
