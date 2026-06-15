@@ -3,9 +3,9 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Mines fire state",
-		desc = ".",
+		desc = "Maps fire state commands to mines LUS functions",
 		author = "DoodVanDaag",
-		date = "",
+		date = "15/06/2026",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true
