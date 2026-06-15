@@ -390,6 +390,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		local unitID = selectedUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
 		local name = uDefID2UnitName[unitDefID]
+		unitSet[name] = unitSet[name] or {}
 		local prefs = unitSet[name]
 
 		if #cmdParams == 1 and isClearPressed then
@@ -399,7 +400,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				spEcho("State pref removed: " .. name .. ", " .. command.name)
 			end
 		elseif #cmdParams == 1 then
-			prefs = prefs or {}
 			if prefs[cmdID] ~= cmdParams[1] then
 				prefs[cmdID] = cmdParams[1]
 				unitSet[name] = prefs
@@ -438,6 +438,11 @@ local function ApplyUnitStates()
 			widget:UnitCreated(units[i], Spring.GetUnitDefID(units[i]), teamID or Spring.GetUnitTeam(units[i]))
 		end
 	end
+end
+
+function widget:KeyPress() -- tests
+	
+	--Spring.Echo(widgetHandler.configData["Auto Cloak Units"])
 end
 
 function widget:GameFrame(n)
