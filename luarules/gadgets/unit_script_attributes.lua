@@ -19,7 +19,7 @@ end
 
 -- Conversion functions for customParams
 
-local DEGREEPERSEC_TO_COBANGLEPERFRAME = 182 -- TODO: Show derivation, copied from old unit_turretspeed.
+local DEGREE_TO_COBANGLE = 182 -- TODO: Show derivation, copied from old unit_turretspeed.
 
 local function customArray(text)
 	return table.map(tostring(text):split("%s"), function(v, k) return tonumber(v), k end)
@@ -28,9 +28,8 @@ end
 local function customArrayToCobAngle(text)
 	local array = customArray(text)
 	if array then
-		-- Humanized values from the defs are degrees/sec. We need cobnonsenses/sec.
 		-- COB cannot do these conversions due to int precision issues; LUS is fine.
-		return table.map(array, function (v, k) return v * DEGREEPERSEC_TO_COBANGLEPERFRAME, k end)
+		return table.map(array, function (v, k) return v * DEGREE_TO_COBANGLE, k end)
 	end
 end
 
