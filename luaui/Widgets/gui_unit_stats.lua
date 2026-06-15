@@ -749,6 +749,18 @@ local function computeContent(uDefID, uID, shiftBool)
 
 		local custom = uWep.customParams
 
+		if uWep.type == "BeamLaser" then
+			if custom.sweepfire_firetime then
+				burst = tonumber(custom.sweepfire_firetime) * uWep.projectiles * simSpeed
+				if not uWep.beamBurst then
+					burst = burst / (simSpeed * uWep.beamtime)
+				end
+			end
+			if custom.sweepfire_reloadtime then
+				reload = tonumber(custom.sweepfire_reloadtime)
+			end
+		end
+
 		if custom.spark_basedamage then
 			local spDamage = custom.spark_basedamage * custom.spark_forkdamage
 			local spCount = custom.spark_maxunits
