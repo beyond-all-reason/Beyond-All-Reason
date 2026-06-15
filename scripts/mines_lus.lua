@@ -10,6 +10,7 @@ local isBuilt = false
 -- Author: Doo update jan 2026
 
 function FireStateChange(toFireState)
+	currentFireState = toFireState -- update fireState on cmds
 	if toFireState < 2 then
 		Signal(stop_detect)
 	else
@@ -39,7 +40,9 @@ function script.Create()
 		isBuilt = Spring.GetUnitIsBeingBuilt(unitID) == false
 		Sleep(500)
 	end
-	StartThread(EnemyDetect)
+	if currentFireState == 2 then -- gate by fireState (isBuilt already gated)
+		StartThread(EnemyDetect)
+	end
 end
 
 function EnemyDetect()
