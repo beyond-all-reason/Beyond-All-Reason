@@ -2509,6 +2509,17 @@ local function scanBuilders(frame, tick)
 		offscreenKeep = OFFSCREEN_EMIT_KEEP_MAX + t * (OFFSCREEN_EMIT_KEEP_MIN - OFFSCREEN_EMIT_KEEP_MAX)
 	end
 
+	-- Pool-saturation emit taper, matched to the old per-gameframe behaviour. Back then
+	-- density worked out to ~1/(runEvery*stride): each builder was visited once per
+	-- (runEvery*stride) passes and emitted one frame's share, uncompensated. We
+	-- reproduce that thinning smoothly from the *continuous* (un-floored) scan ramps and
+	-- apply it to `rate` below (the accumulator carries the fraction). In the new design
+	-- throttle+elapsed already net to full density, so this is the sole taper: 1.0 at an
+	-- empty pool, ~1/6 at full. Tracks the MIN/MAX_SCAN_* knobs by design.
+	local runEveryF = MIN_SCAN_RUN_EVERY + saturation * (MAX_SCAN_RUN_EVERY - MIN_SCAN_RUN_EVERY)
+	local strideF   = MIN_SCAN_STRIDE   + saturation * (MAX_SCAN_STRIDE   - MIN_SCAN_STRIDE)
+	local satKeep   = 1.0 / (runEveryF * strideF)
+
 	local list = trackedBuildersList
 	local n    = #list
 	-- Use the scan-call counter (tick/runEvery) for the stride offset rather than
@@ -2749,7 +2760,7 @@ local function scanBuilders(frame, tick)
 							-- big burst, post-reload) can't dump one huge emission spike;
 							-- the MAX_PARTICLES saturation gate still caps the pool anyway.
 							if elapsed < 1 then elapsed = 1 elseif elapsed > 8 then elapsed = 8 end
-							local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * elapsed * (NanoParticleRate or 1.0)
+							local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * elapsed * (NanoParticleRate or 1.0) * satKeep
 							-- Deterministic accumulator: carries the fractional
 							-- remainder across visits. Eliminates the Bernoulli jitter
 							-- / "guaranteed at least 1" floors that previously
