@@ -19,7 +19,19 @@ end
 
 -- Conversion functions for customParams
 
-local DEGREE_TO_COBANGLE = 182 -- TODO: Show derivation, copied from old unit_turretspeed.
+local gameSpeed = Game.gameSpeed
+
+-- COB cannot handle these conversions itself due to integer precision issues. LUS is fine.
+local DEG2COBANGLE = COBSCALE / 360
+local SEC2COBTIME = 1000
+
+local function customCobTime(text)
+	return tonumber(text) * SEC2COBTIME
+end
+
+local function customCobFrames(text)
+	return math.round(customCobTime(text) * gameSpeed)
+end
 
 local function customArray(text)
 	return table.map(tostring(text):split("%s"), function(v, k) return tonumber(v), k end)
@@ -28,8 +40,7 @@ end
 local function customArrayToCobAngle(text)
 	local array = customArray(text)
 	if array then
-		-- COB cannot do these conversions due to int precision issues; LUS is fine.
-		return table.map(array, function (v, k) return v * DEGREE_TO_COBANGLE, k end)
+		return table.map(array, function (v, k) return v * DEG2COBANGLE, k end)
 	end
 end
 
@@ -40,8 +51,9 @@ local unitCustomParams = {
 }
 
 local weaponCustomParams = {
-	sweepfire_firetime = { method = "SetSweepfireFireTime", numbered = true, convert = tonumber },
-	turretspeeds       = { method = "SetWeaponTurretSpeed", numbered = true, convert = customArrayToCobAngle }, -- TODO: These customparams have spent years in retirement.
+	sweepfire_firetime   = { method = "SetSweepfireFireTime", numbered = true, convert = customCobFrames },
+	sweepfire_reloadtime = { method = "SetSweepfireReloadTime", numbered = true, convert = customCobFrames },
+	turretspeeds         = { method = "SetWeaponTurretSpeed", numbered = true, convert = customArrayToCobAngle }, -- TODO: These customparams have spent years in retirement.
 }
 
 -- Initialization and setup
