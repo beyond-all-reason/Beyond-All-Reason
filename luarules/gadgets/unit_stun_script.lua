@@ -32,16 +32,21 @@ local spCallAsUnit = Spring.UnitScript.CallAsUnit
 local spGetScriptEnv = Spring.UnitScript.GetScriptEnv
 
 local spGetCOBScriptID = Spring.GetCOBScriptID
+
+-- because spCallCOBScript expects the 3rd arg to be number returnArgs 
+-- and we want our returned function to match the calling args
+-- we always pass "number returnArgs" to hasSetStunned[unitDefID]() even if unused by the LUS alternative
+-- this way, hasSetStunned[unitDefID] always takes the same args, regardless of what environment it maps to
 local GetScriptFunc = function (unitID, functionName)
-	if Spring.GetCOBScriptID(unitID, functionName) then
+	if spGetCOBScriptID(unitID, functionName) then
 		return spCallCOBScript
 	end
 	local env = spGetScriptEnv(unitID)
 	if env and env[functionName] then
 		return (
-			function(uid, functionName, a,b)
+			function(uid, functionName, returnArgs, isStunned) 
 				local scriptEnv = spGetScriptEnv(uid)
-				spCallAsUnit(uid, scriptEnv[functionName], a,b)
+				spCallAsUnit(uid, scriptEnv[functionName], isStunned) -- we don't need it to be passed to the LUS function itself though
 			end
 		)
 	end

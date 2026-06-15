@@ -53,8 +53,8 @@ function EnemyDetect()
 	end
 end
 
-function SetStunned(a,b) -- called by unit_stun_script.lua
-	if b then
+function SetStunned(isStunned) -- called by unit_stun_script.lua
+	if isStunned then
 		Signal(stop_detect)
 	else
 		StartThread(EnemyDetect)
