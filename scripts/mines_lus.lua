@@ -3,7 +3,6 @@ local base = piece("base")
 local unitDefID = Spring.GetUnitDefID(unitID)
 local triggerRange = tonumber(UnitDefs[unitDefID].customParams.detonaterange) or 64
 local SpGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
-local math_sqrt = math.sqrt
 local stop_detect = 1
 
 -- Author: Doo update jan 2026
