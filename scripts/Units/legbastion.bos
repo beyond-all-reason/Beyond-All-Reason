@@ -5,7 +5,7 @@
 
 piece  base, armature1, armature2, armature3, piston1, piston2, rail1, rail2, rail3, turret, aiming_arm, ring, ring2, ring3, ring4, aimfromy, aimy, flare, fireline, lineflare, lightpoint, ambienttop, armPivot2, armPivot3, topArmsPivot, leftAimingArm, rightAimingArm, bottomAimingArm;
 
-static-var  restore_delay, shotcount, timer, lastfired, gameframe, state, statechg_DesiredState, statechg_StateChanging, firetime, timetozero, deceleratethreshold, oldhead, aimy1delta, aimy1velocity, aimy1target, aimy1position, gameFrame1, targetswap, isfiring;
+static-var  restore_delay, shotcount, timer, lastfired, gameframe, state, statechg_DesiredState, statechg_StateChanging, fireTime, timetozero, deceleratethreshold, oldhead, aimy1delta, aimy1velocity, aimy1target, aimy1position, gameFrame1, targetswap, isfiring;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -232,7 +232,7 @@ lua_UnitScriptLight(lightIndex, count) {
 
 Create()
 {
-	firetime = 75;
+	fireTime = 75;
 	oldhead = 0;
 	targetswap = 0;
 	state=1;
@@ -257,6 +257,11 @@ Create()
 	}
 	start-script SweepFire();
 	start-script SpinIdle();
+}
+
+SetSweepfireFireTime1(fireTimeValue)
+{
+	fireTime = fireTimeValue;
 }
 
 
@@ -343,7 +348,7 @@ AimPrimary(heading, pitch)
 	}
 	gameframe = get(GAME_FRAME);
 	//get PRINT(1, lastfired, gameframe);
-	//if (lastfired+firetime>gameframe) return (0);
+	//if (lastfired+fireTime>gameframe) return (0);
 	//lastfired = gameframe;
 	
 	if (get ABS(oldhead - heading) < 500)
@@ -374,7 +379,7 @@ SweepFire()
 		gameframe = get(GAME_FRAME);
 		//get PRINT(123, lastfired, gameframe, gameframe);
 		//get PRINT(1235, targetswap, isfiring, timer);
-		if (targetswap == 1 AND isfiring == 1 AND lastfired+firetime>gameframe)
+		if (targetswap == 1 AND isfiring == 1 AND lastfired+fireTime>gameframe)
 		{
 			emit-sfx 2048 from fireline;
 			timer = timer + 1;
@@ -399,7 +404,7 @@ AimPrimary(heading, pitch) {
 	
 	gameframe = get(GAME_FRAME);
 	//get PRINT(lastfired, gameframe);
-	//if (lastfired+firetime>gameframe) return (0);
+	//if (lastfired+fireTime>gameframe) return (0);
 	lastfired = gameframe;
 	
 	//get PRINT(1, heading, pitch);
@@ -422,7 +427,7 @@ FirePrimary()
 {
 	gameframe = get(GAME_FRAME);
 	//get PRINT(1, lastfired, gameframe);
-	//if (lastfired+firetime>gameframe) return (0);
+	//if (lastfired+fireTime>gameframe) return (0);
 	lastfired = gameframe;
 	//get PRINT(11);
 	start-script SpinFiring();
