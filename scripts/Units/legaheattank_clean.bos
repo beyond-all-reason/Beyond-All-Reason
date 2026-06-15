@@ -4,7 +4,7 @@
 //piece base, turretBase, gun, gearR, gearL, coverR, coverL;
 piece base, turretBase, turretStrut, gun, flarer, flarel, smoke1, smoke2;
 
-static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichGun, timeLeft, targetswap, isfiring, gameframe, lastfired, timer, firetime, oldhead, aimAdj, oldsteerheading;
+static-var  statechg_DesiredState, statechg_StateChanging, whichGun, timeLeft, targetswap, isfiring, gameframe, lastfired, timer, fireTime, reloadTime, oldhead, aimAdj, oldsteerheading;
 
 // Signal definitions
 // Signal definitions
@@ -63,20 +63,22 @@ Create()
 	aimAdj = 0;
 	timer = 0;
 	targetswap = 0;
-	firetime = 54;
-	lastfired = get(GAME_FRAME)-200;	
-	restore_delay = 3000;
+	fireTime = 54;
+	lastfired = -1000000;
 	//call-script TB_Init();
 	call-script SweepFire();
 	whichGun = 0;
 	return (0);
 }
 
-
-
 SetMaxReloadTime(reloadMS)
 {
-	restore_delay = reloadMS * 2;
+	reloadTime = reloadMS; // FIXME: xp scaling
+}
+
+SetSweepfireFireTime1(fireTimeValue)
+{
+	fireTime = fireTimeValue;
 }
 
 StartMoving(reversing)
@@ -138,9 +140,9 @@ SweepFire()
 	while (TRUE)
 	{
 		gameframe = get(GAME_FRAME);
-		//get PRINT(123, lastfired, gameframe, lastfired+firetime>gameframe);
+		//get PRINT(123, lastfired, gameframe, lastfired+fireTime>gameframe);
 		//get PRINT(1235, targetswap, isfiring, timer);
-		if (targetswap == 1 AND isfiring == 1 AND lastfired+firetime>gameframe)
+		if (targetswap == 1 AND isfiring == 1 AND lastfired+fireTime>gameframe)
 		{
 			if (whichGun == 0) {
 				emit-sfx 2048 from flarer;
@@ -169,8 +171,9 @@ AimWeapon1(heading, pitch)
     if (timeLeft == 0)
     {
         start-script TimeToRestore();
+		return (0);
     }
-    timeLeft = restore_delay;
+    timeLeft = reloadTime;
 	if (get ABS(oldhead - heading) > 500)
 	{
 		targetswap = 1;
