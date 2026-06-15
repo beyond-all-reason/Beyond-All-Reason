@@ -42,7 +42,7 @@ local unitCustomParams = {
 
 local weaponCustomParams = {
 	sweepfire_firetime = { method = "SetSweepfireFireTime", numbered = true, convert = tonumber },
-	turretspeeds       = { method = "SetWeaponTurretSpeed", numbered = true, convert = customArrayToCobAngle },
+	turretspeeds       = { method = "SetWeaponTurretSpeed", numbered = true, convert = customArrayToCobAngle }, -- TODO: These customparams have spent years in retirement.
 }
 
 -- Initialization and setup
