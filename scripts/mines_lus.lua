@@ -4,6 +4,8 @@ local unitDefID = Spring.GetUnitDefID(unitID)
 local triggerRange = tonumber(UnitDefs[unitDefID].customParams.detonaterange) or 64
 local SpGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 local stop_detect = 1
+local currentFireState = 2 -- default to fire at will, UnitCommand will change it on StatePrefs triggering
+local isBuilt = false
 
 -- Author: Doo update jan 2026
 
@@ -32,9 +34,9 @@ function script.FireWeapon()
 end
 
 function script.Create()
-	local inProgress = Spring.GetUnitIsBeingBuilt(unitID)
-	while (inProgress) do
-		inProgress = Spring.GetUnitIsBeingBuilt(unitID)
+	isBuilt = Spring.GetUnitIsBeingBuilt(unitID) == false
+	while (not isBuilt) do
+		isBuilt = Spring.GetUnitIsBeingBuilt(unitID) == false
 		Sleep(500)
 	end
 	StartThread(EnemyDetect)
