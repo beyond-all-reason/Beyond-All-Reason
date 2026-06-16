@@ -26,6 +26,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "explosiont3",
 		sightdistance = 700,
+		sonardistance = 400,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.98,
