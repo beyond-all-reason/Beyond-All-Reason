@@ -144,7 +144,7 @@ return {
 					vtol = 7,
 				},
 				customparams = {
-					sweepfire=9,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+					sweepfire_firetime = 1.8,
 				}
 			},
 			depthcharge = {

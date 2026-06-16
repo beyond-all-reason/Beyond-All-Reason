@@ -26,8 +26,7 @@ piece
 	wake,
     airjetFlare;
 
-static-var  gun_1, isAiming, restore_delay, timeLeft, isfiring, oldhead, aimAdj, timer, targetswap, steery, 
-currentSpeed, inwater, oldsteerheading, firetime, lastfired, gameframe, moving;
+static-var  gun_1, isAiming, restore_delay, timeLeft, isfiring, oldhead, aimAdj, timer, targetswap, inwater, oldsteerheading, fireTime, lastfired, gameframe, moving;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -120,7 +119,6 @@ Create()
 	aimAdj = 0;
 	timer = 0;
 	targetswap = 0;
-	firetime = 54;
 	lastfired = get(GAME_FRAME)-200;	
 	restore_delay = 3000;
 	isAiming = FALSE;
@@ -144,6 +142,11 @@ Create()
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS * 2;
+}
+
+SetSweepfireFireTime1(fireTimeValue)
+{
+	fireTime = fireTimeValue;
 }
 
 static-var  Stunned;
@@ -227,9 +230,9 @@ SweepFire()
 	while (TRUE)
 	{
 		gameframe = get(GAME_FRAME);
-		//get PRINT(123, lastfired, gameframe, lastfired+firetime>gameframe);
+		//get PRINT(123, lastfired, gameframe, lastfired+fireTime>gameframe);
 		//get PRINT(1235, targetswap, isfiring, timer);
-		if (targetswap == 1 AND isfiring == 1 AND lastfired+firetime>gameframe)
+		if (targetswap == 1 AND isfiring == 1 AND lastfired+fireTime>gameframe)
 		{
 			// if (whichGun == 0) {
 			// 	emit-sfx 2048 from flarer;
