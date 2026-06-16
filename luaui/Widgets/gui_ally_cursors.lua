@@ -29,8 +29,8 @@ local rotY = 0
 
 local dlistAmount = 5        -- number of dlists generated for each player (# available opacity levels)
 
-local packetInterval = 0.33
-local numMousePos = 2 --//num mouse pos in 1 packet
+local packetInterval = 0.12 -- fallback for first packet; runtime interval adapts to observed packet cadence
+local numMousePos = 1 --//num mouse pos in 1 packet
 
 local showSpectatorName = false
 local showPlayerName = true
@@ -51,6 +51,7 @@ local addLights = true
 local lightRadiusMult = 0.5
 local lightStrengthMult = 0.85
 local lightSelfShadowing = false
+local showOwnCursor = false	-- for debugging purposes
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -86,11 +87,15 @@ local math_deg = math.deg
 local abs = math.abs
 local floor = math.floor
 local min = math.min
+local max = math.max
 local diag = math.diag
 local clock = os.clock
 local TIMESTAMP_IDX = (numMousePos + 1) * 2 + 1
 local CLICK_IDX = (numMousePos + 1) * 2 + 2
 local TEAMID_IDX = (numMousePos + 1) * 2 + 3
+local PACKET_INTERVAL_IDX = (numMousePos + 1) * 2 + 4
+local PREV_X_KEY = "prevX"
+local PREV_Z_KEY = "prevZ"
 
 local alliedCursorsPos = {}
 local prevCursorPos = {}
@@ -117,7 +122,8 @@ for i = 1, #teams do
 end
 teams = nil
 
-local font, functionID, wx_old, wz_old
+local font, functionID
+local lastCursorPos = {}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -148,24 +154,58 @@ local function CubicInterpolate2(x0, x1, mix)
 	return x0 * (2 * mix3 - 3 * mix2 + 1) + x1 * (3 * mix2 - 2 * mix3)
 end
 
+local function sanitizeCoord(value, fallback)
+	if type(value) == "number" then
+		return value
+	end
+	if type(fallback) == "number" then
+		return fallback
+	end
+	return nil
+end
+
 local function MouseCursorEvent(playerID, x1, z1, x2, z2, click)
-	if not isReplay and myPlayerID == playerID then
+	if not showOwnCursor and not isReplay and myPlayerID == playerID then
 		return true
 	end
 
+	local now = clock()
+
 	local acp = alliedCursorsPos[playerID]
 	if acp then
-		acp[5] = acp[1]
-		acp[6] = acp[2]
+		x1 = sanitizeCoord(x1, acp[1])
+		z1 = sanitizeCoord(z1, acp[2])
+		x2 = sanitizeCoord(x2, x1)
+		z2 = sanitizeCoord(z2, z1)
+		if x1 == nil or z1 == nil then
+			return
+		end
+
+		acp[PREV_X_KEY] = acp[1]
+		acp[PREV_Z_KEY] = acp[2]
 		acp[1] = x1
 		acp[2] = z1
 		acp[3] = x2
 		acp[4] = z2
-		acp[TIMESTAMP_IDX] = clock()
+		local observedInterval = min(max(now - (acp[TIMESTAMP_IDX] or now), 0.05), 1)
+		local prevInterval = acp[PACKET_INTERVAL_IDX] or observedInterval
+		acp[PACKET_INTERVAL_IDX] = min(max(prevInterval * 0.7 + observedInterval * 0.3, 0.05), 1)
+		acp[TIMESTAMP_IDX] = now
 		acp[CLICK_IDX] = click
 	else
+		x1 = sanitizeCoord(x1, x2)
+		z1 = sanitizeCoord(z1, z2)
+		x2 = sanitizeCoord(x2, x1)
+		z2 = sanitizeCoord(z2, z1)
+		if x1 == nil or z1 == nil then
+			return
+		end
+
 		acp = { x1, z1, x2, z2, x1, z1 }
-		acp[TIMESTAMP_IDX] = clock()
+		acp[PREV_X_KEY] = x1
+		acp[PREV_Z_KEY] = z1
+		acp[TIMESTAMP_IDX] = now
+		acp[PACKET_INTERVAL_IDX] = packetInterval
 		acp[CLICK_IDX] = click
 		acp[TEAMID_IDX] = playerTeamIDs[playerID] or select(4, spGetPlayerInfo(playerID, false))
 		alliedCursorsPos[playerID] = acp
@@ -337,6 +377,7 @@ function widget:PlayerRemoved(playerID)
 	playerTeamIDs[playerID] = nil
 	notIdle[playerID] = nil
 	cursors[playerID] = nil
+	lastCursorPos[playerID] = nil
 	prevCursorPos[playerID] = nil
 	alliedCursorsPos[playerID] = nil
 	if allycursorDrawList[playerID] then
@@ -476,13 +517,28 @@ function widget:Update(dt)
 	rotY = getCameraRotationY()
 	for playerID, data in pairs(alliedCursorsPos) do
 		local wx, wz = data[1], data[2]
-		local lastUpdatedDiff = now - data[TIMESTAMP_IDX] + 0.025
-		if lastUpdatedDiff < packetInterval then
-			local scale = (1 - (lastUpdatedDiff / packetInterval)) * numMousePos
+		local lastUpdatedDiff = now - data[TIMESTAMP_IDX]
+		local interpInterval = data[PACKET_INTERVAL_IDX] or packetInterval
+		if numMousePos <= 1 then
+			if lastUpdatedDiff < interpInterval and type(data[1]) == "number" and type(data[2]) == "number" and type(data[PREV_X_KEY]) == "number" and type(data[PREV_Z_KEY]) == "number" then
+				local blendWindow = max(interpInterval, 0.08)
+				local mix = min(max((lastUpdatedDiff + 0.02) / blendWindow, 0), 1)
+				wx = CubicInterpolate2(data[PREV_X_KEY], data[1], mix)
+				wz = CubicInterpolate2(data[PREV_Z_KEY], data[2], mix)
+			end
+		elseif lastUpdatedDiff < interpInterval then
+			lastUpdatedDiff = lastUpdatedDiff + 0.025
+			local scale = (1 - (lastUpdatedDiff / interpInterval)) * numMousePos
 			local iscale = min(floor(scale), numMousePos - 1)
 			local fscale = scale - iscale
-			wx = CubicInterpolate2(data[iscale * 2 + 1], data[(iscale + 1) * 2 + 1], fscale)
-			wz = CubicInterpolate2(data[iscale * 2 + 2], data[(iscale + 1) * 2 + 2], fscale)
+			local x0 = data[iscale * 2 + 1]
+			local x1 = data[(iscale + 1) * 2 + 1]
+			local z0 = data[iscale * 2 + 2]
+			local z1 = data[(iscale + 1) * 2 + 2]
+			if type(x0) == "number" and type(x1) == "number" and type(z0) == "number" and type(z1) == "number" then
+				wx = CubicInterpolate2(x0, x1, fscale)
+				wz = CubicInterpolate2(z0, z1, fscale)
+			end
 		end
 
 		if notIdle[playerID] then
@@ -515,14 +571,15 @@ function widget:Update(dt)
 			end
 		else
 			-- mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
-			if wx and wz and wz_old and wz_old and (abs(wx_old - wx) >= 1 or abs(wz_old - wz) >= 1) then
+			local prevPos = lastCursorPos[playerID]
+			if wx and wz and prevPos and (abs(prevPos[1] - wx) >= 0.25 or abs(prevPos[2] - wz) >= 0.25) then
 				-- abs is needed because of floating point used in interpolation
 				notIdle[playerID] = true
-				wx_old = nil
-				wz_old = nil
+				lastCursorPos[playerID] = nil
 			else
-				wx_old = wx
-				wz_old = wz
+				if wx and wz then
+					lastCursorPos[playerID] = { wx, wz }
+				end
 			end
 			if specList[playerID] and not showSpectatorName then
 				cursors[playerID] = nil
@@ -559,7 +616,7 @@ function widget:GetConfigData()
 		lightStrengthMult = lightStrengthMult,
 		showCursorDot = showCursorDot,
 		showSpectatorName = showSpectatorName,
-		showPlayerName = showPlayerName
+		showPlayerName = showPlayerName,
 	}
 end
 

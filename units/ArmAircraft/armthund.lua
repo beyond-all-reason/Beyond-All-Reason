@@ -1,12 +1,12 @@
 return {
 	armthund = {
 		buildpic = "ARMTHUND.DDS",
-		buildtime = 4780,
+		buildtime = 5000,
 		canfly = true,
 		canmove = true,
 		collide = false,
 		cruisealtitude = 165,
-		energycost = 4200,
+		energycost = 4400,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -20,8 +20,7 @@ return {
 		maxrudder = 0.00615,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		metalcost = 145,
-		noautofire = true,
+		metalcost = 150,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMTHUND.s3o",
 		script = "Units/ARMTHUND.cob",
@@ -86,7 +85,7 @@ return {
 				soundstart = "bombrel",
 				weapontype = "AircraftBomb",
 				damage = {
-					default = 105,
+					default = 110,
 					subs = 35,
 				},
 			},

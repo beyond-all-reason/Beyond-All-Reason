@@ -16,7 +16,7 @@ local LOG_LEVELS = {
 }
 
 -- Current log level - only log messages at this level or higher
-_G.CURRENT_LOG_LEVEL = _G.LOG.INFO
+_G.CURRENT_LOG_LEVEL = _G.LOG.WARNING
 
 _G.Spring = _G.Spring or {
     Log = function(tag, level, message)

@@ -30,7 +30,6 @@ local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
@@ -38,19 +37,13 @@ local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
-local math_clamp = math.clamp
-local math_bit_and = math.bit_and
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
-local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 
-local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
-local CMD_INSERT = CMD.INSERT
 local CMD_OPT_CTRL = CMD.OPT_CTRL
 local CMD_OPT_SHIFT = CMD.OPT_SHIFT
-local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 -------------------------------------------------------------------------------
 --- STATIC VALUES
@@ -135,7 +128,7 @@ local alwaysReturn = false
 local autoSelectFirst = true
 local alwaysShow = false
 local useLabBuildMode = false
-local showPrice = false -- false will still show hover
+local showPrice = true -- false will still show hover
 local showRadarIcon = true -- false will still show hover
 local showGroupIcon = true -- false will still show hover
 local showBuildProgress = true
@@ -232,6 +225,9 @@ local clickCellZoom = 0.125 * zoomMult
 local hoverCellColor = { 0.63, 0.63, 0.63, 0 }
 local selectedCellColor = { 1, 0.85, 0.2, 0.25 }
 local clickCellColor = { 0.3, 0.8, 0.25, 0.2 }
+
+-- Highlight API state: items[unitDefID] = { color={r,g,b}, startTime=os.clock() }
+local highlight = { items = {}, count = 0, defaultColor = { 1.0, 1.0, 1.0 } }
 
 local sec = 0
 local bgpadding, iconMargin, activeAreaMargin
@@ -527,7 +523,7 @@ local function updateHoverState()
 end
 
 local function getCodedOptState(cmdOptsCoded, cmdOpt)
-	return math_bit_and(cmdOptsCoded, cmdOpt) == cmdOpt
+	return math.bit_and(cmdOptsCoded, cmdOpt) == cmdOpt
 end
 
 -- Retrieve from buildunit_ cmdOpts on factories the number of de/enqueued units
@@ -537,7 +533,7 @@ local function cmdOptsToFactoryQueueChange(cmdOpts)
 	if type(cmdOpts) == "number" then
 		optTable.ctrl = getCodedOptState(cmdOpts, CMD_OPT_CTRL)
 		optTable.shift = getCodedOptState(cmdOpts, CMD_OPT_SHIFT)
-		optTable.right = getCodedOptState(cmdOpts, CMD_OPT_RIGHT)
+		optTable.right = getCodedOptState(cmdOpts, CMD.OPT_RIGHT)
 	else
 		optTable = cmdOpts
 	end
@@ -614,7 +610,7 @@ local function updateBuildProgress()
 		return
 	end
 
-	local unitBuildID = spGetUnitIsBuilding(activeBuilderID)
+	local unitBuildID = Spring.GetUnitIsBuilding(activeBuilderID)
 	local unitBuildDefID = unitBuildID and spGetUnitDefID(unitBuildID)
 
 	currentlyBuildingRectID = uDefCellIds[unitBuildDefID]
@@ -1475,6 +1471,52 @@ function widget:Initialize()
 		refreshCommands()
 	end
 
+	---Highlight a build option to draw the player's attention to it with a pulsing
+	---inner outline and a soft inner glow. Non-destructive: does not affect input or
+	---block hover/selection visuals. Subsequent calls update the existing highlight.
+	---@param unitDefID number The unit definition ID to highlight.
+	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
+	local function setHighlight(unitDefID, color)
+		if not unitDefID then return end
+		local items = highlight.items
+		if not items[unitDefID] then
+			highlight.count = highlight.count + 1
+		end
+		items[unitDefID] = {
+			color = color,
+			startTime = (items[unitDefID] and items[unitDefID].startTime) or os.clock(),
+		}
+	end
+
+	local function removeHighlight(unitDefID)
+		local items = highlight.items
+		if unitDefID and items[unitDefID] then
+			items[unitDefID] = nil
+			highlight.count = math_max(0, highlight.count - 1)
+		end
+	end
+
+	local function clearHighlights()
+		local items = highlight.items
+		for k in pairs(items) do
+			items[k] = nil
+		end
+		highlight.count = 0
+	end
+
+	local function hasHighlight(unitDefID)
+		return unitDefID ~= nil and highlight.items[unitDefID] ~= nil
+	end
+
+	WG["buildmenu"].setHighlight = setHighlight
+	WG["buildmenu"].removeHighlight = removeHighlight
+	WG["buildmenu"].clearHighlights = clearHighlights
+	WG["buildmenu"].hasHighlight = hasHighlight
+	WG["gridmenu"].setHighlight = setHighlight
+	WG["gridmenu"].removeHighlight = removeHighlight
+	WG["gridmenu"].clearHighlights = clearHighlights
+	WG["gridmenu"].hasHighlight = hasHighlight
+
 	local blockedUnits = {}
 
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
@@ -1855,8 +1897,8 @@ local function drawButton(rect)
 
 	local color = highlight and 0.2 or 0
 
-	local color1 = { color, color, color, math_clamp(ui_opacity * 1.25, 0.55, 0.95) } -- bottom
-	local color2 = { color, color, color, math_clamp(ui_opacity * 1.25, 0.55, 0.95) } -- top
+	local color1 = { color, color, color, math.clamp(ui_opacity * 1.25, 0.55, 0.95) } -- bottom
+	local color2 = { color, color, color, math.clamp(ui_opacity * 1.25, 0.55, 0.95) } -- top
 
 	if highlight then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
@@ -1927,6 +1969,53 @@ local function drawButton(rect)
 	end
 end
 
+local function drawHighlights()
+	if highlight.count == 0 or not next(highlight.items) then return end
+	local now = os.clock()
+	for uDefID, hl in pairs(highlight.items) do
+		local cellId = uDefCellIds[uDefID]
+		local rect = cellId and cellRects[cellId]
+		if rect and rect.opts and rect.opts.uDefID == uDefID then
+			local color = hl.color or highlight.defaultColor
+			local r, g, b = color[1], color[2], color[3]
+			local t = now - (hl.startTime or now)
+			local pulse = 0.5 + 0.5 * math.sin(t * 4.5)
+
+			local x1 = rect.x + cellPadding + iconPadding
+			local y1 = rect.y + cellPadding + iconPadding
+			local x2 = rect.xEnd - cellPadding - iconPadding
+			local y2 = rect.yEnd - cellPadding - iconPadding
+
+			-- Brighten the unit icon with an additive overlay
+			local brighten = 0.10 + 0.22 * pulse
+			gl.Blending(GL_SRC_ALPHA, GL_ONE)
+			gl.Color(r * brighten, g * brighten, b * brighten, 1)
+			gl.Texture('#' .. uDefID)
+			UiUnit(x1, y1, x2, y2, cornerSize, 1, 1, 1, 1, defaultCellZoom)
+			gl.Texture(false)
+
+			-- Feathered inner outline ring (proper chamfered corners)
+			local thickness = math_max(2, math_floor((x2 - x1) * 0.04))
+			local outlineAlpha = 0.45 + 0.5 * pulse
+			local cs = cornerSize
+			local outerCol = { r, g, b, outlineAlpha }
+			local innerCol = { r, g, b, outlineAlpha * 0.85 }
+			WG.FlowUI.Draw.RectRoundOutline(x1, y1, x2, y2, cs, thickness, 1, 1, 1, 1, outerCol, innerCol)
+
+			-- Soft inner glow fading inward
+			local glowAlpha = 0.10 + 0.20 * pulse
+			local glowWidth = thickness * 3
+			WG.FlowUI.Draw.RectRoundOutline(
+				x1 + thickness, y1 + thickness, x2 - thickness, y2 - thickness,
+				math_max(0, cs - thickness), glowWidth, 1, 1, 1, 1,
+				{ r, g, b, glowAlpha }, { r, g, b, 0 }
+			)
+
+			gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		end
+	end
+end
+
 local function drawCell(rect)
 	-- empty cell
 	if not rect.opts.uDefID then
@@ -1975,8 +2064,8 @@ local function drawCell(rect)
 		gl.Color(0.4, 0.4, 0.4, 1)
 		texprefix = 't0.3,0.3,0.3'
 	elseif underConstructionDim then
-		gl.Color(0.66, 0.66, 0.66, 1)
-		texprefix = 't0.6,0.6,0.6'
+		gl.Color(0.77, 0.77, 0.77, 1)
+		texprefix = 't0.63,0.63,0.63'
 	else
 		gl.Color(1, 1, 1, 1)
 	end
@@ -2006,7 +2095,7 @@ local function drawCell(rect)
 
 	-- colorize/highlight unit icon
 	if cellColor then
-		gl.Blending(GL.DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
+		gl.Blending(GL.DST_ALPHA, GL.ONE_MINUS_SRC_COLOR)
 		gl.Color(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
 		gl.Texture("#" .. uid)
 		UiUnit(
@@ -2812,6 +2901,9 @@ function widget:DrawScreen()
 			gl.R2tHelper.BlendTexRect(buildmenuTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, true)
 		end
 
+		-- draw attention highlights (animated, on top of cached content)
+		drawHighlights()
+
 		if redrawProgress then
 			dlistProgress = gl.DeleteList(dlistProgress)
 			redrawProgress = nil
@@ -2846,14 +2938,14 @@ end
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	-- if theres no factory as active builder, cmd is not build return or cmd
 	-- is not to build a unit: nothing to do
-	if cmdID == CMD_STOP_PRODUCTION then
+	if cmdID == GameCMD.STOP_PRODUCTION then
 		if WG.Quotas then
 			local quotas = WG.Quotas.getQuotas()
 			quotas[unitID] = nil
 			redraw = true
 		end
 	end
-	if cmdID == CMD_INSERT then
+	if cmdID == CMD.INSERT then
 		if cmdParams[2] then
 			cmdID = cmdParams[2]
 			cmdOpts = cmdParams[3]

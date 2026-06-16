@@ -895,6 +895,11 @@ function widget:TeamDied(teamID)
             p.dead = true
         end
     end
+    -- Also mark the ghost slot dead immediately so DrawName shows the strikethrough
+    -- without waiting for the next full update cycle.
+    if player[teamID + specOffset] then
+        player[teamID + specOffset].dead = true
+    end
 end
 
 -- rank players inside each team based on production and damage dealt
@@ -1177,8 +1182,8 @@ function GetAllPlayers()
             if not lastKnownTeamNames[i] then
                 local teamLeaderID = select(2, sp.GetTeamInfo(i, false))
                 if teamLeaderID and teamLeaderID >= 0 then
-                    local pName = sp.GetPlayerInfo(teamLeaderID, false)
-                    if pName then
+                    local pName, _, pSpec, pTeam = sp.GetPlayerInfo(teamLeaderID, false)
+                    if pName and not pSpec and pTeam == i then
                         lastKnownTeamNames[i] = (WG.playernames and WG.playernames.getPlayername)
                             and WG.playernames.getPlayername(teamLeaderID) or pName
                     end
@@ -1188,8 +1193,8 @@ function GetAllPlayers()
             if not lastKnownTeamNames[i] then
                 local allTeamPlayers = sp.GetPlayerList(i, false)
                 for _, pID in ipairs(allTeamPlayers) do
-                    local pName = sp.GetPlayerInfo(pID, false)
-                    if pName then
+                    local pName, _, pSpec, pTeam = sp.GetPlayerInfo(pID, false)
+                    if pName and not pSpec and pTeam == i then
                         lastKnownTeamNames[i] = (WG.playernames and WG.playernames.getPlayername)
                             and WG.playernames.getPlayername(pID) or pName
                         break
@@ -1205,7 +1210,7 @@ function GetAllPlayers()
             player[playerID] = CreatePlayer(playerID)
         end
     end
-    local specPlayers = sp.GetTeamList()
+    local specPlayers = sp.GetPlayerList(-1, false) or {}
     for _, playerID in ipairs(specPlayers) do
         local name, active, spec = sp.GetPlayerInfo(playerID, false)
         if spec then
@@ -1298,6 +1303,7 @@ end
 
 function CreatePlayer(playerID)
     local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank, _, accountInfo, desynced = sp.GetPlayerInfo(playerID)
+    local accountID = nil
 	if accountInfo and accountInfo.accountid then
 		accountID = tonumber(accountInfo.accountid)
 	end
@@ -1697,6 +1703,9 @@ function SortPlayers(teamID, allyTeamID, vOffset)
     -- Adds players to the draw list (self first)
     local playersList = sp.GetPlayerList(teamID, true)
     local noPlayer = true
+    -- When spectating a dead ally team, own section is hidden; don't also filter out
+    -- the alive teams being shown as fallback enemies -- show them regardless of enemyListShow
+    local canShow = enemyListShow or (mySpecStatus and not aliveAllyTeams[myAllyTeamID])
 
     -- add own player (if not spec)
     if myTeamID == teamID then
@@ -1716,7 +1725,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
         if playerID ~= myPlayerID then
             if player[playerID].name ~= nil then
                 if player[playerID].spec ~= true then
-                    if enemyListShow or player[playerID].allyteam == myAllyTeamID then
+                    if canShow or player[playerID].allyteam == myAllyTeamID then
                         vOffset = vOffset + (playerOffset*playerScale)
                         drawListOffset[#drawListOffset + 1] = vOffset
                         drawList[#drawList + 1] = playerID -- new player (with ID)
@@ -1730,7 +1739,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
 
     -- add AI teams
     if select(4, sp.GetTeamInfo(teamID, false)) then
-        if enemyListShow or player[specOffset + teamID].allyteam == myAllyTeamID then
+        if canShow or player[specOffset + teamID].allyteam == myAllyTeamID then
             -- is AI
             vOffset = vOffset + (playerOffset*playerScale)
             drawListOffset[#drawListOffset + 1] = vOffset
@@ -1745,7 +1754,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
         for pID = 0, specOffset - 1 do
             local p = player[pID]
             if p and p.team == teamID and p.spec ~= true and p.name and p.name ~= absentName then
-                if enemyListShow or p.allyteam == myAllyTeamID then
+                if canShow or p.allyteam == myAllyTeamID then
                     vOffset = vOffset + (playerOffset*playerScale)
                     drawListOffset[#drawListOffset + 1] = vOffset
                     drawList[#drawList + 1] = pID
@@ -1758,7 +1767,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
 
     -- add no player token if no player found in this team at this point
     if noPlayer then
-        if enemyListShow or player[specOffset + teamID].allyteam == myAllyTeamID then
+        if canShow or player[specOffset + teamID].allyteam == myAllyTeamID then
             vOffset = vOffset + ((playerOffset - deadPlayerHeightReduction)*playerScale)
             drawListOffset[#drawListOffset + 1] = vOffset
             drawList[#drawList + 1] = specOffset + teamID  -- no players team
@@ -2901,8 +2910,8 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
             -- Live fallback: resolve via the team leader player ID stored in the engine
             local teamLeaderID = select(2, Spring.GetTeamInfo(team, false))
             if teamLeaderID and teamLeaderID >= 0 then
-                local pName = Spring.GetPlayerInfo(teamLeaderID, false)
-                if pName and pName ~= "" then
+                local pName, _, pSpec, pTeam = Spring.GetPlayerInfo(teamLeaderID, false)
+                if pName and pName ~= "" and not pSpec and pTeam == team then
                     lastKnownName = (WG.playernames and WG.playernames.getPlayername)
                         and WG.playernames.getPlayername(teamLeaderID) or pName
                     -- Persist so GetAllPlayers picks it up and doesn't look it up again
