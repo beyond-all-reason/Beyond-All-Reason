@@ -14,21 +14,17 @@ end
 
 function widget:Initialize()
     if Spring.GetGameFrame() > 0 then
-        Spring.Echo("Camera Startup: Game already started, skipping camera setup")
         return
     end
 
     local nameCameraState = Spring.GetCameraState(true)
     if nameCameraState.name ~= "ta" and nameCameraState.name ~= "spring" then
-        Spring.Echo("Camera Startup: Unsupported camera mode, expected 'ta' or 'spring', got '" .. nameCameraState.name
-                .. "'")
         return
     end
 
     -- Calculate the center of the startbox
     local xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(Spring.GetMyAllyTeamID())
     if not xMin or not zMin or not xMax or not zMax then
-        Spring.Echo("Camera Startup: Failed to get startbox coordinates")
         return
     end
 
@@ -44,4 +40,6 @@ function widget:Initialize()
     currentCameraState.dist = 5000
 
     Spring.SetCameraState(currentCameraState)
+
+    widgetHandler:RemoveWidget()
 end
