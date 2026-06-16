@@ -21,9 +21,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local deleteMaxDistance = 30
 	local targetListLengthMax = 128
-	-- The rate of removing unseen/untracked units from the unit target lists.
-	-- Done once per N target list update passes to reduce the overhead costs.
-	local unseenUpdatePasses = 3
 
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -49,6 +46,8 @@ if gadgetHandler:IsSyncedCode() then
 	local ensureTable = table.ensureTable
 
 	local max = math.max
+	local min = math.min
+	local clamp = math.clamp
 	local diag = math.diag
 	local pairsNext = next
 	local type = type
@@ -119,6 +118,44 @@ if gadgetHandler:IsSyncedCode() then
 	local setTargetData = {} -- holds all unit data
 	local activeTargets = {}
 	local pausedTargets = {}
+
+	-- Unlike the physical sim, unit, command, and "AI" AI respond to performance bottlenecks.
+	-- Use a work queue with a sliding index to process target lists in chunks on every frame.
+	local updateWorkQueue = {} -- unitID[] for target updates
+	local workQueueLookup = {} -- unitID => queue index lookup -- TODO: shadows activeTargets
+	local workQueueLength = 0
+	local workQueueIndex = 1
+	-- At most chunkSizeMin units will be processed on every frame except slow update frames.
+	-- So the update interval below is matched only from (updateFrames x chunkSizeMin) units,
+	-- and up to (updateFrames x chunkSizeMax) units, and could be lower or higher otherwise.
+	local updateFrames = 0.1667 * Game.gameSpeed
+	local chunkSizeMin = 32
+	local chunkSizeMax = 1024
+
+	local function addToQueue(unitID)
+		if not workQueueLookup[unitID] then
+			workQueueLength = workQueueLength + 1
+			updateWorkQueue[workQueueLength] = unitID
+			workQueueLookup[unitID] = workQueueLength
+		end
+	end
+
+	local function removeFromQueue(unitID)
+		local index = workQueueLookup[unitID]
+		if index then
+			if index ~= workQueueLength then
+				local moveID = updateWorkQueue[workQueueLength]
+				updateWorkQueue[index] = moveID
+				workQueueLookup[moveID] = index
+			end
+			updateWorkQueue[workQueueLength] = nil
+			workQueueLength = workQueueLength - 1
+			workQueueLookup[unitID] = nil
+			if workQueueIndex > index then
+				workQueueIndex = workQueueIndex - 1
+			end
+		end
+	end
 
 	--------------------------------------------------------------------------------
 	-- Commands
@@ -261,13 +298,13 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("targetIndex", unitID, targetIndex, true)
 	end
 
-	local function setTargetPassive(unitID, unitData, targetIndex)
+	local function setTargetPassive(unitID, unitData)
 		unitData.activeTarget = false
-		unitData.currentIndex = targetIndex
+		unitData.currentIndex = 1
 		if not inAttackCommand(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
-		SendToUnsynced("targetIndex", unitID, targetIndex, false)
+		SendToUnsynced("targetIndex", unitID, 1, false)
 	end
 
 	local function isUnseenEnemyUnit(targetData, allyTeam)
@@ -346,6 +383,7 @@ if gadgetHandler:IsSyncedCode() then
 		setTargetData[unitID] = data
 		activeTargets[unitID] = data
 		pausedTargets[unitID] = nil
+		addToQueue(unitID)
 		sendTargetsToUnsynced(unitID)
 		if not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, targets[1].target) then
 			setTargetActive(unitID, data, 1)
@@ -363,6 +401,7 @@ if gadgetHandler:IsSyncedCode() then
 			pausedTargets[unitID] = nil
 			SendToUnsynced("targetList", unitID, 0)
 		end
+		removeFromQueue(unitID)
 		if not keeptrack then
 			setTargetData[unitID] = nil
 			SendToUnsynced("targetList", unitID, 0)
@@ -391,8 +430,7 @@ if gadgetHandler:IsSyncedCode() then
 		unitData.activeTarget = active
 	end
 
-	local function removeTarget(unitID, index)
-		local unitData = setTargetData[unitID]
+	local function removeTarget(unitID, unitData, index)
 		local removed = tremove(unitData.targets, index)
 		if removed then
 			if not unitData.targets[1] then
@@ -401,9 +439,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			unitData.currentTargets[removed.target] = nil
 			if index == unitData.currentIndex then
-				updateTarget(unitID, unitData, 1)
+				unitData.currentIndex = 1
+				unitData.activeTarget = false
+			elseif index < unitData.currentIndex then
+				unitData.currentIndex = unitData.currentIndex - 1
 			end
-			refreshSendData(unitID, unitData, index)
+			SendToUnsynced("targetDrop", unitID, index)
 		end
 	end
 
@@ -657,12 +698,12 @@ if gadgetHandler:IsSyncedCode() then
 				elseif nParams == 1 then
 					if cmdOptions.alt then
 						local targetIndex = cmdParams[1]
-						removeTarget(unitID, targetIndex)
+						removeTarget(unitID, unitData, targetIndex)
 					else
 						local targetID = cmdParams[1]
 						for index, targetData in ipairs(unitData.targets) do
 							if targetData.target == targetID then
-								removeTarget(unitID, index)
+								removeTarget(unitID, unitData, index)
 								break
 							end
 						end
@@ -670,7 +711,7 @@ if gadgetHandler:IsSyncedCode() then
 				elseif nParams == 3 then
 					for index, targetData in ipairs(unitData.targets) do
 						if type(targetData.target) == "table" and inCancelDistance(targetData.target, cmdParams) then
-							removeTarget(unitID, index)
+							removeTarget(unitID, unitData, index)
 						end
 					end
 				end
@@ -722,20 +763,17 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	-- Target update
 
-	local updateUnseenUnits = unseenUpdatePasses
-
-	function gadget:GameFrame(frame)
-		-- ideally timing would be synced with slow update to reduce attack jittering
-		-- SlowUpdate+ causes attack command to override target command
-		-- unfortunately since 103 that's not possible, attempt to override every frame
-		-- it might create a slight increase of cpu usage when hundreds of units gets
-		-- a set target command, howrever a quick test with 300 fidos only increased by 1%
-		-- sim here
-
-		teamQueryCaches = {}
-
-		for unitID in pairs(setTargetData) do
-			if activeTargets[unitID] then
+	local function processSlowListUpdates()
+		for unitID, unitData in pairsNext, setTargetData do
+			local targets = unitData.targets
+			for index = #targets, 1, -1 do
+				if isUnseenEnemyUnit(targets[index], unitData.allyTeam) then
+					removeTarget(unitID, unitData, index)
+				end
+			end
+			if not targets[1] then
+				removeUnit(unitID)
+			elseif activeTargets[unitID] then
 				if not hasTargetPrecedence(unitID) then
 					pauseTargetting(unitID)
 				end
@@ -745,73 +783,91 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+	end
 
-		local offset = frame % 5
-
-		if offset == 0 then
-
-			if updateUnseenUnits ~= 1 then
-				updateUnseenUnits = updateUnseenUnits - 1
-				return
+	local function updateTargetList(unitID)
+		local unitData = activeTargets[unitID]
+		local targets, teamID, weapons = unitData.targets, unitData.teamID, unitData.weapons
+		local targetCount = #targets
+		local activeIndex = 0
+		local updateIndex = 0 -- table.remove is slow, as is iterating forward then backward, so we do an erase-remove
+		for index = 1, targetCount do
+			local targetData = targets[index]
+			if checkTarget(teamID, targetData.target) then
+				updateIndex = updateIndex + 1
+				if testTarget(unitID, teamID, weapons, targetData.target) then
+					if updateIndex ~= index then
+						targets[updateIndex] = targetData
+					end
+					activeIndex = updateIndex
+					updateIndex = index
+					-- if moveToIndex == index then
+					break -- Avoid continuing tests for better performance.
+					-- end
+				end
+				if updateIndex ~= index then
+					targets[updateIndex] = targetData
+				end
+			else
+				SendToUnsynced("targetDrop", unitID, index)
 			end
-
-			updateUnseenUnits = unseenUpdatePasses
-
-			for unitID, unitData in pairsNext, activeTargets do
-				local targets = unitData.targets
-				for index = #targets, 1, -1 do
-					if isUnseenEnemyUnit(targets[index], unitData.allyTeam) then
-						removeTarget(unitID, index)
-					end
-				end
+		end
+		if updateIndex == 0 then
+			removeUnit(unitID)
+		elseif activeIndex == 0 then
+			if unitData.activeTarget then
+				setTargetPassive(unitID, unitData)
 			end
-
-		elseif offset == 1 then
-
-			for unitID, unitData in pairsNext, activeTargets do
-				local targets, teamID, weapons = unitData.targets, unitData.teamID, unitData.weapons
-				local length, targetIndex, countRemoved = #targets, 0, 0
-
-				-- Target priority is in list-order on the target list.
-				for index = 1, length do
-					local targetData = targets[index]
-					if not checkTarget(teamID, targetData.target) then
-						targetData.invalid = true
-						countRemoved = countRemoved + 1
-					elseif testTarget(unitID, teamID, weapons, targetData.target) then
-						targetIndex = index - countRemoved
-						break
-					end
+			if updateIndex + 1 <= targetCount then
+				-- Remove entries only once we are done shifting indices.
+				for index = updateIndex + 1, targetCount do
+					targets[index] = nil
 				end
-
-				-- But we remove in reverse to minimize shifted entries.
-				local isEmptyList = false
-				if countRemoved > 0 then
-					local maxIndex = targetIndex == 0 and length or targetIndex + countRemoved
-					for index = maxIndex, 1, -1 do
-						if targets[index].invalid then
-							-- TODO: Some duplicated effort. This updates the activeTarget/currentIndex.
-							-- TODO: We need that in the unseen loop, below, but this is redundant here.
-							removeTarget(unitID, index)
-						end
-					end
-					isEmptyList = not targets[1]
-					if not isEmptyList then
-						sendTargetsToUnsynced(unitID)
-					end
+				SendToUnsynced("targetList", unitID, updateIndex + 1)
+			end
+		else
+			setTargetActive(unitID, unitData, activeIndex)
+			-- We broke iter early so have to finish shifting indices.
+			local removedCount = updateIndex - activeIndex
+			local removeFromIndex = targetCount - removedCount + 1
+			for index = activeIndex + 1, targetCount - removedCount do
+				updateIndex = updateIndex + 1
+				targets[index] = targets[updateIndex]
+			end
+			if removeFromIndex <= targetCount then
+				for index = removeFromIndex, targetCount do
+					targets[index] = nil
 				end
-
-				if isEmptyList then
-					--
-				elseif targetIndex ~= 0 then
-					setTargetActive(unitID, unitData, targetIndex)
-				elseif unitData.activeTarget then
-					setTargetPassive(unitID, unitData, 1)
-				end
+				SendToUnsynced("targetList", unitID, removeFromIndex)
 			end
 		end
 	end
 
+	local function processTargetListChunk()
+		if workQueueLength == 0 then
+			return
+		end
+		local processCount = clamp(workQueueLength / updateFrames, min(workQueueLength, chunkSizeMin), chunkSizeMax)
+		for _ = 1, processCount do
+			if workQueueIndex > workQueueLength then
+				workQueueIndex = 1
+			end
+			local unitID = updateWorkQueue[workQueueIndex]
+			workQueueIndex = workQueueIndex + 1
+			updateTargetList(unitID)
+		end
+	end
+
+	-- Since v103 Attack commands override the unit target on any frame, not just slow updates.
+	-- So we try to override the target again, every single frame, to prevent target jittering.
+	function gadget:GameFrame(frame)
+		teamQueryCaches = {}
+		if frame % 15 == 0 then
+			processSlowListUpdates()
+		else
+			processTargetListChunk()
+		end
+	end
 
 
 else	-- UNSYNCED
@@ -827,6 +883,8 @@ else	-- UNSYNCED
 	-- 4k * 100 list length maximum is enough to assume target saturation with 32,000 unit cap.
 
 	local math_min = math.min
+	local table_remove = table.remove
+	local pairsNext = next
 
 	local glVertex = gl.Vertex
 	local glPushAttrib = gl.PushAttrib
@@ -853,7 +911,6 @@ else	-- UNSYNCED
 	local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 	local spSetCustomCommandDrawData = Spring.SetCustomCommandDrawData
 	local spAddWorldIcon = Spring.AddWorldIcon
-	local pairsNext = next
 
 	local myAllyTeam = spGetMyAllyTeamID()
 	local myTeam = spGetMyTeamID()
@@ -871,6 +928,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction("targetdrawteam", handleTargetDrawEvent, "toggles drawing targets for units, params: teamID doDraw")
 		gadgetHandler:AddChatAction("targetdrawunit", handleUnitTargetDrawEvent, "toggles drawing targets for units, params: unitID")
 		gadgetHandler:AddSyncAction("targetList", handleTargetListEvent)
+		gadgetHandler:AddSyncAction("targetDrop", handleTargetDropEvent)
 		gadgetHandler:AddSyncAction("targetIndex", handleTargetIndexEvent)
 		gadgetHandler:AddSyncAction("failCommand", handleFailCommand)
 
@@ -892,6 +950,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction("targetdrawteam")
 		gadgetHandler:RemoveChatAction("targetdrawunit")
 		gadgetHandler:RemoveSyncAction("targetList")
+		gadgetHandler:RemoveSyncAction("targetDrop")
 		gadgetHandler:RemoveSyncAction("targetIndex")
 		gadgetHandler:RemoveSyncAction("failCommand")
 	end
@@ -925,8 +984,8 @@ else	-- UNSYNCED
 			}
 			targetList[unitID] = unitData
 		end
-		local targets = unitData.targets
 		if removeFromIndex then
+			local targets = unitData.targets
 			for i = #targets, removeFromIndex, -1 do
 				targets[i] = nil
 			end
@@ -951,6 +1010,13 @@ else	-- UNSYNCED
 			end
 		end
 		--tracy.ZoneEnd()
+	end
+
+	function handleTargetDropEvent(_, unitID, index)
+		local unitData = getUnitTargetList(unitID, false)
+		if unitData then
+			table_remove(unitData.targets, index)
+		end
 	end
 
 	function handleTargetIndexEvent(_, unitID, index, active)

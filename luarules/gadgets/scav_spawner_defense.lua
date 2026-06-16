@@ -360,7 +360,7 @@ if gadgetHandler:IsSyncedCode() then
 	local endlessLoopCounter = 1
 	local pastFirstBoss = false
 	function updateDifficultyForSurvival()
-		t = GetGameSeconds()
+		t = GetGameSeconds
 		config.gracePeriod = t-1
 		bossAnger = 0  -- reenable scav spawning
 		techAnger = 0
@@ -1761,7 +1761,7 @@ if gadgetHandler:IsSyncedCode() then
 						notify = 0
 					}
 				end
-				local resistPercent = math.min((bossResistance[attackerDefID].damage) / aliveBossesMaxHealth, 0.98)
+				local resistPercent = math.min((bossResistance[attackerDefID].damage) / aliveBossesMaxHealth, 0.95)
 				if resistPercent > 0.5 then
 					if bossResistance[attackerDefID].notify == 0 then
 						scavEvent("bossResistance", tonumber(attackerDefID))
@@ -1771,13 +1771,14 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				if UnitDefStaggerMultiplier[attackerDefID] then
-					bossStagger.CurrentHealth = bossStagger.CurrentHealth - ((math.max(damage*0.25, math.min((damage * (1-resistPercent) * 2), damage)) / nTotalBosses) * UnitDefStaggerMultiplier[attackerDefID])
+					bossStagger.CurrentHealth = bossStagger.CurrentHealth - ((math.max(damage*0.25, math.min((damage * (1-resistPercent) * 2), damage)) / math.sqrt(nTotalBosses)) * UnitDefStaggerMultiplier[attackerDefID])
 				else
-					bossStagger.CurrentHealth = bossStagger.CurrentHealth - (math.max(damage*0.25,math.min((damage * (1-resistPercent) * 2), damage)) / nTotalBosses)
+					bossStagger.CurrentHealth = bossStagger.CurrentHealth - (math.max(damage*0.25,math.min((damage * (1-resistPercent) * 2), damage)) / math.sqrt(nTotalBosses))
 				end
 
 				if bossStagger.currentlyStaggered then
 					damage = damage - (damage * resistPercent * 0.5)
+					bossStagger.CurrentTimer = bossStagger.CurrentTimer - (damage*0.0001)
 				else
 					damage = damage - (damage * resistPercent)
 				end
@@ -2236,7 +2237,7 @@ if gadgetHandler:IsSyncedCode() then
 				if defID and mRandom(1,math.ceil((33*math.max(1, GetTeamUnitDefCount(scavTeamID, defID))))) == 1 and mRandom() < config.spawnChance then
 					SpawnMinions(unitID, defID)
 				end
-				if mRandom(1,#scavs) == 1 then
+				if mRandom(1,#scavs) == 1 or bossIDs[unitID] then
 					if unitCowardCooldown[unitID] and (GetGameFrame > unitCowardCooldown[unitID]) then
 						unitCowardCooldown[unitID] = nil
 						GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
