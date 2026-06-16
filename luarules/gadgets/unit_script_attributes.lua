@@ -29,8 +29,8 @@ local function customCobTime(text)
 	return tonumber(text) * SEC2COBTIME
 end
 
-local function customCobFrames(text)
-	return math.round(customCobTime(text) * gameSpeed)
+local function customFrames(text)
+	return math.round(tonumber(text) * gameSpeed)
 end
 
 local function customArray(text)
@@ -51,8 +51,8 @@ local unitCustomParams = {
 }
 
 local weaponCustomParams = {
-	sweepfire_firetime   = { method = "SetSweepfireFireTime", numbered = true, convert = customCobFrames },
-	sweepfire_reloadtime = { method = "SetSweepfireReloadTime", numbered = true, convert = customCobFrames },
+	sweepfire_firetime   = { method = "SetSweepfireFireTime", numbered = true, convert = customFrames },
+	sweepfire_reloadtime = { method = "SetSweepfireReloadTime", numbered = true, convert = customFrames },
 	turretspeeds         = { method = "SetWeaponTurretSpeed", numbered = true, convert = customArrayToCobAngle }, -- TODO: These customparams have spent years in retirement.
 }
 
