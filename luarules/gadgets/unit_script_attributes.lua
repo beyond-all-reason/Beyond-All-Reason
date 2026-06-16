@@ -92,7 +92,7 @@ end
 
 local function hasAttribute(def, attribute)
 	local customParams = def.customParams
-	if type(def.params) ~= "table" then
+	if type(attribute.params) ~= "table" then
 		return customParams[attribute.params] ~= nil
 	else
 		local hasParams = table[attribute.requires or "all"] -- table.all or table.any
