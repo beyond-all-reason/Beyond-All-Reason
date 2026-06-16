@@ -485,19 +485,7 @@ local function refreshUnitInfo()
 					setEnergyAndMetalCosts(weaponDef)
 
 					if weaponDef.paralyzer ~= true then
-
-
-						if weaponDef.customParams then
-
-							if weaponDef.customParams.sweepfire then
-								unitDefInfo[unitDefID].maxdps = (weaponDef.damages[0] * weaponDef.customParams.sweepfire) / math.max(weaponDef.minIntensity, 0.5)
-								unitDefInfo[unitDefID].mindps = weaponDef.damages[0] * weaponDef.customParams.sweepfire
-							else
-								addDPS(calculateLaserDPS(weaponDef, defDmg))
-							end
-						else
-							addDPS(calculateLaserDPS(weaponDef, defDmg))
-						end
+						addDPS(calculateLaserDPS(weaponDef, defDmg))
 					else
 						-- calculate laser emp dmg
 						local minIntensity = math.max(weaponDef.minIntensity, 0.5)
