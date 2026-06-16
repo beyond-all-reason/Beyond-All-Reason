@@ -17,43 +17,61 @@ function gadget:GetInfo()
 	}
 end
 
+local gameSpeed = Game.gameSpeed
+local DEG2COBANGLE = COBSCALE / 360
+
 -- Conversion functions for customParams
 
-local gameSpeed = Game.gameSpeed
-
--- COB cannot handle these conversions itself due to integer precision issues. LUS is fine.
-local DEG2COBANGLE = COBSCALE / 360
-local SEC2COBTIME = 1000
-
-local function customCobTime(text)
-	return tonumber(text) * SEC2COBTIME
+local function customNumber(def, key)
+	local value = def.customParams[key] or def[key]
+	return value ~= nil and tonumber(value) or nil
 end
 
-local function customFrames(text)
-	return math.round(tonumber(text) * gameSpeed)
+local function customFrames(def, key)
+	local value = customNumber(def, key)
+	return value and math.round(value * gameSpeed) or nil
 end
 
-local function customArray(text)
-	return table.map(tostring(text):split("%s"), function(v, k) return tonumber(v), k end)
+local function customCobAngle(def, key)
+	local value = customNumber(def, key)
+	return value and value * DEG2COBANGLE or nil
 end
 
-local function customArrayToCobAngle(text)
-	local array = customArray(text)
-	if array then
-		return table.map(array, function (v, k) return v * DEG2COBANGLE, k end)
-	end
-end
+-- Attribute definitions
 
--- Configured attributes and script callins
+---@class UnitScriptAttributeDefinition
+---@field params string|string[]
+---@field requires "any"|"all"|nil default := "all"
+---@field method string
+---@field numbered boolean|nil Whether to append the weapon number to the method name.
+---@field process fun(self:UnitScriptAttributeDefinition, def:table):any
 
-local unitCustomParams = {
+---@type UnitScriptAttributeDefinition[]
+local unitAttributeDefinitions = {
 	--
 }
 
-local weaponCustomParams = {
-	sweepfire_firetime   = { method = "SetSweepfireFireTime", numbered = true, convert = customFrames },
-	sweepfire_reloadtime = { method = "SetSweepfireReloadTime", numbered = true, convert = customFrames },
-	turretspeeds         = { method = "SetWeaponTurretSpeed", numbered = true, convert = customArrayToCobAngle }, -- TODO: These customparams have spent years in retirement.
+---@type UnitScriptAttributeDefinition[]
+local weaponAttributeDefinitions = {
+	{
+		method   = "SetSweepfireTimeWeapon",
+		numbered = true,
+		params   = { "sweepfire_firetime", "sweepfire_reloadtime" },
+		requires = "any",
+		process  = function(self, def) return { customFrames(def, self.params[1]) or 0, customFrames(def, self.params[2]) or 0 } end,
+	},
+	{
+		method   = "SetTurretSpeedWeapon",
+		numbered = true,
+		params   = { "turretspeedx", "turretspeedy" },
+		process  = function(self, def) return { customCobAngle(def, self.params[1]) or 0, customCobAngle(def, self.params[2]) or 0 } end,
+	},
+	{
+		method   = "SetTurretSpeedWeapon",
+		numbered = true,
+		params   = "turretspeed",
+		process  = function(self, def) return { customCobAngle(def, self.params) or 0, customCobAngle(def, self.params) or 0 } end,
+	},
 }
 
 -- Initialization and setup
@@ -72,30 +90,39 @@ local function getUnitScriptCall(unitID)
 		or callCOB
 end
 
-local function getUnitAttributes(customParams, attributes)
-	for key, attribute in pairs(unitCustomParams) do
-		if customParams[key] ~= nil then
-			if attribute.convert then
-				attributes[attribute.method] = attribute.convert(customParams[key])
-			else
-				attributes[attribute.method] = customParams[key]
-			end
+local function hasAttribute(def, attribute)
+	local customParams = def.customParams
+	if type(def.params) ~= "table" then
+		return customParams[attribute.params] ~= nil
+	else
+		local hasParams = table[attribute.requires or "all"] -- table.all or table.any
+		return hasParams(attribute.params, function(param) return customParams[param] ~= nil end)
+	end
+end
+
+local function getUnitAttributes(unitDef, out)
+	for index, attribute in ipairs(unitAttributeDefinitions) do
+		if hasAttribute(unitDef, attribute) and not out[attribute.method] then
+			out[attribute.method] = attribute:process(unitDef)
 		end
 	end
 end
 
-local function getWeaponAttributes(weapons, attributes)
+local function getWeaponAttribute(weaponNum, weaponDef, attribute, out)
+	if not hasAttribute(weaponDef, attribute) then
+		return
+	end
+	local method = attribute.method .. (attribute.numbered and weaponNum or "")
+	if not out[method] then
+		out[method] = attribute:process(weaponDef)
+	end
+end
+
+local function getWeaponAttributes(weapons, out)
 	for weaponNum, weapon in ipairs(weapons) do
-		local customParams = WeaponDefs[weapon.weaponDef].customParams
-		for key, attribute in pairs(weaponCustomParams) do
-			if customParams[key] ~= nil then
-				local method = attribute.method .. (attribute.numbered and weaponNum or "")
-				if attribute.convert then
-					attributes[method] = attribute.convert(customParams[key])
-				else
-					attributes[method] = customParams[key]
-				end
-			end
+		local weaponDef = WeaponDefs[weapon.weaponDef]
+		for index, attribute in ipairs(weaponAttributeDefinitions) do
+			getWeaponAttribute(weaponNum, weaponDef, attribute, out)
 		end
 	end
 end
