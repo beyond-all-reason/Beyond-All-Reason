@@ -25,6 +25,20 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetActiveCommand = Spring.GetActiveCommand
+
+local cmdBlockChatHistory = {
+	[CMD.RECLAIM]                = true,
+	[CMD.REPAIR]                 = true,
+	[CMD.RESURRECT]              = true,
+	[CMD.RESTORE]                = true,
+	[CMD.CAPTURE]                = true,
+	[CMD.ATTACK]                 = true,
+	[CMD.AREA_ATTACK]            = true,
+	[CMD.LOAD_UNITS]             = true,
+	[CMD.UNLOAD_UNITS]			 = true,
+	[GameCMD.AREA_ATTACK_GROUND] = true,
+}
 
 local LineTypes = {
 	Console = -1,
@@ -1464,7 +1478,8 @@ function widget:Update(dt)
 		setCurrentChatLine(#chatLines)
 	elseif math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if showHistoryWhenCtrlShift and ctrl and shift then
+		local _, actCmdID, _, _      = spGetActiveCommand()
+		if showHistoryWhenCtrlShift and ctrl and shift and not (actCmdID and cmdBlockChatHistory[actCmdID]) then
 			if math_isInRect(x, y, consoleActivationArea[1], consoleActivationArea[2], consoleActivationArea[3], consoleActivationArea[4]) then
 				historyMode = 'console'
 			else
