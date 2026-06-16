@@ -47,15 +47,16 @@ local cmdColorsTbl = {
 }
 
 local cmdAreaBlockDragging = {
-	[CMD.RECLAIM]      = true,
-	[CMD.REPAIR]       = true,
-	[CMD.RESURRECT]    = true,
-	[CMD.RESTORE]      = true,
-	[CMD.CAPTURE]      = true,
-	[CMD.ATTACK]       = true,
-	[CMD.AREA_ATTACK]  = true,
-	[CMD.LOAD_UNITS]   = true,
-	[CMD.UNLOAD_UNITS] = true,
+	[CMD.RECLAIM]                = true,
+	[CMD.REPAIR]                 = true,
+	[CMD.RESURRECT]              = true,
+	[CMD.RESTORE]                = true,
+	[CMD.CAPTURE]                = true,
+	[CMD.ATTACK]                 = true,
+	[CMD.AREA_ATTACK]            = true,
+	[CMD.LOAD_UNITS]             = true,
+	[CMD.UNLOAD_UNITS]			 = true,
+	[GameCMD.AREA_ATTACK_GROUND] = true,
 }
 
 local wayPtSelDist = 15
