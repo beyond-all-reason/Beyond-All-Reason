@@ -16,52 +16,52 @@ static-var Weapon8TurretX, Weapon8TurretY;
 static-var Weapon9TurretX, Weapon9TurretY;
 static-var Weapon10TurretX, Weapon10TurretY;
 
-SetWeaponTurretSpeed1(var1,var2)
+SetTurretSpeedWeapon1(var1,var2)
 {
 	Weapon1TurretX = var1;
 	Weapon1TurretY = var2;	
 }
-SetWeaponTurretSpeed2(var1,var2)
+SetTurretSpeedWeapon2(var1,var2)
 {
 	Weapon2TurretX = var1;
 	Weapon2TurretY = var2;	
 }
-SetWeaponTurretSpeed3(var1,var2)
+SetTurretSpeedWeapon3(var1,var2)
 {
 	Weapon3TurretX = var1;
 	Weapon3TurretY = var2;	
 }
-SetWeaponTurretSpeed4(var1,var2)
+SetTurretSpeedWeapon4(var1,var2)
 {
 	Weapon4TurretX = var1;
 	Weapon4TurretY = var2;	
 }
-SetWeaponTurretSpeed5(var1,var2)
+SetTurretSpeedWeapon5(var1,var2)
 {
 	Weapon5TurretX = var1;
 	Weapon5TurretY = var2;	
 }
-SetWeaponTurretSpeed6(var1,var2)
+SetTurretSpeedWeapon6(var1,var2)
 {
 	Weapon6TurretX = var1;
 	Weapon6TurretY = var2;	
 }
-SetWeaponTurretSpeed7(var1,var2)
+SetTurretSpeedWeapon7(var1,var2)
 {
 	Weapon7TurretX = var1;
 	Weapon7TurretY = var2;	
 }
-SetWeaponTurretSpeed8(var1,var2)
+SetTurretSpeedWeapon8(var1,var2)
 {
 	Weapon8TurretX = var1;
 	Weapon8TurretY = var2;	
 }
-SetWeaponTurretSpeed9(var1,var2)
+SetTurretSpeedWeapon9(var1,var2)
 {
 	Weapon9TurretX = var1;
 	Weapon9TurretY = var2;	
 }
-SetWeaponTurretSpeed10(var1,var2)
+SetTurretSpeedWeapon10(var1,var2)
 {
 	Weapon10TurretX = var1;
 	Weapon10TurretY = var2;	
