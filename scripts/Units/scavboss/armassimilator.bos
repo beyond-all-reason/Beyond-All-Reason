@@ -5,9 +5,9 @@
 
 piece  pelvis, lthigh, lshin, lcalf, lfoot, rthigh, rshin, rcalf, rfoot,
 	torso, ruparm, relbow, rloarm, rbarrel, rflare1, rflare2, luparm, 
-	lelbow, lloarm, lbarrel, lflare1, lflare2;
+	lelbow, lloarm, lbarrel, lflare1, lflare2, laa, raa;
 
-static-var  Static_Var_1, gun_1, bMoving, bAiming, wpn1_lasthead;
+static-var  Static_Var_1, gun_1, bMoving, bAiming, wpn1_lasthead, aa_1;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -172,6 +172,7 @@ Create()
 	hide rflare1;
 
 	gun_1 = 0;
+  aa_1=0;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_1 = 3500;
@@ -227,6 +228,12 @@ AimFromPrimary(piecenum)
 	piecenum = torso;
 }
 
+
+AimFromSecondary(piecenum)
+{
+	piecenum = torso;
+}
+
 QueryPrimary(piecenum)
 {
 	if( gun_1 == 0 )
@@ -246,6 +253,18 @@ QueryPrimary(piecenum)
 		piecenum = lflare2;
 	}
 }
+QuerySecondary(piecenum)
+{
+	if( aa_1 == 0 )
+	{
+		piecenum = raa;
+	}
+	if( aa_1 == 1 )
+	{
+		piecenum = laa;
+	}
+}
+
 
 AimPrimary(heading, pitch)
 {
@@ -263,6 +282,24 @@ AimPrimary(heading, pitch)
 	wpn1_lasthead = heading;
     start-script RestoreAfterDelay();
 	return (1);
+}
+
+AimSecondary(heading, pitch)
+{
+	bAiming = TRUE;
+	turn torso to y-axis heading speed <320>;
+	turn rloarm to x-axis <-90> - pitch speed <320>;
+	turn lloarm to x-axis <-90> - pitch speed <320>;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn torso around y-axis;
+		wait-for-turn rloarm around x-axis;
+	}
+	wpn1_lasthead = heading;
+    start-script RestoreAfterDelay();
+	return (1);
+
 }
 
 FirePrimary()
@@ -307,6 +344,19 @@ FirePrimary()
 		gun_1 = 0;
 		return (1);
 	}
+}
+FireSecondary()
+{ if ( aa_1 == 0)
+  {
+		aa_1 = 1;
+		return (1);
+	}
+	if ( aa_1 == 1 )
+	{
+		aa_1 = 0;
+		return (1);
+	}
+	
 }
 
 

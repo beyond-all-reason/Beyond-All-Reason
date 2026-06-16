@@ -172,7 +172,7 @@ local icontypes = {
 		size = 1.25999999
 	},
 	armassimilator = {
-		bitmap = "icons/bot_t3.png",
+		bitmap = "icons/armassimilator.png",
 		size = 1.99499989
 	},
 	armassistdrone = {
@@ -700,7 +700,7 @@ local icontypes = {
 		size = 1.36499989
 	},
 	armmeatball = {
-		bitmap = "icons/amphib_t3.png",
+		bitmap = "icons/corshiva_2.1.png",
 		size = 2.20499969
 	},
 	armmercury = {
@@ -3908,7 +3908,7 @@ local icontypes = {
 		size = 2.6
 	},
 
-	
+
 	corhaap = {
 		bitmap = "icons/factory_air_t2.png",
 		size = 2.6
@@ -3918,7 +3918,7 @@ local icontypes = {
 		bitmap = "icons/factory_air_t2.png",
 		size = 2.6
 	},
-	
+
 	corhalab = {
 		bitmap = "icons/factory_bot_t2.png",
 		size = 2.6
@@ -3948,7 +3948,7 @@ local icontypes = {
 		bitmap = "icons/factory_vehicle_t2.png",
 		size = 2.6
 	},
-	
+
 
 	blank = {
 		bitmap = "icons/blank.png",
