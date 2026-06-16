@@ -1549,6 +1549,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				if queenStagger.currentlyStaggered then
 					damage = damage - (damage * resistPercent * 0.5)
+					queenStagger.CurrentTimer = queenStagger.CurrentTimer - (damage*0.0001)
 				else
 					damage = damage - (damage * resistPercent)
 				end
@@ -1556,7 +1557,6 @@ if gadgetHandler:IsSyncedCode() then
 				queenResistance[attackerDefID].damage = queenResistance[attackerDefID].damage + (damage * 5 * config.queenResistanceMult)
 				queenResistance[attackerDefID].percent = resistPercent
 				
-
 			else
 				damage = 1
 			end
@@ -2070,7 +2070,7 @@ if gadgetHandler:IsSyncedCode() then
 				if defID and mRandom(1,math.ceil((33*math.max(1, GetTeamUnitDefCount(raptorTeamID, defID))))) == 1 and mRandom() < config.spawnChance then
 					SpawnMinions(unitID, defID)
 				end
-				if mRandom(1,#raptors) == 1 then
+				if mRandom(1,#raptors) == 1 or queenIDs[unitID] then
 					if unitCowardCooldown[unitID] and (n > unitCowardCooldown[unitID]) then
 						unitCowardCooldown[unitID] = nil
 						GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
