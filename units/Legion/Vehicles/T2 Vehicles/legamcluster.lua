@@ -130,7 +130,8 @@ return {
 				customparams = {
 					cluster_def = 'cluster_munition',
 					cluster_number = 5,
-					turretspeeds = "35 35",
+					turretspeedx = 35,
+					turretspeedy = 35,
 				},
 				damage = {
 					default = 300,

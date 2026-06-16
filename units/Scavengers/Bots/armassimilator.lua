@@ -168,7 +168,8 @@ return {
 				turret = true,
 				weaponvelocity = 1000,
 				customparams = {
-					turretspeeds = "200 200",
+					turretspeedx = 200,
+					turretspeedy = 200,
 				},
 				damage = {
 					default = 33,

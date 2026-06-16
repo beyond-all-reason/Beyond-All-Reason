@@ -146,7 +146,8 @@ return {
 					area_onhit_range = 60,
 					area_onhit_time = 7,
 					water_splash = 0,
-					turretspeeds = "30 40",
+					turretspeedx = 30,
+					turretspeedy = 40,
 				},
 				damage = {
 					default = 60,

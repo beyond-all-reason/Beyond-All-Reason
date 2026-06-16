@@ -126,7 +126,8 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 960,
 				customparams = {
-					turretspeeds = "300 300",
+					turretspeedx = 300,
+					turretspeedy = 300,
 				},
 				damage = {
 					default = 40,

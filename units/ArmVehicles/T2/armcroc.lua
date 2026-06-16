@@ -128,7 +128,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				customparams = {
-					turretspeeds = "45 75",
+					turretspeedx = 45,
+					turretspeedy = 75,
 				},
 				damage = {
 					default = 225,

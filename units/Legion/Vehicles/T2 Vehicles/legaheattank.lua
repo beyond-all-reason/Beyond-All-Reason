@@ -140,7 +140,8 @@ return {
 				weaponvelocity = 950,
 				customparams = {
 					sweepfire_firetime = 1.8,
-					turretspeeds = "65 105",
+					turretspeedx = 65,
+					turretspeedy = 105,
 				},
 				damage = {
 					default = 33,

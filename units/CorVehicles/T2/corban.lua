@@ -145,7 +145,8 @@ return {
 				customparams = {
 					projectile_destruction_method = "descend",
 					overrange_distance = 920,
-					turretspeeds = "125 125",
+					turretspeedx = 125,
+					turretspeedy = 125,
 				},
 				damage = {
 					default = 1000,

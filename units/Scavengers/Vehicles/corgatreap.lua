@@ -162,7 +162,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
 				customparams = {
-					turretspeeds = "65 105",
+					turretspeedx = 65,
+					turretspeedy = 105,
 				},
 				damage = {
 					default = 261,
