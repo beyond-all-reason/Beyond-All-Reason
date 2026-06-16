@@ -1355,13 +1355,9 @@ Create()
 	}
 }
 
-SetSweepfireFireTime1(fireTimeValue)
+SetSweepfireTimeWeapon1(fireTimeValue, reloadTimeValue)
 {
 	fireTime = fireTimeValue;
-}
-
-SetSweepfireReloadTime1(reloadTimeValue)
-{
 	reloadTime = reloadTimeValue;
 }
 

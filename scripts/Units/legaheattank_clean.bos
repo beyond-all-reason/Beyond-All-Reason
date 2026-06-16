@@ -76,7 +76,7 @@ SetMaxReloadTime(reloadMS)
 	reloadTime = reloadMS; // FIXME: xp scaling
 }
 
-SetSweepfireFireTime1(fireTimeValue)
+SetSweepfireTimeWeapon1(fireTimeValue, reloadTimeValue)
 {
 	fireTime = fireTimeValue;
 }

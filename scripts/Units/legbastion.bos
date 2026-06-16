@@ -259,7 +259,7 @@ Create()
 	start-script SpinIdle();
 }
 
-SetSweepfireFireTime1(fireTimeValue)
+SetSweepfireTimeWeapon1(fireTimeValue, reloadTimeValue)
 {
 	fireTime = fireTimeValue;
 }
