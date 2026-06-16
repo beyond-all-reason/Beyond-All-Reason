@@ -26,6 +26,10 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 local teamplatterVBO = nil
 local teamplatterShader = nil
 local luaShaderDir = "LuaUI/Include/"
+-- Select the no-GS DrawPrimitiveAtUnit backend on platforms whose GL backend
+-- does not expose a geometry-shader stage. Other platforms continue to use
+-- the original geometry-shader path unchanged.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
 
 -- Localize for speedups:
 local glStencilFunc         = gl.StencilFunc
@@ -135,7 +139,11 @@ function widget:DrawWorldPreUnit()
 		end
 
 		teamplatterShader:SetUniform("addRadius", 0)
-		teamplatterVBO.VAO:DrawArrays(GL_POINTS, teamplatterVBO.usedElements)
+		if UseNoGS then
+			teamplatterVBO.VAO:DrawArrays(GL.TRIANGLES, teamplatterVBO.numVerts, 0, teamplatterVBO.usedElements)
+		else
+			teamplatterVBO.VAO:DrawArrays(GL_POINTS, teamplatterVBO.usedElements)
+		end
 
 		--[[ -- this second draw pass is only needed if we actually want to draw the unit's radius
 		glStencilFunc(GL_NOTEQUAL, 1, 1)
@@ -143,7 +151,11 @@ function widget:DrawWorldPreUnit()
 		glDepthTest(true)
 
 		teamplatterShader:SetUniform("addRadius", 0.15)
-		teamplatterVBO.VAO:DrawArrays(GL_POINTS, teamplatterVBO.usedElements)
+		if UseNoGS then
+			teamplatterVBO.VAO:DrawArrays(GL.TRIANGLES, teamplatterVBO.numVerts, 0, teamplatterVBO.usedElements)
+		else
+			teamplatterVBO.VAO:DrawArrays(GL_POINTS, teamplatterVBO.usedElements)
+		end
 		]]--
 
 		glStencilMask(1)
@@ -182,7 +194,10 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 end
 
 local function init()
-	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local primitivesInclude = UseNoGS
+		and luaShaderDir.."DrawPrimitiveAtUnitNoGS.lua"
+		or  luaShaderDir.."DrawPrimitiveAtUnit.lua"
+	local DPatUnit = VFS.Include(primitivesInclude)
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
 	shaderConfig.TRANSPARENCY = opacity

@@ -61,6 +61,15 @@ end
 
 local sec = 0
 function widget:Update(dt)
+	-- TODO: SDL_WINDOWEVENT_LEAVE is not delivered reliably on the surfaceless
+	-- EGL + drawable-layer setup used by some GL backends, which causes this
+	-- widget to clamp the VSync interval to the idle divider (~15 fps) during
+	-- active play. Short-circuit Update() on those backends until the engine-
+	-- side SDL mouse-leave behavior is fixed. See <engine-issue-link>.
+	if Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX") then
+		return
+	end
+
 	sec = sec + dt
 	if sec > 2 then
 		sec = 0

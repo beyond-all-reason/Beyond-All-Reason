@@ -29,6 +29,9 @@ local groundPlateVBO = nil
 local groundPlateShader = nil
 
 local luaShaderDir = "LuaUI/Include/"
+-- Select the no-GS DrawPrimitiveAtUnit backend on platforms whose GL backend
+-- does not expose a geometry-shader stage.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
@@ -86,7 +89,11 @@ function widget:DrawWorldPreUnit()
 		glDepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		glTexture(0, atlas.atlasimage)
 		groundPlateShader:Activate()
-		groundPlateVBO.VAO:DrawArrays(GL_POINTS,groundPlateVBO.usedElements)
+		if UseNoGS then
+			groundPlateVBO.VAO:DrawArrays(GL.TRIANGLES, groundPlateVBO.numVerts, 0, groundPlateVBO.usedElements)
+		else
+			groundPlateVBO.VAO:DrawArrays(GL_POINTS,groundPlateVBO.usedElements)
+		end
 		groundPlateShader:Deactivate()
 		glTexture(0, false)
 		glCulling(false)
@@ -119,7 +126,10 @@ function widget:Initialize()
 	end
 
 	-- Init GL4 things
-	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local primitivesInclude = UseNoGS
+		and luaShaderDir.."DrawPrimitiveAtUnitNoGS.lua"
+		or  luaShaderDir.."DrawPrimitiveAtUnit.lua"
+	local DrawPrimitiveAtUnit = VFS.Include(primitivesInclude)
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 0
@@ -129,7 +139,17 @@ function widget:Initialize()
 	-- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
 	shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin((timeInfo.x + timeInfo.w) * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2; // match CUS glow rate"
 	shaderConfig.ZPULL = 512.0 -- send 16 elmos forward in depth buffer"
-	shaderConfig.POST_GEOMETRY = "g_uv.w = dataIn[0].v_parameters.w;" -- pass the glow rate to the frag shader
+	-- pass the glow rate to the frag shader. In the GS backend this snippet runs
+	-- inside the geometry shader where the VS outputs are visible as
+	-- dataIn[VERTEX]. In the no-GS backend the same injection runs per output
+	-- vertex inside the VS itself, where v_parameters is a VS-local that has
+	-- already been populated by the POST_VERTEX snippet above; both forms are
+	-- pure per-vertex writes of the same value.
+	if UseNoGS then
+		shaderConfig.POST_GEOMETRY = "g_uv.w = v_parameters.w;"
+	else
+		shaderConfig.POST_GEOMETRY = "g_uv.w = dataIn[0].v_parameters.w;"
+	end
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb* (1.0 + g_uv.w), texcolor.a * g_uv.z);"
 	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CIRCLES = nil

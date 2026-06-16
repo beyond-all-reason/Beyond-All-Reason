@@ -1263,6 +1263,11 @@ local atlasID = nil
 local atlassedImages = {}
 --local rectRoundVBO = nil
 
+-- Select GS-based or GS-free pipeline. On backends without a geometry-shader
+-- stage (e.g. Metal via Zink) the NoGS path folds the GS body into the VS and
+-- per-rect attribs become INSTANCE-rate (divisor 1) instead of vertex-rate.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
+
 local vsSrc = [[
 #version 420
 #line 5000
@@ -1540,6 +1545,232 @@ void main() {
 
 ]]
 
+-- NoGS variant of the VS: the GS body (slot decoding + corner-size gating +
+-- progress mask + addvertexflowui packing) is folded into the VS and per-rect
+-- attribs become INSTANCE-rate. Each instance is drawn as a 27-vertex triangle
+-- list (9 slots × 3 verts); inactive slots emit a degenerate (off-screen)
+-- vertex. Used when no geometry-shader stage is available.
+local vsSrcNoGS = [[
+#version 420
+#line 5000
+
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+//__ENGINEUNIFORMBUFFERDEFS__
+
+layout (location = 0) in vec4 screenpos; // left, bottom, right, top, in pixels
+layout (location = 1) in vec4 cornersizes; // tl, tr, br, bl
+layout (location = 2) in vec4 color1; // rgba
+layout (location = 3) in vec4 color2; // rgba
+layout (location = 4) in vec4 uvoffsets; // uvrect, bottom left, top right
+layout (location = 5) in vec4 fronttexture_edge_z_progress; //  textured, edgewidth, z,progress
+layout (location = 6) in vec4 hide_blendmode_globalbackground;
+
+uniform vec4 scrollScale = vec4(0,0,1,1);
+
+out DataGS {
+	vec4 g_screenpos;
+	vec4 g_uv;
+	vec4 g_color;
+	vec4 g_color2;
+	vec4 g_fronttex_edge_backtex_hide;
+};
+
+#define HALFPI 1.570796326794896
+#define PI 3.1415926535897932384626433832795
+#define TWOPI 6.283185307179586476925286766559
+
+// Folded copy of the old GS's addvertexflowui(). Reads per-instance locals
+// computed at the top of main() (v_screenpos etc.), produces per-vertex
+// outputs g_screenpos / g_uv / g_color / g_color2 / g_fronttex_edge_backtex_hide
+// + gl_Position.
+void emitVertexFlowUI(float spx, float spy, float distfromside,
+                      vec4 v_screenpos, vec4 v_color1, vec4 v_color2,
+                      vec4 v_uvoffsets, vec4 v_fronttexture_edge_z_progress,
+                      vec4 v_hide_blendmode_globalbackground) {
+	#define LEFT_   v_screenpos.x
+	#define BOTTOM_ v_screenpos.y
+	#define RIGHT_  v_screenpos.z
+	#define TOP_    v_screenpos.w
+	#define UV_     v_uvoffsets
+	#define DEPTH_  v_fronttexture_edge_z_progress.z
+	#define EDGE_   v_fronttexture_edge_z_progress.y
+	#define HIDE_   v_hide_blendmode_globalbackground.x
+	#define BLENDMODE_  v_hide_blendmode_globalbackground.y
+
+	g_screenpos = vec4(spx, spy, DEPTH_, 1.0);
+	g_uv.x = UV_.x + (UV_.z - UV_.x) * ((spx - LEFT_) / (RIGHT_ - LEFT_));
+	g_uv.y = UV_.y + (UV_.w - UV_.y) * ((spy - BOTTOM_) / (TOP_ - BOTTOM_));
+	g_screenpos.xy = (g_screenpos.xy / viewGeometry.xy) * 2.0 - 1.0;
+	g_uv.z = spx;
+	g_uv.w = spy;
+
+	float topness = (spy - BOTTOM_) / (TOP_ - BOTTOM_);
+	g_color = mix(v_color1, v_color2, topness);
+	g_fronttex_edge_backtex_hide = v_fronttexture_edge_z_progress;
+
+	float future_feather = 200.0;
+	if (EDGE_ > 0.5) {
+		float borderwidth1_0 = distfromside - EDGE_;
+		future_feather = distfromside / borderwidth1_0;
+		if (distfromside > 1.0) {
+			future_feather = -1.0 * distfromside / EDGE_;
+		} else {
+			future_feather = 1.0;
+		}
+		g_color2 = mix(v_color1, v_color2, future_feather);
+	} else {
+		g_color2 = vec4(1.0, 0.0, 1.0, 1.0);
+	}
+	g_fronttex_edge_backtex_hide.y = future_feather;
+
+	// mouse-hover/click packing into z
+	g_fronttex_edge_backtex_hide.z = 0.0;
+	bvec2 righttopmouse   = lessThanEqual(mouseScreenPos.xy, vec2(RIGHT_, TOP_));
+	bvec2 leftbottommouse = greaterThanEqual(mouseScreenPos.xy, vec2(LEFT_, BOTTOM_));
+	if (all(bvec4(righttopmouse, leftbottommouse))) {
+		g_fronttex_edge_backtex_hide.z = BLENDMODE_ + 0.5;
+		if ((mouseStatus & 1u) > 0u) {
+			g_fronttex_edge_backtex_hide.z += BLENDMODE_ + 0.5;
+		}
+	}
+	g_fronttex_edge_backtex_hide.w = HIDE_;
+
+	gl_Position = vec4(g_screenpos.x, g_screenpos.y, DEPTH_, 1.0);
+	g_screenpos = vec4(spx, spy, DEPTH_, 1.0);
+}
+
+void degenerate() {
+	g_screenpos = vec4(0.0);
+	g_uv = vec4(0.0);
+	g_color = vec4(0.0);
+	g_color2 = vec4(0.0);
+	g_fronttex_edge_backtex_hide = vec4(0.0);
+	gl_Position = vec4(2.0, 2.0, 2.0, 1.0); // off-screen NDC
+}
+
+#line 5100
+void main() {
+	// per-instance setup (mirrors the old VS) ---------------------------------
+	vec4 v_screenpos = screenpos * scrollScale.zwzw + scrollScale.xyxy;
+	vec4 v_cornersizes = cornersizes * scrollScale.zwzw + scrollScale.xyxy;
+	v_cornersizes = min(v_cornersizes, vec4(v_screenpos.z - v_screenpos.x) * 0.5);
+	v_cornersizes = min(v_cornersizes, vec4(v_screenpos.w - v_screenpos.y) * 0.5);
+	vec4 v_color1 = color1;
+	vec4 v_color2 = color2;
+	vec4 v_uvoffsets = uvoffsets;
+	vec4 v_fronttexture_edge_z_progress = fronttexture_edge_z_progress;
+	vec4 v_hide_blendmode_globalbackground = hide_blendmode_globalbackground;
+
+	// hidden rects: every vertex degenerates ----------------------------------
+	if (v_hide_blendmode_globalbackground.x > 0.5) {
+		degenerate();
+		return;
+	}
+
+	#define TL_CORNERSIZE v_cornersizes.x
+	#define TR_CORNERSIZE v_cornersizes.y
+	#define BR_CORNERSIZE v_cornersizes.z
+	#define BL_CORNERSIZE v_cornersizes.w
+	#define LEFT   v_screenpos.x
+	#define BOTTOM v_screenpos.y
+	#define RIGHT  v_screenpos.z
+	#define TOP    v_screenpos.w
+	#define PROGRESS v_fronttexture_edge_z_progress.w
+
+	float invprogress = 1.0 - PROGRESS;
+	float centery = (TOP + BOTTOM) * 0.5;
+	float centerx = (LEFT + RIGHT) * 0.5;
+	float distfromsideCenter = (TOP - BOTTOM) * 0.5;
+
+	// slot decoding (gl_VertexID layout: 9 slots × 3 verts) -------------------
+	int vid = gl_VertexID;
+	int slot = vid / 3;
+	int slotVert = vid - slot * 3;
+
+	bool slotActive = false;
+	float spx = 0.0, spy = 0.0, distfromside = 0.0;
+
+	// slot 0: TOPRIGHT side  (invprogress < 0.125)
+	if (slot == 0) {
+		slotActive = invprogress < 0.125;
+		float progress_offset = (RIGHT - LEFT - TR_CORNERSIZE) * clamp((invprogress - 0.0) * 4.0, 0.0, 1.0);
+		if (slotVert == 0) { spx = centerx; spy = centery; distfromside = distfromsideCenter; }
+		else if (slotVert == 1) { spx = RIGHT - TR_CORNERSIZE; spy = TOP; }
+		else { spx = centerx + progress_offset; spy = TOP; }
+	}
+	// slot 1: TR corner  (invprogress < 0.125 AND TR_CORNERSIZE > 0.1)
+	else if (slot == 1) {
+		slotActive = (invprogress < 0.125) && (TR_CORNERSIZE > 0.1);
+		if (slotVert == 0) { spx = centerx; spy = centery; distfromside = distfromsideCenter; }
+		else if (slotVert == 1) { spx = RIGHT; spy = TOP - TR_CORNERSIZE; }
+		else { spx = RIGHT - TR_CORNERSIZE; spy = TOP; }
+	}
+	// slot 2: RIGHT side  (invprogress < 0.375)
+	else if (slot == 2) {
+		slotActive = invprogress < 0.375;
+		float progress_offset = (TOP - BOTTOM - TR_CORNERSIZE - BR_CORNERSIZE) * clamp((invprogress - 0.125) * 4.0, 0.0, 1.0);
+		if (slotVert == 0) { spx = centerx; spy = centery; distfromside = distfromsideCenter; }
+		else if (slotVert == 1) { spx = RIGHT; spy = BOTTOM + BR_CORNERSIZE; }
+		else { spx = RIGHT; spy = TOP - TR_CORNERSIZE - progress_offset; }
+	}
+	// slot 3: BR corner  (invprogress < 0.375 AND BR_CORNERSIZE > 0.1)
+	else if (slot == 3) {
+		slotActive = (invprogress < 0.375) && (BR_CORNERSIZE > 0.1);
+		if (slotVert == 0) { spx = centerx; spy = centery; distfromside = distfromsideCenter; }
+		else if (slotVert == 1) { spx = RIGHT - BR_CORNERSIZE; spy = BOTTOM; }
+		else { spx = RIGHT; spy = BOTTOM + BR_CORNERSIZE; }
+	}
+	// slot 4: BOTTOM side  (invprogress < 0.625)
+	else if (slot == 4) {
+		slotActive = invprogress < 0.625;
+		float progress_offset = (RIGHT - LEFT - BL_CORNERSIZE - BR_CORNERSIZE) * clamp((invprogress - 0.375) * 4.0, 0.0, 1.0);
+		if (slotVert == 0) { spx = centerx; spy = centery; distfromside = distfromsideCenter; }
+		else if (slotVert == 1) { spx = LEFT + BL_CORNERSIZE; spy = BOTTOM; }
+		else { spx = RIGHT - BR_CORNERSIZE - progress_offset; spy = BOTTOM; }
+	}
+	// slot 5: BL corner  (invprogress < 0.625 AND BL_CORNERSIZE > 0.01)
+	else if (slot == 5) {
+		slotActive = (invprogress < 0.625) && (BL_CORNERSIZE > 0.01);
+		if (slotVert == 0) { spx = centerx; spy = centery; distfromside = distfromsideCenter; }
+		else if (slotVert == 1) { spx = LEFT; spy = BOTTOM + BL_CORNERSIZE; }
+		else { spx = LEFT + BL_CORNERSIZE; spy = BOTTOM; }
+	}
+	// slot 6: LEFT side  (invprogress < 0.875)
+	else if (slot == 6) {
+		slotActive = invprogress < 0.875;
+		float progress_offset = (TOP - BOTTOM - BL_CORNERSIZE - TL_CORNERSIZE) * clamp((invprogress - 0.625) * 4.0, 0.0, 1.0);
+		if (slotVert == 0) { spx = centerx; spy = centery; distfromside = distfromsideCenter; }
+		else if (slotVert == 1) { spx = LEFT; spy = TOP - TL_CORNERSIZE; }
+		else { spx = LEFT; spy = BOTTOM + BL_CORNERSIZE + progress_offset; }
+	}
+	// slot 7: TL corner  (invprogress < 0.875 AND TL_CORNERSIZE > 0.01)
+	else if (slot == 7) {
+		slotActive = (invprogress < 0.875) && (TL_CORNERSIZE > 0.01);
+		if (slotVert == 0) { spx = centerx; spy = centery; distfromside = distfromsideCenter; }
+		else if (slotVert == 1) { spx = LEFT + TL_CORNERSIZE; spy = TOP; }
+		else { spx = LEFT; spy = TOP - TL_CORNERSIZE; }
+	}
+	// slot 8: TOPLEFT side  (always)
+	else {
+		slotActive = true;
+		float progress_offset = (RIGHT - LEFT - TL_CORNERSIZE) * clamp((invprogress - 0.875) * 4.0, 0.0, 1.0);
+		if (slotVert == 0) { spx = centerx; spy = centery; distfromside = distfromsideCenter; }
+		else if (slotVert == 1) { spx = centerx; spy = TOP; }
+		else { spx = LEFT + TL_CORNERSIZE + progress_offset; spy = TOP; }
+	}
+
+	if (!slotActive) {
+		degenerate();
+		return;
+	}
+
+	emitVertexFlowUI(spx, spy, distfromside,
+	                 v_screenpos, v_color1, v_color2, v_uvoffsets,
+	                 v_fronttexture_edge_z_progress, v_hide_blendmode_globalbackground);
+}
+]]
+
 local fsSrc = [[
 #version 330
 
@@ -1643,7 +1874,13 @@ local function makeRectRoundVBO(name)
 	end
 
 	rectRoundVAO = gl.GetVAO()
-	rectRoundVAO:AttachVertexBuffer(rectRoundVBO.instanceVBO)
+	if UseNoGS then
+		-- NoGS path: per-rect attribs run at instance rate (divisor 1) so the VS
+		-- can be invoked once per (instance × vertex-in-quad-fan) via gl_VertexID.
+		rectRoundVAO:AttachInstanceBuffer(rectRoundVBO.instanceVBO)
+	else
+		rectRoundVAO:AttachVertexBuffer(rectRoundVBO.instanceVBO)
+	end
 	rectRoundVBO.instanceVAO = rectRoundVAO
 	return rectRoundVBO
 end
@@ -1653,13 +1890,14 @@ GetNewVBO = makeRectRoundVBO
 local function makeShaders()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	vsSrcNoGS = vsSrcNoGS:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	gsSrc = gsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	rectRoundShader =  LuaShader(
 		{
-			vertex = vsSrc,
+			vertex = UseNoGS and vsSrcNoGS or vsSrc,
 			fragment = fsSrc,
-			geometry = gsSrc,
+			geometry = (not UseNoGS) and gsSrc or nil,
 
 			uniformInt = {
 				bgTex = 0,
@@ -2480,7 +2718,12 @@ local function DrawLayer(layername)
 	--spEcho(Layer.name, Layer.VBO.usedElements)
 	rectRoundShader:SetUniformFloat("scissorLayer", Layer.scissorLayer[1], Layer.scissorLayer[2], Layer.scissorLayer[3], Layer.scissorLayer[4])
 	rectRoundShader:SetUniformFloat("scrollScale", Layer.scrollScale[1], Layer.scrollScale[2], Layer.scrollScale[3], Layer.scrollScale[4])
-	Layer.VBO.instanceVAO:DrawArrays(GL.POINTS,Layer.VBO.usedElements, 0, nil, 0)
+	if UseNoGS then
+		-- NoGS path: each instance expands into 27 vertices (9 slots × 3 verts).
+		Layer.VBO.instanceVAO:DrawArrays(GL.TRIANGLES, 27, 0, Layer.VBO.usedElements)
+	else
+		Layer.VBO.instanceVAO:DrawArrays(GL.POINTS,Layer.VBO.usedElements, 0, nil, 0)
+	end
 end
 
 function widget:DrawScreen()

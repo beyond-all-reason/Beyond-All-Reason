@@ -159,6 +159,15 @@ local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local compactInstanceVBO  = InstanceVBOTable.compactInstanceVBO
 
+-- Backends without a geometry-shader stage (e.g. Metal via Zink) cannot link the
+-- small-decal pipeline that uses decals_gl4.geom.glsl. On those platforms we
+-- route the small-decal path through the existing decals_large_gl4.vert.glsl
+-- with a 4x4 pre-tessellated plane VBO; that is geometrically identical to the
+-- GS's 4x4 subdivision (vertex x-positions {1, 0.5, 0, -0.5, -1} at strip z-rows
+-- match makePlaneVBO(1, 1, 4, 4) exactly, and the large VS's per-vertex
+-- transform is line-by-line equivalent to the GS's offsetVertex4).
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
+
 local vsSrcPath = "LuaUI/Shaders/decals_gl4.vert.glsl"
 local fsSrcPath = "LuaUI/Shaders/decals_gl4.frag.glsl"
 local gsSrcPath = "LuaUI/Shaders/decals_gl4.geom.glsl"
@@ -210,27 +219,59 @@ end
 local function initGL4( DPATname)
 	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 	if hasBadCulling then spEcho("Decals GL4 detected AMD + Linux platform, attempting to fix culling") end
-	decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
+	if not UseNoGS then
+		decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
+	end
 	decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache)
 
-	if (not decalShader) or (not decalLargeShader) then goodbye("Failed to compile ".. DPATname .." GL4 ") end
+	if (not UseNoGS and not decalShader) or (not decalLargeShader) then goodbye("Failed to compile ".. DPATname .." GL4 ") end
 
-	decalVBO = InstanceVBOTable.makeInstanceVBOTable(
-		{
+	-- On the GS path the small-decal VBO uses attribute IDs 0..4 (no per-vertex
+	-- attribute, since the GS expands a single point). On the NoGS path the
+	-- small-decal VBO is paired with a 4x4 pre-tessellated plane vertex VBO, so
+	-- per-vertex xyworld_xyfract must live at location 0 and per-instance attribs
+	-- shift to locations 1..5 (matching the large VBO layout).
+	local smallDecalAttrs
+	if UseNoGS then
+		smallDecalAttrs = {
+			{id = 1, name = 'lengthwidthrotation', size = 4},
+			{id = 2, name = 'uv_atlaspos', size = 4},
+			{id = 3, name = 'alphastart_alphadecay_heatstart_heatdecay', size = 4},
+			{id = 4, name = 'worldPos', size = 4},
+			{id = 5, name = 'parameters', size = 4},
+		}
+	else
+		smallDecalAttrs = {
 			{id = 0, name = 'lengthwidthrotation', size = 4},
 			{id = 1, name = 'uv_atlaspos', size = 4},
 			{id = 2, name = 'alphastart_alphadecay_heatstart_heatdecay', size = 4},
 			{id = 3, name = 'worldPos', size = 4},
 			{id = 4, name = 'parameters', size = 4},
-		},
+		}
+	end
+	decalVBO = InstanceVBOTable.makeInstanceVBOTable(
+		smallDecalAttrs,
 		64, -- maxelements
 		DPATname .. "VBO" -- name
 	)
 	if decalVBO == nil then goodbye("Failed to create decalVBO") end
 
-	local smallDecalVAO = gl.GetVAO()
-	smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
-	decalVBO.VAO = smallDecalVAO
+	if UseNoGS then
+		-- Small decals: 4x4 pre-tessellated plane (matches the old GS's 4x4 subdivision).
+		local smallPlaneVBO, _ = InstanceVBOTable.makePlaneVBO(1, 1, 4, 4)
+		local smallPlaneIndexVBO, _ = InstanceVBOTable.makePlaneIndexVBO(4, 4)
+		decalVBO.vertexVBO = smallPlaneVBO
+		decalVBO.indexVBO = smallPlaneIndexVBO
+		decalVBO.VAO = InstanceVBOTable.makeVAOandAttach(
+			decalVBO.vertexVBO,
+			decalVBO.instanceVBO,
+			decalVBO.indexVBO
+		)
+	else
+		local smallDecalVAO = gl.GetVAO()
+		smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
+		decalVBO.VAO = smallDecalVAO
+	end
 
 	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,resolution,resolution)
 	local planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(resolution,resolution) --, true) -- add true to cull into a circle
@@ -388,7 +429,9 @@ local updatePositionX = 0
 local updatePositionZ = 0
 function widget:Update() -- this is pointlessly expensive!
 	if autoupdate then
-		decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or decalShader
+		if not UseNoGS then
+			decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or decalShader
+		end
 		decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache) or		decalLargeShader
 	end
 
@@ -572,24 +615,41 @@ local function DrawDecals()
 		--glTexture(11, '$map_gbuffer_normtex')
 
 
-		if decalVBO.usedElements > 0  then
-			decalShader:Activate()
-			decalShader:SetUniform("fadeDistance",disticon * 1000)
-			decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
-			decalShader:Deactivate()
-		end
+		if UseNoGS then
+			-- NoGS path: small decals share the large shader + a 4x4 pre-tessellated plane.
+			if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
+				decalLargeShader:Activate()
+				if decalVBO.usedElements > 0 then
+					decalVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalVBO.usedElements, 0)
+				end
+				if decalLargeVBO.usedElements > 0 then
+					decalLargeVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalLargeVBO.usedElements, 0)
+				end
+				if decalExtraLargeVBO.usedElements > 0 then
+					decalExtraLargeVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalExtraLargeVBO.usedElements, 0)
+				end
+				decalLargeShader:Deactivate()
+			end
+		else
+			if decalVBO.usedElements > 0  then
+				decalShader:Activate()
+				decalShader:SetUniform("fadeDistance",disticon * 1000)
+				decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
+				decalShader:Deactivate()
+			end
 
-		if decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
-			--spEcho("large elements:", decalLargeVBO.usedElements)
-			decalLargeShader:Activate()
-			--decalLargeShader:SetUniform("fadeDistance",disticon * 1000)
-			if decalLargeVBO.usedElements > 0 then
-				decalLargeVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalLargeVBO.usedElements, 0)
+			if decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
+				--spEcho("large elements:", decalLargeVBO.usedElements)
+				decalLargeShader:Activate()
+				--decalLargeShader:SetUniform("fadeDistance",disticon * 1000)
+				if decalLargeVBO.usedElements > 0 then
+					decalLargeVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalLargeVBO.usedElements, 0)
+				end
+				if decalExtraLargeVBO.usedElements > 0 then
+					decalExtraLargeVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalExtraLargeVBO.usedElements, 0)
+				end
+				decalLargeShader:Deactivate()
 			end
-			if decalExtraLargeVBO.usedElements > 0 then
-				decalExtraLargeVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalExtraLargeVBO.usedElements, 0)
-			end
-			decalLargeShader:Deactivate()
 		end
 
 		-- Restore the GL state

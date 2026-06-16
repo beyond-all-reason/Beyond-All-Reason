@@ -54,6 +54,13 @@ local atlasSize = 2048
 local rankVBO = nil
 local rankShader = nil
 local luaShaderDir = "LuaUI/Include/"
+-- Select the no-GS DrawPrimitiveAtUnit backend on platforms whose GL backend
+-- does not expose a geometry-shader stage. The POST_VERTEX snippet used by
+-- this widget (a compound multiply on v_lengthwidthcornerheight.xy) is safe
+-- under per-output-vertex execution because v_lengthwidthcornerheight is a
+-- VS-local that is freshly initialized from the per-instance attribute on
+-- every shader invocation; each output vertex multiplies its own fresh base.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
 
 local debugmode = false
 
@@ -187,7 +194,10 @@ local function RemovePrimitive(unitID,reason)
 end
 
 local function initGL4()
-	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local primitivesInclude = UseNoGS
+		and luaShaderDir.."DrawPrimitiveAtUnitNoGS.lua"
+		or  luaShaderDir.."DrawPrimitiveAtUnit.lua"
+	local DrawPrimitiveAtUnit = VFS.Include(primitivesInclude)
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 1
 	shaderConfig.HEIGHTOFFSET = 0
@@ -381,7 +391,11 @@ function widget:DrawScreenEffects()
 		rankShader:Activate()
 		rankShader:SetUniform("iconDistance",usedCutoffDistance)
 		rankShader:SetUniform("addRadius",0)
-		rankVBO.VAO:DrawArrays(GL.POINTS,rankVBO.usedElements)
+		if UseNoGS then
+			rankVBO.VAO:DrawArrays(GL.TRIANGLES, rankVBO.numVerts, 0, rankVBO.usedElements)
+		else
+			rankVBO.VAO:DrawArrays(GL.POINTS,rankVBO.usedElements)
+		end
 		rankShader:Deactivate()
 		glTexture(0, false)
 		--gl.Culling(false)

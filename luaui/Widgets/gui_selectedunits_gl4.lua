@@ -47,6 +47,12 @@ local mapHasWater = (Spring.GetGroundExtremes() < 0)
 
 local selectShader = nil
 local luaShaderDir = "LuaUI/Include/"
+-- Select the no-GS DrawPrimitiveAtUnit backend on platforms whose GL backend
+-- does not expose a geometry-shader stage. Other platforms continue to use
+-- the original geometry-shader path unchanged. Only POST_SHADING (fragment
+-- shader injection) is customized by this widget, which is identical between
+-- both paths.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
 
 local InstanceVBOTable = gl.InstanceVBOTable
 
@@ -218,14 +224,22 @@ local function DrawSelections(selectionVBO, isAir)
 		glStencilMask(1)
 
 		selectShader:SetUniform("addRadius", 0)
-		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+		if UseNoGS then
+			selectionVBO.VAO:DrawArrays(GL.TRIANGLES, selectionVBO.numVerts, 0, selectionVBO.usedElements)
+		else
+			selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+		end
 
 		glStencilFunc(GL_NOTEQUAL, 1, 1)
 		glStencilMask(0)
 		glDepthTest(true)
 
 		selectShader:SetUniform("addRadius", 1.3)
-		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+		if UseNoGS then
+			selectionVBO.VAO:DrawArrays(GL.TRIANGLES, selectionVBO.numVerts, 0, selectionVBO.usedElements)
+		else
+			selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+		end
 
 		glStencilMask(1)
 		glStencilFunc(GL_ALWAYS, 1, 1)
@@ -423,7 +437,10 @@ end
 local function init()
 	updateSelection = true
 	selUnits = {}
-	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local primitivesInclude = UseNoGS
+		and luaShaderDir.."DrawPrimitiveAtUnitNoGS.lua"
+		or  luaShaderDir.."DrawPrimitiveAtUnit.lua"
+	local DPatUnit = VFS.Include(primitivesInclude)
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
 	shaderConfig.BILLBOARD = 0

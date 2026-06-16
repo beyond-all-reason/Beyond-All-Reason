@@ -95,9 +95,19 @@ local unitTrackerVBO = nil
 local unitTrackerShader = nil
 local luaShaderDir = "LuaUI/Include/"
 local texture = "luaui/images/solid.png"
+-- Select the no-GS DrawPrimitiveAtUnit backend on platforms whose GL backend
+-- does not expose a geometry-shader stage. Other platforms continue to use
+-- the original geometry-shader path unchanged. Only the internal shader path
+-- is affected; the widget's WG['unittrackerapi'] surface (visibleUnits,
+-- visibleUnitsTeam, alliedUnits, alliedUnitsTeam, and the Script.LuaUI
+-- VisibleUnit* / AlliedUnit* hooks) is unchanged.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
 
 local function initGL4()
-	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local primitivesInclude = UseNoGS
+		and luaShaderDir.."DrawPrimitiveAtUnitNoGS.lua"
+		or  luaShaderDir.."DrawPrimitiveAtUnit.lua"
+	local DrawPrimitiveAtUnit = VFS.Include(primitivesInclude)
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.TRANSPARENCY = 0.5
@@ -554,7 +564,11 @@ function widget:DrawWorldPreUnit()
 			unitTrackerShader:SetUniform("addRadius", 0)
 			gl.DepthTest(true)
 			gl.DepthMask(false)
-			unitTrackerVBO.VAO:DrawArrays(GL.POINTS, unitTrackerVBO.usedElements)
+			if UseNoGS then
+				unitTrackerVBO.VAO:DrawArrays(GL.TRIANGLES, unitTrackerVBO.numVerts, 0, unitTrackerVBO.usedElements)
+			else
+				unitTrackerVBO.VAO:DrawArrays(GL.POINTS, unitTrackerVBO.usedElements)
+			end
 			unitTrackerShader:Deactivate()
 			gl.Texture(0, false)
 		end

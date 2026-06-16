@@ -37,12 +37,25 @@ local addRadius = 10
 -----------------------------------------------------------------
 -- GL4 Backend Stuff
 
+-- Select the no-GS expansion path on platforms whose GL backend does not
+-- expose a geometry-shader stage (currently macOS/Metal). Other platforms
+-- continue to use the original GS pipeline unchanged. The no-GS path folds
+-- the 3-face box silhouette expansion into the vertex shader and draws each
+-- unit as a 18-vert GL.TRIANGLES instance using gl_VertexID.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
+
+-- Verts emitted per instance by the no-GS VS (3 quads * 6 list verts).
+local stencilVertsPerInstance = 18
+
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
-local vsSrc =  [[
+-- Original geometry-shader-based vertex shader. Emits one point per instance
+-- with the per-unit min/max bounds and centerpos carried in DataVS; the
+-- geometry shader (gsSrc) expands that point into the silhouette quads.
+local vsSrcGS =  [[
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
@@ -108,7 +121,7 @@ void main()
 }
 ]]
 
-local gsSrc = [[
+local gsSrcGS = [[
 #version 330
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
@@ -176,10 +189,123 @@ void main(){
         offsetVertex4( Maxs.x, Maxs.y,  frontback);
         offsetVertex4( Mins.x, Mins.y,  frontback);
         offsetVertex4( Maxs.x, Mins.y,  frontback);
-    
+
     EndPrimitive();
 }
 ]]
+
+-- Geometry-shader-free vertex shader. The original VS emitted one point per
+-- unit (carrying min/max/centerpos in DataVS) and the GS expanded that point
+-- into the 3-face silhouette. Here the per-unit data is bound as an INSTANCE
+-- buffer (divisor 1) and this VS emits the 3 quads as a triangle LIST of 18
+-- verts/instance via gl_VertexID. Used only when UseNoGS is true.
+local vsSrcNoGS = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shader_storage_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+#line 5000
+
+layout (location = 0) in vec4 unitModelMinXYZ;
+layout (location = 1) in vec4 unitModelMaxXYZ;
+layout (location = 2) in uvec4 instData;
+
+//__ENGINEUNIFORMBUFFERDEFS__
+//__DEFINES__
+
+struct SUniformsBuffer {
+    uint composite; //   u8 drawFlag; u8 unused1; u16 id;
+
+    uint unused2;
+    uint unused3;
+    uint unused4;
+
+    float maxHealth;
+    float health;
+    float unused5;
+    float unused6;
+
+    vec4 drawPos;
+    vec4 speed;
+    vec4[4] userDefined; //can't use float[16] because float in arrays occupies 4 * float space
+};
+
+layout(std140, binding=1) readonly buffer UniformsBuffer {
+    SUniformsBuffer uni[];
+};
+
+#line 10000
+
+uniform float addRadius = 10;
+
+// The original GS expanded each point into a 3-face box silhouette (top +
+// nearest side + nearest front/back), 3 quads = 12 strip verts. Here we
+// emit those 3 quads as a triangle LIST of 18 verts/instance via gl_VertexID:
+//   VAO:DrawArrays(GL.TRIANGLES, 18, 0, usedElements)
+
+void main()
+{
+    vec4 Mins = unitModelMinXYZ;
+    vec4 Maxs = unitModelMaxXYZ;
+    vec4 centerpos = uni[instData.y].drawPos;
+
+    // ---- per-unit cull (mirrors the old VS flag + GS bail on Maxs.w<0.5) ----
+    bool culled = false;
+    if (isSphereVisibleXY(vec4(centerpos.xyz, 1.0), addRadius + Maxs.x + Maxs.z)) culled = true;
+    if ((uni[instData.y].composite & 0x00000003u) < 1u) culled = true; // drawFlag
+    if (culled) {
+        gl_Position = vec4(2.0, 2.0, 2.0, 1.0); // degenerate / off-screen
+        return;
+    }
+
+    vec3 camPos = cameraViewInv[3].xyz;
+    vec3 camDir = normalize(camPos - centerpos.xyz);
+    float s = sin(centerpos.w);
+    float c = cos(centerpos.w);
+    mat3 rotY = mat3(c, 0.0, -s,  0.0, 1.0, 0.0,  s, 0.0, c);
+
+    float leftright = (dot(vec3(c, 0, -s), camDir) < 0.0) ? Mins.x : Maxs.x;
+    float frontback = (dot(vec3(s, 0,  c), camDir) > 0.0) ? Maxs.z : Mins.z;
+
+    // ---- pick face (0=top,1=side,2=front/back) and its strip vertex ----
+    int vid  = gl_VertexID;
+    int face = vid / 6;        // 3 faces, 6 list verts (2 tris) each
+    int fv   = vid % 6;
+    int ft   = fv / 3;         // triangle 0 or 1 within the face
+    int kk   = fv % 3;
+    int si;                    // 4-vert strip index 0..3
+    if (ft == 0) si = kk;                                  // (0,1,2)
+    else         si = (kk == 0) ? 2 : ((kk == 1) ? 1 : 3); // (2,1,3)
+
+    vec3 p;
+    if (face == 0) {            // top face
+        if      (si == 0) p = vec3(Mins.x, Maxs.y, Mins.z);
+        else if (si == 1) p = vec3(Maxs.x, Maxs.y, Mins.z);
+        else if (si == 2) p = vec3(Mins.x, Maxs.y, Maxs.z);
+        else              p = vec3(Maxs.x, Maxs.y, Maxs.z);
+    } else if (face == 1) {     // nearest left/right face
+        if      (si == 0) p = vec3(leftright, Maxs.y, Mins.z);
+        else if (si == 1) p = vec3(leftright, Maxs.y, Maxs.z);
+        else if (si == 2) p = vec3(leftright, Mins.y, Mins.z);
+        else              p = vec3(leftright, Mins.y, Maxs.z);
+    } else {                    // nearest front/back face
+        if      (si == 0) p = vec3(Mins.x, Maxs.y, frontback);
+        else if (si == 1) p = vec3(Maxs.x, Maxs.y, frontback);
+        else if (si == 2) p = vec3(Mins.x, Mins.y, frontback);
+        else              p = vec3(Maxs.x, Mins.y, frontback);
+    }
+
+    vec3 vecnorm = sign(p);
+    gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * (vec3(addRadius, 0, addRadius) * vecnorm + p), 1.0);
+}
+]]
+
+-- Pick the active VS source based on the backend's GS support. The GS
+-- variant (vsSrcGS + gsSrcGS) is used on all non-macOS platforms; the
+-- NoGS variant (vsSrcNoGS, no GS) is used on macOS/Metal.
+local vsSrc = UseNoGS and vsSrcNoGS or vsSrcGS
+local gsSrc = UseNoGS and nil       or gsSrcGS
 
 local fsSrc =
 [[
@@ -218,20 +344,24 @@ local function InitDrawPrimitiveAtUnit(modifiedShaderConf, DPATname)
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	gsSrc = gsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	local DrawPrimitiveAtUnitShader =  LuaShader(
-		{
-			vertex = vsSrc,
-			fragment = fsSrc,
-			geometry = gsSrc,
-			uniformInt = {
-				--DrawPrimitiveAtUnitTexture = 0;
-			},
-			uniformFloat = {
-				addRadius = 1,
-                stencilColor = 1,
-			},
+	local shaderStages = {
+		vertex = vsSrc,
+		fragment = fsSrc,
+		uniformInt = {
+			--DrawPrimitiveAtUnitTexture = 0;
 		},
+		uniformFloat = {
+			addRadius = 1,
+            stencilColor = 1,
+		},
+	}
+	if not UseNoGS then
+		-- GS path only: substitute defs and attach the geometry stage.
+		gsSrc = gsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+		shaderStages.geometry = gsSrc
+	end
+	local DrawPrimitiveAtUnitShader =  LuaShader(
+		shaderStages,
 		DPATname .. "Shader GL4"
 	  )
 	local shaderCompiled = DrawPrimitiveAtUnitShader:Initialize()
@@ -252,7 +382,13 @@ local function InitDrawPrimitiveAtUnit(modifiedShaderConf, DPATname)
 	)
 
 	unitStencilVBO.VAO  = gl.GetVAO()
-	unitStencilVBO.VAO:AttachVertexBuffer(unitStencilVBO.instanceVBO)
+	if UseNoGS then
+		-- NoGS: per-unit data advances per instance (divisor 1); the VS uses
+		-- gl_VertexID to fan out a 18-vert triangle list per instance.
+		unitStencilVBO.VAO:AttachInstanceBuffer(unitStencilVBO.instanceVBO)
+	else
+		unitStencilVBO.VAO:AttachVertexBuffer(unitStencilVBO.instanceVBO)
+	end
 
     featureStencilVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
@@ -264,9 +400,13 @@ local function InitDrawPrimitiveAtUnit(modifiedShaderConf, DPATname)
 		"featurestencil VBO", -- name
 		2  -- unitIDattribID (instData)
 	)
-    
+
 	featureStencilVBO.VAO  = gl.GetVAO()
-	featureStencilVBO.VAO:AttachVertexBuffer(featureStencilVBO.instanceVBO)
+	if UseNoGS then
+		featureStencilVBO.VAO:AttachInstanceBuffer(featureStencilVBO.instanceVBO)
+	else
+		featureStencilVBO.VAO:AttachVertexBuffer(featureStencilVBO.instanceVBO)
+	end
     featureStencilVBO.featureIDs = true
 
 	return DrawPrimitiveAtUnitShader
@@ -359,11 +499,19 @@ local function DrawMe() -- about 0.025 ms
 		unitStencilShader:SetUniform("addRadius", addRadius)
         if featureStencilVBO.usedElements > 0 then
             unitStencilShader:SetUniform("stencilColor", 0.5)
-            featureStencilVBO.VAO:DrawArrays(GL.POINTS, featureStencilVBO.usedElements)
+            if UseNoGS then
+                featureStencilVBO.VAO:DrawArrays(GL.TRIANGLES, stencilVertsPerInstance, 0, featureStencilVBO.usedElements)
+            else
+                featureStencilVBO.VAO:DrawArrays(GL.POINTS, featureStencilVBO.usedElements)
+            end
         end
-        if unitStencilVBO.usedElements > 0 then 
+        if unitStencilVBO.usedElements > 0 then
             unitStencilShader:SetUniform("stencilColor", 1.0)
-	    	unitStencilVBO.VAO:DrawArrays(GL.POINTS, unitStencilVBO.usedElements)
+            if UseNoGS then
+                unitStencilVBO.VAO:DrawArrays(GL.TRIANGLES, stencilVertsPerInstance, 0, unitStencilVBO.usedElements)
+            else
+                unitStencilVBO.VAO:DrawArrays(GL.POINTS, unitStencilVBO.usedElements)
+            end
         end
 		unitStencilShader:Deactivate()
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)

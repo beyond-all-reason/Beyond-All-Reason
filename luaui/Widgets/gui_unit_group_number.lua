@@ -52,6 +52,9 @@ end
 local unitGroupVBO = nil
 local unitGroupShader = nil
 local luaShaderDir = "LuaUI/Include/"
+-- Select the no-GS DrawPrimitiveAtUnit backend on platforms whose GL backend
+-- does not expose a geometry-shader stage.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
 local vbocachetables = {} -- A table of tables for speed
 
 local function initGL4()
@@ -84,7 +87,10 @@ local function initGL4()
 		vbocachetables[i] = vbocachetable
 	end
 
-	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
+	local primitivesInclude = UseNoGS
+		and luaShaderDir .. "DrawPrimitiveAtUnitNoGS.lua"
+		or  luaShaderDir .. "DrawPrimitiveAtUnit.lua"
+	local DrawPrimitiveAtUnit = VFS.Include(primitivesInclude)
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 1
 	shaderConfig.HEIGHTOFFSET = 0
@@ -248,7 +254,11 @@ function widget:DrawScreenEffects()
 		-- note that unitGroupVBO.VAO:DrawArrays can be display-list wrapped, but then the #usedElements doesnt update :/
 		gl.Texture(0, healthbartexture)
 		unitGroupShader:Activate()
-		unitGroupVBO.VAO:DrawArrays(GL.POINTS, unitGroupVBO.usedElements)
+		if UseNoGS then
+			unitGroupVBO.VAO:DrawArrays(GL.TRIANGLES, unitGroupVBO.numVerts, 0, unitGroupVBO.usedElements)
+		else
+			unitGroupVBO.VAO:DrawArrays(GL.POINTS, unitGroupVBO.usedElements)
+		end
 		unitGroupShader:Deactivate()
 		gl.Texture(0, false)
 	end

@@ -82,6 +82,14 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+-- Select the GS-based or GS-free forward pipeline. The deferred pass below was
+-- always GS-free; only the forward pass has two paths. On backends without a
+-- geometry-shader stage (e.g. Metal via Zink) the NoGS path folds the GS body
+-- into the VS and the draw call switches from POINTS (one per cell, expanded
+-- by the GS) to TRIANGLES (6 list verts per cell, expanded by gl_VertexID
+-- decoding).
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
+
 local vsSrc = [[
 #version 330
 
@@ -109,7 +117,7 @@ void main() {
 
 		float X = mapSize.x / gridSize;
 
-		float modX = mod(vID, X); 
+		float modX = mod(vID, X);
 		//this is sometimes true in the magic land of amd drivers!
 		if (modX >= X) 	modX=0;
 
@@ -120,7 +128,186 @@ void main() {
 		gl_Position = vec4(x, 0.0, y, 1.0);
 
 		vMirrorParams = aMirrorParams;
-	
+
+}
+]]
+
+-- NoGS forward VS: the original VS emitted one point per grid cell (driven by
+-- gl_VertexID) and a GS expanded each point into a quad — either a vertical
+-- seam at the map edge (when aMirrorParams == vec4(0)) or a flat mirrored map
+-- tile. This VS does both the cell-position decoding AND the quad expansion;
+-- each "old point" becomes 6 vertices (2 tris in triangle-list form). Caller
+-- draws numPoints*6 vertices per instance.
+local vsSrcNoGS = [[
+#version 330
+
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+#line 10077
+
+layout (location = 0) in vec4 aMirrorParams;
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+uniform sampler2D heightTex;
+
+uniform vec4 shaderParams;
+
+#define gridSize shaderParams.x
+#define curvature shaderParams.z
+#define edgeFog shaderParams.w
+
+out DataGS {
+	vec2 alphaFog;
+	vec2 uv;
+	vec2 mirrorParams;
+};
+
+#define NORM2SNORM(value) (value * 2.0 - 1.0)
+#define SNORM2NORM(value) (value * 0.5 + 0.5)
+
+#define WF 0.0
+#define SEAMHEIGHT -128.0
+
+// Strip ABCD -> triangle list [A, B, C, C, B, D] = indices [0,1,2,2,1,3].
+// Returns 0..3 telling which strip vertex this list index refers to.
+int stripVertexFromListIndex(int li) {
+	if (li == 0) return 0;
+	if (li == 1) return 1;
+	if (li == 2) return 2;
+	if (li == 3) return 2;
+	if (li == 4) return 1;
+	return 3;
+}
+
+// Per-vertex transform: mirrors what the GS's MyEmitTestVertex did, minus the
+// "testme" sphere visibility cull (a perf optimization — dropped here because
+// the VS can't return-skip; the alpha<0.05 case still self-discards via degenerate).
+void transformVertex(vec4 basePos, vec3 vertexOffset, vec4 mp,
+                     out vec4 outClipPos, out vec2 outAlphaFog, out vec2 outUV, out vec2 outMirror) {
+	vec4 worldPos = basePos + vec4(vertexOffset.x, vertexOffset.y, vertexOffset.z, 0.0);
+	outUV = worldPos.xz / mapSize.xy;
+	outMirror = mp.xy;
+
+	vec2 UVHM = heightmapUVatWorldPos(worldPos.xz);
+	worldPos.y = textureLod(heightTex, UVHM, 0.0).x + vertexOffset.y;
+
+	const vec2 edgeTightening = vec2(0.0);
+	worldPos.xz = abs(mp.xy * mapSize.xy - worldPos.xz);
+	worldPos.xz += mp.zw * (mapSize.xy - edgeTightening);
+
+	float alpha = 1.0;
+	if (curvature == 1.0) {
+		const float curvatureBend = 150.0;
+		alpha = 0.0;
+		vec2 refPoint = SNORM2NORM(mp.zw) * mapSize.xy;
+		if (mp.x != 0.0) {
+			worldPos.y -= pow((worldPos.x - refPoint.x) / curvatureBend, 2.0);
+			alpha -= pow((worldPos.x - refPoint.x) / mapSize.x, 2.0);
+		}
+		if (mp.y != 0.0) {
+			worldPos.y -= pow((worldPos.z - refPoint.y) / curvatureBend, 2.0);
+			alpha -= pow((worldPos.z - refPoint.y) / mapSize.y, 2.0);
+		}
+		alpha = 1.0 + (6.0 * (alpha + 0.18));
+		alpha = clamp(alpha, 0.0, 1.0);
+	}
+
+	float fogFactor = 1.0;
+	if (edgeFog == 1.0) {
+		vec4 forCoord = cameraView * worldPos;
+		float fogDist = length(forCoord.xyz);
+		fogFactor = (fogParams.y - fogDist) * fogParams.w;
+		fogFactor = clamp(fogFactor, 0.0, 1.0);
+	}
+
+	outAlphaFog = vec2(alpha, fogFactor);
+	outClipPos = cameraViewProj * worldPos;
+}
+
+void main() {
+	int vid = gl_VertexID;
+	int cellID = vid / 6;
+	int listIdx = vid - cellID * 6;
+	int stripIdx = stripVertexFromListIndex(listIdx);
+
+	// Decode cellID -> grid cell (x, z) in world space.
+	float fCell = float(cellID);
+	float X = mapSize.x / gridSize;
+	float modX = mod(fCell, X);
+	if (modX >= X) modX = 0.0; // AMD-driver guard from the original VS
+	float cellX = modX * gridSize;
+	float cellZ = ((fCell - modX) / X) * gridSize;
+	vec4 basePos = vec4(cellX, 0.0, cellZ, 1.0);
+
+	vec4 mp = aMirrorParams;
+	vec3 corners[4];   // 4 strip vertices ABCD
+	bool skipQuad = false;
+
+	if (all(equal(mp, vec4(0.0)))) {
+		// Seam-only pass: emit a vertical seam quad only if this cell is on the
+		// map edge; interior cells degenerate.
+		vec2 localPos = basePos.xz;
+		vec2 mapCenterHPG = (mapSize.xy - vec2(gridSize)) * 0.5;
+		vec2 disttoMapCenter = abs(localPos - mapCenterHPG) + vec2(gridSize) * 0.5;
+		if (all(lessThan(disttoMapCenter, mapCenterHPG))) {
+			skipQuad = true;
+		} else if (localPos.x == 0.0) {
+			// west edge
+			corners[0] = vec3(WF,           0.0, gridSize);
+			corners[1] = vec3(WF,    SEAMHEIGHT, gridSize);
+			corners[2] = vec3(WF,           0.0, 0.0);
+			corners[3] = vec3(WF,    SEAMHEIGHT, 0.0);
+		} else if (localPos.y == 0.0) {
+			// north edge (localPos.y is cellZ since localPos = basePos.xz)
+			corners[0] = vec3(gridSize,           0.0, WF);
+			corners[1] = vec3(0.0,                0.0, WF);
+			corners[2] = vec3(gridSize,    SEAMHEIGHT, WF);
+			corners[3] = vec3(0.0,         SEAMHEIGHT, WF);
+		} else if (localPos.x >= mapSize.x - gridSize) {
+			// east edge
+			corners[0] = vec3(gridSize - WF,           0.0, gridSize);
+			corners[1] = vec3(gridSize - WF,           0.0, 0.0);
+			corners[2] = vec3(gridSize - WF,    SEAMHEIGHT, gridSize);
+			corners[3] = vec3(gridSize - WF,    SEAMHEIGHT, 0.0);
+		} else {
+			// south edge (z >= mapSize.z - gridSize)
+			corners[0] = vec3(gridSize,           0.0, gridSize - WF);
+			corners[1] = vec3(gridSize,    SEAMHEIGHT, gridSize - WF);
+			corners[2] = vec3(0.0,                0.0, gridSize - WF);
+			corners[3] = vec3(0.0,         SEAMHEIGHT, gridSize - WF);
+		}
+	} else if (all(equal(mp.xy, vec2(1.0)))) {
+		// Diagonal mirror: TR, TL, BR, BL strip
+		corners[0] = vec3(gridSize, 0.0,      0.0);
+		corners[1] = vec3(0.0,      0.0,      0.0);
+		corners[2] = vec3(gridSize, 0.0, gridSize);
+		corners[3] = vec3(0.0,      0.0, gridSize);
+	} else {
+		// Axis-mirror: BL, TL, BR, TR strip (opposite winding)
+		corners[0] = vec3(0.0,      0.0, gridSize);
+		corners[1] = vec3(0.0,      0.0,      0.0);
+		corners[2] = vec3(gridSize, 0.0, gridSize);
+		corners[3] = vec3(gridSize, 0.0,      0.0);
+	}
+
+	if (skipQuad) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0); // off-screen NDC degenerate
+		alphaFog = vec2(0.0);
+		uv = vec2(0.0);
+		mirrorParams = vec2(0.0);
+		return;
+	}
+
+	vec4 clipPos;
+	vec2 _alphaFog, _uv, _mirror;
+	transformVertex(basePos, corners[stripIdx], mp, clipPos, _alphaFog, _uv, _mirror);
+	gl_Position = clipPos;
+	alphaFog = _alphaFog;
+	uv = _uv;
+	mirrorParams = _mirror;
 }
 ]]
 
@@ -607,12 +794,13 @@ function widget:Initialize()
 	--spEcho(gsSrc)
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	vsSrcNoGS = vsSrcNoGS:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	gsSrc = gsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 
 	mapExtensionShader = LuaShader({
-		vertex = vsSrc,
-		geometry = gsSrc,
+		vertex = UseNoGS and vsSrcNoGS or vsSrc,
+		geometry = (not UseNoGS) and gsSrc or nil,
 		fragment = fsSrc,
 		uniformInt = {
 			colorTex = 0,
@@ -879,7 +1067,12 @@ function widget:DrawWorldPreUnit()
 	mapExtensionShader:Activate()
 	mapExtensionShader:SetUniform("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
 	--gl.RunQuery(q, function()
-		terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
+		if UseNoGS then
+			-- NoGS forward path: VS emits 6 list verts per grid cell (2 tris = 1 quad).
+			terrainVAO:DrawArrays(GL.TRIANGLES, numPoints * 6, 0, #mirrorParams / 4)
+		else
+			terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
+		end
 	--end)
 	mapExtensionShader:Deactivate()
 	gl.Texture(0, false)

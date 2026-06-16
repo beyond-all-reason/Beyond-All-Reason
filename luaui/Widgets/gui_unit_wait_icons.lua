@@ -59,9 +59,15 @@ local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local iconVBO = nil
 local energyIconShader = nil
 local luaShaderDir = "LuaUI/Include/"
+-- Select the no-GS DrawPrimitiveAtUnit backend on platforms whose GL backend
+-- does not expose a geometry-shader stage.
+local UseNoGS = (Platform and (Platform.osFamily == "MacOS" or Platform.osFamily == "MacOSX"))
 
 local function initGL4()
-	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local primitivesInclude = UseNoGS
+		and luaShaderDir.."DrawPrimitiveAtUnitNoGS.lua"
+		or  luaShaderDir.."DrawPrimitiveAtUnit.lua"
+	local DrawPrimitiveAtUnit = VFS.Include(primitivesInclude)
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 1
@@ -234,7 +240,11 @@ function widget:DrawScreenEffects()
 		energyIconShader:Activate()
 		energyIconShader:SetUniform("iconDistance",disticon)
 		energyIconShader:SetUniform("addRadius",0)
-		iconVBO.VAO:DrawArrays(GL.POINTS,iconVBO.usedElements)
+		if UseNoGS then
+			iconVBO.VAO:DrawArrays(GL.TRIANGLES, iconVBO.numVerts, 0, iconVBO.usedElements)
+		else
+			iconVBO.VAO:DrawArrays(GL.POINTS,iconVBO.usedElements)
+		end
 		energyIconShader:Deactivate()
 		gl.Texture(false)
 		gl.DepthTest(false)
