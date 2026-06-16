@@ -30,22 +30,12 @@ for cmdName, cmdID in pairs(GameCMD) do
 	CMDnames[cmdID] = "GameCMD." .. cmdName
 end
 
--- by the heavens, why do we have duplicate command IDs.. let's put the preferred labels for them
-CMDnames[CMD.ATTACK] = "CMD.ATTACK"
-CMDnames[CMD.INSERT] = "CMD.INSERT"
-CMDnames[CMD.REMOVE] = "CMD.REMOVE"
-CMDnames[CMD.MANUALFIRE] = "CMD.MANUALFIRE"
-
 local function summaryOrSomething(tbl)
 	if VERBOSE then
 		return tbl
 	end
-	
-	local count = 0
-	for _ in pairs(tbl) do
-		count = count + 1
-	end
-	return count
+
+	return table.count(tbl)
 end
 
 local function command(cmdID)
@@ -53,7 +43,8 @@ local function command(cmdID)
 	
 	-- Typically negative IDs are build/construct commands
 	if cmdID < 0 then
-		return "BUILD"
+		local unitDefName = UnitDefs[-cmdID].name
+		return "BUILD(" .. unitDefName .. ")"
 	end
 
 	-- Try to get the command name from the global CMD table
