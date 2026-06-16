@@ -38,6 +38,7 @@ local ContributorAINames = {
     "EnderRobo",
     "Endorphins",
     "Errrrrrr",
+    "Felnious",
     "Fireball",
     "FireStorm",
     "Flaka",
