@@ -592,36 +592,38 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		for n = 2, #words do
 			local unitID = tonumber(words[n])
-			local h, mh = Spring.GetUnitHealth(unitID)
-			if not action then
-				Spring.DestroyUnit(unitID)
-			elseif action == 'xp' and params then
-				--Spring.SetUnitExperience(unitID, select(1, Spring.GetUnitExperience(unitID)) + tonumber(params))
-				if type(tonumber(params)) == 'number' then
-					Spring.SetUnitExperience(unitID, tonumber(params))
-				end
-			elseif action == 'remove' then
-				Spring.DestroyUnit(unitID, false, true)
-			elseif action == 'removenearbyunits' then
-				Spring.DestroyUnit(unitID, false, true)
-			elseif action == 'transfer' then
-				if type(tonumber(params)) == 'number' then
-					Spring.TransferUnit(unitID, tonumber(params), true)
-				end
-			elseif action == 'reclaim' then
-				local teamID = Spring.GetUnitTeam(unitID)
-				local unitDefID = Spring.GetUnitDefID(unitID)
-				Spring.DestroyUnit(unitID, false, true)		-- this doesnt give back resources in itself
-				Spring.AddTeamResource(teamID, 'metal', UnitDefs[unitDefID].metalCost)
-				Spring.AddTeamResource(teamID, 'energy', UnitDefs[unitDefID].energyCost)
-			elseif action == 'wreck' then
-				local unitDefID = Spring.GetUnitDefID(unitID)
-				local x, y, z = Spring.GetUnitPosition(unitID)
-				local heading = Spring.GetUnitHeading(unitID)
-				local unitTeam = Spring.GetUnitTeam(unitID)
-				Spring.DestroyUnit(unitID, false, true)
-				if UnitDefs[unitDefID] and UnitDefs[unitDefID].corpse and FeatureDefNames[UnitDefs[unitDefID].corpse] then
-					Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].corpse].id, x, y, z, heading, unitTeam)
+			if unitID and Spring.ValidUnitID(unitID) then
+				local h, mh = Spring.GetUnitHealth(unitID)
+				if not action then
+					Spring.DestroyUnit(unitID, false, true, nil, true)
+				elseif action == 'xp' and params then
+					--Spring.SetUnitExperience(unitID, select(1, Spring.GetUnitExperience(unitID)) + tonumber(params))
+					if type(tonumber(params)) == 'number' then
+						Spring.SetUnitExperience(unitID, tonumber(params))
+					end
+				elseif action == 'remove' then
+					Spring.DestroyUnit(unitID, false, true)
+				elseif action == 'removenearbyunits' then
+					Spring.DestroyUnit(unitID, false, true)
+				elseif action == 'transfer' then
+					if type(tonumber(params)) == 'number' then
+						Spring.TransferUnit(unitID, tonumber(params), true)
+					end
+				elseif action == 'reclaim' then
+					local teamID = Spring.GetUnitTeam(unitID)
+					local unitDefID = Spring.GetUnitDefID(unitID)
+					Spring.DestroyUnit(unitID, false, true)		-- this doesnt give back resources in itself
+					Spring.AddTeamResource(teamID, 'metal', UnitDefs[unitDefID].metalCost)
+					Spring.AddTeamResource(teamID, 'energy', UnitDefs[unitDefID].energyCost)
+				elseif action == 'wreck' then
+					local unitDefID = Spring.GetUnitDefID(unitID)
+					local x, y, z = Spring.GetUnitPosition(unitID)
+					local heading = Spring.GetUnitHeading(unitID)
+					local unitTeam = Spring.GetUnitTeam(unitID)
+					Spring.DestroyUnit(unitID, false, true)
+					if UnitDefs[unitDefID] and UnitDefs[unitDefID].corpse and FeatureDefNames[UnitDefs[unitDefID].corpse] then
+						Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].corpse].id, x, y, z, heading, unitTeam)
+					end
 				end
 			end
 		end
