@@ -5,23 +5,38 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
+local stages = {
+	validStage = {
+		objectives = {
+			'objectiveWithEmptyText',
+			'objectiveWithInvalidSchemaTypes',
+			'objectiveWithTriggerHavingSettings',
+			'objectiveWithInvalidTriggerType',
+			'objectiveWithMissingTriggerType',
+			'objectiveWithInvalidNextStage',
+			'objectiveWithTriggerHavingActions',
+		}
+	},
+	-- error: objectives entries must be strings
+	stageWithInvalidObjectiveEntry = {
+		objectives = { 'objectiveWithEmptyText', 123 },
+	},
+}
+
 local objectives = {
 
 	objectiveWithEmptyText = {
-		text = "",
-		stages = { 'validStage' },
+		textKey = "",
 	},
 
 	objectiveWithInvalidSchemaTypes = {
-		text = "Schema type check.",
-		stages = { 'validStage' },
+		textKey = "schema_type_check",
 		amount = 'notANumber',   -- error: amount must be a number
 		coop = 'notABoolean',    -- error: coop must be a boolean
 	},
 
 	objectiveWithTriggerHavingSettings = {
-		text = "Trigger must not have settings.",
-		stages = { 'validStage' },
+		textKey = "trigger_must_not_have_settings",
 		trigger = {
 			settings = { repeating = true },  -- error: trigger must not have a settings field
 			type = triggerTypes.TimeElapsed,
@@ -30,35 +45,26 @@ local objectives = {
 	},
 
 	objectiveWithInvalidTriggerType = {
-		text = "Trigger with invalid type.",
-		stages = { 'validStage' },
+		textKey = "trigger_with_invalid_type",
 		trigger = {
 			type = 'invalidType',  -- error: invalid trigger type
 		},
 	},
 
 	objectiveWithMissingTriggerType = {
-		text = "Trigger with missing type.",
-		stages = { 'validStage' },
+		textKey = "trigger_with_missing_type",
 		trigger = {
 			parameters = { gameFrame = 100000000 },  -- error: missing trigger type
 		},
 	},
 
 	objectiveWithInvalidNextStage = {
-		text = "nextStage pointing to non-existent stage.",
-		stages = { 'validStage' },
-		nextStage = 'nonExistentStage',  -- error: nonExistentStage is not defined by any objective
-	},
-
-	objectiveWithInvalidStagesEntry = {
-		text = "Stages array with a non-string entry.",
-		stages = { 'validStage', 123 },  -- error: stages entries must be strings
+		textKey = "invalid_next_stage",
+		nextStage = 'nonExistentStage',  -- error: nonExistentStage is not defined in Stages
 	},
 
 	objectiveWithTriggerHavingActions = {
-		text = "Trigger must not have actions.",
-		stages = { 'validStage' },
+		textKey = "trigger_must_not_have_actions",
 		trigger = {
 			type = triggerTypes.TimeElapsed,
 			parameters = { gameFrame = 100000000 },
@@ -67,7 +73,7 @@ local objectives = {
 	},
 }
 
-local initialStage = 'invalidStage'
+local initialStage = 'invalidStage' -- error: initialStage must exist in Stages
 
 local triggers = {
 
@@ -509,6 +515,7 @@ local featureLoadout = {
 
 return {
 	Objectives = objectives,
+	Stages = stages,
 	InitialStage = initialStage,
 	Triggers = triggers,
 	Actions = actions,

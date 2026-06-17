@@ -46,6 +46,7 @@ describe("mission_api.validation", function()
 			Triggers     = {},
 			Actions      = {},
 		}
+		validation.ResetStagesCache()
 	end)
 
 	after_each(function()
@@ -151,6 +152,24 @@ describe("mission_api.validation", function()
 			assert.is_true(hasError("Action missing required parameter. Action: missingParam, Parameter: triggerID"))
 			assert.is_true(hasError("Actions not referenced by any trigger: unused"))
 		end)
+
+		it("logs unreferenced actions in sorted order", function()
+			GG['MissionAPI'].Triggers = {
+				t = normalizeTrigger({
+					type       = triggerTypes.TimeElapsed,
+					parameters = { gameFrame = 1 },
+					actions    = { 'ok' },
+				}),
+			}
+
+			validation.ValidateActions({
+				ok = { type = actionTypes.SendMessage, parameters = { message = "ok" } },
+				zzz = { type = actionTypes.SendMessage, parameters = { message = "zzz" } },
+				aaa = { type = actionTypes.SendMessage, parameters = { message = "aaa" } },
+			})
+
+			assert.is_true(hasError("Actions not referenced by any trigger: aaa, zzz"))
+		end)
 	end)
 
 	-- ── ValidateObjectives ────────────────────────────────────────────────────
@@ -158,7 +177,7 @@ describe("mission_api.validation", function()
 	describe("ValidateObjectives", function()
 		it("passes for a well-formed objective without a trigger", function()
 			validation.ValidateObjectives({
-				basic = { textKey = "Do the thing.", stages = { 'stageA' } },
+				basic = { textKey = "Do the thing." },
 			})
 			assert.are.same({}, logged)
 		end)
@@ -167,7 +186,6 @@ describe("mission_api.validation", function()
 			validation.ValidateObjectives({
 				withTrigger = {
 					textKey = "Do the thing.",
-					stages  = { 'stageA' },
 					trigger = {
 						type       = triggerTypes.TimeElapsed,
 						parameters = { gameFrame = 90 },
@@ -178,12 +196,12 @@ describe("mission_api.validation", function()
 		end)
 
 		it("logs an error for missing textKey", function()
-			validation.ValidateObjectives({ noText = { stages = {} } })
+			validation.ValidateObjectives({ noText = {} })
 			assert.is_true(hasError("Objective missing textKey: noText"))
 		end)
 
 		it("logs an error for empty textKey", function()
-			validation.ValidateObjectives({ emptyText = { textKey = "", stages = {} } })
+			validation.ValidateObjectives({ emptyText = { textKey = "" } })
 			assert.is_true(hasError("Objective has empty textKey: emptyText"))
 		end)
 
@@ -192,7 +210,6 @@ describe("mission_api.validation", function()
 				badTypes = {
 					textKey = "ok",
 					amount = 'notANumber',
-					stages = {},
 					coop   = 'notABoolean',
 				},
 			})
@@ -204,7 +221,6 @@ describe("mission_api.validation", function()
 			validation.ValidateObjectives({
 				withSettings = {
 					textKey = "ok",
-					stages  = {},
 					trigger = {
 						settings   = { repeating = true },
 						type       = triggerTypes.TimeElapsed,
@@ -219,7 +235,6 @@ describe("mission_api.validation", function()
 			validation.ValidateObjectives({
 				withActions = {
 					textKey = "ok",
-					stages  = {},
 					trigger = {
 						type       = triggerTypes.TimeElapsed,
 						parameters = { gameFrame = 1 },
@@ -234,7 +249,6 @@ describe("mission_api.validation", function()
 			validation.ValidateObjectives({
 				noTypeTrigger = {
 					textKey = "ok",
-					stages  = {},
 					trigger = { parameters = { gameFrame = 1 } },
 				},
 			})
@@ -245,7 +259,6 @@ describe("mission_api.validation", function()
 			validation.ValidateObjectives({
 				badTypeTrigger = {
 					textKey = "ok",
-					stages  = {},
 					trigger = { type = 'notAType' },
 				},
 			})
@@ -256,7 +269,6 @@ describe("mission_api.validation", function()
 			validation.ValidateObjectives({
 				missingParam = {
 					textKey = "ok",
-					stages  = {},
 					trigger = {
 						type       = triggerTypes.TimeElapsed,
 						parameters = {},
@@ -270,37 +282,96 @@ describe("mission_api.validation", function()
 	-- ── ValidateInitialStage ──────────────────────────────────────────────────
 
 	describe("ValidateInitialStage", function()
-		-- ValidateInitialStage reads the stage cache seeded by ValidateObjectives,
-		-- so each test calls ValidateObjectives first to populate it.
+		-- ValidateInitialStage reads the stage cache seeded by ValidateStages,
+		-- so each test calls ValidateStages first to populate it.
 
-		it("passes when objectives define stages and initialStage matches", function()
-			validation.ValidateObjectives({ obj = { textKey = "ok", stages = { 'stageA' } } })
+		it("passes when stages are defined and initialStage matches", function()
+			GG['MissionAPI'].Stages = { stageA = { objectives = { 'obj' } } }
+			validation.ValidateStages(GG['MissionAPI'].Stages)
 			validation.ValidateInitialStage('stageA')
 			assert.are.same({}, logged)
 		end)
 
-		it("passes when no objectives define stages and no initialStage is set", function()
-			validation.ValidateObjectives({})
+		it("passes when no stages are defined and no initialStage is set", function()
+			GG['MissionAPI'].Stages = {}
+			validation.ValidateStages(GG['MissionAPI'].Stages)
 			validation.ValidateInitialStage(nil)
 			assert.are.same({}, logged)
 		end)
 
 		it("logs an error when stages are defined but initialStage is not provided", function()
-			validation.ValidateObjectives({ obj = { textKey = "ok", stages = { 'stageA' } } })
+			GG['MissionAPI'].Stages = { stageA = { objectives = { 'obj' } } }
+			validation.ValidateStages(GG['MissionAPI'].Stages)
 			validation.ValidateInitialStage(nil)
 			assert.is_true(hasError("Stages are defined, but initialStage is not provided."))
 		end)
 
-		it("logs an error when initialStage does not exist in any objective's stages", function()
-			validation.ValidateObjectives({ obj = { textKey = "ok", stages = { 'stageA' } } })
+		it("logs an error when initialStage does not exist in any stage", function()
+			GG['MissionAPI'].Stages = { stageA = { objectives = { 'obj' } } }
+			validation.ValidateStages(GG['MissionAPI'].Stages)
 			validation.ValidateInitialStage('stageB')
 			assert.is_true(hasError("Initial stage does not exist in stages: stageB"))
 		end)
 
 		it("logs a warning when no stages are defined but initialStage is set", function()
-			validation.ValidateObjectives({})
+			GG['MissionAPI'].Stages = {}
+			validation.ValidateStages(GG['MissionAPI'].Stages)
 			validation.ValidateInitialStage('stageA')
 			assert.is_true(hasError("initialStage 'stageA' is set, but no stages are defined."))
+		end)
+	end)
+
+	-- ── ValidateStages ────────────────────────────────────────────────────────
+
+	describe("ValidateStages", function()
+		it("logs an error when stage ID is not a string", function()
+			validation.ValidateStages({
+				[123] = { objectives = { 'obj1' } },
+			})
+			assert.is_true(hasError("Stage ID must be a string, got number"))
+		end)
+
+		it("passes for well-formed stages", function()
+			validation.ValidateStages({
+				stageA = { objectives = { 'obj1' } },
+				stageB = { objectives = { 'obj1', 'obj2' } },
+			})
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an error when stage data is not a table", function()
+			validation.ValidateStages({
+				badStage = 'notATable',
+			})
+			assert.is_true(hasError("Stage data must be a table, got string. Stage: badStage"))
+		end)
+
+		it("logs an error when a stage is missing the 'objectives' field", function()
+			validation.ValidateStages({
+				noObjectives = {},
+			})
+			assert.is_true(hasError("Stage missing 'objectives' field. Stage: noObjectives"))
+		end)
+
+		it("logs an error when 'objectives' field is not a table", function()
+			validation.ValidateStages({
+				badObjectives = { objectives = 'notATable' },
+			})
+			assert.is_true(hasError("Stage 'objectives' field must be a table, got string. Stage: badObjectives"))
+		end)
+
+		it("logs an error when an objective ID in stage is not a string", function()
+			validation.ValidateStages({
+				badEntry = { objectives = { 'obj1', 123 } },
+			})
+			assert.is_true(hasError("Stage 'objectives' entry #2 must be a string, got number. Stage: badEntry"))
+		end)
+
+		it("logs a warning when a stage has an empty 'objectives' table", function()
+			validation.ValidateStages({
+				empty = { objectives = {} },
+			})
+			assert.is_true(hasError("Stage has empty 'objectives' table. Stage: empty"))
 		end)
 	end)
 
@@ -749,6 +820,33 @@ describe("mission_api.validation", function()
 			assert.are.same({}, logged)
 		end)
 
+		it("treats inline objective triggers as unit and feature name references", function()
+			GG['MissionAPI'].Objectives = {
+				watchBot = {
+					textKey = "watch bot",
+					trigger = {
+						type = triggerTypes.UnitsOwned,
+						parameters = { teamID = 0, unitName = 'bot' },
+					},
+				},
+				watchRock = {
+					textKey = "watch rock",
+					trigger = {
+						type = triggerTypes.FeatureDestroyed,
+						parameters = { featureName = 'rock' },
+					},
+				},
+			}
+			GG['MissionAPI'].Actions = {
+				spawn  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, team = 0, unitName = 'bot' } } } },
+				create = { type = actionTypes.CreateFeatures, parameters = { featureLoadout = { { featureDefName = 'rockdef', x = 0, z = 0, featureName = 'rock' } } } },
+			}
+
+			validation.ValidateReferences()
+
+			assert.are.same({}, logged)
+		end)
+
 		it("logs errors for unit, feature, and marker names that are created-but-not-referenced or referenced-but-not-created",
 			function()
 			GG['MissionAPI'].Actions = {
@@ -770,22 +868,45 @@ describe("mission_api.validation", function()
 			assert.is_true(hasError("Marker name 'unknownFlag' is not created in any action. Referenced in: eraseUnknown"))
 			end)
 
-		it("logs an error for an objective 'stages' entry that is not a string", function()
+		it("logs an error when a stage refers to a non-existent objective", function()
 			GG['MissionAPI'].Objectives = {
-				badEntry = { stages = { 'validStage', 123 } },
+				obj1 = { textKey = "ok" },
 			}
-			GG['MissionAPI'].Stages = { validStage = true }
+			GG['MissionAPI'].Stages = {
+				validStage = { objectives = { 'obj1' } },
+				badStage = { objectives = { 'obj1', 'nonExistent' } }
+			}
 			validation.ValidateReferences()
-			assert.is_true(hasError("Objective 'stages' entry #2 must be a string, got number. Objective: badEntry"))
+			assert.is_true(hasError("Stage refers to non-existent objective. Stage: badStage, Objective: nonExistent"))
 		end)
 
 		it("logs an error when nextStage references a non-existent stage", function()
 			GG['MissionAPI'].Objectives = {
-				badNext = { stages = { 'validStage' }, nextStage = 'nonExistentStage' },
+				badNext = { nextStage = 'nonExistentStage' },
 			}
-			GG['MissionAPI'].Stages = { validStage = true }
+			GG['MissionAPI'].Stages = { validStage = { objectives = { 'badNext' } } }
 			validation.ValidateReferences()
 			assert.is_true(hasError("Objective references non-existent nextStage. Objective: badNext, Stage: nonExistentStage"))
+		end)
+
+		it("logs a nextStage type error for non-string nextStage", function()
+			GG['MissionAPI'].Objectives = {
+				badNextType = { nextStage = 123 },
+			}
+			GG['MissionAPI'].Stages = { validStage = { objectives = { 'badNextType' } } }
+			validation.ValidateReferences()
+			assert.is_true(hasError("Unexpected parameter type, expected string, got number. Objective: badNextType, Field: nextStage"))
+		end)
+
+		it("does not log non-existent objective for non-string stage objective entries", function()
+			GG['MissionAPI'].Objectives = {
+				obj1 = { textKey = "ok" },
+			}
+			GG['MissionAPI'].Stages = {
+				badStage = { objectives = { 'obj1', 123 } },
+			}
+			validation.ValidateReferences()
+			assert.is_false(hasError("Stage refers to non-existent objective. Stage: badStage, Objective: 123"))
 		end)
 	end)
 end)

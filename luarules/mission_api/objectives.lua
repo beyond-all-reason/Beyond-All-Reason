@@ -14,8 +14,10 @@ local function tryAdvanceStage(objective, nextStage)
 	if not nextStage then return end
 
 	local currentStageID = GG['MissionAPI'].CurrentStageID
-	for _, other in pairs(GG['MissionAPI'].Objectives) do
-		if table.contains(other.stages or {}, currentStageID)
+	local objectiveToStages = GG['MissionAPI'].ObjectiveToStages or {}
+	for objectiveID, other in pairs(GG['MissionAPI'].Objectives) do
+		local otherStages = objectiveToStages[objectiveID] or {}
+		if table.contains(otherStages, currentStageID)
 			and other.nextStage == nextStage
 			and not other.completed then
 			return

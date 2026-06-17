@@ -2,11 +2,16 @@ local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
 local initialStage = 'firstStage'
+local stages = {
+	firstStage = { objectives = { 'wait3secs' } },
+	secondStage = { objectives = { 'buildBots' } },
+	thirdStage = { objectives = { 'buildBots', 'destroyBots' } }
+}
+
 local objectives = {
 
 	wait3secs = {
 		textKey = "wait_3_seconds",
-		stages = { 'firstStage' },
 		trigger = {
 			type = triggerTypes.TimeElapsed,
 			parameters = {
@@ -19,7 +24,6 @@ local objectives = {
 	buildBots = {
 		textKey = "build_3_bots",
 		amount = 3,
-		stages = { 'secondStage', 'thirdStage' },
 		trigger = {
 			type = triggerTypes.ConstructionFinished,
 			parameters = {
@@ -32,7 +36,6 @@ local objectives = {
 	destroyBots = {
 		textKey = "destroy_all_bots",
 		amount = 0,
-		stages = { 'thirdStage' },
 		trigger = {
 			type = triggerTypes.UnitsOwned,
 			parameters = {
@@ -98,6 +101,7 @@ local actions = {
 
 return {
 	InitialStage = initialStage,
+	Stages = stages,
 	Objectives = objectives,
 	Triggers = triggers,
 	Actions = actions,

@@ -1,13 +1,11 @@
 local validation = VFS.Include('luarules/mission_api/validation.lua')
 local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
-local objectiveUtils = VFS.Include('luarules/mission_api/objectives.lua')
 
 --[[
 	objectiveID = {
 		textKey = "complete_objective",
 		amount = 3,
-		stages = { 'firstStage' },
 		trigger = {
 			type = triggerTypes.TimeElapsed,
 			parameters = {
@@ -22,13 +20,25 @@ local objectiveUtils = VFS.Include('luarules/mission_api/objectives.lua')
 local triggerTypesWithQuantity = validation.GetTypesWithParameterType(triggersSchema.Parameters, parameterTypes.Types.Quantity)
 
 
-local function processRawObjectives(rawObjectives, rawTriggers, rawActions, initialStage)
+local function processRawObjectives(rawObjectives, rawTriggers, rawActions, initialStage, stages)
 	local objectives = table.map(rawObjectives, table.copy)
 
 	local actionTypes = GG['MissionAPI'].ActionTypes
 
+	-- Build objective-to-stages mapping from stages structure
+	local objectiveToStages = {}
+	for stageID, stageData in pairs(stages or {}) do
+		for _, objectiveID in ipairs(stageData.objectives or {}) do
+			if not objectiveToStages[objectiveID] then
+				objectiveToStages[objectiveID] = {}
+			end
+			table.insert(objectiveToStages[objectiveID], stageID)
+		end
+	end
+	GG['MissionAPI'].ObjectiveToStages = objectiveToStages
+
 	for objectiveID, objective in pairs(objectives) do
-		objective.stages = objective.stages or {}
+		local objectiveStages = objectiveToStages[objectiveID] or {}
 
 		if objective.trigger then
 			local amount = objective.amount
@@ -42,7 +52,7 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, init
 					objectiveID = objectiveID,
 					amount = amount,
 					nextStage = objective.nextStage,
-					stages = objective.stages,
+					stages = objectiveStages,
 					parameters = triggerParameters,
 				})
 			else
@@ -55,7 +65,7 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, init
 					type       = triggerType,
 					parameters = triggerParameters,
 					settings   = {
-						stages     = objective.stages,
+						stages     = objectiveStages,
 						repeating  = isRepeating,
 						maxRepeats = isRepeating and amount > 1 and (amount - 1) or nil,
 					},

@@ -16,17 +16,19 @@ end
 
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 
-local objectivesController, triggersController, actionsController
+local objectivesController, stagesController, triggersController, actionsController
 
 local function loadMission(scriptPath)
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
 	local initialStage = mission.InitialStage
+	local stages = mission.Stages or {}
 	local rawObjectives = mission.Objectives or {}
 	local rawTriggers = mission.Triggers or {}
 	local rawActions = mission.Actions or {}
 
 	GG['MissionAPI'].CurrentStageID = initialStage
-	GG['MissionAPI'].Objectives = objectivesController.ProcessRawObjectives(rawObjectives, rawTriggers, rawActions, initialStage)
+	GG['MissionAPI'].Stages = stagesController.ProcessRawStages(stages)
+	GG['MissionAPI'].Objectives = objectivesController.ProcessRawObjectives(rawObjectives, rawTriggers, rawActions, initialStage, stages)
 	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
 	GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
 	GG['MissionAPI'].UnitLoadout = mission.UnitLoadout
@@ -82,6 +84,7 @@ function gadget:Initialize()
 	GG['MissionAPI'].ManagedObjectives = {}
 
 	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
+	stagesController = VFS.Include('luarules/mission_api/stages_loader.lua')
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 

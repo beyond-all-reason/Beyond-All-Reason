@@ -4,7 +4,6 @@ local parameters = {
 	textKey = Types.String,
 	trigger = Types.Table,
 	amount = Types.Quantity,
-	stages = Types.Table,
 	nextStage = Types.StageID,
 	coop = Types.Boolean,
 }
