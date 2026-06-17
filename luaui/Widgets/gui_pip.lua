@@ -16031,16 +16031,17 @@ function widget:DrawScreen()
 						gl.Viewport(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
 
 						-- Direct call instead of pcall closure to avoid per-widget per-frame allocations
-						-- Errors will propagate but that's acceptable for performance
+						-- Isolate external widget failures so matrix/scissor cleanup still runs.
 						local drawFunc = w.DrawInMiniMap
 						if drawFunc then
-							drawFunc(w, minimapWidth, minimapHeight)
+							pcall(drawFunc, w, minimapWidth, minimapHeight)
 						end
 
 						-- Restore viewport to full screen
 						gl.Viewport(0, 0, render.vsx, render.vsy)
 
 						-- Restore matrices
+						gl.MatrixMode(GL.MODELVIEW)
 						glFunc.PopMatrix()
 						gl.MatrixMode(GL.PROJECTION)
 						glFunc.PopMatrix()
