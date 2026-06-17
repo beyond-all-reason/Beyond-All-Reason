@@ -1762,6 +1762,16 @@ local options = {
         max    	= 1.0,
         step   	= 0.001,
     },
+	{
+        key 	= "assimilator_meatball_tweaks",
+        name 	= "Assimilator & Meatball tweaks",
+        desc 	= "More HP,",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+
+	},
+
 
     -- Hidden Tests
 
@@ -1935,6 +1945,16 @@ local options = {
         def    	= 1,
         min    	= 1,
         max    	= 10,
+        step   	= 0.1,
+    },
+
+    {
+        key     = "defaultdecals",
+        name    = "Default Decals",
+        desc    = "Use the default explosion decals instead of Decals GL4",
+        section = "options_experimental",
+        type    = "bool",
+        def     =  true,
         step   	= 0.1,
     },
 
@@ -2449,16 +2469,6 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key     = "tweakdefs",
         name    = "Tweak Defs",
-        desc    = "For advanced users!!! A base64 encoded snippet of code that modifies game definitions.",
-        hint    = "Input must be base64",
-        section = "options_cheats",
-        type    = "string",
-        def     = "",
-    },
-
-    {
-		key		= "forceallunits",
-		name	= "Force Load All Units (Dev/Modding)",
 		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
 		section = "options_cheats",
 		type	= "bool",

@@ -61,13 +61,13 @@ local proposed_unit_reworksTweaks = VFS.Include("unitbasedefs/proposed_unit_rewo
 local communityBalanceTweaks = VFS.Include("unitbasedefs/community_balance_patch_defs.lua").communityBalanceTweaks
 local techsplitTweaks = VFS.Include("unitbasedefs/techsplit_defs.lua").techsplitTweaks
 local techsplit_balanceTweaks = VFS.Include("unitbasedefs/techsplit_balance_defs.lua").techsplit_balanceTweaks
-
 local airRework = VFS.Include("unitbasedefs/air_rework_defs.lua")
 local airReworkUnitTweaks = airRework.UnitTweaks
 local airReworkWeaponTweaks = airRework.WeaponTweaks
 local empRework = VFS.Include("unitbasedefs/emp_rework.lua")
 local empReworkUnitTweaks = empRework.UnitTweaks
 local empReworkWeaponTweaks = empRework.WeaponTweaks
+local AssimilatorMeatballTweaks = VFS.Include("unitbasedefs/assimilator_meatball_tweaks.lua").AssimilatorMeatballTweaks
 
 local scavWeaponDefPost = VFS.Include("gamedata/scavengers/weapondef_post.lua").scavWeaponDefPost
 
@@ -556,7 +556,10 @@ local function unitDef_Post(name, uDef)
 	if modOptions.naval_balance_tweaks == true then
 		navalBalanceTweaks(name, uDef)
 	end
-
+	-- Assimilator & Meatball tweaks
+	if modOptions.assimilator_meatball_tweaks == true then
+		AssimilatorMeatballTweaks(name,uDef)
+	end
 	-- Factory costs test
 
 	if modOptions.factory_costs == true then

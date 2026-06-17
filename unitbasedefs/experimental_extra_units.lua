@@ -60,7 +60,7 @@ local function experimentalExtraUnits(name, unitDef)
 	if name == "armshltxuw" then
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "armmeatball" -- Meatball - Amphibious Assault Mech
-	--	buildoptions[numBuildoptions + 2] = "armassimilator" -- Assimilator - Amphibious Battle Mech
+		buildoptions[numBuildoptions + 2] = "armassimilator" -- Assimilator - Amphibious Battle Mech
 	end
 
 	-- Cortex T1 Land Constructors
