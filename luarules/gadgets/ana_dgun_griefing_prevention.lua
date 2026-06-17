@@ -57,6 +57,7 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetUnitHealth = Spring.GetUnitHealth
+local ALLY_UNITS = Spring.ALLY_UNITS
 
 local CMD_DGUN = CMD.DGUN
 local DGUN_RANGE = 280
@@ -330,7 +331,7 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 	local maxz = math.max(startZ, endZ) + DGUN_SAFETY_WIDTH
 
 	-- Filter for only allied units (not including self-owned units)
-	local candidates = spGetUnitsInBox(minx, miny, minz, maxx, maxy, maxz, -3) -- UnitAllegiance::AllyUnit
+	local candidates = spGetUnitsInBox(minx, miny, minz, maxx, maxy, maxz, ALLY_UNITS)
 	local threatenedAllyPower = 0
 	local mostPowerfulThreatenedPower = 0
 	local mostPowerfulThreatenedUnitName = nil
