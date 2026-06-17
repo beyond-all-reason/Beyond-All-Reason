@@ -34,9 +34,13 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 		return
 	end
 	if cmdID == CMD.FIRE_STATE then
+	-- Engine sets firestate and movestates via an internal command upon unit creation, right before calling UnitCreated()
+	-- We therefor still need to nilcheck the scriptEnv, as it might not "exist" yet
+	-- But in that case, cmdParams[1] is just the UnitDef's default firestate
+	-- so we can safely ignore that first command, as the script already expects that firestate starting value
 		local toFireState = cmdParams[1]
 		local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
-		if not scriptEnv then -- apparently still needed, the script might be loaded after the first UnitCommand() fired
+		if not scriptEnv then
 			return
 		end
 		Spring.UnitScript.CallAsUnit(unitID, scriptEnv.FireStateChange, toFireState)
