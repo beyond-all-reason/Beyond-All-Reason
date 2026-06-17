@@ -353,8 +353,8 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 	end)
 
 	-- Update managed objectives:
-	for _, managedObj in ipairs(GG['MissionAPI'].ManagedObjectivesByTriggerType[triggerType] or {}) do
-		objectiveUtils.UpdateObjectiveProgress(managedObj.objectiveID, teamID, unitDefName, unitNames, direction, managedObj)
+	for _, managedObjective in ipairs(GG['MissionAPI'].ManagedObjectives[triggerType] or {}) do
+		objectiveUtils.UpdateObjectiveProgress(managedObjective.objectiveID, teamID, unitDefName, unitNames, direction, managedObjective)
 	end
 end
 local function incrementUnitStatistics(triggerType, teamID, unitDefName, unitNames)
@@ -504,6 +504,7 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = table.copy(trackedUnitNames[unitID] or {})
 
+	-- Set in spawnUnit() in loadout.loa
 	local nameOfUnitBeingSpawned = GG['MissionAPI'].nameOfUnitBeingSpawned
 	if nameOfUnitBeingSpawned then
 		unitNames[nameOfUnitBeingSpawned] = true

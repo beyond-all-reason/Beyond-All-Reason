@@ -79,7 +79,7 @@ function gadget:Initialize()
 	GG['MissionAPI'].trackedFeatureNames            = {}
 	GG['MissionAPI'].soundFiles                     = {}
 	GG['MissionAPI'].soundQueue                     = {}
-	GG['MissionAPI'].ManagedObjectivesByTriggerType = {}
+	GG['MissionAPI'].ManagedObjectives = {}
 
 	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')

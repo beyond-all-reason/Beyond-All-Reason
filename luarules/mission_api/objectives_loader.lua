@@ -37,8 +37,8 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, init
 
 			if triggerTypesWithQuantity[triggerType] then
 				-- Managed objective: register metadata for lookaside lookup; no trigger or action synthesis.
-				table.ensureTable(GG['MissionAPI'].ManagedObjectivesByTriggerType, triggerType)
-				table.insert(GG['MissionAPI'].ManagedObjectivesByTriggerType[triggerType], {
+				table.ensureTable(GG['MissionAPI'].ManagedObjectives, triggerType)
+				table.insert(GG['MissionAPI'].ManagedObjectives[triggerType], {
 					objectiveID = objectiveID,
 					amount = amount,
 					nextStage = objective.nextStage,

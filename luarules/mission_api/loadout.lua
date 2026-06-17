@@ -28,7 +28,7 @@ local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpac
 end
 
 local function spawnUnit(unit, pos)
-	-- Make unitName available to MetaUnitAdded call-in:
+	-- Make unitName available to MetaUnitAdded call-in which gets triggered by Spring.CreateUnit
 	GG['MissionAPI'].nameOfUnitBeingSpawned = unit.unitName
 	local unitID = Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, unit.facing or 's', unit.team, unit.construction)
 	GG['MissionAPI'].nameOfUnitBeingSpawned = nil
