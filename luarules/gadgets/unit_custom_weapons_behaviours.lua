@@ -566,8 +566,29 @@ end
 -- Uses no weapon customParams.
 
 local minSubTargetDiveSpeed = -0.08
-local terminalCorrectionDistance = 180
-local terminalCorrectionDistanceSq = terminalCorrectionDistance * terminalCorrectionDistance
+local defaultTerminalCorrectionDistance = 180
+local defaultTerminalCorrectionDistanceSq = defaultTerminalCorrectionDistance * defaultTerminalCorrectionDistance
+local minTerminalCorrectionDistance = 120
+local maxTerminalCorrectionDistance = 280
+local terminalCorrectionRatioScale = 6300
+local torpedoTerminalCorrectionDistanceSq = {}
+
+local function getTorpedoTerminalCorrectionDistanceSq(weaponDef)
+	local projectileSpeed = weaponDef.weaponvelocity or weaponDef.weaponVelocity or weaponDef.projectilespeed or weaponDef.projectileSpeed
+	local turnRate = weaponDef.turnrate or weaponDef.turnRate
+
+	if not projectileSpeed or not turnRate or projectileSpeed <= 0 or turnRate <= 0 then
+		return defaultTerminalCorrectionDistanceSq
+	end
+
+	local terminalCorrectionDistance = math_clamp(
+		projectileSpeed / turnRate * terminalCorrectionRatioScale,
+		minTerminalCorrectionDistance,
+		maxTerminalCorrectionDistance
+	)
+
+	return terminalCorrectionDistance * terminalCorrectionDistance
+end
 
 local function torpedoWaterPen(projectileID)
 	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
@@ -589,6 +610,7 @@ local function torpedoWaterPen(projectileID)
 			local dx = targetX - positionX
 			local dy = targetY - positionY
 			local dz = targetZ - positionZ
+			local terminalCorrectionDistanceSq = projectilesData[projectileID] or defaultTerminalCorrectionDistanceSq
 			closeToTarget = (dx * dx + dy * dy + dz * dz) < terminalCorrectionDistanceSq
 		end
 
@@ -692,6 +714,10 @@ function gadget:Initialize()
 			local effectName, effectParams = parseCustomParams(weaponDef)
 
 			if effectName then
+				if effectName == "torpwaterpen" or effectName == "torpwaterpenretarget" then
+					torpedoTerminalCorrectionDistanceSq[weaponDefID] = getTorpedoTerminalCorrectionDistanceSq(weaponDef)
+				end
+
 				if next(effectParams) then
 					-- When configured to a weapon's customParams, call the effect with its `params`:
 					weaponDefEffect[weaponDefID] = setmetatable(effectParams, metatables[effectName])
@@ -722,11 +748,13 @@ end
 function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
 	if weaponDefEffect[weaponDefID] then
 		projectiles[projectileID] = weaponDefEffect[weaponDefID]
+		projectilesData[projectileID] = torpedoTerminalCorrectionDistanceSq[weaponDefID]
 	end
 end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
+	projectilesData[projectileID] = nil
 end
 
 function gadget:GameFrame(frame)
@@ -736,6 +764,7 @@ function gadget:GameFrame(frame)
 	for projectileID, effect in pairs(projectiles) do
 		if effect(projectileID) then
 			projectiles[projectileID] = nil
+			projectilesData[projectileID] = nil
 		end
 	end
 end

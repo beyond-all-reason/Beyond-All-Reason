@@ -853,11 +853,6 @@ local function weaponDef_Post(name, wDef)
 			end
 		end
 
-		-- Global torpedo trail override
-		if wDef.weapontype == "TorpedoLauncher" then
-			wDef.cegtag = "torpedo-cavitation-trail"
-		end
-
 		----EMP rework
 
 		if modOptions.emprework then
