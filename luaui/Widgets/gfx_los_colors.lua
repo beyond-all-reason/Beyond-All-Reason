@@ -24,7 +24,7 @@ local losColors = {
 	fog =    {0.40, 0.40, 0.40},
 	los =    {0.60, 0.60, 0.60},
 	radar =  {0.00, 0.00, 0.00}, -- not used
-	jam =    {0.08, -0.08, -0.08},
+	jam =    {0.03, -0.03, -0.03}, -- additive tint: R-G/B spread sets how red jammed areas look (was 0.08)
 	radar2 = {0.40, 0.40, 0.40},
 }
 

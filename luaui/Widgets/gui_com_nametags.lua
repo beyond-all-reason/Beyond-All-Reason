@@ -329,13 +329,62 @@ end
 
 
 local function CheckCom(unitID, unitDefID, unitTeam)
-	if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
-		if unitTeam ~= GaiaTeam then
-			comms[unitID] = GetCommAttributes(unitID, unitDefID)
+	if not comHeight[unitDefID] or unitTeam == GaiaTeam then
+		if comms[unitID] then
+			comms[unitID] = nil
+			if comnameIconList[unitID] then
+				glDeleteList(comnameIconList[unitID])
+				comnameIconList[unitID] = nil
+			end
 		end
-	elseif comms[unitID] then
-		comms[unitID] = nil
+		return false
 	end
+
+	local oldAttributes = comms[unitID]
+	local newAttributes = GetCommAttributes(unitID, unitDefID)
+	if not newAttributes then
+		if comms[unitID] then
+			comms[unitID] = nil
+			if comnameIconList[unitID] then
+				glDeleteList(comnameIconList[unitID])
+				comnameIconList[unitID] = nil
+			end
+		end
+		return false
+	end
+
+	comms[unitID] = newAttributes
+
+	if not oldAttributes then
+		return true
+	end
+
+	local hasChanged = (
+		oldAttributes[1] ~= newAttributes[1]
+		or oldAttributes[6] ~= newAttributes[6]
+		or oldAttributes[8] ~= newAttributes[8]
+		or oldAttributes[2][1] ~= newAttributes[2][1]
+		or oldAttributes[2][2] ~= newAttributes[2][2]
+		or oldAttributes[2][3] ~= newAttributes[2][3]
+		or oldAttributes[2][4] ~= newAttributes[2][4]
+	)
+
+	if hasChanged then
+		if oldAttributes[1] and comnameList[oldAttributes[1]] then
+			glDeleteList(comnameList[oldAttributes[1]])
+			comnameList[oldAttributes[1]] = nil
+		end
+		if newAttributes[1] and comnameList[newAttributes[1]] then
+			glDeleteList(comnameList[newAttributes[1]])
+			comnameList[newAttributes[1]] = nil
+		end
+		if comnameIconList[unitID] then
+			glDeleteList(comnameIconList[unitID])
+			comnameIconList[unitID] = nil
+		end
+	end
+
+	return hasChanged
 end
 
 
@@ -373,9 +422,8 @@ local function CheckAllComs()
 			if comUnits then
 				for i = 1, #comUnits do
 					local unitID = comUnits[i]
-					if not comms[unitID] then
-						local unitDefID = spGetUnitDefID(unitID)
-						comms[unitID] = GetCommAttributes(unitID, unitDefID)
+					local unitDefID = spGetUnitDefID(unitID)
+					if unitDefID and CheckCom(unitID, unitDefID, teamID) then
 						commsChanged = true
 					end
 				end
@@ -519,11 +567,11 @@ function widget:ViewResize()
 end
 
 local function createComnameIconList(unitID, attributes)
-	if comnameIconList[attributes[1]] ~= nil then
+	if comnameIconList[unitID] ~= nil then
 		-- Don't recreate if it already exists unless forced
 		return
 	end
-	comnameIconList[attributes[1]] = glCreateList(function()
+	comnameIconList[unitID] = glCreateList(function()
 		local x, y, z = spGetUnitPosition(unitID)
 		if x and y and z then
 			x, z = spWorldToScreenCoords(x, y, z)
@@ -615,7 +663,7 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so nametags rende
 	if next(drawScreenUnits) then
 		for unitID, attributes in pairs(drawScreenUnits) do
 			-- Only create the display list if it doesn't exist or has changed
-			if not comnameIconList[attributes[1]] then
+			if not comnameIconList[unitID] then
 				createComnameIconList(unitID, attributes)
 			end
 
@@ -642,7 +690,7 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so nametags rende
 				glPushMatrix()
 				glTranslate(x, z, 0)
 				glScale(finalScale, finalScale, finalScale)
-				glCallList(comnameIconList[attributes[1]])
+				glCallList(comnameIconList[unitID])
 				glPopMatrix()
 			end
 		end
@@ -771,14 +819,18 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	comms[unitID] = nil
+	if comnameIconList[unitID] then
+		glDeleteList(comnameIconList[unitID])
+		comnameIconList[unitID] = nil
+	end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	CheckCom(unitID, unitDefID, unitTeam)
+	CheckCom(unitID, unitDefID, spGetUnitTeam(unitID) or unitTeam)
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	CheckCom(unitID, unitDefID, unitTeam)
+	CheckCom(unitID, unitDefID, spGetUnitTeam(unitID) or newTeam or unitTeam)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam)

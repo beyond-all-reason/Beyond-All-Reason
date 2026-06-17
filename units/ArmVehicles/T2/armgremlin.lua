@@ -41,6 +41,7 @@ return {
 		turnrate = 701.79999,
 		customparams = {
 			basename = "base",
+			firestateoncloak = 0,
 			firingceg = "barrelshot-small",
 			kickback = "-0.65",
 			model_author = "FireStorm",
