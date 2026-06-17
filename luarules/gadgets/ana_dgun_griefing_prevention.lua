@@ -29,7 +29,7 @@ function gadget:GetInfo()
 	return {
 		name    = "DGun Griefing Detection",
 		desc    = "Logs DGun commands to analytics based on whether they classify as griefing or not.",
-		author  = "TheDujin, with Codex. DGun ally detection code by kroIya/Color",
+		author  = "TheDujin. DGun ally detection code by kroIya/Color",
 		date    = "2026-05-01",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
@@ -106,6 +106,15 @@ local nextContactPruneFrame = CACHE_PRUNE_INTERVAL
 local myTeamID = spGetMyTeamID()
 local myAllyTeamID = spGetMyAllyTeamID()
 local allyTeamIDCache = {}
+
+-- cached unitDef lookups
+local isCommander = {}
+for unitDefID, unitDef in ipairs(UnitDefs) do
+    if unitDef.customParams and unitDef.customParams.iscommander then
+        isCommander[unitDefID] = true
+    end
+end
+
 
 -- Called if player becomes spec (or god forbid, player changes teams or ally-teams somehow? Shouldn't be possible in real game?)
 local function RefreshPlayerState()
@@ -340,7 +349,9 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 				if d < unitRadius + DGUN_WIDTH / 2 then
 					local threatenedPower = 0
 					if unitDef then
-						-- Partially built units only contribute proportional power to threat
+						-- Partially built units only contribute proportional power to threat.
+						-- This is to prevent a malicious player from triggering false negatives
+						-- by trapping an allied comm with a bunch of 1%-built AFUS blueprints or something similar.
 						local buildProgress = select(5, spGetUnitHealth(unitID)) or 1
 						threatenedPower = (unitDef.power or 0) * math.min(buildProgress, 1)
 					end
@@ -362,7 +373,7 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 		return false
 	end
 	
-	return false, string.format("Only %d allied power threatened (inconsequential)", threatenedAllyPower)
+	return false, string.format("Only %d allied power threatened, including %s. Ignored as inconsequential", threatenedAllyPower, mostPowerfulThreatenedUnitName or "unknown_unit")
 end
 
 -- If DGun target location is near a visible enemy, it can be fired indiscriminately (it won't be classified as griefing)
