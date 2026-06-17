@@ -4,22 +4,32 @@ local unitDefID = Spring.GetUnitDefID(unitID)
 local triggerRange = tonumber(UnitDefs[unitDefID].customParams.detonaterange) or 64
 local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 local stop_detect = 1
-local currentFireState = 2 -- default to fire at will, UnitCommand will change it on StatePrefs triggering
-local isBuilt = false
+local currentFireState = 2 -- default to fire at will, UnitCommand will change it
+local isBuilt = false -- default to false, LUS will update it when the unit is built
+local notStunned = true -- default to not stunned, unit_stun_script.lua will change it
 
 -- Author: Doo update jan 2026
 
+local function CheckIfCanDetectAndStartThread()
+	-- I don't expect stun/unstun and firestates changes spams to happen
+	-- if it happens, maybe gate this branch with an "isActive" bool instead
+	-- would avoid starting multiple threads (even though they're always killed immediately)
+	if  currentFireState == 2 and notStunned and isBuilt then  -- isBuilt last, because mostly true
+		Signal(stop_detect) -- in case was active, else no-op
+		StartThread(EnemyDetect)
+	else
+		Signal(stop_detect) -- in case was active, else no-op
+	end
+end
+
 function FireStateChange(toFireState)
 	currentFireState = toFireState -- update fireState on cmds
-	if not isBuilt then -- gate by isBuilt, because units being built can be set to fire at will
-		return
-	end
-	if toFireState < 2 then
-		Signal(stop_detect)
-	else
-		Signal(stop_detect) -- in case called while already active
-		StartThread(EnemyDetect)
-	end
+	CheckIfCanDetectAndStartThread()
+end
+
+function SetStunned(isStunned) -- called by unit_stun_script.lua
+	notStunned = not isStunned
+	CheckIfCanDetectAndStartThread()
 end
 
 function script.AimWeapon()
@@ -38,37 +48,24 @@ function script.FireWeapon()
 end
 
 function script.Create()
-	-- this seems to be loaded after the first UnitCommand() CMD.FIRE_STATE is fired
-	-- meaning we could already have fireState < 2 despite the default value of 2
+	-- this seems to be loaded after the first UnitCommand() CMD.FIRE_STATE is fired, see cmd_mines_firestate.lua comments
 	currentFireState = Spring.GetUnitStates(unitID).firestate
 	isBuilt = Spring.GetUnitIsBeingBuilt(unitID) == false
 	while (not isBuilt) do
 		isBuilt = Spring.GetUnitIsBeingBuilt(unitID) == false
 		Sleep(500)
 	end
-	if currentFireState == 2 then -- gate by fireState (isBuilt already gated)
-		StartThread(EnemyDetect)
-	end
+	CheckIfCanDetectAndStartThread()
 end
 
 function EnemyDetect()
 	SetSignalMask(stop_detect)
 	while true do
 		if spGetUnitNearestEnemy(unitID, triggerRange) ~= nil then
-			StartThread(Detonate) -- I keep this because once the thread starts, a stop_detect signal should not prevent from autodesctruction
+			StartThread(Detonate) -- Makes sure detonation is not cancellable
 			break
 		else
 			Sleep(1)
-		end
-	end
-end
-
-function SetStunned(isStunned) -- called by unit_stun_script.lua
-	if isStunned then
-		Signal(stop_detect)
-	else
-		if isBuilt and currentFireState == 2 then -- gate by fireState AND isBuilt (because units being built can become unstunned)
-			StartThread(EnemyDetect)
 		end
 	end
 end
