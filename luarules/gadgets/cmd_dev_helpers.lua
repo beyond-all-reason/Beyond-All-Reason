@@ -484,7 +484,7 @@ if gadgetHandler:IsSyncedCode() then
 		elseif cmd == "removenearbyunits" then
 			ExecuteSelUnits(words, playerID, 'removenearbyunits')
 		elseif cmd == "reclaimunits" then
-			ExecuteSelUnits(words, playerID)
+			ExecuteSelUnits(words, playerID, 'reclaim')
 		elseif cmd == "transferunits" then
 			local parts = string.split(msg, ':')
 			local words = {}
