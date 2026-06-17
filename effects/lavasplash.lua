@@ -287,7 +287,6 @@ local function lavaentryflare()
 	}
 end
 
-
 -- Assemble lava splash definitions from components
 -- Sizes are ~65-70% of water counterparts
 
