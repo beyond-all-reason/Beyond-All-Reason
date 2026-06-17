@@ -43,6 +43,9 @@ local function command(cmdID)
 	
 	-- Typically negative IDs are build/construct commands
 	if cmdID < 0 then
+		if not UnitDefs[-cmdID] then
+				return "INVALID BUILD("..cmdID..")"
+	 	end
 		local unitDefName = UnitDefs[-cmdID].name
 		return "BUILD(" .. unitDefName .. ")"
 	end
