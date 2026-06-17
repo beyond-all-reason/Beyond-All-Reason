@@ -429,6 +429,7 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:AddChatAction('loadmissiles', LoadMissiles, "")
 		gadgetHandler:AddChatAction('halfhealth', HalfHealth, "")
 
+		GG.isAuthorized = isAuthorized
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
@@ -517,6 +518,8 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction('loadmissiles')
 		gadgetHandler:RemoveChatAction('halfhealth')
+
+		GG.isAuthorized = nil
 	end
 	function globallos(words)
 		local allyteams = Spring.GetAllyTeamList()
@@ -764,6 +767,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('playertoteam', playertoteam, "") -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
 		gadgetHandler:AddChatAction('killteam', killteam, "") -- /luarules killteam [teamID] -- kills the team
 		gadgetHandler:AddChatAction('desync', desync) -- /luarules desync
+		GG.isAuthorized = isAuthorized
 	end
 
 	function gadget:Shutdown()
@@ -786,6 +790,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('playertoteam')
 		gadgetHandler:RemoveChatAction('killteam')
 		gadgetHandler:RemoveChatAction('desync')
+		GG.isAuthorized = nil
 	end
 
 	function xpUnits(_, line, words, playerID)
