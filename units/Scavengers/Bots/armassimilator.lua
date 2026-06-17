@@ -17,7 +17,7 @@ return {
 		mass = 200000,
 		health = 10500,
 		maxslope = 15,
-		speed = 55.0,
+		speed = 60.0,
 		maxwaterdepth = 22,
 		movementclass = "HBOT4",
 		objectname = "Units/scavboss/armassimilator.s3o",
