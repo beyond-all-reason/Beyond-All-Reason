@@ -31,7 +31,7 @@ local exampleLight = {
 		dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone lights only, specify direction and half-angle in radians
 		pos2x = 100, pos2y = 100, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
 		modelfactor = 1, specular = 1, scattering = 1, lensflare = 1,
-		lifetime = 0, sustain = 1, 	selfshadowing = 0, 
+		lifetime = 0, sustain = 1, 	selfshadowing = 0,
 	},
 }
 
@@ -743,8 +743,6 @@ AssignLightsToAllWeapons()
 local explosionLightsNames = {}
 local muzzleFlashLightsNames = {}
 local projectileDefLightsNames = {}
-
-
 
 --cortrem
 explosionLightsNames["cortrem_tremor_focus_fire"] =
