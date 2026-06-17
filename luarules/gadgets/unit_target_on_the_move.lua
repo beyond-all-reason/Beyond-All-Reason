@@ -12,32 +12,15 @@ function gadget:GetInfo()
 	}
 end
 
-local deleteMaxDistance = 30
-local targetListLengthMax = 128
-
 local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-
-function GG.GetUnitTarget(unitID)
-	local targetID = spGetUnitRulesParam(unitID, "targetID")
-	targetID = tonumber(targetID) and targetID >= 0 and targetID or nil
-	if not targetID then
-		targetID = {
-			spGetUnitRulesParam(unitID, "targetCoordX"),
-			spGetUnitRulesParam(unitID, "targetCoordY"),
-			spGetUnitRulesParam(unitID, "targetCoordZ"),
-		}
-		targetID = targetID[1] ~= -1 and targetID[3] ~= -1 and targetID or nil
-	end
-	return targetID
-end
-
-
 if gadgetHandler:IsSyncedCode() then
+
+	local deleteMaxDistance = 30
+	local targetListLengthMax = 128
 
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -49,7 +32,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spAreTeamsAllied = Spring.AreTeamsAllied
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 	local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
@@ -308,18 +290,11 @@ if gadgetHandler:IsSyncedCode() then
 		unitData.currentIndex = targetIndex
 		local targetData = unitData.targets[targetIndex]
 		local target = targetData.target
-		local targetID, targetX, targetY, targetZ = -1, -1, -1, -1
 		if type(target) == "number" then
-			targetID = target
-			spSetUnitTarget(unitID, targetID, false, targetData.userTarget)
+			spSetUnitTarget(unitID, target, false, targetData.userTarget)
 		else
-			targetX, targetY, targetZ = target[1], target[2], target[3]
-			spSetUnitTarget(unitID, targetX, targetY, targetZ, false, targetData.userTarget)
+			spSetUnitTarget(unitID, target[1], target[2], target[3], false, targetData.userTarget)
 		end
-		spSetUnitRulesParam(unitID, "targetID",     targetID)
-		spSetUnitRulesParam(unitID, "targetCoordX", targetX)
-		spSetUnitRulesParam(unitID, "targetCoordY", targetY)
-		spSetUnitRulesParam(unitID, "targetCoordZ", targetZ)
 		SendToUnsynced("targetIndex", unitID, targetIndex, true)
 	end
 
@@ -329,10 +304,6 @@ if gadgetHandler:IsSyncedCode() then
 		if not inAttackCommand(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
-		spSetUnitRulesParam(unitID, "targetID",     nil)
-		spSetUnitRulesParam(unitID, "targetCoordX", nil)
-		spSetUnitRulesParam(unitID, "targetCoordY", nil)
-		spSetUnitRulesParam(unitID, "targetCoordZ", nil)
 		SendToUnsynced("targetIndex", unitID, 1, false)
 	end
 
@@ -423,10 +394,6 @@ if gadgetHandler:IsSyncedCode() then
 	local function removeUnit(unitID, keeptrack)
 		if activeTargets[unitID] then
 			activeTargets[unitID] = nil
-			spSetUnitRulesParam(unitID, "targetID", nil)
-			spSetUnitRulesParam(unitID, "targetCoordX", nil)
-			spSetUnitRulesParam(unitID, "targetCoordY", nil)
-			spSetUnitRulesParam(unitID, "targetCoordZ", nil)
 			if not inAttackCommand(unitID) then
 				spSetUnitTarget(unitID, nil)
 			end
@@ -513,11 +480,17 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function GG.getUnitTargetList(unitID)
+	function GG.GetUnitTarget(unitID)
+		local unitData = activeTargets[unitID]
+		local targetData = unitData and unitData.targets[unitData.currentIndex]
+		return targetData and targetData.target
+	end
+
+	function GG.GetUnitTargetList(unitID)
 		return activeTargets[unitID] and activeTargets[unitID].targets
 	end
 
-	function GG.getUnitTargetIndex(unitID)
+	function GG.GetUnitTargetIndex(unitID)
 		return activeTargets[unitID] and activeTargets[unitID].currentIndex
 	end
 
