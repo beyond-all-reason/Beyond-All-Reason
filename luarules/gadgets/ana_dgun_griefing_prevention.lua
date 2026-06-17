@@ -71,7 +71,7 @@ local DGUN_WIDTH = 20
 
 local function GetConstructionTurretPower()
 	local unitDef = UnitDefNames.armnanotc or UnitDefNames.cornanotc or UnitDefNames.legnanotc
-	return (unitDef and unitDef.power) or 0
+	return (unitDef and unitPower[unitDef.id]) or 0
 end
 
 -- Dguns that threaten less than this amount of allied power are ignored as inconsequential.
@@ -109,10 +109,26 @@ local allyTeamIDCache = {}
 
 -- cached unitDef lookups
 local isCommander = {}
+local unitPower = {}
+local unitDisplayName = {}
+local unitApproxRadius = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
-    if unitDef.customParams and unitDef.customParams.iscommander then
-        isCommander[unitDefID] = true
-    end
+	local customParams = unitDef.customParams
+	if customParams and customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+
+	unitPower[unitDefID] = unitDef.power or 0
+	unitDisplayName[unitDefID] = unitDef.name or ("unit #" .. tostring(unitDefID))
+
+	local radius = unitDef.radius
+	if radius and radius > 0 then
+		unitApproxRadius[unitDefID] = radius
+	else
+		local footprintX = unitDef.xsize or 0
+		local footprintZ = unitDef.zsize or 0
+		unitApproxRadius[unitDefID] = math.min(footprintX, footprintZ) * 4
+	end
 end
 
 
@@ -143,30 +159,12 @@ local function GetPlayerName(playerID)
 end
 
 local function GetUnitDisplayName(unitDefID)
-	local unitDef = unitDefID and UnitDefs[unitDefID]
-	if not unitDef then
-		return "unknown_unit"
-	end
-
-	return unitDef.name
-		or ("unit #" .. tostring(unitDefID))
+	return unitDisplayName[unitDefID] or "unknown_unit"
 end
 
 -- Used to determine whether DGun intersects a given unit
 local function GetApproxUnitRadius(unitDefID)
-	local unitDef = unitDefID and UnitDefs[unitDefID]
-	if not unitDef then
-		return 0 -- If unknown unit, then we pretend it is tiny. This is to avoid false positives
-	end
-
-	if unitDef.radius and unitDef.radius > 0 then
-		return unitDef.radius
-	end
-
-	local footprintX = unitDef.xsize or 0
-	local footprintZ = unitDef.zsize or 0
-	local approxRadius = math.min(footprintX, footprintZ) * 4
-	return approxRadius
+	return unitApproxRadius[unitDefID] or 0 -- If unknown unit, then we pretend it is tiny. This is to avoid false positives
 end
 
 -- Removes old frontline contacts that are stale.
@@ -340,21 +338,18 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 		local unitID = candidates[i]
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitRadius = GetApproxUnitRadius(unitDefID)
-		local unitDef = unitDefID and UnitDefs[unitDefID]
 		-- Exclude allied comms (you can't DGun grief an allied comm)
-		if not (unitDef and unitDef.customParams and unitDef.customParams.iscommander) then
+		if not isCommander[unitDefID] then
 			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 			if unitX then
 				local d = DistPointToSegment(unitX, unitY, unitZ, startX, startY, startZ, endX, endY, endZ)
 				if d < unitRadius + DGUN_WIDTH / 2 then
 					local threatenedPower = 0
-					if unitDef then
-						-- Partially built units only contribute proportional power to threat.
-						-- This is to prevent a malicious player from triggering false negatives
-						-- by trapping an allied comm with a bunch of 1%-built AFUS blueprints or something similar.
-						local buildProgress = select(5, spGetUnitHealth(unitID)) or 1
-						threatenedPower = (unitDef.power or 0) * math.min(buildProgress, 1)
-					end
+					-- Partially built units only contribute proportional power to threat.
+					-- This is to prevent a malicious player from triggering false negatives
+					-- by trapping an allied comm with a bunch of 1%-built AFUS blueprints or something similar.
+					local buildProgress = select(5, spGetUnitHealth(unitID)) or 1
+					threatenedPower = (unitPower[unitDefID] or 0) * math.min(buildProgress, 1)
 					threatenedAllyPower = threatenedAllyPower + threatenedPower
 					if threatenedPower > mostPowerfulThreatenedPower then
 						mostPowerfulThreatenedPower = threatenedPower
@@ -554,8 +549,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		return
 	end
 
-	local uDef = UnitDefs[unitDefID]
-	if not (uDef.customParams and uDef.customParams.iscommander) then
+	if not isCommander[unitDefID] then
 		return -- decoy dguns are not relevant
 	end
 
