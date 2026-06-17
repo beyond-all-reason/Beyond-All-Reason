@@ -46,6 +46,19 @@ local cmdColorsTbl = {
 	[CMD.RESTORE]      = {0.0, 1.0, 0.0, 0.55},
 }
 
+local cmdAreaBlockDragging = {
+	[CMD.RECLAIM]                = true,
+	[CMD.REPAIR]                 = true,
+	[CMD.RESURRECT]              = true,
+	[CMD.RESTORE]                = true,
+	[CMD.CAPTURE]                = true,
+	[CMD.ATTACK]                 = true,
+	[CMD.AREA_ATTACK]            = true,
+	[CMD.LOAD_UNITS]             = true,
+	[CMD.UNLOAD_UNITS]			 = true,
+	[GameCMD.AREA_ATTACK_GROUND] = true,
+}
+
 local wayPtSelDist = 15
 local wayPtSelDistSqr = wayPtSelDist * wayPtSelDist
 local selWayPtsTbl = {}
@@ -237,7 +250,11 @@ function widget:MousePress(mx, my, mb)
 	if actCmdID and actCmdID < 0 then
 		return false
 	end
-	local alt, ctrl, meta, shift = spGetModKeyState()
+	-- stop waypoint dragging from hijacking area dragging
+	if actCmdID and cmdAreaBlockDragging[actCmdID] then
+		return false
+	end
+	local _, _, _, shift = spGetModKeyState()
 	local numWayPts              = 0
 	if not shift then return false end
 	if mb ~= 1 then return false end

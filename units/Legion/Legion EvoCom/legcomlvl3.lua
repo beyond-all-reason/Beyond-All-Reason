@@ -128,6 +128,7 @@ return {
 			childreninheritxp = "DRONE BOTCANNON",
 			parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON",
 			effigy = "comeffigylvl2",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
 			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.

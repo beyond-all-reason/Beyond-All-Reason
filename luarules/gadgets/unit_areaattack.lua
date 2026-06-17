@@ -27,6 +27,9 @@ if gadgetHandler:IsSyncedCode() then
 	local math_cos = math.cos
 	local math_sin = math.sin
 
+	local CMD_ATTACK = CMD.ATTACK
+	local reissueOrder = Game.Commands.ReissueOrder
+
 	local canAreaAttack = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if #unitDef.weapons > 0 and unitDef.customParams.canareaattack then
@@ -59,13 +62,16 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
 		-- accepts: CMD_AREA_ATTACK_GROUND
-		if canAreaAttack[unitDefID] then
-			return true
-		else
-			return false
+		if canAreaAttack[unitDefID] and #cmdParams == 4 then
+			if cmdParams[4] > 1 then
+				return true
+			end
+			cmdParams[4] = nil
+			reissueOrder(unitID, CMD_ATTACK, cmdParams, cmdOptions, cmdTag, fromInsert)
 		end
+		return false
 	end
 
 	function gadget:CommandFallback(u,ud,team,cmd,param,opt)

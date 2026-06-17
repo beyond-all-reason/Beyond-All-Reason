@@ -14,7 +14,7 @@ return {
 		metalcost = 50000,
 		builder = false,
 		buildpic = "raptors/epic_raptorq.DDS",
-		buildtime = 1500000,
+		buildtime = 5000000,
 		canattack = true,
 		canguard = true,
 		canmove = true,
@@ -35,7 +35,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 2000,
 		mass = 2000000,
-		health = 1250000,
+		health = 1875000,
 		maxslope = 40,
 		speed = 75.0,
 		maxwaterdepth = 0,
@@ -66,6 +66,8 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
+			treeshader = "yes",
+			ispvefinalboss = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {

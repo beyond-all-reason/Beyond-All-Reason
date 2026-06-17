@@ -1,6 +1,7 @@
 {
 	"ui": {
-		"forceResignMessage": "You have been force-resigned: Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
+		"forceResignWarn": "Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
+		"forceResignMessage": "You have been force-resigned due to self-destructing all your units.",
 		"factoryqmanager": {
 			"saved": "Saved",
 			"loaded": "Loaded"
@@ -1218,6 +1219,7 @@
 				"lineofsight": "Fog of war",
 				"losopacity": "opacity",
 				"fogdiaglines": "diagonal lines",
+				"fogdiaglines_blur": "diagonal lines blur",
 				"water": "Water quality",
 				"decals": "Unit tracks",
 				"decals_descr": "0 = Off\nNOTE: Changes might require a restart (if you turn it On/Off)",
@@ -1283,8 +1285,6 @@
 				"snowautoreduce_descr": "Automatically reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again",
 				"snowamount": "amount",
 				"snowamount_descr": "disable \"auto reduce\" option to see the max snow amount you have set",
-				"resurrectionhalos": "Resurrected unit halos",
-				"resurrectionhalos_descr": "Adds halos above resurrected units.",
 				"xmas": "X-mas balls",
 				"xmas_descr": "disabling will make the xmas ball invisible (other decorations stay)",
 				"tombstones": "Tombstones",
@@ -1680,6 +1680,10 @@
 				"unitenergyicons_descr": "Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven't enough energy available.",
 				"unitidlebuildericons": "Unit idle builder icons",
 				"unitidlebuildericons_descr": "Shows a sleep icon above builder units that are idle.",
+				"unitfirestateicons": "Unit firing state icons",
+				"unitfirestateicons_descr": "Shows an icon above units that are either set on Hold Fire or Return Fire.",
+				"resurrectionhalos": "Resurrected unit halos",
+				"resurrectionhalos_descr": "Adds halos above resurrected units.",
 				"nametags_rank": "Commander name tag rank icon",
 				"nametags_rank_descr": "Display the player rank icon left of the commander player name.\n(only shown in multiplayer)",
 				"nametags_icon": "Commander name on icon",

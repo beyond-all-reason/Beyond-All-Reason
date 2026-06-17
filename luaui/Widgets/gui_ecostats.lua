@@ -661,6 +661,12 @@ function widget:Initialize()
 	WG['ecostats'].setReclaim = function(value)
 		cfgTrackReclaim = value
 	end
+	WG['ecostats'].isvisible = function()
+		return myFullview and inSpecMode
+	end
+	WG['ecostats'].getWidgetPosY = function()
+		return widgetPosY
+	end
 
 	Init()
 	widget:ViewResize()
@@ -1491,6 +1497,7 @@ function widget:Update(dt)
 end
 
 local r2tDrawFunc = function()
+	if not areaRect[1] then return end
 	gl.Translate(-1, -1, 0)
 	gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]), 0)
 	gl.Translate(-areaRect[1], -areaRect[2], 0)

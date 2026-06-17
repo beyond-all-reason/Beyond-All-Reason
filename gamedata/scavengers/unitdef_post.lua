@@ -101,15 +101,15 @@ local function scavUnitDef_Post(name, uDef)
 
 	-- Set autoheal of scav units
 	if uDef.health then
-		if not string.find(name, "armscavengerbossv2") or string.find(name, "scavengerbossv4") then
-			if not string.find(name, "scavbeacon") then
-				uDef.health = uDef.health * 1.25
-				if uDef.metalcost then uDef.metalcost = uDef.metalcost * 1.1 end
-				if uDef.energycost then uDef.energycost = uDef.energycost * 1.1 end
-				if uDef.buildtime then uDef.buildtime = uDef.buildtime * 1.1 end
-			end
-			uDef.autoheal = math.ceil(math.sqrt(uDef.health * 0.1))
+		if not string.find(name, "scavbeacon") then
+			uDef.health = uDef.health * 1.25
+			if uDef.metalcost then uDef.metalcost = uDef.metalcost * 1.1 end
+			if uDef.energycost then uDef.energycost = uDef.energycost * 1.1 end
+			if uDef.buildtime then uDef.buildtime = uDef.buildtime * 1.1 end
 		end
+		uDef.autoheal = 0
+		uDef.idleautoheal = math.ceil(math.sqrt(uDef.health * 0.1))
+		uDef.idletime = 150
 	end
 
 	-- Buff _scav units turnrate
