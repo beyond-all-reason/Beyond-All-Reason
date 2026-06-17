@@ -565,6 +565,10 @@ end
 
 -- Uses no weapon customParams.
 
+local minSubTargetDiveSpeed = -0.08
+local terminalCorrectionDistance = 180
+local terminalCorrectionDistanceSq = terminalCorrectionDistance * terminalCorrectionDistance
+
 local function torpedoWaterPen(projectileID)
 	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
 	local targetType, targetID = spGetProjectileTarget(projectileID)
@@ -585,7 +589,7 @@ local function torpedoWaterPen(projectileID)
 			local dx = targetX - positionX
 			local dy = targetY - positionY
 			local dz = targetZ - positionZ
-			closeToTarget = (dx * dx + dy * dy + dz * dz) < (180 * 180)
+			closeToTarget = (dx * dx + dy * dy + dz * dz) < terminalCorrectionDistanceSq
 		end
 
 		local _, unitDepth = spGetUnitPosition(targetID)
@@ -594,7 +598,7 @@ local function torpedoWaterPen(projectileID)
 			-- Sub targets sit deeper, so keep at least a slight downward bias.
 			-- If the torpedo is already diving faster, damp that dive instead of forcing
 			-- a fixed hard descent. Never let an upward velocity become the desired dive.
-			diveSpeed = math.min(velocityY / 4, -0.08)
+			diveSpeed = math.min(velocityY / 4, minSubTargetDiveSpeed)
 
 			-- Far from sub targets, smooth for nicer travel.
 			-- Near impact, allow immediate correction for reliability.

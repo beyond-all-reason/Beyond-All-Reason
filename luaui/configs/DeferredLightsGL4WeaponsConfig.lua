@@ -151,7 +151,6 @@ local BaseClasses = {
 			lifetime = 0, sustain = 1, selfshadowing = 4,
 		},
 	},
-
 	FlameProjectileOld = {
 		lightType = 'point', -- or cone or beam
 		fraction = 2, -- only spawn every nth light

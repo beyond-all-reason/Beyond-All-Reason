@@ -1,38 +1,5 @@
 local definitions = {
 
-    ["torpedo-entry-flare"] = {
-        fireglow = {
-            air                = false,
-            class              = [[CSimpleParticleSystem]],
-            count              = 1,
-            ground             = false,
-            water              = true,
-            underwater         = true,
-
-            properties = {
-                airdrag            = 1,
-                colormap           = [[0.44 0.48 1 0.2   0 0 0 0.01]],
-                directional        = false,
-                emitrot            = 0,
-                emitrotspread      = 0,
-                emitvector         = [[0, 1, 0]],
-                gravity            = [[0.0, 0.0, 0.0]],
-                numparticles       = 1,
-                particlelife       = 4,
-                particlelifespread = 0,
-                particlesize       = 35,
-                particlesizespread = 10,
-                particlespeed      = 0,
-                particlespeedspread = 0,
-                pos                = [[0.0, 0, 0.0]],
-                sizegrowth         = -5,
-                sizemod            = 1,
-                texture            = [[glow]],
-                useairlos          = true,
-            },
-        },
-    },
-
     ["torpedo-cavitation-trail"] = {
         flame = {
             air                = false,

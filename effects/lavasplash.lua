@@ -259,6 +259,34 @@ local function lavagroundflash(size, sizegrowth, ttl)
 	}
 end
 
+local function lavaentryflare()
+	return {
+		air = false, class = [[CSimpleParticleSystem]], count = 1,
+		ground = false, underwater = true, water = true,
+		properties = {
+			airdrag             = 1,
+			colormap            = [[0.95 0.58 0.16 0.18   0 0 0 0.01]],
+			directional         = false,
+			emitrot             = 0,
+			emitrotspread       = 0,
+			emitvector          = [[0, 1, 0]],
+			gravity             = [[0.0, 0.0, 0.0]],
+			numparticles        = 1,
+			particlelife        = 4,
+			particlelifespread  = 0,
+			particlesize        = 35,
+			particlesizespread  = 10,
+			particlespeed       = 0,
+			particlespeedspread = 0,
+			pos                 = [[0.0, 0, 0.0]],
+			sizegrowth          = -5,
+			sizemod             = 1,
+			texture             = [[glow]],
+			alwaysvisible       = true,
+		},
+	}
+end
+
 
 -- Assemble lava splash definitions from components
 -- Sizes are ~65-70% of water counterparts
@@ -266,6 +294,7 @@ end
 local definitions = {}
 
 definitions["lavasplash-torpedo"] = {
+	entryflare  = lavaentryflare(),
 	lavapool    = lavapool(4, 40),
 	circlewaves = lavawaves(1, [[0.4 r0.5]], [[0.8 i0.2]], 18),
 	embers      = lavaembers(2, 3, 8, 0.5, 5, 5, 10),
@@ -273,6 +302,7 @@ definitions["lavasplash-torpedo"] = {
 }
 
 definitions["lavasplash-tiny"] = {
+	entryflare  = lavaentryflare(),
 	lavapool    = lavapool(7, 45, [[-2 r4, -0.5 r1, -180 r360]]),
 	circlewaves = lavawaves(1, [[0.5 r0.7]], [[1.0 i0.2]], 20),
 	embers      = lavaembers(3, 3, 8, 0.6, 6, 6, 12),
