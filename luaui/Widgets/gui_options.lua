@@ -8973,6 +8973,64 @@ function init()
 			description = BAR.I18N("ui.settings.option.prioconturrets_descr"),
 		},
 
+
+		{ id = "transportOrderedUnits",
+		group = "game",
+		category = types.basic,
+		name = "Ferry ignores units with manual orders",
+		type = "bool",
+		value = (WG['transportFactoryGuard'] ~= nil and WG['transportFactoryGuard'].getBlacklistOrderedUnits ~= nil and WG['transportFactoryGuard'].getBlacklistOrderedUnits()),
+		description = "If enabled, transports guarding factories will not transport units that were given explicit orders during construction to their move waypoint.",
+		  onload = function(i)
+			  loadWidgetData("Transport Factory Guard", "blacklistOrderedUnits", { 'blacklistOrderedUnits' })
+		  end,
+		onchange = function(_, value)
+				if widgetHandler.configData["transportFactoryGuard"] == nil then
+				  widgetHandler.configData["transportFactoryGuard"] = {}
+			  	end
+				widgetHandler.configData["Auto Group"].immediate = value
+			  	saveOptionValue('Transport Factory Guard', 'transportFactoryGuard', 'setBlacklistOrderedUnits', { 'blacklistOrderedUnits' }, value)
+				if WG['transportFactoryGuard'] and WG['transportFactoryGuard'].setBlacklistOrderedUnits then
+					WG['transportFactoryGuard'].setBlacklistOrderedUnits(value)
+				end
+			end,
+		},
+
+
+		{ id = "settargetdefault", group = "game", category = types.basic, widget = "Set target default", name = Spring.I18N('ui.settings.option.settargetdefault'), type = "bool", value = GetWidgetToggleValue("Set target default"), description = Spring.I18N('ui.settings.option.settargetdefault_descr') },
+		{ id = "dgunnogroundenemies", group = "game", category = types.advanced, widget = "DGun no ground enemies", name = Spring.I18N('ui.settings.option.dgunnogroundenemies'), type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = Spring.I18N('ui.settings.option.dgunnogroundenemies_descr') },
+		{ id = "dgunstallassist", group = "game", category = types.advanced, widget = "DGun Stall Assist", name = Spring.I18N('ui.settings.option.dgunstallassist'), type = "bool", value = GetWidgetToggleValue("DGun Stall Assist"), description = Spring.I18N('ui.settings.option.dgunstallassist_descr') },
+
+		{ id = "unitreclaimer", group = "game", category = types.basic, widget = "Specific Unit Reclaimer", name = Spring.I18N('ui.settings.option.unitreclaimer'), type = "bool", value = GetWidgetToggleValue("Specific Unit Reclaimer"), description = Spring.I18N('ui.settings.option.unitreclaimer_descr') },
+
+		{ id = "autogroup_immediate", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.autogroup_immediate'), type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getImmediate ~= nil and WG['autogroup'].getImmediate()), description = Spring.I18N('ui.settings.option.autogroup_immediate_descr'),
+		  onload = function(i)
+			  loadWidgetData("Auto Group", "autogroup_immediate", { 'immediate' })
+		  end,
+		  onchange = function(i, value)
+			  if widgetHandler.configData["Auto Group"] == nil then
+				  widgetHandler.configData["Auto Group"] = {}
+			  end
+			  widgetHandler.configData["Auto Group"].immediate = value
+			  saveOptionValue('Auto Group', 'autogroup', 'setImmediate', { 'immediate' }, value)
+		  end,
+		},
+
+		{ id = "autogroup_persist", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.autogroup_persist'), type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getPersist ~= nil and WG['autogroup'].getPersist()), description = Spring.I18N('ui.settings.option.autogroup_persist_descr'),
+		  onload = function(i)
+			  loadWidgetData("Auto Group", "autogroup_persist", { 'persist' })
+		  end,
+		  onchange = function(i, value)
+			  if widgetHandler.configData["Auto Group"] == nil then
+				  widgetHandler.configData["Auto Group"] = {}
+			  end
+			  widgetHandler.configData["Auto Group"].persist = value
+			  saveOptionValue('Auto Group', 'autogroup', 'setPersist', { 'persist' }, value)
+		  end,
+		},
+		{ id = "label_state_prefs", group = "game", name = Spring.I18N('ui.settings.option.label_unit_defaults'), category = types.basic },
+		{ id = "label_state_prefs_spacer", group = "game", category = types.basic },
+
 		{
 			id = "builderpriority",
 			group = "game",
@@ -9062,202 +9120,17 @@ function init()
 			end,
 		},
 
-		{
-			id = "factoryguard",
-			group = "game",
-			category = types.basic,
-			widget = "Factory Guard Default On",
-			name = BAR.I18N("ui.settings.option.factory") .. widgetOptionColor .. "  " .. BAR.I18N(
-				"ui.settings.option.factoryguard"
-			),
-			type = "bool",
-			value = GetWidgetToggleValue("Factory Guard Default On"),
-			description = BAR.I18N("ui.settings.option.factoryguard_descr"),
-		},
-		{
-			id = "factoryholdpos",
-			group = "game",
-			category = types.basic,
-			widget = "Factory hold position",
-			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.factoryholdpos"),
-			type = "bool",
-			value = GetWidgetToggleValue("Factory hold position"),
-			description = BAR.I18N("ui.settings.option.factoryholdpos_descr"),
-		},
-		{
-			id = "factoryrepeat",
-			group = "game",
-			category = types.basic,
-			widget = "Factory Auto-Repeat",
-			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.factoryrepeat"),
-			type = "bool",
-			value = GetWidgetToggleValue("Factory Auto-Repeat"),
-			description = BAR.I18N("ui.settings.option.factoryrepeat_descr"),
-		},
-		{
-			id = "factorypreset",
-			group = "game",
-			category = types.basic,
-			widget = "FactoryQ Manager",
-			name = BAR.I18N("ui.settings.option.factorypreset"),
-			type = "bool",
-			value = GetWidgetToggleValue("Factory Presets"),
-			description = BAR.I18N("ui.settings.option.factorypreset_descr"),
-		},
+		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = Spring.I18N('ui.settings.option.fightersfly'), type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = Spring.I18N('ui.settings.option.fightersfly_descr') },
+		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = Spring.I18N('ui.settings.option.onlyfighterspatrol'), type = "bool", value = GetWidgetToggleValue("Autoquit"), description = Spring.I18N('ui.settings.option.onlyfighterspatrol_descr') },
+		{ id = "bombers_default_hold_fire", group = "game", category = types.basic, widget = "BombersDefaultHoldFire", name = Spring.I18N('ui.settings.option.bombers_default_hold_fire'), type = "bool", value = GetWidgetToggleValue("BombersDefaultHoldFire"), description = Spring.I18N('ui.settings.option.bombers_default_hold_fire_descr') },
 
-		{
-			id = "transportOrderedUnits",
-			group = "game",
-			category = types.basic,
-			name = "Ferry ignores units with manual orders",
-			type = "bool",
-			value = (
-				WG.transportFactoryGuard ~= nil
-				and WG.transportFactoryGuard.getBlacklistOrderedUnits ~= nil
-				and WG.transportFactoryGuard.getBlacklistOrderedUnits()
-			),
-			description = "If enabled, transports guarding factories will not transport units that were given explicit orders during construction to their move waypoint.",
-			onload = function(i)
-				loadWidgetData("Transport Factory Guard", "blacklistOrderedUnits", { "blacklistOrderedUnits" })
-			end,
-			onchange = function(_, value)
-				if widgetHandler.configData.transportFactoryGuard == nil then
-					widgetHandler.configData.transportFactoryGuard = {}
-				end
-				widgetHandler.configData["Auto Group"].immediate = value
-				saveOptionValue(
-					"Transport Factory Guard",
-					"transportFactoryGuard",
-					"setBlacklistOrderedUnits",
-					{ "blacklistOrderedUnits" },
-					value
-				)
-				if WG.transportFactoryGuard and WG.transportFactoryGuard.setBlacklistOrderedUnits then
-					WG.transportFactoryGuard.setBlacklistOrderedUnits(value)
-				end
-			end,
-		},
+		{ id = "factoryguard", group = "game", category = types.basic, widget = "Factory Guard Default On", name = Spring.I18N('ui.settings.option.factory') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.factoryguard'), type = "bool", value = GetWidgetToggleValue("Factory Guard Default On"), description = Spring.I18N('ui.settings.option.factoryguard_descr') },
+		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryholdpos'), type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = Spring.I18N('ui.settings.option.factoryholdpos_descr') },
+		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryrepeat'), type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = Spring.I18N('ui.settings.option.factoryrepeat_descr') },
 
-		{
-			id = "onlyfighterspatrol",
-			group = "game",
-			category = types.basic,
-			widget = "OnlyFightersPatrol",
-			name = BAR.I18N("ui.settings.option.onlyfighterspatrol"),
-			type = "bool",
-			value = GetWidgetToggleValue("Autoquit"),
-			description = BAR.I18N("ui.settings.option.onlyfighterspatrol_descr"),
-		},
-		{
-			id = "bombers_default_hold_fire",
-			group = "game",
-			category = types.basic,
-			widget = "BombersDefaultHoldFire",
-			name = BAR.I18N("ui.settings.option.bombers_default_hold_fire"),
-			type = "bool",
-			value = GetWidgetToggleValue("BombersDefaultHoldFire"),
-			description = BAR.I18N("ui.settings.option.bombers_default_hold_fire_descr"),
-		},
-		{
-			id = "fightersfly",
-			group = "game",
-			category = types.basic,
-			widget = "Set fighters on Fly mode",
-			name = BAR.I18N("ui.settings.option.fightersfly"),
-			type = "bool",
-			value = GetWidgetToggleValue("Set fighters on Fly mode"),
-			description = BAR.I18N("ui.settings.option.fightersfly_descr"),
-		},
-
-		{
-			id = "settargetdefault",
-			group = "game",
-			category = types.basic,
-			widget = "Set target default",
-			name = BAR.I18N("ui.settings.option.settargetdefault"),
-			type = "bool",
-			value = GetWidgetToggleValue("Set target default"),
-			description = BAR.I18N("ui.settings.option.settargetdefault_descr"),
-		},
-		{
-			id = "dgunnogroundenemies",
-			group = "game",
-			category = types.advanced,
-			widget = "DGun no ground enemies",
-			name = BAR.I18N("ui.settings.option.dgunnogroundenemies"),
-			type = "bool",
-			value = GetWidgetToggleValue("DGun no ground enemies"),
-			description = BAR.I18N("ui.settings.option.dgunnogroundenemies_descr"),
-		},
-		{
-			id = "dgunstallassist",
-			group = "game",
-			category = types.advanced,
-			widget = "DGun Stall Assist",
-			name = BAR.I18N("ui.settings.option.dgunstallassist"),
-			type = "bool",
-			value = GetWidgetToggleValue("DGun Stall Assist"),
-			description = BAR.I18N("ui.settings.option.dgunstallassist_descr"),
-		},
-
-		{
-			id = "unitreclaimer",
-			group = "game",
-			category = types.basic,
-			widget = "Specific Unit Reclaimer",
-			name = BAR.I18N("ui.settings.option.unitreclaimer"),
-			type = "bool",
-			value = GetWidgetToggleValue("Specific Unit Reclaimer"),
-			description = BAR.I18N("ui.settings.option.unitreclaimer_descr"),
-		},
-
-		{
-			id = "autogroup_immediate",
-			group = "game",
-			category = types.basic,
-			name = BAR.I18N("ui.settings.option.autogroup_immediate"),
-			type = "bool",
-			value = (WG.autogroup ~= nil and WG.autogroup.getImmediate ~= nil and WG.autogroup.getImmediate()),
-			description = BAR.I18N("ui.settings.option.autogroup_immediate_descr"),
-			onload = function(i)
-				loadWidgetData("Auto Group", "autogroup_immediate", { "immediate" })
-			end,
-			onchange = function(i, value)
-				if widgetHandler.configData["Auto Group"] == nil then
-					widgetHandler.configData["Auto Group"] = {}
-				end
-				widgetHandler.configData["Auto Group"].immediate = value
-				saveOptionValue("Auto Group", "autogroup", "setImmediate", { "immediate" }, value)
-			end,
-		},
-
-		{
-			id = "autogroup_persist",
-			group = "game",
-			category = types.basic,
-			name = BAR.I18N("ui.settings.option.autogroup_persist"),
-			type = "bool",
-			value = (WG.autogroup ~= nil and WG.autogroup.getPersist ~= nil and WG.autogroup.getPersist()),
-			description = BAR.I18N("ui.settings.option.autogroup_persist_descr"),
-			onload = function(i)
-				loadWidgetData("Auto Group", "autogroup_persist", { "persist" })
-			end,
-			onchange = function(i, value)
-				if widgetHandler.configData["Auto Group"] == nil then
-					widgetHandler.configData["Auto Group"] = {}
-				end
-				widgetHandler.configData["Auto Group"].persist = value
-				saveOptionValue("Auto Group", "autogroup", "setPersist", { "persist" }, value)
-			end,
-		},
-
-		{
-			id = "label_ui_cloak",
-			group = "game",
-			name = BAR.I18N("ui.settings.option.label_cloak"),
-			category = types.basic,
-		},
+		{ id = "label_ui_cloak", group = "game", name = Spring.I18N('ui.settings.option.label_cloak'), category = types.basic },
 		{ id = "label_ui_cloak_spacer", group = "game", category = types.basic },
+		-- auto cloak settings get added here
 
 		-- ACCESSIBILITY
 
