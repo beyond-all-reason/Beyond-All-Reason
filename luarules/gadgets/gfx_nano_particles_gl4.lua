@@ -626,7 +626,7 @@ end
 -- Cached infoTex-is-LOS state. Spring.GetMapDrawMode() returns the active
 -- mini-map mode (""/"los"/"height"/"metal"/"path"); when not LOS, $info holds
 -- other map data and our LOS smoothstep would discard most of the map.
--- Polled on a slow (~1s) tick in gadget:Update.
+-- Also refreshed in DrawWorld so mode toggles apply immediately.
 local cachedInfoIsLos = true
 local function refreshInfoIsLos()
 	local m = Spring.GetMapDrawMode()
@@ -3043,7 +3043,10 @@ function gadget:Update()
 				Spring.SetConfigInt("MaxNanoParticles", 0)
 			end
 		end
-		-- Refresh the cached map-draw-mode (heightmap / metalmap / pathmap views).
+		-- Refresh high-gamespeed throttle (reconnect catchup, user /speed).
+		-- Map-draw-mode is also refreshed in DrawWorld for immediate overlay
+		-- transitions.
+		refreshSpeedThrottle()
 		refreshInfoIsLos()
 		refreshMaxParticles()
 		-- Color equalization slider: cheap poll; if changed, force a full
@@ -3432,6 +3435,9 @@ function gadget:DrawWorld()
 	-- Shape shader has no nanoTex sampler -- skip the bind entirely.
 	glTexture(1, "$info")
 	nanoShader:Activate()
+	-- Keep map-draw-mode state fresh per render frame so toggling metal/height/
+	-- path overlays does not spend up to 1s using stale LOS sampling state.
+	refreshInfoIsLos()
 	-- losAlwaysVisible: bypass the LOS/infoTex sample either with full view
 	-- (spectator) or when $info isn't currently rendering LOS (heightmap /
 	-- metalmap / pathmap modes hold other map data). Refreshed on a slow (~1s)
