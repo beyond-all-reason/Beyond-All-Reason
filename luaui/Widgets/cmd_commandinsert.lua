@@ -55,11 +55,11 @@ local INSERT_ACTIONS = { "commandinsert prepend_between", "commandinsert prepend
 
 local function cacheInsertKeys()
 	insertKeyCodes, insertModifiers = {}, {}
-	for a = 1, #INSERT_ACTIONS do
-		local hotkeys = Spring.GetActionHotKeys(INSERT_ACTIONS[a])
+	for _, action in ipairs(INSERT_ACTIONS) do
+		local hotkeys = Spring.GetActionHotKeys(action)
 		if hotkeys then
-			for i = 1, #hotkeys do
-				local baseKey = hotkeys[i]:match("[^+]+$") -- strip modifier prefixes like "Any+"
+			for _, hotkey in ipairs(hotkeys) do
+				local baseKey = hotkey:match("[^+]+$") -- strip modifier prefixes like "Any+"
 				if baseKey then
 					baseKey = baseKey:lower()
 					if baseKey == "alt" or baseKey == "ctrl" or baseKey == "meta" or baseKey == "shift" then
@@ -74,7 +74,6 @@ local function cacheInsertKeys()
 			end
 		end
 	end
-
 end
 
 local function isInsertKeyHeld()
