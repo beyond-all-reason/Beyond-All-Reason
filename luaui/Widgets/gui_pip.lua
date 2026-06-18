@@ -332,6 +332,7 @@ local uiState = {
 -- Render-to-texture state (consolidated to reduce local variable count)
 local pipR2T = {
 	contentTex = nil,
+	contentInvalidInfoStreak = 0,  -- Consecutive invalid TextureInfo reads for contentTex
 	contentNeedsUpdate = true,
 	contentLastUpdateTime = 0,
 	contentCurrentUpdateRate = config.pipMinUpdateRate,
@@ -381,6 +382,7 @@ local pipR2T = {
 	playerNameLastName = nil,
 	-- Smooth camera: oversized units texture for camera-transition interpolation
 	unitsTex = nil,  -- Oversized FBO for expensive content (units, features, projectiles, etc.)
+	unitsInvalidInfoStreak = 0,  -- Consecutive invalid TextureInfo reads for unitsTex
 	unitsTexWidth = 0,  -- Actual texture width in pixels
 	unitsTexHeight = 0,  -- Actual texture height in pixels
 	unitsLastWidth = 0,  -- Last PIP width used to create unitsTex
@@ -6061,19 +6063,22 @@ local function DrawExplosions()
 						-- GL4 sparks as norm lines
 						for k = 1, #explosion.particles do
 							local particle = explosion.particles[k]
-							local particleAge = age
-							local particleProgress = particleAge / particle.life
-							if particleProgress < 1 then
-								particle.x = particle.x + particle.vx * (1/30)
-								particle.z = particle.z + particle.vz * (1/30)
-								local sparkAlpha = (1 - particleProgress) * 0.9
-								local sparkDirX = particle.vx * 0.3
-								local sparkDirZ = particle.vz * 0.3
-								-- Sparks use PIP-local Y coords (= -worldZ), so flip Z for GL4 world coords
-								GL4AddNormLine(
-									explosion.x + particle.x - sparkDirX, explosion.z - particle.z + sparkDirZ,
-									explosion.x + particle.x + sparkDirX, explosion.z - particle.z - sparkDirZ,
-									r, g, b, sparkAlpha)
+							local particleLife = particle.life or particle.lifetime
+							if particle.vx and particle.vz and particleLife and particleLife > 0 then
+								local particleAge = age
+								local particleProgress = particleAge / particleLife
+								if particleProgress < 1 then
+									particle.x = particle.x + particle.vx * (1/30)
+									particle.z = particle.z + particle.vz * (1/30)
+									local sparkAlpha = (1 - particleProgress) * 0.9
+									local sparkDirX = particle.vx * 0.3
+									local sparkDirZ = particle.vz * 0.3
+									-- Sparks use PIP-local Y coords (= -worldZ), so flip Z for GL4 world coords
+									GL4AddNormLine(
+										explosion.x + particle.x - sparkDirX, explosion.z - particle.z + sparkDirZ,
+										explosion.x + particle.x + sparkDirX, explosion.z - particle.z - sparkDirZ,
+										r, g, b, sparkAlpha)
+								end
 							end
 						end
 					end
@@ -14609,9 +14614,13 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 				glFunc.Texture(false)
 				gl.Scissor(false)
 				gl.BlendEquation(GL.FUNC_ADD)
-				-- Try to pop rotation matrix if it was pushed
-				if render.minimapRotation ~= 0 then
-					pcall(glFunc.PopMatrix)
+				-- Best-effort matrix cleanup: if a nested draw path errored after one or more
+				-- PushMatrix calls, pop until stack is balanced (or until PopMatrix fails).
+				for _ = 1, 8 do
+					local okPop = pcall(glFunc.PopMatrix)
+					if not okPop then
+						break
+					end
 				end
 			end
 
@@ -14779,9 +14788,13 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 				gl.BlendEquation(GL.FUNC_ADD)
 				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 				gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
-				-- Try to pop rotation matrix if it was pushed
-				if render.minimapRotation ~= 0 then
-					pcall(glFunc.PopMatrix)
+				-- Best-effort matrix cleanup: if a nested draw path errored after one or more
+				-- PushMatrix calls, pop until stack is balanced (or until PopMatrix fails).
+				for _ = 1, 8 do
+					local okPop = pcall(glFunc.PopMatrix)
+					if not okPop then
+						break
+					end
 				end
 			end
 
@@ -15669,10 +15682,30 @@ function widget:DrawScreen()
 	local fallbackUnitThreshold = miscState.engineMinimapActive
 		and (config.engineMinimapFallbackThreshold * 0.95)
 		or config.engineMinimapFallbackThreshold
-	local useEngineMinimapFallback = isMinimapMode and config.engineMinimapFallback
+	local rawUseEngineMinimapFallback = isMinimapMode and config.engineMinimapFallback
 		and #miscState.pipUnits > fallbackUnitThreshold
 		and IsAtMinimumZoom(cameraState.zoom) and IsAtMinimumZoom(cameraState.targetZoom)
 		and not interactionState.trackingPlayerID and not miscState.tvEnabled
+
+	local useEngineMinimapFallback
+
+	-- Time-based debounce on top of threshold hysteresis.
+	-- Prevents rapid frame-to-frame toggling between engine minimap and PIP when
+	-- unit count / zoom hovers around the fallback boundary.
+	do
+		local now = os.clock()
+		if miscState.engineFallbackRawWanted ~= rawUseEngineMinimapFallback then
+			miscState.engineFallbackRawWanted = rawUseEngineMinimapFallback
+			miscState.engineFallbackRawWantedSince = now
+		end
+
+		local holdTime = rawUseEngineMinimapFallback and 0.35 or 0.75
+		if miscState.engineFallbackRawWantedSince and (now - miscState.engineFallbackRawWantedSince) < holdTime then
+			useEngineMinimapFallback = miscState.engineMinimapActive
+		else
+			useEngineMinimapFallback = rawUseEngineMinimapFallback
+		end
+	end
 
 	if useEngineMinimapFallback then
 		-- Transition: PIP → engine minimap
@@ -15750,6 +15783,9 @@ function widget:DrawScreen()
 			miscState.engineMinimapActive = false
 			pipR2T.contentNeedsUpdate = true
 			pipR2T.unitsNeedsUpdate = true
+			pipR2T.contentLastUpdateTime = 0
+			pipR2T.unitsLastUpdateTime = 0
+			pipR2T.forceRefreshFrames = math.max(pipR2T.forceRefreshFrames or 0, 6)
 			-- Invalidate GL4 icon caches — positions, VBO data, and mobile block
 			-- are stale after potentially many frames without PIP rendering.
 			gl4Icons._vboValid = false
@@ -15879,17 +15915,29 @@ function widget:DrawScreen()
 			-- Validate texture is still usable (may have been invalidated by engine GL changes)
 			local texInfo = gl.TextureInfo(pipR2T.contentTex)
 			if not texInfo or texInfo.xsize <= 0 then
-				gl.DeleteTexture(pipR2T.contentTex)
-				pipR2T.contentTex = nil
-				pipR2T.contentNeedsUpdate = true
+				pipR2T.contentInvalidInfoStreak = (pipR2T.contentInvalidInfoStreak or 0) + 1
+				if pipR2T.contentInvalidInfoStreak >= 2 then
+					gl.DeleteTexture(pipR2T.contentTex)
+					pipR2T.contentTex = nil
+					pipR2T.contentNeedsUpdate = true
+					pipR2T.contentInvalidInfoStreak = 0
+				end
+			else
+				pipR2T.contentInvalidInfoStreak = 0
 			end
 		end
 		if pipR2T.unitsTex then
 			local texInfo = gl.TextureInfo(pipR2T.unitsTex)
 			if not texInfo or texInfo.xsize <= 0 then
-				gl.DeleteTexture(pipR2T.unitsTex)
-				pipR2T.unitsTex = nil
-				pipR2T.unitsNeedsUpdate = true
+				pipR2T.unitsInvalidInfoStreak = (pipR2T.unitsInvalidInfoStreak or 0) + 1
+				if pipR2T.unitsInvalidInfoStreak >= 2 then
+					gl.DeleteTexture(pipR2T.unitsTex)
+					pipR2T.unitsTex = nil
+					pipR2T.unitsNeedsUpdate = true
+					pipR2T.unitsInvalidInfoStreak = 0
+				end
+			else
+				pipR2T.unitsInvalidInfoStreak = 0
 			end
 		end
 		if pipR2T.contentTex then
@@ -16475,7 +16523,7 @@ function widget:Update(dt)
 		-- Poll ConfigFloat for external changes (e.g. from gui_options)
 		if isMinimapMode then
 			local cfgMaxHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32)
-			if cfgMaxHeight ~= config.minimapModeMaxHeight then
+			if math.abs(cfgMaxHeight - config.minimapModeMaxHeight) > 0.0001 then
 				config.minimapModeMaxHeight = cfgMaxHeight
 				widget:ViewResize()
 			end
@@ -18331,7 +18379,9 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	end
 
 	-- Add particle debris for larger explosions (skip during engine minimap: only circle overlay is drawn)
-	if radius > 30 and not miscState.engineMinimapActive then
+	-- Lightning uses its own spark particles above; mixing debris (lifetime-only particles)
+	-- into the same table can break lightning-specific spark logic.
+	if radius > 30 and not miscState.engineMinimapActive and not isLightning then
 		local explosion = cache.explosions[#cache.explosions]
 		local particleCount = math.min(12, math.floor(radius / 10))
 
