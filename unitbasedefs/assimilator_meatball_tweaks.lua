@@ -219,13 +219,13 @@ local function AssimilatorMeatballTweaks(name, uDef)
 			},
 				}
 	end
-	if name == "armshltxuw" then
-	for index in pairs(uDef.buildoptions) do
-			if 	uDef.buildoptions[index]=="armassimilator"  then
-				uDef.buildoptions[index] = nil
-			end
-		end
-	end
+--	if name == "armshltxuw" then
+--	for index in pairs(uDef.buildoptions) do
+--			if 	uDef.buildoptions[index]=="armassimilator"  then
+--				uDef.buildoptions[index] = nil
+--			end
+--		end
+--	end
 
 	return uDef
 end
