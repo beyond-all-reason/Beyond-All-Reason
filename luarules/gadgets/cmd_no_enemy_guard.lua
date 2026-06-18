@@ -2,7 +2,8 @@ local gadget = gadget ---@type Gadget
 
 local CMD_GUARD = CMD.GUARD
 local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+--local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitTeam = Spring.GetUnitTeam
 
 function gadget:GetInfo()
   return {
@@ -30,11 +31,11 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
         return true -- No target unit, allow the command
     end
 
-    local targetAllyTeamID = spGetUnitAllyTeam(targetUnitID)
+    local targetTeamID = spGetUnitTeam(targetUnitID)
 
-    if targetAllyTeamID == nil then
+    if targetTeamID == nil then
         return true -- Target unit doesn't exist, allow the command
     end
 
-    return spAreTeamsAllied(unitTeam, targetAllyTeamID)
+    return spAreTeamsAllied(unitTeam, targetTeamID)
 end
