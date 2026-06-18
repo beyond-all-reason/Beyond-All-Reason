@@ -93,7 +93,7 @@ local armorTypeMin = 0
 local armorTypeMax = #Game.armorTypes
 
 local autoHealInterval = math_round(Game.gameSpeed * 0.5) -- match engine interval
-local autoHealFraction = Game.gameSpeed / autoHealInterval
+local autoHealFraction = autoHealInterval / Game.gameSpeed
 
 local powerScale = Spring.GetModOptions().veterancy_power_scale
 local healthScale = Spring.GetModOptions().veterancy_health_scale
