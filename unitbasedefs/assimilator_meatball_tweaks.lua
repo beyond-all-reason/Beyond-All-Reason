@@ -106,7 +106,7 @@ local function AssimilatorMeatballTweaks(name, uDef)
 				uDef.sightdistance = 470
 				uDef.airsightdistance = 900
 				uDef.nochasecategory = "VTOL"
-				uDef.movementclass = "HBOT4"
+				--uDef.movementclass = "HBOT4"
 				uDef.weapondefs = {
 				machinegun = {
 				accuracy = 50,
@@ -226,6 +226,7 @@ local function AssimilatorMeatballTweaks(name, uDef)
 			end
 		end
 	end
+
 	return uDef
 end
 
