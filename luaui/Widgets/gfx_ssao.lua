@@ -656,14 +656,6 @@ function widget:Initialize()
 		InitGL()
 	end
 
-	if WG['flowui_gl4']  and WG['flowui_gl4'].forwardslider then
-		spEcho(" WG[flowui_gl4] detected")
-			shaderDefinedSlidersLayer, shaderDefinedSlidersWindow = WG['flowui_gl4'].requestWidgetLayer(shaderDefinedSliders) -- this is a window
-			shaderDefinedSliders.parent = shaderDefinedSlidersWindow
-
-			WG['flowui_gl4'].forwardslider(shaderDefinedSliders)
-	end
-
 	InitGL()
 end
 

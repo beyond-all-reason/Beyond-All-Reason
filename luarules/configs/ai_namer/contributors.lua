@@ -9,6 +9,7 @@ local ContributorAINames = {
     "Amojini",
     "ArbySquidums_UwU",
     "Attean",
+	"Aurora",
     "Beherith",
     "Belluu",
     "bluejay",
