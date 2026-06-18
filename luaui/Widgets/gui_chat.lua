@@ -38,6 +38,7 @@ local cmdBlockChatHistory = {
 	[CMD.LOAD_UNITS]             = true,
 	[CMD.UNLOAD_UNITS]			 = true,
 	[GameCMD.AREA_ATTACK_GROUND] = true,
+	[GameCMD.AREA_MEX]           = true,
 }
 
 local LineTypes = {
