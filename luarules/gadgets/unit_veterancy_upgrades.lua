@@ -748,12 +748,12 @@ function gadget:Initialize()
 	-- TODO: Move this into the game setup? Or something? Why in a gadget?
 	Spring.SetExperienceGrade(0.01)
 
-	local veterancyKeySet = table.map(veterancyEffects, function(v, k) return true, customParamPrefix .. k end)
+	local customKeyMap = table.map(veterancyEffects, function(_, key) return key, customParamPrefix .. key end)
 	for unitDefID, unitDef in ipairs(UnitDefs) do
 		local veterancyList = {}
 		local customParams = unitDef.customParams
-		for veterancyKey in pairs(veterancyKeySet) do
-			if customParams[veterancyKey] then
+		for customKey, veterancyKey in pairs(customKeyMap) do
+			if customParams[customKey] ~= nil then
 				veterancyList[#veterancyList + 1] = veterancyKey
 			end
 		end
