@@ -6,6 +6,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
   return {
     name = "CommandInsert",
+    version = 2,
     desc = "When pressing spacebar and shift, you can insert commands to arbitrary places in queue. When pressing spacebar alone, commands are inserted on front of queue. Based on FrontInsert by jK",
     author = "dizekat",
     date = "Jan,2008",
@@ -34,6 +35,94 @@ local modifiers = {
 
 -- Current position in prepend queue for prepend_queue mode
 local prependPos = 0
+
+-- [v2] Failsafe for a lost key-release: if the insert action's key-release is never
+-- delivered (the window losing focus while the key is held -- e.g. alt-tab or a
+-- compositor key-grab on Wayland), the mode flag stays set and every subsequent order
+-- silently becomes a CMD.INSERT. Re-validate the held state against the bound key(s).
+local STUCK_GRACE_FRAMES = 3 -- not configurable; frames the key must read released before clearing (avoids a single-frame state race)
+
+local spGetModKeyState = Spring.GetModKeyState
+local spGetKeyState = Spring.GetKeyState
+
+local insertKeyCodes -- resolved once, then cached
+local insertModifiers
+local stuckFrames = 0
+
+-- The keys are bound to the action+arg combinations, not the bare "commandinsert"
+-- action, so each combination must be queried for its hotkey(s).
+local INSERT_ACTIONS = { "commandinsert prepend_between", "commandinsert prepend_queue" }
+
+local function cacheInsertKeys()
+	insertKeyCodes, insertModifiers = {}, {}
+	for a = 1, #INSERT_ACTIONS do
+		local hotkeys = Spring.GetActionHotKeys(INSERT_ACTIONS[a])
+		if hotkeys then
+			for i = 1, #hotkeys do
+				local baseKey = hotkeys[i]:match("[^+]+$") -- strip modifier prefixes like "Any+"
+				if baseKey then
+					baseKey = baseKey:lower()
+					if baseKey == "alt" or baseKey == "ctrl" or baseKey == "meta" or baseKey == "shift" then
+						insertModifiers[baseKey] = true
+					else
+						local keyCode = Spring.GetKeyCode(baseKey)
+						if keyCode then
+							insertKeyCodes[#insertKeyCodes + 1] = keyCode
+						end
+					end
+				end
+			end
+		end
+	end
+
+end
+
+local function isInsertKeyHeld()
+	if not insertKeyCodes then
+		cacheInsertKeys()
+	end
+
+	-- Could not resolve a bound key (e.g. queried before keybinds were loaded): fail safe by
+	-- reporting held, so the insert feature is never broken, and retry the lookup next time.
+	if not next(insertModifiers) and insertKeyCodes[1] == nil then
+		insertKeyCodes = nil
+		return true
+	end
+
+	if next(insertModifiers) then
+		local alt, ctrl, meta, shift = spGetModKeyState()
+		if (insertModifiers.alt and alt) or (insertModifiers.ctrl and ctrl)
+			or (insertModifiers.meta and meta) or (insertModifiers.shift and shift) then
+			return true
+		end
+	end
+
+	for i = 1, #insertKeyCodes do
+		if spGetKeyState(insertKeyCodes[i]) then
+			return true
+		end
+	end
+
+	return false
+end
+
+function widget:Update()
+	if modifiers.prepend_between or modifiers.prepend_queue then
+		if isInsertKeyHeld() then
+			stuckFrames = 0
+		else
+			stuckFrames = stuckFrames + 1
+			if stuckFrames >= STUCK_GRACE_FRAMES then
+				modifiers.prepend_between = false
+				modifiers.prepend_queue = false
+				prependPos = 0
+				stuckFrames = 0
+			end
+		end
+	else
+		stuckFrames = 0
+	end
+end
 
 function widget:GameStart()
   widget:PlayerChanged()
