@@ -785,7 +785,7 @@ void main(void){
 		normalTexVal = texture(normalTex, myUV);
 	}
 
-	float healthMix;
+	float healthMix = 0.0;
 	vec3 seedVec;
 
 	#ifdef ENABLE_OPTION_HEALTH_TEXTURING
