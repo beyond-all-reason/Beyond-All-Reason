@@ -667,8 +667,8 @@ veterancyEffects.reload_then_damages = {
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local onCreated = onUnitCreated[unitDefID]
 	if onCreated then
-		for i = 1, #onCreated do
-			onCreated[i](unitID)
+		for _, unitCreated in ipairs(onCreated) do
+			unitCreated(unitID)
 		end
 	end
 end
