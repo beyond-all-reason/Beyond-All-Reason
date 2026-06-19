@@ -38,12 +38,16 @@ function isAuthorized(playerID, subPermission)
 	   (SYNCED and SYNCED.permissions.devhelpers and (SYNCED.permissions.devhelpers[accountID] or (playername and SYNCED.permissions.devhelpers[playername]))) then
 		hasPermission = true
 	end
-	-- check specific sub-permission
+	-- check the devhelpers_<name> sub-permission OR a matching top-level permission
+	-- of the same name (e.g. modmarker), so roles without the devhelpers catch-all
+	-- (moderators/event managers) are authorized too
 	if not hasPermission and subPermission then
-		local permKey = "devhelpers_" .. subPermission
-		if (_G and _G.permissions[permKey] and (_G.permissions[permKey][accountID] or (playername and _G.permissions[permKey][playername]))) or
-		   (SYNCED and SYNCED.permissions[permKey] and (SYNCED.permissions[permKey][accountID] or (playername and SYNCED.permissions[permKey][playername]))) then
-			hasPermission = true
+		for _, permKey in ipairs({ "devhelpers_" .. subPermission, subPermission }) do
+			if (_G and _G.permissions[permKey] and (_G.permissions[permKey][accountID] or (playername and _G.permissions[permKey][playername]))) or
+			   (SYNCED and SYNCED.permissions[permKey] and (SYNCED.permissions[permKey][accountID] or (playername and SYNCED.permissions[permKey][playername]))) then
+				hasPermission = true
+				break
+			end
 		end
 	end
 	if hasPermission then
@@ -456,6 +460,8 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "teams"
 		elseif cmd == "globallos" or cmd == "clearwrecks" or cmd == "reducewrecks" then
 			subPermission = "terrain"
+		elseif cmd == "modmarker" then
+			subPermission = "modmarker"
 		end
 
 		if not isAuthorized(playerID, subPermission) then
@@ -511,6 +517,19 @@ if gadgetHandler:IsSyncedCode() then
 			playertoteam(words)
 		elseif cmd == "killteam" then
 			killteam(words)
+		elseif cmd == "modmarker" then
+			-- split on ':' so a multi-word label ("Rule Violation") keeps its spaces;
+			-- the gmatch words[] above would truncate it to the first token. After the
+			-- header strip msg is "$:modmarker:x:y:z:label", so parts =
+			-- {"$","modmarker",x,y,z,label}.
+			local parts = string.split(msg, ':')
+			local x = tonumber(parts[3])
+			local y = tonumber(parts[4])
+			local z = tonumber(parts[5])
+			local label = parts[6] or ""
+			if x and y and z then
+				SendToUnsynced("modmarker", x, y, z, label)
+			end
 		end
 	end
 
@@ -764,6 +783,12 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('playertoteam', playertoteam, "") -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
 		gadgetHandler:AddChatAction('killteam', killteam, "") -- /luarules killteam [teamID] -- kills the team
 		gadgetHandler:AddChatAction('desync', desync) -- /luarules desync
+		gadgetHandler:AddChatAction('modmarker', modmarker, "") -- /luarules modmarker [label] -- places a broadcast marker at cursor visible to all players
+		-- Moderator broadcast ping: the synced modmarker handler relays here, and
+		-- every client draws it locally (localOnly=true) so ALL players see it.
+		gadgetHandler:AddSyncAction("modmarker", function(_, x, y, z, label)
+			Spring.MarkerAddPoint(x, y, z, label or "", true)
+		end)
 	end
 
 	function gadget:Shutdown()
@@ -786,6 +811,8 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('playertoteam')
 		gadgetHandler:RemoveChatAction('killteam')
 		gadgetHandler:RemoveChatAction('desync')
+		gadgetHandler:RemoveChatAction('modmarker')
+		gadgetHandler:RemoveSyncAction("modmarker")
 	end
 
 	function xpUnits(_, line, words, playerID)
@@ -1303,8 +1330,27 @@ else	-- UNSYNCED
 		end
 	end
 
+	function modmarker(_, line, words, playerID)
+		-- /luarules modmarker          -- places broadcast marker at cursor with no label
+		-- /luarules modmarker My text  -- places broadcast marker at cursor with label
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "modmarker") then
+			return
+		end
+		local mx, my = Spring.GetMouseState()
+		local t, pos = Spring.TraceScreenRay(mx, my, true)
+		if type(pos) == 'table' then
+			local x = math.floor(pos[1])
+			local y = math.floor(pos[2])
+			local z = math.floor(pos[3])
+			local label = words[1] and table.concat(words, " ", 1) or ""
+			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':modmarker:' .. x .. ':' .. y .. ':' .. z .. ':' .. label)
+		end
+	end
+
 	function spawnunitexplosion(_, line, words, playerID)
-		--spawnunitexplosion usage:
 		--/luarules spawnunitexplosion armbull --spawns at cursor
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
