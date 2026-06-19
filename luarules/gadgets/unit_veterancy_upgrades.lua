@@ -731,7 +731,6 @@ function gadget:Initialize()
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		gadget:UnitCreated(unitID, unitDefID)
 		if spGetUnitIsDead(unitID) == false and spGetUnitExperience(unitID) > 0 then
-			local unitDefID = Spring.GetUnitDefID(unitID)
 			applyVeterancyEffects(unitID, spGetUnitExperience(unitID), unitVeterancyUpgrades[unitDefID])
 		end
 	end
