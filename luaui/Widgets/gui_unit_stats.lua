@@ -792,7 +792,7 @@ local function computeContent(uDefID, uID, shiftBool)
 			-- Time to fire might differ from the reload time:
 			local fireTime = max(simSpeedInv, uWep.stockpile and uWep.stockpileTime * simSpeedInv or uWep.reload)
 
-			if useExp and wNum > 0 then
+			if uID and useExp and wNum > 0 then
 				if not uWep.stockpile then
 					local reloadTime = spGetUnitWeaponState(uID, wNum, reloadTimeState)
 					reload = max(simSpeedInv, reloadTime or reload)
