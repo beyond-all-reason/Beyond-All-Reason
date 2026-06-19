@@ -72,8 +72,7 @@
     ],
     "requireLikeFunction": [
       "VFS.Include",
-      "include",
-      "shard_include"
+      "include"
     ]
   },
   "workspace": {

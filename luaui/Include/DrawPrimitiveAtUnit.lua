@@ -52,9 +52,9 @@ local fsSrcPath = "LuaUI/Shaders/DrawPrimitiveAtUnit.frag.glsl"
 local vsFallbackSrcPath = "LuaUI/Shaders/DrawPrimitiveAtUnit_nogs.vert.glsl"
 
 local shaderSourceCache = {
-		vssrcpath = useGeometryShader and vsSrcPath or vsFallbackSrcPath,
+		vssrcpath = vsSrcPath,
 		fssrcpath = fsSrcPath,
-		gssrcpath = useGeometryShader and gsSrcPath or nil,
+		gssrcpath = gsSrcPath,
 		shaderName = "DrawPrimitiveAtUnit",
 		uniformInt = {},
 		uniformFloat = {
@@ -64,15 +64,37 @@ local shaderSourceCache = {
 		shaderConfig = shaderConfig,
 	}
 
+local fallbackShaderSourceCache = {
+		vssrcpath = vsFallbackSrcPath,
+		fssrcpath = fsSrcPath,
+		shaderName = "DrawPrimitiveAtUnit (NoGS)",
+		uniformInt = {},
+		uniformFloat = {
+			addRadius = 0.0,
+			iconDistance = 20000.0,
+		  },
+		shaderConfig = shaderConfig,
+	}
+
 local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
-	if shaderConfig.USETEXTURE then
-		shaderSourceCache.uniformInt = {DrawPrimitiveAtUnitTexture = 0,}
-	end
+	local uniformInt = shaderConfig.USETEXTURE and {DrawPrimitiveAtUnitTexture = 0,} or {}
 
 	shaderSourceCache.shaderName = DPATname .. "Shader GL4"
 	shaderSourceCache.shaderConfig = shaderConfig
+	shaderSourceCache.uniformInt = uniformInt
 
-	DrawPrimitiveAtUnitShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or DrawPrimitiveAtUnitShader
+	fallbackShaderSourceCache.shaderName = DPATname .. "Shader GL4 (NoGS)"
+	fallbackShaderSourceCache.shaderConfig = shaderConfig
+	fallbackShaderSourceCache.uniformInt = uniformInt
+
+	local useGeometryShaderForThisShader = useGeometryShader
+	local compiledShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
+	if not compiledShader then
+		useGeometryShaderForThisShader = false
+		compiledShader = LuaShader.CheckShaderUpdates(fallbackShaderSourceCache)
+	end
+
+	DrawPrimitiveAtUnitShader = compiledShader or DrawPrimitiveAtUnitShader
 
 	if not DrawPrimitiveAtUnitShader then
 		Spring.Echo("Failed to compile shader for ", DPATname)
@@ -85,7 +107,7 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 	-- attributes are shifted up to locations 1..6.
 	local instanceLayout
 	local unitIDattribID
-	if useGeometryShader then
+	if useGeometryShaderForThisShader then
 		instanceLayout = {
 			{id = 0, name = 'lengthwidthcorner', size = 4},
 			{id = 1, name = 'teamID', size = 1, type = GL.UNSIGNED_INT},
@@ -118,7 +140,7 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 		return nil
 	end
 
-	if useGeometryShader then
+	if useGeometryShaderForThisShader then
 		local DrawPrimitiveAtUnitVAO = gl.GetVAO()
 		DrawPrimitiveAtUnitVAO:AttachVertexBuffer(DrawPrimitiveAtUnitVBO.instanceVBO)
 		DrawPrimitiveAtUnitVBO.VAO = DrawPrimitiveAtUnitVAO
