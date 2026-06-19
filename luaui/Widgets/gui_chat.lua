@@ -436,7 +436,7 @@ local autocompleteCommands = {
 	'luarules reducewrecks',
 	'luarules destroyunits',
 	'luarules disablecusgl4',
-	'luarules fightertest',
+	'luarules benchmark',
 	'luarules give',
 	'luarules givecat',
 	'luarules halfhealth',
@@ -894,6 +894,31 @@ end
 local function getColoredPlayerName(name, gameFrame, isSpectator)
 	local displayName = (playernames[name] and playernames[name][7]) or name
 	if isSpectator then
+		local formerTeamColor = playernames[name] and playernames[name][5]
+		local becameSpectatorFrame = playernames[name] and playernames[name][8]
+		local likelyFormerPlayer = false
+		if formerTeamColor and becameSpectatorFrame then
+			likelyFormerPlayer = true
+		elseif formerTeamColor and playernames[name] then
+			local teamID = playernames[name][3]
+			if teamID and teamID ~= Spring.GetGaiaTeamID() then
+				local _, leader = spGetTeamInfo(teamID, false)
+				if leader == playernames[name][4] then
+					likelyFormerPlayer = true
+				end
+			end
+		end
+		if likelyFormerPlayer then
+			local teamColor = colorSpecStr
+			if ColorString then
+				if not mySpec and anonymousMode ~= "disabled" then
+					teamColor = ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]) or colorSpecStr
+				else
+					teamColor = ColorString(formerTeamColor[1], formerTeamColor[2], formerTeamColor[3]) or colorSpecStr
+				end
+			end
+			return teamColor .. '■ ' .. colorSpecStr .. '(s) ' .. displayName
+		end
 		return colorSpecStr .. '(s) ' .. displayName
 	end
 	return getPlayerColorString(name, gameFrame) .. displayName
@@ -902,7 +927,8 @@ end
 -- Helper function to format system message with player name
 local function formatSystemMessage(i18nKey, playername, gameFrame, lineColor, extraParams)
 	local params = extraParams or {}
-	params.name = getPlayerColorString(playername, gameFrame) .. playername
+	local displayName = (playernames[playername] and playernames[playername][7]) or playername
+	params.name = getPlayerColorString(playername, gameFrame) .. displayName
 	params.textColor = lineColor
 	return Spring.I18N(i18nKey, params)
 end
@@ -2626,15 +2652,23 @@ function widget:PlayerChanged(playerID)
 	if mySpec and inputMode == 'a:' then
 		inputMode = 's:'
 	end
-	local name, _, isSpec = spGetPlayerInfo(playerID, false)
+	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
 	--local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 	if not playernames[name] then
 		widget:PlayerAdded(playerID)
 	else
-		if isSpec ~= playernames[name].isSpec then
+		playernames[name][1] = allyTeamID
+		playernames[name][3] = teamID
+		if not isSpec and teamID and teamID ~= Spring.GetGaiaTeamID() then
+			playernames[name][5] = { spGetTeamColor(teamID) }
+		end
+		if isSpec ~= playernames[name][2] then
 			playernames[name][2] = isSpec
 			if isSpec then
 				playernames[name][8] = Spring.GetGameFrame()	-- log frame of death
+				if (not playernames[name][5]) and teamID and teamID ~= Spring.GetGaiaTeamID() then
+					playernames[name][5] = { spGetTeamColor(teamID) }
+				end
 			end
 		end
 	end
@@ -2643,7 +2677,14 @@ end
 function widget:PlayerAdded(playerID)
 	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
 	local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)), historyName }
+	local teamColor = nil
+	if teamID and teamID ~= Spring.GetGaiaTeamID() then
+		local _, leader = spGetTeamInfo(teamID, false)
+		if (not isSpec) or leader == playerID then
+			teamColor = { spGetTeamColor(teamID) }
+		end
+	end
+	playernames[name] = { allyTeamID, isSpec, teamID, playerID, teamColor, teamColor and ColorIsDark(teamColor[1], teamColor[2], teamColor[3]) or false, historyName }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 	if historyName ~= name then
 		autocompletePlayernames[#autocompletePlayernames+1] = historyName
@@ -2835,7 +2876,14 @@ function widget:Initialize()
 	for _, playerID in ipairs(playersList) do
 		local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
 		local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-		playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)), historyName }
+		local teamColor = nil
+		if teamID and teamID ~= Spring.GetGaiaTeamID() then
+			local _, leader = spGetTeamInfo(teamID, false)
+			if (not isSpec) or leader == playerID then
+				teamColor = { spGetTeamColor(teamID) }
+			end
+		end
+		playernames[name] = { allyTeamID, isSpec, teamID, playerID, teamColor, teamColor and ColorIsDark(teamColor[1], teamColor[2], teamColor[3]) or false, historyName }
 		autocompletePlayernames[#autocompletePlayernames+1] = name
 		if historyName ~= name then
 			autocompletePlayernames[#autocompletePlayernames+1] = historyName

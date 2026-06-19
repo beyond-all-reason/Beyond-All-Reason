@@ -233,6 +233,9 @@ else
 		if s_os ~= nil then
 			system = system..'\nOS:  '..s_os
 		end
+		if Platform and Platform.architecture then
+			system = system..'\nArchitecture:  '..Platform.architecture
+		end
 
 		if chobbyLoaded then
 			system = system..'\nLobby:  Chobby'

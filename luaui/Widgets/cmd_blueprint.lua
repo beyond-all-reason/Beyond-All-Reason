@@ -3,12 +3,6 @@ local widget = widget ---@type Widget
 -- makes the intent of our usage of Spring.Echo clear
 local FeedbackForUser = Spring.Echo
 
-local SIDES = VFS.Include("gamedata/sides_enum.lua")
-local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
-
----@type table<Blueprint, SerializedBlueprint>
-local serializedInvalidBlueprints = {}
-
 function widget:GetInfo()
 	return {
 		name = "Blueprint",
@@ -20,7 +14,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathAbs = math.abs
 local mathMax = math.max
@@ -31,6 +24,7 @@ local tableSort = table.sort
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetViewGeometry = Spring.GetViewGeometry
 
 -- types
 -- =====
@@ -117,60 +111,6 @@ local function subtractPoints(a, b)
 		result[i] = (a[i] or 0) - (b[i] or 0)
 	end
 	return result
-end
-
----Automatically maintains opengl display lists for a given function, in a memoize-like format.
----
----The returned function can be called exactly like the original, but will create or use a display list when
----appropriate. Call "invalidate" on the return function to clear the cache (such as if global data changes, or the
----lists are no longer needed).
----@param originalFunc function The function to create lists for.
----@return table The decorated function.
-local function glListCache(originalFunc)
-	local cache = {}
-
-	local function clearCache()
-		for key, listID in pairs(cache) do
-			gl.DeleteList(listID)
-		end
-		cache = {}
-	end
-
-	local function decoratedFunc(...)
-		local rawParams = { ... }
-		local params = {}
-		for index, value in ipairs(rawParams) do
-			if index > 1 then
-				tableInsert(params, value)
-			end
-		end
-
-		local key = table.toString(params)
-
-		if cache[key] == nil then
-			local function fn()
-				originalFunc(unpack(params))
-			end
-			cache[key] = gl.CreateList(fn)
-		end
-
-		gl.CallList(cache[key])
-	end
-
-	return setmetatable({}, {
-		__call = decoratedFunc,
-		__index = {
-			invalidate = clearCache,
-			getCache = function()
-				return cache
-			end,
-			getListID = function(...)
-				local params = { ... }
-				local key = table.toString(params)
-				return cache[key]
-			end
-		}
-	})
 end
 
 ---@return number
@@ -346,11 +286,7 @@ end
 local function getMouseWorldPosition(blueprint, x, y)
 	local _, pos = SpringTraceScreenRay(x, y, true, true, false, not blueprint.floatOnWater)
 	if pos then
-		pos = WG["api_blueprint"].snapBlueprint(
-			blueprint,
-			pos,
-			blueprint.facing
-		)
+		pos = WG["api_blueprint"].snapBlueprint(blueprint, pos, blueprint.facing)
 	end
 
 	return pos
@@ -400,10 +336,7 @@ local function postProcessBlueprint(bp)
 		if not u.unitDefID then
 			return acc
 		end
-		local w, h = WG["api_blueprint"].getBuildingDimensions(
-			u.unitDefID,
-			0
-		)
+		local w, h = WG["api_blueprint"].getBuildingDimensions(u.unitDefID, 0)
 		if acc then
 			return mathMin(w, h, acc)
 		else
@@ -433,23 +366,20 @@ local function createBlueprint(unitIDs, ordered)
 		facing = 0,
 		name = "",
 		ordered = ordered,
-		units = table.map(
-			buildableUnits,
-			function(unitID)
-				local x, y, z = SpringGetUnitPosition(unitID)
-				local unitDefID = spGetUnitDefID(unitID)
-				local unitDef = UnitDefs[unitDefID]
-				local unitName = unitDef and unitDef.name or "unknown"
-				
-				return {
-					blueprintUnitID = nextBlueprintUnitID(),
-					unitDefID = unitDefID,
-					position = { x, y, z },
-					facing = Spring.GetUnitBuildFacing(unitID),
-					originalName = unitName
-				}
-			end
-		)
+		units = table.map(buildableUnits, function(unitID)
+			local x, y, z = SpringGetUnitPosition(unitID)
+			local unitDefID = spGetUnitDefID(unitID)
+			local unitDef = UnitDefs[unitDefID]
+			local unitName = unitDef and unitDef.name or "unknown"
+
+			return {
+				blueprintUnitID = nextBlueprintUnitID(),
+				unitDefID = unitDefID,
+				position = { x, y, z },
+				facing = Spring.GetUnitBuildFacing(unitID),
+				originalName = unitName,
+			}
+		end),
 	}
 
 	if not isValidBlueprint(blueprint) then
@@ -492,9 +422,7 @@ local function deleteBlueprint(index)
 		-- no need to do anything
 	elseif index == selectedBlueprintIndex then
 		-- find the closest valid blueprint, searching backwards
-		setSelectedBlueprintIndex(
-			getPrevFilteredBlueprintIndex(selectedBlueprintIndex)
-		)
+		setSelectedBlueprintIndex(getPrevFilteredBlueprintIndex(selectedBlueprintIndex))
 		lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 	else -- index < selectedBlueprintIndex
 		-- keep the same blueprint selected
@@ -526,7 +454,7 @@ local function setBlueprintSpacing(spacing)
 end
 
 local function updateBuildingGridState(active, blueprint)
-	if WG['buildinggrid'] == nil then
+	if WG["buildinggrid"] == nil then
 		return
 	end
 
@@ -536,13 +464,9 @@ local function updateBuildingGridState(active, blueprint)
 			-- if we have any floating units, pass a generic floating unit to buildinggrid
 			unitDefID = UnitDefNames["armfmkr"].id
 		end
-		WG['buildinggrid'].setForceShow(
-			widget:GetInfo().name,
-			active and blueprint ~= nil,
-			unitDefID
-		)
+		WG["buildinggrid"].setForceShow(widget:GetInfo().name, active and blueprint ~= nil, unitDefID)
 	else
-		WG['buildinggrid'].setForceShow(widget:GetInfo().name, false)
+		WG["buildinggrid"].setForceShow(widget:GetInfo().name, false)
 	end
 end
 
@@ -582,12 +506,9 @@ local pendingBoxSelect = false
 
 local function updateSelectedUnits(selection)
 	-- filter all by buildable
-	local buildable = table.filterArray(
-		selection,
-		function(unitID)
-			return blueprintBuildableUnitDefs[spGetUnitDefID(unitID)]
-		end
-	)
+	local buildable = table.filterArray(selection, function(unitID)
+		return blueprintBuildableUnitDefs[spGetUnitDefID(unitID)]
+	end)
 	tableSort(buildable)
 	local buildableSet = set(buildable)
 
@@ -702,38 +623,32 @@ function widget:Update(dt)
 	end
 
 	if endPositionChanged or modeChanged or targetIDChanged or blueprintChanged then
-		state.buildPositions = WG["api_blueprint"].calculateBuildPositions(
-			blueprint,
-			state.mode,
-			unpack(determineBuildModeArgs(
-				state.mode, state.startPosition, state.endPosition, state.targetID, blueprint.spacing
-			))
-		)
+		state.buildPositions = WG["api_blueprint"].calculateBuildPositions(blueprint, state.mode, unpack(determineBuildModeArgs(state.mode, state.startPosition, state.endPosition, state.targetID, blueprint.spacing)))
 		WG["api_blueprint"].setBlueprintPositions(state.buildPositions)
 	end
 end
 
-local drawCursorText = glListCache(function(index)
-	local text
-	if index then
-		text = "\255\220\220\240Blueprint #" .. tostring(index)
-	else
-		text = "\255\240\220\220No Blueprints"
-	end
+local vsx, vsy = spGetViewGeometry()
+local cursorTextScale = 0.4 + (vsy / 2200) -- also redefined in viewresize
 
-	gl.Text(text, 15, -12, 40, "ao")
+local cachedHotkeyText = nil
+
+local function buildHotkeyText()
+	if cachedHotkeyText then
+		return cachedHotkeyText
+	end
 
 	local hotkeys = {
 		{
-			name = "Next",
+			name = Spring.I18N("ui.blueprint.hotkey_next"),
 			key = keyConfig.sanitizeKey(actionHotkeys["blueprint_next"], currentLayout),
 		},
 		{
-			name = "Previous",
+			name = Spring.I18N("ui.blueprint.hotkey_prev"),
 			key = keyConfig.sanitizeKey(actionHotkeys["blueprint_prev"], currentLayout),
 		},
 		{
-			name = "Delete",
+			name = Spring.I18N("ui.blueprint.hotkey_delete"),
 			key = keyConfig.sanitizeKey(actionHotkeys["blueprint_delete"], currentLayout),
 		},
 	}
@@ -742,21 +657,53 @@ local drawCursorText = glListCache(function(index)
 	for _, hk in ipairs(hotkeys) do
 		local name, key = hk.name, hk.key
 		if not key or string.len(key) == 0 then
-			key = "<none>"
+			key = Spring.I18N("ui.blueprint.hotkey_none")
 		end
-		hotkeyText = hotkeyText .. string.format(
-			"\255\255\215\100%s\255\240\240\240 - %s\n",
-			key,
-			name
-		)
+		hotkeyText = hotkeyText .. string.format("\255\255\215\100%s\255\240\240\240 - %s\n", key, name)
 	end
 
-	gl.Text(hotkeyText, 30, -55, 18, "ao")
-end)
+	cachedHotkeyText = hotkeyText
+	return cachedHotkeyText
+end
+
+local function drawCursorTextImpl(index)
+	local text
+	if index then
+		text = "\255\220\220\240" .. Spring.I18N("ui.blueprint.cursor_active", { index = tostring(index) })
+	else
+		text = "\255\240\220\220" .. Spring.I18N("ui.blueprint.cursor_none")
+	end
+
+	local scale = cursorTextScale
+	gl.Text(text, 15 * scale, -12 * scale, 38 * scale, "ao")
+	gl.Text(buildHotkeyText(), 30 * scale, -55 * scale, 22 * scale, "ao")
+end
+
+local drawCursorText = setmetatable({}, {
+	__call = function(_, ...)
+		drawCursorTextImpl(...)
+	end,
+	__index = {
+		invalidate = function()
+			cachedHotkeyText = nil
+		end,
+	},
+})
 
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
+	drawCursorText.invalidate()
+end
+
+function widget:ViewResize(viewSizeX, viewSizeY)
+	vsx = viewSizeX
+	vsy = viewSizeY
+	cursorTextScale = 0.4 + (vsy / 2200)
+	drawCursorText.invalidate()
+end
+
+function widget:LanguageChanged()
 	drawCursorText.invalidate()
 end
 
@@ -781,12 +728,9 @@ end
 function widget:SelectionChanged(selection)
 	-- track selected builders
 	if blueprintPlacementActive then
-		local builders = table.filterArray(
-			selection,
-			function(unitID)
-				return blueprintCommandableUnitDefs[spGetUnitDefID(unitID)]
-			end
-		)
+		local builders = table.filterArray(selection, function(unitID)
+			return blueprintCommandableUnitDefs[spGetUnitDefID(unitID)]
+		end)
 
 		WG["api_blueprint"].setActiveBuilders(builders)
 	end
@@ -928,10 +872,7 @@ local function handleSpacingAction(_, _, args)
 		return
 	end
 
-	local minSpacing = math.floor(
-		-(mathMin(bp.dimensions[1], bp.dimensions[2]) - bp.minBuildingDimension)
-			/ WG["api_blueprint"].BUILD_SQUARE_SIZE
-	)
+	local minSpacing = math.floor(-(mathMin(bp.dimensions[1], bp.dimensions[2]) - bp.minBuildingDimension) / WG["api_blueprint"].BUILD_SQUARE_SIZE)
 
 	local newSpacing = nil
 	if args and args[1] == "inc" then
@@ -1011,21 +952,18 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_BLUEPRINT_CREATE then
 		handleBlueprintCreateAction()
 	elseif cmdID == CMD_BLUEPRINT_PLACE then
-		-- Get the blueprint data *as processed and displayed by the API* but keep the original variable name
-		local selectedBlueprint = WG["api_blueprint"].getActiveBlueprint()
+		local selectedBlueprint = getSelectedBlueprint()
 
 		if not selectedBlueprint then
 			FeedbackForUser("[Blueprint] No active blueprint ready for placement.")
 			return false
 		end
 
-		local builders = table.filterArray(spGetSelectedUnits(),
-			function(unitID)
-				return blueprintCommandableUnitDefs[spGetUnitDefID(unitID)]
-			end
-		)
+		local builders = table.filterArray(spGetSelectedUnits(), function(unitID)
+			return blueprintCommandableUnitDefs[spGetUnitDefID(unitID)]
+		end)
 
-		local buildPositionsLimit = BLUEPRINT_ORDER_LIMIT / (#(selectedBlueprint.units) * #builders)
+		local buildPositionsLimit = BLUEPRINT_ORDER_LIMIT / (#selectedBlueprint.units * #builders)
 
 		local buildings = {}
 
@@ -1034,7 +972,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 		-- set up sorting for buildings within a blueprint
 		local buildingComparator
-		if #(state.buildPositions) > 1 and state.startPosition and state.endPosition then
+		if #state.buildPositions > 1 and state.startPosition and state.endPosition then
 			-- sort in the direction the blueprint was placed
 			local delta = subtractPoints(state.endPosition, state.startPosition)
 			local xSort = delta[1] >= 0 and 1 or -1
@@ -1057,54 +995,45 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			end
 			local facing = pos[4] or 0
 			if not blueprintRotations[facing] then
-				blueprintRotations[facing] = WG["api_blueprint"].rotateBlueprint(
-					selectedBlueprint,
-					selectedBlueprint.facing + facing
-				)
+				blueprintRotations[facing] = WG["api_blueprint"].rotateBlueprint(selectedBlueprint, selectedBlueprint.facing + facing)
 				if not selectedBlueprint.ordered then
 					tableSort(blueprintRotations[facing].units, buildingComparator)
 				end
 			end
 			local blueprint = blueprintRotations[facing]
-			table.append(buildings, table.map(blueprint.units, function(bpu)
-				local x = pos[1] + bpu.position[1]
-				local z = pos[3] + bpu.position[3]
-				local y = Spring.GetGroundHeight(x, z)
+			table.append(
+				buildings,
+				table.map(blueprint.units, function(bpu)
+					local x = pos[1] + bpu.position[1]
+					local z = pos[3] + bpu.position[3]
+					local y = Spring.GetGroundHeight(x, z)
 
-				local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
+					local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
 
-				return {
-					blueprintUnitID = bpu.blueprintUnitID,
-					unitDefID = bpu.unitDefID,
-					position = { sx, sy, sz },
-					facing = bpu.facing
-				}
-			end))
+					return {
+						blueprintUnitID = bpu.blueprintUnitID,
+						unitDefID = bpu.unitDefID,
+						position = { sx, sy, sz },
+						facing = bpu.facing,
+					}
+				end)
+			)
 		end
 
-		local newOpts = table.copy(cmdOpts)
-		newOpts.shift = true
-		local orders = table.map(buildings, function(bp, i)
-			return {
-				-bp.unitDefID,
-				{
-					bp.position[1],
-					bp.position[2],
-					bp.position[3],
-					bp.facing
-				},
-				i == 1 and cmdOpts or newOpts,
-			}
-		end)
+		if #builders == 0 then
+			Spring.PlaySoundFile("FailedCommand", 1.0, "ui")
+			return false
+		end
 
-		Spring.GiveOrderArrayToUnitArray(builders, orders, false)
+		local activeModifier = WG["build_split"] and WG["build_split"].isActive()
+		local isBuildSplit = cmdOpts.shift and activeModifier
 
-		local alt, ctrl, meta, shift = unpack(state.modKeys)
-		if not shift then
+		WG["api_blueprint"].placeBlueprint(selectedBlueprint, state.buildPositions, builders, isBuildSplit, cmdOpts)
+
+		if not cmdOpts.shift then
 			setBlueprintPlacementActive(false)
 		end
 
-		-- successfully consumed the event
 		return true
 	end
 end
@@ -1129,7 +1058,7 @@ local function serializeBlueprint(blueprint)
 			return {
 				unitName = unitName,
 				position = blueprintUnit.position,
-				facing = blueprintUnit.facing
+				facing = blueprintUnit.facing,
 			}
 		end),
 	}
@@ -1140,7 +1069,9 @@ end
 local function deserializeBlueprint(serializedBlueprint, index)
 	local blueprint = WG["api_blueprint"].createBlueprintFromSerialized(serializedBlueprint)
 
-	if not blueprint or not table.any(blueprint.units, function(u) return u.unitDefID ~= nil end) then
+	if not blueprint or not table.any(blueprint.units, function(u)
+		return u.unitDefID ~= nil
+	end) then
 		local name = serializedBlueprint.name
 		if not name or name == "" then
 			name = "#" .. tostring(index)
@@ -1208,7 +1139,7 @@ local function saveBlueprintsToFile()
 	end
 
 	local encoded = Json.encode({
-		savedBlueprints = allSerializedBpsToSave
+		savedBlueprints = allSerializedBpsToSave,
 	})
 
 	if encoded == nil then
@@ -1224,6 +1155,11 @@ end
 local loadedBlueprints = false
 
 function widget:Initialize()
+	if Spring.GetModOptions().scenariooptions then
+		widgetHandler:RemoveWidget(self)
+		return
+	end
+
 	if not WG["api_blueprint"] then
 		widgetHandler:RemoveWidget(self)
 		return
@@ -1231,10 +1167,10 @@ function widget:Initialize()
 
 	reloadBindings()
 
-	WG['cmd_blueprint'] = {
+	WG["cmd_blueprint"] = {
 		reloadBindings = reloadBindings,
 	}
-	WG['cmd_blueprint'].nextBlueprintUnitID = nextBlueprintUnitID
+	WG["cmd_blueprint"].nextBlueprintUnitID = nextBlueprintUnitID
 
 	loadBlueprintsFromFile()
 	loadedBlueprints = true
@@ -1255,7 +1191,7 @@ function widget:Shutdown()
 		WG["api_blueprint"].setBlueprintPositions({})
 	end
 
-	WG['cmd_blueprint'] = nil
+	WG["cmd_blueprint"] = nil
 
 	drawCursorText.invalidate()
 
@@ -1272,4 +1208,3 @@ function widget:Shutdown()
 	widgetHandler.actionHandler:RemoveAction(self, "buildfacing", "p")
 	widgetHandler.actionHandler:RemoveAction(self, "buildspacing", "p")
 end
-

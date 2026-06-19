@@ -6,7 +6,7 @@ end
 local baseValues = { --format: {value, multiplier}
 
 	--health related
-	autoHeal = { 10 * playerCountScale, 1.15 },
+	--autoHeal = { 10 * playerCountScale, 1.15 },
 	health = { math.min(800000 * playerCountScale, 10000000), 1.15 },
 
 	--DPS related
@@ -53,7 +53,7 @@ for difficulty, stats in pairs(difficultyParams) do
 	unitsTable["scavengerbossv4_" .. difficulty] = {
 		maxacc = 0.01,
 		activatewhenbuilt = true,
-		autoheal = stats.autoHeal,--10,
+		autoheal = 0,
 		maxdec = 0.01,
 		energycost = 5000000,
 		metalcost = 500000,
@@ -115,6 +115,7 @@ for difficulty, stats in pairs(difficultyParams) do
 			paralyzemultiplier = 0.025,
 			subfolder = "",
 			i18nfromunit = 'scavengerbossv4',
+			ispvefinalboss = true,
 		},
 		featuredefs = {
 			dead = {

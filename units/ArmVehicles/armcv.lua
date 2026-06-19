@@ -28,7 +28,7 @@ return {
 		script = "Units/ARMCV.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
-		sightdistance = 253,
+		sightdistance = 330,
 		speed = 54,
 		terraformspeed = 450,
 		trackoffset = -4,

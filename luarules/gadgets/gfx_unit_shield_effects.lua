@@ -214,23 +214,46 @@ local uTranslationScale, uRotMargin, uEffects, uColor1, uColor2, uImpactCount, u
 local overlapScratch = {}
 local overlapScratchN = 0
 
-local function GetVisibleSearch(x, z, search)
-	if not x then
-		return false
-	end
-	for i = 1, #search do
-		if Spring.IsPosInAirLos(x + search[i][1], 0, z + search[i][2], myAllyTeamID) then
-			return true
-		end
-	end
-	return false
-end
+local function UpdateVisibility(unitID, unitData, fullview, forceUpdate)
+	-- A shield should render if the player can actually perceive any part of it:
+	-- spectator fullview, own allyteam, direct LoS / AirLoS on the unit itself,
+	-- or LoS / AirLoS on a point on the shield surface (so partial visibility
+	-- of a large shield reveals the whole sphere).
+	local unitVisible = fullview
+		or (myAllyTeamID == unitData.allyTeamID)
+		or Spring.IsUnitInLos(unitID, myAllyTeamID)
+		or Spring.IsUnitInAirLos(unitID, myAllyTeamID)
 
-local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
-	unitVisible = unitVisible or (myAllyTeamID == unitData.allyTeamID)
 	if not unitVisible then
-		local ux,_,uz = Spring.GetUnitPosition(unitID)
-		unitVisible = GetVisibleSearch(ux, uz, unitData.search)
+		local ux, uy, uz = Spring.GetUnitPosition(unitID)
+		if ux then
+			local r = unitData.radius or 0
+			-- Sample 8 cardinal/diagonal points on the shield's horizontal
+			-- equator plus top/bottom. Cheap and good enough to catch
+			-- partial coverage without doing per-vertex visibility.
+			local samples = unitData.search
+			if samples then
+				local cy = uy + (unitData.shieldPos and unitData.shieldPos[2] or 0)
+				for i = 1, #samples do
+					local sx = ux + samples[i][1]
+					local sz = uz + samples[i][2]
+					if Spring.IsPosInLos(sx, cy, sz, myAllyTeamID)
+						or Spring.IsPosInAirLos(sx, cy, sz, myAllyTeamID) then
+						unitVisible = true
+						break
+					end
+				end
+			end
+			if not unitVisible and r > 0 then
+				-- Also check top and bottom of the shield sphere
+				if Spring.IsPosInLos(ux, uy + r, uz, myAllyTeamID)
+					or Spring.IsPosInAirLos(ux, uy + r, uz, myAllyTeamID)
+					or Spring.IsPosInLos(ux, uy - r, uz, myAllyTeamID)
+					or Spring.IsPosInAirLos(ux, uy - r, uz, myAllyTeamID) then
+					unitVisible = true
+				end
+			end
+		end
 	end
 
 	local unitIsActive = Spring.GetUnitIsActive(unitID)
@@ -239,10 +262,11 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 		unitData.isActive = unitIsActive
 	end
 
+	-- The shield-on rules param is gated by inlos, so for enemies it is only
+	-- readable when we have direct LoS. Use it to suppress rendering when we
+	-- can see the unit but its shield is currently disabled.
 	local shieldEnabled = Spring.GetUnitRulesParam(unitID, SHIELDONRULESPARAMINDEX)
-	if shieldEnabled == 1 then
-		unitVisible = true
-	elseif shieldEnabled == 0 then
+	if unitVisible and shieldEnabled == 0 then
 		unitVisible = false
 	end
 

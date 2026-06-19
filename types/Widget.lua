@@ -1,20 +1,8 @@
 ---@meta
 
 ---@class Widget : Addon, RulesUnsyncedCallins
----
----Widgets cannot control game logic and receive only unsynced callins.
----
----**Attention:** To prevent complaints from Lua Language Server, e.g.
----
----> ```md
----> Duplicate field `CommandNotify` (duplicate-set-field)
----> ```
----
----Add this line at the top of your widget script:
----
----```lua
----local widget = widget ---@type Widget
----```
+---@field [string] any
+---@field MousePress fun(self, x: number, y: number, button: number, ...: any): (boolean|integer)?
 ---@see Callins
 ---@see UnsyncedCallins
 
@@ -22,5 +10,5 @@
 ---@diagnostic disable-next-line: lowercase-global
 widget = nil
 
----Shared table for widets.
+---Shared table for widgets.
 WG = {}

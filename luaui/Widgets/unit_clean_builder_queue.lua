@@ -168,8 +168,26 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 							local commands = GetUnitCommands(builderID, sharedMatchIndex)
 							if commands and commands[sharedMatchIndex] then
 								local cmd = commands[sharedMatchIndex]
+								-- Verify id AND coords: the cheap first-command "probe" can
+								-- collide between different queues that merely share their
+								-- first cmd id. Removing without re-checking coords here
+								-- would drop the wrong queued build from this builder.
 								if cmd.id == targetCmdID then
-									GiveOrderToUnit(builderID, CMD_REMOVE, { cmd.tag }, {})
+									local params = cmd.params
+									if params and params[1] and params[3]
+										and coordsMatch(x, z, params[1], params[3], REMOVE_TOLERANCE)
+									then
+										GiveOrderToUnit(builderID, CMD_REMOVE, { cmd.tag }, {})
+									else
+										-- Probe matched first cmd by id only; queue is
+										-- actually different. Fall back to a full scan
+										-- so we don't miss the real match (or wrongly
+										-- remove an unrelated command).
+										didShare = false
+									end
+								else
+									-- Same as above: shared assumption was wrong.
+									didShare = false
 								end
 							end
 						end

@@ -87,6 +87,8 @@ local rules = {
 	"raptorQueenTime",
 	"raptorQueenAnger",
 	"raptorQueensKilled",
+	"raptorQueenStaggerActive",
+	"raptorQueenStaggerPercentage",
 	"raptorTechAnger",
 	"raptorGracePeriod",
 	"raptorQueenHealth",
@@ -208,8 +210,15 @@ local function CreatePanelDisplayList()
 			end
 		else
 			font:Print(textColor .. Spring.I18N('ui.raptors.queenHealth', {count = nBosses, health = gameInfo.raptorQueenHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
+			if Spring.GetGameRulesParam("raptorQueenStaggerActive") == false then
+				font:Print(textColor .. Spring.I18N('ui.raptors.queenStaggerPercentage', {count = nBosses, value = 100-Spring.GetGameRulesParam("raptorQueenStaggerPercentage") }), panelMarginX, PanelRow(2), panelFontSize, "")
+			else
+				font:Print("\255\255\255\0" .. Spring.I18N('ui.raptors.queenStaggerActive', {count = nBosses}), panelMarginX, PanelRow(2), panelFontSize, "")
+				font:Print("\255\255\255\0" .. Spring.I18N('ui.raptors.queenStaggerPercentage', {count = nBosses, value = 100-Spring.GetGameRulesParam("raptorQueenStaggerPercentage") }), panelMarginX, PanelRow(3), panelFontSize, "")
+			end
+
 			if nBosses > 1 then
-				font:Print(textColor .. Spring.I18N('ui.raptors.queensKilled', { nKilled = gameInfo.raptorQueensKilled, nTotal = nBosses }), panelMarginX, PanelRow(2), panelFontSize, "")
+				font:Print(textColor .. Spring.I18N('ui.raptors.queensKilled', { nKilled = gameInfo.raptorQueensKilled, nTotal = nBosses }), panelMarginX, PanelRow(4), panelFontSize, "")
 			end
 			for i = 1,#currentlyResistantToNames do
 				if i == 1 then

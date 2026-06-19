@@ -41,6 +41,7 @@ local spIsGUIHidden = Spring.IsGUIHidden
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetMyTeamID = Spring.GetMyTeamID
 local spIsSphereInView = Spring.IsSphereInView
+local spGetCameraPosition = Spring.GetCameraPosition
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -71,6 +72,7 @@ local Config = {
 	circleDivs = 32,              -- Circle segments
 	baseLineWidth = 1.3,          -- Base line width
 	updateInterval = 0.25,        -- Seconds between projectile updates (0 = every frame)
+	impactFadeDuration = 0.6,     -- Seconds to fade out after impact
 
 	-- Colors (RGBA)
 	allyColor = { 1.0, 0.3, 0.2, 1.0 },           -- Red for allied (your missiles)
@@ -87,6 +89,10 @@ local Config = {
 	rotationSpeedMin = 30,        -- Degrees per second at end
 	pulseMinOpacity = 0.2,
 	pulseMaxOpacity = 0.4,
+
+	-- Camera distance fade for smaller (non-nuke) starburst indicators
+	smallAoeFadeStartDist = 3200, -- Distance at which indicators start fading
+	smallAoeFadeEndDist = 6400,   -- Distance at which indicators are fully invisible
 
 	-- Ring animation
 	ringCount = 4,                -- Number of concentric rings
@@ -109,6 +115,8 @@ local Config = {
 local trackedProjectiles = {}     -- Active projectiles we're tracking
 local trackedCount = 0            -- Number of tracked projectiles (avoids pairs iteration)
 local trackedNukeCount = 0        -- Number of tracked nuke projectiles (avoids iteration)
+local fadingImpacts = {}          -- Recently impacted targets that should fade out
+local fadingImpactCount = 0       -- Number of active fading impacts
 local starburstWeapons = {}       -- Cache of starburst weapon info
 local circleList = nil            -- Display list for circle
 local targetMarkerList = nil      -- Display list for target marker
@@ -425,6 +433,25 @@ local function SetColor(color, alpha)
 	glColor(color[1], color[2], color[3], color[4] * alpha)
 end
 
+local function AddFadingImpact(data, currentTime, impactProgress)
+	local clampedProgress = impactProgress
+	if clampedProgress > 1 then clampedProgress = 1 elseif clampedProgress < 0 then clampedProgress = 0 end
+	local impactRingScale = 1 - clampedProgress * 0.5
+
+	fadingImpactCount = fadingImpactCount + 1
+	fadingImpacts[fadingImpactCount] = {
+		weaponInfo = data.weaponInfo,
+		targetX = data.targetX,
+		targetY = data.targetY,
+		targetZ = data.targetZ,
+		isAlly = data.isAlly,
+		startTime = currentTime,
+		initialFlightTime = data.initialFlightTime,
+		fadeStartTime = currentTime,
+		impactRingScale = impactRingScale,
+	}
+end
+
 --------------------------------------------------------------------------------
 -- Projectile tracking
 --------------------------------------------------------------------------------
@@ -546,6 +573,11 @@ local function UpdateTrackedProjectiles()
 	if trackedCount > 0 then
 		for proID, data in pairs(trackedProjectiles) do
 			if data.generation ~= gen then
+				local elapsed = currentTime - data.startTime
+				local progress = elapsed / max(data.initialFlightTime, 0.1)
+				if progress >= 0.95 then
+					AddFadingImpact(data, currentTime, progress)
+				end
 				trackedProjectiles[proID] = nil
 			end
 		end
@@ -559,10 +591,20 @@ end
 -- Drawing
 --------------------------------------------------------------------------------
 -- Draws non-nuke starburst indicators (nukes are batched separately in DrawWorld)
-local function DrawImpactIndicator(data, currentTime)
+local function DrawImpactIndicator(data, currentTime, camX, camY, camZ)
 	local tx, ty, tz = data.targetX, data.targetY, data.targetZ  -- targetY already ground-adjusted
 	local weaponInfo = data.weaponInfo
 	local aoe = weaponInfo.aoe
+
+	-- Camera distance fade
+	local dx, dy, dz = tx - camX, ty - camY, tz - camZ
+	local camDist = sqrt(dx * dx + dy * dy + dz * dz)
+	local camFade = 1.0
+	if camDist >= Config.smallAoeFadeEndDist then
+		return
+	elseif camDist > Config.smallAoeFadeStartDist then
+		camFade = 1.0 - (camDist - Config.smallAoeFadeStartDist) / (Config.smallAoeFadeEndDist - Config.smallAoeFadeStartDist)
+	end
 
 	local elapsed = currentTime - data.startTime
 	local progress = elapsed / max(data.initialFlightTime, 0.1)
@@ -590,6 +632,7 @@ local function DrawImpactIndicator(data, currentTime)
 	if progress < 0.5 then
 		opacity = opacity * (progress * 2)
 	end
+	opacity = opacity * camFade
 
 	local avgSpeed = Config.rotationSpeedMax - (Config.rotationSpeedMax - Config.rotationSpeedMin) * progress * 0.5
 	local rotation = (elapsed * avgSpeed) % 360
@@ -609,9 +652,58 @@ local function DrawImpactIndicator(data, currentTime)
 
 	-- Center target marker (rotating)
 	local markerSize = aoe * 0.4
-	local markerOpacity = 0.6 + 0.3 * blinkPhase
+	local markerOpacity = (0.6 + 0.3 * blinkPhase) * camFade
 	SetColor(color, markerOpacity)
 	DrawTargetMarker(tx, ty + 3, tz, markerSize, -rotation * 0.5)
+end
+
+local function DrawFadingImpactIndicator(data, currentTime, camX, camY, camZ)
+	local tx, ty, tz = data.targetX, data.targetY, data.targetZ
+	local aoe = data.weaponInfo.aoe
+
+	local fadeProgress = (currentTime - data.fadeStartTime) / Config.impactFadeDuration
+	if fadeProgress >= 1 then
+		return false
+	end
+
+	local dx, dy, dz = tx - camX, ty - camY, tz - camZ
+	local camDist = sqrt(dx * dx + dy * dy + dz * dz)
+	local camFade = 1.0
+	if camDist >= Config.smallAoeFadeEndDist then
+		return true
+	elseif camDist > Config.smallAoeFadeStartDist then
+		camFade = 1.0 - (camDist - Config.smallAoeFadeStartDist) / (Config.smallAoeFadeEndDist - Config.smallAoeFadeStartDist)
+	end
+
+	local color
+	if data.weaponInfo.isParalyzer then
+		color = Config.paralyzerColor
+	elseif data.weaponInfo.isJuno then
+		color = data.isAlly and Config.junoAllyColor or Config.junoEnemyColor
+	else
+		color = data.isAlly and Config.allyColor or Config.enemyColor
+	end
+
+	local fadeMul = (1 - fadeProgress) * camFade
+	if fadeMul <= 0 then
+		return true
+	end
+
+	local ringCount = Config.ringCount
+	local impactRingScale = data.impactRingScale or 0.5
+	for i = 1, ringCount do
+		local ringProgress = i / ringCount
+		local ringRadius = aoe * impactRingScale * ringProgress
+		local ringOpacity = fadeMul * (0.15 + 0.2 * ringProgress)
+		SetColor(color, ringOpacity)
+		DrawCircle(tx, ty + 2, tz, ringRadius)
+	end
+
+	local markerSize = aoe * 0.4
+	SetColor(color, fadeMul * 0.5)
+	DrawTargetMarker(tx, ty + 3, tz, markerSize, 0)
+
+	return true
 end
 
 --------------------------------------------------------------------------------
@@ -643,6 +735,8 @@ function widget:PlayerChanged(playerID)
 	trackedProjectiles = {}
 	trackedCount = 0
 	trackedNukeCount = 0
+	fadingImpacts = {}
+	fadingImpactCount = 0
 end
 
 function widget:Update(dt)
@@ -655,12 +749,13 @@ function widget:Update(dt)
 end
 
 function widget:DrawWorld()
-	if spIsGUIHidden() or trackedCount == 0 then return end
+	if spIsGUIHidden() or (trackedCount == 0 and fadingImpactCount == 0) then return end
 
 	glDepthTest(false)
 	glLineWidth(Config.baseLineWidth * screenLineWidthScale)
 
 	local currentTime = osClock()
+	local camX, camY, camZ = spGetCameraPosition()
 	nukeBatchSize = 0
 
 	for _, data in pairs(trackedProjectiles) do
@@ -700,9 +795,34 @@ function widget:DrawWorld()
 				nd.waveBase = currentTime * Config.nukeWaveSpeed
 				nd.aoe = aoe
 			else
-				DrawImpactIndicator(data, currentTime)
+				DrawImpactIndicator(data, currentTime, camX, camY, camZ)
 			end
 		end
+	end
+
+	if fadingImpactCount > 0 then
+		local writeIndex = 1
+		for i = 1, fadingImpactCount do
+			local data = fadingImpacts[i]
+			if data and spIsSphereInView(data.targetX, data.targetY, data.targetZ, data.weaponInfo.aoe) then
+				if DrawFadingImpactIndicator(data, currentTime, camX, camY, camZ) then
+					if writeIndex ~= i then
+						fadingImpacts[writeIndex] = data
+					end
+					writeIndex = writeIndex + 1
+				end
+			elseif data and (currentTime - data.fadeStartTime) < Config.impactFadeDuration then
+				if writeIndex ~= i then
+					fadingImpacts[writeIndex] = data
+				end
+				writeIndex = writeIndex + 1
+			end
+		end
+
+		for i = writeIndex, fadingImpactCount do
+			fadingImpacts[i] = nil
+		end
+		fadingImpactCount = writeIndex - 1
 	end
 
 	-- Batch draw all visible nukes in ONE draw call (no per-nuke closure/matrix ops)
