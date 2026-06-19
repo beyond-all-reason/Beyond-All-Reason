@@ -6,6 +6,10 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 		local custom = modOptions.community_balance_patch == "custom"
 		if all or (custom and modOptions.community_balance_commando) then
 			if name == "cormando" then
+				-- Scooped by the BLT: 
+				-- - The Commando got +HP and +RESIST%.
+				-- - The blaster can target air units.
+
 				-- +130 jammer range (150 -> 280)
 				uDef.radardistancejam = 280
 				-- +300 radar and LoS (900 -> 1200, 600 -> 900)
@@ -15,8 +19,6 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 				local numBuildoptions = #uDef.buildoptions
 				uDef.buildoptions[numBuildoptions + 1] = "cormine1"
 				uDef.buildoptions[numBuildoptions + 2] = "cormine3"
-				-- 80% EMP resist
-				uDef.customparams.paralyzemultiplier = 0.2
 				-- 2s self-destruct timer
 				uDef.selfdestructcountdown = 2
 				-- x2 autoheal (9 -> 18)
@@ -28,7 +30,6 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 					for _, weapon in ipairs(uDef.weapons) do
 						if weapon.def == "COMMANDO_BLASTER" then
 							weapon.badtargetcategory = "VTOL"
-							weapon.onlytargetcategory = "NOTSUB"
 						end
 					end
 				end
@@ -69,10 +70,6 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 							weaponDef.turret = true
 							weaponDef.weapontype = "BeamLaser"
 							weaponDef.weaponvelocity = 1000
-							weaponDef.damage = {
-								default = 100,
-								vtol = 50,
-							}
 						end
 					end
 				end
