@@ -67,6 +67,22 @@ local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spSetUnitWeaponDamages = Spring.SetUnitWeaponDamages
 local spSetUnitWeaponState = Spring.SetUnitWeaponState
 
+local gameSpeed = Game.gameSpeed
+local gameSpeedInverse = 1 / gameSpeed
+
+local armorTypeMin = 0
+local armorTypeMax = #Game.armorTypes
+
+local autoHealInterval = math_round(Game.gameSpeed * 0.5) -- match engine interval
+local autoHealFraction = autoHealInterval / Game.gameSpeed
+
+local powerScale = Spring.GetModOptions().veterancy_power_scale
+local healthScale = Spring.GetModOptions().veterancy_health_scale
+local reloadScale = Spring.GetModOptions().veterancy_reload_scale
+local damageScale = Spring.GetModOptions().veterancy_damage_scale
+
+-- Unit scripts ----------------------------------------------------------------
+
 local spGetCOBScriptID = Spring.GetCOBScriptID
 local spCallCOBScript = Spring.CallCOBScript
 local spGetScriptEnv = Spring.UnitScript.GetScriptEnv
@@ -82,70 +98,6 @@ local function callUnitScript(unitID, luaEnv, methodName, ...)
 	end
 end
 
-local gameSpeed = Game.gameSpeed
-local gameSpeedInverse = 1 / gameSpeed
-
-local armorTypeMin = 0
-local armorTypeMax = #Game.armorTypes
-
-local autoHealInterval = math_round(Game.gameSpeed * 0.5) -- match engine interval
-local autoHealFraction = autoHealInterval / Game.gameSpeed
-
-local powerScale = Spring.GetModOptions().veterancy_power_scale
-local healthScale = Spring.GetModOptions().veterancy_health_scale
-local reloadScale = Spring.GetModOptions().veterancy_reload_scale
-local damageScale = Spring.GetModOptions().veterancy_damage_scale
-
--- Code ------------------------------------------------------------------------
-
----@class VeterancyDefinition
----@field add fun(self:VeterancyDefinition, unitDef:table, upgrades:VeterancyUpgrade[]):boolean
----@field create? fun(self:VeterancyUpgrade, unitID:integer) Called at unit creation.
----@field effect fun(self:VeterancyUpgrade, unitID:integer, experience:number) Applied on experience gain.
-
----@class VeterancyUpgrade
----@field effect fun(self:VeterancyUpgrade, unitID:integer, experience:number) Applied on experience gain.
----@field factor number The scaling factor for the upgrade against unit XP.
----@field weapons? (table|number|false)[] Weapons data passed to veterancy effects that upgrade weapons.
-
-local veterancyEffects = {} ---@type table<string, VeterancyDefinition>
-local onUnitCreated = {}
-
-local function addVeterancyUpgrades(unitDef, veterancyList)
-	local upgrades = {}
-	local onCreate = {}
-	for _, name in ipairs(veterancyList) do
-		if veterancyEffects[name] then
-			local upgrade = veterancyEffects[name]
-			local result = upgrade:add(unitDef, upgrades)
-			if result and upgrade.create then
-				onCreate[#onCreate + 1] = upgrade.create
-			end
-		end
-	end
-	if next(upgrades) then
-		if onCreate[1] then
-			onUnitCreated[unitDef.id] = onCreate
-		end
-		return upgrades
-	else
-		return false
-	end
-end
-
-local function applyVeterancyEffects(unitID, experience, upgrades)
-	local limExperience = experience / (experience + 1) -- limited to (0.0, 1.0)
-	for _, upgrade in ipairs(upgrades) do
-		upgrade:effect(unitID, limExperience)
-	end
-end
-
-local unitVeterancyUpgrades = table.new(#UnitDefs, 0)
-local queuedExperienceGains = {}
-
--- Increases to autoheal and idle autoheal have to be handled in game code.
-local unitAutoHeal = {}
-
 -- Cache strings rather than creating garbage in a hot loop.
 local mtAppendKeyToName = {
 	__index = function(self, key)
@@ -154,6 +106,7 @@ local mtAppendKeyToName = {
 		return result
 	end
 }
+
 local call = setmetatable({}, {
 	__index = function(self, key)
 		local tbl = table.new(6, 1)
@@ -164,14 +117,7 @@ local call = setmetatable({}, {
 	end
 })
 
-local function getScaleFactor(unitDef, key, default)
-	default = default or 0
-	return tonumber(unitDef.customParams[customParamPrefix .. key] or default) or default
-end
-
-local function ignoreWeapon(weaponDef, key)
-	return weaponDef.customParams[weaponParamIgnore .. key]
-end
+-- Unit statistics -------------------------------------------------------------
 
 -- The engine will cast to int, which truncates. We prefer rounding, on net, and
 -- we want to enforce a one-frame floor for reloading, stockpiling, bursts, etc.
@@ -180,23 +126,6 @@ local function toFrameTime(seconds)
 end
 
 -- Weapon stat collectors
-
-local function collectWeaponUpgrades(unitDef, upgradeList, upgrade, collect)
-	local hasWeapon = false
-	local weapons = table.ensureTable(upgrade, "weapons")
-
-	for index, weapon in ipairs(unitDef.weapons) do
-		local value = collect(WeaponDefs[weapon.weaponDef], upgrade)
-		weapons[index] = value or false
-		hasWeapon = (hasWeapon or value) and true
-	end
-
-	if hasWeapon then
-		upgradeList[#upgradeList + 1] = upgrade
-	end
-
-	return hasWeapon
-end
 
 local function getBurstStats(weaponDef)
 	local stats = {}
@@ -261,6 +190,10 @@ local function getReloadStats(weaponDef)
 	return weaponUpgrade
 end
 
+local function ignoreWeapon(weaponDef, key)
+	return weaponDef.customParams[weaponParamIgnore .. key]
+end
+
 local function collectReload(weaponDef)
 	return not ignoreWeapon(weaponDef, "reload") and weaponDef.reload
 end
@@ -298,6 +231,78 @@ local function collectReloadDamages(weaponDef)
 	return not ignoreWeapon(weaponDef, "reload")
 		and not ignoreWeapon(weaponDef, "damages")
 		and table.merge(getReloadStats(weaponDef), getDamages(weaponDef))
+end
+
+-- Unit veterancies ------------------------------------------------------------
+
+---@class VeterancyDefinition
+---@field add fun(self:VeterancyDefinition, unitDef:table, upgrades:UnitDefVeterancy[]):boolean
+---@field create? fun(self:UnitDefVeterancy, unitID:integer) Called at unit creation.
+---@field effect fun(self:UnitDefVeterancy, unitID:integer, experience:number) Applied on experience gain.
+
+---@class UnitDefVeterancy
+---@field effect fun(self:UnitDefVeterancy, unitID:integer, experience:number) Applied on experience gain.
+---@field factor number The scaling factor for the upgrade against unit XP.
+---@field weapons? (table|number|false)[] Weapons data passed to veterancy effects that upgrade weapons.
+
+local unitVeterancyUpgrades = table.new(#UnitDefs, 0) ---@type (UnitDefVeterancy|false)[]
+local onUnitCreated = {}
+
+local queuedExperienceGains = {}
+local unitAutoHeal = {}
+
+local veterancyEffects = {} ---@type table<string, VeterancyDefinition>
+
+---@return UnitDefVeterancy[]|false
+local function addVeterancyUpgrades(unitDef, veterancyList)
+	local upgrades = {}
+	local onCreate = {}
+	for _, name in ipairs(veterancyList) do
+		if veterancyEffects[name] then
+			local upgrade = veterancyEffects[name]
+			local result = upgrade:add(unitDef, upgrades)
+			if result and upgrade.create then
+				onCreate[#onCreate + 1] = upgrade.create
+			end
+		end
+	end
+	if next(upgrades) then
+		if onCreate[1] then
+			onUnitCreated[unitDef.id] = onCreate
+		end
+		return upgrades
+	else
+		return false
+	end
+end
+
+local function collectWeaponUpgrades(unitDef, upgradeList, upgrade, collect)
+	local hasWeapon = false
+	local weapons = table.ensureTable(upgrade, "weapons")
+
+	for index, weapon in ipairs(unitDef.weapons) do
+		local value = collect(WeaponDefs[weapon.weaponDef], upgrade)
+		weapons[index] = value or false
+		hasWeapon = (hasWeapon or value) and true
+	end
+
+	if hasWeapon then
+		upgradeList[#upgradeList + 1] = upgrade
+	end
+
+	return hasWeapon
+end
+
+local function getScaleFactor(unitDef, key, default)
+	default = default or 0
+	return tonumber(unitDef.customParams[customParamPrefix .. key] or default) or default
+end
+
+local function applyVeterancyEffects(unitID, experience, upgrades)
+	local limExperience = experience / (experience + 1) -- (0.0, 1.0)
+	for _, upgrade in ipairs(upgrades) do
+		upgrade:effect(unitID, limExperience)
+	end
 end
 
 -- Definitions -----------------------------------------------------------------
