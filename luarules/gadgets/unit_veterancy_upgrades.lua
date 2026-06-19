@@ -309,7 +309,7 @@ end
 
 -- Some effects are duplicated in-engine so are conditional on our modrules:
 
--- TODO: We cannot script unit power.
+-- FIXME: We cannot script unit power, and power determines many unit behaviors.
 veterancyEffects.power = {
 	add = function(self, unitDef, upgrades) return false end,
 	effect = function(self, unitID, experience) end,
