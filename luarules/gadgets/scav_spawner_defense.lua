@@ -134,7 +134,6 @@ if gadgetHandler:IsSyncedCode() then
 			waveDecoyCommanders = {},
 			waveDecoyCommanderCount = 0,
 		},
-		lastBackupSquadSpawnFrame = 0,
 	}
 	local squadSpawnOptions = config.squadSpawnOptionsTable
 	--local miniBossCooldown = 0
@@ -727,7 +726,7 @@ if gadgetHandler:IsSyncedCode() then
 		local nearestDistance = 999999
 		for burrowID, burrow in pairs(burrows) do
 			local bx, by, bz = GetUnitPosition(burrowID)
-			if bx and by and bz and burrow.lastBackupSpawn + 1800 <= GetGameFrame then
+			if bx and by and bz then
 				local distance = math.ceil((math.abs(tx-bx) + math.abs(ty-by) + math.abs(tz-bz))*0.5)
 				if distance < nearestDistance then
 					nearestDistance = distance
@@ -903,9 +902,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function SetupBurrow(unitID, x, y, z)
-		burrows[unitID] = {
-			lastBackupSpawn = GetGameFrame
-		}
+		burrows[unitID] = {}
 		SetUnitBlocking(unitID, false, false)
 		setScavXP(unitID)
 	end
@@ -1719,20 +1716,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		if unitTeam == scavTeamID then
 			damage = damage / config.healthMod
-
-			if math.random(0, 1800) == 0 and math.random() <= config.spawnChance and attackerTeam ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+math.ceil(600/SetCount(humanTeams)) < GetGameFrame and attackerID and UnitDefs[unitDefID].canMove then
-				local ux, uy, uz = GetUnitPosition(attackerID)
-				local burrow, distance = getNearestScavBeacon(ux, uy, uz)
-				--Spring.Echo("Nearest Beacon Distance", distance)
-				if ux and burrow and distance and distance < 2500 then
-					waveParameters.lastBackupSquadSpawnFrame = GetGameFrame
-					--Spring.Echo("Spawning Backup Squad - Unit Damaged", GetGameFrame)
-					if mRandom() <= config.spawnChance then
-						SpawnRandomOffWaveSquad(burrow)
-						burrows[burrow].lastBackupSpawn = GetGameFrame + math.random(-300,1800)
-					end
-				end
-			end
 		end
 
 		if bossIDs[unitID] then -- Boss Resistance
@@ -2043,9 +2026,7 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.SetUnitHealth(bossID, math.max(bossMaxHP*(techAnger*0.01), bossMaxHP*0.2))
 				SetUnitExperience(bossID, 0)
 				timeOfLastWave = t
-				burrows[bossID] = {
-					lastBackupSpawn = GetGameFrame
-				}
+				burrows[bossID] = {}
 				SetUnitBlocking(bossID, false, false)
 				if nSpawnedBosses == 1 then
 					for burrowID, _ in pairs(burrows) do
@@ -2326,19 +2307,6 @@ if gadgetHandler:IsSyncedCode() then
 								GG.ScavengersSpawnEffectUnitID(unitID)
 								if mRandom() <= 0.1 then
 									SpawnCEG("scavmist", ux, uy+100, uz, 0,0,0)
-								end
-								if mRandom(0,60) == 0 and mRandom() <= config.spawnChance and Spring.GetUnitTeam(unitID) ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+300 < GetGameFrame then
-									local burrow, distance = getNearestScavBeacon(ux, uy, uz)
-									--Spring.Echo("Nearest Beacon Distance", distance)
-									if ux and burrow and distance and distance < 2500 then
-										--Spring.Echo("Spawning Backup Squad - Unit Cloud Capture", GetGameFrame)
-										for i = 1, SetCount(humanTeams) do
-											if mRandom() <= config.spawnChance then
-												SpawnRandomOffWaveSquad(burrow)
-												burrows[burrow].lastBackupSpawn = GetGameFrame + mRandom(-300,1800)
-											end
-										end
-									end
 								end
 								GG.addUnitToCaptureDecay(unitID)
 							end
