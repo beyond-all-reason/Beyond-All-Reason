@@ -125,8 +125,6 @@ local function toFrameTime(seconds)
 	return math_max(math_round(seconds * gameSpeed), 1) * gameSpeedInverse
 end
 
--- Weapon stat collectors
-
 local function getBurstStats(weaponDef)
 	local stats = {}
 	if weaponDef.type == "BeamLaser" and not weaponDef.beamburst then
@@ -190,6 +188,8 @@ local function getReloadStats(weaponDef)
 	return weaponUpgrade
 end
 
+-- Weapon stat collectors
+
 local function ignoreWeapon(weaponDef, key)
 	return weaponDef.customParams[weaponParamIgnore .. key]
 end
@@ -240,30 +240,30 @@ end
 -- Unit veterancies ------------------------------------------------------------
 
 ---@class VeterancyDefinition
----@field add fun(self:VeterancyDefinition, unitDef:table, upgrades:UnitDefVeterancy[]):boolean
----@field create? fun(self:UnitDefVeterancy, unitID:integer) Called at unit creation.
----@field effect fun(self:UnitDefVeterancy, unitID:integer, experience:number) Applied on experience gain.
+---@field add fun(self:VeterancyDefinition, unitDef:table, upgrades:VeterancyUpgrade[]):boolean
+---@field create? fun(self:VeterancyUpgrade, unitID:integer) Called at unit creation.
+---@field effect fun(self:VeterancyUpgrade, unitID:integer, experience:number) Applied on experience gain.
 
----@class UnitDefVeterancy
----@field effect fun(self:UnitDefVeterancy, unitID:integer, experience:number) Applied on experience gain.
+---@class VeterancyUpgrade
+---@field effect fun(self:VeterancyUpgrade, unitID:integer, experience:number) Applied on experience gain.
 ---@field factor number The scaling factor for the upgrade against unit XP.
 ---@field weapons? (table|number|false)[] Weapons data passed to veterancy effects that upgrade weapons.
 
-local unitVeterancyUpgrades = table.new(#UnitDefs, 0) ---@type (UnitDefVeterancy|false)[]
+local veterancyDefinitions = {} ---@type table<string, VeterancyDefinition>
+
+local unitVeterancyUpgrades = table.new(#UnitDefs, 0) ---@type (VeterancyUpgrade|false)[]
 local onUnitCreated = {}
 
 local queuedExperienceGains = {}
 local unitAutoHeal = {}
 
-local veterancyEffects = {} ---@type table<string, VeterancyDefinition>
-
----@return UnitDefVeterancy[]|false
+---@return VeterancyUpgrade[]|false
 local function addVeterancyUpgrades(unitDef, veterancyList)
 	local upgrades = {}
 	local onCreate = {}
 	for _, name in ipairs(veterancyList) do
-		if veterancyEffects[name] then
-			local upgrade = veterancyEffects[name]
+		if veterancyDefinitions[name] then
+			local upgrade = veterancyDefinitions[name]
 			local result = upgrade:add(unitDef, upgrades)
 			if result and upgrade.create then
 				onCreate[#onCreate + 1] = upgrade.create
@@ -302,7 +302,7 @@ local function getScaleFactor(unitDef, key, default)
 	return tonumber(unitDef.customParams[customParamPrefix .. key] or default) or default
 end
 
-local function applyVeterancyEffects(unitID, experience, upgrades)
+local function applyVeterancyUpgrades(unitID, experience, upgrades)
 	local limExperience = experience / (experience + 1) -- (0.0, 1.0)
 	for _, upgrade in ipairs(upgrades) do
 		upgrade:effect(unitID, limExperience)
@@ -314,12 +314,12 @@ end
 -- Some effects are duplicated in-engine so are conditional on our modrules:
 
 -- FIXME: We cannot script unit power, and power determines many unit behaviors.
-veterancyEffects.power = {
+veterancyDefinitions.power = {
 	add = function(self, unitDef, upgrades) return false end,
 	effect = function(self, unitID, experience) end,
 }
 
-veterancyEffects.health = {
+veterancyDefinitions.health = {
 	-- NB: This `self` refers to the definition while effect's `self` is the per-unit upgrade.
 	add = function(self, unitDef, upgrades)
 		local scaleFactor = getScaleFactor(unitDef, "health", healthScale)
@@ -349,7 +349,7 @@ veterancyEffects.health = {
 	end,
 }
 
-veterancyEffects.reload = {
+veterancyDefinitions.reload = {
 	add = function(self, unitDef, upgrades)
 		-- Dynamic reloads per-weapon are scaled at the unit-level for consistency.
 		local scaleFactor = getScaleFactor(unitDef, "reload", reloadScale)
@@ -384,7 +384,7 @@ veterancyEffects.reload = {
 -- Units with "scripted" reload times need to be scaled via this method,
 -- under the assumption that the unit otherwise gains no reload bonuses;
 -- e.g. it might be odd but is not unreasonable to use this with reload.
-veterancyEffects.scripted_reload = {
+veterancyDefinitions.scripted_reload = {
 	add = function(self, unitDef, upgrades)
 		-- Shares its scaling customparam with `reload`:
 		local scaleFactor = getScaleFactor(unitDef, "scripted_reload", reloadScale)
@@ -425,7 +425,7 @@ veterancyEffects.scripted_reload = {
 
 -- This is not "accuracy" but "ownerExpAccWeight", which is a catch-all for scaling multiple stats.
 -- NOTE: This is included for something like "completeness" but is barely functional as-advertised.
-veterancyEffects.acc_weight = {
+veterancyDefinitions.acc_weight = {
 	add = function(self, unitDef, upgrades)
 		-- Dynamic accuracies per-weapon are scaled at the unit-level for consistency.
 		local scaleFactor = getScaleFactor(unitDef, "acc_weight", 0)
@@ -454,7 +454,7 @@ veterancyEffects.acc_weight = {
 
 -- The rest of the veterancy effects have no equivalent function in the engine:
 
-veterancyEffects.autoheal = {
+veterancyDefinitions.autoheal = {
 	add = function(self, unitDef, upgrades)
 		-- Autoheal can start at zero, and we'd rather not scale against health.
 		local autoHealMax = getScaleFactor(unitDef, "autoheal", 0)
@@ -481,7 +481,7 @@ veterancyEffects.autoheal = {
 -- TODO: We do not scale weapon-less weapondefs' damages, e.g. missile ship clusters, impact clusters.
 -- TODO: We can scale damages without increased impulse by reducing the impulse factor proprtionately.
 -- TODO: Other effects scale with damage, too, like cratering strength. Some do not, like firestarter.
-veterancyEffects.damages = {
+veterancyDefinitions.damages = {
 	add = function(self, unitDef, upgrades)
 		-- Dynamic damages per-weapon are scaled at the unit-level for consistency.
 		local scaleFactor = getScaleFactor(unitDef, "damage", damageScale)
@@ -508,7 +508,7 @@ veterancyEffects.damages = {
 }
 
 -- TODO: Compensation for TTL, projectile speed, etc., depending on the weaponDef.
-veterancyEffects.range = {
+veterancyDefinitions.range = {
 	add = function(self, unitDef, upgrades)
 		-- Dynamic ranges per-weapon are scaled at the unit-level for consistency.
 		local scaleFactor = getScaleFactor(unitDef, "range", 0)
@@ -558,7 +558,7 @@ veterancyEffects.range = {
 -- When a weapon's reload time equals its burst duration, faster reloads provide no benefit.
 -- This XP upgrade continues to scale the burst rate with faster reloads (up to 1/30th sec).
 -- NOTE: Weapon sounds usually trigger only once per burst and play the sound of many shots.
-veterancyEffects.reload_then_burst = {
+veterancyDefinitions.reload_then_burst = {
 	add = function(self, unitDef, upgrades)
 		local scaleFactor = getScaleFactor(unitDef, "reload_then_burst", reloadScale)
 		if scaleFactor <= 0 then
@@ -607,7 +607,7 @@ veterancyEffects.reload_then_burst = {
 -- When a weapon's reload time equals its burst duration, faster reloads provide no benefit.
 -- This XP upgrade continues to scale the weapon's DPS output by directly increasing damage.
 -- NOTE: Preferable to reload_then_burst usually but we have no scaling damage vfx just yet.
-veterancyEffects.reload_then_damages = {
+veterancyDefinitions.reload_then_damages = {
 	add = function(self, unitDef, upgrades)
 		-- Shares its scaling customparams with `reload`/`damage`, but does not check `damageScale`:
 		local unitReloadScale = getScaleFactor(unitDef, "reload", reloadScale)
@@ -682,7 +682,7 @@ end
 function gadget:GameFramePost(frame)
 	for unitID, unitDefID in pairs(queuedExperienceGains) do
 		if spGetUnitIsDead(unitID) == false then
-			applyVeterancyEffects(unitID, spGetUnitExperience(unitID), unitVeterancyUpgrades[unitDefID])
+			applyVeterancyUpgrades(unitID, spGetUnitExperience(unitID), unitVeterancyUpgrades[unitDefID])
 		end
 		queuedExperienceGains[unitID] = nil
 	end
@@ -707,7 +707,7 @@ function gadget:Initialize()
 	-- TODO: Move this into the game setup? Or something? Why in a gadget?
 	Spring.SetExperienceGrade(0.01)
 
-	local customKeyMap = table.map(veterancyEffects, function(_, key) return key, customParamPrefix .. key end)
+	local customKeyMap = table.map(veterancyDefinitions, function(_, key) return key, customParamPrefix .. key end)
 	for unitDefID, unitDef in ipairs(UnitDefs) do
 		local veterancyList = {}
 		local customParams = unitDef.customParams
