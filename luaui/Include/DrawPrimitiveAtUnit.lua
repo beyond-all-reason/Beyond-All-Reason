@@ -88,8 +88,16 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 	fallbackShaderSourceCache.uniformInt = uniformInt
 
 	local useGeometryShaderForThisShader = useGeometryShader
-	local compiledShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
-	if not compiledShader then
+	local compiledShader
+	if useGeometryShader then
+		compiledShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
+		if compiledShader then
+			useGeometryShaderForThisShader = true
+		else
+			useGeometryShaderForThisShader = false
+			compiledShader = LuaShader.CheckShaderUpdates(fallbackShaderSourceCache)
+		end
+	else
 		useGeometryShaderForThisShader = false
 		compiledShader = LuaShader.CheckShaderUpdates(fallbackShaderSourceCache)
 	end
