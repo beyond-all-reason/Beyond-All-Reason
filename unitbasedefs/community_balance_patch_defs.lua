@@ -6,10 +6,6 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 		local custom = modOptions.community_balance_patch == "custom"
 		if all or (custom and modOptions.community_balance_commando) then
 			if name == "cormando" then
-				-- Scooped by the BLT: 
-				-- - The Commando got +HP and +RESIST%.
-				-- - The blaster can target air units.
-
 				-- +130 jammer range (150 -> 280)
 				uDef.radardistancejam = 280
 				-- +300 radar and LoS (900 -> 1200, 600 -> 900)
