@@ -225,8 +225,8 @@ for udid, ud in pairs(UnitDefs) do
 	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
 	end
-	if tonumber(ud.customParams.veterancy_range or 0) or 0 > 0 then
-		unitDefRangeScale[udid] = tonumber(ud.customParams.veterancy_range_scale)
+	if (tonumber(ud.customParams.veterancy_range or 0) or 0) > 0 then
+		unitDefRangeScale[udid] = tonumber(ud.customParams.veterancy_range)
 	end
 end
 
