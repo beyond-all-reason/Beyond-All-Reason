@@ -49,10 +49,6 @@ local defaultVeterancyUpgrades = {
 	"reload",
 }
 
----@alias Veterancy { add:(fun(unitDef:table, upgrades:VeterancyUpgrade[]):boolean), create:fun(unitID)?, effect:VeterancyEffect }
----@alias VeterancyEffect fun(unitID:integer, upgrade:VeterancyUpgrade, experience:number) Applied on experience gain.
----@alias VeterancyUpgrade { [1]:VeterancyEffect, [2]:any|false, [3]:any|false } Compact upgrade information per-unitdef.
-
 local math_floor = math.floor
 local math_round = math.round
 local math_max = math.max
@@ -102,7 +98,17 @@ local damageScale = Spring.GetModOptions().veterancy_damage_scale
 
 -- Code ------------------------------------------------------------------------
 
-local veterancyEffects = {} ---@type table<string, Veterancy>
+---@class VeterancyDefinition
+---@field add fun(self:VeterancyDefinition, unitDef:table, upgrades:VeterancyUpgrade[]):boolean
+---@field create? fun(self:VeterancyUpgrade, unitID:integer) Called at unit creation.
+---@field effect fun(self:VeterancyUpgrade, unitID:integer, experience:number) Applied on experience gain.
+
+---@class VeterancyUpgrade
+---@field effect fun(self:VeterancyUpgrade, unitID:integer, experience:number) Applied on experience gain.
+---@field factor number The scaling factor for the upgrade against unit XP.
+---@field weapons? (table|number|false)[] Weapons data passed to veterancy effects that upgrade weapons.
+
+local veterancyEffects = {} ---@type table<string, VeterancyDefinition>
 local onUnitCreated = {}
 
 local function addVeterancyUpgrades(unitDef, veterancyList)
@@ -111,7 +117,7 @@ local function addVeterancyUpgrades(unitDef, veterancyList)
 	for _, name in ipairs(veterancyList) do
 		if veterancyEffects[name] then
 			local upgrade = veterancyEffects[name]
-			local result = upgrade.add(unitDef, upgrades)
+			local result = upgrade:add(unitDef, upgrades)
 			if result and upgrade.create then
 				onCreate[#onCreate + 1] = upgrade.create
 			end
@@ -128,11 +134,9 @@ local function addVeterancyUpgrades(unitDef, veterancyList)
 end
 
 local function applyVeterancyEffects(unitID, experience, upgrades)
-	local limExperience = experience / (experience + 1) -- (0.0, 1.0)
-	for index = 1, #upgrades do
-		local upgrade = upgrades[index]
-		local effect = upgrade[1]
-		effect(unitID, upgrade, limExperience)
+	local limExperience = experience / (experience + 1) -- limited to (0.0, 1.0)
+	for _, upgrade in ipairs(upgrades) do
+		upgrade:effect(unitID, limExperience)
 	end
 end
 
@@ -160,9 +164,9 @@ local call = setmetatable({}, {
 	end
 })
 
-local function getScale(unitDef, key, fallback)
-	return tonumber(unitDef.customParams[customParamPrefix .. key] or fallback)
-		or fallback or 0
+local function getScaleFactor(unitDef, key, default)
+	default = default or 0
+	return tonumber(unitDef.customParams[customParamPrefix .. key] or default) or default
 end
 
 local function ignoreWeapon(weaponDef, key)
@@ -173,6 +177,25 @@ end
 -- we want to enforce a one-frame floor for reloading, stockpiling, bursts, etc.
 local function toFrameTime(seconds)
 	return math_max(math_round(seconds * gameSpeed), 1) * gameSpeedInverse
+end
+
+-- Weapon stat collectors
+
+local function collectWeaponUpgrades(unitDef, upgradeList, upgrade, collect)
+	local hasWeapon = false
+	local weapons = table.ensureTable(upgrade, "weapons")
+
+	for index, weapon in ipairs(unitDef.weapons) do
+		local value = collect(WeaponDefs[weapon.weaponDef], upgrade)
+		weapons[index] = value or false
+		hasWeapon = (hasWeapon or value) and true
+	end
+
+	if hasWeapon then
+		upgradeList[#upgradeList + 1] = upgrade
+	end
+
+	return hasWeapon
 end
 
 local function getBurstStats(weaponDef)
@@ -238,35 +261,75 @@ local function getReloadStats(weaponDef)
 	return weaponUpgrade
 end
 
--- Unit veterancies ------------------------------------------------------------
+local function collectReload(weaponDef)
+	return not ignoreWeapon(weaponDef, "reload") and weaponDef.reload
+end
+
+local function collectScriptedReload(weaponDef)
+	return not ignoreWeapon(weaponDef, "scripted_reload") and weaponDef.reload
+end
+
+local function collectAccWeight(weaponDef)
+	-- FIXME: We cannot modify: predictSpeedMod, leadLimit, targetMoveError, movingAccuracy, wobble.
+	return not ignoreWeapon(weaponDef, "acc_weight") and {
+		accuracy   = weaponDef.accuracy,
+		sprayAngle = weaponDef.sprayAngle,
+	}
+end
+
+local function collectDamages(weaponDef)
+	return not ignoreWeapon(weaponDef, "damages") and weaponDef.customParams.bogus ~= "1" and getDamages(weaponDef)
+end
+
+local function collectRange(weaponDef, upgrade)
+	if not ignoreWeapon(weaponDef, "range") then
+		upgrade.customRangeMax = math_max(weaponDef.range, upgrade.customRangeMax)
+		return weaponDef.range
+	else
+		return false
+	end
+end
+
+local function collectReloadBurst(weaponDef)
+	return not ignoreWeapon(weaponDef, "reload") and not ignoreWeapon(weaponDef, "burst") and getReloadStats(weaponDef)
+end
+
+local function collectReloadDamages(weaponDef)
+	return not ignoreWeapon(weaponDef, "reload")
+		and not ignoreWeapon(weaponDef, "damages")
+		and table.merge(getReloadStats(weaponDef), getDamages(weaponDef))
+end
+
+-- Definitions -----------------------------------------------------------------
 
 -- Some effects are duplicated in-engine so are conditional on our modrules:
 
 -- TODO: We cannot script unit power.
 veterancyEffects.power = {
-	add = function(unitDef, upgrades) return false end,
+	add = function(self, unitDef, upgrades) return false end,
+	effect = function(self, unitID, experience) end,
 }
 
 veterancyEffects.health = {
-	add = function(unitDef, upgrades)
-		local scale = getScale(unitDef, "health", healthScale)
-		if scale <= 0 then
+	-- NB: This `self` refers to the definition while effect's `self` is the per-unit upgrade.
+	add = function(self, unitDef, upgrades)
+		local scaleFactor = getScaleFactor(unitDef, "health", healthScale)
+		if scaleFactor <= 0 then
 			return false
 		end
 
-		---@type VeterancyUpgrade
 		local upgrade = {
-			veterancyEffects.health.effect,
-			scale,
-			unitDef.health,
+			effect = self.effect,
+			factor = scaleFactor,
+			health = unitDef.health,
 		}
 
 		upgrades[#upgrades + 1] = upgrade
 		return true
 	end,
 
-	effect = function(unitID, upgrade, experience)
-		local healthMaxXP = math_floor(upgrade[3] * (1 + upgrade[2] * experience))
+	effect = function(self, unitID, experience)
+		local healthMaxXP = math_floor((1 + experience * self.factor) * self.health)
 		local health, healthMax = spGetUnitHealth(unitID)
 		if healthMaxXP == math_floor(healthMax) then
 			return
@@ -278,45 +341,30 @@ veterancyEffects.health = {
 }
 
 veterancyEffects.reload = {
-	add = function(unitDef, upgrades)
+	add = function(self, unitDef, upgrades)
 		-- Dynamic reloads per-weapon are scaled at the unit-level for consistency.
-		local scale = getScale(unitDef, "reload", reloadScale)
-		if scale <= 0 then
+		local scaleFactor = getScaleFactor(unitDef, "reload", reloadScale)
+		if scaleFactor <= 0 then
 			return false
 		end
 
-		local upgrade = { veterancyEffects.reload.effect, scale } ---@type VeterancyUpgrade
-		local offset = #upgrade
+		local upgrade = {
+			effect  = self.effect,
+			factor  = scaleFactor,
+		}
 
-		local hasUpgradeWeapon = false
-		for index, weapon in ipairs(unitDef.weapons) do
-			local weaponDef = WeaponDefs[weapon.weaponDef]
-			if not ignoreWeapon(weaponDef, "reload") then
-				hasUpgradeWeapon = true
-				upgrade[index + offset] = weaponDef.reload
-			else
-				upgrade[index + offset] = false
-			end
-		end
-
-		if hasUpgradeWeapon then
-			upgrades[#upgrades + 1] = upgrade
-			return true
-		else
-			return false
-		end
+		return collectWeaponUpgrades(unitDef, upgrades, upgrade, collectReload)
 	end,
 
-	effect = function(unitID, upgrade, experience)
+	effect = function(self, unitID, experience)
 		local unitLuaEnv = spGetScriptEnv(unitID)
-		local reloadDiv = 1 + upgrade[2] * experience
-		for index = 3, #upgrade do
-			if upgrade[index] then
+		local reloadDiv = 1 + experience * self.factor
+		for weaponNum = 1, #self.weapons do
+			if self.weapons[weaponNum] then
 				-- This method combines reloadTime with reloadSpeed as an aggregate stat:
-				local reloadTime = toFrameTime(upgrade[index] / reloadDiv)
-				local weapon = index - 2
-				spSetUnitWeaponState(unitID, weapon, "reloadTime", reloadTime)
-				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weapon], reloadTime * 1000)
+				local reloadTime = toFrameTime(self.weapons[weaponNum] / reloadDiv)
+				spSetUnitWeaponState(unitID, weaponNum, "reloadTime", reloadTime)
+				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weaponNum], reloadTime * 1000)
 			end
 		end
 		-- Assumes it is safe not to include a call to "SetMaxReloadTime". See scripted_reload.
@@ -328,51 +376,36 @@ veterancyEffects.reload = {
 -- under the assumption that the unit otherwise gains no reload bonuses;
 -- e.g. it might be odd but is not unreasonable to use this with reload.
 veterancyEffects.scripted_reload = {
-	add = function(unitDef, upgrades)
+	add = function(self, unitDef, upgrades)
 		-- Shares its scaling customparam with `reload`:
-		local scale = getScale(unitDef, "scripted_reload", reloadScale)
-		if scale <= 0 then
+		local scaleFactor = getScaleFactor(unitDef, "scripted_reload", reloadScale)
+		if scaleFactor <= 0 then
 			return false
 		end
 
-		local upgrade = { veterancyEffects.scripted_reload.effect, scale } ---@type VeterancyUpgrade
-		local offset = #upgrade
+		local upgrade = {
+			effect  = self.effect,
+			factor  = scaleFactor,
+		}
 
-		local hasUpgradeWeapon = false
-		for index, weapon in ipairs(unitDef.weapons) do
-			local weaponDef = WeaponDefs[weapon.weaponDef]
-			if not ignoreWeapon(weaponDef, "scripted_reload") then
-				hasUpgradeWeapon = true
-				upgrade[index + offset] = weaponDef.reload
-			else
-				upgrade[index + offset] = false
-			end
-		end
-
-		if hasUpgradeWeapon then
-			upgrades[#upgrades + 1] = upgrade
-			return true
-		else
-			return false
-		end
+		return collectWeaponUpgrades(unitDef, upgrades, upgrade, collectScriptedReload)
 	end,
 
-	effect = function(unitID, upgrade, experience)
+	effect = function(self, unitID, experience)
 		local unitLuaEnv = spGetScriptEnv(unitID)
 		local reloadMax = 0
 		local reloadDiv = 1 + upgrade[2] * experience
 
-		for index = 3, #upgrade do
-			local weapon = index - 2
-			if upgrade[index] then
+		for weaponNum = 1, #self.weapons do
+			if self.weapons[weaponNum] then
 				-- This method combines reloadTime with reloadSpeed as an aggregate stat:
-				local reloadTime = toFrameTime(upgrade[index] / reloadDiv)
-				spSetUnitWeaponState(unitID, weapon, "reloadTime", reloadTime)
-				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weapon], reloadTime * 1000)
+				local reloadTime = toFrameTime(self.weapons[weaponNum] / reloadDiv)
+				spSetUnitWeaponState(unitID, weaponNum, "reloadTime", reloadTime)
+				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weaponNum], reloadTime * 1000)
 				reloadMax = math_max(reloadMax, gameSpeedInverse, reloadTime)
 			else
 				-- The weapon has a non-scripted reload time, so we fetch its live value:
-				reloadMax = math_max(reloadMax, gameSpeedInverse, spGetUnitWeaponState(unitID, weapon, "reloadTimeXP"))
+				reloadMax = math_max(reloadMax, gameSpeedInverse, spGetUnitWeaponState(unitID, weaponNum, "reloadTimeXP"))
 			end
 		end
 
@@ -384,46 +417,27 @@ veterancyEffects.scripted_reload = {
 -- This is not "accuracy" but "ownerExpAccWeight", which is a catch-all for scaling multiple stats.
 -- NOTE: This is included for something like "completeness" but is barely functional as-advertised.
 veterancyEffects.acc_weight = {
-	add = function(unitDef, upgrades)
+	add = function(self, unitDef, upgrades)
 		-- Dynamic accuracies per-weapon are scaled at the unit-level for consistency.
-		local scale = getScale(unitDef, "acc_weight", 0)
-		if scale <= 0 then
+		local scaleFactor = getScaleFactor(unitDef, "acc_weight", 0)
+		if scaleFactor <= 0 then
 			return false
 		end
 
-		local upgrade = { veterancyEffects.acc_weight.effect, scale } ---@type VeterancyUpgrade
-		local offset = #upgrade
+		local upgrade = {
+			effect = self.effect,
+			factor = scaleFactor,
+		}
 
-		local hasUpgradeWeapon = false
-		for index, weapon in ipairs(unitDef.weapons) do
-			local weaponDef = WeaponDefs[weapon.weaponDef]
-			if not ignoreWeapon(weaponDef, "acc_weight") then
-				-- FIXME: We cannot modify: predictSpeedMod, leadLimit, targetMoveError, movingAccuracy, wobble.
-				hasUpgradeWeapon = true
-				upgrade[index + offset] = {
-					accuracy   = weaponDef.accuracy,
-					sprayAngle = weaponDef.sprayAngle,
-				}
-			else
-				upgrade[index + offset] = false
-			end
-		end
-
-		if hasUpgradeWeapon then
-			upgrades[#upgrades + 1] = upgrade
-			return true
-		else
-			return false
-		end
+		return collectWeaponUpgrades(unitDef, upgrades, upgrade, collectAccWeight)
 	end,
 
-	effect = function(unitID, upgrade, experience)
-		local accuracyWeightDiv = 1 + upgrade[2] * experience
-		for index = 3, #upgrade do
-			if upgrade[index] then
-				local weapon = index - 2
-				spSetUnitWeaponState(unitID, weapon, "accuracy", upgrade[index].accuracy / accuracyWeightDiv)
-				spSetUnitWeaponState(unitID, weapon, "sprayAngle", upgrade[index].sprayAngle / accuracyWeightDiv)
+	effect = function(self, unitID, experience)
+		local accuracyWeightDiv = 1 + experience * self.factor
+		for weaponNum = 1, #self.weapons do
+			if self.weapons[weaponNum] then
+				spSetUnitWeaponState(unitID, weaponNum, "accuracy", self.weapons[weaponNum].accuracy / accuracyWeightDiv)
+				spSetUnitWeaponState(unitID, weaponNum, "sprayAngle", self.weapons[weaponNum].sprayAngle / accuracyWeightDiv)
 			end
 		end
 	end,
@@ -432,25 +446,24 @@ veterancyEffects.acc_weight = {
 -- The rest of the veterancy effects have no equivalent function in the engine:
 
 veterancyEffects.autoheal = {
-	add = function(unitDef, upgrades)
+	add = function(self, unitDef, upgrades)
 		-- Autoheal can start at zero, and we'd rather not scale against health.
-		local valueAtFullXP = getScale(unitDef, "autoheal", 0)
-		if valueAtFullXP <= 0 then
+		local autoHealMax = getScaleFactor(unitDef, "autoheal", 0)
+		if autoHealMax <= 0 then
 			return false
 		end
 
-		---@type VeterancyUpgrade
 		local upgrade = {
-			veterancyEffects.autoheal.effect,
-			valueAtFullXP,
+			effect = self.effect,
+			factor = autoHealMax,
 		}
 
 		upgrades[#upgrades + 1] = upgrade
 		return true
 	end,
 
-	effect = function(unitID, upgrade, experience)
-		local autoHeal = upgrade[2] * experience
+	effect = function(self, unitID, experience)
+		local autoHeal = experience * self.factor
 		unitAutoHeal[unitID] = autoHeal
 		spSetUnitRulesParam(unitID, "veterancy_autoheal", autoHeal)
 	end,
@@ -460,43 +473,26 @@ veterancyEffects.autoheal = {
 -- TODO: We can scale damages without increased impulse by reducing the impulse factor proprtionately.
 -- TODO: Other effects scale with damage, too, like cratering strength. Some do not, like firestarter.
 veterancyEffects.damages = {
-	add = function(unitDef, upgrades)
+	add = function(self, unitDef, upgrades)
 		-- Dynamic damages per-weapon are scaled at the unit-level for consistency.
-		local scale = getScale(unitDef, "damage", damageScale)
-		if scale <= 0 then
+		local scaleFactor = getScaleFactor(unitDef, "damage", damageScale)
+		if scaleFactor <= 0 then
 			return false
 		end
 
-		local upgrade = { veterancyEffects.damages.effect, scale } ---@type VeterancyUpgrade
-		local offset = #upgrade
+		local upgrade = {
+			effect = self.effect,
+			factor = scaleFactor,
+		}
 
-		local hasUpgradeWeapon = false
-		for index, weapon in ipairs(unitDef.weapons) do
-			local weaponDef = WeaponDefs[weapon.weaponDef]
-			local damages = nil
-			if not ignoreWeapon(weaponDef, "damages") and weaponDef.customParams.bogus ~= "1" then
-				damages = getDamages(weaponDef)
-			end
-			if damages then
-				hasUpgradeWeapon = true
-				upgrade[index + offset] = damages
-			else
-				upgrade[index + offset] = false
-			end
-		end
-		if hasUpgradeWeapon then
-			upgrades[#upgrades + 1] = upgrade
-			return true
-		else
-			return false
-		end
+		return collectWeaponUpgrades(unitDef, upgrades, upgrade, collectDamages)
 	end,
 
-	effect = function(unitID, upgrade, experience)
-		local damageMult = 1 + upgrade[2] * experience
-		for index = 3, #upgrade do
-			if upgrade[index] then
-				scaleDamages(unitID, index - 2, upgrade[index], damageMult)
+	effect = function(self, unitID, experience)
+		local damageMult = 1 + experience * self.factor
+		for weaponNum = 1, #self.weapons do
+			if self.weapons[weaponNum] then
+				scaleDamages(unitID, weaponNum, self.weapons[weaponNum], damageMult)
 			end
 		end
 	end,
@@ -504,51 +500,47 @@ veterancyEffects.damages = {
 
 -- TODO: Compensation for TTL, projectile speed, etc., depending on the weaponDef.
 veterancyEffects.range = {
-	add = function(unitDef, upgrades)
+	add = function(self, unitDef, upgrades)
 		-- Dynamic ranges per-weapon are scaled at the unit-level for consistency.
-		local scale = getScale(unitDef, "range", 0)
-		if scale <= 0 then
+		local scaleFactor = getScaleFactor(unitDef, "range", 0)
+		if scaleFactor <= 0 then
 			return false
 		end
 
-		local upgrade = { veterancyEffects.range.effect, scale, 0 } ---@type VeterancyUpgrade
-		local offset = #upgrade
+		local upgrade = {
+			effect = self.effect,
+			factor = scaleFactor,
+			customRangeMax = 0,
+		}
 
-		local hasUpgradeWeapon = false
-		for index, weapon in ipairs(unitDef.weapons) do
-			local weaponDef = WeaponDefs[weapon.weaponDef]
-			if not ignoreWeapon(weaponDef, "range") then
-				hasUpgradeWeapon = true
-				upgrade[3] = math_max(weaponDef.range, upgrade[3])
-				upgrade[index + offset] = weaponDef.range
-			else
-				upgrade[index + offset] = false
-			end
-		end
+		local hasUpgrades = collectWeaponUpgrades(unitDef, upgrades, upgrade, collectRange)
 
-		if hasUpgradeWeapon then
+		if hasUpgrades then
+			-- Units have an engagement range with a bad property name ("maxrange").
+			-- We may or may not be scaling that engagement range with weapon range:
 			local customMaxRange = tonumber(unitDef.customParams.maxrange or 0) or 0
-			if (customMaxRange ~= 0 and customMaxRange < upgrade[3]) or unitDef.customParams.nomaxrangexpscale then
-				upgrade[3] = false
+			if customMaxRange ~= 0 and customMaxRange < upgrade.customMaxRange then
+				upgrade.customMaxRange = false
+			elseif unitDef.customParams.nomaxrangexpscale then
+				upgrade.customMaxRange = false
 			end
-			upgrades[#upgrades + 1] = upgrade
 			return true
 		else
 			return false
 		end
 	end,
 
-	effect = function(unitID, upgrade, experience)
+	effect = function(self, unitID, experience)
 		local experienceCurved = (3 * experience) / (2 * experience + 1) -- limExperience = (3 * xp) / (3 * xp + 1).
-		local rangeMult = (1 + upgrade[2] * experienceCurved)
+		local rangeMult = (1 + experienceCurved * self.factor)
 
-		if upgrade[3] then
-			spSetUnitMaxRange(unitID, math_floor(upgrade[3] * rangeMult))
+		if self.customRangeMax then
+			spSetUnitMaxRange(unitID, math_floor(self.customRangeMax * rangeMult))
 		end
 
-		for index = 4, #upgrade do
-			if upgrade[index] then
-				spSetUnitWeaponState(unitID, index - 3, "range", math_floor(upgrade[index] * rangeMult))
+		for weaponNum = 1, #self.weapons do
+			if self.weapons[weaponNum] then
+				spSetUnitWeaponState(unitID, weaponNum, "range", math_floor(self.weapons[weaponNum] * rangeMult))
 			end
 		end
 	end,
@@ -558,48 +550,31 @@ veterancyEffects.range = {
 -- This XP upgrade continues to scale the burst rate with faster reloads (up to 1/30th sec).
 -- NOTE: Weapon sounds usually trigger only once per burst and play the sound of many shots.
 veterancyEffects.reload_then_burst = {
-	add = function(unitDef, upgrades)
-		-- Shares its scaling customparam with `reload`:
-		local scale = getScale(unitDef, "reload_then_burst", reloadScale)
-		if scale <= 0 then
+	add = function(self, unitDef, upgrades)
+		local scaleFactor = getScaleFactor(unitDef, "reload_then_burst", reloadScale)
+		if scaleFactor <= 0 then
 			return false
 		end
 
-		local upgrade = { veterancyEffects.reload_then_burst.effect, scale } ---@type VeterancyUpgrade
-		local offset = #upgrade
+		local upgrade = {
+			effect = self.effect,
+			factor = scaleFactor,
+		}
 
-		local hasUpgradeWeapon = false
-		for index, weapon in ipairs(unitDef.weapons) do
-			local weaponDef = WeaponDefs[weapon.weaponDef]
-			if not ignoreWeapon(weaponDef, "reload") and not ignoreWeapon(weaponDef, "burst") then
-				hasUpgradeWeapon = true
-				upgrade[index + offset] = getReloadStats(weaponDef)
-			else
-				upgrade[index + offset] = false
-			end
-		end
-
-		if hasUpgradeWeapon then
-			upgrades[#upgrades + 1] = upgrade
-			return true
-		else
-			return false
-		end
+		return collectWeaponUpgrades(unitDef, upgrades, upgrade, collectReloadBurst)
 	end,
 
-	effect = function(unitID, upgrade, experience)
+	effect = function(self, unitID, experience)
 		local unitLuaEnv = spGetScriptEnv(unitID)
-		local reloadDiv = 1 + upgrade[2] * experience
-		for index = 3, #upgrade do
-			if upgrade[index] then
-				local reloadTime = upgrade[index].reloadTime
-				local salvoDuration = upgrade[index].salvoTime
-				local weapon = index - 2
-
+		local reloadDiv = 1 + experience * self.factor
+		for weaponNum = 1, #self.weapons do
+			if self.weapons[weaponNum] then
+				local reloadTime = self.weapons[weaponNum].reloadTime
+				local salvoDuration = self.weapons[weaponNum].salvoTime
 				local reloadWanted = toFrameTime(reloadTime / reloadDiv)
 
 				if salvoDuration and reloadWanted < salvoDuration then
-					local salvoSize = upgrade[index].salvoSize
+					local salvoSize = self.weapons[weaponNum].salvoSize
 					local salvoDelay
 					if reloadTime <= salvoDuration then
 						-- When reload and burst are the same, each scales with full unit XP.
@@ -610,11 +585,11 @@ veterancyEffects.reload_then_burst = {
 						reloadWanted = toFrameTime(reloadWanted - difference)
 						salvoDelay = toFrameTime((salvoDuration - difference) / salvoSize)
 					end
-					spSetUnitWeaponState(unitID, weapon, "burstRate", salvoDelay)
+					spSetUnitWeaponState(unitID, weaponNum, "burstRate", salvoDelay)
 				end
 
-				spSetUnitWeaponState(unitID, weapon, "reloadTime", reloadWanted)
-				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weapon], reloadWanted * 1000)
+				spSetUnitWeaponState(unitID, weaponNum, "reloadTime", reloadWanted)
+				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weaponNum], reloadWanted * 1000)
 			end
 		end
 	end,
@@ -624,56 +599,32 @@ veterancyEffects.reload_then_burst = {
 -- This XP upgrade continues to scale the weapon's DPS output by directly increasing damage.
 -- NOTE: Preferable to reload_then_burst usually but we have no scaling damage vfx just yet.
 veterancyEffects.reload_then_damages = {
-	add = function(unitDef, upgrades)
+	add = function(self, unitDef, upgrades)
 		-- Shares its scaling customparams with `reload`/`damage`, but does not check `damageScale`:
-		local unitReloadScale = getScale(unitDef, "reload", reloadScale)
-		local unitDamageScale = getScale(unitDef, "damage", unitReloadScale)
+		local unitReloadScale = getScaleFactor(unitDef, "reload", reloadScale)
+		local unitDamageScale = getScaleFactor(unitDef, "damage", unitReloadScale)
 		if unitReloadScale <= 0 and unitDamageScale <= 0 then
 			return false
 		end
 
-		local upgrade = { veterancyEffects.reload_then_damages.effect, unitReloadScale, unitDamageScale } ---@type VeterancyUpgrade
-		local offset = #upgrade
+		local upgrade = {
+			effect = self.effect,
+			reloadFactor = unitReloadScale,
+			damageFactor = unitDamageScale,
+		}
 
-		local hasUpgradeWeapon = false
-		for index, weapon in ipairs(unitDef.weapons) do
-			local weaponDef = WeaponDefs[weapon.weaponDef]
-
-			local reloads
-			if not ignoreWeapon(weaponDef, "reload") then
-				reloads = getReloadStats(weaponDef)
-			end
-
-			local damages
-			if not ignoreWeapon(weaponDef, "damages") then -- allow bogus weapons so paired fake/real weapons scale together
-				damages = getDamages(weaponDef)
-			end
-
-			if reloads and damages then
-				hasUpgradeWeapon = true
-				upgrade[index + offset] = table.merge(reloads, damages)
-			else
-				upgrade[index + offset] = false
-			end
-		end
-
-		if hasUpgradeWeapon then
-			upgrades[#upgrades + 1] = upgrade
-			return true
-		else
-			return false
-		end
+		return collectWeaponUpgrades(unitDef, upgrades, upgrade, collectReloadDamages)
 	end,
 
-	effect = function(unitID, upgrade, experience)
+	effect = function(self, unitID, experience)
 		local unitLuaEnv = spGetScriptEnv(unitID)
-		local reloadDiv = 1 + upgrade[2] * experience
-		local damageMult = 1 + upgrade[3] * experience
-		for index = 4, #upgrade do
-			if upgrade[index] then
-				local reloadTime = upgrade[index].reloadTime
-				local salvoTime = upgrade[index].salvoTime
-				local weapon = index - 3
+		local reloadDiv = 1 + experience * self.reloadFactor
+		local damageMult = 1 + experience * self.damageFactor
+		for weaponNum = 1, #self.weapons do
+			if self.weapons[weaponNum] then
+				local reloadTime = self.weapons[weaponNum].reloadTime
+				local salvoTime = self.weapons[weaponNum].salvoTime
+				local weapon = weaponNum - 3
 
 				local reloadWanted = toFrameTime(reloadTime / reloadDiv)
 				local weaponDamageMult = 1
@@ -682,10 +633,10 @@ veterancyEffects.reload_then_damages = {
 					if reloadTime > salvoTime then
 						if reloadWanted < salvoTime then
 							reloadWanted = salvoTime
-							-- Get the XP with equal reload time and burst duration.
-							local weaponReloadXP = (reloadTime / salvoTime - 1) / upgrade[2]
-							local weaponDamageXP = experience - weaponReloadXP
-							weaponDamageMult = 1 + upgrade[3] * weaponDamageXP
+							-- Get the remaining XP after the reload time and burst time are equal:
+							local weaponReloadXP = (reloadTime / salvoTime - 1) / self.reloadFactor
+							local weaponDamageXP = (experience - weaponReloadXP)
+							weaponDamageMult = 1 + weaponDamageXP * self.damageFactor
 						end
 					else
 						weaponDamageMult = damageMult
@@ -696,7 +647,7 @@ veterancyEffects.reload_then_damages = {
 				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weapon], reloadWanted * 1000)
 
 				if weaponDamageMult > 1 then
-					scaleDamages(unitID, weapon, upgrade[index], weaponDamageMult)
+					scaleDamages(unitID, weapon, self.weapons[weaponNum], weaponDamageMult)
 				end
 			end
 		end
