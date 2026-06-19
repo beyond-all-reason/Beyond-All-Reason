@@ -463,7 +463,7 @@ local fallbackFsSrcPath = "LuaUI/Shaders/HealthbarsGL4_nogs.frag.glsl"
 
 local useGeometryShader = LuaShader.isGeometryShaderSupported
 
-local unitQuadVBO, unitQuadIndexVBO
+local unitQuadVBO
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,
@@ -591,7 +591,7 @@ local function initializeInstanceVBOTable(myName, usesFeatures)
 		newVAO:AttachVertexBuffer(newVBOTable.instanceVBO)
 		newVBOTable.VAO = newVAO
 	else
-		newVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(unitQuadVBO, newVBOTable.instanceVBO, unitQuadIndexVBO)
+		newVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(unitQuadVBO, newVBOTable.instanceVBO)
 	end
 	if usesFeatures then newVBOTable.featureIDs = true end
 	return newVBOTable
@@ -599,10 +599,13 @@ end
 
 
 local function initGL4()
-	if useGeometryShader then
-		healthBarShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
-	else
-		-- A simple indexed quad used by the non-GS path.
+	-- Prefer geometry shader path when it actually compiles. This avoids false
+	-- negatives from capability detection on some Linux/AMD driver stacks.
+	healthBarShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
+	useGeometryShader = (healthBarShader ~= nil)
+
+	if not useGeometryShader then
+		-- A simple quad used by the non-GS path.
 		unitQuadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
 		unitQuadVBO:Define(4, {
 			{id = 0, name = 'quadPos', size = 2},
@@ -613,10 +616,6 @@ local function initGL4()
 			 0.0, 1.0,
 			 1.0, 1.0,
 		})
-
-		unitQuadIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-		unitQuadIndexVBO:Define(6)
-		unitQuadIndexVBO:Upload({0, 1, 2, 2, 1, 3})
 
 		healthBarShader = LuaShader.CheckShaderUpdates(fallbackShaderSourceCache)
 	end
@@ -1334,7 +1333,7 @@ function widget:DrawScreenEffects()
 			if useGeometryShader then
 				healthBarVBO.VAO:DrawArrays(GL.POINTS,healthBarVBO.usedElements)
 			else
-				healthBarVBO.VAO:DrawElements(GL.TRIANGLES, 6, 0, healthBarVBO.usedElements)
+				healthBarVBO.VAO:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, healthBarVBO.usedElements)
 			end
 		end
 		-- below its the feature bars being drawn:
@@ -1344,7 +1343,7 @@ function widget:DrawScreenEffects()
 				if useGeometryShader then
 					featureHealthVBO.VAO:DrawArrays(GL.POINTS,featureHealthVBO.usedElements)
 				else
-					featureHealthVBO.VAO:DrawElements(GL.TRIANGLES, 6, 0, featureHealthVBO.usedElements)
+					featureHealthVBO.VAO:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, featureHealthVBO.usedElements)
 				end
 			end
 			if featureResurrectVBO.usedElements > 0 then
@@ -1352,7 +1351,7 @@ function widget:DrawScreenEffects()
 				if useGeometryShader then
 					featureResurrectVBO.VAO:DrawArrays(GL.POINTS,featureResurrectVBO.usedElements)
 				else
-					featureResurrectVBO.VAO:DrawElements(GL.TRIANGLES, 6, 0, featureResurrectVBO.usedElements)
+					featureResurrectVBO.VAO:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, featureResurrectVBO.usedElements)
 				end
 			end
 			if featureReclaimVBO.usedElements > 0 then
@@ -1360,7 +1359,7 @@ function widget:DrawScreenEffects()
 				if useGeometryShader then
 					featureReclaimVBO.VAO:DrawArrays(GL.POINTS,featureReclaimVBO.usedElements)
 				else
-					featureReclaimVBO.VAO:DrawElements(GL.TRIANGLES, 6, 0, featureReclaimVBO.usedElements)
+					featureReclaimVBO.VAO:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, featureReclaimVBO.usedElements)
 				end
 			end
 

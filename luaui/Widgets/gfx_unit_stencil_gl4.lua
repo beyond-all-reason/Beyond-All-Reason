@@ -392,26 +392,48 @@ local function InitDrawPrimitiveAtUnit(modifiedShaderConf, DPATname)
 	vsSrcNoGS = vsSrcNoGS:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	gsSrc = gsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	local DrawPrimitiveAtUnitShader =  LuaShader(
-		{
-			vertex = useGeometryShader and vsSrc or vsSrcNoGS,
-			fragment = fsSrc,
-			geometry = useGeometryShader and gsSrc or nil,
-			uniformInt = {
-				--DrawPrimitiveAtUnitTexture = 0;
-			},
-			uniformFloat = {
-				addRadius = 1,
+    local shaderName = DPATname .. "Shader GL4"
+
+    local DrawPrimitiveAtUnitShader = LuaShader(
+        {
+            vertex = vsSrc,
+            fragment = fsSrc,
+            geometry = gsSrc,
+            uniformInt = {
+                --DrawPrimitiveAtUnitTexture = 0;
+            },
+            uniformFloat = {
+                addRadius = 1,
                 stencilColor = 1,
-			},
-		},
-		DPATname .. "Shader GL4"
-	  )
-	local shaderCompiled = DrawPrimitiveAtUnitShader:Initialize()
-	if not shaderCompiled then
-		goodbye("Failed to compile ".. DPATname .." GL4 ")
-		return
-	end
+            },
+        },
+        shaderName
+    )
+
+    local shaderCompiled = DrawPrimitiveAtUnitShader:Initialize()
+    useGeometryShader = shaderCompiled
+
+    if not shaderCompiled then
+        DrawPrimitiveAtUnitShader = LuaShader(
+            {
+                vertex = vsSrcNoGS,
+                fragment = fsSrc,
+                uniformInt = {
+                    --DrawPrimitiveAtUnitTexture = 0;
+                },
+                uniformFloat = {
+                    addRadius = 1,
+                    stencilColor = 1,
+                },
+            },
+            shaderName .. " (NoGS)"
+        )
+        shaderCompiled = DrawPrimitiveAtUnitShader:Initialize()
+        if not shaderCompiled then
+            goodbye("Failed to compile ".. DPATname .." GL4 ")
+            return
+        end
+    end
 
 	local templateVBO, indexVBO, indexCount
 	if not useGeometryShader then
