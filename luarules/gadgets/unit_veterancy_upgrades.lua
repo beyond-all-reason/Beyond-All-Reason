@@ -98,7 +98,6 @@ local function callUnitScript(unitID, luaEnv, methodName, ...)
 	end
 end
 
--- Cache strings rather than creating garbage in a hot loop.
 local mtAppendKeyToName = {
 	__index = function(self, key)
 		local result = self.name .. tostring(key)
@@ -107,7 +106,9 @@ local mtAppendKeyToName = {
 	end
 }
 
-local call = setmetatable({}, {
+-- Cache strings rather than creating garbage in a hot loop.
+-- Matters enough only for the current, continuous XP gains. -- TODO: retire this
+local cache = setmetatable({}, {
 	__index = function(self, key)
 		local tbl = table.new(6, 1)
 		tbl.name = key
@@ -173,7 +174,7 @@ local function scaleDamages(unitID, weaponNum, damages, damageMult)
 		d[i] = math_round(damages[i] * damageMult)
 	end
 	spSetUnitWeaponDamages(unitID, weaponNum, d)
-	spSetUnitRulesParam(unitID, "veterancy_damages_multiplier", damageMult)
+	spSetUnitRulesParam(unitID, cache["veterancy_damages_multiplier"][weaponNum], damageMult)
 end
 
 local function getReloadStats(weaponDef)
@@ -373,7 +374,7 @@ veterancyDefinitions.reload = {
 				-- This method combines reloadTime with reloadSpeed as an aggregate stat:
 				local reloadTime = toFrameTime(self.weapons[weaponNum] / reloadDiv)
 				spSetUnitWeaponState(unitID, weaponNum, "reloadTime", reloadTime)
-				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weaponNum], reloadTime * 1000)
+				callUnitScript(unitID, unitLuaEnv, cache["SetReloadTime"][weaponNum], reloadTime * 1000)
 			end
 		end
 		-- Assumes it is safe not to include a call to "SetMaxReloadTime". See scripted_reload.
@@ -410,7 +411,7 @@ veterancyDefinitions.scripted_reload = {
 				-- This method combines reloadTime with reloadSpeed as an aggregate stat:
 				local reloadTime = toFrameTime(self.weapons[weaponNum] / reloadDiv)
 				spSetUnitWeaponState(unitID, weaponNum, "reloadTime", reloadTime)
-				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weaponNum], reloadTime * 1000)
+				callUnitScript(unitID, unitLuaEnv, cache["SetReloadTime"][weaponNum], reloadTime * 1000)
 				reloadMax = math_max(reloadMax, gameSpeedInverse, reloadTime)
 			else
 				-- The weapon has a non-scripted reload time, so we fetch its live value:
@@ -598,7 +599,7 @@ veterancyDefinitions.reload_then_burst = {
 				end
 
 				spSetUnitWeaponState(unitID, weaponNum, "reloadTime", reloadWanted)
-				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weaponNum], reloadWanted * 1000)
+				callUnitScript(unitID, unitLuaEnv, cache["SetReloadTime"][weaponNum], reloadWanted * 1000)
 			end
 		end
 	end,
@@ -652,7 +653,7 @@ veterancyDefinitions.reload_then_damages = {
 				end
 
 				spSetUnitWeaponState(unitID, weaponNum, "reloadTime", reloadWanted)
-				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weaponNum], reloadWanted * 1000)
+				callUnitScript(unitID, unitLuaEnv, cache["SetReloadTime"][weaponNum], reloadWanted * 1000)
 
 				if weaponDamageMult > 1 then
 					scaleDamages(unitID, weaponNum, self.weapons[weaponNum], weaponDamageMult)
