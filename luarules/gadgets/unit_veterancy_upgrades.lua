@@ -720,6 +720,7 @@ function gadget:Initialize()
 	end
 
 	for _, unitID in pairs(Spring.GetAllUnits()) do
+		local unitDefID = Spring.GetUnitDefID(unitID)
 		gadget:UnitCreated(unitID, unitDefID)
 		if spGetUnitIsDead(unitID) == false and spGetUnitExperience(unitID) > 0 then
 			local unitDefID = Spring.GetUnitDefID(unitID)
