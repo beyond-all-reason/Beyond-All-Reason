@@ -180,7 +180,7 @@ if gadgetHandler:IsSyncedCode() then
 					local attackerPower = UnitDefs[aDefID].power
 					local defenderPower = UnitDefs[uDefID].power
 					local scaledExpMod = 0.1 * experienceMod * (defenderPower / attackerPower)
-					local scaledDamage = health / healthMax
+					local scaledDamage = math.max(health / healthMax, 0)
 					SpAddUnitExperience(aID, scaledExpMod * scaledDamage)
 					SpDestroyUnit(uID, false, false, aID)
 				else
