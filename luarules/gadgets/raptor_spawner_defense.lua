@@ -2053,7 +2053,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n%((math.ceil(config.turretSpawnRate))*30) == 0 and n > 900 and raptorTeamUnitCount < raptorUnitCap then
 			spawnCreepStructuresWave()
 		end
-		local squadID = ((n % (#squadsTable*5))+1)/5 --*5 and /5 for lowering the rate of commands
+		local squadID = ((n % (#squadsTable*3))+1)/3 --*3 and /3 for lowering the rate of commands
 		if squadID and squadsTable[squadID] and squadsTable[squadID].squadRegroupEnabled then
 			local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
 			if targetx then
@@ -2070,28 +2070,26 @@ if gadgetHandler:IsSyncedCode() then
 				if defID and mRandom(1,math.ceil((33*math.max(1, GetTeamUnitDefCount(raptorTeamID, defID))))) == 1 and mRandom() < config.spawnChance then
 					SpawnMinions(unitID, defID)
 				end
-				if mRandom(1,#raptors) == 1 or queenIDs[unitID] then
+				if ((math.random(1,10) == 1 or queenIDs[unitID]) and GetUnitCommandCount(unitID) == 0) then
 					if unitCowardCooldown[unitID] and (n > unitCowardCooldown[unitID]) then
 						unitCowardCooldown[unitID] = nil
 						GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 					end
-					if GetUnitCommandCount(unitID) == 0 then
-						if unitCowardCooldown[unitID] then
-							unitCowardCooldown[unitID] = nil
-						end
-						local squadID = unitSquadTable[unitID]
-						if squadID then
-							local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
-							if targetx then
-								squadsTable[squadID].squadNeedsRefresh = true
-								squadCommanderGiveOrders(squadID, targetx, targety, targetz)
-							else
-								refreshSquad(squadID)
-							end
+					if unitCowardCooldown[unitID] then
+						unitCowardCooldown[unitID] = nil
+					end
+					local squadID = unitSquadTable[unitID]
+					if squadID then
+						local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
+						if targetx then
+							squadsTable[squadID].squadNeedsRefresh = true
+							squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 						else
-							local pos = getRandomEnemyPos()
-							GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z}, {})
+							refreshSquad(squadID)
 						end
+					else
+						local pos = getRandomEnemyPos()
+						GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z}, {})
 					end
 				end
 			end
