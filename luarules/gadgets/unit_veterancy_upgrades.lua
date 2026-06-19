@@ -211,7 +211,9 @@ local function collectAccWeight(weaponDef)
 end
 
 local function collectDamages(weaponDef)
-	return not ignoreWeapon(weaponDef, "damages") and weaponDef.customParams.bogus ~= "1" and getDamages(weaponDef)
+	return not ignoreWeapon(weaponDef, "damages")
+		and weaponDef.customParams.bogus ~= "1"
+		and getDamages(weaponDef)
 end
 
 local function collectRange(weaponDef, upgrade)
@@ -224,7 +226,9 @@ local function collectRange(weaponDef, upgrade)
 end
 
 local function collectReloadBurst(weaponDef)
-	return not ignoreWeapon(weaponDef, "reload") and not ignoreWeapon(weaponDef, "burst") and getReloadStats(weaponDef)
+	return not ignoreWeapon(weaponDef, "reload")
+		and not ignoreWeapon(weaponDef, "burst")
+		and getReloadStats(weaponDef)
 end
 
 local function collectReloadDamages(weaponDef)
@@ -399,7 +403,7 @@ veterancyEffects.scripted_reload = {
 	effect = function(self, unitID, experience)
 		local unitLuaEnv = spGetScriptEnv(unitID)
 		local reloadMax = 0
-		local reloadDiv = 1 + upgrade[2] * experience
+		local reloadDiv = 1 + experience * self.factor
 
 		for weaponNum = 1, #self.weapons do
 			if self.weapons[weaponNum] then
@@ -629,7 +633,6 @@ veterancyEffects.reload_then_damages = {
 			if self.weapons[weaponNum] then
 				local reloadTime = self.weapons[weaponNum].reloadTime
 				local salvoTime = self.weapons[weaponNum].salvoTime
-				local weapon = weaponNum - 3
 
 				local reloadWanted = toFrameTime(reloadTime / reloadDiv)
 				local weaponDamageMult = 1
@@ -648,11 +651,11 @@ veterancyEffects.reload_then_damages = {
 					end
 				end
 
-				spSetUnitWeaponState(unitID, weapon, "reloadTime", reloadWanted)
-				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weapon], reloadWanted * 1000)
+				spSetUnitWeaponState(unitID, weaponNum, "reloadTime", reloadWanted)
+				callUnitScript(unitID, unitLuaEnv, call.SetReloadTime[weaponNum], reloadWanted * 1000)
 
 				if weaponDamageMult > 1 then
-					scaleDamages(unitID, weapon, self.weapons[weaponNum], weaponDamageMult)
+					scaleDamages(unitID, weaponNum, self.weapons[weaponNum], weaponDamageMult)
 				end
 			end
 		end
