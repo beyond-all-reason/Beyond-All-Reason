@@ -12,6 +12,7 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2200,
+		mass = 751,
 		maxacc = 0.08,
 		maxdec = 0.345,
 		maxslope = 17,
