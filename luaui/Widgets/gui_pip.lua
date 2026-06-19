@@ -1429,6 +1429,9 @@ local CMD_MAX_CHAIN_UNITS = 6
 -- GPU-driven icon rendering: replaces the CPU-heavy DrawUnit+DrawIcons pipeline with a single
 -- instanced draw call via a texture atlas + VBO + geometry shader.
 -- Benefits: eliminates per-icon texture switches, per-icon draw calls, and most per-unit API calls.
+-- Prefer GS when available, but each shader path still compile-probes and falls back.
+local pipUseGeometryShader = (gl.LuaShader and gl.LuaShader.isGeometryShaderSupported) or false
+
 local gl4Icons = {
 	INSTANCE_STEP = 12,       -- floats per icon instance (3 x vec4)
 	MAX_INSTANCES = 16384,    -- pre-allocated capacity (covers 16k units without resize)
@@ -1443,6 +1446,7 @@ local gl4Icons = {
 	vbo = nil,                -- Raw GL VBO (no InstanceVBOTable overhead)
 	vao = nil,                -- VAO with VBO attached
 	shader = nil,             -- Compiled GLSL shader program
+	shaderUsesGS = true,      -- true when shader expects point->GS expansion
 	uniformLocs = {},         -- Cached uniform locations
 	unitDefCache = {},        -- [unitID] = unitDefID (lazy-populated, cleared on unit death/give)
 	unitTeamCache = {},       -- [unitID] = teamID (lazy-populated, cleared on unit give)
@@ -1477,6 +1481,7 @@ local gl4Icons = {
 	_slowVboValid = false,    -- Slow mobile VBO has current data (skip upload)
 	_slowVboUsedElements = 0, -- Elements in slow mobile VBO
 	_slowVboHadOverlay = false, -- Previous upload had overlays
+	quadVBO = nil,            -- Shared per-vertex quad template for NoGS instanced path
 }
 
 -- Persistent sort comparator for icon draw order (avoids per-frame closure allocation)
@@ -1500,6 +1505,8 @@ local gl4Prim = {
 	QUAD_STEP = 12,           -- floats per instance: 3 x vec4
 	QUAD_MAX = 4096,          -- max quad instances
 	enabled = false,
+	useGeometryShader = true,
+	quadVBO = nil,
 	-- Circles (explosions, plasma, flame, lightning impacts)
 	circles = {
 		vbo = nil, vao = nil, shader = nil,
@@ -2527,6 +2534,64 @@ void main() {
 			atlasTex = 0,
 		},
 	},
+	decalCodeNoGS = {
+		vertex = [[
+#version 330
+layout(location = 0) in vec2 quadPos;
+layout(location = 1) in vec4 posRot;        // worldX, worldZ, rotation (rad), maxalpha
+layout(location = 2) in vec4 sizeAlpha;     // halfLengthX, halfWidthZ, alphastart, alphadecay
+layout(location = 3) in vec4 uvCoords;      // p, q, s, t
+layout(location = 4) in vec4 spawnParams;   // spawnframe, 0, 0, 0
+
+uniform float gameFrame;
+uniform vec2 invMapSize;
+
+out vec2 f_texCoord;
+out float f_alpha;
+
+void main() {
+	float lifetonow = gameFrame - spawnParams.x;
+	float currentAlpha = sizeAlpha.z - lifetonow * sizeAlpha.w;
+	currentAlpha = clamp(currentAlpha, 0.0, posRot.w);
+	if (currentAlpha < 0.01) {
+		f_alpha = 0.0;
+		gl_Position = vec4(2.0, 2.0, 0.0, 1.0);
+		return;
+	}
+
+	f_alpha = currentAlpha;
+	vec2 centerNDC = posRot.xy * invMapSize - 1.0;
+
+	float ca = cos(posRot.z);
+	float sa = sin(posRot.z);
+	vec2 local = quadPos * sizeAlpha.xy;
+	vec2 rotatedWorld = vec2(local.x * ca - local.y * sa, local.x * sa + local.y * ca);
+	vec2 ndcOff = rotatedWorld * invMapSize;
+	gl_Position = vec4(centerNDC + ndcOff, 0.0, 1.0);
+
+	vec2 t = quadPos * 0.5 + 0.5;
+	f_texCoord = vec2(mix(uvCoords.x, uvCoords.y, t.x), mix(uvCoords.z, uvCoords.w, t.y));
+}
+		]],
+		fragment = [[
+#version 330
+uniform sampler2D atlasTex;
+in vec2 f_texCoord;
+in float f_alpha;
+out vec4 fragColor;
+
+void main() {
+	vec4 tex = texture(atlasTex, f_texCoord);
+	float a = tex.a * tex.a * 0.999 * f_alpha;
+	vec3 scarColor = mix(tex.rgb, vec3(0.5), 0.35);
+	vec3 result = mix(vec3(1.0), scarColor, a);
+	fragColor = vec4(result, 1.0);
+}
+		]],
+		uniformInt = {
+			atlasTex = 0,
+		},
+	},
 	-- Water overlay: renders water/lava tinting based on heightmap
 	water = nil,
 	waterCode = {
@@ -3000,6 +3065,122 @@ v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z * sizeExpand) * ndcScale;
 	},
 }
 
+-- NoGS icon shader: does point->quad expansion in VS using an instanced quad template.
+gl4Icons.shaderCodeNoGS = {
+	vertex = [[
+#version 330
+layout(location = 0) in vec2 quadPos;         // template quad corner: (-1,-1) .. (1,1)
+layout(location = 1) in vec4 worldPos_size;   // worldX, worldZ, iconSizeScale, flags (bitfield)
+layout(location = 2) in vec4 atlasUV;         // u0, v0, u1, v1
+layout(location = 3) in vec4 colorFlags;      // r, g, b, wobblePhase + flashFactor*100*7
+
+uniform vec2 wtp_scale;
+uniform vec2 wtp_offset;
+uniform vec2 ndcScale;
+uniform vec2 rotSC;
+uniform vec2 rotCenter;
+uniform float iconBaseSize;
+uniform float gameTime;
+uniform float wallClockTime;
+uniform float outlinePass;
+uniform float healthDarkenMax;
+
+out vec2 f_texCoord;
+out vec4 f_color;
+flat out float f_flash;
+
+void main() {
+	float flags = worldPos_size.w;
+	float bitFlags = mod(flags, 32.0);
+	float healthPct = floor(flags / 32.0);
+	float healthFrac = clamp(healthPct / 100.0, 0.0, 1.0);
+	float isRadar    = mod(floor(bitFlags      ), 2.0);
+	float isTakeable = mod(floor(bitFlags / 2.0 ), 2.0);
+	float isStunned  = mod(floor(bitFlags / 4.0 ), 2.0);
+	float isTracked  = mod(floor(bitFlags / 8.0 ), 2.0);
+	float isSelfD    = mod(floor(bitFlags / 16.0), 2.0);
+
+	float packedW = colorFlags.w;
+	float flashFactor = floor(packedW / 7.0) / 100.0;
+	float phase = mod(packedW, 7.0);
+
+	vec2 pipPos;
+	pipPos.x = wtp_offset.x + worldPos_size.x * wtp_scale.x;
+	pipPos.y = wtp_offset.y + worldPos_size.y * wtp_scale.y;
+
+	float wobbleAmp = iconBaseSize * sqrt(abs(wtp_scale.x)) * 0.03 * isRadar;
+	pipPos.x += sin(gameTime * 3.0 + phase) * wobbleAmp;
+	pipPos.y += cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp;
+
+	vec2 d = pipPos - rotCenter;
+	pipPos = rotCenter + vec2(
+		d.x * rotSC.y - d.y * rotSC.x,
+		d.x * rotSC.x + d.y * rotSC.y
+	);
+
+	vec2 centerNDC = pipPos * ndcScale - 1.0;
+
+	vec3 col = colorFlags.rgb;
+	float alpha = 1.0 - 0.25 * isRadar;
+
+	float takeableBlink = step(0.0, sin(wallClockTime * 9.42));
+	alpha *= mix(1.0, mix(0.3, 1.0, takeableBlink), isTakeable);
+
+	float damage = 1.0 - healthFrac;
+	col = max(col - vec3(damage * healthDarkenMax), vec3(0.0));
+
+	float stunnedPulse = 0.5 + 0.5 * sin(wallClockTime * 12.57);
+	col = mix(col, vec3(0.82, 0.85, 1.0), 0.45 * stunnedPulse * isStunned);
+
+	float selfDPulse = 0.55 + 0.45 * sin(wallClockTime * 18.85);
+	col = mix(col, vec3(1.0, 0.25, 0.0), 0.7 * selfDPulse * isSelfD);
+
+	if (outlinePass > 0.5) {
+		float hasOutline = max(isTracked, isSelfD);
+		if (hasOutline < 0.5) {
+			alpha = 0.0;
+		} else if (isSelfD > 0.5) {
+			float selfDOutlinePulse = 0.5 + 0.5 * sin(wallClockTime * 18.85);
+			col = vec3(1.0, 0.3, 0.0);
+			alpha = 0.4 + 0.4 * selfDOutlinePulse;
+		} else {
+			col = vec3(1.0, 1.0, 1.0);
+			alpha = 0.5;
+		}
+	}
+
+	float hasOutline = max(isTracked, isSelfD);
+	float sizeExpand = 1.0 + 0.12 * outlinePass * hasOutline;
+	vec2 halfSizeNDC = vec2(iconBaseSize * worldPos_size.z * sizeExpand) * ndcScale;
+
+	gl_Position = vec4(centerNDC + quadPos * halfSizeNDC, 0.0, 1.0);
+	vec2 t = quadPos * 0.5 + 0.5;
+	f_texCoord = vec2(mix(atlasUV.x, atlasUV.z, t.x), mix(atlasUV.y, atlasUV.w, t.y));
+	f_color = vec4(col, alpha);
+	f_flash = flashFactor;
+}
+	]],
+	fragment = [[
+		#version 330
+		uniform sampler2D iconAtlas;
+		in vec2 f_texCoord;
+		in vec4 f_color;
+		flat in float f_flash;
+		out vec4 fragColor;
+
+		void main() {
+			vec4 texColor = texture(iconAtlas, f_texCoord);
+			vec4 result = texColor * f_color;
+			result.rgb += f_color.rgb * f_flash * (1.0 - texColor.rgb);
+			if (result.a < 0.01) discard;
+			fragColor = result;
+		}
+	]],
+	uniformInt = {
+		iconAtlas = 0,
+	},
+}
+
 ----------------------------------------------------------------------------------------------------
 -- GL4 Primitive Shaders (circles, quads, lines)
 ----------------------------------------------------------------------------------------------------
@@ -3090,6 +3271,44 @@ gl4Prim.circleShaderCode = {
 	]],
 }
 
+gl4Prim.circleShaderCodeNoGS = {
+	vertex = [[
+		#version 330
+		layout(location = 0) in vec2 quadPos;
+		layout(location = 1) in vec4 posRadius;
+		layout(location = 2) in vec4 coreColor;
+		layout(location = 3) in vec4 edgeColor;
+
+		uniform vec2 wtp_scale;
+		uniform vec2 wtp_offset;
+		uniform vec2 ndcScale;
+		uniform vec2 rotSC;
+		uniform vec2 rotCenter;
+
+		out vec2 f_localCoord;
+		out vec4 f_coreColor;
+		out vec4 f_edgeColor;
+		flat out float f_blendMode;
+
+		void main() {
+			vec2 pipPos = wtp_offset + posRadius.xy * wtp_scale;
+			vec2 d = pipPos - rotCenter;
+			pipPos = rotCenter + vec2(d.x*rotSC.y - d.y*rotSC.x, d.x*rotSC.x + d.y*rotSC.y);
+			vec2 centerNDC = pipPos * ndcScale - 1.0;
+
+			float radiusPIP = posRadius.z * abs(wtp_scale.x);
+			vec2 halfSizeNDC = vec2(radiusPIP) * ndcScale;
+
+			gl_Position = vec4(centerNDC + quadPos * halfSizeNDC, 0.0, 1.0);
+			f_localCoord = quadPos;
+			f_coreColor = vec4(coreColor.rgb, posRadius.w);
+			f_edgeColor = vec4(edgeColor.rgb, coreColor.w);
+			f_blendMode = edgeColor.w;
+		}
+	]],
+	fragment = gl4Prim.circleShaderCode.fragment,
+}
+
 -- Quad shader: point → rotated quad
 gl4Prim.quadShaderCode = {
 	vertex = [[
@@ -3173,6 +3392,48 @@ gl4Prim.quadShaderCode = {
 	]],
 }
 
+gl4Prim.quadShaderCodeNoGS = {
+	vertex = [[
+		#version 330
+		layout(location = 0) in vec2 quadPos;
+		layout(location = 1) in vec4 posSizeIn;
+		layout(location = 2) in vec4 colorIn;
+		layout(location = 3) in vec4 angleFlags;
+
+		uniform vec2 wtp_scale;
+		uniform vec2 wtp_offset;
+		uniform vec2 ndcScale;
+		uniform vec2 rotSC;
+		uniform vec2 rotCenter;
+
+		out vec4 f_color;
+
+		void main() {
+			vec2 pipPos = wtp_offset + posSizeIn.xy * wtp_scale;
+			vec2 d = pipPos - rotCenter;
+			pipPos = rotCenter + vec2(d.x*rotSC.y - d.y*rotSC.x, d.x*rotSC.x + d.y*rotSC.y);
+			vec2 centerNDC = pipPos * ndcScale - 1.0;
+
+			float scalePIP = abs(wtp_scale.x);
+			vec2 hs = vec2(posSizeIn.z * scalePIP, posSizeIn.w * scalePIP);
+			float a = radians(angleFlags.x);
+			float sa = sin(a), ca = cos(a);
+
+			float sT = sa * rotSC.y + ca * rotSC.x;
+			float cT = ca * rotSC.y - sa * rotSC.x;
+
+			vec2 localPx = quadPos * hs;
+			vec2 rotatedPx = vec2(
+				localPx.x * cT - localPx.y * sT,
+				localPx.x * sT + localPx.y * cT
+			);
+			gl_Position = vec4(centerNDC + rotatedPx * ndcScale, 0.0, 1.0);
+			f_color = colorIn;
+		}
+	]],
+	fragment = gl4Prim.quadShaderCode.fragment,
+}
+
 -- Line shader: simple world-space → NDC vertex transform with per-vertex color
 gl4Prim.lineShaderCode = {
 	vertex = [[
@@ -3253,11 +3514,29 @@ local function InitGL4Icons()
 
 	-- Create raw VBO directly (no InstanceVBOTable — avoids per-frame table allocations)
 	-- Layout: 12 floats per instance (3 vec4 attributes)
-	local vboLayout = {
-		{id = 0, name = 'worldPos_size', size = 4},   -- worldX, worldZ, sizeScale, isRadar
-		{id = 1, name = 'atlasUV',       size = 4},   -- u0, v0, u1, v1
-		{id = 2, name = 'colorFlags',    size = 4},   -- r, g, b, wobblePhase
-	}
+	local useGS = pipUseGeometryShader
+	if useGS then
+		local probeShader = gl.CreateShader(gl4Icons.shaderCode)
+		if probeShader then
+			gl.DeleteShader(probeShader)
+		else
+			useGS = false
+		end
+	end
+	local vboLayout
+	if useGS then
+		vboLayout = {
+			{id = 0, name = 'worldPos_size', size = 4},   -- worldX, worldZ, sizeScale, isRadar
+			{id = 1, name = 'atlasUV',       size = 4},   -- u0, v0, u1, v1
+			{id = 2, name = 'colorFlags',    size = 4},   -- r, g, b, wobblePhase
+		}
+	else
+		vboLayout = {
+			{id = 1, name = 'worldPos_size', size = 4},
+			{id = 2, name = 'atlasUV',       size = 4},
+			{id = 3, name = 'colorFlags',    size = 4},
+		}
+	end
 	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not vbo then
 		Spring.Echo("[PIP] GL4 icons: Failed to create VBO")
@@ -3274,16 +3553,41 @@ local function InitGL4Icons()
 	gl4Icons.instanceData = instanceData
 	gl4Icons.vbo = vbo
 
-	-- Create VAO: attach VBO as vertex buffer (geometry shader expands points → quads)
+	-- Create VAO(s)
+	if not useGS then
+		local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+		if not quadVBO then
+			Spring.Echo("[PIP] GL4 icons: Failed to create NoGS quad VBO")
+			vbo:Delete()
+			gl4Icons.atlas = nil
+			gl4Icons.vbo = nil
+			return
+		end
+		quadVBO:Define(4, {{id = 0, name = 'quadPos', size = 2}})
+		quadVBO:Upload({
+			-1.0, -1.0,
+			 1.0, -1.0,
+			-1.0,  1.0,
+			 1.0,  1.0,
+		})
+		gl4Icons.quadVBO = quadVBO
+	end
+
 	local vao = gl.GetVAO()
 	if not vao then
 		Spring.Echo("[PIP] GL4 icons: Failed to create VAO")
 		vbo:Delete()
+		if gl4Icons.quadVBO then gl4Icons.quadVBO:Delete(); gl4Icons.quadVBO = nil end
 		gl4Icons.atlas = nil
 		gl4Icons.vbo = nil
 		return
 	end
-	vao:AttachVertexBuffer(vbo)
+	if useGS then
+		vao:AttachVertexBuffer(vbo)
+	else
+		vao:AttachVertexBuffer(gl4Icons.quadVBO)
+		vao:AttachInstanceBuffer(vbo)
+	end
 	gl4Icons.vao = vao
 
 	-- Building VBO/VAO: separate buffer for building+ghost icons.
@@ -3305,12 +3609,18 @@ local function InitGL4Icons()
 		bldgVbo:Delete()
 		vao:Delete()
 		vbo:Delete()
+		if gl4Icons.quadVBO then gl4Icons.quadVBO:Delete(); gl4Icons.quadVBO = nil end
 		gl4Icons.atlas = nil
 		gl4Icons.vbo = nil
 		gl4Icons.vao = nil
 		return
 	end
-	bldgVao:AttachVertexBuffer(bldgVbo)
+	if useGS then
+		bldgVao:AttachVertexBuffer(bldgVbo)
+	else
+		bldgVao:AttachVertexBuffer(gl4Icons.quadVBO)
+		bldgVao:AttachInstanceBuffer(bldgVbo)
+	end
 	gl4Icons.bldgVbo = bldgVbo
 	gl4Icons.bldgVao = bldgVao
 
@@ -3346,6 +3656,7 @@ local function InitGL4Icons()
 		bldgVbo:Delete()
 		vao:Delete()
 		vbo:Delete()
+		if gl4Icons.quadVBO then gl4Icons.quadVBO:Delete(); gl4Icons.quadVBO = nil end
 		gl4Icons.atlas = nil
 		gl4Icons.vbo = nil
 		gl4Icons.vao = nil
@@ -3353,7 +3664,12 @@ local function InitGL4Icons()
 		gl4Icons.bldgVao = nil
 		return
 	end
-	slowVao:AttachVertexBuffer(slowVbo)
+	if useGS then
+		slowVao:AttachVertexBuffer(slowVbo)
+	else
+		slowVao:AttachVertexBuffer(gl4Icons.quadVBO)
+		slowVao:AttachInstanceBuffer(slowVbo)
+	end
 	gl4Icons.slowVbo = slowVbo
 	gl4Icons.slowVao = slowVao
 
@@ -3364,10 +3680,13 @@ local function InitGL4Icons()
 	end
 	gl4Icons.slowInstanceData = slowInstanceData
 
-	-- Compile shader
-	local shader = gl.CreateShader(gl4Icons.shaderCode)
+	-- Compile shader matching the selected layout/VAO path.
+	local shader = useGS and gl.CreateShader(gl4Icons.shaderCode) or gl.CreateShader(gl4Icons.shaderCodeNoGS)
 	if not shader then
 		Spring.Echo("[PIP] GL4 icons: Shader compilation failed: " .. tostring(gl.GetShaderLog()))
+		if gl4Icons.quadVBO then gl4Icons.quadVBO:Delete(); gl4Icons.quadVBO = nil end
+		slowVao:Delete(); slowVbo:Delete()
+		bldgVao:Delete(); bldgVbo:Delete()
 		vao:Delete()
 		vbo:Delete()
 		gl4Icons.atlas = nil
@@ -3376,6 +3695,7 @@ local function InitGL4Icons()
 		return
 	end
 	gl4Icons.shader = shader
+	gl4Icons.shaderUsesGS = useGS
 
 	-- Cache uniform locations for per-frame updates
 	gl4Icons.uniformLocs = {
@@ -3416,6 +3736,10 @@ local function DestroyGL4Icons()
 	if gl4Icons.slowVbo then
 		gl4Icons.slowVbo:Delete()
 		gl4Icons.slowVbo = nil
+	end
+	if gl4Icons.quadVBO then
+		gl4Icons.quadVBO:Delete()
+		gl4Icons.quadVBO = nil
 	end
 	if gl4Icons.vao then
 		gl4Icons.vao:Delete()
@@ -3459,19 +3783,56 @@ end
 
 local function InitGL4Primitives()
 	if not gl.GetVAO or not gl.GetVBO then return end
+	local useGS = pipUseGeometryShader
+	if useGS then
+		local probeCircle = gl.CreateShader(gl4Prim.circleShaderCode)
+		local probeQuad = gl.CreateShader(gl4Prim.quadShaderCode)
+		if probeCircle then gl.DeleteShader(probeCircle) end
+		if probeQuad then gl.DeleteShader(probeQuad) end
+		if not probeCircle or not probeQuad then
+			useGS = false
+		end
+	end
+
+	if not useGS then
+		local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+		if not quadVBO then return end
+		quadVBO:Define(4, {{id = 0, name = 'quadPos', size = 2}})
+		quadVBO:Upload({
+			-1.0, -1.0,
+			 1.0, -1.0,
+			-1.0,  1.0,
+			 1.0,  1.0,
+		})
+		gl4Prim.quadVBO = quadVBO
+	end
 
 	-- Circle VBO/VAO
-	local circleLayout = {
-		{id = 0, name = 'posRadius',  size = 4},   -- worldX, worldZ, radius, alpha
-		{id = 1, name = 'coreColor',  size = 4},   -- coreR, coreG, coreB, edgeAlpha
-		{id = 2, name = 'edgeColor',  size = 4},   -- edgeR, edgeG, edgeB, blendMode
-	}
+	local circleLayout
+	if useGS then
+		circleLayout = {
+			{id = 0, name = 'posRadius',  size = 4},
+			{id = 1, name = 'coreColor',  size = 4},
+			{id = 2, name = 'edgeColor',  size = 4},
+		}
+	else
+		circleLayout = {
+			{id = 1, name = 'posRadius',  size = 4},
+			{id = 2, name = 'coreColor',  size = 4},
+			{id = 3, name = 'edgeColor',  size = 4},
+		}
+	end
 	local cVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not cVbo then return end
 	cVbo:Define(gl4Prim.CIRCLE_MAX, circleLayout)
 	local cVao = gl.GetVAO()
 	if not cVao then cVbo:Delete(); return end
-	cVao:AttachVertexBuffer(cVbo)
+	if useGS then
+		cVao:AttachVertexBuffer(cVbo)
+	else
+		cVao:AttachVertexBuffer(gl4Prim.quadVBO)
+		cVao:AttachInstanceBuffer(cVbo)
+	end
 	local cData = {}
 	for i = 1, gl4Prim.CIRCLE_MAX * gl4Prim.CIRCLE_STEP do cData[i] = 0 end
 	gl4Prim.circles.vbo = cVbo
@@ -3479,17 +3840,31 @@ local function InitGL4Primitives()
 	gl4Prim.circles.data = cData
 
 	-- Quad VBO/VAO
-	local quadLayout = {
-		{id = 0, name = 'posSizeIn',   size = 4},  -- worldX, worldZ, halfWidth, halfHeight
-		{id = 1, name = 'colorIn',     size = 4},  -- r, g, b, a
-		{id = 2, name = 'angleFlags',  size = 4},  -- angleDeg, 0, 0, 0
-	}
+	local quadLayout
+	if useGS then
+		quadLayout = {
+			{id = 0, name = 'posSizeIn',   size = 4},
+			{id = 1, name = 'colorIn',     size = 4},
+			{id = 2, name = 'angleFlags',  size = 4},
+		}
+	else
+		quadLayout = {
+			{id = 1, name = 'posSizeIn',   size = 4},
+			{id = 2, name = 'colorIn',     size = 4},
+			{id = 3, name = 'angleFlags',  size = 4},
+		}
+	end
 	local qVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not qVbo then cVao:Delete(); cVbo:Delete(); return end
 	qVbo:Define(gl4Prim.QUAD_MAX, quadLayout)
 	local qVao = gl.GetVAO()
 	if not qVao then qVbo:Delete(); cVao:Delete(); cVbo:Delete(); return end
-	qVao:AttachVertexBuffer(qVbo)
+	if useGS then
+		qVao:AttachVertexBuffer(qVbo)
+	else
+		qVao:AttachVertexBuffer(gl4Prim.quadVBO)
+		qVao:AttachInstanceBuffer(qVbo)
+	end
 	local qData = {}
 	for i = 1, gl4Prim.QUAD_MAX * gl4Prim.QUAD_STEP do qData[i] = 0 end
 	gl4Prim.quads.vbo = qVbo
@@ -3517,7 +3892,7 @@ local function InitGL4Primitives()
 	gl4Prim.normLines.vbo, gl4Prim.normLines.vao, gl4Prim.normLines.data = nlVbo, nlVao, nlData
 
 	-- Compile shaders
-	local cShader = gl.CreateShader(gl4Prim.circleShaderCode)
+	local cShader = useGS and gl.CreateShader(gl4Prim.circleShaderCode) or gl.CreateShader(gl4Prim.circleShaderCodeNoGS)
 	if not cShader then
 		Spring.Echo("[PIP] GL4 circle shader failed: " .. tostring(gl.GetShaderLog()))
 		-- cleanup all
@@ -3528,7 +3903,7 @@ local function InitGL4Primitives()
 	end
 	gl4Prim.circles.shader = cShader
 
-	local qShader = gl.CreateShader(gl4Prim.quadShaderCode)
+	local qShader = useGS and gl.CreateShader(gl4Prim.quadShaderCode) or gl.CreateShader(gl4Prim.quadShaderCodeNoGS)
 	if not qShader then
 		Spring.Echo("[PIP] GL4 quad shader failed: " .. tostring(gl.GetShaderLog()))
 		gl.DeleteShader(cShader)
@@ -3563,6 +3938,7 @@ local function InitGL4Primitives()
 	gl4Prim.circles.uniformLocs = cacheUniforms(cShader)
 	gl4Prim.quads.uniformLocs = cacheUniforms(qShader)
 	gl4Prim.lineUniformLocs = cacheUniforms(lShader)
+	gl4Prim.useGeometryShader = useGS
 
 	gl4Prim.enabled = true
 	--Spring.Echo("[PIP] GL4 primitive rendering enabled (circles, quads, lines)")
@@ -3572,6 +3948,7 @@ local function DestroyGL4Primitives()
 	if gl4Prim.circles.shader then gl.DeleteShader(gl4Prim.circles.shader); gl4Prim.circles.shader = nil end
 	if gl4Prim.quads.shader   then gl.DeleteShader(gl4Prim.quads.shader);   gl4Prim.quads.shader = nil end
 	if gl4Prim.lineShader      then gl.DeleteShader(gl4Prim.lineShader);      gl4Prim.lineShader = nil end
+	if gl4Prim.quadVBO then gl4Prim.quadVBO:Delete(); gl4Prim.quadVBO = nil end
 
 	for _, sub in ipairs({gl4Prim.circles, gl4Prim.quads, gl4Prim.glowLines, gl4Prim.coreLines, gl4Prim.normLines}) do
 		if sub.vao then sub.vao:Delete(); sub.vao = nil end
@@ -3661,7 +4038,11 @@ local function GL4FlushEffects()
 		local c = gl4Prim.circles
 		c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
 		GL4SetPrimUniforms(c.shader, c.uniformLocs)
-		c.vao:DrawArrays(GL.POINTS, c.count)
+		if gl4Prim.useGeometryShader then
+			c.vao:DrawArrays(GL.POINTS, c.count)
+		else
+			c.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, c.count)
+		end
 		gl.UseShader(0)
 	end
 
@@ -3670,7 +4051,11 @@ local function GL4FlushEffects()
 		local q = gl4Prim.quads
 		q.vbo:Upload(q.data, nil, 0, 1, q.count * gl4Prim.QUAD_STEP)
 		GL4SetPrimUniforms(q.shader, q.uniformLocs)
-		q.vao:DrawArrays(GL.POINTS, q.count)
+		if gl4Prim.useGeometryShader then
+			q.vao:DrawArrays(GL.POINTS, q.count)
+		else
+			q.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, q.count)
+		end
 		gl.UseShader(0)
 	end
 
@@ -3716,7 +4101,11 @@ local function GL4FlushCirclesOnly()
 	local c = gl4Prim.circles
 	c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
 	GL4SetPrimUniforms(c.shader, c.uniformLocs)
-	c.vao:DrawArrays(GL.POINTS, c.count)
+	if gl4Prim.useGeometryShader then
+		c.vao:DrawArrays(GL.POINTS, c.count)
+	else
+		c.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, c.count)
+	end
 	gl.UseShader(0)
 end
 
@@ -7325,7 +7714,17 @@ function widget:Initialize()
 	end
 
 	-- Initialize decal overlay shader + GL4 VBO/VAO
-	shaders.decal = gl.CreateShader(shaders.decalCode)
+	if pipUseGeometryShader then
+		shaders.decal = gl.CreateShader(shaders.decalCode)
+		decalGL4.useGeometryShader = (shaders.decal ~= nil)
+		if not shaders.decal then
+			shaders.decal = gl.CreateShader(shaders.decalCodeNoGS)
+			decalGL4.useGeometryShader = false
+		end
+	else
+		decalGL4.useGeometryShader = false
+		shaders.decal = gl.CreateShader(shaders.decalCodeNoGS)
+	end
 	if not shaders.decal then
 		Spring.Echo("PIP: Failed to compile decal shader")
 		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
@@ -7392,7 +7791,11 @@ function widget:Initialize()
 		end
 
 		-- Cache weapon properties
-		cache.weaponSize[wDefID] = wDef.size or 1
+		local weaponSize = wDef.size or 1
+		if wDef.type == "Cannon" and wDef.customParams and wDef.customParams.plasma_size_orig then
+			weaponSize = tonumber(wDef.customParams.plasma_size_orig) or weaponSize
+		end
+		cache.weaponSize[wDefID] = weaponSize
 		cache.weaponRange[wDefID] = wDef.range or 500
 
 		-- Get weapon thickness
@@ -10800,30 +11203,54 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		if bldgUsedElements > 0 then
 			if hasOutlines then
 				gl.UniformFloat(ul.outlinePass, 1.0)
-				gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
+				if gl4Icons.shaderUsesGS then
+					gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
+				else
+					gl4Icons.bldgVao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, bldgUsedElements)
+				end
 			end
 			gl.UniformFloat(ul.outlinePass, 0.0)
-			gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
+			if gl4Icons.shaderUsesGS then
+				gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
+			else
+				gl4Icons.bldgVao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, bldgUsedElements)
+			end
 		end
 
 		-- Slow mobile (ground units, above buildings)
 		if slowMobileUsedElements > 0 then
 			if hasOutlines then
 				gl.UniformFloat(ul.outlinePass, 1.0)
-				gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+				if gl4Icons.shaderUsesGS then
+					gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+				else
+					gl4Icons.slowVao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, slowMobileUsedElements)
+				end
 			end
 			gl.UniformFloat(ul.outlinePass, 0.0)
-			gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+			if gl4Icons.shaderUsesGS then
+				gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+			else
+				gl4Icons.slowVao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, slowMobileUsedElements)
+			end
 		end
 
 		-- Fast mobile (aircraft, commanders — always on top)
 		if mobileUsedElements > 0 then
 			if hasOutlines then
 				gl.UniformFloat(ul.outlinePass, 1.0)
-				gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+				if gl4Icons.shaderUsesGS then
+					gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+				else
+					gl4Icons.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, mobileUsedElements)
+				end
 			end
 			gl.UniformFloat(ul.outlinePass, 0.0)
-			gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+			if gl4Icons.shaderUsesGS then
+				gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+			else
+				gl4Icons.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, mobileUsedElements)
+			end
 		end
 
 		glFunc.Texture(0, false)
@@ -14830,32 +15257,64 @@ decalGL4 = {
 	logCount = 0,
 	uniformLocs = nil,    -- cached uniform locations
 	renderFrame = 0,      -- game frame for GPU alpha computation (set before R2T draw)
+	useGeometryShader = true,
+	quadVBO = nil,
 }
 
 -- Initialize GL4 decal resources (called during R2T setup)
 InitGL4Decals = function()
 	if not gl.GetVAO or not gl.GetVBO then return end
 	if not shaders.decal then return end
+	local useGS = decalGL4.useGeometryShader
 
 	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not vbo then
 		Spring.Echo("[PIP] GL4 decals: Failed to create VBO")
 		return
 	end
-	vbo:Define(decalGL4.MAX_INSTANCES, {
-		{id = 0, name = 'posRot',      size = 4},  -- worldX, worldZ, rotation, maxalpha
-		{id = 1, name = 'sizeAlpha',   size = 4},  -- halfLengthX, halfWidthZ, alphastart, alphadecay
-		{id = 2, name = 'uvCoords',    size = 4},  -- p, q, s, t
-		{id = 3, name = 'spawnParams', size = 4},  -- spawnframe, 0, 0, 0
-	})
+	if useGS then
+		vbo:Define(decalGL4.MAX_INSTANCES, {
+			{id = 0, name = 'posRot',      size = 4},
+			{id = 1, name = 'sizeAlpha',   size = 4},
+			{id = 2, name = 'uvCoords',    size = 4},
+			{id = 3, name = 'spawnParams', size = 4},
+		})
+	else
+		vbo:Define(decalGL4.MAX_INSTANCES, {
+			{id = 1, name = 'posRot',      size = 4},
+			{id = 2, name = 'sizeAlpha',   size = 4},
+			{id = 3, name = 'uvCoords',    size = 4},
+			{id = 4, name = 'spawnParams', size = 4},
+		})
+		local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+		if not quadVBO then
+			Spring.Echo("[PIP] GL4 decals: Failed to create NoGS quad VBO")
+			vbo:Delete()
+			return
+		end
+		quadVBO:Define(4, {{id = 0, name = 'quadPos', size = 2}})
+		quadVBO:Upload({
+			-1.0, -1.0,
+			 1.0, -1.0,
+			-1.0,  1.0,
+			 1.0,  1.0,
+		})
+		decalGL4.quadVBO = quadVBO
+	end
 
 	local vao = gl.GetVAO()
 	if not vao then
 		Spring.Echo("[PIP] GL4 decals: Failed to create VAO")
 		vbo:Delete()
+		if decalGL4.quadVBO then decalGL4.quadVBO:Delete(); decalGL4.quadVBO = nil end
 		return
 	end
-	vao:AttachVertexBuffer(vbo)
+	if useGS then
+		vao:AttachVertexBuffer(vbo)
+	else
+		vao:AttachVertexBuffer(decalGL4.quadVBO)
+		vao:AttachInstanceBuffer(vbo)
+	end
 
 	-- Pre-allocate instance data array
 	local instanceData = {}
@@ -14880,6 +15339,7 @@ end
 DestroyGL4Decals = function()
 	if decalGL4.vao then decalGL4.vao:Delete(); decalGL4.vao = nil end
 	if decalGL4.vbo then decalGL4.vbo:Delete(); decalGL4.vbo = nil end
+	if decalGL4.quadVBO then decalGL4.quadVBO:Delete(); decalGL4.quadVBO = nil end
 	decalGL4.instanceData = nil
 	decalGL4.instanceCount = 0
 	decalGL4.version = -1
@@ -14969,7 +15429,11 @@ local function decalR2TDraw()
 			local ul = decalGL4.uniformLocs
 			gl.UniformFloat(ul.gameFrame, decalGL4.renderFrame)
 			gl.UniformFloat(ul.invMapSize, 2.0 / mapInfo.mapSizeX, 2.0 / mapInfo.mapSizeZ)
-			decalGL4.vao:DrawArrays(GL.POINTS, decalGL4.instanceCount)
+			if decalGL4.useGeometryShader then
+				decalGL4.vao:DrawArrays(GL.POINTS, decalGL4.instanceCount)
+			else
+				decalGL4.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, decalGL4.instanceCount)
+			end
 			gl.UseShader(0)
 			glFunc.Texture(false)
 		end

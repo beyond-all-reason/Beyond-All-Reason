@@ -67,6 +67,8 @@ local terrainInstanceVBODeferred = nil
 
 local planeVAO
 
+local mapEdgeUseGeometryShader = true
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -109,7 +111,7 @@ void main() {
 
 		float X = mapSize.x / gridSize;
 
-		float modX = mod(vID, X); 
+		float modX = mod(vID, X);
 		//this is sometimes true in the magic land of amd drivers!
 		if (modX >= X) 	modX=0;
 
@@ -120,10 +122,124 @@ void main() {
 		gl_Position = vec4(x, 0.0, y, 1.0);
 
 		vMirrorParams = aMirrorParams;
-	
+
 }
 ]]
 
+
+-- NoGS vertex shader: expands points to quads using gl_VertexID modulo logic
+local vsSrcNoGS = [[
+#version 330
+
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+#line 10077
+
+layout (location = 0) in vec4 aMirrorParams;
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+uniform sampler2D heightTex;
+uniform vec4 shaderParams;
+
+#define gridSize shaderParams.x
+#define curvature shaderParams.z
+#define edgeFog shaderParams.w
+
+#define NORM2SNORM(value) (value * 2.0 - 1.0)
+#define SNORM2NORM(value) (value * 0.5 + 0.5)
+
+out DataGS {
+	vec2 alphaFog;
+	vec2 uv;
+	vec2 mirrorParams;
+};
+
+bool EmitQuadVertex(vec3 vertexOffset, bool testme) {
+	vec4 worldPos = vec4(0.0, 0.0, 0.0, 0.0);
+	uv = worldPos.xz / mapSize.xy;
+	mirrorParams = aMirrorParams.xy;
+	vec2 UVHM = heightmapUVatWorldPos(worldPos.xz);
+	worldPos.y = textureLod(heightTex, UVHM, 0.0).x + vertexOffset.y;
+
+	const vec2 edgeTightening = vec2(0.0);
+	worldPos.xz = abs(aMirrorParams.xy * mapSize.xy - worldPos.xz);
+	worldPos.xz += aMirrorParams.zw * (mapSize.xy - edgeTightening);
+
+	float alpha = 1.0;
+
+	if (curvature == 1.0) {
+		const float curvatureBend = 150.0;
+		alpha = 0.0;
+		vec2 refPoint = SNORM2NORM(aMirrorParams.zw) * mapSize.xy;
+		if (aMirrorParams.x != 0.0) {
+			worldPos.y -= pow((worldPos.x - refPoint.x) / curvatureBend, 2.0);
+			alpha -= pow((worldPos.x - refPoint.x) / mapSize.x, 2.0);
+		}
+		if (aMirrorParams.y != 0.0) {
+			worldPos.y -= pow((worldPos.z - refPoint.y) / curvatureBend, 2.0);
+			alpha -= pow((worldPos.z - refPoint.y) / mapSize.y, 2.0);
+		}
+		alpha = 1.0 + (6.0 * (alpha + 0.18));
+		alpha = clamp(alpha, 0.0, 1.0);
+	}
+
+	float fogFactor = 1.0;
+	if (edgeFog == 1.0) {
+		vec4 forCoord = cameraView * worldPos;
+		float fogDist = length(forCoord.xyz);
+		fogFactor = (fogParams.y - fogDist) * fogParams.w;
+		fogFactor = clamp(fogFactor, 0.0, 1.0);
+	}
+
+	alphaFog = vec2(alpha, fogFactor);
+	if (testme) {
+		bool invisible = isSphereVisibleXY(worldPos, 25.0*gridSize);
+		if ((invisible) || (alpha < 0.05)) return true;
+	}
+	gl_Position = cameraViewProj * worldPos;
+	return false;
+}
+
+void main() {
+	// NoGS: Quad expansion done in vertex shader
+	// Each point becomes 4 vertices in TRIANGLE_STRIP order: TL, BL, TR, BR
+	// gl_VertexID mod 4 determines which corner
+	// gl_InstanceID selects which grid point
+
+	float pointID = float(gl_InstanceID);
+	int cornerID = gl_VertexID % 4;
+
+	float X = mapSize.x / gridSize;
+	float modX = mod(pointID, X);
+	if (modX >= X) modX = 0.0;
+
+	float x = (modX) * gridSize;
+	float z = ((pointID - modX) / X) * gridSize;
+
+	vec3 basePos = vec3(x, 0.0, z);
+	vec3 vertexOffset = vec3(0.0, 0.0, 0.0);
+
+	// Determine quad corner offset based on cornerID
+	if (all(equal(aMirrorParams, vec4(0.0)))) {
+		vertexOffset = vec3(0.0, 0.0, 0.0);
+	} else if (all(equal(aMirrorParams.xy, vec2(1.0)))) {
+		if (cornerID == 0) vertexOffset = vec3(gridSize, 0.0, 0.0);
+		else if (cornerID == 1) vertexOffset = vec3(0.0, 0.0, 0.0);
+		else if (cornerID == 2) vertexOffset = vec3(gridSize, 0.0, gridSize);
+		else vertexOffset = vec3(0.0, 0.0, gridSize);
+	} else {
+		if (cornerID == 0) vertexOffset = vec3(0.0, 0.0, gridSize);
+		else if (cornerID == 1) vertexOffset = vec3(0.0, 0.0, 0.0);
+		else if (cornerID == 2) vertexOffset = vec3(gridSize, 0.0, gridSize);
+		else vertexOffset = vec3(gridSize, 0.0, 0.0);
+	}
+
+	EmitQuadVertex(vertexOffset, cornerID == 0);
+}
+]]
 
 local gsSrc = [[
 #version 330
@@ -173,7 +289,7 @@ bool MyEmitTestVertex(vec3 vertexOffset, bool testme) {
 	//uv = dataIn[0].vMirrorParams.xy;
 	vec2 UVHM =  heightmapUVatWorldPos(worldPos.xz);
 	worldPos.y = textureLod(heightTex, UVHM, 0.0).x + vertexOffset.y;
-	
+
 	#ifdef DEFERRED_MODE
 		//normalxz = textureLod(mapNormalTex, UVHM, 0.0).ra;
 	#endif
@@ -228,14 +344,14 @@ bool MyEmitTestVertex(vec3 vertexOffset, bool testme) {
 }
 
 void main() {
-	if (all(equal(dataIn[0].vMirrorParams, vec4(0.0)))){ 
+	if (all(equal(dataIn[0].vMirrorParams, vec4(0.0)))){
 		// No mirror params, so just draw the seam quad
 		// Note that this is a terrible hack, and I should feel bad for doing it
 
 		vec3 localPos = gl_in[0].gl_Position.xyz;
 		// Isolate the edge positions
 		vec2 mapCenterHPG = (mapSize.xy - vec2(gridSize)) * 0.5;
-		vec2 disttoMapCenter = abs(localPos.xz - mapCenterHPG) + vec2(gridSize) * 0.5;	
+		vec2 disttoMapCenter = abs(localPos.xz - mapCenterHPG) + vec2(gridSize) * 0.5;
 		if (all(lessThan(disttoMapCenter, mapCenterHPG))) return;
 		//if (localPos.z > (mapSize.z - 1.0-gridSize)) return;
 
@@ -263,15 +379,15 @@ void main() {
 				MyEmitTestVertex(vec3(gridSize - WF,  SEAMHEIGHT, 0),false); //BR
 			EndPrimitive();
 			return;
-		}else {	
-		
+		}else {
+
 			if (MyEmitTestVertex(vec3(gridSize,       0, gridSize - WF ),true)) return; //TL
 				MyEmitTestVertex(vec3(gridSize,  SEAMHEIGHT, gridSize - WF),false); //BL
 				MyEmitTestVertex(vec3(00,       0, gridSize - WF),false); //TR
 				MyEmitTestVertex(vec3(00,  SEAMHEIGHT, gridSize - WF),false); //BR
 			EndPrimitive();
 			return;
-	
+
 		}
 	}else{
 		if ( all(equal(dataIn[0].vMirrorParams.xy, vec2(1.0))) ) {
@@ -300,7 +416,7 @@ depth only (GBUFFER_COUNT ==0) 423fps
 2 buffers: 399 fps
 3 buffers: 388 fps
 4 buffers: 379 fps
-5 buffers: 370 fps 
+5 buffers: 370 fps
 
 ]]--
 
@@ -359,8 +475,8 @@ void main() {
 	#define MINIMAP_HALF_TEXEL (0.5/1024.0)
 
 	// remove tiling seams from minimap texel edges
-	vec2 clampeduv = clamp(uv, MINIMAP_HALF_TEXEL, 1.0 - MINIMAP_HALF_TEXEL); 
-	
+	vec2 clampeduv = clamp(uv, MINIMAP_HALF_TEXEL, 1.0 - MINIMAP_HALF_TEXEL);
+
 	vec4 finalColor = texture(colorTex, clampeduv);
 	#if 1
 		vec3 yCbCr = RGB2YCBCR * finalColor.rgb;
@@ -369,7 +485,7 @@ void main() {
 	#else
 		finalColor.rgb *= brightness;
 	#endif
-	
+
 	// Note that normals are Z up in textures, but Y up in the world
 	vec3 mapNormal = vec3(0.0, 1.0, 0.0);
 	#ifdef DEFERRED_MODE
@@ -386,7 +502,7 @@ void main() {
 	#endif
 
 	// Flip normals if the mirror is flipped
-	if (abs(mirrorParams.x) > 0.5) mapNormal.x *= -1.0; 
+	if (abs(mirrorParams.x) > 0.5) mapNormal.x *= -1.0;
 	if (abs(mirrorParams.y) > 0.5)  mapNormal.z *= -1.0;
 
 	// Apply some lighting based on the normal vector
@@ -395,7 +511,7 @@ void main() {
 	// clamp to prevent NaN/overflow from lighting producing white pixels
 	finalColor.rgb = clamp(finalColor.rgb, 0.0, 1.0);
 	finalColor.rgb = mix(fogColor.rgb, finalColor.rgb, alphaFog.y);
-	finalColor.a = alphaFog.x; 
+	finalColor.a = alphaFog.x;
 	//finalColor.rg = uv;
 	//finalColor.rgba = vec4(mapNormal.rgb * 0.5 + 0.5, 1.0);
 
@@ -407,7 +523,7 @@ void main() {
 			fragData[GBUFFER_DIFFTEX_IDX] = finalColor;
 		#endif
 		#if GBUFFER_COUNT > 2
-			fragData[GBUFFER_SPECTEX_IDX] = vec4(0);		
+			fragData[GBUFFER_SPECTEX_IDX] = vec4(0);
 		#endif
 		#if GBUFFER_COUNT > 3
 			fragData[GBUFFER_EMITTEX_IDX] = vec4(0);
@@ -419,7 +535,7 @@ void main() {
 		// Forward pass
 		fragColor = finalColor;
 	#endif
-	
+
 	//fragColor.a *= 0.5;
 }
 ]]
@@ -465,23 +581,23 @@ void main() {
 
 	uv = xyworld_xyfract * 0.5 + 0.5;
 	vec4 worldPos = vec4(uv.x, 0.0, uv.y, 1.0);
-	
-	
+
+
 	//worldPos.xz = mix(worldPos.xz, 1.0 - worldPos.xz, flip) + offset;
 	worldPos.xz += offset;
-	
+
 	worldPos.xz *= mapSize.xy;
-	
+
 	uv = mix(uv, 1.0 - uv, flip);
 
 	mirrorParams = aMirrorParams.xy;
-	
+
 	worldPos.y = textureLod(heightTex, heightmapUVatWorldPos(uv * mapSize.xy), 0.0).x;
-	
+
 	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
 
 	worldPos.xz -= offset * edgeTightening;
-	
+
 	float alpha = 1.0;
 
 	if (curvature == 1.0) {
@@ -503,7 +619,7 @@ void main() {
 		alpha = 1.0 + (6.0 * (alpha + 0.18));
 		alpha = clamp(alpha, 0.0, 1.0);
 	}
-	
+
 
 	float fogFactor = 1.0;
 	if (edgeFog == 1.0) {
@@ -576,7 +692,7 @@ function widget:Initialize()
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
 	end
-	
+
 	-----------
 
 	numPoints = (mapSizeX / gridSize) * (mapSizeZ / gridSize)
@@ -586,15 +702,15 @@ function widget:Initialize()
 	})
 
 	terrainVAO:AttachInstanceBuffer(terrainInstanceVBO)
-	
-	
-	
+
+
+
 	terrainInstanceVBODeferred = gl.GetVBO(GL.ARRAY_BUFFER, true)
-	
+
 	terrainInstanceVBODeferred:Define(9, {
 		{id = 1, name = "mirrorParams", size = 4},
 	})
-	
+
 	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
 	local planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
 	planeVAO = gl.GetVAO()
@@ -609,29 +725,55 @@ function widget:Initialize()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	gsSrc = gsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	vsSrcNoGS = vsSrcNoGS:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 
-	mapExtensionShader = LuaShader({
-		vertex = vsSrc,
-		geometry = gsSrc,
+	-- Compile-probe: test if geometry shader can compile
+	if (gl.LuaShader and gl.LuaShader.isGeometryShaderSupported) then
+		local probeShader = gl.CreateShader({
+			vertex = vsSrc,
+			geometry = gsSrc,
+			fragment = fsSrc,
+		})
+		if probeShader then
+			gl.DeleteShader(probeShader)
+			mapEdgeUseGeometryShader = true
+		else
+			mapEdgeUseGeometryShader = false
+		end
+	else
+		mapEdgeUseGeometryShader = false
+	end
+
+	-- Use appropriate shader based on GS availability
+	local vsSrcToUse = mapEdgeUseGeometryShader and vsSrc or vsSrcNoGS
+	local gsSrcToUse = mapEdgeUseGeometryShader and gsSrc or nil
+
+	local shaderConfig = {
+		vertex = vsSrcToUse,
 		fragment = fsSrc,
 		uniformInt = {
 			colorTex = 0,
 			heightTex = 1,
-			--mapDepthTex = 2,
 			mapNormalTex = 2,
 		},
 		uniformFloat = {
 			shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
 		},
-	}, "Map Extension Shader2")
+	}
+
+	if gsSrcToUse then
+		shaderConfig.geometry = gsSrcToUse
+	end
+
+	mapExtensionShader = LuaShader(shaderConfig, "Map Extension Shader2")
 	local shaderCompiled = mapExtensionShader:Initialize()
 
 	if not shaderCompiled then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
 	end
-	
-	
+
+
 	vsSrcDeferred = vsSrcDeferred:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	mapExtensionShaderDeferred = LuaShader({
 		vertex = vsSrcDeferred:gsub("//__DEFINES__","#define DEFERRED_MODE 1"),
@@ -713,7 +855,7 @@ local function UpdateMirrorParams()
 
 	local minY, maxY = Spring.GetGroundExtremes()
 
-	mirrorParams = {} 
+	mirrorParams = {}
 	-- spIsAABBInView params are copied from map_edge_extension.lua
 	if spIsAABBInView(-Game.mapSizeX, minY, -Game.mapSizeZ, borderMargin, maxY, borderMargin) then
 		--TL {1, 1, -1, -1}
@@ -779,10 +921,10 @@ local function UpdateMirrorParams()
 		mirrorParams[#mirrorParams + 1] =  1
 	end
 	if #mirrorParams > 0 then
-		
+
 		terrainInstanceVBODeferred:Upload(mirrorParams)
-		
-		-- EXTREMELY IMPORTANT: 
+
+		-- EXTREMELY IMPORTANT:
 		-- Add a blank, non-mirrored or offset one to the forward pass for the edge seams
 		mirrorParams[#mirrorParams + 1] = 0
 		mirrorParams[#mirrorParams + 1] = 0
@@ -832,7 +974,7 @@ function widget:DrawGroundDeferred()
 	--gl.DepthTest(GL.LEQUAL)
 	--gl.DepthMask(true)
 
-		--gl.Culling(false) -- needed for deferred one, as flipping fucks tri order	
+		--gl.Culling(false) -- needed for deferred one, as flipping fucks tri order
 	gl.Texture(0, colorTex)
 	gl.Texture(1, "$heightmap")
 	gl.Texture(2, "$normals")
@@ -879,7 +1021,13 @@ function widget:DrawWorldPreUnit()
 	mapExtensionShader:Activate()
 	mapExtensionShader:SetUniform("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
 	--gl.RunQuery(q, function()
-		terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
+		if mapEdgeUseGeometryShader then
+			-- GS mode: draw points, geometry shader expands to quads
+			terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
+		else
+			-- NoGS mode: draw triangle strips (4 vertices per point)
+			terrainVAO:DrawArrays(GL.TRIANGLE_STRIP, numPoints * 4, 0, #mirrorParams / 4)
+		end
 	--end)
 	mapExtensionShader:Deactivate()
 	gl.Texture(0, false)
