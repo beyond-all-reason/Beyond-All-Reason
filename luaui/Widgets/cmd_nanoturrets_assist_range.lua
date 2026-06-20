@@ -20,6 +20,7 @@ local UnitDefs = UnitDefs
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitBuildeeRadius = Spring.GetUnitBuildeeRadius
 local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetFeatureRadius = Spring.GetFeatureRadius
 local maxUnits = Game.maxUnits
 
 local nanoBuildDistances = {}
@@ -52,6 +53,18 @@ local function hasNano(selectedUnits)
 	return false
 end
 
+local function getPositionAndRadius(id)
+	local x, y, z, r
+	if id < maxUnits then
+		x, y, z = spGetUnitPosition(id)
+		r = spGetUnitBuildeeRadius(id)
+	else
+		x, y, z = spGetFeaturePosition(id)
+		r = spGetFeaturePosition(id)
+	end
+	return x, y, z, r
+end
+
 function widget:CommandNotify(id, params, options)
 	if options.ctrl then return false end
 	if #params ~= 1 then return false end
@@ -62,15 +75,7 @@ function widget:CommandNotify(id, params, options)
 
 	if not hasNano(selectedUnits) then return false end
 
-	local targetX, targetZ, targetRadius
-
-	if params[1] < maxUnits then
-		targetX, _, targetZ = spGetUnitPosition(params[1])
-		targetRadius = spGetUnitBuildeeRadius(params[1]) or 0
-	else
-		targetX, _, targetZ = spGetFeaturePosition(params[1] - maxUnits)
-		targetRadius = 0
-	end
+	local targetX, targetY, targetZ, targetRadius = getPositionAndRadius(params[1])
 
 	-- targetX is nil if target died before the command was processed
 	if not targetX then return false end
