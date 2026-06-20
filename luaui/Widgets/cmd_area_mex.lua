@@ -189,10 +189,12 @@ local function mapCommandsToBuildingInfos(cmds)
 	local buildings = {}
 	for i = 1, #cmds do
 		local cmd = cmds[i]
-		buildings[#buildings + 1] = {
-			unitDefID = cmd[1],
-			position = { cmd[2], cmd[3], cmd[4] },
-		}
+		---@type BuildingInfo
+		local buildingInfo = {}
+		buildingInfo.unitDefID = cmd[1]
+		buildingInfo.position = { cmd[2], cmd[3], cmd[4] }
+		buildingInfo.facing = cmd[5]
+		buildings[#buildings + 1] = buildingInfo
 	end
 	return buildings
 end
@@ -217,9 +219,10 @@ function widget:CommandNotify(id, params, options)
 	local cmds = getCmdsForValidSpots(spots, shift)
 	local sortedCmds = calculateCmdOrder(cmds, spots, shift)
 
-	local BuildSplit = WG["build_split"]
-	if options.shift and BuildSplit.isActive() and #sortedCmds > 0 then
-		BuildSplit.splitBuildings(getSelectedBuilderIDs(), mapCommandsToBuildingInfos(sortedCmds), { "shift" })
+	-- WG["build_split"] has to be guarded because it can be disabled in settings
+	local isBuildSplitActive = WG["build_split"] and WG["build_split"].isActive()
+	if options.shift and isBuildSplitActive and #sortedCmds > 0 then
+		WG["build_split"].splitBuildings(getSelectedBuilderIDs(), mapCommandsToBuildingInfos(sortedCmds), { "shift" })
 	else
 		WG['resource_spot_builder'].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
 	end
