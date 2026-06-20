@@ -7791,11 +7791,7 @@ function widget:Initialize()
 		end
 
 		-- Cache weapon properties
-		local weaponSize = wDef.size or 1
-		if wDef.type == "Cannon" and wDef.customParams and wDef.customParams.plasma_size_orig then
-			weaponSize = tonumber(wDef.customParams.plasma_size_orig) or weaponSize
-		end
-		cache.weaponSize[wDefID] = weaponSize
+		cache.weaponSize[wDefID] = wDef.size or 1
 		cache.weaponRange[wDefID] = wDef.range or 500
 
 		-- Get weapon thickness
