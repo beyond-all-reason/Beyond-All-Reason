@@ -614,7 +614,7 @@ if gadgetHandler:IsSyncedCode() then
 			if unitID and Spring.ValidUnitID(unitID) then
 				local h, mh = Spring.GetUnitHealth(unitID)
 				if not action then
-					Spring.DestroyUnit(unitID, false, true, nil, true)
+					Spring.DestroyUnit(unitID, false, false, unitID)
 				elseif action == 'xp' and params then
 					--Spring.SetUnitExperience(unitID, select(1, Spring.GetUnitExperience(unitID)) + tonumber(params))
 					if type(tonumber(params)) == 'number' then

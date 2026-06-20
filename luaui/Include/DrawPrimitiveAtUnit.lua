@@ -182,6 +182,16 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 			return nil
 		end
 
+		-- Anchor the template and index VBOs to the table so the Lua GC cannot
+		-- collect them while this VAO is alive. OpenGL holds the underlying GL
+		-- buffer objects via the VAO, but Lua does not know that -- without a
+		-- strong Lua reference the GC will eventually finalize these userdata
+		-- objects and delete the GL buffers (typically minutes into a game when
+		-- memory pressure triggers a GC cycle), making the VAO draw from deleted
+		-- buffers and breaking rendering intermittently.
+		DrawPrimitiveAtUnitVBO.nogsTemplateVBO = templateVBO
+		DrawPrimitiveAtUnitVBO.nogsIndexVBO    = indexVBO
+
 		-- Wrap the real VAO so existing consumers can keep calling
 		-- VBO.VAO:DrawArrays(GL.POINTS, usedElements); under the hood we draw the
 		-- template mesh instanced once per element.
