@@ -174,7 +174,8 @@ local function AddPrimitiveAtUnit(unitID)
 	--spEcho(unitID,radius,radius, spGetUnitTeam(unitID), numvertices, 1, gf)
 	local targetVBO
 	if unitCanFly[unitDefID] then
-		targetVBO = selectionVBOAir
+		-- Keep air on the same pre-unit path as ground for reliable visibility.
+		targetVBO = selectionVBOGround
 		unitWaterPass[unitID] = false
 	else
 		local useWaterPass = shouldUseWaterPass(unitID, unitDefID)
@@ -248,8 +249,6 @@ if mapHasWater then
 	function widget:DrawWorld()
 		-- Water-affected ground platters are drawn post-water to avoid refraction distortion.
 		DrawSelections(selectionVBOWater, false)
-		-- Draw air platters after water pass to avoid water refraction distortion.
-		DrawSelections(selectionVBOAir, true)
 	end
 end
 
@@ -436,7 +435,7 @@ local function init()
 	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsGround")
 	if mapHasWater then
 		selectionVBOWater = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsWater")
-		selectionVBOAir = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsAir")
+		selectionVBOAir = selectionVBOGround
 	else
 		selectionVBOWater = selectionVBOGround
 		selectionVBOAir = selectionVBOGround
@@ -492,7 +491,7 @@ function widget:Initialize()
 		init()
 	end
 	WG.selectedunits.getMouseoverHighlight = function()
-		return selectimouseoverHighlightonHighlight
+		return mouseoverHighlight
 	end
 
 	Spring.LoadCmdColorsConfig('unitBox  0 1 0 0')
