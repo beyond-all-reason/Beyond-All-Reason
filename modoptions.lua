@@ -358,7 +358,7 @@ local options = {
 	},
     {
         key     = ModeEnums.ModOptions.UnitSharingModeAtT2,
-        name    = "Unit Sharing at Tech 2",
+        name    = "Unit Sharing activated by Tech 2",
         desc    = "Unit sharing mode that activates when team reaches Tech 2 (requires Tech Blocking)",
         type    = "list",
         section = ModeEnums.ModeCategories.Sharing,
@@ -367,7 +367,7 @@ local options = {
     },
     {
         key     = ModeEnums.ModOptions.UnitSharingModeAtT3,
-        name    = "Unit Sharing at Tech 3",
+        name    = "Unit Sharing activated by Tech 3",
         desc    = "Unit sharing mode that activates when team reaches Tech 3 (requires Tech Blocking)",
         type    = "list",
         section = ModeEnums.ModeCategories.Sharing,
@@ -477,7 +477,7 @@ local options = {
 	},
     {
         key     = ModeEnums.ModOptions.TaxResourceSharingAmountAtT2,
-        name    = "Tax Rate at Tech 2",
+        name    = "Tax Rate activated by Tech 2",
         desc    = "Tax rate when team reaches Tech 2. -1 means no override. (requires Tech Blocking)",
         type    = "number",
         section = ModeEnums.ModeCategories.Sharing,
@@ -488,7 +488,7 @@ local options = {
     },
     {
         key     = ModeEnums.ModOptions.TaxResourceSharingAmountAtT3,
-        name    = "Tax Rate at Tech 3",
+        name    = "Tax Rate activated by Tech 3",
         desc    = "Tax rate when team reaches Tech 3. -1 means no override. (requires Tech Blocking)",
         type    = "number",
         section = ModeEnums.ModeCategories.Sharing,

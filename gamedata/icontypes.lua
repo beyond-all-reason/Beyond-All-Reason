@@ -2004,6 +2004,18 @@ local icontypes = {
 		bitmap = "icons/corprinter.png",
 		size = 1.20000005
 	},
+	armvoussoir = {
+		bitmap = "icons/corprinter.png",
+		size = 1.20000005
+	},
+	corvoussoir = {
+		bitmap = "icons/corprinter.png",
+		size = 1.20000005
+	},
+	legvoussoir = {
+		bitmap = "icons/corprinter.png",
+		size = 1.20000005
+	},
 	corpship = {
 		bitmap = "icons/ship_pship.png",
 		size = 1.25999999
@@ -2865,6 +2877,18 @@ local icontypes = {
 		size = 0.80849993
 	},
 	legmext15 = {
+		bitmap = "icons/mex_t1.png",
+		size = 1
+	},
+	armspringer = {
+		bitmap = "icons/mex_t1.png",
+		size = 1
+	},
+	corspringer = {
+		bitmap = "icons/mex_t1.png",
+		size = 1
+	},
+	legspringer = {
 		bitmap = "icons/mex_t1.png",
 		size = 1
 	},

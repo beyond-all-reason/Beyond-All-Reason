@@ -54,6 +54,7 @@ local extraUnitsTweaks = VFS.Include("unitbasedefs/experimental_extra_units.lua"
 local processRaptorsUnit = VFS.Include("unitbasedefs/raptor_unitdefs_post.lua").Tweaks
 local scavUnitsForPlayers = VFS.Include("unitbasedefs/scavenger_units_for_players.lua").Tweaks
 local legionSimpleMexes = VFS.Include("unitbasedefs/legion_simplified_mexes.lua").Tweaks
+local techBlockingTweaks = VFS.Include("unitbasedefs/tech_blocking_defs.lua").Tweaks
 local junoReworkTweaks = VFS.Include("unitbasedefs/juno_rework.lua").Tweaks
 local navalBalanceTweaks = VFS.Include("unitbasedefs/naval_balance_tweaks.lua").Tweaks
 local skyshiftUnitTweaks = VFS.Include("unitbasedefs/skyshiftunits_post.lua").skyshiftUnitTweaks
@@ -378,20 +379,9 @@ local function unitDef_Post(name, uDef)
 		customparams.evolution_timer                  = tonumber(customparams.evolution_timer) or 20
 	end
 
-	-- Tech Blocking System -------------------------------------------------------------------------------------------------------------------------
+	-- Tech Blocking: cheaper T2 labs + inject Keystone into T1 constructor menus
 	if modOptions.tech_blocking then
-		local techLevel = customparams.techlevel or 1
-		if #buildoptions > 0 and (not uDef.speed or uDef.speed == 0) then
-			if techLevel == 1 then
-				customparams.tech_points_gain = customparams.tech_points_gain or 1
-			elseif techLevel == 2 then
-				customparams.tech_points_gain = customparams.tech_points_gain or 6
-				customparams.tech_build_blocked_until_level = customparams.tech_build_blocked_until_level or 2
-			elseif techLevel == 3 then
-				customparams.tech_points_gain = customparams.tech_points_gain or 9
-				customparams.tech_build_blocked_until_level = customparams.tech_build_blocked_until_level or 3
-			end
-		end
+		techBlockingTweaks(name, uDef)
 	end
 
 	-- Extra Units ----------------------------------------------------------------------------------------------------------------------------------

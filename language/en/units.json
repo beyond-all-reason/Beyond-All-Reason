@@ -987,7 +987,16 @@
 			"xmasball2_3": "Xmas ball",
 			"xmasball2_4": "Xmas ball",
 			"xmasball2_5": "Xmas ball",
-			"xmasball2_6": "Xmas ball"
+			"xmasball2_6": "Xmas ball",
+			"armkeystone": "Keystone",
+			"corkeystone": "Keystone",
+			"legkeystone": "Keystone",
+			"armvoussoir": "Voussoir",
+			"corvoussoir": "Voussoir",
+			"legvoussoir": "Voussoir",
+			"armspringer": "Springer",
+			"corspringer": "Springer",
+			"legspringer": "Springer"
 		},
 		"descriptions": {
 			"legsplab": "Constructs Seaplanes",
@@ -1969,7 +1978,16 @@
 			"xmasball2_3": "Xmas ball",
 			"xmasball2_4": "Xmas ball",
 			"xmasball2_5": "Xmas ball",
-			"xmasball2_6": "Xmas ball"
+			"xmasball2_6": "Xmas ball",
+			"armkeystone": "Tech Core - contributes 1 tech point while alive",
+			"corkeystone": "Tech Core - contributes 1 tech point while alive",
+			"legkeystone": "Tech Core - contributes 1 tech point while alive",
+			"armvoussoir": "Tech Core mobile builder - constructs Springer extractors",
+			"corvoussoir": "Tech Core mobile builder - constructs Springer extractors",
+			"legvoussoir": "Tech Core mobile builder - constructs Springer extractors",
+			"armspringer": "Tech Core extractor - high metal output at a high energy cost",
+			"corspringer": "Tech Core extractor - high metal output at a high energy cost",
+			"legspringer": "Tech Core extractor - high metal output at a high energy cost"
 		}
 	}
 }
