@@ -54,7 +54,6 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
 
 
-local hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 -- Localize for speedups:
 local glStencilFunc         = gl.StencilFunc
 local glStencilOp           = gl.StencilOp
@@ -79,6 +78,9 @@ local unitUnitDefID = {}
 local unitWaterPass = {}
 local nextWaterPassCheckFrame = 0
 local waterPassCheckInterval = 6
+
+local invalidUnits = {} -- units that are invalid for sharing with hovered player
+local hoverListenerRegistered = false
 
 local unitScale = {}
 local unitCanFly = {}
@@ -167,11 +169,11 @@ local function AddPrimitiveAtUnit(unitID)
 		width = radius
 		length = radius
 	end
+	local isInvalid = invalidUnits[unitID] ~= nil
 	if selectionHighlight then
-		unitBufferUniformCache[1] = 1
+		unitBufferUniformCache[1] = isInvalid and -1 or 1
 		gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
 	end
-	--spEcho(unitID,radius,radius, spGetUnitTeam(unitID), numvertices, 1, gf)
 	local targetVBO
 	if unitCanFly[unitDefID] then
 		-- Keep air on the same pre-unit path as ground for reliable visibility.
@@ -182,14 +184,14 @@ local function AddPrimitiveAtUnit(unitID)
 		unitWaterPass[unitID] = useWaterPass
 		targetVBO = (useWaterPass and selectionVBOWater) or selectionVBOGround
 	end
-
+	local invalidFlag = isInvalid and 1 or 0
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
 		{
 			length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
 			unitTeam[unitID], -- teamID
 			numVertices, -- how many trianges should we make
-			gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
+			gf, invalidFlag, 0, 0, -- the gameFrame (for animations), and invalid flag
 			0, 1, 0, 1, -- These are our default UV atlas tranformations
 			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 		},
@@ -200,12 +202,12 @@ local function AddPrimitiveAtUnit(unitID)
 	)
 end
 
-
 local function DrawSelections(selectionVBO, isAir)
 	if selectionVBO.usedElements > 0 then
-		if hasBadCulling then
-			gl.Culling(false)
-		end
+		-- Flat ground overlays: cull nothing. The NoGS fallback draws each shape as a
+		-- triangle fan whose winding varies by shape (e.g. aircraft triangles wind
+		-- opposite to circles), so back-face culling would drop those platters.
+		gl.Culling(false)
 
 		glTexture(0, texture)
 		selectShader:Activate()
@@ -234,6 +236,7 @@ local function DrawSelections(selectionVBO, isAir)
 
 		selectShader:Deactivate()
 		glTexture(0, false)
+		gl.Culling(true) -- restore the world pass default for following widgets
 
 
 		-- This is the correct way to exit out of the stencil mode, to not break drawing of area commands:
@@ -275,6 +278,29 @@ local function RemovePrimitive(unitID)
 	unitWaterPass[unitID] = nil
 end
 
+local function OnHoverInvalidUnitsChanged(newHoverTeamID, newHoverPlayerID, invalidUnitIds)
+	local newInvalidUnits = {}
+	for _, unitID in ipairs(invalidUnitIds) do
+		newInvalidUnits[unitID] = true
+	end
+
+	local oldInvalidUnits = invalidUnits
+	invalidUnits = newInvalidUnits
+
+	-- Only rebuild primitives for units whose invalid state actually changed (otherwise we get flickering)
+	for unitID, _ in pairs(selUnits) do
+		if Spring.ValidUnitID(unitID) then
+			local wasInvalid = oldInvalidUnits[unitID] ~= nil
+			local isInvalid = newInvalidUnits[unitID] ~= nil
+
+			if wasInvalid ~= isInvalid then
+				RemovePrimitive(unitID)
+				AddPrimitiveAtUnit(unitID)
+			end
+		end
+	end
+end
+
 function widget:SelectionChanged(sel)
 	updateSelection = true
 end
@@ -283,13 +309,14 @@ end
 local lastMouseOverUnitID = nil
 local lastMouseOverFeatureID = nil
 local cleanedForHiddenUI = false
-local mouseOverUnitUniform = {0}
+local mouseOverUnitUniform = {0, 0}
 local mouseOverFeatureUniform = {0}
 
 local function ClearLastMouseOver()
 	if lastMouseOverUnitID then
 		if spValidUnitID(lastMouseOverUnitID) then
-			mouseOverUnitUniform[1] = selUnits[lastMouseOverUnitID] and 1 or 0
+			mouseOverUnitUniform[1] = invalidUnits[lastMouseOverUnitID] and -1 or (selUnits[lastMouseOverUnitID] and 1 or 0)
+			mouseOverUnitUniform[2] = 0
 			spSetUnitBufferUniforms(lastMouseOverUnitID, mouseOverUnitUniform, 6)
 		end
 		lastMouseOverUnitID = nil
@@ -334,7 +361,6 @@ function widget:Update(dt)
 		updateSelection = false
 
 		local newSelUnits = {}
-		-- add to selection
 		for i, unitID in ipairs(selectedUnits) do
 			newSelUnits[unitID] = true
 			if not selUnits[unitID] then
@@ -366,6 +392,13 @@ function widget:Update(dt)
 		end
 	end
 
+	if not hoverListenerRegistered then
+		if WG['advplayerlist_api'] and WG['advplayerlist_api'].AddHoverInvalidUnitsListener then
+			WG['advplayerlist_api'].AddHoverInvalidUnitsListener(OnHoverInvalidUnitsChanged)
+			hoverListenerRegistered = true
+		end
+	end
+
 	-- We move the check for mouseovered units here,
 	-- as this widget is the ground truth for our unitbufferuniform[2].z (#6)
 	-- 0 means unit is un selected
@@ -384,8 +417,9 @@ function widget:Update(dt)
 				if lastMouseOverUnitID ~= unitID then
 					ClearLastMouseOver()
 					local newUniform = (selUnits[unitID] and 1 or 0 ) + 2
-					mouseOverUnitUniform[1] = newUniform
-					spSetUnitBufferUniforms(unitID, mouseOverUnitUniform, 6)
+					-- Preserve the selection highlight value when setting mouseover
+					local currentHighlight = invalidUnits[unitID] and -1 or 1
+					gl.SetUnitBufferUniforms(unitID, {currentHighlight, newUniform}, 6)
 					lastMouseOverUnitID = unitID
 				end
 			elseif result == 'feature' and not guiHidden then
@@ -431,7 +465,7 @@ local function init()
 	shaderConfig.GROWTHRATE = 3.5
 	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity	-- not implemented, doing it via POST_SHADING below instead
 	shaderConfig.HEIGHTOFFSET = 4
-	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
+	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(g_invalid > 0.5 ? vec3(1.0, 0.0, 0.0) : (g_color.rgb * texcolor.rgb + addRadius), texcolor.a * TRANSPARENCY + addRadius);"
 	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsGround")
 	if mapHasWater then
 		selectionVBOWater = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsWater")
@@ -502,6 +536,10 @@ function widget:Shutdown()
 		Spring.LoadCmdColorsConfig('unitBox  0 1 0 1')
 	end
 	WG.selectedunits = nil
+
+	if hoverListenerRegistered and WG['advplayerlist_api'] and WG['advplayerlist_api'].RemoveHoverInvalidUnitsListener then
+		WG['advplayerlist_api'].RemoveHoverInvalidUnitsListener(OnHoverInvalidUnitsChanged)
+	end
 end
 
 function widget:GetConfigData(data)

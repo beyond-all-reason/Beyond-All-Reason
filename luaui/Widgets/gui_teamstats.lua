@@ -99,6 +99,7 @@ local GetGaiaTeamID			= Spring.GetGaiaTeamID
 local GetAllyTeamList		= Spring.GetAllyTeamList
 local GetTeamList			= Spring.GetTeamList
 local GetTeamStatsHistory	= Spring.GetTeamStatsHistory
+local ShareStats			= VFS.Include("common/luaUtilities/economy/share_stats.lua")
 local GetTeamInfo			= Spring.GetTeamInfo
 local GetPlayerInfo			= Spring.GetPlayerInfo
 local GetMouseState			= spGetMouseState
@@ -336,6 +337,14 @@ function widget:GameFrame(n,forceupdate)
 					history = history[#history]
 					history.resourcesProduced = history.metalProduced + history.energyProduced/60
 					history.resourcesUsed = history.metalUsed + history.energyUsed/60
+					-- sent/received are Lua-owned now (engine keeps only excess); fall back to
+					-- engine history values when no Lua stats published (vanilla / native sharing).
+					local mShare = ShareStats.Read(Spring, teamID, "metal")
+					local eShare = ShareStats.Read(Spring, teamID, "energy")
+					history.metalSent = mShare.sent or history.metalSent
+					history.energySent = eShare.sent or history.energySent
+					history.metalReceived = mShare.received or history.metalReceived
+					history.energyReceived = eShare.received or history.energyReceived
 					history.resourcesExcess = history.metalExcess + history.energyExcess/60
 					history.resourcesSent = history.metalSent + history.energySent/60
 					history.resourcesReceived = history.metalReceived + history.energyReceived/60
