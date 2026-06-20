@@ -1140,173 +1140,6 @@ void main() {
 }
 ]]
 
-U.vsSrcNoGS = [[
-#version 430 core
-
-layout(location = 0) in vec4 vertexPosUV;
-layout(location = 1) in vec4 spawnPosAndSize;
-layout(location = 2) in vec4 velAndSpawnFrame;
-layout(location = 3) in vec4 instColor;
-layout(location = 4) in vec4 rotData;
-
-//__ENGINEUNIFORMBUFFERDEFS__
-
-uniform float drawRadius;
-uniform float glowScale;   // billboard sized like GS glow halo: drawRadius * glowScale
-uniform float wobbleAmp;
-uniform float wobbleFreq;
-uniform float wobbleVar;
-uniform float wobbleFreqVar;
-uniform float wobbleRampFrames;
-
-out vec4 v_color;
-out vec2 v_uv;
-out vec3 v_worldPos;
-out vec3 v_phaseSeed;
-
-void main() {
-	float currentFrame = timeInfo.x + timeInfo.w;
-	float spawnFrame = velAndSpawnFrame.w;
-	float deathFrame = rotData.w;
-
-	if (currentFrame >= deathFrame) {
-		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
-		v_color = vec4(0.0);
-		v_uv = vec2(0.0);
-		v_worldPos = vec3(0.0);
-		v_phaseSeed = vec3(0.0);
-		return;
-	}
-
-	float t = max(currentFrame - spawnFrame, 0.0);
-	vec3 worldPos = spawnPosAndSize.xyz + velAndSpawnFrame.xyz * t;
-
-	float packedW = abs(spawnPosAndSize.w);
-	float fadeFrames = floor(packedW / 1024.0);
-	float sizeMult = (packedW - fadeFrames * 1024.0) / 256.0;
-	float fade = (fadeFrames > 0.5) ? clamp((deathFrame - currentFrame) / fadeFrames, 0.0, 1.0) : 1.0;
-
-	// Match GS VS: shrink with fade so particles dissolve visually
-	float sizeMultFaded = sizeMult * (0.5 + 0.5 * fade);
-
-	if (wobbleAmp > 0.0001) {
-		float totalLife = max(deathFrame - spawnFrame, 1.0);
-		float bell = sin(3.14159265 * t / totalLife);
-		if (wobbleRampFrames > 0.5) {
-			bell *= min(1.0, t / wobbleRampFrames);
-		}
-		float hash = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
-		float freqScale = max(0.0, 1.0 + wobbleFreqVar * (2.0 * hash - 1.0));
-		float hash2 = fract(hash * 113.7 + 0.317);
-		float ampScale = max(0.0, 1.0 + wobbleVar * (2.0 * hash2 - 1.0));
-		float phase = currentFrame * wobbleFreq * freqScale * (6.2831853 / 30.0) + radians(rotData.x);
-		vec2 swirl = vec2(cos(phase), sin(phase));
-		worldPos.xz += swirl * (wobbleAmp * ampScale * bell);
-	}
-
-	// Size like the GS glow halo billboard (drawRadius * glowScale)
-	float radius = drawRadius * glowScale * sizeMultFaded;
-	vec3 right = cameraViewInv[0].xyz * (vertexPosUV.x * radius);
-	vec3 up    = cameraViewInv[1].xyz * (vertexPosUV.y * radius);
-	vec3 billboardPos = worldPos + right + up;
-
-	v_color = vec4(instColor.rgb * fade, instColor.a * fade);
-	v_uv = vertexPosUV.xy;
-	v_worldPos = worldPos;
-	v_phaseSeed = vec3(rotData.x, rotData.y, rotData.x + rotData.y);
-	gl_Position = cameraViewProj * vec4(billboardPos, 1.0);
-}
-]]
-
-U.fsSrcNoGS = [[
-#version 430 core
-
-//__ENGINEUNIFORMBUFFERDEFS__
-
-uniform sampler2D infoTex;
-uniform float losAlwaysVisible;
-uniform float glowIntensity;
-uniform float glowFalloff;
-uniform float glowBreath;
-uniform float glowBreathFreq;
-uniform float glowBreathVar;
-uniform float glowBreathFreqVar;
-uniform float cubeNoise;
-uniform float cubeNoiseSpeed;
-uniform float cubeNoiseScale;
-
-in vec4 v_color;
-in vec2 v_uv;
-in vec3 v_worldPos;
-in vec3 v_phaseSeed;
-out vec4 fragColor;
-
-float hash13(vec3 p) {
-	p = fract(p * 0.1031);
-	p += dot(p, p.zyx + 31.32);
-	return fract((p.x + p.y) * p.z);
-}
-float valueNoise3(vec3 p) {
-	vec3 i = floor(p); vec3 f = fract(p);
-	f = f*f*f*(f*(f*6.0-15.0)+10.0);
-	vec3 n000=i; float h000=hash13(n000),h100=hash13(n000+vec3(1,0,0)),h010=hash13(n000+vec3(0,1,0)),h110=hash13(n000+vec3(1,1,0));
-	float h001=hash13(n000+vec3(0,0,1)),h101=hash13(n000+vec3(1,0,1)),h011=hash13(n000+vec3(0,1,1)),h111=hash13(n000+vec3(1,1,1));
-	vec4 nx=mix(vec4(h000,h010,h001,h011),vec4(h100,h110,h101,h111),f.x);
-	vec2 ny=mix(nx.xz,nx.yw,f.y);
-	return mix(ny.x,ny.y,f.z);
-}
-
-void main() {
-	float rd = length(v_uv);
-	if (rd > 1.0) discard;
-
-	// Early LOS discard (matches GS FS)
-	float losMul = 1.0;
-	if (losAlwaysVisible < 0.5) {
-		vec2 losUV = clamp(v_worldPos.xz, vec2(0.0), mapSize.xy) / mapSize.zw;
-		float los = dot(vec3(0.3333), texture(infoTex, losUV).rgb);
-		losMul = smoothstep(0.30, 0.50, los);
-		if (losMul < 0.02) discard;
-	}
-
-	// Glow radial falloff (matches GS glow billboard path)
-	float t = 1.0 - rd;
-	float gI = glowIntensity;
-	if (glowBreath > 0.0001) {
-		float seed = radians(v_phaseSeed.x);
-		float hAmp  = fract(sin(seed * 91.7253 + 17.31) * 43758.5453);
-		float hFreq = fract(sin(seed * 33.1117 + 43.93) * 27183.4500);
-		float ampScale  = max(0.0, 1.0 + glowBreathVar     * (2.0 * hAmp  - 1.0));
-		float freqScale = max(0.0, 1.0 + glowBreathFreqVar * (2.0 * hFreq - 1.0));
-		float ph = (timeInfo.x + timeInfo.w) * glowBreathFreq * freqScale * (6.2831853 / 30.0) + seed;
-		gI *= 1.0 + glowBreath * ampScale * sin(ph);
-	}
-	float glow = pow(clamp(t, 0.0, 1.0), max(glowFalloff, 0.01)) * gI;
-
-	// Noise modulates the glow brightness for visual texture
-	if (cubeNoise > 0.001) {
-		vec3 noiseSeed = v_phaseSeed * 137.0 + vec3(11.0, 47.0, 83.0);
-		float tt = (timeInfo.x + timeInfo.w) * cubeNoiseSpeed * (1.0 / 30.0);
-		vec3 samp = vec3(v_uv * cubeNoiseScale * 0.4, 0.0) + noiseSeed + vec3(tt, tt * 0.7, tt * 1.3);
-		float noiseVal = valueNoise3(samp);
-		glow *= 0.5 + noiseVal;
-	}
-
-	// Glow brightness boost: equalise saturation so dim team colors get boosted
-	// (identical calculation to GS glow path in fsSrcCube)
-	vec3 glowTint = v_color.rgb / max(max(v_color.r, max(v_color.g, v_color.b)), 0.001);
-	float gLuma = dot(glowTint, vec3(0.2126, 0.7152, 0.0722));
-	const float GLOW_LUMA_TARGET = 0.55;
-	const float GLOW_BOOST_MAX   = 5.0;
-	float glowBoost = min(GLOW_LUMA_TARGET / max(gLuma, 0.001), GLOW_BOOST_MAX);
-
-	// Non-premultiplied output matching GS glow path
-	vec3 rgb = glowTint * (glow * glowBoost);
-	float a   = v_color.a * glow;
-	fragColor = vec4(rgb, a) * losMul;
-}
-]]
-
 --------------------------------------------------------------------------------
 -- Init / shutdown
 --------------------------------------------------------------------------------
@@ -1317,7 +1150,11 @@ local function goodbye(reason)
 end
 
 local function initGL4()
-	local shaderCacheGS = {
+	if not LuaShader.isGeometryShaderSupported then
+		goodbye("geometry shader not supported")
+		return false
+	end
+	local shaderCache = {
 		vsSrc = vsSrcCube,
 		fsSrc = fsSrcCube,
 		gsSrc = gsSrcCube,
@@ -1335,59 +1172,24 @@ local function initGL4()
 		shaderConfig = {},
 		forceupdate = true,
 	}
-	local shaderCacheNoGS = {
-		vsSrc = U.vsSrcNoGS,
-		fsSrc = U.fsSrcNoGS,
-		shaderName = "NanoParticlesGL4_Shape_NoGS",
-		uniformInt = { infoTex = 1 },
-		uniformFloat = {
-			losAlwaysVisible = 0,
-			drawRadius = U.DRAW_RADIUS,
-			glowScale = U.GLOW_SCALE,
-			glowIntensity = U.GLOW_INTENSITY,
-			glowFalloff = U.GLOW_FALLOFF,
-			glowBreath = U.GLOW_BREATH,
-			glowBreathFreq = U.GLOW_BREATH_FREQ,
-			glowBreathVar = U.GLOW_BREATH_VAR,
-			glowBreathFreqVar = U.GLOW_BREATH_FREQ_VAR,
-			cubeNoise = U.CUBE_NOISE,
-			cubeNoiseSpeed = U.CUBE_NOISE_SPEED,
-			cubeNoiseScale = U.CUBE_NOISE_SCALE,
-			wobbleAmp = U.WOBBLE_AMP,
-			wobbleFreq = U.WOBBLE_FREQ,
-			wobbleVar = U.WOBBLE_VAR,
-			wobbleFreqVar = U.WOBBLE_FREQ_VAR,
-			wobbleRampFrames = U.WOBBLE_RAMP_FRAMES,
-		},
-		shaderConfig = {},
-		forceupdate = true,
-	}
-
-	U.nanoUseGeometryShader = false--(LuaShader and LuaShader.isGeometryShaderSupported) or false
-	if U.nanoUseGeometryShader then
-		nanoShader = LuaShader.CheckShaderUpdates(shaderCacheGS)
-		if not nanoShader then
-			U.nanoUseGeometryShader = false
-			spEcho("Nano Particles GL4: GS compile failed, enabling NoGS fallback")
-		end
-	end
-	if not U.nanoUseGeometryShader then
-		nanoShader = LuaShader.CheckShaderUpdates(shaderCacheNoGS)
-		if not nanoShader then
-			goodbye("Failed to compile shader (GS and NoGS)")
-			return false
-		end
+	nanoShader = LuaShader.CheckShaderUpdates(shaderCache)
+	if not nanoShader then
+		goodbye("Failed to compile shader")
+		return false
 	end
 
 	-- Quad: xy in [-1,1] (corner), uv in [0,1]
-	-- makeRectVBO bakes 6 vertices (2 triangles) into the VBO directly.
-	-- GS path: use a 3-index VBO so the GS runs once per instance, not twice.
-	-- NoGS path: use the full 6 vertices directly; no index buffer needed.
 	local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(
 		-1, -1, 1, 1,
 		0, 0, 1, 1,
 		"nanoQuadVBO"
 	)
+	-- Shape GS only needs ONE triangle per instance; using the rect's 2-tri
+	-- index buffer would invoke the GS twice per particle. A 3-index VBO
+	-- (the rect's first triangle: bl,tl,tr) cuts GS work in half.
+	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	indexVBO:Define(3)
+	indexVBO:Upload({0, 1, 2})
 
 	local layout = {
 		{ id = 1, name = "spawnPosAndSize",  size = 4 },
@@ -1402,17 +1204,8 @@ local function initGL4()
 	end
 	nanoVBO.numVertices = numVertices
 	nanoVBO.vertexVBO   = quadVBO
-	if U.nanoUseGeometryShader then
-		-- GS only needs one triangle per instance (it generates all cube faces itself)
-		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-		indexVBO:Define(3)
-		indexVBO:Upload({0, 1, 2})
-		nanoVBO.indexVBO = indexVBO
-		nanoVBO.VAO = nanoVBO:makeVAOandAttach(quadVBO, nanoVBO.instanceVBO, indexVBO)
-	else
-		-- NoGS billboard: makeRectVBO already has the full 6-vertex quad
-		nanoVBO.VAO = nanoVBO:makeVAOandAttach(quadVBO, nanoVBO.instanceVBO)
-	end
+	nanoVBO.indexVBO    = indexVBO
+	nanoVBO.VAO         = nanoVBO:makeVAOandAttach(quadVBO, nanoVBO.instanceVBO, indexVBO)
 	nanoVBO.primitiveType = GL.TRIANGLES
 
 	return true
