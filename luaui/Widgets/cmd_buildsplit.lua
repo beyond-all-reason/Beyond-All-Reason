@@ -15,15 +15,11 @@ end
 
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local floor = math.floor
 local spTestBuildOrder = Spring.TestBuildOrder
 local spGetSelUnitCount = Spring.GetSelectedUnitsCount
 local spGetSelUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local activeModifier = false
 
 local unitBuildOptions = {}
@@ -62,6 +58,25 @@ local function handleSetModifier(_, _, _, data)
 	activeModifier = data[1]
 end
 
+local function getBuilderInfos(unitIDs)
+	local builders = {}
+	for _, unitID in ipairs(unitIDs) do
+		local builderInfo = WG["api_build_orders"].getBuilderInfo(unitID)
+		if builderInfo and unitBuildOptions[builderInfo.unitDefID] then
+			table.insert(builders, builderInfo)
+		end
+	end
+	return builders
+end
+
+---@param builderIDs number[]
+---@param buildings BuildingInfo[]
+---@param cmdOpts table
+local function splitBuildings(builderIDs, buildings, cmdOpts)
+	local builders = getBuilderInfos(builderIDs)
+	WG["api_build_orders"].splitBuildOrders(builders, buildings, cmdOpts or { "shift" })
+end
+
 function widget:Initialize()
 	gameStarted = Spring.GetGameFrame() > 0
 	isSpec = spGetSpectatingState()
@@ -75,6 +90,7 @@ function widget:Initialize()
 
 	WG['build_split'] = {
 		isActive = function() return activeModifier end,
+		splitBuildings = splitBuildings,
 	}
 end
 
@@ -83,7 +99,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts) -- 3 of 3 parameters
 	if cmdID == GameCMD.BLUEPRINT_PLACE or cmdID == GameCMD.BLUEPRINT_CREATE then
 		return false
 	end
-	
+
 	if not (cmdID < 0 and cmdOpts.shift and activeModifier) then
 		return false
 	end -- Note: All multibuilds require shift
@@ -115,30 +131,27 @@ function widget:Update()
 
 	local selUnits = spGetSelUnitsSorted()
 
-	local builders = {}
+	local builderIDs = {}
 	for uDefID, uIDs in pairs(selUnits) do
 		local uDef = UnitDefs[uDefID]
 		if uDef and uDef.buildOptions and #uDef.buildOptions > 0 then
 			for _, uID in ipairs(uIDs) do
-				local builderInfo = WG["api_build_orders"].getBuilderInfo(uID)
-				if builderInfo then
-					table.insert(builders, builderInfo)
-				end
+				table.insert(builderIDs, uID)
 			end
 		end
 	end
 
 	local buildings = {}
 	for i = 1, buildCount do
-		table.insert(buildings, {
-			unitDefID = buildID,
-			position = buildLocs[i],
-			facing = buildLocs[i][4],
-			originalName = UnitDefs[buildID].name,
-		})
+		---@type BuildingInfo
+		local buildingInfo = {}
+		buildingInfo.unitDefID = buildID
+		buildingInfo.position = { buildLocs[i][1], buildLocs[i][2], buildLocs[i][3] }
+		buildingInfo.facing = buildLocs[i][4]
+		table.insert(buildings, buildingInfo)
 	end
 
-	WG["api_build_orders"].splitBuildOrders(builders, buildings, { "shift" })
+	splitBuildings(builderIDs, buildings, { "shift" })
 
 	buildCount = 0
 end

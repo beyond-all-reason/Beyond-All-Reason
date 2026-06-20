@@ -149,7 +149,7 @@ end
 ---@param shift boolean Whether shift was held (appending to existing queue)
 local function calculateCmdOrder(cmds, spots, shift)
 	local builderPos = getAvgPositionOfValidBuilders(selectedUnits, mexConstructors, selectedMex, shift)
-	if not builderPos then return end
+	if not builderPos then return {} end
 	local orderedCommands = {}
 	local pos = {}
 	while #cmds > 0 do
@@ -173,6 +173,30 @@ local function calculateCmdOrder(cmds, spots, shift)
 	return orderedCommands
 end
 
+local function getSelectedBuilderIDs()
+	local builders = {}
+	for i = 1, #selectedUnits do
+		local unitID = selectedUnits[i]
+		if mexConstructors[unitID] then
+			builders[#builders + 1] = unitID
+		end
+	end
+	return builders
+end
+
+---@return BuildingInfo[]
+local function mapCommandsToBuildingInfos(cmds)
+	local buildings = {}
+	for i = 1, #cmds do
+		local cmd = cmds[i]
+		buildings[#buildings + 1] = {
+			unitDefID = cmd[1],
+			position = { cmd[2], cmd[3], cmd[4] },
+		}
+	end
+	return buildings
+end
+
 
 function widget:CommandNotify(id, params, options)
 	if id ~= CMD_AREA_MEX then
@@ -193,7 +217,12 @@ function widget:CommandNotify(id, params, options)
 	local cmds = getCmdsForValidSpots(spots, shift)
 	local sortedCmds = calculateCmdOrder(cmds, spots, shift)
 
-	WG['resource_spot_builder'].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
+	local BuildSplit = WG["build_split"]
+	if options.shift and BuildSplit.isActive() and #sortedCmds > 0 then
+		BuildSplit.splitBuildings(getSelectedBuilderIDs(), mapCommandsToBuildingInfos(sortedCmds), { "shift" })
+	else
+		WG['resource_spot_builder'].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
+	end
 
 	selectedMex = nil
 
