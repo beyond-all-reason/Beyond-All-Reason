@@ -39,6 +39,7 @@ local selectionHighlight = true
 local mouseoverHighlight = true
 
 ---- GL4 Backend Stuff----
+local selectionVBOUnfinished = nil
 local selectionVBOGround = nil
 local selectionVBOWater = nil
 local selectionVBOAir = nil
@@ -46,6 +47,7 @@ local selectionVBOAir = nil
 local mapHasWater = (Spring.GetGroundExtremes() < 0)
 
 local selectShader = nil
+local unbuiltShader = nil
 local luaShaderDir = "LuaUI/Include/"
 
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -152,9 +154,16 @@ local function AddPrimitiveAtUnit(unitID)
 		unitTeam[unitID] = spGetUnitTeam(unitID)
 	end
 
+	local isBeingBuilt = Spring.GetUnitIsBeingBuilt(unitID)
+
 	local additionalheight = 0
 	local width, length
-	if unitCanFly[unitDefID] then
+	if isBeingBuilt then
+		width = radius
+		length = radius
+		cornersize = (width + length) * 0.075
+		numVertices = 2
+	elseif unitCanFly[unitDefID] then
 		numVertices = 3 -- triangles for planes
 		width = radius
 		length = radius
@@ -173,7 +182,9 @@ local function AddPrimitiveAtUnit(unitID)
 	end
 	--spEcho(unitID,radius,radius, spGetUnitTeam(unitID), numvertices, 1, gf)
 	local targetVBO
-	if unitCanFly[unitDefID] then
+	if isBeingBuilt then
+		targetVBO = selectionVBOUnfinished
+	elseif unitCanFly[unitDefID] then
 		-- Keep air on the same pre-unit path as ground for reliable visibility.
 		targetVBO = selectionVBOGround
 		unitWaterPass[unitID] = false
@@ -201,40 +212,41 @@ local function AddPrimitiveAtUnit(unitID)
 end
 
 
-local function DrawSelections(selectionVBO, isAir)
-	if selectionVBO.usedElements > 0 then
+local function DrawSelections(selectionVBO, shader)
+	if selectionVBO.usedElements > -1 then
 		if hasBadCulling then
 			gl.Culling(false)
 		end
 
+		shader = shader or selectShader
+
 		glTexture(0, texture)
-		selectShader:Activate()
-		selectShader:SetUniform("iconDistance", 99999) -- pass
+		shader:Activate()
+		shader:SetUniform("iconDistance", 99999) -- pass
 		glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		glDepthTest(true) -- One really interesting thing is that the depth test does not seem to be obeyed within DrawWorldPreUnit
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
-		glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
+		glClear(GL_STENCIL_BUFFER_BIT) -- set stencil buffer to 0
 
 		glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
 		glStencilMask(1)
 
-		selectShader:SetUniform("addRadius", 0)
+		shader:SetUniform("addRadius", 0)
 		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
 
 		glStencilFunc(GL_NOTEQUAL, 1, 1)
 		glStencilMask(0)
 		glDepthTest(true)
 
-		selectShader:SetUniform("addRadius", 1.3)
+		shader:SetUniform("addRadius", 1.3)
 		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
 
 		glStencilMask(1)
 		glStencilFunc(GL_ALWAYS, 1, 1)
 		glDepthTest(true)
 
-		selectShader:Deactivate()
+		shader:Deactivate()
 		glTexture(0, false)
-
 
 		-- This is the correct way to exit out of the stencil mode, to not break drawing of area commands:
 		glStencilTest(false)
@@ -248,7 +260,12 @@ end
 if mapHasWater then
 	function widget:DrawWorld()
 		-- Water-affected ground platters are drawn post-water to avoid refraction distortion.
-		DrawSelections(selectionVBOWater, false)
+		DrawSelections(selectionVBOWater)
+		DrawSelections(selectionVBOUnfinished, unbuiltShader)
+	end
+else
+	function widget:DrawWorld()
+		DrawSelections(selectionVBOUnfinished, unbuiltShader)
 	end
 end
 
@@ -259,11 +276,12 @@ end
 
 local function RemovePrimitive(unitID)
 	local selectionVBO
-	if selectionVBOGround.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOGround end
+	if selectionVBOGround.instanceIDtoIndex[unitID] then selectionVBO = selectionVBOGround end
+	if selectionVBOUnfinished.instanceIDtoIndex[unitID] then selectionVBO = selectionVBOUnfinished end
 	if selectionVBOWater and selectionVBOWater.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOWater end
 	if selectionVBOAir.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOAir end
 
-	if selectionVBO and selectionVBO.instanceIDtoIndex[unitID] then
+	if selectionVBO then
 		if selectionHighlight then
 			unitBufferUniformCache[1] = 0
 			if spValidUnitID(unitID) then
@@ -409,6 +427,13 @@ function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	end
 end
 
+function widget:UnitFinished(unitID)
+	if selUnits[unitID] then
+		RemovePrimitive(unitID)
+		AddPrimitiveAtUnit(unitID)
+	end
+end
+
 function widget:UnitDestroyed(unitID)
 	--spEcho("UnitDestroyed(unitID)",unitID, selectedUnits[unitID])
 	if selectedUnits[unitID] then
@@ -433,6 +458,7 @@ local function init()
 	shaderConfig.HEIGHTOFFSET = 4
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
 	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsGround")
+	selectionVBOUnfinished, unbuiltShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsUnfinished")
 	if mapHasWater then
 		selectionVBOWater = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsWater")
 		selectionVBOAir = selectionVBOGround
