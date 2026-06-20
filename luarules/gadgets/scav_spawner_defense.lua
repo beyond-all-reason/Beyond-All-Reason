@@ -1794,6 +1794,9 @@ if gadgetHandler:IsSyncedCode() then
 	UnitReactionsTimeout = {}
 	UnitLifetimeResetTimeout = {}
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+		if not UnitReactionsTimeout[unitID] then
+			UnitReactionsTimeout[unitID] = 0
+		end
 		if UnitReactionsTimeout[unitID] and UnitReactionsTimeout[unitID] < GetGameSeconds-2 then
 			if config.scavBehaviours.SKIRMISH[attackerDefID] and (unitTeam ~= scavTeamID) and attackerID and (mRandom() < config.scavBehaviours.SKIRMISH[attackerDefID].chance) and unitTeam ~= attackerTeam then
 				UnitReactionsTimeout[unitID] = GetGameSeconds
